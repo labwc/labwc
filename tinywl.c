@@ -309,9 +309,6 @@ static bool view_at(struct tinywl_view *view,
 	 */
 	double view_sx = lx - view->x;
 	double view_sy = ly - view->y;
-
-	struct wlr_surface_state *state = &view->xdg_surface->surface->current;
-
 	double _sx, _sy;
 	struct wlr_surface *_surface = NULL;
 	_surface = wlr_xdg_surface_surface_at(
@@ -475,7 +472,6 @@ static void server_cursor_button(struct wl_listener *listener, void *data) {
 	wlr_seat_pointer_notify_button(server->seat,
 			event->time_msec, event->button, event->state);
 	double sx, sy;
-	struct wlr_seat *seat = server->seat;
 	struct wlr_surface *surface;
 	struct tinywl_view *view = desktop_view_at(server,
 			server->cursor->x, server->cursor->y, &surface, &sx, &sy);

@@ -21,7 +21,12 @@
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
+#include <wlr/xwayland.h>
 #include <xkbcommon/xkbcommon.h>
+
+#define XCURSOR_DEFAULT "left_ptr"
+#define XCURSOR_SIZE 24
+#define XCURSOR_MOVE "grabbing"
 
 /* For brevity's sake, struct members are annotated where they are used. */
 enum tinywl_cursor_mode {
@@ -34,9 +39,12 @@ struct tinywl_server {
 	struct wl_display *wl_display;
 	struct wlr_backend *backend;
 	struct wlr_renderer *renderer;
+	struct wlr_compositor *compositor;
 
 	struct wlr_xdg_shell *xdg_shell;
 	struct wl_listener new_xdg_surface;
+	struct wlr_xwayland *xwayland;
+	struct wl_listener new_xwayland_surface;
 	struct wl_list views;
 
 	struct wlr_cursor *cursor;
@@ -69,16 +77,32 @@ struct tinywl_output {
 	struct wl_listener frame;
 };
 
+enum view_type {
+	LAB_XDG_SHELL_VIEW,
+	LAB_XWAYLAND_VIEW
+};
+
 struct tinywl_view {
+	enum view_type type;
 	struct wl_list link;
 	struct tinywl_server *server;
 	struct wlr_xdg_surface *xdg_surface;
+	struct wlr_xwayland_surface *xwayland_surface;
+	struct wlr_surface *surface;
 	struct wl_listener map;
 	struct wl_listener unmap;
 	struct wl_listener destroy;
 	struct wl_listener request_move;
 	struct wl_listener request_resize;
+	struct wl_listener request_configure;
+
 	bool mapped;
+	/*
+	 * Some X11 windows appear to create additional top levels windows
+	 * which we want to ignore. These are never mapped, so we can track
+	 * them that way
+	 */
+	bool been_mapped;
 	int x, y;
 };
 
@@ -91,6 +115,40 @@ struct tinywl_keyboard {
 	struct wl_listener key;
 };
 
+static struct tinywl_view *next_toplevel(struct tinywl_view *current);
+static bool is_toplevel(struct tinywl_view *view);
+
+/**
+ * Request that this toplevel surface show itself in an activated or
+ * deactivated state.
+ */
+static void set_activated(struct wlr_surface *s, bool activated) {
+	if (wlr_surface_is_xdg_surface(s)) {
+		struct wlr_xdg_surface *previous;
+		previous = wlr_xdg_surface_from_wlr_surface(s);
+		wlr_xdg_toplevel_set_activated(previous, activated);
+	} else {
+		struct wlr_xwayland_surface *previous;
+		previous = wlr_xwayland_surface_from_wlr_surface(s);
+		wlr_xwayland_surface_activate(previous, activated);
+	}
+}
+
+static void activate_view(struct tinywl_view *view) {
+	if (view->type == LAB_XDG_SHELL_VIEW) {
+		wlr_xdg_toplevel_set_activated(view->xdg_surface, true);
+	} else if (view->type == LAB_XWAYLAND_VIEW) {
+		wlr_xwayland_surface_activate(view->xwayland_surface, true);
+	} else {
+		fprintf(stderr, "warn: view was of unknown type (%s)\n", __func__);
+	}
+}
+
+static void move_to_front(struct tinywl_view *view) {
+	wl_list_remove(&view->link);
+	wl_list_insert(&view->server->views, &view->link);
+}
+
 static void focus_view(struct tinywl_view *view, struct wlr_surface *surface) {
 	/* Note: this function only deals with keyboard focus. */
 	if (view == NULL) {
@@ -98,34 +156,79 @@ static void focus_view(struct tinywl_view *view, struct wlr_surface *surface) {
 	}
 	struct tinywl_server *server = view->server;
 	struct wlr_seat *seat = server->seat;
-	struct wlr_surface *prev_surface = seat->keyboard_state.focused_surface;
+	struct wlr_surface *prev_surface;
+
+	prev_surface = seat->keyboard_state.focused_surface;
 	if (prev_surface == surface) {
 		/* Don't re-focus an already focused surface. */
 		return;
 	}
-	if (prev_surface) {
-		/*
-		 * Deactivate the previously focused surface. This lets the client know
-		 * it no longer has focus and the client will repaint accordingly, e.g.
-		 * stop displaying a caret.
-		 */
-		struct wlr_xdg_surface *previous = wlr_xdg_surface_from_wlr_surface(
-					seat->keyboard_state.focused_surface);
-		wlr_xdg_toplevel_set_activated(previous, false);
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		/* Don't focus on menus, etc */
+		if (!wlr_xwayland_or_surface_wants_focus(view->xwayland_surface)) {
+			return;
+		}
 	}
+	if (prev_surface) {
+		set_activated(seat->keyboard_state.focused_surface, false);
+	}
+
 	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat);
-	/* Move the view to the front */
-	wl_list_remove(&view->link);
-	wl_list_insert(&server->views, &view->link);
-	/* Activate the new surface */
-	wlr_xdg_toplevel_set_activated(view->xdg_surface, true);
+	move_to_front(view);
+	activate_view(view);
 	/*
-	 * Tell the seat to have the keyboard enter this surface. wlroots will keep
-	 * track of this and automatically send key events to the appropriate
-	 * clients without additional work on your part.
+	 * Tell the seat to have the keyboard enter this surface. wlroots will
+	 * keep track of this and automatically send key events to the
+	 * appropriate clients without additional work on your part.
 	 */
-	wlr_seat_keyboard_notify_enter(seat, view->xdg_surface->surface,
-		keyboard->keycodes, keyboard->num_keycodes, &keyboard->modifiers);
+	wlr_seat_keyboard_notify_enter(seat, view->surface, keyboard->keycodes,
+		keyboard->num_keycodes, &keyboard->modifiers);
+}
+
+static struct tinywl_view *last_toplevel(struct tinywl_server *server) {
+	struct tinywl_view *view;
+
+	wl_list_for_each_reverse(view, &server->views, link) {
+		if (!view->been_mapped) {
+			continue;
+		}
+		if (is_toplevel(view)) {
+			return view;
+		}
+	}
+	fprintf(stderr, "warn: found no toplevel view (%s)\n", __func__);
+	return NULL;
+}
+
+static struct tinywl_view *first_toplevel(struct tinywl_server *server) {
+	struct tinywl_view *view;
+
+	wl_list_for_each(view, &server->views, link) {
+		if (!view->been_mapped) {
+			continue;
+		}
+		if (is_toplevel(view)) {
+			return view;
+		}
+	}
+	fprintf(stderr, "warn: found no toplevel view (%s)\n", __func__);
+	return NULL;
+}
+
+static void view_focus_last_toplevel(struct tinywl_server *server) {
+	/* TODO: write view_nr_toplevel_views() */
+	if (wl_list_length(&server->views) < 2) {
+		return;
+	}
+	struct tinywl_view *view = last_toplevel(server);
+	focus_view(view, view->surface);
+}
+
+static void view_focus_next_toplevel(struct tinywl_server *server) {
+	struct tinywl_view *view;
+	view = first_toplevel(server);
+	view = next_toplevel(view);
+	focus_view(view, view->surface);
 }
 
 static void keyboard_handle_modifiers(
@@ -146,6 +249,114 @@ static void keyboard_handle_modifiers(
 		&keyboard->device->keyboard->modifiers);
 }
 
+static int xwl_nr_parents(struct tinywl_view *view) {
+	struct wlr_xwayland_surface *s = view->xwayland_surface;
+	int i = 0;
+
+	if (!s) {
+		fprintf(stderr, "warn: (%s) no xwayland surface\n", __func__);
+		return -1;
+	}
+	while (s->parent) {
+		s = s->parent;
+		++i;
+	}
+	return i;
+}
+
+static bool is_toplevel(struct tinywl_view *view) {
+	switch (view->type) {
+	case LAB_XWAYLAND_VIEW:
+		return xwl_nr_parents(view) > 0 ? false : true;
+	case LAB_XDG_SHELL_VIEW:
+		return view->xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL;
+	}
+	return false;
+}
+
+static void xdg_debug_show_one_view(struct tinywl_view *view) {
+	fprintf(stderr, "XDG  ");
+	switch (view->xdg_surface->role) {
+	case WLR_XDG_SURFACE_ROLE_NONE:
+		fprintf(stderr, "- ");
+		break;
+	case WLR_XDG_SURFACE_ROLE_TOPLEVEL:
+		fprintf(stderr, "0 ");
+		break;
+	case WLR_XDG_SURFACE_ROLE_POPUP:
+		fprintf(stderr, "? ");
+		break;
+	}
+	fprintf(stderr, "                   %p %s", (void *)view,
+		view->xdg_surface->toplevel->app_id);
+	fprintf(stderr, "  {%d, %d, %d, %d}\n",
+		view->xdg_surface->geometry.x,
+		view->xdg_surface->geometry.y,
+		view->xdg_surface->geometry.height,
+		view->xdg_surface->geometry.width);
+}
+
+static void xwl_debug_show_one_view(struct tinywl_view *view) {
+	fprintf(stderr, "XWL  ");
+	if (!view->been_mapped) {
+		fprintf(stderr, "- ");
+	} else {
+		fprintf(stderr, "%d ", xwl_nr_parents(view));
+	}
+	fprintf(stderr, "     %d      ", wl_list_length(&view->xwayland_surface->children));
+	if (view->mapped) {
+		fprintf(stderr, "Y");
+	} else {
+		fprintf(stderr, "-");
+	}
+	fprintf(stderr, "      %p %s {%d,%d,%d,%d}\n",
+		(void *)view,
+		view->xwayland_surface->class,
+		view->xwayland_surface->x,
+		view->xwayland_surface->y,
+		view->xwayland_surface->width,
+		view->xwayland_surface->height);
+	/*
+	 * Other variables to consider printing:
+	 *
+	 * view->mapped,
+	 * view->been_mapped,
+	 * view->xwayland_surface->override_redirect,
+	 * wlr_xwayland_or_surface_wants_focus(view->xwayland_surface));
+	 * view->xwayland_surface->saved_width,
+	 * view->xwayland_surface->saved_height);
+	 * view->xwayland_surface->surface->sx,
+	 * view->xwayland_surface->surface->sy);
+	 */
+}
+
+static void debug_show_one_view(struct tinywl_view *view) {
+	if (view->type == LAB_XDG_SHELL_VIEW)
+		xdg_debug_show_one_view(view);
+	else if (view->type == LAB_XWAYLAND_VIEW)
+		xwl_debug_show_one_view(view);
+}
+
+static void debug_show_views(struct tinywl_server *server) {
+	struct tinywl_view *view;
+
+	fprintf(stderr, "---\n");
+	fprintf(stderr, "TYPE NR_PNT NR_CLD MAPPED VIEW-POINTER   NAME\n");
+	wl_list_for_each_reverse(view, &server->views, link)
+		debug_show_one_view(view);
+}
+
+static struct tinywl_view *next_toplevel(struct tinywl_view *current) {
+	struct tinywl_view *tmp = current;
+
+	goto inside;
+	while (!tmp->been_mapped || !is_toplevel(tmp)) {
+inside:
+		tmp = wl_container_of(tmp->link.next, tmp, link);
+	}
+	return tmp;
+}
+
 static bool handle_keybinding(struct tinywl_server *server, xkb_keysym_t sym) {
 	/*
 	 * Here we handle compositor keybindings. This is when the compositor is
@@ -159,18 +370,16 @@ static bool handle_keybinding(struct tinywl_server *server, xkb_keysym_t sym) {
 		wl_display_terminate(server->wl_display);
 		break;
 	case XKB_KEY_F1:
-		/* Cycle to the next view */
-		if (wl_list_length(&server->views) < 2) {
-			break;
+	case XKB_KEY_F2:
+		view_focus_last_toplevel(server);
+		break;
+	case XKB_KEY_F3:
+		if (fork() == 0) {
+			execl("/bin/dmenu_run", "/bin/dmenu_run", (void *)NULL);
 		}
-		struct tinywl_view *current_view = wl_container_of(
-			server->views.next, current_view, link);
-		struct tinywl_view *next_view = wl_container_of(
-			current_view->link.next, next_view, link);
-		focus_view(next_view, next_view->xdg_surface->surface);
-		/* Move the previous view to the end of the list */
-		wl_list_remove(&current_view->link);
-		wl_list_insert(server->views.prev, &current_view->link);
+		break;
+	case XKB_KEY_F12:
+		debug_show_views(server);
 		break;
 	default:
 		return false;
@@ -311,8 +520,20 @@ static bool view_at(struct tinywl_view *view,
 	double view_sy = ly - view->y;
 	double _sx, _sy;
 	struct wlr_surface *_surface = NULL;
-	_surface = wlr_xdg_surface_surface_at(
+
+	switch (view->type) {
+	case LAB_XDG_SHELL_VIEW:
+		_surface = wlr_xdg_surface_surface_at(
 			view->xdg_surface, view_sx, view_sy, &_sx, &_sy);
+		break;
+	case LAB_XWAYLAND_VIEW:
+		if (!view->xwayland_surface->surface)
+			return false;
+		_surface = wlr_surface_surface_at(
+			view->xwayland_surface->surface,
+			view_sx, view_sy, &_sx, &_sy);
+		break;
+	}
 
 	if (_surface != NULL) {
 		*sx = _sx;
@@ -320,7 +541,6 @@ static bool view_at(struct tinywl_view *view,
 		*surface = _surface;
 		return true;
 	}
-
 	return false;
 }
 
@@ -507,8 +727,10 @@ static void server_cursor_frame(struct wl_listener *listener, void *data) {
 	wlr_seat_pointer_notify_frame(server->seat);
 }
 
-/* Used to move all of the data necessary to render a surface from the top-level
- * frame handler to the per-surface render function. */
+/*
+ * Used to move all of the data necessary to render a surface from the
+ * top-level frame handler to the per-surface render function.
+ */
 struct render_data {
 	struct wlr_output *output;
 	struct wlr_renderer *renderer;
@@ -616,8 +838,13 @@ static void output_frame(struct wl_listener *listener, void *data) {
 		};
 		/* This calls our render_surface function for each surface among the
 		 * xdg_surface's toplevel and popups. */
-		wlr_xdg_surface_for_each_surface(view->xdg_surface,
+		if (view->type == LAB_XDG_SHELL_VIEW) {
+			wlr_xdg_surface_for_each_surface(view->xdg_surface,
 				render_surface, &rdata);
+		} else if (view->type == LAB_XWAYLAND_VIEW) {
+			render_surface(view->xwayland_surface->surface, 0, 0,
+				&rdata);
+		}
 	}
 
 	/* Hardware cursors are rendered by the GPU on a separate plane, and can be
@@ -674,10 +901,66 @@ static void server_new_output(struct wl_listener *listener, void *data) {
 	wlr_output_create_global(wlr_output);
 }
 
+static void xwl_surface_map(struct wl_listener *listener, void *data) {
+	struct tinywl_view *view = wl_container_of(listener, view, map);
+	view->mapped = true;
+	view->been_mapped = true;
+	view->x = view->xwayland_surface->x;
+	view->y = view->xwayland_surface->y;
+	view->surface = view->xwayland_surface->surface;
+	move_to_front(view);
+	focus_view(view, view->xwayland_surface->surface);
+}
+
+static void xwl_surface_unmap(struct wl_listener *listener, void *data) {
+	struct tinywl_view *view = wl_container_of(listener, view, unmap);
+	view->mapped = false;
+	if (is_toplevel(view))
+		view_focus_next_toplevel(view->server);
+}
+
+static void xwl_surface_destroy(struct wl_listener *listener, void *data) {
+	struct tinywl_view *view = wl_container_of(listener, view, destroy);
+	wl_list_remove(&view->link);
+	free(view);
+}
+
+static void xwl_surface_configure(struct wl_listener *listener, void *data) {
+	struct tinywl_view *view = wl_container_of(listener, view, request_configure);
+	struct wlr_xwayland_surface_configure_event *event = data;
+	wlr_xwayland_surface_configure(view->xwayland_surface, event->x, event->y,
+		event->width, event->height);
+}
+
+void server_new_xwayland_surface(struct wl_listener *listener, void *data) {
+	struct tinywl_server *server =
+		wl_container_of(listener, server, new_xwayland_surface);
+	struct wlr_xwayland_surface *xwayland_surface = data;
+	wlr_xwayland_surface_ping(xwayland_surface);
+
+	struct tinywl_view *view = calloc(1, sizeof(struct tinywl_view));
+	view->server = server;
+	view->type = LAB_XWAYLAND_VIEW;
+	view->xwayland_surface = xwayland_surface;
+
+	view->map.notify = xwl_surface_map;
+	wl_signal_add(&xwayland_surface->events.map, &view->map);
+	view->unmap.notify = xwl_surface_unmap;
+	wl_signal_add(&xwayland_surface->events.unmap, &view->unmap);
+	view->destroy.notify = xwl_surface_destroy;
+	wl_signal_add(&xwayland_surface->events.destroy, &view->destroy);
+	view->request_configure.notify = xwl_surface_configure;
+	wl_signal_add(&xwayland_surface->events.request_configure, &view->request_configure);
+
+	wl_list_insert(&server->views, &view->link);
+}
+
 static void xdg_surface_map(struct wl_listener *listener, void *data) {
 	/* Called when the surface is mapped, or ready to display on-screen. */
 	struct tinywl_view *view = wl_container_of(listener, view, map);
 	view->mapped = true;
+	view->been_mapped = true;
+	view->surface = view->xdg_surface->surface;
 	focus_view(view, view->xdg_surface->surface);
 }
 
@@ -685,6 +968,7 @@ static void xdg_surface_unmap(struct wl_listener *listener, void *data) {
 	/* Called when the surface is unmapped, and should no longer be shown. */
 	struct tinywl_view *view = wl_container_of(listener, view, unmap);
 	view->mapped = false;
+	view_focus_next_toplevel(view->server);
 }
 
 static void xdg_surface_destroy(struct wl_listener *listener, void *data) {
@@ -759,6 +1043,7 @@ static void server_new_xdg_surface(struct wl_listener *listener, void *data) {
 	struct tinywl_view *view =
 		calloc(1, sizeof(struct tinywl_view));
 	view->server = server;
+	view->type = LAB_XDG_SHELL_VIEW;
 	view->xdg_surface = xdg_surface;
 
 	/* Listen to the various events it can emit */
@@ -781,7 +1066,7 @@ static void server_new_xdg_surface(struct wl_listener *listener, void *data) {
 }
 
 int main(int argc, char *argv[]) {
-	wlr_log_init(WLR_DEBUG, NULL);
+	wlr_log_init(WLR_ERROR, NULL);
 	char *startup_cmd = NULL;
 
 	int c;
@@ -824,7 +1109,7 @@ int main(int argc, char *argv[]) {
 	 * necessary for clients to allocate surfaces and the data device manager
 	 * handles the clipboard. Each of these wlroots interfaces has room for you
 	 * to dig your fingers in and play with their behavior if you want. */
-	wlr_compositor_create(server.wl_display, server.renderer);
+	server.compositor = wlr_compositor_create(server.wl_display, server.renderer);
 	wlr_data_device_manager_create(server.wl_display);
 
 	/* Creates an output layout, which a wlroots utility for working with an
@@ -855,13 +1140,6 @@ int main(int argc, char *argv[]) {
 	 */
 	server.cursor = wlr_cursor_create();
 	wlr_cursor_attach_output_layout(server.cursor, server.output_layout);
-
-	/* Creates an xcursor manager, another wlroots utility which loads up
-	 * Xcursor themes to source cursor images from and makes sure that cursor
-	 * images are available at all scale factors on the screen (necessary for
-	 * HiDPI support). We add a cursor theme at scale factor 1 to begin with. */
-	server.cursor_mgr = wlr_xcursor_manager_create(NULL, 24);
-	wlr_xcursor_manager_load(server.cursor_mgr, 1);
 
 	/*
 	 * wlr_cursor *only* displays an image on screen. It does not move around
@@ -919,6 +1197,32 @@ int main(int argc, char *argv[]) {
 	/* Set the WAYLAND_DISPLAY environment variable to our socket and run the
 	 * startup command if requested. */
 	setenv("WAYLAND_DISPLAY", socket, true);
+
+	wl_display_init_shm(server.wl_display);
+
+	/* Init xwayland */
+	server.xwayland = wlr_xwayland_create(server.wl_display, server.compositor, false);
+	server.new_xwayland_surface.notify = server_new_xwayland_surface;
+	wl_signal_add(&server.xwayland->events.new_surface, &server.new_xwayland_surface);
+	setenv("DISPLAY", server.xwayland->display_name, true);
+	wlr_xwayland_set_seat(server.xwayland, server.seat);
+
+	/* Creates an xcursor manager, another wlroots utility which loads up
+	 * Xcursor themes to source cursor images from and makes sure that cursor
+	 * images are available at all scale factors on the screen (necessary for
+	 * HiDPI support). We add a cursor theme at scale factor 1 to begin with. */
+	server.cursor_mgr = wlr_xcursor_manager_create(XCURSOR_DEFAULT, XCURSOR_SIZE);
+	wlr_xcursor_manager_load(server.cursor_mgr, 1);
+
+	struct wlr_xcursor *xcursor =
+		wlr_xcursor_manager_get_xcursor(server.cursor_mgr, XCURSOR_DEFAULT, 1);
+	if (xcursor) {
+		struct wlr_xcursor_image *image = xcursor->images[0];
+		wlr_xwayland_set_cursor(server.xwayland, image->buffer,
+					image->width * 4, image->width, image->height,
+					image->hotspot_x, image->hotspot_y);
+	}
+
 	if (startup_cmd) {
 		if (fork() == 0) {
 			execl("/bin/sh", "/bin/sh", "-c", startup_cmd, (void *)NULL);
@@ -933,6 +1237,8 @@ int main(int argc, char *argv[]) {
 	wl_display_run(server.wl_display);
 
 	/* Once wl_display_run returns, we shut down the server. */
+	wlr_xwayland_destroy(server.xwayland);
+	wlr_xcursor_manager_destroy(server.cursor_mgr);
 	wl_display_destroy_clients(server.wl_display);
 	wl_display_destroy(server.wl_display);
 	return 0;

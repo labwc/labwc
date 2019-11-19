@@ -1,4 +1,4 @@
-CFLAGS  += -g -O3 -Wall -std=c99 -I. -DWLR_USE_UNSTABLE
+CFLAGS  += -g -O3 -Wall -std=c11 -I. -DWLR_USE_UNSTABLE
 CFLAGS  += `pkg-config --cflags wlroots wayland-server xkbcommon`
 CFLAGS  += -Wextra -Wno-format-zero-length -Wold-style-definition -Woverflow \
            -Wpointer-arith -Wstrict-prototypes -Wvla -Wunused-result \
@@ -13,9 +13,9 @@ LDFLAGS   += $(ASAN_FLAGS) -fuse-ld=gold
 WP = `pkg-config --variable=pkgdatadir wayland-protocols`
 WS = `pkg-config --variable=wayland_scanner wayland-scanner`
 
-all: tinywl
+all: labwc
 
-tinywl: xdg-shell-protocol.o tinywl.o
+labwc: xdg-shell-protocol.o main.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 xdg-shell-protocol.h:
@@ -25,4 +25,4 @@ xdg-shell-protocol.c: xdg-shell-protocol.h
 	$(WS) private-code $(WP)/stable/xdg-shell/xdg-shell.xml $@
 
 clean:
-	rm -f tinywl xdg-shell-protocol.* *.o
+	rm -f labwc xdg-shell-protocol.* *.o

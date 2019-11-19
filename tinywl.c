@@ -119,6 +119,9 @@ struct tinywl_keyboard {
 
 static struct tinywl_view *next_toplevel(struct tinywl_view *current);
 static bool is_toplevel(struct tinywl_view *view);
+static void process_cursor_move(struct tinywl_server *server, uint32_t time);
+static void begin_interactive(struct tinywl_view *view,
+			      enum tinywl_cursor_mode mode, uint32_t edges);
 
 /**
  * Request that this toplevel surface show itself in an activated or
@@ -379,6 +382,10 @@ static bool handle_keybinding(struct tinywl_server *server, xkb_keysym_t sym) {
 		if (fork() == 0) {
 			execl("/bin/dmenu_run", "/bin/dmenu_run", (void *)NULL);
 		}
+		break;
+	case XKB_KEY_F6:
+		begin_interactive(first_toplevel(server),
+			TINYWL_CURSOR_MOVE, 0);
 		break;
 	case XKB_KEY_F12:
 		debug_show_views(server);
@@ -1016,14 +1023,26 @@ static void begin_interactive(struct tinywl_view *view,
 	struct tinywl_server *server = view->server;
 	struct wlr_surface *focused_surface =
 		server->seat->pointer_state.focused_surface;
-	if (view->xdg_surface->surface != focused_surface) {
+	if (view->surface != focused_surface) {
 		/* Deny move/resize requests from unfocused clients. */
 		return;
 	}
 	server->grabbed_view = view;
 	server->cursor_mode = mode;
+
 	struct wlr_box geo_box;
-	wlr_xdg_surface_get_geometry(view->xdg_surface, &geo_box);
+	switch (view->type) {
+	case LAB_XDG_SHELL_VIEW:
+		wlr_xdg_surface_get_geometry(view->xdg_surface, &geo_box);
+		break;
+	case LAB_XWAYLAND_VIEW:
+		geo_box.x = view->xwayland_surface->x;
+		geo_box.y = view->xwayland_surface->y;
+		geo_box.width = view->xwayland_surface->width;
+		geo_box.height = view->xwayland_surface->height;
+		break;
+	}
+
 	if (mode == TINYWL_CURSOR_MOVE) {
 		server->grab_x = server->cursor->x - view->x;
 		server->grab_y = server->cursor->y - view->y;

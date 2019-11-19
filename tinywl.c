@@ -27,6 +27,8 @@
 #define XCURSOR_DEFAULT "left_ptr"
 #define XCURSOR_SIZE 24
 #define XCURSOR_MOVE "grabbing"
+#define XWL_TITLEBAR_HEIGHT (10)
+#define XWL_WINDOW_BORDER (3)
 
 /* For brevity's sake, struct members are annotated where they are used. */
 enum tinywl_cursor_mode {
@@ -738,6 +740,30 @@ struct render_data {
 	struct timespec *when;
 };
 
+static void render_decorations(struct wlr_output *output, struct tinywl_view *view) {
+	if (!view->surface)
+		return;
+	if (view->type != LAB_XWAYLAND_VIEW)
+		return;
+	if (!is_toplevel(view))
+		return;
+
+	struct wlr_box box = {
+		.x = view->x - XWL_WINDOW_BORDER,
+		.y = view->y - XWL_TITLEBAR_HEIGHT - XWL_WINDOW_BORDER,
+		.width = view->surface->current.width + 2 * XWL_WINDOW_BORDER,
+		.height = view->surface->current.height + XWL_TITLEBAR_HEIGHT +
+		     2 * XWL_WINDOW_BORDER,
+	};
+
+	float matrix[9];
+	wlr_matrix_project_box(matrix, &box, WL_OUTPUT_TRANSFORM_NORMAL, 0,
+		output->transform_matrix);
+
+	float color[] = { 0.2, 0.2, 0.7, 0.9 };
+	wlr_render_quad_with_matrix(view->server->renderer, color, matrix);
+}
+
 static void render_surface(struct wlr_surface *surface,
 		int sx, int sy, void *data) {
 	/* This function is called for every surface that needs to be rendered. */
@@ -762,7 +788,8 @@ static void render_surface(struct wlr_surface *surface,
 	double ox = 0, oy = 0;
 	wlr_output_layout_output_coords(
 			view->server->output_layout, output, &ox, &oy);
-	ox += view->x + sx, oy += view->y + sy;
+	ox += view->x + sx;
+	oy += view->y + sy;
 
 	/* We also have to apply the scale factor for HiDPI outputs. This is only
 	 * part of the puzzle, TinyWL does not fully support HiDPI. */
@@ -836,6 +863,9 @@ static void output_frame(struct wl_listener *listener, void *data) {
 			.renderer = renderer,
 			.when = &now,
 		};
+
+		render_decorations(output->wlr_output, view);
+
 		/* This calls our render_surface function for each surface among the
 		 * xdg_surface's toplevel and popups. */
 		if (view->type == LAB_XDG_SHELL_VIEW) {

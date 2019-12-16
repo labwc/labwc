@@ -2,6 +2,8 @@
 
 labwc is a wayland compositor based on wlroots
 
+[https://imgur.com/rb2hJh3](https://imgur.com/rb2hJh3)
+
 ## Dependencies
 
 - wlroots

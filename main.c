@@ -1,5 +1,11 @@
 #include "labwc.h"
 
+#include <wlr/types/wlr_export_dmabuf_v1.h>
+#include <wlr/types/wlr_screencopy_v1.h>
+#include <wlr/types/wlr_data_control_v1.h>
+#include <wlr/types/wlr_gamma_control_v1.h>
+#include <wlr/types/wlr_primary_selection_v1.h>
+
 static struct tinywl_view *next_toplevel(struct tinywl_view *current);
 static bool is_toplevel(struct tinywl_view *view);
 static void process_cursor_move(struct tinywl_server *server, uint32_t time);
@@ -1043,6 +1049,12 @@ int main(int argc, char *argv[]) {
 	 * to dig your fingers in and play with their behavior if you want. */
 	server.compositor = wlr_compositor_create(server.wl_display, server.renderer);
 	wlr_data_device_manager_create(server.wl_display);
+
+	wlr_export_dmabuf_manager_v1_create(server.wl_display);
+	wlr_screencopy_manager_v1_create(server.wl_display);
+	wlr_data_control_manager_v1_create(server.wl_display);
+	wlr_gamma_control_manager_v1_create(server.wl_display);
+	wlr_primary_selection_v1_device_manager_create(server.wl_display);
 
 	/* Creates an output layout, which a wlroots utility for working with an
 	 * arrangement of screens in a physical layout. */

@@ -2,11 +2,9 @@
 
 labwc is a wayland compositor based on wlroots
 
-So far, it's simply a few commits on top of tinywl.c - the minimalistic compositor which comes with wlroots. We're not even at proof of concept stage yet, and who knows, we might never get much further.
-
 ## Dependencies
 
-- wlroots v0.6.0
+- wlroots
 - wayland-protocols
 
 ## Keyboard shortcuts
@@ -15,6 +13,7 @@ So far, it's simply a few commits on top of tinywl.c - the minimalistic composit
 Alt+Escape  Exit labwc
 Alt+F2      Cycle between windows
 Alt+F3      Launch dmenu
+Alt+F6      Move window
 Alt+F12     Print all views (helpful if run from X11)
 ```
 
@@ -53,5 +52,4 @@ In terms of size comparison of these two giants, it's worth reflecting on the si
 [i3](https://github.com/i3/i3) - 20k LOC (but does include i3bar, etc)
 
 [dwm](https://dwm.suckless.org) - 2k LOC
-
 

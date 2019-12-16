@@ -7,8 +7,8 @@ CFLAGS  += -Wextra -Wno-format-zero-length -Wold-style-definition -Woverflow \
 LDFLAGS += `pkg-config --libs wlroots wayland-server xkbcommon`
 
 ASAN_FLAGS = -O0 -fsanitize=address -fno-common -fno-omit-frame-pointer -rdynamic
-CFLAGS    += $(ASAN_FLAGS)
-LDFLAGS   += $(ASAN_FLAGS) -fuse-ld=gold
+#CFLAGS    += $(ASAN_FLAGS)
+#LDFLAGS   += $(ASAN_FLAGS) -fuse-ld=gold
 
 WP = `pkg-config --variable=pkgdatadir wayland-protocols`
 WS = `pkg-config --variable=wayland_scanner wayland-scanner`

@@ -15,7 +15,7 @@ WS = `pkg-config --variable=wayland_scanner wayland-scanner`
 
 all: labwc
 
-labwc: xdg-shell-protocol.o main.o
+labwc: xdg-shell-protocol.o main.o xdg.o view.o xwl.o server.o output.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 xdg-shell-protocol.h:

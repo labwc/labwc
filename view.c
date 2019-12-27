@@ -150,3 +150,54 @@ struct tinywl_view *first_toplevel(struct tinywl_server *server) {
 	return NULL;
 }
 
+static bool view_at(struct tinywl_view *view,
+		double lx, double ly, struct wlr_surface **surface,
+		double *sx, double *sy) {
+	/*
+	 * XDG toplevels may have nested surfaces, such as popup windows for context
+	 * menus or tooltips. This function tests if any of those are underneath the
+	 * coordinates lx and ly (in output Layout Coordinates). If so, it sets the
+	 * surface pointer to that wlr_surface and the sx and sy coordinates to the
+	 * coordinates relative to that surface's top-left corner.
+	 */
+	double view_sx = lx - view->x;
+	double view_sy = ly - view->y;
+	double _sx, _sy;
+	struct wlr_surface *_surface = NULL;
+
+	switch (view->type) {
+	case LAB_XDG_SHELL_VIEW:
+		_surface = wlr_xdg_surface_surface_at(
+			view->xdg_surface, view_sx, view_sy, &_sx, &_sy);
+		break;
+	case LAB_XWAYLAND_VIEW:
+		if (!view->xwayland_surface->surface)
+			return false;
+		_surface = wlr_surface_surface_at(
+			view->xwayland_surface->surface,
+			view_sx, view_sy, &_sx, &_sy);
+		break;
+	}
+
+	if (_surface != NULL) {
+		*sx = _sx;
+		*sy = _sy;
+		*surface = _surface;
+		return true;
+	}
+	return false;
+}
+
+struct tinywl_view *desktop_view_at(struct tinywl_server *server, double lx, double ly,
+		struct wlr_surface **surface, double *sx, double *sy) {
+	/* This iterates over all of our surfaces and attempts to find one under the
+	 * cursor. This relies on server->views being ordered from top-to-bottom. */
+	struct tinywl_view *view;
+	wl_list_for_each(view, &server->views, link) {
+		if (view_at(view, lx, ly, surface, sx, sy)) {
+			return view;
+		}
+	}
+	return NULL;
+}
+

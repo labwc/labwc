@@ -138,10 +138,17 @@ void focus_view(struct tinywl_view *view, struct wlr_surface *surface);
 void view_focus_next_toplevel(struct tinywl_server *server);
 void begin_interactive(struct tinywl_view *view, enum tinywl_cursor_mode mode, uint32_t edges);
 bool is_toplevel(struct tinywl_view *view);
+struct tinywl_view *desktop_view_at(struct tinywl_server *server, double lx, double ly,
+		struct wlr_surface **surface, double *sx, double *sy);
 
 /* TODO: try to refactor to remove from header file */
 struct tinywl_view *first_toplevel(struct tinywl_server *server);
 
+void server_cursor_motion(struct wl_listener *listener, void *data);
+void server_cursor_motion_absolute(struct wl_listener *listener, void *data);
+void server_cursor_button(struct wl_listener *listener, void *data);
+void server_cursor_axis(struct wl_listener *listener, void *data);
+void server_cursor_frame(struct wl_listener *listener, void *data);
 void server_new_output(struct wl_listener *listener, void *data);
 
 void output_frame(struct wl_listener *listener, void *data);

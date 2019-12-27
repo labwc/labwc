@@ -82,10 +82,7 @@ struct output {
 	struct wl_listener frame;
 };
 
-enum view_type {
-	LAB_XDG_SHELL_VIEW,
-	LAB_XWAYLAND_VIEW
-};
+enum view_type { LAB_XDG_SHELL_VIEW, LAB_XWAYLAND_VIEW };
 
 struct view {
 	enum view_type type;
@@ -136,10 +133,12 @@ void xwl_surface_new(struct wl_listener *listener, void *data);
 
 void focus_view(struct view *view, struct wlr_surface *surface);
 void view_focus_next_toplevel(struct server *server);
-void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges);
+void begin_interactive(struct view *view, enum cursor_mode mode,
+		       uint32_t edges);
 bool is_toplevel(struct view *view);
 struct view *desktop_view_at(struct server *server, double lx, double ly,
-		struct wlr_surface **surface, double *sx, double *sy);
+			     struct wlr_surface **surface, double *sx,
+			     double *sy);
 
 /* TODO: try to refactor to remove from header file */
 struct view *first_toplevel(struct server *server);

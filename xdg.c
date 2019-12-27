@@ -28,9 +28,11 @@ void xdg_toplevel_request_move(struct wl_listener *listener, void *data)
 {
 	/* This event is raised when a client would like to begin an interactive
 	 * move, typically because the user clicked on their client-side
-	 * decorations. Note that a more sophisticated compositor should check the
-	 * provied serial against a list of button press serials sent to this
-	 * client, to prevent the client from requesting this whenever they want. */
+	 * decorations. Note that a more sophisticated compositor should check
+	 * the provied serial against a list of button press serials sent to
+	 * this
+	 * client, to prevent the client from requesting this whenever they
+	 * want. */
 	struct view *view = wl_container_of(listener, view, request_move);
 	begin_interactive(view, TINYWL_CURSOR_MOVE, 0);
 }
@@ -39,9 +41,11 @@ void xdg_toplevel_request_resize(struct wl_listener *listener, void *data)
 {
 	/* This event is raised when a client would like to begin an interactive
 	 * resize, typically because the user clicked on their client-side
-	 * decorations. Note that a more sophisticated compositor should check the
-	 * provied serial against a list of button press serials sent to this
-	 * client, to prevent the client from requesting this whenever they want. */
+	 * decorations. Note that a more sophisticated compositor should check
+	 * the provied serial against a list of button press serials sent to
+	 * this
+	 * client, to prevent the client from requesting this whenever they
+	 * want. */
 	struct wlr_xdg_toplevel_resize_event *event = data;
 	struct view *view = wl_container_of(listener, view, request_resize);
 	begin_interactive(view, TINYWL_CURSOR_RESIZE, event->edges);
@@ -56,8 +60,7 @@ void xdg_surface_new(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	struct view *view =
-		calloc(1, sizeof(struct view));
+	struct view *view = calloc(1, sizeof(struct view));
 	view->server = server;
 	view->type = LAB_XDG_SHELL_VIEW;
 	view->xdg_surface = xdg_surface;
@@ -77,4 +80,3 @@ void xdg_surface_new(struct wl_listener *listener, void *data)
 
 	wl_list_insert(&server->views, &view->link);
 }
-

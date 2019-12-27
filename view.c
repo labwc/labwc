@@ -1,12 +1,14 @@
 #include "labwc.h"
 
-static void activate_view(struct view *view) {
+static void activate_view(struct view *view)
+{
 	if (view->type == LAB_XDG_SHELL_VIEW) {
 		wlr_xdg_toplevel_set_activated(view->xdg_surface, true);
 	} else if (view->type == LAB_XWAYLAND_VIEW) {
 		wlr_xwayland_surface_activate(view->xwayland_surface, true);
 	} else {
-		fprintf(stderr, "warn: view was of unknown type (%s)\n", __func__);
+		fprintf(stderr, "warn: view was of unknown type (%s)\n",
+			__func__);
 	}
 }
 
@@ -14,7 +16,8 @@ static void activate_view(struct view *view) {
  * Request that this toplevel surface show itself in an activated or
  * deactivated state.
  */
-static void set_activated(struct wlr_surface *s, bool activated) {
+static void set_activated(struct wlr_surface *s, bool activated)
+{
 	if (wlr_surface_is_xdg_surface(s)) {
 		struct wlr_xdg_surface *previous;
 		previous = wlr_xdg_surface_from_wlr_surface(s);
@@ -26,12 +29,14 @@ static void set_activated(struct wlr_surface *s, bool activated) {
 	}
 }
 
-static void move_to_front(struct view *view) {
+static void move_to_front(struct view *view)
+{
 	wl_list_remove(&view->link);
 	wl_list_insert(&view->server->views, &view->link);
 }
 
-void focus_view(struct view *view, struct wlr_surface *surface) {
+void focus_view(struct view *view, struct wlr_surface *surface)
+{
 	/* Note: this function only deals with keyboard focus. */
 	if (view == NULL) {
 		return;
@@ -48,7 +53,8 @@ void focus_view(struct view *view, struct wlr_surface *surface) {
 	if (view->type == LAB_XWAYLAND_VIEW) {
 		/* Don't focus on menus, etc */
 		move_to_front(view);
-		if (!wlr_xwayland_or_surface_wants_focus(view->xwayland_surface)) {
+		if (!wlr_xwayland_or_surface_wants_focus(
+			    view->xwayland_surface)) {
 			return;
 		}
 	}
@@ -65,7 +71,8 @@ void focus_view(struct view *view, struct wlr_surface *surface) {
 	 * appropriate clients without additional work on your part.
 	 */
 	wlr_seat_keyboard_notify_enter(seat, view->surface, keyboard->keycodes,
-		keyboard->num_keycodes, &keyboard->modifiers);
+				       keyboard->num_keycodes,
+				       &keyboard->modifiers);
 }
 
 static struct view *next_toplevel(struct view *current)
@@ -78,18 +85,19 @@ static struct view *next_toplevel(struct view *current)
 	return tmp;
 }
 
-void view_focus_next_toplevel(struct server *server) {
+void view_focus_next_toplevel(struct server *server)
+{
 	struct view *view;
 	view = first_toplevel(server);
 	view = next_toplevel(view);
 	focus_view(view, view->surface);
 }
 
-void begin_interactive(struct view *view,
-		enum cursor_mode mode, uint32_t edges) {
-	/* This function sets up an interactive move or resize operation, where the
-	 * compositor stops propegating pointer events to clients and instead
-	 * consumes them itself, to move or resize windows. */
+void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges)
+{
+	/* This function sets up an interactive move or resize operation, where
+	 * the compositor stops propegating pointer events to clients and
+	 * instead consumes them itself, to move or resize windows. */
 	struct server *server = view->server;
 	struct wlr_surface *focused_surface =
 		server->seat->pointer_state.focused_surface;
@@ -125,7 +133,8 @@ void begin_interactive(struct view *view,
 	server->resize_edges = edges;
 }
 
-bool is_toplevel(struct view *view) {
+bool is_toplevel(struct view *view)
+{
 	switch (view->type) {
 	case LAB_XWAYLAND_VIEW:
 		return xwl_nr_parents(view) > 0 ? false : true;
@@ -135,10 +144,11 @@ bool is_toplevel(struct view *view) {
 	return false;
 }
 
-struct view *first_toplevel(struct server *server) {
+struct view *first_toplevel(struct server *server)
+{
 	struct view *view;
 
-	wl_list_for_each(view, &server->views, link) {
+	wl_list_for_each (view, &server->views, link) {
 		if (!view->been_mapped) {
 			continue;
 		}
@@ -150,15 +160,16 @@ struct view *first_toplevel(struct server *server) {
 	return NULL;
 }
 
-static bool view_at(struct view *view,
-		double lx, double ly, struct wlr_surface **surface,
-		double *sx, double *sy) {
+static bool view_at(struct view *view, double lx, double ly,
+		    struct wlr_surface **surface, double *sx, double *sy)
+{
 	/*
-	 * XDG toplevels may have nested surfaces, such as popup windows for context
-	 * menus or tooltips. This function tests if any of those are underneath the
-	 * coordinates lx and ly (in output Layout Coordinates). If so, it sets the
-	 * surface pointer to that wlr_surface and the sx and sy coordinates to the
-	 * coordinates relative to that surface's top-left corner.
+	 * XDG toplevels may have nested surfaces, such as popup windows for
+	 * context menus or tooltips. This function tests if any of those are
+	 * underneath the coordinates lx and ly (in output Layout Coordinates).
+	 * If so, it sets the surface pointer to that wlr_surface and the sx and
+	 * sy coordinates to the coordinates relative to that surface's top-left
+	 * corner.
 	 */
 	double view_sx = lx - view->x;
 	double view_sy = ly - view->y;
@@ -173,9 +184,9 @@ static bool view_at(struct view *view,
 	case LAB_XWAYLAND_VIEW:
 		if (!view->xwayland_surface->surface)
 			return false;
-		_surface = wlr_surface_surface_at(
-			view->xwayland_surface->surface,
-			view_sx, view_sy, &_sx, &_sy);
+		_surface =
+			wlr_surface_surface_at(view->xwayland_surface->surface,
+					       view_sx, view_sy, &_sx, &_sy);
 		break;
 	}
 
@@ -189,15 +200,17 @@ static bool view_at(struct view *view,
 }
 
 struct view *desktop_view_at(struct server *server, double lx, double ly,
-		struct wlr_surface **surface, double *sx, double *sy) {
-	/* This iterates over all of our surfaces and attempts to find one under the
-	 * cursor. This relies on server->views being ordered from top-to-bottom. */
+			     struct wlr_surface **surface, double *sx,
+			     double *sy)
+{
+	/* This iterates over all of our surfaces and attempts to find one under
+	 * the cursor. This relies on server->views being ordered from
+	 * top-to-bottom. */
 	struct view *view;
-	wl_list_for_each(view, &server->views, link) {
+	wl_list_for_each (view, &server->views, link) {
 		if (view_at(view, lx, ly, surface, sx, sy)) {
 			return view;
 		}
 	}
 	return NULL;
 }
-

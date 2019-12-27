@@ -1,6 +1,7 @@
 #include "labwc.h"
 
-int xwl_nr_parents(struct view *view) {
+int xwl_nr_parents(struct view *view)
+{
 	struct wlr_xwayland_surface *s = view->xwayland_surface;
 	int i = 0;
 
@@ -15,7 +16,8 @@ int xwl_nr_parents(struct view *view) {
 	return i;
 }
 
-void xwl_surface_map(struct wl_listener *listener, void *data) {
+void xwl_surface_map(struct wl_listener *listener, void *data)
+{
 	struct view *view = wl_container_of(listener, view, map);
 	view->mapped = true;
 	view->been_mapped = true;
@@ -25,27 +27,31 @@ void xwl_surface_map(struct wl_listener *listener, void *data) {
 	focus_view(view, view->xwayland_surface->surface);
 }
 
-void xwl_surface_unmap(struct wl_listener *listener, void *data) {
+void xwl_surface_unmap(struct wl_listener *listener, void *data)
+{
 	struct view *view = wl_container_of(listener, view, unmap);
 	view->mapped = false;
 	if (is_toplevel(view))
 		view_focus_next_toplevel(view->server);
 }
 
-void xwl_surface_destroy(struct wl_listener *listener, void *data) {
+void xwl_surface_destroy(struct wl_listener *listener, void *data)
+{
 	struct view *view = wl_container_of(listener, view, destroy);
 	wl_list_remove(&view->link);
 	free(view);
 }
 
-void xwl_surface_configure(struct wl_listener *listener, void *data) {
+void xwl_surface_configure(struct wl_listener *listener, void *data)
+{
 	struct view *view = wl_container_of(listener, view, request_configure);
 	struct wlr_xwayland_surface_configure_event *event = data;
-	wlr_xwayland_surface_configure(view->xwayland_surface, event->x, event->y,
-		event->width, event->height);
+	wlr_xwayland_surface_configure(view->xwayland_surface, event->x,
+				       event->y, event->width, event->height);
 }
 
-void xwl_surface_new(struct wl_listener *listener, void *data) {
+void xwl_surface_new(struct wl_listener *listener, void *data)
+{
 	struct server *server =
 		wl_container_of(listener, server, new_xwayland_surface);
 	struct wlr_xwayland_surface *xwayland_surface = data;
@@ -63,8 +69,8 @@ void xwl_surface_new(struct wl_listener *listener, void *data) {
 	view->destroy.notify = xwl_surface_destroy;
 	wl_signal_add(&xwayland_surface->events.destroy, &view->destroy);
 	view->request_configure.notify = xwl_surface_configure;
-	wl_signal_add(&xwayland_surface->events.request_configure, &view->request_configure);
+	wl_signal_add(&xwayland_surface->events.request_configure,
+		      &view->request_configure);
 
 	wl_list_insert(&server->views, &view->link);
 }
-

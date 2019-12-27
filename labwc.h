@@ -131,6 +131,7 @@ void xwl_surface_destroy(struct wl_listener *listener, void *data);
 void xwl_surface_configure(struct wl_listener *listener, void *data);
 void xwl_surface_new(struct wl_listener *listener, void *data);
 
+void view_focus_last_toplevel(struct server *server);
 void focus_view(struct view *view, struct wlr_surface *surface);
 void view_focus_next_toplevel(struct server *server);
 void begin_interactive(struct view *view, enum cursor_mode mode,
@@ -143,6 +144,8 @@ struct view *desktop_view_at(struct server *server, double lx, double ly,
 /* TODO: try to refactor to remove from header file */
 struct view *first_toplevel(struct server *server);
 
+void server_new_input(struct wl_listener *listener, void *data);
+void seat_request_cursor(struct wl_listener *listener, void *data);
 void server_cursor_motion(struct wl_listener *listener, void *data);
 void server_cursor_motion_absolute(struct wl_listener *listener, void *data);
 void server_cursor_button(struct wl_listener *listener, void *data);

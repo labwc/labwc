@@ -1,5 +1,31 @@
 #include "labwc.h"
 
+static struct view *last_toplevel(struct server *server)
+{
+	struct view *view;
+
+	wl_list_for_each_reverse (view, &server->views, link) {
+		if (!view->been_mapped) {
+			continue;
+		}
+		if (is_toplevel(view)) {
+			return view;
+		}
+	}
+	fprintf(stderr, "warn: found no toplevel view (%s)\n", __func__);
+	return NULL;
+}
+
+void view_focus_last_toplevel(struct server *server)
+{
+	/* TODO: write view_nr_toplevel_views() */
+	if (wl_list_length(&server->views) < 2) {
+		return;
+	}
+	struct view *view = last_toplevel(server);
+	focus_view(view, view->surface);
+}
+
 static void activate_view(struct view *view)
 {
 	if (view->type == LAB_XDG_SHELL_VIEW) {

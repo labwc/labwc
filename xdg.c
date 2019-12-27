@@ -3,7 +3,7 @@
 void xdg_surface_map(struct wl_listener *listener, void *data)
 {
 	/* Called when the surface is mapped, or ready to display on-screen. */
-	struct tinywl_view *view = wl_container_of(listener, view, map);
+	struct view *view = wl_container_of(listener, view, map);
 	view->mapped = true;
 	view->been_mapped = true;
 	view->surface = view->xdg_surface->surface;
@@ -12,14 +12,14 @@ void xdg_surface_map(struct wl_listener *listener, void *data)
 
 void xdg_surface_unmap(struct wl_listener *listener, void *data)
 {
-	struct tinywl_view *view = wl_container_of(listener, view, unmap);
+	struct view *view = wl_container_of(listener, view, unmap);
 	view->mapped = false;
 	view_focus_next_toplevel(view->server);
 }
 
 void xdg_surface_destroy(struct wl_listener *listener, void *data)
 {
-	struct tinywl_view *view = wl_container_of(listener, view, destroy);
+	struct view *view = wl_container_of(listener, view, destroy);
 	wl_list_remove(&view->link);
 	free(view);
 }
@@ -31,7 +31,7 @@ void xdg_toplevel_request_move(struct wl_listener *listener, void *data)
 	 * decorations. Note that a more sophisticated compositor should check the
 	 * provied serial against a list of button press serials sent to this
 	 * client, to prevent the client from requesting this whenever they want. */
-	struct tinywl_view *view = wl_container_of(listener, view, request_move);
+	struct view *view = wl_container_of(listener, view, request_move);
 	begin_interactive(view, TINYWL_CURSOR_MOVE, 0);
 }
 
@@ -43,21 +43,21 @@ void xdg_toplevel_request_resize(struct wl_listener *listener, void *data)
 	 * provied serial against a list of button press serials sent to this
 	 * client, to prevent the client from requesting this whenever they want. */
 	struct wlr_xdg_toplevel_resize_event *event = data;
-	struct tinywl_view *view = wl_container_of(listener, view, request_resize);
+	struct view *view = wl_container_of(listener, view, request_resize);
 	begin_interactive(view, TINYWL_CURSOR_RESIZE, event->edges);
 }
 
 void xdg_surface_new(struct wl_listener *listener, void *data)
 {
-	struct tinywl_server *server =
+	struct server *server =
 		wl_container_of(listener, server, new_xdg_surface);
 	struct wlr_xdg_surface *xdg_surface = data;
 	if (xdg_surface->role != WLR_XDG_SURFACE_ROLE_TOPLEVEL) {
 		return;
 	}
 
-	struct tinywl_view *view =
-		calloc(1, sizeof(struct tinywl_view));
+	struct view *view =
+		calloc(1, sizeof(struct view));
 	view->server = server;
 	view->type = LAB_XDG_SHELL_VIEW;
 	view->xdg_surface = xdg_surface;

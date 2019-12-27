@@ -1,6 +1,6 @@
 #include "labwc.h"
 
-int xwl_nr_parents(struct tinywl_view *view) {
+int xwl_nr_parents(struct view *view) {
 	struct wlr_xwayland_surface *s = view->xwayland_surface;
 	int i = 0;
 
@@ -16,7 +16,7 @@ int xwl_nr_parents(struct tinywl_view *view) {
 }
 
 void xwl_surface_map(struct wl_listener *listener, void *data) {
-	struct tinywl_view *view = wl_container_of(listener, view, map);
+	struct view *view = wl_container_of(listener, view, map);
 	view->mapped = true;
 	view->been_mapped = true;
 	view->x = view->xwayland_surface->x;
@@ -26,32 +26,32 @@ void xwl_surface_map(struct wl_listener *listener, void *data) {
 }
 
 void xwl_surface_unmap(struct wl_listener *listener, void *data) {
-	struct tinywl_view *view = wl_container_of(listener, view, unmap);
+	struct view *view = wl_container_of(listener, view, unmap);
 	view->mapped = false;
 	if (is_toplevel(view))
 		view_focus_next_toplevel(view->server);
 }
 
 void xwl_surface_destroy(struct wl_listener *listener, void *data) {
-	struct tinywl_view *view = wl_container_of(listener, view, destroy);
+	struct view *view = wl_container_of(listener, view, destroy);
 	wl_list_remove(&view->link);
 	free(view);
 }
 
 void xwl_surface_configure(struct wl_listener *listener, void *data) {
-	struct tinywl_view *view = wl_container_of(listener, view, request_configure);
+	struct view *view = wl_container_of(listener, view, request_configure);
 	struct wlr_xwayland_surface_configure_event *event = data;
 	wlr_xwayland_surface_configure(view->xwayland_surface, event->x, event->y,
 		event->width, event->height);
 }
 
 void xwl_surface_new(struct wl_listener *listener, void *data) {
-	struct tinywl_server *server =
+	struct server *server =
 		wl_container_of(listener, server, new_xwayland_surface);
 	struct wlr_xwayland_surface *xwayland_surface = data;
 	wlr_xwayland_surface_ping(xwayland_surface);
 
-	struct tinywl_view *view = calloc(1, sizeof(struct tinywl_view));
+	struct view *view = calloc(1, sizeof(struct view));
 	view->server = server;
 	view->type = LAB_XWAYLAND_VIEW;
 	view->xwayland_surface = xwayland_surface;

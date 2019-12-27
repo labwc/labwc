@@ -6,8 +6,8 @@
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 
-static struct tinywl_view *last_toplevel(struct tinywl_server *server) {
-	struct tinywl_view *view;
+static struct view *last_toplevel(struct server *server) {
+	struct view *view;
 
 	wl_list_for_each_reverse(view, &server->views, link) {
 		if (!view->been_mapped) {
@@ -21,12 +21,12 @@ static struct tinywl_view *last_toplevel(struct tinywl_server *server) {
 	return NULL;
 }
 
-static void view_focus_last_toplevel(struct tinywl_server *server) {
+static void view_focus_last_toplevel(struct server *server) {
 	/* TODO: write view_nr_toplevel_views() */
 	if (wl_list_length(&server->views) < 2) {
 		return;
 	}
-	struct tinywl_view *view = last_toplevel(server);
+	struct view *view = last_toplevel(server);
 	focus_view(view, view->surface);
 }
 
@@ -34,7 +34,7 @@ static void keyboard_handle_modifiers(
 		struct wl_listener *listener, void *data) {
 	/* This event is raised when a modifier key, such as shift or alt, is
 	 * pressed. We simply communicate this to the client. */
-	struct tinywl_keyboard *keyboard =
+	struct keyboard *keyboard =
 		wl_container_of(listener, keyboard, modifiers);
 	/*
 	 * A seat can only have one keyboard, but this is a limitation of the
@@ -48,7 +48,7 @@ static void keyboard_handle_modifiers(
 		&keyboard->device->keyboard->modifiers);
 }
 
-static void xdg_debug_show_one_view(struct tinywl_view *view) {
+static void xdg_debug_show_one_view(struct view *view) {
 	fprintf(stderr, "XDG  ");
 	switch (view->xdg_surface->role) {
 	case WLR_XDG_SURFACE_ROLE_NONE:
@@ -70,7 +70,7 @@ static void xdg_debug_show_one_view(struct tinywl_view *view) {
 		view->xdg_surface->geometry.width);
 }
 
-static void xwl_debug_show_one_view(struct tinywl_view *view) {
+static void xwl_debug_show_one_view(struct view *view) {
 	fprintf(stderr, "XWL  ");
 	if (!view->been_mapped) {
 		fprintf(stderr, "- ");
@@ -104,15 +104,15 @@ static void xwl_debug_show_one_view(struct tinywl_view *view) {
 	 */
 }
 
-static void debug_show_one_view(struct tinywl_view *view) {
+static void debug_show_one_view(struct view *view) {
 	if (view->type == LAB_XDG_SHELL_VIEW)
 		xdg_debug_show_one_view(view);
 	else if (view->type == LAB_XWAYLAND_VIEW)
 		xwl_debug_show_one_view(view);
 }
 
-static void debug_show_views(struct tinywl_server *server) {
-	struct tinywl_view *view;
+static void debug_show_views(struct server *server) {
+	struct view *view;
 
 	fprintf(stderr, "---\n");
 	fprintf(stderr, "TYPE NR_PNT NR_CLD MAPPED VIEW-POINTER   NAME\n");
@@ -120,7 +120,7 @@ static void debug_show_views(struct tinywl_server *server) {
 		debug_show_one_view(view);
 }
 
-static bool handle_keybinding(struct tinywl_server *server, xkb_keysym_t sym) {
+static bool handle_keybinding(struct server *server, xkb_keysym_t sym) {
 	/*
 	 * Here we handle compositor keybindings. This is when the compositor is
 	 * processing keys, rather than passing them on to the client for its own
@@ -157,9 +157,9 @@ static bool handle_keybinding(struct tinywl_server *server, xkb_keysym_t sym) {
 static void keyboard_handle_key(
 		struct wl_listener *listener, void *data) {
 	/* This event is raised when a key is pressed or released. */
-	struct tinywl_keyboard *keyboard =
+	struct keyboard *keyboard =
 		wl_container_of(listener, keyboard, key);
-	struct tinywl_server *server = keyboard->server;
+	struct server *server = keyboard->server;
 	struct wlr_event_keyboard_key *event = data;
 	struct wlr_seat *seat = server->seat;
 
@@ -188,10 +188,10 @@ static void keyboard_handle_key(
 	}
 }
 
-static void server_new_keyboard(struct tinywl_server *server,
+static void server_new_keyboard(struct server *server,
 		struct wlr_input_device *device) {
-	struct tinywl_keyboard *keyboard =
-		calloc(1, sizeof(struct tinywl_keyboard));
+	struct keyboard *keyboard =
+		calloc(1, sizeof(struct keyboard));
 	keyboard->server = server;
 	keyboard->device = device;
 
@@ -219,7 +219,7 @@ static void server_new_keyboard(struct tinywl_server *server,
 	wl_list_insert(&server->keyboards, &keyboard->link);
 }
 
-static void server_new_pointer(struct tinywl_server *server,
+static void server_new_pointer(struct server *server,
 		struct wlr_input_device *device) {
 	/* We don't do anything special with pointers. All of our pointer handling
 	 * is proxied through wlr_cursor. On another compositor, you might take this
@@ -231,7 +231,7 @@ static void server_new_pointer(struct tinywl_server *server,
 static void server_new_input(struct wl_listener *listener, void *data) {
 	/* This event is raised by the backend when a new input device becomes
 	 * available. */
-	struct tinywl_server *server =
+	struct server *server =
 		wl_container_of(listener, server, new_input);
 	struct wlr_input_device *device = data;
 	switch (device->type) {
@@ -255,7 +255,7 @@ static void server_new_input(struct wl_listener *listener, void *data) {
 }
 
 static void seat_request_cursor(struct wl_listener *listener, void *data) {
-	struct tinywl_server *server = wl_container_of(
+	struct server *server = wl_container_of(
 			listener, server, request_cursor);
 	/* This event is rasied by the seat when a client provides a cursor image */
 	struct wlr_seat_pointer_request_set_cursor_event *event = data;
@@ -293,7 +293,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
-	struct tinywl_server server;
+	struct server server;
 	/* The Wayland display is managed by libwayland. It handles accepting
 	 * clients from the Unix socket, manging Wayland globals, and so on. */
 	server.wl_display = wl_display_create();

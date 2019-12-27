@@ -1,13 +1,13 @@
 #include "labwc.h"
 
-static void process_cursor_move(struct tinywl_server *server, uint32_t time)
+static void process_cursor_move(struct server *server, uint32_t time)
 {
 	/* Move the grabbed view to the new position. */
 	server->grabbed_view->x = server->cursor->x - server->grab_x;
 	server->grabbed_view->y = server->cursor->y - server->grab_y;
 }
 
-static void process_cursor_resize(struct tinywl_server *server, uint32_t time)
+static void process_cursor_resize(struct server *server, uint32_t time)
 {
 	/*
 	 * Resizing the grabbed view can be a little bit complicated, because we
@@ -19,7 +19,7 @@ static void process_cursor_resize(struct tinywl_server *server, uint32_t time)
 	 * you'd wait for the client to prepare a buffer at the new size, then
 	 * commit any movement that was prepared.
 	 */
-	struct tinywl_view *view = server->grabbed_view;
+	struct view *view = server->grabbed_view;
 	double dx = server->cursor->x - server->grab_x;
 	double dy = server->cursor->y - server->grab_y;
 	double x = view->x;
@@ -49,7 +49,7 @@ static void process_cursor_resize(struct tinywl_server *server, uint32_t time)
 	wlr_xdg_toplevel_set_size(view->xdg_surface, width, height);
 }
 
-static void process_cursor_motion(struct tinywl_server *server, uint32_t time)
+static void process_cursor_motion(struct server *server, uint32_t time)
 {
 	/* If the mode is non-passthrough, delegate to those functions. */
 	if (server->cursor_mode == TINYWL_CURSOR_MOVE) {
@@ -64,7 +64,7 @@ static void process_cursor_motion(struct tinywl_server *server, uint32_t time)
 	double sx, sy;
 	struct wlr_seat *seat = server->seat;
 	struct wlr_surface *surface = NULL;
-	struct tinywl_view *view = desktop_view_at(server,
+	struct view *view = desktop_view_at(server,
 			server->cursor->x, server->cursor->y, &surface, &sx, &sy);
 	if (!view) {
 		/* If there's no view under the cursor, set the cursor image to a
@@ -100,7 +100,7 @@ void server_cursor_motion(struct wl_listener *listener, void *data)
 {
 	/* This event is forwarded by the cursor when a pointer emits a _relative_
 	 * pointer motion event (i.e. a delta) */
-	struct tinywl_server *server =
+	struct server *server =
 		wl_container_of(listener, server, cursor_motion);
 	struct wlr_event_pointer_motion *event = data;
 	/* The cursor doesn't move unless we tell it to. The cursor automatically
@@ -121,7 +121,7 @@ void server_cursor_motion_absolute(struct wl_listener *listener, void *data)
 	 * move the mouse over the window. You could enter the window from any edge,
 	 * so we have to warp the mouse there. There is also some hardware which
 	 * emits these events. */
-	struct tinywl_server *server =
+	struct server *server =
 		wl_container_of(listener, server, cursor_motion_absolute);
 	struct wlr_event_pointer_motion_absolute *event = data;
 	wlr_cursor_warp_absolute(server->cursor, event->device, event->x, event->y);
@@ -132,7 +132,7 @@ void server_cursor_button(struct wl_listener *listener, void *data)
 {
 	/* This event is forwarded by the cursor when a pointer emits a button
 	 * event. */
-	struct tinywl_server *server =
+	struct server *server =
 		wl_container_of(listener, server, cursor_button);
 	struct wlr_event_pointer_button *event = data;
 	/* Notify the client with pointer focus that a button press has occurred */
@@ -140,7 +140,7 @@ void server_cursor_button(struct wl_listener *listener, void *data)
 			event->time_msec, event->button, event->state);
 	double sx, sy;
 	struct wlr_surface *surface;
-	struct tinywl_view *view = desktop_view_at(server,
+	struct view *view = desktop_view_at(server,
 			server->cursor->x, server->cursor->y, &surface, &sx, &sy);
 	if (event->state == WLR_BUTTON_RELEASED) {
 		/* If you released any buttons, we exit interactive move/resize mode. */
@@ -154,7 +154,7 @@ void server_cursor_button(struct wl_listener *listener, void *data)
 void server_cursor_axis(struct wl_listener *listener, void *data) {
 	/* This event is forwarded by the cursor when a pointer emits an axis event,
 	 * for example when you move the scroll wheel. */
-	struct tinywl_server *server =
+	struct server *server =
 		wl_container_of(listener, server, cursor_axis);
 	struct wlr_event_pointer_axis *event = data;
 	/* Notify the client with pointer focus of the axis event. */
@@ -168,7 +168,7 @@ void server_cursor_frame(struct wl_listener *listener, void *data) {
 	 * event. Frame events are sent after regular pointer events to group
 	 * multiple events together. For instance, two axis events may happen at the
 	 * same time, in which case a frame event won't be sent in between. */
-	struct tinywl_server *server =
+	struct server *server =
 		wl_container_of(listener, server, cursor_frame);
 	/* Notify the client with pointer focus of the frame event. */
 	wlr_seat_pointer_notify_frame(server->seat);
@@ -178,7 +178,7 @@ void server_new_output(struct wl_listener *listener, void *data)
 {
 	/* This event is rasied by the backend when a new output (aka a display or
 	 * monitor) becomes available. */
-	struct tinywl_server *server =
+	struct server *server =
 		wl_container_of(listener, server, new_output);
 	struct wlr_output *wlr_output = data;
 
@@ -194,8 +194,8 @@ void server_new_output(struct wl_listener *listener, void *data)
 	}
 
 	/* Allocates and configures our state for this output */
-	struct tinywl_output *output =
-		calloc(1, sizeof(struct tinywl_output));
+	struct output *output =
+		calloc(1, sizeof(struct output));
 	output->wlr_output = wlr_output;
 	output->server = server;
 	/* Sets up a listener for the frame notify event. */

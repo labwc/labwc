@@ -1,6 +1,6 @@
 #include "labwc.h"
 
-static void activate_view(struct tinywl_view *view) {
+static void activate_view(struct view *view) {
 	if (view->type == LAB_XDG_SHELL_VIEW) {
 		wlr_xdg_toplevel_set_activated(view->xdg_surface, true);
 	} else if (view->type == LAB_XWAYLAND_VIEW) {
@@ -26,17 +26,17 @@ static void set_activated(struct wlr_surface *s, bool activated) {
 	}
 }
 
-static void move_to_front(struct tinywl_view *view) {
+static void move_to_front(struct view *view) {
 	wl_list_remove(&view->link);
 	wl_list_insert(&view->server->views, &view->link);
 }
 
-void focus_view(struct tinywl_view *view, struct wlr_surface *surface) {
+void focus_view(struct view *view, struct wlr_surface *surface) {
 	/* Note: this function only deals with keyboard focus. */
 	if (view == NULL) {
 		return;
 	}
-	struct tinywl_server *server = view->server;
+	struct server *server = view->server;
 	struct wlr_seat *seat = server->seat;
 	struct wlr_surface *prev_surface;
 
@@ -68,9 +68,9 @@ void focus_view(struct tinywl_view *view, struct wlr_surface *surface) {
 		keyboard->num_keycodes, &keyboard->modifiers);
 }
 
-static struct tinywl_view *next_toplevel(struct tinywl_view *current)
+static struct view *next_toplevel(struct view *current)
 {
-	struct tinywl_view *tmp = current;
+	struct view *tmp = current;
 
 	do {
 		tmp = wl_container_of(tmp->link.next, tmp, link);
@@ -78,19 +78,19 @@ static struct tinywl_view *next_toplevel(struct tinywl_view *current)
 	return tmp;
 }
 
-void view_focus_next_toplevel(struct tinywl_server *server) {
-	struct tinywl_view *view;
+void view_focus_next_toplevel(struct server *server) {
+	struct view *view;
 	view = first_toplevel(server);
 	view = next_toplevel(view);
 	focus_view(view, view->surface);
 }
 
-void begin_interactive(struct tinywl_view *view,
-		enum tinywl_cursor_mode mode, uint32_t edges) {
+void begin_interactive(struct view *view,
+		enum cursor_mode mode, uint32_t edges) {
 	/* This function sets up an interactive move or resize operation, where the
 	 * compositor stops propegating pointer events to clients and instead
 	 * consumes them itself, to move or resize windows. */
-	struct tinywl_server *server = view->server;
+	struct server *server = view->server;
 	struct wlr_surface *focused_surface =
 		server->seat->pointer_state.focused_surface;
 	if (view->surface != focused_surface) {
@@ -125,7 +125,7 @@ void begin_interactive(struct tinywl_view *view,
 	server->resize_edges = edges;
 }
 
-bool is_toplevel(struct tinywl_view *view) {
+bool is_toplevel(struct view *view) {
 	switch (view->type) {
 	case LAB_XWAYLAND_VIEW:
 		return xwl_nr_parents(view) > 0 ? false : true;
@@ -135,8 +135,8 @@ bool is_toplevel(struct tinywl_view *view) {
 	return false;
 }
 
-struct tinywl_view *first_toplevel(struct tinywl_server *server) {
-	struct tinywl_view *view;
+struct view *first_toplevel(struct server *server) {
+	struct view *view;
 
 	wl_list_for_each(view, &server->views, link) {
 		if (!view->been_mapped) {
@@ -150,7 +150,7 @@ struct tinywl_view *first_toplevel(struct tinywl_server *server) {
 	return NULL;
 }
 
-static bool view_at(struct tinywl_view *view,
+static bool view_at(struct view *view,
 		double lx, double ly, struct wlr_surface **surface,
 		double *sx, double *sy) {
 	/*
@@ -188,11 +188,11 @@ static bool view_at(struct tinywl_view *view,
 	return false;
 }
 
-struct tinywl_view *desktop_view_at(struct tinywl_server *server, double lx, double ly,
+struct view *desktop_view_at(struct server *server, double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy) {
 	/* This iterates over all of our surfaces and attempts to find one under the
 	 * cursor. This relies on server->views being ordered from top-to-bottom. */
-	struct tinywl_view *view;
+	struct view *view;
 	wl_list_for_each(view, &server->views, link) {
 		if (view_at(view, lx, ly, surface, sx, sy)) {
 			return view;

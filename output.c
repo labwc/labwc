@@ -7,11 +7,11 @@
 struct render_data {
 	struct wlr_output *output;
 	struct wlr_renderer *renderer;
-	struct tinywl_view *view;
+	struct view *view;
 	struct timespec *when;
 };
 
-static void render_decorations(struct wlr_output *output, struct tinywl_view *view) {
+static void render_decorations(struct wlr_output *output, struct view *view) {
 	if (!view->surface)
 		return;
 	if (view->type != LAB_XWAYLAND_VIEW)
@@ -39,7 +39,7 @@ static void render_surface(struct wlr_surface *surface,
 		int sx, int sy, void *data) {
 	/* This function is called for every surface that needs to be rendered. */
 	struct render_data *rdata = data;
-	struct tinywl_view *view = rdata->view;
+	struct view *view = rdata->view;
 	struct wlr_output *output = rdata->output;
 
 	/* We first obtain a wlr_texture, which is a GPU resource. wlroots
@@ -100,7 +100,7 @@ static void render_surface(struct wlr_surface *surface,
 void output_frame(struct wl_listener *listener, void *data) {
 	/* This function is called every time an output is ready to display a frame,
 	 * generally at the output's refresh rate (e.g. 60Hz). */
-	struct tinywl_output *output =
+	struct output *output =
 		wl_container_of(listener, output, frame);
 	struct wlr_renderer *renderer = output->server->renderer;
 
@@ -122,7 +122,7 @@ void output_frame(struct wl_listener *listener, void *data) {
 
 	/* Each subsequent window we render is rendered on top of the last. Because
 	 * our view list is ordered front-to-back, we iterate over it backwards. */
-	struct tinywl_view *view;
+	struct view *view;
 	wl_list_for_each_reverse(view, &output->server->views, link) {
 		if (!view->mapped) {
 			/* An unmapped view should not be rendered. */

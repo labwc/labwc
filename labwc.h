@@ -34,13 +34,13 @@
 #define XWL_WINDOW_BORDER (3)
 
 /* For brevity's sake, struct members are annotated where they are used. */
-enum tinywl_cursor_mode {
+enum cursor_mode {
 	TINYWL_CURSOR_PASSTHROUGH,
 	TINYWL_CURSOR_MOVE,
 	TINYWL_CURSOR_RESIZE,
 };
 
-struct tinywl_server {
+struct server {
 	struct wl_display *wl_display;
 	struct wlr_backend *backend;
 	struct wlr_renderer *renderer;
@@ -64,8 +64,8 @@ struct tinywl_server {
 	struct wl_listener new_input;
 	struct wl_listener request_cursor;
 	struct wl_list keyboards;
-	enum tinywl_cursor_mode cursor_mode;
-	struct tinywl_view *grabbed_view;
+	enum cursor_mode cursor_mode;
+	struct view *grabbed_view;
 	double grab_x, grab_y;
 	int grab_width, grab_height;
 	uint32_t resize_edges;
@@ -75,9 +75,9 @@ struct tinywl_server {
 	struct wl_listener new_output;
 };
 
-struct tinywl_output {
+struct output {
 	struct wl_list link;
-	struct tinywl_server *server;
+	struct server *server;
 	struct wlr_output *wlr_output;
 	struct wl_listener frame;
 };
@@ -87,10 +87,10 @@ enum view_type {
 	LAB_XWAYLAND_VIEW
 };
 
-struct tinywl_view {
+struct view {
 	enum view_type type;
 	struct wl_list link;
-	struct tinywl_server *server;
+	struct server *server;
 	struct wlr_xdg_surface *xdg_surface;
 	struct wlr_xwayland_surface *xwayland_surface;
 	struct wlr_surface *surface;
@@ -111,9 +111,9 @@ struct tinywl_view {
 	int x, y;
 };
 
-struct tinywl_keyboard {
+struct keyboard {
 	struct wl_list link;
-	struct tinywl_server *server;
+	struct server *server;
 	struct wlr_input_device *device;
 
 	struct wl_listener modifiers;
@@ -127,22 +127,22 @@ void xdg_toplevel_request_move(struct wl_listener *listener, void *data);
 void xdg_toplevel_request_resize(struct wl_listener *listener, void *data);
 void xdg_surface_new(struct wl_listener *listener, void *data);
 
-int xwl_nr_parents(struct tinywl_view *view);
+int xwl_nr_parents(struct view *view);
 void xwl_surface_map(struct wl_listener *listener, void *data);
 void xwl_surface_unmap(struct wl_listener *listener, void *data);
 void xwl_surface_destroy(struct wl_listener *listener, void *data);
 void xwl_surface_configure(struct wl_listener *listener, void *data);
 void xwl_surface_new(struct wl_listener *listener, void *data);
 
-void focus_view(struct tinywl_view *view, struct wlr_surface *surface);
-void view_focus_next_toplevel(struct tinywl_server *server);
-void begin_interactive(struct tinywl_view *view, enum tinywl_cursor_mode mode, uint32_t edges);
-bool is_toplevel(struct tinywl_view *view);
-struct tinywl_view *desktop_view_at(struct tinywl_server *server, double lx, double ly,
+void focus_view(struct view *view, struct wlr_surface *surface);
+void view_focus_next_toplevel(struct server *server);
+void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges);
+bool is_toplevel(struct view *view);
+struct view *desktop_view_at(struct server *server, double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy);
 
 /* TODO: try to refactor to remove from header file */
-struct tinywl_view *first_toplevel(struct tinywl_server *server);
+struct view *first_toplevel(struct server *server);
 
 void server_cursor_motion(struct wl_listener *listener, void *data);
 void server_cursor_motion_absolute(struct wl_listener *listener, void *data);

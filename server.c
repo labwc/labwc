@@ -5,6 +5,16 @@ static void process_cursor_move(struct server *server, uint32_t time)
 	/* Move the grabbed view to the new position. */
 	server->grabbed_view->x = server->cursor->x - server->grab_x;
 	server->grabbed_view->y = server->cursor->y - server->grab_y;
+
+	struct view *view = server->grabbed_view;
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		wlr_xwayland_surface_configure(view->xwayland_surface,
+					       server->grabbed_view->x,
+					       server->grabbed_view->y,
+					       view->xwayland_surface->width,
+					       view->xwayland_surface->height);
+
+	}
 }
 
 static void process_cursor_resize(struct server *server, uint32_t time)

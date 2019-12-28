@@ -19,6 +19,11 @@ static void render_decorations(struct wlr_output *output, struct view *view)
 		return;
 	if (!is_toplevel(view))
 		return;
+	if (view->xwayland_surface->override_redirect)
+		return;
+	if (view->xwayland_surface->decorations !=
+	    WLR_XWAYLAND_SURFACE_DECORATIONS_ALL)
+		return;
 
 	struct wlr_box box = {
 		.x = view->x - XWL_WINDOW_BORDER,

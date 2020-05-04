@@ -252,15 +252,22 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 	double sx, sy;
 	struct wlr_seat *seat = server->seat;
 	struct wlr_surface *surface = NULL;
+	int view_area;
 	struct view *view = desktop_view_at(server, server->cursor->x,
 					    server->cursor->y, &surface, &sx,
-					    &sy);
+					    &sy, &view_area);
 	if (!view) {
 		/* If there's no view under the cursor, set the cursor image to
 		 * a default. This is what makes the cursor image appear when
 		 * you move it around the screen, not over any views. */
 		wlr_xcursor_manager_set_cursor_image(
 			server->cursor_mgr, "left_ptr", server->cursor);
+	}
+	switch (view_area) {
+	case LAB_DECO_PART_TOP:
+		wlr_xcursor_manager_set_cursor_image(
+			server->cursor_mgr, "left_ptr", server->cursor);
+		break;
 	}
 	if (surface) {
 		bool focus_changed = seat->pointer_state.focused_surface !=
@@ -332,9 +339,10 @@ void server_cursor_button(struct wl_listener *listener, void *data)
 				       event->button, event->state);
 	double sx, sy;
 	struct wlr_surface *surface;
+	int view_area;
 	struct view *view = desktop_view_at(server, server->cursor->x,
 					    server->cursor->y, &surface, &sx,
-					    &sy);
+					    &sy, &view_area);
 	if (event->state == WLR_BUTTON_RELEASED) {
 		/* If you released any buttons, we exit interactive move/resize
 		 * mode. */
@@ -342,6 +350,11 @@ void server_cursor_button(struct wl_listener *listener, void *data)
 	} else {
 		/* Focus that client if the button was _pressed_ */
 		focus_view(view, surface);
+		switch (view_area) {
+		case LAB_DECO_PART_TOP:
+			begin_interactive(view, TINYWL_CURSOR_MOVE, 0);
+			break;
+		}
 	}
 }
 

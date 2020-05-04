@@ -1,5 +1,21 @@
 #include "labwc.h"
 
+bool view_want_deco(struct view *view)
+{
+	if (!view->surface)
+		return false;
+	if (view->type != LAB_XWAYLAND_VIEW)
+		return false;
+	if (!is_toplevel(view))
+		return false;
+	if (view->xwayland_surface->override_redirect)
+		return false;
+	if (view->xwayland_surface->decorations !=
+	    WLR_XWAYLAND_SURFACE_DECORATIONS_ALL)
+		return false;
+	return true;
+}
+
 static struct view *last_toplevel(struct server *server)
 {
 	struct view *view;
@@ -127,10 +143,6 @@ void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges)
 	struct server *server = view->server;
 	struct wlr_surface *focused_surface =
 		server->seat->pointer_state.focused_surface;
-	if (view->surface != focused_surface) {
-		/* Deny move/resize requests from unfocused clients. */
-		return;
-	}
 	server->grabbed_view = view;
 	server->cursor_mode = mode;
 
@@ -216,7 +228,7 @@ static bool view_at(struct view *view, double lx, double ly,
 		break;
 	}
 
-	if (_surface != NULL) {
+	if (_surface) {
 		*sx = _sx;
 		*sy = _sy;
 		*surface = _surface;
@@ -227,16 +239,28 @@ static bool view_at(struct view *view, double lx, double ly,
 
 struct view *desktop_view_at(struct server *server, double lx, double ly,
 			     struct wlr_surface **surface, double *sx,
-			     double *sy)
+			     double *sy, int *view_area)
 {
-	/* This iterates over all of our surfaces and attempts to find one under
-	 * the cursor. This relies on server->views being ordered from
-	 * top-to-bottom. */
+	/*
+	 * This iterates over all of our surfaces and attempts to find one under
+	 * the cursor. It relies on server->views being ordered from
+	 * top-to-bottom.
+	 */
+	struct wlr_box border_box = {
+		.x = 0, .y = 0,
+		.width = 0, .height = 0,
+	};
 	struct view *view;
 	wl_list_for_each (view, &server->views, link) {
-		if (view_at(view, lx, ly, surface, sx, sy)) {
+		if (view_at(view, lx, ly, surface, sx, sy))
+			return view;
+		if (!view_want_deco(view))
+			continue;
+		if (deco_at(view, lx, ly) == LAB_DECO_PART_TOP) {
+			*view_area = LAB_DECO_PART_TOP;
 			return view;
 		}
 	}
 	return NULL;
 }
+

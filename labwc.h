@@ -33,7 +33,6 @@
 #define XWL_TITLEBAR_HEIGHT (10)
 #define XWL_WINDOW_BORDER (3)
 
-/* For brevity's sake, struct members are annotated where they are used. */
 enum cursor_mode {
 	TINYWL_CURSOR_PASSTHROUGH,
 	TINYWL_CURSOR_MOVE,
@@ -84,6 +83,11 @@ struct output {
 
 enum view_type { LAB_XDG_SHELL_VIEW, LAB_XWAYLAND_VIEW };
 
+enum deco_part {
+	LAB_DECO_NONE,
+	LAB_DECO_PART_TOP
+};
+
 struct view {
 	enum view_type type;
 	struct wl_list link;
@@ -131,6 +135,7 @@ void xwl_surface_destroy(struct wl_listener *listener, void *data);
 void xwl_surface_configure(struct wl_listener *listener, void *data);
 void xwl_surface_new(struct wl_listener *listener, void *data);
 
+bool view_want_deco(struct view *view);
 void view_focus_last_toplevel(struct server *server);
 void focus_view(struct view *view, struct wlr_surface *surface);
 void view_focus_next_toplevel(struct server *server);
@@ -139,7 +144,7 @@ void begin_interactive(struct view *view, enum cursor_mode mode,
 bool is_toplevel(struct view *view);
 struct view *desktop_view_at(struct server *server, double lx, double ly,
 			     struct wlr_surface **surface, double *sx,
-			     double *sy);
+			     double *sy, int *view_area);
 
 /* TODO: try to refactor to remove from header file */
 struct view *first_toplevel(struct server *server);
@@ -156,5 +161,9 @@ void server_new_output(struct wl_listener *listener, void *data);
 void output_frame(struct wl_listener *listener, void *data);
 
 void dbg_show_views(struct server *server);
+
+struct wlr_box deco_max_extents(struct view *view);
+struct wlr_box deco_box(struct view *view, enum deco_part deco_part);
+enum deco_part deco_at(struct view *view, double lx, double ly);
 
 #endif /* LABWC_H */

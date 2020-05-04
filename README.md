@@ -2,8 +2,6 @@
 
 labwc is a wayland compositor based on wlroots
 
-[https://imgur.com/rb2hJh3](https://imgur.com/rb2hJh3)
-
 ## Dependencies
 
 - wlroots
@@ -15,7 +13,6 @@ labwc is a wayland compositor based on wlroots
 Alt+Escape  Exit labwc
 Alt+F2      Cycle between windows
 Alt+F3      Launch dmenu
-Alt+F6      Move window
 Alt+F12     Print all views (helpful if run from X11)
 ```
 
@@ -47,7 +44,7 @@ In terms of size comparison of these two giants, it's worth reflecting on the si
 
 [sway](https://github.com/swaywm/sway) - 37k LOC
 
-[rootston](https://github.com/swaywm/wlroots/tree/master/rootston) - 7k LOC
+[rootston]() - 7k LOC
 
 [openbox](https://github.com/danakj/openbox) - 53k LOC
 

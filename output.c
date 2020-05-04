@@ -1,9 +1,5 @@
 #include "labwc.h"
 
-/*
- * Used to move all of the data necessary to render a surface from the
- * top-level frame handler to the per-surface render function.
- */
 struct render_data {
 	struct wlr_output *output;
 	struct wlr_renderer *renderer;
@@ -13,32 +9,19 @@ struct render_data {
 
 static void render_decorations(struct wlr_output *output, struct view *view)
 {
-	if (!view->surface)
-		return;
-	if (view->type != LAB_XWAYLAND_VIEW)
-		return;
-	if (!is_toplevel(view))
-		return;
-	if (view->xwayland_surface->override_redirect)
-		return;
-	if (view->xwayland_surface->decorations !=
-	    WLR_XWAYLAND_SURFACE_DECORATIONS_ALL)
+	if (!view_want_deco(view))
 		return;
 
-	struct wlr_box box = {
-		.x = view->x - XWL_WINDOW_BORDER,
-		.y = view->y - XWL_TITLEBAR_HEIGHT - XWL_WINDOW_BORDER,
-		.width = view->surface->current.width + 2 * XWL_WINDOW_BORDER,
-		.height = view->surface->current.height + XWL_TITLEBAR_HEIGHT +
-			  2 * XWL_WINDOW_BORDER,
-	};
-
+	struct wlr_box box = deco_max_extents(view);
 	float matrix[9];
 	wlr_matrix_project_box(matrix, &box, WL_OUTPUT_TRANSFORM_NORMAL, 0,
 			       output->transform_matrix);
-
 	float color[] = { 0.2, 0.2, 0.7, 0.9 };
 	wlr_render_quad_with_matrix(view->server->renderer, color, matrix);
+
+	box = deco_box(view, LAB_DECO_PART_TOP);
+	float color2[] = { 0.7, 0.2, 0.2, 0.9 };
+	wlr_render_rect(view->server->renderer, &box, color2, output->transform_matrix);
 }
 
 static void render_surface(struct wlr_surface *surface, int sx, int sy,

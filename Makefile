@@ -13,9 +13,11 @@ ASAN_FLAGS = -O0 -fsanitize=address -fno-common -fno-omit-frame-pointer -rdynami
 WP = `pkg-config --variable=pkgdatadir wayland-protocols`
 WS = `pkg-config --variable=wayland_scanner wayland-scanner`
 
+OBJS = main.o xdg.o view.o xwl.o server.o output.o dbg.o deco.o
+
 all: labwc
 
-labwc: xdg-shell-protocol.o main.o xdg.o view.o xwl.o server.o output.o dbg.o
+labwc: xdg-shell-protocol.o $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 xdg-shell-protocol.h:

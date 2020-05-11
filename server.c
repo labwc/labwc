@@ -417,11 +417,11 @@ void server_new_output(struct wl_listener *listener, void *data)
 	/* Adds this to the output layout. The add_auto function arranges
 	 * outputs from left-to-right in the order they appear. A more
 	 * sophisticated compositor would let the user configure the arrangement
-	 * of outputs in the layout. */
+	 * of outputs in the layout.
+	 *
+	 * The output layout utility automatically adds a wl_output global to the
+	 * display, which Wayland clients can see to find out information about the
+	 * output (such as DPI, scale factor, manufacturer, etc).
+	 */
 	wlr_output_layout_add_auto(server->output_layout, wlr_output);
-
-	/* Creating the global adds a wl_output global to the display, which
-	 * Wayland clients can see to find out information about the output
-	 * (such as DPI, scale factor, manufacturer, etc). */
-	wlr_output_create_global(wlr_output);
 }

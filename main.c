@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
 	 * room for you to dig your fingers in and play with their behavior if
 	 * you want.
 	 */
-	server.compositor = wlr_compositor_create(server.wl_display,
-						  server.renderer);
+	server.compositor =
+		wlr_compositor_create(server.wl_display, server.renderer);
 	if (!server.compositor) {
 		wlr_log(WLR_ERROR, "unable to create the wlroots compositor");
 		return 1;
@@ -156,6 +156,9 @@ int main(int argc, char *argv[])
 	server.request_cursor.notify = seat_request_cursor;
 	wl_signal_add(&server.seat->events.request_set_cursor,
 		      &server.request_cursor);
+	server.request_set_selection.notify = seat_request_set_selection;
+	wl_signal_add(&server.seat->events.request_set_selection,
+		      &server.request_set_selection);
 
 	/* Init xdg-shell */
 	server.xdg_shell = wlr_xdg_shell_create(server.wl_display);
@@ -187,25 +190,24 @@ int main(int argc, char *argv[])
 	wl_signal_add(&server.xwayland->events.new_surface,
 		      &server.new_xwayland_surface);
 
-	server.cursor_mgr = wlr_xcursor_manager_create(XCURSOR_DEFAULT,
-						       XCURSOR_SIZE);
+	server.cursor_mgr =
+		wlr_xcursor_manager_create(XCURSOR_DEFAULT, XCURSOR_SIZE);
 	if (!server.cursor_mgr) {
 		wlr_log(WLR_ERROR, "cannot create xwayland xcursor manager");
 		return 1;
 	}
 
 	if (setenv("DISPLAY", server.xwayland->display_name, true) < 0)
-		wlr_log_errno(WLR_ERROR, "Unable to set DISPLAY for XWayland."
-			      "	Clients may not be able to connect");
+		wlr_log_errno(WLR_ERROR, "unable to set DISPLAY for xwayland");
 	else
-		wlr_log(WLR_DEBUG, "XWayland is running on display %s",
+		wlr_log(WLR_DEBUG, "xwayland is running on display %s",
 			server.xwayland->display_name);
 
 	if (wlr_xcursor_manager_load(server.cursor_mgr, 1))
 		wlr_log(WLR_ERROR, "cannot load xwayland xcursor theme");
 
 	struct wlr_xcursor *xcursor;
-	xcursor	= wlr_xcursor_manager_get_xcursor(server.cursor_mgr,
+	xcursor = wlr_xcursor_manager_get_xcursor(server.cursor_mgr,
 						  XCURSOR_DEFAULT, 1);
 	if (xcursor) {
 		struct wlr_xcursor_image *image = xcursor->images[0];

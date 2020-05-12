@@ -177,6 +177,14 @@ void seat_request_cursor(struct wl_listener *listener, void *data)
 	}
 }
 
+void seat_request_set_selection(struct wl_listener *listener, void *data)
+{
+	struct server *server =
+		wl_container_of(listener, server, request_set_selection);
+	struct wlr_seat_request_set_selection_event *event = data;
+	wlr_seat_set_selection(server->seat, event->source, event->serial);
+}
+
 static void process_cursor_move(struct server *server, uint32_t time)
 {
 	/* Move the grabbed view to the new position. */
@@ -190,7 +198,6 @@ static void process_cursor_move(struct server *server, uint32_t time)
 					       server->grabbed_view->y,
 					       view->xwayland_surface->width,
 					       view->xwayland_surface->height);
-
 	}
 }
 
@@ -403,7 +410,8 @@ void server_new_output(struct wl_listener *listener, void *data)
 	 * TODO: support user configuration
 	 */
 	if (!wl_list_empty(&wlr_output->modes)) {
-		struct wlr_output_mode *mode = wlr_output_preferred_mode(wlr_output);
+		struct wlr_output_mode *mode =
+			wlr_output_preferred_mode(wlr_output);
 		wlr_output_set_mode(wlr_output, mode);
 		wlr_output_enable(wlr_output, true);
 		if (!wlr_output_commit(wlr_output)) {
@@ -425,9 +433,9 @@ void server_new_output(struct wl_listener *listener, void *data)
 	 * sophisticated compositor would let the user configure the arrangement
 	 * of outputs in the layout.
 	 *
-	 * The output layout utility automatically adds a wl_output global to the
-	 * display, which Wayland clients can see to find out information about the
-	 * output (such as DPI, scale factor, manufacturer, etc).
+	 * The output layout utility automatically adds a wl_output global to
+	 * the display, which Wayland clients can see to find out information
+	 * about the output (such as DPI, scale factor, manufacturer, etc).
 	 */
 	wlr_output_layout_add_auto(server->output_layout, wlr_output);
 }

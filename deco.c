@@ -16,13 +16,16 @@ struct wlr_box deco_box(struct view *view, enum deco_part deco_part)
 {
 	struct wlr_box box = { .x = 0, .y = 0, .width = 0, .height = 0 };
 	if (!view)
-		return;
+		return box;
 	switch (deco_part) {
 	case LAB_DECO_PART_TOP:
 		box.x = view->x - XWL_WINDOW_BORDER;
 		box.y = view->y - XWL_TITLEBAR_HEIGHT - XWL_WINDOW_BORDER;
-		box.width = view->surface->current.width + 2 * XWL_WINDOW_BORDER;
+		box.width =
+			view->surface->current.width + 2 * XWL_WINDOW_BORDER;
 		box.height = XWL_TITLEBAR_HEIGHT + XWL_WINDOW_BORDER;
+		break;
+	default:
 		break;
 	}
 	return box;
@@ -36,4 +39,3 @@ enum deco_part deco_at(struct view *view, double lx, double ly)
 		return LAB_DECO_PART_TOP;
 	return LAB_DECO_NONE;
 }
-

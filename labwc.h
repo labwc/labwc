@@ -62,6 +62,7 @@ struct server {
 	struct wlr_seat *seat;
 	struct wl_listener new_input;
 	struct wl_listener request_cursor;
+	struct wl_listener request_set_selection;
 	struct wl_list keyboards;
 	enum cursor_mode cursor_mode;
 	struct view *grabbed_view;
@@ -83,10 +84,7 @@ struct output {
 
 enum view_type { LAB_XDG_SHELL_VIEW, LAB_XWAYLAND_VIEW };
 
-enum deco_part {
-	LAB_DECO_NONE,
-	LAB_DECO_PART_TOP
-};
+enum deco_part { LAB_DECO_NONE, LAB_DECO_PART_TOP };
 
 struct view {
 	enum view_type type;
@@ -151,6 +149,7 @@ struct view *first_toplevel(struct server *server);
 
 void server_new_input(struct wl_listener *listener, void *data);
 void seat_request_cursor(struct wl_listener *listener, void *data);
+void seat_request_set_selection(struct wl_listener *listener, void *data);
 void server_cursor_motion(struct wl_listener *listener, void *data);
 void server_cursor_motion_absolute(struct wl_listener *listener, void *data);
 void server_cursor_button(struct wl_listener *listener, void *data);

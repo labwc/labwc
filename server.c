@@ -202,38 +202,44 @@ static void process_cursor_resize(struct server *server, uint32_t time)
 	 * view on one or two axes, but can also move the view if you resize
 	 * from the top or left edges (or top-left corner).
 	 *
-	 * Note that I took some shortcuts here. In a more fleshed-out
-	 * compositor, you'd wait for the client to prepare a buffer at the new
-	 * size, then commit any movement that was prepared.
+	 * TODO: Wait for the client to prepare a buffer at the new size, then
+	 * commit any movement that was prepared.
 	 */
 	struct view *view = server->grabbed_view;
-	double dx = server->cursor->x - server->grab_x;
-	double dy = server->cursor->y - server->grab_y;
-	double x = view->x;
-	double y = view->y;
-	int width = server->grab_width;
-	int height = server->grab_height;
+	double border_x = server->cursor->x - server->grab_x;
+	double border_y = server->cursor->y - server->grab_y;
+	int new_left = server->grab_box.x;
+	int new_right = server->grab_box.x + server->grab_box.width;
+	int new_top = server->grab_box.y;
+	int new_bottom = server->grab_box.y + server->grab_box.height;
+
 	if (server->resize_edges & WLR_EDGE_TOP) {
-		y = server->grab_y + dy;
-		height -= dy;
-		if (height < 1) {
-			y += height;
-		}
+		new_top = border_y;
+		if (new_top >= new_bottom)
+			new_top = new_bottom - 1;
 	} else if (server->resize_edges & WLR_EDGE_BOTTOM) {
-		height += dy;
+		new_bottom = border_y;
+		if (new_bottom <= new_top)
+			new_bottom = new_top + 1;
 	}
 	if (server->resize_edges & WLR_EDGE_LEFT) {
-		x = server->grab_x + dx;
-		width -= dx;
-		if (width < 1) {
-			x += width;
-		}
+		new_left = border_x;
+		if (new_left >= new_right)
+			new_left = new_right - 1;
 	} else if (server->resize_edges & WLR_EDGE_RIGHT) {
-		width += dx;
+		new_right = border_x;
+		if (new_right <= new_left)
+			new_right = new_left + 1;
 	}
-	view->x = x;
-	view->y = y;
-	wlr_xdg_toplevel_set_size(view->xdg_surface, width, height);
+
+	struct wlr_box geo_box;
+	wlr_xdg_surface_get_geometry(view->xdg_surface, &geo_box);
+	view->x = new_left - geo_box.x;
+	view->y = new_top - geo_box.y;
+
+	int new_width = new_right - new_left;
+	int new_height = new_bottom - new_top;
+	wlr_xdg_toplevel_set_size(view->xdg_surface, new_width, new_height);
 }
 
 static void process_cursor_motion(struct server *server, uint32_t time)

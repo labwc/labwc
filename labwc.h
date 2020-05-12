@@ -66,7 +66,7 @@ struct server {
 	enum cursor_mode cursor_mode;
 	struct view *grabbed_view;
 	double grab_x, grab_y;
-	int grab_width, grab_height;
+	struct wlr_box grab_box;
 	uint32_t resize_edges;
 
 	struct wlr_output_layout *output_layout;

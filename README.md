@@ -4,7 +4,7 @@ Aiming to become a light-weight openbox alternative for Wayland
 
 ## Dependencies
 
-- wlroots
+- wlroots (>=0.10.0)
 - wayland-protocols
 
 ## Background

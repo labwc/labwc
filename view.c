@@ -141,34 +141,36 @@ void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges)
 	 * the compositor stops propegating pointer events to clients and
 	 * instead consumes them itself, to move or resize windows. */
 	struct server *server = view->server;
-	struct wlr_surface *focused_surface =
-		server->seat->pointer_state.focused_surface;
 	server->grabbed_view = view;
 	server->cursor_mode = mode;
-
-	struct wlr_box geo_box;
-	switch (view->type) {
-	case LAB_XDG_SHELL_VIEW:
-		wlr_xdg_surface_get_geometry(view->xdg_surface, &geo_box);
-		break;
-	case LAB_XWAYLAND_VIEW:
-		geo_box.x = view->xwayland_surface->x;
-		geo_box.y = view->xwayland_surface->y;
-		geo_box.width = view->xwayland_surface->width;
-		geo_box.height = view->xwayland_surface->height;
-		break;
-	}
 
 	if (mode == TINYWL_CURSOR_MOVE) {
 		server->grab_x = server->cursor->x - view->x;
 		server->grab_y = server->cursor->y - view->y;
 	} else {
-		server->grab_x = server->cursor->x + geo_box.x;
-		server->grab_y = server->cursor->y + geo_box.y;
+
+		struct wlr_box geo_box;
+		switch (view->type) {
+		case LAB_XDG_SHELL_VIEW:
+			wlr_xdg_surface_get_geometry(view->xdg_surface, &geo_box);
+			break;
+		case LAB_XWAYLAND_VIEW:
+			geo_box.x = view->xwayland_surface->x;
+			geo_box.y = view->xwayland_surface->y;
+			geo_box.width = view->xwayland_surface->width;
+			geo_box.height = view->xwayland_surface->height;
+			break;
+		}
+
+		double border_x = (view->x + geo_box.x) + ((edges & WLR_EDGE_RIGHT) ? geo_box.width : 0);
+		double border_y = (view->y + geo_box.y) + ((edges & WLR_EDGE_BOTTOM) ? geo_box.height : 0);
+		server->grab_x = server->cursor->x - border_x;
+		server->grab_y = server->cursor->y - border_y;
+		server->grab_box = geo_box;
+		server->grab_box.x += view->x;
+		server->grab_box.y += view->y;
+		server->resize_edges = edges;
 	}
-	server->grab_width = geo_box.width;
-	server->grab_height = geo_box.height;
-	server->resize_edges = edges;
 }
 
 bool is_toplevel(struct view *view)
@@ -246,10 +248,6 @@ struct view *desktop_view_at(struct server *server, double lx, double ly,
 	 * the cursor. It relies on server->views being ordered from
 	 * top-to-bottom.
 	 */
-	struct wlr_box border_box = {
-		.x = 0, .y = 0,
-		.width = 0, .height = 0,
-	};
 	struct view *view;
 	wl_list_for_each (view, &server->views, link) {
 		if (view_at(view, lx, ly, surface, sx, sy))

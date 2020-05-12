@@ -2,8 +2,6 @@
 
 bool view_want_deco(struct view *view)
 {
-	if (!view->surface)
-		return false;
 	if (view->type != LAB_XWAYLAND_VIEW)
 		return false;
 	if (!is_toplevel(view))
@@ -148,11 +146,11 @@ void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges)
 		server->grab_x = server->cursor->x - view->x;
 		server->grab_y = server->cursor->y - view->y;
 	} else {
-
 		struct wlr_box geo_box;
 		switch (view->type) {
 		case LAB_XDG_SHELL_VIEW:
-			wlr_xdg_surface_get_geometry(view->xdg_surface, &geo_box);
+			wlr_xdg_surface_get_geometry(view->xdg_surface,
+						     &geo_box);
 			break;
 		case LAB_XWAYLAND_VIEW:
 			geo_box.x = view->xwayland_surface->x;
@@ -162,8 +160,12 @@ void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges)
 			break;
 		}
 
-		double border_x = (view->x + geo_box.x) + ((edges & WLR_EDGE_RIGHT) ? geo_box.width : 0);
-		double border_y = (view->y + geo_box.y) + ((edges & WLR_EDGE_BOTTOM) ? geo_box.height : 0);
+		double border_x =
+			(view->x + geo_box.x) +
+			((edges & WLR_EDGE_RIGHT) ? geo_box.width : 0);
+		double border_y =
+			(view->y + geo_box.y) +
+			((edges & WLR_EDGE_BOTTOM) ? geo_box.height : 0);
 		server->grab_x = server->cursor->x - border_x;
 		server->grab_y = server->cursor->y - border_y;
 		server->grab_box = geo_box;
@@ -261,4 +263,3 @@ struct view *desktop_view_at(struct server *server, double lx, double ly,
 	}
 	return NULL;
 }
-

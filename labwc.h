@@ -84,7 +84,7 @@ struct output {
 
 enum view_type { LAB_XDG_SHELL_VIEW, LAB_XWAYLAND_VIEW };
 
-enum deco_part { LAB_DECO_NONE, LAB_DECO_PART_TOP };
+enum deco_part { LAB_DECO_NONE, LAB_DECO_PART_TOP, LAB_DECO_PART_LEFT };
 
 struct view {
 	enum view_type type;
@@ -159,6 +159,7 @@ void server_new_output(struct wl_listener *listener, void *data);
 
 void output_frame(struct wl_listener *listener, void *data);
 
+void dbg_show_one_view(struct view *view);
 void dbg_show_views(struct server *server);
 
 struct wlr_box deco_max_extents(struct view *view);

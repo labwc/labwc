@@ -15,7 +15,7 @@ struct wlr_box deco_max_extents(struct view *view)
 struct wlr_box deco_box(struct view *view, enum deco_part deco_part)
 {
 	struct wlr_box box = { .x = 0, .y = 0, .width = 0, .height = 0 };
-	if (!view)
+	if (!view || !view->surface)
 		return box;
 	switch (deco_part) {
 	case LAB_DECO_PART_TOP:
@@ -24,6 +24,12 @@ struct wlr_box deco_box(struct view *view, enum deco_part deco_part)
 		box.width =
 			view->surface->current.width + 2 * XWL_WINDOW_BORDER;
 		box.height = XWL_TITLEBAR_HEIGHT + XWL_WINDOW_BORDER;
+		break;
+	case LAB_DECO_PART_LEFT:
+		box.x = view->x - XWL_WINDOW_BORDER;
+		box.y = view->y;
+		box.width = XWL_WINDOW_BORDER;
+		box.height = view->surface->current.height;
 		break;
 	default:
 		break;

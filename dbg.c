@@ -55,7 +55,7 @@ static void show_one_xwl_view(struct view *view)
 	 */
 }
 
-static void show_one_view(struct view *view)
+void dbg_show_one_view(struct view *view)
 {
 	if (view->type == LAB_XDG_SHELL_VIEW)
 		show_one_xdg_view(view);
@@ -70,7 +70,5 @@ void dbg_show_views(struct server *server)
 	fprintf(stderr, "---\n");
 	fprintf(stderr, "TYPE NR_PNT NR_CLD MAPPED VIEW-POINTER   NAME\n");
 	wl_list_for_each_reverse (view, &server->views, link)
-		show_one_view(view);
+		dbg_show_one_view(view);
 }
-
-

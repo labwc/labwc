@@ -23,6 +23,8 @@
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/types/wlr_xdg_shell.h>
+#include <wlr/types/wlr_server_decoration.h>
+#include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/util/log.h>
 #include <wlr/xwayland.h>
 #include <xkbcommon/xkbcommon.h>
@@ -32,6 +34,7 @@
 #define XCURSOR_MOVE "grabbing"
 #define XWL_TITLEBAR_HEIGHT (10)
 #define XWL_WINDOW_BORDER (3)
+#define LAB_DISABLE_CSD (1)
 
 enum cursor_mode {
 	TINYWL_CURSOR_PASSTHROUGH,
@@ -47,6 +50,7 @@ struct server {
 
 	struct wlr_xdg_shell *xdg_shell;
 	struct wl_listener new_xdg_surface;
+	struct wl_listener xdg_toplevel_decoration;
 	struct wlr_xwayland *xwayland;
 	struct wl_listener new_xwayland_surface;
 	struct wl_list views;
@@ -119,6 +123,7 @@ struct keyboard {
 	struct wl_listener key;
 };
 
+void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
 void xdg_surface_map(struct wl_listener *listener, void *data);
 void xdg_surface_unmap(struct wl_listener *listener, void *data);
 void xdg_surface_destroy(struct wl_listener *listener, void *data);

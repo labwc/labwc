@@ -170,7 +170,27 @@ int main(int argc, char *argv[])
 	wl_signal_add(&server.xdg_shell->events.new_surface,
 		      &server.new_xdg_surface);
 
-	/* TODO: wlr_xdg_decoration_manager_v1_create() */
+	/* Disable CSD */
+	struct wlr_xdg_decoration_manager_v1 *xdg_deco_mgr = NULL;
+	xdg_deco_mgr = wlr_xdg_decoration_manager_v1_create(server.wl_display);
+	if (!xdg_deco_mgr) {
+		wlr_log(WLR_ERROR, "unable to create the XDG deco manager");
+		return 1;
+	}
+	wl_signal_add(&xdg_deco_mgr->events.new_toplevel_decoration,
+		      &server.xdg_toplevel_decoration);
+	server.xdg_toplevel_decoration.notify = xdg_toplevel_decoration;
+
+	struct wlr_server_decoration_manager *deco_mgr = NULL;
+	deco_mgr = wlr_server_decoration_manager_create(server.wl_display);
+	if (!deco_mgr) {
+		wlr_log(WLR_ERROR, "unable to create the server deco manager");
+		return 1;
+	}
+	wlr_server_decoration_manager_set_default_mode(
+		deco_mgr, LAB_DISABLE_CSD ?
+				  WLR_SERVER_DECORATION_MANAGER_MODE_SERVER :
+				  WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT);
 
 	/* FIXME: Check return values */
 	wlr_export_dmabuf_manager_v1_create(server.wl_display);

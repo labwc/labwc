@@ -47,7 +47,7 @@ void view_focus_last_toplevel(struct server *server)
 	if (wl_list_length(&server->views) < 2)
 		return;
 	struct view *view = last_toplevel(server);
-	focus_view(view, view->surface);
+	view_focus(view);
 }
 
 static struct view *next_toplevel(struct view *current)
@@ -65,7 +65,7 @@ void view_focus_next_toplevel(struct view *current)
 {
 	struct view *view;
 	view = next_toplevel(current);
-	focus_view(view, view->surface);
+	view_focus(view);
 }
 
 static void move_to_front(struct view *view)
@@ -105,18 +105,17 @@ static void set_activated(struct wlr_surface *s, bool activated)
 	}
 }
 
-/* FIXME: why have we got both view and surface here???? */
-void focus_view(struct view *view, struct wlr_surface *surface)
+void view_focus(struct view *view)
 {
 	/* Note: this function only deals with keyboard focus. */
-	if (!view)
+	if (!view || !view->surface)
 		return;
 	struct server *server = view->server;
 	struct wlr_seat *seat = server->seat;
 	struct wlr_surface *prev_surface;
 
 	prev_surface = seat->keyboard_state.focused_surface;
-	if (prev_surface == surface) {
+	if (prev_surface == view->surface) {
 		/* Don't re-focus an already focused surface. */
 		return;
 	}
@@ -202,7 +201,7 @@ void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges)
 }
 
 static bool _view_at(struct view *view, double lx, double ly,
-		    struct wlr_surface **surface, double *sx, double *sy)
+		     struct wlr_surface **surface, double *sx, double *sy)
 {
 	/*
 	 * XDG toplevels may have nested surfaces, such as popup windows for

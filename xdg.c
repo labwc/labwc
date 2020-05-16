@@ -54,7 +54,7 @@ void xdg_surface_map(struct wl_listener *listener, void *data)
 	view->mapped = true;
 	view->been_mapped = true;
 	view->surface = view->xdg_surface->surface;
-	focus_view(view, view->xdg_surface->surface);
+	view_focus(view);
 }
 
 void xdg_surface_unmap(struct wl_listener *listener, void *data)

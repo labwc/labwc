@@ -362,7 +362,7 @@ void server_cursor_button(struct wl_listener *listener, void *data)
 		server->cursor_mode = TINYWL_CURSOR_PASSTHROUGH;
 	} else {
 		/* Focus that client if the button was _pressed_ */
-		focus_view(view, surface);
+		view_focus(view);
 		switch (view_area) {
 		case LAB_DECO_PART_TOP:
 			begin_interactive(view, TINYWL_CURSOR_MOVE, 0);

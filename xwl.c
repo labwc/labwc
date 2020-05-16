@@ -42,7 +42,7 @@ void xwl_surface_map(struct wl_listener *listener, void *data)
 	if (!view->been_mapped)
 		position(view);
 	view->been_mapped = true;
-	focus_view(view, view->xwayland_surface->surface);
+	view_focus(view);
 }
 
 void xwl_surface_unmap(struct wl_listener *listener, void *data)

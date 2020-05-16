@@ -140,7 +140,7 @@ void xwl_surface_new(struct wl_listener *listener, void *data);
 
 bool view_want_deco(struct view *view);
 void view_focus_last_toplevel(struct server *server);
-void focus_view(struct view *view, struct wlr_surface *surface);
+void view_focus(struct view *view);
 void view_focus_next_toplevel(struct view *current);
 void begin_interactive(struct view *view, enum cursor_mode mode,
 		       uint32_t edges);

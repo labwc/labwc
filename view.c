@@ -1,24 +1,21 @@
 #include "labwc.h"
 
-bool view_want_deco(struct view *view)
+bool is_toplevel(struct view *view)
 {
-	if (view->type != LAB_XWAYLAND_VIEW)
-		return false;
-	if (!is_toplevel(view))
-		return false;
-	if (view->xwayland_surface->override_redirect)
-		return false;
-	if (view->xwayland_surface->decorations !=
-	    WLR_XWAYLAND_SURFACE_DECORATIONS_ALL)
-		return false;
-	return true;
+	switch (view->type) {
+	case LAB_XDG_SHELL_VIEW:
+		return view->xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL;
+	case LAB_XWAYLAND_VIEW:
+		return xwl_nr_parents(view) > 0 ? false : true;
+	}
+	return false;
 }
 
-static struct view *last_toplevel(struct server *server)
+struct view *first_toplevel(struct server *server)
 {
 	struct view *view;
 
-	wl_list_for_each_reverse (view, &server->views, link) {
+	wl_list_for_each (view, &server->views, link) {
 		if (!view->been_mapped) {
 			continue;
 		}
@@ -30,14 +27,51 @@ static struct view *last_toplevel(struct server *server)
 	return NULL;
 }
 
+static struct view *last_toplevel(struct server *server)
+{
+	struct view *view;
+
+	wl_list_for_each_reverse (view, &server->views, link) {
+		if (!view->been_mapped)
+			continue;
+		if (is_toplevel(view))
+			return view;
+	}
+	/* no top-level view */
+	return NULL;
+}
+
 void view_focus_last_toplevel(struct server *server)
 {
 	/* TODO: write view_nr_toplevel_views() */
-	if (wl_list_length(&server->views) < 2) {
+	if (wl_list_length(&server->views) < 2)
 		return;
-	}
 	struct view *view = last_toplevel(server);
 	focus_view(view, view->surface);
+}
+
+static struct view *next_toplevel(struct view *current)
+{
+	struct view *tmp = current;
+
+	do {
+		tmp = wl_container_of(tmp->link.next, tmp, link);
+	} while (!tmp->been_mapped || !is_toplevel(tmp));
+	return tmp;
+}
+
+/* Original function name - suggest we keep it */
+void view_focus_next_toplevel(struct view *current)
+{
+	struct view *view;
+	view = next_toplevel(current);
+	focus_view(view, view->surface);
+}
+
+static void move_to_front(struct view *view)
+{
+	wl_list_remove(&view->link);
+	wl_list_insert(&view->server->views, &view->link);
 }
 
 static void activate_view(struct view *view)
@@ -58,6 +92,8 @@ static void activate_view(struct view *view)
  */
 static void set_activated(struct wlr_surface *s, bool activated)
 {
+	if (!s)
+		return;
 	if (wlr_surface_is_xdg_surface(s)) {
 		struct wlr_xdg_surface *previous;
 		previous = wlr_xdg_surface_from_wlr_surface(s);
@@ -69,18 +105,12 @@ static void set_activated(struct wlr_surface *s, bool activated)
 	}
 }
 
-static void move_to_front(struct view *view)
-{
-	wl_list_remove(&view->link);
-	wl_list_insert(&view->server->views, &view->link);
-}
-
+/* FIXME: why have we got both view and surface here???? */
 void focus_view(struct view *view, struct wlr_surface *surface)
 {
 	/* Note: this function only deals with keyboard focus. */
-	if (view == NULL) {
+	if (!view)
 		return;
-	}
 	struct server *server = view->server;
 	struct wlr_seat *seat = server->seat;
 	struct wlr_surface *prev_surface;
@@ -115,22 +145,18 @@ void focus_view(struct view *view, struct wlr_surface *surface)
 				       &keyboard->modifiers);
 }
 
-static struct view *next_toplevel(struct view *current)
+bool view_want_deco(struct view *view)
 {
-	struct view *tmp = current;
-
-	do {
-		tmp = wl_container_of(tmp->link.next, tmp, link);
-	} while (!tmp->been_mapped || !is_toplevel(tmp));
-	return tmp;
-}
-
-void view_focus_next_toplevel(struct server *server)
-{
-	struct view *view;
-	view = first_toplevel(server);
-	view = next_toplevel(view);
-	focus_view(view, view->surface);
+	if (view->type != LAB_XWAYLAND_VIEW)
+		return false;
+	if (!is_toplevel(view))
+		return false;
+	if (view->xwayland_surface->override_redirect)
+		return false;
+	if (view->xwayland_surface->decorations !=
+	    WLR_XWAYLAND_SURFACE_DECORATIONS_ALL)
+		return false;
+	return true;
 }
 
 void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges)
@@ -175,34 +201,7 @@ void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges)
 	}
 }
 
-bool is_toplevel(struct view *view)
-{
-	switch (view->type) {
-	case LAB_XWAYLAND_VIEW:
-		return xwl_nr_parents(view) > 0 ? false : true;
-	case LAB_XDG_SHELL_VIEW:
-		return view->xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL;
-	}
-	return false;
-}
-
-struct view *first_toplevel(struct server *server)
-{
-	struct view *view;
-
-	wl_list_for_each (view, &server->views, link) {
-		if (!view->been_mapped) {
-			continue;
-		}
-		if (is_toplevel(view)) {
-			return view;
-		}
-	}
-	fprintf(stderr, "warn: found no toplevel view (%s)\n", __func__);
-	return NULL;
-}
-
-static bool view_at(struct view *view, double lx, double ly,
+static bool _view_at(struct view *view, double lx, double ly,
 		    struct wlr_surface **surface, double *sx, double *sy)
 {
 	/*
@@ -241,9 +240,9 @@ static bool view_at(struct view *view, double lx, double ly,
 	return false;
 }
 
-struct view *desktop_view_at(struct server *server, double lx, double ly,
-			     struct wlr_surface **surface, double *sx,
-			     double *sy, int *view_area)
+struct view *view_at(struct server *server, double lx, double ly,
+		     struct wlr_surface **surface, double *sx, double *sy,
+		     int *view_area)
 {
 	/*
 	 * This iterates over all of our surfaces and attempts to find one under
@@ -252,7 +251,7 @@ struct view *desktop_view_at(struct server *server, double lx, double ly,
 	 */
 	struct view *view;
 	wl_list_for_each (view, &server->views, link) {
-		if (view_at(view, lx, ly, surface, sx, sy))
+		if (_view_at(view, lx, ly, surface, sx, sy))
 			return view;
 		if (!view_want_deco(view))
 			continue;

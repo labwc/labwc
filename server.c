@@ -266,9 +266,9 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 	struct wlr_seat *seat = server->seat;
 	struct wlr_surface *surface = NULL;
 	int view_area;
-	struct view *view = desktop_view_at(server, server->cursor->x,
-					    server->cursor->y, &surface, &sx,
-					    &sy, &view_area);
+	struct view *view = view_at(server, server->cursor->x,
+				    server->cursor->y, &surface, &sx, &sy,
+				    &view_area);
 	if (!view) {
 		/* If there's no view under the cursor, set the cursor image to
 		 * a default. This is what makes the cursor image appear when
@@ -353,9 +353,9 @@ void server_cursor_button(struct wl_listener *listener, void *data)
 	double sx, sy;
 	struct wlr_surface *surface;
 	int view_area;
-	struct view *view = desktop_view_at(server, server->cursor->x,
-					    server->cursor->y, &surface, &sx,
-					    &sy, &view_area);
+	struct view *view = view_at(server, server->cursor->x,
+				    server->cursor->y, &surface, &sx, &sy,
+				    &view_area);
 	if (event->state == WLR_BUTTON_RELEASED) {
 		/* If you released any buttons, we exit interactive move/resize
 		 * mode. */

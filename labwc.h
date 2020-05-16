@@ -141,13 +141,13 @@ void xwl_surface_new(struct wl_listener *listener, void *data);
 bool view_want_deco(struct view *view);
 void view_focus_last_toplevel(struct server *server);
 void focus_view(struct view *view, struct wlr_surface *surface);
-void view_focus_next_toplevel(struct server *server);
+void view_focus_next_toplevel(struct view *current);
 void begin_interactive(struct view *view, enum cursor_mode mode,
 		       uint32_t edges);
 bool is_toplevel(struct view *view);
-struct view *desktop_view_at(struct server *server, double lx, double ly,
-			     struct wlr_surface **surface, double *sx,
-			     double *sy, int *view_area);
+struct view *view_at(struct server *server, double lx, double ly,
+		     struct wlr_surface **surface, double *sx, double *sy,
+		     int *view_area);
 
 /* TODO: try to refactor to remove from header file */
 struct view *first_toplevel(struct server *server);

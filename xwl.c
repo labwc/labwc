@@ -49,8 +49,7 @@ void xwl_surface_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, unmap);
 	view->mapped = false;
-	if (is_toplevel(view))
-		view_focus_next_toplevel(view->server);
+	view_focus_next_toplevel(view);
 }
 
 void xwl_surface_destroy(struct wl_listener *listener, void *data)

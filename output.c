@@ -21,7 +21,8 @@ static void render_decorations(struct wlr_output *output, struct view *view)
 
 	box = deco_box(view, LAB_DECO_PART_TOP);
 	float color2[] = { 0.7, 0.2, 0.2, 0.9 };
-	wlr_render_rect(view->server->renderer, &box, color2, output->transform_matrix);
+	wlr_render_rect(view->server->renderer, &box, color2,
+			output->transform_matrix);
 }
 
 static void render_surface(struct wlr_surface *surface, int sx, int sy,

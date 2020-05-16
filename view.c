@@ -74,33 +74,18 @@ static void move_to_front(struct view *view)
 	wl_list_insert(&view->server->views, &view->link);
 }
 
-static void activate_view(struct view *view)
+/* Activate/deactivate toplevel surface */
+static void set_activated(struct wlr_surface *surface, bool activated)
 {
-	if (view->type == LAB_XDG_SHELL_VIEW) {
-		wlr_xdg_toplevel_set_activated(view->xdg_surface, true);
-	} else if (view->type == LAB_XWAYLAND_VIEW) {
-		wlr_xwayland_surface_activate(view->xwayland_surface, true);
-	} else {
-		fprintf(stderr, "warn: view was of unknown type (%s)\n",
-			__func__);
-	}
-}
-
-/**
- * Request that this toplevel surface show itself in an activated or
- * deactivated state.
- */
-static void set_activated(struct wlr_surface *s, bool activated)
-{
-	if (!s)
+	if (!surface)
 		return;
-	if (wlr_surface_is_xdg_surface(s)) {
+	if (wlr_surface_is_xdg_surface(surface)) {
 		struct wlr_xdg_surface *previous;
-		previous = wlr_xdg_surface_from_wlr_surface(s);
+		previous = wlr_xdg_surface_from_wlr_surface(surface);
 		wlr_xdg_toplevel_set_activated(previous, activated);
 	} else {
 		struct wlr_xwayland_surface *previous;
-		previous = wlr_xwayland_surface_from_wlr_surface(s);
+		previous = wlr_xwayland_surface_from_wlr_surface(surface);
 		wlr_xwayland_surface_activate(previous, activated);
 	}
 }
@@ -127,13 +112,12 @@ void view_focus(struct view *view)
 			return;
 		}
 	}
-	if (prev_surface) {
+	if (prev_surface)
 		set_activated(seat->keyboard_state.focused_surface, false);
-	}
 
 	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat);
 	move_to_front(view);
-	activate_view(view);
+	set_activated(view->surface, true);
 	/*
 	 * Tell the seat to have the keyboard enter this surface. wlroots will
 	 * keep track of this and automatically send key events to the

@@ -1,26 +1,56 @@
 # labwc
 
-Aiming to become a light-weight openbox alternative for Wayland
+A light-weight openbox alternative for Wayland.
 
-## Dependencies
+This software is in early development.
+
+# Dependencies
 
 - wlroots (>=0.10.0)
 - wayland-protocols
 
-## Background
+# Aim
 
-I am looking for a Wayland compositor that feels like openbox, but haven't come across one yet. Playing around with some code-bases seems an obvious way to evaluate and explore options. I saw [sway](https://swaywm.org/), [cage](https://www.hjdskes.nl/blog/cage-01/) and [wio](https://wio-project.org/), and definitely like the feel of wlroots.
+[x] Support xwayland
+[ ] Support some of openbox's rc.xml
+[ ] Support openbox themes
+[ ] Support layer-shell's background layer
 
-Before trying wlroots, I messed around with [QtWayland](https://github.com/qt/qtwayland), [grefsen](https://github.com/ec1oud/grefsen), [Mir](https://mir-server.io) / [egmde](https://github.com/AlanGriffiths/egmde). Lubuntu have [declared](https://lubuntu.me/lubuntu-development-newsletter-9/) that they will be switching to Wayland by default for 20.10 and that they are going to do this by porting Openbox to use the Mir display server and [Drew DeVault’s](https://drewdevault.com/) QtLayerShell, etc.
+# Influenced by
 
-Influenced by: [sway](https://github.com/swaywm/sway), [rootston](), [openbox](https://github.com/danakj/openbox), [i3](https://github.com/i3/i3), [dwm](https://dwm.suckless.org)
+- [sway](https://github.com/swaywm/sway)
+- [cage](https://www.hjdskes.nl/blog/cage-01/)
+- [wio](https://wio-project.org/)
+- [rootston]()
+- [openbox](https://github.com/danakj/openbox)
+- [i3](https://github.com/i3/i3)
+- [dwm](https://dwm.suckless.org)
+
+# Alternatives
+
+The following were considered before choosing wlroots:
+
+- [QtWayland](https://github.com/qt/qtwayland), [grefsen](https://github.com/ec1oud/grefsen)
+- [Mir](https://mir-server.io), [egmde](https://github.com/AlanGriffiths/egmde)
+
+# CONFIGURATION
 
 ## Keyboard shortcuts
 
+We will support rc.xml keybinds, but for the time being:
+
 ```
 Alt+Escape  Exit labwc
-Alt+F2      Cycle between windows
+Alt+F2      Cycle windows
 Alt+F3      Launch dmenu
-Alt+F12     Print all views (helpful if run from X11)
 ```
+
+## Keyboard layout
+
+Set environment variable `XKB_DEFAULT_LAYOUT` for your keyboard layout, for
+example `gb`. Read `xkeyboard-config(7)` for details.
+
+# Integration
+
+- Use grim for scrots
 

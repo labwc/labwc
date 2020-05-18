@@ -1,6 +1,6 @@
 #include "labwc.h"
 
-bool is_toplevel(struct view *view)
+static bool is_toplevel(struct view *view)
 {
 	switch (view->type) {
 	case LAB_XDG_SHELL_VIEW:
@@ -11,61 +11,18 @@ bool is_toplevel(struct view *view)
 	return false;
 }
 
-struct view *first_toplevel(struct server *server)
+bool view_want_deco(struct view *view)
 {
-	struct view *view;
-
-	wl_list_for_each (view, &server->views, link) {
-		if (!view->been_mapped) {
-			continue;
-		}
-		if (is_toplevel(view)) {
-			return view;
-		}
-	}
-	fprintf(stderr, "warn: found no toplevel view (%s)\n", __func__);
-	return NULL;
-}
-
-static struct view *last_toplevel(struct server *server)
-{
-	struct view *view;
-
-	wl_list_for_each_reverse (view, &server->views, link) {
-		if (!view->been_mapped)
-			continue;
-		if (is_toplevel(view))
-			return view;
-	}
-	/* no top-level view */
-	return NULL;
-}
-
-void view_focus_last_toplevel(struct server *server)
-{
-	/* TODO: write view_nr_toplevel_views() */
-	if (wl_list_length(&server->views) < 2)
-		return;
-	struct view *view = last_toplevel(server);
-	view_focus(view);
-}
-
-static struct view *next_toplevel(struct view *current)
-{
-	struct view *tmp = current;
-
-	do {
-		tmp = wl_container_of(tmp->link.next, tmp, link);
-	} while (!tmp->been_mapped || !is_toplevel(tmp));
-	return tmp;
-}
-
-/* Original function name - suggest we keep it */
-void view_focus_next_toplevel(struct view *current)
-{
-	struct view *view;
-	view = next_toplevel(current);
-	view_focus(view);
+	if (view->type != LAB_XWAYLAND_VIEW)
+		return false;
+	if (!is_toplevel(view))
+		return false;
+	if (view->xwayland_surface->override_redirect)
+		return false;
+	if (view->xwayland_surface->decorations !=
+	    WLR_XWAYLAND_SURFACE_DECORATIONS_ALL)
+		return false;
+	return true;
 }
 
 static void move_to_front(struct view *view)
@@ -128,20 +85,6 @@ void view_focus(struct view *view)
 				       &keyboard->modifiers);
 }
 
-bool view_want_deco(struct view *view)
-{
-	if (view->type != LAB_XWAYLAND_VIEW)
-		return false;
-	if (!is_toplevel(view))
-		return false;
-	if (view->xwayland_surface->override_redirect)
-		return false;
-	if (view->xwayland_surface->decorations !=
-	    WLR_XWAYLAND_SURFACE_DECORATIONS_ALL)
-		return false;
-	return true;
-}
-
 void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges)
 {
 	/* This function sets up an interactive move or resize operation, where
@@ -182,6 +125,28 @@ void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges)
 		server->grab_box.y += view->y;
 		server->resize_edges = edges;
 	}
+}
+
+struct view *view_front_toplevel(struct server *server)
+{
+	struct view *view;
+	wl_list_for_each (view, &server->views, link) {
+		if (!view->been_mapped)
+			continue;
+		if (is_toplevel(view))
+			return view;
+	}
+	return NULL;
+}
+
+struct view *next_toplevel(struct view *current)
+{
+	/* FIXME: write nr_toplevels() */
+	struct view *view = current;
+	do {
+		view = wl_container_of(view->link.next, view, link);
+	} while (!view->been_mapped || !is_toplevel(view));
+	return view;
 }
 
 static bool _view_at(struct view *view, double lx, double ly,

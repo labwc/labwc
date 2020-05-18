@@ -1,5 +1,8 @@
 #include "labwc.h"
 
+static bool in_alt_tab_mode;
+static struct view *alt_tab_view;
+
 static void keyboard_handle_modifiers(struct wl_listener *listener, void *data)
 {
 	/* This event is raised when a modifier key, such as shift or alt, is
@@ -33,7 +36,9 @@ static bool handle_keybinding(struct server *server, xkb_keysym_t sym)
 		break;
 	case XKB_KEY_F1:
 	case XKB_KEY_F2:
-		view_focus_last_toplevel(server);
+		in_alt_tab_mode = true;
+		alt_tab_view = next_toplevel(view_front_toplevel(server));
+		fprintf(stderr, "alt_tab_view=%p\n", (void *)alt_tab_view);
 		break;
 	case XKB_KEY_F3:
 		if (fork() == 0) {
@@ -41,8 +46,8 @@ static bool handle_keybinding(struct server *server, xkb_keysym_t sym)
 		}
 		break;
 	case XKB_KEY_F6:
-		begin_interactive(first_toplevel(server), TINYWL_CURSOR_MOVE,
-				  0);
+		begin_interactive(view_front_toplevel(server),
+				  TINYWL_CURSOR_MOVE, 0);
 		break;
 	case XKB_KEY_F12:
 		dbg_show_views(server);
@@ -71,6 +76,23 @@ static void keyboard_handle_key(struct wl_listener *listener, void *data)
 	bool handled = false;
 	uint32_t modifiers =
 		wlr_keyboard_get_modifiers(keyboard->device->keyboard);
+
+	if (in_alt_tab_mode) {
+		if ((syms[0] == XKB_KEY_Alt_L) &&
+		    event->state == WLR_KEY_RELEASED) {
+			/* end cycle */
+			in_alt_tab_mode = false;
+			view_focus(alt_tab_view);
+		} else if (event->state == WLR_KEY_PRESSED) {
+			/* cycle to next */
+			alt_tab_view = next_toplevel(alt_tab_view);
+			fprintf(stderr, "alt_tab_view=%p\n",
+				(void *)alt_tab_view);
+			return;
+		}
+	}
+
+	/* Handle compositor key bindings */
 	if ((modifiers & WLR_MODIFIER_ALT) && event->state == WLR_KEY_PRESSED) {
 		/* If alt is held down and this button was _pressed_, we attempt
 		 * to process it as a compositor keybinding. */
@@ -78,7 +100,6 @@ static void keyboard_handle_key(struct wl_listener *listener, void *data)
 			handled = handle_keybinding(server, syms[i]);
 		}
 	}
-
 	if (!handled) {
 		/* Otherwise, we pass it along to the client. */
 		wlr_seat_set_keyboard(seat, keyboard->device);

@@ -132,11 +132,13 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	wlr_cursor_attach_output_layout(server.cursor, server.output_layout);
-	server.cursor_mgr = wlr_xcursor_manager_create(NULL, XCURSOR_SIZE);
-	if (!server.cursor_mgr) {
-		wlr_log(WLR_ERROR, "cannot create xcursor manager");
-		return 1;
-	}
+
+	// This is done below
+	//server.cursor_mgr = wlr_xcursor_manager_create(NULL, XCURSOR_SIZE);
+	//if (!server.cursor_mgr) {
+	//	wlr_log(WLR_ERROR, "cannot create xcursor manager");
+	//	return 1;
+	//}
 
 	server.cursor_motion.notify = server_cursor_motion;
 	wl_signal_add(&server.cursor->events.motion, &server.cursor_motion);
@@ -272,6 +274,18 @@ int main(int argc, char *argv[])
 
 	wl_display_run(server.wl_display);
 
+	struct output *_output, *_output_tmp;
+	wl_list_for_each_safe (_output, _output_tmp, &server.outputs, link) {
+		wl_list_remove(&_output->link);
+		free(_output);
+	}
+	struct output *_keyboard, *_keyboard_tmp;
+	wl_list_for_each_safe (_keyboard, _keyboard_tmp, &server.keyboards, link) {
+		wl_list_remove(&_keyboard->link);
+		free(_keyboard);
+	}
+	wlr_cursor_destroy(server.cursor);
+	wlr_output_layout_destroy(server.output_layout);
 	wlr_xwayland_destroy(server.xwayland);
 	wlr_xcursor_manager_destroy(server.cursor_mgr);
 	wl_display_destroy_clients(server.wl_display);

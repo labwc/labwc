@@ -142,14 +142,14 @@ void xwl_surface_new(struct wl_listener *listener, void *data);
 
 bool view_want_deco(struct view *view);
 void view_focus(struct view *view);
-void begin_interactive(struct view *view, enum cursor_mode mode,
-		       uint32_t edges);
 struct view *view_front_toplevel(struct server *server);
 struct view *next_toplevel(struct view *current);
 struct view *view_at(struct server *server, double lx, double ly,
 		     struct wlr_surface **surface, double *sx, double *sy,
 		     int *view_area);
 
+void begin_interactive(struct view *view, enum cursor_mode mode,
+		       uint32_t edges);
 void server_new_input(struct wl_listener *listener, void *data);
 void seat_request_cursor(struct wl_listener *listener, void *data);
 void seat_request_set_selection(struct wl_listener *listener, void *data);

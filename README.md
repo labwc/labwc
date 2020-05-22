@@ -12,10 +12,10 @@ This software is in early development.
 
 ## Aim
 
-[x] Support xwayland  
-[ ] Support some of openbox's rc.xml  
-[ ] Support openbox themes  
-[ ] Support layer-shell's background layer  
+- [x] Support xwayland
+- [ ] Support some of openbox's rc.xml
+- [ ] Support openbox themes
+- [ ] Support layer-shell's background layer
 
 ## Influenced by
 
@@ -67,51 +67,54 @@ example `gb`. Read `xkeyboard-config(7)` for details.
 
 ### Debian
 
-    sudo apt install \
-    	build-essential \
-    	cmake \
-    	libwayland-dev \
-    	wayland-protocols \
-    	libegl1-mesa-dev \
-    	libgles2-mesa-dev \
-    	libdrm-dev libgbm-dev \
-    	libinput-dev \
-    	libxkbcommon-dev \
-    	libudev-dev \
-    	libpixman-1-dev \
-    	libsystemd-dev \
-    	libcap-dev \
-    	libxcb1-dev \
-    	libxcb-composite0-dev \
-    	libxcb-xfixes0-dev \
-    	libxcb-xinput-dev \
-    	libxcb-image0-dev \
-    	libxcb-render-util0-dev \
-    	libx11-xcb-dev \
-    	libxcb-icccm4-dev \
-    	freerdp2-dev \
-    	libwinpr2-dev \
-    	libpng-dev \
-    	libavutil-dev \
-    	libavcodec-dev \
-    	libavformat-dev \
-    	universal-ctags \
-    	xwayland
-    
-    # Debian Buster has an old version of meson, so we use pip3
-    pip3 install --target=$HOME/bin meson
-    
-    git clone https://github.com/johanmalm/labwc
-    cd labwc
-    git clone https://github.com/swaywm/wlroots subprojects/wlroots
-    
-    # wlroots 0.10.0 is the last version which runs with Wayland 0.16
-    # (which is what Buster runs)
-    cd subprojects/wlroots && git checkout 0.10.0 && cd ../..
-    
-    meson build
-    ninja -C build
+```
+sudo apt install \
+	build-essential \
+	cmake \
+	libwayland-dev \
+	wayland-protocols \
+	libegl1-mesa-dev \
+	libgles2-mesa-dev \
+	libdrm-dev libgbm-dev \
+	libinput-dev \
+	libxkbcommon-dev \
+	libudev-dev \
+	libpixman-1-dev \
+	libsystemd-dev \
+	libcap-dev \
+	libxcb1-dev \
+	libxcb-composite0-dev \
+	libxcb-xfixes0-dev \
+	libxcb-xinput-dev \
+	libxcb-image0-dev \
+	libxcb-render-util0-dev \
+	libx11-xcb-dev \
+	libxcb-icccm4-dev \
+	freerdp2-dev \
+	libwinpr2-dev \
+	libpng-dev \
+	libavutil-dev \
+	libavcodec-dev \
+	libavformat-dev \
+	universal-ctags \
+	xwayland
+
+# Debian Buster has an old version of meson, so we use pip3
+pip3 install --target=$HOME/bin meson
+
+git clone https://github.com/johanmalm/labwc
+cd labwc
+git clone https://github.com/swaywm/wlroots subprojects/wlroots
+
+# wlroots 0.10.0 is the last version which runs with Wayland 0.16
+# (which is what Buster runs)
+cd subprojects/wlroots && git checkout 0.10.0 && cd ../..
+
+meson build
+ninja -C build
+```
 
 ## Debug
 
 To enable ASAN and UBSAN, run meson with `-Db_sanitize=address,undefined`
+

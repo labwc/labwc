@@ -134,8 +134,8 @@ int main(int argc, char *argv[])
 	wlr_cursor_attach_output_layout(server.cursor, server.output_layout);
 
 	// This is done below
-	//server.cursor_mgr = wlr_xcursor_manager_create(NULL, XCURSOR_SIZE);
-	//if (!server.cursor_mgr) {
+	// server.cursor_mgr = wlr_xcursor_manager_create(NULL, XCURSOR_SIZE);
+	// if (!server.cursor_mgr) {
 	//	wlr_log(WLR_ERROR, "cannot create xcursor manager");
 	//	return 1;
 	//}
@@ -279,10 +279,10 @@ int main(int argc, char *argv[])
 		wl_list_remove(&_output->link);
 		free(_output);
 	}
-	struct output *_keyboard, *_keyboard_tmp;
-	wl_list_for_each_safe (_keyboard, _keyboard_tmp, &server.keyboards, link) {
-		wl_list_remove(&_keyboard->link);
-		free(_keyboard);
+	struct output *k, *k_tmp;
+	wl_list_for_each_safe (k, k_tmp, &server.keyboards, link) {
+		wl_list_remove(&k->link);
+		free(k);
 	}
 	wlr_cursor_destroy(server.cursor);
 	wlr_output_layout_destroy(server.output_layout);

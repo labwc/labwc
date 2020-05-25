@@ -1,10 +1,21 @@
 #include "labwc.h"
 
-static bool in_alt_tab_mode;
-static struct view *alt_tab_view;
+static struct wlr_box view_geometry(struct view *view)
+{
+	struct wlr_box box = { 0 };
+	switch (view->type) {
+	case LAB_XDG_SHELL_VIEW:
+		wlr_xdg_surface_get_geometry(view->xdg_surface, &box);
+		break;
+	case LAB_XWAYLAND_VIEW:
+		box.width = view->xwayland_surface->width;
+		box.height = view->xwayland_surface->height;
+		break;
+	}
+	return box;
+}
 
-void begin_interactive(struct view *view, enum cursor_mode mode,
-		       uint32_t edges)
+void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges)
 {
 	/* This function sets up an interactive move or resize operation, where
 	 * the compositor stops propegating pointer events to clients and
@@ -13,24 +24,13 @@ void begin_interactive(struct view *view, enum cursor_mode mode,
 	server->grabbed_view = view;
 	server->cursor_mode = mode;
 
-	if (mode == TINYWL_CURSOR_MOVE) {
+	switch (mode) {
+	case TINYWL_CURSOR_MOVE:
 		server->grab_x = server->cursor->x - view->x;
 		server->grab_y = server->cursor->y - view->y;
-	} else {
-		struct wlr_box geo_box;
-		switch (view->type) {
-		case LAB_XDG_SHELL_VIEW:
-			wlr_xdg_surface_get_geometry(view->xdg_surface,
-						     &geo_box);
-			break;
-		case LAB_XWAYLAND_VIEW:
-			geo_box.x = view->xwayland_surface->x;
-			geo_box.y = view->xwayland_surface->y;
-			geo_box.width = view->xwayland_surface->width;
-			geo_box.height = view->xwayland_surface->height;
-			break;
-		}
-
+		break;
+	case TINYWL_CURSOR_RESIZE: {
+		struct wlr_box geo_box = view_geometry(view);
 		double border_x =
 			(view->x + geo_box.x) +
 			((edges & WLR_EDGE_RIGHT) ? geo_box.width : 0);
@@ -43,6 +43,9 @@ void begin_interactive(struct view *view, enum cursor_mode mode,
 		server->grab_box.x += view->x;
 		server->grab_box.y += view->y;
 		server->resize_edges = edges;
+	} break;
+	default:
+		break;
 	}
 }
 
@@ -79,9 +82,8 @@ static bool handle_keybinding(struct server *server, xkb_keysym_t sym)
 		break;
 	case XKB_KEY_F1:
 	case XKB_KEY_F2:
-		in_alt_tab_mode = true;
-		alt_tab_view = next_toplevel(view_front_toplevel(server));
-		fprintf(stderr, "alt_tab_view=%p\n", (void *)alt_tab_view);
+		server->cycle_view = next_toplevel(view_front_toplevel(server));
+		fprintf(stderr, "cycle_view=%p\n", (void *)server->cycle_view);
 		break;
 	case XKB_KEY_F3:
 		if (fork() == 0) {
@@ -120,17 +122,17 @@ static void keyboard_handle_key(struct wl_listener *listener, void *data)
 	uint32_t modifiers =
 		wlr_keyboard_get_modifiers(keyboard->device->keyboard);
 
-	if (in_alt_tab_mode) {
+	if (server->cycle_view) {
 		if ((syms[0] == XKB_KEY_Alt_L) &&
 		    event->state == WLR_KEY_RELEASED) {
 			/* end cycle */
-			in_alt_tab_mode = false;
-			view_focus(alt_tab_view);
+			view_focus(server->cycle_view);
+			server->cycle_view = NULL;
 		} else if (event->state == WLR_KEY_PRESSED) {
 			/* cycle to next */
-			alt_tab_view = next_toplevel(alt_tab_view);
-			fprintf(stderr, "alt_tab_view=%p\n",
-				(void *)alt_tab_view);
+			server->cycle_view = next_toplevel(server->cycle_view);
+			fprintf(stderr, "cycle_view=%p\n",
+				(void *)server->cycle_view);
 			return;
 		}
 	}
@@ -268,11 +270,6 @@ static void process_cursor_move(struct server *server, uint32_t time)
 static void process_cursor_resize(struct server *server, uint32_t time)
 {
 	/*
-	 * Resizing the grabbed view can be a little bit complicated, because we
-	 * could be resizing from any corner or edge. This not only resizes the
-	 * view on one or two axes, but can also move the view if you resize
-	 * from the top or left edges (or top-left corner).
-	 *
 	 * TODO: Wait for the client to prepare a buffer at the new size, then
 	 * commit any movement that was prepared.
 	 */
@@ -303,14 +300,22 @@ static void process_cursor_resize(struct server *server, uint32_t time)
 			new_right = new_left + 1;
 	}
 
-	struct wlr_box geo_box;
-	wlr_xdg_surface_get_geometry(view->xdg_surface, &geo_box);
+	struct wlr_box geo_box = view_geometry(view);
 	view->x = new_left - geo_box.x;
 	view->y = new_top - geo_box.y;
 
 	int new_width = new_right - new_left;
 	int new_height = new_bottom - new_top;
-	wlr_xdg_toplevel_set_size(view->xdg_surface, new_width, new_height);
+	switch (view->type) {
+	case LAB_XDG_SHELL_VIEW:
+		wlr_xdg_toplevel_set_size(view->xdg_surface, new_width,
+					  new_height);
+		break;
+	case LAB_XWAYLAND_VIEW:
+		wlr_xwayland_surface_configure(view->xwayland_surface, view->x,
+					       view->y, new_width, new_height);
+		break;
+	}
 }
 
 static void process_cursor_motion(struct server *server, uint32_t time)
@@ -344,6 +349,10 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 	case LAB_DECO_PART_TOP:
 		wlr_xcursor_manager_set_cursor_image(
 			server->cursor_mgr, "left_ptr", server->cursor);
+		break;
+	case LAB_DECO_PART_LEFT:
+		wlr_xcursor_manager_set_cursor_image(
+			server->cursor_mgr, "left_side", server->cursor);
 		break;
 	}
 	if (surface) {
@@ -430,6 +439,10 @@ void server_cursor_button(struct wl_listener *listener, void *data)
 		switch (view_area) {
 		case LAB_DECO_PART_TOP:
 			begin_interactive(view, TINYWL_CURSOR_MOVE, 0);
+			break;
+		case LAB_DECO_PART_LEFT:
+			begin_interactive(view, TINYWL_CURSOR_RESIZE,
+					  WLR_EDGE_LEFT);
 			break;
 		}
 	}

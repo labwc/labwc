@@ -39,9 +39,11 @@ struct wlr_box deco_box(struct view *view, enum deco_part deco_part)
 
 enum deco_part deco_at(struct view *view, double lx, double ly)
 {
-	struct wlr_box box;
-	box = deco_box(view, LAB_DECO_PART_TOP);
-	if (wlr_box_contains_point(&box, lx, ly))
-		return LAB_DECO_PART_TOP;
+	enum deco_part deco_part;
+	for (deco_part = 0; deco_part < LAB_DECO_NONE; ++deco_part) {
+		struct wlr_box box = deco_box(view, deco_part);
+		if (wlr_box_contains_point(&box, lx, ly))
+			return deco_part;
+	}
 	return LAB_DECO_NONE;
 }

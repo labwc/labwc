@@ -165,6 +165,10 @@ struct view *view_at(struct server *server, double lx, double ly,
 			*view_area = LAB_DECO_PART_TOP;
 			return view;
 		}
+		if (deco_at(view, lx, ly) == LAB_DECO_PART_LEFT) {
+			*view_area = LAB_DECO_PART_LEFT;
+			return view;
+		}
 	}
 	return NULL;
 }

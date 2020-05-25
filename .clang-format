@@ -145,6 +145,7 @@ Cpp11BracedListStyle: false
 ForEachMacros:
   - 'wl_list_for_each'
   - 'wl_list_for_each_reverse'
+  - 'wl_list_for_each_safe'
 
 # The maximum number of consecutive empty lines to keep.
 MaxEmptyLinesToKeep: 1

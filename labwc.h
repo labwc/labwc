@@ -34,7 +34,7 @@
 #define XCURSOR_MOVE "grabbing"
 #define XWL_TITLEBAR_HEIGHT (10)
 #define XWL_WINDOW_BORDER (3)
-#define LAB_DISABLE_CSD (1)
+#define LAB_DISABLE_CSD (0)
 
 enum cursor_mode {
 	TINYWL_CURSOR_PASSTHROUGH,
@@ -79,6 +79,9 @@ struct server {
 	struct wlr_output_layout *output_layout;
 	struct wl_list outputs;
 	struct wl_listener new_output;
+
+	/* For use in cycle (alt-tab) mode */
+	struct view *cycle_view;
 };
 
 struct output {
@@ -90,7 +93,8 @@ struct output {
 
 enum view_type { LAB_XDG_SHELL_VIEW, LAB_XWAYLAND_VIEW };
 
-enum deco_part { LAB_DECO_NONE, LAB_DECO_PART_TOP, LAB_DECO_PART_LEFT };
+/* Keep LAB_DECO_NONE last for the purpose of iterating */
+enum deco_part { LAB_DECO_PART_TOP = 0, LAB_DECO_PART_LEFT, LAB_DECO_NONE };
 
 struct view {
 	enum view_type type;

@@ -1,65 +1,39 @@
 #include "labwc.h"
 
-static struct wlr_box view_geometry(struct view *view)
-{
-	struct wlr_box box = { 0 };
-	switch (view->type) {
-	case LAB_XDG_SHELL_VIEW:
-		wlr_xdg_surface_get_geometry(view->xdg_surface, &box);
-		break;
-	case LAB_XWAYLAND_VIEW:
-		box.width = view->xwayland_surface->width;
-		box.height = view->xwayland_surface->height;
-		break;
-	}
-	return box;
-}
+#define MIN_VIEW_WIDTH (100)
+#define MIN_VIEW_HEIGHT (60)
 
 void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges)
 {
-	/* This function sets up an interactive move or resize operation, where
+	/*
+	 * This function sets up an interactive move or resize operation, where
 	 * the compositor stops propegating pointer events to clients and
-	 * instead consumes them itself, to move or resize windows. */
+	 * instead consumes them itself, to move or resize windows.
+	 */
 	struct server *server = view->server;
 	server->grabbed_view = view;
 	server->cursor_mode = mode;
 
-	switch (mode) {
-	case TINYWL_CURSOR_MOVE:
-		server->grab_x = server->cursor->x - view->x;
-		server->grab_y = server->cursor->y - view->y;
-		break;
-	case TINYWL_CURSOR_RESIZE: {
-		struct wlr_box geo_box = view_geometry(view);
-		double border_x =
-			(view->x + geo_box.x) +
-			((edges & WLR_EDGE_RIGHT) ? geo_box.width : 0);
-		double border_y =
-			(view->y + geo_box.y) +
-			((edges & WLR_EDGE_BOTTOM) ? geo_box.height : 0);
-		server->grab_x = server->cursor->x - border_x;
-		server->grab_y = server->cursor->y - border_y;
-		server->grab_box = geo_box;
-		server->grab_box.x += view->x;
-		server->grab_box.y += view->y;
-		server->resize_edges = edges;
-	} break;
-	default:
-		break;
-	}
+	/* Remember view and cursor positions at start of move/resize */
+	server->grab_x = server->cursor->x;
+	server->grab_y = server->cursor->y;
+	server->grab_box = view_geometry(view);
+	server->resize_edges = edges;
 }
 
 static void keyboard_handle_modifiers(struct wl_listener *listener, void *data)
 {
-	/* This event is raised when a modifier key, such as shift or alt, is
-	 * pressed. We simply communicate this to the client. */
+	/*
+	 * This event is raised when a modifier key, such as shift or alt, is
+	 * pressed. We simply communicate this to the client.
+	 */
 	struct keyboard *keyboard =
 		wl_container_of(listener, keyboard, modifiers);
 	/*
 	 * A seat can only have one keyboard, but this is a limitation of the
 	 * Wayland protocol - not wlroots. We assign all connected keyboards to
-	 * the same seat. You can swap out the underlying wlr_keyboard like this
-	 * and wlr_seat handles this transparently.
+	 * the same seat. You can swap out the underlying wlr_keyboard like
+	 * this and wlr_seat handles this transparently.
 	 */
 	wlr_seat_set_keyboard(keyboard->server->seat, keyboard->device);
 	/* Send modifiers to the client. */
@@ -160,8 +134,10 @@ static void server_new_keyboard(struct server *server,
 	keyboard->server = server;
 	keyboard->device = device;
 
-	/* We need to prepare an XKB keymap and assign it to the keyboard. This
-	 * assumes the defaults (e.g. layout = "us"). */
+	/*
+	 * We need to prepare an XKB keymap and assign it to the keyboard. This
+	 * assumes the defaults (e.g. layout = "us").
+	 */
 	struct xkb_rule_names rules = { 0 };
 	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
 	struct xkb_keymap *keymap = xkb_map_new_from_names(
@@ -188,17 +164,16 @@ static void server_new_keyboard(struct server *server,
 static void server_new_pointer(struct server *server,
 			       struct wlr_input_device *device)
 {
-	/* We don't do anything special with pointers. All of our pointer
-	 * handling is proxied through wlr_cursor. On another compositor, you
-	 * might take this opportunity to do libinput configuration on the
-	 * device to set acceleration, etc. */
+	/* TODO: Configure libinput on device to set tap, acceleration, etc */
 	wlr_cursor_attach_input_device(server->cursor, device);
 }
 
 void server_new_input(struct wl_listener *listener, void *data)
 {
-	/* This event is raised by the backend when a new input device becomes
-	 * available. */
+	/*
+	 * This event is raised by the backend when a new input device becomes
+	 * available.
+	 */
 	struct server *server = wl_container_of(listener, server, new_input);
 	struct wlr_input_device *device = data;
 	switch (device->type) {
@@ -211,10 +186,11 @@ void server_new_input(struct wl_listener *listener, void *data)
 	default:
 		break;
 	}
-	/* We need to let the wlr_seat know what our capabilities are, which is
-	 * communiciated to the client. In TinyWL we always have a cursor, even
-	 * if there are no pointer devices, so we always include that
-	 * capability. */
+
+	/*
+	 * We need to let the wlr_seat know what our capabilities are, which is
+	 * communiciated to the client.
+	 */
 	uint32_t caps = WL_SEAT_CAPABILITY_POINTER;
 	if (!wl_list_empty(&server->keyboards)) {
 		caps |= WL_SEAT_CAPABILITY_KEYBOARD;
@@ -226,11 +202,14 @@ void seat_request_cursor(struct wl_listener *listener, void *data)
 {
 	struct server *server =
 		wl_container_of(listener, server, request_cursor);
-	/* This event is rasied by the seat when a client provides a cursor
-	 * image */
+	/*
+	 * This event is rasied by the seat when a client provides a cursor
+	 * image
+	 */
 	struct wlr_seat_pointer_request_set_cursor_event *event = data;
 	struct wlr_seat_client *focused_client =
 		server->seat->pointer_state.focused_client;
+
 	/* This can be sent by any client, so we check to make sure this one is
 	 * actually has pointer focus first. */
 	if (focused_client == event->seat_client) {
@@ -254,17 +233,18 @@ void seat_request_set_selection(struct wl_listener *listener, void *data)
 static void process_cursor_move(struct server *server, uint32_t time)
 {
 	/* Move the grabbed view to the new position. */
-	server->grabbed_view->x = server->cursor->x - server->grab_x;
-	server->grabbed_view->y = server->cursor->y - server->grab_y;
+	double dx = server->cursor->x - server->grab_x;
+	double dy = server->cursor->y - server->grab_y;
+	server->grabbed_view->x = server->grab_box.x + dx;
+	server->grabbed_view->y = server->grab_box.y + dy;
+
+	if (server->grabbed_view->type != LAB_XWAYLAND_VIEW)
+		return;
 
 	struct view *view = server->grabbed_view;
-	if (view->type == LAB_XWAYLAND_VIEW) {
-		wlr_xwayland_surface_configure(view->xwayland_surface,
-					       server->grabbed_view->x,
-					       server->grabbed_view->y,
-					       view->xwayland_surface->width,
-					       view->xwayland_surface->height);
-	}
+	wlr_xwayland_surface_configure(view->xwayland_surface, view->x, view->y,
+				       view->xwayland_surface->width,
+				       view->xwayland_surface->height);
 }
 
 static void process_cursor_resize(struct server *server, uint32_t time)
@@ -273,49 +253,34 @@ static void process_cursor_resize(struct server *server, uint32_t time)
 	 * TODO: Wait for the client to prepare a buffer at the new size, then
 	 * commit any movement that was prepared.
 	 */
+	double dx = server->cursor->x - server->grab_x;
+	double dy = server->cursor->y - server->grab_y;
+
 	struct view *view = server->grabbed_view;
-	double border_x = server->cursor->x - server->grab_x;
-	double border_y = server->cursor->y - server->grab_y;
-	int new_left = server->grab_box.x;
-	int new_right = server->grab_box.x + server->grab_box.width;
-	int new_top = server->grab_box.y;
-	int new_bottom = server->grab_box.y + server->grab_box.height;
+	struct wlr_box new_view_geo = view_geometry(view);
 
 	if (server->resize_edges & WLR_EDGE_TOP) {
-		new_top = border_y;
-		if (new_top >= new_bottom)
-			new_top = new_bottom - 1;
+		new_view_geo.y = server->grab_box.y + dy;
+		new_view_geo.height = server->grab_box.height - dy;
 	} else if (server->resize_edges & WLR_EDGE_BOTTOM) {
-		new_bottom = border_y;
-		if (new_bottom <= new_top)
-			new_bottom = new_top + 1;
+		new_view_geo.height = server->grab_box.height + dy;
 	}
 	if (server->resize_edges & WLR_EDGE_LEFT) {
-		new_left = border_x;
-		if (new_left >= new_right)
-			new_left = new_right - 1;
+		new_view_geo.x = server->grab_box.x + dx;
+		new_view_geo.width = server->grab_box.width - dx;
 	} else if (server->resize_edges & WLR_EDGE_RIGHT) {
-		new_right = border_x;
-		if (new_right <= new_left)
-			new_right = new_left + 1;
+		new_view_geo.width = server->grab_box.width + dx;
 	}
+	if ((new_view_geo.height < MIN_VIEW_HEIGHT) ||
+	    (new_view_geo.width < MIN_VIEW_WIDTH))
+		return;
 
-	struct wlr_box geo_box = view_geometry(view);
-	view->x = new_left - geo_box.x;
-	view->y = new_top - geo_box.y;
+	/* Move */
+	view->x = new_view_geo.x;
+	view->y = new_view_geo.y;
 
-	int new_width = new_right - new_left;
-	int new_height = new_bottom - new_top;
-	switch (view->type) {
-	case LAB_XDG_SHELL_VIEW:
-		wlr_xdg_toplevel_set_size(view->xdg_surface, new_width,
-					  new_height);
-		break;
-	case LAB_XWAYLAND_VIEW:
-		wlr_xwayland_surface_configure(view->xwayland_surface, view->x,
-					       view->y, new_width, new_height);
-		break;
-	}
+	/* Resize */
+	view_resize(view, new_view_geo);
 }
 
 static void process_cursor_motion(struct server *server, uint32_t time)

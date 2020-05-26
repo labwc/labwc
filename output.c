@@ -7,31 +7,6 @@ struct render_data {
 	struct timespec *when;
 };
 
-static void render_grab(struct output *output)
-{
-	if (output->server->cursor_mode == TINYWL_CURSOR_PASSTHROUGH)
-		return;
-
-	if (output->server->cursor_mode == TINYWL_CURSOR_RESIZE) {
-		float grab_box_color[] = { 0.0, 1.0, 0.0, 0.3 };
-		wlr_render_rect(output->server->renderer,
-				&output->server->grab_box, grab_box_color,
-				output->wlr_output->transform_matrix);
-	}
-
-	float grab_point_color[] = { 1.0, 0.0, 1.0, 1.0 };
-	struct wlr_box point = { .x = output->server->grab_x +
-				      output->server->grabbed_view->x - 1,
-				 .y = output->server->grab_y +
-				      output->server->grabbed_view->y - 1,
-				 .width = 3,
-				 .height = 3 };
-	fprintf(stderr, "XX grab_x=%f; grab_y=%f\n", output->server->grab_x,
-		output->server->grab_y);
-	wlr_render_rect(output->server->renderer, &point, grab_point_color,
-			output->wlr_output->transform_matrix);
-}
-
 static void render_cycle_box(struct output *output)
 {
 	if (!output->server->cycle_view)
@@ -40,7 +15,14 @@ static void render_cycle_box(struct output *output)
 	wl_list_for_each_reverse (view, &output->server->views, link) {
 		if (view != output->server->cycle_view)
 			continue;
-		struct wlr_box box = deco_max_extents(view);
+		struct wlr_box box;
+		if ((view->type == LAB_XWAYLAND_VIEW) || LAB_DISABLE_CSD) {
+			box = deco_max_extents(view);
+		} else {
+			box = view_get_surface_geometry(view);
+			box.x += view->x;
+			box.y += view->y;
+		}
 		float cycle_color[] = { 0.0, 0.0, 0.0, 0.2 };
 		wlr_render_rect(output->server->renderer, &box, cycle_color,
 				output->wlr_output->transform_matrix);
@@ -187,7 +169,6 @@ void output_frame(struct wl_listener *listener, void *data)
 
 	/* If in cycle (alt-tab) mode, highlight selected view */
 	render_cycle_box(output);
-	render_grab(output);
 
 	/* Hardware cursors are rendered by the GPU on a separate plane, and can
 	 * be moved around without re-rendering what's beneath them - which is

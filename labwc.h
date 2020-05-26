@@ -144,6 +144,15 @@ void xwl_surface_destroy(struct wl_listener *listener, void *data);
 void xwl_surface_configure(struct wl_listener *listener, void *data);
 void xwl_surface_new(struct wl_listener *listener, void *data);
 
+/**
+ * view_get_surface_geometry - geometry relative to view
+ * @view: toplevel containing the surface to process
+ * Note: XDG views sometimes have an invisible border, so x and y can be
+ * greater than zero.
+ */
+struct wlr_box view_get_surface_geometry(struct view *view);
+struct wlr_box view_geometry(struct view *view);
+void view_resize(struct view *view, struct wlr_box geo);
 bool view_want_deco(struct view *view);
 void view_focus(struct view *view);
 struct view *view_front_toplevel(struct server *server);

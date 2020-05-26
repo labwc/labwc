@@ -1,5 +1,51 @@
 #include "labwc.h"
 
+struct wlr_box view_get_surface_geometry(struct view *view)
+{
+	struct wlr_box box = { 0 };
+	switch (view->type) {
+	case LAB_XDG_SHELL_VIEW:
+		wlr_xdg_surface_get_geometry(view->xdg_surface, &box);
+		break;
+	case LAB_XWAYLAND_VIEW:
+		box.width = view->xwayland_surface->width;
+		box.height = view->xwayland_surface->height;
+		break;
+	}
+	return box;
+}
+
+/* Get geometry relative to screen */
+struct wlr_box view_geometry(struct view *view)
+{
+	struct wlr_box b = view_get_surface_geometry(view);
+	/* Add XDG view invisible border if it exists */
+	b.width += 2 * b.x;
+	b.height += 2 * b.y;
+	/* Make co-ordinates relative to screen */
+	b.x = view->x;
+	b.y = view->y;
+	return b;
+}
+
+void view_resize(struct view *view, struct wlr_box geo)
+{
+	struct wlr_box border = view_get_surface_geometry(view);
+	switch (view->type) {
+	case LAB_XDG_SHELL_VIEW:
+		wlr_xdg_toplevel_set_size(view->xdg_surface,
+					  geo.width - 2 * border.x,
+					  geo.height - 2 * border.y);
+		break;
+	case LAB_XWAYLAND_VIEW:
+		wlr_xwayland_surface_configure(view->xwayland_surface, view->x,
+					       view->y, geo.width, geo.height);
+		break;
+	default:
+		break;
+	}
+}
+
 static bool is_toplevel(struct view *view)
 {
 	switch (view->type) {

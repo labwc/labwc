@@ -18,64 +18,40 @@ add_project_arguments(
 
 cc = meson.get_compiler('c')
 
-add_project_arguments(cc.get_supported_arguments([
-	'-Wundef',
-	'-Wlogical-op',
-	'-Wmissing-include-dirs',
-	'-Wold-style-definition',
-	'-Wpointer-arith',
-	'-Winit-self',
-	'-Wstrict-prototypes',
-	'-Wimplicit-fallthrough=2',
-	'-Wendif-labels',
-	'-Wstrict-aliasing=2',
-	'-Woverflow',
-	'-Wmissing-prototypes',
-	'-Wno-missing-braces',
-	'-Wno-missing-field-initializers',
-	'-Wno-unused-parameter',
-]), language: 'c')
+add_project_arguments(cc.get_supported_arguments(
+  [
+    '-Wno-unused-parameter',
+    '-Wundef',
+  ]),
+  language: 'c',
+)
 
 wlroots_proj = subproject(
-	'wlroots',
-	default_options: ['examples=false'],
-	required: false,
+  'wlroots',
+  default_options: ['examples=false'],
+  required: false,
 )
-if wlroots_proj.found()
-	wlroots = wlroots_proj.get_variable('wlroots')
-else
-	wlroots = dependency('wlroots', version: '>= 0.10.0')
-endif
 
-wayland_protos = dependency('wayland-protocols')
-wayland_server = dependency('wayland-server')
-xkbcommon      = dependency('xkbcommon')
+if wlroots_proj.found()
+  wlroots       = wlroots_proj.get_variable('wlroots')
+else
+  wlroots       = dependency('wlroots', version: '>= 0.10.0')
+endif
+wayland_server  = dependency('wayland-server')
+wayland_protos  = dependency('wayland-protocols')
+xkbcommon       = dependency('xkbcommon')
+
+labwc_inc       = include_directories('include')
 
 subdir('protocols')
+subdir('src')
 
-labwc_sources = [
-  'main.c',
-  'server.c',
-  'output.c',
-  'view.c',
-  'xdg.c',
-  'xwl.c',
-  'deco.c',
-  'dbg.c',
-]
-
-labwc_headers = [
-  'labwc.h',
-]
+labwc_deps      = [ server_protos, wayland_server, wlroots, xkbcommon, ]
 
 executable(
   meson.project_name(),
-  labwc_sources + labwc_headers,
-  dependencies: [
-    server_protos,
-    wayland_server,
-    wlroots,
-    xkbcommon,
-  ],
+  labwc_sources,
+  include_directories: [labwc_inc],
+  dependencies: labwc_deps,
   install: true,
 )

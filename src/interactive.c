@@ -17,4 +17,3 @@ void interactive_begin(struct view *view, enum cursor_mode mode, uint32_t edges)
 	server->grab_box = view_geometry(view);
 	server->resize_edges = edges;
 }
-

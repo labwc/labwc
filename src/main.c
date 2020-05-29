@@ -140,16 +140,16 @@ int main(int argc, char *argv[])
 	//	return 1;
 	//}
 
-	server.cursor_motion.notify = server_cursor_motion;
+	server.cursor_motion.notify = cursor_motion;
 	wl_signal_add(&server.cursor->events.motion, &server.cursor_motion);
-	server.cursor_motion_absolute.notify = server_cursor_motion_absolute;
+	server.cursor_motion_absolute.notify = cursor_motion_absolute;
 	wl_signal_add(&server.cursor->events.motion_absolute,
 		      &server.cursor_motion_absolute);
-	server.cursor_button.notify = server_cursor_button;
+	server.cursor_button.notify = cursor_button;
 	wl_signal_add(&server.cursor->events.button, &server.cursor_button);
-	server.cursor_axis.notify = server_cursor_axis;
+	server.cursor_axis.notify = cursor_axis;
 	wl_signal_add(&server.cursor->events.axis, &server.cursor_axis);
-	server.cursor_frame.notify = server_cursor_frame;
+	server.cursor_frame.notify = cursor_frame;
 	wl_signal_add(&server.cursor->events.frame, &server.cursor_frame);
 
 	wl_list_init(&server.keyboards);

@@ -167,14 +167,15 @@ void interactive_begin(struct view *view, enum cursor_mode mode,
 void server_new_input(struct wl_listener *listener, void *data);
 void seat_request_cursor(struct wl_listener *listener, void *data);
 void seat_request_set_selection(struct wl_listener *listener, void *data);
-void server_cursor_motion(struct wl_listener *listener, void *data);
-void server_cursor_motion_absolute(struct wl_listener *listener, void *data);
-void server_cursor_button(struct wl_listener *listener, void *data);
-void server_cursor_axis(struct wl_listener *listener, void *data);
-void server_cursor_frame(struct wl_listener *listener, void *data);
 void server_new_output(struct wl_listener *listener, void *data);
 
-void server_new_keyboard(struct server *server, struct wlr_input_device *device);
+void cursor_motion(struct wl_listener *listener, void *data);
+void cursor_motion_absolute(struct wl_listener *listener, void *data);
+void cursor_button(struct wl_listener *listener, void *data);
+void cursor_axis(struct wl_listener *listener, void *data);
+void cursor_frame(struct wl_listener *listener, void *data);
+
+void keyboard_new(struct server *server, struct wlr_input_device *device);
 
 void output_frame(struct wl_listener *listener, void *data);
 

@@ -117,7 +117,7 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 	}
 }
 
-void server_cursor_motion(struct wl_listener *listener, void *data)
+void cursor_motion(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits a
@@ -139,7 +139,7 @@ void server_cursor_motion(struct wl_listener *listener, void *data)
 	process_cursor_motion(server, event->time_msec);
 }
 
-void server_cursor_motion_absolute(struct wl_listener *listener, void *data)
+void cursor_motion_absolute(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits an
@@ -157,7 +157,7 @@ void server_cursor_motion_absolute(struct wl_listener *listener, void *data)
 	process_cursor_motion(server, event->time_msec);
 }
 
-void server_cursor_button(struct wl_listener *listener, void *data)
+void cursor_button(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits a button
@@ -197,7 +197,7 @@ void server_cursor_button(struct wl_listener *listener, void *data)
 	}
 }
 
-void server_cursor_axis(struct wl_listener *listener, void *data)
+void cursor_axis(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits an axis
@@ -212,7 +212,7 @@ void server_cursor_axis(struct wl_listener *listener, void *data)
 				     event->delta_discrete, event->source);
 }
 
-void server_cursor_frame(struct wl_listener *listener, void *data)
+void cursor_frame(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits an frame

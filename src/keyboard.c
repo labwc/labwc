@@ -106,7 +106,7 @@ static void keyboard_handle_key(struct wl_listener *listener, void *data)
 	}
 }
 
-void server_new_keyboard(struct server *server, struct wlr_input_device *device)
+void keyboard_new(struct server *server, struct wlr_input_device *device)
 {
 	struct keyboard *keyboard = calloc(1, sizeof(struct keyboard));
 	keyboard->server = server;

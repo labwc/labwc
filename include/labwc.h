@@ -174,6 +174,8 @@ void server_cursor_axis(struct wl_listener *listener, void *data);
 void server_cursor_frame(struct wl_listener *listener, void *data);
 void server_new_output(struct wl_listener *listener, void *data);
 
+void server_new_keyboard(struct server *server, struct wlr_input_device *device);
+
 void output_frame(struct wl_listener *listener, void *data);
 
 void dbg_show_one_view(struct view *view);

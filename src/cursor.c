@@ -59,10 +59,10 @@ static void process_cursor_resize(struct server *server, uint32_t time)
 static void process_cursor_motion(struct server *server, uint32_t time)
 {
 	/* If the mode is non-passthrough, delegate to those functions. */
-	if (server->cursor_mode == TINYWL_CURSOR_MOVE) {
+	if (server->cursor_mode == LAB_CURSOR_MOVE) {
 		process_cursor_move(server, time);
 		return;
-	} else if (server->cursor_mode == TINYWL_CURSOR_RESIZE) {
+	} else if (server->cursor_mode == LAB_CURSOR_RESIZE) {
 		process_cursor_resize(server, time);
 		return;
 	}
@@ -81,12 +81,12 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 		 * a default. This is what makes the cursor image appear when
 		 * you move it around the screen, not over any views. */
 		wlr_xcursor_manager_set_cursor_image(
-			server->cursor_mgr, "left_ptr", server->cursor);
+			server->cursor_mgr, XCURSOR_DEFAULT, server->cursor);
 	}
 	switch (view_area) {
 	case LAB_DECO_PART_TOP:
 		wlr_xcursor_manager_set_cursor_image(
-			server->cursor_mgr, "left_ptr", server->cursor);
+			server->cursor_mgr, XCURSOR_DEFAULT, server->cursor);
 		break;
 	case LAB_DECO_PART_LEFT:
 		wlr_xcursor_manager_set_cursor_image(
@@ -181,16 +181,16 @@ void cursor_button(struct wl_listener *listener, void *data)
 				    &view_area);
 	if (event->state == WLR_BUTTON_RELEASED) {
 		/* Exit interactive move/resize mode. */
-		server->cursor_mode = TINYWL_CURSOR_PASSTHROUGH;
+		server->cursor_mode = LAB_CURSOR_PASSTHROUGH;
 	} else {
 		/* Focus that client if the button was _pressed_ */
 		view_focus(view);
 		switch (view_area) {
 		case LAB_DECO_PART_TOP:
-			interactive_begin(view, TINYWL_CURSOR_MOVE, 0);
+			interactive_begin(view, LAB_CURSOR_MOVE, 0);
 			break;
 		case LAB_DECO_PART_LEFT:
-			interactive_begin(view, TINYWL_CURSOR_RESIZE,
+			interactive_begin(view, LAB_CURSOR_RESIZE,
 					  WLR_EDGE_LEFT);
 			break;
 		}

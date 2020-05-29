@@ -78,8 +78,7 @@ static void render_surface(struct wlr_surface *surface, int sx, int sy,
 	ox += view->x + sx;
 	oy += view->y + sy;
 
-	/* We also have to apply the scale factor for HiDPI outputs. This is
-	 * only part of the puzzle, TinyWL does not fully support HiDPI. */
+	/* TODO: Support HiDPI */
 	struct wlr_box box = {
 		.x = ox * output->scale,
 		.y = oy * output->scale,
@@ -105,8 +104,10 @@ static void render_surface(struct wlr_surface *surface, int sx, int sy,
 	wlr_matrix_project_box(matrix, &box, transform, 0,
 			       output->transform_matrix);
 
-	/* This takes our matrix, the texture, and an alpha, and performs the
-	 * actual rendering on the GPU. */
+	/*
+	 * This takes our matrix, the texture, and an alpha, and performs the
+	 * actual rendering on the GPU.
+	 */
 	wlr_render_texture_with_matrix(rdata->renderer, texture, matrix, 1);
 
 	/* This lets the client know that we've displayed that frame and it can

@@ -3,24 +3,6 @@
 #define MIN_VIEW_WIDTH (100)
 #define MIN_VIEW_HEIGHT (60)
 
-void begin_interactive(struct view *view, enum cursor_mode mode, uint32_t edges)
-{
-	/*
-	 * This function sets up an interactive move or resize operation, where
-	 * the compositor stops propegating pointer events to clients and
-	 * instead consumes them itself, to move or resize windows.
-	 */
-	struct server *server = view->server;
-	server->grabbed_view = view;
-	server->cursor_mode = mode;
-
-	/* Remember view and cursor positions at start of move/resize */
-	server->grab_x = server->cursor->x;
-	server->grab_y = server->cursor->y;
-	server->grab_box = view_geometry(view);
-	server->resize_edges = edges;
-}
-
 static void keyboard_handle_modifiers(struct wl_listener *listener, void *data)
 {
 	/*
@@ -65,7 +47,7 @@ static bool handle_keybinding(struct server *server, xkb_keysym_t sym)
 		}
 		break;
 	case XKB_KEY_F6:
-		begin_interactive(view_front_toplevel(server),
+		interactive_begin(view_front_toplevel(server),
 				  TINYWL_CURSOR_MOVE, 0);
 		break;
 	case XKB_KEY_F12:
@@ -403,10 +385,10 @@ void server_cursor_button(struct wl_listener *listener, void *data)
 		view_focus(view);
 		switch (view_area) {
 		case LAB_DECO_PART_TOP:
-			begin_interactive(view, TINYWL_CURSOR_MOVE, 0);
+			interactive_begin(view, TINYWL_CURSOR_MOVE, 0);
 			break;
 		case LAB_DECO_PART_LEFT:
-			begin_interactive(view, TINYWL_CURSOR_RESIZE,
+			interactive_begin(view, TINYWL_CURSOR_RESIZE,
 					  WLR_EDGE_LEFT);
 			break;
 		}

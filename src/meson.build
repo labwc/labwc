@@ -1,11 +1,12 @@
 labwc_sources = files(
+  'deco.c',
+  'interactive.c',
   'main.c',
-  'server.c',
   'output.c',
+  'server.c',
   'view.c',
   'xdg.c',
   'xwl.c',
-  'deco.c',
 )
 
 subdir('debug')

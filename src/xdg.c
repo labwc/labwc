@@ -81,7 +81,7 @@ void xdg_toplevel_request_move(struct wl_listener *listener, void *data)
 	 * client, to prevent the client from requesting this whenever they
 	 * want. */
 	struct view *view = wl_container_of(listener, view, request_move);
-	begin_interactive(view, TINYWL_CURSOR_MOVE, 0);
+	interactive_begin(view, TINYWL_CURSOR_MOVE, 0);
 }
 
 void xdg_toplevel_request_resize(struct wl_listener *listener, void *data)
@@ -95,7 +95,7 @@ void xdg_toplevel_request_resize(struct wl_listener *listener, void *data)
 	 * want. */
 	struct wlr_xdg_toplevel_resize_event *event = data;
 	struct view *view = wl_container_of(listener, view, request_resize);
-	begin_interactive(view, TINYWL_CURSOR_RESIZE, event->edges);
+	interactive_begin(view, TINYWL_CURSOR_RESIZE, event->edges);
 }
 
 void xdg_surface_new(struct wl_listener *listener, void *data)

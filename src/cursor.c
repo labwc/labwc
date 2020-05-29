@@ -225,3 +225,9 @@ void cursor_frame(struct wl_listener *listener, void *data)
 	/* Notify the client with pointer focus of the frame event. */
 	wlr_seat_pointer_notify_frame(server->seat);
 }
+
+void cursor_new(struct server *server, struct wlr_input_device *device)
+{
+	/* TODO: Configure libinput on device to set tap, acceleration, etc */
+	wlr_cursor_attach_input_device(server->cursor, device);
+}

@@ -174,10 +174,12 @@ void cursor_motion_absolute(struct wl_listener *listener, void *data);
 void cursor_button(struct wl_listener *listener, void *data);
 void cursor_axis(struct wl_listener *listener, void *data);
 void cursor_frame(struct wl_listener *listener, void *data);
+void cursor_new(struct server *server, struct wlr_input_device *device);
 
 void keyboard_new(struct server *server, struct wlr_input_device *device);
 
 void output_frame(struct wl_listener *listener, void *data);
+void output_new(struct wl_listener *listener, void *data);
 
 void dbg_show_one_view(struct view *view);
 void dbg_show_views(struct server *server);

@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 	 * Configure a listener to be notified when new outputs are available
 	 * on the backend.
 	 */
-	server.new_output.notify = server_new_output;
+	server.new_output.notify = output_new;
 	wl_signal_add(&server.backend->events.new_output, &server.new_output);
 
 	/*

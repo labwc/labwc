@@ -1,11 +1,18 @@
 #include "labwc.h"
 
-struct render_data {
-	struct wlr_output *output;
+static float window_active_title_bg[] = { 0.29, 0.55, 0.78, 1.0 };
+static float window_active_handle_bg[] = { 0.21, 0.49, 0.71, 1.0 };
+
+struct draw_data {
 	struct wlr_renderer *renderer;
-	struct view *view;
-	struct timespec *when;
+	float *transform_matrix;
+	float *rgba;
 };
+
+static void draw_rect(struct draw_data *d, struct wlr_box box)
+{
+	wlr_render_rect(d->renderer, &box, d->rgba, d->transform_matrix);
+}
 
 static void render_cycle_box(struct output *output)
 {
@@ -34,19 +41,27 @@ static void render_decorations(struct wlr_output *output, struct view *view)
 {
 	if (!view_want_deco(view))
 		return;
+	struct draw_data ddata = {
+		.renderer = view->server->renderer,
+		.transform_matrix = output->transform_matrix,
+	};
 
-	struct wlr_box box = deco_max_extents(view);
-	float matrix[9];
-	wlr_matrix_project_box(matrix, &box, WL_OUTPUT_TRANSFORM_NORMAL, 0,
-			       output->transform_matrix);
-	float color[] = { 0.2, 0.2, 0.7, 0.9 };
-	wlr_render_quad_with_matrix(view->server->renderer, color, matrix);
+	ddata.rgba = window_active_handle_bg;
+	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_TOP));
+	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_RIGHT));
+	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_BOTTOM));
+	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_LEFT));
 
-	box = deco_box(view, LAB_DECO_PART_TOP);
-	float color2[] = { 0.7, 0.2, 0.2, 0.9 };
-	wlr_render_rect(view->server->renderer, &box, color2,
-			output->transform_matrix);
+	ddata.rgba = window_active_title_bg;
+	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_TITLE));
 }
+
+struct render_data {
+	struct wlr_output *output;
+	struct wlr_renderer *renderer;
+	struct view *view;
+	struct timespec *when;
+};
 
 static void render_surface(struct wlr_surface *surface, int sx, int sy,
 			   void *data)

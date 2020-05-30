@@ -93,8 +93,15 @@ struct output {
 
 enum view_type { LAB_XDG_SHELL_VIEW, LAB_XWAYLAND_VIEW };
 
-/* Keep LAB_DECO_NONE last for the purpose of iterating */
-enum deco_part { LAB_DECO_PART_TOP = 0, LAB_DECO_PART_LEFT, LAB_DECO_NONE };
+enum deco_part {
+	LAB_DECO_PART_TITLE = 0,
+	LAB_DECO_PART_TOP,
+	LAB_DECO_PART_RIGHT,
+	LAB_DECO_PART_BOTTOM,
+	LAB_DECO_PART_LEFT,
+	LAB_DECO_NONE
+	/* Keep LAB_DECO_NONE last as iteration end-marker */
+};
 
 struct view {
 	enum view_type type;

@@ -84,9 +84,21 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 			server->cursor_mgr, XCURSOR_DEFAULT, server->cursor);
 	}
 	switch (view_area) {
-	case LAB_DECO_PART_TOP:
+	case LAB_DECO_PART_TITLE:
 		wlr_xcursor_manager_set_cursor_image(
 			server->cursor_mgr, XCURSOR_DEFAULT, server->cursor);
+		break;
+	case LAB_DECO_PART_TOP:
+		wlr_xcursor_manager_set_cursor_image(
+			server->cursor_mgr, "top_side", server->cursor);
+		break;
+	case LAB_DECO_PART_RIGHT:
+		wlr_xcursor_manager_set_cursor_image(
+			server->cursor_mgr, "right_side", server->cursor);
+		break;
+	case LAB_DECO_PART_BOTTOM:
+		wlr_xcursor_manager_set_cursor_image(
+			server->cursor_mgr, "bottom_side", server->cursor);
 		break;
 	case LAB_DECO_PART_LEFT:
 		wlr_xcursor_manager_set_cursor_image(
@@ -186,8 +198,20 @@ void cursor_button(struct wl_listener *listener, void *data)
 		/* Focus that client if the button was _pressed_ */
 		view_focus(view);
 		switch (view_area) {
-		case LAB_DECO_PART_TOP:
+		case LAB_DECO_PART_TITLE:
 			interactive_begin(view, LAB_CURSOR_MOVE, 0);
+			break;
+		case LAB_DECO_PART_TOP:
+			interactive_begin(view, LAB_CURSOR_RESIZE,
+					  WLR_EDGE_TOP);
+			break;
+		case LAB_DECO_PART_RIGHT:
+			interactive_begin(view, LAB_CURSOR_RESIZE,
+					  WLR_EDGE_RIGHT);
+			break;
+		case LAB_DECO_PART_BOTTOM:
+			interactive_begin(view, LAB_CURSOR_RESIZE,
+					  WLR_EDGE_BOTTOM);
 			break;
 		case LAB_DECO_PART_LEFT:
 			interactive_begin(view, LAB_CURSOR_RESIZE,

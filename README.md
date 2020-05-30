@@ -10,6 +10,11 @@ This software is in early development.
 - wayland-protocols
 - xwayland
 
+Will soon depend on
+
+- libxml2
+- cairo, pango, glib
+
 ## Aim
 
 - [x] Support xwayland

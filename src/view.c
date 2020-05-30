@@ -207,8 +207,20 @@ struct view *view_at(struct server *server, double lx, double ly,
 			return view;
 		if (!view_want_deco(view))
 			continue;
+		if (deco_at(view, lx, ly) == LAB_DECO_PART_TITLE) {
+			*view_area = LAB_DECO_PART_TITLE;
+			return view;
+		}
 		if (deco_at(view, lx, ly) == LAB_DECO_PART_TOP) {
 			*view_area = LAB_DECO_PART_TOP;
+			return view;
+		}
+		if (deco_at(view, lx, ly) == LAB_DECO_PART_RIGHT) {
+			*view_area = LAB_DECO_PART_RIGHT;
+			return view;
+		}
+		if (deco_at(view, lx, ly) == LAB_DECO_PART_BOTTOM) {
+			*view_area = LAB_DECO_PART_BOTTOM;
 			return view;
 		}
 		if (deco_at(view, lx, ly) == LAB_DECO_PART_LEFT) {

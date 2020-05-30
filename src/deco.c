@@ -18,18 +18,37 @@ struct wlr_box deco_box(struct view *view, enum deco_part deco_part)
 	if (!view || !view->surface)
 		return box;
 	switch (deco_part) {
+	case LAB_DECO_PART_TITLE:
+		box.x = view->x;
+		box.y = view->y - XWL_TITLEBAR_HEIGHT;
+		box.width = view->surface->current.width;
+		box.height = XWL_TITLEBAR_HEIGHT;
+		break;
 	case LAB_DECO_PART_TOP:
 		box.x = view->x - XWL_WINDOW_BORDER;
 		box.y = view->y - XWL_TITLEBAR_HEIGHT - XWL_WINDOW_BORDER;
 		box.width =
 			view->surface->current.width + 2 * XWL_WINDOW_BORDER;
-		box.height = XWL_TITLEBAR_HEIGHT + XWL_WINDOW_BORDER;
+		box.height = + XWL_WINDOW_BORDER;
+		break;
+	case LAB_DECO_PART_RIGHT:
+		box.x = view->x + view->surface->current.width;
+		box.y = view->y - XWL_TITLEBAR_HEIGHT;
+		box.width = XWL_WINDOW_BORDER;
+		box.height = view->surface->current.height + XWL_TITLEBAR_HEIGHT;
+		break;
+	case LAB_DECO_PART_BOTTOM:
+		box.x = view->x - XWL_WINDOW_BORDER;
+		box.y = view->y + view->surface->current.height;
+		box.width =
+			view->surface->current.width + 2 * XWL_WINDOW_BORDER;
+		box.height = + XWL_WINDOW_BORDER;
 		break;
 	case LAB_DECO_PART_LEFT:
 		box.x = view->x - XWL_WINDOW_BORDER;
-		box.y = view->y;
+		box.y = view->y - XWL_TITLEBAR_HEIGHT;
 		box.width = XWL_WINDOW_BORDER;
-		box.height = view->surface->current.height;
+		box.height = view->surface->current.height + XWL_TITLEBAR_HEIGHT;
 		break;
 	default:
 		break;

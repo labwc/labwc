@@ -23,7 +23,7 @@ static void position(struct view *view)
 		return;
 	if (view->x || view->y)
 		return;
-	box = deco_box(view, LAB_DECO_PART_TOP);
+	box = deco_box(view, LAB_DECO_PART_TITLE);
 	view->y = box.height;
 	box = deco_box(view, LAB_DECO_PART_LEFT);
 	view->x = box.width;

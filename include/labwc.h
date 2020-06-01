@@ -34,7 +34,7 @@
 #define XCURSOR_MOVE "grabbing"
 #define XWL_TITLEBAR_HEIGHT (10)
 #define XWL_WINDOW_BORDER (3)
-#define LAB_DISABLE_CSD (0)
+#define LAB_DISABLE_CSD (1)
 
 enum cursor_mode {
 	LAB_CURSOR_PASSTHROUGH,

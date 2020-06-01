@@ -59,10 +59,12 @@ static bool is_toplevel(struct view *view)
 
 bool view_want_deco(struct view *view)
 {
-	if (view->type != LAB_XWAYLAND_VIEW)
-		return false;
 	if (!is_toplevel(view))
 		return false;
+	if (view->type == LAB_XDG_SHELL_VIEW && !LAB_DISABLE_CSD)
+		return false;
+	if (view->type == LAB_XDG_SHELL_VIEW)
+		return true;
 	if (view->xwayland_surface->override_redirect)
 		return false;
 	if (view->xwayland_surface->decorations !=

@@ -16,22 +16,6 @@ int xwl_nr_parents(struct view *view)
 	return i;
 }
 
-static void position(struct view *view)
-{
-	struct wlr_box box;
-	if (!view_want_deco(view))
-		return;
-	if (view->x || view->y)
-		return;
-	box = deco_box(view, LAB_DECO_PART_TITLE);
-	view->y = box.height;
-	box = deco_box(view, LAB_DECO_PART_LEFT);
-	view->x = box.width;
-	wlr_xwayland_surface_configure(view->xwayland_surface, view->x, view->y,
-				       view->xwayland_surface->width,
-				       view->xwayland_surface->height);
-}
-
 void xwl_surface_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, map);
@@ -40,7 +24,7 @@ void xwl_surface_map(struct wl_listener *listener, void *data)
 	view->y = view->xwayland_surface->y;
 	view->surface = view->xwayland_surface->surface;
 	if (!view->been_mapped)
-		position(view);
+		view_init_position(view);
 	view->been_mapped = true;
 	view_focus(view);
 }

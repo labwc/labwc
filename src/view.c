@@ -1,5 +1,42 @@
 #include "labwc.h"
 
+static bool is_toplevel(struct view *view)
+{
+	switch (view->type) {
+	case LAB_XDG_SHELL_VIEW:
+		return view->xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL;
+	case LAB_XWAYLAND_VIEW:
+		return xwl_nr_parents(view) > 0 ? false : true;
+	}
+	return false;
+}
+
+void view_init_position(struct view *view)
+{
+	/* If surface already has a 'desired' position, don't touch it */
+	if (view->x || view->y)
+		return;
+	if (!is_toplevel(view))
+		return;
+	struct wlr_box box;
+	if (view->type == LAB_XDG_SHELL_VIEW && !LAB_DISABLE_CSD) {
+		/* CSD */
+		wlr_xdg_surface_get_geometry(view->xdg_surface, &box);
+	} else if (!view_want_deco(view)) {
+		return;
+	} else {
+		/* SSD */
+		box = deco_max_extents(view);
+	}
+	view->x -= box.x;
+	view->y -= box.y;
+	if (view->type != LAB_XWAYLAND_VIEW)
+		return;
+	wlr_xwayland_surface_configure(view->xwayland_surface, view->x, view->y,
+				       view->xwayland_surface->width,
+				       view->xwayland_surface->height);
+}
+
 struct wlr_box view_get_surface_geometry(struct view *view)
 {
 	struct wlr_box box = { 0 };
@@ -46,17 +83,7 @@ void view_resize(struct view *view, struct wlr_box geo)
 	}
 }
 
-static bool is_toplevel(struct view *view)
-{
-	switch (view->type) {
-	case LAB_XDG_SHELL_VIEW:
-		return view->xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL;
-	case LAB_XWAYLAND_VIEW:
-		return xwl_nr_parents(view) > 0 ? false : true;
-	}
-	return false;
-}
-
+/* Do we want _server_ side decoration? */
 bool view_want_deco(struct view *view)
 {
 	if (!is_toplevel(view))

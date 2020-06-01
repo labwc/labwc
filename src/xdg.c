@@ -49,11 +49,12 @@ void xdg_toplevel_decoration(struct wl_listener *listener, void *data)
 
 void xdg_surface_map(struct wl_listener *listener, void *data)
 {
-	/* Called when the surface is mapped, or ready to display on-screen. */
 	struct view *view = wl_container_of(listener, view, map);
 	view->mapped = true;
-	view->been_mapped = true;
 	view->surface = view->xdg_surface->surface;
+	if (!view->been_mapped)
+		view_init_position(view);
+	view->been_mapped = true;
 	view_focus(view);
 }
 

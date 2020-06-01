@@ -34,7 +34,7 @@
 #define XCURSOR_MOVE "grabbing"
 #define XWL_TITLEBAR_HEIGHT (10)
 #define XWL_WINDOW_BORDER (3)
-#define LAB_DISABLE_CSD (1)
+#define LAB_DISABLE_CSD (0)
 
 enum cursor_mode {
 	LAB_CURSOR_PASSTHROUGH,
@@ -137,6 +137,7 @@ void xdg_surface_new(struct wl_listener *listener, void *data);
 int xwl_nr_parents(struct view *view);
 void xwl_surface_new(struct wl_listener *listener, void *data);
 
+void view_init_position(struct view *view);
 /**
  * view_get_surface_geometry - geometry relative to view
  * @view: toplevel containing the surface to process

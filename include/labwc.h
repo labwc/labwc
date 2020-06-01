@@ -118,11 +118,6 @@ struct view {
 	struct wl_listener request_configure;
 
 	bool mapped;
-	/*
-	 * Some X11 windows appear to create additional top levels windows
-	 * which we want to ignore. These are never mapped, so we can track
-	 * them that way
-	 */
 	bool been_mapped;
 	int x, y;
 };
@@ -137,18 +132,9 @@ struct keyboard {
 };
 
 void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
-void xdg_surface_map(struct wl_listener *listener, void *data);
-void xdg_surface_unmap(struct wl_listener *listener, void *data);
-void xdg_surface_destroy(struct wl_listener *listener, void *data);
-void xdg_toplevel_request_move(struct wl_listener *listener, void *data);
-void xdg_toplevel_request_resize(struct wl_listener *listener, void *data);
 void xdg_surface_new(struct wl_listener *listener, void *data);
 
 int xwl_nr_parents(struct view *view);
-void xwl_surface_map(struct wl_listener *listener, void *data);
-void xwl_surface_unmap(struct wl_listener *listener, void *data);
-void xwl_surface_destroy(struct wl_listener *listener, void *data);
-void xwl_surface_configure(struct wl_listener *listener, void *data);
 void xwl_surface_new(struct wl_listener *listener, void *data);
 
 /**

@@ -158,10 +158,9 @@ struct view *view_at(struct server *server, double lx, double ly,
 void interactive_begin(struct view *view, enum cursor_mode mode,
 		       uint32_t edges);
 
-void server_new_input(struct wl_listener *listener, void *data);
-void seat_request_cursor(struct wl_listener *listener, void *data);
-void seat_request_set_selection(struct wl_listener *listener, void *data);
-void server_new_output(struct wl_listener *listener, void *data);
+void server_init(struct server *server);
+void server_start(struct server *server);
+void server_finish(struct server *server);
 
 void cursor_motion(struct wl_listener *listener, void *data);
 void cursor_motion_absolute(struct wl_listener *listener, void *data);
@@ -175,11 +174,11 @@ void keyboard_new(struct server *server, struct wlr_input_device *device);
 void output_frame(struct wl_listener *listener, void *data);
 void output_new(struct wl_listener *listener, void *data);
 
-void dbg_show_one_view(struct view *view);
-void dbg_show_views(struct server *server);
-
 struct wlr_box deco_max_extents(struct view *view);
 struct wlr_box deco_box(struct view *view, enum deco_part deco_part);
 enum deco_part deco_at(struct view *view, double lx, double ly);
+
+void dbg_show_one_view(struct view *view);
+void dbg_show_views(struct server *server);
 
 #endif /* LABWC_H */

@@ -1,6 +1,8 @@
 #include "labwc.h"
+#include "rcxml.h"
 
 struct server server = { 0 };
+struct rcxml rc = { 0 };
 
 int main(int argc, char *argv[])
 {
@@ -22,6 +24,10 @@ int main(int argc, char *argv[])
 		printf("Usage: %s [-s startup command]\n", argv[0]);
 		return 0;
 	}
+
+	rcxml_init(&rc);
+	rcxml_set_verbose();
+	rcxml_read("data/rc.xml");
 
 	/* Wayland requires XDG_RUNTIME_DIR to be set */
 	if (!getenv("XDG_RUNTIME_DIR")) {

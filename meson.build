@@ -40,13 +40,16 @@ endif
 wayland_server  = dependency('wayland-server')
 wayland_protos  = dependency('wayland-protocols')
 xkbcommon       = dependency('xkbcommon')
+xml2            = dependency('libxml-2.0')
 
 labwc_inc       = include_directories('include')
 
 subdir('protocols')
 subdir('src')
 
-labwc_deps      = [ server_protos, wayland_server, wlroots, xkbcommon, ]
+labwc_deps      = [
+  server_protos, wayland_server, wlroots, xkbcommon, xml2
+]
 
 executable(
   meson.project_name(),

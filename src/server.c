@@ -1,4 +1,5 @@
 #include "labwc.h"
+#include "rcxml.h"
 
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
@@ -222,7 +223,7 @@ void server_init(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 	wlr_server_decoration_manager_set_default_mode(
-		deco_mgr, LAB_DISABLE_CSD ?
+		deco_mgr, !rc.client_side_decorations ?
 				  WLR_SERVER_DECORATION_MANAGER_MODE_SERVER :
 				  WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT);
 

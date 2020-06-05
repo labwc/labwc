@@ -1,4 +1,5 @@
 #include "labwc.h"
+#include "rcxml.h"
 
 static bool is_toplevel(struct view *view)
 {
@@ -19,7 +20,7 @@ void view_init_position(struct view *view)
 	if (!is_toplevel(view))
 		return;
 	struct wlr_box box;
-	if (view->type == LAB_XDG_SHELL_VIEW && !LAB_DISABLE_CSD) {
+	if (view->type == LAB_XDG_SHELL_VIEW && rc.client_side_decorations) {
 		/* CSD */
 		wlr_xdg_surface_get_geometry(view->xdg_surface, &box);
 	} else if (!view_want_deco(view)) {
@@ -88,7 +89,7 @@ bool view_want_deco(struct view *view)
 {
 	if (!is_toplevel(view))
 		return false;
-	if (view->type == LAB_XDG_SHELL_VIEW && !LAB_DISABLE_CSD)
+	if (view->type == LAB_XDG_SHELL_VIEW && rc.client_side_decorations)
 		return false;
 	if (view->type == LAB_XDG_SHELL_VIEW)
 		return true;

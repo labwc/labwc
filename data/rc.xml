@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<openbox_config xmlns="http://openbox.org/3.4/rc"
+		xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<!-- wlroots specific settings - not part of openbox -->
+<wlroots>
+  <!-- Use client-side decorations for xdg-shell views -->
+  <csd>no</csd>
+</wlroots>
+
+</openbox_config>

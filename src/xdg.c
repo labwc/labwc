@@ -1,4 +1,5 @@
 #include "labwc.h"
+#include "rcxml.h"
 
 struct xdg_deco {
 	struct wlr_xdg_toplevel_decoration_v1 *wlr_decoration;
@@ -22,7 +23,7 @@ static void xdg_deco_request_mode(struct wl_listener *listener, void *data)
 	struct xdg_deco *xdg_deco;
 	xdg_deco = wl_container_of(listener, xdg_deco, request_mode);
 	enum wlr_xdg_toplevel_decoration_v1_mode mode;
-	if (LAB_DISABLE_CSD)
+	if (!rc.client_side_decorations)
 		mode = WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
 	else
 		mode = WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;

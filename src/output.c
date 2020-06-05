@@ -1,4 +1,5 @@
 #include "labwc.h"
+#include "rcxml.h"
 
 static float window_active_title_bg[] = { 0.29, 0.55, 0.78, 1.0 };
 static float window_active_handle_bg[] = { 0.21, 0.49, 0.71, 1.0 };
@@ -23,7 +24,8 @@ static void render_cycle_box(struct output *output)
 		if (view != output->server->cycle_view)
 			continue;
 		struct wlr_box box;
-		if ((view->type == LAB_XWAYLAND_VIEW) || LAB_DISABLE_CSD) {
+		if ((view->type == LAB_XWAYLAND_VIEW) ||
+		    !rc.client_side_decorations) {
 			box = deco_max_extents(view);
 		} else {
 			box = view_get_surface_geometry(view);

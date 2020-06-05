@@ -6,6 +6,9 @@
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 
+static struct wlr_backend *backend;
+static struct wlr_compositor *compositor;
+
 static void server_new_input(struct wl_listener *listener, void *data)
 {
 	/*
@@ -86,8 +89,8 @@ void server_init(struct server *server)
 	 * renderer, for example, to fall back to software cursors if the
 	 * backend does not support hardware cursors (some older gpus don't).
 	 */
-	server->backend = wlr_backend_autocreate(server->wl_display, NULL);
-	if (!server->backend) {
+	backend = wlr_backend_autocreate(server->wl_display, NULL);
+	if (!backend) {
 		wlr_log(WLR_ERROR, "unable to create the wlroots backend");
 		exit(EXIT_FAILURE);
 	}
@@ -98,7 +101,7 @@ void server_init(struct server *server)
 	 * formats it supports for shared memory, this configures that for
 	 * clients.
 	 */
-	server->renderer = wlr_backend_get_renderer(server->backend);
+	server->renderer = wlr_backend_get_renderer(backend);
 	wlr_renderer_init_wl_display(server->renderer, server->wl_display);
 
 	wl_list_init(&server->views);
@@ -121,9 +124,9 @@ void server_init(struct server *server)
 	 * room for you to dig your fingers in and play with their behavior if
 	 * you want.
 	 */
-	server->compositor =
+	compositor =
 		wlr_compositor_create(server->wl_display, server->renderer);
-	if (!server->compositor) {
+	if (!compositor) {
 		wlr_log(WLR_ERROR, "unable to create the wlroots compositor");
 		exit(EXIT_FAILURE);
 	}
@@ -140,7 +143,7 @@ void server_init(struct server *server)
 	 * on the backend.
 	 */
 	server->new_output.notify = output_new;
-	wl_signal_add(&server->backend->events.new_output, &server->new_output);
+	wl_signal_add(&backend->events.new_output, &server->new_output);
 
 	/*
 	 * Configures a seat, which is a single "seat" at which a user sits
@@ -183,7 +186,7 @@ void server_init(struct server *server)
 
 	wl_list_init(&server->keyboards);
 	server->new_input.notify = server_new_input;
-	wl_signal_add(&server->backend->events.new_input, &server->new_input);
+	wl_signal_add(&backend->events.new_input, &server->new_input);
 	server->request_cursor.notify = seat_request_cursor;
 	wl_signal_add(&server->seat->events.request_set_cursor,
 		      &server->request_cursor);
@@ -223,7 +226,6 @@ void server_init(struct server *server)
 				  WLR_SERVER_DECORATION_MANAGER_MODE_SERVER :
 				  WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT);
 
-	/* FIXME: Check return values */
 	wlr_export_dmabuf_manager_v1_create(server->wl_display);
 	wlr_screencopy_manager_v1_create(server->wl_display);
 	wlr_data_control_manager_v1_create(server->wl_display);
@@ -231,8 +233,8 @@ void server_init(struct server *server)
 	wlr_primary_selection_v1_device_manager_create(server->wl_display);
 
 	/* Init xwayland */
-	server->xwayland = wlr_xwayland_create(server->wl_display,
-					       server->compositor, false);
+	server->xwayland =
+		wlr_xwayland_create(server->wl_display, compositor, false);
 	if (!server->xwayland) {
 		wlr_log(WLR_ERROR, "cannot create xwayland server");
 		exit(EXIT_FAILURE);
@@ -282,7 +284,7 @@ void server_start(struct server *server)
 	 * Start the backend. This will enumerate outputs and inputs, become
 	 * the DRM master, etc
 	 */
-	if (!wlr_backend_start(server->backend)) {
+	if (!wlr_backend_start(backend)) {
 		wlr_log(WLR_ERROR, "unable to start the wlroots backend");
 		exit(EXIT_FAILURE);
 	}

@@ -1,8 +1,14 @@
 # labwc
 
-A light-weight openbox alternative for Wayland.
+Labwc is a free, stacking compositor for Wayland.
 
-This software is in early development.
+It is in early development and has the following aims:
+
+- Be light-weight, small and fast.
+- Have the look and feel of the X11 Window Manager Openbox.
+- Where practicable, use other software to show wall-paper, take screenshots,
+  and so on.
+
 
 ## Dependencies
 
@@ -15,7 +21,7 @@ Will soon depend on
 - libxml2
 - cairo, pango, glib
 
-## Aim
+## Roadmap
 
 - [x] Support xwayland
 - [ ] Support some of openbox's rc.xml
@@ -29,8 +35,6 @@ Will soon depend on
 - [wio](https://wio-project.org/)
 - [rootston](https://github.com/swaywm/rootston)
 - [openbox](https://github.com/danakj/openbox)
-- [i3](https://github.com/i3/i3)
-- [dwm](https://dwm.suckless.org)
 
 ## Alternatives
 

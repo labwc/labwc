@@ -15,10 +15,10 @@ It is in early development and has the following aims:
 - wlroots (>=0.10.0)
 - wayland-protocols
 - xwayland
+- libxml2
 
 Will soon depend on
 
-- libxml2
 - cairo, pango, glib
 
 ## Roadmap
@@ -45,24 +45,13 @@ The following were considered before choosing wlroots:
 
 ## Configuration
 
-### Keyboard Shortcuts
-
-We will support rc.xml keybinds, but for the time being:
-
-```
-Alt+Escape  Exit labwc
-Alt+F2      Cycle windows
-Alt+F3      Launch dmenu
-```
-
-### Keyboard Layout
-
-Set environment variable `XKB_DEFAULT_LAYOUT` for your keyboard layout, for
-example `gb`. Read `xkeyboard-config(7)` for details.
+See [rc.xml](data/rc.xml) comments for details, incl. keybinds.
 
 ## Integration
 
-- Use grim for scrots
+Suggested apps:
+
+- grim - screenshots
 
 ## Build
 

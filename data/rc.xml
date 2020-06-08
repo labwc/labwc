@@ -1,12 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!-- Use <openbox_config> as root element for openbox compatibility -->
 <openbox_config xmlns="http://openbox.org/3.4/rc"
 		xmlns:xi="http://www.w3.org/2001/XInclude">
 
-<!-- wlroots specific settings - not part of openbox -->
-<wlroots>
+<!-- labwc specific settings - additional to openbox -->
+<lab>
   <!-- Use client-side decorations for xdg-shell views -->
   <csd>no</csd>
-</wlroots>
+
+  <!-- See xkeyboard-config(7) for details on these keyboard settings -->
+  <keyboard>
+    <layout>gb</layout>
+  </keyboard>
+</lab>
+
+<!-- keybinds have not been implemented yet. For the time being, we use the
+     following:
+      - Alt+Escape  Exit labwc
+      - Alt+F2      Cycle windows
+      - Alt+F3      Launch dmenu -->
+<keyboard>
+
+</keyboard>
 
 </openbox_config>

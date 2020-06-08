@@ -56,8 +56,10 @@ static void entry(xmlNode *node, char *nodename, char *content)
 		return;
 	if (in_keybind)
 		fill_keybind(node, nodename, content);
-	if (!strcmp(nodename, "csd.wlroots"))
+	if (!strcmp(nodename, "csd.lab"))
 		rc.client_side_decorations = get_bool(content);
+	if (!strcmp(nodename, "layout.keyboard.lab"))
+		setenv("XKB_DEFAULT_LAYOUT", content, 1);
 }
 
 static void keybind_begin(void)
@@ -80,10 +82,6 @@ static char *nodename(xmlNode *node, char *buf, int len)
 	/* Ignore superflous 'text.' in node name */
 	if (node->parent && !strcmp((char *)node->name, "text"))
 		node = node->parent;
-
-	buf += len;
-	*--buf = 0;
-	len--;
 
 	char *p = buf;
 	p[--len] = 0;
@@ -152,7 +150,6 @@ static void parse_xml(const char *filename)
 		fprintf(stderr, "fatal: error reading file '%s'\n", filename);
 		exit(EXIT_FAILURE);
 	}
-	printf("info: reading config file '%s'\n", filename);
 	xml_tree_walk(xmlDocGetRootElement(d));
 	xmlFreeDoc(d);
 	xmlCleanupParser();

@@ -52,8 +52,10 @@ static void entry(xmlNode *node, char *nodename, char *content)
 		if (is_attribute)
 			buf_add(nodename_buffer, "@");
 		buf_add(nodename_buffer, nodename);
-		buf_add(nodename_buffer, ": ");
-		buf_add(nodename_buffer, content);
+		if (content) {
+			buf_add(nodename_buffer, ": ");
+			buf_add(nodename_buffer, content);
+		}
 		buf_add(nodename_buffer, "\n");
 	}
 	if (!content)

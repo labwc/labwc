@@ -11,5 +11,6 @@ labwc_sources = files(
   'xwl.c',
 )
 
+subdir('common')
 subdir('config')
 subdir('debug')

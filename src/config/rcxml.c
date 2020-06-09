@@ -1,4 +1,4 @@
-#define _POSIX_C_SOURCE 200112L
+#define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -143,11 +143,12 @@ static void xml_tree_walk(xmlNode *node)
 	}
 }
 
-static void parse_xml(const char *filename)
+/* Exposed in header file to allow unit tests to parse buffers */
+void rcxml_parse_xml(struct buf *b)
 {
-	xmlDoc *d = xmlReadFile(filename, NULL, 0);
+	xmlDoc *d = xmlParseMemory(b->buf, b->len);
 	if (!d) {
-		fprintf(stderr, "fatal: error reading file '%s'\n", filename);
+		fprintf(stderr, "fatal: xmlParseMemory()\n");
 		exit(EXIT_FAILURE);
 	}
 	xml_tree_walk(xmlDocGetRootElement(d));
@@ -162,7 +163,29 @@ void rcxml_init(struct rcxml *rc)
 
 void rcxml_read(const char *filename)
 {
-	parse_xml(filename);
+	FILE *stream;
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t n_read;
+	struct buf b;
+
+	/* Read <filename> into buffer and then call rcxml_parse_xml() */
+	stream = fopen(filename, "r");
+	if (!stream) {
+		fprintf(stderr, "warn: cannot read '%s'\n", filename);
+		return;
+	}
+	buf_init(&b);
+	while ((n_read = getline(&line, &len, stream) != -1)) {
+		char *p = strrchr(line, '\n');
+		if (p)
+			*p = '\0';
+		buf_add(&b, line);
+	}
+	free(line);
+	fclose(stream);
+	rcxml_parse_xml(&b);
+	free(b.buf);
 }
 
 void rcxml_set_verbose(void)

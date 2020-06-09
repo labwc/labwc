@@ -1,6 +1,6 @@
 rcxml_lib = static_library(
   'rcxml',
-  sources: ['../src/config/rcxml.c'],
+  sources: files('../src/config/rcxml.c', '../src/common/buf.c'),
   dependencies: xml2,
   include_directories: [labwc_inc],
   link_with: library('libxml-2.0'),

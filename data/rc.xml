@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Use <openbox_config> as root element for openbox compatibility -->
-<openbox_config xmlns="http://openbox.org/3.4/rc"
-		xmlns:xi="http://www.w3.org/2001/XInclude">
+<openbox_config>
 
 <!-- labwc specific settings - additional to openbox -->
 <lab>

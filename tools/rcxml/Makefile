@@ -11,7 +11,7 @@ PROGS = rcxml-print-nodenames
 all: $(PROGS)
 
 rcxml-print-nodenames: rcxml-print-nodenames.c
-	$(CC) $(CFLAGS) -o $@ $^ ../../src/config/rcxml.c $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ ../../src/config/rcxml.c ../../src/common/buf.c $(LDFLAGS)
 
 clean:
 	rm -f $(PROGS)

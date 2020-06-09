@@ -13,7 +13,8 @@
 
 static bool in_keybind = false;
 static bool is_attribute = false;
-static bool verbose = false;
+static bool write_to_nodename_buffer = false;
+static struct buf *nodename_buffer;
 
 static void rstrip(char *buf, const char *pattern)
 {
@@ -47,10 +48,13 @@ static void entry(xmlNode *node, char *nodename, char *content)
 	if (!nodename)
 		return;
 	rstrip(nodename, ".openbox_config");
-	if (verbose) {
+	if (write_to_nodename_buffer) {
 		if (is_attribute)
-			printf("@");
-		printf("%s: %s\n", nodename, content);
+			buf_add(nodename_buffer, "@");
+		buf_add(nodename_buffer, nodename);
+		buf_add(nodename_buffer, ": ");
+		buf_add(nodename_buffer, content);
+		buf_add(nodename_buffer, "\n");
 	}
 	if (!content)
 		return;
@@ -188,7 +192,8 @@ void rcxml_read(const char *filename)
 	free(b.buf);
 }
 
-void rcxml_set_verbose(void)
+void rcxml_get_nodenames(struct buf *b)
 {
-	verbose = true;
+	write_to_nodename_buffer = true;
+	nodename_buffer = b;
 }

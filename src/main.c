@@ -26,7 +26,6 @@ int main(int argc, char *argv[])
 	}
 
 	rcxml_init(&rc);
-	rcxml_set_verbose();
 	rcxml_read("data/rc.xml");
 
 	/* Wayland requires XDG_RUNTIME_DIR to be set */

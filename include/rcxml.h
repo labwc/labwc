@@ -15,6 +15,6 @@ extern struct rcxml rc;
 void rcxml_init(struct rcxml *rc);
 void rcxml_parse_xml(struct buf *b);
 void rcxml_read(const char *filename);
-void rcxml_set_verbose(void);
+void rcxml_get_nodenames(struct buf *b);
 
 #endif /* RCXML_H */

@@ -43,5 +43,6 @@ int main(int argc, char **argv)
 
 	ok1(!strcmp(expect, actual.buf));
 	free(actual.buf);
+	free(source.buf);
 	return exit_status();
 }

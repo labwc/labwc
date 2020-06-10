@@ -36,7 +36,6 @@ static bool handle_keybinding(struct server *server, xkb_keysym_t sym)
 	case XKB_KEY_F1:
 	case XKB_KEY_F2:
 		server->cycle_view = next_toplevel(view_front_toplevel(server));
-		fprintf(stderr, "cycle_view=%p\n", (void *)server->cycle_view);
 		break;
 	case XKB_KEY_F3:
 		if (fork() == 0) {

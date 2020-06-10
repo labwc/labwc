@@ -175,7 +175,8 @@ struct view *view_front_toplevel(struct server *server)
 
 struct view *next_toplevel(struct view *current)
 {
-	/* FIXME: write nr_toplevels() */
+	if (!current)
+		return NULL;
 	struct view *view = current;
 	do {
 		view = wl_container_of(view->link.next, view, link);

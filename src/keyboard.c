@@ -43,10 +43,6 @@ static bool handle_keybinding(struct server *server, xkb_keysym_t sym)
 			execl("/bin/dmenu_run", "/bin/dmenu_run", (void *)NULL);
 		}
 		break;
-	case XKB_KEY_F6:
-		interactive_begin(view_front_toplevel(server), LAB_CURSOR_MOVE,
-				  0);
-		break;
 	case XKB_KEY_F12:
 		dbg_show_views(server);
 		break;

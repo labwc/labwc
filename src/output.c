@@ -1,7 +1,7 @@
 #include "labwc.h"
 #include "rcxml.h"
+#include "theme.h"
 
-static float window_active_title_bg[] = { 0.29, 0.55, 0.78, 1.0 };
 static float window_active_handle_bg[] = { 0.21, 0.49, 0.71, 1.0 };
 
 struct draw_data {
@@ -54,7 +54,7 @@ static void render_decorations(struct wlr_output *output, struct view *view)
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_BOTTOM));
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_LEFT));
 
-	ddata.rgba = window_active_title_bg;
+	ddata.rgba = theme.window_active_title_bg_color;
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_TITLE));
 }
 

@@ -13,4 +13,5 @@ labwc_sources = files(
 
 subdir('common')
 subdir('config')
+subdir('theme')
 subdir('debug')

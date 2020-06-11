@@ -1,8 +1,10 @@
 #include "labwc.h"
 #include "rcxml.h"
+#include "theme.h"
 
 struct server server = { 0 };
 struct rcxml rc = { 0 };
+struct theme theme = { 0 };
 
 int main(int argc, char *argv[])
 {
@@ -27,6 +29,7 @@ int main(int argc, char *argv[])
 
 	rcxml_init(&rc);
 	rcxml_read("data/rc.xml");
+	theme_read("data/themerc");
 
 	/* Wayland requires XDG_RUNTIME_DIR to be set */
 	if (!getenv("XDG_RUNTIME_DIR")) {

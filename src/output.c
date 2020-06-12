@@ -2,8 +2,6 @@
 #include "rcxml.h"
 #include "theme.h"
 
-static float window_active_handle_bg[] = { 0.21, 0.49, 0.71, 1.0 };
-
 struct draw_data {
 	struct wlr_renderer *renderer;
 	float *transform_matrix;
@@ -48,7 +46,7 @@ static void render_decorations(struct wlr_output *output, struct view *view)
 		.transform_matrix = output->transform_matrix,
 	};
 
-	ddata.rgba = window_active_handle_bg;
+	ddata.rgba = theme.window_active_handle_bg_color;
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_TOP));
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_RIGHT));
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_BOTTOM));

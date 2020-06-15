@@ -148,6 +148,7 @@ bool view_want_deco(struct view *view);
 void view_focus(struct view *view);
 struct view *view_front_toplevel(struct server *server);
 struct view *next_toplevel(struct view *current);
+bool view_hasfocus(struct view *view);
 struct view *view_at(struct server *server, double lx, double ly,
 		     struct wlr_surface **surface, double *sx, double *sy,
 		     int *view_area);

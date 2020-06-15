@@ -52,7 +52,11 @@ static void render_decorations(struct wlr_output *output, struct view *view)
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_BOTTOM));
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_LEFT));
 
-	ddata.rgba = theme.window_active_title_bg_color;
+
+	if (view_hasfocus(view))
+		ddata.rgba = theme.window_active_title_bg_color;
+	else
+		ddata.rgba = theme.window_inactive_title_bg_color;
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_TITLE));
 }
 

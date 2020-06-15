@@ -123,6 +123,14 @@ static void set_activated(struct wlr_surface *surface, bool activated)
 	}
 }
 
+bool view_hasfocus(struct view *view)
+{
+	if (!view || !view->surface)
+		return false;
+	struct wlr_seat *seat = view->server->seat;
+	return (view->surface == seat->keyboard_state.focused_surface);
+}
+
 void view_focus(struct view *view)
 {
 	/* Note: this function only deals with keyboard focus. */

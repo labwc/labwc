@@ -16,10 +16,11 @@ It is in early development and has the following aims:
 - wayland-protocols
 - xwayland
 - libxml2
+- glib-2.0
 
 Will soon depend on
 
-- cairo, pango, glib
+- cairo, pango
 
 ## Roadmap
 

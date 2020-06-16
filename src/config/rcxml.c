@@ -8,6 +8,7 @@
 #include <libxml/tree.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <wayland-server-core.h>
 
 #include "rcxml.h"
 
@@ -162,9 +163,12 @@ void rcxml_parse_xml(struct buf *b)
 	xmlCleanupParser();
 }
 
-void rcxml_init(struct rcxml *rc)
+void rcxml_init()
 {
 	LIBXML_TEST_VERSION
+	wl_list_init(&rc.keybinds);
+	keybind_init();
+	keybind_print();
 }
 
 void rcxml_read(const char *filename)

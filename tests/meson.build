@@ -1,9 +1,18 @@
+lib_xml2 = library('libxml-2.0')
+lib_wayland_server = library('wayland-server')
+lib_xkbcommon = library('xkbcommon')
+lib_glib = library('glib-2.0')
+
 rcxml_lib = static_library(
   'rcxml',
-  sources: files('../src/config/rcxml.c', '../src/common/buf.c'),
-  dependencies: xml2,
+  sources: files(
+    '../src/config/rcxml.c',
+    '../src/config/keybind.c',
+    '../src/common/buf.c'
+  ),
+  dependencies: [xml2, wayland_server, xkbcommon, glib],
   include_directories: [labwc_inc],
-  link_with: library('libxml-2.0'),
+  link_with: [lib_xml2, lib_wayland_server, lib_xkbcommon, lib_glib],
 )
 
 rcxml_tests = [
@@ -17,7 +26,7 @@ foreach t : rcxml_tests
     testname,
     sources: [t, 'tap.c'],
     include_directories: [labwc_inc],
-    link_with: rcxml_lib,
+    link_with: [rcxml_lib],
   )
   test(testname, exe)
 endforeach

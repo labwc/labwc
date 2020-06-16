@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	rcxml_init(&rc);
+	rcxml_init();
 	rcxml_read("data/rc.xml");
 	theme_read("data/themerc");
 

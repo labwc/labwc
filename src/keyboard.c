@@ -1,4 +1,5 @@
 #include "labwc.h"
+#include "rcxml.h"
 
 static void keyboard_handle_modifiers(struct wl_listener *listener, void *data)
 {
@@ -20,35 +21,40 @@ static void keyboard_handle_modifiers(struct wl_listener *listener, void *data)
 		keyboard->server->seat, &keyboard->device->keyboard->modifiers);
 }
 
-static bool handle_keybinding(struct server *server, xkb_keysym_t sym)
+static void action(struct server *server, struct keybind *keybind)
 {
-	/*
-	 * Here we handle compositor keybindings. This is when the compositor is
-	 * processing keys, rather than passing them on to the client for its
-	 * own processing.
-	 *
-	 * This function assumes Alt is held down.
-	 */
-	switch (sym) {
-	case XKB_KEY_Escape:
+	if (!keybind || !keybind->action)
+		return;
+	if (!strcmp(keybind->action, "exit")) {
 		wl_display_terminate(server->wl_display);
-		break;
-	case XKB_KEY_F1:
-	case XKB_KEY_F2:
+	} else if (!strcmp(keybind->action, "cycle")) {
 		server->cycle_view = next_toplevel(view_front_toplevel(server));
-		break;
-	case XKB_KEY_F3:
-		if (fork() == 0) {
+	} else if (!strcmp(keybind->action, "exec")) {
+		if (!fork())
 			execl("/bin/dmenu_run", "/bin/dmenu_run", (void *)NULL);
-		}
-		break;
-	case XKB_KEY_F12:
+	} else if (!strcmp(keybind->action, "debug-views")) {
 		dbg_show_views(server);
-		break;
-	default:
-		return false;
+	} else {
+		fprintf(stderr, "warn: action (%s) not supported\n",
+			keybind->action);
 	}
-	return true;
+}
+
+static bool handle_keybinding(struct server *server, uint32_t modifiers,
+			      xkb_keysym_t sym)
+{
+	struct keybind *keybind;
+	wl_list_for_each_reverse (keybind, &rc.keybinds, link) {
+		if (modifiers ^ keybind->modifiers)
+			continue;
+		for (size_t i = 0; i < keybind->keysyms_len; i++) {
+			if (sym == keybind->keysyms[i]) {
+				action(server, keybind);
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 static void keyboard_handle_key(struct wl_listener *listener, void *data)
@@ -86,13 +92,10 @@ static void keyboard_handle_key(struct wl_listener *listener, void *data)
 	}
 
 	/* Handle compositor key bindings */
-	if ((modifiers & WLR_MODIFIER_ALT) && event->state == WLR_KEY_PRESSED) {
-		/* If alt is held down and this button was _pressed_, we attempt
-		 * to process it as a compositor keybinding. */
-		for (int i = 0; i < nsyms; i++) {
-			handled = handle_keybinding(server, syms[i]);
-		}
-	}
+	if (event->state == WLR_KEY_PRESSED)
+		for (int i = 0; i < nsyms; i++)
+			handled = handle_keybinding(server, modifiers, syms[i]);
+
 	if (!handled) {
 		/* Otherwise, we pass it along to the client. */
 		wlr_seat_set_keyboard(seat, keyboard->device);

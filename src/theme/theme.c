@@ -85,14 +85,13 @@ void theme_read(const char *filename)
 	FILE *stream;
 	char *line = NULL;
 	size_t len = 0;
-	ssize_t n_read;
 
 	stream = fopen(filename, "r");
 	if (!stream) {
 		fprintf(stderr, "warn: cannot read '%s'\n", filename);
 		return;
 	}
-	while ((n_read = getline(&line, &len, stream) != -1)) {
+	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');
 		if (p)
 			*p = '\0';

@@ -51,7 +51,6 @@ static void render_decorations(struct wlr_output *output, struct view *view)
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_BOTTOM));
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_LEFT));
 
-
 	if (view_hasfocus(view))
 		ddata.rgba = theme.window_active_title_bg_color;
 	else

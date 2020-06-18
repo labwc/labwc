@@ -182,5 +182,6 @@ void action(struct server *server, struct keybind *keybind);
 
 void dbg_show_one_view(struct view *view);
 void dbg_show_views(struct server *server);
+void dbg_show_keybinds();
 
 #endif /* LABWC_H */

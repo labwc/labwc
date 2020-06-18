@@ -1,4 +1,5 @@
 #include "labwc.h"
+#include "rcxml.h"
 
 static void show_one_xdg_view(struct view *view)
 {
@@ -71,4 +72,14 @@ void dbg_show_views(struct server *server)
 	fprintf(stderr, "TYPE NR_PNT NR_CLD MAPPED VIEW-POINTER   NAME\n");
 	wl_list_for_each_reverse (view, &server->views, link)
 		dbg_show_one_view(view);
+}
+
+void dbg_show_keybinds()
+{
+	struct keybind *keybind;
+	wl_list_for_each_reverse (keybind, &rc.keybinds, link) {
+		printf("KEY=%s-", keybind->action);
+		for (size_t i = 0; i < keybind->keysyms_len; i++)
+			printf("    %d\n", keybind->keysyms[i]);
+	}
 }

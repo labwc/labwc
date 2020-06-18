@@ -60,13 +60,3 @@ void keybind_init()
 	keybind_add(&rc.keybinds, "A-Tab", "NextWindow");
 	keybind_add(&rc.keybinds, "A-F3", "Execute");
 }
-
-void keybind_print()
-{
-	struct keybind *keybind;
-	wl_list_for_each_reverse (keybind, &rc.keybinds, link) {
-		printf("KEY=%s-", keybind->action);
-		for (size_t i = 0; i < keybind->keysyms_len; i++)
-			printf("    %d\n", keybind->keysyms[i]);
-	}
-}

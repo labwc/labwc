@@ -168,7 +168,6 @@ void rcxml_init()
 	LIBXML_TEST_VERSION
 	wl_list_init(&rc.keybinds);
 	keybind_init();
-	keybind_print();
 }
 
 void rcxml_read(const char *filename)
@@ -176,7 +175,6 @@ void rcxml_read(const char *filename)
 	FILE *stream;
 	char *line = NULL;
 	size_t len = 0;
-	ssize_t n_read;
 	struct buf b;
 
 	/* Read <filename> into buffer and then call rcxml_parse_xml() */
@@ -186,7 +184,7 @@ void rcxml_read(const char *filename)
 		return;
 	}
 	buf_init(&b);
-	while ((n_read = getline(&line, &len, stream) != -1)) {
+	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');
 		if (p)
 			*p = '\0';

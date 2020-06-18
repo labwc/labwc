@@ -1,5 +1,4 @@
 #include "labwc.h"
-#include "rcxml.h"
 #include "theme.h"
 
 struct server server = { 0 };

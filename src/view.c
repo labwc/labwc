@@ -1,5 +1,4 @@
 #include "labwc.h"
-#include "rcxml.h"
 
 static bool is_toplevel(struct view *view)
 {

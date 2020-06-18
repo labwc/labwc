@@ -56,9 +56,9 @@ void keybind_add(struct wl_list *keybinds, const char *keybind,
 
 void keybind_init()
 {
-	keybind_add(&rc.keybinds, "A-Escape", "exit");
-	keybind_add(&rc.keybinds, "A-Tab", "cycle");
-	keybind_add(&rc.keybinds, "A-F3", "exec");
+	keybind_add(&rc.keybinds, "A-Escape", "Exit");
+	keybind_add(&rc.keybinds, "A-Tab", "NextWindow");
+	keybind_add(&rc.keybinds, "A-F3", "Execute");
 }
 
 void keybind_print()

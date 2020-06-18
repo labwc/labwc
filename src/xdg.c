@@ -1,5 +1,4 @@
 #include "labwc.h"
-#include "rcxml.h"
 
 struct xdg_deco {
 	struct wlr_xdg_toplevel_decoration_v1 *wlr_decoration;

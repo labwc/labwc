@@ -1,5 +1,4 @@
 #include "labwc.h"
-#include "rcxml.h"
 
 static void keyboard_handle_modifiers(struct wl_listener *listener, void *data)
 {
@@ -19,25 +18,6 @@ static void keyboard_handle_modifiers(struct wl_listener *listener, void *data)
 	/* Send modifiers to the client. */
 	wlr_seat_keyboard_notify_modifiers(
 		keyboard->server->seat, &keyboard->device->keyboard->modifiers);
-}
-
-static void action(struct server *server, struct keybind *keybind)
-{
-	if (!keybind || !keybind->action)
-		return;
-	if (!strcmp(keybind->action, "exit")) {
-		wl_display_terminate(server->wl_display);
-	} else if (!strcmp(keybind->action, "cycle")) {
-		server->cycle_view = next_toplevel(view_front_toplevel(server));
-	} else if (!strcmp(keybind->action, "exec")) {
-		if (!fork())
-			execl("/bin/dmenu_run", "/bin/dmenu_run", (void *)NULL);
-	} else if (!strcmp(keybind->action, "debug-views")) {
-		dbg_show_views(server);
-	} else {
-		fprintf(stderr, "warn: action (%s) not supported\n",
-			keybind->action);
-	}
 }
 
 static bool handle_keybinding(struct server *server, uint32_t modifiers,

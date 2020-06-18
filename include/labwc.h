@@ -29,6 +29,8 @@
 #include <wlr/xwayland.h>
 #include <xkbcommon/xkbcommon.h>
 
+#include "rcxml.h"
+
 #define XCURSOR_DEFAULT "left_ptr"
 #define XCURSOR_SIZE 24
 #define XCURSOR_MOVE "grabbing"
@@ -175,6 +177,8 @@ void output_new(struct wl_listener *listener, void *data);
 struct wlr_box deco_max_extents(struct view *view);
 struct wlr_box deco_box(struct view *view, enum deco_part deco_part);
 enum deco_part deco_at(struct view *view, double lx, double ly);
+
+void action(struct server *server, struct keybind *keybind);
 
 void dbg_show_one_view(struct view *view);
 void dbg_show_views(struct server *server);

@@ -1,5 +1,4 @@
 #include "labwc.h"
-#include "rcxml.h"
 
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>

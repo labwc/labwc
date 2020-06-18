@@ -1,5 +1,4 @@
 #include "labwc.h"
-#include "rcxml.h"
 #include "theme.h"
 
 struct draw_data {

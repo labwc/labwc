@@ -1,17 +1,19 @@
 CFLAGS  = -g -O0 -Wall -Wextra -std=c11 -pedantic `xml2-config --cflags`
 CFLAGS += -Wno-unused-parameter
 CFLAGS += -I../../include
+CFLAGS += -DWLR_USE_UNSTABLE
 ASAN_FLAGS = -O0 -fsanitize=address -fno-common -fno-omit-frame-pointer -rdynamic
 CFLAGS    += $(ASAN_FLAGS)
 LDFLAGS   += $(ASAN_FLAGS) -fuse-ld=gold
-LDFLAGS = `xml2-config --libs`
+LDFLAGS   += `xml2-config --libs`
+LDFLAGS   += `pkg-config --cflags --libs glib-2.0 wayland-server xkbcommon`
 
 PROGS = rcxml-print-nodenames
 
 all: $(PROGS)
 
 rcxml-print-nodenames: rcxml-print-nodenames.c
-	$(CC) $(CFLAGS) -o $@ $^ ../../src/config/rcxml.c ../../src/common/buf.c $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ ../../src/config/rcxml.c ../../src/common/buf.c ../../src/config/keybind.c $(LDFLAGS)
 
 clean:
 	rm -f $(PROGS)

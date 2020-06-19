@@ -16,7 +16,6 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 	buf_init(&b);
-	rcxml_init(&rc);
 	rcxml_get_nodenames(&b);
 	rcxml_read(argv[1]);
 	printf("%s", b.buf);

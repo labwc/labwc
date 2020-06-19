@@ -16,6 +16,7 @@ static bool in_keybind = false;
 static bool is_attribute = false;
 static bool write_to_nodename_buffer = false;
 static struct buf *nodename_buffer;
+static struct keybind *current_keybind;
 
 static void rstrip(char *buf, const char *pattern)
 {
@@ -27,9 +28,21 @@ static void rstrip(char *buf, const char *pattern)
 
 static void fill_keybind(xmlNode *n, char *nodename, char *content)
 {
+	if (!content)
+		return;
 	rstrip(nodename, ".keybind.keyboard");
+	if (!strcmp(nodename, "key")) {
+		current_keybind = keybind_add(content);
+		fprintf(stderr, "[bind] %s: ", content);
+	}
+	/* We expect <keybind key=""> to come first */
+	BUG_ON(!current_keybind);
 	if (!strcmp(nodename, "name.action")) {
-		; /* TODO: populate keybind with stuff */
+		current_keybind->action = strdup(content);
+		fprintf(stderr, "%s", content);
+	} else if (!strcmp(nodename, "command.action")) {
+		current_keybind->command = strdup(content);
+		fprintf(stderr, " - %s", content);
 	}
 }
 
@@ -67,18 +80,6 @@ static void entry(xmlNode *node, char *nodename, char *content)
 		rc.client_side_decorations = get_bool(content);
 	if (!strcmp(nodename, "layout.keyboard.lab"))
 		setenv("XKB_DEFAULT_LAYOUT", content, 1);
-}
-
-static void keybind_begin(void)
-{
-	/* TODO: xcalloc struct keybind */
-	in_keybind = true;
-}
-
-static void keybind_end(void)
-{
-	in_keybind = false;
-	/* TODO: wl_list_add keybind */
 }
 
 static char *nodename(xmlNode *node, char *buf, int len)
@@ -141,9 +142,10 @@ static void xml_tree_walk(xmlNode *node)
 		if (!strcasecmp((char *)n->name, "comment"))
 			continue;
 		if (!strcasecmp((char *)n->name, "keybind")) {
-			keybind_begin();
+			in_keybind = true;
 			traverse(n);
-			keybind_end();
+			in_keybind = false;
+			fprintf(stderr, "\n");
 			continue;
 		}
 		traverse(n);
@@ -163,11 +165,29 @@ void rcxml_parse_xml(struct buf *b)
 	xmlCleanupParser();
 }
 
-void rcxml_init()
+static void rcxml_init()
 {
 	LIBXML_TEST_VERSION
-	wl_list_init(&rc.keybinds);
-	keybind_init();
+}
+
+static void bind(const char *binding, const char *action)
+{
+	if (!binding || !action)
+		return;
+	struct keybind *k = keybind_add(binding);
+	if (k)
+		k->action = strdup(action);
+	fprintf(stderr, "binding: %s: %s\n", binding, action);
+}
+
+static void post_processing(void)
+{
+	if (!wl_list_length(&rc.keybinds)) {
+		fprintf(stderr, "info: loading default key bindings\n");
+		bind("A-Escape", "Exit");
+		bind("A-Tab", "NextWindow");
+		bind("A-F3", "Execute");
+	}
 }
 
 void rcxml_read(const char *filename)
@@ -177,11 +197,14 @@ void rcxml_read(const char *filename)
 	size_t len = 0;
 	struct buf b;
 
+	rcxml_init();
+	wl_list_init(&rc.keybinds);
+
 	/* Read <filename> into buffer and then call rcxml_parse_xml() */
 	stream = fopen(filename, "r");
 	if (!stream) {
 		fprintf(stderr, "warn: cannot read '%s'\n", filename);
-		return;
+		goto out;
 	}
 	buf_init(&b);
 	while (getline(&line, &len, stream) != -1) {
@@ -194,6 +217,8 @@ void rcxml_read(const char *filename)
 	fclose(stream);
 	rcxml_parse_xml(&b);
 	free(b.buf);
+out:
+	post_processing();
 }
 
 void rcxml_get_nodenames(struct buf *b)

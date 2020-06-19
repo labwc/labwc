@@ -14,13 +14,21 @@
   </keyboard>
 </lab>
 
-<!-- keybinds have not been implemented yet. For the time being, we use the
-     following:
-      - Alt+Escape  Exit labwc
-      - Alt+F2      Cycle windows
-      - Alt+F3      Launch dmenu -->
 <keyboard>
-
+  <keybind key="A-Escape">
+    <action name="Exit"/>
+  </keybind>
+  <keybind key="A-Tab">
+    <action name="NextWindow"/>
+  </keybind>
+  <keybind key="A-F2">
+    <action name="NextWindow"/>
+  </keybind>
+  <keybind key="A-F3">
+    <action name="Execute">
+      <command>dmenu_run</command>
+    </action>
+  </keybind>
 </keyboard>
 
 </openbox_config>

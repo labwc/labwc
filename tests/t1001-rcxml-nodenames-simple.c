@@ -35,7 +35,6 @@ int main(int argc, char **argv)
 	plan(1);
 	diag("Parse simple rc.xml and read nodenames");
 
-	rcxml_init();
 	rcxml_get_nodenames(&actual);
 	rcxml_parse_xml(&source);
 	printf("%s\n", actual.buf);

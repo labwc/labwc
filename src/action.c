@@ -1,4 +1,5 @@
 #include "labwc.h"
+#include "spawn.h"
 
 #include <strings.h>
 
@@ -11,8 +12,7 @@ void action(struct server *server, struct keybind *keybind)
 	} else if (!strcasecmp(keybind->action, "NextWindow")) {
 		server->cycle_view = next_toplevel(view_front_toplevel(server));
 	} else if (!strcasecmp(keybind->action, "Execute")) {
-		if (!fork())
-			execl("/bin/dmenu_run", "/bin/dmenu_run", (void *)NULL);
+		spawn_async_no_shell(keybind->command);
 	} else if (!strcasecmp(keybind->action, "debug-views")) {
 		dbg_show_views(server);
 	} else {

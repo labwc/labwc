@@ -27,7 +27,6 @@ int main(int argc, char **argv)
 		exit(1);
 	write(fd, src, sizeof(src) - 1);
 
-	rcxml_init();
 	rcxml_read(template);
 	unlink(template);
 

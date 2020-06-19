@@ -20,8 +20,7 @@ static uint32_t parse_modifier(const char *symname)
 		return 0;
 }
 
-void keybind_add(struct wl_list *keybinds, const char *keybind,
-		 const char *action)
+struct keybind *keybind_add(const char *keybind)
 {
 	struct keybind *k = calloc(1, sizeof(struct keybind));
 	xkb_keysym_t keysyms[32];
@@ -47,16 +46,10 @@ void keybind_add(struct wl_list *keybinds, const char *keybind,
 	}
 	g_strfreev(symnames);
 	if (!k)
-		return;
-	wl_list_insert(keybinds, &k->link);
-	k->action = strdup(action);
+		return NULL;
+	wl_list_insert(&rc.keybinds, &k->link);
 	k->keysyms = malloc(k->keysyms_len * sizeof(xkb_keysym_t));
 	memcpy(k->keysyms, keysyms, k->keysyms_len * sizeof(xkb_keysym_t));
+	return k;
 }
 
-void keybind_init()
-{
-	keybind_add(&rc.keybinds, "A-Escape", "Exit");
-	keybind_add(&rc.keybinds, "A-Tab", "NextWindow");
-	keybind_add(&rc.keybinds, "A-F3", "Execute");
-}

@@ -1,6 +1,6 @@
 # labwc
 
-Labwc is a free, stacking compositor for Wayland.
+Labwc is a [WIP] free, stacking compositor for Wayland.
 
 It is in early development and has the following aims:
 
@@ -8,7 +8,6 @@ It is in early development and has the following aims:
 - Have the look and feel of the X11 Window Manager Openbox.
 - Where practicable, use other software to show wall-paper, take screenshots,
   and so on.
-
 
 ## Dependencies
 
@@ -25,9 +24,17 @@ Will soon depend on
 ## Roadmap
 
 - [x] Support xwayland
-- [ ] Support some of openbox's rc.xml
-- [ ] Support openbox themes
-- [ ] Support layer-shell's background layer
+- [x] Parse [rc.xml](data/rc.xml)
+- [x] Parse [themerc](data/themerc)
+- [ ] Read xbm icons
+- [ ] Add maximize, minimize, close buttons
+- [ ] Add grip
+- [ ] Create `view_impl` starting with .configure
+- [ ] Support layer-shell background (e.g. using swaybg)
+- [ ] Draw better alt-tab rectangle
+- [ ] Try restarting and consider catching SIGHUP for --reconfigure
+- [ ] Implement client-menu
+- [ ] Implement root-menu
 
 ## Influenced by
 
@@ -46,7 +53,8 @@ The following were considered before choosing wlroots:
 
 ## Configuration
 
-See [rc.xml](data/rc.xml) comments for details, incl. keybinds.
+See [rc.xml](data/rc.xml) and [themerc](data/themerc) comments for details
+incl. keybinds.
 
 ## Integration
 

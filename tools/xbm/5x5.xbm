@@ -1,0 +1,4 @@
+#define max_width 5
+#define max_height 5
+static unsigned char max_bits[] = {
+ 0x1F, 0x1B, 0x15, 0x1B, 0x1F };

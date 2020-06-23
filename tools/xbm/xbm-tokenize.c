@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 	char *buffer = read_file(argv[1]);
 	if (!buffer)
 		exit(EXIT_FAILURE);
-	tokens = tokenize(buffer);
+	tokens = xbm_tokenize(buffer);
 	free(buffer);
 	for (struct token *t = tokens; t->type; t++)
 		printf("%s\n", t->name);

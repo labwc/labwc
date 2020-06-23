@@ -31,8 +31,9 @@ static void get_identifier_token()
 	switch (current_buffer_position[0]) {
 	case '\0':
 		return;
-	case 'a'...'z':
-	case 'A'...'Z':
+	case 'a' ... 'z':
+	case 'A' ... 'Z':
+	case '0' ... '9':
 	case '_':
 	case '#':
 		get_identifier_token();
@@ -53,9 +54,9 @@ static void get_number_token()
 	switch (current_buffer_position[0]) {
 	case '\0':
 		return;
-	case '0'...'9':
-	case 'a'...'f':
-	case 'A'...'F':
+	case '0' ... '9':
+	case 'a' ... 'f':
+	case 'A' ... 'F':
 	case 'x':
 		get_number_token();
 		break;
@@ -71,7 +72,7 @@ static void get_special_char_token()
 	current_buffer_position++;
 }
 
-struct token *tokenize(char *buffer)
+struct token *xbm_tokenize(char *buffer)
 {
 	current_buffer_position = buffer;
 
@@ -79,14 +80,14 @@ struct token *tokenize(char *buffer)
 		switch (current_buffer_position[0]) {
 		case '\0':
 			goto out;
-		case 'a'...'z':
-		case 'A'...'Z':
+		case 'a' ... 'z':
+		case 'A' ... 'Z':
 		case '_':
 		case '#':
 			add_token(TOKEN_IDENT);
 			get_identifier_token();
 			continue;
-		case '0'...'9':
+		case '0' ... '9':
 			add_token(TOKEN_INT);
 			get_number_token();
 			continue;

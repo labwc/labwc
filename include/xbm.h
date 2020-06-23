@@ -17,10 +17,23 @@ struct token {
 };
 
 /**
+ * xbm_create_bitmap - parse xbm tokens and create pixmap
+ * @tokens: token vector
+ */
+void xbm_create_bitmap(struct token *tokens);
+
+/**
  * tokenize - tokenize xbm file
  * @buffer: buffer containing xbm file
- * returns vector of tokens
+ * return token vector
  */
-struct token *tokenize(char *buffer);
+struct token *xbm_tokenize(char *buffer);
+
+/**
+ * xbm_read_file - read file into buffer (as it's easier to tokenize that way)
+ * @filename: file to be read
+ * return allocated memory
+ */
+char *xbm_read_file(const char *filename);
 
 #endif /* XBM_H */

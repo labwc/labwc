@@ -1,6 +1,8 @@
 #ifndef XBM_H
 #define XBM_H
 
+#include <cairo.h>
+
 enum token_type {
 	TOKEN_NONE = 0,
 	TOKEN_IDENT,
@@ -20,7 +22,7 @@ struct token {
  * xbm_create_bitmap - parse xbm tokens and create pixmap
  * @tokens: token vector
  */
-void xbm_create_bitmap(struct token *tokens);
+cairo_surface_t *xbm_create_bitmap(struct token *tokens);
 
 /**
  * tokenize - tokenize xbm file

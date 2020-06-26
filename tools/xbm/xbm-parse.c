@@ -18,6 +18,17 @@ int main(int argc, char **argv)
 	tokens = xbm_tokenize(buffer);
 	free(buffer);
 
-	xbm_create_bitmap(tokens);
+	cairo_surface_t *surface = xbm_create_bitmap(tokens);
 	free(tokens);
+
+	if (!surface)
+		fprintf(stderr, "no surface\n");
+	char png_name[1024];
+	snprintf(png_name, sizeof(png_name), "%s.png", argv[1]);
+	if (cairo_surface_write_to_png(surface, png_name)) {
+		fprintf(stderr, "cannot save png\n");
+		exit(EXIT_FAILURE);
+	}
+	cairo_surface_destroy(surface);
+	exit(EXIT_SUCCESS);
 }

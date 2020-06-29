@@ -9,24 +9,26 @@ It is in early development and has the following aims:
 - Where practicable, use other software to show wall-paper, take screenshots,
   and so on.
 
+[Dependencies](#dependencies)
+[Roadmap](#roadmap)
+[Inspiration](#inspiration)
+[Design](#design)
+[Configuration](#configuration)
+[Integration](#integration)
+[Build](#build)
+[Debug](#debug)
+
 ## Dependencies
 
-- wlroots (>=0.10.0)
-- wayland-protocols
-- xwayland
-- libxml2
-- glib-2.0
-
-Will soon depend on
-
-- cairo, pango
+Runtime dependencies include wlroots (>=0.10.0), wayland-protocols,xwayland,
+libxml2, glib-2.0, cairo and pango.
 
 ## Roadmap
 
 - [x] Support xwayland
 - [x] Parse [rc.xml](data/rc.xml)
 - [x] Parse [themerc](data/themerc)
-- [ ] Read xbm icons
+- [x] Read xbm icons
 - [ ] Add maximize, minimize, close buttons
 - [ ] Add grip
 - [ ] Create `view_impl` starting with .configure
@@ -36,20 +38,15 @@ Will soon depend on
 - [ ] Implement client-menu
 - [ ] Implement root-menu
 
-## Influenced by
+## Inspiration
 
-- [sway](https://github.com/swaywm/sway)
-- [cage](https://www.hjdskes.nl/blog/cage-01/)
-- [wio](https://wio-project.org/)
-- [rootston](https://github.com/swaywm/rootston)
-- [openbox](https://github.com/danakj/openbox)
+Labwc has been inspired and inflenced by [openbox](https://github.com/danakj/openbox), [sway](https://github.com/swaywm/sway), [cage](https://www.hjdskes.nl/blog/cage-01/), [wio](https://wio-project.org/) and [rootston](https://github.com/swaywm/rootston)
 
-## Alternatives
+## Design
 
-The following were considered before choosing wlroots:
+Labwc is based on the wlroots library.
 
-- [QtWayland](https://github.com/qt/qtwayland), [grefsen](https://github.com/ec1oud/grefsen)
-- [Mir](https://mir-server.io), [egmde](https://github.com/AlanGriffiths/egmde)
+The following were considered before choosing wlroots: [QtWayland](https://github.com/qt/qtwayland), [grefsen](https://github.com/ec1oud/grefsen), [Mir](https://mir-server.io) and [egmde](https://github.com/AlanGriffiths/egmde).
 
 ## Configuration
 

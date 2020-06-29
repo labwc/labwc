@@ -1,3 +1,9 @@
+/*
+ * Helpers for handling window decorations
+ *
+ * Copyright Johan Malm 2020
+ */
+
 #include "labwc.h"
 
 struct wlr_box deco_max_extents(struct view *view)
@@ -18,6 +24,12 @@ struct wlr_box deco_box(struct view *view, enum deco_part deco_part)
 	if (!view || !view->surface)
 		return box;
 	switch (deco_part) {
+	case LAB_DECO_ICON_CLOSE:
+		box.x = view->x + view->surface->current.width - 8 - 1;
+		box.y = view->y - XWL_TITLEBAR_HEIGHT + 1;
+		box.width = 8;
+		box.height = 8;
+		break;
 	case LAB_DECO_PART_TITLE:
 		box.x = view->x;
 		box.y = view->y - XWL_TITLEBAR_HEIGHT;

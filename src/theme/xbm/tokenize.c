@@ -1,8 +1,14 @@
+/*
+ * XBM file tokenizer
+ *
+ * Copyright Johan Malm 2020
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "xbm.h"
+#include "theme/xbm/tokenize.h"
 
 static char *current_buffer_position;
 static struct token *tokens;

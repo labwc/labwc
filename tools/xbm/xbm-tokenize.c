@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "buf.h"
-#include "xbm.h"
+#include "theme/xbm/tokenize.h"
 
 /* Read file into buffer, because it's easier to tokenize that way */
 char *read_file(const char *filename)

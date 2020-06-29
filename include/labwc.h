@@ -1,7 +1,7 @@
 #ifndef LABWC_H
 #define LABWC_H
 
-#define _POSIX_C_SOURCE 200112L
+#define _POSIX_C_SOURCE 200809L
 #include <getopt.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -93,7 +93,8 @@ struct output {
 enum view_type { LAB_XDG_SHELL_VIEW, LAB_XWAYLAND_VIEW };
 
 enum deco_part {
-	LAB_DECO_PART_TITLE = 0,
+	LAB_DECO_ICON_CLOSE = 0,
+	LAB_DECO_PART_TITLE,
 	LAB_DECO_PART_TOP,
 	LAB_DECO_PART_RIGHT,
 	LAB_DECO_PART_BOTTOM,

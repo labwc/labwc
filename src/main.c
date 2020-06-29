@@ -1,6 +1,7 @@
 #include "labwc.h"
 #include "theme.h"
 #include "spawn.h"
+#include "theme/xbm/xbm.h"
 
 struct server server = { 0 };
 struct rcxml rc = { 0 };
@@ -40,6 +41,8 @@ int main(int argc, char *argv[])
 
 	server_init(&server);
 	server_start(&server);
+
+	xbm_load(server.renderer);
 
 	if (startup_cmd)
 		spawn_async_no_shell(startup_cmd);

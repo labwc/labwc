@@ -17,30 +17,19 @@
 /* TODO: should be window.active.button.unpressed.image.color */
 static unsigned char defaultcolor[] = { 255, 255, 255, 255 };
 
-static uint32_t *data;
-
-static void add_pixel(int position, unsigned char *rbga)
+static uint32_t u32(unsigned char *rbga)
 {
-	data[position] = (rbga[3] << 24) | (rbga[0] << 16) | (rbga[1] << 8) |
-			 rbga[0];
+	return (rbga[3] << 24) | (rbga[0] << 16) | (rbga[1] << 8) | rbga[0];
 }
 
-static void init_pixmap(int w, int h)
+static void process_bytes(struct pixmap *pixmap, struct token *tokens)
 {
-	static bool has_run;
-	if (has_run)
-		return;
-	has_run = true;
-	data = (uint32_t *)calloc(w * h, sizeof(uint32_t));
-}
-
-static void process_bytes(int height, int width, struct token *tokens)
-{
-	init_pixmap(width, height);
+	pixmap->data = (uint32_t *)calloc(pixmap->width * pixmap->height,
+					  sizeof(uint32_t));
 	struct token *t = tokens;
-	for (int row = 0; row < height; row++) {
+	for (int row = 0; row < pixmap->height; row++) {
 		int byte = 1;
-		for (int col = 0; col < width; col++) {
+		for (int col = 0; col < pixmap->width; col++) {
 			if (col == byte * 8) {
 				++byte;
 				++t;
@@ -50,7 +39,7 @@ static void process_bytes(int height, int width, struct token *tokens)
 			int value = (int)strtol(t->name, NULL, 0);
 			int bit = 1 << (col % 8);
 			if (value & bit)
-				add_pixel(row * width + col, defaultcolor);
+				pixmap->data[row * pixmap->width + col] = u32(defaultcolor);
 		}
 		++t;
 	}
@@ -58,24 +47,21 @@ static void process_bytes(int height, int width, struct token *tokens)
 
 struct pixmap xbm_create_pixmap(struct token *tokens)
 {
-	struct pixmap pixmap;
-	int width = 0, height = 0;
+	struct pixmap pixmap = { 0 };
+
 	for (struct token *t = tokens; t->type; t++) {
-		if (width && height) {
+		if (pixmap.width && pixmap.height) {
 			if (t->type != TOKEN_INT)
 				continue;
-			process_bytes(width, height, t);
+			process_bytes(&pixmap, t);
 			goto out;
 		}
 		if (strstr(t->name, "width"))
-			width = atoi((++t)->name);
+			pixmap.width = atoi((++t)->name);
 		else if (strstr(t->name, "height"))
-			height = atoi((++t)->name);
+			pixmap.height = atoi((++t)->name);
 	}
 out:
-	pixmap.data = data;
-	pixmap.width = width;
-	pixmap.height = height;
 	return pixmap;
 }
 

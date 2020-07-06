@@ -34,8 +34,6 @@
 #define XCURSOR_DEFAULT "left_ptr"
 #define XCURSOR_SIZE 24
 #define XCURSOR_MOVE "grabbing"
-#define XWL_TITLEBAR_HEIGHT (10)
-#define XWL_WINDOW_BORDER (3)
 
 enum cursor_mode {
 	LAB_CURSOR_PASSTHROUGH,
@@ -93,7 +91,9 @@ struct output {
 enum view_type { LAB_XDG_SHELL_VIEW, LAB_XWAYLAND_VIEW };
 
 enum deco_part {
-	LAB_DECO_ICON_CLOSE = 0,
+	LAB_DECO_BUTTON_CLOSE = 0,
+	LAB_DECO_BUTTON_MAXIMIZE,
+	LAB_DECO_BUTTON_ICONIFY,
 	LAB_DECO_PART_TITLE,
 	LAB_DECO_PART_TOP,
 	LAB_DECO_PART_RIGHT,

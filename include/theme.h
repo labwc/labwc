@@ -15,6 +15,8 @@ struct theme {
 	float window_active_handle_bg_color[4];
 	float window_inactive_title_bg_color[4];
 	struct wlr_texture *xbm_close;
+	struct wlr_texture *xbm_maximize;
+	struct wlr_texture *xbm_iconify;
 };
 
 extern struct theme theme;

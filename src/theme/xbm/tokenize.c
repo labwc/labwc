@@ -96,6 +96,8 @@ struct token *xbm_tokenize(char *buffer)
 		case '0' ... '9':
 			add_token(TOKEN_INT);
 			get_number_token();
+			struct token *token = tokens + nr_tokens - 1;
+			token->value = (int)strtol(token->name, NULL, 0);
 			continue;
 		case '{':
 			add_token(TOKEN_SPECIAL);

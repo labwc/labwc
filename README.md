@@ -9,14 +9,14 @@ It is in early development and has the following aims:
 - Where practicable, use other software to show wall-paper, take screenshots,
   and so on.
 
-[Dependencies](#dependencies)
-[Roadmap](#roadmap)
-[Inspiration](#inspiration)
-[Design](#design)
-[Configuration](#configuration)
-[Integration](#integration)
-[Build](#build)
-[Debug](#debug)
+- [Dependencies](#dependencies)
+- [Roadmap](#roadmap)
+- [Inspiration](#inspiration)
+- [Design](#design)
+- [Configuration](#configuration)
+- [Integration](#integration)
+- [Build](#build)
+- [Debug](#debug)
 
 ## Dependencies
 
@@ -29,9 +29,8 @@ libxml2, glib-2.0, cairo and pango.
 - [x] Parse [rc.xml](data/rc.xml)
 - [x] Parse [themerc](data/themerc)
 - [x] Read xbm icons
-- [ ] Add maximize, minimize, close buttons
+- [x] Add maximize, minimize, close buttons
 - [ ] Add grip
-- [ ] Create `view_impl` starting with .configure
 - [ ] Support layer-shell background (e.g. using swaybg)
 - [ ] Draw better alt-tab rectangle
 - [ ] Try restarting and consider catching SIGHUP for --reconfigure

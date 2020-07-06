@@ -18,6 +18,7 @@ enum token_type {
 #define MAX_TOKEN_SIZE (256)
 struct token {
 	char name[MAX_TOKEN_SIZE];
+	int value;
 	size_t pos;
 	enum token_type type;
 };

@@ -36,10 +36,12 @@ static void process_bytes(struct pixmap *pixmap, struct token *tokens)
 			}
 			if (!t->type)
 				return;
-			int value = (int)strtol(t->name, NULL, 0);
+			if (t->type != TOKEN_INT)
+				return;
 			int bit = 1 << (col % 8);
-			if (value & bit)
-				pixmap->data[row * pixmap->width + col] = u32(defaultcolor);
+			if (t->value & bit)
+				pixmap->data[row * pixmap->width + col] =
+					u32(defaultcolor);
 		}
 		++t;
 	}
@@ -62,6 +64,25 @@ struct pixmap xbm_create_pixmap(struct token *tokens)
 			pixmap.height = atoi((++t)->name);
 	}
 out:
+	return pixmap;
+}
+
+/* Assuming a 6x6 button for the time being */
+/* TODO: pass width, height, vargs bytes */
+struct pixmap xbm_create_pixmap_builtin(const char *button)
+{
+	struct pixmap pixmap = { 0 };
+
+	pixmap.width = 6;
+	pixmap.height = 6;
+
+	struct token t[7];
+	for (int i = 0; i < 6; i++) {
+		t[i].value = button[i];
+		t[i].type = TOKEN_INT;
+	}
+	t[6].type = 0;
+	process_bytes(&pixmap, t);
 	return pixmap;
 }
 

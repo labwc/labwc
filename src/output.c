@@ -39,6 +39,8 @@ static void render_cycle_box(struct output *output)
 static void render_icon(struct draw_data *d, struct wlr_box box,
 			struct wlr_texture *texture)
 {
+	if (!texture)
+		return;
 	float matrix[9];
 	wlr_matrix_project_box(matrix, &box, WL_OUTPUT_TRANSFORM_NORMAL, 0,
 			       d->transform_matrix);
@@ -66,8 +68,12 @@ static void render_decorations(struct wlr_output *output, struct view *view)
 		ddata.rgba = theme.window_inactive_title_bg_color;
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_TITLE));
 
-	render_icon(&ddata, deco_box(view, LAB_DECO_ICON_CLOSE),
+	render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_CLOSE),
 		    theme.xbm_close);
+	render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_MAXIMIZE),
+		    theme.xbm_maximize);
+	render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_ICONIFY),
+		    theme.xbm_iconify);
 }
 
 struct render_data {

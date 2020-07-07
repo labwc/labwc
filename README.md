@@ -2,12 +2,14 @@
 
 Labwc is a [WIP] free, stacking compositor for Wayland.
 
-It is in early development and has the following aims:
+It is in early development, so expect bugs and missing features.
 
-- Be light-weight, small and fast.
-- Have the look and feel of the X11 Window Manager Openbox.
+Labwc has the following aims:
+
+- Be light-weight, small and fast
+- Have the look and feel of Openbox
 - Where practicable, use other software to show wall-paper, take screenshots,
-  and so on.
+  and so on
 
 - [Dependencies](#dependencies)
 - [Roadmap](#roadmap)
@@ -16,7 +18,6 @@ It is in early development and has the following aims:
 - [Configuration](#configuration)
 - [Integration](#integration)
 - [Build](#build)
-- [Debug](#debug)
 
 ## Dependencies
 
@@ -60,64 +61,9 @@ Suggested apps:
 
 ## Build
 
-### Arch Linux
-
-    sudo pacman -S wlroots
-    git clone https://github.com/johanmalm/labwc
-    cd labwc
-    meson build
-    ninja -C build
-
-### Debian
-
-```
-sudo apt install \
-	build-essential \
-	cmake \
-	libwayland-dev \
-	wayland-protocols \
-	libegl1-mesa-dev \
-	libgles2-mesa-dev \
-	libdrm-dev libgbm-dev \
-	libinput-dev \
-	libxkbcommon-dev \
-	libudev-dev \
-	libpixman-1-dev \
-	libsystemd-dev \
-	libcap-dev \
-	libxcb1-dev \
-	libxcb-composite0-dev \
-	libxcb-xfixes0-dev \
-	libxcb-xinput-dev \
-	libxcb-image0-dev \
-	libxcb-render-util0-dev \
-	libx11-xcb-dev \
-	libxcb-icccm4-dev \
-	freerdp2-dev \
-	libwinpr2-dev \
-	libpng-dev \
-	libavutil-dev \
-	libavcodec-dev \
-	libavformat-dev \
-	universal-ctags \
-	xwayland
-
-# Debian Buster has an old version of meson, so we use pip3
-pip3 install --target=$HOME/bin meson
-
-git clone https://github.com/johanmalm/labwc
-cd labwc
-git clone https://github.com/swaywm/wlroots subprojects/wlroots
-
-# wlroots 0.10.0 is the last version which runs with Wayland 0.16
-# (which is what Buster runs)
-cd subprojects/wlroots && git checkout 0.10.0 && cd ../..
-
-meson build
-ninja -C build
-```
-
-## Debug
+    meson build && ninja -C build
 
 To enable ASAN and UBSAN, run meson with `-Db_sanitize=address,undefined`
+
+For further details see [wiki/Build](https://github.com/labwc/wiki/Build).
 

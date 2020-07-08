@@ -1,15 +1,17 @@
 # labwc
 
-Labwc is a [WIP] free, stacking compositor for Wayland.
-
-It is in early development, so expect bugs and missing features.
-
-Labwc has the following aims:
+Labwc is a [WIP] free, stacking compositor for Wayland and has the following aims:
 
 - Be light-weight, small and fast
 - Have the look and feel of Openbox
 - Where practicable, use other software to show wall-paper, take screenshots,
   and so on
+
+It is in early development, so expect bugs and missing features.
+
+![](https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot1.png)
+
+## Table of Contents
 
 - [Dependencies](#dependencies)
 - [Roadmap](#roadmap)

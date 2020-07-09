@@ -78,8 +78,10 @@ static void entry(xmlNode *node, char *nodename, char *content)
 		fill_keybind(node, nodename, content);
 	if (!strcmp(nodename, "csd.lab"))
 		rc.client_side_decorations = get_bool(content);
-	if (!strcmp(nodename, "layout.keyboard.lab"))
+	else if (!strcmp(nodename, "layout.keyboard.lab"))
 		setenv("XKB_DEFAULT_LAYOUT", content, 1);
+	else if (!strcmp(nodename, "name.theme"))
+		rc.theme_name = strdup(content);
 }
 
 static char *nodename(xmlNode *node, char *buf, int len)

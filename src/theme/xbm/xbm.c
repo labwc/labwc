@@ -6,21 +6,33 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #include "theme/xbm/xbm.h"
 #include "theme/xbm/parse.h"
+#include "rcxml.h"
+
+struct dir {
+	const char *prefix;
+	const char *path;
+};
+
+static struct dir theme_dirs[] = {
+	{ "XDG_DATA_HOME", "themes" },
+	{ "HOME", ".local/share/themes" },
+	{ "HOME", ".themes" },
+	{ "XDG_DATA_HOME", "themes" },
+	{ NULL, "/usr/share/themes" },
+	{ NULL, "/usr/local/share/themes" },
+	{ NULL, "opt/share/themes" },
+	{ NULL, NULL }
+};
 
 /* built-in 6x6 buttons */
 char close_button_normal[] = { 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 };
 char iconify_button_normal[] = { 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f };
 char max_button_normal[] = { 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f };
 char max_button_toggled[] = { 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f };
-
-/*
- * TODO: parse rc.xml theme name and look for icons properly.
- *       Just using random icon to prove the point.
- */
-static char filename[] = "/usr/share/themes/Bear2/openbox-3/close.xbm";
 
 static struct wlr_texture *texture_from_pixmap(struct wlr_renderer *renderer,
 					       struct pixmap *pixmap)
@@ -42,11 +54,45 @@ static struct wlr_texture *builtin(struct wlr_renderer *renderer,
 	return texture;
 }
 
+static char *theme_dir(void)
+{
+	static char buffer[4096] = { 0 };
+	if (buffer[0] != '\0')
+		return buffer;
+
+	struct stat st;
+	for (int i = 0; theme_dirs[i].path; i++) {
+		char *prefix = NULL;
+		struct dir d = theme_dirs[i];
+		if (d.prefix) {
+			prefix = getenv(d.prefix);
+			if (!prefix)
+				continue;
+			snprintf(buffer, sizeof(buffer), "%s/%s/%s/openbox-3",
+				 prefix, d.path, rc.theme_name);
+		} else {
+			snprintf(buffer, sizeof(buffer), "%s/%s/openbox-3",
+				 d.path, rc.theme_name);
+		}
+		if (!stat(buffer, &st) && S_ISDIR(st.st_mode))
+			return buffer;
+	}
+	buffer[0] = '\0';
+	return buffer;
+}
+
+static char *xbm_path(const char *button)
+{
+	static char buffer[4096] = { 0 };
+	snprintf(buffer, sizeof(buffer), "%s/%s", theme_dir(), button);
+	return buffer;
+}
+
 void xbm_load(struct wlr_renderer *renderer)
 {
 	struct token *tokens;
 
-	char *buffer = xbm_read_file(filename);
+	char *buffer = xbm_read_file(xbm_path("close.xbm"));
 	if (!buffer) {
 		fprintf(stderr, "no buffer\n");
 		goto out;

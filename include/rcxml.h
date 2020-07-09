@@ -30,6 +30,7 @@ struct keybind *keybind_add(const char *keybind);
 
 struct rcxml {
 	bool client_side_decorations;
+	char *theme_name;
 	struct wl_list keybinds;
 };
 

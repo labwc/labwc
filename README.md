@@ -40,6 +40,8 @@ libxml2, glib-2.0, cairo and pango.
 - [ ] Implement client-menu
 - [ ] Implement root-menu
 
+For further details see [wiki/Roadmap](https://github.com/johanmalm/labwc/wiki/Roadmap).
+
 ## Inspiration
 
 Labwc has been inspired and inflenced by [openbox](https://github.com/danakj/openbox), [sway](https://github.com/swaywm/sway), [cage](https://www.hjdskes.nl/blog/cage-01/), [wio](https://wio-project.org/) and [rootston](https://github.com/swaywm/rootston)
@@ -67,5 +69,5 @@ Suggested apps:
 
 To enable ASAN and UBSAN, run meson with `-Db_sanitize=address,undefined`
 
-For further details see [wiki/Build](https://github.com/labwc/wiki/Build).
+For further details see [wiki/Build](https://github.com/johanmalm/labwc/wiki/Build).
 

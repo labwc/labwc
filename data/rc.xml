@@ -14,6 +14,15 @@
   </keyboard>
 </lab>
 
+<theme>
+  <name>Clearlooks</name>
+  <titleLayout>NLIMC</titleLayout>
+  <font place="ActiveWindow">
+    <name>sans</name>
+    <size>8</size>
+  </font>
+</theme>
+
 <keyboard>
   <keybind key="A-Escape">
     <action name="Exit"/>

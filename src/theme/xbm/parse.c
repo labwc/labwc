@@ -91,10 +91,8 @@ char *xbm_read_file(const char *filename)
 	char *line = NULL;
 	size_t len = 0;
 	FILE *stream = fopen(filename, "r");
-	if (!stream) {
-		fprintf(stderr, "warn: cannot read '%s'\n", filename);
+	if (!stream)
 		return NULL;
-	}
 	struct buf buffer;
 	buf_init(&buffer);
 	while ((getline(&line, &len, stream) != -1)) {

@@ -7,6 +7,15 @@ struct server server = { 0 };
 struct rcxml rc = { 0 };
 struct theme theme = { 0 };
 
+static const char labwc_usage[] =
+"Usage: labwc [-h] [-s <command>]\n";
+
+static void usage(void)
+{
+	printf("%s", labwc_usage);
+	exit(0);
+}
+
 int main(int argc, char *argv[])
 {
 	char *startup_cmd = NULL;
@@ -19,17 +28,13 @@ int main(int argc, char *argv[])
 			startup_cmd = optarg;
 			break;
 		default:
-			printf("Usage: %s [-s startup command]\n", argv[0]);
-			return 0;
+			usage();
 		}
 	}
-	if (optind < argc) {
-		printf("Usage: %s [-s startup command]\n", argv[0]);
-		return 0;
-	}
+	if (optind < argc)
+		usage();
 
 	rcxml_read("data/rc.xml");
-	theme_read("data/themerc");
 
 	/* Wayland requires XDG_RUNTIME_DIR to be set */
 	if (!getenv("XDG_RUNTIME_DIR")) {
@@ -42,10 +47,12 @@ int main(int argc, char *argv[])
 	server_init(&server);
 	server_start(&server);
 
+	theme_read("data/themerc");
 	xbm_load(server.renderer);
 
 	if (startup_cmd)
 		spawn_async_no_shell(startup_cmd);
+
 	wl_display_run(server.wl_display);
 	server_finish(&server);
 	return 0;

@@ -2,15 +2,17 @@ lib_xml2 = library('libxml-2.0')
 lib_wayland_server = library('wayland-server')
 lib_xkbcommon = library('xkbcommon')
 lib_glib = library('glib-2.0')
+lib_wlroots = library('wlroots')
 
 rcxml_lib = static_library(
   'rcxml',
   sources: files(
     '../src/config/rcxml.c',
     '../src/config/keybind.c',
+    '../src/config/config-dir.c',
     '../src/common/buf.c'
   ),
-  dependencies: [xml2, wayland_server, xkbcommon, glib],
+  dependencies: [xml2, wayland_server, xkbcommon, glib, wlroots],
   include_directories: [labwc_inc],
   link_with: [lib_xml2, lib_wayland_server, lib_xkbcommon, lib_glib],
 )

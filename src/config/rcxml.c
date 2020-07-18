@@ -11,6 +11,7 @@
 #include <wayland-server-core.h>
 
 #include "rcxml.h"
+#include "config/config-dir.h"
 
 static bool in_keybind = false;
 static bool is_attribute = false;
@@ -192,20 +193,34 @@ static void post_processing(void)
 	}
 }
 
+static void rcxml_path(char *buf, size_t len, const char *filename)
+{
+	if (filename)
+		snprintf(buf, len, "%s", filename);
+	else
+		snprintf(buf, len, "%s/rc.xml", config_dir());
+}
+
 void rcxml_read(const char *filename)
 {
 	FILE *stream;
 	char *line = NULL;
 	size_t len = 0;
 	struct buf b;
+	char rcxml[4096];
 
 	rcxml_init();
 	wl_list_init(&rc.keybinds);
 
-	/* Read <filename> into buffer and then call rcxml_parse_xml() */
-	stream = fopen(filename, "r");
+	/*
+	 * Reading file into buffer before parsing makes it easier to write
+	 * unit tests.
+	 */
+	rcxml_path(rcxml, sizeof(rcxml), filename);
+	fprintf(stderr, "info: read config file (%s)\n", rcxml);
+	stream = fopen(rcxml, "r");
 	if (!stream) {
-		fprintf(stderr, "warn: cannot read '%s'\n", filename);
+		fprintf(stderr, "warn: cannot read '%s'\n", rcxml);
 		goto out;
 	}
 	buf_init(&b);

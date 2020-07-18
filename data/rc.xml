@@ -9,18 +9,15 @@
   <csd>no</csd>
 
   <!-- See xkeyboard-config(7) for details on these keyboard settings -->
+  <!--
   <keyboard>
     <layout>gb</layout>
   </keyboard>
+  -->
 </lab>
 
 <theme>
   <name>Clearlooks</name>
-  <titleLayout>NLIMC</titleLayout>
-  <font place="ActiveWindow">
-    <name>sans</name>
-    <size>8</size>
-  </font>
 </theme>
 
 <keyboard>
@@ -30,6 +27,8 @@
   <keybind key="A-Tab">
     <action name="NextWindow"/>
   </keybind>
+
+  <!-- de-conflict with WM alt-tab bind when running under X11 -->
   <keybind key="A-F2">
     <action name="NextWindow"/>
   </keybind>

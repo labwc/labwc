@@ -23,7 +23,7 @@ It is in early development, so expect bugs and missing features.
 
 ## Dependencies
 
-Runtime dependencies include wlroots (>=0.10.0), wayland-protocols,xwayland,
+Runtime dependencies include wlroots (>=0.10.0), wayland-protocols,xwayland,  
 libxml2, glib-2.0, cairo and pango.
 
 ## Roadmap
@@ -32,7 +32,8 @@ libxml2, glib-2.0, cairo and pango.
 - [x] Parse [rc.xml](data/rc.xml)
 - [x] Parse [themerc](data/themerc)
 - [x] Read xbm icons
-- [x] Add maximize, minimize, close buttons
+- [x] Show maximize, minimize, close buttons
+- [ ] Give actions to maximize, minimize, close buttons
 - [ ] Add grip
 - [ ] Support layer-shell background (e.g. using swaybg)
 - [ ] Draw better alt-tab rectangle
@@ -55,7 +56,13 @@ The following were considered before choosing wlroots: [QtWayland](https://githu
 ## Configuration
 
 See [rc.xml](data/rc.xml) and [themerc](data/themerc) comments for details
-incl. keybinds.
+including keybinds.
+
+Suggest either running with:
+
+    ./build/labwc -c data/rc.xml
+
+or copy data/rc.xml to ~/.config/labwc/
 
 ## Integration
 

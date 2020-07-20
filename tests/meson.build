@@ -20,6 +20,7 @@ foreach t : rcxml_tests
   exe = executable(
     testname,
     sources: [t, 'tap.c'],
+    dependencies: [wlroots],
     include_directories: [labwc_inc],
     link_with: [rcxml_lib],
   )

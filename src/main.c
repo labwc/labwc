@@ -8,7 +8,7 @@ struct rcxml rc = { 0 };
 struct theme theme = { 0 };
 
 static const char labwc_usage[] =
-"Usage: labwc [-h] [-s <startup-command>] [-c <config-file>]\n";
+	"Usage: labwc [-h] [-s <startup-command>] [-c <config-file>]\n";
 
 static void usage(void)
 {
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 	server_init(&server);
 	server_start(&server);
 
-	theme_read("data/themerc");
+	theme_read(rc.theme_name);
 	xbm_load(server.renderer);
 
 	if (startup_cmd)

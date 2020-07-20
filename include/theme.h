@@ -21,6 +21,6 @@ struct theme {
 
 extern struct theme theme;
 
-void theme_read(const char *filename);
+void theme_read(const char *theme_name);
 
 #endif /* THEME_H */

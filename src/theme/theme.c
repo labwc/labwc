@@ -5,6 +5,7 @@
 #include <ctype.h>
 
 #include "theme.h"
+#include "theme/theme-dir.h"
 
 static int hex_to_dec(char c)
 {
@@ -80,15 +81,18 @@ static void process_line(char *line)
 	entry(key, value);
 }
 
-void theme_read(const char *filename)
+void theme_read(const char *theme_name)
 {
 	FILE *stream;
 	char *line = NULL;
 	size_t len = 0;
+	char themerc[4096];
 
-	stream = fopen(filename, "r");
+	snprintf(themerc, sizeof(themerc), "%s/themerc", theme_dir(theme_name));
+	fprintf(stderr, "info: read themerc (%s)\n", themerc);
+	stream = fopen(themerc, "r");
 	if (!stream) {
-		fprintf(stderr, "warn: cannot read '%s'\n", filename);
+		fprintf(stderr, "warn: cannot read (%s)\n", themerc);
 		return;
 	}
 	while (getline(&line, &len, stream) != -1) {

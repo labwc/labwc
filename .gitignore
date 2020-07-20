@@ -1,5 +1,5 @@
 *.o
 xdg-shell-protocol.*
 labwc
-build/
+build*/
 subprojects/

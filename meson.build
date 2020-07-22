@@ -50,6 +50,7 @@ labwc_inc       = include_directories('include')
 subdir('protocols')
 subdir('src')
 subdir('tests')
+subdir('docs')
 
 labwc_deps      = [
   server_protos, wayland_server, wlroots, xkbcommon, xml2, glib, cairo, pango

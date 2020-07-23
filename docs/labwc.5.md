@@ -4,18 +4,17 @@
 
 # NAME
 
-labwc - A Wayland stacking compositor with the look and feel of Openbox
+labwc - Configuration files
 
 # CONFIGURATION
 
-Configuration aims to be compatible with Openbox. Where there are differences,
-these are pointed out.
+There are two configuration files which control the look and behaviour of
+labwc, namely rc.xml and themerc. The configuration aims to be compatible with
+Openbox, but there are some differences which are pointed out in this man page.
 
-## rc.xml
+# RC.XML `<lab>`
 
-### rc.xml lab section
-
-The `<lab>` stanza contains some labwc specific settings which are not present in Openbox.
+Labwc specific settings which are not present in Openbox.
 
     <lab>
       <csd></csd>
@@ -24,38 +23,40 @@ The `<lab>` stanza contains some labwc specific settings which are not present i
       </keyboard>
     </lab>
 
-**csd** Use client-side decorations for xdg-shell views.
+`csd` __boolean__ (default `no`)
 
-**keyboard-layout** Set `XKB_DEFAULT_LAYOUT`. See xkeyboard-config(7) for details.
+:   Use client-side decorations for xdg-shell views.
 
-### rc.xml theme section
+`keyboard-layout` __string__ (not set by default)
+
+:   Set `XKB_DEFAULT_LAYOUT`. See xkeyboard-config(7) for details.
+
+# RC.XML `<theme>`
 
     <theme>
       <name></name>
     </theme>
 
-**name** The name of the Openbox theme to use
+`name` __string__
 
-### rc.xml keyboard section
+:   The name of the Openbox theme to use
 
-This section describes key bindings.
+# RC.XML `<keyboard>`
+
+Describe key bindings.
 
     <keyboard>
-      <keybind key="KEY-COMINATION">
+      <keybind key="KEY-COMBINATION">
         ACTION
       </keybind>
     <keyboard>
 
-**KEY-COMINATION** The key combination to bind to an action in the format **modifier**-**key**.
+`KEY-COMBINATION`
 
-Supported **modifiers** include:
-
-- S Shift
-- C Control
-- A Alt
-- W Super key
-
-Unlike Openbox, multiple space-separated **KEY-COMINATION** and key-chains are not supported.
+:   The key combination to bind to an **ACTION** in the format
+    **modifier-key**, where supported **modifiers** include S (shift);
+    C (control); A (alt); W (super). Unlike Openbox, multiple space-separated
+    **KEY-COMBINATION** and key-chains are not supported.
 
 Example:
 
@@ -73,7 +74,7 @@ Example:
       </keybind>
     <keyboard>
 
-## Actions
+# ACTIONS
 
 Actions are used in key bindings.
 
@@ -83,36 +84,43 @@ Action syntax:
       OPTION
     </action>
 
-**NAME** is the name of the action as listed below.
+`NAME`
 
-**OPTION** is a set of tags specific to each action as defined below.
+:   The name of the action as listed below.
 
-### Action Execute
+`OPTION`
 
-Execute command specified by `<command>` option.
+:   A set of tags specific to each action as defined below.
 
-### Action Exit
+`Execute`
 
-Exit labwc.
+:   Execute command specified by `<command>` option.
 
-### Action NextWindow
+`Exit`
 
-Cycle focus to next window.
+:   Exit labwc.
 
-## themerc
+`NextWindow`
 
-**window.active.title.bg.color** Specify the background for the focussed window's titlebar
+:   Cycle focus to next window.
 
+# THEMERC
 
+`window.active.title.bg.color`
 
-**window.active.handle.bg.color** Specify the background for the focussed window's handle.
+:   Background for the focussed window's titlebar
 
+`window.active.handle.bg.color`
 
-**window.inactive.title.bg.color** Specify the background for non-focussed windows' titlebars
+:   Background for the focussed window's handle.
+
+`window.inactive.title.bg.color`
+
+:   Background for non-focussed windows' titlebars
 
 # DEFINITIONS
 
-The **handle** is the window decoration placed on the bottom of the window.
+The `handle` is the window decoration placed on the bottom of the window.
 
 # EXAMPLES
 
@@ -125,7 +133,7 @@ The **handle** is the window decoration placed on the bottom of the window.
     |                                         | |
     +-----------------------------------------+ v
 
-    h = padding * 2 + font vertical extents
+    h = padding * 2 + font-vertical-extents
 
 
 # SEE ALSO

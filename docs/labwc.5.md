@@ -1,6 +1,6 @@
 % labwc(5)
 % Johan Malm
-% 22 July, 2020
+% 24 July, 2020
 
 # NAME
 
@@ -23,11 +23,11 @@ Labwc specific settings which are not present in Openbox.
       </keyboard>
     </lab>
 
-`csd` __boolean__ (default `no`)
+`csd` (__boolean__; default `no`)
 
 :   Use client-side decorations for xdg-shell views.
 
-`keyboard-layout` __string__ (not set by default)
+`keyboard-layout` (__string__; not set by default)
 
 :   Set `XKB_DEFAULT_LAYOUT`. See xkeyboard-config(7) for details.
 
@@ -37,7 +37,7 @@ Labwc specific settings which are not present in Openbox.
       <name></name>
     </theme>
 
-`name` __string__
+`name` (__string__; default `Clearlooks`)
 
 :   The name of the Openbox theme to use
 
@@ -74,6 +74,14 @@ Example:
       </keybind>
     <keyboard>
 
+Default:
+
+If no rc.xml file is found, the following default values will be used:
+
+- Alt+Escape: Exit labwc  
+- Alt+Tab: Cycle windows  
+- Alt+F3: Launch dmenu  
+
 # ACTIONS
 
 Actions are used in key bindings.
@@ -84,13 +92,8 @@ Action syntax:
       OPTION
     </action>
 
-`NAME`
-
-:   The name of the action as listed below.
-
-`OPTION`
-
-:   A set of tags specific to each action as defined below.
+where `NAME` is the name of the action as listed below, and `OPTION` is a set
+of tags specific to each action as defined below.
 
 `Execute`
 

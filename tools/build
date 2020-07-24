@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# Automatically build labwc
+#
+
+builddir=build-clang
+
+if ! [ -e subprojects/wlroots ]; then
+	git clone https://github.com/swaywm/wlroots subprojects/wlroots
+fi
+
+
+if ! [ -e ${builddir} ]; then
+	CC=clang meson -Dwlroots:default_library=static ${builddir}
+fi
+
+ninja -C ${builddir}

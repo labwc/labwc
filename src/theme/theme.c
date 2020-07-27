@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
+#include <glib.h>
 
 #include "theme.h"
 #include "theme/theme-dir.h"
@@ -31,15 +33,20 @@ static void parse_hexstr(const char *hex, float *rgba)
 		rgba[3] = 1.0;
 }
 
+static bool match(const gchar *pattern, const gchar *string)
+{
+	return (bool)g_pattern_match_simple(pattern, string);
+}
+
 static void entry(const char *key, const char *value)
 {
 	if (!key || !value)
 		return;
-	if (!strcmp(key, "window.active.title.bg.color"))
+	if (match(key, "window.active.title.bg.color"))
 		parse_hexstr(value, theme.window_active_title_bg_color);
-	if (!strcmp(key, "window.active.handle.bg.color"))
+	if (match(key, "window.active.handle.bg.color"))
 		parse_hexstr(value, theme.window_active_handle_bg_color);
-	if (!strcmp(key, "window.inactive.title.bg.color"))
+	if (match(key, "window.inactive.title.bg.color"))
 		parse_hexstr(value, theme.window_inactive_title_bg_color);
 }
 

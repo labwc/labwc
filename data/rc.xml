@@ -9,33 +9,28 @@
   <csd>no</csd>
 
   <!-- See xkeyboard-config(7) for details on these keyboard settings -->
-  <!--
   <keyboard>
-    <layout>gb</layout>
+    <!-- layout could be for example 'gb' -->
+    <layout></layout>
   </keyboard>
-  -->
 </lab>
 
 <theme>
   <name>Clearlooks</name>
 </theme>
 
+<!--
+    Currently supported keybind actions include:
+    - Exit
+    - NextWindow
+    - Execute
+-->
 <keyboard>
   <keybind key="A-Escape">
     <action name="Exit"/>
   </keybind>
   <keybind key="A-Tab">
     <action name="NextWindow"/>
-  </keybind>
-
-  <!-- de-conflict with WM alt-tab bind when running under X11 -->
-  <keybind key="A-F2">
-    <action name="NextWindow"/>
-  </keybind>
-  <keybind key="A-F3">
-    <action name="Execute">
-      <command>dmenu_run</command>
-    </action>
   </keybind>
 </keyboard>
 

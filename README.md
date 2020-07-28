@@ -55,14 +55,11 @@ The following were considered before choosing wlroots: [QtWayland](https://githu
 
 ## Configuration
 
-See [rc.xml](data/rc.xml) and [themerc](data/themerc) comments for details
-including keybinds.
+See [rc.xml](data/rc.xml) and [themerc](data/themerc) comments for details including keybinds.
 
-Suggest either running with:
+Suggest either copying data/rc.xml to ~/.config/labwc/running, or running with:
 
     ./build/labwc -c data/rc.xml
-
-or copy data/rc.xml to ~/.config/labwc/
 
 ## Integration
 
@@ -74,7 +71,5 @@ Suggested apps:
 
     meson build && ninja -C build
 
-To enable ASAN and UBSAN, run meson with `-Db_sanitize=address,undefined`
-
-For further details see [wiki/Build](https://github.com/johanmalm/labwc/wiki/Build).
+For further details see [tools/build](tools/build) and [wiki/Build](https://github.com/johanmalm/labwc/wiki/Build).
 

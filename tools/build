@@ -12,6 +12,8 @@ fi
 
 if ! [ -e ${builddir} ]; then
 	CC=clang meson -Dwlroots:default_library=static ${builddir}
+	# To enable ASAN and UBSAN, run meson with
+	# `-Db_sanitize=address,undefined`
 fi
 
 ninja -C ${builddir}

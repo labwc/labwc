@@ -1,4 +1,4 @@
-#include "buf.h"
+#include "common/buf.h"
 
 void buf_init(struct buf *s)
 {

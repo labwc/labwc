@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 #include "rcxml.h"
-#include "buf.h"
+#include "common/buf.h"
 
 struct rcxml rc = { 0 };
 

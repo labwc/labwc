@@ -12,6 +12,7 @@
 
 #include "rcxml.h"
 #include "config/config-dir.h"
+#include "common/bug-on.h"
 
 static bool in_keybind = false;
 static bool is_attribute = false;

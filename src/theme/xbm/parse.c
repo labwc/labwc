@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "buf.h"
+#include "common/buf.h"
 #include "theme/xbm/parse.h"
 
 /* TODO: should be window.active.button.unpressed.image.color */

@@ -7,15 +7,7 @@
 #include <wayland-server-core.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include "buf.h"
-
-#define BUG_ON(condition)                                             \
-	do {                                                          \
-		if ((condition) != 0) {                               \
-			fprintf(stderr, "Badness in %s() at %s:%d\n", \
-				__func__, __FILE__, __LINE__);        \
-		}                                                     \
-	} while (0)
+#include "common/buf.h"
 
 struct keybind {
 	uint32_t modifiers;

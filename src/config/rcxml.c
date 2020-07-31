@@ -19,6 +19,13 @@ static bool write_to_nodename_buffer = false;
 static struct buf *nodename_buffer;
 static struct keybind *current_keybind;
 
+enum font_place {
+	FONT_PLACE_UNKNOWN = 0,
+	FONT_PLACE_ACTIVEWINDOW,
+	FONT_PLACE_INACTIVEWINDOW,
+	/* TODO: Add all places based on Openbox's rc.xml */
+};
+
 static void rstrip(char *buf, const char *pattern)
 {
 	char *p = strstr(buf, pattern);
@@ -27,7 +34,7 @@ static void rstrip(char *buf, const char *pattern)
 	*p = '\0';
 }
 
-static void fill_keybind(xmlNode *n, char *nodename, char *content)
+static void fill_keybind(char *nodename, char *content)
 {
 	if (!content)
 		return;
@@ -58,11 +65,42 @@ static bool get_bool(const char *s)
 	return false;
 }
 
+static void fill_font(char *nodename, char *content, enum font_place place)
+{
+	if (!content)
+		return;
+	rstrip(nodename, ".font.theme");
+
+	/* TODO: implement for all font places */
+	if (place != FONT_PLACE_ACTIVEWINDOW)
+		return;
+	if (!strcmp(nodename, "name"))
+		rc.font_name_activewindow = strdup(content);
+	else if (!strcmp(nodename, "size"))
+		rc.font_size_activewindow = atoi(content);
+}
+
+static enum font_place enum_font_place(const char *place)
+{
+	if (!place)
+		return FONT_PLACE_UNKNOWN;
+	if (!strcasecmp(place, "ActiveWindow"))
+		return FONT_PLACE_ACTIVEWINDOW;
+	else if (!strcasecmp(place, "InactiveWindow"))
+		return FONT_PLACE_INACTIVEWINDOW;
+	return FONT_PLACE_UNKNOWN;
+}
+
 static void entry(xmlNode *node, char *nodename, char *content)
 {
+	/* current <theme><font place=""></theme> */
+	static enum font_place font_place = FONT_PLACE_UNKNOWN;
+
 	if (!nodename)
 		return;
 	rstrip(nodename, ".openbox_config");
+
+	/* for debugging */
 	if (write_to_nodename_buffer) {
 		if (is_attribute)
 			buf_add(nodename_buffer, "@");
@@ -73,16 +111,25 @@ static void entry(xmlNode *node, char *nodename, char *content)
 		}
 		buf_add(nodename_buffer, "\n");
 	}
+
 	if (!content)
 		return;
 	if (in_keybind)
-		fill_keybind(node, nodename, content);
+		fill_keybind(nodename, content);
+
+	if (is_attribute && !strcmp(nodename, "place.font.theme"))
+		font_place = enum_font_place(content);
+
 	if (!strcmp(nodename, "csd.lab"))
 		rc.client_side_decorations = get_bool(content);
 	else if (!strcmp(nodename, "layout.keyboard.lab"))
 		setenv("XKB_DEFAULT_LAYOUT", content, 1);
 	else if (!strcmp(nodename, "name.theme"))
 		rc.theme_name = strdup(content);
+	else if (!strcmp(nodename, "name.font.theme"))
+		fill_font(nodename, content, font_place);
+	else if (!strcmp(nodename, "size.font.theme"))
+		fill_font(nodename, content, font_place);
 }
 
 static char *nodename(xmlNode *node, char *buf, int len)
@@ -191,6 +238,7 @@ static void post_processing(void)
 		bind("A-Tab", "NextWindow");
 		bind("A-F3", "Execute");
 	}
+	/* TODO: Set all char* variables if NULL */
 }
 
 static void rcxml_path(char *buf, size_t len, const char *filename)

@@ -1,5 +1,5 @@
-#ifndef LABWC_H
-#define LABWC_H
+#ifndef __LABWC_H
+#define __LABWC_H
 
 #define _POSIX_C_SOURCE 200809L
 #include <getopt.h>
@@ -29,7 +29,8 @@
 #include <wlr/xwayland.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include "rcxml.h"
+#include "config/rcxml.h"
+#include "config/keybind.h"
 
 #define XCURSOR_DEFAULT "left_ptr"
 #define XCURSOR_SIZE 24
@@ -185,4 +186,4 @@ void dbg_show_one_view(struct view *view);
 void dbg_show_views(struct server *server);
 void dbg_show_keybinds();
 
-#endif /* LABWC_H */
+#endif /* __LABWC_H */

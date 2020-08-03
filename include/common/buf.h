@@ -1,11 +1,11 @@
 /*
- * Very simple C buffer implementation
+ * Very simple C string buffer implementation
  *
  * Copyright Johan Malm 2020
  */
 
-#ifndef BUF_H
-#define BUF_H
+#ifndef __LABWC_BUF_H
+#define __LABWC_BUF_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +17,18 @@ struct buf {
 	int len;
 };
 
+/*
+ * buf_init - allocate NULL-terminated C string buffer
+ * @s - buffer
+ * Note: use free(s->buf) to free it.
+ */
 void buf_init(struct buf *s);
+
+/*
+ * buf_add - add data to C string buffer
+ * @s - buffer
+ * @data - data to be added
+ */
 void buf_add(struct buf *s, const char *data);
 
-#endif /* BUF_H */
+#endif /* __LABWC_BUF_H */

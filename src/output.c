@@ -1,5 +1,5 @@
 #include "labwc.h"
-#include "theme.h"
+#include "theme/theme.h"
 
 struct draw_data {
 	struct wlr_renderer *renderer;

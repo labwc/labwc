@@ -4,7 +4,8 @@
 #include <string.h>
 #include <glib.h>
 
-#include "rcxml.h"
+#include "config/keybind.h"
+#include "config/rcxml.h"
 
 static uint32_t parse_modifier(const char *symname)
 {
@@ -52,4 +53,3 @@ struct keybind *keybind_add(const char *keybind)
 	memcpy(k->keysyms, keysyms, k->keysyms_len * sizeof(xkb_keysym_t));
 	return k;
 }
-

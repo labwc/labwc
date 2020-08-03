@@ -12,8 +12,8 @@ void spawn_async_no_shell(char const *command)
 		return;
 	}
 	g_spawn_async(NULL, argv, NULL,
-		      G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD,
-		      NULL, NULL, NULL, &err);
+		      G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD, NULL,
+		      NULL, NULL, &err);
 	if (err) {
 		g_message("%s", err->message);
 		g_error_free(err);

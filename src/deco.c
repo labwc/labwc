@@ -5,7 +5,7 @@
  */
 
 #include "labwc.h"
-#include "theme.h"
+#include "theme/theme.h"
 
 /* Based on expected font height of Sans 8 */
 #define TITLE_HEIGHT (14)

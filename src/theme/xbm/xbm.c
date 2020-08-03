@@ -7,10 +7,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "theme/theme.h"
 #include "theme/xbm/xbm.h"
 #include "theme/xbm/parse.h"
 #include "theme/theme-dir.h"
-#include "rcxml.h"
+#include "config/rcxml.h"
 
 /* built-in 6x6 buttons */
 char close_button_normal[] = { 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 };
@@ -29,7 +30,7 @@ static struct wlr_texture *texture_from_pixmap(struct wlr_renderer *renderer,
 }
 
 static struct wlr_texture *texture_from_builtin(struct wlr_renderer *renderer,
-				   const char *button)
+						const char *button)
 {
 	struct pixmap pixmap = xbm_create_pixmap_builtin(button);
 	struct wlr_texture *texture = texture_from_pixmap(renderer, &pixmap);
@@ -70,5 +71,6 @@ void xbm_load(struct wlr_renderer *r)
 {
 	load_button(r, "close.xbm", &theme.xbm_close, close_button_normal);
 	load_button(r, "max.xbm", &theme.xbm_maximize, max_button_normal);
-	load_button(r, "iconify.xbm", &theme.xbm_iconify, iconify_button_normal);
+	load_button(r, "iconify.xbm", &theme.xbm_iconify,
+		    iconify_button_normal);
 }

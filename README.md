@@ -30,7 +30,7 @@ libxml2, glib-2.0, cairo and pango.
 
 - [x] Support xwayland
 - [x] Parse [rc.xml](data/rc.xml)
-- [x] Parse [themerc](data/themerc)
+- [x] Parse [themerc](data/themes/labwc-default/openbox-3/themerc)
 - [x] Read xbm icons
 - [x] Show maximize, minimize, close buttons
 - [ ] Give actions to maximize, minimize, close buttons
@@ -55,7 +55,7 @@ The following were considered before choosing wlroots: [QtWayland](https://githu
 
 ## Configuration
 
-See [rc.xml](data/rc.xml) and [themerc](data/themerc) comments for details including keybinds.
+See [rc.xml](data/rc.xml) and [themerc](data/themes/labwc-default/openbox-3/themerc) comments for details including keybinds.
 
 Suggest either copying data/rc.xml to ~/.config/labwc/running, or running with:
 

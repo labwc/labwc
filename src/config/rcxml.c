@@ -10,7 +10,8 @@
 #include <fcntl.h>
 #include <wayland-server-core.h>
 
-#include "rcxml.h"
+#include "config/rcxml.h"
+#include "config/keybind.h"
 #include "config/config-dir.h"
 #include "common/bug-on.h"
 

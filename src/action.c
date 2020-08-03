@@ -1,5 +1,5 @@
 #include "labwc.h"
-#include "spawn.h"
+#include "common/spawn.h"
 
 #include <strings.h>
 

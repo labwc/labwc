@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "rcxml.h"
+#include "config/rcxml.h"
 #include "tap.h"
 
 struct rcxml rc = { 0 };

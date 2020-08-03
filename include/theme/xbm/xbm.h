@@ -1,9 +1,8 @@
-#ifndef XBM_H
-#define XBM_H
+#ifndef __LABWC_XBM_H
+#define __LABWC_XBM_H
 
 #include <wlr/render/wlr_renderer.h>
 
-#include "theme.h"
 #include "theme/xbm/parse.h"
 
 /**
@@ -11,4 +10,4 @@
  */
 void xbm_load(struct wlr_renderer *renderer);
 
-#endif /* XBM_H */
+#endif /* __LABWC_XBM_H */

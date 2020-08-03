@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <glib.h>
 
-#include "theme.h"
+#include "theme/theme.h"
 #include "theme/theme-dir.h"
 
 static int hex_to_dec(char c)

@@ -1,5 +1,6 @@
 #include "labwc.h"
-#include "rcxml.h"
+#include "config/rcxml.h"
+#include "config/keybind.h"
 
 static void show_one_xdg_view(struct view *view)
 {

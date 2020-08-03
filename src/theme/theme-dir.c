@@ -40,8 +40,8 @@ char *theme_dir(const char *theme_name)
 			prefix = getenv(d.prefix);
 			if (!prefix)
 				continue;
-			snprintf(buf, sizeof(buf), "%s/%s/%s/openbox-3",
-				 prefix, d.path, theme_name);
+			snprintf(buf, sizeof(buf), "%s/%s/%s/openbox-3", prefix,
+				 d.path, theme_name);
 		} else {
 			snprintf(buf, sizeof(buf), "%s/%s/openbox-3", d.path,
 				 theme_name);

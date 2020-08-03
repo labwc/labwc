@@ -4,8 +4,8 @@
  * Copyright Johan Malm 2020
  */
 
-#ifndef THEME_H
-#define THEME_H
+#ifndef __LABWC_THEME_H
+#define __LABWC_THEME_H
 
 #include <stdio.h>
 #include <wlr/render/wlr_renderer.h>
@@ -23,4 +23,4 @@ extern struct theme theme;
 
 void theme_read(const char *theme_name);
 
-#endif /* THEME_H */
+#endif /* __LABWC_THEME_H */

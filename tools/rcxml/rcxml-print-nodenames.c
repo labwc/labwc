@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "rcxml.h"
+#include "config/rcxml.h"
 #include "common/buf.h"
 
 struct rcxml rc = { 0 };

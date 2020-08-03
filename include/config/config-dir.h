@@ -1,6 +1,6 @@
-#ifndef CONFIG_DIR_H
-#define CONFIG_DIR_H
+#ifndef __LABWC_CONFIG_DIR_H
+#define __LABWC_CONFIG_DIR_H
 
 char *config_dir(void);
 
-#endif /* CONFIG_DIR_H */
+#endif /* __LABWC_CONFIG_DIR_H */

@@ -1,7 +1,7 @@
 #include "labwc.h"
-#include "theme.h"
-#include "spawn.h"
+#include "theme/theme.h"
 #include "theme/xbm/xbm.h"
+#include "common/spawn.h"
 
 struct server server = { 0 };
 struct rcxml rc = { 0 };

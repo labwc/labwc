@@ -86,10 +86,17 @@ void view_resize(struct view *view, struct wlr_box geo)
 /* Do we want _server_ side decoration? */
 bool view_want_deco(struct view *view)
 {
-	if (!is_toplevel(view))
-		return false;
 	if (view->type == LAB_XDG_SHELL_VIEW && rc.client_side_decorations)
 		return false;
+
+	/*
+	 * Some XDG shells refuse to give us their CSD in which case their
+	 * geometry.{x,y} seems to be greater than zero, so filter on that.
+	 */
+	if (view->type == LAB_XDG_SHELL_VIEW && !rc.client_side_decorations &&
+	    view->xdg_surface->geometry.x)
+		return false;
+
 	if (view->type == LAB_XDG_SHELL_VIEW)
 		return true;
 	if (view->xwayland_surface->override_redirect)

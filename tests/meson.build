@@ -4,9 +4,10 @@ rcxml_lib = static_library(
     '../src/config/rcxml.c',
     '../src/config/keybind.c',
     '../src/config/config-dir.c',
-    '../src/common/buf.c'
+    '../src/common/buf.c',
+    '../src/common/font.c',
   ),
-  dependencies: [xml2, wayland_server, xkbcommon, glib, wlroots],
+  dependencies: labwc_deps,
   include_directories: [labwc_inc],
 )
 

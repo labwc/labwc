@@ -14,6 +14,7 @@
 #include "config/keybind.h"
 #include "config/config-dir.h"
 #include "common/bug-on.h"
+#include "common/font.h"
 
 static bool in_keybind = false;
 static bool is_attribute = false;
@@ -232,6 +233,14 @@ static void bind(const char *binding, const char *action)
 	fprintf(stderr, "binding: %s: %s\n", binding, action);
 }
 
+static void set_title_height(void)
+{
+	char buf[256];
+	snprintf(buf, sizeof(buf), "%s %d", rc.font_name_activewindow,
+		 rc.font_size_activewindow);
+	rc.title_height = font_height(buf);
+}
+
 static void post_processing(void)
 {
 	if (!wl_list_length(&rc.keybinds)) {
@@ -241,6 +250,8 @@ static void post_processing(void)
 		bind("A-F3", "Execute");
 	}
 	/* TODO: Set all char* variables if NULL */
+
+	set_title_height();
 }
 
 static void rcxml_path(char *buf, size_t len, const char *filename)

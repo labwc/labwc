@@ -43,18 +43,20 @@ xkbcommon       = dependency('xkbcommon')
 xml2            = dependency('libxml-2.0')
 glib            = dependency('glib-2.0')
 cairo           = dependency('cairo')
-pango           = dependency('pango')
+pangocairo      = dependency('pangocairo')
 
 labwc_inc       = include_directories('include')
 
 subdir('protocols')
+
+labwc_deps      = [
+  server_protos, wayland_server, wlroots, xkbcommon, xml2, glib,
+  cairo, pangocairo
+]
+
 subdir('src')
 subdir('tests')
 subdir('docs')
-
-labwc_deps      = [
-  server_protos, wayland_server, wlroots, xkbcommon, xml2, glib, cairo, pango
-]
 
 executable(
   meson.project_name(),

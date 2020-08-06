@@ -28,13 +28,6 @@ struct token {
  * @buffer: buffer containing xbm file
  * return token vector
  */
-struct token *xbm_tokenize(char *buffer);
-
-/**
- * xbm_read_file - read file into buffer (as it's easier to tokenize that way)
- * @filename: file to be read
- * return allocated memory
- */
-char *xbm_read_file(const char *filename);
+struct token *tokenize_xbm(char *buffer);
 
 #endif /* __LABWC_TOKENIZE_H */

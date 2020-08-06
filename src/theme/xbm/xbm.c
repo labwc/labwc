@@ -33,7 +33,7 @@ static struct wlr_texture *texture_from_pixmap(struct wlr_renderer *renderer,
 static struct wlr_texture *texture_from_builtin(struct wlr_renderer *renderer,
 						const char *button)
 {
-	struct pixmap pixmap = xbm_create_pixmap_builtin(button);
+	struct pixmap pixmap = parse_xbm_builtin(button);
 	struct wlr_texture *texture = texture_from_pixmap(renderer, &pixmap);
 	if (pixmap.data)
 		free(pixmap.data);
@@ -51,13 +51,15 @@ static char *xbm_path(const char *button)
 static void load_button(struct wlr_renderer *renderer, const char *filename,
 			struct wlr_texture **texture, char *button)
 {
+	/* Read file into memory as it's easier to tokenzie that way */
 	char *buffer = grab_file(xbm_path(filename));
 	if (!buffer)
 		goto out;
 	fprintf(stderr, "loading %s\n", filename);
-	struct token *tokens = xbm_tokenize(buffer);
+	struct token *tokens = tokenize_xbm(buffer);
 	free(buffer);
-	struct pixmap pixmap = xbm_create_pixmap(tokens);
+
+	struct pixmap pixmap = parse_xbm_tokens(tokens);
 	*texture = texture_from_pixmap(renderer, &pixmap);
 	if (tokens)
 		free(tokens);

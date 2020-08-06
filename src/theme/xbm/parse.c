@@ -46,7 +46,7 @@ static void process_bytes(struct pixmap *pixmap, struct token *tokens)
 	}
 }
 
-struct pixmap xbm_create_pixmap(struct token *tokens)
+struct pixmap parse_xbm_tokens(struct token *tokens)
 {
 	struct pixmap pixmap = { 0 };
 
@@ -68,7 +68,7 @@ out:
 
 /* Assuming a 6x6 button for the time being */
 /* TODO: pass width, height, vargs bytes */
-struct pixmap xbm_create_pixmap_builtin(const char *button)
+struct pixmap parse_xbm_builtin(const char *button)
 {
 	struct pixmap pixmap = { 0 };
 

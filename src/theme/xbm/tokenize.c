@@ -78,7 +78,7 @@ static void get_special_char_token()
 	current_buffer_position++;
 }
 
-struct token *xbm_tokenize(char *buffer)
+struct token *tokenize_xbm(char *buffer)
 {
 	tokens = NULL;
 	nr_tokens = 0;

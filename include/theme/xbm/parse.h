@@ -17,11 +17,15 @@ struct pixmap {
 };
 
 /**
- * xbm_create_pixmap - parse xbm tokens and create pixmap
+ * parse_xbm_tokens - parse xbm tokens and create pixmap
  * @tokens: token vector
  */
-struct pixmap xbm_create_pixmap(struct token *tokens);
+struct pixmap parse_xbm_tokens(struct token *tokens);
 
-struct pixmap xbm_create_pixmap_builtin(const char *button);
+/**
+ * parse_xbm_builtin - parse builtin xbm button and create pixmap
+ * @button: button byte array (xbm format)
+ */
+struct pixmap parse_xbm_builtin(const char *button);
 
 #endif /* __LABWC_PARSE_H */

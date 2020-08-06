@@ -12,6 +12,7 @@
 #include "theme/xbm/parse.h"
 #include "theme/theme-dir.h"
 #include "config/rcxml.h"
+#include "common/grab-file.h"
 
 /* built-in 6x6 buttons */
 char close_button_normal[] = { 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 };
@@ -50,7 +51,7 @@ static char *xbm_path(const char *button)
 static void load_button(struct wlr_renderer *renderer, const char *filename,
 			struct wlr_texture **texture, char *button)
 {
-	char *buffer = xbm_read_file(xbm_path(filename));
+	char *buffer = grab_file(xbm_path(filename));
 	if (!buffer)
 		goto out;
 	fprintf(stderr, "loading %s\n", filename);

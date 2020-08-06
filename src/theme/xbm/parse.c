@@ -11,7 +11,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "common/buf.h"
 #include "theme/xbm/parse.h"
 
 /* TODO: should be window.active.button.unpressed.image.color */
@@ -84,24 +83,4 @@ struct pixmap xbm_create_pixmap_builtin(const char *button)
 	t[6].type = 0;
 	process_bytes(&pixmap, t);
 	return pixmap;
-}
-
-char *xbm_read_file(const char *filename)
-{
-	char *line = NULL;
-	size_t len = 0;
-	FILE *stream = fopen(filename, "r");
-	if (!stream)
-		return NULL;
-	struct buf buffer;
-	buf_init(&buffer);
-	while ((getline(&line, &len, stream) != -1)) {
-		char *p = strrchr(line, '\n');
-		if (p)
-			*p = '\0';
-		buf_add(&buffer, line);
-	}
-	free(line);
-	fclose(stream);
-	return (buffer.buf);
 }

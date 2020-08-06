@@ -47,13 +47,31 @@ void xdg_toplevel_decoration(struct wl_listener *listener, void *data)
 	xdg_deco_request_mode(&xdg_deco->request_mode, wlr_decoration);
 }
 
+static bool has_ssd(struct view *view)
+{
+	if (rc.client_side_decorations)
+		return false;
+
+	/*
+	 * Some XDG shells refuse to disable CSD in which case their
+	 * geometry.{x,y} seems to be greater. We filter on that on the
+	 * assumption that this will remain true.
+	 */
+	if (view->xdg_surface->geometry.x || view->xdg_surface->geometry.y)
+		return false;
+
+	return true;
+}
+
 void xdg_surface_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, map);
 	view->mapped = true;
 	view->surface = view->xdg_surface->surface;
-	if (!view->been_mapped)
+	if (!view->been_mapped) {
+		view->show_server_side_deco = has_ssd(view);
 		view_init_position(view);
+	}
 	view->been_mapped = true;
 	view_focus(view);
 }

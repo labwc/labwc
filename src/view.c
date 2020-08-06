@@ -16,18 +16,20 @@ void view_init_position(struct view *view)
 	/* If surface already has a 'desired' position, don't touch it */
 	if (view->x || view->y)
 		return;
-	if (!is_toplevel(view))
+
+	/* Do not touch xwayland surfaces like menus and apps like dmenu */
+	if (view->type == LAB_XWAYLAND_VIEW && !view->show_server_side_deco)
 		return;
+
 	struct wlr_box box;
-	if (view->type == LAB_XDG_SHELL_VIEW && rc.client_side_decorations) {
-		/* CSD */
+	if (view->type == LAB_XDG_SHELL_VIEW && !view->show_server_side_deco)
+		/*
+		 * We're here either because rc.xml says yes to CSD or
+		 * because the XDG shell won't allow CSD to be turned off
+		 */
 		wlr_xdg_surface_get_geometry(view->xdg_surface, &box);
-	} else if (!view_want_deco(view)) {
-		return;
-	} else {
-		/* SSD */
+	else
 		box = deco_max_extents(view);
-	}
 	view->x -= box.x;
 	view->y -= box.y;
 	if (view->type != LAB_XWAYLAND_VIEW)
@@ -81,30 +83,6 @@ void view_resize(struct view *view, struct wlr_box geo)
 	default:
 		break;
 	}
-}
-
-/* Do we want _server_ side decoration? */
-bool view_want_deco(struct view *view)
-{
-	if (view->type == LAB_XDG_SHELL_VIEW && rc.client_side_decorations)
-		return false;
-
-	/*
-	 * Some XDG shells refuse to give us their CSD in which case their
-	 * geometry.{x,y} seems to be greater than zero, so filter on that.
-	 */
-	if (view->type == LAB_XDG_SHELL_VIEW && !rc.client_side_decorations &&
-	    view->xdg_surface->geometry.x)
-		return false;
-
-	if (view->type == LAB_XDG_SHELL_VIEW)
-		return true;
-	if (view->xwayland_surface->override_redirect)
-		return false;
-	if (view->xwayland_surface->decorations !=
-	    WLR_XWAYLAND_SURFACE_DECORATIONS_ALL)
-		return false;
-	return true;
 }
 
 static void move_to_front(struct view *view)
@@ -250,7 +228,7 @@ struct view *view_at(struct server *server, double lx, double ly,
 	wl_list_for_each (view, &server->views, link) {
 		if (_view_at(view, lx, ly, surface, sx, sy))
 			return view;
-		if (!view_want_deco(view))
+		if (!view->show_server_side_deco)
 			continue;
 		if (deco_at(view, lx, ly) == LAB_DECO_PART_TITLE) {
 			*view_area = LAB_DECO_PART_TITLE;

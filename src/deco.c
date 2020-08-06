@@ -8,7 +8,6 @@
 #include "theme/theme.h"
 #include "config/rcxml.h"
 
-/* Based on expected font height of Sans 8 */
 #define BORDER_WIDTH (1)
 
 struct wlr_box deco_max_extents(struct view *view)

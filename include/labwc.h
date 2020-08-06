@@ -121,6 +121,7 @@ struct view {
 	bool mapped;
 	bool been_mapped;
 	int x, y;
+	bool show_server_side_deco;
 };
 
 struct keyboard {

@@ -16,6 +16,16 @@ int xwl_nr_parents(struct view *view)
 	return i;
 }
 
+static bool has_ssd(struct view *view)
+{
+	if (view->xwayland_surface->override_redirect)
+		return false;
+	if (view->xwayland_surface->decorations !=
+	    WLR_XWAYLAND_SURFACE_DECORATIONS_ALL)
+		return false;
+	return true;
+}
+
 void xwl_surface_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, map);
@@ -23,8 +33,10 @@ void xwl_surface_map(struct wl_listener *listener, void *data)
 	view->x = view->xwayland_surface->x;
 	view->y = view->xwayland_surface->y;
 	view->surface = view->xwayland_surface->surface;
-	if (!view->been_mapped)
+	if (!view->been_mapped) {
+		view->show_server_side_deco = has_ssd(view);
 		view_init_position(view);
+	}
 	view->been_mapped = true;
 	view_focus(view);
 }

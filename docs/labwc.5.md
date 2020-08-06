@@ -1,6 +1,6 @@
 % labwc(5)
 % Johan Malm
-% 24 July, 2020
+% 6 Aug, 2020
 
 # NAME
 
@@ -23,7 +23,7 @@ Labwc specific settings which are not present in Openbox.
       </keyboard>
     </lab>
 
-`csd` (__boolean__; default `no`)
+`csd` (__boolean__; default no)
 
 :   Use client-side decorations for xdg-shell views.
 
@@ -35,11 +35,31 @@ Labwc specific settings which are not present in Openbox.
 
     <theme>
       <name></name>
+      <font place="">
+        <name></name>
+        <size></size>
+      </font>
     </theme>
 
-`name` (__string__; default `Clearlooks`)
+`name` (__string__; default Clearlooks)
 
 :   The name of the Openbox theme to use
+
+`font`
+
+:   The font to use for a specific element of a window, menu or OSD.
+
+    `place`
+
+    :   Can be `ActiveWindow` (titlebar of active window)
+
+    `name`
+
+    :   Describes font name (__string__; default sans)
+
+    `size`
+
+    :   Describes font size in pixels (__integer__; default 8)
 
 # RC.XML `<keyboard>`
 

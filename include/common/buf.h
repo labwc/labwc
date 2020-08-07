@@ -17,14 +17,14 @@ struct buf {
 	int len;
 };
 
-/*
+/**
  * buf_init - allocate NULL-terminated C string buffer
  * @s - buffer
  * Note: use free(s->buf) to free it.
  */
 void buf_init(struct buf *s);
 
-/*
+/**
  * buf_add - add data to C string buffer
  * @s - buffer
  * @data - data to be added

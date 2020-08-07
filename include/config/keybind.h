@@ -13,6 +13,10 @@ struct keybind {
 	struct wl_list link;
 };
 
+/**
+ * keybind_add - parse keybind and add to linked list
+ * @keybind: key combination
+ */
 struct keybind *keybind_add(const char *keybind);
 
 #endif /* __LABWC_KEYBIND_H */

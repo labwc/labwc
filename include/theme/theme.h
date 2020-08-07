@@ -21,6 +21,11 @@ struct theme {
 
 extern struct theme theme;
 
+/**
+ * theme_read - read theme into global theme struct
+ * @theme_name: theme-name in <theme-dir>/<theme-name>/openbox-3/themerc
+ * Note <theme-dir> is obtained in theme-dir.c
+ */
 void theme_read(const char *theme_name);
 
 #endif /* __LABWC_THEME_H */

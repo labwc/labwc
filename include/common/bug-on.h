@@ -1,7 +1,7 @@
 #ifndef __LABWC_BUG_ON_H
 #define __LABWC_BUG_ON_H
 
-/*
+/**
  * BUG_ON - assert() without abort()
  * @condition - expression to be evaluated
  */

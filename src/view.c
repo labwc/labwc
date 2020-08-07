@@ -2,11 +2,13 @@
 
 static bool is_toplevel(struct view *view)
 {
+	if (!view->been_mapped)
+		return false;
 	switch (view->type) {
 	case LAB_XDG_SHELL_VIEW:
 		return view->xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL;
 	case LAB_XWAYLAND_VIEW:
-		return xwl_nr_parents(view) > 0 ? false : true;
+		return xwl_nr_parents(view) == 0;
 	}
 	return false;
 }
@@ -151,14 +153,13 @@ void view_focus(struct view *view)
 	wlr_seat_keyboard_notify_enter(seat, view->surface, keyboard->keycodes,
 				       keyboard->num_keycodes,
 				       &keyboard->modifiers);
+	/* TODO: bring child views to front */
 }
 
 struct view *view_front_toplevel(struct server *server)
 {
 	struct view *view;
 	wl_list_for_each (view, &server->views, link) {
-		if (!view->been_mapped)
-			continue;
 		if (is_toplevel(view))
 			return view;
 	}
@@ -172,7 +173,7 @@ struct view *next_toplevel(struct view *current)
 	struct view *view = current;
 	do {
 		view = wl_container_of(view->link.next, view, link);
-	} while (!view->been_mapped || !is_toplevel(view));
+	} while (!is_toplevel(view));
 	return view;
 }
 

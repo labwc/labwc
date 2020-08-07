@@ -1,6 +1,6 @@
 % labwc(5)
 % Johan Malm
-% 6 Aug, 2020
+% 7 Aug, 2020
 
 # NAME
 
@@ -10,7 +10,16 @@ labwc - Configuration files
 
 There are two configuration files which control the look and behaviour of
 labwc, namely rc.xml and themerc. The configuration aims to be compatible with
-Openbox, but there are some differences which are pointed out in this man page.
+Openbox, but there are some differences which are pointed out throughout this
+man page.
+
+Adhering to XDG Base Directory Specification, configuration files will be
+searched for in the following order:
+
+- `${XDG_CONFIG_HOME:-$HOME/.config}/labwc`  
+- `${XDG_CONFIG_DIRS:-/etc/xdg}/labwc`  
+- `${XDG_CONFIG_HOME:-$HOME/.config}/openbox`  
+- `${XDG_CONFIG_DIRS:-/etc/xdg}/openbox`  
 
 # RC.XML `<lab>`
 
@@ -128,6 +137,15 @@ of tags specific to each action as defined below.
 :   Cycle focus to next window.
 
 # THEMERC
+
+The theme engine aims to be compatible with openbox and themes will be
+searched for in the following order:
+
+- `${XDG_DATA_HOME:-$HOME/.local/share}/themes/<theme-name>/openbox-3/`  
+- `$HOME/.themes/<theme-name>/openbox-3/`  
+- `/usr/share/themes/<theme-name>/openbox-3/`  
+- `/usr/local/share/themes/<theme-name>/openbox-3/`  
+- `/opt/share/themes/<theme-name>/openbox-3/`  
 
 `window.active.title.bg.color`
 

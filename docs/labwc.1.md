@@ -1,6 +1,6 @@
 % labwc(1)
 % Johan Malm
-% 18 July, 2020
+% 7 Aug, 2020
 
 # NAME
 
@@ -24,33 +24,16 @@ Labwc is a [WIP] free, stacking compositor for Wayland. It aims to be light-weig
 
 :   Specify path to rc.xml
 
-# CONFIGURATION FILES
+# CONFIGURATION AND THEMES
 
-If no file is specified using the -c option, the XDG Base Directory
-Specification is adhered to using `labwc` in preference to `openbox`.
+Labwc aims to be compatible with openbox configuration and theming, with the
+following files control the look and behaviour:
 
-Configuration files will be searched for in the following order:
+- rc.xml  
+- themerc  
+- xbm icons  
 
-- `${XDG_CONFIG_HOME:-$HOME/.config}/labwc`  
-- `${XDG_CONFIG_DIRS:-/etc/xdg}/labwc`  
-- `${XDG_CONFIG_HOME:-$HOME/.config}/openbox`  
-- `${XDG_CONFIG_DIRS:-/etc/xdg}/openbox`  
-
-See labwc(5) for rc.xml options.
-
-# THEME
-
-The theme engine aims to be compatible with openbox themes.
-
-Themes will be searched for in the following order:
-
-- `${XDG_DATA_HOME:-$HOME/.local/share}/themes`  
-- `$HOME/.themes`  
-- `/usr/share/themes`  
-- `/usr/local/share/themes`  
-- `/opt/share/themes`  
-
-See labwc(5) for theme options.
+See labwc(5) for details.
 
 # SEE ALSO
 

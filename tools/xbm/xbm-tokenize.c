@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "buf.h"
+#include "common/buf.h"
 #include "theme/xbm/tokenize.h"
 
 /* Read file into buffer, because it's easier to tokenize that way */
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 	char *buffer = read_file(argv[1]);
 	if (!buffer)
 		exit(EXIT_FAILURE);
-	tokens = xbm_tokenize(buffer);
+	tokens = tokenize_xbm(buffer);
 	free(buffer);
 	for (struct token *t = tokens; t->type; t++)
 		printf("%s\n", t->name);

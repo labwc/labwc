@@ -1,5 +1,7 @@
-#ifndef __LABWC_THEME_DIR_H
-#define __LABWC_THEME_DIR_H
+#ifndef __LABWC_DIR_H
+#define __LABWC_DIR_H
+
+char *config_dir(void);
 
 /**
  * theme_dir - find theme directory containing theme @theme_name
@@ -7,4 +9,4 @@
  */
 char *theme_dir(const char *theme_name);
 
-#endif /* __LABWC_THEME_DIR_H */
+#endif /* __LABWC_DIR_H */

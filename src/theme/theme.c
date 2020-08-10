@@ -7,7 +7,7 @@
 #include <glib.h>
 
 #include "theme/theme.h"
-#include "theme/theme-dir.h"
+#include "common/dir.h"
 
 static int hex_to_dec(char c)
 {

@@ -12,7 +12,7 @@
 
 #include "config/rcxml.h"
 #include "config/keybind.h"
-#include "config/config-dir.h"
+#include "common/dir.h"
 #include "common/bug-on.h"
 #include "common/font.h"
 

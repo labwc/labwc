@@ -4,6 +4,7 @@
 #include <cairo.h>
 
 #include "theme/xbm/parse.h"
+#include "common/grab-file.h"
 
 int main(int argc, char **argv)
 {
@@ -14,12 +15,12 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	char *buffer = xbm_read_file(argv[1]);
+	char *buffer = grab_file(argv[1]);
 	if (!buffer)
 		exit(EXIT_FAILURE);
-	tokens = xbm_tokenize(buffer);
+	tokens = tokenize_xbm(buffer);
 	free(buffer);
-	struct pixmap pixmap = xbm_create_pixmap(tokens);
+	struct pixmap pixmap = parse_xbm_tokens(tokens);
 	free(tokens);
 
 	cairo_surface_t *g_surface;

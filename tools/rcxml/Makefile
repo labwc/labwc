@@ -6,14 +6,15 @@ ASAN_FLAGS = -O0 -fsanitize=address -fno-common -fno-omit-frame-pointer -rdynami
 CFLAGS    += $(ASAN_FLAGS)
 LDFLAGS   += $(ASAN_FLAGS) -fuse-ld=gold
 LDFLAGS   += `xml2-config --libs`
-LDFLAGS   += `pkg-config --cflags --libs glib-2.0 wayland-server xkbcommon`
+LDFLAGS   += `pkg-config --cflags --libs glib-2.0 cairo pangocairo wayland-server xkbcommon`
 
 PROGS = rcxml-print-nodenames
 SRC = \
 	rcxml-print-nodenames.c \
 	../../src/config/rcxml.c \
-	../../src/config/config-dir.c \
+	../../src/common/dir.c \
 	../../src/common/buf.c \
+	../../src/common/font.c \
 	../../src/config/keybind.c
 
 

@@ -3,7 +3,7 @@ rcxml_lib = static_library(
   sources: files(
     '../src/config/rcxml.c',
     '../src/config/keybind.c',
-    '../src/config/config-dir.c',
+    '../src/common/dir.c',
     '../src/common/buf.c',
     '../src/common/font.c',
   ),

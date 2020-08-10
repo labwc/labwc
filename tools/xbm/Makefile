@@ -4,8 +4,14 @@ LDFLAGS     += `pkg-config --cflags --libs cairo`
 ASAN        += -fsanitize=address
 
 PROGS        = xbm-tokenize xbm-parse
-DEP_TOKENIZE = ../../src/common/buf.c ../../src/theme/xbm/tokenize.c
-DEP_PARSE    = $(DEP_TOKENIZE) ../../src/theme/xbm/parse.c
+
+DEP_TOKENIZE = \
+	       ../../src/common/buf.c \
+	       ../../src/theme/xbm/tokenize.c
+
+DEP_PARSE    = $(DEP_TOKENIZE) \
+	       ../../src/theme/xbm/parse.c \
+	       ../../src/common/grab-file.c
 
 all: $(PROGS)
 

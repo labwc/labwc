@@ -10,8 +10,8 @@
 #include "theme/theme.h"
 #include "theme/xbm/xbm.h"
 #include "theme/xbm/parse.h"
-#include "theme/theme-dir.h"
 #include "config/rcxml.h"
+#include "common/dir.h"
 #include "common/grab-file.h"
 
 /* built-in 6x6 buttons */

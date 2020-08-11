@@ -12,6 +12,7 @@
 #include <stdbool.h>
 
 #include "theme/xbm/parse.h"
+#include "common/bug-on.h"
 
 /* TODO: should be window.active.button.unpressed.image.color */
 static unsigned char defaultcolor[] = { 255, 255, 255, 255 };
@@ -71,21 +72,25 @@ out:
 	return pixmap;
 }
 
-/* Assuming a 6x6 button for the time being */
-/* TODO: pass width, height, vargs bytes */
-struct pixmap parse_xbm_builtin(const char *button)
+/*
+ * Openbox built-in icons are not bigger than 8x8, so have only written this
+ * function to cope wit that max size
+ */
+#define LABWC_BUILTIN_ICON_MAX_SIZE (8)
+struct pixmap parse_xbm_builtin(const char *button, int size)
 {
 	struct pixmap pixmap = { 0 };
 
-	pixmap.width = 6;
-	pixmap.height = 6;
+	BUG_ON(size > LABWC_BUILTIN_ICON_MAX_SIZE);
+	pixmap.width = size;
+	pixmap.height = size;
 
-	struct token t[7];
-	for (int i = 0; i < 6; i++) {
+	struct token t[LABWC_BUILTIN_ICON_MAX_SIZE + 1];
+	for (int i = 0; i < size; i++) {
 		t[i].value = button[i];
 		t[i].type = TOKEN_INT;
 	}
-	t[6].type = 0;
+	t[size].type = 0;
 	process_bytes(&pixmap, t);
 	return pixmap;
 }

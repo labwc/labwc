@@ -33,7 +33,7 @@ static struct wlr_texture *texture_from_pixmap(struct wlr_renderer *renderer,
 static struct wlr_texture *texture_from_builtin(struct wlr_renderer *renderer,
 						const char *button)
 {
-	struct pixmap pixmap = parse_xbm_builtin(button);
+	struct pixmap pixmap = parse_xbm_builtin(button, 6);
 	struct wlr_texture *texture = texture_from_pixmap(renderer, &pixmap);
 	if (pixmap.data)
 		free(pixmap.data);

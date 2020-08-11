@@ -26,6 +26,6 @@ struct pixmap parse_xbm_tokens(struct token *tokens);
  * parse_xbm_builtin - parse builtin xbm button and create pixmap
  * @button: button byte array (xbm format)
  */
-struct pixmap parse_xbm_builtin(const char *button);
+struct pixmap parse_xbm_builtin(const char *button, int size);
 
 #endif /* __LABWC_PARSE_H */

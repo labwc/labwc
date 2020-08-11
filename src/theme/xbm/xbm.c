@@ -55,7 +55,6 @@ static void load_button(struct wlr_renderer *renderer, const char *filename,
 	char *buffer = grab_file(xbm_path(filename));
 	if (!buffer)
 		goto out;
-	fprintf(stderr, "loading %s\n", filename);
 	struct token *tokens = tokenize_xbm(buffer);
 	free(buffer);
 

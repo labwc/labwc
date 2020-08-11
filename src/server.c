@@ -165,13 +165,6 @@ void server_init(struct server *server)
 	}
 	wlr_cursor_attach_output_layout(server->cursor, server->output_layout);
 
-	// This is done below
-	// server->cursor_mgr = wlr_xcursor_manager_create(NULL, XCURSOR_SIZE);
-	// if (!server->cursor_mgr) {
-	//	wlr_log(WLR_ERROR, "cannot create xcursor manager");
-	//	exit(EXIT_FAILURE);
-	//}
-
 	server->cursor_motion.notify = cursor_motion;
 	wl_signal_add(&server->cursor->events.motion, &server->cursor_motion);
 	server->cursor_motion_absolute.notify = cursor_motion_absolute;
@@ -245,10 +238,8 @@ void server_init(struct server *server)
 
 	server->cursor_mgr =
 		wlr_xcursor_manager_create(XCURSOR_DEFAULT, XCURSOR_SIZE);
-	if (!server->cursor_mgr) {
+	if (!server->cursor_mgr)
 		wlr_log(WLR_ERROR, "cannot create xwayland xcursor manager");
-		exit(EXIT_FAILURE);
-	}
 
 	if (setenv("DISPLAY", server->xwayland->display_name, true) < 0)
 		wlr_log_errno(WLR_ERROR, "unable to set DISPLAY for xwayland");
@@ -256,7 +247,7 @@ void server_init(struct server *server)
 		wlr_log(WLR_DEBUG, "xwayland is running on display %s",
 			server->xwayland->display_name);
 
-	if (wlr_xcursor_manager_load(server->cursor_mgr, 1))
+	if (!wlr_xcursor_manager_load(server->cursor_mgr, 1))
 		wlr_log(WLR_ERROR, "cannot load xwayland xcursor theme");
 
 	struct wlr_xcursor *xcursor;

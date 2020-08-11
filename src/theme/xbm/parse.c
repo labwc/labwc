@@ -16,9 +16,14 @@
 /* TODO: should be window.active.button.unpressed.image.color */
 static unsigned char defaultcolor[] = { 255, 255, 255, 255 };
 
-static uint32_t u32(unsigned char *rbga)
+static uint32_t u32(unsigned char *rgba)
 {
-	return (rbga[3] << 24) | (rbga[0] << 16) | (rbga[1] << 8) | rbga[0];
+	uint32_t ret = 0;
+	ret |= (rgba[3] & 0xff) << 24;
+	ret |= (rgba[2] & 0xff) << 16;
+	ret |= (rgba[1] & 0xff) << 8;
+	ret |= (rgba[0] & 0xff);
+	return ret;
 }
 
 static void process_bytes(struct pixmap *pixmap, struct token *tokens)

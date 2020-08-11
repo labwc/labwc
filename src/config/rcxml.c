@@ -42,18 +42,14 @@ static void fill_keybind(char *nodename, char *content)
 	if (!content)
 		return;
 	rstrip(nodename, ".keybind.keyboard");
-	if (!strcmp(nodename, "key")) {
+	if (!strcmp(nodename, "key"))
 		current_keybind = keybind_add(content);
-		fprintf(stderr, "[bind] %s: ", content);
-	}
 	/* We expect <keybind key=""> to come first */
 	BUG_ON(!current_keybind);
 	if (!strcmp(nodename, "name.action")) {
 		current_keybind->action = strdup(content);
-		fprintf(stderr, "%s", content);
 	} else if (!strcmp(nodename, "command.action")) {
 		current_keybind->command = strdup(content);
-		fprintf(stderr, " - %s", content);
 	}
 }
 
@@ -198,7 +194,6 @@ static void xml_tree_walk(xmlNode *node)
 			in_keybind = true;
 			traverse(n);
 			in_keybind = false;
-			fprintf(stderr, "\n");
 			continue;
 		}
 		traverse(n);

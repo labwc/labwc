@@ -19,12 +19,11 @@ static unsigned char defaultcolor[] = { 255, 255, 255, 255 };
 
 static uint32_t u32(unsigned char *rgba)
 {
-	uint32_t ret = 0;
-	ret |= (rgba[3] & 0xff) << 24;
-	ret |= (rgba[2] & 0xff) << 16;
-	ret |= (rgba[1] & 0xff) << 8;
-	ret |= (rgba[0] & 0xff);
-	return ret;
+	uint32_t r[4] = { 0 };
+	for (int i = 0; i < 4; i++)
+		r[i] = rgba[i];
+	return ((r[3] & 0xff) << 24) | ((r[2] & 0xff) << 16) |
+	       ((r[1] & 0xff) << 8) | (r[0] & 0xff);
 }
 
 static void process_bytes(struct pixmap *pixmap, struct token *tokens)

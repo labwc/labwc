@@ -15,6 +15,7 @@
 #include "common/dir.h"
 #include "common/bug-on.h"
 #include "common/font.h"
+#include "common/log.h"
 
 static bool in_keybind = false;
 static bool is_attribute = false;
@@ -205,7 +206,7 @@ void rcxml_parse_xml(struct buf *b)
 {
 	xmlDoc *d = xmlParseMemory(b->buf, b->len);
 	if (!d) {
-		fprintf(stderr, "fatal: xmlParseMemory()\n");
+		warn("xmlParseMemory()");
 		exit(EXIT_FAILURE);
 	}
 	xml_tree_walk(xmlDocGetRootElement(d));
@@ -225,7 +226,7 @@ static void bind(const char *binding, const char *action)
 	struct keybind *k = keybind_add(binding);
 	if (k)
 		k->action = strdup(action);
-	fprintf(stderr, "binding: %s: %s\n", binding, action);
+	info("binding %s: %s", binding, action);
 }
 
 static void set_title_height(void)
@@ -239,7 +240,7 @@ static void set_title_height(void)
 static void post_processing(void)
 {
 	if (!wl_list_length(&rc.keybinds)) {
-		fprintf(stderr, "info: loading default key bindings\n");
+		info("loading default key bindings");
 		bind("A-Escape", "Exit");
 		bind("A-Tab", "NextWindow");
 		bind("A-F3", "Execute");
@@ -273,10 +274,10 @@ void rcxml_read(const char *filename)
 	 * unit tests.
 	 */
 	rcxml_path(rcxml, sizeof(rcxml), filename);
-	fprintf(stderr, "info: read config file (%s)\n", rcxml);
+	info("reading config file (%s)", rcxml);
 	stream = fopen(rcxml, "r");
 	if (!stream) {
-		fprintf(stderr, "warn: cannot read '%s'\n", rcxml);
+		warn("cannot read (%s)", rcxml);
 		goto out;
 	}
 	buf_init(&b);

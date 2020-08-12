@@ -1,4 +1,5 @@
 #include "labwc.h"
+#include "common/log.h"
 
 static void keyboard_handle_modifiers(struct wl_listener *listener, void *data)
 {
@@ -65,8 +66,7 @@ static void keyboard_handle_key(struct wl_listener *listener, void *data)
 		} else if (event->state == WLR_KEY_PRESSED) {
 			/* cycle to next */
 			server->cycle_view = next_toplevel(server->cycle_view);
-			fprintf(stderr, "cycle_view=%p\n",
-				(void *)server->cycle_view);
+			info("cycle_view=%p", (void *)server->cycle_view);
 			return;
 		}
 	}

@@ -8,6 +8,7 @@
 
 #include "theme/theme.h"
 #include "common/dir.h"
+#include "common/log.h"
 
 static int hex_to_dec(char c)
 {
@@ -96,10 +97,10 @@ void theme_read(const char *theme_name)
 	char themerc[4096];
 
 	snprintf(themerc, sizeof(themerc), "%s/themerc", theme_dir(theme_name));
-	fprintf(stderr, "info: read themerc (%s)\n", themerc);
+	info("reading themerc (%s)", themerc);
 	stream = fopen(themerc, "r");
 	if (!stream) {
-		fprintf(stderr, "warn: cannot read (%s)\n", themerc);
+		warn("cannot read (%s)", themerc);
 		return;
 	}
 	while (getline(&line, &len, stream) != -1) {

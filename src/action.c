@@ -1,5 +1,6 @@
 #include "labwc.h"
 #include "common/spawn.h"
+#include "common/log.h"
 
 #include <strings.h>
 
@@ -16,7 +17,6 @@ void action(struct server *server, struct keybind *keybind)
 	} else if (!strcasecmp(keybind->action, "debug-views")) {
 		dbg_show_views(server);
 	} else {
-		fprintf(stderr, "warn: action (%s) not supported\n",
-			keybind->action);
+		warn("action (%s) not supported", keybind->action);
 	}
 }

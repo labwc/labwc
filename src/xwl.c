@@ -1,4 +1,5 @@
 #include "labwc.h"
+#include "common/log.h"
 
 int xwl_nr_parents(struct view *view)
 {
@@ -6,7 +7,7 @@ int xwl_nr_parents(struct view *view)
 	int i = 0;
 
 	if (!s) {
-		fprintf(stderr, "warn: (%s) no xwayland surface\n", __func__);
+		warn("(%s) no xwayland surface\n", __func__);
 		return -1;
 	}
 	while (s->parent) {

@@ -11,6 +11,7 @@
 #include <glib.h>
 
 #include "common/dir.h"
+#include "common/log.h"
 
 struct dir {
 	const char *prefix;
@@ -84,7 +85,7 @@ char *find_dir(struct ctx *ctx)
 			/* handle /etc/xdg... */
 			ctx->build_path_fn(ctx, NULL, d.path);
 			if (debug)
-				fprintf(stderr, "DEBUG: %s\n", ctx->buf);
+				info("%s", ctx->buf);
 			if (isdir(ctx->buf))
 				return ctx->buf;
 		} else {
@@ -96,8 +97,7 @@ char *find_dir(struct ctx *ctx)
 			for (gchar **p = prefixes; *p; p++) {
 				ctx->build_path_fn(ctx, *p, d.path);
 				if (debug)
-					fprintf(stderr, "DEBUG: %s\n",
-						ctx->buf);
+					info("%s", ctx->buf);
 				if (isdir(ctx->buf))
 					return ctx->buf;
 			}

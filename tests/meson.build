@@ -6,6 +6,7 @@ rcxml_lib = static_library(
     '../src/common/dir.c',
     '../src/common/buf.c',
     '../src/common/font.c',
+    '../src/common/log.c',
   ),
   dependencies: labwc_deps,
   include_directories: [labwc_inc],

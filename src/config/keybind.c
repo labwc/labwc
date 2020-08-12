@@ -6,6 +6,7 @@
 
 #include "config/keybind.h"
 #include "config/rcxml.h"
+#include "common/log.h"
 
 static uint32_t parse_modifier(const char *symname)
 {
@@ -35,8 +36,7 @@ struct keybind *keybind_add(const char *keybind)
 			xkb_keysym_t sym = xkb_keysym_from_name(
 				symname, XKB_KEYSYM_NO_FLAGS);
 			if (sym == XKB_KEY_NoSymbol) {
-				fprintf(stderr, "unknown keybind (%s)\n",
-					symname);
+				warn("unknown keybind (%s)", symname);
 				free(k);
 				k = NULL;
 				break;

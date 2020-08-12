@@ -3,5 +3,6 @@ labwc_sources += files(
   'dir.c',
   'font.c',
   'grab-file.c',
+  'log.c',
   'spawn.c',
 )

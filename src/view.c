@@ -2,6 +2,8 @@
 
 static bool is_toplevel(struct view *view)
 {
+	if (!view)
+		return false;
 	if (!view->been_mapped)
 		return false;
 	switch (view->type) {

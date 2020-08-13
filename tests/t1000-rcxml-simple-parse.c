@@ -33,5 +33,6 @@ int main(int argc, char **argv)
 	diag("Simple parse rc.xml");
 	ok1(rc.client_side_decorations);
 
+	rcxml_finish();
 	return exit_status();
 }

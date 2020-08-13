@@ -20,6 +20,7 @@ extern struct rcxml rc;
 
 void rcxml_parse_xml(struct buf *b);
 void rcxml_read(const char *filename);
+void rcxml_finish(void);
 void rcxml_get_nodenames(struct buf *b);
 
 #endif /* __LABWC_RCXML_H */

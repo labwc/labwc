@@ -59,5 +59,6 @@ int main(int argc, char *argv[])
 
 	wl_display_run(server.wl_display);
 	server_finish(&server);
+	rcxml_finish();
 	return 0;
 }

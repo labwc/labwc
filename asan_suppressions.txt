@@ -1,0 +1,3 @@
+leak:libfontconfig
+leak:libglib-2.0
+

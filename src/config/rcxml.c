@@ -295,6 +295,28 @@ out:
 	post_processing();
 }
 
+static void free_safe(const void *p)
+{
+	if (p)
+		free((void *)p);
+	p = NULL;
+}
+
+void rcxml_finish(void)
+{
+	free_safe(rc.font_name_activewindow);
+	free_safe(rc.theme_name);
+
+	struct keybind *k, *k_tmp;
+	wl_list_for_each_safe (k, k_tmp, &rc.keybinds, link) {
+		wl_list_remove(&k->link);
+		free_safe(k->command);
+		free_safe(k->action);
+		free_safe(k->keysyms);
+		free_safe(k);
+	}
+}
+
 void rcxml_get_nodenames(struct buf *b)
 {
 	write_to_nodename_buffer = true;

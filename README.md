@@ -65,7 +65,7 @@ Suggest either copying data/rc.xml to ~/.config/labwc/running, or running with:
 
 Suggested apps:
 
-- grim - screenshots
+- [grim](https://github.com/emersion/grim) - screenshots
 
 ## Build
 

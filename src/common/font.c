@@ -28,8 +28,10 @@ static PangoRectangle font_extents(const char *font_description,
 	/* we put a 2 px edge on each side - because Openbox does it :) */
 	rect.width += 4;
 
-	g_object_unref(layout);
+	cairo_destroy(c);
+	cairo_surface_destroy(surface);
 	pango_font_description_free(font);
+	g_object_unref(layout);
 	return rect;
 }
 

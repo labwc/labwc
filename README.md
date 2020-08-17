@@ -23,8 +23,13 @@ It is in early development, so expect bugs and missing features.
 
 ## Dependencies
 
-Runtime dependencies include wlroots (>=0.10.0), wayland-protocols,xwayland,  
-libxml2, glib-2.0, cairo and pango.
+Runtime dependencies include:
+
+- wlroots (>=0.10.0)
+- xwayland
+- libxml2
+- cairo
+- pango
 
 ## Roadmap
 
@@ -51,11 +56,13 @@ Labwc has been inspired and inflenced by [openbox](https://github.com/danakj/ope
 
 Labwc is based on the wlroots library.
 
-The following were considered before choosing wlroots: [QtWayland](https://github.com/qt/qtwayland), [grefsen](https://github.com/ec1oud/grefsen), [Mir](https://mir-server.io) and [egmde](https://github.com/AlanGriffiths/egmde).
+The following were considered before choosing wlroots: [qtwayland](https://github.com/qt/qtwayland), [grefsen](https://github.com/ec1oud/grefsen), [mir](https://mir-server.io) and [egmde](https://github.com/AlanGriffiths/egmde).
 
 ## Configuration
 
 See [rc.xml](data/rc.xml) and [themerc](data/themes/labwc-default/openbox-3/themerc) comments for details including keybinds.
+
+Full details in [labwc(1)](docs/labwc.1.md) and [labwc(5)](docs/labwc.5.md)
 
 Suggest either copying data/rc.xml to ~/.config/labwc/running, or running with:
 

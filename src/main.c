@@ -3,6 +3,9 @@
 #include "theme/xbm/xbm.h"
 #include "common/spawn.h"
 
+#include <cairo.h>
+#include <pango/pangocairo.h>
+
 struct server server = { 0 };
 struct rcxml rc = { 0 };
 struct theme theme = { 0 };
@@ -60,5 +63,6 @@ int main(int argc, char *argv[])
 	wl_display_run(server.wl_display);
 	server_finish(&server);
 	rcxml_finish();
+	pango_cairo_font_map_set_default(NULL);
 	return 0;
 }

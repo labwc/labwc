@@ -27,7 +27,7 @@ Labwc is a [WIP] free, stacking compositor for Wayland. It aims to be light-weig
 # CONFIGURATION AND THEMES
 
 Labwc aims to be compatible with openbox configuration and theming, with the
-following files control the look and behaviour:
+following files controlling the look and behaviour:
 
 - rc.xml  
 - themerc  

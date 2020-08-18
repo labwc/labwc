@@ -77,6 +77,7 @@ static void build_theme_path(struct ctx *ctx, char *prefix, const char *path)
 
 char *find_dir(struct ctx *ctx)
 {
+	gchar **prefixes;
 	char *debug = getenv("LABWC_DEBUG_DIR_CONFIG_AND_THEME");
 
 	for (int i = 0; ctx->dirs[i].path; i++) {
@@ -93,19 +94,23 @@ char *find_dir(struct ctx *ctx)
 			char *prefix = getenv(d.prefix);
 			if (!prefix)
 				continue;
-			gchar **prefixes = g_strsplit(prefix, ":", -1);
+			prefixes = g_strsplit(prefix, ":", -1);
 			for (gchar **p = prefixes; *p; p++) {
 				ctx->build_path_fn(ctx, *p, d.path);
 				if (debug)
 					info("%s", ctx->buf);
-				if (isdir(ctx->buf))
-					return ctx->buf;
+				if (isdir(ctx->buf)) {
+					goto out;
+				}
 			}
+			g_strfreev(prefixes);
 		}
 	}
 	/* no directory was found */
 	ctx->buf[0] = '.';
 	ctx->buf[1] = '\0';
+out:
+	g_strfreev(prefixes);
 	return ctx->buf;
 }
 

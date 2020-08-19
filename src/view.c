@@ -1,16 +1,15 @@
 #include "labwc.h"
+#include "common/bug-on.h"
 
 static bool is_toplevel(struct view *view)
 {
-	if (!view)
-		return false;
-	if (!view->been_mapped)
+	if (!view || !view->been_mapped)
 		return false;
 	switch (view->type) {
 	case LAB_XDG_SHELL_VIEW:
 		return view->xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL;
 	case LAB_XWAYLAND_VIEW:
-		return xwl_nr_parents(view) == 0;
+		return view->xwayland_surface->parent == NULL;
 	}
 	return false;
 }

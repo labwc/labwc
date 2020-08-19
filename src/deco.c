@@ -38,7 +38,7 @@ struct wlr_box deco_box(struct view *view, enum deco_part deco_part)
 	if ((view->surface->current.width < 1) ||
 	    (view->surface->current.height < 1)) {
 		warn("view (%p) has no width/height", view);
-		return;
+		return box;
 	}
 	switch (deco_part) {
 	case LAB_DECO_BUTTON_CLOSE:

@@ -1,3 +1,1 @@
-leak:libfontconfig
-leak:libglib-2.0
 leak:libxcb*

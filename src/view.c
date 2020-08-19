@@ -118,6 +118,36 @@ bool view_hasfocus(struct view *view)
 	return (view->surface == seat->keyboard_state.focused_surface);
 }
 
+static struct wlr_xwayland_surface *top_parent(struct view *view)
+{
+	struct wlr_xwayland_surface *s = view->xwayland_surface;
+	while (s->parent)
+		s = s->parent;
+	return s;
+}
+
+static void move_xwayland_decendants_to_front(struct view *parent)
+{
+	if (parent->type != LAB_XWAYLAND_VIEW)
+		return;
+	if (!parent || !parent->been_mapped)
+		return;
+	struct view *view, *next;
+	wl_list_for_each_reverse_safe(view, next, &parent->server->views, link)
+	{
+		/* need to stop here, otherwise loops keeps going forever */
+		if (view == parent)
+			break;
+		if (view->type != LAB_XWAYLAND_VIEW)
+			continue;
+		if (!view->been_mapped || !view->mapped)
+			continue;
+		if (top_parent(view) != parent->xwayland_surface)
+			continue;
+		move_to_front(view);
+	}
+}
+
 void view_focus(struct view *view)
 {
 	/* Note: this function only deals with keyboard focus. */
@@ -143,18 +173,14 @@ void view_focus(struct view *view)
 	if (prev_surface)
 		set_activated(seat->keyboard_state.focused_surface, false);
 
-	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat);
 	move_to_front(view);
 	set_activated(view->surface, true);
-	/*
-	 * Tell the seat to have the keyboard enter this surface. wlroots will
-	 * keep track of this and automatically send key events to the
-	 * appropriate clients without additional work on your part.
-	 */
+	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat);
 	wlr_seat_keyboard_notify_enter(seat, view->surface, keyboard->keycodes,
 				       keyboard->num_keycodes,
 				       &keyboard->modifiers);
-	/* TODO: bring child views to front */
+
+	move_xwayland_decendants_to_front(view);
 }
 
 struct view *view_front_toplevel(struct server *server)

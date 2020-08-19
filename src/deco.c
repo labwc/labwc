@@ -7,6 +7,8 @@
 #include "labwc.h"
 #include "theme/theme.h"
 #include "config/rcxml.h"
+#include "common/bug-on.h"
+#include "common/log.h"
 
 #define BORDER_WIDTH (1)
 
@@ -27,8 +29,17 @@ struct wlr_box deco_box(struct view *view, enum deco_part deco_part)
 	int margin;
 
 	struct wlr_box box = { .x = 0, .y = 0, .width = 0, .height = 0 };
+	BUG_ON(!view);
+	BUG_ON(!view->surface);
 	if (!view || !view->surface)
 		return box;
+	BUG_ON(!view->been_mapped);
+	BUG_ON(!view->show_server_side_deco);
+	if ((view->surface->current.width < 1) ||
+	    (view->surface->current.height < 1)) {
+		warn("view (%p) has no width/height", view);
+		return;
+	}
 	switch (deco_part) {
 	case LAB_DECO_BUTTON_CLOSE:
 		wlr_texture_get_size(theme.xbm_close, &box.width, &box.height);

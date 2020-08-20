@@ -254,6 +254,8 @@ struct view *view_at(struct server *server, double lx, double ly,
 	 */
 	struct view *view;
 	wl_list_for_each (view, &server->views, link) {
+		if (!view->been_mapped)
+			continue;
 		if (_view_at(view, lx, ly, surface, sx, sy))
 			return view;
 		if (!view->show_server_side_deco)

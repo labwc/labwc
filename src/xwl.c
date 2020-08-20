@@ -1,22 +1,6 @@
 #include "labwc.h"
 #include "common/log.h"
 
-int xwl_nr_parents(struct view *view)
-{
-	struct wlr_xwayland_surface *s = view->xwayland_surface;
-	int i = 0;
-
-	if (!s) {
-		warn("(%s) no xwayland surface\n", __func__);
-		return -1;
-	}
-	while (s->parent) {
-		s = s->parent;
-		++i;
-	}
-	return i;
-}
-
 static bool has_ssd(struct view *view)
 {
 	if (view->xwayland_surface->override_redirect)

@@ -1,6 +1,23 @@
 #include "labwc.h"
 #include "config/rcxml.h"
 #include "config/keybind.h"
+#include "common/log.h"
+
+static int xwl_nr_parents(struct view *view)
+{
+	struct wlr_xwayland_surface *s = view->xwayland_surface;
+	int i = 0;
+
+	if (!s) {
+		warn("(%s) no xwayland surface\n", __func__);
+		return -1;
+	}
+	while (s->parent) {
+		s = s->parent;
+		++i;
+	}
+	return i;
+}
 
 static void show_one_xdg_view(struct view *view)
 {

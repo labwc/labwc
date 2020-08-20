@@ -136,7 +136,6 @@ struct keyboard {
 void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
 void xdg_surface_new(struct wl_listener *listener, void *data);
 
-int xwl_nr_parents(struct view *view);
 void xwl_surface_new(struct wl_listener *listener, void *data);
 
 void view_init_position(struct view *view);

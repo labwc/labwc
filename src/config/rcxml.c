@@ -245,8 +245,14 @@ static void post_processing(void)
 		bind("A-Tab", "NextWindow");
 		bind("A-F3", "Execute");
 	}
-	/* TODO: Set all char* variables if NULL */
 
+	if (!rc.theme_name)
+		rc.theme_name = strdup("Clearlooks");
+	if (!rc.font_name_activewindow)
+		rc.font_name_activewindow = strdup("sans");
+
+	if (!rc.font_size_activewindow)
+		rc.font_size_activewindow = 8;
 	set_title_height();
 }
 

@@ -17,6 +17,12 @@ struct pixmap {
 };
 
 /**
+ * parse_set_color - set color to be used when parsing icons
+ * @rgba: four floats representing red, green, blue, alpha
+ */
+void parse_set_color(float *rgba);
+
+/**
  * parse_xbm_tokens - parse xbm tokens and create pixmap
  * @tokens: token vector
  */

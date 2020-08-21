@@ -14,16 +14,20 @@
 #include "theme/xbm/parse.h"
 #include "common/bug-on.h"
 
-/* TODO: should be window.active.button.unpressed.image.color */
-static unsigned char defaultcolor[] = { 255, 255, 255, 255 };
+static uint32_t color;
 
-static uint32_t u32(unsigned char *rgba)
+static uint32_t u32(float *rgba)
 {
 	uint32_t r[4] = { 0 };
 	for (int i = 0; i < 4; i++)
-		r[i] = rgba[i];
-	return ((r[3] & 0xff) << 24) | ((r[2] & 0xff) << 16) |
-	       ((r[1] & 0xff) << 8) | (r[0] & 0xff);
+		r[i] = rgba[i] * 255;
+	return ((r[3] & 0xff) << 24) | ((r[0] & 0xff) << 16) |
+	       ((r[1] & 0xff) << 8) | (r[2] & 0xff);
+}
+
+void parse_set_color(float *rgba)
+{
+	color = u32(rgba);
 }
 
 static void process_bytes(struct pixmap *pixmap, struct token *tokens)
@@ -44,8 +48,7 @@ static void process_bytes(struct pixmap *pixmap, struct token *tokens)
 				return;
 			int bit = 1 << (col % 8);
 			if (t->value & bit)
-				pixmap->data[row * pixmap->width + col] =
-					u32(defaultcolor);
+				pixmap->data[row * pixmap->width + col] = color;
 		}
 		++t;
 	}

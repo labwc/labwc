@@ -49,6 +49,8 @@ static void entry(const char *key, const char *value)
 		parse_hexstr(value, theme.window_active_handle_bg_color);
 	if (match(key, "window.inactive.title.bg.color"))
 		parse_hexstr(value, theme.window_inactive_title_bg_color);
+	if (match(key, "window.active.button.unpressed.image.color"))
+		parse_hexstr(value, theme.window_active_button_unpressed_image_color);
 }
 
 static void rtrim(char **s)

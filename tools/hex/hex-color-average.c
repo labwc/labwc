@@ -54,5 +54,9 @@ int main(int argc, char **argv)
 	       (col[0] + col[3]) / 2.0,
 	       (col[1] + col[4]) / 2.0,
 	       (col[2] + col[5]) / 2.0);
+	printf("[ mean ] #%x%x%x\n",
+	       (int)((col[0] + col[3]) / 2.0 * 255),
+	       (int)((col[1] + col[4]) / 2.0 * 255),
+	       (int)((col[2] + col[5]) / 2.0 * 255));
 }
 

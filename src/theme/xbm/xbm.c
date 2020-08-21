@@ -69,6 +69,7 @@ out:
 		*texture = texture_from_builtin(renderer, button);
 }
 
+/* clang-format off */
 void xbm_load(struct wlr_renderer *r)
 {
 	parse_set_color(theme.window_active_button_unpressed_image_color);
@@ -76,3 +77,4 @@ void xbm_load(struct wlr_renderer *r)
 	load_button(r, "max.xbm", &theme.xbm_maximize, max_button_normal);
 	load_button(r, "iconify.xbm", &theme.xbm_iconify, iconify_button_normal);
 }
+/* clang-format on */

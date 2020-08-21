@@ -2,3 +2,6 @@ window.active.title.bg.color: #589bda
 window.active.handle.bg.color: #3c7cb7
 
 window.inactive.title.bg.color: #efece6
+
+window.active.button.unpressed.image.color = #ffffff
+

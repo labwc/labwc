@@ -13,11 +13,19 @@
 struct theme {
 	float window_active_title_bg_color[4];
 	float window_active_handle_bg_color[4];
+
 	float window_inactive_title_bg_color[4];
+
 	float window_active_button_unpressed_image_color[4];
-	struct wlr_texture *xbm_close;
-	struct wlr_texture *xbm_maximize;
-	struct wlr_texture *xbm_iconify;
+	float window_inactive_button_unpressed_image_color[4];
+
+	struct wlr_texture *xbm_close_active_unpressed;
+	struct wlr_texture *xbm_maximize_active_unpressed;
+	struct wlr_texture *xbm_iconify_active_unpressed;
+
+	struct wlr_texture *xbm_close_inactive_unpressed;
+	struct wlr_texture *xbm_maximize_inactive_unpressed;
+	struct wlr_texture *xbm_iconify_inactive_unpressed;
 };
 
 extern struct theme theme;

@@ -39,6 +39,7 @@ static bool match(const gchar *pattern, const gchar *string)
 	return (bool)g_pattern_match_simple(pattern, string);
 }
 
+/* clang-format off */
 static void entry(const char *key, const char *value)
 {
 	if (!key || !value)
@@ -51,7 +52,10 @@ static void entry(const char *key, const char *value)
 		parse_hexstr(value, theme.window_inactive_title_bg_color);
 	if (match(key, "window.active.button.unpressed.image.color"))
 		parse_hexstr(value, theme.window_active_button_unpressed_image_color);
+	if (match(key, "window.inactive.button.unpressed.image.color"))
+		parse_hexstr(value, theme.window_inactive_button_unpressed_image_color);
 }
+/* clang-format on */
 
 static void rtrim(char **s)
 {
@@ -101,13 +105,16 @@ static void process_line(char *line)
  * this was a bit hard-line. People might want to try labwc without having
  * Openbox (and associated themes) installed.
  */
+/* clang-format off */
 void theme_builtin(void)
 {
 	parse_hexstr("#589bda", theme.window_active_title_bg_color);
 	parse_hexstr("#3c7cb7", theme.window_active_handle_bg_color);
 	parse_hexstr("#efece6", theme.window_inactive_title_bg_color);
 	parse_hexstr("#ffffff", theme.window_active_button_unpressed_image_color);
+	parse_hexstr("#000000", theme.window_inactive_button_unpressed_image_color);
 }
+/* clang-format on */
 
 void theme_read(const char *theme_name)
 {

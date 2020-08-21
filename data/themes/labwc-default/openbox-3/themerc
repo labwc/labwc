@@ -4,4 +4,5 @@ window.active.handle.bg.color: #3c7cb7
 window.inactive.title.bg.color: #efece6
 
 window.active.button.unpressed.image.color = #ffffff
+window.inactive.button.unpressed.image.color = #000000
 

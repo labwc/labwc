@@ -68,12 +68,21 @@ static void render_decorations(struct wlr_output *output, struct view *view)
 		ddata.rgba = theme.window_inactive_title_bg_color;
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_TITLE));
 
-	render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_CLOSE),
-		    theme.xbm_close);
-	render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_MAXIMIZE),
-		    theme.xbm_maximize);
-	render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_ICONIFY),
-		    theme.xbm_iconify);
+	if (view_hasfocus(view)) {
+		render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_CLOSE),
+			    theme.xbm_close_active_unpressed);
+		render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_MAXIMIZE),
+			    theme.xbm_maximize_active_unpressed);
+		render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_ICONIFY),
+			    theme.xbm_iconify_active_unpressed);
+	} else {
+		render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_CLOSE),
+			    theme.xbm_close_inactive_unpressed);
+		render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_MAXIMIZE),
+			    theme.xbm_maximize_inactive_unpressed);
+		render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_ICONIFY),
+			    theme.xbm_iconify_inactive_unpressed);
+	}
 }
 
 struct render_data {

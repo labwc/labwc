@@ -111,17 +111,19 @@ struct view {
 	struct wlr_xdg_surface *xdg_surface;
 	struct wlr_xwayland_surface *xwayland_surface;
 	struct wlr_surface *surface;
-	struct wl_listener map;
-	struct wl_listener unmap;
-	struct wl_listener destroy;
-	struct wl_listener request_move;
-	struct wl_listener request_resize;
-	struct wl_listener request_configure;
 
 	bool mapped;
 	bool been_mapped;
-	int x, y;
+	int x, y, w, h;
 	bool show_server_side_deco;
+
+	struct wl_listener map;
+	struct wl_listener unmap;
+	struct wl_listener destroy;
+	struct wl_listener commit;
+	struct wl_listener request_move;
+	struct wl_listener request_resize;
+	struct wl_listener request_configure;
 };
 
 struct keyboard {

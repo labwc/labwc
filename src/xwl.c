@@ -1,5 +1,6 @@
 #include "labwc.h"
 #include "common/log.h"
+#include "common/bug-on.h"
 
 static bool has_ssd(struct view *view)
 {
@@ -9,6 +10,16 @@ static bool has_ssd(struct view *view)
 	    WLR_XWAYLAND_SURFACE_DECORATIONS_ALL)
 		return false;
 	return true;
+}
+
+static void handle_commit(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, commit);
+	BUG_ON(!view->surface);
+
+	/* Must receive commit signal before accessing surface->current* */
+	view->w = view->surface->current.width;
+	view->h = view->surface->current.height;
 }
 
 void xwl_surface_map(struct wl_listener *listener, void *data)
@@ -23,6 +34,15 @@ void xwl_surface_map(struct wl_listener *listener, void *data)
 		view_init_position(view);
 	}
 	view->been_mapped = true;
+
+	/*
+	 * Add commit listener here, because xwayland map/unmap can change
+	 * the wlr_surface
+	 */
+	wl_signal_add(&view->xwayland_surface->surface->events.commit,
+		      &view->commit);
+	view->commit.notify = handle_commit;
+
 	view_focus(view);
 }
 
@@ -30,6 +50,7 @@ void xwl_surface_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, unmap);
 	view->mapped = false;
+	wl_list_remove(&view->commit.link);
 	/*
 	 * Note that if 'view' is not a toplevel view, the 'front' toplevel view
 	 * will be focussed on; but if 'view' is a toplevel view, the 'next'

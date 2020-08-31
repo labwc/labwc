@@ -1,4 +1,6 @@
 #include "labwc.h"
+#include "common/log.h"
+#include "common/bug-on.h"
 
 struct xdg_deco {
 	struct wlr_xdg_toplevel_decoration_v1 *wlr_decoration;
@@ -63,6 +65,14 @@ static bool has_ssd(struct view *view)
 	return true;
 }
 
+static void handle_commit(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, commit);
+	BUG_ON(!view->surface);
+	view->w = view->surface->current.width;
+	view->h = view->surface->current.height;
+}
+
 void xdg_surface_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, map);
@@ -73,6 +83,9 @@ void xdg_surface_map(struct wl_listener *listener, void *data)
 		view_init_position(view);
 	}
 	view->been_mapped = true;
+	wl_signal_add(&view->xdg_surface->surface->events.commit,
+		      &view->commit);
+	view->commit.notify = handle_commit;
 	view_focus(view);
 }
 
@@ -80,6 +93,7 @@ void xdg_surface_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, unmap);
 	view->mapped = false;
+	wl_list_remove(&view->commit.link);
 	view_focus(next_toplevel(view));
 }
 

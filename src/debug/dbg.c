@@ -44,11 +44,7 @@ static void show_one_xdg_view(struct view *view)
 static void show_one_xwl_view(struct view *view)
 {
 	fprintf(stderr, "XWL  ");
-	if (!view->been_mapped) {
-		fprintf(stderr, "- ");
-	} else {
-		fprintf(stderr, "%d ", xwl_nr_parents(view));
-	}
+	fprintf(stderr, "%d ", xwl_nr_parents(view));
 	fprintf(stderr, "     %d      ",
 		wl_list_length(&view->xwayland_surface->children));
 	if (view->mapped) {
@@ -64,7 +60,6 @@ static void show_one_xwl_view(struct view *view)
 	 * Other variables to consider printing:
 	 *
 	 * view->mapped,
-	 * view->been_mapped,
 	 * view->xwayland_surface->override_redirect,
 	 * wlr_xwayland_or_surface_wants_focus(view->xwayland_surface));
 	 * view->xwayland_surface->saved_width,

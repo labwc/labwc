@@ -29,11 +29,6 @@ struct wlr_box deco_box(struct view *view, enum deco_part deco_part)
 
 	struct wlr_box box = { .x = 0, .y = 0, .width = 0, .height = 0 };
 	BUG_ON(!view);
-	BUG_ON(!view->surface);
-	if (!view || !view->surface)
-		return box;
-	BUG_ON(!view->been_mapped);
-	BUG_ON(!view->show_server_side_deco);
 	if ((view->w < 1) || (view->h < 1)) {
 		warn("view (%p) has no width/height", view);
 		return box;

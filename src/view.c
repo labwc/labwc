@@ -3,7 +3,7 @@
 
 static bool is_toplevel(struct view *view)
 {
-	if (!view || !view->been_mapped)
+	if (!view)
 		return false;
 	switch (view->type) {
 	case LAB_XDG_SHELL_VIEW:
@@ -128,9 +128,7 @@ static struct wlr_xwayland_surface *top_parent(struct view *view)
 
 static void move_xwayland_decendants_to_front(struct view *parent)
 {
-	if (parent->type != LAB_XWAYLAND_VIEW)
-		return;
-	if (!parent || !parent->been_mapped)
+	if (!parent || parent->type != LAB_XWAYLAND_VIEW)
 		return;
 	struct view *view, *next;
 	wl_list_for_each_reverse_safe(view, next, &parent->server->views, link)
@@ -140,7 +138,7 @@ static void move_xwayland_decendants_to_front(struct view *parent)
 			break;
 		if (view->type != LAB_XWAYLAND_VIEW)
 			continue;
-		if (!view->been_mapped || !view->mapped)
+		if (!view->mapped)
 			continue;
 		if (top_parent(view) != parent->xwayland_surface)
 			continue;
@@ -254,8 +252,6 @@ struct view *view_at(struct server *server, double lx, double ly,
 	 */
 	struct view *view;
 	wl_list_for_each (view, &server->views, link) {
-		if (!view->been_mapped)
-			continue;
 		if (_view_at(view, lx, ly, surface, sx, sy))
 			return view;
 		if (!view->show_server_side_deco)

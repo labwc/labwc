@@ -1,6 +1,7 @@
 labwc_sources = files(
   'action.c',
   'cursor.c',
+  'dbg.c',
   'deco.c',
   'interactive.c',
   'keyboard.c',
@@ -15,5 +16,4 @@ labwc_sources = files(
 subdir('common')
 subdir('config')
 subdir('theme')
-subdir('debug')
 subdir('xbm')

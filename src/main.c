@@ -1,6 +1,6 @@
 #include "labwc.h"
 #include "theme/theme.h"
-#include "theme/xbm/xbm.h"
+#include "xbm/xbm.h"
 #include "common/spawn.h"
 
 #include <cairo.h>

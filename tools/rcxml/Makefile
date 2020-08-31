@@ -15,6 +15,7 @@ SRC = \
 	../../src/common/dir.c \
 	../../src/common/buf.c \
 	../../src/common/font.c \
+	../../src/common/log.c \
 	../../src/config/keybind.c
 
 

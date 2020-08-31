@@ -10,7 +10,8 @@ LDFLAGS   += -DWLR_USE_UNSTABLE
 SRCS = \
 	theme-helper.c \
 	../../src/theme/theme.c \
-	../../src/common/dir.c
+	../../src/common/dir.c \
+	../../src/common/log.c
 
 all:
 	gcc $(CFLAGS) -o theme-helper $(SRCS) $(LDFLAGS)

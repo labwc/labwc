@@ -3,8 +3,10 @@
 #include <string.h>
 #include <cairo.h>
 
-#include "theme/xbm/parse.h"
+#include "xbm/parse.h"
 #include "common/grab-file.h"
+
+static float red[] = { 1.0, 0.0, 0.0, 1.0 };
 
 int main(int argc, char **argv)
 {
@@ -20,6 +22,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	tokens = tokenize_xbm(buffer);
 	free(buffer);
+	parse_set_color(red);
 	struct pixmap pixmap = parse_xbm_tokens(tokens);
 	free(tokens);
 

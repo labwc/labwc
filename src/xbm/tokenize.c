@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "theme/xbm/tokenize.h"
+#include "xbm/tokenize.h"
 
 static char *current_buffer_position;
 static struct token *tokens;

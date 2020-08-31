@@ -8,8 +8,8 @@
 #include <stdlib.h>
 
 #include "theme/theme.h"
-#include "theme/xbm/xbm.h"
-#include "theme/xbm/parse.h"
+#include "xbm/xbm.h"
+#include "xbm/parse.h"
 #include "config/rcxml.h"
 #include "common/dir.h"
 #include "common/grab-file.h"

@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "theme/xbm/parse.h"
+#include "xbm/parse.h"
 #include "common/bug-on.h"
 
 static uint32_t color;

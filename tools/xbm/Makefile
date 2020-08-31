@@ -7,10 +7,10 @@ PROGS        = xbm-tokenize xbm-parse
 
 DEP_TOKENIZE = \
 	       ../../src/common/buf.c \
-	       ../../src/theme/xbm/tokenize.c
+	       ../../src/xbm/tokenize.c
 
 DEP_PARSE    = $(DEP_TOKENIZE) \
-	       ../../src/theme/xbm/parse.c \
+	       ../../src/xbm/parse.c \
 	       ../../src/common/grab-file.c
 
 all: $(PROGS)

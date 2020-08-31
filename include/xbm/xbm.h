@@ -3,7 +3,7 @@
 
 #include <wlr/render/wlr_renderer.h>
 
-#include "theme/xbm/parse.h"
+#include "xbm/parse.h"
 
 /**
  * xbm_load - load theme xbm files into global theme struct

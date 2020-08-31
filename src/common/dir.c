@@ -24,10 +24,6 @@ static struct dir config_dirs[] = {
 	{ "HOME", ".config/labwc" },
 	{ "XDG_CONFIG_DIRS", "labwc" },
 	{ NULL, "/etc/xdg/labwc" },
-	{ "XDG_CONFIG_HOME", "openbox" },
-	{ "HOME", ".config/openbox" },
-	{ "XDG_CONFIG_DIRS", "openbox" },
-	{ NULL, "/etc/xdg/openbox" },
 	{ NULL, NULL }
 };
 

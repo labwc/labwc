@@ -18,8 +18,6 @@ searched for in the following order:
 
 - `${XDG_CONFIG_HOME:-$HOME/.config}/labwc`  
 - `${XDG_CONFIG_DIRS:-/etc/xdg}/labwc`  
-- `${XDG_CONFIG_HOME:-$HOME/.config}/openbox`  
-- `${XDG_CONFIG_DIRS:-/etc/xdg}/openbox`  
 
 # RC.XML `<lab>`
 

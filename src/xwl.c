@@ -82,14 +82,19 @@ void xwl_surface_configure(struct wl_listener *listener, void *data)
 
 static void xwl_view_configure(struct view *view, struct wlr_box geo)
 {
-	return wlr_xwayland_surface_configure(view->xwayland_surface,
-					      (int16_t)geo.x, (int16_t)geo.y,
-					      (uint16_t)geo.width,
-					      (uint16_t)geo.height);
+	wlr_xwayland_surface_configure(view->xwayland_surface, (int16_t)geo.x,
+				       (int16_t)geo.y, (uint16_t)geo.width,
+				       (uint16_t)geo.height);
+}
+
+static void xwl_view_close(struct view *view)
+{
+	wlr_xwayland_surface_close(view->xwayland_surface);
 }
 
 static const struct view_impl xwl_view_impl = {
 	.configure = xwl_view_configure,
+	.close = xwl_view_close,
 };
 
 void xwl_surface_new(struct wl_listener *listener, void *data)

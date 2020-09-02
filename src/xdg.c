@@ -137,8 +137,14 @@ static void xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 				  (uint32_t)geo.height);
 }
 
+static void xdg_toplevel_view_close(struct view *view)
+{
+	wlr_xdg_toplevel_send_close(view->xdg_surface);
+}
+
 static const struct view_impl xdg_toplevel_view_impl = {
 	.configure = xdg_toplevel_view_configure,
+        .close = xdg_toplevel_view_close,
 };
 
 void xdg_surface_new(struct wl_listener *listener, void *data)

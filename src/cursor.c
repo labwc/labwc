@@ -198,6 +198,9 @@ void cursor_button(struct wl_listener *listener, void *data)
 		/* Focus that client if the button was _pressed_ */
 		view_focus(view);
 		switch (view_area) {
+		case LAB_DECO_BUTTON_CLOSE:
+			view->impl->close(view);
+			break;
 		case LAB_DECO_PART_TITLE:
 			interactive_begin(view, LAB_CURSOR_MOVE, 0);
 			break;

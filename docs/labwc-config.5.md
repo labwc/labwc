@@ -1,20 +1,18 @@
-% labwc(5)
+% labwc-config(5)
 % Johan Malm
-% 7 Aug, 2020
+% 31 Aug, 2020
 
 # NAME
 
-labwc - Configuration files
+labwc - Configuration
 
 # CONFIGURATION
 
-There are two configuration files which control the look and behaviour of
-labwc, namely rc.xml and themerc. The configuration aims to be compatible with
-Openbox, but there are some differences which are pointed out throughout this
-man page.
+The configuration aims to be compatible with Openbox, but there are some
+differences which are pointed out throughout the man pages.
 
-Adhering to XDG Base Directory Specification, configuration files will be
-searched for in the following order:
+Adhering to XDG Base Directory Specification, configuration files will
+be searched for in the following order:
 
 - `${XDG_CONFIG_HOME:-$HOME/.config}/labwc`  
 - `${XDG_CONFIG_DIRS:-/etc/xdg}/labwc`  
@@ -109,72 +107,6 @@ If no rc.xml file is found, the following default values will be used:
 - Alt+Tab: Cycle windows  
 - Alt+F3: Launch dmenu  
 
-# ACTIONS
-
-Actions are used in key bindings.
-
-Action syntax:
-
-    <action name="NAME">
-      OPTION
-    </action>
-
-where `NAME` is the name of the action as listed below, and `OPTION` is a set
-of tags specific to each action as defined below.
-
-`Execute`
-
-:   Execute command specified by `<command>` option.
-
-`Exit`
-
-:   Exit labwc.
-
-`NextWindow`
-
-:   Cycle focus to next window.
-
-# THEMERC
-
-The theme engine aims to be compatible with openbox and themes will be
-searched for in the following order:
-
-- `${XDG_DATA_HOME:-$HOME/.local/share}/themes/<theme-name>/openbox-3/`  
-- `$HOME/.themes/<theme-name>/openbox-3/`  
-- `/usr/share/themes/<theme-name>/openbox-3/`  
-- `/usr/local/share/themes/<theme-name>/openbox-3/`  
-- `/opt/share/themes/<theme-name>/openbox-3/`  
-
-`window.active.title.bg.color`
-
-:   Background for the focussed window's titlebar
-
-`window.active.handle.bg.color`
-
-:   Background for the focussed window's handle.
-
-`window.inactive.title.bg.color`
-
-:   Background for non-focussed windows' titlebars
-
-# DEFINITIONS
-
-The `handle` is the window decoration placed on the bottom of the window.
-
-# EXAMPLES
-
-## Example 1 - title bar configuration
-
-    +-----------------------------------------+ ^
-    |                                         | |
-    |                                         | |
-    |                                         | | h
-    |                                         | |
-    +-----------------------------------------+ v
-
-    h = padding * 2 + font-vertical-extents
-
-
 # SEE ALSO
 
-labwc(1)
+labwc(1), labwc-actions(5), labwc-theme(5)

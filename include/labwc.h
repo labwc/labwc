@@ -92,7 +92,8 @@ struct output {
 enum view_type { LAB_XDG_SHELL_VIEW, LAB_XWAYLAND_VIEW };
 
 enum deco_part {
-	LAB_DECO_BUTTON_CLOSE = 0,
+	LAB_DECO_NONE = 0,
+	LAB_DECO_BUTTON_CLOSE,
 	LAB_DECO_BUTTON_MAXIMIZE,
 	LAB_DECO_BUTTON_ICONIFY,
 	LAB_DECO_PART_TITLE,
@@ -100,8 +101,7 @@ enum deco_part {
 	LAB_DECO_PART_RIGHT,
 	LAB_DECO_PART_BOTTOM,
 	LAB_DECO_PART_LEFT,
-	LAB_DECO_NONE
-	/* Keep LAB_DECO_NONE last as iteration end-marker */
+	LAB_DECO_END_MARKER
 };
 
 struct view_impl {

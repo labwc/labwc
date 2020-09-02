@@ -104,12 +104,20 @@ enum deco_part {
 	/* Keep LAB_DECO_NONE last as iteration end-marker */
 };
 
+struct view_impl {
+	void (*configure)(struct view *view, struct wlr_box geo);
+};
+
 struct view {
-	enum view_type type;
-	struct wl_list link;
 	struct server *server;
-	struct wlr_xdg_surface *xdg_surface;
-	struct wlr_xwayland_surface *xwayland_surface;
+	enum view_type type;
+	const struct view_impl *impl;
+	struct wl_list link;
+
+	union {
+		struct wlr_xdg_surface *xdg_surface;
+		struct wlr_xwayland_surface *xwayland_surface;
+	};
 	struct wlr_surface *surface;
 
 	bool mapped;

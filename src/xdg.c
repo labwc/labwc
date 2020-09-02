@@ -131,6 +131,16 @@ void xdg_toplevel_request_resize(struct wl_listener *listener, void *data)
 	interactive_begin(view, LAB_CURSOR_RESIZE, event->edges);
 }
 
+static void xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
+{
+	wlr_xdg_toplevel_set_size(view->xdg_surface, (uint32_t)geo.width,
+				  (uint32_t)geo.height);
+}
+
+static const struct view_impl xdg_toplevel_view_impl = {
+	.configure = xdg_toplevel_view_configure,
+};
+
 void xdg_surface_new(struct wl_listener *listener, void *data)
 {
 	struct server *server =
@@ -143,6 +153,7 @@ void xdg_surface_new(struct wl_listener *listener, void *data)
 	struct view *view = calloc(1, sizeof(struct view));
 	view->server = server;
 	view->type = LAB_XDG_SHELL_VIEW;
+	view->impl = &xdg_toplevel_view_impl;
 	view->xdg_surface = xdg_surface;
 
 	view->map.notify = xdg_surface_map;

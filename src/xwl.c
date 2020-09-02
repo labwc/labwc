@@ -80,6 +80,18 @@ void xwl_surface_configure(struct wl_listener *listener, void *data)
 				       event->y, event->width, event->height);
 }
 
+static void xwl_view_configure(struct view *view, struct wlr_box geo)
+{
+	return wlr_xwayland_surface_configure(view->xwayland_surface,
+					      (int16_t)geo.x, (int16_t)geo.y,
+					      (uint16_t)geo.width,
+					      (uint16_t)geo.height);
+}
+
+static const struct view_impl xwl_view_impl = {
+	.configure = xwl_view_configure,
+};
+
 void xwl_surface_new(struct wl_listener *listener, void *data)
 {
 	struct server *server =
@@ -90,6 +102,7 @@ void xwl_surface_new(struct wl_listener *listener, void *data)
 	struct view *view = calloc(1, sizeof(struct view));
 	view->server = server;
 	view->type = LAB_XWAYLAND_VIEW;
+	view->impl = &xwl_view_impl;
 	view->xwayland_surface = xwayland_surface;
 
 	view->map.notify = xwl_surface_map;

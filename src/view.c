@@ -73,19 +73,13 @@ struct wlr_box view_geometry(struct view *view)
 void view_resize(struct view *view, struct wlr_box geo)
 {
 	struct wlr_box border = view_get_surface_geometry(view);
-	switch (view->type) {
-	case LAB_XDG_SHELL_VIEW:
-		wlr_xdg_toplevel_set_size(view->xdg_surface,
-					  geo.width - 2 * border.x,
-					  geo.height - 2 * border.y);
-		break;
-	case LAB_XWAYLAND_VIEW:
-		wlr_xwayland_surface_configure(view->xwayland_surface, view->x,
-					       view->y, geo.width, geo.height);
-		break;
-	default:
-		break;
-	}
+	struct wlr_box box = {
+		.x = view->x,
+		.y = view->y,
+		.width = geo.width - 2 * border.x,
+		.height = geo.height - 2 * border.y,
+	};
+	view->impl->configure(view, box);
 }
 
 static void move_to_front(struct view *view)

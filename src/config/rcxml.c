@@ -44,7 +44,7 @@ static void fill_keybind(char *nodename, char *content)
 		return;
 	rstrip(nodename, ".keybind.keyboard");
 	if (!strcmp(nodename, "key"))
-		current_keybind = keybind_add(content);
+		current_keybind = keybind_create(content);
 	/* We expect <keybind key=""> to come first */
 	BUG_ON(!current_keybind);
 	if (!strcmp(nodename, "name.action")) {
@@ -223,7 +223,7 @@ static void bind(const char *binding, const char *action)
 {
 	if (!binding || !action)
 		return;
-	struct keybind *k = keybind_add(binding);
+	struct keybind *k = keybind_create(binding);
 	if (k)
 		k->action = strdup(action);
 	info("binding %s: %s", binding, action);

@@ -14,9 +14,9 @@ struct keybind {
 };
 
 /**
- * keybind_add - parse keybind and add to linked list
+ * keybind_create - parse keybind and add to linked list
  * @keybind: key combination
  */
-struct keybind *keybind_add(const char *keybind);
+struct keybind *keybind_create(const char *keybind);
 
 #endif /* __LABWC_KEYBIND_H */

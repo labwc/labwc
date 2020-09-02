@@ -22,7 +22,7 @@ static uint32_t parse_modifier(const char *symname)
 		return 0;
 }
 
-struct keybind *keybind_add(const char *keybind)
+struct keybind *keybind_create(const char *keybind)
 {
 	struct keybind *k = calloc(1, sizeof(struct keybind));
 	xkb_keysym_t keysyms[32];

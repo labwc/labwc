@@ -250,26 +250,9 @@ struct view *view_at(struct server *server, double lx, double ly,
 			return view;
 		if (!view->show_server_side_deco)
 			continue;
-		if (deco_at(view, lx, ly) == LAB_DECO_PART_TITLE) {
-			*view_area = LAB_DECO_PART_TITLE;
+		*view_area = deco_at(view, lx, ly);
+		if (*view_area != LAB_DECO_NONE)
 			return view;
-		}
-		if (deco_at(view, lx, ly) == LAB_DECO_PART_TOP) {
-			*view_area = LAB_DECO_PART_TOP;
-			return view;
-		}
-		if (deco_at(view, lx, ly) == LAB_DECO_PART_RIGHT) {
-			*view_area = LAB_DECO_PART_RIGHT;
-			return view;
-		}
-		if (deco_at(view, lx, ly) == LAB_DECO_PART_BOTTOM) {
-			*view_area = LAB_DECO_PART_BOTTOM;
-			return view;
-		}
-		if (deco_at(view, lx, ly) == LAB_DECO_PART_LEFT) {
-			*view_area = LAB_DECO_PART_LEFT;
-			return view;
-		}
 	}
 	return NULL;
 }

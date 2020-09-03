@@ -37,5 +37,5 @@ See labwc(5) for details.
 
 # SEE ALSO
 
-- `labwc(5)`
+labwc-config(5), labwc-theme(5), labwc-actions(5)
 

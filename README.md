@@ -40,11 +40,16 @@ For further details see [tools/build](tools/build) and [wiki/Build](https://gith
 
 ## 3. Configure
 
-See [rc.xml](data/rc.xml) and [themerc](data/themes/labwc-default/openbox-3/themerc) comments for details including keybinds.
-
 If you want to override the defaults, copy data/rc.xml to ~/.config/labwc/ and tweak to suit.
 
-Full details in [labwc(1)](docs/labwc.1.md) and [labwc(5)](docs/labwc.5.md)
+See [rc.xml](data/rc.xml) and [themerc](data/themes/labwc-default/openbox-3/themerc) comments for details including keybinds.
+
+See full details in the following:
+
+- [labwc(1)](docs/labwc.1.md)
+- [labwc-config(5)](docs/labwc-config.5.md)
+- [labwc-theme(5)](docs/labwc-theme.5.md)
+- [labwc-actions(5)](docs/labwc-actions.5.md)
 
 ## 4. Run
 
@@ -62,14 +67,13 @@ Suggested apps to use with labwc:
 - [x] Parse [rc.xml](data/rc.xml)
 - [x] Parse [themerc](data/themes/labwc-default/openbox-3/themerc)
 - [x] Read xbm icons
-- [x] Show maximize, minimize, close buttons
-- [ ] Give actions to maximize, minimize, close buttons
+- [x] Show maximize, iconify, close buttons (maximize function not supported yet)
 - [ ] Add grip
-- [ ] Support layer-shell background (e.g. using swaybg)
-- [ ] Draw better alt-tab rectangle
-- [ ] Try restarting and consider catching SIGHUP for --reconfigure
+- [ ] Support layer-shell background layer for use with swaybg
+- [ ] Catching SIGHUP for --reconfigure
 - [ ] Implement client-menu
 - [ ] Implement root-menu
+- [ ] Add OSD, for example to support alt-tab window list
 
 For further details see [wiki/Roadmap](https://github.com/johanmalm/labwc/wiki/Roadmap).
 

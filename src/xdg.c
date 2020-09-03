@@ -72,26 +72,26 @@ static void handle_commit(struct wl_listener *listener, void *data)
 	view->h = view->surface->current.height;
 }
 
-void xdg_surface_map(struct wl_listener *listener, void *data)
+static void handle_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, map);
 	view->impl->map(view);
 }
 
-void xdg_surface_unmap(struct wl_listener *listener, void *data)
+static void handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, unmap);
 	view->impl->unmap(view);
 }
 
-void xdg_surface_destroy(struct wl_listener *listener, void *data)
+static void handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
 	wl_list_remove(&view->link);
 	free(view);
 }
 
-void xdg_toplevel_request_move(struct wl_listener *listener, void *data)
+static void handle_request_move(struct wl_listener *listener, void *data)
 {
 	/* This event is raised when a client would like to begin an interactive
 	 * move, typically because the user clicked on their client-side
@@ -104,7 +104,7 @@ void xdg_toplevel_request_move(struct wl_listener *listener, void *data)
 	interactive_begin(view, LAB_CURSOR_MOVE, 0);
 }
 
-void xdg_toplevel_request_resize(struct wl_listener *listener, void *data)
+static void handle_request_resize(struct wl_listener *listener, void *data)
 {
 	/* This event is raised when a client would like to begin an interactive
 	 * resize, typically because the user clicked on their client-side
@@ -172,17 +172,17 @@ void xdg_surface_new(struct wl_listener *listener, void *data)
 	view->impl = &xdg_toplevel_view_impl;
 	view->xdg_surface = xdg_surface;
 
-	view->map.notify = xdg_surface_map;
+	view->map.notify = handle_map;
 	wl_signal_add(&xdg_surface->events.map, &view->map);
-	view->unmap.notify = xdg_surface_unmap;
+	view->unmap.notify = handle_unmap;
 	wl_signal_add(&xdg_surface->events.unmap, &view->unmap);
-	view->destroy.notify = xdg_surface_destroy;
+	view->destroy.notify = handle_destroy;
 	wl_signal_add(&xdg_surface->events.destroy, &view->destroy);
 
 	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
-	view->request_move.notify = xdg_toplevel_request_move;
+	view->request_move.notify = handle_request_move;
 	wl_signal_add(&toplevel->events.request_move, &view->request_move);
-	view->request_resize.notify = xdg_toplevel_request_resize;
+	view->request_resize.notify = handle_request_resize;
 	wl_signal_add(&toplevel->events.request_resize, &view->request_resize);
 
 	wl_list_insert(&server->views, &view->link);

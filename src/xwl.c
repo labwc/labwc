@@ -25,39 +25,13 @@ static void handle_commit(struct wl_listener *listener, void *data)
 void xwl_surface_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, map);
-	view->mapped = true;
-	view->x = view->xwayland_surface->x;
-	view->y = view->xwayland_surface->y;
-	view->surface = view->xwayland_surface->surface;
-	if (!view->been_mapped) {
-		view->show_server_side_deco = has_ssd(view);
-		view_init_position(view);
-		wl_list_insert(&view->server->views, &view->link);
-	}
-	view->been_mapped = true;
-
-	/*
-	 * Add commit listener here, because xwayland map/unmap can change
-	 * the wlr_surface
-	 */
-	wl_signal_add(&view->xwayland_surface->surface->events.commit,
-		      &view->commit);
-	view->commit.notify = handle_commit;
-
-	view_focus(view);
+	view->impl->map(view);
 }
 
 void xwl_surface_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, unmap);
-	view->mapped = false;
-	wl_list_remove(&view->commit.link);
-	/*
-	 * Note that if 'view' is not a toplevel view, the 'front' toplevel view
-	 * will be focussed on; but if 'view' is a toplevel view, the 'next'
-	 * will be focussed on.
-	 */
-	view_focus(next_toplevel(view));
+	view->impl->unmap(view);
 }
 
 void xwl_surface_destroy(struct wl_listener *listener, void *data)
@@ -92,9 +66,42 @@ static void xwl_view_close(struct view *view)
 	wlr_xwayland_surface_close(view->xwayland_surface);
 }
 
+static void xwl_view_map(struct view *view)
+{
+	view->mapped = true;
+	view->x = view->xwayland_surface->x;
+	view->y = view->xwayland_surface->y;
+	view->surface = view->xwayland_surface->surface;
+	if (!view->been_mapped) {
+		view->show_server_side_deco = has_ssd(view);
+		view_init_position(view);
+		wl_list_insert(&view->server->views, &view->link);
+	}
+	view->been_mapped = true;
+
+	/*
+	 * Add commit listener here, because xwayland map/unmap can change
+	 * the wlr_surface
+	 */
+	wl_signal_add(&view->xwayland_surface->surface->events.commit,
+		      &view->commit);
+	view->commit.notify = handle_commit;
+
+	view_focus(view);
+}
+
+static void xwl_view_unmap(struct view *view)
+{
+	view->mapped = false;
+	wl_list_remove(&view->commit.link);
+	view_focus(next_toplevel(view));
+}
+
 static const struct view_impl xwl_view_impl = {
 	.configure = xwl_view_configure,
 	.close = xwl_view_close,
+	.map = xwl_view_map,
+	.unmap = xwl_view_unmap,
 };
 
 void xwl_surface_new(struct wl_listener *listener, void *data)

@@ -107,6 +107,8 @@ enum deco_part {
 struct view_impl {
 	void (*configure)(struct view *view, struct wlr_box geo);
 	void (*close)(struct view *view);
+	void (*map)(struct view *view);
+	void (*unmap)(struct view *view);
 };
 
 struct view {

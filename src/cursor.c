@@ -201,6 +201,9 @@ void cursor_button(struct wl_listener *listener, void *data)
 		case LAB_DECO_BUTTON_CLOSE:
 			view->impl->close(view);
 			break;
+		case LAB_DECO_BUTTON_ICONIFY:
+			view->impl->unmap(view);
+			break;
 		case LAB_DECO_PART_TITLE:
 			interactive_begin(view, LAB_CURSOR_MOVE, 0);
 			break;

@@ -140,15 +140,24 @@ static void move_xwayland_decendants_to_front(struct view *parent)
 	}
 }
 
+/**
+ * Note that if 'view' is not a toplevel view, the 'front' toplevel view
+ * will be focussed on; but if 'view' is a toplevel view, the 'next'
+ * will be focussed on.
+ */
 void view_focus(struct view *view)
 {
 	/* Note: this function only deals with keyboard focus. */
-	if (!view || !view->surface)
+	if (!view)
 		return;
+	if (!view->mapped) {
+		view->impl->map(view);
+		return;
+	}
+
 	struct server *server = view->server;
 	struct wlr_seat *seat = server->seat;
 	struct wlr_surface *prev_surface;
-
 	prev_surface = seat->keyboard_state.focused_surface;
 	if (prev_surface == view->surface) {
 		/* Don't re-focus an already focused surface. */

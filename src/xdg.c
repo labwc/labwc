@@ -13,7 +13,6 @@ static void xdg_deco_destroy(struct wl_listener *listener, void *data)
 {
 	struct xdg_deco *xdg_deco =
 		wl_container_of(listener, xdg_deco, destroy);
-
 	wl_list_remove(&xdg_deco->destroy.link);
 	wl_list_remove(&xdg_deco->request_mode.link);
 	free(xdg_deco);
@@ -76,25 +75,13 @@ static void handle_commit(struct wl_listener *listener, void *data)
 void xdg_surface_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, map);
-	view->mapped = true;
-	view->surface = view->xdg_surface->surface;
-	if (!view->been_mapped) {
-		view->show_server_side_deco = has_ssd(view);
-		view_init_position(view);
-	}
-	view->been_mapped = true;
-	wl_signal_add(&view->xdg_surface->surface->events.commit,
-		      &view->commit);
-	view->commit.notify = handle_commit;
-	view_focus(view);
+	view->impl->map(view);
 }
 
 void xdg_surface_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, unmap);
-	view->mapped = false;
-	wl_list_remove(&view->commit.link);
-	view_focus(next_toplevel(view));
+	view->impl->unmap(view);
 }
 
 void xdg_surface_destroy(struct wl_listener *listener, void *data)
@@ -142,9 +129,33 @@ static void xdg_toplevel_view_close(struct view *view)
 	wlr_xdg_toplevel_send_close(view->xdg_surface);
 }
 
+static void xdg_toplevel_view_map(struct view *view)
+{
+	view->mapped = true;
+	view->surface = view->xdg_surface->surface;
+	if (!view->been_mapped) {
+		view->show_server_side_deco = has_ssd(view);
+		view_init_position(view);
+	}
+	view->been_mapped = true;
+	wl_signal_add(&view->xdg_surface->surface->events.commit,
+		      &view->commit);
+	view->commit.notify = handle_commit;
+	view_focus(view);
+}
+
+static void xdg_toplevel_view_unmap(struct view *view)
+{
+	view->mapped = false;
+	wl_list_remove(&view->commit.link);
+	view_focus(next_toplevel(view));
+}
+
 static const struct view_impl xdg_toplevel_view_impl = {
 	.configure = xdg_toplevel_view_configure,
-        .close = xdg_toplevel_view_close,
+	.close = xdg_toplevel_view_close,
+	.map = xdg_toplevel_view_map,
+	.unmap = xdg_toplevel_view_unmap,
 };
 
 void xdg_surface_new(struct wl_listener *listener, void *data)
@@ -152,9 +163,8 @@ void xdg_surface_new(struct wl_listener *listener, void *data)
 	struct server *server =
 		wl_container_of(listener, server, new_xdg_surface);
 	struct wlr_xdg_surface *xdg_surface = data;
-	if (xdg_surface->role != WLR_XDG_SURFACE_ROLE_TOPLEVEL) {
+	if (xdg_surface->role != WLR_XDG_SURFACE_ROLE_TOPLEVEL)
 		return;
-	}
 
 	struct view *view = calloc(1, sizeof(struct view));
 	view->server = server;

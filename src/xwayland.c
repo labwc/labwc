@@ -101,7 +101,7 @@ static const struct view_impl xwl_view_impl = {
 	.unmap = unmap,
 };
 
-void xwl_surface_new(struct wl_listener *listener, void *data)
+void xwayland_surface_new(struct wl_listener *listener, void *data)
 {
 	struct server *server =
 		wl_container_of(listener, server, new_xwayland_surface);

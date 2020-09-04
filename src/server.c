@@ -233,7 +233,7 @@ void server_init(struct server *server)
 		wlr_log(WLR_ERROR, "cannot create xwayland server");
 		exit(EXIT_FAILURE);
 	}
-	server->new_xwayland_surface.notify = xwl_surface_new;
+	server->new_xwayland_surface.notify = xwayland_surface_new;
 	wl_signal_add(&server->xwayland->events.new_surface,
 		      &server->new_xwayland_surface);
 

@@ -164,7 +164,7 @@ struct keyboard {
 void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
 void xdg_surface_new(struct wl_listener *listener, void *data);
 
-void xwl_surface_new(struct wl_listener *listener, void *data);
+void xwayland_surface_new(struct wl_listener *listener, void *data);
 void xwayland_unmanaged_create(struct wlr_xwayland_surface *xsurface);
 
 void view_init_position(struct view *view);

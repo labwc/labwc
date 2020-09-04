@@ -11,8 +11,8 @@ labwc_sources = files(
   'server.c',
   'view.c',
   'xdg.c',
+  'xwayland.c',
   'xwayland-unmanaged.c',
-  'xwl.c',
 )
 
 subdir('common')

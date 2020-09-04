@@ -79,10 +79,7 @@ static void map(struct view *view)
 	}
 	view->been_mapped = true;
 
-	/*
-	 * Add commit listener here, because xwayland map/unmap can change
-	 * the wlr_surface
-	 */
+	/* Add commit here, as xwayland map/unmap can change the wlr_surface */
 	wl_signal_add(&view->xwayland_surface->surface->events.commit,
 		      &view->commit);
 	view->commit.notify = handle_commit;
@@ -108,22 +105,31 @@ void xwl_surface_new(struct wl_listener *listener, void *data)
 {
 	struct server *server =
 		wl_container_of(listener, server, new_xwayland_surface);
-	struct wlr_xwayland_surface *xwayland_surface = data;
-	wlr_xwayland_surface_ping(xwayland_surface);
+	struct wlr_xwayland_surface *xsurface = data;
+	wlr_xwayland_surface_ping(xsurface);
+
+	/*
+	 * We do not create 'views' for xwayland override_redirect surfaces,
+	 * but add them to server.unmanaged_surfaces so that we can render them
+	 */
+	if (xsurface->override_redirect) {
+		xwayland_unmanaged_create(xsurface);
+		return;
+	}
 
 	struct view *view = calloc(1, sizeof(struct view));
 	view->server = server;
 	view->type = LAB_XWAYLAND_VIEW;
 	view->impl = &xwl_view_impl;
-	view->xwayland_surface = xwayland_surface;
+	view->xwayland_surface = xsurface;
 
 	view->map.notify = handle_map;
-	wl_signal_add(&xwayland_surface->events.map, &view->map);
+	wl_signal_add(&xsurface->events.map, &view->map);
 	view->unmap.notify = handle_unmap;
-	wl_signal_add(&xwayland_surface->events.unmap, &view->unmap);
+	wl_signal_add(&xsurface->events.unmap, &view->unmap);
 	view->destroy.notify = handle_destroy;
-	wl_signal_add(&xwayland_surface->events.destroy, &view->destroy);
+	wl_signal_add(&xsurface->events.destroy, &view->destroy);
 	view->request_configure.notify = handle_request_configure;
-	wl_signal_add(&xwayland_surface->events.request_configure,
+	wl_signal_add(&xsurface->events.request_configure,
 		      &view->request_configure);
 }

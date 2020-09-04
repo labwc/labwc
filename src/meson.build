@@ -7,9 +7,11 @@ labwc_sources = files(
   'keyboard.c',
   'main.c',
   'output.c',
+  'seat.c',
   'server.c',
   'view.c',
   'xdg.c',
+  'xwayland-unmanaged.c',
   'xwl.c',
 )
 

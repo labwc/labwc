@@ -150,6 +150,8 @@ void view_focus(struct view *view)
 	/* Note: this function only deals with keyboard focus. */
 	if (!view)
 		return;
+
+	/* TODO: messy - sort out */
 	if (!view->mapped) {
 		view->impl->map(view);
 		return;

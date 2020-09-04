@@ -105,6 +105,7 @@ void server_init(struct server *server)
 	wlr_renderer_init_wl_display(server->renderer, server->wl_display);
 
 	wl_list_init(&server->views);
+	wl_list_init(&server->unmanaged_surfaces);
 	wl_list_init(&server->outputs);
 
 	/*

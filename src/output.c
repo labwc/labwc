@@ -88,7 +88,7 @@ static void render_decorations(struct wlr_output *output, struct view *view)
 struct render_data {
 	struct wlr_output *output;
 	struct wlr_renderer *renderer;
-	struct view *view;
+	int lx, ly;
 	struct timespec *when;
 };
 
@@ -98,7 +98,6 @@ static void render_surface(struct wlr_surface *surface, int sx, int sy,
 	/* This function is called for every surface that needs to be rendered.
 	 */
 	struct render_data *rdata = data;
-	struct view *view = rdata->view;
 	struct wlr_output *output = rdata->output;
 
 	/* We first obtain a wlr_texture, which is a GPU resource. wlroots
@@ -117,10 +116,9 @@ static void render_surface(struct wlr_surface *surface, int sx, int sy,
 	 * display might have layout coordinates of 2000,100. We need to
 	 * translate that to output-local coordinates, or (2000 - 1920). */
 	double ox = 0, oy = 0;
-	wlr_output_layout_output_coords(view->server->output_layout, output,
-					&ox, &oy);
-	ox += view->x + sx;
-	oy += view->y + sy;
+	wlr_output_layout_output_coords(server.output_layout, output, &ox, &oy);
+	ox += rdata->lx + sx;
+	oy += rdata->ly + sy;
 
 	/* TODO: Support HiDPI */
 	struct wlr_box box = {
@@ -188,22 +186,21 @@ void output_frame(struct wl_listener *listener, void *data)
 	 * backwards. */
 	struct view *view;
 	wl_list_for_each_reverse (view, &output->server->views, link) {
-		if (!view->mapped) {
-			/* An unmapped view should not be rendered. */
+		if (!view->mapped)
 			continue;
-		}
+
 		struct render_data rdata = {
 			.output = output->wlr_output,
-			.view = view,
+			.lx = view->x,
+			.ly = view->y,
 			.renderer = renderer,
 			.when = &now,
 		};
 
 		render_decorations(output->wlr_output, view);
 
-		/* This calls our render_surface function for each surface among
-		 * the xdg_surface's toplevel and popups. */
 		if (view->type == LAB_XDG_SHELL_VIEW) {
+			/* render each xdg toplevel and popup surface */
 			wlr_xdg_surface_for_each_surface(
 				view->xdg_surface, render_surface, &rdata);
 		} else if (view->type == LAB_XWAYLAND_VIEW) {
@@ -214,6 +211,21 @@ void output_frame(struct wl_listener *listener, void *data)
 
 	/* If in cycle (alt-tab) mode, highlight selected view */
 	render_cycle_box(output);
+
+	/* Render xwayland override_redirect surfaces */
+	struct xwayland_unmanaged *unmanaged;
+	wl_list_for_each_reverse (unmanaged, &server.unmanaged_surfaces, link) {
+		struct render_data rdata = {
+			.output = output->wlr_output,
+			.lx = unmanaged->lx,
+			.ly = unmanaged->ly,
+			.renderer = renderer,
+			.when = &now,
+		};
+
+		struct wlr_surface *s = unmanaged->xwayland_surface->surface;
+		render_surface(s, 0, 0, &rdata);
+	}
 
 	/* Hardware cursors are rendered by the GPU on a separate plane, and can
 	 * be moved around without re-rendering what's beneath them - which is

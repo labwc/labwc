@@ -52,6 +52,7 @@ struct server {
 	struct wlr_xwayland *xwayland;
 	struct wl_listener new_xwayland_surface;
 	struct wl_list views;
+	struct wl_list unmanaged_surfaces;
 
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *cursor_mgr;
@@ -78,9 +79,11 @@ struct server {
 	struct wl_list outputs;
 	struct wl_listener new_output;
 
-	/* For use in cycle (alt-tab) mode */
+	/* Set when in cycle (alt-tab) mode */
 	struct view *cycle_view;
 };
+
+extern struct server server;
 
 struct output {
 	struct wl_list link;
@@ -137,6 +140,18 @@ struct view {
 	struct wl_listener request_configure;
 };
 
+struct xwayland_unmanaged {
+	struct wlr_xwayland_surface *xwayland_surface;
+	struct wl_list link;
+	int lx, ly;
+
+	struct wl_listener request_configure;
+	struct wl_listener commit;
+	struct wl_listener map;
+	struct wl_listener unmap;
+	struct wl_listener destroy;
+};
+
 struct keyboard {
 	struct wl_list link;
 	struct server *server;
@@ -150,6 +165,7 @@ void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
 void xdg_surface_new(struct wl_listener *listener, void *data);
 
 void xwl_surface_new(struct wl_listener *listener, void *data);
+void xwayland_unmanaged_create(struct wlr_xwayland_surface *xsurface);
 
 void view_init_position(struct view *view);
 /**
@@ -168,6 +184,8 @@ bool view_hasfocus(struct view *view);
 struct view *view_at(struct server *server, double lx, double ly,
 		     struct wlr_surface **surface, double *sx, double *sy,
 		     int *view_area);
+
+void seat_focus_surface(struct wlr_surface *surface);
 
 void interactive_begin(struct view *view, enum cursor_mode mode,
 		       uint32_t edges);

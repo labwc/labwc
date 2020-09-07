@@ -4,6 +4,8 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
+#include <cairo.h>
+#include <pango/pangocairo.h>
 
 #include "config/rcxml.h"
 #include "tap.h"
@@ -43,5 +45,6 @@ int main(int argc, char **argv)
 	ok1(!strcmp(expect, actual.buf));
 	free(actual.buf);
 	free(source.buf);
+	pango_cairo_font_map_set_default(NULL);
 	return exit_status();
 }

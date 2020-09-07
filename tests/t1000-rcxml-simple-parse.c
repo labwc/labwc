@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <cairo.h>
+#include <pango/pangocairo.h>
 
 #include "config/rcxml.h"
 #include "tap.h"
@@ -34,5 +36,6 @@ int main(int argc, char **argv)
 	ok1(rc.client_side_decorations);
 
 	rcxml_finish();
+	pango_cairo_font_map_set_default(NULL);
 	return exit_status();
 }

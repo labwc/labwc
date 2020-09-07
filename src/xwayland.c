@@ -27,8 +27,7 @@ static void handle_unmap(struct wl_listener *listener, void *data)
 static void handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
-	if (view->been_mapped)
-		wl_list_remove(&view->link);
+	wl_list_remove(&view->link);
 	wl_list_remove(&view->map.link);
 	wl_list_remove(&view->unmap.link);
 	wl_list_remove(&view->destroy.link);
@@ -75,7 +74,6 @@ static void map(struct view *view)
 	if (!view->been_mapped) {
 		view->show_server_side_deco = want_ssd(view);
 		view_init_position(view);
-		wl_list_insert(&view->server->views, &view->link);
 	}
 	view->been_mapped = true;
 
@@ -132,4 +130,6 @@ void xwayland_surface_new(struct wl_listener *listener, void *data)
 	view->request_configure.notify = handle_request_configure;
 	wl_signal_add(&xsurface->events.request_configure,
 		      &view->request_configure);
+
+	wl_list_insert(&view->server->views, &view->link);
 }

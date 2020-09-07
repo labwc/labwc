@@ -37,8 +37,8 @@ struct wlr_box view_get_surface_geometry(struct view *view)
 		wlr_xdg_surface_get_geometry(view->xdg_surface, &box);
 		break;
 	case LAB_XWAYLAND_VIEW:
-		box.width = view->xwayland_surface->width;
-		box.height = view->xwayland_surface->height;
+		box.width = view->w;
+		box.height = view->h;
 		break;
 	}
 	return box;

@@ -65,7 +65,7 @@ static void keyboard_handle_key(struct wl_listener *listener, void *data)
 			server->cycle_view = NULL;
 		} else if (event->state == WLR_KEY_PRESSED) {
 			/* cycle to next */
-			server->cycle_view = next_toplevel(server->cycle_view);
+			server->cycle_view = view_next(server->cycle_view);
 			return;
 		}
 	}

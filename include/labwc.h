@@ -128,6 +128,7 @@ struct view {
 
 	bool mapped;
 	bool been_mapped;
+	bool minimized;
 	int x, y, w, h;
 	bool show_server_side_deco;
 
@@ -178,8 +179,7 @@ struct wlr_box view_get_surface_geometry(struct view *view);
 struct wlr_box view_geometry(struct view *view);
 void view_resize(struct view *view, struct wlr_box geo);
 void view_focus(struct view *view);
-struct view *view_front_toplevel(struct server *server);
-struct view *next_toplevel(struct view *current);
+struct view *view_next(struct view *current);
 bool view_hasfocus(struct view *view);
 struct view *view_at(struct server *server, double lx, double ly,
 		     struct wlr_surface **surface, double *sx, double *sy,

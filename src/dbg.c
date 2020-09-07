@@ -71,6 +71,10 @@ static void show_one_xwl_view(struct view *view)
 
 void dbg_show_one_view(struct view *view)
 {
+	if (!view->surface)
+		return;
+	if (!view->mapped && !view->minimized)
+		return;
 	if (view->type == LAB_XDG_SHELL_VIEW)
 		show_one_xdg_view(view);
 	else if (view->type == LAB_XWAYLAND_VIEW)

@@ -1,19 +1,6 @@
 #include "labwc.h"
 #include "common/bug-on.h"
 
-static bool is_toplevel(struct view *view)
-{
-	if (!view)
-		return false;
-	switch (view->type) {
-	case LAB_XDG_SHELL_VIEW:
-		return view->xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL;
-	case LAB_XWAYLAND_VIEW:
-		return view->xwayland_surface->parent == NULL;
-	}
-	return false;
-}
-
 void view_init_position(struct view *view)
 {
 	/* If surface already has a 'desired' position, don't touch it */
@@ -112,39 +99,6 @@ bool view_hasfocus(struct view *view)
 	return (view->surface == seat->keyboard_state.focused_surface);
 }
 
-static struct wlr_xwayland_surface *top_parent(struct view *view)
-{
-	struct wlr_xwayland_surface *s = view->xwayland_surface;
-	while (s->parent)
-		s = s->parent;
-	return s;
-}
-
-static void move_xwayland_decendants_to_front(struct view *parent)
-{
-	if (!parent || parent->type != LAB_XWAYLAND_VIEW)
-		return;
-	struct view *view, *next;
-	wl_list_for_each_reverse_safe(view, next, &parent->server->views, link)
-	{
-		/* need to stop here, otherwise loops keeps going forever */
-		if (view == parent)
-			break;
-		if (view->type != LAB_XWAYLAND_VIEW)
-			continue;
-		if (!view->mapped)
-			continue;
-		if (top_parent(view) != parent->xwayland_surface)
-			continue;
-		move_to_front(view);
-	}
-}
-
-/**
- * Note that if 'view' is not a toplevel view, the 'front' toplevel view
- * will be focussed on; but if 'view' is a toplevel view, the 'next'
- * will be focussed on.
- */
 void view_focus(struct view *view)
 {
 	/* Note: this function only deals with keyboard focus. */
@@ -183,27 +137,56 @@ void view_focus(struct view *view)
 				       keyboard->num_keycodes,
 				       &keyboard->modifiers);
 
-	move_xwayland_decendants_to_front(view);
+	/* TODO: move xwayland decendants to front */
 }
 
-struct view *view_front_toplevel(struct server *server)
+static struct view *first_view(void)
 {
 	struct view *view;
-	wl_list_for_each (view, &server->views, link) {
-		if (is_toplevel(view))
-			return view;
-	}
-	return NULL;
+	view = wl_container_of(server.views.next, view, link);
+	return view;
 }
 
-struct view *next_toplevel(struct view *current)
+/*
+ * Some xwayland apps produce unmapped surfaces on startup and also leave
+ * some unmapped surfaces kicking around on 'close' (for example * leafpad's
+ * "about" dialogue). Whilst this is not normally a problem, we have to be
+ * careful when cycling between views. The only view's we should focus are
+ * those that are already mapped and those that have been minimized.
+ */
+static bool isfocusable(struct view *view)
 {
-	if (!current)
+	/* filter out those xwayland surfaces that have never been mapped */
+	if (!view->surface)
+		return false;
+	return (view->mapped || view->minimized);
+}
+
+static int has_focusable_view(struct wl_list *wl_list)
+{
+	struct view *view;
+	wl_list_for_each (view, wl_list, link) {
+		if (isfocusable(view))
+			return true;
+	}
+	return false;
+}
+
+/*
+ * Return next view. If NULL provided, return second view from front.
+ */
+/* TODO: rename function */
+struct view *view_next(struct view *current)
+{
+	if (!has_focusable_view(&server.views))
 		return NULL;
-	struct view *view = current;
+
+	struct view *view = current ? current : first_view();
+
+	/* Replacement for wl_list_for_each_from() */
 	do {
 		view = wl_container_of(view->link.next, view, link);
-	} while (!is_toplevel(view));
+	} while (&view->link == &server.views || !isfocusable(view));
 	return view;
 }
 

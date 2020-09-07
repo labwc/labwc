@@ -57,8 +57,6 @@ static void _close(struct view *view)
 
 static bool want_ssd(struct view *view)
 {
-	if (view->xwayland_surface->override_redirect)
-		return false;
 	if (view->xwayland_surface->decorations !=
 	    WLR_XWAYLAND_SURFACE_DECORATIONS_ALL)
 		return false;
@@ -89,7 +87,7 @@ static void unmap(struct view *view)
 {
 	view->mapped = false;
 	wl_list_remove(&view->commit.link);
-	view_focus(next_toplevel(view));
+	view_focus(view_next(view));
 }
 
 static const struct view_impl xwl_view_impl = {

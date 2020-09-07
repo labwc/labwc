@@ -25,9 +25,10 @@ static void render_cycle_box(struct output *output)
 		    !rc.client_side_decorations) {
 			box = deco_max_extents(view);
 		} else {
-			box = view_get_surface_geometry(view);
-			box.x += view->x;
-			box.y += view->y;
+			box.x = view->x;
+			box.y = view->y;
+			box.width = view->w;
+			box.height = view->h;
 		}
 		float cycle_color[] = { 0.0, 0.0, 0.0, 0.2 };
 		wlr_render_rect(output->server->renderer, &box, cycle_color,

@@ -11,7 +11,7 @@ void action(struct server *server, struct keybind *keybind)
 	if (!strcasecmp(keybind->action, "Exit")) {
 		wl_display_terminate(server->wl_display);
 	} else if (!strcasecmp(keybind->action, "NextWindow")) {
-		server->cycle_view = view_next(server->cycle_view);
+		server->cycle_view = view_next(server, server->cycle_view);
 	} else if (!strcasecmp(keybind->action, "Execute")) {
 		spawn_async_no_shell(keybind->command);
 	} else if (!strcasecmp(keybind->action, "debug-views")) {

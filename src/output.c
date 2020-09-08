@@ -88,6 +88,7 @@ static void render_decorations(struct wlr_output *output, struct view *view)
 
 struct render_data {
 	struct wlr_output *output;
+	struct wlr_output_layout *output_layout;
 	struct wlr_renderer *renderer;
 	int lx, ly;
 	struct timespec *when;
@@ -96,37 +97,28 @@ struct render_data {
 static void render_surface(struct wlr_surface *surface, int sx, int sy,
 			   void *data)
 {
-	/* This function is called for every surface that needs to be rendered.
-	 */
 	struct render_data *rdata = data;
-	struct wlr_output *output = rdata->output;
 
-	/* We first obtain a wlr_texture, which is a GPU resource. wlroots
-	 * automatically handles negotiating these with the client. The
-	 * underlying resource could be an opaque handle passed from the client,
-	 * or the client could have sent a pixel buffer which we copied to the
-	 * GPU, or a few other means. You don't have to worry about this,
-	 * wlroots takes care of it. */
 	struct wlr_texture *texture = wlr_surface_get_texture(surface);
-	if (texture == NULL) {
+	if (!texture)
 		return;
-	}
 
 	/* The view has a position in layout coordinates. If you have two
 	 * displays, one next to the other, both 1080p, a view on the rightmost
 	 * display might have layout coordinates of 2000,100. We need to
 	 * translate that to output-local coordinates, or (2000 - 1920). */
 	double ox = 0, oy = 0;
-	wlr_output_layout_output_coords(server.output_layout, output, &ox, &oy);
+	wlr_output_layout_output_coords(rdata->output_layout, rdata->output,
+					&ox, &oy);
 	ox += rdata->lx + sx;
 	oy += rdata->ly + sy;
 
 	/* TODO: Support HiDPI */
 	struct wlr_box box = {
-		.x = ox * output->scale,
-		.y = oy * output->scale,
-		.width = surface->current.width * output->scale,
-		.height = surface->current.height * output->scale,
+		.x = ox * rdata->output->scale,
+		.y = oy * rdata->output->scale,
+		.width = surface->current.width * rdata->output->scale,
+		.height = surface->current.height * rdata->output->scale,
 	};
 
 	/*
@@ -145,7 +137,7 @@ static void render_surface(struct wlr_surface *surface, int sx, int sy,
 	enum wl_output_transform transform =
 		wlr_output_transform_invert(surface->current.transform);
 	wlr_matrix_project_box(matrix, &box, transform, 0,
-			       output->transform_matrix);
+			       rdata->output->transform_matrix);
 
 	/*
 	 * This takes our matrix, the texture, and an alpha, and performs the
@@ -192,6 +184,7 @@ void output_frame(struct wl_listener *listener, void *data)
 
 		struct render_data rdata = {
 			.output = output->wlr_output,
+			.output_layout = output->server->output_layout,
 			.lx = view->x,
 			.ly = view->y,
 			.renderer = renderer,
@@ -215,9 +208,12 @@ void output_frame(struct wl_listener *listener, void *data)
 
 	/* Render xwayland override_redirect surfaces */
 	struct xwayland_unmanaged *unmanaged;
-	wl_list_for_each_reverse (unmanaged, &server.unmanaged_surfaces, link) {
+	wl_list_for_each_reverse (unmanaged,
+				  &output->server->unmanaged_surfaces,
+				  link) {
 		struct render_data rdata = {
 			.output = output->wlr_output,
+			.output_layout = output->server->output_layout,
 			.lx = unmanaged->lx,
 			.ly = unmanaged->ly,
 			.renderer = renderer,

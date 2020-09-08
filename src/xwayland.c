@@ -87,7 +87,7 @@ static void unmap(struct view *view)
 {
 	view->mapped = false;
 	wl_list_remove(&view->commit.link);
-	view_focus(view_next(view));
+	view_focus(view_next(view->server, view));
 }
 
 static const struct view_impl xwl_view_impl = {
@@ -109,7 +109,7 @@ void xwayland_surface_new(struct wl_listener *listener, void *data)
 	 * but add them to server.unmanaged_surfaces so that we can render them
 	 */
 	if (xsurface->override_redirect) {
-		xwayland_unmanaged_create(xsurface);
+		xwayland_unmanaged_create(server, xsurface);
 		return;
 	}
 

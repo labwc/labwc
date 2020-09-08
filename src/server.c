@@ -158,6 +158,7 @@ void server_init(struct server *server)
 		wlr_log(WLR_ERROR, "cannot allocate seat0");
 		exit(EXIT_FAILURE);
 	}
+	seat_init(server->seat);
 
 	server->cursor = wlr_cursor_create();
 	if (!server->cursor) {

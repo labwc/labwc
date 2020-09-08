@@ -140,10 +140,10 @@ void view_focus(struct view *view)
 	/* TODO: move xwayland decendants to front */
 }
 
-static struct view *first_view(void)
+static struct view *first_view(struct server *server)
 {
 	struct view *view;
-	view = wl_container_of(server.views.next, view, link);
+	view = wl_container_of(server->views.next, view, link);
 	return view;
 }
 
@@ -172,21 +172,22 @@ static int has_focusable_view(struct wl_list *wl_list)
 	return false;
 }
 
-/*
- * Return next view. If NULL provided, return second view from front.
+/**
+ * view_next - return next view
+ * @current: view used as reference point for defining 'next'
+ * Note: If @current=NULL, the list's second view is returned
  */
-/* TODO: rename function */
-struct view *view_next(struct view *current)
+struct view *view_next(struct server *server, struct view *current)
 {
-	if (!has_focusable_view(&server.views))
+	if (!has_focusable_view(&server->views))
 		return NULL;
 
-	struct view *view = current ? current : first_view();
+	struct view *view = current ? current : first_view(server);
 
 	/* Replacement for wl_list_for_each_from() */
 	do {
 		view = wl_container_of(view->link.next, view, link);
-	} while (&view->link == &server.views || !isfocusable(view));
+	} while (&view->link == &server->views || !isfocusable(view));
 	return view;
 }
 

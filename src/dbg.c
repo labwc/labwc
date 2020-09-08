@@ -35,10 +35,8 @@ static void show_one_xdg_view(struct view *view)
 	}
 	fprintf(stderr, "                   %p %s", (void *)view,
 		view->xdg_surface->toplevel->app_id);
-	fprintf(stderr, "  {%d, %d, %d, %d}\n", view->xdg_surface->geometry.x,
-		view->xdg_surface->geometry.y,
-		view->xdg_surface->geometry.height,
-		view->xdg_surface->geometry.width);
+	fprintf(stderr, "  {%d, %d, %d, %d}\n", view->x, view->y, view->w,
+		view->h);
 }
 
 static void show_one_xwl_view(struct view *view)
@@ -52,7 +50,7 @@ static void show_one_xwl_view(struct view *view)
 	} else {
 		fprintf(stderr, "-");
 	}
-	fprintf(stderr, "      %p %s {%d,%d,%d,%d}\n", (void *)view,
+	fprintf(stderr, "      %p.4 %s {%d,%d,%d,%d}\n", (void *)view,
 		view->xwayland_surface->class, view->xwayland_surface->x,
 		view->xwayland_surface->y, view->xwayland_surface->width,
 		view->xwayland_surface->height);

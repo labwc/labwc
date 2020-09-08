@@ -83,8 +83,6 @@ struct server {
 	struct view *cycle_view;
 };
 
-extern struct server server;
-
 struct output {
 	struct wl_list link;
 	struct server *server;
@@ -142,6 +140,7 @@ struct view {
 };
 
 struct xwayland_unmanaged {
+	struct server *server;
 	struct wlr_xwayland_surface *xwayland_surface;
 	struct wl_list link;
 	int lx, ly;
@@ -166,7 +165,8 @@ void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
 void xdg_surface_new(struct wl_listener *listener, void *data);
 
 void xwayland_surface_new(struct wl_listener *listener, void *data);
-void xwayland_unmanaged_create(struct wlr_xwayland_surface *xsurface);
+void xwayland_unmanaged_create(struct server *server,
+			       struct wlr_xwayland_surface *xsurface);
 
 void view_init_position(struct view *view);
 /**
@@ -179,13 +179,15 @@ struct wlr_box view_get_surface_geometry(struct view *view);
 struct wlr_box view_geometry(struct view *view);
 void view_resize(struct view *view, struct wlr_box geo);
 void view_focus(struct view *view);
-struct view *view_next(struct view *current);
+struct view *view_next(struct server *server, struct view *current);
 bool view_hasfocus(struct view *view);
 struct view *view_at(struct server *server, double lx, double ly,
 		     struct wlr_surface **surface, double *sx, double *sy,
 		     int *view_area);
 
+void seat_init(struct wlr_seat *seat);
 void seat_focus_surface(struct wlr_surface *surface);
+struct wlr_surface *seat_focused_surface(void);
 
 void interactive_begin(struct view *view, enum cursor_mode mode,
 		       uint32_t edges);

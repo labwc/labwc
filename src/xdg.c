@@ -148,7 +148,7 @@ static void xdg_toplevel_view_unmap(struct view *view)
 {
 	view->mapped = false;
 	wl_list_remove(&view->commit.link);
-	view_focus(view_next(view));
+	view_focus(view_next(view->server, view));
 }
 
 static const struct view_impl xdg_toplevel_view_impl = {

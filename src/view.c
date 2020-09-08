@@ -99,6 +99,35 @@ bool view_hasfocus(struct view *view)
 	return (view->surface == seat->keyboard_state.focused_surface);
 }
 
+static struct wlr_xwayland_surface *top_parent_of(struct view *view)
+{
+	struct wlr_xwayland_surface *s = view->xwayland_surface;
+	while (s->parent)
+		s = s->parent;
+	return s;
+}
+
+static void move_xwayland_sub_views_to_front(struct view *parent)
+{
+	if (!parent || parent->type != LAB_XWAYLAND_VIEW)
+		return;
+	struct view *view, *next;
+	wl_list_for_each_reverse_safe(view, next, &parent->server->views, link)
+	{
+		/* need to stop here, otherwise loops keeps going forever */
+		if (view == parent)
+			break;
+		if (view->type != LAB_XWAYLAND_VIEW)
+			continue;
+		if (!view->mapped && !view->minimized)
+			continue;
+		if (top_parent_of(view) != parent->xwayland_surface)
+			continue;
+		move_to_front(view);
+		/* TODO: we should probably focus on these too here */
+	}
+}
+
 void view_focus(struct view *view)
 {
 	/* Note: this function only deals with keyboard focus. */
@@ -137,7 +166,7 @@ void view_focus(struct view *view)
 				       keyboard->num_keycodes,
 				       &keyboard->modifiers);
 
-	/* TODO: move xwayland decendants to front */
+	move_xwayland_sub_views_to_front(view);
 }
 
 static struct view *first_view(struct server *server)

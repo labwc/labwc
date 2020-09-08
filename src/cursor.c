@@ -202,7 +202,7 @@ void cursor_button(struct wl_listener *listener, void *data)
 			view->impl->close(view);
 			break;
 		case LAB_DECO_BUTTON_ICONIFY:
-			view->impl->unmap(view);
+			view_minimize(view);
 			break;
 		case LAB_DECO_PART_TITLE:
 			interactive_begin(view, LAB_CURSOR_MOVE, 0);

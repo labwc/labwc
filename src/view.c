@@ -69,6 +69,22 @@ void view_resize(struct view *view, struct wlr_box geo)
 	view->impl->configure(view, box);
 }
 
+void view_minimize(struct view *view)
+{
+	if (view->minimized == true)
+		return;
+	view->minimized = true;
+	view->impl->unmap(view);
+}
+
+void view_unminimize(struct view *view)
+{
+	if (view->minimized == false)
+		return;
+	view->minimized = false;
+	view->impl->map(view);
+}
+
 static void move_to_front(struct view *view)
 {
 	wl_list_remove(&view->link);
@@ -135,8 +151,8 @@ void view_focus(struct view *view)
 		return;
 
 	/* TODO: messy - sort out */
-	if (!view->mapped) {
-		view->impl->map(view);
+	if (!view->mapped && view->minimized) {
+		view_unminimize(view);
 		return;
 	}
 
@@ -270,6 +286,8 @@ struct view *view_at(struct server *server, double lx, double ly,
 	 */
 	struct view *view;
 	wl_list_for_each (view, &server->views, link) {
+		if (!view->mapped)
+			continue;
 		if (_view_at(view, lx, ly, surface, sx, sy))
 			return view;
 		if (!view->show_server_side_deco)

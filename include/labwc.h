@@ -178,6 +178,8 @@ void view_init_position(struct view *view);
 struct wlr_box view_get_surface_geometry(struct view *view);
 struct wlr_box view_geometry(struct view *view);
 void view_resize(struct view *view, struct wlr_box geo);
+void view_minimize(struct view *view);
+void view_unminimize(struct view *view);
 void view_focus(struct view *view);
 struct view *view_next(struct server *server, struct view *current);
 bool view_hasfocus(struct view *view);

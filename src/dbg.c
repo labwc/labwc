@@ -50,7 +50,7 @@ static void show_one_xwl_view(struct view *view)
 	} else {
 		fprintf(stderr, "-");
 	}
-	fprintf(stderr, "      %p.4 %s {%d,%d,%d,%d}\n", (void *)view,
+	fprintf(stderr, "      %p %s {%d,%d,%d,%d}\n", (void *)view,
 		view->xwayland_surface->class, view->xwayland_surface->x,
 		view->xwayland_surface->y, view->xwayland_surface->width,
 		view->xwayland_surface->height);

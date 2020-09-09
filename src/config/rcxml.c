@@ -243,7 +243,6 @@ static void post_processing(void)
 		info("loading default key bindings");
 		bind("A-Escape", "Exit");
 		bind("A-Tab", "NextWindow");
-		bind("A-F3", "Execute");
 	}
 
 	if (!rc.theme_name)

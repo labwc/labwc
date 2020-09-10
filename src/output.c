@@ -12,29 +12,69 @@ static void draw_rect(struct draw_data *d, struct wlr_box box)
 	wlr_render_rect(d->renderer, &box, d->rgba, d->transform_matrix);
 }
 
+static void draw_line(struct draw_data *d, int x1, int y1, int x2, int y2)
+{
+	struct wlr_box box = {
+		.x = x1,
+		.y = y1,
+		.width = abs(x2 - x1) + 1,
+		.height = abs(y2 - y1) + 1,
+	};
+	wlr_render_rect(d->renderer, &box, d->rgba, d->transform_matrix);
+}
+
+/* clang-format off */
+static void draw_rect_unfilled(struct draw_data *d, struct wlr_box box)
+{
+	draw_line(d, box.x, box.y, box.x + box.width - 1, box.y);
+	draw_line(d, box.x + box.width - 1, box.y, box.x + box.width - 1, box.y + box.height - 1);
+	draw_line(d, box.x, box.y + box.height - 1, box.x + box.width - 1, box.y + box.height - 1);
+	draw_line(d, box.x, box.y, box.x, box.y + box.height - 1);
+}
+/* clang-format on */
+
+static void shrink(struct wlr_box *box, int size)
+{
+	box->x += size;
+	box->y += size;
+	box->width -= 2 * size;
+	box->height -= 2 * size;
+}
+
 static void render_cycle_box(struct output *output)
 {
+	struct wlr_box box;
 	if (!output->server->cycle_view)
 		return;
 	struct view *view;
 	wl_list_for_each_reverse (view, &output->server->views, link) {
-		if (view != output->server->cycle_view)
-			continue;
-		struct wlr_box box;
-		if ((view->type == LAB_XWAYLAND_VIEW) ||
-		    !rc.client_side_decorations) {
-			box = deco_max_extents(view);
-		} else {
-			box.x = view->x;
-			box.y = view->y;
-			box.width = view->w;
-			box.height = view->h;
-		}
-		float cycle_color[] = { 0.0, 0.0, 0.0, 0.2 };
-		wlr_render_rect(output->server->renderer, &box, cycle_color,
-				output->wlr_output->transform_matrix);
-		return;
+		if (view == output->server->cycle_view)
+			goto render_it;
 	}
+	return;
+render_it:
+	if ((view->type == LAB_XWAYLAND_VIEW) || !rc.client_side_decorations) {
+		box = deco_max_extents(view);
+	} else {
+		box.x = view->x;
+		box.y = view->y;
+		box.width = view->w;
+		box.height = view->h;
+	}
+	struct draw_data dd = {
+		.renderer = view->server->renderer,
+		.transform_matrix = output->wlr_output->transform_matrix,
+	};
+	dd.rgba = (float[4]){ 1.0, 1.0, 1.0, 1.0 };
+	draw_rect_unfilled(&dd, box);
+	dd.rgba = (float[4]){ 0.0, 0.0, 0.0, 1.0 };
+	for (int i = 0; i < 4; i++) {
+		shrink(&box, 1);
+		draw_rect_unfilled(&dd, box);
+	}
+	dd.rgba = (float[4]){ 1.0, 1.0, 1.0, 1.0 };
+	shrink(&box, 1);
+	draw_rect_unfilled(&dd, box);
 }
 
 static void render_icon(struct draw_data *d, struct wlr_box box,
@@ -209,8 +249,7 @@ void output_frame(struct wl_listener *listener, void *data)
 	/* Render xwayland override_redirect surfaces */
 	struct xwayland_unmanaged *unmanaged;
 	wl_list_for_each_reverse (unmanaged,
-				  &output->server->unmanaged_surfaces,
-				  link) {
+				  &output->server->unmanaged_surfaces, link) {
 		struct render_data rdata = {
 			.output = output->wlr_output,
 			.output_layout = output->server->output_layout,

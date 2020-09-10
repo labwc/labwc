@@ -11,7 +11,7 @@ void info(const char *msg, ...)
 {
 	va_list params;
 	fprintf(stderr, LABWC_COLOR_YELLOW);
-	fprintf(stderr, "[labwc] info: ");
+	fprintf(stderr, "[labwc] ");
 	va_start(params, msg);
 	vfprintf(stderr, msg, params);
 	va_end(params);

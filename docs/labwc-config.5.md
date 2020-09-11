@@ -105,6 +105,7 @@ If no rc.xml file is found, the following default values will be used:
 
 - Alt+Escape: Exit labwc  
 - Alt+Tab: Cycle windows  
+- Alt+F2: Cycle windows (if running on X11 and alt-tab bind already exists)  
 - Alt+F3: Launch dmenu  
 
 # SEE ALSO

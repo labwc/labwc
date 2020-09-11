@@ -219,14 +219,17 @@ static void rcxml_init()
 	LIBXML_TEST_VERSION
 }
 
-static void bind(const char *binding, const char *action)
+static void bind(const char *binding, const char *action, const char *command)
 {
 	if (!binding || !action)
 		return;
 	struct keybind *k = keybind_create(binding);
-	if (k)
+	if (!k)
+		return;
+	if (action)
 		k->action = strdup(action);
-	info("binding %s: %s", binding, action);
+	if (command)
+		k->command = strdup(command);
 }
 
 static void set_title_height(void)
@@ -241,8 +244,10 @@ static void post_processing(void)
 {
 	if (!wl_list_length(&rc.keybinds)) {
 		info("loading default key bindings");
-		bind("A-Escape", "Exit");
-		bind("A-Tab", "NextWindow");
+		bind("A-Escape", "Exit", NULL);
+		bind("A-Tab", "NextWindow", NULL);
+		bind("A-F2", "NextWindow", NULL);
+		bind("A-F3", "Execute", "dmenu_run");
 	}
 
 	if (!rc.theme_name)

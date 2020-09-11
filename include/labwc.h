@@ -169,6 +169,7 @@ void xwayland_unmanaged_create(struct server *server,
 			       struct wlr_xwayland_surface *xsurface);
 
 void view_init_position(struct view *view);
+
 /**
  * view_get_surface_geometry - geometry relative to view
  * @view: toplevel containing the surface to process
@@ -180,12 +181,19 @@ struct wlr_box view_geometry(struct view *view);
 void view_resize(struct view *view, struct wlr_box geo);
 void view_minimize(struct view *view);
 void view_unminimize(struct view *view);
-void view_focus(struct view *view);
-struct view *view_next(struct server *server, struct view *current);
 bool view_hasfocus(struct view *view);
-struct view *view_at(struct server *server, double lx, double ly,
-		     struct wlr_surface **surface, double *sx, double *sy,
-		     int *view_area);
+
+void desktop_focus_view(struct view *view);
+
+/**
+ * desktop_next_view - return next view
+ * @current: view used as reference point for defining 'next'
+ * Note: If current==NULL, the list's second view is returned
+ */
+struct view *desktop_next_view(struct server *server, struct view *current);
+struct view *desktop_view_at(struct server *server, double lx, double ly,
+			     struct wlr_surface **surface, double *sx,
+			     double *sy, int *view_area);
 
 void seat_init(struct wlr_seat *seat);
 void seat_focus_surface(struct wlr_surface *surface);

@@ -61,12 +61,12 @@ static void keyboard_handle_key(struct wl_listener *listener, void *data)
 		if ((syms[0] == XKB_KEY_Alt_L) &&
 		    event->state == WLR_KEY_RELEASED) {
 			/* end cycle */
-			view_focus(server->cycle_view);
+			desktop_focus_view(server->cycle_view);
 			server->cycle_view = NULL;
 		} else if (event->state == WLR_KEY_PRESSED) {
 			/* cycle to next */
-			server->cycle_view = view_next(server,
-						       server->cycle_view);
+			server->cycle_view =
+				desktop_next_view(server, server->cycle_view);
 			return;
 		}
 	}

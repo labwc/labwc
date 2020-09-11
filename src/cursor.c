@@ -73,7 +73,7 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 	struct wlr_seat *seat = server->seat;
 	struct wlr_surface *surface = NULL;
 	int view_area;
-	struct view *view = view_at(server, server->cursor->x,
+	struct view *view = desktop_view_at(server, server->cursor->x,
 				    server->cursor->y, &surface, &sx, &sy,
 				    &view_area);
 	if (!view) {
@@ -188,7 +188,7 @@ void cursor_button(struct wl_listener *listener, void *data)
 	double sx, sy;
 	struct wlr_surface *surface;
 	int view_area;
-	struct view *view = view_at(server, server->cursor->x,
+	struct view *view = desktop_view_at(server, server->cursor->x,
 				    server->cursor->y, &surface, &sx, &sy,
 				    &view_area);
 	if (event->state == WLR_BUTTON_RELEASED) {
@@ -196,7 +196,7 @@ void cursor_button(struct wl_listener *listener, void *data)
 		server->cursor_mode = LAB_CURSOR_PASSTHROUGH;
 	} else {
 		/* Focus that client if the button was _pressed_ */
-		view_focus(view);
+		desktop_focus_view(view);
 		switch (view_area) {
 		case LAB_DECO_BUTTON_CLOSE:
 			view->impl->close(view);

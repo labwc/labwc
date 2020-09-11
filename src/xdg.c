@@ -141,14 +141,14 @@ static void xdg_toplevel_view_map(struct view *view)
 	wl_signal_add(&view->xdg_surface->surface->events.commit,
 		      &view->commit);
 	view->commit.notify = handle_commit;
-	view_focus(view);
+	desktop_focus_view(view);
 }
 
 static void xdg_toplevel_view_unmap(struct view *view)
 {
 	view->mapped = false;
 	wl_list_remove(&view->commit.link);
-	view_focus(view_next(view->server, view));
+	desktop_focus_view(desktop_next_view(view->server, view));
 }
 
 static const struct view_impl xdg_toplevel_view_impl = {

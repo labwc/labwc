@@ -80,14 +80,14 @@ static void map(struct view *view)
 		      &view->commit);
 	view->commit.notify = handle_commit;
 
-	view_focus(view);
+	desktop_focus_view(view);
 }
 
 static void unmap(struct view *view)
 {
 	view->mapped = false;
 	wl_list_remove(&view->commit.link);
-	view_focus(view_next(view->server, view));
+	desktop_focus_view(desktop_next_view(view->server, view));
 }
 
 static const struct view_impl xwl_view_impl = {

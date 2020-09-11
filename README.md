@@ -55,6 +55,13 @@ See full details in the following:
 
     ./build/labwc -s <some-application>
 
+If you have not created an rc.xml configuration file, default keybinds will be:
+
+- Alt-tab: cycle window
+- Alt-F2: cycle window
+- Alt-F3: launch dmenu (if installed)
+- Alt-escape: exit
+
 ## 5. Integrate
 
 Suggested apps to use with labwc:

@@ -103,8 +103,7 @@ char *find_dir(struct ctx *ctx)
 		}
 	}
 	/* no directory was found */
-	ctx->buf[0] = '.';
-	ctx->buf[1] = '\0';
+	ctx->buf[0] = '\0';
 	return ctx->buf;
 }
 

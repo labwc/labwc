@@ -23,7 +23,7 @@ void warn(const char *err, ...)
 {
 	va_list params;
 	fprintf(stderr, LABWC_COLOR_RED);
-	fprintf(stderr, "[labwc] warning: ");
+	fprintf(stderr, "[labwc] ");
 	va_start(params, err);
 	vfprintf(stderr, err, params);
 	va_end(params);

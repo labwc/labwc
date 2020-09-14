@@ -118,19 +118,22 @@ void theme_builtin(void)
 
 void theme_read(const char *theme_name)
 {
-	FILE *stream;
+	FILE *stream = NULL;
 	char *line = NULL;
 	size_t len = 0;
 	char themerc[4096];
 
-	snprintf(themerc, sizeof(themerc), "%s/themerc", theme_dir(theme_name));
-	info("reading themerc (%s)", themerc);
-	stream = fopen(themerc, "r");
+	if (strlen(theme_dir(theme_name))) {
+		snprintf(themerc, sizeof(themerc), "%s/themerc",
+			 theme_dir(theme_name));
+		stream = fopen(themerc, "r");
+	}
 	if (!stream) {
-		warn("cannot read (%s) - load built-in theme", themerc);
+		warn("cannot find theme (%s), using built-in", theme_name);
 		theme_builtin();
 		return;
 	}
+	info("reading themerc (%s)", themerc);
 	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');
 		if (p)

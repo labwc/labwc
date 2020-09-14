@@ -260,12 +260,11 @@ static void post_processing(void)
 	set_title_height();
 }
 
-static void rcxml_path(char *buf, size_t len, const char *filename)
+static void rcxml_path(char *buf, size_t len)
 {
-	if (filename)
-		snprintf(buf, len, "%s", filename);
-	else
-		snprintf(buf, len, "%s/rc.xml", config_dir());
+	if (!strlen(config_dir()))
+		return;
+	snprintf(buf, len, "%s/rc.xml", config_dir());
 }
 
 void rcxml_read(const char *filename)
@@ -274,7 +273,7 @@ void rcxml_read(const char *filename)
 	char *line = NULL;
 	size_t len = 0;
 	struct buf b;
-	char rcxml[4096];
+	char rcxml[4096] = { 0 };
 
 	rcxml_init();
 	wl_list_init(&rc.keybinds);
@@ -283,13 +282,20 @@ void rcxml_read(const char *filename)
 	 * Reading file into buffer before parsing makes it easier to write
 	 * unit tests.
 	 */
-	rcxml_path(rcxml, sizeof(rcxml), filename);
-	info("reading config file (%s)", rcxml);
+	if (filename)
+		snprintf(rcxml, sizeof(rcxml), "%s", filename);
+	else
+		rcxml_path(rcxml, sizeof(rcxml));
+	if (rcxml[0] == '\0') {
+		warn("cannot find rc.xml config file");
+		goto no_config;
+	}
 	stream = fopen(rcxml, "r");
 	if (!stream) {
 		warn("cannot read (%s)", rcxml);
-		goto out;
+		goto no_config;
 	}
+	info("reading config file (%s)", rcxml);
 	buf_init(&b);
 	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');
@@ -301,7 +307,7 @@ void rcxml_read(const char *filename)
 	fclose(stream);
 	rcxml_parse_xml(&b);
 	free(b.buf);
-out:
+no_config:
 	post_processing();
 }
 

@@ -84,11 +84,3 @@ void view_unminimize(struct view *view)
 	view->minimized = false;
 	view->impl->map(view);
 }
-
-bool view_hasfocus(struct view *view)
-{
-	if (!view || !view->surface)
-		return false;
-	struct wlr_seat *seat = view->server->seat;
-	return (view->surface == seat->keyboard_state.focused_surface);
-}

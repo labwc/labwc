@@ -103,13 +103,13 @@ static void render_decorations(struct wlr_output *output, struct view *view)
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_BOTTOM));
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_LEFT));
 
-	if (view_hasfocus(view))
+	if (view->surface == seat_focused_surface())
 		ddata.rgba = theme.window_active_title_bg_color;
 	else
 		ddata.rgba = theme.window_inactive_title_bg_color;
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_TITLE));
 
-	if (view_hasfocus(view)) {
+	if (view->surface == seat_focused_surface()) {
 		render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_CLOSE),
 			    theme.xbm_close_active_unpressed);
 		render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_MAXIMIZE),

@@ -42,28 +42,18 @@ static void set_activated(struct wlr_surface *surface, bool activated)
 	if (!surface)
 		return;
 	if (wlr_surface_is_xdg_surface(surface)) {
-		struct wlr_xdg_surface *previous;
-		previous = wlr_xdg_surface_from_wlr_surface(surface);
-		wlr_xdg_toplevel_set_activated(previous, activated);
-	} else {
-		struct wlr_xwayland_surface *previous;
-		previous = wlr_xwayland_surface_from_wlr_surface(surface);
-		wlr_xwayland_surface_activate(previous, activated);
+		struct wlr_xdg_surface *s;
+		s = wlr_xdg_surface_from_wlr_surface(surface);
+		wlr_xdg_toplevel_set_activated(s, activated);
+	} else if (wlr_surface_is_xwayland_surface(surface)) {
+		struct wlr_xwayland_surface *s;
+		s = wlr_xwayland_surface_from_wlr_surface(surface);
+		wlr_xwayland_surface_activate(s, activated);
 	}
 }
 
-void desktop_focus_view(struct view *view)
+static void focus_view(struct view *view)
 {
-	/* Note: this function only deals with keyboard focus. */
-	if (!view)
-		return;
-
-	/* TODO: messy - sort out */
-	if (!view->mapped && view->minimized) {
-		view_unminimize(view);
-		return;
-	}
-
 	struct server *server = view->server;
 	struct wlr_seat *seat = server->seat;
 	struct wlr_surface *prev_surface;
@@ -71,14 +61,6 @@ void desktop_focus_view(struct view *view)
 	if (prev_surface == view->surface) {
 		/* Don't re-focus an already focused surface. */
 		return;
-	}
-	if (view->type == LAB_XWAYLAND_VIEW) {
-		/* Don't focus on menus, etc */
-		move_to_front(view);
-		if (!wlr_xwayland_or_surface_wants_focus(
-			    view->xwayland_surface)) {
-			return;
-		}
 	}
 	if (prev_surface)
 		set_activated(seat->keyboard_state.focused_surface, false);
@@ -93,11 +75,21 @@ void desktop_focus_view(struct view *view)
 	move_xwayland_sub_views_to_front(view);
 }
 
+void desktop_focus_view(struct view *view)
+{
+	if (!view)
+		return;
+	if (view->minimized)
+		view_unminimize(view); /* this will unmap+focus */
+	else if (view->mapped)
+		focus_view(view);
+}
+
 /*
  * Some xwayland apps produce unmapped surfaces on startup and also leave
  * some unmapped surfaces kicking around on 'close' (for example * leafpad's
  * "about" dialogue). Whilst this is not normally a problem, we have to be
- * careful when cycling between views. The only view's we should focus are
+ * careful when cycling between views. The only views we should focus are
  * those that are already mapped and those that have been minimized.
  */
 static bool isfocusable(struct view *view)

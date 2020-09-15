@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	unlink(template);
 
 	diag("Simple parse rc.xml");
-	ok1(rc.client_side_decorations);
+	ok1(rc.xdg_shell_server_side_deco);
 
 	rcxml_finish();
 	pango_cairo_font_map_set_default(NULL);

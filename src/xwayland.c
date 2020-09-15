@@ -69,7 +69,7 @@ static void map(struct view *view)
 	view->w = view->xwayland_surface->width;
 	view->h = view->xwayland_surface->height;
 	view->surface = view->xwayland_surface->surface;
-	view->show_server_side_deco = want_deco(view);
+	view->server_side_deco = want_deco(view);
 
 	view->margin = deco_max_extents(view);
 

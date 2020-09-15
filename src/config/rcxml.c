@@ -120,8 +120,8 @@ static void entry(xmlNode *node, char *nodename, char *content)
 	if (is_attribute && !strcmp(nodename, "place.font.theme"))
 		font_place = enum_font_place(content);
 
-	if (!strcmp(nodename, "csd.lab"))
-		rc.client_side_decorations = get_bool(content);
+	if (!strcmp(nodename, "xdg_shell_server_side_deco.lab"))
+		rc.xdg_shell_server_side_deco = get_bool(content);
 	else if (!strcmp(nodename, "layout.keyboard.lab"))
 		setenv("XKB_DEFAULT_LAYOUT", content, 1);
 	else if (!strcmp(nodename, "name.theme"))
@@ -240,6 +240,12 @@ static void set_title_height(void)
 	rc.title_height = font_height(buf);
 }
 
+static void pre_processing(void)
+{
+	rc.xdg_shell_server_side_deco = true;
+	rc.font_size_activewindow = 8;
+}
+
 static void post_processing(void)
 {
 	if (!wl_list_length(&rc.keybinds)) {
@@ -255,8 +261,6 @@ static void post_processing(void)
 	if (!rc.font_name_activewindow)
 		rc.font_name_activewindow = strdup("sans");
 
-	if (!rc.font_size_activewindow)
-		rc.font_size_activewindow = 8;
 	set_title_height();
 }
 
@@ -277,6 +281,7 @@ void rcxml_read(const char *filename)
 
 	rcxml_init();
 	wl_list_init(&rc.keybinds);
+	pre_processing();
 
 	/*
 	 * Reading file into buffer before parsing makes it easier to write

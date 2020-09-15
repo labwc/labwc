@@ -8,7 +8,7 @@
 #include "common/buf.h"
 
 struct rcxml {
-	bool client_side_decorations;
+	bool xdg_shell_server_side_deco;
 	char *theme_name;
 	char *font_name_activewindow;
 	int font_size_activewindow;

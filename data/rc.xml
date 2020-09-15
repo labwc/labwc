@@ -5,8 +5,8 @@
 
 <!-- labwc specific settings - additional to openbox -->
 <lab>
-  <!-- Use client-side decorations for xdg-shell views -->
-  <csd>no</csd>
+  <!-- Use server-side decorations for xdg-shell views where CSD can be disabled -->
+  <xdg_shell_server_side_deco>yes</xdg_shell_server_side_deco>
 
   <!-- See xkeyboard-config(7) for details on these keyboard settings -->
   <keyboard>

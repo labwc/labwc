@@ -217,7 +217,7 @@ void server_init(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 	wlr_server_decoration_manager_set_default_mode(
-		deco_mgr, !rc.client_side_decorations ?
+		deco_mgr, rc.xdg_shell_server_side_deco ?
 				  WLR_SERVER_DECORATION_MANAGER_MODE_SERVER :
 				  WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT);
 

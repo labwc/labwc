@@ -86,7 +86,7 @@ static void render_icon(struct draw_data *d, struct wlr_box box,
 
 static void render_decorations(struct wlr_output *output, struct view *view)
 {
-	if (!view->show_server_side_deco)
+	if (!view->server_side_deco)
 		return;
 	struct draw_data ddata = {
 		.renderer = view->server->renderer,

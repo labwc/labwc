@@ -147,7 +147,7 @@ struct view {
 
 	int xdg_grab_offset;
 
-	bool show_server_side_deco;
+	bool server_side_deco;
 
 	struct wl_listener map;
 	struct wl_listener unmap;

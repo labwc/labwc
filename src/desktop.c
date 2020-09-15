@@ -182,7 +182,7 @@ struct view *desktop_view_at(struct server *server, double lx, double ly,
 			continue;
 		if (_view_at(view, lx, ly, surface, sx, sy))
 			return view;
-		if (!view->show_server_side_deco)
+		if (!view->server_side_deco)
 			continue;
 		*view_area = deco_at(view, lx, ly);
 		if (*view_area != LAB_DECO_NONE)

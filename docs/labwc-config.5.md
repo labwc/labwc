@@ -1,6 +1,6 @@
 % labwc-config(5)
 % Johan Malm
-% 31 Aug, 2020
+% 15 Sept, 2020
 
 # NAME
 
@@ -22,15 +22,16 @@ be searched for in the following order:
 Labwc specific settings which are not present in Openbox.
 
     <lab>
-      <csd></csd>
+      <xdg_shell_server_side_deco></xdg_shell_server_side_deco>
       <keyboard>
         <layout></layout>
       </keyboard>
     </lab>
 
-`csd` (__boolean__; default no)
+`xdg_shell_server_side_deco` (__boolean__; default yes)
 
-:   Use client-side decorations for xdg-shell views.
+:   Use server-side decorations for xdg-shell views where it is possible to
+    turn of CSD
 
 `keyboard-layout` (__string__; not set by default)
 

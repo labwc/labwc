@@ -23,7 +23,7 @@ static void xdg_deco_request_mode(struct wl_listener *listener, void *data)
 	struct xdg_deco *xdg_deco;
 	xdg_deco = wl_container_of(listener, xdg_deco, request_mode);
 	enum wlr_xdg_toplevel_decoration_v1_mode mode;
-	if (!rc.client_side_decorations)
+	if (rc.xdg_shell_server_side_deco)
 		mode = WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
 	else
 		mode = WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
@@ -50,7 +50,7 @@ void xdg_toplevel_decoration(struct wl_listener *listener, void *data)
 
 static bool has_ssd(struct view *view)
 {
-	if (rc.client_side_decorations)
+	if (!rc.xdg_shell_server_side_deco)
 		return false;
 
 	/*
@@ -147,8 +147,8 @@ static void xdg_toplevel_view_map(struct view *view)
 	view->mapped = true;
 	view->surface = view->xdg_surface->surface;
 	if (!view->been_mapped) {
-		view->show_server_side_deco = has_ssd(view);
-		if (view->show_server_side_deco) {
+		view->server_side_deco = has_ssd(view);
+		if (view->server_side_deco) {
 			view->margin = deco_max_extents(view);
 		} else {
 			view->margin = xdg_shell_border(view);

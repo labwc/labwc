@@ -10,17 +10,17 @@
 #include "common/bug-on.h"
 #include "common/log.h"
 
-#define BORDER_WIDTH (1)
+#define BORDER_WIDTH (2)
 
-struct wlr_box deco_max_extents(struct view *view)
+struct border deco_max_extents(struct view *view)
 {
-	struct wlr_box box = {
-		.x = view->x - BORDER_WIDTH,
-		.y = view->y - rc.title_height - BORDER_WIDTH,
-		.width = view->w + 2 * BORDER_WIDTH,
-		.height = view->h + rc.title_height + 2 * BORDER_WIDTH,
+	struct border border = {
+		.top = rc.title_height + BORDER_WIDTH,
+		.bottom = BORDER_WIDTH,
+		.left = BORDER_WIDTH,
+		.right = BORDER_WIDTH,
 	};
-	return box;
+	return border;
 }
 
 struct wlr_box deco_box(struct view *view, enum deco_part deco_part)

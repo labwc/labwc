@@ -14,6 +14,9 @@ void interactive_begin(struct view *view, enum cursor_mode mode, uint32_t edges)
 	/* Remember view and cursor positions at start of move/resize */
 	server->grab_x = server->cursor->x;
 	server->grab_y = server->cursor->y;
-	server->grab_box = view_geometry(view);
+	struct wlr_box box = {
+		.x = view->x, .y = view->y, .width = view->w, .height = view->h
+	};
+	memcpy(&server->grab_box, &box, sizeof(struct wlr_box));
 	server->resize_edges = edges;
 }

@@ -153,11 +153,8 @@ static bool _view_at(struct view *view, double lx, double ly,
 			view->xdg_surface, view_sx, view_sy, &_sx, &_sy);
 		break;
 	case LAB_XWAYLAND_VIEW:
-		if (!view->xwayland_surface->surface)
-			return false;
-		_surface =
-			wlr_surface_surface_at(view->xwayland_surface->surface,
-					       view_sx, view_sy, &_sx, &_sy);
+		_surface = wlr_surface_surface_at(view->surface, view_sx,
+						  view_sy, &_sx, &_sy);
 		break;
 	}
 

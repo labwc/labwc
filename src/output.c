@@ -53,14 +53,10 @@ static void render_cycle_box(struct output *output)
 	}
 	return;
 render_it:
-	if ((view->type == LAB_XWAYLAND_VIEW) || !rc.client_side_decorations) {
-		box = deco_max_extents(view);
-	} else {
-		box.x = view->x;
-		box.y = view->y;
-		box.width = view->w;
-		box.height = view->h;
-	}
+	box.x = view->x - view->margin.left;
+	box.y = view->y - view->margin.top;
+	box.width = view->w + view->margin.left + view->margin.right;
+	box.height = view->h + view->margin.top + view->margin.bottom;
 	struct draw_data dd = {
 		.renderer = view->server->renderer,
 		.transform_matrix = output->wlr_output->transform_matrix,

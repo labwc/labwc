@@ -112,6 +112,13 @@ struct view_impl {
 	void (*unmap)(struct view *view);
 };
 
+struct border {
+	int top;
+	int right;
+	int bottom;
+	int left;
+};
+
 struct view {
 	struct server *server;
 	enum view_type type;
@@ -127,7 +134,19 @@ struct view {
 	bool mapped;
 	bool been_mapped;
 	bool minimized;
+
+	/* geometry of the wlr_surface contained within the view */
 	int x, y, w, h;
+
+	/*
+	 * margin refers to the space between the extremities of the view and
+	 * wlr_surface - typically made up of decoration.
+	 * For xdg-shell views, the margin is typically negative.
+	 */
+	struct border margin;
+
+	int xdg_grab_offset;
+
 	bool show_server_side_deco;
 
 	struct wl_listener map;
@@ -168,8 +187,6 @@ void xwayland_surface_new(struct wl_listener *listener, void *data);
 void xwayland_unmanaged_create(struct server *server,
 			       struct wlr_xwayland_surface *xsurface);
 
-void view_init_position(struct view *view);
-
 /**
  * view_get_surface_geometry - geometry relative to view
  * @view: toplevel containing the surface to process
@@ -181,7 +198,6 @@ struct wlr_box view_geometry(struct view *view);
 void view_resize(struct view *view, struct wlr_box geo);
 void view_minimize(struct view *view);
 void view_unminimize(struct view *view);
-bool view_hasfocus(struct view *view);
 
 void desktop_focus_view(struct view *view);
 
@@ -218,7 +234,7 @@ void keyboard_new(struct server *server, struct wlr_input_device *device);
 void output_frame(struct wl_listener *listener, void *data);
 void output_new(struct wl_listener *listener, void *data);
 
-struct wlr_box deco_max_extents(struct view *view);
+struct border deco_max_extents(struct view *view);
 struct wlr_box deco_box(struct view *view, enum deco_part deco_part);
 enum deco_part deco_at(struct view *view, double lx, double ly);
 

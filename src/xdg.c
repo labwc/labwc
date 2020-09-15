@@ -129,18 +129,41 @@ static void xdg_toplevel_view_close(struct view *view)
 	wlr_xdg_toplevel_send_close(view->xdg_surface);
 }
 
+static struct border xdg_shell_border(struct view *view)
+{
+	struct wlr_box box;
+	wlr_xdg_surface_get_geometry(view->xdg_surface, &box);
+	struct border border = {
+		.top = -box.y,
+		.bottom = -box.y,
+		.left = -box.x,
+		.right = -box.x,
+	};
+	return border;
+}
+
 static void xdg_toplevel_view_map(struct view *view)
 {
 	view->mapped = true;
 	view->surface = view->xdg_surface->surface;
 	if (!view->been_mapped) {
 		view->show_server_side_deco = has_ssd(view);
-		view_init_position(view);
+		if (view->show_server_side_deco) {
+			view->margin = deco_max_extents(view);
+		} else {
+			view->margin = xdg_shell_border(view);
+			view->xdg_grab_offset = -view->margin.left;
+		}
+		/* align to edge of screen */
+		view->x += view->margin.left;
+		view->y += view->margin.top;
 	}
 	view->been_mapped = true;
+
 	wl_signal_add(&view->xdg_surface->surface->events.commit,
 		      &view->commit);
 	view->commit.notify = handle_commit;
+
 	desktop_focus_view(view);
 }
 

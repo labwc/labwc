@@ -30,7 +30,9 @@ static void process_cursor_resize(struct server *server, uint32_t time)
 	double dy = server->cursor->y - server->grab_y;
 
 	struct view *view = server->grabbed_view;
-	struct wlr_box new_view_geo = view_geometry(view);
+	struct wlr_box new_view_geo = {
+		.x = view->x, .y = view->y, .width = view->w, .height = view->h
+	};
 
 	if (server->resize_edges & WLR_EDGE_TOP) {
 		new_view_geo.y = server->grab_box.y + dy;
@@ -53,6 +55,8 @@ static void process_cursor_resize(struct server *server, uint32_t time)
 	view->y = new_view_geo.y;
 
 	/* Resize */
+	new_view_geo.width -= 2 * view->xdg_grab_offset;
+	new_view_geo.height -= 2 * view->xdg_grab_offset;
 	view_resize(view, new_view_geo);
 }
 
@@ -74,8 +78,8 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 	struct wlr_surface *surface = NULL;
 	int view_area;
 	struct view *view = desktop_view_at(server, server->cursor->x,
-				    server->cursor->y, &surface, &sx, &sy,
-				    &view_area);
+					    server->cursor->y, &surface, &sx,
+					    &sy, &view_area);
 	if (!view) {
 		/* If there's no view under the cursor, set the cursor image to
 		 * a default. This is what makes the cursor image appear when
@@ -83,6 +87,8 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 		wlr_xcursor_manager_set_cursor_image(
 			server->cursor_mgr, XCURSOR_DEFAULT, server->cursor);
 	}
+
+	/* TODO: Could we use wlr_xcursor_get_resize_name() here?? */
 	switch (view_area) {
 	case LAB_DECO_PART_TITLE:
 		wlr_xcursor_manager_set_cursor_image(
@@ -189,8 +195,8 @@ void cursor_button(struct wl_listener *listener, void *data)
 	struct wlr_surface *surface;
 	int view_area;
 	struct view *view = desktop_view_at(server, server->cursor->x,
-				    server->cursor->y, &surface, &sx, &sy,
-				    &view_area);
+					    server->cursor->y, &surface, &sx,
+					    &sy, &view_area);
 	if (event->state == WLR_BUTTON_RELEASED) {
 		/* Exit interactive move/resize mode. */
 		server->cursor_mode = LAB_CURSOR_PASSTHROUGH;

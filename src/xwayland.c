@@ -55,12 +55,10 @@ static void _close(struct view *view)
 	wlr_xwayland_surface_close(view->xwayland_surface);
 }
 
-static bool want_ssd(struct view *view)
+static bool want_deco(struct view *view)
 {
-	if (view->xwayland_surface->decorations !=
-	    WLR_XWAYLAND_SURFACE_DECORATIONS_ALL)
-		return false;
-	return true;
+	return view->xwayland_surface->decorations ==
+	       WLR_XWAYLAND_SURFACE_DECORATIONS_ALL;
 }
 
 static void map(struct view *view)
@@ -68,12 +66,20 @@ static void map(struct view *view)
 	view->mapped = true;
 	view->x = view->xwayland_surface->x;
 	view->y = view->xwayland_surface->y;
+	view->w = view->xwayland_surface->width;
+	view->h = view->xwayland_surface->height;
 	view->surface = view->xwayland_surface->surface;
-	if (!view->been_mapped) {
-		view->show_server_side_deco = want_ssd(view);
-		view_init_position(view);
-	}
-	view->been_mapped = true;
+	view->show_server_side_deco = want_deco(view);
+
+	view->margin = deco_max_extents(view);
+
+	/* ensure we're inside screen */
+	view->x += view->margin.left;
+	view->y += view->margin.top;
+	struct wlr_box box = {
+		.x = view->x, .y = view->y, .width = view->w, .height = view->h
+	};
+	view->impl->configure(view, box);
 
 	/* Add commit here, as xwayland map/unmap can change the wlr_surface */
 	wl_signal_add(&view->xwayland_surface->surface->events.commit,

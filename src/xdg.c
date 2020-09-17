@@ -149,7 +149,7 @@ static void xdg_toplevel_view_map(struct view *view)
 	if (!view->been_mapped) {
 		view->server_side_deco = has_ssd(view);
 		if (view->server_side_deco) {
-			view->margin = deco_max_extents(view);
+			view->margin = deco_thickness(view);
 		} else {
 			view->margin = xdg_shell_border(view);
 			view->xdg_grab_offset = -view->margin.left;

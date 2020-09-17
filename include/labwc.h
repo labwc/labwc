@@ -234,7 +234,8 @@ void keyboard_new(struct server *server, struct wlr_input_device *device);
 void output_frame(struct wl_listener *listener, void *data);
 void output_new(struct wl_listener *listener, void *data);
 
-struct border deco_max_extents(struct view *view);
+struct border deco_thickness(struct view *view);
+struct wlr_box deco_max_extents(struct view *view);
 struct wlr_box deco_box(struct view *view, enum deco_part deco_part);
 enum deco_part deco_at(struct view *view, double lx, double ly);
 

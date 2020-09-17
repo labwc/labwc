@@ -61,6 +61,19 @@ static bool want_deco(struct view *view)
 	       WLR_XWAYLAND_SURFACE_DECORATIONS_ALL;
 }
 
+static void top_left_edge_boundary_check(struct view *view)
+{
+	struct wlr_box deco = deco_max_extents(view);
+	if (deco.x < 0)
+		view->x -= deco.x;
+	if (deco.y < 0)
+		view->y -= deco.y;
+	struct wlr_box box = {
+		.x = view->x, .y = view->y, .width = view->w, .height = view->h
+	};
+	view->impl->configure(view, box);
+}
+
 static void map(struct view *view)
 {
 	view->mapped = true;
@@ -71,15 +84,9 @@ static void map(struct view *view)
 	view->surface = view->xwayland_surface->surface;
 	view->server_side_deco = want_deco(view);
 
-	view->margin = deco_max_extents(view);
+	view->margin = deco_thickness(view);
 
-	/* ensure we're inside screen */
-	view->x += view->margin.left;
-	view->y += view->margin.top;
-	struct wlr_box box = {
-		.x = view->x, .y = view->y, .width = view->w, .height = view->h
-	};
-	view->impl->configure(view, box);
+	top_left_edge_boundary_check(view);
 
 	/* Add commit here, as xwayland map/unmap can change the wlr_surface */
 	wl_signal_add(&view->xwayland_surface->surface->events.commit,

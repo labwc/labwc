@@ -12,7 +12,7 @@
 
 #define BORDER_WIDTH (2)
 
-struct border deco_max_extents(struct view *view)
+struct border deco_thickness(struct view *view)
 {
 	struct border border = {
 		.top = rc.title_height + BORDER_WIDTH,
@@ -23,16 +23,24 @@ struct border deco_max_extents(struct view *view)
 	return border;
 }
 
+struct wlr_box deco_max_extents(struct view *view)
+{
+	struct border border = deco_thickness(view);
+	struct wlr_box box = {
+		.x = view->x - border.left,
+		.y = view->y - border.top,
+		.width = view->w + border.left + border.right,
+		.height = view->h + border.top + border.bottom,
+	};
+	return box;
+}
+
 struct wlr_box deco_box(struct view *view, enum deco_part deco_part)
 {
 	int margin;
 
 	struct wlr_box box = { .x = 0, .y = 0, .width = 0, .height = 0 };
 	BUG_ON(!view);
-	if ((view->w < 1) || (view->h < 1)) {
-		warn("view (%p) has no width/height", view);
-		return box;
-	}
 	switch (deco_part) {
 	case LAB_DECO_BUTTON_CLOSE:
 		wlr_texture_get_size(theme.xbm_close_active_unpressed,

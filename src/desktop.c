@@ -77,8 +77,10 @@ static void focus_view(struct view *view)
 
 void desktop_focus_view(struct view *view)
 {
-	if (!view)
+	if (!view) {
+		seat_focus_surface(NULL);
 		return;
+	}
 	if (view->minimized)
 		view_unminimize(view); /* this will unmap+focus */
 	else if (view->mapped)
@@ -100,7 +102,7 @@ static bool isfocusable(struct view *view)
 	return (view->mapped || view->minimized);
 }
 
-static int has_focusable_view(struct wl_list *wl_list)
+static bool has_focusable_view(struct wl_list *wl_list)
 {
 	struct view *view;
 	wl_list_for_each (view, wl_list, link) {
@@ -129,6 +131,35 @@ struct view *desktop_next_view(struct server *server, struct view *current)
 		view = wl_container_of(view->link.next, view, link);
 	} while (&view->link == &server->views || !isfocusable(view));
 	return view;
+}
+
+static bool has_mapped_view(struct wl_list *wl_list)
+{
+	struct view *view;
+	wl_list_for_each (view, wl_list, link) {
+		if (view->mapped)
+			return true;
+	}
+	return false;
+}
+
+struct view *desktop_next_mapped_view(struct view *current)
+{
+	BUG_ON(!current);
+	struct server *server = current->server;
+	if (!has_mapped_view(&server->views))
+		return NULL;
+	struct view *view = first_view(server);
+	do {
+		view = wl_container_of(view->link.next, view, link);
+	} while (&view->link == &server->views || !view->mapped);
+	return view;
+}
+void desktop_focus_next_mapped_view(struct view *current)
+{
+	BUG_ON(!current);
+	struct view *view = desktop_next_mapped_view(current);
+	desktop_focus_view(view);
 }
 
 static bool _view_at(struct view *view, double lx, double ly,

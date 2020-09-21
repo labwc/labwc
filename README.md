@@ -58,7 +58,7 @@ See full details in the following:
 If you have not created an rc.xml configuration file, default keybinds will be:
 
 - Alt-tab: cycle window
-- Alt-F2: cycle window
+- Alt-F2: cycle window (useful if running under X11 and alt-tab is already bound to something)
 - Alt-F3: launch dmenu (if installed)
 - Alt-escape: exit
 
@@ -67,6 +67,7 @@ If you have not created an rc.xml configuration file, default keybinds will be:
 Suggested apps to use with labwc:
 
 - [grim](https://github.com/emersion/grim) - Take screenshot
+- [wf-recorder](https://github.com/ammen99/wf-recorder) - Record screen
 
 ## 6. Roadmap
 

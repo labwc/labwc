@@ -37,31 +37,26 @@ struct wlr_box deco_max_extents(struct view *view)
 
 struct wlr_box deco_box(struct view *view, enum deco_part deco_part)
 {
-	int margin;
-
 	struct wlr_box box = { .x = 0, .y = 0, .width = 0, .height = 0 };
 	BUG_ON(!view);
 	switch (deco_part) {
 	case LAB_DECO_BUTTON_CLOSE:
-		wlr_texture_get_size(theme.xbm_close_active_unpressed,
-				     &box.width, &box.height);
-		margin = (rc.title_height - box.height) / 2;
-		box.x = view->x + view->w + margin - rc.title_height;
-		box.y = view->y - rc.title_height + margin;
+		box.width = rc.title_height;
+		box.height = rc.title_height;
+		box.x = view->x + view->w - rc.title_height;
+		box.y = view->y - rc.title_height;
 		break;
 	case LAB_DECO_BUTTON_MAXIMIZE:
-		wlr_texture_get_size(theme.xbm_maximize_active_unpressed,
-				     &box.width, &box.height);
-		margin = (rc.title_height - box.height) / 2;
-		box.x = view->x + view->w + margin - rc.title_height * 2;
-		box.y = view->y - rc.title_height + margin;
+		box.width = rc.title_height;
+		box.height = rc.title_height;
+		box.x = view->x + view->w - rc.title_height * 2;
+		box.y = view->y - rc.title_height;
 		break;
 	case LAB_DECO_BUTTON_ICONIFY:
-		wlr_texture_get_size(theme.xbm_iconify_active_unpressed,
-				     &box.width, &box.height);
-		margin = (rc.title_height - box.height) / 2;
-		box.x = view->x + view->w + margin - rc.title_height * 3;
-		box.y = view->y - rc.title_height + margin;
+		box.width = rc.title_height;
+		box.height = rc.title_height;
+		box.x = view->x + view->w - rc.title_height * 3;
+		box.y = view->y - rc.title_height;
 		break;
 	case LAB_DECO_PART_TITLE:
 		box.x = view->x;

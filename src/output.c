@@ -79,9 +79,33 @@ static void render_icon(struct draw_data *d, struct wlr_box box,
 	if (!texture)
 		return;
 	float matrix[9];
-	wlr_matrix_project_box(matrix, &box, WL_OUTPUT_TRANSFORM_NORMAL, 0,
+
+	/* centre-align icon if smaller than designated box */
+	struct wlr_box button;
+	wlr_texture_get_size(texture, &button.width, &button.height);
+	if (box.width > button.width) {
+		button.x = box.x + (box.width - button.width) / 2;
+	} else {
+		button.x = box.x;
+		button.width = box.width;
+	}
+	if (box.height > button.height) {
+		button.y = box.y + (box.height - button.height) / 2;
+	} else {
+		button.y = box.y;
+		button.height = box.height;
+	}
+
+	wlr_matrix_project_box(matrix, &button, WL_OUTPUT_TRANSFORM_NORMAL, 0,
 			       d->transform_matrix);
 	wlr_render_texture_with_matrix(d->renderer, texture, matrix, 1);
+}
+
+static bool isbutton(enum deco_part deco_part)
+{
+	return deco_part == LAB_DECO_BUTTON_CLOSE ||
+	       deco_part == LAB_DECO_BUTTON_MAXIMIZE ||
+	       deco_part == LAB_DECO_BUTTON_ICONIFY;
 }
 
 static void render_decorations(struct wlr_output *output, struct view *view)
@@ -93,18 +117,32 @@ static void render_decorations(struct wlr_output *output, struct view *view)
 		.transform_matrix = output->transform_matrix,
 	};
 
+	/* border */
 	ddata.rgba = theme.window_active_handle_bg_color;
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_TOP));
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_RIGHT));
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_BOTTOM));
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_LEFT));
 
+	/* title */
 	if (view->surface == seat_focused_surface())
 		ddata.rgba = theme.window_active_title_bg_color;
 	else
 		ddata.rgba = theme.window_inactive_title_bg_color;
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_TITLE));
 
+	/* button background */
+	struct wlr_cursor *cur = view->server->cursor;
+	enum deco_part deco_part = deco_at(view, cur->x, cur->y);
+
+	struct wlr_box box = deco_box(view, deco_part);
+	if (isbutton(deco_part) &&
+	    wlr_box_contains_point(&box, cur->x, cur->y)) {
+		ddata.rgba = (float[4]){ 0.5, 0.5, 0.5, 0.5 };
+		draw_rect(&ddata, deco_box(view, deco_part));
+	}
+
+	/* buttons */
 	if (view->surface == seat_focused_surface()) {
 		render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_CLOSE),
 			    theme.xbm_close_active_unpressed);

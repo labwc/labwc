@@ -90,9 +90,7 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 
 	/* TODO: Could we use wlr_xcursor_get_resize_name() here?? */
 	switch (view_area) {
-	case LAB_DECO_PART_TITLE:
-		wlr_xcursor_manager_set_cursor_image(
-			server->cursor_mgr, XCURSOR_DEFAULT, server->cursor);
+	case LAB_DECO_NONE:
 		break;
 	case LAB_DECO_PART_TOP:
 		wlr_xcursor_manager_set_cursor_image(
@@ -109,6 +107,10 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 	case LAB_DECO_PART_LEFT:
 		wlr_xcursor_manager_set_cursor_image(
 			server->cursor_mgr, "left_side", server->cursor);
+		break;
+	default:
+		wlr_xcursor_manager_set_cursor_image(
+			server->cursor_mgr, XCURSOR_DEFAULT, server->cursor);
 		break;
 	}
 	if (surface) {

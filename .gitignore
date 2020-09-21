@@ -3,3 +3,4 @@ xdg-shell-protocol.*
 labwc
 build*/
 subprojects/
+tags

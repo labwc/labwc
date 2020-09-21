@@ -74,13 +74,22 @@ Suggested apps to use with labwc:
 - [x] Parse [rc.xml](data/rc.xml)
 - [x] Parse [themerc](data/themes/labwc-default/openbox-3/themerc)
 - [x] Read xbm icons
-- [x] Show maximize, iconify, close buttons (maximize function not supported yet)
-- [ ] Add grip
-- [ ] Support layer-shell background layer for use with swaybg
-- [ ] Catching SIGHUP for --reconfigure
+- [x] Show maximize, iconify, close buttons
+- [ ] Support 'maximize'
+- [ ] Show window title
+- [ ] Catch SIGHUP for --reconfigure
+- [ ] Read ~/.config/labwc/autostart
+- [ ] Read ~/.config/labwc/environment (useful for XKB environment variables)
+- [ ] Support layer-shell protocol (e.g. for setting background with swaybg).
+- [ ] Support foreign-toplevel protocol (e.g. to integrate with wlroots panels/bars)
+- [ ] Support damage control to reduce CPU usage
 - [ ] Implement client-menu
 - [ ] Implement root-menu
-- [ ] Add OSD, for example to support alt-tab window list
+- [ ] Support on-screen display (OSD), for example to support alt-tab window list
 
 For further details see [wiki/Roadmap](https://github.com/johanmalm/labwc/wiki/Roadmap).
+
+Based on development so far, it looks like only a modest fraction of all theme and configuration options are required to adequately render most common themes and provide a pretty openbox-like experience.
+
+It is likely that only a subset of the full specification will be implemented in order to keep the code base simpler and cleaner.
 

@@ -5,6 +5,7 @@
 #include <wlr/types/wlr_data_control_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
+#include <wlr/types/wlr_xdg_output_v1.h>
 
 static struct wlr_backend *backend;
 static struct wlr_compositor *compositor;
@@ -226,6 +227,8 @@ void server_init(struct server *server)
 	wlr_data_control_manager_v1_create(server->wl_display);
 	wlr_gamma_control_manager_v1_create(server->wl_display);
 	wlr_primary_selection_v1_device_manager_create(server->wl_display);
+	wlr_xdg_output_manager_v1_create(server->wl_display,
+					 server->output_layout);
 
 	/* Init xwayland */
 	server->xwayland =

@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L
 #include "labwc.h"
 #include "theme/theme.h"
 #include "config/rcxml.h"

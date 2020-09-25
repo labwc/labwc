@@ -1,8 +1,8 @@
 #include <strings.h>
 
-#include "labwc.h"
 #include "common/spawn.h"
 #include "common/log.h"
+#include "labwc.h"
 
 static void reconfigure(void)
 {

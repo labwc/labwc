@@ -1,7 +1,6 @@
 #ifndef __LABWC_H
 #define __LABWC_H
 
-#define _POSIX_C_SOURCE 200809L
 #include <getopt.h>
 #include <stdbool.h>
 #include <stdlib.h>

@@ -1,6 +1,4 @@
 #include "labwc.h"
-#include "common/log.h"
-#include "common/bug-on.h"
 
 static void handle_commit(struct wl_listener *listener, void *data)
 {

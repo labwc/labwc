@@ -1,5 +1,4 @@
 #include "labwc.h"
-#include "common/bug-on.h"
 
 static void move_to_front(struct view *view)
 {

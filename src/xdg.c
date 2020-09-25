@@ -1,6 +1,4 @@
 #include "labwc.h"
-#include "common/log.h"
-#include "common/bug-on.h"
 
 struct xdg_deco {
 	struct wlr_xdg_toplevel_decoration_v1 *wlr_decoration;

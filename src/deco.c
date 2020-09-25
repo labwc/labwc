@@ -7,8 +7,6 @@
 #include "labwc.h"
 #include "theme/theme.h"
 #include "config/rcxml.h"
-#include "common/bug-on.h"
-#include "common/log.h"
 
 #define BORDER_WIDTH (2)
 

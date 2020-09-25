@@ -28,6 +28,8 @@
 #include <wlr/xwayland.h>
 #include <xkbcommon/xkbcommon.h>
 
+#include "common/bug-on.h"
+#include "common/log.h"
 #include "config/rcxml.h"
 #include "config/keybind.h"
 

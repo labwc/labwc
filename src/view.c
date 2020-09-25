@@ -1,5 +1,4 @@
 #include "labwc.h"
-#include "common/bug-on.h"
 
 void view_resize(struct view *view, struct wlr_box geo)
 {

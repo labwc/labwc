@@ -122,8 +122,6 @@ char *config_dir(void)
 char *theme_dir(const char *theme_name)
 {
 	static char buf[4096] = { 0 };
-	if (buf[0] != '\0')
-		return buf;
 	struct ctx ctx = { .build_path_fn = build_theme_path,
 			   .buf = buf,
 			   .len = sizeof(buf),

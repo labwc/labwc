@@ -23,17 +23,18 @@ int main(int argc, char *argv[])
 {
 	char *startup_cmd = NULL;
 	char *config_file = NULL;
-	wlr_log_init(WLR_ERROR, NULL);
 
 	int c;
-	while ((c = getopt(argc, argv, "s:c:h")) != -1) {
+	while ((c = getopt(argc, argv, "c:s:h")) != -1) {
 		switch (c) {
-		case 's':
-			startup_cmd = optarg;
-			break;
 		case 'c':
 			config_file = optarg;
 			break;
+		case 's':
+			startup_cmd = optarg;
+			break;
+		case 'h':
+			/* fallthrough */
 		default:
 			usage();
 		}
@@ -41,6 +42,7 @@ int main(int argc, char *argv[])
 	if (optind < argc)
 		usage();
 
+	wlr_log_init(WLR_ERROR, NULL);
 	rcxml_read(config_file);
 
 	/* Wayland requires XDG_RUNTIME_DIR to be set */

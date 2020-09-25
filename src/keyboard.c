@@ -30,7 +30,8 @@ static bool handle_keybinding(struct server *server, uint32_t modifiers,
 			continue;
 		for (size_t i = 0; i < keybind->keysyms_len; i++) {
 			if (sym == keybind->keysyms[i]) {
-				action(server, keybind->action, keybind->command);
+				action(server, keybind->action,
+				       keybind->command);
 				return true;
 			}
 		}

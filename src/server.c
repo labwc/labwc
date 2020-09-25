@@ -1,5 +1,8 @@
 #include "labwc.h"
+#include "theme/theme.h"
+#include "config/rcxml.h"
 
+#include <signal.h>
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
 #include <wlr/types/wlr_data_control_v1.h>
@@ -9,6 +12,7 @@
 
 static struct wlr_backend *backend;
 static struct wlr_compositor *compositor;
+static struct wl_event_source *sighup_source;
 
 static void server_new_input(struct wl_listener *listener, void *data)
 {
@@ -72,6 +76,25 @@ static void seat_request_set_selection(struct wl_listener *listener, void *data)
 	wlr_seat_set_selection(server->seat, event->source, event->serial);
 }
 
+static void reload_config_and_theme(void)
+{
+	rcxml_finish();
+	/* TODO: use rc.config_path */
+	rcxml_read(NULL);
+	theme_read(rc.theme_name);
+}
+
+static int handle_signal(int signal, void *data)
+{
+	switch (signal) {
+	case SIGHUP:
+		reload_config_and_theme();
+		return 0;
+	default:
+		return 0;
+	}
+}
+
 void server_init(struct server *server)
 {
 	server->wl_display = wl_display_create();
@@ -79,6 +102,12 @@ void server_init(struct server *server)
 		wlr_log(WLR_ERROR, "cannot allocate a wayland display");
 		exit(EXIT_FAILURE);
 	}
+
+	/* Catch SIGHUP */
+	struct wl_event_loop *event_loop = NULL;
+	event_loop = wl_display_get_event_loop(server->wl_display);
+	sighup_source = wl_event_loop_add_signal(
+		event_loop, SIGHUP, handle_signal, &server->wl_display);
 
 	/*
 	 * The backend is a wlroots feature which abstracts the underlying
@@ -312,6 +341,7 @@ void server_finish(struct server *server)
 	wlr_output_layout_destroy(server->output_layout);
 	wlr_xwayland_destroy(server->xwayland);
 	wlr_xcursor_manager_destroy(server->cursor_mgr);
+	wl_event_source_remove(sighup_source);
 	wl_display_destroy_clients(server->wl_display);
 	wl_display_destroy(server->wl_display);
 }

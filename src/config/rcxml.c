@@ -214,9 +214,22 @@ void rcxml_parse_xml(struct buf *b)
 	xmlCleanupParser();
 }
 
+static void pre_processing(void)
+{
+	rc.xdg_shell_server_side_deco = true;
+	rc.font_size_activewindow = 8;
+}
+
 static void rcxml_init()
 {
+	static bool has_run;
+
+	if (has_run)
+		return;
+	has_run = true;
 	LIBXML_TEST_VERSION
+	wl_list_init(&rc.keybinds);
+	pre_processing();
 }
 
 static void bind(const char *binding, const char *action, const char *command)
@@ -238,12 +251,6 @@ static void set_title_height(void)
 	snprintf(buf, sizeof(buf), "%s %d", rc.font_name_activewindow,
 		 rc.font_size_activewindow);
 	rc.title_height = font_height(buf);
-}
-
-static void pre_processing(void)
-{
-	rc.xdg_shell_server_side_deco = true;
-	rc.font_size_activewindow = 8;
 }
 
 static void post_processing(void)
@@ -271,30 +278,38 @@ static void rcxml_path(char *buf, size_t len)
 	snprintf(buf, len, "%s/rc.xml", config_dir());
 }
 
+static void find_config_file(char *buffer, size_t len, const char *filename)
+{
+	if (filename) {
+		snprintf(buffer, len, "%s", filename);
+		return;
+	}
+	rcxml_path(buffer, len);
+}
+
 void rcxml_read(const char *filename)
 {
 	FILE *stream;
 	char *line = NULL;
 	size_t len = 0;
 	struct buf b;
-	char rcxml[4096] = { 0 };
+	static char rcxml[4096] = { 0 };
 
 	rcxml_init();
-	wl_list_init(&rc.keybinds);
-	pre_processing();
 
 	/*
-	 * Reading file into buffer before parsing makes it easier to write
-	 * unit tests.
+	 * rcxml_read() can be called multiple times, but we only set rcxml[]
+	 * the first time. The specified 'filename' is only respected the first
+	 * time.
 	 */
-	if (filename)
-		snprintf(rcxml, sizeof(rcxml), "%s", filename);
-	else
-		rcxml_path(rcxml, sizeof(rcxml));
+	if (rcxml[0] == '\0')
+		find_config_file(rcxml, sizeof(rcxml), filename);
 	if (rcxml[0] == '\0') {
 		warn("cannot find rc.xml config file");
 		goto no_config;
 	}
+
+	/* Reading file into buffer before parsing - better for unit tests */
 	stream = fopen(rcxml, "r");
 	if (!stream) {
 		warn("cannot read (%s)", rcxml);

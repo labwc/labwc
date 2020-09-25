@@ -8,7 +8,7 @@ labwc - A Wayland stacking compositor with the look and feel of Openbox
 
 # SYNOPSIS
 
-labwc \[\-s <*startup-command*>] \[\-c <*config-file*>]  
+labwc \[\-c <*config-file*>] \[\-h] \[\-s <*startup-command*>]  
 
 # DESCRIPTION
 
@@ -16,13 +16,17 @@ Labwc is a [WIP] free, stacking compositor for Wayland. It aims to be light-weig
 
 # OPTIONS
 
-`-s <startup-command>`
-
-:   Specify startup command
-
 `-c <config-file>`
 
 :   Specify path to rc.xml
+
+`-h`
+
+:   Show help message
+
+`-s <startup-command>`
+
+:   Specify startup command
 
 # CONFIGURATION AND THEMES
 
@@ -32,6 +36,8 @@ following files controlling the look and behaviour:
 - rc.xml  
 - themerc  
 - xbm icons  
+
+It reloads configuration and theme on receiving signal SIGHUP.
 
 See labwc(5) for details.
 

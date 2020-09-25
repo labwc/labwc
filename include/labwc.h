@@ -240,7 +240,7 @@ struct wlr_box deco_max_extents(struct view *view);
 struct wlr_box deco_box(struct view *view, enum deco_part deco_part);
 enum deco_part deco_at(struct view *view, double lx, double ly);
 
-void action(struct server *server, struct keybind *keybind);
+void action(struct server *server, const char *action, const char *command);
 
 void dbg_show_one_view(struct view *view);
 void dbg_show_views(struct server *server);

@@ -142,6 +142,11 @@ static struct border xdg_shell_border(struct view *view)
 	return border;
 }
 
+static bool istopmost(struct view *view)
+{
+	return view->xdg_surface->toplevel->parent == NULL;
+}
+
 static void xdg_toplevel_view_map(struct view *view)
 {
 	view->mapped = true;
@@ -154,9 +159,11 @@ static void xdg_toplevel_view_map(struct view *view)
 			view->margin = xdg_shell_border(view);
 			view->xdg_grab_offset = -view->margin.left;
 		}
-		/* align to edge of screen */
-		view->x += view->margin.left;
-		view->y += view->margin.top;
+		if (istopmost(view)) {
+			/* align to edge of screen */
+			view->x += view->margin.left;
+			view->y += view->margin.top;
+		}
 	}
 	view->been_mapped = true;
 

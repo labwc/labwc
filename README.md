@@ -76,9 +76,9 @@ Suggested apps to use with labwc:
 - [x] Parse [themerc](data/themes/labwc-default/openbox-3/themerc)
 - [x] Read xbm icons
 - [x] Show maximize, iconify, close buttons
+- [x] Catch SIGHUP to reconfigure (re-load config and theme)
 - [ ] Support 'maximize'
 - [ ] Show window title
-- [ ] Catch SIGHUP for --reconfigure
 - [ ] Read ~/.config/labwc/autostart
 - [ ] Read ~/.config/labwc/environment (useful for XKB environment variables)
 - [ ] Support layer-shell protocol (e.g. for setting background with swaybg).

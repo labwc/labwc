@@ -1,9 +1,10 @@
-#include "labwc.h"
-#include "config/rcxml.h"
-#include "config/keybind.h"
 #include "common/log.h"
+#include "config/keybind.h"
+#include "config/rcxml.h"
+#include "labwc.h"
 
-static int xwl_nr_parents(struct view *view)
+static int
+xwl_nr_parents(struct view *view)
 {
 	struct wlr_xwayland_surface *s = view->xwayland_surface;
 	int i = 0;
@@ -19,7 +20,8 @@ static int xwl_nr_parents(struct view *view)
 	return i;
 }
 
-static void show_one_xdg_view(struct view *view)
+static void
+show_one_xdg_view(struct view *view)
 {
 	fprintf(stderr, "XDG  ");
 	switch (view->xdg_surface->role) {
@@ -39,7 +41,8 @@ static void show_one_xdg_view(struct view *view)
 		view->h);
 }
 
-static void show_one_xwl_view(struct view *view)
+static void
+show_one_xwl_view(struct view *view)
 {
 	fprintf(stderr, "XWL  ");
 	fprintf(stderr, "%d ", xwl_nr_parents(view));
@@ -67,34 +70,42 @@ static void show_one_xwl_view(struct view *view)
 	 */
 }
 
-void dbg_show_one_view(struct view *view)
+void
+dbg_show_one_view(struct view *view)
 {
-	if (!view->surface)
+	if (!view->surface) {
 		return;
-	if (!view->mapped && !view->minimized)
+	}
+	if (!view->mapped && !view->minimized) {
 		return;
-	if (view->type == LAB_XDG_SHELL_VIEW)
+	}
+	if (view->type == LAB_XDG_SHELL_VIEW) {
 		show_one_xdg_view(view);
-	else if (view->type == LAB_XWAYLAND_VIEW)
+	} else if (view->type == LAB_XWAYLAND_VIEW) {
 		show_one_xwl_view(view);
+	}
 }
 
-void dbg_show_views(struct server *server)
+void
+dbg_show_views(struct server *server)
 {
 	struct view *view;
 
 	fprintf(stderr, "---\n");
 	fprintf(stderr, "TYPE NR_PNT NR_CLD MAPPED VIEW-POINTER   NAME\n");
-	wl_list_for_each_reverse (view, &server->views, link)
+	wl_list_for_each_reverse (view, &server->views, link) {
 		dbg_show_one_view(view);
+	}
 }
 
-void dbg_show_keybinds()
+void
+dbg_show_keybinds()
 {
 	struct keybind *keybind;
 	wl_list_for_each_reverse (keybind, &rc.keybinds, link) {
 		printf("KEY=%s-", keybind->action);
-		for (size_t i = 0; i < keybind->keysyms_len; i++)
+		for (size_t i = 0; i < keybind->keysyms_len; i++) {
 			printf("    %d\n", keybind->keysyms[i]);
+		}
 	}
 }

@@ -1,6 +1,7 @@
 #include "labwc.h"
 
-void view_resize(struct view *view, struct wlr_box geo)
+void
+view_resize(struct view *view, struct wlr_box geo)
 {
 	struct wlr_box box = {
 		.x = view->x,
@@ -11,18 +12,22 @@ void view_resize(struct view *view, struct wlr_box geo)
 	view->impl->configure(view, box);
 }
 
-void view_minimize(struct view *view)
+void
+view_minimize(struct view *view)
 {
-	if (view->minimized == true)
+	if (view->minimized == true) {
 		return;
+	}
 	view->minimized = true;
 	view->impl->unmap(view);
 }
 
-void view_unminimize(struct view *view)
+void
+view_unminimize(struct view *view)
 {
-	if (view->minimized == false)
+	if (view->minimized == false) {
 		return;
+	}
 	view->minimized = false;
 	view->impl->map(view);
 }

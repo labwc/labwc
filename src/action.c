@@ -1,16 +1,18 @@
 #include <strings.h>
 
-#include "common/spawn.h"
 #include "common/log.h"
+#include "common/spawn.h"
 #include "labwc.h"
 
-static void reconfigure(void)
+static void
+reconfigure(void)
 {
 	char *const args[] = { "killall", "-SIGHUP", "labwc", NULL };
 	execvp(args[0], args);
 }
 
-void action(struct server *server, const char *action, const char *command)
+void
+action(struct server *server, const char *action, const char *command)
 {
 	if (!action)
 		return;

@@ -1,28 +1,31 @@
 #define _POSIX_C_SOURCE 200809L
+#include <glib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <glib.h>
 
+#include "common/log.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
-#include "common/log.h"
 
-static uint32_t parse_modifier(const char *symname)
+static uint32_t
+parse_modifier(const char *symname)
 {
-	if (!strcmp(symname, "S"))
+	if (!strcmp(symname, "S")) {
 		return WLR_MODIFIER_SHIFT;
-	else if (!strcmp(symname, "C"))
+	} else if (!strcmp(symname, "C")) {
 		return WLR_MODIFIER_CTRL;
-	else if (!strcmp(symname, "A"))
+	} else if (!strcmp(symname, "A")) {
 		return WLR_MODIFIER_ALT;
-	else if (!strcmp(symname, "W"))
+	} else if (!strcmp(symname, "W")) {
 		return WLR_MODIFIER_LOGO;
-	else
+	} else {
 		return 0;
+	}
 }
 
-struct keybind *keybind_create(const char *keybind)
+struct keybind *
+keybind_create(const char *keybind)
 {
 	struct keybind *k = calloc(1, sizeof(struct keybind));
 	xkb_keysym_t keysyms[32];
@@ -46,8 +49,9 @@ struct keybind *keybind_create(const char *keybind)
 		}
 	}
 	g_strfreev(symnames);
-	if (!k)
+	if (!k) {
 		return NULL;
+	}
 	wl_list_insert(&rc.keybinds, &k->link);
 	k->keysyms = malloc(k->keysyms_len * sizeof(xkb_keysym_t));
 	memcpy(k->keysyms, keysyms, k->keysyms_len * sizeof(xkb_keysym_t));

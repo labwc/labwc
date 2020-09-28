@@ -1,6 +1,7 @@
 #include <glib.h>
 
-void spawn_async_no_shell(char const *command)
+void
+spawn_async_no_shell(char const *command)
 {
 	GError *err = NULL;
 	gchar **argv = NULL;

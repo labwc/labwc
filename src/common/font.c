@@ -3,8 +3,8 @@
 
 #include "common/font.h"
 
-static PangoRectangle font_extents(const char *font_description,
-				   const char *string)
+static PangoRectangle
+font_extents(const char *font_description, const char *string)
 {
 	PangoRectangle rect;
 	cairo_surface_t *surface;
@@ -35,7 +35,8 @@ static PangoRectangle font_extents(const char *font_description,
 	return rect;
 }
 
-int font_height(const char *font_description)
+int
+font_height(const char *font_description)
 {
 	PangoRectangle rectangle;
 	rectangle = font_extents(font_description, "abcdefg");

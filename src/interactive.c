@@ -1,6 +1,7 @@
 #include "labwc.h"
 
-void interactive_begin(struct view *view, enum cursor_mode mode, uint32_t edges)
+void
+interactive_begin(struct view *view, enum cursor_mode mode, uint32_t edges)
 {
 	/*
 	 * This function sets up an interactive move or resize operation, where

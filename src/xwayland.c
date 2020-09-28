@@ -1,6 +1,7 @@
 #include "labwc.h"
 
-static void handle_commit(struct wl_listener *listener, void *data)
+static void
+handle_commit(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, commit);
 	BUG_ON(!view->surface);
@@ -10,19 +11,22 @@ static void handle_commit(struct wl_listener *listener, void *data)
 	view->h = view->surface->current.height;
 }
 
-static void handle_map(struct wl_listener *listener, void *data)
+static void
+handle_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, map);
 	view->impl->map(view);
 }
 
-static void handle_unmap(struct wl_listener *listener, void *data)
+static void
+handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, unmap);
 	view->impl->unmap(view);
 }
 
-static void handle_destroy(struct wl_listener *listener, void *data)
+static void
+handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
 	wl_list_remove(&view->link);
@@ -33,7 +37,8 @@ static void handle_destroy(struct wl_listener *listener, void *data)
 	free(view);
 }
 
-static void handle_request_configure(struct wl_listener *listener, void *data)
+static void
+handle_request_configure(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_configure);
 	struct wlr_xwayland_surface_configure_event *event = data;
@@ -41,38 +46,45 @@ static void handle_request_configure(struct wl_listener *listener, void *data)
 				       event->y, event->width, event->height);
 }
 
-static void configure(struct view *view, struct wlr_box geo)
+static void
+configure(struct view *view, struct wlr_box geo)
 {
 	wlr_xwayland_surface_configure(view->xwayland_surface, (int16_t)geo.x,
 				       (int16_t)geo.y, (uint16_t)geo.width,
 				       (uint16_t)geo.height);
 }
 
-static void _close(struct view *view)
+static void
+_close(struct view *view)
 {
 	wlr_xwayland_surface_close(view->xwayland_surface);
 }
 
-static bool want_deco(struct view *view)
+static bool
+want_deco(struct view *view)
 {
 	return view->xwayland_surface->decorations ==
 	       WLR_XWAYLAND_SURFACE_DECORATIONS_ALL;
 }
 
-static void top_left_edge_boundary_check(struct view *view)
+static void
+top_left_edge_boundary_check(struct view *view)
 {
 	struct wlr_box deco = deco_max_extents(view);
-	if (deco.x < 0)
+	if (deco.x < 0) {
 		view->x -= deco.x;
-	if (deco.y < 0)
+	}
+	if (deco.y < 0) {
 		view->y -= deco.y;
+	}
 	struct wlr_box box = {
 		.x = view->x, .y = view->y, .width = view->w, .height = view->h
 	};
 	view->impl->configure(view, box);
 }
 
-static void map(struct view *view)
+static void
+map(struct view *view)
 {
 	view->mapped = true;
 	view->x = view->xwayland_surface->x;
@@ -94,7 +106,8 @@ static void map(struct view *view)
 	desktop_focus_view(view);
 }
 
-static void unmap(struct view *view)
+static void
+unmap(struct view *view)
 {
 	view->mapped = false;
 	wl_list_remove(&view->commit.link);
@@ -108,7 +121,8 @@ static const struct view_impl xwl_view_impl = {
 	.unmap = unmap,
 };
 
-void xwayland_surface_new(struct wl_listener *listener, void *data)
+void
+xwayland_surface_new(struct wl_listener *listener, void *data)
 {
 	struct server *server =
 		wl_container_of(listener, server, new_xwayland_surface);

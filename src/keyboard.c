@@ -1,7 +1,8 @@
-#include "labwc.h"
 #include "common/log.h"
+#include "labwc.h"
 
-static void keyboard_handle_modifiers(struct wl_listener *listener, void *data)
+static void
+keyboard_handle_modifiers(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is raised when a modifier key, such as shift or alt, is
@@ -21,13 +22,14 @@ static void keyboard_handle_modifiers(struct wl_listener *listener, void *data)
 		keyboard->server->seat, &keyboard->device->keyboard->modifiers);
 }
 
-static bool handle_keybinding(struct server *server, uint32_t modifiers,
-			      xkb_keysym_t sym)
+static bool
+handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
 {
 	struct keybind *keybind;
 	wl_list_for_each_reverse (keybind, &rc.keybinds, link) {
-		if (modifiers ^ keybind->modifiers)
+		if (modifiers ^ keybind->modifiers) {
 			continue;
+		}
 		for (size_t i = 0; i < keybind->keysyms_len; i++) {
 			if (sym == keybind->keysyms[i]) {
 				action(server, keybind->action,
@@ -39,7 +41,8 @@ static bool handle_keybinding(struct server *server, uint32_t modifiers,
 	return false;
 }
 
-static void keyboard_handle_key(struct wl_listener *listener, void *data)
+static void
+keyboard_handle_key(struct wl_listener *listener, void *data)
 {
 	/* This event is raised when a key is pressed or released. */
 	struct keyboard *keyboard = wl_container_of(listener, keyboard, key);
@@ -73,9 +76,11 @@ static void keyboard_handle_key(struct wl_listener *listener, void *data)
 	}
 
 	/* Handle compositor key bindings */
-	if (event->state == WLR_KEY_PRESSED)
-		for (int i = 0; i < nsyms; i++)
+	if (event->state == WLR_KEY_PRESSED) {
+		for (int i = 0; i < nsyms; i++) {
 			handled = handle_keybinding(server, modifiers, syms[i]);
+		}
+	}
 
 	if (!handled) {
 		/* Otherwise, we pass it along to the client. */
@@ -85,7 +90,8 @@ static void keyboard_handle_key(struct wl_listener *listener, void *data)
 	}
 }
 
-void keyboard_new(struct server *server, struct wlr_input_device *device)
+void
+keyboard_new(struct server *server, struct wlr_input_device *device)
 {
 	struct keyboard *keyboard = calloc(1, sizeof(struct keyboard));
 	keyboard->server = server;

@@ -7,12 +7,14 @@ struct draw_data {
 	float *rgba;
 };
 
-static void draw_rect(struct draw_data *d, struct wlr_box box)
+static void
+draw_rect(struct draw_data *d, struct wlr_box box)
 {
 	wlr_render_rect(d->renderer, &box, d->rgba, d->transform_matrix);
 }
 
-static void draw_line(struct draw_data *d, int x1, int y1, int x2, int y2)
+static void
+draw_line(struct draw_data *d, int x1, int y1, int x2, int y2)
 {
 	struct wlr_box box = {
 		.x = x1,
@@ -33,7 +35,8 @@ static void draw_rect_unfilled(struct draw_data *d, struct wlr_box box)
 }
 /* clang-format on */
 
-static void shrink(struct wlr_box *box, int size)
+static void
+shrink(struct wlr_box *box, int size)
 {
 	box->x += size;
 	box->y += size;
@@ -41,7 +44,8 @@ static void shrink(struct wlr_box *box, int size)
 	box->height -= 2 * size;
 }
 
-static void render_cycle_box(struct output *output)
+static void
+render_cycle_box(struct output *output)
 {
 	struct wlr_box box;
 	if (!output->server->cycle_view)
@@ -73,8 +77,9 @@ render_it:
 	draw_rect_unfilled(&dd, box);
 }
 
-static void render_icon(struct draw_data *d, struct wlr_box box,
-			struct wlr_texture *texture)
+static void
+render_icon(struct draw_data *d, struct wlr_box box,
+	    struct wlr_texture *texture)
 {
 	if (!texture)
 		return;
@@ -101,14 +106,16 @@ static void render_icon(struct draw_data *d, struct wlr_box box,
 	wlr_render_texture_with_matrix(d->renderer, texture, matrix, 1);
 }
 
-static bool isbutton(enum deco_part deco_part)
+static bool
+isbutton(enum deco_part deco_part)
 {
 	return deco_part == LAB_DECO_BUTTON_CLOSE ||
 	       deco_part == LAB_DECO_BUTTON_MAXIMIZE ||
 	       deco_part == LAB_DECO_BUTTON_ICONIFY;
 }
 
-static void render_decorations(struct wlr_output *output, struct view *view)
+static void
+render_decorations(struct wlr_output *output, struct view *view)
 {
 	if (!view->server_side_deco)
 		return;
@@ -168,8 +175,8 @@ struct render_data {
 	struct timespec *when;
 };
 
-static void render_surface(struct wlr_surface *surface, int sx, int sy,
-			   void *data)
+static void
+render_surface(struct wlr_surface *surface, int sx, int sy, void *data)
 {
 	struct render_data *rdata = data;
 
@@ -224,7 +231,8 @@ static void render_surface(struct wlr_surface *surface, int sx, int sy,
 	wlr_surface_send_frame_done(surface, rdata->when);
 }
 
-void output_frame(struct wl_listener *listener, void *data)
+void
+output_frame(struct wl_listener *listener, void *data)
 {
 	/* This function is called every time an output is ready to display a
 	 * frame, generally at the output's refresh rate (e.g. 60Hz). */
@@ -312,7 +320,8 @@ void output_frame(struct wl_listener *listener, void *data)
 	wlr_output_commit(output->wlr_output);
 }
 
-void output_new(struct wl_listener *listener, void *data)
+void
+output_new(struct wl_listener *listener, void *data)
 {
 	/* This event is rasied by the backend when a new output (aka a display
 	 * or monitor) becomes available. */

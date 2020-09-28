@@ -1,21 +1,22 @@
 #define _POSIX_C_SOURCE 200809L
+#include "config/rcxml.h"
 #include "labwc.h"
 #include "theme/theme.h"
-#include "config/rcxml.h"
 
 #include <signal.h>
-#include <wlr/types/wlr_export_dmabuf_v1.h>
-#include <wlr/types/wlr_screencopy_v1.h>
 #include <wlr/types/wlr_data_control_v1.h>
+#include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
+#include <wlr/types/wlr_screencopy_v1.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
 
 static struct wlr_backend *backend;
 static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;
 
-static void server_new_input(struct wl_listener *listener, void *data)
+static void
+server_new_input(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is raised by the backend when a new input device becomes
@@ -45,7 +46,8 @@ static void server_new_input(struct wl_listener *listener, void *data)
 	wlr_seat_set_capabilities(server->seat, caps);
 }
 
-static void seat_request_cursor(struct wl_listener *listener, void *data)
+static void
+seat_request_cursor(struct wl_listener *listener, void *data)
 {
 	struct server *server =
 		wl_container_of(listener, server, request_cursor);
@@ -69,7 +71,8 @@ static void seat_request_cursor(struct wl_listener *listener, void *data)
 	}
 }
 
-static void seat_request_set_selection(struct wl_listener *listener, void *data)
+static void
+seat_request_set_selection(struct wl_listener *listener, void *data)
 {
 	struct server *server =
 		wl_container_of(listener, server, request_set_selection);
@@ -77,7 +80,8 @@ static void seat_request_set_selection(struct wl_listener *listener, void *data)
 	wlr_seat_set_selection(server->seat, event->source, event->serial);
 }
 
-static void reload_config_and_theme(void)
+static void
+reload_config_and_theme(void)
 {
 	rcxml_finish();
 	/* TODO: use rc.config_path */
@@ -85,7 +89,8 @@ static void reload_config_and_theme(void)
 	theme_read(rc.theme_name);
 }
 
-static int handle_signal(int signal, void *data)
+static int
+handle_signal(int signal, void *data)
 {
 	switch (signal) {
 	case SIGHUP:
@@ -96,7 +101,8 @@ static int handle_signal(int signal, void *data)
 	}
 }
 
-void server_init(struct server *server)
+void
+server_init(struct server *server)
 {
 	server->wl_display = wl_display_create();
 	if (!server->wl_display) {
@@ -273,17 +279,20 @@ void server_init(struct server *server)
 
 	server->cursor_mgr =
 		wlr_xcursor_manager_create(XCURSOR_DEFAULT, XCURSOR_SIZE);
-	if (!server->cursor_mgr)
+	if (!server->cursor_mgr) {
 		wlr_log(WLR_ERROR, "cannot create xwayland xcursor manager");
+	}
 
-	if (setenv("DISPLAY", server->xwayland->display_name, true) < 0)
+	if (setenv("DISPLAY", server->xwayland->display_name, true) < 0) {
 		wlr_log_errno(WLR_ERROR, "unable to set DISPLAY for xwayland");
-	else
+	} else {
 		wlr_log(WLR_DEBUG, "xwayland is running on display %s",
 			server->xwayland->display_name);
+	}
 
-	if (!wlr_xcursor_manager_load(server->cursor_mgr, 1))
+	if (!wlr_xcursor_manager_load(server->cursor_mgr, 1)) {
 		wlr_log(WLR_ERROR, "cannot load xwayland xcursor theme");
+	}
 
 	struct wlr_xcursor *xcursor;
 	xcursor = wlr_xcursor_manager_get_xcursor(server->cursor_mgr,
@@ -297,7 +306,8 @@ void server_init(struct server *server)
 	}
 }
 
-void server_start(struct server *server)
+void
+server_start(struct server *server)
 {
 	/* Add a Unix socket to the Wayland display. */
 	const char *socket = wl_display_add_socket_auto(server->wl_display);
@@ -316,17 +326,19 @@ void server_start(struct server *server)
 	}
 
 	setenv("WAYLAND_DISPLAY", socket, true);
-	if (setenv("WAYLAND_DISPLAY", socket, true) < 0)
+	if (setenv("WAYLAND_DISPLAY", socket, true) < 0) {
 		wlr_log_errno(WLR_ERROR, "unable to set WAYLAND_DISPLAY");
-	else
+	} else {
 		wlr_log(WLR_DEBUG, "WAYLAND_DISPLAY=%s", socket);
+	}
 
 	wl_display_init_shm(server->wl_display);
 
 	wlr_xwayland_set_seat(server->xwayland, server->seat);
 }
 
-void server_finish(struct server *server)
+void
+server_finish(struct server *server)
 {
 	struct output *o, *o_tmp;
 	wl_list_for_each_safe (o, o_tmp, &server->outputs, link) {

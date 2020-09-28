@@ -1,8 +1,8 @@
 #ifndef __LABWC_RCXML_H
 #define __LABWC_RCXML_H
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <wayland-server-core.h>
 
 #include "common/buf.h"

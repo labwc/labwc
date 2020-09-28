@@ -1,6 +1,7 @@
 #include "common/buf.h"
 
-void buf_init(struct buf *s)
+void
+buf_init(struct buf *s)
 {
 	s->alloc = 256;
 	s->buf = malloc(s->alloc);
@@ -8,10 +9,12 @@ void buf_init(struct buf *s)
 	s->len = 0;
 }
 
-void buf_add(struct buf *s, const char *data)
+void
+buf_add(struct buf *s, const char *data)
 {
-	if (!data || data[0] == '\0')
+	if (!data || data[0] == '\0') {
 		return;
+	}
 	int len = strlen(data);
 	if (s->alloc <= s->len + len + 1) {
 		s->alloc = s->alloc + len;

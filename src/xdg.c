@@ -7,7 +7,8 @@ struct xdg_deco {
 	struct wl_listener request_mode;
 };
 
-static void xdg_deco_destroy(struct wl_listener *listener, void *data)
+static void
+xdg_deco_destroy(struct wl_listener *listener, void *data)
 {
 	struct xdg_deco *xdg_deco =
 		wl_container_of(listener, xdg_deco, destroy);
@@ -16,26 +17,30 @@ static void xdg_deco_destroy(struct wl_listener *listener, void *data)
 	free(xdg_deco);
 }
 
-static void xdg_deco_request_mode(struct wl_listener *listener, void *data)
+static void
+xdg_deco_request_mode(struct wl_listener *listener, void *data)
 {
 	struct xdg_deco *xdg_deco;
 	xdg_deco = wl_container_of(listener, xdg_deco, request_mode);
 	enum wlr_xdg_toplevel_decoration_v1_mode mode;
-	if (rc.xdg_shell_server_side_deco)
+	if (rc.xdg_shell_server_side_deco) {
 		mode = WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
-	else
+	} else {
 		mode = WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
+	}
 	wlr_xdg_toplevel_decoration_v1_set_mode(xdg_deco->wlr_decoration, mode);
 }
 
-void xdg_toplevel_decoration(struct wl_listener *listener, void *data)
+void
+xdg_toplevel_decoration(struct wl_listener *listener, void *data)
 {
 	struct server *server =
 		wl_container_of(listener, server, xdg_toplevel_decoration);
 	struct wlr_xdg_toplevel_decoration_v1 *wlr_decoration = data;
 	struct xdg_deco *xdg_deco = calloc(1, sizeof(struct xdg_deco));
-	if (!xdg_deco)
+	if (!xdg_deco) {
 		return;
+	}
 	xdg_deco->wlr_decoration = wlr_decoration;
 	xdg_deco->server = server;
 	xdg_deco->destroy.notify = xdg_deco_destroy;
@@ -46,23 +51,26 @@ void xdg_toplevel_decoration(struct wl_listener *listener, void *data)
 	xdg_deco_request_mode(&xdg_deco->request_mode, wlr_decoration);
 }
 
-static bool has_ssd(struct view *view)
+static bool
+has_ssd(struct view *view)
 {
-	if (!rc.xdg_shell_server_side_deco)
+	if (!rc.xdg_shell_server_side_deco) {
 		return false;
+	}
 
 	/*
 	 * Some XDG shells refuse to disable CSD in which case their
 	 * geometry.{x,y} seems to be greater. We filter on that on the
 	 * assumption that this will remain true.
 	 */
-	if (view->xdg_surface->geometry.x || view->xdg_surface->geometry.y)
+	if (view->xdg_surface->geometry.x || view->xdg_surface->geometry.y) {
 		return false;
-
+	}
 	return true;
 }
 
-static void handle_commit(struct wl_listener *listener, void *data)
+static void
+handle_commit(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, commit);
 	BUG_ON(!view->surface);
@@ -70,26 +78,30 @@ static void handle_commit(struct wl_listener *listener, void *data)
 	view->h = view->surface->current.height;
 }
 
-static void handle_map(struct wl_listener *listener, void *data)
+static void
+handle_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, map);
 	view->impl->map(view);
 }
 
-static void handle_unmap(struct wl_listener *listener, void *data)
+static void
+handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, unmap);
 	view->impl->unmap(view);
 }
 
-static void handle_destroy(struct wl_listener *listener, void *data)
+static void
+handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
 	wl_list_remove(&view->link);
 	free(view);
 }
 
-static void handle_request_move(struct wl_listener *listener, void *data)
+static void
+handle_request_move(struct wl_listener *listener, void *data)
 {
 	/* This event is raised when a client would like to begin an interactive
 	 * move, typically because the user clicked on their client-side
@@ -102,7 +114,8 @@ static void handle_request_move(struct wl_listener *listener, void *data)
 	interactive_begin(view, LAB_CURSOR_MOVE, 0);
 }
 
-static void handle_request_resize(struct wl_listener *listener, void *data)
+static void
+handle_request_resize(struct wl_listener *listener, void *data)
 {
 	/* This event is raised when a client would like to begin an interactive
 	 * resize, typically because the user clicked on their client-side
@@ -116,18 +129,21 @@ static void handle_request_resize(struct wl_listener *listener, void *data)
 	interactive_begin(view, LAB_CURSOR_RESIZE, event->edges);
 }
 
-static void xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
+static void
+xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 {
 	wlr_xdg_toplevel_set_size(view->xdg_surface, (uint32_t)geo.width,
 				  (uint32_t)geo.height);
 }
 
-static void xdg_toplevel_view_close(struct view *view)
+static void
+xdg_toplevel_view_close(struct view *view)
 {
 	wlr_xdg_toplevel_send_close(view->xdg_surface);
 }
 
-static struct border xdg_shell_border(struct view *view)
+static struct border
+xdg_shell_border(struct view *view)
 {
 	struct wlr_box box;
 	wlr_xdg_surface_get_geometry(view->xdg_surface, &box);
@@ -140,12 +156,14 @@ static struct border xdg_shell_border(struct view *view)
 	return border;
 }
 
-static bool istopmost(struct view *view)
+static bool
+istopmost(struct view *view)
 {
 	return view->xdg_surface->toplevel->parent == NULL;
 }
 
-static void xdg_toplevel_view_map(struct view *view)
+static void
+xdg_toplevel_view_map(struct view *view)
 {
 	view->mapped = true;
 	view->surface = view->xdg_surface->surface;
@@ -172,7 +190,8 @@ static void xdg_toplevel_view_map(struct view *view)
 	desktop_focus_view(view);
 }
 
-static void xdg_toplevel_view_unmap(struct view *view)
+static void
+xdg_toplevel_view_unmap(struct view *view)
 {
 	view->mapped = false;
 	wl_list_remove(&view->commit.link);
@@ -186,13 +205,15 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.unmap = xdg_toplevel_view_unmap,
 };
 
-void xdg_surface_new(struct wl_listener *listener, void *data)
+void
+xdg_surface_new(struct wl_listener *listener, void *data)
 {
 	struct server *server =
 		wl_container_of(listener, server, new_xdg_surface);
 	struct wlr_xdg_surface *xdg_surface = data;
-	if (xdg_surface->role != WLR_XDG_SURFACE_ROLE_TOPLEVEL)
+	if (xdg_surface->role != WLR_XDG_SURFACE_ROLE_TOPLEVEL) {
 		return;
+	}
 
 	struct view *view = calloc(1, sizeof(struct view));
 	view->server = server;

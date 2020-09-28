@@ -1,45 +1,56 @@
 #include "labwc.h"
 
-static void move_to_front(struct view *view)
+static void
+move_to_front(struct view *view)
 {
 	wl_list_remove(&view->link);
 	wl_list_insert(&view->server->views, &view->link);
 }
 
-static struct wlr_xwayland_surface *top_parent_of(struct view *view)
+static struct wlr_xwayland_surface *
+top_parent_of(struct view *view)
 {
 	struct wlr_xwayland_surface *s = view->xwayland_surface;
-	while (s->parent)
+	while (s->parent) {
 		s = s->parent;
+	}
 	return s;
 }
 
-static void move_xwayland_sub_views_to_front(struct view *parent)
+static void
+move_xwayland_sub_views_to_front(struct view *parent)
 {
-	if (!parent || parent->type != LAB_XWAYLAND_VIEW)
+	if (!parent || parent->type != LAB_XWAYLAND_VIEW) {
 		return;
+	}
 	struct view *view, *next;
 	wl_list_for_each_reverse_safe(view, next, &parent->server->views, link)
 	{
 		/* need to stop here, otherwise loops keeps going forever */
-		if (view == parent)
+		if (view == parent) {
 			break;
-		if (view->type != LAB_XWAYLAND_VIEW)
+		}
+		if (view->type != LAB_XWAYLAND_VIEW) {
 			continue;
-		if (!view->mapped && !view->minimized)
+		}
+		if (!view->mapped && !view->minimized) {
 			continue;
-		if (top_parent_of(view) != parent->xwayland_surface)
+		}
+		if (top_parent_of(view) != parent->xwayland_surface) {
 			continue;
+		}
 		move_to_front(view);
 		/* TODO: we should probably focus on these too here */
 	}
 }
 
 /* Activate/deactivate toplevel surface */
-static void set_activated(struct wlr_surface *surface, bool activated)
+static void
+set_activated(struct wlr_surface *surface, bool activated)
 {
-	if (!surface)
+	if (!surface) {
 		return;
+	}
 	if (wlr_surface_is_xdg_surface(surface)) {
 		struct wlr_xdg_surface *s;
 		s = wlr_xdg_surface_from_wlr_surface(surface);
@@ -51,7 +62,8 @@ static void set_activated(struct wlr_surface *surface, bool activated)
 	}
 }
 
-static void focus_view(struct view *view)
+static void
+focus_view(struct view *view)
 {
 	struct server *server = view->server;
 	struct wlr_seat *seat = server->seat;
@@ -61,8 +73,9 @@ static void focus_view(struct view *view)
 		/* Don't re-focus an already focused surface. */
 		return;
 	}
-	if (prev_surface)
+	if (prev_surface) {
 		set_activated(seat->keyboard_state.focused_surface, false);
+	}
 
 	move_to_front(view);
 	set_activated(view->surface, true);
@@ -74,16 +87,19 @@ static void focus_view(struct view *view)
 	move_xwayland_sub_views_to_front(view);
 }
 
-void desktop_focus_view(struct view *view)
+void
+desktop_focus_view(struct view *view)
 {
 	if (!view) {
 		seat_focus_surface(NULL);
 		return;
 	}
-	if (view->minimized)
-		view_unminimize(view); /* this will unmap+focus */
-	else if (view->mapped)
+	if (view->minimized) {
+		/* this will unmap and focus */
+		view_unminimize(view);
+	} else if (view->mapped) {
 		focus_view(view);
+	}
 }
 
 /*
@@ -93,32 +109,38 @@ void desktop_focus_view(struct view *view)
  * careful when cycling between views. The only views we should focus are
  * those that are already mapped and those that have been minimized.
  */
-static bool isfocusable(struct view *view)
+static bool
+isfocusable(struct view *view)
 {
 	/* filter out those xwayland surfaces that have never been mapped */
-	if (!view->surface)
+	if (!view->surface) {
 		return false;
+	}
 	return (view->mapped || view->minimized);
 }
 
-static bool has_focusable_view(struct wl_list *wl_list)
+static bool
+has_focusable_view(struct wl_list *wl_list)
 {
 	struct view *view;
 	wl_list_for_each (view, wl_list, link) {
-		if (isfocusable(view))
+		if (isfocusable(view)) {
 			return true;
+		}
 	}
 	return false;
 }
 
-static struct view *first_view(struct server *server)
+static struct view *
+first_view(struct server *server)
 {
 	struct view *view;
 	view = wl_container_of(server->views.next, view, link);
 	return view;
 }
 
-struct view *desktop_next_view(struct server *server, struct view *current)
+struct view *
+desktop_next_view(struct server *server, struct view *current)
 {
 	if (!has_focusable_view(&server->views))
 		return NULL;
@@ -132,37 +154,43 @@ struct view *desktop_next_view(struct server *server, struct view *current)
 	return view;
 }
 
-static bool has_mapped_view(struct wl_list *wl_list)
+static bool
+has_mapped_view(struct wl_list *wl_list)
 {
 	struct view *view;
 	wl_list_for_each (view, wl_list, link) {
-		if (view->mapped)
+		if (view->mapped) {
 			return true;
+		}
 	}
 	return false;
 }
 
-struct view *desktop_next_mapped_view(struct view *current)
+struct view *
+desktop_next_mapped_view(struct view *current)
 {
 	BUG_ON(!current);
 	struct server *server = current->server;
-	if (!has_mapped_view(&server->views))
+	if (!has_mapped_view(&server->views)) {
 		return NULL;
+	}
 	struct view *view = first_view(server);
 	do {
 		view = wl_container_of(view->link.next, view, link);
 	} while (&view->link == &server->views || !view->mapped);
 	return view;
 }
-void desktop_focus_next_mapped_view(struct view *current)
+void
+desktop_focus_next_mapped_view(struct view *current)
 {
 	BUG_ON(!current);
 	struct view *view = desktop_next_mapped_view(current);
 	desktop_focus_view(view);
 }
 
-static bool _view_at(struct view *view, double lx, double ly,
-		     struct wlr_surface **surface, double *sx, double *sy)
+static bool
+_view_at(struct view *view, double lx, double ly, struct wlr_surface **surface,
+	 double *sx, double *sy)
 {
 	/*
 	 * XDG toplevels may have nested surfaces, such as popup windows for
@@ -197,9 +225,10 @@ static bool _view_at(struct view *view, double lx, double ly,
 	return false;
 }
 
-struct view *desktop_view_at(struct server *server, double lx, double ly,
-			     struct wlr_surface **surface, double *sx,
-			     double *sy, int *view_area)
+struct view *
+desktop_view_at(struct server *server, double lx, double ly,
+		struct wlr_surface **surface, double *sx, double *sy,
+		int *view_area)
 {
 	/*
 	 * This iterates over all of our surfaces and attempts to find one under
@@ -208,15 +237,19 @@ struct view *desktop_view_at(struct server *server, double lx, double ly,
 	 */
 	struct view *view;
 	wl_list_for_each (view, &server->views, link) {
-		if (!view->mapped)
+		if (!view->mapped) {
 			continue;
-		if (_view_at(view, lx, ly, surface, sx, sy))
+		}
+		if (_view_at(view, lx, ly, surface, sx, sy)) {
 			return view;
-		if (!view->server_side_deco)
+		}
+		if (!view->server_side_deco) {
 			continue;
+		}
 		*view_area = deco_at(view, lx, ly);
-		if (*view_area != LAB_DECO_NONE)
+		if (*view_area != LAB_DECO_NONE) {
 			return view;
+		}
 	}
 	return NULL;
 }

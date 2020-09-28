@@ -1,7 +1,7 @@
 #include "labwc.h"
 
-static void unmanaged_handle_request_configure(struct wl_listener *listener,
-					       void *data)
+static void
+unmanaged_handle_request_configure(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, request_configure);
@@ -11,7 +11,8 @@ static void unmanaged_handle_request_configure(struct wl_listener *listener,
 				       ev->height);
 }
 
-static void unmanaged_handle_commit(struct wl_listener *listener, void *data)
+static void
+unmanaged_handle_commit(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, commit);
@@ -20,7 +21,8 @@ static void unmanaged_handle_commit(struct wl_listener *listener, void *data)
 	unmanaged->ly = xsurface->y;
 }
 
-static void unmanaged_handle_map(struct wl_listener *listener, void *data)
+static void
+unmanaged_handle_map(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, map);
@@ -35,11 +37,13 @@ static void unmanaged_handle_map(struct wl_listener *listener, void *data)
 	unmanaged->lx = xsurface->x;
 	unmanaged->ly = xsurface->y;
 
-	if (wlr_xwayland_or_surface_wants_focus(xsurface))
+	if (wlr_xwayland_or_surface_wants_focus(xsurface)) {
 		seat_focus_surface(xsurface->surface);
+	}
 }
 
-static void unmanaged_handle_unmap(struct wl_listener *listener, void *data)
+static void
+unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, unmap);
@@ -52,15 +56,17 @@ static void unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 		struct wl_list *list = &unmanaged->server->unmanaged_surfaces;
 		wl_list_for_each (u, list, link) {
 			struct wlr_xwayland_surface *prev = u->xwayland_surface;
-			if (!wlr_xwayland_or_surface_wants_focus(prev))
+			if (!wlr_xwayland_or_surface_wants_focus(prev)) {
 				continue;
+			}
 			seat_focus_surface(prev->surface);
 			return;
 		}
 	}
 }
 
-static void unmanaged_handle_destroy(struct wl_listener *listener, void *data)
+static void
+unmanaged_handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, destroy);
@@ -70,8 +76,9 @@ static void unmanaged_handle_destroy(struct wl_listener *listener, void *data)
 	free(unmanaged);
 }
 
-void xwayland_unmanaged_create(struct server *server,
-			       struct wlr_xwayland_surface *xsurface)
+void
+xwayland_unmanaged_create(struct server *server,
+			  struct wlr_xwayland_surface *xsurface)
 {
 	struct xwayland_unmanaged *unmanaged;
 	unmanaged = calloc(1, sizeof(struct xwayland_unmanaged));

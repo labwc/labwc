@@ -1,6 +1,7 @@
 #include "labwc.h"
 
-static void process_cursor_move(struct server *server, uint32_t time)
+static void
+process_cursor_move(struct server *server, uint32_t time)
 {
 	/* Move the grabbed view to the new position. */
 	double dx = server->cursor->x - server->grab_x;
@@ -8,8 +9,9 @@ static void process_cursor_move(struct server *server, uint32_t time)
 	server->grabbed_view->x = server->grab_box.x + dx;
 	server->grabbed_view->y = server->grab_box.y + dy;
 
-	if (server->grabbed_view->type != LAB_XWAYLAND_VIEW)
+	if (server->grabbed_view->type != LAB_XWAYLAND_VIEW) {
 		return;
+	}
 
 	struct view *view = server->grabbed_view;
 	wlr_xwayland_surface_configure(view->xwayland_surface, view->x, view->y,
@@ -20,7 +22,8 @@ static void process_cursor_move(struct server *server, uint32_t time)
 #define MIN_VIEW_WIDTH (100)
 #define MIN_VIEW_HEIGHT (60)
 
-static void process_cursor_resize(struct server *server, uint32_t time)
+static void
+process_cursor_resize(struct server *server, uint32_t time)
 {
 	/*
 	 * TODO: Wait for the client to prepare a buffer at the new size, then
@@ -47,8 +50,9 @@ static void process_cursor_resize(struct server *server, uint32_t time)
 		new_view_geo.width = server->grab_box.width + dx;
 	}
 	if ((new_view_geo.height < MIN_VIEW_HEIGHT) ||
-	    (new_view_geo.width < MIN_VIEW_WIDTH))
+	    (new_view_geo.width < MIN_VIEW_WIDTH)) {
 		return;
+	}
 
 	/* Move */
 	view->x = new_view_geo.x;
@@ -60,7 +64,8 @@ static void process_cursor_resize(struct server *server, uint32_t time)
 	view_resize(view, new_view_geo);
 }
 
-static void process_cursor_motion(struct server *server, uint32_t time)
+static void
+process_cursor_motion(struct server *server, uint32_t time)
 {
 	/* If the mode is non-passthrough, delegate to those functions. */
 	if (server->cursor_mode == LAB_CURSOR_MOVE) {
@@ -77,13 +82,15 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 	struct wlr_seat *seat = server->seat;
 	struct wlr_surface *surface = NULL;
 	int view_area;
-	struct view *view = desktop_view_at(server, server->cursor->x,
-					    server->cursor->y, &surface, &sx,
-					    &sy, &view_area);
+	struct view *view =
+		desktop_view_at(server, server->cursor->x, server->cursor->y,
+				&surface, &sx, &sy, &view_area);
 	if (!view) {
-		/* If there's no view under the cursor, set the cursor image to
+		/*
+		 * If there's no view under the cursor, set the cursor image to
 		 * a default. This is what makes the cursor image appear when
-		 * you move it around the screen, not over any views. */
+		 * you move it around the screen, not over any views.
+		 */
 		wlr_xcursor_manager_set_cursor_image(
 			server->cursor_mgr, XCURSOR_DEFAULT, server->cursor);
 	}
@@ -114,8 +121,8 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 		break;
 	}
 	if (surface) {
-		bool focus_changed = seat->pointer_state.focused_surface !=
-				     surface;
+		bool focus_changed =
+			seat->pointer_state.focused_surface != surface;
 		/*
 		 * "Enter" the surface if necessary. This lets the client know
 		 * that the cursor has entered one of its surfaces.
@@ -126,8 +133,10 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 		 */
 		wlr_seat_pointer_notify_enter(seat, surface, sx, sy);
 		if (!focus_changed) {
-			/* The enter event contains coordinates, so we only need
-			 * to notify on motion if the focus did not change. */
+			/*
+			 * The enter event contains coordinates, so we only need
+			 * to notify on motion if the focus did not change.
+			 */
 			wlr_seat_pointer_notify_motion(seat, time, sx, sy);
 		}
 	} else {
@@ -137,7 +146,8 @@ static void process_cursor_motion(struct server *server, uint32_t time)
 	}
 }
 
-void cursor_motion(struct wl_listener *listener, void *data)
+void
+cursor_motion(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits a
@@ -159,7 +169,8 @@ void cursor_motion(struct wl_listener *listener, void *data)
 	process_cursor_motion(server, event->time_msec);
 }
 
-void cursor_motion_absolute(struct wl_listener *listener, void *data)
+void
+cursor_motion_absolute(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits an
@@ -177,7 +188,8 @@ void cursor_motion_absolute(struct wl_listener *listener, void *data)
 	process_cursor_motion(server, event->time_msec);
 }
 
-void cursor_button(struct wl_listener *listener, void *data)
+void
+cursor_button(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits a button
@@ -196,9 +208,9 @@ void cursor_button(struct wl_listener *listener, void *data)
 	double sx, sy;
 	struct wlr_surface *surface;
 	int view_area;
-	struct view *view = desktop_view_at(server, server->cursor->x,
-					    server->cursor->y, &surface, &sx,
-					    &sy, &view_area);
+	struct view *view =
+		desktop_view_at(server, server->cursor->x, server->cursor->y,
+				&surface, &sx, &sy, &view_area);
 	if (event->state == WLR_BUTTON_RELEASED) {
 		/* Exit interactive move/resize mode. */
 		server->cursor_mode = LAB_CURSOR_PASSTHROUGH;
@@ -235,7 +247,8 @@ void cursor_button(struct wl_listener *listener, void *data)
 	}
 }
 
-void cursor_axis(struct wl_listener *listener, void *data)
+void
+cursor_axis(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits an axis
@@ -250,7 +263,8 @@ void cursor_axis(struct wl_listener *listener, void *data)
 				     event->delta_discrete, event->source);
 }
 
-void cursor_frame(struct wl_listener *listener, void *data)
+void
+cursor_frame(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits an frame
@@ -264,7 +278,8 @@ void cursor_frame(struct wl_listener *listener, void *data)
 	wlr_seat_pointer_notify_frame(server->seat);
 }
 
-void cursor_new(struct server *server, struct wlr_input_device *device)
+void
+cursor_new(struct server *server, struct wlr_input_device *device)
 {
 	/* TODO: Configure libinput on device to set tap, acceleration, etc */
 	wlr_cursor_attach_input_device(server->cursor, device);

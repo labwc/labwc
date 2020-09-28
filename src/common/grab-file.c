@@ -10,19 +10,22 @@
 
 #include <stdio.h>
 
-char *grab_file(const char *filename)
+char *
+grab_file(const char *filename)
 {
 	char *line = NULL;
 	size_t len = 0;
 	FILE *stream = fopen(filename, "r");
-	if (!stream)
+	if (!stream) {
 		return NULL;
+	}
 	struct buf buffer;
 	buf_init(&buffer);
 	while ((getline(&line, &len, stream) != -1)) {
 		char *p = strrchr(line, '\n');
-		if (p)
+		if (p) {
 			*p = '\0';
+		}
 		buf_add(&buffer, line);
 	}
 	free(line);

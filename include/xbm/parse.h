@@ -7,8 +7,8 @@
 #ifndef __LABWC_PARSE_H
 #define __LABWC_PARSE_H
 
-#include <stdint.h>
 #include "xbm/tokenize.h"
+#include <stdint.h>
 
 struct pixmap {
 	uint32_t *data;

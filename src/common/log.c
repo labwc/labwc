@@ -1,13 +1,14 @@
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
 
 #define LABWC_COLOR_YELLOW "\033[0;33m"
 #define LABWC_COLOR_RED "\033[0;31m"
 #define LABWC_COLOR_RESET "\033[0m"
 
-void info(const char *msg, ...)
+void
+info(const char *msg, ...)
 {
 	va_list params;
 	fprintf(stderr, LABWC_COLOR_YELLOW);
@@ -19,7 +20,8 @@ void info(const char *msg, ...)
 	fprintf(stderr, "\n");
 }
 
-void warn(const char *err, ...)
+void
+warn(const char *err, ...)
 {
 	va_list params;
 	fprintf(stderr, LABWC_COLOR_RED);

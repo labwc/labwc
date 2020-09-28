@@ -23,7 +23,8 @@ pango_cairo_show_layout(cairo, layout);
 g_object_unref(layout);
 }
 
-void update_title_texture(struct wlr_texture **texture, const char *text)
+void
+update_title_texture(struct wlr_texture **texture, const char *text)
 {
 	if (*texture) {
 		wlr_texture_destroy(*texture);

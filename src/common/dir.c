@@ -4,11 +4,11 @@
  * Copyright Johan Malm 2020
  */
 
+#include <glib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <stdbool.h>
-#include <glib.h>
 
 #include "common/dir.h"
 #include "common/log.h"
@@ -39,7 +39,8 @@ static struct dir theme_dirs[] = {
 };
 /* clang-format on */
 
-static bool isdir(const char *path)
+static bool
+isdir(const char *path)
 {
 	struct stat st;
 	return (!stat(path, &st) && S_ISDIR(st.st_mode));
@@ -53,25 +54,30 @@ struct ctx {
 	const char *theme_name;
 };
 
-static void build_config_path(struct ctx *ctx, char *prefix, const char *path)
+static void
+build_config_path(struct ctx *ctx, char *prefix, const char *path)
 {
-	if (!prefix)
+	if (!prefix) {
 		snprintf(ctx->buf, ctx->len, "%s", path);
-	else
+	} else {
 		snprintf(ctx->buf, ctx->len, "%s/%s", prefix, path);
+	}
 }
 
-static void build_theme_path(struct ctx *ctx, char *prefix, const char *path)
+static void
+build_theme_path(struct ctx *ctx, char *prefix, const char *path)
 {
-	if (!prefix)
+	if (!prefix) {
 		snprintf(ctx->buf, ctx->len, "%s/%s/openbox-3", path,
 			 ctx->theme_name);
-	else
+	} else {
 		snprintf(ctx->buf, ctx->len, "%s/%s/%s/openbox-3", prefix, path,
 			 ctx->theme_name);
+	}
 }
 
-char *find_dir(struct ctx *ctx)
+char *
+find_dir(struct ctx *ctx)
 {
 	char *debug = getenv("LABWC_DEBUG_DIR_CONFIG_AND_THEME");
 
@@ -80,20 +86,24 @@ char *find_dir(struct ctx *ctx)
 		if (!d.prefix) {
 			/* handle /etc/xdg... */
 			ctx->build_path_fn(ctx, NULL, d.path);
-			if (debug)
+			if (debug) {
 				info("%s", ctx->buf);
-			if (isdir(ctx->buf))
+			}
+			if (isdir(ctx->buf)) {
 				return ctx->buf;
+			}
 		} else {
 			/* handle $HOME/.config/... and $XDG_* */
 			char *prefix = getenv(d.prefix);
-			if (!prefix)
+			if (!prefix) {
 				continue;
+			}
 			gchar **prefixes = g_strsplit(prefix, ":", -1);
 			for (gchar **p = prefixes; *p; p++) {
 				ctx->build_path_fn(ctx, *p, d.path);
-				if (debug)
+				if (debug) {
 					info("%s", ctx->buf);
+				}
 				if (isdir(ctx->buf)) {
 					g_strfreev(prefixes);
 					return ctx->buf;
@@ -107,11 +117,13 @@ char *find_dir(struct ctx *ctx)
 	return ctx->buf;
 }
 
-char *config_dir(void)
+char *
+config_dir(void)
 {
 	static char buf[4096] = { 0 };
-	if (buf[0] != '\0')
+	if (buf[0] != '\0') {
 		return buf;
+	}
 	struct ctx ctx = { .build_path_fn = build_config_path,
 			   .buf = buf,
 			   .len = sizeof(buf),
@@ -119,7 +131,8 @@ char *config_dir(void)
 	return find_dir(&ctx);
 }
 
-char *theme_dir(const char *theme_name)
+char *
+theme_dir(const char *theme_name)
 {
 	static char buf[4096] = { 0 };
 	struct ctx ctx = { .build_path_fn = build_theme_path,

@@ -4,13 +4,14 @@
  * Copyright Johan Malm 2020
  */
 
+#include "config/rcxml.h"
 #include "labwc.h"
 #include "theme/theme.h"
-#include "config/rcxml.h"
 
 #define BORDER_WIDTH (2)
 
-struct border deco_thickness(struct view *view)
+struct border
+deco_thickness(struct view *view)
 {
 	struct border border = {
 		.top = rc.title_height + BORDER_WIDTH,
@@ -21,7 +22,8 @@ struct border deco_thickness(struct view *view)
 	return border;
 }
 
-struct wlr_box deco_max_extents(struct view *view)
+struct wlr_box
+deco_max_extents(struct view *view)
 {
 	struct border border = deco_thickness(view);
 	struct wlr_box box = {
@@ -33,7 +35,8 @@ struct wlr_box deco_max_extents(struct view *view)
 	return box;
 }
 
-struct wlr_box deco_box(struct view *view, enum deco_part deco_part)
+struct wlr_box
+deco_box(struct view *view, enum deco_part deco_part)
 {
 	struct wlr_box box = { .x = 0, .y = 0, .width = 0, .height = 0 };
 	BUG_ON(!view);
@@ -92,13 +95,15 @@ struct wlr_box deco_box(struct view *view, enum deco_part deco_part)
 	return box;
 }
 
-enum deco_part deco_at(struct view *view, double lx, double ly)
+enum deco_part
+deco_at(struct view *view, double lx, double ly)
 {
 	enum deco_part deco_part;
 	for (deco_part = 0; deco_part < LAB_DECO_END_MARKER; ++deco_part) {
 		struct wlr_box box = deco_box(view, deco_part);
-		if (wlr_box_contains_point(&box, lx, ly))
+		if (wlr_box_contains_point(&box, lx, ly)) {
 			return deco_part;
+		}
 	}
 	return LAB_DECO_NONE;
 }

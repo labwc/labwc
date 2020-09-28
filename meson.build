@@ -54,7 +54,6 @@ labwc_deps      = [
 ]
 
 subdir('src')
-subdir('tests')
 subdir('docs')
 
 executable(

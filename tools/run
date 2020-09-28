@@ -1,5 +1,0 @@
-#!/bin/sh
-
-LSAN_OPTIONS=suppressions=tools/asan_suppressions.txt ./build/labwc
-
-

@@ -4,6 +4,7 @@
  * Copyright Johan Malm 2020
  */
 
+#include <assert.h>
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "theme/theme.h"
@@ -39,7 +40,7 @@ struct wlr_box
 deco_box(struct view *view, enum deco_part deco_part)
 {
 	struct wlr_box box = { .x = 0, .y = 0, .width = 0, .height = 0 };
-	BUG_ON(!view);
+	assert(view);
 	switch (deco_part) {
 	case LAB_DECO_BUTTON_CLOSE:
 		box.width = rc.title_height;

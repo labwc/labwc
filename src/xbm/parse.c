@@ -5,13 +5,13 @@
  */
 
 #define _POSIX_C_SOURCE 200809L
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "common/bug-on.h"
 #include "xbm/parse.h"
 
 static uint32_t color;
@@ -94,7 +94,7 @@ parse_xbm_builtin(const char *button, int size)
 {
 	struct pixmap pixmap = { 0 };
 
-	BUG_ON(size > LABWC_BUILTIN_ICON_MAX_SIZE);
+	assert(size <= LABWC_BUILTIN_ICON_MAX_SIZE);
 	pixmap.width = size;
 	pixmap.height = size;
 

@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
+#include <assert.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <libxml/parser.h>
@@ -10,7 +11,6 @@
 #include <unistd.h>
 #include <wayland-server-core.h>
 
-#include "common/bug-on.h"
 #include "common/dir.h"
 #include "common/font.h"
 #include "common/log.h"
@@ -51,7 +51,7 @@ fill_keybind(char *nodename, char *content)
 		current_keybind = keybind_create(content);
 	}
 	/* We expect <keybind key=""> to come first */
-	BUG_ON(!current_keybind);
+	assert(current_keybind);
 	if (!strcmp(nodename, "name.action")) {
 		current_keybind->action = strdup(content);
 	} else if (!strcmp(nodename, "command.action")) {

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "labwc.h"
 
 struct xdg_deco {
@@ -73,7 +74,7 @@ static void
 handle_commit(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, commit);
-	BUG_ON(!view->surface);
+	assert(view->surface);
 	view->w = view->surface->current.width;
 	view->h = view->surface->current.height;
 }

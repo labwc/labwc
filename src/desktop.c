@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "labwc.h"
 
 static void
@@ -169,7 +170,7 @@ has_mapped_view(struct wl_list *wl_list)
 struct view *
 desktop_next_mapped_view(struct view *current)
 {
-	BUG_ON(!current);
+	assert(current);
 	struct server *server = current->server;
 	if (!has_mapped_view(&server->views)) {
 		return NULL;
@@ -183,7 +184,7 @@ desktop_next_mapped_view(struct view *current)
 void
 desktop_focus_next_mapped_view(struct view *current)
 {
-	BUG_ON(!current);
+	assert(current);
 	struct view *view = desktop_next_mapped_view(current);
 	desktop_focus_view(view);
 }

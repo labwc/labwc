@@ -1,10 +1,11 @@
+#include <assert.h>
 #include "labwc.h"
 
 static void
 handle_commit(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, commit);
-	BUG_ON(!view->surface);
+	assert(view->surface);
 
 	/* Must receive commit signal before accessing surface->current* */
 	view->w = view->surface->current.width;

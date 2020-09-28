@@ -1,4 +1,5 @@
 #include <assert.h>
+
 #include "labwc.h"
 
 struct xdg_deco {

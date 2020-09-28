@@ -3,6 +3,7 @@ TabWidth: 8
 IndentWidth: 8
 ContinuationIndentWidth: 8
 ColumnLimit: 80
+AlignAfterOpenBracket: Align
 AlignOperands: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: false

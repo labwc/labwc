@@ -1,4 +1,5 @@
 #include <assert.h>
+
 #include "labwc.h"
 
 static void

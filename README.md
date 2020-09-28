@@ -42,7 +42,7 @@ For further details see [tools/build](tools/build) and [wiki/Build](https://gith
 
 If you want to override the defaults, copy data/rc.xml to ~/.config/labwc/ and tweak to suit.
 
-See [rc.xml](data/rc.xml) and [themerc](data/themes/labwc-default/openbox-3/themerc) comments for details including keybinds.
+See [rc.xml](docs/rc.xml) and [themerc](docs/themerc) comments for details including keybinds.
 
 See full details in the following:
 
@@ -72,8 +72,8 @@ Suggested apps to use with labwc:
 ## 6. Roadmap
 
 - [x] Support xwayland
-- [x] Parse [rc.xml](data/rc.xml)
-- [x] Parse [themerc](data/themes/labwc-default/openbox-3/themerc)
+- [x] Parse [rc.xml](docs/rc.xml)
+- [x] Parse [themerc](docs/themerc)
 - [x] Read xbm icons
 - [x] Show maximize, iconify, close buttons
 - [x] Catch SIGHUP to reconfigure (re-load config and theme)

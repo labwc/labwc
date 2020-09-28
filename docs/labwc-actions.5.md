@@ -31,6 +31,10 @@ of tags specific to each action as defined below.
 
 :   Cycle focus to next window.
 
+`Reconfigure`
+
+:   Re-load configuration and theme files
+
 # SEE ALSO
 
 labwc(1), labwc-config(5), labwc-theme(5)

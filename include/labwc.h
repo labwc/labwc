@@ -45,6 +45,7 @@ enum cursor_mode {
 struct server {
 	struct wl_display *wl_display;
 	struct wlr_renderer *renderer;
+	struct wlr_backend *backend;
 
 	struct wlr_xdg_shell *xdg_shell;
 	struct wl_listener new_xdg_surface;
@@ -88,6 +89,7 @@ struct output {
 	struct server *server;
 	struct wlr_output *wlr_output;
 	struct wl_listener frame;
+	struct wl_listener destroy;
 };
 
 enum view_type { LAB_XDG_SHELL_VIEW, LAB_XWAYLAND_VIEW };
@@ -232,8 +234,7 @@ void cursor_new(struct server *server, struct wlr_input_device *device);
 
 void keyboard_new(struct server *server, struct wlr_input_device *device);
 
-void output_frame(struct wl_listener *listener, void *data);
-void output_new(struct wl_listener *listener, void *data);
+void output_init(struct server *server);
 
 struct border deco_thickness(struct view *view);
 struct wlr_box deco_max_extents(struct view *view);

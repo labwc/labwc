@@ -9,9 +9,7 @@
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
-#include <wlr/types/wlr_xdg_output_v1.h>
 
-static struct wlr_backend *backend;
 static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;
 
@@ -117,18 +115,14 @@ server_init(struct server *server)
 		event_loop, SIGHUP, handle_signal, &server->wl_display);
 
 	/*
-	 * The backend is a wlroots feature which abstracts the underlying
-	 * input and output hardware. the autocreate option will choose the
-	 * most suitable backend based on the current environment, such as
-	 * opening an x11 window if an x11 server is running. the null
-	 * argument here optionally allows you to pass in a custom renderer if
-	 * wlr_renderer doesn't meet your needs. the backend uses the
-	 * renderer, for example, to fall back to software cursors if the
-	 * backend does not support hardware cursors (some older gpus don't).
+	 * The backend is a feature which abstracts the underlying input and
+	 * output hardware. The autocreate option will choose the most suitable
+	 * backend based on the current environment, such as opening an x11
+	 * window if an x11 server is running.
 	 */
-	backend = wlr_backend_autocreate(server->wl_display, NULL);
-	if (!backend) {
-		wlr_log(WLR_ERROR, "unable to create the wlroots backend");
+	server->backend = wlr_backend_autocreate(server->wl_display, NULL);
+	if (!server->backend) {
+		wlr_log(WLR_ERROR, "unable to create backend");
 		exit(EXIT_FAILURE);
 	}
 
@@ -138,22 +132,11 @@ server_init(struct server *server)
 	 * formats it supports for shared memory, this configures that for
 	 * clients.
 	 */
-	server->renderer = wlr_backend_get_renderer(backend);
+	server->renderer = wlr_backend_get_renderer(server->backend);
 	wlr_renderer_init_wl_display(server->renderer, server->wl_display);
 
 	wl_list_init(&server->views);
 	wl_list_init(&server->unmanaged_surfaces);
-	wl_list_init(&server->outputs);
-
-	/*
-	 * Create an output layout, which a wlroots utility for working with
-	 * an arrangement of screens in a physical layout.
-	 */
-	server->output_layout = wlr_output_layout_create();
-	if (!server->output_layout) {
-		wlr_log(WLR_ERROR, "unable to create output layout");
-		exit(EXIT_FAILURE);
-	}
 
 	/*
 	 * Create some hands-off wlroots interfaces. The compositor is
@@ -176,12 +159,7 @@ server_init(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 
-	/*
-	 * Configure a listener to be notified when new outputs are available
-	 * on the backend.
-	 */
-	server->new_output.notify = output_new;
-	wl_signal_add(&backend->events.new_output, &server->new_output);
+	output_init(server);
 
 	/*
 	 * Configures a seat, which is a single "seat" at which a user sits
@@ -218,7 +196,7 @@ server_init(struct server *server)
 
 	wl_list_init(&server->keyboards);
 	server->new_input.notify = server_new_input;
-	wl_signal_add(&backend->events.new_input, &server->new_input);
+	wl_signal_add(&server->backend->events.new_input, &server->new_input);
 	server->request_cursor.notify = seat_request_cursor;
 	wl_signal_add(&server->seat->events.request_set_cursor,
 		      &server->request_cursor);
@@ -263,8 +241,6 @@ server_init(struct server *server)
 	wlr_data_control_manager_v1_create(server->wl_display);
 	wlr_gamma_control_manager_v1_create(server->wl_display);
 	wlr_primary_selection_v1_device_manager_create(server->wl_display);
-	wlr_xdg_output_manager_v1_create(server->wl_display,
-					 server->output_layout);
 
 	/* Init xwayland */
 	server->xwayland =
@@ -320,7 +296,7 @@ server_start(struct server *server)
 	 * Start the backend. This will enumerate outputs and inputs, become
 	 * the DRM master, etc
 	 */
-	if (!wlr_backend_start(backend)) {
+	if (!wlr_backend_start(server->backend)) {
 		wlr_log(WLR_ERROR, "unable to start the wlroots backend");
 		exit(EXIT_FAILURE);
 	}

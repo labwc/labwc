@@ -1,3 +1,4 @@
+#include <wlr/types/wlr_xdg_output_v1.h>
 #include "labwc.h"
 #include "theme/theme.h"
 
@@ -231,11 +232,13 @@ render_surface(struct wlr_surface *surface, int sx, int sy, void *data)
 	wlr_surface_send_frame_done(surface, rdata->when);
 }
 
-void
-output_frame(struct wl_listener *listener, void *data)
+static void
+output_frame_notify(struct wl_listener *listener, void *data)
 {
-	/* This function is called every time an output is ready to display a
-	 * frame, generally at the output's refresh rate (e.g. 60Hz). */
+	/*
+	 * This function is called every time an output is ready to display a
+	 * frame, generally at the output's refresh rate (e.g. 60Hz).
+	 */
 	struct output *output = wl_container_of(listener, output, frame);
 	struct wlr_renderer *renderer = output->server->renderer;
 
@@ -246,19 +249,17 @@ output_frame(struct wl_listener *listener, void *data)
 	if (!wlr_output_attach_render(output->wlr_output, NULL)) {
 		return;
 	}
+
 	/* The "effective" resolution can change if you rotate your outputs. */
 	int width, height;
 	wlr_output_effective_resolution(output->wlr_output, &width, &height);
-	/* Begin the renderer (calls glViewport and some other GL sanity checks)
-	 */
+
+	/* Calls glViewport and some other GL sanity checks */
 	wlr_renderer_begin(renderer, width, height);
 
 	float color[4] = { 0.3, 0.3, 0.3, 1.0 };
 	wlr_renderer_clear(renderer, color);
 
-	/* Each subsequent window we render is rendered on top of the last.
-	 * Because our view list is ordered front-to-back, we iterate over it
-	 * backwards. */
 	struct view *view;
 	wl_list_for_each_reverse (view, &output->server->views, link) {
 		if (!view->mapped)
@@ -305,23 +306,23 @@ output_frame(struct wl_listener *listener, void *data)
 		render_surface(s, 0, 0, &rdata);
 	}
 
-	/* Hardware cursors are rendered by the GPU on a separate plane, and can
-	 * be moved around without re-rendering what's beneath them - which is
-	 * more efficient. However, not all hardware supports hardware cursors.
-	 * For this reason, wlroots provides a software fallback, which we ask
-	 * it to render here. wlr_cursor handles configuring hardware vs
-	 * software cursors for you,
-	 * and this function is a no-op when hardware cursors are in use. */
+	/* Just in case hardware cursors not supported by GPU */
 	wlr_output_render_software_cursors(output->wlr_output, NULL);
 
-	/* Conclude rendering and swap the buffers, showing the final frame
-	 * on-screen. */
 	wlr_renderer_end(renderer);
 	wlr_output_commit(output->wlr_output);
 }
 
-void
-output_new(struct wl_listener *listener, void *data)
+static void
+output_destroy_notify(struct wl_listener *listener, void *data)
+{
+        struct output *output = wl_container_of(listener, output, destroy);
+        wl_list_remove(&output->link);
+}
+
+
+static void
+new_output_notify(struct wl_listener *listener, void *data)
 {
 	/* This event is rasied by the backend when a new output (aka a display
 	 * or monitor) becomes available. */
@@ -329,39 +330,51 @@ output_new(struct wl_listener *listener, void *data)
 	struct wlr_output *wlr_output = data;
 
 	/*
-	 * Some backends don't have modes. DRM+KMS does, and we need to set a
-	 * mode before we can use the output. The mode is a tuple of (width,
-	 * height, refresh rate), and each monitor supports only a specific set
-	 * of modes. We just pick the monitor's preferred mode.
+	 * The mode is a tuple of (width, height, refresh rate).
 	 * TODO: support user configuration
 	 */
-	if (!wl_list_empty(&wlr_output->modes)) {
-		struct wlr_output_mode *mode =
-			wlr_output_preferred_mode(wlr_output);
+	struct wlr_output_mode *mode = wlr_output_preferred_mode(wlr_output);
+	if (mode) {
 		wlr_output_set_mode(wlr_output, mode);
-		wlr_output_enable(wlr_output, true);
-		if (!wlr_output_commit(wlr_output)) {
-			return;
-		}
+		wlr_output_commit(wlr_output);
 	}
 
-	/* Allocates and configures our state for this output */
 	struct output *output = calloc(1, sizeof(struct output));
 	output->wlr_output = wlr_output;
 	output->server = server;
-	/* Sets up a listener for the frame notify event. */
-	output->frame.notify = output_frame;
+	output->frame.notify = output_frame_notify;
 	wl_signal_add(&wlr_output->events.frame, &output->frame);
 	wl_list_insert(&server->outputs, &output->link);
+	output->destroy.notify = output_destroy_notify;
+	wl_signal_add(&wlr_output->events.destroy, &output->destroy);
 
-	/* Adds this to the output layout. The add_auto function arranges
-	 * outputs from left-to-right in the order they appear. A more
-	 * sophisticated compositor would let the user configure the arrangement
-	 * of outputs in the layout.
-	 *
-	 * The output layout utility automatically adds a wl_output global to
-	 * the display, which Wayland clients can see to find out information
-	 * about the output (such as DPI, scale factor, manufacturer, etc).
+	/*
+	 * Arrange outputs from left-to-right in the order they appear.
+	 * TODO: support configuration in run-time
 	 */
 	wlr_output_layout_add_auto(server->output_layout, wlr_output);
+	wlr_output_schedule_frame(wlr_output);
+}
+
+void
+output_init(struct server *server)
+{
+	server->new_output.notify = new_output_notify;
+	wl_signal_add(&server->backend->events.new_output, &server->new_output);
+
+	/*
+	 * Create an output layout, which is a wlroots utility for working with
+	 * an arrangement of screens in a physical layout.
+	 */
+	server->output_layout = wlr_output_layout_create();
+	if (!server->output_layout) {
+		wlr_log(WLR_ERROR, "unable to create output layout");
+		exit(EXIT_FAILURE);
+	}
+
+	/* Enable screen recording with wf-recorder */
+	wlr_xdg_output_manager_v1_create(server->wl_display,
+		server->output_layout);
+
+	wl_list_init(&server->outputs);
 }

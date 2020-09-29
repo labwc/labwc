@@ -182,20 +182,22 @@ render_surface(struct wlr_surface *surface, int sx, int sy, void *data)
 	struct render_data *rdata = data;
 
 	struct wlr_texture *texture = wlr_surface_get_texture(surface);
-	if (!texture)
+	if (!texture) {
 		return;
+	}
 
-	/* The view has a position in layout coordinates. If you have two
+	/*
+	 * The view has a position in layout coordinates. If you have two
 	 * displays, one next to the other, both 1080p, a view on the rightmost
 	 * display might have layout coordinates of 2000,100. We need to
-	 * translate that to output-local coordinates, or (2000 - 1920). */
+	 * translate that to output-local coordinates, or (2000 - 1920).
+	 */
 	double ox = 0, oy = 0;
-	wlr_output_layout_output_coords(rdata->output_layout, rdata->output,
-					&ox, &oy);
+	wlr_output_layout_output_coords(
+		rdata->output_layout, rdata->output, &ox, &oy);
 	ox += rdata->lx + sx;
 	oy += rdata->ly + sy;
 
-	/* TODO: Support HiDPI */
 	struct wlr_box box = {
 		.x = ox * rdata->output->scale,
 		.y = oy * rdata->output->scale,
@@ -203,32 +205,13 @@ render_surface(struct wlr_surface *surface, int sx, int sy, void *data)
 		.height = surface->current.height * rdata->output->scale,
 	};
 
-	/*
-	 * Those familiar with OpenGL are also familiar with the role of
-	 * matricies in graphics programming. We need to prepare a matrix to
-	 * render the view with. wlr_matrix_project_box is a helper which takes
-	 * a box with a desired x, y coordinates, width and height, and an
-	 * output geometry, then prepares an orthographic projection and
-	 * multiplies the necessary transforms to produce a
-	 * model-view-projection matrix.
-	 *
-	 * Naturally you can do this any way you like, for example to make a 3D
-	 * compositor.
-	 */
 	float matrix[9];
 	enum wl_output_transform transform =
 		wlr_output_transform_invert(surface->current.transform);
 	wlr_matrix_project_box(matrix, &box, transform, 0,
-			       rdata->output->transform_matrix);
+	       rdata->output->transform_matrix);
 
-	/*
-	 * This takes our matrix, the texture, and an alpha, and performs the
-	 * actual rendering on the GPU.
-	 */
 	wlr_render_texture_with_matrix(rdata->renderer, texture, matrix, 1);
-
-	/* This lets the client know that we've displayed that frame and it can
-	 * prepare another one now if it likes. */
 	wlr_surface_send_frame_done(surface, rdata->when);
 }
 
@@ -265,6 +248,8 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		if (!view->mapped)
 			continue;
 
+		render_decorations(output->wlr_output, view);
+
 		struct render_data rdata = {
 			.output = output->wlr_output,
 			.output_layout = output->server->output_layout,
@@ -274,16 +259,7 @@ output_frame_notify(struct wl_listener *listener, void *data)
 			.when = &now,
 		};
 
-		render_decorations(output->wlr_output, view);
-
-		if (view->type == LAB_XDG_SHELL_VIEW) {
-			/* render each xdg toplevel and popup surface */
-			wlr_xdg_surface_for_each_surface(
-				view->xdg_surface, render_surface, &rdata);
-		} else if (view->type == LAB_XWAYLAND_VIEW) {
-			render_surface(view->xwayland_surface->surface, 0, 0,
-				       &rdata);
-		}
+		view_for_each_surface(view, render_surface, &rdata);
 	}
 
 	/* If in cycle (alt-tab) mode, highlight selected view */

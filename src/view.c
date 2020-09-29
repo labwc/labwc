@@ -31,3 +31,11 @@ view_unminimize(struct view *view)
 	view->minimized = false;
 	view->impl->map(view);
 }
+
+void
+view_for_each_surface(struct view *view, wlr_surface_iterator_func_t iterator,
+		void *user_data)
+{
+	view->impl->for_each_surface(view, iterator, user_data);
+}
+

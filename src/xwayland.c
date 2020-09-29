@@ -62,6 +62,13 @@ _close(struct view *view)
 	wlr_xwayland_surface_close(view->xwayland_surface);
 }
 
+static void
+for_each_surface(struct view *view, wlr_surface_iterator_func_t iterator,
+		void *data)
+{
+        wlr_surface_for_each_surface(view->surface, iterator, data);
+}
+
 static bool
 want_deco(struct view *view)
 {
@@ -119,6 +126,7 @@ unmap(struct view *view)
 static const struct view_impl xwl_view_impl = {
 	.configure = configure,
 	.close = _close,
+	.for_each_surface = for_each_surface,
 	.map = map,
 	.unmap = unmap,
 };

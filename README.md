@@ -68,6 +68,8 @@ Suggested apps to use with labwc:
 
 - [grim](https://github.com/emersion/grim) - Take screenshot
 - [wf-recorder](https://github.com/ammen99/wf-recorder) - Record screen
+- [swaybg](https://github.com/swaywm/swaybg) - Set background image
+- [waybar](https://github.com/Alexays/Waybar) - Panel
 
 ## 6. Roadmap
 
@@ -77,16 +79,17 @@ Suggested apps to use with labwc:
 - [x] Read xbm icons
 - [x] Show maximize, iconify, close buttons
 - [x] Catch SIGHUP to reconfigure (re-load config and theme)
+- [x] Support layer-shell protocol (partial)
 - [ ] Support 'maximize'
 - [ ] Show window title
 - [ ] Read ~/.config/labwc/autostart
 - [ ] Read ~/.config/labwc/environment (useful for XKB environment variables)
-- [ ] Support layer-shell protocol (e.g. for setting background with swaybg).
 - [ ] Support foreign-toplevel protocol (e.g. to integrate with wlroots panels/bars)
 - [ ] Support damage control to reduce CPU usage
 - [ ] Implement client-menu
 - [ ] Implement root-menu
 - [ ] Support on-screen display (OSD), for example to support alt-tab window list
+- [ ] Support [kanshi](https://github.com/emersion/kanshi.git)
 
 For further details see [wiki/Roadmap](https://github.com/johanmalm/labwc/wiki/Roadmap).
 

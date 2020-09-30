@@ -48,7 +48,11 @@ struct server {
 	struct wlr_backend *backend;
 
 	struct wlr_xdg_shell *xdg_shell;
+	struct wlr_layer_shell_v1 *layer_shell;
+
 	struct wl_listener new_xdg_surface;
+	struct wl_listener new_layer_surface;
+
 	struct wl_listener xdg_toplevel_decoration;
 	struct wlr_xwayland *xwayland;
 	struct wl_listener new_xwayland_surface;
@@ -88,6 +92,7 @@ struct output {
 	struct wl_list link;
 	struct server *server;
 	struct wlr_output *wlr_output;
+	struct wl_list layers[4];
 	struct wl_listener frame;
 	struct wl_listener destroy;
 };

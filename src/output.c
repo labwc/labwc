@@ -1,6 +1,7 @@
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include "labwc.h"
 #include "theme/theme.h"
+#include "layers.h"
 
 struct draw_data {
 	struct wlr_renderer *renderer;
@@ -168,6 +169,53 @@ render_decorations(struct wlr_output *output, struct view *view)
 	}
 }
 
+struct render_data_layer {
+	struct lab_layer_surface *layer_surface;
+	struct timespec *now;
+};
+
+static void
+render_layer_surface(struct wlr_surface *surface, int sx, int sy, void *data)
+{
+	struct render_data_layer *context = data;
+	struct lab_layer_surface *layer_surface = context->layer_surface;
+	struct wlr_texture *texture = wlr_surface_get_texture(surface);
+	if (texture == NULL) {
+		return;
+	}
+	struct wlr_output *output = layer_surface->layer_surface->output;
+	double ox = 0, oy = 0;
+	wlr_output_layout_output_coords(
+			layer_surface->server->output_layout, output, &ox, &oy);
+	ox += layer_surface->geo.x + sx, oy += layer_surface->geo.y + sy;
+	float matrix[9];
+	enum wl_output_transform transform =
+		wlr_output_transform_invert(surface->current.transform);
+	struct wlr_box box;
+	memcpy(&box, &layer_surface->geo, sizeof(struct wlr_box));
+	wlr_matrix_project_box(matrix, &box, transform, 0,
+		output->transform_matrix);
+	wlr_render_texture_with_matrix(layer_surface->server->renderer,
+			texture, matrix, 1);
+	wlr_surface_send_frame_done(surface, context->now);
+}
+
+static void
+render_layer(struct timespec *now, struct wl_list *layer_surfaces)
+{
+	struct render_data_layer context = {
+		.now = now,
+	};
+	struct lab_layer_surface *layer_surface;
+	wl_list_for_each(layer_surface, layer_surfaces, link) {
+		struct wlr_layer_surface_v1 *wlr_layer_surface_v1 =
+			layer_surface->layer_surface;
+		context.layer_surface = layer_surface;
+		wlr_surface_for_each_surface(wlr_layer_surface_v1->surface,
+			render_layer_surface, &context);
+	}
+}
+
 struct render_data {
 	struct wlr_output *output;
 	struct wlr_output_layout *output_layout;
@@ -243,6 +291,9 @@ output_frame_notify(struct wl_listener *listener, void *data)
 	float color[4] = { 0.3, 0.3, 0.3, 1.0 };
 	wlr_renderer_clear(renderer, color);
 
+	render_layer(&now, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND]);
+	render_layer(&now, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM]);
+
 	struct view *view;
 	wl_list_for_each_reverse (view, &output->server->views, link) {
 		if (!view->mapped)
@@ -282,6 +333,8 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		render_surface(s, 0, 0, &rdata);
 	}
 
+	render_layer(&now, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP]);
+	render_layer(&now, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]);
 	/* Just in case hardware cursors not supported by GPU */
 	wlr_output_render_software_cursors(output->wlr_output, NULL);
 
@@ -324,6 +377,10 @@ new_output_notify(struct wl_listener *listener, void *data)
 	output->destroy.notify = output_destroy_notify;
 	wl_signal_add(&wlr_output->events.destroy, &output->destroy);
 
+	wl_list_init(&output->layers[0]);
+	wl_list_init(&output->layers[1]);
+	wl_list_init(&output->layers[2]);
+	wl_list_init(&output->layers[3]);
 	/*
 	 * Arrange outputs from left-to-right in the order they appear.
 	 * TODO: support configuration in run-time

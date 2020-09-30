@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
+#include "layers.h"
 
 static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;
@@ -241,6 +242,8 @@ server_init(struct server *server)
 	wlr_data_control_manager_v1_create(server->wl_display);
 	wlr_gamma_control_manager_v1_create(server->wl_display);
 	wlr_primary_selection_v1_device_manager_create(server->wl_display);
+
+	layers_init(server);
 
 	/* Init xwayland */
 	server->xwayland =

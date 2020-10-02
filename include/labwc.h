@@ -15,6 +15,7 @@
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
+#include <wlr/types/wlr_keyboard_group.h>
 #include <wlr/types/wlr_matrix.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
@@ -42,6 +43,36 @@ enum cursor_mode {
 	LAB_CURSOR_RESIZE,
 };
 
+struct input {
+	struct wlr_input_device *wlr_input_device;
+	struct seat *seat;
+	struct wl_listener destroy;
+	struct wl_list link; /* seat::inputs */
+};
+
+struct seat {
+	struct wlr_seat *seat;
+	struct server *server;
+	struct wlr_keyboard_group *keyboard_group;
+	struct wlr_cursor *cursor;
+	struct wlr_xcursor_manager *xcursor_manager;
+
+	struct wl_list inputs;
+	struct wl_listener new_input;
+
+	struct wl_listener cursor_motion;
+	struct wl_listener cursor_motion_absolute;
+	struct wl_listener cursor_button;
+	struct wl_listener cursor_axis;
+	struct wl_listener cursor_frame;
+
+	struct wl_listener request_cursor;
+	struct wl_listener request_set_selection;
+
+	struct wl_listener keyboard_key;
+	struct wl_listener keyboard_modifiers;
+};
+
 struct server {
 	struct wl_display *wl_display;
 	struct wlr_renderer *renderer;
@@ -56,22 +87,11 @@ struct server {
 	struct wl_listener xdg_toplevel_decoration;
 	struct wlr_xwayland *xwayland;
 	struct wl_listener new_xwayland_surface;
+
 	struct wl_list views;
 	struct wl_list unmanaged_surfaces;
 
-	struct wlr_cursor *cursor;
-	struct wlr_xcursor_manager *cursor_mgr;
-	struct wl_listener cursor_motion;
-	struct wl_listener cursor_motion_absolute;
-	struct wl_listener cursor_button;
-	struct wl_listener cursor_axis;
-	struct wl_listener cursor_frame;
-
-	struct wlr_seat *seat;
-	struct wl_listener new_input;
-	struct wl_listener request_cursor;
-	struct wl_listener request_set_selection;
-	struct wl_list keyboards;
+	struct seat seat;
 
 	/* cursor interactive */
 	enum cursor_mode cursor_mode;
@@ -80,9 +100,9 @@ struct server {
 	struct wlr_box grab_box;
 	uint32_t resize_edges;
 
-	struct wlr_output_layout *output_layout;
 	struct wl_list outputs;
 	struct wl_listener new_output;
+	struct wlr_output_layout *output_layout;
 
 	/* Set when in cycle (alt-tab) mode */
 	struct view *cycle_view;
@@ -180,21 +200,12 @@ struct xwayland_unmanaged {
 	struct wl_listener destroy;
 };
 
-struct keyboard {
-	struct wl_list link;
-	struct server *server;
-	struct wlr_input_device *device;
-
-	struct wl_listener modifiers;
-	struct wl_listener key;
-};
-
 void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
 void xdg_surface_new(struct wl_listener *listener, void *data);
 
 void xwayland_surface_new(struct wl_listener *listener, void *data);
 void xwayland_unmanaged_create(struct server *server,
-			       struct wlr_xwayland_surface *xsurface);
+	struct wlr_xwayland_surface *xsurface);
 
 /**
  * view_get_surface_geometry - geometry relative to view
@@ -223,27 +234,21 @@ struct view *desktop_view_at(struct server *server, double lx, double ly,
 			     struct wlr_surface **surface, double *sx,
 			     double *sy, int *view_area);
 
-void seat_init(struct wlr_seat *seat);
+void cursor_init(struct seat *seat);
+void keyboard_init(struct seat *seat);
+void seat_init(struct server *server);
+void seat_finish(struct server *server);
 void seat_focus_surface(struct wlr_surface *surface);
 struct wlr_surface *seat_focused_surface(void);
 
 void interactive_begin(struct view *view, enum cursor_mode mode,
 		       uint32_t edges);
 
+void output_init(struct server *server);
+
 void server_init(struct server *server);
 void server_start(struct server *server);
 void server_finish(struct server *server);
-
-void cursor_motion(struct wl_listener *listener, void *data);
-void cursor_motion_absolute(struct wl_listener *listener, void *data);
-void cursor_button(struct wl_listener *listener, void *data);
-void cursor_axis(struct wl_listener *listener, void *data);
-void cursor_frame(struct wl_listener *listener, void *data);
-void cursor_new(struct server *server, struct wlr_input_device *device);
-
-void keyboard_new(struct server *server, struct wlr_input_device *device);
-
-void output_init(struct server *server);
 
 struct border deco_thickness(struct view *view);
 struct wlr_box deco_max_extents(struct view *view);

@@ -15,71 +15,6 @@ static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;
 
 static void
-server_new_input(struct wl_listener *listener, void *data)
-{
-	/*
-	 * This event is raised by the backend when a new input device becomes
-	 * available.
-	 */
-	struct server *server = wl_container_of(listener, server, new_input);
-	struct wlr_input_device *device = data;
-	switch (device->type) {
-	case WLR_INPUT_DEVICE_KEYBOARD:
-		keyboard_new(server, device);
-		break;
-	case WLR_INPUT_DEVICE_POINTER:
-		cursor_new(server, device);
-		break;
-	default:
-		break;
-	}
-
-	/*
-	 * We need to let the wlr_seat know what our capabilities are, which is
-	 * communiciated to the client.
-	 */
-	uint32_t caps = WL_SEAT_CAPABILITY_POINTER;
-	if (!wl_list_empty(&server->keyboards)) {
-		caps |= WL_SEAT_CAPABILITY_KEYBOARD;
-	}
-	wlr_seat_set_capabilities(server->seat, caps);
-}
-
-static void
-seat_request_cursor(struct wl_listener *listener, void *data)
-{
-	struct server *server =
-		wl_container_of(listener, server, request_cursor);
-	/*
-	 * This event is rasied by the seat when a client provides a cursor
-	 * image
-	 */
-	struct wlr_seat_pointer_request_set_cursor_event *event = data;
-	struct wlr_seat_client *focused_client =
-		server->seat->pointer_state.focused_client;
-
-	/* This can be sent by any client, so we check to make sure this one is
-	 * actually has pointer focus first. */
-	if (focused_client == event->seat_client) {
-		/* Once we've vetted the client, we can tell the cursor to use
-		 * the provided surface as the cursor image. It will set the
-		 * hardware cursor on the output that it's currently on and
-		 * continue to do so as the cursor moves between outputs. */
-		wlr_cursor_set_surface(server->cursor, event->surface,
-				       event->hotspot_x, event->hotspot_y);
-	}
-}
-
-static void
-seat_request_set_selection(struct wl_listener *listener, void *data)
-{
-	struct server *server =
-		wl_container_of(listener, server, request_set_selection);
-	struct wlr_seat_request_set_selection_event *event = data;
-	wlr_seat_set_selection(server->seat, event->source, event->serial);
-}
-
-static void
 reload_config_and_theme(void)
 {
 	rcxml_finish();
@@ -161,49 +96,7 @@ server_init(struct server *server)
 	}
 
 	output_init(server);
-
-	/*
-	 * Configures a seat, which is a single "seat" at which a user sits
-	 * and operates the computer. This conceptually includes up to one
-	 * keyboard, pointer, touch, and drawing tablet device. We also rig up
-	 * a listener to let us know when new input devices are available on
-	 * the backend.
-	 */
-	server->seat = wlr_seat_create(server->wl_display, "seat0");
-	if (!server->seat) {
-		wlr_log(WLR_ERROR, "cannot allocate seat0");
-		exit(EXIT_FAILURE);
-	}
-	seat_init(server->seat);
-
-	server->cursor = wlr_cursor_create();
-	if (!server->cursor) {
-		wlr_log(WLR_ERROR, "unable to create cursor");
-		exit(EXIT_FAILURE);
-	}
-	wlr_cursor_attach_output_layout(server->cursor, server->output_layout);
-
-	server->cursor_motion.notify = cursor_motion;
-	wl_signal_add(&server->cursor->events.motion, &server->cursor_motion);
-	server->cursor_motion_absolute.notify = cursor_motion_absolute;
-	wl_signal_add(&server->cursor->events.motion_absolute,
-		      &server->cursor_motion_absolute);
-	server->cursor_button.notify = cursor_button;
-	wl_signal_add(&server->cursor->events.button, &server->cursor_button);
-	server->cursor_axis.notify = cursor_axis;
-	wl_signal_add(&server->cursor->events.axis, &server->cursor_axis);
-	server->cursor_frame.notify = cursor_frame;
-	wl_signal_add(&server->cursor->events.frame, &server->cursor_frame);
-
-	wl_list_init(&server->keyboards);
-	server->new_input.notify = server_new_input;
-	wl_signal_add(&server->backend->events.new_input, &server->new_input);
-	server->request_cursor.notify = seat_request_cursor;
-	wl_signal_add(&server->seat->events.request_set_cursor,
-		      &server->request_cursor);
-	server->request_set_selection.notify = seat_request_set_selection;
-	wl_signal_add(&server->seat->events.request_set_selection,
-		      &server->request_set_selection);
+	seat_init(server);
 
 	/* Init xdg-shell */
 	server->xdg_shell = wlr_xdg_shell_create(server->wl_display);
@@ -247,7 +140,7 @@ server_init(struct server *server)
 
 	/* Init xwayland */
 	server->xwayland =
-		wlr_xwayland_create(server->wl_display, compositor, false);
+		wlr_xwayland_create(server->wl_display, compositor, true);
 	if (!server->xwayland) {
 		wlr_log(WLR_ERROR, "cannot create xwayland server");
 		exit(EXIT_FAILURE);
@@ -256,12 +149,6 @@ server_init(struct server *server)
 	wl_signal_add(&server->xwayland->events.new_surface,
 		      &server->new_xwayland_surface);
 
-	server->cursor_mgr =
-		wlr_xcursor_manager_create(XCURSOR_DEFAULT, XCURSOR_SIZE);
-	if (!server->cursor_mgr) {
-		wlr_log(WLR_ERROR, "cannot create xwayland xcursor manager");
-	}
-
 	if (setenv("DISPLAY", server->xwayland->display_name, true) < 0) {
 		wlr_log_errno(WLR_ERROR, "unable to set DISPLAY for xwayland");
 	} else {
@@ -269,12 +156,12 @@ server_init(struct server *server)
 			server->xwayland->display_name);
 	}
 
-	if (!wlr_xcursor_manager_load(server->cursor_mgr, 1)) {
+	if (!wlr_xcursor_manager_load(server->seat.xcursor_manager, 1)) {
 		wlr_log(WLR_ERROR, "cannot load xwayland xcursor theme");
 	}
 
 	struct wlr_xcursor *xcursor;
-	xcursor = wlr_xcursor_manager_get_xcursor(server->cursor_mgr,
+	xcursor = wlr_xcursor_manager_get_xcursor(server->seat.xcursor_manager,
 						  XCURSOR_DEFAULT, 1);
 	if (xcursor) {
 		struct wlr_xcursor_image *image = xcursor->images[0];
@@ -313,7 +200,7 @@ server_start(struct server *server)
 
 	wl_display_init_shm(server->wl_display);
 
-	wlr_xwayland_set_seat(server->xwayland, server->seat);
+	wlr_xwayland_set_seat(server->xwayland, server->seat.seat);
 }
 
 void
@@ -324,15 +211,9 @@ server_finish(struct server *server)
 		wl_list_remove(&o->link);
 		free(o);
 	}
-	struct keyboard *k, *k_tmp;
-	wl_list_for_each_safe (k, k_tmp, &server->keyboards, link) {
-		wl_list_remove(&k->link);
-		free(k);
-	}
-	wlr_cursor_destroy(server->cursor);
 	wlr_output_layout_destroy(server->output_layout);
+	seat_finish(server);
 	wlr_xwayland_destroy(server->xwayland);
-	wlr_xcursor_manager_destroy(server->cursor_mgr);
 	wl_event_source_remove(sighup_source);
 	wl_display_destroy_clients(server->wl_display);
 	wl_display_destroy(server->wl_display);

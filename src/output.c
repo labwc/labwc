@@ -141,7 +141,7 @@ render_decorations(struct wlr_output *output, struct view *view)
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_TITLE));
 
 	/* button background */
-	struct wlr_cursor *cur = view->server->cursor;
+	struct wlr_cursor *cur = view->server->seat.cursor;
 	enum deco_part deco_part = deco_at(view, cur->x, cur->y);
 
 	struct wlr_box box = deco_box(view, deco_part);

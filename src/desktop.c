@@ -68,23 +68,23 @@ static void
 focus_view(struct view *view)
 {
 	struct server *server = view->server;
-	struct wlr_seat *seat = server->seat;
+	struct wlr_seat *wlr_seat = server->seat.seat;
 	struct wlr_surface *prev_surface;
-	prev_surface = seat->keyboard_state.focused_surface;
+	prev_surface = wlr_seat->keyboard_state.focused_surface;
 	if (prev_surface == view->surface) {
 		/* Don't re-focus an already focused surface. */
 		return;
 	}
 	if (prev_surface) {
-		set_activated(seat->keyboard_state.focused_surface, false);
+		set_activated(wlr_seat->keyboard_state.focused_surface, false);
 	}
 
 	move_to_front(view);
 	set_activated(view->surface, true);
-	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat);
-	wlr_seat_keyboard_notify_enter(seat, view->surface, keyboard->keycodes,
-				       keyboard->num_keycodes,
-				       &keyboard->modifiers);
+	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(wlr_seat);
+	wlr_seat_keyboard_notify_enter(wlr_seat, view->surface,
+		keyboard->keycodes, keyboard->num_keycodes,
+		&keyboard->modifiers);
 
 	move_xwayland_sub_views_to_front(view);
 }

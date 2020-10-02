@@ -275,8 +275,8 @@ server_new_layer_surface(struct wl_listener *listener, void *data)
 	struct wlr_layer_surface_v1 *layer_surface = data;
 	if (!layer_surface->output) {
 		struct wlr_output *output = wlr_output_layout_output_at(
-			server->output_layout, server->cursor->x,
-			server->cursor->y);
+			server->output_layout, server->seat.cursor->x,
+			server->seat.cursor->y);
 		layer_surface->output = output;
 	}
 

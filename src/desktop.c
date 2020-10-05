@@ -81,10 +81,10 @@ focus_view(struct view *view)
 
 	move_to_front(view);
 	set_activated(view->surface, true);
-	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(wlr_seat);
-	wlr_seat_keyboard_notify_enter(wlr_seat, view->surface,
-		keyboard->keycodes, keyboard->num_keycodes,
-		&keyboard->modifiers);
+
+	struct wlr_keyboard *kb = &server->seat.keyboard_group->keyboard;
+	wlr_seat_keyboard_notify_enter(wlr_seat, view->surface, kb->keycodes,
+		kb->num_keycodes, &kb->modifiers);
 
 	move_xwayland_sub_views_to_front(view);
 }

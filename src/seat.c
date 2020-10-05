@@ -1,7 +1,8 @@
+#include <assert.h>
 #include <wlr/util/log.h>
 #include "labwc.h"
 
-static struct wlr_seat *current_seat;
+static struct seat *current_seat;
 
 static void
 input_device_destroy(struct wl_listener *listener, void *data)
@@ -79,7 +80,7 @@ seat_init(struct server *server)
 		wlr_log(WLR_ERROR, "cannot allocate seat");
 		exit(EXIT_FAILURE);
 	}
-	current_seat = seat->seat;
+	current_seat = seat;
 
 	wl_list_init(&seat->inputs);
 	seat->new_input.notify = new_input_notify;
@@ -108,6 +109,9 @@ seat_finish(struct server *server)
 	wl_list_remove(&seat->request_cursor.link);
 	wl_list_remove(&seat->request_set_selection.link);
 	wl_list_remove(&seat->new_input.link);
+	if (seat->keyboard_group) {
+		wlr_keyboard_group_destroy(seat->keyboard_group);
+	}
 	wlr_xcursor_manager_destroy(seat->xcursor_manager);
 	wlr_cursor_destroy(seat->cursor);
 	wlr_seat_destroy(server->seat.seat);
@@ -116,16 +120,18 @@ seat_finish(struct server *server)
 void
 seat_focus_surface(struct wlr_surface *surface)
 {
+	struct wlr_seat *wlr_seat = current_seat->seat;
 	if (!surface) {
-		wlr_seat_keyboard_notify_clear_focus(current_seat);
+		wlr_seat_keyboard_notify_clear_focus(wlr_seat);
 		return;
 	}
-	/* TODO: add keyboard stuff */
-	wlr_seat_keyboard_notify_enter(current_seat, surface, NULL, 0, NULL);
+	struct wlr_keyboard *kb = &current_seat->keyboard_group->keyboard;
+	wlr_seat_keyboard_notify_enter(wlr_seat, surface, kb->keycodes,
+		kb->num_keycodes, &kb->modifiers);
 }
 
 struct wlr_surface *
 seat_focused_surface(void)
 {
-	return current_seat->keyboard_state.focused_surface;
+	return current_seat->seat->keyboard_state.focused_surface;
 }

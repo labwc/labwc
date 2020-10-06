@@ -235,10 +235,12 @@ struct view *desktop_view_at(struct server *server, double lx, double ly,
 			     double *sy, int *view_area);
 
 void cursor_init(struct seat *seat);
+
 void keyboard_init(struct seat *seat);
+
 void seat_init(struct server *server);
 void seat_finish(struct server *server);
-void seat_focus_surface(struct wlr_surface *surface);
+void seat_focus_surface(struct wlr_seat *seat, struct wlr_surface *surface);
 struct wlr_surface *seat_focused_surface(void);
 
 void interactive_begin(struct view *view, enum cursor_mode mode,

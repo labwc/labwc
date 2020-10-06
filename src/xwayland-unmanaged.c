@@ -38,7 +38,8 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 	unmanaged->ly = xsurface->y;
 
 	if (wlr_xwayland_or_surface_wants_focus(xsurface)) {
-		seat_focus_surface(xsurface->surface);
+		struct wlr_seat *seat = unmanaged->server->seat.seat;
+		seat_focus_surface(seat, xsurface->surface);
 	}
 }
 
@@ -59,7 +60,8 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 			if (!wlr_xwayland_or_surface_wants_focus(prev)) {
 				continue;
 			}
-			seat_focus_surface(prev->surface);
+			struct wlr_seat *seat = unmanaged->server->seat.seat;
+			seat_focus_surface(seat, prev->surface);
 			return;
 		}
 	}

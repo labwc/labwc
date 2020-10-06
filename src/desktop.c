@@ -93,7 +93,7 @@ void
 desktop_focus_view(struct view *view)
 {
 	if (!view) {
-		seat_focus_surface(NULL);
+		seat_focus_surface(view->server->seat.seat, NULL);
 		return;
 	}
 	if (view->minimized) {

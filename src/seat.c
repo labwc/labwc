@@ -118,15 +118,14 @@ seat_finish(struct server *server)
 }
 
 void
-seat_focus_surface(struct wlr_surface *surface)
+seat_focus_surface(struct wlr_seat *seat, struct wlr_surface *surface)
 {
-	struct wlr_seat *wlr_seat = current_seat->seat;
 	if (!surface) {
-		wlr_seat_keyboard_notify_clear_focus(wlr_seat);
+		wlr_seat_keyboard_notify_clear_focus(seat);
 		return;
 	}
 	struct wlr_keyboard *kb = &current_seat->keyboard_group->keyboard;
-	wlr_seat_keyboard_notify_enter(wlr_seat, surface, kb->keycodes,
+	wlr_seat_keyboard_notify_enter(seat, surface, kb->keycodes,
 		kb->num_keycodes, &kb->modifiers);
 }
 

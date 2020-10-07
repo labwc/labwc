@@ -36,7 +36,12 @@ Runtime dependencies include:
 - cairo
 - pango
 
-For further details see [tools/build](tools/build) and [wiki/Build](https://github.com/johanmalm/labwc/wiki/Build).
+To build you also need headers for:
+
+- xcb
+- xkbcommon
+
+For further details see [wiki/Build](https://github.com/johanmalm/labwc/wiki/Build).
 
 ## 3. Configure
 

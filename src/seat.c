@@ -128,9 +128,3 @@ seat_focus_surface(struct wlr_seat *seat, struct wlr_surface *surface)
 	wlr_seat_keyboard_notify_enter(seat, surface, kb->keycodes,
 		kb->num_keycodes, &kb->modifiers);
 }
-
-struct wlr_surface *
-seat_focused_surface(void)
-{
-	return current_seat->seat->keyboard_state.focused_surface;
-}

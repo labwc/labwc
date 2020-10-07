@@ -134,7 +134,8 @@ render_decorations(struct wlr_output *output, struct view *view)
 	draw_rect(&ddata, deco_box(view, LAB_DECO_PART_LEFT));
 
 	/* title */
-	if (view->surface == seat_focused_surface())
+	struct wlr_seat *seat = view->server->seat.seat;
+	if (view->surface == seat->keyboard_state.focused_surface)
 		ddata.rgba = theme.window_active_title_bg_color;
 	else
 		ddata.rgba = theme.window_inactive_title_bg_color;
@@ -152,7 +153,7 @@ render_decorations(struct wlr_output *output, struct view *view)
 	}
 
 	/* buttons */
-	if (view->surface == seat_focused_surface()) {
+	if (view->surface == seat->keyboard_state.focused_surface) {
 		render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_CLOSE),
 			    theme.xbm_close_active_unpressed);
 		render_icon(&ddata, deco_box(view, LAB_DECO_BUTTON_MAXIMIZE),

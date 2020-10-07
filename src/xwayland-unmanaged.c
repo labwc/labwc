@@ -52,7 +52,8 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 	wl_list_remove(&unmanaged->link);
 	wl_list_remove(&unmanaged->commit.link);
 
-	if (seat_focused_surface() == xsurface->surface) {
+	struct wlr_seat *seat = unmanaged->server->seat.seat;
+	if (seat->keyboard_state.focused_surface == xsurface->surface) {
 		struct xwayland_unmanaged *u;
 		struct wl_list *list = &unmanaged->server->unmanaged_surfaces;
 		wl_list_for_each (u, list, link) {
@@ -60,7 +61,6 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 			if (!wlr_xwayland_or_surface_wants_focus(prev)) {
 				continue;
 			}
-			struct wlr_seat *seat = unmanaged->server->seat.seat;
 			seat_focus_surface(seat, prev->surface);
 			return;
 		}

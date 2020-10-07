@@ -76,7 +76,7 @@ focus_view(struct view *view)
 		return;
 	}
 	if (prev_surface) {
-		set_activated(wlr_seat->keyboard_state.focused_surface, false);
+		set_activated(prev_surface, false);
 	}
 
 	move_to_front(view);

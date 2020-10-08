@@ -2,8 +2,6 @@
 #include <wlr/util/log.h>
 #include "labwc.h"
 
-static struct seat *current_seat;
-
 static void
 input_device_destroy(struct wl_listener *listener, void *data)
 {
@@ -80,7 +78,6 @@ seat_init(struct server *server)
 		wlr_log(WLR_ERROR, "cannot allocate seat");
 		exit(EXIT_FAILURE);
 	}
-	current_seat = seat;
 
 	wl_list_init(&seat->inputs);
 	seat->new_input.notify = new_input_notify;
@@ -118,13 +115,13 @@ seat_finish(struct server *server)
 }
 
 void
-seat_focus_surface(struct wlr_seat *seat, struct wlr_surface *surface)
+seat_focus_surface(struct seat *seat, struct wlr_surface *surface)
 {
 	if (!surface) {
-		wlr_seat_keyboard_notify_clear_focus(seat);
+		wlr_seat_keyboard_notify_clear_focus(seat->seat);
 		return;
 	}
-	struct wlr_keyboard *kb = &current_seat->keyboard_group->keyboard;
-	wlr_seat_keyboard_notify_enter(seat, surface, kb->keycodes,
+	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
+	wlr_seat_keyboard_notify_enter(seat->seat, surface, kb->keycodes,
 		kb->num_keycodes, &kb->modifiers);
 }

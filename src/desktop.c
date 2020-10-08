@@ -68,7 +68,7 @@ void
 desktop_focus_view(struct seat *seat, struct view *view)
 {
 	if (!view) {
-		seat_focus_surface(seat->seat, NULL);
+		seat_focus_surface(seat, NULL);
 		return;
 	}
 	if (view->minimized) {
@@ -87,7 +87,7 @@ desktop_focus_view(struct seat *seat, struct view *view)
 		}
 		move_to_front(view);
 		set_activated(view->surface, true);
-		seat_focus_surface(seat->seat, view->surface);
+		seat_focus_surface(seat, view->surface);
 		move_xwayland_sub_views_to_front(view);
 	}
 }

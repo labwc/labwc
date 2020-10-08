@@ -240,7 +240,7 @@ void keyboard_init(struct seat *seat);
 
 void seat_init(struct server *server);
 void seat_finish(struct server *server);
-void seat_focus_surface(struct wlr_seat *seat, struct wlr_surface *surface);
+void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
 
 void interactive_begin(struct view *view, enum cursor_mode mode,
 		       uint32_t edges);

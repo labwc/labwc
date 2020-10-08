@@ -79,16 +79,13 @@ Suggested apps to use with labwc:
 ## 6. Roadmap
 
 - [x] Support xwayland
-- [x] Parse [rc.xml](docs/rc.xml)
-- [x] Parse [themerc](docs/themerc)
-- [x] Read xbm icons
+- [x] Parse ~/.config/labwc/{rc.xml,autostart,environment}
+- [x] Parse /usr/share/themes/<name>/openbox-3/themerc and associated xbm icons
 - [x] Show maximize, iconify, close buttons
-- [x] Catch SIGHUP to reconfigure (re-load config and theme)
+- [x] Catch SIGHUP to re-load config file and theme
 - [x] Support layer-shell protocol (partial)
 - [ ] Support 'maximize'
 - [ ] Show window title
-- [ ] Read ~/.config/labwc/autostart
-- [ ] Read ~/.config/labwc/environment (useful for XKB environment variables)
 - [ ] Support foreign-toplevel protocol (e.g. to integrate with wlroots panels/bars)
 - [ ] Support damage control to reduce CPU usage
 - [ ] Implement client-menu

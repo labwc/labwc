@@ -1,4 +1,5 @@
 #include "common/spawn.h"
+#include "config/session.h"
 #include "labwc.h"
 #include "theme/theme.h"
 #include "xbm/xbm.h"
@@ -44,6 +45,8 @@ main(int argc, char *argv[])
 	}
 
 	wlr_log_init(WLR_ERROR, NULL);
+
+	session_environment_init();
 	rcxml_read(config_file);
 
 	if (!getenv("XDG_RUNTIME_DIR")) {
@@ -58,6 +61,7 @@ main(int argc, char *argv[])
 	theme_read(rc.theme_name);
 	xbm_load(server.renderer);
 
+	session_autostart_init();
 	if (startup_cmd) {
 		spawn_async_no_shell(startup_cmd);
 	}

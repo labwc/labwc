@@ -195,7 +195,7 @@ xdg_toplevel_view_map(struct view *view)
 		      &view->commit);
 	view->commit.notify = handle_commit;
 
-	desktop_focus_view(view);
+	desktop_focus_view(&view->server->seat, view);
 }
 
 static void

@@ -64,43 +64,31 @@ set_activated(struct wlr_surface *surface, bool activated)
 	}
 }
 
-static void
-focus_view(struct view *view)
-{
-	struct server *server = view->server;
-	struct wlr_seat *wlr_seat = server->seat.seat;
-	struct wlr_surface *prev_surface;
-	prev_surface = wlr_seat->keyboard_state.focused_surface;
-	if (prev_surface == view->surface) {
-		/* Don't re-focus an already focused surface. */
-		return;
-	}
-	if (prev_surface) {
-		set_activated(prev_surface, false);
-	}
-
-	move_to_front(view);
-	set_activated(view->surface, true);
-
-	struct wlr_keyboard *kb = &server->seat.keyboard_group->keyboard;
-	wlr_seat_keyboard_notify_enter(wlr_seat, view->surface, kb->keycodes,
-		kb->num_keycodes, &kb->modifiers);
-
-	move_xwayland_sub_views_to_front(view);
-}
-
 void
-desktop_focus_view(struct view *view)
+desktop_focus_view(struct seat *seat, struct view *view)
 {
 	if (!view) {
-		seat_focus_surface(view->server->seat.seat, NULL);
+		seat_focus_surface(seat->seat, NULL);
 		return;
 	}
 	if (view->minimized) {
-		/* this will unmap and focus */
+		/* this will unmap and then focus */
 		view_unminimize(view);
+		return;
 	} else if (view->mapped) {
-		focus_view(view);
+		struct wlr_surface *prev_surface;
+		prev_surface = seat->seat->keyboard_state.focused_surface;
+		if (prev_surface == view->surface) {
+			/* Don't re-focus an already focused surface. */
+			return;
+		}
+		if (prev_surface) {
+			set_activated(prev_surface, false);
+		}
+		move_to_front(view);
+		set_activated(view->surface, true);
+		seat_focus_surface(seat->seat, view->surface);
+		move_xwayland_sub_views_to_front(view);
 	}
 }
 
@@ -187,7 +175,7 @@ desktop_focus_next_mapped_view(struct view *current)
 {
 	assert(current);
 	struct view *view = desktop_next_mapped_view(current);
-	desktop_focus_view(view);
+	desktop_focus_view(&current->server->seat, view);
 }
 
 static bool

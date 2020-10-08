@@ -221,7 +221,7 @@ void view_unminimize(struct view *view);
 void view_for_each_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *user_data);
 
-void desktop_focus_view(struct view *view);
+void desktop_focus_view(struct seat *seat, struct view *view);
 
 /**
  * desktop_next_view - return next view

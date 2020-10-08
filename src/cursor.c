@@ -248,7 +248,7 @@ cursor_button(struct wl_listener *listener, void *data)
 		server->cursor_mode = LAB_CURSOR_PASSTHROUGH;
 	} else {
 		/* Focus that client if the button was _pressed_ */
-		desktop_focus_view(view);
+		desktop_focus_view(&server->seat, view);
 		switch (view_area) {
 		case LAB_DECO_BUTTON_CLOSE:
 			view->impl->close(view);

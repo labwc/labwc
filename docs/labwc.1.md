@@ -1,6 +1,6 @@
 % labwc(1)
 % Johan Malm
-% 7 Aug, 2020
+% 8 Oct, 2020
 
 # NAME
 
@@ -33,15 +33,22 @@ Labwc is a [WIP] free, stacking compositor for Wayland. It aims to be light-weig
 Labwc aims to be compatible with openbox configuration and theming, with the
 following files controlling the look and behaviour:
 
-- rc.xml  
-- themerc  
-- xbm icons  
+- ~/.config/labwc/rc.xml (see labwc-config(5) for details)  
+- ~/.config/labwc/autostart  
+- ~/.config/labwc/environment  
+- ~/.themes/<name>/openbox-3/themerc (see labwc-theme(5) for details)  
 
-It reloads configuration and theme on receiving signal SIGHUP.
+Equivalent XDG Base Directory Specification locations are also honoured.
 
-See labwc(5) for details.
+The configuration file and theme are re-loaded on receiving signal SIGHUP.
+
+The autostart file is executed as a shell script. This is a place for setting
+a background image, launching a panel, and so on.
+
+The environment file is parsed as `<variable>=<value>` and sets environment
+variables accordingly. It is recommended to specify keyboard settings here,
+for example: `XKB_DEFAULT_LAYOUT=gb`. See xkeyboard-config(7) for details.
 
 # SEE ALSO
 
 labwc-config(5), labwc-theme(5), labwc-actions(5)
-

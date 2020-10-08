@@ -1,6 +1,6 @@
 % labwc-config(5)
 % Johan Malm
-% 15 Sept, 2020
+% 8 Oct, 2020
 
 # NAME
 
@@ -23,19 +23,12 @@ Labwc specific settings which are not present in Openbox.
 
     <lab>
       <xdg_shell_server_side_deco></xdg_shell_server_side_deco>
-      <keyboard>
-        <layout></layout>
-      </keyboard>
     </lab>
 
 `xdg_shell_server_side_deco` (__boolean__; default yes)
 
 :   Use server-side decorations for xdg-shell views where it is possible to
     turn of CSD
-
-`keyboard-layout` (__string__; not set by default)
-
-:   Set `XKB_DEFAULT_LAYOUT`. See xkeyboard-config(7) for details.
 
 # RC.XML `<theme>`
 

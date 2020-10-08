@@ -1,5 +1,4 @@
 #include <assert.h>
-
 #include "labwc.h"
 
 struct xdg_deco {
@@ -224,6 +223,7 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	if (xdg_surface->role != WLR_XDG_SURFACE_ROLE_TOPLEVEL) {
 		return;
 	}
+	wlr_xdg_surface_ping(xdg_surface);
 
 	struct view *view = calloc(1, sizeof(struct view));
 	view->server = server;

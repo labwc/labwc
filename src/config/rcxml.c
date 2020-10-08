@@ -144,8 +144,6 @@ entry(xmlNode *node, char *nodename, char *content)
 
 	if (!strcmp(nodename, "xdg_shell_server_side_deco.lab")) {
 		rc.xdg_shell_server_side_deco = get_bool(content);
-	} else if (!strcmp(nodename, "layout.keyboard.lab")) {
-		setenv("XKB_DEFAULT_LAYOUT", content, 1);
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = strdup(content);
 	} else if (!strcmp(nodename, "name.font.theme")) {

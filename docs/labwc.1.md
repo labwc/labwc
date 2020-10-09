@@ -36,7 +36,7 @@ following files controlling the look and behaviour:
 - ~/.config/labwc/rc.xml (see labwc-config(5) for details)  
 - ~/.config/labwc/autostart  
 - ~/.config/labwc/environment  
-- ~/.themes/<name>/openbox-3/themerc (see labwc-theme(5) for details)  
+- ~/.themes/`<name>`/openbox-3/themerc (see labwc-theme(5) for details)  
 
 Equivalent XDG Base Directory Specification locations are also honoured.
 

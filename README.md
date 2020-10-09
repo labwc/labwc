@@ -80,7 +80,7 @@ Suggested apps to use with labwc:
 
 - [x] Support xwayland
 - [x] Parse ~/.config/labwc/{rc.xml,autostart,environment}
-- [x] Parse /usr/share/themes/<name>/openbox-3/themerc and associated xbm icons
+- [x] Parse /usr/share/themes/`<name>`/openbox-3/themerc and associated xbm icons
 - [x] Show maximize, iconify, close buttons
 - [x] Catch SIGHUP to re-load config file and theme
 - [x] Support layer-shell protocol (partial)

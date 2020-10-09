@@ -5,26 +5,21 @@
 
 <!-- labwc specific settings - additional to openbox -->
 <lab>
-  <!-- Use server-side decorations for xdg-shell views where CSD can be disabled -->
+  <!-- Use server-side decorations for xdg-shell views if CSD can be disabled -->
   <xdg_shell_server_side_deco>yes</xdg_shell_server_side_deco>
 
-  <!-- See xkeyboard-config(7) for details on these keyboard settings -->
-  <keyboard>
-    <!-- layout could be for example 'gb' -->
-    <layout></layout>
-  </keyboard>
+  <!-- This font size also determintes the height of the window title bar -->
+  <font place="ActiveWindow">
+    <name>Sans</name>
+    <size>8</size>
+  </font>
 </lab>
 
 <theme>
   <name>Clearlooks</name>
 </theme>
 
-<!--
-    Currently supported keybind actions include:
-    - Exit
-    - NextWindow
-    - Execute
--->
+<!-- see labwc-actions(5) for a list of supported actions -->
 <keyboard>
   <keybind key="A-Escape">
     <action name="Exit"/>

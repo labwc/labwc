@@ -8,6 +8,7 @@
 #include "common/dir.h"
 #include "common/log.h"
 #include "common/spawn.h"
+#include "common/string-helpers.h"
 
 static bool
 isfile(const char *path)
@@ -23,30 +24,6 @@ string_empty(const char *s)
 }
 
 static void
-rtrim(char **s)
-{
-	size_t len = strlen(*s);
-	if (!len) {
-		return;
-	}
-	char *end = *s + len - 1;
-	while (end >= *s && isspace(*end)) {
-		end--;
-	}
-	*(end + 1) = '\0';
-}
-
-static char *
-strstrip(char *s)
-{
-	rtrim(&s);
-	while (isspace(*s)) {
-		s++;
-	}
-	return s;
-}
-
-static void
 process_line(char *line)
 {
 	if (string_empty(line) || line[0] == '#') {
@@ -58,8 +35,8 @@ process_line(char *line)
 		return;
 	}
 	*p = '\0';
-	key = strstrip(line);
-	value = strstrip(++p);
+	key = string_strip(line);
+	value = string_strip(++p);
 	if (string_empty(key) || string_empty(value)) {
 		return;
 	}

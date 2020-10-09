@@ -5,4 +5,5 @@ labwc_sources += files(
   'grab-file.c',
   'log.c',
   'spawn.c',
+  'string-helpers.c',
 )

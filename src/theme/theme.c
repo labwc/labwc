@@ -8,6 +8,7 @@
 
 #include "common/dir.h"
 #include "common/log.h"
+#include "common/string-helpers.h"
 #include "theme/theme.h"
 
 static int
@@ -68,30 +69,6 @@ static void entry(const char *key, const char *value)
 /* clang-format on */
 
 static void
-rtrim(char **s)
-{
-	size_t len = strlen(*s);
-	if (!len) {
-		return;
-	}
-	char *end = *s + len - 1;
-	while (end >= *s && isspace(*end)) {
-		end--;
-	}
-	*(end + 1) = '\0';
-}
-
-static char *
-strstrip(char *s)
-{
-	rtrim(&s);
-	while (isspace(*s)) {
-		s++;
-	}
-	return s;
-}
-
-static void
 parse_config_line(char *line, char **key, char **value)
 {
 	char *p = strchr(line, ':');
@@ -99,8 +76,8 @@ parse_config_line(char *line, char **key, char **value)
 		return;
 	}
 	*p = '\0';
-	*key = strstrip(line);
-	*value = strstrip(++p);
+	*key = string_strip(line);
+	*value = string_strip(++p);
 }
 
 static void

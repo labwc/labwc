@@ -22,7 +22,7 @@ Labwc has been inspired and influenced by [openbox](https://github.com/danakj/op
 
 Labwc is based on the wlroots library. The following were considered before choosing wlroots: [qtwayland](https://github.com/qt/qtwayland), [grefsen](https://github.com/ec1oud/grefsen), [mir](https://mir-server.io) and [egmde](https://github.com/AlanGriffiths/egmde).
 
-![](https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot1.png)
+![https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png](https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2x.png)
 
 ## 2. Build
 

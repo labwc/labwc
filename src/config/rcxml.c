@@ -364,7 +364,7 @@ rcxml_read(const char *filename)
 		warn("cannot read (%s)", rcxml);
 		goto no_config;
 	}
-	info("reading config file (%s)", rcxml);
+	info("read config file (%s)", rcxml);
 	buf_init(&b);
 	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');

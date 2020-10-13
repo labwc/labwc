@@ -109,7 +109,7 @@ theme_read(const char *theme_name)
 		theme_builtin();
 		return;
 	}
-	info("reading themerc (%s)", themerc);
+	info("read themerc (%s)", themerc);
 	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');
 		if (p) {

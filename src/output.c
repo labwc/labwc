@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include "labwc.h"
 #include "theme/theme.h"

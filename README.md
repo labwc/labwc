@@ -28,16 +28,17 @@ Labwc is based on the wlroots library. The following were considered before choo
 
     meson build && ninja -C build
 
-Runtime dependencies include:
+Build dependencies include:
 
+- meson
 - wlroots (>=0.10.0)
+- wayland
+- wayland-protocols
 - xwayland
 - libxml2
 - cairo
 - pango
-
-To build you also need headers for:
-
+- glib-2.0
 - xcb
 - xkbcommon
 

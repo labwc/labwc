@@ -1,4 +1,5 @@
 #include "labwc.h"
+#include "menu/menu.h"
 
 static void
 request_cursor_notify(struct wl_listener *listener, void *data)
@@ -107,6 +108,10 @@ process_cursor_motion(struct server *server, uint32_t time)
 		return;
 	} else if (server->cursor_mode == LAB_CURSOR_RESIZE) {
 		process_cursor_resize(server, time);
+		return;
+	} else if (server->cursor_mode == LAB_INPUT_STATE_MENU) {
+		menu_set_selected(server->rootmenu,
+			server->seat.cursor->x, server->seat.cursor->y);
 		return;
 	}
 
@@ -240,42 +245,63 @@ cursor_button(struct wl_listener *listener, void *data)
 	double sx, sy;
 	struct wlr_surface *surface;
 	int view_area;
-	struct view *view =
-		desktop_view_at(server, server->seat.cursor->x, server->seat.cursor->y,
-				&surface, &sx, &sy, &view_area);
+	struct view *view = desktop_view_at(server, server->seat.cursor->x,
+		server->seat.cursor->y, &surface, &sx, &sy, &view_area);
+
+	/* handle _release_ */
 	if (event->state == WLR_BUTTON_RELEASED) {
-		/* Exit interactive move/resize mode. */
-		server->cursor_mode = LAB_CURSOR_PASSTHROUGH;
-	} else {
-		/* Focus that client if the button was _pressed_ */
-		desktop_focus_view(&server->seat, view);
-		switch (view_area) {
-		case LAB_DECO_BUTTON_CLOSE:
-			view->impl->close(view);
-			break;
-		case LAB_DECO_BUTTON_ICONIFY:
-			view_minimize(view);
-			break;
-		case LAB_DECO_PART_TITLE:
-			interactive_begin(view, LAB_CURSOR_MOVE, 0);
-			break;
-		case LAB_DECO_PART_TOP:
-			interactive_begin(view, LAB_CURSOR_RESIZE,
-					  WLR_EDGE_TOP);
-			break;
-		case LAB_DECO_PART_RIGHT:
-			interactive_begin(view, LAB_CURSOR_RESIZE,
-					  WLR_EDGE_RIGHT);
-			break;
-		case LAB_DECO_PART_BOTTOM:
-			interactive_begin(view, LAB_CURSOR_RESIZE,
-					  WLR_EDGE_BOTTOM);
-			break;
-		case LAB_DECO_PART_LEFT:
-			interactive_begin(view, LAB_CURSOR_RESIZE,
-					  WLR_EDGE_LEFT);
-			break;
+		if (server->cursor_mode == LAB_INPUT_STATE_MENU) {
+			return;
 		}
+		/* Exit interactive move/resize/menu mode. */
+		server->cursor_mode = LAB_CURSOR_PASSTHROUGH;
+		return;
+	}
+
+	if (server->cursor_mode == LAB_INPUT_STATE_MENU) {
+		menu_action_selected(server, server->rootmenu);
+		server->cursor_mode = LAB_CURSOR_PASSTHROUGH;
+		return;
+	}
+
+	/* handle _press_ on desktop */
+	if (!view) {
+		/* launch root-menu */
+		server->cursor_mode = LAB_INPUT_STATE_MENU;
+		menu_move(server->rootmenu, server->seat.cursor->x,
+			server->seat.cursor->y);
+		return;
+	}
+
+
+	/* Handle _press_ on view */
+	desktop_focus_view(&server->seat, view);
+	switch (view_area) {
+	case LAB_DECO_BUTTON_CLOSE:
+		view->impl->close(view);
+		break;
+	case LAB_DECO_BUTTON_ICONIFY:
+		view_minimize(view);
+		break;
+	case LAB_DECO_PART_TITLE:
+		interactive_begin(view, LAB_CURSOR_MOVE, 0);
+		break;
+	case LAB_DECO_PART_TOP:
+		interactive_begin(view, LAB_CURSOR_RESIZE,
+				  WLR_EDGE_TOP);
+		break;
+	case LAB_DECO_PART_RIGHT:
+		interactive_begin(view, LAB_CURSOR_RESIZE,
+				  WLR_EDGE_RIGHT);
+		break;
+	case LAB_DECO_PART_BOTTOM:
+		interactive_begin(view, LAB_CURSOR_RESIZE,
+				  WLR_EDGE_BOTTOM);
+		break;
+	case LAB_DECO_PART_LEFT:
+		interactive_begin(view, LAB_CURSOR_RESIZE,
+				  WLR_EDGE_LEFT);
+		break;
 	}
 }
 

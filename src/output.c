@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include "labwc.h"
+#include "menu/menu.h"
 #include "theme/theme.h"
 #include "layers.h"
 
@@ -78,6 +79,29 @@ render_it:
 	dd.rgba = (float[4]){ 1.0, 1.0, 1.0, 1.0 };
 	shrink(&box, 1);
 	draw_rect_unfilled(&dd, box);
+}
+
+static void
+render_rootmenu(struct output *output)
+{
+	struct server *server = output->server;
+	struct draw_data ddata = {
+		.renderer = server->renderer,
+		.transform_matrix = output->wlr_output->transform_matrix,
+	};
+	float matrix[9];
+
+	ddata.rgba = (float[4]){ 0.9, 0.3, 0.3, 0.5 };
+	struct menuitem *menuitem;
+	wl_list_for_each (menuitem, &server->rootmenu->menuitems, link) {
+		struct wlr_texture *t;
+		t = menuitem->selected ? menuitem->active_texture :
+			menuitem->inactive_texture;
+		wlr_matrix_project_box(matrix, &menuitem->geo_box,
+			WL_OUTPUT_TRANSFORM_NORMAL, 0, ddata.transform_matrix);
+		wlr_render_texture_with_matrix(ddata.renderer, t, matrix, 1);
+	}
+
 }
 
 static void
@@ -337,6 +361,11 @@ output_frame_notify(struct wl_listener *listener, void *data)
 
 	render_layer(&now, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP]);
 	render_layer(&now, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]);
+
+	if (output->server->cursor_mode == LAB_INPUT_STATE_MENU) {
+		render_rootmenu(output);
+	}
+
 	/* Just in case hardware cursors not supported by GPU */
 	wlr_output_render_software_cursors(output->wlr_output, NULL);
 

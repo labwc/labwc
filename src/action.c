@@ -25,7 +25,7 @@ action(struct server *server, const char *action, const char *command)
 			desktop_next_view(server, server->cycle_view);
 	} else if (!strcasecmp(action, "Reconfigure")) {
 		reconfigure();
-	} else if (!strcasecmp(action, "debug-views")) {
+	} else if (!strcasecmp(action, "Debug")) {
 		dbg_show_views(server);
 	} else {
 		warn("action (%s) not supported", action);

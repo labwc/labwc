@@ -38,9 +38,10 @@
 #define XCURSOR_MOVE "grabbing"
 
 enum cursor_mode {
-	LAB_CURSOR_PASSTHROUGH,
+	LAB_CURSOR_PASSTHROUGH = 0,
 	LAB_CURSOR_MOVE,
 	LAB_CURSOR_RESIZE,
+	LAB_INPUT_STATE_MENU,
 };
 
 struct input {
@@ -106,6 +107,8 @@ struct server {
 
 	/* Set when in cycle (alt-tab) mode */
 	struct view *cycle_view;
+
+	struct menu *rootmenu;
 };
 
 struct output {

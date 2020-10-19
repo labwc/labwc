@@ -3,6 +3,7 @@
 #include "labwc.h"
 #include "theme/theme.h"
 #include "xbm/xbm.h"
+#include "menu/menu.h"
 
 #include <cairo.h>
 #include <pango/pangocairo.h>
@@ -60,6 +61,10 @@ main(int argc, char *argv[])
 
 	theme_read(rc.theme_name);
 	xbm_load(server.renderer);
+
+	struct menu menu = { 0 };
+	menu_init(&server, &menu);
+	server.rootmenu = &menu;
 
 	session_autostart_init();
 	if (startup_cmd) {

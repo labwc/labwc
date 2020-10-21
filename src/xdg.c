@@ -112,7 +112,7 @@ handle_request_move(struct wl_listener *listener, void *data)
 	 * client, to prevent the client from requesting this whenever they
 	 * want. */
 	struct view *view = wl_container_of(listener, view, request_move);
-	interactive_begin(view, LAB_CURSOR_MOVE, 0);
+	interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
 }
 
 static void
@@ -127,7 +127,7 @@ handle_request_resize(struct wl_listener *listener, void *data)
 	 * want. */
 	struct wlr_xdg_toplevel_resize_event *event = data;
 	struct view *view = wl_container_of(listener, view, request_resize);
-	interactive_begin(view, LAB_CURSOR_RESIZE, event->edges);
+	interactive_begin(view, LAB_INPUT_STATE_RESIZE, event->edges);
 }
 
 static void

@@ -1,7 +1,7 @@
 #include "labwc.h"
 
 void
-interactive_begin(struct view *view, enum cursor_mode mode, uint32_t edges)
+interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 {
 	/*
 	 * This function sets up an interactive move or resize operation, where
@@ -11,7 +11,7 @@ interactive_begin(struct view *view, enum cursor_mode mode, uint32_t edges)
 	struct seat *seat = &view->server->seat;
 	struct server *server = view->server;
 	server->grabbed_view = view;
-	server->cursor_mode = mode;
+	server->input_mode = mode;
 
 	/* Remember view and cursor positions at start of move/resize */
 	server->grab_x = seat->cursor->x;

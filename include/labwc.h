@@ -37,10 +37,10 @@
 #define XCURSOR_SIZE 24
 #define XCURSOR_MOVE "grabbing"
 
-enum cursor_mode {
-	LAB_CURSOR_PASSTHROUGH = 0,
-	LAB_CURSOR_MOVE,
-	LAB_CURSOR_RESIZE,
+enum input_mode {
+	LAB_INPUT_STATE_PASSTHROUGH = 0,
+	LAB_INPUT_STATE_MOVE,
+	LAB_INPUT_STATE_RESIZE,
 	LAB_INPUT_STATE_MENU,
 };
 
@@ -95,7 +95,7 @@ struct server {
 	struct seat seat;
 
 	/* cursor interactive */
-	enum cursor_mode cursor_mode;
+	enum input_mode input_mode;
 	struct view *grabbed_view;
 	double grab_x, grab_y;
 	struct wlr_box grab_box;
@@ -245,7 +245,7 @@ void seat_init(struct server *server);
 void seat_finish(struct server *server);
 void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
 
-void interactive_begin(struct view *view, enum cursor_mode mode,
+void interactive_begin(struct view *view, enum input_mode mode,
 		       uint32_t edges);
 
 void output_init(struct server *server);

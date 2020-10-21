@@ -103,13 +103,13 @@ static void
 process_cursor_motion(struct server *server, uint32_t time)
 {
 	/* If the mode is non-passthrough, delegate to those functions. */
-	if (server->cursor_mode == LAB_CURSOR_MOVE) {
+	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
 		process_cursor_move(server, time);
 		return;
-	} else if (server->cursor_mode == LAB_CURSOR_RESIZE) {
+	} else if (server->input_mode == LAB_INPUT_STATE_RESIZE) {
 		process_cursor_resize(server, time);
 		return;
-	} else if (server->cursor_mode == LAB_INPUT_STATE_MENU) {
+	} else if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		menu_set_selected(server->rootmenu,
 			server->seat.cursor->x, server->seat.cursor->y);
 		return;
@@ -250,24 +250,24 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* handle _release_ */
 	if (event->state == WLR_BUTTON_RELEASED) {
-		if (server->cursor_mode == LAB_INPUT_STATE_MENU) {
+		if (server->input_mode == LAB_INPUT_STATE_MENU) {
 			return;
 		}
 		/* Exit interactive move/resize/menu mode. */
-		server->cursor_mode = LAB_CURSOR_PASSTHROUGH;
+		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		return;
 	}
 
-	if (server->cursor_mode == LAB_INPUT_STATE_MENU) {
+	if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		menu_action_selected(server, server->rootmenu);
-		server->cursor_mode = LAB_CURSOR_PASSTHROUGH;
+		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		return;
 	}
 
 	/* handle _press_ on desktop */
 	if (!view) {
 		/* launch root-menu */
-		server->cursor_mode = LAB_INPUT_STATE_MENU;
+		server->input_mode = LAB_INPUT_STATE_MENU;
 		menu_move(server->rootmenu, server->seat.cursor->x,
 			server->seat.cursor->y);
 		return;
@@ -284,22 +284,22 @@ cursor_button(struct wl_listener *listener, void *data)
 		view_minimize(view);
 		break;
 	case LAB_DECO_PART_TITLE:
-		interactive_begin(view, LAB_CURSOR_MOVE, 0);
+		interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
 		break;
 	case LAB_DECO_PART_TOP:
-		interactive_begin(view, LAB_CURSOR_RESIZE,
+		interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 				  WLR_EDGE_TOP);
 		break;
 	case LAB_DECO_PART_RIGHT:
-		interactive_begin(view, LAB_CURSOR_RESIZE,
+		interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 				  WLR_EDGE_RIGHT);
 		break;
 	case LAB_DECO_PART_BOTTOM:
-		interactive_begin(view, LAB_CURSOR_RESIZE,
+		interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 				  WLR_EDGE_BOTTOM);
 		break;
 	case LAB_DECO_PART_LEFT:
-		interactive_begin(view, LAB_CURSOR_RESIZE,
+		interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 				  WLR_EDGE_LEFT);
 		break;
 	}

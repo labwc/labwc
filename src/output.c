@@ -362,7 +362,7 @@ output_frame_notify(struct wl_listener *listener, void *data)
 	render_layer(&now, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP]);
 	render_layer(&now, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]);
 
-	if (output->server->cursor_mode == LAB_INPUT_STATE_MENU) {
+	if (output->server->input_mode == LAB_INPUT_STATE_MENU) {
 		render_rootmenu(output);
 	}
 

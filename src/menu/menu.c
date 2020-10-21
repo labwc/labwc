@@ -4,12 +4,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "common/font.h"
 #include "labwc.h"
 #include "menu/menu.h"
 
 static float background[4] = { 0.3f, 0.1f, 0.1f, 1.0f };
 static float foreground[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-static const char font[] = "Sans 11";
+static const char font[] = "Sans 10";
+
+#define MENUWIDTH (100)
+#define MENUHEIGHT (25)
+#define MENU_PADDING_WIDTH (7)
 
 struct wlr_texture *
 texture_create(struct server *server, struct wlr_box *geo, const char *text,
@@ -32,6 +37,12 @@ texture_create(struct server *server, struct wlr_box *geo, const char *text,
 	pango_layout_set_font_description(layout, desc);
 	pango_font_description_free(desc);
 	pango_cairo_update_layout(cairo, layout);
+
+	/* center-align vertically */
+	int height;
+	pango_layout_get_pixel_size(layout, NULL, &height);
+	cairo_move_to(cairo, MENU_PADDING_WIDTH, (geo->height - height) / 2);
+
 	pango_cairo_show_layout(cairo, layout);
 	g_object_unref(layout);
 
@@ -45,9 +56,6 @@ texture_create(struct server *server, struct wlr_box *geo, const char *text,
 	cairo_surface_destroy(surf);
 	return texture;
 }
-
-#define MENUWIDTH (100)
-#define MENUHEIGHT (25)
 
 struct menuitem *
 menuitem_create(struct server *server, struct menu *menu, const char *text,
@@ -87,7 +95,7 @@ menu_move(struct menu *menu, int x, int y)
 
 	int offset = 0;
 	struct menuitem *menuitem;
-	wl_list_for_each (menuitem, &menu->menuitems, link) {
+	wl_list_for_each_reverse (menuitem, &menu->menuitems, link) {
 		menuitem->geo_box.x = menu->x;
 		menuitem->geo_box.y = menu->y + offset;
 		offset += menuitem->geo_box.height;

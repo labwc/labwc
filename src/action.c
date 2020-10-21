@@ -4,13 +4,6 @@
 #include "common/spawn.h"
 #include "labwc.h"
 
-static void
-reconfigure(void)
-{
-	char *const args[] = { "killall", "-SIGHUP", "labwc", NULL };
-	execvp(args[0], args);
-}
-
 void
 action(struct server *server, const char *action, const char *command)
 {
@@ -24,7 +17,7 @@ action(struct server *server, const char *action, const char *command)
 		server->cycle_view =
 			desktop_next_view(server, server->cycle_view);
 	} else if (!strcasecmp(action, "Reconfigure")) {
-		reconfigure();
+		spawn_async_no_shell("killall -SIGHUP labwc");
 	} else if (!strcasecmp(action, "Debug")) {
 		dbg_show_views(server);
 	} else {

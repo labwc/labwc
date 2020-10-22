@@ -206,15 +206,20 @@ server_start(struct server *server)
 void
 server_finish(struct server *server)
 {
-	struct output *o, *o_tmp;
-	wl_list_for_each_safe (o, o_tmp, &server->outputs, link) {
-		wl_list_remove(&o->link);
-		free(o);
-	}
-	wlr_output_layout_destroy(server->output_layout);
-	seat_finish(server);
 	wlr_xwayland_destroy(server->xwayland);
 	wl_event_source_remove(sighup_source);
 	wl_display_destroy_clients(server->wl_display);
+
+	seat_finish(server);
+
 	wl_display_destroy(server->wl_display);
+
+	struct output *output, *next;
+	wl_list_for_each_safe (output, next, &server->outputs, link) {
+		info("remove output %p", output);
+		wl_list_remove(&output->link);
+		free(output);
+	}
+
+	wlr_output_layout_destroy(server->output_layout);
 }

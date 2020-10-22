@@ -111,7 +111,6 @@ seat_finish(struct server *server)
 	}
 	wlr_xcursor_manager_destroy(seat->xcursor_manager);
 	wlr_cursor_destroy(seat->cursor);
-	wlr_seat_destroy(server->seat.seat);
 }
 
 void

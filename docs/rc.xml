@@ -7,16 +7,16 @@
 <lab>
   <!-- Use server-side decorations for xdg-shell views if CSD can be disabled -->
   <xdg_shell_server_side_deco>yes</xdg_shell_server_side_deco>
+</lab>
+
+<theme>
+  <name>Clearlooks</name>
 
   <!-- This font size also determintes the height of the window title bar -->
   <font place="ActiveWindow">
     <name>Sans</name>
     <size>8</size>
   </font>
-</lab>
-
-<theme>
-  <name>Clearlooks</name>
 </theme>
 
 <!-- see labwc-actions(5) for a list of supported actions -->

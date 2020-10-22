@@ -88,6 +88,24 @@ menu_init(struct server *server, struct menu *menu)
 }
 
 void
+menu_finish(struct menu *menu)
+{
+	struct menuitem *menuitem, *next;
+	wl_list_for_each_safe(menuitem, next, &menu->menuitems, link) {
+		if (menuitem->action)
+			free(menuitem->action);
+		if (menuitem->command)
+			free(menuitem->command);
+		if (menuitem->active_texture)
+			free(menuitem->active_texture);
+		if (menuitem->inactive_texture)
+			free(menuitem->inactive_texture);
+		wl_list_remove(&menuitem->link);
+		free(menuitem);
+	}
+}
+
+void
 menu_move(struct menu *menu, int x, int y)
 {
 	menu->x = x;

@@ -62,9 +62,9 @@ main(int argc, char *argv[])
 	theme_read(rc.theme_name);
 	xbm_load(server.renderer);
 
-	struct menu menu = { 0 };
-	menu_init(&server, &menu);
-	server.rootmenu = &menu;
+	struct menu rootmenu = { 0 };
+	menu_init(&server, &rootmenu);
+	server.rootmenu = &rootmenu;
 
 	session_autostart_init();
 	if (startup_cmd) {
@@ -75,6 +75,7 @@ main(int argc, char *argv[])
 
 	server_finish(&server);
 	rcxml_finish();
+	menu_finish(server.rootmenu);
 	pango_cairo_font_map_set_default(NULL);
 	return 0;
 }

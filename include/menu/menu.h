@@ -22,6 +22,7 @@ struct menu {
 
 /* menu_create - create menu */
 void menu_init(struct server *server, struct menu *menu);
+void menu_finish(struct menu *menu);
 
 /* menu_move - move to position (x, y) */
 void menu_move(struct menu *menu, int x, int y);

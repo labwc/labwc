@@ -40,7 +40,6 @@ process_line(char *line)
 	if (string_empty(key) || string_empty(value)) {
 		return;
 	}
-	info("setenv %s %s", key, value);
 	setenv(key, value, 1);
 }
 
@@ -53,6 +52,7 @@ read_environment_file(const char *filename)
 	if (!stream) {
 		return;
 	}
+	info("read environment file (%s)", filename);
 	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');
 		if (p) {
@@ -83,8 +83,9 @@ void
 session_environment_init(void)
 {
 	const char *environment = config_dir_append("environment");
-	if (!environment)
+	if (!environment) {
 		return;
+	}
 	read_environment_file(environment);
 	free((void*)environment);
 }
@@ -93,16 +94,19 @@ void
 session_autostart_init(void)
 {
 	const char *autostart = config_dir_append("autostart");
-	if (!autostart)
+	if (!autostart) {
 		return;
+	}
 	if (!isfile(autostart)) {
 		warn("no autostart file");
 		return;
 	}
+	info("sh autostart file (%s)", autostart);
 	int len = strlen(autostart) + 4;
 	char *cmd = calloc(len, 1);
 	strcat(cmd, "sh ");
 	strcat(cmd, autostart);
 	spawn_async_no_shell(cmd);
+	free(cmd);
 	free((void*)autostart);
 }

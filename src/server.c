@@ -211,15 +211,7 @@ server_finish(struct server *server)
 	wl_display_destroy_clients(server->wl_display);
 
 	seat_finish(server);
+	wlr_output_layout_destroy(server->output_layout);
 
 	wl_display_destroy(server->wl_display);
-
-	struct output *output, *next;
-	wl_list_for_each_safe (output, next, &server->outputs, link) {
-		info("remove output %p", output);
-		wl_list_remove(&output->link);
-		free(output);
-	}
-
-	wlr_output_layout_destroy(server->output_layout);
 }

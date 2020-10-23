@@ -12,7 +12,7 @@ struct rcxml rc = { 0 };
 struct theme theme = { 0 };
 
 static const char labwc_usage[] =
-	"Usage: labwc [-h] [-s <startup-command>] [-c <config-file>]\n";
+	"Usage: labwc [-h] [-s <startup-command>] [-c <config-file>] [-v]\n";
 
 static void
 usage(void)
@@ -26,15 +26,23 @@ main(int argc, char *argv[])
 {
 	char *startup_cmd = NULL;
 	char *config_file = NULL;
+	enum verbosity {
+		LAB_VERBOSITY_ERROR = 0,
+		LAB_VERBOSITY_INFO,
+		LAB_VERBOSITY_DEBUG,
+	} verbosity = LAB_VERBOSITY_ERROR;
 
 	int c;
-	while ((c = getopt(argc, argv, "c:s:h")) != -1) {
+	while ((c = getopt(argc, argv, "c:s:hv")) != -1) {
 		switch (c) {
 		case 'c':
 			config_file = optarg;
 			break;
 		case 's':
 			startup_cmd = optarg;
+			break;
+		case 'v':
+			++verbosity;
 			break;
 		case 'h':
 		default:
@@ -45,7 +53,18 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	wlr_log_init(WLR_ERROR, NULL);
+	switch (verbosity) {
+	case LAB_VERBOSITY_ERROR:
+		wlr_log_init(WLR_ERROR, NULL);
+		break;
+	case LAB_VERBOSITY_INFO:
+		wlr_log_init(WLR_INFO, NULL);
+		break;
+	case LAB_VERBOSITY_DEBUG:
+	default:
+		wlr_log_init(WLR_DEBUG, NULL);
+		break;
+	}
 
 	session_environment_init();
 	rcxml_read(config_file);

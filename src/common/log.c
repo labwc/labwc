@@ -32,3 +32,15 @@ warn(const char *err, ...)
 	fprintf(stderr, LABWC_COLOR_RESET);
 	fprintf(stderr, "\n");
 }
+
+void
+die(const char *err, ...)
+{
+	va_list params;
+	fprintf(stderr, "[labwc] fatal: ");
+	va_start(params, err);
+	vfprintf(stderr, err, params);
+	va_end(params);
+	fprintf(stderr, "\n");
+	exit(EXIT_FAILURE);
+}

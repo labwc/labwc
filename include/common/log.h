@@ -11,4 +11,9 @@ void info(const char *msg, ...);
  */
 void warn(const char *err, ...);
 
+/**
+ * die - print fatal message and exit()
+ */
+void die(const char *err, ...);
+
 #endif /* __LABWC_LOG_H */

@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
+#include "common/log.h"
 #include "layers.h"
 
 static struct wlr_compositor *compositor;
@@ -32,6 +33,22 @@ handle_signal(int signal, void *data)
 		return 0;
 	default:
 		return 0;
+	}
+}
+
+static void
+drop_permissions(void)
+{
+	if (getuid() != geteuid() || getgid() != getegid()) {
+		if (setgid(getgid())) {
+			die("unable to drop root group");
+		}
+		if (setuid(getuid())) {
+			die("unable to drop root user");
+		}
+	}
+	if (setgid(0) != -1 || setuid(0) != -1) {
+		die("unable to drop root");
 	}
 }
 
@@ -61,6 +78,16 @@ server_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create backend");
 		exit(EXIT_FAILURE);
 	}
+
+	/*
+	 * The wlroots library makes use of systemd's logind to handle sessions
+	 * and to allow compositors to run without elevated privileges.
+	 * If running without logind or elogind, users may choose to set the
+	 * setuid bit on the labwc executable despite associated security
+	 * implications. In order to support this, but limit the elevated
+	 * privileges as much as possible, we drop permissions at this point.
+	 */
+	drop_permissions();
 
 	/*
 	 * If we don't provide a renderer, autocreate makes a GLES2 renderer

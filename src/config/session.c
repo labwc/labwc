@@ -99,14 +99,15 @@ session_autostart_init(void)
 	}
 	if (!isfile(autostart)) {
 		warn("no autostart file");
-		return;
+		goto out;
 	}
-	info("sh autostart file (%s)", autostart);
+	info("run autostart file (%s)", autostart);
 	int len = strlen(autostart) + 4;
 	char *cmd = calloc(len, 1);
 	strcat(cmd, "sh ");
 	strcat(cmd, autostart);
 	spawn_async_no_shell(cmd);
 	free(cmd);
+out:
 	free((void*)autostart);
 }

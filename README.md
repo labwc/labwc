@@ -9,7 +9,7 @@
 
 ## 1. What is this?
 
-Labwc is a [WIP] free, stacking compositor for Wayland and has the following aims:
+Labwc is a [WIP] free, stacking compositor for Wayland with following aims:
 
 - Be light-weight, small and fast
 - Have the look and feel of [openbox](https://github.com/danakj/openbox)
@@ -72,10 +72,13 @@ If you have not created an rc.xml configuration file, default keybinds will be:
 
 Suggested apps to use with labwc:
 
-- [grim](https://github.com/emersion/grim) - Take screenshot
-- [wf-recorder](https://github.com/ammen99/wf-recorder) - Record screen
-- [swaybg](https://github.com/swaywm/swaybg) - Set background image
+- [grim](https://github.com/emersion/grim) - Screenshoter
+- [wf-recorder](https://github.com/ammen99/wf-recorder) - Screen-recorder
+- [swaybg](https://github.com/swaywm/swaybg) - Background image
 - [waybar](https://github.com/Alexays/Waybar) - Panel
+- [bemenu](https://github.com/Cloudef/bemenu) - Launcher
+- [fuzzel](https://codeberg.org/dnkl/fuzzel) - Launcher
+- [wofi](https://hg.sr.ht/~scoopta/wofi) - Launcher
 
 ## 6. Roadmap
 

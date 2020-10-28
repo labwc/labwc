@@ -1,7 +1,9 @@
 /*
  * layers.c - layer-shell implementation
  *
- * Based on https://git.sr.ht/~sircmpwm/wio and https://github.com/swaywm/sway
+ * Based on:
+ *  - https://git.sr.ht/~sircmpwm/wio
+ *  - https://github.com/swaywm/sway
  * Copyright (C) 2019 Drew DeVault and Sway developers
  */
 
@@ -214,10 +216,26 @@ arrange_layers(struct output *output)
 				break;
 			}
 		}
-		if (topmost != NULL) {
+		if (topmost) {
 			break;
 		}
 	}
+	if (topmost) {
+		seat_focus_surface(&output->server->seat,
+			topmost->layer_surface->surface);
+	}
+}
+
+static struct output *
+output_from_wlr_output(struct server *server, struct wlr_output *wlr_output)
+{
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		if (output->wlr_output == wlr_output) {
+			return output;
+		}
+	}
+	return NULL;
 }
 
 static void
@@ -235,12 +253,8 @@ handle_surface_commit(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, surface_commit);
-	struct wlr_layer_surface_v1 *layer_surface = layer->layer_surface;
-	struct wlr_output *wlr_output = layer_surface->output;
-	if (wlr_output != NULL) {
-		struct output *output = wlr_output->data;
-		arrange_layers(output);
-	}
+	struct wlr_output *wlr_output = layer->layer_surface->output;
+	arrange_layers(output_from_wlr_output(layer->server, wlr_output));
 }
 
 static void
@@ -254,8 +268,9 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&layer->surface_commit.link);
 	if (layer->layer_surface->output) {
 		wl_list_remove(&layer->output_destroy.link);
-		arrange_layers(
-			(struct output *)layer->layer_surface->output->data);
+		struct output *output = output_from_wlr_output(
+			layer->server, layer->layer_surface->output);
+		arrange_layers(output);
 	}
 	free(layer);
 }
@@ -263,16 +278,17 @@ handle_destroy(struct wl_listener *listener, void *data)
 static void
 handle_map(struct wl_listener *listener, void *data)
 {
-	struct wlr_layer_surface_v1 *layer_surface = data;
-	wlr_surface_send_enter(layer_surface->surface, layer_surface->output);
+	struct wlr_layer_surface_v1 *l = data;
+	wlr_surface_send_enter(l->surface, l->output);
 }
 
-void
-server_new_layer_surface(struct wl_listener *listener, void *data)
+static void
+new_layer_surface_notify(struct wl_listener *listener, void *data)
 {
 	struct server *server = wl_container_of(
 		listener, server, new_layer_surface);
 	struct wlr_layer_surface_v1 *layer_surface = data;
+
 	if (!layer_surface->output) {
 		struct wlr_output *output = wlr_output_layout_output_at(
 			server->output_layout, server->seat.cursor->x,
@@ -280,16 +296,8 @@ server_new_layer_surface(struct wl_listener *listener, void *data)
 		layer_surface->output = output;
 	}
 
-	struct output *output = layer_surface->output->data;
-
-	/* TODO: fix the quick hack below */
-	if (!output) {
-		wl_list_for_each(output, &server->outputs, link) {
-			if (output->wlr_output) {
-				break;
-			}
-		}
-	}
+	struct output *output =
+		output_from_wlr_output(server, layer_surface->output);
 
 	struct lab_layer_surface *surface =
 		calloc(1, sizeof(struct lab_layer_surface));
@@ -327,7 +335,7 @@ void
 layers_init(struct server *server)
 {
 	server->layer_shell = wlr_layer_shell_v1_create(server->wl_display);
-	server->new_layer_surface.notify = server_new_layer_surface;
+	server->new_layer_surface.notify = new_layer_surface_notify;
 	wl_signal_add(&server->layer_shell->events.new_surface,
 		&server->new_layer_surface);
 }

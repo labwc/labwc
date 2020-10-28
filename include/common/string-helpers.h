@@ -1,4 +1,4 @@
-#ifndef __LABWC_STRING_HELPERs_H
+#ifndef __LABWC_STRING_HELPERS_H
 #define __LABWC_STRING_HELPERS_H
 
 /**
@@ -8,4 +8,4 @@
  */
 char *string_strip(char *s);
 
-#endif /* __LABWC_STRING_HELPERs_H */
+#endif /* __LABWC_STRING_HELPERS_H */

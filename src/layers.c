@@ -239,7 +239,7 @@ output_from_wlr_output(struct server *server, struct wlr_output *wlr_output)
 }
 
 static void
-handle_output_destroy(struct wl_listener *listener, void *data)
+output_destroy_notify(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, output_destroy);
@@ -249,7 +249,7 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_surface_commit(struct wl_listener *listener, void *data)
+surface_commit_notify(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, surface_commit);
@@ -258,7 +258,7 @@ handle_surface_commit(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_destroy(struct wl_listener *listener, void *data)
+destroy_notify(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer = wl_container_of(
 		listener, layer, destroy);
@@ -276,7 +276,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_map(struct wl_listener *listener, void *data)
+map_notify(struct wl_listener *listener, void *data)
 {
 	struct wlr_layer_surface_v1 *l = data;
 	wlr_surface_send_enter(l->surface, l->output);
@@ -308,15 +308,18 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 	layer_surface->data = surface;
 	surface->server = server;
 
-	surface->surface_commit.notify = handle_surface_commit;
+	surface->surface_commit.notify = surface_commit_notify;
 	wl_signal_add(&layer_surface->surface->events.commit,
 		&surface->surface_commit);
-	surface->output_destroy.notify = handle_output_destroy;
+
+	surface->output_destroy.notify = output_destroy_notify;
 	wl_signal_add(&layer_surface->output->events.destroy,
 		&surface->output_destroy);
-	surface->destroy.notify = handle_destroy;
+
+	surface->destroy.notify = destroy_notify;
 	wl_signal_add(&layer_surface->events.destroy, &surface->destroy);
-	surface->map.notify = handle_map;
+
+	surface->map.notify = map_notify;
 	wl_signal_add(&layer_surface->events.map, &surface->map);
 
 	wl_list_insert(&output->layers[layer_surface->client_pending.layer],

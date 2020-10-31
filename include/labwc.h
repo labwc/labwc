@@ -227,11 +227,11 @@ void view_for_each_surface(struct view *view,
 void desktop_focus_view(struct seat *seat, struct view *view);
 
 /**
- * desktop_next_view - return next view
- * @current: view used as reference point for defining 'next'
- * Note: If current==NULL, the list's second view is returned
+ * desktop_cycle_view - return view to 'cycle' to
+ * @current: reference point for finding next view to cycle to
+ * Note: If !current, the server->views second focusable view is returned
  */
-struct view *desktop_next_view(struct server *server, struct view *current);
+struct view *desktop_cycle_view(struct server *server, struct view *current);
 void desktop_focus_topmost_mapped_view(struct server *server);
 struct view *desktop_view_at(struct server *server, double lx, double ly,
 			     struct wlr_surface **surface, double *sx,

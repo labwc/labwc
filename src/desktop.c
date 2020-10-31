@@ -130,10 +130,11 @@ first_view(struct server *server)
 }
 
 struct view *
-desktop_next_view(struct server *server, struct view *current)
+desktop_cycle_view(struct server *server, struct view *current)
 {
-	if (!has_focusable_view(&server->views))
+	if (!has_focusable_view(&server->views)) {
 		return NULL;
+	}
 
 	struct view *view = current ? current : first_view(server);
 

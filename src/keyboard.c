@@ -57,7 +57,7 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 		} else if (event->state == WLR_KEY_PRESSED) {
 			/* cycle to next */
 			server->cycle_view =
-				desktop_next_view(server, server->cycle_view);
+				desktop_cycle_view(server, server->cycle_view);
 			return;
 		}
 	}

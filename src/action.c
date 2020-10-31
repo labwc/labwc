@@ -15,7 +15,7 @@ action(struct server *server, const char *action, const char *command)
 		spawn_async_no_shell(command);
 	} else if (!strcasecmp(action, "NextWindow")) {
 		server->cycle_view =
-			desktop_next_view(server, server->cycle_view);
+			desktop_cycle_view(server, server->cycle_view);
 	} else if (!strcasecmp(action, "Reconfigure")) {
 		spawn_async_no_shell("killall -SIGHUP labwc");
 	} else if (!strcasecmp(action, "Debug")) {

@@ -16,6 +16,7 @@
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
 #include <wlr/types/wlr_keyboard_group.h>
+#include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_matrix.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
@@ -57,6 +58,9 @@ struct seat {
 	struct wlr_keyboard_group *keyboard_group;
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *xcursor_manager;
+
+	/* if set, views cannot receive focus */
+	struct wlr_layer_surface_v1 *focused_layer;
 
 	struct wl_list inputs;
 	struct wl_listener new_input;
@@ -244,6 +248,7 @@ void keyboard_init(struct seat *seat);
 void seat_init(struct server *server);
 void seat_finish(struct server *server);
 void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
+void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer);
 
 void interactive_begin(struct view *view, enum input_mode mode,
 		       uint32_t edges);

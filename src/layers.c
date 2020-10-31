@@ -220,9 +220,12 @@ arrange_layers(struct output *output)
 			break;
 		}
 	}
+	struct seat *seat = &output->server->seat;
 	if (topmost) {
-		seat_focus_surface(&output->server->seat,
-			topmost->layer_surface->surface);
+		seat_set_focus_layer(seat, topmost->layer_surface);
+	} else if (seat->focused_layer &&
+			!seat->focused_layer->current.keyboard_interactive) {
+		seat_set_focus_layer(seat, NULL);
 	}
 }
 
@@ -258,10 +261,22 @@ surface_commit_notify(struct wl_listener *listener, void *data)
 }
 
 static void
+unmap(struct lab_layer_surface *layer)
+{
+	struct seat *seat = &layer->server->seat;
+	if (seat->focused_layer == layer->layer_surface) {
+		seat_set_focus_layer(seat, NULL);
+	}
+}
+
+static void
 destroy_notify(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer = wl_container_of(
 		listener, layer, destroy);
+	if (layer->layer_surface->mapped) {
+		unmap(layer);
+	}
 	wl_list_remove(&layer->link);
 	wl_list_remove(&layer->destroy.link);
 	wl_list_remove(&layer->map.link);
@@ -273,6 +288,13 @@ destroy_notify(struct wl_listener *listener, void *data)
 		arrange_layers(output);
 	}
 	free(layer);
+}
+
+static void
+unmap_notify(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_surface *l = wl_container_of(listener, l, unmap);
+	unmap(l);
 }
 
 static void
@@ -321,6 +343,9 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 
 	surface->map.notify = map_notify;
 	wl_signal_add(&layer_surface->events.map, &surface->map);
+
+	surface->unmap.notify = unmap_notify;
+	wl_signal_add(&layer_surface->events.unmap, &surface->unmap);
 
 	wl_list_insert(&output->layers[layer_surface->client_pending.layer],
 		&surface->link);

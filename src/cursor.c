@@ -267,12 +267,9 @@ cursor_button(struct wl_listener *listener, void *data)
 	/* handle _press_ on desktop */
 	if (!view) {
 		/* launch root-menu */
-		server->input_mode = LAB_INPUT_STATE_MENU;
-		menu_move(server->rootmenu, server->seat.cursor->x,
-			server->seat.cursor->y);
+		action(server, "ShowMenu", "root-menu");
 		return;
 	}
-
 
 	/* Handle _press_ on view */
 	desktop_focus_view(&server->seat, view);

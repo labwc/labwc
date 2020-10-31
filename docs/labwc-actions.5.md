@@ -1,6 +1,6 @@
 % labwc-actions(5)
 % Johan Malm
-% 31 Aug, 2020
+% 31 Oct, 2020
 
 # NAME
 
@@ -34,6 +34,10 @@ of tags specific to each action as defined below.
 `Reconfigure`
 
 :   Re-load configuration and theme files
+
+`ShowMenu`
+
+:   Show menu specified by `<menu>` option. Valid menu is "root-menu"
 
 # SEE ALSO
 

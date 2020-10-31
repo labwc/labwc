@@ -56,6 +56,8 @@ fill_keybind(char *nodename, char *content)
 		current_keybind->action = strdup(content);
 	} else if (!strcmp(nodename, "command.action")) {
 		current_keybind->command = strdup(content);
+	} else if (!strcmp(nodename, "menu.action")) {
+		current_keybind->command = strdup(content);
 	}
 }
 

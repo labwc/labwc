@@ -1,12 +1,10 @@
 #include "common/spawn.h"
+#include "common/font.h"
 #include "config/session.h"
 #include "labwc.h"
 #include "theme/theme.h"
 #include "xbm/xbm.h"
 #include "menu/menu.h"
-
-#include <cairo.h>
-#include <pango/pangocairo.h>
 
 struct rcxml rc = { 0 };
 struct theme theme = { 0 };
@@ -95,6 +93,6 @@ main(int argc, char *argv[])
 	server_finish(&server);
 	rcxml_finish();
 	menu_finish(server.rootmenu);
-	pango_cairo_font_map_set_default(NULL);
+	font_finish();
 	return 0;
 }

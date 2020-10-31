@@ -42,3 +42,9 @@ font_height(const char *font_description)
 	rectangle = font_extents(font_description, "abcdefg");
 	return rectangle.height;
 }
+
+void
+font_finish(void)
+{
+	pango_cairo_font_map_set_default(NULL);
+}

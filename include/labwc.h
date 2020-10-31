@@ -232,7 +232,7 @@ void desktop_focus_view(struct seat *seat, struct view *view);
  * Note: If current==NULL, the list's second view is returned
  */
 struct view *desktop_next_view(struct server *server, struct view *current);
-void desktop_focus_next_mapped_view(struct view *current);
+void desktop_focus_topmost_mapped_view(struct server *server);
 struct view *desktop_view_at(struct server *server, double lx, double ly,
 			     struct wlr_surface **surface, double *sx,
 			     double *sy, int *view_area);

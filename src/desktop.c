@@ -156,26 +156,26 @@ has_mapped_view(struct wl_list *wl_list)
 	return false;
 }
 
-struct view *
-desktop_next_mapped_view(struct view *current)
+static struct view *
+topmost_mapped_view(struct server *server)
 {
-	assert(current);
-	struct server *server = current->server;
 	if (!has_mapped_view(&server->views)) {
 		return NULL;
 	}
-	struct view *view = first_view(server);
+
+	/* start from tail of server->views */
+	struct view *view = wl_container_of(server->views.prev, view, link);
 	do {
 		view = wl_container_of(view->link.next, view, link);
 	} while (&view->link == &server->views || !view->mapped);
 	return view;
 }
+
 void
-desktop_focus_next_mapped_view(struct view *current)
+desktop_focus_topmost_mapped_view(struct server *server)
 {
-	assert(current);
-	struct view *view = desktop_next_mapped_view(current);
-	desktop_focus_view(&current->server->seat, view);
+	struct view *view = topmost_mapped_view(server);
+	desktop_focus_view(&server->seat, view);
 }
 
 static bool

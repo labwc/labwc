@@ -203,7 +203,7 @@ xdg_toplevel_view_unmap(struct view *view)
 {
 	view->mapped = false;
 	wl_list_remove(&view->commit.link);
-	desktop_focus_next_mapped_view(view);
+	desktop_focus_topmost_mapped_view(view->server);
 }
 
 static const struct view_impl xdg_toplevel_view_impl = {

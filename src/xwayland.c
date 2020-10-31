@@ -120,7 +120,7 @@ unmap(struct view *view)
 {
 	view->mapped = false;
 	wl_list_remove(&view->commit.link);
-	desktop_focus_next_mapped_view(view);
+	desktop_focus_topmost_mapped_view(view->server);
 }
 
 static const struct view_impl xwl_view_impl = {

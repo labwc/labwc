@@ -48,7 +48,6 @@ match(const gchar *pattern, const gchar *string)
 	return (bool)g_pattern_match_simple(pattern, string);
 }
 
-/* clang-format off */
 static void entry(const char *key, const char *value)
 {
 	if (!key || !value) {
@@ -66,7 +65,6 @@ static void entry(const char *key, const char *value)
 		parse_hexstr(value, theme.window_inactive_button_unpressed_image_color);
 	}
 }
-/* clang-format on */
 
 static void
 parse_config_line(char *line, char **key, char **value)

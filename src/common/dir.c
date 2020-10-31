@@ -18,7 +18,6 @@ struct dir {
 	const char *path;
 };
 
-/* clang-format off */
 static struct dir config_dirs[] = {
 	{ "XDG_CONFIG_HOME", "labwc" },
 	{ "HOME", ".config/labwc" },
@@ -37,7 +36,6 @@ static struct dir theme_dirs[] = {
 	{ NULL, "opt/share/themes" },
 	{ NULL, NULL }
 };
-/* clang-format on */
 
 static bool
 isdir(const char *path)

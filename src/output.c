@@ -29,15 +29,15 @@ draw_line(struct draw_data *d, int x1, int y1, int x2, int y2)
 	wlr_render_rect(d->renderer, &box, d->rgba, d->transform_matrix);
 }
 
-/* clang-format off */
 static void draw_rect_unfilled(struct draw_data *d, struct wlr_box box)
 {
 	draw_line(d, box.x, box.y, box.x + box.width - 1, box.y);
-	draw_line(d, box.x + box.width - 1, box.y, box.x + box.width - 1, box.y + box.height - 1);
-	draw_line(d, box.x, box.y + box.height - 1, box.x + box.width - 1, box.y + box.height - 1);
+	draw_line(d, box.x + box.width - 1, box.y, box.x + box.width - 1,
+		box.y + box.height - 1);
+	draw_line(d, box.x, box.y + box.height - 1, box.x + box.width - 1,
+		box.y + box.height - 1);
 	draw_line(d, box.x, box.y, box.x, box.y + box.height - 1);
 }
-/* clang-format on */
 
 static void
 shrink(struct wlr_box *box, int size)

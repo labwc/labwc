@@ -11,7 +11,6 @@
 
 #include "theme/theme.h"
 
-/* clang-format off */
 void theme_builtin(void)
 {
 	parse_hexstr("#589bda", theme.window_active_title_bg_color);
@@ -20,4 +19,3 @@ void theme_builtin(void)
 	parse_hexstr("#ffffff", theme.window_active_button_unpressed_image_color);
 	parse_hexstr("#000000", theme.window_inactive_button_unpressed_image_color);
 }
-/* clang-format on */

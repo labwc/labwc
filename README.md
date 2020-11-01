@@ -9,7 +9,9 @@
 
 ## 1. What is this?
 
-Labwc is a [WIP] free, stacking compositor for Wayland with following aims:
+Labwc is a [WIP] free, stacking compositor for Wayland based on wlroots.
+
+It has the following aims:
 
 - Be light-weight, small and fast
 - Have the look and feel of [openbox](https://github.com/danakj/openbox)
@@ -20,7 +22,7 @@ It is in early development, so expect bugs and missing features.
 
 Labwc has been inspired and influenced by [openbox](https://github.com/danakj/openbox), [sway](https://github.com/swaywm/sway), [cage](https://www.hjdskes.nl/blog/cage-01/), [wio](https://wio-project.org/) and [rootston](https://github.com/swaywm/rootston)
 
-Labwc is based on the wlroots library. The following were considered before choosing wlroots: [qtwayland](https://github.com/qt/qtwayland), [grefsen](https://github.com/ec1oud/grefsen), [mir](https://mir-server.io) and [egmde](https://github.com/AlanGriffiths/egmde).
+The following were considered before choosing wlroots: [qtwayland](https://github.com/qt/qtwayland), [grefsen](https://github.com/ec1oud/grefsen), [mir](https://mir-server.io) and [egmde](https://github.com/AlanGriffiths/egmde).
 
 ![](https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png)
 
@@ -28,17 +30,14 @@ Labwc is based on the wlroots library. The following were considered before choo
 
     meson build && ninja -C build
 
-Build dependencies include:
+Dependencies include:
 
-- meson
+- meson, ninja
 - wlroots (>=0.10.0)
-- wayland
-- wayland-protocols
+- wayland, wayland-protocols
 - xwayland
 - libxml2
-- cairo
-- pango
-- glib-2.0
+- cairo, pango, glib-2.0
 - xcb
 - xkbcommon
 
@@ -64,8 +63,8 @@ See full details in the following:
 If you have not created an rc.xml configuration file, default keybinds will be:
 
 - Alt-tab: cycle window
-- Alt-F2: cycle window (useful if running under X11 and alt-tab is already bound to something)
-- Alt-F3: launch dmenu (if installed)
+- Alt-F2: cycle window
+- Alt-F3: launch dmenu
 - Alt-escape: exit
 
 ## 5. Integrate
@@ -82,24 +81,36 @@ Suggested apps to use with labwc:
 
 ## 6. Roadmap
 
+No acceptance criteria exists, but the following list indicates the inteded high level roadmap:
+
 - [x] Support xwayland
-- [x] Parse ~/.config/labwc/{rc.xml,autostart,environment}
-- [x] Parse /usr/share/themes/`<name>`/openbox-3/themerc and associated xbm icons
+- [x] Parse openbox config files (rc.xml, autostart, environment)
+- [x] Parse openbox themes and associated xbm icons
 - [x] Show maximize, iconify, close buttons
 - [x] Catch SIGHUP to re-load config file and theme
-- [x] Support layer-shell protocol (partial)
+- [x] Support layer-shell protocol ('exclusive' not yet implemented)
+- [ ] Support root-menu and parse menu.xml (very simple implementation, not submenus yet)
 - [ ] Support 'maximize'
+- [ ] Support wlr-output-management protocol and [kanshi](https://github.com/emersion/kanshi.git)
 - [ ] Show window title
 - [ ] Support foreign-toplevel protocol (e.g. to integrate with wlroots panels/bars)
-- [ ] Support damage control to reduce CPU usage
+- [ ] Support damage tracking to reduce CPU usage
 - [ ] Implement client-menu
-- [ ] Implement root-menu
-- [ ] Support on-screen display (OSD), for example to support alt-tab window list
-- [ ] Support [kanshi](https://github.com/emersion/kanshi.git)
+- [ ] Support on-screen display (osd), for example to support alt-tab window list
+- [ ] Support HiDPI
 
 For further details see [wiki/Roadmap](https://github.com/johanmalm/labwc/wiki/Roadmap).
 
-Based on development so far, it looks like only a modest fraction of all theme and configuration options are required to adequately render most common themes and provide a pretty openbox-like experience.
+## 7. Out-of-scope
 
-It is likely that only a subset of the full specification will be implemented in order to keep the code base simpler and cleaner.
+In order to keep the code base clean and maintainable, simplicy is favoured over full specification adherence.
+
+The following items are out-of-scope:
+
+- Icons (except window buttons)
+- Animations
+- Gradients on window decorations and menus
+- Any theme option (probably at least half of them) not required to reasonably render common themes
+- Any configuration option not required to provide a simple openbox-like experience
+- Multiple desktops
 

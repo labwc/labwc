@@ -6,6 +6,8 @@
 #include "layers.h"
 
 struct draw_data {
+	struct wlr_output *output;
+	struct wlr_output_layout *output_layout;
 	struct wlr_renderer *renderer;
 	float *transform_matrix;
 	float *rgba;
@@ -14,6 +16,10 @@ struct draw_data {
 static void
 draw_rect(struct draw_data *d, struct wlr_box box)
 {
+	double ox = 0, oy = 0;
+	wlr_output_layout_output_coords(d->output_layout, d->output, &ox, &oy);
+	box.x += ox;
+	box.y += oy;
 	wlr_render_rect(d->renderer, &box, d->rgba, d->transform_matrix);
 }
 
@@ -51,6 +57,8 @@ shrink(struct wlr_box *box, int size)
 static void
 render_cycle_box(struct output *output)
 {
+	struct wlr_output_layout *layout = output->server->output_layout;
+	double ox = 0, oy = 0;
 	struct wlr_box box;
 	if (!output->server->cycle_view)
 		return;
@@ -61,8 +69,9 @@ render_cycle_box(struct output *output)
 	}
 	return;
 render_it:
-	box.x = view->x - view->margin.left;
-	box.y = view->y - view->margin.top;
+	wlr_output_layout_output_coords(layout, output->wlr_output, &ox, &oy);
+	box.x = view->x - view->margin.left + ox;
+	box.y = view->y - view->margin.top + oy;
 	box.width = view->w + view->margin.left + view->margin.right;
 	box.height = view->h + view->margin.top + view->margin.bottom;
 	struct draw_data dd = {
@@ -91,14 +100,23 @@ render_rootmenu(struct output *output)
 	};
 	float matrix[9];
 
+	struct wlr_output_layout *output_layout = server->output_layout;
+	double ox = 0, oy = 0;
+	wlr_output_layout_output_coords(output_layout, output->wlr_output, &ox, &oy);
 	ddata.rgba = (float[4]){ 0.9, 0.3, 0.3, 0.5 };
 	struct menuitem *menuitem;
 	wl_list_for_each (menuitem, &server->rootmenu->menuitems, link) {
 		struct wlr_texture *t;
 		t = menuitem->selected ? menuitem->active_texture :
 			menuitem->inactive_texture;
-		wlr_matrix_project_box(matrix, &menuitem->geo_box,
-			WL_OUTPUT_TRANSFORM_NORMAL, 0, ddata.transform_matrix);
+		struct wlr_box box = {
+			.x = menuitem->geo_box.x + ox,
+			.y = menuitem->geo_box.y + oy,
+			.width = menuitem->geo_box.width,
+			.height = menuitem->geo_box.height,
+		};
+		wlr_matrix_project_box(matrix, &box, WL_OUTPUT_TRANSFORM_NORMAL,
+			0, ddata.transform_matrix);
 		wlr_render_texture_with_matrix(ddata.renderer, t, matrix, 1);
 	}
 
@@ -128,6 +146,11 @@ render_icon(struct draw_data *d, struct wlr_box box,
 		button.height = box.height;
 	}
 
+	double ox = 0, oy = 0;
+	wlr_output_layout_output_coords(d->output_layout, d->output, &ox, &oy);
+	button.x += ox;
+	button.y += oy;
+
 	wlr_matrix_project_box(matrix, &button, WL_OUTPUT_TRANSFORM_NORMAL, 0,
 			       d->transform_matrix);
 	wlr_render_texture_with_matrix(d->renderer, texture, matrix, 1);
@@ -147,6 +170,8 @@ render_decorations(struct wlr_output *output, struct view *view)
 	if (!view->server_side_deco)
 		return;
 	struct draw_data ddata = {
+		.output = output,
+		.output_layout = view->server->output_layout,
 		.renderer = view->server->renderer,
 		.transform_matrix = output->transform_matrix,
 	};
@@ -172,7 +197,7 @@ render_decorations(struct wlr_output *output, struct view *view)
 
 	struct wlr_box box = deco_box(view, deco_part);
 	if (isbutton(deco_part) &&
-	    wlr_box_contains_point(&box, cur->x, cur->y)) {
+			wlr_box_contains_point(&box, cur->x, cur->y)) {
 		ddata.rgba = (float[4]){ 0.5, 0.5, 0.5, 0.5 };
 		draw_rect(&ddata, deco_box(view, deco_part));
 	}

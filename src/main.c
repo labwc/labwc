@@ -1,5 +1,6 @@
-#include "common/spawn.h"
 #include "common/font.h"
+#include "common/log.h"
+#include "common/spawn.h"
 #include "config/session.h"
 #include "labwc.h"
 #include "theme/theme.h"
@@ -68,8 +69,7 @@ main(int argc, char *argv[])
 	rcxml_read(config_file);
 
 	if (!getenv("XDG_RUNTIME_DIR")) {
-		wlr_log(WLR_ERROR, "XDG_RUNTIME_DIR is required to be set");
-		return 1;
+		die("XDG_RUNTIME_DIR is unset");
 	}
 
 	struct server server = { 0 };

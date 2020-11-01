@@ -5,7 +5,6 @@
  */
 
 #include <assert.h>
-
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "theme/theme.h"

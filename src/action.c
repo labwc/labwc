@@ -1,5 +1,4 @@
 #include <strings.h>
-
 #include "common/log.h"
 #include "common/spawn.h"
 #include "labwc.h"

@@ -1,8 +1,4 @@
 #define _POSIX_C_SOURCE 200809L
-#include "config/rcxml.h"
-#include "labwc.h"
-#include "theme/theme.h"
-
 #include <signal.h>
 #include <wlr/types/wlr_data_control_v1.h>
 #include <wlr/types/wlr_export_dmabuf_v1.h>
@@ -10,7 +6,10 @@
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
 #include "common/log.h"
+#include "config/rcxml.h"
+#include "labwc.h"
 #include "layers.h"
+#include "theme/theme.h"
 
 static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;

@@ -101,11 +101,15 @@ No acceptance criteria exists, but the following list indicates the inteded high
 - [ ] Support on-screen display (osd), for example to support alt-tab window list
 - [ ] Support HiDPI
 
-For further details see [wiki/Roadmap](https://github.com/johanmalm/labwc/wiki/Roadmap).
-
 ## 7. Scope
 
 In order to keep the code base clean and maintainable, simplicy is favoured over full specification adherence.
+
+### In-scope
+
+Refer to these wiki pages for scope info: [progress](https://github.com/johanmalm/labwc/wiki/Scope-progress) [configuration](https://github.com/johanmalm/labwc/wiki/Scope-configuration) [specification](https://github.com/johanmalm/labwc/wiki/Scope-theme-specification) [actions](https://github.com/johanmalm/labwc/wiki/Scope-actions)
+
+### Out-of-scope
 
 The following items are out-of-scope:
 

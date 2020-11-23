@@ -10,8 +10,7 @@
 </lab>
 
 <theme>
-  <name>Clearlooks</name>
-
+  <name>Clearlooks-3.4</name>
   <!-- This font size also determintes the height of the window title bar -->
   <font place="ActiveWindow">
     <name>Sans</name>

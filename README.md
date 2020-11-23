@@ -6,6 +6,7 @@
 - [4. Run](#4-run)
 - [5. Integrate](#5-integrate)
 - [6. Roadmap](#6-roadmap)
+- [7. Scope](#7-scope)
 
 ## 1. What is this?
 
@@ -14,9 +15,10 @@ Labwc is a [WIP] free, stacking compositor for Wayland based on wlroots.
 It has the following aims:
 
 - Be light-weight, small and fast
-- Have the look and feel of [openbox](https://github.com/danakj/openbox)
-- Where practicable, use other software to show wall-paper, take screenshots,
-  and so on
+- Have the look and feel of [openbox](https://github.com/danakj/openbox) albeit
+  with smaller feature set
+- Where practicable, use clients to show wall-paper, take screenshots, and so on
+- Stay in keeping with wlroots and sway in terms of approach and coding style
 
 It is in early development, so expect bugs and missing features.
 
@@ -101,7 +103,7 @@ No acceptance criteria exists, but the following list indicates the inteded high
 
 For further details see [wiki/Roadmap](https://github.com/johanmalm/labwc/wiki/Roadmap).
 
-## 7. Out-of-scope
+## 7. Scope
 
 In order to keep the code base clean and maintainable, simplicy is favoured over full specification adherence.
 

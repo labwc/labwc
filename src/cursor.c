@@ -1,6 +1,33 @@
 #include "labwc.h"
 #include "menu/menu.h"
 
+#define RESIZE_BORDER_WIDTH 4
+
+static uint32_t
+get_resize_edges(struct view *view, double x, double y)
+{
+	uint32_t edges = 0;
+	int top, right, bottom, left;
+
+	top = view->y - view->margin.top;
+	left = view->x - view->margin.left;
+	bottom = top + view->h + view->margin.top + view->margin.bottom;
+	right = left + view->w + view->margin.left + view->margin.right;
+
+	if (top <= y && y < top + RESIZE_BORDER_WIDTH) {
+		edges |= WLR_EDGE_TOP;
+	} else if (bottom - RESIZE_BORDER_WIDTH <= y && y < bottom) {
+		edges |= WLR_EDGE_BOTTOM;
+	}
+	if (left <= x && x < left + RESIZE_BORDER_WIDTH) {
+		edges |= WLR_EDGE_LEFT;
+	} else if (right - RESIZE_BORDER_WIDTH <= x && x < right) {
+		edges |= WLR_EDGE_RIGHT;
+	}
+
+	return edges;
+}
+
 static void
 request_cursor_notify(struct wl_listener *listener, void *data)
 {
@@ -121,6 +148,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	struct wlr_seat *wlr_seat = server->seat.seat;
 	struct wlr_surface *surface = NULL;
 	int view_area;
+	char *cursor_name = NULL;
 	struct view *view =
 		desktop_view_at(server, server->seat.cursor->x, server->seat.cursor->y,
 				&surface, &sx, &sy, &view_area);
@@ -130,35 +158,45 @@ process_cursor_motion(struct server *server, uint32_t time)
 		 * a default. This is what makes the cursor image appear when
 		 * you move it around the screen, not over any views.
 		 */
+		cursor_name = XCURSOR_DEFAULT;
+	} else {
+		uint32_t resize_edges = get_resize_edges(
+			view, server->seat.cursor->x, server->seat.cursor->y);
+		switch (resize_edges) {
+		case WLR_EDGE_TOP:
+			cursor_name = "top_side";
+			break;
+		case WLR_EDGE_RIGHT:
+			cursor_name = "right_side";
+			break;
+		case WLR_EDGE_BOTTOM:
+			cursor_name = "bottom_side";
+			break;
+		case WLR_EDGE_LEFT:
+			cursor_name = "left_side";
+			break;
+		case WLR_EDGE_TOP | WLR_EDGE_LEFT:
+			cursor_name = "top_left_corner";
+			break;
+		case WLR_EDGE_TOP | WLR_EDGE_RIGHT:
+			cursor_name = "top_right_corner";
+			break;
+		case WLR_EDGE_BOTTOM | WLR_EDGE_LEFT:
+			cursor_name = "bottom_left_corner";
+			break;
+		case WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT:
+			cursor_name = "bottom_right_corner";
+			break;
+		case 0:
+			cursor_name = view_area == LAB_DECO_NONE ? NULL: XCURSOR_DEFAULT;
+			break;
+		}
+	}
+	if (cursor_name) {
 		wlr_xcursor_manager_set_cursor_image(
-			server->seat.xcursor_manager, XCURSOR_DEFAULT, server->seat.cursor);
+			server->seat.xcursor_manager, cursor_name, server->seat.cursor);
 	}
 
-	/* TODO: Could we use wlr_xcursor_get_resize_name() here?? */
-	switch (view_area) {
-	case LAB_DECO_NONE:
-		break;
-	case LAB_DECO_PART_TOP:
-		wlr_xcursor_manager_set_cursor_image(
-			server->seat.xcursor_manager, "top_side", server->seat.cursor);
-		break;
-	case LAB_DECO_PART_RIGHT:
-		wlr_xcursor_manager_set_cursor_image(
-			server->seat.xcursor_manager, "right_side", server->seat.cursor);
-		break;
-	case LAB_DECO_PART_BOTTOM:
-		wlr_xcursor_manager_set_cursor_image(
-			server->seat.xcursor_manager, "bottom_side", server->seat.cursor);
-		break;
-	case LAB_DECO_PART_LEFT:
-		wlr_xcursor_manager_set_cursor_image(
-			server->seat.xcursor_manager, "left_side", server->seat.cursor);
-		break;
-	default:
-		wlr_xcursor_manager_set_cursor_image(
-			server->seat.xcursor_manager, XCURSOR_DEFAULT, server->seat.cursor);
-		break;
-	}
 	if (surface) {
 		bool focus_changed =
 			wlr_seat->pointer_state.focused_surface != surface;
@@ -245,6 +283,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	double sx, sy;
 	struct wlr_surface *surface;
 	int view_area;
+	uint32_t resize_edges;
 	struct view *view = desktop_view_at(server, server->seat.cursor->x,
 		server->seat.cursor->y, &surface, &sx, &sy, &view_area);
 
@@ -273,6 +312,13 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* Handle _press_ on view */
 	desktop_focus_view(&server->seat, view);
+
+	resize_edges = get_resize_edges(view, server->seat.cursor->x, server->seat.cursor->y);
+	if (resize_edges != 0) {
+		interactive_begin(view, LAB_INPUT_STATE_RESIZE, resize_edges);
+		return;
+	}
+
 	switch (view_area) {
 	case LAB_DECO_BUTTON_CLOSE:
 		view->impl->close(view);
@@ -282,22 +328,6 @@ cursor_button(struct wl_listener *listener, void *data)
 		break;
 	case LAB_DECO_PART_TITLE:
 		interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
-		break;
-	case LAB_DECO_PART_TOP:
-		interactive_begin(view, LAB_INPUT_STATE_RESIZE,
-				  WLR_EDGE_TOP);
-		break;
-	case LAB_DECO_PART_RIGHT:
-		interactive_begin(view, LAB_INPUT_STATE_RESIZE,
-				  WLR_EDGE_RIGHT);
-		break;
-	case LAB_DECO_PART_BOTTOM:
-		interactive_begin(view, LAB_INPUT_STATE_RESIZE,
-				  WLR_EDGE_BOTTOM);
-		break;
-	case LAB_DECO_PART_LEFT:
-		interactive_begin(view, LAB_INPUT_STATE_RESIZE,
-				  WLR_EDGE_LEFT);
 		break;
 	}
 }

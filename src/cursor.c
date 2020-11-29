@@ -147,7 +147,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	double sx, sy;
 	struct wlr_seat *wlr_seat = server->seat.seat;
 	struct wlr_surface *surface = NULL;
-	int view_area;
+	int view_area = LAB_DECO_NONE;
 	char *cursor_name = NULL;
 	struct view *view =
 		desktop_view_at(server, server->seat.cursor->x, server->seat.cursor->y,
@@ -188,7 +188,9 @@ process_cursor_motion(struct server *server, uint32_t time)
 			cursor_name = "bottom_right_corner";
 			break;
 		case 0:
-			cursor_name = view_area == LAB_DECO_NONE ? NULL: XCURSOR_DEFAULT;
+			if (view_area != LAB_DECO_NONE) {
+				cursor_name = XCURSOR_DEFAULT;
+			}
 			break;
 		}
 	}

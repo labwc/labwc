@@ -50,11 +50,11 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 
 	if (server->cycle_view) {
 		if ((syms[0] == XKB_KEY_Alt_L) &&
-		    event->state == WLR_KEY_RELEASED) {
+		    event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 			/* end cycle */
 			desktop_focus_view(&server->seat, server->cycle_view);
 			server->cycle_view = NULL;
-		} else if (event->state == WLR_KEY_PRESSED) {
+		} else if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			/* cycle to next */
 			server->cycle_view =
 				desktop_cycle_view(server, server->cycle_view);
@@ -63,7 +63,7 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	}
 
 	/* Handle compositor key bindings */
-	if (event->state == WLR_KEY_PRESSED) {
+	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 		for (int i = 0; i < nsyms; i++) {
 			handled = handle_keybinding(server, modifiers, syms[i]);
 		}

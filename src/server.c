@@ -1,5 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include <signal.h>
+#include <sys/wait.h>
 #include <wlr/types/wlr_data_control_v1.h>
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
@@ -13,6 +14,7 @@
 
 static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;
+static struct wl_event_source *sigchld_source;
 
 static void
 reload_config_and_theme(void)
@@ -24,15 +26,23 @@ reload_config_and_theme(void)
 }
 
 static int
-handle_signal(int signal, void *data)
+handle_sighup(int signal, void *data)
 {
-	switch (signal) {
-	case SIGHUP:
-		reload_config_and_theme();
-		return 0;
-	default:
-		return 0;
+	reload_config_and_theme();
+	return 0;
+}
+
+static int
+handle_sigchld(int signal, void *data)
+{
+	int status;
+	pid_t pid;
+
+	while ((pid = waitpid(-1, &status, WNOHANG)) > 0);
+	if (pid < 0) {
+		wlr_log_errno(WLR_ERROR, "waitpid");
 	}
+	return 0;
 }
 
 static void
@@ -64,7 +74,9 @@ server_init(struct server *server)
 	struct wl_event_loop *event_loop = NULL;
 	event_loop = wl_display_get_event_loop(server->wl_display);
 	sighup_source = wl_event_loop_add_signal(
-		event_loop, SIGHUP, handle_signal, &server->wl_display);
+		event_loop, SIGHUP, handle_sighup, &server->wl_display);
+	sigchld_source = wl_event_loop_add_signal(
+		event_loop, SIGCHLD, handle_sigchld, NULL);
 
 	/*
 	 * The backend is a feature which abstracts the underlying input and
@@ -233,7 +245,12 @@ void
 server_finish(struct server *server)
 {
 	wlr_xwayland_destroy(server->xwayland);
-	wl_event_source_remove(sighup_source);
+	if (sighup_source) {
+		wl_event_source_remove(sighup_source);
+	}
+	if (sigchld_source) {
+		wl_event_source_remove(sigchld_source);
+	}
 	wl_display_destroy_clients(server->wl_display);
 
 	seat_finish(server);

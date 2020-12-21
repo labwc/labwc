@@ -15,6 +15,8 @@
 static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;
 static struct wl_event_source *sigchld_source;
+static struct wl_event_source *sigint_source;
+static struct wl_event_source *sigterm_source;
 
 static void
 reload_config_and_theme(void)
@@ -42,6 +44,15 @@ handle_sigchld(int signal, void *data)
 	if (pid < 0) {
 		wlr_log_errno(WLR_ERROR, "waitpid");
 	}
+	return 0;
+}
+
+static int
+handle_sigterm(int signal, void *data)
+{
+	struct wl_display *display = data;
+
+	wl_display_terminate(display);
 	return 0;
 }
 
@@ -77,6 +88,10 @@ server_init(struct server *server)
 		event_loop, SIGHUP, handle_sighup, &server->wl_display);
 	sigchld_source = wl_event_loop_add_signal(
 		event_loop, SIGCHLD, handle_sigchld, NULL);
+	sigint_source = wl_event_loop_add_signal(
+		event_loop, SIGINT, handle_sigterm, NULL);
+	sigterm_source = wl_event_loop_add_signal(
+		event_loop, SIGTERM, handle_sigterm, NULL);
 
 	/*
 	 * The backend is a feature which abstracts the underlying input and

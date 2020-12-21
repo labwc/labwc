@@ -35,15 +35,19 @@ The following were considered before choosing wlroots: [qtwayland](https://githu
 Dependencies include:
 
 - meson, ninja
-- wlroots (>=0.10.0)
-- wayland, wayland-protocols
+- wlroots (>0.12)
+- wayland (>=1.16)
+- wayland-protocols
 - xwayland
+- libinput (>=1.14)
 - libxml2
 - cairo, pango, glib-2.0
 - xcb
 - xkbcommon
 
 For further details see [wiki/Build](https://github.com/johanmalm/labwc/wiki/Build).
+
+It seems a bit early to start tagging, but if you're running wlroots 0.10-0.12, checkout commit 071fcc6
 
 ## 3. Configure
 
@@ -107,7 +111,12 @@ In order to keep the code base clean and maintainable, simplicy is favoured over
 
 ### In-scope
 
-Refer to these wiki pages for scope info: [progress](https://github.com/johanmalm/labwc/wiki/Scope-progress) [configuration](https://github.com/johanmalm/labwc/wiki/Scope-configuration) [specification](https://github.com/johanmalm/labwc/wiki/Scope-theme-specification) [actions](https://github.com/johanmalm/labwc/wiki/Scope-actions)
+Refer to these wiki pages for scope info:
+
+- [progress](https://github.com/johanmalm/labwc/wiki/Scope-progress)
+- [configuration](https://github.com/johanmalm/labwc/wiki/Scope-configuration)
+- [specification](https://github.com/johanmalm/labwc/wiki/Scope-theme-specification)
+- [actions](https://github.com/johanmalm/labwc/wiki/Scope-actions)
 
 ### Out-of-scope
 

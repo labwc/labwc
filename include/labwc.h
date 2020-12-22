@@ -222,7 +222,7 @@ void xwayland_unmanaged_create(struct server *server,
  */
 struct wlr_box view_get_surface_geometry(struct view *view);
 struct wlr_box view_geometry(struct view *view);
-void view_resize(struct view *view, struct wlr_box geo);
+void view_move_resize(struct view *view, struct wlr_box geo);
 void view_minimize(struct view *view);
 void view_unminimize(struct view *view);
 void view_for_each_surface(struct view *view,

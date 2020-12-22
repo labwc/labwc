@@ -1,15 +1,9 @@
 #include "labwc.h"
 
 void
-view_resize(struct view *view, struct wlr_box geo)
+view_move_resize(struct view *view, struct wlr_box geo)
 {
-	struct wlr_box box = {
-		.x = view->x,
-		.y = view->y,
-		.width = geo.width,
-		.height = geo.height,
-	};
-	view->impl->configure(view, box);
+	view->impl->configure(view, geo);
 }
 
 void

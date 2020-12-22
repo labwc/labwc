@@ -116,14 +116,9 @@ process_cursor_resize(struct server *server, uint32_t time)
 		return;
 	}
 
-	/* Move */
-	view->x = new_view_geo.x;
-	view->y = new_view_geo.y;
-
-	/* Resize */
 	new_view_geo.width -= 2 * view->xdg_grab_offset;
 	new_view_geo.height -= 2 * view->xdg_grab_offset;
-	view_resize(view, new_view_geo);
+	view_move_resize(view, new_view_geo);
 }
 
 static void

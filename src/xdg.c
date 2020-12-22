@@ -133,6 +133,8 @@ handle_request_resize(struct wl_listener *listener, void *data)
 static void
 xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 {
+	view->x = geo.x;
+	view->y = geo.y;
 	wlr_xdg_toplevel_set_size(view->xdg_surface, (uint32_t)geo.width,
 				  (uint32_t)geo.height);
 }

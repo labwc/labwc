@@ -50,6 +50,8 @@ handle_request_configure(struct wl_listener *listener, void *data)
 static void
 configure(struct view *view, struct wlr_box geo)
 {
+	view->x = geo.x;
+	view->y = geo.y;
 	wlr_xwayland_surface_configure(view->xwayland_surface, (int16_t)geo.x,
 				       (int16_t)geo.y, (uint16_t)geo.width,
 				       (uint16_t)geo.height);

@@ -75,8 +75,26 @@ handle_commit(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, commit);
 	assert(view->surface);
-	view->w = view->surface->current.width;
-	view->h = view->surface->current.height;
+	struct wlr_box size;
+	wlr_xdg_surface_get_geometry(view->xdg_surface, &size);
+
+	view->w = size.width;
+	view->h = size.height;
+
+	uint32_t serial = view->pending_move_resize.configure_serial;
+	if (serial > 0 && serial >= view->xdg_surface->configure_serial) {
+		if (view->pending_move_resize.update_x) {
+			view->x = view->pending_move_resize.x +
+				view->pending_move_resize.width - size.width;
+		}
+		if (view->pending_move_resize.update_y) {
+			view->y = view->pending_move_resize.y +
+				view->pending_move_resize.height - size.height;
+		}
+		if (serial == view->xdg_surface->configure_serial) {
+			view->pending_move_resize.configure_serial = 0;
+		}
+	}
 }
 
 static void
@@ -133,10 +151,21 @@ handle_request_resize(struct wl_listener *listener, void *data)
 static void
 xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 {
-	view->x = geo.x;
-	view->y = geo.y;
-	wlr_xdg_toplevel_set_size(view->xdg_surface, (uint32_t)geo.width,
-				  (uint32_t)geo.height);
+	view->pending_move_resize.update_x = geo.x != view->x;
+	view->pending_move_resize.update_y = geo.y != view->y;
+	view->pending_move_resize.x = geo.x;
+	view->pending_move_resize.y = geo.y;
+	view->pending_move_resize.width = geo.width;
+	view->pending_move_resize.height = geo.height;
+
+	uint32_t serial = wlr_xdg_toplevel_set_size(view->xdg_surface,
+		(uint32_t)geo.width, (uint32_t)geo.height);
+	if (serial > 0) {
+		view->pending_move_resize.configure_serial = serial;
+	} else if (view->pending_move_resize.configure_serial == 0) {
+		view->x = geo.x;
+		view->y = geo.y;
+	}
 }
 
 static void

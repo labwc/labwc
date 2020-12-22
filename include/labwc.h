@@ -181,6 +181,13 @@ struct view {
 	 */
 	struct border margin;
 
+	struct {
+		bool update_x, update_y;
+		double x, y;
+		uint32_t width, height;
+		uint32_t configure_serial;
+	} pending_move_resize;
+
 	int xdg_grab_offset;
 
 	bool server_side_deco;

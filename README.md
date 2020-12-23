@@ -35,7 +35,7 @@ The following were considered before choosing wlroots: [qtwayland](https://githu
 Dependencies include:
 
 - meson, ninja
-- wlroots (>0.12)
+- wlroots (>=0.11.0)
 - wayland (>=1.16)
 - wayland-protocols
 - xwayland
@@ -46,8 +46,6 @@ Dependencies include:
 - xkbcommon
 
 For further details see [wiki/Build](https://github.com/johanmalm/labwc/wiki/Build).
-
-It seems a bit early to start tagging, but if you're running wlroots 0.10-0.12, checkout commit 071fcc6
 
 ## 3. Configure
 
@@ -91,7 +89,7 @@ No acceptance criteria exists, but the following list indicates the inteded high
 
 - [x] Support xwayland
 - [x] Parse openbox config files (rc.xml, autostart, environment)
-- [x] Parse openbox themes and associated xbm icons
+- [x] Parse openbox themes files and associated xbm icons
 - [x] Show maximize, iconify, close buttons
 - [x] Catch SIGHUP to re-load config file and theme
 - [x] Support layer-shell protocol ('exclusive' not yet implemented)
@@ -111,12 +109,13 @@ In order to keep the code base clean and maintainable, simplicy is favoured over
 
 ### In-scope
 
-Refer to these wiki pages for scope info:
+Refer to these wiki pages for a more detailed scope definition against the openbox documentation.
 
-- [progress](https://github.com/johanmalm/labwc/wiki/Scope-progress)
 - [configuration](https://github.com/johanmalm/labwc/wiki/Scope-configuration)
-- [specification](https://github.com/johanmalm/labwc/wiki/Scope-theme-specification)
+- [theme specification](https://github.com/johanmalm/labwc/wiki/Scope-theme-specification)
 - [actions](https://github.com/johanmalm/labwc/wiki/Scope-actions)
+
+Track [progress](https://github.com/johanmalm/labwc/wiki/Scope-progress) against the above specification.
 
 ### Out-of-scope
 

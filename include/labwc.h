@@ -222,14 +222,6 @@ void xwayland_surface_new(struct wl_listener *listener, void *data);
 void xwayland_unmanaged_create(struct server *server,
 	struct wlr_xwayland_surface *xsurface);
 
-/**
- * view_get_surface_geometry - geometry relative to view
- * @view: toplevel containing the surface to process
- * Note: XDG views sometimes have an invisible border, so x and y can be
- * greater than zero.
- */
-struct wlr_box view_get_surface_geometry(struct view *view);
-struct wlr_box view_geometry(struct view *view);
 void view_move_resize(struct view *view, struct wlr_box geo);
 void view_move(struct view *view, double x, double y);
 void view_minimize(struct view *view);

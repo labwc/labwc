@@ -73,6 +73,16 @@ configure(struct view *view, struct wlr_box geo)
 }
 
 static void
+move(struct view *view, double x, double y)
+{
+	view->x = x;
+	view->y = y;
+	struct wlr_xwayland_surface *s = view->xwayland_surface;
+	wlr_xwayland_surface_configure(s, (int16_t)x, (int16_t)y,
+		(uint16_t)s->width, (uint16_t)s->height);
+}
+
+static void
 _close(struct view *view)
 {
 	wlr_xwayland_surface_close(view->xwayland_surface);
@@ -144,6 +154,7 @@ static const struct view_impl xwl_view_impl = {
 	.close = _close,
 	.for_each_surface = for_each_surface,
 	.map = map,
+	.move = move,
 	.unmap = unmap,
 };
 

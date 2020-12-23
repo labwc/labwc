@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "labwc.h"
 #include "menu/menu.h"
 
@@ -68,17 +69,10 @@ process_cursor_move(struct server *server, uint32_t time)
 	/* Move the grabbed view to the new position. */
 	double dx = server->seat.cursor->x - server->grab_x;
 	double dy = server->seat.cursor->y - server->grab_y;
-	server->grabbed_view->x = server->grab_box.x + dx;
-	server->grabbed_view->y = server->grab_box.y + dy;
-
-	if (server->grabbed_view->type != LAB_XWAYLAND_VIEW) {
-		return;
-	}
 
 	struct view *view = server->grabbed_view;
-	wlr_xwayland_surface_configure(view->xwayland_surface, view->x, view->y,
-				       view->xwayland_surface->width,
-				       view->xwayland_surface->height);
+	assert(view);
+	view->impl->move(view, server->grab_box.x + dx, server->grab_box.y + dy);
 }
 
 #define MIN_VIEW_WIDTH (100)

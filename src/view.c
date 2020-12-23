@@ -7,6 +7,12 @@ view_move_resize(struct view *view, struct wlr_box geo)
 }
 
 void
+view_move(struct view *view, double x, double y)
+{
+	view->impl->move(view, x, y);
+}
+
+void
 view_minimize(struct view *view)
 {
 	if (view->minimized == true) {

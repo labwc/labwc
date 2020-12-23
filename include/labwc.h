@@ -145,6 +145,7 @@ struct view_impl {
 	void (*for_each_surface)(struct view *view,
 		wlr_surface_iterator_func_t iterator, void *data);
 	void (*map)(struct view *view);
+	void (*move)(struct view *view, double x, double y);
 	void (*unmap)(struct view *view);
 };
 
@@ -230,6 +231,7 @@ void xwayland_unmanaged_create(struct server *server,
 struct wlr_box view_get_surface_geometry(struct view *view);
 struct wlr_box view_geometry(struct view *view);
 void view_move_resize(struct view *view, struct wlr_box geo);
+void view_move(struct view *view, double x, double y);
 void view_minimize(struct view *view);
 void view_unminimize(struct view *view);
 void view_for_each_surface(struct view *view,

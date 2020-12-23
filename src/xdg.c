@@ -169,6 +169,13 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 }
 
 static void
+xdg_toplevel_view_move(struct view *view, double x, double y)
+{
+	view->x = x;
+	view->y = y;
+}
+
+static void
 xdg_toplevel_view_close(struct view *view)
 {
 	wlr_xdg_toplevel_send_close(view->xdg_surface);
@@ -242,6 +249,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.close = xdg_toplevel_view_close,
 	.for_each_surface = xdg_toplevel_view_for_each_surface,
 	.map = xdg_toplevel_view_map,
+	.move = xdg_toplevel_view_move,
 	.unmap = xdg_toplevel_view_unmap,
 };
 

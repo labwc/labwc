@@ -11,6 +11,7 @@ project(
 add_project_arguments(
   [
     '-DWLR_USE_UNSTABLE',
+    '-Wno-enum-compare',
   ],
   language: 'c',
 )

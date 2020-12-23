@@ -10,6 +10,17 @@ handle_commit(struct wl_listener *listener, void *data)
 	/* Must receive commit signal before accessing surface->current* */
 	view->w = view->surface->current.width;
 	view->h = view->surface->current.height;
+
+	if (view->pending_move_resize.update_x) {
+		view->x = view->pending_move_resize.x +
+			view->pending_move_resize.width - view->w;
+		view->pending_move_resize.update_x = false;
+	}
+	if (view->pending_move_resize.update_y) {
+		view->y = view->pending_move_resize.y +
+			view->pending_move_resize.height - view->h;
+		view->pending_move_resize.update_y = false;
+	}
 }
 
 static void
@@ -50,8 +61,12 @@ handle_request_configure(struct wl_listener *listener, void *data)
 static void
 configure(struct view *view, struct wlr_box geo)
 {
-	view->x = geo.x;
-	view->y = geo.y;
+	view->pending_move_resize.update_x = geo.x != view->x;
+	view->pending_move_resize.update_y = geo.y != view->y;
+	view->pending_move_resize.x = geo.x;
+	view->pending_move_resize.y = geo.y;
+	view->pending_move_resize.width = geo.width;
+	view->pending_move_resize.height = geo.height;
 	wlr_xwayland_surface_configure(view->xwayland_surface, (int16_t)geo.x,
 				       (int16_t)geo.y, (uint16_t)geo.width,
 				       (uint16_t)geo.height);

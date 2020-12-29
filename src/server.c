@@ -14,7 +14,6 @@
 
 static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;
-static struct wl_event_source *sigchld_source;
 static struct wl_event_source *sigint_source;
 static struct wl_event_source *sigterm_source;
 
@@ -31,19 +30,6 @@ static int
 handle_sighup(int signal, void *data)
 {
 	reload_config_and_theme();
-	return 0;
-}
-
-static int
-handle_sigchld(int signal, void *data)
-{
-	int status;
-	pid_t pid;
-
-	while ((pid = waitpid(-1, &status, WNOHANG)) > 0);
-	if (pid < 0) {
-		wlr_log_errno(WLR_ERROR, "waitpid");
-	}
 	return 0;
 }
 
@@ -86,8 +72,6 @@ server_init(struct server *server)
 	event_loop = wl_display_get_event_loop(server->wl_display);
 	sighup_source = wl_event_loop_add_signal(
 		event_loop, SIGHUP, handle_sighup, &server->wl_display);
-	sigchld_source = wl_event_loop_add_signal(
-		event_loop, SIGCHLD, handle_sigchld, NULL);
 	sigint_source = wl_event_loop_add_signal(
 		event_loop, SIGINT, handle_sigterm, NULL);
 	sigterm_source = wl_event_loop_add_signal(
@@ -262,9 +246,6 @@ server_finish(struct server *server)
 	wlr_xwayland_destroy(server->xwayland);
 	if (sighup_source) {
 		wl_event_source_remove(sighup_source);
-	}
-	if (sigchld_source) {
-		wl_event_source_remove(sigchld_source);
 	}
 	wl_display_destroy_clients(server->wl_display);
 

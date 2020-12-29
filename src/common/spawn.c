@@ -1,4 +1,14 @@
+#define _POSIX_C_SOURCE 200809L
+#include <assert.h>
 #include <glib.h>
+#include <signal.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include "common/log.h"
+#include "common/spawn.h"
 
 void
 spawn_async_no_shell(char const *command)
@@ -6,18 +16,45 @@ spawn_async_no_shell(char const *command)
 	GError *err = NULL;
 	gchar **argv = NULL;
 
+	assert(command);
+
+	/* Use glib's shell-parse to mimic Openbox's behaviour */
 	g_shell_parse_argv((gchar *)command, NULL, &argv, &err);
 	if (err) {
 		g_message("%s", err->message);
 		g_error_free(err);
 		return;
 	}
-	g_spawn_async(NULL, argv, NULL,
-		G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL,
-		NULL, &err);
-	if (err) {
-		g_message("%s", err->message);
-		g_error_free(err);
+
+	/*
+	 * Avoid zombie processes by using a double-fork, whereby the
+	 * grandchild becomes orphaned & the responsibility of the OS.
+	 */
+	pid_t child = 0, grandchild = 0;
+
+	child = fork();
+	switch (child) {
+	case -1:
+		warn("unable to fork()");
+		goto out;
+	case 0:
+		setsid();
+		sigset_t set;
+		sigemptyset(&set);
+		sigprocmask(SIG_SETMASK, &set, NULL);
+		grandchild = fork();
+		if (grandchild == 0) {
+			execvp(argv[0], argv);
+			exit(0);
+		} else if (grandchild < 0) {
+			warn("unable to fork()");
+		}
+		exit(0);
+	default:
+		break;
 	}
+	waitpid(child, NULL, 0);
+out:
 	g_strfreev(argv);
 }
+

@@ -13,9 +13,15 @@ labwc_sources = files(
   'server.c',
   'view.c',
   'xdg.c',
-  'xwayland.c',
-  'xwayland-unmanaged.c',
 )
+
+if have_xwayland
+  labwc_sources += files(
+    'xwayland.c',
+    'xwayland-unmanaged.c',
+  )
+endif
+
 
 subdir('common')
 subdir('config')

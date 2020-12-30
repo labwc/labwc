@@ -1,3 +1,4 @@
+#include "config.h"
 #include <assert.h>
 #include "labwc.h"
 
@@ -8,6 +9,7 @@ move_to_front(struct view *view)
 	wl_list_insert(&view->server->views, &view->link);
 }
 
+#if HAVE_XWAYLAND
 static struct wlr_xwayland_surface *
 top_parent_of(struct view *view)
 {
@@ -44,6 +46,7 @@ move_xwayland_sub_views_to_front(struct view *parent)
 		/* TODO: we should probably focus on these too here */
 	}
 }
+#endif
 
 /* Activate/deactivate toplevel surface */
 static void
@@ -56,10 +59,12 @@ set_activated(struct wlr_surface *surface, bool activated)
 		struct wlr_xdg_surface *s;
 		s = wlr_xdg_surface_from_wlr_surface(surface);
 		wlr_xdg_toplevel_set_activated(s, activated);
+#if HAVE_XWAYLAND
 	} else if (wlr_surface_is_xwayland_surface(surface)) {
 		struct wlr_xwayland_surface *s;
 		s = wlr_xwayland_surface_from_wlr_surface(surface);
 		wlr_xwayland_surface_activate(s, activated);
+#endif
 	}
 }
 
@@ -87,7 +92,9 @@ desktop_focus_view(struct seat *seat, struct view *view)
 		move_to_front(view);
 		set_activated(view->surface, true);
 		seat_focus_surface(seat, view->surface);
+#if HAVE_XWAYLAND
 		move_xwayland_sub_views_to_front(view);
+#endif
 	}
 }
 
@@ -200,10 +207,12 @@ _view_at(struct view *view, double lx, double ly, struct wlr_surface **surface,
 		_surface = wlr_xdg_surface_surface_at(
 			view->xdg_surface, view_sx, view_sy, &_sx, &_sy);
 		break;
+#if HAVE_XWAYLAND
 	case LAB_XWAYLAND_VIEW:
 		_surface = wlr_surface_surface_at(view->surface, view_sx,
 						  view_sy, &_sx, &_sy);
 		break;
+#endif
 	}
 
 	if (_surface) {

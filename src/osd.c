@@ -1,8 +1,10 @@
+#include "config.h"
 #include "common/log.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 
+#if HAVE_XWAYLAND
 static int
 xwl_nr_parents(struct view *view)
 {
@@ -19,6 +21,7 @@ xwl_nr_parents(struct view *view)
 	}
 	return i;
 }
+#endif
 
 static void
 show_one_xdg_view(struct view *view)
@@ -41,6 +44,7 @@ show_one_xdg_view(struct view *view)
 		view->h);
 }
 
+#if HAVE_XWAYLAND
 static void
 show_one_xwl_view(struct view *view)
 {
@@ -69,6 +73,7 @@ show_one_xwl_view(struct view *view)
 	 * view->xwayland_surface->surface->sy);
 	 */
 }
+#endif
 
 void
 dbg_show_one_view(struct view *view)
@@ -81,8 +86,10 @@ dbg_show_one_view(struct view *view)
 	}
 	if (view->type == LAB_XDG_SHELL_VIEW) {
 		show_one_xdg_view(view);
+#if HAVE_XWAYLAND
 	} else if (view->type == LAB_XWAYLAND_VIEW) {
 		show_one_xwl_view(view);
+#endif
 	}
 }
 

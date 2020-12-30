@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
+#include "config.h"
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include "labwc.h"
 #include "menu/menu.h"
@@ -367,6 +368,7 @@ output_frame_notify(struct wl_listener *listener, void *data)
 	/* If in cycle (alt-tab) mode, highlight selected view */
 	render_cycle_box(output);
 
+#if HAVE_XWAYLAND
 	/* Render xwayland override_redirect surfaces */
 	struct xwayland_unmanaged *unmanaged;
 	wl_list_for_each_reverse (unmanaged,
@@ -383,6 +385,7 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		struct wlr_surface *s = unmanaged->xwayland_surface->surface;
 		render_surface(s, 0, 0, &rdata);
 	}
+#endif
 
 	render_layer(&now, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP]);
 	render_layer(&now, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]);

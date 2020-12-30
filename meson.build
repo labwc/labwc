@@ -34,16 +34,27 @@ wlroots_proj = subproject(
 
 if wlroots_proj.found()
   wlroots       = wlroots_proj.get_variable('wlroots')
+  wlroots_conf = wlroots_proj.get_variable('conf_data')
+  wlroots_has_xwayland = wlroots_conf.get('WLR_HAS_XWAYLAND') == 1
 else
-  wlroots       = dependency('wlroots', version: '>= 0.10.0')
+  wlroots       = dependency('wlroots', version: '>= 0.11.0')
+  wlroots_has_xwayland = cc.get_define('WLR_HAS_XWAYLAND', prefix: '#include <wlr/config.h>', dependencies: wlroots) == '1'
 endif
 wayland_server  = dependency('wayland-server')
 wayland_protos  = dependency('wayland-protocols')
 xkbcommon       = dependency('xkbcommon')
+xcb             = dependency('xcb', required: get_option('xwayland'))
 xml2            = dependency('libxml-2.0')
 glib            = dependency('glib-2.0')
 cairo           = dependency('cairo')
 pangocairo      = dependency('pangocairo')
+
+if get_option('xwayland').enabled() and not wlroots_has_xwayland
+	error('no wlroots Xwayland support')
+endif
+have_xwayland = xcb.found() and wlroots_has_xwayland
+conf_data = configuration_data()
+conf_data.set10('HAVE_XWAYLAND', have_xwayland)
 
 labwc_inc       = include_directories('include')
 
@@ -54,6 +65,7 @@ labwc_deps      = [
   cairo, pangocairo
 ]
 
+subdir('include')
 subdir('src')
 subdir('docs')
 

@@ -1,6 +1,6 @@
 #ifndef __LABWC_H
 #define __LABWC_H
-
+#include "config.h"
 #include <getopt.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -27,7 +27,9 @@
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
+#if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
+#endif
 #include <xkbcommon/xkbcommon.h>
 
 #include "common/log.h"
@@ -90,8 +92,10 @@ struct server {
 	struct wl_listener new_layer_surface;
 
 	struct wl_listener xdg_toplevel_decoration;
+#if HAVE_XWAYLAND
 	struct wlr_xwayland *xwayland;
 	struct wl_listener new_xwayland_surface;
+#endif
 
 	struct wl_list views;
 	struct wl_list unmanaged_surfaces;
@@ -124,7 +128,12 @@ struct output {
 	struct wl_listener destroy;
 };
 
-enum view_type { LAB_XDG_SHELL_VIEW, LAB_XWAYLAND_VIEW };
+enum view_type {
+	LAB_XDG_SHELL_VIEW,
+#if HAVE_XWAYLAND
+	LAB_XWAYLAND_VIEW,
+#endif
+};
 
 enum deco_part {
 	LAB_DECO_NONE = 0,
@@ -164,7 +173,9 @@ struct view {
 
 	union {
 		struct wlr_xdg_surface *xdg_surface;
+#if HAVE_XWAYLAND
 		struct wlr_xwayland_surface *xwayland_surface;
+#endif
 	};
 	struct wlr_surface *surface;
 
@@ -202,6 +213,7 @@ struct view {
 	struct wl_listener request_configure;
 };
 
+#if HAVE_XWAYLAND
 struct xwayland_unmanaged {
 	struct server *server;
 	struct wlr_xwayland_surface *xwayland_surface;
@@ -214,13 +226,16 @@ struct xwayland_unmanaged {
 	struct wl_listener unmap;
 	struct wl_listener destroy;
 };
+#endif
 
 void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
 void xdg_surface_new(struct wl_listener *listener, void *data);
 
+#if HAVE_XWAYLAND
 void xwayland_surface_new(struct wl_listener *listener, void *data);
 void xwayland_unmanaged_create(struct server *server,
 	struct wlr_xwayland_surface *xsurface);
+#endif
 
 void view_move_resize(struct view *view, struct wlr_box geo);
 void view_move(struct view *view, double x, double y);

@@ -38,12 +38,14 @@ Dependencies include:
 - wlroots (>=0.11.0)
 - wayland (>=1.16)
 - wayland-protocols
-- xwayland
+- xwayland, xcb (optional)
 - libinput (>=1.14)
 - libxml2
 - cairo, pango, glib-2.0
 - xcb
 - xkbcommon
+
+Disable xwayland with `meson -Dxwayland=disabled build`
 
 For further details see [wiki/Build](https://github.com/johanmalm/labwc/wiki/Build).
 
@@ -87,21 +89,21 @@ Suggested apps to use with labwc:
 
 No acceptance criteria exists, but the following list indicates the inteded high level roadmap:
 
-- [x] Support xwayland
+- [x] Optionally support xwayland
 - [x] Parse openbox config files (rc.xml, autostart, environment)
 - [x] Parse openbox themes files and associated xbm icons
 - [x] Show maximize, iconify, close buttons
 - [x] Catch SIGHUP to re-load config file and theme
 - [x] Support layer-shell protocol ('exclusive' not yet implemented)
 - [ ] Support root-menu and parse menu.xml (very simple implementation, not submenus yet)
+- [ ] Support damage tracking to reduce CPU usage
 - [ ] Support 'maximize'
 - [ ] Support wlr-output-management protocol and [kanshi](https://github.com/emersion/kanshi.git)
-- [ ] Show window title
 - [ ] Support foreign-toplevel protocol (e.g. to integrate with wlroots panels/bars)
-- [ ] Support damage tracking to reduce CPU usage
 - [ ] Implement client-menu
 - [ ] Support on-screen display (osd), for example to support alt-tab window list
 - [ ] Support HiDPI
+- [ ] Support libinput configuration (tap is enabled for the time being)
 
 ## 7. Scope
 

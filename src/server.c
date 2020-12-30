@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
+#include "config.h"
 #include <signal.h>
 #include <sys/wait.h>
 #include <wlr/types/wlr_data_control_v1.h>
@@ -175,6 +176,7 @@ server_init(struct server *server)
 
 	layers_init(server);
 
+#if HAVE_XWAYLAND
 	/* Init xwayland */
 	server->xwayland =
 		wlr_xwayland_create(server->wl_display, compositor, true);
@@ -192,11 +194,13 @@ server_init(struct server *server)
 		wlr_log(WLR_DEBUG, "xwayland is running on display %s",
 			server->xwayland->display_name);
 	}
+#endif
 
 	if (!wlr_xcursor_manager_load(server->seat.xcursor_manager, 1)) {
-		wlr_log(WLR_ERROR, "cannot load xwayland xcursor theme");
+		wlr_log(WLR_ERROR, "cannot load xcursor theme");
 	}
 
+#if HAVE_XWAYLAND
 	struct wlr_xcursor *xcursor;
 	xcursor = wlr_xcursor_manager_get_xcursor(server->seat.xcursor_manager,
 						  XCURSOR_DEFAULT, 1);
@@ -207,6 +211,7 @@ server_init(struct server *server)
 					image->height, image->hotspot_x,
 					image->hotspot_y);
 	}
+#endif
 }
 
 void
@@ -237,13 +242,17 @@ server_start(struct server *server)
 
 	wl_display_init_shm(server->wl_display);
 
+#if HAVE_XWAYLAND
 	wlr_xwayland_set_seat(server->xwayland, server->seat.seat);
+#endif
 }
 
 void
 server_finish(struct server *server)
 {
+#if HAVE_XWAYLAND
 	wlr_xwayland_destroy(server->xwayland);
+#endif
 	if (sighup_source) {
 		wl_event_source_remove(sighup_source);
 	}

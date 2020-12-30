@@ -253,7 +253,7 @@ static void
 pre_processing(void)
 {
 	rc.xdg_shell_server_side_deco = true;
-	rc.font_size_activewindow = 8;
+	rc.font_size_activewindow = 10;
 }
 
 static void

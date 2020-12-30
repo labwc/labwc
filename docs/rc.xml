@@ -14,7 +14,7 @@
   <!-- This font size also determintes the height of the window title bar -->
   <font place="ActiveWindow">
     <name>Sans</name>
-    <size>8</size>
+    <size>10</size>
   </font>
 </theme>
 

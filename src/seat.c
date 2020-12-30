@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <wlr/backend/libinput.h>
 #include <wlr/util/log.h>
 #include "labwc.h"
 
@@ -13,7 +14,14 @@ input_device_destroy(struct wl_listener *listener, void *data)
 void
 new_pointer(struct seat *seat, struct input *input)
 {
-	/* TODO: Configure libinput on device to set tap, acceleration, etc */
+	/*
+	 * We want to enable full libinput configuration eventually, but
+	 * for the time being, lets just enable tap.
+	 */
+	struct libinput_device *libinput_dev =
+		wlr_libinput_get_device_handle(input->wlr_input_device);
+	libinput_device_config_tap_set_enabled(libinput_dev,
+		LIBINPUT_CONFIG_TAP_ENABLED);
 	wlr_cursor_attach_input_device(seat->cursor, input->wlr_input_device);
 }
 

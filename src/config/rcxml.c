@@ -356,7 +356,7 @@ rcxml_read(const char *filename)
 		find_config_file(rcxml, sizeof(rcxml), filename);
 	}
 	if (rcxml[0] == '\0') {
-		warn("cannot find rc.xml config file");
+		info("cannot find rc.xml config file; using defaults");
 		goto no_config;
 	}
 

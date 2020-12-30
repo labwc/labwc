@@ -103,7 +103,7 @@ theme_read(const char *theme_name)
 		stream = fopen(themerc, "r");
 	}
 	if (!stream) {
-		warn("cannot find theme (%s), using built-in", theme_name);
+		info("cannot find theme (%s), using built-in", theme_name);
 		theme_builtin();
 		return;
 	}

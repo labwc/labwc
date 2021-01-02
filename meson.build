@@ -48,6 +48,7 @@ xml2            = dependency('libxml-2.0')
 glib            = dependency('glib-2.0')
 cairo           = dependency('cairo')
 pangocairo      = dependency('pangocairo')
+input           = dependency('libinput', version: '>=1.14')
 
 if get_option('xwayland').enabled() and not wlroots_has_xwayland
 	error('no wlroots Xwayland support')
@@ -62,7 +63,7 @@ subdir('protocols')
 
 labwc_deps      = [
   server_protos, wayland_server, wlroots, xkbcommon, xml2, glib,
-  cairo, pangocairo
+  cairo, pangocairo, input
 ]
 
 subdir('include')

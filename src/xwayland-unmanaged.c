@@ -19,6 +19,7 @@ unmanaged_handle_commit(struct wl_listener *listener, void *data)
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	unmanaged->lx = xsurface->x;
 	unmanaged->ly = xsurface->y;
+	damage_all_outputs(unmanaged->server);
 }
 
 static void
@@ -36,7 +37,7 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 
 	unmanaged->lx = xsurface->x;
 	unmanaged->ly = xsurface->y;
-
+	damage_all_outputs(unmanaged->server);
 	if (wlr_xwayland_or_surface_wants_focus(xsurface)) {
 		seat_focus_surface(&unmanaged->server->seat, xsurface->surface);
 	}
@@ -48,6 +49,7 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, unmap);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
+	damage_all_outputs(unmanaged->server);
 	wl_list_remove(&unmanaged->link);
 	wl_list_remove(&unmanaged->commit.link);
 

@@ -52,6 +52,86 @@ xdg_toplevel_decoration(struct wl_listener *listener, void *data)
 	xdg_deco_request_mode(&xdg_deco->request_mode, wlr_decoration);
 }
 
+static void
+handle_xdg_popup_commit(struct wl_listener *listener, void *data)
+{
+	struct xdg_popup *popup = wl_container_of(listener, popup, map);
+	/* TODO */
+}
+
+static void
+handle_xdg_popup_map(struct wl_listener *listener, void *data)
+{
+	struct xdg_popup *popup = wl_container_of(listener, popup, map);
+	damage_view_whole(popup->view);
+}
+
+static void
+handle_xdg_popup_unmap(struct wl_listener *listener, void *data)
+{
+	struct xdg_popup *popup = wl_container_of(listener, popup, unmap);
+	damage_view_whole(popup->view);
+}
+
+static void
+handle_xdg_popup_destroy(struct wl_listener *listener, void *data)
+{
+	struct xdg_popup *popup = wl_container_of(listener, popup, destroy);
+	wl_list_remove(&popup->destroy.link);
+	wl_list_remove(&popup->commit.link);
+	wl_list_remove(&popup->map.link);
+	wl_list_remove(&popup->unmap.link);
+	wl_list_remove(&popup->new_popup.link);
+	free(popup);
+}
+
+static void xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup);
+
+static void
+popup_handle_new_xdg_popup(struct wl_listener *listener, void *data)
+{
+	struct xdg_popup *popup = wl_container_of(listener, popup, new_popup);
+	struct wlr_xdg_popup *wlr_popup = data;
+	xdg_popup_create(popup->view, wlr_popup);
+}
+
+/*
+ * We need to pass view to this function for damage tracking.
+ * TODO: Could we just damage surface or whole output?
+ *       That would allow us to only have one 'handle_new_*'
+ */
+static void
+xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
+{
+	struct xdg_popup *popup = calloc(1, sizeof(struct xdg_popup));
+	if (!popup) {
+		return;
+	}
+
+	popup->wlr_popup = wlr_popup;
+	popup->view = view;
+
+	popup->destroy.notify = handle_xdg_popup_destroy;
+	wl_signal_add(&wlr_popup->base->events.destroy, &popup->destroy);
+	popup->commit.notify = handle_xdg_popup_commit;
+	wl_signal_add(&wlr_popup->base->surface->events.commit, &popup->commit);
+	popup->map.notify = handle_xdg_popup_map;
+	wl_signal_add(&wlr_popup->base->events.map, &popup->map);
+	popup->unmap.notify = handle_xdg_popup_unmap;
+	wl_signal_add(&wlr_popup->base->events.unmap, &popup->unmap);
+	popup->new_popup.notify = popup_handle_new_xdg_popup;
+	wl_signal_add(&wlr_popup->base->events.new_popup, &popup->new_popup);
+}
+
+/* This is merely needed to track damage */
+static void
+handle_new_xdg_popup(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, new_popup);
+	struct wlr_xdg_popup *wlr_popup = data;
+	xdg_popup_create(view, wlr_popup);
+}
+
 static bool
 has_ssd(struct view *view)
 {
@@ -95,6 +175,7 @@ handle_commit(struct wl_listener *listener, void *data)
 			view->pending_move_resize.configure_serial = 0;
 		}
 	}
+	damage_view_part(view);
 }
 
 static void
@@ -165,6 +246,7 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 	} else if (view->pending_move_resize.configure_serial == 0) {
 		view->x = geo.x;
 		view->y = geo.y;
+		damage_all_outputs(view->server);
 	}
 }
 
@@ -173,12 +255,20 @@ xdg_toplevel_view_move(struct view *view, double x, double y)
 {
 	view->x = x;
 	view->y = y;
+	damage_all_outputs(view->server);
 }
 
 static void
 xdg_toplevel_view_close(struct view *view)
 {
 	wlr_xdg_toplevel_send_close(view->xdg_surface);
+}
+
+static void
+xdg_toplevel_view_for_each_popup(struct view *view,
+		wlr_surface_iterator_func_t iterator, void *data)
+{
+	wlr_xdg_surface_for_each_popup(view->xdg_surface, iterator, data);
 }
 
 static void
@@ -234,12 +324,14 @@ xdg_toplevel_view_map(struct view *view)
 	view->commit.notify = handle_commit;
 
 	desktop_focus_view(&view->server->seat, view);
+	damage_all_outputs(view->server);
 }
 
 static void
 xdg_toplevel_view_unmap(struct view *view)
 {
 	view->mapped = false;
+	damage_all_outputs(view->server);
 	wl_list_remove(&view->commit.link);
 	desktop_focus_topmost_mapped_view(view->server);
 }
@@ -247,6 +339,7 @@ xdg_toplevel_view_unmap(struct view *view)
 static const struct view_impl xdg_toplevel_view_impl = {
 	.configure = xdg_toplevel_view_configure,
 	.close = xdg_toplevel_view_close,
+	.for_each_popup = xdg_toplevel_view_for_each_popup,
 	.for_each_surface = xdg_toplevel_view_for_each_surface,
 	.map = xdg_toplevel_view_map,
 	.move = xdg_toplevel_view_move,
@@ -276,6 +369,9 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	wl_signal_add(&xdg_surface->events.unmap, &view->unmap);
 	view->destroy.notify = handle_destroy;
 	wl_signal_add(&xdg_surface->events.destroy, &view->destroy);
+
+	view->new_popup.notify = handle_new_xdg_popup;
+	wl_signal_add(&xdg_surface->events.new_popup, &view->new_popup);
 
 	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
 	view->request_move.notify = handle_request_move;

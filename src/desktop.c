@@ -148,6 +148,7 @@ desktop_cycle_view(struct server *server, struct view *current)
 	do {
 		view = wl_container_of(view->link.next, view, link);
 	} while (&view->link == &server->views || !isfocusable(view));
+	damage_all_outputs(server);
 	return view;
 }
 

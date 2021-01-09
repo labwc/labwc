@@ -19,6 +19,7 @@
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_matrix.h>
 #include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_output_damage.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_pointer.h>
 #include <wlr/types/wlr_seat.h>
@@ -123,9 +124,11 @@ struct output {
 	struct wl_list link;
 	struct server *server;
 	struct wlr_output *wlr_output;
+	struct wlr_output_damage *damage;
 	struct wl_list layers[4];
-	struct wl_listener frame;
 	struct wl_listener destroy;
+	struct wl_listener damage_frame;
+	struct wl_listener damage_destroy;
 };
 
 enum view_type {
@@ -151,6 +154,8 @@ enum deco_part {
 struct view_impl {
 	void (*configure)(struct view *view, struct wlr_box geo);
 	void (*close)(struct view *view);
+	void (*for_each_popup)(struct view *view,
+		wlr_surface_iterator_func_t iterator, void *data);
 	void (*for_each_surface)(struct view *view,
 		wlr_surface_iterator_func_t iterator, void *data);
 	void (*map)(struct view *view);
@@ -211,6 +216,7 @@ struct view {
 	struct wl_listener request_move;
 	struct wl_listener request_resize;
 	struct wl_listener request_configure;
+	struct wl_listener new_popup; /* xdg-shell only */
 };
 
 #if HAVE_XWAYLAND
@@ -228,6 +234,17 @@ struct xwayland_unmanaged {
 };
 #endif
 
+struct xdg_popup {
+	struct wlr_xdg_popup *wlr_popup;
+	struct view *view;
+
+	struct wl_listener destroy;
+	struct wl_listener commit;
+	struct wl_listener map;
+	struct wl_listener unmap;
+	struct wl_listener new_popup;
+};
+
 void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
 void xdg_surface_new(struct wl_listener *listener, void *data);
 
@@ -243,6 +260,8 @@ void view_minimize(struct view *view);
 void view_unminimize(struct view *view);
 void view_for_each_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *user_data);
+void view_for_each_popup(struct view *view,
+	wlr_surface_iterator_func_t iterator, void *data);
 
 void desktop_focus_view(struct seat *seat, struct view *view);
 
@@ -270,6 +289,12 @@ void interactive_begin(struct view *view, enum input_mode mode,
 		       uint32_t edges);
 
 void output_init(struct server *server);
+void output_damage_surface(struct output *output, struct wlr_surface *surface,
+	double lx, double ly, bool whole);
+
+void damage_all_outputs(struct server *server);
+void damage_view_whole(struct view *view);
+void damage_view_part(struct view *view);
 
 void server_init(struct server *server);
 void server_start(struct server *server);

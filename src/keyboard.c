@@ -49,6 +49,7 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 		wlr_keyboard_get_modifiers(device->keyboard);
 
 	if (server->cycle_view) {
+		damage_all_outputs(server);
 		if ((syms[0] == XKB_KEY_Alt_L) &&
 		    event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 			/* end cycle */

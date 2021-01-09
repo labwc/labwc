@@ -21,6 +21,7 @@ handle_commit(struct wl_listener *listener, void *data)
 			view->pending_move_resize.height - view->h;
 		view->pending_move_resize.update_y = false;
 	}
+	damage_view_whole(view);
 }
 
 static void
@@ -56,6 +57,7 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	struct wlr_xwayland_surface_configure_event *event = data;
 	wlr_xwayland_surface_configure(view->xwayland_surface, event->x,
 				       event->y, event->width, event->height);
+	damage_all_outputs(view->server);
 }
 
 static void
@@ -70,6 +72,7 @@ configure(struct view *view, struct wlr_box geo)
 	wlr_xwayland_surface_configure(view->xwayland_surface, (int16_t)geo.x,
 				       (int16_t)geo.y, (uint16_t)geo.width,
 				       (uint16_t)geo.height);
+	damage_all_outputs(view->server);
 }
 
 static void
@@ -80,18 +83,23 @@ move(struct view *view, double x, double y)
 	struct wlr_xwayland_surface *s = view->xwayland_surface;
 	wlr_xwayland_surface_configure(s, (int16_t)x, (int16_t)y,
 		(uint16_t)s->width, (uint16_t)s->height);
+	damage_all_outputs(view->server);
 }
 
 static void
 _close(struct view *view)
 {
 	wlr_xwayland_surface_close(view->xwayland_surface);
+	damage_all_outputs(view->server);
 }
 
 static void
 for_each_surface(struct view *view, wlr_surface_iterator_func_t iterator,
 		void *data)
 {
+	if (!view->surface) {
+		return;
+	}
         wlr_surface_for_each_surface(view->surface, iterator, data);
 }
 
@@ -139,12 +147,14 @@ map(struct view *view)
 	view->commit.notify = handle_commit;
 
 	desktop_focus_view(&view->server->seat, view);
+	damage_all_outputs(view->server);
 }
 
 static void
 unmap(struct view *view)
 {
 	view->mapped = false;
+	damage_all_outputs(view->server);
 	wl_list_remove(&view->commit.link);
 	desktop_focus_topmost_mapped_view(view->server);
 }

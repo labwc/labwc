@@ -35,7 +35,7 @@ The following were considered before choosing wlroots: [qtwayland](https://githu
 Dependencies include:
 
 - meson, ninja
-- wlroots (>=0.11.0)
+- wlroots (0.11.0 - 0.12.0)
 - wayland (>=1.16)
 - wayland-protocols
 - xwayland, xcb (optional)
@@ -95,8 +95,8 @@ No acceptance criteria exists, but the following list indicates the inteded high
 - [x] Show maximize, iconify, close buttons
 - [x] Catch SIGHUP to re-load config file and theme
 - [x] Support layer-shell protocol ('exclusive' not yet implemented)
-- [ ] Support root-menu and parse menu.xml (very simple implementation, not submenus yet)
-- [ ] Support damage tracking to reduce CPU usage
+- [x] Support damage tracking to reduce CPU usage
+- [ ] Support root-menu and parse menu.xml (very simple implementation, no submenus yet)
 - [ ] Support 'maximize'
 - [ ] Support wlr-output-management protocol and [kanshi](https://github.com/emersion/kanshi.git)
 - [ ] Support foreign-toplevel protocol (e.g. to integrate with wlroots panels/bars)

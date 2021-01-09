@@ -258,6 +258,7 @@ surface_commit_notify(struct wl_listener *listener, void *data)
 		wl_container_of(listener, layer, surface_commit);
 	struct wlr_output *wlr_output = layer->layer_surface->output;
 	arrange_layers(output_from_wlr_output(layer->server, wlr_output));
+	damage_all_outputs(layer->server);
 }
 
 static void
@@ -267,6 +268,7 @@ unmap(struct lab_layer_surface *layer)
 	if (seat->focused_layer == layer->layer_surface) {
 		seat_set_focus_layer(seat, NULL);
 	}
+	damage_all_outputs(layer->server);
 }
 
 static void

@@ -66,6 +66,7 @@ request_set_selection_notify(struct wl_listener *listener, void *data)
 static void
 process_cursor_move(struct server *server, uint32_t time)
 {
+	damage_all_outputs(server);
 	/* Move the grabbed view to the new position. */
 	double dx = server->seat.cursor->x - server->grab_x;
 	double dy = server->seat.cursor->y - server->grab_y;
@@ -81,10 +82,7 @@ process_cursor_move(struct server *server, uint32_t time)
 static void
 process_cursor_resize(struct server *server, uint32_t time)
 {
-	/*
-	 * TODO: Wait for the client to prepare a buffer at the new size, then
-	 * commit any movement that was prepared.
-	 */
+	damage_all_outputs(server);
 	double dx = server->seat.cursor->x - server->grab_x;
 	double dy = server->seat.cursor->y - server->grab_y;
 
@@ -128,6 +126,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	} else if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		menu_set_selected(server->rootmenu,
 			server->seat.cursor->x, server->seat.cursor->y);
+		damage_all_outputs(server);
 		return;
 	}
 
@@ -285,6 +284,7 @@ cursor_button(struct wl_listener *listener, void *data)
 		}
 		/* Exit interactive move/resize/menu mode. */
 		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+		damage_all_outputs(server);
 		return;
 	}
 

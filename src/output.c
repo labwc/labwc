@@ -315,6 +315,12 @@ render_rect(struct output *output, pixman_region32_t *output_damage,
 	struct wlr_box box;
 	memcpy(&box, _box, sizeof(struct wlr_box));
 
+	double ox = 0, oy = 0;
+	wlr_output_layout_output_coords(output->server->output_layout,
+		output->wlr_output, &ox, &oy);
+	box.x += ox;
+	box.y += oy;
+
 	pixman_region32_t damage;
 	pixman_region32_init(&damage);
 	pixman_region32_union_rect(&damage, &damage, box.x, box.y,

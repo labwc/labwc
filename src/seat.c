@@ -11,17 +11,38 @@ input_device_destroy(struct wl_listener *listener, void *data)
 	free(input);
 }
 
-void
-new_pointer(struct seat *seat, struct input *input)
+static void
+configure_libinput(struct wlr_input_device *wlr_input_device)
 {
 	/*
 	 * We want to enable full libinput configuration eventually, but
 	 * for the time being, lets just enable tap.
 	 */
+	if (!wlr_input_device) {
+		warn("%s:%d: no wlr_input_device", __FILE__, __LINE__);
+		return;
+	}
 	struct libinput_device *libinput_dev =
-		wlr_libinput_get_device_handle(input->wlr_input_device);
+		wlr_libinput_get_device_handle(wlr_input_device);
+	if (!libinput_dev) {
+		warn("%s:%d: no libinput_dev", __FILE__, __LINE__);
+		return;
+	}
+	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0) {
+		warn("libinput device finger count <= 0");
+		return;
+	}
+	info("tap enabled for libinput device");
 	libinput_device_config_tap_set_enabled(libinput_dev,
 		LIBINPUT_CONFIG_TAP_ENABLED);
+}
+
+void
+new_pointer(struct seat *seat, struct input *input)
+{
+	if (wlr_input_device_is_libinput(input->wlr_input_device)) {
+		configure_libinput(input->wlr_input_device);
+	}
 	wlr_cursor_attach_input_device(seat->cursor, input->wlr_input_device);
 }
 

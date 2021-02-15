@@ -45,11 +45,11 @@ spawn_async_no_shell(char const *command)
 		grandchild = fork();
 		if (grandchild == 0) {
 			execvp(argv[0], argv);
-			exit(0);
+			_exit(0);
 		} else if (grandchild < 0) {
 			warn("unable to fork()");
 		}
-		exit(0);
+		_exit(0);
 	default:
 		break;
 	}

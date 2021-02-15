@@ -130,8 +130,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 		return;
 	}
 
-	/* Otherwise, find the view under the pointer and send the event along.
-	 */
+	/* Otherwise, find the view under the pointer and send the event along */
 	double sx, sy;
 	struct wlr_seat *wlr_seat = server->seat.seat;
 	struct wlr_surface *surface = NULL;
@@ -186,6 +185,9 @@ process_cursor_motion(struct server *server, uint32_t time)
 		wlr_xcursor_manager_set_cursor_image(
 			server->seat.xcursor_manager, cursor_name, server->seat.cursor);
 	}
+
+	/* Required for iconify/maximize/close button mouse-over deco */
+	damage_all_outputs(server);
 
 	if (surface) {
 		bool focus_changed =
@@ -304,7 +306,8 @@ cursor_button(struct wl_listener *listener, void *data)
 	/* Handle _press_ on view */
 	desktop_focus_view(&server->seat, view);
 
-	resize_edges = get_resize_edges(view, server->seat.cursor->x, server->seat.cursor->y);
+	resize_edges = get_resize_edges(view, server->seat.cursor->x,
+					server->seat.cursor->y);
 	if (resize_edges != 0) {
 		interactive_begin(view, LAB_INPUT_STATE_RESIZE, resize_edges);
 		return;

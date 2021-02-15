@@ -756,37 +756,19 @@ output_damage_frame_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-output_destroy(struct output *output)
-{
-	if (!output || output->server->output_layout || !output->wlr_output) {
-		return;
-	}
-        wl_list_remove(&output->link);
-        wl_list_remove(&output->destroy.link);
-        wl_list_remove(&output->damage_frame.link);
-        wl_list_remove(&output->damage_destroy.link);
-
-	struct server *server = output->server;
-	wlr_output_layout_remove(server->output_layout, output->wlr_output);
-	free(output);
-}
-
-static void
 output_damage_destroy_notify(struct wl_listener *listener, void *data)
 {
 	struct output *output = wl_container_of(listener, output, damage_destroy);
-	output_destroy(output);
+        wl_list_remove(&output->damage_frame.link);
+        wl_list_remove(&output->damage_destroy.link);
 }
 
 static void
 output_destroy_notify(struct wl_listener *listener, void *data)
 {
         struct output *output = wl_container_of(listener, output, destroy);
-	if (!output || !output->wlr_output || !output->damage) {
-		return;
-	}
-	wlr_output_damage_destroy(output->damage);
-	output_destroy(output);
+        wl_list_remove(&output->link);
+        wl_list_remove(&output->destroy.link);
 }
 
 static void

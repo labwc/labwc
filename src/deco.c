@@ -39,7 +39,7 @@ deco_max_extents(struct view *view)
 struct wlr_box
 deco_box(struct view *view, enum deco_part deco_part)
 {
-	struct wlr_box box = { .x = 0, .y = 0, .width = 0, .height = 0 };
+	struct wlr_box box = { 0 };
 	assert(view);
 	switch (deco_part) {
 	case LAB_DECO_BUTTON_CLOSE:

@@ -4,6 +4,7 @@ labwc_sources += files(
   'font.c',
   'grab-file.c',
   'log.c',
+  'nodename.c',
   'spawn.c',
   'string-helpers.c',
 )

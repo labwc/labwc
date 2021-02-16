@@ -19,6 +19,11 @@ struct theme {
 	float window_active_button_unpressed_image_color[4];
 	float window_inactive_button_unpressed_image_color[4];
 
+	float menu_items_bg_color[4];
+	float menu_items_text_color[4];
+	float menu_items_active_bg_color[4];
+	float menu_items_active_text_color[4];
+
 	struct wlr_texture *xbm_close_active_unpressed;
 	struct wlr_texture *xbm_maximize_active_unpressed;
 	struct wlr_texture *xbm_iconify_active_unpressed;

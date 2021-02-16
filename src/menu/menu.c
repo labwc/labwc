@@ -7,10 +7,9 @@
 #include "common/font.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "theme/theme.h"
 
-static float background[4] = { 0.3f, 0.1f, 0.1f, 1.0f };
-static float foreground[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-static const char font[] = "Sans 10";
+static const char font[] = "Sans 8";
 
 #define MENUWIDTH (100)
 #define MENUHEIGHT (25)
@@ -70,9 +69,10 @@ menuitem_create(struct server *server, struct menu *menu, const char *text,
 	menuitem->geo_box.width = MENUWIDTH;
 	menuitem->geo_box.height = MENUHEIGHT;
 	menuitem->active_texture = texture_create(server, &menuitem->geo_box,
-		text, background, foreground);
+		text, theme.menu_items_active_bg_color,
+		theme.menu_items_active_text_color);
 	menuitem->inactive_texture = texture_create(server, &menuitem->geo_box,
-		text, foreground, background);
+		text, theme.menu_items_bg_color, theme.menu_items_text_color);
 	wl_list_insert(&menu->menuitems, &menuitem->link);
 	return menuitem;
 }

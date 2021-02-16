@@ -54,6 +54,22 @@ compatibility.
 :   Color of the images in titlebar buttons in their default, unpressed,
     state. This element is for non-focused windows.
 
+`menu.items.bg.color`
+
+:   Background color of inactive menu items
+
+`menu.items.text.color`
+
+:   Text color of inactive menu item
+
+`menu.items.active.bg.color`
+
+:   Background color of active menu items
+
+`menu.items.active.text.color`
+
+:   Text color of active menu item
+
 # DEFINITIONS
 
 The `handle` is the window decoration placed on the bottom of the window.

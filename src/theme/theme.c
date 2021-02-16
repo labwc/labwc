@@ -63,6 +63,14 @@ static void entry(const char *key, const char *value)
 		parse_hexstr(value, theme.window_active_button_unpressed_image_color);
 	} else if (match(key, "window.inactive.button.unpressed.image.color")) {
 		parse_hexstr(value, theme.window_inactive_button_unpressed_image_color);
+	} else if (match(key, "menu.items.bg.color")) {
+		parse_hexstr(value, theme.menu_items_bg_color);
+	} else if (match(key, "menu.items.text.color")) {
+		parse_hexstr(value, theme.menu_items_text_color);
+	} else if (match(key, "menu.items.active.bg.color")) {
+		parse_hexstr(value, theme.menu_items_active_bg_color);
+	} else if (match(key, "menu.items.active.text.color")) {
+		parse_hexstr(value, theme.menu_items_active_text_color);
 	}
 }
 

@@ -18,4 +18,8 @@ void theme_builtin(void)
 	parse_hexstr("#efece6", theme.window_inactive_title_bg_color);
 	parse_hexstr("#ffffff", theme.window_active_button_unpressed_image_color);
 	parse_hexstr("#000000", theme.window_inactive_button_unpressed_image_color);
+	parse_hexstr("#fcfbfa", theme.menu_items_bg_color);
+	parse_hexstr("#000000", theme.menu_items_text_color);
+	parse_hexstr("#4a90d9", theme.menu_items_active_bg_color);
+	parse_hexstr("#ffffff", theme.menu_items_active_text_color);
 }

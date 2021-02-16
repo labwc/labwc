@@ -14,6 +14,7 @@
 #include "common/dir.h"
 #include "common/font.h"
 #include "common/log.h"
+#include "common/string-helpers.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
 
@@ -31,22 +32,12 @@ enum font_place {
 };
 
 static void
-rstrip(char *buf, const char *pattern)
-{
-	char *p = strstr(buf, pattern);
-	if (!p) {
-		return;
-	}
-	*p = '\0';
-}
-
-static void
 fill_keybind(char *nodename, char *content)
 {
 	if (!content) {
 		return;
 	}
-	rstrip(nodename, ".keybind.keyboard");
+	string_truncate_at_pattern(nodename, ".keybind.keyboard");
 	if (!strcmp(nodename, "key")) {
 		current_keybind = keybind_create(content);
 	}
@@ -82,7 +73,7 @@ fill_font(char *nodename, char *content, enum font_place place)
 	if (!content) {
 		return;
 	}
-	rstrip(nodename, ".font.theme");
+	string_truncate_at_pattern(nodename, ".font.theme");
 
 	/* TODO: implement for all font places */
 	if (place != FONT_PLACE_ACTIVEWINDOW) {
@@ -118,7 +109,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	if (!nodename) {
 		return;
 	}
-	rstrip(nodename, ".openbox_config");
+	string_truncate_at_pattern(nodename, ".openbox_config");
 
 	/* for debugging */
 	if (write_to_nodename_buffer) {

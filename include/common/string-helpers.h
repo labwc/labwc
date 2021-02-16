@@ -8,4 +8,11 @@
  */
 char *string_strip(char *s);
 
+/**
+ * string_truncate_at_pattern - remove pattern and everything after it
+ * @buf: pointer to buffer
+ * @pattern: string to remove
+ */
+void string_truncate_at_pattern(char *buf, const char *pattern);
+
 #endif /* __LABWC_STRING_HELPERS_H */

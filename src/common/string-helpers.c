@@ -25,3 +25,13 @@ string_strip(char *s)
 	}
 	return s;
 }
+
+void
+string_truncate_at_pattern(char *buf, const char *pattern)
+{
+	char *p = strstr(buf, pattern);
+	if (!p) {
+		return;
+	}
+	*p = '\0';
+}

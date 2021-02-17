@@ -49,9 +49,11 @@ For further details see [wiki/Build](https://github.com/johanmalm/labwc/wiki/Bui
 
 ## 3. Configure
 
-If you want to override the defaults, copy data/rc.xml to ~/.config/labwc/ and tweak to suit.
+If you want to override the defaults, create the following files:
 
-See [rc.xml](docs/rc.xml) and [themerc](docs/themerc) comments for details including keybinds.
+- ~/.config/labwc/[rc.xml](docs/rc.xml)
+- ~/.config/labwc/[menu.xml](docs/menu.xml)
+- ~/.local/share/themes/<theme-name>/openbox-3/[themerc](docs/themerc)
 
 See full details in the following:
 
@@ -87,7 +89,7 @@ Suggested apps to use with labwc:
 
 ## 6. Roadmap
 
-No acceptance criteria exists, but the following list indicates the inteded high level roadmap:
+The following list indicates the intended high level roadmap:
 
 - [x] Optionally support xwayland
 - [x] Parse openbox config files (rc.xml, autostart, environment)

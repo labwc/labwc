@@ -53,7 +53,7 @@ If you want to override the defaults, create the following files:
 
 - ~/.config/labwc/[rc.xml](docs/rc.xml)
 - ~/.config/labwc/[menu.xml](docs/menu.xml)
-- ~/.local/share/themes/<theme-name>/openbox-3/[themerc](docs/themerc)
+- ~/.local/share/themes/\<theme-name\>/openbox-3/[themerc](docs/themerc)
 
 See full details in the following:
 

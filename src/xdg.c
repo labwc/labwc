@@ -63,14 +63,15 @@ static void
 handle_xdg_popup_map(struct wl_listener *listener, void *data)
 {
 	struct xdg_popup *popup = wl_container_of(listener, popup, map);
-	damage_view_whole(popup->view);
+	/* damagage whole output here as popup might go outside view */
+	damage_all_outputs(popup->view->server);
 }
 
 static void
 handle_xdg_popup_unmap(struct wl_listener *listener, void *data)
 {
 	struct xdg_popup *popup = wl_container_of(listener, popup, unmap);
-	damage_view_whole(popup->view);
+	damage_all_outputs(popup->view->server);
 }
 
 static void

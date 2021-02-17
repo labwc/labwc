@@ -10,21 +10,19 @@
 
 ## 1. What is this?
 
-Labwc is a [WIP] free, stacking compositor for Wayland based on wlroots.
+Labwc is a [WIP] free, wlroots-based stacking compositor for Wayland.
 
 It has the following aims:
 
 - Be light-weight, small and fast
 - Have the look and feel of [openbox](https://github.com/danakj/openbox) albeit
-  with smaller feature set
+  with a smaller feature set
 - Where practicable, use clients to show wall-paper, take screenshots, and so on
 - Stay in keeping with wlroots and sway in terms of approach and coding style
 
 It is in early development, so expect bugs and missing features.
 
 Labwc has been inspired and influenced by [openbox](https://github.com/danakj/openbox), [sway](https://github.com/swaywm/sway), [cage](https://www.hjdskes.nl/blog/cage-01/), [wio](https://wio-project.org/) and [rootston](https://github.com/swaywm/rootston)
-
-The following were considered before choosing wlroots: [qtwayland](https://github.com/qt/qtwayland), [grefsen](https://github.com/ec1oud/grefsen), [mir](https://mir-server.io) and [egmde](https://github.com/AlanGriffiths/egmde).
 
 ![](https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png)
 
@@ -64,7 +62,9 @@ See full details in the following:
 
 ## 4. Run
 
-    ./build/labwc -s <some-application>
+    ./build/labwc [-s <some-application>]
+
+Click on the background to launch a menu.
 
 If you have not created an rc.xml configuration file, default keybinds will be:
 
@@ -96,7 +96,7 @@ No acceptance criteria exists, but the following list indicates the inteded high
 - [x] Catch SIGHUP to re-load config file and theme
 - [x] Support layer-shell protocol ('exclusive' not yet implemented)
 - [x] Support damage tracking to reduce CPU usage
-- [ ] Support root-menu and parse menu.xml (very simple implementation, no submenus yet)
+- [x] Support root-menu and parse menu.xml (very simple implementation - no submenus, separators or titles)
 - [ ] Support 'maximize'
 - [ ] Support wlr-output-management protocol and [kanshi](https://github.com/emersion/kanshi.git)
 - [ ] Support foreign-toplevel protocol (e.g. to integrate with wlroots panels/bars)
@@ -129,4 +129,5 @@ The following items are out-of-scope:
 - Any theme option (probably at least half of them) not required to reasonably render common themes
 - Any configuration option not required to provide a simple openbox-like experience
 - Multiple desktops
+- Pipe-menus
 

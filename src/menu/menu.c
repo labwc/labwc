@@ -1,17 +1,33 @@
 #define _POSIX_C_SOURCE 200809L
+#include <assert.h>
 #include <cairo/cairo.h>
+#include <ctype.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
 #include <pango/pangocairo.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
+#include "common/buf.h"
+#include "common/dir.h"
 #include "common/font.h"
+#include "common/nodename.h"
+#include "common/string-helpers.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "theme/theme.h"
 
 static const char font[] = "Sans 8";
 
-#define MENUWIDTH (100)
+static struct server *g_server;
+static struct menu *g_menu;
+
+/* state-machine variables for processing <item></item> */
+static bool in_item = false;
+static struct menuitem *current_item;
+
+#define MENUWIDTH (120)
 #define MENUHEIGHT (25)
 #define MENU_PADDING_WIDTH (7)
 
@@ -57,15 +73,12 @@ texture_create(struct server *server, struct wlr_box *geo, const char *text,
 }
 
 struct menuitem *
-menuitem_create(struct server *server, struct menu *menu, const char *text,
-	const char *action, const char *command)
+menuitem_create(struct server *server, struct menu *menu, const char *text)
 {
 	struct menuitem *menuitem = calloc(1, sizeof(struct menuitem));
 	if (!menuitem) {
 		return NULL;
 	}
-	menuitem->action = action ? strdup(action) : NULL;
-	menuitem->command = command ? strdup(command) : NULL;
 	menuitem->geo_box.width = MENUWIDTH;
 	menuitem->geo_box.height = MENUHEIGHT;
 	menuitem->active_texture = texture_create(server, &menuitem->geo_box,
@@ -77,13 +90,170 @@ menuitem_create(struct server *server, struct menu *menu, const char *text,
 	return menuitem;
 }
 
+static void fill_item(char *nodename, char *content)
+{
+	string_truncate_at_pattern(nodename, ".item.menu");
+
+	if (getenv("LABWC_DEBUG_MENU_NODENAMES")) {
+		printf("%s: %s\n", nodename, content);
+	}
+
+	/*
+	 * Handle the following:
+	 * <item label="">
+	 *   <action name="">
+	 *     <command></command>
+	 *   </action>
+	 * </item>
+	 */
+	if (!strcmp(nodename, "label")) {
+		current_item = menuitem_create(g_server, g_menu, content);
+	}
+	assert(current_item);
+	if (!strcmp(nodename, "name.action")) {
+		current_item->action = strdup(content);
+	} else if (!strcmp(nodename, "command.action")) {
+		current_item->command = strdup(content);
+	}
+}
+
+static void
+entry(xmlNode *node, char *nodename, char *content)
+{
+	static bool in_root_menu = false;
+
+	if (!nodename) {
+		return;
+	}
+	string_truncate_at_pattern(nodename, ".openbox_menu");
+	if (!content) {
+		return;
+	}
+	if (!strcmp(nodename, "id.menu")) {
+		in_root_menu = !strcmp(content, "root-menu") ? true : false;
+	}
+
+	/* We only handle the root-menu for the time being */
+	if (!in_root_menu) {
+		return;
+	}
+	if (in_item) {
+		fill_item(nodename, content);
+	}
+}
+
+static void
+process_node(xmlNode *node)
+{
+	char *content;
+	static char buffer[256];
+	char *name;
+
+	content = (char *)node->content;
+	if (xmlIsBlankNode(node)) {
+		return;
+	}
+	name = nodename(node, buffer, sizeof(buffer));
+	entry(node, name, content);
+}
+
+static void xml_tree_walk(xmlNode *node);
+
+static void
+traverse(xmlNode *n)
+{
+	process_node(n);
+	for (xmlAttr *attr = n->properties; attr; attr = attr->next) {
+		xml_tree_walk(attr->children);
+	}
+	xml_tree_walk(n->children);
+}
+
+static void
+xml_tree_walk(xmlNode *node)
+{
+	for (xmlNode *n = node; n && n->name; n = n->next) {
+		if (!strcasecmp((char *)n->name, "comment")) {
+			continue;
+		}
+		if (!strcasecmp((char *)n->name, "item")) {
+			in_item = true;
+			traverse(n);
+			in_item = false;
+			continue;
+		}
+		traverse(n);
+	}
+}
+
+static void
+parse_xml(struct buf *b)
+{
+	xmlDoc *d = xmlParseMemory(b->buf, b->len);
+	if (!d) {
+		warn("xmlParseMemory()");
+		exit(EXIT_FAILURE);
+	}
+	xml_tree_walk(xmlDocGetRootElement(d));
+	xmlFreeDoc(d);
+	xmlCleanupParser();
+}
+
+static void
+menu_read(void)
+{
+	FILE *stream;
+	char *line = NULL;
+	size_t len = 0;
+	struct buf b;
+	static char menuxml[4096] = { 0 };
+
+	if (!strlen(config_dir())) {
+		return;
+	}
+	snprintf(menuxml, sizeof(menuxml), "%s/menu.xml", config_dir());
+
+	stream = fopen(menuxml, "r");
+	if (!stream) {
+		warn("cannot read (%s)", menuxml);
+		return;
+	}
+	info("read menu file (%s)", menuxml);
+	buf_init(&b);
+	while (getline(&line, &len, stream) != -1) {
+		char *p = strrchr(line, '\n');
+		if (p)
+			*p = '\0';
+		buf_add(&b, line);
+	}
+	free(line);
+	fclose(stream);
+	parse_xml(&b);
+	free(b.buf);
+}
+
 void
 menu_init(struct server *server, struct menu *menu)
 {
+	static bool has_run;
+
+	if (has_run) {
+		goto not_first_run;
+	}
+	LIBXML_TEST_VERSION
 	wl_list_init(&menu->menuitems);
-	menuitem_create(server, menu, "Terminal", "Execute", "sakura");
-	menuitem_create(server, menu, "Reconfigure", "Reconfigure", NULL);
-	menuitem_create(server, menu, "Exit", "Exit", NULL);
+	g_server = server;
+	g_menu = menu;
+
+not_first_run:
+	menu_read();
+	/* Default menu if no menu.xml found */
+	if (!current_item) {
+		current_item = menuitem_create(server, menu, "Reconfigure");
+		current_item->action = strdup("Reconfigure");
+		current_item = menuitem_create(server, menu, "Exit");
+		current_item->action = strdup("Exit");
+	}
 	menu_move(menu, 100, 100);
 }
 

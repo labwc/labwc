@@ -32,16 +32,15 @@ Labwc has been inspired and influenced by [openbox](https://github.com/danakj/op
 
 Dependencies include:
 
-- meson, ninja
+- meson, ninja, gcc/clang
 - wlroots (0.11.0 - 0.12.0)
 - wayland (>=1.16)
 - wayland-protocols
-- xwayland, xcb (optional)
 - libinput (>=1.14)
 - libxml2
 - cairo, pango, glib-2.0
-- xcb
 - xkbcommon
+- xwayland, xcb (optional)
 
 Disable xwayland with `meson -Dxwayland=disabled build`
 

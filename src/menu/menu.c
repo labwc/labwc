@@ -20,8 +20,6 @@
 
 static const char font[] = "Sans 8";
 
-static struct server *g_server;
-
 /* state-machine variables for processing <item></item> */
 static bool in_item = false;
 static struct menuitem *current_item;
@@ -89,7 +87,7 @@ menuitem_create(struct server *server, struct menu *menu, const char *text)
 	return menuitem;
 }
 
-static void fill_item(char *nodename, char *content)
+static void fill_item(char *nodename, char *content, struct menu *menu)
 {
 	string_truncate_at_pattern(nodename, ".item.menu");
 
@@ -106,8 +104,7 @@ static void fill_item(char *nodename, char *content)
 	 * </item>
 	 */
 	if (!strcmp(nodename, "label")) {
-		current_item = menuitem_create(
-			g_server, g_server->rootmenu, content);
+		current_item = menuitem_create(menu->server, menu, content);
 	}
 	assert(current_item);
 	if (!strcmp(nodename, "name.action")) {
@@ -118,7 +115,7 @@ static void fill_item(char *nodename, char *content)
 }
 
 static void
-entry(xmlNode *node, char *nodename, char *content)
+entry(xmlNode *node, char *nodename, char *content, struct menu *menu)
 {
 	static bool in_root_menu = false;
 
@@ -138,12 +135,12 @@ entry(xmlNode *node, char *nodename, char *content)
 		return;
 	}
 	if (in_item) {
-		fill_item(nodename, content);
+		fill_item(nodename, content, menu);
 	}
 }
 
 static void
-process_node(xmlNode *node)
+process_node(xmlNode *node, struct menu *menu)
 {
 	char *content;
 	static char buffer[256];
@@ -154,23 +151,23 @@ process_node(xmlNode *node)
 		return;
 	}
 	name = nodename(node, buffer, sizeof(buffer));
-	entry(node, name, content);
+	entry(node, name, content, menu);
 }
 
-static void xml_tree_walk(xmlNode *node);
+static void xml_tree_walk(xmlNode *node, struct menu *menu);
 
 static void
-traverse(xmlNode *n)
+traverse(xmlNode *n, struct menu *menu)
 {
-	process_node(n);
+	process_node(n, menu);
 	for (xmlAttr *attr = n->properties; attr; attr = attr->next) {
-		xml_tree_walk(attr->children);
+		xml_tree_walk(attr->children, menu);
 	}
-	xml_tree_walk(n->children);
+	xml_tree_walk(n->children, menu);
 }
 
 static void
-xml_tree_walk(xmlNode *node)
+xml_tree_walk(xmlNode *node, struct menu *menu)
 {
 	for (xmlNode *n = node; n && n->name; n = n->next) {
 		if (!strcasecmp((char *)n->name, "comment")) {
@@ -178,16 +175,16 @@ xml_tree_walk(xmlNode *node)
 		}
 		if (!strcasecmp((char *)n->name, "item")) {
 			in_item = true;
-			traverse(n);
+			traverse(n, menu);
 			in_item = false;
 			continue;
 		}
-		traverse(n);
+		traverse(n, menu);
 	}
 }
 
 static void
-parse_xml(const char *filename)
+parse_xml(const char *filename, struct menu *menu)
 {
 	FILE *stream;
 	char *line = NULL;
@@ -220,7 +217,7 @@ parse_xml(const char *filename)
 		warn("xmlParseMemory()");
 		exit(EXIT_FAILURE);
 	}
-	xml_tree_walk(xmlDocGetRootElement(d));
+	xml_tree_walk(xmlDocGetRootElement(d), menu);
 	xmlFreeDoc(d);
 	xmlCleanupParser();
 	free(b.buf);
@@ -234,11 +231,11 @@ menu_init_rootmenu(struct server *server, struct menu *menu)
 	if (!has_run) {
 		LIBXML_TEST_VERSION
 		wl_list_init(&menu->menuitems);
-		g_server = server;
 		server->rootmenu = menu;
+		menu->server = server;
 	}
 
-	parse_xml("menu.xml");
+	parse_xml("menu.xml", menu);
 
 	/* Default menu if no menu.xml found */
 	if (wl_list_empty(&menu->menuitems)) {
@@ -306,8 +303,8 @@ menu_action_selected(struct server *server, struct menu *menu)
 }
 
 void
-menu_reconfigure(void)
+menu_reconfigure(struct server *server, struct menu *menu)
 {
-	menu_finish(g_server->rootmenu);
-	menu_init_rootmenu(g_server, g_server->rootmenu);
+	menu_finish(menu);
+	menu_init_rootmenu(server, menu);
 }

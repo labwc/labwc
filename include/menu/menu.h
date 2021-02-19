@@ -15,6 +15,7 @@ struct menuitem {
 };
 
 struct menu {
+	struct server *server;
 	int x;
 	int y;
 	struct wl_list menuitems;
@@ -34,6 +35,6 @@ void menu_set_selected(struct menu *menu, int x, int y);
 void menu_action_selected(struct server *server, struct menu *menu);
 
 /* menu_reconfigure - reload theme and content */
-void menu_reconfigure(void);
+void menu_reconfigure(struct server *server, struct menu *menu);
 
 #endif /* __LABWC_MENU_H */

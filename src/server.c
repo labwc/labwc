@@ -18,6 +18,8 @@ static struct wl_event_source *sighup_source;
 static struct wl_event_source *sigint_source;
 static struct wl_event_source *sigterm_source;
 
+static struct server *g_server;
+
 static void
 reload_config_and_theme(void)
 {
@@ -25,6 +27,8 @@ reload_config_and_theme(void)
 	/* TODO: use rc.config_path */
 	rcxml_read(NULL);
 	theme_read(rc.theme_name);
+	menu_reconfigure();
+	damage_all_outputs(g_server);
 }
 
 static int
@@ -212,6 +216,9 @@ server_init(struct server *server)
 					image->hotspot_y);
 	}
 #endif
+
+	/* used when handling SIGHUP */
+	g_server = server;
 }
 
 void

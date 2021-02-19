@@ -80,8 +80,7 @@ main(int argc, char *argv[])
 	xbm_load(server.renderer);
 
 	struct menu rootmenu = { 0 };
-	menu_init(&server, &rootmenu);
-	server.rootmenu = &rootmenu;
+	menu_init_rootmenu(&server, &rootmenu);
 
 	session_autostart_init();
 	if (startup_cmd) {

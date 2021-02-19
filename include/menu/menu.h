@@ -21,7 +21,7 @@ struct menu {
 };
 
 /* menu_create - create menu */
-void menu_init(struct server *server, struct menu *menu);
+void menu_init_rootmenu(struct server *server, struct menu *menu);
 void menu_finish(struct menu *menu);
 
 /* menu_move - move to position (x, y) */
@@ -32,5 +32,8 @@ void menu_set_selected(struct menu *menu, int x, int y);
 
 /* menu_action_selected - select item at (x, y) */
 void menu_action_selected(struct server *server, struct menu *menu);
+
+/* menu_reconfigure - reload theme and content */
+void menu_reconfigure(void);
 
 #endif /* __LABWC_MENU_H */

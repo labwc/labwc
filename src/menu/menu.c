@@ -21,7 +21,6 @@
 static const char font[] = "Sans 8";
 
 static struct server *g_server;
-static struct menu *g_menu;
 
 /* state-machine variables for processing <item></item> */
 static bool in_item = false;
@@ -107,7 +106,8 @@ static void fill_item(char *nodename, char *content)
 	 * </item>
 	 */
 	if (!strcmp(nodename, "label")) {
-		current_item = menuitem_create(g_server, g_menu, content);
+		current_item = menuitem_create(
+			g_server, g_server->rootmenu, content);
 	}
 	assert(current_item);
 	if (!strcmp(nodename, "name.action")) {
@@ -187,20 +187,7 @@ xml_tree_walk(xmlNode *node)
 }
 
 static void
-parse_xml(struct buf *b)
-{
-	xmlDoc *d = xmlParseMemory(b->buf, b->len);
-	if (!d) {
-		warn("xmlParseMemory()");
-		exit(EXIT_FAILURE);
-	}
-	xml_tree_walk(xmlDocGetRootElement(d));
-	xmlFreeDoc(d);
-	xmlCleanupParser();
-}
-
-static void
-menu_read(void)
+parse_xml(const char *filename)
 {
 	FILE *stream;
 	char *line = NULL;
@@ -211,7 +198,7 @@ menu_read(void)
 	if (!strlen(config_dir())) {
 		return;
 	}
-	snprintf(menuxml, sizeof(menuxml), "%s/menu.xml", config_dir());
+	snprintf(menuxml, sizeof(menuxml), "%s/%s", config_dir(), filename);
 
 	stream = fopen(menuxml, "r");
 	if (!stream) {
@@ -228,27 +215,33 @@ menu_read(void)
 	}
 	free(line);
 	fclose(stream);
-	parse_xml(&b);
+	xmlDoc *d = xmlParseMemory(b.buf, b.len);
+	if (!d) {
+		warn("xmlParseMemory()");
+		exit(EXIT_FAILURE);
+	}
+	xml_tree_walk(xmlDocGetRootElement(d));
+	xmlFreeDoc(d);
+	xmlCleanupParser();
 	free(b.buf);
 }
 
 void
-menu_init(struct server *server, struct menu *menu)
+menu_init_rootmenu(struct server *server, struct menu *menu)
 {
 	static bool has_run;
 
-	if (has_run) {
-		goto not_first_run;
+	if (!has_run) {
+		LIBXML_TEST_VERSION
+		wl_list_init(&menu->menuitems);
+		g_server = server;
+		server->rootmenu = menu;
 	}
-	LIBXML_TEST_VERSION
-	wl_list_init(&menu->menuitems);
-	g_server = server;
-	g_menu = menu;
 
-not_first_run:
-	menu_read();
+	parse_xml("menu.xml");
+
 	/* Default menu if no menu.xml found */
-	if (!current_item) {
+	if (wl_list_empty(&menu->menuitems)) {
 		current_item = menuitem_create(server, menu, "Reconfigure");
 		current_item->action = strdup("Reconfigure");
 		current_item = menuitem_create(server, menu, "Exit");
@@ -310,4 +303,11 @@ menu_action_selected(struct server *server, struct menu *menu)
 			break;
 		}
 	}
+}
+
+void
+menu_reconfigure(void)
+{
+	menu_finish(g_server->rootmenu);
+	menu_init_rootmenu(g_server, g_server->rootmenu);
 }

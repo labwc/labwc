@@ -12,6 +12,7 @@ labwc_sources = files(
   'output.c',
   'seat.c',
   'server.c',
+  'theme.c',
   'view.c',
   'xdg.c',
 )
@@ -26,6 +27,5 @@ endif
 
 subdir('common')
 subdir('config')
-subdir('theme')
 subdir('xbm')
 subdir('menu')

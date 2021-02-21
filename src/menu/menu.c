@@ -16,7 +16,7 @@
 #include "common/string-helpers.h"
 #include "labwc.h"
 #include "menu/menu.h"
-#include "theme/theme.h"
+#include "theme.h"
 
 static const char font[] = "Sans 8";
 

@@ -12,7 +12,7 @@
 #include <wlr/util/region.h>
 #include "labwc.h"
 #include "menu/menu.h"
-#include "theme/theme.h"
+#include "theme.h"
 #include "layers.h"
 
 //#define DEBUG 1

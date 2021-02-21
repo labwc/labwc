@@ -12,7 +12,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
-#include "theme/theme.h"
+#include "theme.h"
 
 static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;

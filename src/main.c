@@ -3,7 +3,7 @@
 #include "common/spawn.h"
 #include "config/session.h"
 #include "labwc.h"
-#include "theme/theme.h"
+#include "theme.h"
 #include "xbm/xbm.h"
 #include "menu/menu.h"
 

@@ -10,7 +10,7 @@
 #include "common/dir.h"
 #include "common/grab-file.h"
 #include "config/rcxml.h"
-#include "theme/theme.h"
+#include "theme.h"
 #include "xbm/parse.h"
 #include "xbm/xbm.h"
 

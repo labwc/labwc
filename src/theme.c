@@ -10,7 +10,7 @@
 #include "common/log.h"
 #include "common/string-helpers.h"
 #include "common/zfree.h"
-#include "theme/theme.h"
+#include "theme.h"
 #include "xbm/xbm.h"
 
 static int

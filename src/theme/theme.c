@@ -10,6 +10,7 @@
 #include "common/log.h"
 #include "common/string-helpers.h"
 #include "theme/theme.h"
+#include "xbm/xbm.h"
 
 static int
 hex_to_dec(char c)
@@ -97,7 +98,7 @@ process_line(char *line)
 	entry(key, value);
 }
 
-void
+static void
 theme_read(const char *theme_name)
 {
 	FILE *stream = NULL;
@@ -125,4 +126,11 @@ theme_read(const char *theme_name)
 	}
 	free(line);
 	fclose(stream);
+}
+
+void
+theme_init(struct wlr_renderer *renderer, const char *theme_name)
+{
+	theme_read(theme_name);
+	xbm_load(renderer);
 }

@@ -11,6 +11,7 @@
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "layers.h"
+#include "menu/menu.h"
 #include "theme/theme.h"
 
 static struct wlr_compositor *compositor;
@@ -23,10 +24,10 @@ static struct server *g_server;
 static void
 reload_config_and_theme(void)
 {
-	rcxml_finish();
 	/* TODO: use rc.config_path */
+	rcxml_finish();
 	rcxml_read(NULL);
-	theme_read(rc.theme_name);
+	theme_init(g_server->renderer, rc.theme_name);
 	menu_reconfigure(g_server, g_server->rootmenu);
 	damage_all_outputs(g_server);
 }

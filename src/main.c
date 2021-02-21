@@ -76,8 +76,7 @@ main(int argc, char *argv[])
 	server_init(&server);
 	server_start(&server);
 
-	theme_read(rc.theme_name);
-	xbm_load(server.renderer);
+	theme_init(server.renderer, rc.theme_name);
 
 	struct menu rootmenu = { 0 };
 	menu_init_rootmenu(&server, &rootmenu);

@@ -43,11 +43,11 @@ extern struct theme theme;
 void parse_hexstr(const char *hex, float *rgba);
 
 /**
- * theme_read - read theme into global theme struct
+ * theme_init - read theme incl. buttons into global theme struct
  * @theme_name: theme-name in <theme-dir>/<theme-name>/openbox-3/themerc
  * Note <theme-dir> is obtained in theme-dir.c
  */
-void theme_read(const char *theme_name);
+void theme_init(struct wlr_renderer *renderer, const char *theme_name);
 
 /**
  * theme_builin - apply built-in theme similar to Clearlooks

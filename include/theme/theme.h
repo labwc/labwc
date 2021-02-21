@@ -42,13 +42,19 @@ void parse_hexstr(const char *hex, float *rgba);
 
 /**
  * theme_init - read openbox theme and generate button textures
- * @theme: global theme struct
+ * @theme: theme data
  * @renderer: wlr_renderer for creating button textures
  * @theme_name: theme-name in <theme-dir>/<theme-name>/openbox-3/themerc
  * Note <theme-dir> is obtained in theme-dir.c
  */
 void theme_init(struct theme *theme, struct wlr_renderer *renderer,
 		const char *theme_name);
+
+/**
+ * theme_finish - free button textures
+ * @theme: theme data
+ */
+void theme_finish(struct theme *theme);
 
 /**
  * theme_builin - apply built-in theme similar to Clearlooks

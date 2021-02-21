@@ -90,8 +90,10 @@ main(int argc, char *argv[])
 	wl_display_run(server.wl_display);
 
 	server_finish(&server);
+
+	menu_finish(&rootmenu);
+	theme_finish(&theme);
 	rcxml_finish();
-	menu_finish(server.rootmenu);
 	font_finish();
 	return 0;
 }

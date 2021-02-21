@@ -9,6 +9,7 @@
 #include "common/dir.h"
 #include "common/log.h"
 #include "common/string-helpers.h"
+#include "common/zfree.h"
 #include "theme/theme.h"
 #include "xbm/xbm.h"
 
@@ -134,4 +135,15 @@ theme_init(struct theme *theme, struct wlr_renderer *renderer,
 {
 	theme_read(theme, theme_name);
 	xbm_load(theme, renderer);
+}
+
+void
+theme_finish(struct theme *theme)
+{
+	zfree(theme->xbm_close_active_unpressed);
+	zfree(theme->xbm_maximize_active_unpressed);
+	zfree(theme->xbm_iconify_active_unpressed);
+	zfree(theme->xbm_close_inactive_unpressed);
+	zfree(theme->xbm_maximize_inactive_unpressed);
+	zfree(theme->xbm_iconify_inactive_unpressed);
 }

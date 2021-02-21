@@ -76,13 +76,14 @@ menuitem_create(struct server *server, struct menu *menu, const char *text)
 	if (!menuitem) {
 		return NULL;
 	}
+	struct theme *theme = server->theme;
 	menuitem->geo_box.width = MENUWIDTH;
 	menuitem->geo_box.height = MENUHEIGHT;
 	menuitem->active_texture = texture_create(server, &menuitem->geo_box,
-		text, theme.menu_items_active_bg_color,
-		theme.menu_items_active_text_color);
+		text, theme->menu_items_active_bg_color,
+		theme->menu_items_active_text_color);
 	menuitem->inactive_texture = texture_create(server, &menuitem->geo_box,
-		text, theme.menu_items_bg_color, theme.menu_items_text_color);
+		text, theme->menu_items_bg_color, theme->menu_items_text_color);
 	wl_list_insert(&menu->menuitems, &menuitem->link);
 	return menuitem;
 }

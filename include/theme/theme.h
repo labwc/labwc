@@ -33,8 +33,6 @@ struct theme {
 	struct wlr_texture *xbm_iconify_inactive_unpressed;
 };
 
-extern struct theme theme;
-
 /**
  * parse_hexstr - parse #rrggbb
  * @hex: hex string to be parsed
@@ -43,17 +41,20 @@ extern struct theme theme;
 void parse_hexstr(const char *hex, float *rgba);
 
 /**
- * theme_init - read theme incl. buttons into global theme struct
+ * theme_init - read openbox theme and generate button textures
+ * @theme: global theme struct
+ * @renderer: wlr_renderer for creating button textures
  * @theme_name: theme-name in <theme-dir>/<theme-name>/openbox-3/themerc
  * Note <theme-dir> is obtained in theme-dir.c
  */
-void theme_init(struct wlr_renderer *renderer, const char *theme_name);
+void theme_init(struct theme *theme, struct wlr_renderer *renderer,
+		const char *theme_name);
 
 /**
  * theme_builin - apply built-in theme similar to Clearlooks
  * Note: Only used if no theme can be found. Default values for individual
  * theme options are as per openbox spec and are typically black/white.
  */
-void theme_builtin(void);
+void theme_builtin(struct theme *theme);
 
 #endif /* __LABWC_THEME_H */

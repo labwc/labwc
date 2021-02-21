@@ -49,29 +49,29 @@ match(const gchar *pattern, const gchar *string)
 	return (bool)g_pattern_match_simple(pattern, string);
 }
 
-static void entry(const char *key, const char *value)
+static void entry(struct theme *theme, const char *key, const char *value)
 {
 	if (!key || !value) {
 		return;
 	}
 	if (match(key, "window.active.title.bg.color")) {
-		parse_hexstr(value, theme.window_active_title_bg_color);
+		parse_hexstr(value, theme->window_active_title_bg_color);
 	} else if (match(key, "window.active.handle.bg.color")) {
-		parse_hexstr(value, theme.window_active_handle_bg_color);
+		parse_hexstr(value, theme->window_active_handle_bg_color);
 	} else if (match(key, "window.inactive.title.bg.color")) {
-		parse_hexstr(value, theme.window_inactive_title_bg_color);
+		parse_hexstr(value, theme->window_inactive_title_bg_color);
 	} else if (match(key, "window.active.button.unpressed.image.color")) {
-		parse_hexstr(value, theme.window_active_button_unpressed_image_color);
+		parse_hexstr(value, theme->window_active_button_unpressed_image_color);
 	} else if (match(key, "window.inactive.button.unpressed.image.color")) {
-		parse_hexstr(value, theme.window_inactive_button_unpressed_image_color);
+		parse_hexstr(value, theme->window_inactive_button_unpressed_image_color);
 	} else if (match(key, "menu.items.bg.color")) {
-		parse_hexstr(value, theme.menu_items_bg_color);
+		parse_hexstr(value, theme->menu_items_bg_color);
 	} else if (match(key, "menu.items.text.color")) {
-		parse_hexstr(value, theme.menu_items_text_color);
+		parse_hexstr(value, theme->menu_items_text_color);
 	} else if (match(key, "menu.items.active.bg.color")) {
-		parse_hexstr(value, theme.menu_items_active_bg_color);
+		parse_hexstr(value, theme->menu_items_active_bg_color);
 	} else if (match(key, "menu.items.active.text.color")) {
-		parse_hexstr(value, theme.menu_items_active_text_color);
+		parse_hexstr(value, theme->menu_items_active_text_color);
 	}
 }
 
@@ -88,18 +88,18 @@ parse_config_line(char *line, char **key, char **value)
 }
 
 static void
-process_line(char *line)
+process_line(struct theme *theme, char *line)
 {
 	if (line[0] == '\0' || line[0] == '#') {
 		return;
 	}
 	char *key = NULL, *value = NULL;
 	parse_config_line(line, &key, &value);
-	entry(key, value);
+	entry(theme, key, value);
 }
 
 static void
-theme_read(const char *theme_name)
+theme_read(struct theme *theme, const char *theme_name)
 {
 	FILE *stream = NULL;
 	char *line = NULL;
@@ -113,7 +113,7 @@ theme_read(const char *theme_name)
 	}
 	if (!stream) {
 		info("cannot find theme (%s), using built-in", theme_name);
-		theme_builtin();
+		theme_builtin(theme);
 		return;
 	}
 	info("read themerc (%s)", themerc);
@@ -122,15 +122,16 @@ theme_read(const char *theme_name)
 		if (p) {
 			*p = '\0';
 		}
-		process_line(line);
+		process_line(theme, line);
 	}
 	free(line);
 	fclose(stream);
 }
 
 void
-theme_init(struct wlr_renderer *renderer, const char *theme_name)
+theme_init(struct theme *theme, struct wlr_renderer *renderer,
+		const char *theme_name)
 {
-	theme_read(theme_name);
-	xbm_load(renderer);
+	theme_read(theme, theme_name);
+	xbm_load(theme, renderer);
 }

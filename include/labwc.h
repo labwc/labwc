@@ -117,6 +117,7 @@ struct server {
 	/* Set when in cycle (alt-tab) mode */
 	struct view *cycle_view;
 
+	struct theme *theme;
 	struct menu *rootmenu;
 };
 

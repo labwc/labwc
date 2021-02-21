@@ -443,8 +443,10 @@ render_deco(struct view *view, struct output *output,
 		return;
 	}
 
+	struct theme *theme = view->server->theme;
+
 	/* render border */
-	float *color = theme.window_active_handle_bg_color;
+	float *color = theme->window_active_handle_bg_color;
 	enum deco_part border[4] = {
 		LAB_DECO_PART_TOP,
 		LAB_DECO_PART_RIGHT,
@@ -459,9 +461,9 @@ render_deco(struct view *view, struct output *output,
 	/* render title */
 	struct wlr_seat *seat = view->server->seat.seat;
 	if (view->surface == seat->keyboard_state.focused_surface) {
-		color = theme.window_active_title_bg_color;
+		color = theme->window_active_title_bg_color;
 	} else {
-		color = theme.window_inactive_title_bg_color;
+		color = theme->window_inactive_title_bg_color;
 	}
 	struct wlr_box box = deco_box(view, LAB_DECO_PART_TITLE);
 	render_rect(output, output_damage, &box, color);
@@ -480,23 +482,23 @@ render_deco(struct view *view, struct output *output,
 	if (view->surface == seat->keyboard_state.focused_surface) {
 		box = deco_box(view, LAB_DECO_BUTTON_CLOSE);
 		render_icon(output, output_damage, &box,
-			theme.xbm_close_active_unpressed);
+			theme->xbm_close_active_unpressed);
 		box = deco_box(view, LAB_DECO_BUTTON_MAXIMIZE);
 		render_icon(output, output_damage, &box,
-			theme.xbm_maximize_active_unpressed);
+			theme->xbm_maximize_active_unpressed);
 		box = deco_box(view, LAB_DECO_BUTTON_ICONIFY);
 		render_icon(output, output_damage, &box,
-			theme.xbm_iconify_active_unpressed);
+			theme->xbm_iconify_active_unpressed);
 	} else {
 		box = deco_box(view, LAB_DECO_BUTTON_CLOSE);
 		render_icon(output, output_damage, &box,
-			theme.xbm_close_inactive_unpressed);
+			theme->xbm_close_inactive_unpressed);
 		box = deco_box(view, LAB_DECO_BUTTON_MAXIMIZE);
 		render_icon(output, output_damage, &box,
-			theme.xbm_maximize_inactive_unpressed);
+			theme->xbm_maximize_inactive_unpressed);
 		box = deco_box(view, LAB_DECO_BUTTON_ICONIFY);
 		render_icon(output, output_damage, &box,
-			theme.xbm_iconify_inactive_unpressed);
+			theme->xbm_iconify_inactive_unpressed);
 	}
 }
 

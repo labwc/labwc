@@ -27,7 +27,7 @@ reload_config_and_theme(void)
 	/* TODO: use rc.config_path */
 	rcxml_finish();
 	rcxml_read(NULL);
-	theme_init(g_server->renderer, rc.theme_name);
+	theme_init(g_server->theme, g_server->renderer, rc.theme_name);
 	menu_reconfigure(g_server, g_server->rootmenu);
 	damage_all_outputs(g_server);
 }

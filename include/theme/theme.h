@@ -34,13 +34,6 @@ struct theme {
 };
 
 /**
- * parse_hexstr - parse #rrggbb
- * @hex: hex string to be parsed
- * @rgba: pointer to float[4] for return value
- */
-void parse_hexstr(const char *hex, float *rgba);
-
-/**
  * theme_init - read openbox theme and generate button textures
  * @theme: theme data
  * @renderer: wlr_renderer for creating button textures
@@ -55,12 +48,5 @@ void theme_init(struct theme *theme, struct wlr_renderer *renderer,
  * @theme: theme data
  */
 void theme_finish(struct theme *theme);
-
-/**
- * theme_builin - apply built-in theme similar to Clearlooks
- * Note: Only used if no theme can be found. Default values for individual
- * theme options are as per openbox spec and are typically black/white.
- */
-void theme_builtin(struct theme *theme);
 
 #endif /* __LABWC_THEME_H */

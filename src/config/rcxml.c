@@ -16,6 +16,7 @@
 #include "common/log.h"
 #include "common/nodename.h"
 #include "common/string-helpers.h"
+#include "common/zfree.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
 
@@ -340,28 +341,19 @@ no_config:
 	post_processing();
 }
 
-static void
-free_safe(const void *p)
-{
-	if (p) {
-		free((void *)p);
-	}
-	p = NULL;
-}
-
 void
 rcxml_finish(void)
 {
-	free_safe(rc.font_name_activewindow);
-	free_safe(rc.theme_name);
+	zfree(rc.font_name_activewindow);
+	zfree(rc.theme_name);
 
 	struct keybind *k, *k_tmp;
 	wl_list_for_each_safe (k, k_tmp, &rc.keybinds, link) {
 		wl_list_remove(&k->link);
-		free_safe(k->command);
-		free_safe(k->action);
-		free_safe(k->keysyms);
-		free_safe(k);
+		zfree(k->command);
+		zfree(k->action);
+		zfree(k->keysyms);
+		zfree(k);
 	}
 }
 

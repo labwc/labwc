@@ -7,4 +7,5 @@ labwc_sources += files(
   'nodename.c',
   'spawn.c',
   'string-helpers.c',
+  'zfree.c',
 )

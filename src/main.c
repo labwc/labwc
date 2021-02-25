@@ -8,7 +8,6 @@
 #include "menu/menu.h"
 
 struct rcxml rc = { 0 };
-struct theme theme = { 0 };
 
 static const char labwc_usage[] =
 	"Usage: labwc [-h] [-s <startup-command>] [-c <config-file>] [-v]\n";
@@ -76,6 +75,7 @@ main(int argc, char *argv[])
 	server_init(&server);
 	server_start(&server);
 
+	struct theme theme = { 0 };
 	theme_init(&theme, server.renderer, rc.theme_name);
 	server.theme = &theme;
 

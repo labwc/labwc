@@ -22,9 +22,11 @@ It has the following aims:
 
 It is in early development, so expect bugs and missing features.
 
-Labwc has been inspired and influenced by [openbox](https://github.com/danakj/openbox), [sway](https://github.com/swaywm/sway), [cage](https://www.hjdskes.nl/blog/cage-01/), [wio](https://wio-project.org/) and [rootston](https://github.com/swaywm/rootston)
+[Video (3:42) showing features](https://youtu.be/rE1bQjSVJzg)
 
 ![](https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png)
+
+![](https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png)
 
 ## 2. Build
 

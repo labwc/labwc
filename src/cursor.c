@@ -114,6 +114,8 @@ process_cursor_resize(struct server *server, uint32_t time)
 static void
 process_cursor_motion(struct server *server, uint32_t time)
 {
+	static bool cursor_name_set_by_server;
+
 	/* If the mode is non-passthrough, delegate to those functions. */
 	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
 		process_cursor_move(server, time);
@@ -138,11 +140,6 @@ process_cursor_motion(struct server *server, uint32_t time)
 		desktop_view_at(server, server->seat.cursor->x, server->seat.cursor->y,
 				&surface, &sx, &sy, &view_area);
 	if (!view) {
-		/*
-		 * If there's no view under the cursor, set the cursor image to
-		 * a default. This is what makes the cursor image appear when
-		 * you move it around the screen, not over any views.
-		 */
 		cursor_name = XCURSOR_DEFAULT;
 	} else {
 		uint32_t resize_edges = get_resize_edges(
@@ -172,11 +169,13 @@ process_cursor_motion(struct server *server, uint32_t time)
 		case WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT:
 			cursor_name = "bottom_right_corner";
 			break;
-		case 0:
-			if (view_area != LAB_DECO_NONE) {
-				cursor_name = XCURSOR_DEFAULT;
-			}
-			break;
+		}
+		if (resize_edges) {
+			cursor_name_set_by_server = true;
+		}
+		if (!resize_edges && cursor_name_set_by_server) {
+			cursor_name = XCURSOR_DEFAULT;
+			cursor_name_set_by_server = false;
 		}
 	}
 	if (cursor_name) {

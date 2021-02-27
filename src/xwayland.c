@@ -47,6 +47,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&view->unmap.link);
 	wl_list_remove(&view->destroy.link);
 	wl_list_remove(&view->request_configure.link);
+	wl_list_remove(&view->request_maximize.link);
 	free(view);
 }
 
@@ -58,6 +59,16 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	wlr_xwayland_surface_configure(view->xwayland_surface, event->x,
 				       event->y, event->width, event->height);
 	damage_all_outputs(view->server);
+}
+
+static void handle_request_maximize(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, request_maximize);
+
+	if(view != NULL) {
+		view_maximize(view, !view->maximized);
+	}
+
 }
 
 static void
@@ -159,6 +170,12 @@ unmap(struct view *view)
 	desktop_focus_topmost_mapped_view(view->server);
 }
 
+static void
+maximize(struct view *view, bool maximized)
+{
+	wlr_xwayland_surface_set_maximized(view->xwayland_surface, maximized);
+}
+
 static const struct view_impl xwl_view_impl = {
 	.configure = configure,
 	.close = _close,
@@ -166,6 +183,7 @@ static const struct view_impl xwl_view_impl = {
 	.map = map,
 	.move = move,
 	.unmap = unmap,
+	.maximize = maximize
 };
 
 void
@@ -200,6 +218,8 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	view->request_configure.notify = handle_request_configure;
 	wl_signal_add(&xsurface->events.request_configure,
 		      &view->request_configure);
+	view->request_maximize.notify = handle_request_maximize;
+	wl_signal_add(&xsurface->events.request_maximize, &view->request_maximize);
 
 	wl_list_insert(&view->server->views, &view->link);
 }

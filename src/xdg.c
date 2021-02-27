@@ -279,8 +279,9 @@ xdg_toplevel_view_for_each_surface(struct view *view,
 	wlr_xdg_surface_for_each_surface(view->xdg_surface, iterator, data);
 }
 
+/* Return area between surface extremities and window */
 static struct border
-xdg_shell_border(struct view *view)
+xdg_shell_padding(struct view *view)
 {
 	struct wlr_box box;
 	wlr_xdg_surface_get_geometry(view->xdg_surface, &box);
@@ -309,13 +310,14 @@ xdg_toplevel_view_map(struct view *view)
 		if (view->server_side_deco) {
 			view->margin = deco_thickness(view);
 		} else {
-			view->margin = xdg_shell_border(view);
-			view->xdg_grab_offset = -view->margin.left;
+			view->padding = xdg_shell_padding(view);
 		}
 		if (istopmost(view)) {
 			/* align to edge of screen */
 			view->x += view->margin.left;
 			view->y += view->margin.top;
+			view->x += view->padding.left;
+			view->y += view->padding.top;
 		}
 	}
 	view->been_mapped = true;

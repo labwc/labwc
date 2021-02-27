@@ -193,11 +193,20 @@ struct view {
 	int x, y, w, h;
 
 	/*
-	 * margin refers to the space between the extremities of the view and
-	 * wlr_surface - typically made up of decoration.
-	 * For xdg-shell views, the margin is typically negative.
+	 * margin refers to the space between the extremities of the
+	 * wlr_surface and the max extents of the server-side decorations.
+	 * For xdg-shell views with CSD, this margin is zero.
 	 */
 	struct border margin;
+
+	/*
+	 * padding refers to the space between the extremities of the
+	 * wlr_surface and the parts of the surface that is considered the
+	 * window.
+	 * This is only used for xdg-shell views with CSD where the padding
+	 * area is typically invisible except for client-side drop-shawdows.
+	 */
+	struct border padding;
 
 	struct {
 		bool update_x, update_y;
@@ -205,8 +214,6 @@ struct view {
 		uint32_t width, height;
 		uint32_t configure_serial;
 	} pending_move_resize;
-
-	int xdg_grab_offset;
 
 	bool server_side_deco;
 

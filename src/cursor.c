@@ -108,8 +108,6 @@ process_cursor_resize(struct server *server, uint32_t time)
 		return;
 	}
 
-	new_view_geo.width -= 2 * view->xdg_grab_offset;
-	new_view_geo.height -= 2 * view->xdg_grab_offset;
 	view_move_resize(view, new_view_geo);
 }
 

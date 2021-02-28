@@ -880,12 +880,26 @@ static void output_config_apply(struct server *server,
 
 	server->pending_output_config = NULL;
 }
+
+static bool verify_output_config_v1(const struct wlr_output_configuration_v1 *config)
+{
+	//TODO implement
+	return true;
+}
+
 static void handle_output_manager_apply(struct wl_listener *listener, void* data)
 {
 	struct server *server = wl_container_of(listener, server, output_manager_apply);
 	struct wlr_output_configuration_v1 *config = data;
-	output_config_apply(server, config);
-	wlr_output_configuration_v1_send_succeeded(config);
+
+	bool config_is_good = verify_output_config_v1(config);
+
+	if(config_is_good) {
+		output_config_apply(server, config);
+		wlr_output_configuration_v1_send_succeeded(config);
+	} else {
+		wlr_output_configuration_v1_send_failed(config);
+	}
 	wlr_output_configuration_v1_destroy(config);
 }
 

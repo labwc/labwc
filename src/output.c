@@ -838,4 +838,118 @@ output_init(struct server *server)
 		server->output_layout);
 
 	wl_list_init(&server->outputs);
+
+	output_manager_init(server);
+}
+
+static void output_config_apply(struct server *server, 
+								struct wlr_output_configuration_v1 *config)
+{
+	server->pending_output_config = config;
+
+	struct wlr_output_configuration_head_v1 *head;
+	wl_list_for_each(head, &config->heads, link) {
+		struct wlr_output *o = head->state.output;
+		bool need_to_add = head->state.enabled && !o->enabled;
+		if(need_to_add) {
+			wlr_output_layout_add_auto(server->output_layout, o);
+		}
+
+		bool need_to_remove = !head->state.enabled && o->enabled;
+		if(need_to_remove) {
+			wlr_output_layout_remove(server->output_layout, o);
+		}
+
+		wlr_output_enable(o, head->state.enabled);
+		if(head->state.enabled){
+			if(head->state.mode){
+				wlr_output_set_mode(o, head->state.mode);
+			} else {
+				int32_t width = head->state.custom_mode.width;
+				int32_t height = head->state.custom_mode.height;
+				int32_t refresh = head->state.custom_mode.refresh;
+				wlr_output_set_custom_mode(o, width, height, refresh);
+			}
+			wlr_output_layout_move(server->output_layout, o, head->state.x,
+									head->state.y);
+			wlr_output_set_scale(o, head->state.scale);
+			wlr_output_set_transform(o, head->state.transform);
+		}
+		wlr_output_commit(o);
+	}
+
+	server->pending_output_config = NULL;
+}
+static void handle_output_manager_apply(struct wl_listener *listener, void* data)
+{
+	struct server *server = wl_container_of(listener, server, output_manager_apply);
+	struct wlr_output_configuration_v1 *config = data;
+	output_config_apply(server, config);
+	wlr_output_configuration_v1_send_succeeded(config);
+	wlr_output_configuration_v1_destroy(config);
+}
+
+/*
+ * Take the way outputs are currently configured/layed out and turn that into
+ * a struct that we send to clients via the wlr_output_configuration v1
+ * interface
+ */
+static struct wlr_output_configuration_v1 *create_output_config(struct server *server)
+{
+	struct wlr_output_configuration_v1 *config = wlr_output_configuration_v1_create();
+	if(config == NULL) {
+		warn("wlr_output_configuration_v1_create() returned NULL");
+		return NULL;
+	}
+
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		struct wlr_output_configuration_head_v1 *head 
+			= wlr_output_configuration_head_v1_create(config,
+													  output->wlr_output);
+		if(head == NULL) {
+			warn("wlr_output_configuration_head_v1_create() returned NULL");
+			wlr_output_configuration_v1_destroy(config);
+			return NULL;
+		}
+
+		struct wlr_box *box = wlr_output_layout_get_box(server->output_layout,
+														output->wlr_output);
+		if(box != NULL) {
+			head->state.x = box->x;
+			head->state.y = box->y;
+		} else {
+			warn("%s: failed to get box for output", __func__);
+		}
+	}
+
+	return config;
+}
+
+static void handle_output_layout_change(struct wl_listener *listener, void *data) {
+	struct server *server = wl_container_of(listener, server, output_layout_change);
+
+	bool done_changing = server->pending_output_config == NULL;
+	if(done_changing) {
+		struct wlr_output_configuration_v1 *config = create_output_config(server);
+		if(config != NULL) {
+			wlr_output_manager_v1_set_configuration(server->output_manager, config);
+		} else {
+			warn("wlr_output_manager_v1_set_configuration returned NULL");
+		}
+	}
+}
+
+void output_manager_init(struct server *server)
+{
+	info("calling %s", __func__);
+	server->output_manager = wlr_output_manager_v1_create(server->wl_display);
+
+	server->output_layout_change.notify = handle_output_layout_change;
+	wl_signal_add(&server->output_layout->events.change,
+					&server->output_layout_change);
+
+	server->output_manager_apply.notify = handle_output_manager_apply;
+	wl_signal_add(&server->output_manager->events.apply,
+					&server->output_manager_apply);
 }

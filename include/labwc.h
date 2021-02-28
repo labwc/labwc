@@ -20,6 +20,7 @@
 #include <wlr/types/wlr_matrix.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_damage.h>
+#include <wlr/types/wlr_output_management_v1.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_pointer.h>
 #include <wlr/types/wlr_seat.h>
@@ -113,6 +114,11 @@ struct server {
 	struct wl_list outputs;
 	struct wl_listener new_output;
 	struct wlr_output_layout *output_layout;
+
+	struct wl_listener output_layout_change;
+	struct wlr_output_manager_v1 *output_manager;
+	struct wl_listener output_manager_apply;
+	struct wlr_output_configuration_v1 *pending_output_config;
 
 	/* Set when in cycle (alt-tab) mode */
 	struct view *cycle_view;
@@ -303,6 +309,8 @@ void interactive_begin(struct view *view, enum input_mode mode,
 void output_init(struct server *server);
 void output_damage_surface(struct output *output, struct wlr_surface *surface,
 	double lx, double ly, bool whole);
+
+void output_manager_init(struct server *server);
 
 void damage_all_outputs(struct server *server);
 void damage_view_whole(struct view *view);

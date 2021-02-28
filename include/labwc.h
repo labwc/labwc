@@ -162,6 +162,7 @@ struct view_impl {
 	void (*map)(struct view *view);
 	void (*move)(struct view *view, double x, double y);
 	void (*unmap)(struct view *view);
+	void (*maximize)(struct view *view, bool maximize);
 };
 
 struct border {
@@ -188,6 +189,7 @@ struct view {
 	bool mapped;
 	bool been_mapped;
 	bool minimized;
+	bool maximized;
 
 	/* geometry of the wlr_surface contained within the view */
 	int x, y, w, h;
@@ -224,6 +226,7 @@ struct view {
 	struct wl_listener request_move;
 	struct wl_listener request_resize;
 	struct wl_listener request_configure;
+	struct wl_listener request_maximize;
 	struct wl_listener new_popup; /* xdg-shell only */
 };
 
@@ -266,6 +269,7 @@ void view_move_resize(struct view *view, struct wlr_box geo);
 void view_move(struct view *view, double x, double y);
 void view_minimize(struct view *view);
 void view_unminimize(struct view *view);
+void view_maximize(struct view *view, bool maximize);
 void view_for_each_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *user_data);
 void view_for_each_popup(struct view *view,
@@ -281,8 +285,8 @@ void desktop_focus_view(struct seat *seat, struct view *view);
 struct view *desktop_cycle_view(struct server *server, struct view *current);
 void desktop_focus_topmost_mapped_view(struct server *server);
 struct view *desktop_view_at(struct server *server, double lx, double ly,
-			     struct wlr_surface **surface, double *sx,
-			     double *sy, int *view_area);
+			    struct wlr_surface **surface, double *sx,
+			    double *sy, int *view_area);
 
 void cursor_init(struct seat *seat);
 
@@ -294,7 +298,7 @@ void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
 void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer);
 
 void interactive_begin(struct view *view, enum input_mode mode,
-		       uint32_t edges);
+		      uint32_t edges);
 
 void output_init(struct server *server);
 void output_damage_surface(struct output *output, struct wlr_surface *surface,

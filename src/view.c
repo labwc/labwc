@@ -46,12 +46,13 @@ view_maximize(struct view *view, bool maximize)
 			wlr_output_layout_get(layout, output);
 
 		assert(layout);
-		if(output == NULL)
-		{
-			die("output NULL w/ x and y of: %d, %d", view->x, view->y);
-		}
 		assert(output);
 		assert(ol_output);
+
+		view->unmaximized_geometry.x = view->x;
+		view->unmaximized_geometry.y = view->y;
+		view->unmaximized_geometry.width = view->w;
+		view->unmaximized_geometry.height = view->h;
 
 		int x = ol_output->x;
 		int y = ol_output->y;
@@ -83,17 +84,9 @@ view_maximize(struct view *view, bool maximize)
 		view_move(view, box.x * output->scale, box.y * output->scale);
 
 		view->maximized = true;
-	}
-	else
-	{
-		struct wlr_box box = {
-			.x = 20,
-			.y = 50,
-			.width = 640,
-			.height = 480
-		};
-
-		view_move_resize(view, box);
+	} else {
+		/* unmaximize */
+		view_move_resize(view, view->unmaximized_geometry);
 		view->maximized = false;
 	}
 	view->impl->maximize(view, maximize);

@@ -194,6 +194,9 @@ struct view {
 	/* geometry of the wlr_surface contained within the view */
 	int x, y, w, h;
 
+	/* geometry before maximize */
+	struct wlr_box unmaximized_geometry;
+
 	/*
 	 * margin refers to the space between the extremities of the
 	 * wlr_surface and the max extents of the server-side decorations.

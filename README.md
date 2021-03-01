@@ -72,8 +72,7 @@ Click on the background to launch a menu.
 If you have not created an rc.xml configuration file, default keybinds will be:
 
 - Alt-tab: cycle window
-- Alt-F2: cycle window
-- Alt-F3: launch dmenu
+- Alt-F3: launch bemenu
 - Alt-escape: exit
 
 ## 5. Integrate
@@ -95,15 +94,20 @@ The following list indicates the intended high level roadmap:
 - [x] Optionally support xwayland
 - [x] Parse openbox config files (rc.xml, autostart, environment)
 - [x] Parse openbox themes files and associated xbm icons
-- [x] Show maximize, iconify, close buttons
+- [x] Support maximize, iconify, close buttons
 - [x] Catch SIGHUP to re-load config file and theme
-- [x] Support layer-shell protocol ('exclusive' not yet implemented)
+- [ ] Support layer-shell protocol
+	- [x] Support layer-shell applications
+	- [ ] Support 'exclusive' zone
 - [x] Support damage tracking to reduce CPU usage
-- [x] Support root-menu and parse menu.xml (very simple implementation - no submenus, separators or titles)
-- [ ] Support 'maximize'
+- [ ] Support menus
+	- [x] Parse menu.xml and generate root-menu
+	- [ ] Separators and titles
+	- [ ] Submenus
+	- [ ] Pipe-menus
+	- [ ] Client menus
 - [ ] Support wlr-output-management protocol and [kanshi](https://github.com/emersion/kanshi.git)
 - [ ] Support foreign-toplevel protocol (e.g. to integrate with wlroots panels/bars)
-- [ ] Implement client-menu
 - [ ] Support on-screen display (osd), for example to support alt-tab window list
 - [ ] Support HiDPI
 - [ ] Support libinput configuration (tap is enabled for the time being)
@@ -112,25 +116,17 @@ The following list indicates the intended high level roadmap:
 
 In order to keep the code base clean and maintainable, simplicy is favoured over full specification adherence.
 
-### In-scope
-
-Refer to these wiki pages for a more detailed scope definition against the openbox documentation.
+The exact acceptance criteria have not yet been defined, but the following wiki pages give an indication of the intended scope definition against the openbox specification.
 
 - [configuration](https://github.com/johanmalm/labwc/wiki/Scope-configuration)
-- [theme specification](https://github.com/johanmalm/labwc/wiki/Scope-theme-specification)
+- [theme](https://github.com/johanmalm/labwc/wiki/Scope-theme-specification)
 - [actions](https://github.com/johanmalm/labwc/wiki/Scope-actions)
 
-Track [progress](https://github.com/johanmalm/labwc/wiki/Scope-progress) against the above specification.
-
-### Out-of-scope
-
-The following items are out-of-scope:
+The following items are likely to be out-of-scope:
 
 - Icons (except window buttons)
 - Animations
 - Gradients on window decorations and menus
 - Any theme option (probably at least half of them) not required to reasonably render common themes
 - Any configuration option not required to provide a simple openbox-like experience
-- Multiple desktops
-- Pipe-menus
 

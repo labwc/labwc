@@ -37,8 +37,7 @@ view_unminimize(struct view *view)
 void
 view_maximize(struct view *view, bool maximize)
 {
-	if(maximize == true)
-	{
+	if(maximize == true) {
 		struct wlr_output_layout *layout = view->server->output_layout;
 		struct wlr_output* output = wlr_output_layout_output_at(
 			layout, view->x + view->w / 2, view->y + view->h / 2);
@@ -54,35 +53,22 @@ view_maximize(struct view *view, bool maximize)
 		view->unmaximized_geometry.width = view->w;
 		view->unmaximized_geometry.height = view->h;
 
-		int x = ol_output->x;
-		int y = ol_output->y;
-		int width = output->width;
-		int height = output->height;
-
-		if(view->server_side_deco)
-		{
-			struct border border = deco_thickness(view);
-			x += border.right;
-			x += border.left;
-			y += border.top;
-			y += border.bottom;
-
-			width -= border.right;
-			width -= border.left;
-			height -= border.top;
-			height -= border.bottom;
-		}
-
 		struct wlr_box box = {
-			.x = x * output->scale,
-			.y = y * output->scale,
-			.width = width * output->scale,
-			.height = height * output->scale
+			.x = ol_output->x,
+			.y = ol_output->y,
+			.width = output->width,
+			.height = output->height,
 		};
-
+		if (view->server_side_deco) {
+			struct border border = deco_thickness(view);
+			box.x += border.left;
+			box.y += border.top;
+			box.width -= border.right + border.left;
+			box.height -= border.top + border.bottom;
+		}
+		scale_box(&box, output->scale);
 		view_move_resize(view, box);
-		view_move(view, box.x * output->scale, box.y * output->scale);
-
+		view_move(view, box.x, box.y);
 		view->maximized = true;
 	} else {
 		/* unmaximize */

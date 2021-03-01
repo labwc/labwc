@@ -306,6 +306,7 @@ void interactive_begin(struct view *view, enum input_mode mode,
 void output_init(struct server *server);
 void output_damage_surface(struct output *output, struct wlr_surface *surface,
 	double lx, double ly, bool whole);
+void scale_box(struct wlr_box *box, float scale);
 
 void damage_all_outputs(struct server *server);
 void damage_view_whole(struct view *view);

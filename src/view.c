@@ -40,14 +40,14 @@ view_maximize(struct view *view, bool maximize)
 	if(maximize == true)
 	{
 		struct wlr_output_layout *layout = view->server->output_layout;
-		struct wlr_output* output =
-			wlr_output_layout_output_at(layout, view->x, view->y);
+		struct wlr_output* output = wlr_output_layout_output_at(
+			layout, view->x + view->w / 2, view->y + view->h / 2);
+		if (!output) {
+			return;
+		}
+
 		struct wlr_output_layout_output* ol_output =
 			wlr_output_layout_get(layout, output);
-
-		assert(layout);
-		assert(output);
-		assert(ol_output);
 
 		view->unmaximized_geometry.x = view->x;
 		view->unmaximized_geometry.y = view->y;

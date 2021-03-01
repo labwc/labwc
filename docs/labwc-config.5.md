@@ -88,7 +88,7 @@ Example:
       </keybind>
       <keybind key="A-F3">
         <action name="Execute">
-          <command>dmenu_run</command>
+          <command>bemenu-run</command>
         </action>
       </keybind>
     <keyboard>
@@ -99,8 +99,7 @@ If no rc.xml file is found, the following default values will be used:
 
 - Alt+Escape: Exit labwc  
 - Alt+Tab: Cycle windows  
-- Alt+F2: Cycle windows (if running on X11 and alt-tab bind already exists)  
-- Alt+F3: Launch dmenu  
+- Alt+F3: Launch bemenu  
 
 # SEE ALSO
 

@@ -260,15 +260,14 @@ static void
 post_processing(void)
 {
 	if (!wl_list_length(&rc.keybinds)) {
-		info("loading default key bindings");
+		info("load default key bindings");
 		bind("A-Escape", "Exit", NULL);
 		bind("A-Tab", "NextWindow", NULL);
-		bind("A-F2", "NextWindow", NULL);
-		bind("A-F3", "Execute", "dmenu_run");
+		bind("A-F3", "Execute", "bemenu-run");
 	}
 
 	if (!rc.theme_name) {
-		rc.theme_name = strdup("Clearlooks");
+		rc.theme_name = strdup("Clearlooks-3.4");
 	}
 	if (!rc.font_name_activewindow) {
 		rc.font_name_activewindow = strdup("sans");

@@ -1,7 +1,7 @@
 #include "labwc.h"
 
 #include <stdio.h>
-#include <assert.h>
+
 void
 view_move_resize(struct view *view, struct wlr_box geo)
 {

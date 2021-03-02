@@ -12,9 +12,12 @@ labwc_sources = files(
   'output.c',
   'seat.c',
   'server.c',
+  'subsurface.c',
   'theme.c',
   'view.c',
+  'view-child.c',
   'xdg.c',
+  'xdg-popup.c',
 )
 
 if have_xwayland

@@ -230,7 +230,8 @@ struct view {
 	struct wl_listener request_resize;
 	struct wl_listener request_configure;
 	struct wl_listener request_maximize;
-	struct wl_listener new_popup; /* xdg-shell only */
+	struct wl_listener new_popup;		/* xdg-shell only */
+	struct wl_listener new_subsurface;	/* xdg-shell only */
 };
 
 #if HAVE_XWAYLAND
@@ -248,18 +249,33 @@ struct xwayland_unmanaged {
 };
 #endif
 
+struct view_child {
+	struct wlr_surface *surface;
+	struct view *parent;
+	struct wl_listener commit;
+	struct wl_listener new_subsurface;
+};
+
+struct view_subsurface {
+	struct view_child view_child;
+	struct wlr_subsurface *subsurface;
+	struct wl_listener destroy;
+};
+
 struct xdg_popup {
+	struct view_child view_child;
 	struct wlr_xdg_popup *wlr_popup;
-	struct view *view;
 
 	struct wl_listener destroy;
-	struct wl_listener commit;
 	struct wl_listener map;
 	struct wl_listener unmap;
 	struct wl_listener new_popup;
 };
 
+void xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup);
+
 void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
+
 void xdg_surface_new(struct wl_listener *listener, void *data);
 
 #if HAVE_XWAYLAND
@@ -267,6 +283,11 @@ void xwayland_surface_new(struct wl_listener *listener, void *data);
 void xwayland_unmanaged_create(struct server *server,
 	struct wlr_xwayland_surface *xsurface);
 #endif
+
+void view_child_init(struct view_child *child, struct view *view,
+	struct wlr_surface *wlr_surface);
+void view_child_finish(struct view_child *child);
+void subsurface_create(struct view *view, struct wlr_subsurface *wlr_subsurface);
 
 void view_move_resize(struct view *view, struct wlr_box geo);
 void view_move(struct view *view, double x, double y);

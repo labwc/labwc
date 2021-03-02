@@ -17,6 +17,7 @@ labwc_sources = files(
   'view.c',
   'view-child.c',
   'xdg.c',
+  'xdg-deco.c',
   'xdg-popup.c',
 )
 

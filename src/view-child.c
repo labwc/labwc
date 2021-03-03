@@ -24,10 +24,6 @@ view_child_handle_new_subsurface(struct wl_listener *listener, void *data)
 void
 view_child_finish(struct view_child *child)
 {
-	if (!child) {
-		return;
-	}
-	damage_view_whole(child->parent);
 	wl_list_remove(&child->commit.link);
 	wl_list_remove(&child->new_subsurface.link);
 }
@@ -38,7 +34,6 @@ view_child_init(struct view_child *child, struct view *view,
 {
 	child->parent = view;
 	child->surface = wlr_surface;
-
 	child->commit.notify = view_child_handle_commit;
 	wl_signal_add(&wlr_surface->events.commit, &child->commit);
 	child->new_subsurface.notify = view_child_handle_new_subsurface;

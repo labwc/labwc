@@ -1,6 +1,9 @@
 /*
  * Copyright (C) 2020 the sway authors
- * This file is only needed in support of tracking damage
+ *
+ * This file is only needed in support of
+ * 	- tracking damage
+ * 	- unconstraining XDG popups
  */
 
 #include "labwc.h"
@@ -24,14 +27,14 @@ static void
 handle_xdg_popup_map(struct wl_listener *listener, void *data)
 {
 	struct xdg_popup *popup = wl_container_of(listener, popup, map);
-	damage_view_whole(popup->view_child.parent);
+	damage_all_outputs(popup->view_child.parent->server);
 }
 
 static void
 handle_xdg_popup_unmap(struct wl_listener *listener, void *data)
 {
 	struct xdg_popup *popup = wl_container_of(listener, popup, unmap);
-	damage_view_whole(popup->view_child.parent);
+	damage_all_outputs(popup->view_child.parent->server);
 }
 
 static void

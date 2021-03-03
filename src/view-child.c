@@ -9,7 +9,7 @@ static void
 view_child_handle_commit(struct wl_listener *listener, void *data)
 {
 	struct view_child *child = wl_container_of(listener, child, commit);
-	damage_view_part(child->parent);
+	damage_all_outputs(child->parent->server);
 }
 
 static void

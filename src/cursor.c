@@ -2,8 +2,14 @@
 #include "labwc.h"
 #include "menu/menu.h"
 
-#define RESIZE_BORDER_WIDTH 4
+#define RESIZE_BORDER_WIDTH 2
 
+/*
+ * TODO: refactor code to get rid of get_resize_edges()
+ * Use a wl_list of SSD instead and build RESIZE_BORDER_WIDTH into that.
+ * Had to set RESIZE_BORDER_WIDTH to 2 for the time being to get 
+ * cursor_name to behave properly when entering surface
+ */
 static uint32_t
 get_resize_edges(struct view *view, double x, double y)
 {
@@ -172,8 +178,10 @@ process_cursor_motion(struct server *server, uint32_t time)
 		}
 		if (resize_edges) {
 			cursor_name_set_by_server = true;
-		}
-		if (!resize_edges && cursor_name_set_by_server) {
+		} else if (view_area != LAB_DECO_NONE) {
+			cursor_name = XCURSOR_DEFAULT;
+			cursor_name_set_by_server = true;
+		} else if (cursor_name_set_by_server) {
 			cursor_name = XCURSOR_DEFAULT;
 			cursor_name_set_by_server = false;
 		}

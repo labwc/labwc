@@ -26,6 +26,9 @@
   <keybind key="A-Tab">
     <action name="NextWindow"/>
   </keybind>
+  <keybind key="A-F3">
+    <action name="Execute"><command>bemenu-run</command></action>
+  </keybind>
 </keyboard>
 
 </openbox_config>

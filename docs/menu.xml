@@ -3,11 +3,21 @@
 <openbox_menu>
 
 <menu id="root-menu">
-  <item label="Web browser"><action name="Execute"><command>firefox</command></action></item>
-  <item label="Terminal"><action name="Execute"><command>alacritty</command></action></item>
-  <item label="Reconfigure"><action name="Reconfigure"></action></item>
-  <item label="Exit"><action name="Exit"></action></item>
-  <item label="Poweroff"><action name="Execute"><command>systemctl -i poweroff</command></action></item>
+  <item label="Web browser">
+    <action name="Execute"><command>firefox</command></action>
+  </item>
+  <item label="Terminal">
+    <action name="Execute"><command>alacritty</command></action>
+  </item>
+  <item label="Reconfigure">
+    <action name="Reconfigure"></action>
+  </item>
+  <item label="Exit">
+    <action name="Exit"></action>
+  </item>
+  <item label="Poweroff">
+    <action name="Execute"><command>systemctl -i poweroff</command></action>
+  </item>
 </menu>
 
 </openbox_menu>

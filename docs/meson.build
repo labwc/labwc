@@ -1,4 +1,4 @@
-pandoc = find_program('pandoc', required: false)
+pandoc = find_program('pandoc', required: get_option('man-pages'))
 
 sections = ['.1', '-config.5', '-theme.5', '-actions.5']
 

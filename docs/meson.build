@@ -12,7 +12,7 @@ if pandoc.found()
       output: manpage,
       capture: true,
       install: true,
-      install_dir: join_paths(get_option('mandir'), 'man' + s)
+      install_dir: join_paths(get_option('mandir'), 'man' + s.split('.')[-1])
     )
   endforeach
 endif

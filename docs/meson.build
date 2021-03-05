@@ -1,14 +1,15 @@
-pandoc = find_program('pandoc', required: get_option('man-pages'))
+scdoc = find_program('scdoc', required: get_option('man-pages'))
 
-sections = ['.1', '-config.5', '-theme.5', '-actions.5']
-
-if pandoc.found()
+if scdoc.found()
+  sh = find_program('sh', native: true)
+  sections = ['.1', '-config.5', '-theme.5', '-actions.5']
   foreach s : sections
-    markdown = files('labwc' + s + '.md')
+    markdown = 'labwc' + s + '.scd'
     manpage = 'labwc' + s
     custom_target(
       manpage,
-      command: [pandoc,'-s','-t','man',markdown],
+      input: markdown,
+      command: [sh, '-c', 'scdoc < @INPUT@'],
       output: manpage,
       capture: true,
       install: true,

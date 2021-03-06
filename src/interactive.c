@@ -3,6 +3,10 @@
 void
 interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 {
+	if (view->maximized) {
+		return;
+	}
+
 	/*
 	 * This function sets up an interactive move or resize operation, where
 	 * the compositor stops propegating pointer events to clients and

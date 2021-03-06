@@ -1,6 +1,7 @@
 project(
   'labwc',
   'c',
+  version: '0.1.0',
   license: 'GPL-2',
   default_options: [
     'c_std=c11',
@@ -25,6 +26,9 @@ add_project_arguments(cc.get_supported_arguments(
   ]),
   language: 'c',
 )
+
+version='"@0@"'.format(meson.project_version())
+add_project_arguments('-DLABWC_VERSION=@0@'.format(version), language: 'c')
 
 wlroots_proj = subproject(
   'wlroots',

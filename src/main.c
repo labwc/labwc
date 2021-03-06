@@ -10,7 +10,7 @@
 struct rcxml rc = { 0 };
 
 static const char labwc_usage[] =
-	"Usage: labwc [-h] [-s <startup-command>] [-c <config-file>] [-v]\n";
+	"Usage: labwc [-h] [-s <command>] [-c <config-file>] [-d] [-V] [-v]\n";
 
 static void
 usage(void)
@@ -24,23 +24,25 @@ main(int argc, char *argv[])
 {
 	char *startup_cmd = NULL;
 	char *config_file = NULL;
-	enum verbosity {
-		LAB_VERBOSITY_ERROR = 0,
-		LAB_VERBOSITY_INFO,
-		LAB_VERBOSITY_DEBUG,
-	} verbosity = LAB_VERBOSITY_ERROR;
+	enum wlr_log_importance verbosity = WLR_ERROR;
 
 	int c;
-	while ((c = getopt(argc, argv, "c:s:hv")) != -1) {
+	while ((c = getopt(argc, argv, "c:dhs:vV")) != -1) {
 		switch (c) {
 		case 'c':
 			config_file = optarg;
+			break;
+		case 'd':
+			verbosity = WLR_DEBUG;
 			break;
 		case 's':
 			startup_cmd = optarg;
 			break;
 		case 'v':
-			++verbosity;
+			printf("labwc " LABWC_VERSION "\n");
+			exit(0);
+		case 'V':
+			verbosity = WLR_INFO;
 			break;
 		case 'h':
 		default:
@@ -51,18 +53,7 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	switch (verbosity) {
-	case LAB_VERBOSITY_ERROR:
-		wlr_log_init(WLR_ERROR, NULL);
-		break;
-	case LAB_VERBOSITY_INFO:
-		wlr_log_init(WLR_INFO, NULL);
-		break;
-	case LAB_VERBOSITY_DEBUG:
-	default:
-		wlr_log_init(WLR_DEBUG, NULL);
-		break;
-	}
+	wlr_log_init(verbosity, NULL);
 
 	session_environment_init();
 	rcxml_read(config_file);

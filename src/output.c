@@ -843,7 +843,7 @@ output_init(struct server *server)
 }
 
 static void output_config_apply(struct server *server, 
-								struct wlr_output_configuration_v1 *config)
+		struct wlr_output_configuration_v1 *config)
 {
 	server->pending_output_config = config;
 
@@ -870,8 +870,8 @@ static void output_config_apply(struct server *server,
 				int32_t refresh = head->state.custom_mode.refresh;
 				wlr_output_set_custom_mode(o, width, height, refresh);
 			}
-			wlr_output_layout_move(server->output_layout, o, head->state.x,
-									head->state.y);
+			wlr_output_layout_move(server->output_layout, o,
+				head->state.x, head->state.y);
 			wlr_output_set_scale(o, head->state.scale);
 			wlr_output_set_transform(o, head->state.transform);
 		}
@@ -918,17 +918,16 @@ static struct wlr_output_configuration_v1 *create_output_config(struct server *s
 
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
-		struct wlr_output_configuration_head_v1 *head 
-			= wlr_output_configuration_head_v1_create(config,
-													  output->wlr_output);
-		if(head == NULL) {
+		struct wlr_output_configuration_head_v1 *head =
+			wlr_output_configuration_head_v1_create(config,
+				output->wlr_output);
+		if (head == NULL) {
 			warn("wlr_output_configuration_head_v1_create() returned NULL");
 			wlr_output_configuration_v1_destroy(config);
 			return NULL;
 		}
-
 		struct wlr_box *box = wlr_output_layout_get_box(server->output_layout,
-														output->wlr_output);
+								output->wlr_output);
 		if(box != NULL) {
 			head->state.x = box->x;
 			head->state.y = box->y;
@@ -956,14 +955,13 @@ static void handle_output_layout_change(struct wl_listener *listener, void *data
 
 void output_manager_init(struct server *server)
 {
-	info("calling %s", __func__);
 	server->output_manager = wlr_output_manager_v1_create(server->wl_display);
 
 	server->output_layout_change.notify = handle_output_layout_change;
 	wl_signal_add(&server->output_layout->events.change,
-					&server->output_layout_change);
+		&server->output_layout_change);
 
 	server->output_manager_apply.notify = handle_output_manager_apply;
 	wl_signal_add(&server->output_manager->events.apply,
-					&server->output_manager_apply);
+		&server->output_manager_apply);
 }

@@ -10,7 +10,7 @@
 
 ## 1. What is this?
 
-Labwc is a [WIP] free, wlroots-based stacking compositor for Wayland.
+Labwc is a wlroots-based stacking compositor for Wayland.
 
 It has the following aims:
 
@@ -20,8 +20,6 @@ It has the following aims:
 - Where practicable, use clients to show wall-paper, take screenshots, and so on
 - Stay in keeping with wlroots and sway in terms of approach and coding style
 
-It is in early development, so expect bugs and missing features.
-
 [Video (3:42) showing features](https://youtu.be/rE1bQjSVJzg)
 
 ![](https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png)
@@ -30,7 +28,8 @@ It is in early development, so expect bugs and missing features.
 
 ## 2. Build
 
-    meson build && ninja -C build
+    meson build/
+    ninja -C build/
 
 Dependencies include:
 
@@ -58,14 +57,14 @@ If you want to override the defaults, create the following files:
 
 See full details in the following:
 
-- [labwc(1)](docs/labwc.1.md)
-- [labwc-config(5)](docs/labwc-config.5.md)
-- [labwc-theme(5)](docs/labwc-theme.5.md)
-- [labwc-actions(5)](docs/labwc-actions.5.md)
+- [labwc(1)](docs/labwc.1.scd)
+- [labwc-config(5)](docs/labwc-config.5.scd)
+- [labwc-theme(5)](docs/labwc-theme.5.scd)
+- [labwc-actions(5)](docs/labwc-actions.5.scd)
 
 ## 4. Run
 
-    ./build/labwc [-s <some-application>]
+    ./build/labwc [-s <command>]
 
 Click on the background to launch a menu.
 

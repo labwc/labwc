@@ -23,9 +23,9 @@ It has the following aims:
 
 [Video (3:42) showing features](https://youtu.be/rE1bQjSVJzg)
 
-![](https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png)
+<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png"><img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2x.png" width="256px" height="144px"></a>
 
-![](https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png)
+<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png"><img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3x.png" width="256px" height="179px"></a>
 
 ## 2. Build
 

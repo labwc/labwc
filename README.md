@@ -83,13 +83,12 @@ If you have not created an rc.xml configuration file, default keybinds will be:
 
 Suggested apps to use with labwc:
 
-- [grim](https://github.com/emersion/grim) - Screenshoter
-- [wf-recorder](https://github.com/ammen99/wf-recorder) - Screen-recorder
-- [swaybg](https://github.com/swaywm/swaybg) - Background image
-- [waybar](https://github.com/Alexays/Waybar) - Panel
-- [bemenu](https://github.com/Cloudef/bemenu) - Launcher
-- [fuzzel](https://codeberg.org/dnkl/fuzzel) - Launcher
-- [wofi](https://hg.sr.ht/~scoopta/wofi) - Launcher
+- Screen-shooter: [grim](https://github.com/emersion/grim)
+- Screen-recorder: [wf-recorder](https://github.com/ammen99/wf-recorder)
+- Background image: [swaybg](https://github.com/swaywm/swaybg)
+- Panel: [waybar](https://github.com/Alexays/Waybar)
+- Launcher: [bemenu](https://github.com/Cloudef/bemenu) [fuzzel](https://codeberg.org/dnkl/fuzzel) [wofi](https://hg.sr.ht/~scoopta/wofi)
+- Output management: [kanshi](https://github.com/emersion/kanshi.git) [wlr-randr](https://github.com/emersion/wlr-randr.git)
 
 ## 7. Roadmap
 
@@ -110,10 +109,10 @@ The following list indicates the intended high level roadmap:
 	- [ ] Submenus
 	- [ ] Pipe-menus
 	- [ ] Client menus
-- [ ] Support wlr-output-management protocol and [kanshi](https://github.com/emersion/kanshi.git)
+- [x] Support wlr-output-management protocol
+- [ ] Support HiDPI
 - [ ] Support foreign-toplevel protocol (e.g. to integrate with wlroots panels/bars)
 - [ ] Support on-screen display (osd), for example to support alt-tab window list
-- [ ] Support HiDPI
 - [ ] Support libinput configuration (tap is enabled for the time being)
 
 ## 8. Scope

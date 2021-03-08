@@ -2,11 +2,12 @@
 
 - [1. What is this?](#1-what-is-this)
 - [2. Build](#2-build)
-- [3. Configure](#3-configure)
-- [4. Run](#4-run)
-- [5. Integrate](#5-integrate)
-- [6. Roadmap](#6-roadmap)
-- [7. Scope](#7-scope)
+- [3. Install](#3-install)
+- [4. Configure](#4-configure)
+- [5. Run](#5-run)
+- [6. Integrate](#6-integrate)
+- [7. Roadmap](#7-roadmap)
+- [8. Scope](#8-scope)
 
 ## 1. What is this?
 
@@ -47,7 +48,13 @@ Disable xwayland with `meson -Dxwayland=disabled build`
 
 For further details see [wiki/Build](https://github.com/johanmalm/labwc/wiki/Build).
 
-## 3. Configure
+## 3. Install
+
+[Fedora](https://src.fedoraproject.org/rpms/labwc):
+
+	sudo dnf install labwc
+
+## 4. Configure
 
 If you want to override the defaults, create the following files:
 
@@ -62,7 +69,7 @@ See full details in the following:
 - [labwc-theme(5)](docs/labwc-theme.5.scd)
 - [labwc-actions(5)](docs/labwc-actions.5.scd)
 
-## 4. Run
+## 5. Run
 
     ./build/labwc [-s <command>]
 
@@ -74,7 +81,7 @@ If you have not created an rc.xml configuration file, default keybinds will be:
 - Alt-F3: launch bemenu
 - Alt-escape: exit
 
-## 5. Integrate
+## 6. Integrate
 
 Suggested apps to use with labwc:
 
@@ -86,7 +93,7 @@ Suggested apps to use with labwc:
 - [fuzzel](https://codeberg.org/dnkl/fuzzel) - Launcher
 - [wofi](https://hg.sr.ht/~scoopta/wofi) - Launcher
 
-## 6. Roadmap
+## 7. Roadmap
 
 The following list indicates the intended high level roadmap:
 
@@ -111,7 +118,7 @@ The following list indicates the intended high level roadmap:
 - [ ] Support HiDPI
 - [ ] Support libinput configuration (tap is enabled for the time being)
 
-## 7. Scope
+## 8. Scope
 
 In order to keep the code base clean and maintainable, simplicy is favoured over full specification adherence.
 

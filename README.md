@@ -50,9 +50,7 @@ For further details see [wiki/Build](https://github.com/johanmalm/labwc/wiki/Bui
 
 ## 3. Install
 
-[Fedora](https://src.fedoraproject.org/rpms/labwc):
-
-	sudo dnf install labwc
+See [wiki/Install](https://github.com/johanmalm/labwc/wiki/Install).
 
 ## 4. Configure
 

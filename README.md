@@ -87,8 +87,8 @@ Suggested apps to use with labwc:
 - Screen-recorder: [wf-recorder](https://github.com/ammen99/wf-recorder)
 - Background image: [swaybg](https://github.com/swaywm/swaybg)
 - Panel: [waybar](https://github.com/Alexays/Waybar)
-- Launcher: [bemenu](https://github.com/Cloudef/bemenu) [fuzzel](https://codeberg.org/dnkl/fuzzel) [wofi](https://hg.sr.ht/~scoopta/wofi)
-- Output management: [kanshi](https://github.com/emersion/kanshi.git) [wlr-randr](https://github.com/emersion/wlr-randr.git)
+- Launchers: [bemenu](https://github.com/Cloudef/bemenu), [fuzzel](https://codeberg.org/dnkl/fuzzel), [wofi](https://hg.sr.ht/~scoopta/wofi)
+- Output managers: [kanshi](https://github.com/emersion/kanshi.git), [wlr-randr](https://github.com/emersion/wlr-randr.git)
 
 ## 7. Roadmap
 

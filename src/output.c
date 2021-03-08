@@ -373,14 +373,21 @@ static void
 render_cycle_box(struct output *output, pixman_region32_t *output_damage,
 		struct view *view)
 {
-	struct wlr_output_layout *layout = output->server->output_layout;
-	double ox = 0, oy = 0;
-	struct wlr_box box;
-	wlr_output_layout_output_coords(layout, output->wlr_output, &ox, &oy);
-	box.x = view->x - view->margin.left + ox;
-	box.y = view->y - view->margin.top + oy;
-	box.width = view->w + view->margin.left + view->margin.right;
-	box.height = view->h + view->margin.top + view->margin.bottom;
+	struct wlr_box box = {
+		.x = view->x,
+		.y = view->y,
+		.width = view->w,
+		.height = view->h,
+	};
+	if (rc.xdg_shell_server_side_deco) {
+		box.x -= view->margin.left;
+		box.y -= view->margin.top;
+		box.width += view->margin.left + view->margin.right;
+		box.height += view->margin.top + view->margin.bottom;
+	} else if (!view->maximized) {
+		box.x -= view->padding.left;
+		box.y -= view->padding.top;
+	}
 
 	float white[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float black[4] = { 0.0f, 0.0f, 0.0f, 1.0f };

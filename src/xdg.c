@@ -121,18 +121,9 @@ handle_request_resize(struct wl_listener *listener, void *data)
 static void
 handle_request_maximize(struct wl_listener *listener, void *data)
 {
-	/* This event is raised when a client would like to begin an interactive
-	 * resize, typically because the user clicked on their client-side
-	 * decorations. Note that a more sophisticated compositor should check
-	 * the provied serial against a list of button press serials sent to
-	 * this
-	 * client, to prevent the client from requesting this whenever they want.
-	 */
-
 	struct view *view = wl_container_of(listener, view, request_maximize);
-
 	struct wlr_xdg_surface *surface = data;
-	if(view != NULL) {
+	if (view) {
 		view_maximize(view, surface->toplevel->client_pending.maximized);
 	}
 
@@ -284,7 +275,7 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->type = LAB_XDG_SHELL_VIEW;
 	view->impl = &xdg_toplevel_view_impl;
 	view->xdg_surface = xdg_surface;
-	view->maximized = false;
+	view_maximize(view, xdg_surface->toplevel->client_pending.maximized);
 
 	view->map.notify = handle_map;
 	wl_signal_add(&xdg_surface->events.map, &view->map);
@@ -303,11 +294,6 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	wl_signal_add(&toplevel->events.request_resize, &view->request_resize);
 	view->request_maximize.notify = handle_request_maximize;
 	wl_signal_add(&toplevel->events.request_maximize, &view->request_maximize);
-
-	// hacky workaround to bug where sometimes a window starts maximized and
-	// when we hit the maximize button, labwc crashes. instead we unmaximize
-	// it from the start to avoid this situation
-	view_maximize(view, false);
 
 	wl_list_insert(&server->views, &view->link);
 }

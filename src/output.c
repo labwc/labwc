@@ -11,9 +11,9 @@
 #include <wlr/types/wlr_output_damage.h>
 #include <wlr/util/region.h>
 #include "labwc.h"
+#include "layers.h"
 #include "menu/menu.h"
 #include "theme.h"
-#include "layers.h"
 
 //#define DEBUG 1
 

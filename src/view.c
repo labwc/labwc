@@ -37,7 +37,11 @@ view_unminimize(struct view *view)
 void
 view_maximize(struct view *view, bool maximize)
 {
-	if(maximize == true) {
+	if (view->maximized == maximize) {
+		return;
+	}
+	view->impl->maximize(view, maximize);
+	if (maximize) {
 		struct wlr_output_layout *layout = view->server->output_layout;
 		struct wlr_output* output = wlr_output_layout_output_at(
 			layout, view->x + view->w / 2, view->y + view->h / 2);
@@ -75,7 +79,6 @@ view_maximize(struct view *view, bool maximize)
 		view_move_resize(view, view->unmaximized_geometry);
 		view->maximized = false;
 	}
-	view->impl->maximize(view, maximize);
 }
 
 void

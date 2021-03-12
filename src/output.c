@@ -385,8 +385,8 @@ render_cycle_box(struct output *output, pixman_region32_t *output_damage,
 		box.width += view->margin.left + view->margin.right;
 		box.height += view->margin.top + view->margin.bottom;
 	} else if (!view->maximized) {
-		box.x -= view->padding.left;
-		box.y -= view->padding.top;
+		box.x += view->padding.left;
+		box.y += view->padding.top;
 	}
 
 	float white[4] = { 1.0f, 1.0f, 1.0f, 1.0f };

@@ -50,6 +50,10 @@ handle_commit(struct wl_listener *listener, void *data)
 	view->w = size.width;
 	view->h = size.height;
 
+	/* padding changes with maximize/unmaximize */
+	view->padding.top = view->padding.bottom = size.y;
+	view->padding.left = view->padding.right = size.x;
+
 	uint32_t serial = view->pending_move_resize.configure_serial;
 	if (serial > 0 && serial >= view->xdg_surface->configure_serial) {
 		if (view->pending_move_resize.update_x) {
@@ -179,24 +183,18 @@ xdg_toplevel_view_for_each_surface(struct view *view,
 }
 
 static void
+update_padding(struct view *view)
+{
+	struct wlr_box padding;
+	wlr_xdg_surface_get_geometry(view->xdg_surface, &padding);
+	view->padding.top = view->padding.bottom = padding.y;
+	view->padding.left = view->padding.right = padding.x;
+}
+
+static void
 xdg_toplevel_view_maximize(struct view *view, bool maximized)
 {
 	wlr_xdg_toplevel_set_maximized(view->xdg_surface, maximized);
-}
-
-/* Return area between surface extremities and window */
-static struct border
-xdg_shell_padding(struct view *view)
-{
-	struct wlr_box box;
-	wlr_xdg_surface_get_geometry(view->xdg_surface, &box);
-	struct border border = {
-		.top = -box.y,
-		.bottom = -box.y,
-		.left = -box.x,
-		.right = -box.x,
-	};
-	return border;
 }
 
 static bool
@@ -212,17 +210,15 @@ xdg_toplevel_view_map(struct view *view)
 	view->surface = view->xdg_surface->surface;
 	if (!view->been_mapped) {
 		view->server_side_deco = has_ssd(view);
+		/* align to edge of screen */
 		if (view->server_side_deco) {
 			view->margin = deco_thickness(view);
-		} else {
-			view->padding = xdg_shell_padding(view);
-		}
-		if (istopmost(view)) {
-			/* align to edge of screen */
 			view->x += view->margin.left;
 			view->y += view->margin.top;
-			view->x += view->padding.left;
-			view->y += view->padding.top;
+		} else {
+			update_padding(view);
+			view->x -= view->padding.left;
+			view->y -= view->padding.top;
 		}
 	}
 	view->been_mapped = true;
@@ -256,7 +252,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.map = xdg_toplevel_view_map,
 	.move = xdg_toplevel_view_move,
 	.unmap = xdg_toplevel_view_unmap,
-	.maximize = xdg_toplevel_view_maximize
+	.maximize = xdg_toplevel_view_maximize,
 };
 
 void

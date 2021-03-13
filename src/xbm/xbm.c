@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <drm_fourcc.h>
 
 #include "common/dir.h"
 #include "common/grab-file.h"
@@ -26,7 +27,7 @@ texture_from_pixmap(struct wlr_renderer *renderer, struct pixmap *pixmap)
 	if (!pixmap) {
 		return NULL;
 	}
-	return wlr_texture_from_pixels(renderer, WL_SHM_FORMAT_ARGB8888,
+	return wlr_texture_from_pixels(renderer, DRM_FORMAT_ARGB8888,
 				       pixmap->width * 4, pixmap->width,
 				       pixmap->height, pixmap->data);
 }

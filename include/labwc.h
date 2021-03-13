@@ -155,7 +155,7 @@ enum deco_part {
 struct view_impl {
 	void (*configure)(struct view *view, struct wlr_box geo);
 	void (*close)(struct view *view);
-	void (*for_each_popup)(struct view *view,
+	void (*for_each_popup_surface)(struct view *view,
 		wlr_surface_iterator_func_t iterator, void *data);
 	void (*for_each_surface)(struct view *view,
 		wlr_surface_iterator_func_t iterator, void *data);
@@ -296,7 +296,7 @@ void view_unminimize(struct view *view);
 void view_maximize(struct view *view, bool maximize);
 void view_for_each_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *user_data);
-void view_for_each_popup(struct view *view,
+void view_for_each_popup_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *data);
 
 void desktop_focus_view(struct seat *seat, struct view *view);

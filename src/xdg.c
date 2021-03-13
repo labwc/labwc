@@ -174,10 +174,10 @@ xdg_toplevel_view_close(struct view *view)
 }
 
 static void
-xdg_toplevel_view_for_each_popup(struct view *view,
+xdg_toplevel_view_for_each_popup_surface(struct view *view,
 		wlr_surface_iterator_func_t iterator, void *data)
 {
-	wlr_xdg_surface_for_each_popup(view->xdg_surface, iterator, data);
+	wlr_xdg_surface_for_each_popup_surface(view->xdg_surface, iterator, data);
 }
 
 static void
@@ -260,7 +260,7 @@ xdg_toplevel_view_unmap(struct view *view)
 static const struct view_impl xdg_toplevel_view_impl = {
 	.configure = xdg_toplevel_view_configure,
 	.close = xdg_toplevel_view_close,
-	.for_each_popup = xdg_toplevel_view_for_each_popup,
+	.for_each_popup_surface = xdg_toplevel_view_for_each_popup_surface,
 	.for_each_surface = xdg_toplevel_view_for_each_surface,
 	.map = xdg_toplevel_view_map,
 	.move = xdg_toplevel_view_move,

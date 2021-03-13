@@ -223,7 +223,7 @@ output_view_for_each_surface(struct output *output, struct view *view,
 }
 
 void
-output_view_for_each_popup(struct output *output, struct view *view,
+output_view_for_each_popup_surface(struct output *output, struct view *view,
 		surface_iterator_func_t iterator, void *user_data)
 {
 	struct surface_iterator_data data = {
@@ -236,7 +236,7 @@ output_view_for_each_popup(struct output *output, struct view *view,
 
 	wlr_output_layout_output_coords(output->server->output_layout,
 		output->wlr_output, &data.ox, &data.oy);
-	view_for_each_popup(view, output_for_each_surface_iterator, &data);
+	view_for_each_popup_surface(view, output_for_each_surface_iterator, &data);
 }
 
 /* for sending frame done */
@@ -569,25 +569,13 @@ render_view_toplevels(struct view *view, struct output *output,
 }
 
 static void
-render_popup_iterator(struct output *output, struct wlr_surface *surface,
-		struct wlr_box *box, void *data)
-{
-	/* Render this popup's surface */
-	render_surface_iterator(output, surface, box, data);
-
-	/* Render this popup's child toplevels */
-	output_surface_for_each_surface(output, surface, box->x, box->y,
-		render_surface_iterator, data);
-}
-
-static void
 render_view_popups(struct view *view, struct output *output,
 		pixman_region32_t *damage)
 {
 	struct render_data data = {
 		.damage = damage,
 	};
-	output_view_for_each_popup(output, view, render_popup_iterator, &data);
+	output_view_for_each_popup_surface(output, view, render_surface_iterator, &data);
 }
 
 void

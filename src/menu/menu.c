@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <cairo/cairo.h>
 #include <ctype.h>
+#include <drm_fourcc.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <pango/pangocairo.h>
@@ -61,7 +62,7 @@ texture_create(struct server *server, struct wlr_box *geo, const char *text,
 	cairo_surface_flush(surf);
 	unsigned char *data = cairo_image_surface_get_data(surf);
 	struct wlr_texture *texture = wlr_texture_from_pixels(server->renderer,
-		WL_SHM_FORMAT_ARGB8888, cairo_image_surface_get_stride(surf),
+		DRM_FORMAT_ARGB8888, cairo_image_surface_get_stride(surf),
 		geo->width, geo->height, data);
 
 	cairo_destroy(cairo);

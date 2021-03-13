@@ -48,6 +48,8 @@ wayland_server  = dependency('wayland-server')
 wayland_protos  = dependency('wayland-protocols')
 xkbcommon       = dependency('xkbcommon')
 xcb             = dependency('xcb', required: get_option('xwayland'))
+drm_full        = dependency('libdrm')
+drm             = drm_full.partial_dependency(compile_args: true, includes: true)
 xml2            = dependency('libxml-2.0')
 glib            = dependency('glib-2.0')
 cairo           = dependency('cairo')
@@ -68,8 +70,18 @@ labwc_inc       = include_directories('include')
 subdir('protocols')
 
 labwc_deps      = [
-  server_protos, wayland_server, wlroots, xkbcommon, xml2, glib,
-  cairo, pangocairo, input, pixman, math,
+  server_protos,
+  wayland_server,
+  wlroots,
+  xkbcommon,
+  xml2,
+  glib,
+  cairo,
+  drm,
+  pangocairo,
+  input,
+  pixman,
+  math,
 ]
 
 subdir('include')

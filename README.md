@@ -35,8 +35,8 @@ It has the following aims:
 Dependencies include:
 
 - meson, ninja, gcc/clang
-- wlroots (0.11.0 - 0.12.0)
-- wayland (>=1.16)
+- wlroots (master)
+- wayland (>=1.19)
 - wayland-protocols
 - libinput (>=1.14)
 - libxml2
@@ -44,7 +44,7 @@ Dependencies include:
 - xkbcommon
 - xwayland, xcb (optional)
 
-Disable xwayland with `meson -Dxwayland=disabled build`
+Disable xwayland with `meson -Dxwayland=disabled build/`
 
 For further details see [wiki/Build](https://github.com/johanmalm/labwc/wiki/Build).
 

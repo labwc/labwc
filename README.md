@@ -16,8 +16,8 @@ Labwc is a wlroots-based stacking compositor for Wayland.
 It has the following aims:
 
 - Be light-weight, small and fast
-- Have the look and feel of [openbox](https://github.com/danakj/openbox) albeit
-  with a smaller feature set
+- Keep feature set fairly small and use [openbox-3.4](https://github.com/danakj/openbox)
+  configuration/theme specification in order to avoid inventing another one.
 - Where practicable, use clients to show wall-paper, take screenshots, and so on
 - Stay in keeping with wlroots and sway in terms of approach and coding style
 
@@ -90,7 +90,7 @@ Suggested apps to use with labwc:
 - Launchers: [bemenu](https://github.com/Cloudef/bemenu), [fuzzel](https://codeberg.org/dnkl/fuzzel), [wofi](https://hg.sr.ht/~scoopta/wofi)
 - Output managers: [kanshi](https://github.com/emersion/kanshi.git), [wlr-randr](https://github.com/emersion/wlr-randr.git)
 
-## 7. Roadmap
+## 7. Acceptance Criteria
 
 The following list indicates the intended high level roadmap:
 
@@ -99,37 +99,28 @@ The following list indicates the intended high level roadmap:
 - [x] Parse openbox themes files and associated xbm icons
 - [x] Support maximize, iconify, close buttons
 - [x] Catch SIGHUP to re-load config file and theme
-- [ ] Support layer-shell protocol
-	- [x] Support layer-shell applications
-	- [ ] Support 'exclusive' zone
+- [x] Support layer-shell protocol
 - [x] Support damage tracking to reduce CPU usage
-- [ ] Support menus
-	- [x] Parse menu.xml and generate root-menu
-	- [ ] Separators and titles
-	- [ ] Submenus
-	- [ ] Pipe-menus
-	- [ ] Client menus
+- [x] Parse menu.xml to generate a basic root-menu
 - [x] Support wlr-output-management protocol
 - [ ] Support HiDPI
 - [ ] Support foreign-toplevel protocol (e.g. to integrate with wlroots panels/bars)
 - [ ] Support on-screen display (osd), for example to support alt-tab window list
 - [ ] Support libinput configuration (tap is enabled for the time being)
 
-## 8. Scope
-
-In order to keep the code base clean and maintainable, simplicy is favoured over full specification adherence.
-
-The exact acceptance criteria have not yet been defined, but the following wiki pages give an indication of the intended scope definition against the openbox specification.
-
-- [configuration](https://github.com/johanmalm/labwc/wiki/Scope-configuration)
-- [theme](https://github.com/johanmalm/labwc/wiki/Scope-theme-specification)
-- [actions](https://github.com/johanmalm/labwc/wiki/Scope-actions)
+A lot of emphasis is put on code simplicy when considering features. The main development
+effort if focused on producing a solid foundation for a stacking compositor
+rather than quickly adding configuration and theming options.
 
 The following items are likely to be out-of-scope:
 
 - Icons (except window buttons)
 - Animations
 - Gradients on window decorations and menus
-- Any theme option (probably at least half of them) not required to reasonably render common themes
+- Any theme option not required to reasonably render common themes (amazingig
+  how few options are actually required).
 - Any configuration option not required to provide a simple openbox-like experience
+
+See [wiki/Acceptance-criteria](https://github.com/johanmalm/labwc/wiki/Acceptance-criteria)
+for a view of the full down-selection.
 

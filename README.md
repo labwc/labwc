@@ -6,8 +6,7 @@
 - [4. Configure](#4-configure)
 - [5. Run](#5-run)
 - [6. Integrate](#6-integrate)
-- [7. Roadmap](#7-roadmap)
-- [8. Scope](#8-scope)
+- [7. Acceptance Criteria](#7-acceptance-criteria)
 
 ## 1. What is this?
 

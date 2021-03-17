@@ -209,6 +209,11 @@ xdg_toplevel_view_map(struct view *view)
 	view->mapped = true;
 	view->surface = view->xdg_surface->surface;
 	if (!view->been_mapped) {
+		/*
+		 * Start unmaximized to avoid padding/position complications
+		 * and keep code simple
+		 */
+		view_maximize(view, false);
 		view->server_side_deco = has_ssd(view);
 		/* align to edge of screen */
 		if (view->server_side_deco) {
@@ -271,7 +276,6 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->type = LAB_XDG_SHELL_VIEW;
 	view->impl = &xdg_toplevel_view_impl;
 	view->xdg_surface = xdg_surface;
-	view_maximize(view, xdg_surface->toplevel->client_pending.maximized);
 
 	view->map.notify = handle_map;
 	wl_signal_add(&xdg_surface->events.map, &view->map);

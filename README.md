@@ -59,10 +59,10 @@ If you want to override the defaults, create the following files:
 
 See full details in the following:
 
-- [labwc(1)](docs/labwc.1.scd)
-- [labwc-config(5)](docs/labwc-config.5.scd)
-- [labwc-theme(5)](docs/labwc-theme.5.scd)
-- [labwc-actions(5)](docs/labwc-actions.5.scd)
+- [labwc(1)](https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc.1.scd)
+- [labwc-config(5)](https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-config.5.scd)
+- [labwc-theme(5)](https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-theme.5.scd)
+- [labwc-actions(5)](https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-actions.5.scd)
 
 ## 5. Run
 

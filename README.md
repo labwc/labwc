@@ -14,11 +14,11 @@ Labwc is a wlroots-based stacking compositor for Wayland.
 
 It has the following aims:
 
-- Be light-weight, small and fast
-- Keep feature set fairly small and use [openbox-3.4](https://github.com/danakj/openbox)
-  configuration/theme specification in order to avoid inventing another one.
-- Where practicable, use clients to show wall-paper, take screenshots, and so on
-- Stay in keeping with wlroots and sway in terms of approach and coding style
+- Be light-weight, small and fast.
+- Use [openbox-3.4](https://github.com/danakj/openbox) specification for configuration and themes.
+- Keep [feature set](https://github.com/johanmalm/labwc/wiki/Acceptance-criteria) small (ca 40% of openbox).
+- Where practicable, use clients for wall-paper, panel, screenshots, and so on.
+- Stay in keeping with wlroots and sway in terms of approach and coding style.
 
 [Video (3:42) showing features](https://youtu.be/rE1bQjSVJzg)
 

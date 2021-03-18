@@ -2,8 +2,9 @@
 #define __LABWC_SESSION_H
 
 /**
- * session_environment_init - set enrivonment variables
- * Note: Same as `. ~/.config/labwc/environment` (or equivalent XDG config dir)
+ * session_environment_init - set enrivonment variables based on <key>=<value>
+ * pairs in `${XDG_CONFIG_DIRS:-/etc/xdg}/lawbc/environment` with user override
+ * in `${XDG_CONFIG_HOME:-$HOME/.config}`
  */
 void session_environment_init(void);
 

@@ -22,9 +22,7 @@ It has the following aims:
 
 [Video (3:42) showing features](https://youtu.be/rE1bQjSVJzg)
 
-<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png"><img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2x.png" width="256px" height="144px"></a>
-
-<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png"><img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3x.png" width="256px" height="179px"></a>
+<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png"><img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2x.png" width="256px" height="144px"></a> <a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png"><img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3x.png" width="256px" height="179px"></a>
 
 ## 2. Build
 
@@ -91,7 +89,14 @@ Suggested apps to use with labwc:
 
 ## 7. Acceptance Criteria
 
-The following list indicates the intended high level roadmap:
+A lot of emphasis is put on code simplicy when considering features. The main
+development effort if focused on producing a solid foundation for a stacking
+compositor rather than quickly adding configuration and theming options.
+
+See [wiki/Acceptance-criteria](https://github.com/johanmalm/labwc/wiki/Acceptance-criteria)
+for a full down-selection.
+
+High-level summary of progress:
 
 - [x] Optionally support xwayland
 - [x] Parse openbox config files (rc.xml, autostart, environment)
@@ -107,19 +112,12 @@ The following list indicates the intended high level roadmap:
 - [ ] Support on-screen display (osd), for example to support alt-tab window list
 - [ ] Support libinput configuration (tap is enabled for the time being)
 
-A lot of emphasis is put on code simplicy when considering features. The main development
-effort if focused on producing a solid foundation for a stacking compositor
-rather than quickly adding configuration and theming options.
-
-The following items are likely to be out-of-scope:
+The following items are out-of-scope:
 
 - Icons (except window buttons)
 - Animations
-- Gradients on window decorations and menus
+- Gradients for decoration and menus
 - Any theme option not required to reasonably render common themes (amazingig
   how few options are actually required).
 - Any configuration option not required to provide a simple openbox-like experience
-
-See [wiki/Acceptance-criteria](https://github.com/johanmalm/labwc/wiki/Acceptance-criteria)
-for a view of the full down-selection.
 

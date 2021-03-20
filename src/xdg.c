@@ -254,7 +254,7 @@ xdg_toplevel_view_map(struct view *view)
 
 		view->server_side_deco = has_ssd(view);
 		if (view->server_side_deco) {
-			view->margin = deco_thickness(view);
+			view->margin = ssd_thickness(view);
 		}
 		update_padding(view);
 		position_xdg_toplevel_view(view);

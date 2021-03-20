@@ -124,7 +124,7 @@ want_deco(struct view *view)
 static void
 top_left_edge_boundary_check(struct view *view)
 {
-	struct wlr_box deco = deco_max_extents(view);
+	struct wlr_box deco = ssd_max_extents(view);
 	if (deco.x < 0) {
 		view->x -= deco.x;
 	}
@@ -148,7 +148,7 @@ map(struct view *view)
 	view->surface = view->xwayland_surface->surface;
 	view->server_side_deco = want_deco(view);
 
-	view->margin = deco_thickness(view);
+	view->margin = ssd_thickness(view);
 
 	top_left_edge_boundary_check(view);
 

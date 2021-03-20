@@ -140,7 +140,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	double sx, sy;
 	struct wlr_seat *wlr_seat = server->seat.seat;
 	struct wlr_surface *surface = NULL;
-	int view_area = LAB_DECO_NONE;
+	int view_area = LAB_SSD_NONE;
 	char *cursor_name = NULL;
 	struct view *view =
 		desktop_view_at(server, server->seat.cursor->x, server->seat.cursor->y,
@@ -178,7 +178,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 		}
 		if (resize_edges) {
 			cursor_name_set_by_server = true;
-		} else if (view_area != LAB_DECO_NONE) {
+		} else if (view_area != LAB_SSD_NONE) {
 			cursor_name = XCURSOR_DEFAULT;
 			cursor_name_set_by_server = true;
 		} else if (cursor_name_set_by_server) {
@@ -319,16 +319,16 @@ cursor_button(struct wl_listener *listener, void *data)
 	}
 
 	switch (view_area) {
-	case LAB_DECO_BUTTON_CLOSE:
+	case LAB_SSD_BUTTON_CLOSE:
 		view->impl->close(view);
 		break;
-	case LAB_DECO_BUTTON_ICONIFY:
+	case LAB_SSD_BUTTON_ICONIFY:
 		view_minimize(view);
 		break;
-	case LAB_DECO_PART_TITLE:
+	case LAB_SSD_PART_TITLE:
 		interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
 		break;
-	case LAB_DECO_BUTTON_MAXIMIZE:
+	case LAB_SSD_BUTTON_MAXIMIZE:
 		view_maximize(view, !view->maximized);
 		break;
 	}

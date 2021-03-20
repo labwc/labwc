@@ -246,8 +246,8 @@ desktop_view_at(struct server *server, double lx, double ly,
 		if (!view->server_side_deco) {
 			continue;
 		}
-		*view_area = deco_at(view, lx, ly);
-		if (*view_area != LAB_DECO_NONE) {
+		*view_area = ssd_at(view, lx, ly);
+		if (*view_area != LAB_SSD_NONE) {
 			return view;
 		}
 	}

@@ -145,17 +145,17 @@ enum view_type {
 #endif
 };
 
-enum deco_part {
-	LAB_DECO_NONE = 0,
-	LAB_DECO_BUTTON_CLOSE,
-	LAB_DECO_BUTTON_MAXIMIZE,
-	LAB_DECO_BUTTON_ICONIFY,
-	LAB_DECO_PART_TITLE,
-	LAB_DECO_PART_TOP,
-	LAB_DECO_PART_RIGHT,
-	LAB_DECO_PART_BOTTOM,
-	LAB_DECO_PART_LEFT,
-	LAB_DECO_END_MARKER
+enum ssd_part {
+	LAB_SSD_NONE = 0,
+	LAB_SSD_BUTTON_CLOSE,
+	LAB_SSD_BUTTON_MAXIMIZE,
+	LAB_SSD_BUTTON_ICONIFY,
+	LAB_SSD_PART_TITLE,
+	LAB_SSD_PART_TOP,
+	LAB_SSD_PART_RIGHT,
+	LAB_SSD_PART_BOTTOM,
+	LAB_SSD_PART_LEFT,
+	LAB_SSD_END_MARKER
 };
 
 struct view_impl {
@@ -345,10 +345,10 @@ void server_init(struct server *server);
 void server_start(struct server *server);
 void server_finish(struct server *server);
 
-struct border deco_thickness(struct view *view);
-struct wlr_box deco_max_extents(struct view *view);
-struct wlr_box deco_box(struct view *view, enum deco_part deco_part);
-enum deco_part deco_at(struct view *view, double lx, double ly);
+struct border ssd_thickness(struct view *view);
+struct wlr_box ssd_max_extents(struct view *view);
+struct wlr_box ssd_box(struct view *view, enum ssd_part ssd_part);
+enum ssd_part ssd_at(struct view *view, double lx, double ly);
 
 void action(struct server *server, const char *action, const char *command);
 

@@ -70,7 +70,7 @@ view_maximize(struct view *view, bool maximize)
 			box.width -= border.right + border.left;
 			box.height -= border.top + border.bottom;
 		}
-		scale_box(&box, output->scale);
+		scale_box(&box, 1 / output->scale);
 		view_move_resize(view, box);
 		view_move(view, box.x, box.y);
 		view->maximized = true;

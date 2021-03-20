@@ -63,6 +63,7 @@ See full details in the following:
 - [labwc-config(5)](https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-config.5.scd)
 - [labwc-theme(5)](https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-theme.5.scd)
 - [labwc-actions(5)](https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-actions.5.scd)
+- [labwc-menu(5)](https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-menu.5.scd)
 
 ## 5. Run
 

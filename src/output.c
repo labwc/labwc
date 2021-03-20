@@ -459,6 +459,7 @@ render_deco(struct view *view, struct output *output,
 	};
 	for (int i = 0; i < 4; i++) {
 		struct wlr_box box = deco_box(view, border[i]);
+		scale_box(&box, output->wlr_output->scale);
 		render_rect(output, output_damage, &box, color);
 	}
 
@@ -470,12 +471,14 @@ render_deco(struct view *view, struct output *output,
 		color = theme->window_inactive_title_bg_color;
 	}
 	struct wlr_box box = deco_box(view, LAB_DECO_PART_TITLE);
+	scale_box(&box, output->wlr_output->scale);
 	render_rect(output, output_damage, &box, color);
 
 	/* button background */
 	struct wlr_cursor *cur = view->server->seat.cursor;
 	enum deco_part deco_part = deco_at(view, cur->x, cur->y);
 	box = deco_box(view, deco_part);
+	scale_box(&box, output->wlr_output->scale);
 	if (isbutton(deco_part) &&
 			wlr_box_contains_point(&box, cur->x, cur->y)) {
 		color = (float[4]){ 0.5, 0.5, 0.5, 0.5 };
@@ -485,22 +488,28 @@ render_deco(struct view *view, struct output *output,
 	/* buttons */
 	if (view->surface == seat->keyboard_state.focused_surface) {
 		box = deco_box(view, LAB_DECO_BUTTON_CLOSE);
+		scale_box(&box, output->wlr_output->scale);
 		render_icon(output, output_damage, &box,
 			theme->xbm_close_active_unpressed);
 		box = deco_box(view, LAB_DECO_BUTTON_MAXIMIZE);
+		scale_box(&box, output->wlr_output->scale);
 		render_icon(output, output_damage, &box,
 			theme->xbm_maximize_active_unpressed);
 		box = deco_box(view, LAB_DECO_BUTTON_ICONIFY);
+		scale_box(&box, output->wlr_output->scale);
 		render_icon(output, output_damage, &box,
 			theme->xbm_iconify_active_unpressed);
 	} else {
 		box = deco_box(view, LAB_DECO_BUTTON_CLOSE);
+		scale_box(&box, output->wlr_output->scale);
 		render_icon(output, output_damage, &box,
 			theme->xbm_close_inactive_unpressed);
 		box = deco_box(view, LAB_DECO_BUTTON_MAXIMIZE);
+		scale_box(&box, output->wlr_output->scale);
 		render_icon(output, output_damage, &box,
 			theme->xbm_maximize_inactive_unpressed);
 		box = deco_box(view, LAB_DECO_BUTTON_ICONIFY);
+		scale_box(&box, output->wlr_output->scale);
 		render_icon(output, output_damage, &box,
 			theme->xbm_iconify_inactive_unpressed);
 	}
@@ -527,6 +536,7 @@ render_rootmenu(struct output *output, pixman_region32_t *output_damage)
 			.width = menuitem->geo_box.width,
 			.height = menuitem->geo_box.height,
 		};
+		scale_box(&box, output->wlr_output->scale);
 		wlr_matrix_project_box(matrix, &box, WL_OUTPUT_TRANSFORM_NORMAL,
 			0, output->wlr_output->transform_matrix);
 		render_texture(output->wlr_output, output_damage, t,

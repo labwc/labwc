@@ -203,6 +203,43 @@ istopmost(struct view *view)
 	return view->xdg_surface->toplevel->parent == NULL;
 }
 
+static struct view *
+parent_of(struct view *view)
+{
+	struct view *p;
+	wl_list_for_each (p, &view->server->views, link) {
+		if (p->xdg_surface == view->xdg_surface->toplevel->parent) {
+			return p;
+		}
+	}
+	return NULL;
+}
+
+static void
+position_xdg_toplevel_view(struct view *view)
+{
+	if (istopmost(view)) {
+		/*
+		 * For topmost xdg-toplevel, we just top/left align for the
+		 * time being
+		 */
+		view->x = view->y = 0;
+	} else {
+		/*
+		 * If child-toplevel-views, we center-align relative to their
+		 * parents
+		 */
+		struct view *parent = parent_of(view);
+		assert(parent);
+		int center_x = parent->x + parent->w / 2;
+		int center_y = parent->y + parent->h / 2;
+		view->x = center_x - view->xdg_surface->geometry.width / 2;
+		view->y = center_y - view->xdg_surface->geometry.height / 2;
+	}
+	view->x += view->margin.left - view->padding.left;
+	view->y += view->margin.top - view->padding.top;
+}
+
 static void
 xdg_toplevel_view_map(struct view *view)
 {
@@ -214,17 +251,13 @@ xdg_toplevel_view_map(struct view *view)
 		 * and keep code simple
 		 */
 		view_maximize(view, false);
+
 		view->server_side_deco = has_ssd(view);
-		/* align to edge of screen */
 		if (view->server_side_deco) {
 			view->margin = deco_thickness(view);
-			view->x += view->margin.left;
-			view->y += view->margin.top;
-		} else {
-			update_padding(view);
-			view->x -= view->padding.left;
-			view->y -= view->padding.top;
 		}
+		update_padding(view);
+		position_xdg_toplevel_view(view);
 	}
 	view->been_mapped = true;
 

@@ -1,6 +1,5 @@
-#include "labwc.h"
-
 #include <stdio.h>
+#include "labwc.h"
 
 void
 view_move_resize(struct view *view, struct wlr_box geo)
@@ -34,6 +33,21 @@ view_unminimize(struct view *view)
 	view->impl->map(view);
 }
 
+/*
+ * view_output - return the output that a view is mostly on
+ */
+static struct wlr_output *
+view_output(struct view *view)
+{
+	struct wlr_output_layout *layout = view->server->output_layout;
+	struct wlr_output *output;
+
+	/* TODO: make this a bit more sophisticated */
+	output = wlr_output_layout_output_at(layout, view->x + view->w / 2,
+					     view->y + view->h / 2);
+	return output;
+}
+
 void
 view_maximize(struct view *view, bool maximize)
 {
@@ -42,13 +56,12 @@ view_maximize(struct view *view, bool maximize)
 	}
 	view->impl->maximize(view, maximize);
 	if (maximize) {
-		struct wlr_output_layout *layout = view->server->output_layout;
-		struct wlr_output* output = wlr_output_layout_output_at(
-			layout, view->x + view->w / 2, view->y + view->h / 2);
+		struct wlr_output *output = view_output(view);
 		if (!output) {
 			return;
 		}
 
+		struct wlr_output_layout *layout = view->server->output_layout;
 		struct wlr_output_layout_output* ol_output =
 			wlr_output_layout_get(layout, output);
 

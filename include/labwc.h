@@ -213,7 +213,11 @@ struct view {
 		uint32_t configure_serial;
 	} pending_move_resize;
 
-	bool server_side_deco;
+	struct {
+		bool enabled;
+		struct wl_list parts;
+		struct wlr_box box; /* remember geo so we know when to update */
+	} ssd;
 
 	struct wl_listener map;
 	struct wl_listener unmap;

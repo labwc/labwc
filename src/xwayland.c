@@ -22,6 +22,7 @@ handle_commit(struct wl_listener *listener, void *data)
 			view->pending_move_resize.height - view->h;
 		view->pending_move_resize.update_y = false;
 	}
+	ssd_update_geometry(view);
 	damage_view_whole(view);
 }
 
@@ -49,6 +50,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&view->destroy.link);
 	wl_list_remove(&view->request_configure.link);
 	wl_list_remove(&view->request_maximize.link);
+	ssd_destroy(view);
 	free(view);
 }
 
@@ -95,6 +97,7 @@ move(struct view *view, double x, double y)
 	struct wlr_xwayland_surface *s = view->xwayland_surface;
 	wlr_xwayland_surface_configure(s, (int16_t)x, (int16_t)y,
 		(uint16_t)s->width, (uint16_t)s->height);
+	ssd_update_geometry(view);
 	damage_all_outputs(view->server);
 }
 
@@ -147,9 +150,12 @@ map(struct view *view)
 	view->w = view->xwayland_surface->width;
 	view->h = view->xwayland_surface->height;
 	view->surface = view->xwayland_surface->surface;
-	view->server_side_deco = want_deco(view);
+	view->ssd.enabled = want_deco(view);
 
-	view->margin = ssd_thickness(view);
+	if (view->ssd.enabled) {
+		view->margin = ssd_thickness(view);
+		ssd_create(view);
+	}
 
 	top_left_edge_boundary_check(view);
 
@@ -209,6 +215,7 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	view->type = LAB_XWAYLAND_VIEW;
 	view->impl = &xwl_view_impl;
 	view->xwayland_surface = xsurface;
+	wl_list_init(&view->ssd.parts);
 
 	view->map.notify = handle_map;
 	wl_signal_add(&xsurface->events.map, &view->map);

@@ -69,6 +69,7 @@ handle_commit(struct wl_listener *listener, void *data)
 			view->pending_move_resize.configure_serial = 0;
 		}
 	}
+	ssd_update_geometry(view);
 	damage_view_part(view);
 }
 
@@ -91,6 +92,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
 	wl_list_remove(&view->link);
+	ssd_destroy(view);
 	free(view);
 }
 
@@ -151,6 +153,7 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 	} else if (view->pending_move_resize.configure_serial == 0) {
 		view->x = geo.x;
 		view->y = geo.y;
+		ssd_update_geometry(view);
 		damage_all_outputs(view->server);
 	}
 }
@@ -160,6 +163,7 @@ xdg_toplevel_view_move(struct view *view, double x, double y)
 {
 	view->x = x;
 	view->y = y;
+	ssd_update_geometry(view);
 	damage_all_outputs(view->server);
 }
 
@@ -253,9 +257,10 @@ xdg_toplevel_view_map(struct view *view)
 		 */
 		view_maximize(view, false);
 
-		view->server_side_deco = has_ssd(view);
-		if (view->server_side_deco) {
+		view->ssd.enabled = has_ssd(view);
+		if (view->ssd.enabled) {
 			view->margin = ssd_thickness(view);
+			ssd_create(view);
 		}
 		update_padding(view);
 		position_xdg_toplevel_view(view);
@@ -310,6 +315,7 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->type = LAB_XDG_SHELL_VIEW;
 	view->impl = &xdg_toplevel_view_impl;
 	view->xdg_surface = xdg_surface;
+	wl_list_init(&view->ssd.parts);
 
 	view->map.notify = handle_map;
 	wl_signal_add(&xdg_surface->events.map, &view->map);

@@ -321,6 +321,7 @@ render_rect(struct output *output, pixman_region32_t *output_damage,
 		output->wlr_output, &ox, &oy);
 	box.x += ox;
 	box.y += oy;
+	scale_box(&box, wlr_output->scale);
 
 	pixman_region32_t damage;
 	pixman_region32_init(&damage);
@@ -424,6 +425,7 @@ render_icon(struct output *output, pixman_region32_t *output_damage,
 		output->wlr_output, &ox, &oy);
 	button.x += ox;
 	button.y += oy;
+	scale_box(&button, output->wlr_output->scale);
 
 	float matrix[9];
 	wlr_matrix_project_box(matrix, &button, WL_OUTPUT_TRANSFORM_NORMAL, 0,
@@ -433,54 +435,48 @@ render_icon(struct output *output, pixman_region32_t *output_damage,
 }
 
 static bool
-isbutton(enum ssd_part ssd_part)
+isbutton(enum ssd_part_type type)
 {
-	return ssd_part == LAB_SSD_BUTTON_CLOSE ||
-	       ssd_part == LAB_SSD_BUTTON_MAXIMIZE ||
-	       ssd_part == LAB_SSD_BUTTON_ICONIFY;
+	return type == LAB_SSD_BUTTON_CLOSE ||
+	       type == LAB_SSD_BUTTON_MAXIMIZE ||
+	       type == LAB_SSD_BUTTON_ICONIFY;
 }
 
 static void
 render_deco(struct view *view, struct output *output,
 		pixman_region32_t *output_damage)
 {
-	if (!view->server_side_deco) {
+	if (!view->ssd.enabled) {
 		return;
 	}
 
-	struct theme *theme = view->server->theme;
-
-	/* render border */
-	float *color = theme->window_active_handle_bg_color;
-	enum ssd_part border[4] = {
-		LAB_SSD_PART_TOP,
-		LAB_SSD_PART_RIGHT,
-		LAB_SSD_PART_BOTTOM,
-		LAB_SSD_PART_LEFT,
-	};
-	for (int i = 0; i < 4; i++) {
-		struct wlr_box box = ssd_box(view, border[i]);
-		scale_box(&box, output->wlr_output->scale);
-		render_rect(output, output_damage, &box, color);
+	struct ssd_part *part;
+	wl_list_for_each_reverse(part, &view->ssd.parts, link) {
+		if (part->texture) {
+			; // render_texture()
+		} else {
+			render_rect(output, output_damage, &part->box,
+				    part->color);
+		}
 	}
 
 	/* render title */
 	struct wlr_seat *seat = view->server->seat.seat;
+	float *color;
+	struct theme *theme = view->server->theme;
 	if (view->surface == seat->keyboard_state.focused_surface) {
 		color = theme->window_active_title_bg_color;
 	} else {
 		color = theme->window_inactive_title_bg_color;
 	}
 	struct wlr_box box = ssd_box(view, LAB_SSD_PART_TITLE);
-	scale_box(&box, output->wlr_output->scale);
 	render_rect(output, output_damage, &box, color);
 
 	/* button background */
 	struct wlr_cursor *cur = view->server->seat.cursor;
-	enum ssd_part ssd_part = ssd_at(view, cur->x, cur->y);
-	box = ssd_box(view, ssd_part);
-	scale_box(&box, output->wlr_output->scale);
-	if (isbutton(ssd_part) &&
+	enum ssd_part_type type = ssd_at(view, cur->x, cur->y);
+	box = ssd_box(view, type);
+	if (isbutton(type) &&
 			wlr_box_contains_point(&box, cur->x, cur->y)) {
 		color = (float[4]){ 0.5, 0.5, 0.5, 0.5 };
 		render_rect(output, output_damage, &box, color);
@@ -489,28 +485,22 @@ render_deco(struct view *view, struct output *output,
 	/* buttons */
 	if (view->surface == seat->keyboard_state.focused_surface) {
 		box = ssd_box(view, LAB_SSD_BUTTON_CLOSE);
-		scale_box(&box, output->wlr_output->scale);
 		render_icon(output, output_damage, &box,
 			theme->xbm_close_active_unpressed);
 		box = ssd_box(view, LAB_SSD_BUTTON_MAXIMIZE);
-		scale_box(&box, output->wlr_output->scale);
 		render_icon(output, output_damage, &box,
 			theme->xbm_maximize_active_unpressed);
 		box = ssd_box(view, LAB_SSD_BUTTON_ICONIFY);
-		scale_box(&box, output->wlr_output->scale);
 		render_icon(output, output_damage, &box,
 			theme->xbm_iconify_active_unpressed);
 	} else {
 		box = ssd_box(view, LAB_SSD_BUTTON_CLOSE);
-		scale_box(&box, output->wlr_output->scale);
 		render_icon(output, output_damage, &box,
 			theme->xbm_close_inactive_unpressed);
 		box = ssd_box(view, LAB_SSD_BUTTON_MAXIMIZE);
-		scale_box(&box, output->wlr_output->scale);
 		render_icon(output, output_damage, &box,
 			theme->xbm_maximize_inactive_unpressed);
 		box = ssd_box(view, LAB_SSD_BUTTON_ICONIFY);
-		scale_box(&box, output->wlr_output->scale);
 		render_icon(output, output_damage, &box,
 			theme->xbm_iconify_inactive_unpressed);
 	}

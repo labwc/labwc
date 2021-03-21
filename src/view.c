@@ -77,7 +77,7 @@ view_maximize(struct view *view, bool maximize)
 			.width = output->width,
 			.height = output->height,
 		};
-		if (view->server_side_deco) {
+		if (view->ssd.enabled) {
 			struct border border = ssd_thickness(view);
 			box.x += border.left;
 			box.y += border.top;

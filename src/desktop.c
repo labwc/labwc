@@ -244,7 +244,7 @@ desktop_view_at(struct server *server, double lx, double ly,
 		if (_view_at(view, lx, ly, surface, sx, sy)) {
 			return view;
 		}
-		if (!view->server_side_deco) {
+		if (!view->ssd.enabled) {
 			continue;
 		}
 		*view_area = ssd_at(view, lx, ly);

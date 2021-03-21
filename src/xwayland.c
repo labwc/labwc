@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "labwc.h"
+#include "ssd.h"
 
 static void
 handle_commit(struct wl_listener *listener, void *data)

@@ -1,6 +1,7 @@
 #include "config.h"
 #include <assert.h>
 #include "labwc.h"
+#include "ssd.h"
 
 static void
 move_to_front(struct view *view)

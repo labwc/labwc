@@ -145,19 +145,6 @@ enum view_type {
 #endif
 };
 
-enum ssd_part {
-	LAB_SSD_NONE = 0,
-	LAB_SSD_BUTTON_CLOSE,
-	LAB_SSD_BUTTON_MAXIMIZE,
-	LAB_SSD_BUTTON_ICONIFY,
-	LAB_SSD_PART_TITLE,
-	LAB_SSD_PART_TOP,
-	LAB_SSD_PART_RIGHT,
-	LAB_SSD_PART_BOTTOM,
-	LAB_SSD_PART_LEFT,
-	LAB_SSD_END_MARKER
-};
-
 struct view_impl {
 	void (*configure)(struct view *view, struct wlr_box geo);
 	void (*close)(struct view *view);
@@ -344,11 +331,6 @@ void damage_view_part(struct view *view);
 void server_init(struct server *server);
 void server_start(struct server *server);
 void server_finish(struct server *server);
-
-struct border ssd_thickness(struct view *view);
-struct wlr_box ssd_max_extents(struct view *view);
-struct wlr_box ssd_box(struct view *view, enum ssd_part ssd_part);
-enum ssd_part ssd_at(struct view *view, double lx, double ly);
 
 void action(struct server *server, const char *action, const char *command);
 

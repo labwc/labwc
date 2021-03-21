@@ -13,6 +13,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
+#include "ssd.h"
 #include "theme.h"
 
 //#define DEBUG 1

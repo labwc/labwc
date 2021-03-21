@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "labwc.h"
 #include "menu/menu.h"
+#include "ssd.h"
 
 #define RESIZE_BORDER_WIDTH 2
 

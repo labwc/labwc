@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "labwc.h"
+#include "ssd.h"
 
 void
 view_move_resize(struct view *view, struct wlr_box geo)

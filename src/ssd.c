@@ -1,12 +1,13 @@
 /*
- * Helpers for handling window decorations
+ * Helpers for view server side decorations
  *
- * Copyright Johan Malm 2020
+ * Copyright (C) 2020 Johan Malm
  */
 
 #include <assert.h>
 #include "config/rcxml.h"
 #include "labwc.h"
+#include "ssd.h"
 
 #define BORDER_WIDTH (2)
 
@@ -107,3 +108,5 @@ ssd_at(struct view *view, double lx, double ly)
 	}
 	return LAB_SSD_NONE;
 }
+
+

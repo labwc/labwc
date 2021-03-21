@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "labwc.h"
+#include "ssd.h"
 
 /*
  * xdg_popup_create() and subsurface_create() are only called for the

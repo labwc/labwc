@@ -806,6 +806,11 @@ new_output_notify(struct wl_listener *listener, void *data)
 	 * Arrange outputs from left-to-right in the order they appear.
 	 * TODO: support configuration in run-time
 	 */
+
+	if (getenv("LAB_ADAPTIVE_SYNC")) {
+		info("Set %s adaptive sync to 'true'", wlr_output->name);
+		wlr_output_enable_adaptive_sync(wlr_output, true);
+	}
 	wlr_output_layout_add_auto(server->output_layout, wlr_output);
 	wlr_output_schedule_frame(wlr_output);
 }

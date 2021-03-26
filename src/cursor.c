@@ -311,6 +311,7 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* Handle _press_ on view */
 	desktop_focus_view(&server->seat, view);
+	damage_all_outputs(server);
 
 	resize_edges = get_resize_edges(view, server->seat.cursor->x,
 					server->seat.cursor->y);

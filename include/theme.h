@@ -11,6 +11,8 @@
 #include <wlr/render/wlr_renderer.h>
 
 struct theme {
+	int border_width;
+
 	float window_active_title_bg_color[4];
 	float window_active_handle_bg_color[4];
 

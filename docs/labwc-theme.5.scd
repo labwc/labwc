@@ -29,6 +29,10 @@ A theme consists of a themerc file and optionally some xbm icons.
 
 # THEME ELEMENTS
 
+*border.width*
+	Line width (integer) of border border drawn around window frames.
+	Default is 1.
+
 *window.active.title.bg.color*
 	Background for the focussed window's titlebar
 

@@ -13,16 +13,15 @@
 #include "theme.h"
 #include "ssd.h"
 
-#define BORDER_WIDTH (2)
-
 struct border
 ssd_thickness(struct view *view)
 {
+	struct theme *theme = view->server->theme;
 	struct border border = {
-		.top = rc.title_height + BORDER_WIDTH,
-		.bottom = BORDER_WIDTH,
-		.left = BORDER_WIDTH,
-		.right = BORDER_WIDTH,
+		.top = rc.title_height + theme->border_width,
+		.bottom = theme->border_width,
+		.left = theme->border_width,
+		.right = theme->border_width,
 	};
 	return border;
 }
@@ -43,8 +42,9 @@ ssd_max_extents(struct view *view)
 struct wlr_box
 ssd_box(struct view *view, enum ssd_part_type type)
 {
+	struct theme *theme = view->server->theme;
 	struct wlr_box box = { 0 };
-	int corner_square = rc.title_height + BORDER_WIDTH;
+	int corner_square = rc.title_height + theme->border_width;
 	assert(view);
 	switch (type) {
 	case LAB_SSD_BUTTON_CLOSE:
@@ -75,28 +75,28 @@ ssd_box(struct view *view, enum ssd_part_type type)
 		box.x = view->x + rc.title_height;
 		box.y = view->y - corner_square;
 		box.width = view->w - 2 * rc.title_height;
-		box.height = BORDER_WIDTH;
+		box.height = theme->border_width;
 		break;
 	case LAB_SSD_PART_RIGHT:
 		box.x = view->x + view->w;
 		box.y = view->y;
-		box.width = BORDER_WIDTH;
+		box.width = theme->border_width;
 		box.height = view->h;
 		break;
 	case LAB_SSD_PART_BOTTOM:
-		box.x = view->x - BORDER_WIDTH;
+		box.x = view->x - theme->border_width;
 		box.y = view->y + view->h;
-		box.width = view->w + 2 * BORDER_WIDTH;
-		box.height = +BORDER_WIDTH;
+		box.width = view->w + 2 * theme->border_width;
+		box.height = +theme->border_width;
 		break;
 	case LAB_SSD_PART_LEFT:
-		box.x = view->x - BORDER_WIDTH;
+		box.x = view->x - theme->border_width;
 		box.y = view->y;
-		box.width = BORDER_WIDTH;
+		box.width = theme->border_width;
 		box.height = view->h;
 		break;
 	case LAB_SSD_PART_CORNER_TOP_LEFT:
-		box.x = view->x - BORDER_WIDTH;
+		box.x = view->x - theme->border_width;
 		box.y = view->y - corner_square;
 		box.width = corner_square;
 		box.height = corner_square;
@@ -203,12 +203,12 @@ rounded_rect(struct wlr_renderer *renderer, struct rounded_corner_ctx *ctx)
 	/* border */
 	cairo_set_line_cap(cairo, CAIRO_LINE_CAP_ROUND);
 	set_source(cairo, ctx->border_color);
-	cairo_set_line_width(cairo, BORDER_WIDTH);
-	double half_line_width = BORDER_WIDTH / 2.0;
+	cairo_set_line_width(cairo, ctx->line_width);
+	double half_line_width = ctx->line_width / 2.0;
 	switch (ctx->corner) {
 	case LAB_CORNER_TOP_LEFT:
 		cairo_move_to(cairo, half_line_width, h);
-		cairo_line_to(cairo, half_line_width, r + BORDER_WIDTH);
+		cairo_line_to(cairo, half_line_width, r + half_line_width);
 		cairo_arc(cairo, r, r, r - half_line_width, 180 * deg, 270 * deg);
 		cairo_line_to(cairo, w, half_line_width);
 		break;
@@ -273,7 +273,7 @@ ssd_create(struct view *view)
 	struct rounded_corner_ctx ctx = {
 		.box = &part->box,
 		.radius = 7.0, /* TODO: get from config */
-		.line_width = 1.0,
+		.line_width = theme->border_width,
 		.fill_color = theme->window_active_title_bg_color,
 		.border_color = theme->window_active_handle_bg_color,
 		.corner = LAB_CORNER_TOP_LEFT,

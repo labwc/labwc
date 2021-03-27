@@ -11,14 +11,22 @@ enum ssd_part_type {
 	LAB_SSD_PART_RIGHT,
 	LAB_SSD_PART_BOTTOM,
 	LAB_SSD_PART_LEFT,
+	LAB_SSD_PART_CORNER_TOP_RIGHT,
+	LAB_SSD_PART_CORNER_TOP_LEFT,
 	LAB_SSD_END_MARKER
 };
 
 struct ssd_part {
 	struct wlr_box box;
 	enum ssd_part_type type;
-	struct wlr_texture *texture;
-	float *color;
+	struct {
+		struct wlr_texture *active;
+		struct wlr_texture *inactive;
+	} texture;
+	struct {
+		float *active;
+		float *inactive;
+	} color;
 	struct wl_list link;
 };
 

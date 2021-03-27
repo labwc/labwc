@@ -434,6 +434,30 @@ render_icon(struct output *output, pixman_region32_t *output_damage,
 		matrix);
 }
 
+void
+render_texture_helper(struct output *output, pixman_region32_t *output_damage,
+		struct wlr_box *_box, struct wlr_texture *texture)
+{
+	if (!texture) {
+		return;
+	}
+	struct wlr_box box;
+	memcpy(&box, _box, sizeof(struct wlr_box));
+
+	double ox = 0, oy = 0;
+	wlr_output_layout_output_coords(output->server->output_layout,
+		output->wlr_output, &ox, &oy);
+	box.x += ox;
+	box.y += oy;
+	scale_box(&box, output->wlr_output->scale);
+
+	float matrix[9];
+	wlr_matrix_project_box(matrix, &box, WL_OUTPUT_TRANSFORM_NORMAL, 0,
+		output->wlr_output->transform_matrix);
+	render_texture(output->wlr_output, output_damage, texture, &box,
+		matrix);
+}
+
 static bool
 isbutton(enum ssd_part_type type)
 {
@@ -450,39 +474,35 @@ render_deco(struct view *view, struct output *output,
 		return;
 	}
 
+	struct wlr_seat *seat = view->server->seat.seat;
+	bool focused = view->surface == seat->keyboard_state.focused_surface;
+
 	struct ssd_part *part;
 	wl_list_for_each_reverse(part, &view->ssd.parts, link) {
-		if (part->texture) {
-			; // render_texture()
+		if (part->texture.active) {
+			struct wlr_texture *texture = focused ?
+				part->texture.active : part->texture.inactive;
+			render_texture_helper(output, output_damage, &part->box,
+					      texture);
 		} else {
-			render_rect(output, output_damage, &part->box,
-				    part->color);
+			float *color = focused ?
+				part->color.active : part->color.inactive;
+			render_rect(output, output_damage, &part->box, color);
 		}
 	}
-
-	/* render title */
-	struct wlr_seat *seat = view->server->seat.seat;
-	float *color;
-	struct theme *theme = view->server->theme;
-	if (view->surface == seat->keyboard_state.focused_surface) {
-		color = theme->window_active_title_bg_color;
-	} else {
-		color = theme->window_inactive_title_bg_color;
-	}
-	struct wlr_box box = ssd_box(view, LAB_SSD_PART_TITLE);
-	render_rect(output, output_damage, &box, color);
 
 	/* button background */
 	struct wlr_cursor *cur = view->server->seat.cursor;
 	enum ssd_part_type type = ssd_at(view, cur->x, cur->y);
-	box = ssd_box(view, type);
+	struct wlr_box box = ssd_box(view, type);
 	if (isbutton(type) &&
 			wlr_box_contains_point(&box, cur->x, cur->y)) {
-		color = (float[4]){ 0.5, 0.5, 0.5, 0.5 };
+		float *color = (float[4]){ 0.5, 0.5, 0.5, 0.5 };
 		render_rect(output, output_damage, &box, color);
 	}
 
 	/* buttons */
+	struct theme *theme = view->server->theme;
 	if (view->surface == seat->keyboard_state.focused_surface) {
 		box = ssd_box(view, LAB_SSD_BUTTON_CLOSE);
 		render_icon(output, output_damage, &box,

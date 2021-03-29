@@ -160,6 +160,7 @@ seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer)
 	if (!layer) {
 		seat->focused_layer = NULL;
 		desktop_focus_topmost_mapped_view(seat->server);
+		damage_all_outputs(seat->server);
 		return;
 	}
 	seat_focus_surface(seat, layer->surface);

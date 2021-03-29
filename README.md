@@ -6,7 +6,7 @@
 - [4. Configure](#4-configure)
 - [5. Run](#5-run)
 - [6. Integrate](#6-integrate)
-- [7. Acceptance Criteria](#7-acceptance-criteria)
+- [7. Accept](#7-acceptance-criteria)
 
 ## 1. What is this?
 
@@ -108,7 +108,7 @@ High-level summary of progress:
 - [x] Support damage tracking to reduce CPU usage
 - [x] Parse menu.xml to generate a basic root-menu
 - [x] Support wlr-output-management protocol
-- [ ] Support HiDPI
+- [x] Support HiDPI
 - [ ] Support foreign-toplevel protocol (e.g. to integrate with wlroots panels/bars)
 - [ ] Support on-screen display (osd), for example to support alt-tab window list
 - [ ] Support libinput configuration (tap is enabled for the time being)

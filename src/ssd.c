@@ -272,7 +272,7 @@ ssd_create(struct view *view)
 	part->box = ssd_box(view, part->type);
 	struct rounded_corner_ctx ctx = {
 		.box = &part->box,
-		.radius = 7.0, /* TODO: get from config */
+		.radius = rc.corner_radius,
 		.line_width = theme->border_width,
 		.fill_color = theme->window_active_title_bg_color,
 		.border_color = theme->window_active_handle_bg_color,

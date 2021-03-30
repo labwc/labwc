@@ -28,6 +28,9 @@ This section contains settings which are not present in Openbox.
 *<theme><name>*
 	The name of the Openbox theme to use. Default is Clearlooks-3.4
 
+*<theme><cornerRadius>*
+	The radius of server side decoration top corners. Default is 8.
+
 *<theme><font place="">*
 	The font to use for a specific element of a window, menu or OSD.
 	Place can be any of:
@@ -50,7 +53,7 @@ This section contains settings which are not present in Openbox.
 *<keyboard><keybind key=""><action name="">*
 	Keybind action. See labwc-action(5)
 
-Default if no rc.xml is found:
+Default key-binds if no rc.xml is found:
 
 ```
 <keyboard>

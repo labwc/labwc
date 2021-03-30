@@ -10,6 +10,7 @@
 struct rcxml {
 	bool xdg_shell_server_side_deco;
 	char *theme_name;
+	int corner_radius;
 	char *font_name_activewindow;
 	int font_size_activewindow;
 	struct wl_list keybinds;

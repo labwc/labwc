@@ -141,6 +141,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.xdg_shell_server_side_deco = get_bool(content);
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = strdup(content);
+	} else if (!strcmp(nodename, "cornerradius.theme")) {
+		rc.corner_radius = atoi(content);
 	} else if (!strcmp(nodename, "name.font.theme")) {
 		fill_font(nodename, content, font_place);
 	} else if (!strcmp(nodename, "size.font.theme")) {
@@ -209,13 +211,6 @@ rcxml_parse_xml(struct buf *b)
 }
 
 static void
-pre_processing(void)
-{
-	rc.xdg_shell_server_side_deco = true;
-	rc.font_size_activewindow = 10;
-}
-
-static void
 rcxml_init()
 {
 	static bool has_run;
@@ -226,7 +221,9 @@ rcxml_init()
 	has_run = true;
 	LIBXML_TEST_VERSION
 	wl_list_init(&rc.keybinds);
-	pre_processing();
+	rc.xdg_shell_server_side_deco = true;
+	rc.corner_radius = 8;
+	rc.font_size_activewindow = 10;
 }
 
 static void
@@ -273,6 +270,9 @@ post_processing(void)
 		rc.font_name_activewindow = strdup("sans");
 	}
 	set_title_height();
+	if (rc.corner_radius >= rc.title_height) {
+		rc.corner_radius = rc.title_height - 1;
+	}
 }
 
 static void

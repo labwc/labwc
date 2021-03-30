@@ -16,7 +16,7 @@ It has the following aims:
 
 - Be light-weight, small and fast.
 - Use [openbox-3.4](https://github.com/danakj/openbox) specification for configuration and themes.
-- Keep [feature set](https://github.com/johanmalm/labwc/wiki/Acceptance-criteria) small (ca 40% of openbox).
+- Keep [feature set](#7-acceptance-criteria) small (ca 40% of openbox).
 - Where practicable, use clients for wall-paper, panel, screenshots, and so on.
 - Stay in keeping with wlroots and sway in terms of approach and coding style.
 
@@ -43,7 +43,7 @@ Dependencies include:
 
 Disable xwayland with `meson -Dxwayland=disabled build/`
 
-For further details see [wiki/Build](https://github.com/johanmalm/labwc/wiki/Build).
+For further details see [wiki/Build].
 
 ## 3. Install
 
@@ -90,12 +90,15 @@ Suggested apps to use with labwc:
 
 ## 7. Acceptance Criteria
 
-A lot of emphasis is put on code simplicy when considering features. The main
-development effort if focused on producing a solid foundation for a stacking
-compositor rather than quickly adding configuration and theming options.
+A lot of emphasis is put on code simplicy when considering features.
 
-See [wiki/Acceptance-criteria](https://github.com/johanmalm/labwc/wiki/Acceptance-criteria)
-for a full down-selection.
+The main development effort if focused on producing a solid foundation for a
+stacking compositor rather than adding configuration and theming options.
+
+In order to define what 'small feature set' means, refer to the lists of
+[complete] and [outstanding] items.
+
+For more details, see the full table of [acceptance criteria](https://github.com/johanmalm/labwc/wiki/Acceptance-criteria).
 
 High-level summary of progress:
 
@@ -113,12 +116,15 @@ High-level summary of progress:
 - [ ] Support on-screen display (osd), for example to support alt-tab window list
 - [ ] Support libinput configuration (tap is enabled for the time being)
 
-The following items are out-of-scope:
+High-level summary of items which are not inteded to be implemented:
 
 - Icons (except window buttons)
 - Animations
 - Gradients for decoration and menus
 - Any theme option not required to reasonably render common themes (amazingig
   how few options are actually required).
-- Any configuration option not required to provide a simple openbox-like experience
+
+[wiki/Build]: https://github.com/johanmalm/labwc/wiki/Build
+[complete]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-complete-items
+[outstanding]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-outstanding-items
 

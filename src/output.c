@@ -827,7 +827,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 	 * TODO: support configuration in run-time
 	 */
 
-	if (getenv("LAB_ADAPTIVE_SYNC")) {
+	if (getenv("LABWC_ADAPTIVE_SYNC")) {
 		info("Set %s adaptive sync to 'true'", wlr_output->name);
 		wlr_output_enable_adaptive_sync(wlr_output, true);
 	}

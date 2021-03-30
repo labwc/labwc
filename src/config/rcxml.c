@@ -22,8 +22,6 @@
 
 static bool in_keybind = false;
 static bool is_attribute = false;
-static bool write_to_nodename_buffer = false;
-static struct buf *nodename_buffer;
 static struct keybind *current_keybind;
 
 enum font_place {
@@ -113,17 +111,11 @@ entry(xmlNode *node, char *nodename, char *content)
 	}
 	string_truncate_at_pattern(nodename, ".openbox_config");
 
-	/* for debugging */
-	if (write_to_nodename_buffer) {
+	if (getenv("LABWC_DEBUG_CONFIG_NODENAMES")) {
 		if (is_attribute) {
-			buf_add(nodename_buffer, "@");
+			printf("@");
 		}
-		buf_add(nodename_buffer, nodename);
-		if (content) {
-			buf_add(nodename_buffer, ": ");
-			buf_add(nodename_buffer, content);
-		}
-		buf_add(nodename_buffer, "\n");
+		printf("%s: %s\n", nodename, content);
 	}
 
 	if (!content) {
@@ -354,11 +346,4 @@ rcxml_finish(void)
 		zfree(k->keysyms);
 		zfree(k);
 	}
-}
-
-void
-rcxml_get_nodenames(struct buf *b)
-{
-	write_to_nodename_buffer = true;
-	nodename_buffer = b;
 }

@@ -29,7 +29,6 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		return;
 	}
 	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0) {
-		warn("libinput device finger count <= 0");
 		return;
 	}
 	info("tap enabled for libinput device");

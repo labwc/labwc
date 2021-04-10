@@ -42,7 +42,7 @@ simple compositor such as labwc.
 Dependencies include:
 
 - meson, ninja, gcc/clang
-- wlroots (master)
+- wlroots (>=0.13.0 or master)
 - wayland (>=1.19)
 - wayland-protocols
 - libinput (>=1.14)

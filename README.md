@@ -121,7 +121,7 @@ High-level summary of items which are not inteded to be implemented:
 - Icons (except window buttons)
 - Animations
 - Gradients for decoration and menus
-- Any theme option not required to reasonably render common themes (amazingig
+- Any theme option not required to reasonably render common themes (it's amazing
   how few options are actually required).
 
 [wiki/Build]: https://github.com/johanmalm/labwc/wiki/Build

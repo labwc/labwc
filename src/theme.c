@@ -64,11 +64,16 @@ parse_hexstr(const char *hex, float *rgba)
 void theme_builtin(struct theme *theme)
 {
 	theme->border_width = 1;
-	parse_hexstr("#589bda", theme->window_active_title_bg_color);
+
 	parse_hexstr("#3c7cb7", theme->window_active_border_color);
+	parse_hexstr("#efece6", theme->window_inactive_border_color);
+
+	parse_hexstr("#589bda", theme->window_active_title_bg_color);
 	parse_hexstr("#efece6", theme->window_inactive_title_bg_color);
+
 	parse_hexstr("#ffffff", theme->window_active_button_unpressed_image_color);
 	parse_hexstr("#000000", theme->window_inactive_button_unpressed_image_color);
+
 	parse_hexstr("#fcfbfa", theme->menu_items_bg_color);
 	parse_hexstr("#000000", theme->menu_items_text_color);
 	parse_hexstr("#4a90d9", theme->menu_items_active_bg_color);
@@ -88,16 +93,22 @@ static void entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match(key, "border.width")) {
 		theme->border_width = atoi(value);
+
+	} else if (match(key, "window.active.border.color")) {
+		parse_hexstr(value, theme->window_active_border_color);
+	} else if (match(key, "window.inactive.border.color")) {
+		parse_hexstr(value, theme->window_inactive_border_color);
+
 	} else if (match(key, "window.active.title.bg.color")) {
 		parse_hexstr(value, theme->window_active_title_bg_color);
-	} else if (match(key, "window.active.handle.bg.color")) {
-		parse_hexstr(value, theme->window_active_border_color);
 	} else if (match(key, "window.inactive.title.bg.color")) {
 		parse_hexstr(value, theme->window_inactive_title_bg_color);
+
 	} else if (match(key, "window.active.button.unpressed.image.color")) {
 		parse_hexstr(value, theme->window_active_button_unpressed_image_color);
 	} else if (match(key, "window.inactive.button.unpressed.image.color")) {
 		parse_hexstr(value, theme->window_inactive_button_unpressed_image_color);
+
 	} else if (match(key, "menu.items.bg.color")) {
 		parse_hexstr(value, theme->menu_items_bg_color);
 	} else if (match(key, "menu.items.text.color")) {

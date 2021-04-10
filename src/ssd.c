@@ -257,7 +257,7 @@ ssd_create(struct view *view)
 		part = add_part(view, border[i]);
 		part->box = ssd_box(view, border[i]);
 		part->color.active = theme->window_active_border_color;
-		part->color.inactive = theme->window_active_border_color;
+		part->color.inactive = theme->window_inactive_border_color;
 	}
 
 	/* titlebar */
@@ -266,7 +266,7 @@ ssd_create(struct view *view)
 	part->color.active = theme->window_active_title_bg_color;
 	part->color.inactive = theme->window_inactive_title_bg_color;
 
-	/* titlebar top left corner */
+	/* titlebar active top left corner */
 	struct wlr_renderer *renderer = view->server->renderer;
 	part = add_part(view, LAB_SSD_PART_CORNER_TOP_LEFT);
 	part->box = ssd_box(view, part->type);
@@ -280,18 +280,23 @@ ssd_create(struct view *view)
 	};
 	part->texture.active = rounded_rect(renderer, &ctx);
 
+	/* titlebar inactive top left corner */
 	ctx.fill_color = theme->window_inactive_title_bg_color,
+	ctx.border_color = theme->window_inactive_border_color,
 	part->texture.inactive = rounded_rect(renderer, &ctx);
 
-	/* titlebar top right corner */
+	/* titlebar active top right corner */
 	part = add_part(view, LAB_SSD_PART_CORNER_TOP_RIGHT);
 	part->box = ssd_box(view, part->type);
 	ctx.box = &part->box;
 	ctx.corner = LAB_CORNER_TOP_RIGHT;
 	ctx.fill_color = theme->window_active_title_bg_color,
+	ctx.border_color = theme->window_active_border_color,
 	part->texture.active = rounded_rect(renderer, &ctx);
 
+	/* titlebar inactive top right corner */
 	ctx.fill_color = theme->window_inactive_title_bg_color,
+	ctx.border_color = theme->window_inactive_border_color,
 	part->texture.inactive = rounded_rect(renderer, &ctx);
 }
 

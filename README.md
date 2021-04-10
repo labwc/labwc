@@ -12,17 +12,27 @@
 
 Labwc is a wlroots-based stacking compositor for Wayland.
 
-It has the following aims:
+It aims to be light-weight and independent, with a focus on simply
+stacking windows well. Where practicable, clients will be used for such
+things as wall-paper, panels and screenshots.
 
-- Be light-weight, small and fast.
-- Use [openbox-3.4](https://github.com/danakj/openbox) specification for configuration and themes.
-- Keep [feature set](#7-acceptance-criteria) small (ca 40% of openbox).
-- Where practicable, use clients for wall-paper, panel, screenshots, and so on.
-- Stay in keeping with wlroots and sway in terms of approach and coding style.
+Labwc tries to stay in keeping with wlroots and sway in terms of general
+approach and coding style.
 
-[Video (3:42) showing features](https://youtu.be/rE1bQjSVJzg)
+In order to avoid re-inventing configuration syntax and theme variable
+names, [openbox-3.4] specification is used. This does not mean that
+labwc is an openbox clone. In fact, as a Wayland compositor it will be
+quite different in areas, and the [acceptance criteria] only lists ca
+40% of openbox features.
 
-<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png"><img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2x.png" width="256px" height="144px"></a> <a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png"><img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3x.png" width="256px" height="179px"></a>
+Parsing GTK3 and Qt themes for window decorations is quite complicated,
+so using the much simpler openbox specification makes sense for a
+simple compositor such as labwc.
+
+[Video (3:42)](https://youtu.be/rE1bQjSVJzg)
+
+<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png"><img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2x.png" width="256px" height="144px"></a>
+<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png"><img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3x.png" width="256px" height="179px"></a>
 
 ## 2. Build
 
@@ -124,7 +134,8 @@ High-level summary of items which are not inteded to be implemented:
 - Any theme option not required to reasonably render common themes (it's amazing
   how few options are actually required).
 
+[openbox-3.4]: https://github.com/danakj/openbox
+[acceptance criteria]: #7-acceptance-criteria
 [wiki/Build]: https://github.com/johanmalm/labwc/wiki/Build
 [complete]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-complete-items
 [outstanding]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-outstanding-items
-

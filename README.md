@@ -13,8 +13,9 @@
 Labwc is a wlroots-based stacking compositor for Wayland.
 
 It aims to be light-weight and independent, with a focus on simply
-stacking windows well. Where practicable, clients will be used for such
-things as wall-paper, panels and screenshots.
+stacking windows well and rendering some window decorations. Where
+practicable, it uses clients for wall-paper, panels, screenshots, and so
+on.
 
 Labwc tries to stay in keeping with wlroots and sway in terms of general
 approach and coding style.
@@ -61,19 +62,17 @@ See [wiki/Install](https://github.com/johanmalm/labwc/wiki/Install).
 
 ## 4. Configure
 
-If you want to override the defaults, create the following files:
+Labwc uses the following files listed below for configuration and theming.
 
-- ~/.config/labwc/[rc.xml](docs/rc.xml)
-- ~/.config/labwc/[menu.xml](docs/menu.xml)
-- ~/.local/share/themes/\<theme-name\>/openbox-3/[themerc](docs/themerc)
+| file          | user over-ride location                         | man page
+| ------------- | ----------------------------------------------- | --------
+| [rc.xml]      | ~/.config/labwc/                                | [labwc-config(5)]
+| [menu.xml]    | ~/.config/labwc/                                | [labwc-menu(5)]
+| [autostart]   | ~/.config/labwc/                                | [labwc(1)]
+| [environment] | ~/.config/labwc/                                | [labwc-environment(5)]
+| [themerc]     | ~/.local/share/themes/\<theme-name\>/openbox-3/ | [labwc-theme(5)]
 
-See full details in the following:
-
-- [labwc(1)](https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc.1.scd)
-- [labwc-config(5)](https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-config.5.scd)
-- [labwc-theme(5)](https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-theme.5.scd)
-- [labwc-actions(5)](https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-actions.5.scd)
-- [labwc-menu(5)](https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-menu.5.scd)
+See also [labwc(1)] and [labwc-actions(5)]
 
 ## 5. Run
 
@@ -135,7 +134,23 @@ High-level summary of items which are not inteded to be implemented:
   how few options are actually required).
 
 [openbox-3.4]: https://github.com/danakj/openbox
-[acceptance criteria]: #7-acceptance-criteria
+
+[rc.xml]: docs/rc.xml
+[menu.xml]: docs/menu.xml
+[autostart]: docs/autostart
+[environment]: docs/environment
+[themerc]: docs/themerc
+
+[labwc(1)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc.1.scd
+[labwc-config(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-config.5.scd
+[labwc-menu(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-menu.5.scd
+[labwc-environment(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-environment.5.scd
+[labwc-theme(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-theme.5.scd
+[labwc-actions(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-actions.5.sc
+
 [wiki/Build]: https://github.com/johanmalm/labwc/wiki/Build
+
+[acceptance criteria]: #7-acceptance-criteria
 [complete]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-complete-items
 [outstanding]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-outstanding-items
+

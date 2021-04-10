@@ -1,0 +1,4 @@
+# Example environment file
+
+# Set keyboard layout to Swedish
+XKB_DEFAULT_LAYOUT=se

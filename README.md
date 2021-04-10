@@ -23,7 +23,7 @@ approach and coding style.
 In order to avoid re-inventing configuration syntax and theme variable
 names, [openbox-3.4] specification is used. This does not mean that
 labwc is an openbox clone. In fact, as a Wayland compositor it will be
-quite different in areas, and the [acceptance criteria] only lists ca
+quite different in areas, and the acceptance criteria only lists ca
 40% of openbox features.
 
 Parsing GTK3 and Qt themes for window decorations is quite complicated,
@@ -32,8 +32,12 @@ simple compositor such as labwc.
 
 [Video (3:42)](https://youtu.be/rE1bQjSVJzg)
 
-<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png"><img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2x.png" width="256px" height="144px"></a>
-<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png"><img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3x.png" width="256px" height="179px"></a>
+<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png">
+  <img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2x.png" width="256px" height="144px">
+</a>  
+<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png">
+  <img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3x.png" width="256px" height="179px">
+</a>
 
 ## 2. Build
 
@@ -62,7 +66,7 @@ See [wiki/Install](https://github.com/johanmalm/labwc/wiki/Install).
 
 ## 4. Configure
 
-Labwc uses the following files listed below for configuration and theming.
+Labwc uses the files listed below for configuration and theming.
 
 | file          | user over-ride location                         | man page
 | ------------- | ----------------------------------------------- | --------
@@ -90,12 +94,12 @@ If you have not created an rc.xml configuration file, default keybinds will be:
 
 Suggested apps to use with labwc:
 
-- Screen-shooter: [grim](https://github.com/emersion/grim)
-- Screen-recorder: [wf-recorder](https://github.com/ammen99/wf-recorder)
-- Background image: [swaybg](https://github.com/swaywm/swaybg)
-- Panel: [waybar](https://github.com/Alexays/Waybar)
-- Launchers: [bemenu](https://github.com/Cloudef/bemenu), [fuzzel](https://codeberg.org/dnkl/fuzzel), [wofi](https://hg.sr.ht/~scoopta/wofi)
-- Output managers: [kanshi](https://github.com/emersion/kanshi.git), [wlr-randr](https://github.com/emersion/wlr-randr.git)
+- Screen-shooter: [grim]
+- Screen-recorder: [wf-recorder]
+- Background image: [swaybg]
+- Panel: [waybar]
+- Launchers: [bemenu], [fuzzel], [wofi]
+- Output managers: [kanshi], [wlr-randr]
 
 ## 7. Acceptance Criteria
 
@@ -107,7 +111,7 @@ stacking compositor rather than adding configuration and theming options.
 In order to define what 'small feature set' means, refer to the lists of
 [complete] and [outstanding] items.
 
-For more details, see the full table of [acceptance criteria](https://github.com/johanmalm/labwc/wiki/Acceptance-criteria).
+For more details, see the full table of [acceptance criteria].
 
 High-level summary of progress:
 
@@ -150,7 +154,17 @@ High-level summary of items which are not inteded to be implemented:
 
 [wiki/Build]: https://github.com/johanmalm/labwc/wiki/Build
 
-[acceptance criteria]: #7-acceptance-criteria
+[grim]: https://github.com/emersion/grim
+[wf-recorder]: https://github.com/ammen99/wf-recorder
+[swaybg]: https://github.com/swaywm/swaybg
+[waybar]: https://github.com/Alexays/Waybar
+[bemenu]: https://github.com/Cloudef/bemenu
+[fuzzel]: https://codeberg.org/dnkl/fuzzel
+[wofi]: https://hg.sr.ht/~scoopta/wofi
+[kanshi]: https://github.com/emersion/kanshi.git
+[wlr-randr]: https://github.com/emersion/wlr-randr.git
+
+[acceptance criteria]: https://github.com/johanmalm/labwc/wiki/Acceptance-criteria
 [complete]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-complete-items
 [outstanding]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-outstanding-items
 

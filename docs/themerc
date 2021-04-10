@@ -1,10 +1,20 @@
-window.active.title.bg.color: #589bda
-window.active.handle.bg.color: #3c7cb7
-window.inactive.title.bg.color: #efece6
-window.active.button.unpressed.image.color: #ffffff
+# general
+border.width: 1
+
+# window border
+window.active.border.color: #dddad6
+window.inactive.border.color: #f6f5f4
+
+# window title
+window.active.title.bg.color: #dddad6
+window.inactive.title.bg.color: #f6f5f4
+
+# window buttons
+window.active.button.unpressed.image.color: #000000
 window.inactive.button.unpressed.image.color: #000000
 
+# menu
 menu.items.bg.color: #fcfbfa
 menu.items.text.color: #000000
-menu.items.active.bg.color: #4a90d9
-menu.items.active.text.color: #ffffff
+menu.items.active.bg.color: #dddad6
+menu.items.active.text.color: #000000

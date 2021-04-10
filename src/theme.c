@@ -91,31 +91,46 @@ static void entry(struct theme *theme, const char *key, const char *value)
 	if (!key || !value) {
 		return;
 	}
+
+	/*
+	 * Note that in order for the pattern match to apply to more than just
+	 * the first instance, "else if" cannot be used throughout this function
+	 */
 	if (match(key, "border.width")) {
 		theme->border_width = atoi(value);
+	}
 
-	} else if (match(key, "window.active.border.color")) {
+	if (match(key, "window.active.border.color")) {
 		parse_hexstr(value, theme->window_active_border_color);
-	} else if (match(key, "window.inactive.border.color")) {
+	}
+	if (match(key, "window.inactive.border.color")) {
 		parse_hexstr(value, theme->window_inactive_border_color);
+	}
 
-	} else if (match(key, "window.active.title.bg.color")) {
+	if (match(key, "window.active.title.bg.color")) {
 		parse_hexstr(value, theme->window_active_title_bg_color);
-	} else if (match(key, "window.inactive.title.bg.color")) {
+	}
+	if (match(key, "window.inactive.title.bg.color")) {
 		parse_hexstr(value, theme->window_inactive_title_bg_color);
+	}
 
-	} else if (match(key, "window.active.button.unpressed.image.color")) {
+	if (match(key, "window.active.button.unpressed.image.color")) {
 		parse_hexstr(value, theme->window_active_button_unpressed_image_color);
-	} else if (match(key, "window.inactive.button.unpressed.image.color")) {
+	}
+	if (match(key, "window.inactive.button.unpressed.image.color")) {
 		parse_hexstr(value, theme->window_inactive_button_unpressed_image_color);
+	}
 
-	} else if (match(key, "menu.items.bg.color")) {
+	if (match(key, "menu.items.bg.color")) {
 		parse_hexstr(value, theme->menu_items_bg_color);
-	} else if (match(key, "menu.items.text.color")) {
+	}
+	if (match(key, "menu.items.text.color")) {
 		parse_hexstr(value, theme->menu_items_text_color);
-	} else if (match(key, "menu.items.active.bg.color")) {
+	}
+	if (match(key, "menu.items.active.bg.color")) {
 		parse_hexstr(value, theme->menu_items_active_bg_color);
-	} else if (match(key, "menu.items.active.text.color")) {
+	}
+	if (match(key, "menu.items.active.text.color")) {
 		parse_hexstr(value, theme->menu_items_active_text_color);
 	}
 }

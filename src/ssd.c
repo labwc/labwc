@@ -256,8 +256,8 @@ ssd_create(struct view *view)
 	for (int i = 0; i < 4; i++) {
 		part = add_part(view, border[i]);
 		part->box = ssd_box(view, border[i]);
-		part->color.active = theme->window_active_handle_bg_color;
-		part->color.inactive = theme->window_active_handle_bg_color;
+		part->color.active = theme->window_active_border_color;
+		part->color.inactive = theme->window_active_border_color;
 	}
 
 	/* titlebar */
@@ -275,7 +275,7 @@ ssd_create(struct view *view)
 		.radius = rc.corner_radius,
 		.line_width = theme->border_width,
 		.fill_color = theme->window_active_title_bg_color,
-		.border_color = theme->window_active_handle_bg_color,
+		.border_color = theme->window_active_border_color,
 		.corner = LAB_CORNER_TOP_LEFT,
 	};
 	part->texture.active = rounded_rect(renderer, &ctx);

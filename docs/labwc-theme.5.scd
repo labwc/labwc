@@ -33,11 +33,11 @@ A theme consists of a themerc file and optionally some xbm icons.
 	Line width (integer) of border border drawn around window frames.
 	Default is 1.
 
+*window.active.border.color*
+	Border color of active window
+
 *window.active.title.bg.color*
 	Background for the focussed window's titlebar
-
-*window.active.handle.bg.color*
-	Background for the focussed window's handle.
 
 *window.inactive.title.bg.color*
 	Background for non-focussed windows' titlebars

@@ -10,10 +10,12 @@ labwc - A Wayland stacking compositor
 
 # DESCRIPTION
 
-Labwc is a stacking compositor for Wayland. It aims to be light-weight and have
-the feel of Openbox albeit with a smaller feature set. Where practicable, it
-uses clients to show wall-paper, take screenshots, and so on. It tries to stay
-in keeping with wlroots and sway in terms of approach and coding style.
+Labwc is a wlroots-based stacking compositor for Wayland.
+
+It aims to be light-weight and independent, with a focus on simply
+stacking windows well and rendering some window decorations. Where
+practicable, it uses clients for wall-paper, panels, screenshots, and so
+on.
 
 # OPTIONS
 

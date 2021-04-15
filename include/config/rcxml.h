@@ -14,7 +14,6 @@ struct rcxml {
 	char *font_name_activewindow;
 	int font_size_activewindow;
 	struct wl_list keybinds;
-	int title_height; /* not set in rc.xml, but derived from font, etc */
 };
 
 extern struct rcxml rc;

@@ -12,7 +12,6 @@
 #include <wayland-server-core.h>
 
 #include "common/dir.h"
-#include "common/font.h"
 #include "common/log.h"
 #include "common/nodename.h"
 #include "common/string-helpers.h"
@@ -237,15 +236,6 @@ bind(const char *binding, const char *action, const char *command)
 }
 
 static void
-set_title_height(void)
-{
-	char buf[256];
-	snprintf(buf, sizeof(buf), "%s %d", rc.font_name_activewindow,
-		 rc.font_size_activewindow);
-	rc.title_height = font_height(buf);
-}
-
-static void
 post_processing(void)
 {
 	if (!wl_list_length(&rc.keybinds)) {
@@ -260,10 +250,6 @@ post_processing(void)
 	}
 	if (!rc.font_name_activewindow) {
 		rc.font_name_activewindow = strdup("sans");
-	}
-	set_title_height();
-	if (rc.corner_radius >= rc.title_height) {
-		rc.corner_radius = rc.title_height - 1;
 	}
 }
 

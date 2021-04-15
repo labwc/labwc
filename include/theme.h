@@ -12,6 +12,7 @@
 
 struct theme {
 	int border_width;
+	int padding_height;
 
 	float window_active_border_color[4];
 	float window_inactive_border_color[4];
@@ -34,6 +35,9 @@ struct theme {
 	struct wlr_texture *xbm_close_inactive_unpressed;
 	struct wlr_texture *xbm_maximize_inactive_unpressed;
 	struct wlr_texture *xbm_iconify_inactive_unpressed;
+
+	/* not set in rc.xml or themerc, but derived from font and padding_height */
+	int title_height;
 };
 
 /**

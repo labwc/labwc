@@ -7,9 +7,11 @@
 #include <string.h>
 
 #include "common/dir.h"
+#include "common/font.h"
 #include "common/log.h"
 #include "common/string-helpers.h"
 #include "common/zfree.h"
+#include "config/rcxml.h"
 #include "theme.h"
 #include "xbm/xbm.h"
 
@@ -64,6 +66,7 @@ parse_hexstr(const char *hex, float *rgba)
 void theme_builtin(struct theme *theme)
 {
 	theme->border_width = 1;
+	theme->padding_height = 3;
 
 	parse_hexstr("#dddad6", theme->window_active_border_color);
 	parse_hexstr("#f6f5f4", theme->window_inactive_border_color);
@@ -98,6 +101,9 @@ static void entry(struct theme *theme, const char *key, const char *value)
 	 */
 	if (match(key, "border.width")) {
 		theme->border_width = atoi(value);
+	}
+	if (match(key, "padding.height")) {
+		theme->padding_height = atoi(value);
 	}
 
 	if (match(key, "window.active.border.color")) {
@@ -188,12 +194,27 @@ theme_read(struct theme *theme, const char *theme_name)
 	fclose(stream);
 }
 
+static void
+post_processing(struct theme *theme)
+{
+	char buf[256];
+	snprintf(buf, sizeof(buf), "%s %d", rc.font_name_activewindow,
+		 rc.font_size_activewindow);
+	theme->title_height = font_height(buf) + 2 * theme->padding_height;
+
+	if (rc.corner_radius >= theme->title_height) {
+		theme->title_height = rc.corner_radius + 1;
+	}
+
+}
+
 void
 theme_init(struct theme *theme, struct wlr_renderer *renderer,
 		const char *theme_name)
 {
 	theme_read(theme, theme_name);
 	xbm_load(theme, renderer);
+	post_processing(theme);
 }
 
 void

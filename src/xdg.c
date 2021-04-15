@@ -264,6 +264,12 @@ xdg_toplevel_view_map(struct view *view)
 		}
 		update_padding(view);
 		position_xdg_toplevel_view(view);
+
+		struct wlr_subsurface *subsurface;
+		wl_list_for_each(subsurface, &view->surface->subsurfaces,
+				 parent_link) {
+			subsurface_create(view, subsurface);
+		}
 	}
 	view->been_mapped = true;
 

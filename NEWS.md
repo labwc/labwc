@@ -1,4 +1,24 @@
-# v0.1.0 2020-03-05
+# NEWS
+
+This file contains significant user-visible changes for each version.
+For full changelog, use `git log`
+
+## 0.2.0 (2020-04-15)
+
+Compile with wlroots 0.13.0
+
+- support wlr-output-management protcol for setting output position, scale
+  and orientation with kanshi or similar
+- config:
+  - add `<theme><cornerRadius>` for window decoration rounded corners
+- theme:
+  - update built-in colors to match default GTK style
+  - add window.(in)active.border.color
+  - add border.width
+- add labwc-environment(5)
+- call `wlr_output_enable_adaptive_sync()` if `LABWC_ADAPTIVE_SYNC` set
+
+## 0.1.0 (2020-03-05)
 
 Compile with wlroots 0.12.0 and wayland-server >=1.16
 

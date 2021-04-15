@@ -1,7 +1,7 @@
 project(
   'labwc',
   'c',
-  version: '0.1.0',
+  version: '0.2.0',
   license: 'GPL-2',
   default_options: [
     'c_std=c11',
@@ -47,7 +47,7 @@ if wlroots_proj.found()
   wlroots_conf = wlroots_proj.get_variable('conf_data')
   wlroots_has_xwayland = wlroots_conf.get('WLR_HAS_XWAYLAND') == 1
 else
-  wlroots       = dependency('wlroots', version: '>= 0.13.0')
+  wlroots       = dependency('wlroots', version: '>=0.13.0', '<0.14.0')
   wlroots_has_xwayland = cc.get_define('WLR_HAS_XWAYLAND', prefix: '#include <wlr/config.h>', dependencies: wlroots) == '1'
 endif
 wayland_server  = dependency('wayland-server', version: '>=0.19.0')

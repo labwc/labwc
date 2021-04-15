@@ -32,9 +32,6 @@ simple compositor such as labwc.
 
 [Video (3:42)](https://youtu.be/rE1bQjSVJzg)
 
-<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2.png">
-  <img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot2x.png" width="256px" height="144px">
-</a>  
 <a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png">
   <img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3x.png" width="256px" height="179px">
 </a>

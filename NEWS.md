@@ -3,7 +3,7 @@
 This file contains significant user-visible changes for each version.
 For full changelog, use `git log`
 
-## 0.2.0 (2020-04-15)
+## 0.2.0 (2021-04-15)
 
 Compile with wlroots 0.13.0
 
@@ -18,7 +18,7 @@ Compile with wlroots 0.13.0
 - add labwc-environment(5)
 - call `wlr_output_enable_adaptive_sync()` if `LABWC_ADAPTIVE_SYNC` set
 
-## 0.1.0 (2020-03-05)
+## 0.1.0 (2021-03-05)
 
 Compile with wlroots 0.12.0 and wayland-server >=1.16
 

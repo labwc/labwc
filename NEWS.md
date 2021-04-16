@@ -3,6 +3,10 @@
 This file contains significant user-visible changes for each version.
 For full changelog, use `git log`
 
+## 0.2.1 (2021-04-16)
+
+Fix meson.build
+
 ## 0.2.0 (2021-04-15)
 
 Compile with wlroots 0.13.0

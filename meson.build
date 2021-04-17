@@ -50,7 +50,7 @@ else
   wlroots       = dependency('wlroots', version: ['>=0.13.0', '<0.14.0'])
   wlroots_has_xwayland = cc.get_define('WLR_HAS_XWAYLAND', prefix: '#include <wlr/config.h>', dependencies: wlroots) == '1'
 endif
-wayland_server  = dependency('wayland-server', version: '>=0.19.0')
+wayland_server  = dependency('wayland-server', version: '>=1.19.0')
 wayland_protos  = dependency('wayland-protocols')
 xkbcommon       = dependency('xkbcommon')
 xcb             = dependency('xcb', required: get_option('xwayland'))

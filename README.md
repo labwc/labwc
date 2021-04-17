@@ -20,15 +20,10 @@ on.
 Labwc tries to stay in keeping with wlroots and sway in terms of general
 approach and coding style.
 
-In order to avoid re-inventing configuration syntax and theme variable
-names, [openbox-3.4] specification is used. This does not mean that
-labwc is an openbox clone. In fact, as a Wayland compositor it will be
-quite different in areas, and the acceptance criteria only lists ca
-40% of openbox features.
-
-Parsing GTK3 and Qt themes for window decorations is quite complicated,
-so using the much simpler openbox specification makes sense for a
-simple compositor such as labwc.
+In order to avoid re-inventing configuration & theme syntax, [openbox-3.4]
+specification is used. This does not mean that labwc is an openbox clone.
+In fact, as a Wayland compositor it is quite different in areas, and the
+acceptance criteria only covers ca 40% of openbox features.
 
 [Video (3:42)](https://youtu.be/rE1bQjSVJzg)
 
@@ -44,7 +39,7 @@ simple compositor such as labwc.
 Dependencies include:
 
 - meson, ninja, gcc/clang
-- wlroots (>=0.13.0 or master)
+- wlroots (master)
 - wayland (>=1.19)
 - wayland-protocols
 - libinput (>=1.14)

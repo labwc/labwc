@@ -405,8 +405,10 @@ render_icon(struct output *output, pixman_region32_t *output_damage,
 		struct wlr_box *box, struct wlr_texture *texture)
 {
 	/* centre-align icon if smaller than designated box */
-	struct wlr_box button;
-	wlr_texture_get_size(texture, &button.width, &button.height);
+	struct wlr_box button = {
+		.width = texture->width,
+		.height = texture->height,
+	};
 	if (box->width > button.width) {
 		button.x = box->x + (box->width - button.width) / 2;
 	} else {

@@ -70,6 +70,25 @@ set_activated(struct wlr_surface *surface, bool activated)
 }
 
 void
+desktop_set_focus_view_only(struct seat *seat, struct view *view)
+{
+	if (!view || view->minimized || !view->mapped) {
+		return;
+	}
+	struct wlr_surface *prev_surface;
+	prev_surface = seat->seat->keyboard_state.focused_surface;
+	if (prev_surface == view->surface) {
+		/* Don't re-focus an already focused surface. */
+		return;
+	}
+	if (prev_surface) {
+		set_activated(prev_surface, false);
+	}
+	set_activated(view->surface, true);
+	seat_focus_surface(seat, view->surface);
+}
+
+void
 desktop_focus_view(struct seat *seat, struct view *view)
 {
 	if (!view) {
@@ -85,6 +104,10 @@ desktop_focus_view(struct seat *seat, struct view *view)
 		prev_surface = seat->seat->keyboard_state.focused_surface;
 		if (prev_surface == view->surface) {
 			/* Don't re-focus an already focused surface. */
+			move_to_front(view);
+#if HAVE_XWAYLAND
+			move_xwayland_sub_views_to_front(view);
+#endif
 			return;
 		}
 		if (prev_surface) {

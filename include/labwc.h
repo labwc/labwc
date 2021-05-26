@@ -296,6 +296,7 @@ void view_for_each_surface(struct view *view,
 void view_for_each_popup_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *data);
 
+void desktop_set_focus_view_only(struct seat *seat, struct view *view);
 void desktop_focus_view(struct seat *seat, struct view *view);
 
 /**

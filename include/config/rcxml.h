@@ -9,6 +9,8 @@
 
 struct rcxml {
 	bool xdg_shell_server_side_deco;
+	bool focus_follow_mouse;
+	bool raise_on_focus;
 	char *theme_name;
 	int corner_radius;
 	char *font_name_activewindow;

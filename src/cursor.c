@@ -152,6 +152,15 @@ process_cursor_motion(struct server *server, uint32_t time)
 		uint32_t resize_edges = get_resize_edges(
 			view, server->seat.cursor->x, server->seat.cursor->y);
 		switch (resize_edges) {
+		case 0:
+			if (rc.focus_follow_mouse){
+				if (rc.raise_on_focus){
+					desktop_focus_view(&server->seat, view);
+				} else {
+					desktop_set_focus_view_only(&server->seat, view);
+				}
+			}
+			break;
 		case WLR_EDGE_TOP:
 			cursor_name = "top_side";
 			break;

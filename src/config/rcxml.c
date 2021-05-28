@@ -140,7 +140,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		fill_font(nodename, content, font_place);
 	} else if (!strcasecmp(nodename, "FollowMouse.focus")) {
 		rc.focus_follow_mouse = get_bool(content);
-	} else if (!strcasecmp(nodename, "RaisemOnFocus.focus")) {
+	} else if (!strcasecmp(nodename, "RaiseOnFocus.focus")) {
 		rc.focus_follow_mouse = true;
 		rc.raise_on_focus = get_bool(content);
 	}

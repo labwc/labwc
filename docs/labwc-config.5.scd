@@ -23,6 +23,16 @@ This section contains settings which are not present in Openbox.
 	Use server side decorations for xdg-shell views where it is possible to
 	turn off client side decorations. Default is yes.
 
+# FOCUS
+
+*<focus><followMouse>* [yes|no]
+	Make focus follow mouse, e.g. focus is given to window under mouse
+	cursor
+
+*<focus><raiseOnFocus>* [yes|no]
+	Also raise window to top when focused. Only applies if followMouse is
+	set
+
 # THEME
 
 *<theme><name>*

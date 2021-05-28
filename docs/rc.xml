@@ -9,6 +9,11 @@
   <xdg_shell_server_side_deco>yes</xdg_shell_server_side_deco>
 </lab>
 
+<focus>
+  <followMouse>no</followMouse>
+  <raiseOnFocus>no</raiseOnFocus>
+</focus>
+
 <theme>
   <name>Clearlooks-3.4</name>
   <!-- This font size also determintes the height of the window title bar -->

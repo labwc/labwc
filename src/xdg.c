@@ -266,7 +266,11 @@ xdg_toplevel_view_map(struct view *view)
 		position_xdg_toplevel_view(view);
 
 		struct wlr_subsurface *subsurface;
-		wl_list_for_each(subsurface, &view->surface->subsurfaces,
+		wl_list_for_each(subsurface, &view->surface->subsurfaces_below,
+				 parent_link) {
+			subsurface_create(view, subsurface);
+		}
+		wl_list_for_each(subsurface, &view->surface->subsurfaces_above,
 				 parent_link) {
 			subsurface_create(view, subsurface);
 		}

@@ -1,6 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
-#include <cairo/cairo.h>
+#include <cairo.h>
 #include <ctype.h>
 #include <drm_fourcc.h>
 #include <libxml/parser.h>

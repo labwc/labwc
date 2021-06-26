@@ -5,7 +5,7 @@
  */
 
 #include <assert.h>
-#include <cairo/cairo.h>
+#include <cairo.h>
 #include <drm_fourcc.h>
 #include <math.h>
 #include "config/rcxml.h"

@@ -45,26 +45,26 @@ wlroots_proj = subproject(
 )
 
 if wlroots_proj.found()
-  wlroots       = wlroots_proj.get_variable('wlroots')
+  wlroots = wlroots_proj.get_variable('wlroots')
   wlroots_conf = wlroots_proj.get_variable('conf_data')
   wlroots_has_xwayland = wlroots_conf.get('WLR_HAS_XWAYLAND') == 1
 else
-  wlroots       = dependency('wlroots', version: wlroots_version)
+  wlroots = dependency('wlroots', version: wlroots_version)
   wlroots_has_xwayland = cc.get_define('WLR_HAS_XWAYLAND', prefix: '#include <wlr/config.h>', dependencies: wlroots) == '1'
 endif
-wayland_server  = dependency('wayland-server', version: '>=1.19.0')
-wayland_protos  = dependency('wayland-protocols')
-xkbcommon       = dependency('xkbcommon')
-xcb             = dependency('xcb', required: get_option('xwayland'))
-drm_full        = dependency('libdrm')
-drm             = drm_full.partial_dependency(compile_args: true, includes: true)
-xml2            = dependency('libxml-2.0')
-glib            = dependency('glib-2.0')
-cairo           = dependency('cairo')
-pangocairo      = dependency('pangocairo')
-input           = dependency('libinput', version: '>=1.14')
-pixman          = dependency('pixman-1')
-math            = cc.find_library('m')
+wayland_server = dependency('wayland-server', version: '>=1.19.0')
+wayland_protos = dependency('wayland-protocols')
+xkbcommon = dependency('xkbcommon')
+xcb = dependency('xcb', required: get_option('xwayland'))
+drm_full = dependency('libdrm')
+drm = drm_full.partial_dependency(compile_args: true, includes: true)
+xml2 = dependency('libxml-2.0')
+glib = dependency('glib-2.0')
+cairo = dependency('cairo')
+pangocairo = dependency('pangocairo')
+input = dependency('libinput', version: '>=1.14')
+pixman = dependency('pixman-1')
+math = cc.find_library('m')
 
 if get_option('xwayland').enabled() and not wlroots_has_xwayland
 	error('no wlroots Xwayland support')
@@ -73,11 +73,11 @@ have_xwayland = xcb.found() and wlroots_has_xwayland
 conf_data = configuration_data()
 conf_data.set10('HAVE_XWAYLAND', have_xwayland)
 
-labwc_inc       = include_directories('include')
+labwc_inc = include_directories('include')
 
 subdir('protocols')
 
-labwc_deps      = [
+labwc_deps = [
   server_protos,
   wayland_server,
   wlroots,

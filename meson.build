@@ -1,7 +1,7 @@
 project(
   'labwc',
   'c',
-  version: '0.2.1',
+  version: '0.3.0',
   license: 'GPL-2',
   default_options: [
     'c_std=c11',
@@ -36,7 +36,7 @@ if git.found()
 endif
 add_project_arguments('-DLABWC_VERSION=@0@'.format(version), language: 'c')
 
-wlroots_version = ['>=0.15.0', '<0.16.0']
+wlroots_version = ['>=0.14.0', '<0.15.0']
 wlroots_proj = subproject(
   'wlroots',
   default_options: ['examples=false'],

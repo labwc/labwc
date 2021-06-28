@@ -3,9 +3,14 @@
 This file contains significant user-visible changes for each version.
 For full changelog, use `git log`
 
-## 0.2.1 (2021-04-16)
+## 0.3.0 (2021-06-28)
 
-Fix meson.build
+Compile with wlroots 0.14.0
+
+- add config options <focus><followMouse> and <focus><raiseOnFocus>
+  (provided-by: Mikhail Kshevetskiy)
+- stop trying to use Clearlooks-3.4 theme by default, just use built-in theme
+- fix Qt application segfault
 
 ## 0.2.0 (2021-04-15)
 

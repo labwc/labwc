@@ -249,8 +249,6 @@ server_start(struct server *server)
 		wlr_log(WLR_DEBUG, "WAYLAND_DISPLAY=%s", socket);
 	}
 
-	wl_display_init_shm(server->wl_display);
-
 #if HAVE_XWAYLAND
 	wlr_xwayland_set_seat(server->xwayland, server->seat.seat);
 #endif

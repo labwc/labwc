@@ -250,9 +250,6 @@ post_processing(void)
 		bind("A-F3", "Execute", "bemenu-run");
 	}
 
-	if (!rc.theme_name) {
-		rc.theme_name = strdup("Clearlooks-3.4");
-	}
 	if (!rc.font_name_activewindow) {
 		rc.font_name_activewindow = strdup("sans");
 	}

@@ -18,16 +18,23 @@ struct buf {
 };
 
 /**
+ * buf_expand_shell_variables - expand $foo and ~ in buffer
+ * @s: buffer
+ * Note: ${foo} and $$ are not handled
+ */
+void buf_expand_shell_variables(struct buf *s);
+
+/**
  * buf_init - allocate NULL-terminated C string buffer
- * @s - buffer
+ * @s: buffer
  * Note: use free(s->buf) to free it.
  */
 void buf_init(struct buf *s);
 
 /**
  * buf_add - add data to C string buffer
- * @s - buffer
- * @data - data to be added
+ * @s: buffer
+ * @data: data to be added
  */
 void buf_add(struct buf *s, const char *data);
 

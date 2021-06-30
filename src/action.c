@@ -26,7 +26,12 @@ action(struct server *server, const char *action, const char *command)
 	if (!strcasecmp(action, "Debug")) {
 		/* nothing */
 	} else if (!strcasecmp(action, "Execute")) {
-		spawn_async_no_shell(command);
+		struct buf cmd;
+		buf_init(&cmd);
+		buf_add(&cmd, command);
+		buf_expand_shell_variables(&cmd);
+		spawn_async_no_shell(cmd.buf);
+		free(cmd.buf);
 	} else if (!strcasecmp(action, "Exit")) {
 		wl_display_terminate(server->wl_display);
 	} else if (!strcasecmp(action, "NextWindow")) {

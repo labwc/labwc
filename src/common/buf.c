@@ -1,4 +1,48 @@
+#include <ctype.h>
 #include "common/buf.h"
+
+void
+buf_expand_shell_variables(struct buf *s)
+{
+	struct buf new;
+	struct buf environment_variable;
+	buf_init(&new);
+	buf_init(&environment_variable);
+
+	for (int i = 0 ; i < s->len ; i++) {
+		if (s->buf[i] == '$') {
+			/* expand environment variable */
+			environment_variable.len = 0;
+			buf_add(&environment_variable, s->buf + i + 1);
+			char *p = environment_variable.buf;
+			while (isalnum(*p)) {
+				++p;
+			}
+			*p = '\0';
+			p = getenv(environment_variable.buf);
+			if (!p) {
+				goto out;
+			}
+			buf_add(&new, p);
+			i += strlen(environment_variable.buf);
+		} else if (s->buf[i] == '~') {
+			/* expand tilde */
+			buf_add(&new, getenv("HOME"));
+		} else {
+			/* just add one character at a time */
+			if (new.alloc <= new.len + 1) {
+				new.alloc = new.alloc * 3/2 + 16;
+				new.buf = realloc(new.buf, new.alloc);
+			}
+			new.buf[new.len++] = s->buf[i];
+			new.buf[new.len] = '\0';
+		}
+	}
+out:
+	free(environment_variable.buf);
+	free(s->buf);
+	s->buf = new.buf;
+}
 
 void
 buf_init(struct buf *s)

@@ -7,6 +7,7 @@
 
 #define _POSIX_C_SOURCE 200809L
 #include "config.h"
+#include <assert.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include <wlr/types/wlr_output_damage.h>
 #include <wlr/util/region.h>
@@ -48,7 +49,7 @@ output_for_each_surface_iterator(struct wlr_surface *surface, int sx, int sy,
 {
 	struct surface_iterator_data *data = user_data;
 	struct output *output = data->output;
-	if (!surface || !wlr_surface_has_buffer(surface)) {
+	if (!wlr_surface_has_buffer(surface)) {
 		return;
 	}
 	struct wlr_box surface_box = {
@@ -78,9 +79,7 @@ output_surface_for_each_surface(struct output *output,
 		.ox = ox,
 		.oy = oy,
 	};
-	if (!surface) {
-		return;
-	}
+	assert(surface);
 	wlr_surface_for_each_surface(surface,
 		output_for_each_surface_iterator, &data);
 }

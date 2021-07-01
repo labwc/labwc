@@ -1,5 +1,19 @@
+#include <wlr/backend/multi.h>
+#include <wlr/backend/session.h>
 #include "common/log.h"
 #include "labwc.h"
+
+static void
+change_vt(struct server *server, unsigned int vt)
+{
+	if (!wlr_backend_is_multi(server->backend)) {
+		return;
+	}
+	struct wlr_session *session = wlr_backend_get_session(server->backend);
+	if (session) {
+		wlr_session_change_vt(session, vt);
+	}
+}
 
 static void
 keyboard_modifiers_notify(struct wl_listener *listener, void *data)
@@ -63,6 +77,10 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 		}
 	}
 
+	for (int i = 0; i < nsyms; i++) {
+		printf("m=%d; s=%d\n", modifiers, syms[i]);
+	}
+
 	/* Handle compositor key bindings */
 	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 		for (int i = 0; i < nsyms; i++) {
@@ -70,8 +88,19 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 		}
 	}
 
+	/* Catch C-A-F1 to C-A-F12 to change tty */
+	if (!handled && event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+		for (int i = 0; i < nsyms; i++) {
+			unsigned int vt = syms[i] - XKB_KEY_XF86Switch_VT_1 + 1;
+			if (vt >= 1 && vt <= 12) {
+				change_vt(server, vt);
+				handled = true;
+			}
+		}
+	}
+
+	/* Otherwise, pass it to the client. */
 	if (!handled) {
-		/* Otherwise, we pass it along to the client. */
 		wlr_seat_set_keyboard(wlr_seat, device);
 		wlr_seat_keyboard_notify_key(wlr_seat, event->time_msec,
 					     event->keycode, event->state);

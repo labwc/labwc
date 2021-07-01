@@ -35,7 +35,6 @@ action(struct server *server, const char *action, const char *command)
 	} else if (!strcasecmp(action, "Exit")) {
 		wl_display_terminate(server->wl_display);
 	} else if (!strcasecmp(action, "NextWindow")) {
-		dbg_show_views(server);
 		server->cycle_view =
 			desktop_cycle_view(server, server->cycle_view);
 	} else if (!strcasecmp(action, "Reconfigure")) {

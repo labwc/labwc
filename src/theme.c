@@ -223,10 +223,5 @@ theme_init(struct theme *theme, struct wlr_renderer *renderer,
 void
 theme_finish(struct theme *theme)
 {
-	zfree(theme->xbm_close_active_unpressed);
-	zfree(theme->xbm_maximize_active_unpressed);
-	zfree(theme->xbm_iconify_active_unpressed);
-	zfree(theme->xbm_close_inactive_unpressed);
-	zfree(theme->xbm_maximize_inactive_unpressed);
-	zfree(theme->xbm_iconify_inactive_unpressed);
+	; /* nothing to free */
 }

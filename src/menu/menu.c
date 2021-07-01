@@ -15,6 +15,7 @@
 #include "common/font.h"
 #include "common/nodename.h"
 #include "common/string-helpers.h"
+#include "common/zfree.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "theme.h"
@@ -29,10 +30,15 @@ static struct menuitem *current_item;
 #define MENUHEIGHT (25)
 #define MENU_PADDING_WIDTH (7)
 
-struct wlr_texture *
-texture_create(struct server *server, struct wlr_box *geo, const char *text,
-		float *bg, float *fg)
+static void
+texture_create(struct server *server, struct wlr_texture **texture,
+		struct wlr_box *geo, const char *text, float *bg, float *fg)
 {
+	if (*texture) {
+		wlr_texture_destroy(*texture);
+		*texture = NULL;
+	}
+
 	cairo_surface_t *surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
 		geo->width, geo->height);
 	cairo_t *cairo = cairo_create(surf);
@@ -61,16 +67,15 @@ texture_create(struct server *server, struct wlr_box *geo, const char *text,
 
 	cairo_surface_flush(surf);
 	unsigned char *data = cairo_image_surface_get_data(surf);
-	struct wlr_texture *texture = wlr_texture_from_pixels(server->renderer,
-		DRM_FORMAT_ARGB8888, cairo_image_surface_get_stride(surf),
-		geo->width, geo->height, data);
+	*texture = wlr_texture_from_pixels(server->renderer, DRM_FORMAT_ARGB8888,
+			cairo_image_surface_get_stride(surf), geo->width,
+			geo->height, data);
 
 	cairo_destroy(cairo);
 	cairo_surface_destroy(surf);
-	return texture;
 }
 
-struct menuitem *
+static struct menuitem *
 menuitem_create(struct server *server, struct menu *menu, const char *text)
 {
 	struct menuitem *menuitem = calloc(1, sizeof(struct menuitem));
@@ -80,10 +85,10 @@ menuitem_create(struct server *server, struct menu *menu, const char *text)
 	struct theme *theme = server->theme;
 	menuitem->geo_box.width = MENUWIDTH;
 	menuitem->geo_box.height = MENUHEIGHT;
-	menuitem->active_texture = texture_create(server, &menuitem->geo_box,
+	texture_create(server, &menuitem->active_texture, &menuitem->geo_box,
 		text, theme->menu_items_active_bg_color,
 		theme->menu_items_active_text_color);
-	menuitem->inactive_texture = texture_create(server, &menuitem->geo_box,
+	texture_create(server, &menuitem->inactive_texture, &menuitem->geo_box,
 		text, theme->menu_items_bg_color, theme->menu_items_text_color);
 	wl_list_insert(&menu->menuitems, &menuitem->link);
 	return menuitem;
@@ -254,14 +259,8 @@ menu_finish(struct menu *menu)
 {
 	struct menuitem *menuitem, *next;
 	wl_list_for_each_safe(menuitem, next, &menu->menuitems, link) {
-		if (menuitem->action)
-			free(menuitem->action);
-		if (menuitem->command)
-			free(menuitem->command);
-		if (menuitem->active_texture)
-			free(menuitem->active_texture);
-		if (menuitem->inactive_texture)
-			free(menuitem->inactive_texture);
+		zfree(menuitem->action);
+		zfree(menuitem->command);
 		wl_list_remove(&menuitem->link);
 		free(menuitem);
 	}

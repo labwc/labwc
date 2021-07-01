@@ -56,6 +56,11 @@ static void
 load_button(struct wlr_renderer *renderer, const char *filename,
 	    struct wlr_texture **texture, char *button)
 {
+	if (*texture) {
+		wlr_texture_destroy(*texture);
+		*texture = NULL;
+	}
+
 	/* Read file into memory as it's easier to tokenzie that way */
 	char *buffer = grab_file(xbm_path(filename));
 	if (!buffer) {

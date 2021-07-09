@@ -157,6 +157,11 @@ map(struct view *view)
 		ssd_create(view);
 	}
 
+	if (!view->been_mapped) {
+		view_center(view);
+		view->been_mapped = true;
+	}
+
 	top_left_edge_boundary_check(view);
 
 	/* Add commit here, as xwayland map/unmap can change the wlr_surface */

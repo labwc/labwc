@@ -158,6 +158,7 @@ map(struct view *view)
 	}
 
 	if (!view->been_mapped) {
+		view_maximize(view, false);
 		view_center(view);
 		view->been_mapped = true;
 	}

@@ -299,18 +299,25 @@ cursor_button(struct wl_listener *listener, void *data)
 	struct server *server = seat->server;
 	struct wlr_event_pointer_button *event = data;
 
-	/*
-	 * Notify the client with pointer focus that a button press has
-	 * occurred.
-	 */
-	wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
-		event->button, event->state);
 	double sx, sy;
 	struct wlr_surface *surface;
 	int view_area;
 	uint32_t resize_edges;
 	struct view *view = desktop_view_at(server, server->seat.cursor->x,
 		server->seat.cursor->y, &surface, &sx, &sy, &view_area);
+
+	/* handle alt + _press_ on view */
+	struct wlr_input_device *device = seat->keyboard_group->input_device;
+	uint32_t modifiers = wlr_keyboard_get_modifiers(device->keyboard);
+	if (modifiers & XKB_KEY_Alt_L && event->state == WLR_BUTTON_PRESSED) {
+		handle_cursor_button_with_meta_key(view, event->button,
+			server->seat.cursor->x, server->seat.cursor->y);
+		return;
+	};
+
+	/* Notify client with pointer focus of button press */
+	wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
+		event->button, event->state);
 
 	/* handle _release_ */
 	if (event->state == WLR_BUTTON_RELEASED) {
@@ -335,15 +342,6 @@ cursor_button(struct wl_listener *listener, void *data)
 		action(server, "ShowMenu", "root-menu");
 		return;
 	}
-
-	/* handle alt + _press_ on view */
-	struct wlr_input_device *device = seat->keyboard_group->input_device;
-	uint32_t modifiers = wlr_keyboard_get_modifiers(device->keyboard);
-	if (modifiers & XKB_KEY_Alt_L) {
-		handle_cursor_button_with_meta_key(view, event->button,
-			server->seat.cursor->x, server->seat.cursor->y);
-		return;
-	};
 
 	/* Handle _press_ on view */
 	desktop_focus_view(&server->seat, view);

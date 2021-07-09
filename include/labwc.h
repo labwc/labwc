@@ -290,6 +290,7 @@ void view_move_resize(struct view *view, struct wlr_box geo);
 void view_move(struct view *view, double x, double y);
 void view_minimize(struct view *view);
 void view_unminimize(struct view *view);
+void view_center(struct view *view);
 void view_maximize(struct view *view, bool maximize);
 void view_for_each_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *user_data);

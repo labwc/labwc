@@ -50,6 +50,22 @@ view_output(struct view *view)
 }
 
 void
+view_center(struct view *view)
+{
+	struct wlr_output *output = view_output(view);
+	if (!output) {
+		return;
+	}
+
+	struct wlr_output_layout *layout = view->server->output_layout;
+	struct wlr_output_layout_output* ol_output =
+		wlr_output_layout_get(layout, output);
+	int center_x = ol_output->x + output->width / 2;
+	int center_y = ol_output->y + output->height / 2;
+	view_move(view, center_x - view->w / 2, center_y - view->h / 2);
+}
+
+void
 view_maximize(struct view *view, bool maximize)
 {
 	if (view->maximized == maximize) {

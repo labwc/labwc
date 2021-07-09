@@ -142,7 +142,7 @@ High-level summary of items which are not inteded to be implemented:
 [labwc-menu(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-menu.5.scd
 [labwc-environment(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-environment.5.scd
 [labwc-theme(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-theme.5.scd
-[labwc-actions(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-actions.5.sc
+[labwc-actions(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-actions.5.scd
 
 [wiki/Build]: https://github.com/johanmalm/labwc/wiki/Build
 

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <linux/input-event-codes.h>
 #include "labwc.h"
 #include "menu/menu.h"
 #include "ssd.h"
@@ -270,6 +271,23 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 	process_cursor_motion(seat->server, event->time_msec);
 }
 
+static void
+handle_cursor_button_with_meta_key(struct view *view, uint32_t button,
+		double lx, double ly)
+{
+	/* move */
+	if (button == BTN_LEFT) {
+		interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
+		return;
+	}
+
+	/* resize */
+	uint32_t edges;
+	edges = lx < view->x + view->w / 2 ? WLR_EDGE_LEFT : WLR_EDGE_RIGHT;
+	edges |= ly < view->y + view->h / 2 ? WLR_EDGE_TOP : WLR_EDGE_BOTTOM;
+	interactive_begin(view, LAB_INPUT_STATE_RESIZE, edges);
+}
+
 void
 cursor_button(struct wl_listener *listener, void *data)
 {
@@ -317,6 +335,15 @@ cursor_button(struct wl_listener *listener, void *data)
 		action(server, "ShowMenu", "root-menu");
 		return;
 	}
+
+	/* handle alt + _press_ on view */
+	struct wlr_input_device *device = seat->keyboard_group->input_device;
+	uint32_t modifiers = wlr_keyboard_get_modifiers(device->keyboard);
+	if (modifiers & XKB_KEY_Alt_L) {
+		handle_cursor_button_with_meta_key(view, event->button,
+			server->seat.cursor->x, server->seat.cursor->y);
+		return;
+	};
 
 	/* Handle _press_ on view */
 	desktop_focus_view(&server->seat, view);

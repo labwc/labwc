@@ -224,11 +224,9 @@ static void
 position_xdg_toplevel_view(struct view *view)
 {
 	if (istopmost(view)) {
-		/*
-		 * For topmost xdg-toplevel, we just top/left align for the
-		 * time being
-		 */
-		view->x = view->y = 0;
+		view->w = view->xdg_surface->geometry.width;
+		view->h = view->xdg_surface->geometry.height;
+		view_center(view);
 	} else {
 		/*
 		 * If child-toplevel-views, we center-align relative to their
@@ -274,8 +272,8 @@ xdg_toplevel_view_map(struct view *view)
 				 parent_link) {
 			subsurface_create(view, subsurface);
 		}
+		view->been_mapped = true;
 	}
-	view->been_mapped = true;
 
 	view->commit.notify = handle_commit;
 	wl_signal_add(&view->xdg_surface->surface->events.commit,

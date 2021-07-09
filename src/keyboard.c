@@ -77,10 +77,6 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 		}
 	}
 
-	for (int i = 0; i < nsyms; i++) {
-		printf("m=%d; s=%d\n", modifiers, syms[i]);
-	}
-
 	/* Handle compositor key bindings */
 	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 		for (int i = 0; i < nsyms; i++) {

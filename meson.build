@@ -103,3 +103,5 @@ executable(
   dependencies: labwc_deps,
   install: true,
 )
+
+install_data('docs/labwc.desktop', install_dir: get_option('datadir') / 'wayland-sessions')

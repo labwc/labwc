@@ -167,9 +167,9 @@ arrange_layer(struct wlr_output *output, struct wl_list *list,
 void
 arrange_layers(struct output *output)
 {
+	assert(output);
+
 	struct wlr_box usable_area = { 0 };
-	if (!output)
-		return;
 	wlr_output_effective_resolution(output->wlr_output,
 		&usable_area.width, &usable_area.height);
 
@@ -186,6 +186,9 @@ arrange_layers(struct output *output)
 	arrange_layer(output->wlr_output,
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
 			&usable_area, true);
+	memcpy(&output->usable_area, &usable_area, sizeof(struct wlr_box));
+
+	/* TODO: re-arrange all views taking into account updated usable_area */
 
 	/* Non-exclusive surfaces */
 	arrange_layer(output->wlr_output,

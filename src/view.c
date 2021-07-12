@@ -73,26 +73,24 @@ view_maximize(struct view *view, bool maximize)
 	}
 	view->impl->maximize(view, maximize);
 	if (maximize) {
-		struct wlr_output *output = view_output(view);
-		if (!output) {
-			return;
-		}
-
-		struct wlr_output_layout *layout = view->server->output_layout;
-		struct wlr_output_layout_output* ol_output =
-			wlr_output_layout_get(layout, output);
-
 		view->unmaximized_geometry.x = view->x;
 		view->unmaximized_geometry.y = view->y;
 		view->unmaximized_geometry.width = view->w;
 		view->unmaximized_geometry.height = view->h;
 
-		struct wlr_box box = {
-			.x = ol_output->x,
-			.y = ol_output->y,
-			.width = output->width,
-			.height = output->height,
-		};
+		struct wlr_output *wlr_output = view_output(view);
+		struct output *output =
+			output_from_wlr_output(view->server, wlr_output);
+
+		struct wlr_box box;
+		memcpy(&box, &output->usable_area, sizeof(struct wlr_box));
+
+		double ox = 0, oy = 0;
+		wlr_output_layout_output_coords(view->server->output_layout,
+			wlr_output, &ox, &oy);
+		box.x -= ox;
+		box.y -= oy;
+
 		if (view->ssd.enabled) {
 			struct border border = ssd_thickness(view);
 			box.x += border.left;
@@ -100,8 +98,8 @@ view_maximize(struct view *view, bool maximize)
 			box.width -= border.right + border.left;
 			box.height -= border.top + border.bottom;
 		}
-		box.width /= output->scale;
-		box.height /= output->scale;
+		box.width /= wlr_output->scale;
+		box.height /= wlr_output->scale;
 		view_move_resize(view, box);
 		view_move(view, box.x, box.y);
 		view->maximized = true;

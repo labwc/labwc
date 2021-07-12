@@ -133,6 +133,8 @@ struct output {
 	struct wlr_output *wlr_output;
 	struct wlr_output_damage *damage;
 	struct wl_list layers[4];
+	struct wlr_box usable_area;
+
 	struct wl_listener destroy;
 	struct wl_listener damage_frame;
 	struct wl_listener damage_destroy;

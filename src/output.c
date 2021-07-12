@@ -809,6 +809,8 @@ new_output_notify(struct wl_listener *listener, void *data)
 	output->wlr_output = wlr_output;
 	output->server = server;
 	output->damage = wlr_output_damage_create(wlr_output);
+	wlr_output_effective_resolution(wlr_output,
+		&output->usable_area.width, &output->usable_area.height);
 	wl_list_insert(&server->outputs, &output->link);
 
 	output->destroy.notify = output_destroy_notify;

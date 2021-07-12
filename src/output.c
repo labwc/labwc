@@ -984,3 +984,15 @@ void output_manager_init(struct server *server)
 	wl_signal_add(&server->output_manager->events.apply,
 		&server->output_manager_apply);
 }
+
+struct output *
+output_from_wlr_output(struct server *server, struct wlr_output *wlr_output)
+{
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		if (output->wlr_output == wlr_output) {
+			return output;
+		}
+	}
+	return NULL;
+}

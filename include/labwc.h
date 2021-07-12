@@ -128,7 +128,7 @@ struct server {
 };
 
 struct output {
-	struct wl_list link;
+	struct wl_list link; /* server::outputs */
 	struct server *server;
 	struct wlr_output *wlr_output;
 	struct wlr_output_damage *damage;
@@ -307,9 +307,13 @@ void desktop_focus_view(struct seat *seat, struct view *view);
  */
 struct view *desktop_cycle_view(struct server *server, struct view *current);
 void desktop_focus_topmost_mapped_view(struct server *server);
+
+/**
+ * desktop_view_at - find view or layer-surface at co-ordinate (lx, ly)
+ * Note: If surface points to layer-surface, view will be set to NULL
+ */
 struct view *desktop_view_at(struct server *server, double lx, double ly,
-			    struct wlr_surface **surface, double *sx,
-			    double *sy, int *view_area);
+	struct wlr_surface **surface, double *sx, double *sy, int *view_area);
 
 void cursor_init(struct seat *seat);
 
@@ -329,6 +333,7 @@ void output_damage_surface(struct output *output, struct wlr_surface *surface,
 void scale_box(struct wlr_box *box, float scale);
 
 void output_manager_init(struct server *server);
+struct output *output_from_wlr_output(struct server *server, struct wlr_output *wlr_output);
 
 void damage_all_outputs(struct server *server);
 void damage_view_whole(struct view *view);

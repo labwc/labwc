@@ -303,6 +303,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	struct wlr_surface *surface;
 	int view_area;
 	uint32_t resize_edges;
+
 	struct view *view = desktop_view_at(server, server->seat.cursor->x,
 		server->seat.cursor->y, &surface, &sx, &sy, &view_area);
 
@@ -336,9 +337,19 @@ cursor_button(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	/* handle _press_ on desktop */
+	/* Handle _press_ on a layer surface */
+	if (!view && surface) {
+		/* ...if we've ended up here it must be a layer surface */
+		assert(wlr_surface_is_layer_surface(surface));
+		struct wlr_layer_surface_v1 *layer = wlr_layer_surface_v1_from_wlr_surface(surface);
+		if (layer->current.keyboard_interactive) {
+			seat_set_focus_layer(&server->seat, layer);
+		}
+		return;
+	}
+
+	/* Handle _press_ on root window */
 	if (!view) {
-		/* launch root-menu */
 		action(server, "ShowMenu", "root-menu");
 		return;
 	}

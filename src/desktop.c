@@ -1,6 +1,7 @@
 #include "config.h"
 #include <assert.h>
 #include "labwc.h"
+#include "layers.h"
 #include "ssd.h"
 
 static void
@@ -249,16 +250,42 @@ _view_at(struct view *view, double lx, double ly, struct wlr_surface **surface,
 	return false;
 }
 
+static struct
+wlr_surface *layer_surface_at(struct wl_list *layer, double lx, double ly,
+		double *sx, double *sy)
+{
+	struct lab_layer_surface *surface;
+	wl_list_for_each_reverse(surface, layer, link) {
+		double _sx = lx - surface->geo.x;
+		double _sy = ly - surface->geo.y;
+		struct wlr_surface *wlr_surface;
+		wlr_surface = wlr_layer_surface_v1_surface_at(surface->layer_surface,
+							      _sx, _sy, sx, sy);
+		if (wlr_surface) {
+			return wlr_surface;
+		}
+	}
+	return NULL;
+}
+
 struct view *
 desktop_view_at(struct server *server, double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy,
 		int *view_area)
 {
-	/*
-	 * This iterates over all of our surfaces and attempts to find one under
-	 * the cursor. It relies on server->views being ordered from
-	 * top-to-bottom.
-	 */
+	struct wlr_output *wlr_output = wlr_output_layout_output_at(
+			server->output_layout, lx, ly);
+	struct output *output = output_from_wlr_output(server, wlr_output);
+
+	if ((*surface = layer_surface_at(&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
+					 lx, ly, sx, sy))) {
+		return NULL;
+	}
+	if ((*surface = layer_surface_at(&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
+					 lx, ly, sx, sy))) {
+		return NULL;
+	}
+
 	struct view *view;
 	wl_list_for_each (view, &server->views, link) {
 		if (!view->mapped) {
@@ -274,6 +301,15 @@ desktop_view_at(struct server *server, double lx, double ly,
 		if (*view_area != LAB_SSD_NONE) {
 			return view;
 		}
+	}
+
+	if ((*surface = layer_surface_at(&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
+					 lx, ly, sx, sy))) {
+		return NULL;
+	}
+	if ((*surface = layer_surface_at(&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
+					 lx, ly, sx, sy))) {
+		return NULL;
 	}
 	return NULL;
 }

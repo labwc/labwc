@@ -301,7 +301,7 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	double sx, sy;
 	struct wlr_surface *surface;
-	int view_area;
+	int view_area = LAB_SSD_NONE;
 	uint32_t resize_edges;
 
 	struct view *view = desktop_view_at(server, server->seat.cursor->x,

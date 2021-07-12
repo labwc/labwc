@@ -23,7 +23,10 @@ action(struct server *server, const char *action, const char *command)
 {
 	if (!action)
 		return;
-	if (!strcasecmp(action, "Debug")) {
+	if (!strcasecmp(action, "Close")) {
+		struct view *view = topmost_mapped_view(server);
+		view->impl->close(view);
+	} else if (!strcasecmp(action, "Debug")) {
 		/* nothing */
 	} else if (!strcasecmp(action, "Execute")) {
 		struct buf cmd;

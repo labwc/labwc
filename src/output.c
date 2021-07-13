@@ -998,3 +998,12 @@ output_from_wlr_output(struct server *server, struct wlr_output *wlr_output)
 	}
 	return NULL;
 }
+
+struct wlr_box *
+output_box_from_cursor_coords(struct server *server)
+{
+	struct wlr_output *wlr_output;
+	wlr_output = wlr_output_layout_output_at(server->output_layout,
+		server->seat.cursor->x, server->seat.cursor->y);
+	return wlr_output_layout_get_box(server->output_layout, wlr_output);
+}

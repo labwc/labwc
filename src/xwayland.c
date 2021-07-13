@@ -159,6 +159,9 @@ map(struct view *view)
 
 	if (!view->been_mapped) {
 		view_maximize(view, false);
+		struct wlr_box *box = output_box_from_cursor_coords(view->server);
+		view->x = box->x;
+		view->y = box->y;
 		view_center(view);
 		view->been_mapped = true;
 	}

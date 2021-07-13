@@ -334,9 +334,9 @@ void output_init(struct server *server);
 void output_damage_surface(struct output *output, struct wlr_surface *surface,
 	double lx, double ly, bool whole);
 void scale_box(struct wlr_box *box, float scale);
-
 void output_manager_init(struct server *server);
 struct output *output_from_wlr_output(struct server *server, struct wlr_output *wlr_output);
+struct wlr_box *output_box_from_cursor_coords(struct server *server);
 
 void damage_all_outputs(struct server *server);
 void damage_view_whole(struct view *view);

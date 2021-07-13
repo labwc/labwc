@@ -224,6 +224,9 @@ static void
 position_xdg_toplevel_view(struct view *view)
 {
 	if (istopmost(view)) {
+		struct wlr_box *box = output_box_from_cursor_coords(view->server);
+		view->x = box->x;
+		view->y = box->y;
 		view->w = view->xdg_surface->geometry.width;
 		view->h = view->xdg_surface->geometry.height;
 		view_center(view);

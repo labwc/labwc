@@ -26,6 +26,9 @@ Actions are used in keyboard bindings.
 *<action name="ShowMenu"><menu>*
 	Show menu. Valid menu name is "root-menu".
 
+*<action name="ToggleMaximize"><menu>*
+	Toggle maximize state of top-most window.
+
 # SEE ALSO
 
 labwc(1), labwc-config(5), labwc-theme(5)

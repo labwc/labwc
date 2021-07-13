@@ -25,7 +25,9 @@ action(struct server *server, const char *action, const char *command)
 		return;
 	if (!strcasecmp(action, "Close")) {
 		struct view *view = topmost_mapped_view(server);
-		view->impl->close(view);
+		if (view) {
+			view->impl->close(view);
+		}
 	} else if (!strcasecmp(action, "Debug")) {
 		/* nothing */
 	} else if (!strcasecmp(action, "Execute")) {
@@ -44,6 +46,16 @@ action(struct server *server, const char *action, const char *command)
 		spawn_async_no_shell("killall -SIGHUP labwc");
 	} else if (!strcasecmp(action, "ShowMenu")) {
 		show_menu(server, command);
+	} else if (!strcasecmp(action, "ToggleMaximize")) {
+		struct view *view = topmost_mapped_view(server);
+		if (!view) {
+			return;
+		}
+		if (view->maximized) {
+			view_maximize(view, false);
+		} else {
+			view_maximize(view, true);
+		}
 	} else {
 		warn("action (%s) not supported", action);
 	}

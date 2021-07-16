@@ -478,16 +478,19 @@ render_deco(struct view *view, struct output *output,
 	struct wlr_seat *seat = view->server->seat.seat;
 	bool focused = view->surface == seat->keyboard_state.focused_surface;
 
+	/* render texture or rectangle */
 	struct ssd_part *part;
 	wl_list_for_each_reverse(part, &view->ssd.parts, link) {
-		if (part->texture.active) {
+		if (part->texture.active && *(part->texture.active)) {
 			struct wlr_texture *texture = focused ?
-				part->texture.active : part->texture.inactive;
+				*(part->texture.active) :
+				*(part->texture.inactive);
 			render_texture_helper(output, output_damage, &part->box,
 					      texture);
 		} else {
 			float *color = focused ?
-				part->color.active : part->color.inactive;
+				part->color.active :
+				part->color.inactive;
 			render_rect(output, output_damage, &part->box, color);
 		}
 	}

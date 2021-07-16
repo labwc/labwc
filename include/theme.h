@@ -1,7 +1,7 @@
 /*
- * Theme engine for labwc - trying to be consistent with openbox
+ * Theme engine for labwc
  *
- * Copyright Johan Malm 2020
+ * Copyright Johan Malm 2020-2021
  */
 
 #ifndef __LABWC_THEME_H
@@ -36,7 +36,12 @@ struct theme {
 	struct wlr_texture *xbm_maximize_inactive_unpressed;
 	struct wlr_texture *xbm_iconify_inactive_unpressed;
 
-	/* not set in rc.xml or themerc, but derived from font and padding_height */
+	struct wlr_texture *corner_top_left_active_normal;
+	struct wlr_texture *corner_top_right_active_normal;
+	struct wlr_texture *corner_top_left_inactive_normal;
+	struct wlr_texture *corner_top_right_inactive_normal;
+
+	/* not set in rc.xml/themerc, but derived from font & padding_height */
 	int title_height;
 };
 

@@ -19,14 +19,26 @@ enum ssd_part_type {
 struct ssd_part {
 	struct wlr_box box;
 	enum ssd_part_type type;
+
+	/*
+	 * The texture pointers are often held in other places such as the
+	 * theme struct, so here we use ** in order to keep the code
+	 * simple and avoid updating pointers as textures change.
+	 */
 	struct {
-		struct wlr_texture *active;
-		struct wlr_texture *inactive;
+		struct wlr_texture **active;
+		struct wlr_texture **inactive;
 	} texture;
+
+	/*
+	 * If a part does not contain textures, it'll just be rendered as a
+	 * rectangle with the following colors.
+	 */
 	struct {
 		float *active;
 		float *inactive;
 	} color;
+
 	struct wl_list link;
 };
 

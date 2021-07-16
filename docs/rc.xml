@@ -1,39 +1,37 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+<labwc_config>
 
-<!-- Use <openbox_config> as root element for openbox compatibility -->
-<openbox_config>
+  <core>
+    <decoration>server</decoration>
+  </core>
 
-<!-- labwc specific settings - additional to openbox -->
-<lab>
-  <!-- Use server-side decorations for xdg-shell views if CSD can be disabled -->
-  <xdg_shell_server_side_deco>yes</xdg_shell_server_side_deco>
-</lab>
+  <theme>
+    <name></name>
+    <cornerRadius>8</cornerRadius>
+    <font place="ActiveWindow"><name>Sans</name><size>10</size></font>
+  </theme>
 
-<focus>
-  <followMouse>no</followMouse>
-  <raiseOnFocus>no</raiseOnFocus>
-</focus>
+  <focus>
+    <followMouse>no</followMouse>
+    <raiseOnFocus>no</raiseOnFocus>
+  </focus>
 
-<theme>
-  <name>Clearlooks-3.4</name>
-  <!-- This font size also determintes the height of the window title bar -->
-  <font place="ActiveWindow">
-    <name>Sans</name>
-    <size>10</size>
-  </font>
-</theme>
+  <!--
+    Keybind actions are specified in more detail in labwc-actions(5)
+    The following keybind modifiers are supported:
+      W - window/super/logo
+      A - alt
+      C - ctrl
+      S - shift
+  -->
 
-<!-- see labwc-actions(5) for a list of supported actions -->
-<keyboard>
-  <keybind key="A-Escape">
-    <action name="Exit"/>
-  </keybind>
-  <keybind key="A-Tab">
-    <action name="NextWindow"/>
-  </keybind>
-  <keybind key="A-F3">
-    <action name="Execute"><command>bemenu-run</command></action>
-  </keybind>
-</keyboard>
+  <keyboard>
+    <keybind key="A-Escape"><action name="Exit" /></keybind>
+    <keybind key="A-Tab"><action name="NextWindow" /></keybind>
+    <keybind key="A-Return"><action name="Execute"><command>sakura</command></action></keybind>
+    <keybind key="A-F3"><action name="Execute"><command>bemenu-run</command></action></keybind>
+    <keybind key="A-F4"><action name="Close" /></keybind>
+    <keybind key="W-a"><action name="ToggleMaximize" /></keybind>
+  </keyboard>
 
-</openbox_config>
+</labwc_config>

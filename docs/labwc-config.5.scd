@@ -19,11 +19,10 @@ Configuration must be wrapped in a <labwc_config> root-node.
 
 # GENERAL
 
-This section contains settings which are not present in Openbox.
-
-*<lab><xdg_shell_server_side_deco>* [yes|no]
-	Use server side decorations for xdg-shell views where it is possible to
-	turn off client side decorations. Default is yes.
+*<core><decoration>* [server|client]
+	Specify server or client side decorations for xdg-shell views. Note
+	that it is not always possible to turn off client side decorations.
+	Default is server.
 
 # FOCUS
 

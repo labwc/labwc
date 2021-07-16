@@ -109,6 +109,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		return;
 	}
 	string_truncate_at_pattern(nodename, ".openbox_config");
+	string_truncate_at_pattern(nodename, ".labwc_config");
 
 	if (getenv("LABWC_DEBUG_CONFIG_NODENAMES")) {
 		if (is_attribute) {

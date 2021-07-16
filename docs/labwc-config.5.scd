@@ -15,6 +15,8 @@ be searched for in the following order:
 - ${XDG_CONFIG_HOME:-$HOME/.config}/labwc
 - ${XDG_CONFIG_DIRS:-/etc/xdg}/labwc
 
+Configuration must be wrapped in a <labwc_config> root-node.
+
 # GENERAL
 
 This section contains settings which are not present in Openbox.

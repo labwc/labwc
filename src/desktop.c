@@ -277,6 +277,9 @@ desktop_view_at(struct server *server, double lx, double ly,
 			server->output_layout, lx, ly);
 	struct output *output = output_from_wlr_output(server, wlr_output);
 
+	if (!output) {
+		return NULL;
+	}
 	if ((*surface = layer_surface_at(&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
 					 lx, ly, sx, sy))) {
 		return NULL;

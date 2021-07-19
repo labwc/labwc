@@ -40,8 +40,14 @@ fill_keybind(char *nodename, char *content)
 	if (!strcmp(nodename, "key")) {
 		current_keybind = keybind_create(content);
 	}
-	/* We expect <keybind key=""> to come first */
-	assert(current_keybind);
+	/*
+	 * We expect <keybind key=""> to come first
+	 * If a invalid keybind has been provided, keybind_create() complains
+	 * so we just silently ignore it here.
+	 */
+	if (!current_keybind) {
+		return;
+	}
 	if (!strcmp(nodename, "name.action")) {
 		current_keybind->action = strdup(content);
 	} else if (!strcmp(nodename, "command.action")) {

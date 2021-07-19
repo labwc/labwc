@@ -80,14 +80,30 @@ fill_font(char *nodename, char *content, enum font_place place)
 	}
 	string_truncate_at_pattern(nodename, ".font.theme");
 
+	switch (place) {
+	case FONT_PLACE_UNKNOWN:
+		/*
+		 * If <theme><font></font></theme> is used without a place=""
+		 * attribute, we set all font variables
+		 */
+		if (!strcmp(nodename, "name")) {
+			rc.font_name_activewindow = strdup(content);
+		} else if (!strcmp(nodename, "size")) {
+			rc.font_size_activewindow = atoi(content);
+		}
+		break;
+	case FONT_PLACE_ACTIVEWINDOW:
+		if (!strcmp(nodename, "name")) {
+			rc.font_name_activewindow = strdup(content);
+		} else if (!strcmp(nodename, "size")) {
+			rc.font_size_activewindow = atoi(content);
+		}
+		break;
+
 	/* TODO: implement for all font places */
-	if (place != FONT_PLACE_ACTIVEWINDOW) {
-		return;
-	}
-	if (!strcmp(nodename, "name")) {
-		rc.font_name_activewindow = strdup(content);
-	} else if (!strcmp(nodename, "size")) {
-		rc.font_size_activewindow = atoi(content);
+
+	default:
+		break;
 	}
 }
 
@@ -108,7 +124,7 @@ enum_font_place(const char *place)
 static void
 entry(xmlNode *node, char *nodename, char *content)
 {
-	/* current <theme><font place=""></theme> */
+	/* current <theme><font place=""></font></theme> */
 	static enum font_place font_place = FONT_PLACE_UNKNOWN;
 
 	if (!nodename) {

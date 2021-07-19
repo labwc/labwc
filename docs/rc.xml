@@ -8,7 +8,7 @@
   <theme>
     <name></name>
     <cornerRadius>8</cornerRadius>
-    <font place="ActiveWindow"><name>Sans</name><size>10</size></font>
+    <font><name>Sans</name><size>12</size></font>
   </theme>
 
   <focus>

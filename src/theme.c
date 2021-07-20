@@ -45,7 +45,7 @@ hex_to_dec(char c)
  * @hex: hex string to be parsed
  * @rgba: pointer to float[4] for return value
  */
-void
+static void
 parse_hexstr(const char *hex, float *rgba)
 {
 	if (!hex || hex[0] != '#' || strlen(hex) < 7) {
@@ -73,7 +73,8 @@ parse_hexstr(const char *hex, float *rgba)
  *
  * theme_builtin() applies a theme very similar to Clearlooks-3.4
  */
-void theme_builtin(struct theme *theme)
+static void
+theme_builtin(struct theme *theme)
 {
 	theme->border_width = 1;
 	theme->padding_height = 3;
@@ -99,7 +100,8 @@ match(const gchar *pattern, const gchar *string)
 	return (bool)g_pattern_match_simple(pattern, string);
 }
 
-static void entry(struct theme *theme, const char *key, const char *value)
+static void
+entry(struct theme *theme, const char *key, const char *value)
 {
 	if (!key || !value) {
 		return;
@@ -192,7 +194,6 @@ theme_read(struct theme *theme, const char *theme_name)
 			info("cannot find theme (%s), using built-in",
 			     theme_name);
 		}
-		theme_builtin(theme);
 		return;
 	}
 	info("read themerc (%s)", themerc);
@@ -220,7 +221,8 @@ struct rounded_corner_ctx {
 	} corner;
 };
 
-static void set_source(cairo_t *cairo, float *c)
+static void
+set_source(cairo_t *cairo, float *c)
 {
 	cairo_set_source_rgba(cairo, c[0], c[1], c[2], c[3]);
 }
@@ -360,6 +362,12 @@ void
 theme_init(struct theme *theme, struct wlr_renderer *renderer,
 		const char *theme_name)
 {
+	/*
+	 * Set some default values. This is particularly important on
+	 * reconfigure as not all themes set all options
+	 */
+	theme_builtin(theme);
+
 	theme_read(theme, theme_name);
 	post_processing(theme);
 	create_corners(theme, renderer);

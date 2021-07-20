@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <strings.h>
 #include "labwc.h"
 #include "ssd.h"
 
@@ -130,3 +131,50 @@ view_for_each_popup_surface(struct view *view, wlr_surface_iterator_func_t itera
 	view->impl->for_each_popup_surface(view, iterator, data);
 }
 
+static struct border
+view_border(struct view *view)
+{
+	struct border border = {
+		.left = view->margin.left - view->padding.left,
+		.top = view->margin.top - view->padding.top,
+		.right = view->margin.right + view->padding.right,
+		.bottom = view->margin.bottom + view->padding.bottom,
+	};
+	return border;
+}
+
+#define GAP (3)
+void
+view_move_to_edge(struct view *view, char *direction)
+{
+	if (!view) {
+		wlr_log(WLR_ERROR, "no view");
+		return;
+	}
+	struct output *output = view_output(view);
+	struct border border = view_border(view);
+	struct wlr_box usable;
+	memcpy(&usable, &output->usable_area, sizeof(struct wlr_box));
+
+	double ox = 0, oy = 0;
+	wlr_output_layout_output_coords(view->server->output_layout,
+		output->wlr_output, &ox, &oy);
+	usable.x -= ox;
+	usable.y -= oy;
+
+	int x, y;
+	if (!strcasecmp(direction, "left")) {
+		x = usable.x + border.left + GAP;
+		y = view->y;
+	} else if (!strcasecmp(direction, "up")) {
+		x = view->x;
+		y = usable.y + border.top + GAP;
+	} else if (!strcasecmp(direction, "right")) {
+		x = usable.x + usable.width - view->w - border.right - GAP;
+		y = view->y;
+	} else if (!strcasecmp(direction, "down")) {
+		x = view->x;
+		y = usable.y + usable.height - view->h - border.bottom - GAP;
+	}
+	view_move(view, x, y);
+}

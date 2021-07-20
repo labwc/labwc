@@ -39,6 +39,8 @@ action(struct server *server, const char *action, const char *command)
 		free(cmd.buf);
 	} else if (!strcasecmp(action, "Exit")) {
 		wl_display_terminate(server->wl_display);
+	} else if (!strcasecmp(action, "MoveToEdge")) {
+		view_move_to_edge(topmost_mapped_view(server), command);
 	} else if (!strcasecmp(action, "NextWindow")) {
 		server->cycle_view =
 			desktop_cycle_view(server, server->cycle_view);

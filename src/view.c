@@ -153,7 +153,7 @@ view_border(struct view *view)
 
 #define GAP (3)
 void
-view_move_to_edge(struct view *view, char *direction)
+view_move_to_edge(struct view *view, const char *direction)
 {
 	if (!view) {
 		wlr_log(WLR_ERROR, "no view");

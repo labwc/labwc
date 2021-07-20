@@ -44,8 +44,10 @@ Configuration must be wrapped in a <labwc_config> root-node.
 
 *<theme><font place="">*
 	The font to use for a specific element of a window, menu or OSD.
-	Place can be any of:
+	Places can be any of:
 	- ActiveWindow - titlebar of active window
+	If no place attribute is provided, the setting will be applied to all
+	places.
 
 *<theme><font place=""><name>*
 	Describes font name. Default is sans.

@@ -17,6 +17,10 @@ Actions are used in keyboard bindings.
 *<action name="Exit">*
 	Exit labwc.
 
+*<action name="MoveToEdge"><direction>*
+	Move view to edge of outputs. Understands directions "left", "up",
+	"right" and "down"
+
 *<action name="NextWindow">*
 	Cycle focus to next window.
 

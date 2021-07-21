@@ -76,10 +76,7 @@ view_center(struct view *view)
 static struct wlr_box
 usable_area_in_layout_coords(struct output *output)
 {
-	struct wlr_box box;
-
-	memcpy(&box, &output->usable_area, sizeof(struct wlr_box));
-
+	struct wlr_box box = output->usable_area;
 	double ox = 0, oy = 0;
 	wlr_output_layout_output_coords(output->server->output_layout,
 		output->wlr_output, &ox, &oy);

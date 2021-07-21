@@ -275,6 +275,10 @@ static void
 handle_cursor_button_with_meta_key(struct view *view, uint32_t button,
 		double lx, double ly)
 {
+	if (!view) {
+		return;
+	}
+
 	/* move */
 	if (button == BTN_LEFT) {
 		interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);

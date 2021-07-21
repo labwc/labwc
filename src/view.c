@@ -35,19 +35,12 @@ view_unminimize(struct view *view)
 	view->impl->map(view);
 }
 
-/*
- * view_wlr_output - return the output that a view is mostly on
- */
+/* view_wlr_output - return the output that a view is mostly on */
 static struct wlr_output *
 view_wlr_output(struct view *view)
 {
-	struct wlr_output_layout *layout = view->server->output_layout;
-	struct wlr_output *output;
-
-	/* TODO: make this a bit more sophisticated */
-	output = wlr_output_layout_output_at(layout, view->x + view->w / 2,
-					     view->y + view->h / 2);
-	return output;
+	return wlr_output_layout_output_at(view->server->output_layout,
+		view->x + view->w / 2, view->y + view->h / 2);
 }
 
 static struct output *
@@ -73,18 +66,6 @@ view_center(struct view *view)
 	view_move(view, center_x - view->w / 2, center_y - view->h / 2);
 }
 
-static struct wlr_box
-usable_area_in_layout_coords(struct output *output)
-{
-	struct wlr_box box = output->usable_area;
-	double ox = 0, oy = 0;
-	wlr_output_layout_output_coords(output->server->output_layout,
-		output->wlr_output, &ox, &oy);
-	box.x -= ox;
-	box.y -= oy;
-	return box;
-}
-
 void
 view_maximize(struct view *view, bool maximize)
 {
@@ -99,7 +80,7 @@ view_maximize(struct view *view, bool maximize)
 		view->unmaximized_geometry.height = view->h;
 
 		struct output *output = view_output(view);
-		struct wlr_box box = usable_area_in_layout_coords(output);
+		struct wlr_box box = output_usable_area_in_layout_coords(output);
 
 		if (view->ssd.enabled) {
 			struct border border = ssd_thickness(view);
@@ -158,7 +139,7 @@ view_move_to_edge(struct view *view, const char *direction)
 	}
 	struct output *output = view_output(view);
 	struct border border = view_border(view);
-	struct wlr_box usable = usable_area_in_layout_coords(output);
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
 	int x, y;
 	if (!strcasecmp(direction, "left")) {

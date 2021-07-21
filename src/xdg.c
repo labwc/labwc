@@ -224,12 +224,14 @@ static void
 position_xdg_toplevel_view(struct view *view)
 {
 	if (istopmost(view)) {
-		struct wlr_box *box = output_box_from_cursor_coords(view->server);
-		view->x = box->x;
-		view->y = box->y;
+		struct wlr_box box = output_usable_area_from_cursor_coords(view->server);
+		view->x = box.x;
+		view->y = box.y;
 		view->w = view->xdg_surface->geometry.width;
 		view->h = view->xdg_surface->geometry.height;
-		view_center(view);
+		if (view->w && view->h) {
+			view_center(view);
+		}
 	} else {
 		/*
 		 * If child-toplevel-views, we center-align relative to their
@@ -263,6 +265,7 @@ xdg_toplevel_view_map(struct view *view)
 			view->margin = ssd_thickness(view);
 			ssd_create(view);
 		}
+
 		update_padding(view);
 		position_xdg_toplevel_view(view);
 
@@ -275,6 +278,7 @@ xdg_toplevel_view_map(struct view *view)
 				 parent_link) {
 			subsurface_create(view, subsurface);
 		}
+
 		view->been_mapped = true;
 	}
 

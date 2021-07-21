@@ -1002,11 +1002,24 @@ output_from_wlr_output(struct server *server, struct wlr_output *wlr_output)
 	return NULL;
 }
 
-struct wlr_box *
-output_box_from_cursor_coords(struct server *server)
+struct wlr_box
+output_usable_area_in_layout_coords(struct output *output)
+{
+	struct wlr_box box = output->usable_area;
+	double ox = 0, oy = 0;
+	wlr_output_layout_output_coords(output->server->output_layout,
+		output->wlr_output, &ox, &oy);
+	box.x -= ox;
+	box.y -= oy;
+	return box;
+}
+
+struct wlr_box
+output_usable_area_from_cursor_coords(struct server *server)
 {
 	struct wlr_output *wlr_output;
 	wlr_output = wlr_output_layout_output_at(server->output_layout,
 		server->seat.cursor->x, server->seat.cursor->y);
-	return wlr_output_layout_get_box(server->output_layout, wlr_output);
+	struct output *output = output_from_wlr_output(server, wlr_output);
+	return output_usable_area_in_layout_coords(output);
 }

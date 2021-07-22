@@ -31,7 +31,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0) {
 		return;
 	}
-	info("tap enabled for libinput device");
+	wlr_log(WLR_INFO, "tap enabled");
 	libinput_device_config_tap_set_enabled(libinput_dev,
 		LIBINPUT_CONFIG_TAP_ENABLED);
 }

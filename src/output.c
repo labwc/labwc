@@ -834,7 +834,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 	 */
 
 	if (getenv("LABWC_ADAPTIVE_SYNC")) {
-		info("Set %s adaptive sync to 'true'", wlr_output->name);
+		wlr_log(WLR_INFO, "enable adaptive sync on %s", wlr_output->name);
 		wlr_output_enable_adaptive_sync(wlr_output, true);
 	}
 	wlr_output_layout_add_auto(server->output_layout, wlr_output);

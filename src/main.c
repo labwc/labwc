@@ -59,7 +59,8 @@ main(int argc, char *argv[])
 	rcxml_read(config_file);
 
 	if (!getenv("XDG_RUNTIME_DIR")) {
-		die("XDG_RUNTIME_DIR is unset");
+		wlr_log(WLR_ERROR, "XDG_RUNTIME_DIR is unset");
+		exit(EXIT_FAILURE);
 	}
 
 	struct server server = { 0 };

@@ -24,13 +24,14 @@ static struct server *g_server;
 static void
 reload_config_and_theme(void)
 {
+	damage_all_outputs(g_server);
+
 	/* TODO: use rc.config_path */
 	rcxml_finish();
 	rcxml_read(NULL);
 	theme_finish(g_server->theme);
 	theme_init(g_server->theme, g_server->renderer, rc.theme_name);
 	menu_reconfigure(g_server, g_server->rootmenu);
-	damage_all_outputs(g_server);
 }
 
 static int
@@ -54,14 +55,17 @@ drop_permissions(void)
 {
 	if (getuid() != geteuid() || getgid() != getegid()) {
 		if (setgid(getgid())) {
-			die("unable to drop root group");
+			wlr_log(WLR_ERROR, "unable to drop root group");
+			exit(EXIT_FAILURE);
 		}
 		if (setuid(getuid())) {
-			die("unable to drop root user");
+			wlr_log(WLR_ERROR, "unable to drop root user");
+			exit(EXIT_FAILURE);
 		}
 	}
 	if (setgid(0) != -1 || setuid(0) != -1) {
-		die("unable to drop root");
+		wlr_log(WLR_ERROR, "unable to drop root");
+		exit(EXIT_FAILURE);
 	}
 }
 

@@ -10,7 +10,7 @@
 #include <strings.h>
 #include <unistd.h>
 #include <wayland-server-core.h>
-
+#include <wlr/util/log.h>
 #include "common/dir.h"
 #include "common/log.h"
 #include "common/nodename.h"
@@ -273,7 +273,7 @@ static void
 post_processing(void)
 {
 	if (!wl_list_length(&rc.keybinds)) {
-		info("load default key bindings");
+		wlr_log(WLR_INFO, "load default key bindings");
 		bind("A-Escape", "Exit", NULL);
 		bind("A-Tab", "NextWindow", NULL);
 		bind("A-F3", "Execute", "bemenu-run");
@@ -323,7 +323,7 @@ rcxml_read(const char *filename)
 		find_config_file(rcxml, sizeof(rcxml), filename);
 	}
 	if (rcxml[0] == '\0') {
-		info("cannot find rc.xml config file; using defaults");
+		wlr_log(WLR_INFO, "cannot find rc.xml config file");
 		goto no_config;
 	}
 
@@ -333,7 +333,7 @@ rcxml_read(const char *filename)
 		warn("cannot read (%s)", rcxml);
 		goto no_config;
 	}
-	info("read config file (%s)", rcxml);
+	wlr_log(WLR_INFO, "read config file %s", rcxml);
 	buf_init(&b);
 	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');

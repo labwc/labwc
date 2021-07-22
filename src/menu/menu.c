@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <wlr/util/log.h>
 #include "common/buf.h"
 #include "common/dir.h"
 #include "common/font.h"
@@ -209,7 +210,7 @@ parse_xml(const char *filename, struct menu *menu)
 		warn("cannot read (%s)", menuxml);
 		return;
 	}
-	info("read menu file (%s)", menuxml);
+	wlr_log(WLR_INFO, "read menu file %s", menuxml);
 	buf_init(&b);
 	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');

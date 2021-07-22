@@ -85,7 +85,7 @@ find_dir(struct ctx *ctx)
 			/* handle /etc/xdg... */
 			ctx->build_path_fn(ctx, NULL, d.path);
 			if (debug) {
-				info("%s", ctx->buf);
+				fprintf(stderr, "%s\n", ctx->buf);
 			}
 			if (isdir(ctx->buf)) {
 				return ctx->buf;
@@ -100,7 +100,7 @@ find_dir(struct ctx *ctx)
 			for (gchar **p = prefixes; *p; p++) {
 				ctx->build_path_fn(ctx, *p, d.path);
 				if (debug) {
-					info("%s", ctx->buf);
+					fprintf(stderr, "%s\n", ctx->buf);
 				}
 				if (isdir(ctx->buf)) {
 					g_strfreev(prefixes);

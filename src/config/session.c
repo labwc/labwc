@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <wlr/util/log.h>
 #include "common/dir.h"
 #include "common/log.h"
 #include "common/spawn.h"
@@ -52,7 +53,7 @@ read_environment_file(const char *filename)
 	if (!stream) {
 		return;
 	}
-	info("read environment file (%s)", filename);
+	wlr_log(WLR_INFO, "read environment file %s", filename);
 	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');
 		if (p) {
@@ -101,7 +102,7 @@ session_autostart_init(void)
 		warn("no autostart file");
 		goto out;
 	}
-	info("run autostart file (%s)", autostart);
+	wlr_log(WLR_INFO, "run autostart file %s", autostart);
 	int len = strlen(autostart) + 4;
 	char *cmd = calloc(len, 1);
 	strcat(cmd, "sh ");

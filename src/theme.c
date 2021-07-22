@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 
 #include "common/dir.h"
 #include "common/font.h"
@@ -191,12 +192,11 @@ theme_read(struct theme *theme, const char *theme_name)
 	}
 	if (!stream) {
 		if (theme_name) {
-			info("cannot find theme (%s), using built-in",
-			     theme_name);
+			wlr_log(WLR_INFO, "cannot find theme %s", theme_name);
 		}
 		return;
 	}
-	info("read themerc (%s)", themerc);
+	wlr_log(WLR_INFO, "read theme %s", themerc);
 	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');
 		if (p) {

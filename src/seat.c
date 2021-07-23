@@ -19,13 +19,13 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	 * for the time being, lets just enable tap.
 	 */
 	if (!wlr_input_device) {
-		warn("%s:%d: no wlr_input_device", __FILE__, __LINE__);
+		wlr_log(WLR_ERROR, "no wlr_input_device");
 		return;
 	}
 	struct libinput_device *libinput_dev =
 		wlr_libinput_get_device_handle(wlr_input_device);
 	if (!libinput_dev) {
-		warn("%s:%d: no libinput_dev", __FILE__, __LINE__);
+		wlr_log(WLR_ERROR, "no libinput_dev");
 		return;
 	}
 	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0) {

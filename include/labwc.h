@@ -33,8 +33,6 @@
 #include <wlr/xwayland.h>
 #endif
 #include <xkbcommon/xkbcommon.h>
-
-#include "common/log.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
 

@@ -16,10 +16,8 @@
 #include <string.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
-
 #include "common/dir.h"
 #include "common/font.h"
-#include "common/log.h"
 #include "common/string-helpers.h"
 #include "common/zfree.h"
 #include "config/rcxml.h"
@@ -266,7 +264,7 @@ rounded_rect(struct wlr_renderer *renderer, struct rounded_corner_ctx *ctx)
 		cairo_line_to(cairo, 0, 0);
 		break;
 	default:
-		warn("unknown corner type");
+		wlr_log(WLR_ERROR, "unknown corner type");
 	}
 	cairo_close_path(cairo);
 	cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
@@ -293,7 +291,7 @@ rounded_rect(struct wlr_renderer *renderer, struct rounded_corner_ctx *ctx)
 		cairo_line_to(cairo, w - half_line_width, h);
 		break;
 	default:
-		warn("unknown corner type");
+		wlr_log(WLR_ERROR, "unknown corner type");
 	}
 	cairo_stroke(cairo);
 

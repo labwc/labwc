@@ -1,6 +1,5 @@
 #include <wlr/backend/multi.h>
 #include <wlr/backend/session.h>
-#include "common/log.h"
 #include "labwc.h"
 
 static void

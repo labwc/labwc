@@ -75,12 +75,11 @@ static void
 process_cursor_move(struct server *server, uint32_t time)
 {
 	damage_all_outputs(server);
-	/* Move the grabbed view to the new position. */
 	double dx = server->seat.cursor->x - server->grab_x;
 	double dy = server->seat.cursor->y - server->grab_y;
-
 	struct view *view = server->grabbed_view;
-	assert(view);
+
+	/* Move the grabbed view to the new position. */
 	view->impl->move(view, server->grab_box.x + dx, server->grab_box.y + dy);
 }
 

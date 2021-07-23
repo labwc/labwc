@@ -1,5 +1,4 @@
 #include "common/font.h"
-#include "common/log.h"
 #include "common/spawn.h"
 #include "config/session.h"
 #include "labwc.h"

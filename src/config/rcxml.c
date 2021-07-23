@@ -12,7 +12,6 @@
 #include <wayland-server-core.h>
 #include <wlr/util/log.h>
 #include "common/dir.h"
-#include "common/log.h"
 #include "common/nodename.h"
 #include "common/string-helpers.h"
 #include "common/zfree.h"
@@ -227,7 +226,7 @@ rcxml_parse_xml(struct buf *b)
 {
 	xmlDoc *d = xmlParseMemory(b->buf, b->len);
 	if (!d) {
-		warn("xmlParseMemory()");
+		wlr_log(WLR_ERROR, "xmlParseMemory()");
 		exit(EXIT_FAILURE);
 	}
 	xml_tree_walk(xmlDocGetRootElement(d));
@@ -330,7 +329,7 @@ rcxml_read(const char *filename)
 	/* Reading file into buffer before parsing - better for unit tests */
 	stream = fopen(rcxml, "r");
 	if (!stream) {
-		warn("cannot read (%s)", rcxml);
+		wlr_log(WLR_ERROR, "cannot read (%s)", rcxml);
 		goto no_config;
 	}
 	wlr_log(WLR_INFO, "read config file %s", rcxml);

@@ -7,7 +7,6 @@
 #include <sys/stat.h>
 #include <wlr/util/log.h>
 #include "common/dir.h"
-#include "common/log.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 
@@ -99,7 +98,7 @@ session_autostart_init(void)
 		return;
 	}
 	if (!isfile(autostart)) {
-		warn("no autostart file");
+		wlr_log(WLR_ERROR, "no autostart file");
 		goto out;
 	}
 	wlr_log(WLR_INFO, "run autostart file %s", autostart);

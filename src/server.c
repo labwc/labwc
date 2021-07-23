@@ -7,7 +7,6 @@
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
-#include "common/log.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "layers.h"

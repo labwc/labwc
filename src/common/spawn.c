@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "common/log.h"
+#include <wlr/util/log.h>
 #include "common/spawn.h"
 
 void
@@ -35,7 +35,7 @@ spawn_async_no_shell(char const *command)
 	child = fork();
 	switch (child) {
 	case -1:
-		warn("unable to fork()");
+		wlr_log(WLR_ERROR, "unable to fork()");
 		goto out;
 	case 0:
 		setsid();
@@ -47,7 +47,7 @@ spawn_async_no_shell(char const *command)
 			execvp(argv[0], argv);
 			_exit(0);
 		} else if (grandchild < 0) {
-			warn("unable to fork()");
+			wlr_log(WLR_ERROR, "unable to fork()");
 		}
 		_exit(0);
 	default:

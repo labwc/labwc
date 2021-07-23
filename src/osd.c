@@ -1,5 +1,5 @@
 #include "config.h"
-#include "common/log.h"
+#include <wlr/util/log.h>
 #include "config/keybind.h"
 #include "config/rcxml.h"
 #include "labwc.h"
@@ -12,7 +12,7 @@ xwl_nr_parents(struct view *view)
 	int i = 0;
 
 	if (!s) {
-		warn("(%s) no xwayland surface\n", __func__);
+		wlr_log(WLR_ERROR, "no xwayland surface");
 		return -1;
 	}
 	while (s->parent) {

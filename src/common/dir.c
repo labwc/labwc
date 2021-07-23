@@ -9,9 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-
 #include "common/dir.h"
-#include "common/log.h"
 
 struct dir {
 	const char *prefix;

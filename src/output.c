@@ -11,6 +11,7 @@
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include <wlr/types/wlr_output_damage.h>
 #include <wlr/util/region.h>
+#include <wlr/util/log.h>
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
@@ -936,7 +937,7 @@ static struct wlr_output_configuration_v1 *create_output_config(struct server *s
 {
 	struct wlr_output_configuration_v1 *config = wlr_output_configuration_v1_create();
 	if(config == NULL) {
-		warn("wlr_output_configuration_v1_create() returned NULL");
+		wlr_log(WLR_ERROR, "wlr_output_configuration_v1_create()");
 		return NULL;
 	}
 
@@ -946,17 +947,17 @@ static struct wlr_output_configuration_v1 *create_output_config(struct server *s
 			wlr_output_configuration_head_v1_create(config,
 				output->wlr_output);
 		if (head == NULL) {
-			warn("wlr_output_configuration_head_v1_create() returned NULL");
+			wlr_log(WLR_ERROR, "wlr_output_configuration_head_v1_create()");
 			wlr_output_configuration_v1_destroy(config);
 			return NULL;
 		}
 		struct wlr_box *box = wlr_output_layout_get_box(server->output_layout,
 								output->wlr_output);
-		if(box != NULL) {
+		if (box != NULL) {
 			head->state.x = box->x;
 			head->state.y = box->y;
 		} else {
-			warn("%s: failed to get box for output", __func__);
+			wlr_log(WLR_ERROR, "failed to get output layout box");
 		}
 	}
 
@@ -972,7 +973,7 @@ static void handle_output_layout_change(struct wl_listener *listener, void *data
 		if(config != NULL) {
 			wlr_output_manager_v1_set_configuration(server->output_manager, config);
 		} else {
-			warn("wlr_output_manager_v1_set_configuration returned NULL");
+			wlr_log(WLR_ERROR, "wlr_output_manager_v1_set_configuration()");
 		}
 	}
 }

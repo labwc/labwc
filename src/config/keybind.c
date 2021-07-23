@@ -3,8 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "common/log.h"
+#include <wlr/util/log.h>
 #include "config/keybind.h"
 #include "config/rcxml.h"
 
@@ -39,7 +38,7 @@ keybind_create(const char *keybind)
 			xkb_keysym_t sym = xkb_keysym_from_name(
 				symname, XKB_KEYSYM_CASE_INSENSITIVE);
 			if (sym == XKB_KEY_NoSymbol) {
-				warn("unknown keybind (%s)", symname);
+				wlr_log(WLR_ERROR, "unknown keybind (%s)", symname);
 				free(k);
 				k = NULL;
 				break;

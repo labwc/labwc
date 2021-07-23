@@ -207,7 +207,7 @@ parse_xml(const char *filename, struct menu *menu)
 
 	stream = fopen(menuxml, "r");
 	if (!stream) {
-		warn("cannot read (%s)", menuxml);
+		wlr_log(WLR_ERROR, "cannot read %s", menuxml);
 		return;
 	}
 	wlr_log(WLR_INFO, "read menu file %s", menuxml);
@@ -222,7 +222,7 @@ parse_xml(const char *filename, struct menu *menu)
 	fclose(stream);
 	xmlDoc *d = xmlParseMemory(b.buf, b.len);
 	if (!d) {
-		warn("xmlParseMemory()");
+		wlr_log(WLR_ERROR, "xmlParseMemory()");
 		exit(EXIT_FAILURE);
 	}
 	xml_tree_walk(xmlDocGetRootElement(d), menu);

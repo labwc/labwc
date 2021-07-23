@@ -1,5 +1,5 @@
 #include <strings.h>
-#include "common/log.h"
+#include <wlr/util/log.h>
 #include "common/spawn.h"
 #include "labwc.h"
 #include "menu/menu.h"
@@ -59,6 +59,6 @@ action(struct server *server, const char *action, const char *command)
 			view_maximize(view, true);
 		}
 	} else {
-		warn("action (%s) not supported", action);
+		wlr_log(WLR_ERROR, "action (%s) not supported", action);
 	}
 }

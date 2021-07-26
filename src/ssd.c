@@ -69,6 +69,30 @@ ssd_interactive_box(struct view *view, enum ssd_part_type type)
 		box.width = view->w;
 		box.height = theme->title_height;
 		break;
+	case LAB_SSD_PART_CORNER_TOP_LEFT:
+		box.x = view->x - theme->border_width - INVISIBLE_MARGIN;
+		box.y = view->y - corner_square - INVISIBLE_MARGIN;
+		box.width = corner_square + INVISIBLE_MARGIN;
+		box.height = corner_square + INVISIBLE_MARGIN;
+		break;
+	case LAB_SSD_PART_CORNER_TOP_RIGHT:
+		box.x = view->x + view->w - theme->title_height;
+		box.y = view->y - corner_square - INVISIBLE_MARGIN;
+		box.width = corner_square + INVISIBLE_MARGIN;
+		box.height = corner_square + INVISIBLE_MARGIN;
+		break;
+	case LAB_SSD_PART_CORNER_BOTTOM_RIGHT:
+		box.x = view->x + view->w - corner_square;
+		box.y = view->y + view->h - corner_square;
+		box.width = corner_square + INVISIBLE_MARGIN;
+		box.height = corner_square + INVISIBLE_MARGIN;
+		break;
+	case LAB_SSD_PART_CORNER_BOTTOM_LEFT:
+		box.x = view->x - theme->border_width - INVISIBLE_MARGIN;
+		box.y = view->y + view->h - corner_square;
+		box.width = corner_square + INVISIBLE_MARGIN;
+		box.height = corner_square + INVISIBLE_MARGIN;
+		break;
 	case LAB_SSD_PART_TOP:
 		box.x = view->x + theme->title_height;
 		box.y = view->y - corner_square - INVISIBLE_MARGIN;
@@ -92,18 +116,6 @@ ssd_interactive_box(struct view *view, enum ssd_part_type type)
 		box.y = view->y;
 		box.width = theme->border_width + INVISIBLE_MARGIN;
 		box.height = view->h;
-		break;
-	case LAB_SSD_PART_CORNER_TOP_LEFT:
-		box.x = view->x - theme->border_width - INVISIBLE_MARGIN;
-		box.y = view->y - corner_square - INVISIBLE_MARGIN;
-		box.width = corner_square + INVISIBLE_MARGIN;
-		box.height = corner_square + INVISIBLE_MARGIN;
-		break;
-	case LAB_SSD_PART_CORNER_TOP_RIGHT:
-		box.x = view->x + view->w - theme->title_height;
-		box.y = view->y - corner_square - INVISIBLE_MARGIN;
-		box.width = corner_square + INVISIBLE_MARGIN;
-		box.height = corner_square + INVISIBLE_MARGIN;
 		break;
 	default:
 		break;
@@ -131,6 +143,19 @@ ssd_box(struct view *view, enum ssd_part_type type)
 		box.x += theme->title_height;
 		box.width -= 2 * theme->title_height;
 		break;
+	case LAB_SSD_PART_CORNER_TOP_LEFT:
+		box = ssd_interactive_box(view, type);
+		box.x += INVISIBLE_MARGIN;
+		box.y += INVISIBLE_MARGIN;
+		box.width -= INVISIBLE_MARGIN;
+		box.height -= INVISIBLE_MARGIN;
+		break;
+	case LAB_SSD_PART_CORNER_TOP_RIGHT:
+		box = ssd_interactive_box(view, type);
+		box.y += INVISIBLE_MARGIN;
+		box.width -= INVISIBLE_MARGIN;
+		box.height -= INVISIBLE_MARGIN;
+		break;
 	case LAB_SSD_PART_TOP:
 		box = ssd_interactive_box(view, type);
 		box.y += INVISIBLE_MARGIN;
@@ -149,19 +174,8 @@ ssd_box(struct view *view, enum ssd_part_type type)
 		box.x += INVISIBLE_MARGIN;
 		box.width -= INVISIBLE_MARGIN;
 		break;
-	case LAB_SSD_PART_CORNER_TOP_LEFT:
-		box = ssd_interactive_box(view, type);
-		box.x += INVISIBLE_MARGIN;
-		box.y += INVISIBLE_MARGIN;
-		box.width -= INVISIBLE_MARGIN;
-		box.height -= INVISIBLE_MARGIN;
-		break;
-	case LAB_SSD_PART_CORNER_TOP_RIGHT:
-		box = ssd_interactive_box(view, type);
-		box.y += INVISIBLE_MARGIN;
-		box.width -= INVISIBLE_MARGIN;
-		box.height -= INVISIBLE_MARGIN;
-		break;
+	case LAB_SSD_PART_CORNER_BOTTOM_RIGHT:
+	case LAB_SSD_PART_CORNER_BOTTOM_LEFT:
 	default:
 		break;
 	}
@@ -184,28 +198,27 @@ ssd_at(struct view *view, double lx, double ly)
 uint32_t
 ssd_resize_edges(enum ssd_part_type type)
 {
-	uint32_t edges = 0;
-
-	if (type == LAB_SSD_PART_TOP) {
-		edges |= WLR_EDGE_TOP;
+	switch (type) {
+	case LAB_SSD_PART_TOP:
+		return WLR_EDGE_TOP;
+	case LAB_SSD_PART_RIGHT:
+		return WLR_EDGE_RIGHT;
+	case LAB_SSD_PART_BOTTOM:
+		return WLR_EDGE_BOTTOM;
+	case LAB_SSD_PART_LEFT:
+		return WLR_EDGE_LEFT;
+	case LAB_SSD_PART_CORNER_TOP_LEFT:
+		return WLR_EDGE_TOP | WLR_EDGE_LEFT;
+	case LAB_SSD_PART_CORNER_TOP_RIGHT:
+		return WLR_EDGE_RIGHT | WLR_EDGE_TOP;
+	case LAB_SSD_PART_CORNER_BOTTOM_RIGHT:
+		return WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT;
+	case LAB_SSD_PART_CORNER_BOTTOM_LEFT:
+		return WLR_EDGE_BOTTOM | WLR_EDGE_LEFT;
+	default:
+		break;
 	}
-	if (type == LAB_SSD_PART_RIGHT) {
-		edges |= WLR_EDGE_RIGHT;
-	}
-	if (type == LAB_SSD_PART_BOTTOM) {
-		edges |= WLR_EDGE_BOTTOM;
-	}
-	if (type == LAB_SSD_PART_LEFT) {
-		edges |= WLR_EDGE_LEFT;
-	}
-	if (type == LAB_SSD_PART_CORNER_TOP_RIGHT) {
-		edges = WLR_EDGE_RIGHT | WLR_EDGE_TOP;
-	}
-	if (type == LAB_SSD_PART_CORNER_TOP_LEFT) {
-		edges |= WLR_EDGE_TOP;
-		edges |= WLR_EDGE_LEFT;
-	}
-	return edges;
+	return 0;
 }
 
 

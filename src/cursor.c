@@ -4,39 +4,6 @@
 #include "menu/menu.h"
 #include "ssd.h"
 
-#define RESIZE_BORDER_WIDTH 2
-
-/*
- * TODO: refactor code to get rid of get_resize_edges()
- * Use a wl_list of SSD instead and build RESIZE_BORDER_WIDTH into that.
- * Had to set RESIZE_BORDER_WIDTH to 2 for the time being to get 
- * cursor_name to behave properly when entering surface
- */
-static uint32_t
-get_resize_edges(struct view *view, double x, double y)
-{
-	uint32_t edges = 0;
-	int top, right, bottom, left;
-
-	top = view->y - view->margin.top;
-	left = view->x - view->margin.left;
-	bottom = top + view->h + view->margin.top + view->margin.bottom;
-	right = left + view->w + view->margin.left + view->margin.right;
-
-	if (top <= y && y < top + RESIZE_BORDER_WIDTH) {
-		edges |= WLR_EDGE_TOP;
-	} else if (bottom - RESIZE_BORDER_WIDTH <= y && y < bottom) {
-		edges |= WLR_EDGE_BOTTOM;
-	}
-	if (left <= x && x < left + RESIZE_BORDER_WIDTH) {
-		edges |= WLR_EDGE_LEFT;
-	} else if (right - RESIZE_BORDER_WIDTH <= x && x < right) {
-		edges |= WLR_EDGE_RIGHT;
-	}
-
-	return edges;
-}
-
 static void
 request_cursor_notify(struct wl_listener *listener, void *data)
 {
@@ -149,12 +116,11 @@ process_cursor_motion(struct server *server, uint32_t time)
 	if (!view) {
 		cursor_name = XCURSOR_DEFAULT;
 	} else {
-		uint32_t resize_edges = get_resize_edges(
-			view, server->seat.cursor->x, server->seat.cursor->y);
+		uint32_t resize_edges = ssd_resize_edges(view_area);
 		switch (resize_edges) {
 		case 0:
-			if (rc.focus_follow_mouse){
-				if (rc.raise_on_focus){
+			if (rc.focus_follow_mouse) {
+				if (rc.raise_on_focus) {
 					desktop_focus_view(&server->seat, view);
 				} else {
 					desktop_set_focus_view_only(&server->seat, view);
@@ -361,8 +327,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	desktop_focus_view(&server->seat, view);
 	damage_all_outputs(server);
 
-	resize_edges = get_resize_edges(view, server->seat.cursor->x,
-					server->seat.cursor->y);
+	resize_edges = ssd_resize_edges(view_area);
 	if (resize_edges != 0) {
 		interactive_begin(view, LAB_INPUT_STATE_RESIZE, resize_edges);
 		return;

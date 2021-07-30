@@ -86,6 +86,13 @@ process_cursor_resize(struct server *server, uint32_t time)
 }
 
 static void
+set_cursor(struct server *server, const char *cursor_name)
+{
+	wlr_xcursor_manager_set_cursor_image(
+		server->seat.xcursor_manager, cursor_name, server->seat.cursor);
+}
+
+static void
 process_cursor_motion(struct server *server, uint32_t time)
 {
 	static bool cursor_name_set_by_server;
@@ -109,62 +116,33 @@ process_cursor_motion(struct server *server, uint32_t time)
 	struct wlr_seat *wlr_seat = server->seat.seat;
 	struct wlr_surface *surface = NULL;
 	int view_area = LAB_SSD_NONE;
-	char *cursor_name = NULL;
 	struct view *view =
 		desktop_view_at(server, server->seat.cursor->x, server->seat.cursor->y,
 				&surface, &sx, &sy, &view_area);
 	if (!view) {
-		cursor_name = XCURSOR_DEFAULT;
+		set_cursor(server, XCURSOR_DEFAULT);
 	} else {
 		uint32_t resize_edges = ssd_resize_edges(view_area);
-		switch (resize_edges) {
-		case 0:
-			if (rc.focus_follow_mouse) {
-				if (rc.raise_on_focus) {
-					desktop_focus_view(&server->seat, view);
-				} else {
-					desktop_set_focus_view_only(&server->seat, view);
-				}
-			}
-			break;
-		case WLR_EDGE_TOP:
-			cursor_name = "top_side";
-			break;
-		case WLR_EDGE_RIGHT:
-			cursor_name = "right_side";
-			break;
-		case WLR_EDGE_BOTTOM:
-			cursor_name = "bottom_side";
-			break;
-		case WLR_EDGE_LEFT:
-			cursor_name = "left_side";
-			break;
-		case WLR_EDGE_TOP | WLR_EDGE_LEFT:
-			cursor_name = "top_left_corner";
-			break;
-		case WLR_EDGE_TOP | WLR_EDGE_RIGHT:
-			cursor_name = "top_right_corner";
-			break;
-		case WLR_EDGE_BOTTOM | WLR_EDGE_LEFT:
-			cursor_name = "bottom_left_corner";
-			break;
-		case WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT:
-			cursor_name = "bottom_right_corner";
-			break;
-		}
 		if (resize_edges) {
 			cursor_name_set_by_server = true;
+			set_cursor(server, wlr_xcursor_get_resize_name(resize_edges));
 		} else if (view_area != LAB_SSD_NONE) {
-			cursor_name = XCURSOR_DEFAULT;
+			/* title and buttons */
+			set_cursor(server, XCURSOR_DEFAULT);
 			cursor_name_set_by_server = true;
 		} else if (cursor_name_set_by_server) {
-			cursor_name = XCURSOR_DEFAULT;
+			set_cursor(server, XCURSOR_DEFAULT);
 			cursor_name_set_by_server = false;
 		}
 	}
-	if (cursor_name) {
-		wlr_xcursor_manager_set_cursor_image(
-			server->seat.xcursor_manager, cursor_name, server->seat.cursor);
+
+
+	if (view && rc.focus_follow_mouse) {
+		if (rc.raise_on_focus) {
+			desktop_focus_view(&server->seat, view);
+		} else {
+			desktop_set_focus_view_only(&server->seat, view);
+		}
 	}
 
 	/* Required for iconify/maximize/close button mouse-over deco */

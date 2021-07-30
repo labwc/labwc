@@ -23,14 +23,26 @@ static struct server *g_server;
 static void
 reload_config_and_theme(void)
 {
-	damage_all_outputs(g_server);
-
 	/* TODO: use rc.config_path */
 	rcxml_finish();
 	rcxml_read(NULL);
 	theme_finish(g_server->theme);
 	theme_init(g_server->theme, g_server->renderer, rc.theme_name);
+
+	struct view *view;
+	wl_list_for_each (view, &g_server->views, link) {
+		if (!view->mapped || !view->ssd.enabled) {
+			continue;
+		}
+		struct ssd_part *part;
+		wl_list_for_each(part, &view->ssd.parts, link) {
+			part->box = ssd_box(view, part->type);
+		}
+	}
+
 	menu_reconfigure(g_server, g_server->rootmenu);
+
+	damage_all_outputs(g_server);
 }
 
 static int

@@ -11,6 +11,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
+#include "ssd.h"
 #include "theme.h"
 
 static struct wlr_compositor *compositor;

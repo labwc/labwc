@@ -292,6 +292,7 @@ void view_minimize(struct view *view);
 void view_unminimize(struct view *view);
 void view_center(struct view *view);
 void view_maximize(struct view *view, bool maximize);
+void view_toggle_maximize(struct view *view);
 void view_for_each_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *user_data);
 void view_for_each_popup_surface(struct view *view,

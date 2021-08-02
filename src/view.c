@@ -101,6 +101,12 @@ view_maximize(struct view *view, bool maximize)
 }
 
 void
+view_toggle_maximize(struct view *view)
+{
+	view_maximize(view, !view->maximized);
+}
+
+void
 view_for_each_surface(struct view *view, wlr_surface_iterator_func_t iterator,
 		void *user_data)
 {

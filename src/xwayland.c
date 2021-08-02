@@ -68,10 +68,8 @@ static void handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
 
-	if(view != NULL) {
-		view_maximize(view, !view->maximized);
-	}
-
+	assert(view);
+	view_toggle_maximize(view);
 }
 
 static void

@@ -50,13 +50,8 @@ action(struct server *server, const char *action, const char *command)
 		show_menu(server, command);
 	} else if (!strcasecmp(action, "ToggleMaximize")) {
 		struct view *view = topmost_mapped_view(server);
-		if (!view) {
-			return;
-		}
-		if (view->maximized) {
-			view_maximize(view, false);
-		} else {
-			view_maximize(view, true);
+		if (view) {
+			view_toggle_maximize(view);
 		}
 	} else {
 		wlr_log(WLR_ERROR, "action (%s) not supported", action);

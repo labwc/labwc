@@ -322,7 +322,7 @@ cursor_button(struct wl_listener *listener, void *data)
 		interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
 		break;
 	case LAB_SSD_BUTTON_MAXIMIZE:
-		view_maximize(view, !view->maximized);
+		view_toggle_maximize(view);
 		break;
 	}
 }

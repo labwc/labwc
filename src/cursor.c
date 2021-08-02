@@ -1,5 +1,7 @@
 #include <assert.h>
 #include <linux/input-event-codes.h>
+#include <sys/time.h>
+#include <time.h>
 #include "labwc.h"
 #include "menu/menu.h"
 #include "ssd.h"
@@ -235,6 +237,19 @@ handle_cursor_button_with_meta_key(struct view *view, uint32_t button,
 	interactive_begin(view, LAB_INPUT_STATE_RESIZE, edges);
 }
 
+static bool
+is_double_click(long double_click_speed)
+{
+	static struct timespec last_double_click;
+	struct timespec now;
+
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	long ms = (now.tv_sec - last_double_click.tv_sec) * 1000 +
+		(now.tv_nsec - last_double_click.tv_nsec) / 1000000;
+	last_double_click = now;
+	return ms < double_click_speed && ms >= 0;
+}
+
 void
 cursor_button(struct wl_listener *listener, void *data)
 {
@@ -288,7 +303,8 @@ cursor_button(struct wl_listener *listener, void *data)
 	if (!view && surface) {
 		/* ...if we've ended up here it must be a layer surface */
 		assert(wlr_surface_is_layer_surface(surface));
-		struct wlr_layer_surface_v1 *layer = wlr_layer_surface_v1_from_wlr_surface(surface);
+		struct wlr_layer_surface_v1 *layer =
+			wlr_layer_surface_v1_from_wlr_surface(surface);
 		if (layer->current.keyboard_interactive) {
 			seat_set_focus_layer(&server->seat, layer);
 		}
@@ -305,8 +321,13 @@ cursor_button(struct wl_listener *listener, void *data)
 	desktop_focus_view(&server->seat, view);
 	damage_all_outputs(server);
 
+	if (is_double_click(500) && view_area == LAB_SSD_PART_TITLE) {
+		view_toggle_maximize(view);
+		return;
+	}
+
 	resize_edges = ssd_resize_edges(view_area);
-	if (resize_edges != 0) {
+	if (resize_edges) {
 		interactive_begin(view, LAB_INPUT_STATE_RESIZE, resize_edges);
 		return;
 	}

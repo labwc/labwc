@@ -147,7 +147,7 @@ view_move_to_edge(struct view *view, const char *direction)
 	struct border border = view_border(view);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
-	int x, y;
+	int x = 0, y = 0;
 	if (!strcasecmp(direction, "left")) {
 		x = usable.x + border.left + GAP;
 		y = view->y;

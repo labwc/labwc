@@ -25,6 +25,8 @@ specification is used. This does not mean that labwc is an openbox clone.
 In fact, as a Wayland compositor it is quite different in areas, and the
 acceptance criteria only covers ca 40% of openbox features.
 
+
+[Video (1:10)](https://youtu.be/AU_M3n_FS-E)
 [Video (3:42)](https://youtu.be/rE1bQjSVJzg)
 
 <a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png">
@@ -81,6 +83,11 @@ If you have not created an rc.xml configuration file, default keybinds will be:
 - Alt-tab: cycle window
 - Alt-F3: launch bemenu
 - Alt-escape: exit
+
+Mouse binds:
+
+- Move window with Alt + left-click
+- Resize with Alt + right-click
 
 ## 6. Integrate
 

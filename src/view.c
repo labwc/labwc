@@ -73,6 +73,10 @@ view_maximize(struct view *view, bool maximize)
 		return;
 	}
 	view->impl->maximize(view, maximize);
+	if (view->toplevel_handle) {
+		wlr_foreign_toplevel_handle_v1_set_maximized(view->toplevel_handle,
+			maximize);
+	}
 	if (maximize) {
 		view->unmaximized_geometry.x = view->x;
 		view->unmaximized_geometry.y = view->y;

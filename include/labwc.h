@@ -224,6 +224,7 @@ struct view {
 	} ssd;
 
 	struct wlr_foreign_toplevel_handle_v1 *toplevel_handle;
+	struct wl_listener toplevel_handle_request_maximize;
 
 	struct wl_listener map;
 	struct wl_listener unmap;

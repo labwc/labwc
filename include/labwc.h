@@ -225,6 +225,7 @@ struct view {
 
 	struct wlr_foreign_toplevel_handle_v1 *toplevel_handle;
 	struct wl_listener toplevel_handle_request_maximize;
+	struct wl_listener toplevel_handle_request_minimize;
 
 	struct wl_listener map;
 	struct wl_listener unmap;
@@ -296,8 +297,7 @@ void subsurface_create(struct view *view, struct wlr_subsurface *wlr_subsurface)
 
 void view_move_resize(struct view *view, struct wlr_box geo);
 void view_move(struct view *view, double x, double y);
-void view_minimize(struct view *view);
-void view_unminimize(struct view *view);
+void view_minimize(struct view *view, bool minimized);
 /* view_wlr_output - return the output that a view is mostly on */
 struct wlr_output *view_wlr_output(struct view *view);
 void view_center(struct view *view);

@@ -337,7 +337,7 @@ cursor_button(struct wl_listener *listener, void *data)
 		view->impl->close(view);
 		break;
 	case LAB_SSD_BUTTON_ICONIFY:
-		view_minimize(view);
+		view_minimize(view, true);
 		break;
 	case LAB_SSD_PART_TITLE:
 		interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);

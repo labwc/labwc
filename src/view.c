@@ -16,23 +16,21 @@ view_move(struct view *view, double x, double y)
 }
 
 void
-view_minimize(struct view *view)
+view_minimize(struct view *view, bool minimized)
 {
-	if (view->minimized == true) {
+	if (view->minimized == minimized) {
 		return;
 	}
-	view->minimized = true;
-	view->impl->unmap(view);
-}
-
-void
-view_unminimize(struct view *view)
-{
-	if (view->minimized == false) {
-		return;
+	if (view->toplevel_handle) {
+		wlr_foreign_toplevel_handle_v1_set_minimized(view->toplevel_handle,
+			minimized);
 	}
-	view->minimized = false;
-	view->impl->map(view);
+	view->minimized = minimized;
+	if (minimized) {
+		view->impl->unmap(view);
+	} else {
+		view->impl->map(view);
+	}
 }
 
 /* view_wlr_output - return the output that a view is mostly on */

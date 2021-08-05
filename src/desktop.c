@@ -98,7 +98,7 @@ desktop_focus_view(struct seat *seat, struct view *view)
 	}
 	if (view->minimized) {
 		/* this will unmap and then focus */
-		view_unminimize(view);
+		view_minimize(view, false);
 		return;
 	} else if (view->mapped) {
 		struct wlr_surface *prev_surface;

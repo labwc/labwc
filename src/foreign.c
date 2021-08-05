@@ -1,12 +1,20 @@
 #include "labwc.h"
 
 static void
+handle_toplevel_handle_request_minimize(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view,
+		toplevel_handle_request_minimize);
+	struct wlr_foreign_toplevel_handle_v1_minimized_event *event = data;
+	view_minimize(view, event->minimized);
+}
+
+static void
 handle_toplevel_handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view,
 		toplevel_handle_request_maximize);
 	struct wlr_foreign_toplevel_handle_v1_maximized_event *event = data;
-	printf("max=%d\n", event->maximized);
 	view_maximize(view, event->maximized);
 }
 
@@ -23,4 +31,8 @@ foreign_toplevel_handle_create(struct view *view)
 		handle_toplevel_handle_request_maximize;
 	wl_signal_add(&view->toplevel_handle->events.request_maximize,
 		&view->toplevel_handle_request_maximize);
+	view->toplevel_handle_request_minimize.notify =
+		handle_toplevel_handle_request_minimize;
+	wl_signal_add(&view->toplevel_handle->events.request_minimize,
+		&view->toplevel_handle_request_minimize);
 }

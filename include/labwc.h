@@ -13,6 +13,7 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_data_device.h>
+#include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
 #include <wlr/types/wlr_keyboard_group.h>
@@ -118,6 +119,8 @@ struct server {
 	struct wl_listener output_manager_apply;
 	struct wlr_output_configuration_v1 *pending_output_config;
 
+	struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
+
 	/* Set when in cycle (alt-tab) mode */
 	struct view *cycle_view;
 
@@ -152,6 +155,7 @@ struct view_impl {
 		wlr_surface_iterator_func_t iterator, void *data);
 	void (*for_each_surface)(struct view *view,
 		wlr_surface_iterator_func_t iterator, void *data);
+	const char *(*get_string_prop)(struct view *view, const char *prop);
 	void (*map)(struct view *view);
 	void (*move)(struct view *view, double x, double y);
 	void (*unmap)(struct view *view);
@@ -219,6 +223,8 @@ struct view {
 		struct wlr_box box; /* remember geo so we know when to update */
 	} ssd;
 
+	struct wlr_foreign_toplevel_handle_v1 *toplevel_handle;
+
 	struct wl_listener map;
 	struct wl_listener unmap;
 	struct wl_listener destroy;
@@ -227,6 +233,7 @@ struct view {
 	struct wl_listener request_resize;
 	struct wl_listener request_configure;
 	struct wl_listener request_maximize;
+	struct wl_listener set_title;
 	struct wl_listener new_popup;		/* xdg-shell only */
 	struct wl_listener new_subsurface;	/* xdg-shell only */
 };
@@ -290,6 +297,8 @@ void view_move_resize(struct view *view, struct wlr_box geo);
 void view_move(struct view *view, double x, double y);
 void view_minimize(struct view *view);
 void view_unminimize(struct view *view);
+/* view_wlr_output - return the output that a view is mostly on */
+struct wlr_output *view_wlr_output(struct view *view);
 void view_center(struct view *view);
 void view_maximize(struct view *view, bool maximize);
 void view_toggle_maximize(struct view *view);
@@ -298,6 +307,9 @@ void view_for_each_surface(struct view *view,
 void view_for_each_popup_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *data);
 void view_move_to_edge(struct view *view, const char *direction);
+void view_update_title(struct view *view);
+
+void foreign_toplevel_handle_create(struct view *view);
 
 void desktop_set_focus_view_only(struct seat *seat, struct view *view);
 void desktop_focus_view(struct seat *seat, struct view *view);

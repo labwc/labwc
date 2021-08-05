@@ -196,6 +196,9 @@ server_init(struct server *server)
 	wlr_gamma_control_manager_v1_create(server->wl_display);
 	wlr_primary_selection_v1_device_manager_create(server->wl_display);
 
+	server->foreign_toplevel_manager =
+		wlr_foreign_toplevel_manager_v1_create(server->wl_display);
+
 	layers_init(server);
 
 #if HAVE_XWAYLAND

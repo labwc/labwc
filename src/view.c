@@ -36,7 +36,7 @@ view_unminimize(struct view *view)
 }
 
 /* view_wlr_output - return the output that a view is mostly on */
-static struct wlr_output *
+struct wlr_output *
 view_wlr_output(struct view *view)
 {
 	return wlr_output_layout_output_at(view->server->output_layout,
@@ -162,4 +162,14 @@ view_move_to_edge(struct view *view, const char *direction)
 		y = usable.y + usable.height - view->h - border.bottom - GAP;
 	}
 	view_move(view, x, y);
+}
+
+void
+view_update_title(struct view *view)
+{
+	const char *title = view->impl->get_string_prop(view, "title");
+	if (!view->toplevel_handle || !title) {
+		return;
+	}
+	wlr_foreign_toplevel_handle_v1_set_title(view->toplevel_handle, title);
 }

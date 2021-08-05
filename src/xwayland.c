@@ -44,6 +44,9 @@ static void
 handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
+	if (view->toplevel_handle) {
+		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel_handle);
+	}
 	wl_list_remove(&view->link);
 	wl_list_remove(&view->map.link);
 	wl_list_remove(&view->unmap.link);
@@ -64,12 +67,21 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	damage_all_outputs(view->server);
 }
 
-static void handle_request_maximize(struct wl_listener *listener, void *data)
+static void
+handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
 
 	assert(view);
 	view_toggle_maximize(view);
+}
+
+static void
+handle_set_title(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, set_title);
+	assert(view);
+	view_update_title(view);
 }
 
 static void
@@ -116,6 +128,15 @@ for_each_surface(struct view *view, wlr_surface_iterator_func_t iterator,
         wlr_surface_for_each_surface(view->surface, iterator, data);
 }
 
+static const char *
+get_string_prop(struct view *view, const char *prop)
+{
+	if (!strcmp(prop, "title")) {
+		return view->xwayland_surface->title;
+	}
+	return "none";
+}
+
 static bool
 want_deco(struct view *view)
 {
@@ -157,6 +178,9 @@ map(struct view *view)
 
 	if (!view->been_mapped) {
 		view_maximize(view, false);
+
+		foreign_toplevel_handle_create(view);
+
 		struct wlr_box box = output_usable_area_from_cursor_coords(view->server);
 		view->x = box.x;
 		view->y = box.y;
@@ -194,6 +218,7 @@ static const struct view_impl xwl_view_impl = {
 	.configure = configure,
 	.close = _close,
 	.for_each_surface = for_each_surface,
+	.get_string_prop = get_string_prop,
 	.map = map,
 	.move = move,
 	.unmap = unmap,
@@ -235,6 +260,8 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 		      &view->request_configure);
 	view->request_maximize.notify = handle_request_maximize;
 	wl_signal_add(&xsurface->events.request_maximize, &view->request_maximize);
+	view->set_title.notify = handle_set_title;
+	wl_signal_add(&xsurface->events.set_title, &view->set_title);
 
 	wl_list_insert(&view->server->views, &view->link);
 }

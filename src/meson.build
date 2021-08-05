@@ -3,6 +3,7 @@ labwc_sources = files(
   'cursor.c',
   'damage.c',
   'desktop.c',
+  'foreign.c',
   'interactive.c',
   'keyboard.c',
   'layers.c',

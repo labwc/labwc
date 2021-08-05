@@ -91,6 +91,9 @@ static void
 handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
+	if (view->toplevel_handle) {
+		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel_handle);
+	}
 	wl_list_remove(&view->link);
 	ssd_destroy(view);
 	free(view);
@@ -134,6 +137,14 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 		view_maximize(view, surface->toplevel->client_pending.maximized);
 	}
 
+}
+
+static void
+handle_set_title(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, set_title);
+	assert(view);
+	view_update_title(view);
 }
 
 static void
@@ -248,6 +259,15 @@ position_xdg_toplevel_view(struct view *view)
 	view->y += view->margin.top - view->padding.top;
 }
 
+static const char *
+xdg_toplevel_view_get_string_prop(struct view *view, const char *prop)
+{
+	if (!strcmp(prop, "title")) {
+		return view->xdg_surface->toplevel->title;
+	}
+	return "none";
+}
+
 static void
 xdg_toplevel_view_map(struct view *view)
 {
@@ -259,6 +279,8 @@ xdg_toplevel_view_map(struct view *view)
 		 * and keep code simple
 		 */
 		view_maximize(view, false);
+
+		foreign_toplevel_handle_create(view);
 
 		view->ssd.enabled = has_ssd(view);
 		if (view->ssd.enabled) {
@@ -308,6 +330,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.close = xdg_toplevel_view_close,
 	.for_each_popup_surface = xdg_toplevel_view_for_each_popup_surface,
 	.for_each_surface = xdg_toplevel_view_for_each_surface,
+	.get_string_prop = xdg_toplevel_view_get_string_prop,
 	.map = xdg_toplevel_view_map,
 	.move = xdg_toplevel_view_move,
 	.unmap = xdg_toplevel_view_unmap,
@@ -349,6 +372,8 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	wl_signal_add(&toplevel->events.request_resize, &view->request_resize);
 	view->request_maximize.notify = handle_request_maximize;
 	wl_signal_add(&toplevel->events.request_maximize, &view->request_maximize);
+	view->set_title.notify = handle_set_title;
+	wl_signal_add(&toplevel->events.set_title, &view->set_title);
 
 	wl_list_insert(&server->views, &view->link);
 }

@@ -544,13 +544,13 @@ render_rootmenu(struct output *output, pixman_region32_t *output_damage)
 	struct menuitem *menuitem;
 	wl_list_for_each (menuitem, &server->rootmenu->menuitems, link) {
 		struct wlr_texture *t;
-		t = menuitem->selected ? menuitem->active_texture :
-			menuitem->inactive_texture;
+		t = menuitem->selected ? menuitem->texture.active :
+			menuitem->texture.inactive;
 		struct wlr_box box = {
-			.x = menuitem->geo_box.x + ox,
-			.y = menuitem->geo_box.y + oy,
-			.width = menuitem->geo_box.width,
-			.height = menuitem->geo_box.height,
+			.x = menuitem->box.x + ox + menuitem->texture.offset_x,
+			.y = menuitem->box.y + oy + menuitem->texture.offset_y,
+			.width = t->width,
+			.height = t->height,
 		};
 		scale_box(&box, output->wlr_output->scale);
 		wlr_matrix_project_box(matrix, &box, WL_OUTPUT_TRANSFORM_NORMAL,

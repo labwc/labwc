@@ -7,9 +7,13 @@
 struct menuitem {
 	char *action;
 	char *command;
-	struct wlr_box geo_box;
-	struct wlr_texture *active_texture;
-	struct wlr_texture *inactive_texture;
+	struct wlr_box box;
+	struct {
+		struct wlr_texture *active;
+		struct wlr_texture *inactive;
+		int offset_x;
+		int offset_y;
+	} texture;
 	bool selected;
 	struct wl_list link;
 };

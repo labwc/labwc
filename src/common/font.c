@@ -1,7 +1,11 @@
 #include <cairo.h>
+#include <drm_fourcc.h>
 #include <pango/pangocairo.h>
-
+#include <wlr/render/wlr_renderer.h>
+#include <wlr/util/box.h>
+#include <wlr/util/log.h>
 #include "common/font.h"
+#include "labwc.h"
 
 static PangoRectangle
 font_extents(const char *font_description, const char *string)
@@ -41,6 +45,53 @@ font_height(const char *font_description)
 	PangoRectangle rectangle;
 	rectangle = font_extents(font_description, "abcdefg");
 	return rectangle.height;
+}
+
+void
+font_texture_create(struct server *server, struct wlr_texture **texture,
+		int max_width, const char *text, const char *font, float *color)
+{
+	if (!text || !*text) {
+		return;
+	}
+	if (*texture) {
+		wlr_texture_destroy(*texture);
+		*texture = NULL;
+	}
+
+	PangoRectangle rect = font_extents(font, text);
+	if (max_width && rect.width > max_width) {
+		rect.width = max_width;
+	}
+
+	cairo_surface_t *surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
+		rect.width, rect.height);
+	cairo_t *cairo = cairo_create(surf);
+
+	cairo_set_source_rgba(cairo, color[0], color[1], color[2], color[3]);
+	cairo_move_to(cairo, 0, 0);
+
+	PangoLayout *layout = pango_cairo_create_layout(cairo);
+	pango_layout_set_width(layout, rect.width * PANGO_SCALE);
+	pango_layout_set_text(layout, text, -1);
+	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
+
+	PangoFontDescription *desc = pango_font_description_from_string(font);
+	pango_layout_set_font_description(layout, desc);
+	pango_font_description_free(desc);
+	pango_cairo_update_layout(cairo, layout);
+
+	pango_cairo_show_layout(cairo, layout);
+	g_object_unref(layout);
+
+	cairo_surface_flush(surf);
+	unsigned char *data = cairo_image_surface_get_data(surf);
+	*texture = wlr_texture_from_pixels(server->renderer, DRM_FORMAT_ARGB8888,
+			cairo_image_surface_get_stride(surf), rect.width,
+			rect.height, data);
+
+	cairo_destroy(cairo);
+	cairo_surface_destroy(surf);
 }
 
 void

@@ -26,8 +26,8 @@ In fact, as a Wayland compositor it is quite different in areas, and the
 acceptance criteria only covers ca 40% of openbox features.
 
 
-[Video (1:10)](https://youtu.be/AU_M3n_FS-E)
-[Video (3:42)](https://youtu.be/rE1bQjSVJzg)
+- [Video (1:10)](https://youtu.be/AU_M3n_FS-E)
+- [Video (3:42)](https://youtu.be/rE1bQjSVJzg)
 
 <a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png">
   <img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3x.png" width="256px" height="179px">
@@ -78,16 +78,16 @@ See also [labwc(1)] and [labwc-actions(5)]
 
 Click on the background to launch a menu.
 
-If you have not created an rc.xml configuration file, default keybinds will be:
+If you have not created an rc.xml config file, default binds will be:
 
-- Alt-tab: cycle window
-- Alt-F3: launch bemenu
-- Alt-escape: exit
-
-Mouse binds:
-
-- Move window with Alt + left-click
-- Resize with Alt + right-click
+| combo               | action
+| ------------------- | ------
+| `alt`-`tab`         | activate next window
+| `alt`-`escape`      | exit
+| `alt`-`F3`          | launch bemenu
+| `alt`-`F4`          | close active window
+| `alt`-`mouse-left`  | move window
+| `alt`-`mouse-right` | resize window
 
 ## 6. Integrate
 

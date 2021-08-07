@@ -488,7 +488,7 @@ render_deco(struct view *view, struct output *output,
 				*(part->texture.inactive);
 			render_texture_helper(output, output_damage, &part->box,
 					      texture);
-		} else {
+		} else if (part->color.active && part->color.inactive) {
 			float *color = focused ?
 				part->color.active :
 				part->color.inactive;

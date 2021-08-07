@@ -6,6 +6,7 @@
 
 #include <assert.h>
 #include "config/rcxml.h"
+#include "common/font.h"
 #include "labwc.h"
 #include "theme.h"
 #include "ssd.h"
@@ -63,7 +64,7 @@ ssd_interactive_box(struct view *view, enum ssd_part_type type)
 		box.width = theme->title_height;
 		box.height = theme->title_height;
 		break;
-	case LAB_SSD_PART_TITLE:
+	case LAB_SSD_PART_TITLEBAR:
 		box.x = view->x;
 		box.y = view->y - theme->title_height;
 		box.width = view->w;
@@ -138,10 +139,19 @@ ssd_box(struct view *view, enum ssd_part_type type)
 	case LAB_SSD_BUTTON_ICONIFY:
 		box = ssd_interactive_box(view, type);
 		break;
-	case LAB_SSD_PART_TITLE:
+	case LAB_SSD_PART_TITLEBAR:
 		box = ssd_interactive_box(view, type);
 		box.x += theme->title_height;
 		box.width -= 2 * theme->title_height;
+		break;
+	case LAB_SSD_PART_TITLE:
+		box = ssd_box(view, LAB_SSD_PART_TITLEBAR);
+		if (view->title) {
+			/* center align title vertically within allocated box */
+			box.y += (box.height - view->title->height) / 2;
+			box.width = view->title->width;
+			box.height = view->title->height;
+		}
 		break;
 	case LAB_SSD_PART_CORNER_TOP_LEFT:
 		box = ssd_interactive_box(view, type);
@@ -232,6 +242,27 @@ add_part(struct view *view, enum ssd_part_type type)
 }
 
 void
+ssd_update_title(struct view *view)
+{
+	struct theme *theme = view->server->theme;
+
+	/* TODO: use window.active.label.text.color here */
+	/* TODO: set max_width propertly */
+	font_texture_create(view->server, &view->title, 200,
+		view->impl->get_string_prop(view, "title"),
+		rc.font_name_activewindow,
+		theme->menu_items_active_text_color);
+
+	struct ssd_part *part;
+	wl_list_for_each(part, &view->ssd.parts, link) {
+		if (part->type == LAB_SSD_PART_TITLE) {
+			part->box = ssd_box(view, part->type);
+			break;
+		}
+	}
+}
+
+void
 ssd_create(struct view *view)
 {
 	struct theme *theme = view->server->theme;
@@ -257,10 +288,16 @@ ssd_create(struct view *view)
 	}
 
 	/* titlebar */
-	part = add_part(view, LAB_SSD_PART_TITLE);
-	part->box = ssd_box(view, LAB_SSD_PART_TITLE);
+	part = add_part(view, LAB_SSD_PART_TITLEBAR);
+	part->box = ssd_box(view, LAB_SSD_PART_TITLEBAR);
 	part->color.active = theme->window_active_title_bg_color;
 	part->color.inactive = theme->window_inactive_title_bg_color;
+
+	/* title text */
+	part = add_part(view, LAB_SSD_PART_TITLE);
+	ssd_update_title(view);
+	part->texture.active = &view->title;
+	part->texture.inactive = &view->title;
 
 	/* titlebar top-left corner */
 	part = add_part(view, LAB_SSD_PART_CORNER_TOP_LEFT);

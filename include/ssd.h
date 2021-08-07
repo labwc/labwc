@@ -11,6 +11,7 @@ enum ssd_part_type {
 	LAB_SSD_BUTTON_CLOSE,
 	LAB_SSD_BUTTON_MAXIMIZE,
 	LAB_SSD_BUTTON_ICONIFY,
+	LAB_SSD_PART_TITLEBAR,
 	LAB_SSD_PART_TITLE,
 	LAB_SSD_PART_CORNER_TOP_LEFT,
 	LAB_SSD_PART_CORNER_TOP_RIGHT,
@@ -56,6 +57,7 @@ struct wlr_box ssd_max_extents(struct view *view);
 struct wlr_box ssd_box(struct view *view, enum ssd_part_type type);
 enum ssd_part_type ssd_at(struct view *view, double lx, double ly);
 uint32_t ssd_resize_edges(enum ssd_part_type type);
+void ssd_update_title(struct view *view);
 void ssd_create(struct view *view);
 void ssd_destroy(struct view *view);
 void ssd_update_geometry(struct view *view);

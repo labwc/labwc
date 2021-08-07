@@ -321,7 +321,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	desktop_focus_view(&server->seat, view);
 	damage_all_outputs(server);
 
-	if (is_double_click(500) && view_area == LAB_SSD_PART_TITLE) {
+	if (is_double_click(500) && view_area == LAB_SSD_PART_TITLEBAR) {
 		view_toggle_maximize(view);
 		return;
 	}
@@ -339,7 +339,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	case LAB_SSD_BUTTON_ICONIFY:
 		view_minimize(view, true);
 		break;
-	case LAB_SSD_PART_TITLE:
+	case LAB_SSD_PART_TITLEBAR:
 		interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
 		break;
 	case LAB_SSD_BUTTON_MAXIMIZE:

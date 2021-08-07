@@ -173,5 +173,6 @@ view_update_title(struct view *view)
 	if (!view->toplevel_handle || !title) {
 		return;
 	}
+	ssd_update_title(view);
 	wlr_foreign_toplevel_handle_v1_set_title(view->toplevel_handle, title);
 }

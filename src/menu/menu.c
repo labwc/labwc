@@ -231,16 +231,19 @@ menu_finish(struct menu *menu)
 void
 menu_move(struct menu *menu, int x, int y)
 {
-	menu->x = x;
-	menu->y = y;
+	menu->box.x = x;
+	menu->box.y = y;
 
 	int offset = 0;
 	struct menuitem *menuitem;
 	wl_list_for_each_reverse (menuitem, &menu->menuitems, link) {
-		menuitem->box.x = menu->x;
-		menuitem->box.y = menu->y + offset;
+		menuitem->box.x = menu->box.x;
+		menuitem->box.y = menu->box.y + offset;
 		offset += menuitem->box.height;
 	}
+
+	menu->box.width = MENUWIDTH;
+	menu->box.height = offset;
 }
 
 void

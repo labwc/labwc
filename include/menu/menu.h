@@ -15,17 +15,15 @@ struct menuitem {
 		int offset_y;
 	} texture;
 	bool selected;
-	struct wl_list link;
+	struct wl_list link; /* menu::menuitems */
 };
 
 struct menu {
 	struct server *server;
-	int x;
-	int y;
+	struct wlr_box box;
 	struct wl_list menuitems;
 };
 
-/* menu_create - create menu */
 void menu_init_rootmenu(struct server *server, struct menu *menu);
 void menu_finish(struct menu *menu);
 

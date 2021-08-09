@@ -10,28 +10,34 @@
 
 ## 1. What is this?
 
-Labwc is a wlroots-based stacking compositor for Wayland.
+Labwc stands for Lab Wayland Compositor, with lab indicating a sense of experimentation and treading new ground.
 
-It aims to be light-weight and independent, with a focus on simply
-stacking windows well and rendering some window decorations. Where
-practicable, it uses clients for wall-paper, panels, screenshots, and so
-on.
+It is a wlroots-based stacking compositor aiming to be light-weight and independent, with a focus on simply stacking windows well and rendering some window decorations. It relies on clients for wall-paper, panels, screenshots, and so on to create a full desktop environment.
 
-Labwc tries to stay in keeping with wlroots and sway in terms of general
-approach and coding style.
+Labwc tries to stay in keeping with wlroots and sway in terms of general approach and coding style.
 
-In order to avoid re-inventing configuration & theme syntax, [openbox-3.4]
-specification is used. This does not mean that labwc is an openbox clone.
-In fact, as a Wayland compositor it is quite different in areas, and the
-acceptance criteria only covers ca 40% of openbox features.
+In order to avoid re-inventing configuration & theme syntax, [openbox-3.4] specification is used. This does not mean that labwc is an openbox clone but rather that configuration files will look and feel familiar.
 
-
-- [Video (1:10)](https://youtu.be/AU_M3n_FS-E)
-- [Video (3:42)](https://youtu.be/rE1bQjSVJzg)
+| video link     | date        | content
+| -------------- | ------------| -------
+| [Video (1:10)] | 05-Aug-2021 | window gymnastics, theming and waybar
+| [Video (3:42)] | 25-Feb-2021 | setting background and themes; xwayland/xdg-shell windows
 
 <a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png">
   <img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3x.png" width="256px" height="179px">
 </a>
+
+So far, labwc supports the following:
+
+- [x] Config files (rc.xml, autostart, environment)
+- [x] Theme files and xbm icons
+- [x] Damage tracking to reduce CPU usage
+- [x] A basic root-menu (configured with menu.xml)
+- [x] HiDPI
+- [x] wlr-output-management protocol
+- [x] layer-shell protocol
+- [x] foreign-toplevel protocol (e.g. to integrate with panels and bars)
+- [x] Optionally xwayland
 
 ## 2. Build
 
@@ -72,6 +78,8 @@ Labwc uses the files listed below for configuration and theming.
 
 See also [labwc(1)] and [labwc-actions(5)]
 
+Configuration and theme files are re-loaded on receiving SIGHUP (e.g. `killall -SIGHUP labwc`)
+
 ## 5. Run
 
     ./build/labwc [-s <command>]
@@ -80,7 +88,7 @@ Click on the background to launch a menu.
 
 If you have not created an rc.xml config file, default binds will be:
 
-| combo               | action
+| combination         | action
 | ------------------- | ------
 | `alt`-`tab`         | activate next window
 | `alt`-`escape`      | exit
@@ -111,22 +119,6 @@ In order to define what 'small feature set' means, refer to the lists of
 [complete] and [outstanding] items.
 
 For more details, see the full table of [acceptance criteria].
-
-High-level summary of progress:
-
-- [x] Optionally support xwayland
-- [x] Parse openbox config files (rc.xml, autostart, environment)
-- [x] Parse openbox themes files and associated xbm icons
-- [x] Support maximize, iconify, close buttons
-- [x] Catch SIGHUP to re-load config file and theme
-- [x] Support layer-shell protocol
-- [x] Support damage tracking to reduce CPU usage
-- [x] Parse menu.xml to generate a basic root-menu
-- [x] Support wlr-output-management protocol
-- [x] Support HiDPI
-- [ ] Support foreign-toplevel protocol (e.g. to integrate with wlroots panels/bars)
-- [ ] Support on-screen display (osd), for example to support alt-tab window list
-- [ ] Support libinput configuration (tap is enabled for the time being)
 
 High-level summary of items which are not inteded to be implemented:
 
@@ -167,3 +159,5 @@ High-level summary of items which are not inteded to be implemented:
 [complete]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-complete-items
 [outstanding]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-outstanding-items
 
+[Video (1:10)]: https://youtu.be/AU_M3n_FS-E
+[Video (3:42)]: https://youtu.be/rE1bQjSVJzg

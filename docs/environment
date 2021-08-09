@@ -1,4 +1,11 @@
 # Example environment file
 
 # Set keyboard layout to Swedish
-XKB_DEFAULT_LAYOUT=se
+# XKB_DEFAULT_LAYOUT=se
+
+# Set two keyboard layouts and toggle between them using alt+shift
+# XKB_DEFAULT_LAYOUT=se,de
+# XKB_DEFAULT_OPTIONS=grp:alt_shift_toggle
+
+# Force firefox to use wayland backend
+# MOZ_ENABLE_WAYLAND=1

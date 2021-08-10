@@ -70,15 +70,21 @@ Labwc uses the files listed below for configuration and theming.
 
 | file          | user over-ride location                         | man page
 | ------------- | ----------------------------------------------- | --------
-| [rc.xml]      | ~/.config/labwc/                                | [labwc-config(5)]
+| [rc.xml]      | ~/.config/labwc/                                | [labwc-config(5)], [labwc-actions(5)]
 | [menu.xml]    | ~/.config/labwc/                                | [labwc-menu(5)]
 | [autostart]   | ~/.config/labwc/                                | [labwc(1)]
 | [environment] | ~/.config/labwc/                                | [labwc-environment(5)]
 | [themerc]     | ~/.local/share/themes/\<theme-name\>/openbox-3/ | [labwc-theme(5)]
 
-See also [labwc(1)] and [labwc-actions(5)]
-
 Configuration and theme files are re-loaded on receiving SIGHUP (e.g. `killall -SIGHUP labwc`)
+
+For keyboard settings, see [environment] and [xkeyboard-config(7)]
+
+For themes, search the internet and place them in `~/.local/share/themes/`. Some good starting points include:
+
+- https://github.com/addy-dclxvi/openbox-theme-collections
+- https://github.com/the-zero885/Lubuntu-Arc-Round-Openbox-Theme
+
 
 ## 5. Run
 
@@ -142,6 +148,7 @@ High-level summary of items which are not inteded to be implemented:
 [labwc-environment(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-environment.5.scd
 [labwc-theme(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-theme.5.scd
 [labwc-actions(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-actions.5.scd
+[xkeyboard-config(7)]: https://manpages.debian.org/testing/xkb-data/xkeyboard-config.7.en.html
 
 [wiki/Build]: https://github.com/johanmalm/labwc/wiki/Build
 

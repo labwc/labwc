@@ -35,6 +35,7 @@ reload_config_and_theme(void)
 		if (!view->mapped || !view->ssd.enabled) {
 			continue;
 		}
+		view->margin = ssd_thickness(view);
 		struct ssd_part *part;
 		wl_list_for_each(part, &view->ssd.parts, link) {
 			part->box = ssd_box(view, part->type);

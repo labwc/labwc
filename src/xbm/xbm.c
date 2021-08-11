@@ -86,19 +86,23 @@ out:
 void
 xbm_load(struct theme *theme, struct wlr_renderer *r)
 {
-	parse_set_color(theme->window_active_button_unpressed_image_color);
-	load_button(r, "close.xbm", &theme->xbm_close_active_unpressed,
-		    close_button_normal);
-	load_button(r, "max.xbm", &theme->xbm_maximize_active_unpressed,
-		    max_button_normal);
+	parse_set_color(theme->window_active_button_iconify_unpressed_image_color);
 	load_button(r, "iconify.xbm", &theme->xbm_iconify_active_unpressed,
 		    iconify_button_normal);
-
-	parse_set_color(theme->window_inactive_button_unpressed_image_color);
-	load_button(r, "close.xbm", &theme->xbm_close_inactive_unpressed,
-		    close_button_normal);
-	load_button(r, "max.xbm", &theme->xbm_maximize_inactive_unpressed,
+	parse_set_color(theme->window_active_button_max_unpressed_image_color);
+	load_button(r, "max.xbm", &theme->xbm_maximize_active_unpressed,
 		    max_button_normal);
+	parse_set_color(theme->window_active_button_close_unpressed_image_color);
+	load_button(r, "close.xbm", &theme->xbm_close_active_unpressed,
+		    close_button_normal);
+
+	parse_set_color(theme->window_inactive_button_iconify_unpressed_image_color);
 	load_button(r, "iconify.xbm", &theme->xbm_iconify_inactive_unpressed,
 		    iconify_button_normal);
+	parse_set_color(theme->window_inactive_button_max_unpressed_image_color);
+	load_button(r, "max.xbm", &theme->xbm_maximize_inactive_unpressed,
+		    max_button_normal);
+	parse_set_color(theme->window_inactive_button_close_unpressed_image_color);
+	load_button(r, "close.xbm", &theme->xbm_close_inactive_unpressed,
+		    close_button_normal);
 }

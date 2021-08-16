@@ -109,6 +109,7 @@ struct server {
 	double grab_x, grab_y;
 	struct wlr_box grab_box;
 	uint32_t resize_edges;
+	struct wlr_texture *osd;
 
 	struct wl_list outputs;
 	struct wl_listener new_output;
@@ -234,7 +235,7 @@ struct view {
 	struct wl_listener commit;
 	struct wl_listener request_move;
 	struct wl_listener request_resize;
-	struct wl_listener request_configure;
+	struct wl_listener request_configure;	/* xwayland only */
 	struct wl_listener request_maximize;
 	struct wl_listener set_title;
 	struct wl_listener new_popup;		/* xdg-shell only */
@@ -324,6 +325,7 @@ void desktop_focus_view(struct seat *seat, struct view *view);
 struct view *desktop_cycle_view(struct server *server, struct view *current);
 struct view *topmost_mapped_view(struct server *server);
 void desktop_focus_topmost_mapped_view(struct server *server);
+bool isfocusable(struct view *view);
 
 /**
  * desktop_view_at - find view or layer-surface at co-ordinate (lx, ly)
@@ -363,8 +365,7 @@ void server_finish(struct server *server);
 
 void action(struct server *server, const char *action, const char *command);
 
-void dbg_show_one_view(struct view *view);
-void dbg_show_views(struct server *server);
-void dbg_show_keybinds();
+/* update onscreen display 'alt-tab' texture */
+void osd_update(struct server *server);
 
 #endif /* __LABWC_H */

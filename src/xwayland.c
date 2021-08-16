@@ -134,7 +134,10 @@ get_string_prop(struct view *view, const char *prop)
 	if (!strcmp(prop, "title")) {
 		return view->xwayland_surface->title;
 	}
-	return "none";
+	if (!strcmp(prop, "class")) {
+		return view->xwayland_surface->class;
+	}
+	return "";
 }
 
 static bool

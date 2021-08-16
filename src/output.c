@@ -460,6 +460,28 @@ render_texture_helper(struct output *output, pixman_region32_t *output_damage,
 		matrix);
 }
 
+static void
+render_osd(struct output *output, pixman_region32_t *damage,
+		struct server *server)
+{
+	if (!server->osd) {
+		return;
+	}
+
+	/* show on screen display (osd) on all outputs */
+	struct output *o;
+	wl_list_for_each(o, &server->outputs, link) {
+		struct wlr_box usable = output_usable_area_in_layout_coords(o);
+		struct wlr_box box = {
+			.x = usable.x + (usable.width - server->osd->width) / 2,
+			.y = usable.y + (usable.height - server->osd->height) / 2,
+			.width = server->osd->width,
+			.height = server->osd->height,
+		};
+		render_texture_helper(output, damage, &box, server->osd);
+	}
+}
+
 static bool
 isbutton(enum ssd_part_type type)
 {
@@ -673,6 +695,7 @@ output_render(struct output *output, pixman_region32_t *damage)
 	/* 'alt-tab' border */
 	if (output->server->cycle_view) {
 		render_cycle_box(output, damage, output->server->cycle_view);
+		render_osd(output, damage, output->server);
 	}
 
 	render_layer_toplevel(output, damage,

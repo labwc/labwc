@@ -72,6 +72,8 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 			/* cycle to next */
 			server->cycle_view =
 				desktop_cycle_view(server, server->cycle_view);
+			osd_update(server);
+			damage_all_outputs(server);
 			return;
 		}
 	}

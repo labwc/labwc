@@ -130,7 +130,7 @@ desktop_focus_view(struct seat *seat, struct view *view)
  * careful when cycling between views. The only views we should focus are
  * those that are already mapped and those that have been minimized.
  */
-static bool
+bool
 isfocusable(struct view *view)
 {
 	/* filter out those xwayland surfaces that have never been mapped */

@@ -265,7 +265,10 @@ xdg_toplevel_view_get_string_prop(struct view *view, const char *prop)
 	if (!strcmp(prop, "title")) {
 		return view->xdg_surface->toplevel->title;
 	}
-	return "none";
+	if (!strcmp(prop, "app_id")) {
+		return view->xdg_surface->toplevel->app_id;
+	}
+	return "";
 }
 
 static void

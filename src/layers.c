@@ -150,8 +150,7 @@ arrange_layer(struct wlr_output *output, struct wl_list *list,
 			box.y -= state->margin.bottom;
 		}
 		if (box.width < 0 || box.height < 0) {
-			wlr_log(WLR_ERROR, "protocol error");
-			wlr_layer_surface_v1_close(layer);
+			wlr_log(WLR_ERROR, "surface has no positive size");
 			continue;
 		}
 
@@ -240,7 +239,7 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 		wl_container_of(listener, layer, output_destroy);
 	layer->layer_surface->output = NULL;
 	wl_list_remove(&layer->output_destroy.link);
-	wlr_layer_surface_v1_close(layer->layer_surface);
+	wlr_layer_surface_v1_destroy(layer->layer_surface);
 }
 
 static void

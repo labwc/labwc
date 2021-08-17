@@ -91,8 +91,6 @@ view_maximize(struct view *view, bool maximize)
 			box.width -= border.right + border.left;
 			box.height -= border.top + border.bottom;
 		}
-		box.width /= output->wlr_output->scale;
-		box.height /= output->wlr_output->scale;
 		view_move_resize(view, box);
 		view->maximized = true;
 	} else {

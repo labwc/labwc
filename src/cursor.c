@@ -5,6 +5,7 @@
 #include "labwc.h"
 #include "menu/menu.h"
 #include "ssd.h"
+#include <wlr/types/wlr_primary_selection.h>
 
 static void
 request_cursor_notify(struct wl_listener *listener, void *data)
@@ -37,6 +38,16 @@ request_set_selection_notify(struct wl_listener *listener, void *data)
 		listener, seat, request_set_selection);
 	struct wlr_seat_request_set_selection_event *event = data;
 	wlr_seat_set_selection(seat->seat, event->source,
+		event->serial);
+}
+
+static void
+request_set_primary_selection_notify(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(
+		listener, seat, request_set_primary_selection);
+	struct wlr_seat_request_set_primary_selection_event *event = data;
+	wlr_seat_set_primary_selection(seat->seat, event->source,
 		event->serial);
 }
 
@@ -402,10 +413,8 @@ cursor_init(struct seat *seat)
 	seat->request_set_selection.notify = request_set_selection_notify;
 	wl_signal_add(&seat->seat->events.request_set_selection, &seat->request_set_selection);
 
-	/* TODO:
-	 * seat->request_set_primary_selection.notify =
-	 *	request_set_primary_selectioni_notify;
-	 * wl_signal_add(&seat->seat->events.request_set_primary_selection,
-	 *	&seat->request_set_primary_selection);
-	 */
+	seat->request_set_primary_selection.notify =
+		request_set_primary_selection_notify;
+	wl_signal_add(&seat->seat->events.request_set_primary_selection,
+		&seat->request_set_primary_selection);
 }

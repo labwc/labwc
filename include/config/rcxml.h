@@ -14,7 +14,9 @@ struct rcxml {
 	char *theme_name;
 	int corner_radius;
 	char *font_name_activewindow;
+	char *font_name_menuitem;
 	int font_size_activewindow;
+	int font_size_menuitem;
 	struct wl_list keybinds;
 };
 

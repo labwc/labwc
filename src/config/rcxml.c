@@ -25,7 +25,7 @@ static struct keybind *current_keybind;
 enum font_place {
 	FONT_PLACE_UNKNOWN = 0,
 	FONT_PLACE_ACTIVEWINDOW,
-	FONT_PLACE_INACTIVEWINDOW,
+	FONT_PLACE_MENUITEM,
 	/* TODO: Add all places based on Openbox's rc.xml */
 };
 
@@ -89,8 +89,10 @@ fill_font(char *nodename, char *content, enum font_place place)
 		 */
 		if (!strcmp(nodename, "name")) {
 			rc.font_name_activewindow = strdup(content);
+			rc.font_name_menuitem = strdup(content);
 		} else if (!strcmp(nodename, "size")) {
 			rc.font_size_activewindow = atoi(content);
+			rc.font_size_menuitem = atoi(content);
 		}
 		break;
 	case FONT_PLACE_ACTIVEWINDOW:
@@ -98,6 +100,13 @@ fill_font(char *nodename, char *content, enum font_place place)
 			rc.font_name_activewindow = strdup(content);
 		} else if (!strcmp(nodename, "size")) {
 			rc.font_size_activewindow = atoi(content);
+		}
+		break;
+	case FONT_PLACE_MENUITEM:
+		if (!strcmp(nodename, "name")) {
+			rc.font_name_menuitem = strdup(content);
+		} else if (!strcmp(nodename, "size")) {
+			rc.font_size_menuitem = atoi(content);
 		}
 		break;
 
@@ -116,8 +125,8 @@ enum_font_place(const char *place)
 	}
 	if (!strcasecmp(place, "ActiveWindow")) {
 		return FONT_PLACE_ACTIVEWINDOW;
-	} else if (!strcasecmp(place, "InactiveWindow")) {
-		return FONT_PLACE_INACTIVEWINDOW;
+	} else if (!strcasecmp(place, "MenuItem")) {
+		return FONT_PLACE_MENUITEM;
 	}
 	return FONT_PLACE_UNKNOWN;
 }
@@ -248,6 +257,7 @@ rcxml_init()
 	rc.xdg_shell_server_side_deco = true;
 	rc.corner_radius = 8;
 	rc.font_size_activewindow = 10;
+	rc.font_size_menuitem = 10;
 }
 
 static void
@@ -280,6 +290,9 @@ post_processing(void)
 
 	if (!rc.font_name_activewindow) {
 		rc.font_name_activewindow = strdup("sans");
+	}
+	if (!rc.font_name_menuitem) {
+		rc.font_name_menuitem = strdup("sans");
 	}
 }
 
@@ -352,6 +365,7 @@ void
 rcxml_finish(void)
 {
 	zfree(rc.font_name_activewindow);
+	zfree(rc.font_name_menuitem);
 	zfree(rc.theme_name);
 
 	struct keybind *k, *k_tmp;

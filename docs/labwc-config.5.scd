@@ -46,6 +46,7 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	The font to use for a specific element of a window, menu or OSD.
 	Places can be any of:
 	- ActiveWindow - titlebar of active window
+	- MenuItem - menu item (currently only root menu)
 	If no place attribute is provided, the setting will be applied to all
 	places.
 
@@ -53,7 +54,7 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	Describes font name. Default is sans.
 
 *<theme><font place=""><size>*
-	Font size in pixels. Default is 8.
+	Font size in pixels. Default is 10.
 
 # KEYBOARD
 

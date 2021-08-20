@@ -246,20 +246,26 @@ ssd_update_title(struct view *view)
 {
 	struct theme *theme = view->server->theme;
 
-	/* TODO: use window.active.label.text.color here */
-	/* TODO: set max_width propertly */
-	font_texture_create(view->server, &view->title, 200,
-		view->impl->get_string_prop(view, "title"),
-		rc.font_name_activewindow,
-		theme->menu_items_active_text_color);
+	struct font font = {
+		.name = rc.font_name_activewindow,
+		.size = rc.font_size_activewindow,
+	};
 
+	/* get the size we can play within */
 	struct ssd_part *part;
 	wl_list_for_each(part, &view->ssd.parts, link) {
 		if (part->type == LAB_SSD_PART_TITLE) {
-			part->box = ssd_box(view, part->type);
+			part->box = ssd_box(view, LAB_SSD_PART_TITLEBAR);
 			break;
 		}
 	}
+
+	/* TODO: use window.active.label.text.color here */
+	font_texture_create(view->server, &view->title, part->box.width,
+		view->impl->get_string_prop(view, "title"),
+		&font, theme->menu_items_active_text_color);
+
+	part->box = ssd_box(view, LAB_SSD_PART_TITLE);
 }
 
 void

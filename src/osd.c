@@ -125,7 +125,11 @@ osd_update(struct server *server)
 	y = OSD_BORDER_WIDTH;
 
 	/* vertically center align */
-	y += (OSD_ITEM_HEIGHT - font_height("sans 10")) / 2;
+	struct font font = {
+		.name = "sans",
+		.size = 10,
+	};
+	y += (OSD_ITEM_HEIGHT - font_height(&font)) / 2;
 
 	wl_list_for_each(view, &server->views, link) {
 		if (!isfocusable(view)) {

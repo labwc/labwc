@@ -5,11 +5,16 @@ struct server;
 struct wlr_texture;
 struct wlr_box;
 
+struct font {
+	char *name;
+	int size;
+};
+
 /**
  * font_height - get font vertical extents
- * @font_description: string describing font, for example 'sans 10'
+ * @font: description of font including family name and size
  */
-int font_height(const char *font_description);
+int font_height(struct font *font);
 
 /**
  * texture_create - Create ARGB8888 texture using pango
@@ -21,7 +26,7 @@ int font_height(const char *font_description);
  * @color: foreground color in rgba format
  */
 void font_texture_create(struct server *server, struct wlr_texture **texture,
-	int max_width, const char *text, const char *font, float *color);
+	int max_width, const char *text, struct font *font, float *color);
 
 /**
  * font_finish - free some font related resources

@@ -23,8 +23,8 @@ static bool in_item = false;
 static struct menuitem *current_item;
 
 #define MENUWIDTH (110)
-#define MENUHEIGHT (25)
-#define MENU_PADDING_WIDTH (7)
+#define MENU_ITEM_PADDING_Y (4)
+#define MENU_ITEM_PADDING_X (7)
 
 static struct menuitem *
 menuitem_create(struct server *server, struct menu *menu, const char *text)
@@ -34,19 +34,24 @@ menuitem_create(struct server *server, struct menu *menu, const char *text)
 		return NULL;
 	}
 	struct theme *theme = server->theme;
-	menuitem->box.width = MENUWIDTH;
-	menuitem->box.height = MENUHEIGHT;
+	struct font font = {
+		.name = rc.font_name_menuitem,
+		.size = rc.font_size_menuitem,
+	};
 
-	/* TODO: use rc.font_menu_item */
-	font_texture_create(server, &menuitem->texture.active, MENUWIDTH,
-		text, rc.font_name_activewindow, theme->menu_items_active_text_color);
-	font_texture_create(server, &menuitem->texture.inactive, MENUWIDTH,
-		text, rc.font_name_activewindow, theme->menu_items_text_color);
+	menuitem->box.width = MENUWIDTH;
+	menuitem->box.height = font_height(&font) + 2 * MENU_ITEM_PADDING_Y;
+
+	int item_max_width = MENUWIDTH - 2 * MENU_ITEM_PADDING_X;
+	font_texture_create(server, &menuitem->texture.active, item_max_width,
+		text, &font, theme->menu_items_active_text_color);
+	font_texture_create(server, &menuitem->texture.inactive, item_max_width,
+		text, &font, theme->menu_items_text_color);
 
 	/* center align vertically */
 	menuitem->texture.offset_y =
 		(menuitem->box.height - menuitem->texture.active->height) / 2;
-	menuitem->texture.offset_x = MENU_PADDING_WIDTH;
+	menuitem->texture.offset_x = MENU_ITEM_PADDING_X;
 
 	wl_list_insert(&menu->menuitems, &menuitem->link);
 	return menuitem;

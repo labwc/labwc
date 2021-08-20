@@ -8,20 +8,21 @@
 #include "labwc.h"
 
 static PangoRectangle
-font_extents(const char *font_description, const char *string)
+font_extents(struct font *font, const char *string)
 {
 	PangoRectangle rect;
 	cairo_surface_t *surface;
 	cairo_t *c;
 	PangoLayout *layout;
-	PangoFontDescription *font;
 
 	surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
 	c = cairo_create(surface);
 	layout = pango_cairo_create_layout(c);
-	font = pango_font_description_from_string(font_description);
+	PangoFontDescription *desc = pango_font_description_new();
+	pango_font_description_set_family(desc, font->name);
+	pango_font_description_set_size(desc, font->size * PANGO_SCALE);
 
-	pango_layout_set_font_description(layout, font);
+	pango_layout_set_font_description(layout, desc);
 	pango_layout_set_text(layout, string, -1);
 	pango_layout_set_single_paragraph_mode(layout, TRUE);
 	pango_layout_set_width(layout, -1);
@@ -34,22 +35,21 @@ font_extents(const char *font_description, const char *string)
 
 	cairo_destroy(c);
 	cairo_surface_destroy(surface);
-	pango_font_description_free(font);
+	pango_font_description_free(desc);
 	g_object_unref(layout);
 	return rect;
 }
 
 int
-font_height(const char *font_description)
+font_height(struct font *font)
 {
-	PangoRectangle rectangle;
-	rectangle = font_extents(font_description, "abcdefg");
+	PangoRectangle rectangle = font_extents(font, "abcdefg");
 	return rectangle.height;
 }
 
 void
 font_texture_create(struct server *server, struct wlr_texture **texture,
-		int max_width, const char *text, const char *font, float *color)
+		int max_width, const char *text, struct font *font, float *color)
 {
 	if (!text || !*text) {
 		return;
@@ -76,7 +76,9 @@ font_texture_create(struct server *server, struct wlr_texture **texture,
 	pango_layout_set_text(layout, text, -1);
 	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 
-	PangoFontDescription *desc = pango_font_description_from_string(font);
+	PangoFontDescription *desc = pango_font_description_new();
+	pango_font_description_set_family(desc, font->name);
+	pango_font_description_set_size(desc, font->size * PANGO_SCALE);
 	pango_layout_set_font_description(layout, desc);
 	pango_font_description_free(desc);
 	pango_cairo_update_layout(cairo, layout);

@@ -41,14 +41,12 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
 	return false;
 }
 
-static void
-keyboard_key_notify(struct wl_listener *listener, void *data)
+static bool
+handle_compositor_keybindings(struct wl_listener *listener,
+			      struct wlr_event_keyboard_key *event)
 {
-	/* This event is raised when a key is pressed or released. */
 	struct seat *seat = wl_container_of(listener, seat, keyboard_key);
 	struct server *server = seat->server;
-	struct wlr_event_keyboard_key *event = data;
-	struct wlr_seat *wlr_seat = server->seat.seat;
 	struct wlr_input_device *device = seat->keyboard_group->input_device;
 
 	/* Translate libinput keycode -> xkbcommon */
@@ -68,13 +66,14 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 			/* end cycle */
 			desktop_focus_view(&server->seat, server->cycle_view);
 			server->cycle_view = NULL;
+			/* XXX should we handled=true here? */
 		} else if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			/* cycle to next */
 			server->cycle_view =
 				desktop_cycle_view(server, server->cycle_view);
 			osd_update(server);
 			damage_all_outputs(server);
-			return;
+			return true;
 		}
 	}
 
@@ -95,8 +94,28 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 			}
 		}
 	}
+	return handled;
+}
+static void
+keyboard_key_notify(struct wl_listener *listener, void *data)
+{
+        /* XXX need to check if input inhibited before doing any
+	 * compositor bindings
+	 */
 
-	/* Otherwise, pass it to the client. */
+	/* This event is raised when a key is pressed or released. */
+	struct seat *seat = wl_container_of(listener, seat, keyboard_key);
+	struct server *server = seat->server;
+	struct wlr_event_keyboard_key *event = data;
+	struct wlr_seat *wlr_seat = server->seat.seat;
+	struct wlr_input_device *device = seat->keyboard_group->input_device;
+
+	bool handled = false;
+
+	if(!seat->active_client_while_inhibited)
+		/* ignore labwc keybindings if input is inhibited */
+		handled = handle_compositor_keybindings(listener, event);
+
 	if (!handled) {
 		wlr_seat_set_keyboard(wlr_seat, device);
 		wlr_seat_keyboard_notify_key(wlr_seat, event->time_msec,

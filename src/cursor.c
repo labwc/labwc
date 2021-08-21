@@ -105,6 +105,15 @@ set_cursor(struct server *server, const char *cursor_name)
 		server->seat.xcursor_manager, cursor_name, server->seat.cursor);
 }
 
+bool input_inhibit_blocks_surface(struct seat *seat,
+				  struct wl_resource *resource)
+{
+	struct wl_client * inhibiting_client =
+		seat->active_client_while_inhibited;
+	return (inhibiting_client != NULL) &&
+		inhibiting_client != wl_resource_get_client(resource);
+}
+
 static void
 process_cursor_motion(struct server *server, uint32_t time)
 {
@@ -161,7 +170,8 @@ process_cursor_motion(struct server *server, uint32_t time)
 	/* Required for iconify/maximize/close button mouse-over deco */
 	damage_all_outputs(server);
 
-	if (surface) {
+	if (surface &&
+	    ! input_inhibit_blocks_surface(&server->seat, surface->resource)) {
 		bool focus_changed =
 			wlr_seat->pointer_state.focused_surface != surface;
 		/*

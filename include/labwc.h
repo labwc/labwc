@@ -65,6 +65,7 @@ struct seat {
 	/* if set, views cannot receive focus */
 	struct wlr_layer_surface_v1 *focused_layer;
 
+	struct wl_client *active_client_while_inhibited;
 	struct wl_list inputs;
 	struct wl_listener new_input;
 
@@ -98,6 +99,10 @@ struct server {
 	struct wlr_xwayland *xwayland;
 	struct wl_listener new_xwayland_surface;
 #endif
+
+	struct wlr_input_inhibit_manager *input_inhibit;
+ 	struct wl_listener input_inhibit_activate;
+	struct wl_listener input_inhibit_deactivate;
 
 	struct wl_list views;
 	struct wl_list unmanaged_surfaces;
@@ -368,5 +373,12 @@ void action(struct server *server, const char *action, const char *command);
 
 /* update onscreen display 'alt-tab' texture */
 void osd_update(struct server *server);
+
+/* wlroots "input inhibitor" extension (required for swaylock) blocks
+ * any client other than the requesting client from receiving events
+ */
+bool input_inhibit_blocks_surface(struct seat *seat,
+				  struct wl_resource *resource);
+
 
 #endif /* __LABWC_H */

@@ -251,7 +251,6 @@ ssd_update_title(struct view *view)
 		.size = rc.font_size_activewindow,
 	};
 
-	/* get the size we can play within */
 	struct ssd_part *part;
 	wl_list_for_each(part, &view->ssd.parts, link) {
 		if (part->type == LAB_SSD_PART_TITLE) {
@@ -260,8 +259,10 @@ ssd_update_title(struct view *view)
 		}
 	}
 
+	int max_width = part->box.width > 0 ? part->box.width : 1000;
+
 	/* TODO: use window.active.label.text.color here */
-	font_texture_create(view->server, &view->title, part->box.width,
+	font_texture_create(view->server, &view->title, max_width,
 		view->impl->get_string_prop(view, "title"),
 		&font, theme->menu_items_active_text_color);
 

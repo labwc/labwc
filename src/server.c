@@ -156,6 +156,17 @@ server_init(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 
+	/* empirically, primary selection doesn't work with Gtk apps unless the
+	 * device manager is one of the earliest globals to be advertised. All
+	 * credit to Wayfire for discovering this, though their symptoms
+	 * (crash) are not the same as ours (silently does nothing). When adding
+	 * more globals above this line it would be as well to check that
+	 * middle-button paste still works with any Gtk app of your choice
+	 *
+	 * https://wayfire.org/2020/08/04/Wayfire-0-5.html
+	*/
+	wlr_primary_selection_v1_device_manager_create(server->wl_display);
+
 	output_init(server);
 	seat_init(server);
 
@@ -195,7 +206,6 @@ server_init(struct server *server)
 	wlr_screencopy_manager_v1_create(server->wl_display);
 	wlr_data_control_manager_v1_create(server->wl_display);
 	wlr_gamma_control_manager_v1_create(server->wl_display);
-	wlr_primary_selection_v1_device_manager_create(server->wl_display);
 
 	server->foreign_toplevel_manager =
 		wlr_foreign_toplevel_manager_v1_create(server->wl_display);

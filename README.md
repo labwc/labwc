@@ -82,11 +82,12 @@ Configuration and theme files are re-loaded on receiving SIGHUP (e.g. `killall -
 
 For keyboard settings, see [environment] and [xkeyboard-config(7)]
 
-For themes, search the internet and place them in `~/.local/share/themes/`. Some good starting points include:
+For themes, search the internet for "openbox themes" and place them in `~/.local/share/themes/`. Some good starting points include:
 
 - https://github.com/addy-dclxvi/openbox-theme-collections
 - https://github.com/the-zero885/Lubuntu-Arc-Round-Openbox-Theme
-
+- https://bitbucket.org/archlabslinux/themes/
+- https://github.com/BunsenLabs/bunsen-themes
 
 ## 5. Run
 

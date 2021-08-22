@@ -521,7 +521,7 @@ render_deco(struct view *view, struct output *output,
 	/* button background */
 	struct wlr_cursor *cur = view->server->seat.cursor;
 	enum ssd_part_type type = ssd_at(view, cur->x, cur->y);
-	struct wlr_box box = ssd_box(view, type);
+	struct wlr_box box = ssd_visible_box(view, type);
 	if (isbutton(type) &&
 			wlr_box_contains_point(&box, cur->x, cur->y)) {
 		float *color = (float[4]){ 0.5, 0.5, 0.5, 0.5 };
@@ -531,23 +531,23 @@ render_deco(struct view *view, struct output *output,
 	/* buttons */
 	struct theme *theme = view->server->theme;
 	if (view->surface == seat->keyboard_state.focused_surface) {
-		box = ssd_box(view, LAB_SSD_BUTTON_CLOSE);
+		box = ssd_visible_box(view, LAB_SSD_BUTTON_CLOSE);
 		render_icon(output, output_damage, &box,
 			theme->xbm_close_active_unpressed);
-		box = ssd_box(view, LAB_SSD_BUTTON_MAXIMIZE);
+		box = ssd_visible_box(view, LAB_SSD_BUTTON_MAXIMIZE);
 		render_icon(output, output_damage, &box,
 			theme->xbm_maximize_active_unpressed);
-		box = ssd_box(view, LAB_SSD_BUTTON_ICONIFY);
+		box = ssd_visible_box(view, LAB_SSD_BUTTON_ICONIFY);
 		render_icon(output, output_damage, &box,
 			theme->xbm_iconify_active_unpressed);
 	} else {
-		box = ssd_box(view, LAB_SSD_BUTTON_CLOSE);
+		box = ssd_visible_box(view, LAB_SSD_BUTTON_CLOSE);
 		render_icon(output, output_damage, &box,
 			theme->xbm_close_inactive_unpressed);
-		box = ssd_box(view, LAB_SSD_BUTTON_MAXIMIZE);
+		box = ssd_visible_box(view, LAB_SSD_BUTTON_MAXIMIZE);
 		render_icon(output, output_damage, &box,
 			theme->xbm_maximize_inactive_unpressed);
-		box = ssd_box(view, LAB_SSD_BUTTON_ICONIFY);
+		box = ssd_visible_box(view, LAB_SSD_BUTTON_ICONIFY);
 		render_icon(output, output_damage, &box,
 			theme->xbm_iconify_inactive_unpressed);
 	}

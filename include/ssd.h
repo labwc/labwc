@@ -54,7 +54,7 @@ struct view;
 
 struct border ssd_thickness(struct view *view);
 struct wlr_box ssd_max_extents(struct view *view);
-struct wlr_box ssd_box(struct view *view, enum ssd_part_type type);
+struct wlr_box ssd_visible_box(struct view *view, enum ssd_part_type type);
 enum ssd_part_type ssd_at(struct view *view, double lx, double ly);
 uint32_t ssd_resize_edges(enum ssd_part_type type);
 void ssd_update_title(struct view *view);

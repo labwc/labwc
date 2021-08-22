@@ -828,20 +828,41 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 static void
 new_output_notify(struct wl_listener *listener, void *data)
 {
-	/* This event is rasied by the backend when a new output (aka a display
-	 * or monitor) becomes available. */
+	/*
+	 * This event is rasied by the backend when a new output (aka display
+	 * or monitor) becomes available.
+	 */
 	struct server *server = wl_container_of(listener, server, new_output);
 	struct wlr_output *wlr_output = data;
 
+	/* The mode is a tuple of (width, height, refresh rate). */
+	wlr_log(WLR_DEBUG, "set preferred mode");
+	struct wlr_output_mode *preferred_mode =
+		wlr_output_preferred_mode(wlr_output);
+	wlr_output_set_mode(wlr_output, preferred_mode);
+
 	/*
-	 * The mode is a tuple of (width, height, refresh rate).
-	 * TODO: support user configuration
+	 * Sometimes the preferred mode is not available due to hardware
+	 * constraints (e.g. GPU or cable bandwidth limitations). In these
+	 * cases it's better to fallback to lower modes than to end up with
+	 * a black screen. See sway@4cdc4ac6
 	 */
-	struct wlr_output_mode *mode = wlr_output_preferred_mode(wlr_output);
-	if (mode) {
-		wlr_output_set_mode(wlr_output, mode);
-		wlr_output_commit(wlr_output);
+	if (!wlr_output_test(wlr_output)) {
+		wlr_log(WLR_DEBUG, "preferred mode rejected, falling back to "
+			"another mode");
+		struct wlr_output_mode *mode;
+		wl_list_for_each(mode, &wlr_output->modes, link) {
+			if (mode == preferred_mode) {
+				continue;
+			}
+			wlr_output_set_mode(wlr_output, mode);
+			if (wlr_output_test(wlr_output)) {
+				break;
+			}
+		}
 	}
+
+	wlr_output_commit(wlr_output);
 
 	struct output *output = calloc(1, sizeof(struct output));
 	output->wlr_output = wlr_output;

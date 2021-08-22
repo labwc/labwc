@@ -50,6 +50,14 @@ A theme consists of a themerc file and optionally some xbm icons.
 	Color of the images in titlebar buttons in their default, unpressed,
 	state. This element is for non-focused windows.
 
+Note: The button elements (i.e. window.[in]active.button.\*) support defining
+different types of buttons individually by inserting the type ("iconify", "max"
+and "close") after the button node. For example:
+window.active.button.iconify.unpressed.image.color
+This syntax is not not documented on the openbox.org wiki, but is supported by
+openbox and is used by many popular themes. For the sake of brevity, these
+elements are not listed here, but are supported.
+
 *menu.items.bg.color*
 	Background color of inactive menu items
 
@@ -61,6 +69,19 @@ A theme consists of a themerc file and optionally some xbm icons.
 
 *menu.items.active.text.color*
 	Text color of active menu item
+
+# BUTTONS
+
+The images used for the titlebar buttons are 1-bit xbm (X Bitmaps). These are
+masks where 0=clear and 1=colored. The xbm image files are placed in the same
+directory within your theme as the themerc file. Here are all the possible xbm
+files looked for:
+
+- max.xbm
+- iconify.xbm
+- close.xbm
+
+More will be supported later.
 
 # DEFINITIONS
 

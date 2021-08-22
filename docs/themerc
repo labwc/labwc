@@ -13,6 +13,13 @@ window.inactive.title.bg.color: #f6f5f4
 window.active.button.unpressed.image.color: #000000
 window.inactive.button.unpressed.image.color: #000000
 
+#
+# Note that "iconify", "max", "close" buttons colors can be defined
+# individually by inserting the type after the button node, for example:
+#
+#     window.active.button.iconify.unpressed.image.color: #333333
+#
+
 # menu
 menu.items.bg.color: #fcfbfa
 menu.items.text.color: #000000

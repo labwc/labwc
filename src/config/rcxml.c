@@ -29,6 +29,8 @@ enum font_place {
 	/* TODO: Add all places based on Openbox's rc.xml */
 };
 
+static void load_default_key_bindings(void);
+
 static void
 fill_keybind(char *nodename, char *content)
 {
@@ -281,13 +283,26 @@ bind(const char *binding, const char *action, const char *command)
 }
 
 static void
+load_default_key_bindings(void)
+{
+	bind("A-Tab", "NextWindow", NULL);
+	bind("A-Escape", "Exit", NULL);
+	bind("W-Return", "Execute", "alacritty");
+	bind("A-F3", "Execute", "bemenu-run");
+	bind("A-F4", "Close", NULL);
+	bind("W-a", "ToggleMaximize", NULL);
+	bind("A-Left", "MoveToEdge", "left");
+	bind("A-Right", "MoveToEdge", "right");
+	bind("A-Up", "MoveToEdge", "up");
+	bind("A-Down", "MoveToEdge", "down");
+}
+
+static void
 post_processing(void)
 {
 	if (!wl_list_length(&rc.keybinds)) {
 		wlr_log(WLR_INFO, "load default key bindings");
-		bind("A-Escape", "Exit", NULL);
-		bind("A-Tab", "NextWindow", NULL);
-		bind("A-F3", "Execute", "bemenu-run");
+		load_default_key_bindings();
 	}
 
 	if (!rc.font_name_activewindow) {

@@ -98,10 +98,13 @@ If you have not created an rc.xml config file, default binds will be:
 | ------------------- | ------
 | `alt`-`tab`         | activate next window
 | `alt`-`escape`      | exit
-| `alt`-`F3`          | launch bemenu
-| `alt`-`F4`          | close active window
+| `super`-`return`    | alacritty
+| `alt`-`F3`          | bemenu
+| `alt`-`F4`          | close window
+| `super`-`a`         | toggle maximize
 | `alt`-`mouse-left`  | move window
 | `alt`-`mouse-right` | resize window
+| `alt`-`arrow`       | move window to edge
 
 ## 6. Integrate
 

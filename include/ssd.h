@@ -60,6 +60,6 @@ uint32_t ssd_resize_edges(enum ssd_part_type type);
 void ssd_update_title(struct view *view);
 void ssd_create(struct view *view);
 void ssd_destroy(struct view *view);
-void ssd_update_geometry(struct view *view);
+void ssd_update_geometry(struct view *view, bool force);
 
 #endif /* __LABWC_SSD_H */

@@ -36,14 +36,10 @@ reload_config_and_theme(void)
 			continue;
 		}
 		view->margin = ssd_thickness(view);
-		struct ssd_part *part;
-		wl_list_for_each(part, &view->ssd.parts, link) {
-			part->box = ssd_visible_box(view, part->type);
-		}
+		ssd_update_geometry(view, true);
 	}
 
 	menu_reconfigure(g_server, g_server->rootmenu);
-
 	damage_all_outputs(g_server);
 }
 

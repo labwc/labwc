@@ -354,9 +354,9 @@ geometry_changed(struct view *view)
 }
 
 void
-ssd_update_geometry(struct view *view)
+ssd_update_geometry(struct view *view, bool force)
 {
-	if (!geometry_changed(view)) {
+	if (!geometry_changed(view) && !force) {
 		return;
 	}
 	struct ssd_part *part;

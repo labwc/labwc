@@ -69,7 +69,7 @@ handle_commit(struct wl_listener *listener, void *data)
 			view->pending_move_resize.configure_serial = 0;
 		}
 	}
-	ssd_update_geometry(view);
+	ssd_update_geometry(view, false);
 	damage_view_part(view);
 }
 
@@ -164,7 +164,7 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 	} else if (view->pending_move_resize.configure_serial == 0) {
 		view->x = geo.x;
 		view->y = geo.y;
-		ssd_update_geometry(view);
+		ssd_update_geometry(view, false);
 		damage_all_outputs(view->server);
 	}
 }
@@ -174,7 +174,7 @@ xdg_toplevel_view_move(struct view *view, double x, double y)
 {
 	view->x = x;
 	view->y = y;
-	ssd_update_geometry(view);
+	ssd_update_geometry(view, false);
 	damage_all_outputs(view->server);
 }
 

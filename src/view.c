@@ -135,7 +135,6 @@ view_border(struct view *view)
 	return border;
 }
 
-#define GAP (3)
 void
 view_move_to_edge(struct view *view, const char *direction)
 {
@@ -149,17 +148,17 @@ view_move_to_edge(struct view *view, const char *direction)
 
 	int x = 0, y = 0;
 	if (!strcasecmp(direction, "left")) {
-		x = usable.x + border.left + GAP;
+		x = usable.x + border.left + rc.gap;
 		y = view->y;
 	} else if (!strcasecmp(direction, "up")) {
 		x = view->x;
-		y = usable.y + border.top + GAP;
+		y = usable.y + border.top + rc.gap;
 	} else if (!strcasecmp(direction, "right")) {
-		x = usable.x + usable.width - view->w - border.right - GAP;
+		x = usable.x + usable.width - view->w - border.right - rc.gap;
 		y = view->y;
 	} else if (!strcasecmp(direction, "down")) {
 		x = view->x;
-		y = usable.y + usable.height - view->h - border.bottom - GAP;
+		y = usable.y + usable.height - view->h - border.bottom - rc.gap;
 	}
 	view_move(view, x, y);
 }

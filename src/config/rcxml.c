@@ -167,6 +167,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			rc.xdg_shell_server_side_deco = true;
 		}
+	} else if (!strcmp(nodename, "gap.core")) {
+		rc.gap = atoi(content);
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = strdup(content);
 	} else if (!strcmp(nodename, "cornerradius.theme")) {

@@ -2,7 +2,7 @@
 <labwc_config>
 
   <core>
-    <decoration>server</decoration>
+    <gap>10</gap>
   </core>
 
   <theme>

@@ -24,6 +24,10 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	that it is not always possible to turn off client side decorations.
 	Default is server.
 
+*<core><gap>*
+	The gap in pixels between views and output edges when using movement
+	actions, for example MoveToEdge. Default is 0.
+
 # FOCUS
 
 *<focus><followMouse>* [yes|no]

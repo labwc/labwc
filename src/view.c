@@ -7,6 +7,7 @@ void
 view_move_resize(struct view *view, struct wlr_box geo)
 {
 	view->impl->configure(view, geo);
+	ssd_update_title(view);
 }
 
 void

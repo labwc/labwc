@@ -152,6 +152,13 @@ entry(xmlNode *node, char *nodename, char *content)
 		printf("%s: %s\n", nodename, content);
 	}
 
+	/* handle nodes without content, e.g. <keyboard><default /> */
+	if (!strcmp(nodename, "default.keyboard")) {
+		load_default_key_bindings();
+		return;
+	}
+
+	/* handle the rest */
 	if (!content) {
 		return;
 	}

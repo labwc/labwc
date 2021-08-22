@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+
+<!-- This file contains all supported config elements and attributes -->
+
+<labwc_config>
+
+  <core>
+    <decoration>server</decoration>
+    <gap>10</gap>
+  </core>
+
+  <theme>
+    <name></name>
+    <cornerRadius>8</cornerRadius>
+
+    <!-- Font can be defined without attributues to set all places the same -->
+    <font place="ActiveWindow"><name>sans</name><size>10</size></font>
+    <font place="MenuItem"><name>sans</name><size>10</size></font>
+  </theme>
+
+  <focus>
+    <followMouse>no</followMouse>
+    <raiseOnFocus>no</raiseOnFocus>
+  </focus>
+
+  <!--
+    Keybind actions are specified in more detail in labwc-actions(5)
+    The following keybind modifiers are supported:
+      W - window/super/logo
+      A - alt
+      C - ctrl
+      S - shift
+  -->
+
+  <keyboard>
+
+    <!--
+      The element <default /> to load the default keybind and thus avoid
+      repeating all the definitions below.
+    -->
+
+    <keybind key="A-Escape">
+      <action name="Exit" />
+    </keybind>
+    <keybind key="A-Tab">
+      <action name="NextWindow" />
+    </keybind>
+    <keybind key="A-Return">
+      <action name="Execute"><command>alacritty</command></action>
+    </keybind>
+    <keybind key="A-F3">
+      <action name="Execute"><command>bemenu-run</command></action>
+    </keybind>
+    <keybind key="A-F4">
+      <action name="Close" />
+    </keybind>
+    <keybind key="W-a">
+      <action name="ToggleMaximize" />
+    </keybind>
+    <keybind key="A-Left">
+      <action name="MoveToEdge"><direction>left</direction></action>
+    </keybind>
+    <keybind key="A-Right">
+      <action name="MoveToEdge"><direction>right</direction></action>
+    </keybind>
+    <keybind key="A-Up">
+      <action name="MoveToEdge"><direction>up</direction></action>
+    </keybind>
+    <keybind key="A-Down">
+      <action name="MoveToEdge"><direction>down</direction></action>
+    </keybind>
+  </keyboard>
+
+</labwc_config>

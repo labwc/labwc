@@ -25,8 +25,8 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	Default is server.
 
 *<core><gap>*
-	The gap in pixels between views and output edges when using movement
-	actions, for example MoveToEdge. Default is 0.
+	The distance in pixels between views and output edges when using
+	movement actions, for example MoveToEdge. Default is 0.
 
 # FOCUS
 
@@ -71,22 +71,22 @@ Configuration must be wrapped in a <labwc_config> root-node.
 *<keyboard><keybind key=""><action name="">*
 	Keybind action. See labwc-action(5)
 
-Default key-binds if no rc.xml is found:
+*<keyboard><default />*
+	Load the default keybinds listed below. This is an addition to the
+	openbox specification and provides a way to keep config files simpler
+	whilst allowing your specific keybinds.
+	Note that if no rc.xml is found, or if no <keyboard><keybind> entries
+	exist, the same default keybinds will be loaded even if the <default />
+	element is not provided.
 
 ```
-<keyboard>
-  <keybind key="A-Escape">
-    <action name="Exit"/>
-  </keybind>
-  <keybind key="A-Tab">
-    <action name="NextWindow"/>
-  </keybind>
-  <keybind key="A-F3">
-    <action name="Execute">
-      <command>bemenu-run</command>
-    </action>
-  </keybind>
-<keyboard>
+  A-Tab - next window
+  A-Escape - exit
+  W-Return - alacritty
+  A-F3 - run bemenu
+  A-F4 - close window
+  W-a - toggle maximize
+  A-<arrow> - move window to edge
 ```
 
 # SEE ALSO

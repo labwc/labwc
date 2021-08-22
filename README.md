@@ -76,6 +76,8 @@ Labwc uses the files listed below for configuration and theming.
 | [environment] | ~/.config/labwc/                                | [labwc-environment(5)]
 | [themerc]     | ~/.local/share/themes/\<theme-name\>/openbox-3/ | [labwc-theme(5)]
 
+The example [rc.xml] has been kept simple. For all options and default values, see [rc.xml.full]
+
 Configuration and theme files are re-loaded on receiving SIGHUP (e.g. `killall -SIGHUP labwc`)
 
 For keyboard settings, see [environment] and [xkeyboard-config(7)]
@@ -140,6 +142,7 @@ High-level summary of items which are not inteded to be implemented:
 [openbox-3.4]: https://github.com/danakj/openbox
 
 [rc.xml]: docs/rc.xml
+[rc.xml.full]: docs/rc.xml.full
 [menu.xml]: docs/menu.xml
 [autostart]: docs/autostart
 [environment]: docs/environment

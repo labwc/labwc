@@ -76,7 +76,7 @@ Labwc uses the files listed below for configuration and theming.
 | [environment] | ~/.config/labwc/                                | [labwc-environment(5)]
 | [themerc]     | ~/.local/share/themes/\<theme-name\>/openbox-3/ | [labwc-theme(5)]
 
-The example [rc.xml] has been kept simple. For all options and default values, see [rc.xml.full]
+The example [rc.xml] has been kept simple. For all options and default values, see [rc.xml.all]
 
 Configuration and theme files are re-loaded on receiving SIGHUP (e.g. `killall -SIGHUP labwc`)
 
@@ -143,7 +143,7 @@ High-level summary of items which are not inteded to be implemented:
 [openbox-3.4]: https://github.com/danakj/openbox
 
 [rc.xml]: docs/rc.xml
-[rc.xml.full]: docs/rc.xml.full
+[rc.xml.all]: docs/rc.xml.all
 [menu.xml]: docs/menu.xml
 [autostart]: docs/autostart
 [environment]: docs/environment

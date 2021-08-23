@@ -160,6 +160,8 @@ struct view_impl {
 	const char *(*get_string_prop)(struct view *view, const char *prop);
 	void (*map)(struct view *view);
 	void (*move)(struct view *view, double x, double y);
+	void (*set_fullscreen)(struct view *view, bool fullscreen,
+		struct wlr_output *wlr_output);
 	void (*unmap)(struct view *view);
 	void (*maximize)(struct view *view, bool maximize);
 };
@@ -189,6 +191,7 @@ struct view {
 	bool been_mapped;
 	bool minimized;
 	bool maximized;
+	struct wlr_output *fullscreen;
 
 	/* geometry of the wlr_surface contained within the view */
 	int x, y, w, h;
@@ -229,6 +232,7 @@ struct view {
 	struct wlr_foreign_toplevel_handle_v1 *toplevel_handle;
 	struct wl_listener toplevel_handle_request_maximize;
 	struct wl_listener toplevel_handle_request_minimize;
+	struct wl_listener toplevel_handle_request_fullscreen;
 
 	struct wl_listener map;
 	struct wl_listener unmap;
@@ -238,6 +242,7 @@ struct view {
 	struct wl_listener request_resize;
 	struct wl_listener request_configure;	/* xwayland only */
 	struct wl_listener request_maximize;
+	struct wl_listener request_fullscreen;
 	struct wl_listener set_title;
 	struct wl_listener new_popup;		/* xdg-shell only */
 	struct wl_listener new_subsurface;	/* xdg-shell only */
@@ -305,6 +310,8 @@ void view_minimize(struct view *view, bool minimized);
 struct wlr_output *view_wlr_output(struct view *view);
 void view_center(struct view *view);
 void view_maximize(struct view *view, bool maximize);
+void view_set_fullscreen(struct view *view, bool fullscreen,
+	struct wlr_output *wlr_output);
 void view_toggle_maximize(struct view *view);
 void view_for_each_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *user_data);

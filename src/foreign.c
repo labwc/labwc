@@ -18,6 +18,15 @@ handle_toplevel_handle_request_maximize(struct wl_listener *listener, void *data
 	view_maximize(view, event->maximized);
 }
 
+static void
+handle_toplevel_handle_request_fullscreen(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view,
+		toplevel_handle_request_fullscreen);
+	struct wlr_foreign_toplevel_handle_v1_fullscreen_event *event = data;
+	view_set_fullscreen(view, event->fullscreen, NULL);
+}
+
 void
 foreign_toplevel_handle_create(struct view *view)
 {
@@ -47,5 +56,9 @@ foreign_toplevel_handle_create(struct view *view)
 		handle_toplevel_handle_request_minimize;
 	wl_signal_add(&view->toplevel_handle->events.request_minimize,
 		&view->toplevel_handle_request_minimize);
-	// TODO: hook up remaining signals
+	view->toplevel_handle_request_fullscreen.notify =
+		handle_toplevel_handle_request_fullscreen;
+	wl_signal_add(&view->toplevel_handle->events.request_fullscreen,
+		&view->toplevel_handle_request_fullscreen);
+	// TODO: hook up remaining signals (close)
 }

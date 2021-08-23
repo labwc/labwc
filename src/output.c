@@ -494,7 +494,7 @@ static void
 render_deco(struct view *view, struct output *output,
 		pixman_region32_t *output_damage)
 {
-	if (!view->ssd.enabled) {
+	if (!view->ssd.enabled || view->fullscreen) {
 		return;
 	}
 

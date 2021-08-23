@@ -53,6 +53,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&view->destroy.link);
 	wl_list_remove(&view->request_configure.link);
 	wl_list_remove(&view->request_maximize.link);
+	wl_list_remove(&view->request_fullscreen.link);
 	ssd_destroy(view);
 	free(view);
 }
@@ -71,9 +72,16 @@ static void
 handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
-
 	assert(view);
 	view_toggle_maximize(view);
+}
+
+static void
+handle_request_fullscreen(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, request_fullscreen);
+	bool fullscreen = view->xwayland_surface->fullscreen;
+	view_set_fullscreen(view, fullscreen, NULL);
 }
 
 static void
@@ -217,6 +225,13 @@ maximize(struct view *view, bool maximized)
 	wlr_xwayland_surface_set_maximized(view->xwayland_surface, maximized);
 }
 
+static void
+set_fullscreen(struct view *view, bool fullscreen,
+		struct wlr_output *wlr_output)
+{
+	wlr_xwayland_surface_set_fullscreen(view->xwayland_surface, fullscreen);
+}
+
 static const struct view_impl xwl_view_impl = {
 	.configure = configure,
 	.close = _close,
@@ -224,6 +239,7 @@ static const struct view_impl xwl_view_impl = {
 	.get_string_prop = get_string_prop,
 	.map = map,
 	.move = move,
+	.set_fullscreen = set_fullscreen,
 	.unmap = unmap,
 	.maximize = maximize
 };
@@ -263,6 +279,9 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 		      &view->request_configure);
 	view->request_maximize.notify = handle_request_maximize;
 	wl_signal_add(&xsurface->events.request_maximize, &view->request_maximize);
+	view->request_fullscreen.notify = handle_request_fullscreen;
+	wl_signal_add(&xsurface->events.request_fullscreen,
+		&view->request_fullscreen);
 	view->set_title.notify = handle_set_title;
 	wl_signal_add(&xsurface->events.set_title, &view->set_title);
 

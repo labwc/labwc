@@ -140,6 +140,14 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 }
 
 static void
+handle_request_fullscreen(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, request_fullscreen);
+	struct wlr_xdg_toplevel_set_fullscreen_event *e = data;
+	view_set_fullscreen(view, e->fullscreen, e->output);
+}
+
+static void
 handle_set_title(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, set_title);
@@ -211,6 +219,12 @@ static void
 xdg_toplevel_view_maximize(struct view *view, bool maximized)
 {
 	wlr_xdg_toplevel_set_maximized(view->xdg_surface, maximized);
+}
+
+static void
+xdg_toplevel_view_set_fullscreen(struct view *view, bool fullscreen)
+{
+	wlr_xdg_toplevel_set_fullscreen(view->xdg_surface, fullscreen);
 }
 
 static bool
@@ -336,6 +350,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.get_string_prop = xdg_toplevel_view_get_string_prop,
 	.map = xdg_toplevel_view_map,
 	.move = xdg_toplevel_view_move,
+	.set_fullscreen = xdg_toplevel_view_set_fullscreen,
 	.unmap = xdg_toplevel_view_unmap,
 	.maximize = xdg_toplevel_view_maximize,
 };
@@ -375,6 +390,9 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	wl_signal_add(&toplevel->events.request_resize, &view->request_resize);
 	view->request_maximize.notify = handle_request_maximize;
 	wl_signal_add(&toplevel->events.request_maximize, &view->request_maximize);
+	view->request_fullscreen.notify = handle_request_fullscreen;
+	wl_signal_add(&toplevel->events.request_fullscreen,
+		&view->request_fullscreen);
 	view->set_title.notify = handle_set_title;
 	wl_signal_add(&toplevel->events.set_title, &view->set_title);
 

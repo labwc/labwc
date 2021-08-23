@@ -108,6 +108,48 @@ view_toggle_maximize(struct view *view)
 }
 
 void
+view_set_fullscreen(struct view *view, bool fullscreen,
+		struct wlr_output *wlr_output)
+{
+	if (fullscreen == (view->fullscreen != NULL)) {
+		return;
+	}
+	if (view->impl->set_fullscreen) {
+		view->impl->set_fullscreen(view, fullscreen, wlr_output);
+	}
+	if (view->toplevel_handle) {
+		wlr_foreign_toplevel_handle_v1_set_fullscreen(
+			view->toplevel_handle, fullscreen);
+	}
+	if (fullscreen) {
+		view->unmaximized_geometry.x = view->x;
+		view->unmaximized_geometry.y = view->y;
+		view->unmaximized_geometry.width = view->w;
+		view->unmaximized_geometry.height = view->h;
+
+		if (!wlr_output) {
+			wlr_output = view_wlr_output(view);
+		}
+		view->fullscreen = wlr_output;
+		struct output *output =
+			output_from_wlr_output(view->server, wlr_output);
+		struct wlr_box box = { 0 };
+		wlr_output_effective_resolution(wlr_output, &box.width,
+						&box.height);
+		double ox = 0, oy = 0;
+		wlr_output_layout_output_coords(output->server->output_layout,
+			output->wlr_output, &ox, &oy);
+		box.x -= ox;
+		box.y -= oy;
+		view_move_resize(view, box);
+	} else {
+		/* restore to normal */
+		view_move_resize(view, view->unmaximized_geometry);
+		view->fullscreen = false;
+	}
+}
+
+void
 view_for_each_surface(struct view *view, wlr_surface_iterator_func_t iterator,
 		void *user_data)
 {

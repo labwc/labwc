@@ -79,20 +79,6 @@ drop_permissions(void)
 	}
 }
 
-static void seat_clear_touch_points(struct seat *seat,
-				    struct wl_client *active_client){
-	struct timespec now;
-	clock_gettime(CLOCK_MONOTONIC, &now);
-	struct wlr_touch_point *point;
-	wl_list_for_each(point, &seat->seat->touch_state.touch_points, link) {
-		if (point->client->client != active_client) {
-			wlr_seat_touch_point_clear_focus(seat->seat,
-							 now.tv_nsec / 1000, point->touch_id);
-		}
-	}
-}
-
-
 static void seat_inhibit_input(struct seat *seat,  struct wl_client *active_client)
 {
 	seat->active_client_while_inhibited = active_client;
@@ -101,23 +87,19 @@ static void seat_inhibit_input(struct seat *seat,  struct wl_client *active_clie
 	   (wl_resource_get_client(seat->focused_layer->resource) !=
 	    active_client))
 	{
-		wlr_log(WLR_INFO, "defocus layer");
-		seat_set_focus_layer(seat, NULL); /* ? */
+		seat_set_focus_layer(seat, NULL);
 	}
 	struct wlr_surface * previous_kb_surface = seat->seat->keyboard_state.focused_surface;
 	if (previous_kb_surface &&
 	    wl_resource_get_client(previous_kb_surface->resource) != active_client) {
-		wlr_log(WLR_INFO, "defocus surface");
 		seat_focus_surface(seat, NULL);	  /* keyboard focus */
 	}
 
 	struct wlr_seat_client * previous_ptr_client = seat->seat->pointer_state.focused_client;
 	if (previous_ptr_client &&
 	    (previous_ptr_client->client != active_client)) {
-		wlr_log(WLR_INFO, "defocus ptr");
 		wlr_seat_pointer_clear_focus(seat->seat);
 	}
-	seat_clear_touch_points(seat, active_client);
 }
 
 static void seat_disinhibit_input(struct seat *seat)

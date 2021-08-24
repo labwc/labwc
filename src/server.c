@@ -107,11 +107,10 @@ static void seat_disinhibit_input(struct seat *seat)
 	seat->active_client_while_inhibited = NULL;
 	// Triggers a refocus of the topmost surface layer if necessary
 	// TODO: Make layer surface focus per-output based on cursor position
-/*
-  struct roots_output *output;
-	wl_list_for_each(output, &seat->input->server->desktop->outputs, link) {
+
+	struct output *output;
+	wl_list_for_each(output, &seat->server->outputs, link)
 		arrange_layers(output);
-*/
 }
 
 

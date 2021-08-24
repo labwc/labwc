@@ -344,6 +344,8 @@ void cursor_init(struct seat *seat);
 
 void keyboard_init(struct seat *seat);
 
+void arrange_layers(struct output *output);
+
 void seat_init(struct server *server);
 void seat_finish(struct server *server);
 void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);

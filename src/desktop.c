@@ -76,6 +76,9 @@ desktop_set_focus_view_only(struct seat *seat, struct view *view)
 	if (!view || view->minimized || !view->mapped) {
 		return;
 	}
+	if(input_inhibit_blocks_surface(seat, view->surface->resource))
+	    return;
+
 	struct wlr_surface *prev_surface;
 	prev_surface = seat->seat->keyboard_state.focused_surface;
 	if (prev_surface == view->surface) {
@@ -96,6 +99,9 @@ desktop_focus_view(struct seat *seat, struct view *view)
 		seat_focus_surface(seat, NULL);
 		return;
 	}
+	if(input_inhibit_blocks_surface(seat, view->surface->resource))
+	    return;
+
 	if (view->minimized) {
 		/* this will unmap and then focus */
 		view_minimize(view, false);

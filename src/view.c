@@ -115,7 +115,7 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		return;
 	}
 	if (view->impl->set_fullscreen) {
-		view->impl->set_fullscreen(view, fullscreen, wlr_output);
+		view->impl->set_fullscreen(view, fullscreen);
 	}
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_set_fullscreen(

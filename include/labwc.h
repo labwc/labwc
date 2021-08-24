@@ -160,8 +160,7 @@ struct view_impl {
 	const char *(*get_string_prop)(struct view *view, const char *prop);
 	void (*map)(struct view *view);
 	void (*move)(struct view *view, double x, double y);
-	void (*set_fullscreen)(struct view *view, bool fullscreen,
-		struct wlr_output *wlr_output);
+	void (*set_fullscreen)(struct view *view, bool fullscreen);
 	void (*unmap)(struct view *view);
 	void (*maximize)(struct view *view, bool maximize);
 };

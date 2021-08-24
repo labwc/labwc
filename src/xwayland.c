@@ -226,8 +226,7 @@ maximize(struct view *view, bool maximized)
 }
 
 static void
-set_fullscreen(struct view *view, bool fullscreen,
-		struct wlr_output *wlr_output)
+set_fullscreen(struct view *view, bool fullscreen)
 {
 	wlr_xwayland_surface_set_fullscreen(view->xwayland_surface, fullscreen);
 }

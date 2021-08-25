@@ -133,7 +133,7 @@ for_each_surface(struct view *view, wlr_surface_iterator_func_t iterator,
 	if (!view->surface) {
 		return;
 	}
-        wlr_surface_for_each_surface(view->surface, iterator, data);
+	wlr_surface_for_each_surface(view->surface, iterator, data);
 }
 
 static const char *

@@ -2,8 +2,8 @@
  * Copyright (C) 2020 the sway authors
  *
  * This file is only needed in support of
- * 	- tracking damage
- * 	- unconstraining XDG popups
+ *	- tracking damage
+ *	- unconstraining XDG popups
  */
 
 #include "labwc.h"

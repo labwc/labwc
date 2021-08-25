@@ -6,7 +6,8 @@
 - [4. Configure](#4-configure)
 - [5. Run](#5-run)
 - [6. Integrate](#6-integrate)
-- [7. Accept](#7-acceptance-criteria)
+- [7. Roadmap](#7-roadmap)
+- [8. Contribute](#7-contribute)
 
 ## 1. What is this?
 
@@ -113,24 +114,22 @@ If you have not created an rc.xml config file, default binds will be:
 
 Suggested apps to use with labwc:
 
-- Screen-shooter: [grim]
-- Screen-recorder: [wf-recorder]
+- Screen shooter: [grim]
+- Screen recorder: [wf-recorder]
 - Background image: [swaybg]
 - Panel: [waybar]
 - Launchers: [bemenu], [fuzzel], [wofi]
 - Output managers: [kanshi], [wlr-randr]
+- Screen locker: [swaylock]
 
-## 7. Acceptance Criteria
+## 7. Roadmap
 
 A lot of emphasis is put on code simplicy when considering features.
 
 The main development effort if focused on producing a solid foundation for a
 stacking compositor rather than adding configuration and theming options.
 
-In order to define what 'small feature set' means, refer to the lists of
-[complete] and [outstanding] items.
-
-For more details, see the full table of [acceptance criteria].
+See [acceptance criteria] for details.
 
 High-level summary of items which are not inteded to be implemented:
 
@@ -139,6 +138,10 @@ High-level summary of items which are not inteded to be implemented:
 - Gradients for decoration and menus
 - Any theme option not required to reasonably render common themes (it's amazing
   how few options are actually required).
+
+## 8. Contribute
+
+Let's try to stick to this [coding style]
 
 [openbox-3.4]: https://github.com/danakj/openbox
 
@@ -168,6 +171,7 @@ High-level summary of items which are not inteded to be implemented:
 [wofi]: https://hg.sr.ht/~scoopta/wofi
 [kanshi]: https://github.com/emersion/kanshi.git
 [wlr-randr]: https://github.com/emersion/wlr-randr.git
+[swaylock]: https://github.com/swaywm/swaylock
 
 [acceptance criteria]: https://github.com/johanmalm/labwc/wiki/Acceptance-criteria
 [complete]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-complete-items
@@ -175,3 +179,5 @@ High-level summary of items which are not inteded to be implemented:
 
 [Video (1:10)]: https://youtu.be/AU_M3n_FS-E
 [Video (3:42)]: https://youtu.be/rE1bQjSVJzg
+
+[coding style]: https://git.sr.ht/~sircmpwn/cstyle

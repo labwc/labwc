@@ -43,7 +43,7 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
 
 static bool
 handle_compositor_keybindings(struct wl_listener *listener,
-			      struct wlr_event_keyboard_key *event)
+		struct wlr_event_keyboard_key *event)
 {
 	struct seat *seat = wl_container_of(listener, seat, keyboard_key);
 	struct server *server = seat->server;
@@ -66,7 +66,7 @@ handle_compositor_keybindings(struct wl_listener *listener,
 			/* end cycle */
 			desktop_focus_view(&server->seat, server->cycle_view);
 			server->cycle_view = NULL;
-			/* XXX should we handled=true here? */
+			/* TODO should we handled=true here? */
 		} else if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			/* cycle to next */
 			server->cycle_view =
@@ -96,13 +96,10 @@ handle_compositor_keybindings(struct wl_listener *listener,
 	}
 	return handled;
 }
+
 static void
 keyboard_key_notify(struct wl_listener *listener, void *data)
 {
-        /* XXX need to check if input inhibited before doing any
-	 * compositor bindings
-	 */
-
 	/* This event is raised when a key is pressed or released. */
 	struct seat *seat = wl_container_of(listener, seat, keyboard_key);
 	struct server *server = seat->server;
@@ -112,9 +109,10 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 
 	bool handled = false;
 
-	if(!seat->active_client_while_inhibited)
-		/* ignore labwc keybindings if input is inhibited */
+	/* ignore labwc keybindings if input is inhibited */
+	if (!seat->active_client_while_inhibited) {
 		handled = handle_compositor_keybindings(listener, event);
+	}
 
 	if (!handled) {
 		wlr_seat_set_keyboard(wlr_seat, device);

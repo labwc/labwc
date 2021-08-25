@@ -76,8 +76,9 @@ desktop_set_focus_view_only(struct seat *seat, struct view *view)
 	if (!view || view->minimized || !view->mapped) {
 		return;
 	}
-	if(input_inhibit_blocks_surface(seat, view->surface->resource))
-	    return;
+	if (input_inhibit_blocks_surface(seat, view->surface->resource)) {
+		return;
+	}
 
 	struct wlr_surface *prev_surface;
 	prev_surface = seat->seat->keyboard_state.focused_surface;
@@ -99,8 +100,9 @@ desktop_focus_view(struct seat *seat, struct view *view)
 		seat_focus_surface(seat, NULL);
 		return;
 	}
-	if(input_inhibit_blocks_surface(seat, view->surface->resource))
-	    return;
+	if (input_inhibit_blocks_surface(seat, view->surface->resource)) {
+		return;
+	}
 
 	if (view->minimized) {
 		/* this will unmap and then focus */
@@ -131,7 +133,7 @@ desktop_focus_view(struct seat *seat, struct view *view)
 
 /*
  * Some xwayland apps produce unmapped surfaces on startup and also leave
- * some unmapped surfaces kicking around on 'close' (for example * leafpad's
+ * some unmapped surfaces kicking around on 'close' (for example leafpad's
  * "about" dialogue). Whilst this is not normally a problem, we have to be
  * careful when cycling between views. The only views we should focus are
  * those that are already mapped and those that have been minimized.

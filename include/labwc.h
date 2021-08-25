@@ -382,11 +382,11 @@ void action(struct server *server, const char *action, const char *command);
 /* update onscreen display 'alt-tab' texture */
 void osd_update(struct server *server);
 
-/* wlroots "input inhibitor" extension (required for swaylock) blocks
+/* 
+ * wlroots "input inhibitor" extension (required for swaylock) blocks
  * any client other than the requesting client from receiving events
  */
 bool input_inhibit_blocks_surface(struct seat *seat,
-				  struct wl_resource *resource);
-
+	struct wl_resource *resource);
 
 #endif /* __LABWC_H */

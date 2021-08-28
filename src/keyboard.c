@@ -14,10 +14,36 @@ change_vt(struct server *server, unsigned int vt)
 	}
 }
 
+static bool any_modifiers_pressed(struct wlr_keyboard *keyboard)
+{
+	for(xkb_mod_index_t i = 0; i < xkb_keymap_num_mods(keyboard->keymap); i++) {
+		if(xkb_state_mod_index_is_active
+		   (keyboard->xkb_state, i,  XKB_STATE_MODS_EFFECTIVE))
+			return true;
+	}
+	return false;
+}
+
+
 static void
 keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, keyboard_modifiers);
+	struct server *server = seat->server;
+
+	if (server->cycle_view) {
+		struct wlr_event_keyboard_key *event = data;
+		struct wlr_input_device *device = seat->keyboard_group->input_device;
+		damage_all_outputs(server);
+		if ((event->state == WL_KEYBOARD_KEY_STATE_RELEASED)
+		    && !any_modifiers_pressed(device->keyboard))  {
+			/* end cycle */
+			desktop_focus_view(&server->seat, server->cycle_view);
+			server->cycle_view = NULL;
+			return;
+		}
+	}
+
 	wlr_seat_keyboard_notify_modifiers(seat->seat,
 		&seat->keyboard_group->keyboard.modifiers);
 }
@@ -56,18 +82,13 @@ handle_compositor_keybindings(struct wl_listener *listener,
 	int nsyms = xkb_state_key_get_syms(device->keyboard->xkb_state, keycode, &syms);
 
 	bool handled = false;
+
 	uint32_t modifiers =
 		wlr_keyboard_get_modifiers(device->keyboard);
 
 	if (server->cycle_view) {
 		damage_all_outputs(server);
-		if ((syms[0] == XKB_KEY_Alt_L) &&
-		    event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
-			/* end cycle */
-			desktop_focus_view(&server->seat, server->cycle_view);
-			server->cycle_view = NULL;
-			/* XXX should we handled=true here? */
-		} else if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			/* cycle to next */
 			server->cycle_view =
 				desktop_cycle_view(server, server->cycle_view);
@@ -99,10 +120,6 @@ handle_compositor_keybindings(struct wl_listener *listener,
 static void
 keyboard_key_notify(struct wl_listener *listener, void *data)
 {
-        /* XXX need to check if input inhibited before doing any
-	 * compositor bindings
-	 */
-
 	/* This event is raised when a key is pressed or released. */
 	struct seat *seat = wl_container_of(listener, seat, keyboard_key);
 	struct server *server = seat->server;

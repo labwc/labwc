@@ -14,12 +14,16 @@ change_vt(struct server *server, unsigned int vt)
 	}
 }
 
-static bool any_modifiers_pressed(struct wlr_keyboard *keyboard)
+static bool
+any_modifiers_pressed(struct wlr_keyboard *keyboard)
 {
-	for(xkb_mod_index_t i = 0; i < xkb_keymap_num_mods(keyboard->keymap); i++) {
-		if(xkb_state_mod_index_is_active
-		   (keyboard->xkb_state, i,  XKB_STATE_MODS_EFFECTIVE))
+	xkb_mod_index_t i ;
+	for (i = 0; i < xkb_keymap_num_mods(keyboard->keymap); i++) {
+		if (xkb_state_mod_index_is_active
+				(keyboard->xkb_state, i,
+				 XKB_STATE_MODS_EFFECTIVE)) {
 			return true;
+		}
 	}
 	return false;
 }
@@ -36,7 +40,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 		struct wlr_input_device *device = seat->keyboard_group->input_device;
 		damage_all_outputs(server);
 		if ((event->state == WL_KEYBOARD_KEY_STATE_RELEASED)
-		    && !any_modifiers_pressed(device->keyboard))  {
+				&& !any_modifiers_pressed(device->keyboard))  {
 			/* end cycle */
 			desktop_focus_view(&server->seat, server->cycle_view);
 			server->cycle_view = NULL;

@@ -105,10 +105,10 @@ set_cursor(struct server *server, const char *cursor_name)
 		server->seat.xcursor_manager, cursor_name, server->seat.cursor);
 }
 
-bool input_inhibit_blocks_surface(struct seat *seat,
-				  struct wl_resource *resource)
+bool
+input_inhibit_blocks_surface(struct seat *seat, struct wl_resource *resource)
 {
-	struct wl_client * inhibiting_client =
+	struct wl_client *inhibiting_client =
 		seat->active_client_while_inhibited;
 	return (inhibiting_client != NULL) &&
 		inhibiting_client != wl_resource_get_client(resource);
@@ -171,7 +171,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	damage_all_outputs(server);
 
 	if (surface &&
-	    ! input_inhibit_blocks_surface(&server->seat, surface->resource)) {
+	    !input_inhibit_blocks_surface(&server->seat, surface->resource)) {
 		bool focus_changed =
 			wlr_seat->pointer_state.focused_surface != surface;
 		/*
@@ -419,9 +419,11 @@ cursor_init(struct seat *seat)
 	wl_signal_add(&seat->cursor->events.frame, &seat->cursor_frame);
 
 	seat->request_cursor.notify = request_cursor_notify;
-	wl_signal_add(&seat->seat->events.request_set_cursor, &seat->request_cursor);
+	wl_signal_add(&seat->seat->events.request_set_cursor,
+		&seat->request_cursor);
 	seat->request_set_selection.notify = request_set_selection_notify;
-	wl_signal_add(&seat->seat->events.request_set_selection, &seat->request_set_selection);
+	wl_signal_add(&seat->seat->events.request_set_selection,
+		&seat->request_set_selection);
 
 	seat->request_set_primary_selection.notify =
 		request_set_primary_selection_notify;

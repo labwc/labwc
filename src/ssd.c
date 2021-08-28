@@ -123,7 +123,7 @@ ssd_box(struct view *view, enum ssd_part_type type)
 		box.x = view->x - theme->border_width;
 		box.y = view->y + view->h;
 		box.width = view->w + 2 * theme->border_width;
-		box.height = +theme->border_width + INVISIBLE_MARGIN;
+		box.height = theme->border_width + INVISIBLE_MARGIN;
 		break;
 	case LAB_SSD_PART_LEFT:
 		box.x = view->x - theme->border_width - INVISIBLE_MARGIN;

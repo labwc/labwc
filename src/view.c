@@ -58,7 +58,7 @@ view_center(struct view *view)
 	}
 
 	struct wlr_output_layout *layout = view->server->output_layout;
-	struct wlr_output_layout_output* ol_output =
+	struct wlr_output_layout_output *ol_output =
 		wlr_output_layout_get(layout, wlr_output);
 	int center_x = ol_output->x + wlr_output->width / wlr_output->scale / 2;
 	int center_y = ol_output->y + wlr_output->height / wlr_output->scale / 2;

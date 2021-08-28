@@ -69,7 +69,7 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
 
 static bool
 handle_compositor_keybindings(struct wl_listener *listener,
-			      struct wlr_event_keyboard_key *event)
+		struct wlr_event_keyboard_key *event)
 {
 	struct seat *seat = wl_container_of(listener, seat, keyboard_key);
 	struct server *server = seat->server;
@@ -117,6 +117,7 @@ handle_compositor_keybindings(struct wl_listener *listener,
 	}
 	return handled;
 }
+
 static void
 keyboard_key_notify(struct wl_listener *listener, void *data)
 {
@@ -129,9 +130,10 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 
 	bool handled = false;
 
-	if(!seat->active_client_while_inhibited)
-		/* ignore labwc keybindings if input is inhibited */
+	/* ignore labwc keybindings if input is inhibited */
+	if (!seat->active_client_while_inhibited) {
 		handled = handle_compositor_keybindings(listener, event);
+	}
 
 	if (!handled) {
 		wlr_seat_set_keyboard(wlr_seat, device);

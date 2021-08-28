@@ -18,7 +18,7 @@
 #include "ssd.h"
 #include "theme.h"
 
-//#define DEBUG 1
+#define DEBUG (0)
 
 typedef void (*surface_iterator_func_t)(struct output *output,
 		struct wlr_surface *surface, struct wlr_box *box,
@@ -524,7 +524,7 @@ render_deco(struct view *view, struct output *output,
 	struct wlr_box box = ssd_visible_box(view, type);
 	if (isbutton(type) &&
 			wlr_box_contains_point(&box, cur->x, cur->y)) {
-		float *color = (float[4]){ 0.5, 0.5, 0.5, 0.5 };
+		float *color = (float[4]) { 0.5, 0.5, 0.5, 0.5 };
 		render_rect(output, output_damage, &box, color);
 	}
 
@@ -813,16 +813,16 @@ static void
 output_damage_destroy_notify(struct wl_listener *listener, void *data)
 {
 	struct output *output = wl_container_of(listener, output, damage_destroy);
-        wl_list_remove(&output->damage_frame.link);
-        wl_list_remove(&output->damage_destroy.link);
+	wl_list_remove(&output->damage_frame.link);
+	wl_list_remove(&output->damage_destroy.link);
 }
 
 static void
 output_destroy_notify(struct wl_listener *listener, void *data)
 {
-        struct output *output = wl_container_of(listener, output, destroy);
-        wl_list_remove(&output->link);
-        wl_list_remove(&output->destroy.link);
+	struct output *output = wl_container_of(listener, output, destroy);
+	wl_list_remove(&output->link);
+	wl_list_remove(&output->destroy.link);
 }
 
 static void
@@ -848,8 +848,8 @@ new_output_notify(struct wl_listener *listener, void *data)
 	 * a black screen. See sway@4cdc4ac6
 	 */
 	if (!wlr_output_test(wlr_output)) {
-		wlr_log(WLR_DEBUG, "preferred mode rejected, falling back to "
-			"another mode");
+		wlr_log(WLR_DEBUG,
+			"preferred mode rejected, falling back to another mode");
 		struct wlr_output_mode *mode;
 		wl_list_for_each(mode, &wlr_output->modes, link) {
 			if (mode == preferred_mode) {
@@ -922,7 +922,8 @@ output_init(struct server *server)
 	output_manager_init(server);
 }
 
-static void output_config_apply(struct server *server, 
+static void
+output_config_apply(struct server *server,
 		struct wlr_output_configuration_v1 *config)
 {
 	server->pending_output_config = config;
@@ -931,18 +932,18 @@ static void output_config_apply(struct server *server,
 	wl_list_for_each(head, &config->heads, link) {
 		struct wlr_output *o = head->state.output;
 		bool need_to_add = head->state.enabled && !o->enabled;
-		if(need_to_add) {
+		if (need_to_add) {
 			wlr_output_layout_add_auto(server->output_layout, o);
 		}
 
 		bool need_to_remove = !head->state.enabled && o->enabled;
-		if(need_to_remove) {
+		if (need_to_remove) {
 			wlr_output_layout_remove(server->output_layout, o);
 		}
 
 		wlr_output_enable(o, head->state.enabled);
-		if(head->state.enabled){
-			if(head->state.mode){
+		if (head->state.enabled) {
+			if (head->state.mode) {
 				wlr_output_set_mode(o, head->state.mode);
 			} else {
 				int32_t width = head->state.custom_mode.width;
@@ -961,20 +962,22 @@ static void output_config_apply(struct server *server,
 	server->pending_output_config = NULL;
 }
 
-static bool verify_output_config_v1(const struct wlr_output_configuration_v1 *config)
+static bool
+verify_output_config_v1(const struct wlr_output_configuration_v1 *config)
 {
-	//TODO implement
+	/* TODO implement */
 	return true;
 }
 
-static void handle_output_manager_apply(struct wl_listener *listener, void* data)
+static void
+handle_output_manager_apply(struct wl_listener *listener, void *data)
 {
 	struct server *server = wl_container_of(listener, server, output_manager_apply);
 	struct wlr_output_configuration_v1 *config = data;
 
 	bool config_is_good = verify_output_config_v1(config);
 
-	if(config_is_good) {
+	if (config_is_good) {
 		output_config_apply(server, config);
 		wlr_output_configuration_v1_send_succeeded(config);
 	} else {
@@ -988,10 +991,11 @@ static void handle_output_manager_apply(struct wl_listener *listener, void* data
  * a struct that we send to clients via the wlr_output_configuration v1
  * interface
  */
-static struct wlr_output_configuration_v1 *create_output_config(struct server *server)
+static struct
+wlr_output_configuration_v1 *create_output_config(struct server *server)
 {
 	struct wlr_output_configuration_v1 *config = wlr_output_configuration_v1_create();
-	if(config == NULL) {
+	if (!config) {
 		wlr_log(WLR_ERROR, "wlr_output_configuration_v1_create()");
 		return NULL;
 	}
@@ -1001,31 +1005,32 @@ static struct wlr_output_configuration_v1 *create_output_config(struct server *s
 		struct wlr_output_configuration_head_v1 *head =
 			wlr_output_configuration_head_v1_create(config,
 				output->wlr_output);
-		if (head == NULL) {
+		if (!head) {
 			wlr_log(WLR_ERROR, "wlr_output_configuration_head_v1_create()");
 			wlr_output_configuration_v1_destroy(config);
 			return NULL;
 		}
 		struct wlr_box *box = wlr_output_layout_get_box(server->output_layout,
 								output->wlr_output);
-		if (box != NULL) {
+		if (box) {
 			head->state.x = box->x;
 			head->state.y = box->y;
 		} else {
 			wlr_log(WLR_ERROR, "failed to get output layout box");
 		}
 	}
-
 	return config;
 }
 
-static void handle_output_layout_change(struct wl_listener *listener, void *data) {
+static void
+handle_output_layout_change(struct wl_listener *listener, void *data)
+{
 	struct server *server = wl_container_of(listener, server, output_layout_change);
 
 	bool done_changing = server->pending_output_config == NULL;
-	if(done_changing) {
+	if (done_changing) {
 		struct wlr_output_configuration_v1 *config = create_output_config(server);
-		if(config != NULL) {
+		if (config) {
 			wlr_output_manager_v1_set_configuration(server->output_manager, config);
 		} else {
 			wlr_log(WLR_ERROR, "wlr_output_manager_v1_set_configuration()");
@@ -1033,7 +1038,8 @@ static void handle_output_layout_change(struct wl_listener *listener, void *data
 	}
 }
 
-void output_manager_init(struct server *server)
+void
+output_manager_init(struct server *server)
 {
 	server->output_manager = wlr_output_manager_v1_create(server->wl_display);
 
@@ -1050,7 +1056,7 @@ struct output *
 output_from_wlr_output(struct server *server, struct wlr_output *wlr_output)
 {
 	struct output *output;
-	wl_list_for_each(output, &server->outputs, link) {
+	wl_list_for_each (output, &server->outputs, link) {
 		if (output->wlr_output == wlr_output) {
 			return output;
 		}

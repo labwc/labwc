@@ -98,8 +98,9 @@ handle_compositor_keybindings(struct wl_listener *listener,
 				desktop_cycle_view(server, server->cycle_view);
 			osd_update(server);
 			damage_all_outputs(server);
-			return true;
 		}
+		/* don't send any key events to clients when osd onscreen */
+		return true;
 	}
 
 	/* Handle compositor key bindings */

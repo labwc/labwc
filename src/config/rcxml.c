@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <ctype.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
@@ -375,6 +376,39 @@ traverse_context(xmlNode* node)
 }
 
 static void
+traverse_doubleclick_time(xmlNode* node)
+{
+    /*
+     *     this node
+     *       |
+     *       |
+     *       v
+     * <doubleClickTime>200</doubleClickTime>
+     */
+	for(xmlNode* n = node->children; n && n->name; n = n->next) {
+		if(n->type == XML_TEXT_NODE) {
+			long doubleclick_time_parsed = strtol((const char*)n->content, NULL, 10);
+
+			/*
+			 * There are 2 possible sources for a bad doubleclicktime value:
+			 *  - user gave a value of 0 (which doesn't make sense)
+			 *  - user gave a negative value (which doesn't make sense)
+			 *  - user gave a value which strtol couldn't parse
+			 *
+			 *  since strtol() returns 0 on error, all we have to do is check
+			 *  for to see if strtol() returned 0 or less to handle the error
+			 *  cases. in case of error, we just choose not to override the
+			 *  default value and everything should be fine
+			 */
+			bool valid_doubleclick_time = doubleclick_time_parsed > 0;
+			if(valid_doubleclick_time) {
+				rc.doubleclick_time = doubleclick_time_parsed;
+			}
+		}
+	}
+}
+
+static void
 traverse_mouse(xmlNode* node)
 {
     /*
@@ -385,16 +419,19 @@ traverse_mouse(xmlNode* node)
      *    |
      *    v
      * <mouse>
-     *     <context name="TitleBar"> -|
-     *     	<mousebind....>           |
-     *           ...                  | -- This node's only supported child is context
-     *     	</mousebind>              |
-     *     </context>                -|
+     *     <doubleClickTime>200</doubleClickTime>   ]
+     *     <context name="TitleBar">               -|
+     *     	<mousebind....>                         |
+     *           ...                                | -- This node's only supported children
+     *     	</mousebind>                            |    are doubleClickTime and context
+     *     </context>                              -|
      * </mouse>
      */
 	for(xmlNode* n = node->children; n && n->name; n = n->next) {
 		if(strcasecmp((const char*)n->name, "context") == 0) {
 			traverse_context(n);
+		} else if(strcasecmp((const char*)n->name, "doubleClickTime") == 0) {
+			traverse_doubleclick_time(n);
 		} else if(is_ignorable_node(n)) {
 			continue;
 		} else {
@@ -454,6 +491,7 @@ rcxml_init()
 	rc.corner_radius = 8;
 	rc.font_size_activewindow = 10;
 	rc.font_size_menuitem = 10;
+	rc.doubleclick_time = 500;
 }
 
 static void

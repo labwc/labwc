@@ -72,6 +72,8 @@
   </keyboard>
 
   <mouse>
+    <!-- time is in ms -->
+    <doubleClickTime>200</doubleClickTime>
     <context name="TitleBar">
       <mousebind button="Left" action="DoubleClick">
         <action name="ToggleMaximize"/>

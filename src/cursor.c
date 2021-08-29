@@ -5,6 +5,7 @@
 #include "labwc.h"
 #include "menu/menu.h"
 #include "ssd.h"
+#include "config/mousebind.h"
 #include <wlr/types/wlr_primary_selection.h>
 
 static void
@@ -343,7 +344,14 @@ cursor_button(struct wl_listener *listener, void *data)
 	damage_all_outputs(server);
 
 	if (is_double_click(500) && view_area == LAB_SSD_PART_TITLEBAR) {
-		view_toggle_maximize(view);
+		struct mousebind* mousebind;
+		wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
+			if( (mousebind->context == MOUSE_CONTEXT_TITLEBAR) &&
+				(mousebind->mouse_action == MOUSE_ACTION_DOUBLECLICK) &&
+				(mousebind->button == (enum mouse_button)event->button) ) {
+				action(server, mousebind->action, mousebind->command);
+			}
+		}
 		return;
 	}
 

@@ -16,11 +16,13 @@
 #include "common/string-helpers.h"
 #include "common/zfree.h"
 #include "config/keybind.h"
+#include "config/mousebind.h"
 #include "config/rcxml.h"
 
 static bool in_keybind = false;
 static bool is_attribute = false;
 static struct keybind *current_keybind;
+static const char* current_mouse_context = "";
 
 enum font_place {
 	FONT_PLACE_UNKNOWN = 0,
@@ -223,6 +225,184 @@ traverse(xmlNode *n)
 	xml_tree_walk(n->children);
 }
 
+static bool
+is_ignorable_node(const xmlNode* n)
+{
+	if(n->type == XML_COMMENT_NODE) {
+		return true;
+	}
+
+	if(n->type == XML_TEXT_NODE) {
+		for(const char* s = (const char*)n->content; s && (*s != '\0'); s++) {
+			if(!isspace(*s)) {
+				return false;
+			} 
+		}
+		return true;
+	}
+
+	return false;
+}
+
+static void
+traverse_mousebind_action(xmlNode* node, const char* button_str, const char* mouse_action)
+{
+	/*
+	 * Right now, all we have implemented is:
+	 *
+	 * <action name="ToggleMaximize"/>             ] -- only supported attribute is "name"
+	 *
+	 * <action name="Execute>                    
+	 *      <command>command text here</command>   ] -- if name is execute, we support a child node of name command
+	 * </action>                                
+	 */
+	const char* action_to_do = "";
+	const char* command = "";
+	for(xmlAttr* attr = node->properties; attr; attr = attr->next) {
+		if(strcasecmp((const char*)attr->name, "name") == 0) {
+			action_to_do = (const char*)attr->children->content;
+		} else {
+			wlr_log(WLR_ERROR, "hit unexpected attr (%s) in mousebind action\n", (const char*) attr->name);
+		}
+	}
+
+	if(strcasecmp((const char*)action_to_do, "Execute") == 0) {
+		for(xmlNode* n = node->children; n && n->name; n = n->next) {
+			if(strcasecmp((const char*)n->name, "command") == 0) {
+				for(xmlNode* t = n->children; t; t = t->next) {
+					if( (t->type == XML_TEXT_NODE) ) {
+						command = (const char*)t->content;
+					}
+				}
+			}
+		}
+	}
+	struct mousebind* mousebind = mousebind_create(current_mouse_context,
+			button_str,
+			mouse_action,
+			action_to_do,
+			command);
+	if(mousebind != NULL) {
+		wl_list_insert(&rc.mousebinds, &mousebind->link);
+	} else {
+		wlr_log(WLR_ERROR, "failed to create mousebind:\n"
+						   "    context: (%s)\n"
+						   "    button:  (%s)\n"
+						   "    mouse action: (%s)\n"
+						   "    action: (%s)\n"
+						   "    command: (%s)\n",
+						   current_mouse_context,
+						   button_str,
+						   mouse_action,
+						   action_to_do,
+						   command);
+	}
+}
+
+static void
+traverse_mousebind(xmlNode* node)
+{
+    /*
+     * Right now, all we have implemented is:
+     *
+     *  this node
+     *     |          this node's only supported attributes are "button" and "action"
+     *     |              |            |
+     *     v              v            v
+     * <mousebind button="Left" action="DoubleClick>                 
+     *     <action name="ToggleMaximize"/>           -| 
+     *     <action name="Execute>                     | -- This node's only supported children are actions
+     *          <command>command text here</command>  |   
+     *     </action>                                 -|       
+     * </context>               
+     */
+	const char* button_str = "";
+	const char* action_mouse_did_str = "";
+	for(xmlAttr* attr = node->properties; attr; attr = attr->next) {
+		if(strcasecmp((const char*)attr->name, "button") == 0) {
+			button_str = (const char*)attr->children->content;
+		} else if(strcasecmp((const char*)attr->name, "action") == 0) {
+			action_mouse_did_str = (const char*)attr->children->content;
+		} else {
+			wlr_log(WLR_ERROR, "hit unexpected attr (%s) in mousebind\n", (const char*)attr->name);
+		}
+	}
+
+	for(xmlNode* n = node->children; n && n->name; n = n->next) {
+		if(strcasecmp((const char*)n->name, "action") == 0) {
+			traverse_mousebind_action(n, button_str, action_mouse_did_str);
+		} else if(is_ignorable_node(n)) {
+			continue;
+		} else {
+			wlr_log(WLR_ERROR, "hit unexpected node (%s) in mousebind\n", (const char*) n->name);
+		}
+	}
+}
+
+static void
+traverse_context(xmlNode* node)
+{
+    /*
+     * Right now, all we have implemented is:
+     *
+     *  this node
+     *     |          this node's only supported attribute is "name"
+     *     |              |
+     *     v              v
+     * <context name="TitleBar">
+     * 	  <mousebind....>     -|
+     *          ...            | -- This node's only supported child is mousebind
+     * 	  </mousebind>        -|
+     * </context>
+     */
+	for(xmlAttr* attr = node->properties; attr; attr = attr->next) {
+		if(strcasecmp((const char*)attr->name, "name") == 0) {
+			current_mouse_context = (const char*)attr->children->content;
+		} else {
+			wlr_log(WLR_ERROR, "hit unexpected attr (%s) in context\n", (const char*)attr->name);
+		}
+	}
+
+	for(xmlNode* n = node->children; n && n->name; n = n->next) {
+		if(strcasecmp((const char*)n->name, "mousebind") == 0) {
+			traverse_mousebind(n);
+		} else if(is_ignorable_node(n)) {
+			continue;
+		} else {
+			wlr_log(WLR_ERROR, "hit unexpected node (%s) in context\n", (const char*)n->name);
+		}
+	}
+}
+
+static void
+traverse_mouse(xmlNode* node)
+{
+    /*
+     * Right now, all we have implemented is:
+     *
+     *  this node
+     *    |
+     *    |
+     *    v
+     * <mouse>
+     *     <context name="TitleBar"> -|
+     *     	<mousebind....>           |
+     *           ...                  | -- This node's only supported child is context
+     *     	</mousebind>              |
+     *     </context>                -|
+     * </mouse>
+     */
+	for(xmlNode* n = node->children; n && n->name; n = n->next) {
+		if(strcasecmp((const char*)n->name, "context") == 0) {
+			traverse_context(n);
+		} else if(is_ignorable_node(n)) {
+			continue;
+		} else {
+			wlr_log(WLR_ERROR, "hit unexpected node (%s) in mouse\n", (const char*)n->name);
+		}
+	}
+}
+
 static void
 xml_tree_walk(xmlNode *node)
 {
@@ -234,6 +414,10 @@ xml_tree_walk(xmlNode *node)
 			in_keybind = true;
 			traverse(n);
 			in_keybind = false;
+			continue;
+		} 
+		if(!strcasecmp((char *)n->name, "mouse")) {
+			traverse_mouse(n);
 			continue;
 		}
 		traverse(n);
@@ -265,6 +449,7 @@ rcxml_init()
 	has_run = true;
 	LIBXML_TEST_VERSION
 	wl_list_init(&rc.keybinds);
+	wl_list_init(&rc.mousebinds);
 	rc.xdg_shell_server_side_deco = true;
 	rc.corner_radius = 8;
 	rc.font_size_activewindow = 10;
@@ -399,5 +584,13 @@ rcxml_finish(void)
 		zfree(k->action);
 		zfree(k->keysyms);
 		zfree(k);
+	}
+
+	struct mousebind *m, *m_tmp;
+	wl_list_for_each_safe(m, m_tmp, &rc.mousebinds, link) {
+		wl_list_remove(&m->link);
+		zfree(m->command);
+		zfree(m->action);
+		zfree(m);
 	}
 }

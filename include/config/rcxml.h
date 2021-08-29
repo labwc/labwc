@@ -19,6 +19,7 @@ struct rcxml {
 	int font_size_activewindow;
 	int font_size_menuitem;
 	struct wl_list keybinds;
+	struct wl_list mousebinds;
 };
 
 extern struct rcxml rc;

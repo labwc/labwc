@@ -20,6 +20,7 @@ struct rcxml {
 	int font_size_menuitem;
 	struct wl_list keybinds;
 	struct wl_list mousebinds;
+	long doubleclick_time; /* in ms */
 };
 
 extern struct rcxml rc;

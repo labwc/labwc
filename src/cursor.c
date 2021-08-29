@@ -343,7 +343,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	desktop_focus_view(&server->seat, view);
 	damage_all_outputs(server);
 
-	if (is_double_click(500) && view_area == LAB_SSD_PART_TITLEBAR) {
+	if (is_double_click(rc.doubleclick_time) && view_area == LAB_SSD_PART_TITLEBAR) {
 		struct mousebind* mousebind;
 		wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
 			if( (mousebind->context == MOUSE_CONTEXT_TITLEBAR) &&

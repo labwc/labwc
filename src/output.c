@@ -661,7 +661,7 @@ output_render(struct output *output, pixman_region32_t *damage)
 		goto renderer_end;
 	}
 
-#ifdef DEBUG
+#if DEBUG
 	wlr_renderer_clear(renderer, (float[]){0.2f, 0.0f, 0.0f, 1.0f});
 #endif
 

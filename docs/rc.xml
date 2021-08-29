@@ -18,4 +18,12 @@
     </keybind>
   </keyboard>
 
+  <mouse>
+    <context name="TitleBar">
+      <mousebind button="Left" action="DoubleClick">
+        <action name="ToggleMaximize"/>
+      </mousebind>
+    </context>
+  </mouse>
+
 </labwc_config>

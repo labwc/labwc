@@ -1,6 +1,8 @@
 #ifndef __LABWC_SSD_H
 #define __LABWC_SSD_H
 
+#include "labwc.h"
+
 /*
  * Sequence these according to the order they should be processes for
  * press and hover events. Bear in mind that some of their respective

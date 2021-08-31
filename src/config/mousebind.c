@@ -81,7 +81,9 @@ mousebind_create(const char* context_str, const char* mouse_button_str,
 	m->button = button;
 	m->mouse_action = action_mouse_did;
 	m->action = strdup(action); /* TODO: replace with strndup? */
-	m->command = strdup(command);
+	if(command && !strcasecmp(action, "Execute")) {
+		m->command = strdup(command);
+	}
 
 	return m;
 

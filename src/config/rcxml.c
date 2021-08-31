@@ -21,9 +21,11 @@
 #include "config/rcxml.h"
 
 static bool in_keybind = false;
+static bool in_mousebind = false;
 static bool is_attribute = false;
 static struct keybind *current_keybind;
 static const char* current_mouse_context = "";
+
 
 enum font_place {
 	FONT_PLACE_UNKNOWN = 0,
@@ -31,6 +33,27 @@ enum font_place {
 	FONT_PLACE_MENUITEM,
 	/* TODO: Add all places based on Openbox's rc.xml */
 };
+
+/*
+ * unchecked mousebind params. we fill these out one at a time, then pass them
+ * all to mousebind_create() once we are ready
+ */
+static const char* current_mouse_button = "";
+static const char* current_action_mouse_did= "";
+struct mouse_action {
+	const char* action;
+	const char* command;
+};
+/*
+ * A given mousebind can have multiple actions associated with it.
+ * This array is a list of the actions for the currently-being-parsed mousebind
+ *
+ * TODO: make it a linked list?
+ */
+#define MAX_MOUSE_ACTIONS 32
+static struct mouse_action mouse_actions[MAX_MOUSE_ACTIONS] = {{0}};
+static int num_mouse_actions = 0;
+
 
 static void load_default_key_bindings(void);
 
@@ -60,6 +83,75 @@ fill_keybind(char *nodename, char *content)
 		current_keybind->command = strdup(content);
 	} else if (!strcmp(nodename, "menu.action")) {
 		current_keybind->command = strdup(content);
+	}
+}
+
+static void
+add_new_mousebinds(void)
+{
+	for(int i = 0; i < num_mouse_actions; i++) {
+		struct mousebind* m = mousebind_create(current_mouse_context,
+				current_mouse_button,
+				current_action_mouse_did,
+				mouse_actions[i].action,
+				mouse_actions[i].command);
+		if(m != NULL) {
+			wl_list_insert(&rc.mousebinds, &m->link);
+		} else {
+			wlr_log(WLR_ERROR, "failed to create mousebind\n"
+					"    context: (%s)\n"
+					"    button: (%s)\n"
+					"    mouse action (%s)\n"
+					"    action (%s)\n"
+					"    command: (%s)\n",
+					current_mouse_context,
+					current_mouse_button,
+					current_action_mouse_did,
+					mouse_actions[i].action,
+					mouse_actions[i].command);
+		}
+	}
+
+	num_mouse_actions = 0;
+	memset(mouse_actions, 0, sizeof(struct mouse_action) * MAX_MOUSE_ACTIONS);
+}
+
+static void
+fill_mousebind(char* nodename, char* content)
+{
+	/*
+	 * Example of what we're parsing:
+	 *
+	 * <mousebind button="Left" action="DoubleClick">
+	 *   <action name="ToggleMaximize"/>
+	 * </mousebind>
+	 */
+	if(!content) {
+		return;
+	}
+
+	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
+
+	if(is_attribute && !strcmp(nodename, "button")) {
+		current_mouse_button = content;
+	} else if(!strcmp(nodename, "action")) {
+		/*
+		 * checking for is_attribute fails even though we are looking for the
+		 * attribute of mousebind named action. initial thoughts were to check
+		 * for is_attribute to distinguish the attribute of mousebind named
+		 * action from the child of mousebind named action. since the child of
+		 * mousebind named action doesn't have any content, I don't think we
+		 * need to make this distinction since we already filtered out nodes that
+		 * don't have content
+		 */
+		current_action_mouse_did = content;
+	} else if(is_attribute && !strcmp(nodename, "name.action")) {
+		if(num_mouse_actions < MAX_MOUSE_ACTIONS) {
+			num_mouse_actions++;
+			mouse_actions[num_mouse_actions-1].action = content;
+		}
+	} else if(!strcmp(nodename, "command.action")) {
+		mouse_actions[num_mouse_actions-1].command = content;
 	}
 }
 
@@ -169,6 +261,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		fill_keybind(nodename, content);
 	}
 
+	if (in_mousebind) {
+		fill_mousebind(nodename, content);
+	}
+
 	if (is_attribute && !strcmp(nodename, "place.font.theme")) {
 		font_place = enum_font_place(content);
 	}
@@ -194,6 +290,26 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "RaiseOnFocus.focus")) {
 		rc.focus_follow_mouse = true;
 		rc.raise_on_focus = get_bool(content);
+	} else if(!strcasecmp(nodename, "doubleClickTime.mouse")) {
+		long doubleclick_time_parsed = strtol(content, NULL, 10);
+
+		/*
+		 * There are 2 possible sources for a bad doubleclicktime value:
+		 *  - user gave a value of 0 (which doesn't make sense)
+		 *  - user gave a negative value (which doesn't make sense)
+		 *  - user gave a value which strtol couldn't parse
+		 *
+		 *  since strtol() returns 0 on error, all we have to do is check
+		 *  for to see if strtol() returned 0 or less to handle the error
+		 *  cases. in case of error, we just choose not to override the
+		 *  default value and everything should be fine
+		 */
+		bool valid_doubleclick_time = doubleclick_time_parsed > 0;
+		if(valid_doubleclick_time) {
+			rc.doubleclick_time = doubleclick_time_parsed;
+		}
+	} else if(is_attribute && !strcasecmp(nodename, "name.context.mouse")) {
+		current_mouse_context = content;
 	}
 }
 
@@ -226,220 +342,6 @@ traverse(xmlNode *n)
 	xml_tree_walk(n->children);
 }
 
-static bool
-is_ignorable_node(const xmlNode* n)
-{
-	if(n->type == XML_COMMENT_NODE) {
-		return true;
-	}
-
-	if(n->type == XML_TEXT_NODE) {
-		for(const char* s = (const char*)n->content; s && (*s != '\0'); s++) {
-			if(!isspace(*s)) {
-				return false;
-			} 
-		}
-		return true;
-	}
-
-	return false;
-}
-
-static void
-traverse_mousebind_action(xmlNode* node, const char* button_str, const char* mouse_action)
-{
-	/*
-	 * Right now, all we have implemented is:
-	 *
-	 * <action name="ToggleMaximize"/>             ] -- only supported attribute is "name"
-	 *
-	 * <action name="Execute>                    
-	 *      <command>command text here</command>   ] -- if name is execute, we support a child node of name command
-	 * </action>                                
-	 */
-	const char* action_to_do = "";
-	const char* command = "";
-	for(xmlAttr* attr = node->properties; attr; attr = attr->next) {
-		if(strcasecmp((const char*)attr->name, "name") == 0) {
-			action_to_do = (const char*)attr->children->content;
-		} else {
-			wlr_log(WLR_ERROR, "hit unexpected attr (%s) in mousebind action\n", (const char*) attr->name);
-		}
-	}
-
-	if(strcasecmp((const char*)action_to_do, "Execute") == 0) {
-		for(xmlNode* n = node->children; n && n->name; n = n->next) {
-			if(strcasecmp((const char*)n->name, "command") == 0) {
-				for(xmlNode* t = n->children; t; t = t->next) {
-					if( (t->type == XML_TEXT_NODE) ) {
-						command = (const char*)t->content;
-					}
-				}
-			}
-		}
-	}
-	struct mousebind* mousebind = mousebind_create(current_mouse_context,
-			button_str,
-			mouse_action,
-			action_to_do,
-			command);
-	if(mousebind != NULL) {
-		wl_list_insert(&rc.mousebinds, &mousebind->link);
-	} else {
-		wlr_log(WLR_ERROR, "failed to create mousebind:\n"
-						   "    context: (%s)\n"
-						   "    button:  (%s)\n"
-						   "    mouse action: (%s)\n"
-						   "    action: (%s)\n"
-						   "    command: (%s)\n",
-						   current_mouse_context,
-						   button_str,
-						   mouse_action,
-						   action_to_do,
-						   command);
-	}
-}
-
-static void
-traverse_mousebind(xmlNode* node)
-{
-    /*
-     * Right now, all we have implemented is:
-     *
-     *  this node
-     *     |          this node's only supported attributes are "button" and "action"
-     *     |              |            |
-     *     v              v            v
-     * <mousebind button="Left" action="DoubleClick>                 
-     *     <action name="ToggleMaximize"/>           -| 
-     *     <action name="Execute>                     | -- This node's only supported children are actions
-     *          <command>command text here</command>  |   
-     *     </action>                                 -|       
-     * </context>               
-     */
-	const char* button_str = "";
-	const char* action_mouse_did_str = "";
-	for(xmlAttr* attr = node->properties; attr; attr = attr->next) {
-		if(strcasecmp((const char*)attr->name, "button") == 0) {
-			button_str = (const char*)attr->children->content;
-		} else if(strcasecmp((const char*)attr->name, "action") == 0) {
-			action_mouse_did_str = (const char*)attr->children->content;
-		} else {
-			wlr_log(WLR_ERROR, "hit unexpected attr (%s) in mousebind\n", (const char*)attr->name);
-		}
-	}
-
-	for(xmlNode* n = node->children; n && n->name; n = n->next) {
-		if(strcasecmp((const char*)n->name, "action") == 0) {
-			traverse_mousebind_action(n, button_str, action_mouse_did_str);
-		} else if(is_ignorable_node(n)) {
-			continue;
-		} else {
-			wlr_log(WLR_ERROR, "hit unexpected node (%s) in mousebind\n", (const char*) n->name);
-		}
-	}
-}
-
-static void
-traverse_context(xmlNode* node)
-{
-    /*
-     * Right now, all we have implemented is:
-     *
-     *  this node
-     *     |          this node's only supported attribute is "name"
-     *     |              |
-     *     v              v
-     * <context name="TitleBar">
-     * 	  <mousebind....>     -|
-     *          ...            | -- This node's only supported child is mousebind
-     * 	  </mousebind>        -|
-     * </context>
-     */
-	for(xmlAttr* attr = node->properties; attr; attr = attr->next) {
-		if(strcasecmp((const char*)attr->name, "name") == 0) {
-			current_mouse_context = (const char*)attr->children->content;
-		} else {
-			wlr_log(WLR_ERROR, "hit unexpected attr (%s) in context\n", (const char*)attr->name);
-		}
-	}
-
-	for(xmlNode* n = node->children; n && n->name; n = n->next) {
-		if(strcasecmp((const char*)n->name, "mousebind") == 0) {
-			traverse_mousebind(n);
-		} else if(is_ignorable_node(n)) {
-			continue;
-		} else {
-			wlr_log(WLR_ERROR, "hit unexpected node (%s) in context\n", (const char*)n->name);
-		}
-	}
-}
-
-static void
-traverse_doubleclick_time(xmlNode* node)
-{
-    /*
-     *     this node
-     *       |
-     *       |
-     *       v
-     * <doubleClickTime>200</doubleClickTime>
-     */
-	for(xmlNode* n = node->children; n && n->name; n = n->next) {
-		if(n->type == XML_TEXT_NODE) {
-			long doubleclick_time_parsed = strtol((const char*)n->content, NULL, 10);
-
-			/*
-			 * There are 2 possible sources for a bad doubleclicktime value:
-			 *  - user gave a value of 0 (which doesn't make sense)
-			 *  - user gave a negative value (which doesn't make sense)
-			 *  - user gave a value which strtol couldn't parse
-			 *
-			 *  since strtol() returns 0 on error, all we have to do is check
-			 *  for to see if strtol() returned 0 or less to handle the error
-			 *  cases. in case of error, we just choose not to override the
-			 *  default value and everything should be fine
-			 */
-			bool valid_doubleclick_time = doubleclick_time_parsed > 0;
-			if(valid_doubleclick_time) {
-				rc.doubleclick_time = doubleclick_time_parsed;
-			}
-		}
-	}
-}
-
-static void
-traverse_mouse(xmlNode* node)
-{
-    /*
-     * Right now, all we have implemented is:
-     *
-     *  this node
-     *    |
-     *    |
-     *    v
-     * <mouse>
-     *     <doubleClickTime>200</doubleClickTime>   ]
-     *     <context name="TitleBar">               -|
-     *     	<mousebind....>                         |
-     *           ...                                | -- This node's only supported children
-     *     	</mousebind>                            |    are doubleClickTime and context
-     *     </context>                              -|
-     * </mouse>
-     */
-	for(xmlNode* n = node->children; n && n->name; n = n->next) {
-		if(strcasecmp((const char*)n->name, "context") == 0) {
-			traverse_context(n);
-		} else if(strcasecmp((const char*)n->name, "doubleClickTime") == 0) {
-			traverse_doubleclick_time(n);
-		} else if(is_ignorable_node(n)) {
-			continue;
-		} else {
-			wlr_log(WLR_ERROR, "hit unexpected node (%s) in mouse\n", (const char*)n->name);
-		}
-	}
-}
-
 static void
 xml_tree_walk(xmlNode *node)
 {
@@ -453,8 +355,11 @@ xml_tree_walk(xmlNode *node)
 			in_keybind = false;
 			continue;
 		} 
-		if(!strcasecmp((char *)n->name, "mouse")) {
-			traverse_mouse(n);
+		if(!strcasecmp((char *)n->name, "mousebind")) {
+			in_mousebind = true;
+			traverse(n);
+			in_mousebind = false;
+			add_new_mousebinds();
 			continue;
 		}
 		traverse(n);

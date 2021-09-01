@@ -2,7 +2,7 @@ project(
   'labwc',
   'c',
   version: '0.3.0',
-  license: 'GPL-2',
+  license: 'GPL-2.0-only',
   default_options: [
     'c_std=c11',
     'warning_level=2',

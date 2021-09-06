@@ -4,30 +4,27 @@
 #include "ssd.h"
 #include <wayland-util.h>
 
-enum action_mouse_did
-{
+enum mouse_event {
+	MOUSE_ACTION_NONE = 0,
 	MOUSE_ACTION_DOUBLECLICK,
-	MOUSE_ACTION_NONE
 };
 
 struct mousebind {
-	enum ssd_part_type context; /* ex: titlebar */
+	enum ssd_part_type context;
 
 	/* ex: BTN_LEFT, BTN_RIGHT from linux/input_event_codes.h */
 	uint32_t button;
 
-	/* ex: doubleclick, press, drag, etc */
-	enum action_mouse_did mouse_action;
-
-	/* what to do because mouse did previous action */
+	/* ex: doubleclick, press, drag */
+	enum mouse_event mouse_event;
 	const char *action;
-
 	const char *command;
-	struct wl_list link;
+
+	struct wl_list link; /* rcxml::mousebinds */
 };
 
-struct mousebind *
-mousebind_create(const char *context_str, const char *mouse_button_str,
-    const char *action_mouse_did_str, const char *action, const char *command);
+enum mouse_event mousebind_event_from_str(const char *str);
+uint32_t mousebind_button_from_str(const char *str);
+struct mousebind *mousebind_create(const char *context);
 
 #endif /* __LABWC_MOUSEBIND_H */

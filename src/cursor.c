@@ -346,8 +346,9 @@ cursor_button(struct wl_listener *listener, void *data)
 	if (is_double_click(rc.doubleclick_time) && view_area == LAB_SSD_PART_TITLEBAR) {
 		struct mousebind* mousebind;
 		wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
+			/* TODO: make this more generic */
 			if( (mousebind->context == LAB_SSD_PART_TITLEBAR) &&
-				(mousebind->mouse_action == MOUSE_ACTION_DOUBLECLICK) &&
+				(mousebind->mouse_event == MOUSE_ACTION_DOUBLECLICK) &&
 				(mousebind->button == event->button) ) {
 				action(server, mousebind->action, mousebind->command);
 			}

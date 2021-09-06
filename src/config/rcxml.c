@@ -1,11 +1,4 @@
 #define _POSIX_C_SOURCE 200809L
-#include "config/rcxml.h"
-#include "common/dir.h"
-#include "common/nodename.h"
-#include "common/string-helpers.h"
-#include "common/zfree.h"
-#include "config/keybind.h"
-#include "config/mousebind.h"
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -19,12 +12,20 @@
 #include <unistd.h>
 #include <wayland-server-core.h>
 #include <wlr/util/log.h>
+#include "common/dir.h"
+#include "common/nodename.h"
+#include "common/string-helpers.h"
+#include "common/zfree.h"
+#include "config/keybind.h"
+#include "config/mousebind.h"
+#include "config/rcxml.h"
 
 static bool in_keybind = false;
 static bool in_mousebind = false;
 static bool is_attribute = false;
 static struct keybind *current_keybind;
-static const char *current_mouse_context = "";
+static struct mousebind *current_mousebind;
+static const char *current_mouse_context;
 
 enum font_place
 {
@@ -34,28 +35,7 @@ enum font_place
 	/* TODO: Add all places based on Openbox's rc.xml */
 };
 
-/*
- * unchecked mousebind params. we fill these out one at a time, then pass them
- * all to mousebind_create() once we are ready
- */
-static const char *current_mouse_button = "";
-static const char *current_action_mouse_did = "";
-struct mouse_action {
-	const char *action;
-	const char *command;
-};
-/*
- * A given mousebind can have multiple actions associated with it.
- * This array is a list of the actions for the currently-being-parsed mousebind
- *
- * TODO: make it a linked list?
- */
-#define MAX_MOUSE_ACTIONS 32
-static struct mouse_action mouse_actions[MAX_MOUSE_ACTIONS] = {{0}};
-static int num_mouse_actions = 0;
-
-static void
-load_default_key_bindings(void);
+static void load_default_key_bindings(void);
 
 static void
 fill_keybind(char *nodename, char *content)
@@ -87,70 +67,35 @@ fill_keybind(char *nodename, char *content)
 }
 
 static void
-add_new_mousebinds(void)
-{
-	for (int i = 0; i < num_mouse_actions; i++) {
-		struct mousebind *m = mousebind_create(current_mouse_context,
-		    current_mouse_button, current_action_mouse_did,
-		    mouse_actions[i].action, mouse_actions[i].command);
-		if (m != NULL) {
-			wl_list_insert(&rc.mousebinds, &m->link);
-		} else {
-			wlr_log(WLR_ERROR,
-			    "failed to create mousebind\n"
-			    "    context: (%s)\n"
-			    "    button: (%s)\n"
-			    "    mouse action (%s)\n"
-			    "    action (%s)\n"
-			    "    command: (%s)\n",
-			    current_mouse_context, current_mouse_button,
-			    current_action_mouse_did, mouse_actions[i].action,
-			    mouse_actions[i].command);
-		}
-	}
-
-	num_mouse_actions = 0;
-	memset(
-	    mouse_actions, 0, sizeof(struct mouse_action) * MAX_MOUSE_ACTIONS);
-}
-
-static void
 fill_mousebind(char *nodename, char *content)
 {
 	/*
-	 * Example of what we're parsing:
-	 *
+	 * Example of what we are parsing:
 	 * <mousebind button="Left" action="DoubleClick">
 	 *   <action name="ToggleMaximize"/>
 	 * </mousebind>
 	 */
+
+	if (!strcmp(nodename, "mousebind.context.mouse")) {
+		wlr_log(WLR_INFO, "create mousebind for %s",
+			current_mouse_context);
+		current_mousebind = mousebind_create(current_mouse_context);
+	}
 	if (!content) {
 		return;
 	}
-
 	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
 
-	if (is_attribute && !strcmp(nodename, "button")) {
-		current_mouse_button = content;
+	if (!strcmp(nodename, "button")) {
+		current_mousebind->button = mousebind_button_from_str(content);
 	} else if (!strcmp(nodename, "action")) {
-		/*
-		 * checking for is_attribute fails even though we are looking
-		 * for the attribute of mousebind named action. initial thoughts
-		 * were to check for is_attribute to distinguish the attribute
-		 * of mousebind named action from the child of mousebind named
-		 * action. since the child of mousebind named action doesn't
-		 * have any content, I don't think we need to make this
-		 * distinction since we already filtered out nodes that don't
-		 * have content
-		 */
-		current_action_mouse_did = content;
-	} else if (is_attribute && !strcmp(nodename, "name.action")) {
-		if (num_mouse_actions < MAX_MOUSE_ACTIONS) {
-			num_mouse_actions++;
-			mouse_actions[num_mouse_actions - 1].action = content;
-		}
+		 /* <mousebind button="" action="EVENT"> */
+		current_mousebind->mouse_event =
+			mousebind_event_from_str(content);
+	} else if (!strcmp(nodename, "name.action")) {
+		current_mousebind->action = strdup(content);
 	} else if (!strcmp(nodename, "command.action")) {
-		mouse_actions[num_mouse_actions - 1].command = content;
+		current_mousebind->command = strdup(content);
 	}
 }
 
@@ -246,6 +191,13 @@ entry(xmlNode *node, char *nodename, char *content)
 		printf("%s: %s\n", nodename, content);
 	}
 
+	if (in_keybind) {
+		fill_keybind(nodename, content);
+	}
+	if (in_mousebind) {
+		fill_mousebind(nodename, content);
+	}
+
 	/* handle nodes without content, e.g. <keyboard><default /> */
 	if (!strcmp(nodename, "default.keyboard")) {
 		load_default_key_bindings();
@@ -256,14 +208,6 @@ entry(xmlNode *node, char *nodename, char *content)
 	if (!content) {
 		return;
 	}
-	if (in_keybind) {
-		fill_keybind(nodename, content);
-	}
-
-	if (in_mousebind) {
-		fill_mousebind(nodename, content);
-	}
-
 	if (is_attribute && !strcmp(nodename, "place.font.theme")) {
 		font_place = enum_font_place(content);
 	}
@@ -328,8 +272,7 @@ process_node(xmlNode *node)
 	entry(node, name, content);
 }
 
-static void
-xml_tree_walk(xmlNode *node);
+static void xml_tree_walk(xmlNode *node);
 
 static void
 traverse(xmlNode *n)
@@ -360,7 +303,6 @@ xml_tree_walk(xmlNode *node)
 			in_mousebind = true;
 			traverse(n);
 			in_mousebind = false;
-			add_new_mousebinds();
 			continue;
 		}
 		traverse(n);
@@ -522,8 +464,7 @@ rcxml_finish(void)
 	zfree(rc.theme_name);
 
 	struct keybind *k, *k_tmp;
-	wl_list_for_each_safe(k, k_tmp, &rc.keybinds, link)
-	{
+	wl_list_for_each_safe(k, k_tmp, &rc.keybinds, link) {
 		wl_list_remove(&k->link);
 		zfree(k->command);
 		zfree(k->action);
@@ -532,8 +473,7 @@ rcxml_finish(void)
 	}
 
 	struct mousebind *m, *m_tmp;
-	wl_list_for_each_safe(m, m_tmp, &rc.mousebinds, link)
-	{
+	wl_list_for_each_safe(m, m_tmp, &rc.mousebinds, link) {
 		wl_list_remove(&m->link);
 		zfree(m->command);
 		zfree(m->action);

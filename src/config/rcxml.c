@@ -342,37 +342,35 @@ rcxml_init()
 	rc.doubleclick_time = 500;
 }
 
-static void
-bind(const char *binding, const char *action, const char *command)
-{
-	if (!binding || !action) {
-		return;
-	}
-	struct keybind *k = keybind_create(binding);
-	if (!k) {
-		return;
-	}
-	if (action) {
-		k->action = strdup(action);
-	}
-	if (command) {
-		k->command = strdup(command);
-	}
-}
+static struct {
+	const char *binding, *action, *command;
+} key_combos[] = {
+	{ "A-Tab", "NextWindow", NULL },
+	{ "A-Escape", "Exit", NULL },
+	{ "W-Return", "Execute", "alacritty" },
+	{ "A-F3", "Execute", "bemenu-run" },
+	{ "A-F4", "Close", NULL },
+	{ "W-a", "ToggleMaximize", NULL },
+	{ "A-Left", "MoveToEdge", "left" },
+	{ "A-Right", "MoveToEdge", "right" },
+	{ "A-Up", "MoveToEdge", "up" },
+	{ "A-Down", "MoveToEdge", "down" },
+	{ NULL, NULL, NULL },
+};
 
 static void
 load_default_key_bindings(void)
 {
-	bind("A-Tab", "NextWindow", NULL);
-	bind("A-Escape", "Exit", NULL);
-	bind("W-Return", "Execute", "alacritty");
-	bind("A-F3", "Execute", "bemenu-run");
-	bind("A-F4", "Close", NULL);
-	bind("W-a", "ToggleMaximize", NULL);
-	bind("A-Left", "MoveToEdge", "left");
-	bind("A-Right", "MoveToEdge", "right");
-	bind("A-Up", "MoveToEdge", "up");
-	bind("A-Down", "MoveToEdge", "down");
+	for (int i = 0; key_combos[i].binding; i++) {
+		struct keybind *k = keybind_create(key_combos[i].binding);
+		if (!k) {
+			continue;
+		}
+		k->action = strdup(key_combos[i].action);
+		if (key_combos[i].command) {
+			k->command = strdup(key_combos[i].command);
+		}
+	}
 }
 
 static struct {

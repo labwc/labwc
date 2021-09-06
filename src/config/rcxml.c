@@ -375,12 +375,37 @@ load_default_key_bindings(void)
 	bind("A-Down", "MoveToEdge", "down");
 }
 
+static struct {
+	const char *context, *button, *event, *action, *command;
+} mouse_combos[] = {
+	{ "TitleBar", "Left", "DoubleClick", "ToggleMaximize", NULL },
+	{ NULL, NULL, NULL, NULL, NULL },
+};
+
+static void
+load_default_mouse_bindings(void)
+{
+	for (int i = 0; mouse_combos[i].context; i++) {
+		struct mousebind *m = mousebind_create(mouse_combos[i].context);
+		m->button = mousebind_button_from_str(mouse_combos[i].button);
+		m->mouse_event = mousebind_event_from_str(mouse_combos[i].event);
+		m->action = strdup(mouse_combos[i].action);
+		if (mouse_combos[i].command) {
+			m->command = strdup(mouse_combos[i].command);
+		}
+	}
+}
+
 static void
 post_processing(void)
 {
 	if (!wl_list_length(&rc.keybinds)) {
 		wlr_log(WLR_INFO, "load default key bindings");
 		load_default_key_bindings();
+	}
+	if (!wl_list_length(&rc.mousebinds)) {
+		wlr_log(WLR_INFO, "load default mouse bindings");
+		load_default_mouse_bindings();
 	}
 
 	if (!rc.font_name_activewindow) {

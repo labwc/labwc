@@ -89,6 +89,15 @@ Configuration must be wrapped in a <labwc_config> root-node.
   A-<arrow> - move window to edge
 ```
 
+# MOUSE
+
+*<mouse><doubleClickTime>*
+	Set double click time in milliseconds. Default is 500.
+
+*<mouse><context name=""><mousebind button="" action="">*
+	Define a mouse binding. Supported context-names include:
+	'TitleBar'.
+
 # SEE ALSO
 
 labwc(1), labwc-actions(5), labwc-theme(5)

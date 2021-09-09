@@ -45,7 +45,7 @@
     <keybind key="A-Tab">
       <action name="NextWindow" />
     </keybind>
-    <keybind key="A-Return">
+    <keybind key="W-Return">
       <action name="Execute"><command>alacritty</command></action>
     </keybind>
     <keybind key="A-F3">

@@ -54,6 +54,16 @@ action(struct server *server, const char *action, const char *command)
 		if (view) {
 			view_toggle_maximize(view);
 		}
+	} else if (!strcasecmp(action, "ToggleFullscreen")) {
+		struct view *view = topmost_mapped_view(server);
+		if (view) {
+			view_toggle_fullscreen(view);
+		}
+	} else if (!strcasecmp(action, "ToggleDecorations")) {
+		struct view *view = topmost_mapped_view(server);
+		if (view) {
+			view_toggle_decorations(view);
+		}
 	} else {
 		wlr_log(WLR_ERROR, "action (%s) not supported", action);
 	}

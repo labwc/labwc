@@ -212,6 +212,25 @@ topmost_mapped_view(struct server *server)
 	return view;
 }
 
+struct view *
+focused_view(struct server *server)
+{
+	struct seat *seat = &server->seat;
+	struct wlr_surface *focused_surface;
+	focused_surface = seat->seat->keyboard_state.focused_surface;
+	if (!focused_surface) {
+		return NULL;
+	}
+	struct view *view;
+	wl_list_for_each (view, &server->views, link) {
+		if (view->surface == focused_surface) {
+			return view;
+		}
+	}
+
+	return NULL;
+}
+
 void
 desktop_focus_topmost_mapped_view(struct server *server)
 {

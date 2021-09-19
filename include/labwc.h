@@ -338,6 +338,7 @@ void desktop_focus_view(struct seat *seat, struct view *view);
  */
 struct view *desktop_cycle_view(struct server *server, struct view *current);
 struct view *topmost_mapped_view(struct server *server);
+struct view *focused_view(struct server *server);
 void desktop_focus_topmost_mapped_view(struct server *server);
 bool isfocusable(struct view *view);
 

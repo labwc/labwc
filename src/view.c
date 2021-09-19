@@ -108,6 +108,19 @@ view_toggle_maximize(struct view *view)
 }
 
 void
+view_toggle_decorations(struct view *view)
+{
+	view->ssd.enabled = !view->ssd.enabled;
+	ssd_update_geometry(view, true);
+}
+
+void
+view_toggle_fullscreen(struct view *view)
+{
+	view_set_fullscreen(view, !view->fullscreen, NULL);
+}
+
+void
 view_set_fullscreen(struct view *view, bool fullscreen,
 		struct wlr_output *wlr_output)
 {

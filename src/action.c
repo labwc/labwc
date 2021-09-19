@@ -64,6 +64,11 @@ action(struct server *server, const char *action, const char *command)
 		if (view) {
 			view_toggle_decorations(view);
 		}
+	} else if (!strcasecmp(action, "Iconify")) {
+		struct view *view = topmost_mapped_view(server);
+		if (view) {
+			view_minimize(view, true);
+		}
 	} else {
 		wlr_log(WLR_ERROR, "action (%s) not supported", action);
 	}

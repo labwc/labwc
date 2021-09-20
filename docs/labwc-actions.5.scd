@@ -17,6 +17,9 @@ Actions are used in keyboard bindings.
 *<action name="Exit">*
 	Exit labwc.
 
+*<action name="Iconify">*
+	Iconify (minimize) focused window.
+
 *<action name="MoveToEdge"><direction>*
 	Move view to edge of outputs. Understands directions "left", "up",
 	"right" and "down"
@@ -30,8 +33,14 @@ Actions are used in keyboard bindings.
 *<action name="ShowMenu"><menu>*
 	Show menu. Valid menu name is "root-menu".
 
-*<action name="ToggleMaximize"><menu>*
-	Toggle maximize state of top-most window.
+*<action name="ToggleDecorations">*
+	Toggle decorations of focused window.
+
+*<action name="ToggleFullscreen">*
+	Toggle fullscreen state of focused window.
+
+*<action name="ToggleMaximize">*
+	Toggle maximize state of focused window.
 
 # SEE ALSO
 

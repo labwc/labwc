@@ -213,7 +213,7 @@ topmost_mapped_view(struct server *server)
 }
 
 struct view *
-focused_view(struct server *server)
+desktop_focused_view(struct server *server)
 {
 	struct seat *seat = &server->seat;
 	struct wlr_surface *focused_surface;

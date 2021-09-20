@@ -337,7 +337,7 @@ void desktop_focus_view(struct seat *seat, struct view *view);
  * Note: If !current, the server->views second focusable view is returned
  */
 struct view *desktop_cycle_view(struct server *server, struct view *current);
-struct view *focused_view(struct server *server);
+struct view *desktop_focused_view(struct server *server);
 void desktop_focus_topmost_mapped_view(struct server *server);
 bool isfocusable(struct view *view);
 

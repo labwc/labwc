@@ -24,7 +24,7 @@ action(struct server *server, const char *action, const char *command)
 	if (!action)
 		return;
 	if (!strcasecmp(action, "Close")) {
-		struct view *view = focused_view(server);
+		struct view *view = desktop_focused_view(server);
 		if (view) {
 			view->impl->close(view);
 		}
@@ -40,7 +40,7 @@ action(struct server *server, const char *action, const char *command)
 	} else if (!strcasecmp(action, "Exit")) {
 		wl_display_terminate(server->wl_display);
 	} else if (!strcasecmp(action, "MoveToEdge")) {
-		view_move_to_edge(focused_view(server), command);
+		view_move_to_edge(desktop_focused_view(server), command);
 	} else if (!strcasecmp(action, "NextWindow")) {
 		server->cycle_view =
 			desktop_cycle_view(server, server->cycle_view);
@@ -50,22 +50,22 @@ action(struct server *server, const char *action, const char *command)
 	} else if (!strcasecmp(action, "ShowMenu")) {
 		show_menu(server, command);
 	} else if (!strcasecmp(action, "ToggleMaximize")) {
-		struct view *view = focused_view(server);
+		struct view *view = desktop_focused_view(server);
 		if (view) {
 			view_toggle_maximize(view);
 		}
 	} else if (!strcasecmp(action, "ToggleFullscreen")) {
-		struct view *view = focused_view(server);
+		struct view *view = desktop_focused_view(server);
 		if (view) {
 			view_toggle_fullscreen(view);
 		}
 	} else if (!strcasecmp(action, "ToggleDecorations")) {
-		struct view *view = focused_view(server);
+		struct view *view = desktop_focused_view(server);
 		if (view) {
 			view_toggle_decorations(view);
 		}
 	} else if (!strcasecmp(action, "Iconify")) {
-		struct view *view = focused_view(server);
+		struct view *view = desktop_focused_view(server);
 		if (view) {
 			view_minimize(view, true);
 		}

@@ -44,7 +44,6 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 			/* end cycle */
 			desktop_focus_view(&server->seat, server->cycle_view);
 			server->cycle_view = NULL;
-			return;
 		}
 	}
 

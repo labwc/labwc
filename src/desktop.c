@@ -197,7 +197,7 @@ has_mapped_view(struct wl_list *wl_list)
 	return false;
 }
 
-struct view *
+static struct view *
 topmost_mapped_view(struct server *server)
 {
 	if (!has_mapped_view(&server->views)) {

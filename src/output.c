@@ -248,9 +248,9 @@ void output_layer_for_each_surface(struct output *output,
 	wl_list_for_each(layer_surface, layer_surfaces, link) {
 		struct wlr_layer_surface_v1 *wlr_layer_surface_v1 =
 			layer_surface->layer_surface;
-		output_surface_for_each_surface(output, wlr_layer_surface_v1->surface,
-			layer_surface->geo.x, layer_surface->geo.y, iterator,
-			user_data);
+		output_surface_for_each_surface(output,
+			wlr_layer_surface_v1->surface, layer_surface->geo.x,
+			layer_surface->geo.y, iterator, user_data);
 		/* TODO: handle popups */
 	}
 }
@@ -275,8 +275,8 @@ output_for_each_surface(struct output *output, surface_iterator_func_t iterator,
 	}
 
 #if HAVE_XWAYLAND
-	output_unmanaged_for_each_surface(output, &output->server->unmanaged_surfaces,
-		iterator, user_data);
+	output_unmanaged_for_each_surface(output,
+		&output->server->unmanaged_surfaces, iterator, user_data);
 #endif
 
 	output_layer_for_each_surface(output,
@@ -638,7 +638,8 @@ render_view_popups(struct view *view, struct output *output,
 	struct render_data data = {
 		.damage = damage,
 	};
-	output_view_for_each_popup_surface(output, view, render_surface_iterator, &data);
+	output_view_for_each_popup_surface(output, view,
+		render_surface_iterator, &data);
 }
 
 void
@@ -949,7 +950,8 @@ output_config_apply(struct server *server,
 				int32_t width = head->state.custom_mode.width;
 				int32_t height = head->state.custom_mode.height;
 				int32_t refresh = head->state.custom_mode.refresh;
-				wlr_output_set_custom_mode(o, width, height, refresh);
+				wlr_output_set_custom_mode(o, width,
+					height, refresh);
 			}
 			wlr_output_layout_move(server->output_layout, o,
 				head->state.x, head->state.y);
@@ -972,7 +974,8 @@ verify_output_config_v1(const struct wlr_output_configuration_v1 *config)
 static void
 handle_output_manager_apply(struct wl_listener *listener, void *data)
 {
-	struct server *server = wl_container_of(listener, server, output_manager_apply);
+	struct server *server =
+		wl_container_of(listener, server, output_manager_apply);
 	struct wlr_output_configuration_v1 *config = data;
 
 	bool config_is_good = verify_output_config_v1(config);
@@ -994,7 +997,8 @@ handle_output_manager_apply(struct wl_listener *listener, void *data)
 static struct
 wlr_output_configuration_v1 *create_output_config(struct server *server)
 {
-	struct wlr_output_configuration_v1 *config = wlr_output_configuration_v1_create();
+	struct wlr_output_configuration_v1 *config =
+		wlr_output_configuration_v1_create();
 	if (!config) {
 		wlr_log(WLR_ERROR, "wlr_output_configuration_v1_create()");
 		return NULL;
@@ -1006,12 +1010,14 @@ wlr_output_configuration_v1 *create_output_config(struct server *server)
 			wlr_output_configuration_head_v1_create(config,
 				output->wlr_output);
 		if (!head) {
-			wlr_log(WLR_ERROR, "wlr_output_configuration_head_v1_create()");
+			wlr_log(WLR_ERROR,
+				"wlr_output_configuration_head_v1_create()");
 			wlr_output_configuration_v1_destroy(config);
 			return NULL;
 		}
-		struct wlr_box *box = wlr_output_layout_get_box(server->output_layout,
-								output->wlr_output);
+		struct wlr_box *box =
+			wlr_output_layout_get_box(server->output_layout,
+				output->wlr_output);
 		if (box) {
 			head->state.x = box->x;
 			head->state.y = box->y;
@@ -1025,15 +1031,19 @@ wlr_output_configuration_v1 *create_output_config(struct server *server)
 static void
 handle_output_layout_change(struct wl_listener *listener, void *data)
 {
-	struct server *server = wl_container_of(listener, server, output_layout_change);
+	struct server *server =
+		wl_container_of(listener, server, output_layout_change);
 
 	bool done_changing = server->pending_output_config == NULL;
 	if (done_changing) {
-		struct wlr_output_configuration_v1 *config = create_output_config(server);
+		struct wlr_output_configuration_v1 *config =
+			create_output_config(server);
 		if (config) {
-			wlr_output_manager_v1_set_configuration(server->output_manager, config);
+			wlr_output_manager_v1_set_configuration(
+				server->output_manager, config);
 		} else {
-			wlr_log(WLR_ERROR, "wlr_output_manager_v1_set_configuration()");
+			wlr_log(WLR_ERROR,
+				"wlr_output_manager_v1_set_configuration()");
 		}
 	}
 }

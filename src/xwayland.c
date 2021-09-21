@@ -192,7 +192,8 @@ map(struct view *view)
 
 		foreign_toplevel_handle_create(view);
 
-		struct wlr_box box = output_usable_area_from_cursor_coords(view->server);
+		struct wlr_box box =
+			output_usable_area_from_cursor_coords(view->server);
 		view->x = box.x;
 		view->y = box.y;
 		view_center(view);

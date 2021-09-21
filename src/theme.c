@@ -84,12 +84,18 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#dddad6", theme->window_active_title_bg_color);
 	parse_hexstr("#f6f5f4", theme->window_inactive_title_bg_color);
 
-	parse_hexstr("#000000", theme->window_active_button_iconify_unpressed_image_color);
-	parse_hexstr("#000000", theme->window_active_button_max_unpressed_image_color);
-	parse_hexstr("#000000", theme->window_active_button_close_unpressed_image_color);
-	parse_hexstr("#000000", theme->window_inactive_button_iconify_unpressed_image_color);
-	parse_hexstr("#000000", theme->window_inactive_button_max_unpressed_image_color);
-	parse_hexstr("#000000", theme->window_inactive_button_close_unpressed_image_color);
+	parse_hexstr("#000000",
+		theme->window_active_button_iconify_unpressed_image_color);
+	parse_hexstr("#000000",
+		theme->window_active_button_max_unpressed_image_color);
+	parse_hexstr("#000000",
+		theme->window_active_button_close_unpressed_image_color);
+	parse_hexstr("#000000",
+		theme->window_inactive_button_iconify_unpressed_image_color);
+	parse_hexstr("#000000",
+		theme->window_inactive_button_max_unpressed_image_color);
+	parse_hexstr("#000000",
+		theme->window_inactive_button_close_unpressed_image_color);
 
 	parse_hexstr("#fcfbfa", theme->menu_items_bg_color);
 	parse_hexstr("#000000", theme->menu_items_text_color);
@@ -137,34 +143,46 @@ entry(struct theme *theme, const char *key, const char *value)
 
 	/* universal button */
 	if (match(key, "window.active.button.unpressed.image.color")) {
-		parse_hexstr(value, theme->window_active_button_iconify_unpressed_image_color);
-		parse_hexstr(value, theme->window_active_button_max_unpressed_image_color);
-		parse_hexstr(value, theme->window_active_button_close_unpressed_image_color);
+		parse_hexstr(value,
+			theme->window_active_button_iconify_unpressed_image_color);
+		parse_hexstr(value,
+			theme->window_active_button_max_unpressed_image_color);
+		parse_hexstr(value,
+			theme->window_active_button_close_unpressed_image_color);
 	}
 	if (match(key, "window.inactive.button.unpressed.image.color")) {
-		parse_hexstr(value, theme->window_inactive_button_iconify_unpressed_image_color);
-		parse_hexstr(value, theme->window_inactive_button_max_unpressed_image_color);
-		parse_hexstr(value, theme->window_inactive_button_close_unpressed_image_color);
+		parse_hexstr(value,
+			theme->window_inactive_button_iconify_unpressed_image_color);
+		parse_hexstr(value,
+			theme->window_inactive_button_max_unpressed_image_color);
+		parse_hexstr(value,
+			theme->window_inactive_button_close_unpressed_image_color);
 	}
 
 	/* individual buttons */
 	if (match(key, "window.active.button.iconify.unpressed.image.color")) {
-		parse_hexstr(value, theme->window_active_button_iconify_unpressed_image_color);
+		parse_hexstr(value,
+			theme->window_active_button_iconify_unpressed_image_color);
 	}
 	if (match(key, "window.active.button.max.unpressed.image.color")) {
-		parse_hexstr(value, theme->window_active_button_max_unpressed_image_color);
+		parse_hexstr(value,
+			theme->window_active_button_max_unpressed_image_color);
 	}
 	if (match(key, "window.active.button.close.unpressed.image.color")) {
-		parse_hexstr(value, theme->window_active_button_close_unpressed_image_color);
+		parse_hexstr(value,
+			theme->window_active_button_close_unpressed_image_color);
 	}
 	if (match(key, "window.inactive.button.iconify.unpressed.image.color")) {
-		parse_hexstr(value, theme->window_inactive_button_iconify_unpressed_image_color);
+		parse_hexstr(value,
+			theme->window_inactive_button_iconify_unpressed_image_color);
 	}
 	if (match(key, "window.inactive.button.max.unpressed.image.color")) {
-		parse_hexstr(value, theme->window_inactive_button_max_unpressed_image_color);
+		parse_hexstr(value,
+			theme->window_inactive_button_max_unpressed_image_color);
 	}
 	if (match(key, "window.inactive.button.close.unpressed.image.color")) {
-		parse_hexstr(value, theme->window_inactive_button_close_unpressed_image_color);
+		parse_hexstr(value,
+			theme->window_inactive_button_close_unpressed_image_color);
 	}
 
 	if (match(key, "menu.items.bg.color")) {

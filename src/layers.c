@@ -70,10 +70,12 @@ apply_exclusive(struct wlr_box *usable_area, uint32_t anchor, int32_t exclusive,
 	for (size_t i = 0; i < sizeof(edges) / sizeof(edges[0]); ++i) {
 		if ((anchor & edges[i].anchors) == edges[i].anchors) {
 			if (edges[i].positive_axis) {
-				*edges[i].positive_axis += exclusive + edges[i].margin;
+				*edges[i].positive_axis +=
+					exclusive + edges[i].margin;
 			}
 			if (edges[i].negative_axis) {
-				*edges[i].negative_axis -= exclusive + edges[i].margin;
+				*edges[i].negative_axis -=
+					exclusive + edges[i].margin;
 			}
 		}
 	}

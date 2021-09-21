@@ -102,13 +102,15 @@ handle_destroy(struct wl_listener *listener, void *data)
 static void
 handle_request_move(struct wl_listener *listener, void *data)
 {
-	/* This event is raised when a client would like to begin an interactive
+	/*
+	 * This event is raised when a client would like to begin an interactive
 	 * move, typically because the user clicked on their client-side
 	 * decorations. Note that a more sophisticated compositor should check
 	 * the provied serial against a list of button press serials sent to
 	 * this
 	 * client, to prevent the client from requesting this whenever they
-	 * want. */
+	 * want.
+	 */
 	struct view *view = wl_container_of(listener, view, request_move);
 	interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
 }
@@ -116,13 +118,15 @@ handle_request_move(struct wl_listener *listener, void *data)
 static void
 handle_request_resize(struct wl_listener *listener, void *data)
 {
-	/* This event is raised when a client would like to begin an interactive
+	/*
+	 * This event is raised when a client would like to begin an interactive
 	 * resize, typically because the user clicked on their client-side
 	 * decorations. Note that a more sophisticated compositor should check
 	 * the provied serial against a list of button press serials sent to
 	 * this
 	 * client, to prevent the client from requesting this whenever they
-	 * want. */
+	 * want.
+	 */
 	struct wlr_xdg_toplevel_resize_event *event = data;
 	struct view *view = wl_container_of(listener, view, request_resize);
 	interactive_begin(view, LAB_INPUT_STATE_RESIZE, event->edges);
@@ -194,7 +198,7 @@ xdg_toplevel_view_close(struct view *view)
 
 static void
 xdg_toplevel_view_for_each_popup_surface(struct view *view,
-		wlr_surface_iterator_func_t iterator, void *data)
+		 wlr_surface_iterator_func_t iterator, void *data)
 {
 	wlr_xdg_surface_for_each_popup_surface(view->xdg_surface, iterator, data);
 }
@@ -249,7 +253,8 @@ static void
 position_xdg_toplevel_view(struct view *view)
 {
 	if (istopmost(view)) {
-		struct wlr_box box = output_usable_area_from_cursor_coords(view->server);
+		struct wlr_box box =
+			output_usable_area_from_cursor_coords(view->server);
 		view->x = box.x;
 		view->y = box.y;
 		view->w = view->xdg_surface->geometry.width;

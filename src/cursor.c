@@ -20,13 +20,17 @@ request_cursor_notify(struct wl_listener *listener, void *data)
 	struct wlr_seat_client *focused_client =
 		seat->seat->pointer_state.focused_client;
 
-	/* This can be sent by any client, so we check to make sure this one is
-	 * actually has pointer focus first. */
+	/*
+	 * This can be sent by any client, so we check to make sure this one is
+	 * actually has pointer focus first.
+	 */
 	if (focused_client == event->seat_client) {
-		/* Once we've vetted the client, we can tell the cursor to use
+		/*
+		 * Once we've vetted the client, we can tell the cursor to use
 		 * the provided surface as the cursor image. It will set the
 		 * hardware cursor on the output that it's currently on and
-		 * continue to do so as the cursor moves between outputs. */
+		 * continue to do so as the cursor moves between outputs.
+		 */
 		wlr_cursor_set_surface(seat->cursor, event->surface,
 				       event->hotspot_x, event->hotspot_y);
 	}
@@ -140,15 +144,16 @@ process_cursor_motion(struct server *server, uint32_t time)
 	struct wlr_surface *surface = NULL;
 	int view_area = LAB_SSD_NONE;
 	struct view *view =
-		desktop_view_at(server, server->seat.cursor->x, server->seat.cursor->y,
-				&surface, &sx, &sy, &view_area);
+		desktop_view_at(server, server->seat.cursor->x,
+			server->seat.cursor->y, &surface, &sx, &sy, &view_area);
 	if (!view) {
 		set_cursor(server, XCURSOR_DEFAULT);
 	} else {
 		uint32_t resize_edges = ssd_resize_edges(view_area);
 		if (resize_edges) {
 			cursor_name_set_by_server = true;
-			set_cursor(server, wlr_xcursor_get_resize_name(resize_edges));
+			set_cursor(server,
+				wlr_xcursor_get_resize_name(resize_edges));
 		} else if (view_area != LAB_SSD_NONE) {
 			/* title and buttons */
 			set_cursor(server, XCURSOR_DEFAULT);
@@ -192,8 +197,10 @@ process_cursor_motion(struct server *server, uint32_t time)
 			wlr_seat_pointer_notify_motion(wlr_seat, time, sx, sy);
 		}
 	} else {
-		/* Clear pointer focus so future button events and such are not
-		 * sent to the last client to have the cursor over it. */
+		/*
+		 * Clear pointer focus so future button events and such are not
+		 * sent to the last client to have the cursor over it.
+		 */
 		wlr_seat_pointer_clear_focus(wlr_seat);
 	}
 }

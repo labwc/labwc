@@ -134,7 +134,7 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 	struct view *view = wl_container_of(listener, view, request_maximize);
 	struct wlr_xdg_surface *surface = data;
 	if (view) {
-		view_maximize(view, surface->toplevel->client_pending.maximized);
+		view_maximize(view, surface->toplevel->requested.maximized);
 	}
 
 }

@@ -22,7 +22,6 @@
 
 static bool in_keybind = false;
 static bool in_mousebind = false;
-static bool is_attribute = false;
 static struct keybind *current_keybind;
 static struct mousebind *current_mousebind;
 static const char *current_mouse_context;
@@ -185,9 +184,6 @@ entry(xmlNode *node, char *nodename, char *content)
 	string_truncate_at_pattern(nodename, ".labwc_config");
 
 	if (getenv("LABWC_DEBUG_CONFIG_NODENAMES")) {
-		if (is_attribute) {
-			printf("@");
-		}
 		printf("%s: %s\n", nodename, content);
 	}
 
@@ -208,7 +204,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	if (!content) {
 		return;
 	}
-	if (is_attribute && !strcmp(nodename, "place.font.theme")) {
+	if (!strcmp(nodename, "place.font.theme")) {
 		font_place = enum_font_place(content);
 	}
 
@@ -251,8 +247,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		if (valid_doubleclick_time) {
 			rc.doubleclick_time = doubleclick_time_parsed;
 		}
-	} else if (is_attribute &&
-	           !strcasecmp(nodename, "name.context.mouse")) {
+	} else if (!strcasecmp(nodename, "name.context.mouse")) {
 		current_mouse_context = content;
 	}
 }
@@ -278,11 +273,9 @@ static void
 traverse(xmlNode *n)
 {
 	process_node(n);
-	is_attribute = true;
 	for (xmlAttr *attr = n->properties; attr; attr = attr->next) {
 		xml_tree_walk(attr->children);
 	}
-	is_attribute = false;
 	xml_tree_walk(n->children);
 }
 

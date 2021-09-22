@@ -231,21 +231,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.raise_on_focus = get_bool(content);
 	} else if (!strcasecmp(nodename, "doubleClickTime.mouse")) {
 		long doubleclick_time_parsed = strtol(content, NULL, 10);
-
-		/*
-		 * There are 2 possible sources for a bad doubleclicktime value:
-		 *  - user gave a value of 0 (which doesn't make sense)
-		 *  - user gave a negative value (which doesn't make sense)
-		 *  - user gave a value which strtol couldn't parse
-		 *
-		 *  since strtol() returns 0 on error, all we have to do is
-		 * check for to see if strtol() returned 0 or less to handle the
-		 * error cases. in case of error, we just choose not to override
-		 * the default value and everything should be fine
-		 */
-		bool valid_doubleclick_time = doubleclick_time_parsed > 0;
-		if (valid_doubleclick_time) {
+		if (doubleclick_time_parsed > 0) {
 			rc.doubleclick_time = doubleclick_time_parsed;
+		} else {
+			wlr_log(WLR_ERROR, "invalid doubleClickTime");
 		}
 	} else if (!strcasecmp(nodename, "name.context.mouse")) {
 		current_mouse_context = content;

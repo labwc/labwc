@@ -101,7 +101,7 @@ struct server {
 #endif
 
 	struct wlr_input_inhibit_manager *input_inhibit;
- 	struct wl_listener input_inhibit_activate;
+	struct wl_listener input_inhibit_activate;
 	struct wl_listener input_inhibit_deactivate;
 
 	struct wl_list views;
@@ -367,7 +367,8 @@ void output_damage_surface(struct output *output, struct wlr_surface *surface,
 	double lx, double ly, bool whole);
 void scale_box(struct wlr_box *box, float scale);
 void output_manager_init(struct server *server);
-struct output *output_from_wlr_output(struct server *server, struct wlr_output *wlr_output);
+struct output *output_from_wlr_output(struct server *server,
+	struct wlr_output *wlr_output);
 struct wlr_box output_usable_area_in_layout_coords(struct output *output);
 struct wlr_box output_usable_area_from_cursor_coords(struct server *server);
 
@@ -384,7 +385,7 @@ void action(struct server *server, const char *action, const char *command);
 /* update onscreen display 'alt-tab' texture */
 void osd_update(struct server *server);
 
-/* 
+/*
  * wlroots "input inhibitor" extension (required for swaylock) blocks
  * any client other than the requesting client from receiving events
  */

@@ -1,7 +1,6 @@
 scdoc = find_program('scdoc', required: get_option('man-pages'))
 
 if scdoc.found()
-  sh = find_program('sh', native: true)
   sections = [
     '.1',
     '-actions.5',
@@ -16,8 +15,9 @@ if scdoc.found()
     custom_target(
       manpage,
       input: markdown,
-      command: [sh, '-c', 'scdoc < @INPUT@'],
       output: manpage,
+      command: scdoc,
+      feed: true,
       capture: true,
       install: true,
       install_dir: join_paths(get_option('mandir'), 'man' + s.split('.')[-1])

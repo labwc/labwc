@@ -205,7 +205,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	}
 }
 
-void
+static void
 cursor_motion(struct wl_listener *listener, void *data)
 {
 	/*

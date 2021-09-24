@@ -45,6 +45,9 @@ ssd_max_extents(struct view *view)
  * ssd_box - the 'full' decoration geometry which includes both visible
  * and invisible parts. It typically includes an invisible margin outside
  * the decoration.
+ *
+ * This function is used for determining decoration parts during user-
+ * interactive operations such as mouse hover or button press
  */
 static struct wlr_box
 ssd_box(struct view *view, enum ssd_part_type type)
@@ -137,6 +140,17 @@ ssd_box(struct view *view, enum ssd_part_type type)
 	return box;
 }
 
+static void
+center_vertically(struct wlr_box *box, struct wlr_texture *texture)
+{
+	if (!texture) {
+		return;
+	}
+	box->y += (box->height - texture->height) / 2;
+	box->width = texture->width;
+	box->height = texture->height;
+}
+
 struct wlr_box
 ssd_visible_box(struct view *view, enum ssd_part_type type)
 {
@@ -159,12 +173,7 @@ ssd_visible_box(struct view *view, enum ssd_part_type type)
 		break;
 	case LAB_SSD_PART_TITLE:
 		box = ssd_box(view, type);
-		if (view->title) {
-			/* center align title vertically */
-			box.y += (box.height - view->title->height) / 2;
-			box.width = view->title->width;
-			box.height = view->title->height;
-		}
+		center_vertically(&box, view->title);
 		break;
 	case LAB_SSD_PART_CORNER_TOP_LEFT:
 		box = ssd_box(view, type);

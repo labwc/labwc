@@ -351,13 +351,14 @@ cursor_button(struct wl_listener *listener, void *data)
 	desktop_focus_view(&server->seat, view);
 	damage_all_outputs(server);
 
-	if (is_double_click(rc.doubleclick_time) && view_area == LAB_SSD_PART_TITLEBAR) {
-		struct mousebind* mousebind;
-		wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
+	if (is_double_click(rc.doubleclick_time)
+			&& view_area == LAB_SSD_PART_TITLEBAR) {
+		struct mousebind *mousebind;
+		wl_list_for_each_reverse (mousebind, &rc.mousebinds, link) {
 			/* TODO: make this more generic */
-			if( (mousebind->context == LAB_SSD_PART_TITLEBAR) &&
+			if ((mousebind->context == LAB_SSD_PART_TITLEBAR) &&
 				(mousebind->mouse_event == MOUSE_ACTION_DOUBLECLICK) &&
-				(mousebind->button == event->button) ) {
+				(mousebind->button == event->button)) {
 				action(server, mousebind->action, mousebind->command);
 			}
 		}

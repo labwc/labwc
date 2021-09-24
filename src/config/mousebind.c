@@ -18,10 +18,9 @@ mousebind_button_from_str(const char *str)
 		return BTN_RIGHT;
 	} else if (!strcasecmp(str, "Middle")) {
 		return BTN_MIDDLE;
-	} else {
-		wlr_log(WLR_ERROR, "unknown button (%s)", str);
-		return UINT32_MAX;
 	}
+	wlr_log(WLR_ERROR, "unknown button (%s)", str);
+	return UINT32_MAX;
 }
 
 enum mouse_event
@@ -30,10 +29,9 @@ mousebind_event_from_str(const char *str)
 	assert(str);
 	if (strcasecmp(str, "doubleclick") == 0) {
 		return MOUSE_ACTION_DOUBLECLICK;
-	} else {
-		wlr_log(WLR_ERROR, "unknown mouse action (%s)", str);
-		return MOUSE_ACTION_NONE;
 	}
+	wlr_log(WLR_ERROR, "unknown mouse action (%s)", str);
+	return MOUSE_ACTION_NONE;
 }
 
 static enum ssd_part_type
@@ -41,10 +39,9 @@ context_from_str(const char *str)
 {
 	if (!strcasecmp(str, "Titlebar")) {
 		return LAB_SSD_PART_TITLEBAR;
-	} else {
-		wlr_log(WLR_ERROR, "unknown mouse context (%s)", str);
-		return LAB_SSD_NONE;
 	}
+	wlr_log(WLR_ERROR, "unknown mouse context (%s)", str);
+	return LAB_SSD_NONE;
 }
 
 struct mousebind *

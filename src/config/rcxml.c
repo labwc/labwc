@@ -21,14 +21,13 @@
 #include "config/mousebind.h"
 #include "config/rcxml.h"
 
-static bool in_keybind = false;
-static bool in_mousebind = false;
+static bool in_keybind;
+static bool in_mousebind;
 static struct keybind *current_keybind;
 static struct mousebind *current_mousebind;
 static const char *current_mouse_context;
 
-enum font_place
-{
+enum font_place {
 	FONT_PLACE_UNKNOWN = 0,
 	FONT_PLACE_ACTIVEWINDOW,
 	FONT_PLACE_MENUITEM,

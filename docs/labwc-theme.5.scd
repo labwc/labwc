@@ -70,6 +70,10 @@ elements are not listed here, but are supported.
 *menu.items.active.text.color*
 	Text color of active menu item
 
+*border.color*
+	Set all border colors. This is obsolete, but supported for backward
+	compatibility as some themes still contain it.
+
 # BUTTONS
 
 The images used for the titlebar buttons are 1-bit xbm (X Bitmaps). These are

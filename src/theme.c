@@ -137,6 +137,11 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match(key, "window.inactive.border.color")) {
 		parse_hexstr(value, theme->window_inactive_border_color);
 	}
+	/* border.color is obsolete, but handled for backward compatibility */
+	if (match(key, "border.color")) {
+		parse_hexstr(value, theme->window_active_border_color);
+		parse_hexstr(value, theme->window_inactive_border_color);
+	}
 
 	if (match(key, "window.active.title.bg.color")) {
 		parse_hexstr(value, theme->window_active_title_bg_color);

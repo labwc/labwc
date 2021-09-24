@@ -106,7 +106,11 @@ theme_builtin(struct theme *theme)
 static bool
 match(const gchar *pattern, const gchar *string)
 {
-	return (bool)g_pattern_match_simple(pattern, string);
+	GString *p = g_string_new(pattern);
+	g_string_ascii_down(p);
+	bool ret = (bool)g_pattern_match_simple(p->str, string);
+	g_string_free(p, true);
+	return ret;
 }
 
 static void

@@ -196,8 +196,10 @@ output_unmanaged_for_each_surface(struct output *output,
 	}
 }
 
-static void render_unmanaged(struct output *output, pixman_region32_t *damage,
-		struct wl_list *unmanaged) {
+static void
+render_unmanaged(struct output *output, pixman_region32_t *damage,
+		struct wl_list *unmanaged)
+{
 	struct render_data data = {
 		.damage = damage,
 	};
@@ -241,9 +243,11 @@ output_view_for_each_popup_surface(struct output *output, struct view *view,
 }
 
 /* for sending frame done */
-void output_layer_for_each_surface(struct output *output,
+void
+output_layer_for_each_surface(struct output *output,
 		struct wl_list *layer_surfaces, surface_iterator_func_t iterator,
-		void *user_data) {
+		void *user_data)
+{
 	struct lab_layer_surface *layer_surface;
 	wl_list_for_each(layer_surface, layer_surfaces, link) {
 		struct wlr_layer_surface_v1 *wlr_layer_surface_v1 =
@@ -593,7 +597,8 @@ render_rootmenu(struct output *output, pixman_region32_t *output_damage)
 	}
 }
 
-void output_layer_for_each_surface_toplevel(struct output *output,
+void
+output_layer_for_each_surface_toplevel(struct output *output,
 		struct wl_list *layer_surfaces, surface_iterator_func_t iterator,
 		void *user_data)
 {
@@ -607,8 +612,10 @@ void output_layer_for_each_surface_toplevel(struct output *output,
 	}
 }
 
-static void render_layer_toplevel(struct output *output,
-		pixman_region32_t *damage, struct wl_list *layer_surfaces) {
+static void
+render_layer_toplevel(struct output *output, pixman_region32_t *damage,
+		struct wl_list *layer_surfaces)
+{
 	struct render_data data = {
 		.damage = damage,
 	};

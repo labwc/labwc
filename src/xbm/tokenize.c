@@ -53,7 +53,7 @@ get_identifier_token()
 }
 
 static void
-get_number_token()
+get_number_token(void)
 {
 	struct token *token = tokens + nr_tokens - 1;
 	token->name[token->pos] = current_buffer_position[0];

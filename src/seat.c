@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
 #include <wlr/backend/libinput.h>
 #include <wlr/util/log.h>

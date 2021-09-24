@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-only
 #include "common/font.h"
 #include "common/spawn.h"
 #include "config/session.h"

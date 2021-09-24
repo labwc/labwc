@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
 #include <linux/input-event-codes.h>
 #include <sys/time.h>

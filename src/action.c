@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-only
 #include <strings.h>
 #include <wlr/util/log.h>
 #include "common/spawn.h"

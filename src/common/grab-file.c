@@ -30,5 +30,5 @@ grab_file(const char *filename)
 	}
 	free(line);
 	fclose(stream);
-	return (buffer.buf);
+	return buffer.buf;
 }

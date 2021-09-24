@@ -20,7 +20,7 @@
 #include "theme.h"
 
 /* state-machine variables for processing <item></item> */
-static bool in_item = false;
+static bool in_item;
 static struct menuitem *current_item;
 
 #define MENUWIDTH (110)
@@ -88,7 +88,7 @@ static void fill_item(char *nodename, char *content, struct menu *menu)
 static void
 entry(xmlNode *node, char *nodename, char *content, struct menu *menu)
 {
-	static bool in_root_menu = false;
+	static bool in_root_menu;
 
 	if (!nodename) {
 		return;
@@ -130,8 +130,10 @@ static void xml_tree_walk(xmlNode *node, struct menu *menu);
 static void
 traverse(xmlNode *n, struct menu *menu)
 {
+	xmlAttr *attr;
+
 	process_node(n, menu);
-	for (xmlAttr *attr = n->properties; attr; attr = attr->next) {
+	for (attr = n->properties; attr; attr = attr->next) {
 		xml_tree_walk(attr->children, menu);
 	}
 	xml_tree_walk(n->children, menu);

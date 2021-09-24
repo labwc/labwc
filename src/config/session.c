@@ -88,7 +88,7 @@ session_environment_init(void)
 		return;
 	}
 	read_environment_file(environment);
-	free((void*)environment);
+	free((void *)environment);
 }
 
 void
@@ -110,5 +110,5 @@ session_autostart_init(void)
 	spawn_async_no_shell(cmd);
 	free(cmd);
 out:
-	free((void*)autostart);
+	free((void *)autostart);
 }

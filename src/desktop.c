@@ -308,12 +308,18 @@ desktop_view_at(struct server *server, double lx, double ly,
 	if (!output) {
 		return NULL;
 	}
-	if ((*surface = layer_surface_at(&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
-					 lx, ly, sx, sy))) {
+
+	*surface = layer_surface_at(
+			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
+			lx, ly, sx, sy);
+	if (surface)
 		return NULL;
 	}
-	if ((*surface = layer_surface_at(&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
-					 lx, ly, sx, sy))) {
+
+	*surface = layer_surface_at(
+			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
+			lx, ly, sx, sy);
+	if (surface)
 		return NULL;
 	}
 
@@ -333,14 +339,4 @@ desktop_view_at(struct server *server, double lx, double ly,
 			return view;
 		}
 	}
-
-	if ((*surface = layer_surface_at(&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
-					 lx, ly, sx, sy))) {
-		return NULL;
-	}
-	if ((*surface = layer_surface_at(&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
-					 lx, ly, sx, sy))) {
-		return NULL;
-	}
-	return NULL;
 }

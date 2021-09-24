@@ -342,14 +342,14 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 	surface->unmap.notify = unmap_notify;
 	wl_signal_add(&layer_surface->events.unmap, &surface->unmap);
 
-	wl_list_insert(&output->layers[layer_surface->client_pending.layer],
+	wl_list_insert(&output->layers[layer_surface->pending.layer],
 		&surface->link);
 	/*
-	 * Temporarily set the layer's current state to client_pending so that
+	 * Temporarily set the layer's current state to pending so that
 	 * it can easily be arranged.
 	 */
 	struct wlr_layer_surface_v1_state old_state = layer_surface->current;
-	layer_surface->current = layer_surface->client_pending;
+	layer_surface->current = layer_surface->pending;
 	arrange_layers(output);
 	layer_surface->current = old_state;
 }

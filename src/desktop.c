@@ -339,5 +339,18 @@ desktop_view_at(struct server *server, double lx, double ly,
 			return view;
 		}
 	}
+
+	*surface = layer_surface_at(
+			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
+			lx, ly, sx, sy);
+	if (*surface) {
+		return NULL;
+	}
+	*surface = layer_surface_at(
+			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
+			lx, ly, sx, sy);
+	if (*surface) {
+		return NULL;
+	}
 	return NULL;
 }

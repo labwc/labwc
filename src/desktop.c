@@ -312,14 +312,14 @@ desktop_view_at(struct server *server, double lx, double ly,
 	*surface = layer_surface_at(
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
 			lx, ly, sx, sy);
-	if (surface) {
+	if (*surface) {
 		return NULL;
 	}
 
 	*surface = layer_surface_at(
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
 			lx, ly, sx, sy);
-	if (surface) {
+	if (*surface) {
 		return NULL;
 	}
 

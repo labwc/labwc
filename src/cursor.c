@@ -139,14 +139,15 @@ process_cursor_motion(struct server *server, uint32_t time)
 		return;
 	}
 
-	/* Otherwise, find the view under the pointer and send the event along */
+	/* Otherwise, find view under the pointer and send the event along */
 	double sx, sy;
 	struct wlr_seat *wlr_seat = server->seat.seat;
 	struct wlr_surface *surface = NULL;
 	int view_area = LAB_SSD_NONE;
-	struct view *view =
-		desktop_view_at(server, server->seat.cursor->x,
-			server->seat.cursor->y, &surface, &sx, &sy, &view_area);
+	struct view *view = desktop_surface_and_view_at(server,
+		server->seat.cursor->x, server->seat.cursor->y, &surface,
+		&sx, &sy, &view_area);
+
 	if (!view) {
 		set_cursor(server, XCURSOR_DEFAULT);
 	} else {
@@ -296,8 +297,9 @@ cursor_button(struct wl_listener *listener, void *data)
 	int view_area = LAB_SSD_NONE;
 	uint32_t resize_edges;
 
-	struct view *view = desktop_view_at(server, server->seat.cursor->x,
-		server->seat.cursor->y, &surface, &sx, &sy, &view_area);
+	struct view *view = desktop_surface_and_view_at(server,
+		server->seat.cursor->x, server->seat.cursor->y, &surface,
+		&sx, &sy, &view_area);
 
 	/* handle alt + _press_ on view */
 	struct wlr_input_device *device = seat->keyboard_group->input_device;

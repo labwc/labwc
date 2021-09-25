@@ -297,7 +297,7 @@ wlr_surface *layer_surface_at(struct wl_list *layer, double lx, double ly,
 }
 
 struct view *
-desktop_view_at(struct server *server, double lx, double ly,
+desktop_surface_and_view_at(struct server *server, double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy,
 		int *view_area)
 {

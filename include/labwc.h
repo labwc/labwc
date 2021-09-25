@@ -342,11 +342,12 @@ void desktop_focus_topmost_mapped_view(struct server *server);
 bool isfocusable(struct view *view);
 
 /**
- * desktop_view_at - find view or layer-surface at co-ordinate (lx, ly)
+ * desktop_surface_and_view_at - find view and surface at (lx, ly)
  * Note: If surface points to layer-surface, view will be set to NULL
  */
-struct view *desktop_view_at(struct server *server, double lx, double ly,
-	struct wlr_surface **surface, double *sx, double *sy, int *view_area);
+struct view *desktop_surface_and_view_at(struct server *server, double lx,
+	double ly, struct wlr_surface **surface, double *sx, double *sy,
+	int *view_area);
 
 void cursor_init(struct seat *seat);
 

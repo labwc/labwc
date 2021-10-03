@@ -61,6 +61,7 @@ struct seat {
 	struct wlr_keyboard_group *keyboard_group;
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *xcursor_manager;
+	struct wlr_drag_icon *drag_icon;
 
 	/* if set, views cannot receive focus */
 	struct wlr_layer_surface_v1 *focused_layer;
@@ -81,6 +82,10 @@ struct seat {
 
 	struct wl_listener keyboard_key;
 	struct wl_listener keyboard_modifiers;
+
+	struct wl_listener request_start_drag;
+	struct wl_listener start_drag;
+	struct wl_listener destroy_drag;
 };
 
 struct server {

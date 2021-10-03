@@ -186,8 +186,11 @@ output_drag_icon_for_each_surface(struct output *output, struct seat *seat,
 	if (!seat->drag_icon || !seat->drag_icon->mapped) {
 		return;
 	}
+	double ox = seat->cursor->x, oy = seat->cursor->y;
+	wlr_output_layout_output_coords(output->server->output_layout,
+			output->wlr_output, &ox, &oy); 
 	output_surface_for_each_surface(output, seat->drag_icon->surface,
-			seat->cursor->x, seat->cursor->y, iterator, user_data);
+			ox, oy, iterator, user_data);
 }
 
 static void

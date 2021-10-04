@@ -58,6 +58,19 @@ request_set_primary_selection_notify(struct wl_listener *listener, void *data)
 }
 
 static void
+request_start_drag_notify(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(
+		listener, seat, request_start_drag);
+	struct wlr_seat_request_start_drag_event *event = data;
+	if (wlr_seat_validate_pointer_grab_serial(seat->seat, event->origin, event->serial)) {
+		wlr_seat_start_pointer_drag(seat->seat, event->drag, event->serial);
+	} else {
+		wlr_data_source_destroy(event->drag->source);
+	}
+}
+
+static void
 process_cursor_move(struct server *server, uint32_t time)
 {
 	damage_all_outputs(server);
@@ -191,7 +204,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 		 * the pointer over a window.
 		 */
 		wlr_seat_pointer_notify_enter(wlr_seat, surface, sx, sy);
-		if (!focus_changed) {
+		if (!focus_changed || server->seat.drag_icon) {
 			/*
 			 * The enter event contains coordinates, so we only need
 			 * to notify on motion if the focus did not change.
@@ -205,6 +218,15 @@ process_cursor_motion(struct server *server, uint32_t time)
 		 */
 		wlr_seat_pointer_clear_focus(wlr_seat);
 	}
+}
+
+void
+start_drag(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, start_drag);
+	struct wlr_drag *wlr_drag = data;
+	seat->drag_icon = wlr_drag->icon;
+	wl_signal_add(&seat->drag_icon->events.destroy, &seat->destroy_drag);
 }
 
 static void
@@ -227,6 +249,18 @@ cursor_motion(struct wl_listener *listener, void *data)
 	wlr_cursor_move(seat->cursor, event->device, event->delta_x,
 		event->delta_y);
 	process_cursor_motion(seat->server, event->time_msec);
+}
+
+void
+destroy_drag(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, destroy_drag);
+
+	if (!seat->drag_icon) {
+		return;
+	}
+	seat->drag_icon = NULL;
+	desktop_focus_topmost_mapped_view(seat->server);
 }
 
 void
@@ -444,6 +478,13 @@ cursor_init(struct seat *seat)
 	seat->request_set_selection.notify = request_set_selection_notify;
 	wl_signal_add(&seat->seat->events.request_set_selection,
 		&seat->request_set_selection);
+	seat->request_start_drag.notify = request_start_drag_notify;
+	wl_signal_add(&seat->seat->events.request_start_drag,
+		&seat->request_start_drag);
+	seat->start_drag.notify = start_drag;
+	wl_signal_add(&seat->seat->events.start_drag,
+		&seat->start_drag);
+	seat->destroy_drag.notify = destroy_drag;
 
 	seat->request_set_primary_selection.notify =
 		request_set_primary_selection_notify;

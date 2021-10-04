@@ -179,6 +179,29 @@ render_surface_iterator(struct output *output, struct wlr_surface *surface,
 	render_texture(wlr_output, output_damage, texture, box, matrix);
 }
 
+void
+output_drag_icon_for_each_surface(struct output *output, struct seat *seat,
+		surface_iterator_func_t iterator, void *user_data)
+{
+	if (!seat->drag_icon || !seat->drag_icon->mapped) {
+		return;
+	}
+	double ox = seat->cursor->x, oy = seat->cursor->y;
+	wlr_output_layout_output_coords(output->server->output_layout,
+			output->wlr_output, &ox, &oy); 
+	output_surface_for_each_surface(output, seat->drag_icon->surface,
+			ox, oy, iterator, user_data);
+}
+
+static void
+render_drag_icon(struct output *output, pixman_region32_t *damage)
+{
+	struct render_data data = {
+		.damage = damage,
+	};
+	output_drag_icon_for_each_surface(output, &output->server->seat, render_surface_iterator, &data);
+}
+
 #if HAVE_XWAYLAND
 void
 output_unmanaged_for_each_surface(struct output *output,
@@ -290,6 +313,7 @@ output_for_each_surface(struct output *output, surface_iterator_func_t iterator,
 	output_layer_for_each_surface(output,
 		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
 		iterator, user_data);
+	output_drag_icon_for_each_surface(output, &output->server->seat, iterator, user_data);
 }
 
 struct send_frame_done_data {
@@ -706,6 +730,8 @@ output_render(struct output *output, pixman_region32_t *damage)
 		render_cycle_box(output, damage, output->server->cycle_view);
 		render_osd(output, damage, output->server);
 	}
+
+	render_drag_icon(output, damage);
 
 	render_layer_toplevel(output, damage,
 		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP]);

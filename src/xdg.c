@@ -35,7 +35,7 @@ has_ssd(struct view *view)
 	 * geometry.{x,y} seems to be greater than zero. We filter on that
 	 * on the assumption that this will remain true.
 	 */
-	if (view->xdg_surface->geometry.x || view->xdg_surface->geometry.y) {
+	if (view->xdg_surface->current.geometry.x || view->xdg_surface->current.geometry.y) {
 		return false;
 	}
 	return true;
@@ -57,7 +57,7 @@ handle_commit(struct wl_listener *listener, void *data)
 	view->padding.left = view->padding.right = size.x;
 
 	uint32_t serial = view->pending_move_resize.configure_serial;
-	if (serial > 0 && serial >= view->xdg_surface->configure_serial) {
+	if (serial > 0 && serial >= view->xdg_surface->current.configure_serial) {
 		if (view->pending_move_resize.update_x) {
 			view->x = view->pending_move_resize.x +
 				view->pending_move_resize.width - size.width;
@@ -66,7 +66,7 @@ handle_commit(struct wl_listener *listener, void *data)
 			view->y = view->pending_move_resize.y +
 				view->pending_move_resize.height - size.height;
 		}
-		if (serial == view->xdg_surface->configure_serial) {
+		if (serial == view->xdg_surface->current.configure_serial) {
 			view->pending_move_resize.configure_serial = 0;
 		}
 	}
@@ -258,8 +258,8 @@ position_xdg_toplevel_view(struct view *view)
 			output_usable_area_from_cursor_coords(view->server);
 		view->x = box.x;
 		view->y = box.y;
-		view->w = view->xdg_surface->geometry.width;
-		view->h = view->xdg_surface->geometry.height;
+		view->w = view->xdg_surface->current.geometry.width;
+		view->h = view->xdg_surface->current.geometry.height;
 		if (view->w && view->h) {
 			view_center(view);
 		}
@@ -272,8 +272,8 @@ position_xdg_toplevel_view(struct view *view)
 		assert(parent);
 		int center_x = parent->x + parent->w / 2;
 		int center_y = parent->y + parent->h / 2;
-		view->x = center_x - view->xdg_surface->geometry.width / 2;
-		view->y = center_y - view->xdg_surface->geometry.height / 2;
+		view->x = center_x - view->xdg_surface->current.geometry.width / 2;
+		view->y = center_y - view->xdg_surface->current.geometry.height / 2;
 	}
 	view->x += view->margin.left - view->padding.left;
 	view->y += view->margin.top - view->padding.top;

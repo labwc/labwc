@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <wayland-server-core.h>
+#include <libinput.h>
 
 #include "common/buf.h"
 
@@ -21,6 +22,13 @@ struct rcxml {
 	struct wl_list keybinds;
 	struct wl_list mousebinds;
 	long doubleclick_time; /* in ms */
+	float pointer_speed;
+	int natural_scroll;
+	int left_handed;
+	enum libinput_config_tap_state tap;
+	enum libinput_config_accel_profile accel_profile;
+	enum libinput_config_middle_emulation_state middle_emu;
+	enum libinput_config_dwt_state dwt;
 };
 
 extern struct rcxml rc;

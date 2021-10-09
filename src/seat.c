@@ -29,12 +29,62 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		wlr_log(WLR_ERROR, "no libinput_dev");
 		return;
 	}
+
 	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0) {
-		return;
+		wlr_log(WLR_INFO, "tap unavailable");
+	} else {
+		wlr_log(WLR_INFO, "tap configured");
+		libinput_device_config_tap_set_enabled(libinput_dev, rc.tap);
 	}
-	wlr_log(WLR_INFO, "tap enabled");
-	libinput_device_config_tap_set_enabled(libinput_dev,
-		LIBINPUT_CONFIG_TAP_ENABLED);
+
+	if (libinput_device_config_scroll_has_natural_scroll(libinput_dev) <= 0
+		|| rc.natural_scroll < 0) {
+		wlr_log(WLR_INFO, "natural scroll not configured");
+	} else {
+		wlr_log(WLR_INFO, "natural scroll configured");
+		libinput_device_config_scroll_set_natural_scroll_enabled(
+			libinput_dev, rc.natural_scroll);
+	}
+
+	if (libinput_device_config_left_handed_is_available(libinput_dev) <= 0
+		|| rc.left_handed < 0) {
+		wlr_log(WLR_INFO, "left-handed mode not configured");
+	} else {
+		wlr_log(WLR_INFO, "left-handed mode configured");
+		libinput_device_config_left_handed_set(libinput_dev,
+			rc.left_handed);
+	}
+
+	if (libinput_device_config_accel_is_available(libinput_dev) == 0) {
+		wlr_log(WLR_INFO, "pointer acceleration unavailable");
+	} else {
+		wlr_log(WLR_INFO, "pointer acceleration configured");
+		if (rc.pointer_speed > -1) {
+			libinput_device_config_accel_set_speed(libinput_dev, 
+				rc.pointer_speed);
+		}
+		if (rc.accel_profile > 0) {
+			libinput_device_config_accel_set_profile(libinput_dev,
+				rc.accel_profile);
+		}
+	}
+
+	if (libinput_device_config_middle_emulation_is_available(libinput_dev)
+			== 0 || rc.dwt < 0)  {
+		wlr_log(WLR_INFO, "middle emulation not configured");
+	} else {
+		wlr_log(WLR_INFO, "middle emulation configured");
+		libinput_device_config_middle_emulation_set_enabled(
+			libinput_dev, rc.middle_emu);
+	}
+
+	if (libinput_device_config_dwt_is_available(libinput_dev) == 0
+		|| rc.dwt < 0) {
+		wlr_log(WLR_INFO, "dwt not configured");
+	} else {
+		wlr_log(WLR_INFO, "dwt configured");
+		libinput_device_config_dwt_set_enabled(libinput_dev, rc.dwt);
+	}
 }
 
 void

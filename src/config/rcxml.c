@@ -113,6 +113,21 @@ get_bool(const char *s)
 	return false;
 }
 
+static enum libinput_config_accel_profile
+get_accel_profile(const char *s)
+{
+	if (!s) {
+		return LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT;
+	}
+	if (!strcasecmp(s, "flat")) {
+		return LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT;
+	}
+	if (!strcasecmp(s, "adaptive")) {
+		return LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE;
+	}
+	return LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT;
+}
+
 static void
 fill_font(char *nodename, char *content, enum font_place place)
 {
@@ -238,6 +253,24 @@ entry(xmlNode *node, char *nodename, char *content)
 		}
 	} else if (!strcasecmp(nodename, "name.context.mouse")) {
 		current_mouse_context = content;
+	} else if (!strcasecmp(nodename, "PointerSpeed.libinput")) {
+		rc.pointer_speed = atof(content);
+	} else if (!strcasecmp(nodename, "NaturalScroll.libinput")) {
+		rc.natural_scroll = get_bool(content) ? 1 : 0;
+	} else if (!strcasecmp(nodename, "LeftHanded.libinput")) {
+		rc.left_handed = get_bool(content) ? 1 : 0;
+	} else if (!strcasecmp(nodename, "Tap.libinput")) {
+		rc.tap = get_bool(content) ? LIBINPUT_CONFIG_TAP_ENABLED :
+				LIBINPUT_CONFIG_TAP_DISABLED;
+	} else if (!strcasecmp(nodename, "MiddleEmulation.libinput")) {
+		rc.middle_emu = get_bool(content) ? 
+				LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED : 
+				LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
+	} else if (!strcasecmp(nodename, "DisableWhileTyping.libinput")) {
+		rc.dwt = get_bool(content) ? LIBINPUT_CONFIG_DWT_ENABLED :
+				LIBINPUT_CONFIG_DWT_DISABLED;
+	} else if (!strcasecmp(nodename, "AccelerationProfile.libinput")) {
+		rc.accel_profile = get_accel_profile(content);
 	}
 }
 
@@ -322,6 +355,13 @@ rcxml_init()
 	rc.font_size_activewindow = 10;
 	rc.font_size_menuitem = 10;
 	rc.doubleclick_time = 500;
+	rc.pointer_speed = -2;
+	rc.natural_scroll = -1;
+	rc.left_handed = -1;
+	rc.tap = LIBINPUT_CONFIG_TAP_ENABLED;
+	rc.accel_profile = -1;
+	rc.middle_emu = -1;
+	rc.dwt = -1;
 }
 
 static struct {

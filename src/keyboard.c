@@ -159,7 +159,7 @@ keyboard_init(struct seat *seat)
 	wlr_keyboard_set_keymap(kb, keymap);
 	xkb_keymap_unref(keymap);
 	xkb_context_unref(context);
-	wlr_keyboard_set_repeat_info(kb, 25, 600);
+	wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
 
 	seat->keyboard_key.notify = keyboard_key_notify;
 	wl_signal_add(&kb->events.key, &seat->keyboard_key);

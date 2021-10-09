@@ -29,6 +29,8 @@ struct rcxml {
 	enum libinput_config_accel_profile accel_profile;
 	enum libinput_config_middle_emulation_state middle_emu;
 	enum libinput_config_dwt_state dwt;
+	int repeat_rate;
+	int repeat_delay;
 };
 
 extern struct rcxml rc;

@@ -271,6 +271,10 @@ entry(xmlNode *node, char *nodename, char *content)
 				LIBINPUT_CONFIG_DWT_DISABLED;
 	} else if (!strcasecmp(nodename, "AccelerationProfile.libinput")) {
 		rc.accel_profile = get_accel_profile(content);
+	} else if (!strcasecmp(nodename, "RepeatRate.keyboard")) {
+		rc.repeat_rate = atoi(content);
+	} else if (!strcasecmp(nodename, "RepeatDelay.keyboard")) {
+		rc.repeat_delay = atoi(content);
 	}
 }
 
@@ -362,6 +366,8 @@ rcxml_init()
 	rc.accel_profile = -1;
 	rc.middle_emu = -1;
 	rc.dwt = -1;
+	rc.repeat_rate = 25;
+	rc.repeat_delay = 600;
 }
 
 static struct {

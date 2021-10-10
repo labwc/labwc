@@ -362,6 +362,7 @@ void arrange_layers(struct output *output);
 
 void seat_init(struct server *server);
 void seat_finish(struct server *server);
+void seat_reconfigure(struct server *server);
 void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
 void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer);
 

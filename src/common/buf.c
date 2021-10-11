@@ -1,6 +1,19 @@
 #include <ctype.h>
 #include "common/buf.h"
 
+
+static void
+strip_curly_braces(char *s)
+{
+	size_t len = strlen(s);
+	if (s[0] != '{' || s[len - 1] != '}') {
+		return;
+	}
+	len -= 2;
+	memcpy(s, s + 1, len);
+	s[len] = 0;
+}
+
 void
 buf_expand_shell_variables(struct buf *s)
 {
@@ -15,15 +28,16 @@ buf_expand_shell_variables(struct buf *s)
 			environment_variable.len = 0;
 			buf_add(&environment_variable, s->buf + i + 1);
 			char *p = environment_variable.buf;
-			while (isalnum(*p)) {
+			while (isalnum(*p) || *p == '{' || *p == '}') {
 				++p;
 			}
 			*p = '\0';
+			i += strlen(environment_variable.buf);
+			strip_curly_braces(environment_variable.buf);
 			p = getenv(environment_variable.buf);
 			if (p) {
 				buf_add(&new, p);
 			}
-			i += strlen(environment_variable.buf);
 		} else if (s->buf[i] == '~') {
 			/* expand tilde */
 			buf_add(&new, getenv("HOME"));

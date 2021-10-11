@@ -20,10 +20,9 @@ buf_expand_shell_variables(struct buf *s)
 			}
 			*p = '\0';
 			p = getenv(environment_variable.buf);
-			if (!p) {
-				goto out;
+			if (p) {
+				buf_add(&new, p);
 			}
-			buf_add(&new, p);
 			i += strlen(environment_variable.buf);
 		} else if (s->buf[i] == '~') {
 			/* expand tilde */
@@ -38,7 +37,6 @@ buf_expand_shell_variables(struct buf *s)
 			new.buf[new.len] = '\0';
 		}
 	}
-out:
 	free(environment_variable.buf);
 	free(s->buf);
 	s->buf = new.buf;

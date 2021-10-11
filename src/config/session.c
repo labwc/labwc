@@ -7,6 +7,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <wlr/util/log.h>
+#include "common/buf.h"
 #include "common/dir.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
@@ -30,18 +31,24 @@ process_line(char *line)
 	if (string_empty(line) || line[0] == '#') {
 		return;
 	}
-	char *key = NULL, *value = NULL;
+	char *key = NULL;
 	char *p = strchr(line, '=');
 	if (!p) {
 		return;
 	}
 	*p = '\0';
 	key = string_strip(line);
-	value = string_strip(++p);
-	if (string_empty(key) || string_empty(value)) {
-		return;
+
+	struct buf value;
+	buf_init(&value);
+	buf_add(&value, string_strip(++p));
+	buf_expand_shell_variables(&value);
+	if (string_empty(key) || !value.len) {
+		goto error;
 	}
-	setenv(key, value, 1);
+	setenv(key, value.buf, 1);
+error:
+	free(value.buf);
 }
 
 void

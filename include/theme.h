@@ -34,6 +34,9 @@ struct theme {
 	float menu_items_active_bg_color[4];
 	float menu_items_active_text_color[4];
 
+	float osd_bg_color[4];
+	float osd_label_text_color[4];
+
 	struct wlr_texture *xbm_close_active_unpressed;
 	struct wlr_texture *xbm_maximize_active_unpressed;
 	struct wlr_texture *xbm_iconify_active_unpressed;

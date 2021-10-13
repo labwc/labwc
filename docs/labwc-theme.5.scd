@@ -70,6 +70,12 @@ elements are not listed here, but are supported.
 *menu.items.active.text.color*
 	Text color of active menu item
 
+*osd.bg.color*
+	Background color of on-screen-display
+
+*osd.label.text.color*
+	Text color of on-screen-display
+
 *border.color*
 	Set all border colors. This is obsolete, but supported for backward
 	compatibility as some themes still contain it.

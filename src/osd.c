@@ -8,6 +8,7 @@
 #include "common/font.h"
 #include "config/rcxml.h"
 #include "labwc.h"
+#include "theme.h"
 
 #define OSD_ITEM_HEIGHT (20)
 #define OSD_ITEM_WIDTH (600)
@@ -73,6 +74,8 @@ void
 osd_update(struct server *server)
 {
 	struct wlr_renderer *renderer = server->renderer;
+	struct theme *theme = server->theme;
+
 	int w = OSD_ITEM_WIDTH + 2 * OSD_BORDER_WIDTH;
 	int h = get_osd_height(&server->views);
 
@@ -81,11 +84,16 @@ osd_update(struct server *server)
 	cairo_t *cairo = cairo_create(surf);
 
 	/* background */
-	set_source(cairo, (float[4]){1.0f, 1.0f, 1.0f, 1.0f});
+	set_source(cairo, theme->osd_bg_color);
 	cairo_rectangle(cairo, 0, 0, w, h);
 	cairo_fill(cairo);
 
-	/* highlight current application */
+	/* border */
+	set_source(cairo, theme->osd_label_text_color);
+	cairo_rectangle(cairo, 0, 0, w, h);
+	cairo_stroke(cairo);
+
+	/* highlight current window */
 	int y = OSD_BORDER_WIDTH;
 	struct view *view;
 	wl_list_for_each(view, &server->views, link) {
@@ -93,17 +101,17 @@ osd_update(struct server *server)
 			continue;
 		}
 		if (view == server->cycle_view) {
-			set_source(cairo, (float[4]){0.3f, 0.3f, 0.3f, 0.5f});
+			set_source(cairo, theme->osd_label_text_color);
 			cairo_rectangle(cairo, OSD_BORDER_WIDTH, y,
 				OSD_ITEM_WIDTH, OSD_ITEM_HEIGHT);
-			cairo_fill(cairo);
+			cairo_stroke(cairo);
 			break;
 		}
 		y += OSD_ITEM_HEIGHT;
 	}
 
 	/* text */
-	set_source(cairo, (float[4]){0.0f, 0.0f, 0.0f, 1.0f});
+	set_source(cairo, theme->osd_label_text_color);
 	PangoLayout *layout = pango_cairo_create_layout(cairo);
 	pango_layout_set_width(layout, w * PANGO_SCALE);
 	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);

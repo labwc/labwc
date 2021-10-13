@@ -102,6 +102,9 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#000000", theme->menu_items_text_color);
 	parse_hexstr("#dddad6", theme->menu_items_active_bg_color);
 	parse_hexstr("#000000", theme->menu_items_active_text_color);
+
+	parse_hexstr("#dddad6", theme->osd_bg_color);
+	parse_hexstr("#000000", theme->osd_label_text_color);
 }
 
 static bool
@@ -206,6 +209,13 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match(key, "menu.items.active.text.color")) {
 		parse_hexstr(value, theme->menu_items_active_text_color);
+	}
+
+	if (match(key, "osd.bg.color")) {
+		parse_hexstr(value, theme->osd_bg_color);
+	}
+	if (match(key, "osd.label.text.color")) {
+		parse_hexstr(value, theme->osd_label_text_color);
 	}
 }
 

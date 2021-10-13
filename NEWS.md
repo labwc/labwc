@@ -12,12 +12,14 @@ For full changelog, use `git log`
 - Support `wlr_foreign_toplevel protocol`. This enables controlling
   windows from panels such as waybar.
 - Support fullscreen mode.
+- Support drag-and-drop. Written-by: @ARDiDo
+- Support some libinput configuration. Written-by: @ARDiDo
 - Add the following config options:
     - Load default keybinds on `<keyboard><default />`
     - Specify distance between views and output edges with `<core><gap>`
     - Set menu item font with `<theme><font place="MenuItem">`
     - Allow `<theme><font>` without place="" attribute, thus enabling
-      simpler config files.
+      simpler config files
 - Support for primary selection. Written-by: @telent
 - Support 'alt-tab' on screen display when cycling between windows
 - Add theme options to set buttons colors individually (for iconify, close

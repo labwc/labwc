@@ -383,6 +383,11 @@ static struct {
 	{ "A-Right", "MoveToEdge", "right" },
 	{ "A-Up", "MoveToEdge", "up" },
 	{ "A-Down", "MoveToEdge", "down" },
+	{ "XF86_AudioLowerVolume", "Execute", "amixer sset Master 5%-" },
+	{ "XF86_AudioRaiseVolume", "Execute", "amixer sset Master 5%+" },
+	{ "XF86_AudioMute", "Execute", "amixer sset Master toggle" },
+	{ "XF86_MonBrightnessUp", "Execute", "brightnessctl set +10%" },
+	{ "XF86_MonBrightnessDown", "Execute", "brightnessctl set 10%-" },
 	{ NULL, NULL, NULL },
 };
 

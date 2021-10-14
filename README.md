@@ -98,17 +98,22 @@ Click on the background to launch a menu.
 
 If you have not created an rc.xml config file, default binds will be:
 
-| combination         | action
-| ------------------- | ------
-| `alt`-`tab`         | activate next window
-| `alt`-`escape`      | exit
-| `super`-`return`    | alacritty
-| `alt`-`F3`          | bemenu
-| `alt`-`F4`          | close window
-| `super`-`a`         | toggle maximize
-| `alt`-`mouse-left`  | move window
-| `alt`-`mouse-right` | resize window
-| `alt`-`arrow`       | move window to edge
+| combination              | action
+| ------------------------ | ------
+| `alt`-`tab`              | activate next window
+| `alt`-`escape`           | exit
+| `super`-`return`         | alacritty
+| `alt`-`F3`               | bemenu
+| `alt`-`F4`               | close window
+| `super`-`a`              | toggle maximize
+| `alt`-`mouse-left`       | move window
+| `alt`-`mouse-right`      | resize window
+| `alt`-`arrow`            | move window to edge
+| `XF86_AudioLowerVolume`  | amixer sset Master 5%-
+| `XF86_AudioRaiseVolume`  | amixer sset Master 5%+
+| `XF86_AudioMute`         | amixer sset Master toggle
+| `XF86_MonBrightnessUp`   | brightnessctl set +10%
+| `XF86_MonBrightnessDown` | brightnessctl set 10%-
 
 ## 6. Integrate
 

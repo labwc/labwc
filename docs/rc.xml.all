@@ -69,6 +69,21 @@
     <keybind key="A-Down">
       <action name="MoveToEdge"><direction>down</direction></action>
     </keybind>
+    <keybind key="XF86_AudioLowerVolume">
+      <action name="Execute"><command>amixer sset Master 5%-</command></action>
+    </keybind>
+    <keybind key="XF86_AudioRaiseVolume">
+      <action name="Execute"><command>amixer sset Master 5%+</command></action>
+    </keybind>
+    <keybind key="XF86_AudioMute">
+      <action name="Execute"><command>amixer sset Master toggle</command></action>
+    </keybind>
+    <keybind key="XF86_MonBrightnessUp">
+      <action name="Execute"><command>brightnessctl set +10%</command></action>
+    </keybind>
+    <keybind key="XF86_MonBrightnessDown">
+      <action name="Execute"><command>brightnessctl set 10%-</command></action>
+    </keybind>
   </keyboard>
 
   <mouse>

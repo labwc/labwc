@@ -71,7 +71,7 @@ parse_hexstr(const char *hex, float *rgba)
  * this was a bit hard-line. People might want to try labwc without having
  * Openbox (and associated themes) installed.
  *
- * theme_builtin() applies a theme very similar to Clearlooks-3.4
+ * theme_builtin() applies a theme that is similar to vanilla GTK
  */
 static void
 theme_builtin(struct theme *theme)
@@ -106,8 +106,9 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#dddad6", theme->menu_items_active_bg_color);
 	parse_hexstr("#000000", theme->menu_items_active_text_color);
 
-	parse_hexstr("#dddad6", theme->osd_bg_color);
-	parse_hexstr("#000000", theme->osd_label_text_color);
+	/* inherit colors in post_processing() if not set elsewhere */
+	theme->osd_bg_color[0] = FLT_MIN;
+	theme->osd_label_text_color[0] = FLT_MIN;
 }
 
 static bool
@@ -432,6 +433,17 @@ post_processing(struct theme *theme)
 		theme->title_height = rc.corner_radius + 1;
 	}
 
+	/* Inherit colors if not set */
+	if (theme->osd_bg_color[0] == FLT_MIN) {
+		memcpy(theme->osd_bg_color,
+			theme->window_active_title_bg_color,
+			sizeof(theme->osd_bg_color));
+	}
+	if (theme->osd_label_text_color[0] == FLT_MIN) {
+		memcpy(theme->osd_label_text_color,
+			theme->window_active_label_text_color,
+			sizeof(theme->osd_label_text_color));
+	}
 }
 
 void

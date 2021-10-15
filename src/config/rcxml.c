@@ -383,8 +383,8 @@ rcxml_parse_xml(struct buf *b)
 {
 	xmlDoc *d = xmlParseMemory(b->buf, b->len);
 	if (!d) {
-		wlr_log(WLR_ERROR, "xmlParseMemory()");
-		exit(EXIT_FAILURE);
+		wlr_log(WLR_ERROR, "error parsing config file");
+		return;
 	}
 	xml_tree_walk(xmlDocGetRootElement(d));
 	xmlFreeDoc(d);

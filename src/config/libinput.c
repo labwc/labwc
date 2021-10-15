@@ -33,7 +33,7 @@ get_device_type(const char *s)
 }
 
 struct libinput_category *
-libinput_category_create()
+libinput_category_create(void)
 {
 	struct libinput_category *l = calloc(1, sizeof(struct libinput_category));
 	if (!l) {

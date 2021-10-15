@@ -188,7 +188,7 @@ output_drag_icon_for_each_surface(struct output *output, struct seat *seat,
 	}
 	double ox = seat->cursor->x, oy = seat->cursor->y;
 	wlr_output_layout_output_coords(output->server->output_layout,
-			output->wlr_output, &ox, &oy); 
+			output->wlr_output, &ox, &oy);
 	output_surface_for_each_surface(output, seat->drag_icon->surface,
 			ox, oy, iterator, user_data);
 }

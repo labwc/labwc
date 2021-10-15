@@ -18,7 +18,7 @@ change_vt(struct server *server, unsigned int vt)
 static bool
 any_modifiers_pressed(struct wlr_keyboard *keyboard)
 {
-	xkb_mod_index_t i ;
+	xkb_mod_index_t i;
 	for (i = 0; i < xkb_keymap_num_mods(keyboard->keymap); i++) {
 		if (xkb_state_mod_index_is_active
 				(keyboard->xkb_state, i,

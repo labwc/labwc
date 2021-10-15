@@ -83,7 +83,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	} else {
 		wlr_log(WLR_INFO, "pointer acceleration configured");
 		if (dc->pointer_speed > -1) {
-			libinput_device_config_accel_set_speed(libinput_dev, 
+			libinput_device_config_accel_set_speed(libinput_dev,
 				dc->pointer_speed);
 		}
 		if (dc->accel_profile > 0) {
@@ -224,7 +224,7 @@ seat_reconfigure(struct server *server)
 	wl_list_for_each(input, &seat->inputs, link) {
 		/* We don't configure keyboards by libinput, so skip them */
 		if (wlr_input_device_is_libinput(input->wlr_input_device) &&
-			input->wlr_input_device->type == 
+			input->wlr_input_device->type ==
 			WLR_INPUT_DEVICE_POINTER) {
 			configure_libinput(input->wlr_input_device);
 		}

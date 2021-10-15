@@ -150,15 +150,15 @@ fill_libinput_category(char *nodename, char *content)
 	string_truncate_at_pattern(nodename, ".device.libinput");
 
 	if (!strcmp(nodename, "category")) {
-		if (!strcmp(content, "touch") 
+		if (!strcmp(content, "touch")
 				|| !strcmp(content, "non-touch")
 				|| !strcmp(content, "default")) {
 			current_libinput_category->type = get_device_type(content);
 		} else {
 			current_libinput_category->name = strdup(content);
 		}
-	} else if (!strcasecmp(nodename, "naturalscroll")) { 
-		current_libinput_category->natural_scroll = 
+	} else if (!strcasecmp(nodename, "naturalscroll")) {
+		current_libinput_category->natural_scroll =
 			get_bool(content) ? 1 : 0;
 	} else if (!strcasecmp(nodename, "lefthanded")) {
 		current_libinput_category->left_handed = get_bool(content) ? 1 : 0;
@@ -170,18 +170,18 @@ fill_libinput_category(char *nodename, char *content)
 			current_libinput_category->pointer_speed = 1;
 		}
 	} else if (!strcasecmp(nodename, "tap")) {
-		current_libinput_category->tap = get_bool(content) ? 
-			LIBINPUT_CONFIG_TAP_ENABLED : 
+		current_libinput_category->tap = get_bool(content) ?
+			LIBINPUT_CONFIG_TAP_ENABLED :
 			LIBINPUT_CONFIG_TAP_DISABLED;
 	} else if (!strcasecmp(nodename, "accelprofile")) {
 		current_libinput_category->accel_profile = get_accel_profile(content);
 	} else if (!strcasecmp(nodename, "middleemulation")) {
 		current_libinput_category->middle_emu = get_bool(content) ?
 			LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED :
-			LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED; 
+			LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
 	} else if (!strcasecmp(nodename, "disablewhiletyping")) {
 		current_libinput_category->dwt = get_bool(content) ?
-			LIBINPUT_CONFIG_DWT_ENABLED : 
+			LIBINPUT_CONFIG_DWT_ENABLED :
 			LIBINPUT_CONFIG_DWT_DISABLED;
 	}
 }
@@ -341,8 +341,10 @@ static void xml_tree_walk(xmlNode *node);
 static void
 traverse(xmlNode *n)
 {
+	xmlAttr *attr;
+
 	process_node(n);
-	for (xmlAttr *attr = n->properties; attr; attr = attr->next) {
+	for (attr = n->properties; attr; attr = attr->next) {
 		xml_tree_walk(attr->children);
 	}
 	xml_tree_walk(n->children);

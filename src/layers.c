@@ -250,8 +250,20 @@ surface_commit_notify(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, surface_commit);
+	struct wlr_layer_surface_v1 *layer_surface = layer->layer_surface;
 	struct wlr_output *wlr_output = layer->layer_surface->output;
-	arrange_layers(output_from_wlr_output(layer->server, wlr_output));
+
+	if (!wlr_output) {
+		return;
+	}
+
+	if (layer_surface->current.committed
+			|| layer->mapped != layer_surface->mapped) {
+		layer->mapped = layer_surface->mapped;
+		struct output *output =
+			output_from_wlr_output(layer->server, wlr_output);
+		arrange_layers(output);
+	}
 	damage_all_outputs(layer->server);
 }
 

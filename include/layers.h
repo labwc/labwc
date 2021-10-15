@@ -17,6 +17,7 @@ struct lab_layer_surface {
 	struct wl_listener output_destroy;
 
 	struct wlr_box geo;
+	bool mapped;
 };
 
 void layers_init(struct server *server);

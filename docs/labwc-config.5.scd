@@ -89,6 +89,13 @@ Configuration must be wrapped in a <labwc_config> root-node.
   A-<arrow> - move window to edge
 ```
 
+*<keyboard><repeatRate>*
+	Sets the rate at which keypresses are repeated per second. The default
+	rate is 25/second.
+
+*<keyboard><repeatDelay>*
+	Sets the delay before keypresses are repeated in milliseconds.
+
 # MOUSE
 
 *<mouse><doubleClickTime>*
@@ -97,6 +104,48 @@ Configuration must be wrapped in a <labwc_config> root-node.
 *<mouse><context name=""><mousebind button="" action="">*
 	Define a mouse binding. Supported context-names include:
 	'TitleBar'.
+
+# LIBINPUT
+
+*<libinput><device category="">*
+	Define a category of devices to use the configuration values that 
+	follow. The category can be set to touch-- devices that define a width 
+	and height-- non-touch, default, or the name of a device. You can obtain
+	your devices name by running *libinput list-devices* (you may need to 
+	be root or a part of the input group to perform this.) Any members of
+	this category that aren't set use the default for the device. With the
+	exception of tap-to-click, which is enabled by default.
+
+*<libinput><device category=""><naturalscroll>* [yes|no]
+	Use natural scrolling for this category if available.
+
+*<libinput><device category=""><lefthanded>* [yes|no]
+	Use your devices left-handed mode if available.
+
+*<libinput><device category=""><pointerspeed>* 
+	Set the pointer speed for this category. The speed is a number between
+	\-1 and 1, with 0 being the default in most cases, and 1 being the
+	fastest.
+
+*<libinput><device category=""><accelprofile>* [flat|adaptive]
+	Set the pointer's acceleration profile for this category. Flat applies
+	no acceleration (the pointers velocity is constant), while adaptive 
+	changes the pointers speed based the actual speed of your mouse or 
+	finger on your touchpad. 
+
+*<libinput><device category=""><tap>* [yes|no]
+	Enable or disable tap-to-click for this category. This is enabled by
+	default for all categories.
+
+*<libinput><device category=""><middleemulation>* [yes|no]
+	Enable or disable middle button emulation for this category. Middle
+	emulation processes a simultaneous left and right click as a press of
+	the middle mouse button (scroll wheel).
+
+*<libinput>device category=""><disablewhiletyping>* [yes|no]
+	Enable or disable disable while typing for this category. DWT ignores
+	any motion events while a keyboard is typing, and for a short while
+	after as well. 
 
 # SEE ALSO
 

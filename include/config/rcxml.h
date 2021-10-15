@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <wayland-server-core.h>
-#include <libinput.h>
 
 #include "common/buf.h"
+#include "config/libinput.h"
 
 struct rcxml {
 	bool xdg_shell_server_side_deco;
@@ -22,13 +22,7 @@ struct rcxml {
 	struct wl_list keybinds;
 	struct wl_list mousebinds;
 	long doubleclick_time; /* in ms */
-	float pointer_speed;
-	int natural_scroll;
-	int left_handed;
-	enum libinput_config_tap_state tap;
-	enum libinput_config_accel_profile accel_profile;
-	enum libinput_config_middle_emulation_state middle_emu;
-	enum libinput_config_dwt_state dwt;
+	struct wl_list libinput_categories;
 	int repeat_rate;
 	int repeat_delay;
 };

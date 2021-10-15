@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
+#include <strings.h>
 #include <wlr/backend/libinput.h>
 #include <wlr/util/log.h>
 #include "labwc.h"
@@ -15,10 +16,6 @@ input_device_destroy(struct wl_listener *listener, void *data)
 static void
 configure_libinput(struct wlr_input_device *wlr_input_device)
 {
-	/*
-	 * We want to enable full libinput configuration eventually, but
-	 * for the time being, lets just enable tap.
-	 */
 	if (!wlr_input_device) {
 		wlr_log(WLR_ERROR, "no wlr_input_device");
 		return;
@@ -30,60 +27,86 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		return;
 	}
 
+	enum device_type current_type;
+	if (wlr_input_device->width_mm) {
+		current_type = TOUCH_DEVICE;
+	} else {
+		current_type = NON_TOUCH_DEVICE;
+	}
+
+	struct libinput_category *device_category, *dc = NULL;
+	wl_list_for_each(device_category, &rc.libinput_categories, link) {
+		if (device_category->name) {
+			if (!strcasecmp(wlr_input_device->name, device_category->name)) {
+				dc = device_category;
+				break;
+			}
+		} else if (device_category->type == current_type) {
+			dc = device_category;
+		} else if (device_category->type == DEFAULT_DEVICE && !dc) {
+			dc = device_category;
+		}
+	}
+
+	if (!dc) {
+		wlr_log(WLR_INFO, "Skipping libinput configuration for device");
+		return;
+	}
+
 	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0) {
 		wlr_log(WLR_INFO, "tap unavailable");
 	} else {
 		wlr_log(WLR_INFO, "tap configured");
-		libinput_device_config_tap_set_enabled(libinput_dev, rc.tap);
+		libinput_device_config_tap_set_enabled(libinput_dev, dc->tap);
 	}
 
 	if (libinput_device_config_scroll_has_natural_scroll(libinput_dev) <= 0
-		|| rc.natural_scroll < 0) {
+		|| dc->natural_scroll < 0) {
 		wlr_log(WLR_INFO, "natural scroll not configured");
 	} else {
 		wlr_log(WLR_INFO, "natural scroll configured");
 		libinput_device_config_scroll_set_natural_scroll_enabled(
-			libinput_dev, rc.natural_scroll);
+			libinput_dev, dc->natural_scroll);
 	}
 
 	if (libinput_device_config_left_handed_is_available(libinput_dev) <= 0
-		|| rc.left_handed < 0) {
+		|| dc->left_handed < 0) {
 		wlr_log(WLR_INFO, "left-handed mode not configured");
 	} else {
 		wlr_log(WLR_INFO, "left-handed mode configured");
 		libinput_device_config_left_handed_set(libinput_dev,
-			rc.left_handed);
+			dc->left_handed);
 	}
 
 	if (libinput_device_config_accel_is_available(libinput_dev) == 0) {
 		wlr_log(WLR_INFO, "pointer acceleration unavailable");
 	} else {
 		wlr_log(WLR_INFO, "pointer acceleration configured");
-		if (rc.pointer_speed > -1) {
+		if (dc->pointer_speed > -1) {
 			libinput_device_config_accel_set_speed(libinput_dev, 
-				rc.pointer_speed);
+				dc->pointer_speed);
 		}
-		if (rc.accel_profile > 0) {
+		if (dc->accel_profile > 0) {
 			libinput_device_config_accel_set_profile(libinput_dev,
-				rc.accel_profile);
+				dc->accel_profile);
 		}
 	}
 
 	if (libinput_device_config_middle_emulation_is_available(libinput_dev)
-			== 0 || rc.dwt < 0)  {
+			== 0 || dc->middle_emu < 0)  {
 		wlr_log(WLR_INFO, "middle emulation not configured");
 	} else {
 		wlr_log(WLR_INFO, "middle emulation configured");
 		libinput_device_config_middle_emulation_set_enabled(
-			libinput_dev, rc.middle_emu);
+			libinput_dev, dc->middle_emu);
 	}
 
 	if (libinput_device_config_dwt_is_available(libinput_dev) == 0
-		|| rc.dwt < 0) {
+		|| dc->dwt < 0) {
 		wlr_log(WLR_INFO, "dwt not configured");
 	} else {
 		wlr_log(WLR_INFO, "dwt configured");
-		libinput_device_config_dwt_set_enabled(libinput_dev, rc.dwt);
+		libinput_device_config_dwt_set_enabled(libinput_dev, dc->dwt);
 	}
 }
 

@@ -18,13 +18,16 @@
 #include "common/string-helpers.h"
 #include "common/zfree.h"
 #include "config/keybind.h"
+#include "config/libinput.h"
 #include "config/mousebind.h"
 #include "config/rcxml.h"
 
 static bool in_keybind;
 static bool in_mousebind;
+static bool in_libinput_category;
 static struct keybind *current_keybind;
 static struct mousebind *current_mousebind;
+static struct libinput_category *current_libinput_category;
 static const char *current_mouse_context;
 
 enum font_place {
@@ -129,6 +132,61 @@ get_accel_profile(const char *s)
 }
 
 static void
+fill_libinput_category(char *nodename, char *content)
+{
+
+	if (!strcmp(nodename, "category.device.libinput")) {
+		current_libinput_category = libinput_category_create();
+	}
+
+	if (!content) {
+		return;
+	}
+
+	if (!current_libinput_category) {
+		return;
+	}
+
+	string_truncate_at_pattern(nodename, ".device.libinput");
+
+	if (!strcmp(nodename, "category")) {
+		if (!strcmp(content, "touch") 
+				|| !strcmp(content, "non-touch")
+				|| !strcmp(content, "default")) {
+			current_libinput_category->type = get_device_type(content);
+		} else {
+			current_libinput_category->name = strdup(content);
+		}
+	} else if (!strcasecmp(nodename, "naturalscroll")) { 
+		current_libinput_category->natural_scroll = 
+			get_bool(content) ? 1 : 0;
+	} else if (!strcasecmp(nodename, "lefthanded")) {
+		current_libinput_category->left_handed = get_bool(content) ? 1 : 0;
+	} else if (!strcmp(nodename, "pointerspeed")) {
+		current_libinput_category->pointer_speed = atof(content);
+		if (current_libinput_category->pointer_speed < -1) {
+			current_libinput_category->pointer_speed = -1;
+		} else if (current_libinput_category->pointer_speed > 1) {
+			current_libinput_category->pointer_speed = 1;
+		}
+	} else if (!strcasecmp(nodename, "tap")) {
+		current_libinput_category->tap = get_bool(content) ? 
+			LIBINPUT_CONFIG_TAP_ENABLED : 
+			LIBINPUT_CONFIG_TAP_DISABLED;
+	} else if (!strcasecmp(nodename, "accelprofile")) {
+		current_libinput_category->accel_profile = get_accel_profile(content);
+	} else if (!strcasecmp(nodename, "middleemulation")) {
+		current_libinput_category->middle_emu = get_bool(content) ?
+			LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED :
+			LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED; 
+	} else if (!strcasecmp(nodename, "disablewhiletyping")) {
+		current_libinput_category->dwt = get_bool(content) ?
+			LIBINPUT_CONFIG_DWT_ENABLED : 
+			LIBINPUT_CONFIG_DWT_DISABLED;
+	}
+}
+
+static void
 fill_font(char *nodename, char *content, enum font_place place)
 {
 	if (!content) {
@@ -208,6 +266,9 @@ entry(xmlNode *node, char *nodename, char *content)
 	if (in_mousebind) {
 		fill_mousebind(nodename, content);
 	}
+	if (in_libinput_category) {
+		fill_libinput_category(nodename, content);
+	}
 
 	/* handle nodes without content, e.g. <keyboard><default /> */
 	if (!strcmp(nodename, "default.keyboard")) {
@@ -253,24 +314,6 @@ entry(xmlNode *node, char *nodename, char *content)
 		}
 	} else if (!strcasecmp(nodename, "name.context.mouse")) {
 		current_mouse_context = content;
-	} else if (!strcasecmp(nodename, "PointerSpeed.libinput")) {
-		rc.pointer_speed = atof(content);
-	} else if (!strcasecmp(nodename, "NaturalScroll.libinput")) {
-		rc.natural_scroll = get_bool(content) ? 1 : 0;
-	} else if (!strcasecmp(nodename, "LeftHanded.libinput")) {
-		rc.left_handed = get_bool(content) ? 1 : 0;
-	} else if (!strcasecmp(nodename, "Tap.libinput")) {
-		rc.tap = get_bool(content) ? LIBINPUT_CONFIG_TAP_ENABLED :
-				LIBINPUT_CONFIG_TAP_DISABLED;
-	} else if (!strcasecmp(nodename, "MiddleEmulation.libinput")) {
-		rc.middle_emu = get_bool(content) ? 
-				LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED : 
-				LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
-	} else if (!strcasecmp(nodename, "DisableWhileTyping.libinput")) {
-		rc.dwt = get_bool(content) ? LIBINPUT_CONFIG_DWT_ENABLED :
-				LIBINPUT_CONFIG_DWT_DISABLED;
-	} else if (!strcasecmp(nodename, "AccelerationProfile.libinput")) {
-		rc.accel_profile = get_accel_profile(content);
 	} else if (!strcasecmp(nodename, "RepeatRate.keyboard")) {
 		rc.repeat_rate = atoi(content);
 	} else if (!strcasecmp(nodename, "RepeatDelay.keyboard")) {
@@ -324,6 +367,12 @@ xml_tree_walk(xmlNode *node)
 			in_mousebind = false;
 			continue;
 		}
+		if (!strcasecmp((char *)n->name, "device")) {
+			in_libinput_category = true;
+			traverse(n);
+			in_libinput_category = false;
+			continue;
+		}
 		traverse(n);
 	}
 }
@@ -354,18 +403,12 @@ rcxml_init()
 	LIBXML_TEST_VERSION
 	wl_list_init(&rc.keybinds);
 	wl_list_init(&rc.mousebinds);
+	wl_list_init(&rc.libinput_categories);
 	rc.xdg_shell_server_side_deco = true;
 	rc.corner_radius = 8;
 	rc.font_size_activewindow = 10;
 	rc.font_size_menuitem = 10;
 	rc.doubleclick_time = 500;
-	rc.pointer_speed = -2;
-	rc.natural_scroll = -1;
-	rc.left_handed = -1;
-	rc.tap = LIBINPUT_CONFIG_TAP_ENABLED;
-	rc.accel_profile = -1;
-	rc.middle_emu = -1;
-	rc.dwt = -1;
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
 }
@@ -444,6 +487,11 @@ post_processing(void)
 	}
 	if (!rc.font_name_menuitem) {
 		rc.font_name_menuitem = strdup("sans");
+	}
+	if (!wl_list_length(&rc.libinput_categories)) {
+		/* So we still allow tap to click by default */
+		struct libinput_category *l = libinput_category_create();
+		l->type = TOUCH_DEVICE;
 	}
 }
 
@@ -534,5 +582,12 @@ rcxml_finish(void)
 		zfree(m->command);
 		zfree(m->action);
 		zfree(m);
+	}
+
+	struct libinput_category *l, *l_tmp;
+	wl_list_for_each_safe(l, l_tmp, &rc.libinput_categories, link) {
+		wl_list_remove(&l->link);
+		zfree(l->name);
+		zfree(l);
 	}
 }

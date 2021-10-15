@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
  * Helpers for view server side decorations
  *
@@ -173,7 +174,7 @@ ssd_visible_box(struct view *view, enum ssd_part_type type)
 		break;
 	case LAB_SSD_PART_TITLE:
 		box = ssd_box(view, type);
-		center_vertically(&box, view->title);
+		center_vertically(&box, view->title.active);
 		break;
 	case LAB_SSD_PART_CORNER_TOP_LEFT:
 		box = ssd_box(view, type);
@@ -286,10 +287,13 @@ ssd_update_title(struct view *view)
 
 	int max_width = part->box.width > 0 ? part->box.width : 1000;
 
-	/* TODO: use window.active.label.text.color here */
-	font_texture_create(view->server, &view->title, max_width,
+	font_texture_create(view->server, &view->title.active, max_width,
 		view->impl->get_string_prop(view, "title"),
-		&font, theme->menu_items_active_text_color);
+		&font, theme->window_active_label_text_color);
+
+	font_texture_create(view->server, &view->title.inactive, max_width,
+		view->impl->get_string_prop(view, "title"),
+		&font, theme->window_inactive_label_text_color);
 
 	part->box = ssd_visible_box(view, part->type);
 }
@@ -340,8 +344,8 @@ ssd_create(struct view *view)
 	/* title text */
 	part = add_part(view, LAB_SSD_PART_TITLE);
 	ssd_update_title(view);
-	part->texture.active = &view->title;
-	part->texture.inactive = &view->title;
+	part->texture.active = &view->title.active;
+	part->texture.inactive = &view->title.inactive;
 }
 
 void

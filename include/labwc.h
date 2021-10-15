@@ -236,7 +236,12 @@ struct view {
 		struct wl_list parts;
 		struct wlr_box box; /* remember geo so we know when to update */
 	} ssd;
-	struct wlr_texture *title;
+
+	/* The title is unique to each view, so we store these here */
+	struct {
+		struct wlr_texture *active;
+		struct wlr_texture *inactive;
+	} title;
 
 	struct wlr_foreign_toplevel_handle_v1 *toplevel_handle;
 	struct wl_listener toplevel_handle_request_maximize;

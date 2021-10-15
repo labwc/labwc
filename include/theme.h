@@ -20,6 +20,9 @@ struct theme {
 	float window_active_title_bg_color[4];
 	float window_inactive_title_bg_color[4];
 
+	float window_active_label_text_color[4];
+	float window_inactive_label_text_color[4];
+
 	/* buttons */
 	float window_active_button_iconify_unpressed_image_color[4];
 	float window_active_button_max_unpressed_image_color[4];

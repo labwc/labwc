@@ -85,6 +85,9 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#dddad6", theme->window_active_title_bg_color);
 	parse_hexstr("#f6f5f4", theme->window_inactive_title_bg_color);
 
+	parse_hexstr("#000000", theme->window_active_label_text_color);
+	parse_hexstr("#000000", theme->window_inactive_label_text_color);
+
 	parse_hexstr("#000000",
 		theme->window_active_button_iconify_unpressed_image_color);
 	parse_hexstr("#000000",
@@ -152,6 +155,13 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match(key, "window.inactive.title.bg.color")) {
 		parse_hexstr(value, theme->window_inactive_title_bg_color);
+	}
+
+	if (match(key, "window.active.label.text.color")) {
+		parse_hexstr(value, theme->window_active_label_text_color);
+	}
+	if (match(key, "window.inactive.lable.text.color")) {
+		parse_hexstr(value, theme->window_inactive_label_text_color);
 	}
 
 	/* universal button */

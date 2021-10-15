@@ -37,10 +37,16 @@ A theme consists of a themerc file and optionally some xbm icons.
 	Border color of active window
 
 *window.active.title.bg.color*
-	Background for the focussed window's titlebar
+	Background color for the focussed window's titlebar
 
 *window.inactive.title.bg.color*
-	Background for non-focussed windows' titlebars
+	Background color for non-focussed windows' titlebars
+
+*window.active.label.text.color*
+	Text color for the focussed window's titlebar
+
+*window.inactive.label.text.color*
+	Text color non-focussed windows' titlebars
 
 *window.active.button.unpressed.image.color*
 	Color of the images in titlebar buttons in their default, unpressed,

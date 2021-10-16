@@ -94,6 +94,14 @@ handle_set_title(struct wl_listener *listener, void *data)
 }
 
 static void
+handle_set_class(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, set_app_id);
+	assert(view);
+	view_update_app_id(view);
+}
+
+static void
 configure(struct view *view, struct wlr_box geo)
 {
 	view->pending_move_resize.update_x = geo.x != view->x;
@@ -300,8 +308,12 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	view->request_fullscreen.notify = handle_request_fullscreen;
 	wl_signal_add(&xsurface->events.request_fullscreen,
 		&view->request_fullscreen);
+
 	view->set_title.notify = handle_set_title;
 	wl_signal_add(&xsurface->events.set_title, &view->set_title);
+
+	view->set_app_id.notify = handle_set_class;
+	wl_signal_add(&xsurface->events.set_class, &view->set_app_id);
 
 	wl_list_insert(&view->server->views, &view->link);
 }

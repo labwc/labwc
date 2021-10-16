@@ -259,6 +259,7 @@ struct view {
 	struct wl_listener request_maximize;
 	struct wl_listener request_fullscreen;
 	struct wl_listener set_title;
+	struct wl_listener set_app_id;		/* class on xwayland */
 	struct wl_listener new_popup;		/* xdg-shell only */
 	struct wl_listener new_subsurface;	/* xdg-shell only */
 };
@@ -337,6 +338,7 @@ void view_for_each_popup_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *data);
 void view_move_to_edge(struct view *view, const char *direction);
 void view_update_title(struct view *view);
+void view_update_app_id(struct view *view);
 
 void view_impl_map(struct view *view);
 

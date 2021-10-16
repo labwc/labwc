@@ -51,49 +51,6 @@ move_xwayland_sub_views_to_front(struct view *parent)
 }
 #endif
 
-/* Activate/deactivate toplevel surface */
-static void
-set_activated(struct wlr_surface *surface, bool activated)
-{
-	if (!surface) {
-		return;
-	}
-	if (wlr_surface_is_xdg_surface(surface)) {
-		struct wlr_xdg_surface *s;
-		s = wlr_xdg_surface_from_wlr_surface(surface);
-		wlr_xdg_toplevel_set_activated(s, activated);
-#if HAVE_XWAYLAND
-	} else if (wlr_surface_is_xwayland_surface(surface)) {
-		struct wlr_xwayland_surface *s;
-		s = wlr_xwayland_surface_from_wlr_surface(surface);
-		wlr_xwayland_surface_activate(s, activated);
-#endif
-	}
-}
-
-void
-desktop_set_focus_view_only(struct seat *seat, struct view *view)
-{
-	if (!view || view->minimized || !view->mapped) {
-		return;
-	}
-	if (input_inhibit_blocks_surface(seat, view->surface->resource)) {
-		return;
-	}
-
-	struct wlr_surface *prev_surface;
-	prev_surface = seat->seat->keyboard_state.focused_surface;
-	if (prev_surface == view->surface) {
-		/* Don't re-focus an already focused surface. */
-		return;
-	}
-	if (prev_surface) {
-		set_activated(prev_surface, false);
-	}
-	set_activated(view->surface, true);
-	seat_focus_surface(seat, view->surface);
-}
-
 void
 desktop_raise_view(struct view *view)
 {

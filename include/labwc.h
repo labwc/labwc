@@ -353,7 +353,6 @@ void foreign_toplevel_handle_create(struct view *view);
  *              or pointer focus, in this compositor are they called together.
  */
 
-void desktop_set_focus_view_only(struct seat *seat, struct view *view);
 void desktop_raise_view(struct view *view);
 void desktop_focus_and_activate_view(struct seat *seat, struct view *view);
 

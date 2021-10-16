@@ -43,7 +43,9 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 		if ((event->state == WL_KEYBOARD_KEY_STATE_RELEASED)
 				&& !any_modifiers_pressed(device->keyboard))  {
 			/* end cycle */
-			desktop_focus_view(&server->seat, server->cycle_view);
+			desktop_focus_and_activate_view(&server->seat,
+				server->cycle_view);
+			desktop_raise_view(server->cycle_view);
 			server->cycle_view = NULL;
 		}
 	}

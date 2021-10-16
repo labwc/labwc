@@ -95,7 +95,31 @@ desktop_set_focus_view_only(struct seat *seat, struct view *view)
 }
 
 void
-desktop_focus_view(struct seat *seat, struct view *view)
+desktop_raise_view(struct view *view)
+{
+	if (!view) {
+		return;
+	}
+	move_to_front(view);
+#if HAVE_XWAYLAND
+	move_xwayland_sub_views_to_front(view);
+#endif
+}
+
+static void
+deactivate_all_views(struct server *server)
+{
+	struct view *view;
+	wl_list_for_each (view, &server->views, link) {
+		if (!view->mapped) {
+			continue;
+		}
+		view_set_activated(view, false);
+	}
+}
+
+void
+desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 {
 	if (!view) {
 		seat_focus_surface(seat, NULL);
@@ -106,30 +130,28 @@ desktop_focus_view(struct seat *seat, struct view *view)
 	}
 
 	if (view->minimized) {
-		/* this will unmap and then focus */
+		/*
+		 * Unminimizing will map the view which triggers a call to this
+		 * function again.
+		 */
 		view_minimize(view, false);
 		return;
-	} else if (view->mapped) {
-		struct wlr_surface *prev_surface;
-		prev_surface = seat->seat->keyboard_state.focused_surface;
-		if (prev_surface == view->surface) {
-			/* Don't re-focus an already focused surface. */
-			move_to_front(view);
-#if HAVE_XWAYLAND
-			move_xwayland_sub_views_to_front(view);
-#endif
-			return;
-		}
-		if (prev_surface) {
-			set_activated(prev_surface, false);
-		}
-		move_to_front(view);
-		set_activated(view->surface, true);
-		seat_focus_surface(seat, view->surface);
-#if HAVE_XWAYLAND
-		move_xwayland_sub_views_to_front(view);
-#endif
 	}
+	if (!view->mapped) {
+		return;
+	}
+
+	struct wlr_surface *prev_surface;
+	prev_surface = seat->seat->keyboard_state.focused_surface;
+
+	/* Do not re-focus an already focused surface. */
+	if (prev_surface == view->surface) {
+		return;
+	}
+
+	deactivate_all_views(view->server);
+	view_set_activated(view, true);
+	seat_focus_surface(seat, view->surface);
 }
 
 /*
@@ -236,7 +258,8 @@ void
 desktop_focus_topmost_mapped_view(struct server *server)
 {
 	struct view *view = topmost_mapped_view(server);
-	desktop_focus_view(&server->seat, view);
+	desktop_focus_and_activate_view(&server->seat, view);
+	desktop_raise_view(view);
 }
 
 static bool

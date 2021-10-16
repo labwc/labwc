@@ -343,7 +343,8 @@ xdg_toplevel_view_map(struct view *view)
 	wl_signal_add(&view->surface->events.new_subsurface,
 		&view->new_subsurface);
 
-	desktop_focus_view(&view->server->seat, view);
+	desktop_focus_and_activate_view(&view->server->seat, view);
+	desktop_raise_view(view);
 	damage_all_outputs(view->server);
 }
 

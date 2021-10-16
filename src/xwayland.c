@@ -208,7 +208,8 @@ map(struct view *view)
 		      &view->commit);
 	view->commit.notify = handle_commit;
 
-	desktop_focus_view(&view->server->seat, view);
+	desktop_focus_and_activate_view(&view->server->seat, view);
+	desktop_raise_view(view);
 	damage_all_outputs(view->server);
 }
 

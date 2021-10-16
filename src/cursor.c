@@ -182,7 +182,8 @@ process_cursor_motion(struct server *server, uint32_t time)
 
 	if (view && rc.focus_follow_mouse) {
 		if (rc.raise_on_focus) {
-			desktop_focus_view(&server->seat, view);
+			desktop_focus_and_activate_view(&server->seat, view);
+			desktop_raise_view(view);
 		} else {
 			desktop_set_focus_view_only(&server->seat, view);
 		}
@@ -384,7 +385,8 @@ cursor_button(struct wl_listener *listener, void *data)
 	}
 
 	/* Handle _press_ on view */
-	desktop_focus_view(&server->seat, view);
+	desktop_focus_and_activate_view(&server->seat, view);
+	desktop_raise_view(view);
 	damage_all_outputs(server);
 
 	if (is_double_click(rc.doubleclick_time)

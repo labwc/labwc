@@ -340,8 +340,22 @@ void view_update_title(struct view *view);
 
 void foreign_toplevel_handle_create(struct view *view);
 
+/*
+ * desktop.c routines deal with a collection of views
+ *
+ * Definition of a few keywords used in desktop.c
+ *   raise    - Bring view to front.
+ *   focus    - Give keyboard focus to view.
+ *   activate - Set view surface as active so that client window decorations
+ *              are painted to show that the window is active,typically by
+ *              using a different color. Although xdg-shell protocol says you
+ *              cannot assume this means that the window actually has keyboard
+ *              or pointer focus, in this compositor are they called together.
+ */
+
 void desktop_set_focus_view_only(struct seat *seat, struct view *view);
-void desktop_focus_view(struct seat *seat, struct view *view);
+void desktop_raise_view(struct view *view);
+void desktop_focus_and_activate_view(struct seat *seat, struct view *view);
 
 /**
  * desktop_cycle_view - return view to 'cycle' to

@@ -146,6 +146,10 @@ get_string_prop(struct view *view, const char *prop)
 	if (!strcmp(prop, "class")) {
 		return view->xwayland_surface->class;
 	}
+	/* We give 'class' for wlr_foreign_toplevel_handle_v1_set_app_id() */
+	if (!strcmp(prop, "app_id")) {
+		return view->xwayland_surface->class;
+	}
 	return "";
 }
 
@@ -208,9 +212,7 @@ map(struct view *view)
 		      &view->commit);
 	view->commit.notify = handle_commit;
 
-	desktop_focus_and_activate_view(&view->server->seat, view);
-	desktop_raise_view(view);
-	damage_all_outputs(view->server);
+	view_impl_map(view);
 }
 
 static void

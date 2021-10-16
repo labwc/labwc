@@ -338,6 +338,8 @@ void view_for_each_popup_surface(struct view *view,
 void view_move_to_edge(struct view *view, const char *direction);
 void view_update_title(struct view *view);
 
+void view_impl_map(struct view *view);
+
 void foreign_toplevel_handle_create(struct view *view);
 
 /*

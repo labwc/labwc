@@ -17,6 +17,7 @@ labwc_sources = files(
   'theme.c',
   'view.c',
   'view-child.c',
+  'view-impl.c',
   'xdg.c',
   'xdg-deco.c',
   'xdg-popup.c',

@@ -227,6 +227,15 @@ xdg_toplevel_view_maximize(struct view *view, bool maximized)
 }
 
 static void
+xdg_toplevel_view_set_activated(struct view *view, bool activated)
+{
+	struct wlr_xdg_surface *surface = view->xdg_surface;
+	if (surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL) {
+		wlr_xdg_toplevel_set_activated(surface, activated);
+	}
+}
+
+static void
 xdg_toplevel_view_set_fullscreen(struct view *view, bool fullscreen)
 {
 	wlr_xdg_toplevel_set_fullscreen(view->xdg_surface, fullscreen);
@@ -356,6 +365,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.get_string_prop = xdg_toplevel_view_get_string_prop,
 	.map = xdg_toplevel_view_map,
 	.move = xdg_toplevel_view_move,
+	.set_activated = xdg_toplevel_view_set_activated,
 	.set_fullscreen = xdg_toplevel_view_set_fullscreen,
 	.unmap = xdg_toplevel_view_unmap,
 	.maximize = xdg_toplevel_view_maximize,

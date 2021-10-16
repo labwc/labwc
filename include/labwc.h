@@ -170,6 +170,7 @@ struct view_impl {
 	const char *(*get_string_prop)(struct view *view, const char *prop);
 	void (*map)(struct view *view);
 	void (*move)(struct view *view, double x, double y);
+	void (*set_activated)(struct view *view, bool activated);
 	void (*set_fullscreen)(struct view *view, bool fullscreen);
 	void (*unmap)(struct view *view);
 	void (*maximize)(struct view *view, bool maximize);
@@ -317,6 +318,7 @@ void view_child_init(struct view_child *child, struct view *view,
 void view_child_finish(struct view_child *child);
 void subsurface_create(struct view *view, struct wlr_subsurface *wlr_subsurface);
 
+void view_set_activated(struct view *view, bool activated);
 void view_move_resize(struct view *view, struct wlr_box geo);
 void view_move(struct view *view, double x, double y);
 void view_minimize(struct view *view, bool minimized);

@@ -228,6 +228,19 @@ maximize(struct view *view, bool maximized)
 }
 
 static void
+set_activated(struct view *view, bool activated)
+{
+	struct wlr_xwayland_surface *surface = view->xwayland_surface;
+
+	if (activated && surface->minimized) {
+		wlr_xwayland_surface_set_minimized(surface, false);
+	}
+
+	wlr_xwayland_surface_activate(surface, activated);
+	wlr_xwayland_surface_restack(surface, NULL, XCB_STACK_MODE_ABOVE);
+}
+
+static void
 set_fullscreen(struct view *view, bool fullscreen)
 {
 	wlr_xwayland_surface_set_fullscreen(view->xwayland_surface, fullscreen);
@@ -240,6 +253,7 @@ static const struct view_impl xwl_view_impl = {
 	.get_string_prop = get_string_prop,
 	.map = map,
 	.move = move,
+	.set_activated = set_activated,
 	.set_fullscreen = set_fullscreen,
 	.unmap = unmap,
 	.maximize = maximize

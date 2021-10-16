@@ -5,6 +5,18 @@
 #include "ssd.h"
 
 void
+view_set_activated(struct view *view, bool activated)
+{
+	if (view->impl->set_activated) {
+		view->impl->set_activated(view, activated);
+	}
+	if (view->toplevel_handle) {
+		wlr_foreign_toplevel_handle_v1_set_activated(
+			view->toplevel_handle, activated);
+	}
+}
+
+void
 view_move_resize(struct view *view, struct wlr_box geo)
 {
 	view->impl->configure(view, geo);

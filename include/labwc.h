@@ -386,12 +386,19 @@ void foreign_toplevel_handle_create(struct view *view);
 void desktop_raise_view(struct view *view);
 void desktop_focus_and_activate_view(struct seat *seat, struct view *view);
 
+enum lab_cycle_dir
+{
+	LAB_CYCLE_DIR_NONE,
+	LAB_CYCLE_DIR_FORWARD,
+	LAB_CYCLE_DIR_BACKWARD,
+};
+
 /**
  * desktop_cycle_view - return view to 'cycle' to
  * @current: reference point for finding next view to cycle to
  * Note: If !current, the server->views second focusable view is returned
  */
-struct view *desktop_cycle_view(struct server *server, struct view *current);
+struct view *desktop_cycle_view(struct server *server, struct view *current, enum lab_cycle_dir dir);
 struct view *desktop_focused_view(struct server *server);
 void desktop_focus_topmost_mapped_view(struct server *server);
 bool isfocusable(struct view *view);

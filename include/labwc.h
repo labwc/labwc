@@ -342,6 +342,7 @@ void view_update_title(struct view *view);
 void view_update_app_id(struct view *view);
 
 void view_impl_map(struct view *view);
+void view_min_size(struct view *view, int *w, int *h);
 
 void foreign_toplevel_handle_create(struct view *view);
 

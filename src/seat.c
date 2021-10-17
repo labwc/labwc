@@ -181,6 +181,7 @@ seat_init(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 
+	wl_list_init(&seat->constraint_commit.link);
 	wl_list_init(&seat->inputs);
 	seat->new_input.notify = new_input_notify;
 	wl_signal_add(&server->backend->events.new_input, &seat->new_input);
@@ -242,6 +243,12 @@ seat_focus_surface(struct seat *seat, struct wlr_surface *surface)
 	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
 	wlr_seat_keyboard_notify_enter(seat->seat, surface, kb->keycodes,
 		kb->num_keycodes, &kb->modifiers);
+
+	struct server *server = seat->server;
+	struct wlr_pointer_constraint_v1 *constraint =
+		wlr_pointer_constraints_v1_constraint_for_surface(server->constraints,
+			surface, seat->seat);
+	constrain_cursor(server, constraint);
 }
 
 void

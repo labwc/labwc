@@ -15,6 +15,7 @@ wayland_scanner_server = generator(
 
 server_protocols = [
 	[wl_protocol_dir, 'stable/xdg-shell/xdg-shell.xml'],
+	[wl_protocol_dir, 'unstable/pointer-constraints/pointer-constraints-unstable-v1.xml'],
 	['wlr-layer-shell-unstable-v1.xml'],
 	['wlr-input-inhibitor-unstable-v1.xml'],
 ]

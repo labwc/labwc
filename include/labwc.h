@@ -41,6 +41,16 @@
 #define XCURSOR_SIZE 24
 #define XCURSOR_MOVE "grabbing"
 
+#define max(a,b) \
+	({ __typeof__ (a) _a = (a); \
+		__typeof__ (b) _b = (b); \
+		_a > _b ? _a : _b; })
+
+#define min(a,b) \
+	({ __typeof__ (a) _a = (a); \
+		__typeof__ (b) _b = (b); \
+		_a < _b ? _a : _b; })
+
 enum input_mode {
 	LAB_INPUT_STATE_PASSTHROUGH = 0,
 	LAB_INPUT_STATE_MOVE,

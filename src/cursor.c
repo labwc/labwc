@@ -148,6 +148,11 @@ process_cursor_motion(struct seat *seat, uint32_t time_msec,
 {
 	struct server *server = seat->server;
 
+	wlr_relative_pointer_manager_v1_send_relative_motion(
+		seat->server->relative_pointer_manager,
+		seat->seat, (uint64_t)time_msec * 1000,
+		dx, dy, dx_unaccel, dy_unaccel);
+
 	/*
 	 * The cursor doesn't move unless we tell it to. The cursor
 	 * automatically handles constraining the motion to the output layout,

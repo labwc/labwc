@@ -286,6 +286,8 @@ server_init(struct server *server)
 
 	server->foreign_toplevel_manager =
 		wlr_foreign_toplevel_manager_v1_create(server->wl_display);
+	server->relative_pointer_manager =
+		wlr_relative_pointer_manager_v1_create(server->wl_display);
 
 	layers_init(server);
 

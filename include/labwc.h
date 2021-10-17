@@ -24,6 +24,7 @@
 #include <wlr/types/wlr_output_management_v1.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_pointer.h>
+#include <wlr/types/wlr_relative_pointer_v1.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_server_decoration.h>
 #include <wlr/types/wlr_xcursor_manager.h>
@@ -142,6 +143,7 @@ struct server {
 	struct wlr_output_configuration_v1 *pending_output_config;
 
 	struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
+	struct wlr_relative_pointer_manager_v1 *relative_pointer_manager;
 
 	/* Set when in cycle (alt-tab) mode */
 	struct view *cycle_view;

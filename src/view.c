@@ -212,6 +212,10 @@ view_move_to_edge(struct view *view, const char *direction)
 		return;
 	}
 	struct output *output = view_output(view);
+	if (!output) {
+		wlr_log(WLR_ERROR, "no output");
+		return;	
+	}	
 	struct border border = view_border(view);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 

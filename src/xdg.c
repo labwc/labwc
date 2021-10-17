@@ -171,12 +171,15 @@ handle_set_app_id(struct wl_listener *listener, void *data)
 static void
 xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 {
+	int min_width, min_height;
+	view_min_size(view, &min_width, &min_height);
+
 	view->pending_move_resize.update_x = geo.x != view->x;
 	view->pending_move_resize.update_y = geo.y != view->y;
 	view->pending_move_resize.x = geo.x;
 	view->pending_move_resize.y = geo.y;
-	view->pending_move_resize.width = geo.width;
-	view->pending_move_resize.height = geo.height;
+	view->pending_move_resize.width = max(geo.width, min_width);
+	view->pending_move_resize.height = max(geo.height, min_height);
 
 	uint32_t serial = wlr_xdg_toplevel_set_size(view->xdg_surface,
 		(uint32_t)geo.width, (uint32_t)geo.height);

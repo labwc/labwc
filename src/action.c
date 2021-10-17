@@ -42,6 +42,8 @@ action(struct server *server, const char *action, const char *command)
 		wl_display_terminate(server->wl_display);
 	} else if (!strcasecmp(action, "MoveToEdge")) {
 		view_move_to_edge(desktop_focused_view(server), command);
+	} else if (!strcasecmp(action, "SnapToEdge")) {
+		view_snap_to_edge(desktop_focused_view(server), command);
 	} else if (!strcasecmp(action, "NextWindow")) {
 		server->cycle_view =
 			desktop_cycle_view(server, server->cycle_view);

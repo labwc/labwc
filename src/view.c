@@ -232,6 +232,110 @@ view_move_to_edge(struct view *view, const char *direction)
 	view_move(view, x, y);
 }
 
+enum view_edge {
+	VIEW_EDGE_INVALID,
+
+	VIEW_EDGE_LEFT,
+	VIEW_EDGE_RIGHT,
+	VIEW_EDGE_UP,
+	VIEW_EDGE_DOWN,
+};
+
+static enum view_edge
+view_edge_invert(enum view_edge edge)
+{
+	switch (edge) {
+		case VIEW_EDGE_LEFT: return VIEW_EDGE_RIGHT;
+		case VIEW_EDGE_RIGHT: return VIEW_EDGE_LEFT;
+		case VIEW_EDGE_UP: return VIEW_EDGE_DOWN;
+		case VIEW_EDGE_DOWN: return VIEW_EDGE_UP;
+		case VIEW_EDGE_INVALID:
+		default:
+			return VIEW_EDGE_INVALID;
+	}
+}
+
+static enum view_edge
+view_edge_parse(const char *direction)
+{
+	if (!strcasecmp(direction, "left")) {
+		return VIEW_EDGE_LEFT;
+	} else if (!strcasecmp(direction, "up")) {
+		return VIEW_EDGE_UP;
+	} else if (!strcasecmp(direction, "right")) {
+		return VIEW_EDGE_RIGHT;
+	} else if (!strcasecmp(direction, "down")) {
+		return VIEW_EDGE_DOWN;
+	} else {
+		return VIEW_EDGE_INVALID;
+	}
+}
+
+static struct wlr_box
+view_get_edge_snap_box(struct view *view, struct output *output, enum view_edge edge)
+{
+	struct border border = view_border(view);
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
+
+	int x_offset = edge == VIEW_EDGE_RIGHT ? usable.width / 2 : 0;
+	int y_offset = edge == VIEW_EDGE_DOWN ? usable.height / 2 : 0;
+	int base_width = (edge == VIEW_EDGE_LEFT || edge == VIEW_EDGE_RIGHT) ? usable.width / 2 : usable.width;
+	int base_height = (edge == VIEW_EDGE_UP || edge == VIEW_EDGE_DOWN) ? usable.height / 2 : usable.height;
+	struct wlr_box dst = {
+		.x = x_offset + usable.x + border.left + rc.gap,
+		.y = y_offset + usable.y + border.top + rc.gap,
+		.width = base_width - border.left - border.right - 2 * rc.gap,
+		.height = base_height - border.top - border.bottom - 2 * rc.gap,
+	};
+
+	return dst;
+}
+
+void
+view_snap_to_edge(struct view *view, const char *direction)
+{
+	if (!view) {
+		wlr_log(WLR_ERROR, "no view");
+		return;
+	}
+	struct output *output = view_output(view);
+	if (!output) {
+		wlr_log(WLR_ERROR, "no output");
+		return;
+	}
+	enum view_edge edge = view_edge_parse(direction);
+	if (edge == VIEW_EDGE_INVALID) {
+		wlr_log(WLR_ERROR, "invalid edge");
+		return;
+	}
+
+	struct wlr_box dst = view_get_edge_snap_box(view, output, edge);
+
+	if (view->x == dst.x && view->y == dst.y && view->w == dst.width && view->h == dst.height) {
+		/* Move over to the next screen if this is already snapped. */
+		struct wlr_box usable = output_usable_area_in_layout_coords(output);
+		switch (edge) {
+			case VIEW_EDGE_LEFT: dst.x -= (usable.width / 2) + 1; break;
+			case VIEW_EDGE_RIGHT: dst.x += (usable.width / 2) + 1; break;
+			case VIEW_EDGE_UP: dst.y -= (usable.height / 2) + 1; break;
+			case VIEW_EDGE_DOWN: dst.y += (usable.height / 2) + 1; break;
+			default: break;
+		}
+		
+		struct output *new_output =
+			output_from_wlr_output(view->server,
+				wlr_output_layout_output_at(view->server->output_layout, dst.x, dst.y));
+
+		if (new_output == output || !new_output) {
+			return;
+		}
+
+		dst = view_get_edge_snap_box(view, new_output, view_edge_invert(edge));
+	}
+
+	view_move_resize(view, dst);
+}
+
 void
 view_update_title(struct view *view)
 {

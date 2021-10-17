@@ -337,6 +337,7 @@ void view_for_each_surface(struct view *view,
 void view_for_each_popup_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *data);
 void view_move_to_edge(struct view *view, const char *direction);
+void view_snap_to_edge(struct view *view, const char *direction);
 void view_update_title(struct view *view);
 void view_update_app_id(struct view *view);
 

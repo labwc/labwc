@@ -309,15 +309,31 @@ view_get_edge_snap_box(struct view *view, struct output *output, enum view_edge 
 	struct border border = view_border(view);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
-	int x_offset = edge == VIEW_EDGE_RIGHT ? usable.width / 2 : 0;
-	int y_offset = edge == VIEW_EDGE_DOWN ? usable.height / 2 : 0;
-	int base_width = (edge == VIEW_EDGE_LEFT || edge == VIEW_EDGE_RIGHT) ? usable.width / 2 : usable.width;
-	int base_height = (edge == VIEW_EDGE_UP || edge == VIEW_EDGE_DOWN) ? usable.height / 2 : usable.height;
+	int x_offset = edge == VIEW_EDGE_RIGHT
+		? (usable.width + rc.gap) / 2 : rc.gap;
+	int y_offset = edge == VIEW_EDGE_DOWN
+		? (usable.height + rc.gap) / 2 : rc.gap;
+
+	int base_width, base_height;
+	switch (edge) {
+	case VIEW_EDGE_LEFT:
+	case VIEW_EDGE_RIGHT:
+		base_width = (usable.width - 3 * rc.gap) / 2;
+		base_height = usable.height - 2 * rc.gap;
+		break;
+	case VIEW_EDGE_UP:
+	case VIEW_EDGE_DOWN:
+		base_width = usable.width - 2 * rc.gap;
+		base_height = (usable.height - 3 * rc.gap) / 2;
+		break;
+	default:
+		break;
+	}
 	struct wlr_box dst = {
-		.x = x_offset + usable.x + border.left + rc.gap,
-		.y = y_offset + usable.y + border.top + rc.gap,
-		.width = base_width - border.left - border.right - 2 * rc.gap,
-		.height = base_height - border.top - border.bottom - 2 * rc.gap,
+		.x = x_offset + usable.x + border.left,
+		.y = y_offset + usable.y + border.top,
+		.width = base_width - border.left - border.right,
+		.height = base_height - border.top - border.bottom,
 	};
 
 	return dst;

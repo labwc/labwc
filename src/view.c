@@ -29,6 +29,34 @@ view_move(struct view *view, double x, double y)
 	view->impl->move(view, x, y);
 }
 
+#define MIN_VIEW_WIDTH (100)
+#define MIN_VIEW_HEIGHT (60)
+
+void
+view_min_size(struct view *view, int *w, int *h)
+{
+	int min_width = MIN_VIEW_WIDTH;
+	int min_height = MIN_VIEW_HEIGHT;
+#if HAVE_XWAYLAND
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		if (view->xwayland_surface->size_hints) {
+			if (view->xwayland_surface->size_hints->min_width > 0 ||
+				view->xwayland_surface->size_hints->min_height > 0) {
+				min_width = view->xwayland_surface->size_hints->min_width;
+				min_height = view->xwayland_surface->size_hints->min_height;
+			}
+		}
+	}
+#endif
+
+	if (w) {
+		*w = min_width;
+	}
+	if (h) {
+		*h = min_height;
+	}
+}
+
 void
 view_minimize(struct view *view, bool minimized)
 {

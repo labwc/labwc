@@ -148,8 +148,24 @@ center_vertically(struct wlr_box *box, struct wlr_texture *texture)
 		return;
 	}
 	box->y += (box->height - texture->height) / 2;
-	box->width = texture->width;
-	box->height = texture->height;
+}
+
+static void
+center_horizontally(struct view *view, struct wlr_box *box, struct wlr_texture *texture)
+{
+	if (!texture) {
+		return;
+	}
+	box->x = view->x + (view->w - texture->width) / 2;
+}
+
+static void
+justify_right(struct view *view, struct wlr_box *box, struct wlr_texture *texture)
+{
+	if (!texture) {
+		return;
+	}
+	box->x = view->x + (box->width - texture->width);
 }
 
 struct wlr_box
@@ -175,6 +191,15 @@ ssd_visible_box(struct view *view, enum ssd_part_type type)
 	case LAB_SSD_PART_TITLE:
 		box = ssd_box(view, type);
 		center_vertically(&box, view->title.active);
+		if (theme->window_label_text_justify == LAB_JUSTIFY_CENTER) {
+			center_horizontally(view, &box, view->title.active);
+		} else if (theme->window_label_text_justify == LAB_JUSTIFY_RIGHT) {	
+			justify_right(view, &box, view->title.active);
+		}
+		if (view->title.active) {
+			box.width = view->title.active->width;
+			box.height = view->title.active->height;
+		}
 		break;
 	case LAB_SSD_PART_CORNER_TOP_LEFT:
 		box = ssd_box(view, type);

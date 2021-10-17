@@ -149,18 +149,23 @@ first_view(struct server *server)
 }
 
 struct view *
-desktop_cycle_view(struct server *server, struct view *current)
+desktop_cycle_view(struct server *server, struct view *current, enum lab_cycle_dir dir)
 {
 	if (!has_focusable_view(&server->views)) {
 		return NULL;
 	}
 
 	struct view *view = current ? current : first_view(server);
-
-	/* Replacement for wl_list_for_each_from() */
-	do {
-		view = wl_container_of(view->link.next, view, link);
-	} while (&view->link == &server->views || !isfocusable(view));
+	if (dir == LAB_CYCLE_DIR_FORWARD) {
+		/* Replacement for wl_list_for_each_from() */
+		do {
+			view = wl_container_of(view->link.next, view, link);
+		} while (&view->link == &server->views || !isfocusable(view));
+	} else if (dir == LAB_CYCLE_DIR_BACKWARD) {
+		do {
+			view = wl_container_of(view->link.prev, view, link);
+		} while (&view->link == &server->views || !isfocusable(view));
+	}
 	damage_all_outputs(server);
 	return view;
 }

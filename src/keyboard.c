@@ -73,6 +73,18 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
 	return false;
 }
 
+static bool is_modifier_key(xkb_keysym_t sym)
+{
+	return sym == XKB_KEY_Shift_L ||
+		   sym == XKB_KEY_Shift_R ||
+		   sym == XKB_KEY_Alt_L ||
+		   sym == XKB_KEY_Alt_R ||
+		   sym == XKB_KEY_Control_L ||
+		   sym == XKB_KEY_Control_R ||
+		   sym == XKB_KEY_Super_L ||
+		   sym == XKB_KEY_Super_R;
+}
+
 static bool
 handle_compositor_keybindings(struct wl_listener *listener,
 		struct wlr_event_keyboard_key *event)
@@ -96,10 +108,20 @@ handle_compositor_keybindings(struct wl_listener *listener,
 		damage_all_outputs(server);
 		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			/* cycle to next */
-			server->cycle_view =
-				desktop_cycle_view(server, server->cycle_view);
-			osd_update(server);
-			damage_all_outputs(server);
+			bool backwards = modifiers & WLR_MODIFIER_SHIFT;
+			/* ignore if this is a modifier key being pressed */
+			bool ignore = false;
+			for (int i = 0; i < nsyms; i++) {
+				ignore |= is_modifier_key(syms[i]);
+			}
+
+			if (!ignore) {
+				server->cycle_view =
+					desktop_cycle_view(server, server->cycle_view,
+						backwards ? LAB_CYCLE_DIR_BACKWARD : LAB_CYCLE_DIR_FORWARD);
+				osd_update(server);
+				damage_all_outputs(server);
+			}
 		}
 		/* don't send any key events to clients when osd onscreen */
 		return true;

@@ -213,7 +213,9 @@ map(struct view *view)
 		view->been_mapped = true;
 	}
 
-	top_left_edge_boundary_check(view);
+	if (view->ssd.enabled) {
+		top_left_edge_boundary_check(view);
+	}
 
 	/* Add commit here, as xwayland map/unmap can change the wlr_surface */
 	wl_signal_add(&view->xwayland_surface->surface->events.commit,

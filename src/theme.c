@@ -17,6 +17,7 @@
 #include <string.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
+#include <strings.h>
 #include "common/dir.h"
 #include "common/font.h"
 #include "common/string-helpers.h"
@@ -61,6 +62,18 @@ parse_hexstr(const char *hex, float *rgba)
 	}
 }
 
+static enum lab_justification
+parse_justification(const char *str)
+{
+	if (!strcasecmp(str, "Center")) {
+		return LAB_JUSTIFY_CENTER;
+	} else if (!strcasecmp(str, "Right")) {
+		return LAB_JUSTIFY_RIGHT;
+	} else {
+		return LAB_JUSTIFY_LEFT;
+	}
+}
+
 /*
  * We generally use Openbox defaults, but if no theme file can be found it's
  * better to populate the theme variables with some sane values as no-one
@@ -87,6 +100,7 @@ theme_builtin(struct theme *theme)
 
 	parse_hexstr("#000000", theme->window_active_label_text_color);
 	parse_hexstr("#000000", theme->window_inactive_label_text_color);
+	theme->window_label_text_justify = parse_justification("Left");
 
 	parse_hexstr("#000000",
 		theme->window_active_button_iconify_unpressed_image_color);
@@ -163,6 +177,9 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match(key, "window.inactive.label.text.color")) {
 		parse_hexstr(value, theme->window_inactive_label_text_color);
+	}
+	if (match(key, "window.label.text.justify")) {
+		theme->window_label_text_justify = parse_justification(value);
 	}
 
 	/* universal button */

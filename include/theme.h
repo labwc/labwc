@@ -10,6 +10,12 @@
 #include <stdio.h>
 #include <wlr/render/wlr_renderer.h>
 
+enum lab_justification {
+	LAB_JUSTIFY_LEFT,
+	LAB_JUSTIFY_CENTER,
+	LAB_JUSTIFY_RIGHT,
+};
+
 struct theme {
 	int border_width;
 	int padding_height;
@@ -22,6 +28,7 @@ struct theme {
 
 	float window_active_label_text_color[4];
 	float window_inactive_label_text_color[4];
+	enum lab_justification window_label_text_justify;
 
 	/* buttons */
 	float window_active_button_iconify_unpressed_image_color[4];

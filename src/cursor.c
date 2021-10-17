@@ -367,7 +367,30 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(
 		listener, seat, cursor_motion_absolute);
 	struct wlr_event_pointer_motion_absolute *event = data;
-	wlr_cursor_warp_absolute(seat->cursor, event->device, event->x, event->y);
+
+	double lx, ly;
+	wlr_cursor_absolute_to_layout_coords(seat->cursor, event->device,
+			event->x, event->y, &lx, &ly);
+
+	double dx = lx - seat->cursor->x;
+	double dy = ly - seat->cursor->y;
+
+	wlr_relative_pointer_manager_v1_send_relative_motion(
+		seat->server->relative_pointer_manager,
+		seat->seat, (uint64_t)event->time_msec * 1000,
+		dx, dy, dx, dy);
+
+	if (!seat->current_constraint) {
+		/*
+		 * The cursor doesn't move unless we tell it to. The cursor
+		 * automatically handles constraining the motion to the output layout,
+		 * as well as any special configuration applied for the specific input
+		 * device which generated the event. You can pass NULL for the device
+		 * if you want to move the cursor around without any input.
+		 */
+		wlr_cursor_move(seat->cursor, event->device, dx, dy);
+	}
+
 	process_cursor_motion(seat->server, event->time_msec);
 }
 

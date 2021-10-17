@@ -97,8 +97,15 @@ handle_request_configure(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_configure);
 	struct wlr_xwayland_surface_configure_event *event = data;
-	wlr_xwayland_surface_configure(view->xwayland_surface, event->x,
-				       event->y, event->width, event->height);
+	
+	int min_width, min_height;
+	view_min_size(view, &min_width, &min_height);
+
+	wlr_xwayland_surface_configure(view->xwayland_surface,
+		event->x,
+		event->y,
+		max(event->width, min_width),
+		max(event->height, min_height));
 	damage_all_outputs(view->server);
 }
 

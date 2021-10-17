@@ -123,7 +123,7 @@ Suggested apps to use with labwc:
 - Screen shooter: [grim]
 - Screen recorder: [wf-recorder]
 - Background image: [swaybg]
-- Panel: [waybar]
+- Panel: [waybar], [yambar]
 - Launchers: [bemenu], [fuzzel], [wofi]
 - Output managers: [kanshi], [wlr-randr]
 - Screen locker: [swaylock]
@@ -172,6 +172,7 @@ Let's try to stick to this [coding style]
 [wf-recorder]: https://github.com/ammen99/wf-recorder
 [swaybg]: https://github.com/swaywm/swaybg
 [waybar]: https://github.com/Alexays/Waybar
+[yambar]: https://codeberg.org/dnkl/yambar
 [bemenu]: https://github.com/Cloudef/bemenu
 [fuzzel]: https://codeberg.org/dnkl/fuzzel
 [wofi]: https://hg.sr.ht/~scoopta/wofi

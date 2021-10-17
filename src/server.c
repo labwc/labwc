@@ -269,6 +269,15 @@ server_init(struct server *server)
 	wlr_data_control_manager_v1_create(server->wl_display);
 	wlr_gamma_control_manager_v1_create(server->wl_display);
 
+	server->relative_pointer_manager = wlr_relative_pointer_manager_v1_create(
+		server->wl_display);
+	server->constraints = wlr_pointer_constraints_v1_create(
+		server->wl_display);
+
+	server->new_constraint.notify = create_constraint;
+	wl_signal_add(&server->constraints->events.new_constraint,
+		&server->new_constraint);
+
 	server->input_inhibit =
 		wlr_input_inhibit_manager_create(server->wl_display);
 	if (!server->input_inhibit) {

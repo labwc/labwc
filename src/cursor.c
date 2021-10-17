@@ -236,6 +236,81 @@ start_drag(struct wl_listener *listener, void *data)
 	wl_signal_add(&seat->drag_icon->events.destroy, &seat->destroy_drag);
 }
 
+void
+handle_constraint_commit(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, constraint_commit);
+	struct wlr_pointer_constraint_v1 *constraint = seat->current_constraint;
+	assert(constraint->surface = data);
+}
+
+void
+destroy_constraint(struct wl_listener *listener, void *data)
+{
+	struct constraint *constraint = wl_container_of(listener, constraint,
+		destroy);
+	struct wlr_pointer_constraint_v1 *wlr_constraint = data;
+	struct seat *seat = constraint->seat;
+
+	wl_list_remove(&constraint->destroy.link);
+	if (seat->current_constraint == wlr_constraint) {
+		if (seat->constraint_commit.link.next != NULL) {
+			wl_list_remove(&seat->constraint_commit.link);
+		}
+		wl_list_init(&seat->constraint_commit.link);
+		seat->current_constraint = NULL;
+	}
+
+	free(constraint);
+}
+
+void
+create_constraint(struct wl_listener *listener, void *data)
+{
+	struct wlr_pointer_constraint_v1 *wlr_constraint = data;
+	struct server *server = wl_container_of(listener, server,
+		new_constraint);
+	struct view *view;
+	struct constraint *constraint = calloc(1, sizeof(struct constraint));
+
+	constraint->constraint = wlr_constraint;
+	constraint->seat = &server->seat;
+	constraint->destroy.notify = destroy_constraint;
+	wl_signal_add(&wlr_constraint->events.destroy, &constraint->destroy);
+
+	view = desktop_focused_view(server);
+	if (view->surface == wlr_constraint->surface) {
+		constrain_cursor(server, wlr_constraint);
+	}
+}
+
+void
+constrain_cursor(struct server *server, struct wlr_pointer_constraint_v1
+		*constraint)
+{
+	struct seat *seat = &server->seat;
+	if (seat->current_constraint == constraint) {
+		return;
+	}
+	wl_list_remove(&seat->constraint_commit.link);
+	if (seat->current_constraint) {
+		wlr_pointer_constraint_v1_send_deactivated(
+			seat->current_constraint);
+	}
+
+	seat->current_constraint = constraint;
+
+	if (constraint == NULL) {
+		wl_list_init(&seat->constraint_commit.link);
+		return;
+	}
+
+	wlr_pointer_constraint_v1_send_activated(constraint);
+	seat->constraint_commit.notify = handle_constraint_commit;
+	wl_signal_add(&constraint->surface->events.commit,
+		&seat->constraint_commit);
+}
+
 static void
 cursor_motion(struct wl_listener *listener, void *data)
 {
@@ -244,17 +319,25 @@ cursor_motion(struct wl_listener *listener, void *data)
 	 * _relative_ pointer motion event (i.e. a delta)
 	 */
 	struct seat *seat = wl_container_of(listener, seat, cursor_motion);
+	struct server *server = seat->server;
 	struct wlr_event_pointer_motion *event = data;
 
-	/*
-	 * The cursor doesn't move unless we tell it to. The cursor
-	 * automatically handles constraining the motion to the output layout,
-	 * as well as any special configuration applied for the specific input
-	 * device which generated the event. You can pass NULL for the device
-	 * if you want to move the cursor around without any input.
-	 */
-	wlr_cursor_move(seat->cursor, event->device, event->delta_x,
-		event->delta_y);
+	wlr_relative_pointer_manager_v1_send_relative_motion(
+		server->relative_pointer_manager,
+		seat->seat, (uint64_t)event->time_msec * 1000,
+		event->delta_x, event->delta_y, event->unaccel_dx,
+		event->unaccel_dy);
+	if (!seat->current_constraint) {
+		/*
+		 * The cursor doesn't move unless we tell it to. The cursor
+		 * automatically handles constraining the motion to the output layout,
+		 * as well as any special configuration applied for the specific input
+		 * device which generated the event. You can pass NULL for the device
+		 * if you want to move the cursor around without any input.
+		 */
+		wlr_cursor_move(seat->cursor, event->device, event->delta_x,
+			event->delta_y);
+	}
 	process_cursor_motion(seat->server, event->time_msec);
 }
 

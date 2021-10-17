@@ -23,7 +23,9 @@
 #include <wlr/types/wlr_output_damage.h>
 #include <wlr/types/wlr_output_management_v1.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_relative_pointer_v1.h>
 #include <wlr/types/wlr_pointer.h>
+#include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_server_decoration.h>
 #include <wlr/types/wlr_xcursor_manager.h>
@@ -72,6 +74,7 @@ struct seat {
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *xcursor_manager;
 	struct wlr_drag_icon *drag_icon;
+	struct wlr_pointer_constraint_v1 *current_constraint;
 
 	/* if set, views cannot receive focus */
 	struct wlr_layer_surface_v1 *focused_layer;
@@ -96,6 +99,7 @@ struct seat {
 	struct wl_listener request_start_drag;
 	struct wl_listener start_drag;
 	struct wl_listener destroy_drag;
+	struct wl_listener constraint_commit;
 };
 
 struct server {
@@ -142,6 +146,10 @@ struct server {
 	struct wlr_output_configuration_v1 *pending_output_config;
 
 	struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
+
+	struct wlr_relative_pointer_manager_v1 *relative_pointer_manager;
+	struct wlr_pointer_constraints_v1 *constraints;
+	struct wl_listener new_constraint;
 
 	/* Set when in cycle (alt-tab) mode */
 	struct view *cycle_view;
@@ -312,6 +320,12 @@ struct xdg_popup {
 	struct wl_listener new_popup;
 };
 
+struct constraint {
+	struct seat *seat;
+	struct wlr_pointer_constraint_v1 *constraint;
+	struct wl_listener destroy;
+};
+
 void xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup);
 
 void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
@@ -434,5 +448,9 @@ void osd_update(struct server *server);
  */
 bool input_inhibit_blocks_surface(struct seat *seat,
 	struct wl_resource *resource);
+
+void create_constraint(struct wl_listener *listener, void *data);
+void constrain_cursor(struct server *server, struct wlr_pointer_constraint_v1
+	*constraint);
 
 #endif /* __LABWC_H */

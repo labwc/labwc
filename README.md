@@ -109,6 +109,7 @@ If you have not created an rc.xml config file, default binds will be:
 | `alt`-`mouse-left`       | move window
 | `alt`-`mouse-right`      | resize window
 | `alt`-`arrow`            | move window to edge
+| `super`-`arrow`          | resize window to fill half the output
 | `XF86_AudioLowerVolume`  | amixer sset Master 5%-
 | `XF86_AudioRaiseVolume`  | amixer sset Master 5%+
 | `XF86_AudioMute`         | amixer sset Master toggle

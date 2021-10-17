@@ -69,6 +69,18 @@
     <keybind key="A-Down">
       <action name="MoveToEdge"><direction>down</direction></action>
     </keybind>
+    <keybind key="W-Left">
+      <action name="SnapToEdge"><direction>left</direction></action>
+    </keybind>
+    <keybind key="W-Right">
+      <action name="SnapToEdge"><direction>right</direction></action>
+    </keybind>
+    <keybind key="W-Up">
+      <action name="SnapToEdge"><direction>up</direction></action>
+    </keybind>
+    <keybind key="W-Down">
+      <action name="SnapToEdge"><direction>down</direction></action>
+    </keybind>
     <keybind key="XF86_AudioLowerVolume">
       <action name="Execute"><command>amixer sset Master 5%-</command></action>
     </keybind>

@@ -271,6 +271,7 @@ enum view_edge {
 	VIEW_EDGE_RIGHT,
 	VIEW_EDGE_UP,
 	VIEW_EDGE_DOWN,
+	VIEW_EDGE_CENTER,
 };
 
 static enum view_edge
@@ -281,6 +282,7 @@ view_edge_invert(enum view_edge edge)
 		case VIEW_EDGE_RIGHT: return VIEW_EDGE_LEFT;
 		case VIEW_EDGE_UP: return VIEW_EDGE_DOWN;
 		case VIEW_EDGE_DOWN: return VIEW_EDGE_UP;
+		case VIEW_EDGE_CENTER:
 		case VIEW_EDGE_INVALID:
 		default:
 			return VIEW_EDGE_INVALID;
@@ -298,6 +300,8 @@ view_edge_parse(const char *direction)
 		return VIEW_EDGE_RIGHT;
 	} else if (!strcasecmp(direction, "down")) {
 		return VIEW_EDGE_DOWN;
+ 	} else if (!strcasecmp(direction, "center")) {
+		return VIEW_EDGE_CENTER;
 	} else {
 		return VIEW_EDGE_INVALID;
 	}
@@ -327,6 +331,9 @@ view_get_edge_snap_box(struct view *view, struct output *output, enum view_edge 
 		base_height = (usable.height - 3 * rc.gap) / 2;
 		break;
 	default:
+	case VIEW_EDGE_CENTER:
+		base_width = usable.width - 2 * rc.gap;
+		base_height = usable.height - 2 * rc.gap;
 		break;
 	}
 	struct wlr_box dst = {
@@ -374,7 +381,7 @@ view_snap_to_edge(struct view *view, const char *direction)
 			output_from_wlr_output(view->server,
 				wlr_output_layout_output_at(view->server->output_layout, dst.x, dst.y));
 
-		if (new_output == output || !new_output) {
+		if (new_output == output || !new_output || edge == VIEW_EDGE_CENTER) {
 			return;
 		}
 

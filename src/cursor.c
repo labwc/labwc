@@ -142,16 +142,30 @@ input_inhibit_blocks_surface(struct seat *seat, struct wl_resource *resource)
 }
 
 static void
-process_cursor_motion(struct server *server, uint32_t time)
+process_cursor_motion(struct seat *seat, uint32_t time_msec,
+	struct wlr_input_device *device, double dx, double dy,
+	double dx_unaccel, double dy_unaccel)
 {
+	struct server *server = seat->server;
+
+	/*
+	 * The cursor doesn't move unless we tell it to. The cursor
+	 * automatically handles constraining the motion to the output layout,
+	 * as well as any special configuration applied for the specific input
+	 * device which generated the event. You can pass NULL for the device
+	 * if you want to move the cursor around without any input.
+	 */
+
+	wlr_cursor_move(seat->cursor, device, dx, dy);
+
 	static bool cursor_name_set_by_server;
 
 	/* If the mode is non-passthrough, delegate to those functions. */
 	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
-		process_cursor_move(server, time);
+		process_cursor_move(server, time_msec);
 		return;
 	} else if (server->input_mode == LAB_INPUT_STATE_RESIZE) {
-		process_cursor_resize(server, time);
+		process_cursor_resize(server, time_msec);
 		return;
 	} else if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		menu_set_selected(server->rootmenu,
@@ -216,7 +230,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 			 * The enter event contains coordinates, so we only need
 			 * to notify on motion if the focus did not change.
 			 */
-			wlr_seat_pointer_notify_motion(wlr_seat, time, sx, sy);
+			wlr_seat_pointer_notify_motion(wlr_seat, time_msec, sx, sy);
 		}
 	} else {
 		/*
@@ -246,16 +260,8 @@ cursor_motion(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, cursor_motion);
 	struct wlr_event_pointer_motion *event = data;
 
-	/*
-	 * The cursor doesn't move unless we tell it to. The cursor
-	 * automatically handles constraining the motion to the output layout,
-	 * as well as any special configuration applied for the specific input
-	 * device which generated the event. You can pass NULL for the device
-	 * if you want to move the cursor around without any input.
-	 */
-	wlr_cursor_move(seat->cursor, event->device, event->delta_x,
-		event->delta_y);
-	process_cursor_motion(seat->server, event->time_msec);
+	process_cursor_motion(seat, event->time_msec, event->device,
+		event->delta_x, event->delta_y, event->unaccel_dx, event->unaccel_dy);
 }
 
 void
@@ -284,8 +290,16 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(
 		listener, seat, cursor_motion_absolute);
 	struct wlr_event_pointer_motion_absolute *event = data;
-	wlr_cursor_warp_absolute(seat->cursor, event->device, event->x, event->y);
-	process_cursor_motion(seat->server, event->time_msec);
+
+	double lx, ly;
+	wlr_cursor_absolute_to_layout_coords(seat->cursor, event->device,
+			event->x, event->y, &lx, &ly);
+
+	double dx = lx - seat->cursor->x;
+	double dy = ly - seat->cursor->y;
+
+	process_cursor_motion(seat, event->time_msec, event->device,
+		dx, dy, dx, dy);
 }
 
 static void

@@ -27,6 +27,10 @@ A theme consists of a themerc file and optionally some xbm icons.
 	Other formats will be supported later for better openbox theme
 	compatibility.
 
+*justification*
+	Justification determines the horizontal alignment of text. Valid options
+	are Left, Center and Right.
+
 # THEME ELEMENTS
 
 *border.width*
@@ -47,6 +51,10 @@ A theme consists of a themerc file and optionally some xbm icons.
 
 *window.inactive.label.text.color*
 	Text color non-focussed windows' titlebars
+
+*window.label.text.justify*
+	Specifies how window titles are aligned in the titlebar for both
+	focused and unfocused windows. Type justification. Default Left.
 
 *window.active.button.unpressed.image.color*
 	Color of the images in titlebar buttons in their default, unpressed,

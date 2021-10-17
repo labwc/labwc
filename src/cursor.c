@@ -428,7 +428,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	/* handle alt + _press_ on view */
 	struct wlr_input_device *device = seat->keyboard_group->input_device;
 	uint32_t modifiers = wlr_keyboard_get_modifiers(device->keyboard);
-	if (modifiers & WLR_MODIFIER_ALT && event->state == WLR_BUTTON_PRESSED) {
+	if (modifiers & WLR_MODIFIER_ALT && event->state == WLR_BUTTON_PRESSED && !seat->current_constraint) {
 		handle_cursor_button_with_meta_key(view, event->button,
 			server->seat.cursor->x, server->seat.cursor->y);
 		return;

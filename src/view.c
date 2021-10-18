@@ -404,6 +404,7 @@ view_get_string_prop(struct view *view, const char *prop)
 	if (view->impl->get_string_prop) {
 		return view->impl->get_string_prop(view, "title");
 	}
+	return "";
 }
 
 void

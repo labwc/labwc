@@ -26,7 +26,7 @@ Actions are used in keyboard bindings.
 
 *<action name="SnapToEdge"><direction>*
 	Resize view to fill half the output in the given direction. Supports
-	directions "left", "up", "right" and "down".
+	directions "left", "up", "right", "down" and "center".
 
 *<action name="NextWindow">*
 	Cycle focus to next window.

@@ -29,11 +29,11 @@ is_title_different(struct view *view)
 {
 	switch (view->type) {
 	case LAB_XDG_SHELL_VIEW:
-		return strcmp(view->impl->get_string_prop(view, "title"),
-			view->impl->get_string_prop(view, "app_id"));
+		return strcmp(view_get_string_prop(view, "title"),
+			view_get_string_prop(view, "app_id"));
 #if HAVE_XWAYLAND
 	case LAB_XWAYLAND_VIEW:
-		return strcmp(view->impl->get_string_prop(view, "title"),
+		return strcmp(view_get_string_prop(view, "title"),
 			view->xwayland_surface->class);
 #endif
 	}
@@ -43,7 +43,7 @@ is_title_different(struct view *view)
 static const char *
 get_formatted_app_id(struct view *view)
 {
-	char *s = (char *)view->impl->get_string_prop(view, "app_id");
+	char *s = (char *)view_get_string_prop(view, "app_id");
 	/* remove the first two nodes of 'org.' strings */
 	if (!strncmp(s, "org.", 4)) {
 		char *p = s + 4;
@@ -156,14 +156,14 @@ osd_update(struct server *server)
 #if HAVE_XWAYLAND
 		case LAB_XWAYLAND_VIEW:
 			buf_add(&buf, "[xwayland]\t");
-			buf_add(&buf, view->impl->get_string_prop(view, "class"));
+			buf_add(&buf, view_get_string_prop(view, "class"));
 			buf_add(&buf, "\t");
 			break;
 #endif
 		}
 
 		if (is_title_different(view)) {
-			buf_add(&buf, view->impl->get_string_prop(view, "title"));
+			buf_add(&buf, view_get_string_prop(view, "title"));
 		}
 
 		pango_layout_set_text(layout, buf.buf, -1);

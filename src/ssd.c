@@ -151,7 +151,8 @@ center_vertically(struct wlr_box *box, struct wlr_texture *texture)
 }
 
 static void
-center_horizontally(struct view *view, struct wlr_box *box, struct wlr_texture *texture)
+center_horizontally(struct view *view, struct wlr_box *box,
+		struct wlr_texture *texture)
 {
 	if (!texture) {
 		return;
@@ -160,7 +161,8 @@ center_horizontally(struct view *view, struct wlr_box *box, struct wlr_texture *
 }
 
 static void
-justify_right(struct view *view, struct wlr_box *box, struct wlr_texture *texture)
+justify_right(struct view *view, struct wlr_box *box,
+		struct wlr_texture *texture)
 {
 	if (!texture) {
 		return;
@@ -193,7 +195,7 @@ ssd_visible_box(struct view *view, enum ssd_part_type type)
 		center_vertically(&box, view->title.active);
 		if (theme->window_label_text_justify == LAB_JUSTIFY_CENTER) {
 			center_horizontally(view, &box, view->title.active);
-		} else if (theme->window_label_text_justify == LAB_JUSTIFY_RIGHT) {	
+		} else if (theme->window_label_text_justify == LAB_JUSTIFY_RIGHT) {
 			justify_right(view, &box, view->title.active);
 		}
 		if (view->title.active) {
@@ -313,11 +315,11 @@ ssd_update_title(struct view *view)
 	int max_width = part->box.width > 0 ? part->box.width : 1000;
 
 	font_texture_create(view->server, &view->title.active, max_width,
-		view->impl->get_string_prop(view, "title"),
+		view_get_string_prop(view, "title"),
 		&font, theme->window_active_label_text_color);
 
 	font_texture_create(view->server, &view->title.inactive, max_width,
-		view->impl->get_string_prop(view, "title"),
+		view_get_string_prop(view, "title"),
 		&font, theme->window_inactive_label_text_color);
 
 	part->box = ssd_visible_box(view, part->type);

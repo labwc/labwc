@@ -35,14 +35,14 @@ foreign_toplevel_handle_create(struct view *view)
 		view->server->foreign_toplevel_manager);
 	if (!view->toplevel_handle) {
 		wlr_log(WLR_ERROR, "cannot create foreign toplevel handle for (%s)",
-			view->impl->get_string_prop(view, "title"));
+			view_get_string_prop(view, "title"));
 		return;
 	}
 
 	struct wlr_output *wlr_output = view_wlr_output(view);
 	if (!wlr_output) {
 		wlr_log(WLR_ERROR, "no wlr_output for (%s)",
-			view->impl->get_string_prop(view, "title"));
+			view_get_string_prop(view, "title"));
 		return;
 	}
 	wlr_foreign_toplevel_handle_v1_output_enter(view->toplevel_handle,

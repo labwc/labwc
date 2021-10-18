@@ -398,10 +398,18 @@ view_snap_to_edge(struct view *view, const char *direction)
 	view_move_resize(view, dst);
 }
 
+const char *
+view_get_string_prop(struct view *view, const char *prop)
+{
+	if (view->impl->get_string_prop) {
+		return view->impl->get_string_prop(view, "title");
+	}
+}
+
 void
 view_update_title(struct view *view)
 {
-	const char *title = view->impl->get_string_prop(view, "title");
+	const char *title = view_get_string_prop(view, "title");
 	if (!view->toplevel_handle || !title) {
 		return;
 	}
@@ -412,7 +420,7 @@ view_update_title(struct view *view)
 void
 view_update_app_id(struct view *view)
 {
-	const char *app_id = view->impl->get_string_prop(view, "app_id");
+	const char *app_id = view_get_string_prop(view, "app_id");
 	if (!view->toplevel_handle || !app_id) {
 		return;
 	}

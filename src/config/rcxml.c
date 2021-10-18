@@ -303,8 +303,10 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "FollowMouse.focus")) {
 		rc.focus_follow_mouse = get_bool(content);
 	} else if (!strcasecmp(nodename, "RaiseOnFocus.focus")) {
-		rc.focus_follow_mouse = true;
 		rc.raise_on_focus = get_bool(content);
+		if (rc.raise_on_focus) {
+			rc.focus_follow_mouse = true;
+		}
 	} else if (!strcasecmp(nodename, "doubleClickTime.mouse")) {
 		long doubleclick_time_parsed = strtol(content, NULL, 10);
 		if (doubleclick_time_parsed > 0) {

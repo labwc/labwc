@@ -19,14 +19,18 @@ view_set_activated(struct view *view, bool activated)
 void
 view_move_resize(struct view *view, struct wlr_box geo)
 {
-	view->impl->configure(view, geo);
+	if (view->impl->configure) {
+		view->impl->configure(view, geo);
+	}
 	ssd_update_title(view);
 }
 
 void
 view_move(struct view *view, double x, double y)
 {
-	view->impl->move(view, x, y);
+	if (view->impl->move) {
+		view->impl->move(view, x, y);
+	}
 }
 
 #define MIN_VIEW_WIDTH (100)
@@ -112,7 +116,9 @@ view_maximize(struct view *view, bool maximize)
 	if (view->maximized == maximize) {
 		return;
 	}
-	view->impl->maximize(view, maximize);
+	if (view->impl->maximize) {
+		view->impl->maximize(view, maximize);
+	}
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_set_maximized(view->toplevel_handle,
 			maximize);
@@ -207,17 +213,18 @@ void
 view_for_each_surface(struct view *view, wlr_surface_iterator_func_t iterator,
 		void *user_data)
 {
-	view->impl->for_each_surface(view, iterator, user_data);
+	if (view->impl->for_each_surface) {
+		view->impl->for_each_surface(view, iterator, user_data);
+	}
 }
 
 void
-view_for_each_popup_surface(struct view *view, wlr_surface_iterator_func_t iterator,
-		void *data)
+view_for_each_popup_surface(struct view *view,
+		wlr_surface_iterator_func_t iterator, void *data)
 {
-	if (!view->impl->for_each_popup_surface) {
-		return;
+	if (view->impl->for_each_popup_surface) {
+		view->impl->for_each_popup_surface(view, iterator, data);
 	}
-	view->impl->for_each_popup_surface(view, iterator, data);
 }
 
 static struct border
@@ -242,8 +249,8 @@ view_move_to_edge(struct view *view, const char *direction)
 	struct output *output = view_output(view);
 	if (!output) {
 		wlr_log(WLR_ERROR, "no output");
-		return;	
-	}	
+		return;
+	}
 	struct border border = view_border(view);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
@@ -376,7 +383,7 @@ view_snap_to_edge(struct view *view, const char *direction)
 			case VIEW_EDGE_DOWN: dst.y += (usable.height / 2) + 1; break;
 			default: break;
 		}
-		
+
 		struct output *new_output =
 			output_from_wlr_output(view->server,
 				wlr_output_layout_output_at(view->server->output_layout, dst.x, dst.y));

@@ -39,7 +39,6 @@ foreign_toplevel_handle_create(struct view *view)
 		return;
 	}
 
-	view_update_title(view);
 	struct wlr_output *wlr_output = view_wlr_output(view);
 	if (!wlr_output) {
 		wlr_log(WLR_ERROR, "no wlr_output for (%s)",
@@ -53,13 +52,15 @@ foreign_toplevel_handle_create(struct view *view)
 		handle_toplevel_handle_request_maximize;
 	wl_signal_add(&view->toplevel_handle->events.request_maximize,
 		&view->toplevel_handle_request_maximize);
+
 	view->toplevel_handle_request_minimize.notify =
 		handle_toplevel_handle_request_minimize;
 	wl_signal_add(&view->toplevel_handle->events.request_minimize,
 		&view->toplevel_handle_request_minimize);
+
 	view->toplevel_handle_request_fullscreen.notify =
 		handle_toplevel_handle_request_fullscreen;
 	wl_signal_add(&view->toplevel_handle->events.request_fullscreen,
 		&view->toplevel_handle_request_fullscreen);
-	// TODO: hook up remaining signals (close)
+	/* TODO: hook up remaining signals (close, destroy, activate) */
 }

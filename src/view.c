@@ -79,6 +79,31 @@ view_minimize(struct view *view, bool minimized)
 	}
 }
 
+static struct wlr_output *
+view_available_wlr_output(struct view *view)
+{
+	/* checks all of a view's corners */
+	struct wlr_output *output = wlr_output_layout_output_at(
+		view->server->output_layout, view->x, view->y + view->h);
+	if (output) {
+		return output;
+	}
+	output = wlr_output_layout_output_at(view->server->output_layout,
+		view->x + view->w, view->y + view->h);
+	if (output) {
+		return output;
+	}
+	output = wlr_output_layout_output_at(view->server->output_layout,
+		view->x + view->w, view->y);
+	if (output) {
+		return output;
+	}
+	output = wlr_output_layout_output_at(view->server->output_layout,
+		view->x, view->y);
+
+	return output;
+}
+
 /* view_wlr_output - return the output that a view is mostly on */
 struct wlr_output *
 view_wlr_output(struct view *view)
@@ -91,6 +116,9 @@ static struct output *
 view_output(struct view *view)
 {
 	struct wlr_output *wlr_output = view_wlr_output(view);
+	if (!wlr_output) {
+		wlr_output = view_available_wlr_output(view);
+	}
 	return output_from_wlr_output(view->server, wlr_output);
 }
 

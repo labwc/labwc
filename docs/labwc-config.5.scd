@@ -9,7 +9,7 @@ labwc - Configuration
 The configuration aims to be compatible with openbox specification, but there
 are some differences which are pointed out throughout the man pages.
 
-Adhering to XDG Base Directory Specification, configuration files will
+In accordance with XDG Base Directory Specification, configuration files will
 be searched for in the following order:
 
 - ${XDG_CONFIG_HOME:-$HOME/.config}/labwc
@@ -31,17 +31,17 @@ Configuration must be wrapped in a <labwc_config> root-node.
 # FOCUS
 
 *<focus><followMouse>* [yes|no]
-	Make focus follow mouse, e.g. focus is given to window under mouse
-	cursor
+	Make focus follow mouse, i.e. focus is given to window under mouse
+	cursor. Default is no.
 
 *<focus><raiseOnFocus>* [yes|no]
-	Also raise window to top when focused. Only applies if followMouse is
-	set
+	Raise window to top when focused. Only applies if followMouse is
+	set. Default is no.
 
 # THEME
 
 *<theme><name>*
-	The name of the Openbox theme to use. Default is Clearlooks-3.4
+	The name of the Openbox theme to use. It is not set by default.
 
 *<theme><cornerRadius>*
 	The radius of server side decoration top corners. Default is 8.
@@ -94,11 +94,12 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	brightnessctl respectively
 
 *<keyboard><repeatRate>*
-	Sets the rate at which keypresses are repeated per second. The default
-	rate is 25/second.
+	Set the rate at which keypresses are repeated per second.
+	Default is 25.
 
 *<keyboard><repeatDelay>*
-	Sets the delay before keypresses are repeated in milliseconds.
+	Set the delay before keypresses are repeated in milliseconds.
+	Default is 600.
 
 # MOUSE
 
@@ -113,11 +114,11 @@ Configuration must be wrapped in a <labwc_config> root-node.
 
 *<libinput><device category="">*
 	Define a category of devices to use the configuration values that 
-	follow. The category can be set to touch-- devices that define a width 
-	and height-- non-touch, default, or the name of a device. You can obtain
+	follow. The category can be set to touch (devices that define a width
+	and height), non-touch, default, or the name of a device. You can obtain
 	your devices name by running *libinput list-devices* (you may need to 
 	be root or a part of the input group to perform this.) Any members of
-	this category that aren't set use the default for the device. With the
+	this category that are not set use the default for the device. With the
 	exception of tap-to-click, which is enabled by default.
 
 *<libinput><device category=""><naturalScroll>* [yes|no]
@@ -128,8 +129,8 @@ Configuration must be wrapped in a <labwc_config> root-node.
 
 *<libinput><device category=""><pointerSpeed>* [\-1.0 to 1.0]
 	Set the pointer speed for this category. The speed is a number between
-	\-1 and 1, with 0 being the default in most cases, and 1 being the
-	fastest.
+	\-1.0 and 1.0, with 0.0 being the default in most cases, and 1.0 being
+	the fastest.
 
 *<libinput><device category=""><accelProfile>* [flat|adaptive]
 	Set the pointer's acceleration profile for this category. Flat applies

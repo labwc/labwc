@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 
-<!-- This file contains all supported config elements and attributes -->
+<!--
+  This file contains all supported config elements & attributes with
+  default values.
+-->
 
 <labwc_config>
 
@@ -9,11 +12,12 @@
     <gap>0</gap>
   </core>
 
+  <!--
+    <font><theme> can be defined without an attribute to set all places
+  -->
   <theme>
     <name></name>
     <cornerRadius>8</cornerRadius>
-
-    <!-- Font can be defined without attributues to set all places the same -->
     <font place="ActiveWindow"><name>sans</name><size>10</size></font>
     <font place="MenuItem"><name>sans</name><size>10</size></font>
   </theme>
@@ -24,21 +28,20 @@
   </focus>
 
   <!--
-    Keybind actions are specified in more detail in labwc-actions(5)
+    Keybind actions are specified in labwc-actions(5)
     The following keybind modifiers are supported:
       W - window/super/logo
       A - alt
       C - ctrl
       S - shift
+
+    Use <keyboard><default /> to load all the default keybinds (those listed
+    below). If the default keybinds are largely what you want, a sensible
+    approach could be to start the <keyboard> section with a <default />
+    element, and then (re-)define any special binds you need such as launching
+    your favourite terminal or application launcher.
   -->
-
   <keyboard>
-
-    <!--
-      The element <default /> to load the default keybind and thus avoid
-      repeating all the definitions below.
-    -->
-
     <keybind key="A-Escape">
       <action name="Exit" />
     </keybind>
@@ -98,6 +101,10 @@
     </keybind>
   </keyboard>
 
+  <!--
+    <mousebind> buttons/actions have not yet been implemented except for the
+    one below.
+  -->
   <mouse>
     <!-- time is in ms -->
     <doubleClickTime>500</doubleClickTime>

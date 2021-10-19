@@ -87,7 +87,11 @@ Configuration must be wrapped in a <labwc_config> root-node.
   A-F4 - close window
   W-a - toggle maximize
   A-<arrow> - move window to edge
+  W-<arrow> - resize window to fill half the output
 ```
+
+	Audio and MonBrightness keys are also bound to amixer and
+	brightnessctl respectively
 
 *<keyboard><repeatRate>*
 	Sets the rate at which keypresses are repeated per second. The default

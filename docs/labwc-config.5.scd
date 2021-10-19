@@ -120,18 +120,18 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	this category that aren't set use the default for the device. With the
 	exception of tap-to-click, which is enabled by default.
 
-*<libinput><device category=""><naturalscroll>* [yes|no]
+*<libinput><device category=""><naturalScroll>* [yes|no]
 	Use natural scrolling for this category if available.
 
-*<libinput><device category=""><lefthanded>* [yes|no]
+*<libinput><device category=""><leftHanded>* [yes|no]
 	Use your devices left-handed mode if available.
 
-*<libinput><device category=""><pointerspeed>* 
+*<libinput><device category=""><pointerSpeed>* [\-1.0 to 1.0]
 	Set the pointer speed for this category. The speed is a number between
 	\-1 and 1, with 0 being the default in most cases, and 1 being the
 	fastest.
 
-*<libinput><device category=""><accelprofile>* [flat|adaptive]
+*<libinput><device category=""><accelProfile>* [flat|adaptive]
 	Set the pointer's acceleration profile for this category. Flat applies
 	no acceleration (the pointers velocity is constant), while adaptive 
 	changes the pointers speed based the actual speed of your mouse or 
@@ -141,12 +141,12 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	Enable or disable tap-to-click for this category. This is enabled by
 	default for all categories.
 
-*<libinput><device category=""><middleemulation>* [yes|no]
+*<libinput><device category=""><middleEmulation>* [yes|no]
 	Enable or disable middle button emulation for this category. Middle
 	emulation processes a simultaneous left and right click as a press of
 	the middle mouse button (scroll wheel).
 
-*<libinput>device category=""><disablewhiletyping>* [yes|no]
+*<libinput>device category=""><disableWhileTyping>* [yes|no]
 	Enable or disable disable while typing for this category. DWT ignores
 	any motion events while a keyboard is typing, and for a short while
 	after as well. 

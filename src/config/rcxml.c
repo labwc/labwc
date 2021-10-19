@@ -157,12 +157,12 @@ fill_libinput_category(char *nodename, char *content)
 		} else {
 			current_libinput_category->name = strdup(content);
 		}
-	} else if (!strcasecmp(nodename, "naturalscroll")) {
+	} else if (!strcasecmp(nodename, "naturalScroll")) {
 		current_libinput_category->natural_scroll =
 			get_bool(content) ? 1 : 0;
-	} else if (!strcasecmp(nodename, "lefthanded")) {
+	} else if (!strcasecmp(nodename, "leftHanded")) {
 		current_libinput_category->left_handed = get_bool(content) ? 1 : 0;
-	} else if (!strcmp(nodename, "pointerspeed")) {
+	} else if (!strcasecmp(nodename, "pointerSpeed")) {
 		current_libinput_category->pointer_speed = atof(content);
 		if (current_libinput_category->pointer_speed < -1) {
 			current_libinput_category->pointer_speed = -1;
@@ -173,13 +173,13 @@ fill_libinput_category(char *nodename, char *content)
 		current_libinput_category->tap = get_bool(content) ?
 			LIBINPUT_CONFIG_TAP_ENABLED :
 			LIBINPUT_CONFIG_TAP_DISABLED;
-	} else if (!strcasecmp(nodename, "accelprofile")) {
+	} else if (!strcasecmp(nodename, "accelProfile")) {
 		current_libinput_category->accel_profile = get_accel_profile(content);
-	} else if (!strcasecmp(nodename, "middleemulation")) {
+	} else if (!strcasecmp(nodename, "middleEmulation")) {
 		current_libinput_category->middle_emu = get_bool(content) ?
 			LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED :
 			LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
-	} else if (!strcasecmp(nodename, "disablewhiletyping")) {
+	} else if (!strcasecmp(nodename, "disableWhileTyping")) {
 		current_libinput_category->dwt = get_bool(content) ?
 			LIBINPUT_CONFIG_DWT_ENABLED :
 			LIBINPUT_CONFIG_DWT_DISABLED;

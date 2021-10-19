@@ -80,23 +80,16 @@ view_minimize(struct view *view, bool minimized)
 }
 
 static struct wlr_output *
-view_available_wlr_output(struct view *view)
+view_closest_wlr_output(struct view *view)
 {
-	int corners[4] = {view->x, view->x + view->w, view->y,
-		view->y + view->h};
-	int i, j = 2;
-	struct wlr_output *output;
-	for (i = 0; i < 4; i++) {
-		output = wlr_output_layout_output_at(view->server->output_layout,
-			corners[i % 2], corners[j] );
-
-		if (output) {
-			return output;
-		} else if (i % 2) {
-			j++;
-		}
-	}
-	return NULL;
+	double closest_x, closest_y;
+	struct wlr_output *wlr_output = NULL;
+	wlr_output_layout_closest_point(view->server->output_layout, wlr_output,
+		view->x + view->w / 2, view->y + view->h / 2, &closest_x,
+		&closest_y);
+	wlr_output = wlr_output_layout_output_at(view->server->output_layout,
+		closest_x, closest_y);
+	return wlr_output;
 }
 
 /* view_wlr_output - return the output that a view is mostly on */
@@ -112,7 +105,7 @@ view_output(struct view *view)
 {
 	struct wlr_output *wlr_output = view_wlr_output(view);
 	if (!wlr_output) {
-		wlr_output = view_available_wlr_output(view);
+		wlr_output = view_closest_wlr_output(view);
 	}
 	return output_from_wlr_output(view->server, wlr_output);
 }

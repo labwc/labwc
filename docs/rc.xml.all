@@ -6,7 +6,7 @@
 
   <core>
     <decoration>server</decoration>
-    <gap>10</gap>
+    <gap>0</gap>
   </core>
 
   <theme>

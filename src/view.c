@@ -82,26 +82,21 @@ view_minimize(struct view *view, bool minimized)
 static struct wlr_output *
 view_available_wlr_output(struct view *view)
 {
-	/* checks all of a view's corners */
-	struct wlr_output *output = wlr_output_layout_output_at(
-		view->server->output_layout, view->x, view->y + view->h);
-	if (output) {
-		return output;
-	}
-	output = wlr_output_layout_output_at(view->server->output_layout,
-		view->x + view->w, view->y + view->h);
-	if (output) {
-		return output;
-	}
-	output = wlr_output_layout_output_at(view->server->output_layout,
-		view->x + view->w, view->y);
-	if (output) {
-		return output;
-	}
-	output = wlr_output_layout_output_at(view->server->output_layout,
-		view->x, view->y);
+	int corners[4] = {view->x, view->x + view->w, view->y,
+		view->y + view->h};
+	int i, j = 2;
+	struct wlr_output *output;
+	for (i = 0; i < 4; i++) {
+		output = wlr_output_layout_output_at(view->server->output_layout,
+			corners[i % 2], corners[j] );
 
-	return output;
+		if (output) {
+			return output;
+		} else if (i % 2) {
+			j++;
+		}
+	}
+	return NULL;
 }
 
 /* view_wlr_output - return the output that a view is mostly on */

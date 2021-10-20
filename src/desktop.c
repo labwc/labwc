@@ -264,13 +264,13 @@ _view_at(struct view *view, double lx, double ly, struct wlr_surface **surface,
 }
 
 static struct
-wlr_surface *layer_surface_at(struct wl_list *layer, double lx, double ly,
+wlr_surface *layer_surface_at(struct wl_list *layer, double ox, double oy,
 		double *sx, double *sy)
 {
 	struct lab_layer_surface *surface;
 	wl_list_for_each_reverse(surface, layer, link) {
-		double _sx = lx - surface->geo.x;
-		double _sy = ly - surface->geo.y;
+		double _sx = ox - surface->geo.x;
+		double _sy = oy - surface->geo.y;
 		struct wlr_surface *wlr_surface;
 		wlr_surface = wlr_layer_surface_v1_surface_at(surface->layer_surface,
 							      _sx, _sy, sx, sy);
@@ -294,16 +294,19 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 		return NULL;
 	}
 
+	double ox = lx, oy = ly;
+	wlr_output_layout_output_coords(output->server->output_layout,
+		wlr_output, &ox, &oy);
 	*surface = layer_surface_at(
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
-			lx, ly, sx, sy);
+			ox, oy, sx, sy);
 	if (*surface) {
 		return NULL;
 	}
 
 	*surface = layer_surface_at(
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
-			lx, ly, sx, sy);
+			ox, oy, sx, sy);
 	if (*surface) {
 		return NULL;
 	}
@@ -327,13 +330,13 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 
 	*surface = layer_surface_at(
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
-			lx, ly, sx, sy);
+			ox, oy, sx, sy);
 	if (*surface) {
 		return NULL;
 	}
 	*surface = layer_surface_at(
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
-			lx, ly, sx, sy);
+			ox, oy, sx, sy);
 	if (*surface) {
 		return NULL;
 	}

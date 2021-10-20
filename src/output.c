@@ -127,8 +127,9 @@ scissor_output(struct wlr_output *output, pixman_box32_t *rect)
 }
 
 static void
-render_texture(struct wlr_output *wlr_output, pixman_region32_t *output_damage,
-		struct wlr_texture *texture, const struct wlr_box *box,
+render_texture(struct wlr_output *wlr_output,
+		pixman_region32_t *output_damage, struct wlr_texture *texture,
+		const struct wlr_fbox *src_box, const struct wlr_box *dst_box,
 		const float matrix[static 9])
 {
 	struct wlr_renderer *renderer =
@@ -136,10 +137,11 @@ render_texture(struct wlr_output *wlr_output, pixman_region32_t *output_damage,
 
 	pixman_region32_t damage;
 	pixman_region32_init(&damage);
-	pixman_region32_union_rect(&damage, &damage, box->x, box->y,
-		box->width, box->height);
+	pixman_region32_union_rect(&damage, &damage, dst_box->x, dst_box->y,
+		dst_box->width, dst_box->height);
 	pixman_region32_intersect(&damage, &damage, output_damage);
-	if (!pixman_region32_not_empty(&damage)) {
+	bool damaged = pixman_region32_not_empty(&damage);
+	if (!damaged) {
 		goto damage_finish;
 	}
 
@@ -147,7 +149,12 @@ render_texture(struct wlr_output *wlr_output, pixman_region32_t *output_damage,
 	pixman_box32_t *rects = pixman_region32_rectangles(&damage, &nrects);
 	for (int i = 0; i < nrects; i++) {
 		scissor_output(wlr_output, &rects[i]);
-		wlr_render_texture_with_matrix(renderer, texture, matrix, 1.0f);
+		const float alpha = 1.0f;
+		if (src_box != NULL) {
+			wlr_render_subtexture_with_matrix(renderer, texture, src_box, matrix, alpha);
+		} else {
+			wlr_render_texture_with_matrix(renderer, texture, matrix, alpha);
+		}
 	}
 
 damage_finish:
@@ -156,7 +163,7 @@ damage_finish:
 
 static void
 render_surface_iterator(struct output *output, struct wlr_surface *surface,
-		struct wlr_box *box, void *user_data)
+		struct wlr_box *_box, void *user_data)
 {
 	struct render_data *data = user_data;
 	struct wlr_output *wlr_output = output->wlr_output;
@@ -168,15 +175,22 @@ render_surface_iterator(struct output *output, struct wlr_surface *surface,
 		return;
 	}
 
-	scale_box(box, wlr_output->scale);
+	struct wlr_fbox src_box;
+	wlr_surface_get_buffer_source_box(surface, &src_box);
+
+	struct wlr_box proj_box = *_box;
+	scale_box(&proj_box, wlr_output->scale);
 
 	float matrix[9];
 	enum wl_output_transform transform =
 		wlr_output_transform_invert(surface->current.transform);
-	wlr_matrix_project_box(matrix, box, transform, 0.0f,
+	wlr_matrix_project_box(matrix, &proj_box, transform, 0.0,
 		wlr_output->transform_matrix);
 
-	render_texture(wlr_output, output_damage, texture, box, matrix);
+	struct wlr_box dst_box = *_box;
+	scale_box(&dst_box, wlr_output->scale);
+
+	render_texture(wlr_output, output_damage, texture, &src_box, &dst_box, matrix);
 }
 
 void
@@ -461,7 +475,7 @@ render_icon(struct output *output, pixman_region32_t *output_damage,
 	float matrix[9];
 	wlr_matrix_project_box(matrix, &button, WL_OUTPUT_TRANSFORM_NORMAL, 0,
 		output->wlr_output->transform_matrix);
-	render_texture(output->wlr_output, output_damage, texture, &button,
+	render_texture(output->wlr_output, output_damage, texture, NULL, &button,
 		matrix);
 }
 
@@ -485,7 +499,7 @@ render_texture_helper(struct output *output, pixman_region32_t *output_damage,
 	float matrix[9];
 	wlr_matrix_project_box(matrix, &box, WL_OUTPUT_TRANSFORM_NORMAL, 0,
 		output->wlr_output->transform_matrix);
-	render_texture(output->wlr_output, output_damage, texture, &box,
+	render_texture(output->wlr_output, output_damage, texture, NULL, &box,
 		matrix);
 }
 
@@ -614,10 +628,10 @@ render_rootmenu(struct output *output, pixman_region32_t *output_damage)
 			render_rect(output, output_damage, &menuitem->box,
 				theme->menu_items_active_bg_color);
 			render_texture(output->wlr_output, output_damage,
-				menuitem->texture.active, &box, matrix);
+				menuitem->texture.active, NULL, &box, matrix);
 		} else {
 			render_texture(output->wlr_output, output_damage,
-				menuitem->texture.inactive, &box, matrix);
+				menuitem->texture.inactive, NULL, &box, matrix);
 		}
 	}
 }

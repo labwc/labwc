@@ -209,6 +209,12 @@ want_deco(struct view *view)
 }
 
 static void
+handle_set_decorations(struct wl_listener *listener, void *data) {
+	struct view *view = wl_container_of(listener, view, set_decorations);
+	view_set_decorations(view, want_deco(view));
+}
+
+static void
 top_left_edge_boundary_check(struct view *view)
 {
 	struct wlr_box deco = ssd_max_extents(view);
@@ -364,6 +370,10 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 
 	view->set_app_id.notify = handle_set_class;
 	wl_signal_add(&xsurface->events.set_class, &view->set_app_id);
+
+	view->set_decorations.notify = handle_set_decorations;
+	wl_signal_add(&xsurface->events.set_decorations,
+			&view->set_decorations);
 
 	wl_list_insert(&view->server->views, &view->link);
 }

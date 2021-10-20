@@ -278,6 +278,7 @@ struct view {
 	struct wl_listener request_fullscreen;
 	struct wl_listener set_title;
 	struct wl_listener set_app_id;		/* class on xwayland */
+	struct wl_listener set_decorations;	/* xwayland only */
 	struct wl_listener new_popup;		/* xdg-shell only */
 	struct wl_listener new_subsurface;	/* xdg-shell only */
 };

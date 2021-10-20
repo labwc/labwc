@@ -81,6 +81,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel_handle);
 	}
+	view->xwayland_surface = NULL;
 	wl_list_remove(&view->link);
 	wl_list_remove(&view->map.link);
 	wl_list_remove(&view->unmap.link);
@@ -97,7 +98,7 @@ handle_request_configure(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_configure);
 	struct wlr_xwayland_surface_configure_event *event = data;
-	
+
 	int min_width, min_height;
 	view_min_size(view, &min_width, &min_height);
 

@@ -29,7 +29,9 @@ struct surface_iterator_data {
 	surface_iterator_func_t user_iterator;
 	void *user_data;
 	struct output *output;
+	struct view *view;
 	double ox, oy;
+	int width, height;
 };
 
 static bool
@@ -290,10 +292,19 @@ output_layer_for_each_surface(struct output *output,
 	wl_list_for_each(layer_surface, layer_surfaces, link) {
 		struct wlr_layer_surface_v1 *wlr_layer_surface_v1 =
 			layer_surface->layer_surface;
-		output_surface_for_each_surface(output,
-			wlr_layer_surface_v1->surface, layer_surface->geo.x,
-			layer_surface->geo.y, iterator, user_data);
-		/* TODO: handle popups */
+		struct wlr_surface *surface = wlr_layer_surface_v1->surface;
+		struct surface_iterator_data data = {
+			.user_iterator = iterator,
+			.user_data = user_data,
+			.output = output,
+			.view = NULL,
+			.ox = layer_surface->geo.x,
+			.oy = layer_surface->geo.y,
+			.width = surface->current.width,
+			.height = surface->current.height,
+		};
+		wlr_layer_surface_v1_for_each_surface(wlr_layer_surface_v1,
+			output_for_each_surface_iterator, &data);
 	}
 }
 
@@ -636,6 +647,43 @@ render_rootmenu(struct output *output, pixman_region32_t *output_damage)
 	}
 }
 
+static void
+output_layer_for_each_popup_surface(struct output *output,
+		struct wl_list *layer_surfaces,
+		surface_iterator_func_t iterator,
+		void *user_data)
+{
+	struct lab_layer_surface *layer_surface;
+	wl_list_for_each(layer_surface, layer_surfaces, link) {
+		struct wlr_layer_surface_v1 *wlr_layer_surface_v1 =
+			layer_surface->layer_surface;
+		struct wlr_surface *surface = wlr_layer_surface_v1->surface;
+		struct surface_iterator_data data = {
+			.user_iterator = iterator,
+			.user_data = user_data,
+			.output = output,
+			.view = NULL,
+			.ox = layer_surface->geo.x,
+			.oy = layer_surface->geo.y,
+			.width = surface->current.width,
+			.height = surface->current.height,
+		};
+		wlr_layer_surface_v1_for_each_popup_surface(wlr_layer_surface_v1,
+			output_for_each_surface_iterator, &data);
+	}
+}
+
+static void
+render_layer_popups(struct output *output, pixman_region32_t *damage,
+		struct wl_list *layer_surfaces)
+{
+	struct render_data data = {
+		.damage = damage,
+	};
+	output_layer_for_each_popup_surface(output, layer_surfaces,
+		render_surface_iterator, &data);
+}
+
 void
 output_layer_for_each_surface_toplevel(struct output *output,
 		struct wl_list *layer_surfaces, surface_iterator_func_t iterator,
@@ -749,6 +797,13 @@ output_render(struct output *output, pixman_region32_t *damage)
 
 	render_layer_toplevel(output, damage,
 		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP]);
+	render_layer_popups(output, damage,
+		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND]);
+	render_layer_popups(output, damage,
+		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM]);
+	render_layer_popups(output, damage,
+		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP]);
+
 	render_layer_toplevel(output, damage,
 		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]);
 
@@ -915,6 +970,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 
 	struct output *output = calloc(1, sizeof(struct output));
 	output->wlr_output = wlr_output;
+	wlr_output->data = output;
 	output->server = server;
 	output->damage = wlr_output_damage_create(wlr_output);
 	wlr_output_effective_resolution(wlr_output,

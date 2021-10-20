@@ -313,6 +313,236 @@ map_notify(struct wl_listener *listener, void *data)
 }
 
 static void
+subsurface_damage(struct lab_layer_subsurface *subsurface, bool whole)
+{
+	struct lab_layer_surface *layer = subsurface->layer_surface;
+	struct wlr_output *wlr_output = layer->layer_surface->output;
+	if (!wlr_output) {
+		return;
+	}
+//	struct output *output = wlr_output->data;
+//	int ox = subsurface->wlr_subsurface->current.x + layer->geo.x;
+//	int oy = subsurface->wlr_subsurface->current.y + layer->geo.y;
+	damage_all_outputs(layer->server);
+}
+
+static void
+subsurface_handle_unmap(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_subsurface *subsurface =
+			wl_container_of(listener, subsurface, unmap);
+	subsurface_damage(subsurface, true);
+}
+
+static void
+subsurface_handle_map(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_subsurface *subsurface =
+			wl_container_of(listener, subsurface, map);
+	subsurface_damage(subsurface, true);
+}
+
+static void
+subsurface_handle_commit(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_subsurface *subsurface =
+			wl_container_of(listener, subsurface, commit);
+	subsurface_damage(subsurface, false);
+}
+
+static void
+subsurface_handle_destroy(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_subsurface *subsurface =
+			wl_container_of(listener, subsurface, destroy);
+
+	wl_list_remove(&subsurface->map.link);
+	wl_list_remove(&subsurface->unmap.link);
+	wl_list_remove(&subsurface->destroy.link);
+	wl_list_remove(&subsurface->commit.link);
+	free(subsurface);
+}
+
+static struct
+lab_layer_subsurface *create_subsurface(struct wlr_subsurface *wlr_subsurface,
+		struct lab_layer_surface *layer_surface)
+{
+	struct lab_layer_subsurface *subsurface =
+			calloc(1, sizeof(struct lab_layer_subsurface));
+	if (!subsurface) {
+		return NULL;
+	}
+
+	subsurface->wlr_subsurface = wlr_subsurface;
+	subsurface->layer_surface = layer_surface;
+
+	subsurface->map.notify = subsurface_handle_map;
+	wl_signal_add(&wlr_subsurface->events.map, &subsurface->map);
+	subsurface->unmap.notify = subsurface_handle_unmap;
+	wl_signal_add(&wlr_subsurface->events.unmap, &subsurface->unmap);
+	subsurface->destroy.notify = subsurface_handle_destroy;
+	wl_signal_add(&wlr_subsurface->events.destroy, &subsurface->destroy);
+	subsurface->commit.notify = subsurface_handle_commit;
+	wl_signal_add(&wlr_subsurface->surface->events.commit,
+		&subsurface->commit);
+
+	return subsurface;
+}
+
+static void
+new_subsurface_notify(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_surface *lab_layer_surface =
+		wl_container_of(listener, lab_layer_surface, new_subsurface);
+	struct wlr_subsurface *wlr_subsurface = data;
+	create_subsurface(wlr_subsurface, lab_layer_surface);
+}
+
+
+static struct
+lab_layer_surface *popup_get_layer(struct lab_layer_popup *popup)
+{
+	while (popup->parent_type == LAYER_PARENT_POPUP) {
+		popup = popup->parent_popup;
+	}
+	return popup->parent_layer;
+}
+
+static void
+popup_damage(struct lab_layer_popup *layer_popup, bool whole)
+{
+	struct wlr_xdg_popup *popup = layer_popup->wlr_popup;
+//	struct wlr_surface *surface = popup->base->surface;
+	int popup_sx = popup->geometry.x - popup->base->current.geometry.x;
+	int popup_sy = popup->geometry.y - popup->base->current.geometry.y;
+	int ox = popup_sx, oy = popup_sy;
+	struct lab_layer_surface *layer;
+	while (true) {
+		if (layer_popup->parent_type == LAYER_PARENT_POPUP) {
+			layer_popup = layer_popup->parent_popup;
+			ox += layer_popup->wlr_popup->geometry.x;
+			oy += layer_popup->wlr_popup->geometry.y;
+		} else {
+			layer = layer_popup->parent_layer;
+			ox += layer->geo.x;
+			oy += layer->geo.y;
+			break;
+		}
+	}
+//	struct wlr_output *wlr_output = layer->layer_surface->output;
+//	struct output *output = wlr_output->data;
+	damage_all_outputs(layer->server);
+}
+
+static void
+popup_handle_map(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_popup *popup = wl_container_of(listener, popup, map);
+	struct lab_layer_surface *layer = popup_get_layer(popup);
+	struct wlr_output *wlr_output = layer->layer_surface->output;
+	wlr_surface_send_enter(popup->wlr_popup->base->surface, wlr_output);
+	popup_damage(popup, true);
+}
+
+static void
+popup_handle_unmap(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_popup *popup = wl_container_of(listener, popup, unmap);
+	popup_damage(popup, true);
+}
+
+static void
+popup_handle_commit(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_popup *popup = wl_container_of(listener, popup, commit);
+	popup_damage(popup, false);
+}
+
+static void
+popup_handle_destroy(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_popup *popup =
+		wl_container_of(listener, popup, destroy);
+
+	wl_list_remove(&popup->map.link);
+	wl_list_remove(&popup->unmap.link);
+	wl_list_remove(&popup->destroy.link);
+	wl_list_remove(&popup->commit.link);
+	free(popup);
+}
+
+static void
+popup_unconstrain(struct lab_layer_popup *popup)
+{
+	struct lab_layer_surface *layer = popup_get_layer(popup);
+	struct wlr_xdg_popup *wlr_popup = popup->wlr_popup;
+	struct output *output = layer->layer_surface->output->data;
+
+	struct wlr_box output_box = { 0 };
+	wlr_output_effective_resolution(output->wlr_output, &output_box.width,
+		&output_box.height);
+
+	struct wlr_box output_toplevel_sx_box = {
+		.x = -layer->geo.x,
+		.y = -layer->geo.y,
+		.width = output_box.width,
+		.height = output_box.height,
+	};
+
+	wlr_xdg_popup_unconstrain_from_box(wlr_popup, &output_toplevel_sx_box);
+}
+
+static void popup_handle_new_popup(struct wl_listener *listener, void *data);
+
+static struct lab_layer_popup *
+create_popup(struct wlr_xdg_popup *wlr_popup,
+		enum layer_parent parent_type, void *parent)
+{
+	struct lab_layer_popup *popup =
+		calloc(1, sizeof(struct lab_layer_popup));
+	if (!popup) {
+		return NULL;
+	}
+
+	popup->wlr_popup = wlr_popup;
+	popup->parent_type = parent_type;
+	popup->parent_layer = parent;
+
+	popup->map.notify = popup_handle_map;
+	wl_signal_add(&wlr_popup->base->events.map, &popup->map);
+	popup->unmap.notify = popup_handle_unmap;
+	wl_signal_add(&wlr_popup->base->events.unmap, &popup->unmap);
+	popup->destroy.notify = popup_handle_destroy;
+	wl_signal_add(&wlr_popup->base->events.destroy, &popup->destroy);
+	popup->commit.notify = popup_handle_commit;
+	wl_signal_add(&wlr_popup->base->surface->events.commit, &popup->commit);
+	popup->new_popup.notify = popup_handle_new_popup;
+	wl_signal_add(&wlr_popup->base->events.new_popup, &popup->new_popup);
+
+	popup_unconstrain(popup);
+
+	return popup;
+}
+
+static void
+popup_handle_new_popup(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_popup *lab_layer_popup =
+		wl_container_of(listener, lab_layer_popup, new_popup);
+	struct wlr_xdg_popup *wlr_popup = data;
+	create_popup(wlr_popup, LAYER_PARENT_POPUP, lab_layer_popup);
+}
+
+static void
+new_popup_notify(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_surface *lab_layer_surface =
+		wl_container_of(listener, lab_layer_surface, new_popup);
+	struct wlr_xdg_popup *wlr_popup = data;
+	create_popup(wlr_popup, LAYER_PARENT_LAYER, lab_layer_surface);
+}
+
+static void
 new_layer_surface_notify(struct wl_listener *listener, void *data)
 {
 	struct server *server = wl_container_of(
@@ -326,25 +556,15 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 		layer_surface->output = output;
 	}
 
-	struct output *output =
-		output_from_wlr_output(server, layer_surface->output);
-
 	struct lab_layer_surface *surface =
 		calloc(1, sizeof(struct lab_layer_surface));
 	if (!surface) {
 		return;
 	}
-	surface->layer_surface = layer_surface;
-	layer_surface->data = surface;
-	surface->server = server;
 
 	surface->surface_commit.notify = surface_commit_notify;
 	wl_signal_add(&layer_surface->surface->events.commit,
 		&surface->surface_commit);
-
-	surface->output_destroy.notify = output_destroy_notify;
-	wl_signal_add(&layer_surface->output->events.destroy,
-		&surface->output_destroy);
 
 	surface->destroy.notify = destroy_notify;
 	wl_signal_add(&layer_surface->events.destroy, &surface->destroy);
@@ -354,6 +574,27 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 
 	surface->unmap.notify = unmap_notify;
 	wl_signal_add(&layer_surface->events.unmap, &surface->unmap);
+
+	surface->new_popup.notify = new_popup_notify;
+	wl_signal_add(&layer_surface->events.new_popup, &surface->new_popup);
+
+	surface->new_subsurface.notify = new_subsurface_notify;
+	wl_signal_add(&layer_surface->surface->events.new_subsurface,
+		&surface->new_subsurface);
+
+	surface->layer_surface = layer_surface;
+	layer_surface->data = surface;
+	surface->server = server;
+
+	struct output *output = layer_surface->output->data;
+	surface->output_destroy.notify = output_destroy_notify;
+	wl_signal_add(&layer_surface->output->events.destroy,
+		&surface->output_destroy);
+
+	if (!output) {
+		wlr_log(WLR_ERROR, "no output for layer");
+		return;
+	}
 
 	wl_list_insert(&output->layers[layer_surface->pending.layer],
 		&surface->link);

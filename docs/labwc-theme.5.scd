@@ -37,8 +37,15 @@ A theme consists of a themerc file and optionally some xbm icons.
 	Line width (integer) of border border drawn around window frames.
 	Default is 1.
 
+*padding.height*
+	Vertical padding size, used for spacing out elements in the window decorations.
+	Default is 3.
+
 *window.active.border.color*
 	Border color of active window
+
+*window.inactive.border.color*
+	Border color of inactive window
 
 *window.active.title.bg.color*
 	Background color for the focussed window's titlebar

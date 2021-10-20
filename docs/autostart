@@ -1,5 +1,21 @@
 # Example autostart file
 
-# Set background color
+# Set background color.
 swaybg -c '#113344' >/dev/null 2>&1 &
 
+# Configure output directives such as mode, position, scale and transform.
+# Use wlr-randr to get your output names
+# Example ~/.config/kanshi/config below:
+#   profile {
+#     output HDMI-A-1 position 1366,0
+#     output eDP-1 position 0,0
+#   }
+kanshi >/dev/null 2>&1 &
+
+# Launch a panel such as yambar or waybar.
+waybar >/dev/null 2>&1 &
+
+# Enable notifications. Typically GNOME/KDE application notifications go through the
+# org.freedesktop.Notifications D-Bus API and require a client such as mako to
+# function correctly. Thunderbird is an example of this.
+mako >/dev/null 2>&1 &

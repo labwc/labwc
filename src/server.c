@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_input_inhibitor.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
+#include <wlr/types/wlr_viewporter.h>
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "layers.h"
@@ -268,6 +269,7 @@ server_init(struct server *server)
 	wlr_screencopy_manager_v1_create(server->wl_display);
 	wlr_data_control_manager_v1_create(server->wl_display);
 	wlr_gamma_control_manager_v1_create(server->wl_display);
+	wlr_viewporter_create(server->wl_display);
 
 	server->relative_pointer_manager = wlr_relative_pointer_manager_v1_create(
 		server->wl_display);

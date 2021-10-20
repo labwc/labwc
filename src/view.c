@@ -178,6 +178,15 @@ view_toggle_decorations(struct view *view)
 }
 
 void
+view_set_decorations(struct view *view, bool decorations)
+{
+	if (view->ssd.enabled != decorations) {
+		view->ssd.enabled = decorations;
+		ssd_update_geometry(view, true);
+	}
+}
+
+void
 view_toggle_fullscreen(struct view *view)
 {
 	view_set_fullscreen(view, !view->fullscreen, NULL);

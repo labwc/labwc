@@ -355,6 +355,7 @@ void view_set_fullscreen(struct view *view, bool fullscreen,
 	struct wlr_output *wlr_output);
 void view_toggle_maximize(struct view *view);
 void view_toggle_decorations(struct view *view);
+void view_set_decorations(struct view *view, bool decorations);
 void view_toggle_fullscreen(struct view *view);
 void view_for_each_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *user_data);

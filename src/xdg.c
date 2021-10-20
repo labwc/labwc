@@ -399,6 +399,8 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->xdg_surface = xdg_surface;
 	wl_list_init(&view->ssd.parts);
 
+	xdg_surface->data = view;
+
 	view->map.notify = handle_map;
 	wl_signal_add(&xdg_surface->events.map, &view->map);
 	view->unmap.notify = handle_unmap;

@@ -63,7 +63,7 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
 			continue;
 		}
 		for (size_t i = 0; i < keybind->keysyms_len; i++) {
-			if (sym == keybind->keysyms[i]) {
+			if (xkb_keysym_to_lower(sym) == keybind->keysyms[i]) {
 				action(server, keybind->action,
 				       keybind->command);
 				return true;

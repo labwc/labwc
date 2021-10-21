@@ -480,8 +480,9 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* Handle _press_ on a layer surface */
 	if (!view && surface) {
-		/* ...if we've ended up here it must be a layer surface */
-		assert(wlr_surface_is_layer_surface(surface));
+		if (!wlr_surface_is_layer_surface(surface)) {
+			return;
+		}
 		struct wlr_layer_surface_v1 *layer =
 			wlr_layer_surface_v1_from_wlr_surface(surface);
 		if (layer->current.keyboard_interactive) {

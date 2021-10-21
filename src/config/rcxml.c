@@ -300,9 +300,9 @@ entry(xmlNode *node, char *nodename, char *content)
 		fill_font(nodename, content, font_place);
 	} else if (!strcmp(nodename, "size.font.theme")) {
 		fill_font(nodename, content, font_place);
-	} else if (!strcasecmp(nodename, "FollowMouse.focus")) {
+	} else if (!strcasecmp(nodename, "followMouse.focus")) {
 		rc.focus_follow_mouse = get_bool(content);
-	} else if (!strcasecmp(nodename, "RaiseOnFocus.focus")) {
+	} else if (!strcasecmp(nodename, "raiseOnFocus.focus")) {
 		rc.raise_on_focus = get_bool(content);
 		if (rc.raise_on_focus) {
 			rc.focus_follow_mouse = true;
@@ -316,9 +316,9 @@ entry(xmlNode *node, char *nodename, char *content)
 		}
 	} else if (!strcasecmp(nodename, "name.context.mouse")) {
 		current_mouse_context = content;
-	} else if (!strcasecmp(nodename, "RepeatRate.keyboard")) {
+	} else if (!strcasecmp(nodename, "repeatRate.keyboard")) {
 		rc.repeat_rate = atoi(content);
-	} else if (!strcasecmp(nodename, "RepeatDelay.keyboard")) {
+	} else if (!strcasecmp(nodename, "repeatDelay.keyboard")) {
 		rc.repeat_delay = atoi(content);
 	}
 }

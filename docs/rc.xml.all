@@ -42,6 +42,8 @@
     your favourite terminal or application launcher.
   -->
   <keyboard>
+    <repeatRate>25</repeatRate>
+    <repeatDelay>600</repeatDelay>
     <keybind key="A-Escape">
       <action name="Exit" />
     </keybind>
@@ -106,8 +108,10 @@
     one below.
   -->
   <mouse>
+
     <!-- time is in ms -->
     <doubleClickTime>500</doubleClickTime>
+
     <context name="TitleBar">
       <mousebind button="Left" action="DoubleClick">
         <action name="ToggleMaximize"/>

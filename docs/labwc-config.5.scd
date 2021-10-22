@@ -28,6 +28,9 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	The distance in pixels between views and output edges when using
 	movement actions, for example MoveToEdge. Default is 0.
 
+*<core><adaptiveSync>* [yes|no]
+	Enable adaptive sync. Default is no.
+
 # FOCUS
 
 *<focus><followMouse>* [yes|no]

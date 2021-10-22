@@ -23,11 +23,6 @@ For example, this sets keyboard layout to Swedish:
 XKB_DEFAULT_LAYOUT=se
 ```
 
-The following environment variables are supported by labwc:
-
-*LABWC_ADAPTIVE_SYNC*
-	Set to 1 enable adaptive sync
-
 # SEE ALSO
 
 labwc(1)

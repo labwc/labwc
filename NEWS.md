@@ -7,34 +7,54 @@ For full changelog, use `git log`
 
 - The config option `<lab><xdg_shell_server_side_deco>` has changed to
   `<core><decoration>`
-- Support `wlr_input_inhibit_unstable_v1 protocol`. This enables swaylock
-  to be run. Written-by: @telent
-- Support `wlr_foreign_toplevel protocol`. This enables controlling
-  windows from panels such as waybar.
+- Add support for the following wayland protocols:
+    - `pointer_constraints` and `relative_pointer` - mostly for gaming.
+      Written-by: @Joshua-Ashton
+    - `viewporter` - needed for some games to fake modesets.
+      Written-by: @Joshua-Ashton
+    - `wlr_input_inhibit`. This enables swaylock to be run.
+      Written-by: @telent
+    - `wlr_foreign_toplevel`. This enables controlling windows from clients
+      such as waybar.
 - Support fullscreen mode.
 - Support drag-and-drop. Written-by: @ARDiDo
-- Support some libinput configuration. Written-by: @ARDiDo
+- Support libinput configuration. Written-by: @ARDiDo
 - Add the following config options:
     - Load default keybinds on `<keyboard><default />`
+    - `<keyboard><repeatRate>` and `<keyboard><repeatDelay>`
     - Specify distance between views and output edges with `<core><gap>`
+    - `<core><adaptiveSync>`
     - Set menu item font with `<theme><font place="MenuItem">`
     - Allow `<theme><font>` without place="" attribute, thus enabling
       simpler config files
 - Support for primary selection. Written-by: @telent
 - Support 'alt-tab' on screen display when cycling between windows
-- Add theme options to set buttons colors individually (for iconify, close
-  and maximize)
+- Add the following theme options:
+    - set buttons colors individually (for iconify, close and maximize)
+    - `window.(in)active.label.text.color`
+    - `window.label.text.justify`
+    - OSD colors
 - Show application title in window decoration title bar
 - Handle double click on window decoration title bar
 - Support a 'resize-edges' area that is wider than than the visible
   window decoration. This makes it easier to grab edges to resize
   windows.
 - Add window actions 'MoveToEdge', 'ToggleMaximize', 'Close', 'Iconfiy',
-  'ToggleDecorations', 'ToggleFullscreen'
+  'ToggleDecorations', 'ToggleFullscreen', 'SnapToEdge'
 - Add labwc.desktop for display managers
-- Take into account exclusive areas of clients using layer-shell (such
-  as panels) when maximizing windows
+- layer-shell:
+    - Take into account exclusive areas of clients (such as panels) when
+      maximizing windows
+    - Support popups
 - Handle alt + mouse button to move/resize windows
+- Handle xwayland `set_decorations` and xdg-shell-decoration requests.
+  Written-by: @Joshua-Ashton
+- Implement going backwards in OSD by pressing shift
+  Written-by: @Joshua-Ashton
+- Handle view min/max size better, including xwayland hint support.
+  Written-by: @Joshua-Ashton
+- Handle xwayland move/resize events. Written-by: @Joshua-Ashton
+- Support audio and monitor-brightness keys by default
 - Catch ctrl-alt-F1 to F12 to switch tty
 
 ## 0.3.0 (2021-06-28)

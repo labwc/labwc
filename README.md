@@ -21,6 +21,7 @@ In order to avoid re-inventing configuration & theme syntax, [openbox-3.4] speci
 
 | video link     | date        | content
 | -------------- | ------------| -------
+| [Video (0:18)] | 16-Oct-2021 | SnapToEdge feature
 | [Video (1:10)] | 05-Aug-2021 | window gymnastics, theming and waybar
 | [Video (3:42)] | 25-Feb-2021 | setting background and themes; xwayland/xdg-shell windows
 
@@ -184,6 +185,7 @@ Let's try to stick to this [coding style]
 [complete]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-complete-items
 [outstanding]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-outstanding-items
 
+[Video (0:18)]: https://user-images.githubusercontent.com/21316711/137605766-67196fb0-c147-4114-a8f7-1651580c2572.mp4
 [Video (1:10)]: https://youtu.be/AU_M3n_FS-E
 [Video (3:42)]: https://youtu.be/rE1bQjSVJzg
 

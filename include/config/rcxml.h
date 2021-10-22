@@ -9,23 +9,35 @@
 #include "config/libinput.h"
 
 struct rcxml {
+
+	/* core */
 	bool xdg_shell_server_side_deco;
 	int gap;
 	bool adaptive_sync;
+
+	/* focus */
 	bool focus_follow_mouse;
 	bool raise_on_focus;
+
+	/* theme */
 	char *theme_name;
 	int corner_radius;
 	char *font_name_activewindow;
 	char *font_name_menuitem;
 	int font_size_activewindow;
 	int font_size_menuitem;
-	struct wl_list keybinds;
-	struct wl_list mousebinds;
-	long doubleclick_time; /* in ms */
-	struct wl_list libinput_categories;
+
+	/* keyboard */
 	int repeat_rate;
 	int repeat_delay;
+	struct wl_list keybinds;
+
+	/* mouse */
+	long doubleclick_time; /* in ms */
+	struct wl_list mousebinds;
+
+	/* libinput */
+	struct wl_list libinput_categories;
 };
 
 extern struct rcxml rc;

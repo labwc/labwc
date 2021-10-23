@@ -14,6 +14,7 @@ struct rcxml {
 	bool xdg_shell_server_side_deco;
 	int gap;
 	bool adaptive_sync;
+	int strength;
 
 	/* focus */
 	bool focus_follow_mouse;

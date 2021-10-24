@@ -323,7 +323,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "repeatDelay.keyboard")) {
 		rc.repeat_delay = atoi(content);
 	} else if (!strcasecmp(nodename, "screenEdgeStrength.core")) {
-		rc.strength = atoi(content);
+		rc.screen_edge_strength = atoi(content);
 	}
 }
 
@@ -419,7 +419,7 @@ rcxml_init()
 	rc.doubleclick_time = 500;
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
-	rc.strength = 0;
+	rc.screen_edge_strength = 0;
 }
 
 static struct {

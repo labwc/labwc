@@ -14,7 +14,6 @@ struct rcxml {
 	bool xdg_shell_server_side_deco;
 	int gap;
 	bool adaptive_sync;
-	int screen_edge_strength;
 
 	/* focus */
 	bool focus_follow_mouse;
@@ -39,6 +38,9 @@ struct rcxml {
 
 	/* libinput */
 	struct wl_list libinput_categories;
+
+	/* resistance */
+	int screen_edge_strength;
 };
 
 extern struct rcxml rc;

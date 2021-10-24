@@ -322,7 +322,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.repeat_rate = atoi(content);
 	} else if (!strcasecmp(nodename, "repeatDelay.keyboard")) {
 		rc.repeat_delay = atoi(content);
-	} else if (!strcasecmp(nodename, "screenEdgeStrength.core")) {
+	} else if (!strcasecmp(nodename, "screenEdgeStrength.resistance")) {
 		rc.screen_edge_strength = atoi(content);
 	}
 }

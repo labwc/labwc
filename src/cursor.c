@@ -125,6 +125,7 @@ process_cursor_resize(struct server *server, uint32_t time)
 		new_view_geo.width = server->grab_box.width + dx;
 	}
 
+	resize_resistance(view, &new_view_geo, true);
 	view_move_resize(view, new_view_geo);
 }
 

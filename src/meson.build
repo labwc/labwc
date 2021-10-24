@@ -13,6 +13,7 @@ labwc_sources = files(
   'seat.c',
   'server.c',
   'ssd.c',
+  'strength.c',
   'subsurface.c',
   'theme.c',
   'view.c',

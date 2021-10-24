@@ -16,8 +16,6 @@ view_set_activated(struct view *view, bool activated)
 	}
 }
 
-static void view_move_resistance(struct view *view, double *x, double *y);
-
 void
 view_move_resize(struct view *view, struct wlr_box geo)
 {
@@ -31,7 +29,6 @@ void
 view_move(struct view *view, double x, double y)
 {
 	if (view->impl->move) {
-		view_move_resistance(view, &x, &y);
 		view->impl->move(view, x, y);
 	}
 }
@@ -255,7 +252,7 @@ view_for_each_popup_surface(struct view *view,
 	}
 }
 
-static struct border
+struct border
 view_border(struct view *view)
 {
 	struct border border = {
@@ -424,55 +421,6 @@ view_snap_to_edge(struct view *view, const char *direction)
 	}
 
 	view_move_resize(view, dst);
-}
-
-static void
-view_move_resistance(struct view *view, double *x, double *y)
-{
-	struct wlr_box mgeom;
-	struct output *output;
-	struct border border = view_border(view);
-	int l, r, t, b; /* The edges of the current view */
-	int tl, tr, tt, tb; /* The desired edges */
-	int ml, mr, mt, mb; /* The edges of the Monitor */
-
-	if (!rc.strength) {
-		return;
-	}
-
-	output = view_output(view);
-	if (!output) {
-		return;
-	}
-
-	l = view->x - border.left - rc.gap;
-	t = view->y - border.top - rc.gap;
-	r = view->x + view->w + border.right + rc.gap;
-	b = view->y + view->h + border.bottom + rc.gap;
-
-	tl = *x - border.left - rc.gap;
-	tt = *y - border.top - rc.gap;
-	tr = *x + view->w + border.right + rc.gap;
-	tb = *y + view->h + border.bottom + rc.gap;
-
-	mgeom = output_usable_area_in_layout_coords(output);
-
-	ml = mgeom.x;
-	mt = mgeom.y;
-	mr = mgeom.x + mgeom.width;
-	mb = mgeom.y + mgeom.height;
-
-	if (l >= ml && tl < ml && tl >= ml - rc.strength) {
-		*x = ml + border.left + rc.gap;
-	} else if (r <= mr && tr > mr && tr <= mr + rc.strength) {
-		*x = mr - view->w - border.right - rc.gap;
-	}
-
-	if (t >= mt && tt < mt && tt >= mt - rc.strength) {
-		*y = mt + border.top + rc.gap;
-	} else if (b <= mb && tb > mb && tb <= mb + rc.strength) {
-		*y = mb - view->h - border.bottom - rc.gap;
-	}
 }
 
 const char *

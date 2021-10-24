@@ -79,7 +79,10 @@ process_cursor_move(struct server *server, uint32_t time)
 	struct view *view = server->grabbed_view;
 
 	/* Move the grabbed view to the new position. */
-	view_move(view, server->grab_box.x + dx, server->grab_box.y + dy);
+	dx += server->grab_box.x;
+	dy += server->grab_box.y;
+	move_resistance(view, &dx, &dy, true);
+	view_move(view, dx, dy);
 }
 
 static void

@@ -5,6 +5,7 @@
 #include <time.h>
 #include "labwc.h"
 #include "menu/menu.h"
+#include "resistance.h"
 #include "ssd.h"
 #include "config/mousebind.h"
 #include <wlr/types/wlr_primary_selection.h>
@@ -81,7 +82,7 @@ process_cursor_move(struct server *server, uint32_t time)
 	/* Move the grabbed view to the new position. */
 	dx += server->grab_box.x;
 	dy += server->grab_box.y;
-	resistance_move_apply(view, &dx, &dy, true);
+	resistance_move_apply(view, &dx, &dy);
 	view_move(view, dx, dy);
 }
 
@@ -125,7 +126,7 @@ process_cursor_resize(struct server *server, uint32_t time)
 		new_view_geo.width = server->grab_box.width + dx;
 	}
 
-	resistance_resize_apply(view, &new_view_geo, true);
+	resistance_resize_apply(view, &new_view_geo);
 	view_move_resize(view, new_view_geo);
 }
 

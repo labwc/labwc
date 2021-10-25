@@ -155,6 +155,15 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	any motion events while a keyboard is typing, and for a short while
 	after as well. 
 
+
+# RESISTANCE
+
+*<resistance>screenEdgeStrength>*
+	Screen Edge Strength is how far past the screen's edge your cursor must
+	move before the window will move with it. Resistance is counted in
+	pixels. <core><gap> influences where the the screen's edge is at.
+	Default is 20 pixels.
+
 # SEE ALSO
 
 labwc(1), labwc-actions(5), labwc-theme(5)

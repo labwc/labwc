@@ -419,7 +419,7 @@ rcxml_init()
 	rc.doubleclick_time = 500;
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
-	rc.screen_edge_strength = 0;
+	rc.screen_edge_strength = 20;
 }
 
 static struct {

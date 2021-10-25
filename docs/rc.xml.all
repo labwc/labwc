@@ -144,4 +144,9 @@
     </device>
   </libinput>
 
+  <!-- edge strength is in pixels -->
+  <resistance>
+    <screenEdgeStrength>20</screenEdgeStrength>
+  </resistance>
+
 </labwc_config>

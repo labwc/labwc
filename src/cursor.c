@@ -81,7 +81,7 @@ process_cursor_move(struct server *server, uint32_t time)
 	/* Move the grabbed view to the new position. */
 	dx += server->grab_box.x;
 	dy += server->grab_box.y;
-	move_resistance(view, &dx, &dy, true);
+	resistance_move_apply(view, &dx, &dy, true);
 	view_move(view, dx, dy);
 }
 
@@ -125,7 +125,7 @@ process_cursor_resize(struct server *server, uint32_t time)
 		new_view_geo.width = server->grab_box.width + dx;
 	}
 
-	resize_resistance(view, &new_view_geo, true);
+	resistance_resize_apply(view, &new_view_geo, true);
 	view_move_resize(view, new_view_geo);
 }
 

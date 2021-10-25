@@ -345,8 +345,8 @@ void view_child_finish(struct view_child *child);
 void subsurface_create(struct view *view, struct wlr_subsurface *wlr_subsurface);
 
 void view_set_activated(struct view *view, bool activated);
-void move_resistance(struct view *view, double *x, double *y, bool screen_edge);
-void resize_resistance(struct view *view, struct wlr_box *new_view_geo,
+void resistance_move_apply(struct view *view, double *x, double *y, bool screen_edge);
+void resistance_resize_apply(struct view *view, struct wlr_box *new_view_geo,
 	bool screen_edge);
 struct border view_border(struct view *view);
 void view_move_resize(struct view *view, struct wlr_box geo);

@@ -161,8 +161,7 @@ Configuration must be wrapped in a <labwc_config> root-node.
 *<resistance>screenEdgeStrength>*
 	Screen Edge Strength is how far past the screen's edge your cursor must
 	move before the window will move with it. Resistance is counted in
-	pixels. <core><gap> influences where the the screen's edge is at.
-	Default is 20 pixels.
+	pixels. Default is 20 pixels.
 
 # SEE ALSO
 

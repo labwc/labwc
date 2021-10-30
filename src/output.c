@@ -1150,6 +1150,12 @@ handle_output_layout_change(struct wl_listener *listener, void *data)
 			wlr_log(WLR_ERROR,
 				"wlr_output_manager_v1_set_configuration()");
 		}
+		struct output *output;
+		wl_list_for_each(output, &server->outputs, link) {
+			if (output) {
+				arrange_layers(output);
+			}
+		}
 	}
 }
 

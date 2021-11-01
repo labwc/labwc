@@ -130,7 +130,7 @@ handle_compositor_keybindings(struct wl_listener *listener,
 	/* Handle compositor key bindings */
 	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 		for (int i = 0; i < nsyms; i++) {
-			handled = handle_keybinding(server, modifiers, syms[i]);
+			handled |= handle_keybinding(server, modifiers, syms[i]);
 		}
 	}
 

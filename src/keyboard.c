@@ -104,6 +104,18 @@ handle_compositor_keybindings(struct wl_listener *listener,
 	uint32_t modifiers =
 		wlr_keyboard_get_modifiers(device->keyboard);
 
+	/* Catch C-A-F1 to C-A-F12 to change tty */
+	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+		for (int i = 0; i < nsyms; i++) {
+			unsigned int vt = syms[i] - XKB_KEY_XF86Switch_VT_1 + 1;
+			if (vt >= 1 && vt <= 12) {
+				change_vt(server, vt);
+				/* don't send any key events to clients when changing tty */
+				return true;
+			}
+		}
+	}
+
 	if (server->cycle_view) {
 		damage_all_outputs(server);
 		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
@@ -131,17 +143,6 @@ handle_compositor_keybindings(struct wl_listener *listener,
 	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 		for (int i = 0; i < nsyms; i++) {
 			handled |= handle_keybinding(server, modifiers, syms[i]);
-		}
-	}
-
-	/* Catch C-A-F1 to C-A-F12 to change tty */
-	if (!handled && event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
-		for (int i = 0; i < nsyms; i++) {
-			unsigned int vt = syms[i] - XKB_KEY_XF86Switch_VT_1 + 1;
-			if (vt >= 1 && vt <= 12) {
-				change_vt(server, vt);
-				handled = true;
-			}
 		}
 	}
 	return handled;

@@ -111,7 +111,16 @@ Configuration must be wrapped in a <labwc_config> root-node.
 
 *<mouse><context name=""><mousebind button="" action="">*
 	Define a mouse binding. Supported context-names include:
-	'TitleBar'.
+	- TitleBar: The area where the title of the window is shown.
+	- Iconify: The button that looks like an underline.
+	- Maximize: The button that looks like a box.
+	- Close: The button that looks like an X.
+
+	Supported mouse actions include:
+	- Press: Pressing the specified button down in the context.
+	- Release: Releasing the specified button in the context.
+	- Click: Pressing and then releasing inside of the the context.
+	- DoubleClick: Two presses within the doubleClickTime.
 
 # LIBINPUT
 

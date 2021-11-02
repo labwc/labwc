@@ -7,6 +7,9 @@
 enum mouse_event {
 	MOUSE_ACTION_NONE = 0,
 	MOUSE_ACTION_DOUBLECLICK,
+	MOUSE_ACTION_CLICK,
+	MOUSE_ACTION_PRESS,
+	MOUSE_ACTION_RELEASE,
 };
 
 struct mousebind {
@@ -21,6 +24,7 @@ struct mousebind {
 	const char *command;
 
 	struct wl_list link; /* rcxml::mousebinds */
+	bool pressed_in_context; /* used in click events */
 };
 
 enum mouse_event mousebind_event_from_str(const char *str);

@@ -420,6 +420,27 @@ handle_cursor_button_with_meta_key(struct view *view, uint32_t button,
 	interactive_begin(view, LAB_INPUT_STATE_RESIZE, edges);
 }
 
+static void
+handle_release_mousebinding(struct server *server, uint32_t button, enum ssd_part_type view_area)
+{
+	struct mousebind *mousebind;
+	wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
+		if (mousebind->context == view_area
+				&& mousebind->button == button) {
+			if (mousebind->mouse_event
+					== MOUSE_ACTION_RELEASE) {
+				action(server, mousebind->action,
+					mousebind->command);
+			}
+			if (mousebind->pressed_in_context) {
+				mousebind->pressed_in_context = false;
+				action(server, mousebind->action,
+					mousebind->command);
+			}
+		}
+	}
+}
+
 static bool
 is_double_click(long double_click_speed)
 {
@@ -431,6 +452,37 @@ is_double_click(long double_click_speed)
 		(now.tv_nsec - last_double_click.tv_nsec) / 1000000;
 	last_double_click = now;
 	return ms < double_click_speed && ms >= 0;
+}
+
+static bool
+handle_press_mousebinding(struct server *server, uint32_t button, enum ssd_part_type view_area)
+{
+	struct mousebind *mousebind;
+	bool double_click = is_double_click(rc.doubleclick_time);
+	bool bound;
+
+	wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
+		if (mousebind->context == view_area
+				&& mousebind->button == button) {
+			if (mousebind->mouse_event
+					== MOUSE_ACTION_PRESS) {
+				bound = true;
+				action(server, mousebind->action,
+					mousebind->command);
+			} else if (mousebind->mouse_event
+					== MOUSE_ACTION_CLICK) {
+				bound = true;
+				mousebind->pressed_in_context = true;
+			} else if (double_click
+					&& mousebind->mouse_event
+					== MOUSE_ACTION_DOUBLECLICK) {
+				bound = true;
+				action(server, mousebind->action,
+						mousebind->command);
+			}
+		}
+	}
+	return bound;
 }
 
 void
@@ -471,10 +523,13 @@ cursor_button(struct wl_listener *listener, void *data)
 		if (server->input_mode == LAB_INPUT_STATE_MENU) {
 			return;
 		}
-		/* Exit interactive move/resize/menu mode. */
-		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		damage_all_outputs(server);
-		return;
+		if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+			/* Exit interactive move/resize/menu mode. */
+			server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+			return;
+		}
+		goto mousebindings;
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
@@ -507,39 +562,24 @@ cursor_button(struct wl_listener *listener, void *data)
 	desktop_raise_view(view);
 	damage_all_outputs(server);
 
-	if (is_double_click(rc.doubleclick_time)
-			&& view_area == LAB_SSD_PART_TITLEBAR) {
-		struct mousebind *mousebind;
-		wl_list_for_each_reverse (mousebind, &rc.mousebinds, link) {
-			/* TODO: make this more generic */
-			if ((mousebind->context == LAB_SSD_PART_TITLEBAR) &&
-				(mousebind->mouse_event == MOUSE_ACTION_DOUBLECLICK) &&
-				(mousebind->button == event->button)) {
-				action(server, mousebind->action, mousebind->command);
-			}
-		}
-		return;
-	}
-
 	resize_edges = ssd_resize_edges(view_area);
 	if (resize_edges) {
 		interactive_begin(view, LAB_INPUT_STATE_RESIZE, resize_edges);
 		return;
 	}
 
-	switch (view_area) {
-	case LAB_SSD_BUTTON_CLOSE:
-		view->impl->close(view);
-		break;
-	case LAB_SSD_BUTTON_ICONIFY:
-		view_minimize(view, true);
-		break;
-	case LAB_SSD_PART_TITLEBAR:
+mousebindings:
+	if (event->state == WLR_BUTTON_RELEASED) {
+		handle_release_mousebinding(server, event->button, view_area);
+		return;
+	} else if (event->state == WLR_BUTTON_PRESSED) {
+		if (handle_press_mousebinding(server, event->button, view_area)) {
+			return;
+		}
+	}
+
+	if (view_area == LAB_SSD_PART_TITLEBAR) {
 		interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
-		break;
-	case LAB_SSD_BUTTON_MAXIMIZE:
-		view_toggle_maximize(view);
-		break;
 	}
 }
 

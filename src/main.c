@@ -71,8 +71,7 @@ main(int argc, char *argv[])
 	theme_init(&theme, server.renderer, rc.theme_name);
 	server.theme = &theme;
 
-	struct menu rootmenu = { 0 };
-	menu_init_rootmenu(&server, &rootmenu);
+	menu_init_rootmenu(&server);
 
 	session_autostart_init();
 	if (startup_cmd) {
@@ -83,7 +82,7 @@ main(int argc, char *argv[])
 
 	server_finish(&server);
 
-	menu_finish(&rootmenu);
+	menu_finish();
 	theme_finish(&theme);
 	rcxml_finish();
 	font_finish();

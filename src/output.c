@@ -608,8 +608,11 @@ render_deco(struct view *view, struct output *output,
 }
 
 static void
-render_rootmenu(struct output *output, pixman_region32_t *output_damage)
+render_menu(struct output *output, pixman_region32_t *damage, struct menu *menu)
 {
+	if (!menu->visible) {
+		return;
+	}
 	struct server *server = output->server;
 	struct theme *theme = server->theme;
 	float matrix[9];
@@ -620,12 +623,11 @@ render_rootmenu(struct output *output, pixman_region32_t *output_damage)
 		&ox, &oy);
 
 	/* background */
-	render_rect(output, output_damage, &server->rootmenu->box,
-		theme->menu_items_bg_color);
+	render_rect(output, damage, &menu->box, theme->menu_items_bg_color);
 
 	/* items */
 	struct menuitem *menuitem;
-	wl_list_for_each (menuitem, &server->rootmenu->menuitems, link) {
+	wl_list_for_each (menuitem, &menu->menuitems, link) {
 		struct wlr_box box = {
 			.x = menuitem->box.x + menuitem->texture.offset_x + ox,
 			.y = menuitem->box.y + menuitem->texture.offset_y + oy,
@@ -636,13 +638,17 @@ render_rootmenu(struct output *output, pixman_region32_t *output_damage)
 		wlr_matrix_project_box(matrix, &box, WL_OUTPUT_TRANSFORM_NORMAL,
 			0, output->wlr_output->transform_matrix);
 		if (menuitem->selected) {
-			render_rect(output, output_damage, &menuitem->box,
+			render_rect(output, damage, &menuitem->box,
 				theme->menu_items_active_bg_color);
-			render_texture(output->wlr_output, output_damage,
+			render_texture(output->wlr_output, damage,
 				menuitem->texture.active, NULL, &box, matrix);
 		} else {
-			render_texture(output->wlr_output, output_damage,
+			render_texture(output->wlr_output, damage,
 				menuitem->texture.inactive, NULL, &box, matrix);
+		}
+		/* render submenus */
+		if (menuitem->submenu) {
+			render_menu(output, damage, menuitem->submenu);
 		}
 	}
 }
@@ -808,7 +814,7 @@ output_render(struct output *output, pixman_region32_t *damage)
 		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]);
 
 	if (output->server->input_mode == LAB_INPUT_STATE_MENU) {
-		render_rootmenu(output, damage);
+		render_menu(output, damage, server->rootmenu);
 	}
 
 renderer_end:

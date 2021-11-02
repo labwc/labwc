@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef __LABWC_MENU_H
 #define __LABWC_MENU_H
 
@@ -7,6 +8,7 @@
 struct menuitem {
 	char *action;
 	char *command;
+	struct menu *submenu;
 	struct wlr_box box;
 	struct {
 		struct wlr_texture *active;
@@ -18,14 +20,18 @@ struct menuitem {
 	struct wl_list link; /* menu::menuitems */
 };
 
+/* This could be the root-menu or a submenu */
 struct menu {
-	struct server *server;
+	char *id;
+	char *label;
+	bool visible;
 	struct wlr_box box;
 	struct wl_list menuitems;
+	struct server *server;
 };
 
-void menu_init_rootmenu(struct server *server, struct menu *menu);
-void menu_finish(struct menu *menu);
+void menu_init_rootmenu(struct server *server);
+void menu_finish(void);
 
 /* menu_move - move to position (x, y) */
 void menu_move(struct menu *menu, int x, int y);

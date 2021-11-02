@@ -19,21 +19,58 @@
 #include "menu/menu.h"
 #include "theme.h"
 
-/* state-machine variables for processing <item></item> */
-static bool in_item;
-static struct menuitem *current_item;
-
 #define MENUWIDTH (110)
 #define MENU_ITEM_PADDING_Y (4)
 #define MENU_ITEM_PADDING_X (7)
 
+/* state-machine variables for processing <item></item> */
+static bool in_item;
+static struct menuitem *current_item;
+
+static struct menu *current_menu;
+
+/* vector for <menu id="" label=""> elements */
+static struct menu *menus;
+static int nr_menus, alloc_menus;
+
+static struct menu *
+menu_create(struct server *server, const char *id, const char *label)
+{
+	if (nr_menus == alloc_menus) {
+		alloc_menus = (alloc_menus + 16) * 2;
+		menus = realloc(menus, alloc_menus * sizeof(struct menu));
+	}
+	struct menu *menu = menus + nr_menus;
+	memset(menu, 0, sizeof(*menu));
+	nr_menus++;
+	wl_list_init(&menu->menuitems);
+	menu->id = strdup(id);
+	menu->label = strdup(label);
+	menu->server = server;
+	return menu;
+}
+
+static struct menu *
+get_menu_by_id(const char *id)
+{
+	struct menu *menu;
+	for (int i = 0; i < nr_menus; ++i) {
+		menu = menus + i;
+		if (!strcmp(menu->id, id)) {
+			return menu;
+		}
+	}
+	return NULL;
+}
+
 static struct menuitem *
-menuitem_create(struct server *server, struct menu *menu, const char *text)
+item_create(struct menu *menu, const char *text)
 {
 	struct menuitem *menuitem = calloc(1, sizeof(struct menuitem));
 	if (!menuitem) {
 		return NULL;
 	}
+	struct server *server = menu->server;
 	struct theme *theme = server->theme;
 	struct font font = {
 		.name = rc.font_name_menuitem,
@@ -58,26 +95,27 @@ menuitem_create(struct server *server, struct menu *menu, const char *text)
 	return menuitem;
 }
 
-static void fill_item(char *nodename, char *content, struct menu *menu)
+/*
+ * Handle the following:
+ * <item label="">
+ *   <action name="">
+ *     <command></command>
+ *   </action>
+ * </item>
+ */
+static void
+fill_item(char *nodename, char *content)
 {
 	string_truncate_at_pattern(nodename, ".item.menu");
 
-	if (getenv("LABWC_DEBUG_MENU_NODENAMES")) {
-		printf("%s: %s\n", nodename, content);
-	}
-
-	/*
-	 * Handle the following:
-	 * <item label="">
-	 *   <action name="">
-	 *     <command></command>
-	 *   </action>
-	 * </item>
-	 */
+	/* <item label=""> defines the start of a new item */
 	if (!strcmp(nodename, "label")) {
-		current_item = menuitem_create(menu->server, menu, content);
+		current_item = item_create(current_menu, content);
 	}
-	assert(current_item);
+	if (!current_item) {
+		wlr_log(WLR_ERROR, "expect <item label=\"\"> element first");
+		return;
+	}
 	if (!strcmp(nodename, "name.action")) {
 		current_item->action = strdup(content);
 	} else if (!strcmp(nodename, "command.action")) {
@@ -86,78 +124,100 @@ static void fill_item(char *nodename, char *content, struct menu *menu)
 }
 
 static void
-entry(xmlNode *node, char *nodename, char *content, struct menu *menu)
+entry(xmlNode *node, char *nodename, char *content)
 {
-	static bool in_root_menu;
-
-	if (!nodename) {
+	if (!nodename || !content) {
 		return;
 	}
 	string_truncate_at_pattern(nodename, ".openbox_menu");
-	if (!content) {
-		return;
-	}
-	if (!strcmp(nodename, "id.menu")) {
-		in_root_menu = !strcmp(content, "root-menu") ? true : false;
-	}
-
-	/* We only handle the root-menu for the time being */
-	if (!in_root_menu) {
-		return;
-	}
 	if (in_item) {
-		fill_item(nodename, content, menu);
+		fill_item(nodename, content);
 	}
 }
 
 static void
-process_node(xmlNode *node, struct menu *menu)
+process_node(xmlNode *node)
 {
-	char *content;
 	static char buffer[256];
-	char *name;
 
-	content = (char *)node->content;
+	char *content = (char *)node->content;
 	if (xmlIsBlankNode(node)) {
 		return;
 	}
-	name = nodename(node, buffer, sizeof(buffer));
-	entry(node, name, content, menu);
+	char *name = nodename(node, buffer, sizeof(buffer));
+	entry(node, name, content);
 }
 
-static void xml_tree_walk(xmlNode *node, struct menu *menu);
+static void xml_tree_walk(xmlNode *node, struct server *server);
 
 static void
-traverse(xmlNode *n, struct menu *menu)
+traverse(xmlNode *n, struct server *server)
 {
 	xmlAttr *attr;
 
-	process_node(n, menu);
+	process_node(n);
 	for (attr = n->properties; attr; attr = attr->next) {
-		xml_tree_walk(attr->children, menu);
+		xml_tree_walk(attr->children, server);
 	}
-	xml_tree_walk(n->children, menu);
+	xml_tree_walk(n->children, server);
+}
+
+/*
+ * <menu> elements have three different roles:
+ *  * Definition of (sub)menu - has ID, LABEL and CONTENT
+ *  * Menuitem of pipemenu type - has EXECUTE and LABEL
+ *  * Menuitem of submenu type - has ID only
+ */
+static void
+handle_menu_element(xmlNode *n, struct server *server)
+{
+	char *label = (char *)xmlGetProp(n, (const xmlChar *)"label");
+	char *execute = (char *)xmlGetProp(n, (const xmlChar *)"execute");
+	char *id = (char *)xmlGetProp(n, (const xmlChar *)"id");
+
+	if (execute) {
+		wlr_log(WLR_ERROR, "we do not support pipemenus");
+	} else if (label && id) {
+		current_menu = menu_create(server, id, label);
+		/* TODO: deal with nested menu definitions */
+	} else if (id) {
+		struct menu *menu = get_menu_by_id(id);
+		if (menu) {
+			current_item = item_create(current_menu, menu->label);
+			current_item->submenu = menu;
+		} else {
+			wlr_log(WLR_ERROR, "no menu with id '%s'", id);
+		}
+	}
+	zfree(label);
+	zfree(execute);
+	zfree(id);
 }
 
 static void
-xml_tree_walk(xmlNode *node, struct menu *menu)
+xml_tree_walk(xmlNode *node, struct server *server)
 {
 	for (xmlNode *n = node; n && n->name; n = n->next) {
 		if (!strcasecmp((char *)n->name, "comment")) {
 			continue;
 		}
+		if (!strcasecmp((char *)n->name, "menu")) {
+			handle_menu_element(n, server);
+			traverse(n, server);
+			continue;
+		}
 		if (!strcasecmp((char *)n->name, "item")) {
 			in_item = true;
-			traverse(n, menu);
+			traverse(n, server);
 			in_item = false;
 			continue;
 		}
-		traverse(n, menu);
+		traverse(n, server);
 	}
 }
 
 static void
-parse_xml(const char *filename, struct menu *menu)
+parse_xml(const char *filename, struct server *server)
 {
 	FILE *stream;
 	char *line = NULL;
@@ -188,56 +248,17 @@ parse_xml(const char *filename, struct menu *menu)
 	xmlDoc *d = xmlParseMemory(b.buf, b.len);
 	if (!d) {
 		wlr_log(WLR_ERROR, "xmlParseMemory()");
-		exit(EXIT_FAILURE);
+		goto err;
 	}
-	xml_tree_walk(xmlDocGetRootElement(d), menu);
+	xml_tree_walk(xmlDocGetRootElement(d), server);
 	xmlFreeDoc(d);
 	xmlCleanupParser();
+err:
 	free(b.buf);
 }
 
-void
-menu_init_rootmenu(struct server *server, struct menu *menu)
-{
-	static bool has_run;
-
-	if (!has_run) {
-		LIBXML_TEST_VERSION
-		wl_list_init(&menu->menuitems);
-		server->rootmenu = menu;
-		menu->server = server;
-	}
-
-	parse_xml("menu.xml", menu);
-
-	/* Default menu if no menu.xml found */
-	if (wl_list_empty(&menu->menuitems)) {
-		current_item = menuitem_create(server, menu, "Reconfigure");
-		current_item->action = strdup("Reconfigure");
-		current_item = menuitem_create(server, menu, "Exit");
-		current_item->action = strdup("Exit");
-	}
-	menu_move(menu, 100, 100);
-}
-
-void
-menu_finish(struct menu *menu)
-{
-	struct menuitem *menuitem, *next;
-	wl_list_for_each_safe(menuitem, next, &menu->menuitems, link) {
-		zfree(menuitem->action);
-		zfree(menuitem->command);
-		wl_list_remove(&menuitem->link);
-		free(menuitem);
-	}
-}
-
-/*
- * TODO: call this menu_configure and return the size of the menu so that
- * a background color can be rendered
- */
-void
-menu_move(struct menu *menu, int x, int y)
+static void
+menu_configure(struct menu *menu, int x, int y)
 {
 	menu->box.x = x;
 	menu->box.y = y;
@@ -248,6 +269,12 @@ menu_move(struct menu *menu, int x, int y)
 		menuitem->box.x = menu->box.x;
 		menuitem->box.y = menu->box.y + offset;
 		offset += menuitem->box.height;
+		if (menuitem->submenu) {
+			/* TODO: add offset to rc.xml */
+			menu_configure(menuitem->submenu,
+				menuitem->box.x + MENUWIDTH + 10,
+				menuitem->box.y);
+		}
 	}
 
 	menu->box.width = MENUWIDTH;
@@ -255,12 +282,114 @@ menu_move(struct menu *menu, int x, int y)
 }
 
 void
+menu_init_rootmenu(struct server *server)
+{
+	parse_xml("menu.xml", server);
+	server->rootmenu = get_menu_by_id("root-menu");
+
+	/* Default menu if no menu.xml found */
+	if (!server->rootmenu) {
+		server->rootmenu = menu_create(server, "root-menu", "");
+	}
+	if (wl_list_empty(&server->rootmenu->menuitems)) {
+		current_item = item_create(server->rootmenu, "Reconfigure");
+		current_item->action = strdup("Reconfigure");
+		current_item = item_create(server->rootmenu, "Exit");
+		current_item->action = strdup("Exit");
+	}
+
+	server->rootmenu->visible = true;
+	menu_configure(server->rootmenu, 100, 100);
+}
+
+void
+menu_finish(void)
+{
+	struct menu *menu;
+	for (int i = 0; i < nr_menus; ++i) {
+		menu = menus + i;
+		struct menuitem *item, *next;
+		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
+			zfree(item->action);
+			zfree(item->command);
+			wl_list_remove(&item->link);
+			free(item);
+		}
+	}
+	zfree(menus);
+	alloc_menus = 0;
+	nr_menus = 0;
+}
+
+static void
+close_all_submenus(struct menu *menu)
+{
+	struct menuitem *item;
+	wl_list_for_each (item, &menu->menuitems, link) {
+		if (item->submenu) {
+			item->submenu->visible = false;
+			close_all_submenus(item->submenu);
+		}
+	}
+}
+
+void
+menu_move(struct menu *menu, int x, int y)
+{
+	assert(menu);
+	close_all_submenus(menu);
+	menu_configure(menu, x, y);
+}
+
+/* TODO: consider renaming function to menu_process_cursor_motion */
+void
 menu_set_selected(struct menu *menu, int x, int y)
 {
-	struct menuitem *menuitem;
-	wl_list_for_each (menuitem, &menu->menuitems, link) {
-		menuitem->selected =
-			wlr_box_contains_point(&menuitem->box, x, y);
+	if (!menu->visible) {
+		return;
+	}
+
+	struct menuitem *item;
+	wl_list_for_each (item, &menu->menuitems, link) {
+		item->selected = wlr_box_contains_point(&item->box, x, y);
+
+		if (!item->selected) {
+			if (item->submenu && item->submenu->visible) {
+				/*
+				 * Handle the case where a submenu is already
+				 * open.
+				 */
+				item->selected = true;
+				menu_set_selected(item->submenu, x, y);
+			}
+			continue;
+		}
+
+		/* We're now on an item that has mouse-focus */
+		if (item->submenu) {
+			if (item->submenu->visible) {
+				/* do nothing - submenu already open */
+			} else {
+				/* open submenu */
+				close_all_submenus(menu);
+				item->submenu->visible = true;
+				menu_set_selected(item->submenu, x, y);
+			}
+		} else {
+			close_all_submenus(menu);
+		}
+	}
+}
+
+static void
+menu_clear_selection(struct menu *menu)
+{
+	struct menuitem *item;
+	wl_list_for_each (item, &menu->menuitems, link) {
+		item->selected = false;
+		if (item->submenu) {
+			menu_clear_selection(item->submenu);
+		}
 	}
 }
 
@@ -269,16 +398,20 @@ menu_action_selected(struct server *server, struct menu *menu)
 {
 	struct menuitem *menuitem;
 	wl_list_for_each (menuitem, &menu->menuitems, link) {
-		if (menuitem->selected) {
+		if (menuitem->selected && !menuitem->submenu) {
 			action(server, menuitem->action, menuitem->command);
 			break;
 		}
+		if (menuitem->submenu) {
+			menu_action_selected(server, menuitem->submenu);
+		}
 	}
+	menu_clear_selection(menu);
 }
 
 void
 menu_reconfigure(struct server *server, struct menu *menu)
 {
-	menu_finish(menu);
-	menu_init_rootmenu(server, menu);
+	menu_finish();
+	menu_init_rootmenu(server);
 }

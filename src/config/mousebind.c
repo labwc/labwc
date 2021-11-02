@@ -27,8 +27,14 @@ enum mouse_event
 mousebind_event_from_str(const char *str)
 {
 	assert(str);
-	if (strcasecmp(str, "doubleclick") == 0) {
+	if (!strcasecmp(str, "doubleclick")) {
 		return MOUSE_ACTION_DOUBLECLICK;
+	} else if (!strcasecmp(str, "click")) {
+		return MOUSE_ACTION_CLICK;
+	} else if (!strcasecmp(str, "press")) {
+		return MOUSE_ACTION_PRESS;
+	} else if (!strcasecmp(str, "release")) {
+		return MOUSE_ACTION_RELEASE;
 	}
 	wlr_log(WLR_ERROR, "unknown mouse action (%s)", str);
 	return MOUSE_ACTION_NONE;
@@ -39,6 +45,12 @@ context_from_str(const char *str)
 {
 	if (!strcasecmp(str, "Titlebar")) {
 		return LAB_SSD_PART_TITLEBAR;
+	} else if (!strcasecmp(str, "Close")) {
+		return LAB_SSD_BUTTON_CLOSE;
+	} else if (!strcasecmp(str, "Maximize")) {
+		return LAB_SSD_BUTTON_MAXIMIZE;
+	} else if (!strcasecmp(str, "Iconify")) {
+		return LAB_SSD_BUTTON_ICONIFY;
 	}
 	wlr_log(WLR_ERROR, "unknown mouse context (%s)", str);
 	return LAB_SSD_NONE;

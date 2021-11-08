@@ -4,7 +4,7 @@
 #include "ssd.h"
 
 /*
- * xdg_popup_create() and subsurface_create() are only called for the
+ * xdg_popup_create() and view_subsurface_create() are only called for the
  * purposes of tracking damage.
  */
 static void
@@ -20,7 +20,7 @@ new_subsurface_notify(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, new_subsurface);
 	struct wlr_subsurface *wlr_subsurface = data;
-	subsurface_create(view, wlr_subsurface);
+	view_subsurface_create(view, wlr_subsurface);
 }
 
 static bool
@@ -337,11 +337,11 @@ xdg_toplevel_view_map(struct view *view)
 		struct wlr_subsurface *subsurface;
 		wl_list_for_each(subsurface, &view->surface->current.subsurfaces_below,
 				 current.link) {
-			subsurface_create(view, subsurface);
+			view_subsurface_create(view, subsurface);
 		}
 		wl_list_for_each(subsurface, &view->surface->current.subsurfaces_above,
 				 current.link) {
-			subsurface_create(view, subsurface);
+			view_subsurface_create(view, subsurface);
 		}
 
 		view->been_mapped = true;

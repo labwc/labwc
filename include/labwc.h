@@ -342,7 +342,7 @@ void xwayland_unmanaged_create(struct server *server,
 void view_child_init(struct view_child *child, struct view *view,
 	struct wlr_surface *wlr_surface);
 void view_child_finish(struct view_child *child);
-void subsurface_create(struct view *view, struct wlr_subsurface *wlr_subsurface);
+void view_subsurface_create(struct view *view, struct wlr_subsurface *wlr_subsurface);
 
 void view_set_activated(struct view *view, bool activated);
 struct border view_border(struct view *view);

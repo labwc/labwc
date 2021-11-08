@@ -19,7 +19,10 @@ enum lab_justification {
 struct theme {
 	int border_width;
 	int padding_height;
+	int menu_overlap_x;
+	int menu_overlap_y;
 
+	/* colors */
 	float window_active_border_color[4];
 	float window_inactive_border_color[4];
 
@@ -30,7 +33,7 @@ struct theme {
 	float window_inactive_label_text_color[4];
 	enum lab_justification window_label_text_justify;
 
-	/* buttons */
+	/* button colors */
 	float window_active_button_iconify_unpressed_image_color[4];
 	float window_active_button_max_unpressed_image_color[4];
 	float window_active_button_close_unpressed_image_color[4];
@@ -47,6 +50,7 @@ struct theme {
 	float osd_bg_color[4];
 	float osd_label_text_color[4];
 
+	/* textures */
 	struct wlr_texture *xbm_close_active_unpressed;
 	struct wlr_texture *xbm_maximize_active_unpressed;
 	struct wlr_texture *xbm_iconify_active_unpressed;

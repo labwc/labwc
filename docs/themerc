@@ -1,6 +1,8 @@
 # general
 border.width: 1
 padding.height: 3
+menu.overlap.x: 0
+menu.overlap.y: 0
 
 # window border
 window.active.border.color: #dddad6

@@ -91,6 +91,8 @@ theme_builtin(struct theme *theme)
 {
 	theme->border_width = 1;
 	theme->padding_height = 3;
+	theme->menu_overlap_x = 0;
+	theme->menu_overlap_y = 0;
 
 	parse_hexstr("#dddad6", theme->window_active_border_color);
 	parse_hexstr("#f6f5f4", theme->window_inactive_border_color);
@@ -151,6 +153,12 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match(key, "padding.height")) {
 		theme->padding_height = atoi(value);
+	}
+	if (match(key, "menu.overlap.x")) {
+		theme->menu_overlap_x = atoi(value);
+	}
+	if (match(key, "menu.overlap.y")) {
+		theme->menu_overlap_y = atoi(value);
 	}
 
 	if (match(key, "window.active.border.color")) {

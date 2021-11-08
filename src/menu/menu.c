@@ -276,6 +276,8 @@ err:
 static void
 menu_configure(struct menu *menu, int x, int y)
 {
+	struct theme *theme = menu->server->theme;
+
 	menu->box.x = x;
 	menu->box.y = y;
 
@@ -286,10 +288,9 @@ menu_configure(struct menu *menu, int x, int y)
 		menuitem->box.y = menu->box.y + offset;
 		offset += menuitem->box.height;
 		if (menuitem->submenu) {
-			/* TODO: add offset to rc.xml */
-			menu_configure(menuitem->submenu,
-				menuitem->box.x + MENUWIDTH + 10,
-				menuitem->box.y);
+			menu_configure(menuitem->submenu, menuitem->box.x
+				+ MENUWIDTH - theme->menu_overlap_x,
+				menuitem->box.y + theme->menu_overlap_y);
 		}
 	}
 

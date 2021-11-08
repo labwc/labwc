@@ -41,6 +41,16 @@ A theme consists of a themerc file and optionally some xbm icons.
 	Vertical padding size, used for spacing out elements in the window decorations.
 	Default is 3.
 
+*menu.overlap.x*
+	Horizontal overlap in pixels between submenus and their parents. A
+	positive value move submenus over the top of their parents, whereas a
+	negative value creates a gap between submenus and their parents.
+	Default is 0.
+
+*menu.overlap.y*
+	Vertical offset in pixels between submenus and their parents. Positive
+	values for downwards and negative for upwards. Default is 0.
+
 *window.active.border.color*
 	Border color of active window
 

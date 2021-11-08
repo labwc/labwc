@@ -25,6 +25,7 @@ struct menu {
 	char *id;
 	char *label;
 	bool visible;
+	struct menu *parent;
 	struct wlr_box box;
 	struct wl_list menuitems;
 	struct server *server;

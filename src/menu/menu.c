@@ -27,6 +27,7 @@
 static bool in_item;
 static struct menuitem *current_item;
 
+static int menu_level;
 static struct menu *current_menu;
 
 /* vector for <menu id="" label=""> elements */
@@ -46,6 +47,7 @@ menu_create(struct server *server, const char *id, const char *label)
 	wl_list_init(&menu->menuitems);
 	menu->id = strdup(id);
 	menu->label = strdup(label);
+	menu->parent = current_menu;
 	menu->server = server;
 	return menu;
 }
@@ -178,8 +180,23 @@ handle_menu_element(xmlNode *n, struct server *server)
 	if (execute) {
 		wlr_log(WLR_ERROR, "we do not support pipemenus");
 	} else if (label && id) {
+		struct menu **submenu = NULL;
+		if (menu_level > 0) {
+			/*
+			 * In a nested (inline) menu definition we need to
+			 * create an item pointing to the new submenu
+			 */
+			current_item = item_create(current_menu, label);
+			submenu = &current_item->submenu;
+		}
+		++menu_level;
 		current_menu = menu_create(server, id, label);
-		/* TODO: deal with nested menu definitions */
+		if (submenu) {
+			*submenu = current_menu;
+		}
+		traverse(n, server);
+		current_menu = current_menu->parent;
+		--menu_level;
 	} else if (id) {
 		struct menu *menu = get_menu_by_id(id);
 		if (menu) {
@@ -203,7 +220,6 @@ xml_tree_walk(xmlNode *node, struct server *server)
 		}
 		if (!strcasecmp((char *)n->name, "menu")) {
 			handle_menu_element(n, server);
-			traverse(n, server);
 			continue;
 		}
 		if (!strcasecmp((char *)n->name, "item")) {

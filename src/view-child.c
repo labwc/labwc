@@ -19,7 +19,7 @@ view_child_handle_new_subsurface(struct wl_listener *listener, void *data)
 	struct view_child *child;
 	child = wl_container_of(listener, child, new_subsurface);
 	struct wlr_subsurface *wlr_subsurface = data;
-	subsurface_create(child->parent, wlr_subsurface);
+	view_subsurface_create(child->parent, wlr_subsurface);
 }
 
 void

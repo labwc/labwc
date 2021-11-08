@@ -21,7 +21,7 @@ subsurface_handle_destroy(struct wl_listener *listener, void *data)
 }
 
 void
-subsurface_create(struct view *view, struct wlr_subsurface *wlr_subsurface)
+view_subsurface_create(struct view *view, struct wlr_subsurface *wlr_subsurface)
 {
 	struct view_subsurface *subsurface =
 		calloc(1, sizeof(struct view_subsurface));

@@ -2,7 +2,7 @@
 
 <openbox_menu>
 
-<menu id="root-menu">
+<menu id="root-menu" label="">
   <item label="Web browser">
     <action name="Execute"><command>firefox</command></action>
   </item>

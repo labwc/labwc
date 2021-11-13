@@ -79,8 +79,9 @@ view_minimize(struct view *view, bool minimized)
 	}
 }
 
-static struct wlr_output *
-view_closest_wlr_output(struct view *view)
+/* view_wlr_output - return the output that a view is mostly on */
+struct wlr_output *
+view_wlr_output(struct view *view)
 {
 	double closest_x, closest_y;
 	struct wlr_output *wlr_output = NULL;
@@ -92,21 +93,10 @@ view_closest_wlr_output(struct view *view)
 	return wlr_output;
 }
 
-/* view_wlr_output - return the output that a view is mostly on */
-struct wlr_output *
-view_wlr_output(struct view *view)
-{
-	return wlr_output_layout_output_at(view->server->output_layout,
-		view->x + view->w / 2, view->y + view->h / 2);
-}
-
 static struct output *
 view_output(struct view *view)
 {
 	struct wlr_output *wlr_output = view_wlr_output(view);
-	if (!wlr_output) {
-		wlr_output = view_closest_wlr_output(view);
-	}
 	return output_from_wlr_output(view->server, wlr_output);
 }
 

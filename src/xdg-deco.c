@@ -25,7 +25,7 @@ xdg_deco_request_mode(struct wl_listener *listener, void *data)
 	struct xdg_deco *xdg_deco = wl_container_of(listener, xdg_deco, request_mode);
 	enum wlr_xdg_toplevel_decoration_v1_mode client_mode =
 		xdg_deco->wlr_decoration->requested_mode;
-	
+
 	if (client_mode == WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_NONE) {
 		client_mode = rc.xdg_shell_server_side_deco
 			? WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE

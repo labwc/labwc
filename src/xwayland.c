@@ -103,9 +103,7 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	view_min_size(view, &min_width, &min_height);
 
 	wlr_xwayland_surface_configure(view->xwayland_surface,
-		event->x,
-		event->y,
-		max(event->width, min_width),
+		event->x, event->y, max(event->width, min_width),
 		max(event->height, min_height));
 	damage_all_outputs(view->server);
 }
@@ -210,7 +208,8 @@ want_deco(struct view *view)
 }
 
 static void
-handle_set_decorations(struct wl_listener *listener, void *data) {
+handle_set_decorations(struct wl_listener *listener, void *data)
+{
 	struct view *view = wl_container_of(listener, view, set_decorations);
 	view_set_decorations(view, want_deco(view));
 }

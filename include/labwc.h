@@ -363,6 +363,8 @@ void view_for_each_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *user_data);
 void view_for_each_popup_surface(struct view *view,
 	wlr_surface_iterator_func_t iterator, void *data);
+void view_output_enter(struct view *view, struct wlr_output *wlr_output);
+void view_output_leave(struct view *view, struct wlr_output *wlr_output);
 void view_move_to_edge(struct view *view, const char *direction);
 void view_snap_to_edge(struct view *view, const char *direction);
 const char *view_get_string_prop(struct view *view, const char *prop);

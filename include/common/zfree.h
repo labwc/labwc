@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef __LABWC_ZFREE_H
 #define __LABWC_ZFREE_H
 

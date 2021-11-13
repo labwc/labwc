@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef __LABWC_KEYBIND_H
 #define __LABWC_KEYBIND_H
 

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef __RESISTANCE_H
 #define __RESISTANCE_H
 #include "labwc.h"

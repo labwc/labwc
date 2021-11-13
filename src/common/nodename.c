@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-only
 #include <ctype.h>
 #include <string.h>
 #include "common/nodename.h"

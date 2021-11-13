@@ -15,7 +15,7 @@ is_within_resistance_range(struct edges view, struct edges target,
 {
 	if (view.left >= other.left && target.left < other.left
 			&& target.left >= other.left - strength) {
-		 flags->left = 1;
+		flags->left = 1;
 	} else if (view.right <= other.right && target.right > other.right
 			&& target.right <= other.right + strength) {
 		flags->right = 1;

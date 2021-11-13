@@ -411,26 +411,15 @@ lab_layer_surface *popup_get_layer(struct lab_layer_popup *popup)
 static void
 popup_damage(struct lab_layer_popup *layer_popup, bool whole)
 {
-	struct wlr_xdg_popup *popup = layer_popup->wlr_popup;
-//	struct wlr_surface *surface = popup->base->surface;
-	int popup_sx = popup->geometry.x - popup->base->current.geometry.x;
-	int popup_sy = popup->geometry.y - popup->base->current.geometry.y;
-	int ox = popup_sx, oy = popup_sy;
 	struct lab_layer_surface *layer;
 	while (true) {
 		if (layer_popup->parent_type == LAYER_PARENT_POPUP) {
 			layer_popup = layer_popup->parent_popup;
-			ox += layer_popup->wlr_popup->geometry.x;
-			oy += layer_popup->wlr_popup->geometry.y;
 		} else {
 			layer = layer_popup->parent_layer;
-			ox += layer->geo.x;
-			oy += layer->geo.y;
 			break;
 		}
 	}
-//	struct wlr_output *wlr_output = layer->layer_surface->output;
-//	struct output *output = wlr_output->data;
 	damage_all_outputs(layer->server);
 }
 

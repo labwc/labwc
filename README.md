@@ -154,8 +154,7 @@ High-level summary of items which are not inteded to be implemented:
 
 Let's try to stick to this [coding style]
 
-[openbox-3.4]: https://github.com/danakj/openbox
-
+[openbox-3.4]: http://openbox.org/wiki/Help:Contents
 [rc.xml]: docs/rc.xml
 [rc.xml.all]: docs/rc.xml.all
 [menu.xml]: docs/menu.xml

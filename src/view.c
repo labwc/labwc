@@ -255,6 +255,44 @@ view_border(struct view *view)
 }
 
 void
+surface_enter_for_each_surface(struct wlr_surface *surface, int sx, int sy,
+		void *user_data)
+{
+	struct wlr_output *wlr_output = user_data;
+	wlr_surface_send_enter(surface, wlr_output);
+}
+
+void
+surface_leave_for_each_surface(struct wlr_surface *surface, int sx, int sy,
+		void *user_data)
+{
+	struct wlr_output *wlr_output = user_data;
+	wlr_surface_send_leave(surface, wlr_output);
+}
+
+void
+view_output_enter(struct view *view, struct wlr_output *wlr_output)
+{
+	view_for_each_surface(view, surface_enter_for_each_surface,
+		wlr_output);
+	if (view->toplevel_handle) {
+		wlr_foreign_toplevel_handle_v1_output_enter(
+			view->toplevel_handle, wlr_output);
+	}
+}
+
+void
+view_output_leave(struct view *view, struct wlr_output *wlr_output)
+{
+	view_for_each_surface(view, surface_leave_for_each_surface,
+		wlr_output);
+	if (view->toplevel_handle) {
+		wlr_foreign_toplevel_handle_v1_output_leave(
+			view->toplevel_handle, wlr_output);
+	}
+}
+
+void
 view_move_to_edge(struct view *view, const char *direction)
 {
 	if (!view) {

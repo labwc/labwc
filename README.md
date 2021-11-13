@@ -11,7 +11,11 @@
 
 ## 1. What is this?
 
-Labwc stands for Lab Wayland Compositor, with lab indicating a sense of experimentation and treading new ground.
+`labwc` stands for Lab Wayland Compositor, where lab can mean any of the following:
+
+- sense of experimentation and treading new ground
+- inspried by BunsenLabs and ArchLabs
+- your favorite pet
 
 It is a wlroots-based stacking compositor aiming to be light-weight and independent, with a focus on simply stacking windows well and rendering some window decorations. It relies on clients for wall-paper, panels, screenshots, and so on to create a full desktop environment.
 

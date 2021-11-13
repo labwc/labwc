@@ -34,7 +34,11 @@ void
 resistance_move_apply(struct view *view, double *x, double *y)
 {
 	struct server *server = view->server;
-	struct wlr_box mgeom;
+	struct wlr_box mgeom, intersection;
+	struct wlr_box vgeom = {.x = view->x, .y = view->y, .width = view->w,
+		.height = view->h};
+	struct wlr_box tgeom = {.x = *x, .y = *y, .width = view->w,
+		.height = view->h};
 	struct output *output;
 	struct border border = view_border(view);
 	struct edges view_edges; /* The edges of the current view */
@@ -58,6 +62,12 @@ resistance_move_apply(struct view *view, double *x, double *y)
 
 	wl_list_for_each(output, &server->outputs, link) {
 		mgeom = output_usable_area_in_layout_coords(output);
+
+		if (!wlr_box_intersection(&intersection, &vgeom, &mgeom)
+				&& !wlr_box_intersection(&intersection, &tgeom,
+				&mgeom)) {
+			continue;
+		}
 
 		other_edges.left = mgeom.x;
 		other_edges.top = mgeom.y;
@@ -89,7 +99,11 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_view_geo)
 {
 	struct server *server = view->server;
 	struct output *output;
-	struct wlr_box mgeom;
+	struct wlr_box mgeom, intersection;
+	struct wlr_box vgeom = {.x = view->x, .y = view->y, .width = view->w,
+		.height = view->h};
+	struct wlr_box tgeom = {.x = new_view_geo->x, .y = new_view_geo->y,
+		.width = new_view_geo->width, .height = new_view_geo->height};
 	struct border border = view_border(view);
 	struct edges view_edges; /* The edges of the current view */
 	struct edges target_edges; /* The desired edges */
@@ -112,7 +126,15 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_view_geo)
 		return;
 	}
 	wl_list_for_each(output, &server->outputs, link) {
+
 		mgeom = output_usable_area_in_layout_coords(output);
+
+		if (!wlr_box_intersection(&intersection, &vgeom, &mgeom)
+				&& !wlr_box_intersection(&intersection, &tgeom,
+				&mgeom)) {
+			continue;
+		}
+
 		other_edges.left = mgeom.x;
 		other_edges.top = mgeom.y;
 		other_edges.right = mgeom.x + mgeom.width;

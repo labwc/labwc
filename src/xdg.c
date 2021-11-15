@@ -343,8 +343,7 @@ xdg_toplevel_view_map(struct view *view)
 				 current.link) {
 			view_subsurface_create(view, subsurface);
 		}
-		struct wlr_output *wlr_output = view_wlr_output(view);
-		view_output_enter(view, wlr_output);
+		view_discover_output(view);
 
 		view->been_mapped = true;
 	}

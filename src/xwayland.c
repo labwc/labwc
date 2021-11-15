@@ -257,8 +257,7 @@ map(struct view *view)
 		view->y = box.y;
 		view_center(view);
 
-		struct wlr_output *wlr_output = view_wlr_output(view);
-		view_output_enter(view, wlr_output);
+		view_discover_output(view);
 		view->been_mapped = true;
 	}
 

@@ -23,6 +23,7 @@ view_move_resize(struct view *view, struct wlr_box geo)
 		view->impl->configure(view, geo);
 	}
 	ssd_update_title(view);
+	view_discover_output(view);
 }
 
 void
@@ -31,6 +32,7 @@ view_move(struct view *view, double x, double y)
 	if (view->impl->move) {
 		view->impl->move(view, x, y);
 	}
+	view_discover_output(view);
 }
 
 #define MIN_VIEW_WIDTH (100)
@@ -254,7 +256,7 @@ view_border(struct view *view)
 	return border;
 }
 
-void
+static void
 surface_enter_for_each_surface(struct wlr_surface *surface, int sx, int sy,
 		void *user_data)
 {
@@ -262,7 +264,7 @@ surface_enter_for_each_surface(struct wlr_surface *surface, int sx, int sy,
 	wlr_surface_send_enter(surface, wlr_output);
 }
 
-void
+static void
 surface_leave_for_each_surface(struct wlr_surface *surface, int sx, int sy,
 		void *user_data)
 {
@@ -270,7 +272,7 @@ surface_leave_for_each_surface(struct wlr_surface *surface, int sx, int sy,
 	wlr_surface_send_leave(surface, wlr_output);
 }
 
-void
+static void
 view_output_enter(struct view *view, struct wlr_output *wlr_output)
 {
 	view_for_each_surface(view, surface_enter_for_each_surface,
@@ -281,7 +283,7 @@ view_output_enter(struct view *view, struct wlr_output *wlr_output)
 	}
 }
 
-void
+static void
 view_output_leave(struct view *view, struct wlr_output *wlr_output)
 {
 	view_for_each_surface(view, surface_leave_for_each_surface,
@@ -289,6 +291,25 @@ view_output_leave(struct view *view, struct wlr_output *wlr_output)
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_output_leave(
 			view->toplevel_handle, wlr_output);
+	}
+}
+
+/*
+ * At present, a view can only 'enter' one output at a time, although the view
+ * may span multiple outputs. Ideally we would handle multiple outputs, but
+ * this method is the simplest form of what we want.
+ */
+void
+view_discover_output(struct view *view)
+{
+	struct output *old_output = view->output;
+	struct output *new_output = view_output(view);
+	if (old_output != new_output) {
+		view->output = new_output;
+		view_output_enter(view, new_output->wlr_output);
+		if (old_output) {
+			view_output_leave(view, old_output->wlr_output);
+		}
 	}
 }
 

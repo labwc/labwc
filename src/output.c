@@ -110,7 +110,7 @@ scale_box(struct wlr_box *box, float scale)
 static void
 scissor_output(struct wlr_output *output, pixman_box32_t *rect)
 {
-	struct wlr_renderer *renderer = wlr_backend_get_renderer(output->backend);
+	struct wlr_renderer *renderer = output->renderer;
 
 	struct wlr_box box = {
 		.x = rect->x1,
@@ -134,8 +134,7 @@ render_texture(struct wlr_output *wlr_output,
 		const struct wlr_fbox *src_box, const struct wlr_box *dst_box,
 		const float matrix[static 9])
 {
-	struct wlr_renderer *renderer =
-		wlr_backend_get_renderer(wlr_output->backend);
+	struct wlr_renderer *renderer = wlr_output->renderer;
 
 	pixman_region32_t damage;
 	pixman_region32_init(&damage);
@@ -364,8 +363,7 @@ render_rect(struct output *output, pixman_region32_t *output_damage,
 		const struct wlr_box *_box, float color[static 4])
 {
 	struct wlr_output *wlr_output = output->wlr_output;
-	struct wlr_renderer *renderer =
-		wlr_backend_get_renderer(wlr_output->backend);
+	struct wlr_renderer *renderer = wlr_output->renderer;
 
 	struct wlr_box box;
 	memcpy(&box, _box, sizeof(struct wlr_box));
@@ -748,8 +746,7 @@ output_render(struct output *output, pixman_region32_t *damage)
 	struct server *server = output->server;
 	struct wlr_output *wlr_output = output->wlr_output;
 
-	struct wlr_renderer *renderer =
-		wlr_backend_get_renderer(wlr_output->backend);
+	struct wlr_renderer *renderer = wlr_output->renderer;
 	if (!renderer) {
 		wlr_log(WLR_DEBUG, "no renderer");
 		return;
@@ -944,6 +941,13 @@ new_output_notify(struct wl_listener *listener, void *data)
 	 */
 	struct server *server = wl_container_of(listener, server, new_output);
 	struct wlr_output *wlr_output = data;
+
+	/* Configures the output created by the backend to use our allocator
+	 * and our renderer. Must be done once, before commiting the output */
+	if (!wlr_output_init_render(wlr_output, server->allocator, server->renderer)) {
+		wlr_log(WLR_ERROR, "unable to init output renderer");
+		return;
+	}
 
 	/* The mode is a tuple of (width, height, refresh rate). */
 	wlr_log(WLR_DEBUG, "set preferred mode");

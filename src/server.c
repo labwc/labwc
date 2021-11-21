@@ -185,14 +185,27 @@ server_init(struct server *server)
 	 */
 	drop_permissions();
 
-	/*
-	 * If we don't provide a renderer, autocreate makes a GLES2 renderer
-	 * for us. The renderer is responsible for defining the various pixel
-	 * formats it supports for shared memory, this configures that for
-	 * clients.
-	 */
-	server->renderer = wlr_backend_get_renderer(server->backend);
+	/* Autocreates a renderer, either Pixman, GLES2 or Vulkan for us. The user
+	 * can also specify a renderer using the WLR_RENDERER env var.
+	 * The renderer is responsible for defining the various pixel formats it
+	 * supports for shared memory, this configures that for clients. */
+	server->renderer = wlr_renderer_autocreate(server->backend);
+	if (!server->renderer) {
+		wlr_log(WLR_ERROR, "unable to create renderer");
+		exit(EXIT_FAILURE);
+	}
+
 	wlr_renderer_init_wl_display(server->renderer, server->wl_display);
+
+	/* Autocreates an allocator for us.
+	 * The allocator is the bridge between the renderer and the backend. It
+	 * handles the buffer creation, allowing wlroots to render onto the
+	 * screen */
+	server->allocator = wlr_allocator_autocreate(server->backend, server->renderer);
+	if (!server->allocator) {
+		wlr_log(WLR_ERROR, "unable to create allocator");
+		exit(EXIT_FAILURE);
+	}
 
 	wl_list_init(&server->views);
 	wl_list_init(&server->unmanaged_surfaces);

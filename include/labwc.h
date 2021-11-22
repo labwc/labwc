@@ -15,6 +15,8 @@
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
+#include <wlr/types/wlr_idle.h>
+#include <wlr/types/wlr_idle_inhibit_v1.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
 #include <wlr/types/wlr_keyboard_group.h>
@@ -76,6 +78,8 @@ struct seat {
 	struct wlr_xcursor_manager *xcursor_manager;
 	struct wlr_drag_icon *drag_icon;
 	struct wlr_pointer_constraint_v1 *current_constraint;
+	struct wlr_idle *wlr_idle;
+	struct wlr_idle_inhibit_manager_v1 *wlr_idle_inhibit_manager;
 
 	/* if set, views cannot receive focus */
 	struct wlr_layer_surface_v1 *focused_layer;
@@ -101,6 +105,7 @@ struct seat {
 	struct wl_listener start_drag;
 	struct wl_listener destroy_drag;
 	struct wl_listener constraint_commit;
+	struct wl_listener idle_inhibitor_create;
 };
 
 struct server {
@@ -326,6 +331,12 @@ struct xdg_popup {
 struct constraint {
 	struct seat *seat;
 	struct wlr_pointer_constraint_v1 *constraint;
+	struct wl_listener destroy;
+};
+
+struct idle_inhibitor {
+	struct seat *seat;
+	struct wlr_idle_inhibitor_v1 *wlr_inhibitor;
 	struct wl_listener destroy;
 };
 

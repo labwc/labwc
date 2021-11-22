@@ -157,6 +157,7 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	struct wlr_event_keyboard_key *event = data;
 	struct wlr_seat *wlr_seat = server->seat.seat;
 	struct wlr_input_device *device = seat->keyboard_group->input_device;
+	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	bool handled = false;
 

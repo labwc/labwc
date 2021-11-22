@@ -326,6 +326,7 @@ cursor_motion(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, cursor_motion);
 	struct server *server = seat->server;
 	struct wlr_event_pointer_motion *event = data;
+	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	wlr_relative_pointer_manager_v1_send_relative_motion(
 		server->relative_pointer_manager,
@@ -372,6 +373,7 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(
 		listener, seat, cursor_motion_absolute);
 	struct wlr_event_pointer_motion_absolute *event = data;
+	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	double lx, ly;
 	wlr_cursor_absolute_to_layout_coords(seat->cursor, event->device,
@@ -495,6 +497,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, cursor_button);
 	struct server *server = seat->server;
 	struct wlr_event_pointer_button *event = data;
+	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	double sx, sy;
 	struct wlr_surface *surface;
@@ -592,6 +595,7 @@ cursor_axis(struct wl_listener *listener, void *data)
 	 */
 	struct seat *seat = wl_container_of(listener, seat, cursor_axis);
 	struct wlr_event_pointer_axis *event = data;
+	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	/* Notify the client with pointer focus of the axis event. */
 	wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,

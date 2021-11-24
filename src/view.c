@@ -333,6 +333,12 @@ view_move_to_edge(struct view *view, const char *direction)
 	}
 	struct border border = view_border(view);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
+	if (usable.height == output->wlr_output->height && output->wlr_output->scale != 1) {
+		usable.height /= output->wlr_output->scale;
+	}
+	if (usable.width == output->wlr_output->width && output->wlr_output->scale != 1) {
+		usable.width /= output->wlr_output->scale;
+	}
 
 	int x = 0, y = 0;
 	if (!strcasecmp(direction, "left")) {
@@ -399,6 +405,12 @@ view_get_edge_snap_box(struct view *view, struct output *output, enum view_edge 
 {
 	struct border border = view_border(view);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
+	if (usable.height == output->wlr_output->height && output->wlr_output->scale != 1) {
+		usable.height /= output->wlr_output->scale;
+	}
+	if (usable.width == output->wlr_output->width && output->wlr_output->scale != 1) {
+		usable.width /= output->wlr_output->scale;
+	}
 
 	int x_offset = edge == VIEW_EDGE_RIGHT
 		? (usable.width + rc.gap) / 2 : rc.gap;

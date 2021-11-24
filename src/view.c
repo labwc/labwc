@@ -139,6 +139,12 @@ view_maximize(struct view *view, bool maximize)
 
 		struct output *output = view_output(view);
 		struct wlr_box box = output_usable_area_in_layout_coords(output);
+		if (box.height == output->wlr_output->height && output->wlr_output->scale != 1) {
+			box.height /= output->wlr_output->scale;
+		}
+		if (box.width == output->wlr_output->width && output->wlr_output->scale != 1) {
+			box.width /= output->wlr_output->scale;
+		}
 
 		if (view->ssd.enabled) {
 			struct border border = ssd_thickness(view);

@@ -522,14 +522,20 @@ render_osd(struct output *output, pixman_region32_t *damage,
 
 	/* show on screen display (osd) on all outputs */
 	struct output *o;
+	struct wlr_output_layout *layout = server->output_layout;
+	struct wlr_output_layout_output *ol_output;
 	wl_list_for_each(o, &server->outputs, link) {
-		struct wlr_box usable = output_usable_area_in_layout_coords(o);
+		ol_output = wlr_output_layout_get(layout, o->wlr_output);
 		struct wlr_box box = {
-			.x = usable.x + (usable.width - server->osd->width) / 2,
-			.y = usable.y + (usable.height - server->osd->height) / 2,
+			.x = ol_output->x + o->wlr_output->width
+				/ o->wlr_output->scale / 2,
+			.y = ol_output->y + o->wlr_output->height
+				/ o->wlr_output->scale / 2,
 			.width = server->osd->width,
 			.height = server->osd->height,
 		};
+		box.x -= server->osd->width / 2;
+		box.y -= server->osd->height / 2;
 		render_texture_helper(output, damage, &box, server->osd);
 	}
 }

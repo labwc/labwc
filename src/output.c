@@ -955,6 +955,9 @@ new_output_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
+	wlr_log(WLR_DEBUG, "enable output");
+	wlr_output_enable(wlr_output, true);
+
 	/* The mode is a tuple of (width, height, refresh rate). */
 	wlr_log(WLR_DEBUG, "set preferred mode");
 	struct wlr_output_mode *preferred_mode =

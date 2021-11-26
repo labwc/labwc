@@ -408,7 +408,6 @@ rcxml_init()
 		return;
 	}
 	has_run = true;
-	LIBXML_TEST_VERSION
 	wl_list_init(&rc.keybinds);
 	wl_list_init(&rc.mousebinds);
 	wl_list_init(&rc.libinput_categories);

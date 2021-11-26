@@ -948,9 +948,12 @@ new_output_notify(struct wl_listener *listener, void *data)
 	struct server *server = wl_container_of(listener, server, new_output);
 	struct wlr_output *wlr_output = data;
 
-	/* Configures the output created by the backend to use our allocator
-	 * and our renderer. Must be done once, before commiting the output */
-	if (!wlr_output_init_render(wlr_output, server->allocator, server->renderer)) {
+	/*
+	 * Configures the output created by the backend to use our allocator
+	 * and our renderer. Must be done once, before commiting the output
+	 */
+	if (!wlr_output_init_render(wlr_output, server->allocator,
+			server->renderer)) {
 		wlr_log(WLR_ERROR, "unable to init output renderer");
 		return;
 	}

@@ -574,15 +574,8 @@ cursor_button(struct wl_listener *listener, void *data)
 mousebindings:
 	if (event->state == WLR_BUTTON_RELEASED) {
 		handle_release_mousebinding(server, event->button, view_area);
-		return;
 	} else if (event->state == WLR_BUTTON_PRESSED) {
-		if (handle_press_mousebinding(server, event->button, view_area)) {
-			return;
-		}
-	}
-
-	if (view_area == LAB_SSD_PART_TITLEBAR) {
-		interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
+		handle_press_mousebinding(server, event->button, view_area);
 	}
 }
 

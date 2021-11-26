@@ -342,3 +342,14 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 	}
 	return NULL;
 }
+
+struct view *
+desktop_view_at_cursor(struct server *server) {
+	double sx, sy;
+	struct wlr_surface *surface;
+	int view_area = LAB_SSD_NONE;
+
+	return desktop_surface_and_view_at(server,
+			server->seat.cursor->x, server->seat.cursor->y,
+			&surface, &sx, &sy, &view_area);
+}

@@ -93,6 +93,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	free(view);
 }
 
+#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 static void
 handle_request_configure(struct wl_listener *listener, void *data)
 {
@@ -103,10 +104,11 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	view_min_size(view, &min_width, &min_height);
 
 	wlr_xwayland_surface_configure(view->xwayland_surface,
-		event->x, event->y, max(event->width, min_width),
-		max(event->height, min_height));
+		event->x, event->y, MAX(event->width, min_width),
+		MAX(event->height, min_height));
 	damage_all_outputs(view->server);
 }
+#undef MAX
 
 static void
 handle_request_maximize(struct wl_listener *listener, void *data)

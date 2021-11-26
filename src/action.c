@@ -72,6 +72,11 @@ action(struct server *server, const char *action, const char *command)
 		if (view) {
 			view_minimize(view, true);
 		}
+	} else if (!strcasecmp(action, "Move")) {
+		struct view *view = desktop_view_at_cursor(server);
+		if (view) {
+			interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
+		}
 	} else {
 		wlr_log(WLR_ERROR, "action (%s) not supported", action);
 	}

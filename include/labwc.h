@@ -430,6 +430,8 @@ struct view *desktop_surface_and_view_at(struct server *server, double lx,
 	double ly, struct wlr_surface **surface, double *sx, double *sy,
 	int *view_area);
 
+struct view *desktop_view_at_cursor(struct server *server);
+
 void cursor_init(struct seat *seat);
 
 void keyboard_init(struct seat *seat);

@@ -20,6 +20,9 @@ Actions are used in keyboard bindings.
 *<action name="Iconify">*
 	Iconify (minimize) focused window.
 
+*<action name="Move">*
+	Begin interactive move of window under cursor
+
 *<action name="MoveToEdge"><direction>*
 	Move view to edge of outputs. Understands directions "left", "up",
 	"right" and "down".

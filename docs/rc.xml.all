@@ -114,6 +114,11 @@
     <doubleClickTime>500</doubleClickTime>
 
     <context name="TitleBar">
+      <mousebind button="Left" action="Press">
+        <action name="Move"/>
+      </mousebind>
+    </context>
+    <context name="TitleBar">
       <mousebind button="Left" action="DoubleClick">
         <action name="ToggleMaximize"/>
       </mousebind>

@@ -132,6 +132,7 @@ handle_set_title(struct wl_listener *listener, void *data)
 	struct view *view = wl_container_of(listener, view, set_title);
 	assert(view);
 	view_update_title(view);
+	damage_all_outputs(view->server);
 }
 
 static void

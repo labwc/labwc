@@ -936,6 +936,9 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 	struct output *output = wl_container_of(listener, output, destroy);
 	wl_list_remove(&output->link);
 	wl_list_remove(&output->destroy.link);
+
+	/* Windows may have moved; redraw all outputs */
+	damage_all_outputs(output->server);
 }
 
 static void
@@ -1036,7 +1039,8 @@ new_output_notify(struct wl_listener *listener, void *data)
 	wlr_xcursor_manager_set_cursor_image(server->seat.xcursor_manager,
 		XCURSOR_DEFAULT, server->seat.cursor);
 
-	wlr_output_schedule_frame(wlr_output);
+	/* Windows may have moved; redraw all outputs */
+	damage_all_outputs(server);
 }
 
 void

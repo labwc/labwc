@@ -1022,6 +1022,20 @@ new_output_notify(struct wl_listener *listener, void *data)
 		wlr_output_enable_adaptive_sync(wlr_output, true);
 	}
 	wlr_output_layout_add_auto(server->output_layout, wlr_output);
+
+	/*
+	 * Output positions may have changed, so make sure that each
+	 * wlr_output_cursor is "moved" (in per-output coordinates) to
+	 * align with the seat cursor.  Set a default cursor image so
+	 * that the cursor isn't invisible on the new output.
+	 *
+	 * TODO: remember the most recent cursor image (see cursor.c)
+	 * and set that rather than XCURSOR_DEFAULT
+	 */
+	wlr_cursor_move(server->seat.cursor, NULL, 0, 0);
+	wlr_xcursor_manager_set_cursor_image(server->seat.xcursor_manager,
+		XCURSOR_DEFAULT, server->seat.cursor);
+
 	wlr_output_schedule_frame(wlr_output);
 }
 

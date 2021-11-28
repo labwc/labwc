@@ -65,8 +65,10 @@ struct seat {
 	struct wlr_seat *seat;
 	struct server *server;
 	struct wlr_keyboard_group *keyboard_group;
+
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *xcursor_manager;
+
 	struct wlr_drag_icon *drag_icon;
 	struct wlr_pointer_constraint_v1 *current_constraint;
 	struct wlr_idle *wlr_idle;
@@ -422,6 +424,7 @@ struct view *desktop_surface_and_view_at(struct server *server, double lx,
 
 struct view *desktop_view_at_cursor(struct server *server);
 
+void cursor_set(struct seat *seat, const char *cursor_name);
 void cursor_init(struct seat *seat);
 
 void keyboard_init(struct seat *seat);

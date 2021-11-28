@@ -130,11 +130,11 @@ process_cursor_resize(struct server *server, uint32_t time)
 	view_move_resize(view, new_view_geo);
 }
 
-static void
-set_cursor(struct server *server, const char *cursor_name)
+void
+cursor_set(struct seat *seat, const char *cursor_name)
 {
 	wlr_xcursor_manager_set_cursor_image(
-		server->seat.xcursor_manager, cursor_name, server->seat.cursor);
+		seat->xcursor_manager, cursor_name, seat->cursor);
 }
 
 bool
@@ -175,19 +175,19 @@ process_cursor_motion(struct server *server, uint32_t time)
 		&sx, &sy, &view_area);
 
 	if (!view) {
-		set_cursor(server, XCURSOR_DEFAULT);
+		cursor_set(&server->seat, XCURSOR_DEFAULT);
 	} else {
 		uint32_t resize_edges = ssd_resize_edges(view_area);
 		if (resize_edges) {
 			cursor_name_set_by_server = true;
-			set_cursor(server,
+			cursor_set(&server->seat,
 				wlr_xcursor_get_resize_name(resize_edges));
 		} else if (view_area != LAB_SSD_NONE) {
 			/* title and buttons */
-			set_cursor(server, XCURSOR_DEFAULT);
+			cursor_set(&server->seat, XCURSOR_DEFAULT);
 			cursor_name_set_by_server = true;
 		} else if (cursor_name_set_by_server) {
-			set_cursor(server, XCURSOR_DEFAULT);
+			cursor_set(&server->seat, XCURSOR_DEFAULT);
 			cursor_name_set_by_server = false;
 		}
 	}

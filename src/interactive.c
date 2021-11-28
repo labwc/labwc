@@ -26,4 +26,15 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 	};
 	memcpy(&server->grab_box, &box, sizeof(struct wlr_box));
 	server->resize_edges = edges;
+
+	switch (mode) {
+	case LAB_INPUT_STATE_MOVE:
+		cursor_set(&server->seat, "move");
+		break;
+	case LAB_INPUT_STATE_RESIZE:
+		cursor_set(&server->seat, wlr_xcursor_get_resize_name(edges));
+		break;
+	default:
+		break;
+	}
 }

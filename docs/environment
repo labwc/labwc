@@ -1,11 +1,17 @@
 # Example environment file
 
 # Set keyboard layout to Swedish
-# XKB_DEFAULT_LAYOUT=se
+XKB_DEFAULT_LAYOUT=se
 
 # Set two keyboard layouts and toggle between them using alt+shift
-# XKB_DEFAULT_LAYOUT=se,de
-# XKB_DEFAULT_OPTIONS=grp:alt_shift_toggle
+XKB_DEFAULT_LAYOUT=se,de
+XKB_DEFAULT_OPTIONS=grp:alt_shift_toggle
 
 # Force firefox to use wayland backend
-# MOZ_ENABLE_WAYLAND=1
+MOZ_ENABLE_WAYLAND=1
+
+# Set cursor theme.
+# Find icons themes with the command below or similar:
+#     find /usr/share/icons/ -type d -name "cursors"
+XCURSOR_THEME=breeze_cursors
+

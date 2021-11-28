@@ -636,7 +636,11 @@ cursor_frame(struct wl_listener *listener, void *data)
 void
 cursor_init(struct seat *seat)
 {
-	seat->xcursor_manager = wlr_xcursor_manager_create(NULL, 24);
+	const char *xcursor_theme = getenv("XCURSOR_THEME");
+	const char *xcursor_size = getenv("XCURSOR_SIZE");
+	uint32_t size = xcursor_size ? atoi(xcursor_size) : 24;
+
+	seat->xcursor_manager = wlr_xcursor_manager_create(xcursor_theme, size);
 	wlr_xcursor_manager_load(seat->xcursor_manager, 1);
 
 	seat->cursor_motion.notify = cursor_motion;

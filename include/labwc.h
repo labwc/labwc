@@ -424,6 +424,18 @@ struct view *desktop_surface_and_view_at(struct server *server, double lx,
 
 struct view *desktop_view_at_cursor(struct server *server);
 
+/**
+ * cursor_rebase - set cursor icon for and send motion-event to surface below it
+ * @seat - current seat
+ * @time_msec - time now
+ */
+void cursor_rebase(struct seat *seat, uint32_t time_msec);
+
+/**
+ * cursor_set - set cursor icon
+ * @seat - current seat
+ * @cursor_name - name of cursor, for example "left_ptr" or "grab"
+ */
 void cursor_set(struct seat *seat, const char *cursor_name);
 void cursor_init(struct seat *seat);
 

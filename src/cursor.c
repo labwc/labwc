@@ -3,12 +3,32 @@
 #include <linux/input-event-codes.h>
 #include <sys/time.h>
 #include <time.h>
+#include <wlr/types/wlr_primary_selection.h>
 #include "labwc.h"
 #include "menu/menu.h"
 #include "resistance.h"
 #include "ssd.h"
 #include "config/mousebind.h"
-#include <wlr/types/wlr_primary_selection.h>
+
+void
+cursor_rebase(struct seat *seat, uint32_t time_msec)
+{
+	double sx, sy;
+	struct wlr_surface *surface;
+	int view_area = LAB_SSD_NONE;
+
+	desktop_surface_and_view_at(seat->server, seat->cursor->x,
+		seat->cursor->y, &surface, &sx, &sy, &view_area);
+
+	if (surface) {
+		wlr_seat_pointer_notify_clear_focus(seat->seat);
+		wlr_seat_pointer_notify_enter(seat->seat, surface, sx, sy);
+		wlr_seat_pointer_notify_motion(seat->seat, time_msec, sx, sy);
+	} else {
+		cursor_set(seat, "left_ptr");
+		wlr_seat_pointer_notify_clear_focus(seat->seat);
+	}
+}
 
 static void
 request_cursor_notify(struct wl_listener *listener, void *data)
@@ -530,6 +550,7 @@ cursor_button(struct wl_listener *listener, void *data)
 		if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 			/* Exit interactive move/resize/menu mode. */
 			server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+			cursor_rebase(&server->seat, event->time_msec);
 			return;
 		}
 		goto mousebindings;
@@ -538,6 +559,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		menu_action_selected(server, server->rootmenu);
 		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+		cursor_rebase(&server->seat, event->time_msec);
 		return;
 	}
 

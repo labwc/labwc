@@ -19,3 +19,11 @@ waybar >/dev/null 2>&1 &
 # org.freedesktop.Notifications D-Bus API and require a client such as mako to
 # function correctly. Thunderbird is an example of this.
 mako >/dev/null 2>&1 &
+
+# Lock screen after 5 minutes; turn off display after another 5 minutes
+swayidle -w \
+	timeout 300 'swaylock -f -c 000000' \
+	timeout 600 'wlr-randr --output eDP-1 --off' \
+	resume 'wlr-randr --output eDP-1 --on' \
+	before-sleep 'swaylock -f -c 000000' >/dev/null 2>&1 &
+

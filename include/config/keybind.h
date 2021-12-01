@@ -20,4 +20,11 @@ struct keybind {
  */
 struct keybind *keybind_create(const char *keybind);
 
+/**
+ * parse_modifier - parse a string containing a single modifier name (e.g. "S")
+ * into the represented modifier value. returns 0 for invalid modifier names.
+ * @symname: modifier name
+ */
+uint32_t parse_modifier(const char *symname);
+
 #endif /* __LABWC_KEYBIND_H */

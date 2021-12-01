@@ -8,7 +8,7 @@
 #include "config/keybind.h"
 #include "config/rcxml.h"
 
-static uint32_t
+uint32_t
 parse_modifier(const char *symname)
 {
 	if (!strcmp(symname, "S")) {

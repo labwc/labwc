@@ -20,7 +20,7 @@ show_menu(struct server *server, const char *menu)
 }
 
 void
-action(struct server *server, const char *action, const char *command)
+action(struct server *server, const char *action, const char *command, uint32_t resize_edges)
 {
 	if (!action)
 		return;
@@ -76,6 +76,11 @@ action(struct server *server, const char *action, const char *command)
 		struct view *view = desktop_view_at_cursor(server);
 		if (view) {
 			interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
+		}
+	} else if (!strcasecmp(action, "Resize")) {
+		struct view *view = desktop_view_at_cursor(server);
+		if (view) {
+			interactive_begin(view, LAB_INPUT_STATE_RESIZE, resize_edges);
 		}
 	} else {
 		wlr_log(WLR_ERROR, "action (%s) not supported", action);

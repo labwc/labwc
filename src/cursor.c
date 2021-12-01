@@ -443,7 +443,7 @@ handle_cursor_button_with_meta_key(struct view *view, uint32_t button,
 }
 
 static void
-handle_release_mousebinding(struct server *server, uint32_t button, uint32_t modifiers, enum ssd_part_type view_area)
+handle_release_mousebinding(struct server *server, uint32_t button, uint32_t modifiers, enum ssd_part_type view_area, uint32_t resize_edges)
 {
 	struct mousebind *mousebind;
 	wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
@@ -453,12 +453,12 @@ handle_release_mousebinding(struct server *server, uint32_t button, uint32_t mod
 			if (mousebind->mouse_event
 					== MOUSE_ACTION_RELEASE) {
 				action(server, mousebind->action,
-					mousebind->command);
+					mousebind->command, resize_edges);
 			}
 			if (mousebind->pressed_in_context) {
 				mousebind->pressed_in_context = false;
 				action(server, mousebind->action,
-					mousebind->command);
+					mousebind->command, resize_edges);
 			}
 		}
 	}
@@ -488,7 +488,7 @@ is_double_click(long double_click_speed, uint32_t button)
 }
 
 static bool
-handle_press_mousebinding(struct server *server, uint32_t button, uint32_t modifiers, enum ssd_part_type view_area)
+handle_press_mousebinding(struct server *server, uint32_t button, uint32_t modifiers, enum ssd_part_type view_area, uint32_t resize_edges)
 {
 	struct mousebind *mousebind;
 	bool double_click = is_double_click(rc.doubleclick_time, button);
@@ -502,7 +502,7 @@ handle_press_mousebinding(struct server *server, uint32_t button, uint32_t modif
 					== MOUSE_ACTION_PRESS) {
 				bound = true;
 				action(server, mousebind->action,
-					mousebind->command);
+					mousebind->command, resize_edges);
 			} else if (mousebind->mouse_event
 					== MOUSE_ACTION_CLICK) {
 				bound = true;
@@ -512,7 +512,7 @@ handle_press_mousebinding(struct server *server, uint32_t button, uint32_t modif
 					== MOUSE_ACTION_DOUBLECLICK) {
 				bound = true;
 				action(server, mousebind->action,
-						mousebind->command);
+						mousebind->command, resize_edges);
 			}
 		}
 	}
@@ -590,7 +590,7 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* Handle _press_ on root window */
 	if (!view) {
-		action(server, "ShowMenu", "root-menu");
+		action(server, "ShowMenu", "root-menu", 0);
 		return;
 	}
 
@@ -599,17 +599,22 @@ cursor_button(struct wl_listener *listener, void *data)
 	desktop_raise_view(view);
 	damage_all_outputs(server);
 
+	/* Resize if SSD resize edge is clicked */
 	resize_edges = ssd_resize_edges(view_area);
 	if (resize_edges) {
 		interactive_begin(view, LAB_INPUT_STATE_RESIZE, resize_edges);
 		return;
 	}
 
+	/* Determine closest resize edges in case action is Resize */
+	resize_edges |= server->seat.cursor->x < view->x + view->w / 2 ? WLR_EDGE_LEFT : WLR_EDGE_RIGHT;
+	resize_edges |= server->seat.cursor->y < view->y + view->h / 2 ? WLR_EDGE_TOP : WLR_EDGE_BOTTOM;
+
 mousebindings:
 	if (event->state == WLR_BUTTON_RELEASED) {
-		handle_release_mousebinding(server, event->button, modifiers, view_area);
+		handle_release_mousebinding(server, event->button, modifiers, view_area, resize_edges);
 	} else if (event->state == WLR_BUTTON_PRESSED) {
-		handle_press_mousebinding(server, event->button, modifiers, view_area);
+		handle_press_mousebinding(server, event->button, modifiers, view_area, resize_edges);
 	}
 }
 

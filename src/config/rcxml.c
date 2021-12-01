@@ -98,6 +98,8 @@ fill_mousebind(char *nodename, char *content)
 		current_mousebind->action = strdup(content);
 	} else if (!strcmp(nodename, "command.action")) {
 		current_mousebind->command = strdup(content);
+	} else if (!strcmp(nodename, "menu.action")) {
+		current_mousebind->command = strdup(content);
 	}
 }
 

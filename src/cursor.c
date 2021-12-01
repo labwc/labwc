@@ -550,6 +550,11 @@ cursor_button(struct wl_listener *listener, void *data)
 			cursor_rebase(&server->seat, event->time_msec);
 			return;
 		}
+
+		/* Handle _release_ on root window */
+		if (!view) {
+			handle_release_mousebinding(server, event->button, modifiers, LAB_SSD_ROOT, 0);
+		}
 		goto mousebindings;
 	}
 

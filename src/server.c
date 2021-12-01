@@ -157,11 +157,11 @@ server_init(struct server *server)
 	struct wl_event_loop *event_loop = NULL;
 	event_loop = wl_display_get_event_loop(server->wl_display);
 	sighup_source = wl_event_loop_add_signal(
-		event_loop, SIGHUP, handle_sighup, &server->wl_display);
+		event_loop, SIGHUP, handle_sighup, NULL);
 	sigint_source = wl_event_loop_add_signal(
-		event_loop, SIGINT, handle_sigterm, NULL);
+		event_loop, SIGINT, handle_sigterm, server->wl_display);
 	sigterm_source = wl_event_loop_add_signal(
-		event_loop, SIGTERM, handle_sigterm, NULL);
+		event_loop, SIGTERM, handle_sigterm, server->wl_display);
 
 	/*
 	 * The backend is a feature which abstracts the underlying input and

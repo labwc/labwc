@@ -416,7 +416,7 @@ menu_action_selected(struct server *server, struct menu *menu)
 	struct menuitem *menuitem;
 	wl_list_for_each (menuitem, &menu->menuitems, link) {
 		if (menuitem->selected && !menuitem->submenu) {
-			action(server, menuitem->action, menuitem->command);
+			action(server, menuitem->action, menuitem->command, 0);
 			break;
 		}
 		if (menuitem->submenu) {

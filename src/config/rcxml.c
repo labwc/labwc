@@ -472,6 +472,9 @@ static struct {
 	{ "Close", "Left", "Click", "Close", NULL },
 	{ "Iconify", "Left", "Click", "Iconify", NULL},
 	{ "Maximize", "Left", "Click", "ToggleMaximize", NULL},
+	{ "Root", "Left", "Press", "ShowMenu", "root-menu"},
+	{ "Root", "Right", "Press", "ShowMenu", "root-menu"},
+	{ "Root", "Middle", "Press", "ShowMenu", "root-menu"},
 	{ NULL, NULL, NULL, NULL, NULL },
 };
 

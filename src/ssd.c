@@ -415,3 +415,18 @@ ssd_update_geometry(struct view *view, bool force)
 	view->ssd.box.height = view->h;
 	damage_all_outputs(view->server);
 }
+
+bool
+ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
+{
+	if (whole == candidate) {
+		return true;
+	}
+	if (whole == LAB_SSD_PART_TITLEBAR) {
+		return candidate >= LAB_SSD_BUTTON_CLOSE && candidate <= LAB_SSD_PART_CORNER_TOP_RIGHT;
+	}
+	if (whole == LAB_SSD_FRAME) {
+		return candidate >= LAB_SSD_BUTTON_CLOSE && candidate <= LAB_SSD_CLIENT;
+	}
+	return false;
+}

@@ -581,7 +581,7 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* Handle _press_ on root window */
 	if (!view) {
-		action(server, "ShowMenu", "root-menu", 0);
+		handle_press_mousebinding(server, event->button, modifiers, LAB_SSD_ROOT, 0);
 		return;
 	}
 

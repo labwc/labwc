@@ -65,6 +65,14 @@ context_from_str(const char *str)
 		return LAB_SSD_BUTTON_MAXIMIZE;
 	} else if (!strcasecmp(str, "Iconify")) {
 		return LAB_SSD_BUTTON_ICONIFY;
+	} else if (!strcasecmp(str, "Frame")) {
+		return LAB_SSD_FRAME;
+	} else if (!strcasecmp(str, "Client")) {
+		return LAB_SSD_CLIENT;
+	} else if (!strcasecmp(str, "Desktop")) {
+		return LAB_SSD_ROOT;
+	} else if (!strcasecmp(str, "Root")) {
+		return LAB_SSD_ROOT;
 	}
 	wlr_log(WLR_ERROR, "unknown mouse context (%s)", str);
 	return LAB_SSD_NONE;

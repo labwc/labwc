@@ -475,6 +475,10 @@ static struct {
 	{ "Root", "Left", "Press", "ShowMenu", "root-menu"},
 	{ "Root", "Right", "Press", "ShowMenu", "root-menu"},
 	{ "Root", "Middle", "Press", "ShowMenu", "root-menu"},
+	{ "Client", "Left", "Press", "Focus", NULL},
+	{ "Client", "Left", "Press", "Raise", NULL},
+	{ "Titlebar", "Left", "Press", "Focus", NULL},
+	{ "Titlebar", "Left", "Press", "Raise", NULL},
 	{ NULL, NULL, NULL, NULL, NULL },
 };
 

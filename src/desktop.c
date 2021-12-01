@@ -317,6 +317,7 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 			continue;
 		}
 		if (_view_at(view, lx, ly, surface, sx, sy)) {
+			*view_area = LAB_SSD_CLIENT;
 			return view;
 		}
 		if (!view->ssd.enabled) {

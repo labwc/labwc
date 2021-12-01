@@ -421,47 +421,36 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 	process_cursor_motion(seat->server, event->time_msec);
 }
 
-static void
-handle_cursor_button_with_meta_key(struct view *view, uint32_t button,
-		double lx, double ly)
-{
-	if (!view) {
-		return;
-	}
-
-	/* move */
-	if (button == BTN_LEFT) {
-		interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
-		return;
-	}
-
-	/* resize */
-	uint32_t edges;
-	edges = lx < view->x + view->w / 2 ? WLR_EDGE_LEFT : WLR_EDGE_RIGHT;
-	edges |= ly < view->y + view->h / 2 ? WLR_EDGE_TOP : WLR_EDGE_BOTTOM;
-	interactive_begin(view, LAB_INPUT_STATE_RESIZE, edges);
-}
-
-static void
+static bool
 handle_release_mousebinding(struct server *server, uint32_t button, uint32_t modifiers, enum ssd_part_type view_area, uint32_t resize_edges)
 {
 	struct mousebind *mousebind;
+	bool activated_any = false;
+	bool activated_any_frame = false;
+
 	wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
-		if (mousebind->context == view_area
+		if (ssd_part_contains(mousebind->context, view_area)
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {
-			if (mousebind->mouse_event
-					== MOUSE_ACTION_RELEASE) {
-				action(server, mousebind->action,
-					mousebind->command, resize_edges);
+			switch (mousebind->mouse_event) {
+				case MOUSE_ACTION_RELEASE:
+					break;
+				case MOUSE_ACTION_CLICK:
+					if (mousebind->pressed_in_context) {
+						mousebind->pressed_in_context = false;
+						break;
+					}
+					continue;
+				default:
+					continue;
 			}
-			if (mousebind->pressed_in_context) {
-				mousebind->pressed_in_context = false;
-				action(server, mousebind->action,
-					mousebind->command, resize_edges);
-			}
+			activated_any = true;
+			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
+			action(server, mousebind->action,
+				mousebind->command, resize_edges);
 		}
 	}
+	return activated_any && activated_any_frame;
 }
 
 static bool
@@ -492,31 +481,33 @@ handle_press_mousebinding(struct server *server, uint32_t button, uint32_t modif
 {
 	struct mousebind *mousebind;
 	bool double_click = is_double_click(rc.doubleclick_time, button);
-	bool bound;
+	bool activated_any = false;
+	bool activated_any_frame = false;
 
 	wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
-		if (mousebind->context == view_area
+		if (ssd_part_contains(mousebind->context, view_area)
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {
-			if (mousebind->mouse_event
-					== MOUSE_ACTION_PRESS) {
-				bound = true;
-				action(server, mousebind->action,
-					mousebind->command, resize_edges);
-			} else if (mousebind->mouse_event
-					== MOUSE_ACTION_CLICK) {
-				bound = true;
-				mousebind->pressed_in_context = true;
-			} else if (double_click
-					&& mousebind->mouse_event
-					== MOUSE_ACTION_DOUBLECLICK) {
-				bound = true;
-				action(server, mousebind->action,
-						mousebind->command, resize_edges);
+			switch (mousebind->mouse_event) {
+				case MOUSE_ACTION_CLICK:
+					mousebind->pressed_in_context = true;
+					continue;
+				case MOUSE_ACTION_DOUBLECLICK:
+					if (!double_click)
+						continue;
+					break;
+				case MOUSE_ACTION_PRESS:
+					break;
+				default:
+					continue;
 			}
+			activated_any = true;
+			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
+			action(server, mousebind->action,
+				mousebind->command, resize_edges);
 		}
 	}
-	return bound;
+	return activated_any && activated_any_frame;
 }
 
 void
@@ -536,22 +527,16 @@ cursor_button(struct wl_listener *listener, void *data)
 	int view_area = LAB_SSD_NONE;
 	uint32_t resize_edges;
 
+	/* bindings to the Frame context swallow mouse events if activated */
+	bool triggered_frame_binding = false;
+
 	struct view *view = desktop_surface_and_view_at(server,
 		server->seat.cursor->x, server->seat.cursor->y, &surface,
 		&sx, &sy, &view_area);
 
-	/* handle alt + _press_ on view */
+	/* get modifiers */
 	struct wlr_input_device *device = seat->keyboard_group->input_device;
 	uint32_t modifiers = wlr_keyboard_get_modifiers(device->keyboard);
-	if (modifiers & WLR_MODIFIER_ALT && event->state == WLR_BUTTON_PRESSED && !seat->current_constraint) {
-		handle_cursor_button_with_meta_key(view, event->button,
-			server->seat.cursor->x, server->seat.cursor->y);
-		return;
-	};
-
-	/* Notify client with pointer focus of button press */
-	wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
-		event->button, event->state);
 
 	/* handle _release_ */
 	if (event->state == WLR_BUTTON_RELEASED) {
@@ -612,9 +597,14 @@ cursor_button(struct wl_listener *listener, void *data)
 
 mousebindings:
 	if (event->state == WLR_BUTTON_RELEASED) {
-		handle_release_mousebinding(server, event->button, modifiers, view_area, resize_edges);
+		triggered_frame_binding |= handle_release_mousebinding(server, event->button, modifiers, view_area, resize_edges);
 	} else if (event->state == WLR_BUTTON_PRESSED) {
-		handle_press_mousebinding(server, event->button, modifiers, view_area, resize_edges);
+		triggered_frame_binding |= handle_press_mousebinding(server, event->button, modifiers, view_area, resize_edges);
+	}
+	if (!triggered_frame_binding) {
+		/* Notify client with pointer focus of button press */
+		wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
+			event->button, event->state);
 	}
 }
 

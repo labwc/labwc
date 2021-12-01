@@ -89,7 +89,8 @@ fill_mousebind(char *nodename, char *content)
 	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
 
 	if (!strcmp(nodename, "button")) {
-		current_mousebind->button = mousebind_button_from_str(content);
+		current_mousebind->button = mousebind_button_from_str(content,
+			&current_mousebind->modifiers);
 	} else if (!strcmp(nodename, "action")) {
 		 /* <mousebind button="" action="EVENT"> */
 		current_mousebind->mouse_event =
@@ -477,7 +478,8 @@ load_default_mouse_bindings(void)
 {
 	for (int i = 0; mouse_combos[i].context; i++) {
 		struct mousebind *m = mousebind_create(mouse_combos[i].context);
-		m->button = mousebind_button_from_str(mouse_combos[i].button);
+		m->button = mousebind_button_from_str(mouse_combos[i].button,
+			&m->modifiers);
 		m->mouse_event = mousebind_event_from_str(mouse_combos[i].event);
 		m->action = strdup(mouse_combos[i].action);
 		if (mouse_combos[i].command) {

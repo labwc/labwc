@@ -19,6 +19,9 @@ struct mousebind {
 	/* ex: BTN_LEFT, BTN_RIGHT from linux/input_event_codes.h */
 	uint32_t button;
 
+	/* ex: WLR_MODIFIER_SHIFT | WLR_MODIFIER_LOGO */
+	uint32_t modifiers;
+
 	/* ex: doubleclick, press, drag */
 	enum mouse_event mouse_event;
 	const char *action;
@@ -29,7 +32,7 @@ struct mousebind {
 };
 
 enum mouse_event mousebind_event_from_str(const char *str);
-uint32_t mousebind_button_from_str(const char *str);
+uint32_t mousebind_button_from_str(const char *str, uint32_t *modifiers);
 struct mousebind *mousebind_create(const char *context);
 
 #endif /* __LABWC_MOUSEBIND_H */

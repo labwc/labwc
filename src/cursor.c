@@ -589,11 +589,6 @@ cursor_button(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	/* Handle _press_ on view */
-	desktop_focus_and_activate_view(&server->seat, view);
-	desktop_raise_view(view);
-	damage_all_outputs(server);
-
 	/* Resize if SSD resize edge is clicked */
 	resize_edges = ssd_resize_edges(view_area);
 	if (resize_edges) {

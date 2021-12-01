@@ -67,6 +67,12 @@ action(struct server *server, const char *action, const char *command, uint32_t 
 		if (view) {
 			view_toggle_decorations(view);
 		}
+	} else if (!strcasecmp(action, "Focus")) {
+		struct view *view = desktop_view_at_cursor(server);
+		if (view) {
+			desktop_focus_and_activate_view(&server->seat, view);
+			damage_all_outputs(server);
+		}
 	} else if (!strcasecmp(action, "Iconify")) {
 		struct view *view = desktop_focused_view(server);
 		if (view) {
@@ -76,6 +82,12 @@ action(struct server *server, const char *action, const char *command, uint32_t 
 		struct view *view = desktop_view_at_cursor(server);
 		if (view) {
 			interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
+		}
+	} else if (!strcasecmp(action, "Raise")) {
+		struct view *view = desktop_focused_view(server);
+		if (view) {
+			desktop_raise_view(view);
+			damage_all_outputs(server);
 		}
 	} else if (!strcasecmp(action, "Resize")) {
 		struct view *view = desktop_view_at_cursor(server);

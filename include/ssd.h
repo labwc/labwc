@@ -5,7 +5,7 @@
 #include "labwc.h"
 
 /*
- * Sequence these according to the order they should be processes for
+ * Sequence these according to the order they should be processed for
  * press and hover events. Bear in mind that some of their respective
  * interactive areas overlap, so for example buttons need to come before title.
  */
@@ -24,6 +24,9 @@ enum ssd_part_type {
 	LAB_SSD_PART_RIGHT,
 	LAB_SSD_PART_BOTTOM,
 	LAB_SSD_PART_LEFT,
+	LAB_SSD_CLIENT,
+	LAB_SSD_FRAME,
+	LAB_SSD_ROOT,
 	LAB_SSD_END_MARKER
 };
 

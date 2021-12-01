@@ -135,6 +135,12 @@ ssd_box(struct view *view, enum ssd_part_type type)
 		box.width = theme->border_width + INVISIBLE_MARGIN;
 		box.height = view->h;
 		break;
+	case LAB_SSD_CLIENT:
+		box.x = view->x;
+		box.y = view->y;
+		box.width = view->w;
+		box.height = view->h;
+		break;
 	default:
 		break;
 	}

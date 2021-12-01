@@ -443,12 +443,13 @@ handle_cursor_button_with_meta_key(struct view *view, uint32_t button,
 }
 
 static void
-handle_release_mousebinding(struct server *server, uint32_t button, enum ssd_part_type view_area)
+handle_release_mousebinding(struct server *server, uint32_t button, uint32_t modifiers, enum ssd_part_type view_area)
 {
 	struct mousebind *mousebind;
 	wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
 		if (mousebind->context == view_area
-				&& mousebind->button == button) {
+				&& mousebind->button == button
+				&& modifiers == mousebind->modifiers) {
 			if (mousebind->mouse_event
 					== MOUSE_ACTION_RELEASE) {
 				action(server, mousebind->action,
@@ -477,7 +478,7 @@ is_double_click(long double_click_speed)
 }
 
 static bool
-handle_press_mousebinding(struct server *server, uint32_t button, enum ssd_part_type view_area)
+handle_press_mousebinding(struct server *server, uint32_t button, uint32_t modifiers, enum ssd_part_type view_area)
 {
 	struct mousebind *mousebind;
 	bool double_click = is_double_click(rc.doubleclick_time);
@@ -485,7 +486,8 @@ handle_press_mousebinding(struct server *server, uint32_t button, enum ssd_part_
 
 	wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
 		if (mousebind->context == view_area
-				&& mousebind->button == button) {
+				&& mousebind->button == button
+				&& modifiers == mousebind->modifiers) {
 			if (mousebind->mouse_event
 					== MOUSE_ACTION_PRESS) {
 				bound = true;
@@ -595,9 +597,9 @@ cursor_button(struct wl_listener *listener, void *data)
 
 mousebindings:
 	if (event->state == WLR_BUTTON_RELEASED) {
-		handle_release_mousebinding(server, event->button, view_area);
+		handle_release_mousebinding(server, event->button, modifiers, view_area);
 	} else if (event->state == WLR_BUTTON_PRESSED) {
-		handle_press_mousebinding(server, event->button, view_area);
+		handle_press_mousebinding(server, event->button, modifiers, view_area);
 	}
 }
 

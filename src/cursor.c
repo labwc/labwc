@@ -464,23 +464,33 @@ handle_release_mousebinding(struct server *server, uint32_t button, enum ssd_par
 }
 
 static bool
-is_double_click(long double_click_speed)
+is_double_click(long double_click_speed, uint32_t button)
 {
-	static struct timespec last_double_click;
+	static uint32_t last_button;
+	static struct timespec last_click;
 	struct timespec now;
 
 	clock_gettime(CLOCK_MONOTONIC, &now);
-	long ms = (now.tv_sec - last_double_click.tv_sec) * 1000 +
-		(now.tv_nsec - last_double_click.tv_nsec) / 1000000;
-	last_double_click = now;
-	return ms < double_click_speed && ms >= 0;
+	long ms = (now.tv_sec - last_click.tv_sec) * 1000 +
+		(now.tv_nsec - last_click.tv_nsec) / 1000000;
+	last_click = now;
+	if (last_button != button) {
+		last_button = button;
+		return false;
+	}
+	if (ms < double_click_speed && ms >= 0) {
+		/* end sequence so that third click is not considered a double-click */
+		last_button = 0;
+		return true;
+	}
+	return false;
 }
 
 static bool
 handle_press_mousebinding(struct server *server, uint32_t button, enum ssd_part_type view_area)
 {
 	struct mousebind *mousebind;
-	bool double_click = is_double_click(rc.doubleclick_time);
+	bool double_click = is_double_click(rc.doubleclick_time, button);
 	bool bound;
 
 	wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {

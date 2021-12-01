@@ -574,6 +574,8 @@ cursor_button(struct wl_listener *listener, void *data)
 		if (layer->current.keyboard_interactive) {
 			seat_set_focus_layer(&server->seat, layer);
 		}
+		wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
+			event->button, event->state);
 		return;
 	}
 

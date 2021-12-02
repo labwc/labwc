@@ -548,7 +548,6 @@ cursor_button(struct wl_listener *listener, void *data)
 			/* Exit interactive move/resize/menu mode. */
 			server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 			cursor_rebase(&server->seat, event->time_msec);
-			return;
 		}
 
 		/* Handle _release_ on root window */

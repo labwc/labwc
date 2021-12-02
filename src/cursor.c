@@ -194,19 +194,23 @@ process_cursor_motion(struct server *server, uint32_t time)
 		server->seat.cursor->x, server->seat.cursor->y, &surface,
 		&sx, &sy, &view_area);
 
+	/* Set cursor */
 	if (!view) {
+		/* root, etc. */
 		cursor_set(&server->seat, XCURSOR_DEFAULT);
 	} else {
+		/* resize handles */
 		uint32_t resize_edges = ssd_resize_edges(view_area);
 		if (resize_edges) {
 			cursor_name_set_by_server = true;
 			cursor_set(&server->seat,
 				wlr_xcursor_get_resize_name(resize_edges));
-		} else if (view_area != LAB_SSD_NONE) {
+		} else if (ssd_part_contains(LAB_SSD_PART_TITLEBAR, view_area)) {
 			/* title and buttons */
 			cursor_set(&server->seat, XCURSOR_DEFAULT);
 			cursor_name_set_by_server = true;
 		} else if (cursor_name_set_by_server) {
+			/* window content */
 			cursor_set(&server->seat, XCURSOR_DEFAULT);
 			cursor_name_set_by_server = false;
 		}

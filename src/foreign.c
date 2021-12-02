@@ -28,6 +28,16 @@ handle_toplevel_handle_request_fullscreen(struct wl_listener *listener, void *da
 	view_set_fullscreen(view, event->fullscreen, NULL);
 }
 
+static void
+handle_toplevel_handle_request_activate(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view,
+		toplevel_handle_request_activate);
+	// struct wlr_foreign_toplevel_handle_v1_activated_event *event = data;
+	/* In a multi-seat world we would select seat based on event->seat here. */
+	desktop_focus_and_activate_view(&view->server->seat, view);
+}
+
 void
 foreign_toplevel_handle_create(struct view *view)
 {
@@ -62,5 +72,10 @@ foreign_toplevel_handle_create(struct view *view)
 		handle_toplevel_handle_request_fullscreen;
 	wl_signal_add(&view->toplevel_handle->events.request_fullscreen,
 		&view->toplevel_handle_request_fullscreen);
-	/* TODO: hook up remaining signals (close, destroy, activate) */
+
+	view->toplevel_handle_request_activate.notify =
+		handle_toplevel_handle_request_activate;
+	wl_signal_add(&view->toplevel_handle->events.request_activate,
+		&view->toplevel_handle_request_activate);
+	/* TODO: hook up remaining signals (close, destroy) */
 }

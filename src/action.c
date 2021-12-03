@@ -54,6 +54,10 @@ action(struct view *activator, struct server *server, const char *action, const 
 		server->cycle_view =
 			desktop_cycle_view(server, server->cycle_view, LAB_CYCLE_DIR_FORWARD);
 		osd_update(server);
+	} else if (!strcasecmp(action, "PreviousWindow")) {
+		server->cycle_view =
+			desktop_cycle_view(server, server->cycle_view, LAB_CYCLE_DIR_BACKWARD);
+		osd_update(server);
 	} else if (!strcasecmp(action, "Reconfigure")) {
 		spawn_async_no_shell("killall -SIGHUP labwc");
 	} else if (!strcasecmp(action, "ShowMenu")) {

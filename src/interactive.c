@@ -39,7 +39,9 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 	}
 }
 
-void interactive_end(struct view *view) {
+void
+interactive_end(struct view *view)
+{
 	if (view->server->grabbed_view == view) {
 		view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		view->server->grabbed_view = NULL;

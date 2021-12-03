@@ -44,6 +44,9 @@ static const char *
 get_formatted_app_id(struct view *view)
 {
 	char *s = (char *)view_get_string_prop(view, "app_id");
+	if (s == NULL) {
+		return NULL;
+	}
 	/* remove the first two nodes of 'org.' strings */
 	if (!strncmp(s, "org.", 4)) {
 		char *p = s + 4;

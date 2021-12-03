@@ -473,6 +473,8 @@ static struct {
 	{ "Frame", "A-Right", "Press", "Focus", NULL},
 	{ "Frame", "A-Right", "Press", "Raise", NULL},
 	{ "Frame", "A-Right", "Press", "Resize", NULL},
+	{ "Titlebar", "Left", "Press", "Focus", NULL},
+	{ "Titlebar", "Left", "Press", "Raise", NULL},
 	{ "TitleBar", "Left", "Press", "Move", NULL },
 	{ "TitleBar", "Left", "DoubleClick", "ToggleMaximize", NULL },
 	{ "Close", "Left", "Click", "Close", NULL },
@@ -483,8 +485,10 @@ static struct {
 	{ "Root", "Middle", "Press", "ShowMenu", "root-menu"},
 	{ "Client", "Left", "Press", "Focus", NULL},
 	{ "Client", "Left", "Press", "Raise", NULL},
-	{ "Titlebar", "Left", "Press", "Focus", NULL},
-	{ "Titlebar", "Left", "Press", "Raise", NULL},
+	{ "Client", "Right", "Press", "Focus", NULL},
+	{ "Client", "Right", "Press", "Raise", NULL},
+	{ "Client", "Middle", "Press", "Focus", NULL},
+	{ "Client", "Middle", "Press", "Raise", NULL},
 	{ NULL, NULL, NULL, NULL, NULL },
 };
 

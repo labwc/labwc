@@ -452,6 +452,7 @@ void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer)
 
 void interactive_begin(struct view *view, enum input_mode mode,
 		      uint32_t edges);
+void interactive_end(struct view *view);
 
 void output_init(struct server *server);
 void output_damage_surface(struct output *output, struct wlr_surface *surface,

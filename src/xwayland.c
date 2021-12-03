@@ -81,6 +81,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel_handle);
 	}
+	interactive_end(view);
 	view->xwayland_surface = NULL;
 	wl_list_remove(&view->link);
 	wl_list_remove(&view->map.link);

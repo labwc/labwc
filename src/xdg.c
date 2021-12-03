@@ -95,6 +95,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel_handle);
 	}
+	interactive_end(view);
 	wl_list_remove(&view->link);
 	ssd_destroy(view);
 	free(view);

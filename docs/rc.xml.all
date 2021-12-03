@@ -128,19 +128,18 @@
         <action name="Resize"/>
       </mousebind>
     </context>
+
     <context name="TitleBar">
       <mousebind button="Left" action="Press">
         <action name="Move"/>
       </mousebind>
-    </context>
-    <context name="TitleBar">
       <mousebind button="Left" action="DoubleClick">
         <action name="ToggleMaximize"/>
       </mousebind>
     </context>
     <context name="Maximize">
       <mousebind button="Left" action="Click">
-	<action name="ToggleMaximize"/>
+        <action name="ToggleMaximize"/>
       </mousebind>
     </context>
     <context name="Iconify">
@@ -153,6 +152,28 @@
         <action name="Close"/>
       </mousebind>
     </context>
+
+    <context name="Client">
+      <mousebind button="Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+      </mousebind>
+      <mousebind button="Middle" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+      </mousebind>
+      <mousebind button="Right" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+      </mousebind>
+    </context>
+
+    <context name="Root">
+      <mousebind button="Right" action="Press">
+        <action name="ShowMenu"><menu>root-menu</menu></action>
+      </mousebind>
+    </context>
+
 
   </mouse>
 

@@ -551,6 +551,7 @@ cursor_button(struct wl_listener *listener, void *data)
 		if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 			/* Exit interactive move/resize/menu mode. */
 			server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+			server->grabbed_view = NULL;
 			cursor_rebase(&server->seat, event->time_msec);
 		}
 

@@ -7,7 +7,6 @@
 - [5. Run](#5-run)
 - [6. Integrate](#6-integrate)
 - [7. Roadmap](#7-roadmap)
-- [8. Contribute](#7-contribute)
 
 ## 1. What is this?
 
@@ -150,9 +149,6 @@ High-level summary of items which are not inteded to be implemented:
 - Any theme option not required to reasonably render common themes (it's amazing
   how few options are actually required).
 
-## 8. Contribute
-
-Let's try to stick to this [coding style]
 
 [openbox-3.4]: http://openbox.org/wiki/Help:Contents
 [rc.xml]: docs/rc.xml
@@ -193,4 +189,3 @@ Let's try to stick to this [coding style]
 [Video (1:10)]: https://youtu.be/AU_M3n_FS-E
 [Video (3:42)]: https://youtu.be/rE1bQjSVJzg
 
-[coding style]: https://git.sr.ht/~sircmpwn/cstyle

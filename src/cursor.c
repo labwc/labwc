@@ -437,16 +437,16 @@ handle_release_mousebinding(struct view *view, struct server *server, uint32_t b
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {
 			switch (mousebind->mouse_event) {
-				case MOUSE_ACTION_RELEASE:
+			case MOUSE_ACTION_RELEASE:
+				break;
+			case MOUSE_ACTION_CLICK:
+				if (mousebind->pressed_in_context) {
+					mousebind->pressed_in_context = false;
 					break;
-				case MOUSE_ACTION_CLICK:
-					if (mousebind->pressed_in_context) {
-						mousebind->pressed_in_context = false;
-						break;
-					}
-					continue;
-				default:
-					continue;
+				}
+				continue;
+			default:
+				continue;
 			}
 			activated_any = true;
 			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
@@ -493,17 +493,17 @@ handle_press_mousebinding(struct view *view, struct server *server, uint32_t but
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {
 			switch (mousebind->mouse_event) {
-				case MOUSE_ACTION_CLICK:
-					mousebind->pressed_in_context = true;
+			case MOUSE_ACTION_CLICK:
+				mousebind->pressed_in_context = true;
+				continue;
+			case MOUSE_ACTION_DOUBLECLICK:
+				if (!double_click)
 					continue;
-				case MOUSE_ACTION_DOUBLECLICK:
-					if (!double_click)
-						continue;
-					break;
-				case MOUSE_ACTION_PRESS:
-					break;
-				default:
-					continue;
+				break;
+			case MOUSE_ACTION_PRESS:
+				break;
+			default:
+				continue;
 			}
 			activated_any = true;
 			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;

@@ -426,7 +426,7 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 }
 
 static bool
-handle_release_mousebinding(struct server *server, uint32_t button, uint32_t modifiers, enum ssd_part_type view_area, uint32_t resize_edges)
+handle_release_mousebinding(struct view *view, struct server *server, uint32_t button, uint32_t modifiers, enum ssd_part_type view_area, uint32_t resize_edges)
 {
 	struct mousebind *mousebind;
 	bool activated_any = false;
@@ -450,7 +450,7 @@ handle_release_mousebinding(struct server *server, uint32_t button, uint32_t mod
 			}
 			activated_any = true;
 			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
-			action(server, mousebind->action,
+			action(view, server, mousebind->action,
 				mousebind->command, resize_edges);
 		}
 	}
@@ -481,7 +481,7 @@ is_double_click(long double_click_speed, uint32_t button)
 }
 
 static bool
-handle_press_mousebinding(struct server *server, uint32_t button, uint32_t modifiers, enum ssd_part_type view_area, uint32_t resize_edges)
+handle_press_mousebinding(struct view *view, struct server *server, uint32_t button, uint32_t modifiers, enum ssd_part_type view_area, uint32_t resize_edges)
 {
 	struct mousebind *mousebind;
 	bool double_click = is_double_click(rc.doubleclick_time, button);
@@ -507,7 +507,7 @@ handle_press_mousebinding(struct server *server, uint32_t button, uint32_t modif
 			}
 			activated_any = true;
 			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
-			action(server, mousebind->action,
+			action(view, server, mousebind->action,
 				mousebind->command, resize_edges);
 		}
 	}
@@ -556,7 +556,7 @@ cursor_button(struct wl_listener *listener, void *data)
 
 		/* Handle _release_ on root window */
 		if (!view) {
-			handle_release_mousebinding(server, event->button, modifiers, LAB_SSD_ROOT, 0);
+			handle_release_mousebinding(NULL, server, event->button, modifiers, LAB_SSD_ROOT, 0);
 		}
 		goto mousebindings;
 	}
@@ -585,7 +585,7 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* Handle _press_ on root window */
 	if (!view) {
-		handle_press_mousebinding(server, event->button, modifiers, LAB_SSD_ROOT, 0);
+		handle_press_mousebinding(NULL, server, event->button, modifiers, LAB_SSD_ROOT, 0);
 		return;
 	}
 
@@ -602,9 +602,9 @@ cursor_button(struct wl_listener *listener, void *data)
 
 mousebindings:
 	if (event->state == WLR_BUTTON_RELEASED) {
-		triggered_frame_binding |= handle_release_mousebinding(server, event->button, modifiers, view_area, resize_edges);
+		triggered_frame_binding |= handle_release_mousebinding(view, server, event->button, modifiers, view_area, resize_edges);
 	} else if (event->state == WLR_BUTTON_PRESSED) {
-		triggered_frame_binding |= handle_press_mousebinding(server, event->button, modifiers, view_area, resize_edges);
+		triggered_frame_binding |= handle_press_mousebinding(view, server, event->button, modifiers, view_area, resize_edges);
 	}
 	if (!triggered_frame_binding) {
 		/* Notify client with pointer focus of button press */

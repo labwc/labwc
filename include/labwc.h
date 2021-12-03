@@ -471,7 +471,7 @@ void server_init(struct server *server);
 void server_start(struct server *server);
 void server_finish(struct server *server);
 
-void action(struct server *server, const char *action, const char *command,
+void action(struct view *activator, struct server *server, const char *action, const char *command,
 	uint32_t resize_edges);
 
 /* update onscreen display 'alt-tab' texture */

@@ -105,14 +105,29 @@
   </keyboard>
 
   <!--
-    <mousebind> buttons/actions have not yet been implemented except for the
-    one below.
+    The following actions are not supported: "Unshade", "Drag"
+    The following contexts are not supported: "Left", "Right", "Top", "Bottom",
+                                              "{TR,BR,TL,BL}Corner"
   -->
   <mouse>
 
     <!-- time is in ms -->
     <doubleClickTime>500</doubleClickTime>
 
+    <context name="Frame">
+      <mousebind button="A-Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="Move"/>
+      </mousebind>
+    </context>
+    <context name="Frame">
+      <mousebind button="A-Right" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
+        <action name="Resize"/>
+      </mousebind>
+    </context>
     <context name="TitleBar">
       <mousebind button="Left" action="Press">
         <action name="Move"/>

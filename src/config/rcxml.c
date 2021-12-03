@@ -467,6 +467,12 @@ load_default_key_bindings(void)
 static struct {
 	const char *context, *button, *event, *action, *command;
 } mouse_combos[] = {
+	{ "Frame", "A-Left", "Press", "Focus", NULL},
+	{ "Frame", "A-Left", "Press", "Raise", NULL},
+	{ "Frame", "A-Left", "Press", "Move", NULL},
+	{ "Frame", "A-Right", "Press", "Focus", NULL},
+	{ "Frame", "A-Right", "Press", "Raise", NULL},
+	{ "Frame", "A-Right", "Press", "Resize", NULL},
 	{ "TitleBar", "Left", "Press", "Move", NULL },
 	{ "TitleBar", "Left", "DoubleClick", "ToggleMaximize", NULL },
 	{ "Close", "Left", "Click", "Close", NULL },

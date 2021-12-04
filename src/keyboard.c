@@ -140,7 +140,6 @@ handle_compositor_keybindings(struct wl_listener *listener,
 					desktop_cycle_view(server, server->cycle_view,
 						backwards ? LAB_CYCLE_DIR_BACKWARD : LAB_CYCLE_DIR_FORWARD);
 				osd_update(server);
-				damage_all_outputs(server);
 			}
 		}
 		/* don't send any key events to clients when osd onscreen */

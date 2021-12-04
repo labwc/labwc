@@ -52,7 +52,7 @@ action(struct view *activator, struct server *server, const char *action, const 
 		view_snap_to_edge(activator_or_focused_view(activator, server), command);
 	} else if (!strcasecmp(action, "NextWindow")) {
 		server->cycle_view =
-			desktop_cycle_view(server, server->cycle_view, LAB_CYCLE_DIR_NONE);
+			desktop_cycle_view(server, server->cycle_view, LAB_CYCLE_DIR_FORWARD);
 		osd_update(server);
 	} else if (!strcasecmp(action, "Reconfigure")) {
 		spawn_async_no_shell("killall -SIGHUP labwc");

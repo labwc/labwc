@@ -119,6 +119,14 @@ handle_compositor_keybindings(struct wl_listener *listener,
 	if (server->cycle_view) {
 		damage_all_outputs(server);
 		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+			for (int i = 0; i < nsyms; i++) {
+				if (syms[i] == XKB_KEY_Escape) {
+					/* cancel */
+					server->cycle_view = NULL;
+					return true;
+				}
+			}
+
 			/* cycle to next */
 			bool backwards = modifiers & WLR_MODIFIER_SHIFT;
 			/* ignore if this is a modifier key being pressed */

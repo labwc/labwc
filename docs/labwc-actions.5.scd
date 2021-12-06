@@ -34,6 +34,9 @@ Actions are used in keyboard bindings.
 *<action name="NextWindow">*
 	Cycle focus to next window.
 
+*<action name="PreviousWindow">*
+	Cycle focus to previous window.
+
 *<action name="Reconfigure">*
 	Re-load configuration and theme files.
 

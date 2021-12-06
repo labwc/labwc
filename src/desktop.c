@@ -170,16 +170,20 @@ desktop_cycle_view(struct server *server, struct view *current, enum lab_cycle_d
 	return view;
 }
 
+static void
+wl_list_insert_tail(struct wl_list *list, struct wl_list *elm)
+{
+	elm->prev = list->prev;
+	elm->next = list;
+	list->prev = elm;
+	elm->prev->next = elm;
+}
+
 void
-desktop_move_view_to_end_of_cycle(struct view *to_end) {
+desktop_move_view_to_end_of_cycle(struct view *to_end)
+{
 	wl_list_remove(&to_end->link);
-	struct view *view;
-	wl_list_for_each_reverse (view, &to_end->server->views, link) {
-		wl_list_insert(&view->link, &to_end->link);
-		return;
-	}
-	/* if the foreach did not return, this window was the only one in the list, so just reinsert it at the start */
-	wl_list_insert(&to_end->server->views, &to_end->link);
+	wl_list_insert_tail(&to_end->server->views, &to_end->link);
 }
 
 static bool

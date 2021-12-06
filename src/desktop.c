@@ -52,7 +52,7 @@ move_xwayland_sub_views_to_front(struct view *parent)
 #endif
 
 void
-desktop_raise_view(struct view *view)
+desktop_move_to_front(struct view *view)
 {
 	if (!view) {
 		return;
@@ -61,6 +61,25 @@ desktop_raise_view(struct view *view)
 #if HAVE_XWAYLAND
 	move_xwayland_sub_views_to_front(view);
 #endif
+}
+
+static void
+wl_list_insert_tail(struct wl_list *list, struct wl_list *elm)
+{
+	elm->prev = list->prev;
+	elm->next = list;
+	list->prev = elm;
+	elm->prev->next = elm;
+}
+
+void
+desktop_move_to_back(struct view *view)
+{
+	if (!view) {
+		return;
+	}
+	wl_list_remove(&view->link);
+	wl_list_insert_tail(&view->server->views, &view->link);
 }
 
 static void
@@ -170,22 +189,6 @@ desktop_cycle_view(struct server *server, struct view *current, enum lab_cycle_d
 	return view;
 }
 
-static void
-wl_list_insert_tail(struct wl_list *list, struct wl_list *elm)
-{
-	elm->prev = list->prev;
-	elm->next = list;
-	list->prev = elm;
-	elm->prev->next = elm;
-}
-
-void
-desktop_move_view_to_end_of_cycle(struct view *to_end)
-{
-	wl_list_remove(&to_end->link);
-	wl_list_insert_tail(&to_end->server->views, &to_end->link);
-}
-
 static bool
 has_mapped_view(struct wl_list *wl_list)
 {
@@ -237,7 +240,7 @@ desktop_focus_topmost_mapped_view(struct server *server)
 {
 	struct view *view = topmost_mapped_view(server);
 	desktop_focus_and_activate_view(&server->seat, view);
-	desktop_raise_view(view);
+	desktop_move_to_front(view);
 }
 
 static bool

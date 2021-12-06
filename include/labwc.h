@@ -396,8 +396,8 @@ void foreign_toplevel_handle_create(struct view *view);
  *              or pointer focus, in this compositor are they called together.
  */
 
-void desktop_raise_view(struct view *view);
-void desktop_move_view_to_end_of_cycle(struct view *to_end);
+void desktop_move_to_front(struct view *view);
+void desktop_move_to_back(struct view *view);
 void desktop_focus_and_activate_view(struct seat *seat, struct view *view);
 
 enum lab_cycle_dir {

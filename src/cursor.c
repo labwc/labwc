@@ -220,7 +220,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	if (view && rc.focus_follow_mouse) {
 		desktop_focus_and_activate_view(&server->seat, view);
 		if (rc.raise_on_focus) {
-			desktop_raise_view(view);
+			desktop_move_to_front(view);
 		}
 	}
 

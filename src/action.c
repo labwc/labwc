@@ -96,7 +96,7 @@ action(struct view *activator, struct server *server, const char *action, const 
 	} else if (!strcasecmp(action, "Raise")) {
 		struct view *view = activator_or_focused_view(activator, server);
 		if (view) {
-			desktop_raise_view(view);
+			desktop_move_to_front(view);
 			damage_all_outputs(server);
 		}
 	} else if (!strcasecmp(action, "Resize")) {

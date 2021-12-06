@@ -79,7 +79,7 @@ view_minimize(struct view *view, bool minimized)
 	view->minimized = minimized;
 	if (minimized) {
 		view->impl->unmap(view);
-		desktop_move_view_to_end_of_cycle(view);
+		desktop_move_to_back(view);
 	} else {
 		view->impl->map(view);
 	}

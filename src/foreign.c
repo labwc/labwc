@@ -36,6 +36,7 @@ handle_toplevel_handle_request_activate(struct wl_listener *listener, void *data
 	// struct wlr_foreign_toplevel_handle_v1_activated_event *event = data;
 	/* In a multi-seat world we would select seat based on event->seat here. */
 	desktop_focus_and_activate_view(&view->server->seat, view);
+	desktop_raise_view(view);
 }
 
 void

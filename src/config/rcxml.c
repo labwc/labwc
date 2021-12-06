@@ -34,6 +34,7 @@ enum font_place {
 	FONT_PLACE_UNKNOWN = 0,
 	FONT_PLACE_ACTIVEWINDOW,
 	FONT_PLACE_MENUITEM,
+	FONT_PLACE_OSD,
 	/* TODO: Add all places based on Openbox's rc.xml */
 };
 
@@ -206,9 +207,11 @@ fill_font(char *nodename, char *content, enum font_place place)
 		if (!strcmp(nodename, "name")) {
 			rc.font_name_activewindow = strdup(content);
 			rc.font_name_menuitem = strdup(content);
+			rc.font_name_osd = strdup(content);
 		} else if (!strcmp(nodename, "size")) {
 			rc.font_size_activewindow = atoi(content);
 			rc.font_size_menuitem = atoi(content);
+			rc.font_size_osd = atoi(content);
 		}
 		break;
 	case FONT_PLACE_ACTIVEWINDOW:
@@ -223,6 +226,13 @@ fill_font(char *nodename, char *content, enum font_place place)
 			rc.font_name_menuitem = strdup(content);
 		} else if (!strcmp(nodename, "size")) {
 			rc.font_size_menuitem = atoi(content);
+		}
+		break;
+	case FONT_PLACE_OSD:
+		if (!strcmp(nodename, "name")) {
+			rc.font_name_osd = strdup(content);
+		} else if (!strcmp(nodename, "size")) {
+			rc.font_size_osd = atoi(content);
 		}
 		break;
 
@@ -243,6 +253,8 @@ enum_font_place(const char *place)
 		return FONT_PLACE_ACTIVEWINDOW;
 	} else if (!strcasecmp(place, "MenuItem")) {
 		return FONT_PLACE_MENUITEM;
+	} else if (!strcasecmp(place, "OSD")) {
+		return FONT_PLACE_OSD;
 	}
 	return FONT_PLACE_UNKNOWN;
 }
@@ -418,6 +430,7 @@ rcxml_init()
 	rc.corner_radius = 8;
 	rc.font_size_activewindow = 10;
 	rc.font_size_menuitem = 10;
+	rc.font_size_osd = 10;
 	rc.doubleclick_time = 500;
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
@@ -525,6 +538,9 @@ post_processing(void)
 	if (!rc.font_name_menuitem) {
 		rc.font_name_menuitem = strdup("sans");
 	}
+	if (!rc.font_name_osd) {
+		rc.font_name_osd = strdup("sans");
+	}
 	if (!wl_list_length(&rc.libinput_categories)) {
 		/* So we still allow tap to click by default */
 		struct libinput_category *l = libinput_category_create();
@@ -602,6 +618,7 @@ rcxml_finish(void)
 {
 	zfree(rc.font_name_activewindow);
 	zfree(rc.font_name_menuitem);
+	zfree(rc.font_name_osd);
 	zfree(rc.theme_name);
 
 	struct keybind *k, *k_tmp;

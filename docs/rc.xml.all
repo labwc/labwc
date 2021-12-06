@@ -21,6 +21,7 @@
     <cornerRadius>8</cornerRadius>
     <font place="ActiveWindow"><name>sans</name><size>10</size></font>
     <font place="MenuItem"><name>sans</name><size>10</size></font>
+    <font place="OSD"><name>sans</name><size>10</size></font>
   </theme>
 
   <focus>

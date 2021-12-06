@@ -25,8 +25,10 @@ struct rcxml {
 	int corner_radius;
 	char *font_name_activewindow;
 	char *font_name_menuitem;
+	char *font_name_osd;
 	int font_size_activewindow;
 	int font_size_menuitem;
+	int font_size_osd;
 
 	/* keyboard */
 	int repeat_rate;

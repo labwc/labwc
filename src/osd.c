@@ -119,9 +119,13 @@ osd_update(struct server *server)
 	pango_layout_set_width(layout, w * PANGO_SCALE);
 	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 
-	/* TODO: use font description from config */
-	PangoFontDescription *desc =
-		pango_font_description_from_string("sans 10");
+	struct font font = {
+		.name = rc.font_name_osd,
+		.size = rc.font_size_osd,
+	};
+	PangoFontDescription *desc = pango_font_description_new();
+	pango_font_description_set_family(desc, font.name);
+	pango_font_description_set_size(desc, font.size * PANGO_SCALE);
 	pango_layout_set_font_description(layout, desc);
 	pango_font_description_free(desc);
 
@@ -136,11 +140,6 @@ osd_update(struct server *server)
 	buf_init(&buf);
 	y = OSD_BORDER_WIDTH;
 
-	/* vertically center align */
-	struct font font = {
-		.name = "sans",
-		.size = 10,
-	};
 	y += (OSD_ITEM_HEIGHT - font_height(&font)) / 2;
 
 	wl_list_for_each(view, &server->views, link) {

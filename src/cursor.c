@@ -590,14 +590,8 @@ cursor_button(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	/* Resize if SSD resize edge is clicked */
-	resize_edges = ssd_resize_edges(view_area);
-	if (resize_edges) {
-		interactive_begin(view, LAB_INPUT_STATE_RESIZE, resize_edges);
-		return;
-	}
-
 	/* Determine closest resize edges in case action is Resize */
+	resize_edges = ssd_resize_edges(view_area);
 	resize_edges |= server->seat.cursor->x < view->x + view->w / 2 ? WLR_EDGE_LEFT : WLR_EDGE_RIGHT;
 	resize_edges |= server->seat.cursor->y < view->y + view->h / 2 ? WLR_EDGE_TOP : WLR_EDGE_BOTTOM;
 

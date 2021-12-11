@@ -130,6 +130,47 @@
       </mousebind>
     </context>
 
+    <context name="Top">
+      <mousebind button="Left" action="Press">
+        <action name="Resize"/>
+      </mousebind>
+    </context>
+    <context name="Left">
+      <mousebind button="Left" action="Press">
+        <action name="Resize"/>
+      </mousebind>
+    </context>
+    <context name="Right">
+      <mousebind button="Left" action="Press">
+        <action name="Resize"/>
+      </mousebind>
+    </context>
+    <context name="Bottom">
+      <mousebind button="Left" action="Press">
+        <action name="Resize"/>
+      </mousebind>
+    </context>
+    <context name="TRCorner">
+      <mousebind button="Left" action="Press">
+        <action name="Resize"/>
+      </mousebind>
+    </context>
+    <context name="BRCorner">
+      <mousebind button="Left" action="Press">
+        <action name="Resize"/>
+      </mousebind>
+    </context>
+    <context name="TLCorner">
+      <mousebind button="Left" action="Press">
+        <action name="Resize"/>
+      </mousebind>
+    </context>
+    <context name="BLCorner">
+      <mousebind button="Left" action="Press">
+        <action name="Resize"/>
+      </mousebind>
+    </context>
+
     <context name="TitleBar">
       <mousebind button="Left" action="Press">
         <action name="Move"/>

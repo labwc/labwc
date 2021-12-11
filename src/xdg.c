@@ -364,11 +364,13 @@ xdg_toplevel_view_map(struct view *view)
 static void
 xdg_toplevel_view_unmap(struct view *view)
 {
-	view->mapped = false;
-	damage_all_outputs(view->server);
-	wl_list_remove(&view->commit.link);
-	wl_list_remove(&view->new_subsurface.link);
-	desktop_focus_topmost_mapped_view(view->server);
+	if (view->mapped) {
+		view->mapped = false;
+		damage_all_outputs(view->server);
+		wl_list_remove(&view->commit.link);
+		wl_list_remove(&view->new_subsurface.link);
+		desktop_focus_topmost_mapped_view(view->server);
+	}
 }
 
 static const struct view_impl xdg_toplevel_view_impl = {

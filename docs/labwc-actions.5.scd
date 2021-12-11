@@ -17,6 +17,12 @@ Actions are used in keyboard bindings.
 *<action name="Exit">*
 	Exit labwc.
 
+*<action name="Focus">*
+	Give focus to window under cursor.
+
+*<action name="Raise">*
+	Restack the current window above other open windows.
+
 *<action name="Iconify">*
 	Iconify (minimize) focused window.
 

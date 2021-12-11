@@ -423,10 +423,22 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 		return true;
 	}
 	if (whole == LAB_SSD_PART_TITLEBAR) {
-		return candidate >= LAB_SSD_BUTTON_CLOSE && candidate <= LAB_SSD_PART_CORNER_TOP_RIGHT;
+		return candidate >= LAB_SSD_BUTTON_CLOSE && candidate <= LAB_SSD_PART_TITLE;
 	}
 	if (whole == LAB_SSD_FRAME) {
 		return candidate >= LAB_SSD_BUTTON_CLOSE && candidate <= LAB_SSD_CLIENT;
+	}
+	if (whole == LAB_SSD_PART_TOP) {
+		return candidate == LAB_SSD_PART_CORNER_TOP_LEFT || candidate == LAB_SSD_PART_CORNER_BOTTOM_LEFT;
+	}
+	if (whole == LAB_SSD_PART_RIGHT) {
+		return candidate == LAB_SSD_PART_CORNER_TOP_RIGHT || candidate == LAB_SSD_PART_CORNER_BOTTOM_RIGHT;
+	}
+	if (whole == LAB_SSD_PART_BOTTOM) {
+		return candidate == LAB_SSD_PART_CORNER_BOTTOM_RIGHT || candidate == LAB_SSD_PART_CORNER_BOTTOM_LEFT;
+	}
+	if (whole == LAB_SSD_PART_LEFT) {
+		return candidate == LAB_SSD_PART_CORNER_TOP_LEFT || candidate == LAB_SSD_PART_CORNER_BOTTOM_LEFT;
 	}
 	return false;
 }

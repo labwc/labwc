@@ -113,15 +113,29 @@ Configuration must be wrapped in a <labwc_config> root-node.
 *<mouse><context name=""><mousebind button="" action="">*
 	Define a mouse binding. Supported context-names include:
 	- TitleBar: The area where the title of the window is shown.
+	- Title: The title of the window itself.
 	- Iconify: The button that looks like an underline.
 	- Maximize: The button that looks like a box.
 	- Close: The button that looks like an X.
+	- Top: The top edge of the window's border.
+	- Bottom: The bottom edge of the window's border.
+	- Left: The left edge of the window's border.
+	- Right: The right edge of the window's border.
+	- TRCorner: The top-right corner of the window's border.
+	- TLCorner: The top-left corner of the window's border.
+	- BLCorner: The bottom-left corner of the window's border.
+	- BRCorner: The bottom-right edge of the window's border.
 	- Client: The client area of a window, inside its decorations.
 	  Events bound to Client are also passed to applications.
 	- Frame: Any part of a window, but events bound to Frame are not passed
 	  through to the application.
 	- Desktop: The desktop background, where no windows are present.
 	- Root: A synonym for Desktop (for compatibility).
+
+	Supported mouse buttons are:
+	- Left
+	- Middle
+	- Right
 
 	Supported mouse actions include:
 	- Press: Pressing the specified button down in the context.

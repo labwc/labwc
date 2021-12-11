@@ -279,10 +279,12 @@ map(struct view *view)
 static void
 unmap(struct view *view)
 {
-	view->mapped = false;
-	damage_all_outputs(view->server);
-	wl_list_remove(&view->commit.link);
-	desktop_focus_topmost_mapped_view(view->server);
+	if(view->mapped) {
+		view->mapped = false;
+		damage_all_outputs(view->server);
+		wl_list_remove(&view->commit.link);
+		desktop_focus_topmost_mapped_view(view->server);
+	}
 }
 
 static void

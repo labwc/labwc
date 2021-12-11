@@ -116,6 +116,12 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	- Iconify: The button that looks like an underline.
 	- Maximize: The button that looks like a box.
 	- Close: The button that looks like an X.
+	- Client: The client area of a window, inside its decorations.
+	  Events bound to Client are also passed to applications.
+	- Frame: Any part of a window, but events bound to Frame are not passed
+	  through to the application.
+	- Desktop: The desktop background, where no windows are present.
+	- Root: A synonym for Desktop (for compatibility).
 
 	Supported mouse actions include:
 	- Press: Pressing the specified button down in the context.

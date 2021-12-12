@@ -20,6 +20,7 @@ struct libinput_category {
 	int natural_scroll;
 	int left_handed;
 	enum libinput_config_tap_state tap;
+	enum libinput_config_tap_button_map tap_button_map;
 	enum libinput_config_accel_profile accel_profile;
 	enum libinput_config_middle_emulation_state middle_emu;
 	enum libinput_config_dwt_state dwt;

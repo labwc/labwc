@@ -12,6 +12,7 @@ libinput_category_init(struct libinput_category *l)
 	l->natural_scroll = -1;
 	l->left_handed = -1;
 	l->tap = LIBINPUT_CONFIG_TAP_ENABLED;
+	l->tap_button_map = LIBINPUT_CONFIG_TAP_MAP_LRM;
 	l->accel_profile = -1;
 	l->middle_emu = -1;
 	l->dwt = -1;

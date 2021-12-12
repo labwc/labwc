@@ -189,6 +189,7 @@
     All values are [yes|no] except for:
       - pointerSpeed [-1.0 to 1.0]
       - accelProfile [flat|adaptive]
+      - tapButtonMap [lrm|lmr]
   -->
   <libinput>
     <device category="">
@@ -197,6 +198,7 @@
       <pointerSpeed></pointerSpeed>
       <accelProfile></accelProfile>
       <tap>yes</tap>
+      <tapButtonMap></tapButtonMap>
       <middleEmulation></middleEmulation>
       <disableWhileTyping></disableWhileTyping>
     </device>

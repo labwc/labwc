@@ -155,6 +155,11 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	Enable or disable tap-to-click for this category. This is enabled by
 	default for all categories.
 
+*<libinput><device category=""><tapButtonMap>* [lrm|lmr]
+	Set the buttons mapped to one-, two-, and three-finger taps to the
+	left button, right button, and middle button, respectively (lrm) (the
+	default), or to left button, middle button, and right button (lmr).
+
 *<libinput><device category=""><middleEmulation>* [yes|no]
 	Enable or disable middle button emulation for this category. Middle
 	emulation processes a simultaneous left and right click as a press of

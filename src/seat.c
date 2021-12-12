@@ -58,6 +58,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	} else {
 		wlr_log(WLR_INFO, "tap configured");
 		libinput_device_config_tap_set_enabled(libinput_dev, dc->tap);
+		libinput_device_config_tap_set_button_map(libinput_dev, dc->tap_button_map);
 	}
 
 	if (libinput_device_config_scroll_has_natural_scroll(libinput_dev) <= 0

@@ -440,6 +440,14 @@ void cursor_rebase(struct seat *seat, uint32_t time_msec);
  */
 void cursor_set(struct seat *seat, const char *cursor_name);
 void cursor_init(struct seat *seat);
+/**
+ * process_cursor_motion - update cursor icon for and send enter events for
+ * surface below the cursor. This function should be called any time the surface
+ * under the cursor may have changed.
+ * @seat - current seat
+ * @time - time now
+ */
+void process_cursor_motion(struct server *server, uint32_t time);
 
 void keyboard_init(struct seat *seat);
 

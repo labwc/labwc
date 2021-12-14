@@ -166,7 +166,7 @@ input_inhibit_blocks_surface(struct seat *seat, struct wl_resource *resource)
 		inhibiting_client != wl_resource_get_client(resource);
 }
 
-static void
+void
 process_cursor_motion(struct server *server, uint32_t time)
 {
 	static bool cursor_name_set_by_server;

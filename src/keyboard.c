@@ -46,6 +46,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 			desktop_focus_and_activate_view(&server->seat,
 				server->cycle_view);
 			desktop_move_to_front(server->cycle_view);
+			process_cursor_motion(server, event->time_msec);
 			server->cycle_view = NULL;
 		}
 	}

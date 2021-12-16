@@ -29,11 +29,11 @@ is_title_different(struct view *view)
 {
 	switch (view->type) {
 	case LAB_XDG_SHELL_VIEW:
-		return strcmp(view_get_string_prop(view, "title"),
+		return g_strcmp0(view_get_string_prop(view, "title"),
 			view_get_string_prop(view, "app_id"));
 #if HAVE_XWAYLAND
 	case LAB_XWAYLAND_VIEW:
-		return strcmp(view_get_string_prop(view, "title"),
+		return g_strcmp0(view_get_string_prop(view, "title"),
 			view->xwayland_surface->class);
 #endif
 	}

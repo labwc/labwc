@@ -1132,6 +1132,11 @@ handle_output_manager_apply(struct wl_listener *listener, void *data)
 		wlr_output_configuration_v1_send_failed(config);
 	}
 	wlr_output_configuration_v1_destroy(config);
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		wlr_xcursor_manager_load(server->seat.xcursor_manager,
+			output->wlr_output->scale);
+	}
 }
 
 /*

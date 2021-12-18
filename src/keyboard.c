@@ -22,7 +22,7 @@ any_modifiers_pressed(struct wlr_keyboard *keyboard)
 	for (i = 0; i < xkb_keymap_num_mods(keyboard->keymap); i++) {
 		if (xkb_state_mod_index_is_active
 				(keyboard->xkb_state, i,
-				 XKB_STATE_MODS_EFFECTIVE)) {
+				 XKB_STATE_MODS_DEPRESSED)) {
 			return true;
 		}
 	}

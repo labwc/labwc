@@ -6,6 +6,7 @@ labwc_sources = files(
   'foreign.c',
   'interactive.c',
   'keyboard.c',
+  'key-state.c',
   'layers.c',
   'main.c',
   'osd.c',

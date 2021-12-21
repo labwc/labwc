@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <wlr/backend/multi.h>
 #include <wlr/backend/session.h>
+#include "key-state.h"
 #include "labwc.h"
 
 static void
@@ -101,6 +102,19 @@ handle_compositor_keybindings(struct wl_listener *listener,
 
 	bool handled = false;
 
+	key_state_set_pressed(keycode,
+		event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
+
+	/*
+	 * If a press event was handled by a compositor binding, then do not
+	 * forward the corresponding release event to clients
+	 */
+	if (key_state_corresponding_press_event_was_bound(keycode)
+			&& event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
+		key_state_bound_key_remove(keycode);
+		return true;
+	}
+
 	uint32_t modifiers =
 		wlr_keyboard_get_modifiers(device->keyboard);
 
@@ -152,6 +166,11 @@ handle_compositor_keybindings(struct wl_listener *listener,
 			handled |= handle_keybinding(server, modifiers, syms[i]);
 		}
 	}
+
+	if (handled) {
+		key_state_store_pressed_keys_as_bound();
+	}
+
 	return handled;
 }
 

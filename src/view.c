@@ -17,6 +17,14 @@ view_set_activated(struct view *view, bool activated)
 }
 
 void
+view_close(struct view *view)
+{
+	if (view->impl->close) {
+		view->impl->close(view);
+	}
+}
+
+void
 view_move_resize(struct view *view, struct wlr_box geo)
 {
 	if (view->impl->configure) {

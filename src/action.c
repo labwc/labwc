@@ -33,7 +33,7 @@ action(struct view *activator, struct server *server, const char *action, const 
 	if (!strcasecmp(action, "Close")) {
 		struct view *view = activator_or_focused_view(activator, server);
 		if (view) {
-			view->impl->close(view);
+			view_close(view);
 		}
 	} else if (!strcasecmp(action, "Debug")) {
 		/* nothing */

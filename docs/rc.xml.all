@@ -121,8 +121,6 @@
         <action name="Raise"/>
         <action name="Move"/>
       </mousebind>
-    </context>
-    <context name="Frame">
       <mousebind button="A-Right" action="Press">
         <action name="Focus"/>
         <action name="Raise"/>
@@ -132,22 +130,31 @@
 
     <context name="TitleBar">
       <mousebind button="Left" action="Press">
+        <action name="Focus"/>
+        <action name="Raise"/>
         <action name="Move"/>
       </mousebind>
       <mousebind button="Left" action="DoubleClick">
+        <action name="Focus"/>
+        <action name="Raise"/>
         <action name="ToggleMaximize"/>
       </mousebind>
     </context>
+
     <context name="Maximize">
       <mousebind button="Left" action="Click">
+        <action name="Focus"/>
+        <action name="Raise"/>
         <action name="ToggleMaximize"/>
       </mousebind>
     </context>
+
     <context name="Iconify">
       <mousebind button="left" action="Click">
         <action name="Iconify"/>
       </mousebind>
     </context>
+
     <context name="Close">
       <mousebind button="Left" action="Click">
         <action name="Close"/>

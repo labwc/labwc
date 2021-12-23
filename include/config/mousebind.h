@@ -34,5 +34,6 @@ struct mousebind {
 enum mouse_event mousebind_event_from_str(const char *str);
 uint32_t mousebind_button_from_str(const char *str, uint32_t *modifiers);
 struct mousebind *mousebind_create(const char *context);
+struct mousebind *mousebind_create_from(struct mousebind *from, const char *context);
 
 #endif /* __LABWC_MOUSEBIND_H */

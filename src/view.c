@@ -144,6 +144,7 @@ view_maximize(struct view *view, bool maximize)
 			view->toplevel_handle, maximize);
 	}
 	if (maximize) {
+		interactive_end(view);
 		view->unmaximized_geometry.x = view->x;
 		view->unmaximized_geometry.y = view->y;
 		view->unmaximized_geometry.width = view->w;

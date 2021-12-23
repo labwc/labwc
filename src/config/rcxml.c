@@ -75,6 +75,8 @@ fill_mousebind(char *nodename, char *content)
 	/*
 	 * Example of what we are parsing:
 	 * <mousebind button="Left" action="DoubleClick">
+	 *   <action name="Focus"/>
+	 *   <action name="Raise"/>
 	 *   <action name="ToggleMaximize"/>
 	 * </mousebind>
 	 */
@@ -97,6 +99,10 @@ fill_mousebind(char *nodename, char *content)
 		current_mousebind->mouse_event =
 			mousebind_event_from_str(content);
 	} else if (!strcmp(nodename, "name.action")) {
+		if (current_mousebind->action) {
+			current_mousebind = mousebind_create_from(current_mousebind,
+				current_mouse_context);
+		}
 		current_mousebind->action = strdup(content);
 	} else if (!strcmp(nodename, "command.action")) {
 		current_mousebind->command = strdup(content);

@@ -92,3 +92,17 @@ mousebind_create(const char *context)
 	}
 	return m;
 }
+
+struct mousebind *
+mousebind_create_from(struct mousebind *from, const char *context)
+{
+	if (!from) {
+		wlr_log(WLR_ERROR, "invalid mousebind instance specified");
+		return NULL;
+	}
+	struct mousebind *m = mousebind_create(context);
+	m->button = from->button;
+	m->modifiers = from->modifiers;
+	m->mouse_event = from->mouse_event;
+	return m;
+}

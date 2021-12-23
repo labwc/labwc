@@ -39,6 +39,14 @@ handle_toplevel_handle_request_activate(struct wl_listener *listener, void *data
 	desktop_move_to_front(view);
 }
 
+static void
+handle_toplevel_handle_request_close(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view,
+		toplevel_handle_request_close);
+	view_close(view);
+}
+
 void
 foreign_toplevel_handle_create(struct view *view)
 {
@@ -78,5 +86,11 @@ foreign_toplevel_handle_create(struct view *view)
 		handle_toplevel_handle_request_activate;
 	wl_signal_add(&view->toplevel_handle->events.request_activate,
 		&view->toplevel_handle_request_activate);
-	/* TODO: hook up remaining signals (close, destroy) */
+
+	view->toplevel_handle_request_close.notify =
+		handle_toplevel_handle_request_close;
+	wl_signal_add(&view->toplevel_handle->events.request_close,
+		&view->toplevel_handle_request_close);
+
+	/* TODO: hook up remaining signals (destroy) */
 }

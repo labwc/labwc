@@ -268,6 +268,7 @@ struct view {
 	struct wl_listener toplevel_handle_request_minimize;
 	struct wl_listener toplevel_handle_request_fullscreen;
 	struct wl_listener toplevel_handle_request_activate;
+	struct wl_listener toplevel_handle_request_close;
 
 	struct wl_listener map;
 	struct wl_listener unmap;
@@ -353,6 +354,7 @@ void view_child_finish(struct view_child *child);
 void view_subsurface_create(struct view *view, struct wlr_subsurface *wlr_subsurface);
 
 void view_set_activated(struct view *view, bool activated);
+void view_close(struct view *view);
 struct border view_border(struct view *view);
 void view_move_resize(struct view *view, struct wlr_box geo);
 void view_move(struct view *view, double x, double y);

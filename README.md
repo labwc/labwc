@@ -16,11 +16,11 @@
 - inspired by BunsenLabs and ArchLabs
 - your favorite pet
 
-It is a wlroots-based stacking compositor aiming to be light-weight and independent, with a focus on simply stacking windows well and rendering some window decorations. It relies on clients for wall-paper, panels, screenshots, and so on to create a full desktop environment.
+It is a wlroots-based stacking compositor aiming to be lightweight and independent, with a focus on simply stacking windows well and rendering some window decorations. It relies on clients for wallpaper, panels, screenshots, and so on to create a full desktop environment.
 
 Labwc tries to stay in keeping with wlroots and sway in terms of general approach and coding style.
 
-In order to avoid re-inventing configuration & theme syntax, [openbox-3.4] specification is used. This does not mean that labwc is an openbox clone but rather that configuration files will look and feel familiar.
+In order to avoid reinventing configuration and theme syntax, the [openbox-3.4] specification is used. This does not mean that labwc is an openbox clone but rather that configuration files will look and feel familiar.
 
 | video link     | date        | content
 | -------------- | ------------| -------
@@ -83,7 +83,7 @@ Labwc uses the files listed below for configuration and theming.
 
 The example [rc.xml] has been kept simple. For all options and default values, see [rc.xml.all]
 
-Configuration and theme files are re-loaded on receiving SIGHUP (e.g. `killall -SIGHUP labwc`)
+Configuration and theme files are reloaded on receiving SIGHUP (e.g. `killall -SIGHUP labwc`)
 
 For keyboard settings, see [environment] and [xkeyboard-config(7)]
 
@@ -100,7 +100,7 @@ For themes, search the internet for "openbox themes" and place them in `~/.local
 
 Click on the background to launch a menu.
 
-If you have not created an rc.xml config file, default binds will be:
+If you have not created an rc.xml config file, default bindings will be:
 
 | combination              | action
 | ------------------------ | ------
@@ -134,14 +134,14 @@ Suggested apps to use with labwc:
 
 ## 7. Roadmap
 
-A lot of emphasis is put on code simplicy when considering features.
+A lot of emphasis is put on code simplicity when considering features.
 
-The main development effort if focused on producing a solid foundation for a
+The main development effort is focused on producing a solid foundation for a
 stacking compositor rather than adding configuration and theming options.
 
 See [acceptance criteria] for details.
 
-High-level summary of items which are not inteded to be implemented:
+High-level summary of items which are not intended to be implemented:
 
 - Icons (except window buttons)
 - Animations

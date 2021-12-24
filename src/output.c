@@ -526,6 +526,10 @@ render_osd(struct output *output, pixman_region32_t *damage,
 	struct wlr_output_layout_output *ol_output;
 	wl_list_for_each(o, &server->outputs, link) {
 		ol_output = wlr_output_layout_get(layout, o->wlr_output);
+		if (!ol_output) {
+			continue;
+		}
+
 		struct wlr_box box = {
 			.x = ol_output->x + o->wlr_output->width
 				/ o->wlr_output->scale / 2,

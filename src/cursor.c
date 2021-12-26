@@ -256,6 +256,20 @@ process_cursor_motion(struct server *server, uint32_t time)
 	}
 }
 
+static uint32_t
+msec(const struct timespec *t)
+{
+	return t->tv_sec * 1000 + t->tv_nsec / 1000000;
+}
+
+void
+cursor_update_focus(struct server *server)
+{
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	process_cursor_motion(server, msec(&now));
+}
+
 void
 start_drag(struct wl_listener *listener, void *data)
 {

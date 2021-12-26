@@ -441,6 +441,15 @@ void cursor_rebase(struct seat *seat, uint32_t time_msec);
  * @cursor_name - name of cursor, for example "left_ptr" or "grab"
  */
 void cursor_set(struct seat *seat, const char *cursor_name);
+
+/**
+ * cursor_update_focus - update cursor focus
+ * @server - server
+ * Use it to force an update of the cursor icon and to send an enter event
+ * to the surface below the cursor.
+ */
+void cursor_update_focus(struct server *server);
+
 void cursor_init(struct seat *seat);
 
 void keyboard_init(struct seat *seat);

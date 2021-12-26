@@ -1,3 +1,3 @@
 [wrap-git]
 url = https://gitlab.freedesktop.org/wlroots/wlroots
-revision = master
+revision = 0.15.0

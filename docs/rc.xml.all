@@ -107,8 +107,6 @@
 
   <!--
     The following actions are not supported: "Unshade", "Drag"
-    The following contexts are not supported: "Left", "Right", "Top", "Bottom",
-                                              "{TR,BR,TL,BL}Corner"
   -->
   <mouse>
 
@@ -218,11 +216,20 @@
     </context>
 
     <context name="Root">
+      <mousebind button="Left" action="Press">
+        <action name="ShowMenu"><menu>root-menu</menu></action>
+      </mousebind>
+    </context>
+    <context name="Root">
       <mousebind button="Right" action="Press">
         <action name="ShowMenu"><menu>root-menu</menu></action>
       </mousebind>
     </context>
-
+    <context name="Root">
+      <mousebind button="Middle" action="Press">
+        <action name="ShowMenu"><menu>root-menu</menu></action>
+      </mousebind>
+    </context>
 
   </mouse>
 

@@ -316,6 +316,20 @@ process_cursor_motion(struct server *server, uint32_t time)
 	}
 }
 
+static uint32_t
+msec(const struct timespec *t)
+{
+	return t->tv_sec * 1000 + t->tv_nsec / 1000000;
+}
+
+void
+cursor_update_focus(struct server *server)
+{
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	cursor_rebase(&server->seat, msec(&now));
+}
+
 void
 start_drag(struct wl_listener *listener, void *data)
 {
@@ -737,7 +751,6 @@ cursor_axis(struct wl_listener *listener, void *data)
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	/* Notify the client with pointer focus of the axis event. */
-	cursor_rebase(seat, event->time_msec);
 	wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,
 		event->orientation, event->delta, event->delta_discrete,
 		event->source);

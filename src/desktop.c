@@ -169,7 +169,8 @@ first_view(struct server *server)
 }
 
 struct view *
-desktop_cycle_view(struct server *server, struct view *current, enum lab_cycle_dir dir)
+desktop_cycle_view(struct server *server, struct view *current,
+		enum lab_cycle_dir dir)
 {
 	if (!has_focusable_view(&server->views)) {
 		return NULL;
@@ -292,8 +293,8 @@ wlr_surface *layer_surface_at(struct wl_list *layer, double ox, double oy,
 		double _sx = ox - surface->geo.x;
 		double _sy = oy - surface->geo.y;
 		struct wlr_surface *wlr_surface;
-		wlr_surface = wlr_layer_surface_v1_surface_at(surface->layer_surface,
-							      _sx, _sy, sx, sy);
+		wlr_surface = wlr_layer_surface_v1_surface_at(
+			surface->layer_surface, _sx, _sy, sx, sy);
 		if (wlr_surface) {
 			return wlr_surface;
 		}

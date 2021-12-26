@@ -105,6 +105,6 @@ action(struct view *activator, struct server *server, const char *action, const 
 			interactive_begin(view, LAB_INPUT_STATE_RESIZE, resize_edges);
 		}
 	} else {
-		wlr_log(WLR_ERROR, "action (%s) not supported", action);
+		wlr_log(WLR_ERROR, "(%s) not supported", action);
 	}
 }

@@ -279,7 +279,7 @@ map(struct view *view)
 static void
 unmap(struct view *view)
 {
-	if(view->mapped) {
+	if (view->mapped) {
 		view->mapped = false;
 		damage_all_outputs(view->server);
 		wl_list_remove(&view->commit.link);

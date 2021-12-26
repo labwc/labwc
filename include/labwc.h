@@ -351,7 +351,8 @@ void xwayland_unmanaged_create(struct server *server,
 void view_child_init(struct view_child *child, struct view *view,
 	struct wlr_surface *wlr_surface);
 void view_child_finish(struct view_child *child);
-void view_subsurface_create(struct view *view, struct wlr_subsurface *wlr_subsurface);
+void view_subsurface_create(struct view *view,
+	struct wlr_subsurface *wlr_subsurface);
 
 void view_set_activated(struct view *view, bool activated);
 void view_close(struct view *view);
@@ -413,7 +414,8 @@ enum lab_cycle_dir {
  * @current: reference point for finding next view to cycle to
  * Note: If !current, the server->views second focusable view is returned
  */
-struct view *desktop_cycle_view(struct server *server, struct view *current, enum lab_cycle_dir dir);
+struct view *desktop_cycle_view(struct server *server, struct view *current,
+	enum lab_cycle_dir dir);
 struct view *desktop_focused_view(struct server *server);
 void desktop_focus_topmost_mapped_view(struct server *server);
 bool isfocusable(struct view *view);
@@ -484,8 +486,8 @@ void server_init(struct server *server);
 void server_start(struct server *server);
 void server_finish(struct server *server);
 
-void action(struct view *activator, struct server *server, const char *action, const char *command,
-	uint32_t resize_edges);
+void action(struct view *activator, struct server *server, const char *action,
+	const char *command, uint32_t resize_edges);
 
 /* update onscreen display 'alt-tab' texture */
 void osd_update(struct server *server);

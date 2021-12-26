@@ -84,8 +84,10 @@ request_start_drag_notify(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(
 		listener, seat, request_start_drag);
 	struct wlr_seat_request_start_drag_event *event = data;
-	if (wlr_seat_validate_pointer_grab_serial(seat->seat, event->origin, event->serial)) {
-		wlr_seat_start_pointer_drag(seat->seat, event->drag, event->serial);
+	if (wlr_seat_validate_pointer_grab_serial(seat->seat, event->origin,
+			event->serial)) {
+		wlr_seat_start_pointer_drag(seat->seat, event->drag,
+			event->serial);
 	} else {
 		wlr_data_source_destroy(event->drag->source);
 	}
@@ -374,10 +376,11 @@ cursor_motion(struct wl_listener *listener, void *data)
 	if (!seat->current_constraint) {
 		/*
 		 * The cursor doesn't move unless we tell it to. The cursor
-		 * automatically handles constraining the motion to the output layout,
-		 * as well as any special configuration applied for the specific input
-		 * device which generated the event. You can pass NULL for the device
-		 * if you want to move the cursor around without any input.
+		 * automatically handles constraining the motion to the output
+		 * layout, as well as any special configuration applied for the
+		 * specific input device which generated the event. You can pass
+		 * NULL for the device if you want to move the cursor around
+		 * without any input.
 		 */
 		wlr_cursor_move(seat->cursor, event->device, event->delta_x,
 			event->delta_y);
@@ -428,19 +431,21 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 	if (!seat->current_constraint) {
 		/*
 		 * The cursor doesn't move unless we tell it to. The cursor
-		 * automatically handles constraining the motion to the output layout,
-		 * as well as any special configuration applied for the specific input
-		 * device which generated the event. You can pass NULL for the device
-		 * if you want to move the cursor around without any input.
+		 * automatically handles constraining the motion to the output
+		 * layout, as well as any special configuration applied for the
+		 * specific input device which generated the event. You can pass
+		 * NULL for the device if you want to move the cursor around
+		 * without any input.
 		 */
-		wlr_cursor_move(seat->cursor, event->device, dx, dy);
-	}
+		wlr_cursor_move(seat->cursor, event->device, dx, dy); }
 
 	process_cursor_motion(seat->server, event->time_msec);
 }
 
 static bool
-handle_release_mousebinding(struct view *view, struct server *server, uint32_t button, uint32_t modifiers, enum ssd_part_type view_area, uint32_t resize_edges)
+handle_release_mousebinding(struct view *view, struct server *server,
+		uint32_t button, uint32_t modifiers,
+		enum ssd_part_type view_area, uint32_t resize_edges)
 {
 	struct mousebind *mousebind;
 	bool activated_any = false;
@@ -487,7 +492,10 @@ is_double_click(long double_click_speed, uint32_t button)
 		return false;
 	}
 	if (ms < double_click_speed && ms >= 0) {
-		/* end sequence so that third click is not considered a double-click */
+		/*
+		 * End sequence so that third click is not considered a
+		 * double-click
+		 */
 		last_button = 0;
 		return true;
 	}
@@ -495,7 +503,9 @@ is_double_click(long double_click_speed, uint32_t button)
 }
 
 static bool
-handle_press_mousebinding(struct view *view, struct server *server, uint32_t button, uint32_t modifiers, enum ssd_part_type view_area, uint32_t resize_edges)
+handle_press_mousebinding(struct view *view, struct server *server,
+		uint32_t button, uint32_t modifiers,
+		enum ssd_part_type view_area, uint32_t resize_edges)
 {
 	struct mousebind *mousebind;
 	bool double_click = is_double_click(rc.doubleclick_time, button);
@@ -571,7 +581,8 @@ cursor_button(struct wl_listener *listener, void *data)
 
 		/* Handle _release_ on root window */
 		if (!view) {
-			handle_release_mousebinding(NULL, server, event->button, modifiers, LAB_SSD_ROOT, 0);
+			handle_release_mousebinding(NULL, server, event->button,
+				modifiers, LAB_SSD_ROOT, 0);
 		}
 		goto mousebindings;
 	}
@@ -600,7 +611,8 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* Handle _press_ on root window */
 	if (!view) {
-		handle_press_mousebinding(NULL, server, event->button, modifiers, LAB_SSD_ROOT, 0);
+		handle_press_mousebinding(NULL, server,
+			event->button, modifiers, LAB_SSD_ROOT, 0);
 		return;
 	}
 
@@ -615,9 +627,13 @@ cursor_button(struct wl_listener *listener, void *data)
 
 mousebindings:
 	if (event->state == WLR_BUTTON_RELEASED) {
-		triggered_frame_binding |= handle_release_mousebinding(view, server, event->button, modifiers, view_area, resize_edges);
+		triggered_frame_binding |= handle_release_mousebinding(view,
+			server, event->button, modifiers,
+			view_area, resize_edges);
 	} else if (event->state == WLR_BUTTON_PRESSED) {
-		triggered_frame_binding |= handle_press_mousebinding(view, server, event->button, modifiers, view_area, resize_edges);
+		triggered_frame_binding |= handle_press_mousebinding(view,
+			server, event->button, modifiers,
+			view_area, resize_edges);
 	}
 	if (!triggered_frame_binding) {
 		/* Notify client with pointer focus of button press */

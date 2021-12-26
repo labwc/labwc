@@ -1,7 +1,0 @@
-BasedOnStyle: LLVM
-IndentWidth: 8
-AlwaysBreakAfterReturnType: TopLevel
-UseTab: ForIndentation
-BreakBeforeBraces: Linux
-AllowShortEnumsOnASingleLine: false
-AlignAfterOpenBracket: DontAlign

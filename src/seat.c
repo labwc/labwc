@@ -10,6 +10,7 @@ input_device_destroy(struct wl_listener *listener, void *data)
 {
 	struct input *input = wl_container_of(listener, input, destroy);
 	wl_list_remove(&input->link);
+	wl_list_remove(&input->destroy.link);
 	free(input);
 }
 

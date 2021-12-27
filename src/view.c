@@ -223,10 +223,12 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 			view->toplevel_handle, fullscreen);
 	}
 	if (fullscreen) {
-		view->unmaximized_geometry.x = view->x;
-		view->unmaximized_geometry.y = view->y;
-		view->unmaximized_geometry.width = view->w;
-		view->unmaximized_geometry.height = view->h;
+		if (!view->maximized) {
+			view->unmaximized_geometry.x = view->x;
+			view->unmaximized_geometry.y = view->y;
+			view->unmaximized_geometry.width = view->w;
+			view->unmaximized_geometry.height = view->h;
+		}
 
 		if (!wlr_output) {
 			wlr_output = view_wlr_output(view);
@@ -245,7 +247,16 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		view_move_resize(view, box);
 	} else {
 		/* restore to normal */
-		view_move_resize(view, view->unmaximized_geometry);
+		if (view->maximized) {
+			view->maximized = false;
+			view->x = view->unmaximized_geometry.x;
+			view->y = view->unmaximized_geometry.y;
+			view->w = view->unmaximized_geometry.width;
+			view->h = view->unmaximized_geometry.height;
+			view_maximize(view, true);
+		} else {
+			view_move_resize(view, view->unmaximized_geometry);
+		}
 		view->fullscreen = false;
 	}
 }

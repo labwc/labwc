@@ -97,6 +97,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	}
 	interactive_end(view);
 	wl_list_remove(&view->link);
+	wl_list_remove(&view->destroy.link);
 	ssd_destroy(view);
 	free(view);
 }

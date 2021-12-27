@@ -88,6 +88,7 @@ view_minimize(struct view *view, bool minimized)
 	if (minimized) {
 		view->impl->unmap(view);
 		desktop_move_to_back(view);
+		view_set_activated(view, false);
 	} else {
 		view->impl->map(view);
 	}

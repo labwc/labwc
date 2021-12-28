@@ -7,7 +7,9 @@ handle_toplevel_handle_request_minimize(struct wl_listener *listener, void *data
 	struct view *view = wl_container_of(listener, view,
 		toplevel_handle_request_minimize);
 	struct wlr_foreign_toplevel_handle_v1_minimized_event *event = data;
-	view_minimize(view, event->minimized);
+	if (view) {
+		view_minimize(view, event->minimized);
+	}
 }
 
 static void
@@ -16,7 +18,9 @@ handle_toplevel_handle_request_maximize(struct wl_listener *listener, void *data
 	struct view *view = wl_container_of(listener, view,
 		toplevel_handle_request_maximize);
 	struct wlr_foreign_toplevel_handle_v1_maximized_event *event = data;
-	view_maximize(view, event->maximized);
+	if (view) {
+		view_maximize(view, event->maximized);
+	}
 }
 
 static void
@@ -25,7 +29,9 @@ handle_toplevel_handle_request_fullscreen(struct wl_listener *listener, void *da
 	struct view *view = wl_container_of(listener, view,
 		toplevel_handle_request_fullscreen);
 	struct wlr_foreign_toplevel_handle_v1_fullscreen_event *event = data;
-	view_set_fullscreen(view, event->fullscreen, NULL);
+	if (view) {
+		view_set_fullscreen(view, event->fullscreen, NULL);
+	}
 }
 
 static void
@@ -35,8 +41,10 @@ handle_toplevel_handle_request_activate(struct wl_listener *listener, void *data
 		toplevel_handle_request_activate);
 	// struct wlr_foreign_toplevel_handle_v1_activated_event *event = data;
 	/* In a multi-seat world we would select seat based on event->seat here. */
-	desktop_focus_and_activate_view(&view->server->seat, view);
-	desktop_move_to_front(view);
+	if (view) {
+		desktop_focus_and_activate_view(&view->server->seat, view);
+		desktop_move_to_front(view);
+	}
 }
 
 static void
@@ -44,7 +52,9 @@ handle_toplevel_handle_request_close(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view,
 		toplevel_handle_request_close);
-	view_close(view);
+	if (view) {
+		view_close(view);
+	}
 }
 
 void

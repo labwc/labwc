@@ -23,6 +23,15 @@ For example, this sets keyboard layout to Swedish:
 XKB_DEFAULT_LAYOUT=se
 ```
 
+*XCURSOR_THEME* and *XCURSOR_SIZE* are also supported to set cursor theme
+and size respectively. The default size is 24.
+
+Cursor themes can be found a the command below or similar:
+
+```
+find /usr/share/icons/ -type d -name "cursors"
+```
+
 # SEE ALSO
 
 labwc(1)

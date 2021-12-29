@@ -195,7 +195,7 @@ Configuration must be wrapped in a <labwc_config> root-node.
 
 # RESISTANCE
 
-*<resistance>screenEdgeStrength>*
+*<resistance><screenEdgeStrength>*
 	Screen Edge Strength is how far past the screen's edge your cursor must
 	move before the window will move with it. Resistance is counted in
 	pixels. Default is 20 pixels.

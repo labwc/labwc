@@ -29,7 +29,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 
 	switch (mode) {
 	case LAB_INPUT_STATE_MOVE:
-		cursor_set(&server->seat, "move");
+		cursor_set(&server->seat, "grab");
 		break;
 	case LAB_INPUT_STATE_RESIZE:
 		cursor_set(&server->seat, wlr_xcursor_get_resize_name(edges));

@@ -38,8 +38,7 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	cursor. Default is no.
 
 *<focus><raiseOnFocus>* [yes|no]
-	Raise window to top when focused. Only applies if followMouse is
-	set. Default is no.
+	Raise window to top when focused. Default is no.
 
 # THEME
 

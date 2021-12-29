@@ -109,7 +109,10 @@ Configuration must be wrapped in a <labwc_config> root-node.
 *<mouse><doubleClickTime>*
 	Set double click time in milliseconds. Default is 500.
 
-*<mouse><context name=""><mousebind button="" action="">*
+*<mouse><context name=""><mousebind button=""><action>*
+	Multiple *<mousebind>* can exist within one *<context>*; and multiple
+	*<action>* can exist within one *<mousebind>*
+
 	Define a mouse binding. Supported context-names include:
 	- TitleBar: The area where the title of the window is shown.
 	- Title: The title of the window itself.

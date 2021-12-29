@@ -106,7 +106,9 @@
   </keyboard>
 
   <!--
-    The following actions are not supported: "Unshade", "Drag"
+    Multiple <mousebind> can exist within one <context>
+    Multiple <actions> can exist within one <mousebind>
+    The following openbox-actions are not supported: "Unshade" and "Drag"
   -->
   <mouse>
 
@@ -219,13 +221,9 @@
       <mousebind button="Left" action="Press">
         <action name="ShowMenu"><menu>root-menu</menu></action>
       </mousebind>
-    </context>
-    <context name="Root">
       <mousebind button="Right" action="Press">
         <action name="ShowMenu"><menu>root-menu</menu></action>
       </mousebind>
-    </context>
-    <context name="Root">
       <mousebind button="Middle" action="Press">
         <action name="ShowMenu"><menu>root-menu</menu></action>
       </mousebind>

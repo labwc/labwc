@@ -426,8 +426,7 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->request_maximize.notify = handle_request_maximize;
 	wl_signal_add(&toplevel->events.request_maximize, &view->request_maximize);
 	view->request_fullscreen.notify = handle_request_fullscreen;
-	wl_signal_add(&toplevel->events.request_fullscreen,
-		&view->request_fullscreen);
+	wl_signal_add(&toplevel->events.request_fullscreen, &view->request_fullscreen);
 
 	view->set_title.notify = handle_set_title;
 	wl_signal_add(&toplevel->events.set_title, &view->set_title);

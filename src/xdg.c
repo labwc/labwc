@@ -136,6 +136,16 @@ handle_request_resize(struct wl_listener *listener, void *data)
 }
 
 static void
+handle_request_minimize(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, request_minimize);
+	struct wlr_xdg_surface *surface = data;
+	if (view) {
+		view_minimize(view, surface->toplevel->requested.minimized);
+	}
+}
+
+static void
 handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
@@ -423,6 +433,8 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	wl_signal_add(&toplevel->events.request_move, &view->request_move);
 	view->request_resize.notify = handle_request_resize;
 	wl_signal_add(&toplevel->events.request_resize, &view->request_resize);
+	view->request_minimize.notify = handle_request_minimize;
+	wl_signal_add(&toplevel->events.request_minimize, &view->request_minimize);
 	view->request_maximize.notify = handle_request_maximize;
 	wl_signal_add(&toplevel->events.request_maximize, &view->request_maximize);
 	view->request_fullscreen.notify = handle_request_fullscreen;

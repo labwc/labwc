@@ -166,6 +166,28 @@ new_keyboard(struct seat *seat, struct input *input)
 	wlr_seat_set_keyboard(seat->seat, input->wlr_input_device);
 }
 
+void
+new_touch(struct seat *seat, struct input *input)
+{
+	struct wlr_input_device *dev = input->wlr_input_device;
+	if (wlr_input_device_is_libinput(dev)) {
+		configure_libinput(dev);
+	}
+	wlr_cursor_attach_input_device(seat->cursor, dev);
+
+	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
+	if (dev->type == WLR_INPUT_DEVICE_TOUCH) {
+		wlr_log(WLR_INFO, "map touch to output %s\n",
+			dev->pointer->output_name);
+		struct wlr_output *output = NULL;
+		if (dev->pointer->output_name != NULL) {
+			output = output_by_name(seat->server, dev->pointer->output_name);
+		}
+		wlr_cursor_map_input_to_output(seat->cursor, dev, output);
+		wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
+	}
+}
+
 static void
 new_input_notify(struct wl_listener *listener, void *data)
 {
@@ -181,6 +203,9 @@ new_input_notify(struct wl_listener *listener, void *data)
 		break;
 	case WLR_INPUT_DEVICE_POINTER:
 		new_pointer(seat, input);
+		break;
+	case WLR_INPUT_DEVICE_TOUCH:
+		new_touch(seat, input);
 		break;
 	default:
 		wlr_log(WLR_INFO, "unsupported input device");
@@ -199,6 +224,9 @@ new_input_notify(struct wl_listener *listener, void *data)
 			break;
 		case WLR_INPUT_DEVICE_POINTER:
 			caps |= WL_SEAT_CAPABILITY_POINTER;
+			break;
+		case WLR_INPUT_DEVICE_TOUCH:
+			caps |= WL_SEAT_CAPABILITY_TOUCH;
 			break;
 		default:
 			break;
@@ -272,6 +300,7 @@ seat_init(struct server *server)
 
 	keyboard_init(seat);
 	cursor_init(seat);
+	touch_init(seat);
 }
 
 void
@@ -281,6 +310,7 @@ seat_finish(struct server *server)
 	wl_list_remove(&seat->new_input.link);
 	keyboard_finish(seat);
 	cursor_finish(seat);
+	touch_finish(seat);
 }
 
 void

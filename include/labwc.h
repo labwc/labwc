@@ -119,6 +119,11 @@ struct seat {
 	struct wl_listener keyboard_key;
 	struct wl_listener keyboard_modifiers;
 
+	struct wl_listener touch_down;
+	struct wl_listener touch_up;
+	struct wl_listener touch_motion;
+	struct wl_listener touch_frame;
+
 	struct wl_listener request_start_drag;
 	struct wl_listener start_drag;
 	struct wl_listener destroy_drag;
@@ -497,6 +502,9 @@ void cursor_finish(struct seat *seat);
 
 void keyboard_init(struct seat *seat);
 void keyboard_finish(struct seat *seat);
+
+void touch_init(struct seat *seat);
+void touch_finish(struct seat *seat);
 
 void seat_init(struct server *server);
 void seat_finish(struct server *server);

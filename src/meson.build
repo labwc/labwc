@@ -16,6 +16,7 @@ labwc_sources = files(
   'resistance.c',
   'seat.c',
   'server.c',
+  'touch.c',
   'theme.c',
   'view.c',
   'view-impl.c',

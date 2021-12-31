@@ -218,3 +218,13 @@ keyboard_init(struct seat *seat)
 	seat->keyboard_modifiers.notify = keyboard_modifiers_notify;
 	wl_signal_add(&kb->events.modifiers, &seat->keyboard_modifiers);
 }
+
+void
+keyboard_finish(struct seat *seat)
+{
+	if (seat->keyboard_group) {
+		wlr_keyboard_group_destroy(seat->keyboard_group);
+	}
+	wl_list_remove(&seat->keyboard_key.link);
+	wl_list_remove(&seat->keyboard_modifiers.link);
+}

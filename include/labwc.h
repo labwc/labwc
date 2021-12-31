@@ -456,8 +456,10 @@ void cursor_set(struct seat *seat, const char *cursor_name);
 void cursor_update_focus(struct server *server);
 
 void cursor_init(struct seat *seat);
+void cursor_finish(struct seat *seat);
 
 void keyboard_init(struct seat *seat);
+void keyboard_finish(struct seat *seat);
 
 void arrange_layers(struct output *output);
 

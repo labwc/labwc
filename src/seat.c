@@ -243,19 +243,9 @@ void
 seat_finish(struct server *server)
 {
 	struct seat *seat = &server->seat;
-	wl_list_remove(&seat->cursor_motion.link);
-	wl_list_remove(&seat->cursor_motion_absolute.link);
-	wl_list_remove(&seat->cursor_button.link);
-	wl_list_remove(&seat->cursor_axis.link);
-	wl_list_remove(&seat->cursor_frame.link);
-	wl_list_remove(&seat->request_cursor.link);
-	wl_list_remove(&seat->request_set_selection.link);
 	wl_list_remove(&seat->new_input.link);
-	if (seat->keyboard_group) {
-		wlr_keyboard_group_destroy(seat->keyboard_group);
-	}
-	wlr_xcursor_manager_destroy(seat->xcursor_manager);
-	wlr_cursor_destroy(seat->cursor);
+	keyboard_finish(seat);
+	cursor_finish(seat);
 }
 
 void

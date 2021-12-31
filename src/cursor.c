@@ -716,3 +716,17 @@ cursor_init(struct seat *seat)
 	wl_signal_add(&seat->seat->events.request_set_primary_selection,
 		&seat->request_set_primary_selection);
 }
+
+void cursor_finish(struct seat *seat) {
+	wl_list_remove(&seat->cursor_motion.link);
+	wl_list_remove(&seat->cursor_motion_absolute.link);
+	wl_list_remove(&seat->cursor_button.link);
+	wl_list_remove(&seat->cursor_axis.link);
+	wl_list_remove(&seat->cursor_frame.link);
+
+	wl_list_remove(&seat->request_cursor.link);
+	wl_list_remove(&seat->request_set_selection.link);
+
+	wlr_xcursor_manager_destroy(seat->xcursor_manager);
+	wlr_cursor_destroy(seat->cursor);
+}

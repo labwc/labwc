@@ -358,19 +358,15 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	view->destroy.notify = handle_destroy;
 	wl_signal_add(&xsurface->events.destroy, &view->destroy);
 	view->request_configure.notify = handle_request_configure;
-	wl_signal_add(&xsurface->events.request_configure,
-		      &view->request_configure);
+	wl_signal_add(&xsurface->events.request_configure, &view->request_configure);
 	view->request_maximize.notify = handle_request_maximize;
 	wl_signal_add(&xsurface->events.request_maximize, &view->request_maximize);
 	view->request_fullscreen.notify = handle_request_fullscreen;
-	wl_signal_add(&xsurface->events.request_fullscreen,
-		&view->request_fullscreen);
+	wl_signal_add(&xsurface->events.request_fullscreen, &view->request_fullscreen);
 	view->request_move.notify = handle_request_move;
-	wl_signal_add(&xsurface->events.request_move,
-		&view->request_move);
+	wl_signal_add(&xsurface->events.request_move, &view->request_move);
 	view->request_resize.notify = handle_request_resize;
-	wl_signal_add(&xsurface->events.request_resize,
-		&view->request_resize);
+	wl_signal_add(&xsurface->events.request_resize, &view->request_resize);
 
 	view->set_title.notify = handle_set_title;
 	wl_signal_add(&xsurface->events.set_title, &view->set_title);

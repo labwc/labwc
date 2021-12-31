@@ -191,6 +191,10 @@ view_toggle_decorations(struct view *view)
 {
 	view->ssd.enabled = !view->ssd.enabled;
 	ssd_update_geometry(view, true);
+	if (view->maximized) {
+		view_maximize(view, false);
+		view_maximize(view, true);
+	}
 }
 
 void
@@ -199,6 +203,10 @@ view_set_decorations(struct view *view, bool decorations)
 	if (view->ssd.enabled != decorations) {
 		view->ssd.enabled = decorations;
 		ssd_update_geometry(view, true);
+		if (view->maximized) {
+			view_maximize(view, false);
+			view_maximize(view, true);
+		}
 	}
 }
 

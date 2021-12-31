@@ -277,6 +277,7 @@ struct view {
 	struct wl_listener request_move;
 	struct wl_listener request_resize;
 	struct wl_listener request_configure;	/* xwayland only */
+	struct wl_listener request_activate;
 	struct wl_listener request_minimize;
 	struct wl_listener request_maximize;
 	struct wl_listener request_fullscreen;

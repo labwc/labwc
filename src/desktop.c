@@ -102,7 +102,8 @@ desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 		seat_focus_surface(seat, NULL);
 		return;
 	}
-	if (input_inhibit_blocks_surface(seat, view->surface->resource)) {
+
+	if (view->surface && input_inhibit_blocks_surface(seat, view->surface->resource)) {
 		return;
 	}
 
@@ -114,7 +115,8 @@ desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 		view_minimize(view, false);
 		return;
 	}
-	if (!view->mapped) {
+
+	if (!view->mapped || !view->surface) {
 		return;
 	}
 

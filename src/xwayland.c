@@ -112,6 +112,15 @@ handle_request_configure(struct wl_listener *listener, void *data)
 #undef MAX
 
 static void
+handle_request_minimize(struct wl_listener *listener, void *data)
+{
+	struct wlr_xwayland_minimize_event *event = data;
+	struct view *view = wl_container_of(listener, view, request_minimize);
+	assert(view);
+	view_minimize(view, event->minimize);
+}
+
+static void
 handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
@@ -359,6 +368,8 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	wl_signal_add(&xsurface->events.destroy, &view->destroy);
 	view->request_configure.notify = handle_request_configure;
 	wl_signal_add(&xsurface->events.request_configure, &view->request_configure);
+	view->request_minimize.notify = handle_request_minimize;
+	wl_signal_add(&xsurface->events.request_minimize, &view->request_minimize);
 	view->request_maximize.notify = handle_request_maximize;
 	wl_signal_add(&xsurface->events.request_maximize, &view->request_maximize);
 	view->request_fullscreen.notify = handle_request_fullscreen;

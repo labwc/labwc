@@ -115,24 +115,87 @@ view_output(struct view *view)
 	return output_from_wlr_output(view->server, wlr_output);
 }
 
-void
-view_center(struct view *view)
+static bool
+view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 {
 	struct wlr_output *wlr_output = view_wlr_output(view);
 	if (!wlr_output) {
-		return;
+		return false;
 	}
 
 	struct wlr_output_layout *layout = view->server->output_layout;
 	struct wlr_output_layout_output *ol_output =
 		wlr_output_layout_get(layout, wlr_output);
 	if (!ol_output) {
-		return;
+		return false;
 	}
 
-	int center_x = ol_output->x + wlr_output->width / wlr_output->scale / 2;
-	int center_y = ol_output->y + wlr_output->height / wlr_output->scale / 2;
-	view_move(view, center_x - view->w / 2, center_y - view->h / 2);
+	*x = ol_output->x + wlr_output->width / wlr_output->scale / 2 - w / 2;
+	*y = ol_output->y + wlr_output->height / wlr_output->scale / 2 - h / 2;
+	return true;
+}
+
+void
+view_center(struct view *view)
+{
+	int x, y;
+	if (view_compute_centered_position(view, view->w, view->h, &x, &y)) {
+		view_move(view, x, y);
+	}
+}
+
+static void
+view_apply_fullscreen_geometry(struct view *view, struct wlr_output *wlr_output)
+{
+	struct output *output =
+		output_from_wlr_output(view->server, wlr_output);
+	struct wlr_box box = { 0 };
+	wlr_output_effective_resolution(wlr_output, &box.width, &box.height);
+	double ox = 0, oy = 0;
+	wlr_output_layout_output_coords(output->server->output_layout,
+		output->wlr_output, &ox, &oy);
+	box.x -= ox;
+	box.y -= oy;
+	view_move_resize(view, box);
+}
+
+static void
+view_apply_maximized_geometry(struct view *view)
+{
+	struct output *output = view_output(view);
+	struct wlr_box box = output_usable_area_in_layout_coords(output);
+	if (box.height == output->wlr_output->height && output->wlr_output->scale != 1) {
+		box.height /= output->wlr_output->scale;
+	}
+	if (box.width == output->wlr_output->width && output->wlr_output->scale != 1) {
+		box.width /= output->wlr_output->scale;
+	}
+
+	if (view->ssd.enabled) {
+		struct border border = ssd_thickness(view);
+		box.x += border.left;
+		box.y += border.top;
+		box.width -= border.right + border.left;
+		box.height -= border.top + border.bottom;
+	}
+	view_move_resize(view, box);
+}
+
+static void
+view_apply_unmaximized_geometry(struct view *view)
+{
+	struct wlr_output_layout *layout = view->server->output_layout;
+	if (wlr_output_layout_intersects(layout, NULL, &view->unmaximized_geometry)) {
+		/* restore to original geometry */
+		view_move_resize(view, view->unmaximized_geometry);
+	} else {
+		/* reposition if original geometry is offscreen */
+		struct wlr_box box = view->unmaximized_geometry;
+		if (view_compute_centered_position(view, box.width, box.height,
+				&box.x, &box.y)) {
+			view_move_resize(view, box);
+		}
+	}
 }
 
 void
@@ -155,27 +218,11 @@ view_maximize(struct view *view, bool maximize)
 		view->unmaximized_geometry.width = view->w;
 		view->unmaximized_geometry.height = view->h;
 
-		struct output *output = view_output(view);
-		struct wlr_box box = output_usable_area_in_layout_coords(output);
-		if (box.height == output->wlr_output->height && output->wlr_output->scale != 1) {
-			box.height /= output->wlr_output->scale;
-		}
-		if (box.width == output->wlr_output->width && output->wlr_output->scale != 1) {
-			box.width /= output->wlr_output->scale;
-		}
-
-		if (view->ssd.enabled) {
-			struct border border = ssd_thickness(view);
-			box.x += border.left;
-			box.y += border.top;
-			box.width -= border.right + border.left;
-			box.height -= border.top + border.bottom;
-		}
-		view_move_resize(view, box);
+		view_apply_maximized_geometry(view);
 		view->maximized = true;
 	} else {
 		/* unmaximize */
-		view_move_resize(view, view->unmaximized_geometry);
+		view_apply_unmaximized_geometry(view);
 		view->maximized = false;
 	}
 }
@@ -234,30 +281,39 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 			wlr_output = view_wlr_output(view);
 		}
 		view->fullscreen = wlr_output;
-		struct output *output =
-			output_from_wlr_output(view->server, wlr_output);
-		struct wlr_box box = { 0 };
-		wlr_output_effective_resolution(wlr_output, &box.width,
-						&box.height);
-		double ox = 0, oy = 0;
-		wlr_output_layout_output_coords(output->server->output_layout,
-			output->wlr_output, &ox, &oy);
-		box.x -= ox;
-		box.y -= oy;
-		view_move_resize(view, box);
+		view_apply_fullscreen_geometry(view, view->fullscreen);
 	} else {
 		/* restore to normal */
 		if (view->maximized) {
-			view->maximized = false;
-			view->x = view->unmaximized_geometry.x;
-			view->y = view->unmaximized_geometry.y;
-			view->w = view->unmaximized_geometry.width;
-			view->h = view->unmaximized_geometry.height;
-			view_maximize(view, true);
+			view_apply_maximized_geometry(view);
 		} else {
-			view_move_resize(view, view->unmaximized_geometry);
+			view_apply_unmaximized_geometry(view);
 		}
 		view->fullscreen = false;
+	}
+}
+
+void
+view_adjust_for_layout_change(struct view *view)
+{
+	struct wlr_output_layout *layout = view->server->output_layout;
+	if (view->fullscreen) {
+		if (wlr_output_layout_get(layout, view->fullscreen)) {
+			/* recompute fullscreen geometry */
+			view_apply_fullscreen_geometry(view, view->fullscreen);
+		} else {
+			/* output is gone, exit fullscreen */
+			view_set_fullscreen(view, false, NULL);
+		}
+	} else if (view->maximized) {
+		/* recompute maximized geometry */
+		view_apply_maximized_geometry(view);
+	} else {
+		/* reposition view if it's offscreen */
+		struct wlr_box box = { view->x, view->y, view->w, view->h };
+		if (!wlr_output_layout_intersects(layout, NULL, &box)) {
+			view_center(view);
+		}
 	}
 }
 

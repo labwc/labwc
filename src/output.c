@@ -940,9 +940,6 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 	struct output *output = wl_container_of(listener, output, destroy);
 	wl_list_remove(&output->link);
 	wl_list_remove(&output->destroy.link);
-
-	/* Windows may have moved; redraw all outputs */
-	damage_all_outputs(output->server);
 }
 
 static void
@@ -1029,22 +1026,6 @@ new_output_notify(struct wl_listener *listener, void *data)
 		wlr_output_enable_adaptive_sync(wlr_output, true);
 	}
 	wlr_output_layout_add_auto(server->output_layout, wlr_output);
-
-	/*
-	 * Output positions may have changed, so make sure that each
-	 * wlr_output_cursor is "moved" (in per-output coordinates) to
-	 * align with the seat cursor.  Set a default cursor image so
-	 * that the cursor isn't invisible on the new output.
-	 *
-	 * TODO: remember the most recent cursor image (see cursor.c)
-	 * and set that rather than XCURSOR_DEFAULT
-	 */
-	wlr_cursor_move(server->seat.cursor, NULL, 0, 0);
-	wlr_xcursor_manager_set_cursor_image(server->seat.xcursor_manager,
-		XCURSOR_DEFAULT, server->seat.cursor);
-
-	/* Windows may have moved; redraw all outputs */
-	damage_all_outputs(server);
 }
 
 void
@@ -1070,6 +1051,31 @@ output_init(struct server *server)
 	wl_list_init(&server->outputs);
 
 	output_manager_init(server);
+}
+
+static void
+output_update_for_layout_change(struct server *server)
+{
+	/* Adjust window positions/sizes */
+	struct view *view;
+	wl_list_for_each(view, &server->views, link) {
+		view_adjust_for_layout_change(view);
+	}
+
+	/*
+	 * "Move" each wlr_output_cursor (in per-output coordinates) to
+	 * align with the seat cursor.  Set a default cursor image so
+	 * that the cursor isn't invisible on new outputs.
+	 *
+	 * TODO: remember the most recent cursor image (see cursor.c)
+	 * and set that rather than XCURSOR_DEFAULT
+	 */
+	wlr_cursor_move(server->seat.cursor, NULL, 0, 0);
+	wlr_xcursor_manager_set_cursor_image(server->seat.xcursor_manager,
+		XCURSOR_DEFAULT, server->seat.cursor);
+
+	/* Redraw everything */
+	damage_all_outputs(server);
 }
 
 static void
@@ -1111,6 +1117,7 @@ output_config_apply(struct server *server,
 	}
 
 	server->pending_output_config = NULL;
+	output_update_for_layout_change(server);
 }
 
 static bool
@@ -1205,6 +1212,7 @@ handle_output_layout_change(struct wl_listener *listener, void *data)
 				arrange_layers(output);
 			}
 		}
+		output_update_for_layout_change(server);
 	}
 }
 

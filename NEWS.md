@@ -3,15 +3,14 @@
 This file contains significant user-visible changes for each version.
 For full changelog, use `git log`
 
-## next release
+## 0.4.0 (2021-12-31)
 
 Compile with wlroots 0.15.0
 
-This release contains lots of internal changes, fixes as well as new
-features.  A big thank you goes out to @ARDiDo, @bi4k8, @Joshua-Ashton,
-@jlindgren90, @Consolatis, @telent and @apbryan.
-
-The most notable feature-type changes are listed below:
+This release contains lots of internal changes, fixes and  new features.
+A big thank you goes out to @ARDiDo, @bi4k8, @Joshua-Ashton,
+@jlindgren90, @Consolatis, @telent and @apbryan. The most notable
+feature-type changes are listed below:
 
 - The config option `<lab><xdg_shell_server_side_deco>` has changed to
   `<core><decoration>` (breaking change)

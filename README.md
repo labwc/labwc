@@ -181,9 +181,7 @@ High-level summary of items which are not intended to be implemented:
 [wlr-randr]: https://github.com/emersion/wlr-randr.git
 [swaylock]: https://github.com/swaywm/swaylock
 
-[acceptance criteria]: https://github.com/johanmalm/labwc/wiki/Acceptance-criteria
-[complete]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-complete-items
-[outstanding]: https://github.com/johanmalm/labwc/wiki/Minimum-viable-product-outstanding-items
+[acceptance criteria]: https://github.com/labwc/labwc-acceptance-criteria/blob/main/Acceptance-criteria.md
 
 [Video (0:18)]: https://user-images.githubusercontent.com/21316711/137605766-67196fb0-c147-4114-a8f7-1651580c2572.mp4
 [Video (1:10)]: https://youtu.be/AU_M3n_FS-E

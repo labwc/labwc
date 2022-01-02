@@ -59,12 +59,14 @@ static bool
 handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
 {
 	struct keybind *keybind;
+	struct wlr_keyboard *kb = &server->seat.keyboard_group->keyboard;
 	wl_list_for_each_reverse (keybind, &rc.keybinds, link) {
 		if (modifiers ^ keybind->modifiers) {
 			continue;
 		}
 		for (size_t i = 0; i < keybind->keysyms_len; i++) {
 			if (xkb_keysym_to_lower(sym) == keybind->keysyms[i]) {
+				wlr_keyboard_set_repeat_info(kb, 0, 0);
 				action(NULL, server, keybind->action,
 				       keybind->command, 0);
 				return true;
@@ -111,7 +113,11 @@ handle_compositor_keybindings(struct wl_listener *listener,
 	 */
 	if (key_state_corresponding_press_event_was_bound(keycode)
 			&& event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
-		key_state_bound_key_remove(keycode);
+		int nr_bound_keys = key_state_bound_key_remove(keycode);
+		if (!nr_bound_keys) {
+			wlr_keyboard_set_repeat_info(device->keyboard,
+				rc.repeat_rate, rc.repeat_delay);
+		}
 		return true;
 	}
 

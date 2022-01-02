@@ -63,8 +63,9 @@ key_state_corresponding_press_event_was_bound(uint32_t keycode)
 	return false;
 }
 
-void
+int
 key_state_bound_key_remove(uint32_t keycode)
 {
 	remove_key(&bound, keycode);
+	return bound.nr_keys;
 }

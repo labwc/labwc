@@ -675,59 +675,53 @@ cursor_frame(struct wl_listener *listener, void *data)
 	wlr_seat_pointer_notify_frame(seat->seat);
 }
 
-static void handle_pointer_pinch_begin(struct wl_listener *listener, void *data) {
-	struct seat *seat = wl_container_of(
-			listener, seat, pinch_begin);
+static void handle_pointer_pinch_begin(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, pinch_begin);
 	struct wlr_event_pointer_pinch_begin *event = data;
-	wlr_pointer_gestures_v1_send_pinch_begin(
-			seat->pointer_gestures, seat->seat,
-			event->time_msec, event->fingers);
+	wlr_pointer_gestures_v1_send_pinch_begin(seat->pointer_gestures,
+		seat->seat, event->time_msec, event->fingers);
 }
 
-static void handle_pointer_pinch_update(struct wl_listener *listener, void *data) {
-	struct seat *seat = wl_container_of(
-			listener, seat, pinch_update);
+static void handle_pointer_pinch_update(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, pinch_update);
 	struct wlr_event_pointer_pinch_update *event = data;
-	wlr_pointer_gestures_v1_send_pinch_update(
-			seat->pointer_gestures, seat->seat,
-			event->time_msec, event->dx, event->dy,
-			event->scale, event->rotation);
+	wlr_pointer_gestures_v1_send_pinch_update(seat->pointer_gestures,
+		seat->seat, event->time_msec, event->dx, event->dy,
+		event->scale, event->rotation);
 }
 
-static void handle_pointer_pinch_end(struct wl_listener *listener, void *data) {
-	struct seat *seat = wl_container_of(
-			listener, seat, pinch_end);
+static void handle_pointer_pinch_end(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, pinch_end);
 	struct wlr_event_pointer_pinch_end *event = data;
-	wlr_pointer_gestures_v1_send_pinch_end(
-			seat->pointer_gestures, seat->seat,
-			event->time_msec, event->cancelled);
+	wlr_pointer_gestures_v1_send_pinch_end(seat->pointer_gestures,
+		seat->seat, event->time_msec, event->cancelled);
 }
 
-static void handle_pointer_swipe_begin(struct wl_listener *listener, void *data) {
-	struct seat *seat = wl_container_of(
-			listener, seat, swipe_begin);
+static void handle_pointer_swipe_begin(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, swipe_begin);
 	struct wlr_event_pointer_swipe_begin *event = data;
-	wlr_pointer_gestures_v1_send_swipe_begin(
-			seat->pointer_gestures, seat->seat,
-			event->time_msec, event->fingers);
+	wlr_pointer_gestures_v1_send_swipe_begin(seat->pointer_gestures,
+		seat->seat, event->time_msec, event->fingers);
 }
 
-static void handle_pointer_swipe_update(struct wl_listener *listener, void *data) {
-	struct seat *seat = wl_container_of(
-			listener, seat, swipe_update);
+static void handle_pointer_swipe_update(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, swipe_update);
 	struct wlr_event_pointer_swipe_update *event = data;
-	wlr_pointer_gestures_v1_send_swipe_update(
-			seat->pointer_gestures, seat->seat,
-			event->time_msec, event->dx, event->dy);
+	wlr_pointer_gestures_v1_send_swipe_update(seat->pointer_gestures,
+		seat->seat, event->time_msec, event->dx, event->dy);
 }
 
-static void handle_pointer_swipe_end(struct wl_listener *listener, void *data) {
-	struct seat *seat = wl_container_of(
-			listener, seat, swipe_end);
+static void handle_pointer_swipe_end(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, swipe_end);
 	struct wlr_event_pointer_swipe_end *event = data;
-	wlr_pointer_gestures_v1_send_swipe_end(
-			seat->pointer_gestures, seat->seat,
-			event->time_msec, event->cancelled);
+	wlr_pointer_gestures_v1_send_swipe_end(seat->pointer_gestures,
+		seat->seat, event->time_msec, event->cancelled);
 }
 
 void
@@ -786,7 +780,8 @@ cursor_init(struct seat *seat)
 		&seat->request_set_primary_selection);
 }
 
-void cursor_finish(struct seat *seat) {
+void cursor_finish(struct seat *seat)
+{
 	wl_list_remove(&seat->cursor_motion.link);
 	wl_list_remove(&seat->cursor_motion_absolute.link);
 	wl_list_remove(&seat->cursor_button.link);

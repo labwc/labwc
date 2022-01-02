@@ -204,6 +204,9 @@ view_maximize(struct view *view, bool maximize)
 	if (view->maximized == maximize) {
 		return;
 	}
+	if (view->fullscreen) {
+		return;
+	}
 	if (view->impl->maximize) {
 		view->impl->maximize(view, maximize);
 	}
@@ -236,17 +239,19 @@ view_toggle_maximize(struct view *view)
 void
 view_toggle_decorations(struct view *view)
 {
-	view->ssd.enabled = !view->ssd.enabled;
-	ssd_update_geometry(view, true);
-	if (view->maximized) {
-		view_apply_maximized_geometry(view);
+	if (!view->fullscreen) {
+		view->ssd.enabled = !view->ssd.enabled;
+		ssd_update_geometry(view, true);
+		if (view->maximized) {
+			view_apply_maximized_geometry(view);
+		}
 	}
 }
 
 void
 view_set_decorations(struct view *view, bool decorations)
 {
-	if (view->ssd.enabled != decorations) {
+	if (view->ssd.enabled != decorations && !view->fullscreen) {
 		view->ssd.enabled = decorations;
 		ssd_update_geometry(view, true);
 		if (view->maximized) {

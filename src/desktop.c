@@ -103,7 +103,16 @@ desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 		return;
 	}
 
-	if (view->surface && input_inhibit_blocks_surface(seat, view->surface->resource)) {
+	/*
+	 * Guard against views with no mapped surfaces when handling
+	 * 'request_activate' and 'request_minimize'.
+	 * See notes by isfocusable()
+	 */
+	if (!view->surface) {
+		return;
+	}
+
+	if (input_inhibit_blocks_surface(seat, view->surface->resource)) {
 		return;
 	}
 
@@ -116,7 +125,7 @@ desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 		return;
 	}
 
-	if (!view->mapped || !view->surface) {
+	if (!view->mapped) {
 		return;
 	}
 

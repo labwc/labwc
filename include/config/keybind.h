@@ -5,6 +5,8 @@
 #include <wlr/types/wlr_keyboard.h>
 #include <xkbcommon/xkbcommon.h>
 
+#define MAX_KEYSYMS 32
+
 struct keybind {
 	uint32_t modifiers;
 	xkb_keysym_t *keysyms;

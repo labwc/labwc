@@ -28,7 +28,7 @@ struct keybind *
 keybind_create(const char *keybind)
 {
 	struct keybind *k = calloc(1, sizeof(struct keybind));
-	xkb_keysym_t keysyms[32];
+	xkb_keysym_t keysyms[MAX_KEYSYMS];
 	gchar **symnames = g_strsplit(keybind, "-", -1);
 	for (int i = 0; symnames[i]; i++) {
 		char *symname = symnames[i];
@@ -46,6 +46,12 @@ keybind_create(const char *keybind)
 			}
 			keysyms[k->keysyms_len] = sym;
 			k->keysyms_len++;
+			if (k->keysyms_len == MAX_KEYSYMS) {
+				wlr_log(WLR_ERROR, "There are a lot of fingers involved. "
+					"We stopped counting at %u.", MAX_KEYSYMS);
+				wlr_log(WLR_ERROR, "Offending keybind was %s", keybind);
+				break;
+			}
 		}
 	}
 	g_strfreev(symnames);

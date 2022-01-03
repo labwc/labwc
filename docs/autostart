@@ -15,15 +15,19 @@ kanshi >/dev/null 2>&1 &
 # Launch a panel such as yambar or waybar.
 waybar >/dev/null 2>&1 &
 
-# Enable notifications. Typically GNOME/KDE application notifications go through the
-# org.freedesktop.Notifications D-Bus API and require a client such as mako to
-# function correctly. Thunderbird is an example of this.
+# Enable notifications. Typically GNOME/KDE application notifications go
+# through the org.freedesktop.Notifications D-Bus API and require a client such
+# as mako to function correctly. Thunderbird is an example of this.
 mako >/dev/null 2>&1 &
 
-# Lock screen after 5 minutes; turn off display after another 5 minutes
-swayidle -w \
-	timeout 300 'swaylock -f -c 000000' \
-	timeout 600 'wlr-randr --output eDP-1 --off' \
-	resume 'wlr-randr --output eDP-1 --on' \
-	before-sleep 'swaylock -f -c 000000' >/dev/null 2>&1 &
+# Lock screen after 5 minutes
+#
+# Note that we do not yet support turning off displays in the context of idle
+# system power management. Disabling outputs, for example by
+# `wlr-randr --output whatever --off` re-arranges views (since a837fefc),
+# so is not a good idea.
+# A swayidle-friendly implementation may be written using
+# wlr-output-power-management-unstable-v1.xml and could then work with a client
+# such as https://git.sr.ht/~leon_plickat/wlopm
+swayidle -w timeout 300 'swaylock -f -c 000000' >/dev/null 2>&1 &
 

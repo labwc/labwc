@@ -18,6 +18,7 @@
 #include "labwc.h"
 #include "menu/menu.h"
 #include "theme.h"
+#include "action.h"
 
 #define MENUWIDTH (110)
 #define MENU_ITEM_PADDING_Y (4)
@@ -26,6 +27,7 @@
 /* state-machine variables for processing <item></item> */
 static bool in_item;
 static struct menuitem *current_item;
+static struct action *current_item_action;
 
 static int menu_level;
 static struct menu *current_menu;
@@ -94,6 +96,7 @@ item_create(struct menu *menu, const char *text)
 	menuitem->texture.offset_x = MENU_ITEM_PADDING_X;
 
 	wl_list_insert(&menu->menuitems, &menuitem->link);
+	wl_list_init(&menuitem->actions);
 	return menuitem;
 }
 
@@ -113,15 +116,17 @@ fill_item(char *nodename, char *content)
 	/* <item label=""> defines the start of a new item */
 	if (!strcmp(nodename, "label")) {
 		current_item = item_create(current_menu, content);
-	}
-	if (!current_item) {
-		wlr_log(WLR_ERROR, "expect <item label=\"\"> element first");
-		return;
-	}
-	if (!strcmp(nodename, "name.action")) {
-		current_item->action = strdup(content);
+	} else if (!current_item) {
+		wlr_log(WLR_ERROR, "expect <item label=\"\"> element first. "
+			"nodename: '%s' content: '%s'", nodename, content);
+	} else if (!strcmp(nodename, "name.action")) {
+		current_item_action = action_create(content);
+		wl_list_insert(current_item->actions.prev, &current_item_action->link);
+	} else if (!current_item_action) {
+		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
+			"nodename: '%s' content: '%s'", nodename, content);
 	} else if (!strcmp(nodename, "command.action")) {
-		current_item->command = strdup(content);
+		current_item_action->arg = strdup(content);
 	}
 }
 
@@ -310,9 +315,9 @@ menu_init_rootmenu(struct server *server)
 	}
 	if (wl_list_empty(&server->rootmenu->menuitems)) {
 		current_item = item_create(server->rootmenu, "Reconfigure");
-		current_item->action = strdup("Reconfigure");
+		fill_item("name.action", "Reconfigure");
 		current_item = item_create(server->rootmenu, "Exit");
-		current_item->action = strdup("Exit");
+		fill_item("name.action", "Exit");
 	}
 
 	server->rootmenu->visible = true;
@@ -323,13 +328,17 @@ void
 menu_finish(void)
 {
 	struct menu *menu;
+	struct action *action, *action_tmp;
 	for (int i = 0; i < nr_menus; ++i) {
 		menu = menus + i;
 		struct menuitem *item, *next;
 		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
-			zfree(item->action);
-			zfree(item->command);
 			wl_list_remove(&item->link);
+			wl_list_for_each_safe(action, action_tmp, &item->actions, link) {
+				wl_list_remove(&action->link);
+				zfree(action->arg);
+				zfree(action);
+			}
 			free(item);
 		}
 	}
@@ -416,7 +425,7 @@ menu_action_selected(struct server *server, struct menu *menu)
 	struct menuitem *menuitem;
 	wl_list_for_each (menuitem, &menu->menuitems, link) {
 		if (menuitem->selected && !menuitem->submenu) {
-			action(NULL, server, menuitem->action, menuitem->command, 0);
+			action(NULL, server, &menuitem->actions, 0);
 			break;
 		}
 		if (menuitem->submenu) {

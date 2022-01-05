@@ -6,8 +6,7 @@
 #include <wlr/render/wlr_renderer.h>
 
 struct menuitem {
-	char *action;
-	char *command;
+	struct wl_list actions;
 	struct menu *submenu;
 	struct wlr_box box;
 	struct {

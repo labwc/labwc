@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <wayland-server-core.h>
 #include <wlr/util/log.h>
+#include "action.h"
 #include "common/dir.h"
 #include "common/nodename.h"
 #include "common/string-helpers.h"
@@ -29,6 +30,8 @@ static struct keybind *current_keybind;
 static struct mousebind *current_mousebind;
 static struct libinput_category *current_libinput_category;
 static const char *current_mouse_context;
+static struct action *current_keybind_action;
+static struct action *current_mousebind_action;
 
 enum font_place {
 	FONT_PLACE_UNKNOWN = 0,
@@ -59,13 +62,15 @@ fill_keybind(char *nodename, char *content)
 		return;
 	}
 	if (!strcmp(nodename, "name.action")) {
-		current_keybind->action = strdup(content);
+		current_keybind_action = action_create(content);
+		wl_list_insert(current_keybind->actions.prev,
+			&current_keybind_action->link);
 	} else if (!strcmp(nodename, "command.action")) {
-		current_keybind->command = strdup(content);
+		current_keybind_action->arg = strdup(content);
 	} else if (!strcmp(nodename, "direction.action")) {
-		current_keybind->command = strdup(content);
+		current_keybind_action->arg = strdup(content);
 	} else if (!strcmp(nodename, "menu.action")) {
-		current_keybind->command = strdup(content);
+		current_keybind_action->arg = strdup(content);
 	}
 }
 
@@ -99,15 +104,15 @@ fill_mousebind(char *nodename, char *content)
 		current_mousebind->mouse_event =
 			mousebind_event_from_str(content);
 	} else if (!strcmp(nodename, "name.action")) {
-		if (current_mousebind->action) {
-			current_mousebind = mousebind_create_from(current_mousebind,
-				current_mouse_context);
-		}
-		current_mousebind->action = strdup(content);
+		current_mousebind_action = action_create(content);
+		wl_list_insert(current_mousebind->actions.prev,
+			&current_mousebind_action->link);
 	} else if (!strcmp(nodename, "command.action")) {
-		current_mousebind->command = strdup(content);
+		current_mousebind_action->arg = strdup(content);
+	} else if (!strcmp(nodename, "direction.action")) {
+		current_mousebind_action->arg = strdup(content);
 	} else if (!strcmp(nodename, "menu.action")) {
-		current_mousebind->command = strdup(content);
+		current_mousebind_action->arg = strdup(content);
 	}
 }
 
@@ -476,14 +481,19 @@ static struct {
 static void
 load_default_key_bindings(void)
 {
+	struct keybind *k;
+	struct action *action;
 	for (int i = 0; key_combos[i].binding; i++) {
-		struct keybind *k = keybind_create(key_combos[i].binding);
+		k = keybind_create(key_combos[i].binding);
 		if (!k) {
 			continue;
 		}
-		k->action = strdup(key_combos[i].action);
+
+		action = action_create(key_combos[i].action);
+		wl_list_insert(k->actions.prev, &action->link);
+
 		if (key_combos[i].command) {
-			k->command = strdup(key_combos[i].command);
+			action->arg = strdup(key_combos[i].command);
 		}
 	}
 }
@@ -527,14 +537,19 @@ static struct {
 static void
 load_default_mouse_bindings(void)
 {
+	struct mousebind *m;
+	struct action *action;
 	for (int i = 0; mouse_combos[i].context; i++) {
-		struct mousebind *m = mousebind_create(mouse_combos[i].context);
+		m = mousebind_create(mouse_combos[i].context);
 		m->button = mousebind_button_from_str(mouse_combos[i].button,
 			&m->modifiers);
 		m->mouse_event = mousebind_event_from_str(mouse_combos[i].event);
-		m->action = strdup(mouse_combos[i].action);
+
+		action = action_create(mouse_combos[i].action);
+		wl_list_insert(m->actions.prev, &action->link);
+
 		if (mouse_combos[i].command) {
-			m->command = strdup(mouse_combos[i].command);
+			action->arg = strdup(mouse_combos[i].command);
 		}
 	}
 }
@@ -635,6 +650,8 @@ no_config:
 void
 rcxml_finish(void)
 {
+	struct action *action, *action_tmp;
+
 	zfree(rc.font_name_activewindow);
 	zfree(rc.font_name_menuitem);
 	zfree(rc.font_name_osd);
@@ -643,8 +660,11 @@ rcxml_finish(void)
 	struct keybind *k, *k_tmp;
 	wl_list_for_each_safe(k, k_tmp, &rc.keybinds, link) {
 		wl_list_remove(&k->link);
-		zfree(k->command);
-		zfree(k->action);
+		wl_list_for_each_safe(action, action_tmp, &k->actions, link) {
+			wl_list_remove(&action->link);
+			zfree(action->arg);
+			zfree(action);
+		}
 		zfree(k->keysyms);
 		zfree(k);
 	}
@@ -652,8 +672,11 @@ rcxml_finish(void)
 	struct mousebind *m, *m_tmp;
 	wl_list_for_each_safe(m, m_tmp, &rc.mousebinds, link) {
 		wl_list_remove(&m->link);
-		zfree(m->command);
-		zfree(m->action);
+		wl_list_for_each_safe(action, action_tmp, &m->actions, link) {
+			wl_list_remove(&action->link);
+			zfree(action->arg);
+			zfree(action);
+		}
 		zfree(m);
 	}
 

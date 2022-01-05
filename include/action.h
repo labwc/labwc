@@ -8,6 +8,6 @@ struct action {
 	struct wl_list link;
 };
 
-struct action *action_create(const char *action_str);
+struct action *action_create(const char *action_name);
 
 #endif

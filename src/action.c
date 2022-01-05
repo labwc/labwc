@@ -55,7 +55,7 @@ const char *action_names[] = {
 static enum action_type
 action_type_from_str(const char *action_name)
 {
-	for (size_t i=1; action_names[i] != NULL; i++) {
+	for (size_t i = 1; action_names[i] != NULL; i++) {
 		if (!strcasecmp(action_name, action_names[i])) {
 			return i;
 		}
@@ -75,7 +75,6 @@ action_create(const char *action_name)
 	action->type = action_type_from_str(action_name);
 	return action;
 }
-
 
 static void
 show_menu(struct server *server, const char *menu)
@@ -114,16 +113,16 @@ action(struct view *activator, struct server *server, struct wl_list *actions, u
 		/* Refetch view because it may have been changed due to the previous action */
 		view = activator_or_focused_view(activator, server);
 
-		switch(action->type) {
-		case ACTION_TYPE_CLOSE:;
+		switch (action->type) {
+		case ACTION_TYPE_CLOSE:
 			if (view) {
 				view_close(view);
 			}
 			break;
-		case ACTION_TYPE_DEBUG:;
+		case ACTION_TYPE_DEBUG:
 			/* nothing */
 			break;
-		case ACTION_TYPE_EXECUTE:;
+		case ACTION_TYPE_EXECUTE:
 			{
 				struct buf cmd;
 				buf_init(&cmd);
@@ -133,88 +132,88 @@ action(struct view *activator, struct server *server, struct wl_list *actions, u
 				free(cmd.buf);
 			}
 			break;
-		case ACTION_TYPE_EXIT:;
+		case ACTION_TYPE_EXIT:
 			wl_display_terminate(server->wl_display);
 			break;
-		case ACTION_TYPE_MOVE_TO_EDGE:;
+		case ACTION_TYPE_MOVE_TO_EDGE:
 			view_move_to_edge(view, action->arg);
 			break;
-		case ACTION_TYPE_SNAP_TO_EDGE:;
+		case ACTION_TYPE_SNAP_TO_EDGE:
 			view_snap_to_edge(view, action->arg);
 			break;
-		case ACTION_TYPE_NEXT_WINDOW:;
+		case ACTION_TYPE_NEXT_WINDOW:
 			server->cycle_view =
 				desktop_cycle_view(server, server->cycle_view, LAB_CYCLE_DIR_FORWARD);
 			osd_update(server);
 			break;
-		case ACTION_TYPE_PREVIOUS_WINDOW:;
+		case ACTION_TYPE_PREVIOUS_WINDOW:
 			server->cycle_view =
 				desktop_cycle_view(server, server->cycle_view, LAB_CYCLE_DIR_BACKWARD);
 			osd_update(server);
 			break;
-		case ACTION_TYPE_RECONFIGURE:;
+		case ACTION_TYPE_RECONFIGURE:
 			/* Should be changed to signal() */
 			spawn_async_no_shell("killall -SIGHUP labwc");
 			break;
-		case ACTION_TYPE_SHOW_MENU:;
+		case ACTION_TYPE_SHOW_MENU:
 			show_menu(server, action->arg);
 			break;
-		case ACTION_TYPE_TOGGLE_MAXIMIZE:;
+		case ACTION_TYPE_TOGGLE_MAXIMIZE:
 			if (view) {
 				view_toggle_maximize(view);
 			}
 			break;
-		case ACTION_TYPE_TOGGLE_FULLSCREEN:;
+		case ACTION_TYPE_TOGGLE_FULLSCREEN:
 			if (view) {
 				view_toggle_fullscreen(view);
 			}
 			break;
-		case ACTION_TYPE_TOGGLE_DECORATIONS:;
+		case ACTION_TYPE_TOGGLE_DECORATIONS:
 			if (view) {
 				view_toggle_decorations(view);
 			}
 			break;
-		case ACTION_TYPE_FOCUS:;
+		case ACTION_TYPE_FOCUS:
 			view = desktop_view_at_cursor(server);
 			if (view) {
 				desktop_focus_and_activate_view(&server->seat, view);
 				damage_all_outputs(server);
 			}
 			break;
-		case ACTION_TYPE_ICONIFY:;
+		case ACTION_TYPE_ICONIFY:
 			if (view) {
 				view_minimize(view, true);
 			}
 			break;
-		case ACTION_TYPE_MOVE:;
+		case ACTION_TYPE_MOVE:
 			view = desktop_view_at_cursor(server);
 			if (view) {
 				interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
 			}
 			break;
-		case ACTION_TYPE_RAISE:;
+		case ACTION_TYPE_RAISE:
 			if (view) {
 				desktop_move_to_front(view);
 				damage_all_outputs(server);
 			}
 			break;
-		case ACTION_TYPE_RESIZE:;
+		case ACTION_TYPE_RESIZE:
 			view = desktop_view_at_cursor(server);
 			if (view) {
 				interactive_begin(view, LAB_INPUT_STATE_RESIZE, resize_edges);
 			}
 			break;
-		case ACTION_TYPE_NONE:;
+		case ACTION_TYPE_NONE:
 			wlr_log(WLR_ERROR, "Not executing unknown action with arg %s", action->arg);
 			break;
-		default:;
+		default:
 			/*
 			 * If we get here it must be a BUG caused most likely by
 			 * action_names and action_type being out of sync or by
 			 * adding a new action without installing a handler here.
 			 */
 			wlr_log(WLR_ERROR, "Not executing invalid action (%u) with arg %s"
-				"This is a BUG. Please report.", action->type, action->arg);
+				" This is a BUG. Please report.", action->type, action->arg);
 		}
 	}
 }

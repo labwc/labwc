@@ -2,6 +2,9 @@
 #ifndef __LABWC_ACTION_H
 #define __LABWC_ACTION_H
 
+struct server;
+struct view;
+
 struct action {
 	uint32_t type;
 	char *arg;
@@ -9,5 +12,8 @@ struct action {
 };
 
 struct action *action_create(const char *action_name);
+
+void action(struct view *activator, struct server *server,
+	struct wl_list *actions, uint32_t resize_edges);
 
 #endif

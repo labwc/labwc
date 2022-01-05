@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <wlr/backend/multi.h>
 #include <wlr/backend/session.h>
+#include "action.h"
 #include "key-state.h"
 #include "labwc.h"
 

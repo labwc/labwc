@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <wlr/types/wlr_primary_selection.h>
+#include "action.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "resistance.h"

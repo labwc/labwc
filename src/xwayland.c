@@ -269,6 +269,7 @@ map(struct view *view)
 
 	if (!view->been_mapped) {
 		view_maximize(view, false);
+		view_set_fullscreen(view, false, NULL);
 
 		foreign_toplevel_handle_create(view);
 

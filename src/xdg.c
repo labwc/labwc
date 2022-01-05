@@ -336,6 +336,7 @@ xdg_toplevel_view_map(struct view *view)
 		 * and keep code simple
 		 */
 		view_maximize(view, false);
+		view_set_fullscreen(view, false, NULL);
 
 		foreign_toplevel_handle_create(view);
 

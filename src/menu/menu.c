@@ -116,6 +116,7 @@ fill_item(char *nodename, char *content)
 	/* <item label=""> defines the start of a new item */
 	if (!strcmp(nodename, "label")) {
 		current_item = item_create(current_menu, content);
+		current_item_action = NULL;
 	} else if (!current_item) {
 		wlr_log(WLR_ERROR, "expect <item label=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);

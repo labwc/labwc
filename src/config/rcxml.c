@@ -52,19 +52,25 @@ fill_keybind(char *nodename, char *content)
 	string_truncate_at_pattern(nodename, ".keybind.keyboard");
 	if (!strcmp(nodename, "key")) {
 		current_keybind = keybind_create(content);
-	}
-	/*
-	 * We expect <keybind key=""> to come first
-	 * If a invalid keybind has been provided, keybind_create() complains
-	 * so we just silently ignore it here.
-	 */
-	if (!current_keybind) {
-		return;
-	}
-	if (!strcmp(nodename, "name.action")) {
+		current_keybind_action = NULL;
+		/*
+		 * If an invalid keybind has been provided,
+		 * keybind_create() complains.
+		 */
+		if (!current_keybind) {
+			wlr_log(WLR_ERROR, "Invalid keybind: %s", content);
+			return;
+		}
+	} else if (!current_keybind) {
+		wlr_log(WLR_ERROR, "expect <keybind key=\"\"> element first. "
+			"nodename: '%s' content: '%s'", nodename, content);
+	} else if (!strcmp(nodename, "name.action")) {
 		current_keybind_action = action_create(content);
 		wl_list_insert(current_keybind->actions.prev,
 			&current_keybind_action->link);
+	} else if (!current_keybind_action) {
+		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
+			"nodename: '%s' content: '%s'", nodename, content);
 	} else if (!strcmp(nodename, "command.action")) {
 		current_keybind_action->arg = strdup(content);
 	} else if (!strcmp(nodename, "direction.action")) {
@@ -86,27 +92,39 @@ fill_mousebind(char *nodename, char *content)
 	 * </mousebind>
 	 */
 
-	if (!strcmp(nodename, "mousebind.context.mouse")) {
+	if (!current_mouse_context) {
+		wlr_log(WLR_ERROR, "expect <context name=\"\"> element first. "
+			"nodename: '%s' content: '%s'", nodename, content);
+		return;
+	} else if (!strcmp(nodename, "mousebind.context.mouse")) {
 		wlr_log(WLR_INFO, "create mousebind for %s",
 			current_mouse_context);
 		current_mousebind = mousebind_create(current_mouse_context);
-	}
-	if (!content) {
+		current_mousebind_action = NULL;
+		return;
+	} else if (!content) {
 		return;
 	}
-	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
 
-	if (!strcmp(nodename, "button")) {
+	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
+	if (!current_mousebind) {
+		wlr_log(WLR_ERROR,
+			"expect <mousebind button=\"\" action=\"\"> element first. "
+			"nodename: '%s' content: '%s'", nodename, content);
+	} else if (!strcmp(nodename, "button")) {
 		current_mousebind->button = mousebind_button_from_str(content,
 			&current_mousebind->modifiers);
 	} else if (!strcmp(nodename, "action")) {
-		 /* <mousebind button="" action="EVENT"> */
+		/* <mousebind button="" action="EVENT"> */
 		current_mousebind->mouse_event =
 			mousebind_event_from_str(content);
 	} else if (!strcmp(nodename, "name.action")) {
 		current_mousebind_action = action_create(content);
 		wl_list_insert(current_mousebind->actions.prev,
 			&current_mousebind_action->link);
+	} else if (!current_mousebind_action) {
+		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
+			"nodename: '%s' content: '%s'", nodename, content);
 	} else if (!strcmp(nodename, "command.action")) {
 		current_mousebind_action->arg = strdup(content);
 	} else if (!strcmp(nodename, "direction.action")) {
@@ -349,6 +367,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		}
 	} else if (!strcasecmp(nodename, "name.context.mouse")) {
 		current_mouse_context = content;
+		current_mousebind = NULL;
 	} else if (!strcasecmp(nodename, "repeatRate.keyboard")) {
 		rc.repeat_rate = atoi(content);
 	} else if (!strcasecmp(nodename, "repeatDelay.keyboard")) {
@@ -686,4 +705,12 @@ rcxml_finish(void)
 		zfree(l->name);
 		zfree(l);
 	}
+
+	/* Reset state vars for starting fresh when Reload is triggered */
+	current_keybind = NULL;
+	current_mousebind = NULL;
+	current_libinput_category = NULL;
+	current_mouse_context = NULL;
+	current_keybind_action = NULL;
+	current_mousebind_action = NULL;
 }

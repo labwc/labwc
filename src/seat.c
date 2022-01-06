@@ -112,13 +112,33 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	}
 }
 
+static struct wlr_output *
+output_by_name(struct server *server, const char *name)
+{
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		if (!strcasecmp(output->wlr_output->name, name)) {
+			return output->wlr_output;
+		}
+	}
+	return NULL;
+}
+
 void
 new_pointer(struct seat *seat, struct input *input)
 {
-	if (wlr_input_device_is_libinput(input->wlr_input_device)) {
-		configure_libinput(input->wlr_input_device);
+	struct wlr_input_device *dev = input->wlr_input_device;
+	if (wlr_input_device_is_libinput(dev)) {
+		configure_libinput(dev);
 	}
-	wlr_cursor_attach_input_device(seat->cursor, input->wlr_input_device);
+	wlr_cursor_attach_input_device(seat->cursor, dev);
+
+	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
+	wlr_log(WLR_INFO, "map pointer to output %s\n", dev->output_name);
+	struct wlr_output *output =
+		output_by_name(seat->server, dev->output_name);
+	wlr_cursor_map_input_to_output(seat->cursor, dev, output);
+	wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
 }
 
 void
@@ -226,7 +246,6 @@ seat_init(struct server *server)
 	wl_signal_add(&seat->wlr_idle_inhibit_manager->events.new_inhibitor,
 		&seat->idle_inhibitor_create);
 	seat->idle_inhibitor_create.notify = new_idle_inhibitor;
-
 
 	seat->cursor = wlr_cursor_create();
 	if (!seat->cursor) {

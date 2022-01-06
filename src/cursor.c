@@ -198,13 +198,14 @@ process_cursor_motion(struct server *server, uint32_t time)
 		server->seat.cursor->x, server->seat.cursor->y, &surface,
 		&sx, &sy, &view_area);
 
+	/* resize handles */
+	uint32_t resize_edges = ssd_resize_edges(view_area);
+
 	/* Set cursor */
 	if (!view) {
 		/* root, etc. */
 		cursor_set(&server->seat, XCURSOR_DEFAULT);
 	} else {
-		/* resize handles */
-		uint32_t resize_edges = ssd_resize_edges(view_area);
 		if (resize_edges) {
 			cursor_name_set_by_server = true;
 			cursor_set(&server->seat,
@@ -225,6 +226,25 @@ process_cursor_motion(struct server *server, uint32_t time)
 		desktop_focus_and_activate_view(&server->seat, view);
 		if (rc.raise_on_focus) {
 			desktop_move_to_front(view);
+		}
+	}
+
+	struct mousebind *mousebind;
+	wl_list_for_each(mousebind, &rc.mousebinds, link) {
+		if (mousebind->mouse_event == MOUSE_ACTION_DRAG
+				&& mousebind->pressed_in_context) {
+			/* Find closest resize edges in case action is Resize */
+			if (view) {
+				resize_edges |= server->seat.cursor->x
+					< view->x + view->w / 2 ? WLR_EDGE_LEFT
+					: WLR_EDGE_RIGHT;
+				resize_edges |= server->seat.cursor->y
+					< view->y + view->h / 2 ? WLR_EDGE_TOP
+					: WLR_EDGE_BOTTOM;
+			}
+
+			mousebind->pressed_in_context = false;
+			action(NULL, server, &mousebind->actions, resize_edges);
 		}
 	}
 
@@ -473,6 +493,8 @@ handle_release_mousebinding(struct view *view, struct server *server,
 			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
 			action(view, server, &mousebind->actions, resize_edges);
 		}
+		/* For the drag events */
+		mousebind->pressed_in_context = false;
 	}
 	return activated_any && activated_any_frame;
 }
@@ -518,6 +540,7 @@ handle_press_mousebinding(struct view *view, struct server *server,
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {
 			switch (mousebind->mouse_event) {
+			case MOUSE_ACTION_DRAG: /* FALLTHROUGH */
 			case MOUSE_ACTION_CLICK:
 				mousebind->pressed_in_context = true;
 				continue;

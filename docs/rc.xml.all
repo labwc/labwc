@@ -108,7 +108,7 @@
   <!--
     Multiple <mousebind> can exist within one <context>
     Multiple <actions> can exist within one <mousebind>
-    The following openbox-actions are not supported: "Unshade" and "Drag"
+    Currently, the only openbox-action not supported is "Unshade"
   -->
   <mouse>
 
@@ -116,12 +116,12 @@
     <doubleClickTime>500</doubleClickTime>
 
     <context name="Frame">
-      <mousebind button="A-Left" action="Press">
+      <mousebind button="A-Left" action="Drag">
         <action name="Focus"/>
         <action name="Raise"/>
         <action name="Move"/>
       </mousebind>
-      <mousebind button="A-Right" action="Press">
+      <mousebind button="A-Right" action="Drag">
         <action name="Focus"/>
         <action name="Raise"/>
         <action name="Resize"/>
@@ -129,48 +129,48 @@
     </context>
 
     <context name="Top">
-      <mousebind button="Left" action="Press">
+      <mousebind button="Left" action="Drag">
         <action name="Resize"/>
       </mousebind>
     </context>
     <context name="Left">
-      <mousebind button="Left" action="Press">
+      <mousebind button="Left" action="Drag">
         <action name="Resize"/>
       </mousebind>
     </context>
     <context name="Right">
-      <mousebind button="Left" action="Press">
+      <mousebind button="Left" action="Drag">
         <action name="Resize"/>
       </mousebind>
     </context>
     <context name="Bottom">
-      <mousebind button="Left" action="Press">
+      <mousebind button="Left" action="Drag">
         <action name="Resize"/>
       </mousebind>
     </context>
     <context name="TRCorner">
-      <mousebind button="Left" action="Press">
+      <mousebind button="Left" action="Drag">
         <action name="Resize"/>
       </mousebind>
     </context>
     <context name="BRCorner">
-      <mousebind button="Left" action="Press">
+      <mousebind button="Left" action="Drag">
         <action name="Resize"/>
       </mousebind>
     </context>
     <context name="TLCorner">
-      <mousebind button="Left" action="Press">
+      <mousebind button="Left" action="Drag">
         <action name="Resize"/>
       </mousebind>
     </context>
     <context name="BLCorner">
-      <mousebind button="Left" action="Press">
+      <mousebind button="Left" action="Drag">
         <action name="Resize"/>
       </mousebind>
     </context>
 
     <context name="TitleBar">
-      <mousebind button="Left" action="Press">
+      <mousebind button="Left" action="Drag">
         <action name="Focus"/>
         <action name="Raise"/>
         <action name="Move"/>

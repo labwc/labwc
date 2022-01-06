@@ -49,6 +49,8 @@ mousebind_event_from_str(const char *str)
 		return MOUSE_ACTION_PRESS;
 	} else if (!strcasecmp(str, "release")) {
 		return MOUSE_ACTION_RELEASE;
+	} else if (!strcasecmp(str, "drag")) {
+		return MOUSE_ACTION_DRAG;
 	}
 	wlr_log(WLR_ERROR, "unknown mouse action (%s)", str);
 	return MOUSE_ACTION_NONE;

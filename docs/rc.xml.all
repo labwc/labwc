@@ -116,14 +116,18 @@
     <doubleClickTime>500</doubleClickTime>
 
     <context name="Frame">
-      <mousebind button="A-Left" action="Drag">
+      <mousebind button="A-Left" action="Press">
         <action name="Focus"/>
         <action name="Raise"/>
+      </mousebind>
+      <mousebind button="A-Left" action="Drag">
         <action name="Move"/>
       </mousebind>
-      <mousebind button="A-Right" action="Drag">
+      <mousebind button="A-Right" action="Press">
         <action name="Focus"/>
         <action name="Raise"/>
+      </mousebind>
+      <mousebind button="A-Right" action="Drag">
         <action name="Resize"/>
       </mousebind>
     </context>
@@ -170,9 +174,11 @@
     </context>
 
     <context name="TitleBar">
-      <mousebind button="Left" action="Drag">
+      <mousebind button="Left" action="Press">
         <action name="Focus"/>
         <action name="Raise"/>
+      </mousebind>
+      <mousebind button="Left" action="Drag">
         <action name="Move"/>
       </mousebind>
       <mousebind button="Left" action="DoubleClick">

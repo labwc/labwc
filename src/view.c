@@ -166,6 +166,10 @@ static void
 view_apply_maximized_geometry(struct view *view)
 {
 	struct output *output = view_output(view);
+	if (!output) {
+		wlr_log(WLR_ERROR, "view %p has no output", view);
+		return;
+	}
 	struct wlr_box box = output_usable_area_in_layout_coords(output);
 	if (box.height == output->wlr_output->height && output->wlr_output->scale != 1) {
 		box.height /= output->wlr_output->scale;
@@ -315,19 +319,26 @@ view_adjust_for_layout_change(struct view *view)
 		if (wlr_output_layout_get(layout, view->fullscreen)) {
 			/* recompute fullscreen geometry */
 			view_apply_fullscreen_geometry(view, view->fullscreen);
+			return;
 		} else {
 			/* output is gone, exit fullscreen */
 			view_set_fullscreen(view, false, NULL);
 		}
-	} else if (view->maximized) {
-		/* recompute maximized geometry */
-		view_apply_maximized_geometry(view);
-	} else {
-		/* reposition view if it's offscreen */
-		struct wlr_box box = { view->x, view->y, view->w, view->h };
-		if (!wlr_output_layout_intersects(layout, NULL, &box)) {
-			view_center(view);
-		}
+	}
+
+	bool was_maximized = view->maximized;
+	if (was_maximized) {
+		view_maximize(view, false);
+	}
+
+	/* reposition view if it's offscreen */
+	struct wlr_box box = { view->x, view->y, view->w, view->h };
+	if (!wlr_output_layout_intersects(layout, NULL, &box)) {
+		view_center(view);
+	}
+
+	if (was_maximized) {
+		view_maximize(view, true);
 	}
 }
 

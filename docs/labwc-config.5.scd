@@ -144,7 +144,7 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	- Release: Releasing the specified button in the context.
 	- Click: Pressing and then releasing inside of the the context.
 	- DoubleClick: Two presses within the doubleClickTime.
-	- Drag: Pressing the button within the contex, then moving the cursor
+	- Drag: Pressing the button within the context, then moving the cursor
 
 # LIBINPUT
 

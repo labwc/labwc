@@ -234,7 +234,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 		if (mousebind->mouse_event == MOUSE_ACTION_DRAG
 				&& mousebind->pressed_in_context) {
 			/* Find closest resize edges in case action is Resize */
-			if (view) {
+			if (view && !resize_edges) {
 				resize_edges |= server->seat.cursor->x
 					< view->x + view->w / 2 ? WLR_EDGE_LEFT
 					: WLR_EDGE_RIGHT;

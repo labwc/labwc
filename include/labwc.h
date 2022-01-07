@@ -368,6 +368,15 @@ void view_subsurface_create(struct view *view,
 void view_set_activated(struct view *view, bool activated);
 void view_close(struct view *view);
 struct border view_border(struct view *view);
+
+/**
+ * view_move_resize - resize and move view
+ * @view: view to be resized and moved
+ * @geo: the new geometry
+ * NOTE: Only use this when the view actually changes width and/or height
+ * otherwise the serials might cause a delay in moving xdg-shell clients.
+ * For move only, use view_move()
+ */
 void view_move_resize(struct view *view, struct wlr_box geo);
 void view_move(struct view *view, double x, double y);
 void view_minimize(struct view *view, bool minimized);

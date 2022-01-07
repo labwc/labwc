@@ -25,21 +25,24 @@ view_close(struct view *view)
 }
 
 void
-view_move_resize(struct view *view, struct wlr_box geo)
-{
-	if (view->impl->configure) {
-		view->impl->configure(view, geo);
-	}
-	ssd_update_title(view);
-	view_discover_output(view);
-}
-
-void
 view_move(struct view *view, double x, double y)
 {
 	if (view->impl->move) {
 		view->impl->move(view, x, y);
 	}
+	view_discover_output(view);
+}
+
+void
+view_move_resize(struct view *view, struct wlr_box geo)
+{
+	if (view->w == geo.width && view->h == geo.height) {
+		wlr_log(WLR_ERROR, "use view_move() if not resizing");
+	}
+	if (view->impl->configure) {
+		view->impl->configure(view, geo);
+	}
+	ssd_update_title(view);
 	view_discover_output(view);
 }
 
@@ -602,7 +605,12 @@ view_snap_to_edge(struct view *view, const char *direction)
 			view_edge_invert(edge));
 	}
 
-	view_move_resize(view, dst);
+	if (view->w == dst.width && view->h == dst.height) {
+		/* move horizontally/vertically without changing size */
+		view_move(view, dst.x, dst.y);
+	} else {
+		view_move_resize(view, dst);
+	}
 }
 
 const char *

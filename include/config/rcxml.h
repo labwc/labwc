@@ -44,6 +44,10 @@ struct rcxml {
 
 	/* resistance */
 	int screen_edge_strength;
+
+	/* window snapping */
+	int snap_edge_range;
+	bool snap_top_maximize;
 };
 
 extern struct rcxml rc;

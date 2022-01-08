@@ -30,6 +30,14 @@
   </focus>
 
   <!--
+    Set range to 0 to disable window snapping completely
+  -->
+  <snapping>
+    <range>1</range>
+    <topMaximize>yes</topMaximize>
+  </snapping>
+
+  <!--
     Keybind actions are specified in labwc-actions(5)
     The following keybind modifiers are supported:
       W - window/super/logo

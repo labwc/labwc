@@ -165,9 +165,15 @@ view_apply_fullscreen_geometry(struct view *view, struct wlr_output *wlr_output)
 static void
 view_apply_maximized_geometry(struct view *view)
 {
+	/*
+	 * The same code handles both initial maximize and re-maximize
+	 * to account for layout changes.  In either case, view_output()
+	 * gives the output closest to the current geometry (which may
+	 * be different from the output originally maximized onto).
+	 * view_output() can return NULL if all outputs are disabled.
+	 */
 	struct output *output = view_output(view);
 	if (!output) {
-		wlr_log(WLR_ERROR, "view %p has no output", view);
 		return;
 	}
 	struct wlr_box box = output_usable_area_in_layout_coords(output);
@@ -319,26 +325,19 @@ view_adjust_for_layout_change(struct view *view)
 		if (wlr_output_layout_get(layout, view->fullscreen)) {
 			/* recompute fullscreen geometry */
 			view_apply_fullscreen_geometry(view, view->fullscreen);
-			return;
 		} else {
 			/* output is gone, exit fullscreen */
 			view_set_fullscreen(view, false, NULL);
 		}
-	}
-
-	bool was_maximized = view->maximized;
-	if (was_maximized) {
-		view_maximize(view, false);
-	}
-
-	/* reposition view if it's offscreen */
-	struct wlr_box box = { view->x, view->y, view->w, view->h };
-	if (!wlr_output_layout_intersects(layout, NULL, &box)) {
-		view_center(view);
-	}
-
-	if (was_maximized) {
-		view_maximize(view, true);
+	} else if (view->maximized) {
+		/* recompute maximized geometry */
+		view_apply_maximized_geometry(view);
+	} else {
+		/* reposition view if it's offscreen */
+		struct wlr_box box = { view->x, view->y, view->w, view->h };
+		if (!wlr_output_layout_intersects(layout, NULL, &box)) {
+			view_center(view);
+		}
 	}
 }
 

@@ -374,6 +374,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.repeat_delay = atoi(content);
 	} else if (!strcasecmp(nodename, "screenEdgeStrength.resistance")) {
 		rc.screen_edge_strength = atoi(content);
+	} else if (!strcasecmp(nodename, "range.snapping")) {
+		rc.snap_edge_range = atoi(content);
+	} else if (!strcasecmp(nodename, "topMaximize.snapping")) {
+		rc.snap_top_maximize = get_bool(content);
 	}
 }
 
@@ -470,6 +474,8 @@ rcxml_init()
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
 	rc.screen_edge_strength = 20;
+	rc.snap_edge_range = 1;
+	rc.snap_top_maximize = true;
 }
 
 static struct {

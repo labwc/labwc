@@ -542,7 +542,13 @@ handle_press_mousebinding(struct view *view, struct server *server,
 			switch (mousebind->mouse_event) {
 			case MOUSE_ACTION_DRAG: /* FALLTHROUGH */
 			case MOUSE_ACTION_CLICK:
-				mousebind->pressed_in_context = true;
+				/*
+				 * DRAG and CLICK actions will be processed on
+				 * the release event, unless the press event is
+				 * counted as a DOUBLECLICK.
+				 */
+				if (!double_click)
+					mousebind->pressed_in_context = true;
 				continue;
 			case MOUSE_ACTION_DOUBLECLICK:
 				if (!double_click)

@@ -481,10 +481,8 @@ handle_release_mousebinding(struct view *view, struct server *server,
 			case MOUSE_ACTION_RELEASE:
 				break;
 			case MOUSE_ACTION_CLICK:
-				if (mousebind->pressed_in_context) {
-					mousebind->pressed_in_context = false;
+				if (mousebind->pressed_in_context)
 					break;
-				}
 				continue;
 			default:
 				continue;
@@ -493,8 +491,14 @@ handle_release_mousebinding(struct view *view, struct server *server,
 			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
 			action(view, server, &mousebind->actions, resize_edges);
 		}
-		/* For the drag events */
-		mousebind->pressed_in_context = false;
+	}
+	/*
+	 * Clear "pressed" status for all bindings of this mouse button,
+	 * regardless of whether activated or not
+	 */
+	wl_list_for_each(mousebind, &rc.mousebinds, link) {
+		if (mousebind->button == button)
+			mousebind->pressed_in_context = false;
 	}
 	return activated_any && activated_any_frame;
 }

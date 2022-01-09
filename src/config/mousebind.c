@@ -18,8 +18,9 @@ mousebind_button_from_str(const char *str, uint32_t *modifiers)
 		while (strlen(str) >= 2 && str[1] == '-') {
 			char modname[2] = {str[0], 0};
 			uint32_t parsed_modifier = parse_modifier(modname);
-			if (!parsed_modifier)
+			if (!parsed_modifier) {
 				goto invalid;
+			}
 			*modifiers |= parsed_modifier;
 			str += 2;
 		}

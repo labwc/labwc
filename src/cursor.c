@@ -481,8 +481,9 @@ handle_release_mousebinding(struct view *view, struct server *server,
 			case MOUSE_ACTION_RELEASE:
 				break;
 			case MOUSE_ACTION_CLICK:
-				if (mousebind->pressed_in_context)
+				if (mousebind->pressed_in_context) {
 					break;
+				}
 				continue;
 			default:
 				continue;
@@ -497,8 +498,9 @@ handle_release_mousebinding(struct view *view, struct server *server,
 	 * regardless of whether activated or not
 	 */
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
-		if (mousebind->button == button)
+		if (mousebind->button == button) {
 			mousebind->pressed_in_context = false;
+		}
 	}
 	return activated_any && activated_any_frame;
 }
@@ -551,12 +553,14 @@ handle_press_mousebinding(struct view *view, struct server *server,
 				 * the release event, unless the press event is
 				 * counted as a DOUBLECLICK.
 				 */
-				if (!double_click)
+				if (!double_click) {
 					mousebind->pressed_in_context = true;
+				}
 				continue;
 			case MOUSE_ACTION_DOUBLECLICK:
-				if (!double_click)
+				if (!double_click) {
 					continue;
+				}
 				break;
 			case MOUSE_ACTION_PRESS:
 				break;

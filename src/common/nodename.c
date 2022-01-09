@@ -22,8 +22,9 @@ nodename(xmlNode *node, char *buf, int len)
 		char c;
 		while ((c = *name++) != 0) {
 			*p++ = tolower(c);
-			if (!--len)
+			if (!--len) {
 				return buf;
+			}
 		}
 		*p = 0;
 		node = node->parent;

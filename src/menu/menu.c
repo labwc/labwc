@@ -261,8 +261,9 @@ parse_xml(const char *filename, struct server *server)
 	buf_init(&b);
 	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');
-		if (p)
+		if (p) {
 			*p = '\0';
+		}
 		buf_add(&b, line);
 	}
 	free(line);

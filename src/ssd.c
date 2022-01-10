@@ -248,9 +248,37 @@ ssd_visible_box(struct view *view, enum ssd_part_type type)
 	return box;
 }
 
+static bool
+cursor_in_usable_area(struct server *server, double lx, double ly)
+{
+	struct output *output;
+
+	struct wlr_output_layout *output_layout = server->output_layout;
+	wl_list_for_each(output, &server->outputs, link) {
+		double ox = 0, oy = 0;
+		wlr_output_layout_output_coords(output_layout,
+			output->wlr_output, &ox, &oy);
+		if (wlr_box_contains_point(&output->usable_area,
+				lx + ox, ly + oy)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 enum ssd_part_type
 ssd_at(struct view *view, double lx, double ly)
 {
+	/*
+	 * Do not render resize cursors over exclusive layer-shell clients
+	 * such as panels, even if the invisible region of a view's server-
+	 * side decoration extends over that layer-shell client.
+	 */
+	bool in_usable_area = cursor_in_usable_area(view->server, lx, ly);
+	if (!in_usable_area) {
+		return LAB_SSD_NONE;
+	}
+
 	enum ssd_part_type type;
 	for (type = 0; type < LAB_SSD_END_MARKER; ++type) {
 		struct wlr_box box = ssd_box(view, type);

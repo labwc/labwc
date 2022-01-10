@@ -313,6 +313,34 @@ wlr_surface *layer_surface_at(struct wl_list *layer, double ox, double oy,
 	return NULL;
 }
 
+static bool
+surface_is_xdg_popup(struct wlr_surface *surface)
+{
+	if (wlr_surface_is_xdg_surface(surface)) {
+		struct wlr_xdg_surface *xdg_surface =
+			wlr_xdg_surface_from_wlr_surface(surface);
+		return xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP;
+	}
+	return false;
+}
+
+static struct wlr_surface *
+layer_surface_popup_at(struct output *output, struct wl_list *layer,
+		double ox, double oy, double *sx, double *sy)
+{
+	struct lab_layer_surface *lab_layer;
+	wl_list_for_each_reverse(lab_layer, layer, link) {
+		double _sx = ox - lab_layer->geo.x;
+		double _sy = oy - lab_layer->geo.y;
+		struct wlr_surface *sub = wlr_layer_surface_v1_surface_at(
+			lab_layer->layer_surface, _sx, _sy, sx, sy);
+		if (sub && surface_is_xdg_popup(sub)) {
+			return sub;
+		}
+	}
+	return NULL;
+}
+
 struct view *
 desktop_surface_and_view_at(struct server *server, double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy,
@@ -329,6 +357,8 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 	double ox = lx, oy = ly;
 	wlr_output_layout_output_coords(output->server->output_layout,
 		wlr_output, &ox, &oy);
+
+	/* Overlay-layer */
 	*surface = layer_surface_at(
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
 			ox, oy, sx, sy);
@@ -336,6 +366,27 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 		return NULL;
 	}
 
+	/* Check all layer popups */
+	*surface = layer_surface_popup_at(output,
+			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
+			ox, oy, sx, sy);
+	if (*surface) {
+		return NULL;
+	}
+	*surface = layer_surface_popup_at(output,
+			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
+			ox, oy, sx, sy);
+	if (*surface) {
+		return NULL;
+	}
+	*surface = layer_surface_popup_at(output,
+			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
+			ox, oy, sx, sy);
+	if (*surface) {
+		return NULL;
+	}
+
+	/* Top-layer */
 	*surface = layer_surface_at(
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
 			ox, oy, sx, sy);
@@ -348,6 +399,8 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 		if (!view->mapped) {
 			continue;
 		}
+
+		/* This ignores server-side deco */
 		if (_view_at(view, lx, ly, surface, sx, sy)) {
 			*view_area = LAB_SSD_CLIENT;
 			return view;
@@ -355,6 +408,8 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 		if (!view->ssd.enabled) {
 			continue;
 		}
+
+		/* Now, let's deal with the server-side deco */
 		*view_area = ssd_at(view, lx, ly);
 		if (*view_area != LAB_SSD_NONE) {
 			return view;

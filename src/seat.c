@@ -134,11 +134,13 @@ new_pointer(struct seat *seat, struct input *input)
 	wlr_cursor_attach_input_device(seat->cursor, dev);
 
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
-	wlr_log(WLR_INFO, "map pointer to output %s\n", dev->output_name);
-	struct wlr_output *output =
-		output_by_name(seat->server, dev->output_name);
-	wlr_cursor_map_input_to_output(seat->cursor, dev, output);
-	wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
+	if (dev->output_name) {
+		wlr_log(WLR_INFO, "map pointer to output %s\n", dev->output_name);
+		struct wlr_output *output =
+			output_by_name(seat->server, dev->output_name);
+		wlr_cursor_map_input_to_output(seat->cursor, dev, output);
+		wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
+	}
 }
 
 void

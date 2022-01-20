@@ -11,6 +11,7 @@
     <decoration>server</decoration>
     <gap>0</gap>
     <adaptiveSync>no</adaptiveSync>
+    <cycleViewPreview>no</cycleViewPreview>
   </core>
 
   <!--

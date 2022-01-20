@@ -48,6 +48,9 @@ struct rcxml {
 	/* window snapping */
 	int snap_edge_range;
 	bool snap_top_maximize;
+
+	/* cycle view (alt+tab) */
+	bool cycle_preview_contents;
 };
 
 extern struct rcxml rc;

@@ -802,6 +802,16 @@ output_render(struct output *output, pixman_region32_t *damage)
 
 	/* 'alt-tab' border */
 	if (output->server->cycle_view) {
+		/* If the 'cycle_preview_contents' option is set in
+		 * rc.xml, render the contents of the cycle_view over
+		 * all other views (except for the OSD)
+		 */
+		if (rc.cycle_preview_contents) {
+			render_deco(output->server->cycle_view, output, damage);
+			render_view_toplevels(output->server->cycle_view, output, damage);
+			render_view_popups(output->server->cycle_view, output, damage);
+		}
+
 		render_cycle_box(output, damage, output->server->cycle_view);
 		render_osd(output, damage, output->server);
 	}

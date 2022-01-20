@@ -31,6 +31,10 @@ Configuration must be wrapped in a <labwc_config> root-node.
 *<core><adaptiveSync>* [yes|no]
 	Enable adaptive sync. Default is no.
 
+*<core><cycleViewPreview>* [yes|no]
+	Preview the contents of the selected window when cycling between windows.
+	Default is no.
+
 # FOCUS
 
 *<focus><followMouse>* [yes|no]

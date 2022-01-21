@@ -331,13 +331,6 @@ xdg_toplevel_view_map(struct view *view)
 	view->mapped = true;
 	view->surface = view->xdg_surface->surface;
 	if (!view->been_mapped) {
-		/*
-		 * Start unmaximized to avoid padding/position complications
-		 * and keep code simple
-		 */
-		view_maximize(view, false);
-		view_set_fullscreen(view, false, NULL);
-
 		foreign_toplevel_handle_create(view);
 
 		view->ssd.enabled = has_ssd(view);
@@ -347,7 +340,9 @@ xdg_toplevel_view_map(struct view *view)
 		}
 
 		update_padding(view);
-		position_xdg_toplevel_view(view);
+		if (!view->maximized && !view->fullscreen) {
+			position_xdg_toplevel_view(view);
+		}
 
 		struct wlr_subsurface *subsurface;
 		wl_list_for_each(subsurface, &view->surface->current.subsurfaces_below,

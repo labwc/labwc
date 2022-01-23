@@ -330,17 +330,12 @@ void
 menu_finish(void)
 {
 	struct menu *menu;
-	struct action *action, *action_tmp;
 	for (int i = 0; i < nr_menus; ++i) {
 		menu = menus + i;
 		struct menuitem *item, *next;
 		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
 			wl_list_remove(&item->link);
-			wl_list_for_each_safe(action, action_tmp, &item->actions, link) {
-				wl_list_remove(&action->link);
-				zfree(action->arg);
-				zfree(action);
-			}
+			action_list_free(&item->actions);
 			free(item);
 		}
 	}

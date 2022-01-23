@@ -71,6 +71,9 @@ fill_keybind(char *nodename, char *content)
 	} else if (!current_keybind_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
+	} else if (current_keybind_action->arg) {
+		wlr_log(WLR_ERROR, "Action argument already set: %s",
+			current_keybind_action->arg);
 	} else if (!strcmp(nodename, "command.action")) {
 		current_keybind_action->arg = strdup(content);
 	} else if (!strcmp(nodename, "direction.action")) {
@@ -125,6 +128,9 @@ fill_mousebind(char *nodename, char *content)
 	} else if (!current_mousebind_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
+	} else if (current_mousebind_action->arg) {
+		wlr_log(WLR_ERROR, "Action argument already set: %s",
+			current_mousebind_action->arg);
 	} else if (!strcmp(nodename, "command.action")) {
 		current_mousebind_action->arg = strdup(content);
 	} else if (!strcmp(nodename, "direction.action")) {

@@ -2,6 +2,7 @@
 #include <strings.h>
 #include <wlr/util/log.h>
 #include "common/spawn.h"
+#include "common/zfree.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "action.h"
@@ -74,6 +75,15 @@ action_create(const char *action_name)
 	struct action *action = calloc(1, sizeof(struct action));
 	action->type = action_type_from_str(action_name);
 	return action;
+}
+
+void action_list_free(struct wl_list *action_list) {
+	struct action *action, *action_tmp;
+	wl_list_for_each_safe(action, action_tmp, action_list, link) {
+		wl_list_remove(&action->link);
+		zfree(action->arg);
+		zfree(action);
+	}
 }
 
 static void

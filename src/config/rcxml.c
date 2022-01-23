@@ -676,7 +676,6 @@ no_config:
 void
 rcxml_finish(void)
 {
-	struct action *action, *action_tmp;
 
 	zfree(rc.font_name_activewindow);
 	zfree(rc.font_name_menuitem);
@@ -686,11 +685,7 @@ rcxml_finish(void)
 	struct keybind *k, *k_tmp;
 	wl_list_for_each_safe(k, k_tmp, &rc.keybinds, link) {
 		wl_list_remove(&k->link);
-		wl_list_for_each_safe(action, action_tmp, &k->actions, link) {
-			wl_list_remove(&action->link);
-			zfree(action->arg);
-			zfree(action);
-		}
+		action_list_free(&k->actions);
 		zfree(k->keysyms);
 		zfree(k);
 	}
@@ -698,11 +693,7 @@ rcxml_finish(void)
 	struct mousebind *m, *m_tmp;
 	wl_list_for_each_safe(m, m_tmp, &rc.mousebinds, link) {
 		wl_list_remove(&m->link);
-		wl_list_for_each_safe(action, action_tmp, &m->actions, link) {
-			wl_list_remove(&action->link);
-			zfree(action->arg);
-			zfree(action);
-		}
+		action_list_free(&m->actions);
 		zfree(m);
 	}
 

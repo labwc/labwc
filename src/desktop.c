@@ -61,7 +61,6 @@ desktop_move_to_front(struct view *view)
 #if HAVE_XWAYLAND
 	move_xwayland_sub_views_to_front(view);
 #endif
-	cursor_update_focus(view->server);
 }
 
 static void

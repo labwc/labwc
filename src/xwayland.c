@@ -255,10 +255,12 @@ static void
 map(struct view *view)
 {
 	view->mapped = true;
-	view->x = view->xwayland_surface->x;
-	view->y = view->xwayland_surface->y;
-	view->w = view->xwayland_surface->width;
-	view->h = view->xwayland_surface->height;
+	if (!view->maximized && !view->fullscreen) {
+		view->x = view->xwayland_surface->x;
+		view->y = view->xwayland_surface->y;
+		view->w = view->xwayland_surface->width;
+		view->h = view->xwayland_surface->height;
+	}
 	view->surface = view->xwayland_surface->surface;
 	view->ssd.enabled = want_deco(view);
 
@@ -268,22 +270,21 @@ map(struct view *view)
 	}
 
 	if (!view->been_mapped) {
-		view_maximize(view, false);
-		view_set_fullscreen(view, false, NULL);
-
 		foreign_toplevel_handle_create(view);
 
-		struct wlr_box box =
-			output_usable_area_from_cursor_coords(view->server);
-		view->x = box.x;
-		view->y = box.y;
-		view_center(view);
+		if (!view->maximized && !view->fullscreen) {
+			struct wlr_box box =
+				output_usable_area_from_cursor_coords(view->server);
+			view->x = box.x;
+			view->y = box.y;
+			view_center(view);
+		}
 
 		view_discover_output(view);
 		view->been_mapped = true;
 	}
 
-	if (view->ssd.enabled) {
+	if (view->ssd.enabled && !view->fullscreen && !view->maximized) {
 		top_left_edge_boundary_check(view);
 	}
 

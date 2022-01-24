@@ -681,6 +681,7 @@ cursor_axis(struct wl_listener *listener, void *data)
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	/* Notify the client with pointer focus of the axis event. */
+	cursor_rebase(seat, event->time_msec);
 	wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,
 		event->orientation, event->delta, event->delta_discrete,
 		event->source);

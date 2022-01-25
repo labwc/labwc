@@ -55,25 +55,29 @@ ssd_box(struct view *view, enum ssd_part_type type)
 {
 	struct theme *theme = view->server->theme;
 	struct wlr_box box = { 0 };
-	int corner_square = theme->title_height + theme->border_width;
+	int16_t button_height = theme->title_height;
+	int16_t button_width = theme->title_height;
+	int16_t corner_square = theme->title_height + theme->border_width;
+	int16_t title_x_padding = (double)corner_square / 2;
+
 	switch (type) {
 	case LAB_SSD_BUTTON_CLOSE:
-		box.x = view->x + view->w - theme->title_height;
-		box.y = view->y - theme->title_height;
-		box.width = theme->title_height;
-		box.height = theme->title_height;
+		box.x = view->x + view->w - button_width * 1;
+		box.y = view->y - button_height;
+		box.width = button_width;
+		box.height = button_height;
 		break;
 	case LAB_SSD_BUTTON_MAXIMIZE:
-		box.x = view->x + view->w - theme->title_height * 2;
-		box.y = view->y - theme->title_height;
-		box.width = theme->title_height;
-		box.height = theme->title_height;
+		box.x = view->x + view->w - button_width * 2;
+		box.y = view->y - button_height;
+		box.width = button_width;
+		box.height = button_height;
 		break;
 	case LAB_SSD_BUTTON_ICONIFY:
-		box.x = view->x + view->w - theme->title_height * 3;
-		box.y = view->y - theme->title_height;
-		box.width = theme->title_height;
-		box.height = theme->title_height;
+		box.x = view->x + view->w - button_width * 3;
+		box.y = view->y - button_height;
+		box.width = button_width;
+		box.height = button_height;
 		break;
 	case LAB_SSD_PART_TITLEBAR:
 		box.x = view->x;
@@ -82,9 +86,9 @@ ssd_box(struct view *view, enum ssd_part_type type)
 		box.height = theme->title_height;
 		break;
 	case LAB_SSD_PART_TITLE:
-		box.x = view->x + corner_square / 2;
+		box.x = view->x + title_x_padding;
 		box.y = view->y - theme->title_height;
-		box.width = view->w - NR_BUTTONS * corner_square;
+		box.width = view->w - title_x_padding * 2 - NR_BUTTONS * button_width;
 		box.height = theme->title_height;
 		break;
 	case LAB_SSD_PART_CORNER_TOP_LEFT:

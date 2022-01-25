@@ -120,6 +120,7 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	Define a mouse binding. Supported context-names include:
 	- TitleBar: The area where the title of the window is shown.
 	- Title: The title of the window itself.
+	- WindowMenu: The button on the left.
 	- Iconify: The button that looks like an underline.
 	- Maximize: The button that looks like a box.
 	- Close: The button that looks like an X.

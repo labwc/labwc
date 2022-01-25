@@ -183,7 +183,15 @@ process_cursor_motion(struct server *server, uint32_t time)
 		process_cursor_resize(server, time);
 		return;
 	} else if (server->input_mode == LAB_INPUT_STATE_MENU) {
-		menu_set_selected(server->rootmenu,
+		struct menu *menu = NULL;
+		if (server->rootmenu->visible) {
+			menu = server->rootmenu;
+		} else if (server->windowmenu->visible) {
+			menu = server->windowmenu;
+		} else {
+			return;
+		}
+		menu_set_selected(menu,
 			server->seat.cursor->x, server->seat.cursor->y);
 		damage_all_outputs(server);
 		return;
@@ -615,7 +623,11 @@ cursor_button(struct wl_listener *listener, void *data)
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
-		menu_action_selected(server, server->rootmenu);
+		if (server->rootmenu->visible) {
+			menu_action_selected(server, server->rootmenu);
+		} else if (server->windowmenu->visible) {
+			menu_action_selected(server, server->windowmenu);
+		}
 		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		cursor_rebase(&server->seat, event->time_msec);
 		return;

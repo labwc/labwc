@@ -72,6 +72,7 @@ main(int argc, char *argv[])
 	server.theme = &theme;
 
 	menu_init_rootmenu(&server);
+	menu_init_windowmenu(&server);
 
 	session_autostart_init();
 	if (startup_cmd) {

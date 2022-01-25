@@ -313,6 +313,7 @@ menu_init_rootmenu(struct server *server)
 
 	/* Default menu if no menu.xml found */
 	if (!server->rootmenu) {
+		current_menu = NULL;
 		server->rootmenu = menu_create(server, "root-menu", "");
 	}
 	if (wl_list_empty(&server->rootmenu->menuitems)) {
@@ -324,6 +325,33 @@ menu_init_rootmenu(struct server *server)
 
 	server->rootmenu->visible = true;
 	menu_configure(server->rootmenu, 100, 100);
+}
+
+void
+menu_init_windowmenu(struct server *server)
+{
+	server->windowmenu = get_menu_by_id("client-menu");
+
+	/* Default menu if no menu.xml found */
+	if (!server->windowmenu) {
+		current_menu = NULL;
+		server->windowmenu = menu_create(server, "client-menu", "");
+	}
+	if (wl_list_empty(&server->windowmenu->menuitems)) {
+		current_item = item_create(server->windowmenu, "Minimize");
+		fill_item("name.action", "Iconify");
+		current_item = item_create(server->windowmenu, "Maximize");
+		fill_item("name.action", "ToggleMaximize");
+		current_item = item_create(server->windowmenu, "Fullscreen");
+		fill_item("name.action", "ToggleFullscreen");
+		current_item = item_create(server->windowmenu, "Decorations");
+		fill_item("name.action", "ToggleDecorations");
+		current_item = item_create(server->windowmenu, "Close");
+		fill_item("name.action", "Close");
+	}
+
+	server->windowmenu->visible = true;
+	menu_configure(server->windowmenu, 100, 100);
 }
 
 void
@@ -437,4 +465,5 @@ menu_reconfigure(struct server *server, struct menu *menu)
 {
 	menu_finish();
 	menu_init_rootmenu(server);
+	menu_init_windowmenu(server);
 }

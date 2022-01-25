@@ -50,7 +50,7 @@ Actions are used in keyboard bindings.
 	Re-load configuration and theme files.
 
 *<action name="ShowMenu"><menu>*
-	Show menu. Valid menu name is "root-menu".
+	Show menu. Valid menu names are "root-menu" and "client-menu".
 
 *<action name="ToggleDecorations">*
 	Toggle decorations of focused window.

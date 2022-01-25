@@ -87,16 +87,37 @@ void action_list_free(struct wl_list *action_list) {
 }
 
 static void
-show_menu(struct server *server, const char *menu)
+show_menu(struct server *server, struct view *view, const char *menu_name)
 {
-	if (!menu) {
+	struct menu *menu = NULL;
+	bool force_menu_top_left = false;
+
+	if (!menu_name) {
 		return;
 	}
-	if (!strcasecmp(menu, "root-menu")) {
-		server->input_mode = LAB_INPUT_STATE_MENU;
-		menu_move(server->rootmenu, server->seat.cursor->x,
-			server->seat.cursor->y);
+
+	if (!strcasecmp(menu_name, "root-menu")) {
+		menu = server->rootmenu;
+		server->windowmenu->visible = false;
+	} else if (!strcasecmp(menu_name, "client-menu") && view) {
+		menu = server->windowmenu;
+		server->rootmenu->visible = false;
+	} else {
+		return;
 	}
+
+	menu->visible = true;
+	server->input_mode = LAB_INPUT_STATE_MENU;
+
+	int x, y;
+	if (force_menu_top_left) {
+		x = view->x;
+		y = view->y;
+	} else {
+		x = server->seat.cursor->x;
+		y = server->seat.cursor->y;
+	}
+	menu_move(menu, x, y);
 	damage_all_outputs(server);
 }
 
@@ -166,7 +187,7 @@ action(struct view *activator, struct server *server, struct wl_list *actions, u
 			spawn_async_no_shell("killall -SIGHUP labwc");
 			break;
 		case ACTION_TYPE_SHOW_MENU:
-			show_menu(server, action->arg);
+			show_menu(server, view, action->arg);
 			break;
 		case ACTION_TYPE_TOGGLE_MAXIMIZE:
 			if (view) {

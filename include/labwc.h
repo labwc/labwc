@@ -165,6 +165,7 @@ struct server {
 
 	struct theme *theme;
 	struct menu *rootmenu;
+	struct menu *windowmenu;
 };
 
 struct output {

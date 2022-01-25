@@ -832,6 +832,7 @@ output_render(struct output *output, pixman_region32_t *damage)
 
 	if (output->server->input_mode == LAB_INPUT_STATE_MENU) {
 		render_menu(output, damage, server->rootmenu);
+		render_menu(output, damage, server->windowmenu);
 	}
 
 renderer_end:

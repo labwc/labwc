@@ -1,7 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <openbox_menu>
-
+<menu id="client-menu" label="ClientMenu">
+	<item label="Minimize">
+		<action name="Iconify" />
+	</item>
+	<item label="Maximize">
+		<action name="ToggleMaximize" />
+	</item>
+	<item label="Fullscreen">
+		<action name="ToggleFullscreen" />
+	</item>
+	<item label="Decorations">
+		<action name="ToggleDecorations" />
+	</item>
+	<item label="Close">
+		<action name="Close" />
+	</item>
+</menu>
 <menu id="root-menu" label="">
   <item label="Web browser">
     <action name="Execute"><command>firefox</command></action>

@@ -549,7 +549,8 @@ isbutton(enum ssd_part_type type)
 {
 	return type == LAB_SSD_BUTTON_CLOSE ||
 	       type == LAB_SSD_BUTTON_MAXIMIZE ||
-	       type == LAB_SSD_BUTTON_ICONIFY;
+	       type == LAB_SSD_BUTTON_ICONIFY ||
+	       type == LAB_SSD_BUTTON_WINDOW_MENU;
 }
 
 static void
@@ -602,6 +603,9 @@ render_deco(struct view *view, struct output *output,
 		box = ssd_visible_box(view, LAB_SSD_BUTTON_ICONIFY);
 		render_icon(output, output_damage, &box,
 			theme->xbm_iconify_active_unpressed);
+		box = ssd_visible_box(view, LAB_SSD_BUTTON_WINDOW_MENU);
+		render_icon(output, output_damage, &box,
+			theme->xbm_menu_active_unpressed);
 	} else {
 		box = ssd_visible_box(view, LAB_SSD_BUTTON_CLOSE);
 		render_icon(output, output_damage, &box,
@@ -612,6 +616,9 @@ render_deco(struct view *view, struct output *output,
 		box = ssd_visible_box(view, LAB_SSD_BUTTON_ICONIFY);
 		render_icon(output, output_damage, &box,
 			theme->xbm_iconify_inactive_unpressed);
+		box = ssd_visible_box(view, LAB_SSD_BUTTON_WINDOW_MENU);
+		render_icon(output, output_damage, &box,
+			theme->xbm_menu_inactive_unpressed);
 	}
 }
 

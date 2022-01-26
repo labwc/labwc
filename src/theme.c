@@ -105,11 +105,15 @@ theme_builtin(struct theme *theme)
 	theme->window_label_text_justify = parse_justification("Left");
 
 	parse_hexstr("#000000",
+		theme->window_active_button_menu_unpressed_image_color);
+	parse_hexstr("#000000",
 		theme->window_active_button_iconify_unpressed_image_color);
 	parse_hexstr("#000000",
 		theme->window_active_button_max_unpressed_image_color);
 	parse_hexstr("#000000",
 		theme->window_active_button_close_unpressed_image_color);
+	parse_hexstr("#000000",
+		theme->window_inactive_button_menu_unpressed_image_color);
 	parse_hexstr("#000000",
 		theme->window_inactive_button_iconify_unpressed_image_color);
 	parse_hexstr("#000000",
@@ -193,6 +197,8 @@ entry(struct theme *theme, const char *key, const char *value)
 	/* universal button */
 	if (match(key, "window.active.button.unpressed.image.color")) {
 		parse_hexstr(value,
+			theme->window_active_button_menu_unpressed_image_color);
+		parse_hexstr(value,
 			theme->window_active_button_iconify_unpressed_image_color);
 		parse_hexstr(value,
 			theme->window_active_button_max_unpressed_image_color);
@@ -200,6 +206,8 @@ entry(struct theme *theme, const char *key, const char *value)
 			theme->window_active_button_close_unpressed_image_color);
 	}
 	if (match(key, "window.inactive.button.unpressed.image.color")) {
+		parse_hexstr(value,
+			theme->window_inactive_button_menu_unpressed_image_color);
 		parse_hexstr(value,
 			theme->window_inactive_button_iconify_unpressed_image_color);
 		parse_hexstr(value,

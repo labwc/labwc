@@ -17,10 +17,11 @@
 #include "xbm/xbm.h"
 
 /* built-in 6x6 buttons */
-char close_button_normal[] = { 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 };
+char menu_button_normal[] = { 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 };
 char iconify_button_normal[] = { 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f };
 char max_button_normal[] = { 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f };
 char max_button_toggled[] = { 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f };
+char close_button_normal[] = { 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 };
 
 static struct wlr_texture *
 texture_from_pixmap(struct wlr_renderer *renderer, struct pixmap *pixmap)
@@ -87,6 +88,9 @@ out:
 void
 xbm_load(struct theme *theme, struct wlr_renderer *r)
 {
+	parse_set_color(theme->window_active_button_menu_unpressed_image_color);
+	load_button(r, "menu.xbm", &theme->xbm_menu_active_unpressed,
+		    menu_button_normal);
 	parse_set_color(theme->window_active_button_iconify_unpressed_image_color);
 	load_button(r, "iconify.xbm", &theme->xbm_iconify_active_unpressed,
 		    iconify_button_normal);
@@ -97,6 +101,9 @@ xbm_load(struct theme *theme, struct wlr_renderer *r)
 	load_button(r, "close.xbm", &theme->xbm_close_active_unpressed,
 		    close_button_normal);
 
+	parse_set_color(theme->window_inactive_button_menu_unpressed_image_color);
+	load_button(r, "menu.xbm", &theme->xbm_menu_inactive_unpressed,
+		    menu_button_normal);
 	parse_set_color(theme->window_inactive_button_iconify_unpressed_image_color);
 	load_button(r, "iconify.xbm", &theme->xbm_iconify_inactive_unpressed,
 		    iconify_button_normal);

@@ -40,7 +40,7 @@ ssd_max_extents(struct view *view)
 	return box;
 }
 
-#define NR_BUTTONS (3)
+#define NR_BUTTONS (4)
 
 /**
  * ssd_box - the 'full' decoration geometry which includes both visible
@@ -79,6 +79,12 @@ ssd_box(struct view *view, enum ssd_part_type type)
 		box.width = button_width;
 		box.height = button_height;
 		break;
+	case LAB_SSD_BUTTON_WINDOW_MENU:
+		box.x = view->x;
+		box.y = view->y - button_height;
+		box.width = button_width;
+		box.height = button_height;
+		break;
 	case LAB_SSD_PART_TITLEBAR:
 		box.x = view->x;
 		box.y = view->y - theme->title_height;
@@ -86,7 +92,7 @@ ssd_box(struct view *view, enum ssd_part_type type)
 		box.height = theme->title_height;
 		break;
 	case LAB_SSD_PART_TITLE:
-		box.x = view->x + title_x_padding;
+		box.x = view->x + button_width + title_x_padding;
 		box.y = view->y - theme->title_height;
 		box.width = view->w - title_x_padding * 2 - NR_BUTTONS * button_width;
 		box.height = theme->title_height;
@@ -193,6 +199,9 @@ ssd_visible_box(struct view *view, enum ssd_part_type type)
 		box = ssd_box(view, type);
 		break;
 	case LAB_SSD_BUTTON_ICONIFY:
+		box = ssd_box(view, type);
+		break;
+	case LAB_SSD_BUTTON_WINDOW_MENU:
 		box = ssd_box(view, type);
 		break;
 	case LAB_SSD_PART_TITLEBAR:

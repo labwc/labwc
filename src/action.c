@@ -5,6 +5,7 @@
 #include "common/zfree.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "ssd.h"
 #include "action.h"
 
 enum action_type {
@@ -102,6 +103,15 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 	} else if (!strcasecmp(menu_name, "client-menu") && view) {
 		menu = server->windowmenu;
 		server->rootmenu->visible = false;
+		enum ssd_part_type type = ssd_at(view, server->seat.cursor->x,
+			server->seat.cursor->y);
+		if (type == LAB_SSD_BUTTON_WINDOW_MENU) {
+			force_menu_top_left = true;
+		} else if (ssd_part_contains(LAB_SSD_PART_TITLEBAR, type)) {
+			force_menu_top_left = false;
+		} else {
+			force_menu_top_left = true;
+		}
 	} else {
 		return;
 	}

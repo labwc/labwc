@@ -35,9 +35,11 @@ struct theme {
 	enum lab_justification window_label_text_justify;
 
 	/* button colors */
+	float window_active_button_menu_unpressed_image_color[4];
 	float window_active_button_iconify_unpressed_image_color[4];
 	float window_active_button_max_unpressed_image_color[4];
 	float window_active_button_close_unpressed_image_color[4];
+	float window_inactive_button_menu_unpressed_image_color[4];
 	float window_inactive_button_iconify_unpressed_image_color[4];
 	float window_inactive_button_max_unpressed_image_color[4];
 	float window_inactive_button_close_unpressed_image_color[4];
@@ -55,10 +57,12 @@ struct theme {
 	struct wlr_texture *xbm_close_active_unpressed;
 	struct wlr_texture *xbm_maximize_active_unpressed;
 	struct wlr_texture *xbm_iconify_active_unpressed;
+	struct wlr_texture *xbm_menu_active_unpressed;
 
 	struct wlr_texture *xbm_close_inactive_unpressed;
 	struct wlr_texture *xbm_maximize_inactive_unpressed;
 	struct wlr_texture *xbm_iconify_inactive_unpressed;
+	struct wlr_texture *xbm_menu_inactive_unpressed;
 
 	struct wlr_texture *corner_top_left_active_normal;
 	struct wlr_texture *corner_top_right_active_normal;

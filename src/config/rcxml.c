@@ -560,6 +560,7 @@ static struct {
 	{ "Close", "Left", "Click", "Close", NULL },
 	{ "Iconify", "Left", "Click", "Iconify", NULL},
 	{ "Maximize", "Left", "Click", "ToggleMaximize", NULL},
+	{ "WindowMenu", "Left", "Click", "ShowMenu", "client-menu"},
 	{ "Root", "Left", "Press", "ShowMenu", "root-menu"},
 	{ "Root", "Right", "Press", "ShowMenu", "root-menu"},
 	{ "Root", "Middle", "Press", "ShowMenu", "root-menu"},

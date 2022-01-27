@@ -860,7 +860,7 @@ renderer_end:
 	wlr_region_transform(&frame_damage, &output->damage->current,
 		transform, output_width, output_height);
 
-#ifdef DEBUG
+#if DEBUG
 	pixman_region32_union_rect(&frame_damage, &frame_damage, 0, 0,
 		output_width, output_height);
 #endif

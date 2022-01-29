@@ -186,6 +186,15 @@ justify_right(struct view *view, struct wlr_box *box,
 	box->x = view->x + (box->width - texture->width);
 }
 
+bool
+ssd_is_button(enum ssd_part_type type)
+{
+	return type == LAB_SSD_BUTTON_CLOSE ||
+	       type == LAB_SSD_BUTTON_MAXIMIZE ||
+	       type == LAB_SSD_BUTTON_ICONIFY ||
+	       type == LAB_SSD_BUTTON_WINDOW_MENU;
+}
+
 struct wlr_box
 ssd_visible_box(struct view *view, enum ssd_part_type type)
 {

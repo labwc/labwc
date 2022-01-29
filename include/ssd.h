@@ -69,5 +69,6 @@ void ssd_create(struct view *view);
 void ssd_destroy(struct view *view);
 void ssd_update_geometry(struct view *view, bool force);
 bool ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate);
+bool ssd_is_button(enum ssd_part_type type);
 
 #endif /* __LABWC_SSD_H */

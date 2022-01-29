@@ -544,15 +544,6 @@ render_osd(struct output *output, pixman_region32_t *damage,
 	}
 }
 
-static bool
-isbutton(enum ssd_part_type type)
-{
-	return type == LAB_SSD_BUTTON_CLOSE ||
-	       type == LAB_SSD_BUTTON_MAXIMIZE ||
-	       type == LAB_SSD_BUTTON_ICONIFY ||
-	       type == LAB_SSD_BUTTON_WINDOW_MENU;
-}
-
 static void
 render_deco(struct view *view, struct output *output,
 		pixman_region32_t *output_damage)
@@ -585,7 +576,7 @@ render_deco(struct view *view, struct output *output,
 	struct wlr_cursor *cur = view->server->seat.cursor;
 	enum ssd_part_type type = ssd_at(view, cur->x, cur->y);
 	struct wlr_box box = ssd_visible_box(view, type);
-	if (isbutton(type) &&
+	if (ssd_is_button(type) &&
 			wlr_box_contains_point(&box, cur->x, cur->y)) {
 		float *color = (float[4]) { 0.5, 0.5, 0.5, 0.5 };
 		render_rect(output, output_damage, &box, color);

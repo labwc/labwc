@@ -44,6 +44,15 @@ Configuration must be wrapped in a <labwc_config> root-node.
 *<focus><raiseOnFocus>* [yes|no]
 	Raise window to top when focused. Default is no.
 
+# Window snapping
+*<snapping><range>*
+	The distance in pixels from the edge of an ouput for window Move
+	operations to trigger SnapToEdge. A range of 0 disables window snapping.
+	Default is 1.
+
+*<snapping><topMaximize>* [yes|no]
+	Maximize window if Move operation ends on the top edge. Default is yes.
+
 # THEME
 
 *<theme><name>*

@@ -170,10 +170,28 @@ input_inhibit_blocks_surface(struct seat *seat, struct wl_resource *resource)
 		inhibiting_client != wl_resource_get_client(resource);
 }
 
+static struct output *
+get_output(struct server *server, struct wlr_cursor *cursor)
+{
+	struct wlr_output *wlr_output = wlr_output_layout_output_at(
+			server->output_layout, cursor->x, cursor->y);
+	return output_from_wlr_output(server, wlr_output);
+}
+
+static void
+damage_whole_current_output(struct server *server)
+{
+	struct output *output = get_output(server, server->seat.cursor);
+	if (output) {
+		wlr_output_damage_add_whole(output->damage);
+	}
+}
+
 static void
 process_cursor_motion(struct server *server, uint32_t time)
 {
 	static bool cursor_name_set_by_server;
+	static enum ssd_part_type last_button_hover = LAB_SSD_NONE;
 
 	/* If the mode is non-passthrough, delegate to those functions. */
 	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
@@ -257,7 +275,17 @@ process_cursor_motion(struct server *server, uint32_t time)
 	}
 
 	/* Required for iconify/maximize/close button mouse-over deco */
-	damage_all_outputs(server);
+	if (ssd_is_button(view_area)) {
+		if (last_button_hover != view_area) {
+			/* Cursor entered new button area */
+			damage_whole_current_output(server);
+			last_button_hover = view_area;
+		}
+	} else if (last_button_hover != LAB_SSD_NONE) {
+		/* Cursor left button area */
+		damage_whole_current_output(server);
+		last_button_hover = LAB_SSD_NONE;
+	}
 
 	if (surface &&
 	    !input_inhibit_blocks_surface(&server->seat, surface->resource)) {

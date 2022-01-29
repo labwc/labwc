@@ -255,6 +255,9 @@ static void
 map(struct view *view)
 {
 	view->mapped = true;
+	if (!view->fullscreen && view->xwayland_surface->fullscreen) {
+		view_set_fullscreen(view, true, NULL);
+	}
 	if (!view->maximized && !view->fullscreen) {
 		view->x = view->xwayland_surface->x;
 		view->y = view->xwayland_surface->y;

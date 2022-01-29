@@ -331,6 +331,8 @@ xdg_toplevel_view_map(struct view *view)
 	view->mapped = true;
 	view->surface = view->xdg_surface->surface;
 	if (!view->been_mapped) {
+		struct wlr_xdg_toplevel_requested *requested =
+			&view->xdg_surface->toplevel->requested;
 		foreign_toplevel_handle_create(view);
 
 		view->ssd.enabled = has_ssd(view);
@@ -340,6 +342,13 @@ xdg_toplevel_view_map(struct view *view)
 		}
 
 		update_padding(view);
+		if (!view->fullscreen && requested->fullscreen) {
+			view_set_fullscreen(view, true,
+				requested->fullscreen_output);
+		} else if (!view->maximized && requested->maximized) {
+			view_maximize(view, true);
+		}
+
 		if (!view->maximized && !view->fullscreen) {
 			position_xdg_toplevel_view(view);
 		}

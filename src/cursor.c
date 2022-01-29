@@ -17,7 +17,7 @@ cursor_rebase(struct seat *seat, uint32_t time_msec)
 {
 	double sx, sy;
 	struct wlr_surface *surface;
-	int view_area = LAB_SSD_NONE;
+	enum ssd_part_type view_area = LAB_SSD_NONE;
 
 	desktop_surface_and_view_at(seat->server, seat->cursor->x,
 		seat->cursor->y, &surface, &sx, &sy, &view_area);
@@ -201,7 +201,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	double sx, sy;
 	struct wlr_seat *wlr_seat = server->seat.seat;
 	struct wlr_surface *surface = NULL;
-	int view_area = LAB_SSD_NONE;
+	enum ssd_part_type view_area = LAB_SSD_NONE;
 	struct view *view = desktop_surface_and_view_at(server,
 		server->seat.cursor->x, server->seat.cursor->y, &surface,
 		&sx, &sy, &view_area);
@@ -583,7 +583,7 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	double sx, sy;
 	struct wlr_surface *surface;
-	int view_area = LAB_SSD_NONE;
+	enum ssd_part_type view_area = LAB_SSD_NONE;
 	uint32_t resize_edges;
 
 	/* bindings to the Frame context swallow mouse events if activated */

@@ -343,7 +343,7 @@ layer_surface_popup_at(struct output *output, struct wl_list *layer,
 struct view *
 desktop_surface_and_view_at(struct server *server, double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy,
-		int *view_area)
+		enum ssd_part_type *view_area)
 {
 	struct wlr_output *wlr_output = wlr_output_layout_output_at(
 			server->output_layout, lx, ly);
@@ -435,7 +435,7 @@ desktop_view_at_cursor(struct server *server)
 {
 	double sx, sy;
 	struct wlr_surface *surface;
-	int view_area = LAB_SSD_NONE;
+	enum ssd_part_type view_area = LAB_SSD_NONE;
 
 	return desktop_surface_and_view_at(server,
 			server->seat.cursor->x, server->seat.cursor->y,

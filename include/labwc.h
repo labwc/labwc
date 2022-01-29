@@ -43,6 +43,7 @@
 #include <xkbcommon/xkbcommon.h>
 #include "config/keybind.h"
 #include "config/rcxml.h"
+#include "ssd.h"
 
 #define XCURSOR_DEFAULT "left_ptr"
 #define XCURSOR_SIZE 24
@@ -448,7 +449,7 @@ bool isfocusable(struct view *view);
  */
 struct view *desktop_surface_and_view_at(struct server *server, double lx,
 	double ly, struct wlr_surface **surface, double *sx, double *sy,
-	int *view_area);
+	enum ssd_part_type *view_area);
 
 struct view *desktop_view_at_cursor(struct server *server);
 

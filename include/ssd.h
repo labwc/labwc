@@ -2,8 +2,6 @@
 #ifndef __LABWC_SSD_H
 #define __LABWC_SSD_H
 
-#include "labwc.h"
-
 /*
  * Sequence these according to the order they should be processed for
  * press and hover events. Bear in mind that some of their respective
@@ -30,6 +28,13 @@ enum ssd_part_type {
 	LAB_SSD_ROOT,
 	LAB_SSD_END_MARKER
 };
+
+/*
+ * Defer including labwc.h because it is using enum ssd_part_type.
+ * This is an issue for headers like mousebind.h which only includes
+ * ssd.h but does not include labwc.h.
+ */
+#include "labwc.h"
 
 struct ssd_part {
 	struct wlr_box box;

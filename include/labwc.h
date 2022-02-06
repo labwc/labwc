@@ -154,6 +154,7 @@ struct server {
 	struct wlr_output_manager_v1 *output_manager;
 	struct wl_listener output_manager_apply;
 	struct wlr_output_configuration_v1 *pending_output_config;
+	float greatest_scale;
 
 	struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
 

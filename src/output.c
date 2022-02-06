@@ -532,15 +532,27 @@ render_osd(struct output *output, pixman_region32_t *damage,
 
 		struct wlr_box box = {
 			.x = ol_output->x + o->wlr_output->width
-				/ o->wlr_output->scale / 2,
+				/ 2,
 			.y = ol_output->y + o->wlr_output->height
-				/ o->wlr_output->scale / 2,
-			.width = server->osd->width,
-			.height = server->osd->height,
+				/ 2,
+			.width = server->osd->width * o->wlr_output->scale
+				/ server->greatest_scale,
+			.height = server->osd->height * o->wlr_output->scale
+				/ server->greatest_scale,
 		};
-		box.x -= server->osd->width / 2;
-		box.y -= server->osd->height / 2;
-		render_texture_helper(output, damage, &box, server->osd);
+		box.x -= box.width  / 2;
+		box.y -= box.height / 2;
+
+		double ox = 0, oy = 0;
+		wlr_output_layout_output_coords(output->server->output_layout,
+			output->wlr_output, &ox, &oy);
+		box.x += ox;
+		box.y += oy;
+		float matrix[9];
+		wlr_matrix_project_box(matrix, &box, WL_OUTPUT_TRANSFORM_NORMAL,
+			0, output->wlr_output->transform_matrix);
+		render_texture(o->wlr_output, damage, server->osd, NULL, &box,
+			matrix);
 	}
 }
 
@@ -1059,6 +1071,8 @@ output_init(struct server *server)
 
 	wl_list_init(&server->outputs);
 
+	server->greatest_scale = 1;
+
 	output_manager_init(server);
 }
 
@@ -1153,7 +1167,11 @@ handle_output_manager_apply(struct wl_listener *listener, void *data)
 	}
 	wlr_output_configuration_v1_destroy(config);
 	struct output *output;
+	server->greatest_scale = 0;
 	wl_list_for_each(output, &server->outputs, link) {
+		if (output->wlr_output->scale > server->greatest_scale) {
+			server->greatest_scale = output->wlr_output->scale;
+		}
 		wlr_xcursor_manager_load(server->seat.xcursor_manager,
 			output->wlr_output->scale);
 	}

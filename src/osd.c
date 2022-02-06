@@ -79,11 +79,13 @@ osd_update(struct server *server)
 	struct wlr_renderer *renderer = server->renderer;
 	struct theme *theme = server->theme;
 
-	int w = OSD_ITEM_WIDTH + 2 * OSD_BORDER_WIDTH;
-	int h = get_osd_height(&server->views);
+	float scale = server->greatest_scale;
+	int w = (OSD_ITEM_WIDTH + (2 * OSD_BORDER_WIDTH)) * scale;
+	int h = get_osd_height(&server->views) * scale;
 
 	cairo_surface_t *surf =
 		cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
+	cairo_surface_set_device_scale(surf, scale, scale);
 	cairo_t *cairo = cairo_create(surf);
 
 	/* background */

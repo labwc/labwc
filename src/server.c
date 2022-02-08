@@ -11,6 +11,7 @@
 #include <wlr/types/wlr_screencopy_v1.h>
 #include <wlr/types/wlr_viewporter.h>
 #include "config/rcxml.h"
+#include "config/session.h"
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
@@ -50,6 +51,7 @@ reload_config_and_theme(void)
 static int
 handle_sighup(int signal, void *data)
 {
+	session_environment_init();
 	reload_config_and_theme();
 	return 0;
 }

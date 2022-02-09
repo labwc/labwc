@@ -144,7 +144,6 @@ struct server {
 	double grab_x, grab_y;
 	struct wlr_box grab_box;
 	uint32_t resize_edges;
-	struct wlr_texture *osd;
 
 	struct wl_list outputs;
 	struct wl_listener new_output;
@@ -154,7 +153,6 @@ struct server {
 	struct wlr_output_manager_v1 *output_manager;
 	struct wl_listener output_manager_apply;
 	struct wlr_output_configuration_v1 *pending_output_config;
-	float greatest_scale;
 
 	struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
 
@@ -177,6 +175,7 @@ struct output {
 	struct wlr_output_damage *damage;
 	struct wl_list layers[4];
 	struct wlr_box usable_area;
+	struct wlr_texture *osd;
 
 	struct wl_listener destroy;
 	struct wl_listener damage_frame;

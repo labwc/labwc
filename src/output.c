@@ -516,10 +516,6 @@ static void
 render_osd(struct output *output, pixman_region32_t *damage,
 		struct server *server)
 {
-	if (!server->osd) {
-		return;
-	}
-
 	/* show on screen display (osd) on all outputs */
 	struct output *o;
 	struct wlr_output_layout *layout = server->output_layout;
@@ -530,15 +526,16 @@ render_osd(struct output *output, pixman_region32_t *damage,
 			continue;
 		}
 
+		if (!output->osd) {
+			continue;
+		}
 		struct wlr_box box = {
 			.x = ol_output->x + o->wlr_output->width
 				/ 2,
 			.y = ol_output->y + o->wlr_output->height
 				/ 2,
-			.width = server->osd->width * o->wlr_output->scale
-				/ server->greatest_scale,
-			.height = server->osd->height * o->wlr_output->scale
-				/ server->greatest_scale,
+			.width = output->osd->width,
+			.height = output->osd->height,
 		};
 		box.x -= box.width  / 2;
 		box.y -= box.height / 2;
@@ -551,7 +548,7 @@ render_osd(struct output *output, pixman_region32_t *damage,
 		float matrix[9];
 		wlr_matrix_project_box(matrix, &box, WL_OUTPUT_TRANSFORM_NORMAL,
 			0, output->wlr_output->transform_matrix);
-		render_texture(o->wlr_output, damage, server->osd, NULL, &box,
+		render_texture(o->wlr_output, damage, output->osd, NULL, &box,
 			matrix);
 	}
 }
@@ -1046,6 +1043,9 @@ new_output_notify(struct wl_listener *listener, void *data)
 			wlr_output->name);
 		wlr_output_enable_adaptive_sync(wlr_output, true);
 	}
+
+	output->osd = NULL;
+
 	wlr_output_layout_add_auto(server->output_layout, wlr_output);
 }
 
@@ -1070,8 +1070,6 @@ output_init(struct server *server)
 		server->output_layout);
 
 	wl_list_init(&server->outputs);
-
-	server->greatest_scale = 1;
 
 	output_manager_init(server);
 }
@@ -1167,11 +1165,7 @@ handle_output_manager_apply(struct wl_listener *listener, void *data)
 	}
 	wlr_output_configuration_v1_destroy(config);
 	struct output *output;
-	server->greatest_scale = 0;
 	wl_list_for_each(output, &server->outputs, link) {
-		if (output->wlr_output->scale > server->greatest_scale) {
-			server->greatest_scale = output->wlr_output->scale;
-		}
 		wlr_xcursor_manager_load(server->seat.xcursor_manager,
 			output->wlr_output->scale);
 	}

@@ -3,24 +3,12 @@
 #include "labwc.h"
 #include "ssd.h"
 
-/*
- * xdg_popup_create() and view_subsurface_create() are only called for the
- * purposes of tracking damage.
- */
 static void
 handle_new_xdg_popup(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
 	xdg_popup_create(view, wlr_popup);
-}
-
-static void
-new_subsurface_notify(struct wl_listener *listener, void *data)
-{
-	struct view *view = wl_container_of(listener, view, new_subsurface);
-	struct wlr_subsurface *wlr_subsurface = data;
-	view_subsurface_create(view, wlr_subsurface);
 }
 
 static bool
@@ -223,20 +211,6 @@ xdg_toplevel_view_close(struct view *view)
 }
 
 static void
-xdg_toplevel_view_for_each_popup_surface(struct view *view,
-		 wlr_surface_iterator_func_t iterator, void *data)
-{
-	wlr_xdg_surface_for_each_popup_surface(view->xdg_surface, iterator, data);
-}
-
-static void
-xdg_toplevel_view_for_each_surface(struct view *view,
-		wlr_surface_iterator_func_t iterator, void *data)
-{
-	wlr_xdg_surface_for_each_surface(view->xdg_surface, iterator, data);
-}
-
-static void
 update_padding(struct view *view)
 {
 	struct wlr_box padding;
@@ -352,16 +326,6 @@ xdg_toplevel_view_map(struct view *view)
 		if (!view->maximized && !view->fullscreen) {
 			position_xdg_toplevel_view(view);
 		}
-
-		struct wlr_subsurface *subsurface;
-		wl_list_for_each(subsurface, &view->surface->current.subsurfaces_below,
-				 current.link) {
-			view_subsurface_create(view, subsurface);
-		}
-		wl_list_for_each(subsurface, &view->surface->current.subsurfaces_above,
-				 current.link) {
-			view_subsurface_create(view, subsurface);
-		}
 		view_discover_output(view);
 
 		view->been_mapped = true;
@@ -370,9 +334,6 @@ xdg_toplevel_view_map(struct view *view)
 	view->commit.notify = handle_commit;
 	wl_signal_add(&view->xdg_surface->surface->events.commit,
 		&view->commit);
-	view->new_subsurface.notify = new_subsurface_notify;
-	wl_signal_add(&view->surface->events.new_subsurface,
-		&view->new_subsurface);
 
 	view_impl_map(view);
 }
@@ -383,8 +344,8 @@ xdg_toplevel_view_unmap(struct view *view)
 	if (view->mapped) {
 		view->mapped = false;
 		damage_all_outputs(view->server);
+		wlr_scene_node_destroy(view->scene_node);
 		wl_list_remove(&view->commit.link);
-		wl_list_remove(&view->new_subsurface.link);
 		desktop_focus_topmost_mapped_view(view->server);
 	}
 }
@@ -392,8 +353,6 @@ xdg_toplevel_view_unmap(struct view *view)
 static const struct view_impl xdg_toplevel_view_impl = {
 	.configure = xdg_toplevel_view_configure,
 	.close = xdg_toplevel_view_close,
-	.for_each_popup_surface = xdg_toplevel_view_for_each_popup_surface,
-	.for_each_surface = xdg_toplevel_view_for_each_surface,
 	.get_string_prop = xdg_toplevel_view_get_string_prop,
 	.map = xdg_toplevel_view_map,
 	.move = xdg_toplevel_view_move,
@@ -403,15 +362,39 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.maximize = xdg_toplevel_view_maximize,
 };
 
+/*
+ * We use the following struct user_data pointers:
+ *   - wlr_xdg_surface->data = view
+ *     for the wlr_xdg_toplevel_decoration_v1 implementation
+ *   - wlr_surface->data = scene_node
+ *     to help the popups find their parent nodes
+ */
 void
 xdg_surface_new(struct wl_listener *listener, void *data)
 {
 	struct server *server =
 		wl_container_of(listener, server, new_xdg_surface);
 	struct wlr_xdg_surface *xdg_surface = data;
-	if (xdg_surface->role != WLR_XDG_SURFACE_ROLE_TOPLEVEL) {
+
+	/*
+	 * We must add xdg popups to the scene graph so they get rendered. The
+	 * wlroots scene graph provides a helper for this, but to use it we must
+	 * provide the proper parent scene node of the xdg popup. To enable
+	 * this, we always set the user data field of xdg_surfaces to the
+	 * corresponding scene node.
+	 */
+	if (xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP) {
+		struct wlr_xdg_surface *parent =
+			wlr_xdg_surface_from_wlr_surface(
+				xdg_surface->popup->parent);
+		struct wlr_scene_node *parent_node = parent->surface->data;
+		xdg_surface->surface->data =
+			wlr_scene_xdg_surface_create(parent_node, xdg_surface);
+		/* TODO: unconstrain here rather than in xdg-popup.c? */
 		return;
 	}
+
+	/* WLR_XDG_SURFACE_ROLE_TOPLEVEL */
 	wlr_xdg_surface_ping(xdg_surface);
 
 	struct view *view = calloc(1, sizeof(struct view));
@@ -421,7 +404,19 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->xdg_surface = xdg_surface;
 	wl_list_init(&view->ssd.parts);
 
+	view->scene_node = wlr_scene_xdg_surface_create(
+		&view->server->view_tree->node, view->xdg_surface);
+	if (!view->scene_node) {
+		wl_resource_post_no_memory(view->surface->resource);
+		return;
+	}
+	view->scene_node->data = view;
+
+	/* In support of xdg_toplevel_decoration */
 	xdg_surface->data = view;
+
+	/* In support of xdg popups */
+	xdg_surface->surface->data = view->scene_node;
 
 	view->map.notify = handle_map;
 	wl_signal_add(&xdg_surface->events.map, &view->map);

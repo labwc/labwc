@@ -23,6 +23,22 @@ unmanaged_handle_commit(struct wl_listener *listener, void *data)
 	damage_all_outputs(unmanaged->server);
 }
 
+static struct view *
+parent_view(struct server *server, struct wlr_xwayland_surface *surface)
+{
+	struct wlr_xwayland_surface *s = surface;
+	while (s->parent) {
+		s = s->parent;
+	}
+	struct view *view;
+	wl_list_for_each(view, &server->views, link) {
+		if (view->surface == s->surface) {
+			return view;
+		}
+	}
+	return NULL;
+}
+
 static void
 unmanaged_handle_map(struct wl_listener *listener, void *data)
 {
@@ -42,6 +58,12 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 	if (wlr_xwayland_or_surface_wants_focus(xsurface)) {
 		seat_focus_surface(&unmanaged->server->seat, xsurface->surface);
 	}
+
+	struct view *view = parent_view(unmanaged->server, xsurface);
+	struct wlr_scene_node *node = wlr_scene_subsurface_tree_create(
+		view->scene_node, xsurface->surface);
+	wlr_scene_node_set_position(node, unmanaged->lx - view->x,
+		unmanaged->ly - view->y);
 }
 
 static void

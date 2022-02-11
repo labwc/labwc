@@ -12,25 +12,25 @@
 #include "ssd.h"
 #include "config/mousebind.h"
 
-void
-cursor_rebase(struct seat *seat, uint32_t time_msec)
-{
-	double sx, sy;
-	struct wlr_surface *surface;
-	enum ssd_part_type view_area = LAB_SSD_NONE;
-
-	desktop_surface_and_view_at(seat->server, seat->cursor->x,
-		seat->cursor->y, &surface, &sx, &sy, &view_area);
-
-	if (surface) {
-		wlr_seat_pointer_notify_clear_focus(seat->seat);
-		wlr_seat_pointer_notify_enter(seat->seat, surface, sx, sy);
-		wlr_seat_pointer_notify_motion(seat->seat, time_msec, sx, sy);
-	} else {
-		cursor_set(seat, "left_ptr");
-		wlr_seat_pointer_notify_clear_focus(seat->seat);
-	}
-}
+// void
+// cursor_rebase(struct seat *seat, uint32_t time_msec)
+// {
+// 	double sx, sy;
+// 	struct wlr_surface *surface;
+// 	enum ssd_part_type view_area = LAB_SSD_NONE;
+//
+// 	desktop_surface_and_view_at(seat->server, seat->cursor->x,
+// 		seat->cursor->y, &surface, &sx, &sy, &view_area);
+//
+// 	if (surface) {
+// 		wlr_seat_pointer_notify_clear_focus(seat->seat);
+// 		wlr_seat_pointer_notify_enter(seat->seat, surface, sx, sy);
+// 		wlr_seat_pointer_notify_motion(seat->seat, time_msec, sx, sy);
+// 	} else {
+// 		cursor_set(seat, "left_ptr");
+// 		wlr_seat_pointer_notify_clear_focus(seat->seat);
+// 	}
+// }
 
 static void
 request_cursor_notify(struct wl_listener *listener, void *data)
@@ -170,23 +170,6 @@ input_inhibit_blocks_surface(struct seat *seat, struct wl_resource *resource)
 		inhibiting_client != wl_resource_get_client(resource);
 }
 
-static struct output *
-get_output(struct server *server, struct wlr_cursor *cursor)
-{
-	struct wlr_output *wlr_output = wlr_output_layout_output_at(
-			server->output_layout, cursor->x, cursor->y);
-	return output_from_wlr_output(server, wlr_output);
-}
-
-static void
-damage_whole_current_output(struct server *server)
-{
-	struct output *output = get_output(server, server->seat.cursor);
-	if (output) {
-		wlr_output_damage_add_whole(output->damage);
-	}
-}
-
 static void
 process_cursor_motion(struct server *server, uint32_t time)
 {
@@ -278,12 +261,12 @@ process_cursor_motion(struct server *server, uint32_t time)
 	if (ssd_is_button(view_area)) {
 		if (last_button_hover != view_area) {
 			/* Cursor entered new button area */
-			damage_whole_current_output(server);
+			//damage_whole_current_output(server);
 			last_button_hover = view_area;
 		}
 	} else if (last_button_hover != LAB_SSD_NONE) {
 		/* Cursor left button area */
-		damage_whole_current_output(server);
+		//damage_whole_current_output(server);
 		last_button_hover = LAB_SSD_NONE;
 	}
 
@@ -639,7 +622,7 @@ cursor_button(struct wl_listener *listener, void *data)
 				server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 				server->grabbed_view = NULL;
 			}
-			cursor_rebase(&server->seat, event->time_msec);
+//			cursor_rebase(&server->seat, event->time_msec);
 		}
 
 		/* Handle _release_ on root window */
@@ -657,24 +640,24 @@ cursor_button(struct wl_listener *listener, void *data)
 			menu_action_selected(server, server->windowmenu);
 		}
 		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
-		cursor_rebase(&server->seat, event->time_msec);
+//		cursor_rebase(&server->seat, event->time_msec);
 		return;
 	}
 
 	/* Handle _press_ on a layer surface */
-	if (!view && surface) {
-		if (!wlr_surface_is_layer_surface(surface)) {
-			return;
-		}
-		struct wlr_layer_surface_v1 *layer =
-			wlr_layer_surface_v1_from_wlr_surface(surface);
-		if (layer->current.keyboard_interactive) {
-			seat_set_focus_layer(&server->seat, layer);
-		}
-		wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
-			event->button, event->state);
-		return;
-	}
+// 	if (!view && surface) {
+// 		if (!wlr_surface_is_layer_surface(surface)) {
+// 			return;
+// 		}
+// 		struct wlr_layer_surface_v1 *layer =
+// 			wlr_layer_surface_v1_from_wlr_surface(surface);
+// 		if (layer->current.keyboard_interactive) {
+// 			seat_set_focus_layer(&server->seat, layer);
+// 		}
+// 		wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
+// 			event->button, event->state);
+// 		return;
+// 	}
 
 	/* Handle _press_ on root window */
 	if (!view) {
@@ -721,7 +704,7 @@ cursor_axis(struct wl_listener *listener, void *data)
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	/* Notify the client with pointer focus of the axis event. */
-	cursor_rebase(seat, event->time_msec);
+//	cursor_rebase(seat, event->time_msec);
 	wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,
 		event->orientation, event->delta, event->delta_discrete,
 		event->source);

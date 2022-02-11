@@ -4,6 +4,7 @@
 #include <drm_fourcc.h>
 #include <pango/pangocairo.h>
 #include <wlr/util/log.h>
+#include "buffer.h"
 #include "common/buf.h"
 #include "common/font.h"
 #include "config/rcxml.h"
@@ -76,7 +77,6 @@ get_osd_height(struct wl_list *views)
 void
 osd_update(struct server *server)
 {
-	struct wlr_renderer *renderer = server->renderer;
 	struct theme *theme = server->theme;
 
 	struct output *output;
@@ -179,18 +179,21 @@ osd_update(struct server *server)
 
 		g_object_unref(layout);
 
-		/* convert to wlr_texture */
 		cairo_surface_flush(surf);
 		unsigned char *data = cairo_image_surface_get_data(surf);
-		struct wlr_texture *texture = wlr_texture_from_pixels(renderer,
-			DRM_FORMAT_ARGB8888, cairo_image_surface_get_stride(surf),
-			w, h, data);
-
-		cairo_destroy(cairo);
-		cairo_surface_destroy(surf);
-		if (output->osd) {
-			wlr_texture_destroy(output->osd);
+		if (output->osd_buffer) {
+			buffer_drop(output->osd_buffer);
 		}
-		output->osd = texture;
+		output->osd_buffer = buffer_create(DRM_FORMAT_ARGB8888,
+			cairo_image_surface_get_stride(surf), w, h, data);
+
+		cairo_surface_destroy(surf);
+
+		struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
+			&server->osd_tree->node, &output->osd_buffer->base);
+
+		/* TODO: set position properly */
+		wlr_scene_node_set_position(&scene_buffer->node, 10, 10);
+		wlr_scene_node_set_enabled(&server->osd_tree->node, true);
 	}
 }

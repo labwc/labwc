@@ -13,6 +13,7 @@
 #include <wlr/render/allocator.h>
 #include <wlr/render/wlr_renderer.h>
 #include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
@@ -24,9 +25,9 @@
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_matrix.h>
 #include <wlr/types/wlr_output.h>
-#include <wlr/types/wlr_output_damage.h>
 #include <wlr/types/wlr_output_management_v1.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_relative_pointer_v1.h>
 #include <wlr/types/wlr_pointer.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
@@ -111,6 +112,8 @@ struct seat {
 	struct wl_listener idle_inhibitor_create;
 };
 
+struct lab_data_buffer;
+
 struct server {
 	struct wl_display *wl_display;
 	struct wlr_renderer *renderer;
@@ -137,6 +140,10 @@ struct server {
 	struct wl_list unmanaged_surfaces;
 
 	struct seat seat;
+	struct wlr_scene *scene;
+
+	/* Tree for all non-layer xdg/xwayland-shell surfaces */
+	struct wlr_scene_tree *view_tree;
 
 	/* cursor interactive */
 	enum input_mode input_mode;
@@ -144,6 +151,8 @@ struct server {
 	double grab_x, grab_y;
 	struct wlr_box grab_box;
 	uint32_t resize_edges;
+
+	struct wlr_scene_tree *osd_tree;
 
 	struct wl_list outputs;
 	struct wl_listener new_output;
@@ -172,14 +181,14 @@ struct output {
 	struct wl_list link; /* server::outputs */
 	struct server *server;
 	struct wlr_output *wlr_output;
-	struct wlr_output_damage *damage;
+	struct wlr_scene_output *scene_output;
 	struct wl_list layers[4];
 	struct wlr_box usable_area;
-	struct wlr_texture *osd;
+
+	struct lab_data_buffer *osd_buffer;
 
 	struct wl_listener destroy;
-	struct wl_listener damage_frame;
-	struct wl_listener damage_destroy;
+	struct wl_listener frame;
 };
 
 enum view_type {
@@ -192,10 +201,6 @@ enum view_type {
 struct view_impl {
 	void (*configure)(struct view *view, struct wlr_box geo);
 	void (*close)(struct view *view);
-	void (*for_each_popup_surface)(struct view *view,
-		wlr_surface_iterator_func_t iterator, void *data);
-	void (*for_each_surface)(struct view *view,
-		wlr_surface_iterator_func_t iterator, void *data);
 	const char *(*get_string_prop)(struct view *view, const char *prop);
 	void (*map)(struct view *view);
 	void (*move)(struct view *view, double x, double y);
@@ -226,6 +231,7 @@ struct view {
 #endif
 	};
 	struct wlr_surface *surface;
+	struct wlr_scene_node *scene_node;
 
 	bool mapped;
 	bool been_mapped;
@@ -296,7 +302,6 @@ struct view {
 	struct wl_listener set_app_id;		/* class on xwayland */
 	struct wl_listener set_decorations;	/* xwayland only */
 	struct wl_listener new_popup;		/* xdg-shell only */
-	struct wl_listener new_subsurface;	/* xdg-shell only */
 };
 
 #if HAVE_XWAYLAND
@@ -313,29 +318,6 @@ struct xwayland_unmanaged {
 	struct wl_listener destroy;
 };
 #endif
-
-struct view_child {
-	struct wlr_surface *surface;
-	struct view *parent;
-	struct wl_listener commit;
-	struct wl_listener new_subsurface;
-};
-
-struct view_subsurface {
-	struct view_child view_child;
-	struct wlr_subsurface *subsurface;
-	struct wl_listener destroy;
-};
-
-struct xdg_popup {
-	struct view_child view_child;
-	struct wlr_xdg_popup *wlr_popup;
-
-	struct wl_listener destroy;
-	struct wl_listener map;
-	struct wl_listener unmap;
-	struct wl_listener new_popup;
-};
 
 struct constraint {
 	struct seat *seat;
@@ -360,12 +342,6 @@ void xwayland_surface_new(struct wl_listener *listener, void *data);
 void xwayland_unmanaged_create(struct server *server,
 	struct wlr_xwayland_surface *xsurface);
 #endif
-
-void view_child_init(struct view_child *child, struct view *view,
-	struct wlr_surface *wlr_surface);
-void view_child_finish(struct view_child *child);
-void view_subsurface_create(struct view *view,
-	struct wlr_subsurface *wlr_subsurface);
 
 void view_set_activated(struct view *view, bool activated);
 void view_close(struct view *view);
@@ -393,10 +369,6 @@ void view_toggle_decorations(struct view *view);
 void view_set_decorations(struct view *view, bool decorations);
 void view_toggle_fullscreen(struct view *view);
 void view_adjust_for_layout_change(struct view *view);
-void view_for_each_surface(struct view *view,
-	wlr_surface_iterator_func_t iterator, void *user_data);
-void view_for_each_popup_surface(struct view *view,
-	wlr_surface_iterator_func_t iterator, void *data);
 void view_discover_output(struct view *view);
 void view_move_to_edge(struct view *view, const char *direction);
 void view_snap_to_edge(struct view *view, const char *direction);
@@ -503,7 +475,7 @@ void server_init(struct server *server);
 void server_start(struct server *server);
 void server_finish(struct server *server);
 
-/* update onscreen display 'alt-tab' texture */
+/* update onscreen display 'alt-tab' buffer */
 void osd_update(struct server *server);
 
 /*

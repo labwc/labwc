@@ -255,179 +255,23 @@ desktop_focus_topmost_mapped_view(struct server *server)
 	desktop_move_to_front(view);
 }
 
-static bool
-_view_at(struct view *view, double lx, double ly, struct wlr_surface **surface,
-	 double *sx, double *sy)
-{
-	/*
-	 * XDG toplevels may have nested surfaces, such as popup windows for
-	 * context menus or tooltips. This function tests if any of those are
-	 * underneath the coordinates lx and ly (in output Layout Coordinates).
-	 * If so, it sets the surface pointer to that wlr_surface and the sx and
-	 * sy coordinates to the coordinates relative to that surface's top-left
-	 * corner.
-	 */
-	double view_sx = lx - view->x;
-	double view_sy = ly - view->y;
-	double _sx, _sy;
-	struct wlr_surface *_surface = NULL;
-
-	switch (view->type) {
-	case LAB_XDG_SHELL_VIEW:
-		_surface = wlr_xdg_surface_surface_at(
-			view->xdg_surface, view_sx, view_sy, &_sx, &_sy);
-		break;
-#if HAVE_XWAYLAND
-	case LAB_XWAYLAND_VIEW:
-		_surface = wlr_surface_surface_at(view->surface, view_sx,
-						  view_sy, &_sx, &_sy);
-		break;
-#endif
-	}
-
-	if (_surface) {
-		*sx = _sx;
-		*sy = _sy;
-		*surface = _surface;
-		return true;
-	}
-	return false;
-}
-
-static struct
-wlr_surface *layer_surface_at(struct wl_list *layer, double ox, double oy,
-		double *sx, double *sy)
-{
-	struct lab_layer_surface *surface;
-	wl_list_for_each_reverse(surface, layer, link) {
-		double _sx = ox - surface->geo.x;
-		double _sy = oy - surface->geo.y;
-		struct wlr_surface *wlr_surface;
-		wlr_surface = wlr_layer_surface_v1_surface_at(
-			surface->layer_surface, _sx, _sy, sx, sy);
-		if (wlr_surface) {
-			return wlr_surface;
-		}
-	}
-	return NULL;
-}
-
-static bool
-surface_is_xdg_popup(struct wlr_surface *surface)
-{
-	if (wlr_surface_is_xdg_surface(surface)) {
-		struct wlr_xdg_surface *xdg_surface =
-			wlr_xdg_surface_from_wlr_surface(surface);
-		return xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP;
-	}
-	return false;
-}
-
-static struct wlr_surface *
-layer_surface_popup_at(struct output *output, struct wl_list *layer,
-		double ox, double oy, double *sx, double *sy)
-{
-	struct lab_layer_surface *lab_layer;
-	wl_list_for_each_reverse(lab_layer, layer, link) {
-		double _sx = ox - lab_layer->geo.x;
-		double _sy = oy - lab_layer->geo.y;
-		struct wlr_surface *sub = wlr_layer_surface_v1_surface_at(
-			lab_layer->layer_surface, _sx, _sy, sx, sy);
-		if (sub && surface_is_xdg_popup(sub)) {
-			return sub;
-		}
-	}
-	return NULL;
-}
-
 struct view *
 desktop_surface_and_view_at(struct server *server, double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy,
 		enum ssd_part_type *view_area)
 {
-	struct wlr_output *wlr_output = wlr_output_layout_output_at(
-			server->output_layout, lx, ly);
-	struct output *output = output_from_wlr_output(server, wlr_output);
+	struct wlr_scene_node *node =
+		wlr_scene_node_at(&server->scene->node, lx, ly, sx, sy);
 
-	if (!output) {
+	if (!node || node->type != WLR_SCENE_NODE_SURFACE) {
 		return NULL;
 	}
-
-	double ox = lx, oy = ly;
-	wlr_output_layout_output_coords(output->server->output_layout,
-		wlr_output, &ox, &oy);
-
-	/* Overlay-layer */
-	*surface = layer_surface_at(
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
+	*surface = wlr_scene_surface_from_node(node)->surface;
+	while (node && !node->data) {
+		node = node->parent;
 	}
-
-	/* Check all layer popups */
-	*surface = layer_surface_popup_at(output,
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-	*surface = layer_surface_popup_at(output,
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-	*surface = layer_surface_popup_at(output,
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-
-	/* Top-layer */
-	*surface = layer_surface_at(
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-
-	struct view *view;
-	wl_list_for_each (view, &server->views, link) {
-		if (!view->mapped) {
-			continue;
-		}
-
-		/* This ignores server-side deco */
-		if (_view_at(view, lx, ly, surface, sx, sy)) {
-			*view_area = LAB_SSD_CLIENT;
-			return view;
-		}
-		if (!view->ssd.enabled) {
-			continue;
-		}
-
-		/* Now, let's deal with the server-side deco */
-		*view_area = ssd_at(view, lx, ly);
-		if (*view_area != LAB_SSD_NONE) {
-			return view;
-		}
-	}
-
-	*surface = layer_surface_at(
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-	*surface = layer_surface_at(
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-	return NULL;
+	assert(node);
+	return node->data;
 }
 
 struct view *

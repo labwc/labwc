@@ -216,6 +216,17 @@ server_init(struct server *server)
 	wl_list_init(&server->views);
 	wl_list_init(&server->unmanaged_surfaces);
 
+	output_init(server);
+
+	server->scene = wlr_scene_create();
+	if (!server->scene) {
+		wlr_log(WLR_ERROR, "unable to create scene");
+		exit(EXIT_FAILURE);
+	}
+	server->view_tree = wlr_scene_tree_create(&server->scene->node);
+	server->osd_tree = wlr_scene_tree_create(&server->scene->node);
+	wlr_scene_attach_output_layout(server->scene, server->output_layout);
+
 	/*
 	 * Create some hands-off wlroots interfaces. The compositor is
 	 * necessary for clients to allocate surfaces and the data device
@@ -249,7 +260,6 @@ server_init(struct server *server)
 	 */
 	wlr_primary_selection_v1_device_manager_create(server->wl_display);
 
-	output_init(server);
 	seat_init(server);
 
 	/* Init xdg-shell */

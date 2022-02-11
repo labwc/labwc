@@ -31,6 +31,7 @@ view_move(struct view *view, double x, double y)
 		view->impl->move(view, x, y);
 	}
 	view_discover_output(view);
+	wlr_scene_node_set_position(view->scene_node, view->x, view->y);
 }
 
 void
@@ -44,6 +45,7 @@ view_move_resize(struct view *view, struct wlr_box geo)
 	}
 	ssd_update_title(view);
 	view_discover_output(view);
+	wlr_scene_node_set_position(view->scene_node, view->x, view->y);
 }
 
 #define MIN_VIEW_WIDTH (100)
@@ -145,6 +147,7 @@ view_center(struct view *view)
 	if (view_compute_centered_position(view, view->w, view->h, &x, &y)) {
 		view_move(view, x, y);
 	}
+	wlr_scene_node_set_position(view->scene_node, view->x, view->y);
 }
 
 static void
@@ -220,6 +223,7 @@ view_maximize(struct view *view, bool maximize)
 	if (view->fullscreen) {
 		return;
 	}
+	wlr_scene_node_set_position(view->scene_node, view->x, view->y);
 	if (view->impl->maximize) {
 		view->impl->maximize(view, maximize);
 	}
@@ -341,24 +345,6 @@ view_adjust_for_layout_change(struct view *view)
 	}
 }
 
-void
-view_for_each_surface(struct view *view, wlr_surface_iterator_func_t iterator,
-		void *user_data)
-{
-	if (view->impl->for_each_surface) {
-		view->impl->for_each_surface(view, iterator, user_data);
-	}
-}
-
-void
-view_for_each_popup_surface(struct view *view,
-		wlr_surface_iterator_func_t iterator, void *data)
-{
-	if (view->impl->for_each_popup_surface) {
-		view->impl->for_each_popup_surface(view, iterator, data);
-	}
-}
-
 struct border
 view_border(struct view *view)
 {
@@ -372,26 +358,8 @@ view_border(struct view *view)
 }
 
 static void
-surface_enter_for_each_surface(struct wlr_surface *surface, int sx, int sy,
-		void *user_data)
-{
-	struct wlr_output *wlr_output = user_data;
-	wlr_surface_send_enter(surface, wlr_output);
-}
-
-static void
-surface_leave_for_each_surface(struct wlr_surface *surface, int sx, int sy,
-		void *user_data)
-{
-	struct wlr_output *wlr_output = user_data;
-	wlr_surface_send_leave(surface, wlr_output);
-}
-
-static void
 view_output_enter(struct view *view, struct wlr_output *wlr_output)
 {
-	view_for_each_surface(view, surface_enter_for_each_surface,
-		wlr_output);
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_output_enter(
 			view->toplevel_handle, wlr_output);
@@ -401,8 +369,6 @@ view_output_enter(struct view *view, struct wlr_output *wlr_output)
 static void
 view_output_leave(struct view *view, struct wlr_output *wlr_output)
 {
-	view_for_each_surface(view, surface_leave_for_each_surface,
-		wlr_output);
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_output_leave(
 			view->toplevel_handle, wlr_output);

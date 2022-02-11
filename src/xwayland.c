@@ -195,16 +195,6 @@ _close(struct view *view)
 	damage_all_outputs(view->server);
 }
 
-static void
-for_each_surface(struct view *view, wlr_surface_iterator_func_t iterator,
-		void *data)
-{
-	if (!view->surface) {
-		return;
-	}
-	wlr_surface_for_each_surface(view->surface, iterator, data);
-}
-
 static const char *
 get_string_prop(struct view *view, const char *prop)
 {
@@ -265,6 +255,15 @@ map(struct view *view)
 		view->h = view->xwayland_surface->height;
 	}
 	view->surface = view->xwayland_surface->surface;
+
+	view->scene_node = wlr_scene_surface_create(
+		&view->server->view_tree->node, view->surface);
+	if (!view->scene_node) {
+		wl_resource_post_no_memory(view->surface->resource);
+		return;
+	}
+	view->scene_node->data = view;
+
 	view->ssd.enabled = want_deco(view);
 
 	if (view->ssd.enabled) {
@@ -338,7 +337,6 @@ set_fullscreen(struct view *view, bool fullscreen)
 static const struct view_impl xwl_view_impl = {
 	.configure = configure,
 	.close = _close,
-	.for_each_surface = for_each_surface,
 	.get_string_prop = get_string_prop,
 	.map = map,
 	.move = move,

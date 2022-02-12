@@ -256,7 +256,7 @@ map(struct view *view)
 	}
 	view->surface = view->xwayland_surface->surface;
 
-	view->scene_node = wlr_scene_surface_create(
+	view->scene_node = wlr_scene_subsurface_tree_create(
 		&view->server->view_tree->node, view->surface);
 	if (!view->scene_node) {
 		wl_resource_post_no_memory(view->surface->resource);

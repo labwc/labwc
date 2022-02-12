@@ -173,6 +173,7 @@ struct server {
 	struct view *cycle_view;
 
 	struct theme *theme;
+
 	struct menu *rootmenu;
 	struct menu *windowmenu;
 };
@@ -476,6 +477,7 @@ void server_start(struct server *server);
 void server_finish(struct server *server);
 
 /* update onscreen display 'alt-tab' buffer */
+void osd_finish(struct server *server);
 void osd_update(struct server *server);
 
 /*

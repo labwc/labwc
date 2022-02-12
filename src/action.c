@@ -3,6 +3,7 @@
 #include <wlr/util/log.h>
 #include "common/spawn.h"
 #include "common/zfree.h"
+#include "debug.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "ssd.h"
@@ -161,7 +162,7 @@ action(struct view *activator, struct server *server, struct wl_list *actions, u
 			}
 			break;
 		case ACTION_TYPE_DEBUG:
-			/* nothing */
+			debug_dump_scene(server);
 			break;
 		case ACTION_TYPE_EXECUTE:
 			{

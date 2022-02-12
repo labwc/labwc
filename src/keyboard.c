@@ -50,8 +50,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 				server->cycle_view);
 			desktop_move_to_front(server->cycle_view);
 			server->cycle_view = NULL;
-			wlr_scene_node_set_enabled(
-				&server->osd_tree->node, false);
+			osd_finish(server);
 		}
 	}
 

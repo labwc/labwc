@@ -74,11 +74,29 @@ get_osd_height(struct wl_list *views)
 	return height;
 }
 
+static void
+destroy_osd_nodes(struct server *server)
+{
+	struct wlr_scene_node *child, *next;
+	struct wl_list *children = &server->osd_tree->node.state.children;
+	wl_list_for_each_safe(child, next, children, state.link) {
+		wlr_scene_node_destroy(child);
+	}
+}
+
+void
+osd_finish(struct server *server)
+{
+	destroy_osd_nodes(server);
+	wlr_scene_node_set_enabled(&server->osd_tree->node, false);
+}
+
 void
 osd_update(struct server *server)
 {
 	struct theme *theme = server->theme;
 
+	destroy_osd_nodes(server);
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
 		float scale = output->wlr_output->scale;
@@ -176,7 +194,6 @@ osd_update(struct server *server)
 			pango_cairo_show_layout(cairo, layout);
 			y += OSD_ITEM_HEIGHT;
 		}
-
 		g_object_unref(layout);
 
 		cairo_surface_flush(surf);

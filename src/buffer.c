@@ -42,7 +42,7 @@ static void
 data_buffer_destroy(struct wlr_buffer *wlr_buffer)
 {
 	struct lab_data_buffer *buffer = data_buffer_from_buffer(wlr_buffer);
-	free(buffer->saved_data);
+	free(buffer->data);
 	free(buffer);
 }
 
@@ -50,13 +50,9 @@ static bool
 data_buffer_begin_data_ptr_access(struct wlr_buffer *wlr_buffer, uint32_t flags,
 		void **data, uint32_t *format, size_t *stride)
 {
-	struct lab_data_buffer *buffer = data_buffer_from_buffer(wlr_buffer);
-	if (buffer->data == NULL) {
-		return false;
-	}
-	if (flags & WLR_BUFFER_DATA_PTR_ACCESS_WRITE) {
-		return false;
-	}
+	struct lab_data_buffer *buffer =
+		wl_container_of(wlr_buffer, buffer, base);
+	assert(buffer->data);
 	*data = (void *)buffer->data;
 	*format = buffer->format;
 	*stride = buffer->stride;
@@ -76,38 +72,35 @@ static const struct wlr_buffer_impl data_buffer_impl = {
 };
 
 struct lab_data_buffer *
-buffer_create(uint32_t format, size_t stride, uint32_t width, uint32_t height,
-		const void *data)
+buffer_create(cairo_t *cairo)
 {
 	struct lab_data_buffer *buffer = calloc(1, sizeof(*buffer));
-	if (buffer == NULL) {
+	if (!buffer) {
 		return NULL;
 	}
+	cairo_surface_t *surf = cairo_get_target(cairo);
+	int width = cairo_image_surface_get_width(surf);
+	int height = cairo_image_surface_get_height(surf);
 	wlr_buffer_init(&buffer->base, &data_buffer_impl, width, height);
-	buffer->data = data;
-	buffer->format = format;
-	buffer->stride = stride;
+
+	buffer->cairo = cairo;
+	buffer->data = cairo_image_surface_get_data(surf);
+	buffer->format = DRM_FORMAT_ARGB8888;
+	buffer->stride = cairo_image_surface_get_stride(surf);
+
+	if (!buffer->data) {
+		cairo_destroy(cairo);
+		free(buffer);
+	}
 	return buffer;
 }
 
-
-bool
-buffer_drop(struct lab_data_buffer *buffer)
+void
+buffer_destroy(struct lab_data_buffer *buffer)
 {
-	bool ok = true;
-
-	if (buffer->base.n_locks > 0) {
-		size_t size = buffer->stride * buffer->base.height;
-		buffer->saved_data = malloc(size);
-		if (!buffer->saved_data) {
-			wlr_log_errno(WLR_ERROR, "allocation failed");
-			ok = false;
-			buffer->data = NULL;
-		} else {
-			memcpy(buffer->saved_data, buffer->data, size);
-			buffer->data = buffer->saved_data;
-		}
+	if (!buffer) {
+		return;
 	}
+	cairo_destroy(buffer->cairo);
 	wlr_buffer_drop(&buffer->base);
-	return ok;
 }

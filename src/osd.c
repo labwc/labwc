@@ -197,14 +197,8 @@ osd_update(struct server *server)
 		g_object_unref(layout);
 
 		cairo_surface_flush(surf);
-		unsigned char *data = cairo_image_surface_get_data(surf);
-		if (output->osd_buffer) {
-			buffer_drop(output->osd_buffer);
-		}
-		output->osd_buffer = buffer_create(DRM_FORMAT_ARGB8888,
-			cairo_image_surface_get_stride(surf), w, h, data);
-
-		cairo_surface_destroy(surf);
+		buffer_destroy(output->osd_buffer);
+		output->osd_buffer = buffer_create(cairo);
 
 		struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
 			&server->osd_tree->node, &output->osd_buffer->base);

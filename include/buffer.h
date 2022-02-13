@@ -26,35 +26,19 @@
 #ifndef __LABWC_BUFFER_H
 #define __LABWC_BUFFER_H
 
+#include <cairo.h>
 #include "labwc.h"
 
-/**
- * A read-only buffer that holds a data pointer.
- *
- * This is suitable for passing raw pixel data to a function that accepts a
- * wlr_buffer.
- */
 struct lab_data_buffer {
 	struct wlr_buffer base;
 
-	const void *data;
+	cairo_t *cairo;
+	void *data;
 	uint32_t format;
 	size_t stride;
-
-	void *saved_data;
 };
 
-/**
- * Wraps a read-only data pointer into a wlr_buffer. The data pointer may be
- * accessed until readonly_data_buffer_drop() is called.
- */
-struct lab_data_buffer *buffer_create(uint32_t format, size_t stride,
-	uint32_t width, uint32_t height, const void *data);
-
-/**
- * Drops ownership of the buffer (see wlr_buffer_drop() for more details) and
- * perform a copy of the data pointer if a consumer still has the buffer locked.
- */
-bool buffer_drop(struct lab_data_buffer *buffer);
+struct lab_data_buffer *buffer_create(cairo_t *cairo);
+void buffer_destroy(struct lab_data_buffer *buffer);
 
 #endif /* __LABWC_BUFFER_H */

@@ -836,6 +836,8 @@ output_render(struct output *output, pixman_region32_t *damage)
 
 	render_layer_toplevel(output, damage,
 		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]);
+	render_layer_popups(output, damage,
+		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]);
 
 	if (output->server->input_mode == LAB_INPUT_STATE_MENU) {
 		render_menu(output, damage, server->rootmenu);

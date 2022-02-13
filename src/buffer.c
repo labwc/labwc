@@ -43,10 +43,9 @@ data_buffer_destroy(struct wlr_buffer *wlr_buffer)
 {
 	struct lab_data_buffer *buffer = data_buffer_from_buffer(wlr_buffer);
 	if (buffer->cairo) {
+		cairo_surface_t *surf = cairo_get_target(buffer->cairo);
 		cairo_destroy(buffer->cairo);
-	}
-	if (buffer->data) {
-		free(buffer->data);
+		cairo_surface_destroy(surf);
 	}
 	free(buffer);
 }
@@ -96,7 +95,9 @@ buffer_create(uint32_t width, uint32_t height, float scale)
 
 	if (!buffer->data) {
 		cairo_destroy(buffer->cairo);
+		cairo_surface_destroy(surf);
 		free(buffer);
+		buffer = NULL;
 	}
 	return buffer;
 }

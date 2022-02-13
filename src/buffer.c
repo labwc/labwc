@@ -42,7 +42,12 @@ static void
 data_buffer_destroy(struct wlr_buffer *wlr_buffer)
 {
 	struct lab_data_buffer *buffer = data_buffer_from_buffer(wlr_buffer);
-	free(buffer->data);
+	if (buffer->cairo) {
+		cairo_destroy(buffer->cairo);
+	}
+	if (buffer->data) {
+		free(buffer->data);
+	}
 	free(buffer);
 }
 
@@ -72,35 +77,26 @@ static const struct wlr_buffer_impl data_buffer_impl = {
 };
 
 struct lab_data_buffer *
-buffer_create(cairo_t *cairo)
+buffer_create(uint32_t width, uint32_t height, float scale)
 {
 	struct lab_data_buffer *buffer = calloc(1, sizeof(*buffer));
 	if (!buffer) {
 		return NULL;
 	}
-	cairo_surface_t *surf = cairo_get_target(cairo);
-	int width = cairo_image_surface_get_width(surf);
-	int height = cairo_image_surface_get_height(surf);
 	wlr_buffer_init(&buffer->base, &data_buffer_impl, width, height);
 
-	buffer->cairo = cairo;
+	cairo_surface_t *surf =
+		cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+	cairo_surface_set_device_scale(surf, scale, scale);
+
+	buffer->cairo = cairo_create(surf);
 	buffer->data = cairo_image_surface_get_data(surf);
 	buffer->format = DRM_FORMAT_ARGB8888;
 	buffer->stride = cairo_image_surface_get_stride(surf);
 
 	if (!buffer->data) {
-		cairo_destroy(cairo);
+		cairo_destroy(buffer->cairo);
 		free(buffer);
 	}
 	return buffer;
-}
-
-void
-buffer_destroy(struct lab_data_buffer *buffer)
-{
-	if (!buffer) {
-		return;
-	}
-	cairo_destroy(buffer->cairo);
-	wlr_buffer_drop(&buffer->base);
 }

@@ -103,10 +103,13 @@ osd_update(struct server *server)
 		int w = (OSD_ITEM_WIDTH + (2 * OSD_BORDER_WIDTH)) * scale;
 		int h = get_osd_height(&server->views) * scale;
 
-		cairo_surface_t *surf =
-			cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
-		cairo_surface_set_device_scale(surf, scale, scale);
-		cairo_t *cairo = cairo_create(surf);
+		if (output->osd_buffer) {
+			wlr_buffer_drop(&output->osd_buffer->base);
+		}
+		output->osd_buffer = buffer_create(w, h, scale);
+
+		cairo_t *cairo = output->osd_buffer->cairo;
+		cairo_surface_t *surf = cairo_get_target(cairo);
 
 		/* background */
 		set_source(cairo, theme->osd_bg_color);
@@ -195,10 +198,7 @@ osd_update(struct server *server)
 			y += OSD_ITEM_HEIGHT;
 		}
 		g_object_unref(layout);
-
 		cairo_surface_flush(surf);
-		buffer_destroy(output->osd_buffer);
-		output->osd_buffer = buffer_create(cairo);
 
 		struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
 			&server->osd_tree->node, &output->osd_buffer->base);

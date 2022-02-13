@@ -38,7 +38,7 @@ struct lab_data_buffer {
 	size_t stride;
 };
 
-struct lab_data_buffer *buffer_create(cairo_t *cairo);
-void buffer_destroy(struct lab_data_buffer *buffer);
+struct lab_data_buffer *buffer_create(uint32_t width, uint32_t height,
+	float scale);
 
 #endif /* __LABWC_BUFFER_H */

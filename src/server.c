@@ -240,6 +240,7 @@ server_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create the wlroots compositor");
 		exit(EXIT_FAILURE);
 	}
+	wlr_subcompositor_create(server->wl_display);
 
 	struct wlr_data_device_manager *device_manager = NULL;
 	device_manager = wlr_data_device_manager_create(server->wl_display);

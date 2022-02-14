@@ -2,7 +2,6 @@
 #ifndef __LABWC_LAYERS_H
 #define __LABWC_LAYERS_H
 #include <wayland-server.h>
-#include <wlr/types/wlr_surface.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 
 struct server;

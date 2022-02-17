@@ -32,7 +32,7 @@ reload_config_and_theme(void)
 	rcxml_finish();
 	rcxml_read(NULL);
 	theme_finish(g_server->theme);
-	theme_init(g_server->theme, g_server->renderer, rc.theme_name);
+	theme_init(g_server->theme, rc.theme_name);
 
 	struct view *view;
 	wl_list_for_each (view, &g_server->views, link) {

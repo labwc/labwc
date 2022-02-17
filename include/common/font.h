@@ -2,9 +2,7 @@
 #ifndef __LABWC_FONT_H
 #define __LABWC_FONT_H
 
-struct server;
-struct wlr_texture;
-struct wlr_box;
+struct lab_data_buffer;
 
 struct font {
 	char *name;
@@ -18,16 +16,23 @@ struct font {
 int font_height(struct font *font);
 
 /**
- * texture_create - Create ARGB8888 texture using pango
- * @server: context (for wlr_renderer)
- * @texture: texture pointer; existing pointer will be freed
+ * font_buffer_create - Create ARGB8888 lab_data_buffer using pango
+ * @buffer: buffer pointer
  * @max_width: max allowable width; will be ellipsized if longer
  * @text: text to be generated as texture
  * @font: font description
  * @color: foreground color in rgba format
  */
-void font_texture_create(struct server *server, struct wlr_texture **texture,
-	int max_width, const char *text, struct font *font, float *color);
+void font_buffer_create(struct lab_data_buffer **buffer, int max_width,
+	const char *text, struct font *font, float *color);
+
+/**
+ * font_buffer_update - Wrapper around font_buffer_create
+ * Only difference is that if given buffer pointer is != NULL
+ * wlr_buffer_drop() will be called on the buffer.
+ */
+void font_buffer_update(struct lab_data_buffer **buffer, int max_width,
+	const char *text, struct font *font, float *color);
 
 /**
  * font_finish - free some font related resources

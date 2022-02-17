@@ -15,6 +15,7 @@
 #include "theme.h"
 #include "xbm/parse.h"
 #include "xbm/xbm.h"
+#include "buffer.h"
 
 /* built-in 6x6 buttons */
 char menu_button_normal[] = { 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 };
@@ -22,28 +23,6 @@ char iconify_button_normal[] = { 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f };
 char max_button_normal[] = { 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f };
 char max_button_toggled[] = { 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f };
 char close_button_normal[] = { 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 };
-
-static struct wlr_texture *
-texture_from_pixmap(struct wlr_renderer *renderer, struct pixmap *pixmap)
-{
-	if (!pixmap) {
-		return NULL;
-	}
-	return wlr_texture_from_pixels(renderer, DRM_FORMAT_ARGB8888,
-				       pixmap->width * 4, pixmap->width,
-				       pixmap->height, pixmap->data);
-}
-
-static struct wlr_texture *
-texture_from_builtin(struct wlr_renderer *renderer, const char *button)
-{
-	struct pixmap pixmap = parse_xbm_builtin(button, 6);
-	struct wlr_texture *texture = texture_from_pixmap(renderer, &pixmap);
-	if (pixmap.data) {
-		free(pixmap.data);
-	}
-	return texture;
-}
 
 static char *
 xbm_path(const char *button)
@@ -55,62 +34,59 @@ xbm_path(const char *button)
 }
 
 static void
-load_button(struct wlr_renderer *renderer, const char *filename,
-	    struct wlr_texture **texture, char *button)
+load_button(const char *filename, struct lab_data_buffer **buffer, char *button)
 {
-	if (*texture) {
-		wlr_texture_destroy(*texture);
-		*texture = NULL;
+	struct pixmap pixmap = {0};
+	if (*buffer) {
+		wlr_buffer_drop(&(*buffer)->base);
+		*buffer = NULL;
 	}
 
 	/* Read file into memory as it's easier to tokenzie that way */
-	char *buffer = grab_file(xbm_path(filename));
-	if (!buffer) {
-		goto out;
+	char *token_buffer = grab_file(xbm_path(filename));
+	if (token_buffer) {
+		struct token *tokens = tokenize_xbm(token_buffer);
+		free(token_buffer);
+		pixmap = parse_xbm_tokens(tokens);
+		if (tokens) {
+			free(tokens);
+		}
 	}
-	struct token *tokens = tokenize_xbm(buffer);
-	free(buffer);
+	if (!pixmap.data) {
+		pixmap = parse_xbm_builtin(button, 6);
+	}
 
-	struct pixmap pixmap = parse_xbm_tokens(tokens);
-	*texture = texture_from_pixmap(renderer, &pixmap);
-	if (tokens) {
-		free(tokens);
-	}
-	if (pixmap.data) {
-		free(pixmap.data);
-	}
-out:
-	if (!(*texture)) {
-		*texture = texture_from_builtin(renderer, button);
-	}
+	/* Create buffer with free_on_destroy being true */
+	*buffer = buffer_create_wrap(pixmap.data, pixmap.width, pixmap.height,
+		pixmap.width * 4, true);
 }
 
 void
-xbm_load(struct theme *theme, struct wlr_renderer *r)
+xbm_load(struct theme *theme)
 {
 	parse_set_color(theme->window_active_button_menu_unpressed_image_color);
-	load_button(r, "menu.xbm", &theme->xbm_menu_active_unpressed,
+	load_button("menu.xbm", &theme->xbm_menu_active_unpressed,
 		    menu_button_normal);
 	parse_set_color(theme->window_active_button_iconify_unpressed_image_color);
-	load_button(r, "iconify.xbm", &theme->xbm_iconify_active_unpressed,
+	load_button("iconify.xbm", &theme->xbm_iconify_active_unpressed,
 		    iconify_button_normal);
 	parse_set_color(theme->window_active_button_max_unpressed_image_color);
-	load_button(r, "max.xbm", &theme->xbm_maximize_active_unpressed,
+	load_button("max.xbm", &theme->xbm_maximize_active_unpressed,
 		    max_button_normal);
 	parse_set_color(theme->window_active_button_close_unpressed_image_color);
-	load_button(r, "close.xbm", &theme->xbm_close_active_unpressed,
+	load_button("close.xbm", &theme->xbm_close_active_unpressed,
 		    close_button_normal);
 
 	parse_set_color(theme->window_inactive_button_menu_unpressed_image_color);
-	load_button(r, "menu.xbm", &theme->xbm_menu_inactive_unpressed,
+	load_button("menu.xbm", &theme->xbm_menu_inactive_unpressed,
 		    menu_button_normal);
 	parse_set_color(theme->window_inactive_button_iconify_unpressed_image_color);
-	load_button(r, "iconify.xbm", &theme->xbm_iconify_inactive_unpressed,
+	load_button("iconify.xbm", &theme->xbm_iconify_inactive_unpressed,
 		    iconify_button_normal);
 	parse_set_color(theme->window_inactive_button_max_unpressed_image_color);
-	load_button(r, "max.xbm", &theme->xbm_maximize_inactive_unpressed,
+	load_button("max.xbm", &theme->xbm_maximize_inactive_unpressed,
 		    max_button_normal);
 	parse_set_color(theme->window_inactive_button_close_unpressed_image_color);
-	load_button(r, "close.xbm", &theme->xbm_close_inactive_unpressed,
+	load_button("close.xbm", &theme->xbm_close_inactive_unpressed,
 		    close_button_normal);
 }

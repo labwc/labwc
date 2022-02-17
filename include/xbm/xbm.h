@@ -9,6 +9,6 @@
 /**
  * xbm_load - load theme xbm files into global theme struct
  */
-void xbm_load(struct theme *theme, struct wlr_renderer *renderer);
+void xbm_load(struct theme *theme);
 
 #endif /* __LABWC_XBM_H */

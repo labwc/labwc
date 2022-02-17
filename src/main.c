@@ -68,7 +68,7 @@ main(int argc, char *argv[])
 	server_start(&server);
 
 	struct theme theme = { 0 };
-	theme_init(&theme, server.renderer, rc.theme_name);
+	theme_init(&theme, rc.theme_name);
 	server.theme = &theme;
 
 	menu_init_rootmenu(&server);

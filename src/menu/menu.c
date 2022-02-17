@@ -74,8 +74,11 @@ item_create(struct menu *menu, const char *text)
 	if (!menuitem) {
 		return NULL;
 	}
+/* FIXME */
+#if 0
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
+#endif
 	struct font font = {
 		.name = rc.font_name_menuitem,
 		.size = rc.font_size_menuitem,
@@ -84,6 +87,8 @@ item_create(struct menu *menu, const char *text)
 	menuitem->box.width = MENUWIDTH;
 	menuitem->box.height = font_height(&font) + 2 * MENU_ITEM_PADDING_Y;
 
+/* FIXME */
+#if 0
 	int item_max_width = MENUWIDTH - 2 * MENU_ITEM_PADDING_X;
 	font_texture_create(server, &menuitem->texture.active, item_max_width,
 		text, &font, theme->menu_items_active_text_color);
@@ -94,6 +99,7 @@ item_create(struct menu *menu, const char *text)
 	menuitem->texture.offset_y =
 		(menuitem->box.height - menuitem->texture.active->height) / 2;
 	menuitem->texture.offset_x = MENU_ITEM_PADDING_X;
+#endif
 
 	wl_list_insert(&menu->menuitems, &menuitem->link);
 	wl_list_init(&menuitem->actions);

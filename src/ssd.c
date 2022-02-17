@@ -322,12 +322,16 @@ add_part(struct view *view, enum ssd_part_type type)
 void
 ssd_update_title(struct view *view)
 {
+
+/* FIXME */
+#if 0
 	struct theme *theme = view->server->theme;
 
 	struct font font = {
 		.name = rc.font_name_activewindow,
 		.size = rc.font_size_activewindow,
 	};
+#endif
 
 	struct ssd_part *part;
 	wl_list_for_each(part, &view->ssd.parts, link) {
@@ -340,6 +344,8 @@ ssd_update_title(struct view *view)
 		return;
 	}
 
+/* FIXME */
+#if 0
 	int max_width = part->box.width > 0 ? part->box.width : 1000;
 
 	font_texture_create(view->server, &view->title.active, max_width,
@@ -349,6 +355,7 @@ ssd_update_title(struct view *view)
 	font_texture_create(view->server, &view->title.inactive, max_width,
 		view_get_string_prop(view, "title"),
 		&font, theme->window_inactive_label_text_color);
+#endif
 
 	part->box = ssd_visible_box(view, part->type);
 }
@@ -387,14 +394,20 @@ ssd_create(struct view *view)
 	/* titlebar top-left corner */
 	part = add_part(view, LAB_SSD_PART_CORNER_TOP_LEFT);
 	part->box = ssd_visible_box(view, part->type);
+/* FIXME */
+#if 0
 	part->texture.active = &theme->corner_top_left_active_normal;
 	part->texture.inactive = &theme->corner_top_left_inactive_normal;
+#endif
 
 	/* titlebar top-right corner */
 	part = add_part(view, LAB_SSD_PART_CORNER_TOP_RIGHT);
 	part->box = ssd_visible_box(view, part->type);
+/* FIXME */
+#if 0
 	part->texture.active = &theme->corner_top_right_active_normal;
 	part->texture.inactive = &theme->corner_top_right_inactive_normal;
+#endif
 
 	/* title text */
 	part = add_part(view, LAB_SSD_PART_TITLE);

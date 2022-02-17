@@ -25,6 +25,7 @@
 #include "config/rcxml.h"
 #include "theme.h"
 #include "xbm/xbm.h"
+#include "buffer.h"
 
 static int
 hex_to_dec(char c)
@@ -336,8 +337,8 @@ set_source(cairo_t *cairo, float *c)
 	cairo_set_source_rgba(cairo, c[0], c[1], c[2], c[3]);
 }
 
-static struct wlr_texture *
-rounded_rect(struct wlr_renderer *renderer, struct rounded_corner_ctx *ctx)
+static struct lab_data_buffer *
+rounded_rect(struct rounded_corner_ctx *ctx)
 {
 	/* 1 degree in radians (=2π/360) */
 	double deg = 0.017453292519943295;
@@ -350,9 +351,12 @@ rounded_rect(struct wlr_renderer *renderer, struct rounded_corner_ctx *ctx)
 	double h = ctx->box->height;
 	double r = ctx->radius;
 
-	cairo_surface_t *surf =
-		cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
-	cairo_t *cairo = cairo_create(surf);
+	struct lab_data_buffer *buffer;
+	/* TODO: scale */
+	buffer = buffer_create_cairo(w, h, 1, true);
+
+	cairo_t *cairo = buffer->cairo;
+	cairo_surface_t *surf = cairo_get_target(cairo);
 
 	/* set transparent background */
 	cairo_set_operator(cairo, CAIRO_OPERATOR_CLEAR);
@@ -405,21 +409,13 @@ rounded_rect(struct wlr_renderer *renderer, struct rounded_corner_ctx *ctx)
 		wlr_log(WLR_ERROR, "unknown corner type");
 	}
 	cairo_stroke(cairo);
-
-	/* convert to wlr_texture */
 	cairo_surface_flush(surf);
-	unsigned char *data = cairo_image_surface_get_data(surf);
-	struct wlr_texture *texture = wlr_texture_from_pixels(renderer,
-		DRM_FORMAT_ARGB8888, cairo_image_surface_get_stride(surf),
-		w, h, data);
 
-	cairo_destroy(cairo);
-	cairo_surface_destroy(surf);
-	return texture;
+	return buffer;
 }
 
 static void
-create_corners(struct theme *theme, struct wlr_renderer *renderer)
+create_corners(struct theme *theme)
 {
 	int corner_square = theme->title_height + theme->border_width;
 	struct wlr_box box = {
@@ -437,20 +433,20 @@ create_corners(struct theme *theme, struct wlr_renderer *renderer)
 		.border_color = theme->window_active_border_color,
 		.corner = LAB_CORNER_TOP_LEFT,
 	};
-	theme->corner_top_left_active_normal = rounded_rect(renderer, &ctx);
+	theme->corner_top_left_active_normal = rounded_rect(&ctx);
 
 	ctx.fill_color = theme->window_inactive_title_bg_color,
 	ctx.border_color = theme->window_inactive_border_color,
-	theme->corner_top_left_inactive_normal = rounded_rect(renderer, &ctx);
+	theme->corner_top_left_inactive_normal = rounded_rect(&ctx);
 
 	ctx.corner = LAB_CORNER_TOP_RIGHT;
 	ctx.fill_color = theme->window_active_title_bg_color,
 	ctx.border_color = theme->window_active_border_color,
-	theme->corner_top_right_active_normal = rounded_rect(renderer, &ctx);
+	theme->corner_top_right_active_normal = rounded_rect(&ctx);
 
 	ctx.fill_color = theme->window_inactive_title_bg_color,
 	ctx.border_color = theme->window_inactive_border_color,
-	theme->corner_top_right_inactive_normal = rounded_rect(renderer, &ctx);
+	theme->corner_top_right_inactive_normal = rounded_rect(&ctx);
 }
 
 static void
@@ -480,8 +476,7 @@ post_processing(struct theme *theme)
 }
 
 void
-theme_init(struct theme *theme, struct wlr_renderer *renderer,
-		const char *theme_name)
+theme_init(struct theme *theme, const char *theme_name)
 {
 	/*
 	 * Set some default values. This is particularly important on
@@ -491,8 +486,8 @@ theme_init(struct theme *theme, struct wlr_renderer *renderer,
 
 	theme_read(theme, theme_name);
 	post_processing(theme);
-	create_corners(theme, renderer);
-	xbm_load(theme, renderer);
+	create_corners(theme);
+	xbm_load(theme);
 }
 
 void

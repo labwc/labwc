@@ -36,9 +36,15 @@ struct lab_data_buffer {
 	void *data;
 	uint32_t format;
 	size_t stride;
+	bool free_on_destroy;
 };
 
-struct lab_data_buffer *buffer_create(uint32_t width, uint32_t height,
-	float scale);
+/* Create a buffer which creates a new cairo CAIRO_FORMAT_ARGB32 surface */
+struct lab_data_buffer *buffer_create_cairo(uint32_t width, uint32_t height,
+	float scale, bool free_on_destroy);
+
+/* Create a buffer which wraps a given DRM_FORMAT_ARGB8888 pointer */
+struct lab_data_buffer *buffer_create_wrap(void *pixel_data, uint32_t width,
+	uint32_t height, uint32_t stride, bool free_on_destroy);
 
 #endif /* __LABWC_BUFFER_H */

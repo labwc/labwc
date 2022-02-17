@@ -106,7 +106,7 @@ osd_update(struct server *server)
 		if (output->osd_buffer) {
 			wlr_buffer_drop(&output->osd_buffer->base);
 		}
-		output->osd_buffer = buffer_create(w, h, scale);
+		output->osd_buffer = buffer_create_cairo(w, h, scale, true);
 
 		cairo_t *cairo = output->osd_buffer->cairo;
 		cairo_surface_t *surf = cairo_get_target(cairo);

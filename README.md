@@ -28,8 +28,8 @@ In order to avoid reinventing configuration and theme syntax, the [openbox-3.4] 
 | [Video (1:10)] | 05-Aug-2021 | window gymnastics, theming and waybar
 | [Video (3:42)] | 25-Feb-2021 | setting background and themes; xwayland/xdg-shell windows
 
-<a href="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3.png">
-  <img src="https://raw.githubusercontent.com/wiki/johanmalm/labwc/images/scrot3x.png" width="256px" height="179px">
+<a href="https://raw.githubusercontent.com/wiki/labwc/labwc/images/scrot3.png">
+  <img src="https://raw.githubusercontent.com/wiki/labwc/labwc/images/scrot3x.png" width="256px" height="179px">
 </a>
 
 So far, labwc supports the following:
@@ -63,11 +63,11 @@ Dependencies include:
 
 Disable xwayland with `meson -Dxwayland=disabled build/`
 
-For further details see [wiki/Build].
+For further details see [wiki/Build](https://github.com/labwc/labwc/wiki/Build).
 
 ## 3. Install
 
-See [wiki/Install](https://github.com/johanmalm/labwc/wiki/Install).
+See [wiki/Install](https://github.com/labwc/labwc/wiki/Install).
 
 ## 4. Configure
 

@@ -158,15 +158,15 @@ High-level summary of items which are not intended to be implemented:
 [environment]: docs/environment
 [themerc]: docs/themerc
 
-[labwc(1)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc.1.scd
-[labwc-config(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-config.5.scd
-[labwc-menu(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-menu.5.scd
-[labwc-environment(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-environment.5.scd
-[labwc-theme(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-theme.5.scd
-[labwc-actions(5)]: https://raw.githubusercontent.com/johanmalm/labwc/master/docs/labwc-actions.5.scd
+[labwc(1)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc.1.scd
+[labwc-config(5)]: https://raw.githubusercontent.com/abwc/labwc/master/docs/labwc-config.5.scd
+[labwc-menu(5)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc-menu.5.scd
+[labwc-environment(5)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc-environment.5.scd
+[labwc-theme(5)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc-theme.5.scd
+[labwc-actions(5)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc-actions.5.scd
 [xkeyboard-config(7)]: https://manpages.debian.org/testing/xkb-data/xkeyboard-config.7.en.html
 
-[wiki/Build]: https://github.com/johanmalm/labwc/wiki/Build
+[wiki/Build]: https://github.com/labwc/labwc/wiki/Build
 
 [grim]: https://github.com/emersion/grim
 [wf-recorder]: https://github.com/ammen99/wf-recorder
@@ -177,8 +177,8 @@ High-level summary of items which are not intended to be implemented:
 [bemenu]: https://github.com/Cloudef/bemenu
 [fuzzel]: https://codeberg.org/dnkl/fuzzel
 [wofi]: https://hg.sr.ht/~scoopta/wofi
-[kanshi]: https://github.com/emersion/kanshi.git
-[wlr-randr]: https://github.com/emersion/wlr-randr.git
+[kanshi]: https://sr.ht/~emersion/kanshi/
+[wlr-randr]: https://sr.ht/~emersion/wlr-randr/
 [swaylock]: https://github.com/swaywm/swaylock
 
 [acceptance criteria]: https://github.com/labwc/labwc-acceptance-criteria/blob/main/Acceptance-criteria.md

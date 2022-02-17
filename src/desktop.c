@@ -10,6 +10,7 @@ move_to_front(struct view *view)
 {
 	wl_list_remove(&view->link);
 	wl_list_insert(&view->server->views, &view->link);
+	wlr_scene_node_raise_to_top(&view->scene_tree->node);
 }
 
 #if HAVE_XWAYLAND
@@ -256,32 +257,57 @@ desktop_focus_topmost_mapped_view(struct server *server)
 }
 
 struct view *
-desktop_surface_and_view_at(struct server *server, double lx, double ly,
-		struct wlr_surface **surface, double *sx, double *sy,
+desktop_node_and_view_at(struct server *server, double lx, double ly,
+		struct wlr_scene_node **scene_node, double *sx, double *sy,
 		enum ssd_part_type *view_area)
 {
 	struct wlr_scene_node *node =
 		wlr_scene_node_at(&server->scene->node, lx, ly, sx, sy);
 
-	if (!node || node->type != WLR_SCENE_NODE_SURFACE) {
+	*scene_node = node;
+	if (!node) {
+		*view_area = LAB_SSD_NONE;
 		return NULL;
 	}
-	*surface = wlr_scene_surface_from_node(node)->surface;
+	if (node->type == WLR_SCENE_NODE_SURFACE) {
+		struct wlr_surface *surface =
+			wlr_scene_surface_from_node(node)->surface;
+		if (wlr_surface_is_layer_surface(surface)) {
+			*view_area = LAB_SSD_LAYER_SURFACE;
+			return NULL;
+		}
+		*view_area = LAB_SSD_CLIENT;
+	} else {
+		/* TODO: remove */
+		*view_area = LAB_SSD_NONE;
+	}
+	struct wlr_scene_node *osd = &server->osd_tree->node;
 	while (node && !node->data) {
+		if (node == osd) {
+			*view_area = LAB_SSD_OSD;
+			return NULL;
+		}
+		/* TODO: node == &server->menu_tree->node */
 		node = node->parent;
 	}
-	assert(node);
-	return node->data;
+	if (!node) {
+		wlr_log(WLR_ERROR, "Unknown node detected");
+		*view_area = LAB_SSD_NONE;
+		return NULL;
+	}
+	struct view *view = node->data;
+	/* TODO: *view_area = ssd_get_type(view, node) */
+	return view;
 }
 
 struct view *
 desktop_view_at_cursor(struct server *server)
 {
 	double sx, sy;
-	struct wlr_surface *surface;
+	struct wlr_scene_node *node;
 	enum ssd_part_type view_area = LAB_SSD_NONE;
 
-	return desktop_surface_and_view_at(server,
+	return desktop_node_and_view_at(server,
 			server->seat.cursor->x, server->seat.cursor->y,
-			&surface, &sx, &sy, &view_area);
+			&node, &sx, &sy, &view_area);
 }

@@ -86,7 +86,11 @@ handle_destroy(struct wl_listener *listener, void *data)
 	interactive_end(view);
 	wl_list_remove(&view->link);
 	wl_list_remove(&view->destroy.link);
-	ssd_destroy(view);
+	if (view->scene_tree) {
+		ssd_destroy(view);
+		wlr_scene_node_destroy(&view->scene_tree->node);
+		view->scene_tree = NULL;
+	}
 	free(view);
 }
 
@@ -388,13 +392,17 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->xdg_surface = xdg_surface;
 	wl_list_init(&view->ssd.parts);
 
+	view->scene_tree = wlr_scene_tree_create(&view->server->view_tree->node);
 	view->scene_node = wlr_scene_xdg_surface_create(
-		&view->server->view_tree->node, view->xdg_surface);
+		&view->scene_tree->node, view->xdg_surface);
 	if (!view->scene_node) {
+		wlr_scene_node_destroy(&view->scene_tree->node);
+		view->scene_tree = NULL;
 		wl_resource_post_no_memory(view->surface->resource);
+		/* TODO: should we free(view) here? */
 		return;
 	}
-	view->scene_node->data = view;
+	view->scene_tree->node.data = view;
 
 	/* In support of xdg_toplevel_decoration */
 	xdg_surface->data = view;

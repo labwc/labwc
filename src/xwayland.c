@@ -90,7 +90,11 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&view->request_configure.link);
 	wl_list_remove(&view->request_maximize.link);
 	wl_list_remove(&view->request_fullscreen.link);
-	ssd_destroy(view);
+	if (view->scene_tree) {
+		ssd_destroy(view);
+		wlr_scene_node_destroy(&view->scene_tree->node);
+		view->scene_tree = NULL;
+	}
 	free(view);
 }
 
@@ -256,13 +260,17 @@ map(struct view *view)
 	}
 	view->surface = view->xwayland_surface->surface;
 
+	view->scene_tree = wlr_scene_tree_create(&view->server->view_tree->node);
 	view->scene_node = wlr_scene_subsurface_tree_create(
-		&view->server->view_tree->node, view->surface);
+		&view->scene_tree->node, view->surface);
 	if (!view->scene_node) {
+		wlr_scene_node_destroy(&view->scene_tree->node);
+		view->scene_tree = NULL;
 		wl_resource_post_no_memory(view->surface->resource);
+		/* TODO: should we free(view) here? */
 		return;
 	}
-	view->scene_node->data = view;
+	view->scene_tree->node.data = view;
 
 	view->ssd.enabled = want_deco(view);
 

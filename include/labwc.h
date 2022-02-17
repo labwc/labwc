@@ -234,6 +234,7 @@ struct view {
 #endif
 	};
 	struct wlr_surface *surface;
+	struct wlr_scene_tree *scene_tree;
 	struct wlr_scene_node *scene_node;
 
 	bool mapped;
@@ -419,11 +420,13 @@ void desktop_focus_topmost_mapped_view(struct server *server);
 bool isfocusable(struct view *view);
 
 /**
- * desktop_surface_and_view_at - find view and surface at (lx, ly)
- * Note: If surface points to layer-surface, view will be set to NULL
+ * desktop_node_and_view_at - find view and scene_node at (lx, ly)
+ * Note: If node points to layer-surface, view_area will be set
+ * to LAB_SSD_LAYER_SURFACE, if view points to another surface
+ * view_area will be LAB_SSD_CLIENT
  */
-struct view *desktop_surface_and_view_at(struct server *server, double lx,
-	double ly, struct wlr_surface **surface, double *sx, double *sy,
+struct view *desktop_node_and_view_at(struct server *server, double lx,
+	double ly, struct wlr_scene_node **scene_node, double *sx, double *sy,
 	enum ssd_part_type *view_area);
 
 struct view *desktop_view_at_cursor(struct server *server);

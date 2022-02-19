@@ -76,4 +76,12 @@ debug_dump_scene(struct server *server)
 			dump_tree(node, 0, node->state.x, node->state.y);
 		}
 	}
+
+	printf(":: osd_tree ::\n");
+	node = &server->osd_tree->node;
+	dump_tree(node, 0, node->state.x, node->state.y);
+
+	printf(":: menu_tree ::\n");
+	node = &server->menu_tree->node;
+	dump_tree(node, 0, node->state.x, node->state.y);
 }

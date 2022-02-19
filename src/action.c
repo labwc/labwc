@@ -91,19 +91,15 @@ void action_list_free(struct wl_list *action_list) {
 static void
 show_menu(struct server *server, struct view *view, const char *menu_name)
 {
-	struct menu *menu = NULL;
 	bool force_menu_top_left = false;
-
-	if (!menu_name) {
+	struct menu *menu = menu_get_by_id(menu_name);
+	if (!menu) {
 		return;
 	}
-
-	if (!strcasecmp(menu_name, "root-menu")) {
-		menu = server->rootmenu;
-		server->windowmenu->visible = false;
-	} else if (!strcasecmp(menu_name, "client-menu") && view) {
-		menu = server->windowmenu;
-		server->rootmenu->visible = false;
+	if (!strcasecmp(menu_name, "client-menu")) {
+		if (!view) {
+			return;
+		}
 		enum ssd_part_type type = ssd_at(view, server->seat.cursor->x,
 			server->seat.cursor->y);
 		if (type == LAB_SSD_BUTTON_WINDOW_MENU) {
@@ -113,12 +109,7 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 		} else {
 			force_menu_top_left = true;
 		}
-	} else {
-		return;
 	}
-
-	menu->visible = true;
-	server->input_mode = LAB_INPUT_STATE_MENU;
 
 	int x, y;
 	if (force_menu_top_left) {
@@ -128,8 +119,7 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 		x = server->seat.cursor->x;
 		y = server->seat.cursor->y;
 	}
-	menu_move(menu, x, y);
-	damage_all_outputs(server);
+	menu_open(menu, x, y);
 }
 
 static struct view *

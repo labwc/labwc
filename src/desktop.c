@@ -282,12 +282,15 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 		*view_area = LAB_SSD_NONE;
 	}
 	struct wlr_scene_node *osd = &server->osd_tree->node;
+	struct wlr_scene_node *menu = &server->menu_tree->node;
 	while (node && !node->data) {
 		if (node == osd) {
 			*view_area = LAB_SSD_OSD;
 			return NULL;
+		} else if (node == menu) {
+			*view_area = LAB_SSD_MENU;
+			return NULL;
 		}
-		/* TODO: node == &server->menu_tree->node */
 		node = node->parent;
 	}
 	if (!node) {

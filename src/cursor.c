@@ -41,7 +41,7 @@ request_cursor_notify(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, request_cursor);
 	/*
-	 * This event is rasied by the seat when a client provides a cursor
+	 * This event is raised by the seat when a client provides a cursor
 	 * image
 	 */
 	struct wlr_seat_pointer_request_set_cursor_event *event = data;
@@ -187,19 +187,6 @@ process_cursor_motion(struct server *server, uint32_t time)
 	} else if (server->input_mode == LAB_INPUT_STATE_RESIZE) {
 		process_cursor_resize(server, time);
 		return;
-	} else if (server->input_mode == LAB_INPUT_STATE_MENU) {
-		struct menu *menu = NULL;
-		if (server->rootmenu->visible) {
-			menu = server->rootmenu;
-		} else if (server->windowmenu->visible) {
-			menu = server->windowmenu;
-		} else {
-			return;
-		}
-		menu_set_selected(menu,
-			server->seat.cursor->x, server->seat.cursor->y);
-		damage_all_outputs(server);
-		return;
 	}
 
 	/* Otherwise, find view under the pointer and send the event along */
@@ -239,6 +226,10 @@ process_cursor_motion(struct server *server, uint32_t time)
 		}
 	}
 
+	if (view_area == LAB_SSD_MENU) {
+		menu_process_cursor_motion(server->menu_current, node);
+		return;
+	}
 
 	if (view && rc.focus_follow_mouse) {
 		desktop_focus_and_activate_view(&server->seat, view);
@@ -648,11 +639,18 @@ cursor_button(struct wl_listener *listener, void *data)
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
-		if (server->rootmenu->visible) {
-			menu_action_selected(server, server->rootmenu);
-		} else if (server->windowmenu->visible) {
-			menu_action_selected(server, server->windowmenu);
+		if (!server->menu_current) {
+			wlr_log(WLR_ERROR,
+				"on mouse button input_mode STATE_MENU but no current menu");
+		} else if (view_area != LAB_SSD_MENU) {
+			menu_close(server->menu_current);
+			server->menu_current = NULL;
+		} else if (!menu_call_actions(server->menu_current, node)) {
+			/* Action was not successfull, maybe this menu has a submenu */
+			return;
 		}
+		/* TODO: following causes stray release */
+		/* Maybe add LAB_INPUT_STATE_IGNORE_MOUSE_RELEASE ? */
 		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		cursor_rebase(&server->seat, event->time_msec);
 		return;

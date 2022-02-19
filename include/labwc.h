@@ -154,6 +154,7 @@ struct server {
 	uint32_t resize_edges;
 
 	struct wlr_scene_tree *osd_tree;
+	struct wlr_scene_tree *menu_tree;
 
 	struct wl_list outputs;
 	struct wl_listener new_output;
@@ -175,8 +176,7 @@ struct server {
 
 	struct theme *theme;
 
-	struct menu *rootmenu;
-	struct menu *windowmenu;
+	struct menu *menu_current;
 };
 
 struct output {

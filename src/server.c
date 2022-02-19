@@ -43,7 +43,7 @@ reload_config_and_theme(void)
 		ssd_update_geometry(view, true);
 	}
 
-	menu_reconfigure(g_server, g_server->rootmenu);
+	menu_reconfigure(g_server);
 	seat_reconfigure(g_server);
 	damage_all_outputs(g_server);
 }
@@ -225,6 +225,7 @@ server_init(struct server *server)
 	}
 	server->view_tree = wlr_scene_tree_create(&server->scene->node);
 	server->osd_tree = wlr_scene_tree_create(&server->scene->node);
+	server->menu_tree = wlr_scene_tree_create(&server->scene->node);
 	wlr_scene_attach_output_layout(server->scene, server->output_layout);
 
 	/*

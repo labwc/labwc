@@ -39,16 +39,7 @@ arrange_layers(struct output *output)
 		}
 	}
 
-	for (int i = 0; i < 4; i++) {
-		struct wlr_scene_node *node = &output->layer_tree[i]->node;
-		wlr_scene_node_set_position(node,
-			scene_output->x + usable_area.x,
-			scene_output->y + usable_area.y);
-	}
-
-
-	/* TODO: workout how we set this */
-//	memcpy(&output->usable_area, &usable_area, sizeof(struct wlr_box));
+	memcpy(&output->usable_area, &usable_area, sizeof(struct wlr_box));
 
 	/* Find topmost keyboard interactive layer, if such a layer exists */
 	uint32_t layers_above_shell[] = {
@@ -77,6 +68,7 @@ arrange_layers(struct output *output)
 			!seat->focused_layer->current.keyboard_interactive) {
 		seat_set_focus_layer(seat, NULL);
 	}
+	/* FIXME: should we call a desktop_arrange_all_views() here? */
 }
 
 static void

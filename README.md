@@ -44,6 +44,8 @@ So far, labwc supports the following:
 - [x] foreign-toplevel protocol (e.g. to integrate with panels and bars)
 - [x] Optionally xwayland
 
+Join the [IRC channel] (#labwc on irc.libera.chat)
+
 ## 2. Build
 
     meson build/
@@ -150,6 +152,7 @@ High-level summary of items which are not intended to be implemented:
   how few options are actually required).
 
 
+[IRC channel]: https://web.libera.chat/gamja/?channels=#labwc
 [openbox-3.4]: http://openbox.org/wiki/Help:Contents
 [rc.xml]: docs/rc.xml
 [rc.xml.all]: docs/rc.xml.all

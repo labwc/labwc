@@ -12,8 +12,8 @@ enum layer_parent {
 };
 
 struct lab_layer_surface {
-	struct wlr_layer_surface_v1 *layer_surface;
-	struct wl_list link;
+	struct wl_list link; /* output::layers[] */
+	struct wlr_scene_layer_surface_v1 *scene_layer_surface;
 
 	struct wl_listener destroy;
 	struct wl_listener map;

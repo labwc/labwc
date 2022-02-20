@@ -12,6 +12,7 @@
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include <wlr/types/wlr_output_damage.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/util/region.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
@@ -110,14 +111,16 @@ new_output_notify(struct wl_listener *listener, void *data)
 	output->frame.notify = output_frame_notify;
 	wl_signal_add(&wlr_output->events.frame, &output->frame);
 
-	wl_list_init(&output->layers[0]);
-	wl_list_init(&output->layers[1]);
-	wl_list_init(&output->layers[2]);
-	wl_list_init(&output->layers[3]);
-	/*
-	 * Arrange outputs from left-to-right in the order they appear.
-	 * TODO: support configuration in run-time
-	 */
+	for (int i = 0; i < 4; i++) {
+		wl_list_init(&output->layers[i]);
+		output->layer_tree[i] =
+			wlr_scene_tree_create(&server->scene->node);
+		output->layer_tree[i]->node.data = output->wlr_output;
+	}
+	wlr_scene_node_lower_to_bottom(&output->layer_tree[1]->node);
+	wlr_scene_node_lower_to_bottom(&output->layer_tree[0]->node);
+	wlr_scene_node_raise_to_top(&output->layer_tree[2]->node);
+	wlr_scene_node_raise_to_top(&output->layer_tree[3]->node);
 
 	if (rc.adaptive_sync) {
 		wlr_log(WLR_INFO, "enable adaptive sync on %s",
@@ -318,11 +321,13 @@ handle_output_layout_change(struct wl_listener *listener, void *data)
 				"wlr_output_manager_v1_set_configuration()");
 		}
 		struct output *output;
-		wl_list_for_each(output, &server->outputs, link) {
-			if (output) {
-				arrange_layers(output);
-			}
-		}
+
+		/* FIXME: Sort this out */
+//		wl_list_for_each(output, &server->outputs, link) {
+//			if (output) {
+//				arrange_layers(output);
+//			}
+//		}
 		output_update_for_layout_change(server);
 	}
 }

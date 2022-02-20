@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include "buffer.h"
 #include "labwc.h"
@@ -40,6 +41,23 @@ dump_tree(struct wlr_scene_node *node, int pos, int x, int y)
 	}
 }
 
+static char *
+get_layer_name(uint32_t layer)
+{
+	switch (layer) {
+	case ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND:
+		return "background";
+	case ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM:
+		return "bottom";
+	case ZWLR_LAYER_SHELL_V1_LAYER_TOP:
+		return "top";
+	case ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY:
+		return "overlay";
+	default:
+		abort();
+	}
+}
+
 void
 debug_dump_scene(struct server *server)
 {
@@ -49,7 +67,13 @@ debug_dump_scene(struct server *server)
 	node = &server->view_tree->node;
 	dump_tree(node, 0, node->state.x, node->state.y);
 
-	printf(":: osd_tree ::\n");
-	node = &server->osd_tree->node;
-	dump_tree(node, 0, node->state.x, node->state.y);
+	printf(":: layer_tree ::\n");
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		for (int i = 0; i < 4; i++) {
+			node = &output->layer_tree[i]->node;
+			printf("layer-%s\n", get_layer_name(i));
+			dump_tree(node, 0, node->state.x, node->state.y);
+		}
+	}
 }

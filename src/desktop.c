@@ -365,6 +365,22 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 		return NULL;
 	}
 
+	/* Check for unmanaged surfaces */
+#if HAVE_XWAYLAND
+	struct xwayland_unmanaged *unmanaged_surface;
+	wl_list_for_each_reverse(unmanaged_surface, &server->unmanaged_surfaces, link) {
+		double _sx = lx - unmanaged_surface->lx;
+		double _sy = ly - unmanaged_surface->ly;
+		if (wlr_surface_point_accepts_input(unmanaged_surface->
+				xwayland_surface->surface, _sx, _sy)) {
+			*surface = unmanaged_surface->xwayland_surface->surface;
+			*sx = _sx;
+			*sy = _sy;
+			return NULL;
+		}
+	}
+#endif
+
 	/* Check all layer popups */
 	*surface = layer_surface_popup_at(output,
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],

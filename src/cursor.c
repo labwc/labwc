@@ -642,8 +642,16 @@ cursor_button(struct wl_listener *listener, void *data)
 			cursor_rebase(&server->seat, event->time_msec);
 		}
 
-		/* Handle _release_ on root window */
 		if (!view) {
+#if HAVE_XWAYLAND
+			/* Handle _release_ on unmanaged surface */
+			if (surface && wlr_surface_is_xwayland_surface(surface)) {
+				wlr_seat_pointer_notify_button(seat->seat,
+					event->time_msec, event->button, event->state);
+				return;
+			}
+#endif
+			/* Handle _release_ on root window */
 			handle_release_mousebinding(NULL, server, event->button,
 				modifiers, LAB_SSD_ROOT, 0);
 		}
@@ -661,8 +669,16 @@ cursor_button(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	/* Handle _press_ on a layer surface */
 	if (!view && surface) {
+#if HAVE_XWAYLAND
+		/* Handle _press_ on unmanaged surface */
+		if (wlr_surface_is_xwayland_surface(surface)) {
+			wlr_seat_pointer_notify_button(seat->seat,
+				event->time_msec, event->button, event->state);
+			return;
+		}
+#endif
+		/* Handle _press_ on a layer surface */
 		if (!wlr_surface_is_layer_surface(surface)) {
 			return;
 		}

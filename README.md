@@ -159,7 +159,7 @@ High-level summary of items which are not intended to be implemented:
 [themerc]: docs/themerc
 
 [labwc(1)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc.1.scd
-[labwc-config(5)]: https://raw.githubusercontent.com/abwc/labwc/master/docs/labwc-config.5.scd
+[labwc-config(5)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc-config.5.scd
 [labwc-menu(5)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc-menu.5.scd
 [labwc-environment(5)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc-environment.5.scd
 [labwc-theme(5)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc-theme.5.scd

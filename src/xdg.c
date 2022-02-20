@@ -372,24 +372,13 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	struct wlr_xdg_surface *xdg_surface = data;
 
 	/*
-	 * We must add xdg popups to the scene graph so they get rendered. The
-	 * wlroots scene graph provides a helper for this, but to use it we must
-	 * provide the proper parent scene node of the xdg popup. To enable
-	 * this, we always set the user data field of xdg_surfaces to the
-	 * corresponding scene node.
+	 * We deal with popups in xdg-popup.c and layers.c as they have to be
+	 * treated differently
 	 */
-	if (xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP) {
-		struct wlr_xdg_surface *parent =
-			wlr_xdg_surface_from_wlr_surface(
-				xdg_surface->popup->parent);
-		struct wlr_scene_node *parent_node = parent->surface->data;
-		xdg_surface->surface->data =
-			wlr_scene_xdg_surface_create(parent_node, xdg_surface);
-		/* TODO: unconstrain here rather than in xdg-popup.c? */
+	if (xdg_surface->role != WLR_XDG_SURFACE_ROLE_TOPLEVEL) {
 		return;
 	}
 
-	/* WLR_XDG_SURFACE_ROLE_TOPLEVEL */
 	wlr_xdg_surface_ping(xdg_surface);
 
 	struct view *view = calloc(1, sizeof(struct view));

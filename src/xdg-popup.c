@@ -4,11 +4,24 @@
  *
  * This file is only needed in support of
  *	- unconstraining XDG popups
+ *	- keeping non-layer-shell xdg-popups outside the layers.c code
  */
 
 #include "labwc.h"
 
-/* TODO: surely this ought to just move to xdg.c now??? */
+struct view_child {
+	struct wlr_surface *surface;
+	struct view *parent;
+};
+
+struct xdg_popup {
+	struct view_child view_child;
+	struct wlr_xdg_popup *wlr_popup;
+
+	struct wl_listener destroy;
+	struct wl_listener new_popup;
+};
+
 static void
 popup_unconstrain(struct view *view, struct wlr_xdg_popup *popup)
 {
@@ -30,8 +43,56 @@ popup_unconstrain(struct view *view, struct wlr_xdg_popup *popup)
 	wlr_xdg_popup_unconstrain_from_box(popup, &output_toplevel_box);
 }
 
+static void
+handle_xdg_popup_destroy(struct wl_listener *listener, void *data)
+{
+	struct xdg_popup *popup = wl_container_of(listener, popup, destroy);
+	wl_list_remove(&popup->destroy.link);
+	wl_list_remove(&popup->new_popup.link);
+	free(popup);
+}
+
+static void
+popup_handle_new_xdg_popup(struct wl_listener *listener, void *data)
+{
+	struct xdg_popup *popup = wl_container_of(listener, popup, new_popup);
+	struct wlr_xdg_popup *wlr_popup = data;
+	xdg_popup_create(popup->view_child.parent, wlr_popup);
+}
+
 void
 xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 {
+	struct xdg_popup *popup = calloc(1, sizeof(struct xdg_popup));
+	if (!popup) {
+		return;
+	}
+
+	popup->wlr_popup = wlr_popup;
+	popup->view_child.parent = view;
+	popup->view_child.surface = wlr_popup->base->surface;
+
+	popup->destroy.notify = handle_xdg_popup_destroy;
+	wl_signal_add(&wlr_popup->base->events.destroy, &popup->destroy);
+	popup->new_popup.notify = popup_handle_new_xdg_popup;
+	wl_signal_add(&wlr_popup->base->events.new_popup, &popup->new_popup);
+
+	/*
+	 * We must add xdg popups to the scene graph so they get rendered. The
+	 * wlroots scene graph provides a helper for this, but to use it we must
+	 * provide the proper parent scene node of the xdg popup. To enable
+	 * this, we always set the user data field of xdg_surfaces to the
+	 * corresponding scene node.
+	 */
+	if (!wlr_surface_is_xdg_surface(wlr_popup->parent)) {
+		wlr_log(WLR_ERROR, "xdg_surface is not xdg");
+		return;
+	}
+	struct wlr_xdg_surface *parent =
+		wlr_xdg_surface_from_wlr_surface(wlr_popup->parent);
+	struct wlr_scene_node *parent_node = parent->surface->data;
+	wlr_popup->base->surface->data =
+		wlr_scene_xdg_surface_create(parent_node, wlr_popup->base);
+
 	popup_unconstrain(view, wlr_popup);
 }

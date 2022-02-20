@@ -29,7 +29,7 @@ arrange_layers(struct output *output)
 			&full_area.width, &full_area.height);
 	struct wlr_box usable_area = full_area;
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < LAB_NR_LAYERS; i++) {
 		struct lab_layer_surface *lab_layer_surface;
 		wl_list_for_each(lab_layer_surface, &output->layers[i], link) {
 			struct wlr_scene_layer_surface_v1 *scene_layer_surface =

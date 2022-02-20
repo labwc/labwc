@@ -6,6 +6,8 @@
 
 struct server;
 
+#define LAB_NR_LAYERS (4)
+
 enum layer_parent {
 	LAYER_PARENT_LAYER,
 	LAYER_PARENT_POPUP,
@@ -29,6 +31,7 @@ struct lab_layer_surface {
 	struct server *server;
 };
 
+/* FIXME: do we still need lab_layer_popup and lab_layer_subsurface? */
 struct lab_layer_popup {
 	struct wlr_xdg_popup *wlr_popup;
 	enum layer_parent parent_type;

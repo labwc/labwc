@@ -16,7 +16,6 @@ labwc_sources = files(
   'resistance.c',
   'seat.c',
   'server.c',
-  'ssd.c',
   'theme.c',
   'view.c',
   'view-impl.c',
@@ -37,3 +36,4 @@ subdir('common')
 subdir('config')
 subdir('xbm')
 subdir('menu')
+subdir('ssd')

@@ -40,7 +40,7 @@ reload_config_and_theme(void)
 			continue;
 		}
 		view->margin = ssd_thickness(view);
-		ssd_update_geometry(view, true);
+		ssd_reload(view);
 	}
 
 	menu_reconfigure(g_server);

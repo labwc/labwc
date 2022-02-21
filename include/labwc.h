@@ -153,6 +153,10 @@ struct server {
 	struct wlr_box grab_box;
 	uint32_t resize_edges;
 
+	/* SSD state */
+	struct view *ssd_focused_view;
+	struct ssd_hover_state ssd_hover_state;
+
 	struct wlr_scene_tree *osd_tree;
 	struct wlr_scene_tree *menu_tree;
 
@@ -272,17 +276,7 @@ struct view {
 		uint32_t configure_serial;
 	} pending_move_resize;
 
-	struct {
-		bool enabled;
-		struct wl_list parts;
-		struct wlr_box box; /* remember geo so we know when to update */
-	} ssd;
-
-	/* The title is unique to each view, so we store these here */
-	struct {
-		struct wlr_texture *active;
-		struct wlr_texture *inactive;
-	} title;
+	struct ssd ssd;
 
 	struct wlr_foreign_toplevel_handle_v1 *toplevel_handle;
 	struct wl_listener toplevel_handle_request_maximize;

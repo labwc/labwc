@@ -276,10 +276,6 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 			*view_area = LAB_SSD_LAYER_SURFACE;
 			return NULL;
 		}
-		*view_area = LAB_SSD_CLIENT;
-	} else {
-		/* TODO: remove */
-		*view_area = LAB_SSD_NONE;
 	}
 	struct wlr_scene_node *osd = &server->osd_tree->node;
 	struct wlr_scene_node *menu = &server->menu_tree->node;
@@ -299,7 +295,7 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 		return NULL;
 	}
 	struct view *view = node->data;
-	/* TODO: *view_area = ssd_get_type(view, node) */
+	*view_area = ssd_get_part_type(view, *scene_node);
 	return view;
 }
 

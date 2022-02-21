@@ -7,6 +7,9 @@
 void
 view_set_activated(struct view *view, bool activated)
 {
+	if (view->ssd.enabled) {
+		ssd_set_active(view);
+	}
 	if (view->impl->set_activated) {
 		view->impl->set_activated(view, activated);
 	}
@@ -258,7 +261,7 @@ view_toggle_decorations(struct view *view)
 {
 	if (!view->fullscreen) {
 		view->ssd.enabled = !view->ssd.enabled;
-		ssd_update_geometry(view, true);
+		ssd_update_geometry(view);
 		if (view->maximized) {
 			view_apply_maximized_geometry(view);
 		}
@@ -270,7 +273,7 @@ view_set_decorations(struct view *view, bool decorations)
 {
 	if (view->ssd.enabled != decorations && !view->fullscreen) {
 		view->ssd.enabled = decorations;
-		ssd_update_geometry(view, true);
+		ssd_update_geometry(view);
 		if (view->maximized) {
 			view_apply_maximized_geometry(view);
 		}

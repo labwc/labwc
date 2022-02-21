@@ -27,7 +27,7 @@
 #define __LABWC_BUFFER_H
 
 #include <cairo.h>
-#include "labwc.h"
+#include <wlr/types/wlr_buffer.h>
 
 struct lab_data_buffer {
 	struct wlr_buffer base;

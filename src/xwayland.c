@@ -23,7 +23,7 @@ handle_commit(struct wl_listener *listener, void *data)
 			view->pending_move_resize.height - view->h;
 		view->pending_move_resize.update_y = false;
 	}
-	ssd_update_geometry(view, false);
+	ssd_update_geometry(view);
 	damage_view_whole(view);
 }
 
@@ -188,8 +188,6 @@ move(struct view *view, double x, double y)
 	struct wlr_xwayland_surface *s = view->xwayland_surface;
 	wlr_xwayland_surface_configure(s, (int16_t)x, (int16_t)y,
 		(uint16_t)s->width, (uint16_t)s->height);
-	ssd_update_geometry(view, false);
-	damage_all_outputs(view->server);
 }
 
 static void
@@ -313,6 +311,7 @@ unmap(struct view *view)
 		view->mapped = false;
 		damage_all_outputs(view->server);
 		wl_list_remove(&view->commit.link);
+		ssd_hide(view);
 		desktop_focus_topmost_mapped_view(view->server);
 	}
 }
@@ -376,7 +375,6 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	view->type = LAB_XWAYLAND_VIEW;
 	view->impl = &xwl_view_impl;
 	view->xwayland_surface = xsurface;
-	wl_list_init(&view->ssd.parts);
 
 	xsurface->data = view;
 

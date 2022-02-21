@@ -26,6 +26,7 @@
 #include "theme.h"
 #include "xbm/xbm.h"
 #include "buffer.h"
+#include "ssd.h"
 
 static int
 hex_to_dec(char c)
@@ -417,12 +418,11 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 static void
 create_corners(struct theme *theme)
 {
-	int corner_square = theme->title_height + theme->border_width;
 	struct wlr_box box = {
 		.x = 0,
 		.y = 0,
-		.width = corner_square,
-		.height = corner_square,
+		.width = BUTTON_WIDTH,
+		.height = SSD_HEIGHT,
 	};
 
 	struct rounded_corner_ctx ctx = {

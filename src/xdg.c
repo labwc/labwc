@@ -58,7 +58,7 @@ handle_commit(struct wl_listener *listener, void *data)
 			view->pending_move_resize.configure_serial = 0;
 		}
 	}
-	ssd_update_geometry(view, false);
+	ssd_update_geometry(view);
 	damage_view_part(view);
 }
 
@@ -187,8 +187,8 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 	} else if (view->pending_move_resize.configure_serial == 0) {
 		view->x = geo.x;
 		view->y = geo.y;
-		ssd_update_geometry(view, false);
-		damage_all_outputs(view->server);
+		ssd_update_geometry(view);
+		//damage_all_outputs(view->server);
 	}
 }
 #undef MAX
@@ -198,8 +198,6 @@ xdg_toplevel_view_move(struct view *view, double x, double y)
 {
 	view->x = x;
 	view->y = y;
-	ssd_update_geometry(view, false);
-	damage_all_outputs(view->server);
 }
 
 static void
@@ -344,6 +342,7 @@ xdg_toplevel_view_unmap(struct view *view)
 		view->mapped = false;
 		damage_all_outputs(view->server);
 		wlr_scene_node_destroy(view->scene_node);
+		ssd_hide(view);
 		wl_list_remove(&view->commit.link);
 		desktop_focus_topmost_mapped_view(view->server);
 	}
@@ -390,9 +389,9 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->type = LAB_XDG_SHELL_VIEW;
 	view->impl = &xdg_toplevel_view_impl;
 	view->xdg_surface = xdg_surface;
-	wl_list_init(&view->ssd.parts);
 
 	view->scene_tree = wlr_scene_tree_create(&view->server->view_tree->node);
+
 	view->scene_node = wlr_scene_xdg_surface_create(
 		&view->scene_tree->node, view->xdg_surface);
 	if (!view->scene_node) {

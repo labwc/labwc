@@ -178,7 +178,6 @@ static void
 process_cursor_motion(struct server *server, uint32_t time)
 {
 	static bool cursor_name_set_by_server;
-	static enum ssd_part_type last_button_hover = LAB_SSD_NONE;
 
 	/* If the mode is non-passthrough, delegate to those functions. */
 	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
@@ -257,17 +256,24 @@ process_cursor_motion(struct server *server, uint32_t time)
 		}
 	}
 
-	/* Required for iconify/maximize/close button mouse-over deco */
+	/* SSD button mouse-over */
+	struct ssd_hover_state *hover = &server->ssd_hover_state;
 	if (ssd_is_button(view_area)) {
-		if (last_button_hover != view_area) {
-			/* Cursor entered new button area */
-			//damage_whole_current_output(server);
-			last_button_hover = view_area;
+		/* Cursor entered new button area */
+		if (hover->view != view || hover->type != view_area) {
+			if (hover->node) {
+				wlr_scene_node_set_enabled(hover->node, false);
+			}
+			hover->view = view;
+			hover->type = view_area;
+			hover->node = ssd_button_hover_enable(view, view_area);
 		}
-	} else if (last_button_hover != LAB_SSD_NONE) {
+	} else if (hover->node) {
 		/* Cursor left button area */
-		//damage_whole_current_output(server);
-		last_button_hover = LAB_SSD_NONE;
+		wlr_scene_node_set_enabled(hover->node, false);
+		hover->view = NULL;
+		hover->type = LAB_SSD_NONE;
+		hover->node = NULL;
 	}
 
 	if (surface &&

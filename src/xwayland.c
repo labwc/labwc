@@ -258,7 +258,6 @@ map(struct view *view)
 	}
 	view->surface = view->xwayland_surface->surface;
 
-	view->scene_tree = wlr_scene_tree_create(&view->server->view_tree->node);
 	view->scene_node = wlr_scene_subsurface_tree_create(
 		&view->scene_tree->node, view->surface);
 	if (!view->scene_node) {
@@ -376,6 +375,7 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	view->impl = &xwl_view_impl;
 	view->xwayland_surface = xsurface;
 
+	view->scene_tree = wlr_scene_tree_create(&view->server->view_tree->node);
 	xsurface->data = view;
 
 	view->map.notify = handle_map;

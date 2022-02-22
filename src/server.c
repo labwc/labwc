@@ -224,8 +224,11 @@ server_init(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 	server->view_tree = wlr_scene_tree_create(&server->scene->node);
-	server->osd_tree = wlr_scene_tree_create(&server->scene->node);
+#if HAVE_XWAYLAND
+	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->node);
+#endif
 	server->menu_tree = wlr_scene_tree_create(&server->scene->node);
+	server->osd_tree = wlr_scene_tree_create(&server->scene->node);
 	wlr_scene_attach_output_layout(server->scene, server->output_layout);
 
 	/*
@@ -406,6 +409,8 @@ server_start(struct server *server)
 void
 server_finish(struct server *server)
 {
+
+/* TODO: clean up various scene_tree nodes */
 #if HAVE_XWAYLAND
 	wlr_xwayland_destroy(server->xwayland);
 #endif

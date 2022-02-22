@@ -12,6 +12,17 @@
 #include "ssd.h"
 #include "config/mousebind.h"
 
+static bool
+is_surface(enum ssd_part_type view_area)
+{
+	return view_area == LAB_SSD_CLIENT
+		|| view_area == LAB_SSD_LAYER_SURFACE
+#if HAVE_XWAYLAND
+		|| view_area == LAB_SSD_UNMANAGED
+#endif
+		;
+}
+
 void
 cursor_rebase(struct seat *seat, uint32_t time_msec)
 {
@@ -22,7 +33,7 @@ cursor_rebase(struct seat *seat, uint32_t time_msec)
 
 	desktop_node_and_view_at(seat->server, seat->cursor->x,
 		seat->cursor->y, &node, &sx, &sy, &view_area);
-	if (view_area == LAB_SSD_CLIENT || view_area == LAB_SSD_LAYER_SURFACE) {
+	if (is_surface(view_area)) {
 		surface = wlr_scene_surface_from_node(node)->surface;
 	}
 
@@ -198,7 +209,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 		&sx, &sy, &view_area);
 
 	struct wlr_surface *surface = NULL;
-	if (view_area == LAB_SSD_CLIENT || view_area == LAB_SSD_LAYER_SURFACE) {
+	if (is_surface(view_area)) {
 		surface = wlr_scene_surface_from_node(node)->surface;
 	}
 
@@ -206,23 +217,21 @@ process_cursor_motion(struct server *server, uint32_t time)
 	uint32_t resize_edges = ssd_resize_edges(view_area);
 
 	/* Set cursor */
-	if (!view) {
-		/* root, etc. */
+	if (view_area == LAB_SSD_ROOT || view_area == LAB_SSD_MENU) {
 		cursor_set(&server->seat, XCURSOR_DEFAULT);
-	} else {
-		if (resize_edges) {
-			cursor_name_set_by_server = true;
-			cursor_set(&server->seat,
-				wlr_xcursor_get_resize_name(resize_edges));
-		} else if (ssd_part_contains(LAB_SSD_PART_TITLEBAR, view_area)) {
-			/* title and buttons */
-			cursor_set(&server->seat, XCURSOR_DEFAULT);
-			cursor_name_set_by_server = true;
-		} else if (cursor_name_set_by_server) {
-			/* window content */
-			cursor_set(&server->seat, XCURSOR_DEFAULT);
-			cursor_name_set_by_server = false;
-		}
+	} else if (resize_edges) {
+		cursor_name_set_by_server = true;
+		cursor_set(&server->seat,
+			wlr_xcursor_get_resize_name(resize_edges));
+	} else if (ssd_part_contains(LAB_SSD_PART_TITLEBAR, view_area)) {
+		/* title and buttons */
+		cursor_set(&server->seat, XCURSOR_DEFAULT);
+		cursor_name_set_by_server = true;
+	} else if (cursor_name_set_by_server) {
+		/* xdg/xwindow window content */
+		/* layershell or unmanaged */
+		cursor_set(&server->seat, XCURSOR_DEFAULT);
+		cursor_name_set_by_server = false;
 	}
 
 	if (view_area == LAB_SSD_MENU) {
@@ -496,6 +505,13 @@ handle_release_mousebinding(struct view *view, struct server *server,
 					break;
 				}
 				continue;
+			case MOUSE_ACTION_DRAG:
+				if (mousebind->pressed_in_context) {
+					/* Swallow the release event as well as the press one */
+					activated_any = true;
+					activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
+				}
+				continue;
 			default:
 				continue;
 			}
@@ -565,6 +581,9 @@ handle_press_mousebinding(struct view *view, struct server *server,
 				 * counted as a DOUBLECLICK.
 				 */
 				if (!double_click) {
+					/* Swallow the press event as well as the release one */
+					activated_any = true;
+					activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
 					mousebind->pressed_in_context = true;
 				}
 				continue;
@@ -601,7 +620,15 @@ cursor_button(struct wl_listener *listener, void *data)
 	double sx, sy;
 	struct wlr_scene_node *node;
 	enum ssd_part_type view_area = LAB_SSD_NONE;
-	uint32_t resize_edges;
+	uint32_t resize_edges = 0;
+
+	/**
+	 * Used in WLR_BUTTON_RELEASED, set on WLR_BUTTON_PRESSED
+	 *
+	 * Automatically initialized with 0 / false and
+	 * checkpatch.pl complains when done manually.
+	 */
+	static bool close_menu;
 
 	/* bindings to the Frame context swallow mouse events if activated */
 	bool triggered_frame_binding = false;
@@ -611,7 +638,7 @@ cursor_button(struct wl_listener *listener, void *data)
 		&sx, &sy, &view_area);
 
 	struct wlr_surface *surface = NULL;
-	if (view_area == LAB_SSD_CLIENT || view_area == LAB_SSD_LAYER_SURFACE) {
+	if (is_surface(view_area)) {
 		surface = wlr_scene_surface_from_node(node)->surface;
 	}
 
@@ -622,9 +649,17 @@ cursor_button(struct wl_listener *listener, void *data)
 	/* handle _release_ */
 	if (event->state == WLR_BUTTON_RELEASED) {
 		if (server->input_mode == LAB_INPUT_STATE_MENU) {
+			if (close_menu) {
+				if (server->menu_current) {
+					menu_close(server->menu_current);
+					server->menu_current = NULL;
+				}
+				server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+				cursor_rebase(&server->seat, event->time_msec);
+				close_menu = false;
+			}
 			return;
 		}
-		damage_all_outputs(server);
 		if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 			/* Exit interactive move/resize/menu mode. */
 			if (server->grabbed_view == view) {
@@ -634,63 +669,41 @@ cursor_button(struct wl_listener *listener, void *data)
 				server->grabbed_view = NULL;
 			}
 			cursor_rebase(&server->seat, event->time_msec);
-		}
-
-		/* Handle _release_ on root window */
-		if (!view) {
-			handle_release_mousebinding(NULL, server, event->button,
-				modifiers, LAB_SSD_ROOT, 0);
+			return;
 		}
 		goto mousebindings;
 	}
 
+	/* Handle _press */
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
-		if (!server->menu_current) {
-			wlr_log(WLR_ERROR,
-				"on mouse button input_mode STATE_MENU but no current menu");
-		} else if (view_area != LAB_SSD_MENU) {
-			menu_close(server->menu_current);
-			server->menu_current = NULL;
-		} else if (!menu_call_actions(server->menu_current, node)) {
-			/* Action was not successfull, maybe this menu has a submenu */
-			return;
+		if (view_area != LAB_SSD_MENU) {
+			/* We close the menu on release so we don't leak a stray release */
+			close_menu = true;
+		} else if (menu_call_actions(server->menu_current, node)) {
+			/* Action was successfull, may fail if item contains a submenu */
+			close_menu = true;
 		}
-		/* TODO: following causes stray release */
-		/* Maybe add LAB_INPUT_STATE_IGNORE_MOUSE_RELEASE ? */
-		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
-		cursor_rebase(&server->seat, event->time_msec);
 		return;
 	}
 
 	/* Handle _press_ on a layer surface */
-	if (view_area == LAB_SSD_LAYER_SURFACE && surface) {
-		if (!wlr_surface_is_layer_surface(surface)) {
-			return;
-		}
+	if (view_area == LAB_SSD_LAYER_SURFACE) {
 		struct wlr_layer_surface_v1 *layer =
 			wlr_layer_surface_v1_from_wlr_surface(surface);
 		if (layer->current.keyboard_interactive) {
 			seat_set_focus_layer(&server->seat, layer);
 		}
-		wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
-			event->button, event->state);
-		return;
 	}
 
-	/* Handle _press_ on root window */
-	if (!view) {
-		handle_press_mousebinding(NULL, server,
-			event->button, modifiers, LAB_SSD_ROOT, 0);
-		return;
-	}
-
-	/* Determine closest resize edges in case action is Resize */
-	resize_edges = ssd_resize_edges(view_area);
-	if (!resize_edges) {
-		resize_edges |= server->seat.cursor->x < view->x + view->w / 2
-			? WLR_EDGE_LEFT : WLR_EDGE_RIGHT;
-		resize_edges |= server->seat.cursor->y < view->y + view->h / 2
-			? WLR_EDGE_TOP : WLR_EDGE_BOTTOM;
+	if (view) {
+		/* Determine closest resize edges in case action is Resize */
+		resize_edges = ssd_resize_edges(view_area);
+		if (!resize_edges) {
+			resize_edges |= server->seat.cursor->x < view->x + view->w / 2
+				? WLR_EDGE_LEFT : WLR_EDGE_RIGHT;
+			resize_edges |= server->seat.cursor->y < view->y + view->h / 2
+				? WLR_EDGE_TOP : WLR_EDGE_BOTTOM;
+		}
 	}
 
 mousebindings:
@@ -703,7 +716,7 @@ mousebindings:
 			server, event->button, modifiers,
 			view_area, resize_edges);
 	}
-	if (!triggered_frame_binding) {
+	if (surface && !triggered_frame_binding) {
 		/* Notify client with pointer focus of button press */
 		wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
 			event->button, event->state);

@@ -143,9 +143,6 @@ struct server {
 	struct seat seat;
 	struct wlr_scene *scene;
 
-	/* Tree for all non-layer xdg/xwayland-shell surfaces */
-	struct wlr_scene_tree *view_tree;
-
 	/* cursor interactive */
 	enum input_mode input_mode;
 	struct view *grabbed_view;
@@ -157,8 +154,16 @@ struct server {
 	struct view *ssd_focused_view;
 	struct ssd_hover_state ssd_hover_state;
 
-	struct wlr_scene_tree *osd_tree;
+	/* Tree for all non-layer xdg/xwayland-shell surfaces */
+	struct wlr_scene_tree *view_tree;
+#if HAVE_XWAYLAND
+	/* Tree for unmanaged xsurfaces without initialized view (usually popups) */
+	struct wlr_scene_tree *unmanaged_tree;
+#endif
+	/* Tree for built in menu */
 	struct wlr_scene_tree *menu_tree;
+	/* Tree for built in OSD / app switcher */
+	struct wlr_scene_tree *osd_tree;
 
 	struct wl_list outputs;
 	struct wl_listener new_output;
@@ -415,9 +420,29 @@ bool isfocusable(struct view *view);
 
 /**
  * desktop_node_and_view_at - find view and scene_node at (lx, ly)
- * Note: If node points to layer-surface, view_area will be set
- * to LAB_SSD_LAYER_SURFACE, if view points to another surface
- * view_area will be LAB_SSD_CLIENT
+ *
+ * Behavior if node points to a surface:
+ *  - If surface is a layer-surface, *view_area will be
+ *    set to LAB_SSD_LAYER_SURFACE and view will be NULL.
+ *
+ *  - If surface is a 'lost' unmanaged xsurface (one
+ *    with a never-mapped parent view), *view_area will
+ *    be set to LAB_SSD_UNMANAGED and view will be NULL.
+ *
+ *    'Lost' unmanaged xsurfaces are usually caused by
+ *    X11 applications opening popups without setting
+ *    the main window as parent. Example: VLC submenus.
+ *
+ *  - Any other surface will cause *view_area be set to
+ *    LAB_SSD_CLIENT and return the attached view.
+ *
+ * Behavior if node points to internal elements:
+ *  - *view_area will be set to the appropiate enum value
+ *    and view will be NULL if the node is not part of the SSD.
+ *
+ * If no node is found for the given layout coordinates,
+ * *view_area will be set to LAB_SSD_ROOT and view will be NULL.
+ *
  */
 struct view *desktop_node_and_view_at(struct server *server, double lx,
 	double ly, struct wlr_scene_node **scene_node, double *sx, double *sy,

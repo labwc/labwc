@@ -266,7 +266,7 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 
 	*scene_node = node;
 	if (!node) {
-		*view_area = LAB_SSD_NONE;
+		*view_area = LAB_SSD_ROOT;
 		return NULL;
 	}
 	if (node->type == WLR_SCENE_NODE_SURFACE) {
@@ -276,6 +276,12 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 			*view_area = LAB_SSD_LAYER_SURFACE;
 			return NULL;
 		}
+#if HAVE_XWAYLAND
+		if (node->parent == &server->unmanaged_tree->node) {
+			*view_area = LAB_SSD_UNMANAGED;
+			return NULL;
+		}
+#endif
 	}
 	struct wlr_scene_node *osd = &server->osd_tree->node;
 	struct wlr_scene_node *menu = &server->menu_tree->node;

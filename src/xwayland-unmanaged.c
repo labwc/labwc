@@ -32,7 +32,7 @@ parent_view(struct server *server, struct wlr_xwayland_surface *surface)
 	}
 	struct view *view;
 	wl_list_for_each(view, &server->views, link) {
-		if (view->surface == s->surface) {
+		if (view->xwayland_surface == s) {
 			return view;
 		}
 	}
@@ -59,11 +59,20 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 		seat_focus_surface(&unmanaged->server->seat, xsurface->surface);
 	}
 
+	int lx = unmanaged->lx;
+	int ly = unmanaged->ly;
+	struct wlr_scene_node *parent, *node;
 	struct view *view = parent_view(unmanaged->server, xsurface);
-	struct wlr_scene_node *node = wlr_scene_subsurface_tree_create(
-		view->scene_node, xsurface->surface);
-	wlr_scene_node_set_position(node, unmanaged->lx - view->x,
-		unmanaged->ly - view->y);
+	if (!view || !view->scene_tree) {
+		parent = &view->server->unmanaged_tree->node;
+	} else {
+		lx -= view->x;
+		ly -= view->y;
+		parent = &view->scene_tree->node;
+	}
+	/* node will be destroyed automatically once surface is destroyed */
+	node = &wlr_scene_surface_create(parent, xsurface->surface)->node;
+	wlr_scene_node_set_position(node, lx, ly);
 }
 
 static void

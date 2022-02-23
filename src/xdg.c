@@ -299,8 +299,12 @@ xdg_toplevel_view_get_string_prop(struct view *view, const char *prop)
 static void
 xdg_toplevel_view_map(struct view *view)
 {
+	if (view->mapped) {
+		return;
+	}
 	view->mapped = true;
 	view->surface = view->xdg_surface->surface;
+	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 	if (!view->been_mapped) {
 		struct wlr_xdg_toplevel_requested *requested =
 			&view->xdg_surface->toplevel->requested;
@@ -340,9 +344,7 @@ xdg_toplevel_view_unmap(struct view *view)
 {
 	if (view->mapped) {
 		view->mapped = false;
-		damage_all_outputs(view->server);
-		wlr_scene_node_destroy(view->scene_node);
-		ssd_hide(view);
+		wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 		wl_list_remove(&view->commit.link);
 		desktop_focus_topmost_mapped_view(view->server);
 	}
@@ -391,14 +393,13 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->xdg_surface = xdg_surface;
 
 	view->scene_tree = wlr_scene_tree_create(&view->server->view_tree->node);
+	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 
 	view->scene_node = wlr_scene_xdg_surface_create(
 		&view->scene_tree->node, view->xdg_surface);
 	if (!view->scene_node) {
-		wlr_scene_node_destroy(&view->scene_tree->node);
-		view->scene_tree = NULL;
+		/* TODO: might need further clean up */
 		wl_resource_post_no_memory(view->surface->resource);
-		/* TODO: should we free(view) here? */
 		return;
 	}
 	view->scene_tree->node.data = view;

@@ -246,7 +246,11 @@ top_left_edge_boundary_check(struct view *view)
 static void
 map(struct view *view)
 {
+	if (view->mapped) {
+		return;
+	}
 	view->mapped = true;
+	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 	if (!view->fullscreen && view->xwayland_surface->fullscreen) {
 		view_set_fullscreen(view, true, NULL);
 	}
@@ -256,18 +260,17 @@ map(struct view *view)
 		view->w = view->xwayland_surface->width;
 		view->h = view->xwayland_surface->height;
 	}
-	view->surface = view->xwayland_surface->surface;
 
-	view->scene_node = wlr_scene_subsurface_tree_create(
-		&view->scene_tree->node, view->surface);
-	if (!view->scene_node) {
-		wlr_scene_node_destroy(&view->scene_tree->node);
-		view->scene_tree = NULL;
-		wl_resource_post_no_memory(view->surface->resource);
-		/* TODO: should we free(view) here? */
-		return;
+	if (view->surface != view->xwayland_surface->surface) {
+		view->surface = view->xwayland_surface->surface;
+		view->scene_node = wlr_scene_subsurface_tree_create(
+			&view->scene_tree->node, view->surface);
+		if (!view->scene_node) {
+			/* TODO: might need further clean up */
+			wl_resource_post_no_memory(view->surface->resource);
+			return;
+		}
 	}
-	view->scene_tree->node.data = view;
 
 	view->ssd.enabled = want_deco(view);
 
@@ -308,9 +311,8 @@ unmap(struct view *view)
 {
 	if (view->mapped) {
 		view->mapped = false;
-		damage_all_outputs(view->server);
+		wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 		wl_list_remove(&view->commit.link);
-		ssd_hide(view);
 		desktop_focus_topmost_mapped_view(view->server);
 	}
 }
@@ -376,6 +378,7 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	view->xwayland_surface = xsurface;
 
 	view->scene_tree = wlr_scene_tree_create(&view->server->view_tree->node);
+	view->scene_tree->node.data = view;
 	xsurface->data = view;
 
 	view->map.notify = handle_map;

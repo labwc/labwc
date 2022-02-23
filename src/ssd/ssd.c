@@ -149,12 +149,10 @@ ssd_create(struct view *view)
 {
 	if (view->ssd.tree) {
 		/* SSD was hidden. Just enable it */
-		wlr_log(WLR_ERROR, "Unhiding SSD");
 		wlr_scene_node_set_enabled(&view->ssd.tree->node, true);
 		return;
 	}
 
-	wlr_log(WLR_ERROR, "Creating SSD");
 	view->ssd.tree = wlr_scene_tree_create(&view->scene_tree->node);
 	wlr_scene_node_lower_to_bottom(&view->ssd.tree->node);
 	ssd_extents_create(view);
@@ -223,8 +221,6 @@ ssd_destroy(struct view *view)
 	if (!view->ssd.tree) {
 		return;
 	}
-
-	wlr_log(WLR_ERROR, "Destroying SSD");
 
 	/* Maybe reset focused view */
 	if (view->server->ssd_focused_view == view) {

@@ -57,6 +57,8 @@ handle_commit(struct wl_listener *listener, void *data)
 		if (serial == view->xdg_surface->current.configure_serial) {
 			view->pending_move_resize.configure_serial = 0;
 		}
+		wlr_scene_node_set_position(&view->scene_tree->node,
+			view->x, view->y);
 	}
 	ssd_update_geometry(view);
 	damage_view_part(view);

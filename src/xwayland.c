@@ -12,6 +12,8 @@ handle_commit(struct wl_listener *listener, void *data)
 	/* Must receive commit signal before accessing surface->current* */
 	view->w = view->surface->current.width;
 	view->h = view->surface->current.height;
+	bool move_pending = view->pending_move_resize.update_x
+		|| view->pending_move_resize.update_y;
 
 	if (view->pending_move_resize.update_x) {
 		view->x = view->pending_move_resize.x +
@@ -22,6 +24,10 @@ handle_commit(struct wl_listener *listener, void *data)
 		view->y = view->pending_move_resize.y +
 			view->pending_move_resize.height - view->h;
 		view->pending_move_resize.update_y = false;
+	}
+	if (move_pending) {
+		wlr_scene_node_set_position(&view->scene_tree->node,
+			view->x, view->y);
 	}
 	ssd_update_geometry(view);
 	damage_view_whole(view);

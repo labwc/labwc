@@ -48,7 +48,6 @@ view_move_resize(struct view *view, struct wlr_box geo)
 	}
 	ssd_update_title(view);
 	view_discover_output(view);
-	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
 }
 
 #define MIN_VIEW_WIDTH (100)
@@ -150,7 +149,6 @@ view_center(struct view *view)
 	if (view_compute_centered_position(view, view->w, view->h, &x, &y)) {
 		view_move(view, x, y);
 	}
-	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
 }
 
 static void
@@ -226,7 +224,6 @@ view_maximize(struct view *view, bool maximize)
 	if (view->fullscreen) {
 		return;
 	}
-	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
 	if (view->impl->maximize) {
 		view->impl->maximize(view, maximize);
 	}

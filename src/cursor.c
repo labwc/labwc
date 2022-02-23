@@ -643,8 +643,8 @@ cursor_button(struct wl_listener *listener, void *data)
 	}
 
 	/* get modifiers */
-	struct wlr_input_device *device = seat->keyboard_group->input_device;
-	uint32_t modifiers = wlr_keyboard_get_modifiers(device->keyboard);
+	struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
+	uint32_t modifiers = wlr_keyboard_get_modifiers(keyboard);
 
 	/* handle _release_ */
 	if (event->state == WLR_BUTTON_RELEASED) {

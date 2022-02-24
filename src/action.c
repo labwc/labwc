@@ -129,7 +129,8 @@ activator_or_focused_view(struct view *activator, struct server *server)
 }
 
 void
-action(struct view *activator, struct server *server, struct wl_list *actions, uint32_t resize_edges)
+actions_run(struct view *activator, struct server *server,
+	struct wl_list *actions, uint32_t resize_edges)
 {
 	if (!actions) {
 		wlr_log(WLR_ERROR, "empty actions");

@@ -14,7 +14,7 @@ struct action {
 struct action *action_create(const char *action_name);
 void action_list_free(struct wl_list *action_list);
 
-void action(struct view *activator, struct server *server,
+void actions_run(struct view *activator, struct server *server,
 	struct wl_list *actions, uint32_t resize_edges);
 
 #endif

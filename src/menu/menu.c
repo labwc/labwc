@@ -574,7 +574,7 @@ menu_call_actions(struct menu *menu, struct wlr_scene_node *node)
 			/* ..but it just opens a submenu */
 			return false;
 		}
-		action(NULL, menu->server, &menu->selection.item->actions, 0);
+		actions_run(NULL, menu->server, &menu->selection.item->actions, 0);
 		menu_close(menu->server->menu_current);
 		menu->server->menu_current = NULL;
 		return true;

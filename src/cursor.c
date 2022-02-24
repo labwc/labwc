@@ -261,7 +261,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 			}
 
 			mousebind->pressed_in_context = false;
-			action(NULL, server, &mousebind->actions, resize_edges);
+			actions_run(NULL, server, &mousebind->actions, resize_edges);
 		}
 	}
 
@@ -517,7 +517,7 @@ handle_release_mousebinding(struct view *view, struct server *server,
 			}
 			activated_any = true;
 			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
-			action(view, server, &mousebind->actions, resize_edges);
+			actions_run(view, server, &mousebind->actions, resize_edges);
 		}
 	}
 	/*
@@ -599,7 +599,7 @@ handle_press_mousebinding(struct view *view, struct server *server,
 			}
 			activated_any = true;
 			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
-			action(view, server, &mousebind->actions, resize_edges);
+			actions_run(view, server, &mousebind->actions, resize_edges);
 		}
 	}
 	return activated_any && activated_any_frame;

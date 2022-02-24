@@ -17,7 +17,7 @@ void
 ssd_titlebar_create(struct view *view)
 {
 	struct theme *theme = view->server->theme;
-	int width = view->surface->current.width;
+	int width = view->w;
 	int full_width = width + 2 * theme->border_width;
 
 	float *color;
@@ -72,7 +72,7 @@ is_direct_child(struct wlr_scene_node *node, struct ssd_sub_tree *subtree)
 void
 ssd_titlebar_update(struct view *view)
 {
-	int width = view->surface->current.width;
+	int width = view->w;
 	if (width == view->ssd.state.width) {
 		return;
 	}
@@ -144,7 +144,7 @@ static void
 ssd_update_title_positions(struct view *view)
 {
 	struct theme *theme = view->server->theme;
-	int width = view->surface->current.width;
+	int width = view->w;
 	int full_width = width + 2 * view->server->theme->border_width;
 
 	int x, y;
@@ -154,8 +154,7 @@ ssd_update_title_positions(struct view *view)
 	FOR_EACH_STATE(view, subtree) {
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLE);
 		if (!part) {
-			wlr_log(WLR_ERROR,
-				"Failed to position SSD title: title node not found");
+			/* view->surface never been mapped */
 			continue;
 		}
 
@@ -163,8 +162,6 @@ ssd_update_title_positions(struct view *view)
 		y = (SSD_HEIGHT - part->buffer->base.height) / 2;
 		rect = lab_wlr_scene_get_rect(part->node->parent);
 		if (rect->width <= 0) {
-			wlr_log(WLR_ERROR,
-				"Failed to position SSD title: not enough screen space");
 			wlr_scene_node_set_position(part->node, x, y);
 			continue;
 		}
@@ -221,17 +218,8 @@ ssd_update_title(struct view *view)
 	struct ssd_state_title_width *dstate;
 	FOR_EACH_STATE(view, subtree) {
 		parent_part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR);
-		if (!parent_part) {
-			wlr_log(WLR_ERROR,
-				"Failed to update SSD title: parent node not found");
-			continue;
-		}
-		rect = lab_wlr_scene_get_rect(parent_part->node);
-		if (rect->width <= 0) {
-			wlr_log(WLR_ERROR,
-				"Failed to update SSD title: not enough screen space");
-			continue;
-		}
+		assert(parent_part);
+
 		if (subtree == &view->ssd.titlebar.active) {
 			dstate = &state->active;
 			text_color = theme->window_active_label_text_color;
@@ -239,11 +227,19 @@ ssd_update_title(struct view *view)
 			dstate = &state->inactive;
 			text_color = theme->window_inactive_label_text_color;
 		}
+
+		rect = lab_wlr_scene_get_rect(parent_part->node);
+		if (rect->width <= 0) {
+			dstate->truncated = true;
+			continue;
+		}
+
 		if (title_unchanged
 				&& !dstate->truncated && dstate->width < rect->width) {
 			/* title the same + we don't need to resize title */
 			continue;
 		}
+
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLE);
 		if (!part) {
 			part = add_scene_part(&subtree->parts, LAB_SSD_PART_TITLE);

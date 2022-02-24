@@ -11,8 +11,8 @@ ssd_extents_create(struct view *view)
 	struct theme *theme = view->server->theme;
 	float invisible[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	struct wl_list *part_list = &view->ssd.extents.parts;
-	int width = view->surface->current.width;
-	int height = view->surface->current.height;
+	int width = view->w;
+	int height = view->h;
 	int full_height = height + theme->border_width + SSD_HEIGHT;
 	int full_width = width + 2 * theme->border_width;
 	int extended_area = EXTENDED_AREA;
@@ -61,8 +61,8 @@ ssd_extents_update(struct view *view)
 {
 	struct theme *theme = view->server->theme;
 
-	int width = view->surface->current.width;
-	int height = view->surface->current.height;
+	int width = view->w;
+	int height = view->h;
 	int full_height = height + theme->border_width + SSD_HEIGHT;
 	int full_width = width + 2 * theme->border_width;
 	int extended_area = EXTENDED_AREA;

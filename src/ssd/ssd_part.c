@@ -18,6 +18,15 @@ add_scene_rect(struct wl_list *list, enum ssd_part_type type,
 	struct wlr_scene_node *parent, int width, int height,
 	int x, int y, float color[4])
 {
+	/*
+	 * When initialized without surface being mapped,
+	 * size may be negative. Just set to 0, next call
+	 * to ssd_*_update() will update the rect to use
+	 * its correct size.
+	 */
+	width = width >= 0 ? width : 0;
+	height = height >= 0 ? height : 0;
+
 	struct ssd_part *part = add_scene_part(list, type);
 	part->node = &wlr_scene_rect_create(
 		parent, width, height, color)->node;

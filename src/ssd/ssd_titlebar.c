@@ -255,10 +255,12 @@ ssd_update_title(struct view *view)
 		dstate->truncated = rect->width <= dstate->width;
 	} FOR_EACH_END
 
-	if (state->text) {
-		free(state->text);
+	if (!title_unchanged) {
+		if (state->text) {
+			free(state->text);
+		}
+		state->text = strdup(title);
 	}
-	state->text = strdup(title);
 	ssd_update_title_positions(view);
 }
 

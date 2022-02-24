@@ -79,7 +79,8 @@ action_create(const char *action_name)
 	return action;
 }
 
-void action_list_free(struct wl_list *action_list) {
+void action_list_free(struct wl_list *action_list)
+{
 	struct action *action, *action_tmp;
 	wl_list_for_each_safe(action, action_tmp, action_list, link) {
 		wl_list_remove(&action->link);

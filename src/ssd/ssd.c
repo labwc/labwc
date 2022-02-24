@@ -164,7 +164,7 @@ void
 ssd_update_geometry(struct view *view)
 {
 	/* TODO: verify we are not called without reason. like in commit handlers */
-	if (!view->ssd.tree || !view->surface) {
+	if (!view->ssd.tree || !view->scene_node) {
 		return;
 	}
 
@@ -175,8 +175,8 @@ ssd_update_geometry(struct view *view)
 		wlr_scene_node_set_enabled(&view->ssd.tree->node, false);
 	}
 
-	int width = view->surface->current.width;
-	int height = view->surface->current.height;
+	int width = view->w;
+	int height = view->h;
 	if (width == view->ssd.state.width && height == view->ssd.state.height) {
 		return;
 	}

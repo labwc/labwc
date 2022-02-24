@@ -358,9 +358,37 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 	wlr_output_layout_output_coords(output->server->output_layout,
 		wlr_output, &ox, &oy);
 
+	/* Overlay-layer popups */
+	*surface = layer_surface_popup_at(output,
+			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
+			ox, oy, sx, sy);
+	if (*surface) {
+		return NULL;
+	}
+
 	/* Overlay-layer */
 	*surface = layer_surface_at(
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
+			ox, oy, sx, sy);
+	if (*surface) {
+		return NULL;
+	}
+
+	/* Check for other layer popups */
+	*surface = layer_surface_popup_at(output,
+			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
+			ox, oy, sx, sy);
+	if (*surface) {
+		return NULL;
+	}
+	*surface = layer_surface_popup_at(output,
+			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
+			ox, oy, sx, sy);
+	if (*surface) {
+		return NULL;
+	}
+	*surface = layer_surface_popup_at(output,
+			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
 			ox, oy, sx, sy);
 	if (*surface) {
 		return NULL;
@@ -382,26 +410,6 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 	}
 #endif
 
-	/* Check all layer popups */
-	*surface = layer_surface_popup_at(output,
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-	*surface = layer_surface_popup_at(output,
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-	*surface = layer_surface_popup_at(output,
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-
 	/* Top-layer */
 	*surface = layer_surface_at(
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
@@ -410,6 +418,7 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 		return NULL;
 	}
 
+	/* Usual views */
 	struct view *view;
 	wl_list_for_each (view, &server->views, link) {
 		if (!view->mapped) {
@@ -432,6 +441,7 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 		}
 	}
 
+	/* Bottom and Background layers */
 	*surface = layer_surface_at(
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
 			ox, oy, sx, sy);

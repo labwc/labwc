@@ -519,7 +519,7 @@ void
 menu_process_cursor_motion(struct menu *menu, struct wlr_scene_node *node)
 {
 	if (!node) {
-		wlr_log(WLR_ERROR, "menu_process_cursor_motion() node == NULL");
+		wlr_log(WLR_ERROR, "%s() node == NULL", __func__);
 		return;
 	}
 	assert(menu);

@@ -274,7 +274,7 @@ struct view {
 	 */
 	struct border padding;
 
-	struct {
+	struct view_pending_move_resize {
 		bool update_x, update_y;
 		double x, y;
 		uint32_t width, height;

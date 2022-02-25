@@ -10,27 +10,37 @@ handle_commit(struct wl_listener *listener, void *data)
 	assert(view->surface);
 
 	/* Must receive commit signal before accessing surface->current* */
-	view->w = view->surface->current.width;
-	view->h = view->surface->current.height;
-	bool move_pending = view->pending_move_resize.update_x
-		|| view->pending_move_resize.update_y;
+	struct wlr_surface_state *state = &view->surface->current;
+	struct view_pending_move_resize *pending = &view->pending_move_resize;
 
-	if (view->pending_move_resize.update_x) {
-		view->x = view->pending_move_resize.x +
-			view->pending_move_resize.width - view->w;
-		view->pending_move_resize.update_x = false;
+	bool move_pending = pending->update_x || pending->update_y;
+	bool size_changed = view->w != state->width || view->h != state->height;
+
+	if (!move_pending && !size_changed) {
+		return;
 	}
-	if (view->pending_move_resize.update_y) {
-		view->y = view->pending_move_resize.y +
-			view->pending_move_resize.height - view->h;
-		view->pending_move_resize.update_y = false;
+
+	view->w = state->width;
+	view->h = state->height;
+
+	if (pending->update_x) {
+		/* Adjust x for queued up configure events */
+		view->x = pending->x + pending->width - view->w;
+	}
+	if (pending->update_y) {
+		/* Adjust y for queued up configure events */
+		view->y = pending->y + pending->height - view->h;
 	}
 	if (move_pending) {
 		wlr_scene_node_set_position(&view->scene_tree->node,
 			view->x, view->y);
 	}
+	if ((int)pending->width == view->w && (int)pending->height == view->h) {
+		/* We reached the end of all queued size changing configure events */
+		pending->update_x = false;
+		pending->update_y = false;
+	}
 	ssd_update_geometry(view);
-	damage_view_whole(view);
 }
 
 static void

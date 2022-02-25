@@ -65,12 +65,6 @@ struct ssd_state_title_width {
 	bool truncated;
 };
 
-struct ssd_state_title {
-	char *text;
-	struct ssd_state_title_width active;
-	struct ssd_state_title_width inactive;
-};
-
 struct ssd {
 	bool enabled;
 	struct wlr_scene_tree *tree;
@@ -83,7 +77,11 @@ struct ssd {
 	struct {
 		int width;
 		int height;
-		struct ssd_state_title title;
+		struct ssd_state_title {
+			char *text;
+			struct ssd_state_title_width active;
+			struct ssd_state_title_width inactive;
+		} title;
 	} state;
 
 	/* An invisble area around the view which allows resizing */

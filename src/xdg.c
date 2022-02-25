@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
 #include "labwc.h"
+#include "node-descriptor.h"
 #include "ssd.h"
 
 static void
@@ -404,7 +405,8 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 		wl_resource_post_no_memory(view->surface->resource);
 		return;
 	}
-	view->scene_tree->node.data = view;
+	node_descriptor_create(&view->scene_tree->node,
+		LAB_NODE_DESC_VIEW, view);
 
 	/* In support of xdg_toplevel_decoration */
 	xdg_surface->data = view;

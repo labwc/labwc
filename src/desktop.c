@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "labwc.h"
 #include "layers.h"
+#include "node-descriptor.h"
 #include "ssd.h"
 
 static void
@@ -285,7 +286,21 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 	}
 	struct wlr_scene_node *osd = &server->osd_tree->node;
 	struct wlr_scene_node *menu = &server->menu_tree->node;
-	while (node && !node->data) {
+	while (node) {
+		struct node_descriptor *desc = node->data;
+		if (desc) {
+			if (desc->type == LAB_NODE_DESC_VIEW) {
+				goto has_view_data;
+			}
+			if (desc->type == LAB_NODE_DESC_XDG_POPUP) {
+				goto has_view_data;
+			}
+			if (desc->type == LAB_NODE_DESC_LAYER_POPUP) {
+				/* FIXME: we shouldn't have to set *view_area */
+				*view_area = LAB_SSD_LAYER_SURFACE;
+				return NULL;
+			}
+		}
 		if (node == osd) {
 			*view_area = LAB_SSD_OSD;
 			return NULL;
@@ -297,10 +312,13 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 	}
 	if (!node) {
 		wlr_log(WLR_ERROR, "Unknown node detected");
-		*view_area = LAB_SSD_NONE;
-		return NULL;
 	}
-	struct view *view = node->data;
+	*view_area = LAB_SSD_NONE;
+	return NULL;
+
+has_view_data:
+	struct node_descriptor *desc = node->data;
+	struct view *view = desc->data;
 	*view_area = ssd_get_part_type(view, *scene_node);
 	return view;
 }

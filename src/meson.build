@@ -11,6 +11,7 @@ labwc_sources = files(
   'key-state.c',
   'layers.c',
   'main.c',
+  'node-descriptor.c',
   'osd.c',
   'output.c',
   'resistance.c',

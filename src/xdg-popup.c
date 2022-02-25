@@ -8,6 +8,7 @@
  */
 
 #include "labwc.h"
+#include "node-descriptor.h"
 
 struct view_child {
 	struct wlr_surface *surface;
@@ -93,6 +94,8 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 	struct wlr_scene_node *parent_node = parent->surface->data;
 	wlr_popup->base->surface->data =
 		wlr_scene_xdg_surface_create(parent_node, wlr_popup->base);
+	node_descriptor_create(wlr_popup->base->surface->data,
+		LAB_NODE_DESC_XDG_POPUP, view);
 
 	popup_unconstrain(view, wlr_popup);
 }

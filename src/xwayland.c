@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
 #include "labwc.h"
+#include "node-descriptor.h"
 #include "ssd.h"
 
 static void
@@ -394,7 +395,8 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	view->xwayland_surface = xsurface;
 
 	view->scene_tree = wlr_scene_tree_create(&view->server->view_tree->node);
-	view->scene_tree->node.data = view;
+	node_descriptor_create(&view->scene_tree->node,
+		LAB_NODE_DESC_VIEW, view);
 	xsurface->data = view;
 
 	view->map.notify = handle_map;

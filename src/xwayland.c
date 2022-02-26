@@ -14,13 +14,19 @@ handle_commit(struct wl_listener *listener, void *data)
 	view->h = view->surface->current.height;
 
 	if (view->pending_move_resize.update_x) {
+		/* Adjust x for queued up configure events */
 		view->x = view->pending_move_resize.x +
 			view->pending_move_resize.width - view->w;
-		view->pending_move_resize.update_x = false;
 	}
 	if (view->pending_move_resize.update_y) {
+		/* Adjust y for queued up configure events */
 		view->y = view->pending_move_resize.y +
 			view->pending_move_resize.height - view->h;
+	}
+	if ((int)view->pending_move_resize.width == view->w
+			&& (int)view->pending_move_resize.height == view->h) {
+		/* We reached the end of all queued size changing configure events */
+		view->pending_move_resize.update_x = false;
 		view->pending_move_resize.update_y = false;
 	}
 	ssd_update_geometry(view, false);

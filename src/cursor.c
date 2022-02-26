@@ -213,6 +213,15 @@ process_cursor_motion(struct server *server, uint32_t time)
 			server->seat.cursor->x, server->seat.cursor->y);
 		damage_all_outputs(server);
 		return;
+	} else if (server->seat.active_view && !server->seat.drag_icon) {
+		/* Button has been pressed while over a view surface */
+		struct view *view = server->seat.active_view;
+		double sx = server->seat.cursor->x - view->x;
+		double sy = server->seat.cursor->y - view->y;
+		sx = sx < 0 ? 0 : (sx > view->w ? view->w : sx);
+		sy = sy < 0 ? 0 : (sy > view->h ? view->h : sy);
+		wlr_seat_pointer_notify_motion(server->seat.seat, time, sx, sy);
+		return;
 	}
 
 	/* Otherwise, find view under the pointer and send the event along */
@@ -321,6 +330,7 @@ start_drag(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, start_drag);
 	struct wlr_drag *wlr_drag = data;
+	seat->active_view = NULL;
 	seat->drag_icon = wlr_drag->icon;
 	wl_signal_add(&seat->drag_icon->events.destroy, &seat->destroy_drag);
 }
@@ -627,6 +637,8 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* handle _release_ */
 	if (event->state == WLR_BUTTON_RELEASED) {
+		server->seat.active_view = NULL;
+
 		if (server->input_mode == LAB_INPUT_STATE_MENU) {
 			return;
 		}
@@ -656,6 +668,11 @@ cursor_button(struct wl_listener *listener, void *data)
 				modifiers, LAB_SSD_ROOT, 0);
 		}
 		goto mousebindings;
+	}
+
+	/* Handle _press */
+	if (view_area == LAB_SSD_CLIENT) {
+		server->seat.active_view = view;
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {

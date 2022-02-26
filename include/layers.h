@@ -8,13 +8,8 @@ struct server;
 
 #define LAB_NR_LAYERS (4)
 
-enum layer_parent {
-	LAYER_PARENT_LAYER,
-	LAYER_PARENT_POPUP,
-};
-
 struct lab_layer_surface {
-	struct wl_list link; /* output::layers[] */
+	struct wl_list link; /* output::layers */
 	struct wlr_scene_layer_surface_v1 *scene_layer_surface;
 
 	struct wl_listener destroy;
@@ -23,37 +18,19 @@ struct lab_layer_surface {
 	struct wl_listener surface_commit;
 	struct wl_listener output_destroy;
 	struct wl_listener new_popup;
-	struct wl_listener new_subsurface;
 
 	struct wlr_box geo;
 	bool mapped;
-	/* TODO: add extent and layer */
+	/* TODO: add extent? */
 	struct server *server;
 };
 
-/* FIXME: do we still need lab_layer_popup and lab_layer_subsurface? */
 struct lab_layer_popup {
 	struct wlr_xdg_popup *wlr_popup;
-	enum layer_parent parent_type;
-	union {
-		struct lab_layer_surface *parent_layer;
-		struct lab_layer_popup *parent_popup;
-	};
-	struct wl_listener map;
-	struct wl_listener unmap;
+	struct wlr_scene_node *scene_node;
+
 	struct wl_listener destroy;
-	struct wl_listener commit;
 	struct wl_listener new_popup;
-};
-
-struct lab_layer_subsurface {
-	struct wlr_subsurface *wlr_subsurface;
-	struct lab_layer_surface *layer_surface;
-
-	struct wl_listener map;
-	struct wl_listener unmap;
-	struct wl_listener destroy;
-	struct wl_listener commit;
 };
 
 void layers_init(struct server *server);

@@ -13,7 +13,7 @@
 #include "config/mousebind.h"
 
 void
-cursor_rebase(struct seat *seat, uint32_t time_msec)
+cursor_rebase(struct seat *seat, uint32_t time_msec, bool force)
 {
 	double sx, sy;
 	struct wlr_surface *surface;
@@ -23,6 +23,20 @@ cursor_rebase(struct seat *seat, uint32_t time_msec)
 		seat->cursor->y, &surface, &sx, &sy, &view_area);
 
 	if (surface) {
+		if (!force && surface == seat->seat->pointer_state.focused_surface) {
+			/*
+			 * Usually we prevent re-entering an already focued surface
+			 * because it sends useless leave and enter events.
+			 *
+			 * They may also seriously confuse clients if sent between
+			 * connected events like a double click (#258) or fast scroll
+			 * events caused by a touchpad (#225).
+			 *
+			 * If we just want to update the cursor image though
+			 * the @force argument may be used to allow re-entering.
+			 */
+			return;
+		}
 		wlr_seat_pointer_notify_clear_focus(seat->seat);
 		wlr_seat_pointer_notify_enter(seat->seat, surface, sx, sy);
 		wlr_seat_pointer_notify_motion(seat->seat, time_msec, sx, sy);
@@ -213,15 +227,6 @@ process_cursor_motion(struct server *server, uint32_t time)
 			server->seat.cursor->x, server->seat.cursor->y);
 		damage_all_outputs(server);
 		return;
-	} else if (server->seat.active_view && !server->seat.drag_icon) {
-		/* Button has been pressed while over a view surface */
-		struct view *view = server->seat.active_view;
-		double sx = server->seat.cursor->x - view->x;
-		double sy = server->seat.cursor->y - view->y;
-		sx = sx < 0 ? 0 : (sx > view->w ? view->w : sx);
-		sy = sy < 0 ? 0 : (sy > view->h ? view->h : sy);
-		wlr_seat_pointer_notify_motion(server->seat.seat, time, sx, sy);
-		return;
 	}
 
 	/* Otherwise, find view under the pointer and send the event along */
@@ -255,7 +260,6 @@ process_cursor_motion(struct server *server, uint32_t time)
 			cursor_name_set_by_server = false;
 		}
 	}
-
 
 	if (view && rc.focus_follow_mouse) {
 		desktop_focus_and_activate_view(&server->seat, view);
@@ -296,7 +300,21 @@ process_cursor_motion(struct server *server, uint32_t time)
 		last_button_hover = LAB_SSD_NONE;
 	}
 
-	if (surface &&
+	if (server->seat.active_view && !server->seat.drag_icon) {
+		/*
+		 * Button has been pressed while over a view surface
+		 * and is still held down. Just send the adjusted motion
+		 * events to the focused surface so we can keep scrolling
+		 * or selecting text even if the cursor moves outside of
+		 * the surface.
+		 */
+		view = server->seat.active_view;
+		double sx = server->seat.cursor->x - view->x;
+		double sy = server->seat.cursor->y - view->y;
+		sx = sx < 0 ? 0 : (sx > view->w ? view->w : sx);
+		sy = sy < 0 ? 0 : (sy > view->h ? view->h : sy);
+		wlr_seat_pointer_notify_motion(server->seat.seat, time, sx, sy);
+	} else if (surface &&
 	    !input_inhibit_blocks_surface(&server->seat, surface->resource)) {
 		bool focus_changed =
 			wlr_seat->pointer_state.focused_surface != surface;
@@ -320,6 +338,9 @@ process_cursor_motion(struct server *server, uint32_t time)
 		/*
 		 * Clear pointer focus so future button events and such are not
 		 * sent to the last client to have the cursor over it.
+		 *
+		 * Except if we started pressing a button on the last client and
+		 * are not currently in drag and drop mode.
 		 */
 		wlr_seat_pointer_clear_focus(wlr_seat);
 	}
@@ -336,7 +357,8 @@ cursor_update_focus(struct server *server)
 {
 	struct timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
-	cursor_rebase(&server->seat, msec(&now));
+	/* Focus surface under cursor if it isn't already focused */
+	cursor_rebase(&server->seat, msec(&now), false);
 }
 
 void
@@ -665,7 +687,8 @@ cursor_button(struct wl_listener *listener, void *data)
 				server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 				server->grabbed_view = NULL;
 			}
-			cursor_rebase(&server->seat, event->time_msec);
+			/* Focus surface under cursor and force updating the cursor icon */
+			cursor_rebase(&server->seat, event->time_msec, true);
 		}
 
 		if (!view) {
@@ -696,7 +719,8 @@ cursor_button(struct wl_listener *listener, void *data)
 			menu_action_selected(server, server->windowmenu);
 		}
 		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
-		cursor_rebase(&server->seat, event->time_msec);
+		/* Focus surface under cursor and force updating the cursor icon */
+		cursor_rebase(&server->seat, event->time_msec, true);
 		return;
 	}
 

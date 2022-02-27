@@ -473,8 +473,9 @@ struct view *desktop_view_at_cursor(struct server *server);
  * cursor_rebase - set cursor icon for and send motion-event to surface below it
  * @seat - current seat
  * @time_msec - time now
+ * @force - disable check for skipping already focused surface
  */
-void cursor_rebase(struct seat *seat, uint32_t time_msec);
+void cursor_rebase(struct seat *seat, uint32_t time_msec, bool force);
 
 /**
  * cursor_set - set cursor icon

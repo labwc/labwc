@@ -23,6 +23,16 @@ cursor_rebase(struct seat *seat, uint32_t time_msec)
 		seat->cursor->y, &surface, &sx, &sy, &view_area);
 
 	if (surface) {
+		struct view *focused_view = desktop_focused_view(seat->server);
+		struct wlr_surface* focused_surface = focused_view
+			? focused_view->surface
+			: NULL;
+
+		/* do not notify unless rebasing changes which surface has focus */
+		if (surface == focused_surface) {
+			return;
+		}
+
 		wlr_seat_pointer_notify_clear_focus(seat->seat);
 		wlr_seat_pointer_notify_enter(seat->seat, surface, sx, sy);
 		wlr_seat_pointer_notify_motion(seat->seat, time_msec, sx, sy);

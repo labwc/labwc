@@ -7,6 +7,7 @@
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_input_inhibitor.h>
+#include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
 #include <wlr/types/wlr_viewporter.h>
@@ -298,6 +299,14 @@ server_init(struct server *server)
 		deco_mgr, rc.xdg_shell_server_side_deco ?
 				  WLR_SERVER_DECORATION_MANAGER_MODE_SERVER :
 				  WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT);
+
+	struct wlr_presentation *presentation =
+		wlr_presentation_create(server->wl_display, server->backend);
+	if (!presentation) {
+		wlr_log(WLR_ERROR, "unable to create presentation interface");
+		exit(EXIT_FAILURE);
+	}
+	wlr_scene_set_presentation(server->scene, presentation);
 
 	wlr_export_dmabuf_manager_v1_create(server->wl_display);
 	wlr_screencopy_manager_v1_create(server->wl_display);

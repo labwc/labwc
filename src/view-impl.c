@@ -12,6 +12,4 @@ view_impl_map(struct view *view)
 
 	view_update_title(view);
 	view_update_app_id(view);
-
-	damage_all_outputs(view->server);
 }

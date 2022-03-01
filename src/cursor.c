@@ -113,7 +113,6 @@ request_start_drag_notify(struct wl_listener *listener, void *data)
 static void
 process_cursor_move(struct server *server, uint32_t time)
 {
-	damage_all_outputs(server);
 	double dx = server->seat.cursor->x - server->grab_x;
 	double dy = server->seat.cursor->y - server->grab_y;
 	struct view *view = server->grabbed_view;
@@ -128,7 +127,6 @@ process_cursor_move(struct server *server, uint32_t time)
 static void
 process_cursor_resize(struct server *server, uint32_t time)
 {
-	damage_all_outputs(server);
 	double dx = server->seat.cursor->x - server->grab_x;
 	double dy = server->seat.cursor->y - server->grab_y;
 

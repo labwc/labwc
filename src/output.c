@@ -186,9 +186,6 @@ output_update_for_layout_change(struct server *server)
 	wlr_cursor_move(server->seat.cursor, NULL, 0, 0);
 	wlr_xcursor_manager_set_cursor_image(server->seat.xcursor_manager,
 		XCURSOR_DEFAULT, server->seat.cursor);
-
-	/* Redraw everything */
-	damage_all_outputs(server);
 }
 
 static void

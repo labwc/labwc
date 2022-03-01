@@ -128,7 +128,6 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	wlr_xwayland_surface_configure(view->xwayland_surface,
 		event->x, event->y, MAX(event->width, min_width),
 		MAX(event->height, min_height));
-	damage_all_outputs(view->server);
 }
 #undef MAX
 
@@ -194,7 +193,6 @@ configure(struct view *view, struct wlr_box geo)
 	wlr_xwayland_surface_configure(view->xwayland_surface, (int16_t)geo.x,
 				       (int16_t)geo.y, (uint16_t)geo.width,
 				       (uint16_t)geo.height);
-	damage_all_outputs(view->server);
 }
 
 static void
@@ -211,7 +209,6 @@ static void
 _close(struct view *view)
 {
 	wlr_xwayland_surface_close(view->xwayland_surface);
-	damage_all_outputs(view->server);
 }
 
 static const char *

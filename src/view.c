@@ -607,7 +607,6 @@ view_update_title(struct view *view)
 	}
 	ssd_update_title(view);
 	wlr_foreign_toplevel_handle_v1_set_title(view->toplevel_handle, title);
-	damage_all_outputs(view->server);
 }
 
 void

@@ -42,7 +42,6 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 	if (server->cycle_view) {
 		struct wlr_event_keyboard_key *event = data;
 		struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
-		damage_all_outputs(server);
 		if ((event->state == WL_KEYBOARD_KEY_STATE_RELEASED)
 				&& !any_modifiers_pressed(keyboard))  {
 			/* end cycle */
@@ -138,7 +137,6 @@ handle_compositor_keybindings(struct wl_listener *listener,
 	}
 
 	if (server->cycle_view) {
-		damage_all_outputs(server);
 		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			for (int i = 0; i < nsyms; i++) {
 				if (syms[i] == XKB_KEY_Escape) {

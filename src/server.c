@@ -46,7 +46,6 @@ reload_config_and_theme(void)
 
 	menu_reconfigure(g_server);
 	seat_reconfigure(g_server);
-	damage_all_outputs(g_server);
 }
 
 static int

@@ -211,7 +211,6 @@ actions_run(struct view *activator, struct server *server,
 			view = desktop_view_at_cursor(server);
 			if (view) {
 				desktop_focus_and_activate_view(&server->seat, view);
-				damage_all_outputs(server);
 			}
 			break;
 		case ACTION_TYPE_ICONIFY:
@@ -228,7 +227,6 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_RAISE:
 			if (view) {
 				desktop_move_to_front(view);
-				damage_all_outputs(server);
 			}
 			break;
 		case ACTION_TYPE_RESIZE:

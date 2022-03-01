@@ -62,7 +62,6 @@ handle_commit(struct wl_listener *listener, void *data)
 			view->x, view->y);
 	}
 	ssd_update_geometry(view);
-	damage_view_part(view);
 }
 
 static void
@@ -191,7 +190,6 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 		view->x = geo.x;
 		view->y = geo.y;
 		ssd_update_geometry(view);
-		//damage_all_outputs(view->server);
 	}
 }
 #undef MAX

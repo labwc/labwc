@@ -129,7 +129,7 @@ Suggested apps to use with labwc:
 - Screen shooter: [grim]
 - Screen recorder: [wf-recorder]
 - Background image: [swaybg]
-- Panel: [waybar], [yambar], [lavalauncher]
+- Panel: [waybar], [yambar], [lavalauncher], [sfwbar]
 - Launchers: [bemenu], [fuzzel], [wofi]
 - Output managers: [kanshi], [wlr-randr]
 - Screen locker: [swaylock]
@@ -177,12 +177,14 @@ High-level summary of items which are not intended to be implemented:
 [waybar]: https://github.com/Alexays/Waybar
 [yambar]: https://codeberg.org/dnkl/yambar
 [lavalauncher]: https://sr.ht/~leon_plickat/LavaLauncher
+[sfwbar]: https://github.com/LBCrion/sfwbar
 [bemenu]: https://github.com/Cloudef/bemenu
 [fuzzel]: https://codeberg.org/dnkl/fuzzel
 [wofi]: https://hg.sr.ht/~scoopta/wofi
 [kanshi]: https://sr.ht/~emersion/kanshi/
 [wlr-randr]: https://sr.ht/~emersion/wlr-randr/
 [swaylock]: https://github.com/swaywm/swaylock
+
 
 [acceptance criteria]: https://github.com/labwc/labwc-acceptance-criteria/blob/main/Acceptance-criteria.md
 

@@ -56,7 +56,7 @@ work.
 
 - Render overlay layer popups to support sfwbar (issue #239)
 - Support HiDPI on-screen-display images for outputs with different scales
-- Reload environment variables on SIGHUPi (issue #227)
+- Reload environment variables on SIGHUP (issue #227)
 - Add client menu
 - Allow applications to start in fullscreen
 - Add config option `<core><cycleViewPreview>` to preview the contents

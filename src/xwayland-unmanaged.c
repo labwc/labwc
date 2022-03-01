@@ -64,7 +64,7 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 	struct wlr_scene_node *parent, *node;
 	struct view *view = parent_view(unmanaged->server, xsurface);
 	if (!view || !view->scene_node) {
-		parent = &view->server->unmanaged_tree->node;
+		parent = &unmanaged->server->unmanaged_tree->node;
 	} else {
 		lx -= view->x;
 		ly -= view->y;

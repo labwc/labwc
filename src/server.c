@@ -120,7 +120,7 @@ seat_disinhibit_input(struct seat *seat)
 	 */
 	struct output *output;
 	wl_list_for_each(output, &seat->server->outputs, link) {
-		arrange_layers(output);
+		layers_arrange(output);
 	}
 }
 

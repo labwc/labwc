@@ -5,6 +5,7 @@
 #include <wlr/types/wlr_layer_shell_v1.h>
 
 struct server;
+struct output;
 
 #define LAB_NR_LAYERS (4)
 
@@ -34,5 +35,7 @@ struct lab_layer_popup {
 };
 
 void layers_init(struct server *server);
+
+void layers_arrange(struct output *output);
 
 #endif /* __LABWC_LAYERS_H */

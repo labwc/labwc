@@ -19,7 +19,7 @@
 #include "node-descriptor.h"
 
 void
-arrange_layers(struct output *output)
+layers_arrange(struct output *output)
 {
 	struct wlr_box full_area = { 0 };
 	wlr_output_effective_resolution(output->wlr_output,
@@ -110,7 +110,7 @@ surface_commit_notify(struct wl_listener *listener, void *data)
 		layer->mapped = layer_surface->mapped;
 		struct output *output =
 			output_from_wlr_output(layer->server, wlr_output);
-		arrange_layers(output);
+		layers_arrange(output);
 	}
 }
 
@@ -141,7 +141,7 @@ destroy_notify(struct wl_listener *listener, void *data)
 		wl_list_remove(&layer->output_destroy.link);
 		struct output *output = output_from_wlr_output(layer->server,
 			layer->scene_layer_surface->layer_surface->output);
-		arrange_layers(output);
+		layers_arrange(output);
 	}
 	free(layer);
 }
@@ -338,7 +338,7 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 	 */
 	struct wlr_layer_surface_v1_state old_state = layer_surface->current;
 	layer_surface->current = layer_surface->pending;
-	arrange_layers(output);
+	layers_arrange(output);
 	layer_surface->current = old_state;
 }
 

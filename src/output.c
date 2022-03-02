@@ -322,7 +322,7 @@ handle_output_layout_change(struct wl_listener *listener, void *data)
 
 		wl_list_for_each(output, &server->outputs, link) {
 			if (output) {
-				arrange_layers(output);
+				layers_arrange(output);
 			}
 		}
 		output_update_for_layout_change(server);

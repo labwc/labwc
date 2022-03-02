@@ -470,8 +470,6 @@ void cursor_finish(struct seat *seat);
 void keyboard_init(struct seat *seat);
 void keyboard_finish(struct seat *seat);
 
-void arrange_layers(struct output *output);
-
 void seat_init(struct server *server);
 void seat_finish(struct server *server);
 void seat_reconfigure(struct server *server);

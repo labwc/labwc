@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <assert.h>
 #include <stdlib.h>
 #include "node.h"
 
@@ -21,7 +22,7 @@ destroy_notify(struct wl_listener *listener, void *data)
 }
 
 void
-node_descriptor_create(struct wlr_scene_node *node,
+node_descriptor_create(struct wlr_scene_node *scene_node,
 		enum node_descriptor_type type, void *data)
 {
 	struct node_descriptor *node_descriptor =
@@ -32,6 +33,28 @@ node_descriptor_create(struct wlr_scene_node *node,
 	node_descriptor->type = type;
 	node_descriptor->data = data;
 	node_descriptor->destroy.notify = destroy_notify;
-	wl_signal_add(&node->events.destroy, &node_descriptor->destroy);
-	node->data = node_descriptor;
+	wl_signal_add(&scene_node->events.destroy, &node_descriptor->destroy);
+	scene_node->data = node_descriptor;
+}
+
+struct view *
+node_view_from_node(struct node_descriptor *node_descriptor)
+{
+	assert(node_descriptor->type == LAB_NODE_DESC_VIEW
+		|| node_descriptor->type == LAB_NODE_DESC_XDG_POPUP);
+	return (struct view *)node_descriptor->data;
+}
+
+struct lab_layer_surface *
+node_layer_surface_from_node(struct node_descriptor *node_descriptor)
+{
+	assert(node_descriptor->type == LAB_NODE_DESC_LAYER_SURFACE);
+	return (struct lab_layer_surface *)node_descriptor->data;
+}
+
+struct lab_layer_popup *
+node_layer_popup_from_node(struct node_descriptor *node_descriptor)
+{
+	assert(node_descriptor->type == LAB_NODE_DESC_LAYER_POPUP);
+	return (struct lab_layer_popup *)node_descriptor->data;
 }

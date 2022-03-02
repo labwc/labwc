@@ -54,12 +54,15 @@ arrange_layers(struct output *output)
 		ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY,
 		ZWLR_LAYER_SHELL_V1_LAYER_TOP,
 	};
-	size_t nlayers = sizeof(layers_above_shell) / sizeof(layers_above_shell[0]);
+	size_t nlayers = sizeof(layers_above_shell)
+		/ sizeof(layers_above_shell[0]);
 	struct lab_layer_surface *layer, *topmost = NULL;
 	for (size_t i = 0; i < nlayers; ++i) {
 		wl_list_for_each_reverse (layer,
 				&output->layers[layers_above_shell[i]], link) {
-			if (layer->scene_layer_surface->layer_surface->current.keyboard_interactive) {
+			struct wlr_layer_surface_v1 *layer_surface =
+				layer->scene_layer_surface->layer_surface;
+			if (layer_surface->current.keyboard_interactive) {
 				topmost = layer;
 				break;
 			}
@@ -317,9 +320,6 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 
 	surface->server = server;
 	surface->scene_layer_surface->layer_surface = layer_surface;
-
-//	/* wlr_surface->data needed to find parent in xdg_surface_new() */
-//	layer_surface->surface->data = surface->scene_layer_surface->node;
 
 	surface->output_destroy.notify = output_destroy_notify;
 	wl_signal_add(&layer_surface->output->events.destroy,

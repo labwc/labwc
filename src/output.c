@@ -156,6 +156,7 @@ output_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create output layout");
 		exit(EXIT_FAILURE);
 	}
+	wlr_scene_attach_output_layout(server->scene, server->output_layout);
 
 	/* Enable screen recording with wf-recorder */
 	wlr_xdg_output_manager_v1_create(server->wl_display,
@@ -319,12 +320,11 @@ handle_output_layout_change(struct wl_listener *listener, void *data)
 		}
 		struct output *output;
 
-		/* FIXME: Sort this out */
-//		wl_list_for_each(output, &server->outputs, link) {
-//			if (output) {
-//				arrange_layers(output);
-//			}
-//		}
+		wl_list_for_each(output, &server->outputs, link) {
+			if (output) {
+				arrange_layers(output);
+			}
+		}
 		output_update_for_layout_change(server);
 	}
 }

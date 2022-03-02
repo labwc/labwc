@@ -36,22 +36,22 @@ void node_descriptor_create(struct wlr_scene_node *scene_node,
 
 /**
  * node_view_from_node - return view struct from node
- * @node_descriptor: node_descriptor from which to return data
+ * @wlr_scene_node: wlr_scene_node from which to return data
  */
-struct view *node_view_from_node(struct node_descriptor *node_descriptor);
+struct view *node_view_from_node(struct wlr_scene_node *wlr_scene_node);
 
 /**
  * node_lab_surface_from_node - return lab_layer_surface struct from node
- * @node_descriptor: node_descriptor from which to return data
+ * @wlr_scene_node: wlr_scene_node from which to return data
  */
 struct lab_layer_surface *node_layer_surface_from_node(
-	struct node_descriptor *node_descriptor);
+	struct wlr_scene_node *wlr_scene_node);
 
 /**
  * node_layer_popup_from_node - return lab_layer_popup struct from node
- * @node_descriptor: node_descriptor from which to return data
+ * @wlr_scene_node: wlr_scene_node from which to return data
  */
 struct lab_layer_popup *node_layer_popup_from_node(
-	struct node_descriptor *node_descriptor);
+	struct wlr_scene_node *wlr_scene_node);
 
 #endif /* __LABWC_NODE_DESCRIPTOR_H */

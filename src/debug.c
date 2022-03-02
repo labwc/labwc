@@ -112,7 +112,7 @@ get_special(struct server *server, struct wlr_scene_node *node,
 		return "server->view_tree";
 	}
 	if (node->parent == &server->view_tree->node) {
-		*last_view = node_view_from_node(node->data);
+		*last_view = node_view_from_node(node);
 	}
 	const char *view_part = get_view_part(*last_view, node);
 	if (view_part) {

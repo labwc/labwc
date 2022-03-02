@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
 #include "labwc.h"
-#include "node-descriptor.h"
+#include "node.h"
 #include "ssd.h"
 
 static void

@@ -8,7 +8,7 @@
  */
 
 #include "labwc.h"
-#include "node-descriptor.h"
+#include "node.h"
 
 struct view_child {
 	struct wlr_surface *surface;

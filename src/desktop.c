@@ -3,7 +3,7 @@
 #include <assert.h>
 #include "labwc.h"
 #include "layers.h"
-#include "node-descriptor.h"
+#include "node.h"
 #include "ssd.h"
 
 static void

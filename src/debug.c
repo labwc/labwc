@@ -4,7 +4,7 @@
 #include <wlr/types/wlr_scene.h>
 #include "buffer.h"
 #include "labwc.h"
-#include "node-descriptor.h"
+#include "node.h"
 
 #define HEADER_CHARS "------------------------------"
 

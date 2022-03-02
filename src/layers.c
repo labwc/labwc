@@ -16,7 +16,7 @@
 #include <wlr/util/log.h>
 #include "layers.h"
 #include "labwc.h"
-#include "node-descriptor.h"
+#include "node.h"
 
 void
 layers_arrange(struct output *output)

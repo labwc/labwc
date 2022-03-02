@@ -315,9 +315,11 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 	*view_area = LAB_SSD_NONE;
 	return NULL;
 
+struct view *view;
+struct node_descriptor *desc;
 has_view_data:
-	struct node_descriptor *desc = node->data;
-	struct view *view = desc->data;
+	desc = node->data;
+	view = desc->data;
 	*view_area = ssd_get_part_type(view, *scene_node);
 	return view;
 }

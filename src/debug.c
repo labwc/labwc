@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <assert.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include "buffer.h"
 #include "labwc.h"
+#include "node-descriptor.h"
 
 #define HEADER_CHARS "------------------------------"
 
@@ -111,7 +113,10 @@ get_special(struct server *server, struct wlr_scene_node *node,
 		return "server->view_tree";
 	}
 	if (node->parent == &server->view_tree->node) {
-		*last_view = node->data;
+		struct node_descriptor *desc = node->data;
+		assert(desc->type == LAB_NODE_DESC_VIEW
+			|| desc->type == LAB_NODE_DESC_XDG_POPUP);
+		*last_view = desc->data;
 	}
 	const char *view_part = get_view_part(*last_view, node);
 	if (view_part) {

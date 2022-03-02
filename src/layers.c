@@ -26,6 +26,14 @@ arrange_layers(struct output *output)
 		&full_area.width, &full_area.height);
 	struct wlr_box usable_area = full_area;
 
+	struct server *server = output->server;
+	struct wlr_scene_output *scene_output =
+		wlr_scene_get_scene_output(server->scene, output->wlr_output);
+	if (!scene_output) {
+		wlr_log(WLR_DEBUG, "no wlr_scene_output");
+		return;
+	}
+
 	for (int i = 0; i < LAB_NR_LAYERS; i++) {
 		struct lab_layer_surface *lab_layer_surface;
 		wl_list_for_each(lab_layer_surface, &output->layers[i], link) {
@@ -34,6 +42,9 @@ arrange_layers(struct output *output)
 			wlr_scene_layer_surface_v1_configure(
 				scene_layer_surface, &full_area, &usable_area);
 		}
+
+		wlr_scene_node_set_position(&output->layer_tree[i]->node,
+			scene_output->x, scene_output->y);
 	}
 
 	memcpy(&output->usable_area, &usable_area, sizeof(struct wlr_box));

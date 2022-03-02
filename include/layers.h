@@ -7,8 +7,6 @@
 struct server;
 struct output;
 
-#define LAB_NR_LAYERS (4)
-
 struct lab_layer_surface {
 	struct wl_list link; /* output::layers */
 	struct wlr_scene_layer_surface_v1 *scene_layer_surface;

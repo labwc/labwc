@@ -111,7 +111,8 @@ new_output_notify(struct wl_listener *listener, void *data)
 	output->frame.notify = output_frame_notify;
 	wl_signal_add(&wlr_output->events.frame, &output->frame);
 
-	for (int i = 0; i < LAB_NR_LAYERS; i++) {
+	int nr_layers = sizeof(output->layers) / sizeof(output->layers[0]);
+	for (int i = 0; i < nr_layers; i++) {
 		wl_list_init(&output->layers[i]);
 		output->layer_tree[i] =
 			wlr_scene_tree_create(&server->scene->node);

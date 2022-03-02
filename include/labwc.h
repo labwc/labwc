@@ -188,13 +188,14 @@ struct server {
 	struct menu *menu_current;
 };
 
+#define LAB_NR_LAYERS (4)
 struct output {
 	struct wl_list link; /* server::outputs */
 	struct server *server;
 	struct wlr_output *wlr_output;
 	struct wlr_scene_output *scene_output;
-	struct wl_list layers[4];
-	struct wlr_scene_tree *layer_tree[4];
+	struct wl_list layers[LAB_NR_LAYERS];
+	struct wlr_scene_tree *layer_tree[LAB_NR_LAYERS];
 	struct wlr_box usable_area;
 
 	struct lab_data_buffer *osd_buffer;
@@ -202,6 +203,7 @@ struct output {
 	struct wl_listener destroy;
 	struct wl_listener frame;
 };
+#undef LAB_NR_LAYERS
 
 enum view_type {
 	LAB_XDG_SHELL_VIEW,

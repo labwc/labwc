@@ -34,7 +34,8 @@ layers_arrange(struct output *output)
 		return;
 	}
 
-	for (int i = 0; i < LAB_NR_LAYERS; i++) {
+	int nr_layers = sizeof(output->layers) / sizeof(output->layers[0]);
+	for (int i = 0; i < nr_layers; i++) {
 		struct lab_layer_surface *lab_layer_surface;
 		wl_list_for_each(lab_layer_surface, &output->layers[i], link) {
 			struct wlr_scene_layer_surface_v1 *scene_layer_surface =

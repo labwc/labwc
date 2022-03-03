@@ -196,6 +196,7 @@ struct output {
 	struct wlr_scene_output *scene_output;
 	struct wl_list layers[LAB_NR_LAYERS];
 	struct wlr_scene_tree *layer_tree[LAB_NR_LAYERS];
+	struct wlr_scene_tree *layer_popup_tree;
 	struct wlr_box usable_area;
 
 	struct lab_data_buffer *osd_buffer;

@@ -111,6 +111,10 @@ new_output_notify(struct wl_listener *listener, void *data)
 	output->frame.notify = output_frame_notify;
 	wl_signal_add(&wlr_output->events.frame, &output->frame);
 
+	/*
+	 * Create layer-trees (background, bottom, top and overlay) and
+	 * a layer-popup-tree.
+	 */
 	int nr_layers = sizeof(output->layers) / sizeof(output->layers[0]);
 	for (int i = 0; i < nr_layers; i++) {
 		wl_list_init(&output->layers[i]);
@@ -118,10 +122,23 @@ new_output_notify(struct wl_listener *listener, void *data)
 			wlr_scene_tree_create(&server->scene->node);
 		output->layer_tree[i]->node.data = output->wlr_output;
 	}
+	output->layer_popup_tree = wlr_scene_tree_create(&server->scene->node);
+
+	/*
+	 * Set the z-positions to achieve the following order (from top to
+	 * bottom):
+	 *	- layer-shell popups
+	 *	- overlay layer
+	 *	- top layer
+	 *	- views
+	 *	- bottom layer
+	 *	- background layer
+	 */
 	wlr_scene_node_lower_to_bottom(&output->layer_tree[1]->node);
 	wlr_scene_node_lower_to_bottom(&output->layer_tree[0]->node);
 	wlr_scene_node_raise_to_top(&output->layer_tree[2]->node);
 	wlr_scene_node_raise_to_top(&output->layer_tree[3]->node);
+	wlr_scene_node_raise_to_top(&output->layer_popup_tree->node);
 
 	if (rc.adaptive_sync) {
 		wlr_log(WLR_INFO, "enable adaptive sync on %s",

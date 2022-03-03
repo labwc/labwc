@@ -247,12 +247,6 @@ create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_node *parent)
 	popup->new_popup.notify = popup_handle_new_popup;
 	wl_signal_add(&wlr_popup->base->events.new_popup, &popup->new_popup);
 
-	/*
-	 * FIXME: should we put popups in ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY
-	 * or a dedicated output->layer_popup_tree - so that for example
-	 * a panel in the bottom layer displays any popup above views.
-	 */
-
 	popup_unconstrain(popup);
 	return popup;
 }
@@ -272,7 +266,24 @@ new_popup_notify(struct wl_listener *listener, void *data)
 	struct lab_layer_surface *lab_layer_surface =
 		wl_container_of(listener, lab_layer_surface, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
-	create_popup(wlr_popup, lab_layer_surface->scene_layer_surface->node);
+
+	/*
+	 * We always put popups in a special popup_tree so that for example a
+	 * panel in the bottom layer displays popups above views.
+	 */
+	struct server *server = lab_layer_surface->server;
+	struct wlr_output *wlr_output =
+		lab_layer_surface->scene_layer_surface->layer_surface->output;
+	struct output *output = output_from_wlr_output(server, wlr_output);
+	struct wlr_scene_node *node = &output->layer_popup_tree->node;
+
+	create_popup(wlr_popup, node);
+
+	struct wlr_box box = { 0 };
+	wlr_output_layout_get_box(server->output_layout, wlr_output, &box);
+	box.x += lab_layer_surface->scene_layer_surface->node->state.x;
+	box.y += lab_layer_surface->scene_layer_surface->node->state.y;
+	wlr_scene_node_set_position(node, box.x, box.y);
 }
 
 static void

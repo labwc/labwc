@@ -15,6 +15,7 @@ enum node_descriptor_type {
 	LAB_NODE_DESC_LAYER_SURFACE,
 	LAB_NODE_DESC_LAYER_POPUP,
 	LAB_NODE_DESC_MENUITEM,
+	LAB_NODE_DESC_TREE,
 };
 
 struct node_descriptor {

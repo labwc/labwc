@@ -19,6 +19,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
+#include "node.h"
 #include "ssd.h"
 #include "theme.h"
 
@@ -120,9 +121,12 @@ new_output_notify(struct wl_listener *listener, void *data)
 		wl_list_init(&output->layers[i]);
 		output->layer_tree[i] =
 			wlr_scene_tree_create(&server->scene->node);
-		output->layer_tree[i]->node.data = output->wlr_output;
+		node_descriptor_create(&output->layer_tree[i]->node,
+			LAB_NODE_DESC_TREE, NULL);
 	}
 	output->layer_popup_tree = wlr_scene_tree_create(&server->scene->node);
+	node_descriptor_create(&output->layer_popup_tree->node,
+		LAB_NODE_DESC_TREE, NULL);
 
 	/*
 	 * Set the z-positions to achieve the following order (from top to

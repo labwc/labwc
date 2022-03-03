@@ -6,6 +6,7 @@
 struct view;
 struct lab_layer_surface;
 struct lab_layer_popup;
+struct menuitem;
 
 enum node_descriptor_type {
 	LAB_NODE_DESC_NODE = 0,
@@ -13,6 +14,7 @@ enum node_descriptor_type {
 	LAB_NODE_DESC_XDG_POPUP,
 	LAB_NODE_DESC_LAYER_SURFACE,
 	LAB_NODE_DESC_LAYER_POPUP,
+	LAB_NODE_DESC_MENUITEM,
 };
 
 struct node_descriptor {
@@ -52,6 +54,13 @@ struct lab_layer_surface *node_layer_surface_from_node(
  * @wlr_scene_node: wlr_scene_node from which to return data
  */
 struct lab_layer_popup *node_layer_popup_from_node(
+	struct wlr_scene_node *wlr_scene_node);
+
+/**
+ * node_menuitem_from_node - return menuitem struct from node
+ * @wlr_scene_node: wlr_scene_node from which to return data
+ */
+struct menuitem *node_menuitem_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 #endif /* __LABWC_NODE_DESCRIPTOR_H */

@@ -64,3 +64,12 @@ node_layer_popup_from_node(struct wlr_scene_node *wlr_scene_node)
 	assert(node_descriptor->type == LAB_NODE_DESC_LAYER_POPUP);
 	return (struct lab_layer_popup *)node_descriptor->data;
 }
+
+struct menuitem *
+node_menuitem_from_node(struct wlr_scene_node *wlr_scene_node)
+{
+	assert(wlr_scene_node->data);
+	struct node_descriptor *node_descriptor = wlr_scene_node->data;
+	assert(node_descriptor->type == LAB_NODE_DESC_MENUITEM);
+	return (struct menuitem *)node_descriptor->data;
+}

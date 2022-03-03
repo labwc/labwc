@@ -284,9 +284,9 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 #endif
 	}
 	struct wlr_scene_node *osd = &server->osd_tree->node;
-	struct wlr_scene_node *menu = &server->menu_tree->node;
 	while (node) {
 		struct node_descriptor *desc = node->data;
+		/* TODO: convert to switch() */
 		if (desc) {
 			if (desc->type == LAB_NODE_DESC_VIEW) {
 				goto has_view_data;
@@ -299,12 +299,15 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 				*view_area = LAB_SSD_CLIENT;
 				return NULL;
 			}
+			if (desc->type == LAB_NODE_DESC_MENUITEM) {
+				/* Always return the top scene node for menu items */
+				*scene_node = node;
+				*view_area = LAB_SSD_MENU;
+				return NULL;
+			}
 		}
 		if (node == osd) {
 			*view_area = LAB_SSD_OSD;
-			return NULL;
-		} else if (node == menu) {
-			*view_area = LAB_SSD_MENU;
 			return NULL;
 		}
 		node = node->parent;

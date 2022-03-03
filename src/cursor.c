@@ -233,7 +233,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	}
 
 	if (view_area == LAB_SSD_MENU) {
-		menu_process_cursor_motion(server->menu_current, node);
+		menu_process_cursor_motion(node);
 		return;
 	}
 
@@ -677,8 +677,8 @@ cursor_button(struct wl_listener *listener, void *data)
 		if (view_area != LAB_SSD_MENU) {
 			/* We close the menu on release so we don't leak a stray release */
 			close_menu = true;
-		} else if (menu_call_actions(server->menu_current, node)) {
-			/* Action was successfull, may fail if item contains a submenu */
+		} else if (menu_call_actions(node)) {
+			/* Action was successfull, may fail if item just opens a submenu */
 			close_menu = true;
 		}
 		return;

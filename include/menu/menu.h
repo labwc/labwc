@@ -23,6 +23,7 @@ struct menu_scene {
 
 struct menuitem {
 	struct wl_list actions;
+	struct menu *parent;
 	struct menu *submenu;
 	struct menu_scene normal;
 	struct menu_scene selected;
@@ -75,15 +76,19 @@ void menu_open(struct menu *menu, int x, int y);
  * - handles hover effects
  * - may open/close submenus
  */
-void menu_process_cursor_motion(struct menu *menu, struct wlr_scene_node *node);
+void menu_process_cursor_motion(struct wlr_scene_node *node);
 
 /**
- * menu_call_actions - call actions associated with a menu entry
+ * menu_call_actions - call actions associated with a menu node
  *
- * If actions are found, server->menu_current will be closed and set to NULL
- * Returns true if handled
+ * If menuitem connected to @node does not just open a submenu:
+ * - associated actions will be called
+ * - server->menu_current will be closed
+ * - server->menu_current will be set to NULL
+ *
+ * Returns true if actions have actually been executed
  */
-bool menu_call_actions(struct menu *menu, struct wlr_scene_node *node);
+bool menu_call_actions(struct wlr_scene_node *node);
 
 /* menu_close - close menu */
 void menu_close(struct menu *menu);

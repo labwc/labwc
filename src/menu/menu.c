@@ -20,6 +20,7 @@
 #include "theme.h"
 #include "action.h"
 #include "buffer.h"
+#include "node.h"
 
 #define MENUWIDTH (110)
 #define MENU_ITEM_PADDING_Y (4)
@@ -82,6 +83,7 @@ item_create(struct menu *menu, const char *text)
 	if (!menuitem) {
 		return NULL;
 	}
+	menuitem->parent = menu;
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
 	struct font font = {
@@ -117,6 +119,12 @@ item_create(struct menu *menu, const char *text)
 	menuitem->selected.text = &wlr_scene_buffer_create(
 		menuitem->selected.background, &menuitem->selected.buffer->base)->node;
 
+	/* Node descriptors for top scene nodes of menuitem */
+	node_descriptor_create(menuitem->normal.background,
+		LAB_NODE_DESC_MENUITEM, menuitem);
+	node_descriptor_create(menuitem->selected.background,
+		LAB_NODE_DESC_MENUITEM, menuitem);
+
 	/* Center font nodes */
 	y = (menu->item_height - menuitem->normal.buffer->base.height) / 2;
 	x = MENU_ITEM_PADDING_X;
@@ -132,7 +140,7 @@ item_create(struct menu *menu, const char *text)
 	/* Hide selected state */
 	wlr_scene_node_set_enabled(menuitem->selected.background, false);
 
-	/* Update menu extends */
+	/* Update menu extents */
 	menu->size.height = (item_count + 1) * menu->item_height;
 
 	wl_list_insert(&menu->menuitems, &menuitem->link);
@@ -516,74 +524,47 @@ menu_open(struct menu *menu, int x, int y)
 }
 
 void
-menu_process_cursor_motion(struct menu *menu, struct wlr_scene_node *node)
+menu_process_cursor_motion(struct wlr_scene_node *node)
 {
-	if (!node) {
-		wlr_log(WLR_ERROR, "%s() node == NULL", __func__);
+	assert(node && node->data);
+	struct menuitem *item = node_menuitem_from_node(node);
+
+	if (node == item->selected.background) {
+		/* We are on an already selected item */
 		return;
 	}
-	assert(menu);
 
-	/* TODO: this would be much easier if we could use node->data */
-
-	struct menuitem *item;
-	wl_list_for_each (item, &menu->menuitems, link) {
-		if (node == item->selected.background
-				|| node->parent == item->selected.background) {
-			/* We are on an already selected item */
-			return;
-		}
-		if (node == item->normal.background
-				|| node->parent == item->normal.background) {
-			/* We are on an item that has new mouse-focus */
-			menu_set_selection(menu, item);
-			if (menu->selection.menu) {
-				/* Close old submenu tree */
-				menu_close(menu->selection.menu);
-			}
-			if (item->submenu) {
-				/* And open the new one */
-				wlr_scene_node_set_enabled(
-					&item->submenu->scene_tree->node, true);
-			}
-			menu->selection.menu = item->submenu;
-			return;
-		}
-		if (item->submenu && item->submenu == menu->selection.menu) {
-			menu_process_cursor_motion(item->submenu, node);
-		}
+	/* We are on an item that has new mouse-focus */
+	menu_set_selection(item->parent, item);
+	if (item->parent->selection.menu) {
+		/* Close old submenu tree */
+		menu_close(item->parent->selection.menu);
 	}
+
+	if (item->submenu) {
+		/* And open the new one */
+		wlr_scene_node_set_enabled(
+			&item->submenu->scene_tree->node, true);
+	}
+	item->parent->selection.menu = item->submenu;
 }
 
 
 bool
-menu_call_actions(struct menu *menu, struct wlr_scene_node *node)
+menu_call_actions(struct wlr_scene_node *node)
 {
-	/* TODO: this would be much easier if we could use node->data */
+	assert(node && node->data);
+	struct menuitem *item = node_menuitem_from_node(node);
 
-	if (!menu->selection.item) {
-		/* No item selected in current menu */
-		wlr_log(WLR_ERROR, "No item on menu_action_selected");
+	if (item->submenu) {
+		/* We received a click on an item that just opens a submenu */
 		return false;
 	}
-	struct wlr_scene_node *menu_node =
-		menu->selection.item->selected.background;
-	if (node == menu_node || node->parent == menu_node) {
-		/* We found the correct menu item */
-		if (menu->selection.item->submenu) {
-			/* ..but it just opens a submenu */
-			return false;
-		}
-		actions_run(NULL, menu->server, &menu->selection.item->actions, 0);
-		menu_close(menu->server->menu_current);
-		menu->server->menu_current = NULL;
-		return true;
-	}
-	if (menu->selection.menu) {
-		return menu_call_actions(menu->selection.menu, node);
-	}
-	wlr_log(WLR_ERROR, "No match on menu_action_selected");
-	return false;
+
+	actions_run(NULL, item->parent->server, &item->actions, 0);
+	menu_close(item->parent->server->menu_current);
+	item->parent->server->menu_current = NULL;
+	return true;
 }
 
 void

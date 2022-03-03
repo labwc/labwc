@@ -202,20 +202,22 @@ popup_unconstrain(struct lab_layer_popup *popup)
 		layer->scene_layer_surface->layer_surface->output->data;
 
 	struct wlr_box output_box = { 0 };
-	wlr_output_effective_resolution(output->wlr_output, &output_box.width,
-		&output_box.height);
+	wlr_output_layout_get_box(output->server->output_layout,
+		output->wlr_output, &output_box);
+
+	int lx, ly;
+	wlr_scene_node_coords(popup->scene_node, &lx, &ly);
 
 	/*
 	 * Output geometry expressed in the coordinate system of the toplevel
 	 * parent of popup
 	 */
 	struct wlr_box output_toplevel_sx_box = {
-		.x = -layer->geo.x,
-		.y = -layer->geo.y,
+		.x = output_box.x - lx,
+		.y = output_box.y - ly,
 		.width = output_box.width,
 		.height = output_box.height,
 	};
-
 	wlr_xdg_popup_unconstrain_from_box(wlr_popup, &output_toplevel_sx_box);
 }
 

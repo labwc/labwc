@@ -17,13 +17,14 @@ ssd_extents_create(struct view *view)
 	int full_width = width + 2 * theme->border_width;
 	int extended_area = EXTENDED_AREA;
 
-	view->ssd.extents.tree = wlr_scene_tree_create(
-		&view->ssd.tree->node);
-	struct wlr_scene_node *parent =
-		&view->ssd.extents.tree->node;
+	view->ssd.extents.tree = wlr_scene_tree_create(&view->ssd.tree->node);
+	struct wlr_scene_node *parent = &view->ssd.extents.tree->node;
+	if (view->maximized || view->fullscreen) {
+		wlr_scene_node_set_enabled(parent, false);
+	}
+	wl_list_init(&view->ssd.extents.parts);
 	wlr_scene_node_set_position(parent,
 		-(theme->border_width + extended_area), -(SSD_HEIGHT + extended_area));
-	wl_list_init(&view->ssd.extents.parts);
 
 	/* Top */
 	add_scene_rect(part_list, LAB_SSD_PART_CORNER_TOP_LEFT, parent,
@@ -59,6 +60,14 @@ ssd_extents_create(struct view *view)
 void
 ssd_extents_update(struct view *view)
 {
+	if (view->maximized || view->fullscreen) {
+		wlr_scene_node_set_enabled(&view->ssd.extents.tree->node, false);
+		return;
+	}
+	if (!view->ssd.extents.tree->node.state.enabled) {
+		wlr_scene_node_set_enabled(&view->ssd.extents.tree->node, true);
+	}
+
 	struct theme *theme = view->server->theme;
 
 	int width = view->w;

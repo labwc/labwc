@@ -28,6 +28,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <drm_fourcc.h>
+#include <wlr/interfaces/wlr_buffer.h>
 #include "buffer.h"
 
 static const struct wlr_buffer_impl data_buffer_impl;

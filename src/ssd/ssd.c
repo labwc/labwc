@@ -156,8 +156,8 @@ ssd_create(struct view *view)
 	view->ssd.tree = wlr_scene_tree_create(&view->scene_tree->node);
 	wlr_scene_node_lower_to_bottom(&view->ssd.tree->node);
 	ssd_extents_create(view);
-	ssd_border_create(view);
 	ssd_titlebar_create(view);
+	ssd_border_create(view);
 }
 
 void

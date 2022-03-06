@@ -40,6 +40,9 @@ ssd_border_create(struct view *view)
 		add_scene_rect(&subtree->parts, LAB_SSD_PART_BOTTOM, parent,
 			full_width, theme->border_width,
 			0, height, color);
+		add_scene_rect(&subtree->parts, LAB_SSD_PART_TOP, parent,
+			full_width - 2 * BUTTON_WIDTH, theme->border_width,
+			BUTTON_WIDTH, -SSD_HEIGHT, color);
 	} FOR_EACH_END
 }
 
@@ -70,6 +73,13 @@ ssd_border_update(struct view *view)
 			case LAB_SSD_PART_BOTTOM:
 				wlr_scene_rect_set_size(rect, full_width, theme->border_width);
 				wlr_scene_node_set_position(part->node, 0, height);
+				continue;
+			case LAB_SSD_PART_TOP:
+				wlr_scene_rect_set_size(rect,
+					full_width - 2 * BUTTON_WIDTH,
+					theme->border_width);
+				wlr_scene_node_set_position(part->node,
+					BUTTON_WIDTH, -SSD_HEIGHT);
 				continue;
 			default:
 				continue;

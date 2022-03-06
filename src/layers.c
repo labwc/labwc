@@ -164,22 +164,6 @@ map_notify(struct wl_listener *listener, void *data)
 	wlr_surface_send_enter(layer_surface->surface, layer_surface->output);
 }
 
-static struct
-lab_layer_surface *popup_get_layer(struct lab_layer_popup *popup)
-{
-	struct wlr_scene_node *node = popup->scene_node;
-	while (node) {
-		if (node->data) {
-			struct node_descriptor *desc = node->data;
-			if (desc->type == LAB_NODE_DESC_LAYER_SURFACE) {
-				return desc->data;
-			}
-		}
-		node = node->parent;
-	}
-	return NULL;
-}
-
 static void
 popup_handle_destroy(struct wl_listener *listener, void *data)
 {
@@ -190,41 +174,11 @@ popup_handle_destroy(struct wl_listener *listener, void *data)
 	free(popup);
 }
 
-static void
-popup_unconstrain(struct lab_layer_popup *popup)
-{
-	struct lab_layer_surface *layer = popup_get_layer(popup);
-	if (!layer) {
-		return;
-	}
-	struct wlr_xdg_popup *wlr_popup = popup->wlr_popup;
-	struct output *output =
-		layer->scene_layer_surface->layer_surface->output->data;
-
-	struct wlr_box output_box = { 0 };
-	wlr_output_layout_get_box(output->server->output_layout,
-		output->wlr_output, &output_box);
-
-	int lx, ly;
-	wlr_scene_node_coords(popup->scene_node, &lx, &ly);
-
-	/*
-	 * Output geometry expressed in the coordinate system of the toplevel
-	 * parent of popup
-	 */
-	struct wlr_box output_toplevel_sx_box = {
-		.x = output_box.x - lx,
-		.y = output_box.y - ly,
-		.width = output_box.width,
-		.height = output_box.height,
-	};
-	wlr_xdg_popup_unconstrain_from_box(wlr_popup, &output_toplevel_sx_box);
-}
-
 static void popup_handle_new_popup(struct wl_listener *listener, void *data);
 
 static struct lab_layer_popup *
-create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_node *parent)
+create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_node *parent,
+		struct wlr_box *output_toplevel_sx_box)
 {
 	struct lab_layer_popup *popup =
 		calloc(1, sizeof(struct lab_layer_popup));
@@ -247,43 +201,84 @@ create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_node *parent)
 	popup->new_popup.notify = popup_handle_new_popup;
 	wl_signal_add(&wlr_popup->base->events.new_popup, &popup->new_popup);
 
-	popup_unconstrain(popup);
+	wlr_xdg_popup_unconstrain_from_box(wlr_popup, output_toplevel_sx_box);
 	return popup;
 }
 
+/* This popup's parent is a layer popup */
 static void
 popup_handle_new_popup(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_popup *lab_layer_popup =
 		wl_container_of(listener, lab_layer_popup, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
-	create_popup(wlr_popup, lab_layer_popup->scene_node);
+	struct lab_layer_popup *new_popup = create_popup(wlr_popup,
+		lab_layer_popup->scene_node,
+		&lab_layer_popup->output_toplevel_sx_box);
+	new_popup->output_toplevel_sx_box =
+		lab_layer_popup->output_toplevel_sx_box;
 }
 
+/*
+ * We move popups from the bottom to the top layer so that they are
+ * rendered above views.
+ */
+static void
+move_popup_to_top_layer(struct lab_layer_surface *toplevel,
+		struct lab_layer_popup *popup)
+{
+	struct server *server = toplevel->server;
+	struct wlr_output *wlr_output =
+		toplevel->scene_layer_surface->layer_surface->output;
+	struct output *output = output_from_wlr_output(server, wlr_output);
+	struct wlr_box box = { 0 };
+	wlr_output_layout_get_box(server->output_layout, wlr_output, &box);
+	int lx = toplevel->scene_layer_surface->node->state.x + box.x;
+	int ly = toplevel->scene_layer_surface->node->state.y + box.y;
+
+	struct wlr_scene_node *node = popup->scene_node;
+	wlr_scene_node_reparent(node, &output->layer_popup_tree->node);
+	wlr_scene_node_set_position(&output->layer_popup_tree->node, lx, ly);
+}
+
+/* This popup's parent is a shell-layer surface */
 static void
 new_popup_notify(struct wl_listener *listener, void *data)
 {
-	struct lab_layer_surface *lab_layer_surface =
-		wl_container_of(listener, lab_layer_surface, new_popup);
+	struct lab_layer_surface *toplevel =
+		wl_container_of(listener, toplevel, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
+	struct output *output =
+		toplevel->scene_layer_surface->layer_surface->output->data;
+
+	struct wlr_box output_box = { 0 };
+	wlr_output_layout_get_box(output->server->output_layout,
+		output->wlr_output, &output_box);
+
+	int lx, ly;
+	wlr_scene_node_coords(toplevel->scene_layer_surface->node, &lx, &ly);
 
 	/*
-	 * We always put popups in a special popup_tree so that for example a
-	 * panel in the bottom layer displays popups above views.
+	 * Output geometry expressed in the coordinate system of the toplevel
+	 * parent of popup. We store this struct the lab_layer_popup struct
+	 * to make it easier to unconstrain children when we move popups from
+	 * the bottom to the top layer.
 	 */
-	struct server *server = lab_layer_surface->server;
-	struct wlr_output *wlr_output =
-		lab_layer_surface->scene_layer_surface->layer_surface->output;
-	struct output *output = output_from_wlr_output(server, wlr_output);
-	struct wlr_scene_node *node = &output->layer_popup_tree->node;
+	struct wlr_box output_toplevel_sx_box = {
+		.x = output_box.x - lx,
+		.y = output_box.y - ly,
+		.width = output_box.width,
+		.height = output_box.height,
+	};
+	struct lab_layer_popup *popup = create_popup(wlr_popup,
+		toplevel->scene_layer_surface->node,
+		&output_toplevel_sx_box);
+	popup->output_toplevel_sx_box = output_toplevel_sx_box;
 
-	create_popup(wlr_popup, node);
-
-	struct wlr_box box = { 0 };
-	wlr_output_layout_get_box(server->output_layout, wlr_output, &box);
-	box.x += lab_layer_surface->scene_layer_surface->node->state.x;
-	box.y += lab_layer_surface->scene_layer_surface->node->state.y;
-	wlr_scene_node_set_position(node, box.x, box.y);
+	if (toplevel->scene_layer_surface->layer_surface->current.layer
+			== ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM) {
+		move_popup_to_top_layer(toplevel, popup);
+	}
 }
 
 static void

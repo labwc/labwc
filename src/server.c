@@ -317,6 +317,13 @@ server_init(struct server *server)
 	server->foreign_toplevel_manager =
 		wlr_foreign_toplevel_manager_v1_create(server->wl_display);
 
+	server->output_power_manager_v1 =
+		wlr_output_power_manager_v1_create(server->wl_display);
+	server->output_power_manager_set_mode.notify =
+		handle_output_power_manager_set_mode;
+	wl_signal_add(&server->output_power_manager_v1->events.set_mode,
+		&server->output_power_manager_set_mode);
+
 	layers_init(server);
 
 #if HAVE_XWAYLAND

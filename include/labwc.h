@@ -26,6 +26,7 @@
 #include <wlr/types/wlr_matrix.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_management_v1.h>
+#include <wlr/types/wlr_output_power_management_v1.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_relative_pointer_v1.h>
@@ -175,6 +176,9 @@ struct server {
 	struct wlr_output_configuration_v1 *pending_output_config;
 
 	struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
+
+	struct wlr_output_power_manager_v1 *output_power_manager_v1;
+	struct wl_listener output_power_manager_set_mode;
 
 	struct wlr_relative_pointer_manager_v1 *relative_pointer_manager;
 	struct wlr_pointer_constraints_v1 *constraints;
@@ -489,6 +493,8 @@ struct output *output_from_wlr_output(struct server *server,
 	struct wlr_output *wlr_output);
 struct wlr_box output_usable_area_in_layout_coords(struct output *output);
 struct wlr_box output_usable_area_from_cursor_coords(struct server *server);
+void handle_output_power_manager_set_mode(struct wl_listener *listener,
+	void *data);
 
 void server_init(struct server *server);
 void server_start(struct server *server);

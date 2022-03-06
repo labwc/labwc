@@ -7,6 +7,9 @@
 void
 view_set_activated(struct view *view, bool activated)
 {
+	if (view->ssd.enabled) {
+		ssd_set_active(view);
+	}
 	if (view->impl->set_activated) {
 		view->impl->set_activated(view, activated);
 	}
@@ -31,6 +34,7 @@ view_move(struct view *view, double x, double y)
 		view->impl->move(view, x, y);
 	}
 	view_discover_output(view);
+	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
 }
 
 void
@@ -254,7 +258,7 @@ view_toggle_decorations(struct view *view)
 {
 	if (!view->fullscreen) {
 		view->ssd.enabled = !view->ssd.enabled;
-		ssd_update_geometry(view, true);
+		ssd_update_geometry(view);
 		if (view->maximized) {
 			view_apply_maximized_geometry(view);
 		}
@@ -266,7 +270,7 @@ view_set_decorations(struct view *view, bool decorations)
 {
 	if (view->ssd.enabled != decorations && !view->fullscreen) {
 		view->ssd.enabled = decorations;
-		ssd_update_geometry(view, true);
+		ssd_update_geometry(view);
 		if (view->maximized) {
 			view_apply_maximized_geometry(view);
 		}
@@ -341,24 +345,6 @@ view_adjust_for_layout_change(struct view *view)
 	}
 }
 
-void
-view_for_each_surface(struct view *view, wlr_surface_iterator_func_t iterator,
-		void *user_data)
-{
-	if (view->impl->for_each_surface) {
-		view->impl->for_each_surface(view, iterator, user_data);
-	}
-}
-
-void
-view_for_each_popup_surface(struct view *view,
-		wlr_surface_iterator_func_t iterator, void *data)
-{
-	if (view->impl->for_each_popup_surface) {
-		view->impl->for_each_popup_surface(view, iterator, data);
-	}
-}
-
 struct border
 view_border(struct view *view)
 {
@@ -372,26 +358,8 @@ view_border(struct view *view)
 }
 
 static void
-surface_enter_for_each_surface(struct wlr_surface *surface, int sx, int sy,
-		void *user_data)
-{
-	struct wlr_output *wlr_output = user_data;
-	wlr_surface_send_enter(surface, wlr_output);
-}
-
-static void
-surface_leave_for_each_surface(struct wlr_surface *surface, int sx, int sy,
-		void *user_data)
-{
-	struct wlr_output *wlr_output = user_data;
-	wlr_surface_send_leave(surface, wlr_output);
-}
-
-static void
 view_output_enter(struct view *view, struct wlr_output *wlr_output)
 {
-	view_for_each_surface(view, surface_enter_for_each_surface,
-		wlr_output);
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_output_enter(
 			view->toplevel_handle, wlr_output);
@@ -401,8 +369,6 @@ view_output_enter(struct view *view, struct wlr_output *wlr_output)
 static void
 view_output_leave(struct view *view, struct wlr_output *wlr_output)
 {
-	view_for_each_surface(view, surface_leave_for_each_surface,
-		wlr_output);
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_output_leave(
 			view->toplevel_handle, wlr_output);
@@ -641,7 +607,6 @@ view_update_title(struct view *view)
 	}
 	ssd_update_title(view);
 	wlr_foreign_toplevel_handle_v1_set_title(view->toplevel_handle, title);
-	damage_all_outputs(view->server);
 }
 
 void

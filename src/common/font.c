@@ -7,6 +7,7 @@
 #include <wlr/util/log.h>
 #include "common/font.h"
 #include "labwc.h"
+#include "buffer.h"
 
 static PangoRectangle
 font_extents(struct font *font, const char *string)
@@ -49,25 +50,33 @@ font_height(struct font *font)
 }
 
 void
-font_texture_create(struct server *server, struct wlr_texture **texture,
-		int max_width, const char *text, struct font *font, float *color)
+font_buffer_update(struct lab_data_buffer **buffer, int max_width,
+	const char *text, struct font *font, float *color)
+{
+	if (*buffer) {
+		wlr_buffer_drop(&(*buffer)->base);
+		*buffer = NULL;
+	}
+	font_buffer_create(buffer, max_width, text, font, color);
+}
+
+void
+font_buffer_create(struct lab_data_buffer **buffer, int max_width,
+	const char *text, struct font *font, float *color)
 {
 	if (!text || !*text) {
 		return;
-	}
-	if (*texture) {
-		wlr_texture_destroy(*texture);
-		*texture = NULL;
 	}
 
 	PangoRectangle rect = font_extents(font, text);
 	if (max_width && rect.width > max_width) {
 		rect.width = max_width;
 	}
+	/* TODO: scale */
+	*buffer = buffer_create_cairo(rect.width, rect.height, 1, true);
 
-	cairo_surface_t *surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
-		rect.width, rect.height);
-	cairo_t *cairo = cairo_create(surf);
+	cairo_t *cairo = (*buffer)->cairo;
+	cairo_surface_t *surf = cairo_get_target(cairo);
 
 	cairo_set_source_rgba(cairo, color[0], color[1], color[2], color[3]);
 	cairo_move_to(cairo, 0, 0);
@@ -88,13 +97,6 @@ font_texture_create(struct server *server, struct wlr_texture **texture,
 	g_object_unref(layout);
 
 	cairo_surface_flush(surf);
-	unsigned char *data = cairo_image_surface_get_data(surf);
-	*texture = wlr_texture_from_pixels(server->renderer, DRM_FORMAT_ARGB8888,
-			cairo_image_surface_get_stride(surf), rect.width,
-			rect.height, data);
-
-	cairo_destroy(cairo);
-	cairo_surface_destroy(surf);
 }
 
 void

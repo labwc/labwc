@@ -4,6 +4,7 @@
 #include <drm_fourcc.h>
 #include <pango/pangocairo.h>
 #include <wlr/util/log.h>
+#include "buffer.h"
 #include "common/buf.h"
 #include "common/font.h"
 #include "config/rcxml.h"
@@ -73,22 +74,42 @@ get_osd_height(struct wl_list *views)
 	return height;
 }
 
+static void
+destroy_osd_nodes(struct server *server)
+{
+	struct wlr_scene_node *child, *next;
+	struct wl_list *children = &server->osd_tree->node.state.children;
+	wl_list_for_each_safe(child, next, children, state.link) {
+		wlr_scene_node_destroy(child);
+	}
+}
+
+void
+osd_finish(struct server *server)
+{
+	destroy_osd_nodes(server);
+	wlr_scene_node_set_enabled(&server->osd_tree->node, false);
+}
+
 void
 osd_update(struct server *server)
 {
-	struct wlr_renderer *renderer = server->renderer;
 	struct theme *theme = server->theme;
 
+	destroy_osd_nodes(server);
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
 		float scale = output->wlr_output->scale;
 		int w = (OSD_ITEM_WIDTH + (2 * OSD_BORDER_WIDTH)) * scale;
 		int h = get_osd_height(&server->views) * scale;
 
-		cairo_surface_t *surf =
-			cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
-		cairo_surface_set_device_scale(surf, scale, scale);
-		cairo_t *cairo = cairo_create(surf);
+		if (output->osd_buffer) {
+			wlr_buffer_drop(&output->osd_buffer->base);
+		}
+		output->osd_buffer = buffer_create_cairo(w, h, scale, true);
+
+		cairo_t *cairo = output->osd_buffer->cairo;
+		cairo_surface_t *surf = cairo_get_target(cairo);
 
 		/* background */
 		set_source(cairo, theme->osd_bg_color);
@@ -176,21 +197,14 @@ osd_update(struct server *server)
 			pango_cairo_show_layout(cairo, layout);
 			y += OSD_ITEM_HEIGHT;
 		}
-
 		g_object_unref(layout);
-
-		/* convert to wlr_texture */
 		cairo_surface_flush(surf);
-		unsigned char *data = cairo_image_surface_get_data(surf);
-		struct wlr_texture *texture = wlr_texture_from_pixels(renderer,
-			DRM_FORMAT_ARGB8888, cairo_image_surface_get_stride(surf),
-			w, h, data);
 
-		cairo_destroy(cairo);
-		cairo_surface_destroy(surf);
-		if (output->osd) {
-			wlr_texture_destroy(output->osd);
-		}
-		output->osd = texture;
+		struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
+			&server->osd_tree->node, &output->osd_buffer->base);
+
+		/* TODO: set position properly */
+		wlr_scene_node_set_position(&scene_buffer->node, 10, 10);
+		wlr_scene_node_set_enabled(&server->osd_tree->node, true);
 	}
 }

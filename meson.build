@@ -30,14 +30,14 @@ add_project_arguments(cc.get_supported_arguments(
 version='"@0@"'.format(meson.project_version())
 git = find_program('git', native: true, required: false)
 if git.found()
-  git_commit = run_command([git, 'describe', '--dirty'])
+  git_commit = run_command([git, 'describe', '--dirty'], check: false)
   if git_commit.returncode() == 0
     version = '"@0@"'.format(git_commit.stdout().strip())
   endif
 endif
 add_project_arguments('-DLABWC_VERSION=@0@'.format(version), language: 'c')
 
-wlroots_version = ['>=0.15.0', '<0.16.0']
+wlroots_version = ['>=0.16.0', '<0.17.0']
 wlroots_proj = subproject(
   'wlroots',
   default_options: ['default_library=static', 'examples=false'],

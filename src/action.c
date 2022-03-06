@@ -3,6 +3,7 @@
 #include <wlr/util/log.h>
 #include "common/spawn.h"
 #include "common/zfree.h"
+#include "debug.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "ssd.h"
@@ -78,7 +79,8 @@ action_create(const char *action_name)
 	return action;
 }
 
-void action_list_free(struct wl_list *action_list) {
+void action_list_free(struct wl_list *action_list)
+{
 	struct action *action, *action_tmp;
 	wl_list_for_each_safe(action, action_tmp, action_list, link) {
 		wl_list_remove(&action->link);
@@ -90,19 +92,15 @@ void action_list_free(struct wl_list *action_list) {
 static void
 show_menu(struct server *server, struct view *view, const char *menu_name)
 {
-	struct menu *menu = NULL;
 	bool force_menu_top_left = false;
-
-	if (!menu_name) {
+	struct menu *menu = menu_get_by_id(menu_name);
+	if (!menu) {
 		return;
 	}
-
-	if (!strcasecmp(menu_name, "root-menu")) {
-		menu = server->rootmenu;
-		server->windowmenu->visible = false;
-	} else if (!strcasecmp(menu_name, "client-menu") && view) {
-		menu = server->windowmenu;
-		server->rootmenu->visible = false;
+	if (!strcasecmp(menu_name, "client-menu")) {
+		if (!view) {
+			return;
+		}
 		enum ssd_part_type type = ssd_at(view, server->seat.cursor->x,
 			server->seat.cursor->y);
 		if (type == LAB_SSD_BUTTON_WINDOW_MENU) {
@@ -112,12 +110,7 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 		} else {
 			force_menu_top_left = true;
 		}
-	} else {
-		return;
 	}
-
-	menu->visible = true;
-	server->input_mode = LAB_INPUT_STATE_MENU;
 
 	int x, y;
 	if (force_menu_top_left) {
@@ -127,8 +120,7 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 		x = server->seat.cursor->x;
 		y = server->seat.cursor->y;
 	}
-	menu_move(menu, x, y);
-	damage_all_outputs(server);
+	menu_open(menu, x, y);
 }
 
 static struct view *
@@ -138,7 +130,8 @@ activator_or_focused_view(struct view *activator, struct server *server)
 }
 
 void
-action(struct view *activator, struct server *server, struct wl_list *actions, uint32_t resize_edges)
+actions_run(struct view *activator, struct server *server,
+	struct wl_list *actions, uint32_t resize_edges)
 {
 	if (!actions) {
 		wlr_log(WLR_ERROR, "empty actions");
@@ -161,7 +154,7 @@ action(struct view *activator, struct server *server, struct wl_list *actions, u
 			}
 			break;
 		case ACTION_TYPE_DEBUG:
-			/* nothing */
+			debug_dump_scene(server);
 			break;
 		case ACTION_TYPE_EXECUTE:
 			{
@@ -218,7 +211,6 @@ action(struct view *activator, struct server *server, struct wl_list *actions, u
 			view = desktop_view_at_cursor(server);
 			if (view) {
 				desktop_focus_and_activate_view(&server->seat, view);
-				damage_all_outputs(server);
 			}
 			break;
 		case ACTION_TYPE_ICONIFY:
@@ -235,7 +227,6 @@ action(struct view *activator, struct server *server, struct wl_list *actions, u
 		case ACTION_TYPE_RAISE:
 			if (view) {
 				desktop_move_to_front(view);
-				damage_all_outputs(server);
 			}
 			break;
 		case ACTION_TYPE_RESIZE:

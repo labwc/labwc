@@ -4,6 +4,7 @@ labwc_sources += files(
   'font.c',
   'grab-file.c',
   'nodename.c',
+  'scene-helpers.c',
   'spawn.c',
   'string-helpers.c',
   'zfree.c',

@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "labwc.h"
 #include "layers.h"
+#include "node.h"
 #include "ssd.h"
 
 static void
@@ -10,6 +11,7 @@ move_to_front(struct view *view)
 {
 	wl_list_remove(&view->link);
 	wl_list_insert(&view->server->views, &view->link);
+	wlr_scene_node_raise_to_top(&view->scene_tree->node);
 }
 
 #if HAVE_XWAYLAND
@@ -197,7 +199,6 @@ desktop_cycle_view(struct server *server, struct view *current,
 			view = wl_container_of(view->link.prev, view, link);
 		} while (&view->link == &server->views || !isfocusable(view));
 	}
-	damage_all_outputs(server);
 	return view;
 }
 
@@ -255,189 +256,85 @@ desktop_focus_topmost_mapped_view(struct server *server)
 	desktop_move_to_front(view);
 }
 
-static bool
-_view_at(struct view *view, double lx, double ly, struct wlr_surface **surface,
-	 double *sx, double *sy)
-{
-	/*
-	 * XDG toplevels may have nested surfaces, such as popup windows for
-	 * context menus or tooltips. This function tests if any of those are
-	 * underneath the coordinates lx and ly (in output Layout Coordinates).
-	 * If so, it sets the surface pointer to that wlr_surface and the sx and
-	 * sy coordinates to the coordinates relative to that surface's top-left
-	 * corner.
-	 */
-	double view_sx = lx - view->x;
-	double view_sy = ly - view->y;
-	double _sx, _sy;
-	struct wlr_surface *_surface = NULL;
-
-	switch (view->type) {
-	case LAB_XDG_SHELL_VIEW:
-		_surface = wlr_xdg_surface_surface_at(
-			view->xdg_surface, view_sx, view_sy, &_sx, &_sy);
-		break;
-#if HAVE_XWAYLAND
-	case LAB_XWAYLAND_VIEW:
-		_surface = wlr_surface_surface_at(view->surface, view_sx,
-						  view_sy, &_sx, &_sy);
-		break;
-#endif
-	}
-
-	if (_surface) {
-		*sx = _sx;
-		*sy = _sy;
-		*surface = _surface;
-		return true;
-	}
-	return false;
-}
-
-static struct
-wlr_surface *layer_surface_at(struct wl_list *layer, double ox, double oy,
-		double *sx, double *sy)
-{
-	struct lab_layer_surface *surface;
-	wl_list_for_each_reverse(surface, layer, link) {
-		double _sx = ox - surface->geo.x;
-		double _sy = oy - surface->geo.y;
-		struct wlr_surface *wlr_surface;
-		wlr_surface = wlr_layer_surface_v1_surface_at(
-			surface->layer_surface, _sx, _sy, sx, sy);
-		if (wlr_surface) {
-			return wlr_surface;
-		}
-	}
-	return NULL;
-}
-
-static bool
-surface_is_xdg_popup(struct wlr_surface *surface)
-{
-	if (wlr_surface_is_xdg_surface(surface)) {
-		struct wlr_xdg_surface *xdg_surface =
-			wlr_xdg_surface_from_wlr_surface(surface);
-		return xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP;
-	}
-	return false;
-}
-
-static struct wlr_surface *
-layer_surface_popup_at(struct output *output, struct wl_list *layer,
-		double ox, double oy, double *sx, double *sy)
-{
-	struct lab_layer_surface *lab_layer;
-	wl_list_for_each_reverse(lab_layer, layer, link) {
-		double _sx = ox - lab_layer->geo.x;
-		double _sy = oy - lab_layer->geo.y;
-		struct wlr_surface *sub = wlr_layer_surface_v1_surface_at(
-			lab_layer->layer_surface, _sx, _sy, sx, sy);
-		if (sub && surface_is_xdg_popup(sub)) {
-			return sub;
-		}
-	}
-	return NULL;
-}
-
 struct view *
-desktop_surface_and_view_at(struct server *server, double lx, double ly,
-		struct wlr_surface **surface, double *sx, double *sy,
+desktop_node_and_view_at(struct server *server, double lx, double ly,
+		struct wlr_scene_node **scene_node, double *sx, double *sy,
 		enum ssd_part_type *view_area)
 {
-	struct wlr_output *wlr_output = wlr_output_layout_output_at(
-			server->output_layout, lx, ly);
-	struct output *output = output_from_wlr_output(server, wlr_output);
+	struct wlr_scene_node *node =
+		wlr_scene_node_at(&server->scene->node, lx, ly, sx, sy);
 
-	if (!output) {
+	*scene_node = node;
+	if (!node) {
+		*view_area = LAB_SSD_ROOT;
 		return NULL;
 	}
-
-	double ox = lx, oy = ly;
-	wlr_output_layout_output_coords(output->server->output_layout,
-		wlr_output, &ox, &oy);
-
-	/* Overlay-layer */
-	*surface = layer_surface_at(
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-
-	/* Check all layer popups */
-	*surface = layer_surface_popup_at(output,
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-	*surface = layer_surface_popup_at(output,
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-	*surface = layer_surface_popup_at(output,
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-
-	/* Top-layer */
-	*surface = layer_surface_at(
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
-
-	struct view *view;
-	wl_list_for_each (view, &server->views, link) {
-		if (!view->mapped) {
-			continue;
+	if (node->type == WLR_SCENE_NODE_SURFACE) {
+		struct wlr_surface *surface =
+			wlr_scene_surface_from_node(node)->surface;
+		if (wlr_surface_is_layer_surface(surface)) {
+			*view_area = LAB_SSD_LAYER_SURFACE;
+			return NULL;
 		}
-
-		/* This ignores server-side deco */
-		if (_view_at(view, lx, ly, surface, sx, sy)) {
-			*view_area = LAB_SSD_CLIENT;
-			return view;
+#if HAVE_XWAYLAND
+		if (node->parent == &server->unmanaged_tree->node) {
+			*view_area = LAB_SSD_UNMANAGED;
+			return NULL;
 		}
-		if (!view->ssd.enabled) {
-			continue;
+#endif
+	}
+	struct wlr_scene_node *osd = &server->osd_tree->node;
+	while (node) {
+		struct node_descriptor *desc = node->data;
+		/* TODO: convert to switch() */
+		if (desc) {
+			if (desc->type == LAB_NODE_DESC_VIEW) {
+				goto has_view_data;
+			}
+			if (desc->type == LAB_NODE_DESC_XDG_POPUP) {
+				goto has_view_data;
+			}
+			if (desc->type == LAB_NODE_DESC_LAYER_POPUP) {
+				/* FIXME: we shouldn't have to set *view_area */
+				*view_area = LAB_SSD_CLIENT;
+				return NULL;
+			}
+			if (desc->type == LAB_NODE_DESC_MENUITEM) {
+				/* Always return the top scene node for menu items */
+				*scene_node = node;
+				*view_area = LAB_SSD_MENU;
+				return NULL;
+			}
 		}
-
-		/* Now, let's deal with the server-side deco */
-		*view_area = ssd_at(view, lx, ly);
-		if (*view_area != LAB_SSD_NONE) {
-			return view;
+		if (node == osd) {
+			*view_area = LAB_SSD_OSD;
+			return NULL;
 		}
+		node = node->parent;
 	}
-
-	*surface = layer_surface_at(
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
+	if (!node) {
+		wlr_log(WLR_ERROR, "Unknown node detected");
 	}
-	*surface = layer_surface_at(
-			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
-			ox, oy, sx, sy);
-	if (*surface) {
-		return NULL;
-	}
+	*view_area = LAB_SSD_NONE;
 	return NULL;
+
+struct view *view;
+struct node_descriptor *desc;
+has_view_data:
+	desc = node->data;
+	view = desc->data;
+	*view_area = ssd_get_part_type(view, *scene_node);
+	return view;
 }
 
 struct view *
 desktop_view_at_cursor(struct server *server)
 {
 	double sx, sy;
-	struct wlr_surface *surface;
+	struct wlr_scene_node *node;
 	enum ssd_part_type view_area = LAB_SSD_NONE;
 
-	return desktop_surface_and_view_at(server,
+	return desktop_node_and_view_at(server,
 			server->seat.cursor->x, server->seat.cursor->y,
-			&surface, &sx, &sy, &view_area);
+			&node, &sx, &sy, &view_area);
 }

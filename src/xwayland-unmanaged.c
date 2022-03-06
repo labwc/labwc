@@ -20,7 +20,22 @@ unmanaged_handle_commit(struct wl_listener *listener, void *data)
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	unmanaged->lx = xsurface->x;
 	unmanaged->ly = xsurface->y;
-	damage_all_outputs(unmanaged->server);
+}
+
+static struct view *
+parent_view(struct server *server, struct wlr_xwayland_surface *surface)
+{
+	struct wlr_xwayland_surface *s = surface;
+	while (s->parent) {
+		s = s->parent;
+	}
+	struct view *view;
+	wl_list_for_each(view, &server->views, link) {
+		if (view->xwayland_surface == s) {
+			return view;
+		}
+	}
+	return NULL;
 }
 
 static void
@@ -38,10 +53,24 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 
 	unmanaged->lx = xsurface->x;
 	unmanaged->ly = xsurface->y;
-	damage_all_outputs(unmanaged->server);
 	if (wlr_xwayland_or_surface_wants_focus(xsurface)) {
 		seat_focus_surface(&unmanaged->server->seat, xsurface->surface);
 	}
+
+	int lx = unmanaged->lx;
+	int ly = unmanaged->ly;
+	struct wlr_scene_node *parent, *node;
+	struct view *view = parent_view(unmanaged->server, xsurface);
+	if (!view || !view->scene_node) {
+		parent = &unmanaged->server->unmanaged_tree->node;
+	} else {
+		lx -= view->x;
+		ly -= view->y;
+		parent = &view->scene_tree->node;
+	}
+	/* node will be destroyed automatically once surface is destroyed */
+	node = &wlr_scene_surface_create(parent, xsurface->surface)->node;
+	wlr_scene_node_set_position(node, lx, ly);
 }
 
 static void
@@ -50,7 +79,6 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, unmap);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
-	damage_all_outputs(unmanaged->server);
 	wl_list_remove(&unmanaged->link);
 	wl_list_remove(&unmanaged->commit.link);
 

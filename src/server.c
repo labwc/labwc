@@ -7,6 +7,7 @@
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_input_inhibitor.h>
+#include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
 #include <wlr/types/wlr_viewporter.h>
@@ -32,7 +33,7 @@ reload_config_and_theme(void)
 	rcxml_finish();
 	rcxml_read(NULL);
 	theme_finish(g_server->theme);
-	theme_init(g_server->theme, g_server->renderer, rc.theme_name);
+	theme_init(g_server->theme, rc.theme_name);
 
 	struct view *view;
 	wl_list_for_each (view, &g_server->views, link) {
@@ -40,12 +41,11 @@ reload_config_and_theme(void)
 			continue;
 		}
 		view->margin = ssd_thickness(view);
-		ssd_update_geometry(view, true);
+		ssd_reload(view);
 	}
 
-	menu_reconfigure(g_server, g_server->rootmenu);
+	menu_reconfigure(g_server);
 	seat_reconfigure(g_server);
-	damage_all_outputs(g_server);
 }
 
 static int
@@ -120,7 +120,7 @@ seat_disinhibit_input(struct seat *seat)
 	 */
 	struct output *output;
 	wl_list_for_each(output, &seat->server->outputs, link) {
-		arrange_layers(output);
+		layers_arrange(output);
 	}
 }
 
@@ -216,6 +216,20 @@ server_init(struct server *server)
 	wl_list_init(&server->views);
 	wl_list_init(&server->unmanaged_surfaces);
 
+	server->scene = wlr_scene_create();
+	if (!server->scene) {
+		wlr_log(WLR_ERROR, "unable to create scene");
+		exit(EXIT_FAILURE);
+	}
+	server->view_tree = wlr_scene_tree_create(&server->scene->node);
+#if HAVE_XWAYLAND
+	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->node);
+#endif
+	server->menu_tree = wlr_scene_tree_create(&server->scene->node);
+	server->osd_tree = wlr_scene_tree_create(&server->scene->node);
+
+	output_init(server);
+
 	/*
 	 * Create some hands-off wlroots interfaces. The compositor is
 	 * necessary for clients to allocate surfaces and the data device
@@ -229,6 +243,7 @@ server_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create the wlroots compositor");
 		exit(EXIT_FAILURE);
 	}
+	wlr_subcompositor_create(server->wl_display);
 
 	struct wlr_data_device_manager *device_manager = NULL;
 	device_manager = wlr_data_device_manager_create(server->wl_display);
@@ -249,7 +264,6 @@ server_init(struct server *server)
 	 */
 	wlr_primary_selection_v1_device_manager_create(server->wl_display);
 
-	output_init(server);
 	seat_init(server);
 
 	/* Init xdg-shell */
@@ -283,6 +297,14 @@ server_init(struct server *server)
 		deco_mgr, rc.xdg_shell_server_side_deco ?
 				  WLR_SERVER_DECORATION_MANAGER_MODE_SERVER :
 				  WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT);
+
+	struct wlr_presentation *presentation =
+		wlr_presentation_create(server->wl_display, server->backend);
+	if (!presentation) {
+		wlr_log(WLR_ERROR, "unable to create presentation interface");
+		exit(EXIT_FAILURE);
+	}
+	wlr_scene_set_presentation(server->scene, presentation);
 
 	wlr_export_dmabuf_manager_v1_create(server->wl_display);
 	wlr_screencopy_manager_v1_create(server->wl_display);
@@ -394,6 +416,8 @@ server_start(struct server *server)
 void
 server_finish(struct server *server)
 {
+
+/* TODO: clean up various scene_tree nodes */
 #if HAVE_XWAYLAND
 	wlr_xwayland_destroy(server->xwayland);
 #endif

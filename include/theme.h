@@ -54,20 +54,20 @@ struct theme {
 	float osd_label_text_color[4];
 
 	/* textures */
-	struct wlr_texture *xbm_close_active_unpressed;
-	struct wlr_texture *xbm_maximize_active_unpressed;
-	struct wlr_texture *xbm_iconify_active_unpressed;
-	struct wlr_texture *xbm_menu_active_unpressed;
+	struct lab_data_buffer *xbm_close_active_unpressed;
+	struct lab_data_buffer *xbm_maximize_active_unpressed;
+	struct lab_data_buffer *xbm_iconify_active_unpressed;
+	struct lab_data_buffer *xbm_menu_active_unpressed;
 
-	struct wlr_texture *xbm_close_inactive_unpressed;
-	struct wlr_texture *xbm_maximize_inactive_unpressed;
-	struct wlr_texture *xbm_iconify_inactive_unpressed;
-	struct wlr_texture *xbm_menu_inactive_unpressed;
+	struct lab_data_buffer *xbm_close_inactive_unpressed;
+	struct lab_data_buffer *xbm_maximize_inactive_unpressed;
+	struct lab_data_buffer *xbm_iconify_inactive_unpressed;
+	struct lab_data_buffer *xbm_menu_inactive_unpressed;
 
-	struct wlr_texture *corner_top_left_active_normal;
-	struct wlr_texture *corner_top_right_active_normal;
-	struct wlr_texture *corner_top_left_inactive_normal;
-	struct wlr_texture *corner_top_right_inactive_normal;
+	struct lab_data_buffer *corner_top_left_active_normal;
+	struct lab_data_buffer *corner_top_right_active_normal;
+	struct lab_data_buffer *corner_top_left_inactive_normal;
+	struct lab_data_buffer *corner_top_right_inactive_normal;
 
 	/* not set in rc.xml/themerc, but derived from font & padding_height */
 	int title_height;
@@ -76,12 +76,10 @@ struct theme {
 /**
  * theme_init - read openbox theme and generate button textures
  * @theme: theme data
- * @renderer: wlr_renderer for creating button textures
  * @theme_name: theme-name in <theme-dir>/<theme-name>/openbox-3/themerc
  * Note <theme-dir> is obtained in theme-dir.c
  */
-void theme_init(struct theme *theme, struct wlr_renderer *renderer,
-		const char *theme_name);
+void theme_init(struct theme *theme, const char *theme_name);
 
 /**
  * theme_finish - free button textures

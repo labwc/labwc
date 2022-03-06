@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
 #include "labwc.h"
+#include "node.h"
 #include "ssd.h"
 
 static void
@@ -10,21 +11,37 @@ handle_commit(struct wl_listener *listener, void *data)
 	assert(view->surface);
 
 	/* Must receive commit signal before accessing surface->current* */
-	view->w = view->surface->current.width;
-	view->h = view->surface->current.height;
+	struct wlr_surface_state *state = &view->surface->current;
+	struct view_pending_move_resize *pending = &view->pending_move_resize;
 
-	if (view->pending_move_resize.update_x) {
-		view->x = view->pending_move_resize.x +
-			view->pending_move_resize.width - view->w;
-		view->pending_move_resize.update_x = false;
+	bool move_pending = pending->update_x || pending->update_y;
+	bool size_changed = view->w != state->width || view->h != state->height;
+
+	if (!move_pending && !size_changed) {
+		return;
 	}
-	if (view->pending_move_resize.update_y) {
-		view->y = view->pending_move_resize.y +
-			view->pending_move_resize.height - view->h;
-		view->pending_move_resize.update_y = false;
+
+	view->w = state->width;
+	view->h = state->height;
+
+	if (pending->update_x) {
+		/* Adjust x for queued up configure events */
+		view->x = pending->x + pending->width - view->w;
 	}
-	ssd_update_geometry(view, false);
-	damage_view_whole(view);
+	if (pending->update_y) {
+		/* Adjust y for queued up configure events */
+		view->y = pending->y + pending->height - view->h;
+	}
+	if (move_pending) {
+		wlr_scene_node_set_position(&view->scene_tree->node,
+			view->x, view->y);
+	}
+	if ((int)pending->width == view->w && (int)pending->height == view->h) {
+		/* We reached the end of all queued size changing configure events */
+		pending->update_x = false;
+		pending->update_y = false;
+	}
+	ssd_update_geometry(view);
 }
 
 static void
@@ -90,7 +107,11 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&view->request_configure.link);
 	wl_list_remove(&view->request_maximize.link);
 	wl_list_remove(&view->request_fullscreen.link);
-	ssd_destroy(view);
+	if (view->scene_tree) {
+		ssd_destroy(view);
+		wlr_scene_node_destroy(&view->scene_tree->node);
+		view->scene_tree = NULL;
+	}
 	free(view);
 }
 
@@ -107,7 +128,6 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	wlr_xwayland_surface_configure(view->xwayland_surface,
 		event->x, event->y, MAX(event->width, min_width),
 		MAX(event->height, min_height));
-	damage_all_outputs(view->server);
 }
 #undef MAX
 
@@ -173,7 +193,6 @@ configure(struct view *view, struct wlr_box geo)
 	wlr_xwayland_surface_configure(view->xwayland_surface, (int16_t)geo.x,
 				       (int16_t)geo.y, (uint16_t)geo.width,
 				       (uint16_t)geo.height);
-	damage_all_outputs(view->server);
 }
 
 static void
@@ -184,25 +203,12 @@ move(struct view *view, double x, double y)
 	struct wlr_xwayland_surface *s = view->xwayland_surface;
 	wlr_xwayland_surface_configure(s, (int16_t)x, (int16_t)y,
 		(uint16_t)s->width, (uint16_t)s->height);
-	ssd_update_geometry(view, false);
-	damage_all_outputs(view->server);
 }
 
 static void
 _close(struct view *view)
 {
 	wlr_xwayland_surface_close(view->xwayland_surface);
-	damage_all_outputs(view->server);
-}
-
-static void
-for_each_surface(struct view *view, wlr_surface_iterator_func_t iterator,
-		void *data)
-{
-	if (!view->surface) {
-		return;
-	}
-	wlr_surface_for_each_surface(view->surface, iterator, data);
 }
 
 static const char *
@@ -254,7 +260,11 @@ top_left_edge_boundary_check(struct view *view)
 static void
 map(struct view *view)
 {
+	if (view->mapped) {
+		return;
+	}
 	view->mapped = true;
+	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 	if (!view->fullscreen && view->xwayland_surface->fullscreen) {
 		view_set_fullscreen(view, true, NULL);
 	}
@@ -264,7 +274,18 @@ map(struct view *view)
 		view->w = view->xwayland_surface->width;
 		view->h = view->xwayland_surface->height;
 	}
-	view->surface = view->xwayland_surface->surface;
+
+	if (view->surface != view->xwayland_surface->surface) {
+		view->surface = view->xwayland_surface->surface;
+		view->scene_node = wlr_scene_subsurface_tree_create(
+			&view->scene_tree->node, view->surface);
+		if (!view->scene_node) {
+			/* TODO: might need further clean up */
+			wl_resource_post_no_memory(view->surface->resource);
+			return;
+		}
+	}
+
 	view->ssd.enabled = want_deco(view);
 
 	if (view->ssd.enabled) {
@@ -304,7 +325,7 @@ unmap(struct view *view)
 {
 	if (view->mapped) {
 		view->mapped = false;
-		damage_all_outputs(view->server);
+		wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 		wl_list_remove(&view->commit.link);
 		desktop_focus_topmost_mapped_view(view->server);
 	}
@@ -338,7 +359,6 @@ set_fullscreen(struct view *view, bool fullscreen)
 static const struct view_impl xwl_view_impl = {
 	.configure = configure,
 	.close = _close,
-	.for_each_surface = for_each_surface,
 	.get_string_prop = get_string_prop,
 	.map = map,
 	.move = move,
@@ -370,8 +390,10 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	view->type = LAB_XWAYLAND_VIEW;
 	view->impl = &xwl_view_impl;
 	view->xwayland_surface = xsurface;
-	wl_list_init(&view->ssd.parts);
 
+	view->scene_tree = wlr_scene_tree_create(&view->server->view_tree->node);
+	node_descriptor_create(&view->scene_tree->node,
+		LAB_NODE_DESC_VIEW, view);
 	xsurface->data = view;
 
 	view->map.notify = handle_map;

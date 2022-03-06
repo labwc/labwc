@@ -1,7 +1,8 @@
 labwc_sources = files(
   'action.c',
+  'buffer.c',
   'cursor.c',
-  'damage.c',
+  'debug.c',
   'desktop.c',
   'foreign.c',
   'interactive.c',
@@ -9,16 +10,14 @@ labwc_sources = files(
   'key-state.c',
   'layers.c',
   'main.c',
+  'node.c',
   'osd.c',
   'output.c',
   'resistance.c',
   'seat.c',
   'server.c',
-  'ssd.c',
-  'subsurface.c',
   'theme.c',
   'view.c',
-  'view-child.c',
   'view-impl.c',
   'xdg.c',
   'xdg-deco.c',
@@ -37,3 +36,4 @@ subdir('common')
 subdir('config')
 subdir('xbm')
 subdir('menu')
+subdir('ssd')

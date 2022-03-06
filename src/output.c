@@ -1286,3 +1286,21 @@ output_usable_area_from_cursor_coords(struct server *server)
 	struct output *output = output_from_wlr_output(server, wlr_output);
 	return output_usable_area_in_layout_coords(output);
 }
+
+void
+handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
+{
+	struct wlr_output_power_v1_set_mode_event *event = data;
+
+	switch (event->mode) {
+	case ZWLR_OUTPUT_POWER_V1_MODE_OFF:
+		wlr_output_enable(event->output, false);
+		wlr_output_commit(event->output);
+		break;
+	case ZWLR_OUTPUT_POWER_V1_MODE_ON:
+		wlr_output_enable(event->output, true);
+		output_ensure_buffer(event->output);
+		wlr_output_commit(event->output);
+		break;
+	}
+}

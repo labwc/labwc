@@ -129,9 +129,7 @@ destroy_notify(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer = wl_container_of(
 		listener, layer, destroy);
-	if (layer->scene_layer_surface->layer_surface->mapped) {
-		unmap(layer);
-	}
+	unmap(layer);
 
 	wl_list_remove(&layer->link);
 	wl_list_remove(&layer->destroy.link);

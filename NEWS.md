@@ -5,19 +5,11 @@ For full changelog, use `git log`.
 
 The format is based on [Keep a Changelog]
 
-We are currently in the process of updating the code-base to use the
-wlroots scene-graph API and have decided to use three branches at this
-time:
-
-- `v0.5` - the last minor release before the move to scene-graph. It is
-  not envisaged that new major features will be added on that branch.
-
-- `scene-graph` - where the active porting is taking place until it is
-  merged into master at which point the scene-graph branch will be
-  removed.
-
-- `master` - which is mostly frozen to make the rebase/merge a bit
-  easier.
+On the `master` branch we have moved across to the wlroots scene-graph
+API and as a result there is likey to be a period of instability and
+regression. A `v0.5` branch has been created as a stable pre-scene-graph
+branch, but it is not envisaged that new major features will be added on
+that branch.
 
 # Summary of Releases
 
@@ -28,6 +20,17 @@ time:
 | 2021-06-28 | [0.3.0]       | 0.14.0          | 5051          |
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
+
+## 0.6.0 - unreleased
+
+This release contains significant refactoring to use the wlroots
+scene-graph API, particularly src/output.c, server-side-decoration
+and the layer-shell implementation. Many thanks to @Consolatis for some
+heavy lifting with this.
+
+### Added
+
+- Presentation protocol
 
 ## 0.5.1 - unreleased
 

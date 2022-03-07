@@ -37,12 +37,10 @@ view_move(struct view *view, double x, double y)
 	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
 }
 
+/* N.B. Use view_move() if not resizing. */
 void
 view_move_resize(struct view *view, struct wlr_box geo)
 {
-	if (view->w == geo.width && view->h == geo.height) {
-		wlr_log(WLR_ERROR, "use view_move() if not resizing");
-	}
 	if (view->impl->configure) {
 		view->impl->configure(view, geo);
 	}

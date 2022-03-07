@@ -295,16 +295,15 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		wlr_foreign_toplevel_handle_v1_set_fullscreen(
 			view->toplevel_handle, fullscreen);
 	}
+	if (!wlr_output) {
+		wlr_output = view_wlr_output(view);
+	}
 	if (fullscreen) {
 		if (!view->maximized) {
 			view->unmaximized_geometry.x = view->x;
 			view->unmaximized_geometry.y = view->y;
 			view->unmaximized_geometry.width = view->w;
 			view->unmaximized_geometry.height = view->h;
-		}
-
-		if (!wlr_output) {
-			wlr_output = view_wlr_output(view);
 		}
 		view->fullscreen = wlr_output;
 		view_apply_fullscreen_geometry(view, view->fullscreen);
@@ -317,6 +316,12 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		}
 		view->fullscreen = false;
 	}
+
+	/* Show fullscreen views above top-layer */
+	struct output *output =
+		output_from_wlr_output(view->server, wlr_output);
+	uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
+	wlr_scene_node_set_enabled(&output->layer_tree[top]->node, !fullscreen);
 }
 
 void

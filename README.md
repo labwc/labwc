@@ -131,7 +131,7 @@ Suggested apps to use with labwc:
 - Background image: [swaybg]
 - Panel: [waybar], [yambar], [lavalauncher], [sfwbar]
 - Launchers: [bemenu], [fuzzel], [wofi]
-- Output managers: [kanshi], [wlr-randr]
+- Output managers: [wlopm], [kanshi], [wlr-randr]
 - Screen locker: [swaylock]
 
 ## 7. Roadmap
@@ -181,6 +181,7 @@ High-level summary of items which are not intended to be implemented:
 [bemenu]: https://github.com/Cloudef/bemenu
 [fuzzel]: https://codeberg.org/dnkl/fuzzel
 [wofi]: https://hg.sr.ht/~scoopta/wofi
+[wlopm]: https://git.sr.ht/~leon_plickat/wlopm
 [kanshi]: https://sr.ht/~emersion/kanshi/
 [wlr-randr]: https://sr.ht/~emersion/wlr-randr/
 [swaylock]: https://github.com/swaywm/swaylock

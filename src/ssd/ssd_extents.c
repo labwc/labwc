@@ -16,6 +16,9 @@ ssd_extents_create(struct view *view)
 	int full_height = height + theme->border_width + SSD_HEIGHT;
 	int full_width = width + 2 * theme->border_width;
 	int extended_area = EXTENDED_AREA;
+	int corner_size = extended_area + theme->border_width + BUTTON_WIDTH / 2;
+	int side_width = full_width + extended_area * 2 - corner_size * 2;
+	int side_height = full_height + extended_area * 2 - corner_size * 2;
 
 	view->ssd.extents.tree = wlr_scene_tree_create(&view->ssd.tree->node);
 	struct wlr_scene_node *parent = &view->ssd.extents.tree->node;
@@ -28,33 +31,33 @@ ssd_extents_create(struct view *view)
 
 	/* Top */
 	add_scene_rect(part_list, LAB_SSD_PART_CORNER_TOP_LEFT, parent,
-		extended_area, extended_area,
+		corner_size, corner_size,
 		0, 0, invisible);
 	add_scene_rect(part_list, LAB_SSD_PART_TOP, parent,
-		full_width, extended_area,
-		extended_area, 0, invisible);
+		side_width, extended_area,
+		corner_size, 0, invisible);
 	add_scene_rect(part_list, LAB_SSD_PART_CORNER_TOP_RIGHT, parent,
-		extended_area, extended_area,
-		extended_area + full_width, 0, invisible);
+		corner_size, corner_size,
+		corner_size + side_width, 0, invisible);
 
 	/* Sides */
 	add_scene_rect(part_list, LAB_SSD_PART_LEFT, parent,
-		extended_area, full_height,
-		0, extended_area, invisible);
+		extended_area, side_height,
+		0, corner_size, invisible);
 	add_scene_rect(part_list, LAB_SSD_PART_RIGHT, parent,
-		extended_area, full_height,
-		extended_area + full_width, extended_area, invisible);
+		extended_area, side_height,
+		corner_size + side_width, corner_size, invisible);
 
 	/* Bottom */
 	add_scene_rect(part_list, LAB_SSD_PART_CORNER_BOTTOM_LEFT, parent,
-		extended_area, extended_area,
-		0, extended_area + full_height, invisible);
+		corner_size, corner_size,
+		0, corner_size + side_height, invisible);
 	add_scene_rect(part_list, LAB_SSD_PART_BOTTOM, parent,
-		full_width, extended_area,
+		side_width, extended_area,
 		extended_area, extended_area + full_height, invisible);
 	add_scene_rect(part_list, LAB_SSD_PART_CORNER_BOTTOM_RIGHT, parent,
-		extended_area, extended_area,
-		extended_area + full_width, extended_area + full_height, invisible);
+		corner_size, corner_size,
+		corner_size + side_width, corner_size + side_height, invisible);
 }
 
 void
@@ -75,6 +78,9 @@ ssd_extents_update(struct view *view)
 	int full_height = height + theme->border_width + SSD_HEIGHT;
 	int full_width = width + 2 * theme->border_width;
 	int extended_area = EXTENDED_AREA;
+	int corner_size = extended_area + theme->border_width + BUTTON_WIDTH / 2;
+	int side_width = full_width + extended_area * 2 - corner_size * 2;
+	int side_height = full_height + extended_area * 2 - corner_size * 2;
 
 	struct ssd_part *part;
 	struct wlr_scene_rect *rect;
@@ -82,32 +88,32 @@ ssd_extents_update(struct view *view)
 		rect = lab_wlr_scene_get_rect(part->node);
 		switch (part->type) {
 		case LAB_SSD_PART_TOP:
-			wlr_scene_rect_set_size(rect, full_width, extended_area);
+			wlr_scene_rect_set_size(rect, side_width, extended_area);
 			continue;
 		case LAB_SSD_PART_CORNER_TOP_RIGHT:
 			wlr_scene_node_set_position(
-				part->node, extended_area + full_width, 0);
+				part->node, corner_size + side_width, 0);
 			continue;
 		case LAB_SSD_PART_LEFT:
-			wlr_scene_rect_set_size(rect, extended_area, full_height);
+			wlr_scene_rect_set_size(rect, extended_area, side_height);
 			continue;
 		case LAB_SSD_PART_RIGHT:
-			wlr_scene_rect_set_size(rect, extended_area, full_height);
+			wlr_scene_rect_set_size(rect, extended_area, side_height);
 			wlr_scene_node_set_position(
-				part->node, extended_area + full_width, extended_area);
+				part->node, extended_area + full_width, corner_size);
 			continue;
 		case LAB_SSD_PART_CORNER_BOTTOM_LEFT:
 			wlr_scene_node_set_position(
-				part->node, 0, extended_area + full_height);
+				part->node, 0, corner_size + side_height);
 			continue;
 		case LAB_SSD_PART_BOTTOM:
-			wlr_scene_rect_set_size(rect, full_width, extended_area);
+			wlr_scene_rect_set_size(rect, side_width, extended_area);
 			wlr_scene_node_set_position(
-				part->node, extended_area, extended_area + full_height);
+				part->node, corner_size, extended_area + full_height);
 			continue;
 		case LAB_SSD_PART_CORNER_BOTTOM_RIGHT:
 			wlr_scene_node_set_position(part->node,
-				extended_area + full_width, extended_area + full_height);
+				corner_size + side_width, corner_size + side_height);
 			continue;
 		default:
 			continue;

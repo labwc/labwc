@@ -5,7 +5,6 @@
 #include "buffer.h"
 #include <wlr/util/box.h>
 
-#define SSD_HEIGHT 26    /* TODO: use theme->title_height */
 #define BUTTON_COUNT 4
 #define BUTTON_WIDTH 26
 #define EXTENDED_AREA 8

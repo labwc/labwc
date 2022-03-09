@@ -42,7 +42,7 @@ ssd_border_create(struct view *view)
 			0, height, color);
 		add_scene_rect(&subtree->parts, LAB_SSD_PART_TOP, parent,
 			full_width - 2 * BUTTON_WIDTH, theme->border_width,
-			BUTTON_WIDTH, -SSD_HEIGHT, color);
+			BUTTON_WIDTH, -theme->title_height, color);
 	} FOR_EACH_END
 }
 
@@ -79,7 +79,7 @@ ssd_border_update(struct view *view)
 					full_width - 2 * BUTTON_WIDTH,
 					theme->border_width);
 				wlr_scene_node_set_position(part->node,
-					BUTTON_WIDTH, -SSD_HEIGHT);
+					BUTTON_WIDTH, -theme->title_height);
 				continue;
 			default:
 				continue;

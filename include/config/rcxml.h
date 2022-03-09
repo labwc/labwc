@@ -8,6 +8,7 @@
 
 #include "common/buf.h"
 #include "config/libinput.h"
+#include "theme.h"
 
 struct rcxml {
 
@@ -29,6 +30,8 @@ struct rcxml {
 	int font_size_activewindow;
 	int font_size_menuitem;
 	int font_size_osd;
+	/* Pointer to current theme */
+	struct theme *theme;
 
 	/* keyboard */
 	int repeat_rate;

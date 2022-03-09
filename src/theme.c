@@ -422,7 +422,7 @@ create_corners(struct theme *theme)
 		.x = 0,
 		.y = 0,
 		.width = BUTTON_WIDTH,
-		.height = SSD_HEIGHT,
+		.height = theme->title_height,
 	};
 
 	struct rounded_corner_ctx ctx = {

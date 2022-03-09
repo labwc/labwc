@@ -29,7 +29,8 @@ ssd_titlebar_create(struct view *view)
 	FOR_EACH_STATE(view, subtree) {
 		subtree->tree = wlr_scene_tree_create(&view->ssd.tree->node);
 		parent = &subtree->tree->node;
-		wlr_scene_node_set_position(parent, -theme->border_width, -SSD_HEIGHT);
+		wlr_scene_node_set_position(parent,
+			-theme->border_width, -theme->title_height);
 		if (subtree == &view->ssd.titlebar.active) {
 			color = theme->window_active_title_bg_color;
 			corner_top_left = &theme->corner_top_left_active_normal->base;
@@ -44,7 +45,7 @@ ssd_titlebar_create(struct view *view)
 
 		/* Title */
 		add_scene_rect(&subtree->parts, LAB_SSD_PART_TITLEBAR, parent,
-			full_width - BUTTON_WIDTH * BUTTON_COUNT, SSD_HEIGHT,
+			full_width - BUTTON_WIDTH * BUTTON_COUNT, theme->title_height,
 			BUTTON_WIDTH, 0, color);
 		/* Buttons */
 		add_scene_button_corner(&subtree->parts, LAB_SSD_BUTTON_WINDOW_MENU,
@@ -76,7 +77,8 @@ ssd_titlebar_update(struct view *view)
 	if (width == view->ssd.state.width) {
 		return;
 	}
-	int full_width = width + 2 * view->server->theme->border_width;
+	struct theme *theme = view->server->theme;
+	int full_width = width + 2 * theme->border_width;
 
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
@@ -85,7 +87,8 @@ ssd_titlebar_update(struct view *view)
 			switch (part->type) {
 			case LAB_SSD_PART_TITLEBAR:
 				wlr_scene_rect_set_size(lab_wlr_scene_get_rect(part->node),
-					full_width - BUTTON_WIDTH * BUTTON_COUNT, SSD_HEIGHT);
+					full_width - BUTTON_WIDTH * BUTTON_COUNT,
+					theme->title_height);
 				continue;
 			case LAB_SSD_BUTTON_ICONIFY:
 				if (is_direct_child(part->node, subtree)) {
@@ -159,7 +162,7 @@ ssd_update_title_positions(struct view *view)
 		}
 
 		x = 0;
-		y = (SSD_HEIGHT - part->buffer->base.height) / 2;
+		y = (theme->title_height - part->buffer->base.height) / 2;
 		rect = lab_wlr_scene_get_rect(part->node->parent);
 		if (rect->width <= 0) {
 			wlr_scene_node_set_position(part->node, x, y);

@@ -54,12 +54,12 @@ finish_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 	/* Icon */
 	add_scene_buffer(part_list, type, parent, icon_buffer,
 		(BUTTON_WIDTH - icon_buffer->width) / 2,
-		(SSD_HEIGHT - icon_buffer->height) / 2);
+		(rc.theme->title_height - icon_buffer->height) / 2);
 
 	/* Hover overlay */
 	struct ssd_part *hover_part;
 	hover_part = add_scene_rect(part_list, type, parent,
-		BUTTON_WIDTH, SSD_HEIGHT, 0, 0, hover_bg);
+		BUTTON_WIDTH, rc.theme->title_height, 0, 0, hover_bg);
 	wlr_scene_node_set_enabled(hover_part->node, false);
 }
 
@@ -83,7 +83,7 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 	struct ssd_part *part;
 	/* Background */
 	part = add_scene_rect(part_list, type, parent,
-		BUTTON_WIDTH, SSD_HEIGHT, x, 0, bg_color);
+		BUTTON_WIDTH, rc.theme->title_height, x, 0, bg_color);
 	finish_scene_button(part_list, type, part->node, icon_buffer);
 	return part;
 }

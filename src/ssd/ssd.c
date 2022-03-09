@@ -18,7 +18,7 @@ ssd_thickness(struct view *view)
 {
 	struct theme *theme = view->server->theme;
 	struct border border = {
-		.top = theme->title_height,
+		.top = theme->title_height + theme->border_width,
 		.bottom = theme->border_width,
 		.left = theme->border_width,
 		.right = theme->border_width,

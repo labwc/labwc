@@ -421,8 +421,8 @@ create_corners(struct theme *theme)
 	struct wlr_box box = {
 		.x = 0,
 		.y = 0,
-		.width = BUTTON_WIDTH,
-		.height = theme->title_height,
+		.width = BUTTON_WIDTH + theme->border_width,
+		.height = theme->title_height + theme->border_width,
 	};
 
 	struct rounded_corner_ctx ctx = {

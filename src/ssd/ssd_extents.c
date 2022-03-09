@@ -13,8 +13,8 @@ ssd_extents_create(struct view *view)
 	struct wl_list *part_list = &view->ssd.extents.parts;
 	int width = view->w;
 	int height = view->h;
-	int full_height = height + theme->border_width + theme->title_height;
-	int full_width = width + 2 * theme->border_width;
+	int full_height = height + theme->border_width * 2 + theme->title_height;
+	int full_width = width + theme->border_width * 2;
 	int extended_area = EXTENDED_AREA;
 	int corner_size = extended_area + theme->border_width + BUTTON_WIDTH / 2;
 	int side_width = full_width + extended_area * 2 - corner_size * 2;
@@ -27,7 +27,7 @@ ssd_extents_create(struct view *view)
 	}
 	wl_list_init(&view->ssd.extents.parts);
 	wlr_scene_node_set_position(parent, -(theme->border_width + extended_area),
-		-(theme->title_height + extended_area));
+		-(theme->title_height + theme->border_width + extended_area));
 
 	/* Top */
 	add_scene_rect(part_list, LAB_SSD_PART_CORNER_TOP_LEFT, parent,
@@ -54,7 +54,7 @@ ssd_extents_create(struct view *view)
 		0, corner_size + side_height, invisible);
 	add_scene_rect(part_list, LAB_SSD_PART_BOTTOM, parent,
 		side_width, extended_area,
-		extended_area, extended_area + full_height, invisible);
+		corner_size, extended_area + full_height, invisible);
 	add_scene_rect(part_list, LAB_SSD_PART_CORNER_BOTTOM_RIGHT, parent,
 		corner_size, corner_size,
 		corner_size + side_width, corner_size + side_height, invisible);
@@ -75,7 +75,7 @@ ssd_extents_update(struct view *view)
 
 	int width = view->w;
 	int height = view->h;
-	int full_height = height + theme->border_width + theme->title_height;
+	int full_height = height + theme->border_width * 2 + theme->title_height;
 	int full_width = width + 2 * theme->border_width;
 	int extended_area = EXTENDED_AREA;
 	int corner_size = extended_area + theme->border_width + BUTTON_WIDTH / 2;

@@ -66,8 +66,8 @@ finish_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 
 	/* Hover overlay */
 	struct ssd_part *hover_part;
-	hover_part = add_scene_rect(part_list, type, parent,
-		BUTTON_WIDTH, rc.theme->title_height, offset_x, offset_y, hover_bg);
+	hover_part = add_scene_rect(part_list, type, parent, BUTTON_WIDTH,
+		rc.theme->title_height, offset_x, offset_y, hover_bg);
 	wlr_scene_node_set_enabled(hover_part->node, false);
 }
 
@@ -77,7 +77,10 @@ add_scene_button_corner(struct wl_list *part_list, enum ssd_part_type type,
 	struct wlr_buffer *icon_buffer, int x)
 {
 	struct ssd_part *part;
-	/* Background, y adjusted for border_width */
+	/*
+	 * Background, y adjusted for border_width which is
+	 * already included in rendered theme.c / corner_buffer
+	 */
 	part = add_scene_buffer(part_list, type, parent, corner_buffer,
 		x, -rc.theme->border_width);
 	finish_scene_button(part_list, type, part->node, icon_buffer);
@@ -116,9 +119,15 @@ ssd_destroy_parts(struct wl_list *list)
 	wl_list_for_each_reverse_safe(part, tmp, list, link) {
 		if (part->node) {
 			wlr_scene_node_destroy(part->node);
+			part->node = NULL;
 		}
 		if (part->buffer) {
 			wlr_buffer_drop(&part->buffer->base);
+			part->buffer = NULL;
+		}
+		if (part->geometry) {
+			free(part->geometry);
+			part->geometry = NULL;
 		}
 		wl_list_remove(&part->link);
 		free(part);

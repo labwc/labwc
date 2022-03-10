@@ -35,6 +35,7 @@ view_move(struct view *view, double x, double y)
 	}
 	view_discover_output(view);
 	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
+	ssd_update_geometry(view);
 }
 
 /* N.B. Use view_move() if not resizing. */

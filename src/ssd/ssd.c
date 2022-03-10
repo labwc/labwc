@@ -155,28 +155,35 @@ ssd_create(struct view *view)
 	view->ssd.tree = wlr_scene_tree_create(&view->scene_tree->node);
 	wlr_scene_node_lower_to_bottom(&view->ssd.tree->node);
 	ssd_extents_create(view);
-	ssd_titlebar_create(view);
 	ssd_border_create(view);
+	ssd_titlebar_create(view);
 }
 
 void
 ssd_update_geometry(struct view *view)
 {
-	/* TODO: verify we are not called without reason. like in commit handlers */
 	if (!view->ssd.tree || !view->scene_node) {
 		return;
 	}
 
-	if (view->ssd.enabled && !view->ssd.tree->node.state.enabled) {
+	if (!view->ssd.enabled) {
+		if (view->ssd.tree->node.state.enabled) {
+			wlr_scene_node_set_enabled(&view->ssd.tree->node, false);
+		}
+		return;
+	} else if (!view->ssd.tree->node.state.enabled) {
 		wlr_scene_node_set_enabled(&view->ssd.tree->node, true);
-	}
-	if (!view->ssd.enabled && view->ssd.tree->node.state.enabled) {
-		wlr_scene_node_set_enabled(&view->ssd.tree->node, false);
 	}
 
 	int width = view->w;
 	int height = view->h;
 	if (width == view->ssd.state.width && height == view->ssd.state.height) {
+		if (view->x != view->ssd.state.x || view->y != view->ssd.state.y) {
+			/* Dynamically resize extents based on position and usable_area */
+			ssd_extents_update(view);
+			view->ssd.state.x = view->x;
+			view->ssd.state.y = view->y;
+		}
 		return;
 	}
 	ssd_extents_update(view);
@@ -185,6 +192,8 @@ ssd_update_geometry(struct view *view)
 
 	view->ssd.state.width = width;
 	view->ssd.state.height = height;
+	view->ssd.state.x = view->x;
+	view->ssd.state.y = view->y;
 }
 
 void

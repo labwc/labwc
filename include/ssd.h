@@ -74,6 +74,8 @@ struct ssd {
 	 * don't update things we don't have to.
 	 */
 	struct {
+		int x;
+		int y;
 		int width;
 		int height;
 		struct ssd_state_title {
@@ -109,6 +111,9 @@ struct ssd_part {
 
 	/* This part represented in scene graph */
 	struct wlr_scene_node *node;
+
+	/* Targeted geometry. May be NULL */
+	struct wlr_box *geometry;
 
 	struct wl_list link;
 };

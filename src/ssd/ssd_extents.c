@@ -86,6 +86,9 @@ ssd_extents_create(struct view *view)
 	p = add_extent(part_list, LAB_SSD_PART_CORNER_BOTTOM_RIGHT, parent);
 	p->geometry->width = corner_size;
 	p->geometry->height = corner_size;
+
+	/* Initial manual update to keep X11 applications happy */
+	ssd_extents_update(view);
 }
 
 void

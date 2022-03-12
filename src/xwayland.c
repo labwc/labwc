@@ -335,7 +335,9 @@ set_activated(struct view *view, bool activated)
 	}
 
 	wlr_xwayland_surface_activate(surface, activated);
-	wlr_xwayland_surface_restack(surface, NULL, XCB_STACK_MODE_ABOVE);
+	if (activated) {
+		wlr_xwayland_surface_restack(surface, NULL, XCB_STACK_MODE_ABOVE);
+	}
 }
 
 static void

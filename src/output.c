@@ -9,6 +9,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "config.h"
 #include <assert.h>
+#include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include <wlr/types/wlr_output_damage.h>
 #include <wlr/util/region.h>
@@ -1299,7 +1300,9 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 		break;
 	case ZWLR_OUTPUT_POWER_V1_MODE_ON:
 		wlr_output_enable(event->output, true);
-		output_ensure_buffer(event->output);
+		if (!wlr_output_test(event->output)) {
+			wlr_output_rollback(event->output);
+		}
 		wlr_output_commit(event->output);
 		break;
 	}

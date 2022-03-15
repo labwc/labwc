@@ -37,6 +37,7 @@ enum action_type {
 	ACTION_TYPE_INVALID = 0,
 	ACTION_TYPE_NONE,
 	ACTION_TYPE_CLOSE,
+	ACTION_TYPE_KILL,
 	ACTION_TYPE_DEBUG,
 	ACTION_TYPE_EXECUTE,
 	ACTION_TYPE_EXIT,
@@ -63,6 +64,7 @@ const char *action_names[] = {
 	"INVALID",
 	"None",
 	"Close",
+	"Kill",
 	"Debug",
 	"Execute",
 	"Exit",
@@ -242,6 +244,17 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_CLOSE:
 			if (view) {
 				view_close(view);
+			}
+			break;
+		case ACTION_TYPE_KILL:
+			if (view && view->surface) {
+				/* Send SIGTERM to the process associated with the surface */
+				pid_t pid = -1;
+				struct wl_client *client = view->surface->resource->client;
+				wl_client_get_credentials(client, &pid, NULL, NULL);
+				if (pid != -1) {
+					kill(pid, SIGTERM);
+				}
 			}
 			break;
 		case ACTION_TYPE_DEBUG:

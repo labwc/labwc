@@ -9,7 +9,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "config.h"
 #include <assert.h>
-#include <types/wlr_output.h>
+#include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include <wlr/types/wlr_output_damage.h>

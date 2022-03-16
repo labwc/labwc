@@ -593,6 +593,7 @@ void
 menu_reconfigure(struct server *server)
 {
 	menu_finish();
+	server->menu_current = NULL;
 	menu_init_rootmenu(server);
 	menu_init_windowmenu(server);
 }

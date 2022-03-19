@@ -357,6 +357,12 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 	double oy = ly;
 	struct wlr_output *wlr_output = wlr_output_layout_output_at(
 		menu->server->output_layout, lx, ly);
+	if (!wlr_output) {
+		wlr_log(WLR_ERROR,
+			"Failed to position menu %s (%s) and its submenus: "
+			"Not enough screen space", menu->id, menu->label);
+		return;
+	}
 	wlr_output_layout_output_coords(menu->server->output_layout,
 		wlr_output, &ox, &oy);
 	struct wlr_box usable = output_usable_area_from_cursor_coords(menu->server);
@@ -587,6 +593,7 @@ void
 menu_reconfigure(struct server *server)
 {
 	menu_finish();
+	server->menu_current = NULL;
 	menu_init_rootmenu(server);
 	menu_init_windowmenu(server);
 }

@@ -405,7 +405,7 @@ cursor_motion(struct wl_listener *listener, void *data)
 	 */
 	struct seat *seat = wl_container_of(listener, seat, cursor_motion);
 	struct server *server = seat->server;
-	struct wlr_event_pointer_motion *event = data;
+	struct wlr_pointer_motion_event *event = data;
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	wlr_relative_pointer_manager_v1_send_relative_motion(
@@ -422,8 +422,8 @@ cursor_motion(struct wl_listener *listener, void *data)
 		 * NULL for the device if you want to move the cursor around
 		 * without any input.
 		 */
-		wlr_cursor_move(seat->cursor, event->device, event->delta_x,
-			event->delta_y);
+		wlr_cursor_move(seat->cursor, &event->pointer->base,
+			event->delta_x, event->delta_y);
 	}
 	process_cursor_motion(seat->server, event->time_msec);
 }
@@ -453,12 +453,12 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 	 */
 	struct seat *seat = wl_container_of(
 		listener, seat, cursor_motion_absolute);
-	struct wlr_event_pointer_motion_absolute *event = data;
+	struct wlr_pointer_motion_absolute_event *event = data;
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	double lx, ly;
-	wlr_cursor_absolute_to_layout_coords(seat->cursor, event->device,
-			event->x, event->y, &lx, &ly);
+	wlr_cursor_absolute_to_layout_coords(seat->cursor,
+		&event->pointer->base, event->x, event->y, &lx, &ly);
 
 	double dx = lx - seat->cursor->x;
 	double dy = ly - seat->cursor->y;
@@ -477,7 +477,8 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 		 * NULL for the device if you want to move the cursor around
 		 * without any input.
 		 */
-		wlr_cursor_move(seat->cursor, event->device, dx, dy); }
+		wlr_cursor_move(seat->cursor, &event->pointer->base, dx, dy);
+	}
 
 	process_cursor_motion(seat->server, event->time_msec);
 }
@@ -612,7 +613,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	 */
 	struct seat *seat = wl_container_of(listener, seat, cursor_button);
 	struct server *server = seat->server;
-	struct wlr_event_pointer_button *event = data;
+	struct wlr_pointer_button_event *event = data;
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	double sx, sy;
@@ -729,7 +730,7 @@ cursor_axis(struct wl_listener *listener, void *data)
 	 * event, for example when you move the scroll wheel.
 	 */
 	struct seat *seat = wl_container_of(listener, seat, cursor_axis);
-	struct wlr_event_pointer_axis *event = data;
+	struct wlr_pointer_axis_event *event = data;
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	/* Notify the client with pointer focus of the axis event. */
@@ -757,7 +758,7 @@ cursor_frame(struct wl_listener *listener, void *data)
 static void handle_pointer_pinch_begin(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, pinch_begin);
-	struct wlr_event_pointer_pinch_begin *event = data;
+	struct wlr_pointer_pinch_begin_event *event = data;
 	wlr_pointer_gestures_v1_send_pinch_begin(seat->pointer_gestures,
 		seat->seat, event->time_msec, event->fingers);
 }
@@ -765,7 +766,7 @@ static void handle_pointer_pinch_begin(struct wl_listener *listener, void *data)
 static void handle_pointer_pinch_update(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, pinch_update);
-	struct wlr_event_pointer_pinch_update *event = data;
+	struct wlr_pointer_pinch_update_event *event = data;
 	wlr_pointer_gestures_v1_send_pinch_update(seat->pointer_gestures,
 		seat->seat, event->time_msec, event->dx, event->dy,
 		event->scale, event->rotation);
@@ -774,7 +775,7 @@ static void handle_pointer_pinch_update(struct wl_listener *listener, void *data
 static void handle_pointer_pinch_end(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, pinch_end);
-	struct wlr_event_pointer_pinch_end *event = data;
+	struct wlr_pointer_pinch_end_event *event = data;
 	wlr_pointer_gestures_v1_send_pinch_end(seat->pointer_gestures,
 		seat->seat, event->time_msec, event->cancelled);
 }
@@ -782,7 +783,7 @@ static void handle_pointer_pinch_end(struct wl_listener *listener, void *data)
 static void handle_pointer_swipe_begin(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, swipe_begin);
-	struct wlr_event_pointer_swipe_begin *event = data;
+	struct wlr_pointer_swipe_begin_event *event = data;
 	wlr_pointer_gestures_v1_send_swipe_begin(seat->pointer_gestures,
 		seat->seat, event->time_msec, event->fingers);
 }
@@ -790,7 +791,7 @@ static void handle_pointer_swipe_begin(struct wl_listener *listener, void *data)
 static void handle_pointer_swipe_update(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, swipe_update);
-	struct wlr_event_pointer_swipe_update *event = data;
+	struct wlr_pointer_swipe_update_event *event = data;
 	wlr_pointer_gestures_v1_send_swipe_update(seat->pointer_gestures,
 		seat->seat, event->time_msec, event->dx, event->dy);
 }
@@ -798,7 +799,7 @@ static void handle_pointer_swipe_update(struct wl_listener *listener, void *data
 static void handle_pointer_swipe_end(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, swipe_end);
-	struct wlr_event_pointer_swipe_end *event = data;
+	struct wlr_pointer_swipe_end_event *event = data;
 	wlr_pointer_gestures_v1_send_swipe_end(seat->pointer_gestures,
 		seat->seat, event->time_msec, event->cancelled);
 }

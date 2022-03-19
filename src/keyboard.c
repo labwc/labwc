@@ -40,7 +40,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 	struct server *server = seat->server;
 
 	if (server->cycle_view) {
-		struct wlr_event_keyboard_key *event = data;
+		struct wlr_keyboard_key_event *event = data;
 		struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
 		if ((event->state == WL_KEYBOARD_KEY_STATE_RELEASED)
 				&& !any_modifiers_pressed(keyboard))  {
@@ -91,7 +91,7 @@ static bool is_modifier_key(xkb_keysym_t sym)
 
 static bool
 handle_compositor_keybindings(struct wl_listener *listener,
-		struct wlr_event_keyboard_key *event)
+		struct wlr_keyboard_key_event *event)
 {
 	struct seat *seat = wl_container_of(listener, seat, keyboard_key);
 	struct server *server = seat->server;
@@ -185,7 +185,7 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	/* This event is raised when a key is pressed or released. */
 	struct seat *seat = wl_container_of(listener, seat, keyboard_key);
 	struct server *server = seat->server;
-	struct wlr_event_keyboard_key *event = data;
+	struct wlr_keyboard_key_event *event = data;
 	struct wlr_seat *wlr_seat = server->seat.seat;
 	struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);

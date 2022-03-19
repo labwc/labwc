@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
+#include <stdbool.h>
 #include <strings.h>
 #include <wlr/backend/libinput.h>
+#include <wlr/types/wlr_input_device.h>
 #include <wlr/util/log.h>
 #include "labwc.h"
 
@@ -12,6 +14,19 @@ input_device_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&input->link);
 	wl_list_remove(&input->destroy.link);
 	free(input);
+}
+
+static bool
+is_touch_device(struct wlr_input_device *wlr_input_device)
+{
+	switch (wlr_input_device->type) {
+	case WLR_INPUT_DEVICE_TOUCH:
+	case WLR_INPUT_DEVICE_TABLET_TOOL:
+		return true;
+	default:
+		break;
+	}
+	return false;
 }
 
 static void
@@ -29,16 +44,14 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	}
 
 	enum device_type current_type;
-	if (wlr_input_device->width_mm) {
-		current_type = TOUCH_DEVICE;
-	} else {
-		current_type = NON_TOUCH_DEVICE;
-	}
+	current_type = is_touch_device(wlr_input_device)
+			? TOUCH_DEVICE : NON_TOUCH_DEVICE;
 
 	struct libinput_category *device_category, *dc = NULL;
 	wl_list_for_each(device_category, &rc.libinput_categories, link) {
 		if (device_category->name) {
-			if (!strcasecmp(wlr_input_device->name, device_category->name)) {
+			if (!strcasecmp(wlr_input_device->name,
+					device_category->name)) {
 				dc = device_category;
 				break;
 			}
@@ -134,10 +147,11 @@ new_pointer(struct seat *seat, struct input *input)
 	wlr_cursor_attach_input_device(seat->cursor, dev);
 
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
-	if (dev->output_name) {
-		wlr_log(WLR_INFO, "map pointer to output %s\n", dev->output_name);
+	if (dev->type == WLR_INPUT_DEVICE_POINTER) {
+		wlr_log(WLR_INFO, "map pointer to output %s\n",
+			dev->pointer->output_name);
 		struct wlr_output *output =
-			output_by_name(seat->server, dev->output_name);
+			output_by_name(seat->server, dev->pointer->output_name);
 		wlr_cursor_map_input_to_output(seat->cursor, dev, output);
 		wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
 	}

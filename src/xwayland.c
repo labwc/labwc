@@ -181,9 +181,26 @@ handle_set_class(struct wl_listener *listener, void *data)
 	view_update_app_id(view);
 }
 
+static int
+round_to_increment(int val, int base, int inc) {
+	if (base < 0 || inc <= 0)
+		return val;
+	return base + (val - base + inc / 2) / inc * inc;
+}
+
 static void
 configure(struct view *view, struct wlr_box geo)
 {
+	// honor size increments from WM_SIZE_HINTS
+	struct wlr_xwayland_surface_size_hints *hints =
+		view->xwayland_surface->size_hints;
+	if (hints) {
+		geo.width = round_to_increment(geo.width,
+			hints->base_width, hints->width_inc);
+		geo.height = round_to_increment(geo.height,
+			hints->base_height, hints->height_inc);
+	}
+
 	view->pending_move_resize.update_x = geo.x != view->x;
 	view->pending_move_resize.update_y = geo.y != view->y;
 	view->pending_move_resize.x = geo.x;

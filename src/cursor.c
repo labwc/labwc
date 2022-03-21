@@ -703,7 +703,8 @@ cursor_button(struct wl_listener *listener, void *data)
 					server->menu_current = NULL;
 				}
 				server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
-				cursor_rebase(&server->seat, event->time_msec);
+				cursor_rebase(&server->seat,
+					event->time_msec, false);
 				close_menu = false;
 			}
 			return;

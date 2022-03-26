@@ -10,6 +10,7 @@
 #include "config.h"
 #include <assert.h>
 #include <wlr/types/wlr_buffer.h>
+#include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include <wlr/types/wlr_scene.h>
@@ -56,6 +57,20 @@ new_output_notify(struct wl_listener *listener, void *data)
 	 */
 	struct server *server = wl_container_of(listener, server, new_output);
 	struct wlr_output *wlr_output = data;
+
+	/*
+	 * If this is a non-desktop output, offer it for leasing.
+	 * We may want to do more logic here in future, if we choose
+	 * to offer non-desktop outputs.
+	 */
+	if (wlr_output->non_desktop) {
+		wlr_log(WLR_DEBUG, "Not configuring non-desktop output");
+		if (server->drm_lease_manager) {
+			wlr_drm_lease_v1_manager_offer_output(server->drm_lease_manager,
+					wlr_output);
+		}
+		return;
+	}
 
 	/*
 	 * Configures the output created by the backend to use our allocator

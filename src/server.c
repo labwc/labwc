@@ -146,6 +146,19 @@ handle_input_disinhibit(struct wl_listener *listener, void *data)
 	seat_disinhibit_input(&server->seat);
 }
 
+static void
+handle_drm_lease_request(struct wl_listener *listener, void *data) {
+	/* We only offer non-desktop outputs, but in the future we might want to do
+	 * more logic here. */
+
+	struct wlr_drm_lease_request_v1 *req = data;
+	struct wlr_drm_lease_v1 *lease = wlr_drm_lease_request_v1_grant(req);
+	if (!lease) {
+		wlr_log(WLR_ERROR, "Failed to grant lease request");
+		wlr_drm_lease_request_v1_reject(req);
+	}
+}
+
 void
 server_init(struct server *server)
 {
@@ -338,6 +351,17 @@ server_init(struct server *server)
 
 	server->foreign_toplevel_manager =
 		wlr_foreign_toplevel_manager_v1_create(server->wl_display);
+
+	server->drm_lease_manager=
+		wlr_drm_lease_v1_manager_create(server->wl_display, server->backend);
+	if (server->drm_lease_manager) {
+		server->drm_lease_request.notify = handle_drm_lease_request;
+		wl_signal_add(&server->drm_lease_manager->events.request,
+				&server->drm_lease_request);
+	} else {
+		wlr_log(WLR_DEBUG, "Failed to create wlr_drm_lease_device_v1");
+		wlr_log(WLR_INFO, "VR will not be available");
+	}
 
 	server->output_power_manager_v1 =
 		wlr_output_power_manager_v1_create(server->wl_display);

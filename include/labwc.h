@@ -39,6 +39,7 @@
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
+#include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/util/log.h>
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
@@ -193,6 +194,9 @@ struct server {
 	struct wlr_output_configuration_v1 *pending_output_config;
 
 	struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
+
+	struct wlr_drm_lease_v1_manager *drm_lease_manager;
+	struct wl_listener drm_lease_request;
 
 	struct wlr_output_power_manager_v1 *output_power_manager_v1;
 	struct wl_listener output_power_manager_set_mode;

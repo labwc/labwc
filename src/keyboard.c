@@ -198,7 +198,7 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	}
 
 	if (!handled) {
-		wlr_seat_set_keyboard(wlr_seat, &keyboard->base);
+		wlr_seat_set_keyboard(wlr_seat, keyboard);
 		wlr_seat_keyboard_notify_key(wlr_seat, event->time_msec,
 					     event->keycode, event->state);
 	}

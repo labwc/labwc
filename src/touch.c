@@ -4,7 +4,7 @@
 
 static struct wlr_surface*
 touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
-	double *nx, double *ny)
+		double *sx, double *sy)
 {
 	/* Convert coordinates: first [0, 1] => layout, then layout => surface */
 	double lx, ly;
@@ -12,7 +12,7 @@ touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
 		x, y, &lx, &ly);
 
 	struct wlr_scene_node *node =
-		wlr_scene_node_at(&seat->server->scene->node, lx, ly, nx, ny);
+		wlr_scene_node_at(&seat->server->scene->node, lx, ly, sx, sy);
 
 	/* Find the surface and return it if it accepts touch events. */
 	struct wlr_surface *surface = NULL;
@@ -36,10 +36,10 @@ touch_motion(struct wl_listener *listener, void *data)
 	struct wlr_touch_motion_event *event = data;
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
-	double nx, ny;
-	if (touch_get_coords(seat, event->touch, event->x, event->y, &nx, &ny)) {
+	double sx, sy;
+	if (touch_get_coords(seat, event->touch, event->x, event->y, &sx, &sy)) {
 		wlr_seat_touch_notify_motion(seat->seat, event->time_msec,
-			event->touch_id, nx, ny);
+			event->touch_id, sx, sy);
 	}
 }
 
@@ -57,12 +57,12 @@ touch_down(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, touch_down);
 	struct wlr_touch_down_event *event = data;
 
-	double nx, ny;
+	double sx, sy;
 	struct wlr_surface *surface = touch_get_coords(seat, event->touch,
-			event->x, event->y, &nx, &ny);
+			event->x, event->y, &sx, &sy);
 	if (surface) {
 		wlr_seat_touch_notify_down(seat->seat, surface,
-			event->time_msec, event->touch_id, nx, ny);
+			event->time_msec, event->touch_id, sx, sy);
 	}
 }
 

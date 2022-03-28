@@ -37,7 +37,10 @@ handle_commit(struct wl_listener *listener, void *data)
 			view->x, view->y);
 	}
 	if ((int)pending->width == view->w && (int)pending->height == view->h) {
-		/* We reached the end of all queued size changing configure events */
+		/*
+		 * We reached the end of all queued size changing configure
+		 * events
+		 */
 		pending->update_x = false;
 		pending->update_y = false;
 	}
@@ -52,8 +55,7 @@ handle_request_move(struct wl_listener *listener, void *data)
 	 * move, typically because the user clicked on their client-side
 	 * decorations. Note that a more sophisticated compositor should check
 	 * the provied serial against a list of button press serials sent to
-	 * this
-	 * client, to prevent the client from requesting this whenever they
+	 * this client, to prevent the client from requesting this whenever they
 	 * want.
 	 */
 	struct view *view = wl_container_of(listener, view, request_move);
@@ -68,8 +70,7 @@ handle_request_resize(struct wl_listener *listener, void *data)
 	 * resize, typically because the user clicked on their client-side
 	 * decorations. Note that a more sophisticated compositor should check
 	 * the provied serial against a list of button press serials sent to
-	 * this
-	 * client, to prevent the client from requesting this whenever they
+	 * this client, to prevent the client from requesting this whenever they
 	 * want.
 	 */
 	struct wlr_xwayland_resize_event *event = data;
@@ -185,16 +186,23 @@ handle_set_class(struct wl_listener *listener, void *data)
 }
 
 static int
-round_to_increment(int val, int base, int inc) {
-	if (base < 0 || inc <= 0)
+round_to_increment(int val, int base, int inc)
+{
+	if (base < 0 || inc <= 0) {
 		return val;
+	}
 	return base + (val - base + inc / 2) / inc * inc;
 }
 
 static void
 configure(struct view *view, struct wlr_box geo)
 {
-	// honor size increments from WM_SIZE_HINTS
+	/*
+	 * Honor size increments from WM_SIZE_HINTS. Typically, X11 terminal
+	 * emulators will use WM_SIZE_HINTS to make sure that the terminal is
+	 * resized to a width/height evenly divisible by the cell (character)
+	 * size.
+	 */
 	struct wlr_xwayland_surface_size_hints *hints =
 		view->xwayland_surface->size_hints;
 	if (hints) {
@@ -211,8 +219,7 @@ configure(struct view *view, struct wlr_box geo)
 	view->pending_move_resize.width = geo.width;
 	view->pending_move_resize.height = geo.height;
 	wlr_xwayland_surface_configure(view->xwayland_surface, (int16_t)geo.x,
-				       (int16_t)geo.y, (uint16_t)geo.width,
-				       (uint16_t)geo.height);
+	       (int16_t)geo.y, (uint16_t)geo.width, (uint16_t)geo.height);
 }
 
 static void

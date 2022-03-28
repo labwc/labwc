@@ -3,8 +3,8 @@
 #include "labwc.h"
 
 static struct wlr_surface*
-touch_get_coords(struct seat *seat, struct wlr_touch* touch, double x, double y,
-	double* nx, double* ny)
+touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
+	double *nx, double *ny)
 {
 	/* Convert coordinates: first [0, 1] => layout, then layout => surface */
 	double lx, ly;
@@ -15,11 +15,11 @@ touch_get_coords(struct seat *seat, struct wlr_touch* touch, double x, double y,
 		wlr_scene_node_at(&seat->server->scene->node, lx, ly, nx, ny);
 
 	/* Find the surface and return it if it accepts touch events. */
-	struct wlr_surface* surface = NULL;
+	struct wlr_surface *surface = NULL;
 
 	if (node && node->type == WLR_SCENE_NODE_SURFACE) {
 		struct wlr_scene_surface *scene_surface =
-			wlr_scene_surface_from_node (node);
+			wlr_scene_surface_from_node(node);
 		surface = scene_surface->surface;
 	}
 
@@ -58,11 +58,11 @@ touch_down(struct wl_listener *listener, void *data)
 	struct wlr_touch_down_event *event = data;
 
 	double nx, ny;
-	struct wlr_surface* surface =
-		touch_get_coords(seat, event->touch, event->x, event->y, &nx, &ny);
+	struct wlr_surface *surface = touch_get_coords(seat, event->touch,
+			event->x, event->y, &nx, &ny);
 	if (surface) {
-		wlr_seat_touch_notify_down(seat->seat, surface, event->time_msec,
-			event->touch_id, nx, ny);
+		wlr_seat_touch_notify_down(seat->seat, surface,
+			event->time_msec, event->touch_id, nx, ny);
 	}
 }
 

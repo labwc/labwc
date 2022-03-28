@@ -1,8 +1,18 @@
-# How to Contribute
+# Contributing
 
-Let's try to stick to sircmpwn's [coding style]
+## How to Contribute
 
-If you're not used to it, you can use [checkpatch.pl] to run a few simple formatting checks.
+## Packaging
+
+@narrat and @jbeich kindly maintain package on Arch Linux and FreeBSD. Let's
+keep them informed of any changes that relate to packaging.
+
+## Coding Style
+
+Let's try to stick to sircmpwn's [coding style]. If you're not used to it, you
+can use [checkpatch.pl] to run a few simple formatting checks.
+
+## Commit Messages
 
 Write [commit messages] like so, keeping the top line to this sort of syntax:
 

@@ -365,6 +365,11 @@ start_drag(struct wl_listener *listener, void *data)
 	struct wlr_drag *wlr_drag = data;
 	seat->active_view = NULL;
 	seat->drag_icon = wlr_drag->icon;
+	if (!seat->drag_icon) {
+		wlr_log(WLR_ERROR,
+			"Started drag but application did not set a drag icon");
+		return;
+	}
 	wl_signal_add(&seat->drag_icon->events.destroy, &seat->destroy_drag);
 }
 

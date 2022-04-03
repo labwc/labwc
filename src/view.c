@@ -4,6 +4,8 @@
 #include "labwc.h"
 #include "ssd.h"
 
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+
 void
 view_set_activated(struct view *view, bool activated)
 {
@@ -49,32 +51,37 @@ view_move_resize(struct view *view, struct wlr_box geo)
 #define MIN_VIEW_WIDTH (100)
 #define MIN_VIEW_HEIGHT (60)
 
+#if HAVE_XWAYLAND
+static int
+round_to_increment(int val, int base, int inc) {
+	if (base < 0 || inc <= 0)
+		return val;
+	return base + (val - base + inc / 2) / inc * inc;
+}
+#endif
+
 void
-view_min_size(struct view *view, int *w, int *h)
+view_adjust_size(struct view *view, int *w, int *h)
 {
 	int min_width = MIN_VIEW_WIDTH;
 	int min_height = MIN_VIEW_HEIGHT;
 #if HAVE_XWAYLAND
-	if (view->type != LAB_XWAYLAND_VIEW) {
-		goto out;
-	}
-	if (!view->xwayland_surface->size_hints) {
-		goto out;
-	}
-	if (view->xwayland_surface->size_hints->min_width > 0
-			|| view->xwayland_surface->size_hints->min_height > 0) {
-		min_width = view->xwayland_surface->size_hints->min_width;
-		min_height = view->xwayland_surface->size_hints->min_height;
-	}
-out:
-#endif
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		struct wlr_xwayland_surface_size_hints *hints =
+			view->xwayland_surface->size_hints;
+		if (hints) {
+			*w = round_to_increment(*w, hints->base_width,
+				hints->width_inc);
+			*h = round_to_increment(*h, hints->base_height,
+				hints->height_inc);
 
-	if (w) {
-		*w = min_width;
+			min_width = MAX(1, hints->min_width);
+			min_height = MAX(1, hints->min_height);
+		}
 	}
-	if (h) {
-		*h = min_height;
-	}
+#endif
+	*w = MAX(*w, min_width);
+	*h = MAX(*h, min_height);
 }
 
 void

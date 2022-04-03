@@ -119,21 +119,19 @@ handle_destroy(struct wl_listener *listener, void *data)
 	free(view);
 }
 
-#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 static void
 handle_request_configure(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_configure);
 	struct wlr_xwayland_surface_configure_event *event = data;
 
-	int min_width, min_height;
-	view_min_size(view, &min_width, &min_height);
+	int width = event->width;
+	int height = event->height;
+	view_adjust_size(view, &width, &height);
 
 	wlr_xwayland_surface_configure(view->xwayland_surface,
-		event->x, event->y, MAX(event->width, min_width),
-		MAX(event->height, min_height));
+		event->x, event->y, width, height);
 }
-#undef MAX
 
 static void
 handle_request_activate(struct wl_listener *listener, void *data)
@@ -185,33 +183,9 @@ handle_set_class(struct wl_listener *listener, void *data)
 	view_update_app_id(view);
 }
 
-static int
-round_to_increment(int val, int base, int inc)
-{
-	if (base < 0 || inc <= 0) {
-		return val;
-	}
-	return base + (val - base + inc / 2) / inc * inc;
-}
-
 static void
 configure(struct view *view, struct wlr_box geo)
 {
-	/*
-	 * Honor size increments from WM_SIZE_HINTS. Typically, X11 terminal
-	 * emulators will use WM_SIZE_HINTS to make sure that the terminal is
-	 * resized to a width/height evenly divisible by the cell (character)
-	 * size.
-	 */
-	struct wlr_xwayland_surface_size_hints *hints =
-		view->xwayland_surface->size_hints;
-	if (hints) {
-		geo.width = round_to_increment(geo.width,
-			hints->base_width, hints->width_inc);
-		geo.height = round_to_increment(geo.height,
-			hints->base_height, hints->height_inc);
-	}
-
 	view->pending_move_resize.update_x = geo.x != view->x;
 	view->pending_move_resize.update_y = geo.y != view->y;
 	view->pending_move_resize.x = geo.x;

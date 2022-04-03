@@ -170,19 +170,17 @@ handle_set_app_id(struct wl_listener *listener, void *data)
 	view_update_app_id(view);
 }
 
-#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 static void
 xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 {
-	int min_width, min_height;
-	view_min_size(view, &min_width, &min_height);
+	view_adjust_size(view, &geo.width, &geo.height);
 
 	view->pending_move_resize.update_x = geo.x != view->x;
 	view->pending_move_resize.update_y = geo.y != view->y;
 	view->pending_move_resize.x = geo.x;
 	view->pending_move_resize.y = geo.y;
-	view->pending_move_resize.width = MAX(geo.width, min_width);
-	view->pending_move_resize.height = MAX(geo.height, min_height);
+	view->pending_move_resize.width = geo.width;
+	view->pending_move_resize.height = geo.height;
 
 	uint32_t serial = wlr_xdg_toplevel_set_size(view->xdg_surface->toplevel,
 		(uint32_t)geo.width, (uint32_t)geo.height);
@@ -196,7 +194,6 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 		ssd_update_geometry(view);
 	}
 }
-#undef MAX
 
 static void
 xdg_toplevel_view_move(struct view *view, double x, double y)

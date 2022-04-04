@@ -97,9 +97,14 @@ interactive_end(struct view *view)
 			} else if (cursor_y <= area->y + snap_range) {
 				if (rc.snap_top_maximize) {
 					view_maximize(view, true);
-					/* When unmaximizing later on restore original position */
-					view->unmaximized_geometry.x = view->server->grab_box.x;
-					view->unmaximized_geometry.y = view->server->grab_box.y;
+					/*
+					 * When unmaximizing later on restore
+					 * original position
+					 */
+					view->unmaximized_geometry.x =
+						view->server->grab_box.x;
+					view->unmaximized_geometry.y =
+						view->server->grab_box.y;
 				} else {
 					view_snap_to_edge(view, "up");
 				}

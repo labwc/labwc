@@ -95,9 +95,9 @@ find_dir(struct ctx *ctx)
 			if (!prefix) {
 				continue;
 			}
-			gchar **prefixes;
+			gchar * *prefixes;
 			prefixes = g_strsplit(prefix, ":", -1);
-			for (gchar **p = prefixes; *p; p++) {
+			for (gchar * *p = prefixes; *p; p++) {
 				ctx->build_path_fn(ctx, *p, d.path);
 				if (debug) {
 					fprintf(stderr, "%s\n", ctx->buf);

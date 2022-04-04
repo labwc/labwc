@@ -507,7 +507,8 @@ close_all_submenus(struct menu *menu)
 	struct menuitem *item;
 	wl_list_for_each (item, &menu->menuitems, link) {
 		if (item->submenu) {
-			wlr_scene_node_set_enabled(&item->submenu->scene_tree->node, false);
+			wlr_scene_node_set_enabled(
+				&item->submenu->scene_tree->node, false);
 			close_all_submenus(item->submenu);
 		}
 	}
@@ -554,7 +555,6 @@ menu_process_cursor_motion(struct wlr_scene_node *node)
 	}
 	item->parent->selection.menu = item->submenu;
 }
-
 
 bool
 menu_call_actions(struct wlr_scene_node *node)

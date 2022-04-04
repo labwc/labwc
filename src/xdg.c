@@ -24,7 +24,8 @@ has_ssd(struct view *view)
 	 * geometry.{x,y} seems to be greater than zero. We filter on that
 	 * on the assumption that this will remain true.
 	 */
-	if (view->xdg_surface->current.geometry.x || view->xdg_surface->current.geometry.y) {
+	struct wlr_xdg_surface_state *current = &view->xdg_surface->current;
+	if (current->geometry.x || current->geometry.y) {
 		return false;
 	}
 	return true;
@@ -42,8 +43,10 @@ handle_commit(struct wl_listener *listener, void *data)
 	view->h = size.height;
 
 	/* padding changes with maximize/unmaximize */
-	view->padding.top = view->padding.bottom = size.y;
-	view->padding.left = view->padding.right = size.x;
+	view->padding.top = size.y;
+	view->padding.bottom = size.y;
+	view->padding.left = size.x;
+	view->padding.right = size.x;
 
 	uint32_t serial = view->pending_move_resize.configure_serial;
 	if (serial > 0 && serial >= view->xdg_surface->current.configure_serial) {
@@ -213,8 +216,10 @@ update_padding(struct view *view)
 {
 	struct wlr_box padding;
 	wlr_xdg_surface_get_geometry(view->xdg_surface, &padding);
-	view->padding.top = view->padding.bottom = padding.y;
-	view->padding.left = view->padding.right = padding.x;
+	view->padding.top = padding.y;
+	view->padding.bottom = padding.y;
+	view->padding.left = padding.x;
+	view->padding.right = padding.x;
 }
 
 static void
@@ -241,7 +246,7 @@ xdg_toplevel_view_set_fullscreen(struct view *view, bool fullscreen)
 static bool
 istopmost(struct view *view)
 {
-	return view->xdg_surface->toplevel->parent == NULL;
+	return !view->xdg_surface->toplevel->parent;
 }
 
 static struct view *

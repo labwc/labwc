@@ -54,11 +54,10 @@ const char *action_names[] = {
 	NULL
 };
 
-
 static enum action_type
 action_type_from_str(const char *action_name)
 {
-	for (size_t i = 1; action_names[i] != NULL; i++) {
+	for (size_t i = 1; action_names[i]; i++) {
 		if (!strcasecmp(action_name, action_names[i])) {
 			return i;
 		}
@@ -144,7 +143,10 @@ actions_run(struct view *activator, struct server *server,
 		wlr_log(WLR_DEBUG, "Handling action %s (%u) with arg %s",
 			 action_names[action->type], action->type, action->arg);
 
-		/* Refetch view because it may have been changed due to the previous action */
+		/*
+		 * Refetch view because it may have been changed due to the
+		 * previous action
+		 */
 		view = activator_or_focused_view(activator, server);
 
 		switch (action->type) {
@@ -176,13 +178,13 @@ actions_run(struct view *activator, struct server *server,
 			view_snap_to_edge(view, action->arg);
 			break;
 		case ACTION_TYPE_NEXT_WINDOW:
-			server->cycle_view =
-				desktop_cycle_view(server, server->cycle_view, LAB_CYCLE_DIR_FORWARD);
+			server->cycle_view = desktop_cycle_view(server,
+				server->cycle_view, LAB_CYCLE_DIR_FORWARD);
 			osd_update(server);
 			break;
 		case ACTION_TYPE_PREVIOUS_WINDOW:
-			server->cycle_view =
-				desktop_cycle_view(server, server->cycle_view, LAB_CYCLE_DIR_BACKWARD);
+			server->cycle_view = desktop_cycle_view(server,
+				server->cycle_view, LAB_CYCLE_DIR_BACKWARD);
 			osd_update(server);
 			break;
 		case ACTION_TYPE_RECONFIGURE:
@@ -232,11 +234,14 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_RESIZE:
 			view = desktop_view_at_cursor(server);
 			if (view) {
-				interactive_begin(view, LAB_INPUT_STATE_RESIZE, resize_edges);
+				interactive_begin(view, LAB_INPUT_STATE_RESIZE,
+					resize_edges);
 			}
 			break;
 		case ACTION_TYPE_NONE:
-			wlr_log(WLR_ERROR, "Not executing unknown action with arg %s", action->arg);
+			wlr_log(WLR_ERROR,
+				"Not executing unknown action with arg %s",
+				action->arg);
 			break;
 		default:
 			/*
@@ -244,8 +249,10 @@ actions_run(struct view *activator, struct server *server,
 			 * action_names and action_type being out of sync or by
 			 * adding a new action without installing a handler here.
 			 */
-			wlr_log(WLR_ERROR, "Not executing invalid action (%u) with arg %s"
-				" This is a BUG. Please report.", action->type, action->arg);
+			wlr_log(WLR_ERROR,
+				"Not executing invalid action (%u) with arg %s"
+				" This is a BUG. Please report.",
+				action->type, action->arg);
 		}
 	}
 }

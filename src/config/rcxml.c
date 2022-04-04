@@ -173,7 +173,6 @@ get_accel_profile(const char *s)
 static void
 fill_libinput_category(char *nodename, char *content)
 {
-
 	if (!strcmp(nodename, "category.device.libinput")) {
 		current_libinput_category = libinput_category_create();
 	}
@@ -214,14 +213,17 @@ fill_libinput_category(char *nodename, char *content)
 			LIBINPUT_CONFIG_TAP_DISABLED;
 	} else if (!strcasecmp(nodename, "tapButtonMap")) {
 		if (!strcmp(content, "lrm")) {
-			current_libinput_category->tap_button_map = LIBINPUT_CONFIG_TAP_MAP_LRM;
+			current_libinput_category->tap_button_map =
+				LIBINPUT_CONFIG_TAP_MAP_LRM;
 		} else if (!strcmp(content, "lmr")) {
-			current_libinput_category->tap_button_map = LIBINPUT_CONFIG_TAP_MAP_LMR;
+			current_libinput_category->tap_button_map =
+				LIBINPUT_CONFIG_TAP_MAP_LMR;
 		} else {
 			wlr_log(WLR_ERROR, "invalid tapButtonMap");
 		}
 	} else if (!strcasecmp(nodename, "accelProfile")) {
-		current_libinput_category->accel_profile = get_accel_profile(content);
+		current_libinput_category->accel_profile =
+			get_accel_profile(content);
 	} else if (!strcasecmp(nodename, "middleEmulation")) {
 		current_libinput_category->middle_emu = get_bool(content) ?
 			LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED :
@@ -690,7 +692,6 @@ no_config:
 void
 rcxml_finish(void)
 {
-
 	zfree(rc.font_name_activewindow);
 	zfree(rc.font_name_menuitem);
 	zfree(rc.font_name_osd);

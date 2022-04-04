@@ -63,20 +63,25 @@ ssd_border_update(struct view *view)
 			rect = lab_wlr_scene_get_rect(part->node);
 			switch (part->type) {
 			case LAB_SSD_PART_LEFT:
-				wlr_scene_rect_set_size(rect, theme->border_width, height);
+				wlr_scene_rect_set_size(rect,
+					theme->border_width, height);
 				continue;
 			case LAB_SSD_PART_RIGHT:
-				wlr_scene_rect_set_size(rect, theme->border_width, height);
-				wlr_scene_node_set_position(
-					part->node, theme->border_width + width, 0);
+				wlr_scene_rect_set_size(rect,
+					theme->border_width, height);
+				wlr_scene_node_set_position(part->node,
+					theme->border_width + width, 0);
 				continue;
 			case LAB_SSD_PART_BOTTOM:
-				wlr_scene_rect_set_size(rect, full_width, theme->border_width);
-				wlr_scene_node_set_position(part->node, 0, height);
+				wlr_scene_rect_set_size(rect,
+					full_width, theme->border_width);
+				wlr_scene_node_set_position(part->node,
+					0, height);
 				continue;
 			case LAB_SSD_PART_TOP:
 				wlr_scene_rect_set_size(rect,
-					width - 2 * BUTTON_WIDTH, theme->border_width);
+					width - 2 * BUTTON_WIDTH,
+					theme->border_width);
 				continue;
 			default:
 				continue;

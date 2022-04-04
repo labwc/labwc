@@ -103,8 +103,7 @@ seat_inhibit_input(struct seat *seat,  struct wl_client *active_client)
 
 	struct wlr_seat_client *previous_ptr_client =
 		seat->seat->pointer_state.focused_client;
-	if (previous_ptr_client &&
-	    (previous_ptr_client->client != active_client)) {
+	if (previous_ptr_client && previous_ptr_client->client != active_client) {
 		wlr_seat_pointer_clear_focus(seat->seat);
 	}
 }
@@ -123,8 +122,6 @@ seat_disinhibit_input(struct seat *seat)
 		layers_arrange(output);
 	}
 }
-
-
 
 static void
 handle_input_inhibit(struct wl_listener *listener, void *data)
@@ -147,9 +144,12 @@ handle_input_disinhibit(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_drm_lease_request(struct wl_listener *listener, void *data) {
-	/* We only offer non-desktop outputs, but in the future we might want to do
-	 * more logic here. */
+handle_drm_lease_request(struct wl_listener *listener, void *data)
+{
+	/*
+	 * We only offer non-desktop outputs, but in the future we might want to do
+	 * more logic here.
+	 */
 
 	struct wlr_drm_lease_request_v1 *req = data;
 	struct wlr_drm_lease_v1 *lease = wlr_drm_lease_request_v1_grant(req);
@@ -352,8 +352,8 @@ server_init(struct server *server)
 	server->foreign_toplevel_manager =
 		wlr_foreign_toplevel_manager_v1_create(server->wl_display);
 
-	server->drm_lease_manager=
-		wlr_drm_lease_v1_manager_create(server->wl_display, server->backend);
+	server->drm_lease_manager = wlr_drm_lease_v1_manager_create(
+		server->wl_display, server->backend);
 	if (server->drm_lease_manager) {
 		server->drm_lease_request.notify = handle_drm_lease_request;
 		wl_signal_add(&server->drm_lease_manager->events.request,
@@ -447,7 +447,6 @@ server_start(struct server *server)
 void
 server_finish(struct server *server)
 {
-
 /* TODO: clean up various scene_tree nodes */
 #if HAVE_XWAYLAND
 	wlr_xwayland_destroy(server->xwayland);

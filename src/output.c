@@ -66,8 +66,8 @@ new_output_notify(struct wl_listener *listener, void *data)
 	if (wlr_output->non_desktop) {
 		wlr_log(WLR_DEBUG, "Not configuring non-desktop output");
 		if (server->drm_lease_manager) {
-			wlr_drm_lease_v1_manager_offer_output(server->drm_lease_manager,
-					wlr_output);
+			wlr_drm_lease_v1_manager_offer_output(
+				server->drm_lease_manager, wlr_output);
 		}
 		return;
 	}
@@ -344,7 +344,7 @@ handle_output_layout_change(struct wl_listener *listener, void *data)
 	struct server *server =
 		wl_container_of(listener, server, output_layout_change);
 
-	bool done_changing = server->pending_output_config == NULL;
+	bool done_changing = !server->pending_output_config;
 	if (done_changing) {
 		struct wlr_output_configuration_v1 *config =
 			create_output_config(server);

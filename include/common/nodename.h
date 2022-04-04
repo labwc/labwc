@@ -15,6 +15,6 @@
  * For example, the xml structure <a><b><c></c></b></a> would return the
  * name c.b.a
  */
-char *nodename(xmlNode *node, char *buf, int len);
+char *nodename(xmlNode * node, char *buf, int len);
 
 #endif /* __LABWC_NODENAME_H */

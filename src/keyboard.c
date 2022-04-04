@@ -32,7 +32,6 @@ any_modifiers_pressed(struct wlr_keyboard *keyboard)
 	return false;
 }
 
-
 static void
 keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 {
@@ -42,7 +41,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 	if (server->cycle_view) {
 		struct wlr_keyboard_key_event *event = data;
 		struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
-		if ((event->state == WL_KEYBOARD_KEY_STATE_RELEASED)
+		if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED
 				&& !any_modifiers_pressed(keyboard))  {
 			/* end cycle */
 			desktop_focus_and_activate_view(&server->seat,
@@ -130,7 +129,10 @@ handle_compositor_keybindings(struct wl_listener *listener,
 			unsigned int vt = syms[i] - XKB_KEY_XF86Switch_VT_1 + 1;
 			if (vt >= 1 && vt <= 12) {
 				change_vt(server, vt);
-				/* don't send any key events to clients when changing tty */
+				/*
+				 * Don't send any key events to clients when
+				 * changing tty
+				 */
 				return true;
 			}
 		}
@@ -155,9 +157,11 @@ handle_compositor_keybindings(struct wl_listener *listener,
 			}
 
 			if (!ignore) {
-				server->cycle_view =
-					desktop_cycle_view(server, server->cycle_view,
-						backwards ? LAB_CYCLE_DIR_BACKWARD : LAB_CYCLE_DIR_FORWARD);
+				enum lab_cycle_dir dir = backwards
+					? LAB_CYCLE_DIR_BACKWARD
+					: LAB_CYCLE_DIR_FORWARD;
+				server->cycle_view = desktop_cycle_view(server,
+					server->cycle_view, dir);
 				osd_update(server);
 			}
 		}

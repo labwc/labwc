@@ -11,7 +11,6 @@
 #include "theme.h"
 
 struct rcxml {
-
 	/* core */
 	bool xdg_shell_server_side_deco;
 	int gap;

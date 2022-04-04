@@ -2,7 +2,6 @@
 #include <ctype.h>
 #include "common/buf.h"
 
-
 static void
 strip_curly_braces(char *s)
 {
@@ -45,7 +44,7 @@ buf_expand_shell_variables(struct buf *s)
 		} else {
 			/* just add one character at a time */
 			if (new.alloc <= new.len + 1) {
-				new.alloc = new.alloc * 3/2 + 16;
+				new.alloc = new.alloc * 3 / 2 + 16;
 				new.buf = realloc(new.buf, new.alloc);
 			}
 			new.buf[new.len++] = s->buf[i];

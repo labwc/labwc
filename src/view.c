@@ -194,10 +194,12 @@ view_apply_maximized_geometry(struct view *view)
 		return;
 	}
 	struct wlr_box box = output_usable_area_in_layout_coords(output);
-	if (box.height == output->wlr_output->height && output->wlr_output->scale != 1) {
+	if (box.height == output->wlr_output->height
+			&& output->wlr_output->scale != 1) {
 		box.height /= output->wlr_output->scale;
 	}
-	if (box.width == output->wlr_output->width && output->wlr_output->scale != 1) {
+	if (box.width == output->wlr_output->width
+			&& output->wlr_output->scale != 1) {
 		box.width /= output->wlr_output->scale;
 	}
 
@@ -215,7 +217,8 @@ static void
 view_apply_unmaximized_geometry(struct view *view)
 {
 	struct wlr_output_layout *layout = view->server->output_layout;
-	if (wlr_output_layout_intersects(layout, NULL, &view->unmaximized_geometry)) {
+	if (wlr_output_layout_intersects(layout, NULL,
+			&view->unmaximized_geometry)) {
 		/* restore to original geometry */
 		view_move_resize(view, view->unmaximized_geometry);
 	} else {
@@ -300,7 +303,7 @@ void
 view_set_fullscreen(struct view *view, bool fullscreen,
 		struct wlr_output *wlr_output)
 {
-	if (fullscreen == (view->fullscreen != NULL)) {
+	if (fullscreen != !view->fullscreen) {
 		return;
 	}
 	if (view->impl->set_fullscreen) {
@@ -426,10 +429,12 @@ view_move_to_edge(struct view *view, const char *direction)
 	}
 	struct border border = view_border(view);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-	if (usable.height == output->wlr_output->height && output->wlr_output->scale != 1) {
+	if (usable.height == output->wlr_output->height
+			&& output->wlr_output->scale != 1) {
 		usable.height /= output->wlr_output->scale;
 	}
-	if (usable.width == output->wlr_output->width && output->wlr_output->scale != 1) {
+	if (usable.width == output->wlr_output->width
+			&& output->wlr_output->scale != 1) {
 		usable.width /= output->wlr_output->scale;
 	}
 
@@ -503,10 +508,12 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 {
 	struct border border = view_border(view);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-	if (usable.height == output->wlr_output->height && output->wlr_output->scale != 1) {
+	if (usable.height == output->wlr_output->height
+			&& output->wlr_output->scale != 1) {
 		usable.height /= output->wlr_output->scale;
 	}
-	if (usable.width == output->wlr_output->width && output->wlr_output->scale != 1) {
+	if (usable.width == output->wlr_output->width
+			&& output->wlr_output->scale != 1) {
 		usable.width /= output->wlr_output->scale;
 	}
 

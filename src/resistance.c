@@ -90,7 +90,10 @@ resistance_move_apply(struct view *view, double *x, double *y)
 		}
 
 		/* reset the flags */
-		flags.left = flags.top = flags.right = flags.bottom = 0;
+		flags.left = 0;
+		flags.top = 0;
+		flags.right = 0;
+		flags.bottom = 0;
 	}
 }
 
@@ -126,7 +129,6 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_view_geo)
 		return;
 	}
 	wl_list_for_each(output, &server->outputs, link) {
-
 		mgeom = output_usable_area_in_layout_coords(output);
 
 		if (!wlr_box_intersection(&intersection, &vgeom, &mgeom)
@@ -171,6 +173,9 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_view_geo)
 		}
 
 		/* reset the flags */
-		flags.left = flags.top = flags.right = flags.bottom = 0;
+		flags.left = 0;
+		flags.top = 0;
+		flags.right = 0;
+		flags.bottom = 0;
 	}
 }

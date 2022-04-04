@@ -83,7 +83,8 @@ ssd_titlebar_update(struct view *view)
 		wl_list_for_each(part, &subtree->parts, link) {
 			switch (part->type) {
 			case LAB_SSD_PART_TITLEBAR:
-				wlr_scene_rect_set_size(lab_wlr_scene_get_rect(part->node),
+				wlr_scene_rect_set_size(
+					lab_wlr_scene_get_rect(part->node),
 					width - BUTTON_WIDTH * BUTTON_COUNT,
 					theme->title_height);
 				continue;
@@ -102,7 +103,8 @@ ssd_titlebar_update(struct view *view)
 			case LAB_SSD_BUTTON_CLOSE:
 				if (is_direct_child(part->node, subtree)) {
 					wlr_scene_node_set_position(part->node,
-						width - BUTTON_WIDTH * 1, -theme->border_width);
+						width - BUTTON_WIDTH * 1,
+						-theme->border_width);
 				}
 				continue;
 			default:

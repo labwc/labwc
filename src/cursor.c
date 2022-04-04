@@ -189,8 +189,8 @@ input_inhibit_blocks_surface(struct seat *seat, struct wl_resource *resource)
 {
 	struct wl_client *inhibiting_client =
 		seat->active_client_while_inhibited;
-	return (inhibiting_client != NULL) &&
-		inhibiting_client != wl_resource_get_client(resource);
+	return inhibiting_client
+		&& inhibiting_client != wl_resource_get_client(resource);
 }
 
 static void
@@ -387,7 +387,7 @@ destroy_constraint(struct wl_listener *listener, void *data)
 
 	wl_list_remove(&constraint->destroy.link);
 	if (seat->current_constraint == wlr_constraint) {
-		if (seat->constraint_commit.link.next != NULL) {
+		if (seat->constraint_commit.link.next) {
 			wl_list_remove(&seat->constraint_commit.link);
 		}
 		wl_list_init(&seat->constraint_commit.link);
@@ -433,7 +433,7 @@ constrain_cursor(struct server *server, struct wlr_pointer_constraint_v1
 
 	seat->current_constraint = constraint;
 
-	if (constraint == NULL) {
+	if (!constraint) {
 		wl_list_init(&seat->constraint_commit.link);
 		return;
 	}
@@ -554,9 +554,13 @@ handle_release_mousebinding(struct view *view, struct server *server,
 				continue;
 			case MOUSE_ACTION_DRAG:
 				if (mousebind->pressed_in_context) {
-					/* Swallow the release event as well as the press one */
+					/*
+					 * Swallow the release event as well as
+					 * the press one
+					 */
 					activated_any = true;
-					activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
+					activated_any_frame |=
+						mousebind->context == LAB_SSD_FRAME;
 				}
 				continue;
 			default:
@@ -620,7 +624,7 @@ handle_press_mousebinding(struct view *view, struct server *server,
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {
 			switch (mousebind->mouse_event) {
-			case MOUSE_ACTION_DRAG: /* FALLTHROUGH */
+			case MOUSE_ACTION_DRAG: /* fallthrough */
 			case MOUSE_ACTION_CLICK:
 				/*
 				 * DRAG and CLICK actions will be processed on
@@ -628,9 +632,13 @@ handle_press_mousebinding(struct view *view, struct server *server,
 				 * counted as a DOUBLECLICK.
 				 */
 				if (!double_click) {
-					/* Swallow the press event as well as the release one */
+					/*
+					 * Swallow the press event as well as
+					 * the release one
+					 */
 					activated_any = true;
-					activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
+					activated_any_frame |=
+						mousebind->context == LAB_SSD_FRAME;
 					mousebind->pressed_in_context = true;
 				}
 				continue;
@@ -719,7 +727,10 @@ cursor_button(struct wl_listener *listener, void *data)
 				server->grabbed_view = NULL;
 			}
 
-			/* Focus surface under cursor and force updating the cursor icon */
+			/*
+			 * Focus surface under cursor and force updating the
+			 * cursor icon
+			 */
 			cursor_rebase(&server->seat, event->time_msec, true);
 			return;
 		}
@@ -733,10 +744,16 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		if (view_area != LAB_SSD_MENU) {
-			/* We close the menu on release so we don't leak a stray release */
+			/*
+			 * We close the menu on release so we don't leak a stray
+			 * release
+			 */
 			close_menu = true;
 		} else if (menu_call_actions(node)) {
-			/* Action was successfull, may fail if item just opens a submenu */
+			/*
+			 * Action was successfull, may fail if item just opens a
+			 * submenu
+			 */
 			close_menu = true;
 		}
 		return;

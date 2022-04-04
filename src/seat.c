@@ -72,7 +72,8 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	} else {
 		wlr_log(WLR_INFO, "tap configured");
 		libinput_device_config_tap_set_enabled(libinput_dev, dc->tap);
-		libinput_device_config_tap_set_button_map(libinput_dev, dc->tap_button_map);
+		libinput_device_config_tap_set_button_map(libinput_dev,
+			dc->tap_button_map);
 	}
 
 	if (libinput_device_config_scroll_has_natural_scroll(libinput_dev) <= 0
@@ -128,7 +129,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 static struct wlr_output *
 output_by_name(struct server *server, const char *name)
 {
-	assert(name != NULL);
+	assert(name);
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
 		if (!strcasecmp(output->wlr_output->name, name)) {
@@ -152,7 +153,7 @@ new_pointer(struct seat *seat, struct input *input)
 		wlr_log(WLR_INFO, "map pointer to output %s\n",
 			dev->pointer->output_name);
 		struct wlr_output *output = NULL;
-		if (dev->pointer->output_name != NULL) {
+		if (dev->pointer->output_name) {
 			output = output_by_name(seat->server, dev->pointer->output_name);
 		}
 		wlr_cursor_map_input_to_output(seat->cursor, dev, output);
@@ -183,7 +184,7 @@ new_touch(struct seat *seat, struct input *input)
 		wlr_log(WLR_INFO, "map touch to output %s\n",
 			dev->pointer->output_name);
 		struct wlr_output *output = NULL;
-		if (dev->pointer->output_name != NULL) {
+		if (dev->pointer->output_name) {
 			output = output_by_name(seat->server, dev->pointer->output_name);
 		}
 		wlr_cursor_map_input_to_output(seat->cursor, dev, output);

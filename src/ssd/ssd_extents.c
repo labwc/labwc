@@ -183,7 +183,8 @@ ssd_extents_update(struct view *view)
 		if (part_box.width != result_box.width
 				|| part_box.height != result_box.height) {
 			/* Partly visible */
-			wlr_scene_rect_set_size(rect, result_box.width, result_box.height);
+			wlr_scene_rect_set_size(rect, result_box.width,
+				result_box.height);
 			wlr_scene_node_set_position(part->node,
 				target->x + (result_box.x - part_box.x),
 				target->y + (result_box.y - part_box.y));

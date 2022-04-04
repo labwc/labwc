@@ -37,7 +37,8 @@ keybind_create(const char *keybind)
 			k->modifiers |= modifier;
 		} else {
 			xkb_keysym_t sym = xkb_keysym_to_lower(
-				xkb_keysym_from_name(symname, XKB_KEYSYM_CASE_INSENSITIVE));
+				xkb_keysym_from_name(symname,
+					XKB_KEYSYM_CASE_INSENSITIVE));
 			if (sym == XKB_KEY_NoSymbol) {
 				wlr_log(WLR_ERROR, "unknown keybind (%s)", symname);
 				free(k);

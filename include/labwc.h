@@ -214,6 +214,7 @@ struct server {
 };
 
 #define LAB_NR_LAYERS (4)
+
 struct output {
 	struct wl_list link; /* server::outputs */
 	struct server *server;
@@ -229,6 +230,7 @@ struct output {
 	struct wl_listener destroy;
 	struct wl_listener frame;
 };
+
 #undef LAB_NR_LAYERS
 
 enum view_type {

@@ -61,6 +61,9 @@ Actions are used in keyboard bindings.
 *<action name="ToggleMaximize">*
 	Toggle maximize state of focused window.
 
+*<action name="ToggleAlwaysOnTop">*
+	Toggle always-on-top of focused window.
+
 # SEE ALSO
 
 labwc(1), labwc-config(5), labwc-theme(5)

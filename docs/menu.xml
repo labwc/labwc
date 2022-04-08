@@ -14,6 +14,9 @@
 	<item label="Decorations">
 		<action name="ToggleDecorations" />
 	</item>
+	<item label="AlwaysOnTop">
+		<action name="ToggleAlwaysOnTop" />
+	</item>
 	<item label="Close">
 		<action name="Close" />
 	</item>

@@ -15,6 +15,7 @@ that branch.
 
 | Date       | Release notes | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2022-04-08 | [0.5.1]       | 0.15.1          | 8829          |
 | 2022-02-18 | [0.5.0]       | 0.15.1          | 8766          |
 | 2021-12-31 | [0.4.0]       | 0.15.0          | 8159          |
 | 2021-06-28 | [0.3.0]       | 0.14.0          | 5051          |
@@ -32,10 +33,21 @@ heavy lifting with this.
 
 - Presentation protocol
 
-## 0.5.1 - unreleased
+## 0.5.1 - 2022-04-08
+
+### Added
+
+- Honour size increments from WM_SIZE_HINTS, for example to allow
+  xwayland terminal emulators to be resized to a width/height evenly
+  divisible by the cell size. Written-by: @jlindgren90
+- Implement cursor input for overlay popups. Written-by: @Consolatis
 
 ### Fixed
 
+- Do not raise xwayland windows when deactivating (issue #270).
+  Written-by: @Consolatis
+- Restore drag mouse-bindings and proper double-click (issues #258 and
+  #259). Written-by: @Consolatis
 - Implement cursor input for unmanaged xwayland surfaces outside their
   parent view. Without this menus extending outside the main application
   window do not receive mouse input. Written-by: @jlindgren90

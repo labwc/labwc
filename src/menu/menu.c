@@ -452,6 +452,8 @@ menu_init_windowmenu(struct server *server)
 		fill_item("name.action", "ToggleFullscreen");
 		current_item = item_create(menu, "Decorations");
 		fill_item("name.action", "ToggleDecorations");
+		current_item = item_create(menu, "AlwaysOnTop");
+		fill_item("name.action", "ToggleAlwaysOnTop");
 		current_item = item_create(menu, "Close");
 		fill_item("name.action", "Close");
 	}

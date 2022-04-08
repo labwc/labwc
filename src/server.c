@@ -235,6 +235,7 @@ server_init(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 	server->view_tree = wlr_scene_tree_create(&server->scene->node);
+	server->view_tree_always_on_top = wlr_scene_tree_create(&server->scene->node);
 #if HAVE_XWAYLAND
 	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->node);
 #endif

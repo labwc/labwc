@@ -281,6 +281,25 @@ view_toggle_decorations(struct view *view)
 	}
 }
 
+static bool
+is_always_on_top(struct view *view)
+{
+	return view->scene_tree->node.parent ==
+		&view->server->view_tree_always_on_top->node;
+}
+
+void
+view_toggle_always_on_top(struct view *view)
+{
+	if (is_always_on_top(view)) {
+		wlr_scene_node_reparent(&view->scene_tree->node,
+			&view->server->view_tree->node);
+	} else {
+		wlr_scene_node_reparent(&view->scene_tree->node,
+			&view->server->view_tree_always_on_top->node);
+	}
+}
+
 void
 view_set_decorations(struct view *view, bool decorations)
 {

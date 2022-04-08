@@ -175,6 +175,8 @@ struct server {
 
 	/* Tree for all non-layer xdg/xwayland-shell surfaces */
 	struct wlr_scene_tree *view_tree;
+	/* Tree for all non-layer xdg/xwayland-shell surfaces with always-on-top */
+	struct wlr_scene_tree *view_tree_always_on_top;
 #if HAVE_XWAYLAND
 	/* Tree for unmanaged xsurfaces without initialized view (usually popups) */
 	struct wlr_scene_tree *unmanaged_tree;
@@ -399,6 +401,7 @@ void view_set_fullscreen(struct view *view, bool fullscreen,
 	struct wlr_output *wlr_output);
 void view_toggle_maximize(struct view *view);
 void view_toggle_decorations(struct view *view);
+void view_toggle_always_on_top(struct view *view);
 void view_set_decorations(struct view *view, bool decorations);
 void view_toggle_fullscreen(struct view *view);
 void view_adjust_for_layout_change(struct view *view);

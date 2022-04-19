@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <assert.h>
 #include <stdio.h>
 #include <strings.h>
 #include "labwc.h"
@@ -138,20 +139,18 @@ view_output(struct view *view)
 static bool
 view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 {
-	struct wlr_output *wlr_output = view_wlr_output(view);
+	struct output *output = view_output(view);
+	assert(output);
+	struct wlr_output *wlr_output = output->wlr_output;
 	if (!wlr_output) {
 		return false;
 	}
 
-	struct wlr_output_layout *layout = view->server->output_layout;
-	struct wlr_output_layout_output *ol_output =
-		wlr_output_layout_get(layout, wlr_output);
-	if (!ol_output) {
-		return false;
-	}
-
-	*x = ol_output->x + wlr_output->width / wlr_output->scale / 2 - w / 2;
-	*y = ol_output->y + wlr_output->height / wlr_output->scale / 2 - h / 2;
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
+	int width = w + view->margin.left + view->margin.right;
+	int height = h + view->margin.top + view->margin.bottom;
+	*x = usable.x + usable.width / wlr_output->scale / 2 - width / 2;
+	*y = usable.y + usable.height / wlr_output->scale / 2 - height / 2;
 	return true;
 }
 

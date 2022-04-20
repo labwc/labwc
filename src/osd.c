@@ -218,7 +218,7 @@ osd_update(struct server *server)
 			- w / 2 + output_box.x;
 		int ly = output->usable_area.y + output->usable_area.height / 2
 			- h / 2 + output_box.y;
-		wlr_scene_node_set_position(&output->osd_tree->node, lx, ly);
+		wlr_scene_node_set_position(&scene_buffer->node, lx, ly);
 		wlr_scene_node_set_enabled(&output->osd_tree->node, true);
 	}
 }

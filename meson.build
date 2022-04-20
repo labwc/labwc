@@ -57,6 +57,7 @@ wayland_server = dependency('wayland-server', version: '>=1.19.0')
 wayland_protos = dependency('wayland-protocols')
 xkbcommon = dependency('xkbcommon')
 xcb = dependency('xcb', required: get_option('xwayland'))
+xcb_icccm = dependency('xcb-icccm', required: get_option('xwayland'))
 drm_full = dependency('libdrm')
 drm = drm_full.partial_dependency(compile_args: true, includes: true)
 xml2 = dependency('libxml-2.0')
@@ -83,6 +84,7 @@ labwc_deps = [
   wayland_server,
   wlroots,
   xkbcommon,
+  xcb_icccm,
   xml2,
   glib,
   cairo,

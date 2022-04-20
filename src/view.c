@@ -384,18 +384,6 @@ view_adjust_for_layout_change(struct view *view)
 	}
 }
 
-struct border
-view_border(struct view *view)
-{
-	struct border border = {
-		.left = view->margin.left - view->padding.left,
-		.top = view->margin.top - view->padding.top,
-		.right = view->margin.right + view->padding.right,
-		.bottom = view->margin.bottom + view->padding.bottom,
-	};
-	return border;
-}
-
 static void
 view_output_enter(struct view *view, struct wlr_output *wlr_output)
 {
@@ -445,7 +433,6 @@ view_move_to_edge(struct view *view, const char *direction)
 		wlr_log(WLR_ERROR, "no output");
 		return;
 	}
-	struct border border = view_border(view);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	if (usable.height == output->wlr_output->height
 			&& output->wlr_output->scale != 1) {
@@ -458,17 +445,19 @@ view_move_to_edge(struct view *view, const char *direction)
 
 	int x = 0, y = 0;
 	if (!strcasecmp(direction, "left")) {
-		x = usable.x + border.left + rc.gap;
+		x = usable.x + view->margin.left + rc.gap;
 		y = view->y;
 	} else if (!strcasecmp(direction, "up")) {
 		x = view->x;
-		y = usable.y + border.top + rc.gap;
+		y = usable.y + view->margin.top + rc.gap;
 	} else if (!strcasecmp(direction, "right")) {
-		x = usable.x + usable.width - view->w - border.right - rc.gap;
+		x = usable.x + usable.width - view->w - view->margin.right
+			- rc.gap;
 		y = view->y;
 	} else if (!strcasecmp(direction, "down")) {
 		x = view->x;
-		y = usable.y + usable.height - view->h - border.bottom - rc.gap;
+		y = usable.y + usable.height - view->h - view->margin.bottom
+			- rc.gap;
 	}
 	view_move(view, x, y);
 }
@@ -524,7 +513,6 @@ static struct wlr_box
 view_get_edge_snap_box(struct view *view, struct output *output,
 		enum view_edge edge)
 {
-	struct border border = view_border(view);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	if (usable.height == output->wlr_output->height
 			&& output->wlr_output->scale != 1) {
@@ -559,10 +547,10 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 		break;
 	}
 	struct wlr_box dst = {
-		.x = x_offset + usable.x + border.left,
-		.y = y_offset + usable.y + border.top,
-		.width = base_width - border.left - border.right,
-		.height = base_height - border.top - border.bottom,
+		.x = x_offset + usable.x + view->margin.left,
+		.y = y_offset + usable.y + view->margin.top,
+		.width = base_width - view->margin.left - view->margin.right,
+		.height = base_height - view->margin.top - view->margin.bottom,
 	};
 
 	return dst;

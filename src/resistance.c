@@ -40,7 +40,7 @@ resistance_move_apply(struct view *view, double *x, double *y)
 	struct wlr_box tgeom = {.x = *x, .y = *y, .width = view->w,
 		.height = view->h};
 	struct output *output;
-	struct border border = view_border(view);
+	struct border border = view->margin;
 	struct edges view_edges; /* The edges of the current view */
 	struct edges target_edges; /* The desired edges */
 	struct edges other_edges; /* The edges of the monitor/other view */
@@ -107,7 +107,7 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_view_geo)
 		.height = view->h};
 	struct wlr_box tgeom = {.x = new_view_geo->x, .y = new_view_geo->y,
 		.width = new_view_geo->width, .height = new_view_geo->height};
-	struct border border = view_border(view);
+	struct border border = view->margin;
 	struct edges view_edges; /* The edges of the current view */
 	struct edges target_edges; /* The desired edges */
 	struct edges other_edges; /* The edges of the monitor/other view */

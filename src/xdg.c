@@ -42,12 +42,6 @@ handle_commit(struct wl_listener *listener, void *data)
 	view->w = size.width;
 	view->h = size.height;
 
-	/* padding changes with maximize/unmaximize */
-	view->padding.top = size.y;
-	view->padding.bottom = size.y;
-	view->padding.left = size.x;
-	view->padding.right = size.x;
-
 	uint32_t serial = view->pending_move_resize.configure_serial;
 	if (serial > 0 && serial >= view->xdg_surface->current.configure_serial) {
 		if (view->pending_move_resize.update_x) {
@@ -212,17 +206,6 @@ xdg_toplevel_view_close(struct view *view)
 }
 
 static void
-update_padding(struct view *view)
-{
-	struct wlr_box padding;
-	wlr_xdg_surface_get_geometry(view->xdg_surface, &padding);
-	view->padding.top = padding.y;
-	view->padding.bottom = padding.y;
-	view->padding.left = padding.x;
-	view->padding.right = padding.x;
-}
-
-static void
 xdg_toplevel_view_maximize(struct view *view, bool maximized)
 {
 	wlr_xdg_toplevel_set_maximized(view->xdg_surface->toplevel, maximized);
@@ -287,8 +270,8 @@ position_xdg_toplevel_view(struct view *view)
 		view->x = center_x - view->xdg_surface->current.geometry.width / 2;
 		view->y = center_y - view->xdg_surface->current.geometry.height / 2;
 	}
-	view->x += view->margin.left - view->padding.left;
-	view->y += view->margin.top - view->padding.top;
+	view->x += view->margin.left;
+	view->y += view->margin.top;
 }
 
 static const char *
@@ -323,7 +306,6 @@ xdg_toplevel_view_map(struct view *view)
 			ssd_create(view);
 		}
 
-		update_padding(view);
 		if (!view->fullscreen && requested->fullscreen) {
 			view_set_fullscreen(view, true,
 				requested->fullscreen_output);

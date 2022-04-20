@@ -296,15 +296,6 @@ struct view {
 	 */
 	struct border margin;
 
-	/*
-	 * padding refers to the space between the extremities of the
-	 * wlr_surface and the parts of the surface that is considered the
-	 * window.
-	 * This is only used for xdg-shell views with CSD where the padding
-	 * area is typically invisible except for client-side drop-shawdows.
-	 */
-	struct border padding;
-
 	struct view_pending_move_resize {
 		bool update_x, update_y;
 		double x, y;
@@ -379,7 +370,6 @@ void xwayland_unmanaged_create(struct server *server,
 
 void view_set_activated(struct view *view, bool activated);
 void view_close(struct view *view);
-struct border view_border(struct view *view);
 
 /**
  * view_move_resize - resize and move view

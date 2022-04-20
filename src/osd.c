@@ -75,10 +75,10 @@ get_osd_height(struct wl_list *views)
 }
 
 static void
-destroy_osd_nodes(struct server *server)
+destroy_osd_nodes(struct output *output)
 {
 	struct wlr_scene_node *child, *next;
-	struct wl_list *children = &server->osd_tree->node.state.children;
+	struct wl_list *children = &output->osd_tree->node.state.children;
 	wl_list_for_each_safe(child, next, children, state.link) {
 		wlr_scene_node_destroy(child);
 	}
@@ -87,18 +87,25 @@ destroy_osd_nodes(struct server *server)
 void
 osd_finish(struct server *server)
 {
-	destroy_osd_nodes(server);
-	wlr_scene_node_set_enabled(&server->osd_tree->node, false);
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		destroy_osd_nodes(output);
+		wlr_scene_node_set_enabled(&output->osd_tree->node, false);
+	}
 }
 
 void
 osd_update(struct server *server)
 {
+	if (wl_list_empty(&server->views)) {
+		return;
+	}
+
 	struct theme *theme = server->theme;
 
-	destroy_osd_nodes(server);
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
+		destroy_osd_nodes(output);
 		float scale = output->wlr_output->scale;
 		int w = (OSD_ITEM_WIDTH + (2 * OSD_BORDER_WIDTH)) * scale;
 		int h = get_osd_height(&server->views) * scale;
@@ -201,10 +208,17 @@ osd_update(struct server *server)
 		cairo_surface_flush(surf);
 
 		struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
-			&server->osd_tree->node, &output->osd_buffer->base);
+			&output->osd_tree->node, &output->osd_buffer->base);
 
-		/* TODO: set position properly */
-		wlr_scene_node_set_position(&scene_buffer->node, 10, 10);
-		wlr_scene_node_set_enabled(&server->osd_tree->node, true);
+		/* Center OSD */
+		struct wlr_box output_box;
+		wlr_output_layout_get_box(output->server->output_layout,
+			output->wlr_output, &output_box);
+		int lx = output->usable_area.x + output->usable_area.width / 2
+			- w / 2 + output_box.x;
+		int ly = output->usable_area.y + output->usable_area.height / 2
+			- h / 2 + output_box.y;
+		wlr_scene_node_set_position(&output->osd_tree->node, lx, ly);
+		wlr_scene_node_set_enabled(&output->osd_tree->node, true);
 	}
 }

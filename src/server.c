@@ -240,7 +240,6 @@ server_init(struct server *server)
 	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->node);
 #endif
 	server->menu_tree = wlr_scene_tree_create(&server->scene->node);
-	server->osd_tree = wlr_scene_tree_create(&server->scene->node);
 
 	output_init(server);
 

@@ -142,6 +142,9 @@ new_output_notify(struct wl_listener *listener, void *data)
 	output->layer_popup_tree = wlr_scene_tree_create(&server->scene->node);
 	node_descriptor_create(&output->layer_popup_tree->node,
 		LAB_NODE_DESC_TREE, NULL);
+	output->osd_tree = wlr_scene_tree_create(&server->scene->node);
+	node_descriptor_create(&output->osd_tree->node,
+		LAB_NODE_DESC_TREE, NULL);
 
 	/*
 	 * Set the z-positions to achieve the following order (from top to

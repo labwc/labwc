@@ -87,15 +87,15 @@ get_special(struct server *server, struct wlr_scene_node *node,
 	if (node == &server->scene->node) {
 		return "server->scene";
 	}
-	if (node == &server->osd_tree->node) {
-		return "server->osd_tree";
-	}
 	if (node == &server->menu_tree->node) {
 		return "server->menu_tree";
 	}
 	if (node->parent == &server->scene->node) {
 		struct output *output;
 		wl_list_for_each(output, &server->outputs, link) {
+			if (node == &output->osd_tree->node) {
+				return "output->osd_tree";
+			}
 			for (int i = 0; i < 4; i++) {
 				if (node == &output->layer_tree[i]->node) {
 					return get_layer_name(i);

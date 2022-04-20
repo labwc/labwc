@@ -183,8 +183,6 @@ struct server {
 #endif
 	/* Tree for built in menu */
 	struct wlr_scene_tree *menu_tree;
-	/* Tree for built in OSD / app switcher */
-	struct wlr_scene_tree *osd_tree;
 
 	struct wl_list outputs;
 	struct wl_listener new_output;
@@ -225,6 +223,7 @@ struct output {
 	struct wl_list layers[LAB_NR_LAYERS];
 	struct wlr_scene_tree *layer_tree[LAB_NR_LAYERS];
 	struct wlr_scene_tree *layer_popup_tree;
+	struct wlr_scene_tree *osd_tree;
 	struct wlr_box usable_area;
 
 	struct lab_data_buffer *osd_buffer;

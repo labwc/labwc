@@ -284,7 +284,6 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 		}
 #endif
 	}
-	struct wlr_scene_node *osd = &server->osd_tree->node;
 	while (node) {
 		struct node_descriptor *desc = node->data;
 		/* TODO: convert to switch() */
@@ -306,10 +305,6 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 				*view_area = LAB_SSD_MENU;
 				return NULL;
 			}
-		}
-		if (node == osd) {
-			*view_area = LAB_SSD_OSD;
-			return NULL;
 		}
 		node = node->parent;
 	}

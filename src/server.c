@@ -69,6 +69,9 @@ static void
 drop_permissions(void)
 {
 	if (getuid() != geteuid() || getgid() != getegid()) {
+		wlr_log(WLR_ERROR, "!!! DEPRECATION WARNING: "
+			"SUID privilege drop will be removed in future releases; "
+			"Please migrate to seatd-launch");
 		if (setgid(getgid())) {
 			wlr_log(WLR_ERROR, "unable to drop root group");
 			exit(EXIT_FAILURE);

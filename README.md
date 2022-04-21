@@ -1,5 +1,10 @@
 # labwc
 
+<h3 align="center">[<a
+href="https://github.com/labwc/labwc-acceptance-criteria/blob/main/README.md">Scope</a>] [<a
+href="https://web.libera.chat/gamja/?channels=#labwc">IRC Channel</a>] [<a
+href="NEWS.md">Release&nbsp;Notes</a>]</h3>
+
 - [1. What is this?](#1-what-is-this)
 - [2. Build](#2-build)
 - [3. Install](#3-install)
@@ -43,8 +48,6 @@ So far, labwc supports the following:
 - [x] layer-shell protocol
 - [x] foreign-toplevel protocol (e.g. to integrate with panels and bars)
 - [x] Optionally xwayland
-
-Join the [IRC channel] (#labwc on irc.libera.chat)
 
 ## 2. Build
 
@@ -151,8 +154,6 @@ High-level summary of items which are not intended to be implemented:
 - Any theme option not required to reasonably render common themes (it's amazing
   how few options are actually required).
 
-
-[IRC channel]: https://web.libera.chat/gamja/?channels=#labwc
 [openbox-3.4]: http://openbox.org/wiki/Help:Contents
 [rc.xml]: docs/rc.xml
 [rc.xml.all]: docs/rc.xml.all
@@ -185,7 +186,6 @@ High-level summary of items which are not intended to be implemented:
 [kanshi]: https://sr.ht/~emersion/kanshi/
 [wlr-randr]: https://sr.ht/~emersion/wlr-randr/
 [swaylock]: https://github.com/swaywm/swaylock
-
 
 [acceptance criteria]: https://github.com/labwc/labwc-acceptance-criteria/blob/main/Acceptance-criteria.md
 

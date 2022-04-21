@@ -7,7 +7,7 @@ labwc - menu
 # DESCRIPTION
 
 Static menus are built based on content of XML files located at
-"~/.config/openbox" and equivalent XDG Base Directories.
+"~/.config/labwc" and equivalent XDG Base Directories.
 
 # SYNTAX
 

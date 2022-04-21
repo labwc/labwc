@@ -78,21 +78,7 @@ static void
 handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
-	if (view->toplevel_handle) {
-		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel_handle);
-	}
-	interactive_end(view);
-	if (view->server->seat.active_view == view) {
-		view->server->seat.active_view = NULL;
-	}
-	wl_list_remove(&view->link);
-	wl_list_remove(&view->destroy.link);
-	if (view->scene_tree) {
-		ssd_destroy(view);
-		wlr_scene_node_destroy(&view->scene_tree->node);
-		view->scene_tree = NULL;
-	}
-	free(view);
+	view_handle_destroy(view);
 }
 
 static void

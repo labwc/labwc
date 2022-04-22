@@ -104,7 +104,7 @@ theme_builtin(struct theme *theme)
 
 	parse_hexstr("#000000", theme->window_active_label_text_color);
 	parse_hexstr("#000000", theme->window_inactive_label_text_color);
-	theme->window_label_text_justify = parse_justification("Left");
+	theme->window_label_text_justify = parse_justification("Center");
 
 	parse_hexstr("#000000",
 		theme->window_active_button_menu_unpressed_image_color);

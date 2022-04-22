@@ -15,7 +15,7 @@ window.inactive.title.bg.color: #f6f5f4
 # window titlebar text
 window.active.label.text.color: #000000
 window.inactive.label.text.color: #000000
-window.label.text.justify: left
+window.label.text.justify: center
 
 # window buttons
 window.active.button.unpressed.image.color: #000000

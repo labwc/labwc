@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#define _POSIX_C_SOURCE 200809L
+#include <string.h>
+#include "common/dir.h"
 #include "common/font.h"
 #include "common/spawn.h"
 #include "config/session.h"
@@ -10,7 +13,14 @@
 struct rcxml rc = { 0 };
 
 static const char labwc_usage[] =
-	"Usage: labwc [-h] [-s <command>] [-c <config-file>] [-d] [-V] [-v]\n";
+"Usage: labwc [options...]\n"
+"    -c <config-file>    specify config file (with path)\n"
+"    -C <config-dir>     specify config directory\n"
+"    -d                  enable full logging, including debug information\n"
+"    -h                  show help message and quit\n"
+"    -s <command>        run command on startup\n"
+"    -v                  show version number and quit\n"
+"    -V                  enable more verbose logging\n";
 
 static void
 usage(void)
@@ -27,10 +37,13 @@ main(int argc, char *argv[])
 	enum wlr_log_importance verbosity = WLR_ERROR;
 
 	int c;
-	while ((c = getopt(argc, argv, "c:dhs:vV")) != -1) {
+	while ((c = getopt(argc, argv, "c:C:dhs:vV")) != -1) {
 		switch (c) {
 		case 'c':
 			config_file = optarg;
+			break;
+		case 'C':
+			rc.config_dir = strdup(optarg);
 			break;
 		case 'd':
 			verbosity = WLR_DEBUG;
@@ -55,7 +68,11 @@ main(int argc, char *argv[])
 
 	wlr_log_init(verbosity, NULL);
 
-	session_environment_init();
+	if (!rc.config_dir) {
+		rc.config_dir = config_dir();
+	}
+	wlr_log(WLR_INFO, "using config dir (%s)\n", rc.config_dir);
+	session_environment_init(rc.config_dir);
 	rcxml_read(config_file);
 
 	if (!getenv("XDG_RUNTIME_DIR")) {
@@ -75,7 +92,7 @@ main(int argc, char *argv[])
 	menu_init_rootmenu(&server);
 	menu_init_windowmenu(&server);
 
-	session_autostart_init();
+	session_autostart_init(rc.config_dir);
 	if (startup_cmd) {
 		spawn_async_no_shell(startup_cmd);
 	}

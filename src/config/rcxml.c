@@ -14,7 +14,6 @@
 #include <wayland-server-core.h>
 #include <wlr/util/log.h>
 #include "action.h"
-#include "common/dir.h"
 #include "common/nodename.h"
 #include "common/string-helpers.h"
 #include "common/zfree.h"
@@ -626,10 +625,10 @@ post_processing(void)
 static void
 rcxml_path(char *buf, size_t len)
 {
-	if (!strlen(config_dir())) {
+	if (!rc.config_dir) {
 		return;
 	}
-	snprintf(buf, len, "%s/rc.xml", config_dir());
+	snprintf(buf, len, "%s/rc.xml", rc.config_dir);
 }
 
 static void

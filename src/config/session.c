@@ -8,7 +8,6 @@
 #include <sys/stat.h>
 #include <wlr/util/log.h>
 #include "common/buf.h"
-#include "common/dir.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 
@@ -73,24 +72,23 @@ read_environment_file(const char *filename)
 }
 
 static const char *
-config_dir_append(const char *append)
+build_path(const char *dir, const char *filename)
 {
-	const char *config = config_dir();
-	if (string_empty(config) || string_empty(append)) {
+	if (string_empty(dir) || string_empty(filename)) {
 		return NULL;
 	}
-	int len = strlen(config) + strlen(append) + 2;
+	int len = strlen(dir) + strlen(filename) + 2;
 	char *buffer = calloc(len, 1);
-	strcat(buffer, config);
+	strcat(buffer, dir);
 	strcat(buffer, "/");
-	strcat(buffer, append);
+	strcat(buffer, filename);
 	return buffer;
 }
 
 void
-session_environment_init(void)
+session_environment_init(const char *dir)
 {
-	const char *environment = config_dir_append("environment");
+	const char *environment = build_path(dir, "environment");
 	if (!environment) {
 		return;
 	}
@@ -99,9 +97,9 @@ session_environment_init(void)
 }
 
 void
-session_autostart_init(void)
+session_autostart_init(const char *dir)
 {
-	const char *autostart = config_dir_append("autostart");
+	const char *autostart = build_path(dir, "autostart");
 	if (!autostart) {
 		return;
 	}

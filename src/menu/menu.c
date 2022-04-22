@@ -10,7 +10,6 @@
 #include <strings.h>
 #include <wlr/util/log.h>
 #include "common/buf.h"
-#include "common/dir.h"
 #include "common/font.h"
 #include "common/nodename.h"
 #include "common/string-helpers.h"
@@ -295,10 +294,10 @@ parse_xml(const char *filename, struct server *server)
 	struct buf b;
 	static char menuxml[4096] = { 0 };
 
-	if (!strlen(config_dir())) {
+	if (!rc.config_dir) {
 		return;
 	}
-	snprintf(menuxml, sizeof(menuxml), "%s/%s", config_dir(), filename);
+	snprintf(menuxml, sizeof(menuxml), "%s/%s", rc.config_dir, filename);
 
 	stream = fopen(menuxml, "r");
 	if (!stream) {

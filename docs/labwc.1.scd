@@ -6,7 +6,7 @@ labwc - A Wayland stacking compositor
 
 # SYNOPSIS
 
-*labwc*  [options...] [command]
+*labwc*  [options...]
 
 # DESCRIPTION
 
@@ -19,8 +19,11 @@ on.
 
 # OPTIONS
 
-*-c* <config>
-	Specify a config file
+*-c* <config-file>
+	Specify a config file with path
+
+*-C* <config-directory>
+	Specify a config directory
 
 *-d*
 	Enable full logging, including debug information

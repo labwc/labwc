@@ -78,7 +78,16 @@ static void
 handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
-	view_handle_destroy(view);
+	assert(view->type == LAB_XDG_SHELL_VIEW);
+
+	/* Reset XDG specific surface for good measure */
+	view->xdg_surface = NULL;
+
+	/* Remove XDG specific handlers */
+	wl_list_remove(&view->destroy.link);
+
+	/* And finally destroy / free the view */
+	view_destroy(view);
 }
 
 static void

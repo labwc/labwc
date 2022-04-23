@@ -653,7 +653,7 @@ view_update_app_id(struct view *view)
 }
 
 void
-view_handle_destroy(struct view *view)
+view_destroy(struct view *view)
 {
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel_handle);
@@ -671,37 +671,17 @@ view_handle_destroy(struct view *view)
 			view->server->cycle_view, LAB_CYCLE_DIR_BACKWARD);
 
 		/* If we cycled back to ourselves, then we have no windows.
-		 * just remove it and close the osd for good. */
-		if (view->server->cycle_view == view) {
+		 * just remove it and close the OSD for good. */
+		if (view->server->cycle_view == view || !view->server->cycle_view) {
 			view->server->cycle_view = NULL;
 			osd_finish(view->server);
 		}
-	} else if (view->server->cycle_view != NULL) {
-		/* If we have an OSD, but are not the cycled view, just
-		 * update the OSD to reflect the view has now gone. */
+	}
+
+	if (view->server->cycle_view) {
+		/* Update the OSD to reflect the view has now gone. */
 		osd_update(view->server);
 	}
-
-	if (view->type == LAB_XDG_SHELL_VIEW) {
-		view->xdg_surface = NULL;
-	}
-#ifdef HAVE_XWAYLAND
-	if (view->type == LAB_XWAYLAND_VIEW) {
-		view->xwayland_surface = NULL;
-	}
-#endif	
-
-	wl_list_remove(&view->link);
-	wl_list_remove(&view->destroy.link);
-#ifdef HAVE_XWAYLAND
-	if (view->type == LAB_XWAYLAND_VIEW) {
-		wl_list_remove(&view->map.link);
-		wl_list_remove(&view->unmap.link);
-		wl_list_remove(&view->request_configure.link);
-		wl_list_remove(&view->request_maximize.link);
-		wl_list_remove(&view->request_fullscreen.link);
-	}
-#endif
 
 	if (view->scene_tree) {
 		ssd_destroy(view);
@@ -709,5 +689,7 @@ view_handle_destroy(struct view *view)
 		view->scene_tree = NULL;
 	}
 
+	/* Remove view from server->views */
+	wl_list_remove(&view->link);
 	free(view);
 }

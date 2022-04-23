@@ -96,7 +96,21 @@ static void
 handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
-	view_handle_destroy(view);
+	assert(view->type == LAB_XWAYLAND_VIEW);
+
+	/* Reset XWayland specific surface for good measure */
+	view->xwayland_surface = NULL;
+
+	/* Remove XWayland specific handlers */
+	wl_list_remove(&view->map.link);
+	wl_list_remove(&view->unmap.link);
+	wl_list_remove(&view->request_configure.link);
+	wl_list_remove(&view->request_maximize.link);
+	wl_list_remove(&view->request_fullscreen.link);
+	wl_list_remove(&view->destroy.link);
+
+	/* And finally destroy / free the view */
+	view_destroy(view);
 }
 
 static void

@@ -88,8 +88,7 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, output_destroy);
-	wl_list_remove(&layer->output_destroy.link);
-	wlr_layer_surface_v1_destroy(layer->scene_layer_surface->layer_surface);
+	layer->scene_layer_surface->layer_surface->output = NULL;
 }
 
 static void
@@ -322,6 +321,12 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 
 	surface->scene_layer_surface = wlr_scene_layer_surface_v1_create(
 		&selected_layer->node, layer_surface);
+	if (!surface->scene_layer_surface) {
+		wlr_layer_surface_v1_destroy(layer_surface);
+		wlr_log(WLR_ERROR, "could not create layer surface");
+		return;
+	}
+
 	node_descriptor_create(surface->scene_layer_surface->node,
 		LAB_NODE_DESC_LAYER_SURFACE, surface);
 

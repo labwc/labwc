@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <strings.h>
 #include <xcb/xcb_icccm.h>
+#include "common/scene-helpers.h"
 #include "labwc.h"
 #include "ssd.h"
 #include "menu/menu.h"
@@ -833,8 +834,16 @@ view_destroy(struct view *view)
 	}
 
 	if (view->scene_tree) {
+		struct wlr_scene_node *node = &view->scene_tree->node;
+		if (osd_state->preview_anchor == node) {
+			/*
+			 * If we are the anchor for the current OSD selected view,
+			 * replace the anchor with the node before us.
+			 */
+			osd_state->preview_anchor = lab_wlr_scene_get_prev_node(node);
+		}
 		ssd_destroy(view);
-		wlr_scene_node_destroy(&view->scene_tree->node);
+		wlr_scene_node_destroy(node);
 		view->scene_tree = NULL;
 	}
 

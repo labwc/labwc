@@ -233,6 +233,7 @@ struct server {
 	/* Set when in cycle (alt-tab) mode */
 	struct osd_state {
 		struct view *cycle_view;
+		bool preview_was_enabled;
 		struct wlr_scene_node *preview_node;
 		struct wlr_scene_node *preview_anchor;
 	} osd_state;
@@ -577,9 +578,12 @@ void server_init(struct server *server);
 void server_start(struct server *server);
 void server_finish(struct server *server);
 
-/* update onscreen display 'alt-tab' buffer */
-void osd_finish(struct server *server);
+/* Updates onscreen display 'alt-tab' buffer */
 void osd_update(struct server *server);
+/* Closes the OSD */
+void osd_finish(struct server *server);
+/* Moves preview views back into their original stacking order and state */
+void osd_preview_restore(struct server *server);
 
 /*
  * wlroots "input inhibitor" extension (required for swaylock) blocks

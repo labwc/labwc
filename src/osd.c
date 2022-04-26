@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "config.h"
+#include <assert.h>
 #include <cairo.h>
 #include <drm_fourcc.h>
 #include <pango/pangocairo.h>
@@ -8,6 +9,7 @@
 #include "common/buf.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"
+#include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "theme.h"
@@ -110,6 +112,8 @@ void
 osd_finish(struct server *server)
 {
 	server->osd_state.cycle_view = NULL;
+	server->osd_state.preview_node = NULL;
+	server->osd_state.preview_anchor = NULL;
 
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
@@ -121,6 +125,53 @@ osd_finish(struct server *server)
 		wlr_scene_node_destroy(&server->osd_preview_outline->tree->node);
 		server->osd_preview_outline = NULL;
 	}
+}
+
+void
+osd_preview_restore(struct server *server)
+{
+	struct osd_state *osd_state = &server->osd_state;
+	if (osd_state->preview_node) {
+		if (osd_state->preview_anchor) {
+			wlr_scene_node_place_above(osd_state->preview_node,
+				osd_state->preview_anchor);
+		} else {
+			/* Selected view was the first node */
+			wlr_scene_node_lower_to_bottom(osd_state->preview_node);
+		}
+
+		/* Node was disabled / minimized before, disable again */
+		if (!osd_state->preview_was_enabled) {
+			wlr_scene_node_set_enabled(osd_state->preview_node, false);
+		}
+		osd_state->preview_node = NULL;
+		osd_state->preview_anchor = NULL;
+	}
+}
+
+static void
+preview_cycled_view(struct view *view)
+{
+	assert(view);
+	assert(view->scene_tree);
+	struct osd_state *osd_state = &view->server->osd_state;
+
+	/* Move previous selected node back to its original place */
+	osd_preview_restore(view->server);
+
+	/* Remember the sibling right before the selected node */
+	osd_state->preview_node = &view->scene_tree->node;
+	osd_state->preview_anchor = lab_wlr_scene_get_prev_node(
+		osd_state->preview_node);
+
+	/* Store node enabled / minimized state and force-enable if disabled */
+	osd_state->preview_was_enabled = osd_state->preview_node->enabled;
+	if (!osd_state->preview_was_enabled) {
+		wlr_scene_node_set_enabled(osd_state->preview_node, true);
+	}
+
+	/* Finally raise selected node to the top */
+	wlr_scene_node_raise_to_top(osd_state->preview_node);
 }
 
 void
@@ -294,4 +345,8 @@ osd_update(struct server *server)
 		wlr_scene_node_set_enabled(&output->osd_tree->node, true);
 	}
 	free(buf.buf);
+
+	if (rc.cycle_preview_contents) {
+		preview_cycled_view(server->osd_state.cycle_view);
+	}
 }

@@ -32,7 +32,7 @@ static struct dir theme_dirs[] = {
 	{ "XDG_DATA_DIRS", "themes" },
 	{ NULL, "/usr/share/themes" },
 	{ NULL, "/usr/local/share/themes" },
-	{ NULL, "opt/share/themes" },
+	{ NULL, "/opt/share/themes" },
 	{ NULL, NULL }
 };
 

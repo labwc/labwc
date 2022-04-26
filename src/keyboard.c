@@ -39,18 +39,18 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, keyboard_modifiers);
 	struct server *server = seat->server;
 
-	if (server->cycle_view || seat->workspace_osd_shown_by_modifier) {
+	if (server->osd_state.cycle_view || seat->workspace_osd_shown_by_modifier) {
 		struct wlr_keyboard_key_event *event = data;
 		struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
 
 		if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED
 				&& !keyboard_any_modifiers_pressed(keyboard))  {
-			if (server->cycle_view) {
+			if (server->osd_state.cycle_view) {
 				/* end cycle */
 				desktop_focus_and_activate_view(&server->seat,
-					server->cycle_view);
-				desktop_move_to_front(server->cycle_view);
-				server->cycle_view = NULL;
+					server->osd_state.cycle_view);
+				desktop_move_to_front(server->osd_state.cycle_view);
+				/* osd_finish() additionally resets cycle_view to NULL */
 				osd_finish(server);
 			}
 			if (seat->workspace_osd_shown_by_modifier) {
@@ -145,12 +145,12 @@ handle_compositor_keybindings(struct wl_listener *listener,
 		}
 	}
 
-	if (server->cycle_view) {
+	if (server->osd_state.cycle_view) {
 		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			for (int i = 0; i < nsyms; i++) {
 				if (syms[i] == XKB_KEY_Escape) {
 					/* cancel */
-					server->cycle_view = NULL;
+					/* osd_finish() additionally resets cycle_view to NULL */
 					osd_finish(server);
 					return true;
 				}
@@ -168,8 +168,8 @@ handle_compositor_keybindings(struct wl_listener *listener,
 				enum lab_cycle_dir dir = backwards
 					? LAB_CYCLE_DIR_BACKWARD
 					: LAB_CYCLE_DIR_FORWARD;
-				server->cycle_view = desktop_cycle_view(server,
-					server->cycle_view, dir);
+				server->osd_state.cycle_view = desktop_cycle_view(server,
+					server->osd_state.cycle_view, dir);
 				osd_update(server);
 			}
 		}

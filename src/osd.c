@@ -109,6 +109,8 @@ osd_update_preview_outlines(struct view *view)
 void
 osd_finish(struct server *server)
 {
+	server->osd_state.cycle_view = NULL;
+
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
 		destroy_osd_nodes(output);
@@ -185,7 +187,7 @@ osd_update(struct server *server)
 			if (!isfocusable(view)) {
 				continue;
 			}
-			if (view == server->cycle_view) {
+			if (view == server->osd_state.cycle_view) {
 				set_cairo_color(cairo, theme->osd_label_text_color);
 				cairo_rectangle(cairo, OSD_BORDER_WIDTH, y,
 					OSD_ITEM_WIDTH, OSD_ITEM_HEIGHT);

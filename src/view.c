@@ -808,25 +808,26 @@ view_destroy(struct view *view)
 		server->focused_view = NULL;
 	}
 
-	if (server->cycle_view == view) {
+	struct osd_state *osd_state = &view->server->osd_state;
+	if (osd_state->cycle_view == view) {
 		/*
 		 * If we are the current OSD selected view, cycle
 		 * to the next because we are dying.
 		 */
-		server->cycle_view = desktop_cycle_view(server,
-			server->cycle_view, LAB_CYCLE_DIR_BACKWARD);
+		osd_state->cycle_view = desktop_cycle_view(server,
+			osd_state->cycle_view, LAB_CYCLE_DIR_BACKWARD);
 
 		/*
 		 * If we cycled back to ourselves, then we have no windows.
 		 * just remove it and close the OSD for good.
 		 */
-		if (server->cycle_view == view || !server->cycle_view) {
-			server->cycle_view = NULL;
+		if (osd_state->cycle_view == view || !osd_state->cycle_view) {
+			/* osd_finish() additionally resets cycle_view to NULL */
 			osd_finish(server);
 		}
 	}
 
-	if (server->cycle_view) {
+	if (osd_state->cycle_view) {
 		/* Update the OSD to reflect the view has now gone. */
 		osd_update(server);
 	}

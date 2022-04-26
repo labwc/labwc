@@ -231,7 +231,11 @@ struct server {
 	struct wl_listener new_constraint;
 
 	/* Set when in cycle (alt-tab) mode */
-	struct view *cycle_view;
+	struct osd_state {
+		struct view *cycle_view;
+		struct wlr_scene_node *preview_node;
+		struct wlr_scene_node *preview_anchor;
+	} osd_state;
 
 	struct theme *theme;
 

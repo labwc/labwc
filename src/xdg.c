@@ -301,6 +301,7 @@ xdg_toplevel_view_map(struct view *view)
 			ssd_create(view);
 		}
 
+		position_xdg_toplevel_view(view);
 		if (!view->fullscreen && requested->fullscreen) {
 			view_set_fullscreen(view, true,
 				requested->fullscreen_output);
@@ -308,9 +309,6 @@ xdg_toplevel_view_map(struct view *view)
 			view_maximize(view, true);
 		}
 
-		if (!view->maximized && !view->fullscreen) {
-			position_xdg_toplevel_view(view);
-		}
 		view_discover_output(view);
 
 		view->been_mapped = true;

@@ -141,7 +141,9 @@ static bool
 view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 {
 	struct output *output = view_output(view);
-	assert(output);
+	if (!output) {
+		return false;
+	}
 	struct wlr_output *wlr_output = output->wlr_output;
 	if (!wlr_output) {
 		return false;

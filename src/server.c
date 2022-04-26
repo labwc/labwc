@@ -29,7 +29,6 @@ static struct server *g_server;
 static void
 reload_config_and_theme(void)
 {
-	/* TODO: use rc.config_path */
 	rcxml_finish();
 	rcxml_read(NULL);
 	theme_finish(g_server->theme);

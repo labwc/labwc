@@ -41,7 +41,6 @@ enum font_place {
 };
 
 static void load_default_key_bindings(void);
-static void load_default_mouse_bindings(void);
 
 static void
 fill_keybind(char *nodename, char *content)
@@ -333,9 +332,6 @@ entry(xmlNode *node, char *nodename, char *content)
 	/* handle nodes without content, e.g. <keyboard><default /> */
 	if (!strcmp(nodename, "default.keyboard")) {
 		load_default_key_bindings();
-		return;
-	} else if (!strcmp(nodename, "default.mouse")) {
-		load_default_mouse_bindings();
 		return;
 	}
 

@@ -619,7 +619,7 @@ handle_press_mousebinding(struct view *view, struct server *server,
 	bool activated_any = false;
 	bool activated_any_frame = false;
 
-	wl_list_for_each(mousebind, &rc.mousebinds, link) {
+	wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
 		if (ssd_part_contains(mousebind->context, view_area)
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {
@@ -655,7 +655,6 @@ handle_press_mousebinding(struct view *view, struct server *server,
 			activated_any = true;
 			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
 			actions_run(view, server, &mousebind->actions, resize_edges);
-			break;
 		}
 	}
 	return activated_any && activated_any_frame;

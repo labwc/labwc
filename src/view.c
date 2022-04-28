@@ -215,9 +215,33 @@ view_apply_maximized_geometry(struct view *view)
 	view_move_resize(view, box);
 }
 
+#define LAB_FALLBACK_WIDTH (640)
+#define LAB_FALLBACK_HEIGHT (480)
+
+static void
+set_fallback_geometry(struct view *view)
+{
+	view->unmaximized_geometry.width = LAB_FALLBACK_WIDTH;
+	view->unmaximized_geometry.height = LAB_FALLBACK_HEIGHT;
+	view_compute_centered_position(view,
+		view->unmaximized_geometry.width,
+		view->unmaximized_geometry.height,
+		&view->unmaximized_geometry.x,
+		&view->unmaximized_geometry.y);
+}
+
 static void
 view_apply_unmaximized_geometry(struct view *view)
 {
+	/*
+	 * If an application was started maximized, its unmaximized_geometry
+	 * width/height may still be zero in which case we set some fallback
+	 * values. This is the case with foot and Qt applications.
+	 */
+	if (wlr_box_empty(&view->unmaximized_geometry)) {
+		set_fallback_geometry(view);
+	}
+
 	struct wlr_output_layout *layout = view->server->output_layout;
 	if (wlr_output_layout_intersects(layout, NULL,
 			&view->unmaximized_geometry)) {

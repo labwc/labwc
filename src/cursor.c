@@ -584,9 +584,10 @@ handle_release_mousebinding(struct view *view, struct server *server,
 }
 
 static bool
-is_double_click(long double_click_speed, uint32_t button)
+is_double_click(long double_click_speed, uint32_t button, struct view *view)
 {
 	static uint32_t last_button;
+	static struct view *last_view;
 	static struct timespec last_click;
 	struct timespec now;
 
@@ -594,8 +595,9 @@ is_double_click(long double_click_speed, uint32_t button)
 	long ms = (now.tv_sec - last_click.tv_sec) * 1000 +
 		(now.tv_nsec - last_click.tv_nsec) / 1000000;
 	last_click = now;
-	if (last_button != button) {
+	if (last_button != button || last_view != view) {
 		last_button = button;
+		last_view = view;
 		return false;
 	}
 	if (ms < double_click_speed && ms >= 0) {
@@ -604,6 +606,7 @@ is_double_click(long double_click_speed, uint32_t button)
 		 * double-click
 		 */
 		last_button = 0;
+		last_view = NULL;
 		return true;
 	}
 	return false;
@@ -615,7 +618,7 @@ handle_press_mousebinding(struct view *view, struct server *server,
 		enum ssd_part_type view_area, uint32_t resize_edges)
 {
 	struct mousebind *mousebind;
-	bool double_click = is_double_click(rc.doubleclick_time, button);
+	bool double_click = is_double_click(rc.doubleclick_time, button, view);
 	bool activated_any = false;
 	bool activated_any_frame = false;
 

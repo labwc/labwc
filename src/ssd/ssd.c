@@ -202,8 +202,6 @@ ssd_hide(struct view *view)
 	if (!view->ssd.tree) {
 		return;
 	}
-
-	wlr_log(WLR_ERROR, "Hiding SSD");
 	wlr_scene_node_set_enabled(&view->ssd.tree->node, false);
 }
 

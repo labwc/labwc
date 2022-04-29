@@ -28,15 +28,18 @@ static void
 output_frame_notify(struct wl_listener *listener, void *data)
 {
 	struct output *output = wl_container_of(listener, output, frame);
+	struct wlr_scene *scene = output->server->scene;
+	struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(
+			scene, output->wlr_output);
 	if (!output->wlr_output->enabled) {
 		return;
 	}
 
-	wlr_scene_output_commit(output->scene_output);
+	wlr_scene_output_commit(scene_output);
 
 	struct timespec now = { 0 };
 	clock_gettime(CLOCK_MONOTONIC, &now);
-	wlr_scene_output_send_frame_done(output->scene_output, &now);
+	wlr_scene_output_send_frame_done(scene_output, &now);
 }
 
 static void

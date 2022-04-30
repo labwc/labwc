@@ -169,15 +169,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 	}
 
 	wlr_output_layout_add_auto(server->output_layout, wlr_output);
-
-	/* TODO: check this makes sense */
-	struct wlr_scene_output *scene_output;
-	wl_list_for_each (scene_output, &output->server->scene->outputs, link) {
-		if (scene_output->output == wlr_output) {
-			output->scene_output = scene_output;
-			break;
-		}
-	}
+	output->scene_output = wlr_scene_get_scene_output(server->scene, wlr_output);
 	assert(output->scene_output);
 }
 
@@ -238,19 +230,13 @@ output_config_apply(struct server *server,
 	struct wlr_output_configuration_head_v1 *head;
 	wl_list_for_each(head, &config->heads, link) {
 		struct wlr_output *o = head->state.output;
+		struct output *output = output_from_wlr_output(server, o);
 		bool need_to_add = head->state.enabled && !o->enabled;
-		if (need_to_add) {
-			wlr_output_layout_add_auto(server->output_layout, o);
-		}
-
 		bool need_to_remove = !head->state.enabled && o->enabled;
-		if (need_to_remove) {
-			/* TODO: should we output->scene_output = NULL; ?? */
-			wlr_output_layout_remove(server->output_layout, o);
-		}
 
 		wlr_output_enable(o, head->state.enabled);
 		if (head->state.enabled) {
+			/* Output specifc actions only */
 			if (head->state.mode) {
 				wlr_output_set_mode(o, head->state.mode);
 			} else {
@@ -260,12 +246,31 @@ output_config_apply(struct server *server,
 				wlr_output_set_custom_mode(o, width,
 					height, refresh);
 			}
-			wlr_output_layout_move(server->output_layout, o,
-				head->state.x, head->state.y);
 			wlr_output_set_scale(o, head->state.scale);
 			wlr_output_set_transform(o, head->state.transform);
 		}
-		wlr_output_commit(o);
+		if (!wlr_output_commit(o)) {
+			wlr_log(WLR_ERROR, "Output config commit failed");
+			continue;
+		}
+
+		/* Only do Layout specific actions if the commit went trough */
+		if (need_to_add) {
+			wlr_output_layout_add_auto(server->output_layout, o);
+			output->scene_output = wlr_scene_get_scene_output(server->scene, o);
+			assert(output->scene_output);
+		}
+
+		if (head->state.enabled) {
+			wlr_output_layout_move(server->output_layout, o,
+				head->state.x, head->state.y);
+		}
+
+		if (need_to_remove) {
+			wlr_output_layout_remove(server->output_layout, o);
+			output->scene_output = NULL;
+		}
+
 	}
 
 	server->pending_output_config = NULL;

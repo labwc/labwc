@@ -48,6 +48,13 @@
 #include "config/keybind.h"
 #include "config/rcxml.h"
 #include "ssd.h"
+#if HAVE_NLS
+#include <libintl.h>
+#include <locale.h>
+#define _ gettext
+#else
+#define _(s) (s)
+#endif
 
 #define XCURSOR_DEFAULT "left_ptr"
 #define XCURSOR_SIZE 24

@@ -75,6 +75,15 @@ have_xwayland = xcb.found() and wlroots_has_xwayland
 conf_data = configuration_data()
 conf_data.set10('HAVE_XWAYLAND', have_xwayland)
 
+msgfmt = find_program('msgfmt', required: get_option('nls'))
+if msgfmt.found()
+  source_root = meson.current_source_dir()
+  conf_data.set('HAVE_NLS', 1)
+  subdir('po')
+else
+  conf_data.set('HAVE_NLS', 0)
+endif
+
 labwc_inc = include_directories('include')
 
 subdir('protocols')

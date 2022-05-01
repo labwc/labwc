@@ -425,9 +425,9 @@ menu_init_rootmenu(struct server *server)
 		menu = menu_create(server, "root-menu", "");
 	}
 	if (wl_list_empty(&menu->menuitems)) {
-		current_item = item_create(menu, "Reconfigure");
+		current_item = item_create(menu, _("Reconfigure"));
 		fill_item("name.action", "Reconfigure");
-		current_item = item_create(menu, "Exit");
+		current_item = item_create(menu, _("Exit"));
 		fill_item("name.action", "Exit");
 	}
 }
@@ -443,17 +443,17 @@ menu_init_windowmenu(struct server *server)
 		menu = menu_create(server, "client-menu", "");
 	}
 	if (wl_list_empty(&menu->menuitems)) {
-		current_item = item_create(menu, "Minimize");
+		current_item = item_create(menu, _("Minimize"));
 		fill_item("name.action", "Iconify");
-		current_item = item_create(menu, "Maximize");
+		current_item = item_create(menu, _("Maximize"));
 		fill_item("name.action", "ToggleMaximize");
-		current_item = item_create(menu, "Fullscreen");
+		current_item = item_create(menu, _("Fullscreen"));
 		fill_item("name.action", "ToggleFullscreen");
-		current_item = item_create(menu, "Decorations");
+		current_item = item_create(menu, _("Decorations"));
 		fill_item("name.action", "ToggleDecorations");
-		current_item = item_create(menu, "AlwaysOnTop");
+		current_item = item_create(menu, _("AlwaysOnTop"));
 		fill_item("name.action", "ToggleAlwaysOnTop");
-		current_item = item_create(menu, "Close");
+		current_item = item_create(menu, _("Close"));
 		fill_item("name.action", "Close");
 	}
 }

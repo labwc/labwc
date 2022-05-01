@@ -27,7 +27,8 @@ that branch.
 This release contains significant refactoring to use the wlroots
 scene-graph API, particularly src/output.c, server-side-decoration
 and the layer-shell implementation. Many thanks to @Consolatis for some
-heavy lifting with this.
+heavy lifting with this. Native language support has been added by
+@01micko.
 
 ### Added
 

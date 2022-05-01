@@ -1,0 +1,50 @@
+# Labwc pot file
+# Copyright (C) 2022
+# This file is distributed under the same license as the labwc package.
+# FIRST AUTHOR <01micko@gmail.com>, 2022.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: labwc\n"
+"Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
+"POT-Creation-Date: 2022-04-30 16:43+1000\n"
+"PO-Revision-Date: 2022-04-30 16:50+1000\n"
+"Last-Translator: Mick Amadio <01micko@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: Italian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/menu/menu.c:428
+msgid "Reconfigure"
+msgstr "Riconfigurare"
+
+#: src/menu/menu.c:430
+msgid "Exit"
+msgstr "Uscita"
+
+#: src/menu/menu.c:446
+msgid "Minimize"
+msgstr "Riduci"
+
+#: src/menu/menu.c:448
+msgid "Maximize"
+msgstr "Ingrandisci"
+
+#: src/menu/menu.c:450
+msgid "Fullscreen"
+msgstr "Schermo intero"
+
+#: src/menu/menu.c:452
+msgid "Decorations"
+msgstr "Decorazioni"
+
+#: src/menu/menu.c:454
+msgid "AlwaysOnTop"
+msgstr "Sempre sopra"
+
+#: src/menu/menu.c:456
+msgid "Close"
+msgstr "Chiudi"

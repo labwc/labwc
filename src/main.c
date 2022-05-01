@@ -32,6 +32,11 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
+#if HAVE_NLS
+	setlocale(LC_ALL, "");
+	bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+	textdomain(GETTEXT_PACKAGE);
+#endif
 	char *startup_cmd = NULL;
 	char *config_file = NULL;
 	enum wlr_log_importance verbosity = WLR_ERROR;

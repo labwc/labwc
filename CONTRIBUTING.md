@@ -30,8 +30,12 @@ line with wlroots.
 With the introduction of the scene-graph API, some wlroots functions also use
 node coordinates (nx, ny) but we prefer (sx, sy) where possible.
 
+## Native Language Support
+
+Translators can add their `MY_LOCALE.po` files to the `po` directory
+based on `po/labwc.pot` and issue a pull request.
+
 
 [coding style]: https://git.sr.ht/~sircmpwn/cstyle
 [commit messages]: https://gitlab.freedesktop.org/wlroots/wlroots/-/blob/master/CONTRIBUTING.md#commit-messages 
 [checkpatch.pl]: https://github.com/johanmalm/checkpatch.pl
-

@@ -104,9 +104,17 @@ handle_destroy(struct wl_listener *listener, void *data)
 	/* Remove XWayland specific handlers */
 	wl_list_remove(&view->map.link);
 	wl_list_remove(&view->unmap.link);
+	wl_list_remove(&view->request_move.link);
+	wl_list_remove(&view->request_resize.link);
 	wl_list_remove(&view->request_configure.link);
+	wl_list_remove(&view->request_activate.link);
+	wl_list_remove(&view->request_minimize.link);
 	wl_list_remove(&view->request_maximize.link);
 	wl_list_remove(&view->request_fullscreen.link);
+	wl_list_remove(&view->set_title.link);
+	wl_list_remove(&view->set_app_id.link);
+	wl_list_remove(&view->set_decorations.link);
+	wl_list_remove(&view->override_redirect.link);
 	wl_list_remove(&view->destroy.link);
 
 	/* And finally destroy / free the view */
@@ -234,6 +242,25 @@ handle_set_decorations(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, set_decorations);
 	view_set_decorations(view, want_deco(view));
+}
+
+static void
+handle_override_redirect(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, override_redirect);
+	struct wlr_xwayland_surface *xsurface = data;
+	struct server *server = view->server;
+	bool mapped = xsurface->mapped;
+	if (mapped) {
+		handle_unmap(&view->unmap, NULL);
+	}
+	handle_destroy(&view->destroy, view);
+	xsurface->data = NULL;
+	struct xwayland_unmanaged *unmanaged =
+		xwayland_unmanaged_create(server, xsurface);
+	if (mapped) {
+		unmanaged_handle_map(&unmanaged->map, xsurface);
+	}
 }
 
 static void
@@ -427,6 +454,10 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	view->set_decorations.notify = handle_set_decorations;
 	wl_signal_add(&xsurface->events.set_decorations,
 			&view->set_decorations);
+
+	view->override_redirect.notify = handle_override_redirect;
+	wl_signal_add(&xsurface->events.set_override_redirect,
+			&view->override_redirect);
 
 	wl_list_insert(&view->server->views, &view->link);
 }

@@ -38,7 +38,7 @@ parent_view(struct server *server, struct wlr_xwayland_surface *surface)
 	return NULL;
 }
 
-static void
+void
 unmanaged_handle_map(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
@@ -108,7 +108,7 @@ unmanaged_handle_destroy(struct wl_listener *listener, void *data)
 	free(unmanaged);
 }
 
-void
+struct xwayland_unmanaged *
 xwayland_unmanaged_create(struct server *server,
 			  struct wlr_xwayland_surface *xsurface)
 {
@@ -126,4 +126,5 @@ xwayland_unmanaged_create(struct server *server,
 	unmanaged->unmap.notify = unmanaged_handle_unmap;
 	wl_signal_add(&xsurface->events.destroy, &unmanaged->destroy);
 	unmanaged->destroy.notify = unmanaged_handle_destroy;
+	return unmanaged;
 }

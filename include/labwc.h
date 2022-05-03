@@ -310,6 +310,7 @@ struct view {
 	struct wl_listener set_title;
 	struct wl_listener set_app_id;		/* class on xwayland */
 	struct wl_listener set_decorations;	/* xwayland only */
+	struct wl_listener override_redirect;	/* xwayland only */
 	struct wl_listener new_popup;		/* xdg-shell only */
 	struct wl_listener new_subsurface;	/* xdg-shell only */
 };
@@ -372,8 +373,9 @@ void xdg_surface_new(struct wl_listener *listener, void *data);
 
 #if HAVE_XWAYLAND
 void xwayland_surface_new(struct wl_listener *listener, void *data);
-void xwayland_unmanaged_create(struct server *server,
+struct xwayland_unmanaged *xwayland_unmanaged_create(struct server *server,
 	struct wlr_xwayland_surface *xsurface);
+void unmanaged_handle_map(struct wl_listener *listener, void *data);
 #endif
 
 void view_child_init(struct view_child *child, struct view *view,

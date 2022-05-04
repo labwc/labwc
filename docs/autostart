@@ -27,17 +27,8 @@ mako >/dev/null 2>&1 &
 # `wlr-randr --output <whatever> --off` because this re-arranges views
 # (since a837fef). Instead use a wlr-output-power-management client such as
 # https://git.sr.ht/~leon_plickat/wlopm
-#
-# The swayidle example below only turns on/off one output. If you have
-# multiple outputs, you could write a script like this:
-#
-#       #!/bin/sh
-#       wlopm | while IFS=' ' read -r output state; do
-#               wlopm --toggle "${output}"
-#       done
-#
 swayidle -w \
-	timeout 3 'swaylock -f -c 000000' \
-	timeout 6 'wlopm --off eDP-1' \
-	resume 'wlopm --on eDP-1' \
+	timeout 300 'swaylock -f -c 000000' \
+	timeout 600 'wlopm --off \*' \
+	resume 'wlopm --on \*' \
 	before-sleep 'swaylock -f -c 000000' >/dev/null 2>&1 &

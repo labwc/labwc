@@ -8,7 +8,7 @@ labwc - actions
 
 Actions are used in keyboard bindings.
 
-*<action name="Close"><command>*
+*<action name="Close">*
 	Close top-most view.
 
 *<action name="Execute"><command>*

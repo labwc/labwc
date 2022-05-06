@@ -167,6 +167,11 @@ fill_item(char *nodename, char *content)
 	} else if (!current_item) {
 		wlr_log(WLR_ERROR, "expect <item label=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
+	} else if (!strcmp(nodename, "icon")) {
+		/*
+		 * Do nothing as we don't support menu icons - just avoid
+		 * logging errors if a menu.xml file contains icon="" entries.
+		 */
 	} else if (!strcmp(nodename, "name.action")) {
 		current_item_action = action_create(content);
 		wl_list_insert(current_item->actions.prev, &current_item_action->link);

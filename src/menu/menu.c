@@ -180,6 +180,13 @@ fill_item(char *nodename, char *content)
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else if (!strcmp(nodename, "command.action")) {
 		current_item_action->arg = strdup(content);
+	} else if (!strcmp(nodename, "execute.action")) {
+		/*
+		 * <action name="Execute"><execute>foo</execute></action>
+		 * is deprecated, but we support it anyway for backward
+		 * compatibility with old openbox-menu generators
+		 */
+		current_item_action->arg = strdup(content);
 	}
 }
 

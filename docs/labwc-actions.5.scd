@@ -12,7 +12,9 @@ Actions are used in keyboard bindings.
 	Close top-most view.
 
 *<action name="Execute"><command>*
-	Execute command.
+	Execute command.  Note that in the interest of backward compatibility,
+	labwc supports <execute> as an alternative to <command> even though
+	openbox documentation states that it is deprecated.
 
 *<action name="Exit">*
 	Exit labwc.

@@ -1,3 +1,6 @@
 [wrap-git]
 url = https://gitlab.freedesktop.org/wlroots/wlroots.git
 revision = 640f3b9f2156a007c5d1a36afdee570e123c95e4
+
+[provide]
+dependency_names = wlroots

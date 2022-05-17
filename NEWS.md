@@ -15,6 +15,7 @@ that branch.
 
 | Date       | Release notes | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2022-05-17 | [0.5.2]       | 0.15.1          | 8829          |
 | 2022-04-08 | [0.5.1]       | 0.15.1          | 8829          |
 | 2022-02-18 | [0.5.0]       | 0.15.1          | 8766          |
 | 2021-12-31 | [0.4.0]       | 0.15.0          | 8159          |
@@ -34,7 +35,15 @@ heavy lifting with this. Native language support has been added by
 
 - Presentation protocol
 
-## 0.5.1 - 2022-04-08
+## [0.5.2] - 2022-05-17
+
+This is a minor bugfix release mostly to ease packaging.
+
+### Fixed
+
+- Properly use system provided wlroots. Written-by: @eli-schwartz
+
+## [0.5.1] - 2022-04-08
 
 ### Added
 
@@ -216,6 +225,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
+[0.5.2]: https://github.com/labwc/labwc/releases/tag/0.5.2
+[0.5.1]: https://github.com/labwc/labwc/releases/tag/0.5.1
 [0.5.0]: https://github.com/labwc/labwc/releases/tag/0.5.0
 [0.4.0]: https://github.com/labwc/labwc/releases/tag/0.4.0
 [0.3.0]: https://github.com/labwc/labwc/releases/tag/0.3.0

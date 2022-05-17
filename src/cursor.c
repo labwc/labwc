@@ -750,16 +750,16 @@ cursor_button(struct wl_listener *listener, void *data)
 		return;
 	}
 
+mousebindings:
 	/* Determine closest resize edges in case action is Resize */
 	resize_edges = ssd_resize_edges(view_area);
-	if (!resize_edges) {
+	if (!resize_edges && view) {
 		resize_edges |= server->seat.cursor->x < view->x + view->w / 2
 			? WLR_EDGE_LEFT : WLR_EDGE_RIGHT;
 		resize_edges |= server->seat.cursor->y < view->y + view->h / 2
 			? WLR_EDGE_TOP : WLR_EDGE_BOTTOM;
 	}
 
-mousebindings:
 	if (event->state == WLR_BUTTON_RELEASED) {
 		triggered_frame_binding |= handle_release_mousebinding(view,
 			server, event->button, modifiers,

@@ -308,13 +308,13 @@ map(struct view *view)
 		}
 	}
 
-	view->ssd.enabled = want_deco(view);
-
-	if (view->ssd.enabled) {
-		view->margin = ssd_thickness(view);
-	}
-
 	if (!view->been_mapped) {
+
+		view->ssd.enabled = want_deco(view);
+		if (view->ssd.enabled) {
+			view->margin = ssd_thickness(view);
+		}
+
 		foreign_toplevel_handle_create(view);
 
 		if (!view->maximized && !view->fullscreen) {
@@ -326,12 +326,12 @@ map(struct view *view)
 		}
 
 		view_discover_output(view);
-		view->been_mapped = true;
-	}
 
-	if (view->ssd.enabled) {
-		/* Create ssd after view_disover_output() had been called */
-		ssd_create(view);
+		if (view->ssd.enabled) {
+			/* Create ssd after view_disover_output() had been called */
+			ssd_create(view);
+		}
+		view->been_mapped = true;
 	}
 
 	if (view->ssd.enabled && !view->fullscreen && !view->maximized) {

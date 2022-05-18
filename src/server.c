@@ -19,6 +19,8 @@
 #include "ssd.h"
 #include "theme.h"
 
+#define LAB_XDG_SHELL_VERSION (2)
+
 static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;
 static struct wl_event_source *sigint_source;
@@ -282,7 +284,8 @@ server_init(struct server *server)
 	seat_init(server);
 
 	/* Init xdg-shell */
-	server->xdg_shell = wlr_xdg_shell_create(server->wl_display);
+	server->xdg_shell = wlr_xdg_shell_create(server->wl_display,
+		LAB_XDG_SHELL_VERSION);
 	if (!server->xdg_shell) {
 		wlr_log(WLR_ERROR, "unable to create the XDG shell interface");
 		exit(EXIT_FAILURE);

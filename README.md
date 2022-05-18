@@ -103,6 +103,8 @@ For themes, search the internet for "openbox themes" and place them in `~/.local
 
     ./build/labwc [-s <command>]
 
+> **_NOTE:_** If you are running on **NVIDIA**, you will need the `nvidia-drm.modeset=1` kernel parameter.
+
 Click on the background to launch a menu.
 
 If you have not created an rc.xml config file, default bindings will be:

@@ -44,7 +44,7 @@ resistance_move_apply(struct view *view, double *x, double *y)
 	struct edges view_edges; /* The edges of the current view */
 	struct edges target_edges; /* The desired edges */
 	struct edges other_edges; /* The edges of the monitor/other view */
-	struct edges flags; /* To be set in is_within_resistance_range() */
+	struct edges flags = { 0 };
 
 	view_edges.left = view->x - border.left + 1;
 	view_edges.top = view->y - border.top + 1;

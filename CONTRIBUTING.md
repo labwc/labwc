@@ -4,8 +4,17 @@
 
 ## Packaging
 
-@narrat and @jbeich kindly maintain package on Arch Linux and FreeBSD. Let's
-keep them informed of any changes that relate to packaging.
+Some distributions carry labwc in their repositories or user repositories.
+
+- @ptrcnull (Alpine)
+- @narrat (Arch)
+- @jbeich (FreeBSD)
+- @adcdam (Slackware)
+
+kindly maintain the packages in their respective distro.
+
+Let's keep them informed of new releases and any changes that relate to packaging.
+If you are maintaining a labwc package for another distro feel free to open an issue so we can add you to this list.
 
 ## Coding Style
 

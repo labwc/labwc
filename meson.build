@@ -40,7 +40,7 @@ add_project_arguments('-DLABWC_VERSION=@0@'.format(version), language: 'c')
 wlroots = dependency(
   'wlroots',
   default_options: ['default_library=static', 'examples=false'],
-  version: ['>=0.15.0', '<0.16.0'],
+  version: ['>=0.15.0'],
 )
 
 wlroots_has_xwayland = wlroots.get_variable('have_xwayland') == 'true'

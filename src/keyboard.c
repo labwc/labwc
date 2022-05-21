@@ -39,11 +39,11 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 	struct server *server = seat->server;
 
 	if (server->cycle_view) {
-		struct wlr_event_keyboard_key *event = data;
-		struct wlr_input_device *device = seat->keyboard_group->input_device;
+		struct wlr_keyboard_key_event *event = data;
+		struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
 		damage_all_outputs(server);
 		if ((event->state == WL_KEYBOARD_KEY_STATE_RELEASED)
-				&& !any_modifiers_pressed(device->keyboard))  {
+				&& !any_modifiers_pressed(keyboard)) {
 			/* end cycle */
 			desktop_focus_and_activate_view(&server->seat,
 				server->cycle_view);
@@ -90,17 +90,17 @@ static bool is_modifier_key(xkb_keysym_t sym)
 
 static bool
 handle_compositor_keybindings(struct wl_listener *listener,
-		struct wlr_event_keyboard_key *event)
+		struct wlr_keyboard_key_event *event)
 {
 	struct seat *seat = wl_container_of(listener, seat, keyboard_key);
 	struct server *server = seat->server;
-	struct wlr_input_device *device = seat->keyboard_group->input_device;
+	struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
 
 	/* Translate libinput keycode -> xkbcommon */
 	uint32_t keycode = event->keycode + 8;
 	/* Get a list of keysyms based on the keymap for this keyboard */
 	const xkb_keysym_t *syms;
-	int nsyms = xkb_state_key_get_syms(device->keyboard->xkb_state, keycode, &syms);
+	int nsyms = xkb_state_key_get_syms(keyboard->xkb_state, keycode, &syms);
 
 	bool handled = false;
 
@@ -115,14 +115,13 @@ handle_compositor_keybindings(struct wl_listener *listener,
 			&& event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 		int nr_bound_keys = key_state_bound_key_remove(keycode);
 		if (!nr_bound_keys) {
-			wlr_keyboard_set_repeat_info(device->keyboard,
+			wlr_keyboard_set_repeat_info(keyboard,
 				rc.repeat_rate, rc.repeat_delay);
 		}
 		return true;
 	}
 
-	uint32_t modifiers =
-		wlr_keyboard_get_modifiers(device->keyboard);
+	uint32_t modifiers = wlr_keyboard_get_modifiers(keyboard);
 
 	/* Catch C-A-F1 to C-A-F12 to change tty */
 	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
@@ -186,9 +185,9 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	/* This event is raised when a key is pressed or released. */
 	struct seat *seat = wl_container_of(listener, seat, keyboard_key);
 	struct server *server = seat->server;
-	struct wlr_event_keyboard_key *event = data;
+	struct wlr_keyboard_key_event *event = data;
 	struct wlr_seat *wlr_seat = server->seat.seat;
-	struct wlr_input_device *device = seat->keyboard_group->input_device;
+	struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	bool handled = false;
@@ -199,7 +198,7 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	}
 
 	if (!handled) {
-		wlr_seat_set_keyboard(wlr_seat, device);
+		wlr_seat_set_keyboard(wlr_seat, keyboard);
 		wlr_seat_keyboard_notify_key(wlr_seat, event->time_msec,
 					     event->keycode, event->state);
 	}

@@ -1199,15 +1199,11 @@ wlr_output_configuration_v1 *create_output_config(struct server *server)
 			wlr_output_configuration_v1_destroy(config);
 			return NULL;
 		}
-		struct wlr_box *box =
-			wlr_output_layout_get_box(server->output_layout,
-				output->wlr_output);
-		if (box) {
-			head->state.x = box->x;
-			head->state.y = box->y;
-		} else {
-			wlr_log(WLR_ERROR, "failed to get output layout box");
-		}
+		struct wlr_box box = {0};
+		wlr_output_layout_get_box(server->output_layout,
+			output->wlr_output, &box);
+		head->state.x = box.x;
+		head->state.y = box.y;
 	}
 	return config;
 }

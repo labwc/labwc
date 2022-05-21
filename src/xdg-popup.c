@@ -63,14 +63,14 @@ popup_unconstrain(struct xdg_popup *popup)
 	struct wlr_output_layout *output_layout = server->output_layout;
 	struct wlr_output *wlr_output = wlr_output_layout_output_at(
 		output_layout, view->x + popup_box->x, view->y + popup_box->y);
-	struct wlr_box *output_box = wlr_output_layout_get_box(
-		output_layout, wlr_output);
+	struct wlr_box output_box = {0};
+	wlr_output_layout_get_box(output_layout, wlr_output, &output_box);
 
 	struct wlr_box output_toplevel_box = {
-		.x = output_box->x - view->x,
-		.y = output_box->y - view->y,
-		.width = output_box->width,
-		.height = output_box->height,
+		.x = output_box.x - view->x,
+		.y = output_box.y - view->y,
+		.width = output_box.width,
+		.height = output_box.height,
 	};
 	wlr_xdg_popup_unconstrain_from_box(
 		popup->wlr_popup, &output_toplevel_box);

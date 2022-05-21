@@ -253,7 +253,7 @@ server_init(struct server *server)
 	seat_init(server);
 
 	/* Init xdg-shell */
-	server->xdg_shell = wlr_xdg_shell_create(server->wl_display);
+	server->xdg_shell = wlr_xdg_shell_create(server->wl_display, 2);
 	if (!server->xdg_shell) {
 		wlr_log(WLR_ERROR, "unable to create the XDG shell interface");
 		exit(EXIT_FAILURE);

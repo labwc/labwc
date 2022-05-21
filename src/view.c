@@ -67,7 +67,7 @@ view_adjust_size(struct view *view, int *w, int *h)
 	int min_height = MIN_VIEW_HEIGHT;
 #if HAVE_XWAYLAND
 	if (view->type == LAB_XWAYLAND_VIEW) {
-		struct wlr_xwayland_surface_size_hints *hints =
+		xcb_size_hints_t *hints =
 			view->xwayland_surface->size_hints;
 		if (hints) {
 			*w = round_to_increment(*w, hints->base_width,

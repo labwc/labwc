@@ -686,8 +686,9 @@ view_destroy(struct view *view)
 	}
 	interactive_end(view);
 
-	if (view->server->seat.active_view == view) {
-		view->server->seat.active_view = NULL;
+	if (view->server->seat.pressed.view == view) {
+		view->server->seat.pressed.view = NULL;
+		view->server->seat.pressed.surface = NULL;
 	}
 
 	if (view->server->cycle_view == view) {

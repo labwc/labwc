@@ -293,22 +293,27 @@ process_cursor_motion(struct server *server, uint32_t time)
 		hover->node = NULL;
 	}
 
-	if (server->seat.active_view && !server->seat.drag_icon) {
+	if (server->seat.pressed.surface &&
+			server->seat.pressed.surface != surface &&
+			!server->seat.drag_icon) {
 		/*
 		 * Button has been pressed while over a view surface
 		 * and is still held down. Just send the adjusted motion
 		 * events to the focused surface so we can keep scrolling
 		 * or selecting text even if the cursor moves outside of
 		 * the surface.
+		 *
+		 * TODO: This seems to miss calculations for invisible CSD borders.
+		 *       Tracked at https://github.com/labwc/labwc/issues/340
 		 */
-		view = server->seat.active_view;
-		double sx = server->seat.cursor->x - view->x;
-		double sy = server->seat.cursor->y - view->y;
+		view = server->seat.pressed.view;
+		sx = server->seat.cursor->x - view->x;
+		sy = server->seat.cursor->y - view->y;
 		sx = sx < 0 ? 0 : (sx > view->w ? view->w : sx);
 		sy = sy < 0 ? 0 : (sy > view->h ? view->h : sy);
 		wlr_seat_pointer_notify_motion(server->seat.seat, time, sx, sy);
-	} else if (surface &&
-	    !input_inhibit_blocks_surface(&server->seat, surface->resource)) {
+	} else if (surface && !input_inhibit_blocks_surface(
+			&server->seat, surface->resource)) {
 		bool focus_changed =
 			wlr_seat->pointer_state.focused_surface != surface;
 		/*
@@ -359,7 +364,8 @@ start_drag(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, start_drag);
 	struct wlr_drag *wlr_drag = data;
-	seat->active_view = NULL;
+	seat->pressed.view = NULL;
+	seat->pressed.surface = NULL;
 	seat->drag_icon = wlr_drag->icon;
 	if (!seat->drag_icon) {
 		wlr_log(WLR_ERROR,
@@ -706,7 +712,8 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* handle _release_ */
 	if (event->state == WLR_BUTTON_RELEASED) {
-		server->seat.active_view = NULL;
+		server->seat.pressed.view = NULL;
+		server->seat.pressed.surface = NULL;
 
 		if (server->input_mode == LAB_INPUT_STATE_MENU) {
 			if (close_menu) {
@@ -742,7 +749,8 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* Handle _press */
 	if (view_area == LAB_SSD_CLIENT) {
-		server->seat.active_view = view;
+		server->seat.pressed.view = view;
+		server->seat.pressed.surface = surface;
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {

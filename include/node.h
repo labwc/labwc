@@ -29,10 +29,10 @@ struct node_descriptor {
  * @scene_node: wlr_scene_node to attached node_descriptor to
  * @type: node descriptor type
  * @data: struct to point to as follows:
- *   - LAB_NODE_DESC_VIEW		struct view
- *   - LAB_NODE_DESC_XDG_POPUP		struct view
- *   - LAB_NODE_DESC_LAYER_SURFACE	struct lab_layer_surface
- *   - LAB_NODE_DESC_LAYER_POPUP	struct lab_layer_popup
+ *   - LAB_NODE_DESC_VIEW           struct view
+ *   - LAB_NODE_DESC_XDG_POPUP      struct view
+ *   - LAB_NODE_DESC_LAYER_SURFACE  struct lab_layer_surface
+ *   - LAB_NODE_DESC_LAYER_POPUP    struct lab_layer_popup
  */
 void node_descriptor_create(struct wlr_scene_node *scene_node,
 	enum node_descriptor_type type, void *data);

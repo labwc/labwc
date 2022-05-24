@@ -80,16 +80,19 @@ struct seat {
 	struct wlr_layer_surface_v1 *focused_layer;
 
 	/**
-	 * active_view will usually be NULL and is only set on button press
-	 * while the mouse is over a view surface and reset to NULL on button
-	 * release.
+	 * pressed view/surface will usually be NULL and is only set on button
+	 * press while the mouse is over a view surface and reset to NULL on
+	 * button release.
 	 * It is used to send cursor motion events to a surface even though
 	 * the cursor has left the surface in the meantime.
 	 *
 	 * This allows to keep dragging a scrollbar or selecting text even
 	 * when moving outside of the window.
 	 */
-	struct view *active_view;
+	struct {
+		struct view *view;
+		struct wlr_surface *surface;
+	} pressed;
 
 	struct wl_client *active_client_while_inhibited;
 	struct wl_list inputs;

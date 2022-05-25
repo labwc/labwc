@@ -679,9 +679,18 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* handle _release_ */
 	if (event->state == WLR_BUTTON_RELEASED) {
-		server->seat.pressed.view = NULL;
-		server->seat.pressed.surface = NULL;
-
+		seat->pressed.view = NULL;
+		if (seat->pressed.surface && seat->pressed.surface != surface) {
+			/*
+			 * Button released but originally pressed over a different surface.
+			 * Just send the release event to the still focused surface.
+			 */
+			wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
+				event->button, event->state);
+			seat->pressed.surface = NULL;
+			return;
+		}
+		seat->pressed.surface = NULL;
 		if (server->input_mode == LAB_INPUT_STATE_MENU) {
 			return;
 		}
@@ -715,7 +724,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	}
 
 	/* Handle _press */
-	if (view_area == LAB_SSD_CLIENT) {
+	if (surface) {
 		server->seat.pressed.view = view;
 		server->seat.pressed.surface = surface;
 	}

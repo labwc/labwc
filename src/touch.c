@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <wlr/types/wlr_touch.h>
 #include "labwc.h"
+#include "common/scene-helpers.h"
 
 static struct wlr_surface*
 touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
@@ -15,13 +16,7 @@ touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
 		wlr_scene_node_at(&seat->server->scene->node, lx, ly, sx, sy);
 
 	/* Find the surface and return it if it accepts touch events. */
-	struct wlr_surface *surface = NULL;
-
-	if (node && node->type == WLR_SCENE_NODE_SURFACE) {
-		struct wlr_scene_surface *scene_surface =
-			wlr_scene_surface_from_node(node);
-		surface = scene_surface->surface;
-	}
+	struct wlr_surface *surface = lab_wlr_surface_from_node(node);
 
 	if (surface && !wlr_surface_accepts_touch(seat->seat, surface)) {
 		surface = NULL;

@@ -5,6 +5,7 @@
 #include "layers.h"
 #include "node.h"
 #include "ssd.h"
+#include "common/scene-helpers.h"
 
 static void
 move_to_front(struct view *view)
@@ -270,10 +271,9 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 		*view_area = LAB_SSD_ROOT;
 		return NULL;
 	}
-	if (node->type == WLR_SCENE_NODE_SURFACE) {
-		struct wlr_surface *surface =
-			wlr_scene_surface_from_node(node)->surface;
-		if (wlr_surface_is_layer_surface(surface)) {
+	if (node->type == WLR_SCENE_NODE_BUFFER) {
+		struct wlr_surface *surface = lab_wlr_surface_from_node(node);
+		if (surface && wlr_surface_is_layer_surface(surface)) {
 			*view_area = LAB_SSD_LAYER_SURFACE;
 			return NULL;
 		}

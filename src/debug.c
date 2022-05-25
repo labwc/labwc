@@ -4,6 +4,7 @@
 #include "buffer.h"
 #include "labwc.h"
 #include "node.h"
+#include "common/scene-helpers.h"
 
 #define HEADER_CHARS "------------------------------"
 
@@ -13,18 +14,19 @@
 #define LEFT_COL_SPACE 35
 
 static const char *
-get_node_type(enum wlr_scene_node_type type)
+get_node_type(struct wlr_scene_node *node)
 {
-	switch (type) {
+	switch (node->type) {
 	case WLR_SCENE_NODE_ROOT:
 		return "root";
 	case WLR_SCENE_NODE_TREE:
 		return "tree";
-	case WLR_SCENE_NODE_SURFACE:
-		return "surface";
 	case WLR_SCENE_NODE_RECT:
 		return "rect";
 	case WLR_SCENE_NODE_BUFFER:
+		if (lab_wlr_surface_from_node(node)) {
+			return "surface";
+		}
 		return "buffer";
 	}
 	return "error";
@@ -123,7 +125,7 @@ get_special(struct server *server, struct wlr_scene_node *node,
 	if (view_part) {
 		return view_part;
 	}
-	return get_node_type(node->type);
+	return get_node_type(node);
 }
 
 struct pad {

@@ -69,7 +69,7 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 		parent = &view->scene_tree->node;
 	}
 	/* node will be destroyed automatically once surface is destroyed */
-	node = &wlr_scene_surface_create(parent, xsurface->surface)->node;
+	node = &wlr_scene_surface_create(parent, xsurface->surface)->buffer->node;
 	wlr_scene_node_set_position(node, lx, ly);
 }
 

@@ -12,6 +12,7 @@
 #include "labwc.h"
 #include "theme.h"
 #include "ssd.h"
+#include "common/scene-helpers.h"
 
 struct border
 ssd_thickness(struct view *view)
@@ -53,7 +54,8 @@ ssd_get_part_type(struct view *view, struct wlr_scene_node *node)
 {
 	if (!node) {
 		return LAB_SSD_NONE;
-	} else if (node->type == WLR_SCENE_NODE_SURFACE) {
+	} else if (node->type == WLR_SCENE_NODE_BUFFER
+			&& lab_wlr_surface_from_node(node)) {
 		return LAB_SSD_CLIENT;
 	} else if (!view->ssd.tree) {
 		return LAB_SSD_NONE;

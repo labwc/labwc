@@ -11,6 +11,7 @@
 #include "resistance.h"
 #include "ssd.h"
 #include "config/mousebind.h"
+#include "common/scene-helpers.h"
 
 static bool
 is_surface(enum ssd_part_type view_area)
@@ -34,7 +35,7 @@ cursor_rebase(struct seat *seat, uint32_t time_msec, bool force)
 	desktop_node_and_view_at(seat->server, seat->cursor->x,
 		seat->cursor->y, &node, &sx, &sy, &view_area);
 	if (is_surface(view_area)) {
-		surface = wlr_scene_surface_from_node(node)->surface;
+		surface = lab_wlr_surface_from_node(node);
 	}
 
 	if (surface) {
@@ -218,7 +219,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 
 	struct wlr_surface *surface = NULL;
 	if (is_surface(view_area)) {
-		surface = wlr_scene_surface_from_node(node)->surface;
+		surface = lab_wlr_surface_from_node(node);
 	}
 
 	/* resize handles */
@@ -711,7 +712,7 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	struct wlr_surface *surface = NULL;
 	if (is_surface(view_area)) {
-		surface = wlr_scene_surface_from_node(node)->surface;
+		surface = lab_wlr_surface_from_node(node);
 	}
 
 	/* get modifiers */

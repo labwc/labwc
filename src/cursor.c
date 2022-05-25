@@ -300,13 +300,17 @@ process_cursor_motion(struct server *server, uint32_t time)
 			server->seat.pressed.surface != surface &&
 			!server->seat.drag_icon) {
 		/*
-		 * Button has been pressed while over a view surface
+		 * Button has been pressed while over another surface
 		 * and is still held down. Just send the adjusted motion
 		 * events to the focused surface so we can keep scrolling
 		 * or selecting text even if the cursor moves outside of
 		 * the surface.
 		 */
 		view = server->seat.pressed.view;
+		if (!view) {
+			/* Button press originated on a layer surface, just ignore */
+			return;
+		}
 		sx = server->seat.cursor->x - view->x;
 		sy = server->seat.cursor->y - view->y;
 		sx = sx < 0 ? 0 : (sx > view->w ? view->w : sx);

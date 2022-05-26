@@ -103,6 +103,8 @@ osd_update(struct server *server)
 
 	struct theme *theme = server->theme;
 
+	struct buf buf;
+	buf_init(&buf);
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
 		destroy_osd_nodes(output);
@@ -168,10 +170,7 @@ osd_update(struct server *server)
 
 		pango_cairo_update_layout(cairo, layout);
 
-		struct buf buf;
-		buf_init(&buf);
 		y = OSD_BORDER_WIDTH;
-
 		y += (OSD_ITEM_HEIGHT - font_height(&font)) / 2;
 
 		wl_list_for_each(view, &server->views, link) {
@@ -221,4 +220,5 @@ osd_update(struct server *server)
 		wlr_scene_node_set_position(&scene_buffer->node, lx, ly);
 		wlr_scene_node_set_enabled(&output->osd_tree->node, true);
 	}
+	free(buf.buf);
 }

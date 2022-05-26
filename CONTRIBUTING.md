@@ -2,6 +2,41 @@
 
 ## How to Contribute
 
+## Debugging
+
+There is no one-way-fits-all method for debugging, so you have to use your antennae and do some dective work.
+
+This section contains some approachies which may prove useful.
+
+If the compositor crashes, a good starting point is to produce a backtrace by building with ASAN/UBSAN:
+
+```
+meson -Db_sanitzise=address,undefined build/
+ninja -C build/
+```
+
+Get debug log with `labwc -d`. The log can be directed to a file with `labwc -d 2>log.txt`
+
+To see what is happening on the wayland protocol for a specific client, run it with environment variable `WAYLAND_DEBUG` set to 1, for example:
+
+```
+WAYLAND_DEBUG=1 foot
+```
+
+To see what the compositor is doing on the protocol run `labwc` nested (i.e. start labwc from a terminal in another instance of labwc or some other compositor) with `WAYLAND_DEBUG=server`. This filters out anything from clients.
+
+For wayland clients, you can get a live view of some useful info using [wlhax](https://git.sr.ht/~kennylevinsen/wlhax).
+
+If you think you've got a damage issue, you can run labwc like this: `WLR_SCENE_DEBUG_DAMAGE=highlight labwc` to get a visual indication of damage regions.
+
+For some types of bugs, it might be useful to find out which mesa driver (.so) you are using. This can be done with:
+
+```
+EGL_LOG_LEVEL=debug labwc 2>&1 | grep MESA-LOADER
+```
+
+You can also get some useful system info with [drm_info](https://github.com/ascent12/drm_info)
+
 ## Packaging
 
 Some distributions carry labwc in their repositories or user repositories.

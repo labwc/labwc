@@ -4,7 +4,7 @@
 
 ## Debugging
 
-There is no one-way-fits-all method for debugging, so you have to use your antennae and do some dective work.
+There is no one-way-fits-all method for debugging, so you have to use your antennae and do some detective work.
 
 This section contains some approachies which may prove useful.
 
@@ -17,11 +17,7 @@ ninja -C build/
 
 Get debug log with `labwc -d`. The log can be directed to a file with `labwc -d 2>log.txt`
 
-To see what is happening on the wayland protocol for a specific client, run it with environment variable `WAYLAND_DEBUG` set to 1, for example:
-
-```
-WAYLAND_DEBUG=1 foot
-```
+To see what is happening on the wayland protocol for a specific client, run it with environment variable `WAYLAND_DEBUG` set to 1, for example `WAYLAND_DEBUG=1 foot`.
 
 To see what the compositor is doing on the protocol run `labwc` nested (i.e. start labwc from a terminal in another instance of labwc or some other compositor) with `WAYLAND_DEBUG=server`. This filters out anything from clients.
 
@@ -29,11 +25,9 @@ For wayland clients, you can get a live view of some useful info using [wlhax](h
 
 If you think you've got a damage issue, you can run labwc like this: `WLR_SCENE_DEBUG_DAMAGE=highlight labwc` to get a visual indication of damage regions.
 
-For some types of bugs, it might be useful to find out which mesa driver (.so) you are using. This can be done with:
+To emulate multiple outputs (even if you only have one physical monitor), run with `WLR_WL_OUTPUTS=2 labwc` are similar. See [wlroots/docs/env_vars.md](https://gitlab.freedesktop.org/wlroots/wlroots/-/blob/master/docs/env_vars.md) for more options.
 
-```
-EGL_LOG_LEVEL=debug labwc 2>&1 | grep MESA-LOADER
-```
+For some types of bugs, it might be useful to find out which mesa driver (.so) you are using. This can be done with `EGL_LOG_LEVEL=debug labwc 2>&1 | grep MESA-LOADER`
 
 You can also get some useful system info with [drm_info](https://github.com/ascent12/drm_info)
 

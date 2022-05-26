@@ -493,5 +493,12 @@ theme_init(struct theme *theme, const char *theme_name)
 void
 theme_finish(struct theme *theme)
 {
-	; /* nothing to free */
+	wlr_buffer_drop(&theme->corner_top_left_active_normal->base);
+	wlr_buffer_drop(&theme->corner_top_left_inactive_normal->base);
+	wlr_buffer_drop(&theme->corner_top_right_active_normal->base);
+	wlr_buffer_drop(&theme->corner_top_right_inactive_normal->base);
+	theme->corner_top_left_active_normal = NULL;
+	theme->corner_top_left_inactive_normal = NULL;
+	theme->corner_top_right_active_normal = NULL;
+	theme->corner_top_right_inactive_normal = NULL;
 }

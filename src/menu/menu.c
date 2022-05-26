@@ -103,6 +103,19 @@ item_create(struct menu *menu, const char *text)
 		text, &font, theme->menu_items_text_color);
 	font_buffer_create(&menuitem->selected.buffer, item_max_width,
 		text, &font, theme->menu_items_active_text_color);
+	if (!menuitem->normal.buffer || !menuitem->selected.buffer) {
+		wlr_log(WLR_ERROR, "Failed to create menu item '%s'", text);
+		if (menuitem->normal.buffer) {
+			wlr_buffer_drop(&menuitem->normal.buffer->base);
+			menuitem->normal.buffer = NULL;
+		}
+		if (menuitem->selected.buffer) {
+			wlr_buffer_drop(&menuitem->selected.buffer->base);
+			menuitem->selected.buffer = NULL;
+		}
+		free(menuitem);
+		return NULL;
+	}
 
 	/* Item background nodes */
 	menuitem->normal.background = &wlr_scene_rect_create(parent,

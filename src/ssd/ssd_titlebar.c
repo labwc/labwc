@@ -150,6 +150,7 @@ ssd_update_title_positions(struct view *view)
 	int full_width = width + 2 * view->server->theme->border_width;
 
 	int x, y;
+	int buffer_height, buffer_width;
 	struct wlr_scene_rect *rect;
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
@@ -160,8 +161,10 @@ ssd_update_title_positions(struct view *view)
 			continue;
 		}
 
+		buffer_width = part->buffer ? part->buffer->base.width : 0;
+		buffer_height = part->buffer ? part->buffer->base.height : 0;
 		x = 0;
-		y = (theme->title_height - part->buffer->base.height) / 2;
+		y = (theme->title_height - buffer_height) / 2;
 		rect = lab_wlr_scene_get_rect(part->node->parent);
 		if (rect->width <= 0) {
 			wlr_scene_node_set_position(part->node, x, y);
@@ -169,9 +172,9 @@ ssd_update_title_positions(struct view *view)
 		}
 
 		if (theme->window_label_text_justify == LAB_JUSTIFY_CENTER) {
-			if (part->buffer->base.width + BUTTON_WIDTH * 2 <= rect->width) {
+			if (buffer_width + BUTTON_WIDTH * 2 <= rect->width) {
 				/* Center based on the full width */
-				x = (full_width - part->buffer->base.width) / 2;
+				x = (full_width - buffer_width) / 2;
 				x -= BUTTON_WIDTH;
 			} else {
 				/*
@@ -179,10 +182,10 @@ ssd_update_title_positions(struct view *view)
 				 * Title jumps around once this is hit but its still
 				 * better than to hide behind the buttons on the right.
 				 */
-				x = (rect->width - part->buffer->base.width) / 2;
+				x = (rect->width - buffer_width) / 2;
 			}
 		} else if (theme->window_label_text_justify == LAB_JUSTIFY_RIGHT) {
-			x = rect->width - part->buffer->base.width;
+			x = rect->width - buffer_width;
 		} else if (theme->window_label_text_justify == LAB_JUSTIFY_LEFT) {
 			/* TODO: maybe add some theme x padding here? */
 		}
@@ -244,16 +247,25 @@ ssd_update_title(struct view *view)
 
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLE);
 		if (!part) {
+			/* Initialize part and wlr_scene_buffer without attaching a buffer */
 			part = add_scene_part(&subtree->parts, LAB_SSD_PART_TITLE);
+			part->node = &wlr_scene_buffer_create(parent_part->node, NULL)->node;
 		}
-		if (part->node) {
-			wlr_scene_node_destroy(part->node);
+
+		/* Generate and update the lab_data_buffer, drops the old buffer */
+		font_buffer_update(&part->buffer, rect->width, title, &font, text_color);
+		if (!part->buffer) {
+			/* This can happen for example by defining a font size of 0 */
+			wlr_log(WLR_ERROR, "Failed to create title buffer");
 		}
-		font_buffer_update(
-			&part->buffer, rect->width, title, &font, text_color);
-		part->node = &wlr_scene_buffer_create(
-			parent_part->node, &part->buffer->base)->node;
-		dstate->width = part->buffer->base.width;
+
+		/* (Re)set the buffer */
+		wlr_scene_buffer_set_buffer(
+			wlr_scene_buffer_from_node(part->node),
+			part->buffer ? &part->buffer->base : NULL);
+
+		/* And finally update the cache */
+		dstate->width = part->buffer ? part->buffer->base.width : 0;
 		dstate->truncated = rect->width <= dstate->width;
 	} FOR_EACH_END
 

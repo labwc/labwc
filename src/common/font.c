@@ -74,6 +74,11 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	}
 	/* TODO: scale */
 	*buffer = buffer_create_cairo(rect.width, rect.height, 1, true);
+	if (!*buffer) {
+		wlr_log(WLR_ERROR, "Failed to create font buffer of size %dx%d",
+			rect.width, rect.height);
+		return;
+	}
 
 	cairo_t *cairo = (*buffer)->cairo;
 	cairo_surface_t *surf = cairo_get_target(cairo);

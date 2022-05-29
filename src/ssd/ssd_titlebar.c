@@ -221,6 +221,7 @@ ssd_update_title(struct view *view)
 	struct ssd_part *parent_part;
 	struct ssd_sub_tree *subtree;
 	struct ssd_state_title_width *dstate;
+	struct wlr_scene_buffer *scene_buffer;
 	FOR_EACH_STATE(view, subtree) {
 		parent_part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR);
 		assert(parent_part);
@@ -259,10 +260,18 @@ ssd_update_title(struct view *view)
 			wlr_log(WLR_ERROR, "Failed to create title buffer");
 		}
 
+		scene_buffer = wlr_scene_buffer_from_node(part->node);
+
 		/* (Re)set the buffer */
-		wlr_scene_buffer_set_buffer(
-			wlr_scene_buffer_from_node(part->node),
+		wlr_scene_buffer_set_buffer(scene_buffer,
 			part->buffer ? &part->buffer->base : NULL);
+
+		/* Make sure output scaling works correctly */
+		if (part->buffer) {
+			struct wlr_fbox source_box = {0, 0,
+				part->buffer->base.width, part->buffer->base.height };
+			wlr_scene_buffer_set_source_box(scene_buffer, &source_box);
+		}
 
 		/* And finally update the cache */
 		dstate->width = part->buffer ? part->buffer->base.width : 0;

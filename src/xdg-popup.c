@@ -27,7 +27,7 @@ static void
 popup_unconstrain(struct view *view, struct wlr_xdg_popup *popup)
 {
 	struct server *server = view->server;
-	struct wlr_box *popup_box = &popup->geometry;
+	struct wlr_box *popup_box = &popup->current.geometry;
 	struct wlr_output_layout *output_layout = server->output_layout;
 	struct wlr_output *wlr_output = wlr_output_layout_output_at(
 		output_layout, view->x + popup_box->x, view->y + popup_box->y);

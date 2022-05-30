@@ -75,17 +75,6 @@ menu_get_by_id(const char *id)
 	return NULL;
 }
 
-static struct wlr_scene_node *
-create_scaling_buffer(struct wlr_scene_node *parent, struct wlr_buffer *buffer)
-{
-	struct wlr_scene_buffer *scene_buffer =
-		wlr_scene_buffer_create(parent, buffer);
-	/* Make sure output scaling works correctly */
-	struct wlr_fbox source_box = { 0, 0, buffer->width, buffer->height };
-	wlr_scene_buffer_set_source_box(scene_buffer, &source_box);
-	return &scene_buffer->node;
-}
-
 static struct menuitem *
 item_create(struct menu *menu, const char *text)
 {
@@ -137,10 +126,10 @@ item_create(struct menu *menu, const char *text)
 		theme->menu_items_active_bg_color)->node;
 
 	/* Font nodes */
-	menuitem->normal.text = create_scaling_buffer(
-		menuitem->normal.background, &menuitem->normal.buffer->base);
-	menuitem->selected.text = create_scaling_buffer(
-		menuitem->selected.background, &menuitem->selected.buffer->base);
+	menuitem->normal.text = &wlr_scene_buffer_create(
+		menuitem->normal.background, &menuitem->normal.buffer->base)->node;
+	menuitem->selected.text = &wlr_scene_buffer_create(
+		menuitem->selected.background, &menuitem->selected.buffer->base)->node;
 
 	/* Node descriptors for top scene nodes of menuitem */
 	node_descriptor_create(menuitem->normal.background,

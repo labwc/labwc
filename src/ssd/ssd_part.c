@@ -40,11 +40,7 @@ add_scene_buffer(struct wl_list *list, enum ssd_part_type type,
 	int x, int y)
 {
 	struct ssd_part *part = add_scene_part(list, type);
-	struct wlr_scene_buffer *scene_buffer =
-		wlr_scene_buffer_create(parent, buffer);
-	part->node = &scene_buffer->node;
-	struct wlr_fbox source_box = { 0, 0, buffer->width, buffer->height };
-	wlr_scene_buffer_set_source_box(scene_buffer, &source_box);
+	part->node = &wlr_scene_buffer_create(parent, buffer)->node;
 	wlr_scene_node_set_position(part->node, x, y);
 	return part;
 }

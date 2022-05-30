@@ -56,6 +56,17 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 
 	struct seat *seat = &unmanaged->server->seat;
 	if (seat->seat->keyboard_state.focused_surface == xsurface->surface) {
+		/*
+		 * Try to focus on parent surface
+		 * This seems to fix JetBrains/Intellij window focus issues
+		 */
+		if (xsurface->parent && xsurface->parent->surface
+				&& wlr_xwayland_or_surface_wants_focus(xsurface->parent)) {
+			seat_focus_surface(seat, xsurface->parent->surface);
+			return;
+		}
+
+		/* Try to focus on last created unmanaged xwayland surface */
 		struct xwayland_unmanaged *u;
 		struct wl_list *list = &unmanaged->server->unmanaged_surfaces;
 		wl_list_for_each (u, list, link) {

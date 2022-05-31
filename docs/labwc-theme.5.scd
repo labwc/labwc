@@ -2,7 +2,7 @@ labwc-theme(5)
 
 # NAME
 
-labwc - Theme specification
+labwc - theme files
 
 # THEME
 

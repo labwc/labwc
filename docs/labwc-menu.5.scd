@@ -2,7 +2,7 @@ labwc-menu(5)
 
 # NAME
 
-labwc - menu
+labwc - menu files
 
 # DESCRIPTION
 

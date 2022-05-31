@@ -2,7 +2,7 @@ labwc-config(5)
 
 # NAME
 
-labwc - Configuration
+labwc - configuration files
 
 # CONFIGURATION
 

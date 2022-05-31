@@ -14,9 +14,7 @@
     <cycleViewPreview>no</cycleViewPreview>
   </core>
 
-  <!--
-    <font><theme> can be defined without an attribute to set all places
-  -->
+  <!-- <font><theme> can be defined without an attribute to set all places -->
   <theme>
     <name></name>
     <cornerRadius>8</cornerRadius>
@@ -35,9 +33,7 @@
     <raiseOnFocus>no</raiseOnFocus>
   </focus>
 
-  <!--
-    Set range to 0 to disable window snapping completely
-  -->
+  <!-- Set range to 0 to disable window snapping completely -->
   <snapping>
     <range>1</range>
     <topMaximize>yes</topMaximize>

@@ -6,10 +6,10 @@ labwc - actions
 
 # ACTIONS
 
-Actions are used in keyboard bindings.
+Actions are used in menus and keyboard/mouse bindings.
 
 *<action name="Close">*
-	Close top-most view.
+	Close top-most window.
 
 *<action name="Execute"><command>*
 	Execute command.  Note that in the interest of backward compatibility,
@@ -32,14 +32,14 @@ Actions are used in keyboard bindings.
 	Begin interactive move of window under cursor
 
 *<action name="MoveToEdge"><direction>*
-	Move view to edge of outputs. Understands directions "left", "up",
+	Move window to edge of outputs. Understands directions "left", "up",
 	"right" and "down".
 
 *<action name="Resize">*
 	Begin interactive resize of window under cursor
 
 *<action name="SnapToEdge"><direction>*
-	Resize view to fill half the output in the given direction. Supports
+	Resize window to fill half the output in the given direction. Supports
 	directions "left", "up", "right", "down" and "center".
 
 *<action name="NextWindow">*

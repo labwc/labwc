@@ -17,15 +17,15 @@ A menu file must be entirely enclosed within <openbox_menu> and
 ```
 <menu id="" label="">
 
-  <!-- This is a menu item, such as a program -->
+  <!-- A menu entry with an action, for example to execute an application -->
   <item label="">
     <action></action>
   </item>
 
-  <!-- This links to a submenu defined else where -->
+  <!-- A submenu defined elsewhere -->
   <menu id="" />
 
-  <!-- This links to a submenu defined inline -->
+  <!-- An inline submenu -->
   <menu id="" label="">
     ...some content...
   </menu>
@@ -38,7 +38,8 @@ A menu file must be entirely enclosed within <openbox_menu> and
 	This id is used to refer to the menu in a ShowMenu action.
 
 *menu.label*
-	The title of the menu, shown in its parent.
+	The title of the menu, shown in its parent. A label must be given when
+	defining a menu.
 
 *menu.item.label*
 	The visible name of the menu item.

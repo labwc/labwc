@@ -25,6 +25,11 @@
     <font place="OSD"><name>sans</name><size>10</size></font>
   </theme>
 
+  <!-- edge strength is in pixels -->
+  <resistance>
+    <screenEdgeStrength>20</screenEdgeStrength>
+  </resistance>
+
   <focus>
     <followMouse>no</followMouse>
     <raiseOnFocus>no</raiseOnFocus>
@@ -289,10 +294,5 @@
       <disableWhileTyping></disableWhileTyping>
     </device>
   </libinput>
-
-  <!-- edge strength is in pixels -->
-  <resistance>
-    <screenEdgeStrength>20</screenEdgeStrength>
-  </resistance>
 
 </labwc_config>

@@ -35,6 +35,13 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	Preview the contents of the selected window when cycling between windows.
 	Default is no.
 
+# RESISTANCE
+
+*<resistance><screenEdgeStrength>*
+	Screen Edge Strength is how far past the screen's edge your cursor must
+	move before the window will move with it. Resistance is counted in
+	pixels. Default is 20 pixels.
+
 # FOCUS
 
 *<focus><followMouse>* [yes|no]
@@ -206,14 +213,6 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	Enable or disable disable while typing for this category. DWT ignores
 	any motion events while a keyboard is typing, and for a short while
 	after as well. 
-
-
-# RESISTANCE
-
-*<resistance><screenEdgeStrength>*
-	Screen Edge Strength is how far past the screen's edge your cursor must
-	move before the window will move with it. Resistance is counted in
-	pixels. Default is 20 pixels.
 
 # SEE ALSO
 

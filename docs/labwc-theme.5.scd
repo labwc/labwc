@@ -104,6 +104,12 @@ elements are not listed here, but are supported.
 *osd.bg.color*
 	Background color of on-screen-display
 
+*osd.border.color*
+	Border color of on-screen-display
+
+*osd.border.width*
+	Border width of on-screen-display
+
 *osd.label.text.color*
 	Text color of on-screen-display
 

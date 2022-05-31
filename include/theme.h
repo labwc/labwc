@@ -50,7 +50,9 @@ struct theme {
 	float menu_items_active_bg_color[4];
 	float menu_items_active_text_color[4];
 
+	int osd_border_width;
 	float osd_bg_color[4];
+	float osd_border_color[4];
 	float osd_label_text_color[4];
 
 	/* textures */

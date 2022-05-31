@@ -24,6 +24,24 @@ set_source(cairo_t *cairo, float *c)
 	cairo_set_source_rgba(cairo, c[0], c[1], c[2], c[3]);
 }
 
+/* Draws a border with a specified line width */
+static void
+draw_border(cairo_t *cairo, double width, double height, double line_width)
+{
+	cairo_save(cairo);
+
+	double x, y, w, h;
+	/* The anchor point of a line is in the center */
+	x = y = line_width / 2;
+	w = width - line_width;
+	h = height - line_width;
+	cairo_set_line_width(cairo, line_width);
+	cairo_rectangle(cairo, x, y, w, h);
+	cairo_stroke(cairo);
+
+	cairo_restore(cairo);
+}
+
 /* is title different from app_id/class? */
 static int
 is_title_different(struct view *view)
@@ -125,10 +143,9 @@ osd_update(struct server *server)
 		cairo_rectangle(cairo, 0, 0, w, h);
 		cairo_fill(cairo);
 
-		/* border */
-		set_source(cairo, theme->osd_label_text_color);
-		cairo_rectangle(cairo, 0, 0, w, h);
-		cairo_stroke(cairo);
+		/* Border */
+		set_source(cairo, theme->osd_border_color);
+		draw_border(cairo, w, h, theme->osd_border_width);
 
 		/* highlight current window */
 		int y = OSD_BORDER_WIDTH;

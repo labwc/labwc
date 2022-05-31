@@ -128,8 +128,10 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#dddad6", theme->menu_items_active_bg_color);
 	parse_hexstr("#000000", theme->menu_items_active_text_color);
 
-	/* inherit colors in post_processing() if not set elsewhere */
+	/* inherit settings in post_processing() if not set elsewhere */
 	theme->osd_bg_color[0] = FLT_MIN;
+	theme->osd_border_width = INT_MIN;
+	theme->osd_border_color[0] = FLT_MIN;
 	theme->osd_label_text_color[0] = FLT_MIN;
 }
 
@@ -259,6 +261,12 @@ entry(struct theme *theme, const char *key, const char *value)
 
 	if (match(key, "osd.bg.color")) {
 		parse_hexstr(value, theme->osd_bg_color);
+	}
+	if (match(key, "osd.border.width")) {
+		theme->osd_border_width = atoi(value);
+	}
+	if (match(key, "osd.border.color")) {
+		parse_hexstr(value, theme->osd_border_color);
 	}
 	if (match(key, "osd.label.text.color")) {
 		parse_hexstr(value, theme->osd_label_text_color);
@@ -462,16 +470,33 @@ post_processing(struct theme *theme)
 		theme->title_height = rc.corner_radius + 1;
 	}
 
-	/* Inherit colors if not set */
+	/* Inherit OSD settings if not set */
 	if (theme->osd_bg_color[0] == FLT_MIN) {
 		memcpy(theme->osd_bg_color,
 			theme->window_active_title_bg_color,
 			sizeof(theme->osd_bg_color));
 	}
+	if (theme->osd_border_width == INT_MIN) {
+		theme->osd_border_width = theme->border_width;
+	}
 	if (theme->osd_label_text_color[0] == FLT_MIN) {
 		memcpy(theme->osd_label_text_color,
 			theme->window_active_label_text_color,
 			sizeof(theme->osd_label_text_color));
+	}
+	if (theme->osd_border_color[0] == FLT_MIN) {
+		/*
+		 * As per http://openbox.org/wiki/Help:Themes#osd.border.color
+		 * we should fall back to window_active_border_color but
+		 * that is usually the same as window_active_title_bg_color
+		 * and thus the fallback for osd_bg_color. Which would mean
+		 * they are both the same color and thus the border is invisible.
+		 *
+		 * Instead, we fall back to osd_label_text_color which in turn
+		 * falls back to window_active_label_text_color.
+		 */
+		memcpy(theme->osd_border_color, theme->osd_label_text_color,
+			sizeof(theme->osd_border_color));
 	}
 }
 

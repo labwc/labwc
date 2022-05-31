@@ -34,5 +34,7 @@ menu.items.active.text.color: #000000
 
 # on screen display (window-cycle dialog)
 osd.bg.color: #dddda6
+osd.border.color: #000000
+osd.border.width: 1
 osd.label.text.color: #000000
 

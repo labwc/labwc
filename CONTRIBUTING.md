@@ -31,6 +31,8 @@ For some types of bugs, it might be useful to find out which mesa driver (.so) y
 
 You can also get some useful system info with [drm_info](https://github.com/ascent12/drm_info)
 
+Use `sudo libinput debug-events` to show input events.
+
 ## Packaging
 
 Some distributions carry labwc in their repositories or user repositories.

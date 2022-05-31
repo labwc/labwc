@@ -2,7 +2,7 @@ labwc(1)
 
 # NAME
 
-labwc - A Wayland stacking compositor
+labwc - a wayland stacking compositor
 
 # SYNOPSIS
 
@@ -10,12 +10,11 @@ labwc - A Wayland stacking compositor
 
 # DESCRIPTION
 
-Labwc is a wlroots-based stacking compositor for Wayland.
+Labwc is a wlroots-based stacking compositor for wayland.
 
-It aims to be light-weight and independent, with a focus on simply
-stacking windows well and rendering some window decorations. Where
-practicable, it uses clients for wall-paper, panels, screenshots, and so
-on.
+It is light-weight and independent with a focus on simply stacking windows
+well and rendering some window decorations. Where practicable it uses clients
+for wall-paper, panels, screenshots and so on.
 
 # OPTIONS
 
@@ -39,30 +38,6 @@ on.
 
 *-V*
 	Enable more verbose logging
-
-# CONFIGURATION AND THEMING
-
-Labwc uses openbox specification for configuration and theming, but does not
-support all options. The the following files control the look and behaviour:
-
-- ~/.config/labwc/rc.xml
-- ~/.config/labwc/menu.xml
-- ~/.config/labwc/autostart
-- ~/.config/labwc/environment
-- ~/.themes/<name>/openbox-3/themerc
-
-Equivalent XDG Base Directory Specification locations are also honoured.
-
-The configuration file and theme are re-loaded on receiving signal SIGHUP.
-
-The autostart file is executed as a shell script. This is a place for setting a
-background image, launching a panel, or similar.
-
-The environment file is parsed as <variable>=<value> and sets environment
-variables accordingly. It is recommended to specify keyboard settings here, for
-example: `XKB_DEFAULT_LAYOUT=gb`. See xkeyboard-config(7) for details.  Note
-that the environment file is treated differently by openbox where it is simply
-sourced prior to running openbox.
 
 # SEE ALSO
 

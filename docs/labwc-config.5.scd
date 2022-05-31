@@ -6,18 +6,54 @@ labwc - configuration files
 
 # CONFIGURATION
 
-The configuration aims to be compatible with openbox specification, but there
-are some differences which are pointed out throughout the man pages.
+Labwc uses openbox-3.6 specification for configuration and theming, but does not
+support all options. The following files form the basis of the labwc
+configuration: rc.xml, menu.xml, autostart and environment.
 
-In accordance with XDG Base Directory Specification, configuration files will
-be searched for in the following order:
+No configuration files are needed to start and run labwc.
 
-- ${XDG_CONFIG_HOME:-$HOME/.config}/labwc
-- ${XDG_CONFIG_DIRS:-/etc/xdg}/labwc
+In accordance with XDG Base Directory Specification, configuration files are
+searched for in the following order:
 
-Configuration must be wrapped in a <labwc_config> root-node.
+- ${XDG_CONFIG_HOME:-$HOME/.config}/labwc  
+- ${XDG_CONFIG_DIRS:-/etc/xdg}/labwc  
 
-# GENERAL
+All configuration and theme files except autostart are re-loaded on receiving
+signal SIGHUP.
+
+The *autostart* file is executed as a shell script. This is the place for
+executing clients for handling background images, panels and similar.
+
+The *environment* file is parsed as *variable=value* and sets environment
+variables accordingly. It is recommended to specify keyboard layout settings and
+cursor size/theme here; see environment variable section below for details. Note
+that the environment file is treated differently by openbox where it is simply
+sourced prior to running openbox.
+
+The *menu.xml* file defines the context/root-menus and is described in
+labwc-menu(5)
+
+There is a small <theme> section in rc.xml, for example to set rouned corners,
+but the remainder of the theme specification and associated files are described
+in labwc-theme(5).
+
+*rc.xml* is the main configuration file and all its options are described in
+detail below. Configuration must be wrapped in a <labwc_config> root-element,
+like this:
+
+```
+<?xml version="1.0"?>
+<labwc_config>
+
+<!-- settings -->
+
+
+</labwc_config>
+```
+
+The rest of this man page describes configuration options.
+
+## CORE
 
 *<core><decoration>* [server|client]
 	Specify server or client side decorations for xdg-shell views. Note
@@ -35,14 +71,14 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	Preview the contents of the selected window when cycling between windows.
 	Default is no.
 
-# RESISTANCE
+## RESISTANCE
 
 *<resistance><screenEdgeStrength>*
 	Screen Edge Strength is how far past the screen's edge your cursor must
 	move before the window will move with it. Resistance is counted in
 	pixels. Default is 20 pixels.
 
-# FOCUS
+## FOCUS
 
 *<focus><followMouse>* [yes|no]
 	Make focus follow mouse, i.e. focus is given to window under mouse
@@ -51,7 +87,7 @@ Configuration must be wrapped in a <labwc_config> root-node.
 *<focus><raiseOnFocus>* [yes|no]
 	Raise window to top when focused. Default is no.
 
-# Window snapping
+## WINDOW SNAPPING
 *<snapping><range>*
 	The distance in pixels from the edge of an ouput for window Move
 	operations to trigger SnapToEdge. A range of 0 disables window snapping.
@@ -60,7 +96,7 @@ Configuration must be wrapped in a <labwc_config> root-node.
 *<snapping><topMaximize>* [yes|no]
 	Maximize window if Move operation ends on the top edge. Default is yes.
 
-# THEME
+## THEME
 
 *<theme><name>*
 	The name of the Openbox theme to use. It is not set by default.
@@ -83,7 +119,7 @@ Configuration must be wrapped in a <labwc_config> root-node.
 *<theme><font place=""><size>*
 	Font size in pixels. Default is 10.
 
-# KEYBOARD
+## KEYBOARD
 
 *<keyboard><keybind key="">*
 	Define a key binding in the format *modifier-key*, where supported
@@ -124,7 +160,7 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	Set the delay before keypresses are repeated in milliseconds.
 	Default is 600.
 
-# MOUSE
+## MOUSE
 
 *<mouse><doubleClickTime>*
 	Set double click time in milliseconds. Default is 500.
@@ -167,7 +203,7 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	- DoubleClick: Two presses within the doubleClickTime.
 	- Drag: Pressing the button within the context, then moving the cursor
 
-# LIBINPUT
+## LIBINPUT
 
 *<libinput><device category="">*
 	Define a category of devices to use the configuration values that 
@@ -213,6 +249,22 @@ Configuration must be wrapped in a <labwc_config> root-node.
 	Enable or disable disable while typing for this category. DWT ignores
 	any motion events while a keyboard is typing, and for a short while
 	after as well. 
+
+## ENVIRONMENT VARIABLES
+
+*XCURSOR_THEME* and *XCURSOR_SIZE* are supported to set cursor theme
+and size respectively. The default size is 24. System cursor themes can
+typically be found with a command such as:
+
+```
+find /usr/share/icons/ -type d -name "cursors"
+```
+
+The following keyboard-configuration variables are supported:
+*XKB_DEFAULT_RULES*, *XKB_DEFAULT_MODEL*, *XKB_DEFAULT_LAYOUT*,
+*XKB_DEFAULT_VARIANT* and *XKB_DEFAULT_OPTIONS*.
+
+See xkeyboard-config(7) for details.  
 
 # SEE ALSO
 

@@ -1,0 +1,89 @@
+name: "IRC Notifications"
+on:
+  create:
+  pull_request:
+    types: [opened, closed, reopened]
+  issues:
+    types: [opened, closed, reopened]
+  push:
+    branches:
+      - 'master'
+      - 'v0.5'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: irc push
+        uses: rectalogic/notify-irc@v1
+        if: github.event_name == 'push'
+        with:
+          server: "irc.libera.chat"
+          channel: "#labwc"
+          nickname: "labwc_notifier"
+          notice: true
+          message: "[${{ github.event.ref }}] ${{ github.actor }} pushed new commits: ${{ github.event.compare }}"
+      - name: irc issue opened
+        uses: rectalogic/notify-irc@v1
+        if: github.event_name == 'issues' && github.event.action == 'opened'
+        with:
+          server: "irc.libera.chat"
+          channel: "#labwc"
+          nickname: "labwc_notifier"
+          message: "${{ github.actor }} opened issue '${{ github.event.issue.title }}' (${{ github.event.issue.html_url }})"
+      - name: irc issue reopened
+        uses: rectalogic/notify-irc@v1
+        if: github.event_name == 'issues' && github.event.action == 'reopened'
+        with:
+          server: "irc.libera.chat"
+          channel: "#labwc"
+          nickname: "labwc_notifier"
+          message: "${{ github.actor }} reopened issue: '${{ github.event.issue.title }}' (${{ github.event.issue.html_url }})"
+      - name: irc issue closed
+        uses: rectalogic/notify-irc@v1
+        if: github.event_name == 'issues' && github.event.action == 'closed'
+        with:
+          server: "irc.libera.chat"
+          channel: "#labwc"
+          nickname: "labwc_notifier"
+          message: "${{ github.actor }} closed issue '${{ github.event.issue.title }}' (${{ github.event.issue.html_url }})"
+      - name: irc pull request opened
+        uses: rectalogic/notify-irc@v1
+        if: github.event_name == 'pull_request' && github.event.action == 'opened'
+        with:
+          server: "irc.libera.chat"
+          channel: "#labwc"
+          nickname: "labwc_notifier"
+          message: "[${{ github.event.pull_request.base.ref }}] ${{ github.actor }} opened PR '${{ github.event.pull_request.title }}' (${{ github.event.pull_request.html_url }})"
+      - name: irc pull request reopened
+        uses: rectalogic/notify-irc@v1
+        if: github.event_name == 'pull_request' && github.event.action == 'reopened'
+        with:
+          server: "irc.libera.chat"
+          channel: "#labwc"
+          nickname: "labwc_notifier"
+          message: "[${{ github.event.pull_request.base.ref }}] ${{ github.actor }} reopened PR '${{ github.event.pull_request.title }}' (${{ github.event.pull_request.html_url }})"
+      - name: irc pull request merged
+        uses: rectalogic/notify-irc@v1
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+        with:
+          server: "irc.libera.chat"
+          channel: "#labwc"
+          nickname: "labwc_notifier"
+          message: "[${{ github.event.pull_request.base.ref }}] ${{ github.actor }} merged PR '${{ github.event.pull_request.title }}' (${{ github.event.pull_request.html_url }})"
+      - name: irc pull request closed
+        uses: rectalogic/notify-irc@v1
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
+        with:
+          server: "irc.libera.chat"
+          channel: "#labwc"
+          nickname: "labwc_notifier"
+          message: "[${{ github.event.pull_request.base.ref }}] ${{ github.actor }} closed PR '${{ github.event.pull_request.title }}' (${{ github.event.pull_request.html_url }})"
+      - name: irc tag created
+        uses: rectalogic/notify-irc@v1
+        if: github.event_name == 'create' && github.event.ref_type == 'tag'
+        with:
+          server: "irc.libera.chat"
+          channel: "#labwc"
+          nickname: "labwc_notifier"
+          message: "${{ github.actor }} tagged ${{ github.repository }}: ${{ github.event.ref }}"

@@ -20,7 +20,7 @@ jobs:
         with:
           server: "irc.libera.chat"
           channel: "#labwc"
-          nickname: "labwc_notifier"
+          nickname: "labwc"
           notice: true
           message: "[${{ github.event.ref }}] ${{ github.actor }} pushed new commits: ${{ github.event.compare }}"
       - name: irc issue opened
@@ -29,7 +29,8 @@ jobs:
         with:
           server: "irc.libera.chat"
           channel: "#labwc"
-          nickname: "labwc_notifier"
+          nickname: "labwc"
+          notice: true
           message: "${{ github.actor }} opened issue '${{ github.event.issue.title }}' (${{ github.event.issue.html_url }})"
       - name: irc issue reopened
         uses: rectalogic/notify-irc@v1
@@ -37,7 +38,8 @@ jobs:
         with:
           server: "irc.libera.chat"
           channel: "#labwc"
-          nickname: "labwc_notifier"
+          nickname: "labwc"
+          notice: true
           message: "${{ github.actor }} reopened issue: '${{ github.event.issue.title }}' (${{ github.event.issue.html_url }})"
       - name: irc issue closed
         uses: rectalogic/notify-irc@v1
@@ -45,7 +47,8 @@ jobs:
         with:
           server: "irc.libera.chat"
           channel: "#labwc"
-          nickname: "labwc_notifier"
+          nickname: "labwc"
+          notice: true
           message: "${{ github.actor }} closed issue '${{ github.event.issue.title }}' (${{ github.event.issue.html_url }})"
       - name: irc pull request opened
         uses: rectalogic/notify-irc@v1
@@ -53,7 +56,8 @@ jobs:
         with:
           server: "irc.libera.chat"
           channel: "#labwc"
-          nickname: "labwc_notifier"
+          nickname: "labwc"
+          notice: true
           message: "[${{ github.event.pull_request.base.ref }}] ${{ github.actor }} opened PR '${{ github.event.pull_request.title }}' (${{ github.event.pull_request.html_url }})"
       - name: irc pull request reopened
         uses: rectalogic/notify-irc@v1
@@ -61,7 +65,8 @@ jobs:
         with:
           server: "irc.libera.chat"
           channel: "#labwc"
-          nickname: "labwc_notifier"
+          nickname: "labwc"
+          notice: true
           message: "[${{ github.event.pull_request.base.ref }}] ${{ github.actor }} reopened PR '${{ github.event.pull_request.title }}' (${{ github.event.pull_request.html_url }})"
       - name: irc pull request merged
         uses: rectalogic/notify-irc@v1
@@ -69,7 +74,8 @@ jobs:
         with:
           server: "irc.libera.chat"
           channel: "#labwc"
-          nickname: "labwc_notifier"
+          nickname: "labwc"
+          notice: true
           message: "[${{ github.event.pull_request.base.ref }}] ${{ github.actor }} merged PR '${{ github.event.pull_request.title }}' (${{ github.event.pull_request.html_url }})"
       - name: irc pull request closed
         uses: rectalogic/notify-irc@v1
@@ -77,7 +83,8 @@ jobs:
         with:
           server: "irc.libera.chat"
           channel: "#labwc"
-          nickname: "labwc_notifier"
+          nickname: "labwc"
+          notice: true
           message: "[${{ github.event.pull_request.base.ref }}] ${{ github.actor }} closed PR '${{ github.event.pull_request.title }}' (${{ github.event.pull_request.html_url }})"
       - name: irc tag created
         uses: rectalogic/notify-irc@v1
@@ -85,5 +92,6 @@ jobs:
         with:
           server: "irc.libera.chat"
           channel: "#labwc"
-          nickname: "labwc_notifier"
+          nickname: "labwc"
+          notice: true
           message: "${{ github.actor }} tagged ${{ github.repository }}: ${{ github.event.ref }}"

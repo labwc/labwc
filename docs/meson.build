@@ -5,7 +5,6 @@ if scdoc.found()
     '.1',
     '-actions.5',
     '-config.5',
-    '-environment.5',
     '-menu.5',
     '-theme.5',
   ]

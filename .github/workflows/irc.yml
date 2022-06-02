@@ -7,8 +7,8 @@ on:
     types: [opened, closed, reopened]
   push:
     branches:
-      - 'master'
-      - 'v0.5'
+      - 'master_disabled'
+      - 'v0.5_disabled'
 
 jobs:
   test:

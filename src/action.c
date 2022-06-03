@@ -174,10 +174,18 @@ actions_run(struct view *activator, struct server *server,
 			wl_display_terminate(server->wl_display);
 			break;
 		case ACTION_TYPE_MOVE_TO_EDGE:
-			view_move_to_edge(view, action->arg);
+			if (action->arg) {
+				view_move_to_edge(view, action->arg);
+			} else {
+				wlr_log(WLR_ERROR, "Missing argument for MoveToEdge");
+			}
 			break;
 		case ACTION_TYPE_SNAP_TO_EDGE:
-			view_snap_to_edge(view, action->arg);
+			if (action->arg) {
+				view_snap_to_edge(view, action->arg);
+			} else {
+				wlr_log(WLR_ERROR, "Missing argument for SnapToEdge");
+			}
 			break;
 		case ACTION_TYPE_NEXT_WINDOW:
 			server->cycle_view = desktop_cycle_view(server,

@@ -11,7 +11,7 @@ This section contains some approachies which may prove useful.
 If the compositor crashes, a good starting point is to produce a backtrace by building with ASAN/UBSAN:
 
 ```
-meson -Db_sanitzise=address,undefined build/
+meson -Db_sanitize=address,undefined build/
 ninja -C build/
 ```
 

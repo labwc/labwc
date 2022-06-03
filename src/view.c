@@ -447,6 +447,10 @@ view_move_to_edge(struct view *view, const char *direction)
 		wlr_log(WLR_ERROR, "no output");
 		return;
 	}
+	if (!direction) {
+		wlr_log(WLR_ERROR, "invalid edge");
+		return;
+	}
 	struct border border = view_border(view);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	if (usable.height == output->wlr_output->height && output->wlr_output->scale != 1) {
@@ -469,6 +473,9 @@ view_move_to_edge(struct view *view, const char *direction)
 	} else if (!strcasecmp(direction, "down")) {
 		x = view->x;
 		y = usable.y + usable.height - view->h - border.bottom - rc.gap;
+	} else {
+		wlr_log(WLR_ERROR, "invalid edge");
+		return;
 	}
 	view_move(view, x, y);
 }
@@ -505,6 +512,9 @@ view_edge_invert(enum view_edge edge)
 static enum view_edge
 view_edge_parse(const char *direction)
 {
+	if (!direction) {
+		return VIEW_EDGE_INVALID;
+	}
 	if (!strcasecmp(direction, "left")) {
 		return VIEW_EDGE_LEFT;
 	} else if (!strcasecmp(direction, "up")) {

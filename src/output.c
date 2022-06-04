@@ -135,14 +135,14 @@ new_output_notify(struct wl_listener *listener, void *data)
 	for (int i = 0; i < nr_layers; i++) {
 		wl_list_init(&output->layers[i]);
 		output->layer_tree[i] =
-			wlr_scene_tree_create(&server->scene->node);
+			wlr_scene_tree_create(&server->scene->tree.node);
 		node_descriptor_create(&output->layer_tree[i]->node,
 			LAB_NODE_DESC_TREE, NULL);
 	}
-	output->layer_popup_tree = wlr_scene_tree_create(&server->scene->node);
+	output->layer_popup_tree = wlr_scene_tree_create(&server->scene->tree.node);
 	node_descriptor_create(&output->layer_popup_tree->node,
 		LAB_NODE_DESC_TREE, NULL);
-	output->osd_tree = wlr_scene_tree_create(&server->scene->node);
+	output->osd_tree = wlr_scene_tree_create(&server->scene->tree.node);
 	node_descriptor_create(&output->osd_tree->node,
 		LAB_NODE_DESC_TREE, NULL);
 

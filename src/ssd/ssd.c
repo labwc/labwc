@@ -106,7 +106,7 @@ ssd_at(struct view *view, double lx, double ly)
 {
 	double sx, sy;
 	struct wlr_scene_node *node = wlr_scene_node_at(
-		&view->server->scene->node, lx, ly, &sx, &sy);
+		&view->server->scene->tree.node, lx, ly, &sx, &sy);
 	return ssd_get_part_type(view, node);
 }
 

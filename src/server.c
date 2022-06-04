@@ -238,12 +238,12 @@ server_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create scene");
 		exit(EXIT_FAILURE);
 	}
-	server->view_tree = wlr_scene_tree_create(&server->scene->node);
-	server->view_tree_always_on_top = wlr_scene_tree_create(&server->scene->node);
+	server->view_tree = wlr_scene_tree_create(&server->scene->tree.node);
+	server->view_tree_always_on_top = wlr_scene_tree_create(&server->scene->tree.node);
 #if HAVE_XWAYLAND
-	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->node);
+	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->tree.node);
 #endif
-	server->menu_tree = wlr_scene_tree_create(&server->scene->node);
+	server->menu_tree = wlr_scene_tree_create(&server->scene->tree.node);
 
 	output_init(server);
 

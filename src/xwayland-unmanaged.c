@@ -22,6 +22,21 @@ unmanaged_handle_commit(struct wl_listener *listener, void *data)
 	unmanaged->ly = xsurface->y;
 }
 
+static void
+unmanaged_handle_set_geometry(struct wl_listener *listener, void *data)
+{
+	wlr_log(WLR_INFO, "handling set_geometry");
+	struct xwayland_unmanaged *unmanaged =
+		wl_container_of(listener, unmanaged, commit);
+	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
+
+	if (xsurface->x != unmanaged->lx || xsurface->y != unmanaged->ly) {
+		wlr_log(WLR_DEBUG, "xwayland-unmanaged surface has moved");
+		unmanaged->lx = xsurface->x;
+		unmanaged->ly = xsurface->y;
+	}
+}
+
 void
 unmanaged_handle_map(struct wl_listener *listener, void *data)
 {
@@ -34,6 +49,9 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 
 	wl_signal_add(&xsurface->surface->events.commit, &unmanaged->commit);
 	unmanaged->commit.notify = unmanaged_handle_commit;
+
+	wl_signal_add(&xsurface->events.set_geometry, &unmanaged->set_geometry);
+	unmanaged->set_geometry.notify = unmanaged_handle_set_geometry;
 
 	unmanaged->lx = xsurface->x;
 	unmanaged->ly = xsurface->y;
@@ -55,6 +73,7 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 		wl_container_of(listener, unmanaged, unmap);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	wl_list_remove(&unmanaged->link);
+	wl_list_remove(&unmanaged->set_geometry.link);
 	wl_list_remove(&unmanaged->commit.link);
 
 	struct seat *seat = &unmanaged->server->seat;
@@ -94,6 +113,18 @@ unmanaged_handle_destroy(struct wl_listener *listener, void *data)
 	free(unmanaged);
 }
 
+static void
+unmanaged_handle_override_redirect(struct wl_listener *listener, void *data)
+{
+	wlr_log(WLR_INFO(stderr, "override_redirect not handled\n");
+}
+
+static void
+unmanaged_handle_request_activate(struct wl_listener *listener, void *data)
+{
+	wlr_log(WLR_INFO(stderr, "request_activate not handled\n");
+}
+
 struct xwayland_unmanaged *
 xwayland_unmanaged_create(struct server *server,
 			  struct wlr_xwayland_surface *xsurface)
@@ -112,5 +143,14 @@ xwayland_unmanaged_create(struct server *server,
 	unmanaged->unmap.notify = unmanaged_handle_unmap;
 	wl_signal_add(&xsurface->events.destroy, &unmanaged->destroy);
 	unmanaged->destroy.notify = unmanaged_handle_destroy;
+
+	wl_signal_add(&xsurface->events.set_override_redirect,
+		&unmanaged->override_redirect);
+	unmanaged->override_redirect.notify = unmanaged_handle_override_redirect;
+
+	wl_signal_add(&xsurface->events.request_activate,
+		&unmanaged->request_activate);
+	unmanaged->request_activate.notify = unmanaged_handle_request_activate;
+
 	return unmanaged;
 }

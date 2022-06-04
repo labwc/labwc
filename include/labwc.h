@@ -338,6 +338,11 @@ struct view {
 	struct wl_listener set_decorations;	/* xwayland only */
 	struct wl_listener override_redirect;	/* xwayland only */
 	struct wl_listener new_popup;		/* xdg-shell only */
+
+	/* Not (yet) implemented */
+/*	struct wl_listener set_role; */
+/*	struct wl_listener set_window_type; */
+/*	struct wl_listener set_hints; */
 };
 
 #if HAVE_XWAYLAND
@@ -347,11 +352,15 @@ struct xwayland_unmanaged {
 	struct wl_list link;
 	int lx, ly;
 
+	struct wl_listener request_activate;
 	struct wl_listener request_configure;
+/*	struct wl_listener request_fullscreen; */
 	struct wl_listener commit;
+	struct wl_listener set_geometry;
 	struct wl_listener map;
 	struct wl_listener unmap;
 	struct wl_listener destroy;
+	struct wl_listener override_redirect;
 };
 #endif
 

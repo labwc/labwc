@@ -264,7 +264,7 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 		enum ssd_part_type *view_area)
 {
 	struct wlr_scene_node *node =
-		wlr_scene_node_at(&server->scene->node, lx, ly, sx, sy);
+		wlr_scene_node_at(&server->scene->tree.node, lx, ly, sx, sy);
 
 	*scene_node = node;
 	if (!node) {

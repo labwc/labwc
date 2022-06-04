@@ -17,9 +17,10 @@ static const char *
 get_node_type(struct wlr_scene_node *node)
 {
 	switch (node->type) {
-	case WLR_SCENE_NODE_ROOT:
-		return "root";
 	case WLR_SCENE_NODE_TREE:
+		if (!node->parent) {
+			return "root";
+		}
 		return "tree";
 	case WLR_SCENE_NODE_RECT:
 		return "rect";
@@ -86,13 +87,13 @@ static const char *
 get_special(struct server *server, struct wlr_scene_node *node,
 	struct view **last_view)
 {
-	if (node == &server->scene->node) {
+	if (node == &server->scene->tree.node) {
 		return "server->scene";
 	}
 	if (node == &server->menu_tree->node) {
 		return "server->menu_tree";
 	}
-	if (node->parent == &server->scene->node) {
+	if (node->parent == &server->scene->tree.node) {
 		struct output *output;
 		wl_list_for_each(output, &server->outputs, link) {
 			if (node == &output->osd_tree->node) {
@@ -183,6 +184,6 @@ void
 debug_dump_scene(struct server *server)
 {
 	printf("\n");
-	dump_tree(server, &server->scene->node, 0, 0, 0);
+	dump_tree(server, &server->scene->tree.node, 0, 0, 0);
 	printf("\n");
 }

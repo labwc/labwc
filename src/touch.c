@@ -13,7 +13,7 @@ touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
 		x, y, &lx, &ly);
 
 	struct wlr_scene_node *node =
-		wlr_scene_node_at(&seat->server->scene->node, lx, ly, sx, sy);
+		wlr_scene_node_at(&seat->server->scene->tree.node, lx, ly, sx, sy);
 
 	/* Find the surface and return it if it accepts touch events. */
 	struct wlr_surface *surface = lab_wlr_surface_from_node(node);

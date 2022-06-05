@@ -116,13 +116,13 @@ unmanaged_handle_destroy(struct wl_listener *listener, void *data)
 static void
 unmanaged_handle_override_redirect(struct wl_listener *listener, void *data)
 {
-	wlr_log(WLR_INFO(stderr, "override_redirect not handled\n");
+	wlr_log(WLR_INFO, "override_redirect not handled\n");
 }
 
 static void
 unmanaged_handle_request_activate(struct wl_listener *listener, void *data)
 {
-	wlr_log(WLR_INFO(stderr, "request_activate not handled\n");
+	wlr_log(WLR_INFO, "request_activate not handled\n");
 }
 
 struct xwayland_unmanaged *

@@ -7,7 +7,7 @@
 
 static struct ssd_part *
 add_extent(struct wl_list *part_list, enum ssd_part_type type,
-		struct wlr_scene_node *parent)
+		struct wlr_scene_tree *parent)
 {
 	float invisible[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	struct ssd_part *part = add_scene_part(part_list, type);
@@ -40,13 +40,14 @@ ssd_extents_create(struct view *view)
 	int extended_area = EXTENDED_AREA;
 	int corner_size = extended_area + theme->border_width + BUTTON_WIDTH / 2;
 
-	view->ssd.extents.tree = wlr_scene_tree_create(&view->ssd.tree->node);
-	struct wlr_scene_node *parent = &view->ssd.extents.tree->node;
+	view->ssd.extents.tree = wlr_scene_tree_create(view->ssd.tree);
+	struct wlr_scene_tree *parent = view->ssd.extents.tree;
 	if (view->maximized || view->fullscreen) {
-		wlr_scene_node_set_enabled(parent, false);
+		wlr_scene_node_set_enabled(&parent->node, false);
 	}
 	wl_list_init(&view->ssd.extents.parts);
-	wlr_scene_node_set_position(parent, -(theme->border_width + extended_area),
+	wlr_scene_node_set_position(&parent->node,
+		-(theme->border_width + extended_area),
 		-(theme->title_height + theme->border_width + extended_area));
 
 	/* Initialize parts and set constant values for targeted geometry */

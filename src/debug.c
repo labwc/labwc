@@ -93,7 +93,7 @@ get_special(struct server *server, struct wlr_scene_node *node,
 	if (node == &server->menu_tree->node) {
 		return "server->menu_tree";
 	}
-	if (node->parent == &server->scene->tree.node) {
+	if (node->parent == &server->scene->tree) {
 		struct output *output;
 		wl_list_for_each(output, &server->outputs, link) {
 			if (node == &output->osd_tree->node) {
@@ -117,9 +117,8 @@ get_special(struct server *server, struct wlr_scene_node *node,
 	if (node == &server->view_tree_always_on_top->node) {
 		return "server->view_tree_always_on_top";
 	}
-	if (node->parent == &server->view_tree->node ||
-			node->parent == &server->view_tree_always_on_top->node) {
-		*last_view = node_view_from_node(node);
+	if (node->parent == server->view_tree ||
+			node->parent == server->view_tree_always_on_top) {
 		*last_view = node_view_from_node(node);
 	}
 	const char *view_part = get_view_part(*last_view, node);

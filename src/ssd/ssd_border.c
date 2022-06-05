@@ -18,18 +18,18 @@ ssd_border_create(struct view *view)
 	int full_width = width + 2 * theme->border_width;
 
 	float *color;
-	struct wlr_scene_node *parent;
+	struct wlr_scene_tree *parent;
 	struct ssd_sub_tree *subtree;
 
 	FOR_EACH_STATE(view, subtree) {
-		subtree->tree = wlr_scene_tree_create(&view->ssd.tree->node);
-		parent = &subtree->tree->node;
-		wlr_scene_node_set_position(parent, -theme->border_width, 0);
+		subtree->tree = wlr_scene_tree_create(view->ssd.tree);
+		parent = subtree->tree;
+		wlr_scene_node_set_position(&parent->node, -theme->border_width, 0);
 		if (subtree == &view->ssd.border.active) {
 			color = theme->window_active_border_color;
 		} else {
 			color = theme->window_inactive_border_color;
-			wlr_scene_node_set_enabled(parent, false);
+			wlr_scene_node_set_enabled(&parent->node, false);
 		}
 		wl_list_init(&subtree->parts);
 		add_scene_rect(&subtree->parts, LAB_SSD_PART_LEFT, parent,

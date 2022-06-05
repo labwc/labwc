@@ -91,9 +91,9 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 	}
 	struct wlr_xdg_surface *parent =
 		wlr_xdg_surface_from_wlr_surface(wlr_popup->parent);
-	struct wlr_scene_node *parent_node = parent->surface->data;
+	struct wlr_scene_tree *parent_tree = parent->surface->data;
 	wlr_popup->base->surface->data =
-		wlr_scene_xdg_surface_create(parent_node, wlr_popup->base);
+		wlr_scene_xdg_surface_create(parent_tree, wlr_popup->base);
 	node_descriptor_create(wlr_popup->base->surface->data,
 		LAB_NODE_DESC_XDG_POPUP, view);
 

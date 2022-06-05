@@ -278,7 +278,7 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 			return NULL;
 		}
 #if HAVE_XWAYLAND
-		if (node->parent == &server->unmanaged_tree->node) {
+		if (node->parent == server->unmanaged_tree) {
 			*view_area = LAB_SSD_UNMANAGED;
 			return NULL;
 		}
@@ -311,7 +311,8 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 				return NULL;
 			}
 		}
-		node = node->parent;
+		/* node->parent is always a *wlr_scene_tree */
+		node = node->parent ? &node->parent->node : NULL;
 	}
 	if (!node) {
 		wlr_log(WLR_ERROR, "Unknown node detected");

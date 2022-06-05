@@ -174,7 +174,7 @@ popup_handle_destroy(struct wl_listener *listener, void *data)
 static void popup_handle_new_popup(struct wl_listener *listener, void *data);
 
 static struct lab_layer_popup *
-create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_node *parent,
+create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_tree *parent,
 		struct wlr_box *output_toplevel_sx_box)
 {
 	struct lab_layer_popup *popup =
@@ -184,13 +184,13 @@ create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_node *parent,
 	}
 
 	popup->wlr_popup = wlr_popup;
-	popup->scene_node =
+	popup->scene_tree =
 		wlr_scene_xdg_surface_create(parent, wlr_popup->base);
-	if (!popup->scene_node) {
+	if (!popup->scene_tree) {
 		free(popup);
 		return NULL;
 	}
-	node_descriptor_create(popup->scene_node,
+	node_descriptor_create(&popup->scene_tree->node,
 		LAB_NODE_DESC_LAYER_POPUP, popup);
 
 	popup->destroy.notify = popup_handle_destroy;
@@ -210,7 +210,7 @@ popup_handle_new_popup(struct wl_listener *listener, void *data)
 		wl_container_of(listener, lab_layer_popup, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
 	struct lab_layer_popup *new_popup = create_popup(wlr_popup,
-		lab_layer_popup->scene_node,
+		lab_layer_popup->scene_tree,
 		&lab_layer_popup->output_toplevel_sx_box);
 	new_popup->output_toplevel_sx_box =
 		lab_layer_popup->output_toplevel_sx_box;
@@ -230,11 +230,12 @@ move_popup_to_top_layer(struct lab_layer_surface *toplevel,
 	struct output *output = output_from_wlr_output(server, wlr_output);
 	struct wlr_box box = { 0 };
 	wlr_output_layout_get_box(server->output_layout, wlr_output, &box);
-	int lx = toplevel->scene_layer_surface->node->state.x + box.x;
-	int ly = toplevel->scene_layer_surface->node->state.y + box.y;
+	int lx = toplevel->scene_layer_surface->tree->node.state.x + box.x;
+	int ly = toplevel->scene_layer_surface->tree->node.state.y + box.y;
 
-	struct wlr_scene_node *node = popup->scene_node;
-	wlr_scene_node_reparent(node, &output->layer_popup_tree->node);
+	struct wlr_scene_node *node = &popup->scene_tree->node;
+	wlr_scene_node_reparent(node, output->layer_popup_tree);
+	/* FIXME: verify the whole tree should be repositioned */
 	wlr_scene_node_set_position(&output->layer_popup_tree->node, lx, ly);
 }
 
@@ -253,7 +254,7 @@ new_popup_notify(struct wl_listener *listener, void *data)
 		output->wlr_output, &output_box);
 
 	int lx, ly;
-	wlr_scene_node_coords(toplevel->scene_layer_surface->node, &lx, &ly);
+	wlr_scene_node_coords(&toplevel->scene_layer_surface->tree->node, &lx, &ly);
 
 	/*
 	 * Output geometry expressed in the coordinate system of the toplevel
@@ -268,7 +269,7 @@ new_popup_notify(struct wl_listener *listener, void *data)
 		.height = output_box.height,
 	};
 	struct lab_layer_popup *popup = create_popup(wlr_popup,
-		toplevel->scene_layer_surface->node,
+		toplevel->scene_layer_surface->tree,
 		&output_toplevel_sx_box);
 	popup->output_toplevel_sx_box = output_toplevel_sx_box;
 
@@ -320,14 +321,14 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 		output->layer_tree[layer_surface->current.layer];
 
 	surface->scene_layer_surface = wlr_scene_layer_surface_v1_create(
-		&selected_layer->node, layer_surface);
+		selected_layer, layer_surface);
 	if (!surface->scene_layer_surface) {
 		wlr_layer_surface_v1_destroy(layer_surface);
 		wlr_log(WLR_ERROR, "could not create layer surface");
 		return;
 	}
 
-	node_descriptor_create(surface->scene_layer_surface->node,
+	node_descriptor_create(&surface->scene_layer_surface->tree->node,
 		LAB_NODE_DESC_LAYER_SURFACE, surface);
 
 	surface->server = server;

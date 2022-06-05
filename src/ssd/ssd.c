@@ -62,31 +62,31 @@ ssd_get_part_type(struct view *view, struct wlr_scene_node *node)
 	}
 
 	struct wl_list *part_list = NULL;
-	struct wlr_scene_node *grandparent =
-		node->parent ? node->parent->parent : NULL;
+	struct wlr_scene_tree *grandparent =
+		node->parent ? node->parent->node.parent : NULL;
 
 	/* active titlebar */
-	if (node->parent == &view->ssd.titlebar.active.tree->node) {
+	if (node->parent == view->ssd.titlebar.active.tree) {
 		part_list = &view->ssd.titlebar.active.parts;
-	} else if (grandparent == &view->ssd.titlebar.active.tree->node) {
+	} else if (grandparent == view->ssd.titlebar.active.tree) {
 		part_list = &view->ssd.titlebar.active.parts;
 
 	/* extents */
-	} else if (node->parent == &view->ssd.extents.tree->node) {
+	} else if (node->parent == view->ssd.extents.tree) {
 		part_list = &view->ssd.extents.parts;
 
 	/* active border */
-	} else if (node->parent == &view->ssd.border.active.tree->node) {
+	} else if (node->parent == view->ssd.border.active.tree) {
 		part_list = &view->ssd.border.active.parts;
 
 	/* inactive titlebar */
-	} else if (node->parent == &view->ssd.titlebar.inactive.tree->node) {
+	} else if (node->parent == view->ssd.titlebar.inactive.tree) {
 		part_list = &view->ssd.titlebar.inactive.parts;
-	} else if (grandparent == &view->ssd.titlebar.inactive.tree->node) {
+	} else if (grandparent == view->ssd.titlebar.inactive.tree) {
 		part_list = &view->ssd.titlebar.inactive.parts;
 
 	/* inactive border */
-	} else if (node->parent == &view->ssd.border.inactive.tree->node) {
+	} else if (node->parent == view->ssd.border.inactive.tree) {
 		part_list = &view->ssd.border.inactive.parts;
 	}
 
@@ -154,7 +154,7 @@ ssd_create(struct view *view)
 		return;
 	}
 
-	view->ssd.tree = wlr_scene_tree_create(&view->scene_tree->node);
+	view->ssd.tree = wlr_scene_tree_create(view->scene_tree);
 	wlr_scene_node_lower_to_bottom(&view->ssd.tree->node);
 	ssd_extents_create(view);
 	ssd_border_create(view);

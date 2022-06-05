@@ -26,7 +26,7 @@ struct lab_layer_surface {
 
 struct lab_layer_popup {
 	struct wlr_xdg_popup *wlr_popup;
-	struct wlr_scene_node *scene_node;
+	struct wlr_scene_tree *scene_tree;
 
 	/* To simplify moving popup nodes from the bottom to the top layer */
 	struct wlr_box output_toplevel_sx_box;

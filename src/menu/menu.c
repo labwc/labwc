@@ -54,7 +54,7 @@ menu_create(struct server *server, const char *id, const char *label)
 	menu->server = server;
 	menu->size.width = MENUWIDTH;
 	/* menu->size.height will be kept up to date by adding items */
-	menu->scene_tree = wlr_scene_tree_create(&server->menu_tree->node);
+	menu->scene_tree = wlr_scene_tree_create(server->menu_tree);
 	wlr_scene_node_set_enabled(&menu->scene_tree->node, false);
 	return menu;
 }
@@ -117,29 +117,29 @@ item_create(struct menu *menu, const char *text)
 	}
 
 	/* Menu item root node */
-	menuitem->tree = wlr_scene_tree_create(&menu->scene_tree->node);
+	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
 	node_descriptor_create(&menuitem->tree->node,
 		LAB_NODE_DESC_MENUITEM, menuitem);
 
 	/* Tree for each state to hold background and text buffer */
-	menuitem->normal.tree = wlr_scene_tree_create(&menuitem->tree->node);
-	menuitem->selected.tree = wlr_scene_tree_create(&menuitem->tree->node);
+	menuitem->normal.tree = wlr_scene_tree_create(menuitem->tree);
+	menuitem->selected.tree = wlr_scene_tree_create(menuitem->tree);
 
 	/* Item background nodes */
 	menuitem->normal.background = &wlr_scene_rect_create(
-		&menuitem->normal.tree->node,
+		menuitem->normal.tree,
 		MENUWIDTH, menu->item_height,
 		theme->menu_items_bg_color)->node;
 	menuitem->selected.background = &wlr_scene_rect_create(
-		&menuitem->selected.tree->node,
+		menuitem->selected.tree,
 		MENUWIDTH, menu->item_height,
 		theme->menu_items_active_bg_color)->node;
 
 	/* Font nodes */
 	menuitem->normal.text = &wlr_scene_buffer_create(
-		&menuitem->normal.tree->node, &menuitem->normal.buffer->base)->node;
+		menuitem->normal.tree, &menuitem->normal.buffer->base)->node;
 	menuitem->selected.text = &wlr_scene_buffer_create(
-		&menuitem->selected.tree->node, &menuitem->selected.buffer->base)->node;
+		menuitem->selected.tree, &menuitem->selected.buffer->base)->node;
 
 	/* Center font nodes */
 	y = (menu->item_height - menuitem->normal.buffer->base.height) / 2;

@@ -348,7 +348,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
  * We use the following struct user_data pointers:
  *   - wlr_xdg_surface->data = view
  *     for the wlr_xdg_toplevel_decoration_v1 implementation
- *   - wlr_surface->data = scene_node
+ *   - wlr_surface->data = scene_tree
  *     to help the popups find their parent nodes
  */
 void
@@ -374,16 +374,17 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->impl = &xdg_toplevel_view_impl;
 	view->xdg_surface = xdg_surface;
 
-	view->scene_tree = wlr_scene_tree_create(&view->server->view_tree->node);
+	view->scene_tree = wlr_scene_tree_create(view->server->view_tree);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 
-	view->scene_node = wlr_scene_xdg_surface_create(
-		&view->scene_tree->node, view->xdg_surface);
-	if (!view->scene_node) {
+	struct wlr_scene_tree *tree = wlr_scene_xdg_surface_create(
+		view->scene_tree, view->xdg_surface);
+	if (!tree) {
 		/* TODO: might need further clean up */
 		wl_resource_post_no_memory(view->surface->resource);
 		return;
 	}
+	view->scene_node = &tree->node;
 	node_descriptor_create(&view->scene_tree->node,
 		LAB_NODE_DESC_VIEW, view);
 
@@ -391,7 +392,7 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	xdg_surface->data = view;
 
 	/* In support of xdg popups */
-	xdg_surface->surface->data = view->scene_node;
+	xdg_surface->surface->data = tree;
 
 	view->map.notify = handle_map;
 	wl_signal_add(&xdg_surface->events.map, &view->map);

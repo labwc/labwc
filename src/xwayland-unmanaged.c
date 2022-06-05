@@ -60,7 +60,7 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 
 	/* node will be destroyed automatically once surface is destroyed */
 	struct wlr_scene_node *node = &wlr_scene_surface_create(
-			&unmanaged->server->unmanaged_tree->node,
+			unmanaged->server->unmanaged_tree,
 			xsurface->surface)->buffer->node;
 	wlr_scene_node_set_position(node, unmanaged->lx, unmanaged->ly);
 }

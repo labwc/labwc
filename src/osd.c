@@ -224,7 +224,7 @@ osd_update(struct server *server)
 		cairo_surface_flush(surf);
 
 		struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
-			&output->osd_tree->node, &output->osd_buffer->base);
+			output->osd_tree, &output->osd_buffer->base);
 
 		/* Center OSD */
 		struct wlr_box output_box;

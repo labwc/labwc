@@ -328,7 +328,7 @@ static bool
 is_always_on_top(struct view *view)
 {
 	return view->scene_tree->node.parent ==
-		&view->server->view_tree_always_on_top->node;
+		view->server->view_tree_always_on_top;
 }
 
 void
@@ -336,10 +336,10 @@ view_toggle_always_on_top(struct view *view)
 {
 	if (is_always_on_top(view)) {
 		wlr_scene_node_reparent(&view->scene_tree->node,
-			&view->server->view_tree->node);
+			view->server->view_tree);
 	} else {
 		wlr_scene_node_reparent(&view->scene_tree->node,
-			&view->server->view_tree_always_on_top->node);
+			view->server->view_tree_always_on_top);
 	}
 }
 

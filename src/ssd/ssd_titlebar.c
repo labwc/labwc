@@ -20,15 +20,15 @@ ssd_titlebar_create(struct view *view)
 	int width = view->w;
 
 	float *color;
-	struct wlr_scene_node *parent;
+	struct wlr_scene_tree *parent;
 	struct wlr_buffer *corner_top_left;
 	struct wlr_buffer *corner_top_right;
 
 	struct ssd_sub_tree *subtree;
 	FOR_EACH_STATE(view, subtree) {
-		subtree->tree = wlr_scene_tree_create(&view->ssd.tree->node);
-		parent = &subtree->tree->node;
-		wlr_scene_node_set_position(parent, 0, -theme->title_height);
+		subtree->tree = wlr_scene_tree_create(view->ssd.tree);
+		parent = subtree->tree;
+		wlr_scene_node_set_position(&parent->node, 0, -theme->title_height);
 		if (subtree == &view->ssd.titlebar.active) {
 			color = theme->window_active_title_bg_color;
 			corner_top_left = &theme->corner_top_left_active_normal->base;
@@ -37,7 +37,7 @@ ssd_titlebar_create(struct view *view)
 			color = theme->window_inactive_title_bg_color;
 			corner_top_left = &theme->corner_top_left_inactive_normal->base;
 			corner_top_right = &theme->corner_top_right_inactive_normal->base;
-			wlr_scene_node_set_enabled(parent, false);
+			wlr_scene_node_set_enabled(&parent->node, false);
 		}
 		wl_list_init(&subtree->parts);
 
@@ -65,7 +65,7 @@ ssd_titlebar_create(struct view *view)
 static bool
 is_direct_child(struct wlr_scene_node *node, struct ssd_sub_tree *subtree)
 {
-	return node->parent == &subtree->tree->node;
+	return node->parent == subtree->tree;
 }
 
 void
@@ -241,7 +241,7 @@ ssd_update_title(struct view *view)
 		if (!part) {
 			/* Initialize part and wlr_scene_buffer without attaching a buffer */
 			part = add_scene_part(&subtree->parts, LAB_SSD_PART_TITLE);
-			part->node = &wlr_scene_buffer_create(&subtree->tree->node, NULL)->node;
+			part->node = &wlr_scene_buffer_create(subtree->tree, NULL)->node;
 		}
 
 		/* Generate and update the lab_data_buffer, drops the old buffer */

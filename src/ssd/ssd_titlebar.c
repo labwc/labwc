@@ -48,7 +48,7 @@ ssd_titlebar_create(struct view *view)
 		/* Buttons */
 		add_scene_button_corner(&subtree->parts, LAB_SSD_BUTTON_WINDOW_MENU,
 			parent,	corner_top_left,
-			&theme->xbm_menu_active_unpressed->base, -theme->border_width);
+			&theme->xbm_menu_active_unpressed->base, 0);
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_ICONIFY, parent,
 			color, &theme->xbm_iconify_active_unpressed->base,
 			width - BUTTON_WIDTH * 3);
@@ -103,8 +103,7 @@ ssd_titlebar_update(struct view *view)
 			case LAB_SSD_BUTTON_CLOSE:
 				if (is_direct_child(part->node, subtree)) {
 					wlr_scene_node_set_position(part->node,
-						width - BUTTON_WIDTH * 1,
-						-theme->border_width);
+						width - BUTTON_WIDTH * 1, 0);
 				}
 				continue;
 			default:
@@ -147,11 +146,10 @@ ssd_update_title_positions(struct view *view)
 {
 	struct theme *theme = view->server->theme;
 	int width = view->w;
-	int full_width = width + 2 * view->server->theme->border_width;
+	int title_bg_width = width - BUTTON_WIDTH * BUTTON_COUNT;
 
 	int x, y;
 	int buffer_height, buffer_width;
-	struct wlr_scene_rect *rect;
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
 	FOR_EACH_STATE(view, subtree) {
@@ -163,29 +161,27 @@ ssd_update_title_positions(struct view *view)
 
 		buffer_width = part->buffer ? part->buffer->base.width : 0;
 		buffer_height = part->buffer ? part->buffer->base.height : 0;
-		x = 0;
+		x = BUTTON_WIDTH;
 		y = (theme->title_height - buffer_height) / 2;
-		rect = lab_wlr_scene_get_rect(part->node->parent);
-		if (rect->width <= 0) {
+		if (title_bg_width <= 0) {
 			wlr_scene_node_set_position(part->node, x, y);
 			continue;
 		}
 
 		if (theme->window_label_text_justify == LAB_JUSTIFY_CENTER) {
-			if (buffer_width + BUTTON_WIDTH * 2 <= rect->width) {
+			if (buffer_width + BUTTON_WIDTH * 2 <= title_bg_width) {
 				/* Center based on the full width */
-				x = (full_width - buffer_width) / 2;
-				x -= BUTTON_WIDTH;
+				x = (width - buffer_width) / 2;
 			} else {
 				/*
 				 * Center based on the width between the buttons.
 				 * Title jumps around once this is hit but its still
 				 * better than to hide behind the buttons on the right.
 				 */
-				x = (rect->width - buffer_width) / 2;
+				x += (title_bg_width - buffer_width) / 2;
 			}
 		} else if (theme->window_label_text_justify == LAB_JUSTIFY_RIGHT) {
-			x = rect->width - buffer_width;
+			x += title_bg_width - buffer_width;
 		} else if (theme->window_label_text_justify == LAB_JUSTIFY_LEFT) {
 			/* TODO: maybe add some theme x padding here? */
 		}
@@ -216,15 +212,12 @@ ssd_update_title(struct view *view)
 	};
 
 	float *text_color;
-	struct wlr_scene_rect *rect;
 	struct ssd_part *part;
-	struct ssd_part *parent_part;
 	struct ssd_sub_tree *subtree;
 	struct ssd_state_title_width *dstate;
-	FOR_EACH_STATE(view, subtree) {
-		parent_part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR);
-		assert(parent_part);
+	int title_bg_width = view->w - BUTTON_WIDTH * BUTTON_COUNT;
 
+	FOR_EACH_STATE(view, subtree) {
 		if (subtree == &view->ssd.titlebar.active) {
 			dstate = &state->active;
 			text_color = theme->window_active_label_text_color;
@@ -233,14 +226,13 @@ ssd_update_title(struct view *view)
 			text_color = theme->window_inactive_label_text_color;
 		}
 
-		rect = lab_wlr_scene_get_rect(parent_part->node);
-		if (rect->width <= 0) {
+		if (title_bg_width <= 0) {
 			dstate->truncated = true;
 			continue;
 		}
 
 		if (title_unchanged
-				&& !dstate->truncated && dstate->width < rect->width) {
+				&& !dstate->truncated && dstate->width < title_bg_width) {
 			/* title the same + we don't need to resize title */
 			continue;
 		}
@@ -249,11 +241,11 @@ ssd_update_title(struct view *view)
 		if (!part) {
 			/* Initialize part and wlr_scene_buffer without attaching a buffer */
 			part = add_scene_part(&subtree->parts, LAB_SSD_PART_TITLE);
-			part->node = &wlr_scene_buffer_create(parent_part->node, NULL)->node;
+			part->node = &wlr_scene_buffer_create(&subtree->tree->node, NULL)->node;
 		}
 
 		/* Generate and update the lab_data_buffer, drops the old buffer */
-		font_buffer_update(&part->buffer, rect->width, title, &font, text_color);
+		font_buffer_update(&part->buffer, title_bg_width, title, &font, text_color);
 		if (!part->buffer) {
 			/* This can happen for example by defining a font size of 0 */
 			wlr_log(WLR_ERROR, "Failed to create title buffer");
@@ -266,7 +258,7 @@ ssd_update_title(struct view *view)
 
 		/* And finally update the cache */
 		dstate->width = part->buffer ? part->buffer->base.width : 0;
-		dstate->truncated = rect->width <= dstate->width;
+		dstate->truncated = title_bg_width <= dstate->width;
 	} FOR_EACH_END
 
 	if (!title_unchanged) {
@@ -302,7 +294,7 @@ ssd_button_hover_enable(struct view *view, enum ssd_part_type type)
 				return NULL;
 			}
 			struct wlr_scene_node *child;
-			wl_list_for_each(child, &part->node->state.children, state.link) {
+			wl_list_for_each_reverse(child, &part->node->state.children, state.link) {
 				if (child->type == WLR_SCENE_NODE_RECT) {
 					wlr_scene_node_set_enabled(child, true);
 					return child;

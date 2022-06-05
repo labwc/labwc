@@ -16,6 +16,7 @@ enum menu_align {
 };
 
 struct menu_scene {
+	struct wlr_scene_tree *tree;
 	struct lab_data_buffer *buffer;
 	struct wlr_scene_node *text;
 	struct wlr_scene_node *background;
@@ -25,6 +26,7 @@ struct menuitem {
 	struct wl_list actions;
 	struct menu *parent;
 	struct menu *submenu;
+	struct wlr_scene_tree *tree;
 	struct menu_scene normal;
 	struct menu_scene selected;
 	struct wl_list link; /* menu::menuitems */

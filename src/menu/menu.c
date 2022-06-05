@@ -96,7 +96,6 @@ item_create(struct menu *menu, const char *text)
 
 	int x, y;
 	int item_max_width = MENUWIDTH - 2 * MENU_ITEM_PADDING_X;
-	struct wlr_scene_node *parent = &menu->scene_tree->node;
 
 	/* Font buffer */
 	font_buffer_create(&menuitem->normal.buffer, item_max_width,
@@ -117,25 +116,30 @@ item_create(struct menu *menu, const char *text)
 		return NULL;
 	}
 
+	/* Menu item root node */
+	menuitem->tree = wlr_scene_tree_create(&menu->scene_tree->node);
+	node_descriptor_create(&menuitem->tree->node,
+		LAB_NODE_DESC_MENUITEM, menuitem);
+
+	/* Tree for each state to hold background and text buffer */
+	menuitem->normal.tree = wlr_scene_tree_create(&menuitem->tree->node);
+	menuitem->selected.tree = wlr_scene_tree_create(&menuitem->tree->node);
+
 	/* Item background nodes */
-	menuitem->normal.background = &wlr_scene_rect_create(parent,
+	menuitem->normal.background = &wlr_scene_rect_create(
+		&menuitem->normal.tree->node,
 		MENUWIDTH, menu->item_height,
 		theme->menu_items_bg_color)->node;
-	menuitem->selected.background = &wlr_scene_rect_create(parent,
+	menuitem->selected.background = &wlr_scene_rect_create(
+		&menuitem->selected.tree->node,
 		MENUWIDTH, menu->item_height,
 		theme->menu_items_active_bg_color)->node;
 
 	/* Font nodes */
 	menuitem->normal.text = &wlr_scene_buffer_create(
-		menuitem->normal.background, &menuitem->normal.buffer->base)->node;
+		&menuitem->normal.tree->node, &menuitem->normal.buffer->base)->node;
 	menuitem->selected.text = &wlr_scene_buffer_create(
-		menuitem->selected.background, &menuitem->selected.buffer->base)->node;
-
-	/* Node descriptors for top scene nodes of menuitem */
-	node_descriptor_create(menuitem->normal.background,
-		LAB_NODE_DESC_MENUITEM, menuitem);
-	node_descriptor_create(menuitem->selected.background,
-		LAB_NODE_DESC_MENUITEM, menuitem);
+		&menuitem->selected.tree->node, &menuitem->selected.buffer->base)->node;
 
 	/* Center font nodes */
 	y = (menu->item_height - menuitem->normal.buffer->base.height) / 2;
@@ -146,11 +150,10 @@ item_create(struct menu *menu, const char *text)
 	/* Position the item in relation to its menu */
 	int item_count = wl_list_length(&menu->menuitems);
 	y = item_count * menu->item_height;
-	wlr_scene_node_set_position(menuitem->normal.background, 0, y);
-	wlr_scene_node_set_position(menuitem->selected.background, 0, y);
+	wlr_scene_node_set_position(&menuitem->tree->node, 0, y);
 
 	/* Hide selected state */
-	wlr_scene_node_set_enabled(menuitem->selected.background, false);
+	wlr_scene_node_set_enabled(&menuitem->selected.tree->node, false);
 
 	/* Update menu extents */
 	menu->size.height = (item_count + 1) * menu->item_height;
@@ -432,7 +435,7 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 		} else {
 			new_lx = lx;
 		}
-		rel_y = item->normal.background->state.y;
+		rel_y = item->tree->node.state.y;
 		new_ly = ly + rel_y - theme->menu_overlap_y;
 		menu_configure(item->submenu, new_lx, new_ly, align);
 	}
@@ -493,10 +496,14 @@ menu_finish(void)
 		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
 			wl_list_remove(&item->link);
 			action_list_free(&item->actions);
+			/* TODO: just destroy menu->tree and let scene-graph do the rest */
 			wlr_scene_node_destroy(item->normal.text);
 			wlr_scene_node_destroy(item->selected.text);
 			wlr_scene_node_destroy(item->normal.background);
 			wlr_scene_node_destroy(item->selected.background);
+			wlr_scene_node_destroy(&item->normal.tree->node);
+			wlr_scene_node_destroy(&item->selected.tree->node);
+			wlr_scene_node_destroy(&item->tree->node);
 			wlr_buffer_drop(&item->normal.buffer->base);
 			wlr_buffer_drop(&item->selected.buffer->base);
 			free(item);
@@ -515,14 +522,14 @@ menu_set_selection(struct menu *menu, struct menuitem *item)
 	/* Clear old selection */
 	if (menu->selection.item) {
 		wlr_scene_node_set_enabled(
-			menu->selection.item->normal.background, true);
+			&menu->selection.item->normal.tree->node, true);
 		wlr_scene_node_set_enabled(
-			menu->selection.item->selected.background, false);
+			&menu->selection.item->selected.tree->node, false);
 	}
 	/* Set new selection */
 	if (item) {
-		wlr_scene_node_set_enabled(item->normal.background, false);
-		wlr_scene_node_set_enabled(item->selected.background, true);
+		wlr_scene_node_set_enabled(&item->normal.tree->node, false);
+		wlr_scene_node_set_enabled(&item->selected.tree->node, true);
 	}
 	menu->selection.item = item;
 }
@@ -562,7 +569,7 @@ menu_process_cursor_motion(struct wlr_scene_node *node)
 	assert(node && node->data);
 	struct menuitem *item = node_menuitem_from_node(node);
 
-	if (node == item->selected.background) {
+	if (node == &item->selected.tree->node) {
 		/* We are on an already selected item */
 		return;
 	}

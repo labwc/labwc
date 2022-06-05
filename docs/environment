@@ -19,3 +19,7 @@ XCURSOR_THEME=breeze_cursors
 # are experiencing issues with disappearing cursors, this might fix it.
 WLR_NO_HARDWARE_CURSORS=1
 
+# For Java applications such as JetBrains/Intellij Idea, set this variable
+# to avoid menus with incorrect offset and blank windows
+# See https://github.com/swaywm/sway/issues/595
+_JAVA_AWT_WM_NONREPARENTING=1

@@ -288,13 +288,24 @@ ssd_button_hover_enable(struct view *view, enum ssd_part_type type)
 	struct ssd_sub_tree *subtree;
 	FOR_EACH_STATE(view, subtree) {
 		if (subtree->tree->node.enabled) {
+			/*
+			 * TODO: This function makes too many magic assumptions:
+			 * - It expects the returned part to be the tree for the button
+			 * - It expects the last node in that tree to be the hover overlay
+			 *
+			 * Both assumptions are valid as long as ssd_parts.c isn't changing
+			 * the way a button is created but this cries for introducing bugs
+			 * in the future if the button creation process or ssd_get_part()
+			 * lookup routine would ever change.
+			 */
 			part = ssd_get_part(&subtree->parts, type);
 			if (!part) {
 				wlr_log(WLR_ERROR, "hover enable failed to find button");
 				return NULL;
 			}
 			struct wlr_scene_node *child;
-			wl_list_for_each_reverse(child, &part->node->children, link) {
+			struct wlr_scene_tree *button = lab_scene_tree_from_node(part->node);
+			wl_list_for_each_reverse(child, &button->children, link) {
 				if (child->type == WLR_SCENE_NODE_RECT) {
 					wlr_scene_node_set_enabled(child, true);
 					return child;

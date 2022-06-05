@@ -96,7 +96,7 @@ static void
 destroy_osd_nodes(struct output *output)
 {
 	struct wlr_scene_node *child, *next;
-	struct wl_list *children = &output->osd_tree->node.children;
+	struct wl_list *children = &output->osd_tree->children;
 	wl_list_for_each_safe(child, next, children, link) {
 		wlr_scene_node_destroy(child);
 	}

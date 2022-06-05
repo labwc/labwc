@@ -169,11 +169,11 @@ ssd_update_geometry(struct view *view)
 	}
 
 	if (!view->ssd.enabled) {
-		if (view->ssd.tree->node.state.enabled) {
+		if (view->ssd.tree->node.enabled) {
 			wlr_scene_node_set_enabled(&view->ssd.tree->node, false);
 		}
 		return;
-	} else if (!view->ssd.tree->node.state.enabled) {
+	} else if (!view->ssd.tree->node.enabled) {
 		wlr_scene_node_set_enabled(&view->ssd.tree->node, true);
 	}
 

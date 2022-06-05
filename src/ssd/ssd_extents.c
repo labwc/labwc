@@ -99,7 +99,7 @@ ssd_extents_update(struct view *view)
 		wlr_scene_node_set_enabled(&view->ssd.extents.tree->node, false);
 		return;
 	}
-	if (!view->ssd.extents.tree->node.state.enabled) {
+	if (!view->ssd.extents.tree->node.enabled) {
 		wlr_scene_node_set_enabled(&view->ssd.extents.tree->node, true);
 	}
 
@@ -177,7 +177,7 @@ ssd_extents_update(struct view *view)
 			/* Not visible */
 			wlr_scene_node_set_enabled(part->node, false);
 			continue;
-		} else if (!part->node->state.enabled) {
+		} else if (!part->node->enabled) {
 			wlr_scene_node_set_enabled(part->node, true);
 		}
 
@@ -193,8 +193,8 @@ ssd_extents_update(struct view *view)
 		}
 
 		/* Fully visible */
-		if (target->x != part->node->state.x
-				|| target->y != part->node->state.y) {
+		if (target->x != part->node->x
+				|| target->y != part->node->y) {
 			wlr_scene_node_set_position(part->node, target->x, target->y);
 		}
 		if (target->width != rect->width || target->height != rect->height) {

@@ -173,9 +173,9 @@ dump_tree(struct server *server, struct wlr_scene_node *node,
 		return;
 	}
 	struct wlr_scene_node *child;
-	wl_list_for_each(child, &node->state.children, state.link) {
+	wl_list_for_each(child, &node->children, link) {
 		dump_tree(server, child, pos + INDENT_SIZE,
-			x + child->state.x, y + child->state.y);
+			x + child->x, y + child->y);
 	}
 }
 

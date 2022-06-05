@@ -287,14 +287,14 @@ ssd_button_hover_enable(struct view *view, enum ssd_part_type type)
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
 	FOR_EACH_STATE(view, subtree) {
-		if (subtree->tree->node.state.enabled) {
+		if (subtree->tree->node.enabled) {
 			part = ssd_get_part(&subtree->parts, type);
 			if (!part) {
 				wlr_log(WLR_ERROR, "hover enable failed to find button");
 				return NULL;
 			}
 			struct wlr_scene_node *child;
-			wl_list_for_each_reverse(child, &part->node->state.children, state.link) {
+			wl_list_for_each_reverse(child, &part->node->children, link) {
 				if (child->type == WLR_SCENE_NODE_RECT) {
 					wlr_scene_node_set_enabled(child, true);
 					return child;

@@ -435,7 +435,7 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 		} else {
 			new_lx = lx;
 		}
-		rel_y = item->tree->node.state.y;
+		rel_y = item->tree->node.y;
 		new_ly = ly + rel_y - theme->menu_overlap_y;
 		menu_configure(item->submenu, new_lx, new_ly, align);
 	}

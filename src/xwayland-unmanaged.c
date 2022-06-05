@@ -106,6 +106,9 @@ unmanaged_handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, destroy);
+	wl_list_remove(&unmanaged->request_configure.link);
+	wl_list_remove(&unmanaged->override_redirect.link);
+	wl_list_remove(&unmanaged->request_activate.link);
 	wl_list_remove(&unmanaged->map.link);
 	wl_list_remove(&unmanaged->unmap.link);
 	wl_list_remove(&unmanaged->destroy.link);
@@ -132,14 +135,18 @@ xwayland_unmanaged_create(struct server *server,
 	unmanaged = calloc(1, sizeof(struct xwayland_unmanaged));
 	unmanaged->server = server;
 	unmanaged->xwayland_surface = xsurface;
+
 	wl_signal_add(&xsurface->events.request_configure,
 		      &unmanaged->request_configure);
 	unmanaged->request_configure.notify =
 		unmanaged_handle_request_configure;
+
 	wl_signal_add(&xsurface->events.map, &unmanaged->map);
 	unmanaged->map.notify = unmanaged_handle_map;
+
 	wl_signal_add(&xsurface->events.unmap, &unmanaged->unmap);
 	unmanaged->unmap.notify = unmanaged_handle_unmap;
+
 	wl_signal_add(&xsurface->events.destroy, &unmanaged->destroy);
 	unmanaged->destroy.notify = unmanaged_handle_destroy;
 

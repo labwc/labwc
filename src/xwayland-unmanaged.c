@@ -27,7 +27,7 @@ unmanaged_handle_set_geometry(struct wl_listener *listener, void *data)
 {
 	wlr_log(WLR_INFO, "handling set_geometry");
 	struct xwayland_unmanaged *unmanaged =
-		wl_container_of(listener, unmanaged, commit);
+		wl_container_of(listener, unmanaged, set_geometry);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 
 	if (xsurface->x != unmanaged->lx || xsurface->y != unmanaged->ly) {

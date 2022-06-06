@@ -154,6 +154,15 @@ view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 	int height = h + view->margin.top + view->margin.bottom;
 	*x = usable.x + (usable.width - width) / 2;
 	*y = usable.y + (usable.height - height) / 2;
+
+#if HAVE_XWAYLAND
+	/* TODO: refactor xwayland.c functions to get rid of this */
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		*x += view->margin.left;
+		*y += view->margin.top;
+	}
+#endif
+
 	return true;
 }
 

@@ -152,8 +152,8 @@ view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	int width = w + view->margin.left + view->margin.right;
 	int height = h + view->margin.top + view->margin.bottom;
-	*x = usable.x + usable.width / wlr_output->scale / 2 - width / 2;
-	*y = usable.y + usable.height / wlr_output->scale / 2 - height / 2;
+	*x = usable.x + (usable.width - width) / 2;
+	*y = usable.y + (usable.height - height) / 2;
 	return true;
 }
 

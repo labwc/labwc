@@ -743,6 +743,18 @@ view_destroy(struct view *view)
 		view->scene_tree = NULL;
 	}
 
+	/*
+	 * The layer-shell top-layer is disabled when an application is running
+	 * in fullscreen mode, so if that's the case, we have to re-enable it
+	 * here.
+	 */
+	if (view->fullscreen) {
+		struct output *output =
+			output_from_wlr_output(view->server, view->fullscreen);
+		uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
+		wlr_scene_node_set_enabled(&output->layer_tree[top]->node, true);
+	}
+
 	/* Remove view from server->views */
 	wl_list_remove(&view->link);
 	free(view);

@@ -46,18 +46,19 @@ ssd_titlebar_create(struct view *view)
 			width - BUTTON_WIDTH * BUTTON_COUNT, theme->title_height,
 			BUTTON_WIDTH, 0, color);
 		/* Buttons */
-		add_scene_button_corner(&subtree->parts, LAB_SSD_BUTTON_WINDOW_MENU,
-			parent,	corner_top_left,
-			&theme->xbm_menu_active_unpressed->base, 0);
+		add_scene_button_corner(&subtree->parts,
+			LAB_SSD_BUTTON_WINDOW_MENU, LAB_SSD_PART_CORNER_TOP_LEFT, parent,
+			corner_top_left, &theme->xbm_menu_active_unpressed->base, 0, view);
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_ICONIFY, parent,
 			color, &theme->xbm_iconify_active_unpressed->base,
-			width - BUTTON_WIDTH * 3);
+			width - BUTTON_WIDTH * 3, view);
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_MAXIMIZE, parent,
 			color, &theme->xbm_maximize_active_unpressed->base,
-			width - BUTTON_WIDTH * 2);
-		add_scene_button_corner(&subtree->parts, LAB_SSD_BUTTON_CLOSE, parent,
+			width - BUTTON_WIDTH * 2, view);
+		add_scene_button_corner(&subtree->parts,
+			LAB_SSD_BUTTON_CLOSE, LAB_SSD_PART_CORNER_TOP_RIGHT, parent,
 			corner_top_right, &theme->xbm_close_active_unpressed->base,
-			width - BUTTON_WIDTH * 1);
+			width - BUTTON_WIDTH * 1, view);
 	} FOR_EACH_END
 	ssd_update_title(view);
 }
@@ -100,7 +101,7 @@ ssd_titlebar_update(struct view *view)
 						width - BUTTON_WIDTH * 2, 0);
 				}
 				continue;
-			case LAB_SSD_BUTTON_CLOSE:
+			case LAB_SSD_PART_CORNER_TOP_RIGHT:
 				if (is_direct_child(part->node, subtree)) {
 					wlr_scene_node_set_position(part->node,
 						width - BUTTON_WIDTH * 1, 0);

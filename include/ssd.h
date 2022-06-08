@@ -54,6 +54,14 @@ struct wl_list;
 struct wlr_box;
 struct wlr_scene_tree;
 
+struct ssd_button {
+	struct view *view;
+	enum ssd_part_type type;
+	struct wlr_scene_node *hover;
+
+	struct wl_listener destroy;
+};
+
 struct ssd_sub_tree {
 	struct wlr_scene_tree *tree;
 	struct wl_list parts; /* ssd_part::link */
@@ -120,7 +128,6 @@ struct ssd_part {
 
 struct ssd_hover_state {
 	struct view *view;
-	enum ssd_part_type type;
 	struct wlr_scene_node *node;
 };
 
@@ -132,9 +139,8 @@ void ssd_update_title(struct view *view);
 void ssd_update_geometry(struct view *view);
 void ssd_reload(struct view *view);
 void ssd_destroy(struct view *view);
-/* Returns hover overlay node so it can be disabled later on */
-struct wlr_scene_node *ssd_button_hover_enable(
-	struct view *view, enum ssd_part_type type);
+void ssd_update_button_hover(struct wlr_scene_node *node,
+	struct ssd_hover_state *hover_state);
 
 /* Public SSD helpers */
 enum ssd_part_type ssd_at(struct view *view, double lx, double ly);

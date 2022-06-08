@@ -5,6 +5,36 @@
 #include "ssd.h"
 #include "node.h"
 
+/* Internal helpers */
+static void
+ssd_button_destroy_notify(struct wl_listener *listener, void *data)
+{
+	struct ssd_button *button = wl_container_of(listener, button, destroy);
+	wl_list_remove(&button->destroy.link);
+	free(button);
+}
+
+/*
+ * Create a new node_descriptor containing a link to a new ssd_button struct.
+ * Both will be destroyed automatically once the scene_node they are attached
+ * to is destroyed.
+ */
+static struct ssd_button *
+ssd_button_descriptor_create(struct wlr_scene_node *node)
+{
+	/* Create new ssd_button */
+	struct ssd_button *button = calloc(1, sizeof(struct ssd_button));
+
+	/* Let it destroy automatically when the scene node destroys */
+	button->destroy.notify = ssd_button_destroy_notify;
+	wl_signal_add(&node->events.destroy, &button->destroy);
+
+	/* And finally attach the ssd_button to a node descriptor */
+	node_descriptor_create(node, LAB_NODE_DESC_SSD_BUTTON, button);
+	return button;
+}
+
+/* Internal API */
 struct ssd_part *
 add_scene_part(struct wl_list *part_list, enum ssd_part_type type)
 {
@@ -85,17 +115,16 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		struct wlr_scene_tree *parent, float *bg_color,
 		struct wlr_buffer *icon_buffer, int x, struct view *view)
 {
-	struct ssd_part *part;
+	struct wlr_scene_node *hover;
 	float hover_bg[4] = {0.15f, 0.15f, 0.15f, 0.3f};
 
 	struct ssd_part *button_root = add_scene_part(part_list, type);
 	parent = wlr_scene_tree_create(parent);
 	button_root->node = &parent->node;
 	wlr_scene_node_set_position(button_root->node, x, 0);
-	node_descriptor_create(button_root->node, LAB_NODE_DESC_SSD_BUTTON, view);
 
 	/* Background */
-	part = add_scene_rect(part_list, type, parent,
+	add_scene_rect(part_list, type, parent,
 		BUTTON_WIDTH, rc.theme->title_height, 0, 0, bg_color);
 
 	/* Icon */
@@ -104,10 +133,14 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		(rc.theme->title_height - icon_buffer->height) / 2);
 
 	/* Hover overlay */
-	part = add_scene_rect(part_list, type, parent, BUTTON_WIDTH,
-		rc.theme->title_height, 0, 0, hover_bg);
-	wlr_scene_node_set_enabled(part->node, false);
+	hover = add_scene_rect(part_list, type, parent, BUTTON_WIDTH,
+		rc.theme->title_height, 0, 0, hover_bg)->node;
+	wlr_scene_node_set_enabled(hover, false);
 
+	struct ssd_button *button = ssd_button_descriptor_create(button_root->node);
+	button->type = type;
+	button->view = view;
+	button->hover = hover;
 	return button_root;
 }
 

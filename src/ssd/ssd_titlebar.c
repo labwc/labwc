@@ -8,6 +8,7 @@
 #include "theme.h"
 #include "common/font.h"
 #include "common/scene-helpers.h"
+#include "node.h"
 
 #define FOR_EACH_STATE(view, tmp) FOR_EACH(tmp, \
 	&(view)->ssd.titlebar.active, \
@@ -271,52 +272,35 @@ ssd_update_title(struct view *view)
 	ssd_update_title_positions(view);
 }
 
-/*
- * Returns the wlr_scene_node for hover effect.
- * To disable the hover effect later on just call
- * wlr_scene_node_set_enabled(node, false).
- */
-struct wlr_scene_node *
-ssd_button_hover_enable(struct view *view, enum ssd_part_type type)
+void
+ssd_update_button_hover(struct wlr_scene_node *node,
+		struct ssd_hover_state *hover_state)
 {
-	if (!view->ssd.tree) {
-		wlr_log(WLR_ERROR, "%s() for destroyed view", __func__);
-		return NULL;
+	struct ssd_button *button = NULL;
+	if (!node || !node->data) {
+		goto disable_old_hover;
 	}
 
-	assert(ssd_is_button(type));
-	struct ssd_part *part;
-	struct ssd_sub_tree *subtree;
-	FOR_EACH_STATE(view, subtree) {
-		if (subtree->tree->node.enabled) {
-			/*
-			 * TODO: This function makes too many magic assumptions:
-			 * - It expects the returned part to be the tree for the button
-			 * - It expects the last node in that tree to be the hover overlay
-			 *
-			 * Both assumptions are valid as long as ssd_parts.c isn't changing
-			 * the way a button is created but this cries for introducing bugs
-			 * in the future if the button creation process or ssd_get_part()
-			 * lookup routine would ever change.
-			 */
-			part = ssd_get_part(&subtree->parts, type);
-			if (!part) {
-				wlr_log(WLR_ERROR, "hover enable failed to find button");
-				return NULL;
-			}
-			struct wlr_scene_node *child;
-			struct wlr_scene_tree *button = lab_scene_tree_from_node(part->node);
-			wl_list_for_each_reverse(child, &button->children, link) {
-				if (child->type == WLR_SCENE_NODE_RECT) {
-					wlr_scene_node_set_enabled(child, true);
-					return child;
-				}
-			}
+	struct node_descriptor *desc = node->data;
+	if (desc->type == LAB_NODE_DESC_SSD_BUTTON) {
+		button = node_ssd_button_from_node(node);
+		if (button->hover == hover_state->node) {
+			/* Cursor is still on the same button */
+			return;
 		}
-	} FOR_EACH_END
+	}
 
-	wlr_log(WLR_ERROR, "hover enable failed to find button");
-	return NULL;
+disable_old_hover:
+	if (hover_state->node) {
+		wlr_scene_node_set_enabled(hover_state->node, false);
+		hover_state->view = NULL;
+		hover_state->node = NULL;
+	}
+	if (button) {
+		wlr_scene_node_set_enabled(button->hover, true);
+		hover_state->view = button->view;
+		hover_state->node = button->hover;
+	}
 }
 
 #undef FOR_EACH_STATE

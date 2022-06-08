@@ -240,7 +240,6 @@ ssd_destroy(struct view *view)
 	hover_state = &view->server->ssd_hover_state;
 	if (hover_state->view == view) {
 		hover_state->view = NULL;
-		hover_state->type = LAB_SSD_NONE;
 		hover_state->node = NULL;
 	}
 

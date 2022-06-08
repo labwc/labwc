@@ -296,8 +296,10 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 			}
 			if (desc->type == LAB_NODE_DESC_SSD_BUTTON) {
 				/* Always return the top scene node for SSD buttons */
+				struct ssd_button *button = node_ssd_button_from_node(node);
 				*scene_node = node;
-				goto has_view_data;
+				*view_area = button->type;
+				return button->view;
 			}
 			if (desc->type == LAB_NODE_DESC_LAYER_SURFACE) {
 				/* FIXME: we shouldn't have to set *view_area */

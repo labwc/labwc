@@ -274,25 +274,8 @@ process_cursor_motion(struct server *server, uint32_t time)
 		}
 	}
 
-	/* SSD button mouse-over */
-	struct ssd_hover_state *hover = &server->ssd_hover_state;
-	if (ssd_is_button(view_area)) {
-		/* Cursor entered new button area */
-		if (hover->view != view || hover->type != view_area) {
-			if (hover->node) {
-				wlr_scene_node_set_enabled(hover->node, false);
-			}
-			hover->view = view;
-			hover->type = view_area;
-			hover->node = ssd_button_hover_enable(view, view_area);
-		}
-	} else if (hover->node) {
-		/* Cursor left button area */
-		wlr_scene_node_set_enabled(hover->node, false);
-		hover->view = NULL;
-		hover->type = LAB_SSD_NONE;
-		hover->node = NULL;
-	}
+	/* TODO: ssd_hover_state should likely be located in server->seat */
+	ssd_update_button_hover(node, &server->ssd_hover_state);
 
 	if (server->seat.pressed.surface &&
 			server->seat.pressed.surface != surface &&

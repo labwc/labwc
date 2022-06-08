@@ -294,6 +294,11 @@ desktop_node_and_view_at(struct server *server, double lx, double ly,
 			if (desc->type == LAB_NODE_DESC_XDG_POPUP) {
 				goto has_view_data;
 			}
+			if (desc->type == LAB_NODE_DESC_SSD_BUTTON) {
+				/* Always return the top scene node for SSD buttons */
+				*scene_node = node;
+				goto has_view_data;
+			}
 			if (desc->type == LAB_NODE_DESC_LAYER_SURFACE) {
 				/* FIXME: we shouldn't have to set *view_area */
 				*view_area = LAB_SSD_CLIENT;

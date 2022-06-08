@@ -16,6 +16,7 @@ enum node_descriptor_type {
 	LAB_NODE_DESC_LAYER_POPUP,
 	LAB_NODE_DESC_MENUITEM,
 	LAB_NODE_DESC_TREE,
+	LAB_NODE_DESC_SSD_BUTTON,
 };
 
 struct node_descriptor {

@@ -43,7 +43,8 @@ node_view_from_node(struct wlr_scene_node *wlr_scene_node)
 	assert(wlr_scene_node->data);
 	struct node_descriptor *node_descriptor = wlr_scene_node->data;
 	assert(node_descriptor->type == LAB_NODE_DESC_VIEW
-		|| node_descriptor->type == LAB_NODE_DESC_XDG_POPUP);
+		|| node_descriptor->type == LAB_NODE_DESC_XDG_POPUP
+		|| node_descriptor->type == LAB_NODE_DESC_SSD_BUTTON);
 	return (struct view *)node_descriptor->data;
 }
 

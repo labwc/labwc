@@ -713,28 +713,29 @@ view_destroy(struct view *view)
 	}
 	interactive_end(view);
 
-	if (view->server->seat.pressed.view == view) {
-		view->server->seat.pressed.view = NULL;
-		view->server->seat.pressed.surface = NULL;
+	struct server *server = view->server;
+	if (server->seat.pressed.view == view) {
+		server->seat.pressed.view = NULL;
+		server->seat.pressed.surface = NULL;
 	}
 
-	if (view->server->cycle_view == view) {
+	if (server->cycle_view == view) {
 		/* If we are the current OSD selected view, cycle
 		 * to the next because we are dying. */
-		view->server->cycle_view = desktop_cycle_view(view->server,
-			view->server->cycle_view, LAB_CYCLE_DIR_BACKWARD);
+		server->cycle_view = desktop_cycle_view(server,
+			server->cycle_view, LAB_CYCLE_DIR_BACKWARD);
 
 		/* If we cycled back to ourselves, then we have no windows.
 		 * just remove it and close the OSD for good. */
-		if (view->server->cycle_view == view || !view->server->cycle_view) {
-			view->server->cycle_view = NULL;
-			osd_finish(view->server);
+		if (server->cycle_view == view || !server->cycle_view) {
+			server->cycle_view = NULL;
+			osd_finish(server);
 		}
 	}
 
-	if (view->server->cycle_view) {
+	if (server->cycle_view) {
 		/* Update the OSD to reflect the view has now gone. */
-		osd_update(view->server);
+		osd_update(server);
 	}
 
 	if (view->scene_tree) {
@@ -750,7 +751,7 @@ view_destroy(struct view *view)
 	 */
 	if (view->fullscreen) {
 		struct output *output =
-			output_from_wlr_output(view->server, view->fullscreen);
+			output_from_wlr_output(server, view->fullscreen);
 		uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
 		wlr_scene_node_set_enabled(&output->layer_tree[top]->node, true);
 	}

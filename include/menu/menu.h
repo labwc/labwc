@@ -4,7 +4,12 @@
 
 #include <wayland-server.h>
 
+/* forward declare arguments */
+struct view;
+struct server;
+struct wl_list;
 struct lab_data_buffer;
+struct wlr_scene_tree;
 struct wlr_scene_node;
 
 enum menu_align {
@@ -49,6 +54,9 @@ struct menu {
 		struct menuitem *item;
 	} selection;
 	struct wlr_scene_tree *scene_tree;
+
+	/* Used to match a window-menu to the view that triggered it. */
+	struct view *triggered_by_view;  /* may be NULL */
 };
 
 void menu_init_rootmenu(struct server *server);
@@ -92,8 +100,15 @@ void menu_process_cursor_motion(struct wlr_scene_node *node);
  */
 bool menu_call_actions(struct wlr_scene_node *node);
 
-/* menu_close - close menu */
-void menu_close(struct menu *menu);
+/**
+ *  menu_close_root- close root menu
+ *
+ * This function will close server->menu_current and set it to NULL.
+ * Asserts that server->input_mode is set to LAB_INPUT_STATE_MENU.
+ *
+ * Additionally, server->input_mode wil be set to LAB_INPUT_STATE_PASSTHROUGH.
+ */
+void menu_close_root(struct server *server);
 
 /* menu_reconfigure - reload theme and content */
 void menu_reconfigure(struct server *server);

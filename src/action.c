@@ -121,6 +121,8 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 		x = server->seat.cursor->x;
 		y = server->seat.cursor->y;
 	}
+	/* Replaced by next show_menu() or cleaned on view_destroy() */
+	menu->triggered_by_view = view;
 	menu_open(menu, x, y);
 }
 

@@ -548,6 +548,21 @@ close_all_submenus(struct menu *menu)
 	menu->selection.menu = NULL;
 }
 
+static void
+menu_close(struct menu *menu)
+{
+	if (!menu) {
+		wlr_log(WLR_ERROR, "Trying to close non exiting menu");
+		return;
+	}
+	wlr_scene_node_set_enabled(&menu->scene_tree->node, false);
+	menu_set_selection(menu, NULL);
+	if (menu->selection.menu) {
+		menu_close(menu->selection.menu);
+		menu->selection.menu = NULL;
+	}
+}
+
 void
 menu_open(struct menu *menu, int x, int y)
 {
@@ -582,7 +597,9 @@ menu_process_cursor_motion(struct wlr_scene_node *node)
 	}
 
 	if (item->submenu) {
-		/* And open the new one */
+		/* Sync the triggering view */
+		item->submenu->triggered_by_view = item->parent->triggered_by_view;
+		/* And open the new submenu tree */
 		wlr_scene_node_set_enabled(
 			&item->submenu->scene_tree->node, true);
 	}
@@ -600,26 +617,29 @@ menu_call_actions(struct wlr_scene_node *node)
 		return false;
 	}
 
-	actions_run(NULL, item->parent->server, &item->actions, 0);
+	actions_run(item->parent->triggered_by_view,
+		item->parent->server, &item->actions, 0);
+
+	/**
+	 * We close the menu here to provide a faster feedback to the user.
+	 * We do that without resetting the input state so src/cursor.c
+	 * can do its own clean up on the following RELEASE event.
+	 */
 	menu_close(item->parent->server->menu_current);
 	item->parent->server->menu_current = NULL;
+
 	return true;
 }
 
 void
-menu_close(struct menu *menu)
+menu_close_root(struct server *server)
 {
-	if (!menu) {
-		wlr_log(WLR_ERROR, "Trying to close non exiting menu");
-		return;
+	assert(server->input_mode == LAB_INPUT_STATE_MENU);
+	if (server->menu_current) {
+		menu_close(server->menu_current);
+		server->menu_current = NULL;
 	}
-	/* TODO: Maybe reset input state here instead of in cursor.c ? */
-	wlr_scene_node_set_enabled(&menu->scene_tree->node, false);
-	menu_set_selection(menu, NULL);
-	if (menu->selection.menu) {
-		menu_close(menu->selection.menu);
-		menu->selection.menu = NULL;
-	}
+	server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 }
 
 void

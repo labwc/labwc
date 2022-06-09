@@ -718,13 +718,8 @@ cursor_button(struct wl_listener *listener, void *data)
 		seat->pressed.surface = NULL;
 		if (server->input_mode == LAB_INPUT_STATE_MENU) {
 			if (close_menu) {
-				if (server->menu_current) {
-					menu_close(server->menu_current);
-					server->menu_current = NULL;
-				}
-				server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
-				cursor_rebase(&server->seat,
-					event->time_msec, false);
+				menu_close_root(server);
+				cursor_rebase(&server->seat, event->time_msec, false);
 				close_menu = false;
 			}
 			return;
@@ -755,17 +750,11 @@ cursor_button(struct wl_listener *listener, void *data)
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
+		/* We are closing the menu on RELEASE to not leak a stray release */
 		if (view_area != LAB_SSD_MENU) {
-			/*
-			 * We close the menu on release so we don't leak a stray
-			 * release
-			 */
 			close_menu = true;
 		} else if (menu_call_actions(node)) {
-			/*
-			 * Action was successfull, may fail if item just opens a
-			 * submenu
-			 */
+			/* Action was successfull, may fail if item just opens a submenu */
 			close_menu = true;
 		}
 		return;

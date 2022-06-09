@@ -5,6 +5,7 @@
 #include <xcb/xcb_icccm.h>
 #include "labwc.h"
 #include "ssd.h"
+#include "menu/menu.h"
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
@@ -754,6 +755,12 @@ view_destroy(struct view *view)
 			output_from_wlr_output(server, view->fullscreen);
 		uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
 		wlr_scene_node_set_enabled(&output->layer_tree[top]->node, true);
+	}
+
+	/* If we spawned a window menu, close it */
+	if (server->menu_current
+			&& server->menu_current->triggered_by_view == view) {
+		menu_close_root(server);
 	}
 
 	/* Remove view from server->views */

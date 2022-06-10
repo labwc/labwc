@@ -32,6 +32,7 @@ static struct libinput_category *current_libinput_category;
 static const char *current_mouse_context;
 static struct action *current_keybind_action;
 static struct action *current_mousebind_action;
+static struct wlr_box *current_action_box;
 
 enum font_place {
 	FONT_PLACE_UNKNOWN = 0,
@@ -42,6 +43,21 @@ enum font_place {
 };
 
 static void load_default_key_bindings(void);
+
+static void
+fill_geo(char *key, char *content)
+{
+	assert(current_action_box);
+	if (!strcmp(key, "x.action")) {
+		current_action_box->x = atoi(content);
+	} else if (!strcmp(key, "y.action")) {
+		current_action_box->y = atoi(content);
+	} else if (!strcmp(key, "width.action")) {
+		current_action_box->width = atoi(content);
+	} else if (!strcmp(key, "height.action")) {
+		current_action_box->height = atoi(content);
+	}
+}
 
 static void
 fill_keybind(char *nodename, char *content)
@@ -68,6 +84,12 @@ fill_keybind(char *nodename, char *content)
 		current_keybind_action = action_create(content);
 		wl_list_insert(current_keybind->actions.prev,
 			&current_keybind_action->link);
+		if (!strcmp(content, "MoveResizeTo")) {
+			current_action_box = action_arg_add_box(
+				current_keybind_action, NULL);
+		} else {
+			current_action_box = NULL;
+		}
 	} else if (!current_keybind_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
@@ -83,6 +105,9 @@ fill_keybind(char *nodename, char *content)
 	} else if (!strcmp(nodename, "to.action")) {
 		/* GoToDesktop, SendToDesktop */
 		action_arg_add_str(current_keybind_action, NULL, content);
+	} else if (current_action_box) {
+		/* MoveResizeTo */
+		fill_geo(nodename, content);
 	}
 }
 

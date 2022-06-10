@@ -435,6 +435,8 @@ void view_adjust_for_layout_change(struct view *view);
 void view_discover_output(struct view *view);
 void view_move_to_edge(struct view *view, const char *direction);
 void view_snap_to_edge(struct view *view, const char *direction);
+void view_rel_move_resize_to(struct view *view, struct wlr_box *rel_box);
+
 const char *view_get_string_prop(struct view *view, const char *prop);
 void view_update_title(struct view *view);
 void view_update_app_id(struct view *view);

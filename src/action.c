@@ -2,6 +2,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <signal.h>
+#include <limits.h>
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
@@ -38,6 +39,7 @@ enum action_type {
 	ACTION_TYPE_RESIZE,
 	ACTION_TYPE_GO_TO_DESKTOP,
 	ACTION_TYPE_SEND_TO_DESKTOP,
+	ACTION_TYPE_MOVE_RESIZE_TO,
 };
 
 const char *action_names[] = {
@@ -63,6 +65,7 @@ const char *action_names[] = {
 	"Resize",
 	"GoToDesktop",
 	"SendToDesktop",
+	"MoveResizeTo",
 	NULL
 };
 
@@ -334,6 +337,16 @@ actions_run(struct view *activator, struct server *server,
 				if (target) {
 					workspaces_send_to(view, target);
 				}
+			}
+			break;
+		case ACTION_TYPE_MOVE_RESIZE_TO:
+			if (!arg) {
+				wlr_log(WLR_ERROR, "Missing argument for MoveResizeTo");
+				break;
+			}
+			if (view) {
+				struct wlr_box *box = action_box_from_arg(arg);
+				view_rel_move_resize_to(view, box);
 			}
 			break;
 		case ACTION_TYPE_NONE:

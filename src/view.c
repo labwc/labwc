@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <strings.h>
 #include <xcb/xcb_icccm.h>
@@ -656,6 +657,41 @@ view_edge_parse(const char *direction)
 	} else {
 		return VIEW_EDGE_INVALID;
 	}
+}
+
+/* Move and resize view based on percent output local values in rel_box */
+void
+view_rel_move_resize_to(struct view *view, struct wlr_box *rel_box)
+{
+	assert(view);
+	assert(rel_box);
+
+	struct output *output = view_output(view);
+	if (!output) {
+		return;
+	}
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
+
+	/* Calculate new size and position */
+	struct wlr_box new_geo = { view->x, view->y, view->w, view->h };
+	if (rel_box->x != INT_MIN) {
+		new_geo.x = usable.width * rel_box->x / 100;
+		new_geo.x += usable.x + view->margin.left;
+	}
+	if (rel_box->y != INT_MIN) {
+		new_geo.y = usable.height * rel_box->y / 100;
+		new_geo.y += usable.y + view->margin.top;
+	}
+	if (rel_box->width != INT_MIN) {
+		new_geo.width = usable.width * rel_box->width / 100;
+		new_geo.width -= view->margin.left + view->margin.right;
+	}
+	if (rel_box->height != INT_MIN) {
+		new_geo.height = usable.height * rel_box->height / 100;
+		new_geo.height -= view->margin.top + view->margin.bottom;
+	}
+
+	view_move_resize(view, new_geo);
 }
 
 void

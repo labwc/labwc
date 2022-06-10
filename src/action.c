@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include <assert.h>
 #include <signal.h>
+#include <string.h>
 #include <strings.h>
 #include <unistd.h>
 #include <wlr/util/log.h>
@@ -9,8 +11,8 @@
 #include "debug.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "private/action.h"
 #include "ssd.h"
-#include "action.h"
 #include "workspaces.h"
 
 enum action_type {
@@ -64,6 +66,24 @@ const char *action_names[] = {
 	NULL
 };
 
+static char *
+action_str_from_arg(struct action_arg *arg)
+{
+	assert(arg->type == LAB_ACTION_ARG_STR);
+	return ((struct action_arg_str *)arg)->value;
+}
+
+static struct action_arg *
+action_get_first_arg(struct action *action)
+{
+	struct action_arg *arg;
+	struct wl_list *item = action->args.next;
+	if (item == &action->args) {
+		return NULL;
+	}
+	return wl_container_of(item, arg, link);
+}
+
 static enum action_type
 action_type_from_str(const char *action_name)
 {
@@ -85,15 +105,26 @@ action_create(const char *action_name)
 	}
 	struct action *action = calloc(1, sizeof(struct action));
 	action->type = action_type_from_str(action_name);
+	wl_list_init(&action->args);
 	return action;
 }
 
 void action_list_free(struct wl_list *action_list)
 {
+	struct action_arg *arg, *arg_tmp;
 	struct action *action, *action_tmp;
+	/* Free actions */
 	wl_list_for_each_safe(action, action_tmp, action_list, link) {
 		wl_list_remove(&action->link);
-		zfree(action->arg);
+		/* Free args */
+		wl_list_for_each_safe(arg, arg_tmp, &action->args, link) {
+			wl_list_remove(&arg->link);
+			zfree(arg->key);
+			if (arg->type == LAB_ACTION_ARG_STR) {
+				free(action_str_from_arg(arg));
+			}
+			zfree(arg);
+		}
 		zfree(action);
 	}
 }
@@ -151,9 +182,13 @@ actions_run(struct view *activator, struct server *server,
 
 	struct view *view;
 	struct action *action;
+	struct action_arg *arg;
 	wl_list_for_each(action, actions, link) {
-		wlr_log(WLR_DEBUG, "Handling action %s (%u) with arg %s",
-			 action_names[action->type], action->type, action->arg);
+		wlr_log(WLR_DEBUG, "Handling action %s (%u)",
+			 action_names[action->type], action->type);
+
+		/* Get arg now so we don't have to repeat every time we only need one */
+		arg = action_get_first_arg(action);
 
 		/*
 		 * Refetch view because it may have been changed due to the
@@ -171,28 +206,30 @@ actions_run(struct view *activator, struct server *server,
 			debug_dump_scene(server);
 			break;
 		case ACTION_TYPE_EXECUTE:
-			{
-				struct buf cmd;
-				buf_init(&cmd);
-				buf_add(&cmd, action->arg);
-				buf_expand_shell_variables(&cmd);
-				spawn_async_no_shell(cmd.buf);
-				free(cmd.buf);
+			if (!arg) {
+				wlr_log(WLR_ERROR, "Missing argument for Execute");
+				break;
 			}
+			struct buf cmd;
+			buf_init(&cmd);
+			buf_add(&cmd, action_str_from_arg(arg));
+			buf_expand_shell_variables(&cmd);
+			spawn_async_no_shell(cmd.buf);
+			free(cmd.buf);
 			break;
 		case ACTION_TYPE_EXIT:
 			wl_display_terminate(server->wl_display);
 			break;
 		case ACTION_TYPE_MOVE_TO_EDGE:
-			if (action->arg) {
-				view_move_to_edge(view, action->arg);
+			if (arg) {
+				view_move_to_edge(view, action_str_from_arg(arg));
 			} else {
 				wlr_log(WLR_ERROR, "Missing argument for MoveToEdge");
 			}
 			break;
 		case ACTION_TYPE_SNAP_TO_EDGE:
-			if (action->arg) {
-				view_snap_to_edge(view, action->arg);
+			if (arg) {
+				view_snap_to_edge(view, action_str_from_arg(arg));
 			} else {
 				wlr_log(WLR_ERROR, "Missing argument for SnapToEdge");
 			}
@@ -211,7 +248,11 @@ actions_run(struct view *activator, struct server *server,
 			kill(getpid(), SIGHUP);
 			break;
 		case ACTION_TYPE_SHOW_MENU:
-			show_menu(server, view, action->arg);
+			if (arg) {
+				show_menu(server, view, action_str_from_arg(arg));
+			} else {
+				wlr_log(WLR_ERROR, "Missing argument for ShowMenu");
+			}
 			break;
 		case ACTION_TYPE_TOGGLE_MAXIMIZE:
 			if (view) {
@@ -263,27 +304,33 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_GO_TO_DESKTOP:
-			{
-				struct workspace *target;
-				target = workspaces_find(server->workspace_current, action->arg);
-				if (target) {
-					workspaces_switch_to(target);
-				}
+			if (!arg) {
+				wlr_log(WLR_ERROR, "Missing argument for GoToDesktop");
+				break;
+			}
+			struct workspace *target;
+			char *target_name = action_str_from_arg(arg);
+			target = workspaces_find(server->workspace_current, target_name);
+			if (target) {
+				workspaces_switch_to(target);
 			}
 			break;
 		case ACTION_TYPE_SEND_TO_DESKTOP:
+			if (!arg) {
+				wlr_log(WLR_ERROR, "Missing argument for SendToDesktop");
+				break;
+			}
 			if (view) {
 				struct workspace *target;
-				target = workspaces_find(view->workspace, action->arg);
+				char *target_name = action_str_from_arg(arg);
+				target = workspaces_find(view->workspace, target_name);
 				if (target) {
 					workspaces_send_to(view, target);
 				}
 			}
 			break;
 		case ACTION_TYPE_NONE:
-			wlr_log(WLR_ERROR,
-				"Not executing unknown action with arg %s",
-				action->arg);
+			wlr_log(WLR_ERROR, "Not executing unknown action");
 			break;
 		default:
 			/*
@@ -292,9 +339,21 @@ actions_run(struct view *activator, struct server *server,
 			 * adding a new action without installing a handler here.
 			 */
 			wlr_log(WLR_ERROR,
-				"Not executing invalid action (%u) with arg %s"
-				" This is a BUG. Please report.",
-				action->type, action->arg);
+				"Not executing invalid action (%u)"
+				" This is a BUG. Please report.", action->type);
 		}
 	}
+}
+
+void
+action_arg_add_str(struct action *action, char *key, const char *value)
+{
+	assert(value && "Tried to add NULL action string argument");
+	struct action_arg_str *arg = calloc(1, sizeof(*arg));
+	arg->base.type = LAB_ACTION_ARG_STR;
+	if (key) {
+		arg->base.key = strdup(key);
+	}
+	arg->value = strdup(value);
+	wl_list_insert(action->args.prev, &arg->base.link);
 }

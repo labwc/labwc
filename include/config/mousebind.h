@@ -26,9 +26,9 @@ struct mousebind {
 
 	/* ex: doubleclick, press, drag */
 	enum mouse_event mouse_event;
-	struct wl_list actions;
+	struct wl_list actions;  /* struct action.link */
 
-	struct wl_list link; /* rcxml::mousebinds */
+	struct wl_list link;     /* struct rcxml.mousebinds */
 	bool pressed_in_context; /* used in click events */
 };
 

@@ -11,8 +11,8 @@ struct keybind {
 	uint32_t modifiers;
 	xkb_keysym_t *keysyms;
 	size_t keysyms_len;
-	struct wl_list actions;
-	struct wl_list link;
+	struct wl_list actions;  /* struct action.link */
+	struct wl_list link;     /* struct rcxml.keybinds */
 };
 
 /**

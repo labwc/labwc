@@ -127,13 +127,15 @@ osd_update(struct server *server)
 	wl_list_for_each(output, &server->outputs, link) {
 		destroy_osd_nodes(output);
 		float scale = output->wlr_output->scale;
-		int w = (OSD_ITEM_WIDTH + (2 * OSD_BORDER_WIDTH)) * scale;
-		int h = get_osd_height(&server->views) * scale;
+		int w = (OSD_ITEM_WIDTH + (2 * OSD_BORDER_WIDTH));
+		int h = get_osd_height(&server->views);
+		int scaled_w = w * scale;
+		int scaled_h = h * scale;
 
 		if (output->osd_buffer) {
 			wlr_buffer_drop(&output->osd_buffer->base);
 		}
-		output->osd_buffer = buffer_create_cairo(w, h, scale, true);
+		output->osd_buffer = buffer_create_cairo(scaled_w, scaled_h, scale, true);
 
 		cairo_t *cairo = output->osd_buffer->cairo;
 		cairo_surface_t *surf = cairo_get_target(cairo);
@@ -225,6 +227,7 @@ osd_update(struct server *server)
 
 		struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
 			output->osd_tree, &output->osd_buffer->base);
+		wlr_scene_buffer_set_dest_size(scene_buffer, w, h);
 
 		/* Center OSD */
 		struct wlr_box output_box;

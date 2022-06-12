@@ -268,7 +268,11 @@ handle_menu_element(xmlNode *n, struct server *server)
 			 * create an item pointing to the new submenu
 			 */
 			current_item = item_create(current_menu, label);
-			submenu = &current_item->submenu;
+			if (current_item) {
+				submenu = &current_item->submenu;
+			} else {
+				submenu = NULL;
+			}
 		}
 		++menu_level;
 		current_menu = menu_create(server, id, label);
@@ -282,7 +286,9 @@ handle_menu_element(xmlNode *n, struct server *server)
 		struct menu *menu = menu_get_by_id(id);
 		if (menu) {
 			current_item = item_create(current_menu, menu->label);
-			current_item->submenu = menu;
+			if (current_item) {
+				current_item->submenu = menu;
+			}
 		} else {
 			wlr_log(WLR_ERROR, "no menu with id '%s'", id);
 		}

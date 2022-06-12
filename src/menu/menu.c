@@ -99,9 +99,9 @@ item_create(struct menu *menu, const char *text)
 
 	/* Font buffer */
 	font_buffer_create(&menuitem->normal.buffer, item_max_width,
-		text, &font, theme->menu_items_text_color);
+		text, &font, theme->menu_items_text_color, 1);
 	font_buffer_create(&menuitem->selected.buffer, item_max_width,
-		text, &font, theme->menu_items_active_text_color);
+		text, &font, theme->menu_items_active_text_color, 1);
 	if (!menuitem->normal.buffer || !menuitem->selected.buffer) {
 		wlr_log(WLR_ERROR, "Failed to create menu item '%s'", text);
 		if (menuitem->normal.buffer) {

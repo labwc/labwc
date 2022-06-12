@@ -51,18 +51,18 @@ font_height(struct font *font)
 
 void
 font_buffer_update(struct lab_data_buffer **buffer, int max_width,
-	const char *text, struct font *font, float *color)
+	const char *text, struct font *font, float *color, double scale)
 {
 	if (*buffer) {
 		wlr_buffer_drop(&(*buffer)->base);
 		*buffer = NULL;
 	}
-	font_buffer_create(buffer, max_width, text, font, color);
+	font_buffer_create(buffer, max_width, text, font, color, scale);
 }
 
 void
 font_buffer_create(struct lab_data_buffer **buffer, int max_width,
-	const char *text, struct font *font, float *color)
+	const char *text, struct font *font, float *color, double scale)
 {
 	if (!text || !*text) {
 		return;
@@ -72,8 +72,7 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	if (max_width && rect.width > max_width) {
 		rect.width = max_width;
 	}
-	/* TODO: scale */
-	*buffer = buffer_create_cairo(rect.width, rect.height, 1, true);
+	*buffer = buffer_create_cairo(rect.width, rect.height, scale, true);
 	if (!*buffer) {
 		wlr_log(WLR_ERROR, "Failed to create font buffer of size %dx%d",
 			rect.width, rect.height);

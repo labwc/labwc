@@ -92,10 +92,23 @@ buffer_create_cairo(uint32_t width, uint32_t height, float scale,
 	if (!buffer) {
 		return NULL;
 	}
-	wlr_buffer_init(&buffer->base, &data_buffer_impl, width, height);
+	buffer->unscaled_width = width;
+	buffer->unscaled_height = height;
+	width *= scale;
+	height *= scale;
 
+	/* Allocate the buffer with the scaled size */
+	wlr_buffer_init(&buffer->base, &data_buffer_impl, width, height);
 	cairo_surface_t *surf =
 		cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+
+	/**
+	 * Tell cairo about the device scale so we can keep drawing in unscaled
+	 * coordinate space. Pango will automatically use the cairo scale attribute
+	 * as well when creating text on this surface.
+	 *
+	 * For a more complete explanation see PR #389
+	 */
 	cairo_surface_set_device_scale(surf, scale, scale);
 
 	buffer->cairo = cairo_create(surf);

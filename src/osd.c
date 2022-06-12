@@ -129,13 +129,11 @@ osd_update(struct server *server)
 		float scale = output->wlr_output->scale;
 		int w = (OSD_ITEM_WIDTH + (2 * OSD_BORDER_WIDTH));
 		int h = get_osd_height(&server->views);
-		int scaled_w = w * scale;
-		int scaled_h = h * scale;
 
 		if (output->osd_buffer) {
 			wlr_buffer_drop(&output->osd_buffer->base);
 		}
-		output->osd_buffer = buffer_create_cairo(scaled_w, scaled_h, scale, true);
+		output->osd_buffer = buffer_create_cairo(w, h, scale, true);
 
 		cairo_t *cairo = output->osd_buffer->cairo;
 		cairo_surface_t *surf = cairo_get_target(cairo);

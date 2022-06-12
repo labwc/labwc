@@ -37,6 +37,8 @@ struct lab_data_buffer {
 	uint32_t format;
 	size_t stride;
 	bool free_on_destroy;
+	uint32_t unscaled_width;
+	uint32_t unscaled_height;
 };
 
 /* Create a buffer which creates a new cairo CAIRO_FORMAT_ARGB32 surface */

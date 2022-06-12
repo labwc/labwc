@@ -8,10 +8,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <wayland-server-core.h>
 #include <wlr/util/log.h>
 #include "common/buf.h"
 #include "common/font.h"
 #include "common/nodename.h"
+#include "common/scaled_font_buffer.h"
 #include "common/string-helpers.h"
 #include "common/zfree.h"
 #include "labwc.h"
@@ -97,25 +99,6 @@ item_create(struct menu *menu, const char *text)
 	int x, y;
 	int item_max_width = MENUWIDTH - 2 * MENU_ITEM_PADDING_X;
 
-	/* Font buffer */
-	font_buffer_create(&menuitem->normal.buffer, item_max_width,
-		text, &font, theme->menu_items_text_color, 1);
-	font_buffer_create(&menuitem->selected.buffer, item_max_width,
-		text, &font, theme->menu_items_active_text_color, 1);
-	if (!menuitem->normal.buffer || !menuitem->selected.buffer) {
-		wlr_log(WLR_ERROR, "Failed to create menu item '%s'", text);
-		if (menuitem->normal.buffer) {
-			wlr_buffer_drop(&menuitem->normal.buffer->base);
-			menuitem->normal.buffer = NULL;
-		}
-		if (menuitem->selected.buffer) {
-			wlr_buffer_drop(&menuitem->selected.buffer->base);
-			menuitem->selected.buffer = NULL;
-		}
-		free(menuitem);
-		return NULL;
-	}
-
 	/* Menu item root node */
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
 	node_descriptor_create(&menuitem->tree->node,
@@ -136,15 +119,32 @@ item_create(struct menu *menu, const char *text)
 		theme->menu_items_active_bg_color)->node;
 
 	/* Font nodes */
-	menuitem->normal.text = &wlr_scene_buffer_create(
-		menuitem->normal.tree, &menuitem->normal.buffer->base)->node;
-	menuitem->selected.text = &wlr_scene_buffer_create(
-		menuitem->selected.tree, &menuitem->selected.buffer->base)->node;
+	menuitem->normal.buffer = scaled_font_buffer_create(menuitem->normal.tree);
+	menuitem->selected.buffer = scaled_font_buffer_create(menuitem->selected.tree);
+	if (!menuitem->normal.buffer || !menuitem->selected.buffer) {
+		wlr_log(WLR_ERROR, "Failed to create menu item '%s'", text);
+		/**
+		 * Destroying the root node will destroy everything,
+		 * including the node descriptor and scaled_font_buffers.
+		 */
+		wlr_scene_node_destroy(&menuitem->tree->node);
+		free(menuitem);
+		return NULL;
+	}
+	menuitem->normal.text = &menuitem->normal.buffer->scene_buffer->node;
+	menuitem->selected.text = &menuitem->selected.buffer->scene_buffer->node;
+
+	/* Font buffers */
+	scaled_font_buffer_update(menuitem->normal.buffer, text, item_max_width,
+		&font, theme->menu_items_text_color);
+	scaled_font_buffer_update(menuitem->selected.buffer, text, item_max_width,
+		&font, theme->menu_items_active_text_color);
 
 	/* Center font nodes */
-	y = (menu->item_height - menuitem->normal.buffer->base.height) / 2;
 	x = MENU_ITEM_PADDING_X;
+	y = (menu->item_height - menuitem->normal.buffer->height) / 2;
 	wlr_scene_node_set_position(menuitem->normal.text, x, y);
+	y = (menu->item_height - menuitem->selected.buffer->height) / 2;
 	wlr_scene_node_set_position(menuitem->selected.text, x, y);
 
 	/* Position the item in relation to its menu */
@@ -502,18 +502,12 @@ menu_finish(void)
 		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
 			wl_list_remove(&item->link);
 			action_list_free(&item->actions);
-			/* TODO: just destroy menu->tree and let scene-graph do the rest */
-			wlr_scene_node_destroy(item->normal.text);
-			wlr_scene_node_destroy(item->selected.text);
-			wlr_scene_node_destroy(item->normal.background);
-			wlr_scene_node_destroy(item->selected.background);
-			wlr_scene_node_destroy(&item->normal.tree->node);
-			wlr_scene_node_destroy(&item->selected.tree->node);
-			wlr_scene_node_destroy(&item->tree->node);
-			wlr_buffer_drop(&item->normal.buffer->base);
-			wlr_buffer_drop(&item->selected.buffer->base);
 			free(item);
 		}
+		/**
+		 * Destroying the root node will destroy everything,
+		 * including node descriptors and scaled_font_buffers.
+		 */
 		wlr_scene_node_destroy(&menu->scene_tree->node);
 	}
 	zfree(menus);

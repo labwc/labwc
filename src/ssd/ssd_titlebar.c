@@ -247,7 +247,8 @@ ssd_update_title(struct view *view)
 		}
 
 		/* Generate and update the lab_data_buffer, drops the old buffer */
-		font_buffer_update(&part->buffer, title_bg_width, title, &font, text_color);
+		font_buffer_update(&part->buffer, title_bg_width, title, &font,
+			text_color, 1);
 		if (!part->buffer) {
 			/* This can happen for example by defining a font size of 0 */
 			wlr_log(WLR_ERROR, "Failed to create title buffer");

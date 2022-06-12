@@ -7,6 +7,7 @@
 #include "ssd.h"
 #include "theme.h"
 #include "common/font.h"
+#include "common/scaled_font_buffer.h"
 #include "common/scene-helpers.h"
 #include "node.h"
 
@@ -156,13 +157,14 @@ ssd_update_title_positions(struct view *view)
 	struct ssd_sub_tree *subtree;
 	FOR_EACH_STATE(view, subtree) {
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLE);
-		if (!part) {
+		if (!part || !part->node) {
 			/* view->surface never been mapped */
+			/* Or we somehow failed to allocate a scaled titlebar buffer */
 			continue;
 		}
 
-		buffer_width = part->buffer ? part->buffer->base.width : 0;
-		buffer_height = part->buffer ? part->buffer->base.height : 0;
+		buffer_width = part->buffer ? part->buffer->width : 0;
+		buffer_height = part->buffer ? part->buffer->height : 0;
 		x = BUTTON_WIDTH;
 		y = (theme->title_height - buffer_height) / 2;
 		if (title_bg_width <= 0) {
@@ -243,25 +245,23 @@ ssd_update_title(struct view *view)
 		if (!part) {
 			/* Initialize part and wlr_scene_buffer without attaching a buffer */
 			part = add_scene_part(&subtree->parts, LAB_SSD_PART_TITLE);
-			part->node = &wlr_scene_buffer_create(subtree->tree, NULL)->node;
+			part->buffer = scaled_font_buffer_create(subtree->tree);
+			if (part->buffer) {
+				part->node = &part->buffer->scene_buffer->node;
+			} else {
+				wlr_log(WLR_ERROR, "Failed to create title node");
+			}
 		}
 
-		/* Generate and update the lab_data_buffer, drops the old buffer */
-		font_buffer_update(&part->buffer, title_bg_width, title, &font,
-			text_color, 1);
-		if (!part->buffer) {
-			/* This can happen for example by defining a font size of 0 */
-			wlr_log(WLR_ERROR, "Failed to create title buffer");
+		if (part->buffer) {
+			scaled_font_buffer_update(part->buffer,
+				title, title_bg_width, &font, text_color);
 		}
-
-		/* (Re)set the buffer */
-		wlr_scene_buffer_set_buffer(
-			wlr_scene_buffer_from_node(part->node),
-			part->buffer ? &part->buffer->base : NULL);
 
 		/* And finally update the cache */
-		dstate->width = part->buffer ? part->buffer->base.width : 0;
+		dstate->width = part->buffer ? part->buffer->width : 0;
 		dstate->truncated = title_bg_width <= dstate->width;
+
 	} FOR_EACH_END
 
 	if (!title_unchanged) {

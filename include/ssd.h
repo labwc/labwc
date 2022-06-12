@@ -53,6 +53,7 @@ struct view;
 struct wl_list;
 struct wlr_box;
 struct wlr_scene_tree;
+struct scaled_font_buffer;
 
 struct ssd_button {
 	struct view *view;
@@ -115,7 +116,7 @@ struct ssd_part {
 	enum ssd_part_type type;
 
 	/* Buffer pointer. May be NULL */
-	struct lab_data_buffer *buffer;
+	struct scaled_font_buffer *buffer;
 
 	/* This part represented in scene graph */
 	struct wlr_scene_node *node;

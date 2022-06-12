@@ -4,6 +4,7 @@
 #include "labwc.h"
 #include "ssd.h"
 #include "node.h"
+#include "common/font.h"
 
 /* Internal helpers */
 static void
@@ -165,10 +166,8 @@ ssd_destroy_parts(struct wl_list *list)
 			wlr_scene_node_destroy(part->node);
 			part->node = NULL;
 		}
-		if (part->buffer) {
-			wlr_buffer_drop(&part->buffer->base);
-			part->buffer = NULL;
-		}
+		/* part->buffer will free itself along the scene_buffer node */
+		part->buffer = NULL;
 		if (part->geometry) {
 			free(part->geometry);
 			part->geometry = NULL;

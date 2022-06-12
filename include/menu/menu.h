@@ -8,9 +8,9 @@
 struct view;
 struct server;
 struct wl_list;
-struct lab_data_buffer;
 struct wlr_scene_tree;
 struct wlr_scene_node;
+struct scaled_font_buffer;
 
 enum menu_align {
 	LAB_MENU_OPEN_AUTO   = 0,
@@ -22,9 +22,9 @@ enum menu_align {
 
 struct menu_scene {
 	struct wlr_scene_tree *tree;
-	struct lab_data_buffer *buffer;
 	struct wlr_scene_node *text;
 	struct wlr_scene_node *background;
+	struct scaled_font_buffer *buffer;
 };
 
 struct menuitem {

@@ -454,10 +454,10 @@ enum lab_cycle_dir {
 
 /**
  * desktop_cycle_view - return view to 'cycle' to
- * @current: reference point for finding next view to cycle to
- * Note: If !current, the server->views second focusable view is returned
+ * @start_view: reference point for finding next view to cycle to
+ * Note: If !start_view, the second focusable view is returned
  */
-struct view *desktop_cycle_view(struct server *server, struct view *current,
+struct view *desktop_cycle_view(struct server *server, struct view *start_view,
 	enum lab_cycle_dir dir);
 struct view *desktop_focused_view(struct server *server);
 void desktop_focus_topmost_mapped_view(struct server *server);

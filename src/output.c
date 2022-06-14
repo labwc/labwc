@@ -1291,6 +1291,8 @@ output_usable_area_from_cursor_coords(struct server *server)
 void
 handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 {
+	struct server *server
+		= wl_container_of(listener, server, output_power_manager_set_mode);
 	struct wlr_output_power_v1_set_mode_event *event = data;
 
 	switch (event->mode) {
@@ -1306,4 +1308,5 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 		wlr_output_commit(event->output);
 		break;
 	}
+	damage_all_outputs(server);
 }

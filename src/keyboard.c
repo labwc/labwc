@@ -18,8 +18,8 @@ change_vt(struct server *server, unsigned int vt)
 	}
 }
 
-static bool
-any_modifiers_pressed(struct wlr_keyboard *keyboard)
+bool
+keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard)
 {
 	xkb_mod_index_t i;
 	for (i = 0; i < xkb_keymap_num_mods(keyboard->keymap); i++) {
@@ -42,7 +42,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 		struct wlr_keyboard_key_event *event = data;
 		struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
 		if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED
-				&& !any_modifiers_pressed(keyboard))  {
+				&& !keyboard_any_modifiers_pressed(keyboard))  {
 			/* end cycle */
 			desktop_focus_and_activate_view(&server->seat,
 				server->cycle_view);

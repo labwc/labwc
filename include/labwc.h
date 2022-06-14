@@ -522,6 +522,7 @@ void cursor_init(struct seat *seat);
 void cursor_finish(struct seat *seat);
 
 void keyboard_init(struct seat *seat);
+bool keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard);
 void keyboard_finish(struct seat *seat);
 
 void touch_init(struct seat *seat);

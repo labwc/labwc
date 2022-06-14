@@ -16,6 +16,12 @@ struct font {
 int font_height(struct font *font);
 
 /**
+ * font_width - get font horizontal extents
+ * @font: description of font including family name and size
+ */
+int font_width(struct font *font, const char *string);
+
+/**
  * font_buffer_create - Create ARGB8888 lab_data_buffer using pango
  * @buffer: buffer pointer
  * @max_width: max allowable width; will be ellipsized if longer

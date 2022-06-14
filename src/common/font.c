@@ -49,6 +49,13 @@ font_height(struct font *font)
 	return rectangle.height;
 }
 
+int
+font_width(struct font *font, const char *string)
+{
+	PangoRectangle rectangle = font_extents(font, string);
+	return rectangle.width;
+}
+
 void
 font_buffer_update(struct lab_data_buffer **buffer, int max_width,
 	const char *text, struct font *font, float *color, double scale)

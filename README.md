@@ -85,7 +85,7 @@ Labwc uses the files listed below for configuration and theming.
 
 The example [rc.xml] has been kept simple. For all options and default values, see [rc.xml.all]
 
-Configuration and theme files are reloaded on receiving SIGHUP (e.g. `killall -SIGHUP labwc`)
+Configuration and theme files are reloaded on receiving SIGHUP (e.g. `killall -s SIGHUP labwc`)
 
 For keyboard settings, see [environment] and [xkeyboard-config(7)]
 

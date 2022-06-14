@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <strings.h>
 #include <wlr/util/log.h>
+#include <signal.h>
 #include "common/spawn.h"
 #include "common/zfree.h"
 #include "labwc.h"
@@ -193,8 +194,7 @@ action(struct view *activator, struct server *server, struct wl_list *actions, u
 			osd_update(server);
 			break;
 		case ACTION_TYPE_RECONFIGURE:
-			/* Should be changed to signal() */
-			spawn_async_no_shell("killall -SIGHUP labwc");
+			kill(getpid(), SIGHUP);
 			break;
 		case ACTION_TYPE_SHOW_MENU:
 			show_menu(server, view, action->arg);

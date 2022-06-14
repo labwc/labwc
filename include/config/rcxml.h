@@ -55,6 +55,11 @@ struct rcxml {
 
 	/* cycle view (alt+tab) */
 	bool cycle_preview_contents;
+
+	struct {
+		int popuptime;
+		struct wl_list workspaces;  /* struct workspace.link */
+	} workspace_config;
 };
 
 extern struct rcxml rc;

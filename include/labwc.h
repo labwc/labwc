@@ -87,6 +87,10 @@ struct seat {
 	struct wlr_idle *wlr_idle;
 	struct wlr_idle_inhibit_manager_v1 *wlr_idle_inhibit_manager;
 
+	/* Used to hide the workspace OSD after switching workspaces */
+	struct wl_event_source *workspace_osd_timer;
+	bool workspace_osd_shown_by_modifier;
+
 	/* if set, views cannot receive focus */
 	struct wlr_layer_surface_v1 *focused_layer;
 
@@ -143,9 +147,11 @@ struct seat {
 };
 
 struct lab_data_buffer;
+struct workspace;
 
 struct server {
 	struct wl_display *wl_display;
+	struct wl_event_loop *wl_event_loop;  /* Can be used for timer events */
 	struct wlr_renderer *renderer;
 	struct wlr_allocator *allocator;
 	struct wlr_backend *backend;
@@ -194,6 +200,10 @@ struct server {
 	/* Tree for built in menu */
 	struct wlr_scene_tree *menu_tree;
 
+	/* Workspaces */
+	struct wl_list workspaces;  /* struct workspace.link */
+	struct workspace *workspace_current;
+
 	struct wl_list outputs;
 	struct wl_listener new_output;
 	struct wlr_output_layout *output_layout;
@@ -234,6 +244,7 @@ struct output {
 	struct wlr_scene_tree *layer_tree[LAB_NR_LAYERS];
 	struct wlr_scene_tree *layer_popup_tree;
 	struct wlr_scene_tree *osd_tree;
+	struct wlr_scene_buffer *workspace_osd;
 	struct wlr_box usable_area;
 
 	struct lab_data_buffer *osd_buffer;
@@ -276,6 +287,7 @@ struct view {
 	const struct view_impl *impl;
 	struct wl_list link;
 	struct output *output;
+	struct workspace *workspace;
 
 	union {
 		struct wlr_xdg_surface *xdg_surface;

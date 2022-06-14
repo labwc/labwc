@@ -75,10 +75,16 @@ fill_keybind(char *nodename, char *content)
 		wlr_log(WLR_ERROR, "Action argument already set: %s",
 			current_keybind_action->arg);
 	} else if (!strcmp(nodename, "command.action")) {
+		/* Execute */
 		current_keybind_action->arg = strdup(content);
 	} else if (!strcmp(nodename, "direction.action")) {
+		/* MoveToEdge, SnapToEdge */
 		current_keybind_action->arg = strdup(content);
 	} else if (!strcmp(nodename, "menu.action")) {
+		/* ShowMenu */
+		current_keybind_action->arg = strdup(content);
+	} else if (!strcmp(nodename, "to.action")) {
+		/* GoToDesktop, SendToDesktop */
 		current_keybind_action->arg = strdup(content);
 	}
 }

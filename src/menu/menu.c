@@ -203,6 +203,8 @@ fill_item(char *nodename, char *content)
 		 * compatibility with old openbox-menu generators
 		 */
 		current_item_action->arg = strdup(content);
+	} else if (!strcmp(nodename, "to.action")) {
+		current_item_action->arg = strdup(content);
 	}
 }
 

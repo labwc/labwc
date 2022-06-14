@@ -209,6 +209,15 @@ fill_item(char *nodename, char *content)
 }
 
 static void
+item_destroy(struct menuitem *item)
+{
+	wl_list_remove(&item->link);
+	action_list_free(&item->actions);
+	wlr_scene_node_destroy(&item->tree->node);
+	free(item);
+}
+
+static void
 entry(xmlNode *node, char *nodename, char *content)
 {
 	if (!nodename || !content) {
@@ -449,6 +458,38 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 	}
 }
 
+static void
+menu_hide_submenu(const char *id)
+{
+	struct menu *menu, *hide_menu;
+	hide_menu = menu_get_by_id(id);
+	if (!hide_menu) {
+		return;
+	}
+	for (int i = 0; i < nr_menus; ++i) {
+		menu = menus + i;
+		size_t item_index = 0;
+		size_t items_destroyed = 0;
+		struct menuitem *item, *item_tmp;
+		wl_list_for_each_reverse_safe(item, item_tmp, &menu->menuitems, link) {
+			if (item->submenu == hide_menu) {
+				item_destroy(item);
+				items_destroyed++;
+				item_index++;
+				continue;
+			}
+			if (items_destroyed) {
+				int y = (item_index - items_destroyed) * menu->item_height;
+				wlr_scene_node_set_position(&item->tree->node, 0, y);
+			}
+			item_index++;
+		}
+		if (items_destroyed) {
+			menu->size.height -= items_destroyed * menu->item_height;
+		}
+	}
+}
+
 void
 menu_init_rootmenu(struct server *server)
 {
@@ -508,6 +549,10 @@ menu_init_windowmenu(struct server *server)
 		current_item = item_create(menu, _("Close"));
 		fill_item("name.action", "Close");
 	}
+
+	if (wl_list_length(&rc.workspace_config.workspaces) == 1) {
+		menu_hide_submenu("workspaces");
+	}
 }
 
 void
@@ -518,9 +563,7 @@ menu_finish(void)
 		menu = menus + i;
 		struct menuitem *item, *next;
 		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
-			wl_list_remove(&item->link);
-			action_list_free(&item->actions);
-			free(item);
+			item_destroy(item);
 		}
 		/**
 		 * Destroying the root node will destroy everything,

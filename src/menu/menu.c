@@ -489,6 +489,22 @@ menu_init_windowmenu(struct server *server)
 		fill_item("name.action", "ToggleDecorations");
 		current_item = item_create(menu, _("AlwaysOnTop"));
 		fill_item("name.action", "ToggleAlwaysOnTop");
+
+		/* Workspace sub-menu */
+		struct menu *workspace_menu = menu_create(server, "workspaces", "");
+		current_item = item_create(workspace_menu, _("Move left"));
+		fill_item("name.action", "SendToDesktop");
+		fill_item("to.action", "left");
+		fill_item("name.action", "GoToDesktop");
+		fill_item("to.action", "left");
+		current_item = item_create(workspace_menu, _("Move right"));
+		fill_item("name.action", "SendToDesktop");
+		fill_item("to.action", "right");
+		fill_item("name.action", "GoToDesktop");
+		fill_item("to.action", "right");
+		current_item = item_create(menu, _("Workspace"));
+		current_item->submenu = workspace_menu;
+
 		current_item = item_create(menu, _("Close"));
 		fill_item("name.action", "Close");
 	}

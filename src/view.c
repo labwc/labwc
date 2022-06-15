@@ -6,6 +6,7 @@
 #include "labwc.h"
 #include "ssd.h"
 #include "menu/menu.h"
+#include "workspaces.h"
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
@@ -336,8 +337,8 @@ void
 view_toggle_always_on_top(struct view *view)
 {
 	if (is_always_on_top(view)) {
-		wlr_scene_node_reparent(&view->scene_tree->node,
-			view->server->view_tree);
+		view->workspace = view->server->workspace_current;
+		wlr_scene_node_reparent(&view->scene_tree->node, view->workspace->tree);
 	} else {
 		wlr_scene_node_reparent(&view->scene_tree->node,
 			view->server->view_tree_always_on_top);

@@ -6,6 +6,7 @@
 #include "node.h"
 #include "ssd.h"
 #include "common/scene-helpers.h"
+#include "workspaces.h"
 
 static void
 move_to_front(struct view *view)
@@ -162,73 +163,80 @@ isfocusable(struct view *view)
 	return (view->mapped || view->minimized);
 }
 
-static bool
-has_focusable_view(struct wl_list *wl_list)
+static struct wl_list *
+get_prev_item(struct wl_list *item)
 {
-	struct view *view;
-	wl_list_for_each (view, wl_list, link) {
-		if (isfocusable(view)) {
-			return true;
-		}
-	}
-	return false;
+	return item->prev;
+}
+
+static struct wl_list *
+get_next_item(struct wl_list *item)
+{
+	return item->next;
 }
 
 static struct view *
 first_view(struct server *server)
 {
-	struct view *view;
-	view = wl_container_of(server->views.next, view, link);
-	return view;
+	struct wlr_scene_node *node;
+	struct wl_list *list_head =
+		&server->workspace_current->tree->children;
+	wl_list_for_each_reverse(node, list_head, link) {
+		return node_view_from_node(node);
+	}
+	return NULL;
 }
 
 struct view *
-desktop_cycle_view(struct server *server, struct view *current,
+desktop_cycle_view(struct server *server, struct view *start_view,
 		enum lab_cycle_dir dir)
 {
-	if (!has_focusable_view(&server->views)) {
+	struct view *view = start_view ? start_view : first_view(server);
+	if (!view) {
 		return NULL;
 	}
+	start_view = view;
+	struct wlr_scene_node *node = &view->scene_tree->node;
 
-	struct view *view = current ? current : first_view(server);
-	if (dir == LAB_CYCLE_DIR_FORWARD) {
-		/* Replacement for wl_list_for_each_from() */
-		do {
-			view = wl_container_of(view->link.next, view, link);
-		} while (&view->link == &server->views || !isfocusable(view));
-	} else if (dir == LAB_CYCLE_DIR_BACKWARD) {
-		do {
-			view = wl_container_of(view->link.prev, view, link);
-		} while (&view->link == &server->views || !isfocusable(view));
-	}
-	return view;
-}
+	assert(node->parent);
+	struct wl_list *list_head = &node->parent->children;
+	struct wl_list *list_item = &node->link;
+	struct wl_list *(*iter)(struct wl_list *);
 
-static bool
-has_mapped_view(struct wl_list *wl_list)
-{
-	struct view *view;
-	wl_list_for_each (view, wl_list, link) {
-		if (view->mapped) {
-			return true;
+	/* Scene nodes are ordered like last node == displayed topmost */
+	iter = dir == LAB_CYCLE_DIR_FORWARD ? get_prev_item : get_next_item;
+
+	do {
+		list_item = iter(list_item);
+		if (list_item == list_head) {
+			/* Start / End of list reached. Roll over */
+			list_item = iter(list_item);
 		}
-	}
-	return false;
+		node = wl_container_of(list_item, node, link);
+		view = node_view_from_node(node);
+		if (isfocusable(view)) {
+			return view;
+		}
+	} while (view != start_view);
+
+	/* No focusable views found, including the one we started with */
+	return NULL;
 }
 
 static struct view *
 topmost_mapped_view(struct server *server)
 {
-	if (!has_mapped_view(&server->views)) {
-		return NULL;
+	struct view *view;
+	struct wl_list *node_list;
+	struct wlr_scene_node *node;
+	node_list = &server->workspace_current->tree->children;
+	wl_list_for_each_reverse(node, node_list, link) {
+		view = node_view_from_node(node);
+		if (view->mapped) {
+			return view;
+		}
 	}
-
-	/* start from tail of server->views */
-	struct view *view = wl_container_of(server->views.prev, view, link);
-	do {
-		view = wl_container_of(view->link.next, view, link);
-	} while (&view->link == &server->views || !view->mapped);
-	return view;
+	return NULL;
 }
 
 struct view *

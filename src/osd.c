@@ -116,6 +116,7 @@ void
 osd_update(struct server *server)
 {
 	if (wl_list_empty(&server->views)) {
+		osd_finish(server);
 		return;
 	}
 

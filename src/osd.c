@@ -10,6 +10,8 @@
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "theme.h"
+#include "node.h"
+#include "workspaces.h"
 
 #define OSD_ITEM_HEIGHT (20)
 #define OSD_ITEM_WIDTH (600)
@@ -78,11 +80,13 @@ get_formatted_app_id(struct view *view)
 }
 
 static int
-get_osd_height(struct wl_list *views)
+get_osd_height(struct wl_list *node_list)
 {
 	int height = 0;
 	struct view *view;
-	wl_list_for_each(view, views, link) {
+	struct wlr_scene_node *node;
+	wl_list_for_each(node, node_list, link) {
+		view = node_view_from_node(node);
 		if (!isfocusable(view)) {
 			continue;
 		}
@@ -115,21 +119,32 @@ osd_finish(struct server *server)
 void
 osd_update(struct server *server)
 {
-	if (wl_list_empty(&server->views)) {
+	struct wl_list *node_list =
+		&server->workspace_current->tree->children;
+
+	if (wl_list_empty(node_list)) {
 		osd_finish(server);
 		return;
 	}
 
 	struct theme *theme = server->theme;
+	bool show_workspace = wl_list_length(&rc.workspace_config.workspaces) > 1;
 
 	struct buf buf;
 	buf_init(&buf);
+
+	struct view *view;
 	struct output *output;
+	struct wlr_scene_node *node;
 	wl_list_for_each(output, &server->outputs, link) {
 		destroy_osd_nodes(output);
 		float scale = output->wlr_output->scale;
-		int w = (OSD_ITEM_WIDTH + (2 * OSD_BORDER_WIDTH));
-		int h = get_osd_height(&server->views);
+		int w = OSD_ITEM_WIDTH + (2 * OSD_BORDER_WIDTH);
+		int h = get_osd_height(node_list);
+		if (show_workspace) {
+			/* workspace indicator */
+			h += OSD_ITEM_HEIGHT;
+		}
 
 		if (output->osd_buffer) {
 			wlr_buffer_drop(&output->osd_buffer->base);
@@ -148,10 +163,16 @@ osd_update(struct server *server)
 		set_source(cairo, theme->osd_border_color);
 		draw_border(cairo, w, h, theme->osd_border_width);
 
-		/* highlight current window */
 		int y = OSD_BORDER_WIDTH;
-		struct view *view;
-		wl_list_for_each(view, &server->views, link) {
+
+		if (show_workspace) {
+			/* workspace indicator */
+			y += OSD_ITEM_HEIGHT;
+		}
+
+		/* highlight current window */
+		wl_list_for_each_reverse(node, node_list, link) {
+			view = node_view_from_node(node);
 			if (!isfocusable(view)) {
 				continue;
 			}
@@ -179,7 +200,6 @@ osd_update(struct server *server)
 		pango_font_description_set_family(desc, font.name);
 		pango_font_description_set_size(desc, font.size * PANGO_SCALE);
 		pango_layout_set_font_description(layout, desc);
-		pango_font_description_free(desc);
 
 		PangoTabArray *tabs = pango_tab_array_new_with_positions(2, TRUE,
 			PANGO_TAB_LEFT, OSD_TAB1, PANGO_TAB_LEFT, OSD_TAB2);
@@ -189,9 +209,28 @@ osd_update(struct server *server)
 		pango_cairo_update_layout(cairo, layout);
 
 		y = OSD_BORDER_WIDTH;
-		y += (OSD_ITEM_HEIGHT - font_height(&font)) / 2;
 
-		wl_list_for_each(view, &server->views, link) {
+		/* Center text entries on the y axis */
+		int y_offset = (OSD_ITEM_HEIGHT - font_height(&font)) / 2;
+		y += y_offset;
+
+		if (show_workspace) {
+			/* Center workspace indicator on the x axis */
+			int x = font_width(&font, server->workspace_current->name);
+			x = (OSD_ITEM_WIDTH - x) / 2;
+			cairo_move_to(cairo, x, y);
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
+			pango_layout_set_font_description(layout, desc);
+			pango_layout_set_text(layout, server->workspace_current->name, -1);
+			pango_cairo_show_layout(cairo, layout);
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_NORMAL);
+			pango_layout_set_font_description(layout, desc);
+			y += OSD_ITEM_HEIGHT;
+		}
+		pango_font_description_free(desc);
+
+		wl_list_for_each_reverse(node, node_list, link) {
+			view = node_view_from_node(node);
 			if (!isfocusable(view)) {
 				continue;
 			}

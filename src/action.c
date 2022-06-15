@@ -9,6 +9,7 @@
 #include "menu/menu.h"
 #include "ssd.h"
 #include "action.h"
+#include "workspaces.h"
 
 enum action_type {
 	ACTION_TYPE_NONE = 0,
@@ -31,6 +32,8 @@ enum action_type {
 	ACTION_TYPE_MOVE,
 	ACTION_TYPE_RAISE,
 	ACTION_TYPE_RESIZE,
+	ACTION_TYPE_GO_TO_DESKTOP,
+	ACTION_TYPE_SEND_TO_DESKTOP,
 };
 
 const char *action_names[] = {
@@ -54,6 +57,8 @@ const char *action_names[] = {
 	"Move",
 	"Raise",
 	"Resize",
+	"GoToDesktop",
+	"SendToDesktop",
 	NULL
 };
 
@@ -253,6 +258,24 @@ actions_run(struct view *activator, struct server *server,
 			if (view) {
 				interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 					resize_edges);
+			}
+			break;
+		case ACTION_TYPE_GO_TO_DESKTOP:
+			{
+				struct workspace *target;
+				target = workspaces_find(server->workspace_current, action->arg);
+				if (target) {
+					workspaces_switch_to(target);
+				}
+			}
+			break;
+		case ACTION_TYPE_SEND_TO_DESKTOP:
+			if (view) {
+				struct workspace *target;
+				target = workspaces_find(view->workspace, action->arg);
+				if (target) {
+					workspaces_send_to(view, target);
+				}
 			}
 			break;
 		case ACTION_TYPE_NONE:

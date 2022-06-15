@@ -66,6 +66,14 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="ToggleAlwaysOnTop">*
 	Toggle always-on-top of focused window.
 
+*<action name="GoToDesktop"><to>*
+	Switch to workspace. Supported values are "left", "right" or the full
+	name of a workspace or its index (starting at 1) as configured in rc.xml.
+
+*<action name="SendToDesktop"><to>*
+	Send active window to workspace.
+	Supported values are the same as for GoToDesktop.
+
 # SEE ALSO
 
 labwc(1), labwc-config(5), labwc-theme(5)

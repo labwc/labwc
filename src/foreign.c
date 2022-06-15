@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "labwc.h"
+#include "workspaces.h"
 
 static void
 handle_toplevel_handle_request_minimize(struct wl_listener *listener, void *data)
@@ -42,6 +43,9 @@ handle_toplevel_handle_request_activate(struct wl_listener *listener, void *data
 	// struct wlr_foreign_toplevel_handle_v1_activated_event *event = data;
 	/* In a multi-seat world we would select seat based on event->seat here. */
 	if (view) {
+		if (view->workspace != view->server->workspace_current) {
+			workspaces_switch_to(view->workspace);
+		}
 		desktop_focus_and_activate_view(&view->server->seat, view);
 		desktop_move_to_front(view);
 	}

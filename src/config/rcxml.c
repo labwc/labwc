@@ -21,6 +21,7 @@
 #include "config/libinput.h"
 #include "config/mousebind.h"
 #include "config/rcxml.h"
+#include "workspaces.h"
 
 static bool in_keybind;
 static bool in_mousebind;
@@ -74,10 +75,16 @@ fill_keybind(char *nodename, char *content)
 		wlr_log(WLR_ERROR, "Action argument already set: %s",
 			current_keybind_action->arg);
 	} else if (!strcmp(nodename, "command.action")) {
+		/* Execute */
 		current_keybind_action->arg = strdup(content);
 	} else if (!strcmp(nodename, "direction.action")) {
+		/* MoveToEdge, SnapToEdge */
 		current_keybind_action->arg = strdup(content);
 	} else if (!strcmp(nodename, "menu.action")) {
+		/* ShowMenu */
+		current_keybind_action->arg = strdup(content);
+	} else if (!strcmp(nodename, "to.action")) {
+		/* GoToDesktop, SendToDesktop */
 		current_keybind_action->arg = strdup(content);
 	}
 }
@@ -387,6 +394,12 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.snap_top_maximize = get_bool(content);
 	} else if (!strcasecmp(nodename, "cycleViewPreview.core")) {
 		rc.cycle_preview_contents = get_bool(content);
+	} else if (!strcasecmp(nodename, "name.names.desktops")) {
+		struct workspace *workspace = calloc(1, sizeof(struct workspace));
+		workspace->name = strdup(content);
+		wl_list_insert(rc.workspace_config.workspaces.prev, &workspace->link);
+	} else if (!strcasecmp(nodename, "popupTime.desktops")) {
+		rc.workspace_config.popuptime = atoi(content);
 	}
 }
 
@@ -486,6 +499,8 @@ rcxml_init()
 	rc.snap_edge_range = 1;
 	rc.snap_top_maximize = true;
 	rc.cycle_preview_contents = false;
+	rc.workspace_config.popuptime = INT_MIN;
+	wl_list_init(&rc.workspace_config.workspaces);
 }
 
 static struct {
@@ -620,6 +635,14 @@ post_processing(void)
 		struct libinput_category *l = libinput_category_create();
 		l->type = TOUCH_DEVICE;
 	}
+	if (!wl_list_length(&rc.workspace_config.workspaces)) {
+		struct workspace *workspace = calloc(1, sizeof(struct workspace));
+		workspace->name = strdup("Default");
+		wl_list_insert(rc.workspace_config.workspaces.prev, &workspace->link);
+	}
+	if (rc.workspace_config.popuptime == INT_MIN) {
+		rc.workspace_config.popuptime = 1000;
+	}
 }
 
 static void
@@ -716,6 +739,13 @@ rcxml_finish(void)
 		wl_list_remove(&l->link);
 		zfree(l->name);
 		zfree(l);
+	}
+
+	struct workspace *w, *w_tmp;
+	wl_list_for_each_safe(w, w_tmp, &rc.workspace_config.workspaces, link) {
+		wl_list_remove(&w->link);
+		zfree(w->name);
+		zfree(w);
 	}
 
 	/* Reset state vars for starting fresh when Reload is triggered */

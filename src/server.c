@@ -18,6 +18,7 @@
 #include "menu/menu.h"
 #include "ssd.h"
 #include "theme.h"
+#include "workspaces.h"
 
 #define LAB_XDG_SHELL_VERSION (2)
 
@@ -181,6 +182,7 @@ server_init(struct server *server)
 		event_loop, SIGINT, handle_sigterm, server->wl_display);
 	sigterm_source = wl_event_loop_add_signal(
 		event_loop, SIGTERM, handle_sigterm, server->wl_display);
+	server->wl_event_loop = event_loop;
 
 	/*
 	 * The backend is a feature which abstracts the underlying input and
@@ -244,6 +246,8 @@ server_init(struct server *server)
 	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->tree);
 #endif
 	server->menu_tree = wlr_scene_tree_create(&server->scene->tree);
+
+	workspaces_init(server);
 
 	output_init(server);
 
@@ -452,7 +456,7 @@ server_start(struct server *server)
 void
 server_finish(struct server *server)
 {
-/* TODO: clean up various scene_tree nodes */
+
 #if HAVE_XWAYLAND
 	wlr_xwayland_destroy(server->xwayland);
 #endif
@@ -465,4 +469,7 @@ server_finish(struct server *server)
 	wlr_output_layout_destroy(server->output_layout);
 
 	wl_display_destroy(server->wl_display);
+
+	/* TODO: clean up various scene_tree nodes */
+	workspaces_destroy(server);
 }

@@ -203,7 +203,18 @@ fill_item(char *nodename, char *content)
 		 * compatibility with old openbox-menu generators
 		 */
 		current_item_action->arg = strdup(content);
+	} else if (!strcmp(nodename, "to.action")) {
+		current_item_action->arg = strdup(content);
 	}
+}
+
+static void
+item_destroy(struct menuitem *item)
+{
+	wl_list_remove(&item->link);
+	action_list_free(&item->actions);
+	wlr_scene_node_destroy(&item->tree->node);
+	free(item);
 }
 
 static void
@@ -447,6 +458,38 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 	}
 }
 
+static void
+menu_hide_submenu(const char *id)
+{
+	struct menu *menu, *hide_menu;
+	hide_menu = menu_get_by_id(id);
+	if (!hide_menu) {
+		return;
+	}
+	for (int i = 0; i < nr_menus; ++i) {
+		menu = menus + i;
+		size_t item_index = 0;
+		size_t items_destroyed = 0;
+		struct menuitem *item, *item_tmp;
+		wl_list_for_each_reverse_safe(item, item_tmp, &menu->menuitems, link) {
+			if (item->submenu == hide_menu) {
+				item_destroy(item);
+				items_destroyed++;
+				item_index++;
+				continue;
+			}
+			if (items_destroyed) {
+				int y = (item_index - items_destroyed) * menu->item_height;
+				wlr_scene_node_set_position(&item->tree->node, 0, y);
+			}
+			item_index++;
+		}
+		if (items_destroyed) {
+			menu->size.height -= items_destroyed * menu->item_height;
+		}
+	}
+}
+
 void
 menu_init_rootmenu(struct server *server)
 {
@@ -487,8 +530,28 @@ menu_init_windowmenu(struct server *server)
 		fill_item("name.action", "ToggleDecorations");
 		current_item = item_create(menu, _("AlwaysOnTop"));
 		fill_item("name.action", "ToggleAlwaysOnTop");
+
+		/* Workspace sub-menu */
+		struct menu *workspace_menu = menu_create(server, "workspaces", "");
+		current_item = item_create(workspace_menu, _("Move left"));
+		fill_item("name.action", "SendToDesktop");
+		fill_item("to.action", "left");
+		fill_item("name.action", "GoToDesktop");
+		fill_item("to.action", "left");
+		current_item = item_create(workspace_menu, _("Move right"));
+		fill_item("name.action", "SendToDesktop");
+		fill_item("to.action", "right");
+		fill_item("name.action", "GoToDesktop");
+		fill_item("to.action", "right");
+		current_item = item_create(menu, _("Workspace"));
+		current_item->submenu = workspace_menu;
+
 		current_item = item_create(menu, _("Close"));
 		fill_item("name.action", "Close");
+	}
+
+	if (wl_list_length(&rc.workspace_config.workspaces) == 1) {
+		menu_hide_submenu("workspaces");
 	}
 }
 
@@ -500,9 +563,7 @@ menu_finish(void)
 		menu = menus + i;
 		struct menuitem *item, *next;
 		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
-			wl_list_remove(&item->link);
-			action_list_free(&item->actions);
-			free(item);
+			item_destroy(item);
 		}
 		/**
 		 * Destroying the root node will destroy everything,

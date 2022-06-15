@@ -3,6 +3,7 @@
 #include "labwc.h"
 #include "node.h"
 #include "ssd.h"
+#include "workspaces.h"
 
 static void
 handle_new_xdg_popup(struct wl_listener *listener, void *data)
@@ -374,7 +375,8 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->impl = &xdg_toplevel_view_impl;
 	view->xdg_surface = xdg_surface;
 
-	view->scene_tree = wlr_scene_tree_create(view->server->view_tree);
+	view->workspace = server->workspace_current;
+	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 
 	struct wlr_scene_tree *tree = wlr_scene_xdg_surface_create(

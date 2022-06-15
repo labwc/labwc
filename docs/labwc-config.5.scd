@@ -88,6 +88,7 @@ The rest of this man page describes configuration options.
 	Raise window to top when focused. Default is no.
 
 ## WINDOW SNAPPING
+
 *<snapping><range>*
 	The distance in pixels from the edge of an ouput for window Move
 	operations to trigger SnapToEdge. A range of 0 disables window snapping.
@@ -95,6 +96,18 @@ The rest of this man page describes configuration options.
 
 *<snapping><topMaximize>* [yes|no]
 	Maximize window if Move operation ends on the top edge. Default is yes.
+
+## WORKSPACES
+
+*<desktops><names><name>*
+	Define workspaces. A workspace covers all outputs. The OSD only shows
+	windows on the current workspace. Workspaces can be switched to with
+	GoToDesktop and windows can be moved with SendToDesktop. See
+	labwc-actions(5) for more information about their arguments.
+
+*<desktops><popupTime>*
+	Define the timeout after which to hide the workspace OSD.
+	A setting of 0 disables the OSD. Default is 1000 ms.
 
 ## THEME
 

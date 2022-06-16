@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#define _POSIX_C_SOURCE
 #include <strings.h>
 #include <wlr/util/log.h>
 #include <signal.h>

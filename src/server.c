@@ -150,16 +150,27 @@ handle_input_disinhibit(struct wl_listener *listener, void *data)
 static void
 handle_drm_lease_request(struct wl_listener *listener, void *data)
 {
-	/*
-	 * We only offer non-desktop outputs, but in the future we might want to do
-	 * more logic here.
-	 */
-
 	struct wlr_drm_lease_request_v1 *req = data;
 	struct wlr_drm_lease_v1 *lease = wlr_drm_lease_request_v1_grant(req);
 	if (!lease) {
 		wlr_log(WLR_ERROR, "Failed to grant lease request");
 		wlr_drm_lease_request_v1_reject(req);
+		return;
+	}
+
+	for(size_t i = 0; i < req->n_connectors; ++i) {
+		struct output *output = req->connectors[i]->output->data;
+		if (!output) {
+			continue;
+		}
+
+		wlr_output_enable(output->wlr_output, false);
+		wlr_output_commit(output->wlr_output);
+
+		wlr_output_layout_remove(output->server->output_layout, output->wlr_output);
+		output->scene_output = NULL;
+
+		output->leased = true;
 	}
 }
 

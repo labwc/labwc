@@ -246,15 +246,23 @@ new_popup_notify(struct wl_listener *listener, void *data)
 	struct lab_layer_surface *toplevel =
 		wl_container_of(listener, toplevel, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
-	struct output *output =
-		toplevel->scene_layer_surface->layer_surface->output->data;
-
-	struct wlr_box output_box = { 0 };
-	wlr_output_layout_get_box(output->server->output_layout,
-		output->wlr_output, &output_box);
 
 	int lx, ly;
-	wlr_scene_node_coords(&toplevel->scene_layer_surface->tree->node, &lx, &ly);
+	struct server *server = toplevel->server;
+	struct wlr_scene_layer_surface_v1 *surface = toplevel->scene_layer_surface;
+	wlr_scene_node_coords(&surface->tree->node, &lx, &ly);
+
+	if (!surface->layer_surface->output) {
+		/* Work-around for moving layer shell surfaces on output destruction */
+		struct wlr_output *wlr_output;
+		wlr_output = wlr_output_layout_output_at(server->output_layout, lx, ly);
+		surface->layer_surface->output = wlr_output;
+	}
+	struct output *output = surface->layer_surface->output->data;
+
+	struct wlr_box output_box = { 0 };
+	wlr_output_layout_get_box(server->output_layout,
+		output->wlr_output, &output_box);
 
 	/*
 	 * Output geometry expressed in the coordinate system of the toplevel
@@ -269,11 +277,10 @@ new_popup_notify(struct wl_listener *listener, void *data)
 		.height = output_box.height,
 	};
 	struct lab_layer_popup *popup = create_popup(wlr_popup,
-		toplevel->scene_layer_surface->tree,
-		&output_toplevel_sx_box);
+		surface->tree, &output_toplevel_sx_box);
 	popup->output_toplevel_sx_box = output_toplevel_sx_box;
 
-	if (toplevel->scene_layer_surface->layer_surface->current.layer
+	if (surface->layer_surface->current.layer
 			== ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM) {
 		move_popup_to_top_layer(toplevel, popup);
 	}

@@ -93,6 +93,16 @@ get_special(struct server *server, struct wlr_scene_node *node,
 	if (node == &server->menu_tree->node) {
 		return "server->menu_tree";
 	}
+	if (node == &server->view_tree->node) {
+		return "server->view_tree";
+	}
+	if (node == &server->view_tree_always_on_top->node) {
+		return "server->view_tree_always_on_top";
+	}
+	if (node->parent == server->view_tree) {
+		/* Add node_descriptor just to get the name here? */
+		return "workspace";
+	}
 	if (node->parent == &server->scene->tree) {
 		struct output *output;
 		wl_list_for_each(output, &server->outputs, link) {
@@ -111,15 +121,13 @@ get_special(struct server *server, struct wlr_scene_node *node,
 		return "server->unmanaged_tree";
 	}
 #endif
-	if (node == &server->view_tree->node) {
-		return "server->view_tree";
+	struct wlr_scene_tree *grand_parent =
+		node->parent ? node->parent->node.parent : NULL;
+	if (grand_parent == server->view_tree) {
+			*last_view = node_view_from_node(node);
 	}
-	if (node == &server->view_tree_always_on_top->node) {
-		return "server->view_tree_always_on_top";
-	}
-	if (node->parent == server->view_tree ||
-			node->parent == server->view_tree_always_on_top) {
-		*last_view = node_view_from_node(node);
+	if (node->parent == server->view_tree_always_on_top) {
+			*last_view = node_view_from_node(node);
 	}
 	const char *view_part = get_view_part(*last_view, node);
 	if (view_part) {

@@ -67,8 +67,9 @@ Actions are used in menus and keyboard/mouse bindings.
 	Toggle always-on-top of focused window.
 
 *<action name="GoToDesktop"><to>*
-	Switch to workspace. Supported values are "left", "right" or the full
-	name of a workspace or its index (starting at 1) as configured in rc.xml.
+	Switch to workspace. Supported values are "last", "left", "right" or the
+	full name of a workspace or its index (starting at 1) as configured in
+	rc.xml.
 
 *<action name="SendToDesktop"><to>*
 	Send active window to workspace.

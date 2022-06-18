@@ -203,6 +203,7 @@ struct server {
 	/* Workspaces */
 	struct wl_list workspaces;  /* struct workspace.link */
 	struct workspace *workspace_current;
+	struct workspace *workspace_last;
 
 	struct wl_list outputs;
 	struct wl_listener new_output;

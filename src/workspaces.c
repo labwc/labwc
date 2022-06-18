@@ -283,6 +283,9 @@ workspaces_switch_to(struct workspace *target)
 	/* Enable the new workspace */
 	wlr_scene_node_set_enabled(&target->tree->node, true);
 
+	/* Save the last visited workspace */
+	target->server->workspace_last = target->server->workspace_current;
+
 	/* Make sure new views will spawn on the new workspace */
 	target->server->workspace_current = target;
 
@@ -342,6 +345,8 @@ workspaces_find(struct workspace *anchor, const char *name)
 				return target;
 			}
 		}
+	} else if (!strcasecmp(name, "last")) {
+		return anchor->server->workspace_last;
 	} else if (!strcasecmp(name, "left")) {
 		return get_prev(anchor, workspaces);
 	} else if (!strcasecmp(name, "right")) {

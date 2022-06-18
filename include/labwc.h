@@ -306,6 +306,7 @@ struct view {
 	bool been_mapped;
 	bool minimized;
 	bool maximized;
+	bool is_tiled;
 	struct wlr_output *fullscreen;
 
 	/* geometry of the wlr_surface contained within the view */
@@ -313,6 +314,9 @@ struct view {
 
 	/* geometry before maximize */
 	struct wlr_box unmaximized_geometry;
+
+	/* geometry before tiling */
+	struct wlr_box untiled_geometry;
 
 	/*
 	 * margin refers to the space between the extremities of the

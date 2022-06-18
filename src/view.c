@@ -668,6 +668,23 @@ view_snap_to_edge(struct view *view, const char *direction)
 			view_edge_invert(edge));
 	}
 
+	/* Remember old geometry */
+	if (!view->is_tiled) {
+		if (!view->maximized) {
+			/* Store current geometry */
+			view->untiled_geometry.x = view->x;
+			view->untiled_geometry.y = view->y;
+			view->untiled_geometry.width = view->w;
+			view->untiled_geometry.height = view->h;
+		} else {
+			/* Reuse unmaximized geometry */
+			memcpy(&view->untiled_geometry, &view->unmaximized_geometry,
+				sizeof(view->untiled_geometry));
+		}
+		view->is_tiled = true;
+	}
+	view->maximized = false;
+
 	if (view->w == dst.width && view->h == dst.height) {
 		/* move horizontally/vertically without changing size */
 		view_move(view, dst.x, dst.y);

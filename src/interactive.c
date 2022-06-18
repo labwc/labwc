@@ -17,28 +17,46 @@ max_move_scale(double pos_cursor, double pos_current,
 void
 interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 {
-	if (view->maximized) {
-		if (mode == LAB_INPUT_STATE_MOVE) {
-			int new_x = max_move_scale(view->server->seat.cursor->x,
-				view->x, view->w, view->unmaximized_geometry.width);
-			int new_y = max_move_scale(view->server->seat.cursor->y,
-				view->y, view->h, view->unmaximized_geometry.height);
-			view->unmaximized_geometry.x = new_x;
-			view->unmaximized_geometry.y = new_y;
-			view_maximize(view, false);
-			/*
-			 * view_maximize() indirectly calls view->impl->configure
-			 * which is async but we are using the current values in
-			 * server->grab_box. We pretend the configure already
-			 * happened by setting them manually.
-			 */
-			view->x = new_x;
-			view->y = new_y;
-			view->w = view->unmaximized_geometry.width;
-			view->h = view->unmaximized_geometry.height;
+	if (mode == LAB_INPUT_STATE_RESIZE && view->maximized) {
+		return;
+	}
+	if (mode == LAB_INPUT_STATE_MOVE && (view->maximized || view->is_tiled)) {
+		/**
+		 * Disable tiling or maximized mode by resizing to the old size
+		 * but modifying the x and y coordinates to match the cursor.
+		 */
+
+		/* Order of branches matter, a view may be maximized and tiled */
+		struct wlr_box *old_geo;
+		if (view->is_tiled) {
+			old_geo = &view->untiled_geometry;
 		} else {
-			return;
+			old_geo = &view->unmaximized_geometry;
 		}
+
+		/* Recalculate x and y based on cursor position */
+		old_geo->x = max_move_scale(view->server->seat.cursor->x,
+			view->x, view->w, old_geo->width);
+		old_geo->y = max_move_scale(view->server->seat.cursor->y,
+			view->y, view->h, old_geo->height);
+
+		if (view->is_tiled) {
+			view_move_resize(view, *old_geo);
+			view->is_tiled = false;
+			view->maximized = false;
+		} else {
+			view_maximize(view, false);
+		}
+		/**
+		 * view_move_resize() / view_maximize() indirectly calls
+		 * view->impl->configure which is async but we are using
+		 * the current values in server->grab_box. We pretend the
+		 * configure already happened by setting them manually.
+		 */
+		view->x = old_geo->x;
+		view->y = old_geo->y;
+		view->w = old_geo->width;
+		view->h = old_geo->height;
 	}
 
 	/*
@@ -65,6 +83,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		cursor_set(&server->seat, "grab");
 		break;
 	case LAB_INPUT_STATE_RESIZE:
+		view->is_tiled = false;
 		cursor_set(&server->seat, wlr_xcursor_get_resize_name(edges));
 		break;
 	default:

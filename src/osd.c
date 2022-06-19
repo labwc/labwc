@@ -189,7 +189,8 @@ osd_update(struct server *server)
 		/* text */
 		set_source(cairo, theme->osd_label_text_color);
 		PangoLayout *layout = pango_cairo_create_layout(cairo);
-		pango_layout_set_width(layout, w * PANGO_SCALE);
+		pango_layout_set_width(layout,
+			(OSD_ITEM_WIDTH - 2 * OSD_ITEM_PADDING) * PANGO_SCALE);
 		pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 
 		struct font font = {

@@ -31,10 +31,13 @@ menu.items.bg.color: #fcfbfa
 menu.items.text.color: #000000
 menu.items.active.bg.color: #dddad6
 menu.items.active.text.color: #000000
+menu.separator.width: 1
+menu.separator.padding.width: 6
+menu.separator.padding.height: 3
+menu.separator.color: #888888
 
 # on screen display (window-cycle dialog)
 osd.bg.color: #dddda6
 osd.border.color: #000000
 osd.border.width: 1
 osd.label.text.color: #000000
-

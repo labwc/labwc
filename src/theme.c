@@ -128,6 +128,11 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#dddad6", theme->menu_items_active_bg_color);
 	parse_hexstr("#000000", theme->menu_items_active_text_color);
 
+	theme->menu_separator_width = 1;
+	theme->menu_separator_padding_width = 6;
+	theme->menu_separator_padding_height = 3;
+	parse_hexstr("#888888", theme->menu_separator_color);
+
 	/* inherit settings in post_processing() if not set elsewhere */
 	theme->osd_bg_color[0] = FLT_MIN;
 	theme->osd_border_width = INT_MIN;
@@ -257,6 +262,19 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match(key, "menu.items.active.text.color")) {
 		parse_hexstr(value, theme->menu_items_active_text_color);
+	}
+
+	if (match(key, "menu.separator.width")) {
+		theme->menu_separator_width = atoi(value);
+	}
+	if (match(key, "menu.separator.padding.width")) {
+		theme->menu_separator_padding_width = atoi(value);
+	}
+	if (match(key, "menu.separator.padding.height")) {
+		theme->menu_separator_padding_height = atoi(value);
+	}
+	if (match(key, "menu.separator.color")) {
+		parse_hexstr(value, theme->menu_separator_color);
 	}
 
 	if (match(key, "osd.bg.color")) {

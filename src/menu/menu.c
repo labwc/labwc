@@ -85,6 +85,7 @@ item_create(struct menu *menu, const char *text)
 		return NULL;
 	}
 	menuitem->parent = menu;
+	menuitem->selectable = true;
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
 	struct font font = {
@@ -95,6 +96,7 @@ item_create(struct menu *menu, const char *text)
 	if (!menu->item_height) {
 		menu->item_height = font_height(&font) + 2 * MENU_ITEM_PADDING_Y;
 	}
+	menuitem->height = menu->item_height;
 
 	int x, y;
 	int item_max_width = MENUWIDTH - 2 * MENU_ITEM_PADDING_X;
@@ -148,16 +150,57 @@ item_create(struct menu *menu, const char *text)
 	wlr_scene_node_set_position(menuitem->selected.text, x, y);
 
 	/* Position the item in relation to its menu */
-	int item_count = wl_list_length(&menu->menuitems);
-	y = item_count * menu->item_height;
-	wlr_scene_node_set_position(&menuitem->tree->node, 0, y);
+	wlr_scene_node_set_position(&menuitem->tree->node, 0, menu->size.height);
 
 	/* Hide selected state */
 	wlr_scene_node_set_enabled(&menuitem->selected.tree->node, false);
 
 	/* Update menu extents */
-	menu->size.height = (item_count + 1) * menu->item_height;
+	menu->size.height += menuitem->height;
 
+	wl_list_insert(&menu->menuitems, &menuitem->link);
+	wl_list_init(&menuitem->actions);
+	return menuitem;
+}
+
+static struct menuitem *
+separator_create(struct menu *menu, const char *label)
+{
+	struct menuitem *menuitem = calloc(1, sizeof(struct menuitem));
+	if (!menuitem) {
+		return NULL;
+	}
+	menuitem->parent = menu;
+	menuitem->selectable = false;
+	struct server *server = menu->server;
+	struct theme *theme = server->theme;
+	menuitem->height = theme->menu_separator_width +
+			2 * theme->menu_separator_padding_height;
+
+	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
+	node_descriptor_create(&menuitem->tree->node,
+		LAB_NODE_DESC_MENUITEM, menuitem);
+	menuitem->normal.tree = wlr_scene_tree_create(menuitem->tree);
+	menuitem->normal.background = &wlr_scene_rect_create(
+		menuitem->normal.tree,
+		MENUWIDTH, menuitem->height,
+		theme->menu_items_bg_color)->node;
+
+	/* theme->menu_separator_width is the line-thickness (so height here) */
+	menuitem->normal.text = &wlr_scene_rect_create(
+		menuitem->normal.tree,
+		MENUWIDTH - 2 * theme->menu_separator_padding_width,
+		theme->menu_separator_width,
+		theme->menu_separator_color)->node;
+
+	wlr_scene_node_set_position(&menuitem->tree->node, 0, menu->size.height);
+
+	/* Vertically center-align separator line */
+	wlr_scene_node_set_position(menuitem->normal.text,
+		theme->menu_separator_padding_width,
+		theme->menu_separator_padding_height);
+
+	menu->size.height += menuitem->height;
 	wl_list_insert(&menu->menuitems, &menuitem->link);
 	wl_list_init(&menuitem->actions);
 	return menuitem;
@@ -309,6 +352,17 @@ handle_menu_element(xmlNode *n, struct server *server)
 	zfree(id);
 }
 
+/* This can be one of <separator> and <separator label=""> */
+static void
+handle_separator_element(xmlNode *n)
+{
+	char *label = (char *)xmlGetProp(n, (const xmlChar *)"label");
+	current_item = separator_create(current_menu, label);
+	if (label) {
+		free(label);
+	}
+}
+
 static void
 xml_tree_walk(xmlNode *node, struct server *server)
 {
@@ -318,6 +372,10 @@ xml_tree_walk(xmlNode *node, struct server *server)
 		}
 		if (!strcasecmp((char *)n->name, "menu")) {
 			handle_menu_element(n, server);
+			continue;
+		}
+		if (!strcasecmp((char *)n->name, "separator")) {
+			handle_separator_element(n);
 			continue;
 		}
 		if (!strcasecmp((char *)n->name, "item")) {
@@ -468,24 +526,24 @@ menu_hide_submenu(const char *id)
 	}
 	for (int i = 0; i < nr_menus; ++i) {
 		menu = menus + i;
-		size_t item_index = 0;
-		size_t items_destroyed = 0;
-		struct menuitem *item, *item_tmp;
-		wl_list_for_each_reverse_safe(item, item_tmp, &menu->menuitems, link) {
+		bool should_reposition = false;
+		struct menuitem *item, *next;
+		wl_list_for_each_reverse_safe(item, next, &menu->menuitems, link) {
 			if (item->submenu == hide_menu) {
 				item_destroy(item);
-				items_destroyed++;
-				item_index++;
-				continue;
+				should_reposition = true;
 			}
-			if (items_destroyed) {
-				int y = (item_index - items_destroyed) * menu->item_height;
-				wlr_scene_node_set_position(&item->tree->node, 0, y);
-			}
-			item_index++;
 		}
-		if (items_destroyed) {
-			menu->size.height -= items_destroyed * menu->item_height;
+
+		if (!should_reposition) {
+			continue;
+		}
+		/* Re-position items vertically */
+		menu->size.height = 0;
+		wl_list_for_each_reverse(item, &menu->menuitems, link) {
+			wlr_scene_node_set_position(&item->tree->node, 0,
+				menu->size.height);
+			menu->size.height += item->height;
 		}
 	}
 }
@@ -645,6 +703,12 @@ menu_process_cursor_motion(struct wlr_scene_node *node)
 	assert(node && node->data);
 	struct menuitem *item = node_menuitem_from_node(node);
 
+	/* This function shall only be called for menu nodes */
+	assert(item);
+
+	if (!item->selectable) {
+		return;
+	}
 	if (node == &item->selected.tree->node) {
 		/* We are on an already selected item */
 		return;

@@ -101,6 +101,18 @@ elements are not listed here, but are supported.
 *menu.items.active.text.color*
 	Text color of active menu item
 
+*menu.separator.width*
+	Line thickness of menu separators. Default 1.
+
+*menu.separator.padding.width*
+	Space on the left and right side of each separator line. Default 6.
+
+*menu.separator.padding.height*
+	Space above and below each separator line. Default 3.
+
+*menu.separator.color*
+	Menu separator color. Default #888888.
+
 *osd.bg.color*
 	Background color of on-screen-display
 

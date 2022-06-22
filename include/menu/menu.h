@@ -31,6 +31,8 @@ struct menuitem {
 	struct wl_list actions;
 	struct menu *parent;
 	struct menu *submenu;
+	bool selectable;
+	int height;
 	struct wlr_scene_tree *tree;
 	struct menu_scene normal;
 	struct menu_scene selected;

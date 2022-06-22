@@ -1,6 +1,7 @@
 # labwc
 
 <h3 align="center">[<a
+href="https://labwc.github.io/">Official Website</a>] [<a
 href="https://github.com/labwc/labwc-scope#readme">Scope</a>] [<a
 href="https://web.libera.chat/gamja/?channels=#labwc">IRC Channel</a>] [<a
 href="NEWS.md">Release&nbsp;Notes</a>]</h3>

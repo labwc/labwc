@@ -18,17 +18,28 @@ jobs:
       matrix:
         name: [
           Arch,
+          FreeBSD,
           Void-musl
         ]
         include:
           - name: Arch
             os: ubuntu-latest
             container: archlinux:base-devel
+            env:
+              SSH_HOST: ''
+
+          - name: FreeBSD
+            os: macos-10.15
+            env:
+              SSH_HOST: freebsd
 
           - name: Void-musl
             os: ubuntu-latest
             container: ghcr.io/void-linux/void-linux:latest-thin-x86_64-musl
+            env:
+              SSH_HOST: ''
 
+    env: ${{ matrix.env }}
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
 
@@ -42,6 +53,16 @@ jobs:
           pacman -Syu --noconfirm
           pacman -S --noconfirm git meson clang wlroots libdrm libinput \
             wayland-protocols cairo pango libxml2 xorg-xwayland
+
+      - name: Install FreeBSD dependencies
+        if: matrix.name == 'FreeBSD'
+        uses: vmactions/freebsd-vm@v0.1.5
+        with:
+          usesh: true
+          prepare: |
+            pkg install -y git meson gcc pkgconf cairo pango evdev-proto \
+              wayland-protocols wlroots
+          run: echo "setup done"
 
       - name: Install Void Linux dependencies
         if: matrix.name == 'Void-musl'
@@ -58,13 +79,30 @@ jobs:
 
       - name: Build with gcc
         run: |
-          export CC=gcc
-          meson build-gcc/ --werror
-          meson compile -C build-gcc/
+          if test -z "$SSH_HOST"; then
+            export CC=gcc
+            meson build-gcc/ --werror
+            meson compile -C build-gcc/
+          else
+            echo '
+              cd "$GITHUB_WORKSPACE"
+              export CC=gcc
+              meson build-gcc/ --werror
+              meson compile -C build-gcc/
+            ' | ssh "$SSH_HOST" /bin/sh
+          fi
 
       - name: Build with clang
         run: |
-          export CC=clang
-          meson build-clang/ --werror
-          meson compile -C build-clang/
-
+          if test -z "$SSH_HOST"; then
+            export CC=clang
+            meson build-clang/ --werror
+            meson compile -C build-clang/
+          else
+            echo '
+              cd "$GITHUB_WORKSPACE"
+              export CC=clang
+              meson build-clang/ --werror
+              meson compile -C build-clang/
+            ' | ssh "$SSH_HOST" /bin/sh
+          fi

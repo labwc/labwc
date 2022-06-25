@@ -4,6 +4,9 @@
 #include <strings.h>
 #include <wlr/backend/libinput.h>
 #include <wlr/types/wlr_input_device.h>
+#include <wlr/types/wlr_keyboard.h>
+#include <wlr/types/wlr_pointer.h>
+#include <wlr/types/wlr_touch.h>
 #include <wlr/util/log.h>
 #include "labwc.h"
 
@@ -150,11 +153,11 @@ new_pointer(struct seat *seat, struct input *input)
 
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
 	if (dev->type == WLR_INPUT_DEVICE_POINTER) {
-		wlr_log(WLR_INFO, "map pointer to output %s\n",
-			dev->pointer->output_name);
 		struct wlr_output *output = NULL;
-		if (dev->pointer->output_name) {
-			output = output_by_name(seat->server, dev->pointer->output_name);
+		struct wlr_pointer *pointer = wlr_pointer_from_input_device(dev);
+		wlr_log(WLR_INFO, "map pointer to output %s\n", pointer->output_name);
+		if (pointer->output_name) {
+			output = output_by_name(seat->server, pointer->output_name);
 		}
 		wlr_cursor_map_input_to_output(seat->cursor, dev, output);
 		wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
@@ -164,7 +167,8 @@ new_pointer(struct seat *seat, struct input *input)
 void
 new_keyboard(struct seat *seat, struct input *input)
 {
-	struct wlr_keyboard *kb = input->wlr_input_device->keyboard;
+	struct wlr_keyboard *kb =
+		wlr_keyboard_from_input_device(input->wlr_input_device);
 	wlr_keyboard_set_keymap(kb, seat->keyboard_group->keyboard.keymap);
 	wlr_keyboard_group_add_keyboard(seat->keyboard_group, kb);
 	wlr_seat_set_keyboard(seat->seat, kb);
@@ -181,11 +185,11 @@ new_touch(struct seat *seat, struct input *input)
 
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
 	if (dev->type == WLR_INPUT_DEVICE_TOUCH) {
-		wlr_log(WLR_INFO, "map touch to output %s\n",
-			dev->pointer->output_name);
 		struct wlr_output *output = NULL;
-		if (dev->pointer->output_name) {
-			output = output_by_name(seat->server, dev->pointer->output_name);
+		struct wlr_touch *touch = wlr_touch_from_input_device(dev);
+		wlr_log(WLR_INFO, "map touch to output %s\n", touch->output_name);
+		if (touch->output_name) {
+			output = output_by_name(seat->server, touch->output_name);
 		}
 		wlr_cursor_map_input_to_output(seat->cursor, dev, output);
 		wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);

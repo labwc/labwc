@@ -329,7 +329,7 @@ map(struct view *view)
 	if (!view->been_mapped) {
 		view->ssd.enabled = want_deco(view);
 		if (view->ssd.enabled) {
-			view->margin = ssd_thickness(view);
+			ssd_create(view);
 		}
 
 		if (!view->maximized && !view->fullscreen) {
@@ -341,11 +341,6 @@ map(struct view *view)
 		}
 
 		view_discover_output(view);
-
-		if (view->ssd.enabled) {
-			/* Create ssd after view_disover_output() had been called */
-			ssd_create(view);
-		}
 		view->been_mapped = true;
 	}
 

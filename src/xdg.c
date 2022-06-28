@@ -298,7 +298,6 @@ xdg_toplevel_view_map(struct view *view)
 
 		view->ssd.enabled = has_ssd(view);
 		if (view->ssd.enabled) {
-			view->margin = ssd_thickness(view);
 			ssd_create(view);
 		}
 
@@ -311,7 +310,6 @@ xdg_toplevel_view_map(struct view *view)
 		}
 
 		view_discover_output(view);
-
 		view->been_mapped = true;
 	}
 

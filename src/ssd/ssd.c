@@ -17,6 +17,10 @@
 struct border
 ssd_thickness(struct view *view)
 {
+	if (!view->ssd.enabled) {
+		struct border border = { 0 };
+		return border;
+	}
 	struct theme *theme = view->server->theme;
 	struct border border = {
 		.top = theme->title_height + theme->border_width,
@@ -159,6 +163,7 @@ ssd_create(struct view *view)
 	ssd_extents_create(view);
 	ssd_border_create(view);
 	ssd_titlebar_create(view);
+	view->margin = ssd_thickness(view);
 }
 
 void
@@ -171,10 +176,12 @@ ssd_update_geometry(struct view *view)
 	if (!view->ssd.enabled) {
 		if (view->ssd.tree->node.enabled) {
 			wlr_scene_node_set_enabled(&view->ssd.tree->node, false);
+			view->margin = ssd_thickness(view);
 		}
 		return;
 	} else if (!view->ssd.tree->node.enabled) {
 		wlr_scene_node_set_enabled(&view->ssd.tree->node, true);
+		view->margin = ssd_thickness(view);
 	}
 
 	int width = view->w;
@@ -196,15 +203,6 @@ ssd_update_geometry(struct view *view)
 	view->ssd.state.height = height;
 	view->ssd.state.x = view->x;
 	view->ssd.state.y = view->y;
-}
-
-void
-ssd_hide(struct view *view)
-{
-	if (!view->ssd.tree) {
-		return;
-	}
-	wlr_scene_node_set_enabled(&view->ssd.tree->node, false);
 }
 
 void ssd_reload(struct view *view)

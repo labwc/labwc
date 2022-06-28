@@ -37,11 +37,29 @@ layers_arrange(struct output *output)
 	int nr_layers = sizeof(output->layers) / sizeof(output->layers[0]);
 	for (int i = 0; i < nr_layers; i++) {
 		struct lab_layer_surface *lab_layer_surface;
+
+		/*
+		 * First we go over the list of surfaces that have
+		 * exclusive_zone set (e.g. statusbars) because we have to
+		 * determine the usable area before processing regular layouts.
+		 */
 		wl_list_for_each(lab_layer_surface, &output->layers[i], link) {
 			struct wlr_scene_layer_surface_v1 *scene_layer_surface =
 				lab_layer_surface->scene_layer_surface;
-			wlr_scene_layer_surface_v1_configure(
-				scene_layer_surface, &full_area, &usable_area);
+			if (scene_layer_surface->layer_surface->current.exclusive_zone) {
+				wlr_scene_layer_surface_v1_configure(
+					scene_layer_surface, &full_area, &usable_area);
+			}
+		}
+
+		/* Now we process regular layouts */
+		wl_list_for_each(lab_layer_surface, &output->layers[i], link) {
+			struct wlr_scene_layer_surface_v1 *scene_layer_surface =
+				lab_layer_surface->scene_layer_surface;
+			if (!scene_layer_surface->layer_surface->current.exclusive_zone) {
+				wlr_scene_layer_surface_v1_configure(
+					scene_layer_surface, &full_area, &usable_area);
+			}
 		}
 
 		wlr_scene_node_set_position(&output->layer_tree[i]->node,
@@ -350,7 +368,7 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	wl_list_insert(&output->layers[layer_surface->pending.layer],
+	wl_list_insert(output->layers[layer_surface->pending.layer].prev,
 		&surface->link);
 	/*
 	 * Temporarily set the layer's current state to pending so that

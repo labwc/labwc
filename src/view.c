@@ -14,7 +14,7 @@ void
 view_set_activated(struct view *view, bool activated)
 {
 	if (view->ssd.enabled) {
-		ssd_set_active(view);
+		ssd_set_active(view, activated);
 	}
 	if (view->impl->set_activated) {
 		view->impl->set_activated(view, activated);

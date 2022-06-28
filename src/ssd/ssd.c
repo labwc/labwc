@@ -285,19 +285,11 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 }
 
 void
-ssd_set_active(struct view *view)
+ssd_set_active(struct view *view, bool activated)
 {
 	if (!view->ssd.tree) {
 		return;
 	}
-
-	struct view *last = view->server->ssd_focused_view;
-	if (last == view) {
-		return;
-	}
-	if (last && last->ssd.tree) {
-		_ssd_set_active(&last->ssd, false);
-	}
-	_ssd_set_active(&view->ssd, true);
+	_ssd_set_active(&view->ssd, activated);
 	view->server->ssd_focused_view = view;
 }

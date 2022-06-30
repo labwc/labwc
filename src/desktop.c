@@ -100,6 +100,16 @@ deactivate_all_views(struct server *server)
 }
 
 void
+desktop_arrange_all_views(struct server *server)
+{
+	/* Adjust window positions/sizes */
+	struct view *view;
+	wl_list_for_each(view, &server->views, link) {
+		view_adjust_for_layout_change(view);
+	}
+}
+
+void
 desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 {
 	if (!view) {

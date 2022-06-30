@@ -460,6 +460,7 @@ void foreign_toplevel_handle_create(struct view *view);
 void desktop_move_to_front(struct view *view);
 void desktop_move_to_back(struct view *view);
 void desktop_focus_and_activate_view(struct seat *seat, struct view *view);
+void desktop_arrange_all_views(struct server *server);
 
 enum lab_cycle_dir {
 	LAB_CYCLE_DIR_NONE,

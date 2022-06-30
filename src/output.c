@@ -209,10 +209,7 @@ static void
 output_update_for_layout_change(struct server *server)
 {
 	/* Adjust window positions/sizes */
-	struct view *view;
-	wl_list_for_each(view, &server->views, link) {
-		view_adjust_for_layout_change(view);
-	}
+	desktop_arrange_all_views(server);
 
 	/*
 	 * "Move" each wlr_output_cursor (in per-output coordinates) to

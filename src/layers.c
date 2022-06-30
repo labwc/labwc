@@ -98,7 +98,9 @@ layers_arrange(struct output *output)
 			!seat->focused_layer->current.keyboard_interactive) {
 		seat_set_focus_layer(seat, NULL);
 	}
-	/* FIXME: should we call a desktop_arrange_all_views() here? */
+
+	/* Finally re-arrange all views based on usable_area */
+	desktop_arrange_all_views(server);
 }
 
 static void

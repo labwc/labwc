@@ -25,6 +25,7 @@ layers_arrange(struct output *output)
 	wlr_output_effective_resolution(output->wlr_output,
 		&full_area.width, &full_area.height);
 	struct wlr_box usable_area = full_area;
+	struct wlr_box old_usable_area = output->usable_area;
 
 	struct server *server = output->server;
 	struct wlr_scene_output *scene_output =
@@ -100,7 +101,10 @@ layers_arrange(struct output *output)
 	}
 
 	/* Finally re-arrange all views based on usable_area */
-	desktop_arrange_all_views(server);
+	if (old_usable_area.width != output->usable_area.width
+			|| old_usable_area.height != output->usable_area.height) {
+		desktop_arrange_all_views(server);
+	}
 }
 
 static void

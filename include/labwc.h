@@ -312,8 +312,8 @@ struct view {
 	/* geometry of the wlr_surface contained within the view */
 	int x, y, w, h;
 
-	/* geometry before maximize */
-	struct wlr_box unmaximized_geometry;
+	/* user defined geometry before maximize / tiling / fullscreen */
+	struct wlr_box natural_geometry;
 
 	/*
 	 * margin refers to the space between the extremities of the

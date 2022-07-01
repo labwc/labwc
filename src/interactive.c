@@ -20,11 +20,11 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 	if (view->maximized) {
 		if (mode == LAB_INPUT_STATE_MOVE) {
 			int new_x = max_move_scale(view->server->seat.cursor->x,
-				view->x, view->w, view->unmaximized_geometry.width);
+				view->x, view->w, view->natural_geometry.width);
 			int new_y = max_move_scale(view->server->seat.cursor->y,
-				view->y, view->h, view->unmaximized_geometry.height);
-			view->unmaximized_geometry.x = new_x;
-			view->unmaximized_geometry.y = new_y;
+				view->y, view->h, view->natural_geometry.height);
+			view->natural_geometry.x = new_x;
+			view->natural_geometry.y = new_y;
 			view_maximize(view, false);
 			/*
 			 * view_maximize() indirectly calls view->impl->configure
@@ -34,8 +34,8 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			 */
 			view->x = new_x;
 			view->y = new_y;
-			view->w = view->unmaximized_geometry.width;
-			view->h = view->unmaximized_geometry.height;
+			view->w = view->natural_geometry.width;
+			view->h = view->natural_geometry.height;
 		} else {
 			return;
 		}
@@ -102,9 +102,9 @@ interactive_end(struct view *view)
 					 * When unmaximizing later on restore
 					 * original position
 					 */
-					view->unmaximized_geometry.x =
+					view->natural_geometry.x =
 						view->server->grab_box.x;
-					view->unmaximized_geometry.y =
+					view->natural_geometry.y =
 						view->server->grab_box.y;
 				} else {
 					view_snap_to_edge(view, "up");

@@ -344,13 +344,13 @@ view_apply_maximized_geometry(struct view *view)
 static void
 set_fallback_geometry(struct view *view)
 {
-	view->unmaximized_geometry.width = LAB_FALLBACK_WIDTH;
-	view->unmaximized_geometry.height = LAB_FALLBACK_HEIGHT;
+	view->natural_geometry.width = LAB_FALLBACK_WIDTH;
+	view->natural_geometry.height = LAB_FALLBACK_HEIGHT;
 	view_compute_centered_position(view,
-		view->unmaximized_geometry.width,
-		view->unmaximized_geometry.height,
-		&view->unmaximized_geometry.x,
-		&view->unmaximized_geometry.y);
+		view->natural_geometry.width,
+		view->natural_geometry.height,
+		&view->natural_geometry.x,
+		&view->natural_geometry.y);
 }
 
 static void
@@ -361,18 +361,18 @@ view_apply_unmaximized_geometry(struct view *view)
 	 * width/height may still be zero in which case we set some fallback
 	 * values. This is the case with foot and Qt applications.
 	 */
-	if (wlr_box_empty(&view->unmaximized_geometry)) {
+	if (wlr_box_empty(&view->natural_geometry)) {
 		set_fallback_geometry(view);
 	}
 
 	struct wlr_output_layout *layout = view->server->output_layout;
 	if (wlr_output_layout_intersects(layout, NULL,
-			&view->unmaximized_geometry)) {
+			&view->natural_geometry)) {
 		/* restore to original geometry */
-		view_move_resize(view, view->unmaximized_geometry);
+		view_move_resize(view, view->natural_geometry);
 	} else {
 		/* reposition if original geometry is offscreen */
-		struct wlr_box box = view->unmaximized_geometry;
+		struct wlr_box box = view->natural_geometry;
 		if (view_compute_centered_position(view, box.width, box.height,
 				&box.x, &box.y)) {
 			view_move_resize(view, box);
@@ -398,10 +398,10 @@ view_maximize(struct view *view, bool maximize)
 	}
 	if (maximize) {
 		interactive_end(view);
-		view->unmaximized_geometry.x = view->x;
-		view->unmaximized_geometry.y = view->y;
-		view->unmaximized_geometry.width = view->w;
-		view->unmaximized_geometry.height = view->h;
+		view->natural_geometry.x = view->x;
+		view->natural_geometry.y = view->y;
+		view->natural_geometry.width = view->w;
+		view->natural_geometry.height = view->h;
 
 		view_apply_maximized_geometry(view);
 		view->maximized = true;
@@ -494,10 +494,10 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 	}
 	if (fullscreen) {
 		if (!view->maximized) {
-			view->unmaximized_geometry.x = view->x;
-			view->unmaximized_geometry.y = view->y;
-			view->unmaximized_geometry.width = view->w;
-			view->unmaximized_geometry.height = view->h;
+			view->natural_geometry.x = view->x;
+			view->natural_geometry.y = view->y;
+			view->natural_geometry.width = view->w;
+			view->natural_geometry.height = view->h;
 		}
 		view->fullscreen = wlr_output;
 		view_apply_fullscreen_geometry(view, view->fullscreen);

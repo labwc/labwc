@@ -525,6 +525,9 @@ view_adjust_for_layout_change(struct view *view)
 	} else if (view->maximized) {
 		/* recompute maximized geometry */
 		view_apply_maximized_geometry(view);
+	} else if (view->tiled) {
+		/* recompute tiled geometry */
+		view_apply_tiled_geometry(view, NULL);
 	} else {
 		/* reposition view if it's offscreen */
 		struct wlr_box box = { view->x, view->y, view->w, view->h };

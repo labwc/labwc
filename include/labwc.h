@@ -306,6 +306,7 @@ struct view {
 	bool been_mapped;
 	bool minimized;
 	bool maximized;
+	uint32_t tiled;  /* private, enum view_edge in src/view.c */
 	struct wlr_output *fullscreen;
 
 	/* geometry of the wlr_surface contained within the view */

@@ -10,6 +10,89 @@
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
+/**
+ * All view_apply_xxx_geometry() functions must *not* modify
+ * any state besides repositioning or resizing the view.
+ *
+ * They may be called repeatably during output layout changes.
+ */
+
+enum view_edge {
+	VIEW_EDGE_INVALID = 0,
+
+	VIEW_EDGE_LEFT,
+	VIEW_EDGE_RIGHT,
+	VIEW_EDGE_UP,
+	VIEW_EDGE_DOWN,
+	VIEW_EDGE_CENTER,
+};
+
+static enum view_edge
+view_edge_invert(enum view_edge edge)
+{
+	switch (edge) {
+	case VIEW_EDGE_LEFT:
+		return VIEW_EDGE_RIGHT;
+	case VIEW_EDGE_RIGHT:
+		return VIEW_EDGE_LEFT;
+	case VIEW_EDGE_UP:
+		return VIEW_EDGE_DOWN;
+	case VIEW_EDGE_DOWN:
+		return VIEW_EDGE_UP;
+	case VIEW_EDGE_CENTER:
+	case VIEW_EDGE_INVALID:
+	default:
+		return VIEW_EDGE_INVALID;
+	}
+}
+
+static struct wlr_box
+view_get_edge_snap_box(struct view *view, struct output *output,
+		enum view_edge edge)
+{
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
+	if (usable.height == output->wlr_output->height
+			&& output->wlr_output->scale != 1) {
+		usable.height /= output->wlr_output->scale;
+	}
+	if (usable.width == output->wlr_output->width
+			&& output->wlr_output->scale != 1) {
+		usable.width /= output->wlr_output->scale;
+	}
+
+	int x_offset = edge == VIEW_EDGE_RIGHT
+		? (usable.width + rc.gap) / 2 : rc.gap;
+	int y_offset = edge == VIEW_EDGE_DOWN
+		? (usable.height + rc.gap) / 2 : rc.gap;
+
+	int base_width, base_height;
+	switch (edge) {
+	case VIEW_EDGE_LEFT:
+	case VIEW_EDGE_RIGHT:
+		base_width = (usable.width - 3 * rc.gap) / 2;
+		base_height = usable.height - 2 * rc.gap;
+		break;
+	case VIEW_EDGE_UP:
+	case VIEW_EDGE_DOWN:
+		base_width = usable.width - 2 * rc.gap;
+		base_height = (usable.height - 3 * rc.gap) / 2;
+		break;
+	default:
+	case VIEW_EDGE_CENTER:
+		base_width = usable.width - 2 * rc.gap;
+		base_height = usable.height - 2 * rc.gap;
+		break;
+	}
+	struct wlr_box dst = {
+		.x = x_offset + usable.x + view->margin.left,
+		.y = y_offset + usable.y + view->margin.top,
+		.width = base_width - view->margin.left - view->margin.right,
+		.height = base_height - view->margin.top - view->margin.bottom,
+	};
+
+	return dst;
+}
+
 void
 view_set_activated(struct view *view, bool activated)
 {
@@ -182,6 +265,27 @@ view_center(struct view *view)
 	int x, y;
 	if (view_compute_centered_position(view, view->w, view->h, &x, &y)) {
 		view_move(view, x, y);
+	}
+}
+
+static void
+view_apply_tiled_geometry(struct view *view, struct output *output)
+{
+	assert(view->tiled);
+	if (!output) {
+		output = view_output(view);
+	}
+	if (!output) {
+		wlr_log(WLR_ERROR, "Can't tile: no output");
+		return;
+	}
+
+	struct wlr_box dst = view_get_edge_snap_box(view, output, view->tiled);
+	if (view->w == dst.width && view->h == dst.height) {
+		/* move horizontally/vertically without changing size */
+		view_move(view, dst.x, dst.y);
+	} else {
+		view_move_resize(view, dst);
 	}
 }
 
@@ -515,35 +619,6 @@ view_move_to_edge(struct view *view, const char *direction)
 	view_move(view, x, y);
 }
 
-enum view_edge {
-	VIEW_EDGE_INVALID,
-
-	VIEW_EDGE_LEFT,
-	VIEW_EDGE_RIGHT,
-	VIEW_EDGE_UP,
-	VIEW_EDGE_DOWN,
-	VIEW_EDGE_CENTER,
-};
-
-static enum view_edge
-view_edge_invert(enum view_edge edge)
-{
-	switch (edge) {
-	case VIEW_EDGE_LEFT:
-		return VIEW_EDGE_RIGHT;
-	case VIEW_EDGE_RIGHT:
-		return VIEW_EDGE_LEFT;
-	case VIEW_EDGE_UP:
-		return VIEW_EDGE_DOWN;
-	case VIEW_EDGE_DOWN:
-		return VIEW_EDGE_UP;
-	case VIEW_EDGE_CENTER:
-	case VIEW_EDGE_INVALID:
-	default:
-		return VIEW_EDGE_INVALID;
-	}
-}
-
 static enum view_edge
 view_edge_parse(const char *direction)
 {
@@ -565,53 +640,6 @@ view_edge_parse(const char *direction)
 	}
 }
 
-static struct wlr_box
-view_get_edge_snap_box(struct view *view, struct output *output,
-		enum view_edge edge)
-{
-	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-	if (usable.height == output->wlr_output->height
-			&& output->wlr_output->scale != 1) {
-		usable.height /= output->wlr_output->scale;
-	}
-	if (usable.width == output->wlr_output->width
-			&& output->wlr_output->scale != 1) {
-		usable.width /= output->wlr_output->scale;
-	}
-
-	int x_offset = edge == VIEW_EDGE_RIGHT
-		? (usable.width + rc.gap) / 2 : rc.gap;
-	int y_offset = edge == VIEW_EDGE_DOWN
-		? (usable.height + rc.gap) / 2 : rc.gap;
-
-	int base_width, base_height;
-	switch (edge) {
-	case VIEW_EDGE_LEFT:
-	case VIEW_EDGE_RIGHT:
-		base_width = (usable.width - 3 * rc.gap) / 2;
-		base_height = usable.height - 2 * rc.gap;
-		break;
-	case VIEW_EDGE_UP:
-	case VIEW_EDGE_DOWN:
-		base_width = usable.width - 2 * rc.gap;
-		base_height = (usable.height - 3 * rc.gap) / 2;
-		break;
-	default:
-	case VIEW_EDGE_CENTER:
-		base_width = usable.width - 2 * rc.gap;
-		base_height = usable.height - 2 * rc.gap;
-		break;
-	}
-	struct wlr_box dst = {
-		.x = x_offset + usable.x + view->margin.left,
-		.y = y_offset + usable.y + view->margin.top,
-		.width = base_width - view->margin.left - view->margin.right,
-		.height = base_height - view->margin.top - view->margin.bottom,
-	};
-
-	return dst;
-}
-
 void
 view_snap_to_edge(struct view *view, const char *direction)
 {
@@ -630,50 +658,44 @@ view_snap_to_edge(struct view *view, const char *direction)
 		return;
 	}
 
-	struct wlr_box dst = view_get_edge_snap_box(view, output, edge);
-
-	if (view->x == dst.x && view->y == dst.y && view->w == dst.width
-			&& view->h == dst.height) {
-		/* Move over to the next screen if this is already snapped. */
-		struct wlr_box usable =
-			output_usable_area_in_layout_coords(output);
+	if (view->tiled == edge) {
+		/* We are already tiled for this edge and thus should switch outputs */
+		struct wlr_output *new_output = NULL;
+		struct wlr_output *current_output = output->wlr_output;
+		struct wlr_output_layout *layout = view->server->output_layout;
 		switch (edge) {
 		case VIEW_EDGE_LEFT:
-			dst.x -= (usable.width / 2) + 1;
+			new_output = wlr_output_layout_adjacent_output(
+				layout, WLR_DIRECTION_LEFT, current_output, 1, 0);
 			break;
 		case VIEW_EDGE_RIGHT:
-			dst.x += (usable.width / 2) + 1;
+			new_output = wlr_output_layout_adjacent_output(
+				layout, WLR_DIRECTION_RIGHT, current_output, 1, 0);
 			break;
 		case VIEW_EDGE_UP:
-			dst.y -= (usable.height / 2) + 1;
+			new_output = wlr_output_layout_adjacent_output(
+				layout, WLR_DIRECTION_UP, current_output, 0, 1);
 			break;
 		case VIEW_EDGE_DOWN:
-			dst.y += (usable.height / 2) + 1;
+			new_output = wlr_output_layout_adjacent_output(
+				layout, WLR_DIRECTION_DOWN, current_output, 0, 1);
 			break;
 		default:
 			break;
 		}
-
-		struct wlr_output *new_wlr_output = wlr_output_layout_output_at(
-			view->server->output_layout, dst.x, dst.y);
-		struct output *new_output =
-			output_from_wlr_output(view->server, new_wlr_output);
-
-		if (new_output == output || !new_output
-				|| edge == VIEW_EDGE_CENTER) {
+		if (new_output && new_output != current_output) {
+			/* Move to next output */
+			edge = view_edge_invert(edge);
+			output = output_from_wlr_output(view->server, new_output);
+		} else {
+			/* No more output to move to */
 			return;
 		}
-
-		dst = view_get_edge_snap_box(view, new_output,
-			view_edge_invert(edge));
 	}
 
-	if (view->w == dst.width && view->h == dst.height) {
-		/* move horizontally/vertically without changing size */
-		view_move(view, dst.x, dst.y);
-	} else {
-		view_move_resize(view, dst);
-	}
+	/* TODO: store old geometry if !maximized && !fullscreen && !tiled */
+	view->tiled = edge;
+	view_apply_tiled_geometry(view, output);
 }
 
 const char *

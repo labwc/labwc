@@ -426,6 +426,8 @@ view_toggle_decorations(struct view *view)
 		ssd_update_geometry(view);
 		if (view->maximized) {
 			view_apply_maximized_geometry(view);
+		} else if (view->tiled) {
+			view_apply_tiled_geometry(view, NULL);
 		}
 	}
 }
@@ -457,6 +459,8 @@ view_set_decorations(struct view *view, bool decorations)
 		ssd_update_geometry(view);
 		if (view->maximized) {
 			view_apply_maximized_geometry(view);
+		} else if (view->tiled) {
+			view_apply_tiled_geometry(view, NULL);
 		}
 	}
 }

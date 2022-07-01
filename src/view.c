@@ -215,6 +215,15 @@ view_wlr_output(struct view *view)
 	return wlr_output;
 }
 
+static void
+view_store_natural_geometry(struct view *view)
+{
+	view->natural_geometry.x = view->x;
+	view->natural_geometry.y = view->y;
+	view->natural_geometry.width = view->w;
+	view->natural_geometry.height = view->h;
+}
+
 static struct output *
 view_output(struct view *view)
 {
@@ -398,11 +407,9 @@ view_maximize(struct view *view, bool maximize)
 	}
 	if (maximize) {
 		interactive_end(view);
-		view->natural_geometry.x = view->x;
-		view->natural_geometry.y = view->y;
-		view->natural_geometry.width = view->w;
-		view->natural_geometry.height = view->h;
-
+		if (!view->tiled) {
+			view_store_natural_geometry(view);
+		}
 		view_apply_maximized_geometry(view);
 		view->maximized = true;
 	} else {
@@ -493,11 +500,8 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		wlr_output = view_wlr_output(view);
 	}
 	if (fullscreen) {
-		if (!view->maximized) {
-			view->natural_geometry.x = view->x;
-			view->natural_geometry.y = view->y;
-			view->natural_geometry.width = view->w;
-			view->natural_geometry.height = view->h;
+		if (!view->maximized && !view->tiled) {
+			view_store_natural_geometry(view);
 		}
 		view->fullscreen = wlr_output;
 		view_apply_fullscreen_geometry(view, view->fullscreen);
@@ -710,10 +714,12 @@ view_snap_to_edge(struct view *view, const char *direction)
 	}
 
 	if (view->maximized) {
+		/* Unmaximize + keep using existing natural_geometry */
 		view_maximize(view, false);
+	} else if (!view->tiled) {
+		/* store current geometry as new natural_geometry */
+		view_store_natural_geometry(view);
 	}
-
-	/* TODO: store old geometry if !maximized && !fullscreen && !tiled */
 	view->tiled = edge;
 	view_apply_tiled_geometry(view, output);
 }

@@ -17,29 +17,49 @@ max_move_scale(double pos_cursor, double pos_current,
 void
 interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 {
-	if (view->maximized) {
+	if (mode == LAB_INPUT_STATE_MOVE && view->fullscreen) {
+		/**
+		 * We don't allow moving fullscreen windows.
+		 *
+		 * If you think there is a good reason to allow it
+		 * feel free to open an issue explaining your use-case.
+		 */
+		 return;
+	}
+	if (mode == LAB_INPUT_STATE_RESIZE
+			&& (view->fullscreen || view->maximized)) {
+		/* We don't allow resizing while in maximized or fullscreen state */
+		return;
+	}
+	if (view->maximized || view->tiled) {
 		if (mode == LAB_INPUT_STATE_MOVE) {
+			/* Exit maximized or tiled mode */
 			int new_x = max_move_scale(view->server->seat.cursor->x,
 				view->x, view->w, view->natural_geometry.width);
 			int new_y = max_move_scale(view->server->seat.cursor->y,
 				view->y, view->h, view->natural_geometry.height);
 			view->natural_geometry.x = new_x;
 			view->natural_geometry.y = new_y;
-			view_maximize(view, false);
-			/*
-			 * view_maximize() indirectly calls view->impl->configure
-			 * which is async but we are using the current values in
-			 * server->grab_box. We pretend the configure already
-			 * happened by setting them manually.
+			if (view->maximized) {
+				view_maximize(view, false);
+			}
+			if (view->tiled) {
+				view_move_resize(view, view->natural_geometry);
+			}
+			/**
+			 * view_maximize() / view_move_resize() indirectly calls
+			 * view->impl->configure which is async but we are using
+			 * the current values in server->grab_box. We pretend the
+			 * configure already happened by setting them manually.
 			 */
 			view->x = new_x;
 			view->y = new_y;
 			view->w = view->natural_geometry.width;
 			view->h = view->natural_geometry.height;
-		} else {
-			return;
 		}
 	}
+
+	/* Moving or resizing always resets tiled state */
 	view->tiled = 0;
 
 	/*

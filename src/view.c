@@ -709,6 +709,10 @@ view_snap_to_edge(struct view *view, const char *direction)
 		}
 	}
 
+	if (view->maximized) {
+		view_maximize(view, false);
+	}
+
 	/* TODO: store old geometry if !maximized && !fullscreen && !tiled */
 	view->tiled = edge;
 	view_apply_tiled_geometry(view, output);

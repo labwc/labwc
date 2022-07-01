@@ -407,7 +407,11 @@ view_maximize(struct view *view, bool maximize)
 		view->maximized = true;
 	} else {
 		/* unmaximize */
-		view_apply_unmaximized_geometry(view);
+		if (view->tiled) {
+			view_apply_tiled_geometry(view, NULL);
+		} else {
+			view_apply_unmaximized_geometry(view);
+		}
 		view->maximized = false;
 	}
 }
@@ -501,6 +505,8 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		/* restore to normal */
 		if (view->maximized) {
 			view_apply_maximized_geometry(view);
+		} else if (view->tiled) {
+			view_apply_tiled_geometry(view, NULL);
 		} else {
 			view_apply_unmaximized_geometry(view);
 		}

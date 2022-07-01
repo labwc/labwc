@@ -40,6 +40,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			return;
 		}
 	}
+	view->tiled = 0;
 
 	/*
 	 * This function sets up an interactive move or resize operation, where

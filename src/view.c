@@ -660,6 +660,9 @@ view_snap_to_edge(struct view *view, const char *direction)
 		wlr_log(WLR_ERROR, "no view");
 		return;
 	}
+	if (view->fullscreen) {
+		return;
+	}
 	struct output *output = view_output(view);
 	if (!output) {
 		wlr_log(WLR_ERROR, "no output");

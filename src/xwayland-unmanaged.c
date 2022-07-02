@@ -20,6 +20,8 @@ unmanaged_handle_commit(struct wl_listener *listener, void *data)
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	unmanaged->lx = xsurface->x;
 	unmanaged->ly = xsurface->y;
+	wlr_scene_node_set_position(unmanaged->node,
+		unmanaged->lx, unmanaged->ly);
 }
 
 static void
@@ -59,10 +61,11 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 	}
 
 	/* node will be destroyed automatically once surface is destroyed */
-	struct wlr_scene_node *node = &wlr_scene_surface_create(
+	unmanaged->node = &wlr_scene_surface_create(
 			unmanaged->server->unmanaged_tree,
 			xsurface->surface)->buffer->node;
-	wlr_scene_node_set_position(node, unmanaged->lx, unmanaged->ly);
+	wlr_scene_node_set_position(unmanaged->node,
+		unmanaged->lx, unmanaged->ly);
 }
 
 static void

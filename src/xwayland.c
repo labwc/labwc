@@ -144,6 +144,13 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	int height = event->height;
 	view_adjust_size(view, &width, &height);
 
+	view->pending_move_resize.update_x = event->x != view->x;
+	view->pending_move_resize.update_y = event->y != view->y;
+	view->pending_move_resize.x = event->x;
+	view->pending_move_resize.y = event->y;
+	view->pending_move_resize.width = width;
+	view->pending_move_resize.height = height;
+
 	wlr_xwayland_surface_configure(view->xwayland_surface,
 		event->x, event->y, width, height);
 }
@@ -216,6 +223,13 @@ move(struct view *view, double x, double y)
 {
 	view->x = x;
 	view->y = y;
+
+	/* override any previous pending move */
+	view->pending_move_resize.update_x = false;
+	view->pending_move_resize.update_y = false;
+	view->pending_move_resize.x = x;
+	view->pending_move_resize.y = y;
+
 	struct wlr_xwayland_surface *s = view->xwayland_surface;
 	wlr_xwayland_surface_configure(s, (int16_t)x, (int16_t)y,
 		(uint16_t)s->width, (uint16_t)s->height);

@@ -365,6 +365,7 @@ struct view {
 struct xwayland_unmanaged {
 	struct server *server;
 	struct wlr_xwayland_surface *xwayland_surface;
+	struct wlr_scene_node *node;
 	struct wl_list link;
 	int lx, ly;
 

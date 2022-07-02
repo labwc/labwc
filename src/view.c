@@ -8,6 +8,8 @@
 #include "menu/menu.h"
 #include "workspaces.h"
 
+#define LAB_FALLBACK_WIDTH 640
+#define LAB_FALLBACK_HEIGHT 480
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 /**
@@ -215,15 +217,6 @@ view_wlr_output(struct view *view)
 	return wlr_output;
 }
 
-static void
-view_store_natural_geometry(struct view *view)
-{
-	view->natural_geometry.x = view->x;
-	view->natural_geometry.y = view->y;
-	view->natural_geometry.width = view->w;
-	view->natural_geometry.height = view->h;
-}
-
 static struct output *
 view_output(struct view *view)
 {
@@ -266,6 +259,38 @@ view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 #endif
 
 	return true;
+}
+
+static void
+set_fallback_geometry(struct view *view)
+{
+	view->natural_geometry.width = LAB_FALLBACK_WIDTH;
+	view->natural_geometry.height = LAB_FALLBACK_HEIGHT;
+	view_compute_centered_position(view,
+		view->natural_geometry.width,
+		view->natural_geometry.height,
+		&view->natural_geometry.x,
+		&view->natural_geometry.y);
+}
+#undef LAB_FALLBACK_WIDTH
+#undef LAB_FALLBACK_HEIGHT
+
+static void
+view_store_natural_geometry(struct view *view)
+{
+	/**
+	 * If an application was started maximized or fullscreened, its
+	 * natural_geometry width/height may still be zero in which case we set
+	 * some fallback values. This is the case with foot and Qt applications.
+	 */
+	if (!view->w || !view->h) {
+		set_fallback_geometry(view);
+	} else {
+		view->natural_geometry.x = view->x;
+		view->natural_geometry.y = view->y;
+		view->natural_geometry.width = view->w;
+		view->natural_geometry.height = view->h;
+	}
 }
 
 void
@@ -347,33 +372,9 @@ view_apply_maximized_geometry(struct view *view)
 	view_move_resize(view, box);
 }
 
-#define LAB_FALLBACK_WIDTH (640)
-#define LAB_FALLBACK_HEIGHT (480)
-
-static void
-set_fallback_geometry(struct view *view)
-{
-	view->natural_geometry.width = LAB_FALLBACK_WIDTH;
-	view->natural_geometry.height = LAB_FALLBACK_HEIGHT;
-	view_compute_centered_position(view,
-		view->natural_geometry.width,
-		view->natural_geometry.height,
-		&view->natural_geometry.x,
-		&view->natural_geometry.y);
-}
-
 static void
 view_apply_unmaximized_geometry(struct view *view)
 {
-	/*
-	 * If an application was started maximized, its unmaximized_geometry
-	 * width/height may still be zero in which case we set some fallback
-	 * values. This is the case with foot and Qt applications.
-	 */
-	if (wlr_box_empty(&view->natural_geometry)) {
-		set_fallback_geometry(view);
-	}
-
 	struct wlr_output_layout *layout = view->server->output_layout;
 	if (wlr_output_layout_intersects(layout, NULL,
 			&view->natural_geometry)) {

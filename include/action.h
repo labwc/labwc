@@ -5,6 +5,7 @@
 struct view;
 struct server;
 struct wl_list;
+struct wlr_box;
 
 struct action {
 	struct wl_list link;  /* struct keybinding.actions,
@@ -17,6 +18,7 @@ struct action {
 
 struct action *action_create(const char *action_name);
 void action_arg_add_str(struct action *action, char *key, const char *value);
+struct wlr_box *action_arg_add_box(struct action *action, char *name);
 void actions_run(struct view *activator, struct server *server,
 	struct wl_list *actions, uint32_t resize_edges);
 void action_list_free(struct wl_list *action_list);

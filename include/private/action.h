@@ -7,6 +7,7 @@
 
 enum action_arg_type {
 	LAB_ACTION_ARG_STR = 0,
+	LAB_ACTION_ARG_BOX,
 };
 
 struct action_arg {
@@ -19,6 +20,11 @@ struct action_arg {
 struct action_arg_str {
 	struct action_arg base;
 	char *value;
+};
+
+struct action_arg_box {
+	struct action_arg base;
+	struct wlr_box value;
 };
 
 #endif /* __LABWC_PRIVATE_ACTION_H */

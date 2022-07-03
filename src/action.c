@@ -73,6 +73,13 @@ action_str_from_arg(struct action_arg *arg)
 	return ((struct action_arg_str *)arg)->value;
 }
 
+static struct wlr_box *
+action_box_from_arg(struct action_arg *arg)
+{
+	assert(arg->type == LAB_ACTION_ARG_BOX);
+	return &((struct action_arg_box *)arg)->value;
+}
+
 static struct action_arg *
 action_get_first_arg(struct action *action)
 {
@@ -356,4 +363,16 @@ action_arg_add_str(struct action *action, char *key, const char *value)
 	}
 	arg->value = strdup(value);
 	wl_list_insert(action->args.prev, &arg->base.link);
+}
+
+struct wlr_box *
+action_arg_add_box(struct action *action, char *name)
+{
+	struct action_arg_box *arg = calloc(1, sizeof(*arg));
+	arg->base.type = LAB_ACTION_ARG_BOX;
+	if (name) {
+		arg->base.key = strdup(name);
+	}
+	wl_list_insert(action->args.prev, &arg->base.link);
+	return &arg->value;
 }

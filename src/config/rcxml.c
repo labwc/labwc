@@ -32,7 +32,7 @@ static struct libinput_category *current_libinput_category;
 static const char *current_mouse_context;
 static struct action *current_keybind_action;
 static struct action *current_mousebind_action;
-static struct wlr_box *current_action_box;
+static struct wlr_fbox *current_action_box;
 
 enum font_place {
 	FONT_PLACE_UNKNOWN = 0,
@@ -49,13 +49,13 @@ fill_geo(char *key, char *content)
 {
 	assert(current_action_box);
 	if (!strcmp(key, "x.action")) {
-		current_action_box->x = atoi(content);
+		current_action_box->x = atof(content);
 	} else if (!strcmp(key, "y.action")) {
-		current_action_box->y = atoi(content);
+		current_action_box->y = atof(content);
 	} else if (!strcmp(key, "width.action")) {
-		current_action_box->width = atoi(content);
+		current_action_box->width = atof(content);
 	} else if (!strcmp(key, "height.action")) {
-		current_action_box->height = atoi(content);
+		current_action_box->height = atof(content);
 	}
 }
 
@@ -85,7 +85,7 @@ fill_keybind(char *nodename, char *content)
 		wl_list_insert(current_keybind->actions.prev,
 			&current_keybind_action->link);
 		if (!strcmp(content, "MoveResizeTo")) {
-			current_action_box = action_arg_add_box(
+			current_action_box = action_arg_add_fbox(
 				current_keybind_action, NULL);
 		} else {
 			current_action_box = NULL;

@@ -661,7 +661,7 @@ view_edge_parse(const char *direction)
 
 /* Move and resize view based on percent output local values in rel_box */
 void
-view_rel_move_resize_to(struct view *view, struct wlr_box *rel_box)
+view_rel_move_resize_to(struct view *view, struct wlr_fbox *rel_box)
 {
 	assert(view);
 	assert(rel_box);

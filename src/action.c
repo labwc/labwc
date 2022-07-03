@@ -76,11 +76,11 @@ action_str_from_arg(struct action_arg *arg)
 	return ((struct action_arg_str *)arg)->value;
 }
 
-static struct wlr_box *
-action_box_from_arg(struct action_arg *arg)
+static struct wlr_fbox *
+action_fbox_from_arg(struct action_arg *arg)
 {
-	assert(arg->type == LAB_ACTION_ARG_BOX);
-	return &((struct action_arg_box *)arg)->value;
+	assert(arg->type == LAB_ACTION_ARG_FBOX);
+	return &((struct action_arg_fbox *)arg)->value;
 }
 
 static struct action_arg *
@@ -345,7 +345,7 @@ actions_run(struct view *activator, struct server *server,
 				break;
 			}
 			if (view) {
-				struct wlr_box *box = action_box_from_arg(arg);
+				struct wlr_fbox *box = action_fbox_from_arg(arg);
 				view_rel_move_resize_to(view, box);
 			}
 			break;
@@ -378,11 +378,11 @@ action_arg_add_str(struct action *action, char *key, const char *value)
 	wl_list_insert(action->args.prev, &arg->base.link);
 }
 
-struct wlr_box *
-action_arg_add_box(struct action *action, char *name)
+struct wlr_fbox *
+action_arg_add_fbox(struct action *action, char *name)
 {
-	struct action_arg_box *arg = calloc(1, sizeof(*arg));
-	arg->base.type = LAB_ACTION_ARG_BOX;
+	struct action_arg_fbox *arg = calloc(1, sizeof(*arg));
+	arg->base.type = LAB_ACTION_ARG_FBOX;
 	if (name) {
 		arg->base.key = strdup(name);
 	}

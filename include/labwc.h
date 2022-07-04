@@ -202,6 +202,8 @@ struct server {
 	/* Tree for built in menu */
 	struct wlr_scene_tree *menu_tree;
 
+	struct multi_rect *osd_preview_outline;
+
 	/* Workspaces */
 	struct wl_list workspaces;  /* struct workspace.link */
 	struct workspace *workspace_current;

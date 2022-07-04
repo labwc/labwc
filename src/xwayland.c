@@ -151,6 +151,7 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	view->pending_move_resize.width = width;
 	view->pending_move_resize.height = height;
 
+	wlr_scene_node_set_position(&view->scene_tree->node, event->x, event->y);
 	wlr_xwayland_surface_configure(view->xwayland_surface,
 		event->x, event->y, width, height);
 }

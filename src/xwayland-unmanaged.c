@@ -35,6 +35,8 @@ unmanaged_handle_set_geometry(struct wl_listener *listener, void *data)
 		wlr_log(WLR_DEBUG, "xwayland-unmanaged surface has moved");
 		unmanaged->lx = xsurface->x;
 		unmanaged->ly = xsurface->y;
+		wlr_scene_node_set_position(unmanaged->node,
+			unmanaged->lx, unmanaged->ly);
 	}
 }
 

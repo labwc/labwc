@@ -83,6 +83,32 @@ destroy_osd_nodes(struct output *output)
 	}
 }
 
+static void
+osd_update_preview_outlines(struct view *view)
+{
+	/* Create / Update preview outline tree */
+	struct server *server = view->server;
+	struct multi_rect *rect = view->server->osd_preview_outline;
+	if (!rect) {
+		int line_width = server->theme->osd_border_width;
+		float *colors[] = {
+			server->theme->osd_bg_color,
+			server->theme->osd_label_text_color,
+			server->theme->osd_bg_color
+		};
+		rect = multi_rect_create(&server->scene->tree, colors, line_width);
+		wlr_scene_node_place_above(&rect->tree->node, &server->menu_tree->node);
+		server->osd_preview_outline = rect;
+	}
+	/* A multi_rect consists of 3 layered rects */
+	int line_width = rect->line_width * 3;
+	struct wlr_box geo = ssd_max_extents(view);
+	multi_rect_set_size(rect,
+		geo.width + line_width * 2, geo.height + line_width * 2);
+	wlr_scene_node_set_position(&rect->tree->node,
+		geo.x - line_width, geo.y - line_width);
+}
+
 void
 osd_finish(struct server *server)
 {
@@ -90,6 +116,11 @@ osd_finish(struct server *server)
 	wl_list_for_each(output, &server->outputs, link) {
 		destroy_osd_nodes(output);
 		wlr_scene_node_set_enabled(&output->osd_tree->node, false);
+	}
+	if (server->osd_preview_outline) {
+		/* Destroy the whole multi_rect so we can easily react to new themes */
+		wlr_scene_node_destroy(&server->osd_preview_outline->tree->node);
+		server->osd_preview_outline = NULL;
 	}
 }
 
@@ -158,6 +189,7 @@ osd_update(struct server *server)
 				cairo_rectangle(cairo, OSD_BORDER_WIDTH, y,
 					OSD_ITEM_WIDTH, OSD_ITEM_HEIGHT);
 				cairo_stroke(cairo);
+				osd_update_preview_outlines(view);
 				break;
 			}
 			y += OSD_ITEM_HEIGHT;

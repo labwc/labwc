@@ -45,7 +45,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			 */
 			return;
 		}
-		if (view->maximized || view->tiled) {
+		if (view->maximized || view->tiled || view->tiled_region) {
 			/*
 			 * Un-maximize and restore natural width/height.
 			 * Don't reset tiled state yet since we may want
@@ -137,6 +137,27 @@ snap_to_edge(struct view *view)
 	return true;
 }
 
+static bool
+snap_to_region(struct view *view)
+{
+	if (!regions_available()) {
+		return false;
+	}
+
+	struct wlr_keyboard *keyboard =
+		&view->server->seat.keyboard_group->keyboard;
+
+	if (keyboard_any_modifiers_pressed(keyboard)) {
+		struct region *region = regions_from_cursor(view->server);
+		if (region) {
+			view_snap_to_region(view, region,
+				/*store_natural_geometry*/ false);
+			return true;
+		}
+	}
+	return false;
+}
+
 void
 interactive_finish(struct view *view)
 {
@@ -146,9 +167,11 @@ interactive_finish(struct view *view)
 		view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		view->server->grabbed_view = NULL;
 		if (mode == LAB_INPUT_STATE_MOVE) {
-			if (!snap_to_edge(view)) {
-				/* Reset tiled state if not snapped */
-				view_set_untiled(view);
+			if (!snap_to_region(view)) {
+				if (!snap_to_edge(view)) {
+					/* Reset tiled state if not snapped */
+					view_set_untiled(view);
+				}
 			}
 		}
 		/* Update focus/cursor image */

@@ -25,6 +25,20 @@ regions_init(struct server *server, struct seat *seat)
 	/* To be filled later */
 }
 
+struct region *
+regions_from_name(const char *region_name, struct output *output)
+{
+	assert(region_name);
+	assert(output);
+	struct region *region;
+	wl_list_for_each(region, &output->regions, link) {
+		if (!strcmp(region->name, region_name)) {
+			return region;
+		}
+	}
+	return NULL;
+}
+
 void
 regions_update(struct output *output)
 {

@@ -13,6 +13,7 @@
 #include "debug.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "regions.h"
 #include "ssd.h"
 #include "view.h"
 #include "workspaces.h"
@@ -58,6 +59,7 @@ enum action_type {
 	ACTION_TYPE_RESIZE,
 	ACTION_TYPE_GO_TO_DESKTOP,
 	ACTION_TYPE_SEND_TO_DESKTOP,
+	ACTION_TYPE_SNAP_TO_REGION
 };
 
 const char *action_names[] = {
@@ -85,6 +87,7 @@ const char *action_names[] = {
 	"Resize",
 	"GoToDesktop",
 	"SendToDesktop",
+	"SnapToRegion",
 	NULL
 };
 
@@ -110,6 +113,9 @@ action_arg_from_xml_node(struct action *action, char *nodename, char *content)
 		action_arg_add_str(action, NULL, content);
 	} else if (!strcmp(nodename, "to.action")) {
 		/* GoToDesktop, SendToDesktop */
+		action_arg_add_str(action, NULL, content);
+	} else if (!strcmp(nodename, "region.action")) {
+		/* SnapToRegion */
 		action_arg_add_str(action, NULL, content);
 	}
 }
@@ -416,6 +422,27 @@ actions_run(struct view *activator, struct server *server,
 				if (target) {
 					view_move_to_workspace(view, target);
 				}
+			}
+			break;
+		case ACTION_TYPE_SNAP_TO_REGION:
+			if (!arg) {
+				wlr_log(WLR_ERROR, "Missing argument for SnapToRegion");
+				break;
+			}
+			if (!view) {
+				break;
+			}
+			struct output *output = view->output;
+			if (!output) {
+				break;
+			}
+			const char *region_name = action_str_from_arg(arg);
+			struct region *region = regions_from_name(region_name, output);
+			if (region) {
+				view_snap_to_region(view, region,
+					/*store_natural_geometry*/ true);
+			} else {
+				wlr_log(WLR_ERROR, "Invalid SnapToRegion id: '%s'", region_name);
 			}
 			break;
 		case ACTION_TYPE_NONE:

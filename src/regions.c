@@ -5,6 +5,7 @@
 #include <float.h>
 #include <math.h>
 #include <string.h>
+#include <wlr/render/pixman.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
@@ -13,6 +14,7 @@
 #include "common/mem.h"
 #include "labwc.h"
 #include "regions.h"
+#include "view.h"
 
 bool
 regions_available(void)
@@ -23,7 +25,19 @@ regions_available(void)
 void
 regions_init(struct server *server, struct seat *seat)
 {
-	/* To be filled later */
+	assert(server);
+	assert(seat);
+
+	float *color;
+	float solid[4] = { 0.5, 0.5, 0.7, 1 };
+	float trans[4] = { 0.25, 0.25, 0.35, 0.5 };
+	if (wlr_renderer_is_pixman(server->renderer)) {
+		color = solid;
+	} else {
+		color = trans;
+	}
+	seat->region_overlay = wlr_scene_rect_create(&server->scene->tree, 0, 0, color);
+	wlr_scene_node_set_enabled(&seat->region_overlay->node, false);
 }
 
 struct region *
@@ -69,6 +83,44 @@ regions_from_cursor(struct server *server)
 		}
 	}
 	return closest_region;
+}
+
+void
+regions_show_overlay(struct view *view, struct seat *seat, struct region *region)
+{
+	assert(view);
+	assert(seat);
+	assert(region);
+	static struct region *old_region;
+
+	struct wlr_scene_rect *overlay = seat->region_overlay;
+	if (old_region != region) {
+		wlr_scene_rect_set_size(overlay, region->geo.width, region->geo.height);
+		wlr_scene_node_set_position(&overlay->node, region->geo.x, region->geo.y);
+		old_region = region;
+	}
+	if (overlay->node.parent != view->scene_tree->node.parent) {
+		wlr_scene_node_reparent(&overlay->node, view->scene_tree->node.parent);
+		wlr_scene_node_place_below(&overlay->node, &view->scene_tree->node);
+	}
+	if (!overlay->node.enabled) {
+		wlr_scene_node_set_enabled(&overlay->node, true);
+	}
+}
+
+void
+regions_hide_overlay(struct server *server, struct seat *seat)
+{
+	assert(server);
+	assert(seat);
+
+	struct wlr_scene_rect *overlay = seat->region_overlay;
+	if (overlay->node.enabled) {
+		wlr_scene_node_set_enabled(&overlay->node, false);
+	}
+	if (overlay->node.parent != &server->scene->tree) {
+		wlr_scene_node_reparent(&overlay->node, &server->scene->tree);
+	}
 }
 
 void

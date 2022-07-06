@@ -156,6 +156,8 @@ struct seat {
 		struct wlr_scene_tree *icons;
 	} drag;
 
+	struct wlr_scene_rect *region_overlay;
+
 	struct wl_client *active_client_while_inhibited;
 	struct wl_list inputs;
 	struct wl_listener new_input;

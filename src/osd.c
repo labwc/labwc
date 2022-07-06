@@ -66,6 +66,10 @@ get_osd_height(struct wl_list *node_list)
 	struct view *view;
 	struct wlr_scene_node *node;
 	wl_list_for_each(node, node_list, link) {
+		if (!node->data) {
+			/* We found some non-view, most likely the region overlay */
+			continue;
+		}
 		view = node_view_from_node(node);
 		if (!isfocusable(view)) {
 			continue;
@@ -215,6 +219,11 @@ preview_cycled_view(struct view *view)
 	osd_state->preview_node = &view->scene_tree->node;
 	osd_state->preview_anchor = lab_wlr_scene_get_prev_node(
 		osd_state->preview_node);
+	while (osd_state->preview_anchor && !osd_state->preview_anchor->data) {
+		/* Ignore non-view nodes */
+		osd_state->preview_anchor = lab_wlr_scene_get_prev_node(
+			osd_state->preview_anchor);
+	}
 
 	/* Store node enabled / minimized state and force-enable if disabled */
 	osd_state->preview_was_enabled = osd_state->preview_node->enabled;
@@ -288,6 +297,10 @@ render_osd(cairo_t *cairo, int w, int h, struct wl_list *node_list,
 
 	/* Draw text for each node */
 	wl_list_for_each_reverse(node, node_list, link) {
+		if (!node->data) {
+			/* We found some non-view, most likely the region overlay */
+			continue;
+		}
 		struct view *view = node_view_from_node(node);
 		if (!isfocusable(view)) {
 			continue;

@@ -20,6 +20,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
+#include "regions.h"
 #include "theme.h"
 #include "view.h"
 #include "workspaces.h"
@@ -388,6 +389,7 @@ server_init(struct server *server)
 		&server->output_power_manager_set_mode);
 
 	layers_init(server);
+	regions_init(server, &server->seat);
 
 #if HAVE_XWAYLAND
 	xwayland_server_init(server, compositor);

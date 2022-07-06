@@ -110,10 +110,10 @@ get_special(struct server *server, struct wlr_scene_node *node)
 #endif
 	struct wlr_scene_tree *grand_parent =
 		node->parent ? node->parent->node.parent : NULL;
-	if (grand_parent == server->view_tree) {
+	if (grand_parent == server->view_tree && node->data) {
 		last_view = node_view_from_node(node);
 	}
-	if (node->parent == server->view_tree_always_on_top) {
+	if (node->parent == server->view_tree_always_on_top && node->data) {
 		last_view = node_view_from_node(node);
 	}
 	const char *view_part = get_view_part(last_view, node);

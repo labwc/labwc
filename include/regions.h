@@ -32,5 +32,7 @@ void regions_destroy(struct wl_list *regions);
 
 struct region *regions_from_cursor(struct server *server);
 struct region *regions_from_name(const char *region_name, struct output *output);
+void regions_show_overlay(struct view *view, struct seat *seat, struct region *region);
+void regions_hide_overlay(struct server *server, struct seat *seat);
 
 #endif /* __LABWC_REGIONS_H */

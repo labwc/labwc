@@ -5,6 +5,7 @@
 #include "action.h"
 #include "key-state.h"
 #include "labwc.h"
+#include "regions.h"
 #include "workspaces.h"
 
 static bool should_cancel_cycling_on_next_key_release;
@@ -55,7 +56,8 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 	struct wlr_keyboard_key_event *event = data;
 	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
 
-	if (server->osd_state.cycle_view || seat->workspace_osd_shown_by_modifier) {
+	if (server->osd_state.cycle_view || server->grabbed_view
+			|| seat->workspace_osd_shown_by_modifier) {
 		if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED
 				&& !keyboard_any_modifiers_pressed(wlr_keyboard))  {
 			if (server->osd_state.cycle_view) {
@@ -67,6 +69,9 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 			}
 			if (seat->workspace_osd_shown_by_modifier) {
 				workspaces_osd_hide(seat);
+			}
+			if (server->grabbed_view) {
+				regions_hide_overlay(server, seat);
 			}
 		}
 	}

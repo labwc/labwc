@@ -19,6 +19,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "node.h"
+#include "regions.h"
 #include "view.h"
 
 static void
@@ -40,6 +41,7 @@ static void
 output_destroy_notify(struct wl_listener *listener, void *data)
 {
 	struct output *output = wl_container_of(listener, output, destroy);
+	regions_destroy(&output->regions);
 	wl_list_remove(&output->link);
 	wl_list_remove(&output->frame.link);
 	wl_list_remove(&output->destroy.link);
@@ -147,6 +149,8 @@ new_output_notify(struct wl_listener *listener, void *data)
 	wl_signal_add(&wlr_output->events.destroy, &output->destroy);
 	output->frame.notify = output_frame_notify;
 	wl_signal_add(&wlr_output->events.frame, &output->frame);
+
+	wl_list_init(&output->regions);
 
 	/*
 	 * Create layer-trees (background, bottom, top and overlay) and
@@ -446,6 +450,7 @@ void
 output_update_usable_area(struct output *output)
 {
 	if (update_usable_area(output)) {
+		regions_update(output);
 		desktop_arrange_all_views(output->server);
 	}
 }
@@ -457,7 +462,12 @@ output_update_all_usable_areas(struct server *server, bool layout_changed)
 	struct output *output;
 
 	wl_list_for_each(output, &server->outputs, link) {
-		usable_area_changed |= update_usable_area(output);
+		if (update_usable_area(output)) {
+			usable_area_changed = true;
+			regions_update(output);
+		} else if (layout_changed) {
+			regions_update(output);
+		}
 	}
 	if (usable_area_changed || layout_changed) {
 		desktop_arrange_all_views(server);

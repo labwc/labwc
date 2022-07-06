@@ -3,6 +3,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <float.h>
+#include <math.h>
 #include <string.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
@@ -37,6 +38,37 @@ regions_from_name(const char *region_name, struct output *output)
 		}
 	}
 	return NULL;
+}
+
+struct region *
+regions_from_cursor(struct server *server)
+{
+	assert(server);
+	double lx = server->seat.cursor->x;
+	double ly = server->seat.cursor->y;
+
+	struct wlr_output *wlr_output = wlr_output_layout_output_at(
+		server->output_layout, lx, ly);
+	struct output *output = output_from_wlr_output(server, wlr_output);
+	if (!output) {
+		return NULL;
+	}
+
+	double dist;
+	double dist_min = DBL_MAX;
+	struct region *closest_region = NULL;
+	struct region *region;
+	wl_list_for_each(region, &output->regions, link) {
+		if (wlr_box_contains_point(&region->geo, lx, ly)) {
+			/* No need for sqrt((x1 - x2)^2 + (y1 - y2)^2) as we just compare */
+			dist = pow(region->center.x - lx, 2) + pow(region->center.y - ly, 2);
+			if (dist < dist_min) {
+				closest_region = region;
+				dist_min = dist;
+			}
+		}
+	}
+	return closest_region;
 }
 
 void

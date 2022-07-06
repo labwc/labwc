@@ -5,6 +5,7 @@
 #include "common/scene-helpers.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "regions.h"
 #include "ssd.h"
 #include "view.h"
 #include "workspaces.h"
@@ -293,7 +294,7 @@ void
 view_store_natural_geometry(struct view *view)
 {
 	assert(view);
-	if (view->maximized || view->tiled) {
+	if (view->maximized || view->tiled || view->tiled_region) {
 		/* Do not overwrite the stored geometry with special cases */
 		return;
 	}
@@ -338,6 +339,30 @@ view_apply_natural_geometry(struct view *view)
 				&box.x, &box.y)) {
 			view_move_resize(view, box);
 		}
+	}
+}
+
+static void
+view_apply_region_geometry(struct view *view)
+{
+	assert(view);
+	assert(view->tiled_region);
+
+	/* Create a copy of the original region geometry */
+	struct wlr_box geo = view->tiled_region->geo;
+
+	/* And adjust for current view */
+	struct border margin = ssd_get_margin(view->ssd);
+	geo.x += margin.left;
+	geo.y += margin.top;
+	geo.width -= margin.left + margin.right;
+	geo.height -= margin.top + margin.bottom;
+
+	if (view->w == geo.width && view->h == geo.height) {
+		/* move horizontally/vertically without changing size */
+		view_move(view, geo.x, geo.y);
+	} else {
+		view_move_resize(view, geo);
 	}
 }
 
@@ -419,6 +444,8 @@ view_apply_special_geometry(struct view *view)
 		view_apply_maximized_geometry(view);
 	} else if (view->tiled) {
 		view_apply_tiled_geometry(view, NULL);
+	} else if (view->tiled_region) {
+		view_apply_region_geometry(view);
 	} else {
 		return false;
 	}
@@ -461,6 +488,7 @@ view_set_untiled(struct view *view)
 {
 	assert(view);
 	view->tiled = VIEW_EDGE_INVALID;
+	view->tiled_region = NULL;
 }
 
 void
@@ -857,6 +885,27 @@ view_snap_to_edge(struct view *view, const char *direction,
 	view_set_untiled(view);
 	view->tiled = edge;
 	view_apply_tiled_geometry(view, output);
+}
+
+void
+view_snap_to_region(struct view *view, struct region *region,
+		bool store_natural_geometry)
+{
+	assert(view);
+	assert(region);
+	if (view->fullscreen) {
+		return;
+	}
+	if (view->maximized) {
+		/* Unmaximize + keep using existing natural_geometry */
+		view_maximize(view, false, /*store_natural_geometry*/ false);
+	} else if (store_natural_geometry) {
+		/* store current geometry as new natural_geometry */
+		view_store_natural_geometry(view);
+	}
+	view_set_untiled(view);
+	view->tiled_region = region;
+	view_apply_region_geometry(view);
 }
 
 const char *

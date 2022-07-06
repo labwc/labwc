@@ -12,6 +12,12 @@
 #include "labwc.h"
 #include "regions.h"
 
+bool
+regions_available(void)
+{
+	return !wl_list_empty(&rc.regions);
+}
+
 void
 regions_init(struct server *server, struct seat *seat)
 {

@@ -12,6 +12,7 @@
 #include <strings.h>
 #include <unistd.h>
 #include <wayland-server-core.h>
+#include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "action.h"
 #include "common/list.h"
@@ -22,8 +23,10 @@
 #include "config/libinput.h"
 #include "config/mousebind.h"
 #include "config/rcxml.h"
+#include "regions.h"
 #include "workspaces.h"
 
+static bool in_regions;
 static bool in_keybind;
 static bool in_mousebind;
 static bool in_libinput_category;
@@ -33,6 +36,7 @@ static struct libinput_category *current_libinput_category;
 static const char *current_mouse_context;
 static struct action *current_keybind_action;
 static struct action *current_mousebind_action;
+static struct region *current_region;
 
 enum font_place {
 	FONT_PLACE_NONE = 0,
@@ -45,6 +49,44 @@ enum font_place {
 
 static void load_default_key_bindings(void);
 static void load_default_mouse_bindings(void);
+
+static void
+fill_region(char *nodename, char *content)
+{
+	string_truncate_at_pattern(nodename, ".region.regions");
+
+	if (!strcasecmp(nodename, "region.regions")) {
+		current_region = znew(*current_region);
+		wl_list_append(&rc.regions, &current_region->link);
+	} else if (!content) {
+		/* intentionally left empty */
+	} else if (!current_region) {
+		wlr_log(WLR_ERROR, "Expecting <region name=\"\" before %s='%s'",
+			nodename, content);
+	} else if (!strcasecmp(nodename, "name")) {
+		/* Prevent leaking memory if config contains multiple names */
+		if (!current_region->name) {
+			current_region->name = xstrdup(content);
+		}
+	} else if (strstr("xywidtheight", nodename) && !strchr(content, '%')) {
+		wlr_log(WLR_ERROR, "Removing invalid region '%s': %s='%s' misses"
+			" a trailing %%", current_region->name, nodename, content);
+		wl_list_remove(&current_region->link);
+		zfree(current_region->name);
+		zfree(current_region);
+	} else if (!strcmp(nodename, "x")) {
+		current_region->percentage.x = atoi(content);
+	} else if (!strcmp(nodename, "y")) {
+		current_region->percentage.y = atoi(content);
+	} else if (!strcmp(nodename, "width")) {
+		current_region->percentage.width = atoi(content);
+	} else if (!strcmp(nodename, "height")) {
+		current_region->percentage.height = atoi(content);
+	} else {
+		wlr_log(WLR_ERROR, "Unexpected data in region parser: %s=\"%s\"",
+			nodename, content);
+	}
+}
 
 static void
 fill_keybind(char *nodename, char *content)
@@ -321,6 +363,10 @@ entry(xmlNode *node, char *nodename, char *content)
 	if (in_libinput_category) {
 		fill_libinput_category(nodename, content);
 	}
+	if (in_regions) {
+		fill_region(nodename, content);
+		return;
+	}
 
 	/* handle nodes without content, e.g. <keyboard><default /> */
 	if (!strcmp(nodename, "default.keyboard")) {
@@ -457,6 +503,12 @@ xml_tree_walk(xmlNode *node)
 			in_libinput_category = false;
 			continue;
 		}
+		if (!strcasecmp((char *)n->name, "regions")) {
+			in_regions = true;
+			traverse(n);
+			in_regions = false;
+			continue;
+		}
 		traverse(n);
 	}
 }
@@ -502,6 +554,7 @@ rcxml_init()
 	rc.cycle_preview_outlines = true;
 	rc.workspace_config.popuptime = INT_MIN;
 	wl_list_init(&rc.workspace_config.workspaces);
+	wl_list_init(&rc.regions);
 }
 
 static struct {
@@ -693,6 +746,23 @@ post_processing(void)
 	if (rc.workspace_config.popuptime == INT_MIN) {
 		rc.workspace_config.popuptime = 1000;
 	}
+	struct region *region, *region_tmp;
+	wl_list_for_each_safe(region, region_tmp, &rc.regions, link) {
+		struct wlr_box box = region->percentage;
+		bool invalid = !region->name
+			|| box.x < 0 || box.x > 100
+			|| box.y < 0 || box.y > 100
+			|| box.width <= 0 || box.width > 100
+			|| box.height <= 0 || box.height > 100;
+		if (invalid) {
+			wlr_log(WLR_ERROR,
+				"Removing invalid region '%s': %d%% x %d%% @ %d%%,%d%%",
+				region->name, box.width, box.height, box.x, box.y);
+			wl_list_remove(&region->link);
+			zfree(region->name);
+			free(region);
+		}
+	}
 }
 
 static void
@@ -798,6 +868,8 @@ rcxml_finish(void)
 		zfree(w);
 	}
 
+	regions_destroy(&rc.regions);
+
 	/* Reset state vars for starting fresh when Reload is triggered */
 	current_keybind = NULL;
 	current_mousebind = NULL;
@@ -805,4 +877,5 @@ rcxml_finish(void)
 	current_mouse_context = NULL;
 	current_keybind_action = NULL;
 	current_mousebind_action = NULL;
+	current_region = NULL;
 }

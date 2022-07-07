@@ -71,21 +71,18 @@ fill_keybind(char *nodename, char *content)
 	} else if (!current_keybind_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
-	} else if (current_keybind_action->arg) {
-		wlr_log(WLR_ERROR, "Action argument already set: %s",
-			current_keybind_action->arg);
 	} else if (!strcmp(nodename, "command.action")) {
 		/* Execute */
-		current_keybind_action->arg = strdup(content);
+		action_arg_add_str(current_keybind_action, NULL, content);
 	} else if (!strcmp(nodename, "direction.action")) {
 		/* MoveToEdge, SnapToEdge */
-		current_keybind_action->arg = strdup(content);
+		action_arg_add_str(current_keybind_action, NULL, content);
 	} else if (!strcmp(nodename, "menu.action")) {
 		/* ShowMenu */
-		current_keybind_action->arg = strdup(content);
+		action_arg_add_str(current_keybind_action, NULL, content);
 	} else if (!strcmp(nodename, "to.action")) {
 		/* GoToDesktop, SendToDesktop */
-		current_keybind_action->arg = strdup(content);
+		action_arg_add_str(current_keybind_action, NULL, content);
 	}
 }
 
@@ -134,15 +131,12 @@ fill_mousebind(char *nodename, char *content)
 	} else if (!current_mousebind_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
-	} else if (current_mousebind_action->arg) {
-		wlr_log(WLR_ERROR, "Action argument already set: %s",
-			current_mousebind_action->arg);
 	} else if (!strcmp(nodename, "command.action")) {
-		current_mousebind_action->arg = strdup(content);
+		action_arg_add_str(current_mousebind_action, NULL, content);
 	} else if (!strcmp(nodename, "direction.action")) {
-		current_mousebind_action->arg = strdup(content);
+		action_arg_add_str(current_mousebind_action, NULL, content);
 	} else if (!strcmp(nodename, "menu.action")) {
-		current_mousebind_action->arg = strdup(content);
+		action_arg_add_str(current_mousebind_action, NULL, content);
 	}
 }
 
@@ -544,7 +538,7 @@ load_default_key_bindings(void)
 		wl_list_insert(k->actions.prev, &action->link);
 
 		if (key_combos[i].command) {
-			action->arg = strdup(key_combos[i].command);
+			action_arg_add_str(action, NULL, key_combos[i].command);
 		}
 	}
 }
@@ -604,7 +598,7 @@ load_default_mouse_bindings(void)
 		wl_list_insert(m->actions.prev, &action->link);
 
 		if (mouse_combos[i].command) {
-			action->arg = strdup(mouse_combos[i].command);
+			action_arg_add_str(action, NULL, mouse_combos[i].command);
 		}
 	}
 }

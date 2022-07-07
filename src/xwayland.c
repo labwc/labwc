@@ -144,6 +144,14 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	int height = event->height;
 	view_adjust_size(view, &width, &height);
 
+	view->pending_move_resize.update_x = event->x != view->x;
+	view->pending_move_resize.update_y = event->y != view->y;
+	view->pending_move_resize.x = event->x;
+	view->pending_move_resize.y = event->y;
+	view->pending_move_resize.width = width;
+	view->pending_move_resize.height = height;
+
+	wlr_scene_node_set_position(&view->scene_tree->node, event->x, event->y);
 	wlr_xwayland_surface_configure(view->xwayland_surface,
 		event->x, event->y, width, height);
 }
@@ -216,6 +224,13 @@ move(struct view *view, double x, double y)
 {
 	view->x = x;
 	view->y = y;
+
+	/* override any previous pending move */
+	view->pending_move_resize.update_x = false;
+	view->pending_move_resize.update_y = false;
+	view->pending_move_resize.x = x;
+	view->pending_move_resize.y = y;
+
 	struct wlr_xwayland_surface *s = view->xwayland_surface;
 	wlr_xwayland_surface_configure(s, (int16_t)x, (int16_t)y,
 		(uint16_t)s->width, (uint16_t)s->height);
@@ -329,7 +344,7 @@ map(struct view *view)
 	if (!view->been_mapped) {
 		view->ssd.enabled = want_deco(view);
 		if (view->ssd.enabled) {
-			view->margin = ssd_thickness(view);
+			ssd_create(view);
 		}
 
 		if (!view->maximized && !view->fullscreen) {
@@ -341,11 +356,6 @@ map(struct view *view)
 		}
 
 		view_discover_output(view);
-
-		if (view->ssd.enabled) {
-			/* Create ssd after view_disover_output() had been called */
-			ssd_create(view);
-		}
 		view->been_mapped = true;
 	}
 

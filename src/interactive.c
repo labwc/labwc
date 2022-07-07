@@ -17,29 +17,50 @@ max_move_scale(double pos_cursor, double pos_current,
 void
 interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 {
-	if (view->maximized) {
+	if (mode == LAB_INPUT_STATE_MOVE && view->fullscreen) {
+		/**
+		 * We don't allow moving fullscreen windows.
+		 *
+		 * If you think there is a good reason to allow it
+		 * feel free to open an issue explaining your use-case.
+		 */
+		 return;
+	}
+	if (mode == LAB_INPUT_STATE_RESIZE
+			&& (view->fullscreen || view->maximized)) {
+		/* We don't allow resizing while in maximized or fullscreen state */
+		return;
+	}
+	if (view->maximized || view->tiled) {
 		if (mode == LAB_INPUT_STATE_MOVE) {
+			/* Exit maximized or tiled mode */
 			int new_x = max_move_scale(view->server->seat.cursor->x,
-				view->x, view->w, view->unmaximized_geometry.width);
+				view->x, view->w, view->natural_geometry.width);
 			int new_y = max_move_scale(view->server->seat.cursor->y,
-				view->y, view->h, view->unmaximized_geometry.height);
-			view->unmaximized_geometry.x = new_x;
-			view->unmaximized_geometry.y = new_y;
-			view_maximize(view, false);
-			/*
-			 * view_maximize() indirectly calls view->impl->configure
-			 * which is async but we are using the current values in
-			 * server->grab_box. We pretend the configure already
-			 * happened by setting them manually.
+				view->y, view->h, view->natural_geometry.height);
+			view->natural_geometry.x = new_x;
+			view->natural_geometry.y = new_y;
+			if (view->maximized) {
+				view_maximize(view, false);
+			}
+			if (view->tiled) {
+				view_move_resize(view, view->natural_geometry);
+			}
+			/**
+			 * view_maximize() / view_move_resize() indirectly calls
+			 * view->impl->configure which is async but we are using
+			 * the current values in server->grab_box. We pretend the
+			 * configure already happened by setting them manually.
 			 */
 			view->x = new_x;
 			view->y = new_y;
-			view->w = view->unmaximized_geometry.width;
-			view->h = view->unmaximized_geometry.height;
-		} else {
-			return;
+			view->w = view->natural_geometry.width;
+			view->h = view->natural_geometry.height;
 		}
 	}
+
+	/* Moving or resizing always resets tiled state */
+	view->tiled = 0;
 
 	/*
 	 * This function sets up an interactive move or resize operation, where
@@ -101,9 +122,9 @@ interactive_end(struct view *view)
 					 * When unmaximizing later on restore
 					 * original position
 					 */
-					view->unmaximized_geometry.x =
+					view->natural_geometry.x =
 						view->server->grab_box.x;
-					view->unmaximized_geometry.y =
+					view->natural_geometry.y =
 						view->server->grab_box.y;
 				} else {
 					view_snap_to_edge(view, "up");

@@ -42,7 +42,6 @@ reload_config_and_theme(void)
 		if (!view->mapped || !view->ssd.enabled) {
 			continue;
 		}
-		view->margin = ssd_thickness(view);
 		ssd_reload(view);
 	}
 

@@ -306,13 +306,14 @@ struct view {
 	bool been_mapped;
 	bool minimized;
 	bool maximized;
+	uint32_t tiled;  /* private, enum view_edge in src/view.c */
 	struct wlr_output *fullscreen;
 
 	/* geometry of the wlr_surface contained within the view */
 	int x, y, w, h;
 
-	/* geometry before maximize */
-	struct wlr_box unmaximized_geometry;
+	/* user defined geometry before maximize / tiling / fullscreen */
+	struct wlr_box natural_geometry;
 
 	/*
 	 * margin refers to the space between the extremities of the
@@ -364,6 +365,7 @@ struct view {
 struct xwayland_unmanaged {
 	struct server *server;
 	struct wlr_xwayland_surface *xwayland_surface;
+	struct wlr_scene_node *node;
 	struct wl_list link;
 	int lx, ly;
 
@@ -460,6 +462,7 @@ void foreign_toplevel_handle_create(struct view *view);
 void desktop_move_to_front(struct view *view);
 void desktop_move_to_back(struct view *view);
 void desktop_focus_and_activate_view(struct seat *seat, struct view *view);
+void desktop_arrange_all_views(struct server *server);
 
 enum lab_cycle_dir {
 	LAB_CYCLE_DIR_NONE,

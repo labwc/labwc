@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <strings.h>
+#include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "labwc.h"
 #include "menu/menu.h"
@@ -347,6 +348,29 @@ view_apply_region_geometry(struct view *view)
 {
 	assert(view);
 	assert(view->tiled_region);
+
+	if (view->tiled_region_evacuate) {
+		/* View was evacuated from a destroying output */
+		struct output *output = view_output(view);
+		if (!output) {
+			wlr_log(WLR_INFO, "apply region geometry failed: no more ouputs");
+			return;
+		}
+
+		/* Get new output local region */
+		view->tiled_region = regions_from_name(
+			view->tiled_region_evacuate, output);
+
+		/* Get rid of the evacuate instruction */
+		zfree(view->tiled_region_evacuate);
+
+		if (!view->tiled_region) {
+			/* Existing region name doesn't exist in rc.xml anymore */
+			view_set_untiled(view);
+			view_apply_natural_geometry(view);
+			return;
+		}
+	}
 
 	/* Create a copy of the original region geometry */
 	struct wlr_box geo = view->tiled_region->geo;
@@ -978,6 +1002,10 @@ view_destroy(struct view *view)
 
 	if (server->seat.pressed.view == view) {
 		seat_reset_pressed(&server->seat);
+	}
+
+	if (view->tiled_region_evacuate) {
+		zfree(view->tiled_region_evacuate);
 	}
 
 	osd_on_view_destroy(view);

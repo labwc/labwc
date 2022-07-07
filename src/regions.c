@@ -157,6 +157,26 @@ regions_update(struct output *output)
 }
 
 void
+regions_evacuate_output(struct output *output)
+{
+	assert(output);
+	struct view *view;
+	struct region *region;
+
+	wl_list_for_each(view, &output->server->views, link) {
+		wl_list_for_each(region, &output->regions, link) {
+			if (view->tiled_region == region) {
+				if (!view->tiled_region_evacuate) {
+					view->tiled_region_evacuate =
+						xstrdup(region->name);
+				}
+				break;
+			}
+		}
+	}
+}
+
+void
 regions_destroy(struct wl_list *regions)
 {
 	assert(regions);

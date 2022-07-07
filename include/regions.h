@@ -28,6 +28,7 @@ bool regions_available(void);
 
 void regions_init(struct server *server, struct seat *seat);
 void regions_update(struct output *output);
+void regions_evacuate_output(struct output *output);
 void regions_destroy(struct wl_list *regions);
 
 struct region *regions_from_cursor(struct server *server);

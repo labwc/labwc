@@ -41,6 +41,7 @@ static void
 output_destroy_notify(struct wl_listener *listener, void *data)
 {
 	struct output *output = wl_container_of(listener, output, destroy);
+	regions_evacuate_output(output);
 	regions_destroy(&output->regions);
 	wl_list_remove(&output->link);
 	wl_list_remove(&output->frame.link);
@@ -307,6 +308,7 @@ output_config_apply(struct server *server,
 		}
 
 		if (need_to_remove) {
+			regions_evacuate_output(output);
 			wlr_output_layout_remove(server->output_layout, o);
 			output->scene_output = NULL;
 		}

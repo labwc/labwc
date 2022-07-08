@@ -224,6 +224,8 @@ output_update_for_layout_change(struct server *server)
 		XCURSOR_DEFAULT, server->seat.cursor);
 }
 
+static void do_output_layout_change(struct server *server);
+
 static void
 output_config_apply(struct server *server,
 		struct wlr_output_configuration_v1 *config)
@@ -278,7 +280,7 @@ output_config_apply(struct server *server,
 	}
 
 	server->pending_output_config = NULL;
-	output_update_for_layout_change(server);
+	do_output_layout_change(server);
 }
 
 static bool
@@ -351,11 +353,8 @@ wlr_output_configuration_v1 *create_output_config(struct server *server)
 }
 
 static void
-handle_output_layout_change(struct wl_listener *listener, void *data)
+do_output_layout_change(struct server *server)
 {
-	struct server *server =
-		wl_container_of(listener, server, output_layout_change);
-
 	bool done_changing = !server->pending_output_config;
 	if (done_changing) {
 		struct wlr_output_configuration_v1 *config =
@@ -376,6 +375,14 @@ handle_output_layout_change(struct wl_listener *listener, void *data)
 		}
 		output_update_for_layout_change(server);
 	}
+}
+
+static void
+handle_output_layout_change(struct wl_listener *listener, void *data)
+{
+	struct server *server =
+		wl_container_of(listener, server, output_layout_change);
+	do_output_layout_change(server);
 }
 
 void

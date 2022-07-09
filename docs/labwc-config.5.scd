@@ -185,6 +185,9 @@ this is for compatibility with Openbox.
 
 ## WINDOW SNAPPING
 
+The following two options relate to triggering window actions when moving
+windows using the mouse. 
+
 *<snapping><range>*
 	The distance in pixels from the edge of an output for window Move
 	operations to trigger SnapToEdge. A range of 0 disables window snapping.

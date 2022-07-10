@@ -1,32 +1,65 @@
 # labwc
 
 <h3 align="center">[<a
-href="https://labwc.github.io/">Official Website</a>] [<a
+href="https://labwc.github.io/">Website</a>] [<a
 href="https://github.com/labwc/labwc-scope#readme">Scope</a>] [<a
-href="https://web.libera.chat/gamja/?channels=#labwc">IRC Channel</a>] [<a
+href="https://web.libera.chat/gamja/?channels=#labwc">IRC&nbsp;Channel</a>] [<a
 href="NEWS.md">Release&nbsp;Notes</a>]</h3>
 
 - [1. What is this?](#1-what-is-this)
-- [2. Build](#2-build)
-- [3. Install](#3-install)
-- [4. Configure](#4-configure)
-- [5. Run](#5-run)
-- [6. Integrate](#6-integrate)
-- [7. Roadmap](#7-roadmap)
+- [2. Build and Installation](#2-build-and-installation)
+- [3. Configuration](#3-configuration)
+- [4. Theming](#4-theming)
+- [5. Usage](#5-usage)
+- [6. Integration](#6-integration)
+- [7. Scope](#7-scope)
 
 ## 1. What is this?
 
-`labwc` stands for Lab Wayland Compositor, where lab can mean any of the following:
+Labwc stands for Lab Wayland Compositor, where lab can mean any of the
+following:
 
 - sense of experimentation and treading new ground
 - inspired by BunsenLabs and ArchLabs
 - your favorite pet
 
-It is a wlroots-based stacking compositor aiming to be lightweight and independent, with a focus on simply stacking windows well and rendering some window decorations. It relies on clients for wallpaper, panels, screenshots, and so on to create a full desktop environment.
+Labwc is a [wlroots]-based window-stacking compositor for [wayland], inspired by
+[openbox].
 
-Labwc tries to stay in keeping with wlroots and sway in terms of general approach and coding style.
+It is light-weight and independent with a focus on simply stacking windows well
+and rendering some window decorations. It takes a no-bling/frills approach and
+says no to features such as icons (except window buttons), animations,
+decorative gradients and any other options not required to reasonably render
+common themes. It relies on clients for panels, screenshots, wallpapers and so
+on to create a full desktop environment.
 
-In order to avoid reinventing configuration and theme syntax, the [openbox-3.4] specification is used. This does not mean that labwc is an openbox clone but rather that configuration files will look and feel familiar.
+Labwc tries to stay in keeping with [wlroots] and [sway] in terms of general
+approach and coding style.
+
+Labwc only understands [wayland-protocols] &amp; [wlr-protocols], and it cannot
+be controlled with dbus, sway/i3-IPC or other technology. The reason for this is
+that we believe that custom IPCs and protocols create a fragmentation that
+hinders general Wayland adoption.
+
+In order to avoid reinventing configuration and theme syntax, the [openbox] 3.6
+specification is used. This does not mean that labwc is an openbox clone but
+rather that configuration files will look and feel familiar.
+
+Labwc supports the following:
+
+- [x] Config files (rc.xml, autostart, environment, menu.xml)
+- [x] Theme files and xbm icons
+- [x] Basic root-menu and client-menu
+- [x] HiDPI
+- [x] wlroots protocols such as `output-management`, `layer-shell` and
+  `foreign-toplevel`
+- [x] Optionally xwayland
+
+See [scope] for full details on implemented features.
+
+<a href="https://i.imgur.com/vOelinT.png">
+  <img src="https://i.imgur.com/vOelinTl.png">
+</a>
 
 | video link     | date        | content
 | -------------- | ------------| -------
@@ -34,79 +67,72 @@ In order to avoid reinventing configuration and theme syntax, the [openbox-3.4] 
 | [Video (1:10)] | 05-Aug-2021 | window gymnastics, theming and waybar
 | [Video (3:42)] | 25-Feb-2021 | setting background and themes; xwayland/xdg-shell windows
 
-<a href="https://raw.githubusercontent.com/wiki/labwc/labwc/images/scrot3.png">
-  <img src="https://raw.githubusercontent.com/wiki/labwc/labwc/images/scrot3x.png" width="256px" height="179px">
-</a>
+## 2. Build and Installation
 
-So far, labwc supports the following:
-
-- [x] Config files (rc.xml, autostart, environment)
-- [x] Theme files and xbm icons
-- [x] Damage tracking to reduce CPU usage
-- [x] A basic root-menu (configured with menu.xml)
-- [x] HiDPI
-- [x] wlr-output-management protocol
-- [x] layer-shell protocol
-- [x] foreign-toplevel protocol (e.g. to integrate with panels and bars)
-- [x] Optionally xwayland
-
-## 2. Build
+To build, simply run:
 
     meson build/
     ninja -C build/
 
-Dependencies include:
+Run-time dependencies include:
+
+- wlroots, wayland, libinput, xkbcommon
+- libxml2, cairo, pango, glib-2.0
+- xwayland, xcb (optional)
+
+Build dependencies include:
 
 - meson, ninja, gcc/clang
-- wlroots (master)
-- wayland (>=1.19)
 - wayland-protocols
-- libinput (>=1.14)
-- libxml2
-- cairo, pango, glib-2.0
-- xkbcommon
-- xwayland, xcb (optional)
 
 Disable xwayland with `meson -Dxwayland=disabled build/`
 
-For further details see [wiki/Build](https://github.com/labwc/labwc/wiki/Build).
+For OS/distribution specific details see see [wiki].
 
-## 3. Install
+## 3. Configuration
 
-See [wiki/Install](https://github.com/labwc/labwc/wiki/Install).
+For a step-by-step initial configuration guide, see [getting-started]
 
-## 4. Configure
+User config files are located at `${XDG_CONFIG_HOME:-$HOME/.config/labwc/}`
+with the following four files being used:
 
-Labwc uses the files listed below for configuration and theming.
+| file          | man page
+| ------------- | --------
+| [rc.xml]      | [labwc-config(5)], [labwc-actions(5)]
+| [menu.xml]    | [labwc-menu(5)]
+| [autostart]   | [labwc(1)]
+| [environment] | [labwc-environment(5)]
 
-| file          | user over-ride location                         | man page
-| ------------- | ----------------------------------------------- | --------
-| [rc.xml]      | ~/.config/labwc/                                | [labwc-config(5)], [labwc-actions(5)]
-| [menu.xml]    | ~/.config/labwc/                                | [labwc-menu(5)]
-| [autostart]   | ~/.config/labwc/                                | [labwc(1)]
-| [environment] | ~/.config/labwc/                                | [labwc-environment(5)]
-| [themerc]     | ~/.local/share/themes/\<theme-name\>/openbox-3/ | [labwc-theme(5)]
+The example [rc.xml] has been kept simple. For all options and default values,
+see [rc.xml.all]
 
-The example [rc.xml] has been kept simple. For all options and default values, see [rc.xml.all]
-
-Configuration and theme files are reloaded on receiving SIGHUP (e.g. `killall -s SIGHUP labwc`)
+Configuration and theme files are reloaded on receiving SIGHUP
+(e.g. `killall -s SIGHUP labwc`)
 
 For keyboard settings, see [environment] and [xkeyboard-config(7)]
 
-For themes, search the internet for "openbox themes" and place them in `~/.local/share/themes/`. Some good starting points include:
+## 4. Theming
+
+Themes are located at `~/.local/share/themes/\<theme-name\>/openbox-3/` or
+equivalent `XDG_DATA_{DIRS,HOME}` location in accordance with freedesktop XDG
+directory specification.
+
+For full theme options, see [labwc-theme(5)] or the [themerc] example file.
+
+For themes, search the internet for "openbox themes" and place them in
+`~/.local/share/themes/`. Some good starting points include:
 
 - https://github.com/addy-dclxvi/openbox-theme-collections
 - https://github.com/the-zero885/Lubuntu-Arc-Round-Openbox-Theme
 - https://bitbucket.org/archlabslinux/themes/
 - https://github.com/BunsenLabs/bunsen-themes
 
-## 5. Run
+## 5. Usage
 
     ./build/labwc [-s <command>]
 
-> **_NOTE:_** If you are running on **NVIDIA**, you will need the `nvidia-drm.modeset=1` kernel parameter.
-
-Click on the background to launch a menu.
+> **_NOTE:_** If you are running on **NVIDIA**, you will need the
+> `nvidia-drm.modeset=1` kernel parameter.
 
 If you have not created an rc.xml config file, default bindings will be:
 
@@ -128,7 +154,9 @@ If you have not created an rc.xml config file, default bindings will be:
 | `XF86_MonBrightnessUp`   | brightnessctl set +10%
 | `XF86_MonBrightnessDown` | brightnessctl set 10%-
 
-## 6. Integrate
+A root-menu can be opened by clicking on the desktop.
+
+## 6. Integration
 
 Suggested apps to use with labwc:
 
@@ -140,7 +168,9 @@ Suggested apps to use with labwc:
 - Output managers: [wlopm], [kanshi], [wlr-randr]
 - Screen locker: [swaylock]
 
-## 7. Roadmap
+See [integration] for further details.
+
+## 7. Scope
 
 A lot of emphasis is put on code simplicity when considering features.
 
@@ -154,10 +184,20 @@ High-level summary of items which are not intended to be implemented:
 - Icons (except window buttons)
 - Animations
 - Gradients for decoration and menus
-- Any theme option not required to reasonably render common themes (it's amazing
-  how few options are actually required).
+- Any theme option not required to reasonably render common themes (it is
+  amazing how few options are actually required).
 
-[openbox-3.4]: http://openbox.org/wiki/Help:Contents
+[wayland]: https://wayland.freedesktop.org/
+[openbox]: http://openbox.org/wiki/Help:Contents
+[wlroots]: https://gitlab.freedesktop.org/wlroots/wlroots
+[sway]: https://github.com/swaywm
+[wayland-protocols]: https://gitlab.freedesktop.org/wayland/wayland-protocols
+[wlr-protocols]: https://gitlab.freedesktop.org/wlroots/wlr-protocols
+[scope]: https://github.com/labwc/labwc-scope#readme
+[wiki]: https://github.com/labwc/labwc/wiki
+[getting-started]: https://labwc.github.io/getting-started.html
+[integration]: https://labwc.github.io/integration.html
+
 [rc.xml]: docs/rc.xml
 [rc.xml.all]: docs/rc.xml.all
 [menu.xml]: docs/menu.xml
@@ -165,15 +205,13 @@ High-level summary of items which are not intended to be implemented:
 [environment]: docs/environment
 [themerc]: docs/themerc
 
-[labwc(1)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc.1.scd
-[labwc-config(5)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc-config.5.scd
-[labwc-menu(5)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc-menu.5.scd
-[labwc-environment(5)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc-environment.5.scd
-[labwc-theme(5)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc-theme.5.scd
-[labwc-actions(5)]: https://raw.githubusercontent.com/labwc/labwc/master/docs/labwc-actions.5.scd
+[labwc(1)]: https://labwc.github.io/labwc.1.html
+[labwc-config(5)]: https://labwc.github.io/labwc-config.5.html
+[labwc-menu(5)]: https://labwc.github.io/labwc-menu.5.html
+[labwc-environment(5)]: https://labwc.github.io/labwc-environment.5.html
+[labwc-theme(5)]: https://labwc.github.io/labwc-theme.5.html
+[labwc-actions(5)]: https://labwc.github.io/labwc-actions.5.html
 [xkeyboard-config(7)]: https://manpages.debian.org/testing/xkb-data/xkeyboard-config.7.en.html
-
-[wiki/Build]: https://github.com/labwc/labwc/wiki/Build
 
 [grim]: https://github.com/emersion/grim
 [wf-recorder]: https://github.com/ammen99/wf-recorder
@@ -190,9 +228,6 @@ High-level summary of items which are not intended to be implemented:
 [wlr-randr]: https://sr.ht/~emersion/wlr-randr/
 [swaylock]: https://github.com/swaywm/swaylock
 
-[scope]: https://github.com/labwc/labwc-scope#readme
-
-[Video (0:18)]: https://user-images.githubusercontent.com/21316711/137605766-67196fb0-c147-4114-a8f7-1651580c2572.mp4
+[Video (0:18)]: https://github.com/labwc/labwc/pull/76#issue-1028182472
 [Video (1:10)]: https://youtu.be/AU_M3n_FS-E
 [Video (3:42)]: https://youtu.be/rE1bQjSVJzg
-

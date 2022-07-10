@@ -759,25 +759,36 @@ view_update_app_id(struct view *view)
 void
 view_destroy(struct view *view)
 {
+	struct server *server = view->server;
+
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel_handle);
 	}
-	interactive_end(view);
 
-	struct server *server = view->server;
+	if (server->grabbed_view == view) {
+		/* Application got killed while moving around */
+		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+		server->grabbed_view = NULL;
+	}
+
 	if (server->seat.pressed.view == view) {
+		/* Mouse was pressed on surface and is still pressed */
 		server->seat.pressed.view = NULL;
 		server->seat.pressed.surface = NULL;
 	}
 
 	if (server->cycle_view == view) {
-		/* If we are the current OSD selected view, cycle
-		 * to the next because we are dying. */
+		/*
+		 * If we are the current OSD selected view, cycle
+		 * to the next because we are dying.
+		 */
 		server->cycle_view = desktop_cycle_view(server,
 			server->cycle_view, LAB_CYCLE_DIR_BACKWARD);
 
-		/* If we cycled back to ourselves, then we have no windows.
-		 * just remove it and close the OSD for good. */
+		/*
+		 * If we cycled back to ourselves, then we have no windows.
+		 * just remove it and close the OSD for good.
+		 */
 		if (server->cycle_view == view || !server->cycle_view) {
 			server->cycle_view = NULL;
 			osd_finish(server);

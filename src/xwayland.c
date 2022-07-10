@@ -209,6 +209,10 @@ handle_set_class(struct wl_listener *listener, void *data)
 static void
 configure(struct view *view, struct wlr_box geo)
 {
+	if (!view->xwayland_surface) {
+		wlr_log(WLR_ERROR, "Not configuring view without xwayland_surface");
+		return;
+	}
 	view->pending_move_resize.update_x = geo.x != view->x;
 	view->pending_move_resize.update_y = geo.y != view->y;
 	view->pending_move_resize.x = geo.x;

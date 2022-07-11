@@ -69,13 +69,14 @@ jobs:
         run: |
           xbps-install -Syu || xbps-install -yu xbps
           xbps-install -yu
-          xbps-install -y git meson gcc clang pkg-config wlroots \
+          xbps-install -y git meson gcc clang pkg-config wlroots libxml2-devel \
             wayland-devel glslang libgbm-devel libglvnd-devel libseat-devel \
             eudev-libudev-devel libdrm-devel libinput-devel libxkbcommon-devel \
             pixman-devel wayland-devel wayland-protocols xcb-util-errors-devel \
             xcb-util-wm-devel xcb-util-renderutil-devel libxcb-devel \
             xcb-util-cursor-devel xcb-util-devel xcb-util-image-devel \
-            xcb-util-keysyms-devel xcb-util-xrm-devel xorg-server-xwayland
+            xcb-util-keysyms-devel xcb-util-xrm-devel xorg-server-xwayland \
+            libglib-devel cairo-devel pango-devel
 
       - name: Build with gcc
         run: |

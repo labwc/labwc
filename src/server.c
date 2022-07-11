@@ -397,36 +397,35 @@ server_init(struct server *server)
 		wlr_xwayland_create(server->wl_display, compositor, true);
 	if (!server->xwayland) {
 		wlr_log(WLR_ERROR, "cannot create xwayland server");
-		exit(EXIT_FAILURE);
-	}
-	server->new_xwayland_surface.notify = xwayland_surface_new;
-	wl_signal_add(&server->xwayland->events.new_surface,
+		// exit(EXIT_FAILURE);
+	} else {
+		server->new_xwayland_surface.notify = xwayland_surface_new;
+		wl_signal_add(&server->xwayland->events.new_surface,
 		      &server->new_xwayland_surface);
 
-	if (setenv("DISPLAY", server->xwayland->display_name, true) < 0) {
+		if (setenv("DISPLAY", server->xwayland->display_name, true) < 0) {
 		wlr_log_errno(WLR_ERROR, "unable to set DISPLAY for xwayland");
-	} else {
+		} else {
 		wlr_log(WLR_DEBUG, "xwayland is running on display %s",
 			server->xwayland->display_name);
+		}
+
+		struct wlr_xcursor *xcursor;
+		xcursor = wlr_xcursor_manager_get_xcursor(server->seat.xcursor_manager,
+						  XCURSOR_DEFAULT, 1);
+		if (xcursor) {
+		struct wlr_xcursor_image *image = xcursor->images[0];
+		wlr_xwayland_set_cursor(server->xwayland, image->buffer,
+					image->width * 4, image->width,
+					image->height, image->hotspot_x,
+					image->hotspot_y);
+		}
 	}
 #endif
 
 	if (!wlr_xcursor_manager_load(server->seat.xcursor_manager, 1)) {
 		wlr_log(WLR_ERROR, "cannot load xcursor theme");
 	}
-
-#if HAVE_XWAYLAND
-	struct wlr_xcursor *xcursor;
-	xcursor = wlr_xcursor_manager_get_xcursor(server->seat.xcursor_manager,
-						  XCURSOR_DEFAULT, 1);
-	if (xcursor) {
-		struct wlr_xcursor_image *image = xcursor->images[0];
-		wlr_xwayland_set_cursor(server->xwayland, image->buffer,
-					image->width * 4, image->width,
-					image->height, image->hotspot_x,
-					image->hotspot_y);
-	}
-#endif
 
 	/* used when handling SIGHUP */
 	g_server = server;
@@ -459,7 +458,9 @@ server_start(struct server *server)
 	}
 
 #if HAVE_XWAYLAND
-	wlr_xwayland_set_seat(server->xwayland, server->seat.seat);
+	if (server->xwayland) {
+		wlr_xwayland_set_seat(server->xwayland, server->seat.seat);
+	}
 #endif
 }
 

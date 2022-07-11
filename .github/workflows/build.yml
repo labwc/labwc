@@ -76,7 +76,7 @@ jobs:
             xcb-util-wm-devel xcb-util-renderutil-devel libxcb-devel \
             xcb-util-cursor-devel xcb-util-devel xcb-util-image-devel \
             xcb-util-keysyms-devel xcb-util-xrm-devel xorg-server-xwayland \
-            libglib-devel
+            libglib-devel cairo-devel pango-devel
 
       - name: Build with gcc
         run: |

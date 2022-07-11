@@ -75,7 +75,8 @@ jobs:
             pixman-devel wayland-devel wayland-protocols xcb-util-errors-devel \
             xcb-util-wm-devel xcb-util-renderutil-devel libxcb-devel \
             xcb-util-cursor-devel xcb-util-devel xcb-util-image-devel \
-            xcb-util-keysyms-devel xcb-util-xrm-devel xorg-server-xwayland
+            xcb-util-keysyms-devel xcb-util-xrm-devel xorg-server-xwayland \
+            libglib-devel
 
       - name: Build with gcc
         run: |

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-
+#rc.xml
 <!--
   This is a very simple config file with many options missing. For a complete
   set of options with comments, see docs/rc.xml.all

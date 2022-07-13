@@ -26,14 +26,111 @@ that branch.
 ## 0.6.0 - unreleased
 
 This release contains significant refactoring to use the wlroots
-scene-graph API, particularly src/output.c, server-side-decoration
-and the layer-shell implementation. Many thanks to @Consolatis for some
-heavy lifting with this. Native language support has been added by
-@01micko.
+scene-graph API. This touches many areas of the code, particularly
+rendering, server-side-decoration, the layer-shell implementation and the
+menu. Many thanks to @Consolatis for doing most of the heavy lifting with
+this.
+
+Noteworthy, related changes include:
+
+- The use of a buffer implementation instead of using wlr_texture. It
+  handles both images and fonts, and scales according to output scale.
+- The use of node-descriptors to assign roles to wlr_scene_nodes in order
+  to simplify the code.
+- Improving the "Debug" action to print scene-graph trees
+
+A large number of bugs and regressions have been fixed following the
+re-factoring, too many to list here, but we are grateful to all who have
+reported, tested and fixed issues. Particular mentions go to @bi4k8,
+@flrian, @heroin-moose, @jlindgren90, @Joshua-Ashton, @01micko and @skerit
 
 ### Added
 
-- Presentation protocol
+- Workspaces. Written-by: @Consolatis
+- presentation-time protocol
+- Native language support for client-menus. Written-by: @01micko
+- Touch support. Written-by: @bi4k8
+- drm_lease_v1 for VR to work and leasing of desktop displays.
+  Written-by: Joshua Ashton
+- ToggleAlwaysOnTop action. Written-by: @Consolatis
+- Command line option -C to specify config directory
+- Theme options osd.border.color and osd.border.width. Written-by: @Consolatis
+- Menu <separator /> and associated theme options:
+  menu.separator.width, menu.separator.padding.width,
+  menu.separator.padding.height and menu.separator.color
+- Adjust maximized and tiled windows according to usable_area taking
+  into account exclusive layer-shell clients. Written-by: @Consolatis
+- Restore natural geometry when moving tiled/maximized window
+  Fixes #391. Written-by: @Consolatis
+- Improve action implementation to take a list of arguments in preperation
+  for actions with multiple arguments. Written-by: @Consolatis
+
+### Fixed
+
+- Dynamically adjust server-side-deccoration invisible resize areas based
+  on usable_area to ensure that cursor events are sent to clients such as
+  panels in preference to grabbing window edges. Fixes #265.
+  Written-by: @Consolatis
+- Always position submenus inside output extents. Fixes #276
+  Written-by: @Consolatis
+- Do not crash when changing TTY. Written-by: @bi4k8
+- Set wlroots.wrap to a specific commit rather than master because it
+  enables labwc commits to be checked out and build without manually
+  having to find the right wlroots commit if there are upstream breaking
+  changes.
+- Increase accuracy of window center-alignment, taking into account
+  usable_area and window decoration. Also, top/left align if window is
+  bigger than usable area.
+- Handle view-destruction during alt-tab cycling.
+  Written-by: @Joshua-Ashton
+- Survive all outputs being disabled
+- Check that double-clicks are on the same window. Written-by: yizixiao
+- Set xdg-shell window position before maximize on first map so that the
+  unmaximized geometry is known when started in maximized mode.
+  Fixes issue #305. Reported-by: @01micko
+- Support <menu><item><action name="Execute"><execute>
+  <exectue> is a deprecated name for <command>, but is supported for
+  backward compatibility with old menu-generators.
+- Keep xwayland-shell SSD state on unmap/map cycle.
+  Written-by: @Consolatis
+- Prevent segfault on missing direction arguments. Reported-by: @flrian
+- Fix keybind insertion order to restore intended behavior of keybinds
+  set by <default />. Written-by: @Consolatis
+- Ensure client-menu actions are always applied on window they belong to
+  This fixes #380. Written-by: @Consolatis
+- Keep window margin in sync when toggling decorations.
+  Written-by: @Consolatis
+- Fix handling of client-initiated configure requests.
+  Written-by: @jlindgren90
+- Always react to new output configuration. Reported-by @heroin-moose and
+  Written-by: @Consolatis
+
+### Changed
+
+- theme: change window.label.text.justify default to center
+
+## [0.5.3] - unreleased
+
+### Added
+
+- wlr-output-power-management protocol to enable clients such as wlopm
+  Written-by: @bi4k8
+
+### Fixed
+
+- Call foreign-toplevel-destroy when unmapping xwayland surfaces because
+  some xwayland clients leave unmapped child views around. Although
+  handle_destroy() is not called for these, we have to call
+  foreign-toplevel-destroy to avoid clients such as panels incorrecly
+  showing them.
+- Handle xwayland set_override_redirect events to fix weird behaviour with
+  gitk menus and rofi.
+- Re-focus parent surface on unmapping xwayland unmanaged surfaces
+  Fixes #352 relating to JetBrains and Intellij focus issues
+  Written-by: Jelle De Loecker
+- Do not segfault on missing drag icon. Written-by: @Consolatis
+- Fix windows irratically sticking to edges during move/resize.
+  Fixes issues #331 and #309
 
 ## [0.5.2] - 2022-05-17
 

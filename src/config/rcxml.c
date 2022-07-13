@@ -352,7 +352,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		}
 	} else if (!strcmp(nodename, "gap.core")) {
 		rc.gap = atoi(content);
-	} else if (!strcmp(nodename, "adaptiveSync.core")) {
+	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
 		rc.adaptive_sync = get_bool(content);
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = strdup(content);

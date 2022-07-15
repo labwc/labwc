@@ -28,7 +28,7 @@ buf_expand_shell_variables(struct buf *s)
 			environment_variable.len = 0;
 			buf_add(&environment_variable, s->buf + i + 1);
 			char *p = environment_variable.buf;
-			while (isalnum(*p) || *p == '{' || *p == '}') {
+			while (isalnum(*p) || *p == '_' || *p == '{' || *p == '}') {
 				++p;
 			}
 			*p = '\0';

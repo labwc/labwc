@@ -15,6 +15,7 @@ that branch.
 
 | Date       | Release notes | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2022-07-15 | [0.5.3]       | 0.15.1          | 9216          |
 | 2022-05-17 | [0.5.2]       | 0.15.1          | 8829          |
 | 2022-04-08 | [0.5.1]       | 0.15.1          | 8829          |
 | 2022-02-18 | [0.5.0]       | 0.15.1          | 8766          |
@@ -109,7 +110,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 
 - theme: change window.label.text.justify default to center
 
-## [0.5.3] - unreleased
+## [0.5.3] - 2022-07-15
 
 ### Added
 
@@ -322,6 +323,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
+[0.5.3]: https://github.com/labwc/labwc/releases/tag/0.5.3
 [0.5.2]: https://github.com/labwc/labwc/releases/tag/0.5.2
 [0.5.1]: https://github.com/labwc/labwc/releases/tag/0.5.1
 [0.5.0]: https://github.com/labwc/labwc/releases/tag/0.5.0

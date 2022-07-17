@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <wlr/util/log.h>
 #include "common/spawn.h"
+#include "common/fd_util.h"
 
 void
 spawn_async_no_shell(char const *command)
@@ -39,6 +40,8 @@ spawn_async_no_shell(char const *command)
 		wlr_log(WLR_ERROR, "unable to fork()");
 		goto out;
 	case 0:
+		restore_nofile_limit();
+
 		setsid();
 		sigset_t set;
 		sigemptyset(&set);

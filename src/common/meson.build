@@ -1,6 +1,7 @@
 labwc_sources += files(
   'buf.c',
   'dir.c',
+  'fd_util.c',
   'font.c',
   'grab-file.c',
   'nodename.c',

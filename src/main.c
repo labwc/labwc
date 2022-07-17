@@ -9,6 +9,7 @@
 #include "theme.h"
 #include "xbm/xbm.h"
 #include "menu/menu.h"
+#include "common/fd_util.h"
 
 struct rcxml rc = { 0 };
 
@@ -84,6 +85,8 @@ main(int argc, char *argv[])
 		wlr_log(WLR_ERROR, "XDG_RUNTIME_DIR is unset");
 		exit(EXIT_FAILURE);
 	}
+
+	increase_nofile_limit();
 
 	struct server server = { 0 };
 	server_init(&server);

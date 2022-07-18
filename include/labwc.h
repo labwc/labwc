@@ -419,6 +419,7 @@ void view_close(struct view *view);
  */
 void view_move_resize(struct view *view, struct wlr_box geo);
 void view_move(struct view *view, double x, double y);
+void view_moved(struct view *view);
 void view_minimize(struct view *view, bool minimized);
 /* view_wlr_output - return the output that a view is mostly on */
 struct wlr_output *view_wlr_output(struct view *view);

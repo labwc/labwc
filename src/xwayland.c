@@ -15,37 +15,22 @@ handle_commit(struct wl_listener *listener, void *data)
 	struct wlr_surface_state *state = &view->surface->current;
 	struct view_pending_move_resize *pending = &view->pending_move_resize;
 
-	bool move_pending = pending->update_x || pending->update_y;
-	bool size_changed = view->w != state->width || view->h != state->height;
-
-	if (!move_pending && !size_changed) {
+	if (view->w == state->width && view->h == state->height) {
 		return;
 	}
 
 	view->w = state->width;
 	view->h = state->height;
 
-	if (pending->update_x) {
+	if (view->x != pending->x) {
 		/* Adjust x for queued up configure events */
 		view->x = pending->x + pending->width - view->w;
 	}
-	if (pending->update_y) {
+	if (view->y != pending->y) {
 		/* Adjust y for queued up configure events */
 		view->y = pending->y + pending->height - view->h;
 	}
-	if (move_pending) {
-		wlr_scene_node_set_position(&view->scene_tree->node,
-			view->x, view->y);
-	}
-	if ((int)pending->width == view->w && (int)pending->height == view->h) {
-		/*
-		 * We reached the end of all queued size changing configure
-		 * events
-		 */
-		pending->update_x = false;
-		pending->update_y = false;
-	}
-	ssd_update_geometry(view);
+	view_moved(view);
 }
 
 static void
@@ -135,6 +120,27 @@ handle_destroy(struct wl_listener *listener, void *data)
 }
 
 static void
+configure(struct view *view, struct wlr_box geo)
+{
+	assert(view->xwayland_surface);
+
+	view->pending_move_resize.x = geo.x;
+	view->pending_move_resize.y = geo.y;
+	view->pending_move_resize.width = geo.width;
+	view->pending_move_resize.height = geo.height;
+
+	wlr_xwayland_surface_configure(view->xwayland_surface, geo.x, geo.y,
+				       geo.width, geo.height);
+
+	/* If not resizing, process the move immediately */
+	if (view->w == geo.width && view->h == geo.height) {
+		view->x = geo.x;
+		view->y = geo.y;
+		view_moved(view);
+	}
+}
+
+static void
 handle_request_configure(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_configure);
@@ -144,16 +150,7 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	int height = event->height;
 	view_adjust_size(view, &width, &height);
 
-	view->pending_move_resize.update_x = event->x != view->x;
-	view->pending_move_resize.update_y = event->y != view->y;
-	view->pending_move_resize.x = event->x;
-	view->pending_move_resize.y = event->y;
-	view->pending_move_resize.width = width;
-	view->pending_move_resize.height = height;
-
-	wlr_scene_node_set_position(&view->scene_tree->node, event->x, event->y);
-	wlr_xwayland_surface_configure(view->xwayland_surface,
-		event->x, event->y, width, height);
+	configure(view, (struct wlr_box){event->x, event->y, width, height});
 }
 
 static void
@@ -207,37 +204,21 @@ handle_set_class(struct wl_listener *listener, void *data)
 }
 
 static void
-configure(struct view *view, struct wlr_box geo)
-{
-	if (!view->xwayland_surface) {
-		wlr_log(WLR_ERROR, "Not configuring view without xwayland_surface");
-		return;
-	}
-	view->pending_move_resize.update_x = geo.x != view->x;
-	view->pending_move_resize.update_y = geo.y != view->y;
-	view->pending_move_resize.x = geo.x;
-	view->pending_move_resize.y = geo.y;
-	view->pending_move_resize.width = geo.width;
-	view->pending_move_resize.height = geo.height;
-	wlr_xwayland_surface_configure(view->xwayland_surface, (int16_t)geo.x,
-	       (int16_t)geo.y, (uint16_t)geo.width, (uint16_t)geo.height);
-}
-
-static void
 move(struct view *view, double x, double y)
 {
+	assert(view->xwayland_surface);
+
 	view->x = x;
 	view->y = y;
 
 	/* override any previous pending move */
-	view->pending_move_resize.update_x = false;
-	view->pending_move_resize.update_y = false;
 	view->pending_move_resize.x = x;
 	view->pending_move_resize.y = y;
 
 	struct wlr_xwayland_surface *s = view->xwayland_surface;
 	wlr_xwayland_surface_configure(s, (int16_t)x, (int16_t)y,
 		(uint16_t)s->width, (uint16_t)s->height);
+	view_moved(view);
 }
 
 static void

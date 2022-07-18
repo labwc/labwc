@@ -150,16 +150,19 @@ process_cursor_resize(struct server *server, uint32_t time)
 		.x = view->x, .y = view->y, .width = view->w, .height = view->h
 	};
 
-	if (server->resize_edges & WLR_EDGE_TOP)
+	if (server->resize_edges & WLR_EDGE_TOP) {
 		new_view_geo.height = server->grab_box.height - dy;
-	else if (server->resize_edges & WLR_EDGE_BOTTOM)
+	} else if (server->resize_edges & WLR_EDGE_BOTTOM) {
 		new_view_geo.height = server->grab_box.height + dy;
+	}
 
-	if (server->resize_edges & WLR_EDGE_LEFT)
+	if (server->resize_edges & WLR_EDGE_LEFT) {
 		new_view_geo.width = server->grab_box.width - dx;
-	else if (server->resize_edges & WLR_EDGE_RIGHT)
+	} else if (server->resize_edges & WLR_EDGE_RIGHT) {
 		new_view_geo.width = server->grab_box.width + dx;
+	}
 
+	resistance_resize_apply(view, &new_view_geo);
 	view_adjust_size(view, &new_view_geo.width, &new_view_geo.height);
 
 	if (server->resize_edges & WLR_EDGE_TOP) {
@@ -174,7 +177,6 @@ process_cursor_resize(struct server *server, uint32_t time)
 			server->grab_box.width - new_view_geo.width;
 	}
 
-	resistance_resize_apply(view, &new_view_geo);
 	view_move_resize(view, new_view_geo);
 }
 

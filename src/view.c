@@ -124,6 +124,11 @@ view_move(struct view *view, double x, double y)
 	if (view->impl->move) {
 		view->impl->move(view, x, y);
 	}
+}
+
+void
+view_moved(struct view *view)
+{
 	view_discover_output(view);
 	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
 	ssd_update_geometry(view);
@@ -136,8 +141,6 @@ view_move_resize(struct view *view, struct wlr_box geo)
 	if (view->impl->configure) {
 		view->impl->configure(view, geo);
 	}
-	ssd_update_title(view);
-	view_discover_output(view);
 }
 
 #define MIN_VIEW_WIDTH (100)

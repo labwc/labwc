@@ -61,6 +61,10 @@ resistance_move_apply(struct view *view, double *x, double *y)
 	}
 
 	wl_list_for_each(output, &server->outputs, link) {
+		if (!output->wlr_output->enabled) {
+			continue;
+		}
+
 		mgeom = output_usable_area_in_layout_coords(output);
 
 		if (!wlr_box_intersection(&intersection, &vgeom, &mgeom)
@@ -129,6 +133,10 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_view_geo)
 		return;
 	}
 	wl_list_for_each(output, &server->outputs, link) {
+		if (!output->wlr_output->enabled) {
+			continue;
+		}
+
 		mgeom = output_usable_area_in_layout_coords(output);
 
 		if (!wlr_box_intersection(&intersection, &vgeom, &mgeom)

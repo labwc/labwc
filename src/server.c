@@ -174,6 +174,16 @@ handle_drm_lease_request(struct wl_listener *listener, void *data)
 	}
 }
 
+#if HAVE_XWAYLAND
+static void
+handle_xwayland_ready(struct wl_listener *listener, void *data)
+{
+	struct server *server =
+		wl_container_of(listener, server, xwayland_ready);
+	wlr_xwayland_set_seat(server->xwayland, server->seat.seat);
+}
+#endif
+
 void
 server_init(struct server *server)
 {
@@ -403,6 +413,10 @@ server_init(struct server *server)
 	wl_signal_add(&server->xwayland->events.new_surface,
 		      &server->new_xwayland_surface);
 
+	server->xwayland_ready.notify = handle_xwayland_ready;
+	wl_signal_add(&server->xwayland->events.ready,
+		&server->xwayland_ready);
+
 	if (setenv("DISPLAY", server->xwayland->display_name, true) < 0) {
 		wlr_log_errno(WLR_ERROR, "unable to set DISPLAY for xwayland");
 	} else {
@@ -457,10 +471,6 @@ server_start(struct server *server)
 	} else {
 		wlr_log(WLR_DEBUG, "WAYLAND_DISPLAY=%s", socket);
 	}
-
-#if HAVE_XWAYLAND
-	wlr_xwayland_set_seat(server->xwayland, server->seat.seat);
-#endif
 }
 
 void

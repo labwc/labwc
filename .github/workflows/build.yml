@@ -1,5 +1,3 @@
-# TODO: add FreeBSD via https://github.com/marketplace/actions/freebsd-vm
-#
 # Void-musl images:
 # https://github.com/void-linux/void-docker/pkgs/container/void-linux/versions
 #
@@ -56,7 +54,7 @@ jobs:
 
       - name: Install FreeBSD dependencies
         if: matrix.name == 'FreeBSD'
-        uses: vmactions/freebsd-vm@v0.1.7
+        uses: vmactions/freebsd-vm@v0.2.0
         with:
           usesh: true
           prepare: |

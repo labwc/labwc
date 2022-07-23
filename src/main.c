@@ -92,6 +92,15 @@ main(int argc, char *argv[])
 	server_init(&server);
 	server_start(&server);
 
+	/* Initialize systemd and dbus with our relevant variables
+	 * which are needed for some desktop portal use.
+	 *
+	 * This fixes things such as OBS screen casting not working.
+	 * In the worst case, on non-systemd/dbus systems, this will just not do anything.
+	 */
+	system("systemctl --user import-environment DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP");
+	system("dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP");
+
 	struct theme theme = { 0 };
 	theme_init(&theme, rc.theme_name);
 	rc.theme = &theme;

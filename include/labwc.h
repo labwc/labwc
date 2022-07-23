@@ -368,12 +368,10 @@ struct xwayland_unmanaged {
 	struct wlr_xwayland_surface *xwayland_surface;
 	struct wlr_scene_node *node;
 	struct wl_list link;
-	int lx, ly;
 
 	struct wl_listener request_activate;
 	struct wl_listener request_configure;
 /*	struct wl_listener request_fullscreen; */
-	struct wl_listener commit;
 	struct wl_listener set_geometry;
 	struct wl_listener map;
 	struct wl_listener unmap;

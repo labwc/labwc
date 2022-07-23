@@ -10,18 +10,7 @@ unmanaged_handle_request_configure(struct wl_listener *listener, void *data)
 	struct wlr_xwayland_surface_configure_event *ev = data;
 	wlr_xwayland_surface_configure(xsurface, ev->x, ev->y, ev->width,
 				       ev->height);
-}
-
-static void
-unmanaged_handle_commit(struct wl_listener *listener, void *data)
-{
-	struct xwayland_unmanaged *unmanaged =
-		wl_container_of(listener, unmanaged, commit);
-	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
-	unmanaged->lx = xsurface->x;
-	unmanaged->ly = xsurface->y;
-	wlr_scene_node_set_position(unmanaged->node,
-		unmanaged->lx, unmanaged->ly);
+	wlr_scene_node_set_position(unmanaged->node, ev->x, ev->y);
 }
 
 static void
@@ -30,14 +19,7 @@ unmanaged_handle_set_geometry(struct wl_listener *listener, void *data)
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, set_geometry);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
-
-	if (xsurface->x != unmanaged->lx || xsurface->y != unmanaged->ly) {
-		wlr_log(WLR_DEBUG, "xwayland-unmanaged surface has moved");
-		unmanaged->lx = xsurface->x;
-		unmanaged->ly = xsurface->y;
-		wlr_scene_node_set_position(unmanaged->node,
-			unmanaged->lx, unmanaged->ly);
-	}
+	wlr_scene_node_set_position(unmanaged->node, xsurface->x, xsurface->y);
 }
 
 void
@@ -50,14 +32,9 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 	wl_list_insert(unmanaged->server->unmanaged_surfaces.prev,
 		       &unmanaged->link);
 
-	wl_signal_add(&xsurface->surface->events.commit, &unmanaged->commit);
-	unmanaged->commit.notify = unmanaged_handle_commit;
-
 	wl_signal_add(&xsurface->events.set_geometry, &unmanaged->set_geometry);
 	unmanaged->set_geometry.notify = unmanaged_handle_set_geometry;
 
-	unmanaged->lx = xsurface->x;
-	unmanaged->ly = xsurface->y;
 	if (wlr_xwayland_or_surface_wants_focus(xsurface)) {
 		seat_focus_surface(&unmanaged->server->seat, xsurface->surface);
 	}
@@ -66,8 +43,7 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 	unmanaged->node = &wlr_scene_surface_create(
 			unmanaged->server->unmanaged_tree,
 			xsurface->surface)->buffer->node;
-	wlr_scene_node_set_position(unmanaged->node,
-		unmanaged->lx, unmanaged->ly);
+	wlr_scene_node_set_position(unmanaged->node, xsurface->x, xsurface->y);
 }
 
 static void
@@ -78,7 +54,6 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	wl_list_remove(&unmanaged->link);
 	wl_list_remove(&unmanaged->set_geometry.link);
-	wl_list_remove(&unmanaged->commit.link);
 
 	struct seat *seat = &unmanaged->server->seat;
 	if (seat->seat->keyboard_state.focused_surface == xsurface->surface) {

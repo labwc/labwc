@@ -129,8 +129,8 @@ view_move(struct view *view, double x, double y)
 void
 view_moved(struct view *view)
 {
-	view_discover_output(view);
 	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
+	view_discover_output(view);
 	ssd_update_geometry(view);
 }
 
@@ -585,7 +585,9 @@ view_discover_output(struct view *view)
 	struct output *new_output = view_output(view);
 	if (old_output != new_output) {
 		view->output = new_output;
-		view_output_enter(view, new_output->wlr_output);
+		if (new_output) {
+			view_output_enter(view, new_output->wlr_output);
+		}
 		if (old_output) {
 			view_output_leave(view, old_output->wlr_output);
 		}

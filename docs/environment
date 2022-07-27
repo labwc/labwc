@@ -1,5 +1,8 @@
 # Example environment file
 
+# This allows xdg-desktop-portal-wlr to function (e.g. for screen-recording)
+XDG_CURRENT_DESKTOP=wlroots
+
 # Set keyboard layout to Swedish
 XKB_DEFAULT_LAYOUT=se
 

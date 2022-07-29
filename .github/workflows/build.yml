@@ -54,7 +54,7 @@ jobs:
 
       - name: Install FreeBSD dependencies
         if: matrix.name == 'FreeBSD'
-        uses: vmactions/freebsd-vm@v0.2.0
+        uses: vmactions/freebsd-vm@v0
         with:
           usesh: true
           prepare: |

@@ -101,7 +101,7 @@ with the following four files being used:
 | [rc.xml]      | [labwc-config(5)], [labwc-actions(5)]
 | [menu.xml]    | [labwc-menu(5)]
 | [autostart]   | [labwc(1)]
-| [environment] | [labwc-environment(5)]
+| [environment] | [labwc-config(5)]
 
 The example [rc.xml] has been kept simple. For all options and default values,
 see [rc.xml.all]

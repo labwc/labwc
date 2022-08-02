@@ -16,6 +16,7 @@ struct scaled_font_buffer {
 	char *text;
 	int max_width;
 	float color[4];
+	char *arrow;
 	struct font font;
 	struct scaled_scene_buffer *scaled_buffer;
 };
@@ -44,6 +45,6 @@ struct scaled_font_buffer *scaled_font_buffer_create(struct wlr_scene_tree *pare
  * - font and color the same
  */
 void scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
-	int max_width, struct font *font, float *color);
+	int max_width, struct font *font, float *color, const char *arrow);
 
 #endif /* __LAB_COMMON_SCALED_FONT_BUFFER_H */

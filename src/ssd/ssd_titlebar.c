@@ -254,8 +254,8 @@ ssd_update_title(struct view *view)
 		}
 
 		if (part->buffer) {
-			scaled_font_buffer_update(part->buffer,
-				title, title_bg_width, &font, text_color);
+			scaled_font_buffer_update(part->buffer, title,
+				title_bg_width, &font, text_color, NULL);
 		}
 
 		/* And finally update the cache */

@@ -30,12 +30,8 @@ static void
 _destroy(struct scaled_scene_buffer *scaled_buffer)
 {
 	struct scaled_font_buffer *self = scaled_buffer->data;
-	if (self->text) {
-		zfree(self->text);
-	}
-	if (self->font.name) {
-		zfree(self->font.name);
-	}
+	zfree(self->text);
+	zfree(self->font.name);
 	zfree(self->arrow);
 	zfree(scaled_buffer->data);
 }
@@ -79,12 +75,8 @@ scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 	assert(color);
 
 	/* Clean up old internal state */
-	if (self->text) {
-		zfree(self->text);
-	}
-	if (self->font.name) {
-		zfree(self->font.name);
-	}
+	zfree(self->text);
+	zfree(self->font.name);
 	zfree(self->arrow);
 
 	/* Update internal state */

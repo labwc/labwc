@@ -78,7 +78,7 @@ menu_get_by_id(const char *id)
 }
 
 static struct menuitem *
-item_create(struct menu *menu, const char *text)
+item_create(struct menu *menu, const char *text, bool show_arrow)
 {
 	struct menuitem *menuitem = calloc(1, sizeof(struct menuitem));
 	if (!menuitem) {
@@ -137,10 +137,11 @@ item_create(struct menu *menu, const char *text)
 	menuitem->selected.text = &menuitem->selected.buffer->scene_buffer->node;
 
 	/* Font buffers */
+	const char *arrow = show_arrow ? "›" : NULL;
 	scaled_font_buffer_update(menuitem->normal.buffer, text, item_max_width,
-		&font, theme->menu_items_text_color);
+		&font, theme->menu_items_text_color, arrow);
 	scaled_font_buffer_update(menuitem->selected.buffer, text, item_max_width,
-		&font, theme->menu_items_active_text_color);
+		&font, theme->menu_items_active_text_color, arrow);
 
 	/* Center font nodes */
 	x = MENU_ITEM_PADDING_X;
@@ -221,7 +222,7 @@ fill_item(char *nodename, char *content)
 
 	/* <item label=""> defines the start of a new item */
 	if (!strcmp(nodename, "label")) {
-		current_item = item_create(current_menu, content);
+		current_item = item_create(current_menu, content, false);
 		current_item_action = NULL;
 	} else if (!current_item) {
 		wlr_log(WLR_ERROR, "expect <item label=\"\"> element first. "
@@ -321,7 +322,7 @@ handle_menu_element(xmlNode *n, struct server *server)
 			 * In a nested (inline) menu definition we need to
 			 * create an item pointing to the new submenu
 			 */
-			current_item = item_create(current_menu, label);
+			current_item = item_create(current_menu, label, true);
 			if (current_item) {
 				submenu = &current_item->submenu;
 			} else {
@@ -339,7 +340,7 @@ handle_menu_element(xmlNode *n, struct server *server)
 	} else if (id) {
 		struct menu *menu = menu_get_by_id(id);
 		if (menu) {
-			current_item = item_create(current_menu, menu->label);
+			current_item = item_create(current_menu, menu->label, true);
 			if (current_item) {
 				current_item->submenu = menu;
 			}
@@ -560,9 +561,9 @@ menu_init_rootmenu(struct server *server)
 		menu = menu_create(server, "root-menu", "");
 	}
 	if (wl_list_empty(&menu->menuitems)) {
-		current_item = item_create(menu, _("Reconfigure"));
+		current_item = item_create(menu, _("Reconfigure"), false);
 		fill_item("name.action", "Reconfigure");
-		current_item = item_create(menu, _("Exit"));
+		current_item = item_create(menu, _("Exit"), false);
 		fill_item("name.action", "Exit");
 	}
 }
@@ -578,33 +579,33 @@ menu_init_windowmenu(struct server *server)
 		menu = menu_create(server, "client-menu", "");
 	}
 	if (wl_list_empty(&menu->menuitems)) {
-		current_item = item_create(menu, _("Minimize"));
+		current_item = item_create(menu, _("Minimize"), false);
 		fill_item("name.action", "Iconify");
-		current_item = item_create(menu, _("Maximize"));
+		current_item = item_create(menu, _("Maximize"), false);
 		fill_item("name.action", "ToggleMaximize");
-		current_item = item_create(menu, _("Fullscreen"));
+		current_item = item_create(menu, _("Fullscreen"), false);
 		fill_item("name.action", "ToggleFullscreen");
-		current_item = item_create(menu, _("Decorations"));
+		current_item = item_create(menu, _("Decorations"), false);
 		fill_item("name.action", "ToggleDecorations");
-		current_item = item_create(menu, _("AlwaysOnTop"));
+		current_item = item_create(menu, _("AlwaysOnTop"), false);
 		fill_item("name.action", "ToggleAlwaysOnTop");
 
 		/* Workspace sub-menu */
 		struct menu *workspace_menu = menu_create(server, "workspaces", "");
-		current_item = item_create(workspace_menu, _("Move left"));
+		current_item = item_create(workspace_menu, _("Move left"), false);
 		fill_item("name.action", "SendToDesktop");
 		fill_item("to.action", "left");
 		fill_item("name.action", "GoToDesktop");
 		fill_item("to.action", "left");
-		current_item = item_create(workspace_menu, _("Move right"));
+		current_item = item_create(workspace_menu, _("Move right"), false);
 		fill_item("name.action", "SendToDesktop");
 		fill_item("to.action", "right");
 		fill_item("name.action", "GoToDesktop");
 		fill_item("to.action", "right");
-		current_item = item_create(menu, _("Workspace"));
+		current_item = item_create(menu, _("Workspace"), true);
 		current_item->submenu = workspace_menu;
 
-		current_item = item_create(menu, _("Close"));
+		current_item = item_create(menu, _("Close"), false);
 		fill_item("name.action", "Close");
 	}
 

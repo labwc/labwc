@@ -57,17 +57,6 @@ font_width(struct font *font, const char *string)
 }
 
 void
-font_buffer_update(struct lab_data_buffer **buffer, int max_width,
-	const char *text, struct font *font, float *color, double scale)
-{
-	if (*buffer) {
-		wlr_buffer_drop(&(*buffer)->base);
-		*buffer = NULL;
-	}
-	font_buffer_create(buffer, max_width, text, font, color, scale);
-}
-
-void
 font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	const char *text, struct font *font, float *color, double scale)
 {

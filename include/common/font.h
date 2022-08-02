@@ -33,14 +33,6 @@ void font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	const char *text, struct font *font, float *color, double scale);
 
 /**
- * font_buffer_update - Wrapper around font_buffer_create
- * Only difference is that if given buffer pointer is != NULL
- * wlr_buffer_drop() will be called on the buffer.
- */
-void font_buffer_update(struct lab_data_buffer **buffer, int max_width,
-	const char *text, struct font *font, float *color, double scale);
-
-/**
  * font_finish - free some font related resources
  * Note: use on exit
  */

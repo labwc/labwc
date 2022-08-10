@@ -92,7 +92,7 @@
       <action name="Execute"><command>alacritty</command></action>
     </keybind>
     <keybind key="A-F3">
-      <action name="Execute"><command>bemenu-run</command></action>
+      <action name="Execute"><command>bemenu-run -n</command></action>
     </keybind>
     <keybind key="A-F4">
       <action name="Close" />

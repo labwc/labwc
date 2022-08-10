@@ -503,7 +503,7 @@ static struct {
 	{ "A-Tab", "NextWindow", NULL },
 	{ "A-Escape", "Exit", NULL },
 	{ "W-Return", "Execute", "alacritty" },
-	{ "A-F3", "Execute", "bemenu-run" },
+	{ "A-F3", "Execute", "bemenu-run -n" },
 	{ "A-F4", "Close", NULL },
 	{ "W-a", "ToggleMaximize", NULL },
 	{ "A-Left", "MoveToEdge", "left" },

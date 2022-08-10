@@ -8,9 +8,10 @@ unmanaged_handle_request_configure(struct wl_listener *listener, void *data)
 		wl_container_of(listener, unmanaged, request_configure);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	struct wlr_xwayland_surface_configure_event *ev = data;
-	wlr_xwayland_surface_configure(xsurface, ev->x, ev->y, ev->width,
-				       ev->height);
-	wlr_scene_node_set_position(unmanaged->node, ev->x, ev->y);
+	wlr_xwayland_surface_configure(xsurface, ev->x, ev->y, ev->width, ev->height);
+	if (unmanaged->node) {
+		wlr_scene_node_set_position(unmanaged->node, ev->x, ev->y);
+	}
 }
 
 static void
@@ -19,7 +20,9 @@ unmanaged_handle_set_geometry(struct wl_listener *listener, void *data)
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, set_geometry);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
-	wlr_scene_node_set_position(unmanaged->node, xsurface->x, xsurface->y);
+	if (unmanaged->node) {
+		wlr_scene_node_set_position(unmanaged->node, xsurface->x, xsurface->y);
+	}
 }
 
 void
@@ -54,6 +57,12 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	wl_list_remove(&unmanaged->link);
 	wl_list_remove(&unmanaged->set_geometry.link);
+
+	/*
+	 * Mark the node as gone so a racing configure event
+	 * won't try to reposition the node while unmapped.
+	 */
+	unmanaged->node = NULL;
 
 	struct seat *seat = &unmanaged->server->seat;
 	if (seat->seat->keyboard_state.focused_surface == xsurface->surface) {

@@ -1,0 +1,107 @@
+# Void-musl images:
+# https://github.com/void-linux/void-docker/pkgs/container/void-linux/versions
+#
+# Void dependencies based on:
+# https://github.com/void-linux/void-packages/blob/master/srcpkgs/wlroots/template
+#
+# TODO: switch mirror to repo-ci.voidlinux.org once configured on their end:
+# https://github.com/void-linux/void-packages/blob/master/common/travis/set_mirror.sh
+
+name: Compile
+on: [pull_request]
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [
+          Arch,
+          FreeBSD,
+          Void-musl
+        ]
+        include:
+          - name: Arch
+            os: ubuntu-latest
+            container: archlinux:base-devel
+            env:
+              SSH_HOST: ''
+
+          - name: FreeBSD
+            os: macos-12
+            env:
+              SSH_HOST: freebsd
+
+          - name: Void-musl
+            os: ubuntu-latest
+            container: ghcr.io/void-linux/void-linux:latest-thin-x86_64-musl
+            env:
+              SSH_HOST: ''
+
+    env: ${{ matrix.env }}
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install Arch Linux dependencies
+        if: matrix.name == 'Arch'
+        run: |
+          pacman-key --init
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm git meson clang wlroots libdrm libinput \
+            wayland-protocols cairo pango libxml2 xorg-xwayland
+
+      - name: Install FreeBSD dependencies
+        if: matrix.name == 'FreeBSD'
+        uses: vmactions/freebsd-vm@v0
+        with:
+          usesh: true
+          prepare: |
+            pkg install -y git meson gcc pkgconf cairo pango evdev-proto \
+              wayland-protocols wlroots
+          run: echo "setup done"
+
+      - name: Install Void Linux dependencies
+        if: matrix.name == 'Void-musl'
+        run: |
+          xbps-install -Syu || xbps-install -yu xbps
+          xbps-install -yu
+          xbps-install -y git meson gcc clang pkg-config wlroots libxml2-devel \
+            wayland-devel glslang libgbm-devel libglvnd-devel libseat-devel \
+            eudev-libudev-devel libdrm-devel libinput-devel libxkbcommon-devel \
+            pixman-devel wayland-devel wayland-protocols xcb-util-errors-devel \
+            xcb-util-wm-devel xcb-util-renderutil-devel libxcb-devel \
+            xcb-util-cursor-devel xcb-util-devel xcb-util-image-devel \
+            xcb-util-keysyms-devel xcb-util-xrm-devel xorg-server-xwayland \
+            libglib-devel cairo-devel pango-devel
+
+      - name: Build with gcc
+        run: |
+          if test -z "$SSH_HOST"; then
+            export CC=gcc
+            meson build-gcc/ --werror
+            meson compile -C build-gcc/
+          else
+            echo '
+              cd "$GITHUB_WORKSPACE"
+              export CC=gcc
+              meson build-gcc/ --werror
+              meson compile -C build-gcc/
+            ' | ssh "$SSH_HOST" /bin/sh
+          fi
+
+      - name: Build with clang
+        run: |
+          if test -z "$SSH_HOST"; then
+            export CC=clang
+            meson build-clang/ --werror
+            meson compile -C build-clang/
+          else
+            echo '
+              cd "$GITHUB_WORKSPACE"
+              export CC=clang
+              meson build-clang/ --werror
+              meson compile -C build-clang/
+            ' | ssh "$SSH_HOST" /bin/sh
+          fi

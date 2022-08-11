@@ -51,7 +51,7 @@ menu_create(struct server *server, const char *id, const char *label)
 	nr_menus++;
 	wl_list_init(&menu->menuitems);
 	menu->id = strdup(id);
-	menu->label = strdup(label);
+	menu->label = label ? strdup(label) : strdup(id);
 	menu->parent = current_menu;
 	menu->server = server;
 	menu->size.width = MENUWIDTH;
@@ -299,6 +299,17 @@ traverse(xmlNode *n, struct server *server)
 	xml_tree_walk(n->children, server);
 }
 
+static int
+nr_parents(xmlNode *n)
+{
+	assert(n);
+	int i = 0;
+	for (xmlNode *node = n->parent; node && i < INT_MAX; ++i) {
+		node = node->parent;
+	}
+	return i;
+}
+
 /*
  * <menu> elements have three different roles:
  *  * Definition of (sub)menu - has ID, LABEL and CONTENT
@@ -314,7 +325,24 @@ handle_menu_element(xmlNode *n, struct server *server)
 
 	if (execute) {
 		wlr_log(WLR_ERROR, "we do not support pipemenus");
-	} else if (label && id) {
+	} else if ((label && id) || (id && nr_parents(n) == 2)) {
+		/*
+		 * (label && id) refers to <menu id="" label=""> which is an
+		 * inline menu definition.
+		 *
+		 * (id && nr_parents(n) == 2) refers to:
+		 * <openbox_menu>
+		 *   <menu id="">
+		 *   </menu>
+		 * </openbox>
+		 *
+		 * which is the highest level a menu can be defined at.
+		 *
+		 * Openbox spec requires a label="" defined here, but it is
+		 * actually pointless so we handle it with or without the label
+		 * attritute to make it easier for users to define "root-menu"
+		 * and "client-menu".
+		 */
 		struct menu **submenu = NULL;
 		if (menu_level > 0) {
 			/*
@@ -337,6 +365,10 @@ handle_menu_element(xmlNode *n, struct server *server)
 		current_menu = current_menu->parent;
 		--menu_level;
 	} else if (id) {
+		/*
+		 * <menu id=""> creates an entry which points to a menu
+		 * defined elsewhere
+		 */
 		struct menu *menu = menu_get_by_id(id);
 		if (menu) {
 			current_item = item_create(current_menu, menu->label);

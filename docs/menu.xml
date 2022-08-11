@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <openbox_menu>
-<menu id="client-menu" label="ClientMenu">
+
+<menu id="client-menu">
 	<item label="Minimize">
 		<action name="Iconify" />
 	</item>
@@ -31,7 +32,8 @@
 		<action name="Close" />
 	</item>
 </menu>
-<menu id="root-menu" label="">
+
+<menu id="root-menu">
   <item label="Web browser">
     <action name="Execute"><command>firefox</command></action>
   </item>

@@ -15,7 +15,7 @@ A menu file must be entirely enclosed within <openbox_menu> and
 </openbox_menu> tags.  Inside these tags, menus are specified as follows:
 
 ```
-<menu id="" label="">
+<menu id="">
 
   <!-- A menu entry with an action, for example to execute an application -->
   <item label="">

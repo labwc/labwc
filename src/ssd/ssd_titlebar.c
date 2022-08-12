@@ -142,6 +142,11 @@ ssd_titlebar_destroy(struct view *view)
  * .active and .inactive may result in different sizes
  * of the title (font family/size) or background of
  * the title (different button/border width).
+ *
+ * Both, wlr_scene_node_set_enabled() and wlr_scene_node_set_position()
+ * check for actual changes and return early if there is no change in state.
+ * Always using wlr_scene_node_set_enabled(node, true) will thus not cause
+ * any unnecessary screen damage and makes the code easier to follow.
  */
 
 static void
@@ -167,10 +172,12 @@ ssd_update_title_positions(struct view *view)
 		buffer_height = part->buffer ? part->buffer->height : 0;
 		x = BUTTON_WIDTH;
 		y = (theme->title_height - buffer_height) / 2;
+
 		if (title_bg_width <= 0) {
-			wlr_scene_node_set_position(part->node, x, y);
+			wlr_scene_node_set_enabled(part->node, false);
 			continue;
 		}
+		wlr_scene_node_set_enabled(part->node, true);
 
 		if (theme->window_label_text_justify == LAB_JUSTIFY_CENTER) {
 			if (buffer_width + BUTTON_WIDTH * 2 <= title_bg_width) {

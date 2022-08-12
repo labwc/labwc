@@ -153,7 +153,6 @@ The rest of this man page describes configuration options.
 
 ```
   A-Tab - next window
-  A-Escape - exit
   W-Return - alacritty
   A-F3 - run bemenu
   A-F4 - close window

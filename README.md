@@ -139,7 +139,6 @@ If you have not created an rc.xml config file, default bindings will be:
 | combination              | action
 | ------------------------ | ------
 | `alt`-`tab`              | activate next window
-| `alt`-`escape`           | exit
 | `super`-`return`         | alacritty
 | `alt`-`F3`               | bemenu
 | `alt`-`F4`               | close window

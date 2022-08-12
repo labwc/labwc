@@ -501,7 +501,6 @@ static struct {
 	const char *binding, *action, *command;
 } key_combos[] = {
 	{ "A-Tab", "NextWindow", NULL },
-	{ "A-Escape", "Exit", NULL },
 	{ "W-Return", "Execute", "alacritty" },
 	{ "A-F3", "Execute", "bemenu-run" },
 	{ "A-F4", "Close", NULL },

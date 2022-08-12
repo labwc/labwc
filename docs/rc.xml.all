@@ -82,9 +82,6 @@
   <keyboard>
     <repeatRate>25</repeatRate>
     <repeatDelay>600</repeatDelay>
-    <keybind key="A-Escape">
-      <action name="Exit" />
-    </keybind>
     <keybind key="A-Tab">
       <action name="NextWindow" />
     </keybind>

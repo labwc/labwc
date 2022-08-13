@@ -296,8 +296,16 @@ process_cursor_motion(struct server *server, uint32_t time)
 		}
 		sx = server->seat.cursor->x - view->x;
 		sy = server->seat.cursor->y - view->y;
-		sx = sx < 0 ? 0 : (sx > view->w ? view->w : sx);
-		sy = sy < 0 ? 0 : (sy > view->h ? view->h : sy);
+		/*
+		 * X11 apps expect to be able to receive motion events outside
+		 * the window area (this is necessary for client-side move/resize
+		 * handles to work properly).  So do not clamp the motion
+		 * coordinates for XWayland surfaces.
+		 */
+		if (view->type == LAB_XDG_SHELL_VIEW) {
+			sx = sx < 0 ? 0 : (sx > view->w ? view->w : sx);
+			sy = sy < 0 ? 0 : (sy > view->h ? view->h : sy);
+		}
 		if (view->type == LAB_XDG_SHELL_VIEW && view->xdg_surface) {
 			/* Take into account invisible CSD borders */
 			struct wlr_box geo;

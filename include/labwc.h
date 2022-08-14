@@ -95,8 +95,8 @@ struct seat {
 	struct wlr_layer_surface_v1 *focused_layer;
 
 	/**
-	 * pressed view/surface will usually be NULL and is only set on button
-	 * press while the mouse is over a view surface and reset to NULL on
+	 * pressed view/surface/node will usually be NULL and is only set on
+	 * button press while the mouse is over a surface and reset to NULL on
 	 * button release.
 	 * It is used to send cursor motion events to a surface even though
 	 * the cursor has left the surface in the meantime.
@@ -106,6 +106,7 @@ struct seat {
 	 */
 	struct {
 		struct view *view;
+		struct wlr_scene_node *node;
 		struct wlr_surface *surface;
 	} pressed;
 

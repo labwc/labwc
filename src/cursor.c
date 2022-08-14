@@ -289,29 +289,36 @@ process_cursor_motion(struct server *server, uint32_t time)
 		 * or selecting text even if the cursor moves outside of
 		 * the surface.
 		 */
+		int lx, ly;
 		view = server->seat.pressed.view;
-		if (!view) {
-			/* Button press originated on a layer surface, just ignore */
+		if (view) {
+			lx = view->x;
+			ly = view->y;
+		} else if (wlr_surface_is_layer_surface(server->seat.pressed.surface)) {
+			wlr_scene_node_coords(server->seat.pressed.node, &lx, &ly);
+		} else {
+			wlr_log(WLR_ERROR, "Can't detect surface for out-of-surface movement");
 			return;
 		}
-		sx = server->seat.cursor->x - view->x;
-		sy = server->seat.cursor->y - view->y;
-		/*
-		 * X11 apps expect to be able to receive motion events outside
-		 * the window area (this is necessary for client-side move/resize
-		 * handles to work properly).  So do not clamp the motion
-		 * coordinates for XWayland surfaces.
-		 */
-		if (view->type == LAB_XDG_SHELL_VIEW) {
+		sx = server->seat.cursor->x - lx;
+		sy = server->seat.cursor->y - ly;
+
+		if (view && view->type == LAB_XDG_SHELL_VIEW) {
+			/*
+			 * X11 apps expect to be able to receive motion events outside
+			 * the window area (this is necessary for client-side move/resize
+			 * handles to work properly). So only clamp the motion coordinates
+			 * for XDG surfaces.
+			 */
 			sx = sx < 0 ? 0 : (sx > view->w ? view->w : sx);
 			sy = sy < 0 ? 0 : (sy > view->h ? view->h : sy);
-		}
-		if (view->type == LAB_XDG_SHELL_VIEW && view->xdg_surface) {
 			/* Take into account invisible CSD borders */
-			struct wlr_box geo;
-			wlr_xdg_surface_get_geometry(view->xdg_surface, &geo);
-			sx += geo.x;
-			sy += geo.y;
+			if (view->xdg_surface) {
+				struct wlr_box geo;
+				wlr_xdg_surface_get_geometry(view->xdg_surface, &geo);
+				sx += geo.x;
+				sy += geo.y;
+			}
 		}
 		wlr_seat_pointer_notify_motion(server->seat.seat, time, sx, sy);
 	} else if (surface && !input_inhibit_blocks_surface(
@@ -367,6 +374,7 @@ start_drag(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, start_drag);
 	struct wlr_drag *wlr_drag = data;
 	seat->pressed.view = NULL;
+	seat->pressed.node = NULL;
 	seat->pressed.surface = NULL;
 	seat->drag_icon = wlr_drag->icon;
 	if (!seat->drag_icon) {
@@ -715,6 +723,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	/* handle _release_ */
 	if (event->state == WLR_BUTTON_RELEASED) {
 		seat->pressed.view = NULL;
+		seat->pressed.node = NULL;
 		if (seat->pressed.surface && seat->pressed.surface != surface) {
 			/*
 			 * Button released but originally pressed over a different surface.
@@ -755,8 +764,9 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* Handle _press */
 	if (surface) {
-		server->seat.pressed.view = view;
-		server->seat.pressed.surface = surface;
+		seat->pressed.view = view;
+		seat->pressed.node = node;
+		seat->pressed.surface = surface;
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {

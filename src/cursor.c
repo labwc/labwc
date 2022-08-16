@@ -303,14 +303,13 @@ process_cursor_motion(struct server *server, uint32_t time)
 		sx = server->seat.cursor->x - lx;
 		sy = server->seat.cursor->y - ly;
 
-		if (view && view->type == LAB_XDG_SHELL_VIEW) {
-			/* Take into account invisible CSD borders */
-			if (view->xdg_surface) {
-				struct wlr_box geo;
-				wlr_xdg_surface_get_geometry(view->xdg_surface, &geo);
-				sx += geo.x;
-				sy += geo.y;
-			}
+		/* Take into account invisible xdg-shell CSD borders */
+		if (view && view->type == LAB_XDG_SHELL_VIEW
+				&& view->xdg_surface) {
+			struct wlr_box geo;
+			wlr_xdg_surface_get_geometry(view->xdg_surface, &geo);
+			sx += geo.x;
+			sy += geo.y;
 		}
 		wlr_seat_pointer_notify_motion(server->seat.seat, time, sx, sy);
 	} else if (surface && !input_inhibit_blocks_surface(

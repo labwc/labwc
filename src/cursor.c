@@ -304,14 +304,6 @@ process_cursor_motion(struct server *server, uint32_t time)
 		sy = server->seat.cursor->y - ly;
 
 		if (view && view->type == LAB_XDG_SHELL_VIEW) {
-			/*
-			 * X11 apps expect to be able to receive motion events outside
-			 * the window area (this is necessary for client-side move/resize
-			 * handles to work properly). So only clamp the motion coordinates
-			 * for XDG surfaces.
-			 */
-			sx = sx < 0 ? 0 : (sx > view->w ? view->w : sx);
-			sy = sy < 0 ? 0 : (sy > view->h ? view->h : sy);
 			/* Take into account invisible CSD borders */
 			if (view->xdg_surface) {
 				struct wlr_box geo;

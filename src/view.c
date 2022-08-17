@@ -119,7 +119,7 @@ view_close(struct view *view)
 }
 
 void
-view_move(struct view *view, double x, double y)
+view_move(struct view *view, int x, int y)
 {
 	if (view->impl->move) {
 		view->impl->move(view, x, y);

@@ -204,7 +204,7 @@ handle_set_class(struct wl_listener *listener, void *data)
 }
 
 static void
-move(struct view *view, double x, double y)
+move(struct view *view, int x, int y)
 {
 	assert(view->xwayland_surface);
 

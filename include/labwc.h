@@ -272,7 +272,7 @@ struct view_impl {
 	void (*close)(struct view *view);
 	const char *(*get_string_prop)(struct view *view, const char *prop);
 	void (*map)(struct view *view);
-	void (*move)(struct view *view, double x, double y);
+	void (*move)(struct view *view, int x, int y);
 	void (*set_activated)(struct view *view, bool activated);
 	void (*set_fullscreen)(struct view *view, bool fullscreen);
 	void (*unmap)(struct view *view);
@@ -326,7 +326,7 @@ struct view {
 
 	struct view_pending_move_resize {
 		bool update_x, update_y;
-		double x, y;
+		int x, y;
 		uint32_t width, height;
 		uint32_t configure_serial;
 	} pending_move_resize;
@@ -418,7 +418,7 @@ void view_close(struct view *view);
  * For move only, use view_move()
  */
 void view_move_resize(struct view *view, struct wlr_box geo);
-void view_move(struct view *view, double x, double y);
+void view_move(struct view *view, int x, int y);
 void view_moved(struct view *view);
 void view_minimize(struct view *view, bool minimized);
 /* view_wlr_output - return the output that a view is mostly on */

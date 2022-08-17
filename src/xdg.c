@@ -186,7 +186,7 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 }
 
 static void
-xdg_toplevel_view_move(struct view *view, double x, double y)
+xdg_toplevel_view_move(struct view *view, int x, int y)
 {
 	view->x = x;
 	view->y = y;

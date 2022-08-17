@@ -286,6 +286,27 @@ new_idle_inhibitor(struct wl_listener *listener, void *data)
 	wlr_idle_set_enabled(seat->wlr_idle, seat->seat, 0);
 }
 
+static void
+new_virtual_pointer(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, virtual_pointer_new);
+	struct wlr_virtual_pointer_v1_new_pointer_event *event = data;
+	struct wlr_virtual_pointer_v1 *pointer = event->new_pointer;
+	struct wlr_input_device *device = &pointer->pointer.base;
+	struct input *input = calloc(1, sizeof(struct input));
+
+	device->data = input;
+	input->wlr_input_device = device;
+
+	seat_add_device(seat, input);
+	new_pointer(seat, input);
+
+	if (event->suggested_output) {
+		wlr_cursor_map_input_to_output(seat->cursor, device,
+			event->suggested_output);
+	}
+}
+
 void
 seat_init(struct server *server)
 {
@@ -309,6 +330,12 @@ seat_init(struct server *server)
 	wl_signal_add(&seat->wlr_idle_inhibit_manager->events.new_inhibitor,
 		&seat->idle_inhibitor_create);
 	seat->idle_inhibitor_create.notify = new_idle_inhibitor;
+
+	seat->virtual_pointer = wlr_virtual_pointer_manager_v1_create(
+		server->wl_display);
+	wl_signal_add(&seat->virtual_pointer->events.new_virtual_pointer,
+		&seat->virtual_pointer_new);
+	seat->virtual_pointer_new.notify = new_virtual_pointer;
 
 	seat->cursor = wlr_cursor_create();
 	if (!seat->cursor) {

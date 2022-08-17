@@ -40,6 +40,7 @@
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
+#include <wlr/types/wlr_virtual_pointer_v1.h>
 #include <wlr/util/log.h>
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
@@ -156,6 +157,9 @@ struct seat {
 	struct wl_listener constraint_commit;
 	struct wl_listener idle_inhibitor_create;
 	struct wl_listener pressed_surface_destroy;
+
+	struct wlr_virtual_pointer_manager_v1 *virtual_pointer;
+	struct wl_listener virtual_pointer_new;
 };
 
 struct lab_data_buffer;

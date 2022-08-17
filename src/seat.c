@@ -221,13 +221,23 @@ seat_update_capabilities(struct seat *seat)
 }
 
 static void
+seat_add_device(struct seat *seat, struct input *input)
+{
+	input->seat = seat;
+	input->destroy.notify = input_device_destroy;
+	wl_signal_add(&input->wlr_input_device->events.destroy, &input->destroy);
+	wl_list_insert(&seat->inputs, &input->link);
+
+	seat_update_capabilities(seat);
+}
+
+static void
 new_input_notify(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, new_input);
 	struct wlr_input_device *device = data;
 	struct input *input = calloc(1, sizeof(struct input));
 	input->wlr_input_device = device;
-	input->seat = seat;
 
 	switch (device->type) {
 	case WLR_INPUT_DEVICE_KEYBOARD:
@@ -244,11 +254,7 @@ new_input_notify(struct wl_listener *listener, void *data)
 		break;
 	}
 
-	input->destroy.notify = input_device_destroy;
-	wl_signal_add(&device->events.destroy, &input->destroy);
-	wl_list_insert(&seat->inputs, &input->link);
-
-	seat_update_capabilities(seat);
+	seat_add_device(seat, input);
 }
 
 static void

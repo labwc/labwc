@@ -41,6 +41,7 @@
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_virtual_pointer_v1.h>
+#include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/util/log.h>
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
@@ -149,6 +150,9 @@ struct seat {
 
 	struct wlr_virtual_pointer_manager_v1 *virtual_pointer;
 	struct wl_listener virtual_pointer_new;
+
+	struct wlr_virtual_keyboard_manager_v1 *virtual_keyboard;
+	struct wl_listener virtual_keyboard_new;
 };
 
 struct lab_data_buffer;

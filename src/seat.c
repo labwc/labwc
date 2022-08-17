@@ -310,6 +310,21 @@ new_virtual_pointer(struct wl_listener *listener, void *data)
 	}
 }
 
+static void
+new_virtual_keyboard(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, virtual_keyboard_new);
+	struct wlr_virtual_keyboard_v1 *keyboard = data;
+	struct wlr_input_device *device = &keyboard->keyboard.base;
+	struct input *input = calloc(1, sizeof(struct input));
+
+	device->data = input;
+	input->wlr_input_device = device;
+
+	seat_add_device(seat, input);
+	new_keyboard(seat, input);
+}
+
 void
 seat_init(struct server *server)
 {
@@ -339,6 +354,12 @@ seat_init(struct server *server)
 	wl_signal_add(&seat->virtual_pointer->events.new_virtual_pointer,
 		&seat->virtual_pointer_new);
 	seat->virtual_pointer_new.notify = new_virtual_pointer;
+
+	seat->virtual_keyboard = wlr_virtual_keyboard_manager_v1_create(
+		server->wl_display);
+	wl_signal_add(&seat->virtual_keyboard->events.new_virtual_keyboard,
+		&seat->virtual_keyboard_new);
+	seat->virtual_keyboard_new.notify = new_virtual_keyboard;
 
 	seat->cursor = wlr_cursor_create();
 	if (!seat->cursor) {

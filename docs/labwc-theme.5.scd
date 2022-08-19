@@ -139,8 +139,11 @@ files looked for:
 - max.xbm
 - iconify.xbm
 - close.xbm
+- menu.xbm
 
 More will be supported later.
+
+Note: menu.xbm is not part of openbox-3.6 spec
 
 # DEFINITIONS
 

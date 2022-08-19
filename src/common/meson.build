@@ -4,6 +4,7 @@ labwc_sources += files(
   'fd_util.c',
   'font.c',
   'grab-file.c',
+  'graphic-helpers.c',
   'nodename.c',
   'scaled_font_buffer.c',
   'scaled_scene_buffer.c',

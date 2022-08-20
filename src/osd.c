@@ -7,6 +7,7 @@
 #include "buffer.h"
 #include "common/buf.h"
 #include "common/font.h"
+#include "common/graphic-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "theme.h"
@@ -19,30 +20,6 @@
 #define OSD_BORDER_WIDTH (6)
 #define OSD_TAB1 (120)
 #define OSD_TAB2 (300)
-
-static void
-set_source(cairo_t *cairo, float *c)
-{
-	cairo_set_source_rgba(cairo, c[0], c[1], c[2], c[3]);
-}
-
-/* Draws a border with a specified line width */
-static void
-draw_border(cairo_t *cairo, double width, double height, double line_width)
-{
-	cairo_save(cairo);
-
-	double x, y, w, h;
-	/* The anchor point of a line is in the center */
-	x = y = line_width / 2;
-	w = width - line_width;
-	h = height - line_width;
-	cairo_set_line_width(cairo, line_width);
-	cairo_rectangle(cairo, x, y, w, h);
-	cairo_stroke(cairo);
-
-	cairo_restore(cairo);
-}
 
 /* is title different from app_id/class? */
 static int
@@ -155,13 +132,13 @@ osd_update(struct server *server)
 		cairo_surface_t *surf = cairo_get_target(cairo);
 
 		/* background */
-		set_source(cairo, theme->osd_bg_color);
+		set_cairo_color(cairo, theme->osd_bg_color);
 		cairo_rectangle(cairo, 0, 0, w, h);
 		cairo_fill(cairo);
 
 		/* Border */
-		set_source(cairo, theme->osd_border_color);
-		draw_border(cairo, w, h, theme->osd_border_width);
+		set_cairo_color(cairo, theme->osd_border_color);
+		draw_cairo_border(cairo, w, h, theme->osd_border_width);
 
 		int y = OSD_BORDER_WIDTH;
 
@@ -177,7 +154,7 @@ osd_update(struct server *server)
 				continue;
 			}
 			if (view == server->cycle_view) {
-				set_source(cairo, theme->osd_label_text_color);
+				set_cairo_color(cairo, theme->osd_label_text_color);
 				cairo_rectangle(cairo, OSD_BORDER_WIDTH, y,
 					OSD_ITEM_WIDTH, OSD_ITEM_HEIGHT);
 				cairo_stroke(cairo);
@@ -187,7 +164,7 @@ osd_update(struct server *server)
 		}
 
 		/* text */
-		set_source(cairo, theme->osd_label_text_color);
+		set_cairo_color(cairo, theme->osd_label_text_color);
 		PangoLayout *layout = pango_cairo_create_layout(cairo);
 		pango_layout_set_width(layout,
 			(OSD_ITEM_WIDTH - 2 * OSD_ITEM_PADDING) * PANGO_SCALE);

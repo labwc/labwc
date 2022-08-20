@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <assert.h>
+#include <cairo.h>
 #include <stdlib.h>
 #include <wlr/types/wlr_scene.h>
 #include "common/graphic-helpers.h"
@@ -57,4 +58,29 @@ multi_rect_set_size(struct multi_rect *rect, int width, int height)
 		wlr_scene_rect_set_size(rect->right[i],
 			line_width, height - i * line_width * 2);
 	}
+}
+
+/* Draws a border with a specified line width */
+void
+draw_cairo_border(cairo_t *cairo, double width, double height, double line_width)
+{
+	cairo_save(cairo);
+
+	double x, y, w, h;
+	/* The anchor point of a line is in the center */
+	x = y = line_width / 2;
+	w = width - line_width;
+	h = height - line_width;
+	cairo_set_line_width(cairo, line_width);
+	cairo_rectangle(cairo, x, y, w, h);
+	cairo_stroke(cairo);
+
+	cairo_restore(cairo);
+}
+
+/* Sets the cairo color. Splits the single color channels */
+void
+set_cairo_color(cairo_t *cairo, float *c)
+{
+	cairo_set_source_rgba(cairo, c[0], c[1], c[2], c[3]);
 }

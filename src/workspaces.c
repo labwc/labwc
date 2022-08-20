@@ -9,6 +9,7 @@
 #include <strings.h>
 #include "labwc.h"
 #include "common/font.h"
+#include "common/graphic-helpers.h"
 #include "common/zfree.h"
 #include "workspaces.h"
 
@@ -43,33 +44,6 @@ parse_workspace_index(const char *name)
 		return 0;
 	}
 	return index;
-}
-
-/*
- * TODO: set_source and draw_border are straight up copies from src/osd.c
- * find some proper place for them instead of duplicating stuff.
- */
-static void
-set_source(cairo_t *cairo, float *c)
-{
-	cairo_set_source_rgba(cairo, c[0], c[1], c[2], c[3]);
-}
-
-static void
-draw_border(cairo_t *cairo, double width, double height, double line_width)
-{
-	cairo_save(cairo);
-
-	double x, y, w, h;
-	/* The anchor point of a line is in the center */
-	x = y = line_width / 2;
-	w = width - line_width;
-	h = height - line_width;
-	cairo_set_line_width(cairo, line_width);
-	cairo_rectangle(cairo, x, y, w, h);
-	cairo_stroke(cairo);
-
-	cairo_restore(cairo);
 }
 
 static void
@@ -110,18 +84,18 @@ _osd_update(struct server *server)
 		cairo = buffer->cairo;
 
 		/* Background */
-		set_source(cairo, theme->osd_bg_color);
+		set_cairo_color(cairo, theme->osd_bg_color);
 		cairo_rectangle(cairo, 0, 0, width, height);
 		cairo_fill(cairo);
 
 		/* Border */
-		set_source(cairo, theme->osd_border_color);
-		draw_border(cairo, width, height, theme->osd_border_width);
+		set_cairo_color(cairo, theme->osd_border_color);
+		draw_cairo_border(cairo, width, height, theme->osd_border_width);
 
 		uint16_t x = (width - marker_width) / 2;
 		wl_list_for_each(workspace, &server->workspaces, link) {
 			bool active =  workspace == server->workspace_current;
-			set_source(cairo, server->theme->osd_label_text_color);
+			set_cairo_color(cairo, server->theme->osd_label_text_color);
 			cairo_rectangle(cairo, x, margin,
 				rect_width - padding, rect_height);
 			cairo_stroke(cairo);
@@ -134,7 +108,7 @@ _osd_update(struct server *server)
 		}
 
 		/* Text */
-		set_source(cairo, server->theme->osd_label_text_color);
+		set_cairo_color(cairo, server->theme->osd_label_text_color);
 		PangoLayout *layout = pango_cairo_create_layout(cairo);
 		pango_layout_set_width(layout, (width - 2 * margin) * PANGO_SCALE);
 		pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);

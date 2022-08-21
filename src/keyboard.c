@@ -151,6 +151,7 @@ handle_compositor_keybindings(struct wl_listener *listener,
 				if (syms[i] == XKB_KEY_Escape) {
 					/* cancel */
 					server->cycle_view = NULL;
+					osd_finish(server);
 					return true;
 				}
 			}

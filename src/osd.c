@@ -146,6 +146,10 @@ osd_update(struct server *server)
 	struct wlr_scene_node *node;
 	wl_list_for_each(output, &server->outputs, link) {
 		destroy_osd_nodes(output);
+		if (!output->wlr_output->enabled) {
+			continue;
+		}
+
 		float scale = output->wlr_output->scale;
 		int w = OSD_ITEM_WIDTH + (2 * OSD_BORDER_WIDTH);
 		int h = get_osd_height(node_list);

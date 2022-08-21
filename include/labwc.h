@@ -202,8 +202,6 @@ struct server {
 	/* Tree for built in menu */
 	struct wlr_scene_tree *menu_tree;
 
-	struct multi_rect *osd_preview_outline;
-
 	/* Workspaces */
 	struct wl_list workspaces;  /* struct workspace.link */
 	struct workspace *workspace_current;
@@ -236,6 +234,7 @@ struct server {
 		bool preview_was_enabled;
 		struct wlr_scene_node *preview_node;
 		struct wlr_scene_node *preview_anchor;
+		struct multi_rect *preview_outline;
 	} osd_state;
 
 	struct theme *theme;

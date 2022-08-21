@@ -90,7 +90,7 @@ osd_update_preview_outlines(struct view *view)
 {
 	/* Create / Update preview outline tree */
 	struct server *server = view->server;
-	struct multi_rect *rect = view->server->osd_preview_outline;
+	struct multi_rect *rect = view->server->osd_state.preview_outline;
 	if (!rect) {
 		int line_width = server->theme->osd_border_width;
 		float *colors[] = {
@@ -100,7 +100,7 @@ osd_update_preview_outlines(struct view *view)
 		};
 		rect = multi_rect_create(&server->scene->tree, colors, line_width);
 		wlr_scene_node_place_above(&rect->tree->node, &server->menu_tree->node);
-		server->osd_preview_outline = rect;
+		server->osd_state.preview_outline = rect;
 	}
 
 	struct wlr_box geo = ssd_max_extents(view);
@@ -120,10 +120,10 @@ osd_finish(struct server *server)
 		destroy_osd_nodes(output);
 		wlr_scene_node_set_enabled(&output->osd_tree->node, false);
 	}
-	if (server->osd_preview_outline) {
+	if (server->osd_state.preview_outline) {
 		/* Destroy the whole multi_rect so we can easily react to new themes */
-		wlr_scene_node_destroy(&server->osd_preview_outline->tree->node);
-		server->osd_preview_outline = NULL;
+		wlr_scene_node_destroy(&server->osd_state.preview_outline->tree->node);
+		server->osd_state.preview_outline = NULL;
 	}
 }
 

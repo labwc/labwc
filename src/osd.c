@@ -109,6 +109,52 @@ osd_update_preview_outlines(struct view *view)
 }
 
 void
+osd_on_view_destroy(struct view *view)
+{
+	assert(view);
+	struct osd_state *osd_state = &view->server->osd_state;
+
+	if (!osd_state->cycle_view) {
+		/* OSD not active, no need for clean up */
+		return;
+	}
+
+	if (osd_state->cycle_view == view) {
+		/*
+		 * If we are the current OSD selected view, cycle
+		 * to the next because we are dying.
+		 */
+		osd_state->cycle_view = desktop_cycle_view(view->server,
+			osd_state->cycle_view, LAB_CYCLE_DIR_BACKWARD);
+
+		/*
+		 * If we cycled back to ourselves, then we have no more windows.
+		 * Just close the OSD for good.
+		 */
+		if (osd_state->cycle_view == view || !osd_state->cycle_view) {
+			/* osd_finish() additionally resets cycle_view to NULL */
+			osd_finish(view->server);
+		}
+	}
+
+	if (view->scene_tree) {
+		struct wlr_scene_node *node = &view->scene_tree->node;
+		if (osd_state->preview_anchor == node) {
+			/*
+			 * If we are the anchor for the current OSD selected view,
+			 * replace the anchor with the node before us.
+			 */
+			osd_state->preview_anchor = lab_wlr_scene_get_prev_node(node);
+		}
+	}
+
+	if (osd_state->cycle_view) {
+		/* Update the OSD to reflect the view has now gone. */
+		osd_update(view->server);
+	}
+}
+
+void
 osd_finish(struct server *server)
 {
 	server->osd_state.cycle_view = NULL;

@@ -583,6 +583,8 @@ void osd_update(struct server *server);
 void osd_finish(struct server *server);
 /* Moves preview views back into their original stacking order and state */
 void osd_preview_restore(struct server *server);
+/* Notify OSD about a destroying view */
+void osd_on_view_destroy(struct view *view);
 
 /*
  * wlroots "input inhibitor" extension (required for swaylock) blocks

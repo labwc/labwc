@@ -71,6 +71,10 @@ The rest of this man page describes configuration options.
 	Preview the contents of the selected window when cycling between windows.
 	Default is no.
 
+*<core><cycleViewOutlines>* [yes|no]
+	Draw an outline around the selected window when cycling between windows.
+	Default is yes.
+
 ## RESISTANCE
 
 *<resistance><screenEdgeStrength>*

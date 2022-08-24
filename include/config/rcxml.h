@@ -55,6 +55,7 @@ struct rcxml {
 
 	/* cycle view (alt+tab) */
 	bool cycle_preview_contents;
+	bool cycle_preview_outlines;
 
 	struct {
 		int popuptime;

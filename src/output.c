@@ -46,6 +46,14 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 	wl_list_remove(&output->link);
 	wl_list_remove(&output->frame.link);
 	wl_list_remove(&output->destroy.link);
+
+	struct view *view;
+	struct server *server = output->server;
+	wl_list_for_each(view, &server->views, link) {
+		if (view->output == output) {
+			view_on_output_destroy(view);
+		}
+	}
 	free(output);
 }
 

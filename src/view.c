@@ -595,6 +595,13 @@ view_discover_output(struct view *view)
 }
 
 void
+view_on_output_destroy(struct view *view)
+{
+	view_output_leave(view, view->output->wlr_output);
+	view->output = NULL;
+}
+
+void
 view_move_to_edge(struct view *view, const char *direction)
 {
 	if (!view) {

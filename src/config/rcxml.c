@@ -388,6 +388,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.snap_top_maximize = get_bool(content);
 	} else if (!strcasecmp(nodename, "cycleViewPreview.core")) {
 		rc.cycle_preview_contents = get_bool(content);
+	} else if (!strcasecmp(nodename, "cycleViewOutlines.core")) {
+		rc.cycle_preview_outlines = get_bool(content);
 	} else if (!strcasecmp(nodename, "name.names.desktops")) {
 		struct workspace *workspace = calloc(1, sizeof(struct workspace));
 		workspace->name = strdup(content);
@@ -493,6 +495,7 @@ rcxml_init()
 	rc.snap_edge_range = 1;
 	rc.snap_top_maximize = true;
 	rc.cycle_preview_contents = false;
+	rc.cycle_preview_outlines = true;
 	rc.workspace_config.popuptime = INT_MIN;
 	wl_list_init(&rc.workspace_config.workspaces);
 }

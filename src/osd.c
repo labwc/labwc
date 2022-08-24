@@ -193,7 +193,9 @@ osd_update(struct server *server)
 				cairo_rectangle(cairo, OSD_BORDER_WIDTH, y,
 					OSD_ITEM_WIDTH, OSD_ITEM_HEIGHT);
 				cairo_stroke(cairo);
-				osd_update_preview_outlines(view);
+				if (rc.cycle_preview_outlines) {
+					osd_update_preview_outlines(view);
+				}
 				break;
 			}
 			y += OSD_ITEM_HEIGHT;

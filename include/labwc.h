@@ -445,6 +445,7 @@ void view_update_app_id(struct view *view);
 void view_impl_map(struct view *view);
 void view_adjust_size(struct view *view, int *w, int *h);
 
+void view_on_output_destroy(struct view *view);
 void view_destroy(struct view *view);
 
 void foreign_toplevel_handle_create(struct view *view);

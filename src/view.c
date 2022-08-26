@@ -98,7 +98,7 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 void
 view_set_activated(struct view *view, bool activated)
 {
-	if (view->ssd.enabled) {
+	if (activated && view->ssd.enabled) {
 		ssd_set_active(view);
 	}
 	if (view->impl->set_activated) {

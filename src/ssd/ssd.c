@@ -140,21 +140,15 @@ ssd_resize_edges(enum ssd_part_type type)
 	return 0;
 }
 
-static void
-_ssd_set_active(struct ssd *ssd, bool active)
-{
-	wlr_scene_node_set_enabled(&ssd->border.active.tree->node, active);
-	wlr_scene_node_set_enabled(&ssd->titlebar.active.tree->node, active);
-	wlr_scene_node_set_enabled(&ssd->border.inactive.tree->node, !active);
-	wlr_scene_node_set_enabled(&ssd->titlebar.inactive.tree->node, !active);
-}
-
 void
 ssd_create(struct view *view)
 {
+	bool is_active = view->server->focused_view == view;
+
 	if (view->ssd.tree) {
 		/* SSD was hidden. Just enable it */
 		wlr_scene_node_set_enabled(&view->ssd.tree->node, true);
+		ssd_set_active(view, is_active);
 		return;
 	}
 
@@ -164,6 +158,7 @@ ssd_create(struct view *view)
 	ssd_border_create(view);
 	ssd_titlebar_create(view);
 	view->margin = ssd_thickness(view);
+	ssd_set_active(view, is_active);
 }
 
 void
@@ -211,14 +206,8 @@ void ssd_reload(struct view *view)
 		return;
 	}
 
-	bool view_was_active = view->server->ssd_focused_view == view;
 	ssd_destroy(view);
 	ssd_create(view);
-	if (view_was_active) {
-		view->server->ssd_focused_view = view;
-	} else {
-		_ssd_set_active(&view->ssd, false);
-	}
 }
 
 void
@@ -226,11 +215,6 @@ ssd_destroy(struct view *view)
 {
 	if (!view->ssd.tree) {
 		return;
-	}
-
-	/* Maybe reset focused view */
-	if (view->server->ssd_focused_view == view) {
-		view->server->ssd_focused_view = NULL;
 	}
 
 	/* Maybe reset hover view */
@@ -283,19 +267,13 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 }
 
 void
-ssd_set_active(struct view *view)
+ssd_set_active(struct view *view, bool active)
 {
 	if (!view->ssd.tree) {
 		return;
 	}
-
-	struct view *last = view->server->ssd_focused_view;
-	if (last == view) {
-		return;
-	}
-	if (last && last->ssd.tree) {
-		_ssd_set_active(&last->ssd, false);
-	}
-	_ssd_set_active(&view->ssd, true);
-	view->server->ssd_focused_view = view;
+	wlr_scene_node_set_enabled(&view->ssd.border.active.tree->node, active);
+	wlr_scene_node_set_enabled(&view->ssd.titlebar.active.tree->node, active);
+	wlr_scene_node_set_enabled(&view->ssd.border.inactive.tree->node, !active);
+	wlr_scene_node_set_enabled(&view->ssd.titlebar.inactive.tree->node, !active);
 }

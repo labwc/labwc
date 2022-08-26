@@ -188,7 +188,7 @@ struct server {
 	uint32_t resize_edges;
 
 	/* SSD state */
-	struct view *ssd_focused_view;
+	struct view *focused_view;
 	struct ssd_hover_state ssd_hover_state;
 
 	/* Tree for all non-layer xdg/xwayland-shell surfaces */
@@ -408,7 +408,7 @@ struct xwayland_unmanaged *xwayland_unmanaged_create(struct server *server,
 void unmanaged_handle_map(struct wl_listener *listener, void *data);
 #endif
 
-void view_set_activated(struct view *view, bool activated);
+void view_set_activated(struct view *view);
 void view_close(struct view *view);
 
 /**

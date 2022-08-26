@@ -95,11 +95,11 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 	return dst;
 }
 
-void
-view_set_activated(struct view *view, bool activated)
+static void
+_view_set_activated(struct view *view, bool activated)
 {
-	if (view->ssd.enabled) {
-		ssd_set_active(view);
+	if (view->ssd.tree) {
+		ssd_set_active(view, activated);
 	}
 	if (view->impl->set_activated) {
 		view->impl->set_activated(view, activated);
@@ -108,6 +108,22 @@ view_set_activated(struct view *view, bool activated)
 		wlr_foreign_toplevel_handle_v1_set_activated(
 			view->toplevel_handle, activated);
 	}
+}
+
+void
+view_set_activated(struct view *view)
+{
+	assert(view);
+
+	struct view *last = view->server->focused_view;
+	if (last == view) {
+		return;
+	}
+	if (last) {
+		_view_set_activated(last, false);
+	}
+	_view_set_activated(view, true);
+	view->server->focused_view = view;
 }
 
 void
@@ -200,7 +216,6 @@ view_minimize(struct view *view, bool minimized)
 	if (minimized) {
 		view->impl->unmap(view);
 		desktop_move_to_back(view);
-		view_set_activated(view, false);
 	} else {
 		view->impl->map(view);
 	}
@@ -787,6 +802,10 @@ view_destroy(struct view *view)
 		/* Mouse was pressed on surface and is still pressed */
 		server->seat.pressed.view = NULL;
 		server->seat.pressed.surface = NULL;
+	}
+
+	if (server->focused_view == view) {
+		server->focused_view = NULL;
 	}
 
 	if (server->cycle_view == view) {

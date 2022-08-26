@@ -87,18 +87,6 @@ desktop_move_to_back(struct view *view)
 	wl_list_insert_tail(&view->server->views, &view->link);
 }
 
-static void
-deactivate_all_views(struct server *server)
-{
-	struct view *view;
-	wl_list_for_each (view, &server->views, link) {
-		if (!view->mapped) {
-			continue;
-		}
-		view_set_activated(view, false);
-	}
-}
-
 void
 desktop_arrange_all_views(struct server *server)
 {
@@ -151,8 +139,7 @@ desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 		return;
 	}
 
-	deactivate_all_views(view->server);
-	view_set_activated(view, true);
+	view_set_activated(view);
 	seat_focus_surface(seat, view->surface);
 }
 

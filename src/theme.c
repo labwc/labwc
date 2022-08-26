@@ -20,6 +20,7 @@
 #include <strings.h>
 #include "common/dir.h"
 #include "common/font.h"
+#include "common/graphic-helpers.h"
 #include "common/string-helpers.h"
 #include "common/zfree.h"
 #include "config/rcxml.h"
@@ -358,12 +359,6 @@ struct rounded_corner_ctx {
 	} corner;
 };
 
-static void
-set_source(cairo_t *cairo, float *c)
-{
-	cairo_set_source_rgba(cairo, c[0], c[1], c[2], c[3]);
-}
-
 static struct lab_data_buffer *
 rounded_rect(struct rounded_corner_ctx *ctx)
 {
@@ -410,13 +405,13 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 	}
 	cairo_close_path(cairo);
 	cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
-	set_source(cairo, ctx->fill_color);
+	set_cairo_color(cairo, ctx->fill_color);
 	cairo_fill_preserve(cairo);
 	cairo_stroke(cairo);
 
 	/* border */
 	cairo_set_line_cap(cairo, CAIRO_LINE_CAP_ROUND);
-	set_source(cairo, ctx->border_color);
+	set_cairo_color(cairo, ctx->border_color);
 	cairo_set_line_width(cairo, ctx->line_width);
 	double half_line_width = ctx->line_width / 2.0;
 	switch (ctx->corner) {

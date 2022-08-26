@@ -7,6 +7,7 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "common/font.h"
+#include "common/graphic-helpers.h"
 #include "labwc.h"
 #include "buffer.h"
 
@@ -99,7 +100,7 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	cairo_t *cairo = (*buffer)->cairo;
 	cairo_surface_t *surf = cairo_get_target(cairo);
 
-	cairo_set_source_rgba(cairo, color[0], color[1], color[2], color[3]);
+	set_cairo_color(cairo, color);
 	cairo_move_to(cairo, 0, 0);
 
 	PangoLayout *layout = pango_cairo_create_layout(cairo);

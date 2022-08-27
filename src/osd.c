@@ -100,13 +100,10 @@ osd_update_preview_outlines(struct view *view)
 		wlr_scene_node_place_above(&rect->tree->node, &server->menu_tree->node);
 		server->osd_preview_outline = rect;
 	}
-	/* A multi_rect consists of 3 layered rects */
-	int line_width = rect->line_width * 3;
+
 	struct wlr_box geo = ssd_max_extents(view);
-	multi_rect_set_size(rect,
-		geo.width + line_width * 2, geo.height + line_width * 2);
-	wlr_scene_node_set_position(&rect->tree->node,
-		geo.x - line_width, geo.y - line_width);
+	multi_rect_set_size(rect, geo.width, geo.height);
+	wlr_scene_node_set_position(&rect->tree->node, geo.x, geo.y);
 }
 
 void

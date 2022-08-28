@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <strings.h>
 #include <xcb/xcb_icccm.h>
+#include "common/scene-helpers.h"
 #include "labwc.h"
 #include "ssd.h"
 #include "menu/menu.h"
@@ -808,28 +809,7 @@ view_destroy(struct view *view)
 		server->focused_view = NULL;
 	}
 
-	if (server->cycle_view == view) {
-		/*
-		 * If we are the current OSD selected view, cycle
-		 * to the next because we are dying.
-		 */
-		server->cycle_view = desktop_cycle_view(server,
-			server->cycle_view, LAB_CYCLE_DIR_BACKWARD);
-
-		/*
-		 * If we cycled back to ourselves, then we have no windows.
-		 * just remove it and close the OSD for good.
-		 */
-		if (server->cycle_view == view || !server->cycle_view) {
-			server->cycle_view = NULL;
-			osd_finish(server);
-		}
-	}
-
-	if (server->cycle_view) {
-		/* Update the OSD to reflect the view has now gone. */
-		osd_update(server);
-	}
+	osd_on_view_destroy(view);
 
 	if (view->scene_tree) {
 		ssd_destroy(view);

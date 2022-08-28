@@ -202,8 +202,6 @@ struct server {
 	/* Tree for built in menu */
 	struct wlr_scene_tree *menu_tree;
 
-	struct multi_rect *osd_preview_outline;
-
 	/* Workspaces */
 	struct wl_list workspaces;  /* struct workspace.link */
 	struct workspace *workspace_current;
@@ -231,7 +229,13 @@ struct server {
 	struct wl_listener new_constraint;
 
 	/* Set when in cycle (alt-tab) mode */
-	struct view *cycle_view;
+	struct osd_state {
+		struct view *cycle_view;
+		bool preview_was_enabled;
+		struct wlr_scene_node *preview_node;
+		struct wlr_scene_node *preview_anchor;
+		struct multi_rect *preview_outline;
+	} osd_state;
 
 	struct theme *theme;
 
@@ -573,9 +577,14 @@ void server_init(struct server *server);
 void server_start(struct server *server);
 void server_finish(struct server *server);
 
-/* update onscreen display 'alt-tab' buffer */
-void osd_finish(struct server *server);
+/* Updates onscreen display 'alt-tab' buffer */
 void osd_update(struct server *server);
+/* Closes the OSD */
+void osd_finish(struct server *server);
+/* Moves preview views back into their original stacking order and state */
+void osd_preview_restore(struct server *server);
+/* Notify OSD about a destroying view */
+void osd_on_view_destroy(struct view *view);
 
 /*
  * wlroots "input inhibitor" extension (required for swaylock) blocks

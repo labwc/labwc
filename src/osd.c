@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "config.h"
+#include <assert.h>
 #include <cairo.h>
 #include <drm_fourcc.h>
 #include <pango/pangocairo.h>
@@ -8,6 +9,7 @@
 #include "common/buf.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"
+#include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "theme.h"
@@ -88,7 +90,7 @@ osd_update_preview_outlines(struct view *view)
 {
 	/* Create / Update preview outline tree */
 	struct server *server = view->server;
-	struct multi_rect *rect = view->server->osd_preview_outline;
+	struct multi_rect *rect = view->server->osd_state.preview_outline;
 	if (!rect) {
 		int line_width = server->theme->osd_border_width;
 		float *colors[] = {
@@ -98,7 +100,7 @@ osd_update_preview_outlines(struct view *view)
 		};
 		rect = multi_rect_create(&server->scene->tree, colors, line_width);
 		wlr_scene_node_place_above(&rect->tree->node, &server->menu_tree->node);
-		server->osd_preview_outline = rect;
+		server->osd_state.preview_outline = rect;
 	}
 
 	struct wlr_box geo = ssd_max_extents(view);
@@ -107,18 +109,115 @@ osd_update_preview_outlines(struct view *view)
 }
 
 void
+osd_on_view_destroy(struct view *view)
+{
+	assert(view);
+	struct osd_state *osd_state = &view->server->osd_state;
+
+	if (!osd_state->cycle_view) {
+		/* OSD not active, no need for clean up */
+		return;
+	}
+
+	if (osd_state->cycle_view == view) {
+		/*
+		 * If we are the current OSD selected view, cycle
+		 * to the next because we are dying.
+		 */
+		osd_state->cycle_view = desktop_cycle_view(view->server,
+			osd_state->cycle_view, LAB_CYCLE_DIR_BACKWARD);
+
+		/*
+		 * If we cycled back to ourselves, then we have no more windows.
+		 * Just close the OSD for good.
+		 */
+		if (osd_state->cycle_view == view || !osd_state->cycle_view) {
+			/* osd_finish() additionally resets cycle_view to NULL */
+			osd_finish(view->server);
+		}
+	}
+
+	if (view->scene_tree) {
+		struct wlr_scene_node *node = &view->scene_tree->node;
+		if (osd_state->preview_anchor == node) {
+			/*
+			 * If we are the anchor for the current OSD selected view,
+			 * replace the anchor with the node before us.
+			 */
+			osd_state->preview_anchor = lab_wlr_scene_get_prev_node(node);
+		}
+	}
+
+	if (osd_state->cycle_view) {
+		/* Update the OSD to reflect the view has now gone. */
+		osd_update(view->server);
+	}
+}
+
+void
 osd_finish(struct server *server)
 {
+	server->osd_state.cycle_view = NULL;
+	server->osd_state.preview_node = NULL;
+	server->osd_state.preview_anchor = NULL;
+
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
 		destroy_osd_nodes(output);
 		wlr_scene_node_set_enabled(&output->osd_tree->node, false);
 	}
-	if (server->osd_preview_outline) {
+	if (server->osd_state.preview_outline) {
 		/* Destroy the whole multi_rect so we can easily react to new themes */
-		wlr_scene_node_destroy(&server->osd_preview_outline->tree->node);
-		server->osd_preview_outline = NULL;
+		wlr_scene_node_destroy(&server->osd_state.preview_outline->tree->node);
+		server->osd_state.preview_outline = NULL;
 	}
+}
+
+void
+osd_preview_restore(struct server *server)
+{
+	struct osd_state *osd_state = &server->osd_state;
+	if (osd_state->preview_node) {
+		if (osd_state->preview_anchor) {
+			wlr_scene_node_place_above(osd_state->preview_node,
+				osd_state->preview_anchor);
+		} else {
+			/* Selected view was the first node */
+			wlr_scene_node_lower_to_bottom(osd_state->preview_node);
+		}
+
+		/* Node was disabled / minimized before, disable again */
+		if (!osd_state->preview_was_enabled) {
+			wlr_scene_node_set_enabled(osd_state->preview_node, false);
+		}
+		osd_state->preview_node = NULL;
+		osd_state->preview_anchor = NULL;
+	}
+}
+
+static void
+preview_cycled_view(struct view *view)
+{
+	assert(view);
+	assert(view->scene_tree);
+	struct osd_state *osd_state = &view->server->osd_state;
+
+	/* Move previous selected node back to its original place */
+	osd_preview_restore(view->server);
+
+	/* Remember the sibling right before the selected node */
+	osd_state->preview_node = &view->scene_tree->node;
+	osd_state->preview_anchor = lab_wlr_scene_get_prev_node(
+		osd_state->preview_node);
+
+	/* Store node enabled / minimized state and force-enable if disabled */
+	osd_state->preview_was_enabled = osd_state->preview_node->enabled;
+	if (!osd_state->preview_was_enabled) {
+		wlr_scene_node_set_enabled(osd_state->preview_node, true);
+	}
+
+	/* Finally raise selected node to the top */
+	wlr_scene_node_raise_to_top(osd_state->preview_node);
 }
 
 void
@@ -185,7 +284,7 @@ osd_update(struct server *server)
 			if (!isfocusable(view)) {
 				continue;
 			}
-			if (view == server->cycle_view) {
+			if (view == server->osd_state.cycle_view) {
 				set_cairo_color(cairo, theme->osd_label_text_color);
 				cairo_rectangle(cairo, OSD_BORDER_WIDTH, y,
 					OSD_ITEM_WIDTH, OSD_ITEM_HEIGHT);
@@ -292,4 +391,8 @@ osd_update(struct server *server)
 		wlr_scene_node_set_enabled(&output->osd_tree->node, true);
 	}
 	free(buf.buf);
+
+	if (rc.cycle_preview_contents) {
+		preview_cycled_view(server->osd_state.cycle_view);
+	}
 }

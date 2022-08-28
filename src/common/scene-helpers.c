@@ -32,3 +32,15 @@ lab_wlr_surface_from_node(struct wlr_scene_node *node)
 	}
 	return NULL;
 }
+
+struct wlr_scene_node *
+lab_wlr_scene_get_prev_node(struct wlr_scene_node *node)
+{
+	assert(node);
+	struct wlr_scene_node *prev;
+	prev = wl_container_of(node->link.prev, node, link);
+	if (&prev->link == &node->parent->children) {
+		return NULL;
+	}
+	return prev;
+}

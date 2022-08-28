@@ -235,13 +235,13 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_NEXT_WINDOW:
-			server->cycle_view = desktop_cycle_view(server,
-				server->cycle_view, LAB_CYCLE_DIR_FORWARD);
+			server->osd_state.cycle_view = desktop_cycle_view(server,
+				server->osd_state.cycle_view, LAB_CYCLE_DIR_FORWARD);
 			osd_update(server);
 			break;
 		case ACTION_TYPE_PREVIOUS_WINDOW:
-			server->cycle_view = desktop_cycle_view(server,
-				server->cycle_view, LAB_CYCLE_DIR_BACKWARD);
+			server->osd_state.cycle_view = desktop_cycle_view(server,
+				server->osd_state.cycle_view, LAB_CYCLE_DIR_BACKWARD);
 			osd_update(server);
 			break;
 		case ACTION_TYPE_RECONFIGURE:

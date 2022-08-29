@@ -111,7 +111,7 @@ mousebind_create(const char *context)
 	struct mousebind *m = calloc(1, sizeof(struct mousebind));
 	m->context = context_from_str(context);
 	if (m->context != LAB_SSD_NONE) {
-		wl_list_insert(&rc.mousebinds, &m->link);
+		wl_list_insert(rc.mousebinds.prev, &m->link);
 	}
 	wl_list_init(&m->actions);
 	return m;

@@ -219,6 +219,13 @@ The rest of this man page describes configuration options.
 	- DoubleClick: Two presses within the doubleClickTime.
 	- Drag: Pressing the button within the context, then moving the cursor
 
+*<mouse><default />*
+	Load default mousebinds. This is an addition to the openbox
+	specification and provides a way to keep config files simpler whilst
+	allowing user specific binds.  Note that if no rc.xml is found, or if no
+	<mouse><mousebind> entries exist, the same default mousebinds will be
+	loaded even if the <default /> element is not provided.
+
 ## LIBINPUT
 
 *<libinput><device category="">*

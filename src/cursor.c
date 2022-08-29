@@ -547,7 +547,7 @@ handle_release_mousebinding(struct view *view, struct server *server,
 	bool activated_any = false;
 	bool activated_any_frame = false;
 
-	wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
+	wl_list_for_each(mousebind, &rc.mousebinds, link) {
 		if (ssd_part_contains(mousebind->context, view_area)
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {
@@ -629,7 +629,7 @@ handle_press_mousebinding(struct view *view, struct server *server,
 	bool activated_any = false;
 	bool activated_any_frame = false;
 
-	wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
+	wl_list_for_each(mousebind, &rc.mousebinds, link) {
 		if (ssd_part_contains(mousebind->context, view_area)
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {

@@ -545,7 +545,7 @@ load_default_key_bindings(void)
 	}
 }
 
-static struct {
+static struct mouse_combos {
 	const char *context, *button, *event, *action, *command;
 } mouse_combos[] = {
 	{ "Left", "Left", "Drag", "Resize", NULL},
@@ -590,17 +590,26 @@ load_default_mouse_bindings(void)
 {
 	struct mousebind *m;
 	struct action *action;
+	struct mouse_combos *current;
 	for (int i = 0; mouse_combos[i].context; i++) {
-		m = mousebind_create(mouse_combos[i].context);
-		m->button = mousebind_button_from_str(mouse_combos[i].button,
-			&m->modifiers);
-		m->mouse_event = mousebind_event_from_str(mouse_combos[i].event);
+		current = &mouse_combos[i];
+		if (i == 0
+				|| strcmp(current->context, mouse_combos[i - 1].context)
+				|| strcmp(current->button, mouse_combos[i - 1].button)
+				|| strcmp(current->event, mouse_combos[i - 1].event)) {
 
-		action = action_create(mouse_combos[i].action);
+			/* Create new mousebind */
+			m = mousebind_create(current->context);
+			m->button = mousebind_button_from_str(current->button,
+				&m->modifiers);
+			m->mouse_event = mousebind_event_from_str(current->event);
+		}
+
+		action = action_create(current->action);
 		wl_list_insert(m->actions.prev, &action->link);
 
-		if (mouse_combos[i].command) {
-			action_arg_add_str(action, NULL, mouse_combos[i].command);
+		if (current->command) {
+			action_arg_add_str(action, NULL, current->command);
 		}
 	}
 }

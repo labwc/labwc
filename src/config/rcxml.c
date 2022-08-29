@@ -588,6 +588,7 @@ static struct mouse_combos {
 static void
 load_default_mouse_bindings(void)
 {
+	uint32_t count = 0;
 	struct mousebind *m;
 	struct action *action;
 	struct mouse_combos *current;
@@ -603,6 +604,7 @@ load_default_mouse_bindings(void)
 			m->button = mousebind_button_from_str(current->button,
 				&m->modifiers);
 			m->mouse_event = mousebind_event_from_str(current->event);
+			count++;
 		}
 
 		action = action_create(current->action);
@@ -611,6 +613,34 @@ load_default_mouse_bindings(void)
 		if (current->command) {
 			action_arg_add_str(action, NULL, current->command);
 		}
+	}
+	wlr_log(WLR_DEBUG, "Loaded %u merged mousebinds", count);
+}
+
+static void
+merge_mouse_bindings(void)
+{
+	uint32_t replaced = 0;
+	struct mousebind *current, *tmp, *existing;
+	wl_list_for_each_safe(existing, tmp, &rc.mousebinds, link) {
+		wl_list_for_each_reverse(current, &rc.mousebinds, link) {
+			if (existing == current) {
+				break;
+			}
+			if (existing->context == current->context
+					&& existing->button == current->button
+					&& existing->mouse_event == current->mouse_event) {
+
+				wl_list_remove(&existing->link);
+				action_list_free(&existing->actions);
+				free(existing);
+				replaced++;
+				break;
+			}
+		}
+	}
+	if (replaced) {
+		wlr_log(WLR_DEBUG, "Replaced %u mousebinds", replaced);
 	}
 }
 
@@ -621,10 +651,14 @@ post_processing(void)
 		wlr_log(WLR_INFO, "load default key bindings");
 		load_default_key_bindings();
 	}
+
 	if (!wl_list_length(&rc.mousebinds)) {
 		wlr_log(WLR_INFO, "load default mouse bindings");
 		load_default_mouse_bindings();
 	}
+
+	/* Replace all earlier mousebindings by later ones */
+	merge_mouse_bindings();
 
 	if (!rc.font_name_activewindow) {
 		rc.font_name_activewindow = strdup("sans");

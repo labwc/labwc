@@ -144,9 +144,13 @@ handle_compositor_keybindings(struct wl_listener *listener,
 		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			for (int i = 0; i < nsyms; i++) {
 				if (syms[i] == XKB_KEY_Escape) {
-					/* cancel */
+					/*
+					 * Cancel view-cycle
+					 *
+					 * osd_finish() additionally resets
+					 * cycle_view to NULL
+					 */
 					osd_preview_restore(server);
-					/* osd_finish() additionally resets cycle_view to NULL */
 					osd_finish(server);
 
 					handled = true;

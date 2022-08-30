@@ -217,6 +217,18 @@ view_minimize(struct view *view, bool minimized)
 	if (minimized) {
 		view->impl->unmap(view);
 		desktop_move_to_back(view);
+		_view_set_activated(view, false);
+		if (view == view->server->focused_view) {
+			/*
+			 * Prevents clearing the active view when
+			 * we don't actually have keyboard focus.
+			 *
+			 * This may happen when using a custom mouse
+			 * focus configuration or by using the foreign
+			 * toplevel protocol via some panel.
+			 */
+			view->server->focused_view = NULL;
+		}
 	} else {
 		view->impl->map(view);
 	}

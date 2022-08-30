@@ -68,3 +68,9 @@ key_state_bound_key_remove(uint32_t keycode)
 {
 	remove_key(&bound, keycode);
 }
+
+int
+key_state_nr_keys(void)
+{
+	return bound.nr_keys;
+}

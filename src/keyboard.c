@@ -7,6 +7,8 @@
 #include "labwc.h"
 #include "workspaces.h"
 
+static bool should_cancel_cycling_on_next_key_release;
+
 static void
 change_vt(struct server *server, unsigned int vt)
 {
@@ -34,6 +36,17 @@ keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard)
 }
 
 static void
+end_cycling(struct server *server)
+{
+	desktop_focus_and_activate_view(&server->seat, server->osd_state.cycle_view);
+	desktop_move_to_front(server->osd_state.cycle_view);
+
+	/* osd_finish() additionally resets cycle_view to NULL */
+	osd_finish(server);
+	should_cancel_cycling_on_next_key_release = false;
+}
+
+static void
 keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, keyboard_modifiers);
@@ -46,12 +59,11 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 		if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED
 				&& !keyboard_any_modifiers_pressed(keyboard))  {
 			if (server->osd_state.cycle_view) {
-				/* end cycle */
-				desktop_focus_and_activate_view(&server->seat,
-					server->osd_state.cycle_view);
-				desktop_move_to_front(server->osd_state.cycle_view);
-				/* osd_finish() additionally resets cycle_view to NULL */
-				osd_finish(server);
+				if (key_state_nr_keys()) {
+					should_cancel_cycling_on_next_key_release = true;
+				} else {
+					end_cycling(server);
+				}
 			}
 			if (seat->workspace_osd_shown_by_modifier) {
 				workspaces_osd_hide(seat);
@@ -111,6 +123,21 @@ handle_compositor_keybindings(struct wl_listener *listener,
 
 	key_state_set_pressed(keycode,
 		event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
+
+	/*
+	 * If a user lets go of the modifier (e.g. alt) before the 'normal' key
+	 * (e.g. tab) when window-cycling, we do not end the cycling until both
+	 * keys have been released.  If we end the window-cycling on release of
+	 * the modifier only, some XWayland clients such as hexchat realise that
+	 * tab is pressed (even though we did not forward the event) and because
+	 * we absorb the equivalent release event it gets stuck on repeat.
+	 */
+	if (should_cancel_cycling_on_next_key_release
+			&& event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
+		end_cycling(server);
+		handled = true;
+		goto out;
+	}
 
 	/*
 	 * If a press event was handled by a compositor binding, then do not

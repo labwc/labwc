@@ -134,7 +134,8 @@ handle_compositor_keybindings(struct wl_listener *listener,
 				 * Don't send any key events to clients when
 				 * changing tty
 				 */
-				return true;
+				handled = true;
+				goto out;
 			}
 		}
 	}
@@ -147,7 +148,9 @@ handle_compositor_keybindings(struct wl_listener *listener,
 					osd_preview_restore(server);
 					/* osd_finish() additionally resets cycle_view to NULL */
 					osd_finish(server);
-					return true;
+
+					handled = true;
+					goto out;
 				}
 			}
 
@@ -169,7 +172,8 @@ handle_compositor_keybindings(struct wl_listener *listener,
 			}
 		}
 		/* don't send any key events to clients when osd onscreen */
-		return true;
+		handled = true;
+		goto out;
 	}
 
 	/* Handle compositor key bindings */
@@ -179,6 +183,7 @@ handle_compositor_keybindings(struct wl_listener *listener,
 		}
 	}
 
+out:
 	if (handled) {
 		key_state_store_pressed_keys_as_bound();
 	}

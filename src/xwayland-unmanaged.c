@@ -88,6 +88,12 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 			return;
 		}
 	}
+	/*
+	 * If we don't find a surface to focus fall back
+	 * to the topmost mapped view. This fixes dmenu
+	 * not giving focus back when closed with ESC.
+	 */
+	desktop_focus_topmost_mapped_view(unmanaged->server);
 }
 
 static void

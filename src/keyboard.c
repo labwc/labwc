@@ -125,6 +125,15 @@ handle_compositor_keybindings(struct wl_listener *listener,
 		event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
 
 	/*
+	 * Ignore labwc keybindings if input is inhibited
+	 * It's important to do this after key_state_set_pressed() to ensure
+	 * _all_ key press/releases are registered
+	 */
+	if (seat->active_client_while_inhibited) {
+		return false;
+	}
+
+	/*
 	 * If a user lets go of the modifier (e.g. alt) before the 'normal' key
 	 * (e.g. tab) when window-cycling, we do not end the cycling until both
 	 * keys have been released.  If we end the window-cycling on release of
@@ -233,12 +242,7 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
-	bool handled = false;
-
-	/* ignore labwc keybindings if input is inhibited */
-	if (!seat->active_client_while_inhibited) {
-		handled = handle_compositor_keybindings(listener, event);
-	}
+	bool handled = handle_compositor_keybindings(listener, event);
 
 	if (!handled) {
 		wlr_seat_set_keyboard(wlr_seat, keyboard);

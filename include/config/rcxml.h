@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <wayland-server-core.h>
+#include <wayland-server-protocol.h>
 
 #include "common/buf.h"
 #include "config/libinput.h"
@@ -17,6 +18,7 @@ struct rcxml {
 	bool xdg_shell_server_side_deco;
 	int gap;
 	bool adaptive_sync;
+	enum wl_output_subpixel subpixel;
 
 	/* focus */
 	bool focus_follow_mouse;

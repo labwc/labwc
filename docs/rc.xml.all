@@ -11,6 +11,7 @@
     <decoration>server</decoration>
     <gap>0</gap>
     <adaptiveSync>no</adaptiveSync>
+    <subpixel>0</subpixel>
     <cycleViewPreview>no</cycleViewPreview>
     <cycleViewOutlines>yes</cycleViewOutlines>
   </core>

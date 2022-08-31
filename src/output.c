@@ -9,6 +9,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "config.h"
 #include <assert.h>
+#include <wayland-server-protocol.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_output.h>
@@ -16,6 +17,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/region.h>
 #include <wlr/util/log.h>
+
 #include "buffer.h"
 #include "labwc.h"
 #include "layers.h"
@@ -105,6 +107,15 @@ new_output_notify(struct wl_listener *listener, void *data)
 	struct wlr_output_mode *preferred_mode =
 		wlr_output_preferred_mode(wlr_output);
 	wlr_output_set_mode(wlr_output, preferred_mode);
+
+	/* Allow to overwrite subpixel rendering */
+	if (rc.subpixel != WL_OUTPUT_SUBPIXEL_UNKNOWN
+			&& rc.subpixel != wlr_output->subpixel) {
+		wlr_log(WLR_ERROR,
+			"changing configured output subpixel rendering from %u to %u",
+			wlr_output->subpixel, rc.subpixel);
+		wlr_output_set_subpixel(wlr_output, rc.subpixel);
+	}
 
 	/*
 	 * Sometimes the preferred mode is not available due to hardware

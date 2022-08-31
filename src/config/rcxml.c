@@ -360,6 +360,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.gap = atoi(content);
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
 		rc.adaptive_sync = get_bool(content);
+	} else if (!strcasecmp(nodename, "subpixel.core")) {
+		rc.subpixel = atoi(content);
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = strdup(content);
 	} else if (!strcmp(nodename, "cornerradius.theme")) {
@@ -490,6 +492,7 @@ rcxml_init()
 	wl_list_init(&rc.mousebinds);
 	wl_list_init(&rc.libinput_categories);
 	rc.xdg_shell_server_side_deco = true;
+	rc.subpixel = WL_OUTPUT_SUBPIXEL_UNKNOWN;
 	rc.corner_radius = 8;
 	rc.font_size_activewindow = 10;
 	rc.font_size_menuitem = 10;

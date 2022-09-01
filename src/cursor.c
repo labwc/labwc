@@ -197,6 +197,42 @@ input_inhibit_blocks_surface(struct seat *seat, struct wl_resource *resource)
 }
 
 static void
+process_cursor_motion_out_of_surface(struct server *server, uint32_t time)
+{
+	struct view *view = server->seat.pressed.view;
+	struct wlr_scene_node *node = server->seat.pressed.node;
+	struct wlr_surface *surface = server->seat.pressed.surface;
+	assert(surface);
+	int lx, ly;
+
+	if (view) {
+		lx = view->x;
+		ly = view->y;
+	} else if (node && wlr_surface_is_layer_surface(surface)) {
+		wlr_scene_node_coords(node, &lx, &ly);
+#if HAVE_XWAYLAND
+	} else if (node && node->parent == server->unmanaged_tree) {
+		wlr_scene_node_coords(node, &lx, &ly);
+#endif
+	} else {
+		wlr_log(WLR_ERROR, "Can't detect surface for out-of-surface movement");
+		return;
+	}
+
+	double sx = server->seat.cursor->x - lx;
+	double sy = server->seat.cursor->y - ly;
+	/* Take into account invisible xdg-shell CSD borders */
+	if (view && view->type == LAB_XDG_SHELL_VIEW && view->xdg_surface) {
+		struct wlr_box geo;
+		wlr_xdg_surface_get_geometry(view->xdg_surface, &geo);
+		sx += geo.x;
+		sy += geo.y;
+	}
+
+	wlr_seat_pointer_notify_motion(server->seat.seat, time, sx, sy);
+}
+
+static void
 process_cursor_motion(struct server *server, uint32_t time)
 {
 	static bool cursor_name_set_by_server;
@@ -289,29 +325,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 		 * or selecting text even if the cursor moves outside of
 		 * the surface.
 		 */
-		int lx, ly;
-		view = server->seat.pressed.view;
-		if (view) {
-			lx = view->x;
-			ly = view->y;
-		} else if (wlr_surface_is_layer_surface(server->seat.pressed.surface)) {
-			wlr_scene_node_coords(server->seat.pressed.node, &lx, &ly);
-		} else {
-			wlr_log(WLR_ERROR, "Can't detect surface for out-of-surface movement");
-			return;
-		}
-		sx = server->seat.cursor->x - lx;
-		sy = server->seat.cursor->y - ly;
-
-		/* Take into account invisible xdg-shell CSD borders */
-		if (view && view->type == LAB_XDG_SHELL_VIEW
-				&& view->xdg_surface) {
-			struct wlr_box geo;
-			wlr_xdg_surface_get_geometry(view->xdg_surface, &geo);
-			sx += geo.x;
-			sy += geo.y;
-		}
-		wlr_seat_pointer_notify_motion(server->seat.seat, time, sx, sy);
+		process_cursor_motion_out_of_surface(server, time);
 	} else if (surface && !input_inhibit_blocks_surface(
 			&server->seat, surface->resource)) {
 		bool focus_changed =
@@ -364,9 +378,7 @@ start_drag(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, start_drag);
 	struct wlr_drag *wlr_drag = data;
-	seat->pressed.view = NULL;
-	seat->pressed.node = NULL;
-	seat->pressed.surface = NULL;
+	seat_reset_pressed(seat);
 	seat->drag_icon = wlr_drag->icon;
 	if (!seat->drag_icon) {
 		wlr_log(WLR_ERROR,
@@ -713,19 +725,17 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* handle _release_ */
 	if (event->state == WLR_BUTTON_RELEASED) {
-		seat->pressed.view = NULL;
-		seat->pressed.node = NULL;
-		if (seat->pressed.surface && seat->pressed.surface != surface) {
+		struct wlr_surface *pressed_surface = seat->pressed.surface;
+		seat_reset_pressed(seat);
+		if (pressed_surface && pressed_surface != surface) {
 			/*
 			 * Button released but originally pressed over a different surface.
 			 * Just send the release event to the still focused surface.
 			 */
 			wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
 				event->button, event->state);
-			seat->pressed.surface = NULL;
 			return;
 		}
-		seat->pressed.surface = NULL;
 		if (server->input_mode == LAB_INPUT_STATE_MENU) {
 			if (close_menu) {
 				menu_close_root(server);

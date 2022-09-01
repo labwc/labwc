@@ -146,8 +146,7 @@ unmap(struct lab_layer_surface *layer)
 		seat_set_focus_layer(seat, NULL);
 	}
 	if (seat->pressed.surface == layer->scene_layer_surface->layer_surface->surface) {
-		seat->pressed.node = NULL;
-		seat->pressed.surface = NULL;
+		seat_reset_pressed(seat);
 	}
 }
 

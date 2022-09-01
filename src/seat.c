@@ -369,3 +369,11 @@ seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer)
 		seat->focused_layer = layer;
 	}
 }
+
+void
+seat_reset_pressed(struct seat *seat)
+{
+	seat->pressed.view = NULL;
+	seat->pressed.node = NULL;
+	seat->pressed.surface = NULL;
+}

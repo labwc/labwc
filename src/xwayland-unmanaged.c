@@ -57,6 +57,8 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, unmap);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
+	struct seat *seat = &unmanaged->server->seat;
+
 	wl_list_remove(&unmanaged->link);
 	wl_list_remove(&unmanaged->set_geometry.link);
 
@@ -64,9 +66,11 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 	 * Mark the node as gone so a racing configure event
 	 * won't try to reposition the node while unmapped.
 	 */
+	if (unmanaged->node && seat->pressed.node == unmanaged->node) {
+		seat_reset_pressed(seat);
+	}
 	unmanaged->node = NULL;
 
-	struct seat *seat = &unmanaged->server->seat;
 	if (seat->seat->keyboard_state.focused_surface == xsurface->surface) {
 		/*
 		 * Try to focus on parent surface

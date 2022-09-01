@@ -559,6 +559,7 @@ void seat_finish(struct server *server);
 void seat_reconfigure(struct server *server);
 void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
 void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer);
+void seat_reset_pressed(struct seat *seat);
 
 void interactive_begin(struct view *view, enum input_mode mode,
 		      uint32_t edges);

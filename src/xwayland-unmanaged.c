@@ -32,6 +32,8 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 		wl_container_of(listener, unmanaged, map);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 
+	/* Stack new surface on top */
+	wlr_xwayland_surface_restack(xsurface, NULL, XCB_STACK_MODE_ABOVE);
 	wl_list_insert(unmanaged->server->unmanaged_surfaces.prev,
 		       &unmanaged->link);
 

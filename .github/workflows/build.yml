@@ -24,18 +24,18 @@ jobs:
             os: ubuntu-latest
             container: archlinux:base-devel
             env:
-              SSH_HOST: ''
+              TARGET: 'sh -xe'
 
           - name: FreeBSD
             os: macos-12
             env:
-              SSH_HOST: freebsd
+              TARGET: 'ssh freebsd /bin/sh -xe'
 
           - name: Void-musl
             os: ubuntu-latest
             container: ghcr.io/void-linux/void-linux:latest-thin-x86_64-musl
             env:
-              SSH_HOST: ''
+              TARGET: 'sh -xe'
 
     env: ${{ matrix.env }}
     runs-on: ${{ matrix.os }}
@@ -78,24 +78,36 @@ jobs:
 
       - name: Build with gcc
         run: |
-          test -n "$SSH_HOST" && TARGET="ssh $SSH_HOST /bin/sh" || TARGET=sh
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
             meson build-gcc --werror
-            meson build-gcc-no-xwayland -Dxwayland=disabled --werror
             meson compile -C build-gcc
-            meson compile -C build-gcc-no-xwayland
           ' | $TARGET
 
       - name: Build with clang
         run: |
-          test -n "$SSH_HOST" && TARGET="ssh $SSH_HOST /bin/sh" || TARGET=sh
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=clang
             meson build-clang --werror
-            meson build-clang-no-xwayland -Dxwayland=disabled --werror
             meson compile -C build-clang
+          ' | $TARGET
+
+      - name: Build with gcc no-xwayland
+        run: |
+          echo '
+            cd "$GITHUB_WORKSPACE"
+            export CC=gcc
+            meson build-gcc-no-xwayland -Dxwayland=disabled --werror
+            meson compile -C build-gcc-no-xwayland
+          ' | $TARGET
+
+      - name: Build with clang no-xwayland
+        run: |
+          echo '
+            cd "$GITHUB_WORKSPACE"
+            export CC=clang
+            meson build-clang-no-xwayland -Dxwayland=disabled --werror
             meson compile -C build-clang-no-xwayland
           ' | $TARGET

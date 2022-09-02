@@ -78,30 +78,24 @@ jobs:
 
       - name: Build with gcc
         run: |
-          if test -z "$SSH_HOST"; then
+          test -n "$SSH_HOST" && TARGET="ssh $SSH_HOST /bin/sh" || TARGET=sh
+          echo '
+            cd "$GITHUB_WORKSPACE"
             export CC=gcc
-            meson build-gcc/ --werror
-            meson compile -C build-gcc/
-          else
-            echo '
-              cd "$GITHUB_WORKSPACE"
-              export CC=gcc
-              meson build-gcc/ --werror
-              meson compile -C build-gcc/
-            ' | ssh "$SSH_HOST" /bin/sh
-          fi
+            meson build-gcc --werror
+            meson build-gcc-no-xwayland -Dxwayland=disabled --werror
+            meson compile -C build-gcc
+            meson compile -C build-gcc-no-xwayland
+          ' | $TARGET
 
       - name: Build with clang
         run: |
-          if test -z "$SSH_HOST"; then
+          test -n "$SSH_HOST" && TARGET="ssh $SSH_HOST /bin/sh" || TARGET=sh
+          echo '
+            cd "$GITHUB_WORKSPACE"
             export CC=clang
-            meson build-clang/ --werror
-            meson compile -C build-clang/
-          else
-            echo '
-              cd "$GITHUB_WORKSPACE"
-              export CC=clang
-              meson build-clang/ --werror
-              meson compile -C build-clang/
-            ' | ssh "$SSH_HOST" /bin/sh
-          fi
+            meson build-clang --werror
+            meson build-clang-no-xwayland -Dxwayland=disabled --werror
+            meson compile -C build-clang
+            meson compile -C build-clang-no-xwayland
+          ' | $TARGET

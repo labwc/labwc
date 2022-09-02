@@ -188,11 +188,38 @@ struct view *
 desktop_cycle_view(struct server *server, struct view *start_view,
 		enum lab_cycle_dir dir)
 {
-	struct view *view = start_view ? start_view : first_view(server);
-	if (!view) {
-		return NULL;
+	/*
+	 * Views are listed in stacking order, topmost first.  Usually
+	 * the topmost view is already focused, so we pre-select the
+	 * view second from the top:
+	 *
+	 *   View #1 (on top, currently focused)
+	 *   View #2 (pre-selected)
+	 *   View #3
+	 *   ...
+	 *
+	 * This assumption doesn't always hold with XWayland views,
+	 * where a main application window may be focused but an
+	 * focusable sub-view (e.g. an about dialog) may still be on
+	 * top of it.  In that case, we pre-select the sub-view:
+	 *
+	 *   Sub-view of #1 (on top, pre-selected)
+	 *   Main view #1 (currently focused)
+	 *   Main view #2
+	 *   ...
+	 *
+	 * The general rule is:
+	 *
+	 *   - Pre-select the top view if NOT already focused
+	 *   - Otherwise select the view second from the top
+	 */
+	if (!start_view) {
+		start_view = first_view(server);
+		if (!start_view || start_view != desktop_focused_view(server)) {
+			return start_view;  /* may be NULL */
+		}
 	}
-	start_view = view;
+	struct view *view = start_view;
 	struct wlr_scene_node *node = &view->scene_tree->node;
 
 	assert(node->parent);

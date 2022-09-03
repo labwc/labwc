@@ -27,6 +27,11 @@ is_surface(enum ssd_part_type view_area)
 void
 cursor_rebase(struct seat *seat, uint32_t time_msec, bool force)
 {
+	if (seat->pressed.surface) {
+		/* Don't leave surface while a button is pressed */
+		return;
+	}
+
 	double sx, sy;
 	struct wlr_scene_node *node;
 	enum ssd_part_type view_area = LAB_SSD_NONE;
@@ -41,7 +46,7 @@ cursor_rebase(struct seat *seat, uint32_t time_msec, bool force)
 	if (surface) {
 		if (!force && surface == seat->seat->pointer_state.focused_surface) {
 			/*
-			 * Usually we prevent re-entering an already focued surface
+			 * Usually we prevent re-entering an already focused surface
 			 * because it sends useless leave and enter events.
 			 *
 			 * They may also seriously confuse clients if sent between

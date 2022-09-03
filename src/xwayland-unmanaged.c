@@ -52,6 +52,38 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 }
 
 static void
+focus_next_surface(struct server *server, struct wlr_xwayland_surface *xsurface)
+{
+	/*
+	 * Try to focus on parent surface
+	 * This seems to fix JetBrains/Intellij window focus issues
+	 */
+	if (xsurface->parent && xsurface->parent->surface
+			&& wlr_xwayland_or_surface_wants_focus(xsurface->parent)) {
+		seat_focus_surface(&server->seat, xsurface->parent->surface);
+		return;
+	}
+
+	/* Try to focus on last created unmanaged xwayland surface */
+	struct xwayland_unmanaged *u;
+	struct wl_list *list = &server->unmanaged_surfaces;
+	wl_list_for_each_reverse (u, list, link) {
+		struct wlr_xwayland_surface *prev = u->xwayland_surface;
+		if (wlr_xwayland_or_surface_wants_focus(prev)) {
+			seat_focus_surface(&server->seat, prev->surface);
+			return;
+		}
+	}
+
+	/*
+	 * If we don't find a surface to focus fall back
+	 * to the topmost mapped view. This fixes dmenu
+	 * not giving focus back when closed with ESC.
+	 */
+	desktop_focus_topmost_mapped_view(server);
+}
+
+static void
 unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
@@ -72,34 +104,8 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 	unmanaged->node = NULL;
 
 	if (seat->seat->keyboard_state.focused_surface == xsurface->surface) {
-		/*
-		 * Try to focus on parent surface
-		 * This seems to fix JetBrains/Intellij window focus issues
-		 */
-		if (xsurface->parent && xsurface->parent->surface
-				&& wlr_xwayland_or_surface_wants_focus(xsurface->parent)) {
-			seat_focus_surface(seat, xsurface->parent->surface);
-			return;
-		}
-
-		/* Try to focus on last created unmanaged xwayland surface */
-		struct xwayland_unmanaged *u;
-		struct wl_list *list = &unmanaged->server->unmanaged_surfaces;
-		wl_list_for_each (u, list, link) {
-			struct wlr_xwayland_surface *prev = u->xwayland_surface;
-			if (!wlr_xwayland_or_surface_wants_focus(prev)) {
-				continue;
-			}
-			seat_focus_surface(seat, prev->surface);
-			return;
-		}
+		focus_next_surface(unmanaged->server, xsurface);
 	}
-	/*
-	 * If we don't find a surface to focus fall back
-	 * to the topmost mapped view. This fixes dmenu
-	 * not giving focus back when closed with ESC.
-	 */
-	desktop_focus_topmost_mapped_view(unmanaged->server);
 }
 
 static void

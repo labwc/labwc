@@ -68,6 +68,11 @@ static void
 handle_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, map);
+	struct wlr_xwayland_surface *xsurface = data;
+	if (xsurface != view->xwayland_surface) {
+		xsurface->data = view;
+		view->xwayland_surface = xsurface;
+	}
 	view->impl->map(view);
 }
 

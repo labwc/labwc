@@ -277,6 +277,27 @@ handle_override_redirect(struct wl_listener *listener, void *data)
 }
 
 static void
+set_initial_position(struct view *view)
+{
+	/* Don't center views with position explicitly specified */
+	bool has_position = view->xwayland_surface->size_hints &&
+		(view->xwayland_surface->size_hints->flags &
+			(XCB_ICCCM_SIZE_HINT_US_POSITION |
+			 XCB_ICCCM_SIZE_HINT_P_POSITION));
+
+	if (has_position) {
+		/* Just make sure the view is on-screen */
+		view_adjust_for_layout_change(view);
+	} else {
+		struct wlr_box box =
+			output_usable_area_from_cursor_coords(view->server);
+		view->x = box.x;
+		view->y = box.y;
+		view_center(view);
+	}
+}
+
+static void
 top_left_edge_boundary_check(struct view *view)
 {
 	struct wlr_box deco = ssd_max_extents(view);
@@ -333,11 +354,7 @@ map(struct view *view)
 		}
 
 		if (!view->maximized && !view->fullscreen) {
-			struct wlr_box box =
-				output_usable_area_from_cursor_coords(view->server);
-			view->x = box.x;
-			view->y = box.y;
-			view_center(view);
+			set_initial_position(view);
 		}
 
 		view_moved(view);

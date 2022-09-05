@@ -340,7 +340,7 @@ map(struct view *view)
 			view_center(view);
 		}
 
-		view_discover_output(view);
+		view_moved(view);
 		view->been_mapped = true;
 	}
 

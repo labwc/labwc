@@ -307,7 +307,7 @@ xdg_toplevel_view_map(struct view *view)
 			view_maximize(view, true);
 		}
 
-		view_discover_output(view);
+		view_moved(view);
 		view->been_mapped = true;
 	}
 

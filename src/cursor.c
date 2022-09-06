@@ -43,6 +43,8 @@ cursor_rebase(struct seat *seat, uint32_t time_msec, bool force)
 		surface = lab_wlr_surface_from_node(node);
 	}
 
+	ssd_update_button_hover(node, &seat->server->ssd_hover_state);
+
 	if (surface) {
 		if (!force && surface == seat->seat->pointer_state.focused_surface) {
 			/*

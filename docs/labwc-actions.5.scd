@@ -75,6 +75,9 @@ Actions are used in menus and keyboard/mouse bindings.
 	Send active window to workspace.
 	Supported values are the same as for GoToDesktop.
 
+*<action name="None">*
+	If used as the only action for a binding: clear an earlier defined binding.
+
 # SEE ALSO
 
 labwc(1), labwc-config(5), labwc-theme(5)

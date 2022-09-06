@@ -16,7 +16,8 @@
 #include "workspaces.h"
 
 enum action_type {
-	ACTION_TYPE_NONE = 0,
+	ACTION_TYPE_INVALID = 0,
+	ACTION_TYPE_NONE,
 	ACTION_TYPE_CLOSE,
 	ACTION_TYPE_DEBUG,
 	ACTION_TYPE_EXECUTE,
@@ -41,7 +42,8 @@ enum action_type {
 };
 
 const char *action_names[] = {
-	"NoOp",
+	"INVALID",
+	"None",
 	"Close",
 	"Debug",
 	"Execute",
@@ -93,7 +95,7 @@ action_type_from_str(const char *action_name)
 		}
 	}
 	wlr_log(WLR_ERROR, "Invalid action: %s", action_name);
-	return ACTION_TYPE_NONE;
+	return ACTION_TYPE_INVALID;
 }
 
 struct action *
@@ -330,6 +332,8 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_NONE:
+			break;
+		case ACTION_TYPE_INVALID:
 			wlr_log(WLR_ERROR, "Not executing unknown action");
 			break;
 		default:

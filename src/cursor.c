@@ -847,6 +847,9 @@ cursor_axis(struct wl_listener *listener, void *data)
 	struct wlr_pointer_axis_event *event = data;
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
+	/* Make sure we are sending the events to the surface under the cursor */
+	cursor_update_focus(seat->server);
+
 	/* Notify the client with pointer focus of the axis event. */
 	wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,
 		event->orientation, event->delta, event->delta_discrete,

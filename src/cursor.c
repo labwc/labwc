@@ -27,11 +27,6 @@ is_surface(enum ssd_part_type view_area)
 void
 cursor_rebase(struct seat *seat, uint32_t time_msec, bool force)
 {
-	if (seat->pressed.surface) {
-		/* Don't leave surface while a button is pressed */
-		return;
-	}
-
 	double sx, sy;
 	struct wlr_scene_node *node;
 	enum ssd_part_type view_area = LAB_SSD_NONE;
@@ -44,6 +39,10 @@ cursor_rebase(struct seat *seat, uint32_t time_msec, bool force)
 	}
 
 	ssd_update_button_hover(node, &seat->server->ssd_hover_state);
+	if (seat->pressed.surface && surface != seat->pressed.surface) {
+		/* Don't leave surface when a button was pressed over another surface */
+		return;
+	}
 
 	if (surface) {
 		if (!force && surface == seat->seat->pointer_state.focused_surface) {

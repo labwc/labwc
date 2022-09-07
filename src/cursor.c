@@ -24,21 +24,15 @@ is_surface(enum ssd_part_type view_area)
 		;
 }
 
-void
-cursor_rebase(struct seat *seat, uint32_t time_msec, bool force)
+/*
+ * cursor_rebase() for internal use: reuses node, surface, sx and sy
+ * For a public variant use cursor_update_focus()
+ */
+static void
+cursor_rebase(struct seat *seat, struct wlr_scene_node *node,
+		struct wlr_surface *surface, double sx, double sy, uint32_t time_msec,
+		bool force)
 {
-	double sx, sy;
-	struct wlr_scene_node *node;
-	enum ssd_part_type view_area = LAB_SSD_NONE;
-	struct wlr_surface *surface = NULL;
-
-	desktop_node_and_view_at(seat->server, seat->cursor->x,
-		seat->cursor->y, &node, &sx, &sy, &view_area);
-	if (is_surface(view_area)) {
-		surface = lab_wlr_surface_from_node(node);
-	}
-
-	ssd_update_button_hover(node, &seat->server->ssd_hover_state);
 	if (seat->pressed.surface && surface != seat->pressed.surface) {
 		/* Don't leave surface when a button was pressed over another surface */
 		return;
@@ -373,10 +367,26 @@ msec(const struct timespec *t)
 void
 cursor_update_focus(struct server *server)
 {
+	double sx, sy;
+	struct wlr_scene_node *node = NULL;
+	struct wlr_surface *surface = NULL;
+	enum ssd_part_type view_area = LAB_SSD_NONE;
+
 	struct timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
+
+	struct seat *seat = &server->seat;
+	desktop_node_and_view_at(seat->server, seat->cursor->x,
+		seat->cursor->y, &node, &sx, &sy, &view_area);
+
+	if (is_surface(view_area)) {
+		surface = lab_wlr_surface_from_node(node);
+	}
+
+	ssd_update_button_hover(node, &seat->server->ssd_hover_state);
+
 	/* Focus surface under cursor if it isn't already focused */
-	cursor_rebase(&server->seat, msec(&now), false);
+	cursor_rebase(seat, node, surface, sx, sy, msec(&now), false);
 }
 
 void
@@ -701,7 +711,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	double sx, sy;
-	struct wlr_scene_node *node;
+	struct wlr_scene_node *node = NULL;
 	enum ssd_part_type view_area = LAB_SSD_NONE;
 	uint32_t resize_edges = 0;
 
@@ -745,7 +755,8 @@ cursor_button(struct wl_listener *listener, void *data)
 		if (server->input_mode == LAB_INPUT_STATE_MENU) {
 			if (close_menu) {
 				menu_close_root(server);
-				cursor_rebase(&server->seat, event->time_msec, false);
+				cursor_rebase(&server->seat, node, surface, sx, sy,
+					event->time_msec, false);
 				close_menu = false;
 			}
 			return;
@@ -763,7 +774,8 @@ cursor_button(struct wl_listener *listener, void *data)
 			 * Focus surface under cursor and force updating the
 			 * cursor icon
 			 */
-			cursor_rebase(&server->seat, event->time_msec, true);
+			cursor_rebase(&server->seat, node, surface, sx, sy,
+				event->time_msec, true);
 			return;
 		}
 		goto mousebindings;

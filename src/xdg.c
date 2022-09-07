@@ -40,16 +40,23 @@ handle_commit(struct wl_listener *listener, void *data)
 	struct wlr_box size;
 	wlr_xdg_surface_get_geometry(view->xdg_surface, &size);
 
-	view->w = size.width;
-	view->h = size.height;
+	bool update_required = false;
+
+	if (view->w != size.width || view->h != size.height) {
+		update_required = true;
+		view->w = size.width;
+		view->h = size.height;
+	}
 
 	uint32_t serial = view->pending_move_resize.configure_serial;
 	if (serial > 0 && serial >= view->xdg_surface->current.configure_serial) {
 		if (view->pending_move_resize.update_x) {
+			update_required = true;
 			view->x = view->pending_move_resize.x +
 				view->pending_move_resize.width - size.width;
 		}
 		if (view->pending_move_resize.update_y) {
+			update_required = true;
 			view->y = view->pending_move_resize.y +
 				view->pending_move_resize.height - size.height;
 		}
@@ -57,7 +64,9 @@ handle_commit(struct wl_listener *listener, void *data)
 			view->pending_move_resize.configure_serial = 0;
 		}
 	}
-	view_moved(view);
+	if (update_required) {
+		view_moved(view);
+	}
 }
 
 static void

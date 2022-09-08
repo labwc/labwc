@@ -215,9 +215,6 @@
         <action name="Focus"/>
         <action name="Raise"/>
       </mousebind>
-      <mousebind button="Left" action="Drag">
-        <action name="Move"/>
-      </mousebind>
       <mousebind button="Right" action="Click">
         <action name="Focus" />
         <action name="Raise" />
@@ -225,9 +222,13 @@
           <menu>client-menu</menu>
         </action>
       </mousebind>
+    </context>
+
+    <context name="Title">
+      <mousebind button="Left" action="Drag">
+        <action name="Move"/>
+      </mousebind>
       <mousebind button="Left" action="DoubleClick">
-        <action name="Focus"/>
-        <action name="Raise"/>
         <action name="ToggleMaximize"/>
       </mousebind>
     </context>

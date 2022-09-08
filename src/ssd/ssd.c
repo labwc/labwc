@@ -243,6 +243,11 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 		return candidate >= LAB_SSD_BUTTON_CLOSE
 			&& candidate <= LAB_SSD_PART_TITLE;
 	}
+	if (whole == LAB_SSD_PART_TITLE) {
+		/* "Title" includes blank areas of "Titlebar" as well */
+		return candidate >= LAB_SSD_PART_TITLEBAR
+			&& candidate <= LAB_SSD_PART_TITLE;
+	}
 	if (whole == LAB_SSD_FRAME) {
 		return candidate >= LAB_SSD_BUTTON_CLOSE
 			&& candidate <= LAB_SSD_CLIENT;

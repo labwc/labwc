@@ -68,6 +68,11 @@ static void
 handle_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, map);
+	struct wlr_xwayland_surface *xsurface = data;
+	if (xsurface != view->xwayland_surface) {
+		xsurface->data = view;
+		view->xwayland_surface = xsurface;
+	}
 	view->impl->map(view);
 }
 
@@ -91,12 +96,33 @@ handle_unmap(struct wl_listener *listener, void *data)
 }
 
 static void
+handle_surface_destroy(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, surface_destroy);
+	assert(view->type == LAB_XWAYLAND_VIEW);
+	struct wlr_surface *surface = data;
+	assert(surface == view->surface);
+
+	view->surface = NULL;
+	wl_list_remove(&view->surface_destroy.link);
+}
+
+static void
 handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
 	assert(view->type == LAB_XWAYLAND_VIEW);
 
 	/* Reset XWayland specific surface for good measure */
+	if (view->surface) {
+		/*
+		 * We got the destroy signal from
+		 * wlr_xwayland_surface before the
+		 * destroy signal from wlr_surface.
+		 */
+		wl_list_remove(&view->surface_destroy.link);
+	}
+	view->surface = NULL;
 	view->xwayland_surface = NULL;
 
 	/* Remove XWayland specific handlers */
@@ -332,7 +358,16 @@ map(struct view *view)
 	}
 
 	if (view->surface != view->xwayland_surface->surface) {
+		if (view->surface) {
+			wl_list_remove(&view->surface_destroy.link);
+		}
 		view->surface = view->xwayland_surface->surface;
+
+		/* Required to set the surface to NULL when destroyed by the client */
+		view->surface_destroy.notify = handle_surface_destroy;
+		wl_signal_add(&view->surface->events.destroy, &view->surface_destroy);
+
+		/* Will be free'd automatically once the surface is being destroyed */
 		struct wlr_scene_tree *tree = wlr_scene_subsurface_tree_create(
 			view->scene_tree, view->surface);
 		if (!tree) {

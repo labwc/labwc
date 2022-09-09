@@ -68,11 +68,15 @@ ssd_get_part_type(struct view *view, struct wlr_scene_node *node)
 	struct wl_list *part_list = NULL;
 	struct wlr_scene_tree *grandparent =
 		node->parent ? node->parent->node.parent : NULL;
+	struct wlr_scene_tree *greatgrandparent =
+		grandparent ? grandparent->node.parent : NULL;
 
 	/* active titlebar */
 	if (node->parent == view->ssd.titlebar.active.tree) {
 		part_list = &view->ssd.titlebar.active.parts;
 	} else if (grandparent == view->ssd.titlebar.active.tree) {
+		part_list = &view->ssd.titlebar.active.parts;
+	} else if (greatgrandparent == view->ssd.titlebar.active.tree) {
 		part_list = &view->ssd.titlebar.active.parts;
 
 	/* extents */
@@ -87,6 +91,8 @@ ssd_get_part_type(struct view *view, struct wlr_scene_node *node)
 	} else if (node->parent == view->ssd.titlebar.inactive.tree) {
 		part_list = &view->ssd.titlebar.inactive.parts;
 	} else if (grandparent == view->ssd.titlebar.inactive.tree) {
+		part_list = &view->ssd.titlebar.inactive.parts;
+	} else if (greatgrandparent == view->ssd.titlebar.inactive.tree) {
 		part_list = &view->ssd.titlebar.inactive.parts;
 
 	/* inactive border */
@@ -241,6 +247,11 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 	}
 	if (whole == LAB_SSD_PART_TITLEBAR) {
 		return candidate >= LAB_SSD_BUTTON_CLOSE
+			&& candidate <= LAB_SSD_PART_TITLE;
+	}
+	if (whole == LAB_SSD_PART_TITLE) {
+		/* "Title" includes blank areas of "Titlebar" as well */
+		return candidate >= LAB_SSD_PART_TITLEBAR
 			&& candidate <= LAB_SSD_PART_TITLE;
 	}
 	if (whole == LAB_SSD_FRAME) {

@@ -186,8 +186,10 @@ The rest of this man page describes configuration options.
 	*<action>* can exist within one *<mousebind>*
 
 	Define a mouse binding. Supported context-names include:
-	- TitleBar: The area where the title of the window is shown.
-	- Title: The title of the window itself.
+	- TitleBar: The decoration on top of the window, where the window
+	  buttons and the window title are shown.
+	- Title: The area of the titlebar (including blank space) between
+	  the window buttons, where the window title is displayed.
 	- WindowMenu: The button on the left.
 	- Iconify: The button that looks like an underline.
 	- Maximize: The button that looks like a box.

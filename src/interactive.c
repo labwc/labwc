@@ -31,6 +31,26 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		/* We don't allow resizing while in maximized or fullscreen state */
 		return;
 	}
+
+	/*
+	 * This function sets up an interactive move or resize operation, where
+	 * the compositor stops propagating pointer events to clients and
+	 * instead consumes them itself, to move or resize windows.
+	 */
+	struct seat *seat = &view->server->seat;
+	struct server *server = view->server;
+	server->grabbed_view = view;
+	server->input_mode = mode;
+
+	/* Remember view and cursor positions at start of move/resize */
+	server->grab_x = seat->cursor->x;
+	server->grab_y = seat->cursor->y;
+	server->grab_box.x = view->x;
+	server->grab_box.y = view->y;
+	server->grab_box.width = view->w;
+	server->grab_box.height = view->h;
+	server->resize_edges = edges;
+
 	if (view->maximized || view->tiled) {
 		if (mode == LAB_INPUT_STATE_MOVE) {
 			/* Exit maximized or tiled mode */
@@ -52,34 +72,15 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			 * the current values in server->grab_box. We pretend the
 			 * configure already happened by setting them manually.
 			 */
-			view->x = new_x;
-			view->y = new_y;
-			view->w = view->natural_geometry.width;
-			view->h = view->natural_geometry.height;
+			server->grab_box.x = new_x;
+			server->grab_box.y = new_y;
+			server->grab_box.width = view->natural_geometry.width;
+			server->grab_box.height = view->natural_geometry.height;
 		}
 	}
 
 	/* Moving or resizing always resets tiled state */
 	view->tiled = 0;
-
-	/*
-	 * This function sets up an interactive move or resize operation, where
-	 * the compositor stops propagating pointer events to clients and
-	 * instead consumes them itself, to move or resize windows.
-	 */
-	struct seat *seat = &view->server->seat;
-	struct server *server = view->server;
-	server->grabbed_view = view;
-	server->input_mode = mode;
-
-	/* Remember view and cursor positions at start of move/resize */
-	server->grab_x = seat->cursor->x;
-	server->grab_y = seat->cursor->y;
-	struct wlr_box box = {
-		.x = view->x, .y = view->y, .width = view->w, .height = view->h
-	};
-	memcpy(&server->grab_box, &box, sizeof(struct wlr_box));
-	server->resize_edges = edges;
 
 	switch (mode) {
 	case LAB_INPUT_STATE_MOVE:

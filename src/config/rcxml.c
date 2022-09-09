@@ -678,7 +678,7 @@ post_processing(void)
 	if (!wl_list_length(&rc.libinput_categories)) {
 		/* So we still allow tap to click by default */
 		struct libinput_category *l = libinput_category_create();
-		l->type = TOUCH_DEVICE;
+		l->type = DEFAULT_DEVICE;
 	}
 	if (!wl_list_length(&rc.workspace_config.workspaces)) {
 		struct workspace *workspace = calloc(1, sizeof(struct workspace));

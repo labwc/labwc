@@ -79,6 +79,7 @@ struct seat {
 	struct server *server;
 	struct wlr_keyboard_group *keyboard_group;
 
+	bool cursor_requires_fallback;
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *xcursor_manager;
 

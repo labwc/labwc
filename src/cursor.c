@@ -17,6 +17,27 @@
 /* Used to prevent setting the same cursor image twice */
 static char *last_cursor_image = NULL;
 
+
+static const struct cursor_alias {
+	const char *name, *alias;
+} cursor_aliases[] = {
+	{ "default",    "left_ptr" },
+	{ "text",       "xterm" },
+	{ "grab",       "grabbing" },
+	{ "pointer",    "hand1" },
+	{ "wait",       "watch" },
+	{ "all-scroll", "grabbing" },
+	/* Resize edges */
+	{ "nw-resize",  "top_left_corner" },
+	{ "n-resize",   "top_side" },
+	{ "ne-resize",  "top_right_corner" },
+	{ "e-resize",   "right_side" },
+	{ "se-resize",  "bottom_right_corner" },
+	{ "s-resize",   "bottom_side" },
+	{ "sw-resize",  "bottom_left_corner" },
+	{ "w-resize",   "left_side" },
+};
+
 static bool
 is_surface(enum ssd_part_type view_area)
 {
@@ -203,12 +224,34 @@ process_cursor_resize(struct server *server, uint32_t time)
 	view_move_resize(view, new_view_geo);
 }
 
+static const char *
+cursor_name_fallback(struct wlr_xcursor_manager *manager, const char *name)
+{
+	if (wlr_xcursor_manager_get_xcursor(manager, name, 1)) {
+		return name;
+	}
+	for (size_t i = 0; i < sizeof(cursor_aliases) / sizeof(cursor_aliases[0]); i++) {
+		if (!strcmp(cursor_aliases[i].name, name)) {
+			return cursor_aliases[i].alias;
+		}
+	}
+	return name;
+}
+
 void
 cursor_set(struct seat *seat, const char *cursor_name)
 {
+	/*
+	 * Required until wlroots MR !3651 is merged.
+	 * Once that happened, the whole commit can be reverted.
+	 */
+	if (seat->cursor_requires_fallback) {
+		cursor_name = cursor_name_fallback(seat->xcursor_manager, cursor_name);
+	}
+
+	/* Prevent setting the same cursor image twice */
 	if (last_cursor_image) {
 		if (!strcmp(last_cursor_image, cursor_name)) {
-			/* Prevent setting the same cursor image twice */
 			return;
 		}
 		free(last_cursor_image);
@@ -961,6 +1004,13 @@ cursor_init(struct seat *seat)
 
 	seat->xcursor_manager = wlr_xcursor_manager_create(xcursor_theme, size);
 	wlr_xcursor_manager_load(seat->xcursor_manager, 1);
+
+	/* Check if we need to run every cursor_set() through translation */
+	if (strcmp("grab", cursor_name_fallback(seat->xcursor_manager, "grab"))) {
+		seat->cursor_requires_fallback = true;
+		wlr_log(WLR_INFO,
+			"Cursor theme is missing cursor names, using fallbacks");
+	}
 
 	seat->cursor_motion.notify = cursor_motion;
 	wl_signal_add(&seat->cursor->events.motion, &seat->cursor_motion);

@@ -45,6 +45,32 @@ is_surface(enum ssd_part_type view_area)
 		;
 }
 
+static struct wlr_surface *
+get_toplevel(struct wlr_surface *surface)
+{
+	while (surface && wlr_surface_is_xdg_surface(surface)) {
+		struct wlr_xdg_surface *xdg_surface =
+			wlr_xdg_surface_from_wlr_surface(surface);
+		if (!xdg_surface) {
+			return NULL;
+		}
+
+		switch (xdg_surface->role) {
+		case WLR_XDG_SURFACE_ROLE_NONE:
+			return NULL;
+		case WLR_XDG_SURFACE_ROLE_TOPLEVEL:
+			return surface;
+		case WLR_XDG_SURFACE_ROLE_POPUP:
+			surface = xdg_surface->popup->parent;
+			continue;
+		}
+	}
+	if (surface && wlr_surface_is_layer_surface(surface)) {
+		return surface;
+	}
+	return NULL;
+}
+
 static void
 request_cursor_notify(struct wl_listener *listener, void *data)
 {
@@ -227,6 +253,28 @@ input_inhibit_blocks_surface(struct seat *seat, struct wl_resource *resource)
 		&& inhibiting_client != wl_resource_get_client(resource);
 }
 
+static bool
+update_pressed_surface(struct seat *seat, struct view *view,
+		struct wlr_scene_node *node, struct wlr_surface *surface)
+{
+	/*
+	 * In most cases, we don't want to leave one surface and enter
+	 * another while a button is pressed.  However, GTK/Wayland
+	 * menus (implemented as XDG popups) do need the leave/enter
+	 * events to work properly.  To cover this case, we allow
+	 * leave/enter events between XDG popups and their toplevel.
+	 */
+	if (seat->pressed.surface && surface != seat->pressed.surface) {
+		struct wlr_surface *toplevel = get_toplevel(surface);
+		if (toplevel && toplevel == seat->pressed.toplevel) {
+			seat_set_pressed(seat, view, node,
+				surface, toplevel);
+			return true;
+		}
+	}
+	return false;
+}
+
 static void
 process_cursor_motion_out_of_surface(struct server *server, uint32_t time)
 {
@@ -267,10 +315,10 @@ process_cursor_motion_out_of_surface(struct server *server, uint32_t time)
  * Common logic shared by cursor_update_focus() and process_cursor_motion()
  */
 static void
-cursor_update_common(struct server *server, struct wlr_scene_node *node,
-		struct wlr_surface *surface, double sx, double sy,
-		enum ssd_part_type view_area, uint32_t time_msec,
-		bool cursor_has_moved)
+cursor_update_common(struct server *server, struct view *view,
+		struct wlr_scene_node *node, struct wlr_surface *surface,
+		double sx, double sy, enum ssd_part_type view_area,
+		uint32_t time_msec, bool cursor_has_moved)
 {
 	struct seat *seat = &server->seat;
 	struct wlr_seat *wlr_seat = seat->seat;
@@ -287,6 +335,7 @@ cursor_update_common(struct server *server, struct wlr_scene_node *node,
 
 	/* TODO: verify drag_icon logic */
 	if (seat->pressed.surface && surface != seat->pressed.surface
+			&& !update_pressed_surface(seat, view, node, surface)
 			&& !seat->drag_icon) {
 		if (cursor_has_moved) {
 			/*
@@ -398,8 +447,8 @@ process_cursor_motion(struct server *server, uint32_t time)
 		}
 	}
 
-	cursor_update_common(server, node, surface, sx, sy, view_area, time,
-		/*cursor_has_moved*/ true);
+	cursor_update_common(server, view, node, surface, sx, sy, view_area,
+		time, /*cursor_has_moved*/ true);
 }
 
 static uint32_t
@@ -420,15 +469,15 @@ cursor_update_focus(struct server *server)
 	clock_gettime(CLOCK_MONOTONIC, &now);
 
 	struct seat *seat = &server->seat;
-	desktop_node_and_view_at(seat->server, seat->cursor->x,
-		seat->cursor->y, &node, &sx, &sy, &view_area);
+	struct view *view = desktop_node_and_view_at(seat->server,
+		seat->cursor->x, seat->cursor->y, &node, &sx, &sy, &view_area);
 
 	if (is_surface(view_area)) {
 		surface = lab_wlr_surface_from_node(node);
 	}
 
 	/* Focus surface under cursor if it isn't already focused */
-	cursor_update_common(server, node, surface, sx, sy, view_area,
+	cursor_update_common(server, view, node, surface, sx, sy, view_area,
 		msec(&now), /*cursor_has_moved*/ false);
 }
 
@@ -798,8 +847,9 @@ cursor_button(struct wl_listener *listener, void *data)
 		if (server->input_mode == LAB_INPUT_STATE_MENU) {
 			if (close_menu) {
 				menu_close_root(server);
-				cursor_update_common(server, node, surface, sx, sy,
-					view_area, event->time_msec, false);
+				cursor_update_common(server, view, node,
+					surface, sx, sy, view_area,
+					event->time_msec, false);
 				close_menu = false;
 			}
 			return;
@@ -814,7 +864,8 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* Handle _press */
 	if (surface) {
-		seat_set_pressed(seat, view, node, surface);
+		seat_set_pressed(seat, view, node, surface,
+			get_toplevel(surface));
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {

@@ -115,6 +115,7 @@ struct seat {
 		struct view *view;
 		struct wlr_scene_node *node;
 		struct wlr_surface *surface;
+		struct wlr_surface *toplevel;
 	} pressed;
 
 	struct wl_client *active_client_while_inhibited;
@@ -563,7 +564,8 @@ void seat_reconfigure(struct server *server);
 void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
 void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer);
 void seat_set_pressed(struct seat *seat, struct view *view,
-	struct wlr_scene_node *node, struct wlr_surface *surface);
+	struct wlr_scene_node *node, struct wlr_surface *surface,
+	struct wlr_surface *toplevel);
 void seat_reset_pressed(struct seat *seat);
 
 void interactive_begin(struct view *view, enum input_mode mode,

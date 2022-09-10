@@ -38,8 +38,16 @@ cursor_rebase(struct seat *seat, struct wlr_scene_node *node,
 		return;
 	}
 
+	if (seat->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		/* Prevent resetting focus / cursor image when moving or resizing */
+		return;
+	}
+
+	struct wlr_surface *focused_surface =
+		seat->seat->pointer_state.focused_surface;
+
 	if (surface) {
-		if (!force && surface == seat->seat->pointer_state.focused_surface) {
+		if (!force && surface == focused_surface) {
 			/*
 			 * Usually we prevent re-entering an already focused surface
 			 * because it sends useless leave and enter events.
@@ -56,8 +64,8 @@ cursor_rebase(struct seat *seat, struct wlr_scene_node *node,
 		wlr_seat_pointer_notify_clear_focus(seat->seat);
 		wlr_seat_pointer_notify_enter(seat->seat, surface, sx, sy);
 		wlr_seat_pointer_notify_motion(seat->seat, time_msec, sx, sy);
-	} else {
-		cursor_set(seat, "left_ptr");
+	} else if (focused_surface) {
+		cursor_set(seat, XCURSOR_DEFAULT);
 		wlr_seat_pointer_notify_clear_focus(seat->seat);
 	}
 }
@@ -66,6 +74,12 @@ static void
 request_cursor_notify(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, request_cursor);
+
+	if (seat->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		/* Prevent setting a cursor image when moving or resizing */
+		return;
+	}
+
 	/*
 	 * This event is raised by the seat when a client provides a cursor
 	 * image

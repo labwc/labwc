@@ -12,6 +12,10 @@
 #include "ssd.h"
 #include "config/mousebind.h"
 #include "common/scene-helpers.h"
+#include "common/zfree.h"
+
+/* Used to prevent setting the same cursor image twice */
+static char *last_cursor_image = NULL;
 
 static bool
 is_surface(enum ssd_part_type view_area)
@@ -85,8 +89,13 @@ request_cursor_notify(struct wl_listener *listener, void *data)
 		 * hardware cursor on the output that it's currently on and
 		 * continue to do so as the cursor moves between outputs.
 		 */
+
 		wlr_cursor_set_surface(seat->cursor, event->surface,
-				       event->hotspot_x, event->hotspot_y);
+			event->hotspot_x, event->hotspot_y);
+
+		if (last_cursor_image) {
+			zfree(last_cursor_image);
+		}
 	}
 }
 
@@ -183,6 +192,15 @@ process_cursor_resize(struct server *server, uint32_t time)
 void
 cursor_set(struct seat *seat, const char *cursor_name)
 {
+	if (last_cursor_image) {
+		if (!strcmp(last_cursor_image, cursor_name)) {
+			/* Prevent setting the same cursor image twice */
+			return;
+		}
+		free(last_cursor_image);
+	}
+	last_cursor_image = strdup(cursor_name);
+
 	wlr_xcursor_manager_set_cursor_image(
 		seat->xcursor_manager, cursor_name, seat->cursor);
 }

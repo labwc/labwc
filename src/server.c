@@ -423,13 +423,7 @@ server_init(struct server *server)
 		wlr_log(WLR_DEBUG, "xwayland is running on display %s",
 			server->xwayland->display_name);
 	}
-#endif
 
-	if (!wlr_xcursor_manager_load(server->seat.xcursor_manager, 1)) {
-		wlr_log(WLR_ERROR, "cannot load xcursor theme");
-	}
-
-#if HAVE_XWAYLAND
 	struct wlr_xcursor *xcursor;
 	xcursor = wlr_xcursor_manager_get_xcursor(server->seat.xcursor_manager,
 						  XCURSOR_DEFAULT, 1);

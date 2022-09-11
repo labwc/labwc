@@ -532,10 +532,13 @@ void cursor_set(struct seat *seat, const char *cursor_name);
 /**
  * cursor_update_focus - update cursor focus, may update the cursor icon
  * @server - server
- * Use it to force an update of the cursor icon and to send an enter event
- * to the surface below the cursor.
+ * @force_reenter - re-enter a surface if it already owns the cursor focus
+ *
+ * This can be used to give the mouse focus to the surface under the cursor
+ * or to force an update of the cursor icon by sending an exit and enter
+ * event to an already focused surface when @force_reenter is true.
  */
-void cursor_update_focus(struct server *server);
+void cursor_update_focus(struct server *server, bool force_reenter);
 
 void cursor_init(struct seat *seat);
 void cursor_finish(struct seat *seat);

@@ -365,7 +365,7 @@ msec(const struct timespec *t)
 }
 
 void
-cursor_update_focus(struct server *server)
+cursor_update_focus(struct server *server, bool force_reenter)
 {
 	double sx, sy;
 	struct wlr_scene_node *node = NULL;
@@ -386,7 +386,7 @@ cursor_update_focus(struct server *server)
 	ssd_update_button_hover(node, &seat->server->ssd_hover_state);
 
 	/* Focus surface under cursor if it isn't already focused */
-	cursor_rebase(seat, node, surface, sx, sy, msec(&now), false);
+	cursor_rebase(seat, node, surface, sx, sy, msec(&now), force_reenter);
 }
 
 void
@@ -848,7 +848,7 @@ cursor_axis(struct wl_listener *listener, void *data)
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	/* Make sure we are sending the events to the surface under the cursor */
-	cursor_update_focus(seat->server);
+	cursor_update_focus(seat->server, false);
 
 	/* Notify the client with pointer focus of the axis event. */
 	wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,

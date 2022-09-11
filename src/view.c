@@ -149,7 +149,7 @@ view_moved(struct view *view)
 	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
 	view_discover_output(view);
 	ssd_update_geometry(view);
-	cursor_update_focus(view->server);
+	cursor_update_focus(view->server, false);
 }
 
 /* N.B. Use view_move() if not resizing. */

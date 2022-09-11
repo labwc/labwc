@@ -11,7 +11,7 @@ unmanaged_handle_request_configure(struct wl_listener *listener, void *data)
 	wlr_xwayland_surface_configure(xsurface, ev->x, ev->y, ev->width, ev->height);
 	if (unmanaged->node) {
 		wlr_scene_node_set_position(unmanaged->node, ev->x, ev->y);
-		cursor_update_focus(unmanaged->server);
+		cursor_update_focus(unmanaged->server, false);
 	}
 }
 
@@ -23,7 +23,7 @@ unmanaged_handle_set_geometry(struct wl_listener *listener, void *data)
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	if (unmanaged->node) {
 		wlr_scene_node_set_position(unmanaged->node, xsurface->x, xsurface->y);
-		cursor_update_focus(unmanaged->server);
+		cursor_update_focus(unmanaged->server, false);
 	}
 }
 
@@ -51,7 +51,7 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 			unmanaged->server->unmanaged_tree,
 			xsurface->surface)->buffer->node;
 	wlr_scene_node_set_position(unmanaged->node, xsurface->x, xsurface->y);
-	cursor_update_focus(unmanaged->server);
+	cursor_update_focus(unmanaged->server, false);
 }
 
 static void
@@ -105,7 +105,7 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 		seat_reset_pressed(seat);
 	}
 	unmanaged->node = NULL;
-	cursor_update_focus(unmanaged->server);
+	cursor_update_focus(unmanaged->server, false);
 
 	if (seat->seat->keyboard_state.focused_surface == xsurface->surface) {
 		focus_next_surface(unmanaged->server, xsurface);

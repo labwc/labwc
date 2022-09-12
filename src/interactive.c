@@ -134,14 +134,7 @@ interactive_end(struct view *view)
 				view_snap_to_edge(view, "down");
 			}
 		}
-		/*
-		 * First set the cursor image in case we moved / resized via SSD.
-		 * Then allow an application to set its own image in case there
-		 * is a surface below the cursor (e.g. moved / resized via 'Alt'
-		 * modifier). If there is no surface below the cursor the second
-		 * call is a no-op.
-		 */
-		cursor_set(&view->server->seat, XCURSOR_DEFAULT);
-		cursor_update_focus(view->server, true);
+		/* Update focus/cursor image */
+		cursor_update_focus(view->server);
 	}
 }

@@ -14,10 +14,6 @@
 #include "common/scene-helpers.h"
 #include "common/zfree.h"
 
-/* Used to prevent setting the same cursor image twice */
-static char *last_cursor_image = NULL;
-
-
 static const struct cursor_alias {
 	const char *name, *alias;
 } cursor_aliases[] = {
@@ -47,52 +43,6 @@ is_surface(enum ssd_part_type view_area)
 		|| view_area == LAB_SSD_UNMANAGED
 #endif
 		;
-}
-
-/*
- * cursor_rebase() for internal use: reuses node, surface, sx and sy
- * For a public variant use cursor_update_focus()
- */
-static void
-cursor_rebase(struct seat *seat, struct wlr_scene_node *node,
-		struct wlr_surface *surface, double sx, double sy, uint32_t time_msec,
-		bool force)
-{
-	if (seat->pressed.surface && surface != seat->pressed.surface) {
-		/* Don't leave surface when a button was pressed over another surface */
-		return;
-	}
-
-	if (seat->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
-		/* Prevent resetting focus / cursor image when moving or resizing */
-		return;
-	}
-
-	struct wlr_surface *focused_surface =
-		seat->seat->pointer_state.focused_surface;
-
-	if (surface) {
-		if (!force && surface == focused_surface) {
-			/*
-			 * Usually we prevent re-entering an already focused surface
-			 * because it sends useless leave and enter events.
-			 *
-			 * They may also seriously confuse clients if sent between
-			 * connected events like a double click (#258) or fast scroll
-			 * events caused by a touchpad (#225).
-			 *
-			 * If we just want to update the cursor image though
-			 * the @force argument may be used to allow re-entering.
-			 */
-			return;
-		}
-		wlr_seat_pointer_notify_clear_focus(seat->seat);
-		wlr_seat_pointer_notify_enter(seat->seat, surface, sx, sy);
-		wlr_seat_pointer_notify_motion(seat->seat, time_msec, sx, sy);
-	} else if (focused_surface) {
-		cursor_set(seat, XCURSOR_DEFAULT);
-		wlr_seat_pointer_notify_clear_focus(seat->seat);
-	}
 }
 
 static void
@@ -127,10 +77,6 @@ request_cursor_notify(struct wl_listener *listener, void *data)
 
 		wlr_cursor_set_surface(seat->cursor, event->surface,
 			event->hotspot_x, event->hotspot_y);
-
-		if (last_cursor_image) {
-			zfree(last_cursor_image);
-		}
 	}
 }
 
@@ -250,16 +196,26 @@ cursor_set(struct seat *seat, const char *cursor_name)
 	}
 
 	/* Prevent setting the same cursor image twice */
-	if (last_cursor_image) {
-		if (!strcmp(last_cursor_image, cursor_name)) {
-			return;
-		}
-		free(last_cursor_image);
+	if (seat->cursor_set_by_server && !strcmp(cursor_name,
+			seat->cursor_set_by_server)) {
+		return;
 	}
-	last_cursor_image = strdup(cursor_name);
 
 	wlr_xcursor_manager_set_cursor_image(
 		seat->xcursor_manager, cursor_name, seat->cursor);
+	zfree(seat->cursor_set_by_server);
+	seat->cursor_set_by_server = strdup(cursor_name);
+}
+
+static void
+set_server_cursor(struct seat *seat, enum ssd_part_type view_area)
+{
+	uint32_t resize_edges = ssd_resize_edges(view_area);
+	if (resize_edges) {
+		cursor_set(seat, wlr_xcursor_get_resize_name(resize_edges));
+	} else {
+		cursor_set(seat, XCURSOR_DEFAULT);
+	}
 }
 
 bool
@@ -307,11 +263,86 @@ process_cursor_motion_out_of_surface(struct server *server, uint32_t time)
 	wlr_seat_pointer_notify_motion(server->seat.seat, time, sx, sy);
 }
 
+/*
+ * Common logic shared by cursor_update_focus() and process_cursor_motion()
+ */
+static void
+cursor_update_common(struct server *server, struct wlr_scene_node *node,
+		struct wlr_surface *surface, double sx, double sy,
+		enum ssd_part_type view_area, uint32_t time_msec,
+		bool cursor_has_moved)
+{
+	struct seat *seat = &server->seat;
+	struct wlr_seat *wlr_seat = seat->seat;
+
+	ssd_update_button_hover(node, &server->ssd_hover_state);
+
+	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		/*
+		 * Prevent updating focus/cursor image during
+		 * interactive move/resize
+		 */
+		return;
+	}
+
+	/* TODO: verify drag_icon logic */
+	if (seat->pressed.surface && surface != seat->pressed.surface
+			&& !seat->drag_icon) {
+		if (cursor_has_moved) {
+			/*
+			 * Button has been pressed while over another
+			 * surface and is still held down.  Just send
+			 * the motion events to the focused surface so
+			 * we can keep scrolling or selecting text even
+			 * if the cursor moves outside of the surface.
+			 */
+			process_cursor_motion_out_of_surface(server, time_msec);
+		}
+		return;
+	}
+
+	if (surface && !input_inhibit_blocks_surface(seat, surface->resource)) {
+		/*
+		 * Cursor is over an input-enabled client surface.  The
+		 * cursor image will be set by request_cursor_notify()
+		 * in response to the enter event.
+		 */
+		if (surface != wlr_seat->pointer_state.focused_surface
+				|| seat->cursor_set_by_server) {
+			/*
+			 * Enter the surface if necessary.  Usually we
+			 * prevent re-entering an already focused
+			 * surface, because the extra leave and enter
+			 * events can confuse clients (e.g. break
+			 * double-click detection).
+			 *
+			 * We do however send a leave/enter event pair
+			 * if a server-side cursor was set and we need
+			 * to trigger a cursor image update.
+			 */
+			wlr_seat_pointer_notify_clear_focus(wlr_seat);
+			wlr_seat_pointer_notify_enter(wlr_seat, surface,
+				sx, sy);
+			zfree(seat->cursor_set_by_server);
+		}
+		if (cursor_has_moved) {
+			wlr_seat_pointer_notify_motion(wlr_seat, time_msec,
+				sx, sy);
+		}
+	} else {
+		/*
+		 * Cursor is over a server (labwc) surface.  Clear focus
+		 * from the focused client (if any, no-op otherwise) and
+		 * set the cursor image ourselves.
+		 */
+		wlr_seat_pointer_notify_clear_focus(wlr_seat);
+		set_server_cursor(seat, view_area);
+	}
+}
+
 static void
 process_cursor_motion(struct server *server, uint32_t time)
 {
-	static bool cursor_name_set_by_server;
-
 	/* If the mode is non-passthrough, delegate to those functions. */
 	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
 		process_cursor_move(server, time);
@@ -323,7 +354,6 @@ process_cursor_motion(struct server *server, uint32_t time)
 
 	/* Otherwise, find view under the pointer and send the event along */
 	double sx, sy;
-	struct wlr_seat *wlr_seat = server->seat.seat;
 	struct wlr_scene_node *node;
 	enum ssd_part_type view_area = LAB_SSD_NONE;
 	struct view *view = desktop_node_and_view_at(server,
@@ -335,29 +365,9 @@ process_cursor_motion(struct server *server, uint32_t time)
 		surface = lab_wlr_surface_from_node(node);
 	}
 
-	/* resize handles */
-	uint32_t resize_edges = ssd_resize_edges(view_area);
-
-	/* Set cursor */
-	if (view_area == LAB_SSD_ROOT || view_area == LAB_SSD_MENU) {
-		cursor_set(&server->seat, XCURSOR_DEFAULT);
-	} else if (resize_edges) {
-		cursor_name_set_by_server = true;
-		cursor_set(&server->seat,
-			wlr_xcursor_get_resize_name(resize_edges));
-	} else if (ssd_part_contains(LAB_SSD_PART_TITLEBAR, view_area)) {
-		/* title and buttons */
-		cursor_set(&server->seat, XCURSOR_DEFAULT);
-		cursor_name_set_by_server = true;
-	} else if (cursor_name_set_by_server) {
-		/* xdg/xwindow window content */
-		/* layershell or unmanaged */
-		cursor_set(&server->seat, XCURSOR_DEFAULT);
-		cursor_name_set_by_server = false;
-	}
-
 	if (view_area == LAB_SSD_MENU) {
 		menu_process_cursor_motion(node);
+		set_server_cursor(&server->seat, view_area);
 		return;
 	}
 
@@ -373,6 +383,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 		if (mousebind->mouse_event == MOUSE_ACTION_DRAG
 				&& mousebind->pressed_in_context) {
 			/* Find closest resize edges in case action is Resize */
+			uint32_t resize_edges = ssd_resize_edges(view_area);
 			if (view && !resize_edges) {
 				resize_edges |= server->seat.cursor->x
 					< view->x + view->w / 2 ? WLR_EDGE_LEFT
@@ -387,50 +398,8 @@ process_cursor_motion(struct server *server, uint32_t time)
 		}
 	}
 
-	/* TODO: ssd_hover_state should likely be located in server->seat */
-	ssd_update_button_hover(node, &server->ssd_hover_state);
-
-	if (server->seat.pressed.surface &&
-			server->seat.pressed.surface != surface &&
-			!server->seat.drag_icon) {
-		/*
-		 * Button has been pressed while over another surface
-		 * and is still held down. Just send the adjusted motion
-		 * events to the focused surface so we can keep scrolling
-		 * or selecting text even if the cursor moves outside of
-		 * the surface.
-		 */
-		process_cursor_motion_out_of_surface(server, time);
-	} else if (surface && !input_inhibit_blocks_surface(
-			&server->seat, surface->resource)) {
-		bool focus_changed =
-			wlr_seat->pointer_state.focused_surface != surface;
-		/*
-		 * "Enter" the surface if necessary. This lets the client know
-		 * that the cursor has entered one of its surfaces.
-		 *
-		 * Note that this gives the surface "pointer focus", which is
-		 * distinct from keyboard focus. You get pointer focus by moving
-		 * the pointer over a window.
-		 */
-		wlr_seat_pointer_notify_enter(wlr_seat, surface, sx, sy);
-		if (!focus_changed || server->seat.drag_icon) {
-			/*
-			 * The enter event contains coordinates, so we only need
-			 * to notify on motion if the focus did not change.
-			 */
-			wlr_seat_pointer_notify_motion(wlr_seat, time, sx, sy);
-		}
-	} else {
-		/*
-		 * Clear pointer focus so future button events and such are not
-		 * sent to the last client to have the cursor over it.
-		 *
-		 * Except if we started pressing a button on the last client and
-		 * are not currently in drag and drop mode.
-		 */
-		wlr_seat_pointer_clear_focus(wlr_seat);
-	}
+	cursor_update_common(server, node, surface, sx, sy, view_area, time,
+		/*cursor_has_moved*/ true);
 }
 
 static uint32_t
@@ -440,7 +409,7 @@ msec(const struct timespec *t)
 }
 
 void
-cursor_update_focus(struct server *server, bool force_reenter)
+cursor_update_focus(struct server *server)
 {
 	double sx, sy;
 	struct wlr_scene_node *node = NULL;
@@ -458,10 +427,9 @@ cursor_update_focus(struct server *server, bool force_reenter)
 		surface = lab_wlr_surface_from_node(node);
 	}
 
-	ssd_update_button_hover(node, &seat->server->ssd_hover_state);
-
 	/* Focus surface under cursor if it isn't already focused */
-	cursor_rebase(seat, node, surface, sx, sy, msec(&now), force_reenter);
+	cursor_update_common(server, node, surface, sx, sy, view_area,
+		msec(&now), /*cursor_has_moved*/ false);
 }
 
 void
@@ -830,27 +798,15 @@ cursor_button(struct wl_listener *listener, void *data)
 		if (server->input_mode == LAB_INPUT_STATE_MENU) {
 			if (close_menu) {
 				menu_close_root(server);
-				cursor_rebase(&server->seat, node, surface, sx, sy,
-					event->time_msec, false);
+				cursor_update_common(server, node, surface, sx, sy,
+					view_area, event->time_msec, false);
 				close_menu = false;
 			}
 			return;
 		}
 		if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
-			/* Exit interactive move/resize/menu mode. */
-			if (server->grabbed_view == view) {
-				interactive_end(view);
-			} else {
-				server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
-				server->grabbed_view = NULL;
-			}
-
-			/*
-			 * Focus surface under cursor and force updating the
-			 * cursor icon
-			 */
-			cursor_rebase(&server->seat, node, surface, sx, sy,
-				event->time_msec, true);
+			/* Exit interactive move/resize mode */
+			interactive_end(server->grabbed_view);
 			return;
 		}
 		goto mousebindings;
@@ -923,7 +879,7 @@ cursor_axis(struct wl_listener *listener, void *data)
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	/* Make sure we are sending the events to the surface under the cursor */
-	cursor_update_focus(seat->server, false);
+	cursor_update_focus(seat->server);
 
 	/* Notify the client with pointer focus of the axis event. */
 	wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,

@@ -80,6 +80,12 @@ struct seat {
 	struct wlr_keyboard_group *keyboard_group;
 
 	bool cursor_requires_fallback;
+	/*
+	 * Name of most recent server-side cursor image.  Set by
+	 * cursor_set().  Cleared when a client surface is entered
+	 * (in that case the client is expected to set a cursor image).
+	 */
+	char *cursor_set_by_server;
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *xcursor_manager;
 
@@ -533,13 +539,12 @@ void cursor_set(struct seat *seat, const char *cursor_name);
 /**
  * cursor_update_focus - update cursor focus, may update the cursor icon
  * @server - server
- * @force_reenter - re-enter a surface if it already owns the cursor focus
  *
  * This can be used to give the mouse focus to the surface under the cursor
  * or to force an update of the cursor icon by sending an exit and enter
- * event to an already focused surface when @force_reenter is true.
+ * event to an already focused surface.
  */
-void cursor_update_focus(struct server *server, bool force_reenter);
+void cursor_update_focus(struct server *server);
 
 void cursor_init(struct seat *seat);
 void cursor_finish(struct seat *seat);

@@ -293,92 +293,74 @@ desktop_focus_topmost_mapped_view(struct server *server)
 	desktop_move_to_front(view);
 }
 
-struct view *
-desktop_node_and_view_at(struct server *server, double lx, double ly,
-		struct wlr_scene_node **scene_node, double *sx, double *sy,
-		enum ssd_part_type *view_area)
+/* TODO: make this less big and scary */
+struct cursor_context
+get_cursor_context(struct server *server)
 {
+	struct cursor_context ret = {.type = LAB_SSD_NONE};
+	struct wlr_cursor *cursor = server->seat.cursor;
 	struct wlr_scene_node *node =
-		wlr_scene_node_at(&server->scene->tree.node, lx, ly, sx, sy);
+		wlr_scene_node_at(&server->scene->tree.node,
+			cursor->x, cursor->y, &ret.sx, &ret.sy);
 
-	*scene_node = node;
+	ret.node = node;
 	if (!node) {
-		*view_area = LAB_SSD_ROOT;
-		return NULL;
+		ret.type = LAB_SSD_ROOT;
+		return ret;
 	}
 	if (node->type == WLR_SCENE_NODE_BUFFER) {
 		struct wlr_surface *surface = lab_wlr_surface_from_node(node);
 		if (surface && wlr_surface_is_layer_surface(surface)) {
-			*view_area = LAB_SSD_LAYER_SURFACE;
-			return NULL;
+			ret.type = LAB_SSD_LAYER_SURFACE;
+			ret.surface = surface;
+			return ret;
 		}
 #if HAVE_XWAYLAND
 		if (node->parent == server->unmanaged_tree) {
-			*view_area = LAB_SSD_UNMANAGED;
-			return NULL;
+			ret.type = LAB_SSD_UNMANAGED;
+			ret.surface = surface;
+			return ret;
 		}
 #endif
 	}
 	while (node) {
 		struct node_descriptor *desc = node->data;
-		/* TODO: convert to switch() */
 		if (desc) {
-			if (desc->type == LAB_NODE_DESC_VIEW) {
-				goto has_view_data;
-			}
-			if (desc->type == LAB_NODE_DESC_XDG_POPUP) {
-				goto has_view_data;
-			}
-			if (desc->type == LAB_NODE_DESC_SSD_BUTTON) {
+			switch (desc->type) {
+			case LAB_NODE_DESC_VIEW:
+			case LAB_NODE_DESC_XDG_POPUP:
+				ret.view = desc->data;
+				ret.type = ssd_get_part_type(ret.view, ret.node);
+				if (ret.type == LAB_SSD_CLIENT) {
+					ret.surface = lab_wlr_surface_from_node(ret.node);
+				}
+				return ret;
+			case LAB_NODE_DESC_SSD_BUTTON: {
 				/* Always return the top scene node for SSD buttons */
 				struct ssd_button *button = node_ssd_button_from_node(node);
-				*scene_node = node;
-				*view_area = button->type;
-				return button->view;
+				ret.node = node;
+				ret.type = button->type;
+				ret.view = button->view;
+				return ret;
 			}
-			if (desc->type == LAB_NODE_DESC_LAYER_SURFACE) {
-				/* FIXME: we shouldn't have to set *view_area */
-				*view_area = LAB_SSD_CLIENT;
-				return NULL;
-			}
-			if (desc->type == LAB_NODE_DESC_LAYER_POPUP) {
-				/* FIXME: we shouldn't have to set *view_area */
-				*view_area = LAB_SSD_CLIENT;
-				return NULL;
-			}
-			if (desc->type == LAB_NODE_DESC_MENUITEM) {
+			case LAB_NODE_DESC_LAYER_SURFACE:
+			case LAB_NODE_DESC_LAYER_POPUP:
+				ret.type = LAB_SSD_CLIENT;
+				ret.surface = lab_wlr_surface_from_node(ret.node);
+				return ret;
+			case LAB_NODE_DESC_MENUITEM:
 				/* Always return the top scene node for menu items */
-				*scene_node = node;
-				*view_area = LAB_SSD_MENU;
-				return NULL;
+				ret.node = node;
+				ret.type = LAB_SSD_MENU;
+				return ret;
+			case LAB_NODE_DESC_NODE:
+			case LAB_NODE_DESC_TREE:
+				break;
 			}
 		}
 		/* node->parent is always a *wlr_scene_tree */
 		node = node->parent ? &node->parent->node : NULL;
 	}
-	if (!node) {
-		wlr_log(WLR_ERROR, "Unknown node detected");
-	}
-	*view_area = LAB_SSD_NONE;
-	return NULL;
-
-struct view *view;
-struct node_descriptor *desc;
-has_view_data:
-	desc = node->data;
-	view = desc->data;
-	*view_area = ssd_get_part_type(view, *scene_node);
-	return view;
-}
-
-struct view *
-desktop_view_at_cursor(struct server *server)
-{
-	double sx, sy;
-	struct wlr_scene_node *node;
-	enum ssd_part_type view_area = LAB_SSD_NONE;
-
-	return desktop_node_and_view_at(server,
-			server->seat.cursor->x, server->seat.cursor->y,
-			&node, &sx, &sy, &view_area);
+	wlr_log(WLR_ERROR, "Unknown node detected");
+	return ret;
 }

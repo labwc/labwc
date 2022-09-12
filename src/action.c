@@ -275,7 +275,7 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_FOCUS:
-			view = desktop_view_at_cursor(server);
+			view = get_cursor_context(server).view;
 			if (view) {
 				desktop_focus_and_activate_view(&server->seat, view);
 			}
@@ -286,7 +286,7 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_MOVE:
-			view = desktop_view_at_cursor(server);
+			view = get_cursor_context(server).view;
 			if (view) {
 				interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
 			}
@@ -297,7 +297,7 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_RESIZE:
-			view = desktop_view_at_cursor(server);
+			view = get_cursor_context(server).view;
 			if (view) {
 				interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 					resize_edges);

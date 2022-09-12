@@ -499,37 +499,41 @@ struct view *desktop_focused_view(struct server *server);
 void desktop_focus_topmost_mapped_view(struct server *server);
 bool isfocusable(struct view *view);
 
+struct cursor_context {
+	struct view *view;
+	struct wlr_scene_node *node;
+	struct wlr_surface *surface;
+	enum ssd_part_type type;
+	double sx, sy;
+};
+
 /**
- * desktop_node_and_view_at - find view and scene_node at (lx, ly)
+ * get_cursor_context - find view and scene_node at cursor
  *
  * Behavior if node points to a surface:
- *  - If surface is a layer-surface, *view_area will be
+ *  - If surface is a layer-surface, type will be
  *    set to LAB_SSD_LAYER_SURFACE and view will be NULL.
  *
  *  - If surface is a 'lost' unmanaged xsurface (one
- *    with a never-mapped parent view), *view_area will
+ *    with a never-mapped parent view), type will
  *    be set to LAB_SSD_UNMANAGED and view will be NULL.
  *
  *    'Lost' unmanaged xsurfaces are usually caused by
  *    X11 applications opening popups without setting
  *    the main window as parent. Example: VLC submenus.
  *
- *  - Any other surface will cause *view_area be set to
+ *  - Any other surface will cause type to be set to
  *    LAB_SSD_CLIENT and return the attached view.
  *
  * Behavior if node points to internal elements:
- *  - *view_area will be set to the appropiate enum value
+ *  - type will be set to the appropriate enum value
  *    and view will be NULL if the node is not part of the SSD.
  *
  * If no node is found for the given layout coordinates,
- * *view_area will be set to LAB_SSD_ROOT and view will be NULL.
+ * type will be set to LAB_SSD_ROOT and view will be NULL.
  *
  */
-struct view *desktop_node_and_view_at(struct server *server, double lx,
-	double ly, struct wlr_scene_node **scene_node, double *sx, double *sy,
-	enum ssd_part_type *view_area);
-
-struct view *desktop_view_at_cursor(struct server *server);
+struct cursor_context get_cursor_context(struct server *server);
 
 /**
  * cursor_set - set cursor icon

@@ -814,9 +814,7 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	/* Handle _press */
 	if (surface) {
-		seat->pressed.view = view;
-		seat->pressed.node = node;
-		seat->pressed.surface = surface;
+		seat_set_pressed(seat, view, node, surface);
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {

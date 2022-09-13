@@ -815,11 +815,6 @@ view_destroy(struct view *view)
 		need_cursor_update = true;
 	}
 
-	if (server->seat.pressed.view == view) {
-		/* Mouse was pressed on surface and is still pressed */
-		seat_reset_pressed(&server->seat);
-	}
-
 	if (server->focused_view == view) {
 		server->focused_view = NULL;
 		need_cursor_update = true;

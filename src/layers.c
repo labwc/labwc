@@ -145,9 +145,6 @@ unmap(struct lab_layer_surface *layer)
 	if (seat->focused_layer == layer->scene_layer_surface->layer_surface) {
 		seat_set_focus_layer(seat, NULL);
 	}
-	if (seat->pressed.surface == layer->scene_layer_surface->layer_surface->surface) {
-		seat_reset_pressed(seat);
-	}
 }
 
 static void

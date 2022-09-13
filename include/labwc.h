@@ -152,6 +152,7 @@ struct seat {
 	struct wl_listener destroy_drag;
 	struct wl_listener constraint_commit;
 	struct wl_listener idle_inhibitor_create;
+	struct wl_listener pressed_surface_destroy;
 };
 
 struct lab_data_buffer;
@@ -561,6 +562,8 @@ void seat_finish(struct server *server);
 void seat_reconfigure(struct server *server);
 void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
 void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer);
+void seat_set_pressed(struct seat *seat, struct view *view,
+	struct wlr_scene_node *node, struct wlr_surface *surface);
 void seat_reset_pressed(struct seat *seat);
 
 void interactive_begin(struct view *view, enum input_mode mode,

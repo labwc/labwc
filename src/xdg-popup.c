@@ -10,13 +10,8 @@
 #include "labwc.h"
 #include "node.h"
 
-struct view_child {
-	struct wlr_surface *surface;
-	struct view *parent;
-};
-
 struct xdg_popup {
-	struct view_child view_child;
+	struct view *parent_view;
 	struct wlr_xdg_popup *wlr_popup;
 
 	struct wl_listener destroy;
@@ -58,20 +53,27 @@ popup_handle_new_xdg_popup(struct wl_listener *listener, void *data)
 {
 	struct xdg_popup *popup = wl_container_of(listener, popup, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
-	xdg_popup_create(popup->view_child.parent, wlr_popup);
+	xdg_popup_create(popup->parent_view, wlr_popup);
 }
 
 void
 xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 {
+	struct wlr_xdg_surface *parent =
+		wlr_surface_is_xdg_surface(wlr_popup->parent) ?
+		wlr_xdg_surface_from_wlr_surface(wlr_popup->parent) : NULL;
+	if (!parent) {
+		wlr_log(WLR_ERROR, "parent is not a valid XDG surface");
+		return;
+	}
+
 	struct xdg_popup *popup = calloc(1, sizeof(struct xdg_popup));
 	if (!popup) {
 		return;
 	}
 
+	popup->parent_view = view;
 	popup->wlr_popup = wlr_popup;
-	popup->view_child.parent = view;
-	popup->view_child.surface = wlr_popup->base->surface;
 
 	popup->destroy.notify = handle_xdg_popup_destroy;
 	wl_signal_add(&wlr_popup->base->events.destroy, &popup->destroy);
@@ -85,12 +87,6 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 	 * this, we always set the user data field of xdg_surfaces to the
 	 * corresponding scene node.
 	 */
-	if (!wlr_surface_is_xdg_surface(wlr_popup->parent)) {
-		wlr_log(WLR_ERROR, "xdg_surface is not xdg");
-		return;
-	}
-	struct wlr_xdg_surface *parent =
-		wlr_xdg_surface_from_wlr_surface(wlr_popup->parent);
 	struct wlr_scene_tree *parent_tree = parent->surface->data;
 	wlr_popup->base->surface->data =
 		wlr_scene_xdg_surface_create(parent_tree, wlr_popup->base);

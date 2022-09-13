@@ -149,7 +149,7 @@ view_moved(struct view *view)
 	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
 	view_discover_output(view);
 	ssd_update_geometry(view);
-	cursor_update_focus(view->server, false);
+	cursor_update_focus(view->server);
 }
 
 /* N.B. Use view_move() if not resizing. */
@@ -533,6 +533,7 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		wlr_output = view_wlr_output(view);
 	}
 	if (fullscreen) {
+		interactive_end(view);
 		if (!view->maximized && !view->tiled) {
 			view_store_natural_geometry(view);
 		}
@@ -801,6 +802,7 @@ void
 view_destroy(struct view *view)
 {
 	struct server *server = view->server;
+	bool need_cursor_update = false;
 
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel_handle);
@@ -810,6 +812,7 @@ view_destroy(struct view *view)
 		/* Application got killed while moving around */
 		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		server->grabbed_view = NULL;
+		need_cursor_update = true;
 	}
 
 	if (server->seat.pressed.view == view) {
@@ -819,6 +822,7 @@ view_destroy(struct view *view)
 
 	if (server->focused_view == view) {
 		server->focused_view = NULL;
+		need_cursor_update = true;
 	}
 
 	osd_on_view_destroy(view);
@@ -850,4 +854,8 @@ view_destroy(struct view *view)
 	/* Remove view from server->views */
 	wl_list_remove(&view->link);
 	free(view);
+
+	if (need_cursor_update) {
+		cursor_update_focus(server);
+	}
 }

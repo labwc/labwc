@@ -22,22 +22,30 @@ regions_available(void)
 	return !wl_list_empty(&rc.regions);
 }
 
-void
-regions_init(struct server *server, struct seat *seat)
+static void
+overlay_create(struct seat *seat)
 {
-	assert(server);
-	assert(seat);
+	assert(!seat->region_overlay.tree);
 
-	float *color;
-	float solid[4] = { 0.5, 0.5, 0.7, 1 };
-	float trans[4] = { 0.25, 0.25, 0.35, 0.5 };
-	if (wlr_renderer_is_pixman(server->renderer)) {
-		color = solid;
+	struct server *server = seat->server;
+	struct wlr_scene_tree *parent = wlr_scene_tree_create(&server->scene->tree);
+
+	seat->region_overlay.tree = parent;
+	wlr_scene_node_set_enabled(&parent->node, false);
+	if (!wlr_renderer_is_pixman(server->renderer)) {
+		/* Hardware assisted rendering: Half transparent overlay */
+		float color[4] = { 0.25, 0.25, 0.35, 0.5 };
+		seat->region_overlay.overlay = wlr_scene_rect_create(parent, 0, 0, color);
 	} else {
-		color = trans;
+		/* Software rendering: Outlines */
+		int line_width = server->theme->osd_border_width;
+		float *colors[3] = {
+			server->theme->osd_bg_color,
+			server->theme->osd_label_text_color,
+			server->theme->osd_bg_color
+		};
+		seat->region_overlay.pixman_overlay = multi_rect_create(parent, colors, line_width);
 	}
-	seat->region_overlay = wlr_scene_rect_create(&server->scene->tree, 0, 0, color);
-	wlr_scene_node_set_enabled(&seat->region_overlay->node, false);
 }
 
 struct region *
@@ -91,36 +99,53 @@ regions_show_overlay(struct view *view, struct seat *seat, struct region *region
 	assert(view);
 	assert(seat);
 	assert(region);
-	static struct region *old_region;
 
-	struct wlr_scene_rect *overlay = seat->region_overlay;
-	if (old_region != region) {
-		wlr_scene_rect_set_size(overlay, region->geo.width, region->geo.height);
-		wlr_scene_node_set_position(&overlay->node, region->geo.x, region->geo.y);
-		old_region = region;
+	/* Don't show active region */
+	if (seat->region_active == region) {
+		return;
 	}
-	if (overlay->node.parent != view->scene_tree->node.parent) {
-		wlr_scene_node_reparent(&overlay->node, view->scene_tree->node.parent);
-		wlr_scene_node_place_below(&overlay->node, &view->scene_tree->node);
+
+	if (!seat->region_overlay.tree) {
+		overlay_create(seat);
 	}
-	if (!overlay->node.enabled) {
-		wlr_scene_node_set_enabled(&overlay->node, true);
+
+	/* Update overlay */
+	struct server *server = seat->server;
+	struct wlr_scene_node *node = &seat->region_overlay.tree->node;
+	if (!wlr_renderer_is_pixman(server->renderer)) {
+		/* Hardware assisted rendering: Half transparent overlay */
+		wlr_scene_rect_set_size(seat->region_overlay.overlay,
+			region->geo.width, region->geo.height);
+	} else {
+		/* Software rendering: Outlines */
+		multi_rect_set_size(seat->region_overlay.pixman_overlay,
+			region->geo.width, region->geo.height);
 	}
+	if (node->parent != view->scene_tree->node.parent) {
+		wlr_scene_node_reparent(node, view->scene_tree->node.parent);
+		wlr_scene_node_place_below(node, &view->scene_tree->node);
+	}
+	wlr_scene_node_set_position(node, region->geo.x, region->geo.y);
+	wlr_scene_node_set_enabled(node, true);
+	seat->region_active = region;
 }
 
 void
-regions_hide_overlay(struct server *server, struct seat *seat)
+regions_hide_overlay(struct seat *seat)
 {
-	assert(server);
 	assert(seat);
+	if (!seat->region_active) {
+		return;
+	}
 
-	struct wlr_scene_rect *overlay = seat->region_overlay;
-	if (overlay->node.enabled) {
-		wlr_scene_node_set_enabled(&overlay->node, false);
+	struct server *server = seat->server;
+	struct wlr_scene_node *node = &seat->region_overlay.tree->node;
+
+	wlr_scene_node_set_enabled(node, false);
+	if (node->parent != &server->scene->tree) {
+		wlr_scene_node_reparent(node, &server->scene->tree);
 	}
-	if (overlay->node.parent != &server->scene->tree) {
-		wlr_scene_node_reparent(&overlay->node, &server->scene->tree);
-	}
+	seat->region_active = NULL;
 }
 
 void
@@ -141,6 +166,12 @@ regions_update(struct output *output)
 			wl_list_append(&output->regions, &region_new->link);
 		}
 	}
+
+	if (wlr_box_equal(&output->regions_usable_area, &usable)) {
+		/* Nothing changed */
+		return;
+	}
+	output->regions_usable_area = usable;
 
 	/* Update regions */
 	struct wlr_box *perc, *geo;
@@ -177,13 +208,16 @@ regions_evacuate_output(struct output *output)
 }
 
 void
-regions_destroy(struct wl_list *regions)
+regions_destroy(struct seat *seat, struct wl_list *regions)
 {
 	assert(regions);
 	struct region *region, *region_tmp;
 	wl_list_for_each_safe(region, region_tmp, regions, link) {
 		wl_list_remove(&region->link);
 		zfree(region->name);
+		if (seat && seat->region_active == region) {
+			seat->region_active = NULL;
+		}
 		zfree(region);
 	}
 }

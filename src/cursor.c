@@ -198,7 +198,7 @@ process_cursor_move(struct server *server, uint32_t time)
 		if (region) {
 			regions_show_overlay(view, &server->seat, region);
 		} else {
-			regions_hide_overlay(server, &server->seat);
+			regions_hide_overlay(&server->seat);
 		}
 	}
 }

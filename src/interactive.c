@@ -163,7 +163,7 @@ interactive_finish(struct view *view)
 {
 	if (view->server->grabbed_view == view) {
 		enum input_mode mode = view->server->input_mode;
-		regions_hide_overlay(view->server, &view->server->seat);
+		regions_hide_overlay(&view->server->seat);
 		view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		view->server->grabbed_view = NULL;
 		if (mode == LAB_INPUT_STATE_MOVE) {

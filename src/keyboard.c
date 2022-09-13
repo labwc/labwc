@@ -71,7 +71,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 				workspaces_osd_hide(seat);
 			}
 			if (server->grabbed_view) {
-				regions_hide_overlay(server, seat);
+				regions_hide_overlay(seat);
 			}
 		}
 	}

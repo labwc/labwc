@@ -47,6 +47,7 @@
 #include "cursor.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
+#include "regions.h"
 #if HAVE_NLS
 #include <libintl.h>
 #include <locale.h>
@@ -156,7 +157,9 @@ struct seat {
 		struct wlr_scene_tree *icons;
 	} drag;
 
-	struct wlr_scene_rect *region_overlay;
+	/* Private use by regions.c */
+	struct region *region_active;
+	struct region_overlay region_overlay;
 
 	struct wl_client *active_client_while_inhibited;
 	struct wl_list inputs;
@@ -312,6 +315,7 @@ struct output {
 	struct wlr_box usable_area;
 
 	struct wl_list regions;  /* struct region.link */
+	struct wlr_box regions_usable_area;
 
 	struct lab_data_buffer *osd_buffer;
 

@@ -993,6 +993,7 @@ view_destroy(struct view *view)
 		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		server->grabbed_view = NULL;
 		need_cursor_update = true;
+		regions_hide_overlay(&server->seat);
 	}
 
 	if (server->focused_view == view) {

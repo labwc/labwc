@@ -868,7 +868,7 @@ rcxml_finish(void)
 		zfree(w);
 	}
 
-	regions_destroy(&rc.regions);
+	regions_destroy(NULL, &rc.regions);
 
 	/* Reset state vars for starting fresh when Reload is triggered */
 	current_keybind = NULL;

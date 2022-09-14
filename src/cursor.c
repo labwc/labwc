@@ -637,16 +637,18 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 }
 
 static bool
-handle_release_mousebinding(struct view *view, struct server *server,
-		uint32_t button, uint32_t modifiers,
-		enum ssd_part_type view_area, uint32_t resize_edges)
+handle_release_mousebinding(struct server *server,
+		struct cursor_context *ctx, uint32_t button)
 {
 	struct mousebind *mousebind;
 	bool activated_any = false;
 	bool activated_any_frame = false;
 
+	uint32_t modifiers = wlr_keyboard_get_modifiers(
+			&server->seat.keyboard_group->keyboard);
+
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
-		if (ssd_part_contains(mousebind->context, view_area)
+		if (ssd_part_contains(mousebind->context, ctx->type)
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {
 			switch (mousebind->mouse_event) {
@@ -673,7 +675,8 @@ handle_release_mousebinding(struct view *view, struct server *server,
 			}
 			activated_any = true;
 			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
-			actions_run(view, server, &mousebind->actions, resize_edges);
+			actions_run(ctx->view, server, &mousebind->actions,
+				/*resize_edges*/ 0);
 		}
 	}
 	/*
@@ -718,17 +721,19 @@ is_double_click(long double_click_speed, uint32_t button, struct view *view)
 }
 
 static bool
-handle_press_mousebinding(struct view *view, struct server *server,
-		uint32_t button, uint32_t modifiers,
-		enum ssd_part_type view_area, uint32_t resize_edges)
+handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
+		uint32_t button, uint32_t resize_edges)
 {
 	struct mousebind *mousebind;
-	bool double_click = is_double_click(rc.doubleclick_time, button, view);
+	bool double_click = is_double_click(rc.doubleclick_time, button, ctx->view);
 	bool activated_any = false;
 	bool activated_any_frame = false;
 
+	uint32_t modifiers = wlr_keyboard_get_modifiers(
+			&server->seat.keyboard_group->keyboard);
+
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
-		if (ssd_part_contains(mousebind->context, view_area)
+		if (ssd_part_contains(mousebind->context, ctx->type)
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {
 			switch (mousebind->mouse_event) {
@@ -762,76 +767,23 @@ handle_press_mousebinding(struct view *view, struct server *server,
 			}
 			activated_any = true;
 			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
-			actions_run(view, server, &mousebind->actions, resize_edges);
+			actions_run(ctx->view, server, &mousebind->actions, resize_edges);
 		}
 	}
 	return activated_any && activated_any_frame;
 }
 
-void
-cursor_button(struct wl_listener *listener, void *data)
+/* Set in cursor_button_press(), used in cursor_button_release() */
+static bool close_menu;
+
+static void
+cursor_button_press(struct seat *seat, struct wlr_pointer_button_event *event)
 {
-	/*
-	 * This event is forwarded by the cursor when a pointer emits a button
-	 * event.
-	 */
-	struct seat *seat = wl_container_of(listener, seat, cursor_button);
 	struct server *server = seat->server;
-	struct wlr_pointer_button_event *event = data;
-	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
-
-	uint32_t resize_edges = 0;
-
-	/**
-	 * Used in WLR_BUTTON_RELEASED, set on WLR_BUTTON_PRESSED
-	 *
-	 * Automatically initialized with 0 / false and
-	 * checkpatch.pl complains when done manually.
-	 */
-	static bool close_menu;
-
-	/* bindings to the Frame context swallow mouse events if activated */
-	bool triggered_frame_binding = false;
-
 	struct cursor_context ctx = get_cursor_context(server);
 
-	/* get modifiers */
-	struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
-	uint32_t modifiers = wlr_keyboard_get_modifiers(keyboard);
-
-	/* handle _release_ */
-	if (event->state == WLR_BUTTON_RELEASED) {
-		struct wlr_surface *pressed_surface = seat->pressed.surface;
-		seat_reset_pressed(seat);
-		if (pressed_surface && ctx.surface != pressed_surface) {
-			/*
-			 * Button released but originally pressed over a different surface.
-			 * Just send the release event to the still focused surface.
-			 */
-			wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
-				event->button, event->state);
-			return;
-		}
-		if (server->input_mode == LAB_INPUT_STATE_MENU) {
-			if (close_menu) {
-				menu_close_root(server);
-				cursor_update_common(server, &ctx,
-					event->time_msec, false);
-				close_menu = false;
-			}
-			return;
-		}
-		if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
-			/* Exit interactive move/resize mode */
-			interactive_end(server->grabbed_view);
-			return;
-		}
-		goto mousebindings;
-	}
-
-	/* Handle _press */
 	/* Determine closest resize edges in case action is Resize */
-	resize_edges = determine_resize_edges(seat->cursor, &ctx);
+	uint32_t resize_edges = determine_resize_edges(seat->cursor, &ctx);
 
 	if (ctx.view || ctx.surface) {
 		/* Store resize edges for later action processing */
@@ -859,20 +811,81 @@ cursor_button(struct wl_listener *listener, void *data)
 		}
 	}
 
-mousebindings:
-	if (event->state == WLR_BUTTON_RELEASED) {
-		triggered_frame_binding |= handle_release_mousebinding(ctx.view,
-			server, event->button, modifiers,
-			ctx.type, resize_edges);
-	} else if (event->state == WLR_BUTTON_PRESSED) {
-		triggered_frame_binding |= handle_press_mousebinding(ctx.view,
-			server, event->button, modifiers,
-			ctx.type, resize_edges);
-	}
+	/* Bindings to the Frame context swallow mouse events if activated */
+	bool triggered_frame_binding = handle_press_mousebinding(
+			server, &ctx, event->button, resize_edges);
+
 	if (ctx.surface && !triggered_frame_binding) {
 		/* Notify client with pointer focus of button press */
 		wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
 			event->button, event->state);
+	}
+}
+
+static void
+cursor_button_release(struct seat *seat, struct wlr_pointer_button_event *event)
+{
+	struct server *server = seat->server;
+	struct cursor_context ctx = get_cursor_context(server);
+	struct wlr_surface *pressed_surface = seat->pressed.surface;
+
+	seat_reset_pressed(seat);
+
+	if (pressed_surface && ctx.surface != pressed_surface) {
+		/*
+		 * Button released but originally pressed over a different surface.
+		 * Just send the release event to the still focused surface.
+		 */
+		wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
+			event->button, event->state);
+		return;
+	}
+
+	if (server->input_mode == LAB_INPUT_STATE_MENU) {
+		if (close_menu) {
+			menu_close_root(server);
+			cursor_update_common(server, &ctx, event->time_msec,
+				/*cursor_has_moved*/ false);
+			close_menu = false;
+		}
+		return;
+	}
+
+	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		/* Exit interactive move/resize mode */
+		interactive_end(server->grabbed_view);
+		return;
+	}
+
+	/* Bindings to the Frame context swallow mouse events if activated */
+	bool triggered_frame_binding =
+		handle_release_mousebinding(server, &ctx, event->button);
+
+	if (ctx.surface && !triggered_frame_binding) {
+		/* Notify client with pointer focus of button release */
+		wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
+			event->button, event->state);
+	}
+}
+
+void
+cursor_button(struct wl_listener *listener, void *data)
+{
+	/*
+	 * This event is forwarded by the cursor when a pointer emits a button
+	 * event.
+	 */
+	struct seat *seat = wl_container_of(listener, seat, cursor_button);
+	struct wlr_pointer_button_event *event = data;
+	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
+
+	switch (event->state) {
+	case WLR_BUTTON_PRESSED:
+		cursor_button_press(seat, event);
+		break;
+	case WLR_BUTTON_RELEASED:
+		cursor_button_release(seat, event);
+		break;
 	}
 }
 

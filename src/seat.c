@@ -370,10 +370,41 @@ seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer)
 	}
 }
 
+static void
+pressed_surface_destroy(struct wl_listener *listener, void *data)
+{
+	struct wlr_surface *surface = data;
+	struct seat *seat = wl_container_of(listener, seat,
+		pressed_surface_destroy);
+
+	assert(surface == seat->pressed.surface);
+	seat_reset_pressed(seat);
+}
+
+void
+seat_set_pressed(struct seat *seat, struct view *view,
+	struct wlr_scene_node *node, struct wlr_surface *surface,
+	struct wlr_surface *toplevel)
+{
+	assert(surface);
+	seat_reset_pressed(seat);
+
+	seat->pressed.view = view;
+	seat->pressed.node = node;
+	seat->pressed.surface = surface;
+	seat->pressed.toplevel = toplevel;
+	seat->pressed_surface_destroy.notify = pressed_surface_destroy;
+	wl_signal_add(&surface->events.destroy, &seat->pressed_surface_destroy);
+}
+
 void
 seat_reset_pressed(struct seat *seat)
 {
-	seat->pressed.view = NULL;
-	seat->pressed.node = NULL;
-	seat->pressed.surface = NULL;
+	if (seat->pressed.surface) {
+		seat->pressed.view = NULL;
+		seat->pressed.node = NULL;
+		seat->pressed.surface = NULL;
+		seat->pressed.toplevel = NULL;
+		wl_list_remove(&seat->pressed_surface_destroy.link);
+	}
 }

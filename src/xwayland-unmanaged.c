@@ -101,9 +101,6 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 	 * Mark the node as gone so a racing configure event
 	 * won't try to reposition the node while unmapped.
 	 */
-	if (unmanaged->node && seat->pressed.node == unmanaged->node) {
-		seat_reset_pressed(seat);
-	}
 	unmanaged->node = NULL;
 	cursor_update_focus(unmanaged->server);
 

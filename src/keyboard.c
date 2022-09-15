@@ -241,8 +241,15 @@ void
 keyboard_finish(struct seat *seat)
 {
 	if (seat->keyboard_group) {
+		/*
+		 * Caution - these event listeners are connected to
+		 * seat->keyboard_group->keyboard and must be
+		 * unregistered before wlr_keyboard_group_destroy(),
+		 * otherwise a use-after-free occurs.
+		 */
+		wl_list_remove(&seat->keyboard_key.link);
+		wl_list_remove(&seat->keyboard_modifiers.link);
 		wlr_keyboard_group_destroy(seat->keyboard_group);
+		seat->keyboard_group = NULL;
 	}
-	wl_list_remove(&seat->keyboard_key.link);
-	wl_list_remove(&seat->keyboard_modifiers.link);
 }

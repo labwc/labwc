@@ -88,13 +88,10 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 	menuitem->selectable = true;
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
-	struct font font = {
-		.name = rc.font_name_menuitem,
-		.size = rc.font_size_menuitem,
-	};
 
 	if (!menu->item_height) {
-		menu->item_height = font_height(&font) + 2 * MENU_ITEM_PADDING_Y;
+		menu->item_height = font_height(&rc.font_menuitem)
+			+ 2 * MENU_ITEM_PADDING_Y;
 	}
 	menuitem->height = menu->item_height;
 
@@ -139,9 +136,9 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 	/* Font buffers */
 	const char *arrow = show_arrow ? "›" : NULL;
 	scaled_font_buffer_update(menuitem->normal.buffer, text, item_max_width,
-		&font, theme->menu_items_text_color, arrow);
+		&rc.font_menuitem, theme->menu_items_text_color, arrow);
 	scaled_font_buffer_update(menuitem->selected.buffer, text, item_max_width,
-		&font, theme->menu_items_active_text_color, arrow);
+		&rc.font_menuitem, theme->menu_items_active_text_color, arrow);
 
 	/* Center font nodes */
 	x = MENU_ITEM_PADDING_X;

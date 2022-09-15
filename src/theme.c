@@ -473,11 +473,8 @@ create_corners(struct theme *theme)
 static void
 post_processing(struct theme *theme)
 {
-	struct font font = {
-		.name = rc.font_name_activewindow,
-		.size = rc.font_size_activewindow,
-	};
-	theme->title_height = font_height(&font) + 2 * theme->padding_height;
+	theme->title_height = font_height(&rc.font_activewindow)
+		+ 2 * theme->padding_height;
 
 	if (rc.corner_radius >= theme->title_height) {
 		theme->title_height = rc.corner_radius + 1;

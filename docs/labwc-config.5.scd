@@ -15,8 +15,8 @@ No configuration files are needed to start and run labwc.
 In accordance with XDG Base Directory Specification, configuration files are
 searched for in the following order:
 
-- ${XDG_CONFIG_HOME:-$HOME/.config}/labwc  
-- ${XDG_CONFIG_DIRS:-/etc/xdg}/labwc  
+- ${XDG_CONFIG_HOME:-$HOME/.config}/labwc
+- ${XDG_CONFIG_DIRS:-/etc/xdg}/labwc
 
 All configuration and theme files except autostart are re-loaded on receiving
 signal SIGHUP.
@@ -136,6 +136,12 @@ The rest of this man page describes configuration options.
 *<theme><font place=""><size>*
 	Font size in pixels. Default is 10.
 
+*<theme><font place=""><slant>*
+	Font slant (normal or italic). Default is normal.
+
+*<theme><font place=""><weight>*
+	Font weight (normal or bold). Default is normal.
+
 ## KEYBOARD
 
 *<keyboard><keybind key="">*
@@ -231,10 +237,10 @@ The rest of this man page describes configuration options.
 ## LIBINPUT
 
 *<libinput><device category="">*
-	Define a category of devices to use the configuration values that 
+	Define a category of devices to use the configuration values that
 	follow. The category can be set to touch (devices that define a width
 	and height), non-touch, default, or the name of a device. You can obtain
-	your devices name by running *libinput list-devices* (you may need to 
+	your devices name by running *libinput list-devices* (you may need to
 	be root or a part of the input group to perform this.) Any members of
 	this category that are not set use the default for the device. With the
 	exception of tap-to-click, which is enabled by default.
@@ -252,9 +258,9 @@ The rest of this man page describes configuration options.
 
 *<libinput><device category=""><accelProfile>* [flat|adaptive]
 	Set the pointer's acceleration profile for this category. Flat applies
-	no acceleration (the pointers velocity is constant), while adaptive 
-	changes the pointers speed based the actual speed of your mouse or 
-	finger on your touchpad. 
+	no acceleration (the pointers velocity is constant), while adaptive
+	changes the pointers speed based the actual speed of your mouse or
+	finger on your touchpad.
 
 *<libinput><device category=""><tap>* [yes|no]
 	Enable or disable tap-to-click for this category. This is enabled by
@@ -273,7 +279,7 @@ The rest of this man page describes configuration options.
 *<libinput>device category=""><disableWhileTyping>* [yes|no]
 	Enable or disable disable while typing for this category. DWT ignores
 	any motion events while a keyboard is typing, and for a short while
-	after as well. 
+	after as well.
 
 ## ENVIRONMENT VARIABLES
 
@@ -289,7 +295,7 @@ The following keyboard-configuration variables are supported:
 *XKB_DEFAULT_RULES*, *XKB_DEFAULT_MODEL*, *XKB_DEFAULT_LAYOUT*,
 *XKB_DEFAULT_VARIANT* and *XKB_DEFAULT_OPTIONS*.
 
-See xkeyboard-config(7) for details.  
+See xkeyboard-config(7) for details.
 
 # SEE ALSO
 

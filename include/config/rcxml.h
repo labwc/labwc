@@ -7,6 +7,7 @@
 #include <wayland-server-core.h>
 
 #include "common/buf.h"
+#include "common/font.h"
 #include "config/libinput.h"
 #include "theme.h"
 
@@ -25,12 +26,9 @@ struct rcxml {
 	/* theme */
 	char *theme_name;
 	int corner_radius;
-	char *font_name_activewindow;
-	char *font_name_menuitem;
-	char *font_name_osd;
-	int font_size_activewindow;
-	int font_size_menuitem;
-	int font_size_osd;
+	struct font font_activewindow;
+	struct font font_menuitem;
+	struct font font_osd;
 	/* Pointer to current theme */
 	struct theme *theme;
 

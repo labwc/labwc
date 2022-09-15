@@ -237,6 +237,23 @@ fill_libinput_category(char *nodename, char *content)
 }
 
 static void
+set_font_attr(struct font *font, const char *nodename, const char *content)
+{
+	if (!strcmp(nodename, "name")) {
+		zfree(font->name);
+		font->name = strdup(content);
+	} else if (!strcmp(nodename, "size")) {
+		font->size = atoi(content);
+	} else if (!strcmp(nodename, "slant")) {
+		font->slant = !strcasecmp(content, "italic") ?
+			FONT_SLANT_ITALIC : FONT_SLANT_NORMAL;
+	} else if (!strcmp(nodename, "weight")) {
+		font->weight = !strcasecmp(content, "bold") ?
+			FONT_WEIGHT_BOLD : FONT_WEIGHT_NORMAL;
+	}
+}
+
+static void
 fill_font(char *nodename, char *content, enum font_place place)
 {
 	if (!content) {
@@ -250,36 +267,18 @@ fill_font(char *nodename, char *content, enum font_place place)
 		 * If <theme><font></font></theme> is used without a place=""
 		 * attribute, we set all font variables
 		 */
-		if (!strcmp(nodename, "name")) {
-			rc.font_name_activewindow = strdup(content);
-			rc.font_name_menuitem = strdup(content);
-			rc.font_name_osd = strdup(content);
-		} else if (!strcmp(nodename, "size")) {
-			rc.font_size_activewindow = atoi(content);
-			rc.font_size_menuitem = atoi(content);
-			rc.font_size_osd = atoi(content);
-		}
+		set_font_attr(&rc.font_activewindow, nodename, content);
+		set_font_attr(&rc.font_menuitem, nodename, content);
+		set_font_attr(&rc.font_osd, nodename, content);
 		break;
 	case FONT_PLACE_ACTIVEWINDOW:
-		if (!strcmp(nodename, "name")) {
-			rc.font_name_activewindow = strdup(content);
-		} else if (!strcmp(nodename, "size")) {
-			rc.font_size_activewindow = atoi(content);
-		}
+		set_font_attr(&rc.font_activewindow, nodename, content);
 		break;
 	case FONT_PLACE_MENUITEM:
-		if (!strcmp(nodename, "name")) {
-			rc.font_name_menuitem = strdup(content);
-		} else if (!strcmp(nodename, "size")) {
-			rc.font_size_menuitem = atoi(content);
-		}
+		set_font_attr(&rc.font_menuitem, nodename, content);
 		break;
 	case FONT_PLACE_OSD:
-		if (!strcmp(nodename, "name")) {
-			rc.font_name_osd = strdup(content);
-		} else if (!strcmp(nodename, "size")) {
-			rc.font_size_osd = atoi(content);
-		}
+		set_font_attr(&rc.font_osd, nodename, content);
 		break;
 
 		/* TODO: implement for all font places */
@@ -367,6 +366,10 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcmp(nodename, "name.font.theme")) {
 		fill_font(nodename, content, font_place);
 	} else if (!strcmp(nodename, "size.font.theme")) {
+		fill_font(nodename, content, font_place);
+	} else if (!strcmp(nodename, "slant.font.theme")) {
+		fill_font(nodename, content, font_place);
+	} else if (!strcmp(nodename, "weight.font.theme")) {
 		fill_font(nodename, content, font_place);
 	} else if (!strcasecmp(nodename, "followMouse.focus")) {
 		rc.focus_follow_mouse = get_bool(content);
@@ -491,9 +494,9 @@ rcxml_init()
 	wl_list_init(&rc.libinput_categories);
 	rc.xdg_shell_server_side_deco = true;
 	rc.corner_radius = 8;
-	rc.font_size_activewindow = 10;
-	rc.font_size_menuitem = 10;
-	rc.font_size_osd = 10;
+	rc.font_activewindow.size = 10;
+	rc.font_menuitem.size = 10;
+	rc.font_osd.size = 10;
 	rc.doubleclick_time = 500;
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
@@ -666,14 +669,14 @@ post_processing(void)
 	/* Replace all earlier mousebindings by later ones */
 	merge_mouse_bindings();
 
-	if (!rc.font_name_activewindow) {
-		rc.font_name_activewindow = strdup("sans");
+	if (!rc.font_activewindow.name) {
+		rc.font_activewindow.name = strdup("sans");
 	}
-	if (!rc.font_name_menuitem) {
-		rc.font_name_menuitem = strdup("sans");
+	if (!rc.font_menuitem.name) {
+		rc.font_menuitem.name = strdup("sans");
 	}
-	if (!rc.font_name_osd) {
-		rc.font_name_osd = strdup("sans");
+	if (!rc.font_osd.name) {
+		rc.font_osd.name = strdup("sans");
 	}
 	if (!wl_list_length(&rc.libinput_categories)) {
 		/* So we still allow tap to click by default */
@@ -759,9 +762,9 @@ no_config:
 void
 rcxml_finish(void)
 {
-	zfree(rc.font_name_activewindow);
-	zfree(rc.font_name_menuitem);
-	zfree(rc.font_name_osd);
+	zfree(rc.font_activewindow.name);
+	zfree(rc.font_menuitem.name);
+	zfree(rc.font_osd.name);
 	zfree(rc.theme_name);
 
 	struct keybind *k, *k_tmp;

@@ -216,12 +216,6 @@ ssd_update_title(struct view *view)
 	struct ssd_state_title *state = &view->ssd.state.title;
 	bool title_unchanged = state->text && !strcmp(title, state->text);
 
-	/* TODO: Do we only have active window fonts? */
-	struct font font = {
-		.name = rc.font_name_activewindow,
-		.size = rc.font_size_activewindow,
-	};
-
 	float *text_color;
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
@@ -261,8 +255,10 @@ ssd_update_title(struct view *view)
 		}
 
 		if (part->buffer) {
+			/* TODO: Do we only have active window fonts? */
 			scaled_font_buffer_update(part->buffer, title,
-				title_bg_width, &font, text_color, NULL);
+				title_bg_width, &rc.font_activewindow,
+				text_color, NULL);
 		}
 
 		/* And finally update the cache */

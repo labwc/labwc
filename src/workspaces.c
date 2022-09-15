@@ -57,16 +57,12 @@ _osd_update(struct server *server)
 	uint16_t padding = 2;
 	uint16_t rect_height = 20;
 	uint16_t rect_width = 20;
-	struct font font = {
-		.name = rc.font_name_osd,
-		.size = rc.font_size_osd,
-	};
 
 	/* Dimensions */
 	size_t workspace_count = wl_list_length(&server->workspaces);
 	uint16_t marker_width = workspace_count * (rect_width + padding) - padding;
 	uint16_t width = margin * 2 + (marker_width < 200 ? 200 : marker_width);
-	uint16_t height = margin * 3 + rect_height + font_height(&font);
+	uint16_t height = margin * 3 + rect_height + font_height(&rc.font_osd);
 
 	cairo_t *cairo;
 	cairo_surface_t *surface;
@@ -113,13 +109,11 @@ _osd_update(struct server *server)
 		pango_layout_set_width(layout, (width - 2 * margin) * PANGO_SCALE);
 		pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 
-		PangoFontDescription *desc = pango_font_description_new();
-		pango_font_description_set_family(desc, font.name);
-		pango_font_description_set_size(desc, font.size * PANGO_SCALE);
+		PangoFontDescription *desc = font_to_pango_desc(&rc.font_osd);
 		pango_layout_set_font_description(layout, desc);
 
 		/* Center workspace indicator on the x axis */
-		x = font_width(&font, server->workspace_current->name);
+		x = font_width(&rc.font_osd, server->workspace_current->name);
 		x = (width - x) / 2;
 		cairo_move_to(cairo, x, margin * 2 + rect_height);
 		//pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);

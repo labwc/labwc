@@ -378,8 +378,8 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 	}
 }
 
-static uint32_t
-determine_resize_edges(struct wlr_cursor *cursor, struct cursor_context *ctx)
+uint32_t
+cursor_get_resize_edges(struct wlr_cursor *cursor, struct cursor_context *ctx)
 {
 	uint32_t resize_edges = ssd_resize_edges(ctx->type);
 	if (ctx->view && !resize_edges) {
@@ -783,7 +783,7 @@ cursor_button_press(struct seat *seat, struct wlr_pointer_button_event *event)
 	struct cursor_context ctx = get_cursor_context(server);
 
 	/* Determine closest resize edges in case action is Resize */
-	uint32_t resize_edges = determine_resize_edges(seat->cursor, &ctx);
+	uint32_t resize_edges = cursor_get_resize_edges(seat->cursor, &ctx);
 
 	if (ctx.view || ctx.surface) {
 		/* Store resize edges for later action processing */

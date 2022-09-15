@@ -11,6 +11,21 @@
 #include "labwc.h"
 #include "buffer.h"
 
+PangoFontDescription *
+font_to_pango_desc(struct font *font)
+{
+	PangoFontDescription *desc = pango_font_description_new();
+	pango_font_description_set_family(desc, font->name);
+	pango_font_description_set_size(desc, font->size * PANGO_SCALE);
+	if (font->slant == FONT_SLANT_ITALIC) {
+		pango_font_description_set_style(desc, PANGO_STYLE_ITALIC);
+	}
+	if (font->weight == FONT_WEIGHT_BOLD) {
+		pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
+	}
+	return desc;
+}
+
 static PangoRectangle
 font_extents(struct font *font, const char *string)
 {
@@ -25,9 +40,7 @@ font_extents(struct font *font, const char *string)
 	surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
 	c = cairo_create(surface);
 	layout = pango_cairo_create_layout(c);
-	PangoFontDescription *desc = pango_font_description_new();
-	pango_font_description_set_family(desc, font->name);
-	pango_font_description_set_size(desc, font->size * PANGO_SCALE);
+	PangoFontDescription *desc = font_to_pango_desc(font);
 
 	pango_layout_set_font_description(layout, desc);
 	pango_layout_set_text(layout, string, -1);
@@ -108,9 +121,7 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	pango_layout_set_text(layout, text, -1);
 	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 
-	PangoFontDescription *desc = pango_font_description_new();
-	pango_font_description_set_family(desc, font->name);
-	pango_font_description_set_size(desc, font->size * PANGO_SCALE);
+	PangoFontDescription *desc = font_to_pango_desc(font);
 	pango_layout_set_font_description(layout, desc);
 	pango_font_description_free(desc);
 	pango_cairo_update_layout(cairo, layout);

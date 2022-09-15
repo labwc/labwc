@@ -304,13 +304,7 @@ osd_update(struct server *server)
 			(OSD_ITEM_WIDTH - 2 * OSD_ITEM_PADDING) * PANGO_SCALE);
 		pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 
-		struct font font = {
-			.name = rc.font_name_osd,
-			.size = rc.font_size_osd,
-		};
-		PangoFontDescription *desc = pango_font_description_new();
-		pango_font_description_set_family(desc, font.name);
-		pango_font_description_set_size(desc, font.size * PANGO_SCALE);
+		PangoFontDescription *desc = font_to_pango_desc(&rc.font_osd);
 		pango_layout_set_font_description(layout, desc);
 
 		PangoTabArray *tabs = pango_tab_array_new_with_positions(2, TRUE,
@@ -323,19 +317,20 @@ osd_update(struct server *server)
 		y = OSD_BORDER_WIDTH;
 
 		/* Center text entries on the y axis */
-		int y_offset = (OSD_ITEM_HEIGHT - font_height(&font)) / 2;
+		int y_offset = (OSD_ITEM_HEIGHT - font_height(&rc.font_osd)) / 2;
 		y += y_offset;
 
 		if (show_workspace) {
 			/* Center workspace indicator on the x axis */
-			int x = font_width(&font, server->workspace_current->name);
+			int x = font_width(&rc.font_osd, server->workspace_current->name);
 			x = (OSD_ITEM_WIDTH - x) / 2;
 			cairo_move_to(cairo, x, y);
+			PangoWeight weight = pango_font_description_get_weight(desc);
 			pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
 			pango_layout_set_font_description(layout, desc);
 			pango_layout_set_text(layout, server->workspace_current->name, -1);
 			pango_cairo_show_layout(cairo, layout);
-			pango_font_description_set_weight(desc, PANGO_WEIGHT_NORMAL);
+			pango_font_description_set_weight(desc, weight);
 			pango_layout_set_font_description(layout, desc);
 			y += OSD_ITEM_HEIGHT;
 		}

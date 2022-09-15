@@ -4,10 +4,24 @@
 
 struct lab_data_buffer;
 
+enum font_slant {
+	FONT_SLANT_NORMAL,
+	FONT_SLANT_ITALIC
+};
+
+enum font_weight {
+	FONT_WEIGHT_NORMAL,
+	FONT_WEIGHT_BOLD
+};
+
 struct font {
 	char *name;
 	int size;
+	enum font_slant slant;
+	enum font_weight weight;
 };
+
+struct _PangoFontDescription *font_to_pango_desc(struct font *font);
 
 /**
  * font_height - get font vertical extents

@@ -86,6 +86,8 @@ scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 		self->font.name = strdup(font->name);
 	}
 	self->font.size = font->size;
+	self->font.slant = font->slant;
+	self->font.weight = font->weight;
 	memcpy(self->color, color, sizeof(self->color));
 	self->arrow = arrow ? strdup(arrow) : NULL;
 

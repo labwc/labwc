@@ -31,7 +31,7 @@
       <slant>normal</slant>
       <weight>normal</weight>
     </font>
-    <font place="OSD">
+    <font place="OnScreenDisplay">
       <name>sans</name>
       <size>10</size>
       <slant>normal</slant>

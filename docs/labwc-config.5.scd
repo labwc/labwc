@@ -126,7 +126,7 @@ The rest of this man page describes configuration options.
 	Places can be any of:
 	- ActiveWindow - titlebar of active window
 	- MenuItem - menu item (currently only root menu)
-	- OSD - items in the on screen display
+	- OnScreenDisplay - items in the on screen display
 	If no place attribute is provided, the setting will be applied to all
 	places.
 

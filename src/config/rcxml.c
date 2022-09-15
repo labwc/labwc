@@ -298,7 +298,8 @@ enum_font_place(const char *place)
 		return FONT_PLACE_ACTIVEWINDOW;
 	} else if (!strcasecmp(place, "MenuItem")) {
 		return FONT_PLACE_MENUITEM;
-	} else if (!strcasecmp(place, "OSD")) {
+	} else if (!strcasecmp(place, "OnScreenDisplay")
+			|| !strcasecmp(place, "OSD")) {
 		return FONT_PLACE_OSD;
 	}
 	return FONT_PLACE_UNKNOWN;

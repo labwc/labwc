@@ -820,6 +820,10 @@ view_destroy(struct view *view)
 		need_cursor_update = true;
 	}
 
+	if (server->seat.pressed.view == view) {
+		seat_reset_pressed(&server->seat);
+	}
+
 	osd_on_view_destroy(view);
 
 	if (view->scene_tree) {

@@ -255,8 +255,10 @@ update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
 	if (seat->pressed.surface && ctx->surface != seat->pressed.surface) {
 		struct wlr_surface *toplevel = get_toplevel(ctx->surface);
 		if (toplevel && toplevel == seat->pressed.toplevel) {
-			seat_set_pressed(seat, ctx->view, ctx->node,
-				ctx->surface, toplevel);
+			/* No need to recompute resize edges here */
+			seat_set_pressed(seat, ctx->view,
+				ctx->node, ctx->surface, toplevel,
+				seat->pressed.resize_edges);
 			return true;
 		}
 	}
@@ -424,12 +426,15 @@ process_cursor_motion(struct server *server, uint32_t time)
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
 		if (mousebind->mouse_event == MOUSE_ACTION_DRAG
 				&& mousebind->pressed_in_context) {
-			/* Find closest resize edges in case action is Resize */
-			uint32_t resize_edges =
-				determine_resize_edges(seat->cursor, &ctx);
-
+			/*
+			 * Use view and resize edges from the press
+			 * event (not the motion event) to prevent
+			 * moving/resizing the wrong view
+			 */
 			mousebind->pressed_in_context = false;
-			actions_run(NULL, server, &mousebind->actions, resize_edges);
+			actions_run(seat->pressed.view,
+				server, &mousebind->actions,
+				seat->pressed.resize_edges);
 		}
 	}
 
@@ -825,9 +830,13 @@ cursor_button(struct wl_listener *listener, void *data)
 	}
 
 	/* Handle _press */
-	if (ctx.surface) {
+	/* Determine closest resize edges in case action is Resize */
+	resize_edges = determine_resize_edges(seat->cursor, &ctx);
+
+	if (ctx.view || ctx.surface) {
+		/* Store resize edges for later action processing */
 		seat_set_pressed(seat, ctx.view, ctx.node, ctx.surface,
-			get_toplevel(ctx.surface));
+			get_toplevel(ctx.surface), resize_edges);
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
@@ -849,9 +858,6 @@ cursor_button(struct wl_listener *listener, void *data)
 			seat_set_focus_layer(seat, layer);
 		}
 	}
-
-	/* Determine closest resize edges in case action is Resize */
-	resize_edges = determine_resize_edges(seat->cursor, &ctx);
 
 mousebindings:
 	if (event->state == WLR_BUTTON_RELEASED) {

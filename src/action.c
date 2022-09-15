@@ -166,9 +166,23 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 }
 
 static struct view *
-activator_or_focused_view(struct view *activator, struct server *server)
+view_for_action(struct view *activator, struct server *server,
+	struct action *action)
 {
-	return activator ? activator : desktop_focused_view(server);
+	/* View is explicitly specified for mousebinds */
+	if (activator) {
+		return activator;
+	}
+
+	/* Select view based on action type for keybinds */
+	switch (action->type) {
+	case ACTION_TYPE_FOCUS:
+	case ACTION_TYPE_MOVE:
+	case ACTION_TYPE_RESIZE:
+		return get_cursor_context(server).view;
+	default:
+		return desktop_focused_view(server);
+	}
 }
 
 void
@@ -194,7 +208,7 @@ actions_run(struct view *activator, struct server *server,
 		 * Refetch view because it may have been changed due to the
 		 * previous action
 		 */
-		view = activator_or_focused_view(activator, server);
+		view = view_for_action(activator, server, action);
 
 		switch (action->type) {
 		case ACTION_TYPE_CLOSE:
@@ -275,7 +289,6 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_FOCUS:
-			view = get_cursor_context(server).view;
 			if (view) {
 				desktop_focus_and_activate_view(&server->seat, view);
 			}
@@ -286,7 +299,6 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_MOVE:
-			view = get_cursor_context(server).view;
 			if (view) {
 				interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
 			}
@@ -297,7 +309,6 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_RESIZE:
-			view = get_cursor_context(server).view;
 			if (view) {
 				interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 					resize_edges);

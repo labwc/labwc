@@ -103,19 +103,22 @@ struct seat {
 
 	/**
 	 * pressed view/surface/node will usually be NULL and is only set on
-	 * button press while the mouse is over a surface and reset to NULL on
-	 * button release.
+	 * button press while the mouse is over a view or surface, and reset
+	 * to NULL on button release.
 	 * It is used to send cursor motion events to a surface even though
 	 * the cursor has left the surface in the meantime.
 	 *
 	 * This allows to keep dragging a scrollbar or selecting text even
 	 * when moving outside of the window.
+	 *
+	 * Both (view && !surface) and (surface && !view) are possible.
 	 */
 	struct {
 		struct view *view;
 		struct wlr_scene_node *node;
 		struct wlr_surface *surface;
 		struct wlr_surface *toplevel;
+		uint32_t resize_edges;
 	} pressed;
 
 	struct wl_client *active_client_while_inhibited;
@@ -569,7 +572,7 @@ void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
 void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer);
 void seat_set_pressed(struct seat *seat, struct view *view,
 	struct wlr_scene_node *node, struct wlr_surface *surface,
-	struct wlr_surface *toplevel);
+	struct wlr_surface *toplevel, uint32_t resize_edges);
 void seat_reset_pressed(struct seat *seat);
 
 void interactive_begin(struct view *view, enum input_mode mode,

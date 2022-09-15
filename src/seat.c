@@ -384,27 +384,34 @@ pressed_surface_destroy(struct wl_listener *listener, void *data)
 void
 seat_set_pressed(struct seat *seat, struct view *view,
 	struct wlr_scene_node *node, struct wlr_surface *surface,
-	struct wlr_surface *toplevel)
+	struct wlr_surface *toplevel, uint32_t resize_edges)
 {
-	assert(surface);
+	assert(view || surface);
 	seat_reset_pressed(seat);
 
 	seat->pressed.view = view;
 	seat->pressed.node = node;
 	seat->pressed.surface = surface;
 	seat->pressed.toplevel = toplevel;
-	seat->pressed_surface_destroy.notify = pressed_surface_destroy;
-	wl_signal_add(&surface->events.destroy, &seat->pressed_surface_destroy);
+	seat->pressed.resize_edges = resize_edges;
+
+	if (surface) {
+		seat->pressed_surface_destroy.notify = pressed_surface_destroy;
+		wl_signal_add(&surface->events.destroy,
+			&seat->pressed_surface_destroy);
+	}
 }
 
 void
 seat_reset_pressed(struct seat *seat)
 {
 	if (seat->pressed.surface) {
-		seat->pressed.view = NULL;
-		seat->pressed.node = NULL;
-		seat->pressed.surface = NULL;
-		seat->pressed.toplevel = NULL;
 		wl_list_remove(&seat->pressed_surface_destroy.link);
 	}
+
+	seat->pressed.view = NULL;
+	seat->pressed.node = NULL;
+	seat->pressed.surface = NULL;
+	seat->pressed.toplevel = NULL;
+	seat->pressed.resize_edges = 0;
 }

@@ -167,7 +167,7 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 
 static struct view *
 view_for_action(struct view *activator, struct server *server,
-	struct action *action)
+	struct action *action, uint32_t *resize_edges)
 {
 	/* View is explicitly specified for mousebinds */
 	if (activator) {
@@ -178,8 +178,15 @@ view_for_action(struct view *activator, struct server *server,
 	switch (action->type) {
 	case ACTION_TYPE_FOCUS:
 	case ACTION_TYPE_MOVE:
-	case ACTION_TYPE_RESIZE:
-		return get_cursor_context(server).view;
+	case ACTION_TYPE_RESIZE: {
+		struct cursor_context ctx = get_cursor_context(server);
+		if (action->type == ACTION_TYPE_RESIZE) {
+			/* Select resize edges for the keybind case */
+			*resize_edges = cursor_get_resize_edges(
+				server->seat.cursor, &ctx);
+		}
+		return ctx.view;
+	}
 	default:
 		return desktop_focused_view(server);
 	}
@@ -208,7 +215,8 @@ actions_run(struct view *activator, struct server *server,
 		 * Refetch view because it may have been changed due to the
 		 * previous action
 		 */
-		view = view_for_action(activator, server, action);
+		view = view_for_action(activator, server, action,
+			&resize_edges);
 
 		switch (action->type) {
 		case ACTION_TYPE_CLOSE:

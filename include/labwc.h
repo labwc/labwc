@@ -545,6 +545,9 @@ struct cursor_context get_cursor_context(struct server *server);
  */
 void cursor_set(struct seat *seat, const char *cursor_name);
 
+uint32_t cursor_get_resize_edges(struct wlr_cursor *cursor,
+	struct cursor_context *ctx);
+
 /**
  * cursor_update_focus - update cursor focus, may update the cursor icon
  * @server - server

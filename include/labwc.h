@@ -45,6 +45,7 @@
 #include <wlr/xwayland.h>
 #endif
 #include <xkbcommon/xkbcommon.h>
+#include "cursor.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
 #include "ssd.h"
@@ -501,65 +502,6 @@ struct view *desktop_cycle_view(struct server *server, struct view *start_view,
 struct view *desktop_focused_view(struct server *server);
 void desktop_focus_topmost_mapped_view(struct server *server);
 bool isfocusable(struct view *view);
-
-struct cursor_context {
-	struct view *view;
-	struct wlr_scene_node *node;
-	struct wlr_surface *surface;
-	enum ssd_part_type type;
-	double sx, sy;
-};
-
-/**
- * get_cursor_context - find view and scene_node at cursor
- *
- * Behavior if node points to a surface:
- *  - If surface is a layer-surface, type will be
- *    set to LAB_SSD_LAYER_SURFACE and view will be NULL.
- *
- *  - If surface is a 'lost' unmanaged xsurface (one
- *    with a never-mapped parent view), type will
- *    be set to LAB_SSD_UNMANAGED and view will be NULL.
- *
- *    'Lost' unmanaged xsurfaces are usually caused by
- *    X11 applications opening popups without setting
- *    the main window as parent. Example: VLC submenus.
- *
- *  - Any other surface will cause type to be set to
- *    LAB_SSD_CLIENT and return the attached view.
- *
- * Behavior if node points to internal elements:
- *  - type will be set to the appropriate enum value
- *    and view will be NULL if the node is not part of the SSD.
- *
- * If no node is found for the given layout coordinates,
- * type will be set to LAB_SSD_ROOT and view will be NULL.
- *
- */
-struct cursor_context get_cursor_context(struct server *server);
-
-/**
- * cursor_set - set cursor icon
- * @seat - current seat
- * @cursor_name - name of cursor, for example "left_ptr" or "grab"
- */
-void cursor_set(struct seat *seat, const char *cursor_name);
-
-uint32_t cursor_get_resize_edges(struct wlr_cursor *cursor,
-	struct cursor_context *ctx);
-
-/**
- * cursor_update_focus - update cursor focus, may update the cursor icon
- * @server - server
- *
- * This can be used to give the mouse focus to the surface under the cursor
- * or to force an update of the cursor icon by sending an exit and enter
- * event to an already focused surface.
- */
-void cursor_update_focus(struct server *server);
-
-void cursor_init(struct seat *seat);
-void cursor_finish(struct seat *seat);
 
 void keyboard_init(struct seat *seat);
 bool keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard);

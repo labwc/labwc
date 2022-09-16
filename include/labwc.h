@@ -59,7 +59,6 @@
 
 #define XCURSOR_DEFAULT "left_ptr"
 #define XCURSOR_SIZE 24
-#define XCURSOR_MOVE "grabbing"
 
 enum input_mode {
 	LAB_INPUT_STATE_PASSTHROUGH = 0,
@@ -80,13 +79,12 @@ struct seat {
 	struct server *server;
 	struct wlr_keyboard_group *keyboard_group;
 
-	bool cursor_requires_fallback;
 	/*
-	 * Name of most recent server-side cursor image.  Set by
+	 * Enum of most recent server-side cursor image.  Set by
 	 * cursor_set().  Cleared when a client surface is entered
-	 * (in that case the client is expected to set a cursor image).
+	 * (in that case the client is expected to set its own cursor image).
 	 */
-	char *cursor_set_by_server;
+	enum lab_cursors server_cursor;
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *xcursor_manager;
 

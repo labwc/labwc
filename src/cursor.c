@@ -12,27 +12,83 @@
 #include "ssd.h"
 #include "config/mousebind.h"
 #include "common/scene-helpers.h"
-#include "common/zfree.h"
 
-static const struct cursor_alias {
-	const char *name, *alias;
-} cursor_aliases[] = {
-	{ "default",    "left_ptr" },
-	{ "text",       "xterm" },
-	{ "grab",       "grabbing" },
-	{ "pointer",    "hand1" },
-	{ "wait",       "watch" },
-	{ "all-scroll", "grabbing" },
-	/* Resize edges */
-	{ "nw-resize",  "top_left_corner" },
-	{ "n-resize",   "top_side" },
-	{ "ne-resize",  "top_right_corner" },
-	{ "e-resize",   "right_side" },
-	{ "se-resize",  "bottom_right_corner" },
-	{ "s-resize",   "bottom_side" },
-	{ "sw-resize",  "bottom_left_corner" },
-	{ "w-resize",   "left_side" },
+static const char **cursor_names = NULL;
+
+/* Usual cursor names */
+static const char *cursors_xdg[] = {
+	NULL,
+	"default",
+	"grab",
+	"nw-resize",
+	"n-resize",
+	"ne-resize",
+	"e-resize",
+	"se-resize",
+	"s-resize",
+	"sw-resize",
+	"w-resize"
 };
+
+/* XCursor fallbacks */
+static const char *cursors_x11[] = {
+	NULL,
+	"left_ptr",
+	"grabbing",
+	"top_left_corner",
+	"top_side",
+	"top_right_corner",
+	"right_side",
+	"bottom_right_corner",
+	"bottom_side",
+	"bottom_left_corner",
+	"left_side"
+};
+
+#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
+static_assert(
+	ARRAY_SIZE(cursors_xdg) == LAB_CURSOR_COUNT,
+	"XDG cursor names are out ot sync");
+static_assert(
+	ARRAY_SIZE(cursors_x11) == LAB_CURSOR_COUNT,
+	"X11 cursor names are out ot sync");
+#undef ARRAY_SIZE
+
+enum lab_cursors
+cursor_get_from_edge(uint32_t resize_edges)
+{
+	switch (resize_edges) {
+	case WLR_EDGE_NONE:
+		return LAB_CURSOR_DEFAULT;
+	case WLR_EDGE_TOP | WLR_EDGE_LEFT:
+		return LAB_CURSOR_RESIZE_NW;
+	case WLR_EDGE_TOP:
+		return LAB_CURSOR_RESIZE_N;
+	case WLR_EDGE_TOP | WLR_EDGE_RIGHT:
+		return LAB_CURSOR_RESIZE_NE;
+	case WLR_EDGE_RIGHT:
+		return LAB_CURSOR_RESIZE_E;
+	case WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT:
+		return LAB_CURSOR_RESIZE_SE;
+	case WLR_EDGE_BOTTOM:
+		return LAB_CURSOR_RESIZE_S;
+	case WLR_EDGE_BOTTOM | WLR_EDGE_LEFT:
+		return LAB_CURSOR_RESIZE_SW;
+	case WLR_EDGE_LEFT:
+		return LAB_CURSOR_RESIZE_W;
+	default:
+		wlr_log(WLR_ERROR,
+			"Failed to resolve wlroots edge %u to cursor name", resize_edges);
+		assert(false);
+	}
+}
+
+static enum lab_cursors
+cursor_get_from_ssd(enum ssd_part_type view_area)
+{
+	uint32_t resize_edges = ssd_resize_edges(view_area);
+	return cursor_get_from_edge(resize_edges);
+}
 
 static struct wlr_surface *
 get_toplevel(struct wlr_surface *surface)
@@ -185,52 +241,19 @@ process_cursor_resize(struct server *server, uint32_t time)
 	view_move_resize(view, new_view_geo);
 }
 
-static const char *
-cursor_name_fallback(struct wlr_xcursor_manager *manager, const char *name)
-{
-	if (wlr_xcursor_manager_get_xcursor(manager, name, 1)) {
-		return name;
-	}
-	for (size_t i = 0; i < sizeof(cursor_aliases) / sizeof(cursor_aliases[0]); i++) {
-		if (!strcmp(cursor_aliases[i].name, name)) {
-			return cursor_aliases[i].alias;
-		}
-	}
-	return name;
-}
-
 void
-cursor_set(struct seat *seat, const char *cursor_name)
+cursor_set(struct seat *seat, enum lab_cursors cursor)
 {
-	/*
-	 * Required until wlroots MR !3651 is merged.
-	 * Once that happened, the whole commit can be reverted.
-	 */
-	if (seat->cursor_requires_fallback) {
-		cursor_name = cursor_name_fallback(seat->xcursor_manager, cursor_name);
-	}
+	assert(cursor > LAB_CURSOR_CLIENT && cursor < LAB_CURSOR_COUNT);
 
 	/* Prevent setting the same cursor image twice */
-	if (seat->cursor_set_by_server && !strcmp(cursor_name,
-			seat->cursor_set_by_server)) {
+	if (seat->server_cursor == cursor) {
 		return;
 	}
 
 	wlr_xcursor_manager_set_cursor_image(
-		seat->xcursor_manager, cursor_name, seat->cursor);
-	zfree(seat->cursor_set_by_server);
-	seat->cursor_set_by_server = strdup(cursor_name);
-}
-
-static void
-set_server_cursor(struct seat *seat, enum ssd_part_type view_area)
-{
-	uint32_t resize_edges = ssd_resize_edges(view_area);
-	if (resize_edges) {
-		cursor_set(seat, wlr_xcursor_get_resize_name(resize_edges));
-	} else {
-		cursor_set(seat, XCURSOR_DEFAULT);
-	}
+		seat->xcursor_manager, cursor_names[cursor], seat->cursor);
+	seat->server_cursor = cursor;
 }
 
 bool
@@ -346,7 +369,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		 * in response to the enter event.
 		 */
 		if (ctx->surface != wlr_seat->pointer_state.focused_surface
-				|| seat->cursor_set_by_server) {
+				|| seat->server_cursor != LAB_CURSOR_CLIENT) {
 			/*
 			 * Enter the surface if necessary.  Usually we
 			 * prevent re-entering an already focused
@@ -361,7 +384,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 			wlr_seat_pointer_notify_clear_focus(wlr_seat);
 			wlr_seat_pointer_notify_enter(wlr_seat, ctx->surface,
 				ctx->sx, ctx->sy);
-			zfree(seat->cursor_set_by_server);
+			seat->server_cursor = LAB_CURSOR_CLIENT;
 		}
 		if (cursor_has_moved) {
 			wlr_seat_pointer_notify_motion(wlr_seat, time_msec,
@@ -374,7 +397,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		 * set the cursor image ourselves.
 		 */
 		wlr_seat_pointer_notify_clear_focus(wlr_seat);
-		set_server_cursor(seat, ctx->type);
+		cursor_set(seat, cursor_get_from_ssd(ctx->type));
 	}
 }
 
@@ -411,7 +434,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 
 	if (ctx.type == LAB_SSD_MENU) {
 		menu_process_cursor_motion(ctx.node);
-		set_server_cursor(seat, ctx.type);
+		cursor_set(&server->seat, LAB_CURSOR_DEFAULT);
 		return;
 	}
 
@@ -983,11 +1006,13 @@ cursor_init(struct seat *seat)
 	seat->xcursor_manager = wlr_xcursor_manager_create(xcursor_theme, size);
 	wlr_xcursor_manager_load(seat->xcursor_manager, 1);
 
-	/* Check if we need to run every cursor_set() through translation */
-	if (strcmp("grab", cursor_name_fallback(seat->xcursor_manager, "grab"))) {
-		seat->cursor_requires_fallback = true;
+	if (wlr_xcursor_manager_get_xcursor(seat->xcursor_manager,
+			cursors_xdg[LAB_CURSOR_DEFAULT], 1)) {
+		cursor_names = cursors_xdg;
+	} else {
 		wlr_log(WLR_INFO,
-			"Cursor theme is missing cursor names, using fallbacks");
+			"Cursor theme is missing cursor names, using fallback");
+		cursor_names = cursors_x11;
 	}
 
 	seat->cursor_motion.notify = cursor_motion;

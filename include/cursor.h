@@ -66,9 +66,9 @@ struct cursor_context get_cursor_context(struct server *server);
 /**
  * cursor_set - set cursor icon
  * @seat - current seat
- * @cursor_name - name of cursor, for example "left_ptr" or "grab"
+ * @cursor - name of cursor, for example LAB_CURSOR_DEFAULT or LAB_CURSOR_GRAB
  */
-void cursor_set(struct seat *seat, const char *cursor_name);
+void cursor_set(struct seat *seat, enum lab_cursors cursor);
 
 /**
  * cursor_get_resize_edges - calculate resize edge based on cursor position
@@ -83,6 +83,18 @@ void cursor_set(struct seat *seat, const char *cursor_name);
  */
 uint32_t cursor_get_resize_edges(struct wlr_cursor *cursor,
 	struct cursor_context *ctx);
+
+/**
+ * cursor_get_from_edge - translate wlroots edge enum to lab_cursor enum
+ * @resize_edges - WLR_EDGE_ combination like WLR_EDGE_TOP | WLR_EDGE_RIGHT
+ *
+ * Returns LAB_CURSOR_DEFAULT on WLR_EDGE_NONE
+ * Returns the appropriate lab_cursors enum if @resize_edges
+ * is one of the 4 corners or one of the 4 edges.
+ *
+ * Asserts on invalid edge combinations like WLR_EDGE_LEFT | WLR_EDGE_RIGHT
+ */
+enum lab_cursors cursor_get_from_edge(uint32_t resize_edges);
 
 /**
  * cursor_update_focus - update cursor focus, may update the cursor icon

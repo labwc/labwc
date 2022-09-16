@@ -375,6 +375,38 @@ view_apply_region_geometry(struct view *view)
 	/* Create a copy of the original region geometry */
 	struct wlr_box geo = view->tiled_region->geo;
 
+	/* Adjust for rc.gap */
+	struct output *output = view_output(view);
+	if (rc.gap && output) {
+		double half_gap = rc.gap / 2.0;
+		struct wlr_fbox offset = {
+			.x = half_gap,
+			.y = half_gap,
+			.width = -rc.gap,
+			.height = -rc.gap
+		};
+		struct wlr_box usable =
+			output_usable_area_in_layout_coords(output);
+		if (geo.x == usable.x) {
+			offset.x += half_gap;
+			offset.width -= half_gap;
+		}
+		if (geo.y == usable.y) {
+			offset.y += half_gap;
+			offset.height -= half_gap;
+		}
+		if (geo.x + geo.width == usable.x + usable.width) {
+			offset.width -= half_gap;
+		}
+		if (geo.y + geo.height == usable.y + usable.height) {
+			offset.height -= half_gap;
+		}
+		geo.x += offset.x;
+		geo.y += offset.y;
+		geo.width += offset.width;
+		geo.height += offset.height;
+	}
+
 	/* And adjust for current view */
 	struct border margin = ssd_get_margin(view->ssd);
 	geo.x += margin.left;

@@ -8,6 +8,7 @@
 #include <wlr/types/wlr_pointer.h>
 #include <wlr/types/wlr_touch.h>
 #include <wlr/util/log.h>
+#include "common/mem.h"
 #include "labwc.h"
 
 static void
@@ -201,7 +202,7 @@ new_input_notify(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, new_input);
 	struct wlr_input_device *device = data;
-	struct input *input = calloc(1, sizeof(struct input));
+	struct input *input = xzalloc(sizeof(struct input));
 	input->wlr_input_device = device;
 	input->seat = seat;
 
@@ -262,11 +263,8 @@ new_idle_inhibitor(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat,
 		idle_inhibitor_create);
 
-	struct idle_inhibitor *inhibitor = calloc(1,
-		sizeof(struct idle_inhibitor));
-	if (!inhibitor) {
-		return;
-	}
+	struct idle_inhibitor *inhibitor =
+		xzalloc(sizeof(struct idle_inhibitor));
 
 	inhibitor->seat = seat;
 	inhibitor->wlr_inhibitor = wlr_inhibitor;

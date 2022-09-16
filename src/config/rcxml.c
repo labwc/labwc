@@ -14,9 +14,9 @@
 #include <wayland-server-core.h>
 #include <wlr/util/log.h>
 #include "action.h"
+#include "common/mem.h"
 #include "common/nodename.h"
 #include "common/string-helpers.h"
-#include "common/zfree.h"
 #include "config/keybind.h"
 #include "config/libinput.h"
 #include "config/mousebind.h"
@@ -194,7 +194,7 @@ fill_libinput_category(char *nodename, char *content)
 				|| !strcmp(content, "default")) {
 			current_libinput_category->type = get_device_type(content);
 		} else {
-			current_libinput_category->name = strdup(content);
+			current_libinput_category->name = xstrdup(content);
 		}
 	} else if (!strcasecmp(nodename, "naturalScroll")) {
 		current_libinput_category->natural_scroll =
@@ -241,7 +241,7 @@ set_font_attr(struct font *font, const char *nodename, const char *content)
 {
 	if (!strcmp(nodename, "name")) {
 		zfree(font->name);
-		font->name = strdup(content);
+		font->name = xstrdup(content);
 	} else if (!strcmp(nodename, "size")) {
 		font->size = atoi(content);
 	} else if (!strcmp(nodename, "slant")) {
@@ -361,7 +361,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
 		rc.adaptive_sync = get_bool(content);
 	} else if (!strcmp(nodename, "name.theme")) {
-		rc.theme_name = strdup(content);
+		rc.theme_name = xstrdup(content);
 	} else if (!strcmp(nodename, "cornerradius.theme")) {
 		rc.corner_radius = atoi(content);
 	} else if (!strcmp(nodename, "name.font.theme")) {
@@ -401,8 +401,8 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "cycleViewOutlines.core")) {
 		rc.cycle_preview_outlines = get_bool(content);
 	} else if (!strcasecmp(nodename, "name.names.desktops")) {
-		struct workspace *workspace = calloc(1, sizeof(struct workspace));
-		workspace->name = strdup(content);
+		struct workspace *workspace = xzalloc(sizeof(struct workspace));
+		workspace->name = xstrdup(content);
 		wl_list_insert(rc.workspace_config.workspaces.prev, &workspace->link);
 	} else if (!strcasecmp(nodename, "popupTime.desktops")) {
 		rc.workspace_config.popuptime = atoi(content);
@@ -671,13 +671,13 @@ post_processing(void)
 	merge_mouse_bindings();
 
 	if (!rc.font_activewindow.name) {
-		rc.font_activewindow.name = strdup("sans");
+		rc.font_activewindow.name = xstrdup("sans");
 	}
 	if (!rc.font_menuitem.name) {
-		rc.font_menuitem.name = strdup("sans");
+		rc.font_menuitem.name = xstrdup("sans");
 	}
 	if (!rc.font_osd.name) {
-		rc.font_osd.name = strdup("sans");
+		rc.font_osd.name = xstrdup("sans");
 	}
 	if (!wl_list_length(&rc.libinput_categories)) {
 		/* So we still allow tap to click by default */
@@ -685,8 +685,8 @@ post_processing(void)
 		l->type = DEFAULT_DEVICE;
 	}
 	if (!wl_list_length(&rc.workspace_config.workspaces)) {
-		struct workspace *workspace = calloc(1, sizeof(struct workspace));
-		workspace->name = strdup("Default");
+		struct workspace *workspace = xzalloc(sizeof(struct workspace));
+		workspace->name = xstrdup("Default");
 		wl_list_insert(rc.workspace_config.workspaces.prev, &workspace->link);
 	}
 	if (rc.workspace_config.popuptime == INT_MIN) {

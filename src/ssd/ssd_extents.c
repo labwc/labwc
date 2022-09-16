@@ -3,6 +3,7 @@
 #include "labwc.h"
 #include "ssd.h"
 #include "theme.h"
+#include "common/mem.h"
 #include "common/scene-helpers.h"
 
 static struct ssd_part *
@@ -18,7 +19,7 @@ add_extent(struct wl_list *part_list, enum ssd_part_type type,
 	 * part->geometry will get free'd automatically in ssd_destroy_parts().
 	 */
 	part->node = &wlr_scene_rect_create(parent, 0, 0, invisible)->node;
-	part->geometry = calloc(1, sizeof(struct wlr_box));
+	part->geometry = xzalloc(sizeof(struct wlr_box));
 	return part;
 }
 

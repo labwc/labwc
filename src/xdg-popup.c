@@ -7,6 +7,7 @@
  *	- keeping non-layer-shell xdg-popups outside the layers.c code
  */
 
+#include "common/mem.h"
 #include "labwc.h"
 #include "node.h"
 
@@ -67,10 +68,7 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 		return;
 	}
 
-	struct xdg_popup *popup = calloc(1, sizeof(struct xdg_popup));
-	if (!popup) {
-		return;
-	}
+	struct xdg_popup *popup = xzalloc(sizeof(struct xdg_popup));
 
 	popup->parent_view = view;
 	popup->wlr_popup = wlr_popup;

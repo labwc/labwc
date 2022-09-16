@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "common/mem.h"
 #include "labwc.h"
 
 static void
@@ -139,8 +140,8 @@ struct xwayland_unmanaged *
 xwayland_unmanaged_create(struct server *server,
 			  struct wlr_xwayland_surface *xsurface)
 {
-	struct xwayland_unmanaged *unmanaged;
-	unmanaged = calloc(1, sizeof(struct xwayland_unmanaged));
+	struct xwayland_unmanaged *unmanaged =
+		xzalloc(sizeof(struct xwayland_unmanaged));
 	unmanaged->server = server;
 	unmanaged->xwayland_surface = xsurface;
 

@@ -14,6 +14,7 @@
 #include <wayland-server.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/util/log.h>
+#include "common/mem.h"
 #include "layers.h"
 #include "labwc.h"
 #include "node.h"
@@ -202,10 +203,7 @@ create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_tree *parent,
 		struct wlr_box *output_toplevel_sx_box)
 {
 	struct lab_layer_popup *popup =
-		calloc(1, sizeof(struct lab_layer_popup));
-	if (!popup) {
-		return NULL;
-	}
+		xzalloc(sizeof(struct lab_layer_popup));
 
 	popup->wlr_popup = wlr_popup;
 	popup->scene_tree =
@@ -325,10 +323,7 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 	}
 
 	struct lab_layer_surface *surface =
-		calloc(1, sizeof(struct lab_layer_surface));
-	if (!surface) {
-		return;
-	}
+		xzalloc(sizeof(struct lab_layer_surface));
 
 	surface->surface_commit.notify = surface_commit_notify;
 	wl_signal_add(&layer_surface->surface->events.commit,

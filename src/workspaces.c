@@ -10,7 +10,7 @@
 #include "labwc.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"
-#include "common/zfree.h"
+#include "common/mem.h"
 #include "workspaces.h"
 
 /* Internal helpers */
@@ -154,9 +154,9 @@ _osd_update(struct server *server)
 static void
 add_workspace(struct server *server, const char *name)
 {
-	struct workspace *workspace = calloc(1, sizeof(struct workspace));
+	struct workspace *workspace = xzalloc(sizeof(struct workspace));
 	workspace->server = server;
-	workspace->name = strdup(name);
+	workspace->name = xstrdup(name);
 	workspace->tree = wlr_scene_tree_create(server->view_tree);
 	wl_list_insert(server->workspaces.prev, &workspace->link);
 	if (!server->workspace_current) {

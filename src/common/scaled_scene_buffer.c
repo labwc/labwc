@@ -7,6 +7,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
+#include "common/mem.h"
 #include "common/scaled_scene_buffer.h"
 
 /**
@@ -67,7 +68,7 @@ _update_buffer(struct scaled_scene_buffer *self, double scale)
 
 	/* Create or reuse cache entry */
 	if (wl_list_length(&self->cache) < LAB_SCALED_BUFFER_MAX_CACHE) {
-		cache_entry = calloc(1, sizeof(*cache_entry));
+		cache_entry = xzalloc(sizeof(*cache_entry));
 	} else {
 		cache_entry = wl_container_of(self->cache.prev, cache_entry, link);
 		if (cache_entry->buffer) {
@@ -150,10 +151,7 @@ scaled_scene_buffer_create(struct wlr_scene_tree *parent,
 	assert(impl);
 	assert(impl->create_buffer);
 
-	struct scaled_scene_buffer *self = calloc(1, sizeof(*self));
-	if (!self) {
-		return NULL;
-	}
+	struct scaled_scene_buffer *self = xzalloc(sizeof(*self));
 
 	self->scene_buffer = wlr_scene_buffer_create(parent, NULL);
 	if (!self->scene_buffer) {

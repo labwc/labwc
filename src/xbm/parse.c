@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "common/mem.h"
 #include "xbm/parse.h"
 
 static uint32_t color;
@@ -37,8 +38,8 @@ parse_set_color(float *rgba)
 static void
 process_bytes(struct pixmap *pixmap, struct token *tokens)
 {
-	pixmap->data = (uint32_t *)calloc(pixmap->width * pixmap->height,
-					  sizeof(uint32_t));
+	pixmap->data = (uint32_t *)xzalloc(
+		pixmap->width * pixmap->height * sizeof(uint32_t));
 	struct token *t = tokens;
 	for (int row = 0; row < pixmap->height; row++) {
 		int byte = 1;

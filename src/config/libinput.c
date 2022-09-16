@@ -2,8 +2,10 @@
 #include <string.h>
 #include <strings.h>
 
+#include "common/mem.h"
 #include "config/libinput.h"
 #include "config/rcxml.h"
+
 static void
 libinput_category_init(struct libinput_category *l)
 {
@@ -36,10 +38,7 @@ get_device_type(const char *s)
 struct libinput_category *
 libinput_category_create(void)
 {
-	struct libinput_category *l = calloc(1, sizeof(struct libinput_category));
-	if (!l) {
-		return NULL;
-	}
+	struct libinput_category *l = xzalloc(sizeof(struct libinput_category));
 	libinput_category_init(l);
 	wl_list_insert(&rc.libinput_categories, &l->link);
 	return l;

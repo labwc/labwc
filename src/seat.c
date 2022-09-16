@@ -317,8 +317,13 @@ seat_finish(struct server *server)
 	struct seat *seat = &server->seat;
 	wl_list_remove(&seat->new_input.link);
 	keyboard_finish(seat);
-	cursor_finish(seat);
+	/*
+	 * Caution - touch_finish() unregisters event listeners from
+	 * seat->cursor and must come before cursor_finish(), otherwise
+	 * a use-after-free occurs.
+	 */
 	touch_finish(seat);
+	cursor_finish(seat);
 }
 
 void

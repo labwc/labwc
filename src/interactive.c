@@ -84,10 +84,10 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 
 	switch (mode) {
 	case LAB_INPUT_STATE_MOVE:
-		cursor_set(&server->seat, "grab");
+		cursor_set(&server->seat, LAB_CURSOR_GRAB);
 		break;
 	case LAB_INPUT_STATE_RESIZE:
-		cursor_set(&server->seat, wlr_xcursor_get_resize_name(edges));
+		cursor_set(&server->seat, cursor_get_from_edge(edges));
 		break;
 	default:
 		break;

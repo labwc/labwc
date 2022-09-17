@@ -158,7 +158,7 @@ handle_drm_lease_request(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	for(size_t i = 0; i < req->n_connectors; ++i) {
+	for (size_t i = 0; i < req->n_connectors; ++i) {
 		struct output *output = req->connectors[i]->output->data;
 		if (!output) {
 			continue;
@@ -167,7 +167,8 @@ handle_drm_lease_request(struct wl_listener *listener, void *data)
 		wlr_output_enable(output->wlr_output, false);
 		wlr_output_commit(output->wlr_output);
 
-		wlr_output_layout_remove(output->server->output_layout, output->wlr_output);
+		wlr_output_layout_remove(output->server->output_layout,
+			output->wlr_output);
 		output->scene_output = NULL;
 
 		output->leased = true;
@@ -470,7 +471,6 @@ server_start(struct server *server)
 void
 server_finish(struct server *server)
 {
-
 #if HAVE_XWAYLAND
 	wlr_xwayland_destroy(server->xwayland);
 #endif

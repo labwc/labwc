@@ -304,6 +304,7 @@ set_fallback_geometry(struct view *view)
 		&view->natural_geometry.x,
 		&view->natural_geometry.y);
 }
+
 #undef LAB_FALLBACK_WIDTH
 #undef LAB_FALLBACK_HEIGHT
 

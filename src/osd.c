@@ -328,7 +328,8 @@ osd_update(struct server *server)
 			PangoWeight weight = pango_font_description_get_weight(desc);
 			pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
 			pango_layout_set_font_description(layout, desc);
-			pango_layout_set_text(layout, server->workspace_current->name, -1);
+			pango_layout_set_text(layout,
+				server->workspace_current->name, -1);
 			pango_cairo_show_layout(cairo, layout);
 			pango_font_description_set_weight(desc, weight);
 			pango_layout_set_font_description(layout, desc);

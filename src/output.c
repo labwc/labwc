@@ -278,7 +278,8 @@ output_config_apply(struct server *server,
 		/* Only do Layout specific actions if the commit went trough */
 		if (need_to_add) {
 			wlr_output_layout_add_auto(server->output_layout, o);
-			output->scene_output = wlr_scene_get_scene_output(server->scene, o);
+			output->scene_output =
+				wlr_scene_get_scene_output(server->scene, o);
 			assert(output->scene_output);
 		}
 
@@ -291,7 +292,6 @@ output_config_apply(struct server *server,
 			wlr_output_layout_remove(server->output_layout, o);
 			output->scene_output = NULL;
 		}
-
 	}
 
 	server->pending_output_layout_change--;

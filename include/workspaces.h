@@ -17,12 +17,11 @@ struct workspace {
 	struct wlr_scene_tree *tree;
 };
 
-
 void workspaces_init(struct server *server);
 void workspaces_switch_to(struct workspace *target);
 void workspaces_send_to(struct view *view, struct workspace *target);
 void workspaces_destroy(struct server *server);
 void workspaces_osd_hide(struct seat *seat);
-struct workspace * workspaces_find(struct workspace *anchor, const char *name);
+struct workspace *workspaces_find(struct workspace *anchor, const char *name);
 
 #endif /* __LABWC_WORKSPACES_H */

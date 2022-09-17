@@ -608,7 +608,6 @@ load_default_mouse_bindings(void)
 				|| strcmp(current->context, mouse_combos[i - 1].context)
 				|| strcmp(current->button, mouse_combos[i - 1].button)
 				|| strcmp(current->event, mouse_combos[i - 1].event)) {
-
 			/* Create new mousebind */
 			m = mousebind_create(current->context);
 			m->button = mousebind_button_from_str(current->button,
@@ -640,7 +639,6 @@ merge_mouse_bindings(void)
 			if (existing->context == current->context
 					&& existing->button == current->button
 					&& existing->mouse_event == current->mouse_event) {
-
 				wl_list_remove(&existing->link);
 				action_list_free(&existing->actions);
 				free(existing);

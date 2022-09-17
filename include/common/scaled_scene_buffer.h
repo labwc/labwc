@@ -59,7 +59,6 @@ struct scaled_scene_buffer *scaled_scene_buffer_create(
 /* Clear the cache of existing buffers, useful in case the content changes */
 void scaled_scene_buffer_invalidate_cache(struct scaled_scene_buffer *self);
 
-
 /* Private */
 struct scaled_scene_buffer_cache_entry {
 	struct wl_list link;   /* struct scaled_scene_buffer.cache */

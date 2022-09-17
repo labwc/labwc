@@ -42,7 +42,6 @@ multi_rect_set_size(struct multi_rect *rect, int width, int height)
 	int line_width = rect->line_width;
 
 	for (size_t i = 0; i < 3; i++) {
-
 		/* Reposition, top and left don't ever change */
 		wlr_scene_node_set_position(&rect->right[i]->node,
 			width - (i + 1) * line_width, i * line_width);

@@ -24,7 +24,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		 * If you think there is a good reason to allow it
 		 * feel free to open an issue explaining your use-case.
 		 */
-		 return;
+		return;
 	}
 	if (mode == LAB_INPUT_STATE_RESIZE
 			&& (view->fullscreen || view->maximized)) {

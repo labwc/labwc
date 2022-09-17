@@ -49,7 +49,6 @@ parse_workspace_index(const char *name)
 static void
 _osd_update(struct server *server)
 {
-
 	struct theme *theme = server->theme;
 
 	/* Settings */
@@ -138,7 +137,7 @@ _osd_update(struct server *server)
 			+ (output->usable_area.width - width) / 2
 			+ output_box.x;
 		int ly = output->usable_area.y
-			+ (output->usable_area.height - height ) / 2
+			+ (output->usable_area.height - height) / 2
 			+ output_box.y;
 		wlr_scene_node_set_position(&output->workspace_osd->node, lx, ly);
 		wlr_scene_buffer_set_buffer(output->workspace_osd, &buffer->base);
@@ -280,7 +279,6 @@ workspaces_send_to(struct view *view, struct workspace *target)
 	wlr_scene_node_reparent(&view->scene_tree->node, target->tree);
 	view->workspace = target;
 }
-
 
 void
 workspaces_osd_hide(struct seat *seat)

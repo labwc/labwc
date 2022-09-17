@@ -158,7 +158,7 @@ handle_drm_lease_request(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	for(size_t i = 0; i < req->n_connectors; ++i) {
+	for (size_t i = 0; i < req->n_connectors; ++i) {
 		struct output *output = req->connectors[i]->output->data;
 		if (!output) {
 			continue;
@@ -470,7 +470,6 @@ server_start(struct server *server)
 void
 server_finish(struct server *server)
 {
-
 #if HAVE_XWAYLAND
 	wlr_xwayland_destroy(server->xwayland);
 #endif

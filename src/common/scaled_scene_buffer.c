@@ -111,8 +111,8 @@ _handle_node_destroy(struct wl_listener *listener, void *data)
 static void
 _handle_output_enter(struct wl_listener *listener, void *data)
 {
-	struct scaled_scene_buffer *self
-		= wl_container_of(listener, self, output_enter);
+	struct scaled_scene_buffer *self =
+		wl_container_of(listener, self, output_enter);
 	/* primary_output is the output most of the node area is in */
 	struct wlr_scene_output *primary = self->scene_buffer->primary_output;
 	/* scene_output is the output we just entered */
@@ -131,8 +131,8 @@ _handle_output_enter(struct wl_listener *listener, void *data)
 static void
 _handle_output_leave(struct wl_listener *listener, void *data)
 {
-	struct scaled_scene_buffer *self
-		= wl_container_of(listener, self, output_leave);
+	struct scaled_scene_buffer *self =
+		wl_container_of(listener, self, output_leave);
 	/* primary_output is the output most of the node area is in */
 	struct wlr_scene_output *primary = self->scene_buffer->primary_output;
 

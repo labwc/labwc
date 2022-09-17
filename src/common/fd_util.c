@@ -12,17 +12,19 @@ void
 increase_nofile_limit(void)
 {
 	if (getrlimit(RLIMIT_NOFILE, &original_nofile_rlimit) != 0) {
-		wlr_log_errno(WLR_ERROR, "Failed to bump max open files limit: getrlimit(NOFILE) failed");
+		wlr_log_errno(WLR_ERROR,
+			"Failed to bump max open files limit: getrlimit(NOFILE) failed");
 		return;
 	}
 
 	struct rlimit new_rlimit = original_nofile_rlimit;
 	new_rlimit.rlim_cur = new_rlimit.rlim_max;
 	if (setrlimit(RLIMIT_NOFILE, &new_rlimit) != 0) {
-		wlr_log_errno(WLR_ERROR, "Failed to bump max open files limit: setrlimit(NOFILE) failed");
+		wlr_log_errno(WLR_ERROR,
+			"Failed to bump max open files limit: setrlimit(NOFILE) failed");
 
 		wlr_log(WLR_INFO, "Running with %d max open files",
-            (int)original_nofile_rlimit.rlim_cur);
+			(int)original_nofile_rlimit.rlim_cur);
 	}
 }
 

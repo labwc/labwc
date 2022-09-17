@@ -225,7 +225,7 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 	assert(node->parent);
 	struct wl_list *list_head = &node->parent->children;
 	struct wl_list *list_item = &node->link;
-	struct wl_list *(*iter)(struct wl_list *);
+	struct wl_list *(*iter)(struct wl_list *list);
 
 	/* Scene nodes are ordered like last node == displayed topmost */
 	iter = dir == LAB_CYCLE_DIR_FORWARD ? get_prev_item : get_next_item;

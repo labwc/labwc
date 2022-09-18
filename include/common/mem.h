@@ -13,7 +13,11 @@ void *xzalloc(size_t size);
 
 /*
  * Type-safe macros in the style of C++ new/new[].
- * <expr> may be either a type name or value expression.
+ * Both allocate zero-filled memory for object(s) the same size as
+ * <expr>, which may be either a type name or value expression.
+ *
+ * znew() allocates space for one object.
+ * znew_n() allocates space for an array of <n> objects.
  *
  * Examples:
  *   struct wlr_box *box = znew(*box);

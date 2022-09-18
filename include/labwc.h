@@ -104,7 +104,6 @@ struct seat {
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *xcursor_manager;
 
-	struct wlr_drag_icon *drag_icon;
 	struct wlr_pointer_constraint_v1 *current_constraint;
 	struct wlr_idle *wlr_idle;
 	struct wlr_idle_inhibit_manager_v1 *wlr_idle_inhibit_manager;
@@ -136,6 +135,16 @@ struct seat {
 		uint32_t resize_edges;
 	} pressed;
 
+	struct {
+		bool active;
+		struct {
+			struct wl_listener request;
+			struct wl_listener start;
+			struct wl_listener destroy;
+		} events;
+		struct wlr_scene_tree *icons;
+	} drag;
+
 	struct wl_client *active_client_while_inhibited;
 	struct wl_list inputs;
 	struct wl_listener new_input;
@@ -163,9 +172,6 @@ struct seat {
 	struct wl_listener touch_motion;
 	struct wl_listener touch_frame;
 
-	struct wl_listener request_start_drag;
-	struct wl_listener start_drag;
-	struct wl_listener destroy_drag;
 	struct wl_listener constraint_commit;
 	struct wl_listener idle_inhibitor_create;
 	struct wl_listener pressed_surface_destroy;

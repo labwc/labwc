@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "common/list.h"
 #include "common/scene-helpers.h"
+#include "dnd.h"
 #include "labwc.h"
 #include "layers.h"
 #include "node.h"
@@ -295,9 +296,19 @@ get_cursor_context(struct server *server)
 {
 	struct cursor_context ret = {.type = LAB_SSD_NONE};
 	struct wlr_cursor *cursor = server->seat.cursor;
+
+	/* Prevent drag icons to be on top of the hitbox detection */
+	if (server->seat.drag.active) {
+		dnd_icons_show(&server->seat, false);
+	}
+
 	struct wlr_scene_node *node =
 		wlr_scene_node_at(&server->scene->tree.node,
 			cursor->x, cursor->y, &ret.sx, &ret.sy);
+
+	if (server->seat.drag.active) {
+		dnd_icons_show(&server->seat, true);
+	}
 
 	ret.node = node;
 	if (!node) {

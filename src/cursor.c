@@ -9,6 +9,7 @@
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "config/mousebind.h"
+#include "dnd.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "resistance.h"
@@ -173,21 +174,6 @@ request_set_primary_selection_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-request_start_drag_notify(struct wl_listener *listener, void *data)
-{
-	struct seat *seat = wl_container_of(
-		listener, seat, request_start_drag);
-	struct wlr_seat_request_start_drag_event *event = data;
-	if (wlr_seat_validate_pointer_grab_serial(seat->seat, event->origin,
-			event->serial)) {
-		wlr_seat_start_pointer_drag(seat->seat, event->drag,
-			event->serial);
-	} else {
-		wlr_data_source_destroy(event->drag->source);
-	}
-}
-
-static void
 process_cursor_move(struct server *server, uint32_t time)
 {
 	double dx = server->seat.cursor->x - server->grab_x;
@@ -348,7 +334,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 	/* TODO: verify drag_icon logic */
 	if (seat->pressed.surface && ctx->surface != seat->pressed.surface
 			&& !update_pressed_surface(seat, ctx)
-			&& !seat->drag_icon) {
+			&& !seat->drag.active) {
 		if (cursor_has_moved) {
 			/*
 			 * Button has been pressed while over another
@@ -403,7 +389,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		 * a drag operation.
 		 */
 		wlr_seat_pointer_notify_clear_focus(wlr_seat);
-		if (!seat->drag_icon) {
+		if (!seat->drag.active) {
 			cursor_set(seat, cursor_get_from_ssd(ctx->type));
 		}
 	}
@@ -444,6 +430,10 @@ process_cursor_motion(struct server *server, uint32_t time)
 		menu_process_cursor_motion(ctx.node);
 		cursor_set(&server->seat, LAB_CURSOR_DEFAULT);
 		return;
+	}
+
+	if (seat->drag.active) {
+		dnd_icons_move(seat, seat->cursor->x, seat->cursor->y);
 	}
 
 	if (ctx.view && rc.focus_follow_mouse) {
@@ -488,21 +478,6 @@ cursor_update_focus(struct server *server)
 	struct cursor_context ctx = get_cursor_context(server);
 	cursor_update_common(server, &ctx, msec(&now),
 		/*cursor_has_moved*/ false);
-}
-
-void
-start_drag(struct wl_listener *listener, void *data)
-{
-	struct seat *seat = wl_container_of(listener, seat, start_drag);
-	struct wlr_drag *wlr_drag = data;
-	seat_reset_pressed(seat);
-	seat->drag_icon = wlr_drag->icon;
-	if (!seat->drag_icon) {
-		wlr_log(WLR_ERROR,
-			"Started drag but application did not set a drag icon");
-		return;
-	}
-	wl_signal_add(&seat->drag_icon->events.destroy, &seat->destroy_drag);
 }
 
 void
@@ -609,18 +584,6 @@ cursor_motion(struct wl_listener *listener, void *data)
 			event->delta_x, event->delta_y);
 	}
 	process_cursor_motion(seat->server, event->time_msec);
-}
-
-void
-destroy_drag(struct wl_listener *listener, void *data)
-{
-	struct seat *seat = wl_container_of(listener, seat, destroy_drag);
-
-	if (!seat->drag_icon) {
-		return;
-	}
-	seat->drag_icon = NULL;
-	desktop_focus_topmost_mapped_view(seat->server);
 }
 
 void
@@ -1022,6 +985,8 @@ cursor_init(struct seat *seat)
 		cursor_names = cursors_x11;
 	}
 
+	dnd_init(seat);
+
 	seat->cursor_motion.notify = cursor_motion;
 	wl_signal_add(&seat->cursor->events.motion, &seat->cursor_motion);
 	seat->cursor_motion_absolute.notify = cursor_motion_absolute;
@@ -1054,13 +1019,6 @@ cursor_init(struct seat *seat)
 	seat->request_set_selection.notify = request_set_selection_notify;
 	wl_signal_add(&seat->seat->events.request_set_selection,
 		&seat->request_set_selection);
-	seat->request_start_drag.notify = request_start_drag_notify;
-	wl_signal_add(&seat->seat->events.request_start_drag,
-		&seat->request_start_drag);
-	seat->start_drag.notify = start_drag;
-	wl_signal_add(&seat->seat->events.start_drag,
-		&seat->start_drag);
-	seat->destroy_drag.notify = destroy_drag;
 
 	seat->request_set_primary_selection.notify =
 		request_set_primary_selection_notify;
@@ -1070,6 +1028,8 @@ cursor_init(struct seat *seat)
 
 void cursor_finish(struct seat *seat)
 {
+	/* TODO: either clean up all the listeners or none of them */
+
 	wl_list_remove(&seat->cursor_motion.link);
 	wl_list_remove(&seat->cursor_motion_absolute.link);
 	wl_list_remove(&seat->cursor_button.link);
@@ -1088,4 +1048,6 @@ void cursor_finish(struct seat *seat)
 
 	wlr_xcursor_manager_destroy(seat->xcursor_manager);
 	wlr_cursor_destroy(seat->cursor);
+
+	dnd_finish(seat);
 }

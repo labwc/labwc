@@ -12,6 +12,17 @@
 void *xzalloc(size_t size);
 
 /*
+ * Type-safe macros in the style of C++ new/new[].
+ * <expr> may be either a type name or value expression.
+ *
+ * Examples:
+ *   struct wlr_box *box = znew(*box);
+ *   char *buf = znew_n(char, 80);
+ */
+#define znew(expr)       ((__typeof__(expr) *)xzalloc(sizeof(expr)))
+#define znew_n(expr, n)  ((__typeof__(expr) *)xzalloc((n) * sizeof(expr)))
+
+/*
  * As defined in FreeBSD.
  * Like realloc(), but calls exit() on error.
  * Returns NULL only if (size == 0).

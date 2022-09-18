@@ -202,7 +202,7 @@ new_input_notify(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, new_input);
 	struct wlr_input_device *device = data;
-	struct input *input = xzalloc(sizeof(struct input));
+	struct input *input = znew(*input);
 	input->wlr_input_device = device;
 	input->seat = seat;
 
@@ -263,9 +263,7 @@ new_idle_inhibitor(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat,
 		idle_inhibitor_create);
 
-	struct idle_inhibitor *inhibitor =
-		xzalloc(sizeof(struct idle_inhibitor));
-
+	struct idle_inhibitor *inhibitor = znew(*inhibitor);
 	inhibitor->seat = seat;
 	inhibitor->wlr_inhibitor = wlr_inhibitor;
 	inhibitor->destroy.notify = destroy_idle_inhibitor;

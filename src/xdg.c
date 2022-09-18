@@ -375,7 +375,7 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 
 	wlr_xdg_surface_ping(xdg_surface);
 
-	struct view *view = xzalloc(sizeof(struct view));
+	struct view *view = znew(*view);
 	view->server = server;
 	view->type = LAB_XDG_SHELL_VIEW;
 	view->impl = &xdg_toplevel_view_impl;

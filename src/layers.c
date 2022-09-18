@@ -202,9 +202,7 @@ static struct lab_layer_popup *
 create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_tree *parent,
 		struct wlr_box *output_toplevel_sx_box)
 {
-	struct lab_layer_popup *popup =
-		xzalloc(sizeof(struct lab_layer_popup));
-
+	struct lab_layer_popup *popup = znew(*popup);
 	popup->wlr_popup = wlr_popup;
 	popup->scene_tree =
 		wlr_scene_xdg_surface_create(parent, wlr_popup->base);
@@ -322,8 +320,7 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 		layer_surface->output = output;
 	}
 
-	struct lab_layer_surface *surface =
-		xzalloc(sizeof(struct lab_layer_surface));
+	struct lab_layer_surface *surface = znew(*surface);
 
 	surface->surface_commit.notify = surface_commit_notify;
 	wl_signal_add(&layer_surface->surface->events.commit,

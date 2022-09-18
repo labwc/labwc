@@ -79,7 +79,7 @@ menu_get_by_id(const char *id)
 static struct menuitem *
 item_create(struct menu *menu, const char *text, bool show_arrow)
 {
-	struct menuitem *menuitem = xzalloc(sizeof(struct menuitem));
+	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = true;
 	struct server *server = menu->server;
@@ -160,7 +160,7 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 static struct menuitem *
 separator_create(struct menu *menu, const char *label)
 {
-	struct menuitem *menuitem = xzalloc(sizeof(struct menuitem));
+	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = false;
 	struct server *server = menu->server;

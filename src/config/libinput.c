@@ -38,7 +38,7 @@ get_device_type(const char *s)
 struct libinput_category *
 libinput_category_create(void)
 {
-	struct libinput_category *l = xzalloc(sizeof(struct libinput_category));
+	struct libinput_category *l = znew(*l);
 	libinput_category_init(l);
 	wl_list_insert(&rc.libinput_categories, &l->link);
 	return l;

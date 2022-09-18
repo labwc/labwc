@@ -28,7 +28,7 @@ parse_modifier(const char *symname)
 struct keybind *
 keybind_create(const char *keybind)
 {
-	struct keybind *k = xzalloc(sizeof(struct keybind));
+	struct keybind *k = znew(*k);
 	xkb_keysym_t keysyms[MAX_KEYSYMS];
 	gchar **symnames = g_strsplit(keybind, "-", -1);
 	for (int i = 0; symnames[i]; i++) {

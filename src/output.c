@@ -125,7 +125,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 
 	wlr_output_commit(wlr_output);
 
-	struct output *output = xzalloc(sizeof(struct output));
+	struct output *output = znew(*output);
 	output->wlr_output = wlr_output;
 	wlr_output->data = output;
 	output->server = server;

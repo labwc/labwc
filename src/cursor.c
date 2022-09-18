@@ -532,7 +532,7 @@ create_constraint(struct wl_listener *listener, void *data)
 	struct wlr_pointer_constraint_v1 *wlr_constraint = data;
 	struct server *server = wl_container_of(listener, server,
 		new_constraint);
-	struct constraint *constraint = xzalloc(sizeof(struct constraint));
+	struct constraint *constraint = znew(*constraint);
 
 	constraint->constraint = wlr_constraint;
 	constraint->seat = &server->seat;

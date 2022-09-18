@@ -44,7 +44,7 @@ xdg_toplevel_decoration(struct wl_listener *listener, void *data)
 	struct server *server =
 		wl_container_of(listener, server, xdg_toplevel_decoration);
 	struct wlr_xdg_toplevel_decoration_v1 *wlr_decoration = data;
-	struct xdg_deco *xdg_deco = xzalloc(sizeof(struct xdg_deco));
+	struct xdg_deco *xdg_deco = znew(*xdg_deco);
 	xdg_deco->wlr_decoration = wlr_decoration;
 	xdg_deco->server = server;
 	xdg_deco->view = wlr_decoration->surface->data;

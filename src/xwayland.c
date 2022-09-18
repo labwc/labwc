@@ -484,7 +484,7 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	struct view *view = xzalloc(sizeof(struct view));
+	struct view *view = znew(*view);
 	view->server = server;
 	view->type = LAB_XWAYLAND_VIEW;
 	view->impl = &xwl_view_impl;

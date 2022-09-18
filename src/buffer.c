@@ -88,7 +88,7 @@ struct lab_data_buffer *
 buffer_create_cairo(uint32_t width, uint32_t height, float scale,
 	bool free_on_destroy)
 {
-	struct lab_data_buffer *buffer = xzalloc(sizeof(*buffer));
+	struct lab_data_buffer *buffer = znew(*buffer);
 	buffer->unscaled_width = width;
 	buffer->unscaled_height = height;
 	width *= scale;
@@ -127,7 +127,7 @@ struct lab_data_buffer *
 buffer_create_wrap(void *pixel_data, uint32_t width, uint32_t height,
 	uint32_t stride, bool free_on_destroy)
 {
-	struct lab_data_buffer *buffer = xzalloc(sizeof(*buffer));
+	struct lab_data_buffer *buffer = znew(*buffer);
 	wlr_buffer_init(&buffer->base, &data_buffer_impl, width, height);
 	buffer->data = pixel_data;
 	buffer->format = DRM_FORMAT_ARGB8888;

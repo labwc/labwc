@@ -79,7 +79,7 @@ build_path(const char *dir, const char *filename)
 		return NULL;
 	}
 	int len = strlen(dir) + strlen(filename) + 2;
-	char *buffer = xzalloc(len);
+	char *buffer = znew_n(char, len);
 	strcat(buffer, dir);
 	strcat(buffer, "/");
 	strcat(buffer, filename);
@@ -101,13 +101,13 @@ update_activation_env(const char *env_keys)
 	const char *dbus = "dbus-update-activation-environment ";
 	const char *systemd = "systemctl --user import-environment ";
 
-	cmd = xzalloc(strlen(dbus) + strlen(env_keys) + 1);
+	cmd = znew_n(char, strlen(dbus) + strlen(env_keys) + 1);
 	strcat(cmd, dbus);
 	strcat(cmd, env_keys);
 	spawn_async_no_shell(cmd);
 	free(cmd);
 
-	cmd = xzalloc(strlen(systemd) + strlen(env_keys) + 1);
+	cmd = znew_n(char, strlen(systemd) + strlen(env_keys) + 1);
 	strcat(cmd, systemd);
 	strcat(cmd, env_keys);
 	spawn_async_no_shell(cmd);
@@ -148,7 +148,7 @@ session_autostart_init(const char *dir)
 	}
 	wlr_log(WLR_INFO, "run autostart file %s", autostart);
 	int len = strlen(autostart) + 4;
-	char *cmd = xzalloc(len);
+	char *cmd = znew_n(char, len);
 	strcat(cmd, "sh ");
 	strcat(cmd, autostart);
 	spawn_async_no_shell(cmd);

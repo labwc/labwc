@@ -26,8 +26,7 @@ void
 node_descriptor_create(struct wlr_scene_node *scene_node,
 		enum node_descriptor_type type, void *data)
 {
-	struct node_descriptor *node_descriptor =
-		xzalloc(sizeof(struct node_descriptor));
+	struct node_descriptor *node_descriptor = znew(*node_descriptor);
 	node_descriptor->type = type;
 	node_descriptor->data = data;
 	node_descriptor->destroy.notify = destroy_notify;

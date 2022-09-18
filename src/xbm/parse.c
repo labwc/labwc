@@ -38,8 +38,7 @@ parse_set_color(float *rgba)
 static void
 process_bytes(struct pixmap *pixmap, struct token *tokens)
 {
-	pixmap->data = (uint32_t *)xzalloc(
-		pixmap->width * pixmap->height * sizeof(uint32_t));
+	pixmap->data = znew_n(uint32_t, pixmap->width * pixmap->height);
 	struct token *t = tokens;
 	for (int row = 0; row < pixmap->height; row++) {
 		int byte = 1;

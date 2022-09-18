@@ -24,7 +24,7 @@ static struct ssd_button *
 ssd_button_descriptor_create(struct wlr_scene_node *node)
 {
 	/* Create new ssd_button */
-	struct ssd_button *button = xzalloc(sizeof(struct ssd_button));
+	struct ssd_button *button = znew(*button);
 
 	/* Let it destroy automatically when the scene node destroys */
 	button->destroy.notify = ssd_button_destroy_notify;
@@ -39,7 +39,7 @@ ssd_button_descriptor_create(struct wlr_scene_node *node)
 struct ssd_part *
 add_scene_part(struct wl_list *part_list, enum ssd_part_type type)
 {
-	struct ssd_part *part = xzalloc(sizeof(struct ssd_part));
+	struct ssd_part *part = znew(*part);
 	part->type = type;
 	wl_list_insert(part_list->prev, &part->link);
 	return part;

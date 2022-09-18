@@ -401,7 +401,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "cycleViewOutlines.core")) {
 		rc.cycle_preview_outlines = get_bool(content);
 	} else if (!strcasecmp(nodename, "name.names.desktops")) {
-		struct workspace *workspace = xzalloc(sizeof(struct workspace));
+		struct workspace *workspace = znew(*workspace);
 		workspace->name = xstrdup(content);
 		wl_list_insert(rc.workspace_config.workspaces.prev, &workspace->link);
 	} else if (!strcasecmp(nodename, "popupTime.desktops")) {
@@ -685,7 +685,7 @@ post_processing(void)
 		l->type = DEFAULT_DEVICE;
 	}
 	if (!wl_list_length(&rc.workspace_config.workspaces)) {
-		struct workspace *workspace = xzalloc(sizeof(struct workspace));
+		struct workspace *workspace = znew(*workspace);
 		workspace->name = xstrdup("Default");
 		wl_list_insert(rc.workspace_config.workspaces.prev, &workspace->link);
 	}

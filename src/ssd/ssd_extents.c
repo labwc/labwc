@@ -19,7 +19,7 @@ add_extent(struct wl_list *part_list, enum ssd_part_type type,
 	 * part->geometry will get free'd automatically in ssd_destroy_parts().
 	 */
 	part->node = &wlr_scene_rect_create(parent, 0, 0, invisible)->node;
-	part->geometry = xzalloc(sizeof(struct wlr_box));
+	part->geometry = znew(struct wlr_box);
 	return part;
 }
 

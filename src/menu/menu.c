@@ -12,15 +12,14 @@
 #include <wlr/util/log.h>
 #include "common/buf.h"
 #include "common/font.h"
+#include "common/mem.h"
 #include "common/nodename.h"
 #include "common/scaled_font_buffer.h"
 #include "common/string-helpers.h"
-#include "common/zfree.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "theme.h"
 #include "action.h"
-#include "buffer.h"
 #include "node.h"
 
 #define MENUWIDTH (110)
@@ -44,14 +43,14 @@ menu_create(struct server *server, const char *id, const char *label)
 {
 	if (nr_menus == alloc_menus) {
 		alloc_menus = (alloc_menus + 16) * 2;
-		menus = realloc(menus, alloc_menus * sizeof(struct menu));
+		menus = xrealloc(menus, alloc_menus * sizeof(struct menu));
 	}
 	struct menu *menu = menus + nr_menus;
 	memset(menu, 0, sizeof(*menu));
 	nr_menus++;
 	wl_list_init(&menu->menuitems);
-	menu->id = strdup(id);
-	menu->label = label ? strdup(label) : strdup(id);
+	menu->id = xstrdup(id);
+	menu->label = xstrdup(label ? label : id);
 	menu->parent = current_menu;
 	menu->server = server;
 	menu->size.width = MENUWIDTH;
@@ -80,10 +79,7 @@ menu_get_by_id(const char *id)
 static struct menuitem *
 item_create(struct menu *menu, const char *text, bool show_arrow)
 {
-	struct menuitem *menuitem = calloc(1, sizeof(struct menuitem));
-	if (!menuitem) {
-		return NULL;
-	}
+	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = true;
 	struct server *server = menu->server;
@@ -164,10 +160,7 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 static struct menuitem *
 separator_create(struct menu *menu, const char *label)
 {
-	struct menuitem *menuitem = calloc(1, sizeof(struct menuitem));
-	if (!menuitem) {
-		return NULL;
-	}
+	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = false;
 	struct server *server = menu->server;

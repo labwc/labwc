@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
+#include "common/mem.h"
 #include "labwc.h"
 #include "node.h"
 #include "ssd.h"
@@ -483,7 +484,7 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	struct view *view = calloc(1, sizeof(struct view));
+	struct view *view = znew(*view);
 	view->server = server;
 	view->type = LAB_XWAYLAND_VIEW;
 	view->impl = &xwl_view_impl;

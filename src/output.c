@@ -7,7 +7,6 @@
  */
 
 #define _POSIX_C_SOURCE 200809L
-#include "config.h"
 #include <assert.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
@@ -16,13 +15,10 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/region.h>
 #include <wlr/util/log.h>
-#include "buffer.h"
+#include "common/mem.h"
 #include "labwc.h"
 #include "layers.h"
-#include "menu/menu.h"
 #include "node.h"
-#include "ssd.h"
-#include "theme.h"
 
 static void
 output_frame_notify(struct wl_listener *listener, void *data)
@@ -129,7 +125,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 
 	wlr_output_commit(wlr_output);
 
-	struct output *output = calloc(1, sizeof(struct output));
+	struct output *output = znew(*output);
 	output->wlr_output = wlr_output;
 	wlr_output->data = output;
 	output->server = server;

@@ -22,7 +22,6 @@
 #include "common/font.h"
 #include "common/graphic-helpers.h"
 #include "common/string-helpers.h"
-#include "common/zfree.h"
 #include "config/rcxml.h"
 #include "theme.h"
 #include "xbm/xbm.h"

@@ -2,14 +2,14 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
 #include "common/dir.h"
+#include "common/fd_util.h"
 #include "common/font.h"
+#include "common/mem.h"
 #include "common/spawn.h"
 #include "config/session.h"
 #include "labwc.h"
 #include "theme.h"
-#include "xbm/xbm.h"
 #include "menu/menu.h"
-#include "common/fd_util.h"
 
 struct rcxml rc = { 0 };
 
@@ -49,7 +49,7 @@ main(int argc, char *argv[])
 			config_file = optarg;
 			break;
 		case 'C':
-			rc.config_dir = strdup(optarg);
+			rc.config_dir = xstrdup(optarg);
 			break;
 		case 'd':
 			verbosity = WLR_DEBUG;

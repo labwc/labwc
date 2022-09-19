@@ -12,7 +12,7 @@ enum action_arg_type {
 struct action_arg {
 	struct wl_list link;        /* struct action.args */
 
-	const char *key;            /* May be NULL if there is just one arg */
+	char *key;                  /* May be NULL if there is just one arg */
 	enum action_arg_type type;
 };
 

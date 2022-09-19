@@ -6,8 +6,8 @@
 #include <strings.h>
 #include <unistd.h>
 #include <wlr/util/log.h>
+#include "common/mem.h"
 #include "common/spawn.h"
-#include "common/zfree.h"
 #include "debug.h"
 #include "labwc.h"
 #include "menu/menu.h"
@@ -105,7 +105,7 @@ action_create(const char *action_name)
 		wlr_log(WLR_ERROR, "action name not specified");
 		return NULL;
 	}
-	struct action *action = calloc(1, sizeof(struct action));
+	struct action *action = znew(*action);
 	action->type = action_type_from_str(action_name);
 	wl_list_init(&action->args);
 	return action;
@@ -372,11 +372,11 @@ void
 action_arg_add_str(struct action *action, char *key, const char *value)
 {
 	assert(value && "Tried to add NULL action string argument");
-	struct action_arg_str *arg = calloc(1, sizeof(*arg));
+	struct action_arg_str *arg = znew(*arg);
 	arg->base.type = LAB_ACTION_ARG_STR;
 	if (key) {
-		arg->base.key = strdup(key);
+		arg->base.key = xstrdup(key);
 	}
-	arg->value = strdup(value);
+	arg->value = xstrdup(value);
 	wl_list_insert(action->args.prev, &arg->base.link);
 }

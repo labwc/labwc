@@ -7,9 +7,9 @@
 #include <wlr/util/log.h>
 #include "buffer.h"
 #include "common/font.h"
+#include "common/mem.h"
 #include "common/scaled_scene_buffer.h"
 #include "common/scaled_font_buffer.h"
-#include "common/zfree.h"
 
 static struct lab_data_buffer *
 _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
@@ -46,11 +46,7 @@ struct scaled_font_buffer *
 scaled_font_buffer_create(struct wlr_scene_tree *parent)
 {
 	assert(parent);
-	struct scaled_font_buffer *self = calloc(1, sizeof(*self));
-	if (!self) {
-		return NULL;
-	}
-
+	struct scaled_font_buffer *self = znew(*self);
 	struct scaled_scene_buffer *scaled_buffer
 		= scaled_scene_buffer_create(parent, &impl);
 	if (!scaled_buffer) {
@@ -80,16 +76,16 @@ scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 	zfree(self->arrow);
 
 	/* Update internal state */
-	self->text = strdup(text);
+	self->text = xstrdup(text);
 	self->max_width = max_width;
 	if (font->name) {
-		self->font.name = strdup(font->name);
+		self->font.name = xstrdup(font->name);
 	}
 	self->font.size = font->size;
 	self->font.slant = font->slant;
 	self->font.weight = font->weight;
 	memcpy(self->color, color, sizeof(self->color));
-	self->arrow = arrow ? strdup(arrow) : NULL;
+	self->arrow = arrow ? xstrdup(arrow) : NULL;
 
 	/* Invalidate cache and force a new render */
 	scaled_scene_buffer_invalidate_cache(self->scaled_buffer);

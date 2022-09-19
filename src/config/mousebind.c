@@ -5,6 +5,7 @@
 #include <strings.h>
 #include <unistd.h>
 #include <wlr/util/log.h>
+#include "common/mem.h"
 #include "config/mousebind.h"
 #include "config/rcxml.h"
 
@@ -108,7 +109,7 @@ mousebind_create(const char *context)
 		wlr_log(WLR_ERROR, "mousebind context not specified");
 		return NULL;
 	}
-	struct mousebind *m = calloc(1, sizeof(struct mousebind));
+	struct mousebind *m = znew(*m);
 	m->context = context_from_str(context);
 	if (m->context != LAB_SSD_NONE) {
 		wl_list_insert(rc.mousebinds.prev, &m->link);

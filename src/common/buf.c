@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <ctype.h>
 #include "common/buf.h"
+#include "common/mem.h"
 
 static void
 strip_curly_braces(char *s)
@@ -45,7 +46,7 @@ buf_expand_shell_variables(struct buf *s)
 			/* just add one character at a time */
 			if (new.alloc <= new.len + 1) {
 				new.alloc = new.alloc * 3 / 2 + 16;
-				new.buf = realloc(new.buf, new.alloc);
+				new.buf = xrealloc(new.buf, new.alloc);
 			}
 			new.buf[new.len++] = s->buf[i];
 			new.buf[new.len] = '\0';
@@ -60,7 +61,7 @@ void
 buf_init(struct buf *s)
 {
 	s->alloc = 256;
-	s->buf = malloc(s->alloc);
+	s->buf = xmalloc(s->alloc);
 	s->buf[0] = '\0';
 	s->len = 0;
 }
@@ -74,7 +75,7 @@ buf_add(struct buf *s, const char *data)
 	int len = strlen(data);
 	if (s->alloc <= s->len + len + 1) {
 		s->alloc = s->alloc + len;
-		s->buf = realloc(s->buf, s->alloc);
+		s->buf = xrealloc(s->buf, s->alloc);
 	}
 	memcpy(s->buf + s->len, data, len);
 	s->len += len;

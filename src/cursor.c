@@ -6,12 +6,13 @@
 #include <time.h>
 #include <wlr/types/wlr_primary_selection.h>
 #include "action.h"
+#include "common/mem.h"
+#include "common/scene-helpers.h"
+#include "config/mousebind.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "resistance.h"
 #include "ssd.h"
-#include "config/mousebind.h"
-#include "common/scene-helpers.h"
 
 static const char **cursor_names = NULL;
 
@@ -531,15 +532,14 @@ create_constraint(struct wl_listener *listener, void *data)
 	struct wlr_pointer_constraint_v1 *wlr_constraint = data;
 	struct server *server = wl_container_of(listener, server,
 		new_constraint);
-	struct view *view;
-	struct constraint *constraint = calloc(1, sizeof(struct constraint));
+	struct constraint *constraint = znew(*constraint);
 
 	constraint->constraint = wlr_constraint;
 	constraint->seat = &server->seat;
 	constraint->destroy.notify = destroy_constraint;
 	wl_signal_add(&wlr_constraint->events.destroy, &constraint->destroy);
 
-	view = desktop_focused_view(server);
+	struct view *view = desktop_focused_view(server);
 	if (view && view->surface == wlr_constraint->surface) {
 		constrain_cursor(server, wlr_constraint);
 	}

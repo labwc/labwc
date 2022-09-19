@@ -7,6 +7,7 @@
 #include "ssd.h"
 #include "theme.h"
 #include "common/font.h"
+#include "common/mem.h"
 #include "common/scaled_font_buffer.h"
 #include "common/scene-helpers.h"
 #include "node.h"
@@ -271,7 +272,7 @@ ssd_update_title(struct view *view)
 		if (state->text) {
 			free(state->text);
 		}
-		state->text = strdup(title);
+		state->text = xstrdup(title);
 	}
 	ssd_update_title_positions(view);
 }

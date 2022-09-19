@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <wlr/util/log.h>
 #include "common/buf.h"
+#include "common/mem.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 
@@ -78,10 +79,7 @@ build_path(const char *dir, const char *filename)
 		return NULL;
 	}
 	int len = strlen(dir) + strlen(filename) + 2;
-	char *buffer = calloc(1, len);
-	if (!buffer) {
-		return NULL;
-	}
+	char *buffer = znew_n(char, len);
 	strcat(buffer, dir);
 	strcat(buffer, "/");
 	strcat(buffer, filename);
@@ -103,25 +101,17 @@ update_activation_env(const char *env_keys)
 	const char *dbus = "dbus-update-activation-environment ";
 	const char *systemd = "systemctl --user import-environment ";
 
-	cmd = calloc(1, strlen(dbus) + strlen(env_keys) + 1);
-	if (!cmd) {
-		wlr_log(WLR_ERROR, "Failed to allocate memory for dbus env update");
-	} else {
-		strcat(cmd, dbus);
-		strcat(cmd, env_keys);
-		spawn_async_no_shell(cmd);
-		free(cmd);
-	}
+	cmd = znew_n(char, strlen(dbus) + strlen(env_keys) + 1);
+	strcat(cmd, dbus);
+	strcat(cmd, env_keys);
+	spawn_async_no_shell(cmd);
+	free(cmd);
 
-	cmd = calloc(1, strlen(systemd) + strlen(env_keys) + 1);
-	if (!cmd) {
-		wlr_log(WLR_ERROR, "Failed to allocate memory for systemd env update");
-	} else {
-		strcat(cmd, systemd);
-		strcat(cmd, env_keys);
-		spawn_async_no_shell(cmd);
-		free(cmd);
-	}
+	cmd = znew_n(char, strlen(systemd) + strlen(env_keys) + 1);
+	strcat(cmd, systemd);
+	strcat(cmd, env_keys);
+	spawn_async_no_shell(cmd);
+	free(cmd);
 }
 
 void
@@ -158,11 +148,7 @@ session_autostart_init(const char *dir)
 	}
 	wlr_log(WLR_INFO, "run autostart file %s", autostart);
 	int len = strlen(autostart) + 4;
-	char *cmd = calloc(1, len);
-	if (!cmd) {
-		wlr_log(WLR_ERROR, "Failed to allocate memory for autostart command");
-		goto out;
-	}
+	char *cmd = znew_n(char, len);
 	strcat(cmd, "sh ");
 	strcat(cmd, autostart);
 	spawn_async_no_shell(cmd);

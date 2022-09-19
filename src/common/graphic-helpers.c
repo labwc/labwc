@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <wlr/types/wlr_scene.h>
 #include "common/graphic-helpers.h"
+#include "common/mem.h"
 
 static void
 multi_rect_destroy_notify(struct wl_listener *listener, void *data)
@@ -16,7 +17,7 @@ multi_rect_destroy_notify(struct wl_listener *listener, void *data)
 struct multi_rect *
 multi_rect_create(struct wlr_scene_tree *parent, float *colors[3], int line_width)
 {
-	struct multi_rect *rect = calloc(1, sizeof(*rect));
+	struct multi_rect *rect = znew(*rect);
 	rect->line_width = line_width;
 	rect->tree = wlr_scene_tree_create(parent);
 	rect->destroy.notify = multi_rect_destroy_notify;

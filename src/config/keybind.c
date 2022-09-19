@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wlr/util/log.h>
+#include "common/mem.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
 
@@ -27,7 +28,7 @@ parse_modifier(const char *symname)
 struct keybind *
 keybind_create(const char *keybind)
 {
-	struct keybind *k = calloc(1, sizeof(struct keybind));
+	struct keybind *k = znew(*k);
 	xkb_keysym_t keysyms[MAX_KEYSYMS];
 	gchar **symnames = g_strsplit(keybind, "-", -1);
 	for (int i = 0; symnames[i]; i++) {
@@ -60,7 +61,7 @@ keybind_create(const char *keybind)
 		return NULL;
 	}
 	wl_list_insert(rc.keybinds.prev, &k->link);
-	k->keysyms = malloc(k->keysyms_len * sizeof(xkb_keysym_t));
+	k->keysyms = xmalloc(k->keysyms_len * sizeof(xkb_keysym_t));
 	memcpy(k->keysyms, keysyms, k->keysyms_len * sizeof(xkb_keysym_t));
 	wl_list_init(&k->actions);
 	return k;

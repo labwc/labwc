@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "common/mem.h"
 #include "xbm/tokenize.h"
 
 static char *current_buffer_position;
@@ -20,7 +21,7 @@ add_token(enum token_type token_type)
 {
 	if (nr_tokens == alloc_tokens) {
 		alloc_tokens = (alloc_tokens + 16) * 2;
-		tokens = realloc(tokens, alloc_tokens * sizeof(struct token));
+		tokens = xrealloc(tokens, alloc_tokens * sizeof(struct token));
 	}
 	struct token *token = tokens + nr_tokens;
 	memset(token, 0, sizeof(*token));

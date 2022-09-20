@@ -178,9 +178,10 @@ separator_create(struct menu *menu, const char *label)
 		theme->menu_items_bg_color)->node;
 
 	/* theme->menu_separator_width is the line-thickness (so height here) */
+	int width = MENUWIDTH - 2 * theme->menu_separator_padding_width;
 	menuitem->normal.text = &wlr_scene_rect_create(
 		menuitem->normal.tree,
-		MENUWIDTH - 2 * theme->menu_separator_padding_width,
+		width > 0 ? width : 0,
 		theme->menu_separator_width,
 		theme->menu_separator_color)->node;
 

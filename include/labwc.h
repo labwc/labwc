@@ -225,7 +225,14 @@ struct server {
 	struct wl_listener output_layout_change;
 	struct wlr_output_manager_v1 *output_manager;
 	struct wl_listener output_manager_apply;
-	struct wlr_output_configuration_v1 *pending_output_config;
+	/*
+	 * While an output layout change is in process, this counter is
+	 * non-zero and causes change-events from the wlr_output_layout
+	 * to be ignored (to prevent, for example, moving views in a
+	 * transitory layout state).  Once the counter reaches zero,
+	 * do_output_layout_change() must be called explicitly.
+	 */
+	int pending_output_layout_change;
 
 	struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
 

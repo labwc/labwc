@@ -85,6 +85,7 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
 		}
 		for (size_t i = 0; i < keybind->keysyms_len; i++) {
 			if (xkb_keysym_to_lower(sym) == keybind->keysyms[i]) {
+				key_state_store_pressed_keys_as_bound();
 				actions_run(NULL, server, &keybind->actions, 0);
 				return true;
 			}
@@ -121,7 +122,7 @@ handle_compositor_keybindings(struct wl_listener *listener,
 
 	bool handled = false;
 
-	key_state_set_pressed(keycode,
+	key_state_set_pressed(event->keycode,
 		event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
 
 	/*
@@ -152,9 +153,9 @@ handle_compositor_keybindings(struct wl_listener *listener,
 	 * If a press event was handled by a compositor binding, then do not
 	 * forward the corresponding release event to clients
 	 */
-	if (key_state_corresponding_press_event_was_bound(keycode)
+	if (key_state_corresponding_press_event_was_bound(event->keycode)
 			&& event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
-		key_state_bound_key_remove(keycode);
+		key_state_bound_key_remove(event->keycode);
 		return true;
 	}
 
@@ -247,7 +248,7 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	if (!handled) {
 		wlr_seat_set_keyboard(wlr_seat, keyboard);
 		wlr_seat_keyboard_notify_key(wlr_seat, event->time_msec,
-					     event->keycode, event->state);
+			event->keycode, event->state);
 	}
 }
 

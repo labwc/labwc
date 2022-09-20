@@ -53,6 +53,8 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 	free(output);
 }
 
+static void do_output_layout_change(struct server *server);
+
 static void
 new_output_notify(struct wl_listener *listener, void *data)
 {
@@ -179,9 +181,19 @@ new_output_notify(struct wl_listener *listener, void *data)
 		wlr_output_enable_adaptive_sync(wlr_output, true);
 	}
 
+	/*
+	 * Wait until wlr_output_layout_add_auto() returns before
+	 * calling do_output_layout_change(); this ensures that the
+	 * wlr_output_cursor is created for the new output.
+	 */
+	server->pending_output_layout_change++;
+
 	wlr_output_layout_add_auto(server->output_layout, wlr_output);
 	output->scene_output = wlr_scene_get_scene_output(server->scene, wlr_output);
 	assert(output->scene_output);
+
+	server->pending_output_layout_change--;
+	do_output_layout_change(server);
 }
 
 void
@@ -229,13 +241,11 @@ output_update_for_layout_change(struct server *server)
 		XCURSOR_DEFAULT, server->seat.cursor);
 }
 
-static void do_output_layout_change(struct server *server);
-
 static void
 output_config_apply(struct server *server,
 		struct wlr_output_configuration_v1 *config)
 {
-	server->pending_output_config = config;
+	server->pending_output_layout_change++;
 
 	struct wlr_output_configuration_head_v1 *head;
 	wl_list_for_each(head, &config->heads, link) {
@@ -284,7 +294,7 @@ output_config_apply(struct server *server,
 
 	}
 
-	server->pending_output_config = NULL;
+	server->pending_output_layout_change--;
 	do_output_layout_change(server);
 }
 
@@ -360,8 +370,7 @@ wlr_output_configuration_v1 *create_output_config(struct server *server)
 static void
 do_output_layout_change(struct server *server)
 {
-	bool done_changing = !server->pending_output_config;
-	if (done_changing) {
+	if (!server->pending_output_layout_change) {
 		struct wlr_output_configuration_v1 *config =
 			create_output_config(server);
 		if (config) {

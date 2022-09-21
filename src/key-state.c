@@ -10,7 +10,7 @@ struct key_array {
 	int nr_keys;
 };
 
-static struct key_array pressed, bound;
+static struct key_array pressed, bound, pressed_sent;
 
 static void
 remove_key(struct key_array *array, uint32_t keycode)
@@ -33,6 +33,25 @@ static void
 add_key(struct key_array *array, uint32_t keycode)
 {
 	array->keys[array->nr_keys++] = keycode;
+}
+
+uint32_t *
+key_state_pressed_sent_keycodes(void)
+{
+	/* pressed_sent = pressed - bound */
+	memcpy(pressed_sent.keys, pressed.keys,
+		MAX_PRESSED_KEYS * sizeof(uint32_t));
+	pressed_sent.nr_keys = pressed.nr_keys;
+	for (int i = 0; i < bound.nr_keys; ++i) {
+		remove_key(&pressed_sent, bound.keys[i]);
+	}
+	return pressed_sent.keys;
+}
+
+int
+key_state_nr_pressed_sent_keycodes(void)
+{
+	return pressed_sent.nr_keys;
 }
 
 void
@@ -63,9 +82,14 @@ key_state_corresponding_press_event_was_bound(uint32_t keycode)
 	return false;
 }
 
-int
+void
 key_state_bound_key_remove(uint32_t keycode)
 {
 	remove_key(&bound, keycode);
+}
+
+int
+key_state_nr_keys(void)
+{
 	return bound.nr_keys;
 }

@@ -7,6 +7,8 @@
 #include "labwc.h"
 #include "workspaces.h"
 
+static bool should_cancel_cycling_on_next_key_release;
+
 static void
 change_vt(struct server *server, unsigned int vt)
 {
@@ -34,6 +36,17 @@ keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard)
 }
 
 static void
+end_cycling(struct server *server)
+{
+	desktop_focus_and_activate_view(&server->seat, server->osd_state.cycle_view);
+	desktop_move_to_front(server->osd_state.cycle_view);
+
+	/* osd_finish() additionally resets cycle_view to NULL */
+	osd_finish(server);
+	should_cancel_cycling_on_next_key_release = false;
+}
+
+static void
 keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, keyboard_modifiers);
@@ -46,12 +59,11 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 		if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED
 				&& !keyboard_any_modifiers_pressed(keyboard))  {
 			if (server->osd_state.cycle_view) {
-				/* end cycle */
-				desktop_focus_and_activate_view(&server->seat,
-					server->osd_state.cycle_view);
-				desktop_move_to_front(server->osd_state.cycle_view);
-				/* osd_finish() additionally resets cycle_view to NULL */
-				osd_finish(server);
+				if (key_state_nr_keys()) {
+					should_cancel_cycling_on_next_key_release = true;
+				} else {
+					end_cycling(server);
+				}
 			}
 			if (seat->workspace_osd_shown_by_modifier) {
 				workspaces_osd_hide(seat);
@@ -67,14 +79,13 @@ static bool
 handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
 {
 	struct keybind *keybind;
-	struct wlr_keyboard *kb = &server->seat.keyboard_group->keyboard;
 	wl_list_for_each_reverse (keybind, &rc.keybinds, link) {
 		if (modifiers ^ keybind->modifiers) {
 			continue;
 		}
 		for (size_t i = 0; i < keybind->keysyms_len; i++) {
 			if (xkb_keysym_to_lower(sym) == keybind->keysyms[i]) {
-				wlr_keyboard_set_repeat_info(kb, 0, 0);
+				key_state_store_pressed_keys_as_bound();
 				actions_run(NULL, server, &keybind->actions, 0);
 				return true;
 			}
@@ -111,20 +122,40 @@ handle_compositor_keybindings(struct wl_listener *listener,
 
 	bool handled = false;
 
-	key_state_set_pressed(keycode,
+	key_state_set_pressed(event->keycode,
 		event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
+
+	/*
+	 * Ignore labwc keybindings if input is inhibited
+	 * It's important to do this after key_state_set_pressed() to ensure
+	 * _all_ key press/releases are registered
+	 */
+	if (seat->active_client_while_inhibited) {
+		return false;
+	}
+
+	/*
+	 * If a user lets go of the modifier (e.g. alt) before the 'normal' key
+	 * (e.g. tab) when window-cycling, we do not end the cycling until both
+	 * keys have been released.  If we end the window-cycling on release of
+	 * the modifier only, some XWayland clients such as hexchat realise that
+	 * tab is pressed (even though we did not forward the event) and because
+	 * we absorb the equivalent release event it gets stuck on repeat.
+	 */
+	if (should_cancel_cycling_on_next_key_release
+			&& event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
+		end_cycling(server);
+		handled = true;
+		goto out;
+	}
 
 	/*
 	 * If a press event was handled by a compositor binding, then do not
 	 * forward the corresponding release event to clients
 	 */
-	if (key_state_corresponding_press_event_was_bound(keycode)
+	if (key_state_corresponding_press_event_was_bound(event->keycode)
 			&& event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
-		int nr_bound_keys = key_state_bound_key_remove(keycode);
-		if (!nr_bound_keys) {
-			wlr_keyboard_set_repeat_info(keyboard,
-				rc.repeat_rate, rc.repeat_delay);
-		}
+		key_state_bound_key_remove(event->keycode);
 		return true;
 	}
 
@@ -140,7 +171,8 @@ handle_compositor_keybindings(struct wl_listener *listener,
 				 * Don't send any key events to clients when
 				 * changing tty
 				 */
-				return true;
+				handled = true;
+				goto out;
 			}
 		}
 	}
@@ -149,11 +181,17 @@ handle_compositor_keybindings(struct wl_listener *listener,
 		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			for (int i = 0; i < nsyms; i++) {
 				if (syms[i] == XKB_KEY_Escape) {
-					/* cancel */
+					/*
+					 * Cancel view-cycle
+					 *
+					 * osd_finish() additionally resets
+					 * cycle_view to NULL
+					 */
 					osd_preview_restore(server);
-					/* osd_finish() additionally resets cycle_view to NULL */
 					osd_finish(server);
-					return true;
+
+					handled = true;
+					goto out;
 				}
 			}
 
@@ -175,7 +213,8 @@ handle_compositor_keybindings(struct wl_listener *listener,
 			}
 		}
 		/* don't send any key events to clients when osd onscreen */
-		return true;
+		handled = true;
+		goto out;
 	}
 
 	/* Handle compositor key bindings */
@@ -185,6 +224,7 @@ handle_compositor_keybindings(struct wl_listener *listener,
 		}
 	}
 
+out:
 	if (handled) {
 		key_state_store_pressed_keys_as_bound();
 	}
@@ -203,17 +243,12 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
-	bool handled = false;
-
-	/* ignore labwc keybindings if input is inhibited */
-	if (!seat->active_client_while_inhibited) {
-		handled = handle_compositor_keybindings(listener, event);
-	}
+	bool handled = handle_compositor_keybindings(listener, event);
 
 	if (!handled) {
 		wlr_seat_set_keyboard(wlr_seat, keyboard);
 		wlr_seat_keyboard_notify_key(wlr_seat, event->time_msec,
-					     event->keycode, event->state);
+			event->keycode, event->state);
 	}
 }
 

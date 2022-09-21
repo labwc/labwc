@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_touch.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
+#include "key-state.h"
 #include "labwc.h"
 
 static void
@@ -347,8 +348,19 @@ seat_focus_surface(struct seat *seat, struct wlr_surface *surface)
 		return;
 	}
 	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
-	wlr_seat_keyboard_notify_enter(seat->seat, surface, kb->keycodes,
-		kb->num_keycodes, &kb->modifiers);
+
+	/*
+	 * Key events associated with keybindings (both pressed and released)
+	 * are not sent to clients. When changing surface-focus it is therefore
+	 * important not to send the keycodes of _all_ pressed keys, but only
+	 * those that were actually _sent_ to clients (that is, those that were
+	 * not bound).
+	 */
+	uint32_t *pressed_sent_keycodes = key_state_pressed_sent_keycodes();
+	int nr_pressed_sent_keycodes = key_state_nr_pressed_sent_keycodes();
+
+	wlr_seat_keyboard_notify_enter(seat->seat, surface,
+		pressed_sent_keycodes, nr_pressed_sent_keycodes, &kb->modifiers);
 
 	struct server *server = seat->server;
 	struct wlr_pointer_constraint_v1 *constraint =

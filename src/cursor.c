@@ -395,10 +395,13 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		/*
 		 * Cursor is over a server (labwc) surface.  Clear focus
 		 * from the focused client (if any, no-op otherwise) and
-		 * set the cursor image ourselves.
+		 * set the cursor image ourselves when not currently in
+		 * a drag operation.
 		 */
 		wlr_seat_pointer_notify_clear_focus(wlr_seat);
-		cursor_set(seat, cursor_get_from_ssd(ctx->type));
+		if (!seat->drag_icon) {
+			cursor_set(seat, cursor_get_from_ssd(ctx->type));
+		}
 	}
 }
 

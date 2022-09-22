@@ -345,7 +345,6 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		return;
 	}
 
-	/* TODO: verify drag_icon logic */
 	if (seat->pressed.surface && ctx->surface != seat->pressed.surface
 			&& !update_pressed_surface(seat, ctx)
 			&& !seat->drag_icon) {
@@ -362,36 +361,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		return;
 	}
 
-	if (ctx->surface && !input_inhibit_blocks_surface(seat,
-			ctx->surface->resource)) {
-		/*
-		 * Cursor is over an input-enabled client surface.  The
-		 * cursor image will be set by request_cursor_notify()
-		 * in response to the enter event.
-		 */
-		if (ctx->surface != wlr_seat->pointer_state.focused_surface
-				|| seat->server_cursor != LAB_CURSOR_CLIENT) {
-			/*
-			 * Enter the surface if necessary.  Usually we
-			 * prevent re-entering an already focused
-			 * surface, because the extra leave and enter
-			 * events can confuse clients (e.g. break
-			 * double-click detection).
-			 *
-			 * We do however send a leave/enter event pair
-			 * if a server-side cursor was set and we need
-			 * to trigger a cursor image update.
-			 */
-			wlr_seat_pointer_notify_clear_focus(wlr_seat);
-			wlr_seat_pointer_notify_enter(wlr_seat, ctx->surface,
-				ctx->sx, ctx->sy);
-			seat->server_cursor = LAB_CURSOR_CLIENT;
-		}
-		if (cursor_has_moved) {
-			wlr_seat_pointer_notify_motion(wlr_seat, time_msec,
-				ctx->sx, ctx->sy);
-		}
-	} else {
+	if (!ctx->surface) {
 		/*
 		 * Cursor is over a server (labwc) surface.  Clear focus
 		 * from the focused client (if any, no-op otherwise) and
@@ -401,6 +371,46 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		wlr_seat_pointer_notify_clear_focus(wlr_seat);
 		if (!seat->drag_icon) {
 			cursor_set(seat, cursor_get_from_ssd(ctx->type));
+		}
+	} else if (input_inhibit_blocks_surface(seat, ctx->surface->resource)) {
+		/*
+		 * Cursor is over an inhibited surface
+		 *
+		 * TODO: we might want to check for locked surface as well here
+		 */
+		return;
+	} else {
+		/*
+		 * Cursor is over an input-enabled client surface.  The
+		 * cursor image will be set by request_cursor_notify()
+		 * in response to the enter event.
+		 */
+
+		if (ctx->surface == wlr_seat->pointer_state.focused_surface
+				&& seat->server_cursor != LAB_CURSOR_CLIENT) {
+			/*
+			 * Leave and enter the surface if necessary.
+			 * Usually we prevent re-entering an already
+			 * focused surface, because the extra leave
+			 * and enter events can confuse or even crash
+			 * clients (e.g. break double-click detection,
+			 * crash on touchpad scrolling or drag-and-drop).
+			 *
+			 * We do however send a leave/enter event pair
+			 * if a server-side cursor was set and we need
+			 * to trigger a client cursor image update.
+			 */
+			wlr_seat_pointer_notify_clear_focus(wlr_seat);
+		}
+
+		/* Enter the surface if necessary, no-op otherwise */
+		wlr_seat_pointer_notify_enter(
+			wlr_seat, ctx->surface, ctx->sx, ctx->sy);
+		seat->server_cursor = LAB_CURSOR_CLIENT;
+
+		if (cursor_has_moved) {
+			wlr_seat_pointer_notify_motion(
+				wlr_seat, time_msec, ctx->sx, ctx->sy);
 		}
 	}
 }

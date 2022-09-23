@@ -16,6 +16,7 @@ jobs:
       matrix:
         name: [
           Arch,
+          Debian,
           FreeBSD,
           Void-musl
         ]
@@ -23,6 +24,12 @@ jobs:
           - name: Arch
             os: ubuntu-latest
             container: archlinux:base-devel
+            env:
+              TARGET: 'sh -xe'
+
+          - name: Debian
+            os: ubuntu-latest
+            container: debian:testing
             env:
               TARGET: 'sh -xe'
 
@@ -51,6 +58,17 @@ jobs:
           pacman -Syu --noconfirm
           pacman -S --noconfirm git meson clang wlroots libdrm libinput \
             wayland-protocols cairo pango libxml2 xorg-xwayland
+
+      - name: Install Debian Testing dependencies
+        if: matrix.name == 'Debian'
+        run: |
+          sed '/^deb/ s/^deb/deb-src/' /etc/apt/sources.list > /tmp/src
+          cat /tmp/src >> /etc/apt/sources.list
+          apt-get update
+          apt-get upgrade -y
+          apt-get install -y git clang \
+            libxml2-dev libcairo2-dev libpango1.0-dev
+          apt-get build-dep -y wlroots
 
       - name: Install FreeBSD dependencies
         if: matrix.name == 'FreeBSD'
@@ -81,7 +99,7 @@ jobs:
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
-            meson build-gcc --werror
+            meson build-gcc -Dxwayland=enabled --werror
             meson compile -C build-gcc
           ' | $TARGET
 
@@ -90,7 +108,7 @@ jobs:
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=clang
-            meson build-clang --werror
+            meson build-clang -Dxwayland=enabled --werror
             meson compile -C build-clang
           ' | $TARGET
 

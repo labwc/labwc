@@ -179,7 +179,10 @@ first_view(struct server *server)
 	struct wl_list *list_head =
 		&server->workspace_current->tree->children;
 	wl_list_for_each_reverse(node, list_head, link) {
-		return node_view_from_node(node);
+		struct view *view = node_view_from_node(node);
+		if (isfocusable(view)) {
+			return view;
+		}
 	}
 	return NULL;
 }

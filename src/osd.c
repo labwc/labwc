@@ -226,7 +226,7 @@ osd_update(struct server *server)
 	struct wl_list *node_list =
 		&server->workspace_current->tree->children;
 
-	if (wl_list_empty(node_list)) {
+	if (wl_list_empty(node_list) || !server->osd_state.cycle_view) {
 		osd_finish(server);
 		return;
 	}

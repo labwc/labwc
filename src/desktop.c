@@ -216,6 +216,10 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 	 *   - Pre-select the top view if NOT already focused
 	 *   - Otherwise select the view second from the top
 	 */
+
+	/* Make sure to have all nodes in their actual ordering */
+	osd_preview_restore(server);
+
 	if (!start_view) {
 		start_view = first_view(server);
 		if (!start_view || start_view != desktop_focused_view(server)) {
@@ -232,9 +236,6 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 
 	/* Scene nodes are ordered like last node == displayed topmost */
 	iter = dir == LAB_CYCLE_DIR_FORWARD ? get_prev_item : get_next_item;
-
-	/* Make sure to have all nodes in their actual ordering */
-	osd_preview_restore(server);
 
 	do {
 		list_item = iter(list_item);

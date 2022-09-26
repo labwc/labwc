@@ -46,18 +46,18 @@ end_cycling(struct server *server)
 	should_cancel_cycling_on_next_key_release = false;
 }
 
-static void
+void
 keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 {
-	struct seat *seat = wl_container_of(listener, seat, keyboard_modifiers);
+	struct keyboard *keyboard = wl_container_of(listener, keyboard, modifier);
+	struct seat *seat = keyboard->base.seat;
 	struct server *server = seat->server;
+	struct wlr_keyboard_key_event *event = data;
+	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
 
 	if (server->osd_state.cycle_view || seat->workspace_osd_shown_by_modifier) {
-		struct wlr_keyboard_key_event *event = data;
-		struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
-
 		if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED
-				&& !keyboard_any_modifiers_pressed(keyboard))  {
+				&& !keyboard_any_modifiers_pressed(wlr_keyboard))  {
 			if (server->osd_state.cycle_view) {
 				if (key_state_nr_keys()) {
 					should_cancel_cycling_on_next_key_release = true;
@@ -70,9 +70,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 			}
 		}
 	}
-
-	wlr_seat_keyboard_notify_modifiers(seat->seat,
-		&seat->keyboard_group->keyboard.modifiers);
+	wlr_seat_keyboard_notify_modifiers(seat->seat, &wlr_keyboard->modifiers);
 }
 
 static bool
@@ -110,15 +108,16 @@ static bool
 handle_compositor_keybindings(struct wl_listener *listener,
 		struct wlr_keyboard_key_event *event)
 {
-	struct seat *seat = wl_container_of(listener, seat, keyboard_key);
+	struct keyboard *keyboard = wl_container_of(listener, keyboard, key);
+	struct seat *seat = keyboard->base.seat;
 	struct server *server = seat->server;
-	struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
+	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
 
 	/* Translate libinput keycode -> xkbcommon */
 	uint32_t keycode = event->keycode + 8;
 	/* Get a list of keysyms based on the keymap for this keyboard */
 	const xkb_keysym_t *syms;
-	int nsyms = xkb_state_key_get_syms(keyboard->xkb_state, keycode, &syms);
+	int nsyms = xkb_state_key_get_syms(wlr_keyboard->xkb_state, keycode, &syms);
 
 	bool handled = false;
 
@@ -159,7 +158,7 @@ handle_compositor_keybindings(struct wl_listener *listener,
 		return true;
 	}
 
-	uint32_t modifiers = wlr_keyboard_get_modifiers(keyboard);
+	uint32_t modifiers = wlr_keyboard_get_modifiers(wlr_keyboard);
 
 	/* Catch C-A-F1 to C-A-F12 to change tty */
 	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
@@ -232,21 +231,21 @@ out:
 	return handled;
 }
 
-static void
+void
 keyboard_key_notify(struct wl_listener *listener, void *data)
 {
 	/* This event is raised when a key is pressed or released. */
-	struct seat *seat = wl_container_of(listener, seat, keyboard_key);
-	struct server *server = seat->server;
+	struct keyboard *keyboard = wl_container_of(listener, keyboard, key);
+	struct seat *seat = keyboard->base.seat;
 	struct wlr_keyboard_key_event *event = data;
-	struct wlr_seat *wlr_seat = server->seat.seat;
-	struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
+	struct wlr_seat *wlr_seat = seat->seat;
+	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	bool handled = handle_compositor_keybindings(listener, event);
 
 	if (!handled) {
-		wlr_seat_set_keyboard(wlr_seat, keyboard);
+		wlr_seat_set_keyboard(wlr_seat, wlr_keyboard);
 		wlr_seat_keyboard_notify_key(wlr_seat, event->time_msec,
 			event->keycode, event->state);
 	}
@@ -269,25 +268,16 @@ keyboard_init(struct seat *seat)
 	}
 	xkb_context_unref(context);
 	wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
-
-	seat->keyboard_key.notify = keyboard_key_notify;
-	wl_signal_add(&kb->events.key, &seat->keyboard_key);
-	seat->keyboard_modifiers.notify = keyboard_modifiers_notify;
-	wl_signal_add(&kb->events.modifiers, &seat->keyboard_modifiers);
 }
 
 void
 keyboard_finish(struct seat *seat)
 {
+	/*
+	 * All keyboard listeners must be removed before this to avoid use after
+	 * free
+	 */
 	if (seat->keyboard_group) {
-		/*
-		 * Caution - these event listeners are connected to
-		 * seat->keyboard_group->keyboard and must be
-		 * unregistered before wlr_keyboard_group_destroy(),
-		 * otherwise a use-after-free occurs.
-		 */
-		wl_list_remove(&seat->keyboard_key.link);
-		wl_list_remove(&seat->keyboard_modifiers.link);
 		wlr_keyboard_group_destroy(seat->keyboard_group);
 		seat->keyboard_group = NULL;
 	}

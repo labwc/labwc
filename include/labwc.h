@@ -76,6 +76,20 @@ struct input {
 	struct wl_list link; /* seat::inputs */
 };
 
+/*
+ * Virtual keyboards should not belong to seat->keyboard_group. As a result we
+ * need to be able to ascertain which wlr_keyboard key/modifer events come from
+ * and we achieve that by using `struct keyboard` which inherits `struct input`
+ * and adds keybord specific listeners and a wlr_keyboard pointer.
+ */
+struct keyboard {
+	struct input base;
+	struct wlr_keyboard *wlr_keyboard;
+	bool is_virtual;
+	struct wl_listener modifier;
+	struct wl_listener key;
+};
+
 struct seat {
 	struct wlr_seat *seat;
 	struct server *server;
@@ -143,9 +157,6 @@ struct seat {
 	struct wl_listener request_cursor;
 	struct wl_listener request_set_selection;
 	struct wl_listener request_set_primary_selection;
-
-	struct wl_listener keyboard_key;
-	struct wl_listener keyboard_modifiers;
 
 	struct wl_listener touch_down;
 	struct wl_listener touch_up;
@@ -516,6 +527,8 @@ struct view *desktop_focused_view(struct server *server);
 void desktop_focus_topmost_mapped_view(struct server *server);
 bool isfocusable(struct view *view);
 
+void keyboard_key_notify(struct wl_listener *listener, void *data);
+void keyboard_modifiers_notify(struct wl_listener *listener, void *data);
 void keyboard_init(struct seat *seat);
 bool keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard);
 void keyboard_finish(struct seat *seat);

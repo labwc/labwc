@@ -275,11 +275,11 @@ view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 	*y = usable.y + (usable.height - height) / 2;
 
 	/* If view is bigger than usable area, just top/left align it */
-	if (*x < rc.gap) {
-		*x = rc.gap;
+	if (*x < 0) {
+		*x = 0;
 	}
-	if (*y < rc.gap) {
-		*y = rc.gap;
+	if (*y < 0) {
+		*y = 0;
 	}
 
 #if HAVE_XWAYLAND

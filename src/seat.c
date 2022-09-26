@@ -18,6 +18,13 @@ input_device_destroy(struct wl_listener *listener, void *data)
 	struct input *input = wl_container_of(listener, input, destroy);
 	wl_list_remove(&input->link);
 	wl_list_remove(&input->destroy.link);
+
+	/* `struct keyboard` is derived and has some extra clean up to do */
+	if (input->wlr_input_device->type == WLR_INPUT_DEVICE_KEYBOARD) {
+		struct keyboard *keyboard = (struct keyboard *)input;
+		wl_list_remove(&keyboard->key.link);
+		wl_list_remove(&keyboard->modifier.link);
+	}
 	free(input);
 }
 
@@ -144,10 +151,12 @@ output_by_name(struct server *server, const char *name)
 	return NULL;
 }
 
-void
-new_pointer(struct seat *seat, struct input *input)
+static struct input *
+new_pointer(struct seat *seat, struct wlr_input_device *dev)
 {
-	struct wlr_input_device *dev = input->wlr_input_device;
+	struct input *input = znew(*input);
+	input->wlr_input_device = dev;
+
 	if (wlr_input_device_is_libinput(dev)) {
 		configure_libinput(dev);
 	}
@@ -164,22 +173,41 @@ new_pointer(struct seat *seat, struct input *input)
 		wlr_cursor_map_input_to_output(seat->cursor, dev, output);
 		wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
 	}
+	return input;
 }
 
-void
-new_keyboard(struct seat *seat, struct input *input)
+static struct input *
+new_keyboard(struct seat *seat, struct wlr_input_device *device, bool virtual)
 {
-	struct wlr_keyboard *kb =
-		wlr_keyboard_from_input_device(input->wlr_input_device);
+	struct wlr_keyboard *kb = wlr_keyboard_from_input_device(device);
+
+	struct keyboard *keyboard = znew(*keyboard);
+	keyboard->base.wlr_input_device = device;
+	keyboard->wlr_keyboard = kb;
+	keyboard->is_virtual = virtual;
+
 	wlr_keyboard_set_keymap(kb, seat->keyboard_group->keyboard.keymap);
-	wlr_keyboard_group_add_keyboard(seat->keyboard_group, kb);
+
+	if (!virtual) {
+		wlr_keyboard_group_add_keyboard(seat->keyboard_group, kb);
+	}
+
+	keyboard->key.notify = keyboard_key_notify;
+	wl_signal_add(&kb->events.key, &keyboard->key);
+	keyboard->modifier.notify = keyboard_modifiers_notify;
+	wl_signal_add(&kb->events.modifiers, &keyboard->modifier);
+
 	wlr_seat_set_keyboard(seat->seat, kb);
+
+	return (struct input *)keyboard;
 }
 
-void
-new_touch(struct seat *seat, struct input *input)
+static struct input *
+new_touch(struct seat *seat, struct wlr_input_device *dev)
 {
-	struct wlr_input_device *dev = input->wlr_input_device;
+	struct input *input = znew(*input);
+	input->wlr_input_device = dev;
+
 	if (wlr_input_device_is_libinput(dev)) {
 		configure_libinput(dev);
 	}
@@ -196,6 +224,7 @@ new_touch(struct seat *seat, struct input *input)
 		wlr_cursor_map_input_to_output(seat->cursor, dev, output);
 		wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
 	}
+	return input;
 }
 
 static void
@@ -203,7 +232,7 @@ seat_update_capabilities(struct seat *seat)
 {
 	struct input *input = NULL;
 	uint32_t caps = 0;
-	
+
 	wl_list_for_each(input, &seat->inputs, link) {
 		switch (input->wlr_input_device->type) {
 		case WLR_INPUT_DEVICE_KEYBOARD:
@@ -238,22 +267,21 @@ new_input_notify(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, new_input);
 	struct wlr_input_device *device = data;
-	struct input *input = znew(*input);
-	input->wlr_input_device = device;
+	struct input *input = NULL;
 
 	switch (device->type) {
 	case WLR_INPUT_DEVICE_KEYBOARD:
-		new_keyboard(seat, input);
+		input = new_keyboard(seat, device, false);
 		break;
 	case WLR_INPUT_DEVICE_POINTER:
-		new_pointer(seat, input);
+		input = new_pointer(seat, device);
 		break;
 	case WLR_INPUT_DEVICE_TOUCH:
-		new_touch(seat, input);
+		input = new_touch(seat, device);
 		break;
 	default:
 		wlr_log(WLR_INFO, "unsupported input device");
-		break;
+		return;
 	}
 
 	seat_add_device(seat, input);
@@ -293,14 +321,10 @@ new_virtual_pointer(struct wl_listener *listener, void *data)
 	struct wlr_virtual_pointer_v1_new_pointer_event *event = data;
 	struct wlr_virtual_pointer_v1 *pointer = event->new_pointer;
 	struct wlr_input_device *device = &pointer->pointer.base;
-	struct input *input = calloc(1, sizeof(struct input));
 
+	struct input *input = new_pointer(seat, device);
 	device->data = input;
-	input->wlr_input_device = device;
-
 	seat_add_device(seat, input);
-	new_pointer(seat, input);
-
 	if (event->suggested_output) {
 		wlr_cursor_map_input_to_output(seat->cursor, device,
 			event->suggested_output);
@@ -311,15 +335,12 @@ static void
 new_virtual_keyboard(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, virtual_keyboard_new);
-	struct wlr_virtual_keyboard_v1 *keyboard = data;
-	struct wlr_input_device *device = &keyboard->keyboard.base;
-	struct input *input = calloc(1, sizeof(struct input));
+	struct wlr_virtual_keyboard_v1 *virtual_keyboard = data;
+	struct wlr_input_device *device = &virtual_keyboard->keyboard.base;
 
+	struct input *input = new_keyboard(seat, device, true);
 	device->data = input;
-	input->wlr_input_device = device;
-
 	seat_add_device(seat, input);
-	new_keyboard(seat, input);
 }
 
 void
@@ -375,6 +396,12 @@ seat_finish(struct server *server)
 {
 	struct seat *seat = &server->seat;
 	wl_list_remove(&seat->new_input.link);
+
+	struct input *input, *next;
+	wl_list_for_each_safe(input, next, &seat->inputs, link) {
+		input_device_destroy(&input->destroy, NULL);
+	}
+
 	keyboard_finish(seat);
 	/*
 	 * Caution - touch_finish() unregisters event listeners from

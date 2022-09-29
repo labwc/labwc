@@ -15,6 +15,8 @@ that branch.
 
 | Date       | Release notes | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| TBC        | [0.6.0]       | 0.16.0          | 10496         |
+| TBC        | [0.5.4]       | 0.15.1          | TBC           |
 | 2022-07-15 | [0.5.3]       | 0.15.1          | 9216          |
 | 2022-05-17 | [0.5.2]       | 0.15.1          | 8829          |
 | 2022-04-08 | [0.5.1]       | 0.15.1          | 8829          |
@@ -24,7 +26,7 @@ that branch.
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## 0.6.0 - unreleased
+## 0.6.0 - not yet released
 
 This release contains significant refactoring to use the wlroots
 scene-graph API. This touches many areas of the code, particularly
@@ -47,6 +49,27 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 
 ### Added
 
+- Implement virtual keyboard and pointer protocols, enabling the use of
+  clients such as wtype and wayvnc. Written-by: @Joshua-Ashton
+- Add github workflow CI including Debian, FreeBSD, Arch and Void,
+  including a build without xwayland.
+- Support keybind "None" action to clear other actions for a particular
+  keybind context. Written-by: @jlindgren90
+- Support font slant (itliacs) and weight (bold). Written-by: @jlindgren90
+- Support <devault /> mousebinds to load default mousebinds and provide
+  a way to keep config files simpler whilst allowing user specific binds.
+  Issue #416. Written-by: @Consolatis
+- Add config option <core><cycleViewOutlines> to enable/disable preview
+  of outlines. Written-by: @Flrian
+- Render submenu arrows
+- Allow highest level menu definitions - typically used for root-menu and
+  client-menu - to be defined without label attritube, for example like this:
+  <openbox_menu><menu id="root-menu">...</menu></openbox>. Issue #472
+- Allow xdg-desktop-portal-wlr to work out of the box by initializing dbus
+  and systemd activation environment. This enables for example OBS Studio
+  to work with no user configuration. If systemd or dbus is not available
+  the environment update will fail gracefully. PR #461
+  Written-by: @Joshua-Ashton and @Consolatis
 - Workspaces. Written-by: @Consolatis
 - presentation-time protocol
 - Native language support for client-menus. Written-by: @01micko
@@ -68,6 +91,43 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 
 ### Fixed
 
+- Remove unwanted gap when initially (on map) positioning windows larger
+  than output usable area (issue #403).
+- Prevent setting cursor icon on drag. Written-by: @Consolatis (issue #549)
+- Fix bugs relating to sending matching pairs of press and release
+  keycodes to clients when using keybinds. Also fix related key-repeat
+  bug. (Issue #510)
+- Fix wlr_output_cursor initialization bug on new output.
+  Written-by: @jlindgren90
+- Show correct cursor for resize action triggered by keybind.
+  Written-by: @jlindgren
+- Fix GTK3 menu bug which manifest itself when keeping button pressed.
+  Written-by: @jlindgren90
+- Enable tap be default on non-touch devices (which some laptop trackpads
+  apparently are)
+- Handle missing cursor theme (issue #246). Written-by: @Consolatis
+- Fix various surface syncronization, stacking, positioning and focus
+  issues, including those related to both xwayland, scroll/drag events
+  and also #526 #483
+- On first map, do not center xwayland views with explicitly specified
+  position. Written-by: @jlindgren90
+- Give keyboard focus back to topmost mapped view when unmapping topmost
+  xwayland unmanaged surfaces, such as dmenu. Written-by: @Consolatis.
+- Fix mousebind ordering and replace earlier mousebinds by later ones
+  Written-by: @Consolatis
+- Fix various bugs associated with destroying/disabling outputs, including
+  issue #497
+- Hide Alt-Tab switcher when canceling via Escape. @jlindgren90
+- (Re)set seat when xwayland is ready (because wlroots reset the seat
+  assigned to xwayland to NULL whenever Xwayland terminates).
+  Issues #166 #444. Written-by: @Consolatis. Helped-by: @droc12345
+- Increase File Descriptor (FD) limit to max because a compositor has to
+  handle many: client connections, DMA-BUFs, wl_data_device pipes and so on.
+  Fixes client freeze/crashes (swaywm/sway#6642). Written-by: @Joshua-Ashton
+- Fix crash when creating a cursor constraint and there is no currently
+  focused view.
+- Gracefully handle dying client during interactive move.
+  Written-by: @Consolatis
 - Dynamically adjust server-side-deccoration invisible resize areas based
   on usable_area to ensure that cursor events are sent to clients such as
   panels in preference to grabbing window edges. Fixes #265.
@@ -109,6 +169,24 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 ### Changed
 
 - theme: change window.label.text.justify default to center
+- Redefine the SSD "Title" context to cover the whole Titlebar area except
+  the parts occupied by buttons. This allows "Drag" and "DoubleClick"
+  actions to be de-coupled from buttons. As a result, "Drag" and
+  "DoubleClick" actions previously defined against "TitleBar" should now
+  come under the "Title" context, for example:
+  <mousebind button="Left" action="Drag"><action name="Move"/></mousebind>
+- Remove default alt-escape keybind for Exit because too many people have
+  exited the compositor by mistake trying to get out of alt-tab cycling
+  or similar.
+
+## [0.5.4] - not yet released
+
+### Fixed
+
+- Fix keybind insert order bug
+- Fix bug in environment variable expansion by allowing underscores to be
+  part of the variable names. Issue #439
+- Fix parsing bug of adaptiveSync setting
 
 ## [0.5.3] - 2022-07-15
 

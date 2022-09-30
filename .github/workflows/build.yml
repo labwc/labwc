@@ -4,8 +4,8 @@
 # Void dependencies based on:
 # https://github.com/void-linux/void-packages/blob/master/srcpkgs/wlroots/template
 #
-# TODO: switch mirror to repo-ci.voidlinux.org once configured on their end:
-# https://github.com/void-linux/void-packages/blob/master/common/travis/set_mirror.sh
+# Recommended GH CI Void mirror based on
+# https://docs.voidlinux.org/xbps/repositories/mirrors/changing.html
 
 name: Compile
 on: [pull_request]
@@ -84,8 +84,12 @@ jobs:
       - name: Install Void Linux dependencies
         if: matrix.name == 'Void-musl'
         run: |
+          mkdir -p /etc/xbps.d
+          cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
+          sed -i "s:repo-default\.voidlinux\.org:repo-ci.voidlinux.org:g" \
+            /etc/xbps.d/*-repository-*.conf
           xbps-install -Syu || xbps-install -yu xbps
-          xbps-install -yu
+          xbps-install -Syu
           xbps-install -y git meson gcc clang pkg-config wlroots libxml2-devel \
             wayland-devel glslang libgbm-devel libglvnd-devel libseat-devel \
             eudev-libudev-devel libdrm-devel libinput-devel libxkbcommon-devel \

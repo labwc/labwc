@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
+#include <unistd.h>
 #include "common/dir.h"
 #include "common/fd_util.h"
 #include "common/font.h"
@@ -80,6 +81,19 @@ main(int argc, char *argv[])
 	wlr_log(WLR_INFO, "using config dir (%s)\n", rc.config_dir);
 	session_environment_init(rc.config_dir);
 	rcxml_read(config_file);
+
+	/*
+	 * Set environment variable LABWC_PID to the pid of the compositor
+	 * so that SIGHUP and SIGTERM can be sent to specific instances using
+	 * `kill -s <signal> <pid>` rather than `killall -s <signal> labwc`
+	 */
+	char pid[32];
+	snprintf(pid, sizeof(pid), "%d", getpid());
+	if (setenv("LABWC_PID", pid, true) < 0) {
+		wlr_log_errno(WLR_ERROR, "unable to set LABWC_PID");
+	} else {
+		wlr_log(WLR_DEBUG, "LABWC_PID=%s", pid);
+	}
 
 	if (!getenv("XDG_RUNTIME_DIR")) {
 		wlr_log(WLR_ERROR, "XDG_RUNTIME_DIR is unset");

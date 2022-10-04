@@ -460,7 +460,6 @@ server_start(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 
-	setenv("WAYLAND_DISPLAY", socket, true);
 	if (setenv("WAYLAND_DISPLAY", socket, true) < 0) {
 		wlr_log_errno(WLR_ERROR, "unable to set WAYLAND_DISPLAY");
 	} else {

@@ -16,6 +16,14 @@ It is light-weight and independent with a focus on simply stacking windows
 well and rendering some window decorations. Where practicable it uses clients
 for wall-paper, panels, screenshots and so on.
 
+The compositor will exit or reload its configuration upon receiving SIGTERM
+and SIGHUP respectively.  For example:
+
+```
+kill -s <signal> $LABWC_PID
+killall -s <signal> labwc
+```
+
 # OPTIONS
 
 *-c* <config-file>

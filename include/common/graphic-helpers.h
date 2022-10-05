@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
+#include <wayland-server-core.h>
+
 struct wlr_scene_tree;
 struct wlr_scene_rect;
-struct wl_listener;
 
 struct multi_rect {
 	struct wlr_scene_tree *tree;

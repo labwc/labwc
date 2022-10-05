@@ -7,10 +7,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include "labwc.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"
+#include "common/list.h"
 #include "common/mem.h"
+#include "labwc.h"
 #include "workspaces.h"
 
 /* Internal helpers */
@@ -157,7 +158,7 @@ add_workspace(struct server *server, const char *name)
 	workspace->server = server;
 	workspace->name = xstrdup(name);
 	workspace->tree = wlr_scene_tree_create(server->view_tree);
-	wl_list_insert(server->workspaces.prev, &workspace->link);
+	wl_list_append(&server->workspaces, &workspace->link);
 	if (!server->workspace_current) {
 		server->workspace_current = workspace;
 	} else {

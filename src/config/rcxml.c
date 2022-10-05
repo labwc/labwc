@@ -14,6 +14,7 @@
 #include <wayland-server-core.h>
 #include <wlr/util/log.h>
 #include "action.h"
+#include "common/list.h"
 #include "common/mem.h"
 #include "common/nodename.h"
 #include "common/string-helpers.h"
@@ -67,7 +68,7 @@ fill_keybind(char *nodename, char *content)
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else if (!strcmp(nodename, "name.action")) {
 		current_keybind_action = action_create(content);
-		wl_list_insert(current_keybind->actions.prev,
+		wl_list_append(&current_keybind->actions,
 			&current_keybind_action->link);
 	} else if (!current_keybind_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
@@ -127,7 +128,7 @@ fill_mousebind(char *nodename, char *content)
 			mousebind_event_from_str(content);
 	} else if (!strcmp(nodename, "name.action")) {
 		current_mousebind_action = action_create(content);
-		wl_list_insert(current_mousebind->actions.prev,
+		wl_list_append(&current_mousebind->actions,
 			&current_mousebind_action->link);
 	} else if (!current_mousebind_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
@@ -403,7 +404,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "name.names.desktops")) {
 		struct workspace *workspace = znew(*workspace);
 		workspace->name = xstrdup(content);
-		wl_list_insert(rc.workspace_config.workspaces.prev, &workspace->link);
+		wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
 	} else if (!strcasecmp(nodename, "popupTime.desktops")) {
 		rc.workspace_config.popuptime = atoi(content);
 	}
@@ -547,7 +548,7 @@ load_default_key_bindings(void)
 		}
 
 		action = action_create(key_combos[i].action);
-		wl_list_insert(k->actions.prev, &action->link);
+		wl_list_append(&k->actions, &action->link);
 
 		if (key_combos[i].command) {
 			action_arg_add_str(action, NULL, key_combos[i].command);
@@ -617,7 +618,7 @@ load_default_mouse_bindings(void)
 		}
 
 		action = action_create(current->action);
-		wl_list_insert(m->actions.prev, &action->link);
+		wl_list_append(&m->actions, &action->link);
 
 		if (current->command) {
 			action_arg_add_str(action, NULL, current->command);
@@ -685,7 +686,7 @@ post_processing(void)
 	if (!wl_list_length(&rc.workspace_config.workspaces)) {
 		struct workspace *workspace = znew(*workspace);
 		workspace->name = xstrdup("Default");
-		wl_list_insert(rc.workspace_config.workspaces.prev, &workspace->link);
+		wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
 	}
 	if (rc.workspace_config.popuptime == INT_MIN) {
 		rc.workspace_config.popuptime = 1000;

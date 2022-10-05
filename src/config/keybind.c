@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wlr/util/log.h>
+#include "common/list.h"
 #include "common/mem.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
@@ -60,7 +61,7 @@ keybind_create(const char *keybind)
 	if (!k) {
 		return NULL;
 	}
-	wl_list_insert(rc.keybinds.prev, &k->link);
+	wl_list_append(&rc.keybinds, &k->link);
 	k->keysyms = xmalloc(k->keysyms_len * sizeof(xkb_keysym_t));
 	memcpy(k->keysyms, keysyms, k->keysyms_len * sizeof(xkb_keysym_t));
 	wl_list_init(&k->actions);

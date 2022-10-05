@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "common/list.h"
 #include "common/mem.h"
 #include "labwc.h"
 
@@ -37,8 +38,7 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 
 	/* Stack new surface on top */
 	wlr_xwayland_surface_restack(xsurface, NULL, XCB_STACK_MODE_ABOVE);
-	wl_list_insert(unmanaged->server->unmanaged_surfaces.prev,
-		       &unmanaged->link);
+	wl_list_append(&unmanaged->server->unmanaged_surfaces, &unmanaged->link);
 
 	wl_signal_add(&xsurface->events.set_geometry, &unmanaged->set_geometry);
 	unmanaged->set_geometry.notify = unmanaged_handle_set_geometry;

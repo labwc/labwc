@@ -10,17 +10,18 @@
 #include <strings.h>
 #include <wayland-server-core.h>
 #include <wlr/util/log.h>
+#include "action.h"
 #include "common/buf.h"
 #include "common/font.h"
+#include "common/list.h"
 #include "common/mem.h"
 #include "common/nodename.h"
 #include "common/scaled_font_buffer.h"
 #include "common/string-helpers.h"
 #include "labwc.h"
 #include "menu/menu.h"
-#include "theme.h"
-#include "action.h"
 #include "node.h"
+#include "theme.h"
 
 #define MENUWIDTH (110)
 #define MENU_ITEM_PADDING_Y (4)
@@ -225,7 +226,7 @@ fill_item(char *nodename, char *content)
 		 */
 	} else if (!strcmp(nodename, "name.action")) {
 		current_item_action = action_create(content);
-		wl_list_insert(current_item->actions.prev, &current_item_action->link);
+		wl_list_append(&current_item->actions, &current_item_action->link);
 	} else if (!current_item_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);

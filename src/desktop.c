@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "config.h"
 #include <assert.h>
+#include "common/list.h"
+#include "common/scene-helpers.h"
 #include "labwc.h"
 #include "layers.h"
 #include "node.h"
 #include "ssd.h"
-#include "common/scene-helpers.h"
 #include "workspaces.h"
 
 static void
@@ -68,15 +69,6 @@ desktop_move_to_front(struct view *view)
 	cursor_update_focus(view->server);
 }
 
-static void
-wl_list_insert_tail(struct wl_list *list, struct wl_list *elm)
-{
-	elm->prev = list->prev;
-	elm->next = list;
-	list->prev = elm;
-	elm->prev->next = elm;
-}
-
 void
 desktop_move_to_back(struct view *view)
 {
@@ -84,7 +76,7 @@ desktop_move_to_back(struct view *view)
 		return;
 	}
 	wl_list_remove(&view->link);
-	wl_list_insert_tail(&view->server->views, &view->link);
+	wl_list_append(&view->server->views, &view->link);
 }
 
 void

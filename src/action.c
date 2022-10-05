@@ -6,6 +6,7 @@
 #include <strings.h>
 #include <unistd.h>
 #include <wlr/util/log.h>
+#include "common/list.h"
 #include "common/mem.h"
 #include "common/spawn.h"
 #include "debug.h"
@@ -378,5 +379,5 @@ action_arg_add_str(struct action *action, char *key, const char *value)
 		arg->base.key = xstrdup(key);
 	}
 	arg->value = xstrdup(value);
-	wl_list_insert(action->args.prev, &arg->base.link);
+	wl_list_append(&action->args, &arg->base.link);
 }

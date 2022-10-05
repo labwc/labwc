@@ -14,6 +14,7 @@
 #include <wayland-server.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/util/log.h>
+#include "common/list.h"
 #include "common/mem.h"
 #include "layers.h"
 #include "labwc.h"
@@ -366,7 +367,7 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	wl_list_insert(output->layers[layer_surface->pending.layer].prev,
+	wl_list_append(&output->layers[layer_surface->pending.layer],
 		&surface->link);
 	/*
 	 * Temporarily set the layer's current state to pending so that

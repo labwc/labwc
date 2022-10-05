@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <assert.h>
+#include "common/list.h"
 #include "common/mem.h"
 #include "labwc.h"
-#include "ssd.h"
 #include "node.h"
+#include "ssd.h"
 
 /* Internal helpers */
 static void
@@ -41,7 +42,7 @@ add_scene_part(struct wl_list *part_list, enum ssd_part_type type)
 {
 	struct ssd_part *part = znew(*part);
 	part->type = type;
-	wl_list_insert(part_list->prev, &part->link);
+	wl_list_append(part_list, &part->link);
 	return part;
 }
 

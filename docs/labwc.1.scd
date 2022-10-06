@@ -26,25 +26,25 @@ killall -s <signal> labwc
 
 # OPTIONS
 
-*-c* <config-file>
+*-c, --config* <config-file>
 	Specify a config file with path
 
-*-C* <config-directory>
+*-C, --config-dir* <config-directory>
 	Specify a config directory
 
-*-d*
+*-d, --debug*
 	Enable full logging, including debug information
 
-*-h*
+*-h, --help*
 	Show help message and quit
 
-*-s* <command>
+*-s, --startup* <command>
 	Run command on startup
 
-*-v*
+*-v, --version*
 	Show the version number and quit
 
-*-V*
+*-V, --verbose*
 	Enable more verbose logging
 
 # SEE ALSO

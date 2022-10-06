@@ -14,15 +14,26 @@
 
 struct rcxml rc = { 0 };
 
+static const struct option long_options[] = {
+	{"config", required_argument, NULL, 'c'},
+	{"config-dir", required_argument, NULL, 'C'},
+	{"debug", no_argument, NULL, 'd'},
+	{"help", no_argument, NULL, 'h'},
+	{"startup", required_argument, NULL, 's'},
+	{"version", no_argument, NULL, 'v'},
+	{"verbose", no_argument, NULL, 'V'},
+	{0, 0, 0, 0}
+};
+
 static const char labwc_usage[] =
 "Usage: labwc [options...]\n"
-"    -c <config-file>    specify config file (with path)\n"
-"    -C <config-dir>     specify config directory\n"
-"    -d                  enable full logging, including debug information\n"
-"    -h                  show help message and quit\n"
-"    -s <command>        run command on startup\n"
-"    -v                  show version number and quit\n"
-"    -V                  enable more verbose logging\n";
+"  -c, --config <file>      Specify config file (with path)\n"
+"  -C, --config-dir <dir>   Specify config directory\n"
+"  -d, --debug              Enable full logging, including debug information\n"
+"  -h, --help               Show help message and quit\n"
+"  -s, --startup <command>  Run command on startup\n"
+"  -v, --version            Show version number and quit\n"
+"  -V, --verbose            Enable more verbose logging\n";
 
 static void
 usage(void)
@@ -44,7 +55,12 @@ main(int argc, char *argv[])
 	enum wlr_log_importance verbosity = WLR_ERROR;
 
 	int c;
-	while ((c = getopt(argc, argv, "c:C:dhs:vV")) != -1) {
+	while (1) {
+		int index = 0;
+		c = getopt_long(argc, argv, "c:C:dhs:vV", long_options, &index);
+		if (c == -1) {
+			break;
+		}
 		switch (c) {
 		case 'c':
 			config_file = optarg;

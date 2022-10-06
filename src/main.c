@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include <signal.h>
 #include <string.h>
 #include <unistd.h>
 #include "common/dir.h"
@@ -18,7 +19,9 @@ static const struct option long_options[] = {
 	{"config", required_argument, NULL, 'c'},
 	{"config-dir", required_argument, NULL, 'C'},
 	{"debug", no_argument, NULL, 'd'},
+	{"exit", no_argument, NULL, 'e'},
 	{"help", no_argument, NULL, 'h'},
+	{"reconfigure", no_argument, NULL, 'r'},
 	{"startup", required_argument, NULL, 's'},
 	{"version", no_argument, NULL, 'v'},
 	{"verbose", no_argument, NULL, 'V'},
@@ -30,7 +33,9 @@ static const char labwc_usage[] =
 "  -c, --config <file>      Specify config file (with path)\n"
 "  -C, --config-dir <dir>   Specify config directory\n"
 "  -d, --debug              Enable full logging, including debug information\n"
+"  -e, --exit               Exit the compositor\n"
 "  -h, --help               Show help message and quit\n"
+"  -r, --reconfigure        Reload the compositor configuration\n"
 "  -s, --startup <command>  Run command on startup\n"
 "  -v, --version            Show version number and quit\n"
 "  -V, --verbose            Enable more verbose logging\n";
@@ -40,6 +45,22 @@ usage(void)
 {
 	printf("%s", labwc_usage);
 	exit(0);
+}
+
+static void
+send_signal_to_labwc_pid(int signal)
+{
+	char *labwc_pid = getenv("LABWC_PID");
+	if (!labwc_pid) {
+		wlr_log(WLR_ERROR, "LABWC_PID not set");
+		exit(EXIT_FAILURE);
+	}
+	int pid = atoi(labwc_pid);
+	if (!pid) {
+		wlr_log(WLR_ERROR, "should not send signal to pid 0");
+		exit(EXIT_FAILURE);
+	}
+	kill(pid, signal);
 }
 
 int
@@ -57,7 +78,7 @@ main(int argc, char *argv[])
 	int c;
 	while (1) {
 		int index = 0;
-		c = getopt_long(argc, argv, "c:C:dhs:vV", long_options, &index);
+		c = getopt_long(argc, argv, "c:C:dehrs:vV", long_options, &index);
 		if (c == -1) {
 			break;
 		}
@@ -71,6 +92,12 @@ main(int argc, char *argv[])
 		case 'd':
 			verbosity = WLR_DEBUG;
 			break;
+		case 'e':
+			send_signal_to_labwc_pid(SIGTERM);
+			exit(0);
+		case 'r':
+			send_signal_to_labwc_pid(SIGHUP);
+			exit(0);
 		case 's':
 			startup_cmd = optarg;
 			break;

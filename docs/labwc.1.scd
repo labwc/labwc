@@ -24,6 +24,10 @@ kill -s <signal> $LABWC_PID
 killall -s <signal> labwc
 ```
 
+Each running instance of labwc sets the environment variable `LABWC_PID` to
+its PID. This is useful for sending signals to a specific instance and is what
+the `--exit` and `--reconfigure` options use.
+
 # OPTIONS
 
 *-c, --config* <config-file>
@@ -35,8 +39,14 @@ killall -s <signal> labwc
 *-d, --debug*
 	Enable full logging, including debug information
 
+*-e, --exit*
+	Exit the compositor
+
 *-h, --help*
 	Show help message and quit
+
+*-r, --reconfigure*
+	Reload the compositor configuration
 
 *-s, --startup* <command>
 	Run command on startup

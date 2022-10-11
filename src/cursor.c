@@ -369,8 +369,10 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		 * cursor image will be set by request_cursor_notify()
 		 * in response to the enter event.
 		 */
-		if (ctx->surface != wlr_seat->pointer_state.focused_surface
-				|| seat->server_cursor != LAB_CURSOR_CLIENT) {
+		bool has_focus = (ctx->surface ==
+			wlr_seat->pointer_state.focused_surface);
+
+		if (!has_focus || seat->server_cursor != LAB_CURSOR_CLIENT) {
 			/*
 			 * Enter the surface if necessary.  Usually we
 			 * prevent re-entering an already focused
@@ -382,7 +384,9 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 			 * if a server-side cursor was set and we need
 			 * to trigger a cursor image update.
 			 */
-			wlr_seat_pointer_notify_clear_focus(wlr_seat);
+			if (has_focus) {
+				wlr_seat_pointer_notify_clear_focus(wlr_seat);
+			}
 			wlr_seat_pointer_notify_enter(wlr_seat, ctx->surface,
 				ctx->sx, ctx->sy);
 			seat->server_cursor = LAB_CURSOR_CLIENT;

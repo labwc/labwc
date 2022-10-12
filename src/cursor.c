@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <wlr/types/wlr_primary_selection.h>
+#include <wlr/util/region.h>
 #include "action.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
@@ -589,6 +590,47 @@ constrain_cursor(struct server *server, struct wlr_pointer_constraint_v1
 }
 
 static void
+apply_constraint(struct seat *seat, struct wlr_pointer *pointer, double *x, double *y)
+{
+	if (!seat->current_constraint || pointer->base.type != WLR_INPUT_DEVICE_POINTER) {
+		return;
+	}
+
+	double sx = seat->cursor->x;
+	double sy = seat->cursor->y;
+
+	sx -= seat->server->focused_view->current.x;
+	sy -= seat->server->focused_view->current.y;
+
+	double sx_confined, sy_confined;
+	if (!wlr_region_confine(&seat->current_constraint->region, sx, sy,
+			sx + *x, sy + *y, &sx_confined, &sy_confined)) {
+		return;
+	}
+
+	*x = sx_confined - sx;
+	*y = sy_confined - sy;
+}
+
+static void
+preprocess_cursor_motion(struct seat *seat, struct wlr_pointer *pointer,
+		uint32_t time_msec, double dx, double dy)
+{
+	apply_constraint(seat, pointer, &dx, &dy);
+
+	/*
+	 * The cursor doesn't move unless we tell it to. The cursor
+	 * automatically handles constraining the motion to the output
+	 * layout, as well as any special configuration applied for the
+	 * specific input device which generated the event. You can pass
+	 * NULL for the device if you want to move the cursor around
+	 * without any input.
+	 */
+	wlr_cursor_move(seat->cursor, &pointer->base, dx, dy);
+	process_cursor_motion(seat->server, time_msec);
+}
+
+static void
 cursor_motion(struct wl_listener *listener, void *data)
 {
 	/*
@@ -605,19 +647,9 @@ cursor_motion(struct wl_listener *listener, void *data)
 		seat->seat, (uint64_t)event->time_msec * 1000,
 		event->delta_x, event->delta_y, event->unaccel_dx,
 		event->unaccel_dy);
-	if (!seat->current_constraint) {
-		/*
-		 * The cursor doesn't move unless we tell it to. The cursor
-		 * automatically handles constraining the motion to the output
-		 * layout, as well as any special configuration applied for the
-		 * specific input device which generated the event. You can pass
-		 * NULL for the device if you want to move the cursor around
-		 * without any input.
-		 */
-		wlr_cursor_move(seat->cursor, &event->pointer->base,
-			event->delta_x, event->delta_y);
-	}
-	process_cursor_motion(seat->server, event->time_msec);
+
+	preprocess_cursor_motion(seat, event->pointer,
+		event->time_msec, event->delta_x, event->delta_y);
 }
 
 static void
@@ -648,19 +680,8 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 		seat->seat, (uint64_t)event->time_msec * 1000,
 		dx, dy, dx, dy);
 
-	if (!seat->current_constraint) {
-		/*
-		 * The cursor doesn't move unless we tell it to. The cursor
-		 * automatically handles constraining the motion to the output
-		 * layout, as well as any special configuration applied for the
-		 * specific input device which generated the event. You can pass
-		 * NULL for the device if you want to move the cursor around
-		 * without any input.
-		 */
-		wlr_cursor_move(seat->cursor, &event->pointer->base, dx, dy);
-	}
-
-	process_cursor_motion(seat->server, event->time_msec);
+	preprocess_cursor_motion(seat, event->pointer,
+		event->time_msec, dx, dy);
 }
 
 static bool

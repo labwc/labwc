@@ -48,6 +48,19 @@ usage(void)
 }
 
 static void
+die_on_detecting_suid(void)
+{
+	if (geteuid() != 0 && getegid() != 0) {
+		return;
+	}
+	if (getuid() == geteuid() && getgid() == getegid()) {
+		return;
+	}
+	wlr_log(WLR_ERROR, "SUID detected - aborting");
+	exit(EXIT_FAILURE);
+}
+
+static void
 send_signal_to_labwc_pid(int signal)
 {
 	char *labwc_pid = getenv("LABWC_PID");
@@ -117,6 +130,8 @@ main(int argc, char *argv[])
 	}
 
 	wlr_log_init(verbosity, NULL);
+
+	die_on_detecting_suid();
 
 	if (!rc.config_dir) {
 		rc.config_dir = config_dir();

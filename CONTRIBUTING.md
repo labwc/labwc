@@ -102,7 +102,7 @@ The reasons for specifying a style is not that we enjoy creating rules, but
 because it makes reading/maintaining the code and spotting problems much easier.
 
 If you are new to this style and want to get going quickly, either just imitate
-the style around you, or read the summary below and use [checkpatch.pl] to run
+the style around you, or read the summary below and use `./scripts/check` to run
 some formatting checks.
 
 ## Linux Kernel Style Basics
@@ -341,7 +341,6 @@ xgettext --keyword=_ --language=C --add-comments -o po/labwc.pot src/menu/menu.c
 [common/mem.h]: https://github.com/labwc/labwc/blob/master/include/common/mem.h
 [common/list.h]: https://github.com/labwc/labwc/blob/master/include/common/list.h
 [commit messages]: https://gitlab.freedesktop.org/wlroots/wlroots/-/blob/master/CONTRIBUTING.md#commit-messages 
-[checkpatch.pl]: https://github.com/johanmalm/checkpatch.pl
 [GNU C extensions]: https://gcc.gnu.org/onlinedocs/gcc/C-Extensions.html
 [`wl_container_of()`]: https://github.com/wayland-project/wayland/blob/985ab55d59db45ea62795c76dff5949343e86b2f/src/wayland-util.h#L409
 

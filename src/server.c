@@ -67,28 +67,6 @@ handle_sigterm(int signal, void *data)
 }
 
 static void
-drop_permissions(void)
-{
-	if (getuid() != geteuid() || getgid() != getegid()) {
-		wlr_log(WLR_ERROR, "!!! DEPRECATION WARNING: "
-			"SUID privilege drop will be removed in future releases; "
-			"Please migrate to seatd-launch");
-		if (setgid(getgid())) {
-			wlr_log(WLR_ERROR, "unable to drop root group");
-			exit(EXIT_FAILURE);
-		}
-		if (setuid(getuid())) {
-			wlr_log(WLR_ERROR, "unable to drop root user");
-			exit(EXIT_FAILURE);
-		}
-	}
-	if (setgid(0) != -1 || setuid(0) != -1) {
-		wlr_log(WLR_ERROR, "unable to drop root");
-		exit(EXIT_FAILURE);
-	}
-}
-
-static void
 seat_inhibit_input(struct seat *seat,  struct wl_client *active_client)
 {
 	seat->active_client_while_inhibited = active_client;
@@ -216,16 +194,6 @@ server_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create backend");
 		exit(EXIT_FAILURE);
 	}
-
-	/*
-	 * The wlroots library makes use of systemd's logind to handle sessions
-	 * and to allow compositors to run without elevated privileges.
-	 * If running without logind or elogind, users may choose to set the
-	 * setuid bit on the labwc executable despite associated security
-	 * implications. In order to support this, but limit the elevated
-	 * privileges as much as possible, we drop permissions at this point.
-	 */
-	drop_permissions();
 
 	/*
 	 * Autocreates a renderer, either Pixman, GLES2 or Vulkan for us. The

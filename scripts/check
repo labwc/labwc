@@ -1,0 +1,50 @@
+#!/bin/sh
+
+file=
+
+usage_message="Usage: check [OPTIONS]
+OPTIONS:
+--file=<filename>          Specify file to check. If none specified, all
+                           files in src/ and include/ will be checked.
+"
+
+run_checkpatch() {
+	nice scripts/checkpatch.pl --terse --no-tree --strict --file "$1"
+	return $?
+}
+
+run_checks () {
+	if [ ! -z "$file" ]; then
+		run_checkpatch "${file}"
+		return $?
+	fi
+
+	find src/ include/ \( -name "*.c" -o -name "*.h" \) -type f |
+	{
+		errors=0
+		while IFS= read -r file; do
+			run_checkpatch "$file" || errors=1
+		done
+		return ${errors}
+	}
+}
+
+main () {
+	for arg
+	do
+		opt=${arg%%=*}
+		var=${arg#*=}
+		case "$opt" in
+		--file)
+			file="$var" ;;
+		-h|--help)
+			printf '%b' "$usage_message"; exit 1 ;;
+		*)
+			printf '%b\n' "warn: unknown option $opt" >&2 ;;
+		esac
+	done
+
+	run_checks
+}
+
+main "$@"

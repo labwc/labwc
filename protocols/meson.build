@@ -14,18 +14,17 @@ wayland_scanner_server = generator(
 )
 
 server_protocols = [
-	[wl_protocol_dir, 'stable/xdg-shell/xdg-shell.xml'],
-	[wl_protocol_dir, 'unstable/pointer-constraints/pointer-constraints-unstable-v1.xml'],
-	['wlr-layer-shell-unstable-v1.xml'],
-	['wlr-input-inhibitor-unstable-v1.xml'],
-	['wlr-output-power-management-unstable-v1.xml'],
+	wl_protocol_dir / 'stable/xdg-shell/xdg-shell.xml',
+	wl_protocol_dir / 'unstable/pointer-constraints/pointer-constraints-unstable-v1.xml',
+	'wlr-layer-shell-unstable-v1.xml',
+	'wlr-input-inhibitor-unstable-v1.xml',
+	'wlr-output-power-management-unstable-v1.xml',
 ]
 
 server_protos_src = []
 server_protos_headers = []
 
-foreach p : server_protocols
-	xml = join_paths(p)
+foreach xml : server_protocols
 	server_protos_src += wayland_scanner_code.process(xml)
 	server_protos_headers += wayland_scanner_server.process(xml)
 endforeach

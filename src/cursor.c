@@ -882,6 +882,42 @@ cursor_button(struct wl_listener *listener, void *data)
 	}
 }
 
+bool
+handle_cursor_axis(struct server *server, struct cursor_context *ctx,
+		struct wlr_pointer_axis_event *event)
+{
+	struct mousebind *mousebind;
+	bool activated_any = false;
+
+	uint32_t modifiers = wlr_keyboard_get_modifiers(
+			&server->seat.keyboard_group->keyboard);
+
+	uint32_t button = 0;
+	if (event->delta_discrete < 0) {
+		button = BTN_GEAR_UP;
+	} else if (event->delta_discrete > 0) {
+		button = BTN_GEAR_DOWN;
+	}
+
+	if (!button || event->source != WLR_AXIS_SOURCE_WHEEL
+			|| event->orientation != WLR_AXIS_ORIENTATION_VERTICAL) {
+		wlr_log(WLR_DEBUG, "Failed to handle cursor axis event");
+		return false;
+	}
+
+	wl_list_for_each(mousebind, &rc.mousebinds, link) {
+		if (ssd_part_contains(mousebind->context, ctx->type)
+				&& mousebind->button == button
+				&& modifiers == mousebind->modifiers
+				&& mousebind->mouse_event == MOUSE_ACTION_SCROLL) {
+			activated_any = true;
+			actions_run(ctx->view, server, &mousebind->actions, /*resize_edges*/ 0);
+		}
+	}
+
+	return activated_any;
+}
+
 void
 cursor_axis(struct wl_listener *listener, void *data)
 {
@@ -891,15 +927,22 @@ cursor_axis(struct wl_listener *listener, void *data)
 	 */
 	struct seat *seat = wl_container_of(listener, seat, cursor_axis);
 	struct wlr_pointer_axis_event *event = data;
+	struct server *server = seat->server;
+	struct cursor_context ctx = get_cursor_context(server);
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
-	/* Make sure we are sending the events to the surface under the cursor */
-	cursor_update_focus(seat->server);
+	/* Bindings swallow mouse events if activated */
+	bool triggered_axis_binding = handle_cursor_axis(server, &ctx, event);
 
-	/* Notify the client with pointer focus of the axis event. */
-	wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,
-		event->orientation, event->delta, event->delta_discrete,
-		event->source);
+	if (ctx.surface && !triggered_axis_binding) {
+		/* Make sure we are sending the events to the surface under the cursor */
+		cursor_update_common(server, &ctx, event->time_msec, false);
+
+		/* Notify the client with pointer focus of the axis event. */
+		wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,
+			event->orientation, event->delta, event->delta_discrete,
+			event->source);
+	}
 }
 
 void

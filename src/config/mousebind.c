@@ -34,6 +34,10 @@ mousebind_button_from_str(const char *str, uint32_t *modifiers)
 		return BTN_RIGHT;
 	} else if (!strcasecmp(str, "Middle")) {
 		return BTN_MIDDLE;
+	} else if (!strcasecmp(str, "Up")) {
+		return BTN_GEAR_UP;
+	} else if (!strcasecmp(str, "Down")) {
+		return BTN_GEAR_DOWN;
 	}
 invalid:
 	wlr_log(WLR_ERROR, "unknown button (%s)", str);
@@ -54,6 +58,8 @@ mousebind_event_from_str(const char *str)
 		return MOUSE_ACTION_RELEASE;
 	} else if (!strcasecmp(str, "drag")) {
 		return MOUSE_ACTION_DRAG;
+	} else if (!strcasecmp(str, "scroll")) {
+		return MOUSE_ACTION_SCROLL;
 	}
 	wlr_log(WLR_ERROR, "unknown mouse action (%s)", str);
 	return MOUSE_ACTION_NONE;

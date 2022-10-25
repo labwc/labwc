@@ -13,6 +13,7 @@ enum mouse_event {
 	MOUSE_ACTION_PRESS,
 	MOUSE_ACTION_RELEASE,
 	MOUSE_ACTION_DRAG,
+	MOUSE_ACTION_SCROLL,
 };
 
 struct mousebind {

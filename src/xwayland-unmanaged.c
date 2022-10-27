@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <assert.h>
 #include "common/list.h"
 #include "common/mem.h"
 #include "labwc.h"
@@ -35,6 +36,7 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, map);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
+	assert(!unmanaged->node);
 
 	/* Stack new surface on top */
 	wlr_xwayland_surface_restack(xsurface, NULL, XCB_STACK_MODE_ABOVE);
@@ -94,9 +96,11 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 		wl_container_of(listener, unmanaged, unmap);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	struct seat *seat = &unmanaged->server->seat;
+	assert(unmanaged->node);
 
 	wl_list_remove(&unmanaged->link);
 	wl_list_remove(&unmanaged->set_geometry.link);
+	wlr_scene_node_set_enabled(unmanaged->node, false);
 
 	/*
 	 * Mark the node as gone so a racing configure event

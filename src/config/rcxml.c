@@ -139,6 +139,8 @@ fill_mousebind(char *nodename, char *content)
 		action_arg_add_str(current_mousebind_action, NULL, content);
 	} else if (!strcmp(nodename, "menu.action")) {
 		action_arg_add_str(current_mousebind_action, NULL, content);
+	} else if (!strcmp(nodename, "to.action")) {
+		action_arg_add_str(current_mousebind_action, NULL, content);
 	}
 }
 

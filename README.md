@@ -7,6 +7,8 @@ href="https://web.libera.chat/gamja/?channels=#labwc">IRC&nbsp;Channel</a>] [<a
 href="NEWS.md">Release&nbsp;Notes</a>]</h3>
 
 - [1. What is this?](#1-what-is-this)
+  - [1.1 Screenshot](#11-screenshot)
+  - [1.2 Videos](#12-videos)
 - [2. Build and Installation](#2-build-and-installation)
 - [3. Configuration](#3-configuration)
 - [4. Theming](#4-theming)
@@ -57,13 +59,17 @@ Labwc supports the following:
 
 See [scope] for full details on implemented features.
 
+## 1.1 Screenshot
+
 <a href="https://i.imgur.com/vOelinT.png">
   <img src="https://i.imgur.com/vOelinTl.png">
 </a>
 
+## 1.2 Videos
+
 | video link     | date        | content
 | -------------- | ------------| -------
-| [Video (0:18)] | 16-Oct-2021 | SnapToEdge feature
+| [Video (2:48)] | 31-Oct-2022 | pre-0.6.0 release video
 | [Video (1:10)] | 05-Aug-2021 | window gymnastics, theming and waybar
 | [Video (3:42)] | 25-Feb-2021 | setting background and themes; xwayland/xdg-shell windows
 
@@ -227,6 +233,6 @@ High-level summary of items which are not intended to be implemented:
 [wlr-randr]: https://sr.ht/~emersion/wlr-randr/
 [swaylock]: https://github.com/swaywm/swaylock
 
-[Video (0:18)]: https://github.com/labwc/labwc/pull/76#issue-1028182472
+[Video (2:48)]: https://youtu.be/guBnx18EQiA
 [Video (1:10)]: https://youtu.be/AU_M3n_FS-E
 [Video (3:42)]: https://youtu.be/rE1bQjSVJzg

@@ -53,7 +53,18 @@ my %camelcase = ();
 my %use_type = ();
 my @use = ();
 my %ignore_type = ();
-my @ignore = ();
+my @ignore = (
+	"SPLIT_STRING",
+	"COMPLEX_MACRO",
+	"PREFER_KERNEL_TYPES",
+	"LOGICAL_CONTINUATIONS",
+	"PARENTHESIS_ALIGNMENT",
+	"OPEN_ENDED_LINE",
+	"MACRO_ARG_REUSE",
+	"PREFER_FALLTHROUGH",
+	"ARRAY_SIZE",
+	"INITIALISED_STATIC",
+);
 my $help = 0;
 my $configuration_file = ".checkpatch.conf";
 my $max_line_length = 100;
@@ -884,8 +895,6 @@ if (open(my $spelling, '<', $spelling_file)) {
 		$spelling_fix{$suspect} = $fix;
 	}
 	close($spelling);
-} else {
-	warn "No typos will be found - file '$spelling_file': $!\n";
 }
 
 if ($codespell) {
@@ -942,10 +951,6 @@ sub read_words {
 }
 
 my $const_structs;
-if (show_type("CONST_STRUCT")) {
-	read_words(\$const_structs, $conststructsfile)
-	    or warn "No structs that should be const will be found - file '$conststructsfile': $!\n";
-}
 
 if (defined($typedefsfile)) {
 	my $typeOtherTypedefs;
@@ -2558,6 +2563,7 @@ sub exclude_global_initialisers {
 
 sub process {
 	my $filename = shift;
+	print($filename, "\n");
 
 	my $linenr=0;
 	my $prevline="";
@@ -3929,52 +3935,6 @@ sub process {
 			$last_blank_line = $linenr;
 		}
 
-# check for missing blank lines after declarations
-# (declarations must have the same indentation and not be at the start of line)
-		if (($prevline =~ /\+(\s+)\S/) && $sline =~ /^\+$1\S/) {
-			# use temporaries
-			my $sl = $sline;
-			my $pl = $prevline;
-			# remove $Attribute/$Sparse uses to simplify comparisons
-			$sl =~ s/\b(?:$Attribute|$Sparse)\b//g;
-			$pl =~ s/\b(?:$Attribute|$Sparse)\b//g;
-			if (($pl =~ /^\+\s+$Declare\s*$Ident\s*[=,;:\[]/ ||
-			# function pointer declarations
-			     $pl =~ /^\+\s+$Declare\s*\(\s*\*\s*$Ident\s*\)\s*[=,;:\[\(]/ ||
-			# foo bar; where foo is some local typedef or #define
-			     $pl =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
-			# known declaration macros
-			     $pl =~ /^\+\s+$declaration_macros/) &&
-			# for "else if" which can look like "$Ident $Ident"
-			    !($pl =~ /^\+\s+$c90_Keywords\b/ ||
-			# other possible extensions of declaration lines
-			      $pl =~ /(?:$Compare|$Assignment|$Operators)\s*$/ ||
-			# not starting a section or a macro "\" extended line
-			      $pl =~ /(?:\{\s*|\\)$/) &&
-			# looks like a declaration
-			    !($sl =~ /^\+\s+$Declare\s*$Ident\s*[=,;:\[]/ ||
-			# function pointer declarations
-			      $sl =~ /^\+\s+$Declare\s*\(\s*\*\s*$Ident\s*\)\s*[=,;:\[\(]/ ||
-			# foo bar; where foo is some local typedef or #define
-			      $sl =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
-			# known declaration macros
-			      $sl =~ /^\+\s+$declaration_macros/ ||
-			# start of struct or union or enum
-			      $sl =~ /^\+\s+(?:static\s+)?(?:const\s+)?(?:union|struct|enum|typedef)\b/ ||
-			# start or end of block or continuation of declaration
-			      $sl =~ /^\+\s+(?:$|[\{\}\.\#\"\?\:\(\[])/ ||
-			# bitfield continuation
-			      $sl =~ /^\+\s+$Ident\s*:\s*\d+\s*[,;]/ ||
-			# other possible extensions of declaration lines
-			      $sl =~ /^\+\s+\(?\s*(?:$Compare|$Assignment|$Operators)/)) {
-				if (WARN("LINE_SPACING",
-					 "Missing a blank line after declarations\n" . $hereprev) &&
-				    $fix) {
-					fix_insert_line($fixlinenr, "\+");
-				}
-			}
-		}
-
 # check for spaces at the beginning of a line.
 # Exceptions:
 #  1) within comments
@@ -4181,11 +4141,6 @@ sub process {
 			#print "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
 			#print "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
 
-			if ($ctx !~ /{\s*/ && defined($lines[$ctx_ln - 1]) && $lines[$ctx_ln - 1] =~ /^\+\s*{/) {
-				ERROR("OPEN_BRACE",
-				      "that open brace { should be on the previous line\n" .
-					"$here\n$ctx\n$rawlines[$ctx_ln - 1]\n");
-			}
 			if ($level == 0 && $pre_ctx !~ /}\s*while\s*\($/ &&
 			    $ctx =~ /\)\s*\;\s*$/ &&
 			    defined $lines[$ctx_ln - 1])
@@ -5153,15 +5108,6 @@ sub process {
 								$line_fixed = 1;
 							}
 						}
-					} elsif ($ctx =~ /Wx[^WCE]|[^WCE]xW/) {
-						if (ERROR("SPACING",
-							  "need consistent spacing around '$op' $at\n" . $hereptr)) {
-							$good = rtrim($fix_elements[$n]) . " " . trim($fix_elements[$n + 1]) . " ";
-							if (defined $fix_elements[$n + 2]) {
-								$fix_elements[$n + 2] =~ s/^\s+//;
-							}
-							$line_fixed = 1;
-						}
 					}
 
 				# A colon needs no spaces before when it is
@@ -5675,6 +5621,19 @@ sub process {
 			    $var !~ /^(?:[A-Z]+_){1,5}[A-Z]{1,3}[a-z]/ &&
 #Ignore Page<foo> variants
 			    $var !~ /^(?:Clear|Set|TestClear|TestSet|)Page[A-Z]/ &&
+
+#Ignore some pango and libxml2 CamelCase variants
+			    $var !~ /^(?:PangoLayout|PangoFontDescription)/ &&
+			    $var !~ /^(?:PangoTabArray|PangoRectangle)/ &&
+			    $var !~ /^(?:PangoWeight|_PangoFontDescription)/ &&
+			    $var !~ /^(?:xmlNode|xmlIsBlankNode|xmlAttr)/ &&
+			    $var !~ /^(?:xmlGetProp|xmlChar|xmlDoc)/ &&
+			    $var !~ /^(?:xmlReadFile|xmlDocGetRootElement)/ &&
+			    $var !~ /^(?:xmlFreeDoc|xmlCleanupParser)/ &&
+			    $var !~ /^(?:xmlParseMemory)/ &&
+			    $var !~ /^(?:GString|GError)/ &&
+			    $var !~ /^(?:XKB_KEY_XF86Switch_VT_1)/ &&
+
 #Ignore SI style variants like nS, mV and dB
 #(ie: max_uV, regulator_min_uA_show, RANGE_mA_VALUE)
 			    $var !~ /^(?:[a-z0-9_]*|[A-Z0-9_]*)?_?[a-z][A-Z](?:_[a-z0-9_]+|_[A-Z0-9_]+)?$/ &&
@@ -5989,8 +5948,7 @@ sub process {
 						$sum_allowed += $_;
 					}
 					if ($sum_allowed == 0) {
-						WARN("BRACES",
-						     "braces {} are not necessary for any arm of this statement\n" . $herectx);
+						# do nothing
 					} elsif ($sum_allowed != $allow &&
 						 $seen != $allow) {
 						CHK("BRACES",
@@ -6040,13 +5998,6 @@ sub process {
 					#print "APW: ALLOWED: chunk-1 block<$block>\n";
 					$allowed = 1;
 				}
-			}
-			if ($level == 0 && $block =~ /^\s*\{/ && !$allowed) {
-				my $cnt = statement_rawlines($block);
-				my $herectx = get_stat_here($linenr, $cnt, $here);
-
-				WARN("BRACES",
-				     "braces {} are not necessary for single statement blocks\n" . $herectx);
 			}
 		}
 
@@ -7458,12 +7409,6 @@ sub process {
 	}
 
 	print report_dump();
-	if ($summary && !($clean == 1 && $quiet == 1)) {
-		print "$filename " if ($summary_file);
-		print "total: $cnt_error errors, $cnt_warn warnings, " .
-			(($check)? "$cnt_chk checks, " : "") .
-			"$cnt_lines lines checked\n";
-	}
 
 	if ($quiet == 0) {
 		# If there were any defects found and not already fixing them

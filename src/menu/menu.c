@@ -231,6 +231,7 @@ fill_item(char *nodename, char *content)
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else if (!strcmp(nodename, "command.action")) {
+		/* Execute */
 		action_arg_add_str(current_item_action, NULL, content);
 	} else if (!strcmp(nodename, "execute.action")) {
 		/*
@@ -240,6 +241,7 @@ fill_item(char *nodename, char *content)
 		 */
 		action_arg_add_str(current_item_action, NULL, content);
 	} else if (!strcmp(nodename, "to.action")) {
+		/* GoToDesktop, SendToDesktop */
 		action_arg_add_str(current_item_action, NULL, content);
 	}
 }

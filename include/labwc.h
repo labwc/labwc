@@ -88,6 +88,10 @@ struct keyboard {
 	bool is_virtual;
 	struct wl_listener modifier;
 	struct wl_listener key;
+	/* key repeat for compositor keybinds */
+	uint32_t keybind_repeat_keycode;
+	int32_t keybind_repeat_rate;
+	struct wl_event_source *keybind_repeat;
 };
 
 struct seat {
@@ -533,6 +537,7 @@ struct view *desktop_focused_view(struct server *server);
 void desktop_focus_topmost_mapped_view(struct server *server);
 bool isfocusable(struct view *view);
 
+void keyboard_cancel_keybind_repeat(struct keyboard *keyboard);
 void keyboard_key_notify(struct wl_listener *listener, void *data);
 void keyboard_modifiers_notify(struct wl_listener *listener, void *data);
 void keyboard_init(struct seat *seat);

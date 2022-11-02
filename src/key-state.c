@@ -12,6 +12,17 @@ struct key_array {
 
 static struct key_array pressed, bound, pressed_sent;
 
+static bool
+key_present(struct key_array *array, uint32_t keycode)
+{
+	for (int i = 0; i < array->nr_keys; ++i) {
+		if (array->keys[i] == keycode) {
+			return true;
+		}
+	}
+	return false;
+}
+
 static void
 remove_key(struct key_array *array, uint32_t keycode)
 {
@@ -32,7 +43,9 @@ remove_key(struct key_array *array, uint32_t keycode)
 static void
 add_key(struct key_array *array, uint32_t keycode)
 {
-	array->keys[array->nr_keys++] = keycode;
+	if (!key_present(array, keycode) && array->nr_keys < MAX_PRESSED_KEYS) {
+		array->keys[array->nr_keys++] = keycode;
+	}
 }
 
 uint32_t *
@@ -74,12 +87,7 @@ key_state_store_pressed_keys_as_bound(void)
 bool
 key_state_corresponding_press_event_was_bound(uint32_t keycode)
 {
-	for (int i = 0; i < bound.nr_keys; ++i) {
-		if (bound.keys[i] == keycode) {
-			return true;
-		}
-	}
-	return false;
+	return key_present(&bound, keycode);
 }
 
 void

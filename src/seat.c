@@ -24,6 +24,7 @@ input_device_destroy(struct wl_listener *listener, void *data)
 		struct keyboard *keyboard = (struct keyboard *)input;
 		wl_list_remove(&keyboard->key.link);
 		wl_list_remove(&keyboard->modifier.link);
+		keyboard_cancel_keybind_repeat(keyboard);
 	}
 	free(input);
 }

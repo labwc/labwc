@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <assert.h>
 #include <wlr/backend/multi.h>
 #include <wlr/backend/session.h>
 #include "action.h"
-#include "buffer.h"
 #include "key-state.h"
 #include "labwc.h"
 #include "workspaces.h"
@@ -105,10 +105,9 @@ static bool is_modifier_key(xkb_keysym_t sym)
 }
 
 static bool
-handle_compositor_keybindings(struct wl_listener *listener,
+handle_compositor_keybindings(struct keyboard *keyboard,
 		struct wlr_keyboard_key_event *event)
 {
-	struct keyboard *keyboard = wl_container_of(listener, keyboard, key);
 	struct seat *seat = keyboard->base.seat;
 	struct server *server = seat->server;
 	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
@@ -231,6 +230,52 @@ out:
 	return handled;
 }
 
+static int
+handle_keybind_repeat(void *data)
+{
+	struct keyboard *keyboard = data;
+	assert(keyboard->keybind_repeat);
+
+	/* synthesize event */
+	struct wlr_keyboard_key_event event = {
+		.keycode = keyboard->keybind_repeat_keycode,
+		.state = WL_KEYBOARD_KEY_STATE_PRESSED
+	};
+
+	handle_compositor_keybindings(keyboard, &event);
+	wl_event_source_timer_update(keyboard->keybind_repeat,
+		keyboard->keybind_repeat_rate);
+
+	return 0; /* ignored per wl_event_loop docs */
+}
+
+static void
+start_keybind_repeat(struct server *server, struct keyboard *keyboard,
+		struct wlr_keyboard_key_event *event)
+{
+	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
+	assert(!keyboard->keybind_repeat);
+
+	if (wlr_keyboard->repeat_info.rate > 0
+			&& wlr_keyboard->repeat_info.delay > 0) {
+		keyboard->keybind_repeat_keycode = event->keycode;
+		keyboard->keybind_repeat_rate = wlr_keyboard->repeat_info.rate;
+		keyboard->keybind_repeat = wl_event_loop_add_timer(
+			server->wl_event_loop, handle_keybind_repeat, keyboard);
+		wl_event_source_timer_update(keyboard->keybind_repeat,
+			wlr_keyboard->repeat_info.delay);
+	}
+}
+
+void
+keyboard_cancel_keybind_repeat(struct keyboard *keyboard)
+{
+	if (keyboard->keybind_repeat) {
+		wl_event_source_remove(keyboard->keybind_repeat);
+		keyboard->keybind_repeat = NULL;
+	}
+}
+
 void
 keyboard_key_notify(struct wl_listener *listener, void *data)
 {
@@ -242,9 +287,15 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
-	bool handled = handle_compositor_keybindings(listener, event);
+	/* any new press/release cancels current keybind repeat */
+	keyboard_cancel_keybind_repeat(keyboard);
 
-	if (!handled) {
+	bool handled = handle_compositor_keybindings(keyboard, event);
+	if (handled) {
+		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+			start_keybind_repeat(seat->server, keyboard, event);
+		}
+	} else {
 		wlr_seat_set_keyboard(wlr_seat, wlr_keyboard);
 		wlr_seat_keyboard_notify_key(wlr_seat, event->time_msec,
 			event->keycode, event->state);

@@ -36,6 +36,7 @@ restore_nofile_limit(void)
 	}
 
 	if (setrlimit(RLIMIT_NOFILE, &original_nofile_rlimit) != 0) {
-		wlr_log_errno(WLR_ERROR, "Failed to restore max open files limit: setrlimit(NOFILE) failed");
+		wlr_log_errno(WLR_ERROR,
+			"Failed to restore max open files limit: setrlimit(NOFILE) failed");
 	}
 }

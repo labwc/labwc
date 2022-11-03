@@ -442,7 +442,7 @@ set_activated(struct view *view, bool activated)
 		/* Restack unmanaged surfaces on top */
 		struct xwayland_unmanaged *u;
 		struct wl_list *list = &view->server->unmanaged_surfaces;
-		wl_list_for_each (u, list, link) {
+		wl_list_for_each(u, list, link) {
 			wlr_xwayland_surface_restack(u->xwayland_surface, NULL,
 						     XCB_STACK_MODE_ABOVE);
 		}

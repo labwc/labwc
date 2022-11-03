@@ -684,7 +684,7 @@ static void
 close_all_submenus(struct menu *menu)
 {
 	struct menuitem *item;
-	wl_list_for_each (item, &menu->menuitems, link) {
+	wl_list_for_each(item, &menu->menuitems, link) {
 		if (item->submenu) {
 			wlr_scene_node_set_enabled(
 				&item->submenu->scene_tree->node, false);

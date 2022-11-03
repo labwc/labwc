@@ -15,10 +15,10 @@
 #include "resistance.h"
 #include "ssd.h"
 
-static const char **cursor_names = NULL;
+static const char * const *cursor_names = NULL;
 
 /* Usual cursor names */
-static const char *cursors_xdg[] = {
+static const char * const cursors_xdg[] = {
 	NULL,
 	"default",
 	"grab",
@@ -33,7 +33,7 @@ static const char *cursors_xdg[] = {
 };
 
 /* XCursor fallbacks */
-static const char *cursors_x11[] = {
+static const char * const cursors_x11[] = {
 	NULL,
 	"left_ptr",
 	"grabbing",

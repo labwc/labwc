@@ -240,7 +240,7 @@ static struct view *
 parent_of(struct view *view)
 {
 	struct view *p;
-	wl_list_for_each (p, &view->server->views, link) {
+	wl_list_for_each(p, &view->server->views, link) {
 		if (p->xdg_surface->toplevel
 				== view->xdg_surface->toplevel->parent) {
 			return p;

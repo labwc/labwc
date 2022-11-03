@@ -273,7 +273,7 @@ desktop_focused_view(struct server *server)
 		return NULL;
 	}
 	struct view *view;
-	wl_list_for_each (view, &server->views, link) {
+	wl_list_for_each(view, &server->views, link) {
 		if (view->surface == focused_surface) {
 			return view;
 		}

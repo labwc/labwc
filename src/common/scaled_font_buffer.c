@@ -47,8 +47,8 @@ scaled_font_buffer_create(struct wlr_scene_tree *parent)
 {
 	assert(parent);
 	struct scaled_font_buffer *self = znew(*self);
-	struct scaled_scene_buffer *scaled_buffer
-		= scaled_scene_buffer_create(parent, &impl);
+	struct scaled_scene_buffer *scaled_buffer =
+		scaled_scene_buffer_create(parent, &impl);
 	if (!scaled_buffer) {
 		free(self);
 		return NULL;

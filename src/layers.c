@@ -80,7 +80,7 @@ layers_arrange(struct output *output)
 		/ sizeof(layers_above_shell[0]);
 	struct lab_layer_surface *layer, *topmost = NULL;
 	for (size_t i = 0; i < nlayers; ++i) {
-		wl_list_for_each_reverse (layer,
+		wl_list_for_each_reverse(layer,
 				&output->layers[layers_above_shell[i]], link) {
 			struct wlr_layer_surface_v1 *layer_surface =
 				layer->scene_layer_surface->layer_surface;

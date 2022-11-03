@@ -68,7 +68,8 @@ draw_cairo_border(cairo_t *cairo, double width, double height, double line_width
 
 	double x, y, w, h;
 	/* The anchor point of a line is in the center */
-	x = y = line_width / 2;
+	x = line_width / 2;
+	y = x;
 	w = width - line_width;
 	h = height - line_width;
 	cairo_set_line_width(cairo, line_width);

@@ -7,9 +7,11 @@ struct server;
 struct wl_list;
 
 struct action {
-	struct wl_list link;  /* struct keybinding.actions,
-	                       * struct mousebinding.actions,
-	                       * struct menuitem.actions */
+	struct wl_list link; /*
+			      * struct keybinding.actions
+			      * struct mousebinding.actions
+			      * struct menuitem.actions
+			      */
 
 	uint32_t type;        /* enum action_type */
 	struct wl_list args;  /* struct action_arg.link */

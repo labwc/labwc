@@ -49,7 +49,7 @@ char *xstrdup(const char *str);
  * Does nothing if <ptr> is already NULL.
  */
 #define zfree(ptr) do { \
-        free(ptr); (ptr) = NULL; \
+	free(ptr); (ptr) = NULL; \
 } while (0)
 
 #endif /* __LABWC_MEM_H */

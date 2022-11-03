@@ -73,7 +73,7 @@ focus_next_surface(struct server *server, struct wlr_xwayland_surface *xsurface)
 	/* Try to focus on last created unmanaged xwayland surface */
 	struct xwayland_unmanaged *u;
 	struct wl_list *list = &server->unmanaged_surfaces;
-	wl_list_for_each_reverse (u, list, link) {
+	wl_list_for_each_reverse(u, list, link) {
 		struct wlr_xwayland_surface *prev = u->xwayland_surface;
 		if (wlr_xwayland_or_surface_wants_focus(prev)) {
 			seat_focus_surface(&server->seat, prev->surface);

@@ -38,7 +38,7 @@ reload_config_and_theme(void)
 	theme_init(g_server->theme, rc.theme_name);
 
 	struct view *view;
-	wl_list_for_each (view, &g_server->views, link) {
+	wl_list_for_each(view, &g_server->views, link) {
 		if (!view->mapped || !view->ssd.enabled) {
 			continue;
 		}

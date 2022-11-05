@@ -634,8 +634,8 @@ handle_release_mousebinding(struct server *server,
 		struct cursor_context *ctx, uint32_t button)
 {
 	struct mousebind *mousebind;
-	bool activated_any = false;
-	bool activated_any_frame = false;
+	bool handled = false;
+	bool handled_in_compositor = false;
 
 	uint32_t modifiers = wlr_keyboard_get_modifiers(
 			&server->seat.keyboard_group->keyboard);
@@ -658,30 +658,30 @@ handle_release_mousebinding(struct server *server,
 					 * Swallow the release event as well as
 					 * the press one
 					 */
-					activated_any = true;
-					activated_any_frame |=
+					handled = true;
+					handled_in_compositor |=
 						mousebind->context == LAB_SSD_FRAME;
 				}
 				continue;
 			default:
 				continue;
 			}
-			activated_any = true;
-			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
+			handled = true;
+			handled_in_compositor |= mousebind->context == LAB_SSD_FRAME;
 			actions_run(ctx->view, server, &mousebind->actions,
 				/*resize_edges*/ 0);
 		}
 	}
 	/*
 	 * Clear "pressed" status for all bindings of this mouse button,
-	 * regardless of whether activated or not
+	 * regardless of whether handled or not
 	 */
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
 		if (mousebind->button == button) {
 			mousebind->pressed_in_context = false;
 		}
 	}
-	return activated_any && activated_any_frame;
+	return handled && handled_in_compositor;
 }
 
 static bool
@@ -719,8 +719,8 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 {
 	struct mousebind *mousebind;
 	bool double_click = is_double_click(rc.doubleclick_time, button, ctx->view);
-	bool activated_any = false;
-	bool activated_any_frame = false;
+	bool handled = false;
+	bool handled_in_compositor = false;
 
 	uint32_t modifiers = wlr_keyboard_get_modifiers(
 			&server->seat.keyboard_group->keyboard);
@@ -742,8 +742,8 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 					 * Swallow the press event as well as
 					 * the release one
 					 */
-					activated_any = true;
-					activated_any_frame |=
+					handled = true;
+					handled_in_compositor |=
 						mousebind->context == LAB_SSD_FRAME;
 					mousebind->pressed_in_context = true;
 				}
@@ -758,12 +758,12 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 			default:
 				continue;
 			}
-			activated_any = true;
-			activated_any_frame |= mousebind->context == LAB_SSD_FRAME;
+			handled = true;
+			handled_in_compositor |= mousebind->context == LAB_SSD_FRAME;
 			actions_run(ctx->view, server, &mousebind->actions, resize_edges);
 		}
 	}
-	return activated_any && activated_any_frame;
+	return handled && handled_in_compositor;
 }
 
 /* Set in cursor_button_press(), used in cursor_button_release() */
@@ -805,10 +805,10 @@ cursor_button_press(struct seat *seat, struct wlr_pointer_button_event *event)
 	}
 
 	/* Bindings to the Frame context swallow mouse events if activated */
-	bool triggered_frame_binding = handle_press_mousebinding(
+	bool handled = handle_press_mousebinding(
 			server, &ctx, event->button, resize_edges);
 
-	if (ctx.surface && !triggered_frame_binding) {
+	if (ctx.surface && !handled) {
 		/* Notify client with pointer focus of button press */
 		wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
 			event->button, event->state);
@@ -851,10 +851,9 @@ cursor_button_release(struct seat *seat, struct wlr_pointer_button_event *event)
 	}
 
 	/* Bindings to the Frame context swallow mouse events if activated */
-	bool triggered_frame_binding =
-		handle_release_mousebinding(server, &ctx, event->button);
+	bool handled = handle_release_mousebinding(server, &ctx, event->button);
 
-	if (ctx.surface && !triggered_frame_binding) {
+	if (ctx.surface && !handled) {
 		/* Notify client with pointer focus of button release */
 		wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
 			event->button, event->state);
@@ -887,7 +886,7 @@ handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 		struct wlr_pointer_axis_event *event)
 {
 	struct mousebind *mousebind;
-	bool activated_any = false;
+	bool handled = false;
 
 	uint32_t modifiers = wlr_keyboard_get_modifiers(
 			&server->seat.keyboard_group->keyboard);
@@ -910,12 +909,12 @@ handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers
 				&& mousebind->mouse_event == MOUSE_ACTION_SCROLL) {
-			activated_any = true;
+			handled = true;
 			actions_run(ctx->view, server, &mousebind->actions, /*resize_edges*/ 0);
 		}
 	}
 
-	return activated_any;
+	return handled;
 }
 
 void
@@ -932,9 +931,9 @@ cursor_axis(struct wl_listener *listener, void *data)
 	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
 
 	/* Bindings swallow mouse events if activated */
-	bool triggered_axis_binding = handle_cursor_axis(server, &ctx, event);
+	bool handled = handle_cursor_axis(server, &ctx, event);
 
-	if (ctx.surface && !triggered_axis_binding) {
+	if (ctx.surface && !handled) {
 		/* Make sure we are sending the events to the surface under the cursor */
 		cursor_update_common(server, &ctx, event->time_msec, false);
 

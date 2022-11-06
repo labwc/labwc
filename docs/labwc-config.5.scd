@@ -219,6 +219,8 @@ The rest of this man page describes configuration options.
 	- Left
 	- Middle
 	- Right
+	- Up (scroll up)
+	- Down (scroll down)
 
 	Supported mouse actions include:
 	- Press: Pressing the specified button down in the context.
@@ -226,6 +228,7 @@ The rest of this man page describes configuration options.
 	- Click: Pressing and then releasing inside of the the context.
 	- DoubleClick: Two presses within the doubleClickTime.
 	- Drag: Pressing the button within the context, then moving the cursor
+	- Scroll: Scrolling up or down in the context.
 
 *<mouse><default />*
 	Load default mousebinds. This is an addition to the openbox

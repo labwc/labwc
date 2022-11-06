@@ -301,6 +301,12 @@
       <mousebind button="Middle" action="Press">
         <action name="ShowMenu"><menu>root-menu</menu></action>
       </mousebind>
+      <mousebind button="Up" action="Scroll">
+        <action name="GoToDesktop" to="left"/>
+      </mousebind>
+      <mousebind button="Down" action="Scroll">
+        <action name="GoToDesktop" to="right"/>
+      </mousebind>
     </context>
 
   </mouse>

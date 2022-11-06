@@ -591,6 +591,8 @@ static struct mouse_combos {
 	{ "Root", "Left", "Press", "ShowMenu", "root-menu"},
 	{ "Root", "Right", "Press", "ShowMenu", "root-menu"},
 	{ "Root", "Middle", "Press", "ShowMenu", "root-menu"},
+	{ "Root", "Up", "Scroll", "GoToDesktop", "left"},
+	{ "Root", "Down", "Scroll", "GoToDesktop", "right"},
 	{ "Client", "Left", "Press", "Focus", NULL},
 	{ "Client", "Left", "Press", "Raise", NULL},
 	{ "Client", "Right", "Press", "Focus", NULL},

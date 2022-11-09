@@ -131,6 +131,9 @@ fill_mousebind(char *nodename, char *content)
 	} else if (!strcmp(nodename, "button")) {
 		current_mousebind->button = mousebind_button_from_str(content,
 			&current_mousebind->modifiers);
+	} else if (!strcmp(nodename, "direction")) {
+		current_mousebind->direction = mousebind_direction_from_str(content,
+			&current_mousebind->modifiers);
 	} else if (!strcmp(nodename, "action")) {
 		/* <mousebind button="" action="EVENT"> */
 		current_mousebind->mouse_event =
@@ -621,9 +624,14 @@ load_default_mouse_bindings(void)
 				|| strcmp(current->event, mouse_combos[i - 1].event)) {
 			/* Create new mousebind */
 			m = mousebind_create(current->context);
-			m->button = mousebind_button_from_str(current->button,
-				&m->modifiers);
 			m->mouse_event = mousebind_event_from_str(current->event);
+			if (m->mouse_event == MOUSE_ACTION_SCROLL) {
+				m->direction = mousebind_direction_from_str(current->button,
+					&m->modifiers);
+			} else {
+				m->button = mousebind_button_from_str(current->button,
+					&m->modifiers);
+			}
 			count++;
 		}
 
@@ -649,6 +657,7 @@ merge_mouse_bindings(void)
 			}
 			if (existing->context == current->context
 					&& existing->button == current->button
+					&& existing->direction == current->direction
 					&& existing->mouse_event == current->mouse_event) {
 				wl_list_remove(&existing->link);
 				action_list_free(&existing->actions);

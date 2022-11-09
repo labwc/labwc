@@ -16,11 +16,22 @@ enum mouse_event {
 	MOUSE_ACTION_SCROLL,
 };
 
+enum direction {
+	LAB_DIRECTION_INVALID = 0,
+	LAB_DIRECTION_LEFT,
+	LAB_DIRECTION_RIGHT,
+	LAB_DIRECTION_UP,
+	LAB_DIRECTION_DOWN,
+};
+
 struct mousebind {
 	enum ssd_part_type context;
 
 	/* ex: BTN_LEFT, BTN_RIGHT from linux/input_event_codes.h */
 	uint32_t button;
+
+	/* scroll direction; considered instead of button for scroll events */
+	enum direction direction;
 
 	/* ex: WLR_MODIFIER_SHIFT | WLR_MODIFIER_LOGO */
 	uint32_t modifiers;
@@ -35,6 +46,7 @@ struct mousebind {
 
 enum mouse_event mousebind_event_from_str(const char *str);
 uint32_t mousebind_button_from_str(const char *str, uint32_t *modifiers);
+enum direction mousebind_direction_from_str(const char *str, uint32_t *modifiers);
 struct mousebind *mousebind_create(const char *context);
 
 #endif /* __LABWC_MOUSEBIND_H */

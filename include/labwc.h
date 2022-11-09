@@ -107,6 +107,9 @@ struct seat {
 	enum lab_cursors server_cursor;
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *xcursor_manager;
+	struct {
+		double x, y;
+	} smooth_scroll_offset;
 
 	struct wlr_pointer_constraint_v1 *current_constraint;
 	struct wlr_idle *wlr_idle;

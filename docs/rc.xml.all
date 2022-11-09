@@ -301,10 +301,10 @@
       <mousebind button="Middle" action="Press">
         <action name="ShowMenu"><menu>root-menu</menu></action>
       </mousebind>
-      <mousebind button="Up" action="Scroll">
+      <mousebind direction="Up" action="Scroll">
         <action name="GoToDesktop" to="left"/>
       </mousebind>
-      <mousebind button="Down" action="Scroll">
+      <mousebind direction="Down" action="Scroll">
         <action name="GoToDesktop" to="right"/>
       </mousebind>
     </context>

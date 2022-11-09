@@ -35,7 +35,8 @@ static struct action *current_keybind_action;
 static struct action *current_mousebind_action;
 
 enum font_place {
-	FONT_PLACE_UNKNOWN = 0,
+	FONT_PLACE_NONE = 0,
+	FONT_PLACE_UNKNOWN,
 	FONT_PLACE_ACTIVEWINDOW,
 	FONT_PLACE_MENUITEM,
 	FONT_PLACE_OSD,
@@ -267,7 +268,7 @@ fill_font(char *nodename, char *content, enum font_place place)
 	string_truncate_at_pattern(nodename, ".font.theme");
 
 	switch (place) {
-	case FONT_PLACE_UNKNOWN:
+	case FONT_PLACE_NONE:
 		/*
 		 * If <theme><font></font></theme> is used without a place=""
 		 * attribute, we set all font variables
@@ -296,8 +297,8 @@ fill_font(char *nodename, char *content, enum font_place place)
 static enum font_place
 enum_font_place(const char *place)
 {
-	if (!place) {
-		return FONT_PLACE_UNKNOWN;
+	if (!place || place[0] == '\0') {
+		return FONT_PLACE_NONE;
 	}
 	if (!strcasecmp(place, "ActiveWindow")) {
 		return FONT_PLACE_ACTIVEWINDOW;
@@ -314,7 +315,7 @@ static void
 entry(xmlNode *node, char *nodename, char *content)
 {
 	/* current <theme><font place=""></font></theme> */
-	static enum font_place font_place = FONT_PLACE_UNKNOWN;
+	static enum font_place font_place = FONT_PLACE_NONE;
 
 	if (!nodename) {
 		return;
@@ -353,6 +354,9 @@ entry(xmlNode *node, char *nodename, char *content)
 	}
 	if (!strcmp(nodename, "place.font.theme")) {
 		font_place = enum_font_place(content);
+		if (font_place == FONT_PLACE_UNKNOWN) {
+			wlr_log(WLR_ERROR, "invalid font place %s", content);
+		}
 	}
 
 	if (!strcmp(nodename, "decoration.core")) {

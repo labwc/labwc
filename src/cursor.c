@@ -889,6 +889,38 @@ cursor_button(struct wl_listener *listener, void *data)
 	}
 }
 
+static int
+compare_delta(const struct wlr_pointer_axis_event *event, double *accum)
+{
+	/*
+	 * Smooth scroll deltas are in surface space, so treating each unit as a
+	 * scroll event would result in too-fast scrolling.
+	 *
+	 * This fudge factor (inherited from various historic projects, incl. Weston)
+	 * produces events at a more reasonable rate.
+	 *
+	 * For historic context, see:
+	 * https://lists.freedesktop.org/archives/wayland-devel/2019-April/040377.html
+	 */
+	const double SCROLL_THRESHOLD = 10.0;
+
+	if (event->delta == 0.0) {
+		/* Delta 0 marks the end of a scroll */
+		*accum = 0.0;
+	} else {
+		/* Accumulate smooth scrolling until we hit threshold */
+		*accum += event->delta;
+	}
+	if (event->delta_discrete < 0 || *accum < -SCROLL_THRESHOLD) {
+		*accum = fmod(*accum, SCROLL_THRESHOLD);
+		return -1;
+	} else if (event->delta_discrete > 0 || *accum > SCROLL_THRESHOLD) {
+		*accum = fmod(*accum, SCROLL_THRESHOLD);
+		return 1;
+	}
+	return 0;
+}
+
 bool
 handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 		struct wlr_pointer_axis_event *event)
@@ -899,22 +931,32 @@ handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 	uint32_t modifiers = wlr_keyboard_get_modifiers(
 			&server->seat.keyboard_group->keyboard);
 
-	uint32_t button = 0;
-	if (event->delta_discrete < 0) {
-		button = BTN_GEAR_UP;
-	} else if (event->delta_discrete > 0) {
-		button = BTN_GEAR_DOWN;
+	enum direction direction = LAB_DIRECTION_INVALID;
+	if (event->orientation == WLR_AXIS_ORIENTATION_HORIZONTAL) {
+		int rel = compare_delta(event, &server->seat.smooth_scroll_offset.x);
+		if (rel < 0) {
+			direction = LAB_DIRECTION_LEFT;
+		} else if (rel > 0) {
+			direction = LAB_DIRECTION_RIGHT;
+		}
+	} else if (event->orientation == WLR_AXIS_ORIENTATION_VERTICAL) {
+		int rel = compare_delta(event, &server->seat.smooth_scroll_offset.y);
+		if (rel < 0) {
+			direction = LAB_DIRECTION_UP;
+		} else if (rel > 0) {
+			direction = LAB_DIRECTION_DOWN;
+		}
+	} else {
+		wlr_log(WLR_DEBUG, "Failed to handle cursor axis event");
 	}
 
-	if (!button || event->source != WLR_AXIS_SOURCE_WHEEL
-			|| event->orientation != WLR_AXIS_ORIENTATION_VERTICAL) {
-		wlr_log(WLR_DEBUG, "Failed to handle cursor axis event");
+	if (direction == LAB_DIRECTION_INVALID) {
 		return false;
 	}
 
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
 		if (ssd_part_contains(mousebind->context, ctx->type)
-				&& mousebind->button == button
+				&& mousebind->direction == direction
 				&& modifiers == mousebind->modifiers
 				&& mousebind->mouse_event == MOUSE_ACTION_SCROLL) {
 			handled = true;

@@ -34,14 +34,42 @@ mousebind_button_from_str(const char *str, uint32_t *modifiers)
 		return BTN_RIGHT;
 	} else if (!strcasecmp(str, "Middle")) {
 		return BTN_MIDDLE;
-	} else if (!strcasecmp(str, "Up")) {
-		return BTN_GEAR_UP;
-	} else if (!strcasecmp(str, "Down")) {
-		return BTN_GEAR_DOWN;
 	}
 invalid:
 	wlr_log(WLR_ERROR, "unknown button (%s)", str);
 	return UINT32_MAX;
+}
+
+enum direction
+mousebind_direction_from_str(const char *str, uint32_t *modifiers)
+{
+	assert(str);
+
+	if (modifiers) {
+		*modifiers = 0;
+		while (strlen(str) >= 2 && str[1] == '-') {
+			char modname[2] = {str[0], 0};
+			uint32_t parsed_modifier = parse_modifier(modname);
+			if (!parsed_modifier) {
+				goto invalid;
+			}
+			*modifiers |= parsed_modifier;
+			str += 2;
+		}
+	}
+
+	if (!strcasecmp(str, "Left")) {
+		return LAB_DIRECTION_LEFT;
+	} else if (!strcasecmp(str, "Right")) {
+		return LAB_DIRECTION_RIGHT;
+	} else if (!strcasecmp(str, "Up")) {
+		return LAB_DIRECTION_UP;
+	} else if (!strcasecmp(str, "Down")) {
+		return LAB_DIRECTION_DOWN;
+	}
+invalid:
+	wlr_log(WLR_ERROR, "unknown direction (%s)", str);
+	return LAB_DIRECTION_INVALID;
 }
 
 enum mouse_event

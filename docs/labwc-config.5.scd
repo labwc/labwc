@@ -187,7 +187,7 @@ The rest of this man page describes configuration options.
 *<mouse><doubleClickTime>*
 	Set double click time in milliseconds. Default is 500.
 
-*<mouse><context name=""><mousebind button=""><action>*
+*<mouse><context name=""><mousebind button="" direction=""><action>*
 	Multiple *<mousebind>* can exist within one *<context>*; and multiple
 	*<action>* can exist within one *<mousebind>*
 
@@ -219,8 +219,12 @@ The rest of this man page describes configuration options.
 	- Left
 	- Middle
 	- Right
-	- Up (scroll up)
-	- Down (scroll down)
+
+	Supported scroll directions are:
+	- Up
+	- Down
+	- Left
+	- Right
 
 	Supported mouse actions include:
 	- Press: Pressing the specified button down in the context.
@@ -229,6 +233,7 @@ The rest of this man page describes configuration options.
 	- DoubleClick: Two presses within the doubleClickTime.
 	- Drag: Pressing the button within the context, then moving the cursor
 	- Scroll: Scrolling up or down in the context.
+		Scroll actions must have a *direction* specified instead of *button*.
 
 *<mouse><default />*
 	Load default mousebinds. This is an addition to the openbox

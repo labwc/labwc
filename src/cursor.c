@@ -50,10 +50,10 @@ static const char * const cursors_x11[] = {
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 static_assert(
 	ARRAY_SIZE(cursors_xdg) == LAB_CURSOR_COUNT,
-	"XDG cursor names are out ot sync");
+	"XDG cursor names are out of sync");
 static_assert(
 	ARRAY_SIZE(cursors_x11) == LAB_CURSOR_COUNT,
-	"X11 cursor names are out ot sync");
+	"X11 cursor names are out of sync");
 #undef ARRAY_SIZE
 
 enum lab_cursors

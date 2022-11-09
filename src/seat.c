@@ -418,16 +418,17 @@ seat_reconfigure(struct server *server)
 {
 	struct seat *seat = &server->seat;
 	struct input *input;
-	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
 	wl_list_for_each(input, &seat->inputs, link) {
 		/* We don't configure keyboards by libinput, so skip them */
 		if (wlr_input_device_is_libinput(input->wlr_input_device) &&
 			input->wlr_input_device->type ==
 			WLR_INPUT_DEVICE_POINTER) {
 			configure_libinput(input->wlr_input_device);
+		} else if (input->wlr_input_device->type == WLR_INPUT_DEVICE_KEYBOARD) {
+			struct wlr_keyboard *kb = wlr_keyboard_from_input_device(input->wlr_input_device);
+			wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
 		}
 	}
-	wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
 }
 
 void

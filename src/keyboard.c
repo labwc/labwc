@@ -235,6 +235,7 @@ handle_keybind_repeat(void *data)
 {
 	struct keyboard *keyboard = data;
 	assert(keyboard->keybind_repeat);
+	assert(keyboard->keybind_repeat_rate > 0);
 
 	/* synthesize event */
 	struct wlr_keyboard_key_event event = {
@@ -243,8 +244,9 @@ handle_keybind_repeat(void *data)
 	};
 
 	handle_compositor_keybindings(keyboard, &event);
+	int next_repeat_ms = 1000 / keyboard->keybind_repeat_rate;
 	wl_event_source_timer_update(keyboard->keybind_repeat,
-		keyboard->keybind_repeat_rate);
+		next_repeat_ms);
 
 	return 0; /* ignored per wl_event_loop docs */
 }

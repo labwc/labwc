@@ -10,7 +10,7 @@ static void
 handle_commit(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, commit);
-	assert(view->surface);
+	assert(data && data == view->surface);
 
 	/* Must receive commit signal before accessing surface->current* */
 	struct wlr_surface_state *state = &view->surface->current;
@@ -69,11 +69,8 @@ static void
 handle_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, map);
-	struct wlr_xwayland_surface *xsurface = data;
-	if (xsurface != view->xwayland_surface) {
-		xsurface->data = view;
-		view->xwayland_surface = xsurface;
-	}
+	assert(data && data == view->xwayland_surface);
+
 	view->impl->map(view);
 }
 
@@ -81,6 +78,8 @@ static void
 handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, unmap);
+	assert(data && data == view->xwayland_surface);
+
 	view->impl->unmap(view);
 
 	/*
@@ -100,9 +99,7 @@ static void
 handle_surface_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, surface_destroy);
-	assert(view->type == LAB_XWAYLAND_VIEW);
-	struct wlr_surface *surface = data;
-	assert(surface == view->surface);
+	assert(data && data == view->surface);
 
 	view->surface = NULL;
 	wl_list_remove(&view->surface_destroy.link);
@@ -112,9 +109,9 @@ static void
 handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
-	assert(view->type == LAB_XWAYLAND_VIEW);
+	assert(data && data == view->xwayland_surface);
+	assert(view->xwayland_surface->data == view);
 
-	/* Reset XWayland specific surface for good measure */
 	if (view->surface) {
 		/*
 		 * We got the destroy signal from
@@ -124,6 +121,13 @@ handle_destroy(struct wl_listener *listener, void *data)
 		wl_list_remove(&view->surface_destroy.link);
 	}
 	view->surface = NULL;
+
+	/*
+	 * Break view <-> xsurface association.  Note that the xsurface
+	 * may not actually be destroyed at this point; it may become an
+	 * "unmanaged" surface instead.
+	 */
+	view->xwayland_surface->data = NULL;
 	view->xwayland_surface = NULL;
 
 	/* Remove XWayland specific handlers */
@@ -289,13 +293,14 @@ handle_override_redirect(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, override_redirect);
 	struct wlr_xwayland_surface *xsurface = data;
+	assert(xsurface && xsurface == view->xwayland_surface);
 	struct server *server = view->server;
 	bool mapped = xsurface->mapped;
 	if (mapped) {
-		handle_unmap(&view->unmap, NULL);
+		handle_unmap(&view->unmap, xsurface);
 	}
-	handle_destroy(&view->destroy, view);
-	xsurface->data = NULL;
+	handle_destroy(&view->destroy, xsurface);
+	/* view is invalid after this point */
 	struct xwayland_unmanaged *unmanaged =
 		xwayland_unmanaged_create(server, xsurface);
 	if (mapped) {
@@ -488,13 +493,22 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	view->server = server;
 	view->type = LAB_XWAYLAND_VIEW;
 	view->impl = &xwl_view_impl;
+
+	/*
+	 * Set two-way view <-> xsurface association.  Usually the
+	 * association remains until the xsurface is destroyed (which
+	 * also destroys the view).  The only exception is caused by
+	 * setting override-redirect on the xsurface, which removes it
+	 * from the view (destroying the view) and makes it an
+	 * "unmanaged" surface.
+	 */
 	view->xwayland_surface = xsurface;
+	xsurface->data = view;
 
 	view->workspace = server->workspace_current;
 	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
 	node_descriptor_create(&view->scene_tree->node,
 		LAB_NODE_DESC_VIEW, view);
-	xsurface->data = view;
 
 	view->map.notify = handle_map;
 	wl_signal_add(&xsurface->events.map, &view->map);

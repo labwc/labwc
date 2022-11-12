@@ -176,9 +176,17 @@ new_output_notify(struct wl_listener *listener, void *data)
 	wlr_scene_node_raise_to_top(&output->layer_popup_tree->node);
 
 	if (rc.adaptive_sync) {
-		wlr_log(WLR_INFO, "enable adaptive sync on %s",
-			wlr_output->name);
-		wlr_output_enable_adaptive_sync(wlr_output, true);
+		wlr_log(WLR_INFO, "enable adaptive sync on %s", wlr_output->name);
+		struct wlr_output_state pending = { 0 };
+		wlr_output_state_set_adaptive_sync_enabled(&pending, true);
+		if (!wlr_output_test_state(wlr_output, &pending)) {
+			wlr_log(WLR_ERROR, "adaptive sync failed, ignoring");
+			wlr_output_state_set_adaptive_sync_enabled(&pending, false);
+		}
+		if (!wlr_output_commit_state(wlr_output, &pending)) {
+			wlr_log(WLR_ERROR, "failed to commit output %s",
+				wlr_output->name);
+		}
 	}
 
 	/*

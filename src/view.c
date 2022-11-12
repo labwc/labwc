@@ -555,6 +555,9 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 	/* Show fullscreen views above top-layer */
 	struct output *output =
 		output_from_wlr_output(view->server, wlr_output);
+	if (!output) {
+		return;
+	}
 	uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
 	wlr_scene_node_set_enabled(&output->layer_tree[top]->node, !fullscreen);
 }

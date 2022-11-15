@@ -43,6 +43,19 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 	wl_list_remove(&output->frame.link);
 	wl_list_remove(&output->destroy.link);
 
+	struct lab_layer_surface *layer, *tmp_layer;
+	int nr_layers = sizeof(output->layers) / sizeof(output->layers[0]);
+	for (int i = 0;i < nr_layers;i++) {
+		wl_list_for_each_safe (layer, tmp_layer, &output->layers[i], link) {
+			wlr_layer_surface_v1_destroy(layer->scene_layer_surface->layer_surface);
+		}
+	}
+
+	for (int i = 0; i < nr_layers; i++) {
+		wlr_scene_node_destroy(&output->layer_tree[i]->node);
+	}
+	wlr_scene_node_destroy(&output->layer_popup_tree->node);
+
 	struct view *view;
 	struct server *server = output->server;
 	wl_list_for_each(view, &server->views, link) {
@@ -230,7 +243,7 @@ output_update_for_layout_change(struct server *server)
 
 	/*
 	 * "Move" each wlr_output_cursor (in per-output coordinates) to
-	 * align with the seat cursor.  Set a default cursor image so
+	 * align with the seat cursor.	Set a default cursor image so
 	 * that the cursor isn't invisible on new outputs.
 	 *
 	 * TODO: remember the most recent cursor image (see cursor.c)

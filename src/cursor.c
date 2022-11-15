@@ -257,11 +257,19 @@ update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
 {
 	/*
 	 * In most cases, we don't want to leave one surface and enter
-	 * another while a button is pressed.  However, GTK/Wayland
-	 * menus (implemented as XDG popups) do need the leave/enter
-	 * events to work properly.  To cover this case, we allow
-	 * leave/enter events between XDG popups and their toplevel.
+	 * another while a button is pressed.  We only do so when
+	 * (1) there is a pointer grab active (e.g. XDG popup grab) and
+	 * (2) both surfaces belong to the same XDG toplevel.
+	 *
+         * GTK/Wayland menus are known to use an XDG popup grab and to
+	 * rely on the leave/enter events to work properly.  Firefox
+	 * context menus (in contrast) do not use an XDG popup grab and
+	 * do not work properly if we send leave/enter events.
 	 */
+	if (seat->seat->pointer_state.grab ==
+			seat->seat->pointer_state.default_grab) {
+		return false;
+	}
 	if (seat->pressed.surface && ctx->surface != seat->pressed.surface) {
 		struct wlr_surface *toplevel = get_toplevel(ctx->surface);
 		if (toplevel && toplevel == seat->pressed.toplevel) {

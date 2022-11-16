@@ -169,16 +169,18 @@ ssd_create(struct view *view)
 void
 ssd_update_geometry(struct view *view)
 {
-	if (!view->ssd.tree || !view->scene_node) {
+	if (!view->scene_node) {
 		return;
 	}
 
 	if (!view->ssd.enabled) {
-		if (view->ssd.tree->node.enabled) {
+		if (view->ssd.tree && view->ssd.tree->node.enabled) {
 			wlr_scene_node_set_enabled(&view->ssd.tree->node, false);
 			view->margin = ssd_thickness(view);
 		}
 		return;
+	} else if (!view->ssd.tree) {
+		ssd_create(view);
 	} else if (!view->ssd.tree->node.enabled) {
 		wlr_scene_node_set_enabled(&view->ssd.tree->node, true);
 		view->margin = ssd_thickness(view);

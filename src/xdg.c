@@ -303,11 +303,7 @@ xdg_toplevel_view_map(struct view *view)
 		struct wlr_xdg_toplevel_requested *requested =
 			&view->xdg_surface->toplevel->requested;
 		foreign_toplevel_handle_create(view);
-
-		view->ssd.enabled = has_ssd(view);
-		if (view->ssd.enabled) {
-			ssd_create(view);
-		}
+		view_set_decorations(view, has_ssd(view));
 
 		position_xdg_toplevel_view(view);
 		if (!view->fullscreen && requested->fullscreen) {

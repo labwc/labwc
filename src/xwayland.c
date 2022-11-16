@@ -389,10 +389,7 @@ map(struct view *view)
 	}
 
 	if (!view->been_mapped) {
-		view->ssd.enabled = want_deco(view);
-		if (view->ssd.enabled) {
-			ssd_create(view);
-		}
+		view_set_decorations(view, want_deco(view));
 
 		if (!view->maximized && !view->fullscreen) {
 			set_initial_position(view);

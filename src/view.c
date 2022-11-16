@@ -466,15 +466,7 @@ view_toggle_maximize(struct view *view)
 void
 view_toggle_decorations(struct view *view)
 {
-	if (!view->fullscreen) {
-		view->ssd.enabled = !view->ssd.enabled;
-		ssd_update_geometry(view);
-		if (view->maximized) {
-			view_apply_maximized_geometry(view);
-		} else if (view->tiled) {
-			view_apply_tiled_geometry(view, NULL);
-		}
-	}
+	view_set_decorations(view, !view->ssd.enabled);
 }
 
 static bool

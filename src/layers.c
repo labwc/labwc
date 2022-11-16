@@ -35,6 +35,11 @@ arrange_one_layer(struct output *output, const struct wlr_box *full_area,
 	}
 }
 
+/*
+ * To ensure outputs/views are left in a consistent state, this
+ * function should be called ONLY from output_update_usable_area()
+ * or output_update_all_usable_areas().
+ */
 void
 layers_arrange(struct output *output)
 {
@@ -43,7 +48,6 @@ layers_arrange(struct output *output)
 	wlr_output_effective_resolution(output->wlr_output,
 		&full_area.width, &full_area.height);
 	struct wlr_box usable_area = full_area;
-	struct wlr_box old_usable_area = output->usable_area;
 
 	struct server *server = output->server;
 	struct wlr_scene_output *scene_output =
@@ -103,12 +107,6 @@ layers_arrange(struct output *output)
 			!seat->focused_layer->current.keyboard_interactive) {
 		seat_set_focus_layer(seat, NULL);
 	}
-
-	/* Finally re-arrange all views based on usable_area */
-	if (!wlr_box_equal(&old_usable_area, &usable_area)) {
-		desktop_arrange_all_views(server);
-	}
-	cursor_update_focus(output->server);
 }
 
 static void
@@ -145,7 +143,12 @@ handle_surface_commit(struct wl_listener *listener, void *data)
 
 	if (committed || layer->mapped != layer_surface->mapped) {
 		layer->mapped = layer_surface->mapped;
-		layers_arrange(output);
+		output_update_usable_area(output);
+		/*
+		 * Update cursor focus here to ensure we
+		 * enter a new/moved/resized layer surface.
+		 */
+		cursor_update_focus(layer->server);
 	}
 }
 
@@ -171,7 +174,7 @@ handle_unmap(struct wl_listener *listener, void *data)
 	struct wlr_layer_surface_v1 *layer_surface =
 		layer->scene_layer_surface->layer_surface;
 	if (layer_surface->output) {
-		layers_arrange(layer_surface->output->data);
+		output_update_usable_area(layer_surface->output->data);
 	}
 	struct seat *seat = &layer->server->seat;
 	if (seat->focused_layer == layer_surface) {
@@ -183,7 +186,11 @@ static void
 handle_map(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer = wl_container_of(listener, layer, map);
-	layers_arrange(layer->scene_layer_surface->layer_surface->output->data);
+	struct wlr_output *wlr_output =
+		layer->scene_layer_surface->layer_surface->output;
+	if (wlr_output) {
+		output_update_usable_area(wlr_output->data);
+	}
 	/*
 	 * Since moving to the wlroots scene-graph API, there is no need to
 	 * call wlr_surface_send_enter() from here since that will be done
@@ -374,7 +381,7 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 	 */
 	struct wlr_layer_surface_v1_state old_state = layer_surface->current;
 	layer_surface->current = layer_surface->pending;
-	layers_arrange(output);
+	output_update_usable_area(output);
 	layer_surface->current = old_state;
 }
 

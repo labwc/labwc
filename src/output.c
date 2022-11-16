@@ -240,8 +240,7 @@ output_init(struct server *server)
 static void
 output_update_for_layout_change(struct server *server)
 {
-	/* Adjust window positions/sizes */
-	desktop_arrange_all_views(server);
+	output_update_all_usable_areas(server, /*enforce_view_arrange*/ true);
 
 	/*
 	 * "Move" each wlr_output_cursor (in per-output coordinates) to
@@ -395,11 +394,6 @@ do_output_layout_change(struct server *server)
 			wlr_log(WLR_ERROR,
 				"wlr_output_manager_v1_set_configuration()");
 		}
-		struct output *output;
-
-		wl_list_for_each(output, &server->outputs, link) {
-			layers_arrange(output);
-		}
 		output_update_for_layout_change(server);
 	}
 }
@@ -436,6 +430,38 @@ output_from_wlr_output(struct server *server, struct wlr_output *wlr_output)
 		}
 	}
 	return NULL;
+}
+
+/* returns true if usable area changed */
+static bool
+update_usable_area(struct output *output)
+{
+	struct wlr_box old = output->usable_area;
+	layers_arrange(output);
+
+	return !wlr_box_equal(&old, &output->usable_area);
+}
+
+void
+output_update_usable_area(struct output *output)
+{
+	if (update_usable_area(output)) {
+		desktop_arrange_all_views(output->server);
+	}
+}
+
+void
+output_update_all_usable_areas(struct server *server, bool enforce_view_arrange)
+{
+	bool usable_area_changed = false;
+	struct output *output;
+
+	wl_list_for_each(output, &server->outputs, link) {
+		usable_area_changed |= update_usable_area(output);
+	}
+	if (usable_area_changed || enforce_view_arrange) {
+		desktop_arrange_all_views(server);
+	}
 }
 
 struct wlr_box

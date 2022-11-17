@@ -67,6 +67,7 @@ jobs:
           apt-get update
           apt-get upgrade -y
           apt-get install -y git clang \
+            hwdata \
             libxml2-dev libcairo2-dev libpango1.0-dev
           apt-get build-dep -y wlroots
 
@@ -97,6 +98,7 @@ jobs:
             xcb-util-wm-devel xcb-util-renderutil-devel libxcb-devel \
             xcb-util-cursor-devel xcb-util-devel xcb-util-image-devel \
             xcb-util-keysyms-devel xcb-util-xrm-devel xorg-server-xwayland \
+            hwids \
             libglib-devel cairo-devel pango-devel
 
       - name: Build with gcc

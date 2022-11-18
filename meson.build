@@ -57,7 +57,6 @@ glib = dependency('glib-2.0')
 cairo = dependency('cairo')
 pangocairo = dependency('pangocairo')
 input = dependency('libinput', version: '>=1.14')
-pixman = dependency('pixman-1')
 math = cc.find_library('m')
 
 if get_option('xwayland').enabled() and not wlroots_has_xwayland
@@ -92,7 +91,6 @@ labwc_deps = [
   drm,
   pangocairo,
   input,
-  pixman,
   math,
 ]
 

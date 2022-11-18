@@ -658,7 +658,8 @@ merge_mouse_bindings(void)
 			if (existing->context == current->context
 					&& existing->button == current->button
 					&& existing->direction == current->direction
-					&& existing->mouse_event == current->mouse_event) {
+					&& existing->mouse_event == current->mouse_event
+					&& existing->modifiers == current->modifiers) {
 				wl_list_remove(&existing->link);
 				action_list_free(&existing->actions);
 				free(existing);

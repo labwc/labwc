@@ -215,12 +215,12 @@ The rest of this man page describes configuration options.
 	- Desktop: The desktop background, where no windows are present.
 	- Root: A synonym for Desktop (for compatibility).
 
-	Supported mouse buttons are:
+	Supported mouse *buttons* are:
 	- Left
 	- Middle
 	- Right
 
-	Supported scroll directions are:
+	Supported scroll *directions* are:
 	- Up
 	- Down
 	- Left
@@ -231,9 +231,8 @@ The rest of this man page describes configuration options.
 	- Release: Releasing the specified button in the context.
 	- Click: Pressing and then releasing inside of the the context.
 	- DoubleClick: Two presses within the doubleClickTime.
-	- Drag: Pressing the button within the context, then moving the cursor
-	- Scroll: Scrolling up or down in the context.
-		Scroll actions must have a *direction* specified instead of *button*.
+	- Drag: Pressing the button within the context, then moving the cursor.
+	- Scroll: Scrolling in specified *direction* in the context.
 
 *<mouse><default />*
 	Load default mousebinds. This is an addition to the openbox

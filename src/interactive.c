@@ -17,123 +17,153 @@ max_move_scale(double pos_cursor, double pos_current,
 void
 interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 {
-	if (mode == LAB_INPUT_STATE_MOVE && view->fullscreen) {
-		/**
-		 * We don't allow moving fullscreen windows.
-		 *
-		 * If you think there is a good reason to allow it
-		 * feel free to open an issue explaining your use-case.
-		 */
-		return;
-	}
-	if (mode == LAB_INPUT_STATE_RESIZE
-			&& (view->fullscreen || view->maximized)) {
-		/* We don't allow resizing while in maximized or fullscreen state */
-		return;
-	}
-
 	/*
 	 * This function sets up an interactive move or resize operation, where
 	 * the compositor stops propagating pointer events to clients and
 	 * instead consumes them itself, to move or resize windows.
 	 */
-	struct seat *seat = &view->server->seat;
 	struct server *server = view->server;
-	server->grabbed_view = view;
-	server->input_mode = mode;
-
-	/* Remember view and cursor positions at start of move/resize */
-	server->grab_x = seat->cursor->x;
-	server->grab_y = seat->cursor->y;
-	server->grab_box.x = view->x;
-	server->grab_box.y = view->y;
-	server->grab_box.width = view->w;
-	server->grab_box.height = view->h;
-	server->resize_edges = edges;
-
-	if (view->maximized || view->tiled) {
-		if (mode == LAB_INPUT_STATE_MOVE) {
-			/* Exit maximized or tiled mode */
-			int new_x = max_move_scale(view->server->seat.cursor->x,
-				view->x, view->w, view->natural_geometry.width);
-			int new_y = max_move_scale(view->server->seat.cursor->y,
-				view->y, view->h, view->natural_geometry.height);
-			view->natural_geometry.x = new_x;
-			view->natural_geometry.y = new_y;
-			if (view->maximized) {
-				view_maximize(view, false);
-			}
-			if (view->tiled) {
-				view_move_resize(view, view->natural_geometry);
-			}
-			/**
-			 * view_maximize() / view_move_resize() indirectly calls
-			 * view->impl->configure which is async but we are using
-			 * the current values in server->grab_box. We pretend the
-			 * configure already happened by setting them manually.
-			 */
-			server->grab_box.x = new_x;
-			server->grab_box.y = new_y;
-			server->grab_box.width = view->natural_geometry.width;
-			server->grab_box.height = view->natural_geometry.height;
-		}
-	}
-
-	/* Moving or resizing always resets tiled state */
-	view->tiled = 0;
+	struct seat *seat = &server->seat;
+	struct wlr_box geometry = {
+		.x = view->x,
+		.y = view->y,
+		.width = view->w,
+		.height = view->h
+	};
 
 	switch (mode) {
 	case LAB_INPUT_STATE_MOVE:
-		cursor_set(&server->seat, LAB_CURSOR_GRAB);
+		if (view->fullscreen) {
+			/**
+			 * We don't allow moving fullscreen windows.
+			 *
+			 * If you think there is a good reason to allow
+			 * it, feel free to open an issue explaining
+			 * your use-case.
+			 */
+			return;
+		}
+		if (view->maximized || view->tiled) {
+			/*
+			 * Un-maximize and restore natural width/height.
+			 * Don't reset tiled state yet since we may want
+			 * to keep it (in the snap-to-maximize case).
+			 */
+			geometry = view->natural_geometry;
+			geometry.x = max_move_scale(seat->cursor->x, view->x,
+				view->w, geometry.width);
+			geometry.y = max_move_scale(seat->cursor->y, view->y,
+				view->h, geometry.height);
+			view_restore_to(view, geometry);
+		} else {
+			/* Store natural geometry at start of move */
+			view_store_natural_geometry(view);
+		}
+		cursor_set(seat, LAB_CURSOR_GRAB);
 		break;
 	case LAB_INPUT_STATE_RESIZE:
-		cursor_set(&server->seat, cursor_get_from_edge(edges));
+		if (view->maximized || view->fullscreen) {
+			/*
+			 * We don't allow resizing while maximized or
+			 * fullscreen.
+			 */
+			return;
+		}
+		/*
+		 * Reset tiled state but keep the same geometry as the
+		 * starting point for the resize.
+		 */
+		view->tiled = 0;
+		cursor_set(seat, cursor_get_from_edge(edges));
 		break;
 	default:
-		break;
+		/* Should not be reached */
+		return;
 	}
+
+	server->input_mode = mode;
+	server->grabbed_view = view;
+	/* Remember view and cursor positions at start of move/resize */
+	server->grab_x = seat->cursor->x;
+	server->grab_y = seat->cursor->y;
+	server->grab_box = geometry;
+	server->resize_edges = edges;
+}
+
+/* Returns true if view was snapped to any edge */
+static bool
+snap_to_edge(struct view *view)
+{
+	int snap_range = rc.snap_edge_range;
+	if (!snap_range) {
+		return false;
+	}
+
+	/* Translate into output local coordinates */
+	double cursor_x = view->server->seat.cursor->x;
+	double cursor_y = view->server->seat.cursor->y;
+	wlr_output_layout_output_coords(view->server->output_layout,
+		view->output->wlr_output, &cursor_x, &cursor_y);
+
+	/*
+	 * Don't store natural geometry here (it was
+	 * stored already in interactive_begin())
+	 */
+	struct wlr_box *area = &view->output->usable_area;
+	if (cursor_x <= area->x + snap_range) {
+		view_snap_to_edge(view, "left",
+			/*store_natural_geometry*/ false);
+	} else if (cursor_x >= area->x + area->width - snap_range) {
+		view_snap_to_edge(view, "right",
+			/*store_natural_geometry*/ false);
+	} else if (cursor_y <= area->y + snap_range) {
+		if (rc.snap_top_maximize) {
+			view_maximize(view, true,
+				/*store_natural_geometry*/ false);
+		} else {
+			view_snap_to_edge(view, "up",
+				/*store_natural_geometry*/ false);
+		}
+	} else if (cursor_y >= area->y + area->height - snap_range) {
+		view_snap_to_edge(view, "down",
+			/*store_natural_geometry*/ false);
+	} else {
+		/* Not close to any edge */
+		return false;
+	}
+
+	return true;
 }
 
 void
-interactive_end(struct view *view)
+interactive_finish(struct view *view)
 {
 	if (view->server->grabbed_view == view) {
-		bool should_snap = view->server->input_mode == LAB_INPUT_STATE_MOVE
-			 && rc.snap_edge_range;
+		enum input_mode mode = view->server->input_mode;
 		view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		view->server->grabbed_view = NULL;
-		if (should_snap) {
-			int snap_range = rc.snap_edge_range;
-			struct wlr_box *area = &view->output->usable_area;
-
-			/* Translate into output local coordinates */
-			double cursor_x = view->server->seat.cursor->x;
-			double cursor_y = view->server->seat.cursor->y;
-			wlr_output_layout_output_coords(view->server->output_layout,
-				view->output->wlr_output, &cursor_x, &cursor_y);
-
-			if (cursor_x <= area->x + snap_range) {
-				view_snap_to_edge(view, "left");
-			} else if (cursor_x >= area->x + area->width - snap_range) {
-				view_snap_to_edge(view, "right");
-			} else if (cursor_y <= area->y + snap_range) {
-				if (rc.snap_top_maximize) {
-					view_maximize(view, true);
-					/*
-					 * When unmaximizing later on restore
-					 * original position
-					 */
-					view->natural_geometry.x =
-						view->server->grab_box.x;
-					view->natural_geometry.y =
-						view->server->grab_box.y;
-				} else {
-					view_snap_to_edge(view, "up");
-				}
-			} else if (cursor_y >= area->y + area->height - snap_range) {
-				view_snap_to_edge(view, "down");
+		if (mode == LAB_INPUT_STATE_MOVE) {
+			if (!snap_to_edge(view)) {
+				/* Reset tiled state if not snapped */
+				view->tiled = 0;
 			}
 		}
+		/* Update focus/cursor image */
+		cursor_update_focus(view->server);
+	}
+}
+
+/*
+ * Cancels interative move/resize without changing the state of the of
+ * the view in any way. This may leave the tiled state inconsistent with
+ * the actual geometry of the view.
+ */
+void
+interactive_cancel(struct view *view)
+{
+	if (view->server->grabbed_view == view) {
+		view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+		view->server->grabbed_view = NULL;
 		/* Update focus/cursor image */
 		cursor_update_focus(view->server);
 	}

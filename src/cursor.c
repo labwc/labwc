@@ -848,7 +848,7 @@ cursor_button_release(struct seat *seat, struct wlr_pointer_button_event *event)
 
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		/* Exit interactive move/resize mode */
-		interactive_end(server->grabbed_view);
+		interactive_finish(server->grabbed_view);
 		return;
 	}
 

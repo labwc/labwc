@@ -480,8 +480,11 @@ void view_moved(struct view *view);
 void view_minimize(struct view *view, bool minimized);
 /* view_wlr_output - return the output that a view is mostly on */
 struct wlr_output *view_wlr_output(struct view *view);
+void view_store_natural_geometry(struct view *view);
 void view_center(struct view *view);
-void view_maximize(struct view *view, bool maximize);
+void view_restore_to(struct view *view, struct wlr_box geometry);
+void view_maximize(struct view *view, bool maximize,
+	bool store_natural_geometry);
 void view_set_fullscreen(struct view *view, bool fullscreen,
 	struct wlr_output *wlr_output);
 void view_toggle_maximize(struct view *view);
@@ -492,7 +495,8 @@ void view_toggle_fullscreen(struct view *view);
 void view_adjust_for_layout_change(struct view *view);
 void view_discover_output(struct view *view);
 void view_move_to_edge(struct view *view, const char *direction);
-void view_snap_to_edge(struct view *view, const char *direction);
+void view_snap_to_edge(struct view *view, const char *direction,
+	bool store_natural_geometry);
 const char *view_get_string_prop(struct view *view, const char *prop);
 void view_update_title(struct view *view);
 void view_update_app_id(struct view *view);
@@ -562,7 +566,8 @@ void seat_reset_pressed(struct seat *seat);
 
 void interactive_begin(struct view *view, enum input_mode mode,
 		      uint32_t edges);
-void interactive_end(struct view *view);
+void interactive_finish(struct view *view);
+void interactive_cancel(struct view *view);
 
 void output_init(struct server *server);
 void output_manager_init(struct server *server);

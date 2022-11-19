@@ -254,7 +254,8 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_SNAP_TO_EDGE:
 			if (arg) {
-				view_snap_to_edge(view, action_str_from_arg(arg));
+				view_snap_to_edge(view, action_str_from_arg(arg),
+					/*store_natural_geometry*/ true);
 			} else {
 				wlr_log(WLR_ERROR, "Missing argument for SnapToEdge");
 			}

@@ -308,7 +308,7 @@ set_fallback_geometry(struct view *view)
 #undef LAB_FALLBACK_WIDTH
 #undef LAB_FALLBACK_HEIGHT
 
-static void
+void
 view_store_natural_geometry(struct view *view)
 {
 	/**
@@ -423,8 +423,37 @@ view_apply_unmaximized_geometry(struct view *view)
 	}
 }
 
+static void
+set_maximized(struct view *view, bool maximized)
+{
+	if (view->impl->maximize) {
+		view->impl->maximize(view, maximized);
+	}
+	if (view->toplevel_handle) {
+		wlr_foreign_toplevel_handle_v1_set_maximized(
+			view->toplevel_handle, maximized);
+	}
+	view->maximized = maximized;
+}
+
+/*
+ * Un-maximize view and move it to specific geometry. Does not reset
+ * tiled state (set view->tiled = 0 manually if you want that).
+ */
 void
-view_maximize(struct view *view, bool maximize)
+view_restore_to(struct view *view, struct wlr_box geometry)
+{
+	if (view->fullscreen) {
+		return;
+	}
+	if (view->maximized) {
+		set_maximized(view, false);
+	}
+	view_move_resize(view, geometry);
+}
+
+void
+view_maximize(struct view *view, bool maximize, bool store_natural_geometry)
 {
 	if (view->maximized == maximize) {
 		return;
@@ -432,20 +461,18 @@ view_maximize(struct view *view, bool maximize)
 	if (view->fullscreen) {
 		return;
 	}
-	if (view->impl->maximize) {
-		view->impl->maximize(view, maximize);
-	}
-	if (view->toplevel_handle) {
-		wlr_foreign_toplevel_handle_v1_set_maximized(
-			view->toplevel_handle, maximize);
-	}
+	set_maximized(view, maximize);
 	if (maximize) {
-		interactive_end(view);
-		if (!view->tiled) {
+		/*
+		 * Maximize via keybind or client request cancels
+		 * interactive move/resize since we can't move/resize
+		 * a maximized view.
+		 */
+		interactive_cancel(view);
+		if (!view->tiled && store_natural_geometry) {
 			view_store_natural_geometry(view);
 		}
 		view_apply_maximized_geometry(view);
-		view->maximized = true;
 	} else {
 		/* unmaximize */
 		if (view->tiled) {
@@ -453,14 +480,14 @@ view_maximize(struct view *view, bool maximize)
 		} else {
 			view_apply_unmaximized_geometry(view);
 		}
-		view->maximized = false;
 	}
 }
 
 void
 view_toggle_maximize(struct view *view)
 {
-	view_maximize(view, !view->maximized);
+	view_maximize(view, !view->maximized,
+		/*store_natural_geometry*/ true);
 }
 
 void
@@ -534,7 +561,12 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		wlr_output = view_wlr_output(view);
 	}
 	if (fullscreen) {
-		interactive_end(view);
+		/*
+		 * Fullscreen via keybind or client request cancels
+		 * interactive move/resize since we can't move/resize
+		 * a fullscreen view.
+		 */
+		interactive_cancel(view);
 		if (!view->maximized && !view->tiled) {
 			view_store_natural_geometry(view);
 		}
@@ -705,7 +737,8 @@ view_edge_parse(const char *direction)
 }
 
 void
-view_snap_to_edge(struct view *view, const char *direction)
+view_snap_to_edge(struct view *view, const char *direction,
+		bool store_natural_geometry)
 {
 	if (!view) {
 		wlr_log(WLR_ERROR, "no view");
@@ -762,8 +795,8 @@ view_snap_to_edge(struct view *view, const char *direction)
 
 	if (view->maximized) {
 		/* Unmaximize + keep using existing natural_geometry */
-		view_maximize(view, false);
-	} else if (!view->tiled) {
+		view_maximize(view, false, /*store_natural_geometry*/ false);
+	} else if (!view->tiled && store_natural_geometry) {
 		/* store current geometry as new natural_geometry */
 		view_store_natural_geometry(view);
 	}

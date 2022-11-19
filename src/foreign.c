@@ -20,7 +20,8 @@ handle_toplevel_handle_request_maximize(struct wl_listener *listener, void *data
 		toplevel_handle_request_maximize);
 	struct wlr_foreign_toplevel_handle_v1_maximized_event *event = data;
 	if (view) {
-		view_maximize(view, event->maximized);
+		view_maximize(view, event->maximized,
+			/*store_natural_geometry*/ true);
 	}
 }
 

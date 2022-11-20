@@ -1,0 +1,49 @@
+# Labwc pot file
+# Copyright (C) 2022
+# This file is distributed under the same license as the labwc package.
+# Oğuz Ersen <oguz@ersen.moe>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: labwc\n"
+"Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
+"POT-Creation-Date: 2022-04-30 16:43+1000\n"
+"PO-Revision-Date: 2022-11-20 17:04+0300\n"
+"Last-Translator: Oğuz Ersen <oguz@ersen.moe>\n"
+"Language-Team: Turkish <tr>\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/menu/menu.c:428
+msgid "Reconfigure"
+msgstr "Yeniden yapılandır"
+
+#: src/menu/menu.c:430
+msgid "Exit"
+msgstr "Çıkış"
+
+#: src/menu/menu.c:446
+msgid "Minimize"
+msgstr "Küçült"
+
+#: src/menu/menu.c:448
+msgid "Maximize"
+msgstr "Büyüt"
+
+#: src/menu/menu.c:450
+msgid "Fullscreen"
+msgstr "Tam ekran"
+
+#: src/menu/menu.c:452
+msgid "Decorations"
+msgstr "Süslemeler"
+
+#: src/menu/menu.c:454
+msgid "AlwaysOnTop"
+msgstr "Her zaman üstte"
+
+#: src/menu/menu.c:456
+msgid "Close"
+msgstr "Kapat"

@@ -271,18 +271,6 @@ workspaces_switch_to(struct workspace *target)
 }
 
 void
-workspaces_send_to(struct view *view, struct workspace *target)
-{
-	assert(view);
-	assert(target);
-	if (view->workspace == target) {
-		return;
-	}
-	wlr_scene_node_reparent(&view->scene_tree->node, target->tree);
-	view->workspace = target;
-}
-
-void
 workspaces_osd_hide(struct seat *seat)
 {
 	assert(seat);

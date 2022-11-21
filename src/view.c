@@ -522,10 +522,23 @@ view_toggle_always_on_top(struct view *view)
 	assert(view);
 	if (is_always_on_top(view)) {
 		view->workspace = view->server->workspace_current;
-		wlr_scene_node_reparent(&view->scene_tree->node, view->workspace->tree);
+		wlr_scene_node_reparent(&view->scene_tree->node,
+			view->workspace->tree);
 	} else {
 		wlr_scene_node_reparent(&view->scene_tree->node,
 			view->server->view_tree_always_on_top);
+	}
+}
+
+void
+view_move_to_workspace(struct view *view, struct workspace *workspace)
+{
+	assert(view);
+	assert(workspace);
+	if (view->workspace != workspace) {
+		view->workspace = workspace;
+		wlr_scene_node_reparent(&view->scene_tree->node,
+			workspace->tree);
 	}
 }
 

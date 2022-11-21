@@ -353,7 +353,7 @@ actions_run(struct view *activator, struct server *server,
 				char *target_name = action_str_from_arg(arg);
 				target = workspaces_find(view->workspace, target_name);
 				if (target) {
-					workspaces_send_to(view, target);
+					view_move_to_workspace(view, target);
 				}
 			}
 			break;

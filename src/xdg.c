@@ -276,8 +276,8 @@ position_xdg_toplevel_view(struct view *view)
 		view->x = center_x - view->xdg_surface->current.geometry.width / 2;
 		view->y = center_y - view->xdg_surface->current.geometry.height / 2;
 	}
-	view->x += view->margin.left;
-	view->y += view->margin.top;
+	view->x += view->ssd.margin.left;
+	view->y += view->ssd.margin.top;
 }
 
 static const char *

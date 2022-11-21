@@ -88,10 +88,10 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 		break;
 	}
 	struct wlr_box dst = {
-		.x = x_offset + usable.x + view->margin.left,
-		.y = y_offset + usable.y + view->margin.top,
-		.width = base_width - view->margin.left - view->margin.right,
-		.height = base_height - view->margin.top - view->margin.bottom,
+		.x = x_offset + usable.x + view->ssd.margin.left,
+		.y = y_offset + usable.y + view->ssd.margin.top,
+		.width = base_width - view->ssd.margin.left - view->ssd.margin.right,
+		.height = base_height - view->ssd.margin.top - view->ssd.margin.bottom,
 	};
 
 	return dst;
@@ -276,8 +276,8 @@ view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 	}
 
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-	int width = w + view->margin.left + view->margin.right;
-	int height = h + view->margin.top + view->margin.bottom;
+	int width = w + view->ssd.margin.left + view->ssd.margin.right;
+	int height = h + view->ssd.margin.top + view->ssd.margin.bottom;
 	*x = usable.x + (usable.width - width) / 2;
 	*y = usable.y + (usable.height - height) / 2;
 
@@ -292,8 +292,8 @@ view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 #if HAVE_XWAYLAND
 	/* TODO: refactor xwayland.c functions to get rid of this */
 	if (view->type == LAB_XWAYLAND_VIEW) {
-		*x += view->margin.left;
-		*y += view->margin.top;
+		*x += view->ssd.margin.left;
+		*y += view->ssd.margin.top;
 	}
 #endif
 
@@ -725,18 +725,18 @@ view_move_to_edge(struct view *view, const char *direction)
 
 	int x = 0, y = 0;
 	if (!strcasecmp(direction, "left")) {
-		x = usable.x + view->margin.left + rc.gap;
+		x = usable.x + view->ssd.margin.left + rc.gap;
 		y = view->y;
 	} else if (!strcasecmp(direction, "up")) {
 		x = view->x;
-		y = usable.y + view->margin.top + rc.gap;
+		y = usable.y + view->ssd.margin.top + rc.gap;
 	} else if (!strcasecmp(direction, "right")) {
-		x = usable.x + usable.width - view->w - view->margin.right
+		x = usable.x + usable.width - view->w - view->ssd.margin.right
 			- rc.gap;
 		y = view->y;
 	} else if (!strcasecmp(direction, "down")) {
 		x = view->x;
-		y = usable.y + usable.height - view->h - view->margin.bottom
+		y = usable.y + usable.height - view->h - view->ssd.margin.bottom
 			- rc.gap;
 	} else {
 		wlr_log(WLR_ERROR, "invalid edge");

@@ -117,6 +117,13 @@ struct ssd {
 		struct ssd_sub_tree active;
 		struct ssd_sub_tree inactive;
 	} border;
+
+	/*
+	 * Space between the extremities of the view's wlr_surface
+	 * and the max extents of the server-side decorations.
+	 * For xdg-shell views with CSD, this margin is zero.
+	 */
+	struct border margin;
 };
 
 struct ssd_part {

@@ -74,7 +74,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		 * Reset tiled state but keep the same geometry as the
 		 * starting point for the resize.
 		 */
-		view->tiled = 0;
+		view_set_untiled(view);
 		cursor_set(seat, cursor_get_from_edge(edges));
 		break;
 	default:
@@ -146,7 +146,7 @@ interactive_finish(struct view *view)
 		if (mode == LAB_INPUT_STATE_MOVE) {
 			if (!snap_to_edge(view)) {
 				/* Reset tiled state if not snapped */
-				view->tiled = 0;
+				view_set_untiled(view);
 			}
 		}
 		/* Update focus/cursor image */

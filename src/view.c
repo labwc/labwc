@@ -447,7 +447,7 @@ set_maximized(struct view *view, bool maximized)
 
 /*
  * Un-maximize view and move it to specific geometry. Does not reset
- * tiled state (set view->tiled = 0 manually if you want that).
+ * tiled state (use view_set_untiled() if you want that).
  */
 void
 view_restore_to(struct view *view, struct wlr_box geometry)
@@ -460,6 +460,14 @@ view_restore_to(struct view *view, struct wlr_box geometry)
 		set_maximized(view, false);
 	}
 	view_move_resize(view, geometry);
+}
+
+/* Reset tiled state of view without changing geometry */
+void
+view_set_untiled(struct view *view)
+{
+	assert(view);
+	view->tiled = VIEW_EDGE_INVALID;
 }
 
 void

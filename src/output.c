@@ -19,6 +19,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "node.h"
+#include "view.h"
 
 static void
 output_frame_notify(struct wl_listener *listener, void *data)

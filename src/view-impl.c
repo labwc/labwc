@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <strings.h>
 #include "labwc.h"
+#include "view.h"
 
 void
 view_impl_map(struct view *view)

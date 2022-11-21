@@ -18,6 +18,7 @@
 #include "menu/menu.h"
 #include "ssd.h"
 #include "theme.h"
+#include "view.h"
 #include "workspaces.h"
 
 #define LAB_XDG_SHELL_VERSION (2)

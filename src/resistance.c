@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
-#include "labwc.h"
 #include "config/rcxml.h"
+#include "labwc.h"
+#include "view.h"
 
 struct edges {
 	int left;

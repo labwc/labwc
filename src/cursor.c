@@ -14,6 +14,7 @@
 #include "menu/menu.h"
 #include "resistance.h"
 #include "ssd.h"
+#include "view.h"
 
 static const char * const *cursor_names = NULL;
 

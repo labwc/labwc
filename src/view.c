@@ -7,6 +7,7 @@
 #include "labwc.h"
 #include "ssd.h"
 #include "menu/menu.h"
+#include "view.h"
 #include "workspaces.h"
 
 #define LAB_FALLBACK_WIDTH 640

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "common/mem.h"
 #include "labwc.h"
+#include "view.h"
 
 struct xdg_deco {
 	struct wlr_xdg_toplevel_decoration_v1 *wlr_decoration;

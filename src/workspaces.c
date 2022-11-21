@@ -12,6 +12,7 @@
 #include "common/list.h"
 #include "common/mem.h"
 #include "labwc.h"
+#include "view.h"
 #include "workspaces.h"
 
 /* Internal helpers */

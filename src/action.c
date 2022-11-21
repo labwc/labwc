@@ -14,6 +14,7 @@
 #include "menu/menu.h"
 #include "private/action.h"
 #include "ssd.h"
+#include "view.h"
 #include "workspaces.h"
 
 enum action_type {

@@ -14,6 +14,7 @@
 #include "labwc.h"
 #include "theme.h"
 #include "node.h"
+#include "view.h"
 #include "workspaces.h"
 
 #define OSD_ITEM_HEIGHT (20)

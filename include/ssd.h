@@ -55,6 +55,13 @@ struct wlr_box;
 struct wlr_scene_tree;
 struct scaled_font_buffer;
 
+struct border {
+	int top;
+	int right;
+	int bottom;
+	int left;
+};
+
 struct ssd_button {
 	struct view *view;
 	enum ssd_part_type type;

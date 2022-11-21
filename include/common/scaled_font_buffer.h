@@ -2,7 +2,8 @@
 #ifndef __LAB_COMMON_SCALED_FONT_BUFFER_H
 #define __LAB_COMMON_SCALED_FONT_BUFFER_H
 
-struct font;
+#include "common/font.h"
+
 struct wlr_scene_tree;
 struct wlr_scene_buffer;
 struct scaled_scene_buffere;

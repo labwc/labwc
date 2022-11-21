@@ -4,6 +4,7 @@
 #include "labwc.h"
 #include "node.h"
 #include "ssd.h"
+#include "view.h"
 #include "workspaces.h"
 
 static void

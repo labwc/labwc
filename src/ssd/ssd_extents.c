@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "labwc.h"
 #include "ssd.h"
 #include "theme.h"
-#include "common/mem.h"
-#include "common/scene-helpers.h"
+#include "view.h"
 
 static struct ssd_part *
 add_extent(struct wl_list *part_list, enum ssd_part_type type,

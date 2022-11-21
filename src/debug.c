@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_scene.h>
-#include "buffer.h"
+#include "common/scene-helpers.h"
 #include "labwc.h"
 #include "node.h"
-#include "common/scene-helpers.h"
+#include "view.h"
 
 #define HEADER_CHARS "------------------------------"
 

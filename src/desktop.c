@@ -5,9 +5,9 @@
 #include "common/scene-helpers.h"
 #include "dnd.h"
 #include "labwc.h"
-#include "layers.h"
 #include "node.h"
 #include "ssd.h"
+#include "view.h"
 #include "workspaces.h"
 
 static void

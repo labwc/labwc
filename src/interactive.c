@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "labwc.h"
+#include "view.h"
 
 static int
 max_move_scale(double pos_cursor, double pos_current,

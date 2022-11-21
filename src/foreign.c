@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "labwc.h"
+#include "view.h"
 #include "workspaces.h"
 
 static void

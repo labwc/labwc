@@ -10,6 +10,7 @@
 #include "common/mem.h"
 #include "labwc.h"
 #include "node.h"
+#include "view.h"
 
 struct xdg_popup {
 	struct view *parent_view;

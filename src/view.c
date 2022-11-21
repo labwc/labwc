@@ -404,7 +404,7 @@ view_apply_maximized_geometry(struct view *view)
 		box.width /= output->wlr_output->scale;
 	}
 
-	if (view->ssd.enabled) {
+	if (view->ssd_enabled) {
 		struct border border = ssd_thickness(view);
 		box.x += border.left;
 		box.y += border.top;
@@ -514,7 +514,7 @@ void
 view_toggle_decorations(struct view *view)
 {
 	assert(view);
-	view_set_decorations(view, !view->ssd.enabled);
+	view_set_decorations(view, !view->ssd_enabled);
 }
 
 static bool
@@ -554,8 +554,8 @@ void
 view_set_decorations(struct view *view, bool decorations)
 {
 	assert(view);
-	if (view->ssd.enabled != decorations && !view->fullscreen) {
-		view->ssd.enabled = decorations;
+	if (view->ssd_enabled != decorations && !view->fullscreen) {
+		view->ssd_enabled = decorations;
 		ssd_update_geometry(view);
 		if (view->maximized) {
 			view_apply_maximized_geometry(view);

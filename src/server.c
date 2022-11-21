@@ -40,7 +40,7 @@ reload_config_and_theme(void)
 
 	struct view *view;
 	wl_list_for_each(view, &g_server->views, link) {
-		if (!view->mapped || !view->ssd.enabled) {
+		if (!view->mapped || !view->ssd_enabled) {
 			continue;
 		}
 		ssd_reload(view);

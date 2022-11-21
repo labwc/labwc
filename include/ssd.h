@@ -81,7 +81,6 @@ struct ssd_state_title_width {
 };
 
 struct ssd {
-	bool enabled;
 	struct wlr_scene_tree *tree;
 
 	/*

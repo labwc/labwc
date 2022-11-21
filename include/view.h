@@ -48,6 +48,7 @@ struct view {
 
 	bool mapped;
 	bool been_mapped;
+	bool ssd_enabled;
 	bool minimized;
 	bool maximized;
 	uint32_t tiled;  /* private, enum view_edge in src/view.c */

@@ -400,7 +400,7 @@ map(struct view *view)
 		view->been_mapped = true;
 	}
 
-	if (view->ssd.enabled && !view->fullscreen && !view->maximized) {
+	if (view->ssd_enabled && !view->fullscreen && !view->maximized) {
 		top_left_edge_boundary_check(view);
 	}
 

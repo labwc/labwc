@@ -27,6 +27,11 @@ ssd_titlebar_create(struct view *view)
 	struct wlr_buffer *corner_top_left;
 	struct wlr_buffer *corner_top_right;
 
+	struct wlr_buffer *menu_button_unpressed;
+	struct wlr_buffer *iconify_button_unpressed;
+	struct wlr_buffer *maximize_button_unpressed;
+	struct wlr_buffer *close_button_unpressed;
+
 	struct ssd_sub_tree *subtree;
 	FOR_EACH_STATE(view, subtree) {
 		subtree->tree = wlr_scene_tree_create(view->ssd.tree);
@@ -36,10 +41,18 @@ ssd_titlebar_create(struct view *view)
 			color = theme->window_active_title_bg_color;
 			corner_top_left = &theme->corner_top_left_active_normal->base;
 			corner_top_right = &theme->corner_top_right_active_normal->base;
+			menu_button_unpressed = &theme->xbm_menu_active_unpressed->base;
+			iconify_button_unpressed = &theme->xbm_iconify_active_unpressed->base;
+			close_button_unpressed = &theme->xbm_close_active_unpressed->base;
+			maximize_button_unpressed = &theme->xbm_maximize_active_unpressed->base;
 		} else {
 			color = theme->window_inactive_title_bg_color;
 			corner_top_left = &theme->corner_top_left_inactive_normal->base;
 			corner_top_right = &theme->corner_top_right_inactive_normal->base;
+			menu_button_unpressed = &theme->xbm_menu_inactive_unpressed->base;
+			iconify_button_unpressed = &theme->xbm_iconify_inactive_unpressed->base;
+			maximize_button_unpressed = &theme->xbm_maximize_inactive_unpressed->base;
+			close_button_unpressed = &theme->xbm_close_inactive_unpressed->base;
 			wlr_scene_node_set_enabled(&parent->node, false);
 		}
 		wl_list_init(&subtree->parts);
@@ -51,16 +64,16 @@ ssd_titlebar_create(struct view *view)
 		/* Buttons */
 		add_scene_button_corner(&subtree->parts,
 			LAB_SSD_BUTTON_WINDOW_MENU, LAB_SSD_PART_CORNER_TOP_LEFT, parent,
-			corner_top_left, &theme->xbm_menu_active_unpressed->base, 0, view);
+			corner_top_left, menu_button_unpressed, 0, view);
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_ICONIFY, parent,
-			color, &theme->xbm_iconify_active_unpressed->base,
+			color, iconify_button_unpressed,
 			width - BUTTON_WIDTH * 3, view);
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_MAXIMIZE, parent,
-			color, &theme->xbm_maximize_active_unpressed->base,
+			color, maximize_button_unpressed,
 			width - BUTTON_WIDTH * 2, view);
 		add_scene_button_corner(&subtree->parts,
 			LAB_SSD_BUTTON_CLOSE, LAB_SSD_PART_CORNER_TOP_RIGHT, parent,
-			corner_top_right, &theme->xbm_close_active_unpressed->base,
+			corner_top_right, close_button_unpressed,
 			width - BUTTON_WIDTH * 1, view);
 	} FOR_EACH_END
 	ssd_update_title(view);

@@ -126,6 +126,7 @@ struct wlr_output *view_wlr_output(struct view *view);
 void view_store_natural_geometry(struct view *view);
 void view_center(struct view *view);
 void view_restore_to(struct view *view, struct wlr_box geometry);
+void view_set_untiled(struct view *view);
 void view_maximize(struct view *view, bool maximize,
 	bool store_natural_geometry);
 void view_set_fullscreen(struct view *view, bool fullscreen,

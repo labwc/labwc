@@ -161,7 +161,7 @@ ssd_create(struct view *view)
 	ssd_extents_create(view);
 	ssd_border_create(view);
 	ssd_titlebar_create(view);
-	view->margin = ssd_thickness(view);
+	view->ssd.margin = ssd_thickness(view);
 	ssd_set_active(view, is_active);
 }
 
@@ -175,14 +175,14 @@ ssd_update_geometry(struct view *view)
 	if (!view->ssd.enabled) {
 		if (view->ssd.tree && view->ssd.tree->node.enabled) {
 			wlr_scene_node_set_enabled(&view->ssd.tree->node, false);
-			view->margin = ssd_thickness(view);
+			view->ssd.margin = ssd_thickness(view);
 		}
 		return;
 	} else if (!view->ssd.tree) {
 		ssd_create(view);
 	} else if (!view->ssd.tree->node.enabled) {
 		wlr_scene_node_set_enabled(&view->ssd.tree->node, true);
-		view->margin = ssd_thickness(view);
+		view->ssd.margin = ssd_thickness(view);
 	}
 
 	int width = view->w;

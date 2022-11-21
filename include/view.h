@@ -59,13 +59,6 @@ struct view {
 	/* user defined geometry before maximize / tiling / fullscreen */
 	struct wlr_box natural_geometry;
 
-	/*
-	 * margin refers to the space between the extremities of the
-	 * wlr_surface and the max extents of the server-side decorations.
-	 * For xdg-shell views with CSD, this margin is zero.
-	 */
-	struct border margin;
-
 	struct view_pending_move_resize {
 		bool update_x, update_y;
 		int x, y;

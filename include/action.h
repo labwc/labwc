@@ -2,9 +2,10 @@
 #ifndef __LABWC_ACTION_H
 #define __LABWC_ACTION_H
 
+#include <wayland-util.h>
+
 struct view;
 struct server;
-struct wl_list;
 
 struct action {
 	struct wl_list link; /*

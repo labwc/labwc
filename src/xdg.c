@@ -10,7 +10,9 @@
 static void
 handle_new_xdg_popup(struct wl_listener *listener, void *data)
 {
-	struct view *view = wl_container_of(listener, view, new_popup);
+	struct xdg_toplevel_view *xdg_toplevel_view =
+		wl_container_of(listener, xdg_toplevel_view, new_popup);
+	struct view *view = &xdg_toplevel_view->base;
 	struct wlr_xdg_popup *wlr_popup = data;
 	xdg_popup_create(view, wlr_popup);
 }
@@ -169,7 +171,9 @@ handle_set_title(struct wl_listener *listener, void *data)
 static void
 handle_set_app_id(struct wl_listener *listener, void *data)
 {
-	struct view *view = wl_container_of(listener, view, set_app_id);
+	struct xdg_toplevel_view *xdg_toplevel_view =
+		wl_container_of(listener, xdg_toplevel_view, set_app_id);
+	struct view *view = &xdg_toplevel_view->base;
 	assert(view);
 	view_update_app_id(view);
 }
@@ -374,7 +378,9 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 
 	wlr_xdg_surface_ping(xdg_surface);
 
-	struct view *view = znew(*view);
+	struct xdg_toplevel_view *xdg_toplevel_view = znew(*xdg_toplevel_view);
+	struct view *view = &xdg_toplevel_view->base;
+
 	view->server = server;
 	view->type = LAB_XDG_SHELL_VIEW;
 	view->impl = &xdg_toplevel_view_impl;
@@ -408,9 +414,6 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->destroy.notify = handle_destroy;
 	wl_signal_add(&xdg_surface->events.destroy, &view->destroy);
 
-	view->new_popup.notify = handle_new_xdg_popup;
-	wl_signal_add(&xdg_surface->events.new_popup, &view->new_popup);
-
 	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
 	view->request_move.notify = handle_request_move;
 	wl_signal_add(&toplevel->events.request_move, &view->request_move);
@@ -426,8 +429,12 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->set_title.notify = handle_set_title;
 	wl_signal_add(&toplevel->events.set_title, &view->set_title);
 
-	view->set_app_id.notify = handle_set_app_id;
-	wl_signal_add(&toplevel->events.set_app_id, &view->set_app_id);
+	/* Events specific to XDG toplevel views */
+	xdg_toplevel_view->set_app_id.notify = handle_set_app_id;
+	wl_signal_add(&toplevel->events.set_app_id, &xdg_toplevel_view->set_app_id);
+
+	xdg_toplevel_view->new_popup.notify = handle_new_xdg_popup;
+	wl_signal_add(&xdg_surface->events.new_popup, &xdg_toplevel_view->new_popup);
 
 	wl_list_insert(&server->views, &view->link);
 }

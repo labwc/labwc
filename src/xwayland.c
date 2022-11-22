@@ -7,6 +7,13 @@
 #include "view.h"
 #include "workspaces.h"
 
+static struct xwayland_view *
+xwayland_view_from_view(struct view *view)
+{
+	assert(view->type == LAB_XWAYLAND_VIEW);
+	return (struct xwayland_view *)view;
+}
+
 static void
 handle_commit(struct wl_listener *listener, void *data)
 {
@@ -106,6 +113,8 @@ handle_surface_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&view->surface_destroy.link);
 }
 
+
+
 static void
 handle_destroy(struct wl_listener *listener, void *data)
 {
@@ -136,15 +145,18 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&view->unmap.link);
 	wl_list_remove(&view->request_move.link);
 	wl_list_remove(&view->request_resize.link);
-	wl_list_remove(&view->request_configure.link);
 	wl_list_remove(&view->request_activate.link);
 	wl_list_remove(&view->request_minimize.link);
 	wl_list_remove(&view->request_maximize.link);
 	wl_list_remove(&view->request_fullscreen.link);
 	wl_list_remove(&view->set_title.link);
-	wl_list_remove(&view->set_app_id.link);
-	wl_list_remove(&view->set_decorations.link);
-	wl_list_remove(&view->override_redirect.link);
+
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+	wl_list_remove(&xwayland_view->request_configure.link);
+	wl_list_remove(&xwayland_view->set_app_id.link);
+	wl_list_remove(&xwayland_view->set_decorations.link);
+	wl_list_remove(&xwayland_view->override_redirect.link);
+
 	wl_list_remove(&view->destroy.link);
 
 	/* And finally destroy / free the view */
@@ -175,7 +187,9 @@ configure(struct view *view, struct wlr_box geo)
 static void
 handle_request_configure(struct wl_listener *listener, void *data)
 {
-	struct view *view = wl_container_of(listener, view, request_configure);
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, request_configure);
+	struct view *view = &xwayland_view->base;
 	struct wlr_xwayland_surface_configure_event *event = data;
 
 	int width = event->width;
@@ -230,7 +244,9 @@ handle_set_title(struct wl_listener *listener, void *data)
 static void
 handle_set_class(struct wl_listener *listener, void *data)
 {
-	struct view *view = wl_container_of(listener, view, set_app_id);
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, set_app_id);
+	struct view *view = &xwayland_view->base;
 	assert(view);
 	view_update_app_id(view);
 }
@@ -285,14 +301,18 @@ want_deco(struct view *view)
 static void
 handle_set_decorations(struct wl_listener *listener, void *data)
 {
-	struct view *view = wl_container_of(listener, view, set_decorations);
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, set_decorations);
+	struct view *view = &xwayland_view->base;
 	view_set_decorations(view, want_deco(view));
 }
 
 static void
 handle_override_redirect(struct wl_listener *listener, void *data)
 {
-	struct view *view = wl_container_of(listener, view, override_redirect);
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, override_redirect);
+	struct view *view = &xwayland_view->base;
 	struct wlr_xwayland_surface *xsurface = data;
 	assert(xsurface && xsurface == view->xwayland_surface);
 	struct server *server = view->server;
@@ -487,7 +507,9 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	struct view *view = znew(*view);
+	struct xwayland_view *xwayland_view = znew(*xwayland_view);
+	struct view *view = &xwayland_view->base;
+
 	view->server = server;
 	view->type = LAB_XWAYLAND_VIEW;
 	view->impl = &xwl_view_impl;
@@ -514,8 +536,6 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	wl_signal_add(&xsurface->events.unmap, &view->unmap);
 	view->destroy.notify = handle_destroy;
 	wl_signal_add(&xsurface->events.destroy, &view->destroy);
-	view->request_configure.notify = handle_request_configure;
-	wl_signal_add(&xsurface->events.request_configure, &view->request_configure);
 	view->request_activate.notify = handle_request_activate;
 	wl_signal_add(&xsurface->events.request_activate, &view->request_activate);
 	view->request_minimize.notify = handle_request_minimize;
@@ -532,16 +552,21 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	view->set_title.notify = handle_set_title;
 	wl_signal_add(&xsurface->events.set_title, &view->set_title);
 
-	view->set_app_id.notify = handle_set_class;
-	wl_signal_add(&xsurface->events.set_class, &view->set_app_id);
+	/* Events specific to XWayland views */
+	xwayland_view->request_configure.notify = handle_request_configure;
+	wl_signal_add(&xsurface->events.request_configure,
+		&xwayland_view->request_configure);
 
-	view->set_decorations.notify = handle_set_decorations;
+	xwayland_view->set_app_id.notify = handle_set_class;
+	wl_signal_add(&xsurface->events.set_class, &xwayland_view->set_app_id);
+
+	xwayland_view->set_decorations.notify = handle_set_decorations;
 	wl_signal_add(&xsurface->events.set_decorations,
-			&view->set_decorations);
+		&xwayland_view->set_decorations);
 
-	view->override_redirect.notify = handle_override_redirect;
+	xwayland_view->override_redirect.notify = handle_override_redirect;
 	wl_signal_add(&xsurface->events.set_override_redirect,
-			&view->override_redirect);
+		&xwayland_view->override_redirect);
 
 	wl_list_insert(&view->server->views, &view->link);
 }

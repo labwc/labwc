@@ -9,6 +9,11 @@
 #include <wlr/util/box.h>
 #include "ssd.h"
 
+/*
+ * In labwc, a view is a container for surfaces which can be moved around by
+ * the user. In practice this means XDG toplevel and XWayland windows.
+ */
+
 enum view_type {
 	LAB_XDG_SHELL_VIEW,
 #if HAVE_XWAYLAND
@@ -83,22 +88,37 @@ struct view {
 	struct wl_listener commit;
 	struct wl_listener request_move;
 	struct wl_listener request_resize;
-	struct wl_listener request_configure;	/* xwayland only */
 	struct wl_listener request_activate;
 	struct wl_listener request_minimize;
 	struct wl_listener request_maximize;
 	struct wl_listener request_fullscreen;
 	struct wl_listener set_title;
-	struct wl_listener set_app_id;		/* class on xwayland */
-	struct wl_listener set_decorations;	/* xwayland only */
-	struct wl_listener override_redirect;	/* xwayland only */
-	struct wl_listener new_popup;		/* xdg-shell only */
+};
+
+struct xdg_toplevel_view {
+	struct view base;
+
+	/* Events unique to xdg-toplevel views */
+	struct wl_listener set_app_id;
+	struct wl_listener new_popup;
+};
+
+#if HAVE_XWAYLAND
+struct xwayland_view {
+	struct view base;
+
+	/* Events unique to XWayland views */
+	struct wl_listener request_configure;
+	struct wl_listener set_app_id;		/* TODO: s/set_app_id/class/ */
+	struct wl_listener set_decorations;
+	struct wl_listener override_redirect;
 
 	/* Not (yet) implemented */
 /*	struct wl_listener set_role; */
 /*	struct wl_listener set_window_type; */
 /*	struct wl_listener set_hints; */
 };
+#endif
 
 void view_set_activated(struct view *view);
 void view_close(struct view *view);

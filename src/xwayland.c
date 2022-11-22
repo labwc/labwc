@@ -279,6 +279,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&xwayland_view->set_class.link);
 	wl_list_remove(&xwayland_view->set_decorations.link);
 	wl_list_remove(&xwayland_view->set_override_redirect.link);
+	wl_list_remove(&xwayland_view->set_strut_partial.link);
 
 	view_destroy(view);
 }
@@ -443,6 +444,18 @@ handle_set_override_redirect(struct wl_listener *listener, void *data)
 }
 
 static void
+handle_set_strut_partial(struct wl_listener *listener, void *data)
+{
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, set_strut_partial);
+	struct view *view = &xwayland_view->base;
+
+	if (view->mapped) {
+		output_update_all_usable_areas(view->server, false);
+	}
+}
+
+static void
 set_initial_position(struct view *view,
 		struct wlr_xwayland_surface *xwayland_surface)
 {
@@ -596,6 +609,11 @@ xwayland_view_map(struct view *view)
 
 	view_impl_map(view);
 	view->been_mapped = true;
+
+	/* Update usable area to account for XWayland "struts" (panels) */
+	if (xwayland_surface->strut_partial) {
+		output_update_all_usable_areas(view->server, false);
+	}
 }
 
 static void
@@ -608,6 +626,11 @@ xwayland_view_unmap(struct view *view, bool client_request)
 	wl_list_remove(&view->commit.link);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 	view_impl_unmap(view);
+
+	/* Update usable area to account for XWayland "struts" (panels) */
+	if (xwayland_surface_from_view(view)->strut_partial) {
+		output_update_all_usable_areas(view->server, false);
+	}
 
 	/*
 	 * If the view was explicitly unmapped by the client (rather
@@ -798,6 +821,7 @@ xwayland_view_create(struct server *server,
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_class);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_decorations);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_override_redirect);
+	CONNECT_SIGNAL(xsurface, xwayland_view, set_strut_partial);
 
 	wl_list_insert(&view->server->views, &view->link);
 
@@ -879,4 +903,92 @@ xwayland_server_finish(struct server *server)
 	 */
 	server->xwayland = NULL;
 	wlr_xwayland_destroy(xwayland);
+}
+
+static bool
+intervals_overlap(int start_a, int end_a, int start_b, int end_b)
+{
+	/* check for empty intervals */
+	if (end_a <= start_a || end_b <= start_b) {
+		return false;
+	}
+
+	return start_a < start_b ?
+		start_b < end_a :  /* B starts within A */
+		start_a < end_b;   /* A starts within B */
+}
+
+/*
+ * Subtract the area of an XWayland view (e.g. panel) from the usable
+ * area of the output based on _NET_WM_STRUT_PARTIAL property.
+ */
+void
+xwayland_adjust_usable_area(struct view *view, struct wlr_output_layout *layout,
+		struct wlr_output *output, struct wlr_box *usable)
+{
+	assert(view);
+	assert(layout);
+	assert(output);
+	assert(usable);
+
+	if (view->type != LAB_XWAYLAND_VIEW) {
+		return;
+	}
+
+	xcb_ewmh_wm_strut_partial_t *strut =
+		xwayland_surface_from_view(view)->strut_partial;
+	if (!strut) {
+		return;
+	}
+
+	/* these are layout coordinates */
+	struct wlr_box lb = { 0 };
+	wlr_output_layout_get_box(layout, NULL, &lb);
+	struct wlr_box ob = { 0 };
+	wlr_output_layout_get_box(layout, output, &ob);
+
+	/*
+	 * strut->right/bottom are offsets from the lower right corner
+	 * of the X11 screen, which should generally correspond with the
+	 * lower right corner of the output layout
+	 */
+	double strut_left = strut->left;
+	double strut_right = (lb.x + lb.width) - strut->right;
+	double strut_top = strut->top;
+	double strut_bottom = (lb.y + lb.height) - strut->bottom;
+
+	/* convert layout to output coordinates */
+	wlr_output_layout_output_coords(layout, output,
+		&strut_left, &strut_top);
+	wlr_output_layout_output_coords(layout, output,
+		&strut_right, &strut_bottom);
+
+	/* deal with right/bottom rather than width/height */
+	int usable_right = usable->x + usable->width;
+	int usable_bottom = usable->y + usable->height;
+
+	/* here we mix output and layout coordinates; be careful */
+	if (strut_left > usable->x && strut_left < usable_right
+			&& intervals_overlap(ob.y, ob.y + ob.height,
+			strut->left_start_y, strut->left_end_y + 1)) {
+		usable->x = strut_left;
+	}
+	if (strut_right > usable->x && strut_right < usable_right
+			&& intervals_overlap(ob.y, ob.y + ob.height,
+			strut->right_start_y, strut->right_end_y + 1)) {
+		usable_right = strut_right;
+	}
+	if (strut_top > usable->y && strut_top < usable_bottom
+			&& intervals_overlap(ob.x, ob.x + ob.width,
+			strut->top_start_x, strut->top_end_x + 1)) {
+		usable->y = strut_top;
+	}
+	if (strut_bottom > usable->y && strut_bottom < usable_bottom
+			&& intervals_overlap(ob.x, ob.x + ob.width,
+			strut->bottom_start_x, strut->bottom_end_x + 1)) {
+		usable_bottom = strut_bottom;
+	}
+
+	usable->width = usable_right - usable->x;
+	usable->height = usable_bottom - usable->y;
 }

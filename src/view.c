@@ -116,7 +116,6 @@ void
 view_set_activated(struct view *view)
 {
 	assert(view);
-
 	struct view *last = view->server->focused_view;
 	if (last == view) {
 		return;
@@ -131,6 +130,7 @@ view_set_activated(struct view *view)
 void
 view_close(struct view *view)
 {
+	assert(view);
 	if (view->impl->close) {
 		view->impl->close(view);
 	}
@@ -139,6 +139,7 @@ view_close(struct view *view)
 void
 view_move(struct view *view, int x, int y)
 {
+	assert(view);
 	if (view->impl->move) {
 		view->impl->move(view, x, y);
 	}
@@ -147,6 +148,7 @@ view_move(struct view *view, int x, int y)
 void
 view_moved(struct view *view)
 {
+	assert(view);
 	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
 	view_discover_output(view);
 	ssd_update_geometry(view);
@@ -157,6 +159,7 @@ view_moved(struct view *view)
 void
 view_move_resize(struct view *view, struct wlr_box geo)
 {
+	assert(view);
 	if (view->impl->configure) {
 		view->impl->configure(view, geo);
 	}
@@ -178,6 +181,7 @@ round_to_increment(int val, int base, int inc)
 void
 view_adjust_size(struct view *view, int *w, int *h)
 {
+	assert(view);
 	int min_width = MIN_VIEW_WIDTH;
 	int min_height = MIN_VIEW_HEIGHT;
 #if HAVE_XWAYLAND
@@ -208,6 +212,7 @@ view_adjust_size(struct view *view, int *w, int *h)
 void
 view_minimize(struct view *view, bool minimized)
 {
+	assert(view);
 	if (view->minimized == minimized) {
 		return;
 	}
@@ -240,6 +245,7 @@ view_minimize(struct view *view, bool minimized)
 struct wlr_output *
 view_wlr_output(struct view *view)
 {
+	assert(view);
 	double closest_x, closest_y;
 	struct wlr_output *wlr_output = NULL;
 	wlr_output_layout_closest_point(view->server->output_layout, wlr_output,
@@ -312,6 +318,7 @@ set_fallback_geometry(struct view *view)
 void
 view_store_natural_geometry(struct view *view)
 {
+	assert(view);
 	/**
 	 * If an application was started maximized or fullscreened, its
 	 * natural_geometry width/height may still be zero in which case we set
@@ -330,6 +337,7 @@ view_store_natural_geometry(struct view *view)
 void
 view_center(struct view *view)
 {
+	assert(view);
 	int x, y;
 	if (view_compute_centered_position(view, view->w, view->h, &x, &y)) {
 		view_move(view, x, y);
@@ -444,6 +452,7 @@ set_maximized(struct view *view, bool maximized)
 void
 view_restore_to(struct view *view, struct wlr_box geometry)
 {
+	assert(view);
 	if (view->fullscreen) {
 		return;
 	}
@@ -456,6 +465,7 @@ view_restore_to(struct view *view, struct wlr_box geometry)
 void
 view_maximize(struct view *view, bool maximize, bool store_natural_geometry)
 {
+	assert(view);
 	if (view->maximized == maximize) {
 		return;
 	}
@@ -487,6 +497,7 @@ view_maximize(struct view *view, bool maximize, bool store_natural_geometry)
 void
 view_toggle_maximize(struct view *view)
 {
+	assert(view);
 	view_maximize(view, !view->maximized,
 		/*store_natural_geometry*/ true);
 }
@@ -494,6 +505,7 @@ view_toggle_maximize(struct view *view)
 void
 view_toggle_decorations(struct view *view)
 {
+	assert(view);
 	view_set_decorations(view, !view->ssd.enabled);
 }
 
@@ -507,6 +519,7 @@ is_always_on_top(struct view *view)
 void
 view_toggle_always_on_top(struct view *view)
 {
+	assert(view);
 	if (is_always_on_top(view)) {
 		view->workspace = view->server->workspace_current;
 		wlr_scene_node_reparent(&view->scene_tree->node, view->workspace->tree);
@@ -519,6 +532,7 @@ view_toggle_always_on_top(struct view *view)
 void
 view_set_decorations(struct view *view, bool decorations)
 {
+	assert(view);
 	if (view->ssd.enabled != decorations && !view->fullscreen) {
 		view->ssd.enabled = decorations;
 		ssd_update_geometry(view);
@@ -533,6 +547,7 @@ view_set_decorations(struct view *view, bool decorations)
 void
 view_toggle_fullscreen(struct view *view)
 {
+	assert(view);
 	view_set_fullscreen(view, !view->fullscreen, NULL);
 }
 
@@ -540,6 +555,7 @@ void
 view_set_fullscreen(struct view *view, bool fullscreen,
 		struct wlr_output *wlr_output)
 {
+	assert(view);
 	if (fullscreen != !view->fullscreen) {
 		return;
 	}
@@ -590,6 +606,7 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 void
 view_adjust_for_layout_change(struct view *view)
 {
+	assert(view);
 	struct wlr_output_layout *layout = view->server->output_layout;
 	if (view->fullscreen) {
 		if (wlr_output_layout_get(layout, view->fullscreen)) {
@@ -640,6 +657,7 @@ view_output_leave(struct view *view, struct wlr_output *wlr_output)
 void
 view_discover_output(struct view *view)
 {
+	assert(view);
 	struct output *old_output = view->output;
 	struct output *new_output = view_output(view);
 	if (old_output != new_output) {
@@ -656,6 +674,7 @@ view_discover_output(struct view *view)
 void
 view_on_output_destroy(struct view *view)
 {
+	assert(view);
 	view_output_leave(view, view->output->wlr_output);
 	view->output = NULL;
 }
@@ -663,10 +682,7 @@ view_on_output_destroy(struct view *view)
 void
 view_move_to_edge(struct view *view, const char *direction)
 {
-	if (!view) {
-		wlr_log(WLR_ERROR, "no view");
-		return;
-	}
+	assert(view);
 	struct output *output = view_output(view);
 	if (!output) {
 		wlr_log(WLR_ERROR, "no output");
@@ -733,10 +749,7 @@ void
 view_snap_to_edge(struct view *view, const char *direction,
 		bool store_natural_geometry)
 {
-	if (!view) {
-		wlr_log(WLR_ERROR, "no view");
-		return;
-	}
+	assert(view);
 	if (view->fullscreen) {
 		return;
 	}
@@ -800,6 +813,8 @@ view_snap_to_edge(struct view *view, const char *direction,
 const char *
 view_get_string_prop(struct view *view, const char *prop)
 {
+	assert(view);
+	assert(prop);
 	if (view->impl->get_string_prop) {
 		return view->impl->get_string_prop(view, prop);
 	}
@@ -809,6 +824,7 @@ view_get_string_prop(struct view *view, const char *prop)
 void
 view_update_title(struct view *view)
 {
+	assert(view);
 	const char *title = view_get_string_prop(view, "title");
 	if (!view->toplevel_handle || !title) {
 		return;
@@ -820,6 +836,7 @@ view_update_title(struct view *view)
 void
 view_update_app_id(struct view *view)
 {
+	assert(view);
 	const char *app_id = view_get_string_prop(view, "app_id");
 	if (!view->toplevel_handle || !app_id) {
 		return;
@@ -831,6 +848,7 @@ view_update_app_id(struct view *view)
 void
 view_destroy(struct view *view)
 {
+	assert(view);
 	struct server *server = view->server;
 	bool need_cursor_update = false;
 

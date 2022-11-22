@@ -6,16 +6,32 @@
 #include <strings.h>
 #include <unistd.h>
 #include <wlr/util/log.h>
+#include "action.h"
 #include "common/list.h"
 #include "common/mem.h"
 #include "common/spawn.h"
 #include "debug.h"
 #include "labwc.h"
 #include "menu/menu.h"
-#include "private/action.h"
 #include "ssd.h"
 #include "view.h"
 #include "workspaces.h"
+
+enum action_arg_type {
+	LAB_ACTION_ARG_STR = 0,
+};
+
+struct action_arg {
+	struct wl_list link;        /* struct action.args */
+
+	char *key;                  /* May be NULL if there is just one arg */
+	enum action_arg_type type;
+};
+
+struct action_arg_str {
+	struct action_arg base;
+	char *value;
+};
 
 enum action_type {
 	ACTION_TYPE_INVALID = 0,

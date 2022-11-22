@@ -6,6 +6,8 @@
 #include "view.h"
 
 struct wlr_compositor;
+struct wlr_output;
+struct wlr_output_layout;
 
 struct xwayland_unmanaged {
 	struct server *server;
@@ -37,6 +39,7 @@ struct xwayland_view {
 	struct wl_listener set_class;
 	struct wl_listener set_decorations;
 	struct wl_listener set_override_redirect;
+	struct wl_listener set_strut_partial;
 
 	/* Not (yet) implemented */
 /*	struct wl_listener set_role; */
@@ -57,6 +60,10 @@ struct wlr_xwayland_surface *xwayland_surface_from_view(struct view *view);
 void xwayland_server_init(struct server *server,
 	struct wlr_compositor *compositor);
 void xwayland_server_finish(struct server *server);
+
+void xwayland_adjust_usable_area(struct view *view,
+	struct wlr_output_layout *layout, struct wlr_output *output,
+	struct wlr_box *usable);
 
 void xwayland_update_workarea(struct server *server);
 

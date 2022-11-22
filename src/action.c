@@ -247,18 +247,22 @@ actions_run(struct view *activator, struct server *server,
 			wl_display_terminate(server->wl_display);
 			break;
 		case ACTION_TYPE_MOVE_TO_EDGE:
-			if (arg) {
-				view_move_to_edge(view, action_str_from_arg(arg));
-			} else {
+			if (!arg) {
 				wlr_log(WLR_ERROR, "Missing argument for MoveToEdge");
+				break;
+			}
+			if (view) {
+				view_move_to_edge(view, action_str_from_arg(arg));
 			}
 			break;
 		case ACTION_TYPE_SNAP_TO_EDGE:
-			if (arg) {
+			if (!arg) {
+				wlr_log(WLR_ERROR, "Missing argument for SnapToEdge");
+				break;
+			}
+			if (view) {
 				view_snap_to_edge(view, action_str_from_arg(arg),
 					/*store_natural_geometry*/ true);
-			} else {
-				wlr_log(WLR_ERROR, "Missing argument for SnapToEdge");
 			}
 			break;
 		case ACTION_TYPE_NEXT_WINDOW:

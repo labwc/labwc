@@ -35,7 +35,7 @@ is_title_different(struct view *view)
 #if HAVE_XWAYLAND
 	case LAB_XWAYLAND_VIEW:
 		return g_strcmp0(view_get_string_prop(view, "title"),
-			view->xwayland_surface->class);
+			view_get_string_prop(view, "class"));
 #endif
 	}
 	return 1;

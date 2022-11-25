@@ -7,6 +7,25 @@
 #include "view.h"
 #include "workspaces.h"
 
+struct wlr_xdg_surface *
+xdg_surface_from_view(struct view *view)
+{
+	assert(view->type == LAB_XDG_SHELL_VIEW);
+	struct xdg_toplevel_view *xdg_toplevel_view =
+		(struct xdg_toplevel_view *)view;
+	assert(xdg_toplevel_view->xdg_surface);
+	return xdg_toplevel_view->xdg_surface;
+}
+
+static struct wlr_xdg_toplevel *
+xdg_toplevel_from_view(struct view *view)
+{
+	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
+	assert(xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL);
+	assert(xdg_surface->toplevel);
+	return xdg_surface->toplevel;
+}
+
 static void
 handle_new_xdg_popup(struct wl_listener *listener, void *data)
 {
@@ -29,7 +48,8 @@ has_ssd(struct view *view)
 	 * geometry.{x,y} seems to be greater than zero. We filter on that
 	 * on the assumption that this will remain true.
 	 */
-	struct wlr_xdg_surface_state *current = &view->xdg_surface->current;
+	struct wlr_xdg_surface_state *current =
+		&xdg_surface_from_view(view)->current;
 	if (current->geometry.x || current->geometry.y) {
 		return false;
 	}
@@ -40,9 +60,11 @@ static void
 handle_commit(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, commit);
+	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
 	assert(view->surface);
+
 	struct wlr_box size;
-	wlr_xdg_surface_get_geometry(view->xdg_surface, &size);
+	wlr_xdg_surface_get_geometry(xdg_surface, &size);
 
 	bool update_required = false;
 
@@ -53,7 +75,7 @@ handle_commit(struct wl_listener *listener, void *data)
 	}
 
 	uint32_t serial = view->pending_move_resize.configure_serial;
-	if (serial > 0 && serial >= view->xdg_surface->current.configure_serial) {
+	if (serial > 0 && serial >= xdg_surface->current.configure_serial) {
 		if (view->pending_move_resize.update_x) {
 			update_required = true;
 			view->x = view->pending_move_resize.x +
@@ -64,7 +86,7 @@ handle_commit(struct wl_listener *listener, void *data)
 			view->y = view->pending_move_resize.y +
 				view->pending_move_resize.height - size.height;
 		}
-		if (serial == view->xdg_surface->current.configure_serial) {
+		if (serial == xdg_surface->current.configure_serial) {
 			view->pending_move_resize.configure_serial = 0;
 		}
 	}
@@ -94,7 +116,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	assert(view->type == LAB_XDG_SHELL_VIEW);
 
 	/* Reset XDG specific surface for good measure */
-	view->xdg_surface = NULL;
+	((struct xdg_toplevel_view *)view)->xdg_surface = NULL;
 
 	/* Remove XDG specific handlers */
 	wl_list_remove(&view->destroy.link);
@@ -140,14 +162,14 @@ static void
 handle_request_minimize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_minimize);
-	view_minimize(view, view->xdg_surface->toplevel->requested.minimized);
+	view_minimize(view, xdg_toplevel_from_view(view)->requested.minimized);
 }
 
 static void
 handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
-	view_maximize(view, view->xdg_surface->toplevel->requested.maximized,
+	view_maximize(view, xdg_toplevel_from_view(view)->requested.maximized,
 		/*store_natural_geometry*/ true);
 }
 
@@ -155,9 +177,9 @@ static void
 handle_request_fullscreen(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_fullscreen);
-	view_set_fullscreen(view,
-		view->xdg_surface->toplevel->requested.fullscreen,
-		view->xdg_surface->toplevel->requested.fullscreen_output);
+	struct wlr_xdg_toplevel *xdg_toplevel = xdg_toplevel_from_view(view);
+	view_set_fullscreen(view, xdg_toplevel->requested.fullscreen,
+		xdg_toplevel->requested.fullscreen_output);
 }
 
 static void
@@ -190,7 +212,8 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 	view->pending_move_resize.width = geo.width;
 	view->pending_move_resize.height = geo.height;
 
-	uint32_t serial = wlr_xdg_toplevel_set_size(view->xdg_surface->toplevel,
+	struct wlr_xdg_toplevel *xdg_toplevel = xdg_toplevel_from_view(view);
+	uint32_t serial = wlr_xdg_toplevel_set_size(xdg_toplevel,
 		(uint32_t)geo.width, (uint32_t)geo.height);
 	if (serial > 0) {
 		view->pending_move_resize.configure_serial = serial;
@@ -212,44 +235,39 @@ xdg_toplevel_view_move(struct view *view, int x, int y)
 static void
 xdg_toplevel_view_close(struct view *view)
 {
-	wlr_xdg_toplevel_send_close(view->xdg_surface->toplevel);
+	wlr_xdg_toplevel_send_close(xdg_toplevel_from_view(view));
 }
 
 static void
 xdg_toplevel_view_maximize(struct view *view, bool maximized)
 {
-	wlr_xdg_toplevel_set_maximized(view->xdg_surface->toplevel, maximized);
+	wlr_xdg_toplevel_set_maximized(xdg_toplevel_from_view(view), maximized);
 }
 
 static void
 xdg_toplevel_view_set_activated(struct view *view, bool activated)
 {
-	struct wlr_xdg_surface *surface = view->xdg_surface;
-	if (surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL) {
-		wlr_xdg_toplevel_set_activated(surface->toplevel, activated);
-	}
+	wlr_xdg_toplevel_set_activated(xdg_toplevel_from_view(view), activated);
 }
 
 static void
 xdg_toplevel_view_set_fullscreen(struct view *view, bool fullscreen)
 {
-	wlr_xdg_toplevel_set_fullscreen(view->xdg_surface->toplevel, fullscreen);
-}
-
-static bool
-istopmost(struct view *view)
-{
-	return !view->xdg_surface->toplevel->parent;
+	wlr_xdg_toplevel_set_fullscreen(xdg_toplevel_from_view(view),
+		fullscreen);
 }
 
 static struct view *
-parent_of(struct view *view)
+lookup_view_by_xdg_toplevel(struct server *server,
+		struct wlr_xdg_toplevel *xdg_toplevel)
 {
-	struct view *p;
-	wl_list_for_each(p, &view->server->views, link) {
-		if (p->xdg_surface->toplevel
-				== view->xdg_surface->toplevel->parent) {
-			return p;
+	struct view *view;
+	wl_list_for_each(view, &server->views, link) {
+		if (view->type != LAB_XDG_SHELL_VIEW) {
+			continue;
+		}
+		if (xdg_toplevel_from_view(view) == xdg_toplevel) {
+			return view;
 		}
 	}
 	return NULL;
@@ -258,13 +276,17 @@ parent_of(struct view *view)
 static void
 position_xdg_toplevel_view(struct view *view)
 {
-	if (istopmost(view)) {
+	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
+	struct wlr_xdg_toplevel *parent_xdg_toplevel =
+		xdg_toplevel_from_view(view)->parent;
+
+	if (!parent_xdg_toplevel) {
 		struct wlr_box box =
 			output_usable_area_from_cursor_coords(view->server);
 		view->x = box.x;
 		view->y = box.y;
-		view->w = view->xdg_surface->current.geometry.width;
-		view->h = view->xdg_surface->current.geometry.height;
+		view->w = xdg_surface->current.geometry.width;
+		view->h = xdg_surface->current.geometry.height;
 		if (view->w && view->h) {
 			view_center(view);
 		}
@@ -273,12 +295,13 @@ position_xdg_toplevel_view(struct view *view)
 		 * If child-toplevel-views, we center-align relative to their
 		 * parents
 		 */
-		struct view *parent = parent_of(view);
+		struct view *parent = lookup_view_by_xdg_toplevel(
+			view->server, parent_xdg_toplevel);
 		assert(parent);
 		int center_x = parent->x + parent->w / 2;
 		int center_y = parent->y + parent->h / 2;
-		view->x = center_x - view->xdg_surface->current.geometry.width / 2;
-		view->y = center_y - view->xdg_surface->current.geometry.height / 2;
+		view->x = center_x - xdg_surface->current.geometry.width / 2;
+		view->y = center_y - xdg_surface->current.geometry.height / 2;
 	}
 	view->x += view->ssd.margin.left;
 	view->y += view->ssd.margin.top;
@@ -287,11 +310,12 @@ position_xdg_toplevel_view(struct view *view)
 static const char *
 xdg_toplevel_view_get_string_prop(struct view *view, const char *prop)
 {
+	struct wlr_xdg_toplevel *xdg_toplevel = xdg_toplevel_from_view(view);
 	if (!strcmp(prop, "title")) {
-		return view->xdg_surface->toplevel->title;
+		return xdg_toplevel->title;
 	}
 	if (!strcmp(prop, "app_id")) {
-		return view->xdg_surface->toplevel->app_id;
+		return xdg_toplevel->app_id;
 	}
 	return "";
 }
@@ -303,11 +327,12 @@ xdg_toplevel_view_map(struct view *view)
 		return;
 	}
 	view->mapped = true;
-	view->surface = view->xdg_surface->surface;
+	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
+	view->surface = xdg_surface->surface;
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 	if (!view->been_mapped) {
 		struct wlr_xdg_toplevel_requested *requested =
-			&view->xdg_surface->toplevel->requested;
+			&xdg_toplevel_from_view(view)->requested;
 		foreign_toplevel_handle_create(view);
 		view_set_decorations(view, has_ssd(view));
 
@@ -325,8 +350,7 @@ xdg_toplevel_view_map(struct view *view)
 	}
 
 	view->commit.notify = handle_commit;
-	wl_signal_add(&view->xdg_surface->surface->events.commit,
-		&view->commit);
+	wl_signal_add(&xdg_surface->surface->events.commit, &view->commit);
 
 	view_impl_map(view);
 }
@@ -384,14 +408,14 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->server = server;
 	view->type = LAB_XDG_SHELL_VIEW;
 	view->impl = &xdg_toplevel_view_impl;
-	view->xdg_surface = xdg_surface;
+	xdg_toplevel_view->xdg_surface = xdg_surface;
 
 	view->workspace = server->workspace_current;
 	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 
 	struct wlr_scene_tree *tree = wlr_scene_xdg_surface_create(
-		view->scene_tree, view->xdg_surface);
+		view->scene_tree, xdg_surface);
 	if (!tree) {
 		/* TODO: might need further clean up */
 		wl_resource_post_no_memory(view->surface->resource);

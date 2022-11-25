@@ -3,51 +3,51 @@
 <openbox_menu>
 
 <menu id="client-menu">
-	<item label="Minimize">
-		<action name="Iconify" />
-	</item>
-	<item label="Maximize">
-		<action name="ToggleMaximize" />
-	</item>
-	<item label="Fullscreen">
-		<action name="ToggleFullscreen" />
-	</item>
-	<item label="Decorations">
-		<action name="ToggleDecorations" />
-	</item>
-	<item label="AlwaysOnTop">
-		<action name="ToggleAlwaysOnTop" />
-	</item>
-	<menu id="workspaces" label="Workspace">
-		<item label="Move left">
-			<action name="SendToDesktop" to="left" />
-			<action name="GoToDesktop" to="left" />
-		</item>
-		<item label="Move right">
-			<action name="SendToDesktop" to="right" />
-			<action name="GoToDesktop" to="right" />
-		</item>
-	</menu>
-	<item label="Close">
-		<action name="Close" />
-	</item>
+  <item label="Minimize">
+    <action name="Iconify" />
+  </item>
+  <item label="Maximize">
+    <action name="ToggleMaximize" />
+  </item>
+  <item label="Fullscreen">
+    <action name="ToggleFullscreen" />
+  </item>
+  <item label="Decorations">
+    <action name="ToggleDecorations" />
+  </item>
+  <item label="AlwaysOnTop">
+    <action name="ToggleAlwaysOnTop" />
+  </item>
+  <menu id="workspaces" label="Workspace">
+    <item label="Move left">
+      <action name="SendToDesktop" to="left" />
+      <action name="GoToDesktop" to="left" />
+    </item>
+    <item label="Move right">
+      <action name="SendToDesktop" to="right" />
+      <action name="GoToDesktop" to="right" />
+    </item>
+  </menu>
+  <item label="Close">
+    <action name="Close" />
+  </item>
 </menu>
 
 <menu id="root-menu">
   <item label="Web browser">
-    <action name="Execute"><command>firefox</command></action>
+    <action name="Execute" command="firefox" />
   </item>
   <item label="Terminal">
-    <action name="Execute"><command>alacritty</command></action>
+    <action name="Execute" command="alacritty" />
   </item>
   <item label="Reconfigure">
-    <action name="Reconfigure"></action>
+    <action name="Reconfigure" />
   </item>
   <item label="Exit">
-    <action name="Exit"></action>
+    <action name="Exit" />
   </item>
   <item label="Poweroff">
-    <action name="Execute"><command>systemctl -i poweroff</command></action>
+    <action name="Execute" command="systemctl -i poweroff" />
   </item>
 </menu>
 

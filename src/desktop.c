@@ -22,7 +22,7 @@ move_to_front(struct view *view)
 static struct wlr_xwayland_surface *
 top_parent_of(struct view *view)
 {
-	struct wlr_xwayland_surface *s = view->xwayland_surface;
+	struct wlr_xwayland_surface *s = xwayland_surface_from_view(view);
 	while (s->parent) {
 		s = s->parent;
 	}
@@ -35,6 +35,8 @@ move_xwayland_sub_views_to_front(struct view *parent)
 	if (!parent || parent->type != LAB_XWAYLAND_VIEW) {
 		return;
 	}
+	struct wlr_xwayland_surface *parent_xwayland_surface =
+		xwayland_surface_from_view(parent);
 	struct view *view, *next;
 	wl_list_for_each_reverse_safe(view, next, &parent->server->views, link)
 	{
@@ -48,7 +50,7 @@ move_xwayland_sub_views_to_front(struct view *parent)
 		if (!view->mapped && !view->minimized) {
 			continue;
 		}
-		if (top_parent_of(view) != parent->xwayland_surface) {
+		if (top_parent_of(view) != parent_xwayland_surface) {
 			continue;
 		}
 		move_to_front(view);

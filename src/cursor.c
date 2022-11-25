@@ -310,9 +310,9 @@ process_cursor_motion_out_of_surface(struct server *server, uint32_t time)
 	double sx = server->seat.cursor->x - lx;
 	double sy = server->seat.cursor->y - ly;
 	/* Take into account invisible xdg-shell CSD borders */
-	if (view && view->type == LAB_XDG_SHELL_VIEW && view->xdg_surface) {
+	if (view && view->type == LAB_XDG_SHELL_VIEW) {
 		struct wlr_box geo;
-		wlr_xdg_surface_get_geometry(view->xdg_surface, &geo);
+		wlr_xdg_surface_get_geometry(xdg_surface_from_view(view), &geo);
 		sx += geo.x;
 		sy += geo.y;
 	}

@@ -14,6 +14,14 @@ xwayland_view_from_view(struct view *view)
 	return (struct xwayland_view *)view;
 }
 
+struct wlr_xwayland_surface *
+xwayland_surface_from_view(struct view *view)
+{
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+	assert(xwayland_view->xwayland_surface);
+	return xwayland_view->xwayland_surface;
+}
+
 static void
 handle_commit(struct wl_listener *listener, void *data)
 {
@@ -77,8 +85,6 @@ static void
 handle_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, map);
-	assert(data && data == view->xwayland_surface);
-
 	view->impl->map(view);
 }
 
@@ -86,8 +92,6 @@ static void
 handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, unmap);
-	assert(data && data == view->xwayland_surface);
-
 	view->impl->unmap(view);
 
 	/*
@@ -119,8 +123,9 @@ static void
 handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
-	assert(data && data == view->xwayland_surface);
-	assert(view->xwayland_surface->data == view);
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+	assert(data && data == xwayland_view->xwayland_surface);
+	assert(xwayland_view->xwayland_surface->data == view);
 
 	if (view->surface) {
 		/*
@@ -137,8 +142,8 @@ handle_destroy(struct wl_listener *listener, void *data)
 	 * may not actually be destroyed at this point; it may become an
 	 * "unmanaged" surface instead.
 	 */
-	view->xwayland_surface->data = NULL;
-	view->xwayland_surface = NULL;
+	xwayland_view->xwayland_surface->data = NULL;
+	xwayland_view->xwayland_surface = NULL;
 
 	/* Remove XWayland specific handlers */
 	wl_list_remove(&view->map.link);
@@ -151,7 +156,6 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&view->request_fullscreen.link);
 	wl_list_remove(&view->set_title.link);
 
-	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
 	wl_list_remove(&xwayland_view->request_configure.link);
 	wl_list_remove(&xwayland_view->set_app_id.link);
 	wl_list_remove(&xwayland_view->set_decorations.link);
@@ -166,15 +170,13 @@ handle_destroy(struct wl_listener *listener, void *data)
 static void
 configure(struct view *view, struct wlr_box geo)
 {
-	assert(view->xwayland_surface);
-
 	view->pending_move_resize.x = geo.x;
 	view->pending_move_resize.y = geo.y;
 	view->pending_move_resize.width = geo.width;
 	view->pending_move_resize.height = geo.height;
 
-	wlr_xwayland_surface_configure(view->xwayland_surface, geo.x, geo.y,
-				       geo.width, geo.height);
+	wlr_xwayland_surface_configure(xwayland_surface_from_view(view),
+		geo.x, geo.y, geo.width, geo.height);
 
 	/* If not resizing, process the move immediately */
 	if (view->w == geo.width && view->h == geo.height) {
@@ -229,7 +231,7 @@ static void
 handle_request_fullscreen(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_fullscreen);
-	bool fullscreen = view->xwayland_surface->fullscreen;
+	bool fullscreen = xwayland_surface_from_view(view)->fullscreen;
 	view_set_fullscreen(view, fullscreen, NULL);
 }
 
@@ -254,8 +256,6 @@ handle_set_class(struct wl_listener *listener, void *data)
 static void
 move(struct view *view, int x, int y)
 {
-	assert(view->xwayland_surface);
-
 	view->x = x;
 	view->y = y;
 
@@ -263,7 +263,7 @@ move(struct view *view, int x, int y)
 	view->pending_move_resize.x = x;
 	view->pending_move_resize.y = y;
 
-	struct wlr_xwayland_surface *s = view->xwayland_surface;
+	struct wlr_xwayland_surface *s = xwayland_surface_from_view(view);
 	wlr_xwayland_surface_configure(s, (int16_t)x, (int16_t)y,
 		(uint16_t)s->width, (uint16_t)s->height);
 	view_moved(view);
@@ -272,29 +272,31 @@ move(struct view *view, int x, int y)
 static void
 _close(struct view *view)
 {
-	wlr_xwayland_surface_close(view->xwayland_surface);
+	wlr_xwayland_surface_close(xwayland_surface_from_view(view));
 }
 
 static const char *
 get_string_prop(struct view *view, const char *prop)
 {
+	struct wlr_xwayland_surface *xwayland_surface =
+		xwayland_surface_from_view(view);
 	if (!strcmp(prop, "title")) {
-		return view->xwayland_surface->title;
+		return xwayland_surface->title;
 	}
 	if (!strcmp(prop, "class")) {
-		return view->xwayland_surface->class;
+		return xwayland_surface->class;
 	}
 	/* We give 'class' for wlr_foreign_toplevel_handle_v1_set_app_id() */
 	if (!strcmp(prop, "app_id")) {
-		return view->xwayland_surface->class;
+		return xwayland_surface->class;
 	}
 	return "";
 }
 
 static bool
-want_deco(struct view *view)
+want_deco(struct wlr_xwayland_surface *xwayland_surface)
 {
-	return view->xwayland_surface->decorations ==
+	return xwayland_surface->decorations ==
 	       WLR_XWAYLAND_SURFACE_DECORATIONS_ALL;
 }
 
@@ -304,7 +306,9 @@ handle_set_decorations(struct wl_listener *listener, void *data)
 	struct xwayland_view *xwayland_view =
 		wl_container_of(listener, xwayland_view, set_decorations);
 	struct view *view = &xwayland_view->base;
-	view_set_decorations(view, want_deco(view));
+	assert(data && data == xwayland_view->xwayland_surface);
+
+	view_set_decorations(view, want_deco(xwayland_view->xwayland_surface));
 }
 
 static void
@@ -314,7 +318,8 @@ handle_override_redirect(struct wl_listener *listener, void *data)
 		wl_container_of(listener, xwayland_view, override_redirect);
 	struct view *view = &xwayland_view->base;
 	struct wlr_xwayland_surface *xsurface = data;
-	assert(xsurface && xsurface == view->xwayland_surface);
+	assert(xsurface && xsurface == xwayland_view->xwayland_surface);
+
 	struct server *server = view->server;
 	bool mapped = xsurface->mapped;
 	if (mapped) {
@@ -330,11 +335,12 @@ handle_override_redirect(struct wl_listener *listener, void *data)
 }
 
 static void
-set_initial_position(struct view *view)
+set_initial_position(struct view *view,
+		struct wlr_xwayland_surface *xwayland_surface)
 {
 	/* Don't center views with position explicitly specified */
-	bool has_position = view->xwayland_surface->size_hints &&
-		(view->xwayland_surface->size_hints->flags &
+	bool has_position = xwayland_surface->size_hints &&
+		(xwayland_surface->size_hints->flags &
 			(XCB_ICCCM_SIZE_HINT_US_POSITION |
 			 XCB_ICCCM_SIZE_HINT_P_POSITION));
 
@@ -374,21 +380,23 @@ map(struct view *view)
 	}
 	view->mapped = true;
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
-	if (!view->fullscreen && view->xwayland_surface->fullscreen) {
+	struct wlr_xwayland_surface *xwayland_surface =
+		xwayland_surface_from_view(view);
+	if (!view->fullscreen && xwayland_surface->fullscreen) {
 		view_set_fullscreen(view, true, NULL);
 	}
 	if (!view->maximized && !view->fullscreen) {
-		view->x = view->xwayland_surface->x;
-		view->y = view->xwayland_surface->y;
-		view->w = view->xwayland_surface->width;
-		view->h = view->xwayland_surface->height;
+		view->x = xwayland_surface->x;
+		view->y = xwayland_surface->y;
+		view->w = xwayland_surface->width;
+		view->h = xwayland_surface->height;
 	}
 
-	if (view->surface != view->xwayland_surface->surface) {
+	if (view->surface != xwayland_surface->surface) {
 		if (view->surface) {
 			wl_list_remove(&view->surface_destroy.link);
 		}
-		view->surface = view->xwayland_surface->surface;
+		view->surface = xwayland_surface->surface;
 
 		/* Required to set the surface to NULL when destroyed by the client */
 		view->surface_destroy.notify = handle_surface_destroy;
@@ -410,10 +418,10 @@ map(struct view *view)
 	}
 
 	if (!view->been_mapped) {
-		view_set_decorations(view, want_deco(view));
+		view_set_decorations(view, want_deco(xwayland_surface));
 
 		if (!view->maximized && !view->fullscreen) {
-			set_initial_position(view);
+			set_initial_position(view, xwayland_surface);
 		}
 
 		view_moved(view);
@@ -425,8 +433,7 @@ map(struct view *view)
 	}
 
 	/* Add commit here, as xwayland map/unmap can change the wlr_surface */
-	wl_signal_add(&view->xwayland_surface->surface->events.commit,
-		      &view->commit);
+	wl_signal_add(&xwayland_surface->surface->events.commit, &view->commit);
 	view->commit.notify = handle_commit;
 
 	view_impl_map(view);
@@ -447,27 +454,30 @@ unmap(struct view *view)
 static void
 maximize(struct view *view, bool maximized)
 {
-	wlr_xwayland_surface_set_maximized(view->xwayland_surface, maximized);
+	wlr_xwayland_surface_set_maximized(xwayland_surface_from_view(view),
+		maximized);
 }
 
 static void
 set_activated(struct view *view, bool activated)
 {
-	struct wlr_xwayland_surface *surface = view->xwayland_surface;
+	struct wlr_xwayland_surface *xwayland_surface =
+		xwayland_surface_from_view(view);
 
-	if (activated && surface->minimized) {
-		wlr_xwayland_surface_set_minimized(surface, false);
+	if (activated && xwayland_surface->minimized) {
+		wlr_xwayland_surface_set_minimized(xwayland_surface, false);
 	}
 
-	wlr_xwayland_surface_activate(surface, activated);
+	wlr_xwayland_surface_activate(xwayland_surface, activated);
 	if (activated) {
-		wlr_xwayland_surface_restack(surface, NULL, XCB_STACK_MODE_ABOVE);
+		wlr_xwayland_surface_restack(xwayland_surface,
+			NULL, XCB_STACK_MODE_ABOVE);
 		/* Restack unmanaged surfaces on top */
 		struct xwayland_unmanaged *u;
 		struct wl_list *list = &view->server->unmanaged_surfaces;
 		wl_list_for_each(u, list, link) {
-			wlr_xwayland_surface_restack(u->xwayland_surface, NULL,
-						     XCB_STACK_MODE_ABOVE);
+			wlr_xwayland_surface_restack(u->xwayland_surface,
+				NULL, XCB_STACK_MODE_ABOVE);
 		}
 	}
 }
@@ -475,7 +485,8 @@ set_activated(struct view *view, bool activated)
 static void
 set_fullscreen(struct view *view, bool fullscreen)
 {
-	wlr_xwayland_surface_set_fullscreen(view->xwayland_surface, fullscreen);
+	wlr_xwayland_surface_set_fullscreen(xwayland_surface_from_view(view),
+		fullscreen);
 }
 
 static const struct view_impl xwl_view_impl = {
@@ -522,7 +533,7 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	 * from the view (destroying the view) and makes it an
 	 * "unmanaged" surface.
 	 */
-	view->xwayland_surface = xsurface;
+	xwayland_view->xwayland_surface = xsurface;
 	xsurface->data = view;
 
 	view->workspace = server->workspace_current;

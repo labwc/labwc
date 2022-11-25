@@ -40,13 +40,6 @@ struct view {
 	struct wl_list link;
 	struct output *output;
 	struct workspace *workspace;
-
-	union {
-		struct wlr_xdg_surface *xdg_surface;
-#if HAVE_XWAYLAND
-		struct wlr_xwayland_surface *xwayland_surface;
-#endif
-	};
 	struct wlr_surface *surface;
 	struct wlr_scene_tree *scene_tree;
 	struct wlr_scene_node *scene_node;
@@ -97,6 +90,7 @@ struct view {
 
 struct xdg_toplevel_view {
 	struct view base;
+	struct wlr_xdg_surface *xdg_surface;
 
 	/* Events unique to xdg-toplevel views */
 	struct wl_listener set_app_id;
@@ -106,6 +100,7 @@ struct xdg_toplevel_view {
 #if HAVE_XWAYLAND
 struct xwayland_view {
 	struct view base;
+	struct wlr_xwayland_surface *xwayland_surface;
 
 	/* Events unique to XWayland views */
 	struct wl_listener request_configure;
@@ -165,5 +160,13 @@ void view_adjust_size(struct view *view, int *w, int *h);
 
 void view_on_output_destroy(struct view *view);
 void view_destroy(struct view *view);
+
+/* xdg.c */
+struct wlr_xdg_surface *xdg_surface_from_view(struct view *view);
+
+/* xwayland.c */
+#if HAVE_XWAYLAND
+struct wlr_xwayland_surface *xwayland_surface_from_view(struct view *view);
+#endif
 
 #endif /* __LABWC_VIEW_H */

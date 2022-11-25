@@ -14,13 +14,13 @@
   <theme>
     <name></name>
     <cornerRadius>8</cornerRadius>
-    <font><name>sans</name><size>10</size></font>
+    <font name="sans" size="10" />
   </theme>
 
   <keyboard>
     <default />
     <keybind key="A-Return">
-      <action name="Execute"><command>sakura</command></action>
+      <action name="Execute" command="sakura" />
     </keybind>
   </keyboard>
 

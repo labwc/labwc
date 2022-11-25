@@ -23,3 +23,14 @@ if scdoc.found()
     )
   endforeach
 endif
+
+install_data(
+  [
+    'autostart',
+    'environment',
+    'menu.xml',
+    'rc.xml',
+    'rc.xml.all'
+  ],
+  install_dir: get_option('datadir') / 'doc' / meson.project_name()
+)

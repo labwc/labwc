@@ -61,7 +61,7 @@ get_view_part(struct view *view, struct wlr_scene_node *node)
 		return "view->scene_node";
 	}
 	if (view) {
-		return ssd_debug_get_node_name(&view->ssd, node);
+		return ssd_debug_get_node_name(view->ssd, node);
 	}
 	return NULL;
 }
@@ -159,7 +159,7 @@ dump_tree(struct server *server, struct wlr_scene_node *node,
 
 	if ((IGNORE_MENU && node == &server->menu_tree->node)
 			|| (IGNORE_SSD && view
-			&& ssd_debug_is_root_node(&view->ssd, node))) {
+			&& ssd_debug_is_root_node(view->ssd, node))) {
 		printf("%*c%s\n", pos + 4 + INDENT_SIZE, ' ', "<skipping children>");
 		return;
 	}

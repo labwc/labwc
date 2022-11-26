@@ -50,7 +50,6 @@
 #include "cursor.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
-#include "ssd.h"
 #if HAVE_NLS
 #include <libintl.h>
 #include <locale.h>
@@ -232,7 +231,7 @@ struct server {
 
 	/* SSD state */
 	struct view *focused_view;
-	struct ssd_hover_state ssd_hover_state;
+	struct ssd_hover_state *ssd_hover_state;
 
 	/* Tree for all non-layer xdg/xwayland-shell surfaces */
 	struct wlr_scene_tree *view_tree;

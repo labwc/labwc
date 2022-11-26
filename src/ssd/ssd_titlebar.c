@@ -20,7 +20,7 @@
 void
 ssd_titlebar_create(struct ssd *ssd)
 {
-	struct view *view = wl_container_of(ssd, view, ssd);
+	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
 	int width = view->w;
 
@@ -78,7 +78,7 @@ ssd_titlebar_create(struct ssd *ssd)
 			corner_top_right, close_button_unpressed,
 			width - BUTTON_WIDTH * 1, view);
 	} FOR_EACH_END
-	ssd_update_title(view);
+	ssd_update_title(ssd);
 }
 
 static bool
@@ -90,7 +90,7 @@ is_direct_child(struct wlr_scene_node *node, struct ssd_sub_tree *subtree)
 void
 ssd_titlebar_update(struct ssd *ssd)
 {
-	struct view *view = wl_container_of(ssd, view, ssd);
+	struct view *view = ssd->view;
 	int width = view->w;
 	if (width == ssd->state.width) {
 		return;
@@ -131,7 +131,7 @@ ssd_titlebar_update(struct ssd *ssd)
 			}
 		}
 	} FOR_EACH_END
-	ssd_update_title(view);
+	ssd_update_title(ssd);
 }
 
 void
@@ -169,7 +169,7 @@ ssd_titlebar_destroy(struct ssd *ssd)
 static void
 ssd_update_title_positions(struct ssd *ssd)
 {
-	struct view *view = wl_container_of(ssd, view, ssd);
+	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
 	int width = view->w;
 	int title_bg_width = width - BUTTON_WIDTH * BUTTON_COUNT;
@@ -219,13 +219,13 @@ ssd_update_title_positions(struct ssd *ssd)
 }
 
 void
-ssd_update_title(struct view *view)
+ssd_update_title(struct ssd *ssd)
 {
-	struct ssd *ssd = &view->ssd;
-	if (!ssd->tree) {
+	if (!ssd) {
 		return;
 	}
 
+	struct view *view = ssd->view;
 	char *title = (char *)view_get_string_prop(view, "title");
 	if (!title || !*title) {
 		return;

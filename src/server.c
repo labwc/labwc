@@ -221,6 +221,8 @@ server_init(struct server *server)
 	wl_list_init(&server->views);
 	wl_list_init(&server->unmanaged_surfaces);
 
+	server->ssd_hover_state = ssd_hover_state_new();
+
 	server->scene = wlr_scene_create();
 	if (!server->scene) {
 		wlr_log(WLR_ERROR, "unable to create scene");

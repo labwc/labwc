@@ -37,7 +37,7 @@ lab_wlr_output_layout_layout_coords(struct wlr_output_layout *layout,
 void
 ssd_extents_create(struct ssd *ssd)
 {
-	struct view *view = wl_container_of(ssd, view, ssd);
+	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
 	struct wl_list *part_list = &ssd->extents.parts;
 	int extended_area = EXTENDED_AREA;
@@ -98,7 +98,7 @@ ssd_extents_create(struct ssd *ssd)
 void
 ssd_extents_update(struct ssd *ssd)
 {
-	struct view *view = wl_container_of(ssd, view, ssd);
+	struct view *view = ssd->view;
 	if (view->maximized || view->fullscreen) {
 		wlr_scene_node_set_enabled(&ssd->extents.tree->node, false);
 		return;

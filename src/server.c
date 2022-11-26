@@ -16,7 +16,6 @@
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
-#include "ssd.h"
 #include "theme.h"
 #include "view.h"
 #include "workspaces.h"
@@ -40,10 +39,7 @@ reload_config_and_theme(void)
 
 	struct view *view;
 	wl_list_for_each(view, &g_server->views, link) {
-		if (!view->mapped || !view->ssd_enabled) {
-			continue;
-		}
-		ssd_reload(view);
+		view_reload_ssd(view);
 	}
 
 	menu_reconfigure(g_server);

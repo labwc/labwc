@@ -154,6 +154,7 @@ void view_snap_to_edge(struct view *view, const char *direction,
 const char *view_get_string_prop(struct view *view, const char *prop);
 void view_update_title(struct view *view);
 void view_update_app_id(struct view *view);
+void view_reload_ssd(struct view *view);
 
 void view_impl_map(struct view *view);
 void view_adjust_size(struct view *view, int *w, int *h);

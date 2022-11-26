@@ -872,6 +872,16 @@ view_update_app_id(struct view *view)
 }
 
 void
+view_reload_ssd(struct view *view)
+{
+	assert(view);
+	if (view->ssd_enabled) {
+		ssd_destroy(view);
+		ssd_create(view);
+	}
+}
+
+void
 view_destroy(struct view *view)
 {
 	assert(view);

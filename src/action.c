@@ -161,7 +161,7 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 		if (!view) {
 			return;
 		}
-		enum ssd_part_type type = ssd_at(&view->ssd, server->scene,
+		enum ssd_part_type type = ssd_at(view->ssd, server->scene,
 			server->seat.cursor->x, server->seat.cursor->y);
 		if (type == LAB_SSD_BUTTON_WINDOW_MENU) {
 			force_menu_top_left = true;

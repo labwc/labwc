@@ -80,6 +80,7 @@ struct ssd_state_title_width {
 };
 
 struct ssd {
+	struct view *view;
 	struct wlr_scene_tree *tree;
 
 	/*
@@ -144,12 +145,23 @@ struct ssd_hover_state {
 	struct wlr_scene_node *node;
 };
 
-/* Public SSD API */
-void ssd_create(struct view *view, bool active);
-void ssd_set_active(struct view *view, bool active);
-void ssd_update_title(struct view *view);
-void ssd_update_geometry(struct view *view);
-void ssd_destroy(struct view *view);
+/*
+ * Public SSD API
+ *
+ * For convenience in dealing with non-SSD views, this API allows NULL
+ * ssd/button/node arguments and attempts to do something sensible in
+ * that case (e.g. no-op/return default values).
+ *
+ * NULL scene/view arguments are not allowed.
+ */
+struct ssd *ssd_create(struct view *view, bool active);
+struct border ssd_get_margin(const struct ssd *ssd);
+void ssd_set_active(struct ssd *ssd, bool active);
+void ssd_update_title(struct ssd *ssd);
+void ssd_update_geometry(struct ssd *ssd);
+void ssd_destroy(struct ssd *ssd);
+
+struct ssd_hover_state *ssd_hover_state_new(void);
 void ssd_update_button_hover(struct wlr_scene_node *node,
 	struct ssd_hover_state *hover_state);
 

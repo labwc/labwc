@@ -7,6 +7,7 @@
  */
 
 #include <assert.h>
+#include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "labwc.h"
 #include "ssd.h"
@@ -16,6 +17,7 @@
 struct border
 ssd_thickness(struct view *view)
 {
+	assert(view);
 	/*
 	 * Check preconditions for displaying SSD. Note that this
 	 * needs to work even before ssd_create() has been called.
@@ -35,6 +37,7 @@ ssd_thickness(struct view *view)
 struct wlr_box
 ssd_max_extents(struct view *view)
 {
+	assert(view);
 	struct border border = ssd_thickness(view);
 	return (struct wlr_box){
 		.x = view->x - border.left,
@@ -61,7 +64,7 @@ ssd_get_part_type(const struct ssd *ssd, struct wlr_scene_node *node)
 	} else if (node->type == WLR_SCENE_NODE_BUFFER
 			&& lab_wlr_surface_from_node(node)) {
 		return LAB_SSD_CLIENT;
-	} else if (!ssd->tree) {
+	} else if (!ssd) {
 		return LAB_SSD_NONE;
 	}
 
@@ -114,6 +117,7 @@ ssd_get_part_type(const struct ssd *ssd, struct wlr_scene_node *node)
 enum ssd_part_type
 ssd_at(const struct ssd *ssd, struct wlr_scene *scene, double lx, double ly)
 {
+	assert(scene);
 	double sx, sy;
 	struct wlr_scene_node *node = wlr_scene_node_at(
 		&scene->tree.node, lx, ly, &sx, &sy);
@@ -145,34 +149,43 @@ ssd_resize_edges(enum ssd_part_type type)
 	}
 }
 
-void
+struct ssd *
 ssd_create(struct view *view, bool active)
 {
-	struct ssd *ssd = &view->ssd;
-	assert(!ssd->tree);
+	assert(view);
+	struct ssd *ssd = znew(*ssd);
 
+	ssd->view = view;
 	ssd->tree = wlr_scene_tree_create(view->scene_tree);
 	wlr_scene_node_lower_to_bottom(&ssd->tree->node);
 	ssd_extents_create(ssd);
 	ssd_border_create(ssd);
 	ssd_titlebar_create(ssd);
 	ssd->margin = ssd_thickness(view);
-	ssd_set_active(view, active);
+	ssd_set_active(ssd, active);
 
 	ssd->state.width = view->w;
 	ssd->state.height = view->h;
 	ssd->state.x = view->x;
 	ssd->state.y = view->y;
+
+	return ssd;
+}
+
+struct border
+ssd_get_margin(const struct ssd *ssd)
+{
+	return ssd ? ssd->margin : (struct border){ 0 };
 }
 
 void
-ssd_update_geometry(struct view *view)
+ssd_update_geometry(struct ssd *ssd)
 {
-	struct ssd *ssd = &view->ssd;
-	if (!ssd->tree) {
+	if (!ssd) {
 		return;
 	}
 
+	struct view *view = ssd->view;
 	if (view->w == ssd->state.width && view->h == ssd->state.height) {
 		if (view->x != ssd->state.x || view->y != ssd->state.y) {
 			/* Dynamically resize extents based on position and usable_area */
@@ -193,16 +206,16 @@ ssd_update_geometry(struct view *view)
 }
 
 void
-ssd_destroy(struct view *view)
+ssd_destroy(struct ssd *ssd)
 {
-	struct ssd *ssd = &view->ssd;
-	if (!ssd->tree) {
+	if (!ssd) {
 		return;
 	}
 
 	/* Maybe reset hover view */
+	struct view *view = ssd->view;
 	struct ssd_hover_state *hover_state;
-	hover_state = &view->server->ssd_hover_state;
+	hover_state = view->server->ssd_hover_state;
 	if (hover_state->view == view) {
 		hover_state->view = NULL;
 		hover_state->node = NULL;
@@ -213,8 +226,8 @@ ssd_destroy(struct view *view)
 	ssd_border_destroy(ssd);
 	ssd_extents_destroy(ssd);
 	wlr_scene_node_destroy(&ssd->tree->node);
-	ssd->tree = NULL;
-	ssd->margin = (struct border){ 0 };
+
+	free(ssd);
 }
 
 bool
@@ -256,10 +269,9 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 }
 
 void
-ssd_set_active(struct view *view, bool active)
+ssd_set_active(struct ssd *ssd, bool active)
 {
-	struct ssd *ssd = &view->ssd;
-	if (!ssd->tree) {
+	if (!ssd) {
 		return;
 	}
 	wlr_scene_node_set_enabled(&ssd->border.active.tree->node, active);
@@ -268,10 +280,16 @@ ssd_set_active(struct view *view, bool active)
 	wlr_scene_node_set_enabled(&ssd->titlebar.inactive.tree->node, !active);
 }
 
+struct ssd_hover_state *
+ssd_hover_state_new(void)
+{
+	return znew(struct ssd_hover_state);
+}
+
 bool
 ssd_debug_is_root_node(const struct ssd *ssd, struct wlr_scene_node *node)
 {
-	if (!ssd->tree || !node) {
+	if (!ssd || !node) {
 		return false;
 	}
 	return node == &ssd->tree->node;
@@ -280,7 +298,7 @@ ssd_debug_is_root_node(const struct ssd *ssd, struct wlr_scene_node *node)
 const char *
 ssd_debug_get_node_name(const struct ssd *ssd, struct wlr_scene_node *node)
 {
-	if (!ssd->tree || !node) {
+	if (!ssd || !node) {
 		return NULL;
 	}
 	if (node == &ssd->tree->node) {

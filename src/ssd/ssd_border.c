@@ -13,7 +13,7 @@
 void
 ssd_border_create(struct ssd *ssd)
 {
-	struct view *view = wl_container_of(ssd, view, ssd);
+	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
 	int width = view->w;
 	int height = view->h;
@@ -51,7 +51,7 @@ ssd_border_create(struct ssd *ssd)
 void
 ssd_border_update(struct ssd *ssd)
 {
-	struct view *view = wl_container_of(ssd, view, ssd);
+	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
 
 	int width = view->w;

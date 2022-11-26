@@ -7,7 +7,6 @@
 #include <stdint.h>
 #include <wayland-util.h>
 #include <wlr/util/box.h>
-#include "ssd.h"
 
 /*
  * In labwc, a view is a container for surfaces which can be moved around by
@@ -21,6 +20,7 @@ enum view_type {
 #endif
 };
 
+struct view;
 struct view_impl {
 	void (*configure)(struct view *view, struct wlr_box geo);
 	void (*close)(struct view *view);
@@ -65,7 +65,7 @@ struct view {
 		uint32_t configure_serial;
 	} pending_move_resize;
 
-	struct ssd ssd;
+	struct ssd *ssd;
 
 	struct wlr_foreign_toplevel_handle_v1 *toplevel_handle;
 	struct wl_listener toplevel_handle_request_maximize;

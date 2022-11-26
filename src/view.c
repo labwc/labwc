@@ -88,7 +88,7 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 		break;
 	}
 
-	struct border margin = view->ssd.margin;
+	struct border margin = ssd_get_margin(view->ssd);
 	struct wlr_box dst = {
 		.x = x_offset + usable.x + margin.left,
 		.y = y_offset + usable.y + margin.top,
@@ -102,9 +102,7 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 static void
 _view_set_activated(struct view *view, bool activated)
 {
-	if (view->ssd.tree) {
-		ssd_set_active(view, activated);
-	}
+	ssd_set_active(view->ssd, activated);
 	if (view->impl->set_activated) {
 		view->impl->set_activated(view, activated);
 	}
@@ -153,7 +151,7 @@ view_moved(struct view *view)
 	assert(view);
 	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
 	view_discover_output(view);
-	ssd_update_geometry(view);
+	ssd_update_geometry(view->ssd);
 	cursor_update_focus(view->server);
 }
 
@@ -278,7 +276,7 @@ view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 		return false;
 	}
 
-	struct border margin = view->ssd.margin;
+	struct border margin = ssd_get_margin(view->ssd);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	int width = w + margin.left + margin.right;
 	int height = h + margin.top + margin.bottom;
@@ -554,15 +552,31 @@ view_move_to_workspace(struct view *view, struct workspace *workspace)
 	}
 }
 
+static void
+decorate(struct view *view)
+{
+	if (!view->ssd) {
+		view->ssd = ssd_create(view,
+			view == view->server->focused_view);
+	}
+}
+
+static void
+undecorate(struct view *view)
+{
+	ssd_destroy(view->ssd);
+	view->ssd = NULL;
+}
+
 void
 view_set_decorations(struct view *view, bool decorations)
 {
 	assert(view);
 	if (view->ssd_enabled != decorations && !view->fullscreen) {
 		if (decorations) {
-			ssd_create(view, view == view->server->focused_view);
+			decorate(view);
 		} else {
-			ssd_destroy(view);
+			undecorate(view);
 		}
 		view->ssd_enabled = decorations;
 		if (view->maximized) {
@@ -610,7 +624,7 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		}
 		/* Hide decorations when going fullscreen */
 		if (view->ssd_enabled) {
-			ssd_destroy(view);
+			undecorate(view);
 		}
 		view->fullscreen = wlr_output;
 		view_apply_fullscreen_geometry(view, view->fullscreen);
@@ -626,7 +640,7 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		}
 		/* Re-show decorations when no longer fullscreen */
 		if (view->ssd_enabled) {
-			ssd_create(view, view == view->server->focused_view);
+			decorate(view);
 		}
 	}
 
@@ -730,7 +744,7 @@ view_move_to_edge(struct view *view, const char *direction)
 		return;
 	}
 
-	struct border margin = view->ssd.margin;
+	struct border margin = ssd_get_margin(view->ssd);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	if (usable.height == output->wlr_output->height
 			&& output->wlr_output->scale != 1) {
@@ -868,7 +882,7 @@ view_update_title(struct view *view)
 	if (!view->toplevel_handle || !title) {
 		return;
 	}
-	ssd_update_title(view);
+	ssd_update_title(view->ssd);
 	wlr_foreign_toplevel_handle_v1_set_title(view->toplevel_handle, title);
 }
 
@@ -889,8 +903,8 @@ view_reload_ssd(struct view *view)
 {
 	assert(view);
 	if (view->ssd_enabled && !view->fullscreen) {
-		ssd_destroy(view);
-		ssd_create(view, view == view->server->focused_view);
+		undecorate(view);
+		decorate(view);
 	}
 }
 
@@ -922,9 +936,9 @@ view_destroy(struct view *view)
 	}
 
 	osd_on_view_destroy(view);
+	undecorate(view);
 
 	if (view->scene_tree) {
-		ssd_destroy(view);
 		wlr_scene_node_destroy(&view->scene_tree->node);
 		view->scene_tree = NULL;
 	}

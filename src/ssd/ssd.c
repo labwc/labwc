@@ -17,30 +17,27 @@ struct border
 ssd_thickness(struct view *view)
 {
 	if (!view->ssd_enabled) {
-		struct border border = { 0 };
-		return border;
+		return (struct border){ 0 };
 	}
 	struct theme *theme = view->server->theme;
-	struct border border = {
+	return (struct border){
 		.top = theme->title_height + theme->border_width,
 		.bottom = theme->border_width,
 		.left = theme->border_width,
 		.right = theme->border_width,
 	};
-	return border;
 }
 
 struct wlr_box
 ssd_max_extents(struct view *view)
 {
 	struct border border = ssd_thickness(view);
-	struct wlr_box box = {
+	return (struct wlr_box){
 		.x = view->x - border.left,
 		.y = view->y - border.top,
 		.width = view->w + border.left + border.right,
 		.height = view->h + border.top + border.bottom,
 	};
-	return box;
 }
 
 bool
@@ -165,9 +162,7 @@ ssd_update_geometry(struct view *view)
 		return;
 	}
 
-	int width = view->w;
-	int height = view->h;
-	if (width == view->ssd.state.width && height == view->ssd.state.height) {
+	if (view->w == view->ssd.state.width && view->h == view->ssd.state.height) {
 		if (view->x != view->ssd.state.x || view->y != view->ssd.state.y) {
 			/* Dynamically resize extents based on position and usable_area */
 			ssd_extents_update(view);
@@ -180,8 +175,8 @@ ssd_update_geometry(struct view *view)
 	ssd_border_update(view);
 	ssd_titlebar_update(view);
 
-	view->ssd.state.width = width;
-	view->ssd.state.height = height;
+	view->ssd.state.width = view->w;
+	view->ssd.state.height = view->h;
 	view->ssd.state.x = view->x;
 	view->ssd.state.y = view->y;
 }

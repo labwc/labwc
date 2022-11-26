@@ -262,7 +262,7 @@ update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
 	 * (1) there is a pointer grab active (e.g. XDG popup grab) and
 	 * (2) both surfaces belong to the same XDG toplevel.
 	 *
-         * GTK/Wayland menus are known to use an XDG popup grab and to
+	 * GTK/Wayland menus are known to use an XDG popup grab and to
 	 * rely on the leave/enter events to work properly.  Firefox
 	 * context menus (in contrast) do not use an XDG popup grab and
 	 * do not work properly if we send leave/enter events.

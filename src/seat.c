@@ -425,7 +425,8 @@ seat_reconfigure(struct server *server)
 			WLR_INPUT_DEVICE_POINTER) {
 			configure_libinput(input->wlr_input_device);
 		} else if (input->wlr_input_device->type == WLR_INPUT_DEVICE_KEYBOARD) {
-			struct wlr_keyboard *kb = wlr_keyboard_from_input_device(input->wlr_input_device);
+			struct wlr_keyboard *kb =
+				wlr_keyboard_from_input_device(input->wlr_input_device);
 			wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
 		}
 	}

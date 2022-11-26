@@ -150,7 +150,6 @@ void ssd_create(struct view *view);
 void ssd_set_active(struct view *view, bool active);
 void ssd_update_title(struct view *view);
 void ssd_update_geometry(struct view *view);
-void ssd_reload(struct view *view);
 void ssd_destroy(struct view *view);
 void ssd_update_button_hover(struct wlr_scene_node *node,
 	struct ssd_hover_state *hover_state);

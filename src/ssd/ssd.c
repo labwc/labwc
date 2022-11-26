@@ -191,16 +191,6 @@ ssd_update_geometry(struct view *view)
 	view->ssd.state.y = view->y;
 }
 
-void ssd_reload(struct view *view)
-{
-	if (!view->ssd.tree) {
-		return;
-	}
-
-	ssd_destroy(view);
-	ssd_create(view);
-}
-
 void
 ssd_destroy(struct view *view)
 {

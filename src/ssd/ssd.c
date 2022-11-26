@@ -54,50 +54,50 @@ ssd_is_button(enum ssd_part_type type)
 }
 
 enum ssd_part_type
-ssd_get_part_type(struct view *view, struct wlr_scene_node *node)
+ssd_get_part_type(const struct ssd *ssd, struct wlr_scene_node *node)
 {
 	if (!node) {
 		return LAB_SSD_NONE;
 	} else if (node->type == WLR_SCENE_NODE_BUFFER
 			&& lab_wlr_surface_from_node(node)) {
 		return LAB_SSD_CLIENT;
-	} else if (!view->ssd.tree) {
+	} else if (!ssd->tree) {
 		return LAB_SSD_NONE;
 	}
 
-	struct wl_list *part_list = NULL;
+	const struct wl_list *part_list = NULL;
 	struct wlr_scene_tree *grandparent =
 		node->parent ? node->parent->node.parent : NULL;
 	struct wlr_scene_tree *greatgrandparent =
 		grandparent ? grandparent->node.parent : NULL;
 
 	/* active titlebar */
-	if (node->parent == view->ssd.titlebar.active.tree) {
-		part_list = &view->ssd.titlebar.active.parts;
-	} else if (grandparent == view->ssd.titlebar.active.tree) {
-		part_list = &view->ssd.titlebar.active.parts;
-	} else if (greatgrandparent == view->ssd.titlebar.active.tree) {
-		part_list = &view->ssd.titlebar.active.parts;
+	if (node->parent == ssd->titlebar.active.tree) {
+		part_list = &ssd->titlebar.active.parts;
+	} else if (grandparent == ssd->titlebar.active.tree) {
+		part_list = &ssd->titlebar.active.parts;
+	} else if (greatgrandparent == ssd->titlebar.active.tree) {
+		part_list = &ssd->titlebar.active.parts;
 
 	/* extents */
-	} else if (node->parent == view->ssd.extents.tree) {
-		part_list = &view->ssd.extents.parts;
+	} else if (node->parent == ssd->extents.tree) {
+		part_list = &ssd->extents.parts;
 
 	/* active border */
-	} else if (node->parent == view->ssd.border.active.tree) {
-		part_list = &view->ssd.border.active.parts;
+	} else if (node->parent == ssd->border.active.tree) {
+		part_list = &ssd->border.active.parts;
 
 	/* inactive titlebar */
-	} else if (node->parent == view->ssd.titlebar.inactive.tree) {
-		part_list = &view->ssd.titlebar.inactive.parts;
-	} else if (grandparent == view->ssd.titlebar.inactive.tree) {
-		part_list = &view->ssd.titlebar.inactive.parts;
-	} else if (greatgrandparent == view->ssd.titlebar.inactive.tree) {
-		part_list = &view->ssd.titlebar.inactive.parts;
+	} else if (node->parent == ssd->titlebar.inactive.tree) {
+		part_list = &ssd->titlebar.inactive.parts;
+	} else if (grandparent == ssd->titlebar.inactive.tree) {
+		part_list = &ssd->titlebar.inactive.parts;
+	} else if (greatgrandparent == ssd->titlebar.inactive.tree) {
+		part_list = &ssd->titlebar.inactive.parts;
 
 	/* inactive border */
-	} else if (node->parent == view->ssd.border.inactive.tree) {
-		part_list = &view->ssd.border.inactive.parts;
+	} else if (node->parent == ssd->border.inactive.tree) {
+		part_list = &ssd->border.inactive.parts;
 	}
 
 	if (part_list) {
@@ -112,12 +112,12 @@ ssd_get_part_type(struct view *view, struct wlr_scene_node *node)
 }
 
 enum ssd_part_type
-ssd_at(struct view *view, double lx, double ly)
+ssd_at(const struct ssd *ssd, struct wlr_scene *scene, double lx, double ly)
 {
 	double sx, sy;
 	struct wlr_scene_node *node = wlr_scene_node_at(
-		&view->server->scene->tree.node, lx, ly, &sx, &sy);
-	return ssd_get_part_type(view, node);
+		&scene->tree.node, lx, ly, &sx, &sy);
+	return ssd_get_part_type(ssd, node);
 }
 
 uint32_t
@@ -148,52 +148,55 @@ ssd_resize_edges(enum ssd_part_type type)
 void
 ssd_create(struct view *view, bool active)
 {
-	assert(!view->ssd.tree);
+	struct ssd *ssd = &view->ssd;
+	assert(!ssd->tree);
 
-	view->ssd.tree = wlr_scene_tree_create(view->scene_tree);
-	wlr_scene_node_lower_to_bottom(&view->ssd.tree->node);
-	ssd_extents_create(view);
-	ssd_border_create(view);
-	ssd_titlebar_create(view);
-	view->ssd.margin = ssd_thickness(view);
+	ssd->tree = wlr_scene_tree_create(view->scene_tree);
+	wlr_scene_node_lower_to_bottom(&ssd->tree->node);
+	ssd_extents_create(ssd);
+	ssd_border_create(ssd);
+	ssd_titlebar_create(ssd);
+	ssd->margin = ssd_thickness(view);
 	ssd_set_active(view, active);
 
-	view->ssd.state.width = view->w;
-	view->ssd.state.height = view->h;
-	view->ssd.state.x = view->x;
-	view->ssd.state.y = view->y;
+	ssd->state.width = view->w;
+	ssd->state.height = view->h;
+	ssd->state.x = view->x;
+	ssd->state.y = view->y;
 }
 
 void
 ssd_update_geometry(struct view *view)
 {
-	if (!view->ssd.tree) {
+	struct ssd *ssd = &view->ssd;
+	if (!ssd->tree) {
 		return;
 	}
 
-	if (view->w == view->ssd.state.width && view->h == view->ssd.state.height) {
-		if (view->x != view->ssd.state.x || view->y != view->ssd.state.y) {
+	if (view->w == ssd->state.width && view->h == ssd->state.height) {
+		if (view->x != ssd->state.x || view->y != ssd->state.y) {
 			/* Dynamically resize extents based on position and usable_area */
-			ssd_extents_update(view);
-			view->ssd.state.x = view->x;
-			view->ssd.state.y = view->y;
+			ssd_extents_update(ssd);
+			ssd->state.x = view->x;
+			ssd->state.y = view->y;
 		}
 		return;
 	}
-	ssd_extents_update(view);
-	ssd_border_update(view);
-	ssd_titlebar_update(view);
+	ssd_extents_update(ssd);
+	ssd_border_update(ssd);
+	ssd_titlebar_update(ssd);
 
-	view->ssd.state.width = view->w;
-	view->ssd.state.height = view->h;
-	view->ssd.state.x = view->x;
-	view->ssd.state.y = view->y;
+	ssd->state.width = view->w;
+	ssd->state.height = view->h;
+	ssd->state.x = view->x;
+	ssd->state.y = view->y;
 }
 
 void
 ssd_destroy(struct view *view)
 {
-	if (!view->ssd.tree) {
+	struct ssd *ssd = &view->ssd;
+	if (!ssd->tree) {
 		return;
 	}
 
@@ -206,12 +209,12 @@ ssd_destroy(struct view *view)
 	}
 
 	/* Destroy subcomponents */
-	ssd_titlebar_destroy(view);
-	ssd_border_destroy(view);
-	ssd_extents_destroy(view);
-	wlr_scene_node_destroy(&view->ssd.tree->node);
-	view->ssd.tree = NULL;
-	view->ssd.margin = (struct border){ 0 };
+	ssd_titlebar_destroy(ssd);
+	ssd_border_destroy(ssd);
+	ssd_extents_destroy(ssd);
+	wlr_scene_node_destroy(&ssd->tree->node);
+	ssd->tree = NULL;
+	ssd->margin = (struct border){ 0 };
 }
 
 bool
@@ -255,11 +258,12 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 void
 ssd_set_active(struct view *view, bool active)
 {
-	if (!view->ssd.tree) {
+	struct ssd *ssd = &view->ssd;
+	if (!ssd->tree) {
 		return;
 	}
-	wlr_scene_node_set_enabled(&view->ssd.border.active.tree->node, active);
-	wlr_scene_node_set_enabled(&view->ssd.titlebar.active.tree->node, active);
-	wlr_scene_node_set_enabled(&view->ssd.border.inactive.tree->node, !active);
-	wlr_scene_node_set_enabled(&view->ssd.titlebar.inactive.tree->node, !active);
+	wlr_scene_node_set_enabled(&ssd->border.active.tree->node, active);
+	wlr_scene_node_set_enabled(&ssd->titlebar.active.tree->node, active);
+	wlr_scene_node_set_enabled(&ssd->border.inactive.tree->node, !active);
+	wlr_scene_node_set_enabled(&ssd->titlebar.inactive.tree->node, !active);
 }

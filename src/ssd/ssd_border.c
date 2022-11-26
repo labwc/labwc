@@ -6,13 +6,14 @@
 #include "theme.h"
 #include "view.h"
 
-#define FOR_EACH_STATE(view, tmp) FOR_EACH(tmp, \
-	&(view)->ssd.border.active, \
-	&(view)->ssd.border.inactive)
+#define FOR_EACH_STATE(ssd, tmp) FOR_EACH(tmp, \
+	&(ssd)->border.active, \
+	&(ssd)->border.inactive)
 
 void
-ssd_border_create(struct view *view)
+ssd_border_create(struct ssd *ssd)
 {
+	struct view *view = wl_container_of(ssd, view, ssd);
 	struct theme *theme = view->server->theme;
 	int width = view->w;
 	int height = view->h;
@@ -22,11 +23,11 @@ ssd_border_create(struct view *view)
 	struct wlr_scene_tree *parent;
 	struct ssd_sub_tree *subtree;
 
-	FOR_EACH_STATE(view, subtree) {
-		subtree->tree = wlr_scene_tree_create(view->ssd.tree);
+	FOR_EACH_STATE(ssd, subtree) {
+		subtree->tree = wlr_scene_tree_create(ssd->tree);
 		parent = subtree->tree;
 		wlr_scene_node_set_position(&parent->node, -theme->border_width, 0);
-		if (subtree == &view->ssd.border.active) {
+		if (subtree == &ssd->border.active) {
 			color = theme->window_active_border_color;
 		} else {
 			color = theme->window_inactive_border_color;
@@ -48,8 +49,9 @@ ssd_border_create(struct view *view)
 }
 
 void
-ssd_border_update(struct view *view)
+ssd_border_update(struct ssd *ssd)
 {
+	struct view *view = wl_container_of(ssd, view, ssd);
 	struct theme *theme = view->server->theme;
 
 	int width = view->w;
@@ -59,7 +61,7 @@ ssd_border_update(struct view *view)
 	struct ssd_part *part;
 	struct wlr_scene_rect *rect;
 	struct ssd_sub_tree *subtree;
-	FOR_EACH_STATE(view, subtree) {
+	FOR_EACH_STATE(ssd, subtree) {
 		wl_list_for_each(part, &subtree->parts, link) {
 			rect = lab_wlr_scene_get_rect(part->node);
 			switch (part->type) {
@@ -92,14 +94,14 @@ ssd_border_update(struct view *view)
 }
 
 void
-ssd_border_destroy(struct view *view)
+ssd_border_destroy(struct ssd *ssd)
 {
-	if (!view->ssd.border.active.tree) {
+	if (!ssd->border.active.tree) {
 		return;
 	}
 
 	struct ssd_sub_tree *subtree;
-	FOR_EACH_STATE(view, subtree) {
+	FOR_EACH_STATE(ssd, subtree) {
 		ssd_destroy_parts(&subtree->parts);
 		wlr_scene_node_destroy(&subtree->tree->node);
 		subtree->tree = NULL;

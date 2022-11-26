@@ -87,11 +87,13 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 		base_height = usable.height - 2 * rc.gap;
 		break;
 	}
+
+	struct border margin = view->ssd.margin;
 	struct wlr_box dst = {
-		.x = x_offset + usable.x + view->ssd.margin.left,
-		.y = y_offset + usable.y + view->ssd.margin.top,
-		.width = base_width - view->ssd.margin.left - view->ssd.margin.right,
-		.height = base_height - view->ssd.margin.top - view->ssd.margin.bottom,
+		.x = x_offset + usable.x + margin.left,
+		.y = y_offset + usable.y + margin.top,
+		.width = base_width - margin.left - margin.right,
+		.height = base_height - margin.top - margin.bottom,
 	};
 
 	return dst;
@@ -276,9 +278,10 @@ view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 		return false;
 	}
 
+	struct border margin = view->ssd.margin;
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-	int width = w + view->ssd.margin.left + view->ssd.margin.right;
-	int height = h + view->ssd.margin.top + view->ssd.margin.bottom;
+	int width = w + margin.left + margin.right;
+	int height = h + margin.top + margin.bottom;
 	*x = usable.x + (usable.width - width) / 2;
 	*y = usable.y + (usable.height - height) / 2;
 
@@ -293,8 +296,8 @@ view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 #if HAVE_XWAYLAND
 	/* TODO: refactor xwayland.c functions to get rid of this */
 	if (view->type == LAB_XWAYLAND_VIEW) {
-		*x += view->ssd.margin.left;
-		*y += view->ssd.margin.top;
+		*x += margin.left;
+		*y += margin.top;
 	}
 #endif
 
@@ -726,6 +729,8 @@ view_move_to_edge(struct view *view, const char *direction)
 		wlr_log(WLR_ERROR, "invalid edge");
 		return;
 	}
+
+	struct border margin = view->ssd.margin;
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	if (usable.height == output->wlr_output->height
 			&& output->wlr_output->scale != 1) {
@@ -738,18 +743,18 @@ view_move_to_edge(struct view *view, const char *direction)
 
 	int x = 0, y = 0;
 	if (!strcasecmp(direction, "left")) {
-		x = usable.x + view->ssd.margin.left + rc.gap;
+		x = usable.x + margin.left + rc.gap;
 		y = view->y;
 	} else if (!strcasecmp(direction, "up")) {
 		x = view->x;
-		y = usable.y + view->ssd.margin.top + rc.gap;
+		y = usable.y + margin.top + rc.gap;
 	} else if (!strcasecmp(direction, "right")) {
-		x = usable.x + usable.width - view->w - view->ssd.margin.right
+		x = usable.x + usable.width - view->w - margin.right
 			- rc.gap;
 		y = view->y;
 	} else if (!strcasecmp(direction, "down")) {
 		x = view->x;
-		y = usable.y + usable.height - view->h - view->ssd.margin.bottom
+		y = usable.y + usable.height - view->h - margin.bottom
 			- rc.gap;
 	} else {
 		wlr_log(WLR_ERROR, "invalid edge");

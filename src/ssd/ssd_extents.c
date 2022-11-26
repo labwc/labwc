@@ -35,19 +35,20 @@ lab_wlr_output_layout_layout_coords(struct wlr_output_layout *layout,
 }
 
 void
-ssd_extents_create(struct view *view)
+ssd_extents_create(struct ssd *ssd)
 {
+	struct view *view = wl_container_of(ssd, view, ssd);
 	struct theme *theme = view->server->theme;
-	struct wl_list *part_list = &view->ssd.extents.parts;
+	struct wl_list *part_list = &ssd->extents.parts;
 	int extended_area = EXTENDED_AREA;
 	int corner_size = extended_area + theme->border_width + BUTTON_WIDTH / 2;
 
-	view->ssd.extents.tree = wlr_scene_tree_create(view->ssd.tree);
-	struct wlr_scene_tree *parent = view->ssd.extents.tree;
+	ssd->extents.tree = wlr_scene_tree_create(ssd->tree);
+	struct wlr_scene_tree *parent = ssd->extents.tree;
 	if (view->maximized || view->fullscreen) {
 		wlr_scene_node_set_enabled(&parent->node, false);
 	}
-	wl_list_init(&view->ssd.extents.parts);
+	wl_list_init(&ssd->extents.parts);
 	wlr_scene_node_set_position(&parent->node,
 		-(theme->border_width + extended_area),
 		-(theme->title_height + theme->border_width + extended_area));
@@ -91,18 +92,19 @@ ssd_extents_create(struct view *view)
 	p->geometry->height = corner_size;
 
 	/* Initial manual update to keep X11 applications happy */
-	ssd_extents_update(view);
+	ssd_extents_update(ssd);
 }
 
 void
-ssd_extents_update(struct view *view)
+ssd_extents_update(struct ssd *ssd)
 {
+	struct view *view = wl_container_of(ssd, view, ssd);
 	if (view->maximized || view->fullscreen) {
-		wlr_scene_node_set_enabled(&view->ssd.extents.tree->node, false);
+		wlr_scene_node_set_enabled(&ssd->extents.tree->node, false);
 		return;
 	}
-	if (!view->ssd.extents.tree->node.enabled) {
-		wlr_scene_node_set_enabled(&view->ssd.extents.tree->node, true);
+	if (!ssd->extents.tree->node.enabled) {
+		wlr_scene_node_set_enabled(&ssd->extents.tree->node, true);
 	}
 
 	if (!view->output) {
@@ -133,10 +135,10 @@ ssd_extents_update(struct view *view)
 
 	/* Remember base layout coordinates */
 	int base_x, base_y;
-	wlr_scene_node_coords(&view->ssd.extents.tree->node, &base_x, &base_y);
+	wlr_scene_node_coords(&ssd->extents.tree->node, &base_x, &base_y);
 
 	struct wlr_box *target;
-	wl_list_for_each(part, &view->ssd.extents.parts, link) {
+	wl_list_for_each(part, &ssd->extents.parts, link) {
 		rect = lab_wlr_scene_get_rect(part->node);
 		target = part->geometry;
 		switch (part->type) {
@@ -206,13 +208,13 @@ ssd_extents_update(struct view *view)
 }
 
 void
-ssd_extents_destroy(struct view *view)
+ssd_extents_destroy(struct ssd *ssd)
 {
-	if (!view->ssd.extents.tree) {
+	if (!ssd->extents.tree) {
 		return;
 	}
 
-	ssd_destroy_parts(&view->ssd.extents.parts);
-	wlr_scene_node_destroy(&view->ssd.extents.tree->node);
-	view->ssd.extents.tree = NULL;
+	ssd_destroy_parts(&ssd->extents.parts);
+	wlr_scene_node_destroy(&ssd->extents.tree->node);
+	ssd->extents.tree = NULL;
 }

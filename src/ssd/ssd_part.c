@@ -5,7 +5,7 @@
 #include "common/mem.h"
 #include "labwc.h"
 #include "node.h"
-#include "ssd.h"
+#include "ssd-internal.h"
 
 /* Internal helpers */
 static void

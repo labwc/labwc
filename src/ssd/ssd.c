@@ -10,7 +10,7 @@
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "labwc.h"
-#include "ssd.h"
+#include "ssd-internal.h"
 #include "theme.h"
 #include "view.h"
 
@@ -284,6 +284,18 @@ struct ssd_hover_state *
 ssd_hover_state_new(void)
 {
 	return znew(struct ssd_hover_state);
+}
+
+enum ssd_part_type
+ssd_button_get_type(const struct ssd_button *button)
+{
+	return button ? button->type : LAB_SSD_NONE;
+}
+
+struct view *
+ssd_button_get_view(const struct ssd_button *button)
+{
+	return button ? button->view : NULL;
 }
 
 bool

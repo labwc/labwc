@@ -605,10 +605,15 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		if (!view->maximized && !view->tiled) {
 			view_store_natural_geometry(view);
 		}
+		/* Hide decorations when going fullscreen */
+		if (view->ssd_enabled) {
+			ssd_destroy(view);
+		}
 		view->fullscreen = wlr_output;
 		view_apply_fullscreen_geometry(view, view->fullscreen);
 	} else {
-		/* restore to normal */
+		view->fullscreen = false;
+		/* Restore non-fullscreen geometry */
 		if (view->maximized) {
 			view_apply_maximized_geometry(view);
 		} else if (view->tiled) {
@@ -616,7 +621,10 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		} else {
 			view_apply_unmaximized_geometry(view);
 		}
-		view->fullscreen = false;
+		/* Re-show decorations when no longer fullscreen */
+		if (view->ssd_enabled) {
+			ssd_create(view, view == view->server->focused_view);
+		}
 	}
 
 	/* Show fullscreen views above top-layer */
@@ -875,7 +883,7 @@ void
 view_reload_ssd(struct view *view)
 {
 	assert(view);
-	if (view->ssd_enabled) {
+	if (view->ssd_enabled && !view->fullscreen) {
 		ssd_destroy(view);
 		ssd_create(view, view == view->server->focused_view);
 	}

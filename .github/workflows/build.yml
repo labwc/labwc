@@ -136,3 +136,10 @@ jobs:
             meson build-clang-no-xwayland -Dxwayland=disabled --werror
             meson compile -C build-clang-no-xwayland
           ' | $TARGET
+
+      - name: Run coding style checks
+        run: |
+          echo '
+            cd "$GITHUB_WORKSPACE"
+            ./scripts/check
+          ' | $TARGET

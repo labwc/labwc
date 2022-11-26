@@ -352,8 +352,8 @@ get_cursor_context(struct server *server)
 				struct ssd_button *button =
 					node_ssd_button_from_node(node);
 				ret.node = node;
-				ret.type = button->type;
-				ret.view = button->view;
+				ret.type = ssd_button_get_type(button);
+				ret.view = ssd_button_get_view(button);
 				return ret;
 			}
 			case LAB_NODE_DESC_LAYER_SURFACE:

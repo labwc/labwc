@@ -16,7 +16,11 @@
 struct border
 ssd_thickness(struct view *view)
 {
-	if (!view->ssd_enabled) {
+	/*
+	 * Check preconditions for displaying SSD. Note that this
+	 * needs to work even before ssd_create() has been called.
+	 */
+	if (!view->ssd_enabled || view->fullscreen) {
 		return (struct border){ 0 };
 	}
 	struct theme *theme = view->server->theme;

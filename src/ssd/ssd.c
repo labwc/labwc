@@ -150,8 +150,6 @@ ssd_create(struct view *view)
 	bool is_active = view->server->focused_view == view;
 
 	if (view->ssd.tree) {
-		/* SSD was hidden. Just enable it */
-		wlr_scene_node_set_enabled(&view->ssd.tree->node, true);
 		ssd_set_active(view, is_active);
 		return;
 	}
@@ -168,21 +166,8 @@ ssd_create(struct view *view)
 void
 ssd_update_geometry(struct view *view)
 {
-	if (!view->scene_node) {
+	if (!view->ssd.tree) {
 		return;
-	}
-
-	if (!view->ssd_enabled) {
-		if (view->ssd.tree && view->ssd.tree->node.enabled) {
-			wlr_scene_node_set_enabled(&view->ssd.tree->node, false);
-			view->ssd.margin = ssd_thickness(view);
-		}
-		return;
-	} else if (!view->ssd.tree) {
-		ssd_create(view);
-	} else if (!view->ssd.tree->node.enabled) {
-		wlr_scene_node_set_enabled(&view->ssd.tree->node, true);
-		view->ssd.margin = ssd_thickness(view);
 	}
 
 	int width = view->w;

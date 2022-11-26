@@ -145,14 +145,9 @@ ssd_resize_edges(enum ssd_part_type type)
 }
 
 void
-ssd_create(struct view *view)
+ssd_create(struct view *view, bool active)
 {
-	bool is_active = view->server->focused_view == view;
-
-	if (view->ssd.tree) {
-		ssd_set_active(view, is_active);
-		return;
-	}
+	assert(!view->ssd.tree);
 
 	view->ssd.tree = wlr_scene_tree_create(view->scene_tree);
 	wlr_scene_node_lower_to_bottom(&view->ssd.tree->node);
@@ -160,7 +155,7 @@ ssd_create(struct view *view)
 	ssd_border_create(view);
 	ssd_titlebar_create(view);
 	view->ssd.margin = ssd_thickness(view);
-	ssd_set_active(view, is_active);
+	ssd_set_active(view, active);
 }
 
 void

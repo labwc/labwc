@@ -557,7 +557,7 @@ view_set_decorations(struct view *view, bool decorations)
 	assert(view);
 	if (view->ssd_enabled != decorations && !view->fullscreen) {
 		if (decorations) {
-			ssd_create(view);
+			ssd_create(view, view == view->server->focused_view);
 		} else {
 			ssd_destroy(view);
 		}
@@ -877,7 +877,7 @@ view_reload_ssd(struct view *view)
 	assert(view);
 	if (view->ssd_enabled) {
 		ssd_destroy(view);
-		ssd_create(view);
+		ssd_create(view, view == view->server->focused_view);
 	}
 }
 

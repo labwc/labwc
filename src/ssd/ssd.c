@@ -267,3 +267,39 @@ ssd_set_active(struct view *view, bool active)
 	wlr_scene_node_set_enabled(&ssd->border.inactive.tree->node, !active);
 	wlr_scene_node_set_enabled(&ssd->titlebar.inactive.tree->node, !active);
 }
+
+bool
+ssd_debug_is_root_node(const struct ssd *ssd, struct wlr_scene_node *node)
+{
+	if (!ssd->tree || !node) {
+		return false;
+	}
+	return node == &ssd->tree->node;
+}
+
+const char *
+ssd_debug_get_node_name(const struct ssd *ssd, struct wlr_scene_node *node)
+{
+	if (!ssd->tree || !node) {
+		return NULL;
+	}
+	if (node == &ssd->tree->node) {
+		return "view->ssd";
+	}
+	if (node == &ssd->titlebar.active.tree->node) {
+		return "titlebar.active";
+	}
+	if (node == &ssd->titlebar.inactive.tree->node) {
+		return "titlebar.inactive";
+	}
+	if (node == &ssd->border.active.tree->node) {
+		return "border.active";
+	}
+	if (node == &ssd->border.inactive.tree->node) {
+		return "border.inactive";
+	}
+	if (node == &ssd->extents.tree->node) {
+		return "extents";
+	}
+	return NULL;
+}

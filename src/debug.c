@@ -4,6 +4,7 @@
 #include "common/scene-helpers.h"
 #include "labwc.h"
 #include "node.h"
+#include "ssd.h"
 #include "view.h"
 
 #define HEADER_CHARS "------------------------------"
@@ -59,26 +60,8 @@ get_view_part(struct view *view, struct wlr_scene_node *node)
 	if (view && node == view->scene_node) {
 		return "view->scene_node";
 	}
-	if (!view || !view->ssd.tree) {
-		return NULL;
-	}
-	if (node == &view->ssd.tree->node) {
-		return "view->ssd";
-	}
-	if (node == &view->ssd.titlebar.active.tree->node) {
-		return "titlebar.active";
-	}
-	if (node == &view->ssd.titlebar.inactive.tree->node) {
-		return "titlebar.inactive";
-	}
-	if (node == &view->ssd.border.active.tree->node) {
-		return "border.active";
-	}
-	if (node == &view->ssd.border.inactive.tree->node) {
-		return "border.inactive";
-	}
-	if (node == &view->ssd.extents.tree->node) {
-		return "extents";
+	if (view) {
+		return ssd_debug_get_node_name(&view->ssd, node);
 	}
 	return NULL;
 }
@@ -175,8 +158,8 @@ dump_tree(struct server *server, struct wlr_scene_node *node,
 	printf("%s %*c %4d  %4d  [%p]\n", type, padding, ' ', x, y, node);
 
 	if ((IGNORE_MENU && node == &server->menu_tree->node)
-			|| (IGNORE_SSD && view && view->ssd.tree
-			&& node == &view->ssd.tree->node)) {
+			|| (IGNORE_SSD && view
+			&& ssd_debug_is_root_node(&view->ssd, node))) {
 		printf("%*c%s\n", pos + 4 + INDENT_SIZE, ' ', "<skipping children>");
 		return;
 	}

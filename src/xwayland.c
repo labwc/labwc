@@ -117,8 +117,6 @@ handle_surface_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&view->surface_destroy.link);
 }
 
-
-
 static void
 handle_destroy(struct wl_listener *listener, void *data)
 {

@@ -2,8 +2,7 @@
 #ifndef __LABWC_SSD_H
 #define __LABWC_SSD_H
 
-#include "buffer.h"
-#include <wlr/util/box.h>
+#include <wayland-server-core.h>
 
 #define BUTTON_COUNT 4
 #define BUTTON_WIDTH 26
@@ -50,10 +49,10 @@ enum ssd_part_type {
 
 /* Forward declare arguments */
 struct view;
-struct wl_list;
-struct wlr_box;
+struct wlr_buffer;
+struct wlr_scene;
+struct wlr_scene_node;
 struct wlr_scene_tree;
-struct scaled_font_buffer;
 
 struct border {
 	int top;
@@ -155,9 +154,10 @@ void ssd_update_button_hover(struct wlr_scene_node *node,
 	struct ssd_hover_state *hover_state);
 
 /* Public SSD helpers */
-enum ssd_part_type ssd_at(struct view *view, double lx, double ly);
-enum ssd_part_type ssd_get_part_type(
-	struct view *view, struct wlr_scene_node *node);
+enum ssd_part_type ssd_at(const struct ssd *ssd,
+	struct wlr_scene *scene, double lx, double ly);
+enum ssd_part_type ssd_get_part_type(const struct ssd *ssd,
+	struct wlr_scene_node *node);
 uint32_t ssd_resize_edges(enum ssd_part_type type);
 bool ssd_is_button(enum ssd_part_type type);
 bool ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate);
@@ -189,17 +189,17 @@ struct ssd_part *ssd_get_part(
 void ssd_destroy_parts(struct wl_list *list);
 
 /* SSD internal */
-void ssd_titlebar_create(struct view *view);
-void ssd_titlebar_update(struct view *view);
-void ssd_titlebar_destroy(struct view *view);
+void ssd_titlebar_create(struct ssd *ssd);
+void ssd_titlebar_update(struct ssd *ssd);
+void ssd_titlebar_destroy(struct ssd *ssd);
 
-void ssd_border_create(struct view *view);
-void ssd_border_update(struct view *view);
-void ssd_border_destroy(struct view *view);
+void ssd_border_create(struct ssd *ssd);
+void ssd_border_update(struct ssd *ssd);
+void ssd_border_destroy(struct ssd *ssd);
 
-void ssd_extents_create(struct view *view);
-void ssd_extents_update(struct view *view);
-void ssd_extents_destroy(struct view *view);
+void ssd_extents_create(struct ssd *ssd);
+void ssd_extents_update(struct ssd *ssd);
+void ssd_extents_destroy(struct ssd *ssd);
 
 /* TODO: clean up / update */
 struct border ssd_thickness(struct view *view);

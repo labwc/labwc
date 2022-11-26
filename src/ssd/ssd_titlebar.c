@@ -3,6 +3,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <string.h>
+#include "buffer.h"
 #include "common/mem.h"
 #include "common/scaled_font_buffer.h"
 #include "common/scene-helpers.h"
@@ -12,13 +13,14 @@
 #include "theme.h"
 #include "view.h"
 
-#define FOR_EACH_STATE(view, tmp) FOR_EACH(tmp, \
-	&(view)->ssd.titlebar.active, \
-	&(view)->ssd.titlebar.inactive)
+#define FOR_EACH_STATE(ssd, tmp) FOR_EACH(tmp, \
+	&(ssd)->titlebar.active, \
+	&(ssd)->titlebar.inactive)
 
 void
-ssd_titlebar_create(struct view *view)
+ssd_titlebar_create(struct ssd *ssd)
 {
+	struct view *view = wl_container_of(ssd, view, ssd);
 	struct theme *theme = view->server->theme;
 	int width = view->w;
 
@@ -33,11 +35,11 @@ ssd_titlebar_create(struct view *view)
 	struct wlr_buffer *close_button_unpressed;
 
 	struct ssd_sub_tree *subtree;
-	FOR_EACH_STATE(view, subtree) {
-		subtree->tree = wlr_scene_tree_create(view->ssd.tree);
+	FOR_EACH_STATE(ssd, subtree) {
+		subtree->tree = wlr_scene_tree_create(ssd->tree);
 		parent = subtree->tree;
 		wlr_scene_node_set_position(&parent->node, 0, -theme->title_height);
-		if (subtree == &view->ssd.titlebar.active) {
+		if (subtree == &ssd->titlebar.active) {
 			color = theme->window_active_title_bg_color;
 			corner_top_left = &theme->corner_top_left_active_normal->base;
 			corner_top_right = &theme->corner_top_right_active_normal->base;
@@ -86,17 +88,18 @@ is_direct_child(struct wlr_scene_node *node, struct ssd_sub_tree *subtree)
 }
 
 void
-ssd_titlebar_update(struct view *view)
+ssd_titlebar_update(struct ssd *ssd)
 {
+	struct view *view = wl_container_of(ssd, view, ssd);
 	int width = view->w;
-	if (width == view->ssd.state.width) {
+	if (width == ssd->state.width) {
 		return;
 	}
 	struct theme *theme = view->server->theme;
 
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
-	FOR_EACH_STATE(view, subtree) {
+	FOR_EACH_STATE(ssd, subtree) {
 		wl_list_for_each(part, &subtree->parts, link) {
 			switch (part->type) {
 			case LAB_SSD_PART_TITLEBAR:
@@ -132,22 +135,22 @@ ssd_titlebar_update(struct view *view)
 }
 
 void
-ssd_titlebar_destroy(struct view *view)
+ssd_titlebar_destroy(struct ssd *ssd)
 {
-	if (!view->ssd.titlebar.active.tree) {
+	if (!ssd->titlebar.active.tree) {
 		return;
 	}
 
 	struct ssd_sub_tree *subtree;
-	FOR_EACH_STATE(view, subtree) {
+	FOR_EACH_STATE(ssd, subtree) {
 		ssd_destroy_parts(&subtree->parts);
 		wlr_scene_node_destroy(&subtree->tree->node);
 		subtree->tree = NULL;
 	} FOR_EACH_END
 
-	if (view->ssd.state.title.text) {
-		free(view->ssd.state.title.text);
-		view->ssd.state.title.text = NULL;
+	if (ssd->state.title.text) {
+		free(ssd->state.title.text);
+		ssd->state.title.text = NULL;
 	}
 }
 
@@ -164,8 +167,9 @@ ssd_titlebar_destroy(struct view *view)
  */
 
 static void
-ssd_update_title_positions(struct view *view)
+ssd_update_title_positions(struct ssd *ssd)
 {
+	struct view *view = wl_container_of(ssd, view, ssd);
 	struct theme *theme = view->server->theme;
 	int width = view->w;
 	int title_bg_width = width - BUTTON_WIDTH * BUTTON_COUNT;
@@ -174,7 +178,7 @@ ssd_update_title_positions(struct view *view)
 	int buffer_height, buffer_width;
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
-	FOR_EACH_STATE(view, subtree) {
+	FOR_EACH_STATE(ssd, subtree) {
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLE);
 		if (!part || !part->node) {
 			/* view->surface never been mapped */
@@ -217,7 +221,8 @@ ssd_update_title_positions(struct view *view)
 void
 ssd_update_title(struct view *view)
 {
-	if (!view->ssd.tree) {
+	struct ssd *ssd = &view->ssd;
+	if (!ssd->tree) {
 		return;
 	}
 
@@ -227,7 +232,7 @@ ssd_update_title(struct view *view)
 	}
 
 	struct theme *theme = view->server->theme;
-	struct ssd_state_title *state = &view->ssd.state.title;
+	struct ssd_state_title *state = &ssd->state.title;
 	bool title_unchanged = state->text && !strcmp(title, state->text);
 
 	float *text_color;
@@ -236,8 +241,8 @@ ssd_update_title(struct view *view)
 	struct ssd_state_title_width *dstate;
 	int title_bg_width = view->w - BUTTON_WIDTH * BUTTON_COUNT;
 
-	FOR_EACH_STATE(view, subtree) {
-		if (subtree == &view->ssd.titlebar.active) {
+	FOR_EACH_STATE(ssd, subtree) {
+		if (subtree == &ssd->titlebar.active) {
 			dstate = &state->active;
 			text_color = theme->window_active_label_text_color;
 		} else {
@@ -287,7 +292,7 @@ ssd_update_title(struct view *view)
 		}
 		state->text = xstrdup(title);
 	}
-	ssd_update_title_positions(view);
+	ssd_update_title_positions(ssd);
 }
 
 void

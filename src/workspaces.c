@@ -7,12 +7,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include "buffer.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"
 #include "common/list.h"
 #include "common/mem.h"
 #include "labwc.h"
-#include "view.h"
 #include "workspaces.h"
 
 /* Internal helpers */

@@ -161,8 +161,8 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 		if (!view) {
 			return;
 		}
-		enum ssd_part_type type = ssd_at(view, server->seat.cursor->x,
-			server->seat.cursor->y);
+		enum ssd_part_type type = ssd_at(&view->ssd, server->scene,
+			server->seat.cursor->x, server->seat.cursor->y);
 		if (type == LAB_SSD_BUTTON_WINDOW_MENU) {
 			force_menu_top_left = true;
 		} else if (ssd_part_contains(LAB_SSD_PART_TITLEBAR, type)) {

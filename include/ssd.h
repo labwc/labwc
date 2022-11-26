@@ -146,7 +146,7 @@ struct ssd_hover_state {
 };
 
 /* Public SSD API */
-void ssd_create(struct view *view);
+void ssd_create(struct view *view, bool active);
 void ssd_set_active(struct view *view, bool active);
 void ssd_update_title(struct view *view);
 void ssd_update_geometry(struct view *view);

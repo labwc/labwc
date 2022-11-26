@@ -153,6 +153,11 @@ ssd_create(struct view *view, bool active)
 	ssd_titlebar_create(view);
 	view->ssd.margin = ssd_thickness(view);
 	ssd_set_active(view, active);
+
+	view->ssd.state.width = view->w;
+	view->ssd.state.height = view->h;
+	view->ssd.state.x = view->x;
+	view->ssd.state.y = view->y;
 }
 
 void
@@ -202,6 +207,7 @@ ssd_destroy(struct view *view)
 	ssd_extents_destroy(view);
 	wlr_scene_node_destroy(&view->ssd.tree->node);
 	view->ssd.tree = NULL;
+	view->ssd.margin = (struct border){ 0 };
 }
 
 bool

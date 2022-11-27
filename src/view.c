@@ -559,12 +559,16 @@ view_set_decorations(struct view *view, bool decorations)
 {
 	assert(view);
 	if (view->ssd_enabled != decorations && !view->fullscreen) {
+		/*
+		 * Set view->ssd_enabled first since it is referenced
+		 * within the call tree of ssd_create()
+		 */
+		view->ssd_enabled = decorations;
 		if (decorations) {
 			ssd_create(view, view == view->server->focused_view);
 		} else {
 			ssd_destroy(view);
 		}
-		view->ssd_enabled = decorations;
 		if (view->maximized) {
 			view_apply_maximized_geometry(view);
 		} else if (view->tiled) {

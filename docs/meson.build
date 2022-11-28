@@ -29,6 +29,7 @@ install_data(
     'autostart',
     'environment',
     'menu.xml',
+    'README',
     'rc.xml',
     'rc.xml.all'
   ],

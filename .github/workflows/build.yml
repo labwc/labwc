@@ -7,10 +7,20 @@
 # Recommended GH CI Void mirror based on
 # https://docs.voidlinux.org/xbps/repositories/mirrors/changing.html
 
-name: Compile
+name: CI
 on: [pull_request]
 jobs:
+  codestyle:
+    name: CodeStyleCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Code Style
+        run: |
+          ./scripts/check
   build:
+    name: Build
+    needs: codestyle
     strategy:
       fail-fast: false
       matrix:
@@ -135,11 +145,4 @@ jobs:
             export CC=clang
             meson build-clang-no-xwayland -Dxwayland=disabled --werror
             meson compile -C build-clang-no-xwayland
-          ' | $TARGET
-
-      - name: Run coding style checks
-        run: |
-          echo '
-            cd "$GITHUB_WORKSPACE"
-            ./scripts/check
           ' | $TARGET

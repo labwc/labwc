@@ -1,0 +1,7 @@
+Config layout for ~/.config/labwc/
+- autostart
+- environment
+- menu.xml
+- rc.xml
+
+See man labwc-config for further details.

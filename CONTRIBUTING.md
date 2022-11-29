@@ -1,5 +1,9 @@
 - [1. How to Contribute](#how-to-contribute)
 - [2. Debugging](#debugging)
+  - [2.1 Backtraces](#backtraces)
+  - [2.2 Debug Logs](#debug-logs)
+  - [2.3 Output](#output)
+  - [2.4 Input](#input)
 - [3. Packaging](#packaging)
 - [4. Coding Style](#coding-style)
   - [4.1 Linux Kernel Style Basics](#linux-kernel-style-basics)
@@ -12,6 +16,7 @@
 - [5. Commit Messages](#commit-messages)
 - [6. Submitting Patches](#submitting-patches)
 - [7. Native Language Support](#native-language-support)
+- [8. Upversion](#upversion)
 
 # How to Contribute
 
@@ -31,6 +36,8 @@ antennae and do some detective work.
 
 This section contains some approachies which may prove useful.
 
+## Backtraces
+
 If the compositor crashes, a good starting point is to produce a backtrace by
 building with ASAN/UBSAN:
 
@@ -38,6 +45,8 @@ building with ASAN/UBSAN:
 meson -Db_sanitize=address,undefined build/
 ninja -C build/
 ```
+
+## Debug Logs
 
 Get debug log with `labwc -d`. The log can be directed to a file with `labwc -d
 2>log.txt`
@@ -51,6 +60,8 @@ start labwc from a terminal in another instance of labwc or some other
 compositor) with `WAYLAND_DEBUG=server`. This filters out anything from clients.
 
 For wayland clients, you can get a live view of some useful info using [wlhax].
+
+## Output
 
 If you think you've got a damage issue, you can run labwc like this:
 `WLR_SCENE_DEBUG_DAMAGE=highlight labwc` to get a visual indication of damage
@@ -67,6 +78,8 @@ MESA-LOADER`
 To rule out driver issues you can run with `WLR_RENDERER=pixman labwc`
 
 You can also get some useful system info with [drm_info].
+
+## Input
 
 Use `sudo libinput debug-events` to show input events.
 
@@ -330,6 +343,25 @@ xgettext --keyword=_ --language=C --add-comments -o po/labwc.pot src/menu/menu.c
 ```
 
 [See this tutorial for further guidance](https://www.labri.fr/perso/fleury/posts/programming/a-quick-gettext-tutorial.html)
+
+# Upversion
+
+It is generally only the lead-maintainer who will upversion, but in order
+not to forget any key step or in case someone else needs to do it, here
+follow the steps to be taken:
+
+1. If appropriate, update `revision` in `subprojects/wlroots.wrap` and run
+   `git commit -m 'wlroots.wrap: use A.B.C'`
+2. Update `NEWS.md` with the release details and run
+   `git commit -m 'NEWS.md: update notes on X.Y.Z'`
+3. In `meson.build` update the version and (if required) the wlroots
+   dependency version. Then run `git commit -m 'build: bump version to X.Y.Z'`
+4. Run `git tag -a X.Y.Z`. The first line of the commit message should be
+   "labwc X.Y.Z" and the body should be the `NEWS.md` additions removing
+   hash characters (#) from the headings as these will otherwise be
+   ignored by git.
+5. On github, create a 'Release' as some distros use this as a trigger
+6. Re-build labwc.github.io man pages
 
 [scope document]: https://github.com/labwc/labwc-scope#readme
 [`wlroots/docs/env_vars.md`]: https://gitlab.freedesktop.org/wlroots/wlroots/-/blob/master/docs/env_vars.md

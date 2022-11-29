@@ -25,6 +25,9 @@ A menu file must be entirely enclosed within <openbox_menu> and
   <!-- A submenu defined elsewhere -->
   <menu id="" />
 
+  <!-- Horizontal line >
+  <separator />
+
   <!-- An inline submenu -->
   <menu id="" label="">
     ...some content...
@@ -46,6 +49,9 @@ A menu file must be entirely enclosed within <openbox_menu> and
 
 *menu.item.action*
 	See labwc-action(5)
+
+*menu.separator*
+	Horizontal line.
 
 # SEE ALSO
 

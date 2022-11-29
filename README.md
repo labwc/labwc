@@ -6,17 +6,22 @@ href="https://github.com/labwc/labwc-scope#readme">Scope</a>] [<a
 href="https://web.libera.chat/gamja/?channels=#labwc">IRC&nbsp;Channel</a>] [<a
 href="NEWS.md">Release&nbsp;Notes</a>]</h3>
 
-- [1. What is this?](#1-what-is-this)
-  - [1.1 Screenshot](#11-screenshot)
-  - [1.2 Videos](#12-videos)
+- [1. Project Description](#1-project-description)
+  - [1.1 What Is This?](#11-what-is-this)
+  - [1.2 Why](#12-why)
+  - [1.3 Why The Openbox Theme Specification?](#13-why-the-openbox-specification)
+  - [1.4 Very High Level Scope](#14-very-high-level-scope)
+  - [1.5 Videos](#15-videos)
+  - [1.6 Screenshot](#16-screenshot)
 - [2. Build and Installation](#2-build-and-installation)
 - [3. Configuration](#3-configuration)
 - [4. Theming](#4-theming)
 - [5. Usage](#5-usage)
 - [6. Integration](#6-integration)
-- [7. Scope](#7-scope)
 
-## 1. What is this?
+## 1. Project Description
+
+### 1.1 What Is This?
 
 Labwc stands for Lab Wayland Compositor, where lab can mean any of the
 following:
@@ -25,8 +30,8 @@ following:
 - inspired by BunsenLabs and ArchLabs
 - your favorite pet
 
-Labwc is a [wlroots]-based window-stacking compositor for [wayland], inspired by
-[openbox].
+Labwc is a [wlroots]-based window-stacking compositor for [wayland], inspired
+by [openbox].
 
 It is light-weight and independent with a focus on simply stacking windows well
 and rendering some window decorations. It takes a no-bling/frills approach and
@@ -38,40 +43,101 @@ on to create a full desktop environment.
 Labwc tries to stay in keeping with [wlroots] and [sway] in terms of general
 approach and coding style.
 
-Labwc only understands [wayland-protocols] &amp; [wlr-protocols], and it cannot
-be controlled with dbus, sway/i3-IPC or other technology. The reason for this is
-that we believe that custom IPCs and protocols create a fragmentation that
-hinders general Wayland adoption.
+Labwc has no reliance on any particular Desktop Environment, Desktop Shell or
+session. Nor does it depend on any UI toolkits such as Qt or GTK.
 
-In order to avoid reinventing configuration and theme syntax, the [openbox] 3.6
-specification is used. This does not mean that labwc is an openbox clone but
-rather that configuration files will look and feel familiar.
+### 1.1 Why?
 
-Labwc supports the following:
+Firstly, we believe that there is a need for a simple Wayland window-stacking
+compositor which strikes a balance between minimalism and bloat approximately
+at the level where Window Managers like Openbox reside in the X11 domain.  Most
+of the core developers are accustomed to low resource Desktop Environments such
+as Mate/XFCE or standalone Window Managers such as Openbox under X11.  Labwc
+aims to make a similar setup possible under Wayland, with small and independent
+components rather than a large, integrated software eco-system.
+
+Secondly, the Wayland community has achieved an amazing amount so far, and we
+want to help solve the unsolved problems to make Wayland viable for more
+people. We think that standardisation and de-fragmentation is a route to
+greater Wayland adoption, and wanting to play our part in this, Labwc only
+understands [wayland-protocols] &amp; [wlr-protocols], and it cannot be
+controlled with dbus, sway/i3/custom-IPC or other technology.
+
+Thirdly, it is important to us that scope is tightly controlled so that the
+compositor matures to production quality. On the whole, we value robustness,
+reliability, stability and simplicity over new features. Coming up with new
+ideas and features is easy - maintaining and stabilising them is not.
+
+Fourthly, we are of the view that a compositor should be boring in order to do
+its job well. In this regard we follow in the footsteps of [metacity] which
+describes itself as a "Boring window manager for the adult in you. Many window
+managers are like Marshmallow Froot Loops; Metacity is like Cheerios."
+
+Finally, we think that an elegant solution to all of this does not need feel
+square and pixelated like something out of the 1990s, but should look
+contemporary and enable cutting-edge performance.
+
+### 1.2 Why The Openbox Theme Specification?
+
+In order to avoid reinventing configuration and theme syntaxes, the [openbox]
+3.6 specification is used. This does not mean that labwc is an openbox clone
+but rather that configuration files will look and feel familiar.
+
+Also, parsing GTK3+ and Qt themes for window decorations is very complicated,
+so using much simpler specs such as those used by openbox and xfwm makes sense
+for a compositor such as labwc, both in terms of implementation and for user
+modification.
+
+Openbox spec is somewhat of a stable standard considering how long it has
+remained unchanged for and how wide-spread its adoption is by lightweight
+distributions such as LXDE, LXQt, BunsenLabs, ArchLabs, Mabox and Raspian. Some
+widely used themes (for example Numix and Arc) have built-in support.
+
+We could have invented a whole new syntax, but that's not where we want to
+spend our effort.
+
+### 1.3 Very High Level Scope
+
+A lot of emphasis is put on code simplicity when considering features.
+
+The main development effort is focused on producing a solid foundation for a
+stacking compositor rather than adding configuration and theming options.
+
+See [scope] for full details on implemented features.
+
+High-level summary of items that Labwc supports:
 
 - [x] Config files (rc.xml, autostart, environment, menu.xml)
 - [x] Theme files and xbm icons
-- [x] Basic root-menu and client-menu
+- [x] Basic desktop and client menus
 - [x] HiDPI
 - [x] wlroots protocols such as `output-management`, `layer-shell` and
   `foreign-toplevel`
 - [x] Optionally xwayland
 
-See [scope] for full details on implemented features.
+Items which are *not* intended to be implemented:
 
-## 1.1 Screenshot
+- Icons (except window buttons)
+- Animations
+- Gradients for decoration and menus
+- Any theme option not required to reasonably render common themes (it is
+  amazing how few options are actually required).
+
+### 1.4 Videos
+
+| video link     | date        | content
+| -------------- | ------------| -------
+| [Video (2:48)] | 31-Oct-2022 | 0.6.0 release video
+| [Video (1:10)] | 05-Aug-2021 | window gymnastics, theming and waybar
+| [Video (3:42)] | 25-Feb-2021 | setting background and themes; xwayland/xdg-shell windows
+
+### 1.5 Screenshot
+
+The obligatory screenshot:
 
 <a href="https://i.imgur.com/vOelinT.png">
   <img src="https://i.imgur.com/vOelinTl.png">
 </a>
-
-## 1.2 Videos
-
-| video link     | date        | content
-| -------------- | ------------| -------
-| [Video (2:48)] | 31-Oct-2022 | pre-0.6.0 release video
-| [Video (1:10)] | 05-Aug-2021 | window gymnastics, theming and waybar
-| [Video (3:42)] | 25-Feb-2021 | setting background and themes; xwayland/xdg-shell windows
 
 ## 2. Build and Installation
 
@@ -175,23 +241,6 @@ Suggested apps to use with labwc:
 
 See [integration] for further details.
 
-## 7. Scope
-
-A lot of emphasis is put on code simplicity when considering features.
-
-The main development effort is focused on producing a solid foundation for a
-stacking compositor rather than adding configuration and theming options.
-
-See [scope] for details.
-
-High-level summary of items which are not intended to be implemented:
-
-- Icons (except window buttons)
-- Animations
-- Gradients for decoration and menus
-- Any theme option not required to reasonably render common themes (it is
-  amazing how few options are actually required).
-
 [wayland]: https://wayland.freedesktop.org/
 [openbox]: http://openbox.org/wiki/Help:Contents
 [wlroots]: https://gitlab.freedesktop.org/wlroots/wlroots
@@ -202,6 +251,7 @@ High-level summary of items which are not intended to be implemented:
 [wiki]: https://github.com/labwc/labwc/wiki
 [getting-started]: https://labwc.github.io/getting-started.html
 [integration]: https://labwc.github.io/integration.html
+[metacity]: https://github.com/GNOME/metacity
 
 [rc.xml]: docs/rc.xml
 [rc.xml.all]: docs/rc.xml.all

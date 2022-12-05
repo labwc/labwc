@@ -168,12 +168,13 @@ For a step-by-step initial configuration guide, see [getting-started]
 User config files are located at `${XDG_CONFIG_HOME:-$HOME/.config/labwc/}`
 with the following four files being used:
 
-| file          | man page
-| ------------- | --------
-| [rc.xml]      | [labwc-config(5)], [labwc-actions(5)]
-| [menu.xml]    | [labwc-menu(5)]
-| [autostart]   | [labwc(1)]
-| [environment] | [labwc-config(5)]
+| file               | man page
+| ------------------ | --------
+| [rc.xml]           | [labwc-config(5)], [labwc-actions(5)]
+| [menu.xml]         | [labwc-menu(5)]
+| [autostart]        | [labwc(1)]
+| [environment]      | [labwc-config(5)]
+| [themerc-override] | [labwc-theme(5)]
 
 The example [rc.xml] has been kept simple. For all options and default values,
 see [rc.xml.all]
@@ -259,6 +260,7 @@ See [integration] for further details.
 [autostart]: docs/autostart
 [environment]: docs/environment
 [themerc]: docs/themerc
+[themerc-override]: docs/themerc
 
 [labwc(1)]: https://labwc.github.io/labwc.1.html
 [labwc-config(5)]: https://labwc.github.io/labwc-config.5.html

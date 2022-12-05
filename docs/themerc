@@ -1,3 +1,10 @@
+# This file contains all themerc options with default values
+#
+# System-wide and local themes can be overridden by creating a copy of this
+# file and renaming it to $HOME/.config/labwc/themerc-override. Be careful
+# though - if you only want to override a small number of specific options,
+# make sure all other lines are commented out or deleted.
+
 # general
 border.width: 1
 padding.height: 3

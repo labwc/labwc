@@ -18,6 +18,9 @@ searched for in the following order:
 - ${XDG_CONFIG_HOME:-$HOME/.config}/labwc
 - ${XDG_CONFIG_DIRS:-/etc/xdg}/labwc
 
+The configuration directory location can be override with the -C command line
+option.
+
 All configuration and theme files except autostart are re-loaded on receiving
 signal SIGHUP.
 

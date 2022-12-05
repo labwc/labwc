@@ -131,6 +131,9 @@ theme_builtin(struct theme *theme)
 	theme->menu_item_padding_x = 7;
 	theme->menu_item_padding_y = 4;
 
+	theme->menu_min_width = 20;
+	theme->menu_max_width = 200;
+
 	theme->menu_separator_line_thickness = 1;
 	theme->menu_separator_padding_width = 6;
 	theme->menu_separator_padding_height = 3;
@@ -258,6 +261,13 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match(key, "window.inactive.button.close.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_inactive_button_close_unpressed_image_color);
+	}
+
+	if (match(key, "menu.width.min")) {
+		theme->menu_min_width = atoi(value);
+	}
+	if (match(key, "menu.width.max")) {
+		theme->menu_max_width = atoi(value);
 	}
 
 	if (match(key, "menu.items.bg.color")) {
@@ -486,6 +496,13 @@ post_processing(struct theme *theme)
 
 	if (rc.corner_radius >= theme->title_height) {
 		theme->title_height = rc.corner_radius + 1;
+	}
+
+	if (theme->menu_max_width < theme->menu_min_width) {
+		wlr_log(WLR_ERROR,
+			"Adjusting menu.width.max: .max (%d) lower than .min (%d)",
+			theme->menu_max_width, theme->menu_min_width);
+		theme->menu_max_width = theme->menu_min_width;
 	}
 
 	/* Inherit OSD settings if not set */

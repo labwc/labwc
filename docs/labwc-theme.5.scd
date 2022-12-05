@@ -59,6 +59,14 @@ A theme consists of a themerc file and optionally some xbm icons.
 	Vertical offset in pixels between submenus and their parents. Positive
 	values for downwards and negative for upwards. Default is 0.
 
+*menu.width.min*
+	Minimal width for menus. Default is 20.
+	A fixed width can be achieved by setting .min and .max to the same value.
+
+*menu.width.max*
+	Maximal width for menus. Default is 200.
+	A fixed width can be achieved by setting .min and .max to the same value.
+
 *window.active.border.color*
 	Border color of active window
 

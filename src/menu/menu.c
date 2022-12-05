@@ -17,13 +17,12 @@
 #include "common/mem.h"
 #include "common/nodename.h"
 #include "common/scaled_font_buffer.h"
+#include "common/scene-helpers.h"
 #include "common/string-helpers.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "node.h"
 #include "theme.h"
-
-#define MENUWIDTH (110)
 
 /* state-machine variables for processing <item></item> */
 static bool in_item;
@@ -52,7 +51,7 @@ menu_create(struct server *server, const char *id, const char *label)
 	menu->label = xstrdup(label ? label : id);
 	menu->parent = current_menu;
 	menu->server = server;
-	menu->size.width = MENUWIDTH;
+	menu->size.width = server->theme->menu_min_width;
 	/* menu->size.height will be kept up to date by adding items */
 	menu->scene_tree = wlr_scene_tree_create(server->menu_tree);
 	wlr_scene_node_set_enabled(&menu->scene_tree->node, false);
@@ -75,6 +74,59 @@ menu_get_by_id(const char *id)
 	return NULL;
 }
 
+static void
+menu_update_width(struct menu *menu)
+{
+	struct menuitem *item;
+	struct theme *theme = menu->server->theme;
+	int max_width = theme->menu_min_width;
+
+	/* Get widest menu item, clamped by menu_max_width */
+	wl_list_for_each(item, &menu->menuitems, link) {
+		if (item->native_width > max_width) {
+			max_width = item->native_width < theme->menu_max_width
+				? item->native_width : theme->menu_max_width;
+		}
+	}
+	menu->size.width = max_width + 2 * theme->menu_item_padding_x;
+
+	/* Update all items for the new size */
+	wl_list_for_each(item, &menu->menuitems, link) {
+		wlr_scene_rect_set_size(
+			lab_wlr_scene_get_rect(item->normal.background),
+			menu->size.width, item->height);
+
+		if (!item->selected.background) {
+			/* This is a separator. They don't have a selected background. */
+			wlr_scene_rect_set_size(
+				lab_wlr_scene_get_rect(item->normal.text),
+				menu->size.width - 2 * theme->menu_separator_padding_width,
+				theme->menu_separator_line_thickness);
+		} else {
+			/* Usual menu item */
+			wlr_scene_rect_set_size(
+				lab_wlr_scene_get_rect(item->selected.background),
+				menu->size.width, item->height);
+			if (item->native_width > max_width || item->submenu) {
+				scaled_font_buffer_set_max_width(item->normal.buffer,
+					max_width);
+				scaled_font_buffer_set_max_width(item->selected.buffer,
+					max_width);
+			}
+		}
+	}
+}
+
+static void
+post_processing(struct server *server)
+{
+	struct menu *menu;
+	for (int i = 0; i < nr_menus; ++i) {
+		menu = menus + i;
+		menu_update_width(menu);
+	}
+}
+
 static struct menuitem *
 item_create(struct menu *menu, const char *text, bool show_arrow)
 {
@@ -84,6 +136,8 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
 
+	const char *arrow = show_arrow ? "›" : NULL;
+
 	if (!menu->item_height) {
 		menu->item_height = font_height(&rc.font_menuitem)
 			+ 2 * theme->menu_item_padding_y;
@@ -91,7 +145,10 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 	menuitem->height = menu->item_height;
 
 	int x, y;
-	int item_max_width = MENUWIDTH - 2 * theme->menu_item_padding_x;
+	menuitem->native_width = font_width(&rc.font_menuitem, text);
+	if (arrow) {
+		menuitem->native_width += font_width(&rc.font_menuitem, arrow);
+	}
 
 	/* Menu item root node */
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
@@ -105,11 +162,11 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 	/* Item background nodes */
 	menuitem->normal.background = &wlr_scene_rect_create(
 		menuitem->normal.tree,
-		MENUWIDTH, menu->item_height,
+		menu->size.width, menu->item_height,
 		theme->menu_items_bg_color)->node;
 	menuitem->selected.background = &wlr_scene_rect_create(
 		menuitem->selected.tree,
-		MENUWIDTH, menu->item_height,
+		menu->size.width, menu->item_height,
 		theme->menu_items_active_bg_color)->node;
 
 	/* Font nodes */
@@ -129,10 +186,9 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 	menuitem->selected.text = &menuitem->selected.buffer->scene_buffer->node;
 
 	/* Font buffers */
-	const char *arrow = show_arrow ? "›" : NULL;
-	scaled_font_buffer_update(menuitem->normal.buffer, text, item_max_width,
+	scaled_font_buffer_update(menuitem->normal.buffer, text, menuitem->native_width,
 		&rc.font_menuitem, theme->menu_items_text_color, arrow);
-	scaled_font_buffer_update(menuitem->selected.buffer, text, item_max_width,
+	scaled_font_buffer_update(menuitem->selected.buffer, text, menuitem->native_width,
 		&rc.font_menuitem, theme->menu_items_active_text_color, arrow);
 
 	/* Center font nodes */
@@ -173,10 +229,10 @@ separator_create(struct menu *menu, const char *label)
 	menuitem->normal.tree = wlr_scene_tree_create(menuitem->tree);
 	menuitem->normal.background = &wlr_scene_rect_create(
 		menuitem->normal.tree,
-		MENUWIDTH, menuitem->height,
+		menu->size.width, menuitem->height,
 		theme->menu_items_bg_color)->node;
 
-	int width = MENUWIDTH - 2 * theme->menu_separator_padding_width;
+	int width = menu->size.width - 2 * theme->menu_separator_padding_width;
 	menuitem->normal.text = &wlr_scene_rect_create(
 		menuitem->normal.tree,
 		width > 0 ? width : 0,
@@ -511,7 +567,7 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 	}
 
 	if (align & LAB_MENU_OPEN_LEFT) {
-		lx -= MENUWIDTH - theme->menu_overlap_x;
+		lx -= menu->size.width - theme->menu_overlap_x;
 	}
 	if (align & LAB_MENU_OPEN_TOP) {
 		ly -= menu->size.height;
@@ -530,7 +586,7 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 			continue;
 		}
 		if (align & LAB_MENU_OPEN_RIGHT) {
-			new_lx = lx + MENUWIDTH - theme->menu_overlap_x;
+			new_lx = lx + menu->size.width - theme->menu_overlap_x;
 		} else {
 			new_lx = lx;
 		}
@@ -642,6 +698,7 @@ menu_init(struct server *server)
 {
 	init_rootmenu(server);
 	init_windowmenu(server);
+	post_processing(server);
 }
 
 void

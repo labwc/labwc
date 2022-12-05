@@ -33,6 +33,7 @@ struct menuitem {
 	struct menu *submenu;
 	bool selectable;
 	int height;
+	int native_width;
 	struct wlr_scene_tree *tree;
 	struct menu_scene normal;
 	struct menu_scene selected;

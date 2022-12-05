@@ -25,7 +25,7 @@ struct scaled_font_buffer {
 /**
  * Create an auto scaling font buffer, providing a wlr_scene_buffer node for
  * display. It gets destroyed automatically when the backing scaled_scene_buffer
- * is being destoyed which in turn happens automatically when the backing
+ * is being destroyed which in turn happens automatically when the backing
  * wlr_scene_buffer (or one of its parents) is being destroyed.
  *
  * To actually show some text, scaled_font_buffer_update() has to be called.
@@ -47,5 +47,13 @@ struct scaled_font_buffer *scaled_font_buffer_create(struct wlr_scene_tree *pare
  */
 void scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 	int max_width, struct font *font, float *color, const char *arrow);
+
+/**
+ * Update the max width of an existing auto scaling font buffer
+ * and force a new render.
+ *
+ * No steps are taken to detect if its actually required to render a new buffer.
+ */
+void scaled_font_buffer_set_max_width(struct scaled_font_buffer *self, int max_width);
 
 #endif /* __LAB_COMMON_SCALED_FONT_BUFFER_H */

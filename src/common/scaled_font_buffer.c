@@ -90,3 +90,10 @@ scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 	/* Invalidate cache and force a new render */
 	scaled_scene_buffer_invalidate_cache(self->scaled_buffer);
 }
+
+void
+scaled_font_buffer_set_max_width(struct scaled_font_buffer *self, int max_width)
+{
+	self->max_width = max_width;
+	scaled_scene_buffer_invalidate_cache(self->scaled_buffer);
+}

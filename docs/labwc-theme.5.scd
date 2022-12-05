@@ -20,6 +20,11 @@ the rc.xml configuration file (labwc-config(5)).
 
 A theme consists of a themerc file and optionally some xbm icons.
 
+Theme settings specified in themerc can be overridden by creating a
+'themerc-override' file in the configuration directory, which is normally
+$HOME/.config/labwc/ but can be a few other locations as described in
+labwc-config(5).
+
 # DATA TYPES
 
 *color RGB values*

@@ -3,5 +3,7 @@ Config layout for ~/.config/labwc/
 - environment
 - menu.xml
 - rc.xml
+- themerc-override
 
-See man labwc-config for further details.
+See `man labwc-config and `man labwc-theme` for further details.
+

@@ -372,6 +372,32 @@ theme_read(struct theme *theme, const char *theme_name)
 	fclose(stream);
 }
 
+static void
+theme_read_override(struct theme *theme)
+{
+	char f[4096] = { 0 };
+	snprintf(f, sizeof(f), "%s/themerc-override", rc.config_dir);
+
+	FILE *stream = fopen(f, "r");
+	if (!stream) {
+		wlr_log(WLR_INFO, "no theme override '%s'", f);
+		return;
+	}
+
+	wlr_log(WLR_INFO, "read theme-override %s", f);
+	char *line = NULL;
+	size_t len = 0;
+	while (getline(&line, &len, stream) != -1) {
+		char *p = strrchr(line, '\n');
+		if (p) {
+			*p = '\0';
+		}
+		process_line(theme, line);
+	}
+	free(line);
+	fclose(stream);
+}
+
 struct rounded_corner_ctx {
 	struct wlr_box *box;
 	double radius;
@@ -552,7 +578,12 @@ theme_init(struct theme *theme, const char *theme_name)
 	 */
 	theme_builtin(theme);
 
+	/* Read <data-dir>/share/themes/$theme_name/openbox-3/themerc */
 	theme_read(theme, theme_name);
+
+	/* Read <config-dir>/labwc/themerc-override */
+	theme_read_override(theme);
+
 	post_processing(theme);
 	create_corners(theme);
 	xbm_load(theme);

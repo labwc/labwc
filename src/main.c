@@ -169,8 +169,7 @@ main(int argc, char *argv[])
 	rc.theme = &theme;
 	server.theme = &theme;
 
-	menu_init_rootmenu(&server);
-	menu_init_windowmenu(&server);
+	menu_init(&server);
 
 	session_autostart_init(rc.config_dir);
 	if (startup_cmd) {

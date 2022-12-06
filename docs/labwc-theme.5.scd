@@ -41,6 +41,14 @@ A theme consists of a themerc file and optionally some xbm icons.
 	Vertical padding size, used for spacing out elements in the window decorations.
 	Default is 3.
 
+*menu.items.padding.x*
+	Horizontal padding of menu text entries in pixels.
+	Default is 7.
+
+*menu.items.padding.y*
+	Vertical padding of menu text entries in pixels.
+	Default is 4.
+
 *menu.overlap.x*
 	Horizontal overlap in pixels between submenus and their parents. A
 	positive value move submenus over the top of their parents, whereas a

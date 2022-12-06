@@ -24,8 +24,6 @@
 #include "theme.h"
 
 #define MENUWIDTH (110)
-#define MENU_ITEM_PADDING_Y (4)
-#define MENU_ITEM_PADDING_X (7)
 
 /* state-machine variables for processing <item></item> */
 static bool in_item;
@@ -88,12 +86,12 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 
 	if (!menu->item_height) {
 		menu->item_height = font_height(&rc.font_menuitem)
-			+ 2 * MENU_ITEM_PADDING_Y;
+			+ 2 * theme->menu_item_padding_y;
 	}
 	menuitem->height = menu->item_height;
 
 	int x, y;
-	int item_max_width = MENUWIDTH - 2 * MENU_ITEM_PADDING_X;
+	int item_max_width = MENUWIDTH - 2 * theme->menu_item_padding_x;
 
 	/* Menu item root node */
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
@@ -138,7 +136,7 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 		&rc.font_menuitem, theme->menu_items_active_text_color, arrow);
 
 	/* Center font nodes */
-	x = MENU_ITEM_PADDING_X;
+	x = theme->menu_item_padding_x;
 	y = (menu->item_height - menuitem->normal.buffer->height) / 2;
 	wlr_scene_node_set_position(menuitem->normal.text, x, y);
 	y = (menu->item_height - menuitem->selected.buffer->height) / 2;

@@ -128,6 +128,9 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#dddad6", theme->menu_items_active_bg_color);
 	parse_hexstr("#000000", theme->menu_items_active_text_color);
 
+	theme->menu_item_padding_x = 7;
+	theme->menu_item_padding_y = 4;
+
 	theme->menu_separator_line_thickness = 1;
 	theme->menu_separator_padding_width = 6;
 	theme->menu_separator_padding_height = 3;
@@ -166,6 +169,12 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match(key, "padding.height")) {
 		theme->padding_height = atoi(value);
+	}
+	if (match(key, "menu.items.padding.x")) {
+		theme->menu_item_padding_x = atoi(value);
+	}
+	if (match(key, "menu.items.padding.y")) {
+		theme->menu_item_padding_y = atoi(value);
 	}
 	if (match(key, "menu.overlap.x")) {
 		theme->menu_overlap_x = atoi(value);

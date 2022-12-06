@@ -45,6 +45,9 @@ struct theme {
 	float window_inactive_button_close_unpressed_image_color[4];
 	/* TODO: add pressed and hover colors for buttons */
 
+	int menu_item_padding_x;
+	int menu_item_padding_y;
+
 	float menu_items_bg_color[4];
 	float menu_items_text_color[4];
 	float menu_items_active_bg_color[4];

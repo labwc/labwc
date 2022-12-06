@@ -575,8 +575,8 @@ menu_hide_submenu(const char *id)
 	}
 }
 
-void
-menu_init_rootmenu(struct server *server)
+static void
+init_rootmenu(struct server *server)
 {
 	parse_xml("menu.xml", server);
 	struct menu *menu = menu_get_by_id("root-menu");
@@ -594,8 +594,8 @@ menu_init_rootmenu(struct server *server)
 	}
 }
 
-void
-menu_init_windowmenu(struct server *server)
+static void
+init_windowmenu(struct server *server)
 {
 	struct menu *menu = menu_get_by_id("client-menu");
 
@@ -638,6 +638,13 @@ menu_init_windowmenu(struct server *server)
 	if (wl_list_length(&rc.workspace_config.workspaces) == 1) {
 		menu_hide_submenu("workspaces");
 	}
+}
+
+void
+menu_init(struct server *server)
+{
+	init_rootmenu(server);
+	init_windowmenu(server);
 }
 
 void
@@ -799,6 +806,5 @@ menu_reconfigure(struct server *server)
 {
 	menu_finish();
 	server->menu_current = NULL;
-	menu_init_rootmenu(server);
-	menu_init_windowmenu(server);
+	menu_init(server);
 }

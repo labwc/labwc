@@ -61,8 +61,7 @@ struct menu {
 	struct view *triggered_by_view;  /* may be NULL */
 };
 
-void menu_init_rootmenu(struct server *server);
-void menu_init_windowmenu(struct server *server);
+void menu_init(struct server *server);
 void menu_finish(void);
 
 /**

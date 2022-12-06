@@ -50,7 +50,7 @@ struct theme {
 	float menu_items_active_bg_color[4];
 	float menu_items_active_text_color[4];
 
-	int menu_separator_width;
+	int menu_separator_line_thickness;
 	int menu_separator_padding_width;
 	int menu_separator_padding_height;
 	float menu_separator_color[4];

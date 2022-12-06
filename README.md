@@ -143,8 +143,8 @@ The obligatory screenshot:
 
 To build, simply run:
 
-    meson build/
-    ninja -C build/
+    meson setup build/
+    meson compile -C build/
 
 Run-time dependencies include:
 

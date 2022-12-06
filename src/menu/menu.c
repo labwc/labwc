@@ -166,7 +166,7 @@ separator_create(struct menu *menu, const char *label)
 	menuitem->selectable = false;
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
-	menuitem->height = theme->menu_separator_width +
+	menuitem->height = theme->menu_separator_line_thickness +
 			2 * theme->menu_separator_padding_height;
 
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
@@ -178,12 +178,11 @@ separator_create(struct menu *menu, const char *label)
 		MENUWIDTH, menuitem->height,
 		theme->menu_items_bg_color)->node;
 
-	/* theme->menu_separator_width is the line-thickness (so height here) */
 	int width = MENUWIDTH - 2 * theme->menu_separator_padding_width;
 	menuitem->normal.text = &wlr_scene_rect_create(
 		menuitem->normal.tree,
 		width > 0 ? width : 0,
-		theme->menu_separator_width,
+		theme->menu_separator_line_thickness,
 		theme->menu_separator_color)->node;
 
 	wlr_scene_node_set_position(&menuitem->tree->node, 0, menu->size.height);

@@ -58,7 +58,7 @@
   <!--
     Use GoToDesktop left | right to switch workspaces.
     Use SendToDesktop left | right to move windows.
-    See man labwc-actions for futher information.
+    See man labwc-actions for further information.
 
     Workspaces can be configured like this:
     <desktops>
@@ -93,7 +93,7 @@
     below). If the default keybinds are largely what you want, a sensible
     approach could be to start the <keyboard> section with a <default />
     element, and then (re-)define any special binds you need such as launching
-    your favourite terminal or application launcher.
+    your favourite terminal or application launcher. See rc.xml for an example.
   -->
   <keyboard>
     <repeatRate>25</repeatRate>
@@ -161,6 +161,12 @@
     Multiple <mousebind> can exist within one <context>
     Multiple <actions> can exist within one <mousebind>
     Currently, the only openbox-action not supported is "Unshade"
+
+    Use <mouse><default /> to load all the default mousebinds (those listed
+    below). If the default mousebinds are largely what you want, a sensible
+    approach could be to start the <mouse> section with a <default />
+    element, and then (re-)define any special binds you need such as launching
+    a custom menu when right-clicking on your desktop. See rc.xml for an example.
   -->
   <mouse>
 

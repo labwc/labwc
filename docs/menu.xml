@@ -18,6 +18,10 @@
   <item label="AlwaysOnTop">
     <action name="ToggleAlwaysOnTop" />
   </item>
+  <!--
+    Any menu with the id "workspaces" will be hidden
+    if there is only a single workspace available.
+  -->
   <menu id="workspaces" label="Workspace">
     <item label="Move left">
       <action name="SendToDesktop" to="left" />

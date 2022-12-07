@@ -51,4 +51,13 @@
   </item>
 </menu>
 
+<menu id="some-custom-menu">
+  <item label="Reconfigure">
+    <action name="Reconfigure" />
+  </item>
+  <item label="Exit">
+    <action name="Exit" />
+  </item>
+</menu>
+
 </openbox_menu>

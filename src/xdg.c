@@ -420,7 +420,8 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 		view->scene_tree, xdg_surface);
 	if (!tree) {
 		/* TODO: might need further clean up */
-		wl_resource_post_no_memory(view->surface->resource);
+		wl_resource_post_no_memory(xdg_surface->resource);
+		free(xdg_toplevel_view);
 		return;
 	}
 	view->scene_node = &tree->node;

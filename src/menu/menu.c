@@ -620,7 +620,6 @@ menu_hide_submenu(const char *id)
 static void
 init_rootmenu(struct server *server)
 {
-	parse_xml("menu.xml", server);
 	struct menu *menu = menu_get_by_id("root-menu");
 
 	/* Default menu if no menu.xml found */
@@ -685,6 +684,7 @@ init_windowmenu(struct server *server)
 void
 menu_init(struct server *server)
 {
+	parse_xml("menu.xml", server);
 	init_rootmenu(server);
 	init_windowmenu(server);
 	post_processing(server);

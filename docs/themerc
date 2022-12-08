@@ -1,8 +1,6 @@
 # general
 border.width: 1
 padding.height: 3
-menu.overlap.x: 0
-menu.overlap.y: 0
 
 # window border
 window.active.border.color: #dddad6
@@ -27,10 +25,16 @@ window.inactive.button.unpressed.image.color: #000000
 #     window.active.button.iconify.unpressed.image.color: #333333
 
 # menu
+menu.overlap.x: 0
+menu.overlap.y: 0
+menu.width.min: 20
+menu.width.max: 200
 menu.items.bg.color: #fcfbfa
 menu.items.text.color: #000000
 menu.items.active.bg.color: #dddad6
 menu.items.active.text.color: #000000
+menu.items.padding.x: 7
+menu.items.padding.y: 4
 menu.separator.width: 1
 menu.separator.padding.width: 6
 menu.separator.padding.height: 3

@@ -392,9 +392,7 @@ do_output_layout_change(struct server *server)
 		struct output *output;
 
 		wl_list_for_each(output, &server->outputs, link) {
-			if (output) {
-				layers_arrange(output);
-			}
+			layers_arrange(output);
 		}
 		output_update_for_layout_change(server);
 	}

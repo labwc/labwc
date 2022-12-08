@@ -11,6 +11,10 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="Close">*
 	Close top-most window.
 
+*<action name="Kill">*
+	Kill the process associated with the current window by sending it the
+	SIGTERM signal.
+
 *<action name="Execute"><command>*
 	Execute command.  Note that in the interest of backward compatibility,
 	labwc supports <execute> as an alternative to <command> even though

@@ -821,7 +821,7 @@ view_snap_to_edge(struct view *view, const char *direction,
 		return;
 	}
 
-	if (view->tiled == edge) {
+	if (view->tiled == edge && !view->maximized) {
 		/* We are already tiled for this edge and thus should switch outputs */
 		struct wlr_output *new_output = NULL;
 		struct wlr_output *current_output = output->wlr_output;

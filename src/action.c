@@ -88,6 +88,32 @@ const char *action_names[] = {
 	NULL
 };
 
+void
+action_arg_from_xml_node(struct action *action, char *nodename, char *content)
+{
+	assert(action);
+	if (!strcmp(nodename, "command.action")) {
+		/* Execute */
+		action_arg_add_str(action, NULL, content);
+	} else if (!strcmp(nodename, "execute.action")) {
+		/*
+		 * <action name="Execute"><execute>foo</execute></action>
+		 * is deprecated, but we support it anyway for backward
+		 * compatibility with old openbox-menu generators
+		 */
+		action_arg_add_str(action, NULL, content);
+	} else if (!strcmp(nodename, "direction.action")) {
+		/* MoveToEdge, SnapToEdge */
+		action_arg_add_str(action, NULL, content);
+	} else if (!strcmp(nodename, "menu.action")) {
+		/* ShowMenu */
+		action_arg_add_str(action, NULL, content);
+	} else if (!strcmp(nodename, "to.action")) {
+		/* GoToDesktop, SendToDesktop */
+		action_arg_add_str(action, NULL, content);
+	}
+}
+
 static char *
 action_str_from_arg(struct action_arg *arg)
 {

@@ -283,19 +283,8 @@ fill_item(char *nodename, char *content)
 	} else if (!current_item_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
-	} else if (!strcmp(nodename, "command.action")) {
-		/* Execute */
-		action_arg_add_str(current_item_action, NULL, content);
-	} else if (!strcmp(nodename, "execute.action")) {
-		/*
-		 * <action name="Execute"><execute>foo</execute></action>
-		 * is deprecated, but we support it anyway for backward
-		 * compatibility with old openbox-menu generators
-		 */
-		action_arg_add_str(current_item_action, NULL, content);
-	} else if (!strcmp(nodename, "to.action")) {
-		/* GoToDesktop, SendToDesktop */
-		action_arg_add_str(current_item_action, NULL, content);
+	} else {
+		action_arg_from_xml_node(current_item_action, nodename, content);
 	}
 }
 

@@ -47,24 +47,6 @@ static void load_default_key_bindings(void);
 static void load_default_mouse_bindings(void);
 
 static void
-fill_common(char *nodename, char *content, struct action *action)
-{
-	if (!strcmp(nodename, "command.action")) {
-		/* Execute */
-		action_arg_add_str(action, NULL, content);
-	} else if (!strcmp(nodename, "direction.action")) {
-		/* MoveToEdge, SnapToEdge */
-		action_arg_add_str(action, NULL, content);
-	} else if (!strcmp(nodename, "menu.action")) {
-		/* ShowMenu */
-		action_arg_add_str(action, NULL, content);
-	} else if (!strcmp(nodename, "to.action")) {
-		/* GoToDesktop, SendToDesktop */
-		action_arg_add_str(action, NULL, content);
-	}
-}
-
-static void
 fill_keybind(char *nodename, char *content)
 {
 	if (!content) {
@@ -93,7 +75,7 @@ fill_keybind(char *nodename, char *content)
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else {
-		fill_common(nodename, content, current_keybind_action);
+		action_arg_from_xml_node(current_keybind_action, nodename, content);
 	}
 }
 
@@ -146,7 +128,7 @@ fill_mousebind(char *nodename, char *content)
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else {
-		fill_common(nodename, content, current_mousebind_action);
+		action_arg_from_xml_node(current_mousebind_action, nodename, content);
 	}
 }
 

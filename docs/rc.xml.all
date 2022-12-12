@@ -102,10 +102,10 @@
       <action name="NextWindow" />
     </keybind>
     <keybind key="W-Return">
-      <action name="Execute"><command>alacritty</command></action>
+      <action name="Execute" command="alacritty" />
     </keybind>
     <keybind key="A-F3">
-      <action name="Execute"><command>bemenu-run</command></action>
+      <action name="Execute" command="bemenu-run" />
     </keybind>
     <keybind key="A-F4">
       <action name="Close" />
@@ -114,46 +114,46 @@
       <action name="ToggleMaximize" />
     </keybind>
     <keybind key="A-Left">
-      <action name="MoveToEdge"><direction>left</direction></action>
+      <action name="MoveToEdge" direction="left" />
     </keybind>
     <keybind key="A-Right">
-      <action name="MoveToEdge"><direction>right</direction></action>
+      <action name="MoveToEdge" direction="right" />
     </keybind>
     <keybind key="A-Up">
-      <action name="MoveToEdge"><direction>up</direction></action>
+      <action name="MoveToEdge" direction="up" />
     </keybind>
     <keybind key="A-Down">
-      <action name="MoveToEdge"><direction>down</direction></action>
+      <action name="MoveToEdge" direction="down" />
     </keybind>
     <keybind key="W-Left">
-      <action name="SnapToEdge"><direction>left</direction></action>
+      <action name="SnapToEdge" direction="left" />
     </keybind>
     <keybind key="W-Right">
-      <action name="SnapToEdge"><direction>right</direction></action>
+      <action name="SnapToEdge" direction="right" />
     </keybind>
     <keybind key="W-Up">
-      <action name="SnapToEdge"><direction>up</direction></action>
+      <action name="SnapToEdge" direction="up" />
     </keybind>
     <keybind key="W-Down">
-      <action name="SnapToEdge"><direction>down</direction></action>
+      <action name="SnapToEdge" direction="down" />
     </keybind>
     <keybind key="A-Space">
-      <action name="ShowMenu"><menu>client-menu</menu></action>
+      <action name="ShowMenu" menu="client-menu" />
     </keybind>
     <keybind key="XF86_AudioLowerVolume">
-      <action name="Execute"><command>amixer sset Master 5%-</command></action>
+      <action name="Execute" command="amixer sset Master 5%-" />
     </keybind>
     <keybind key="XF86_AudioRaiseVolume">
-      <action name="Execute"><command>amixer sset Master 5%+</command></action>
+      <action name="Execute" command="amixer sset Master 5%+" />
     </keybind>
     <keybind key="XF86_AudioMute">
-      <action name="Execute"><command>amixer sset Master toggle</command></action>
+      <action name="Execute" command="amixer sset Master toggle" />
     </keybind>
     <keybind key="XF86_MonBrightnessUp">
-      <action name="Execute"><command>brightnessctl set +10%</command></action>
+      <action name="Execute" command="brightnessctl set +10%" />
     </keybind>
     <keybind key="XF86_MonBrightnessDown">
-      <action name="Execute"><command>brightnessctl set 10%-</command></action>
+      <action name="Execute" command="brightnessctl set 10%-" />
     </keybind>
   </keyboard>
 
@@ -169,143 +169,139 @@
 
     <context name="Frame">
       <mousebind button="A-Left" action="Press">
-        <action name="Focus"/>
-        <action name="Raise"/>
+        <action name="Focus" />
+        <action name="Raise" />
       </mousebind>
       <mousebind button="A-Left" action="Drag">
-        <action name="Move"/>
+        <action name="Move" />
       </mousebind>
       <mousebind button="A-Right" action="Press">
-        <action name="Focus"/>
-        <action name="Raise"/>
+        <action name="Focus" />
+        <action name="Raise" />
       </mousebind>
       <mousebind button="A-Right" action="Drag">
-        <action name="Resize"/>
+        <action name="Resize" />
       </mousebind>
     </context>
 
     <context name="Top">
       <mousebind button="Left" action="Drag">
-        <action name="Resize"/>
+        <action name="Resize" />
       </mousebind>
     </context>
     <context name="Left">
       <mousebind button="Left" action="Drag">
-        <action name="Resize"/>
+        <action name="Resize" />
       </mousebind>
     </context>
     <context name="Right">
       <mousebind button="Left" action="Drag">
-        <action name="Resize"/>
+        <action name="Resize" />
       </mousebind>
     </context>
     <context name="Bottom">
       <mousebind button="Left" action="Drag">
-        <action name="Resize"/>
+        <action name="Resize" />
       </mousebind>
     </context>
     <context name="TRCorner">
       <mousebind button="Left" action="Drag">
-        <action name="Resize"/>
+        <action name="Resize" />
       </mousebind>
     </context>
     <context name="BRCorner">
       <mousebind button="Left" action="Drag">
-        <action name="Resize"/>
+        <action name="Resize" />
       </mousebind>
     </context>
     <context name="TLCorner">
       <mousebind button="Left" action="Drag">
-        <action name="Resize"/>
+        <action name="Resize" />
       </mousebind>
     </context>
     <context name="BLCorner">
       <mousebind button="Left" action="Drag">
-        <action name="Resize"/>
+        <action name="Resize" />
       </mousebind>
     </context>
 
     <context name="TitleBar">
       <mousebind button="Left" action="Press">
-        <action name="Focus"/>
-        <action name="Raise"/>
+        <action name="Focus" />
+        <action name="Raise" />
       </mousebind>
       <mousebind button="Right" action="Click">
         <action name="Focus" />
         <action name="Raise" />
-        <action name="ShowMenu">
-          <menu>client-menu</menu>
-        </action>
+        <action name="ShowMenu" menu="client-menu" />
       </mousebind>
     </context>
 
     <context name="Title">
       <mousebind button="Left" action="Drag">
-        <action name="Move"/>
+        <action name="Move" />
       </mousebind>
       <mousebind button="Left" action="DoubleClick">
-        <action name="ToggleMaximize"/>
+        <action name="ToggleMaximize" />
       </mousebind>
     </context>
 
     <context name="Maximize">
       <mousebind button="Left" action="Click">
-        <action name="Focus"/>
-        <action name="Raise"/>
-        <action name="ToggleMaximize"/>
+        <action name="Focus" />
+        <action name="Raise" />
+        <action name="ToggleMaximize" />
       </mousebind>
     </context>
 
     <context name="WindowMenu">
       <mousebind button="Left" action="Click">
-        <action name="ShowMenu">
-          <menu>client-menu</menu>
-        </action>
+        <action name="ShowMenu" menu="client-menu" />
       </mousebind>
     </context>
 
     <context name="Iconify">
       <mousebind button="left" action="Click">
-        <action name="Iconify"/>
+        <action name="Iconify" />
       </mousebind>
     </context>
 
     <context name="Close">
       <mousebind button="Left" action="Click">
-        <action name="Close"/>
+        <action name="Close" />
       </mousebind>
     </context>
 
     <context name="Client">
       <mousebind button="Left" action="Press">
-        <action name="Focus"/>
-        <action name="Raise"/>
+        <action name="Focus" />
+        <action name="Raise" />
       </mousebind>
       <mousebind button="Middle" action="Press">
-        <action name="Focus"/>
-        <action name="Raise"/>
+        <action name="Focus" />
+        <action name="Raise" />
       </mousebind>
       <mousebind button="Right" action="Press">
-        <action name="Focus"/>
-        <action name="Raise"/>
+        <action name="Focus" />
+        <action name="Raise" />
       </mousebind>
     </context>
 
     <context name="Root">
       <mousebind button="Left" action="Press">
-        <action name="ShowMenu"><menu>root-menu</menu></action>
+        <action name="ShowMenu" menu="root-menu" />
       </mousebind>
       <mousebind button="Right" action="Press">
-        <action name="ShowMenu"><menu>root-menu</menu></action>
+        <action name="ShowMenu" menu="root-menu" />
       </mousebind>
       <mousebind button="Middle" action="Press">
-        <action name="ShowMenu"><menu>root-menu</menu></action>
+        <action name="ShowMenu" menu="root-menu" />
       </mousebind>
       <mousebind direction="Up" action="Scroll">
-        <action name="GoToDesktop" to="left"/>
+        <action name="GoToDesktop" to="left" />
       </mousebind>
       <mousebind direction="Down" action="Scroll">
-        <action name="GoToDesktop" to="right"/>
+        <action name="GoToDesktop" to="right" />
       </mousebind>
     </context>
 

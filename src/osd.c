@@ -174,6 +174,9 @@ osd_finish(struct server *server)
 		wlr_scene_node_destroy(&server->osd_state.preview_outline->tree->node);
 		server->osd_state.preview_outline = NULL;
 	}
+
+	/* Hiding OSD may need a cursor change */
+	cursor_update_focus(server);
 }
 
 void
@@ -371,6 +374,9 @@ display_osd(struct output *output)
 		- h / 2 + output_box.y;
 	wlr_scene_node_set_position(&scene_buffer->node, lx, ly);
 	wlr_scene_node_set_enabled(&output->osd_tree->node, true);
+
+	/* Update cursor, in case it is within the area covered by OSD */
+	cursor_update_focus(server);
 }
 
 void

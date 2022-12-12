@@ -223,6 +223,156 @@ preview_cycled_view(struct view *view)
 	wlr_scene_node_raise_to_top(osd_state->preview_node);
 }
 
+static void
+render_osd(cairo_t *cairo, int w, int h, struct wl_list *node_list,
+		struct view *cycle_view, struct theme *theme, bool show_workspace,
+		const char *workspace_name)
+{
+	struct wlr_scene_node *node;
+	cairo_surface_t *surf = cairo_get_target(cairo);
+
+	/* Draw background */
+	set_cairo_color(cairo, theme->osd_bg_color);
+	cairo_rectangle(cairo, 0, 0, w, h);
+	cairo_fill(cairo);
+
+	/* Draw border */
+	set_cairo_color(cairo, theme->osd_border_color);
+	draw_cairo_border(cairo, w, h, theme->osd_border_width);
+
+	/* Set up text rendering */
+	set_cairo_color(cairo, theme->osd_label_text_color);
+	PangoLayout *layout = pango_cairo_create_layout(cairo);
+	pango_layout_set_width(layout,
+		(OSD_ITEM_WIDTH - 2 * OSD_ITEM_PADDING) * PANGO_SCALE);
+	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
+
+	PangoFontDescription *desc = font_to_pango_desc(&rc.font_osd);
+	pango_layout_set_font_description(layout, desc);
+
+	PangoTabArray *tabs = pango_tab_array_new_with_positions(2, TRUE,
+		PANGO_TAB_LEFT, OSD_TAB1, PANGO_TAB_LEFT, OSD_TAB2);
+	pango_layout_set_tabs(layout, tabs);
+	pango_tab_array_free(tabs);
+
+	pango_cairo_update_layout(cairo, layout);
+
+	int y = OSD_BORDER_WIDTH;
+
+	/* Center text entries on the y axis */
+	int y_offset = (OSD_ITEM_HEIGHT - font_height(&rc.font_osd)) / 2;
+	y += y_offset;
+
+	/* Draw workspace indicator */
+	if (show_workspace) {
+		/* Center workspace indicator on the x axis */
+		int x = font_width(&rc.font_osd, workspace_name);
+		x = (OSD_ITEM_WIDTH - x) / 2;
+		cairo_move_to(cairo, x, y);
+		PangoWeight weight = pango_font_description_get_weight(desc);
+		pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
+		pango_layout_set_font_description(layout, desc);
+		pango_layout_set_text(layout, workspace_name, -1);
+		pango_cairo_show_layout(cairo, layout);
+		pango_font_description_set_weight(desc, weight);
+		pango_layout_set_font_description(layout, desc);
+		y += OSD_ITEM_HEIGHT;
+	}
+	pango_font_description_free(desc);
+
+	struct buf buf;
+	buf_init(&buf);
+
+	/* Draw text for each node */
+	wl_list_for_each_reverse(node, node_list, link) {
+		struct view *view = node_view_from_node(node);
+		if (!isfocusable(view)) {
+			continue;
+		}
+		buf.len = 0;
+		cairo_move_to(cairo, OSD_BORDER_WIDTH + OSD_ITEM_PADDING, y);
+
+		switch (view->type) {
+		case LAB_XDG_SHELL_VIEW:
+			buf_add(&buf, "[xdg-shell]\t");
+			buf_add(&buf, get_formatted_app_id(view));
+			buf_add(&buf, "\t");
+			break;
+#if HAVE_XWAYLAND
+		case LAB_XWAYLAND_VIEW:
+			buf_add(&buf, "[xwayland]\t");
+			buf_add(&buf, view_get_string_prop(view, "class"));
+			buf_add(&buf, "\t");
+			break;
+#endif
+		}
+
+		if (is_title_different(view)) {
+			buf_add(&buf, view_get_string_prop(view, "title"));
+		}
+
+		pango_layout_set_text(layout, buf.buf, -1);
+		pango_cairo_show_layout(cairo, layout);
+
+		if (view == cycle_view) {
+			/* Highlight current window */
+			cairo_rectangle(cairo, OSD_BORDER_WIDTH, y - y_offset,
+				OSD_ITEM_WIDTH, OSD_ITEM_HEIGHT);
+			cairo_stroke(cairo);
+		}
+
+		y += OSD_ITEM_HEIGHT;
+	}
+	free(buf.buf);
+	g_object_unref(layout);
+
+	cairo_surface_flush(surf);
+}
+
+static void
+display_osd(struct output *output)
+{
+	struct server *server = output->server;
+	struct wl_list *node_list =
+		&server->workspace_current->tree->children;
+	bool show_workspace = wl_list_length(&rc.workspace_config.workspaces) > 1;
+	const char *workspace_name = server->workspace_current->name;
+
+	float scale = output->wlr_output->scale;
+	int w = OSD_ITEM_WIDTH + (2 * OSD_BORDER_WIDTH);
+	int h = get_osd_height(node_list);
+	if (show_workspace) {
+		/* workspace indicator */
+		h += OSD_ITEM_HEIGHT;
+	}
+
+	/* Reset buffer */
+	if (output->osd_buffer) {
+		wlr_buffer_drop(&output->osd_buffer->base);
+	}
+	output->osd_buffer = buffer_create_cairo(w, h, scale, true);
+
+	/* Render OSD image */
+	cairo_t *cairo = output->osd_buffer->cairo;
+	render_osd(cairo, w, h, node_list, server->osd_state.cycle_view,
+		server->theme, show_workspace, workspace_name);
+
+	struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
+		output->osd_tree, &output->osd_buffer->base);
+	wlr_scene_buffer_set_dest_size(scene_buffer, w, h);
+
+	/* Center OSD */
+	struct wlr_box output_box;
+	wlr_output_layout_get_box(output->server->output_layout,
+		output->wlr_output, &output_box);
+	int lx = output->usable_area.x + output->usable_area.width / 2
+		- w / 2 + output_box.x;
+	int ly = output->usable_area.y + output->usable_area.height / 2
+		- h / 2 + output_box.y;
+	wlr_scene_node_set_position(&scene_buffer->node, lx, ly);
+	wlr_scene_node_set_enabled(&output->osd_tree->node, true);
+}
+
 void
 osd_update(struct server *server)
 {
@@ -234,162 +384,22 @@ osd_update(struct server *server)
 		return;
 	}
 
-	struct theme *theme = server->theme;
-	bool show_workspace = wl_list_length(&rc.workspace_config.workspaces) > 1;
-
-	struct buf buf;
-	buf_init(&buf);
-
-	struct view *view;
+	/* Display the actual OSD */
 	struct output *output;
-	struct wlr_scene_node *node;
 	wl_list_for_each(output, &server->outputs, link) {
 		destroy_osd_nodes(output);
 		if (!output->wlr_output->enabled) {
 			continue;
 		}
-
-		float scale = output->wlr_output->scale;
-		int w = OSD_ITEM_WIDTH + (2 * OSD_BORDER_WIDTH);
-		int h = get_osd_height(node_list);
-		if (show_workspace) {
-			/* workspace indicator */
-			h += OSD_ITEM_HEIGHT;
-		}
-
-		if (output->osd_buffer) {
-			wlr_buffer_drop(&output->osd_buffer->base);
-		}
-		output->osd_buffer = buffer_create_cairo(w, h, scale, true);
-
-		cairo_t *cairo = output->osd_buffer->cairo;
-		cairo_surface_t *surf = cairo_get_target(cairo);
-
-		/* background */
-		set_cairo_color(cairo, theme->osd_bg_color);
-		cairo_rectangle(cairo, 0, 0, w, h);
-		cairo_fill(cairo);
-
-		/* Border */
-		set_cairo_color(cairo, theme->osd_border_color);
-		draw_cairo_border(cairo, w, h, theme->osd_border_width);
-
-		int y = OSD_BORDER_WIDTH;
-
-		if (show_workspace) {
-			/* workspace indicator */
-			y += OSD_ITEM_HEIGHT;
-		}
-
-		/* highlight current window */
-		wl_list_for_each_reverse(node, node_list, link) {
-			view = node_view_from_node(node);
-			if (!isfocusable(view)) {
-				continue;
-			}
-			if (view == server->osd_state.cycle_view) {
-				set_cairo_color(cairo, theme->osd_label_text_color);
-				cairo_rectangle(cairo, OSD_BORDER_WIDTH, y,
-					OSD_ITEM_WIDTH, OSD_ITEM_HEIGHT);
-				cairo_stroke(cairo);
-				if (rc.cycle_preview_outlines) {
-					osd_update_preview_outlines(view);
-				}
-				break;
-			}
-			y += OSD_ITEM_HEIGHT;
-		}
-
-		/* text */
-		set_cairo_color(cairo, theme->osd_label_text_color);
-		PangoLayout *layout = pango_cairo_create_layout(cairo);
-		pango_layout_set_width(layout,
-			(OSD_ITEM_WIDTH - 2 * OSD_ITEM_PADDING) * PANGO_SCALE);
-		pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
-
-		PangoFontDescription *desc = font_to_pango_desc(&rc.font_osd);
-		pango_layout_set_font_description(layout, desc);
-
-		PangoTabArray *tabs = pango_tab_array_new_with_positions(2, TRUE,
-			PANGO_TAB_LEFT, OSD_TAB1, PANGO_TAB_LEFT, OSD_TAB2);
-		pango_layout_set_tabs(layout, tabs);
-		pango_tab_array_free(tabs);
-
-		pango_cairo_update_layout(cairo, layout);
-
-		y = OSD_BORDER_WIDTH;
-
-		/* Center text entries on the y axis */
-		int y_offset = (OSD_ITEM_HEIGHT - font_height(&rc.font_osd)) / 2;
-		y += y_offset;
-
-		if (show_workspace) {
-			/* Center workspace indicator on the x axis */
-			int x = font_width(&rc.font_osd, server->workspace_current->name);
-			x = (OSD_ITEM_WIDTH - x) / 2;
-			cairo_move_to(cairo, x, y);
-			PangoWeight weight = pango_font_description_get_weight(desc);
-			pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
-			pango_layout_set_font_description(layout, desc);
-			pango_layout_set_text(layout,
-				server->workspace_current->name, -1);
-			pango_cairo_show_layout(cairo, layout);
-			pango_font_description_set_weight(desc, weight);
-			pango_layout_set_font_description(layout, desc);
-			y += OSD_ITEM_HEIGHT;
-		}
-		pango_font_description_free(desc);
-
-		wl_list_for_each_reverse(node, node_list, link) {
-			view = node_view_from_node(node);
-			if (!isfocusable(view)) {
-				continue;
-			}
-			buf.len = 0;
-			cairo_move_to(cairo, OSD_BORDER_WIDTH + OSD_ITEM_PADDING, y);
-
-			switch (view->type) {
-			case LAB_XDG_SHELL_VIEW:
-				buf_add(&buf, "[xdg-shell]\t");
-				buf_add(&buf, get_formatted_app_id(view));
-				buf_add(&buf, "\t");
-				break;
-#if HAVE_XWAYLAND
-			case LAB_XWAYLAND_VIEW:
-				buf_add(&buf, "[xwayland]\t");
-				buf_add(&buf, view_get_string_prop(view, "class"));
-				buf_add(&buf, "\t");
-				break;
-#endif
-			}
-
-			if (is_title_different(view)) {
-				buf_add(&buf, view_get_string_prop(view, "title"));
-			}
-
-			pango_layout_set_text(layout, buf.buf, -1);
-			pango_cairo_show_layout(cairo, layout);
-			y += OSD_ITEM_HEIGHT;
-		}
-		g_object_unref(layout);
-		cairo_surface_flush(surf);
-
-		struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
-			output->osd_tree, &output->osd_buffer->base);
-		wlr_scene_buffer_set_dest_size(scene_buffer, w, h);
-
-		/* Center OSD */
-		struct wlr_box output_box;
-		wlr_output_layout_get_box(output->server->output_layout,
-			output->wlr_output, &output_box);
-		int lx = output->usable_area.x + output->usable_area.width / 2
-			- w / 2 + output_box.x;
-		int ly = output->usable_area.y + output->usable_area.height / 2
-			- h / 2 + output_box.y;
-		wlr_scene_node_set_position(&scene_buffer->node, lx, ly);
-		wlr_scene_node_set_enabled(&output->osd_tree->node, true);
+		display_osd(output);
 	}
-	free(buf.buf);
+
+	/* Outline current window */
+	if (rc.cycle_preview_outlines) {
+		if (isfocusable(server->osd_state.cycle_view)) {
+			osd_update_preview_outlines(server->osd_state.cycle_view);
+		}
+	}
 
 	if (rc.cycle_preview_contents) {
 		preview_cycled_view(server->osd_state.cycle_view);

@@ -66,7 +66,8 @@ handle_commit(struct wl_listener *listener, void *data)
 	struct wlr_box size;
 	wlr_xdg_surface_get_geometry(xdg_surface, &size);
 
-	bool update_required = false;
+	bool update_required = !view->committed_since_mapped;
+	view->committed_since_mapped = true;
 
 	if (view->w != size.width || view->h != size.height) {
 		update_required = true;
@@ -350,6 +351,7 @@ xdg_toplevel_view_map(struct view *view)
 		view_moved(view);
 		view->been_mapped = true;
 	}
+	view->committed_since_mapped = false;
 
 	view->commit.notify = handle_commit;
 	wl_signal_add(&xdg_surface->surface->events.commit, &view->commit);

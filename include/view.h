@@ -46,6 +46,7 @@ struct view {
 
 	bool mapped;
 	bool been_mapped;
+	bool committed_since_mapped;
 	bool ssd_enabled;
 	bool minimized;
 	bool maximized;

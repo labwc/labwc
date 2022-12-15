@@ -9,7 +9,7 @@ href="NEWS.md">Release&nbsp;Notes</a>]</h3>
 - [1. Project Description](#1-project-description)
   - [1.1 What Is This?](#11-what-is-this)
   - [1.2 Why](#12-why)
-  - [1.3 Why The Openbox Theme Specification?](#13-why-the-openbox-specification)
+  - [1.3 Why The Openbox Theme Specification?](#13-why-the-openbox-theme-specification)
   - [1.4 Very High Level Scope](#14-very-high-level-scope)
   - [1.5 Videos](#15-videos)
   - [1.6 Screenshot](#16-screenshot)
@@ -46,7 +46,7 @@ approach and coding style.
 Labwc has no reliance on any particular Desktop Environment, Desktop Shell or
 session. Nor does it depend on any UI toolkits such as Qt or GTK.
 
-### 1.1 Why?
+### 1.2 Why?
 
 Firstly, we believe that there is a need for a simple Wayland window-stacking
 compositor which strikes a balance between minimalism and bloat approximately
@@ -77,7 +77,7 @@ Finally, we think that an elegant solution to all of this does not need feel
 square and pixelated like something out of the 1990s, but should look
 contemporary and enable cutting-edge performance.
 
-### 1.2 Why The Openbox Theme Specification?
+### 1.3 Why The Openbox Theme Specification?
 
 In order to avoid reinventing configuration and theme syntaxes, the [openbox]
 3.6 specification is used. This does not mean that labwc is an openbox clone
@@ -96,7 +96,7 @@ widely used themes (for example Numix and Arc) have built-in support.
 We could have invented a whole new syntax, but that's not where we want to
 spend our effort.
 
-### 1.3 Very High Level Scope
+### 1.4 Very High Level Scope
 
 A lot of emphasis is put on code simplicity when considering features.
 
@@ -123,7 +123,7 @@ Items which are *not* intended to be implemented:
 - Any theme option not required to reasonably render common themes (it is
   amazing how few options are actually required).
 
-### 1.4 Videos
+### 1.5 Videos
 
 | video link     | date        | content
 | -------------- | ------------| -------
@@ -131,7 +131,7 @@ Items which are *not* intended to be implemented:
 | [Video (1:10)] | 05-Aug-2021 | window gymnastics, theming and waybar
 | [Video (3:42)] | 25-Feb-2021 | setting background and themes; xwayland/xdg-shell windows
 
-### 1.5 Screenshot
+### 1.6 Screenshot
 
 The obligatory screenshot:
 

@@ -159,6 +159,9 @@ void view_reload_ssd(struct view *view);
 void view_impl_map(struct view *view);
 void view_adjust_size(struct view *view, int *w, int *h);
 
+bool view_compute_centered_position(struct view *view, int w, int h,
+	int *x, int *y);
+
 void view_on_output_destroy(struct view *view);
 void view_destroy(struct view *view);
 

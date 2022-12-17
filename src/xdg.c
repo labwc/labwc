@@ -285,10 +285,19 @@ position_xdg_toplevel_view(struct view *view)
 			output_usable_area_from_cursor_coords(view->server);
 		view->x = box.x;
 		view->y = box.y;
-		view->w = xdg_surface->current.geometry.width;
-		view->h = xdg_surface->current.geometry.height;
-		if (view->w && view->h) {
-			view_center(view);
+
+		/* Center the view without touching its w and h fields. This means we
+		 * can't simply set w/h and call view_center().  w and h fields should
+		 * only be modified at commit, or they will not be in sync with the
+		 * scene tree
+		 */
+		int w = xdg_surface->current.geometry.width;
+		int h = xdg_surface->current.geometry.height;
+		if (w && h) {
+			int x, y;
+			if (view_compute_centered_position(view, w, h, &x, &y)) {
+				view_move(view, x, y);
+			}
 		}
 	} else {
 		/*

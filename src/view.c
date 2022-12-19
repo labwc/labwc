@@ -2,12 +2,15 @@
 #include <assert.h>
 #include <stdio.h>
 #include <strings.h>
-#include <xcb/xcb_icccm.h>
 #include "common/scene-helpers.h"
 #include "labwc.h"
 #include "ssd.h"
 #include "menu/menu.h"
 #include "workspaces.h"
+
+#if HAVE_XWAYLAND
+#include <xcb/xcb_icccm.h>
+#endif
 
 #define LAB_FALLBACK_WIDTH 640
 #define LAB_FALLBACK_HEIGHT 480

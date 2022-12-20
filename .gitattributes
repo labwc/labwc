@@ -1,0 +1,3 @@
+# Exclude checkpatch.pl from language stats
+# https://github.com/github/linguist/blob/master/docs/overrides.md
+scripts/checkpatch.pl linguist-vendored

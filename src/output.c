@@ -335,6 +335,9 @@ handle_output_manager_apply(struct wl_listener *listener, void *data)
 		wlr_xcursor_manager_load(server->seat.xcursor_manager,
 			output->wlr_output->scale);
 	}
+
+	/* Re-set cursor image in case scale changed */
+	cursor_update_focus(server);
 }
 
 /*

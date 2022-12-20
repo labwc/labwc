@@ -138,6 +138,15 @@ surface_commit_notify(struct wl_listener *listener, void *data)
 			output_from_wlr_output(layer->server, wlr_output);
 		layers_arrange(output);
 	}
+
+	/*
+	 * We need to call cursor_update_focus() to get a pointer-enter event
+	 * when a new layer surface appears under the cursor.  This enables
+	 * gdk_device_get_window_at_position() to work without moving pointer.
+	 * See issue #667
+	 */
+	struct output *output = (struct output *)layer_surface->output->data;
+	cursor_update_focus(output->server);
 }
 
 static void
@@ -182,9 +191,12 @@ unmap_notify(struct wl_listener *listener, void *data)
 static void
 map_notify(struct wl_listener *listener, void *data)
 {
-	return;
-	struct wlr_layer_surface_v1 *layer_surface = data;
-	wlr_surface_send_enter(layer_surface->surface, layer_surface->output);
+	/*
+	 * Since moving to the wlroots scene-graph API, there is no need to
+	 * call wlr_surface_send_enter() from here since that will be done
+	 * automatically based on the position of the surface and outputs in
+	 * the scene. See wlr_scene_surface_create() documentation.
+	 */
 }
 
 static void

@@ -20,6 +20,49 @@
 #include "labwc.h"
 #include "node.h"
 
+static void
+process_keyboard_interactivity(struct output *output)
+{
+	/*
+	 * For the top and overlay layers, exclusive keyboard focus is given to
+	 * the top-most layer which has keyboard interactivity set to exclusive
+	 * (as defined in wlr-layer-shell protocol).
+	 *
+	 * If this topmost layer contains multiple surfaces with keyboard
+	 * interactivity set to exclusive, we give focus to the one that was
+	 * created last.  This approach allows clients such as bemenu to 'grab'
+	 * the keyboard even if other keyboard-exclusive surfaces already exist
+	 * in the same layer.
+	 */
+	uint32_t layers_above_views[] = {
+		ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY,
+		ZWLR_LAYER_SHELL_V1_LAYER_TOP,
+	};
+	size_t nlayers = sizeof(layers_above_views) / sizeof(layers_above_views[0]);
+	struct lab_layer_surface *layer, *topmost = NULL;
+	for (size_t i = 0; i < nlayers; ++i) {
+		wl_list_for_each_reverse(layer, &output->layers[layers_above_views[i]], link) {
+			struct wlr_layer_surface_v1 *layer_surface =
+				layer->scene_layer_surface->layer_surface;
+			if (layer_surface->current.keyboard_interactive) {
+				topmost = layer;
+				break;
+			}
+		}
+		if (topmost) {
+			break;
+		}
+	}
+	struct seat *seat = &output->server->seat;
+	if (topmost) {
+		seat_set_focus_layer(seat,
+			topmost->scene_layer_surface->layer_surface);
+	} else if (seat->focused_layer &&
+			!seat->focused_layer->current.keyboard_interactive) {
+		seat_set_focus_layer(seat, NULL);
+	}
+}
+
 void
 layers_arrange(struct output *output)
 {
@@ -71,36 +114,7 @@ layers_arrange(struct output *output)
 
 	memcpy(&output->usable_area, &usable_area, sizeof(struct wlr_box));
 
-	/* Find topmost keyboard interactive layer, if such a layer exists */
-	uint32_t layers_above_shell[] = {
-		ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY,
-		ZWLR_LAYER_SHELL_V1_LAYER_TOP,
-	};
-	size_t nlayers = sizeof(layers_above_shell)
-		/ sizeof(layers_above_shell[0]);
-	struct lab_layer_surface *layer, *topmost = NULL;
-	for (size_t i = 0; i < nlayers; ++i) {
-		wl_list_for_each_reverse(layer,
-				&output->layers[layers_above_shell[i]], link) {
-			struct wlr_layer_surface_v1 *layer_surface =
-				layer->scene_layer_surface->layer_surface;
-			if (layer_surface->current.keyboard_interactive) {
-				topmost = layer;
-				break;
-			}
-		}
-		if (topmost) {
-			break;
-		}
-	}
-	struct seat *seat = &output->server->seat;
-	if (topmost) {
-		seat_set_focus_layer(seat,
-			topmost->scene_layer_surface->layer_surface);
-	} else if (seat->focused_layer &&
-			!seat->focused_layer->current.keyboard_interactive) {
-		seat_set_focus_layer(seat, NULL);
-	}
+	process_keyboard_interactivity(output);
 
 	/* Finally re-arrange all views based on usable_area */
 	if (old_usable_area.width != output->usable_area.width

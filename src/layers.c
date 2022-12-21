@@ -131,11 +131,10 @@ surface_commit_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
+	struct output *output = (struct output *)layer_surface->output->data;
 	if (layer_surface->current.committed
 			|| layer->mapped != layer_surface->mapped) {
 		layer->mapped = layer_surface->mapped;
-		struct output *output =
-			output_from_wlr_output(layer->server, wlr_output);
 		layers_arrange(output);
 	}
 
@@ -145,7 +144,6 @@ surface_commit_notify(struct wl_listener *listener, void *data)
 	 * gdk_device_get_window_at_position() to work without moving pointer.
 	 * See issue #667
 	 */
-	struct output *output = (struct output *)layer_surface->output->data;
 	cursor_update_focus(output->server);
 }
 

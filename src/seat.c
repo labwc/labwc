@@ -49,6 +49,10 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		wlr_log(WLR_ERROR, "no wlr_input_device");
 		return;
 	}
+	if (!wlr_input_device_is_libinput(wlr_input_device)) {
+		return;
+	}
+
 	struct libinput_device *libinput_dev =
 		wlr_libinput_get_device_handle(wlr_input_device);
 	if (!libinput_dev) {
@@ -157,10 +161,7 @@ new_pointer(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct input *input = znew(*input);
 	input->wlr_input_device = dev;
-
-	if (wlr_input_device_is_libinput(dev)) {
-		configure_libinput(dev);
-	}
+	configure_libinput(dev);
 	wlr_cursor_attach_input_device(seat->cursor, dev);
 
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
@@ -208,10 +209,7 @@ new_touch(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct input *input = znew(*input);
 	input->wlr_input_device = dev;
-
-	if (wlr_input_device_is_libinput(dev)) {
-		configure_libinput(dev);
-	}
+	configure_libinput(dev);
 	wlr_cursor_attach_input_device(seat->cursor, dev);
 
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
@@ -413,21 +411,29 @@ seat_finish(struct server *server)
 	cursor_finish(seat);
 }
 
+static void
+configure_keyboard(struct wlr_input_device *device)
+{
+	assert(device->type == WLR_INPUT_DEVICE_KEYBOARD);
+	struct wlr_keyboard *kb = wlr_keyboard_from_input_device(device);
+	wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
+}
+
 void
 seat_reconfigure(struct server *server)
 {
 	struct seat *seat = &server->seat;
 	struct input *input;
 	wl_list_for_each(input, &seat->inputs, link) {
-		/* We don't configure keyboards by libinput, so skip them */
-		if (wlr_input_device_is_libinput(input->wlr_input_device) &&
-			input->wlr_input_device->type ==
-			WLR_INPUT_DEVICE_POINTER) {
+		switch (input->wlr_input_device->type) {
+		case WLR_INPUT_DEVICE_KEYBOARD:
+			configure_keyboard(input->wlr_input_device);
+			break;
+		case WLR_INPUT_DEVICE_POINTER:
 			configure_libinput(input->wlr_input_device);
-		} else if (input->wlr_input_device->type == WLR_INPUT_DEVICE_KEYBOARD) {
-			struct wlr_keyboard *kb =
-				wlr_keyboard_from_input_device(input->wlr_input_device);
-			wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
+			break;
+		default:
+			break;
 		}
 	}
 }

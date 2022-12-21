@@ -18,9 +18,7 @@ struct lab_layer_surface {
 	struct wl_listener output_destroy;
 	struct wl_listener new_popup;
 
-	struct wlr_box geo;
 	bool mapped;
-	/* TODO: add extent? */
 	struct server *server;
 };
 

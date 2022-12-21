@@ -180,7 +180,6 @@ destroy_notify(struct wl_listener *listener, void *data)
 static void
 unmap_notify(struct wl_listener *listener, void *data)
 {
-	return;
 	struct lab_layer_surface *lab_layer_surface =
 		wl_container_of(listener, lab_layer_surface, unmap);
 	unmap(lab_layer_surface);

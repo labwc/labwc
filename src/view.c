@@ -855,7 +855,22 @@ view_snap_to_edge(struct view *view, const char *direction,
 			edge = view_edge_invert(edge);
 			output = output_from_wlr_output(view->server, new_output);
 		} else {
-			/* No more output to move to */
+			/*
+			 * No more output to move to
+			 *
+			 * We re-apply the tiled geometry without changing any
+			 * state because the window might have been moved away
+			 * (and thus got untiled) and then snapped back to the
+			 * original edge.
+			 *
+			 * TODO: The described pattern will cause another bug
+			 *       in multi monitor setups: it will snap the
+			 *       window to the inverted edge of the nearest
+			 *       output. This is the desired behavior when
+			 *       caused by a keybind but doesn't make sense
+			 *       when caused by mouse movement.
+			 */
+			view_apply_tiled_geometry(view, output);
 			return;
 		}
 	}

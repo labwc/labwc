@@ -28,5 +28,6 @@ struct libinput_category {
 
 enum device_type get_device_type(const char *s);
 struct libinput_category *libinput_category_create(void);
+struct libinput_category *libinput_category_get_default(void);
 
 #endif /* __LABWC_LIBINPUT_H */

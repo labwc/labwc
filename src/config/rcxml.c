@@ -680,10 +680,10 @@ post_processing(void)
 	if (!rc.font_osd.name) {
 		rc.font_osd.name = xstrdup("sans");
 	}
-	if (!wl_list_length(&rc.libinput_categories)) {
+	if (!libinput_category_get_default()) {
 		/* So we still allow tap to click by default */
 		struct libinput_category *l = libinput_category_create();
-		l->type = DEFAULT_DEVICE;
+		assert(l && libinput_category_get_default() == l);
 	}
 	if (!wl_list_length(&rc.workspace_config.workspaces)) {
 		struct workspace *workspace = znew(*workspace);

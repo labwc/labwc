@@ -9,6 +9,7 @@
 static void
 libinput_category_init(struct libinput_category *l)
 {
+	l->type = DEFAULT_DEVICE;
 	l->name = NULL;
 	l->pointer_speed = -2;
 	l->natural_scroll = -1;
@@ -42,4 +43,20 @@ libinput_category_create(void)
 	libinput_category_init(l);
 	wl_list_insert(&rc.libinput_categories, &l->link);
 	return l;
+}
+
+/*
+ * The default category is the first one with type == DEFAULT_DEVICE and
+ * no name. After rcxml_read(), a default category always exists.
+ */
+struct libinput_category *
+libinput_category_get_default(void)
+{
+	struct libinput_category *l;
+	wl_list_for_each(l, &rc.libinput_categories, link) {
+		if (l->type == DEFAULT_DEVICE && !l->name) {
+			return l;
+		}
+	}
+	return NULL;
 }

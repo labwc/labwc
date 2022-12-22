@@ -75,14 +75,16 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		} else if (device_category->type == current_type) {
 			dc = device_category;
 		} else if (device_category->type == DEFAULT_DEVICE && !dc) {
+			/* Match default category as last-resort */
 			dc = device_category;
 		}
 	}
 
-	if (!dc) {
-		wlr_log(WLR_INFO, "Skipping libinput configuration for device");
-		return;
-	}
+	/*
+	 * The above logic should have always matched SOME category
+	 * (the default category if none other took precedence)
+	 */
+	assert(dc);
 
 	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0) {
 		wlr_log(WLR_INFO, "tap unavailable");

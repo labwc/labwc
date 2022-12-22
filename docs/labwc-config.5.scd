@@ -283,7 +283,7 @@ The rest of this man page describes configuration options.
 	emulation processes a simultaneous left and right click as a press of
 	the middle mouse button (scroll wheel).
 
-*<libinput>device category=""><disableWhileTyping>* [yes|no]
+*<libinput><device category=""><disableWhileTyping>* [yes|no]
 	Enable or disable disable while typing for this category. DWT ignores
 	any motion events while a keyboard is typing, and for a short while
 	after as well.

@@ -2,13 +2,12 @@
 /*
  * layers.c - layer-shell implementation
  *
- * Based on
- *  - https://git.sr.ht/~sircmpwm/wio
- *  - https://github.com/swaywm/sway
+ * Based on https://github.com/swaywm/sway
  * Copyright (C) 2019 Drew DeVault and Sway developers
  */
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <wayland-server.h>
@@ -19,6 +18,22 @@
 #include "layers.h"
 #include "labwc.h"
 #include "node.h"
+
+static void
+arrange_one_layer(struct output *output, const struct wlr_box *full_area,
+		struct wlr_box *usable_area, struct wlr_scene_tree *tree,
+		bool exclusive)
+{
+	struct wlr_scene_node *node;
+	wl_list_for_each(node, &tree->children, link) {
+		struct lab_layer_surface *surface = node_layer_surface_from_node(node);
+		struct wlr_scene_layer_surface_v1 *scene = surface->scene_layer_surface;
+		if (!!scene->layer_surface->current.exclusive_zone != exclusive) {
+			continue;
+		}
+		wlr_scene_layer_surface_v1_configure(scene, full_area, usable_area);
+	}
+}
 
 void
 layers_arrange(struct output *output)
@@ -39,34 +54,19 @@ layers_arrange(struct output *output)
 
 	int nr_layers = sizeof(output->layers) / sizeof(output->layers[0]);
 	for (int i = 0; i < nr_layers; i++) {
-		struct lab_layer_surface *lab_layer_surface;
+		struct wlr_scene_tree *layer = output->layer_tree[i];
 
 		/*
-		 * First we go over the list of surfaces that have
-		 * exclusive_zone set (e.g. statusbars) because we have to
-		 * determine the usable area before processing regular layouts.
+		 * Process exclusive-zone clients before non-exclusive-zone
+		 * clients, so that the latter give way to the former regardless
+		 * of the order in which they were launched.
 		 */
-		wl_list_for_each(lab_layer_surface, &output->layers[i], link) {
-			struct wlr_scene_layer_surface_v1 *scene_layer_surface =
-				lab_layer_surface->scene_layer_surface;
-			if (scene_layer_surface->layer_surface->current.exclusive_zone) {
-				wlr_scene_layer_surface_v1_configure(
-					scene_layer_surface, &full_area, &usable_area);
-			}
-		}
+		arrange_one_layer(output, &full_area, &usable_area, layer, true);
+		arrange_one_layer(output, &full_area, &usable_area, layer, false);
 
-		/* Now we process regular layouts */
-		wl_list_for_each(lab_layer_surface, &output->layers[i], link) {
-			struct wlr_scene_layer_surface_v1 *scene_layer_surface =
-				lab_layer_surface->scene_layer_surface;
-			if (!scene_layer_surface->layer_surface->current.exclusive_zone) {
-				wlr_scene_layer_surface_v1_configure(
-					scene_layer_surface, &full_area, &usable_area);
-			}
-		}
-
-		wlr_scene_node_set_position(&output->layer_tree[i]->node,
-			scene_output->x, scene_output->y);
+		/* Set node position to account for output layout change */
+		wlr_scene_node_set_position(&layer->node, scene_output->x,
+			scene_output->y);
 	}
 
 	memcpy(&output->usable_area, &usable_area, sizeof(struct wlr_box));
@@ -107,6 +107,7 @@ layers_arrange(struct output *output)
 			|| old_usable_area.height != output->usable_area.height) {
 		desktop_arrange_all_views(server);
 	}
+	cursor_update_focus(output->server);
 }
 
 static void
@@ -131,18 +132,41 @@ surface_commit_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (layer_surface->current.committed
-			|| layer->mapped != layer_surface->mapped) {
+	uint32_t committed = layer_surface->current.committed;
+	struct output *output = (struct output *)wlr_output->data;
+
+	/* Process layer change */
+	if (committed & WLR_LAYER_SURFACE_V1_STATE_LAYER) {
+		wlr_scene_node_reparent(&layer->scene_layer_surface->tree->node,
+			output->layer_tree[layer_surface->current.layer]);
+	}
+
+	if (committed || layer->mapped != layer_surface->mapped) {
 		layer->mapped = layer_surface->mapped;
-		struct output *output =
-			output_from_wlr_output(layer->server, wlr_output);
 		layers_arrange(output);
 	}
 }
 
 static void
-unmap(struct lab_layer_surface *layer)
+destroy_notify(struct wl_listener *listener, void *data)
 {
+	struct lab_layer_surface *layer =
+		wl_container_of(listener, layer, node_destroy);
+
+	wl_list_remove(&layer->link);
+	wl_list_remove(&layer->map.link);
+	wl_list_remove(&layer->unmap.link);
+	wl_list_remove(&layer->surface_commit.link);
+	wl_list_remove(&layer->output_destroy.link);
+	wl_list_remove(&layer->node_destroy.link);
+	free(layer);
+}
+
+static void
+unmap_notify(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_surface *layer = wl_container_of(listener, layer, unmap);
+	layers_arrange(layer->scene_layer_surface->layer_surface->output->data);
 	struct seat *seat = &layer->server->seat;
 	if (seat->focused_layer == layer->scene_layer_surface->layer_surface) {
 		seat_set_focus_layer(seat, NULL);
@@ -150,41 +174,16 @@ unmap(struct lab_layer_surface *layer)
 }
 
 static void
-destroy_notify(struct wl_listener *listener, void *data)
-{
-	struct lab_layer_surface *layer = wl_container_of(
-		listener, layer, destroy);
-	unmap(layer);
-
-	wl_list_remove(&layer->link);
-	wl_list_remove(&layer->destroy.link);
-	wl_list_remove(&layer->map.link);
-	wl_list_remove(&layer->unmap.link);
-	wl_list_remove(&layer->surface_commit.link);
-	if (layer->scene_layer_surface->layer_surface->output) {
-		wl_list_remove(&layer->output_destroy.link);
-		struct output *output = output_from_wlr_output(layer->server,
-			layer->scene_layer_surface->layer_surface->output);
-		layers_arrange(output);
-	}
-	free(layer);
-}
-
-static void
-unmap_notify(struct wl_listener *listener, void *data)
-{
-	return;
-	struct lab_layer_surface *lab_layer_surface =
-		wl_container_of(listener, lab_layer_surface, unmap);
-	unmap(lab_layer_surface);
-}
-
-static void
 map_notify(struct wl_listener *listener, void *data)
 {
-	return;
-	struct wlr_layer_surface_v1 *layer_surface = data;
-	wlr_surface_send_enter(layer_surface->surface, layer_surface->output);
+	struct lab_layer_surface *layer = wl_container_of(listener, layer, map);
+	layers_arrange(layer->scene_layer_surface->layer_surface->output->data);
+	/*
+	 * Since moving to the wlroots scene-graph API, there is no need to
+	 * call wlr_surface_send_enter() from here since that will be done
+	 * automatically based on the position of the surface and outputs in
+	 * the scene. See wlr_scene_surface_create() documentation.
+	 */
 }
 
 static void
@@ -323,22 +322,6 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 
 	struct lab_layer_surface *surface = znew(*surface);
 
-	surface->surface_commit.notify = surface_commit_notify;
-	wl_signal_add(&layer_surface->surface->events.commit,
-		&surface->surface_commit);
-
-	surface->destroy.notify = destroy_notify;
-	wl_signal_add(&layer_surface->events.destroy, &surface->destroy);
-
-	surface->map.notify = map_notify;
-	wl_signal_add(&layer_surface->events.map, &surface->map);
-
-	surface->unmap.notify = unmap_notify;
-	wl_signal_add(&layer_surface->events.unmap, &surface->unmap);
-
-	surface->new_popup.notify = new_popup_notify;
-	wl_signal_add(&layer_surface->events.new_popup, &surface->new_popup);
-
 	struct output *output = layer_surface->output->data;
 
 	struct wlr_scene_tree *selected_layer =
@@ -358,9 +341,26 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 	surface->server = server;
 	surface->scene_layer_surface->layer_surface = layer_surface;
 
+	surface->surface_commit.notify = surface_commit_notify;
+	wl_signal_add(&layer_surface->surface->events.commit,
+		&surface->surface_commit);
+
+	surface->map.notify = map_notify;
+	wl_signal_add(&layer_surface->events.map, &surface->map);
+
+	surface->unmap.notify = unmap_notify;
+	wl_signal_add(&layer_surface->events.unmap, &surface->unmap);
+
+	surface->new_popup.notify = new_popup_notify;
+	wl_signal_add(&layer_surface->events.new_popup, &surface->new_popup);
+
 	surface->output_destroy.notify = output_destroy_notify;
 	wl_signal_add(&layer_surface->output->events.destroy,
 		&surface->output_destroy);
+
+	surface->node_destroy.notify = destroy_notify;
+	wl_signal_add(&surface->scene_layer_surface->tree->node.events.destroy,
+		&surface->node_destroy);
 
 	if (!output) {
 		wlr_log(WLR_ERROR, "no output for layer");

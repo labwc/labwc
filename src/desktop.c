@@ -5,6 +5,7 @@
 #include "common/scene-helpers.h"
 #include "dnd.h"
 #include "labwc.h"
+#include "layers.h"
 #include "node.h"
 #include "ssd.h"
 #include "view.h"
@@ -292,6 +293,23 @@ desktop_focus_topmost_mapped_view(struct server *server)
 	desktop_move_to_front(view);
 }
 
+static struct wlr_surface *
+get_surface_from_layer_node(struct wlr_scene_node *node)
+{
+	assert(node->data);
+	struct node_descriptor *desc = (struct node_descriptor *)node->data;
+	if (desc->type == LAB_NODE_DESC_LAYER_SURFACE) {
+		struct lab_layer_surface *surface;
+		surface = node_layer_surface_from_node(node);
+		return surface->scene_layer_surface->layer_surface->surface;
+	} else if (desc->type == LAB_NODE_DESC_LAYER_POPUP) {
+		struct lab_layer_popup *popup;
+		popup = node_layer_popup_from_node(node);
+		return popup->wlr_popup->base->surface;
+	}
+	return NULL;
+}
+
 /* TODO: make this less big and scary */
 struct cursor_context
 get_cursor_context(struct server *server)
@@ -317,21 +335,16 @@ get_cursor_context(struct server *server)
 		ret.type = LAB_SSD_ROOT;
 		return ret;
 	}
+#if HAVE_XWAYLAND
 	if (node->type == WLR_SCENE_NODE_BUFFER) {
 		struct wlr_surface *surface = lab_wlr_surface_from_node(node);
-		if (surface && wlr_surface_is_layer_surface(surface)) {
-			ret.type = LAB_SSD_LAYER_SURFACE;
-			ret.surface = surface;
-			return ret;
-		}
-#if HAVE_XWAYLAND
 		if (node->parent == server->unmanaged_tree) {
 			ret.type = LAB_SSD_UNMANAGED;
 			ret.surface = surface;
 			return ret;
 		}
-#endif
 	}
+#endif
 	while (node) {
 		struct node_descriptor *desc = node->data;
 		if (desc) {
@@ -357,9 +370,14 @@ get_cursor_context(struct server *server)
 				return ret;
 			}
 			case LAB_NODE_DESC_LAYER_SURFACE:
+				ret.node = node;
+				ret.type = LAB_SSD_LAYER_SURFACE;
+				ret.surface = get_surface_from_layer_node(node);
+				return ret;
 			case LAB_NODE_DESC_LAYER_POPUP:
+				ret.node = node;
 				ret.type = LAB_SSD_CLIENT;
-				ret.surface = lab_wlr_surface_from_node(ret.node);
+				ret.surface = get_surface_from_layer_node(node);
 				return ret;
 			case LAB_NODE_DESC_MENUITEM:
 				/* Always return the top scene node for menu items */

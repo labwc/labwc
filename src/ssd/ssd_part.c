@@ -112,6 +112,34 @@ add_scene_button_corner(struct wl_list *part_list, enum ssd_part_type type,
 	return button_root;
 }
 
+static struct wlr_box
+get_scale_box(struct wlr_buffer *buffer, double container_width,
+		double container_height)
+{
+	struct wlr_box icon_geo = {
+		.width = buffer->width,
+		.height = buffer->height
+	};
+
+	/* Scale down buffer if required */
+	if (icon_geo.width && icon_geo.height) {
+		#define MIN(a, b) ((a) < (b) ? (a) : (b))
+		double scale = MIN(container_width / icon_geo.width,
+			container_height / icon_geo.height);
+		#undef MIN
+		if (scale < 1.0f) {
+			icon_geo.width = (double)icon_geo.width * scale;
+			icon_geo.height = (double)icon_geo.height * scale;
+		}
+	}
+
+	/* Center buffer on both axis */
+	icon_geo.x = (container_width - icon_geo.width) / 2;
+	icon_geo.y = (container_height - icon_geo.height) / 2;
+
+	return icon_geo;
+}
+
 struct ssd_part *
 add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		struct wlr_scene_tree *parent, float *bg_color,
@@ -130,9 +158,15 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		BUTTON_WIDTH, rc.theme->title_height, 0, 0, bg_color);
 
 	/* Icon */
-	add_scene_buffer(part_list, type, parent, icon_buffer,
-		(BUTTON_WIDTH - icon_buffer->width) / 2,
-		(rc.theme->title_height - icon_buffer->height) / 2);
+	struct wlr_box icon_geo = get_scale_box(icon_buffer,
+		BUTTON_WIDTH, rc.theme->title_height);
+	struct ssd_part *icon_part = add_scene_buffer(part_list, type,
+		parent, icon_buffer, icon_geo.x, icon_geo.y);
+
+	/* Make sure big icons are scaled down if necessary */
+	wlr_scene_buffer_set_dest_size(
+		wlr_scene_buffer_from_node(icon_part->node),
+		icon_geo.width, icon_geo.height);
 
 	/* Hover overlay */
 	hover = add_scene_rect(part_list, type, parent, BUTTON_WIDTH,

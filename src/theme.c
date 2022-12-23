@@ -238,6 +238,10 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 
 	/* individual buttons */
+	if (match(key, "window.active.button.menu.unpressed.image.color")) {
+		parse_hexstr(value,
+			theme->window_active_button_menu_unpressed_image_color);
+	}
 	if (match(key, "window.active.button.iconify.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_active_button_iconify_unpressed_image_color);
@@ -249,6 +253,10 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match(key, "window.active.button.close.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_active_button_close_unpressed_image_color);
+	}
+	if (match(key, "window.inactive.button.menu.unpressed.image.color")) {
+		parse_hexstr(value,
+			theme->window_inactive_button_menu_unpressed_image_color);
 	}
 	if (match(key, "window.inactive.button.iconify.unpressed.image.color")) {
 		parse_hexstr(value,

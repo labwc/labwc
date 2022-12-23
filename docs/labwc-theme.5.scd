@@ -98,7 +98,7 @@ A theme consists of a themerc file and optionally some xbm icons.
 	state. This element is for non-focused windows.
 
 Note: The button elements (i.e. window.[in]active.button.\*) support defining
-different types of buttons individually by inserting the type ("iconify", "max"
+different types of buttons individually by inserting the type ("menu", "iconify", "max"
 and "close") after the button node. For example:
 window.active.button.iconify.unpressed.image.color
 This syntax is not not documented on the openbox.org wiki, but is supported by

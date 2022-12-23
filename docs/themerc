@@ -21,7 +21,7 @@ window.label.text.justify: center
 window.active.button.unpressed.image.color: #000000
 window.inactive.button.unpressed.image.color: #000000
 
-# Note that "iconify", "max", "close" buttons colors can be defined
+# Note that "menu", "iconify", "max", "close" buttons colors can be defined
 # individually by inserting the type after the button node, for example:
 #
 #     window.active.button.iconify.unpressed.image.color: #333333

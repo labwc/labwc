@@ -434,6 +434,9 @@ output_from_wlr_output(struct server *server, struct wlr_output *wlr_output)
 struct wlr_box
 output_usable_area_in_layout_coords(struct output *output)
 {
+	if (!output) {
+		return (struct wlr_box){0};
+	}
 	struct wlr_box box = output->usable_area;
 	double ox = 0, oy = 0;
 	wlr_output_layout_output_coords(output->server->output_layout,

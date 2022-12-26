@@ -396,6 +396,7 @@ view_apply_tiled_geometry(struct view *view, struct output *output)
 static void
 view_apply_fullscreen_geometry(struct view *view, struct wlr_output *wlr_output)
 {
+	assert(wlr_output);
 	struct output *output =
 		output_from_wlr_output(view->server, wlr_output);
 	struct wlr_box box = { 0 };
@@ -619,15 +620,19 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 	if (fullscreen != !view->fullscreen) {
 		return;
 	}
+	if (!wlr_output) {
+		wlr_output = view_wlr_output(view);
+		if (!wlr_output && fullscreen) {
+			/* Prevent fullscreen with no available outputs */
+			return;
+		}
+	}
 	if (view->impl->set_fullscreen) {
 		view->impl->set_fullscreen(view, fullscreen);
 	}
 	if (view->toplevel_handle) {
 		wlr_foreign_toplevel_handle_v1_set_fullscreen(
 			view->toplevel_handle, fullscreen);
-	}
-	if (!wlr_output) {
-		wlr_output = view_wlr_output(view);
 	}
 	if (fullscreen) {
 		/*

@@ -316,6 +316,12 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 		struct wlr_output *output = wlr_output_layout_output_at(
 			server->output_layout, server->seat.cursor->x,
 			server->seat.cursor->y);
+		if (!output) {
+			wlr_log(WLR_INFO,
+				"No output available to assign layer surface");
+			wlr_layer_surface_v1_destroy(layer_surface);
+			return;
+		}
 		layer_surface->output = output;
 	}
 
@@ -360,11 +366,6 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 	surface->node_destroy.notify = handle_node_destroy;
 	wl_signal_add(&surface->scene_layer_surface->tree->node.events.destroy,
 		&surface->node_destroy);
-
-	if (!output) {
-		wlr_log(WLR_ERROR, "no output for layer");
-		return;
-	}
 
 	/*
 	 * Temporarily set the layer's current state to pending so that

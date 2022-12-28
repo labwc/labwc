@@ -247,7 +247,7 @@ move_popup_to_top_layer(struct lab_layer_surface *toplevel,
 	struct server *server = toplevel->server;
 	struct wlr_output *wlr_output =
 		toplevel->scene_layer_surface->layer_surface->output;
-	struct output *output = output_from_wlr_output(server, wlr_output);
+	struct output *output = (struct output *)wlr_output->data;
 	struct wlr_box box = { 0 };
 	wlr_output_layout_get_box(server->output_layout, wlr_output, &box);
 	int lx = toplevel->scene_layer_surface->tree->node.x + box.x;

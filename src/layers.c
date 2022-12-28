@@ -52,7 +52,7 @@ layers_arrange(struct output *output)
 		return;
 	}
 
-	int nr_layers = sizeof(output->layers) / sizeof(output->layers[0]);
+	int nr_layers = sizeof(output->layer_tree) / sizeof(output->layer_tree[0]);
 	for (int i = 0; i < nr_layers; i++) {
 		struct wlr_scene_tree *layer = output->layer_tree[i];
 
@@ -78,14 +78,16 @@ layers_arrange(struct output *output)
 	};
 	size_t nlayers = sizeof(layers_above_shell)
 		/ sizeof(layers_above_shell[0]);
-	struct lab_layer_surface *layer, *topmost = NULL;
+	struct lab_layer_surface *topmost = NULL;
+	struct wlr_scene_node *node;
 	for (size_t i = 0; i < nlayers; ++i) {
-		wl_list_for_each_reverse(layer,
-				&output->layers[layers_above_shell[i]], link) {
-			struct wlr_layer_surface_v1 *layer_surface =
-				layer->scene_layer_surface->layer_surface;
-			if (layer_surface->current.keyboard_interactive) {
-				topmost = layer;
+		struct wlr_scene_tree *tree = output->layer_tree[layers_above_views[i]];
+		/* Iterate in reverse to give most recent node preference */
+		wl_list_for_each_reverse(node, &tree->children, link) {
+			struct lab_layer_surface *surface = node_layer_surface_from_node(node);
+			struct wlr_scene_layer_surface_v1 *scene = surface->scene_layer_surface;
+			if (scene->layer_surface->current.keyboard_interactive) {
+				topmost = surface;
 				break;
 			}
 		}
@@ -153,7 +155,6 @@ destroy_notify(struct wl_listener *listener, void *data)
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, node_destroy);
 
-	wl_list_remove(&layer->link);
 	wl_list_remove(&layer->map.link);
 	wl_list_remove(&layer->unmap.link);
 	wl_list_remove(&layer->surface_commit.link);
@@ -367,8 +368,6 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	wl_list_append(&output->layers[layer_surface->pending.layer],
-		&surface->link);
 	/*
 	 * Temporarily set the layer's current state to pending so that
 	 * it can easily be arranged.

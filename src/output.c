@@ -145,9 +145,8 @@ new_output_notify(struct wl_listener *listener, void *data)
 	 * Create layer-trees (background, bottom, top and overlay) and
 	 * a layer-popup-tree.
 	 */
-	int nr_layers = sizeof(output->layers) / sizeof(output->layers[0]);
+	int nr_layers = sizeof(output->layer_tree) / sizeof(output->layer_tree[0]);
 	for (int i = 0; i < nr_layers; i++) {
-		wl_list_init(&output->layers[i]);
 		output->layer_tree[i] =
 			wlr_scene_tree_create(&server->scene->tree);
 		node_descriptor_create(&output->layer_tree[i]->node,

@@ -10,18 +10,16 @@ struct output;
 struct lab_layer_surface {
 	struct wl_list link; /* output::layers */
 	struct wlr_scene_layer_surface_v1 *scene_layer_surface;
+	struct server *server;
 
-	struct wl_listener node_destroy;
+	bool mapped;
+
 	struct wl_listener map;
 	struct wl_listener unmap;
 	struct wl_listener surface_commit;
 	struct wl_listener output_destroy;
+	struct wl_listener node_destroy;
 	struct wl_listener new_popup;
-
-	struct wlr_box geo;
-	bool mapped;
-	/* TODO: add extent? */
-	struct server *server;
 };
 
 struct lab_layer_popup {

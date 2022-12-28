@@ -72,12 +72,11 @@ layers_arrange(struct output *output)
 	memcpy(&output->usable_area, &usable_area, sizeof(struct wlr_box));
 
 	/* Find topmost keyboard interactive layer, if such a layer exists */
-	uint32_t layers_above_shell[] = {
+	uint32_t layers_above_views[] = {
 		ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY,
 		ZWLR_LAYER_SHELL_V1_LAYER_TOP,
 	};
-	size_t nlayers = sizeof(layers_above_shell)
-		/ sizeof(layers_above_shell[0]);
+	size_t nlayers = sizeof(layers_above_views) / sizeof(layers_above_views[0]);
 	struct lab_layer_surface *topmost = NULL;
 	struct wlr_scene_node *node;
 	for (size_t i = 0; i < nlayers; ++i) {

@@ -112,7 +112,7 @@ layers_arrange(struct output *output)
 }
 
 static void
-output_destroy_notify(struct wl_listener *listener, void *data)
+handle_output_destroy(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, output_destroy);
@@ -120,7 +120,7 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-surface_commit_notify(struct wl_listener *listener, void *data)
+handle_surface_commit(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, surface_commit);
@@ -149,7 +149,7 @@ surface_commit_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-destroy_notify(struct wl_listener *listener, void *data)
+handle_node_destroy(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, node_destroy);
@@ -163,7 +163,7 @@ destroy_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-unmap_notify(struct wl_listener *listener, void *data)
+handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer = wl_container_of(listener, layer, unmap);
 	layers_arrange(layer->scene_layer_surface->layer_surface->output->data);
@@ -174,7 +174,7 @@ unmap_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-map_notify(struct wl_listener *listener, void *data)
+handle_map(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer = wl_container_of(listener, layer, map);
 	layers_arrange(layer->scene_layer_surface->layer_surface->output->data);
@@ -261,7 +261,7 @@ move_popup_to_top_layer(struct lab_layer_surface *toplevel,
 
 /* This popup's parent is a shell-layer surface */
 static void
-new_popup_notify(struct wl_listener *listener, void *data)
+handle_new_popup(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *toplevel =
 		wl_container_of(listener, toplevel, new_popup);
@@ -307,7 +307,7 @@ new_popup_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-new_layer_surface_notify(struct wl_listener *listener, void *data)
+handle_new_layer_surface(struct wl_listener *listener, void *data)
 {
 	struct server *server = wl_container_of(
 		listener, server, new_layer_surface);
@@ -341,24 +341,24 @@ new_layer_surface_notify(struct wl_listener *listener, void *data)
 	surface->server = server;
 	surface->scene_layer_surface->layer_surface = layer_surface;
 
-	surface->surface_commit.notify = surface_commit_notify;
+	surface->surface_commit.notify = handle_surface_commit;
 	wl_signal_add(&layer_surface->surface->events.commit,
 		&surface->surface_commit);
 
-	surface->map.notify = map_notify;
+	surface->map.notify = handle_map;
 	wl_signal_add(&layer_surface->events.map, &surface->map);
 
-	surface->unmap.notify = unmap_notify;
+	surface->unmap.notify = handle_unmap;
 	wl_signal_add(&layer_surface->events.unmap, &surface->unmap);
 
-	surface->new_popup.notify = new_popup_notify;
+	surface->new_popup.notify = handle_new_popup;
 	wl_signal_add(&layer_surface->events.new_popup, &surface->new_popup);
 
-	surface->output_destroy.notify = output_destroy_notify;
+	surface->output_destroy.notify = handle_output_destroy;
 	wl_signal_add(&layer_surface->output->events.destroy,
 		&surface->output_destroy);
 
-	surface->node_destroy.notify = destroy_notify;
+	surface->node_destroy.notify = handle_node_destroy;
 	wl_signal_add(&surface->scene_layer_surface->tree->node.events.destroy,
 		&surface->node_destroy);
 
@@ -381,7 +381,7 @@ void
 layers_init(struct server *server)
 {
 	server->layer_shell = wlr_layer_shell_v1_create(server->wl_display);
-	server->new_layer_surface.notify = new_layer_surface_notify;
+	server->new_layer_surface.notify = handle_new_layer_surface;
 	wl_signal_add(&server->layer_shell->events.new_surface,
 		&server->new_layer_surface);
 }

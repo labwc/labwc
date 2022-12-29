@@ -241,22 +241,23 @@ void
 workspaces_switch_to(struct workspace *target)
 {
 	assert(target);
-	if (target == target->server->workspace_current) {
+	struct server *server = target->server;
+	if (target == server->workspace_current) {
 		return;
 	}
 
 	/* Disable the old workspace */
 	wlr_scene_node_set_enabled(
-		&target->server->workspace_current->tree->node, false);
+		&server->workspace_current->tree->node, false);
 
 	/* Enable the new workspace */
 	wlr_scene_node_set_enabled(&target->tree->node, true);
 
 	/* Save the last visited workspace */
-	target->server->workspace_last = target->server->workspace_current;
+	server->workspace_last = server->workspace_current;
 
 	/* Make sure new views will spawn on the new workspace */
-	target->server->workspace_current = target;
+	server->workspace_current = target;
 
 	/**
 	 * Make sure we are focusing what the user sees.
@@ -267,7 +268,7 @@ workspaces_switch_to(struct workspace *target)
 	desktop_focus_topmost_mapped_view(target->server);
 
 	/* And finally show the OSD */
-	_osd_show(target->server);
+	_osd_show(server);
 }
 
 void

@@ -69,7 +69,7 @@ layers_arrange(struct output *output)
 			scene_output->y);
 	}
 
-	memcpy(&output->usable_area, &usable_area, sizeof(struct wlr_box));
+	memcpy(&output->usable_area, &usable_area, sizeof(output->usable_area));
 
 	/* Find topmost keyboard interactive layer, if such a layer exists */
 	uint32_t layers_above_views[] = {

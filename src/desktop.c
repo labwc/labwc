@@ -310,6 +310,21 @@ get_surface_from_layer_node(struct wlr_scene_node *node)
 	return NULL;
 }
 
+static bool
+is_layer_descendant(struct wlr_scene_node *node)
+{
+	goto start;
+	while (node) {
+		struct node_descriptor *desc = node->data;
+		if (desc && desc->type == LAB_NODE_DESC_LAYER_SURFACE) {
+			return true;
+		}
+start:
+		node = node->parent ? &node->parent->node : NULL;
+	}
+	return false;
+}
+
 /* TODO: make this less big and scary */
 struct cursor_context
 get_cursor_context(struct server *server)
@@ -389,6 +404,27 @@ get_cursor_context(struct server *server)
 				break;
 			}
 		}
+
+		/* Edge-case nodes without node-descriptors */
+		if (node->type == WLR_SCENE_NODE_BUFFER) {
+			struct wlr_surface *surface = lab_wlr_surface_from_node(node);
+			if (surface) {
+				if (is_layer_descendant(node)) {
+					/*
+					 * layer-shell subsurfaces need to be
+					 * able to receive pointer actions.
+					 *
+					 * Test by running
+					 * `gtk-layer-demo -k exclusive`, then
+					 * open the 'set margin' dialog and try
+					 * setting the margin with the pointer.
+					 */
+					ret.surface = surface;
+					return ret;
+				}
+			}
+		}
+
 		/* node->parent is always a *wlr_scene_tree */
 		node = node->parent ? &node->parent->node : NULL;
 	}

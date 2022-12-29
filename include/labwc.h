@@ -309,8 +309,6 @@ struct output {
 
 	struct wl_listener destroy;
 	struct wl_listener frame;
-
-	bool leased;
 };
 
 #undef LAB_NR_LAYERS

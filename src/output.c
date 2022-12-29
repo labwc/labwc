@@ -67,22 +67,16 @@ new_output_notify(struct wl_listener *listener, void *data)
 	struct wlr_output *wlr_output = data;
 
 	/*
-	 * We offer any display as available for lease, some apps like
-	 * gamescope, want to take ownership of a display when they can
-	 * to use planes and present directly.
-	 * This is also useful for debugging the DRM parts of
-	 * another compositor.
-	 */
-	if (server->drm_lease_manager) {
-		wlr_drm_lease_v1_manager_offer_output(
-			server->drm_lease_manager, wlr_output);
-	}
-
-	/*
-	 * Don't configure any non-desktop displays, such as VR headsets;
+	 * If this is a non-desktop output, offer it for leasing.
+	 * We may want to do more logic here in future, if we choose
+	 * to offer non-desktop outputs.
 	 */
 	if (wlr_output->non_desktop) {
 		wlr_log(WLR_DEBUG, "Not configuring non-desktop output");
+		if (server->drm_lease_manager) {
+			wlr_drm_lease_v1_manager_offer_output(
+				server->drm_lease_manager, wlr_output);
+		}
 		return;
 	}
 
@@ -260,12 +254,11 @@ output_config_apply(struct server *server,
 	wl_list_for_each(head, &config->heads, link) {
 		struct wlr_output *o = head->state.output;
 		struct output *output = output_from_wlr_output(server, o);
-		bool output_enabled = head->state.enabled && !output->leased;
-		bool need_to_add = output_enabled && !o->enabled;
-		bool need_to_remove = !output_enabled && o->enabled;
+		bool need_to_add = head->state.enabled && !o->enabled;
+		bool need_to_remove = !head->state.enabled && o->enabled;
 
-		wlr_output_enable(o, output_enabled);
-		if (output_enabled) {
+		wlr_output_enable(o, head->state.enabled);
+		if (head->state.enabled) {
 			/* Output specifc actions only */
 			if (head->state.mode) {
 				wlr_output_set_mode(o, head->state.mode);
@@ -292,7 +285,7 @@ output_config_apply(struct server *server,
 			assert(output->scene_output);
 		}
 
-		if (output_enabled) {
+		if (head->state.enabled) {
 			wlr_output_layout_move(server->output_layout, o,
 				head->state.x, head->state.y);
 		}

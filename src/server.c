@@ -11,6 +11,7 @@
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
 #include <wlr/types/wlr_viewporter.h>
+#include "drm-lease-v1-protocol.h"
 #include "config/rcxml.h"
 #include "config/session.h"
 #include "labwc.h"
@@ -160,6 +161,32 @@ handle_xwayland_ready(struct wl_listener *listener, void *data)
 }
 #endif
 
+static bool
+server_global_filter(const struct wl_client *client, const struct wl_global *global, void *data)
+{
+	const struct wl_interface *iface = wl_global_get_interface(global);
+	struct server *server = (struct server *)data;
+	(void)iface; (void)server;
+
+#if HAVE_XWAYLAND
+	struct wl_client *xwayland_client =
+		server->xwayland ? server->xwayland->server->client : NULL;
+	if (xwayland_client && client == xwayland_client) {
+		/*
+		 * Filter out wp_drm_lease_device_v1 for now as it is resulting in
+		 * issues with Xwayland applications lagging over time.
+		 *
+		 * https://github.com/labwc/labwc/issues/553
+		 */
+		if (!strcmp(iface->name, wp_drm_lease_device_v1_interface.name)) {
+			return false;
+		}
+	}
+#endif
+
+	return true;
+}
+
 void
 server_init(struct server *server)
 {
@@ -168,6 +195,8 @@ server_init(struct server *server)
 		wlr_log(WLR_ERROR, "cannot allocate a wayland display");
 		exit(EXIT_FAILURE);
 	}
+
+	wl_display_set_global_filter(server->wl_display, server_global_filter, server);
 
 	/* Catch SIGHUP */
 	struct wl_event_loop *event_loop = NULL;

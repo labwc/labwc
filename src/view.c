@@ -522,9 +522,10 @@ view_toggle_decorations(struct view *view)
 	view_set_decorations(view, !view->ssd_enabled);
 }
 
-static bool
-is_always_on_top(struct view *view)
+bool
+view_is_always_on_top(struct view *view)
 {
+	assert(view);
 	return view->scene_tree->node.parent ==
 		view->server->view_tree_always_on_top;
 }
@@ -533,7 +534,7 @@ void
 view_toggle_always_on_top(struct view *view)
 {
 	assert(view);
-	if (is_always_on_top(view)) {
+	if (view_is_always_on_top(view)) {
 		view->workspace = view->server->workspace_current;
 		wlr_scene_node_reparent(&view->scene_tree->node,
 			view->workspace->tree);

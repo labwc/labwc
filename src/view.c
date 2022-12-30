@@ -358,8 +358,8 @@ static void
 view_apply_natural_geometry(struct view *view)
 {
 	struct wlr_output_layout *layout = view->server->output_layout;
-	if (wlr_output_layout_intersects(layout, NULL,
-			&view->natural_geometry)) {
+	if (wlr_output_layout_intersects(layout, NULL, &view->natural_geometry)
+			|| wl_list_empty(&layout->outputs)) {
 		/* restore to original geometry */
 		view_move_resize(view, view->natural_geometry);
 	} else {

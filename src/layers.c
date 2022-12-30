@@ -38,6 +38,7 @@ arrange_one_layer(struct output *output, const struct wlr_box *full_area,
 void
 layers_arrange(struct output *output)
 {
+	assert(output);
 	struct wlr_box full_area = { 0 };
 	wlr_output_effective_resolution(output->wlr_output,
 		&full_area.width, &full_area.height);
@@ -166,9 +167,13 @@ static void
 handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer = wl_container_of(listener, layer, unmap);
-	layers_arrange(layer->scene_layer_surface->layer_surface->output->data);
+	struct wlr_layer_surface_v1 *layer_surface =
+		layer->scene_layer_surface->layer_surface;
+	if (layer_surface->output) {
+		layers_arrange(layer_surface->output->data);
+	}
 	struct seat *seat = &layer->server->seat;
-	if (seat->focused_layer == layer->scene_layer_surface->layer_surface) {
+	if (seat->focused_layer == layer_surface) {
 		seat_set_focus_layer(seat, NULL);
 	}
 }

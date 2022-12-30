@@ -117,6 +117,7 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, output_destroy);
 	layer->scene_layer_surface->layer_surface->output = NULL;
+	wlr_layer_surface_v1_destroy(layer->scene_layer_surface->layer_surface);
 }
 
 static void
@@ -272,18 +273,12 @@ handle_new_popup(struct wl_listener *listener, void *data)
 		wl_container_of(listener, toplevel, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
 
-	int lx, ly;
 	struct server *server = toplevel->server;
 	struct wlr_scene_layer_surface_v1 *surface = toplevel->scene_layer_surface;
-	wlr_scene_node_coords(&surface->tree->node, &lx, &ly);
-
-	if (!surface->layer_surface->output) {
-		/* Work-around for moving layer shell surfaces on output destruction */
-		struct wlr_output *wlr_output;
-		wlr_output = wlr_output_layout_output_at(server->output_layout, lx, ly);
-		surface->layer_surface->output = wlr_output;
-	}
 	struct output *output = surface->layer_surface->output->data;
+
+	int lx, ly;
+	wlr_scene_node_coords(&surface->tree->node, &lx, &ly);
 
 	struct wlr_box output_box = { 0 };
 	wlr_output_layout_get_box(server->output_layout,

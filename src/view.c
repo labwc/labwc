@@ -638,6 +638,10 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		view_apply_fullscreen_geometry(view, view->fullscreen);
 	} else {
 		view->fullscreen = false;
+		/* Re-show decorations when no longer fullscreen */
+		if (view->ssd_enabled) {
+			decorate(view);
+		}
 		/* Restore non-fullscreen geometry */
 		if (view->maximized) {
 			view_apply_maximized_geometry(view);
@@ -645,10 +649,6 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 			view_apply_tiled_geometry(view, NULL);
 		} else {
 			view_apply_unmaximized_geometry(view);
-		}
-		/* Re-show decorations when no longer fullscreen */
-		if (view->ssd_enabled) {
-			decorate(view);
 		}
 	}
 

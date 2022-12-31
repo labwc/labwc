@@ -880,6 +880,7 @@ view_snap_to_edge(struct view *view, const char *direction,
 		/* store current geometry as new natural_geometry */
 		view_store_natural_geometry(view);
 	}
+	view_set_untiled(view);
 	view->tiled = edge;
 	view_apply_tiled_geometry(view, output);
 }

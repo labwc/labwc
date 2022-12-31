@@ -324,6 +324,11 @@ void
 view_store_natural_geometry(struct view *view)
 {
 	assert(view);
+	if (view->maximized || view->tiled) {
+		/* Do not overwrite the stored geometry with special cases */
+		return;
+	}
+
 	/**
 	 * If an application was started maximized or fullscreened, its
 	 * natural_geometry width/height may still be zero in which case we set
@@ -505,7 +510,7 @@ view_maximize(struct view *view, bool maximize, bool store_natural_geometry)
 		 * a maximized view.
 		 */
 		interactive_cancel(view);
-		if (!view->tiled && store_natural_geometry) {
+		if (store_natural_geometry) {
 			view_store_natural_geometry(view);
 		}
 	}
@@ -631,9 +636,8 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		 * a fullscreen view.
 		 */
 		interactive_cancel(view);
-		if (!view->maximized && !view->tiled) {
-			view_store_natural_geometry(view);
-		}
+		view_store_natural_geometry(view);
+
 		/* Hide decorations when going fullscreen */
 		if (view->ssd_enabled) {
 			undecorate(view);
@@ -872,7 +876,7 @@ view_snap_to_edge(struct view *view, const char *direction,
 	if (view->maximized) {
 		/* Unmaximize + keep using existing natural_geometry */
 		view_maximize(view, false, /*store_natural_geometry*/ false);
-	} else if (!view->tiled && store_natural_geometry) {
+	} else if (store_natural_geometry) {
 		/* store current geometry as new natural_geometry */
 		view_store_natural_geometry(view);
 	}

@@ -419,6 +419,19 @@ view_apply_maximized_geometry(struct view *view)
 	view_move_resize(view, box);
 }
 
+static bool
+view_apply_special_geometry(struct view *view)
+{
+	if (view->maximized) {
+		view_apply_maximized_geometry(view);
+	} else if (view->tiled) {
+		view_apply_tiled_geometry(view, NULL);
+	} else {
+		return false;
+	}
+	return true;
+}
+
 static void
 view_apply_unmaximized_geometry(struct view *view)
 {
@@ -485,7 +498,6 @@ view_maximize(struct view *view, bool maximize, bool store_natural_geometry)
 	if (view->fullscreen) {
 		return;
 	}
-	set_maximized(view, maximize);
 	if (maximize) {
 		/*
 		 * Maximize via keybind or client request cancels
@@ -496,14 +508,10 @@ view_maximize(struct view *view, bool maximize, bool store_natural_geometry)
 		if (!view->tiled && store_natural_geometry) {
 			view_store_natural_geometry(view);
 		}
-		view_apply_maximized_geometry(view);
-	} else {
-		/* unmaximize */
-		if (view->tiled) {
-			view_apply_tiled_geometry(view, NULL);
-		} else {
-			view_apply_unmaximized_geometry(view);
-		}
+	}
+	set_maximized(view, maximize);
+	if (!view_apply_special_geometry(view)) {
+		view_apply_unmaximized_geometry(view);
 	}
 }
 
@@ -587,11 +595,7 @@ view_set_decorations(struct view *view, bool decorations)
 		} else {
 			undecorate(view);
 		}
-		if (view->maximized) {
-			view_apply_maximized_geometry(view);
-		} else if (view->tiled) {
-			view_apply_tiled_geometry(view, NULL);
-		}
+		view_apply_special_geometry(view);
 	}
 }
 
@@ -643,11 +647,7 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 			decorate(view);
 		}
 		/* Restore non-fullscreen geometry */
-		if (view->maximized) {
-			view_apply_maximized_geometry(view);
-		} else if (view->tiled) {
-			view_apply_tiled_geometry(view, NULL);
-		} else {
+		if (!view_apply_special_geometry(view)) {
 			view_apply_unmaximized_geometry(view);
 		}
 	}
@@ -675,13 +675,7 @@ view_adjust_for_layout_change(struct view *view)
 			/* output is gone, exit fullscreen */
 			view_set_fullscreen(view, false, NULL);
 		}
-	} else if (view->maximized) {
-		/* recompute maximized geometry */
-		view_apply_maximized_geometry(view);
-	} else if (view->tiled) {
-		/* recompute tiled geometry */
-		view_apply_tiled_geometry(view, NULL);
-	} else {
+	} else if (!view_apply_special_geometry(view)) {
 		/* reposition view if it's offscreen */
 		struct wlr_box box = { view->x, view->y, view->w, view->h };
 		if (!wlr_output_layout_intersects(layout, NULL, &box)) {

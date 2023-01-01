@@ -4,8 +4,8 @@
 #include <strings.h>
 #include "common/scene-helpers.h"
 #include "labwc.h"
-#include "ssd.h"
 #include "menu/menu.h"
+#include "ssd.h"
 #include "view.h"
 #include "workspaces.h"
 

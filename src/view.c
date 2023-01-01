@@ -295,7 +295,7 @@ void
 view_store_natural_geometry(struct view *view)
 {
 	assert(view);
-	if (view->maximized || view->tiled || view->tiled_region) {
+	if (view->maximized || view_is_tiled(view)) {
 		/* Do not overwrite the stored geometry with special cases */
 		return;
 	}
@@ -347,7 +347,7 @@ static void
 view_apply_region_geometry(struct view *view)
 {
 	assert(view);
-	assert(view->tiled_region);
+	assert(view->tiled_region || view->tiled_region_evacuate);
 
 	if (view->tiled_region_evacuate) {
 		/* View was evacuated from a destroying output */
@@ -357,7 +357,7 @@ view_apply_region_geometry(struct view *view)
 			return;
 		}
 
-		/* Get new output local region */
+		/* Get new output local region, may be NULL */
 		view->tiled_region = regions_from_name(
 			view->tiled_region_evacuate, output);
 
@@ -500,7 +500,7 @@ view_apply_special_geometry(struct view *view)
 		view_apply_maximized_geometry(view);
 	} else if (view->tiled) {
 		view_apply_tiled_geometry(view, NULL);
-	} else if (view->tiled_region) {
+	} else if (view->tiled_region || view->tiled_region_evacuate) {
 		view_apply_region_geometry(view);
 	} else {
 		return false;
@@ -538,6 +538,15 @@ view_restore_to(struct view *view, struct wlr_box geometry)
 	view_move_resize(view, geometry);
 }
 
+bool
+view_is_tiled(struct view *view)
+{
+	if (!view) {
+		return false;
+	}
+	return view->tiled || view->tiled_region || view->tiled_region_evacuate;
+}
+
 /* Reset tiled state of view without changing geometry */
 void
 view_set_untiled(struct view *view)
@@ -545,6 +554,7 @@ view_set_untiled(struct view *view)
 	assert(view);
 	view->tiled = VIEW_EDGE_INVALID;
 	view->tiled_region = NULL;
+	zfree(view->tiled_region_evacuate);
 }
 
 void

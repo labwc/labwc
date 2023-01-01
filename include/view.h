@@ -51,7 +51,7 @@ struct view {
 	bool maximized;
 	uint32_t tiled;  /* private, enum view_edge in src/view.c */
 
-	/* Pointer to an output owned struct region, may be NULL or already free'd */
+	/* Pointer to an output owned struct region, may be NULL */
 	struct region *tiled_region;
 	/* Set to region->name when tiled_region is free'd by a destroying output */
 	char *tiled_region_evacuate;
@@ -132,6 +132,7 @@ void view_toggle_maximize(struct view *view);
 void view_toggle_decorations(struct view *view);
 void view_toggle_always_on_top(struct view *view);
 bool view_is_always_on_top(struct view *view);
+bool view_is_tiled(struct view *view);
 void view_move_to_workspace(struct view *view, struct workspace *workspace);
 void view_set_decorations(struct view *view, bool decorations);
 void view_toggle_fullscreen(struct view *view);

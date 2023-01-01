@@ -45,7 +45,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			 */
 			return;
 		}
-		if (view->maximized || view->tiled || view->tiled_region) {
+		if (view->maximized || view_is_tiled(view)) {
 			/*
 			 * Un-maximize and restore natural width/height.
 			 * Don't reset tiled state yet since we may want

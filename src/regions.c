@@ -149,29 +149,51 @@ regions_hide_overlay(struct seat *seat)
 }
 
 void
-regions_update(struct output *output)
+regions_reconfigure_output(struct output *output)
+{
+	assert(output);
+
+	/* Evacuate views and destroy current regions */
+	if (!wl_list_empty(&output->regions)) {
+		regions_evacuate_output(output);
+		regions_destroy(&output->server->seat, &output->regions);
+	}
+
+	/* Initialize regions from config */
+	struct region *region;
+	wl_list_for_each(region, &rc.regions, link) {
+		struct region *region_new = znew(*region_new);
+		/* Create a copy */
+		region_new->name = xstrdup(region->name);
+		region_new->percentage = region->percentage;
+		wl_list_append(&output->regions, &region_new->link);
+	}
+
+	/* Update region geometries */
+	regions_update_geometry(output);
+}
+
+void
+regions_reconfigure(struct server *server)
+{
+	struct output *output;
+
+	/* Evacuate views and initialize regions from config */
+	wl_list_for_each(output, &server->outputs, link) {
+		regions_reconfigure_output(output);
+	}
+
+	/* Tries to match the evacuated views to the new regions */
+	desktop_arrange_all_views(server);
+}
+
+void
+regions_update_geometry(struct output *output)
 {
 	assert(output);
 
 	struct region *region;
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-
-	/* Initialize regions */
-	if (wl_list_empty(&output->regions)) {
-		wl_list_for_each(region, &rc.regions, link) {
-			struct region *region_new = znew(*region_new);
-			/* Create a copy */
-			region_new->name = xstrdup(region->name);
-			region_new->percentage = region->percentage;
-			wl_list_append(&output->regions, &region_new->link);
-		}
-	}
-
-	if (wlr_box_equal(&output->regions_usable_area, &usable)) {
-		/* Nothing changed */
-		return;
-	}
-	output->regions_usable_area = usable;
 
 	/* Update regions */
 	struct wlr_box *perc, *geo;
@@ -201,6 +223,8 @@ regions_evacuate_output(struct output *output)
 					view->tiled_region_evacuate =
 						xstrdup(region->name);
 				}
+				/* Prevent carrying around a dangling pointer */
+				view->tiled_region = NULL;
 				break;
 			}
 		}

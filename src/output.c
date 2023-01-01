@@ -212,6 +212,9 @@ new_output_notify(struct wl_listener *listener, void *data)
 	output->scene_output = wlr_scene_get_scene_output(server->scene, wlr_output);
 	assert(output->scene_output);
 
+	/* Create regions from config */
+	regions_reconfigure_output(output);
+
 	server->pending_output_layout_change--;
 	do_output_layout_change(server);
 }
@@ -452,7 +455,7 @@ void
 output_update_usable_area(struct output *output)
 {
 	if (update_usable_area(output)) {
-		regions_update(output);
+		regions_update_geometry(output);
 		desktop_arrange_all_views(output->server);
 	}
 }
@@ -466,9 +469,9 @@ output_update_all_usable_areas(struct server *server, bool layout_changed)
 	wl_list_for_each(output, &server->outputs, link) {
 		if (update_usable_area(output)) {
 			usable_area_changed = true;
-			regions_update(output);
+			regions_update_geometry(output);
 		} else if (layout_changed) {
-			regions_update(output);
+			regions_update_geometry(output);
 		}
 	}
 	if (usable_area_changed || layout_changed) {

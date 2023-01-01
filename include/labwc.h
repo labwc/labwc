@@ -315,7 +315,6 @@ struct output {
 	struct wlr_box usable_area;
 
 	struct wl_list regions;  /* struct region.link */
-	struct wlr_box regions_usable_area;
 
 	struct lab_data_buffer *osd_buffer;
 

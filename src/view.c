@@ -438,7 +438,7 @@ view_apply_special_geometry(struct view *view)
 }
 
 static void
-view_apply_unmaximized_geometry(struct view *view)
+view_apply_natural_geometry(struct view *view)
 {
 	struct wlr_output_layout *layout = view->server->output_layout;
 	if (wlr_output_layout_intersects(layout, NULL,
@@ -516,7 +516,7 @@ view_maximize(struct view *view, bool maximize, bool store_natural_geometry)
 	}
 	set_maximized(view, maximize);
 	if (!view_apply_special_geometry(view)) {
-		view_apply_unmaximized_geometry(view);
+		view_apply_natural_geometry(view);
 	}
 }
 
@@ -652,7 +652,7 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		}
 		/* Restore non-fullscreen geometry */
 		if (!view_apply_special_geometry(view)) {
-			view_apply_unmaximized_geometry(view);
+			view_apply_natural_geometry(view);
 		}
 	}
 

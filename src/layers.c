@@ -69,7 +69,7 @@ layers_arrange(struct output *output)
 			scene_output->y);
 	}
 
-	memcpy(&output->usable_area, &usable_area, sizeof(output->usable_area));
+	output->usable_area = usable_area;
 
 	/* Find topmost keyboard interactive layer, if such a layer exists */
 	uint32_t layers_above_views[] = {
@@ -104,8 +104,7 @@ layers_arrange(struct output *output)
 	}
 
 	/* Finally re-arrange all views based on usable_area */
-	if (old_usable_area.width != output->usable_area.width
-			|| old_usable_area.height != output->usable_area.height) {
+	if (!wlr_box_equal(&old_usable_area, &usable_area)) {
 		desktop_arrange_all_views(server);
 	}
 	cursor_update_focus(output->server);

@@ -14,6 +14,8 @@
 #define IGNORE_MENU true
 #define LEFT_COL_SPACE 35
 
+static struct view *last_view;
+
 static const char *
 get_node_type(struct wlr_scene_node *node)
 {
@@ -67,8 +69,7 @@ get_view_part(struct view *view, struct wlr_scene_node *node)
 }
 
 static const char *
-get_special(struct server *server, struct wlr_scene_node *node,
-	struct view **last_view)
+get_special(struct server *server, struct wlr_scene_node *node)
 {
 	if (node == &server->scene->tree.node) {
 		return "server->scene";
@@ -92,6 +93,9 @@ get_special(struct server *server, struct wlr_scene_node *node,
 			if (node == &output->osd_tree->node) {
 				return "output->osd_tree";
 			}
+			if (node == &output->layer_popup_tree->node) {
+				return "output->popup_tree";
+			}
 			for (int i = 0; i < 4; i++) {
 				if (node == &output->layer_tree[i]->node) {
 					return get_layer_name(i);
@@ -107,12 +111,12 @@ get_special(struct server *server, struct wlr_scene_node *node,
 	struct wlr_scene_tree *grand_parent =
 		node->parent ? node->parent->node.parent : NULL;
 	if (grand_parent == server->view_tree) {
-		*last_view = node_view_from_node(node);
+		last_view = node_view_from_node(node);
 	}
 	if (node->parent == server->view_tree_always_on_top) {
-		*last_view = node_view_from_node(node);
+		last_view = node_view_from_node(node);
 	}
-	const char *view_part = get_view_part(*last_view, node);
+	const char *view_part = get_view_part(last_view, node);
 	if (view_part) {
 		return view_part;
 	}
@@ -138,8 +142,7 @@ static void
 dump_tree(struct server *server, struct wlr_scene_node *node,
 	int pos, int x, int y)
 {
-	static struct view *view;
-	const char *type = get_special(server, node, &view);
+	const char *type = get_special(server, node);
 
 	if (pos) {
 		printf("%*c+-- ", pos, ' ');
@@ -158,8 +161,8 @@ dump_tree(struct server *server, struct wlr_scene_node *node,
 	printf("%s %*c %4d  %4d  [%p]\n", type, padding, ' ', x, y, node);
 
 	if ((IGNORE_MENU && node == &server->menu_tree->node)
-			|| (IGNORE_SSD && view
-			&& ssd_debug_is_root_node(view->ssd, node))) {
+			|| (IGNORE_SSD && last_view
+			&& ssd_debug_is_root_node(last_view->ssd, node))) {
 		printf("%*c%s\n", pos + 4 + INDENT_SIZE, ' ', "<skipping children>");
 		return;
 	}
@@ -180,4 +183,10 @@ debug_dump_scene(struct server *server)
 	printf("\n");
 	dump_tree(server, &server->scene->tree.node, 0, 0, 0);
 	printf("\n");
+
+	/*
+	 * Reset last_view so we don't access a
+	 * potentially free'd pointer on the next call
+	 */
+	last_view = NULL;
 }

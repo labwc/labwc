@@ -46,15 +46,15 @@ msgstr "Her zaman üstte"
 
 #: src/menu/menu.c:662
 msgid "Move left"
-msgstr ""
+msgstr "Sola git"
 
 #: src/menu/menu.c:667
 msgid "Move right"
-msgstr ""
+msgstr "Sağa git"
 
 #: src/menu/menu.c:672
 msgid "Workspace"
-msgstr ""
+msgstr "Çalışma alanı"
 
 #: src/menu/menu.c:675
 msgid "Close"

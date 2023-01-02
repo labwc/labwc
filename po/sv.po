@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
-"POT-Creation-Date: 2022-04-30 16:43+1000\n"
+"POT-Creation-Date: 2023-01-02 11:22+1000\n"
 "PO-Revision-Date: 2022-04-30 16:50+1000\n"
 "Last-Translator: Johan Malm <jgm323@gmail.com\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,34 +17,46 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/menu/menu.c:428
+#: src/menu/menu.c:631
 msgid "Reconfigure"
 msgstr "Konfigurera om"
 
-#: src/menu/menu.c:430
+#: src/menu/menu.c:633
 msgid "Exit"
 msgstr "Utgång"
 
-#: src/menu/menu.c:446
+#: src/menu/menu.c:649
 msgid "Minimize"
 msgstr "Minimera"
 
-#: src/menu/menu.c:448
+#: src/menu/menu.c:651
 msgid "Maximize"
 msgstr "Maximera"
 
-#: src/menu/menu.c:450
+#: src/menu/menu.c:653
 msgid "Fullscreen"
 msgstr "Fullskärm"
 
-#: src/menu/menu.c:452
+#: src/menu/menu.c:655
 msgid "Decorations"
 msgstr "Dekorationer"
 
-#: src/menu/menu.c:454
+#: src/menu/menu.c:657
 msgid "AlwaysOnTop"
 msgstr "Alltid överst"
 
-#: src/menu/menu.c:456
+#: src/menu/menu.c:662
+msgid "Move left"
+msgstr ""
+
+#: src/menu/menu.c:667
+msgid "Move right"
+msgstr ""
+
+#: src/menu/menu.c:672
+msgid "Workspace"
+msgstr ""
+
+#: src/menu/menu.c:675
 msgid "Close"
 msgstr "Stäng"

@@ -47,15 +47,15 @@ msgstr "Immer im Vordergrund"
 
 #: src/menu/menu.c:662
 msgid "Move left"
-msgstr ""
+msgstr "nach links"
 
 #: src/menu/menu.c:667
 msgid "Move right"
-msgstr ""
+msgstr "nach rechts"
 
 #: src/menu/menu.c:672
 msgid "Workspace"
-msgstr ""
+msgstr "Arbeitsfläche"
 
 #: src/menu/menu.c:675
 msgid "Close"

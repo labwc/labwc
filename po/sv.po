@@ -47,15 +47,15 @@ msgstr "Alltid överst"
 
 #: src/menu/menu.c:662
 msgid "Move left"
-msgstr ""
+msgstr "Flytta till vänster"
 
 #: src/menu/menu.c:667
 msgid "Move right"
-msgstr ""
+msgstr "Flytta till höger"
 
 #: src/menu/menu.c:672
 msgid "Workspace"
-msgstr ""
+msgstr "Arbetsyta"
 
 #: src/menu/menu.c:675
 msgid "Close"

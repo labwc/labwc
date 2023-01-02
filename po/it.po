@@ -47,15 +47,15 @@ msgstr "Sempre sopra"
 
 #: src/menu/menu.c:662
 msgid "Move left"
-msgstr ""
+msgstr "Sposta a sinistra"
 
 #: src/menu/menu.c:667
 msgid "Move right"
-msgstr ""
+msgstr "Sposta a destra"
 
 #: src/menu/menu.c:672
 msgid "Workspace"
-msgstr ""
+msgstr "Area di lavoro"
 
 #: src/menu/menu.c:675
 msgid "Close"

@@ -355,6 +355,24 @@ view_center(struct view *view)
 }
 
 static void
+view_apply_natural_geometry(struct view *view)
+{
+	struct wlr_output_layout *layout = view->server->output_layout;
+	if (wlr_output_layout_intersects(layout, NULL,
+			&view->natural_geometry)) {
+		/* restore to original geometry */
+		view_move_resize(view, view->natural_geometry);
+	} else {
+		/* reposition if original geometry is offscreen */
+		struct wlr_box box = view->natural_geometry;
+		if (view_compute_centered_position(view, box.width, box.height,
+				&box.x, &box.y)) {
+			view_move_resize(view, box);
+		}
+	}
+}
+
+static void
 view_apply_tiled_geometry(struct view *view, struct output *output)
 {
 	assert(view->tiled);
@@ -435,24 +453,6 @@ view_apply_special_geometry(struct view *view)
 		return false;
 	}
 	return true;
-}
-
-static void
-view_apply_natural_geometry(struct view *view)
-{
-	struct wlr_output_layout *layout = view->server->output_layout;
-	if (wlr_output_layout_intersects(layout, NULL,
-			&view->natural_geometry)) {
-		/* restore to original geometry */
-		view_move_resize(view, view->natural_geometry);
-	} else {
-		/* reposition if original geometry is offscreen */
-		struct wlr_box box = view->natural_geometry;
-		if (view_compute_centered_position(view, box.width, box.height,
-				&box.x, &box.y)) {
-			view_move_resize(view, box);
-		}
-	}
 }
 
 static void

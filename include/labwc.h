@@ -351,6 +351,7 @@ void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
 void xdg_surface_new(struct wl_listener *listener, void *data);
 
 #if HAVE_XWAYLAND
+bool xwayland_apply_size_hints(struct view *view, int *w, int *h);
 void xwayland_surface_new(struct wl_listener *listener, void *data);
 struct xwayland_unmanaged *xwayland_unmanaged_create(struct server *server,
 	struct wlr_xwayland_surface *xsurface);

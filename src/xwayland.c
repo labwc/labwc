@@ -7,6 +7,43 @@
 #include "view.h"
 #include "workspaces.h"
 
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
+static int
+round_to_increment(int val, int base, int inc)
+{
+	if (base < 0 || inc <= 0)
+		return val;
+	return base + (val - base + inc / 2) / inc * inc;
+}
+
+bool
+xwayland_apply_size_hints(struct view *view, int *w, int *h)
+{
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		xcb_size_hints_t *hints =
+			xwayland_surface_from_view(view)->size_hints;
+
+		/*
+		 * Honor size increments from WM_SIZE_HINTS. Typically, X11
+		 * terminal emulators will use WM_SIZE_HINTS to make sure that
+		 * the terminal is resized to a width/height evenly divisible by
+		 * the cell (character) size.
+		 */
+		if (hints) {
+			*w = round_to_increment(*w, hints->base_width,
+				hints->width_inc);
+			*h = round_to_increment(*h, hints->base_height,
+				hints->height_inc);
+
+			*w = MAX(*w, MAX(1, hints->min_width));
+			*h = MAX(*h, MAX(1, hints->min_height));
+			return true;
+		}
+	}
+	return false;
+}
+
 static struct xwayland_view *
 xwayland_view_from_view(struct view *view)
 {

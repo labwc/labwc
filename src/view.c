@@ -9,12 +9,11 @@
 #include "view.h"
 #include "workspaces.h"
 
-#if HAVE_XWAYLAND
-#include <xcb/xcb_icccm.h>
-#endif
-
-#define LAB_FALLBACK_WIDTH 640
+#define LAB_MIN_VIEW_WIDTH  100
+#define LAB_MIN_VIEW_HEIGHT  60
+#define LAB_FALLBACK_WIDTH  640
 #define LAB_FALLBACK_HEIGHT 480
+
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 /**
@@ -168,49 +167,20 @@ view_move_resize(struct view *view, struct wlr_box geo)
 	}
 }
 
-#define MIN_VIEW_WIDTH (100)
-#define MIN_VIEW_HEIGHT (60)
-
-#if HAVE_XWAYLAND
-static int
-round_to_increment(int val, int base, int inc)
-{
-	if (base < 0 || inc <= 0)
-		return val;
-	return base + (val - base + inc / 2) / inc * inc;
-}
-#endif
-
 void
 view_adjust_size(struct view *view, int *w, int *h)
 {
 	assert(view);
-	int min_width = MIN_VIEW_WIDTH;
-	int min_height = MIN_VIEW_HEIGHT;
+
 #if HAVE_XWAYLAND
-	if (view->type == LAB_XWAYLAND_VIEW) {
-		xcb_size_hints_t *hints =
-			xwayland_surface_from_view(view)->size_hints;
-
-		/*
-		 * Honor size increments from WM_SIZE_HINTS. Typically, X11
-		 * terminal emulators will use WM_SIZE_HINTS to make sure that
-		 * the terminal is resized to a width/height evenly divisible by
-		 * the cell (character) size.
-		 */
-		if (hints) {
-			*w = round_to_increment(*w, hints->base_width,
-				hints->width_inc);
-			*h = round_to_increment(*h, hints->base_height,
-				hints->height_inc);
-
-			min_width = MAX(1, hints->min_width);
-			min_height = MAX(1, hints->min_height);
-		}
+	if (xwayland_apply_size_hints(view, w, h)) {
+		/* We don't want to cap the size to keep the aspect ratio */
+		return;
 	}
 #endif
-	*w = MAX(*w, min_width);
-	*h = MAX(*h, min_height);
+
+	*w = MAX(*w, LAB_MIN_VIEW_WIDTH);
+	*h = MAX(*h, LAB_MIN_VIEW_HEIGHT);
 }
 
 void

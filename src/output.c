@@ -240,7 +240,7 @@ output_init(struct server *server)
 static void
 output_update_for_layout_change(struct server *server)
 {
-	output_update_all_usable_areas(server, /*enforce_view_arrange*/ true);
+	output_update_all_usable_areas(server, /*layout_changed*/ true);
 
 	/*
 	 * "Move" each wlr_output_cursor (in per-output coordinates) to
@@ -451,7 +451,7 @@ output_update_usable_area(struct output *output)
 }
 
 void
-output_update_all_usable_areas(struct server *server, bool enforce_view_arrange)
+output_update_all_usable_areas(struct server *server, bool layout_changed)
 {
 	bool usable_area_changed = false;
 	struct output *output;
@@ -459,7 +459,7 @@ output_update_all_usable_areas(struct server *server, bool enforce_view_arrange)
 	wl_list_for_each(output, &server->outputs, link) {
 		usable_area_changed |= update_usable_area(output);
 	}
-	if (usable_area_changed || enforce_view_arrange) {
+	if (usable_area_changed || layout_changed) {
 		desktop_arrange_all_views(server);
 	}
 }

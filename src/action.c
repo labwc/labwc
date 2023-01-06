@@ -253,11 +253,17 @@ actions_run(struct view *activator, struct server *server,
 	struct action *action;
 	struct action_arg *arg;
 	wl_list_for_each(action, actions, link) {
-		wlr_log(WLR_DEBUG, "Handling action %s (%u)",
-			 action_names[action->type], action->type);
-
 		/* Get arg now so we don't have to repeat every time we only need one */
 		arg = action_get_first_arg(action);
+
+		if (arg && arg->type == LAB_ACTION_ARG_STR) {
+			wlr_log(WLR_DEBUG, "Handling action %u: %s %s",
+				action->type, action_names[action->type],
+				action_str_from_arg(arg));
+		} else {
+			wlr_log(WLR_DEBUG, "Handling action %u: %s",
+				action->type, action_names[action->type]);
+		}
 
 		/*
 		 * Refetch view because it may have been changed due to the

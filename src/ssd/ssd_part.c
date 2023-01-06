@@ -123,10 +123,8 @@ get_scale_box(struct wlr_buffer *buffer, double container_width,
 
 	/* Scale down buffer if required */
 	if (icon_geo.width && icon_geo.height) {
-		#define MIN(a, b) ((a) < (b) ? (a) : (b))
 		double scale = MIN(container_width / icon_geo.width,
 			container_height / icon_geo.height);
-		#undef MIN
 		if (scale < 1.0f) {
 			icon_geo.width = (double)icon_geo.width * scale;
 			icon_geo.height = (double)icon_geo.height * scale;

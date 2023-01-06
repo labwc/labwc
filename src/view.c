@@ -14,8 +14,6 @@
 #define LAB_FALLBACK_WIDTH  640
 #define LAB_FALLBACK_HEIGHT 480
 
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-
 /**
  * All view_apply_xxx_geometry() functions must *not* modify
  * any state besides repositioning or resizing the view.

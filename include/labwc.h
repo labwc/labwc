@@ -61,6 +61,14 @@
 #define XCURSOR_DEFAULT "left_ptr"
 #define XCURSOR_SIZE 24
 
+#ifndef MIN
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef MAX
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#endif
+
 enum input_mode {
 	LAB_INPUT_STATE_PASSTHROUGH = 0,
 	LAB_INPUT_STATE_MOVE,

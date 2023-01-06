@@ -7,8 +7,6 @@
 #include "view.h"
 #include "workspaces.h"
 
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-
 static int
 round_to_increment(int val, int base, int inc)
 {

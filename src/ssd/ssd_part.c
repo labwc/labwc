@@ -155,11 +155,11 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 
 	/* Background */
 	add_scene_rect(part_list, type, parent,
-		BUTTON_WIDTH, rc.theme->title_height, 0, 0, bg_color);
+		SSD_BUTTON_WIDTH, rc.theme->title_height, 0, 0, bg_color);
 
 	/* Icon */
 	struct wlr_box icon_geo = get_scale_box(icon_buffer,
-		BUTTON_WIDTH, rc.theme->title_height);
+		SSD_BUTTON_WIDTH, rc.theme->title_height);
 	struct ssd_part *icon_part = add_scene_buffer(part_list, type,
 		parent, icon_buffer, icon_geo.x, icon_geo.y);
 
@@ -169,7 +169,7 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		icon_geo.width, icon_geo.height);
 
 	/* Hover overlay */
-	hover = add_scene_rect(part_list, type, parent, BUTTON_WIDTH,
+	hover = add_scene_rect(part_list, type, parent, SSD_BUTTON_WIDTH,
 		rc.theme->title_height, 0, 0, hover_bg)->node;
 	wlr_scene_node_set_enabled(hover, false);
 

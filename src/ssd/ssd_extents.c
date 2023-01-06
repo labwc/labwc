@@ -40,8 +40,8 @@ ssd_extents_create(struct ssd *ssd)
 	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
 	struct wl_list *part_list = &ssd->extents.parts;
-	int extended_area = EXTENDED_AREA;
-	int corner_size = extended_area + theme->border_width + BUTTON_WIDTH / 2;
+	int extended_area = SSD_EXTENDED_AREA;
+	int corner_size = extended_area + theme->border_width + SSD_BUTTON_WIDTH / 2;
 
 	ssd->extents.tree = wlr_scene_tree_create(ssd->tree);
 	struct wlr_scene_tree *parent = ssd->extents.tree;
@@ -117,8 +117,8 @@ ssd_extents_update(struct ssd *ssd)
 	int height = view->h;
 	int full_height = height + theme->border_width * 2 + theme->title_height;
 	int full_width = width + 2 * theme->border_width;
-	int extended_area = EXTENDED_AREA;
-	int corner_size = extended_area + theme->border_width + BUTTON_WIDTH / 2;
+	int extended_area = SSD_EXTENDED_AREA;
+	int corner_size = extended_area + theme->border_width + SSD_BUTTON_WIDTH / 2;
 	int side_width = full_width + extended_area * 2 - corner_size * 2;
 	int side_height = full_height + extended_area * 2 - corner_size * 2;
 

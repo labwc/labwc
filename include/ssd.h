@@ -4,9 +4,9 @@
 
 #include <wayland-server-core.h>
 
-#define BUTTON_COUNT 4
-#define BUTTON_WIDTH 26
-#define EXTENDED_AREA 8
+#define SSD_BUTTON_COUNT 4
+#define SSD_BUTTON_WIDTH 26
+#define SSD_EXTENDED_AREA 8
 
 /*
  * Sequence these according to the order they should be processed for

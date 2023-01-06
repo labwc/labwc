@@ -494,7 +494,7 @@ create_corners(struct theme *theme)
 	struct wlr_box box = {
 		.x = 0,
 		.y = 0,
-		.width = BUTTON_WIDTH + theme->border_width,
+		.width = SSD_BUTTON_WIDTH + theme->border_width,
 		.height = theme->title_height + theme->border_width,
 	};
 

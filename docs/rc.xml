@@ -19,13 +19,15 @@
 
   <keyboard>
     <default />
-    <keybind key="A-Return">
-      <action name="Execute" command="sakura" />
+    <!-- Use a different terminal emulator -->
+    <keybind key="W-Return">
+      <action name="Execute" command="foot" />
     </keybind>
   </keyboard>
 
   <mouse>
     <default />
+    <!-- Show a custom menu on desktop right click -->
     <context name="Root">
       <mousebind button="Right" action="Press">
         <action name="ShowMenu" menu="some-custom-menu" />

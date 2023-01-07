@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
+#include <wlr/xwayland.h>
 #include "common/list.h"
 #include "common/mem.h"
 #include "labwc.h"
+#include "xwayland.h"
 
 static void
 unmanaged_handle_request_configure(struct wl_listener *listener, void *data)
@@ -30,7 +32,7 @@ unmanaged_handle_set_geometry(struct wl_listener *listener, void *data)
 	}
 }
 
-void
+static void
 unmanaged_handle_map(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
@@ -140,9 +142,9 @@ unmanaged_handle_request_activate(struct wl_listener *listener, void *data)
 	wlr_log(WLR_DEBUG, "request_activate not handled\n");
 }
 
-struct xwayland_unmanaged *
+void
 xwayland_unmanaged_create(struct server *server,
-			  struct wlr_xwayland_surface *xsurface)
+		struct wlr_xwayland_surface *xsurface, bool mapped)
 {
 	struct xwayland_unmanaged *unmanaged = znew(*unmanaged);
 	unmanaged->server = server;
@@ -170,5 +172,7 @@ xwayland_unmanaged_create(struct server *server,
 		&unmanaged->request_activate);
 	unmanaged->request_activate.notify = unmanaged_handle_request_activate;
 
-	return unmanaged;
+	if (mapped) {
+		unmanaged_handle_map(&unmanaged->map, xsurface);
+	}
 }

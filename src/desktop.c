@@ -10,6 +10,7 @@
 #include "ssd.h"
 #include "view.h"
 #include "workspaces.h"
+#include "xwayland.h"
 
 static void
 move_to_front(struct view *view)
@@ -19,47 +20,6 @@ move_to_front(struct view *view)
 	wlr_scene_node_raise_to_top(&view->scene_tree->node);
 }
 
-#if HAVE_XWAYLAND
-static struct wlr_xwayland_surface *
-top_parent_of(struct view *view)
-{
-	struct wlr_xwayland_surface *s = xwayland_surface_from_view(view);
-	while (s->parent) {
-		s = s->parent;
-	}
-	return s;
-}
-
-static void
-move_xwayland_sub_views_to_front(struct view *parent)
-{
-	if (!parent || parent->type != LAB_XWAYLAND_VIEW) {
-		return;
-	}
-	struct wlr_xwayland_surface *parent_xwayland_surface =
-		xwayland_surface_from_view(parent);
-	struct view *view, *next;
-	wl_list_for_each_reverse_safe(view, next, &parent->server->views, link)
-	{
-		/* need to stop here, otherwise loops keeps going forever */
-		if (view == parent) {
-			break;
-		}
-		if (view->type != LAB_XWAYLAND_VIEW) {
-			continue;
-		}
-		if (!view->mapped && !view->minimized) {
-			continue;
-		}
-		if (top_parent_of(view) != parent_xwayland_surface) {
-			continue;
-		}
-		move_to_front(view);
-		/* TODO: we should probably focus on these too here */
-	}
-}
-#endif
-
 void
 desktop_move_to_front(struct view *view)
 {
@@ -68,7 +28,7 @@ desktop_move_to_front(struct view *view)
 	}
 	move_to_front(view);
 #if HAVE_XWAYLAND
-	move_xwayland_sub_views_to_front(view);
+	xwayland_move_sub_views_to_front(view, move_to_front);
 #endif
 	cursor_update_focus(view->server);
 }

@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#define _POSIX_C_SOURCE 200809L
 #include <assert.h>
+#include <stdlib.h>
+#include <wlr/xwayland.h>
 #include "common/mem.h"
 #include "labwc.h"
 #include "node.h"
 #include "ssd.h"
 #include "view.h"
 #include "workspaces.h"
+#include "xwayland.h"
 
 static int
 round_to_increment(int val, int base, int inc)
@@ -18,6 +22,7 @@ round_to_increment(int val, int base, int inc)
 bool
 xwayland_apply_size_hints(struct view *view, int *w, int *h)
 {
+	assert(view);
 	if (view->type == LAB_XWAYLAND_VIEW) {
 		xcb_size_hints_t *hints =
 			xwayland_surface_from_view(view)->size_hints;
@@ -40,6 +45,50 @@ xwayland_apply_size_hints(struct view *view, int *w, int *h)
 		}
 	}
 	return false;
+}
+
+static struct wlr_xwayland_surface *
+top_parent_of(struct view *view)
+{
+	struct wlr_xwayland_surface *s = xwayland_surface_from_view(view);
+	while (s->parent) {
+		s = s->parent;
+	}
+	return s;
+}
+
+void
+xwayland_move_sub_views_to_front(struct view *parent,
+		void (*move_to_front)(struct view *view))
+{
+	assert(parent);
+	assert(move_to_front);
+
+	if (parent->type != LAB_XWAYLAND_VIEW) {
+		return;
+	}
+
+	struct wlr_xwayland_surface *parent_xwayland_surface =
+		xwayland_surface_from_view(parent);
+	struct view *view, *next;
+	wl_list_for_each_reverse_safe(view, next, &parent->server->views, link)
+	{
+		/* need to stop here, otherwise loops keeps going forever */
+		if (view == parent) {
+			break;
+		}
+		if (view->type != LAB_XWAYLAND_VIEW) {
+			continue;
+		}
+		if (!view->mapped && !view->minimized) {
+			continue;
+		}
+		if (top_parent_of(view) != parent_xwayland_surface) {
+			continue;
+		}
+		move_to_front(view);
+		/* TODO: we should probably focus on these too here */
+	}
 }
 
 static struct xwayland_view *
@@ -360,11 +409,7 @@ handle_override_redirect(struct wl_listener *listener, void *data)
 	}
 	handle_destroy(&view->destroy, xsurface);
 	/* view is invalid after this point */
-	struct xwayland_unmanaged *unmanaged =
-		xwayland_unmanaged_create(server, xsurface);
-	if (mapped) {
-		unmanaged_handle_map(&unmanaged->map, xsurface);
-	}
+	xwayland_unmanaged_create(server, xsurface, mapped);
 }
 
 static void
@@ -534,11 +579,11 @@ static const struct view_impl xwl_view_impl = {
 	.maximize = maximize
 };
 
-void
-xwayland_surface_new(struct wl_listener *listener, void *data)
+static void
+handle_new_surface(struct wl_listener *listener, void *data)
 {
 	struct server *server =
-		wl_container_of(listener, server, new_xwayland_surface);
+		wl_container_of(listener, server, xwayland_new_surface);
 	struct wlr_xwayland_surface *xsurface = data;
 	wlr_xwayland_surface_ping(xsurface);
 
@@ -547,7 +592,7 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 	 * but add them to server.unmanaged_surfaces so that we can render them
 	 */
 	if (xsurface->override_redirect) {
-		xwayland_unmanaged_create(server, xsurface);
+		xwayland_unmanaged_create(server, xsurface, /* mapped */ false);
 		return;
 	}
 
@@ -613,4 +658,55 @@ xwayland_surface_new(struct wl_listener *listener, void *data)
 		&xwayland_view->override_redirect);
 
 	wl_list_insert(&view->server->views, &view->link);
+}
+
+static void
+handle_ready(struct wl_listener *listener, void *data)
+{
+	struct server *server =
+		wl_container_of(listener, server, xwayland_ready);
+	wlr_xwayland_set_seat(server->xwayland, server->seat.seat);
+}
+
+void
+xwayland_server_init(struct server *server, struct wlr_compositor *compositor)
+{
+	server->xwayland =
+		wlr_xwayland_create(server->wl_display, compositor, true);
+	if (!server->xwayland) {
+		wlr_log(WLR_ERROR, "cannot create xwayland server");
+		exit(EXIT_FAILURE);
+	}
+	server->xwayland_new_surface.notify = handle_new_surface;
+	wl_signal_add(&server->xwayland->events.new_surface,
+		      &server->xwayland_new_surface);
+
+	server->xwayland_ready.notify = handle_ready;
+	wl_signal_add(&server->xwayland->events.ready,
+		&server->xwayland_ready);
+
+	if (setenv("DISPLAY", server->xwayland->display_name, true) < 0) {
+		wlr_log_errno(WLR_ERROR, "unable to set DISPLAY for xwayland");
+	} else {
+		wlr_log(WLR_DEBUG, "xwayland is running on display %s",
+			server->xwayland->display_name);
+	}
+
+	struct wlr_xcursor *xcursor;
+	xcursor = wlr_xcursor_manager_get_xcursor(server->seat.xcursor_manager,
+						  XCURSOR_DEFAULT, 1);
+	if (xcursor) {
+		struct wlr_xcursor_image *image = xcursor->images[0];
+		wlr_xwayland_set_cursor(server->xwayland, image->buffer,
+					image->width * 4, image->width,
+					image->height, image->hotspot_x,
+					image->hotspot_y);
+	}
+}
+
+void
+xwayland_server_finish(struct server *server)
+{
+	wlr_xwayland_destroy(server->xwayland);
+	server->xwayland = NULL;
 }

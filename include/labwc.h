@@ -43,9 +43,6 @@
 #include <wlr/types/wlr_virtual_pointer_v1.h>
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/util/log.h>
-#if HAVE_XWAYLAND
-#include <wlr/xwayland.h>
-#endif
 #include <xkbcommon/xkbcommon.h>
 #include "cursor.h"
 #include "config/keybind.h"
@@ -217,7 +214,7 @@ struct server {
 #if HAVE_XWAYLAND
 	struct wlr_xwayland *xwayland;
 	struct wl_listener xwayland_ready;
-	struct wl_listener new_xwayland_surface;
+	struct wl_listener xwayland_new_surface;
 #endif
 
 	struct wlr_input_inhibit_manager *input_inhibit;
@@ -322,24 +319,6 @@ struct output {
 
 #undef LAB_NR_LAYERS
 
-#if HAVE_XWAYLAND
-struct xwayland_unmanaged {
-	struct server *server;
-	struct wlr_xwayland_surface *xwayland_surface;
-	struct wlr_scene_node *node;
-	struct wl_list link;
-
-	struct wl_listener request_activate;
-	struct wl_listener request_configure;
-/*	struct wl_listener request_fullscreen; */
-	struct wl_listener set_geometry;
-	struct wl_listener map;
-	struct wl_listener unmap;
-	struct wl_listener destroy;
-	struct wl_listener override_redirect;
-};
-#endif
-
 struct constraint {
 	struct seat *seat;
 	struct wlr_pointer_constraint_v1 *constraint;
@@ -357,14 +336,6 @@ void xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup);
 void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
 
 void xdg_surface_new(struct wl_listener *listener, void *data);
-
-#if HAVE_XWAYLAND
-bool xwayland_apply_size_hints(struct view *view, int *w, int *h);
-void xwayland_surface_new(struct wl_listener *listener, void *data);
-struct xwayland_unmanaged *xwayland_unmanaged_create(struct server *server,
-	struct wlr_xwayland_surface *xsurface);
-void unmanaged_handle_map(struct wl_listener *listener, void *data);
-#endif
 
 void foreign_toplevel_handle_create(struct view *view);
 

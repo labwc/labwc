@@ -46,6 +46,10 @@ Actions are used in menus and keyboard/mouse bindings.
 	Resize window to fill half the output in the given direction. Supports
 	directions "left", "up", "right", "down" and "center".
 
+*<action name="SnapToRegion" region="snap-1" />*
+	Resize and move active window according to the given region.
+	See labwc-config(5) for further information on how to define regions.
+
 *<action name="NextWindow">*
 	Cycle focus to next window.
 

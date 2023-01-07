@@ -81,6 +81,21 @@
     </names>
   </desktops>
 
+  <!-- Percent based regions based on output usable area, % char is required -->
+  <!--
+    <regions>
+      <region name="top-left"     x="0%"  y="0%"  height="50%"  width="50%"  />
+      <region name="top"          x="0%"  y="0%"  height="50%"  width="100%" />
+      <region name="top-right"    x="50%" y="0%"  height="50%"  width="50%"  />
+      <region name="left"         x="0%"  y="0%"  height="100%" width="50%"  />
+      <region name="center"       x="10%" y="10%" height="80%"  width="80%"  />
+      <region name="right"        x="50%" y="0%"  height="100%" width="50%"  />
+      <region name="bottom-left"  x="0%"  y="50%" height="50%"  width="50%"  />
+      <region name="bottom"       x="0%"  y="50%" height="50%"  width="100%" />
+      <region name="bottom-right" x="50%" y="50%" height="50%"  width="50%"  />
+    </regions>
+  -->
+
   <!--
     Keybind actions are specified in labwc-actions(5)
     The following keybind modifiers are supported:
@@ -155,6 +170,18 @@
     <keybind key="XF86_MonBrightnessDown">
       <action name="Execute" command="brightnessctl set 10%-" />
     </keybind>
+    <!-- SnapToRegion via W-Numpad -->
+    <!--
+    <keybind key="W-KP_7"><action name="SnapToRegion" region="top-left" /></keybind>
+    <keybind key="W-KP_8"><action name="SnapToRegion" region="top" /></keybind>
+    <keybind key="W-KP_9"><action name="SnapToRegion" region="top-right" /></keybind>
+    <keybind key="W-KP_4"><action name="SnapToRegion" region="left" /></keybind>
+    <keybind key="W-KP_5"><action name="SnapToRegion" region="center" /></keybind>
+    <keybind key="W-KP_6"><action name="SnapToRegion" region="right" /></keybind>
+    <keybind key="W-KP_1"><action name="SnapToRegion" region="bottom-left" /></keybind>
+    <keybind key="W-KP_2"><action name="SnapToRegion" region="bottom" /></keybind>
+    <keybind key="W-KP_3"><action name="SnapToRegion" region="bottom-right" /></keybind>
+    -->
   </keyboard>
 
   <!--

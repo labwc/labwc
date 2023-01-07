@@ -8,6 +8,7 @@
 #include "ssd.h"
 #include "view.h"
 #include "workspaces.h"
+#include "xwayland.h"
 
 #define LAB_MIN_VIEW_WIDTH  100
 #define LAB_MIN_VIEW_HEIGHT  60

@@ -11,6 +11,9 @@
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
 #include <wlr/types/wlr_viewporter.h>
+#if HAVE_XWAYLAND
+#include <wlr/xwayland.h>
+#endif
 #include "drm-lease-v1-protocol.h"
 #include "config/rcxml.h"
 #include "config/session.h"
@@ -20,6 +23,7 @@
 #include "theme.h"
 #include "view.h"
 #include "workspaces.h"
+#include "xwayland.h"
 
 #define LAB_XDG_SHELL_VERSION (2)
 
@@ -147,16 +151,6 @@ handle_drm_lease_request(struct wl_listener *listener, void *data)
 		output->leased = true;
 	}
 }
-
-#if HAVE_XWAYLAND
-static void
-handle_xwayland_ready(struct wl_listener *listener, void *data)
-{
-	struct server *server =
-		wl_container_of(listener, server, xwayland_ready);
-	wlr_xwayland_set_seat(server->xwayland, server->seat.seat);
-}
-#endif
 
 static bool
 server_global_filter(const struct wl_client *client, const struct wl_global *global, void *data)
@@ -396,40 +390,8 @@ server_init(struct server *server)
 	layers_init(server);
 
 #if HAVE_XWAYLAND
-	/* Init xwayland */
-	server->xwayland =
-		wlr_xwayland_create(server->wl_display, compositor, true);
-	if (!server->xwayland) {
-		wlr_log(WLR_ERROR, "cannot create xwayland server");
-		exit(EXIT_FAILURE);
-	}
-	server->new_xwayland_surface.notify = xwayland_surface_new;
-	wl_signal_add(&server->xwayland->events.new_surface,
-		      &server->new_xwayland_surface);
-
-	server->xwayland_ready.notify = handle_xwayland_ready;
-	wl_signal_add(&server->xwayland->events.ready,
-		&server->xwayland_ready);
-
-	if (setenv("DISPLAY", server->xwayland->display_name, true) < 0) {
-		wlr_log_errno(WLR_ERROR, "unable to set DISPLAY for xwayland");
-	} else {
-		wlr_log(WLR_DEBUG, "xwayland is running on display %s",
-			server->xwayland->display_name);
-	}
-
-	struct wlr_xcursor *xcursor;
-	xcursor = wlr_xcursor_manager_get_xcursor(server->seat.xcursor_manager,
-						  XCURSOR_DEFAULT, 1);
-	if (xcursor) {
-		struct wlr_xcursor_image *image = xcursor->images[0];
-		wlr_xwayland_set_cursor(server->xwayland, image->buffer,
-					image->width * 4, image->width,
-					image->height, image->hotspot_x,
-					image->hotspot_y);
-	}
+	xwayland_server_init(server, compositor);
 #endif
-
 	/* used when handling SIGHUP */
 	g_server = server;
 }
@@ -464,7 +426,7 @@ void
 server_finish(struct server *server)
 {
 #if HAVE_XWAYLAND
-	wlr_xwayland_destroy(server->xwayland);
+	xwayland_server_finish(server);
 #endif
 	if (sighup_source) {
 		wl_event_source_remove(sighup_source);

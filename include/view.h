@@ -97,24 +97,6 @@ struct xdg_toplevel_view {
 	struct wl_listener new_popup;
 };
 
-#if HAVE_XWAYLAND
-struct xwayland_view {
-	struct view base;
-	struct wlr_xwayland_surface *xwayland_surface;
-
-	/* Events unique to XWayland views */
-	struct wl_listener request_configure;
-	struct wl_listener set_app_id;		/* TODO: s/set_app_id/class/ */
-	struct wl_listener set_decorations;
-	struct wl_listener override_redirect;
-
-	/* Not (yet) implemented */
-/*	struct wl_listener set_role; */
-/*	struct wl_listener set_window_type; */
-/*	struct wl_listener set_hints; */
-};
-#endif
-
 void view_set_activated(struct view *view);
 void view_close(struct view *view);
 
@@ -168,10 +150,5 @@ void view_destroy(struct view *view);
 
 /* xdg.c */
 struct wlr_xdg_surface *xdg_surface_from_view(struct view *view);
-
-/* xwayland.c */
-#if HAVE_XWAYLAND
-struct wlr_xwayland_surface *xwayland_surface_from_view(struct view *view);
-#endif
 
 #endif /* __LABWC_VIEW_H */

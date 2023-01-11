@@ -104,6 +104,16 @@ The rest of this man page describes configuration options.
 *<snapping><topMaximize>* [yes|no]
 	Maximize window if Move operation ends on the top edge. Default is yes.
 
+## REGIONS
+
+*<regions><region name="snap-1" x="10%" y="10%" width="80%" height="80%">*
+	Define snap regions. The regions are calculated based on the usable area
+	of each output. Usable area in this context means space not exclusively
+	used by layershell clients like panels. The "%" character is required.
+	Windows can either be snapped to regions by keeping a keyboard modifier
+	pressed while moving a window (Ctrl, Alt, Shift, Logo) or by using the
+	SnapToRegion action. By default there are no regions defined.
+
 ## WORKSPACES
 
 *<desktops><names><name>*

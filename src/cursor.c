@@ -12,6 +12,7 @@
 #include "dnd.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "regions.h"
 #include "resistance.h"
 #include "ssd.h"
 #include "view.h"
@@ -186,6 +187,20 @@ process_cursor_move(struct server *server, uint32_t time)
 	dy += server->grab_box.y;
 	resistance_move_apply(view, &dx, &dy);
 	view_move(view, dx, dy);
+
+	/* Region overlay */
+	if (!regions_available()) {
+		return;
+	}
+	struct wlr_keyboard *keyboard = &server->seat.keyboard_group->keyboard;
+	if (keyboard_any_modifiers_pressed(keyboard)) {
+		struct region *region = regions_from_cursor(server);
+		if (region) {
+			regions_show_overlay(view, &server->seat, region);
+		} else {
+			regions_hide_overlay(&server->seat);
+		}
+	}
 }
 
 static void

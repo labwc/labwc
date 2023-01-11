@@ -19,6 +19,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "node.h"
+#include "regions.h"
 #include "view.h"
 
 static void
@@ -40,6 +41,8 @@ static void
 output_destroy_notify(struct wl_listener *listener, void *data)
 {
 	struct output *output = wl_container_of(listener, output, destroy);
+	regions_evacuate_output(output);
+	regions_destroy(&output->server->seat, &output->regions);
 	wl_list_remove(&output->link);
 	wl_list_remove(&output->frame.link);
 	wl_list_remove(&output->destroy.link);
@@ -148,6 +151,8 @@ new_output_notify(struct wl_listener *listener, void *data)
 	output->frame.notify = output_frame_notify;
 	wl_signal_add(&wlr_output->events.frame, &output->frame);
 
+	wl_list_init(&output->regions);
+
 	/*
 	 * Create layer-trees (background, bottom, top and overlay) and
 	 * a layer-popup-tree.
@@ -206,6 +211,9 @@ new_output_notify(struct wl_listener *listener, void *data)
 	wlr_output_layout_add_auto(server->output_layout, wlr_output);
 	output->scene_output = wlr_scene_get_scene_output(server->scene, wlr_output);
 	assert(output->scene_output);
+
+	/* Create regions from config */
+	regions_reconfigure_output(output);
 
 	server->pending_output_layout_change--;
 	do_output_layout_change(server);
@@ -303,6 +311,7 @@ output_config_apply(struct server *server,
 		}
 
 		if (need_to_remove) {
+			regions_evacuate_output(output);
 			wlr_output_layout_remove(server->output_layout, o);
 			output->scene_output = NULL;
 		}
@@ -446,6 +455,7 @@ void
 output_update_usable_area(struct output *output)
 {
 	if (update_usable_area(output)) {
+		regions_update_geometry(output);
 		desktop_arrange_all_views(output->server);
 	}
 }
@@ -457,7 +467,12 @@ output_update_all_usable_areas(struct server *server, bool layout_changed)
 	struct output *output;
 
 	wl_list_for_each(output, &server->outputs, link) {
-		usable_area_changed |= update_usable_area(output);
+		if (update_usable_area(output)) {
+			usable_area_changed = true;
+			regions_update_geometry(output);
+		} else if (layout_changed) {
+			regions_update_geometry(output);
+		}
 	}
 	if (usable_area_changed || layout_changed) {
 		desktop_arrange_all_views(server);

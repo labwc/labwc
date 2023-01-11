@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
+#include <cairo.h>
 #include <wayland-server-core.h>
 
 struct wlr_scene_tree;

@@ -2,9 +2,11 @@
 #include <assert.h>
 #include <stdio.h>
 #include <strings.h>
+#include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "regions.h"
 #include "ssd.h"
 #include "view.h"
 #include "workspaces.h"
@@ -293,7 +295,7 @@ void
 view_store_natural_geometry(struct view *view)
 {
 	assert(view);
-	if (view->maximized || view->tiled) {
+	if (view->maximized || view_is_tiled(view)) {
 		/* Do not overwrite the stored geometry with special cases */
 		return;
 	}
@@ -338,6 +340,85 @@ view_apply_natural_geometry(struct view *view)
 				&box.x, &box.y)) {
 			view_move_resize(view, box);
 		}
+	}
+}
+
+static void
+view_apply_region_geometry(struct view *view)
+{
+	assert(view);
+	assert(view->tiled_region || view->tiled_region_evacuate);
+
+	if (view->tiled_region_evacuate) {
+		/* View was evacuated from a destroying output */
+		struct output *output = view_output(view);
+		if (!output) {
+			wlr_log(WLR_INFO, "apply region geometry failed: no more ouputs");
+			return;
+		}
+
+		/* Get new output local region, may be NULL */
+		view->tiled_region = regions_from_name(
+			view->tiled_region_evacuate, output);
+
+		/* Get rid of the evacuate instruction */
+		zfree(view->tiled_region_evacuate);
+
+		if (!view->tiled_region) {
+			/* Existing region name doesn't exist in rc.xml anymore */
+			view_set_untiled(view);
+			view_apply_natural_geometry(view);
+			return;
+		}
+	}
+
+	/* Create a copy of the original region geometry */
+	struct wlr_box geo = view->tiled_region->geo;
+
+	/* Adjust for rc.gap */
+	struct output *output = view_output(view);
+	if (rc.gap && output) {
+		double half_gap = rc.gap / 2.0;
+		struct wlr_fbox offset = {
+			.x = half_gap,
+			.y = half_gap,
+			.width = -rc.gap,
+			.height = -rc.gap
+		};
+		struct wlr_box usable =
+			output_usable_area_in_layout_coords(output);
+		if (geo.x == usable.x) {
+			offset.x += half_gap;
+			offset.width -= half_gap;
+		}
+		if (geo.y == usable.y) {
+			offset.y += half_gap;
+			offset.height -= half_gap;
+		}
+		if (geo.x + geo.width == usable.x + usable.width) {
+			offset.width -= half_gap;
+		}
+		if (geo.y + geo.height == usable.y + usable.height) {
+			offset.height -= half_gap;
+		}
+		geo.x += offset.x;
+		geo.y += offset.y;
+		geo.width += offset.width;
+		geo.height += offset.height;
+	}
+
+	/* And adjust for current view */
+	struct border margin = ssd_get_margin(view->ssd);
+	geo.x += margin.left;
+	geo.y += margin.top;
+	geo.width -= margin.left + margin.right;
+	geo.height -= margin.top + margin.bottom;
+
+	if (view->w == geo.width && view->h == geo.height) {
+		/* move horizontally/vertically without changing size */
+		view_move(view, geo.x, geo.y);
+	} else {
+		view_move_resize(view, geo);
 	}
 }
 
@@ -419,6 +500,8 @@ view_apply_special_geometry(struct view *view)
 		view_apply_maximized_geometry(view);
 	} else if (view->tiled) {
 		view_apply_tiled_geometry(view, NULL);
+	} else if (view->tiled_region || view->tiled_region_evacuate) {
+		view_apply_region_geometry(view);
 	} else {
 		return false;
 	}
@@ -455,12 +538,23 @@ view_restore_to(struct view *view, struct wlr_box geometry)
 	view_move_resize(view, geometry);
 }
 
+bool
+view_is_tiled(struct view *view)
+{
+	if (!view) {
+		return false;
+	}
+	return view->tiled || view->tiled_region || view->tiled_region_evacuate;
+}
+
 /* Reset tiled state of view without changing geometry */
 void
 view_set_untiled(struct view *view)
 {
 	assert(view);
 	view->tiled = VIEW_EDGE_INVALID;
+	view->tiled_region = NULL;
+	zfree(view->tiled_region_evacuate);
 }
 
 void
@@ -859,6 +953,27 @@ view_snap_to_edge(struct view *view, const char *direction,
 	view_apply_tiled_geometry(view, output);
 }
 
+void
+view_snap_to_region(struct view *view, struct region *region,
+		bool store_natural_geometry)
+{
+	assert(view);
+	assert(region);
+	if (view->fullscreen) {
+		return;
+	}
+	if (view->maximized) {
+		/* Unmaximize + keep using existing natural_geometry */
+		view_maximize(view, false, /*store_natural_geometry*/ false);
+	} else if (store_natural_geometry) {
+		/* store current geometry as new natural_geometry */
+		view_store_natural_geometry(view);
+	}
+	view_set_untiled(view);
+	view->tiled_region = region;
+	view_apply_region_geometry(view);
+}
+
 const char *
 view_get_string_prop(struct view *view, const char *prop)
 {
@@ -920,6 +1035,7 @@ view_destroy(struct view *view)
 		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		server->grabbed_view = NULL;
 		need_cursor_update = true;
+		regions_hide_overlay(&server->seat);
 	}
 
 	if (server->focused_view == view) {
@@ -929,6 +1045,10 @@ view_destroy(struct view *view)
 
 	if (server->seat.pressed.view == view) {
 		seat_reset_pressed(&server->seat);
+	}
+
+	if (view->tiled_region_evacuate) {
+		zfree(view->tiled_region_evacuate);
 	}
 
 	osd_on_view_destroy(view);

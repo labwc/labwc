@@ -50,6 +50,12 @@ struct view {
 	bool minimized;
 	bool maximized;
 	uint32_t tiled;  /* private, enum view_edge in src/view.c */
+
+	/* Pointer to an output owned struct region, may be NULL */
+	struct region *tiled_region;
+	/* Set to region->name when tiled_region is free'd by a destroying output */
+	char *tiled_region_evacuate;
+
 	struct wlr_output *fullscreen;
 
 	/* geometry of the wlr_surface contained within the view */
@@ -126,6 +132,7 @@ void view_toggle_maximize(struct view *view);
 void view_toggle_decorations(struct view *view);
 void view_toggle_always_on_top(struct view *view);
 bool view_is_always_on_top(struct view *view);
+bool view_is_tiled(struct view *view);
 void view_move_to_workspace(struct view *view, struct workspace *workspace);
 void view_set_decorations(struct view *view, bool decorations);
 void view_toggle_fullscreen(struct view *view);
@@ -133,6 +140,8 @@ void view_adjust_for_layout_change(struct view *view);
 void view_discover_output(struct view *view);
 void view_move_to_edge(struct view *view, const char *direction);
 void view_snap_to_edge(struct view *view, const char *direction,
+	bool store_natural_geometry);
+void view_snap_to_region(struct view *view, struct region *region,
 	bool store_natural_geometry);
 const char *view_get_string_prop(struct view *view, const char *prop);
 void view_update_title(struct view *view);

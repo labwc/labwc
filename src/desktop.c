@@ -135,6 +135,10 @@ first_view(struct server *server)
 	struct wl_list *list_head =
 		&server->workspace_current->tree->children;
 	wl_list_for_each_reverse(node, list_head, link) {
+		if (!node->data) {
+			/* We found some non-view, most likely the region overlay */
+			continue;
+		}
 		struct view *view = node_view_from_node(node);
 		if (isfocusable(view)) {
 			return view;
@@ -200,6 +204,11 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 			list_item = iter(list_item);
 		}
 		node = wl_container_of(list_item, node, link);
+		if (!node->data) {
+			/* We found some non-view, most likely the region overlay */
+			view = NULL;
+			continue;
+		}
 		view = node_view_from_node(node);
 		if (isfocusable(view)) {
 			return view;
@@ -218,6 +227,10 @@ topmost_mapped_view(struct server *server)
 	struct wlr_scene_node *node;
 	node_list = &server->workspace_current->tree->children;
 	wl_list_for_each_reverse(node, node_list, link) {
+		if (!node->data) {
+			/* We found some non-view, most likely the region overlay */
+			continue;
+		}
 		view = node_view_from_node(node);
 		if (view->mapped) {
 			return view;

@@ -20,6 +20,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
+#include "regions.h"
 #include "theme.h"
 #include "view.h"
 #include "workspaces.h"
@@ -49,6 +50,7 @@ reload_config_and_theme(void)
 
 	menu_reconfigure(g_server);
 	seat_reconfigure(g_server);
+	regions_reconfigure(g_server);
 }
 
 static int

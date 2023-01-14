@@ -10,6 +10,7 @@
 #include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
+#include <wlr/types/wlr_single_pixel_buffer_v1.h>
 #include <wlr/types/wlr_viewporter.h>
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
@@ -343,6 +344,7 @@ server_init(struct server *server)
 	wlr_data_control_manager_v1_create(server->wl_display);
 	wlr_gamma_control_manager_v1_create(server->wl_display);
 	wlr_viewporter_create(server->wl_display);
+	wlr_single_pixel_buffer_manager_v1_create(server->wl_display);
 
 	server->relative_pointer_manager = wlr_relative_pointer_manager_v1_create(
 		server->wl_display);

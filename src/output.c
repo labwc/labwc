@@ -66,6 +66,12 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 
 static void do_output_layout_change(struct server *server);
 
+static bool
+can_reuse_mode(struct wlr_output *wlr_output)
+{
+	return wlr_output->current_mode && wlr_output_test(wlr_output);
+}
+
 static void
 new_output_notify(struct wl_listener *listener, void *data)
 {
@@ -109,11 +115,17 @@ new_output_notify(struct wl_listener *listener, void *data)
 	wlr_log(WLR_DEBUG, "enable output");
 	wlr_output_enable(wlr_output, true);
 
-	/* The mode is a tuple of (width, height, refresh rate). */
-	wlr_log(WLR_DEBUG, "set preferred mode");
-	struct wlr_output_mode *preferred_mode =
-		wlr_output_preferred_mode(wlr_output);
-	wlr_output_set_mode(wlr_output, preferred_mode);
+	/*
+	 * Try to re-use the existing mode if configured to do so.
+	 * Failing that, try to set the preferred mode.
+	 */
+	struct wlr_output_mode *preferred_mode = NULL;
+	if (!rc.reuse_output_mode || !can_reuse_mode(wlr_output)) {
+		wlr_log(WLR_DEBUG, "set preferred mode");
+		/* The mode is a tuple of (width, height, refresh rate). */
+		preferred_mode = wlr_output_preferred_mode(wlr_output);
+		wlr_output_set_mode(wlr_output, preferred_mode);
+	}
 
 	/*
 	 * Sometimes the preferred mode is not available due to hardware

@@ -70,6 +70,13 @@ The rest of this man page describes configuration options.
 *<core><adaptiveSync>* [yes|no]
 	Enable adaptive sync. Default is no.
 
+*<core><reuseOutputMode>* [yes|no]
+	Try to re-use the existing output mode (resolution / refresh rate).
+	This may prevent unnecessary screenblank delays when starting labwc
+	(also known as flicker free boot). If the existing output mode can not
+	be used with labwc the preferred mode of the monitor is used instead.
+	Default is no.
+
 *<core><cycleViewPreview>* [yes|no]
 	Preview the contents of the selected window when cycling between windows.
 	Default is no.

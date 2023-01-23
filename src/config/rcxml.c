@@ -400,6 +400,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.gap = atoi(content);
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
 		rc.adaptive_sync = get_bool(content);
+	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
+		rc.reuse_output_mode = get_bool(content);
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = xstrdup(content);
 	} else if (!strcmp(nodename, "cornerradius.theme")) {

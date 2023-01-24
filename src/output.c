@@ -330,8 +330,12 @@ output_config_apply(struct server *server,
 			struct wlr_box pos = {0};
 			wlr_output_layout_get_box(server->output_layout, o, &pos);
 			if (pos.x != head->state.x || pos.y != head->state.y) {
-				/* This overrides the automatic layout */
-				wlr_output_layout_move(server->output_layout, o,
+				/*
+				 * This overrides the automatic layout
+				 *
+				 * wlr_output_layout_add() in fact means _move()
+				 */
+				wlr_output_layout_add(server->output_layout, o,
 					head->state.x, head->state.y);
 			}
 		}

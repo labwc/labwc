@@ -244,7 +244,8 @@ server_init(struct server *server)
 	 * backend based on the current environment, such as opening an x11
 	 * window if an x11 server is running.
 	 */
-	server->backend = wlr_backend_autocreate(server->wl_display);
+	server->backend = wlr_backend_autocreate(
+		server->wl_display, &server->session);
 	if (!server->backend) {
 		wlr_log(WLR_ERROR, "unable to create backend");
 		fprintf(stderr, helpful_seat_error_message);

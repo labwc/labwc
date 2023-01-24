@@ -18,13 +18,7 @@ static bool should_cancel_cycling_on_next_key_release;
 static void
 change_vt(struct server *server, unsigned int vt)
 {
-	if (!wlr_backend_is_multi(server->backend)) {
-		return;
-	}
-	struct wlr_session *session = wlr_backend_get_session(server->backend);
-	if (session) {
-		wlr_session_change_vt(session, vt);
-	}
+	wlr_session_change_vt(server->session, vt);
 }
 
 bool

@@ -32,7 +32,8 @@ handle_surface_commit(struct wl_listener *listener, void *data)
 	struct wlr_scene_tree *surface_tree = self->icon->data;
 	if (surface_tree) {
 		wlr_scene_node_set_position(&surface_tree->node,
-			surface->sx, surface->sy);
+			surface_tree->node.x + surface->current.dx,
+			surface_tree->node.y + surface->current.dy);
 	}
 }
 

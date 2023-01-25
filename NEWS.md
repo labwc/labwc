@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | Release notes | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2023-01-29 | [0.6.1]       | 0.16.1          | 11828         |
 | 2022-11-17 | [0.6.0]       | 0.16.0          | 10830         |
 | 2022-07-15 | [0.5.3]       | 0.15.1          | 9216          |
 | 2022-05-17 | [0.5.2]       | 0.15.1          | 8829          |
@@ -18,6 +19,69 @@ The format is based on [Keep a Changelog]
 | 2021-06-28 | [0.3.0]       | 0.14.0          | 5051          |
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
+
+## 0.6.1 - 2023-01-29
+
+As usual, this release contains lots of refactoring and bug fixes with
+particular thanks going to @Consolatis, @jlindgren90, @bi4k8, @Flrian and
+@Joshua-Ashton.
+
+### Added
+
+- Add `<regions>` config option allowing the definition of regions to which
+  windows can be snapped by keeping a keyboard modifier pressed while dragging
+  or by using the SnapToRegion action. Written-by: @Consolatis
+- Add `<Kill>` action to send SIGTERM to a client process. Written-by: @bi4k8
+- Add config option `<core><reuseOutputMode>` to support flicker free boot
+  (issue #724). Written-by: @Consolatis
+- Enable single-pixel-buffer-v1
+- Support theme setting override by reading `<config-dir>/themerc-override`
+- Scale down SSD button icons if necessary to allow using larger ones for high
+  and mixed DPI usecases. Issue #609. Written-by: @Consolatis
+- Handle client request for layer-change
+- Support setting color of client menu buttons. Written-by: @Flrian
+- Dynamically adjust menu width based on widest item. Written-by: @Consolatis
+- Add theme options menu.width.{min,max} and menu.items.padding.{x,y}
+
+### Fixed
+
+- Scale cursor correctly at startup and on output scale-change.
+  Written-by: @bi4k8
+- Release layer tree when releasing output. Written-by: @yuanye
+- Ensure natural geometry is restored when no outputs available.
+  Reported-by: @Flrian
+- Fixes memory leaks and prevent crashes associated with missing outputs
+  Thanks to @Consolatis.
+- Update translations for new client menus strings. Thanks-to: @01micko and
+  @ersen0
+- On un-fullscreen, restore SSD before applying previous geometry to avoid
+  rendering offscreen in some instances. Written-by: @Consolatis
+- Allow snapping to the same edge. Thanks-to: @Consolatis and @Flrian
+- Send enter event when new layer surface appears under pointer. Issue #667
+- Prevent re-focus for always-on-top views when switching workspaces.
+  Written-by: @Consolatis
+- Make sure a default libinput category always exists to avoid devices not
+  being configured is some insances. Written-by: @jlindgren90
+- Update cursor if it is within the OSD area when OSD appears/disappears.
+  Written-by: @bi4k8
+- Provide generic parsing of XML action arguments to enable the use of the
+  `direction` argument in menu entries. Written-by: @Consolatis
+- Fix SSD margin computation. Written-by: @jlindgren90
+- Hide SSD decorations for fullscreen views to avoid rendering them on
+  adjacent outputs. Written-by: @jlindgren90
+- Set inactive window button color correctly. Written-by: @ScarcelyThere
+- Fix positioning of initially-maximized XWayland views.
+  Written-by: @jlindgren90
+- Check for modifiers when merging mousebinds. Issue #630.
+- Handle layer-shell exclusive and on-demand keyboard-interactivity
+  correctly, and thus support xfce4-panel better. Issues #704 and #725.
+- Only overwrite wlroots's automatic layout when necessary.
+
+### Changed
+
+- Filter out wp_drm_lease_device from Xwayland to avoid Electron apps such as
+  VS Code and Discord lagging over time. Issue #553. Written-by: @Joshua-Ashton
+- Do not switch output on SnapToEdge if view is maximized. Written-by: @Flrian
 
 ## 0.6.0 - 2022-11-17
 
@@ -399,6 +463,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
+[0.6.1]: https://github.com/labwc/labwc/releases/tag/0.6.1
 [0.6.0]: https://github.com/labwc/labwc/releases/tag/0.6.0
 [0.5.3]: https://github.com/labwc/labwc/releases/tag/0.5.3
 [0.5.2]: https://github.com/labwc/labwc/releases/tag/0.5.2

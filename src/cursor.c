@@ -259,6 +259,17 @@ cursor_set(struct seat *seat, enum lab_cursors cursor)
 	seat->server_cursor = cursor;
 }
 
+void
+cursor_update_image(struct seat *seat)
+{
+	enum lab_cursors cursor = seat->server_cursor;
+	if (cursor == LAB_CURSOR_CLIENT) {
+		return;
+	}
+	wlr_xcursor_manager_set_cursor_image(
+		seat->xcursor_manager, cursor_names[cursor], seat->cursor);
+}
+
 bool
 input_inhibit_blocks_surface(struct seat *seat, struct wl_resource *resource)
 {

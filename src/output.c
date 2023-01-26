@@ -264,15 +264,11 @@ output_update_for_layout_change(struct server *server)
 
 	/*
 	 * "Move" each wlr_output_cursor (in per-output coordinates) to
-	 * align with the seat cursor. Set a default cursor image so
-	 * that the cursor isn't invisible on new outputs.
-	 *
-	 * TODO: remember the most recent cursor image (see cursor.c)
-	 * and set that rather than XCURSOR_DEFAULT
+	 * align with the seat cursor. Re-set the cursor image so that
+	 * the cursor isn't invisible on new outputs.
 	 */
 	wlr_cursor_move(server->seat.cursor, NULL, 0, 0);
-	wlr_xcursor_manager_set_cursor_image(server->seat.xcursor_manager,
-		XCURSOR_DEFAULT, server->seat.cursor);
+	cursor_update_image(&server->seat);
 }
 
 static void
@@ -364,6 +360,7 @@ handle_output_manager_apply(struct wl_listener *listener, void *data)
 
 	/* Re-set cursor image in case scale changed */
 	cursor_update_focus(server);
+	cursor_update_image(&server->seat);
 }
 
 /*

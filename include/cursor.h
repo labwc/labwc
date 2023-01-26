@@ -106,6 +106,16 @@ enum lab_cursors cursor_get_from_edge(uint32_t resize_edges);
  */
 void cursor_update_focus(struct server *server);
 
+/**
+ * cursor_update_image - re-set the labwc cursor image
+ * @seat - seat
+ *
+ * This can be used to update the cursor image on output scale changes.
+ * If the current cursor image was not set by labwc but some client
+ * this is a no-op.
+ */
+void cursor_update_image(struct seat *seat);
+
 void cursor_init(struct seat *seat);
 void cursor_finish(struct seat *seat);
 

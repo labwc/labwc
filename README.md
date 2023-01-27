@@ -17,6 +17,7 @@ href="NEWS.md">Release&nbsp;Notes</a>]</h3>
 - [3. Configuration](#3-configuration)
 - [4. Theming](#4-theming)
 - [5. Usage](#5-usage)
+  - [5.1 Gaming](#51-gaming)
 - [6. Integration](#6-integration)
 
 ## 1. Project Description
@@ -228,6 +229,12 @@ If you have not created an rc.xml config file, default bindings will be:
 
 A root-menu can be opened by clicking on the desktop.
 
+### 5.1 Gaming
+
+It is suggested to use a nested [gamescope] instance for gaming until labwc
+implements proper cursor confinement.  
+It can be added to steam via game launch option: `gamescope -f -- %command%`.
+
 ## 6. Integration
 
 Suggested apps to use with labwc:
@@ -270,6 +277,7 @@ See [integration] for further details.
 [labwc-actions(5)]: https://labwc.github.io/labwc-actions.5.html
 [xkeyboard-config(7)]: https://manpages.debian.org/testing/xkb-data/xkeyboard-config.7.en.html
 
+[gamescope]: https://github.com/Plagman/gamescope
 [grim]: https://github.com/emersion/grim
 [wf-recorder]: https://github.com/ammen99/wf-recorder
 [swaybg]: https://github.com/swaywm/swaybg

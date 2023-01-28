@@ -323,6 +323,7 @@ get_cursor_context(struct server *server)
 		ret.type = LAB_SSD_ROOT;
 		return ret;
 	}
+
 #if HAVE_XWAYLAND
 	if (node->type == WLR_SCENE_NODE_BUFFER) {
 		struct wlr_surface *surface = lab_wlr_surface_from_node(node);
@@ -382,6 +383,9 @@ get_cursor_context(struct server *server)
 		if (node->type == WLR_SCENE_NODE_BUFFER) {
 			struct wlr_surface *surface = lab_wlr_surface_from_node(node);
 			if (surface) {
+				if (wlr_surface_is_layer_surface(surface)) {
+					ret.type = LAB_SSD_LAYER_SURFACE;
+				}
 				if (is_layer_descendant(node)) {
 					/*
 					 * layer-shell subsurfaces need to be

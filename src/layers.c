@@ -75,38 +75,6 @@ layers_arrange(struct output *output)
 	}
 
 	output->usable_area = usable_area;
-
-	/* Find topmost keyboard interactive layer, if such a layer exists */
-	uint32_t layers_above_views[] = {
-		ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY,
-		ZWLR_LAYER_SHELL_V1_LAYER_TOP,
-	};
-	size_t nlayers = sizeof(layers_above_views) / sizeof(layers_above_views[0]);
-	struct lab_layer_surface *topmost = NULL;
-	struct wlr_scene_node *node;
-	for (size_t i = 0; i < nlayers; ++i) {
-		struct wlr_scene_tree *tree = output->layer_tree[layers_above_views[i]];
-		/* Iterate in reverse to give most recent node preference */
-		wl_list_for_each_reverse(node, &tree->children, link) {
-			struct lab_layer_surface *surface = node_layer_surface_from_node(node);
-			struct wlr_scene_layer_surface_v1 *scene = surface->scene_layer_surface;
-			if (scene->layer_surface->current.keyboard_interactive) {
-				topmost = surface;
-				break;
-			}
-		}
-		if (topmost) {
-			break;
-		}
-	}
-	struct seat *seat = &output->server->seat;
-	if (topmost) {
-		seat_set_focus_layer(seat,
-			topmost->scene_layer_surface->layer_surface);
-	} else if (seat->focused_layer &&
-			!seat->focused_layer->current.keyboard_interactive) {
-		seat_set_focus_layer(seat, NULL);
-	}
 }
 
 static void
@@ -116,6 +84,48 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 		wl_container_of(listener, layer, output_destroy);
 	layer->scene_layer_surface->layer_surface->output = NULL;
 	wlr_layer_surface_v1_destroy(layer->scene_layer_surface->layer_surface);
+}
+
+static void
+process_keyboard_interactivity(struct lab_layer_surface *layer)
+{
+	struct wlr_layer_surface_v1 *layer_surface = layer->scene_layer_surface->layer_surface;
+	struct seat *seat = &layer->server->seat;
+
+	if (layer_surface->current.keyboard_interactive
+			&& layer_surface->current.layer >= ZWLR_LAYER_SHELL_V1_LAYER_TOP) {
+		/*
+		 * Give keyboard focus to surface if
+		 * - keyboard-interactivity is 'exclusive' or 'on-demand'; and
+		 * - surface is in top/overlay layers; and
+		 * - currently focused layer has a lower precedence
+		 *
+		 * In other words, when dealing with two surfaces with
+		 * exclusive/on-demand keyboard-interactivity (firstly the
+		 * currently focused 'focused_layer' and secondly the
+		 * 'layer_surface' for which we're just responding to a
+		 * map/commit event), the following logic applies:
+		 *
+		 * | focused_layer | layer_surface | who gets keyboard focus |
+		 * |---------------|---------------|-------------------------|
+		 * | overlay       | top           | focused_layer           |
+		 * | overlay       | overlay       | layer_surface           |
+		 * | top           | top           | layer_surface           |
+		 * | top           | overlay       | layer_surface           |
+		 */
+
+		if (!seat->focused_layer || seat->focused_layer->current.layer
+				<= layer_surface->current.layer) {
+			seat_set_focus_layer(seat, layer_surface);
+		}
+	} else if (seat->focused_layer
+			&& !seat->focused_layer->current.keyboard_interactive) {
+		/*
+		 * Clear focus if keyboard-interactivity has been set to
+		 * ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE
+		 */
+		seat_set_focus_layer(seat, NULL);
+	}
 }
 
 static void
@@ -140,6 +150,10 @@ handle_surface_commit(struct wl_listener *listener, void *data)
 		wlr_scene_node_reparent(&layer->scene_layer_surface->tree->node,
 			output->layer_tree[layer_surface->current.layer]);
 	}
+	/* Process keyboard-interactivity change */
+	if (committed & WLR_LAYER_SURFACE_V1_STATE_KEYBOARD_INTERACTIVITY) {
+		process_keyboard_interactivity(layer);
+	}
 
 	if (committed || layer->mapped != layer_surface->mapped) {
 		layer->mapped = layer_surface->mapped;
@@ -157,6 +171,12 @@ handle_node_destroy(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, node_destroy);
+
+	/*
+	 * TODO: Determine if this layer is being used by an exclusive client.
+	 * If it is, try and find another layer owned by this client to pass
+	 * focus to.
+	 */
 
 	wl_list_remove(&layer->map.link);
 	wl_list_remove(&layer->unmap.link);
@@ -197,6 +217,8 @@ handle_map(struct wl_listener *listener, void *data)
 	 * automatically based on the position of the surface and outputs in
 	 * the scene. See wlr_scene_surface_create() documentation.
 	 */
+
+	process_keyboard_interactivity(layer);
 }
 
 static void

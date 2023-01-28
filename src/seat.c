@@ -440,8 +440,8 @@ seat_reconfigure(struct server *server)
 	}
 }
 
-void
-seat_focus_surface(struct seat *seat, struct wlr_surface *surface)
+static void
+seat_focus(struct seat *seat, struct wlr_surface *surface)
 {
 	if (!surface) {
 		wlr_seat_keyboard_notify_clear_focus(seat->seat);
@@ -470,6 +470,17 @@ seat_focus_surface(struct seat *seat, struct wlr_surface *surface)
 }
 
 void
+seat_focus_surface(struct seat *seat, struct wlr_surface *surface)
+{
+	/* Respect layer-shell exlusive keyboard-interactivity. */
+	if (seat->focused_layer && seat->focused_layer->current.keyboard_interactive
+			== ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE) {
+		return;
+	}
+	seat_focus(seat, surface);
+}
+
+void
 seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer)
 {
 	if (!layer) {
@@ -477,7 +488,7 @@ seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer)
 		desktop_focus_topmost_mapped_view(seat->server);
 		return;
 	}
-	seat_focus_surface(seat, layer->surface);
+	seat_focus(seat, layer->surface);
 	if (layer->current.layer >= ZWLR_LAYER_SHELL_V1_LAYER_TOP) {
 		seat->focused_layer = layer;
 	}

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include <assert.h>
 #include <glib.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,13 +27,28 @@ parse_modifier(const char *symname)
 	}
 }
 
+bool
+keybind_the_same(struct keybind *a, struct keybind *b)
+{
+	assert(a && b);
+	if (a->modifiers != b->modifiers || a->keysyms_len != b->keysyms_len) {
+		return false;
+	}
+	for (size_t i = 0; i < a->keysyms_len; i++) {
+		if (a->keysyms[i] != b->keysyms[i]) {
+			return false;
+		}
+	}
+	return true;
+}
+
 struct keybind *
 keybind_create(const char *keybind)
 {
 	struct keybind *k = znew(*k);
 	xkb_keysym_t keysyms[MAX_KEYSYMS];
 	gchar **symnames = g_strsplit(keybind, "-", -1);
-	for (int i = 0; symnames[i]; i++) {
+	for (size_t i = 0; symnames[i]; i++) {
 		char *symname = symnames[i];
 		uint32_t modifier = parse_modifier(symname);
 		if (modifier != 0) {

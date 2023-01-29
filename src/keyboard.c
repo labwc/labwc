@@ -81,7 +81,7 @@ static bool
 handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
 {
 	struct keybind *keybind;
-	wl_list_for_each_reverse(keybind, &rc.keybinds, link) {
+	wl_list_for_each(keybind, &rc.keybinds, link) {
 		if (modifiers ^ keybind->modifiers) {
 			continue;
 		}

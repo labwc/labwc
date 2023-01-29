@@ -48,5 +48,6 @@ enum mouse_event mousebind_event_from_str(const char *str);
 uint32_t mousebind_button_from_str(const char *str, uint32_t *modifiers);
 enum direction mousebind_direction_from_str(const char *str, uint32_t *modifiers);
 struct mousebind *mousebind_create(const char *context);
+bool mousebind_the_same(struct mousebind *a, struct mousebind *b);
 
 #endif /* __LABWC_MOUSEBIND_H */

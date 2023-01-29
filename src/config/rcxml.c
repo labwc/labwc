@@ -111,8 +111,10 @@ fill_keybind(char *nodename, char *content)
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else if (!strcmp(nodename, "name.action")) {
 		current_keybind_action = action_create(content);
-		wl_list_append(&current_keybind->actions,
-			&current_keybind_action->link);
+		if (current_keybind_action) {
+			wl_list_append(&current_keybind->actions,
+				&current_keybind_action->link);
+		}
 	} else if (!current_keybind_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
@@ -164,8 +166,10 @@ fill_mousebind(char *nodename, char *content)
 			mousebind_event_from_str(content);
 	} else if (!strcmp(nodename, "name.action")) {
 		current_mousebind_action = action_create(content);
-		wl_list_append(&current_mousebind->actions,
-			&current_mousebind_action->link);
+		if (current_mousebind_action) {
+			wl_list_append(&current_mousebind->actions,
+				&current_mousebind_action->link);
+		}
 	} else if (!current_mousebind_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
@@ -683,20 +687,17 @@ load_default_mouse_bindings(void)
 }
 
 static void
-merge_mouse_bindings(void)
+deduplicate_mouse_bindings(void)
 {
 	uint32_t replaced = 0;
+	uint32_t cleared = 0;
 	struct mousebind *current, *tmp, *existing;
 	wl_list_for_each_safe(existing, tmp, &rc.mousebinds, link) {
 		wl_list_for_each_reverse(current, &rc.mousebinds, link) {
 			if (existing == current) {
 				break;
 			}
-			if (existing->context == current->context
-					&& existing->button == current->button
-					&& existing->direction == current->direction
-					&& existing->mouse_event == current->mouse_event
-					&& existing->modifiers == current->modifiers) {
+			if (mousebind_the_same(existing, current)) {
 				wl_list_remove(&existing->link);
 				action_list_free(&existing->actions);
 				free(existing);
@@ -705,8 +706,53 @@ merge_mouse_bindings(void)
 			}
 		}
 	}
+	wl_list_for_each_safe(current, tmp, &rc.mousebinds, link) {
+		if (wl_list_empty(&current->actions)) {
+			wl_list_remove(&current->link);
+			free(current);
+			cleared++;
+		}
+	}
 	if (replaced) {
 		wlr_log(WLR_DEBUG, "Replaced %u mousebinds", replaced);
+	}
+	if (cleared) {
+		wlr_log(WLR_DEBUG, "Cleared %u mousebinds", cleared);
+	}
+}
+
+static void
+deduplicate_key_bindings(void)
+{
+	uint32_t replaced = 0;
+	uint32_t cleared = 0;
+	struct keybind *current, *tmp, *existing;
+	wl_list_for_each_safe(existing, tmp, &rc.keybinds, link) {
+		wl_list_for_each_reverse(current, &rc.keybinds, link) {
+			if (existing == current) {
+				break;
+			}
+			if (keybind_the_same(existing, current)) {
+				wl_list_remove(&existing->link);
+				action_list_free(&existing->actions);
+				free(existing);
+				replaced++;
+				break;
+			}
+		}
+	}
+	wl_list_for_each_safe(current, tmp, &rc.keybinds, link) {
+		if (wl_list_empty(&current->actions)) {
+			wl_list_remove(&current->link);
+			free(current);
+			cleared++;
+		}
+	}
+	if (replaced) {
+		wlr_log(WLR_DEBUG, "Replaced %u keybinds", replaced);
+	}
+	if (cleared) {
+		wlr_log(WLR_DEBUG, "Cleared %u keybinds", cleared);
 	}
 }
 
@@ -723,8 +769,15 @@ post_processing(void)
 		load_default_mouse_bindings();
 	}
 
-	/* Replace all earlier mousebindings by later ones */
-	merge_mouse_bindings();
+	/*
+	 * Replace all earlier bindings by later ones
+	 * and clear the ones with an empty action list.
+	 *
+	 * This is required so users are able to remove
+	 * a default binding by using the "None" action.
+	 */
+	deduplicate_key_bindings();
+	deduplicate_mouse_bindings();
 
 	if (!rc.font_activewindow.name) {
 		rc.font_activewindow.name = xstrdup("sans");

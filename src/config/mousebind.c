@@ -137,6 +137,17 @@ context_from_str(const char *str)
 	return LAB_SSD_NONE;
 }
 
+bool
+mousebind_the_same(struct mousebind *a, struct mousebind *b)
+{
+	assert(a && b);
+	return a->context == b->context
+		&& a->button == b->button
+		&& a->direction == b->direction
+		&& a->mouse_event == b->mouse_event
+		&& a->modifiers == b->modifiers;
+}
+
 struct mousebind *
 mousebind_create(const char *context)
 {

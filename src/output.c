@@ -314,8 +314,13 @@ output_config_apply(struct server *server,
 		}
 
 		if (output_enabled) {
-			wlr_output_layout_move(server->output_layout, o,
-				head->state.x, head->state.y);
+			struct wlr_box pos = {0};
+			wlr_output_layout_get_box(server->output_layout, o, &pos);
+			if (pos.x != head->state.x || pos.y != head->state.y) {
+				/* This overrides the automatic layout */
+				wlr_output_layout_move(server->output_layout, o,
+					head->state.x, head->state.y);
+			}
 		}
 
 		if (need_to_remove) {

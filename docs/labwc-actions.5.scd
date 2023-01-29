@@ -83,6 +83,9 @@ Actions are used in menus and keyboard/mouse bindings.
 	Send active window to workspace.
 	Supported values are the same as for GoToDesktop.
 
+*<action name="ToggleShowDesktop">*
+	Hide / unhide all windows
+
 *<action name="None">*
 	If used as the only action for a binding: clear an earlier defined binding.
 

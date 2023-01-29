@@ -59,7 +59,8 @@ enum action_type {
 	ACTION_TYPE_RESIZE,
 	ACTION_TYPE_GO_TO_DESKTOP,
 	ACTION_TYPE_SEND_TO_DESKTOP,
-	ACTION_TYPE_SNAP_TO_REGION
+	ACTION_TYPE_SNAP_TO_REGION,
+	ACTION_TYPE_TOGGLE_SHOW_DESKTOP,
 };
 
 const char *action_names[] = {
@@ -88,6 +89,7 @@ const char *action_names[] = {
 	"GoToDesktop",
 	"SendToDesktop",
 	"SnapToRegion",
+	"ToggleShowDesktop",
 	NULL
 };
 
@@ -445,6 +447,8 @@ actions_run(struct view *activator, struct server *server,
 				wlr_log(WLR_ERROR, "Invalid SnapToRegion id: '%s'", region_name);
 			}
 			break;
+		case ACTION_TYPE_TOGGLE_SHOW_DESKTOP:
+			desktop_toggle(server);
 		case ACTION_TYPE_NONE:
 			break;
 		case ACTION_TYPE_INVALID:

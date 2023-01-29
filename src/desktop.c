@@ -20,6 +20,8 @@ move_to_front(struct view *view)
 	wlr_scene_node_raise_to_top(&view->scene_tree->node);
 }
 
+static void desktop_hide_windows(struct server *server, bool hide);
+
 void
 desktop_move_to_front(struct view *view)
 {
@@ -30,6 +32,7 @@ desktop_move_to_front(struct view *view)
 #if HAVE_XWAYLAND
 	xwayland_move_sub_views_to_front(view, move_to_front);
 #endif
+	desktop_hide_windows(view->server, false);
 	cursor_update_focus(view->server);
 }
 
@@ -97,6 +100,34 @@ desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 
 	view_set_activated(view);
 	seat_focus_surface(seat, view->surface);
+}
+
+static void
+desktop_hide_windows(struct server *server, bool hide)
+{
+	struct wlr_scene_node *view_tree, *view_tree_on_top;
+	view_tree = &server->view_tree->node;
+	view_tree_on_top = &server->view_tree_always_on_top->node;
+
+	if (hide == !view_tree->enabled) {
+		return;
+	}
+
+	if (hide) {
+		wlr_scene_node_set_enabled(view_tree, false);
+		wlr_scene_node_set_enabled(view_tree_on_top, false);
+		seat_focus_surface(&server->seat, NULL);
+	} else {
+		wlr_scene_node_set_enabled(view_tree, true);
+		wlr_scene_node_set_enabled(view_tree_on_top, true);
+		desktop_focus_topmost_mapped_view(server);
+	}
+}
+
+void
+desktop_toggle(struct server *server)
+{
+	desktop_hide_windows(server, server->view_tree->node.enabled);
 }
 
 /*

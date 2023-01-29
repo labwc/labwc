@@ -567,6 +567,7 @@ static struct {
 	{ "A-F3", "Execute", "bemenu-run" },
 	{ "A-F4", "Close", NULL },
 	{ "W-a", "ToggleMaximize", NULL },
+	{ "W-d", "ToggleShowDesktop", NULL },
 	{ "A-Left", "MoveToEdge", "left" },
 	{ "A-Right", "MoveToEdge", "right" },
 	{ "A-Up", "MoveToEdge", "up" },

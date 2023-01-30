@@ -68,6 +68,7 @@ glib = dependency('glib-2.0')
 cairo = dependency('cairo')
 pangocairo = dependency('pangocairo')
 input = dependency('libinput', version: '>=1.14')
+pixman = dependency('pixman-1')
 math = cc.find_library('m')
 png = dependency('libpng')
 svg = dependency('librsvg-2.0', version: '>=2.46', required: false)
@@ -111,6 +112,7 @@ labwc_deps = [
   drm,
   pangocairo,
   input,
+  pixman,
   math,
   png,
 ]

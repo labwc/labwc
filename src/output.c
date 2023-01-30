@@ -18,6 +18,7 @@
 #include <wlr/util/log.h>
 #include "common/macros.h"
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "labwc.h"
 #include "layers.h"
 #include "node.h"
@@ -31,12 +32,11 @@ output_frame_notify(struct wl_listener *listener, void *data)
 	if (!output_is_usable(output)) {
 		return;
 	}
-
-	wlr_scene_output_commit(output->scene_output, NULL);
-
-	struct timespec now = { 0 };
-	clock_gettime(CLOCK_MONOTONIC, &now);
-	wlr_scene_output_send_frame_done(output->scene_output, &now);
+	if (lab_wlr_scene_output_commit(output->scene_output)) {
+		struct timespec now = { 0 };
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		wlr_scene_output_send_frame_done(output->scene_output, &now);
+	}
 }
 
 static void
@@ -48,6 +48,7 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 	wl_list_remove(&output->link);
 	wl_list_remove(&output->frame.link);
 	wl_list_remove(&output->destroy.link);
+	wl_list_remove(&output->request_state.link);
 
 	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		wlr_scene_node_destroy(&output->layer_tree[i]->node);
@@ -68,6 +69,44 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 		}
 	}
 	free(output);
+}
+
+static void
+output_request_state_notify(struct wl_listener *listener, void *data)
+{
+	/* This ensures nested backends can be resized */
+	struct output *output = wl_container_of(listener, output, request_state);
+	const struct wlr_output_event_request_state *event = data;
+	struct wlr_output_state *pending = &output->wlr_output->pending;
+
+	if (!pending->committed) {
+		/* No pending changes, just use the supplied state as new pending */
+		wlr_output_state_copy(pending, event->state);
+		wlr_output_schedule_frame(output->wlr_output);
+		return;
+	}
+
+	if (event->state->committed == WLR_OUTPUT_STATE_MODE) {
+		/* Only the resolution has changed, apply to pending */
+		switch (event->state->mode_type) {
+		case WLR_OUTPUT_STATE_MODE_FIXED:
+			wlr_output_set_mode(output->wlr_output, event->state->mode);
+			break;
+		case WLR_OUTPUT_STATE_MODE_CUSTOM:
+			wlr_output_set_custom_mode(output->wlr_output,
+				event->state->custom_mode.width,
+				event->state->custom_mode.height,
+				event->state->custom_mode.refresh);
+			break;
+		}
+		wlr_output_schedule_frame(output->wlr_output);
+		return;
+	}
+
+	/* Fallback path for everything that we didn't handle above */
+	if (!wlr_output_commit_state(output->wlr_output, event->state)) {
+		wlr_log(WLR_ERROR, "Backend requested a new state that could not be applied");
+	}
 }
 
 static void do_output_layout_change(struct server *server);
@@ -179,6 +218,9 @@ new_output_notify(struct wl_listener *listener, void *data)
 	wl_signal_add(&wlr_output->events.destroy, &output->destroy);
 	output->frame.notify = output_frame_notify;
 	wl_signal_add(&wlr_output->events.frame, &output->frame);
+
+	output->request_state.notify = output_request_state_notify;
+	wl_signal_add(&wlr_output->events.request_state, &output->request_state);
 
 	wl_list_init(&output->regions);
 

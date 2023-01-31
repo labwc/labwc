@@ -351,7 +351,7 @@ theme_read(struct theme *theme, const char *theme_name)
 
 	if (strlen(theme_dir(theme_name))) {
 		snprintf(themerc, sizeof(themerc), "%s/themerc",
-			 theme_dir(theme_name));
+			theme_dir(theme_name));
 		stream = fopen(themerc, "r");
 	}
 	if (!stream) {

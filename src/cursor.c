@@ -1105,7 +1105,7 @@ cursor_init(struct seat *seat)
 	wl_signal_add(&seat->cursor->events.motion, &seat->cursor_motion);
 	seat->cursor_motion_absolute.notify = cursor_motion_absolute;
 	wl_signal_add(&seat->cursor->events.motion_absolute,
-		      &seat->cursor_motion_absolute);
+		&seat->cursor_motion_absolute);
 	seat->cursor_button.notify = cursor_button;
 	wl_signal_add(&seat->cursor->events.button, &seat->cursor_button);
 	seat->cursor_axis.notify = cursor_axis;

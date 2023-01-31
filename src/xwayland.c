@@ -379,7 +379,7 @@ static bool
 want_deco(struct wlr_xwayland_surface *xwayland_surface)
 {
 	return xwayland_surface->decorations ==
-	       WLR_XWAYLAND_SURFACE_DECORATIONS_ALL;
+		WLR_XWAYLAND_SURFACE_DECORATIONS_ALL;
 }
 
 static void
@@ -418,9 +418,9 @@ set_initial_position(struct view *view,
 {
 	/* Don't center views with position explicitly specified */
 	bool has_position = xwayland_surface->size_hints &&
-		(xwayland_surface->size_hints->flags &
-			(XCB_ICCCM_SIZE_HINT_US_POSITION |
-			 XCB_ICCCM_SIZE_HINT_P_POSITION));
+		(xwayland_surface->size_hints->flags & (
+			XCB_ICCCM_SIZE_HINT_US_POSITION |
+			XCB_ICCCM_SIZE_HINT_P_POSITION));
 
 	if (has_position) {
 		/* Just make sure the view is on-screen */
@@ -679,7 +679,7 @@ xwayland_server_init(struct server *server, struct wlr_compositor *compositor)
 	}
 	server->xwayland_new_surface.notify = handle_new_surface;
 	wl_signal_add(&server->xwayland->events.new_surface,
-		      &server->xwayland_new_surface);
+		&server->xwayland_new_surface);
 
 	server->xwayland_ready.notify = handle_ready;
 	wl_signal_add(&server->xwayland->events.ready,
@@ -693,14 +693,14 @@ xwayland_server_init(struct server *server, struct wlr_compositor *compositor)
 	}
 
 	struct wlr_xcursor *xcursor;
-	xcursor = wlr_xcursor_manager_get_xcursor(server->seat.xcursor_manager,
-						  XCURSOR_DEFAULT, 1);
+	xcursor = wlr_xcursor_manager_get_xcursor(
+		server->seat.xcursor_manager, XCURSOR_DEFAULT, 1);
 	if (xcursor) {
 		struct wlr_xcursor_image *image = xcursor->images[0];
 		wlr_xwayland_set_cursor(server->xwayland, image->buffer,
-					image->width * 4, image->width,
-					image->height, image->hotspot_x,
-					image->hotspot_y);
+			image->width * 4, image->width,
+			image->height, image->hotspot_x,
+			image->hotspot_y);
 	}
 }
 

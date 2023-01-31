@@ -401,8 +401,7 @@ void seat_set_pressed(struct seat *seat, struct view *view,
 	struct wlr_surface *toplevel, uint32_t resize_edges);
 void seat_reset_pressed(struct seat *seat);
 
-void interactive_begin(struct view *view, enum input_mode mode,
-		      uint32_t edges);
+void interactive_begin(struct view *view, enum input_mode mode, uint32_t edges);
 void interactive_finish(struct view *view);
 void interactive_cancel(struct view *view);
 

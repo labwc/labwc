@@ -151,7 +151,7 @@ xwayland_unmanaged_create(struct server *server,
 	unmanaged->xwayland_surface = xsurface;
 
 	wl_signal_add(&xsurface->events.request_configure,
-		      &unmanaged->request_configure);
+		&unmanaged->request_configure);
 	unmanaged->request_configure.notify =
 		unmanaged_handle_request_configure;
 

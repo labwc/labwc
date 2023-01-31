@@ -28,8 +28,8 @@ static char *
 xbm_path(const char *button)
 {
 	static char buffer[4096] = { 0 };
-	snprintf(buffer, sizeof(buffer), "%s/%s", theme_dir(rc.theme_name),
-		 button);
+	snprintf(buffer, sizeof(buffer), "%s/%s",
+		theme_dir(rc.theme_name), button);
 	return buffer;
 }
 
@@ -65,28 +65,28 @@ void
 xbm_load(struct theme *theme)
 {
 	parse_set_color(theme->window_active_button_menu_unpressed_image_color);
-	load_button("menu.xbm", &theme->xbm_menu_active_unpressed,
-		    menu_button_normal);
+	load_button("menu.xbm",
+		&theme->xbm_menu_active_unpressed, menu_button_normal);
 	parse_set_color(theme->window_active_button_iconify_unpressed_image_color);
-	load_button("iconify.xbm", &theme->xbm_iconify_active_unpressed,
-		    iconify_button_normal);
+	load_button("iconify.xbm",
+		&theme->xbm_iconify_active_unpressed, iconify_button_normal);
 	parse_set_color(theme->window_active_button_max_unpressed_image_color);
-	load_button("max.xbm", &theme->xbm_maximize_active_unpressed,
-		    max_button_normal);
+	load_button("max.xbm",
+		&theme->xbm_maximize_active_unpressed, max_button_normal);
 	parse_set_color(theme->window_active_button_close_unpressed_image_color);
-	load_button("close.xbm", &theme->xbm_close_active_unpressed,
-		    close_button_normal);
+	load_button("close.xbm",
+		&theme->xbm_close_active_unpressed, close_button_normal);
 
 	parse_set_color(theme->window_inactive_button_menu_unpressed_image_color);
-	load_button("menu.xbm", &theme->xbm_menu_inactive_unpressed,
-		    menu_button_normal);
+	load_button("menu.xbm",
+		&theme->xbm_menu_inactive_unpressed, menu_button_normal);
 	parse_set_color(theme->window_inactive_button_iconify_unpressed_image_color);
-	load_button("iconify.xbm", &theme->xbm_iconify_inactive_unpressed,
-		    iconify_button_normal);
+	load_button("iconify.xbm",
+		&theme->xbm_iconify_inactive_unpressed, iconify_button_normal);
 	parse_set_color(theme->window_inactive_button_max_unpressed_image_color);
-	load_button("max.xbm", &theme->xbm_maximize_inactive_unpressed,
-		    max_button_normal);
+	load_button("max.xbm",
+		&theme->xbm_maximize_inactive_unpressed, max_button_normal);
 	parse_set_color(theme->window_inactive_button_close_unpressed_image_color);
-	load_button("close.xbm", &theme->xbm_close_inactive_unpressed,
-		    close_button_normal);
+	load_button("close.xbm",
+		&theme->xbm_close_inactive_unpressed, close_button_normal);
 }

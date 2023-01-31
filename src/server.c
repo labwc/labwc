@@ -160,6 +160,7 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 {
 	const struct wl_interface *iface = wl_global_get_interface(global);
 	struct server *server = (struct server *)data;
+	/* Silence unused var compiler warnings */
 	(void)iface; (void)server;
 
 #if HAVE_XWAYLAND

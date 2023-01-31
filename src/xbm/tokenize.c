@@ -30,7 +30,7 @@ add_token(enum token_type token_type)
 }
 
 static void
-get_identifier_token()
+get_identifier_token(void)
 {
 	struct token *token = tokens + nr_tokens - 1;
 	token->name[token->pos] = current_buffer_position[0];
@@ -79,7 +79,7 @@ get_number_token(void)
 }
 
 static void
-get_special_char_token()
+get_special_char_token(void)
 {
 	struct token *token = tokens + nr_tokens - 1;
 	token->name[0] = current_buffer_position[0];

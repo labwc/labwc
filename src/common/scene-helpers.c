@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <wlr/types/wlr_scene.h>
+#include "common/scene-helpers.h"
 
 struct wlr_scene_rect *
 lab_wlr_scene_get_rect(struct wlr_scene_node *node)

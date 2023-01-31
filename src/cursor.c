@@ -515,7 +515,7 @@ cursor_update_focus(struct server *server)
 		/*cursor_has_moved*/ false);
 }
 
-void
+static void
 handle_constraint_commit(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, constraint_commit);
@@ -523,7 +523,7 @@ handle_constraint_commit(struct wl_listener *listener, void *data)
 	assert(constraint->surface = data);
 }
 
-void
+static void
 destroy_constraint(struct wl_listener *listener, void *data)
 {
 	struct constraint *constraint = wl_container_of(listener, constraint,
@@ -621,7 +621,7 @@ cursor_motion(struct wl_listener *listener, void *data)
 	process_cursor_motion(seat->server, event->time_msec);
 }
 
-void
+static void
 cursor_motion_absolute(struct wl_listener *listener, void *data)
 {
 	/*
@@ -890,7 +890,7 @@ cursor_button_release(struct seat *seat, struct wlr_pointer_button_event *event)
 	}
 }
 
-void
+static void
 cursor_button(struct wl_listener *listener, void *data)
 {
 	/*
@@ -943,7 +943,7 @@ compare_delta(const struct wlr_pointer_axis_event *event, double *accum)
 	return 0;
 }
 
-bool
+static bool
 handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 		struct wlr_pointer_axis_event *event)
 {
@@ -989,7 +989,7 @@ handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 	return handled;
 }
 
-void
+static void
 cursor_axis(struct wl_listener *listener, void *data)
 {
 	/*
@@ -1016,7 +1016,7 @@ cursor_axis(struct wl_listener *listener, void *data)
 	}
 }
 
-void
+static void
 cursor_frame(struct wl_listener *listener, void *data)
 {
 	/*

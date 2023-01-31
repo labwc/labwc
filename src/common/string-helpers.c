@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include "common/string-helpers.h"
 
 static void
 rtrim(char **s)

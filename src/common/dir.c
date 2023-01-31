@@ -73,7 +73,7 @@ build_theme_path(struct ctx *ctx, char *prefix, const char *path)
 	}
 }
 
-char *
+static char *
 find_dir(struct ctx *ctx)
 {
 	char *debug = getenv("LABWC_DEBUG_DIR_CONFIG_AND_THEME");

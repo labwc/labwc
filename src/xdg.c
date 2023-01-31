@@ -344,7 +344,6 @@ xdg_toplevel_view_map(struct view *view)
 	if (!view->been_mapped) {
 		struct wlr_xdg_toplevel_requested *requested =
 			&xdg_toplevel_from_view(view)->requested;
-		foreign_toplevel_handle_create(view);
 		view_set_decorations(view, has_ssd(view));
 
 		position_xdg_toplevel_view(view);
@@ -357,6 +356,12 @@ xdg_toplevel_view_map(struct view *view)
 		}
 
 		view_moved(view);
+
+		/*
+		 * Create toplevel handle after initial positioning to ensure
+		 * enter event is sent to the right output
+		 */
+		foreign_toplevel_handle_create(view);
 		view->been_mapped = true;
 	}
 

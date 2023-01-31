@@ -491,10 +491,6 @@ map(struct view *view)
 		view->scene_node = &tree->node;
 	}
 
-	if (!view->toplevel_handle) {
-		foreign_toplevel_handle_create(view);
-	}
-
 	if (!view->been_mapped) {
 		view_set_decorations(view, want_deco(xwayland_surface));
 
@@ -504,6 +500,10 @@ map(struct view *view)
 
 		view_moved(view);
 		view->been_mapped = true;
+	}
+
+	if (!view->toplevel_handle) {
+		foreign_toplevel_handle_create(view);
 	}
 
 	if (view->ssd_enabled && !view->fullscreen && !view->maximized) {

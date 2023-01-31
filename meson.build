@@ -19,13 +19,24 @@ add_project_arguments(
 
 cc = meson.get_compiler('c')
 
-add_project_arguments(cc.get_supported_arguments(
-  [
-    '-Wno-unused-parameter',
-    '-Wundef',
-  ]),
-  language: 'c',
-)
+add_project_arguments(cc.get_supported_arguments([
+  '-Wundef',
+  '-Wlogical-op',
+  '-Wmissing-include-dirs',
+  '-Wold-style-definition',
+  '-Wpointer-arith',
+  '-Winit-self',
+  '-Wstrict-prototypes',
+  '-Wimplicit-fallthrough=2',
+  '-Wendif-labels',
+  '-Wstrict-aliasing=2',
+  '-Woverflow',
+  '-Wmissing-prototypes',
+  '-Walloca',
+  '-Wunused-macros',
+
+  '-Wno-unused-parameter',
+]), language: 'c')
 
 version='"@0@"'.format(meson.project_version())
 git = find_program('git', native: true, required: false)

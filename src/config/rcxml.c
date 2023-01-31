@@ -530,7 +530,7 @@ rcxml_parse_xml(struct buf *b)
 }
 
 static void
-rcxml_init()
+rcxml_init(void)
 {
 	static bool has_run;
 

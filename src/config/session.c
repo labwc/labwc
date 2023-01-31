@@ -11,6 +11,7 @@
 #include "common/mem.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
+#include "config/session.h"
 
 static bool
 isfile(const char *path)
@@ -51,7 +52,7 @@ error:
 	free(value.buf);
 }
 
-void
+static void
 read_environment_file(const char *filename)
 {
 	char *line = NULL;

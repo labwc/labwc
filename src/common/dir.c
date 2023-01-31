@@ -66,10 +66,10 @@ build_theme_path(struct ctx *ctx, char *prefix, const char *path)
 {
 	if (!prefix) {
 		snprintf(ctx->buf, ctx->len, "%s/%s/openbox-3", path,
-			 ctx->theme_name);
+			ctx->theme_name);
 	} else {
 		snprintf(ctx->buf, ctx->len, "%s/%s/%s/openbox-3", prefix, path,
-			 ctx->theme_name);
+			ctx->theme_name);
 	}
 }
 
@@ -122,10 +122,12 @@ config_dir(void)
 	if (buf[0] != '\0') {
 		return buf;
 	}
-	struct ctx ctx = { .build_path_fn = build_config_path,
-			   .buf = buf,
-			   .len = sizeof(buf),
-			   .dirs = config_dirs };
+	struct ctx ctx = {
+		.build_path_fn = build_config_path,
+		.buf = buf,
+		.len = sizeof(buf),
+		.dirs = config_dirs
+	};
 	return find_dir(&ctx);
 }
 
@@ -133,10 +135,12 @@ char *
 theme_dir(const char *theme_name)
 {
 	static char buf[4096] = { 0 };
-	struct ctx ctx = { .build_path_fn = build_theme_path,
-			   .buf = buf,
-			   .len = sizeof(buf),
-			   .dirs = theme_dirs,
-			   .theme_name = theme_name };
+	struct ctx ctx = {
+		.build_path_fn = build_theme_path,
+		.buf = buf,
+		.len = sizeof(buf),
+		.dirs = theme_dirs,
+		.theme_name = theme_name
+	};
 	return find_dir(&ctx);
 }

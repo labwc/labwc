@@ -76,15 +76,14 @@ seat_inhibit_input(struct seat *seat,  struct wl_client *active_client)
 {
 	seat->active_client_while_inhibited = active_client;
 
-	if (seat->focused_layer &&
-	    (wl_resource_get_client(seat->focused_layer->resource) !=
-	    active_client)) {
+	if (seat->focused_layer && active_client !=
+			wl_resource_get_client(seat->focused_layer->resource)) {
 		seat_set_focus_layer(seat, NULL);
 	}
 	struct wlr_surface *previous_kb_surface =
 		seat->seat->keyboard_state.focused_surface;
-	if (previous_kb_surface &&
-	    wl_resource_get_client(previous_kb_surface->resource) != active_client) {
+	if (previous_kb_surface && active_client !=
+			wl_resource_get_client(previous_kb_surface->resource)) {
 		seat_focus_surface(seat, NULL);	  /* keyboard focus */
 	}
 
@@ -307,7 +306,7 @@ server_init(struct server *server)
 	}
 	server->new_xdg_surface.notify = xdg_surface_new;
 	wl_signal_add(&server->xdg_shell->events.new_surface,
-		      &server->new_xdg_surface);
+		&server->new_xdg_surface);
 
 	/* Disable CSD */
 	struct wlr_xdg_decoration_manager_v1 *xdg_deco_mgr = NULL;
@@ -317,7 +316,7 @@ server_init(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 	wl_signal_add(&xdg_deco_mgr->events.new_toplevel_decoration,
-		      &server->xdg_toplevel_decoration);
+		&server->xdg_toplevel_decoration);
 	server->xdg_toplevel_decoration.notify = xdg_toplevel_decoration;
 
 	struct wlr_server_decoration_manager *deco_mgr = NULL;
@@ -327,9 +326,9 @@ server_init(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 	wlr_server_decoration_manager_set_default_mode(
-		deco_mgr, rc.xdg_shell_server_side_deco ?
-				  WLR_SERVER_DECORATION_MANAGER_MODE_SERVER :
-				  WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT);
+		deco_mgr, rc.xdg_shell_server_side_deco
+		? WLR_SERVER_DECORATION_MANAGER_MODE_SERVER
+		: WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT);
 
 	struct wlr_presentation *presentation =
 		wlr_presentation_create(server->wl_display, server->backend);

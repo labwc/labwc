@@ -27,9 +27,8 @@ keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard)
 {
 	xkb_mod_index_t i;
 	for (i = 0; i < xkb_keymap_num_mods(keyboard->keymap); i++) {
-		if (xkb_state_mod_index_is_active
-				(keyboard->xkb_state, i,
-				 XKB_STATE_MODS_DEPRESSED)) {
+		if (xkb_state_mod_index_is_active(keyboard->xkb_state,
+				i, XKB_STATE_MODS_DEPRESSED)) {
 			return true;
 		}
 	}
@@ -99,14 +98,14 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
 
 static bool is_modifier_key(xkb_keysym_t sym)
 {
-	return sym == XKB_KEY_Shift_L ||
-		   sym == XKB_KEY_Shift_R ||
-		   sym == XKB_KEY_Alt_L ||
-		   sym == XKB_KEY_Alt_R ||
-		   sym == XKB_KEY_Control_L ||
-		   sym == XKB_KEY_Control_R ||
-		   sym == XKB_KEY_Super_L ||
-		   sym == XKB_KEY_Super_R;
+	return sym == XKB_KEY_Shift_L
+		|| sym == XKB_KEY_Shift_R
+		|| sym == XKB_KEY_Alt_L
+		|| sym == XKB_KEY_Alt_R
+		|| sym == XKB_KEY_Control_L
+		|| sym == XKB_KEY_Control_R
+		|| sym == XKB_KEY_Super_L
+		|| sym == XKB_KEY_Super_R;
 }
 
 static bool

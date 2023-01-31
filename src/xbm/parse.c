@@ -26,7 +26,7 @@ u32(float *rgba)
 		r[i] = rgba[i] * 255;
 	}
 	return ((r[3] & 0xff) << 24) | ((r[0] & 0xff) << 16) |
-	       ((r[1] & 0xff) << 8) | (r[2] & 0xff);
+		((r[1] & 0xff) << 8) | (r[2] & 0xff);
 }
 
 void

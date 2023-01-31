@@ -53,7 +53,7 @@ xdg_toplevel_decoration(struct wl_listener *listener, void *data)
 	wl_signal_add(&wlr_decoration->events.destroy, &xdg_deco->destroy);
 	xdg_deco->request_mode.notify = xdg_deco_request_mode;
 	wl_signal_add(&wlr_decoration->events.request_mode,
-		      &xdg_deco->request_mode);
+		&xdg_deco->request_mode);
 
 	xdg_deco_request_mode(&xdg_deco->request_mode, wlr_decoration);
 }

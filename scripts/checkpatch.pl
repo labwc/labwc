@@ -3738,6 +3738,14 @@ sub process {
 # check we are in a valid source file C or perl if not then ignore this hunk
 		next if ($realfile !~ /\.(h|c|pl|dtsi|dts)$/);
 
+# at the beginning of a line in a .c file there should be no
+# spaces unless it is a single space in front of a multiline comment
+		if ($realfile =~ /\.c$/ && $rawline =~ /^\+\t* [^*]/) {
+			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
+			WARN("CODE_INDENT",
+				  "code indent should never contain spaces\n" . $herevet);
+		}
+
 # at the beginning of a line any tabs must come first and anything
 # more than $tabsize must use tabs.
 		if ($rawline =~ /^\+\s* \t\s*\S/ ||

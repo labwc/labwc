@@ -185,9 +185,9 @@ handle_unmap(struct wl_listener *listener, void *data)
 	 * foreign-toplevel protocol to avoid panels and the like still showing
 	 * them.
 	 */
-	if (view->toplevel_handle) {
-		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel_handle);
-		view->toplevel_handle = NULL;
+	if (view->toplevel.handle) {
+		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
+		view->toplevel.handle = NULL;
 	}
 }
 
@@ -491,7 +491,7 @@ map(struct view *view)
 		view->scene_node = &tree->node;
 	}
 
-	if (!view->toplevel_handle) {
+	if (!view->toplevel.handle) {
 		foreign_toplevel_handle_create(view);
 	}
 

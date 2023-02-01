@@ -109,9 +109,9 @@ _view_set_activated(struct view *view, bool activated)
 	if (view->impl->set_activated) {
 		view->impl->set_activated(view, activated);
 	}
-	if (view->toplevel_handle) {
+	if (view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_set_activated(
-			view->toplevel_handle, activated);
+			view->toplevel.handle, activated);
 	}
 }
 
@@ -191,9 +191,9 @@ view_minimize(struct view *view, bool minimized)
 	if (view->minimized == minimized) {
 		return;
 	}
-	if (view->toplevel_handle) {
+	if (view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_set_minimized(
-			view->toplevel_handle, minimized);
+			view->toplevel.handle, minimized);
 	}
 	view->minimized = minimized;
 	if (minimized) {
@@ -514,9 +514,9 @@ set_maximized(struct view *view, bool maximized)
 	if (view->impl->maximize) {
 		view->impl->maximize(view, maximized);
 	}
-	if (view->toplevel_handle) {
+	if (view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_set_maximized(
-			view->toplevel_handle, maximized);
+			view->toplevel.handle, maximized);
 	}
 	view->maximized = maximized;
 }
@@ -693,9 +693,9 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 	if (view->impl->set_fullscreen) {
 		view->impl->set_fullscreen(view, fullscreen);
 	}
-	if (view->toplevel_handle) {
+	if (view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_set_fullscreen(
-			view->toplevel_handle, fullscreen);
+			view->toplevel.handle, fullscreen);
 	}
 	if (fullscreen) {
 		/*
@@ -759,18 +759,18 @@ view_adjust_for_layout_change(struct view *view)
 static void
 view_output_enter(struct view *view, struct wlr_output *wlr_output)
 {
-	if (view->toplevel_handle) {
+	if (view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_output_enter(
-			view->toplevel_handle, wlr_output);
+			view->toplevel.handle, wlr_output);
 	}
 }
 
 static void
 view_output_leave(struct view *view, struct wlr_output *wlr_output)
 {
-	if (view->toplevel_handle) {
+	if (view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_output_leave(
-			view->toplevel_handle, wlr_output);
+			view->toplevel.handle, wlr_output);
 	}
 }
 
@@ -990,11 +990,11 @@ view_update_title(struct view *view)
 {
 	assert(view);
 	const char *title = view_get_string_prop(view, "title");
-	if (!view->toplevel_handle || !title) {
+	if (!view->toplevel.handle || !title) {
 		return;
 	}
 	ssd_update_title(view->ssd);
-	wlr_foreign_toplevel_handle_v1_set_title(view->toplevel_handle, title);
+	wlr_foreign_toplevel_handle_v1_set_title(view->toplevel.handle, title);
 }
 
 void
@@ -1002,11 +1002,11 @@ view_update_app_id(struct view *view)
 {
 	assert(view);
 	const char *app_id = view_get_string_prop(view, "app_id");
-	if (!view->toplevel_handle || !app_id) {
+	if (!view->toplevel.handle || !app_id) {
 		return;
 	}
 	wlr_foreign_toplevel_handle_v1_set_app_id(
-		view->toplevel_handle, app_id);
+		view->toplevel.handle, app_id);
 }
 
 void
@@ -1026,8 +1026,8 @@ view_destroy(struct view *view)
 	struct server *server = view->server;
 	bool need_cursor_update = false;
 
-	if (view->toplevel_handle) {
-		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel_handle);
+	if (view->toplevel.handle) {
+		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
 	}
 
 	if (server->grabbed_view == view) {

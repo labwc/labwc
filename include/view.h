@@ -73,12 +73,15 @@ struct view {
 
 	struct ssd *ssd;
 
-	struct wlr_foreign_toplevel_handle_v1 *toplevel_handle;
-	struct wl_listener toplevel_handle_request_maximize;
-	struct wl_listener toplevel_handle_request_minimize;
-	struct wl_listener toplevel_handle_request_fullscreen;
-	struct wl_listener toplevel_handle_request_activate;
-	struct wl_listener toplevel_handle_request_close;
+	struct foreign_toplevel {
+		struct wlr_foreign_toplevel_handle_v1 *handle;
+		struct wl_listener maximize;
+		struct wl_listener minimize;
+		struct wl_listener fullscreen;
+		struct wl_listener activate;
+		struct wl_listener close;
+		struct wl_listener destroy;
+	} toplevel;
 
 	struct wl_listener map;
 	struct wl_listener unmap;

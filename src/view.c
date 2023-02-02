@@ -220,7 +220,7 @@ view_minimize(struct view *view, bool minimized)
 }
 
 /* view_wlr_output - return the output that a view is mostly on */
-struct wlr_output *
+static struct wlr_output *
 view_wlr_output(struct view *view)
 {
 	assert(view);

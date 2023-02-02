@@ -345,6 +345,7 @@ void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
 void xdg_surface_new(struct wl_listener *listener, void *data);
 
 void foreign_toplevel_handle_create(struct view *view);
+void foreign_toplevel_update_outputs(struct view *view);
 
 /*
  * desktop.c routines deal with a collection of views

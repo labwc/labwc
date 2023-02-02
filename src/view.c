@@ -156,6 +156,9 @@ view_moved(struct view *view)
 	view_discover_output(view);
 	ssd_update_geometry(view->ssd);
 	cursor_update_focus(view->server);
+	if (view->toplevel.handle) {
+		foreign_toplevel_update_outputs(view);
+	}
 }
 
 /* N.B. Use view_move() if not resizing. */
@@ -754,23 +757,8 @@ view_adjust_for_layout_change(struct view *view)
 			view_center(view);
 		}
 	}
-}
-
-static void
-view_output_enter(struct view *view, struct wlr_output *wlr_output)
-{
 	if (view->toplevel.handle) {
-		wlr_foreign_toplevel_handle_v1_output_enter(
-			view->toplevel.handle, wlr_output);
-	}
-}
-
-static void
-view_output_leave(struct view *view, struct wlr_output *wlr_output)
-{
-	if (view->toplevel.handle) {
-		wlr_foreign_toplevel_handle_v1_output_leave(
-			view->toplevel.handle, wlr_output);
+		foreign_toplevel_update_outputs(view);
 	}
 }
 
@@ -783,24 +771,13 @@ void
 view_discover_output(struct view *view)
 {
 	assert(view);
-	struct output *old_output = view->output;
-	struct output *new_output = view_output(view);
-	if (old_output != new_output) {
-		view->output = new_output;
-		if (new_output) {
-			view_output_enter(view, new_output->wlr_output);
-		}
-		if (old_output) {
-			view_output_leave(view, old_output->wlr_output);
-		}
-	}
+	view->output = view_output(view);
 }
 
 void
 view_on_output_destroy(struct view *view)
 {
 	assert(view);
-	view_output_leave(view, view->output->wlr_output);
 	view->output = NULL;
 }
 

@@ -276,8 +276,7 @@ position_xdg_toplevel_view(struct view *view)
 		xdg_toplevel_from_view(view)->parent;
 
 	if (!parent_xdg_toplevel) {
-		view_center(view, output_from_cursor_coords(view->server),
-			NULL);
+		view_center(view, output_nearest_to_cursor(view->server), NULL);
 	} else {
 		/*
 		 * If child-toplevel-views, we center-align relative to their

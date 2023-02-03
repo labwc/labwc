@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <assert.h>
 #include "labwc.h"
 #include "view.h"
 #include "workspaces.h"
@@ -74,14 +75,6 @@ foreign_toplevel_handle_create(struct view *view)
 		return;
 	}
 
-	struct wlr_output *wlr_output = view_wlr_output(view);
-	if (!wlr_output) {
-		wlr_log(WLR_ERROR, "no wlr_output for (%s)",
-			view_get_string_prop(view, "title"));
-		return;
-	}
-	wlr_foreign_toplevel_handle_v1_output_enter(toplevel->handle, wlr_output);
-
 	toplevel->maximize.notify = handle_request_maximize;
 	wl_signal_add(&toplevel->handle->events.request_maximize,
 		&toplevel->maximize);
@@ -104,4 +97,34 @@ foreign_toplevel_handle_create(struct view *view)
 
 	toplevel->destroy.notify = handle_destroy;
 	wl_signal_add(&toplevel->handle->events.destroy, &toplevel->destroy);
+}
+
+/*
+ * Loop over all outputs and notify foreign_toplevel clients about changes.
+ * wlr_foreign_toplevel_handle_v1_output_xxx() keeps track of the active
+ * outputs internally and merges the events. It also listens to output
+ * destroy events so its fine to just relay the current state and let
+ * wlr_foreign_toplevel handle the rest.
+ */
+void
+foreign_toplevel_update_outputs(struct view *view)
+{
+	assert(view->toplevel.handle);
+
+	struct wlr_box view_geo = { view->x, view->y, view->w, view->h };
+	struct wlr_output_layout *layout = view->server->output_layout;
+
+	struct output *output;
+	wl_list_for_each(output, &view->server->outputs, link) {
+		if (output->wlr_output->enabled && !output->leased) {
+			if (wlr_output_layout_intersects(layout,
+					output->wlr_output, &view_geo)) {
+				wlr_foreign_toplevel_handle_v1_output_enter(
+					view->toplevel.handle, output->wlr_output);
+				continue;
+			}
+		}
+		wlr_foreign_toplevel_handle_v1_output_leave(
+			view->toplevel.handle, output->wlr_output);
+	}
 }

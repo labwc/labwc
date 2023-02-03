@@ -74,7 +74,7 @@ xwayland_surface_from_view(struct view *view)
 }
 
 static void
-ensure_initial_geometry(struct view *view)
+ensure_initial_geometry_and_output(struct view *view)
 {
 	if (wlr_box_empty(&view->current)) {
 		struct wlr_xwayland_surface *xwayland_surface =
@@ -90,6 +90,13 @@ ensure_initial_geometry(struct view *view)
 		if (wlr_box_empty(&view->pending)) {
 			view->pending = view->current;
 		}
+	}
+	if (!view->output) {
+		/*
+		 * Just use the cursor output since we don't know yet
+		 * whether the surface position is meaningful.
+		 */
+		view->output = output_nearest_to_cursor(view->server);
 	}
 }
 
@@ -286,8 +293,8 @@ static void
 handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
-	if (!view->been_mapped) {
-		ensure_initial_geometry(view);
+	if (!view->mapped) {
+		ensure_initial_geometry_and_output(view);
 		/*
 		 * Set decorations early to avoid changing geometry
 		 * after maximize (reduces visual glitches).
@@ -303,8 +310,8 @@ handle_request_fullscreen(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_fullscreen);
 	bool fullscreen = xwayland_surface_from_view(view)->fullscreen;
-	if (!view->been_mapped) {
-		ensure_initial_geometry(view);
+	if (!view->mapped) {
+		ensure_initial_geometry_and_output(view);
 	}
 	view_set_fullscreen(view, fullscreen, NULL);
 }
@@ -417,7 +424,7 @@ xwayland_view_map(struct view *view)
 		return;
 	}
 	view->mapped = true;
-	ensure_initial_geometry(view);
+	ensure_initial_geometry_and_output(view);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 	struct wlr_xwayland_surface *xwayland_surface =
 		xwayland_surface_from_view(view);

@@ -100,11 +100,11 @@ cursor_get_from_ssd(enum ssd_part_type view_area)
 static struct wlr_surface *
 get_toplevel(struct wlr_surface *surface)
 {
-	while (surface && wlr_surface_is_xdg_surface(surface)) {
+	while (surface) {
 		struct wlr_xdg_surface *xdg_surface =
-			wlr_xdg_surface_from_wlr_surface(surface);
+			wlr_xdg_surface_try_from_wlr_surface(surface);
 		if (!xdg_surface) {
-			return NULL;
+			break;
 		}
 
 		switch (xdg_surface->role) {
@@ -117,7 +117,7 @@ get_toplevel(struct wlr_surface *surface)
 			continue;
 		}
 	}
-	if (surface && wlr_surface_is_layer_surface(surface)) {
+	if (surface && wlr_layer_surface_v1_try_from_wlr_surface(surface)) {
 		return surface;
 	}
 	return NULL;
@@ -329,7 +329,7 @@ process_cursor_motion_out_of_surface(struct server *server, uint32_t time)
 	if (view) {
 		lx = view->current.x;
 		ly = view->current.y;
-	} else if (node && wlr_surface_is_layer_surface(surface)) {
+	} else if (node && wlr_layer_surface_v1_try_from_wlr_surface(surface)) {
 		wlr_scene_node_coords(node, &lx, &ly);
 #if HAVE_XWAYLAND
 	} else if (node && node->parent == server->unmanaged_tree) {
@@ -917,7 +917,7 @@ cursor_button_press(struct seat *seat, struct wlr_pointer_button_event *event)
 	 */
 	if (ctx.type == LAB_SSD_LAYER_SURFACE) {
 		struct wlr_layer_surface_v1 *layer =
-			wlr_layer_surface_v1_from_wlr_surface(ctx.surface);
+			wlr_layer_surface_v1_try_from_wlr_surface(ctx.surface);
 		if (layer && layer->current.keyboard_interactive) {
 			seat_set_focus_layer(seat, layer);
 		}

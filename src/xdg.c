@@ -579,12 +579,12 @@ xdg_activation_handle_request(struct wl_listener *listener, void *data)
 {
 	const struct wlr_xdg_activation_v1_request_activate_event *event = data;
 
-	if (!wlr_surface_is_xdg_surface(event->surface)) {
+	struct wlr_xdg_surface *xdg_surface =
+		wlr_xdg_surface_try_from_wlr_surface(event->surface);
+	if (!xdg_surface) {
 		return;
 	}
-	struct wlr_xdg_surface *xdg_surface =
-		wlr_xdg_surface_from_wlr_surface(event->surface);
-	struct view *view = xdg_surface ? xdg_surface->data : NULL;
+	struct view *view = xdg_surface->data;
 
 	if (!view) {
 		wlr_log(WLR_INFO, "Not activating surface - no view attached to surface");

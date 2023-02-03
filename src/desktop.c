@@ -97,9 +97,9 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 	if (view) {
 		desktop_focus_view(view, raise);
 #if HAVE_XWAYLAND
-	} else if (wlr_surface_is_xwayland_surface(surface)) {
+	} else {
 		struct wlr_xwayland_surface *xsurface =
-			wlr_xwayland_surface_from_wlr_surface(surface);
+			wlr_xwayland_surface_try_from_wlr_surface(surface);
 		if (xsurface && wlr_xwayland_or_surface_wants_focus(xsurface)) {
 			seat_focus_surface(seat, surface);
 		}
@@ -432,7 +432,7 @@ get_cursor_context(struct server *server)
 		if (node->type == WLR_SCENE_NODE_BUFFER) {
 			struct wlr_surface *surface = lab_wlr_surface_from_node(node);
 			if (surface) {
-				if (wlr_surface_is_layer_surface(surface)) {
+				if (wlr_layer_surface_v1_try_from_wlr_surface(surface)) {
 					ret.type = LAB_SSD_LAYER_SURFACE;
 				}
 				if (is_layer_descendant(node)) {

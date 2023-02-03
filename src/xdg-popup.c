@@ -63,8 +63,7 @@ void
 xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 {
 	struct wlr_xdg_surface *parent =
-		wlr_surface_is_xdg_surface(wlr_popup->parent) ?
-		wlr_xdg_surface_from_wlr_surface(wlr_popup->parent) : NULL;
+		wlr_xdg_surface_try_from_wlr_surface(wlr_popup->parent);
 	if (!parent) {
 		wlr_log(WLR_ERROR, "parent is not a valid XDG surface");
 		return;

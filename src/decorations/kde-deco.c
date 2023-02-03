@@ -63,7 +63,7 @@ handle_new_server_decoration(struct wl_listener *listener, void *data)
 	struct kde_deco *kde_deco = znew(*kde_deco);
 	kde_deco->wlr_kde_decoration = wlr_deco;
 
-	if (wlr_surface_is_xdg_surface(wlr_deco->surface)) {
+	if (wlr_deco->surface) {
 		/*
 		 * Depending on the application event flow, the supplied
 		 * wlr_surface may already have been set up as a xdg_surface
@@ -72,7 +72,7 @@ handle_new_server_decoration(struct wl_listener *listener, void *data)
 		 * kde_server_decoration_set_view().
 		 */
 		struct wlr_xdg_surface *xdg_surface =
-			wlr_xdg_surface_from_wlr_surface(wlr_deco->surface);
+			wlr_xdg_surface_try_from_wlr_surface(wlr_deco->surface);
 		if (xdg_surface && xdg_surface->data) {
 			kde_deco->view = (struct view *)xdg_surface->data;
 			handle_mode(&kde_deco->mode, wlr_deco);

@@ -34,20 +34,16 @@ view_from_wlr_surface(struct wlr_surface *surface)
 	 * - find a way to get rid of xdg/xwayland-specific stuff
 	 * - look up root/toplevel surface if passed a subsurface?
 	 */
-	if (wlr_surface_is_xdg_surface(surface)) {
-		struct wlr_xdg_surface *xdg_surface =
-			wlr_xdg_surface_from_wlr_surface(surface);
-		if (xdg_surface) {
-			return xdg_surface->data;
-		}
+	struct wlr_xdg_surface *xdg_surface =
+		wlr_xdg_surface_try_from_wlr_surface(surface);
+	if (xdg_surface) {
+		return xdg_surface->data;
 	}
 #if HAVE_XWAYLAND
-	if (wlr_surface_is_xwayland_surface(surface)) {
-		struct wlr_xwayland_surface *xsurface =
-			wlr_xwayland_surface_from_wlr_surface(surface);
-		if (xsurface) {
-			return xsurface->data;
-		}
+	struct wlr_xwayland_surface *xsurface =
+		wlr_xwayland_surface_try_from_wlr_surface(surface);
+	if (xsurface) {
+		return xsurface->data;
 	}
 #endif
 	return NULL;

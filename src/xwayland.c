@@ -701,8 +701,7 @@ xwayland_view_is_related(struct view *view, struct wlr_surface *surface)
 	struct wlr_xwayland_surface *xsurface =
 		xwayland_surface_from_view(view);
 	struct wlr_xwayland_surface *xsurface2 =
-		wlr_surface_is_xwayland_surface(surface) ?
-		wlr_xwayland_surface_from_wlr_surface(surface) : NULL;
+		wlr_xwayland_surface_try_from_wlr_surface(surface);
 
 	return (xsurface2 && xsurface2->pid == xsurface->pid);
 }

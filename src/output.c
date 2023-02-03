@@ -458,6 +458,25 @@ output_from_wlr_output(struct server *server, struct wlr_output *wlr_output)
 	return NULL;
 }
 
+struct output *
+output_nearest_to(struct server *server, int lx, int ly)
+{
+	double closest_x, closest_y;
+	wlr_output_layout_closest_point(server->output_layout, NULL, lx, ly,
+		&closest_x, &closest_y);
+
+	return output_from_wlr_output(server,
+		wlr_output_layout_output_at(server->output_layout,
+			closest_x, closest_y));
+}
+
+struct output *
+output_nearest_to_cursor(struct server *server)
+{
+	return output_nearest_to(server, server->seat.cursor->x,
+		server->seat.cursor->y);
+}
+
 bool
 output_is_usable(struct output *output)
 {
@@ -516,15 +535,6 @@ output_usable_area_in_layout_coords(struct output *output)
 	box.x -= ox;
 	box.y -= oy;
 	return box;
-}
-
-struct output *
-output_from_cursor_coords(struct server *server)
-{
-	struct wlr_output *wlr_output;
-	wlr_output = wlr_output_layout_output_at(server->output_layout,
-		server->seat.cursor->x, server->seat.cursor->y);
-	return output_from_wlr_output(server, wlr_output);
 }
 
 void

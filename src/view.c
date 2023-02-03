@@ -226,15 +226,9 @@ struct output *
 view_output(struct view *view)
 {
 	assert(view);
-	double closest_x, closest_y;
-	struct wlr_output *wlr_output = NULL;
-	wlr_output_layout_closest_point(view->server->output_layout, wlr_output,
+	return output_nearest_to(view->server,
 		view->current.x + view->current.width / 2,
-		view->current.y + view->current.height / 2,
-		&closest_x, &closest_y);
-	wlr_output = wlr_output_layout_output_at(view->server->output_layout,
-		closest_x, closest_y);
-	return output_from_wlr_output(view->server, wlr_output);
+		view->current.y + view->current.height / 2);
 }
 
 static bool

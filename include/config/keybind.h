@@ -28,4 +28,6 @@ struct keybind *keybind_create(const char *keybind);
  */
 uint32_t parse_modifier(const char *symname);
 
+bool keybind_the_same(struct keybind *a, struct keybind *b);
+
 #endif /* __LABWC_KEYBIND_H */

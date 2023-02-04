@@ -23,6 +23,13 @@
     <keybind key="W-Return">
       <action name="Execute" command="foot" />
     </keybind>
+    <!--
+      Remove a previously defined keybind
+      A shorter alternative is <keybind key="W-F4" />
+    -->
+    <keybind key="W-F4">
+      <action name="None" />
+    </keybind>
   </keyboard>
 
   <mouse>

@@ -157,8 +157,14 @@ action_create(const char *action_name)
 		wlr_log(WLR_ERROR, "action name not specified");
 		return NULL;
 	}
+
+	enum action_type action_type = action_type_from_str(action_name);
+	if (action_type == ACTION_TYPE_NONE) {
+		return NULL;
+	}
+
 	struct action *action = znew(*action);
-	action->type = action_type_from_str(action_name);
+	action->type = action_type;
 	wl_list_init(&action->args);
 	return action;
 }
@@ -444,8 +450,6 @@ actions_run(struct view *activator, struct server *server,
 			} else {
 				wlr_log(WLR_ERROR, "Invalid SnapToRegion id: '%s'", region_name);
 			}
-			break;
-		case ACTION_TYPE_NONE:
 			break;
 		case ACTION_TYPE_INVALID:
 			wlr_log(WLR_ERROR, "Not executing unknown action");

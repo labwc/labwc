@@ -279,7 +279,10 @@ fill_item(char *nodename, char *content)
 		 */
 	} else if (!strcmp(nodename, "name.action")) {
 		current_item_action = action_create(content);
-		wl_list_append(&current_item->actions, &current_item_action->link);
+		if (current_item_action) {
+			wl_list_append(&current_item->actions,
+				&current_item_action->link);
+		}
 	} else if (!current_item_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);

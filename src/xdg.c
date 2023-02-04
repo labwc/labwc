@@ -390,6 +390,46 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.maximize = xdg_toplevel_view_maximize,
 };
 
+void
+xdg_activation_handle_request(struct wl_listener *listener, void *data)
+{
+	const struct wlr_xdg_activation_v1_request_activate_event *event = data;
+
+	if (!wlr_surface_is_xdg_surface(event->surface)) {
+		return;
+	}
+	struct wlr_xdg_surface *xdg_surface =
+		wlr_xdg_surface_from_wlr_surface(event->surface);
+	struct view *view = xdg_surface ? xdg_surface->data : NULL;
+
+	if (!view) {
+		wlr_log(WLR_INFO, "Not activating surface - no view attached to surface");
+		return;
+	}
+	if (!event->token->seat) {
+		wlr_log(WLR_INFO, "Denying focus request, seat wasn't supplied");
+		return;
+	}
+	/*
+	 * We do not check for event->token->surface here because it may already
+	 * be destroyed and thus being NULL. With wlroots 0.17 we can hook into
+	 * the `new_token` signal, attach further information to the token and
+	 * then react to that information here instead. For now we just check
+	 * for the seat / serial being correct and then allow the request.
+	 */
+
+	/*
+	 * TODO: This is the exact same code as used in foreign.c.
+	 *       Refactor it into a public helper function somewhere.
+	 */
+	wlr_log(WLR_DEBUG, "Activating surface");
+	if (view->workspace != view->server->workspace_current) {
+		workspaces_switch_to(view->workspace);
+	}
+	desktop_focus_and_activate_view(&view->server->seat, view);
+	desktop_move_to_front(view);
+}
+
 /*
  * We use the following struct user_data pointers:
  *   - wlr_xdg_surface->data = view

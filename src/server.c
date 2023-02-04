@@ -331,6 +331,15 @@ server_init(struct server *server)
 		? WLR_SERVER_DECORATION_MANAGER_MODE_SERVER
 		: WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT);
 
+	server->xdg_activation = wlr_xdg_activation_v1_create(server->wl_display);
+	if (!server->xdg_activation) {
+		wlr_log(WLR_ERROR, "unable to create xdg_activation interface");
+		exit(EXIT_FAILURE);
+	}
+	server->xdg_activation_request.notify = xdg_activation_handle_request;
+	wl_signal_add(&server->xdg_activation->events.request_activate,
+		&server->xdg_activation_request);
+
 	struct wlr_presentation *presentation =
 		wlr_presentation_create(server->wl_display, server->backend);
 	if (!presentation) {

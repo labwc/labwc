@@ -37,6 +37,7 @@
 #include <wlr/types/wlr_server_decoration.h>
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xcursor_manager.h>
+#include <wlr/types/wlr_xdg_activation_v1.h>
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
@@ -226,6 +227,9 @@ struct server {
 	struct wl_listener input_inhibit_activate;
 	struct wl_listener input_inhibit_deactivate;
 
+	struct wlr_xdg_activation_v1 *xdg_activation;
+	struct wl_listener xdg_activation_request;
+
 	struct wl_list views;
 	struct wl_list unmanaged_surfaces;
 
@@ -341,6 +345,8 @@ struct idle_inhibitor {
 void xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup);
 
 void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
+
+void xdg_activation_handle_request(struct wl_listener *listener, void *data);
 
 void xdg_surface_new(struct wl_listener *listener, void *data);
 

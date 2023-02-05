@@ -4,6 +4,7 @@
 #include "labwc.h"
 #include "node.h"
 #include "view.h"
+#include "view-impl-common.h"
 #include "workspaces.h"
 
 struct wlr_xdg_surface *
@@ -389,6 +390,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.set_fullscreen = xdg_toplevel_view_set_fullscreen,
 	.unmap = xdg_toplevel_view_unmap,
 	.maximize = xdg_toplevel_view_maximize,
+	.move_to_front = view_impl_move_to_front,
 };
 
 void

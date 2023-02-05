@@ -21,7 +21,7 @@ labwc_sources = files(
   'touch.c',
   'theme.c',
   'view.c',
-  'view-impl.c',
+  'view-impl-common.c',
   'workspaces.c',
   'xdg.c',
   'xdg-deco.c',

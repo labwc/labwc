@@ -12,25 +12,16 @@
 #include "workspaces.h"
 #include "xwayland.h"
 
-static void
-move_to_front(struct view *view)
-{
-	wl_list_remove(&view->link);
-	wl_list_insert(&view->server->views, &view->link);
-	wlr_scene_node_raise_to_top(&view->scene_tree->node);
-}
-
 void
 desktop_move_to_front(struct view *view)
 {
 	if (!view) {
 		return;
 	}
-	move_to_front(view);
-#if HAVE_XWAYLAND
-	xwayland_move_sub_views_to_front(view, move_to_front);
-#endif
-	cursor_update_focus(view->server);
+	if (view->impl->move_to_front) {
+		view->impl->move_to_front(view);
+		cursor_update_focus(view->server);
+	}
 }
 
 void

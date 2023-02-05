@@ -8,6 +8,7 @@
 #include "node.h"
 #include "ssd.h"
 #include "view.h"
+#include "view-impl-common.h"
 #include "workspaces.h"
 #include "xwayland.h"
 
@@ -55,40 +56,6 @@ top_parent_of(struct view *view)
 		s = s->parent;
 	}
 	return s;
-}
-
-void
-xwayland_move_sub_views_to_front(struct view *parent,
-		void (*move_to_front)(struct view *view))
-{
-	assert(parent);
-	assert(move_to_front);
-
-	if (parent->type != LAB_XWAYLAND_VIEW) {
-		return;
-	}
-
-	struct wlr_xwayland_surface *parent_xwayland_surface =
-		xwayland_surface_from_view(parent);
-	struct view *view, *next;
-	wl_list_for_each_reverse_safe(view, next, &parent->server->views, link)
-	{
-		/* need to stop here, otherwise loops keeps going forever */
-		if (view == parent) {
-			break;
-		}
-		if (view->type != LAB_XWAYLAND_VIEW) {
-			continue;
-		}
-		if (!view->mapped && !view->minimized) {
-			continue;
-		}
-		if (top_parent_of(view) != parent_xwayland_surface) {
-			continue;
-		}
-		move_to_front(view);
-		/* TODO: we should probably focus on these too here */
-	}
 }
 
 static struct xwayland_view *
@@ -546,6 +513,44 @@ maximize(struct view *view, bool maximized)
 }
 
 static void
+move_sub_views_to_front(struct view *parent)
+{
+	assert(parent);
+
+	if (parent->type != LAB_XWAYLAND_VIEW) {
+		return;
+	}
+
+	struct wlr_xwayland_surface *parent_xwayland_surface =
+		xwayland_surface_from_view(parent);
+	struct view *view, *next;
+	wl_list_for_each_reverse_safe(view, next, &parent->server->views, link)
+	{
+		/* need to stop here, otherwise loops keeps going forever */
+		if (view == parent) {
+			break;
+		}
+		if (view->type != LAB_XWAYLAND_VIEW) {
+			continue;
+		}
+		if (!view->mapped && !view->minimized) {
+			continue;
+		}
+		if (top_parent_of(view) != parent_xwayland_surface) {
+			continue;
+		}
+		view_impl_move_to_front(view);
+	}
+}
+
+static void
+move_to_front(struct view *view)
+{
+	view_impl_move_to_front(view);
+	move_sub_views_to_front(view);
+}
+
+static void
 set_activated(struct view *view, bool activated)
 {
 	struct wlr_xwayland_surface *xwayland_surface =
@@ -584,7 +589,8 @@ static const struct view_impl xwl_view_impl = {
 	.set_activated = set_activated,
 	.set_fullscreen = set_fullscreen,
 	.unmap = unmap,
-	.maximize = maximize
+	.maximize = maximize,
+	.move_to_front = move_to_front,
 };
 
 static void

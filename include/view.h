@@ -30,6 +30,7 @@ struct view_impl {
 	void (*set_fullscreen)(struct view *view, bool fullscreen);
 	void (*unmap)(struct view *view);
 	void (*maximize)(struct view *view, bool maximize);
+	void (*move_to_front)(struct view *view);
 };
 
 struct view {
@@ -162,7 +163,6 @@ void view_update_title(struct view *view);
 void view_update_app_id(struct view *view);
 void view_reload_ssd(struct view *view);
 
-void view_impl_map(struct view *view);
 void view_adjust_size(struct view *view, int *w, int *h);
 
 void view_evacuate_region(struct view *view);

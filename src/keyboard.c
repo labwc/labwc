@@ -6,6 +6,7 @@
 #include "key-state.h"
 #include "labwc.h"
 #include "regions.h"
+#include "view.h"
 #include "workspaces.h"
 
 static bool should_cancel_cycling_on_next_key_release;

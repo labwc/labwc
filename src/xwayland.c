@@ -245,7 +245,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 }
 
 static void
-configure(struct view *view, struct wlr_box geo)
+xwayland_view_configure(struct view *view, struct wlr_box geo)
 {
 	view->pending = geo;
 	wlr_xwayland_surface_configure(xwayland_surface_from_view(view),
@@ -272,7 +272,8 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	int height = event->height;
 	view_adjust_size(view, &width, &height);
 
-	configure(view, (struct wlr_box){event->x, event->y, width, height});
+	xwayland_view_configure(view,
+		(struct wlr_box){event->x, event->y, width, height});
 }
 
 static void
@@ -340,13 +341,13 @@ handle_set_class(struct wl_listener *listener, void *data)
 }
 
 static void
-_close(struct view *view)
+xwayland_view_close(struct view *view)
 {
 	wlr_xwayland_surface_close(xwayland_surface_from_view(view));
 }
 
 static const char *
-get_string_prop(struct view *view, const char *prop)
+xwayland_view_get_string_prop(struct view *view, const char *prop)
 {
 	struct wlr_xwayland_surface *xwayland_surface =
 		xwayland_surface_from_view(view);
@@ -425,7 +426,7 @@ top_left_edge_boundary_check(struct view *view)
 }
 
 static void
-map(struct view *view)
+xwayland_view_map(struct view *view)
 {
 	if (view->mapped) {
 		return;
@@ -494,7 +495,7 @@ map(struct view *view)
 }
 
 static void
-unmap(struct view *view)
+xwayland_view_unmap(struct view *view)
 {
 	if (!view->mapped) {
 		return;
@@ -506,7 +507,7 @@ unmap(struct view *view)
 }
 
 static void
-maximize(struct view *view, bool maximized)
+xwayland_view_maximize(struct view *view, bool maximized)
 {
 	wlr_xwayland_surface_set_maximized(xwayland_surface_from_view(view),
 		maximized);
@@ -544,14 +545,14 @@ move_sub_views_to_front(struct view *parent)
 }
 
 static void
-move_to_front(struct view *view)
+xwayland_view_move_to_front(struct view *view)
 {
 	view_impl_move_to_front(view);
 	move_sub_views_to_front(view);
 }
 
 static void
-set_activated(struct view *view, bool activated)
+xwayland_view_set_activated(struct view *view, bool activated)
 {
 	struct wlr_xwayland_surface *xwayland_surface =
 		xwayland_surface_from_view(view);
@@ -575,22 +576,22 @@ set_activated(struct view *view, bool activated)
 }
 
 static void
-set_fullscreen(struct view *view, bool fullscreen)
+xwayland_view_set_fullscreen(struct view *view, bool fullscreen)
 {
 	wlr_xwayland_surface_set_fullscreen(xwayland_surface_from_view(view),
 		fullscreen);
 }
 
-static const struct view_impl xwl_view_impl = {
-	.configure = configure,
-	.close = _close,
-	.get_string_prop = get_string_prop,
-	.map = map,
-	.set_activated = set_activated,
-	.set_fullscreen = set_fullscreen,
-	.unmap = unmap,
-	.maximize = maximize,
-	.move_to_front = move_to_front,
+static const struct view_impl xwayland_view_impl = {
+	.configure = xwayland_view_configure,
+	.close = xwayland_view_close,
+	.get_string_prop = xwayland_view_get_string_prop,
+	.map = xwayland_view_map,
+	.set_activated = xwayland_view_set_activated,
+	.set_fullscreen = xwayland_view_set_fullscreen,
+	.unmap = xwayland_view_unmap,
+	.maximize = xwayland_view_maximize,
+	.move_to_front = xwayland_view_move_to_front,
 };
 
 static void
@@ -615,7 +616,7 @@ handle_new_surface(struct wl_listener *listener, void *data)
 
 	view->server = server;
 	view->type = LAB_XWAYLAND_VIEW;
-	view->impl = &xwl_view_impl;
+	view->impl = &xwayland_view_impl;
 
 	/*
 	 * Set two-way view <-> xsurface association.  Usually the

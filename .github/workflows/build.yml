@@ -72,8 +72,7 @@ jobs:
       - name: Install Debian Testing dependencies
         if: matrix.name == 'Debian'
         run: |
-          sed '/^deb/ s/^deb/deb-src/' /etc/apt/sources.list > /tmp/src
-          cat /tmp/src >> /etc/apt/sources.list
+          sed -i '/^Types/ s/deb/& deb-src/' /etc/apt/sources.list.d/debian.sources
           apt-get update
           apt-get upgrade -y
           apt-get install -y git clang \

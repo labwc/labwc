@@ -26,7 +26,7 @@ lab_wlr_surface_from_node(struct wlr_scene_node *node)
 
 	if (node && node->type == WLR_SCENE_NODE_BUFFER) {
 		buffer = wlr_scene_buffer_from_node(node);
-		scene_surface = wlr_scene_surface_from_buffer(buffer);
+		scene_surface = wlr_scene_surface_try_from_buffer(buffer);
 		if (scene_surface) {
 			return scene_surface->surface;
 		}

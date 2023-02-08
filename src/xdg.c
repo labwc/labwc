@@ -76,12 +76,12 @@ handle_commit(struct wl_listener *listener, void *data)
 
 	uint32_t serial = view->pending_move_resize.configure_serial;
 	if (serial > 0 && serial >= xdg_surface->current.configure_serial) {
-		if (view->pending_move_resize.update_x) {
+		if (view->x != view->pending_move_resize.x) {
 			update_required = true;
 			view->x = view->pending_move_resize.x +
 				view->pending_move_resize.width - size.width;
 		}
-		if (view->pending_move_resize.update_y) {
+		if (view->y != view->pending_move_resize.y) {
 			update_required = true;
 			view->y = view->pending_move_resize.y +
 				view->pending_move_resize.height - size.height;
@@ -205,8 +205,6 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 {
 	view_adjust_size(view, &geo.width, &geo.height);
 
-	view->pending_move_resize.update_x = geo.x != view->x;
-	view->pending_move_resize.update_y = geo.y != view->y;
 	view->pending_move_resize.x = geo.x;
 	view->pending_move_resize.y = geo.y;
 	view->pending_move_resize.width = geo.width;

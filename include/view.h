@@ -65,7 +65,6 @@ struct view {
 	struct wlr_box natural_geometry;
 
 	struct view_pending_move_resize {
-		bool update_x, update_y;
 		int x, y;
 		uint32_t width, height;
 		uint32_t configure_serial;

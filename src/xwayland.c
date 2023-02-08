@@ -107,6 +107,38 @@ xwayland_surface_from_view(struct view *view)
 }
 
 static void
+ensure_initial_geometry(struct view *view)
+{
+	if (!view->w || !view->h) {
+		struct wlr_xwayland_surface *xwayland_surface =
+			xwayland_surface_from_view(view);
+		view->x = xwayland_surface->x;
+		view->y = xwayland_surface->y;
+		view->w = xwayland_surface->width;
+		view->h = xwayland_surface->height;
+		/*
+		 * If there is no pending move/resize yet, then set
+		 * current values (used in map()).
+		 */
+		struct view_pending_move_resize *pending =
+			&view->pending_move_resize;
+		if (!pending->width || !pending->height) {
+			pending->x = view->x;
+			pending->y = view->y;
+			pending->width = view->w;
+			pending->height = view->h;
+		}
+	}
+}
+
+static bool
+want_deco(struct wlr_xwayland_surface *xwayland_surface)
+{
+	return xwayland_surface->decorations ==
+		WLR_XWAYLAND_SURFACE_DECORATIONS_ALL;
+}
+
+static void
 handle_commit(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, commit);
@@ -320,6 +352,15 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
 	assert(view);
+	if (!view->been_mapped) {
+		ensure_initial_geometry(view);
+		/*
+		 * Set decorations early to avoid changing geometry
+		 * after maximize (reduces visual glitches).
+		 */
+		view_set_decorations(view,
+			want_deco(xwayland_surface_from_view(view)));
+	}
 	view_toggle_maximize(view);
 }
 
@@ -328,6 +369,9 @@ handle_request_fullscreen(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_fullscreen);
 	bool fullscreen = xwayland_surface_from_view(view)->fullscreen;
+	if (!view->been_mapped) {
+		ensure_initial_geometry(view);
+	}
 	view_set_fullscreen(view, fullscreen, NULL);
 }
 
@@ -387,13 +431,6 @@ get_string_prop(struct view *view, const char *prop)
 		return xwayland_surface->class;
 	}
 	return "";
-}
-
-static bool
-want_deco(struct wlr_xwayland_surface *xwayland_surface)
-{
-	return xwayland_surface->decorations ==
-		WLR_XWAYLAND_SURFACE_DECORATIONS_ALL;
 }
 
 static void
@@ -471,17 +508,12 @@ map(struct view *view)
 		return;
 	}
 	view->mapped = true;
+	ensure_initial_geometry(view);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 	struct wlr_xwayland_surface *xwayland_surface =
 		xwayland_surface_from_view(view);
 	if (!view->fullscreen && xwayland_surface->fullscreen) {
 		view_set_fullscreen(view, true, NULL);
-	}
-	if (!view->maximized && !view->fullscreen) {
-		view->x = xwayland_surface->x;
-		view->y = xwayland_surface->y;
-		view->w = xwayland_surface->width;
-		view->h = xwayland_surface->height;
 	}
 
 	if (view->surface != xwayland_surface->surface) {
@@ -516,6 +548,16 @@ map(struct view *view)
 			set_initial_position(view, xwayland_surface);
 		}
 
+		/*
+		 * When mapping the view for the first time, visual
+		 * artifacts are reduced if we display it immediately at
+		 * the final intended position/size rather than waiting
+		 * for handle_commit().
+		 */
+		view->x = view->pending_move_resize.x;
+		view->y = view->pending_move_resize.y;
+		view->w = view->pending_move_resize.width;
+		view->h = view->pending_move_resize.height;
 		view_moved(view);
 		view->been_mapped = true;
 	}

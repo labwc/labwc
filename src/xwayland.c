@@ -280,6 +280,20 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	int height = event->height;
 	view_adjust_size(view, &width, &height);
 
+	/*
+	 * If a configure request is received while maximized/
+	 * fullscreen/tiled, update the natural geometry only. This
+	 * appears to be the desired behavior e.g. when starting VLC in
+	 * fullscreen mode.
+	 */
+	if (!view_is_floating(view)) {
+		view->natural_geometry.x = event->x;
+		view->natural_geometry.y = event->y;
+		view->natural_geometry.width = width;
+		view->natural_geometry.height = height;
+		return;
+	}
+
 	configure(view, (struct wlr_box){event->x, event->y, width, height});
 }
 

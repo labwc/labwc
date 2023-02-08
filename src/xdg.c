@@ -227,6 +227,11 @@ xdg_toplevel_view_move(struct view *view, int x, int y)
 {
 	view->x = x;
 	view->y = y;
+
+	/* override any previous pending move */
+	view->pending_move_resize.x = x;
+	view->pending_move_resize.y = y;
+
 	view_moved(view);
 }
 

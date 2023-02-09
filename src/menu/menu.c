@@ -531,7 +531,9 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 	double oy = ly;
 	struct wlr_output *wlr_output = wlr_output_layout_output_at(
 		menu->server->output_layout, lx, ly);
-	if (!wlr_output) {
+	struct output *output = wlr_output ? output_from_wlr_output(
+		menu->server, wlr_output) : NULL;
+	if (!output) {
 		wlr_log(WLR_ERROR,
 			"Failed to position menu %s (%s) and its submenus: "
 			"Not enough screen space", menu->id, menu->label);
@@ -539,18 +541,17 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 	}
 	wlr_output_layout_output_coords(menu->server->output_layout,
 		wlr_output, &ox, &oy);
-	struct wlr_box usable = output_usable_area_from_cursor_coords(menu->server);
 
 	if (align == LAB_MENU_OPEN_AUTO) {
 		int full_width = menu_get_full_width(menu);
-		if (ox + full_width > usable.width) {
+		if (ox + full_width > output->usable_area.width) {
 			align = LAB_MENU_OPEN_LEFT;
 		} else {
 			align = LAB_MENU_OPEN_RIGHT;
 		}
 	}
 
-	if (oy + menu->size.height > usable.height) {
+	if (oy + menu->size.height > output->usable_area.height) {
 		align &= ~LAB_MENU_OPEN_BOTTOM;
 		align |= LAB_MENU_OPEN_TOP;
 	} else {

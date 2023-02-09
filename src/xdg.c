@@ -201,45 +201,24 @@ handle_set_app_id(struct wl_listener *listener, void *data)
 }
 
 static void
-xdg_toplevel_view_move(struct view *view, int x, int y)
-{
-	/* override any previous pending move */
-	view->pending.x = x;
-	view->pending.y = y;
-
-	/* Syncs moves with resizes  */
-	if (view->pending_configure_serial > 0) {
-		return;
-	}
-
-	view->current.x = x;
-	view->current.y = y;
-	view_moved(view);
-}
-
-static void
 xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 {
+	uint32_t serial = 0;
 	view_adjust_size(view, &geo.width, &geo.height);
 
-	if (view->pending.width == geo.width && view->pending.height == geo.height) {
-		/*
-		 * As wayland has no notion of a global position
-		 * we are only updating the size. If a wayland
-		 * client receives the same size it already has
-		 * it might not respond to the configure request
-		 * and thus we will never actually set the new
-		 * position. To handle this case just call move
-		 * directly.
-		 */
-		xdg_toplevel_view_move(view, geo.x, geo.y);
-		return;
+	/*
+	 * We do not need to send a configure request unless the size
+	 * changed (wayland has no notion of a global position). If the
+	 * size is the same (and there is no pending configure request)
+	 * then we can just move the view directly.
+	 */
+	if (geo.width != view->pending.width
+			|| geo.height != view->pending.height) {
+		serial = wlr_xdg_toplevel_set_size(xdg_toplevel_from_view(view),
+			geo.width, geo.height);
 	}
 
 	view->pending = geo;
-	struct wlr_xdg_toplevel *xdg_toplevel = xdg_toplevel_from_view(view);
-	uint32_t serial = wlr_xdg_toplevel_set_size(xdg_toplevel,
-		(uint32_t)geo.width, (uint32_t)geo.height);
 	if (serial > 0) {
 		view->pending_configure_serial = serial;
 	} else if (view->pending_configure_serial == 0) {
@@ -401,7 +380,6 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.close = xdg_toplevel_view_close,
 	.get_string_prop = xdg_toplevel_view_get_string_prop,
 	.map = xdg_toplevel_view_map,
-	.move = xdg_toplevel_view_move,
 	.set_activated = xdg_toplevel_view_set_activated,
 	.set_fullscreen = xdg_toplevel_view_set_fullscreen,
 	.unmap = xdg_toplevel_view_unmap,

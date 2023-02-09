@@ -348,6 +348,14 @@ xdg_toplevel_view_map(struct view *view)
 		foreign_toplevel_handle_create(view);
 		view_set_decorations(view, has_ssd(view));
 
+		/*
+		 * Set initial "pending" dimensions (may be modified by
+		 * view_set_fullscreen/view_maximize() below). "Current"
+		 * dimensions remain zero until handle_commit().
+		 */
+		view->pending.width = xdg_surface->current.geometry.width;
+		view->pending.height = xdg_surface->current.geometry.height;
+
 		position_xdg_toplevel_view(view);
 		if (!view->fullscreen && requested->fullscreen) {
 			view_set_fullscreen(view, true,

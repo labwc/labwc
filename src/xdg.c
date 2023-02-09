@@ -340,16 +340,21 @@ xdg_toplevel_view_map(struct view *view)
 		 * view_set_fullscreen/view_maximize() below). "Current"
 		 * dimensions remain zero until handle_commit().
 		 */
-		view->pending.width = xdg_surface->current.geometry.width;
-		view->pending.height = xdg_surface->current.geometry.height;
+		if (wlr_box_empty(&view->pending)) {
+			view->pending.width =
+				xdg_surface->current.geometry.width;
+			view->pending.height =
+				xdg_surface->current.geometry.height;
+		}
 
-		position_xdg_toplevel_view(view);
 		if (!view->fullscreen && requested->fullscreen) {
 			view_set_fullscreen(view, true,
 				requested->fullscreen_output);
 		} else if (!view->maximized && requested->maximized) {
 			view_maximize(view, true,
 				/*store_natural_geometry*/ true);
+		} else if (view_is_floating(view)) {
+			position_xdg_toplevel_view(view);
 		}
 
 		view_moved(view);

@@ -534,7 +534,7 @@ map(struct view *view)
 	if (!view->been_mapped) {
 		view_set_decorations(view, want_deco(xwayland_surface));
 
-		if (!view->maximized && !view->fullscreen) {
+		if (view_is_floating(view)) {
 			set_initial_position(view, xwayland_surface);
 		}
 
@@ -549,7 +549,7 @@ map(struct view *view)
 		view->been_mapped = true;
 	}
 
-	if (view->ssd_enabled && !view->fullscreen && !view->maximized) {
+	if (view->ssd_enabled && view_is_floating(view)) {
 		top_left_edge_boundary_check(view);
 	}
 

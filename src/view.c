@@ -310,10 +310,10 @@ view_store_natural_geometry(struct view *view)
 	 * natural_geometry width/height may still be zero in which case we set
 	 * some fallback values. This is the case with foot and Qt applications.
 	 */
-	if (wlr_box_empty(&view->current)) {
+	if (wlr_box_empty(&view->pending)) {
 		set_fallback_geometry(view);
 	} else {
-		view->natural_geometry = view->current;
+		view->natural_geometry = view->pending;
 	}
 }
 
@@ -322,8 +322,8 @@ view_center(struct view *view)
 {
 	assert(view);
 	int x, y;
-	if (view_compute_centered_position(view, view->current.width,
-			view->current.height, &x, &y)) {
+	if (view_compute_centered_position(view, view->pending.width,
+			view->pending.height, &x, &y)) {
 		view_move(view, x, y);
 	}
 }
@@ -417,8 +417,8 @@ view_apply_region_geometry(struct view *view)
 	geo.width -= margin.left + margin.right;
 	geo.height -= margin.top + margin.bottom;
 
-	if (view->current.width == geo.width
-			&& view->current.height == geo.height) {
+	if (view->pending.width == geo.width
+			&& view->pending.height == geo.height) {
 		/* move horizontally/vertically without changing size */
 		view_move(view, geo.x, geo.y);
 	} else {
@@ -439,8 +439,8 @@ view_apply_tiled_geometry(struct view *view, struct output *output)
 	}
 
 	struct wlr_box dst = view_get_edge_snap_box(view, output, view->tiled);
-	if (view->current.width == dst.width
-			&& view->current.height == dst.height) {
+	if (view->pending.width == dst.width
+			&& view->pending.height == dst.height) {
 		/* move horizontally/vertically without changing size */
 		view_move(view, dst.x, dst.y);
 	} else {
@@ -755,7 +755,7 @@ view_adjust_for_layout_change(struct view *view)
 	} else if (!view_apply_special_geometry(view)) {
 		/* reposition view if it's offscreen */
 		if (!wlr_output_layout_intersects(layout, NULL,
-				&view->current)) {
+				&view->pending)) {
 			view_center(view);
 		}
 	}
@@ -811,17 +811,17 @@ view_move_to_edge(struct view *view, const char *direction)
 	int x = 0, y = 0;
 	if (!strcasecmp(direction, "left")) {
 		x = usable.x + margin.left + rc.gap;
-		y = view->current.y;
+		y = view->pending.y;
 	} else if (!strcasecmp(direction, "up")) {
-		x = view->current.x;
+		x = view->pending.x;
 		y = usable.y + margin.top + rc.gap;
 	} else if (!strcasecmp(direction, "right")) {
-		x = usable.x + usable.width - view->current.width
+		x = usable.x + usable.width - view->pending.width
 			- margin.right - rc.gap;
-		y = view->current.y;
+		y = view->pending.y;
 	} else if (!strcasecmp(direction, "down")) {
-		x = view->current.x;
-		y = usable.y + usable.height - view->current.height
+		x = view->pending.x;
+		y = usable.y + usable.height - view->pending.height
 			- margin.bottom - rc.gap;
 	} else {
 		wlr_log(WLR_ERROR, "invalid edge");

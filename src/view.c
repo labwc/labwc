@@ -243,7 +243,7 @@ view_output(struct view *view)
 	return output_from_wlr_output(view->server, wlr_output);
 }
 
-bool
+static bool
 view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 {
 	struct output *output = view_output(view);

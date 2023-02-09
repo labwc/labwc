@@ -143,9 +143,11 @@ void
 view_move(struct view *view, int x, int y)
 {
 	assert(view);
-	if (view->impl->move) {
-		view->impl->move(view, x, y);
-	}
+	view_move_resize(view, (struct wlr_box){
+		.x = x, .y = y,
+		.width = view->pending.width,
+		.height = view->pending.height
+	});
 }
 
 void

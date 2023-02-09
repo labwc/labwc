@@ -26,7 +26,6 @@ struct view_impl {
 	void (*close)(struct view *view);
 	const char *(*get_string_prop)(struct view *view, const char *prop);
 	void (*map)(struct view *view);
-	void (*move)(struct view *view, int x, int y);
 	void (*set_activated)(struct view *view, bool activated);
 	void (*set_fullscreen)(struct view *view, bool fullscreen);
 	void (*unmap)(struct view *view);

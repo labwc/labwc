@@ -387,22 +387,6 @@ handle_set_class(struct wl_listener *listener, void *data)
 }
 
 static void
-move(struct view *view, int x, int y)
-{
-	view->current.x = x;
-	view->current.y = y;
-
-	/* override any previous pending move */
-	view->pending.x = x;
-	view->pending.y = y;
-
-	struct wlr_xwayland_surface *s = xwayland_surface_from_view(view);
-	wlr_xwayland_surface_configure(s, (int16_t)x, (int16_t)y,
-		(uint16_t)s->width, (uint16_t)s->height);
-	view_moved(view);
-}
-
-static void
 _close(struct view *view)
 {
 	wlr_xwayland_surface_close(xwayland_surface_from_view(view));
@@ -615,7 +599,6 @@ static const struct view_impl xwl_view_impl = {
 	.close = _close,
 	.get_string_prop = get_string_prop,
 	.map = map,
-	.move = move,
 	.set_activated = set_activated,
 	.set_fullscreen = set_fullscreen,
 	.unmap = unmap,

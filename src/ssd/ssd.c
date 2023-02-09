@@ -40,10 +40,10 @@ ssd_max_extents(struct view *view)
 	assert(view);
 	struct border border = ssd_thickness(view);
 	return (struct wlr_box){
-		.x = view->x - border.left,
-		.y = view->y - border.top,
-		.width = view->w + border.left + border.right,
-		.height = view->h + border.top + border.bottom,
+		.x = view->current.x - border.left,
+		.y = view->current.y - border.top,
+		.width = view->current.width + border.left + border.right,
+		.height = view->current.height + border.top + border.bottom,
 	};
 }
 
@@ -163,11 +163,7 @@ ssd_create(struct view *view, bool active)
 	ssd_titlebar_create(ssd);
 	ssd->margin = ssd_thickness(view);
 	ssd_set_active(ssd, active);
-
-	ssd->state.width = view->w;
-	ssd->state.height = view->h;
-	ssd->state.x = view->x;
-	ssd->state.y = view->y;
+	ssd->state.geometry = view->current;
 
 	return ssd;
 }
@@ -185,24 +181,20 @@ ssd_update_geometry(struct ssd *ssd)
 		return;
 	}
 
-	struct view *view = ssd->view;
-	if (view->w == ssd->state.width && view->h == ssd->state.height) {
-		if (view->x != ssd->state.x || view->y != ssd->state.y) {
+	struct wlr_box cached = ssd->state.geometry;
+	struct wlr_box current = ssd->view->current;
+	if (current.width == cached.width && current.height == cached.height) {
+		if (current.x != cached.x || current.y != cached.y) {
 			/* Dynamically resize extents based on position and usable_area */
 			ssd_extents_update(ssd);
-			ssd->state.x = view->x;
-			ssd->state.y = view->y;
+			ssd->state.geometry = current;
 		}
 		return;
 	}
 	ssd_extents_update(ssd);
 	ssd_border_update(ssd);
 	ssd_titlebar_update(ssd);
-
-	ssd->state.width = view->w;
-	ssd->state.height = view->h;
-	ssd->state.x = view->x;
-	ssd->state.y = view->y;
+	ssd->state.geometry = current;
 }
 
 void

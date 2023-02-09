@@ -26,12 +26,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 	 */
 	struct server *server = view->server;
 	struct seat *seat = &server->seat;
-	struct wlr_box geometry = {
-		.x = view->x,
-		.y = view->y,
-		.width = view->w,
-		.height = view->h
-	};
+	struct wlr_box geometry = view->current;
 
 	switch (mode) {
 	case LAB_INPUT_STATE_MOVE:
@@ -52,10 +47,12 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			 * to keep it (in the snap-to-maximize case).
 			 */
 			geometry = view->natural_geometry;
-			geometry.x = max_move_scale(seat->cursor->x, view->x,
-				view->w, geometry.width);
-			geometry.y = max_move_scale(seat->cursor->y, view->y,
-				view->h, geometry.height);
+			geometry.x = max_move_scale(seat->cursor->x,
+				view->current.x, view->current.width,
+				geometry.width);
+			geometry.y = max_move_scale(seat->cursor->y,
+				view->current.y, view->current.height,
+				geometry.height);
 			view_restore_to(view, geometry);
 		} else {
 			/* Store natural geometry at start of move */

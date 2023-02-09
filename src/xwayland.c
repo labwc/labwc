@@ -109,24 +109,19 @@ xwayland_surface_from_view(struct view *view)
 static void
 ensure_initial_geometry(struct view *view)
 {
-	if (!view->w || !view->h) {
+	if (wlr_box_empty(&view->current)) {
 		struct wlr_xwayland_surface *xwayland_surface =
 			xwayland_surface_from_view(view);
-		view->x = xwayland_surface->x;
-		view->y = xwayland_surface->y;
-		view->w = xwayland_surface->width;
-		view->h = xwayland_surface->height;
+		view->current.x = xwayland_surface->x;
+		view->current.y = xwayland_surface->y;
+		view->current.width = xwayland_surface->width;
+		view->current.height = xwayland_surface->height;
 		/*
 		 * If there is no pending move/resize yet, then set
 		 * current values (used in map()).
 		 */
-		struct view_pending_move_resize *pending =
-			&view->pending_move_resize;
-		if (!pending->width || !pending->height) {
-			pending->x = view->x;
-			pending->y = view->y;
-			pending->width = view->w;
-			pending->height = view->h;
+		if (wlr_box_empty(&view->pending)) {
+			view->pending = view->current;
 		}
 	}
 }
@@ -146,22 +141,23 @@ handle_commit(struct wl_listener *listener, void *data)
 
 	/* Must receive commit signal before accessing surface->current* */
 	struct wlr_surface_state *state = &view->surface->current;
-	struct view_pending_move_resize *pending = &view->pending_move_resize;
+	struct wlr_box *current = &view->current;
+	struct wlr_box *pending = &view->pending;
 
-	if (view->w == state->width && view->h == state->height) {
+	if (current->width == state->width && current->height == state->height) {
 		return;
 	}
 
-	view->w = state->width;
-	view->h = state->height;
+	current->width = state->width;
+	current->height = state->height;
 
-	if (view->x != pending->x) {
+	if (current->x != pending->x) {
 		/* Adjust x for queued up configure events */
-		view->x = pending->x + pending->width - view->w;
+		current->x = pending->x + pending->width - current->width;
 	}
-	if (view->y != pending->y) {
+	if (current->y != pending->y) {
 		/* Adjust y for queued up configure events */
-		view->y = pending->y + pending->height - view->h;
+		current->y = pending->y + pending->height - current->height;
 	}
 	view_moved(view);
 }
@@ -284,18 +280,15 @@ handle_destroy(struct wl_listener *listener, void *data)
 static void
 configure(struct view *view, struct wlr_box geo)
 {
-	view->pending_move_resize.x = geo.x;
-	view->pending_move_resize.y = geo.y;
-	view->pending_move_resize.width = geo.width;
-	view->pending_move_resize.height = geo.height;
-
+	view->pending = geo;
 	wlr_xwayland_surface_configure(xwayland_surface_from_view(view),
 		geo.x, geo.y, geo.width, geo.height);
 
 	/* If not resizing, process the move immediately */
-	if (view->w == geo.width && view->h == geo.height) {
-		view->x = geo.x;
-		view->y = geo.y;
+	if (view->current.width == geo.width
+			&& view->current.height == geo.height) {
+		view->current.x = geo.x;
+		view->current.y = geo.y;
 		view_moved(view);
 	}
 }
@@ -396,12 +389,12 @@ handle_set_class(struct wl_listener *listener, void *data)
 static void
 move(struct view *view, int x, int y)
 {
-	view->x = x;
-	view->y = y;
+	view->current.x = x;
+	view->current.y = y;
 
 	/* override any previous pending move */
-	view->pending_move_resize.x = x;
-	view->pending_move_resize.y = y;
+	view->pending.x = x;
+	view->pending.y = y;
 
 	struct wlr_xwayland_surface *s = xwayland_surface_from_view(view);
 	wlr_xwayland_surface_configure(s, (int16_t)x, (int16_t)y,
@@ -479,8 +472,8 @@ set_initial_position(struct view *view,
 	} else {
 		struct wlr_box box =
 			output_usable_area_from_cursor_coords(view->server);
-		view->x = box.x;
-		view->y = box.y;
+		view->current.x = box.x;
+		view->current.y = box.y;
 		view_center(view);
 	}
 }
@@ -490,15 +483,12 @@ top_left_edge_boundary_check(struct view *view)
 {
 	struct wlr_box deco = ssd_max_extents(view);
 	if (deco.x < 0) {
-		view->x -= deco.x;
+		view->current.x -= deco.x;
 	}
 	if (deco.y < 0) {
-		view->y -= deco.y;
+		view->current.y -= deco.y;
 	}
-	struct wlr_box box = {
-		.x = view->x, .y = view->y, .width = view->w, .height = view->h
-	};
-	view->impl->configure(view, box);
+	view->impl->configure(view, view->current);
 }
 
 static void
@@ -554,10 +544,7 @@ map(struct view *view)
 		 * the final intended position/size rather than waiting
 		 * for handle_commit().
 		 */
-		view->x = view->pending_move_resize.x;
-		view->y = view->pending_move_resize.y;
-		view->w = view->pending_move_resize.width;
-		view->h = view->pending_move_resize.height;
+		view->current = view->pending;
 		view_moved(view);
 		view->been_mapped = true;
 	}

@@ -37,10 +37,9 @@ resistance_move_apply(struct view *view, double *x, double *y)
 {
 	struct server *server = view->server;
 	struct wlr_box mgeom, intersection;
-	struct wlr_box vgeom = {.x = view->x, .y = view->y, .width = view->w,
-		.height = view->h};
-	struct wlr_box tgeom = {.x = *x, .y = *y, .width = view->w,
-		.height = view->h};
+	struct wlr_box vgeom = view->current;
+	struct wlr_box tgeom = {.x = *x, .y = *y, .width = vgeom.width,
+		.height = vgeom.height};
 	struct output *output;
 	struct border border = ssd_get_margin(view->ssd);
 	struct edges view_edges; /* The edges of the current view */
@@ -48,15 +47,15 @@ resistance_move_apply(struct view *view, double *x, double *y)
 	struct edges other_edges; /* The edges of the monitor/other view */
 	struct edges flags = { 0 };
 
-	view_edges.left = view->x - border.left + 1;
-	view_edges.top = view->y - border.top + 1;
-	view_edges.right = view->x + view->w + border.right;
-	view_edges.bottom = view->y + view->h + border.bottom;
+	view_edges.left = vgeom.x - border.left + 1;
+	view_edges.top = vgeom.y - border.top + 1;
+	view_edges.right = vgeom.x + vgeom.width + border.right;
+	view_edges.bottom = vgeom.y + vgeom.height + border.bottom;
 
 	target_edges.left = *x - border.left;
 	target_edges.top = *y - border.top;
-	target_edges.right = *x + view->w + border.right;
-	target_edges.bottom = *y + view->h + border.bottom;
+	target_edges.right = *x + vgeom.width + border.right;
+	target_edges.bottom = *y + vgeom.height + border.bottom;
 
 	if (!rc.screen_edge_strength) {
 		return;
@@ -86,13 +85,13 @@ resistance_move_apply(struct view *view, double *x, double *y)
 		if (flags.left == 1) {
 			*x = other_edges.left + border.left;
 		} else if (flags.right == 1) {
-			*x = other_edges.right - view->w - border.right;
+			*x = other_edges.right - vgeom.width - border.right;
 		}
 
 		if (flags.top == 1) {
 			*y = other_edges.top + border.top;
 		} else if (flags.bottom == 1) {
-			*y = other_edges.bottom - view->h - border.bottom;
+			*y = other_edges.bottom - vgeom.height - border.bottom;
 		}
 
 		/* reset the flags */
@@ -109,20 +108,18 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_view_geo)
 	struct server *server = view->server;
 	struct output *output;
 	struct wlr_box mgeom, intersection;
-	struct wlr_box vgeom = {.x = view->x, .y = view->y, .width = view->w,
-		.height = view->h};
-	struct wlr_box tgeom = {.x = new_view_geo->x, .y = new_view_geo->y,
-		.width = new_view_geo->width, .height = new_view_geo->height};
+	struct wlr_box vgeom = view->current;
+	struct wlr_box tgeom = *new_view_geo;
 	struct border border = ssd_get_margin(view->ssd);
 	struct edges view_edges; /* The edges of the current view */
 	struct edges target_edges; /* The desired edges */
 	struct edges other_edges; /* The edges of the monitor/other view */
 	struct edges flags = { 0 };
 
-	view_edges.left = view->x - border.left;
-	view_edges.top = view->y - border.top;
-	view_edges.right = view->x + view->w + border.right;
-	view_edges.bottom = view->y + view->h + border.bottom;
+	view_edges.left = vgeom.x - border.left;
+	view_edges.top = vgeom.y - border.top;
+	view_edges.right = vgeom.x + vgeom.width + border.right;
+	view_edges.bottom = vgeom.y + vgeom.height + border.bottom;
 
 	target_edges.left = new_view_geo->x - border.left;
 	target_edges.top = new_view_geo->y - border.top;
@@ -159,7 +156,7 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_view_geo)
 			if (flags.left == 1) {
 				new_view_geo->x = other_edges.left
 					+ border.left;
-				new_view_geo->width = view->w;
+				new_view_geo->width = vgeom.width;
 			}
 		} else if (server->resize_edges & WLR_EDGE_RIGHT) {
 			if (flags.right == 1) {
@@ -172,7 +169,7 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_view_geo)
 		if (server->resize_edges & WLR_EDGE_TOP) {
 			if (flags.top == 1) {
 				new_view_geo->y = other_edges.top + border.top;
-				new_view_geo->height = view->h;
+				new_view_geo->height = vgeom.height;
 			}
 		} else if (server->resize_edges & WLR_EDGE_BOTTOM) {
 			if (flags.bottom == 1) {

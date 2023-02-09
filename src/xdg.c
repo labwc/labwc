@@ -66,28 +66,28 @@ handle_commit(struct wl_listener *listener, void *data)
 	struct wlr_box size;
 	wlr_xdg_surface_get_geometry(xdg_surface, &size);
 
+	struct wlr_box *current = &view->current;
+	struct wlr_box *pending = &view->pending;
 	bool update_required = false;
 
-	if (view->w != size.width || view->h != size.height) {
+	if (current->width != size.width || current->height != size.height) {
 		update_required = true;
-		view->w = size.width;
-		view->h = size.height;
+		current->width = size.width;
+		current->height = size.height;
 	}
 
-	uint32_t serial = view->pending_move_resize.configure_serial;
+	uint32_t serial = view->pending_configure_serial;
 	if (serial > 0 && serial >= xdg_surface->current.configure_serial) {
-		if (view->x != view->pending_move_resize.x) {
+		if (current->x != pending->x) {
 			update_required = true;
-			view->x = view->pending_move_resize.x +
-				view->pending_move_resize.width - size.width;
+			current->x = pending->x + pending->width - size.width;
 		}
-		if (view->y != view->pending_move_resize.y) {
+		if (current->y != pending->y) {
 			update_required = true;
-			view->y = view->pending_move_resize.y +
-				view->pending_move_resize.height - size.height;
+			current->y = pending->y + pending->height - size.height;
 		}
 		if (serial == xdg_surface->current.configure_serial) {
-			view->pending_move_resize.configure_serial = 0;
+			view->pending_configure_serial = 0;
 		}
 	}
 	if (update_required) {
@@ -204,20 +204,16 @@ static void
 xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 {
 	view_adjust_size(view, &geo.width, &geo.height);
-
-	view->pending_move_resize.x = geo.x;
-	view->pending_move_resize.y = geo.y;
-	view->pending_move_resize.width = geo.width;
-	view->pending_move_resize.height = geo.height;
+	view->pending = geo;
 
 	struct wlr_xdg_toplevel *xdg_toplevel = xdg_toplevel_from_view(view);
 	uint32_t serial = wlr_xdg_toplevel_set_size(xdg_toplevel,
 		(uint32_t)geo.width, (uint32_t)geo.height);
 	if (serial > 0) {
-		view->pending_move_resize.configure_serial = serial;
-	} else if (view->pending_move_resize.configure_serial == 0) {
-		view->x = geo.x;
-		view->y = geo.y;
+		view->pending_configure_serial = serial;
+	} else if (view->pending_configure_serial == 0) {
+		view->current.x = geo.x;
+		view->current.y = geo.y;
 		view_moved(view);
 	}
 }
@@ -225,12 +221,12 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 static void
 xdg_toplevel_view_move(struct view *view, int x, int y)
 {
-	view->x = x;
-	view->y = y;
+	view->current.x = x;
+	view->current.y = y;
 
 	/* override any previous pending move */
-	view->pending_move_resize.x = x;
-	view->pending_move_resize.y = y;
+	view->pending.x = x;
+	view->pending.y = y;
 
 	view_moved(view);
 }
@@ -286,8 +282,8 @@ position_xdg_toplevel_view(struct view *view)
 	if (!parent_xdg_toplevel) {
 		struct wlr_box box =
 			output_usable_area_from_cursor_coords(view->server);
-		view->x = box.x;
-		view->y = box.y;
+		view->current.x = box.x;
+		view->current.y = box.y;
 
 		/* Center the view without touching its w and h fields. This means we
 		 * can't simply set w/h and call view_center().  w and h fields should
@@ -310,15 +306,17 @@ position_xdg_toplevel_view(struct view *view)
 		struct view *parent = lookup_view_by_xdg_toplevel(
 			view->server, parent_xdg_toplevel);
 		assert(parent);
-		int center_x = parent->x + parent->w / 2;
-		int center_y = parent->y + parent->h / 2;
-		view->x = center_x - xdg_surface->current.geometry.width / 2;
-		view->y = center_y - xdg_surface->current.geometry.height / 2;
+		int center_x = parent->current.x + parent->current.width / 2;
+		int center_y = parent->current.y + parent->current.height / 2;
+		view->current.x = center_x
+			- xdg_surface->current.geometry.width / 2;
+		view->current.y = center_y
+			- xdg_surface->current.geometry.height / 2;
 	}
 
 	struct border margin = ssd_get_margin(view->ssd);
-	view->x += margin.left;
-	view->y += margin.top;
+	view->current.x += margin.left;
+	view->current.y += margin.top;
 }
 
 static const char *

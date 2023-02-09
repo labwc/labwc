@@ -111,7 +111,7 @@ foreign_toplevel_update_outputs(struct view *view)
 {
 	assert(view->toplevel.handle);
 
-	struct wlr_box view_geo = { view->x, view->y, view->w, view->h };
+	struct wlr_box view_geo = view->current;
 	struct wlr_output_layout *layout = view->server->output_layout;
 
 	struct output *output;

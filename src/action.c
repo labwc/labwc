@@ -214,8 +214,8 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 
 	int x, y;
 	if (force_menu_top_left) {
-		x = view->x;
-		y = view->y;
+		x = view->current.x;
+		y = view->current.y;
 	} else {
 		x = server->seat.cursor->x;
 		y = server->seat.cursor->y;

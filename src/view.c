@@ -152,7 +152,8 @@ void
 view_moved(struct view *view)
 {
 	assert(view);
-	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
+	wlr_scene_node_set_position(&view->scene_tree->node,
+		view->current.x, view->current.y);
 	view_discover_output(view);
 	ssd_update_geometry(view->ssd);
 	cursor_update_focus(view->server);
@@ -227,8 +228,9 @@ view_wlr_output(struct view *view)
 	double closest_x, closest_y;
 	struct wlr_output *wlr_output = NULL;
 	wlr_output_layout_closest_point(view->server->output_layout, wlr_output,
-		view->x + view->w / 2, view->y + view->h / 2, &closest_x,
-		&closest_y);
+		view->current.x + view->current.width / 2,
+		view->current.y + view->current.height / 2,
+		&closest_x, &closest_y);
 	wlr_output = wlr_output_layout_output_at(view->server->output_layout,
 		closest_x, closest_y);
 	return wlr_output;
@@ -308,13 +310,10 @@ view_store_natural_geometry(struct view *view)
 	 * natural_geometry width/height may still be zero in which case we set
 	 * some fallback values. This is the case with foot and Qt applications.
 	 */
-	if (!view->w || !view->h) {
+	if (wlr_box_empty(&view->current)) {
 		set_fallback_geometry(view);
 	} else {
-		view->natural_geometry.x = view->x;
-		view->natural_geometry.y = view->y;
-		view->natural_geometry.width = view->w;
-		view->natural_geometry.height = view->h;
+		view->natural_geometry = view->current;
 	}
 }
 
@@ -323,7 +322,8 @@ view_center(struct view *view)
 {
 	assert(view);
 	int x, y;
-	if (view_compute_centered_position(view, view->w, view->h, &x, &y)) {
+	if (view_compute_centered_position(view, view->current.width,
+			view->current.height, &x, &y)) {
 		view_move(view, x, y);
 	}
 }
@@ -417,7 +417,8 @@ view_apply_region_geometry(struct view *view)
 	geo.width -= margin.left + margin.right;
 	geo.height -= margin.top + margin.bottom;
 
-	if (view->w == geo.width && view->h == geo.height) {
+	if (view->current.width == geo.width
+			&& view->current.height == geo.height) {
 		/* move horizontally/vertically without changing size */
 		view_move(view, geo.x, geo.y);
 	} else {
@@ -438,7 +439,8 @@ view_apply_tiled_geometry(struct view *view, struct output *output)
 	}
 
 	struct wlr_box dst = view_get_edge_snap_box(view, output, view->tiled);
-	if (view->w == dst.width && view->h == dst.height) {
+	if (view->current.width == dst.width
+			&& view->current.height == dst.height) {
 		/* move horizontally/vertically without changing size */
 		view_move(view, dst.x, dst.y);
 	} else {
@@ -752,8 +754,8 @@ view_adjust_for_layout_change(struct view *view)
 		}
 	} else if (!view_apply_special_geometry(view)) {
 		/* reposition view if it's offscreen */
-		struct wlr_box box = { view->x, view->y, view->w, view->h };
-		if (!wlr_output_layout_intersects(layout, NULL, &box)) {
+		if (!wlr_output_layout_intersects(layout, NULL,
+				&view->current)) {
 			view_center(view);
 		}
 	}
@@ -809,18 +811,18 @@ view_move_to_edge(struct view *view, const char *direction)
 	int x = 0, y = 0;
 	if (!strcasecmp(direction, "left")) {
 		x = usable.x + margin.left + rc.gap;
-		y = view->y;
+		y = view->current.y;
 	} else if (!strcasecmp(direction, "up")) {
-		x = view->x;
+		x = view->current.x;
 		y = usable.y + margin.top + rc.gap;
 	} else if (!strcasecmp(direction, "right")) {
-		x = usable.x + usable.width - view->w - margin.right
-			- rc.gap;
-		y = view->y;
+		x = usable.x + usable.width - view->current.width
+			- margin.right - rc.gap;
+		y = view->current.y;
 	} else if (!strcasecmp(direction, "down")) {
-		x = view->x;
-		y = usable.y + usable.height - view->h - margin.bottom
-			- rc.gap;
+		x = view->current.x;
+		y = usable.y + usable.height - view->current.height
+			- margin.bottom - rc.gap;
 	} else {
 		wlr_log(WLR_ERROR, "invalid edge");
 		return;

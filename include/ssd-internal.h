@@ -2,6 +2,7 @@
 #ifndef __LABWC_SSD_INTERNAL_H
 #define __LABWC_SSD_INTERNAL_H
 
+#include <wlr/util/box.h>
 #include "ssd.h"
 
 #define FOR_EACH(tmp, ...) \
@@ -40,10 +41,7 @@ struct ssd {
 	 * don't update things we don't have to.
 	 */
 	struct {
-		int x;
-		int y;
-		int width;
-		int height;
+		struct wlr_box geometry;
 		struct ssd_state_title {
 			char *text;
 			struct ssd_state_title_width active;
@@ -51,7 +49,7 @@ struct ssd {
 		} title;
 	} state;
 
-	/* An invisble area around the view which allows resizing */
+	/* An invisible area around the view which allows resizing */
 	struct ssd_sub_tree extents;
 
 	/* The top of the view, containing buttons, title, .. */

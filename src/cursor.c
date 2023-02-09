@@ -210,9 +210,7 @@ process_cursor_resize(struct server *server, uint32_t time)
 	double dy = server->seat.cursor->y - server->grab_y;
 
 	struct view *view = server->grabbed_view;
-	struct wlr_box new_view_geo = {
-		.x = view->x, .y = view->y, .width = view->w, .height = view->h
-	};
+	struct wlr_box new_view_geo = view->current;
 
 	if (server->resize_edges & WLR_EDGE_TOP) {
 		new_view_geo.height = server->grab_box.height - dy;
@@ -320,8 +318,8 @@ process_cursor_motion_out_of_surface(struct server *server, uint32_t time)
 	int lx, ly;
 
 	if (view) {
-		lx = view->x;
-		ly = view->y;
+		lx = view->current.x;
+		ly = view->current.y;
 	} else if (node && wlr_surface_is_layer_surface(surface)) {
 		wlr_scene_node_coords(node, &lx, &ly);
 #if HAVE_XWAYLAND
@@ -435,11 +433,12 @@ cursor_get_resize_edges(struct wlr_cursor *cursor, struct cursor_context *ctx)
 {
 	uint32_t resize_edges = ssd_resize_edges(ctx->type);
 	if (ctx->view && !resize_edges) {
+		struct wlr_box box = ctx->view->current;
 		resize_edges |=
-			(int)cursor->x < ctx->view->x + ctx->view->w / 2 ?
+			(int)cursor->x < box.x + box.width / 2 ?
 				WLR_EDGE_LEFT : WLR_EDGE_RIGHT;
 		resize_edges |=
-			(int)cursor->y < ctx->view->y + ctx->view->h / 2 ?
+			(int)cursor->y < box.y + box.height / 2 ?
 				WLR_EDGE_TOP : WLR_EDGE_BOTTOM;
 	}
 	return resize_edges;

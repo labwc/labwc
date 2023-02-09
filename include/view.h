@@ -58,17 +58,28 @@ struct view {
 
 	struct wlr_output *fullscreen;
 
-	/* geometry of the wlr_surface contained within the view */
-	int x, y, w, h;
-
-	/* user defined geometry before maximize / tiling / fullscreen */
+	/*
+	 * Geometry of the wlr_surface contained within the view, as
+	 * currently displayed. Should be kept in sync with the
+	 * scene-graph at all times.
+	 */
+	struct wlr_box current;
+	/*
+	 * Expected geometry after any pending move/resize requests
+	 * have been processed. Should match current geometry when no
+	 * move/resize requests are pending.
+	 */
+	struct wlr_box pending;
+	/*
+	 * Saved geometry which will be restored when the view returns
+	 * to normal/floating state after being maximized/fullscreen/
+	 * tiled. Values are undefined/out-of-date when the view is not
+	 * maximized/fullscreen/tiled.
+	 */
 	struct wlr_box natural_geometry;
 
-	struct view_pending_move_resize {
-		int x, y;
-		uint32_t width, height;
-		uint32_t configure_serial;
-	} pending_move_resize;
+	/* used by xdg-shell views */
+	uint32_t pending_configure_serial;
 
 	struct ssd *ssd;
 

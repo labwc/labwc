@@ -168,7 +168,8 @@ The rest of this man page describes configuration options.
 	Define a key binding in the format *modifier-key*, where supported
 	modifiers include S (shift); C (control); A (alt); W (super). Unlike
 	Openbox, multiple space-separated key combinations and key-chains are
-	not supported.
+	not supported. The application "wev" (wayland event viewer) is packaged
+	in a lot of distributions and can be used to view all available keynames.
 
 *<keyboard><keybind key=""><action name="">*
 	Keybind action. See labwc-action(5)

@@ -169,6 +169,29 @@ static void
 handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
+	if (!view->been_mapped) {
+		/*
+		 * The client asks for the target size for future mapping.
+		 *
+		 * Make sure we are using the position and dimensions of
+		 * the output where the cursor is currently on so the
+		 * maximized view will show up there as well once mapped.
+		 *
+		 * view_maximize() will set view->natural_geometry to
+		 * the fallback geometry as view->pending is unset at
+		 * this point.
+		 *
+		 * So once this function returns we will have set
+		 * - [x] pending (with the maximized size and position)
+		 * - [ ] current (will be set on commit for the follwing map)
+		 * - [x] natural (set to the fallback geometry)
+		 *
+		 * Additionally we will have a configure request pending
+		 * which includes the maximized size on the output the
+		 * cursor is on.
+		 */
+		view_move_to_output(view, NULL, /* apply_layout */ false);
+	}
 	view_maximize(view, xdg_toplevel_from_view(view)->requested.maximized,
 		/*store_natural_geometry*/ true);
 }
@@ -178,8 +201,13 @@ handle_request_fullscreen(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_fullscreen);
 	struct wlr_xdg_toplevel *xdg_toplevel = xdg_toplevel_from_view(view);
-	view_set_fullscreen(view, xdg_toplevel->requested.fullscreen,
-		xdg_toplevel->requested.fullscreen_output);
+	struct wlr_output *wlr_output = xdg_toplevel->requested.fullscreen_output;
+
+	if (!view->been_mapped && !wlr_output) {
+		/* Move view to the output where the cursor is currently on */
+		view_move_to_output(view, NULL, /* apply_layout */ false);
+	}
+	view_set_fullscreen(view, xdg_toplevel->requested.fullscreen, wlr_output);
 }
 
 static void

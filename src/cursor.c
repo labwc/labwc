@@ -1089,6 +1089,29 @@ cursor_init(struct seat *seat)
 	seat->xcursor_manager = wlr_xcursor_manager_create(xcursor_theme, size);
 	wlr_xcursor_manager_load(seat->xcursor_manager, 1);
 
+	/*
+	 * Wlroots provides integrated fallback cursor icons using
+	 * old-style X11 cursor names (cursors_x11) and additionally
+	 * (since wlroots 0.16.2) aliases them to cursor-spec names
+	 * (cursors_xdg).
+	 *
+	 * However, the aliasing does not include the "grab" cursor
+	 * icon which labwc uses when dragging a window. To fix that,
+	 * try to get the grab cursor icon from wlroots. If the user
+	 * supplied an appropriate cursor theme which includes the
+	 * "grab" cursor icon, we will keep using it.
+	 *
+	 * If no "grab" icon can be found we will fall back to the
+	 * old style cursor names and use "grabbing" instead which
+	 * is part of the X11 fallbacks and thus always available.
+	 *
+	 * Shipping the complete alias table for X11 cursor names
+	 * (and not just the "grab" cursor alias) makes sure that
+	 * this also works for wlroots versions before 0.16.2.
+	 *
+	 * See the cursor name alias table on the top of this file
+	 * for the actual cursor names used.
+	 */
 	if (wlr_xcursor_manager_get_xcursor(seat->xcursor_manager,
 			cursors_xdg[LAB_CURSOR_GRAB], 1)) {
 		cursor_names = cursors_xdg;

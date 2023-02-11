@@ -546,10 +546,15 @@ view_restore_to(struct view *view, struct wlr_box geometry)
 bool
 view_is_tiled(struct view *view)
 {
-	if (!view) {
-		return false;
-	}
-	return view->tiled || view->tiled_region || view->tiled_region_evacuate;
+	return view && (view->tiled || view->tiled_region
+		|| view->tiled_region_evacuate);
+}
+
+bool
+view_is_floating(struct view *view)
+{
+	return view && !(view->fullscreen || view->maximized || view->tiled
+		|| view->tiled_region || view->tiled_region_evacuate);
 }
 
 /* Reset tiled state of view without changing geometry */

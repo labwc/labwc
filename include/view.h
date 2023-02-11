@@ -116,13 +116,6 @@ struct xdg_toplevel_view {
 	struct wl_listener new_popup;
 };
 
-static inline bool
-view_is_floating(struct view *view)
-{
-	return !view->fullscreen && !view->maximized && !view->tiled
-		&& !view->tiled_region;
-}
-
 void view_set_activated(struct view *view);
 void view_close(struct view *view);
 
@@ -151,6 +144,7 @@ void view_toggle_decorations(struct view *view);
 void view_toggle_always_on_top(struct view *view);
 bool view_is_always_on_top(struct view *view);
 bool view_is_tiled(struct view *view);
+bool view_is_floating(struct view *view);
 void view_move_to_workspace(struct view *view, struct workspace *workspace);
 void view_set_decorations(struct view *view, bool decorations);
 void view_toggle_fullscreen(struct view *view);

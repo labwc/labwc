@@ -1090,7 +1090,7 @@ cursor_init(struct seat *seat)
 	wlr_xcursor_manager_load(seat->xcursor_manager, 1);
 
 	if (wlr_xcursor_manager_get_xcursor(seat->xcursor_manager,
-			cursors_xdg[LAB_CURSOR_DEFAULT], 1)) {
+			cursors_xdg[LAB_CURSOR_GRAB], 1)) {
 		cursor_names = cursors_xdg;
 	} else {
 		wlr_log(WLR_INFO,

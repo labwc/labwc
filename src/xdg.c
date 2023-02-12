@@ -201,24 +201,6 @@ handle_set_app_id(struct wl_listener *listener, void *data)
 }
 
 static void
-xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
-{
-	view_adjust_size(view, &geo.width, &geo.height);
-	view->pending = geo;
-
-	struct wlr_xdg_toplevel *xdg_toplevel = xdg_toplevel_from_view(view);
-	uint32_t serial = wlr_xdg_toplevel_set_size(xdg_toplevel,
-		(uint32_t)geo.width, (uint32_t)geo.height);
-	if (serial > 0) {
-		view->pending_configure_serial = serial;
-	} else if (view->pending_configure_serial == 0) {
-		view->current.x = geo.x;
-		view->current.y = geo.y;
-		view_moved(view);
-	}
-}
-
-static void
 xdg_toplevel_view_move(struct view *view, int x, int y)
 {
 	view->current.x = x;
@@ -229,6 +211,38 @@ xdg_toplevel_view_move(struct view *view, int x, int y)
 	view->pending.y = y;
 
 	view_moved(view);
+}
+
+static void
+xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
+{
+	view_adjust_size(view, &geo.width, &geo.height);
+
+	if (view->pending.width == geo.width && view->pending.height == geo.height) {
+		/*
+		 * As wayland has no notion of a global position
+		 * we are only updating the size. If a wayland
+		 * client receives the same size it already has
+		 * it might not respond to the configure request
+		 * and thus we will never actually set the new
+		 * position. To handle this case just call move
+		 * directly.
+		 */
+		xdg_toplevel_view_move(view, geo.x, geo.y);
+		return;
+	}
+
+	view->pending = geo;
+	struct wlr_xdg_toplevel *xdg_toplevel = xdg_toplevel_from_view(view);
+	uint32_t serial = wlr_xdg_toplevel_set_size(xdg_toplevel,
+		(uint32_t)geo.width, (uint32_t)geo.height);
+	if (serial > 0) {
+		view->pending_configure_serial = serial;
+	} else if (view->pending_configure_serial == 0) {
+		view->current.x = geo.x;
+		view->current.y = geo.y;
+		view_moved(view);
+	}
 }
 
 static void

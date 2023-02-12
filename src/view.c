@@ -162,7 +162,6 @@ view_moved(struct view *view)
 	}
 }
 
-/* N.B. Use view_move() if not resizing. */
 void
 view_move_resize(struct view *view, struct wlr_box geo)
 {
@@ -417,13 +416,7 @@ view_apply_region_geometry(struct view *view)
 	geo.width -= margin.left + margin.right;
 	geo.height -= margin.top + margin.bottom;
 
-	if (view->pending.width == geo.width
-			&& view->pending.height == geo.height) {
-		/* move horizontally/vertically without changing size */
-		view_move(view, geo.x, geo.y);
-	} else {
-		view_move_resize(view, geo);
-	}
+	view_move_resize(view, geo);
 }
 
 static void
@@ -439,13 +432,7 @@ view_apply_tiled_geometry(struct view *view, struct output *output)
 	}
 
 	struct wlr_box dst = view_get_edge_snap_box(view, output, view->tiled);
-	if (view->pending.width == dst.width
-			&& view->pending.height == dst.height) {
-		/* move horizontally/vertically without changing size */
-		view_move(view, dst.x, dst.y);
-	} else {
-		view_move_resize(view, dst);
-	}
+	view_move_resize(view, dst);
 }
 
 static void

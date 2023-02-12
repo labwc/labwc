@@ -303,6 +303,10 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_DEBUG:
 			debug_dump_scene(server);
+			if (view) {
+				wlr_log(WLR_ERROR, "moving to cursor output");
+				view_move_to_output(view, NULL, /* apply_layout */ true);
+			}
 			break;
 		case ACTION_TYPE_EXECUTE:
 			if (!arg) {

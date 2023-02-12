@@ -146,6 +146,8 @@ bool view_is_always_on_top(struct view *view);
 bool view_is_tiled(struct view *view);
 bool view_is_floating(struct view *view);
 void view_move_to_workspace(struct view *view, struct workspace *workspace);
+void view_move_to_output(struct view *view, struct output *output, bool apply_layout);
+
 void view_set_decorations(struct view *view, bool decorations);
 void view_toggle_fullscreen(struct view *view);
 void view_adjust_for_layout_change(struct view *view);

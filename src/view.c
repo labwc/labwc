@@ -630,6 +630,67 @@ view_move_to_workspace(struct view *view, struct workspace *workspace)
 	}
 }
 
+void
+view_move_to_output(struct view *view, struct output *output, bool apply_layout)
+{
+	assert(view);
+	if (!output) {
+		/* Get the output where the cursor is currently on */
+		struct wlr_output *wlr_output = wlr_output_layout_output_at(
+			view->server->output_layout,
+			view->server->seat.cursor->x,
+			view->server->seat.cursor->y);
+		output = output_from_wlr_output(view->server, wlr_output);
+	}
+	if (!output) {
+		wlr_log(WLR_ERROR, "Can't move view to output: No outputs available");
+		return;
+	} else if (output == view->output || output->wlr_output == view->fullscreen) {
+		wlr_log(WLR_ERROR, "Refusing to move view to same output");
+		return;
+	}
+
+	/*
+	 * TODO:
+	 * This is a pretty horrible hack which forces
+	 * view_discover() to select a specific output.
+	 *
+	 * This should be replaced by a better alternative
+	 * which preserves the automatic fallover property
+	 * of discover_output() being used in the various
+	 * view_apply_xxx_geometry() functions.
+	 */
+	struct wlr_box layout_usable = output_usable_area_in_layout_coords(output);
+	view->current.x = layout_usable.x;
+	view->current.y = layout_usable.y;
+
+	/* Handle fullscreen */
+	if (view->fullscreen) {
+		view->fullscreen = output->wlr_output;
+	}
+
+	/* Adjust natural geometry so we restore to the new output */
+	if (!view_is_floating(view)) {
+		view_compute_centered_position(view,
+			view->natural_geometry.width,
+			view->natural_geometry.height,
+			&view->natural_geometry.x,
+			&view->natural_geometry.y);
+	}
+
+	if (apply_layout) {
+		if (view->fullscreen) {
+			view_apply_fullscreen_geometry(view, view->fullscreen);
+		} else if (!view_apply_special_geometry(view)) {
+			/*
+			 * This could be enhanced to use approximately
+			 * the same position as on the old output.
+			 */
+			view_center(view);
+		}
+	}
+}
+
 static void
 decorate(struct view *view)
 {

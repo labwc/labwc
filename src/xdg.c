@@ -298,10 +298,8 @@ position_xdg_toplevel_view(struct view *view)
 		xdg_toplevel_from_view(view)->parent;
 
 	if (!parent_xdg_toplevel) {
-		struct wlr_box box =
-			output_usable_area_from_cursor_coords(view->server);
-		view->current.x = box.x;
-		view->current.y = box.y;
+		/* Move view to the output where the cursor is currently on */
+		view_move_to_output(view, NULL, /* apply_layout */ false);
 		view_center(view);
 	} else {
 		/*
@@ -345,6 +343,7 @@ xdg_toplevel_view_map(struct view *view)
 	}
 	view->mapped = true;
 	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
+
 	view->surface = xdg_surface->surface;
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 	if (!view->been_mapped) {

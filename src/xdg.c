@@ -203,13 +203,17 @@ handle_set_app_id(struct wl_listener *listener, void *data)
 static void
 xdg_toplevel_view_move(struct view *view, int x, int y)
 {
-	view->current.x = x;
-	view->current.y = y;
-
 	/* override any previous pending move */
 	view->pending.x = x;
 	view->pending.y = y;
 
+	/* Syncs moves with resizes  */
+	if (view->pending_configure_serial > 0) {
+		return;
+	}
+
+	view->current.x = x;
+	view->current.y = y;
 	view_moved(view);
 }
 

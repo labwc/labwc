@@ -79,7 +79,7 @@ jobs:
           apt-get install -y git clang \
             hwdata \
             libxml2-dev libcairo2-dev libpango1.0-dev \
-            librsvg2-dev
+            librsvg2-dev libxcb-ewmh-dev
           apt-get build-dep -y wlroots
 
       - name: Install FreeBSD dependencies

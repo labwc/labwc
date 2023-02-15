@@ -487,7 +487,9 @@ view_apply_maximized_geometry(struct view *view)
 static bool
 view_apply_special_geometry(struct view *view)
 {
-	if (view->maximized) {
+	if (view->fullscreen) {
+		view_apply_fullscreen_geometry(view);
+	} else if (view->maximized) {
 		view_apply_maximized_geometry(view);
 	} else if (view->tiled) {
 		view_apply_tiled_geometry(view, NULL);
@@ -729,13 +731,8 @@ view_set_fullscreen(struct view *view, bool fullscreen, struct output *output)
 	}
 
 	set_fullscreen(view, fullscreen);
-	if (fullscreen) {
-		view_apply_fullscreen_geometry(view);
-	} else {
-		/* Restore non-fullscreen geometry */
-		if (!view_apply_special_geometry(view)) {
-			view_apply_natural_geometry(view);
-		}
+	if (!view_apply_special_geometry(view)) {
+		view_apply_natural_geometry(view);
 	}
 }
 

@@ -46,10 +46,21 @@ desktop_move_to_back(struct view *view)
 void
 desktop_arrange_all_views(struct server *server)
 {
-	/* Adjust window positions/sizes */
+	/*
+	 * Adjust window positions/sizes. Skip views with no size since
+	 * we can't do anything useful with them; they will presumably
+	 * be initialized with valid positions/sizes later.
+	 *
+	 * We do not simply check view->mapped/been_mapped here because
+	 * views can have maximized/fullscreen geometry applied while
+	 * still unmapped. We do want to adjust the geometry of those
+	 * views.
+	 */
 	struct view *view;
 	wl_list_for_each(view, &server->views, link) {
-		view_adjust_for_layout_change(view);
+		if (!wlr_box_empty(&view->pending)) {
+			view_adjust_for_layout_change(view);
+		}
 	}
 }
 

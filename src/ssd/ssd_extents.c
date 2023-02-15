@@ -24,16 +24,6 @@ add_extent(struct wl_list *part_list, enum ssd_part_type type,
 	return part;
 }
 
-static void
-lab_wlr_output_layout_layout_coords(struct wlr_output_layout *layout,
-		struct wlr_output *output, int *x, int *y)
-{
-	struct wlr_output_layout_output *l_output;
-	l_output = wlr_output_layout_get(layout, output);
-	*x += l_output->x;
-	*y += l_output->y;
-}
-
 void
 ssd_extents_create(struct ssd *ssd)
 {
@@ -110,6 +100,11 @@ ssd_extents_update(struct ssd *ssd)
 	if (!view->output) {
 		return;
 	}
+	struct wlr_output_layout_output *l_output = wlr_output_layout_get(
+		view->server->output_layout, view->output->wlr_output);
+	if (!l_output) {
+		return;
+	}
 
 	struct theme *theme = view->server->theme;
 
@@ -128,10 +123,9 @@ ssd_extents_update(struct ssd *ssd)
 	struct wlr_scene_rect *rect;
 
 	/* Convert usable area into layout coordinates */
-	struct wlr_box usable_area;
-	memcpy(&usable_area, &view->output->usable_area, sizeof(struct wlr_box));
-	lab_wlr_output_layout_layout_coords(view->server->output_layout,
-		view->output->wlr_output, &usable_area.x, &usable_area.y);
+	struct wlr_box usable_area = view->output->usable_area;
+	usable_area.x += l_output->x;
+	usable_area.y += l_output->y;
 
 	/* Remember base layout coordinates */
 	int base_x, base_y;

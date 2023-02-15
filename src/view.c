@@ -245,6 +245,10 @@ view_output(struct view *view)
 static bool
 view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 {
+	if (w <= 0 || h <= 0) {
+		wlr_log(WLR_ERROR, "view has empty geometry, not centering");
+		return false;
+	}
 	struct output *output = view_output(view);
 	if (!output) {
 		return false;

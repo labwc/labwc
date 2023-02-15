@@ -178,8 +178,9 @@ handle_request_fullscreen(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_fullscreen);
 	struct wlr_xdg_toplevel *xdg_toplevel = xdg_toplevel_from_view(view);
-	view_set_fullscreen(view, xdg_toplevel->requested.fullscreen,
+	struct output *output = output_from_wlr_output(view->server,
 		xdg_toplevel->requested.fullscreen_output);
+	view_set_fullscreen(view, xdg_toplevel->requested.fullscreen, output);
 }
 
 static void
@@ -345,8 +346,9 @@ xdg_toplevel_view_map(struct view *view)
 		}
 
 		if (!view->fullscreen && requested->fullscreen) {
-			view_set_fullscreen(view, true,
-				requested->fullscreen_output);
+			struct output *output = output_from_wlr_output(
+				view->server, requested->fullscreen_output);
+			view_set_fullscreen(view, true, output);
 		} else if (!view->maximized && requested->maximized) {
 			view_maximize(view, true,
 				/*store_natural_geometry*/ true);

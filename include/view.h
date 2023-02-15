@@ -48,14 +48,13 @@ struct view {
 	bool ssd_enabled;
 	bool minimized;
 	bool maximized;
+	bool fullscreen;
 	uint32_t tiled;  /* private, enum view_edge in src/view.c */
 
 	/* Pointer to an output owned struct region, may be NULL */
 	struct region *tiled_region;
 	/* Set to region->name when tiled_region is free'd by a destroying output */
 	char *tiled_region_evacuate;
-
-	struct wlr_output *fullscreen;
 
 	/*
 	 * Geometry of the wlr_surface contained within the view, as
@@ -137,7 +136,7 @@ void view_set_untiled(struct view *view);
 void view_maximize(struct view *view, bool maximize,
 	bool store_natural_geometry);
 void view_set_fullscreen(struct view *view, bool fullscreen,
-	struct wlr_output *wlr_output);
+	struct output *output);
 void view_toggle_maximize(struct view *view);
 void view_toggle_decorations(struct view *view);
 void view_toggle_always_on_top(struct view *view);

@@ -221,9 +221,9 @@ view_minimize(struct view *view, bool minimized)
 	}
 }
 
-/* view_wlr_output - return the output that a view is mostly on */
-static struct wlr_output *
-view_wlr_output(struct view *view)
+/* view_output - return the output that a view is mostly on */
+static struct output *
+view_output(struct view *view)
 {
 	assert(view);
 	double closest_x, closest_y;
@@ -234,13 +234,6 @@ view_wlr_output(struct view *view)
 		&closest_x, &closest_y);
 	wlr_output = wlr_output_layout_output_at(view->server->output_layout,
 		closest_x, closest_y);
-	return wlr_output;
-}
-
-static struct output *
-view_output(struct view *view)
-{
-	struct wlr_output *wlr_output = view_wlr_output(view);
 	return output_from_wlr_output(view->server, wlr_output);
 }
 
@@ -442,16 +435,17 @@ view_apply_tiled_geometry(struct view *view, struct output *output)
 }
 
 static void
-view_apply_fullscreen_geometry(struct view *view, struct wlr_output *wlr_output)
+view_apply_fullscreen_geometry(struct view *view)
 {
-	assert(wlr_output);
-	struct output *output =
-		output_from_wlr_output(view->server, wlr_output);
+	assert(view->fullscreen);
+	assert(output_is_usable(view->output));
+
 	struct wlr_box box = { 0 };
-	wlr_output_effective_resolution(wlr_output, &box.width, &box.height);
+	wlr_output_effective_resolution(view->output->wlr_output,
+		&box.width, &box.height);
 	double ox = 0, oy = 0;
-	wlr_output_layout_output_coords(output->server->output_layout,
-		output->wlr_output, &ox, &oy);
+	wlr_output_layout_output_coords(view->server->output_layout,
+		view->output->wlr_output, &ox, &oy);
 	box.x -= ox;
 	box.y -= oy;
 	view_move_resize(view, box);
@@ -679,16 +673,15 @@ view_toggle_fullscreen(struct view *view)
 }
 
 void
-view_set_fullscreen(struct view *view, bool fullscreen,
-		struct wlr_output *wlr_output)
+view_set_fullscreen(struct view *view, bool fullscreen, struct output *output)
 {
 	assert(view);
-	if (fullscreen != !view->fullscreen) {
+	if (fullscreen == view->fullscreen) {
 		return;
 	}
-	if (!wlr_output) {
-		wlr_output = view_wlr_output(view);
-		if (!wlr_output && fullscreen) {
+	if (fullscreen && !output_is_usable(output)) {
+		output = view_output(view);
+		if (!output_is_usable(output)) {
 			/* Prevent fullscreen with no available outputs */
 			return;
 		}
@@ -713,8 +706,9 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 		if (view->ssd_enabled) {
 			undecorate(view);
 		}
-		view->fullscreen = wlr_output;
-		view_apply_fullscreen_geometry(view, view->fullscreen);
+		view->fullscreen = true;
+		view->output = output;
+		view_apply_fullscreen_geometry(view);
 	} else {
 		view->fullscreen = false;
 		/* Re-show decorations when no longer fullscreen */
@@ -728,32 +722,29 @@ view_set_fullscreen(struct view *view, bool fullscreen,
 	}
 
 	/* Show fullscreen views above top-layer */
-	struct output *output =
-		output_from_wlr_output(view->server, wlr_output);
-	if (!output) {
-		return;
+	if (view->output) {
+		uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
+		wlr_scene_node_set_enabled(&view->output->layer_tree[top]->node,
+			!fullscreen);
 	}
-	uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
-	wlr_scene_node_set_enabled(&output->layer_tree[top]->node, !fullscreen);
 }
 
 void
 view_adjust_for_layout_change(struct view *view)
 {
 	assert(view);
-	struct wlr_output_layout *layout = view->server->output_layout;
 	if (view->fullscreen) {
-		if (wlr_output_layout_get(layout, view->fullscreen)) {
+		if (output_is_usable(view->output)) {
 			/* recompute fullscreen geometry */
-			view_apply_fullscreen_geometry(view, view->fullscreen);
+			view_apply_fullscreen_geometry(view);
 		} else {
 			/* output is gone, exit fullscreen */
 			view_set_fullscreen(view, false, NULL);
 		}
 	} else if (!view_apply_special_geometry(view)) {
 		/* reposition view if it's offscreen */
-		if (!wlr_output_layout_intersects(layout, NULL,
-				&view->pending)) {
+		if (!wlr_output_layout_intersects(view->server->output_layout,
+				NULL, &view->pending)) {
 			view_center(view);
 		}
 	}
@@ -771,7 +762,13 @@ void
 view_discover_output(struct view *view)
 {
 	assert(view);
-	view->output = view_output(view);
+	/*
+	 * Fullscreen views are tied to a particular output so don't
+	 * auto-discover output for them.
+	 */
+	if (!view->fullscreen) {
+		view->output = view_output(view);
+	}
 }
 
 void
@@ -1052,11 +1049,10 @@ view_destroy(struct view *view)
 	 * in fullscreen mode, so if that's the case, we have to re-enable it
 	 * here.
 	 */
-	if (view->fullscreen) {
-		struct output *output =
-			output_from_wlr_output(server, view->fullscreen);
+	if (view->fullscreen && view->output) {
 		uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
-		wlr_scene_node_set_enabled(&output->layer_tree[top]->node, true);
+		wlr_scene_node_set_enabled(&view->output->layer_tree[top]->node,
+			true);
 	}
 
 	/* If we spawned a window menu, close it */

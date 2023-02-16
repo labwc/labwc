@@ -2,6 +2,8 @@
 #ifndef __LABWC_REGIONS_H
 #define __LABWC_REGIONS_H
 
+#include <wlr/util/box.h>
+
 struct seat;
 struct view;
 struct server;

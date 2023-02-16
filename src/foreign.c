@@ -110,21 +110,16 @@ void
 foreign_toplevel_update_outputs(struct view *view)
 {
 	assert(view->toplevel.handle);
-
-	struct wlr_box view_geo = view->current;
 	struct wlr_output_layout *layout = view->server->output_layout;
-
 	struct output *output;
 	wl_list_for_each(output, &view->server->outputs, link) {
-		if (output->wlr_output->enabled && !output->leased) {
-			if (wlr_output_layout_intersects(layout,
-					output->wlr_output, &view_geo)) {
-				wlr_foreign_toplevel_handle_v1_output_enter(
-					view->toplevel.handle, output->wlr_output);
-				continue;
-			}
+		if (output_is_usable(output) && wlr_output_layout_intersects(
+				layout, output->wlr_output, &view->current)) {
+			wlr_foreign_toplevel_handle_v1_output_enter(
+				view->toplevel.handle, output->wlr_output);
+		} else {
+			wlr_foreign_toplevel_handle_v1_output_leave(
+				view->toplevel.handle, output->wlr_output);
 		}
-		wlr_foreign_toplevel_handle_v1_output_leave(
-			view->toplevel.handle, output->wlr_output);
 	}
 }

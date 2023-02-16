@@ -407,10 +407,9 @@ osd_update(struct server *server)
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
 		destroy_osd_nodes(output);
-		if (!output->wlr_output->enabled) {
-			continue;
+		if (output_is_usable(output)) {
+			display_osd(output);
 		}
-		display_osd(output);
 	}
 
 	/* Outline current window */

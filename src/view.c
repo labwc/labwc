@@ -499,6 +499,7 @@ view_apply_special_geometry(struct view *view)
 	return true;
 }
 
+/* For internal use only. Does not update geometry. */
 static void
 set_maximized(struct view *view, bool maximized)
 {
@@ -671,20 +672,15 @@ view_toggle_fullscreen(struct view *view)
 	view_set_fullscreen(view, !view->fullscreen, NULL);
 }
 
-void
-view_set_fullscreen(struct view *view, bool fullscreen, struct output *output)
+/* For internal use only. Does not update geometry. */
+static void
+set_fullscreen(struct view *view, bool fullscreen)
 {
-	assert(view);
-	if (fullscreen == view->fullscreen) {
-		return;
+	/* Hide decorations when going fullscreen */
+	if (fullscreen && view->ssd_enabled) {
+		undecorate(view);
 	}
-	if (fullscreen && !output_is_usable(output)) {
-		output = view_output(view);
-		if (!output_is_usable(output)) {
-			/* Prevent fullscreen with no available outputs */
-			return;
-		}
-	}
+
 	if (view->impl->set_fullscreen) {
 		view->impl->set_fullscreen(view, fullscreen);
 	}
@@ -692,32 +688,11 @@ view_set_fullscreen(struct view *view, bool fullscreen, struct output *output)
 		wlr_foreign_toplevel_handle_v1_set_fullscreen(
 			view->toplevel.handle, fullscreen);
 	}
-	if (fullscreen) {
-		/*
-		 * Fullscreen via keybind or client request cancels
-		 * interactive move/resize since we can't move/resize
-		 * a fullscreen view.
-		 */
-		interactive_cancel(view);
-		view_store_natural_geometry(view);
+	view->fullscreen = fullscreen;
 
-		/* Hide decorations when going fullscreen */
-		if (view->ssd_enabled) {
-			undecorate(view);
-		}
-		view->fullscreen = true;
-		view->output = output;
-		view_apply_fullscreen_geometry(view);
-	} else {
-		view->fullscreen = false;
-		/* Re-show decorations when no longer fullscreen */
-		if (view->ssd_enabled) {
-			decorate(view);
-		}
-		/* Restore non-fullscreen geometry */
-		if (!view_apply_special_geometry(view)) {
-			view_apply_natural_geometry(view);
-		}
+	/* Re-show decorations when no longer fullscreen */
+	if (!fullscreen && view->ssd_enabled) {
+		decorate(view);
 	}
 
 	/* Show fullscreen views above top-layer */
@@ -725,6 +700,42 @@ view_set_fullscreen(struct view *view, bool fullscreen, struct output *output)
 		uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
 		wlr_scene_node_set_enabled(&view->output->layer_tree[top]->node,
 			!fullscreen);
+	}
+}
+
+void
+view_set_fullscreen(struct view *view, bool fullscreen, struct output *output)
+{
+	assert(view);
+	if (fullscreen == view->fullscreen) {
+		return;
+	}
+	if (fullscreen) {
+		if (!output_is_usable(output)) {
+			output = view_output(view);
+			if (!output_is_usable(output)) {
+				/* Prevent fullscreen with no available outputs */
+				return;
+			}
+		}
+		/*
+		 * Fullscreen via keybind or client request cancels
+		 * interactive move/resize since we can't move/resize
+		 * a fullscreen view.
+		 */
+		interactive_cancel(view);
+		view_store_natural_geometry(view);
+		view->output = output;
+	}
+
+	set_fullscreen(view, fullscreen);
+	if (fullscreen) {
+		view_apply_fullscreen_geometry(view);
+	} else {
+		/* Restore non-fullscreen geometry */
+		if (!view_apply_special_geometry(view)) {
+			view_apply_natural_geometry(view);
+		}
 	}
 }
 

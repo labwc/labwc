@@ -15,6 +15,7 @@ struct multi_rect;
 /* Double use: rcxml.c for config and output.c for usage */
 struct region {
 	struct wl_list link; /* struct rcxml.regions, struct output.regions */
+	struct output *output;
 	char *name;
 	struct wlr_box geo;
 	struct wlr_box percentage;

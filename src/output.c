@@ -26,7 +26,7 @@ static void
 output_frame_notify(struct wl_listener *listener, void *data)
 {
 	struct output *output = wl_container_of(listener, output, frame);
-	if (!output->wlr_output->enabled) {
+	if (!output_is_usable(output)) {
 		return;
 	}
 
@@ -456,6 +456,13 @@ output_from_wlr_output(struct server *server, struct wlr_output *wlr_output)
 		}
 	}
 	return NULL;
+}
+
+bool
+output_is_usable(struct output *output)
+{
+	/* output_is_usable(NULL) is safe and returns false */
+	return output && output->wlr_output->enabled && !output->leased;
 }
 
 /* returns true if usable area changed */

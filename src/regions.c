@@ -164,6 +164,7 @@ regions_reconfigure_output(struct output *output)
 	wl_list_for_each(region, &rc.regions, link) {
 		struct region *region_new = znew(*region_new);
 		/* Create a copy */
+		region_new->output = output;
 		region_new->name = xstrdup(region->name);
 		region_new->percentage = region->percentage;
 		wl_list_append(&output->regions, &region_new->link);
@@ -214,14 +215,9 @@ regions_evacuate_output(struct output *output)
 {
 	assert(output);
 	struct view *view;
-	struct region *region;
-
 	wl_list_for_each(view, &output->server->views, link) {
-		wl_list_for_each(region, &output->regions, link) {
-			if (view->tiled_region == region) {
-				view_evacuate_region(view);
-				break;
-			}
+		if (view->tiled_region && view->tiled_region->output == output) {
+			view_evacuate_region(view);
 		}
 	}
 }

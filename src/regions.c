@@ -219,12 +219,7 @@ regions_evacuate_output(struct output *output)
 	wl_list_for_each(view, &output->server->views, link) {
 		wl_list_for_each(region, &output->regions, link) {
 			if (view->tiled_region == region) {
-				if (!view->tiled_region_evacuate) {
-					view->tiled_region_evacuate =
-						xstrdup(region->name);
-				}
-				/* Prevent carrying around a dangling pointer */
-				view->tiled_region = NULL;
+				view_evacuate_region(view);
 				break;
 			}
 		}

@@ -775,6 +775,17 @@ view_discover_output(struct view *view)
 }
 
 void
+view_evacuate_region(struct view *view)
+{
+	assert(view);
+	assert(view->tiled_region);
+	if (!view->tiled_region_evacuate) {
+		view->tiled_region_evacuate = xstrdup(view->tiled_region->name);
+	}
+	view->tiled_region = NULL;
+}
+
+void
 view_on_output_destroy(struct view *view)
 {
 	assert(view);

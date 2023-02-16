@@ -162,6 +162,7 @@ void view_reload_ssd(struct view *view);
 void view_impl_map(struct view *view);
 void view_adjust_size(struct view *view, int *w, int *h);
 
+void view_evacuate_region(struct view *view);
 void view_on_output_destroy(struct view *view);
 void view_destroy(struct view *view);
 

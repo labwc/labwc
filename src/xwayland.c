@@ -319,12 +319,21 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	struct view *view = &xwayland_view->base;
 	struct wlr_xwayland_surface_configure_event *event = data;
 
-	int width = event->width;
-	int height = event->height;
-	view_adjust_size(view, &width, &height);
-
-	xwayland_view_configure(view,
-		(struct wlr_box){event->x, event->y, width, height});
+	if (view_is_floating(view)) {
+		/* Honor client configure requests for floating views */
+		struct wlr_box box = {.x = event->x, .y = event->y,
+			.width = event->width, .height = event->height};
+		view_adjust_size(view, &box.width, &box.height);
+		xwayland_view_configure(view, box);
+	} else {
+		/*
+		 * Do not allow clients to request geometry other than
+		 * what we computed for maximized/fullscreen/tiled
+		 * views. Ignore the client request and send back a
+		 * ConfigureNotify event with the computed geometry.
+		 */
+		xwayland_view_configure(view, view->pending);
+	}
 }
 
 static void

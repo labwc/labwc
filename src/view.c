@@ -979,6 +979,26 @@ view_get_string_prop(struct view *view, const char *prop)
 }
 
 void
+view_apply_rules(struct view *view)
+{
+	if (!view->mapped) {
+		return;
+	}
+
+	/* TODO: read rc.xml <applications> element */
+	const char *title = view_get_string_prop(view, "title");
+	if (title && !strcmp(title, "lxqt-panel")) {
+		xdg_toplevel_view_convert_to_unmanaged(view);
+		return;
+	}
+	const char *app_id = view_get_string_prop(view, "app_id");
+	if (app_id && !strcmp(app_id, "lxqt-panel")) {
+		xdg_toplevel_view_convert_to_unmanaged(view);
+		return;
+	}
+}
+
+void
 view_update_title(struct view *view)
 {
 	assert(view);

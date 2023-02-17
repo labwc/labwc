@@ -26,6 +26,7 @@ labwc_sources = files(
   'xdg.c',
   'xdg-deco.c',
   'xdg-popup.c',
+  'xdg-unmanaged.c',
 )
 
 if have_xwayland

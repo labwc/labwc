@@ -6,6 +6,7 @@
 #include "view.h"
 #include "view-impl-common.h"
 #include "workspaces.h"
+#include "xdg-unmanaged.h"
 
 static struct xdg_toplevel_view *
 xdg_toplevel_view_from_view(struct view *view)
@@ -132,6 +133,17 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&xdg_toplevel_view->new_popup.link);
 
 	view_destroy(view);
+}
+
+void
+xdg_toplevel_view_convert_to_unmanaged(struct view *view)
+{
+	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
+	struct server *server = view->server;
+
+	handle_unmap(&view->unmap, xdg_surface);
+	handle_destroy(&view->destroy, xdg_surface);
+	xdg_unmanaged_create(server, xdg_surface);
 }
 
 static void
@@ -375,6 +387,7 @@ xdg_toplevel_view_map(struct view *view)
 	wl_signal_add(&xdg_surface->surface->events.commit, &view->commit);
 
 	view_impl_map(view);
+	view_apply_rules(view);
 }
 
 static void

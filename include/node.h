@@ -13,6 +13,7 @@ enum node_descriptor_type {
 	LAB_NODE_DESC_NODE = 0,
 	LAB_NODE_DESC_VIEW,
 	LAB_NODE_DESC_XDG_POPUP,
+	LAB_NODE_DESC_XDG_UNMANAGED,
 	LAB_NODE_DESC_LAYER_SURFACE,
 	LAB_NODE_DESC_LAYER_POPUP,
 	LAB_NODE_DESC_MENUITEM,
@@ -37,6 +38,7 @@ struct node_descriptor {
  * @data: struct to point to as follows:
  *   - LAB_NODE_DESC_VIEW           struct view
  *   - LAB_NODE_DESC_XDG_POPUP      struct view
+ *   - LAB_NODE_DESC_XDG_UNMANAGED  struct xdg_unmanaged
  *   - LAB_NODE_DESC_LAYER_SURFACE  struct lab_layer_surface
  *   - LAB_NODE_DESC_LAYER_POPUP    struct lab_layer_popup
  *   - LAB_NODE_DESC_MENUITEM       struct menuitem

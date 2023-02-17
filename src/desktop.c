@@ -348,6 +348,10 @@ get_cursor_context(struct server *server)
 					ret.surface = lab_wlr_surface_from_node(ret.node);
 				}
 				return ret;
+			case LAB_NODE_DESC_XDG_UNMANAGED:
+				ret.type = LAB_SSD_CLIENT;
+				ret.surface = lab_wlr_surface_from_node(ret.node);
+				return ret;
 			case LAB_NODE_DESC_SSD_BUTTON: {
 				/*
 				 * Always return the top scene node for SSD

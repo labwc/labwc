@@ -348,6 +348,7 @@ void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
 
 void xdg_activation_handle_request(struct wl_listener *listener, void *data);
 
+void xdg_toplevel_view_convert_to_unmanaged(struct view *view);
 void xdg_surface_new(struct wl_listener *listener, void *data);
 
 void foreign_toplevel_handle_create(struct view *view);

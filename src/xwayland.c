@@ -307,15 +307,25 @@ handle_request_configure(struct wl_listener *listener, void *data)
 
 	/*
 	 * If a configure request is received while maximized/
-	 * fullscreen/tiled, update the natural geometry only. This
-	 * appears to be the desired behavior e.g. when starting VLC in
-	 * fullscreen mode.
+	 * fullscreen/tiled, we use some heuristics to update the
+	 * natural geometry, but otherwise ignore the request.
+	 *
+	 * This is not 100% reliable since we don't really know what the
+	 * application is trying to do. Some (e.g. VLC starting in
+	 * fullscreen) do use ConfigureRequest to set natural geometry.
+	 * Others (e.g. xfce4-terminal) use ConfigureRequest in an
+	 * attempt to enforce size increments (which we ignore for
+	 * maximized/fullscreen/tiled windows).
 	 */
 	if (!view_is_floating(view)) {
-		view->natural_geometry.x = event->x;
-		view->natural_geometry.y = event->y;
-		view->natural_geometry.width = width;
-		view->natural_geometry.height = height;
+		if (!view->natural_geometry.x && !view->natural_geometry.y) {
+			view->natural_geometry.x = event->x;
+			view->natural_geometry.y = event->y;
+		}
+		if (wlr_box_empty(&view->natural_geometry)) {
+			view->natural_geometry.width = width;
+			view->natural_geometry.height = height;
+		}
 		return;
 	}
 

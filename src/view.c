@@ -279,21 +279,6 @@ view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
 	return true;
 }
 
-static void
-set_fallback_geometry(struct view *view)
-{
-	view->natural_geometry.width = LAB_FALLBACK_WIDTH;
-	view->natural_geometry.height = LAB_FALLBACK_HEIGHT;
-	view_compute_centered_position(view,
-		view->natural_geometry.width,
-		view->natural_geometry.height,
-		&view->natural_geometry.x,
-		&view->natural_geometry.y);
-}
-
-#undef LAB_FALLBACK_WIDTH
-#undef LAB_FALLBACK_HEIGHT
-
 void
 view_store_natural_geometry(struct view *view)
 {
@@ -303,14 +288,7 @@ view_store_natural_geometry(struct view *view)
 		return;
 	}
 
-	/**
-	 * If an application was started maximized or fullscreened, its
-	 * natural_geometry width/height may still be zero in which case we set
-	 * some fallback values. This is the case with foot and Qt applications.
-	 */
-	if (wlr_box_empty(&view->pending)) {
-		set_fallback_geometry(view);
-	} else {
+	if (!wlr_box_empty(&view->pending)) {
 		view->natural_geometry = view->pending;
 	}
 }
@@ -329,19 +307,32 @@ view_center(struct view *view)
 static void
 view_apply_natural_geometry(struct view *view)
 {
-	struct wlr_output_layout *layout = view->server->output_layout;
-	if (wlr_output_layout_intersects(layout, NULL, &view->natural_geometry)
-			|| wl_list_empty(&layout->outputs)) {
-		/* restore to original geometry */
-		view_move_resize(view, view->natural_geometry);
-	} else {
-		/* reposition if original geometry is offscreen */
-		struct wlr_box box = view->natural_geometry;
-		if (view_compute_centered_position(view, box.width, box.height,
-				&box.x, &box.y)) {
-			view_move_resize(view, box);
-		}
+	assert(view);
+	assert(view_is_floating(view));
+	struct wlr_box box = view->natural_geometry;
+
+	/**
+	 * If an application was started maximized or fullscreened, its
+	 * natural_geometry width/height may still be zero in which case we set
+	 * some fallback values. This is the case with foot and Qt applications.
+	 */
+	if (wlr_box_empty(&box)) {
+		box.width = LAB_FALLBACK_WIDTH;
+		box.height = LAB_FALLBACK_HEIGHT;
+		view_compute_centered_position(view, box.width, box.height,
+			&box.x, &box.y);
+	} else if (!wlr_output_layout_intersects(view->server->output_layout,
+			NULL, &box)) {
+		/*
+		 * Try to reposition if original geometry is offscreen.
+		 * If the repositioning fails (e.g. no usable output) we
+		 * will just restore the original geometry as-is.
+		 */
+		view_compute_centered_position(view, box.width, box.height,
+			&box.x, &box.y);
 	}
+
+	view_move_resize(view, box);
 }
 
 static void

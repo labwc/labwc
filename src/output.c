@@ -518,14 +518,13 @@ output_usable_area_in_layout_coords(struct output *output)
 	return box;
 }
 
-struct wlr_box
-output_usable_area_from_cursor_coords(struct server *server)
+struct output *
+output_from_cursor_coords(struct server *server)
 {
 	struct wlr_output *wlr_output;
 	wlr_output = wlr_output_layout_output_at(server->output_layout,
 		server->seat.cursor->x, server->seat.cursor->y);
-	struct output *output = output_from_wlr_output(server, wlr_output);
-	return output_usable_area_in_layout_coords(output);
+	return output_from_wlr_output(server, wlr_output);
 }
 
 void

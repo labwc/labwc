@@ -238,19 +238,18 @@ view_output(struct view *view)
 }
 
 static bool
-view_compute_centered_position(struct view *view, int w, int h, int *x, int *y)
+view_compute_centered_position(struct view *view, struct output *output,
+		int w, int h, int *x, int *y)
 {
 	if (w <= 0 || h <= 0) {
 		wlr_log(WLR_ERROR, "view has empty geometry, not centering");
 		return false;
 	}
-	struct output *output = view_output(view);
-	if (!output) {
-		return false;
-	}
-	struct wlr_output *wlr_output = output->wlr_output;
-	if (!wlr_output) {
-		return false;
+	if (!output_is_usable(output)) {
+		output = view_output(view);
+		if (!output_is_usable(output)) {
+			return false;
+		}
 	}
 
 	struct border margin = ssd_get_margin(view->ssd);
@@ -284,7 +283,7 @@ set_fallback_geometry(struct view *view)
 {
 	view->natural_geometry.width = LAB_FALLBACK_WIDTH;
 	view->natural_geometry.height = LAB_FALLBACK_HEIGHT;
-	view_compute_centered_position(view,
+	view_compute_centered_position(view, NULL,
 		view->natural_geometry.width,
 		view->natural_geometry.height,
 		&view->natural_geometry.x,
@@ -316,11 +315,11 @@ view_store_natural_geometry(struct view *view)
 }
 
 void
-view_center(struct view *view)
+view_center(struct view *view, struct output *output)
 {
 	assert(view);
 	int x, y;
-	if (view_compute_centered_position(view, view->pending.width,
+	if (view_compute_centered_position(view, output, view->pending.width,
 			view->pending.height, &x, &y)) {
 		view_move(view, x, y);
 	}
@@ -337,8 +336,8 @@ view_apply_natural_geometry(struct view *view)
 	} else {
 		/* reposition if original geometry is offscreen */
 		struct wlr_box box = view->natural_geometry;
-		if (view_compute_centered_position(view, box.width, box.height,
-				&box.x, &box.y)) {
+		if (view_compute_centered_position(view, NULL, box.width,
+				box.height, &box.x, &box.y)) {
 			view_move_resize(view, box);
 		}
 	}
@@ -745,7 +744,7 @@ view_adjust_for_layout_change(struct view *view)
 		/* reposition view if it's offscreen */
 		if (!wlr_output_layout_intersects(view->server->output_layout,
 				NULL, &view->pending)) {
-			view_center(view);
+			view_center(view, NULL);
 		}
 	}
 	if (view->toplevel.handle) {

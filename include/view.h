@@ -130,11 +130,13 @@ void view_move(struct view *view, int x, int y);
 void view_moved(struct view *view);
 void view_minimize(struct view *view, bool minimized);
 void view_store_natural_geometry(struct view *view);
-void view_center(struct view *view);
+/* output is optional, defaults to current nearest output */
+void view_center(struct view *view, struct output *output);
 void view_restore_to(struct view *view, struct wlr_box geometry);
 void view_set_untiled(struct view *view);
 void view_maximize(struct view *view, bool maximize,
 	bool store_natural_geometry);
+/* output is optional, defaults to current nearest output */
 void view_set_fullscreen(struct view *view, bool fullscreen,
 	struct output *output);
 void view_toggle_maximize(struct view *view);

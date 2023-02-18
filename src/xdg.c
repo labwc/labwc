@@ -278,11 +278,7 @@ position_xdg_toplevel_view(struct view *view)
 		xdg_toplevel_from_view(view)->parent;
 
 	if (!parent_xdg_toplevel) {
-		struct wlr_box box =
-			output_usable_area_from_cursor_coords(view->server);
-		view->current.x = box.x;
-		view->current.y = box.y;
-		view_center(view);
+		view_center(view, output_from_cursor_coords(view->server));
 	} else {
 		/*
 		 * If child-toplevel-views, we center-align relative to their

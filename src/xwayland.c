@@ -440,11 +440,7 @@ set_initial_position(struct view *view,
 		/* Just make sure the view is on-screen */
 		view_adjust_for_layout_change(view);
 	} else {
-		struct wlr_box box =
-			output_usable_area_from_cursor_coords(view->server);
-		view->current.x = box.x;
-		view->current.y = box.y;
-		view_center(view);
+		view_center(view, output_from_cursor_coords(view->server));
 	}
 }
 

@@ -420,7 +420,7 @@ bool output_is_usable(struct output *output);
 void output_update_usable_area(struct output *output);
 void output_update_all_usable_areas(struct server *server, bool layout_changed);
 struct wlr_box output_usable_area_in_layout_coords(struct output *output);
-struct wlr_box output_usable_area_from_cursor_coords(struct server *server);
+struct output *output_from_cursor_coords(struct server *server);
 void handle_output_power_manager_set_mode(struct wl_listener *listener,
 	void *data);
 

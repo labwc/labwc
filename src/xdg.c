@@ -332,6 +332,19 @@ xdg_toplevel_view_map(struct view *view)
 				xdg_surface->current.geometry.height;
 		}
 
+		/*
+		 * Set initial "pending" position for floating views.
+		 * Do this before view_set_fullscreen/view_maximize() so
+		 * that the position is saved with the natural geometry.
+		 *
+		 * FIXME: the natural geometry is not saved if either
+		 * handle_request_fullscreen/handle_request_maximize()
+		 * is called before map (try "foot --maximized").
+		 */
+		if (view_is_floating(view)) {
+			position_xdg_toplevel_view(view);
+		}
+
 		if (!view->fullscreen && requested->fullscreen) {
 			struct output *output = output_from_wlr_output(
 				view->server, requested->fullscreen_output);
@@ -339,9 +352,14 @@ xdg_toplevel_view_map(struct view *view)
 		} else if (!view->maximized && requested->maximized) {
 			view_maximize(view, true,
 				/*store_natural_geometry*/ true);
-		} else if (view_is_floating(view)) {
-			position_xdg_toplevel_view(view);
 		}
+
+		/*
+		 * Set initial "current" position directly before
+		 * calling view_moved() to reduce flicker
+		 */
+		view->current.x = view->pending.x;
+		view->current.y = view->pending.y;
 
 		view_moved(view);
 		view->been_mapped = true;

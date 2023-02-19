@@ -440,7 +440,8 @@ set_initial_position(struct view *view,
 		/* Just make sure the view is on-screen */
 		view_adjust_for_layout_change(view);
 	} else {
-		view_center(view, output_from_cursor_coords(view->server));
+		view_center(view, output_from_cursor_coords(view->server),
+			NULL);
 	}
 }
 

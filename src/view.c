@@ -222,7 +222,7 @@ view_minimize(struct view *view, bool minimized)
 }
 
 /* view_output - return the output that a view is mostly on */
-static struct output *
+struct output *
 view_output(struct view *view)
 {
 	assert(view);
@@ -239,7 +239,7 @@ view_output(struct view *view)
 
 static bool
 view_compute_centered_position(struct view *view, struct output *output,
-		int w, int h, int *x, int *y)
+		const struct wlr_box *ref, int w, int h, int *x, int *y)
 {
 	if (w <= 0 || h <= 0) {
 		wlr_log(WLR_ERROR, "view has empty geometry, not centering");
@@ -256,8 +256,13 @@ view_compute_centered_position(struct view *view, struct output *output,
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	int width = w + margin.left + margin.right;
 	int height = h + margin.top + margin.bottom;
-	*x = usable.x + (usable.width - width) / 2;
-	*y = usable.y + (usable.height - height) / 2;
+
+	/* If reference box is NULL then center to usable area */
+	if (!ref) {
+		ref = &usable;
+	}
+	*x = ref->x + (ref->width - width) / 2;
+	*y = ref->y + (ref->height - height) / 2;
 
 	/* If view is bigger than usable area, just top/left align it */
 	if (*x < usable.x) {
@@ -267,13 +272,8 @@ view_compute_centered_position(struct view *view, struct output *output,
 		*y = usable.y;
 	}
 
-#if HAVE_XWAYLAND
-	/* TODO: refactor xwayland.c functions to get rid of this */
-	if (view->type == LAB_XWAYLAND_VIEW) {
-		*x += margin.left;
-		*y += margin.top;
-	}
-#endif
+	*x += margin.left;
+	*y += margin.top;
 
 	return true;
 }
@@ -283,7 +283,7 @@ set_fallback_geometry(struct view *view)
 {
 	view->natural_geometry.width = LAB_FALLBACK_WIDTH;
 	view->natural_geometry.height = LAB_FALLBACK_HEIGHT;
-	view_compute_centered_position(view, NULL,
+	view_compute_centered_position(view, NULL, NULL,
 		view->natural_geometry.width,
 		view->natural_geometry.height,
 		&view->natural_geometry.x,
@@ -315,12 +315,12 @@ view_store_natural_geometry(struct view *view)
 }
 
 void
-view_center(struct view *view, struct output *output)
+view_center(struct view *view, struct output *output, const struct wlr_box *ref)
 {
 	assert(view);
 	int x, y;
-	if (view_compute_centered_position(view, output, view->pending.width,
-			view->pending.height, &x, &y)) {
+	if (view_compute_centered_position(view, output, ref,
+			view->pending.width, view->pending.height, &x, &y)) {
 		view_move(view, x, y);
 	}
 }
@@ -336,8 +336,8 @@ view_apply_natural_geometry(struct view *view)
 	} else {
 		/* reposition if original geometry is offscreen */
 		struct wlr_box box = view->natural_geometry;
-		if (view_compute_centered_position(view, NULL, box.width,
-				box.height, &box.x, &box.y)) {
+		if (view_compute_centered_position(view, NULL, NULL,
+				box.width, box.height, &box.x, &box.y)) {
 			view_move_resize(view, box);
 		}
 	}
@@ -744,7 +744,7 @@ view_adjust_for_layout_change(struct view *view)
 		/* reposition view if it's offscreen */
 		if (!wlr_output_layout_intersects(view->server->output_layout,
 				NULL, &view->pending)) {
-			view_center(view, NULL);
+			view_center(view, NULL, NULL);
 		}
 	}
 	if (view->toplevel.handle) {

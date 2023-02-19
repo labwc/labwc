@@ -273,12 +273,12 @@ lookup_view_by_xdg_toplevel(struct server *server,
 static void
 position_xdg_toplevel_view(struct view *view)
 {
-	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
 	struct wlr_xdg_toplevel *parent_xdg_toplevel =
 		xdg_toplevel_from_view(view)->parent;
 
 	if (!parent_xdg_toplevel) {
-		view_center(view, output_from_cursor_coords(view->server));
+		view_center(view, output_from_cursor_coords(view->server),
+			NULL);
 	} else {
 		/*
 		 * If child-toplevel-views, we center-align relative to their
@@ -287,17 +287,8 @@ position_xdg_toplevel_view(struct view *view)
 		struct view *parent = lookup_view_by_xdg_toplevel(
 			view->server, parent_xdg_toplevel);
 		assert(parent);
-		int center_x = parent->current.x + parent->current.width / 2;
-		int center_y = parent->current.y + parent->current.height / 2;
-		view->current.x = center_x
-			- xdg_surface->current.geometry.width / 2;
-		view->current.y = center_y
-			- xdg_surface->current.geometry.height / 2;
+		view_center(view, view_output(parent), &parent->pending);
 	}
-
-	struct border margin = ssd_get_margin(view->ssd);
-	view->current.x += margin.left;
-	view->current.y += margin.top;
 }
 
 static const char *

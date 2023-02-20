@@ -740,19 +740,26 @@ void
 view_adjust_for_layout_change(struct view *view)
 {
 	assert(view);
-	if (view->fullscreen) {
-		if (output_is_usable(view->output)) {
-			/* recompute fullscreen geometry */
-			view_apply_fullscreen_geometry(view);
+
+	/* Exit fullscreen if output is lost */
+	bool was_fullscreen = view->fullscreen;
+	if (was_fullscreen && !output_is_usable(view->output)) {
+		set_fullscreen(view, false);
+	}
+
+	/* Rediscover nearest output as it may have changed */
+	view_discover_output(view);
+
+	if (!view_apply_special_geometry(view)) {
+		if (was_fullscreen) {
+			view_apply_natural_geometry(view);
 		} else {
-			/* output is gone, exit fullscreen */
-			view_set_fullscreen(view, false, NULL);
-		}
-	} else if (!view_apply_special_geometry(view)) {
-		/* reposition view if it's offscreen */
-		if (!wlr_output_layout_intersects(view->server->output_layout,
-				NULL, &view->pending)) {
-			view_center(view, NULL, NULL);
+			/* reposition view if it's offscreen */
+			if (!wlr_output_layout_intersects(
+					view->server->output_layout,
+					NULL, &view->pending)) {
+				view_center(view, NULL, NULL);
+			}
 		}
 	}
 	if (view->toplevel.handle) {

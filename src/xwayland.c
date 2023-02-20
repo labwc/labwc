@@ -313,7 +313,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data)
 	if (!view->mapped) {
 		ensure_initial_geometry_and_output(view);
 	}
-	view_set_fullscreen(view, fullscreen, NULL);
+	view_set_fullscreen(view, fullscreen);
 }
 
 static void
@@ -429,7 +429,7 @@ xwayland_view_map(struct view *view)
 	struct wlr_xwayland_surface *xwayland_surface =
 		xwayland_surface_from_view(view);
 	if (!view->fullscreen && xwayland_surface->fullscreen) {
-		view_set_fullscreen(view, true, NULL);
+		view_set_fullscreen(view, true);
 	}
 
 	if (view->surface != xwayland_surface->surface) {

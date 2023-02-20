@@ -186,16 +186,32 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 }
 
 static void
+set_fullscreen_from_request(struct view *view,
+		struct wlr_xdg_toplevel_requested *requested)
+{
+	if (!view->fullscreen && requested->fullscreen
+			&& requested->fullscreen_output) {
+		struct output *output = output_from_wlr_output(view->server,
+			requested->fullscreen_output);
+		if (output_is_usable(output)) {
+			view->output = output;
+		} else {
+			wlr_log(WLR_ERROR,
+				"invalid output in fullscreen request");
+		}
+	}
+	view_set_fullscreen(view, requested->fullscreen);
+}
+
+static void
 handle_request_fullscreen(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_fullscreen);
 	if (!view->mapped && !view->output) {
 		view->output = output_nearest_to_cursor(view->server);
 	}
-	struct wlr_xdg_toplevel *xdg_toplevel = xdg_toplevel_from_view(view);
-	struct output *output = output_from_wlr_output(view->server,
-		xdg_toplevel->requested.fullscreen_output);
-	view_set_fullscreen(view, xdg_toplevel->requested.fullscreen, output);
+	set_fullscreen_from_request(view,
+		&xdg_toplevel_from_view(view)->requested);
 }
 
 static void
@@ -361,9 +377,7 @@ xdg_toplevel_view_map(struct view *view)
 		}
 
 		if (!view->fullscreen && requested->fullscreen) {
-			struct output *output = output_from_wlr_output(
-				view->server, requested->fullscreen_output);
-			view_set_fullscreen(view, true, output);
+			set_fullscreen_from_request(view, requested);
 		} else if (!view->maximized && requested->maximized) {
 			view_maximize(view, true,
 				/*store_natural_geometry*/ true);

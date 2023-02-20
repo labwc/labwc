@@ -138,9 +138,7 @@ void view_restore_to(struct view *view, struct wlr_box geometry);
 void view_set_untiled(struct view *view);
 void view_maximize(struct view *view, bool maximize,
 	bool store_natural_geometry);
-/* output is optional, defaults to current nearest output */
-void view_set_fullscreen(struct view *view, bool fullscreen,
-	struct output *output);
+void view_set_fullscreen(struct view *view, bool fullscreen);
 void view_toggle_maximize(struct view *view);
 void view_toggle_decorations(struct view *view);
 void view_toggle_always_on_top(struct view *view);

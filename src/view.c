@@ -102,6 +102,31 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 	return dst;
 }
 
+/*
+ * At present, a view can only 'enter' one output at a time, although the view
+ * may span multiple outputs. Ideally we would handle multiple outputs, but
+ * this method is the simplest form of what we want.
+ */
+static void
+view_discover_output(struct view *view)
+{
+	assert(view);
+	view->output = output_nearest_to(view->server,
+		view->current.x + view->current.width / 2,
+		view->current.y + view->current.height / 2);
+}
+
+/* deprecated */
+struct output *
+view_output(struct view *view)
+{
+	assert(view);
+	if (!output_is_usable(view->output)) {
+		view_discover_output(view);
+	}
+	return view->output;
+}
+
 static void
 _view_set_activated(struct view *view, bool activated)
 {
@@ -156,7 +181,14 @@ view_moved(struct view *view)
 	assert(view);
 	wlr_scene_node_set_position(&view->scene_tree->node,
 		view->current.x, view->current.y);
-	view_discover_output(view);
+	/*
+	 * Only floating views change output when moved. Non-floating
+	 * views (maximized/tiled/fullscreen) are tied to a particular
+	 * output when they enter that state.
+	 */
+	if (view_is_floating(view)) {
+		view_discover_output(view);
+	}
 	ssd_update_geometry(view->ssd);
 	cursor_update_focus(view->server);
 	if (view->toplevel.handle) {
@@ -219,16 +251,6 @@ view_minimize(struct view *view, bool minimized)
 	} else {
 		view->impl->map(view);
 	}
-}
-
-/* view_output - return the output that a view is mostly on */
-struct output *
-view_output(struct view *view)
-{
-	assert(view);
-	return output_nearest_to(view->server,
-		view->current.x + view->current.width / 2,
-		view->current.y + view->current.height / 2);
 }
 
 static bool
@@ -741,8 +763,13 @@ view_adjust_for_layout_change(struct view *view)
 		set_fullscreen(view, false);
 	}
 
-	/* Rediscover nearest output as it may have changed */
-	view_discover_output(view);
+	/*
+	 * Floating views are always assigned to the nearest output.
+	 * Maximized/tiled views remain on the same output if possible.
+	 */
+	if (view_is_floating(view) || !output_is_usable(view->output)) {
+		view_discover_output(view);
+	}
 
 	if (!view_apply_special_geometry(view)) {
 		if (was_fullscreen) {
@@ -758,24 +785,6 @@ view_adjust_for_layout_change(struct view *view)
 	}
 	if (view->toplevel.handle) {
 		foreign_toplevel_update_outputs(view);
-	}
-}
-
-/*
- * At present, a view can only 'enter' one output at a time, although the view
- * may span multiple outputs. Ideally we would handle multiple outputs, but
- * this method is the simplest form of what we want.
- */
-void
-view_discover_output(struct view *view)
-{
-	assert(view);
-	/*
-	 * Fullscreen views are tied to a particular output so don't
-	 * auto-discover output for them.
-	 */
-	if (!view->fullscreen) {
-		view->output = view_output(view);
 	}
 }
 

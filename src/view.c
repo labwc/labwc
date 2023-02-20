@@ -432,13 +432,11 @@ view_apply_region_geometry(struct view *view)
 }
 
 static void
-view_apply_tiled_geometry(struct view *view, struct output *output)
+view_apply_tiled_geometry(struct view *view)
 {
 	assert(view->tiled);
-	if (!output) {
-		output = view_output(view);
-	}
-	if (!output) {
+	struct output *output = view_output(view);
+	if (!output_is_usable(output)) {
 		wlr_log(WLR_ERROR, "Can't tile: no output");
 		return;
 	}
@@ -506,7 +504,7 @@ view_apply_special_geometry(struct view *view)
 	} else if (view->maximized) {
 		view_apply_maximized_geometry(view);
 	} else if (view->tiled) {
-		view_apply_tiled_geometry(view, NULL);
+		view_apply_tiled_geometry(view);
 	} else if (view->tiled_region || view->tiled_region_evacuate) {
 		view_apply_region_geometry(view);
 	} else {
@@ -879,7 +877,7 @@ view_snap_to_edge(struct view *view, const char *direction,
 		return;
 	}
 	struct output *output = view_output(view);
-	if (!output) {
+	if (output_is_usable(output)) {
 		wlr_log(WLR_ERROR, "no output");
 		return;
 	}
@@ -918,6 +916,10 @@ view_snap_to_edge(struct view *view, const char *direction,
 			/* Move to next output */
 			edge = view_edge_invert(edge);
 			output = output_from_wlr_output(view->server, new_output);
+			if (!output_is_usable(output)) {
+				wlr_log(WLR_ERROR, "invalid output in layout");
+				return;
+			}
 		} else {
 			/*
 			 * No more output to move to
@@ -934,7 +936,7 @@ view_snap_to_edge(struct view *view, const char *direction,
 			 *       caused by a keybind but doesn't make sense
 			 *       when caused by mouse movement.
 			 */
-			view_apply_tiled_geometry(view, output);
+			view_apply_tiled_geometry(view);
 			return;
 		}
 	}
@@ -947,8 +949,9 @@ view_snap_to_edge(struct view *view, const char *direction,
 		view_store_natural_geometry(view);
 	}
 	view_set_untiled(view);
+	view->output = output;
 	view->tiled = edge;
-	view_apply_tiled_geometry(view, output);
+	view_apply_tiled_geometry(view);
 }
 
 void

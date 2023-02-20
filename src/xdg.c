@@ -325,10 +325,10 @@ xdg_toplevel_view_map(struct view *view)
 		 * dimensions remain zero until handle_commit().
 		 */
 		if (wlr_box_empty(&view->pending)) {
-			view->pending.width =
-				xdg_surface->current.geometry.width;
-			view->pending.height =
-				xdg_surface->current.geometry.height;
+			struct wlr_box size;
+			wlr_xdg_surface_get_geometry(xdg_surface, &size);
+			view->pending.width = size.width;
+			view->pending.height = size.height;
 		}
 
 		/*

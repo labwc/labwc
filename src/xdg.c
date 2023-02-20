@@ -306,7 +306,7 @@ position_xdg_toplevel_view(struct view *view)
 		xdg_toplevel_from_view(view)->parent;
 
 	if (!parent_xdg_toplevel) {
-		view_center(view, output_nearest_to_cursor(view->server), NULL);
+		view_center(view, NULL);
 	} else {
 		/*
 		 * If child-toplevel-views, we center-align relative to their
@@ -315,7 +315,8 @@ position_xdg_toplevel_view(struct view *view)
 		struct view *parent = lookup_view_by_xdg_toplevel(
 			view->server, parent_xdg_toplevel);
 		assert(parent);
-		view_center(view, view_output(parent), &parent->pending);
+		view->output = view_output(parent);
+		view_center(view, &parent->pending);
 	}
 }
 

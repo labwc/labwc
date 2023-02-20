@@ -496,9 +496,12 @@ view_apply_maximized_geometry(struct view *view)
 	view_move_resize(view, box);
 }
 
-static bool
+static void
 view_apply_special_geometry(struct view *view)
 {
+	assert(view);
+	assert(!view_is_floating(view));
+
 	if (view->fullscreen) {
 		view_apply_fullscreen_geometry(view);
 	} else if (view->maximized) {
@@ -508,9 +511,8 @@ view_apply_special_geometry(struct view *view)
 	} else if (view->tiled_region || view->tiled_region_evacuate) {
 		view_apply_region_geometry(view);
 	} else {
-		return false;
+		assert(false); // not reached
 	}
-	return true;
 }
 
 /* For internal use only. Does not update geometry. */
@@ -590,8 +592,10 @@ view_maximize(struct view *view, bool maximize, bool store_natural_geometry)
 		}
 	}
 	set_maximized(view, maximize);
-	if (!view_apply_special_geometry(view)) {
+	if (view_is_floating(view)) {
 		view_apply_natural_geometry(view);
+	} else {
+		view_apply_special_geometry(view);
 	}
 }
 
@@ -675,7 +679,9 @@ view_set_decorations(struct view *view, bool decorations)
 		} else {
 			undecorate(view);
 		}
-		view_apply_special_geometry(view);
+		if (!view_is_floating(view)) {
+			view_apply_special_geometry(view);
+		}
 	}
 }
 
@@ -741,8 +747,10 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 	}
 
 	set_fullscreen(view, fullscreen);
-	if (!view_apply_special_geometry(view)) {
+	if (view_is_floating(view)) {
 		view_apply_natural_geometry(view);
+	} else {
+		view_apply_special_geometry(view);
 	}
 }
 
@@ -761,20 +769,20 @@ view_adjust_for_layout_change(struct view *view)
 	 * Floating views are always assigned to the nearest output.
 	 * Maximized/tiled views remain on the same output if possible.
 	 */
-	if (view_is_floating(view) || !output_is_usable(view->output)) {
+	bool is_floating = view_is_floating(view);
+	if (is_floating || !output_is_usable(view->output)) {
 		view_discover_output(view);
 	}
 
-	if (!view_apply_special_geometry(view)) {
-		if (was_fullscreen) {
-			view_apply_natural_geometry(view);
-		} else {
-			/* reposition view if it's offscreen */
-			if (!wlr_output_layout_intersects(
-					view->server->output_layout,
-					NULL, &view->pending)) {
-				view_center(view, NULL);
-			}
+	if (!is_floating) {
+		view_apply_special_geometry(view);
+	} else if (was_fullscreen) {
+		view_apply_natural_geometry(view);
+	} else {
+		/* reposition view if it's offscreen */
+		if (!wlr_output_layout_intersects(view->server->output_layout,
+				NULL, &view->pending)) {
+			view_center(view, NULL);
 		}
 	}
 	if (view->toplevel.handle) {

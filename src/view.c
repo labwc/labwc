@@ -687,7 +687,7 @@ void
 view_toggle_fullscreen(struct view *view)
 {
 	assert(view);
-	view_set_fullscreen(view, !view->fullscreen, NULL);
+	view_set_fullscreen(view, !view->fullscreen);
 }
 
 /* For internal use only. Does not update geometry. */
@@ -722,19 +722,17 @@ set_fullscreen(struct view *view, bool fullscreen)
 }
 
 void
-view_set_fullscreen(struct view *view, bool fullscreen, struct output *output)
+view_set_fullscreen(struct view *view, bool fullscreen)
 {
 	assert(view);
 	if (fullscreen == view->fullscreen) {
 		return;
 	}
 	if (fullscreen) {
+		struct output *output = view_output(view);
 		if (!output_is_usable(output)) {
-			output = view_output(view);
-			if (!output_is_usable(output)) {
-				/* Prevent fullscreen with no available outputs */
-				return;
-			}
+			/* Prevent fullscreen with no available outputs */
+			return;
 		}
 		/*
 		 * Fullscreen via keybind or client request cancels

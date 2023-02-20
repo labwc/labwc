@@ -25,7 +25,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, toplevel.fullscreen);
 	struct wlr_foreign_toplevel_handle_v1_fullscreen_event *event = data;
-	view_set_fullscreen(view, event->fullscreen, NULL);
+	view_set_fullscreen(view, event->fullscreen);
 }
 
 static void

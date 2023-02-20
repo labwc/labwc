@@ -129,7 +129,6 @@ void view_move_resize(struct view *view, struct wlr_box geo);
 void view_move(struct view *view, int x, int y);
 void view_moved(struct view *view);
 void view_minimize(struct view *view, bool minimized);
-struct output *view_output(struct view *view);
 void view_store_natural_geometry(struct view *view);
 void view_center(struct view *view, const struct wlr_box *ref);
 void view_restore_to(struct view *view, struct wlr_box geometry);

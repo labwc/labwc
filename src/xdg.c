@@ -315,7 +315,7 @@ position_xdg_toplevel_view(struct view *view)
 		struct view *parent = lookup_view_by_xdg_toplevel(
 			view->server, parent_xdg_toplevel);
 		assert(parent);
-		view->output = view_output(parent);
+		view->output = parent->output;
 		view_center(view, &parent->pending);
 	}
 }

@@ -116,17 +116,6 @@ view_discover_output(struct view *view)
 		view->current.y + view->current.height / 2);
 }
 
-/* deprecated */
-struct output *
-view_output(struct view *view)
-{
-	assert(view);
-	if (!output_is_usable(view->output)) {
-		view_discover_output(view);
-	}
-	return view->output;
-}
-
 static void
 _view_set_activated(struct view *view, bool activated)
 {
@@ -261,13 +250,13 @@ view_compute_centered_position(struct view *view, const struct wlr_box *ref,
 		wlr_log(WLR_ERROR, "view has empty geometry, not centering");
 		return false;
 	}
-	struct output *output = view_output(view);
-	if (!output_is_usable(output)) {
+	if (!output_is_usable(view->output)) {
+		wlr_log(WLR_ERROR, "view has no output, not centering");
 		return false;
 	}
 
 	struct border margin = ssd_get_margin(view->ssd);
-	struct wlr_box usable = output_usable_area_in_layout_coords(output);
+	struct wlr_box usable = output_usable_area_in_layout_coords(view->output);
 	int width = w + margin.left + margin.right;
 	int height = h + margin.top + margin.bottom;
 
@@ -311,7 +300,7 @@ void
 view_store_natural_geometry(struct view *view)
 {
 	assert(view);
-	if (view->maximized || view_is_tiled(view)) {
+	if (!view_is_floating(view)) {
 		/* Do not overwrite the stored geometry with special cases */
 		return;
 	}
@@ -342,6 +331,9 @@ view_center(struct view *view, const struct wlr_box *ref)
 static void
 view_apply_natural_geometry(struct view *view)
 {
+	assert(view);
+	assert(view_is_floating(view));
+
 	struct wlr_output_layout *layout = view->server->output_layout;
 	if (wlr_output_layout_intersects(layout, NULL, &view->natural_geometry)
 			|| wl_list_empty(&layout->outputs)) {
@@ -362,15 +354,11 @@ view_apply_region_geometry(struct view *view)
 {
 	assert(view);
 	assert(view->tiled_region || view->tiled_region_evacuate);
+	struct output *output = view->output;
+	assert(output_is_usable(output));
 
 	if (view->tiled_region_evacuate) {
 		/* View was evacuated from a destroying output */
-		struct output *output = view_output(view);
-		if (!output) {
-			wlr_log(WLR_INFO, "apply region geometry failed: no more ouputs");
-			return;
-		}
-
 		/* Get new output local region, may be NULL */
 		view->tiled_region = regions_from_name(
 			view->tiled_region_evacuate, output);
@@ -390,8 +378,7 @@ view_apply_region_geometry(struct view *view)
 	struct wlr_box geo = view->tiled_region->geo;
 
 	/* Adjust for rc.gap */
-	struct output *output = view_output(view);
-	if (rc.gap && output) {
+	if (rc.gap) {
 		double half_gap = rc.gap / 2.0;
 		struct wlr_fbox offset = {
 			.x = half_gap,
@@ -434,20 +421,18 @@ view_apply_region_geometry(struct view *view)
 static void
 view_apply_tiled_geometry(struct view *view)
 {
+	assert(view);
 	assert(view->tiled);
-	struct output *output = view_output(view);
-	if (!output_is_usable(output)) {
-		wlr_log(WLR_ERROR, "Can't tile: no output");
-		return;
-	}
+	assert(output_is_usable(view->output));
 
-	struct wlr_box dst = view_get_edge_snap_box(view, output, view->tiled);
-	view_move_resize(view, dst);
+	view_move_resize(view, view_get_edge_snap_box(view,
+		view->output, view->tiled));
 }
 
 static void
 view_apply_fullscreen_geometry(struct view *view)
 {
+	assert(view);
 	assert(view->fullscreen);
 	assert(output_is_usable(view->output));
 
@@ -465,17 +450,11 @@ view_apply_fullscreen_geometry(struct view *view)
 static void
 view_apply_maximized_geometry(struct view *view)
 {
-	/*
-	 * The same code handles both initial maximize and re-maximize
-	 * to account for layout changes.  In either case, view_output()
-	 * gives the output closest to the current geometry (which may
-	 * be different from the output originally maximized onto).
-	 * view_output() can return NULL if all outputs are disabled.
-	 */
-	struct output *output = view_output(view);
-	if (!output) {
-		return;
-	}
+	assert(view);
+	assert(view->maximized);
+	struct output *output = view->output;
+	assert(output_is_usable(output));
+
 	struct wlr_box box = output_usable_area_in_layout_coords(output);
 	if (box.height == output->wlr_output->height
 			&& output->wlr_output->scale != 1) {
@@ -501,6 +480,10 @@ view_apply_special_geometry(struct view *view)
 {
 	assert(view);
 	assert(!view_is_floating(view));
+	if (!output_is_usable(view->output)) {
+		wlr_log(WLR_ERROR, "view has no output, not updating geometry");
+		return;
+	}
 
 	if (view->fullscreen) {
 		view_apply_fullscreen_geometry(view);
@@ -731,8 +714,7 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 		return;
 	}
 	if (fullscreen) {
-		struct output *output = view_output(view);
-		if (!output_is_usable(output)) {
+		if (!output_is_usable(view->output)) {
 			/* Prevent fullscreen with no available outputs */
 			return;
 		}
@@ -743,7 +725,6 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 		 */
 		interactive_cancel(view);
 		view_store_natural_geometry(view);
-		view->output = output;
 	}
 
 	set_fullscreen(view, fullscreen);
@@ -812,13 +793,13 @@ void
 view_move_to_edge(struct view *view, const char *direction)
 {
 	assert(view);
-	struct output *output = view_output(view);
-	if (!output) {
-		wlr_log(WLR_ERROR, "no output");
+	struct output *output = view->output;
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR, "view has no output, not moving to edge");
 		return;
 	}
 	if (!direction) {
-		wlr_log(WLR_ERROR, "invalid edge");
+		wlr_log(WLR_ERROR, "invalid edge, not moving view");
 		return;
 	}
 
@@ -849,7 +830,7 @@ view_move_to_edge(struct view *view, const char *direction)
 		y = usable.y + usable.height - view->pending.height
 			- margin.bottom - rc.gap;
 	} else {
-		wlr_log(WLR_ERROR, "invalid edge");
+		wlr_log(WLR_ERROR, "invalid edge, not moving view");
 		return;
 	}
 	view_move(view, x, y);
@@ -884,14 +865,14 @@ view_snap_to_edge(struct view *view, const char *direction,
 	if (view->fullscreen) {
 		return;
 	}
-	struct output *output = view_output(view);
-	if (output_is_usable(output)) {
-		wlr_log(WLR_ERROR, "no output");
+	struct output *output = view->output;
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR, "view has no output, not snapping to edge");
 		return;
 	}
 	enum view_edge edge = view_edge_parse(direction);
 	if (edge == VIEW_EDGE_INVALID) {
-		wlr_log(WLR_ERROR, "invalid edge");
+		wlr_log(WLR_ERROR, "invalid edge, not snapping view");
 		return;
 	}
 
@@ -971,6 +952,12 @@ view_snap_to_region(struct view *view, struct region *region,
 	if (view->fullscreen) {
 		return;
 	}
+	/* view_apply_region_geometry() needs a usable output */
+	if (!output_is_usable(view->output)) {
+		wlr_log(WLR_ERROR, "view has no output, not snapping to region");
+		return;
+	}
+
 	if (view->maximized) {
 		/* Unmaximize + keep using existing natural_geometry */
 		view_maximize(view, false, /*store_natural_geometry*/ false);

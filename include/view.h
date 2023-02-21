@@ -38,6 +38,22 @@ struct view {
 	enum view_type type;
 	const struct view_impl *impl;
 	struct wl_list link;
+
+	/*
+	 * The output that the view is displayed on. Specifically:
+	 *
+	 *  - For floating views, this is the output nearest to the
+	 *    center of the view. It is computed automatically when the
+	 *    view is moved or the output layout changes.
+	 *
+	 *  - For fullscreen/maximized/tiled views, this is the output
+	 *    used to compute the view's geometry. The view remains on
+	 *    the same output unless it is disabled or disconnected.
+	 *
+	 * Many view functions (e.g. view_center(), view_fullscreen(),
+	 * view_maximize(), etc.) allow specifying a particular output
+	 * by setting view->output explicitly before calling them.
+	 */
 	struct output *output;
 	struct workspace *workspace;
 	struct wlr_surface *surface;

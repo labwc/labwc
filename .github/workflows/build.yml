@@ -88,7 +88,7 @@ jobs:
           prepare: |
             sed -i '' 's/quarterly/latest/' /etc/pkg/FreeBSD.conf
             pkg install -y git meson gcc pkgconf cairo pango evdev-proto \
-              wayland-protocols wlroots
+              hwdata wayland-protocols wlroots
           run: echo "setup done"
 
       - name: Install Void Linux dependencies

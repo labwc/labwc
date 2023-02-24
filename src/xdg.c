@@ -7,6 +7,13 @@
 #include "view-impl-common.h"
 #include "workspaces.h"
 
+static struct xdg_toplevel_view *
+xdg_toplevel_view_from_view(struct view *view)
+{
+	assert(view->type == LAB_XDG_SHELL_VIEW);
+	return (struct xdg_toplevel_view *)view;
+}
+
 struct wlr_xdg_surface *
 xdg_surface_from_view(struct view *view)
 {
@@ -114,14 +121,26 @@ handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
 	assert(view->type == LAB_XDG_SHELL_VIEW);
+	struct xdg_toplevel_view *xdg_toplevel_view =
+		xdg_toplevel_view_from_view(view);
 
-	/* Reset XDG specific surface for good measure */
-	((struct xdg_toplevel_view *)view)->xdg_surface = NULL;
+	xdg_toplevel_view->xdg_surface->data = NULL;
+	xdg_toplevel_view->xdg_surface = NULL;
 
-	/* Remove XDG specific handlers */
+	wl_list_remove(&view->map.link);
+	wl_list_remove(&view->unmap.link);
+	wl_list_remove(&view->request_move.link);
+	wl_list_remove(&view->request_resize.link);
+	wl_list_remove(&view->request_minimize.link);
+	wl_list_remove(&view->request_maximize.link);
+	wl_list_remove(&view->request_fullscreen.link);
+	wl_list_remove(&view->set_title.link);
+
+	wl_list_remove(&xdg_toplevel_view->set_app_id.link);
+	wl_list_remove(&xdg_toplevel_view->new_popup.link);
+
 	wl_list_remove(&view->destroy.link);
 
-	/* And finally destroy / free the view */
 	view_destroy(view);
 }
 

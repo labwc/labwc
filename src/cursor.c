@@ -595,6 +595,7 @@ apply_constraint(struct seat *seat, struct wlr_pointer *pointer, double *x, doub
 	if (!seat->current_constraint || pointer->base.type != WLR_INPUT_DEVICE_POINTER) {
 		return;
 	}
+	assert(seat->current_constraint->type == WLR_POINTER_CONSTRAINT_V1_CONFINED);
 
 	double sx = seat->cursor->x;
 	double sy = seat->cursor->y;
@@ -612,10 +613,21 @@ apply_constraint(struct seat *seat, struct wlr_pointer *pointer, double *x, doub
 	*y = sy_confined - sy;
 }
 
+static bool
+cursor_locked(struct seat *seat, struct wlr_pointer *pointer)
+{
+	return seat->current_constraint
+		&& pointer->base.type == WLR_INPUT_DEVICE_POINTER
+		&& seat->current_constraint->type == WLR_POINTER_CONSTRAINT_V1_LOCKED;
+}
+
 static void
 preprocess_cursor_motion(struct seat *seat, struct wlr_pointer *pointer,
 		uint32_t time_msec, double dx, double dy)
 {
+	if (cursor_locked(seat, pointer)) {
+		return;
+	}
 	apply_constraint(seat, pointer, &dx, &dy);
 
 	/*

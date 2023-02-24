@@ -127,19 +127,9 @@ handle_destroy(struct wl_listener *listener, void *data)
 	xdg_toplevel_view->xdg_surface->data = NULL;
 	xdg_toplevel_view->xdg_surface = NULL;
 
-	wl_list_remove(&view->map.link);
-	wl_list_remove(&view->unmap.link);
-	wl_list_remove(&view->request_move.link);
-	wl_list_remove(&view->request_resize.link);
-	wl_list_remove(&view->request_minimize.link);
-	wl_list_remove(&view->request_maximize.link);
-	wl_list_remove(&view->request_fullscreen.link);
-	wl_list_remove(&view->set_title.link);
-
+	/* Remove xdg-shell view specific listeners */
 	wl_list_remove(&xdg_toplevel_view->set_app_id.link);
 	wl_list_remove(&xdg_toplevel_view->new_popup.link);
-
-	wl_list_remove(&view->destroy.link);
 
 	view_destroy(view);
 }

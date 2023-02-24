@@ -222,25 +222,13 @@ handle_destroy(struct wl_listener *listener, void *data)
 	xwayland_view->xwayland_surface->data = NULL;
 	xwayland_view->xwayland_surface = NULL;
 
-	/* Remove XWayland specific handlers */
-	wl_list_remove(&view->map.link);
-	wl_list_remove(&view->unmap.link);
-	wl_list_remove(&view->request_move.link);
-	wl_list_remove(&view->request_resize.link);
-	wl_list_remove(&view->request_minimize.link);
-	wl_list_remove(&view->request_maximize.link);
-	wl_list_remove(&view->request_fullscreen.link);
-	wl_list_remove(&view->set_title.link);
-
+	/* Remove XWayland view specific listeners */
 	wl_list_remove(&xwayland_view->request_activate.link);
 	wl_list_remove(&xwayland_view->request_configure.link);
 	wl_list_remove(&xwayland_view->set_app_id.link);
 	wl_list_remove(&xwayland_view->set_decorations.link);
 	wl_list_remove(&xwayland_view->override_redirect.link);
 
-	wl_list_remove(&view->destroy.link);
-
-	/* And finally destroy / free the view */
 	view_destroy(view);
 }
 

@@ -28,6 +28,7 @@ struct xwayland_view {
 	struct wlr_xwayland_surface *xwayland_surface;
 
 	/* Events unique to XWayland views */
+	struct wl_listener request_activate;
 	struct wl_listener request_configure;
 	struct wl_listener set_app_id;		/* TODO: s/set_app_id/class/ */
 	struct wl_listener set_decorations;

@@ -227,12 +227,12 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&view->unmap.link);
 	wl_list_remove(&view->request_move.link);
 	wl_list_remove(&view->request_resize.link);
-	wl_list_remove(&view->request_activate.link);
 	wl_list_remove(&view->request_minimize.link);
 	wl_list_remove(&view->request_maximize.link);
 	wl_list_remove(&view->request_fullscreen.link);
 	wl_list_remove(&view->set_title.link);
 
+	wl_list_remove(&xwayland_view->request_activate.link);
 	wl_list_remove(&xwayland_view->request_configure.link);
 	wl_list_remove(&xwayland_view->set_app_id.link);
 	wl_list_remove(&xwayland_view->set_decorations.link);
@@ -279,8 +279,10 @@ handle_request_configure(struct wl_listener *listener, void *data)
 static void
 handle_request_activate(struct wl_listener *listener, void *data)
 {
-	struct view *view = wl_container_of(listener, view, request_activate);
-	assert(view);
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, request_activate);
+	assert(xwayland_view);
+	struct view *view = &xwayland_view->base;
 	desktop_focus_and_activate_view(&view->server->seat, view);
 	desktop_move_to_front(view);
 }
@@ -640,8 +642,6 @@ handle_new_surface(struct wl_listener *listener, void *data)
 	wl_signal_add(&xsurface->events.unmap, &view->unmap);
 	view->destroy.notify = handle_destroy;
 	wl_signal_add(&xsurface->events.destroy, &view->destroy);
-	view->request_activate.notify = handle_request_activate;
-	wl_signal_add(&xsurface->events.request_activate, &view->request_activate);
 	view->request_minimize.notify = handle_request_minimize;
 	wl_signal_add(&xsurface->events.request_minimize, &view->request_minimize);
 	view->request_maximize.notify = handle_request_maximize;
@@ -657,6 +657,10 @@ handle_new_surface(struct wl_listener *listener, void *data)
 	wl_signal_add(&xsurface->events.set_title, &view->set_title);
 
 	/* Events specific to XWayland views */
+	xwayland_view->request_activate.notify = handle_request_activate;
+	wl_signal_add(&xsurface->events.request_activate,
+		&xwayland_view->request_activate);
+
 	xwayland_view->request_configure.notify = handle_request_configure;
 	wl_signal_add(&xsurface->events.request_configure,
 		&xwayland_view->request_configure);

@@ -269,7 +269,6 @@ handle_request_activate(struct wl_listener *listener, void *data)
 {
 	struct xwayland_view *xwayland_view =
 		wl_container_of(listener, xwayland_view, request_activate);
-	assert(xwayland_view);
 	struct view *view = &xwayland_view->base;
 	desktop_focus_and_activate_view(&view->server->seat, view);
 	desktop_move_to_front(view);
@@ -280,7 +279,6 @@ handle_request_minimize(struct wl_listener *listener, void *data)
 {
 	struct wlr_xwayland_minimize_event *event = data;
 	struct view *view = wl_container_of(listener, view, request_minimize);
-	assert(view);
 	view_minimize(view, event->minimize);
 }
 
@@ -288,7 +286,6 @@ static void
 handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
-	assert(view);
 	if (!view->been_mapped) {
 		ensure_initial_geometry(view);
 		/*
@@ -316,7 +313,6 @@ static void
 handle_set_title(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, set_title);
-	assert(view);
 	view_update_title(view);
 }
 
@@ -326,7 +322,6 @@ handle_set_class(struct wl_listener *listener, void *data)
 	struct xwayland_view *xwayland_view =
 		wl_container_of(listener, xwayland_view, set_app_id);
 	struct view *view = &xwayland_view->base;
-	assert(view);
 	view_update_app_id(view);
 }
 

@@ -196,7 +196,6 @@ static void
 handle_set_title(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, set_title);
-	assert(view);
 	view_update_title(view);
 }
 
@@ -206,7 +205,6 @@ handle_set_app_id(struct wl_listener *listener, void *data)
 	struct xdg_toplevel_view *xdg_toplevel_view =
 		wl_container_of(listener, xdg_toplevel_view, set_app_id);
 	struct view *view = &xdg_toplevel_view->base;
-	assert(view);
 	view_update_app_id(view);
 }
 

@@ -116,24 +116,16 @@ handle_commit(struct wl_listener *listener, void *data)
 	/* Must receive commit signal before accessing surface->current* */
 	struct wlr_surface_state *state = &view->surface->current;
 	struct wlr_box *current = &view->current;
-	struct wlr_box *pending = &view->pending;
 
-	if (current->width == state->width && current->height == state->height) {
-		return;
+	/*
+	 * If there is a pending move/resize, wait until the surface
+	 * size changes to update geometry. The hope is to update both
+	 * the position and the size of the view at the same time,
+	 * reducing visual glitches.
+	 */
+	if (current->width != state->width || current->height != state->height) {
+		view_impl_apply_geometry(view, state->width, state->height);
 	}
-
-	current->width = state->width;
-	current->height = state->height;
-
-	if (current->x != pending->x) {
-		/* Adjust x for queued up configure events */
-		current->x = pending->x + pending->width - current->width;
-	}
-	if (current->y != pending->y) {
-		/* Adjust y for queued up configure events */
-		current->y = pending->y + pending->height - current->height;
-	}
-	view_moved(view);
 }
 
 static void
@@ -143,7 +135,7 @@ handle_request_move(struct wl_listener *listener, void *data)
 	 * This event is raised when a client would like to begin an interactive
 	 * move, typically because the user clicked on their client-side
 	 * decorations. Note that a more sophisticated compositor should check
-	 * the provied serial against a list of button press serials sent to
+	 * the provided serial against a list of button press serials sent to
 	 * this client, to prevent the client from requesting this whenever they
 	 * want.
 	 */
@@ -158,7 +150,7 @@ handle_request_resize(struct wl_listener *listener, void *data)
 	 * This event is raised when a client would like to begin an interactive
 	 * resize, typically because the user clicked on their client-side
 	 * decorations. Note that a more sophisticated compositor should check
-	 * the provied serial against a list of button press serials sent to
+	 * the provided serial against a list of button press serials sent to
 	 * this client, to prevent the client from requesting this whenever they
 	 * want.
 	 */

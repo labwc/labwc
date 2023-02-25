@@ -74,31 +74,18 @@ handle_commit(struct wl_listener *listener, void *data)
 	wlr_xdg_surface_get_geometry(xdg_surface, &size);
 
 	struct wlr_box *current = &view->current;
-	struct wlr_box *pending = &view->pending;
-	bool update_required = false;
-
-	if (current->width != size.width || current->height != size.height) {
-		update_required = true;
-		current->width = size.width;
-		current->height = size.height;
-	}
+	bool update_required = current->width != size.width
+		|| current->height != size.height;
 
 	uint32_t serial = view->pending_configure_serial;
 	if (serial > 0 && serial >= xdg_surface->current.configure_serial) {
-		if (current->x != pending->x) {
-			update_required = true;
-			current->x = pending->x + pending->width - size.width;
-		}
-		if (current->y != pending->y) {
-			update_required = true;
-			current->y = pending->y + pending->height - size.height;
-		}
+		update_required = true;
 		if (serial == xdg_surface->current.configure_serial) {
 			view->pending_configure_serial = 0;
 		}
 	}
 	if (update_required) {
-		view_moved(view);
+		view_impl_apply_geometry(view, size.width, size.height);
 	}
 }
 

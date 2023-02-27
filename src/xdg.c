@@ -233,9 +233,16 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 	if (serial > 0) {
 		view->pending_configure_serial = serial;
 	} else if (view->pending_configure_serial == 0) {
-		view->current.x = geo.x;
-		view->current.y = geo.y;
-		view_moved(view);
+		/*
+		 * We can't assume here that view->current is equal to
+		 * view->pending because some clients (e.g. terminals)
+		 * refuse to accept the exact size we requested. To
+		 * account for the size difference and avoid visual
+		 * glitches during resize, we apply the same position
+		 * adjustments here as in handle_commit().
+		 */
+		view_impl_apply_geometry(view, view->current.width,
+			view->current.height);
 	}
 }
 

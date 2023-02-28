@@ -7,6 +7,8 @@
 #include "view-impl-common.h"
 #include "workspaces.h"
 
+#define CONFIGURE_TIMEOUT_MS 100
+
 static struct xdg_toplevel_view *
 xdg_toplevel_view_from_view(struct view *view)
 {
@@ -78,15 +80,51 @@ handle_commit(struct wl_listener *listener, void *data)
 		|| current->height != size.height;
 
 	uint32_t serial = view->pending_configure_serial;
-	if (serial > 0 && serial >= xdg_surface->current.configure_serial) {
+	if (serial > 0 && serial == xdg_surface->current.configure_serial) {
+		assert(view->pending_configure_timeout);
+		wl_event_source_remove(view->pending_configure_timeout);
+		view->pending_configure_serial = 0;
+		view->pending_configure_timeout = NULL;
 		update_required = true;
-		if (serial == xdg_surface->current.configure_serial) {
-			view->pending_configure_serial = 0;
-		}
 	}
+
 	if (update_required) {
 		view_impl_apply_geometry(view, size.width, size.height);
 	}
+}
+
+static int
+handle_configure_timeout(void *data)
+{
+	struct view *view = data;
+	assert(view->pending_configure_serial > 0);
+	assert(view->pending_configure_timeout);
+
+	const char *app_id = view_get_string_prop(view, "app_id");
+	wlr_log(WLR_ERROR, "client (%s) did not respond to configure request "
+		"in %d ms", app_id, CONFIGURE_TIMEOUT_MS);
+
+	wl_event_source_remove(view->pending_configure_timeout);
+	view->pending_configure_serial = 0;
+	view->pending_configure_timeout = NULL;
+
+	view_impl_apply_geometry(view, view->current.width,
+		view->current.height);
+
+	return 0; /* ignored per wl_event_loop docs */
+}
+
+static void
+set_pending_configure_serial(struct view *view, uint32_t serial)
+{
+	view->pending_configure_serial = serial;
+	if (!view->pending_configure_timeout) {
+		view->pending_configure_timeout =
+			wl_event_loop_add_timer(view->server->wl_event_loop,
+				handle_configure_timeout, view);
+	}
+	wl_event_source_timer_update(view->pending_configure_timeout,
+		CONFIGURE_TIMEOUT_MS);
 }
 
 static void
@@ -117,6 +155,11 @@ handle_destroy(struct wl_listener *listener, void *data)
 	/* Remove xdg-shell view specific listeners */
 	wl_list_remove(&xdg_toplevel_view->set_app_id.link);
 	wl_list_remove(&xdg_toplevel_view->new_popup.link);
+
+	if (view->pending_configure_timeout) {
+		wl_event_source_remove(view->pending_configure_timeout);
+		view->pending_configure_timeout = NULL;
+	}
 
 	view_destroy(view);
 }
@@ -215,7 +258,7 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 
 	view->pending = geo;
 	if (serial > 0) {
-		view->pending_configure_serial = serial;
+		set_pending_configure_serial(view, serial);
 	} else if (view->pending_configure_serial == 0) {
 		/*
 		 * We can't assume here that view->current is equal to

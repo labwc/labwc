@@ -95,6 +95,7 @@ struct view {
 
 	/* used by xdg-shell views */
 	uint32_t pending_configure_serial;
+	struct wl_event_source *pending_configure_timeout;
 
 	struct ssd *ssd;
 

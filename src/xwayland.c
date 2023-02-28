@@ -96,7 +96,7 @@ ensure_initial_geometry_and_output(struct view *view)
 		 * Just use the cursor output since we don't know yet
 		 * whether the surface position is meaningful.
 		 */
-		view->output = output_nearest_to_cursor(view->server);
+		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 }
 

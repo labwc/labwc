@@ -52,7 +52,7 @@ struct view {
 	 *
 	 * Many view functions (e.g. view_center(), view_fullscreen(),
 	 * view_maximize(), etc.) allow specifying a particular output
-	 * by setting view->output explicitly before calling them.
+	 * by calling view_set_output() beforehand.
 	 */
 	struct output *output;
 	struct workspace *workspace;
@@ -131,6 +131,7 @@ struct xdg_toplevel_view {
 };
 
 void view_set_activated(struct view *view);
+void view_set_output(struct view *view, struct output *output);
 void view_close(struct view *view);
 
 /**

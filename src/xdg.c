@@ -179,7 +179,7 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
 	if (!view->mapped && !view->output) {
-		view->output = output_nearest_to_cursor(view->server);
+		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 	view_maximize(view, xdg_toplevel_from_view(view)->requested.maximized,
 		/*store_natural_geometry*/ true);
@@ -191,14 +191,8 @@ set_fullscreen_from_request(struct view *view,
 {
 	if (!view->fullscreen && requested->fullscreen
 			&& requested->fullscreen_output) {
-		struct output *output = output_from_wlr_output(view->server,
-			requested->fullscreen_output);
-		if (output_is_usable(output)) {
-			view->output = output;
-		} else {
-			wlr_log(WLR_ERROR,
-				"invalid output in fullscreen request");
-		}
+		view_set_output(view, output_from_wlr_output(view->server,
+			requested->fullscreen_output));
 	}
 	view_set_fullscreen(view, requested->fullscreen);
 }
@@ -208,7 +202,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_fullscreen);
 	if (!view->mapped && !view->output) {
-		view->output = output_nearest_to_cursor(view->server);
+		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 	set_fullscreen_from_request(view,
 		&xdg_toplevel_from_view(view)->requested);
@@ -315,7 +309,7 @@ position_xdg_toplevel_view(struct view *view)
 		struct view *parent = lookup_view_by_xdg_toplevel(
 			view->server, parent_xdg_toplevel);
 		assert(parent);
-		view->output = parent->output;
+		view_set_output(view, parent->output);
 		view_center(view, &parent->pending);
 	}
 }
@@ -341,7 +335,7 @@ xdg_toplevel_view_map(struct view *view)
 	}
 	view->mapped = true;
 	if (!view->output) {
-		view->output = output_nearest_to_cursor(view->server);
+		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
 	view->surface = xdg_surface->surface;

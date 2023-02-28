@@ -111,6 +111,7 @@ static void
 view_discover_output(struct view *view)
 {
 	assert(view);
+	assert(!view->fullscreen);
 	view->output = output_nearest_to(view->server,
 		view->current.x + view->current.width / 2,
 		view->current.y + view->current.height / 2);
@@ -142,6 +143,18 @@ view_set_activated(struct view *view)
 	}
 	_view_set_activated(view, true);
 	view->server->focused_view = view;
+}
+
+void
+view_set_output(struct view *view, struct output *output)
+{
+	assert(view);
+	assert(!view->fullscreen);
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR, "invalid output set for view");
+		return;
+	}
+	view->output = output;
 }
 
 void
@@ -786,6 +799,11 @@ void
 view_on_output_destroy(struct view *view)
 {
 	assert(view);
+	/*
+	 * This is the only time we modify view->output for a fullscreen
+	 * view. We expect view_adjust_for_layout_change() to be called
+	 * shortly afterward, which will exit fullscreen.
+	 */
 	view->output = NULL;
 }
 
@@ -938,7 +956,7 @@ view_snap_to_edge(struct view *view, const char *direction,
 		view_store_natural_geometry(view);
 	}
 	view_set_untiled(view);
-	view->output = output;
+	view_set_output(view, output);
 	view->tiled = edge;
 	view_apply_tiled_geometry(view);
 }

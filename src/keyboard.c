@@ -86,6 +86,10 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
 		if (modifiers ^ keybind->modifiers) {
 			continue;
 		}
+		if (server->seat.inhibit_keybinds
+				&& !actions_contain_toggle_keybinds(&keybind->actions)) {
+			continue;
+		}
 		for (size_t i = 0; i < keybind->keysyms_len; i++) {
 			if (xkb_keysym_to_lower(sym) == keybind->keysyms[i]) {
 				key_state_store_pressed_keys_as_bound();

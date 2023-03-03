@@ -121,6 +121,9 @@ struct seat {
 	struct wlr_idle *wlr_idle;
 	struct wlr_idle_inhibit_manager_v1 *wlr_idle_inhibit_manager;
 
+	/* In support for ToggleKeybinds */
+	bool inhibit_keybinds;
+
 	/* Used to hide the workspace OSD after switching workspaces */
 	struct wl_event_source *workspace_osd_timer;
 	bool workspace_osd_shown_by_modifier;

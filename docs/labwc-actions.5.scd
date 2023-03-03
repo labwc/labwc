@@ -74,6 +74,12 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="ToggleAlwaysOnTop">*
 	Toggle always-on-top of focused window.
 
+*<action name="ToggleKeybinds">*
+	Stop handling keybinds other than ToggleKeybinds itself.
+	This can be used to allow A-Tab and similar keybinds to be delivered
+	to Virtual Machines, VNC clients or nested compositors.
+	A second call will restore all original keybinds.
+
 *<action name="GoToDesktop" to="value" />*
 	Switch to workspace. Supported values are "last", "left", "right" or the
 	full name of a workspace or its index (starting at 1) as configured in

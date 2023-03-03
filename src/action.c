@@ -59,7 +59,8 @@ enum action_type {
 	ACTION_TYPE_RESIZE,
 	ACTION_TYPE_GO_TO_DESKTOP,
 	ACTION_TYPE_SEND_TO_DESKTOP,
-	ACTION_TYPE_SNAP_TO_REGION
+	ACTION_TYPE_SNAP_TO_REGION,
+	ACTION_TYPE_TOGGLE_KEYBINDS,
 };
 
 const char *action_names[] = {
@@ -88,6 +89,7 @@ const char *action_names[] = {
 	"GoToDesktop",
 	"SendToDesktop",
 	"SnapToRegion",
+	"ToggleKeybinds",
 	NULL
 };
 
@@ -167,6 +169,18 @@ action_create(const char *action_name)
 	action->type = action_type;
 	wl_list_init(&action->args);
 	return action;
+}
+
+bool
+actions_contain_toggle_keybinds(struct wl_list *action_list)
+{
+	struct action *action;
+	wl_list_for_each(action, action_list, link) {
+		if (action->type == ACTION_TYPE_TOGGLE_KEYBINDS) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void action_list_free(struct wl_list *action_list)
@@ -450,6 +464,11 @@ actions_run(struct view *activator, struct server *server,
 			} else {
 				wlr_log(WLR_ERROR, "Invalid SnapToRegion id: '%s'", region_name);
 			}
+			break;
+		case ACTION_TYPE_TOGGLE_KEYBINDS:
+			server->seat.inhibit_keybinds = !server->seat.inhibit_keybinds;
+			wlr_log(WLR_DEBUG, "%s keybinds",
+				server->seat.inhibit_keybinds ? "Disabled" : "Enabled");
 			break;
 		case ACTION_TYPE_INVALID:
 			wlr_log(WLR_ERROR, "Not executing unknown action");

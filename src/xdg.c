@@ -3,7 +3,6 @@
 #include "common/mem.h"
 #include "decorations.h"
 #include "labwc.h"
-#include "node.h"
 #include "view.h"
 #include "view-impl-common.h"
 #include "workspaces.h"
@@ -153,10 +152,6 @@ handle_destroy(struct wl_listener *listener, void *data)
 
 	xdg_toplevel_view->xdg_surface->data = NULL;
 	xdg_toplevel_view->xdg_surface = NULL;
-
-	/* Remove xdg-shell view specific listeners */
-	wl_list_remove(&xdg_toplevel_view->set_app_id.link);
-	wl_list_remove(&xdg_toplevel_view->new_popup.link);
 
 	if (view->pending_configure_timeout) {
 		wl_event_source_remove(view->pending_configure_timeout);
@@ -445,19 +440,6 @@ xdg_toplevel_view_unmap(struct view *view)
 	}
 }
 
-static const struct view_impl xdg_toplevel_view_impl = {
-	.configure = xdg_toplevel_view_configure,
-	.close = xdg_toplevel_view_close,
-	.get_string_prop = xdg_toplevel_view_get_string_prop,
-	.map = xdg_toplevel_view_map,
-	.set_activated = xdg_toplevel_view_set_activated,
-	.set_fullscreen = xdg_toplevel_view_set_fullscreen,
-	.unmap = xdg_toplevel_view_unmap,
-	.maximize = xdg_toplevel_view_maximize,
-	.move_to_front = view_impl_move_to_front,
-	.move_to_back = view_impl_move_to_back,
-};
-
 void
 xdg_activation_handle_request(struct wl_listener *listener, void *data)
 {
@@ -498,6 +480,83 @@ xdg_activation_handle_request(struct wl_listener *listener, void *data)
 	view_move_to_front(view);
 }
 
+static void
+xdg_setup_common_listeners(struct view *view)
+{
+	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
+	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
+
+	/* Events shared by view implementations */
+	view->map.notify = handle_map;
+	wl_signal_add(&xdg_surface->events.map, &view->map);
+
+	view->unmap.notify = handle_unmap;
+	wl_signal_add(&xdg_surface->events.unmap, &view->unmap);
+
+	view->destroy.notify = handle_destroy;
+	wl_signal_add(&xdg_surface->events.destroy, &view->destroy);
+
+	view->request_move.notify = handle_request_move;
+	wl_signal_add(&toplevel->events.request_move, &view->request_move);
+
+	view->request_resize.notify = handle_request_resize;
+	wl_signal_add(&toplevel->events.request_resize, &view->request_resize);
+
+	view->request_minimize.notify = handle_request_minimize;
+	wl_signal_add(&toplevel->events.request_minimize, &view->request_minimize);
+
+	view->request_maximize.notify = handle_request_maximize;
+	wl_signal_add(&toplevel->events.request_maximize, &view->request_maximize);
+
+	view->request_fullscreen.notify = handle_request_fullscreen;
+	wl_signal_add(&toplevel->events.request_fullscreen, &view->request_fullscreen);
+
+	view->set_title.notify = handle_set_title;
+	wl_signal_add(&toplevel->events.set_title, &view->set_title);
+}
+
+static void
+xdg_setup_specific_listeners(struct view *view)
+{
+	struct xdg_toplevel_view *xdg_view = xdg_toplevel_view_from_view(view);
+	struct wlr_xdg_surface *xdg_surface = xdg_view->xdg_surface;
+	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
+
+	/* Events specific to XDG toplevel views */
+	xdg_view->set_app_id.notify = handle_set_app_id;
+	wl_signal_add(&toplevel->events.set_app_id, &xdg_view->set_app_id);
+
+	xdg_view->new_popup.notify = handle_new_xdg_popup;
+	wl_signal_add(&xdg_surface->events.new_popup, &xdg_view->new_popup);
+}
+
+static void
+xdg_remove_specific_listeners(struct view *view)
+{
+	struct xdg_toplevel_view *xdg_view = xdg_toplevel_view_from_view(view);
+
+	/* Remove xdg-shell view specific listeners */
+	wl_list_remove(&xdg_view->set_app_id.link);
+	wl_list_remove(&xdg_view->new_popup.link);
+}
+
+static const struct view_impl xdg_toplevel_view_impl = {
+	.configure = xdg_toplevel_view_configure,
+	.close = xdg_toplevel_view_close,
+	.get_string_prop = xdg_toplevel_view_get_string_prop,
+	.map = xdg_toplevel_view_map,
+	.set_activated = xdg_toplevel_view_set_activated,
+	.set_fullscreen = xdg_toplevel_view_set_fullscreen,
+	.unmap = xdg_toplevel_view_unmap,
+	.maximize = xdg_toplevel_view_maximize,
+	.move_to_front = view_impl_move_to_front,
+	.move_to_back = view_impl_move_to_back,
+	.setup_common_listeners = xdg_setup_common_listeners,
+	.setup_specific_listeners = xdg_setup_specific_listeners,
+	.remove_common_listeners = view_impl_remove_common_listeners,
+	.remove_specific_listeners = xdg_remove_specific_listeners,
+};
+
 /*
  * We use the following struct user_data pointers:
  *   - wlr_xdg_surface->data = view
@@ -530,9 +589,12 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->impl = &xdg_toplevel_view_impl;
 	xdg_toplevel_view->xdg_surface = xdg_surface;
 
-	view->workspace = server->workspace_current;
-	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
-	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
+	/*
+	 * We have to call view_init() here because it sets
+	 * up view->scene_tree which is used as parent for
+	 * the wlr_scene_xdg_surface_create() helper below.
+	 */
+	view_init(view);
 
 	struct wlr_scene_tree *tree = wlr_scene_xdg_surface_create(
 		view->scene_tree, xdg_surface);
@@ -543,8 +605,6 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 		return;
 	}
 	view->scene_node = &tree->node;
-	node_descriptor_create(&view->scene_tree->node,
-		LAB_NODE_DESC_VIEW, view);
 
 	/*
 	 * The xdg_toplevel_decoration and kde_server_decoration protocols
@@ -574,35 +634,4 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 
 	/* In support of xdg popups */
 	xdg_surface->surface->data = tree;
-
-	view->map.notify = handle_map;
-	wl_signal_add(&xdg_surface->events.map, &view->map);
-	view->unmap.notify = handle_unmap;
-	wl_signal_add(&xdg_surface->events.unmap, &view->unmap);
-	view->destroy.notify = handle_destroy;
-	wl_signal_add(&xdg_surface->events.destroy, &view->destroy);
-
-	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
-	view->request_move.notify = handle_request_move;
-	wl_signal_add(&toplevel->events.request_move, &view->request_move);
-	view->request_resize.notify = handle_request_resize;
-	wl_signal_add(&toplevel->events.request_resize, &view->request_resize);
-	view->request_minimize.notify = handle_request_minimize;
-	wl_signal_add(&toplevel->events.request_minimize, &view->request_minimize);
-	view->request_maximize.notify = handle_request_maximize;
-	wl_signal_add(&toplevel->events.request_maximize, &view->request_maximize);
-	view->request_fullscreen.notify = handle_request_fullscreen;
-	wl_signal_add(&toplevel->events.request_fullscreen, &view->request_fullscreen);
-
-	view->set_title.notify = handle_set_title;
-	wl_signal_add(&toplevel->events.set_title, &view->set_title);
-
-	/* Events specific to XDG toplevel views */
-	xdg_toplevel_view->set_app_id.notify = handle_set_app_id;
-	wl_signal_add(&toplevel->events.set_app_id, &xdg_toplevel_view->set_app_id);
-
-	xdg_toplevel_view->new_popup.notify = handle_new_xdg_popup;
-	wl_signal_add(&xdg_surface->events.new_popup, &xdg_toplevel_view->new_popup);
-
-	wl_list_insert(&server->views, &view->link);
 }

@@ -86,3 +86,18 @@ view_impl_apply_geometry(struct view *view, int w, int h)
 		view_moved(view);
 	}
 }
+
+void
+view_impl_remove_common_listeners(struct view *view)
+{
+	/* Events shared by view implementations */
+	wl_list_remove(&view->map.link);
+	wl_list_remove(&view->unmap.link);
+	wl_list_remove(&view->destroy.link);
+	wl_list_remove(&view->request_move.link);
+	wl_list_remove(&view->request_resize.link);
+	wl_list_remove(&view->request_minimize.link);
+	wl_list_remove(&view->request_maximize.link);
+	wl_list_remove(&view->request_fullscreen.link);
+	wl_list_remove(&view->set_title.link);
+}

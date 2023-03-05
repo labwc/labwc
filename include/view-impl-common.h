@@ -20,4 +20,6 @@ void view_impl_map(struct view *view);
  */
 void view_impl_apply_geometry(struct view *view, int w, int h);
 
+void view_impl_remove_common_listeners(struct view *view);
+
 #endif /* __LABWC_VIEW_IMPL_COMMON_H */

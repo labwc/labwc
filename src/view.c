@@ -6,6 +6,7 @@
 #include "common/scene-helpers.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "node.h"
 #include "regions.h"
 #include "ssd.h"
 #include "view.h"
@@ -1048,21 +1049,31 @@ view_reload_ssd(struct view *view)
 }
 
 void
+view_init(struct view *view)
+{
+	assert(view);
+
+	view->workspace = view->server->workspace_current;
+	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
+	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
+	node_descriptor_create(&view->scene_tree->node,
+		LAB_NODE_DESC_VIEW, view);
+
+	view->impl->setup_common_listeners(view);
+	view->impl->setup_specific_listeners(view);
+
+	wl_list_insert(&view->server->views, &view->link);
+}
+
+void
 view_destroy(struct view *view)
 {
 	assert(view);
 	struct server *server = view->server;
 	bool need_cursor_update = false;
 
-	wl_list_remove(&view->map.link);
-	wl_list_remove(&view->unmap.link);
-	wl_list_remove(&view->request_move.link);
-	wl_list_remove(&view->request_resize.link);
-	wl_list_remove(&view->request_minimize.link);
-	wl_list_remove(&view->request_maximize.link);
-	wl_list_remove(&view->request_fullscreen.link);
-	wl_list_remove(&view->set_title.link);
-	wl_list_remove(&view->destroy.link);
+	view->impl->remove_common_listeners(view);
+	view->impl->remove_specific_listeners(view);
 
 	if (view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);

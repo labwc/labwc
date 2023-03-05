@@ -5,7 +5,6 @@
 #include <wlr/xwayland.h>
 #include "common/mem.h"
 #include "labwc.h"
-#include "node.h"
 #include "ssd.h"
 #include "view.h"
 #include "view-impl-common.h"
@@ -220,13 +219,6 @@ handle_destroy(struct wl_listener *listener, void *data)
 	 */
 	xwayland_view->xwayland_surface->data = NULL;
 	xwayland_view->xwayland_surface = NULL;
-
-	/* Remove XWayland view specific listeners */
-	wl_list_remove(&xwayland_view->request_activate.link);
-	wl_list_remove(&xwayland_view->request_configure.link);
-	wl_list_remove(&xwayland_view->set_app_id.link);
-	wl_list_remove(&xwayland_view->set_decorations.link);
-	wl_list_remove(&xwayland_view->override_redirect.link);
 
 	view_destroy(view);
 }
@@ -582,6 +574,80 @@ xwayland_view_set_fullscreen(struct view *view, bool fullscreen)
 		fullscreen);
 }
 
+static void
+xwayland_setup_common_listeners(struct view *view)
+{
+	struct wlr_xwayland_surface *xsurface = xwayland_surface_from_view(view);
+
+	/* Events shared by view implementations */
+	view->map.notify = handle_map;
+	wl_signal_add(&xsurface->events.map, &view->map);
+
+	view->unmap.notify = handle_unmap;
+	wl_signal_add(&xsurface->events.unmap, &view->unmap);
+
+	view->destroy.notify = handle_destroy;
+	wl_signal_add(&xsurface->events.destroy, &view->destroy);
+
+	view->request_move.notify = handle_request_move;
+	wl_signal_add(&xsurface->events.request_move, &view->request_move);
+
+	view->request_resize.notify = handle_request_resize;
+	wl_signal_add(&xsurface->events.request_resize, &view->request_resize);
+
+	view->request_minimize.notify = handle_request_minimize;
+	wl_signal_add(&xsurface->events.request_minimize, &view->request_minimize);
+
+	view->request_maximize.notify = handle_request_maximize;
+	wl_signal_add(&xsurface->events.request_maximize, &view->request_maximize);
+
+	view->request_fullscreen.notify = handle_request_fullscreen;
+	wl_signal_add(&xsurface->events.request_fullscreen, &view->request_fullscreen);
+
+	view->set_title.notify = handle_set_title;
+	wl_signal_add(&xsurface->events.set_title, &view->set_title);
+}
+
+static void
+xwayland_setup_specific_listeners(struct view *view)
+{
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+	struct wlr_xwayland_surface *xsurface = xwayland_view->xwayland_surface;
+
+	/* Events specific to XWayland views */
+	xwayland_view->request_activate.notify = handle_request_activate;
+	wl_signal_add(&xsurface->events.request_activate,
+		&xwayland_view->request_activate);
+
+	xwayland_view->request_configure.notify = handle_request_configure;
+	wl_signal_add(&xsurface->events.request_configure,
+		&xwayland_view->request_configure);
+
+	xwayland_view->set_app_id.notify = handle_set_class;
+	wl_signal_add(&xsurface->events.set_class, &xwayland_view->set_app_id);
+
+	xwayland_view->set_decorations.notify = handle_set_decorations;
+	wl_signal_add(&xsurface->events.set_decorations,
+		&xwayland_view->set_decorations);
+
+	xwayland_view->override_redirect.notify = handle_override_redirect;
+	wl_signal_add(&xsurface->events.set_override_redirect,
+		&xwayland_view->override_redirect);
+}
+
+static void
+xwayland_remove_specific_listeners(struct view *view)
+{
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+
+	/* Remove XWayland view specific listeners */
+	wl_list_remove(&xwayland_view->request_activate.link);
+	wl_list_remove(&xwayland_view->request_configure.link);
+	wl_list_remove(&xwayland_view->set_app_id.link);
+	wl_list_remove(&xwayland_view->set_decorations.link);
+	wl_list_remove(&xwayland_view->override_redirect.link);
+}
+
 static const struct view_impl xwayland_view_impl = {
 	.configure = xwayland_view_configure,
 	.close = xwayland_view_close,
@@ -593,6 +659,10 @@ static const struct view_impl xwayland_view_impl = {
 	.maximize = xwayland_view_maximize,
 	.move_to_front = xwayland_view_move_to_front,
 	.move_to_back = xwayland_view_move_to_back,
+	.setup_common_listeners = xwayland_setup_common_listeners,
+	.setup_specific_listeners = xwayland_setup_specific_listeners,
+	.remove_common_listeners = view_impl_remove_common_listeners,
+	.remove_specific_listeners = xwayland_remove_specific_listeners,
 };
 
 struct xwayland_view *
@@ -615,47 +685,7 @@ xwayland_view_create(struct server *server, struct wlr_xwayland_surface *xsurfac
 	xwayland_view->xwayland_surface = xsurface;
 	xsurface->data = view;
 
-	view->workspace = server->workspace_current;
-	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
-	node_descriptor_create(&view->scene_tree->node, LAB_NODE_DESC_VIEW, view);
-
-	view->map.notify = handle_map;
-	wl_signal_add(&xsurface->events.map, &view->map);
-	view->unmap.notify = handle_unmap;
-	wl_signal_add(&xsurface->events.unmap, &view->unmap);
-	view->destroy.notify = handle_destroy;
-	wl_signal_add(&xsurface->events.destroy, &view->destroy);
-	view->request_minimize.notify = handle_request_minimize;
-	wl_signal_add(&xsurface->events.request_minimize, &view->request_minimize);
-	view->request_maximize.notify = handle_request_maximize;
-	wl_signal_add(&xsurface->events.request_maximize, &view->request_maximize);
-	view->request_fullscreen.notify = handle_request_fullscreen;
-	wl_signal_add(&xsurface->events.request_fullscreen, &view->request_fullscreen);
-	view->request_move.notify = handle_request_move;
-	wl_signal_add(&xsurface->events.request_move, &view->request_move);
-	view->request_resize.notify = handle_request_resize;
-	wl_signal_add(&xsurface->events.request_resize, &view->request_resize);
-
-	view->set_title.notify = handle_set_title;
-	wl_signal_add(&xsurface->events.set_title, &view->set_title);
-
-	/* Events specific to XWayland views */
-	xwayland_view->request_activate.notify = handle_request_activate;
-	wl_signal_add(&xsurface->events.request_activate, &xwayland_view->request_activate);
-
-	xwayland_view->request_configure.notify = handle_request_configure;
-	wl_signal_add(&xsurface->events.request_configure, &xwayland_view->request_configure);
-
-	xwayland_view->set_app_id.notify = handle_set_class;
-	wl_signal_add(&xsurface->events.set_class, &xwayland_view->set_app_id);
-
-	xwayland_view->set_decorations.notify = handle_set_decorations;
-	wl_signal_add(&xsurface->events.set_decorations, &xwayland_view->set_decorations);
-
-	xwayland_view->override_redirect.notify = handle_override_redirect;
-	wl_signal_add(&xsurface->events.set_override_redirect, &xwayland_view->override_redirect);
-
-	wl_list_insert(&view->server->views, &view->link);
+	view_init(view);
 	return xwayland_view;
 }
 

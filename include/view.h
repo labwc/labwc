@@ -38,6 +38,10 @@ struct view_impl {
 	void (*maximize)(struct view *view, bool maximize);
 	void (*move_to_front)(struct view *view);
 	void (*move_to_back)(struct view *view);
+	void (*setup_common_listeners)(struct view *view);
+	void (*setup_specific_listeners)(struct view *view);
+	void (*remove_common_listeners)(struct view *view);
+	void (*remove_specific_listeners)(struct view *view);
 };
 
 struct view {
@@ -197,6 +201,8 @@ void view_adjust_size(struct view *view, int *w, int *h);
 
 void view_evacuate_region(struct view *view);
 void view_on_output_destroy(struct view *view);
+
+void view_init(struct view *view);
 void view_destroy(struct view *view);
 
 /* xdg.c */

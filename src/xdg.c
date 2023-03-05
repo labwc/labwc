@@ -101,7 +101,7 @@ handle_configure_timeout(void *data)
 	assert(view->pending_configure_timeout);
 
 	const char *app_id = view_get_string_prop(view, "app_id");
-	wlr_log(WLR_ERROR, "client (%s) did not respond to configure request "
+	wlr_log(WLR_INFO, "client (%s) did not respond to configure request "
 		"in %d ms", app_id, CONFIGURE_TIMEOUT_MS);
 
 	wl_event_source_remove(view->pending_configure_timeout);

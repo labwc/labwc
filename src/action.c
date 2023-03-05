@@ -61,6 +61,7 @@ enum action_type {
 	ACTION_TYPE_SEND_TO_DESKTOP,
 	ACTION_TYPE_SNAP_TO_REGION,
 	ACTION_TYPE_TOGGLE_KEYBINDS,
+	ACTION_TYPE_FOCUS_OUTPUT,
 };
 
 const char *action_names[] = {
@@ -90,6 +91,7 @@ const char *action_names[] = {
 	"SendToDesktop",
 	"SnapToRegion",
 	"ToggleKeybinds",
+	"FocusOutput",
 	NULL
 };
 
@@ -118,6 +120,9 @@ action_arg_from_xml_node(struct action *action, char *nodename, char *content)
 		action_arg_add_str(action, NULL, content);
 	} else if (!strcmp(nodename, "region.action")) {
 		/* SnapToRegion */
+		action_arg_add_str(action, NULL, content);
+	} else if (!strcmp(nodename, "output.action")) {
+		/* FocusOutput */
 		action_arg_add_str(action, NULL, content);
 	}
 }
@@ -469,6 +474,14 @@ actions_run(struct view *activator, struct server *server,
 			server->seat.inhibit_keybinds = !server->seat.inhibit_keybinds;
 			wlr_log(WLR_DEBUG, "%s keybinds",
 				server->seat.inhibit_keybinds ? "Disabled" : "Enabled");
+			break;
+		case ACTION_TYPE_FOCUS_OUTPUT:
+			if (!arg) {
+				wlr_log(WLR_ERROR, "Missing argument for FocusOutput");
+				break;
+			}
+			const char *output_name = action_str_from_arg(arg);
+			desktop_focus_output(output_from_name(server, output_name));
 			break;
 		case ACTION_TYPE_INVALID:
 			wlr_log(WLR_ERROR, "Not executing unknown action");

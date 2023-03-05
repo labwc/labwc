@@ -80,6 +80,11 @@ Actions are used in menus and keyboard/mouse bindings.
 	to Virtual Machines, VNC clients or nested compositors.
 	A second call will restore all original keybinds.
 
+*<action name="FocusOutput" output="HDMI-A-1" />*
+	Give focus to topmost window on given output and warp the cursor
+	to the center of the window. If the given output does not contain
+	any windows, the cursor is centered on the given output.
+
 *<action name="GoToDesktop" to="value" />*
 	Switch to workspace. Supported values are "last", "left", "right" or the
 	full name of a workspace or its index (starting at 1) as configured in

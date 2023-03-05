@@ -268,6 +268,46 @@ desktop_focus_topmost_mapped_view(struct server *server)
 	desktop_move_to_front(view);
 }
 
+void
+desktop_focus_output(struct output *output)
+{
+	if (!output_is_usable(output) || output->server->input_mode
+			!= LAB_INPUT_STATE_PASSTHROUGH) {
+		return;
+	}
+	struct view *view;
+	struct wlr_scene_node *node;
+	struct wlr_output_layout *layout = output->server->output_layout;
+	struct wl_list *list_head =
+		&output->server->workspace_current->tree->children;
+	wl_list_for_each_reverse(node, list_head, link) {
+		if (!node->data) {
+			continue;
+		}
+		view = node_view_from_node(node);
+		if (!isfocusable(view)) {
+			continue;
+		}
+		if (wlr_output_layout_intersects(layout,
+				output->wlr_output, &view->current)) {
+			desktop_focus_and_activate_view(&output->server->seat, view);
+			wlr_cursor_warp(output->server->seat.cursor, NULL,
+				view->current.x + view->current.width / 2,
+				view->current.y + view->current.height / 2);
+			cursor_update_focus(output->server);
+			return;
+		}
+	}
+	/* No view found on desired output */
+	struct wlr_box layout_box;
+	wlr_output_layout_get_box(output->server->output_layout,
+		output->wlr_output, &layout_box);
+	wlr_cursor_warp(output->server->seat.cursor, NULL,
+		layout_box.x + output->usable_area.x + output->usable_area.width / 2,
+		layout_box.y + output->usable_area.y + output->usable_area.height / 2);
+	cursor_update_focus(output->server);
+}
+
 static struct wlr_surface *
 get_surface_from_layer_node(struct wlr_scene_node *node)
 {

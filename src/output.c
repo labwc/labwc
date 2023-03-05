@@ -8,6 +8,7 @@
 
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
+#include <strings.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_output.h>
@@ -452,6 +453,21 @@ output_from_wlr_output(struct server *server, struct wlr_output *wlr_output)
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
 		if (output->wlr_output == wlr_output) {
+			return output;
+		}
+	}
+	return NULL;
+}
+
+struct output *
+output_from_name(struct server *server, const char *name)
+{
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		if (!output_is_usable(output) || !output->wlr_output->name) {
+			continue;
+		}
+		if (!strcasecmp(name, output->wlr_output->name)) {
 			return output;
 		}
 	}

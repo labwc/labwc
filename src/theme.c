@@ -100,6 +100,8 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#dddad6", theme->window_active_border_color);
 	parse_hexstr("#f6f5f4", theme->window_inactive_border_color);
 
+	parse_hexstr("#ff0000", theme->window_toggled_keybinds_color);
+
 	parse_hexstr("#dddad6", theme->window_active_title_bg_color);
 	parse_hexstr("#f6f5f4", theme->window_inactive_title_bg_color);
 
@@ -193,6 +195,10 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "border.color")) {
 		parse_hexstr(value, theme->window_active_border_color);
 		parse_hexstr(value, theme->window_inactive_border_color);
+	}
+
+	if (match_glob(key, "window.active.indicator.toggled-keybind.color")) {
+		parse_hexstr(value, theme->window_toggled_keybinds_color);
 	}
 
 	if (match_glob(key, "window.active.title.bg.color")) {

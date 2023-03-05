@@ -78,6 +78,10 @@ labwc-config(5).
 *window.inactive.border.color*
 	Border color of inactive window
 
+*window.active.indicator.toggled-keybind.color*
+	Status indicator for the ToggleKeybinds action. Can be set to the same
+	value as set for window.active.border.color to disable the status indicator.
+
 *window.active.title.bg.color*
 	Background color for the focused window's titlebar
 

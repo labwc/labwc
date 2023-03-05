@@ -102,11 +102,6 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 	return dst;
 }
 
-/*
- * At present, a view can only 'enter' one output at a time, although the view
- * may span multiple outputs. Ideally we would handle multiple outputs, but
- * this method is the simplest form of what we want.
- */
 static void
 view_discover_output(struct view *view)
 {

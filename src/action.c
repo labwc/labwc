@@ -721,9 +721,9 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_KEYBINDS:
-			server->seat.inhibit_keybinds = !server->seat.inhibit_keybinds;
-			wlr_log(WLR_DEBUG, "%s keybinds",
-				server->seat.inhibit_keybinds ? "Disabled" : "Enabled");
+			if (view) {
+				view_toggle_keybinds(view);
+			}
 			break;
 		case ACTION_TYPE_FOCUS_OUTPUT:
 			{

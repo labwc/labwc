@@ -1088,6 +1088,36 @@ view_reload_ssd(struct view *view)
 	}
 }
 
+static void
+inhibit_keybinds(struct view *view, bool inhibit)
+{
+	assert(view->inhibits_keybinds != inhibit);
+
+	view->inhibits_keybinds = inhibit;
+	if (inhibit) {
+		view->server->seat.nr_inhibited_keybind_views++;
+	} else {
+		view->server->seat.nr_inhibited_keybind_views--;
+	}
+
+	if (view->ssd_enabled) {
+		ssd_enable_keybind_inhibit_indicator(view->ssd, inhibit);
+	}
+}
+
+bool
+view_inhibits_keybinds(struct view *view)
+{
+	return view && view->inhibits_keybinds;
+}
+
+void
+view_toggle_keybinds(struct view *view)
+{
+	assert(view);
+	inhibit_keybinds(view, !view->inhibits_keybinds);
+}
+
 void
 view_destroy(struct view *view)
 {
@@ -1128,6 +1158,11 @@ view_destroy(struct view *view)
 
 	if (view->tiled_region_evacuate) {
 		zfree(view->tiled_region_evacuate);
+	}
+
+	if (view->inhibits_keybinds) {
+		view->inhibits_keybinds = false;
+		server->seat.nr_inhibited_keybind_views--;
 	}
 
 	osd_on_view_destroy(view);

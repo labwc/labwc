@@ -27,6 +27,8 @@ struct theme {
 	float window_active_border_color[4];
 	float window_inactive_border_color[4];
 
+	float window_toggled_keybinds_color[4];
+
 	float window_active_title_bg_color[4];
 	float window_inactive_title_bg_color[4];
 

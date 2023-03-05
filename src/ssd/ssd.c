@@ -163,6 +163,7 @@ ssd_create(struct view *view, bool active)
 	ssd_titlebar_create(ssd);
 	ssd->margin = ssd_thickness(view);
 	ssd_set_active(ssd, active);
+	ssd_enable_keybind_inhibit_indicator(ssd, view->inhibits_keybinds);
 	ssd->state.geometry = view->current;
 
 	return ssd;
@@ -270,6 +271,22 @@ ssd_set_active(struct ssd *ssd, bool active)
 	wlr_scene_node_set_enabled(&ssd->titlebar.active.tree->node, active);
 	wlr_scene_node_set_enabled(&ssd->border.inactive.tree->node, !active);
 	wlr_scene_node_set_enabled(&ssd->titlebar.inactive.tree->node, !active);
+}
+
+void
+ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable)
+{
+	if (!ssd) {
+		return;
+	}
+
+	float *color = enable
+		? rc.theme->window_toggled_keybinds_color
+		: rc.theme->window_active_border_color;
+
+	struct ssd_part *part = ssd_get_part(&ssd->border.active.parts, LAB_SSD_PART_TOP);
+	struct wlr_scene_rect *rect = lab_wlr_scene_get_rect(part->node);
+	wlr_scene_rect_set_color(rect, color);
 }
 
 struct ssd_hover_state *

@@ -105,6 +105,11 @@ Actions are used in menus and keyboard/mouse bindings.
 	to Virtual Machines, VNC clients or nested compositors.
 	A second call will restore all original keybinds.
 
+	This action will only affect the window that had keyboard focus when
+	the binding was executed. Thus when switching to another window, all
+	the usual keybinds will function again until switching back to the
+	original window. There can be multiple windows with this mode set.
+
 *<action name="FocusOutput" output="HDMI-A-1" />*
 	Give focus to topmost window on given output and warp the cursor
 	to the center of the window. If the given output does not contain

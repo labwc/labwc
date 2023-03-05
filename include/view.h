@@ -82,6 +82,7 @@ struct view {
 	bool maximized;
 	bool fullscreen;
 	uint32_t tiled;  /* private, enum view_edge in src/view.c */
+	bool inhibits_keybinds;
 
 	/* Pointer to an output owned struct region, may be NULL */
 	struct region *tiled_region;
@@ -145,6 +146,9 @@ struct xdg_toplevel_view {
 	struct wl_listener set_app_id;
 	struct wl_listener new_popup;
 };
+
+bool view_inhibits_keybinds(struct view *view);
+void view_toggle_keybinds(struct view *view);
 
 void view_set_activated(struct view *view);
 void view_set_output(struct view *view, struct output *output);

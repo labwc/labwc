@@ -271,6 +271,12 @@ workspaces_switch_to(struct workspace *target)
 
 	/* And finally show the OSD */
 	_osd_show(server);
+
+	/*
+	 * Make sure we are not carrying around a
+	 * cursor image from the previous desktop
+	 */
+	cursor_update_focus(server);
 }
 
 void
@@ -284,6 +290,9 @@ workspaces_osd_hide(struct seat *seat)
 		wlr_scene_buffer_set_buffer(output->workspace_osd, NULL);
 	}
 	seat->workspace_osd_shown_by_modifier = false;
+
+	/* Update the cursor focus in case it was on top of the OSD before */
+	cursor_update_focus(server);
 }
 
 struct workspace *

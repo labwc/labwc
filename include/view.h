@@ -147,6 +147,13 @@ void view_move(struct view *view, int x, int y);
 void view_moved(struct view *view);
 void view_minimize(struct view *view, bool minimized);
 void view_store_natural_geometry(struct view *view);
+
+/**
+ * view_center - center view within some region
+ * @view: view to be centered
+ * @ref: optional reference region (in layout coordinates) to center
+ * within; if NULL, view is centered within usable area of its output
+ */
 void view_center(struct view *view, const struct wlr_box *ref);
 void view_restore_to(struct view *view, struct wlr_box geometry);
 void view_set_untiled(struct view *view);

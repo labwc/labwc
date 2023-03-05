@@ -372,6 +372,7 @@ void desktop_move_to_front(struct view *view);
 void desktop_move_to_back(struct view *view);
 void desktop_focus_and_activate_view(struct seat *seat, struct view *view);
 void desktop_arrange_all_views(struct server *server);
+void desktop_focus_output(struct output *output);
 
 enum lab_cycle_dir {
 	LAB_CYCLE_DIR_NONE,
@@ -418,6 +419,7 @@ void output_init(struct server *server);
 void output_manager_init(struct server *server);
 struct output *output_from_wlr_output(struct server *server,
 	struct wlr_output *wlr_output);
+struct output *output_from_name(struct server *server, const char *name);
 struct output *output_nearest_to(struct server *server, int lx, int ly);
 struct output *output_nearest_to_cursor(struct server *server);
 bool output_is_usable(struct output *output);

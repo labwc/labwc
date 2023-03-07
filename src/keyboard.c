@@ -53,7 +53,6 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 	struct keyboard *keyboard = wl_container_of(listener, keyboard, modifier);
 	struct seat *seat = keyboard->base.seat;
 	struct server *server = seat->server;
-	struct wlr_keyboard_key_event *event = data;
 	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
 
 	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
@@ -63,8 +62,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 
 	if (server->osd_state.cycle_view || server->grabbed_view
 			|| seat->workspace_osd_shown_by_modifier) {
-		if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED
-				&& !keyboard_any_modifiers_pressed(wlr_keyboard))  {
+		if (!keyboard_any_modifiers_pressed(wlr_keyboard))  {
 			if (server->osd_state.cycle_view) {
 				if (key_state_nr_keys()) {
 					should_cancel_cycling_on_next_key_release = true;

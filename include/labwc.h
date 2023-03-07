@@ -164,6 +164,8 @@ struct seat {
 	/* Private use by regions.c */
 	struct region *region_active;
 	struct region_overlay region_overlay;
+	/* Used to prevent region snapping when starting a move with A-Left */
+	bool region_prevent_snap;
 
 	struct wl_client *active_client_while_inhibited;
 	struct wl_list inputs;

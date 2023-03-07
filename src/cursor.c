@@ -190,17 +190,14 @@ process_cursor_move(struct server *server, uint32_t time)
 	view_move(view, dx, dy);
 
 	/* Region overlay */
-	if (!regions_available()) {
+	if (!regions_should_snap(server)) {
 		return;
 	}
-	struct wlr_keyboard *keyboard = &server->seat.keyboard_group->keyboard;
-	if (keyboard_any_modifiers_pressed(keyboard)) {
-		struct region *region = regions_from_cursor(server);
-		if (region) {
-			regions_show_overlay(view, &server->seat, region);
-		} else {
-			regions_hide_overlay(&server->seat);
-		}
+	struct region *region = regions_from_cursor(server);
+	if (region) {
+		regions_show_overlay(view, &server->seat, region);
+	} else {
+		regions_hide_overlay(&server->seat);
 	}
 }
 

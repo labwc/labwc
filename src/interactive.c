@@ -58,6 +58,11 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			/* Store natural geometry at start of move */
 			view_store_natural_geometry(view);
 		}
+
+		/* Prevent region snapping when just moving via A-Left mousebind */
+		struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
+		seat->region_prevent_snap = keyboard_any_modifiers_pressed(keyboard);
+
 		cursor_set(seat, LAB_CURSOR_GRAB);
 		break;
 	case LAB_INPUT_STATE_RESIZE:
@@ -137,20 +142,15 @@ snap_to_edge(struct view *view)
 static bool
 snap_to_region(struct view *view)
 {
-	if (!regions_available()) {
+	if (!regions_should_snap(view->server)) {
 		return false;
 	}
 
-	struct wlr_keyboard *keyboard =
-		&view->server->seat.keyboard_group->keyboard;
-
-	if (keyboard_any_modifiers_pressed(keyboard)) {
-		struct region *region = regions_from_cursor(view->server);
-		if (region) {
-			view_snap_to_region(view, region,
-				/*store_natural_geometry*/ false);
-			return true;
-		}
+	struct region *region = regions_from_cursor(view->server);
+	if (region) {
+		view_snap_to_region(view, region,
+			/*store_natural_geometry*/ false);
+		return true;
 	}
 	return false;
 }
@@ -159,11 +159,8 @@ void
 interactive_finish(struct view *view)
 {
 	if (view->server->grabbed_view == view) {
-		enum input_mode mode = view->server->input_mode;
 		regions_hide_overlay(&view->server->seat);
-		view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
-		view->server->grabbed_view = NULL;
-		if (mode == LAB_INPUT_STATE_MOVE) {
+		if (view->server->input_mode == LAB_INPUT_STATE_MOVE) {
 			if (!snap_to_region(view)) {
 				if (!snap_to_edge(view)) {
 					/* Reset tiled state if not snapped */
@@ -171,6 +168,10 @@ interactive_finish(struct view *view)
 				}
 			}
 		}
+
+		view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+		view->server->grabbed_view = NULL;
+
 		/* Update focus/cursor image */
 		cursor_update_focus(view->server);
 	}

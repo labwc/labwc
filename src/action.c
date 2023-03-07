@@ -211,6 +211,12 @@ void action_list_free(struct wl_list *action_list)
 static void
 show_menu(struct server *server, struct view *view, const char *menu_name)
 {
+	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH
+			&& server->input_mode != LAB_INPUT_STATE_MENU) {
+		/* Prevent opening a menu while resizing / moving a view */
+		return;
+	}
+
 	bool force_menu_top_left = false;
 	struct menu *menu = menu_get_by_id(menu_name);
 	if (!menu) {

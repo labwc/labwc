@@ -28,6 +28,10 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 	struct seat *seat = &server->seat;
 	struct wlr_box geometry = view->current;
 
+	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		return;
+	}
+
 	switch (mode) {
 	case LAB_INPUT_STATE_MOVE:
 		if (view->fullscreen) {

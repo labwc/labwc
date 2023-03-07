@@ -33,8 +33,8 @@ struct region_overlay {
 	};
 };
 
-/* Can be used as a cheap check to detect if there are any regions configured */
-bool regions_available(void);
+/* Returns true if we should show the region overlay or snap to region */
+bool regions_should_snap(struct server *server);
 
 /**
  * regions_reconfigure*() - re-initializes all regions from struct rc.

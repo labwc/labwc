@@ -17,9 +17,16 @@
 #include "view.h"
 
 bool
-regions_available(void)
+regions_should_snap(struct server *server)
 {
-	return !wl_list_empty(&rc.regions);
+	if (server->input_mode != LAB_INPUT_STATE_MOVE
+			|| wl_list_empty(&rc.regions)
+			|| server->seat.region_prevent_snap) {
+		return false;
+	}
+
+	struct wlr_keyboard *keyboard = &server->seat.keyboard_group->keyboard;
+	return keyboard_any_modifiers_pressed(keyboard);
 }
 
 static void

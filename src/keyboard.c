@@ -56,6 +56,11 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 	struct wlr_keyboard_key_event *event = data;
 	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
 
+	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
+		/* Any change to the modifier state re-enable region snap */
+		seat->region_prevent_snap = false;
+	}
+
 	if (server->osd_state.cycle_view || server->grabbed_view
 			|| seat->workspace_osd_shown_by_modifier) {
 		if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED

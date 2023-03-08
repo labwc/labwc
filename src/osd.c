@@ -403,12 +403,14 @@ osd_update(struct server *server)
 		return;
 	}
 
-	/* Display the actual OSD */
-	struct output *output;
-	wl_list_for_each(output, &server->outputs, link) {
-		destroy_osd_nodes(output);
-		if (output_is_usable(output)) {
-			display_osd(output);
+	if (rc.cycle_view_osd) {
+		/* Display the actual OSD */
+		struct output *output;
+		wl_list_for_each(output, &server->outputs, link) {
+			destroy_osd_nodes(output);
+			if (output_is_usable(output)) {
+				display_osd(output);
+			}
 		}
 	}
 

@@ -442,6 +442,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.snap_edge_range = atoi(content);
 	} else if (!strcasecmp(nodename, "topMaximize.snapping")) {
 		rc.snap_top_maximize = get_bool(content);
+	} else if (!strcasecmp(nodename, "cycleViewOSD.core")) {
+		rc.cycle_view_osd = get_bool(content);
 	} else if (!strcasecmp(nodename, "cycleViewPreview.core")) {
 		rc.cycle_preview_contents = get_bool(content);
 	} else if (!strcasecmp(nodename, "cycleViewOutlines.core")) {
@@ -556,6 +558,7 @@ rcxml_init(void)
 	rc.screen_edge_strength = 20;
 	rc.snap_edge_range = 1;
 	rc.snap_top_maximize = true;
+	rc.cycle_view_osd = true;
 	rc.cycle_preview_contents = false;
 	rc.cycle_preview_outlines = true;
 	rc.workspace_config.popuptime = INT_MIN;

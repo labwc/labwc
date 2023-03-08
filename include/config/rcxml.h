@@ -53,6 +53,7 @@ struct rcxml {
 	bool snap_top_maximize;
 
 	/* cycle view (alt+tab) */
+	bool cycle_view_osd;
 	bool cycle_preview_contents;
 	bool cycle_preview_outlines;
 

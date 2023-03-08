@@ -536,22 +536,34 @@ rcxml_parse_xml(struct buf *b)
 }
 
 static void
+init_font_defaults(struct font *font)
+{
+	font->size = 10;
+	font->slant = FONT_SLANT_NORMAL;
+	font->weight = FONT_WEIGHT_NORMAL;
+}
+
+static void
 rcxml_init(void)
 {
 	static bool has_run;
 
-	if (has_run) {
-		return;
+	if (!has_run) {
+		wl_list_init(&rc.keybinds);
+		wl_list_init(&rc.mousebinds);
+		wl_list_init(&rc.libinput_categories);
+		wl_list_init(&rc.workspace_config.workspaces);
+		wl_list_init(&rc.regions);
 	}
 	has_run = true;
-	wl_list_init(&rc.keybinds);
-	wl_list_init(&rc.mousebinds);
-	wl_list_init(&rc.libinput_categories);
+
 	rc.xdg_shell_server_side_deco = true;
 	rc.corner_radius = 8;
-	rc.font_activewindow.size = 10;
-	rc.font_menuitem.size = 10;
-	rc.font_osd.size = 10;
+
+	init_font_defaults(&rc.font_activewindow);
+	init_font_defaults(&rc.font_menuitem);
+	init_font_defaults(&rc.font_osd);
+
 	rc.doubleclick_time = 500;
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
@@ -562,8 +574,6 @@ rcxml_init(void)
 	rc.cycle_preview_contents = false;
 	rc.cycle_preview_outlines = true;
 	rc.workspace_config.popuptime = INT_MIN;
-	wl_list_init(&rc.workspace_config.workspaces);
-	wl_list_init(&rc.regions);
 }
 
 static struct {

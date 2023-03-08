@@ -5,12 +5,12 @@
 struct lab_data_buffer;
 
 enum font_slant {
-	FONT_SLANT_NORMAL,
+	FONT_SLANT_NORMAL = 0,
 	FONT_SLANT_ITALIC
 };
 
 enum font_weight {
-	FONT_WEIGHT_NORMAL,
+	FONT_WEIGHT_NORMAL = 0,
 	FONT_WEIGHT_BOLD
 };
 

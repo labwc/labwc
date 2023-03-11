@@ -82,7 +82,7 @@ The rest of this man page describes configuration options.
 	windows. Default is yes.
 
 	*preview* [yes|no] Preview the contents of the selected window when
-	switching between windows. Default is no.
+	switching between windows. Default is yes.
 
 	*outlines* [yes|no] Draw an outline around the selected window when
 	switching between windows. Default is yes.

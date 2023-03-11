@@ -55,10 +55,20 @@ desktop_arrange_all_views(struct server *server)
 	}
 }
 
+static void
+close_all_popups(struct server *server)
+{
+	struct view *view;
+	wl_list_for_each(view, &server->views, link) {
+		view_close_popups(view);
+	}
+}
+
 void
 desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 {
 	if (!view) {
+		close_all_popups(seat->server);
 		seat_focus_surface(seat, NULL);
 		return;
 	}
@@ -97,6 +107,7 @@ desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 		return;
 	}
 
+	view_close_popups(view);
 	view_set_activated(view);
 	seat_focus_surface(seat, view->surface);
 }
@@ -188,6 +199,9 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 			return start_view;  /* may be NULL */
 		}
 	}
+
+	view_close_popups(start_view);
+
 	struct view *view = start_view;
 	struct wlr_scene_node *node = &view->scene_tree->node;
 

@@ -96,6 +96,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 	server->grab_y = seat->cursor->y;
 	server->grab_box = geometry;
 	server->resize_edges = edges;
+	view_close_popups(view);
 }
 
 /* Returns true if view was snapped to any edge */

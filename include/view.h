@@ -24,6 +24,7 @@ struct view;
 struct view_impl {
 	void (*configure)(struct view *view, struct wlr_box geo);
 	void (*close)(struct view *view);
+	void (*close_popups)(struct view *view);
 	const char *(*get_string_prop)(struct view *view, const char *prop);
 	void (*map)(struct view *view);
 	void (*set_activated)(struct view *view, bool activated);
@@ -134,6 +135,7 @@ struct xdg_toplevel_view {
 void view_set_activated(struct view *view);
 void view_set_output(struct view *view, struct output *output);
 void view_close(struct view *view);
+void view_close_popups(struct view *view);
 
 /**
  * view_move_resize - resize and move view

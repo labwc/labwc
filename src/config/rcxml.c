@@ -442,12 +442,29 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.snap_edge_range = atoi(content);
 	} else if (!strcasecmp(nodename, "topMaximize.snapping")) {
 		rc.snap_top_maximize = get_bool(content);
+
+	/* <windowSwitcher show="" preview="" outlines="" /> */
+	} else if (!strcasecmp(nodename, "show.windowSwitcher.core")) {
+		rc.cycle_view_osd = get_bool(content);
+	} else if (!strcasecmp(nodename, "preview.windowSwitcher.core")) {
+		rc.cycle_preview_contents = get_bool(content);
+	} else if (!strcasecmp(nodename, "outlines.windowSwitcher.core")) {
+		rc.cycle_preview_outlines = get_bool(content);
+
+	/* The following three are for backward compatibility only */
 	} else if (!strcasecmp(nodename, "cycleViewOSD.core")) {
 		rc.cycle_view_osd = get_bool(content);
+		wlr_log(WLR_ERROR, "<cycleViewOSD> is deprecated."
+			" Use <windowSwitcher show=\"\" />");
 	} else if (!strcasecmp(nodename, "cycleViewPreview.core")) {
 		rc.cycle_preview_contents = get_bool(content);
+		wlr_log(WLR_ERROR, "<cycleViewPreview> is deprecated."
+			" Use <windowSwitcher preview=\"\" />");
 	} else if (!strcasecmp(nodename, "cycleViewOutlines.core")) {
 		rc.cycle_preview_outlines = get_bool(content);
+		wlr_log(WLR_ERROR, "<cycleViewOutlines> is deprecated."
+			" Use <windowSwitcher outlines=\"\" />");
+
 	} else if (!strcasecmp(nodename, "name.names.desktops")) {
 		struct workspace *workspace = znew(*workspace);
 		workspace->name = xstrdup(content);

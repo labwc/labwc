@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | Release notes | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2023-03-20 | [0.6.2]       | 0.16.2          | 12157         |
 | 2023-01-29 | [0.6.1]       | 0.16.1          | 11828         |
 | 2022-11-17 | [0.6.0]       | 0.16.0          | 10830         |
 | 2022-07-15 | [0.5.3]       | 0.15.1          | 9216          |
@@ -19,6 +20,64 @@ The format is based on [Keep a Changelog]
 | 2021-06-28 | [0.3.0]       | 0.14.0          | 5051          |
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
+
+## 0.6.2 - 2023-03-20
+
+This release contains refactoring and simplification relating to
+view-output association and xdg/xwayland configure/map events.
+
+Unless otherwise stated all contributions are by the core-devs
+(@Consolatis, @jlindgren90 and @johanmalm).
+
+### Added
+
+- Add config option `<core><windowSwitcher show="no" />` to hide
+  windowSwitcher (also known as On Screen Display) when switching windows.
+- Enable config option `<core><windowSwitcher preview="" />` by default.
+- Add ToggleKeybinds action to disable/enable all keybinds (other than
+  ToggleKeybinds itself). This can be used to better control Virtual
+  Machines, VNC clients, nested compositors or similar. (#738 and #810)
+- Implement cursor constraints (Written-by: @Ph42oN) and lock confinement.
+- Support xdg-activation protocol to allow applications to activate
+  themselves (e.g. raise to the top and get keyboard focus) if they
+  provide a valid `xdg_activation token`.
+- Allow clearing key/mouse bindings by using the 'None' action. This
+  enables the use of `<default />` and then selectively removing keybinds.
+  For example the following could be used to allow using A-Left/Right with
+  Firefox.
+
+      <keyboard>
+        <default/>
+        <keybind key="A-Left"><action name="None" /></keybind>
+        <keybind key="A-Right"><action name="None" /></keybind>
+      </keyboard>
+
+### Fixed
+
+- Prevent cursor based region-snapping when starting a move with Alt-Left.
+  If region-snapping is wanted in this situation, just press the modifier
+  again. (#761)
+- Prevent rare crash due to layering move/resize/menu operations. (#817)
+- Fully reset config default values on Reconfigure if not set in config
+  file.
+- Fix visual glitch when resizing xfce4-terminal from left edge caused by
+  windows not accepting their request size exactly.
+- Fix issue with havoc not having a valid size on map.
+- Save `natural_geometry.x/y` with initially maximized xdg-view to fix an
+  issue where, if Thunar was started maximized, it would un-maximize to
+  the top-left corner rather than the center.
+
+### Changed
+
+- Change config option `<cycleView*>` to `<windowSwitcher>`.
+  Use `<core><windowSwitcher show="yes" preview="no" outlines="yes" />`
+  instead of:
+
+      <core>
+        <cycleViewOSD>yes</cycleViewOSD>
+        <cycleViewOutlines>yes</cycleViewOutlines>
+        <cycleViewPreview>yes</cycleViewPreview>
+      </core>
 
 ## 0.6.1 - 2023-01-29
 
@@ -463,6 +522,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
+[0.6.2]: https://github.com/labwc/labwc/releases/tag/0.6.2
 [0.6.1]: https://github.com/labwc/labwc/releases/tag/0.6.1
 [0.6.0]: https://github.com/labwc/labwc/releases/tag/0.6.0
 [0.5.3]: https://github.com/labwc/labwc/releases/tag/0.5.3

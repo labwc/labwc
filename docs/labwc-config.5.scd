@@ -77,17 +77,15 @@ The rest of this man page describes configuration options.
 	be used with labwc the preferred mode of the monitor is used instead.
 	Default is no.
 
-*<core><cycleViewOSD>* [yes|no]
-	Draw the OSD when cycling between windows.
-	Default is yes.
+*<core><windowSwitcher show="" preview="" outlines="" />*
+	*show* [yes|no] Draw the OnScreenDisplay when switching between
+	windows. Default is yes.
 
-*<core><cycleViewPreview>* [yes|no]
-	Preview the contents of the selected window when cycling between windows.
-	Default is no.
+	*preview* [yes|no] Preview the contents of the selected window when
+	switching between windows. Default is no.
 
-*<core><cycleViewOutlines>* [yes|no]
-	Draw an outline around the selected window when cycling between windows.
-	Default is yes.
+	*outlines* [yes|no] Draw an outline around the selected window when
+	switching between windows. Default is yes.
 
 ## RESISTANCE
 

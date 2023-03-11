@@ -12,9 +12,7 @@
     <gap>0</gap>
     <adaptiveSync>no</adaptiveSync>
     <reuseOutputMode>no</reuseOutputMode>
-    <cycleViewOSD>yes</cycleViewOSD>
-    <cycleViewPreview>no</cycleViewPreview>
-    <cycleViewOutlines>yes</cycleViewOutlines>
+    <windowSwitcher show="yes" preview="no" outlines="yes" />
   </core>
 
   <!-- <font><theme> can be defined without an attribute to set all places -->

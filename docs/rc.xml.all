@@ -12,7 +12,7 @@
     <gap>0</gap>
     <adaptiveSync>no</adaptiveSync>
     <reuseOutputMode>no</reuseOutputMode>
-    <windowSwitcher show="yes" preview="no" outlines="yes" />
+    <windowSwitcher show="yes" preview="yes" outlines="yes" />
   </core>
 
   <!-- <font><theme> can be defined without an attribute to set all places -->

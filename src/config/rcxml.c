@@ -588,7 +588,7 @@ rcxml_init(void)
 	rc.snap_edge_range = 1;
 	rc.snap_top_maximize = true;
 	rc.cycle_view_osd = true;
-	rc.cycle_preview_contents = false;
+	rc.cycle_preview_contents = true;
 	rc.cycle_preview_outlines = true;
 	rc.workspace_config.popuptime = INT_MIN;
 }

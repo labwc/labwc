@@ -56,6 +56,24 @@ desktop_arrange_all_views(struct server *server)
 }
 
 static void
+close_all_layer_popups(struct server *server)
+{
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		struct wlr_scene_node *node;
+		wl_list_for_each(node, &output->layer_popup_tree->children, link) {
+			struct node_descriptor *desc = node->data;
+			if (desc->type != LAB_NODE_DESC_LAYER_POPUP) {
+				continue;
+			}
+			struct lab_layer_popup *popup;
+			popup = node_layer_popup_from_node(node);
+		//	popup_handle_destroy(&popup->destroy, popup);
+		}
+	}
+}
+
+static void
 close_all_popups(struct server *server)
 {
 	struct view *view;
@@ -67,6 +85,7 @@ close_all_popups(struct server *server)
 void
 desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 {
+	close_all_layer_popups(seat->server);
 	if (!view) {
 		close_all_popups(seat->server);
 		seat_focus_surface(seat, NULL);

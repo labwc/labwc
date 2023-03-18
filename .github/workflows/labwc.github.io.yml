@@ -1,0 +1,24 @@
+# Triggers a rebuild and deploy of labwc.github.io when man pages change
+#
+# https://stackoverflow.com/a/65514259
+
+name: "labwc.github.io"
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'v0.5_disabled'
+    paths:
+      - 'docs/*.scd'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: labwc.github.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.WEB_DEPLOY_TOKEN }}
+        run: |
+          gh api repos/labwc/labwc.github.io/dispatches \
+            --raw-field event_type=rebuild

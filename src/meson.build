@@ -24,7 +24,6 @@ labwc_sources = files(
   'view-impl-common.c',
   'workspaces.c',
   'xdg.c',
-  'xdg-deco.c',
   'xdg-popup.c',
 )
 
@@ -38,6 +37,7 @@ endif
 
 subdir('common')
 subdir('config')
+subdir('decorations')
 subdir('xbm')
 subdir('menu')
 subdir('ssd')

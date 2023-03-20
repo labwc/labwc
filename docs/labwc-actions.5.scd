@@ -29,6 +29,9 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="Raise">*
 	Restack the current window above other open windows.
 
+*<action name="Lower">*
+	Restack the current window below other open windows.
+
 *<action name="Iconify">*
 	Iconify (minimize) focused window.
 

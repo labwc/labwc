@@ -63,6 +63,7 @@ enum action_type {
 	ACTION_TYPE_ICONIFY,
 	ACTION_TYPE_MOVE,
 	ACTION_TYPE_RAISE,
+	ACTION_TYPE_LOWER,
 	ACTION_TYPE_RESIZE,
 	ACTION_TYPE_GO_TO_DESKTOP,
 	ACTION_TYPE_SEND_TO_DESKTOP,
@@ -93,6 +94,7 @@ const char *action_names[] = {
 	"Iconify",
 	"Move",
 	"Raise",
+	"Lower",
 	"Resize",
 	"GoToDesktop",
 	"SendToDesktop",
@@ -438,6 +440,11 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_RAISE:
 			if (view) {
 				desktop_move_to_front(view);
+			}
+			break;
+		case ACTION_TYPE_LOWER:
+			if (view) {
+				desktop_move_to_back(view);
 			}
 			break;
 		case ACTION_TYPE_RESIZE:

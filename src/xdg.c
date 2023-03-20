@@ -48,7 +48,16 @@ handle_new_xdg_popup(struct wl_listener *listener, void *data)
 static bool
 has_ssd(struct view *view)
 {
+	if (view->ssd_enabled) {
+		/* View prefers server side decorations */
+		return true;
+	}
+
 	if (!rc.xdg_shell_server_side_deco) {
+		/*
+		 * User prefers client side decorations and
+		 * the view didn't negotiate server side ones.
+		 */
 		return false;
 	}
 
@@ -56,6 +65,10 @@ has_ssd(struct view *view)
 	 * Some XDG shells refuse to disable CSD in which case their
 	 * geometry.{x,y} seems to be greater than zero. We filter on that
 	 * on the assumption that this will remain true.
+	 *
+	 * TODO: Replace this with a proper implementation of
+	 *       the KDE decoration variant as can be seen at
+	 *       https://github.com/swaywm/sway/blob/master/sway/decoration.c
 	 */
 	struct wlr_xdg_surface_state *current =
 		&xdg_surface_from_view(view)->current;

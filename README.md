@@ -231,9 +231,9 @@ A root-menu can be opened by clicking on the desktop.
 
 ### 5.1 Gaming
 
-It is suggested to use a nested [gamescope] instance for gaming until labwc
-implements proper cursor confinement.  
-It can be added to steam via game launch option: `gamescope -f -- %command%`.
+Cursor confinement is supported from version `0.6.2`. If using older versions,
+use a nested [gamescope] instance for gaming.  It can be added to steam via
+game launch option: `gamescope -f -- %command%`.
 
 ## 6. Integration
 

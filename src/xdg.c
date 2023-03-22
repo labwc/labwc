@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
 #include "common/mem.h"
+#include "decorations.h"
 #include "labwc.h"
 #include "node.h"
 #include "view.h"
@@ -48,38 +49,22 @@ handle_new_xdg_popup(struct wl_listener *listener, void *data)
 static bool
 has_ssd(struct view *view)
 {
+	/*
+	 * view->ssd_preference may be set by the decoration implementation
+	 * e.g. src/decorations/xdg-deco.c or src/decorations/kde-deco.c.
+	 */
 	switch (view->ssd_preference) {
 	case LAB_SSD_PREF_SERVER:
 		return true;
 	case LAB_SSD_PREF_CLIENT:
 		return false;
 	default:
-		break;
-	}
-
-	if (!rc.xdg_shell_server_side_deco) {
 		/*
-		 * User prefers client side decorations and
-		 * the view didn't negotiate server side ones.
+		 * We don't know anything about the client preference
+		 * so fall back to core.decoration settings in rc.xml
 		 */
-		return false;
+		return rc.xdg_shell_server_side_deco;
 	}
-
-	/*
-	 * Some XDG shells refuse to disable CSD in which case their
-	 * geometry.{x,y} seems to be greater than zero. We filter on that
-	 * on the assumption that this will remain true.
-	 *
-	 * TODO: Replace this with a proper implementation of
-	 *       the KDE decoration variant as can be seen at
-	 *       https://github.com/swaywm/sway/blob/master/sway/decoration.c
-	 */
-	struct wlr_xdg_surface_state *current =
-		&xdg_surface_from_view(view)->current;
-	if (current->geometry.x || current->geometry.y) {
-		return false;
-	}
-	return true;
 }
 
 static void
@@ -560,8 +545,17 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	node_descriptor_create(&view->scene_tree->node,
 		LAB_NODE_DESC_VIEW, view);
 
-	/* In support of xdg_toplevel_decoration */
+	/* In support of xdg_toplevel_decoration and kde_server_decoration */
 	xdg_surface->data = view;
+
+	/*
+	 * GTK4 initializes the decorations on the wl_surface before
+	 * converting it into a xdg surface. This call takes care of
+	 * connecting the view to an existing decoration. If there
+	 * is no existing decoration object available for the
+	 * wl_surface, this call is a no-op.
+	 */
+	kde_server_decoration_set_view(view, xdg_surface->surface);
 
 	/* In support of xdg popups */
 	xdg_surface->surface->data = tree;

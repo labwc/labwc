@@ -53,6 +53,7 @@ reload_config_and_theme(void)
 	menu_reconfigure(g_server);
 	seat_reconfigure(g_server);
 	regions_reconfigure(g_server);
+	kde_server_decoration_update_default();
 }
 
 static int
@@ -310,18 +311,8 @@ server_init(struct server *server)
 	wl_signal_add(&server->xdg_shell->events.new_surface,
 		&server->new_xdg_surface);
 
-	/* Disable CSD */
+	kde_server_decoration_init(server);
 	xdg_server_decoration_init(server);
-	struct wlr_server_decoration_manager *deco_mgr = NULL;
-	deco_mgr = wlr_server_decoration_manager_create(server->wl_display);
-	if (!deco_mgr) {
-		wlr_log(WLR_ERROR, "unable to create the server deco manager");
-		exit(EXIT_FAILURE);
-	}
-	wlr_server_decoration_manager_set_default_mode(
-		deco_mgr, rc.xdg_shell_server_side_deco
-		? WLR_SERVER_DECORATION_MANAGER_MODE_SERVER
-		: WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT);
 
 	server->xdg_activation = wlr_xdg_activation_v1_create(server->wl_display);
 	if (!server->xdg_activation) {

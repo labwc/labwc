@@ -28,10 +28,22 @@ xdg_deco_request_mode(struct wl_listener *listener, void *data)
 	enum wlr_xdg_toplevel_decoration_v1_mode client_mode =
 		xdg_deco->wlr_decoration->requested_mode;
 
-	if (client_mode == WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_NONE) {
+	switch (client_mode) {
+	case WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE:
+		xdg_deco->view->ssd_preference = LAB_SSD_PREF_SERVER;
+		break;
+	case WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE:
+		xdg_deco->view->ssd_preference = LAB_SSD_PREF_CLIENT;
+		break;
+	case WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_NONE:
+		xdg_deco->view->ssd_preference = LAB_SSD_PREF_UNSPEC;
 		client_mode = rc.xdg_shell_server_side_deco
 			? WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE
 			: WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
+		break;
+	default:
+		wlr_log(WLR_ERROR, "Unspecified decoration variant requested: %u",
+			client_mode);
 	}
 
 	wlr_xdg_toplevel_decoration_v1_set_mode(xdg_deco->wlr_decoration, client_mode);

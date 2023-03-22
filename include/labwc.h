@@ -34,7 +34,6 @@
 #include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_pointer_gestures_v1.h>
 #include <wlr/types/wlr_seat.h>
-#include <wlr/types/wlr_server_decoration.h>
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/types/wlr_xdg_activation_v1.h>
@@ -220,6 +219,7 @@ struct server {
 	struct wl_listener new_xdg_surface;
 	struct wl_listener new_layer_surface;
 
+	struct wl_listener kde_server_decoration;
 	struct wl_listener xdg_toplevel_decoration;
 #if HAVE_XWAYLAND
 	struct wlr_xwayland *xwayland;

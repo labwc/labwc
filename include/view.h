@@ -20,6 +20,12 @@ enum view_type {
 #endif
 };
 
+enum ssd_preference {
+	LAB_SSD_PREF_UNSPEC = 0,
+	LAB_SSD_PREF_CLIENT,
+	LAB_SSD_PREF_SERVER,
+};
+
 struct view;
 struct view_impl {
 	void (*configure)(struct view *view, struct wlr_box geo);
@@ -63,6 +69,7 @@ struct view {
 	bool mapped;
 	bool been_mapped;
 	bool ssd_enabled;
+	enum ssd_preference ssd_preference;
 	bool minimized;
 	bool maximized;
 	bool fullscreen;

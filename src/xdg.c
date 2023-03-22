@@ -48,9 +48,13 @@ handle_new_xdg_popup(struct wl_listener *listener, void *data)
 static bool
 has_ssd(struct view *view)
 {
-	if (view->ssd_enabled) {
-		/* View prefers server side decorations */
+	switch (view->ssd_preference) {
+	case LAB_SSD_PREF_SERVER:
 		return true;
+	case LAB_SSD_PREF_CLIENT:
+		return false;
+	default:
+		break;
 	}
 
 	if (!rc.xdg_shell_server_side_deco) {

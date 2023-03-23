@@ -18,6 +18,7 @@
 #include "drm-lease-v1-protocol.h"
 #include "config/rcxml.h"
 #include "config/session.h"
+#include "decorations.h"
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
@@ -310,16 +311,7 @@ server_init(struct server *server)
 		&server->new_xdg_surface);
 
 	/* Disable CSD */
-	struct wlr_xdg_decoration_manager_v1 *xdg_deco_mgr = NULL;
-	xdg_deco_mgr = wlr_xdg_decoration_manager_v1_create(server->wl_display);
-	if (!xdg_deco_mgr) {
-		wlr_log(WLR_ERROR, "unable to create the XDG deco manager");
-		exit(EXIT_FAILURE);
-	}
-	wl_signal_add(&xdg_deco_mgr->events.new_toplevel_decoration,
-		&server->xdg_toplevel_decoration);
-	server->xdg_toplevel_decoration.notify = xdg_toplevel_decoration;
-
+	xdg_server_decoration_init(server);
 	struct wlr_server_decoration_manager *deco_mgr = NULL;
 	deco_mgr = wlr_server_decoration_manager_create(server->wl_display);
 	if (!deco_mgr) {

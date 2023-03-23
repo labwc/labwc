@@ -508,6 +508,19 @@ cursor_update_focus(struct server *server)
 
 	/* Focus surface under cursor if it isn't already focused */
 	struct cursor_context ctx = get_cursor_context(server);
+
+	if (ctx.view && rc.focus_follow_mouse) {
+		desktop_focus_and_activate_view(&server->seat, ctx.view);
+		if (rc.raise_on_focus) {
+			/*
+			 * Call view method directly as desktop_move_to_front()
+			 * contains a call to cursor_update_focus() and thus
+			 * loops inifinitely
+			 */
+			ctx.view->impl->move_to_front(ctx.view);
+		}
+	}
+
 	cursor_update_common(server, &ctx, msec(&now),
 		/*cursor_has_moved*/ false);
 }

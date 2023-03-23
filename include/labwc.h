@@ -38,7 +38,6 @@
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/types/wlr_xdg_activation_v1.h>
-#include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_virtual_pointer_v1.h>
@@ -348,8 +347,6 @@ struct idle_inhibitor {
 };
 
 void xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup);
-
-void xdg_toplevel_decoration(struct wl_listener *listener, void *data);
 
 void xdg_activation_handle_request(struct wl_listener *listener, void *data);
 

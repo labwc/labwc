@@ -545,7 +545,21 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	node_descriptor_create(&view->scene_tree->node,
 		LAB_NODE_DESC_VIEW, view);
 
-	/* In support of xdg_toplevel_decoration and kde_server_decoration */
+	/*
+	 * The xdg_toplevel_decoration and kde_server_decoration protocols
+	 * expects clients to use client side decorations unless server side
+	 * decorations are negotiated. So we default to client side ones here.
+	 *
+	 * TODO: We may want to assign the default based on a new rc.xml
+	 *       config option like "enforce-server" in the future.
+	 */
+	view->ssd_preference = LAB_SSD_PREF_CLIENT;
+
+	/*
+	 * xdg_toplevel_decoration and kde_server_decoration use this
+	 * pointer to connect the view to a decoration object that may
+	 * be created in the future.
+	 */
 	xdg_surface->data = view;
 
 	/*

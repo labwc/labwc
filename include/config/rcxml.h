@@ -41,6 +41,7 @@ struct rcxml {
 	/* mouse */
 	long doubleclick_time;     /* in ms */
 	struct wl_list mousebinds; /* struct mousebind.link */
+	double scroll_factor;
 
 	/* libinput */
 	struct wl_list libinput_categories;

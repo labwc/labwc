@@ -1054,7 +1054,8 @@ cursor_axis(struct wl_listener *listener, void *data)
 
 		/* Notify the client with pointer focus of the axis event. */
 		wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,
-			event->orientation, event->delta, event->delta_discrete,
+			event->orientation, rc.scroll_factor * event->delta,
+			round(rc.scroll_factor * event->delta_discrete),
 			event->source);
 	}
 }

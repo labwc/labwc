@@ -210,6 +210,9 @@ The rest of this man page describes configuration options.
 *<mouse><doubleClickTime>*
 	Set double click time in milliseconds. Default is 500.
 
+*<mouse><scrollFactor>*
+	Set scroll factor. Default is 1.0.
+
 *<mouse><context name=""><mousebind button="" direction=""><action>*
 	Multiple *<mousebind>* can exist within one *<context>*; and multiple
 	*<action>* can exist within one *<mousebind>*

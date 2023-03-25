@@ -37,6 +37,7 @@ struct view_impl {
 	void (*unmap)(struct view *view);
 	void (*maximize)(struct view *view, bool maximize);
 	void (*move_to_front)(struct view *view);
+	void (*move_to_back)(struct view *view);
 };
 
 struct view {

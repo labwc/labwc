@@ -429,6 +429,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "invalid doubleClickTime");
 		}
+	} else if (!strcasecmp(nodename, "scrollFactor.mouse")) {
+		rc.scroll_factor = atof(content);
 	} else if (!strcasecmp(nodename, "name.context.mouse")) {
 		current_mouse_context = content;
 		current_mousebind = NULL;
@@ -582,6 +584,7 @@ rcxml_init(void)
 	init_font_defaults(&rc.font_osd);
 
 	rc.doubleclick_time = 500;
+	rc.scroll_factor = 1.0;
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
 	rc.screen_edge_strength = 20;

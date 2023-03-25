@@ -2,6 +2,7 @@
 /* view-impl-common.c: common code for shell view->impl functions */
 #include <stdio.h>
 #include <strings.h>
+#include "common/list.h"
 #include "labwc.h"
 #include "view.h"
 #include "view-impl-common.h"
@@ -12,6 +13,14 @@ view_impl_move_to_front(struct view *view)
 	wl_list_remove(&view->link);
 	wl_list_insert(&view->server->views, &view->link);
 	wlr_scene_node_raise_to_top(&view->scene_tree->node);
+}
+
+void
+view_impl_move_to_back(struct view *view)
+{
+	wl_list_remove(&view->link);
+	wl_list_append(&view->server->views, &view->link);
+	wlr_scene_node_lower_to_bottom(&view->scene_tree->node);
 }
 
 void

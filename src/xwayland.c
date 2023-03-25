@@ -497,8 +497,13 @@ xwayland_view_maximize(struct view *view, bool maximized)
 		maximized);
 }
 
+enum z_direction {
+	LAB_TO_FRONT,
+	LAB_TO_BACK,
+};
+
 static void
-move_sub_views_to_front(struct view *parent)
+move_sub_views(struct view *parent, enum z_direction z_direction)
 {
 	assert(parent);
 
@@ -524,7 +529,11 @@ move_sub_views_to_front(struct view *parent)
 		if (top_parent_of(view) != parent_xwayland_surface) {
 			continue;
 		}
-		view_impl_move_to_front(view);
+		if (z_direction == LAB_TO_FRONT) {
+			view_impl_move_to_front(view);
+		} else if (z_direction == LAB_TO_BACK) {
+			view_impl_move_to_back(view);
+		}
 	}
 }
 
@@ -532,7 +541,14 @@ static void
 xwayland_view_move_to_front(struct view *view)
 {
 	view_impl_move_to_front(view);
-	move_sub_views_to_front(view);
+	move_sub_views(view, LAB_TO_FRONT);
+}
+
+static void
+xwayland_view_move_to_back(struct view *view)
+{
+	view_impl_move_to_back(view);
+	move_sub_views(view, LAB_TO_BACK);
 }
 
 static void
@@ -576,6 +592,7 @@ static const struct view_impl xwayland_view_impl = {
 	.unmap = xwayland_view_unmap,
 	.maximize = xwayland_view_maximize,
 	.move_to_front = xwayland_view_move_to_front,
+	.move_to_back = xwayland_view_move_to_back,
 };
 
 static void

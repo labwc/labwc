@@ -30,8 +30,10 @@ desktop_move_to_back(struct view *view)
 	if (!view) {
 		return;
 	}
-	wl_list_remove(&view->link);
-	wl_list_append(&view->server->views, &view->link);
+	if (view->impl->move_to_back) {
+		view->impl->move_to_back(view);
+		cursor_update_focus(view->server);
+	}
 }
 
 void

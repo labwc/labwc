@@ -455,6 +455,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.unmap = xdg_toplevel_view_unmap,
 	.maximize = xdg_toplevel_view_maximize,
 	.move_to_front = view_impl_move_to_front,
+	.move_to_back = view_impl_move_to_back,
 };
 
 void

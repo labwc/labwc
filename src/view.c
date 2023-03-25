@@ -232,7 +232,6 @@ view_minimize(struct view *view, bool minimized)
 	view->minimized = minimized;
 	if (minimized) {
 		view->impl->unmap(view);
-		desktop_move_to_back(view);
 		_view_set_activated(view, false);
 		if (view == view->server->focused_view) {
 			/*

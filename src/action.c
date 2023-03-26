@@ -164,18 +164,38 @@ action_arg_from_xml_node(struct action *action, char *nodename, char *content)
 	}
 }
 
-static char *
+static const char *
 action_str_from_arg(struct action_arg *arg)
 {
 	assert(arg->type == LAB_ACTION_ARG_STR);
 	return ((struct action_arg_str *)arg)->value;
 }
 
-static bool
-action_bool_from_arg(struct action_arg *arg)
+static const char *
+get_arg_value_str(struct action *action, const char *key, const char *default_value)
 {
-	assert(arg->type == LAB_ACTION_ARG_BOOL);
-	return ((struct action_arg_bool *)arg)->value;
+	assert(key);
+	struct action_arg *arg;
+	wl_list_for_each(arg, &action->args, link) {
+		if (!strcasecmp(key, arg->key)) {
+			return action_str_from_arg(arg);
+		}
+	}
+	return default_value;
+}
+
+static bool
+get_arg_value_bool(struct action *action, const char *key, bool default_value)
+{
+	assert(key);
+	struct action_arg *arg;
+	wl_list_for_each(arg, &action->args, link) {
+		if (!strcasecmp(key, arg->key)) {
+			assert(arg->type == LAB_ACTION_ARG_BOOL);
+			return ((struct action_arg_bool *)arg)->value;
+		}
+	}
+	return default_value;
 }
 
 static struct action_arg *
@@ -244,7 +264,7 @@ void action_list_free(struct wl_list *action_list)
 			wl_list_remove(&arg->link);
 			zfree(arg->key);
 			if (arg->type == LAB_ACTION_ARG_STR) {
-				free(action_str_from_arg(arg));
+				free((void *)action_str_from_arg(arg));
 			}
 			zfree(arg);
 		}
@@ -484,7 +504,7 @@ actions_run(struct view *activator, struct server *server,
 				break;
 			}
 			struct workspace *target;
-			char *target_name = action_str_from_arg(arg);
+			const char *target_name = action_str_from_arg(arg);
 			target = workspaces_find(server->workspace_current, target_name);
 			if (target) {
 				workspaces_switch_to(target);
@@ -492,19 +512,9 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_SEND_TO_DESKTOP:
 			if (view) {
-				struct action_arg *arg;
-				char *target_name = NULL;
-				struct workspace *target;
-				bool follow = true;
-
-				wl_list_for_each(arg, &action->args, link) {
-					if (!strcmp("to", arg->key)) {
-						target_name = action_str_from_arg(arg);
-					} else if (!strcmp("follow", arg->key)) {
-						follow = action_bool_from_arg(arg);
-					}
-				}
-				target = workspaces_find(view->workspace, target_name);
+				const char *to = get_arg_value_str(action, "to", NULL);
+				bool follow = get_arg_value_bool(action, "follow", true);
+				struct workspace *target = workspaces_find(view->workspace, to);
 				if (target) {
 					view_move_to_workspace(view, target);
 					if (follow) {

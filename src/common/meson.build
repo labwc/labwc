@@ -3,6 +3,7 @@ labwc_sources += files(
   'dir.c',
   'fd_util.c',
   'font.c',
+  'get-bool.c',
   'grab-file.c',
   'graphic-helpers.c',
   'mem.c',

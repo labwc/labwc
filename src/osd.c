@@ -164,7 +164,6 @@ osd_on_view_destroy(struct view *view)
 void
 osd_finish(struct server *server)
 {
-	server->osd_state.cycle_view = NULL;
 	server->osd_state.preview_node = NULL;
 	server->osd_state.preview_anchor = NULL;
 
@@ -181,6 +180,15 @@ osd_finish(struct server *server)
 
 	/* Hiding OSD may need a cursor change */
 	cursor_update_focus(server);
+
+	/*
+	 * We delay resetting cycle_view until after cursor_update_focus()
+	 * has been called to allow A-Tab keyboard focus switching even if
+	 * followMouse has been configured and the cursor is on a different
+	 * surface. Otherwise cursor_update_focus() would automatically
+	 * refocus the surface the cursor is currently on.
+	 */
+	server->osd_state.cycle_view = NULL;
 }
 
 void

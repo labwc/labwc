@@ -25,11 +25,9 @@
   <menu id="workspaces" label="Workspace">
     <item label="Move left">
       <action name="SendToDesktop" to="left" />
-      <action name="GoToDesktop" to="left" />
     </item>
     <item label="Move right">
       <action name="SendToDesktop" to="right" />
-      <action name="GoToDesktop" to="right" />
     </item>
   </menu>
   <item label="Close">

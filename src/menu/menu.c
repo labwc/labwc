@@ -664,14 +664,14 @@ init_windowmenu(struct server *server)
 		/* Workspace sub-menu */
 		struct menu *workspace_menu = menu_create(server, "workspaces", "");
 		current_item = item_create(workspace_menu, _("Move left"), false);
+		/*
+		 * <action name="SendToDesktop"><follow> is true by default so
+		 * GoToDesktop will be called as part of the action.
+		 */
 		fill_item("name.action", "SendToDesktop");
-		fill_item("to.action", "left");
-		fill_item("name.action", "GoToDesktop");
 		fill_item("to.action", "left");
 		current_item = item_create(workspace_menu, _("Move right"), false);
 		fill_item("name.action", "SendToDesktop");
-		fill_item("to.action", "right");
-		fill_item("name.action", "GoToDesktop");
 		fill_item("to.action", "right");
 		current_item = item_create(menu, _("Workspace"), true);
 		current_item->submenu = workspace_menu;

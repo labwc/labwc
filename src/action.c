@@ -7,9 +7,9 @@
 #include <unistd.h>
 #include <wlr/util/log.h>
 #include "action.h"
-#include "common/get-bool.h"
 #include "common/list.h"
 #include "common/mem.h"
+#include "common/parse-bool.h"
 #include "common/spawn.h"
 #include "debug.h"
 #include "labwc.h"
@@ -154,7 +154,7 @@ action_arg_from_xml_node(struct action *action, char *nodename, char *content)
 		action_arg_add_str(action, "to", content);
 	} else if (!strcmp(nodename, "follow.action")) {
 		/* SendToDesktop */
-		action_arg_add_bool(action, "follow", get_bool(content));
+		action_arg_add_bool(action, "follow", parse_bool(content, true));
 	} else if (!strcmp(nodename, "region.action")) {
 		/* SnapToRegion */
 		action_arg_add_str(action, NULL, content);

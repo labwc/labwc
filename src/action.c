@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <wlr/util/log.h>
 #include "action.h"
+#include "common/get-bool.h"
 #include "common/list.h"
 #include "common/mem.h"
 #include "common/spawn.h"
@@ -20,6 +21,7 @@
 
 enum action_arg_type {
 	LAB_ACTION_ARG_STR = 0,
+	LAB_ACTION_ARG_BOOL,
 };
 
 struct action_arg {
@@ -32,6 +34,11 @@ struct action_arg {
 struct action_arg_str {
 	struct action_arg base;
 	char *value;
+};
+
+struct action_arg_bool {
+	struct action_arg base;
+	bool value;
 };
 
 enum action_type {
@@ -117,7 +124,10 @@ action_arg_from_xml_node(struct action *action, char *nodename, char *content)
 		action_arg_add_str(action, NULL, content);
 	} else if (!strcmp(nodename, "to.action")) {
 		/* GoToDesktop, SendToDesktop */
-		action_arg_add_str(action, NULL, content);
+		action_arg_add_str(action, "to", content);
+	} else if (!strcmp(nodename, "follow.action")) {
+		/* SendToDesktop */
+		action_arg_add_bool(action, "follow", get_bool(content));
 	} else if (!strcmp(nodename, "region.action")) {
 		/* SnapToRegion */
 		action_arg_add_str(action, NULL, content);
@@ -132,6 +142,13 @@ action_str_from_arg(struct action_arg *arg)
 {
 	assert(arg->type == LAB_ACTION_ARG_STR);
 	return ((struct action_arg_str *)arg)->value;
+}
+
+static bool
+action_bool_from_arg(struct action_arg *arg)
+{
+	assert(arg->type == LAB_ACTION_ARG_BOOL);
+	return ((struct action_arg_bool *)arg)->value;
 }
 
 static struct action_arg *
@@ -442,16 +459,25 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_SEND_TO_DESKTOP:
-			if (!arg) {
-				wlr_log(WLR_ERROR, "Missing argument for SendToDesktop");
-				break;
-			}
 			if (view) {
+				struct action_arg *arg;
+				char *target_name = NULL;
 				struct workspace *target;
-				char *target_name = action_str_from_arg(arg);
+				bool follow = true;
+
+				wl_list_for_each(arg, &action->args, link) {
+					if (!strcmp("to", arg->key)) {
+						target_name = action_str_from_arg(arg);
+					} else if (!strcmp("follow", arg->key)) {
+						follow = action_bool_from_arg(arg);
+					}
+				}
 				target = workspaces_find(view->workspace, target_name);
 				if (target) {
 					view_move_to_workspace(view, target);
+					if (follow) {
+						workspaces_switch_to(target);
+					}
 				}
 			}
 			break;
@@ -515,5 +541,17 @@ action_arg_add_str(struct action *action, char *key, const char *value)
 		arg->base.key = xstrdup(key);
 	}
 	arg->value = xstrdup(value);
+	wl_list_append(&action->args, &arg->base.link);
+}
+
+void
+action_arg_add_bool(struct action *action, char *key, bool value)
+{
+	struct action_arg_bool *arg = znew(*arg);
+	arg->base.type = LAB_ACTION_ARG_BOOL;
+	if (key) {
+		arg->base.key = xstrdup(key);
+	}
+	arg->value = value;
 	wl_list_append(&action->args, &arg->base.link);
 }

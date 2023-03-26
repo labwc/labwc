@@ -120,6 +120,11 @@ fill_keybind(char *nodename, char *content)
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else {
+		/*
+		 * Here we deal with action sub-elements such as <to>, <output>,
+		 * <region>, <direction> and so on. This is common to key- and
+		 * mousebinds.
+		 */
 		action_arg_from_xml_node(current_keybind_action, nodename, content);
 	}
 }

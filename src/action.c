@@ -105,6 +105,31 @@ const char *action_names[] = {
 };
 
 void
+action_arg_add_str(struct action *action, char *key, const char *value)
+{
+	assert(value && "Tried to add NULL action string argument");
+	struct action_arg_str *arg = znew(*arg);
+	arg->base.type = LAB_ACTION_ARG_STR;
+	if (key) {
+		arg->base.key = xstrdup(key);
+	}
+	arg->value = xstrdup(value);
+	wl_list_append(&action->args, &arg->base.link);
+}
+
+static void
+action_arg_add_bool(struct action *action, char *key, bool value)
+{
+	struct action_arg_bool *arg = znew(*arg);
+	arg->base.type = LAB_ACTION_ARG_BOOL;
+	if (key) {
+		arg->base.key = xstrdup(key);
+	}
+	arg->value = value;
+	wl_list_append(&action->args, &arg->base.link);
+}
+
+void
 action_arg_from_xml_node(struct action *action, char *nodename, char *content)
 {
 	assert(action);
@@ -538,27 +563,3 @@ actions_run(struct view *activator, struct server *server,
 	}
 }
 
-void
-action_arg_add_str(struct action *action, char *key, const char *value)
-{
-	assert(value && "Tried to add NULL action string argument");
-	struct action_arg_str *arg = znew(*arg);
-	arg->base.type = LAB_ACTION_ARG_STR;
-	if (key) {
-		arg->base.key = xstrdup(key);
-	}
-	arg->value = xstrdup(value);
-	wl_list_append(&action->args, &arg->base.link);
-}
-
-void
-action_arg_add_bool(struct action *action, char *key, bool value)
-{
-	struct action_arg_bool *arg = znew(*arg);
-	arg->base.type = LAB_ACTION_ARG_BOOL;
-	if (key) {
-		arg->base.key = xstrdup(key);
-	}
-	arg->value = value;
-	wl_list_append(&action->args, &arg->base.link);
-}

@@ -15,6 +15,7 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "action.h"
+#include "common/get-bool.h"
 #include "common/list.h"
 #include "common/mem.h"
 #include "common/nodename.h"
@@ -176,21 +177,6 @@ fill_mousebind(char *nodename, char *content)
 	} else {
 		action_arg_from_xml_node(current_mousebind_action, nodename, content);
 	}
-}
-
-static bool
-get_bool(const char *s)
-{
-	if (!s) {
-		return false;
-	}
-	if (!strcasecmp(s, "yes")) {
-		return true;
-	}
-	if (!strcasecmp(s, "true")) {
-		return true;
-	}
-	return false;
 }
 
 static enum libinput_config_accel_profile

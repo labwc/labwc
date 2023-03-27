@@ -260,6 +260,16 @@ cursor_update_image(struct seat *seat)
 {
 	enum lab_cursors cursor = seat->server_cursor;
 	if (cursor == LAB_CURSOR_CLIENT) {
+		/*
+		 * When we loose the output cursor while over a client
+		 * surface (e.g. output was destroyed and we now deal with
+		 * a new output instance), we have to force a re-enter of
+		 * the surface so the client sets its own cursor again.
+		 */
+		if (seat->seat->pointer_state.focused_surface) {
+			seat->server_cursor = LAB_CURSOR_DEFAULT;
+			cursor_update_focus(seat->server);
+		}
 		return;
 	}
 	wlr_xcursor_manager_set_cursor_image(

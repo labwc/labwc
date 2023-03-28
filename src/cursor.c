@@ -1176,6 +1176,9 @@ cursor_init(struct seat *seat)
 		cursor_names = cursors_x11;
 	}
 
+	/* Set the initial cursor image so the cursor is visible right away */
+	cursor_set(seat, LAB_CURSOR_DEFAULT);
+
 	dnd_init(seat);
 
 	seat->cursor_motion.notify = cursor_motion;

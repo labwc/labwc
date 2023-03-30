@@ -143,6 +143,9 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	if (seat->active_client_while_inhibited) {
 		return false;
 	}
+	if (seat->server->session_lock) {
+		return false;
+	}
 
 	/*
 	 * If a user lets go of the modifier (e.g. alt) before the 'normal' key

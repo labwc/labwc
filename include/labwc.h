@@ -47,6 +47,7 @@
 #include "config/keybind.h"
 #include "config/rcxml.h"
 #include "regions.h"
+#include "session-lock.h"
 #if HAVE_NLS
 #include <libintl.h>
 #include <locale.h>
@@ -283,6 +284,8 @@ struct server {
 	 */
 	int pending_output_layout_change;
 
+	struct session_lock *session_lock;
+
 	struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
 
 	struct wlr_drm_lease_v1_manager *drm_lease_manager;
@@ -319,6 +322,7 @@ struct output {
 	struct wlr_scene_tree *layer_tree[LAB_NR_LAYERS];
 	struct wlr_scene_tree *layer_popup_tree;
 	struct wlr_scene_tree *osd_tree;
+	struct wlr_scene_tree *session_lock_tree;
 	struct wlr_scene_buffer *workspace_osd;
 	struct wlr_box usable_area;
 

@@ -50,7 +50,8 @@ desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 		return;
 	}
 
-	if (input_inhibit_blocks_surface(seat, view->surface->resource)) {
+	if (input_inhibit_blocks_surface(seat, view->surface->resource)
+			|| seat->server->session_lock) {
 		return;
 	}
 

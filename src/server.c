@@ -387,6 +387,8 @@ server_init(struct server *server)
 	server->foreign_toplevel_manager =
 		wlr_foreign_toplevel_manager_v1_create(server->wl_display);
 
+	session_lock_init(server);
+
 	server->drm_lease_manager = wlr_drm_lease_v1_manager_create(
 		server->wl_display, server->backend);
 	if (server->drm_lease_manager) {

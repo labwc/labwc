@@ -54,6 +54,7 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 	}
 	wlr_scene_node_destroy(&output->layer_popup_tree->node);
 	wlr_scene_node_destroy(&output->osd_tree->node);
+	wlr_scene_node_destroy(&output->session_lock_tree->node);
 
 	struct view *view;
 	struct server *server = output->server;
@@ -183,6 +184,9 @@ new_output_notify(struct wl_listener *listener, void *data)
 	output->osd_tree = wlr_scene_tree_create(&server->scene->tree);
 	node_descriptor_create(&output->osd_tree->node,
 		LAB_NODE_DESC_TREE, NULL);
+	output->session_lock_tree = wlr_scene_tree_create(&server->scene->tree);
+	node_descriptor_create(&output->session_lock_tree->node,
+		LAB_NODE_DESC_TREE, NULL);
 
 	/*
 	 * Set the z-positions to achieve the following order (from top to
@@ -227,6 +231,10 @@ new_output_notify(struct wl_listener *listener, void *data)
 
 	/* Create regions from config */
 	regions_reconfigure_output(output);
+
+	if (server->session_lock) {
+		session_lock_output_create(server->session_lock, output);
+	}
 
 	server->pending_output_layout_change--;
 	do_output_layout_change(server);

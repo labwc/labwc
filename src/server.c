@@ -183,6 +183,27 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 	return true;
 }
 
+/*
+ * This message is intended to help users who are trying labwc on
+ * clean/minimalist systems without existing Desktop Environments (possibly
+ * through Virtual Managers) where polkit is missing or GPU drivers do not
+ * exist, in the hope that it will reduce the time required to get labwc running
+ * and prevent some troubleshooting steps.
+ */
+static const char helpful_seat_error_message[] =
+"\n"
+"Some friendly trouble-shooting help\n"
+"===================================\n"
+"\n"
+"If a seat could not be created, this may be caused by lack of permission to the\n"
+"seat, input and video groups. If you are using a systemd setup, try installing\n"
+"polkit (sometimes called policykit-1). For other setups, search your OS/Distro's\n"
+"documentation on how to use seatd, elogind or similar. This is likely to involve\n"
+"manually adding users to groups.\n"
+"\n"
+"If the above does not work, try running with `WLR_RENDERER=pixman labwc` in\n"
+"order to use the software rendering fallback\n";
+
 void
 server_init(struct server *server)
 {
@@ -214,6 +235,7 @@ server_init(struct server *server)
 	server->backend = wlr_backend_autocreate(server->wl_display);
 	if (!server->backend) {
 		wlr_log(WLR_ERROR, "unable to create backend");
+		fprintf(stderr, helpful_seat_error_message);
 		exit(EXIT_FAILURE);
 	}
 

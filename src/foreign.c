@@ -38,7 +38,7 @@ handle_request_activate(struct wl_listener *listener, void *data)
 		workspaces_switch_to(view->workspace);
 	}
 	desktop_focus_and_activate_view(&view->server->seat, view);
-	desktop_move_to_front(view);
+	view_move_to_front(view);
 }
 
 static void

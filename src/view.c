@@ -982,6 +982,26 @@ view_snap_to_region(struct view *view, struct region *region,
 	view_apply_region_geometry(view);
 }
 
+void
+view_move_to_front(struct view *view)
+{
+	assert(view);
+	if (view->impl->move_to_front) {
+		view->impl->move_to_front(view);
+		cursor_update_focus(view->server);
+	}
+}
+
+void
+view_move_to_back(struct view *view)
+{
+	assert(view);
+	if (view->impl->move_to_back) {
+		view->impl->move_to_back(view);
+		cursor_update_focus(view->server);
+	}
+}
+
 const char *
 view_get_string_prop(struct view *view, const char *prop)
 {

@@ -481,7 +481,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	if (ctx.view && rc.focus_follow_mouse) {
 		desktop_focus_and_activate_view(seat, ctx.view);
 		if (rc.raise_on_focus) {
-			desktop_move_to_front(ctx.view);
+			view_move_to_front(ctx.view);
 		}
 	}
 
@@ -510,8 +510,8 @@ msec(const struct timespec *t)
 	return t->tv_sec * 1000 + t->tv_nsec / 1000000;
 }
 
-void
-cursor_update_focus(struct server *server)
+static void
+_cursor_update_focus(struct server *server)
 {
 	struct timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
@@ -523,17 +523,24 @@ cursor_update_focus(struct server *server)
 		/* Prevent changing keyboard focus during A-Tab */
 		desktop_focus_and_activate_view(&server->seat, ctx.view);
 		if (rc.raise_on_focus) {
-			/*
-			 * Call view method directly as desktop_move_to_front()
-			 * contains a call to cursor_update_focus() and thus
-			 * loops inifinitely
-			 */
-			ctx.view->impl->move_to_front(ctx.view);
+			view_move_to_front(ctx.view);
 		}
 	}
 
 	cursor_update_common(server, &ctx, msec(&now),
 		/*cursor_has_moved*/ false);
+}
+
+void
+cursor_update_focus(struct server *server)
+{
+	/* Prevent recursion via view_move_to_front() */
+	static bool updating_focus = false;
+	if (!updating_focus) {
+		updating_focus = true;
+		_cursor_update_focus(server);
+		updating_focus = false;
+	}
 }
 
 static void

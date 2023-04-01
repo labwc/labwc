@@ -13,30 +13,6 @@
 #include "xwayland.h"
 
 void
-desktop_move_to_front(struct view *view)
-{
-	if (!view) {
-		return;
-	}
-	if (view->impl->move_to_front) {
-		view->impl->move_to_front(view);
-		cursor_update_focus(view->server);
-	}
-}
-
-void
-desktop_move_to_back(struct view *view)
-{
-	if (!view) {
-		return;
-	}
-	if (view->impl->move_to_back) {
-		view->impl->move_to_back(view);
-		cursor_update_focus(view->server);
-	}
-}
-
-void
 desktop_arrange_all_views(struct server *server)
 {
 	/*
@@ -267,7 +243,9 @@ desktop_focus_topmost_mapped_view(struct server *server)
 {
 	struct view *view = topmost_mapped_view(server);
 	desktop_focus_and_activate_view(&server->seat, view);
-	desktop_move_to_front(view);
+	if (view) {
+		view_move_to_front(view);
+	}
 }
 
 void

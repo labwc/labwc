@@ -270,7 +270,7 @@ handle_request_activate(struct wl_listener *listener, void *data)
 		wl_container_of(listener, xwayland_view, request_activate);
 	struct view *view = &xwayland_view->base;
 	desktop_focus_and_activate_view(&view->server->seat, view);
-	desktop_move_to_front(view);
+	view_move_to_front(view);
 }
 
 static void

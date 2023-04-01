@@ -164,26 +164,13 @@ For OS/distribution specific details see see [wiki].
 
 ## 3. Configuration
 
-For a step-by-step initial configuration guide, see [getting-started]
-
 User config files are located at `${XDG_CONFIG_HOME:-$HOME/.config/labwc/}`
-with the following four files being used:
+with the following five files being used: [rc.xml], [menu.xml], [autostart],
+[environment] and [themerc-override].
 
-| file               | man page
-| ------------------ | --------
-| [rc.xml]           | [labwc-config(5)], [labwc-actions(5)]
-| [menu.xml]         | [labwc-menu(5)]
-| [autostart]        | [labwc(1)]
-| [environment]      | [labwc-config(5)]
-| [themerc-override] | [labwc-theme(5)]
+Run `labwc --reconfigure` to reload configuration and theme.
 
-The example [rc.xml] has been kept simple. For all options and default values,
-see [rc.xml.all]
-
-Configuration and theme files are reloaded on receiving SIGHUP
-(e.g. `killall -s SIGHUP labwc`)
-
-For keyboard settings, see [environment] and [xkeyboard-config(7)]
+For a step-by-step initial configuration guide, see [getting-started].
 
 ## 4. Theming
 
@@ -261,21 +248,13 @@ See [integration] for further details.
 [integration]: https://labwc.github.io/integration.html
 [metacity]: https://github.com/GNOME/metacity
 
-[rc.xml]: docs/rc.xml
-[rc.xml.all]: docs/rc.xml.all
+[rc.xml]: docs/rc.xml.all
 [menu.xml]: docs/menu.xml
 [autostart]: docs/autostart
 [environment]: docs/environment
-[themerc]: docs/themerc
 [themerc-override]: docs/themerc
-
-[labwc(1)]: https://labwc.github.io/labwc.1.html
-[labwc-config(5)]: https://labwc.github.io/labwc-config.5.html
-[labwc-menu(5)]: https://labwc.github.io/labwc-menu.5.html
-[labwc-environment(5)]: https://labwc.github.io/labwc-environment.5.html
+[themerc]: docs/themerc
 [labwc-theme(5)]: https://labwc.github.io/labwc-theme.5.html
-[labwc-actions(5)]: https://labwc.github.io/labwc-actions.5.html
-[xkeyboard-config(7)]: https://manpages.debian.org/testing/xkb-data/xkeyboard-config.7.en.html
 
 [gamescope]: https://github.com/Plagman/gamescope
 [grim]: https://github.com/emersion/grim

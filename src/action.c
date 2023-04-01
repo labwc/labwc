@@ -439,12 +439,12 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_RAISE:
 			if (view) {
-				desktop_move_to_front(view);
+				view_move_to_front(view);
 			}
 			break;
 		case ACTION_TYPE_LOWER:
 			if (view) {
-				desktop_move_to_back(view);
+				view_move_to_back(view);
 			}
 			break;
 		case ACTION_TYPE_RESIZE:

@@ -27,7 +27,7 @@ void
 view_impl_map(struct view *view)
 {
 	desktop_focus_and_activate_view(&view->server->seat, view);
-	desktop_move_to_front(view);
+	view_move_to_front(view);
 	view_update_title(view);
 	view_update_app_id(view);
 }

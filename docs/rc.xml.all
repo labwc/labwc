@@ -53,6 +53,7 @@
 
   <focus>
     <followMouse>no</followMouse>
+    <followMouseRequiresMovement>yes</followMouseRequiresMovement>
     <raiseOnFocus>no</raiseOnFocus>
   </focus>
 

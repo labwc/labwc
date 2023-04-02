@@ -116,6 +116,14 @@ The rest of this man page describes configuration options.
 	Make focus follow mouse, i.e. focus is given to window under mouse
 	cursor. Default is no.
 
+*<focus><followMouseRequiresMovement>* [yes|no]
+	Requires cursor movement if followMouse is enabled. It is the same
+	as the "underMouse" setting in Openbox. If set to "no", labwc will
+	additionally focus the window under the cursor in all situations
+	which change the position of a window (e.g. switching workspaces,
+	opening/closing windows). Focusing a different window via A-Tab is
+	still possible, even with this setting set to "no". Default is yes.
+
 *<focus><raiseOnFocus>* [yes|no]
 	Raise window to top when focused. Default is no.
 

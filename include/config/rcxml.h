@@ -35,6 +35,7 @@ struct rcxml {
 
 	/* focus */
 	bool focus_follow_mouse;
+	bool focus_follow_mouse_requires_movement;
 	bool raise_on_focus;
 
 	/* theme */

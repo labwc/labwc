@@ -519,8 +519,10 @@ _cursor_update_focus(struct server *server)
 	/* Focus surface under cursor if it isn't already focused */
 	struct cursor_context ctx = get_cursor_context(server);
 
-	if (ctx.view && rc.focus_follow_mouse && !server->osd_state.cycle_view) {
-		/* Prevent changing keyboard focus during A-Tab */
+	if (ctx.view && rc.focus_follow_mouse
+			&& !rc.focus_follow_mouse_requires_movement
+			&& !server->osd_state.cycle_view) {
+		/* Prevents changing keyboard focus during A-Tab */
 		desktop_focus_and_activate_view(&server->seat, ctx.view);
 		if (rc.raise_on_focus) {
 			view_move_to_front(ctx.view);

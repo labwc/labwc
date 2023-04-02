@@ -531,6 +531,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		fill_font(nodename, content, font_place);
 	} else if (!strcasecmp(nodename, "followMouse.focus")) {
 		set_bool(content, &rc.focus_follow_mouse);
+	} else if (!strcasecmp(nodename, "followMouseRequiresMovement.focus")) {
+		set_bool(content, &rc.focus_follow_mouse_requires_movement);
 	} else if (!strcasecmp(nodename, "raiseOnFocus.focus")) {
 		set_bool(content, &rc.raise_on_focus);
 	} else if (!strcasecmp(nodename, "doubleClickTime.mouse")) {
@@ -720,11 +722,16 @@ rcxml_init(void)
 	init_font_defaults(&rc.font_menuitem);
 	init_font_defaults(&rc.font_osd);
 
+	rc.focus_follow_mouse = false;
+	rc.focus_follow_mouse_requires_movement = true;
+	rc.raise_on_focus = false;
+
 	rc.doubleclick_time = 500;
 	rc.scroll_factor = 1.0;
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
 	rc.screen_edge_strength = 20;
+
 	rc.snap_edge_range = 1;
 	rc.snap_top_maximize = true;
 

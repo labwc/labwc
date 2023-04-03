@@ -343,7 +343,7 @@ read_file(const char *filename)
 }
 
 static bool
-grep(struct token *tokens, const char *pattern)
+grep(struct token *tokens, const char *filename, const char *pattern)
 {
 	bool found = false;
 	unsigned int in_comment = 0;
@@ -362,7 +362,7 @@ grep(struct token *tokens, const char *pattern)
 		if (t->kind == TOKEN_IDENTIFIER) {
 			if (!pattern || !strcmp(t->name.buf, pattern)) {
 				found = true;
-				printf("%d:\t%s\n", t->line, t->name.buf);
+				printf("%s:%d\t%s\n", filename, t->line, t->name.buf);
 			}
 		}
 	}
@@ -389,10 +389,10 @@ main(int argc, char **argv)
 
 	if (argc == 2) {
 		/* Dump all idents */
-		grep(tokens, NULL);
+		grep(tokens, argv[1], NULL);
 	} else {
 		for (int i = 2; i < argc; ++i) {
-			found |= grep(tokens, argv[i]);
+			found |= grep(tokens, argv[1], argv[i]);
 		}
 	}
 

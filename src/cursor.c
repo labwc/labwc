@@ -544,6 +544,27 @@ cursor_update_focus(struct server *server)
 }
 
 static void
+warp_cursor_to_constraint_hint(struct seat *seat,
+		struct wlr_pointer_constraint_v1 *constraint)
+{
+	if (!seat->server->focused_view) {
+		return;
+	}
+
+	if (constraint->current.committed
+			& WLR_POINTER_CONSTRAINT_V1_STATE_CURSOR_HINT) {
+		double sx = constraint->current.cursor_hint.x;
+		double sy = constraint->current.cursor_hint.y;
+		wlr_cursor_warp(seat->cursor, NULL,
+			seat->server->focused_view->current.x + sx,
+			seat->server->focused_view->current.y + sy);
+
+		/* Make sure we are not sending unnecessary surface movements */
+		wlr_seat_pointer_warp(seat->seat, sx, sy);
+	}
+}
+
+static void
 handle_constraint_commit(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, constraint_commit);
@@ -561,6 +582,8 @@ destroy_constraint(struct wl_listener *listener, void *data)
 
 	wl_list_remove(&constraint->destroy.link);
 	if (seat->current_constraint == wlr_constraint) {
+		warp_cursor_to_constraint_hint(seat, wlr_constraint);
+
 		if (seat->constraint_commit.link.next) {
 			wl_list_remove(&seat->constraint_commit.link);
 		}
@@ -600,6 +623,10 @@ constrain_cursor(struct server *server, struct wlr_pointer_constraint_v1
 	}
 	wl_list_remove(&seat->constraint_commit.link);
 	if (seat->current_constraint) {
+		if (!constraint) {
+			warp_cursor_to_constraint_hint(seat, seat->current_constraint);
+		}
+
 		wlr_pointer_constraint_v1_send_deactivated(
 			seat->current_constraint);
 	}

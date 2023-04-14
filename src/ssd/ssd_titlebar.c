@@ -34,9 +34,11 @@ ssd_titlebar_create(struct ssd *ssd)
 	struct wlr_buffer *maximize_button_unpressed;
 	struct wlr_buffer *close_button_unpressed;
 
+	ssd->titlebar.tree = wlr_scene_tree_create(ssd->tree);
+
 	struct ssd_sub_tree *subtree;
 	FOR_EACH_STATE(ssd, subtree) {
-		subtree->tree = wlr_scene_tree_create(ssd->tree);
+		subtree->tree = wlr_scene_tree_create(ssd->titlebar.tree);
 		parent = subtree->tree;
 		wlr_scene_node_set_position(&parent->node, 0, -theme->title_height);
 		if (subtree == &ssd->titlebar.active) {
@@ -138,7 +140,7 @@ ssd_titlebar_update(struct ssd *ssd)
 void
 ssd_titlebar_destroy(struct ssd *ssd)
 {
-	if (!ssd->titlebar.active.tree) {
+	if (!ssd->titlebar.tree) {
 		return;
 	}
 
@@ -153,6 +155,9 @@ ssd_titlebar_destroy(struct ssd *ssd)
 		free(ssd->state.title.text);
 		ssd->state.title.text = NULL;
 	}
+
+	wlr_scene_node_destroy(&ssd->titlebar.tree->node);
+	ssd->titlebar.tree = NULL;
 }
 
 /*

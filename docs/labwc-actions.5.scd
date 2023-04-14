@@ -80,6 +80,14 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="ToggleDecorations" />*
 	Toggle decorations of focused window.
 
+	This is a 3-state action which can be executed multiple times:
+	- Only the titlebar will be hidden, borders and resize area are kept
+	- Remaining decorations will be disabled
+	- Decorations will be shown normally
+
+	By disabling the theme configuration 'keepBorder' the first step
+	will be removed and the action only toggles between on and off.
+
 *<action name="ToggleFullscreen" />*
 	Toggle fullscreen state of focused window.
 

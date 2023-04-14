@@ -25,13 +25,19 @@ ssd_thickness(struct view *view)
 	if (!view->ssd_enabled || view->fullscreen) {
 		return (struct border){ 0 };
 	}
+
 	struct theme *theme = view->server->theme;
-	return (struct border){
+	struct border thickness = {
 		.top = theme->title_height + theme->border_width,
 		.bottom = theme->border_width,
 		.left = theme->border_width,
 		.right = theme->border_width,
 	};
+
+	if (ssd_titlebar_is_hidden(view->ssd)) {
+		thickness.top -= theme->title_height;
+	}
+	return thickness;
 }
 
 struct wlr_box
@@ -158,9 +164,14 @@ ssd_create(struct view *view, bool active)
 	ssd->view = view;
 	ssd->tree = wlr_scene_tree_create(view->scene_tree);
 	wlr_scene_node_lower_to_bottom(&ssd->tree->node);
+	ssd->titlebar.height = view->server->theme->title_height;
 	ssd_extents_create(ssd);
 	ssd_border_create(ssd);
 	ssd_titlebar_create(ssd);
+	if (rc.ssd_keep_border && view->ssd_titlebar_hidden) {
+		/* Ensure we keep the old state when exiting fullscreen */
+		ssd_titlebar_hide(ssd);
+	}
 	ssd->margin = ssd_thickness(view);
 	ssd_set_active(ssd, active);
 	ssd_enable_keybind_inhibit_indicator(ssd, view->inhibits_keybinds);
@@ -196,6 +207,25 @@ ssd_update_geometry(struct ssd *ssd)
 	ssd_border_update(ssd);
 	ssd_titlebar_update(ssd);
 	ssd->state.geometry = current;
+}
+
+bool
+ssd_titlebar_is_hidden(struct ssd *ssd)
+{
+	return ssd && !ssd->titlebar.tree->node.enabled;
+}
+
+void
+ssd_titlebar_hide(struct ssd *ssd)
+{
+	if (!ssd || !ssd->titlebar.tree->node.enabled) {
+		return;
+	}
+	wlr_scene_node_set_enabled(&ssd->titlebar.tree->node, false);
+	ssd->titlebar.height = 0;
+	ssd_border_update(ssd);
+	ssd_extents_update(ssd);
+	ssd->margin = ssd_thickness(ssd->view);
 }
 
 void

@@ -48,6 +48,7 @@ struct rcxml {
 	/* theme */
 	char *theme_name;
 	int corner_radius;
+	bool ssd_keep_border;
 	struct font font_activewindow;
 	struct font font_menuitem;
 	struct font font_osd;

@@ -41,7 +41,7 @@ ssd_extents_create(struct ssd *ssd)
 	wl_list_init(&ssd->extents.parts);
 	wlr_scene_node_set_position(&parent->node,
 		-(theme->border_width + extended_area),
-		-(theme->title_height + theme->border_width + extended_area));
+		-(ssd->titlebar.height + theme->border_width + extended_area));
 
 	/* Initialize parts and set constant values for targeted geometry */
 	struct ssd_part *p;
@@ -110,7 +110,7 @@ ssd_extents_update(struct ssd *ssd)
 
 	int width = view->current.width;
 	int height = view->current.height;
-	int full_height = height + theme->border_width * 2 + theme->title_height;
+	int full_height = height + theme->border_width * 2 + ssd->titlebar.height;
 	int full_width = width + 2 * theme->border_width;
 	int extended_area = SSD_EXTENDED_AREA;
 	int corner_size = extended_area + theme->border_width + SSD_BUTTON_WIDTH / 2;
@@ -121,6 +121,11 @@ ssd_extents_update(struct ssd *ssd)
 	struct wlr_box result_box;
 	struct ssd_part *part;
 	struct wlr_scene_rect *rect;
+
+	/* Make sure we update the y offset based on titlebar shown / hidden */
+	wlr_scene_node_set_position(&ssd->extents.tree->node,
+		-(theme->border_width + extended_area),
+		-(ssd->titlebar.height + theme->border_width + extended_area));
 
 	/* Convert usable area into layout coordinates */
 	struct wlr_box usable_area = view->output->usable_area;

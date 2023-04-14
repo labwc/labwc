@@ -89,6 +89,7 @@ struct view {
 	bool mapped;
 	bool been_mapped;
 	bool ssd_enabled;
+	bool ssd_titlebar_hidden;
 	enum ssd_preference ssd_preference;
 	bool minimized;
 	bool maximized;

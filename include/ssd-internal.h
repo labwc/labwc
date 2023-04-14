@@ -54,7 +54,8 @@ struct ssd {
 
 	/* The top of the view, containing buttons, title, .. */
 	struct {
-		/* struct wlr_scene_tree *tree;      unused for now */
+		int height;
+		struct wlr_scene_tree *tree;
 		struct ssd_sub_tree active;
 		struct ssd_sub_tree inactive;
 	} titlebar;

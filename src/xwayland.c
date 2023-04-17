@@ -595,23 +595,9 @@ static const struct view_impl xwayland_view_impl = {
 	.move_to_back = xwayland_view_move_to_back,
 };
 
-static void
-handle_new_surface(struct wl_listener *listener, void *data)
+struct xwayland_view *
+xwayland_view_create(struct server *server, struct wlr_xwayland_surface *xsurface)
 {
-	struct server *server =
-		wl_container_of(listener, server, xwayland_new_surface);
-	struct wlr_xwayland_surface *xsurface = data;
-	wlr_xwayland_surface_ping(xsurface);
-
-	/*
-	 * We do not create 'views' for xwayland override_redirect surfaces,
-	 * but add them to server.unmanaged_surfaces so that we can render them
-	 */
-	if (xsurface->override_redirect) {
-		xwayland_unmanaged_create(server, xsurface, /* mapped */ false);
-		return;
-	}
-
 	struct xwayland_view *xwayland_view = znew(*xwayland_view);
 	struct view *view = &xwayland_view->base;
 
@@ -620,20 +606,18 @@ handle_new_surface(struct wl_listener *listener, void *data)
 	view->impl = &xwayland_view_impl;
 
 	/*
-	 * Set two-way view <-> xsurface association.  Usually the
-	 * association remains until the xsurface is destroyed (which
-	 * also destroys the view).  The only exception is caused by
-	 * setting override-redirect on the xsurface, which removes it
-	 * from the view (destroying the view) and makes it an
-	 * "unmanaged" surface.
+	 * Set two-way view <-> xsurface association.  Usually the association
+	 * remains until the xsurface is destroyed (which also destroys the
+	 * view).  The only exception is caused by setting override-redirect on
+	 * the xsurface, which removes it from the view (destroying the view)
+	 * and makes it an "unmanaged" surface.
 	 */
 	xwayland_view->xwayland_surface = xsurface;
 	xsurface->data = view;
 
 	view->workspace = server->workspace_current;
 	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
-	node_descriptor_create(&view->scene_tree->node,
-		LAB_NODE_DESC_VIEW, view);
+	node_descriptor_create(&view->scene_tree->node, LAB_NODE_DESC_VIEW, view);
 
 	view->map.notify = handle_map;
 	wl_signal_add(&xsurface->events.map, &view->map);
@@ -657,25 +641,41 @@ handle_new_surface(struct wl_listener *listener, void *data)
 
 	/* Events specific to XWayland views */
 	xwayland_view->request_activate.notify = handle_request_activate;
-	wl_signal_add(&xsurface->events.request_activate,
-		&xwayland_view->request_activate);
+	wl_signal_add(&xsurface->events.request_activate, &xwayland_view->request_activate);
 
 	xwayland_view->request_configure.notify = handle_request_configure;
-	wl_signal_add(&xsurface->events.request_configure,
-		&xwayland_view->request_configure);
+	wl_signal_add(&xsurface->events.request_configure, &xwayland_view->request_configure);
 
 	xwayland_view->set_app_id.notify = handle_set_class;
 	wl_signal_add(&xsurface->events.set_class, &xwayland_view->set_app_id);
 
 	xwayland_view->set_decorations.notify = handle_set_decorations;
-	wl_signal_add(&xsurface->events.set_decorations,
-		&xwayland_view->set_decorations);
+	wl_signal_add(&xsurface->events.set_decorations, &xwayland_view->set_decorations);
 
 	xwayland_view->override_redirect.notify = handle_override_redirect;
-	wl_signal_add(&xsurface->events.set_override_redirect,
-		&xwayland_view->override_redirect);
+	wl_signal_add(&xsurface->events.set_override_redirect, &xwayland_view->override_redirect);
 
 	wl_list_insert(&view->server->views, &view->link);
+	return xwayland_view;
+}
+
+static void
+handle_new_surface(struct wl_listener *listener, void *data)
+{
+	struct server *server =
+		wl_container_of(listener, server, xwayland_new_surface);
+	struct wlr_xwayland_surface *xsurface = data;
+	wlr_xwayland_surface_ping(xsurface);
+
+	/*
+	 * We do not create 'views' for xwayland override_redirect surfaces,
+	 * but add them to server.unmanaged_surfaces so that we can render them
+	 */
+	if (xsurface->override_redirect) {
+		xwayland_unmanaged_create(server, xsurface, /* mapped */ false);
+		return;
+	}
+	xwayland_view_create(server, xsurface);
 }
 
 static void

@@ -133,7 +133,26 @@ unmanaged_handle_destroy(struct wl_listener *listener, void *data)
 static void
 unmanaged_handle_override_redirect(struct wl_listener *listener, void *data)
 {
-	wlr_log(WLR_DEBUG, "override_redirect not handled\n");
+	wlr_log(WLR_DEBUG, "handle unmanaged override_redirect");
+	struct xwayland_unmanaged *unmanaged =
+		wl_container_of(listener, unmanaged, override_redirect);
+	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
+	struct server *server = unmanaged->server;
+
+	bool mapped = xsurface->mapped;
+	if (mapped) {
+		unmanaged_handle_unmap(&unmanaged->unmap, NULL);
+	}
+	unmanaged_handle_destroy(&unmanaged->destroy, NULL);
+	xsurface->data = NULL;
+
+	struct xwayland_view *xwayland_view = xwayland_view_create(server, xsurface);
+	if (mapped) {
+		struct view *view = &xwayland_view->base;
+		if (view->impl->map) {
+			view->impl->map(view);
+		}
+	}
 }
 
 static void

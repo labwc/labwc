@@ -43,6 +43,9 @@ struct xwayland_view {
 void xwayland_unmanaged_create(struct server *server,
 	struct wlr_xwayland_surface *xsurface, bool mapped);
 
+struct xwayland_view *xwayland_view_create(struct server *server,
+	struct wlr_xwayland_surface *xsurface);
+
 struct wlr_xwayland_surface *xwayland_surface_from_view(struct view *view);
 
 bool xwayland_apply_size_hints(struct view *view, int *w, int *h);

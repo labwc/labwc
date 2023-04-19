@@ -158,7 +158,15 @@ unmanaged_handle_override_redirect(struct wl_listener *listener, void *data)
 static void
 unmanaged_handle_request_activate(struct wl_listener *listener, void *data)
 {
-	wlr_log(WLR_DEBUG, "request_activate not handled\n");
+	wlr_log(WLR_DEBUG, "handle unmanaged request_activate");
+	struct wlr_xwayland_surface *xsurface = data;
+	if (!xsurface->mapped) {
+		return;
+	}
+	struct xwayland_unmanaged *unmanaged = xsurface->data;
+	struct server *server = unmanaged->server;
+	struct seat *seat = &server->seat;
+	seat_focus_surface(seat, xsurface->surface);
 }
 
 void
@@ -168,6 +176,7 @@ xwayland_unmanaged_create(struct server *server,
 	struct xwayland_unmanaged *unmanaged = znew(*unmanaged);
 	unmanaged->server = server;
 	unmanaged->xwayland_surface = xsurface;
+	xsurface->data = unmanaged;
 
 	wl_signal_add(&xsurface->events.request_configure,
 		&unmanaged->request_configure);

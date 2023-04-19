@@ -89,6 +89,20 @@ The rest of this man page describes configuration options.
 	*outlines* [yes|no] Draw an outline around the selected window when
 	switching between windows. Default is yes.
 
+*<windowSwitcher><fields><field content="" width="%">*
+	Define window switcher fields.
+
+	*content* defines what the field shows and can be any of:
+
+		- *type* Show view type ("xdg-shell" or "xwayland")
+
+		- *app_id* Show app_id (class for XWayland)
+
+		- *title* Show window title if different to app_id
+
+	*width* defines the width of the field expressed as a percentage of
+	the overall window switcher width. The "%" character is required.
+
 ## RESISTANCE
 
 *<resistance><screenEdgeStrength>*

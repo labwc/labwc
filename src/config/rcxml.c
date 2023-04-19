@@ -31,6 +31,8 @@ static bool in_regions;
 static bool in_keybind;
 static bool in_mousebind;
 static bool in_libinput_category;
+static bool in_window_switcher_field;
+
 static struct keybind *current_keybind;
 static struct mousebind *current_mousebind;
 static struct libinput_category *current_libinput_category;
@@ -38,6 +40,7 @@ static const char *current_mouse_context;
 static struct action *current_keybind_action;
 static struct action *current_mousebind_action;
 static struct region *current_region;
+static struct window_switcher_field *current_field;
 
 enum font_place {
 	FONT_PLACE_NONE = 0,
@@ -50,6 +53,43 @@ enum font_place {
 
 static void load_default_key_bindings(void);
 static void load_default_mouse_bindings(void);
+
+static void
+fill_window_switcher_field(char *nodename, char *content)
+{
+	if (!strcasecmp(nodename, "field.fields.windowswitcher")) {
+		current_field = znew(*current_field);
+		wl_list_append(&rc.window_switcher.fields, &current_field->link);
+		return;
+	}
+
+	string_truncate_at_pattern(nodename, ".field.fields.windowswitcher");
+	if (!content) {
+		/* intentionally left empty */
+	} else if (!current_field) {
+		wlr_log(WLR_ERROR, "no <field>");
+	} else if (!strcmp(nodename, "content")) {
+		if (!strcmp(content, "type")) {
+			current_field->content = LAB_FIELD_TYPE;
+		} else if (!strcmp(content, "app_id")) {
+			current_field->content = LAB_FIELD_APP_ID;
+		} else if (!strcmp(content, "title")) {
+			current_field->content = LAB_FIELD_TITLE;
+		} else {
+			wlr_log(WLR_ERROR, "bad windowSwitcher field '%s'", content);
+		}
+	} else if (!strcmp(nodename, "width") && !strchr(content, '%')) {
+		wlr_log(WLR_ERROR, "Removing invalid field, %s='%s' misses"
+			" trailing %%", nodename, content);
+		wl_list_remove(&current_field->link);
+		zfree(current_field);
+	} else if (!strcmp(nodename, "width")) {
+		current_field->width = atoi(content);
+	} else {
+		wlr_log(WLR_ERROR, "Unexpected data in field parser: %s=\"%s\"",
+			nodename, content);
+	}
+}
 
 static void
 fill_region(char *nodename, char *content)
@@ -362,6 +402,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		fill_region(nodename, content);
 		return;
 	}
+	if (in_window_switcher_field) {
+		fill_window_switcher_field(nodename, content);
+		return;
+	}
 
 	/* handle nodes without content, e.g. <keyboard><default /> */
 	if (!strcmp(nodename, "default.keyboard")) {
@@ -449,6 +493,14 @@ entry(xmlNode *node, char *nodename, char *content)
 		wlr_log(WLR_ERROR, "<windowSwitcher> should not be child of <core>");
 
 	/* The following three are for backward compatibility only */
+	} else if (!strcasecmp(nodename, "show.windowSwitcher.core")) {
+		rc.cycle_view_osd = get_bool(content);
+	} else if (!strcasecmp(nodename, "preview.windowSwitcher.core")) {
+		rc.cycle_preview_contents = get_bool(content);
+	} else if (!strcasecmp(nodename, "outlines.windowSwitcher.core")) {
+		rc.cycle_preview_outlines = get_bool(content);
+
+	/* The following three are for backward compatibility only */
 	} else if (!strcasecmp(nodename, "cycleViewOSD.core")) {
 		rc.cycle_view_osd = get_bool(content);
 		wlr_log(WLR_ERROR, "<cycleViewOSD> is deprecated."
@@ -531,6 +583,12 @@ xml_tree_walk(xmlNode *node)
 			in_regions = false;
 			continue;
 		}
+		if (!strcasecmp((char *)n->name, "fields")) {
+			in_window_switcher_field = true;
+			traverse(n);
+			in_window_switcher_field = false;
+			continue;
+		}
 		traverse(n);
 	}
 }
@@ -568,6 +626,7 @@ rcxml_init(void)
 		wl_list_init(&rc.libinput_categories);
 		wl_list_init(&rc.workspace_config.workspaces);
 		wl_list_init(&rc.regions);
+		wl_list_init(&rc.window_switcher.fields);
 	}
 	has_run = true;
 
@@ -784,6 +843,29 @@ deduplicate_key_bindings(void)
 	}
 }
 
+static struct {
+	enum window_switcher_field_content content;
+	int width;
+} fields[] = {
+	{ LAB_FIELD_TYPE, 25 },
+	{ LAB_FIELD_APP_ID, 25 },
+	{ LAB_FIELD_TITLE, 50 },
+	{ LAB_FIELD_NONE, 0 },
+};
+
+static void
+load_default_window_switcher_fields(void)
+{
+	struct window_switcher_field *field;
+
+	for (int i = 0; fields[i].content != LAB_FIELD_NONE; i++) {
+		field = znew(*field);
+		field->content = fields[i].content;
+		field->width = fields[i].width;
+		wl_list_append(&rc.window_switcher.fields, &field->link);
+	}
+}
+
 static void
 post_processing(void)
 {
@@ -845,6 +927,11 @@ post_processing(void)
 			zfree(region->name);
 			free(region);
 		}
+	}
+
+	if (!wl_list_length(&rc.window_switcher.fields)) {
+		wlr_log(WLR_INFO, "load default window switcher fields");
+		load_default_window_switcher_fields();
 	}
 }
 
@@ -953,6 +1040,12 @@ rcxml_finish(void)
 
 	regions_destroy(NULL, &rc.regions);
 
+	struct window_switcher_field *field, *field_tmp;
+	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.fields, link) {
+		wl_list_remove(&field->link);
+		zfree(field);
+	}
+
 	/* Reset state vars for starting fresh when Reload is triggered */
 	current_keybind = NULL;
 	current_mousebind = NULL;
@@ -961,4 +1054,5 @@ rcxml_finish(void)
 	current_keybind_action = NULL;
 	current_mousebind_action = NULL;
 	current_region = NULL;
+	current_field = NULL;
 }

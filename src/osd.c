@@ -21,8 +21,6 @@
 #define OSD_ITEM_WIDTH (600)
 #define OSD_ITEM_PADDING (10)
 #define OSD_BORDER_WIDTH (6)
-#define OSD_TAB1 (120)
-#define OSD_TAB2 (300)
 
 /* is title different from app_id/class? */
 static int
@@ -243,11 +241,52 @@ preview_cycled_view(struct view *view)
 	wlr_scene_node_raise_to_top(osd_state->preview_node);
 }
 
+static const char *
+get_type(struct view *view)
+{
+	switch (view->type) {
+	case LAB_XDG_SHELL_VIEW:
+		return "[xdg-shell]";
+#if HAVE_XWAYLAND
+	case LAB_XWAYLAND_VIEW:
+		return "[xwayland]";
+#endif
+	}
+	return "";
+}
+
+static const char *
+get_app_id(struct view *view)
+{
+	switch (view->type) {
+	case LAB_XDG_SHELL_VIEW:
+		return get_formatted_app_id(view);
+#if HAVE_XWAYLAND
+	case LAB_XWAYLAND_VIEW:
+		return view_get_string_prop(view, "class");
+#endif
+	}
+	return "";
+}
+
+static const char *
+get_title(struct view *view)
+{
+	if (is_title_different(view)) {
+		return view_get_string_prop(view, "title");
+	} else {
+		return "";
+	}
+}
+
 static void
-render_osd(cairo_t *cairo, int w, int h, struct wl_list *node_list,
-		struct view *cycle_view, struct theme *theme, bool show_workspace,
+render_osd(struct server *server, cairo_t *cairo, int w, int h,
+		struct wl_list *node_list, bool show_workspace,
 		const char *workspace_name)
 {
+	struct view *cycle_view = server->osd_state.cycle_view;
+	struct theme *theme = server->theme;
+
 	struct wlr_scene_node *node;
 	cairo_surface_t *surf = cairo_get_target(cairo);
 
@@ -269,11 +308,6 @@ render_osd(cairo_t *cairo, int w, int h, struct wl_list *node_list,
 
 	PangoFontDescription *desc = font_to_pango_desc(&rc.font_osd);
 	pango_layout_set_font_description(layout, desc);
-
-	PangoTabArray *tabs = pango_tab_array_new_with_positions(2, TRUE,
-		PANGO_TAB_LEFT, OSD_TAB1, PANGO_TAB_LEFT, OSD_TAB2);
-	pango_layout_set_tabs(layout, tabs);
-	pango_tab_array_free(tabs);
 
 	pango_cairo_update_layout(cairo, layout);
 
@@ -313,30 +347,30 @@ render_osd(cairo_t *cairo, int w, int h, struct wl_list *node_list,
 		if (!isfocusable(view)) {
 			continue;
 		}
-		buf.len = 0;
-		cairo_move_to(cairo, OSD_BORDER_WIDTH + OSD_ITEM_PADDING, y);
 
-		switch (view->type) {
-		case LAB_XDG_SHELL_VIEW:
-			buf_add(&buf, "[xdg-shell]\t");
-			buf_add(&buf, get_formatted_app_id(view));
-			buf_add(&buf, "\t");
-			break;
-#if HAVE_XWAYLAND
-		case LAB_XWAYLAND_VIEW:
-			buf_add(&buf, "[xwayland]\t");
-			buf_add(&buf, view_get_string_prop(view, "class"));
-			buf_add(&buf, "\t");
-			break;
-#endif
+		int x = OSD_BORDER_WIDTH + OSD_ITEM_PADDING;
+		struct window_switcher_field *field;
+		wl_list_for_each(field, &rc.window_switcher.fields, link) {
+			buf.len = 0;
+			cairo_move_to(cairo, x, y);
+
+			switch (field->content) {
+			case LAB_FIELD_TYPE:
+				buf_add(&buf, get_type(view));
+				break;
+			case LAB_FIELD_APP_ID:
+				buf_add(&buf, get_app_id(view));
+				break;
+			case LAB_FIELD_TITLE:
+				buf_add(&buf, get_title(view));
+				break;
+			default:
+				break;
+			}
+			pango_layout_set_text(layout, buf.buf, -1);
+			pango_cairo_show_layout(cairo, layout);
+			x += field->width / 100.0 * OSD_ITEM_WIDTH;
 		}
-
-		if (is_title_different(view)) {
-			buf_add(&buf, view_get_string_prop(view, "title"));
-		}
-
-		pango_layout_set_text(layout, buf.buf, -1);
-		pango_cairo_show_layout(cairo, layout);
 
 		if (view == cycle_view) {
 			/* Highlight current window */
@@ -378,8 +412,7 @@ display_osd(struct output *output)
 
 	/* Render OSD image */
 	cairo_t *cairo = output->osd_buffer->cairo;
-	render_osd(cairo, w, h, node_list, server->osd_state.cycle_view,
-		server->theme, show_workspace, workspace_name);
+	render_osd(server, cairo, w, h, node_list, show_workspace, workspace_name);
 
 	struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
 		output->osd_tree, &output->osd_buffer->base);

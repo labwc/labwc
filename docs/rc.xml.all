@@ -38,7 +38,13 @@
     </font>
   </theme>
 
-  <windowSwitcher show="yes" preview="yes" outlines="yes" />
+  <windowSwitcher show="yes" preview="yes" outlines="yes">
+    <fields>
+      <field content="type" width="25%" />
+      <field content="app_id" width="25%" />
+      <field content="title" width="50%" />
+    </fields>
+  </windowSwitcher>
 
   <!-- edge strength is in pixels -->
   <resistance>

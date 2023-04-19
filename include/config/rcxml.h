@@ -11,6 +11,19 @@
 #include "config/libinput.h"
 #include "theme.h"
 
+enum window_switcher_field_content {
+	LAB_FIELD_NONE = 0,
+	LAB_FIELD_TYPE,
+	LAB_FIELD_APP_ID,
+	LAB_FIELD_TITLE,
+};
+
+struct window_switcher_field {
+	enum window_switcher_field_content content;
+	int width;
+	struct wl_list link; /* struct rcxml.window_switcher.fields */
+};
+
 struct rcxml {
 	char *config_dir;
 
@@ -65,6 +78,10 @@ struct rcxml {
 
 	/* Regions */
 	struct wl_list regions;  /* struct region.link */
+
+	struct {
+		struct wl_list fields;  /* struct window_switcher_field.link */
+	} window_switcher;
 };
 
 extern struct rcxml rc;

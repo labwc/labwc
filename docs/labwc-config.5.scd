@@ -77,7 +77,9 @@ The rest of this man page describes configuration options.
 	be used with labwc the preferred mode of the monitor is used instead.
 	Default is no.
 
-*<core><windowSwitcher show="" preview="" outlines="" />*
+## WINDOW SWITCHER
+
+*<windowSwitcher show="" preview="" outlines="">*
 	*show* [yes|no] Draw the OnScreenDisplay when switching between
 	windows. Default is yes.
 

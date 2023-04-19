@@ -146,13 +146,7 @@ unmanaged_handle_override_redirect(struct wl_listener *listener, void *data)
 	unmanaged_handle_destroy(&unmanaged->destroy, NULL);
 	xsurface->data = NULL;
 
-	struct xwayland_view *xwayland_view = xwayland_view_create(server, xsurface);
-	if (mapped) {
-		struct view *view = &xwayland_view->base;
-		if (view->impl->map) {
-			view->impl->map(view);
-		}
-	}
+	xwayland_view_create(server, xsurface, mapped);
 }
 
 static void

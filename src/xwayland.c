@@ -608,8 +608,9 @@ static const struct view_impl xwayland_view_impl = {
 	.move_to_back = xwayland_view_move_to_back,
 };
 
-struct xwayland_view *
-xwayland_view_create(struct server *server, struct wlr_xwayland_surface *xsurface)
+void
+xwayland_view_create(struct server *server,
+		struct wlr_xwayland_surface *xsurface, bool mapped)
 {
 	struct xwayland_view *xwayland_view = znew(*xwayland_view);
 	struct view *view = &xwayland_view->base;
@@ -669,7 +670,10 @@ xwayland_view_create(struct server *server, struct wlr_xwayland_surface *xsurfac
 	wl_signal_add(&xsurface->events.set_override_redirect, &xwayland_view->override_redirect);
 
 	wl_list_insert(&view->server->views, &view->link);
-	return xwayland_view;
+
+	if (mapped) {
+		xwayland_view_map(view);
+	}
 }
 
 static void
@@ -686,9 +690,9 @@ handle_new_surface(struct wl_listener *listener, void *data)
 	 */
 	if (xsurface->override_redirect) {
 		xwayland_unmanaged_create(server, xsurface, /* mapped */ false);
-		return;
+	} else {
+		xwayland_view_create(server, xsurface, /* mapped */ false);
 	}
-	xwayland_view_create(server, xsurface);
 }
 
 static void

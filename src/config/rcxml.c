@@ -437,12 +437,16 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.snap_top_maximize = get_bool(content);
 
 	/* <windowSwitcher show="" preview="" outlines="" /> */
-	} else if (!strcasecmp(nodename, "show.windowSwitcher.core")) {
+	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
 		rc.cycle_view_osd = get_bool(content);
-	} else if (!strcasecmp(nodename, "preview.windowSwitcher.core")) {
+	} else if (!strcasecmp(nodename, "preview.windowSwitcher")) {
 		rc.cycle_preview_contents = get_bool(content);
-	} else if (!strcasecmp(nodename, "outlines.windowSwitcher.core")) {
+	} else if (!strcasecmp(nodename, "outlines.windowSwitcher")) {
 		rc.cycle_preview_outlines = get_bool(content);
+
+	/* Remove this long term - just a friendly warning for now */
+	} else if (strstr(nodename, "windowswitcher.core")) {
+		wlr_log(WLR_ERROR, "<windowSwitcher> should not be child of <core>");
 
 	/* The following three are for backward compatibility only */
 	} else if (!strcasecmp(nodename, "cycleViewOSD.core")) {

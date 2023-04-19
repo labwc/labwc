@@ -12,7 +12,6 @@
     <gap>0</gap>
     <adaptiveSync>no</adaptiveSync>
     <reuseOutputMode>no</reuseOutputMode>
-    <windowSwitcher show="yes" preview="yes" outlines="yes" />
   </core>
 
   <!-- <font><theme> can be defined without an attribute to set all places -->
@@ -38,6 +37,8 @@
       <weight>normal</weight>
     </font>
   </theme>
+
+  <windowSwitcher show="yes" preview="yes" outlines="yes" />
 
   <!-- edge strength is in pixels -->
   <resistance>

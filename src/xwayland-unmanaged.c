@@ -166,6 +166,20 @@ unmanaged_handle_request_activate(struct wl_listener *listener, void *data)
 	struct xwayland_unmanaged *unmanaged = xsurface->data;
 	struct server *server = unmanaged->server;
 	struct seat *seat = &server->seat;
+
+	/*
+	 * Validate that the unmanaged surface trying to grab focus is actually
+	 * a child of the topmost mapped view before granting the request.
+	 */
+	struct view *view = desktop_topmost_mapped_view(server);
+	if (view && view->type == LAB_XWAYLAND_VIEW) {
+		struct wlr_xwayland_surface *surf =
+			wlr_xwayland_surface_from_wlr_surface(view->surface);
+		if (surf && surf->pid != xsurface->pid) {
+			return;
+		}
+	}
+
 	seat_focus_surface(seat, xsurface->surface);
 }
 

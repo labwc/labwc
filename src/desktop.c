@@ -200,8 +200,8 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 	return NULL;
 }
 
-static struct view *
-topmost_mapped_view(struct server *server)
+struct view *
+desktop_topmost_mapped_view(struct server *server)
 {
 	struct view *view;
 	struct wl_list *node_list;
@@ -242,7 +242,7 @@ desktop_focused_view(struct server *server)
 void
 desktop_focus_topmost_mapped_view(struct server *server)
 {
-	struct view *view = topmost_mapped_view(server);
+	struct view *view = desktop_topmost_mapped_view(server);
 	desktop_focus_and_activate_view(&server->seat, view);
 	if (view) {
 		view_move_to_front(view);

@@ -374,6 +374,7 @@ void foreign_toplevel_update_outputs(struct view *view);
 void desktop_focus_and_activate_view(struct seat *seat, struct view *view);
 void desktop_arrange_all_views(struct server *server);
 void desktop_focus_output(struct output *output);
+struct view *desktop_topmost_mapped_view(struct server *server);
 
 enum lab_cycle_dir {
 	LAB_CYCLE_DIR_NONE,

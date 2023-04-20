@@ -68,7 +68,7 @@ jobs:
           pacman-key --init
           pacman -Syu --noconfirm
           pacman -S --noconfirm git meson clang wlroots libdrm libinput \
-            wayland-protocols cairo pango libxml2 xorg-xwayland librsvg
+            wayland-protocols cairo pango libxml2 xorg-xwayland librsvg libdisplay-info
 
       - name: Install Debian Testing dependencies
         if: matrix.name == 'Debian'
@@ -77,7 +77,7 @@ jobs:
           apt-get update
           apt-get upgrade -y
           apt-get install -y git clang \
-            hwdata \
+            hwdata libdisplay-info-dev \
             libxml2-dev libcairo2-dev libpango1.0-dev \
             librsvg2-dev libxcb-ewmh-dev
           apt-get build-dep -y wlroots
@@ -91,7 +91,7 @@ jobs:
             sed -i '' 's/quarterly/latest/' /etc/pkg/FreeBSD.conf
             pkg set -yn pkg:mesa-dri # hack to skip llvm dependency
             pkg install -y git meson gcc pkgconf cairo pango evdev-proto \
-              hwdata wayland-protocols wlroots
+              hwdata wayland-protocols wlroots libdisplay-info
           run: echo "setup done"
 
       - name: Install Void Linux dependencies
@@ -110,7 +110,7 @@ jobs:
             xcb-util-wm-devel xcb-util-renderutil-devel libxcb-devel \
             xcb-util-cursor-devel xcb-util-devel xcb-util-image-devel \
             xcb-util-keysyms-devel xcb-util-xrm-devel xorg-server-xwayland \
-            hwids \
+            hwids libdisplay-info-devel \
             librsvg-devel \
             libglib-devel cairo-devel pango-devel
 

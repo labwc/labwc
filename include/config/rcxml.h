@@ -66,11 +66,6 @@ struct rcxml {
 	int snap_edge_range;
 	bool snap_top_maximize;
 
-	/* cycle view (alt+tab) */
-	bool cycle_view_osd;
-	bool cycle_preview_contents;
-	bool cycle_preview_outlines;
-
 	struct {
 		int popuptime;
 		struct wl_list workspaces;  /* struct workspace.link */
@@ -80,6 +75,9 @@ struct rcxml {
 	struct wl_list regions;  /* struct region.link */
 
 	struct {
+		bool show;
+		bool preview;
+		bool outlines;
 		struct wl_list fields;  /* struct window_switcher_field.link */
 	} window_switcher;
 };

@@ -482,11 +482,11 @@ entry(xmlNode *node, char *nodename, char *content)
 
 	/* <windowSwitcher show="" preview="" outlines="" /> */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
-		rc.cycle_view_osd = get_bool(content);
+		rc.window_switcher.show = get_bool(content);
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher")) {
-		rc.cycle_preview_contents = get_bool(content);
+		rc.window_switcher.preview = get_bool(content);
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher")) {
-		rc.cycle_preview_outlines = get_bool(content);
+		rc.window_switcher.outlines = get_bool(content);
 
 	/* Remove this long term - just a friendly warning for now */
 	} else if (strstr(nodename, "windowswitcher.core")) {
@@ -494,23 +494,23 @@ entry(xmlNode *node, char *nodename, char *content)
 
 	/* The following three are for backward compatibility only */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher.core")) {
-		rc.cycle_view_osd = get_bool(content);
+		rc.window_switcher.show = get_bool(content);
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher.core")) {
-		rc.cycle_preview_contents = get_bool(content);
+		rc.window_switcher.preview = get_bool(content);
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher.core")) {
-		rc.cycle_preview_outlines = get_bool(content);
+		rc.window_switcher.outlines = get_bool(content);
 
 	/* The following three are for backward compatibility only */
 	} else if (!strcasecmp(nodename, "cycleViewOSD.core")) {
-		rc.cycle_view_osd = get_bool(content);
+		rc.window_switcher.show = get_bool(content);
 		wlr_log(WLR_ERROR, "<cycleViewOSD> is deprecated."
 			" Use <windowSwitcher show=\"\" />");
 	} else if (!strcasecmp(nodename, "cycleViewPreview.core")) {
-		rc.cycle_preview_contents = get_bool(content);
+		rc.window_switcher.preview = get_bool(content);
 		wlr_log(WLR_ERROR, "<cycleViewPreview> is deprecated."
 			" Use <windowSwitcher preview=\"\" />");
 	} else if (!strcasecmp(nodename, "cycleViewOutlines.core")) {
-		rc.cycle_preview_outlines = get_bool(content);
+		rc.window_switcher.outlines = get_bool(content);
 		wlr_log(WLR_ERROR, "<cycleViewOutlines> is deprecated."
 			" Use <windowSwitcher outlines=\"\" />");
 
@@ -644,9 +644,11 @@ rcxml_init(void)
 	rc.screen_edge_strength = 20;
 	rc.snap_edge_range = 1;
 	rc.snap_top_maximize = true;
-	rc.cycle_view_osd = true;
-	rc.cycle_preview_contents = true;
-	rc.cycle_preview_outlines = true;
+
+	rc.window_switcher.show = true;
+	rc.window_switcher.preview = true;
+	rc.window_switcher.outlines = true;
+
 	rc.workspace_config.popuptime = INT_MIN;
 }
 

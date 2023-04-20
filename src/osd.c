@@ -444,7 +444,7 @@ osd_update(struct server *server)
 		return;
 	}
 
-	if (rc.cycle_view_osd) {
+	if (rc.window_switcher.show) {
 		/* Display the actual OSD */
 		struct output *output;
 		wl_list_for_each(output, &server->outputs, link) {
@@ -456,13 +456,13 @@ osd_update(struct server *server)
 	}
 
 	/* Outline current window */
-	if (rc.cycle_preview_outlines) {
+	if (rc.window_switcher.outlines) {
 		if (isfocusable(server->osd_state.cycle_view)) {
 			osd_update_preview_outlines(server->osd_state.cycle_view);
 		}
 	}
 
-	if (rc.cycle_preview_contents) {
+	if (rc.window_switcher.preview) {
 		preview_cycled_view(server->osd_state.cycle_view);
 	}
 }

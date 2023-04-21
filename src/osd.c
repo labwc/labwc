@@ -367,9 +367,11 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			default:
 				break;
 			}
+			int field_width = field->width / 100.0 * OSD_ITEM_WIDTH;
+			pango_layout_set_width(layout, field_width * PANGO_SCALE);
 			pango_layout_set_text(layout, buf.buf, -1);
 			pango_cairo_show_layout(cairo, layout);
-			x += field->width / 100.0 * OSD_ITEM_WIDTH;
+			x += field_width;
 		}
 
 		if (view == cycle_view) {

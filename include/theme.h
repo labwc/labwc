@@ -62,9 +62,14 @@ struct theme {
 	float menu_separator_color[4];
 
 	int osd_border_width;
+
 	float osd_bg_color[4];
 	float osd_border_color[4];
 	float osd_label_text_color[4];
+
+	int osd_window_switcher_width;
+	int osd_window_switcher_item_padding_x;
+	int osd_window_switcher_item_padding_y;
 
 	/* textures */
 	struct lab_data_buffer *xbm_close_active_unpressed;
@@ -84,6 +89,7 @@ struct theme {
 
 	/* not set in rc.xml/themerc, but derived from font & padding_height */
 	int title_height;
+	int osd_window_switcher_item_height;
 };
 
 /**

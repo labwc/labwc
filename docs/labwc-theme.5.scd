@@ -146,6 +146,17 @@ elements are not listed here, but are supported.
 *osd.label.text.color*
 	Text color of on-screen-display
 
+*osd.window-switcher.width*
+	Width of window switcher in pixels. Default is 600.
+
+*osd.window-switcher.item.padding.x*
+	Horizontal padding of window switcher entries in pixels.
+	Default is 10.
+
+*osd.window-switcher.item.padding.y*
+	Vertical padding of window switcher entries in pixels.
+	Default is 6.
+
 *border.color*
 	Set all border colors. This is obsolete, but supported for backward
 	compatibility as some themes still contain it.

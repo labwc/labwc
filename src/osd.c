@@ -21,7 +21,6 @@
 #define OSD_ITEM_HEIGHT (20)
 #define OSD_ITEM_WIDTH (600)
 #define OSD_ITEM_PADDING (10)
-#define OSD_BORDER_WIDTH (6)
 
 /* is title different from app_id/class? */
 static int
@@ -76,7 +75,7 @@ get_osd_height(struct wl_list *node_list)
 		}
 		height += OSD_ITEM_HEIGHT;
 	}
-	height += 2 * OSD_BORDER_WIDTH;
+	height += 2 * rc.theme->osd_border_width;
 	return height;
 }
 
@@ -313,7 +312,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 
 	pango_cairo_update_layout(cairo, layout);
 
-	int y = OSD_BORDER_WIDTH;
+	int y = theme->osd_border_width;
 
 	/* Center text entries on the y axis */
 	int y_offset = (OSD_ITEM_HEIGHT - font_height(&rc.font_osd)) / 2;
@@ -351,7 +350,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			continue;
 		}
 
-		int x = OSD_BORDER_WIDTH + OSD_ITEM_PADDING;
+		int x = theme->osd_border_width + OSD_ITEM_PADDING;
 		struct window_switcher_field *field;
 		wl_list_for_each(field, &rc.window_switcher.fields, link) {
 			buf.len = 0;
@@ -379,8 +378,8 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 
 		if (view == cycle_view) {
 			/* Highlight current window */
-			cairo_rectangle(cairo, OSD_BORDER_WIDTH, y - y_offset,
-				OSD_ITEM_WIDTH, OSD_ITEM_HEIGHT);
+			cairo_rectangle(cairo, theme->osd_border_width,
+				y - y_offset, OSD_ITEM_WIDTH, OSD_ITEM_HEIGHT);
 			cairo_stroke(cairo);
 		}
 
@@ -402,7 +401,7 @@ display_osd(struct output *output)
 	const char *workspace_name = server->workspace_current->name;
 
 	float scale = output->wlr_output->scale;
-	int w = OSD_ITEM_WIDTH + (2 * OSD_BORDER_WIDTH);
+	int w = OSD_ITEM_WIDTH + (2 * server->theme->osd_border_width);
 	int h = get_osd_height(node_list);
 	if (show_workspace) {
 		/* workspace indicator */

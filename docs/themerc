@@ -52,3 +52,7 @@ osd.bg.color: #dddda6
 osd.border.color: #000000
 osd.border.width: 1
 osd.label.text.color: #000000
+
+osd.window-switcher.width: 600
+osd.window-switcher.item.padding.x: 10
+osd.window-switcher.item.padding.y: 6

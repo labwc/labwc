@@ -18,10 +18,6 @@
 #include "window-rules.h"
 #include "workspaces.h"
 
-#define OSD_ITEM_HEIGHT (20)
-#define OSD_ITEM_WIDTH (600)
-#define OSD_ITEM_PADDING (10)
-
 /* is title different from app_id/class? */
 static int
 is_title_different(struct view *view)
@@ -73,7 +69,7 @@ get_osd_height(struct wl_list *node_list)
 		if (!isfocusable(view) || skip == LAB_PROP_TRUE) {
 			continue;
 		}
-		height += OSD_ITEM_HEIGHT;
+		height += rc.theme->osd_window_switcher_item_height;
 	}
 	height += 2 * rc.theme->osd_border_width;
 	return height;
@@ -301,10 +297,9 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 	draw_cairo_border(cairo, w, h, theme->osd_border_width);
 
 	/* Set up text rendering */
+	int item_width = w - 2 * theme->osd_border_width;
 	set_cairo_color(cairo, theme->osd_label_text_color);
 	PangoLayout *layout = pango_cairo_create_layout(cairo);
-	pango_layout_set_width(layout,
-		(OSD_ITEM_WIDTH - 2 * OSD_ITEM_PADDING) * PANGO_SCALE);
 	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 
 	PangoFontDescription *desc = font_to_pango_desc(&rc.font_osd);
@@ -314,15 +309,11 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 
 	int y = theme->osd_border_width;
 
-	/* Center text entries on the y axis */
-	int y_offset = (OSD_ITEM_HEIGHT - font_height(&rc.font_osd)) / 2;
-	y += y_offset;
-
 	/* Draw workspace indicator */
 	if (show_workspace) {
 		/* Center workspace indicator on the x axis */
 		int x = font_width(&rc.font_osd, workspace_name);
-		x = (OSD_ITEM_WIDTH - x) / 2;
+		x = (theme->osd_window_switcher_width - x) / 2;
 		cairo_move_to(cairo, x, y);
 		PangoWeight weight = pango_font_description_get_weight(desc);
 		pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
@@ -331,7 +322,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 		pango_cairo_show_layout(cairo, layout);
 		pango_font_description_set_weight(desc, weight);
 		pango_layout_set_font_description(layout, desc);
-		y += OSD_ITEM_HEIGHT;
+		y += theme->osd_window_switcher_item_height;
 	}
 	pango_font_description_free(desc);
 
@@ -350,11 +341,11 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			continue;
 		}
 
-		int x = theme->osd_border_width + OSD_ITEM_PADDING;
+		int x = theme->osd_border_width + theme->osd_window_switcher_item_padding_x;
 		struct window_switcher_field *field;
 		wl_list_for_each(field, &rc.window_switcher.fields, link) {
 			buf.len = 0;
-			cairo_move_to(cairo, x, y);
+			cairo_move_to(cairo, x, y + theme->osd_window_switcher_item_padding_y - 1);
 
 			switch (field->content) {
 			case LAB_FIELD_TYPE:
@@ -369,21 +360,23 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			default:
 				break;
 			}
-			int field_width = field->width / 100.0 * OSD_ITEM_WIDTH;
+			int field_width = field->width / 100.0 * item_width
+				- 2 * theme->osd_window_switcher_item_padding_x;
 			pango_layout_set_width(layout, field_width * PANGO_SCALE);
 			pango_layout_set_text(layout, buf.buf, -1);
 			pango_cairo_show_layout(cairo, layout);
-			x += field_width;
+			x += field_width + theme->osd_window_switcher_item_padding_x;
 		}
 
 		if (view == cycle_view) {
 			/* Highlight current window */
-			cairo_rectangle(cairo, theme->osd_border_width,
-				y - y_offset, OSD_ITEM_WIDTH, OSD_ITEM_HEIGHT);
+			cairo_rectangle(cairo, theme->osd_border_width, y,
+				theme->osd_window_switcher_width - 2 * theme->osd_border_width,
+				theme->osd_window_switcher_item_height);
 			cairo_stroke(cairo);
 		}
 
-		y += OSD_ITEM_HEIGHT;
+		y += theme->osd_window_switcher_item_height;
 	}
 	free(buf.buf);
 	g_object_unref(layout);
@@ -395,17 +388,18 @@ static void
 display_osd(struct output *output)
 {
 	struct server *server = output->server;
+	struct theme *theme = server->theme;
 	struct wl_list *node_list =
 		&server->workspace_current->tree->children;
 	bool show_workspace = wl_list_length(&rc.workspace_config.workspaces) > 1;
 	const char *workspace_name = server->workspace_current->name;
 
 	float scale = output->wlr_output->scale;
-	int w = OSD_ITEM_WIDTH + (2 * server->theme->osd_border_width);
+	int w = theme->osd_window_switcher_width;
 	int h = get_osd_height(node_list);
 	if (show_workspace) {
 		/* workspace indicator */
-		h += OSD_ITEM_HEIGHT;
+		h += theme->osd_window_switcher_item_height;
 	}
 
 	/* Reset buffer */

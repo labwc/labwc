@@ -140,6 +140,10 @@ theme_builtin(struct theme *theme)
 	theme->menu_separator_padding_height = 3;
 	parse_hexstr("#888888", theme->menu_separator_color);
 
+	theme->osd_window_switcher_width = 600;
+	theme->osd_window_switcher_item_padding_x = 10;
+	theme->osd_window_switcher_item_padding_y = 6;
+
 	/* inherit settings in post_processing() if not set elsewhere */
 	theme->osd_bg_color[0] = FLT_MIN;
 	theme->osd_border_width = INT_MIN;
@@ -303,6 +307,15 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "osd.border.color")) {
 		parse_hexstr(value, theme->osd_border_color);
+	}
+	if (match_glob(key, "osd.window-switcher.width")) {
+		theme->osd_window_switcher_width = atoi(value);
+	}
+	if (match_glob(key, "osd.window-switcher.item.padding.x")) {
+		theme->osd_window_switcher_item_padding_x = atoi(value);
+	}
+	if (match_glob(key, "osd.window-switcher.item.padding.y")) {
+		theme->osd_window_switcher_item_padding_y = atoi(value);
 	}
 	if (match_glob(key, "osd.label.text.color")) {
 		parse_hexstr(value, theme->osd_label_text_color);
@@ -518,6 +531,8 @@ post_processing(struct theme *theme)
 {
 	theme->title_height = font_height(&rc.font_activewindow)
 		+ 2 * theme->padding_height;
+	theme->osd_window_switcher_item_height = font_height(&rc.font_osd)
+		+ 2 * theme->osd_window_switcher_item_padding_y;
 
 	if (rc.corner_radius >= theme->title_height) {
 		theme->title_height = rc.corner_radius + 1;

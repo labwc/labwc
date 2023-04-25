@@ -177,6 +177,9 @@ get_arg_value_str(struct action *action, const char *key, const char *default_va
 	assert(key);
 	struct action_arg *arg;
 	wl_list_for_each(arg, &action->args, link) {
+		if (!arg->key) {
+			continue;
+		}
 		if (!strcasecmp(key, arg->key)) {
 			return action_str_from_arg(arg);
 		}
@@ -190,6 +193,9 @@ get_arg_value_bool(struct action *action, const char *key, bool default_value)
 	assert(key);
 	struct action_arg *arg;
 	wl_list_for_each(arg, &action->args, link) {
+		if (!arg->key) {
+			continue;
+		}
 		if (!strcasecmp(key, arg->key)) {
 			assert(arg->type == LAB_ACTION_ARG_BOOL);
 			return ((struct action_arg_bool *)arg)->value;
@@ -513,6 +519,11 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_SEND_TO_DESKTOP:
 			if (view) {
 				const char *to = get_arg_value_str(action, "to", NULL);
+				if (!to) {
+					wlr_log(WLR_ERROR,
+						"Missing 'to' argument for SendToDesktop");
+					break;
+				}
 				bool follow = get_arg_value_bool(action, "follow", true);
 				struct workspace *target = workspaces_find(view->workspace, to);
 				if (target) {

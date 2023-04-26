@@ -13,4 +13,12 @@
  */
 int parse_bool(const char *str, int default_value);
 
+/**
+ * set_bool() - Parse boolean text and set variable iff text is valid boolean
+ * @string: Boolean text to interpret.
+ * @variable: Variable to set.
+ */
+void set_bool(const char *str, bool *variable);
+void set_bool_as_int(const char *str, int *variable);
+
 #endif /* __LABWC_PARSE_BOOL_H */

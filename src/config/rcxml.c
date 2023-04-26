@@ -265,17 +265,9 @@ fill_libinput_category(char *nodename, char *content)
 			current_libinput_category->name = xstrdup(content);
 		}
 	} else if (!strcasecmp(nodename, "naturalScroll")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		current_libinput_category->natural_scroll = ret;
+		set_bool_as_int(content, &current_libinput_category->natural_scroll);
 	} else if (!strcasecmp(nodename, "leftHanded")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		current_libinput_category->left_handed = ret;
+		set_bool_as_int(content, &current_libinput_category->left_handed);
 	} else if (!strcasecmp(nodename, "pointerSpeed")) {
 		current_libinput_category->pointer_speed = atof(content);
 		if (current_libinput_category->pointer_speed < -1) {
@@ -288,7 +280,8 @@ fill_libinput_category(char *nodename, char *content)
 		if (ret < 0) {
 			return;
 		}
-		current_libinput_category->tap = ret ? LIBINPUT_CONFIG_TAP_ENABLED
+		current_libinput_category->tap = ret
+			? LIBINPUT_CONFIG_TAP_ENABLED
 			: LIBINPUT_CONFIG_TAP_DISABLED;
 	} else if (!strcasecmp(nodename, "tapButtonMap")) {
 		if (!strcmp(content, "lrm")) {
@@ -316,7 +309,8 @@ fill_libinput_category(char *nodename, char *content)
 		if (ret < 0) {
 			return;
 		}
-		current_libinput_category->dwt = ret ? LIBINPUT_CONFIG_DWT_ENABLED
+		current_libinput_category->dwt = ret
+			? LIBINPUT_CONFIG_DWT_ENABLED
 			: LIBINPUT_CONFIG_DWT_DISABLED;
 	}
 }
@@ -455,17 +449,9 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcmp(nodename, "gap.core")) {
 		rc.gap = atoi(content);
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.adaptive_sync = ret;
+		set_bool(content, &rc.adaptive_sync);
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.reuse_output_mode = ret;
+		set_bool(content, &rc.reuse_output_mode);
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = xstrdup(content);
 	} else if (!strcmp(nodename, "cornerradius.theme")) {
@@ -479,17 +465,9 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcmp(nodename, "weight.font.theme")) {
 		fill_font(nodename, content, font_place);
 	} else if (!strcasecmp(nodename, "followMouse.focus")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.focus_follow_mouse = ret;
+		set_bool(content, &rc.focus_follow_mouse);
 	} else if (!strcasecmp(nodename, "raiseOnFocus.focus")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.raise_on_focus = ret;
+		set_bool(content, &rc.raise_on_focus);
 	} else if (!strcasecmp(nodename, "doubleClickTime.mouse")) {
 		long doubleclick_time_parsed = strtol(content, NULL, 10);
 		if (doubleclick_time_parsed > 0) {
@@ -511,31 +489,15 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "range.snapping")) {
 		rc.snap_edge_range = atoi(content);
 	} else if (!strcasecmp(nodename, "topMaximize.snapping")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.snap_top_maximize = ret;
+		set_bool(content, &rc.snap_top_maximize);
 
 	/* <windowSwitcher show="" preview="" outlines="" /> */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.window_switcher.show = ret;
+		set_bool(content, &rc.window_switcher.show);
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.window_switcher.preview = ret;
+		set_bool(content, &rc.window_switcher.preview);
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.window_switcher.outlines = ret;
+		set_bool(content, &rc.window_switcher.outlines);
 
 	/* Remove this long term - just a friendly warning for now */
 	} else if (strstr(nodename, "windowswitcher.core")) {
@@ -543,47 +505,23 @@ entry(xmlNode *node, char *nodename, char *content)
 
 	/* The following three are for backward compatibility only */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher.core")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.window_switcher.show = ret;
+		set_bool(content, &rc.window_switcher.show);
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher.core")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.window_switcher.preview = ret;
+		set_bool(content, &rc.window_switcher.preview);
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher.core")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.window_switcher.outlines = ret;
+		set_bool(content, &rc.window_switcher.outlines);
 
 	/* The following three are for backward compatibility only */
 	} else if (!strcasecmp(nodename, "cycleViewOSD.core")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.window_switcher.show = ret;
+		set_bool(content, &rc.window_switcher.show);
 		wlr_log(WLR_ERROR, "<cycleViewOSD> is deprecated."
 			" Use <windowSwitcher show=\"\" />");
 	} else if (!strcasecmp(nodename, "cycleViewPreview.core")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.window_switcher.preview = ret;
+		set_bool(content, &rc.window_switcher.preview);
 		wlr_log(WLR_ERROR, "<cycleViewPreview> is deprecated."
 			" Use <windowSwitcher preview=\"\" />");
 	} else if (!strcasecmp(nodename, "cycleViewOutlines.core")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		rc.window_switcher.outlines = ret;
+		set_bool(content, &rc.window_switcher.outlines);
 		wlr_log(WLR_ERROR, "<cycleViewOutlines> is deprecated."
 			" Use <windowSwitcher outlines=\"\" />");
 

@@ -23,3 +23,22 @@ error_not_a_boolean:
 	return default_value;
 }
 
+void
+set_bool(const char *str, bool *variable)
+{
+	int ret = parse_bool(str, -1);
+	if (ret < 0) {
+		return;
+	}
+	*variable = ret;
+}
+
+void
+set_bool_as_int(const char *str, int *variable)
+{
+	int ret = parse_bool(str, -1);
+	if (ret < 0) {
+		return;
+	}
+	*variable = ret;
+}

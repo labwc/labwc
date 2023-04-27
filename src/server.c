@@ -227,6 +227,16 @@ server_init(struct server *server)
 	server->wl_event_loop = event_loop;
 
 	/*
+	 * Prevent wayland clients that request the X11 clipboard but closing
+	 * their read fd prematurely to crash labwc because of the unhandled
+	 * SIGPIPE signal. It is caused by wlroots trying to write the X11
+	 * clipboard data to the closed fd of the wayland client.
+	 * See https://github.com/labwc/labwc/issues/890#issuecomment-1524962995
+	 * for a reproducer involving xclip and wl-paste | head -c 1.
+	 */
+	signal(SIGPIPE, SIG_IGN);
+
+	/*
 	 * The backend is a feature which abstracts the underlying input and
 	 * output hardware. The autocreate option will choose the most suitable
 	 * backend based on the current environment, such as opening an x11

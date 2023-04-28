@@ -80,6 +80,8 @@ struct rcxml {
 		bool outlines;
 		struct wl_list fields;  /* struct window_switcher_field.link */
 	} window_switcher;
+
+	struct wl_list window_rules; /* struct window_rule.link */
 };
 
 extern struct rcxml rc;

@@ -6,6 +6,7 @@
 #include "labwc.h"
 #include "view.h"
 #include "view-impl-common.h"
+#include "window-rules.h"
 
 void
 view_impl_move_to_front(struct view *view)
@@ -26,6 +27,9 @@ view_impl_move_to_back(struct view *view)
 void
 view_impl_map(struct view *view)
 {
+	if (!view->been_mapped) {
+		window_rules_apply(view, LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP);
+	}
 	desktop_focus_and_activate_view(&view->server->seat, view);
 	view_move_to_front(view);
 	view_update_title(view);

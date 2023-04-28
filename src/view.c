@@ -9,6 +9,7 @@
 #include "regions.h"
 #include "ssd.h"
 #include "view.h"
+#include "window-rules.h"
 #include "workspaces.h"
 #include "xwayland.h"
 
@@ -658,6 +659,7 @@ void
 view_set_decorations(struct view *view, bool decorations)
 {
 	assert(view);
+
 	if (view->ssd_enabled != decorations && !view->fullscreen) {
 		/*
 		 * Set view->ssd_enabled first since it is referenced

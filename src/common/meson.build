@@ -5,6 +5,7 @@ labwc_sources += files(
   'font.c',
   'grab-file.c',
   'graphic-helpers.c',
+  'match.c',
   'mem.c',
   'nodename.c',
   'parse-bool.c',

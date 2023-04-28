@@ -374,4 +374,13 @@
     </device>
   </libinput>
 
+  <!--
+  <windowRules>
+    <windowRule identifier="*">
+      <action name="Maximize" />
+    </windowRule>
+    <windowRule identifier="some-application" serverDecoration="yes" />
+  </windowRules>
+  -->
+
 </labwc_config>

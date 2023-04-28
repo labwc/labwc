@@ -6,6 +6,7 @@
 #include "node.h"
 #include "view.h"
 #include "view-impl-common.h"
+#include "window-rules.h"
 #include "workspaces.h"
 
 #define CONFIGURE_TIMEOUT_MS 100
@@ -49,6 +50,16 @@ handle_new_xdg_popup(struct wl_listener *listener, void *data)
 static bool
 has_ssd(struct view *view)
 {
+	/* Window-rules take priority if they exist for this view */
+	switch (window_rules_get_property(view, "serverDecoration")) {
+	case LAB_PROP_TRUE:
+		return true;
+	case LAB_PROP_FALSE:
+		return false;
+	default:
+		break;
+	}
+
 	/*
 	 * view->ssd_preference may be set by the decoration implementation
 	 * e.g. src/decorations/xdg-deco.c or src/decorations/kde-deco.c.
@@ -425,13 +436,13 @@ xdg_toplevel_view_map(struct view *view)
 		view->current.y = view->pending.y;
 
 		view_moved(view);
-		view->been_mapped = true;
 	}
 
 	view->commit.notify = handle_commit;
 	wl_signal_add(&xdg_surface->surface->events.commit, &view->commit);
 
 	view_impl_map(view);
+	view->been_mapped = true;
 }
 
 static void

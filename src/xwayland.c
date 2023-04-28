@@ -9,6 +9,7 @@
 #include "ssd.h"
 #include "view.h"
 #include "view-impl-common.h"
+#include "window-rules.h"
 #include "workspaces.h"
 #include "xwayland.h"
 
@@ -103,6 +104,18 @@ ensure_initial_geometry_and_output(struct view *view)
 static bool
 want_deco(struct wlr_xwayland_surface *xwayland_surface)
 {
+	struct view *view = (struct view *)xwayland_surface->data;
+
+	/* Window-rules take priority if they exist for this view */
+	switch (window_rules_get_property(view, "serverDecoration")) {
+	case LAB_PROP_TRUE:
+		return true;
+	case LAB_PROP_FALSE:
+		return false;
+	default:
+		break;
+	}
+
 	return xwayland_surface->decorations ==
 		WLR_XWAYLAND_SURFACE_DECORATIONS_ALL;
 }
@@ -464,7 +477,6 @@ xwayland_view_map(struct view *view)
 		 */
 		view->current = view->pending;
 		view_moved(view);
-		view->been_mapped = true;
 	}
 
 	if (view->ssd_enabled && view_is_floating(view)) {
@@ -476,6 +488,7 @@ xwayland_view_map(struct view *view)
 	view->commit.notify = handle_commit;
 
 	view_impl_map(view);
+	view->been_mapped = true;
 }
 
 static void

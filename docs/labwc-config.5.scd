@@ -330,6 +330,48 @@ The rest of this man page describes configuration options.
 	any motion events while a keyboard is typing, and for a short while
 	after as well.
 
+## WINDOW RULES
+
+Two types of window rules are supported, actions and properties. They are
+defined as shown below.
+
+```
+<windowRules>
+
+  <!-- Action -->
+  <windowRule identifier="">
+    <action name=""/>
+  </windowRule>
+
+  <!-- Property -->
+  <windowRule identifier="" serverDecoration="" />
+
+</windowRules>
+```
+
+*Actions*
+
+*<windowRules><windowRule identifier="">*
+	Define a window rule for any window which matches the criteria defined
+	by the attribute *identifier*. Matching against patterns with '\*'
+	(wildcard) and '?' (joker) is supported. Pattern matching is
+	case-insensitive.
+
+	*identifier* relates to app_id for native Wayland windows and WM_CLASS
+	for XWayland clients.
+
+*Properties*
+
+Property values can be *yes*, *no* or *default*.
+
+If a window matches criteria for multiple rules which set the same property,
+later config entries have higher priority. *default* can be useful in this
+situation.
+
+*<windowRules><windowRule serverDecoration="">* [yes|no|default]
+	*serverDecoration* over-rules any other setting for server-side window
+	decoration on first map.
+
 ## ENVIRONMENT VARIABLES
 
 *XCURSOR_THEME* and *XCURSOR_SIZE* are supported to set cursor theme

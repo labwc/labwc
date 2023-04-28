@@ -25,6 +25,7 @@
 #include "config/mousebind.h"
 #include "config/rcxml.h"
 #include "regions.h"
+#include "window-rules.h"
 #include "workspaces.h"
 
 static bool in_regions;
@@ -32,6 +33,7 @@ static bool in_keybind;
 static bool in_mousebind;
 static bool in_libinput_category;
 static bool in_window_switcher_field;
+static bool in_window_rules;
 
 static struct keybind *current_keybind;
 static struct mousebind *current_mousebind;
@@ -41,6 +43,8 @@ static struct action *current_keybind_action;
 static struct action *current_mousebind_action;
 static struct region *current_region;
 static struct window_switcher_field *current_field;
+static struct window_rule *current_window_rule;
+static struct action *current_window_rule_action;
 
 enum font_place {
 	FONT_PLACE_NONE = 0,
@@ -53,6 +57,63 @@ enum font_place {
 
 static void load_default_key_bindings(void);
 static void load_default_mouse_bindings(void);
+
+/* Does a boolean-parse but also allows 'default' */
+static void
+set_property(const char *str, enum property *variable)
+{
+	if (!str || !strcasecmp(str, "default")) {
+		*variable = LAB_PROP_UNSET;
+		return;
+	}
+	int ret = parse_bool(str, -1);
+	if (ret < 0) {
+		return;
+	}
+	*variable = ret ? LAB_PROP_TRUE : LAB_PROP_FALSE;
+}
+
+static void
+fill_window_rule(char *nodename, char *content)
+{
+	if (!strcasecmp(nodename, "windowRule.windowRules")) {
+		current_window_rule = znew(*current_window_rule);
+		wl_list_append(&rc.window_rules, &current_window_rule->link);
+		wl_list_init(&current_window_rule->actions);
+		return;
+	}
+
+	string_truncate_at_pattern(nodename, ".windowrule.windowrules");
+	if (!content) {
+		/* nop */
+	} else if (!current_window_rule) {
+		wlr_log(WLR_ERROR, "no window-rule");
+	} else if (!strcmp(nodename, "identifier")) {
+		free(current_window_rule->identifier);
+		current_window_rule->identifier = xstrdup(content);
+	} else if (!strcmp(nodename, "event")) {
+		/*
+		 * This is just in readiness for adding any other types of
+		 * events in the future. We default to onFirstMap anyway.
+		 */
+		if (!strcasecmp(content, "onFirstMap")) {
+			current_window_rule->event = LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP;
+		}
+	} else if (!strcasecmp(nodename, "serverDecoration")) {
+		set_property(content, &current_window_rule->server_decoration);
+	} else if (!strcmp(nodename, "name.action")) {
+		current_window_rule_action = action_create(content);
+		if (current_window_rule_action) {
+			wl_list_append(&current_window_rule->actions,
+				&current_window_rule_action->link);
+		}
+	} else if (!current_window_rule_action) {
+		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
+			"nodename: '%s' content: '%s'", nodename, content);
+	} else {
+		action_arg_from_xml_node(current_window_rule_action, nodename, content);
+	}
+}
 
 static void
 fill_window_switcher_field(char *nodename, char *content)
@@ -417,6 +478,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		fill_window_switcher_field(nodename, content);
 		return;
 	}
+	if (in_window_rules) {
+		fill_window_rule(nodename, content);
+		return;
+	}
 
 	/* handle nodes without content, e.g. <keyboard><default /> */
 	if (!strcmp(nodename, "default.keyboard")) {
@@ -600,6 +665,12 @@ xml_tree_walk(xmlNode *node)
 			in_window_switcher_field = false;
 			continue;
 		}
+		if (!strcasecmp((char *)n->name, "windowRules")) {
+			in_window_rules = true;
+			traverse(n);
+			in_window_rules = false;
+			continue;
+		}
 		traverse(n);
 	}
 }
@@ -638,6 +709,7 @@ rcxml_init(void)
 		wl_list_init(&rc.workspace_config.workspaces);
 		wl_list_init(&rc.regions);
 		wl_list_init(&rc.window_switcher.fields);
+		wl_list_init(&rc.window_rules);
 	}
 	has_run = true;
 
@@ -1059,6 +1131,14 @@ rcxml_finish(void)
 		zfree(field);
 	}
 
+	struct window_rule *rule, *rule_tmp;
+	wl_list_for_each_safe(rule, rule_tmp, &rc.window_rules, link) {
+		wl_list_remove(&rule->link);
+		zfree(rule->identifier);
+		action_list_free(&rule->actions);
+		zfree(rule);
+	}
+
 	/* Reset state vars for starting fresh when Reload is triggered */
 	current_keybind = NULL;
 	current_mousebind = NULL;
@@ -1068,4 +1148,6 @@ rcxml_finish(void)
 	current_mousebind_action = NULL;
 	current_region = NULL;
 	current_field = NULL;
+	current_window_rule = NULL;
+	current_window_rule_action = NULL;
 }

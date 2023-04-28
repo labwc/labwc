@@ -21,6 +21,7 @@
 #include "common/dir.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"
+#include "common/match.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "theme.h"
@@ -146,16 +147,6 @@ theme_builtin(struct theme *theme)
 	theme->osd_label_text_color[0] = FLT_MIN;
 }
 
-static bool
-match(const gchar *pattern, const gchar *string)
-{
-	GString *p = g_string_new(pattern);
-	g_string_ascii_down(p);
-	bool ret = (bool)g_pattern_match_simple(p->str, string);
-	g_string_free(p, true);
-	return ret;
-}
-
 static void
 entry(struct theme *theme, const char *key, const char *value)
 {
@@ -167,56 +158,56 @@ entry(struct theme *theme, const char *key, const char *value)
 	 * Note that in order for the pattern match to apply to more than just
 	 * the first instance, "else if" cannot be used throughout this function
 	 */
-	if (match(key, "border.width")) {
+	if (match_glob(key, "border.width")) {
 		theme->border_width = atoi(value);
 	}
-	if (match(key, "padding.height")) {
+	if (match_glob(key, "padding.height")) {
 		theme->padding_height = atoi(value);
 	}
-	if (match(key, "menu.items.padding.x")) {
+	if (match_glob(key, "menu.items.padding.x")) {
 		theme->menu_item_padding_x = atoi(value);
 	}
-	if (match(key, "menu.items.padding.y")) {
+	if (match_glob(key, "menu.items.padding.y")) {
 		theme->menu_item_padding_y = atoi(value);
 	}
-	if (match(key, "menu.overlap.x")) {
+	if (match_glob(key, "menu.overlap.x")) {
 		theme->menu_overlap_x = atoi(value);
 	}
-	if (match(key, "menu.overlap.y")) {
+	if (match_glob(key, "menu.overlap.y")) {
 		theme->menu_overlap_y = atoi(value);
 	}
 
-	if (match(key, "window.active.border.color")) {
+	if (match_glob(key, "window.active.border.color")) {
 		parse_hexstr(value, theme->window_active_border_color);
 	}
-	if (match(key, "window.inactive.border.color")) {
+	if (match_glob(key, "window.inactive.border.color")) {
 		parse_hexstr(value, theme->window_inactive_border_color);
 	}
 	/* border.color is obsolete, but handled for backward compatibility */
-	if (match(key, "border.color")) {
+	if (match_glob(key, "border.color")) {
 		parse_hexstr(value, theme->window_active_border_color);
 		parse_hexstr(value, theme->window_inactive_border_color);
 	}
 
-	if (match(key, "window.active.title.bg.color")) {
+	if (match_glob(key, "window.active.title.bg.color")) {
 		parse_hexstr(value, theme->window_active_title_bg_color);
 	}
-	if (match(key, "window.inactive.title.bg.color")) {
+	if (match_glob(key, "window.inactive.title.bg.color")) {
 		parse_hexstr(value, theme->window_inactive_title_bg_color);
 	}
 
-	if (match(key, "window.active.label.text.color")) {
+	if (match_glob(key, "window.active.label.text.color")) {
 		parse_hexstr(value, theme->window_active_label_text_color);
 	}
-	if (match(key, "window.inactive.label.text.color")) {
+	if (match_glob(key, "window.inactive.label.text.color")) {
 		parse_hexstr(value, theme->window_inactive_label_text_color);
 	}
-	if (match(key, "window.label.text.justify")) {
+	if (match_glob(key, "window.label.text.justify")) {
 		theme->window_label_text_justify = parse_justification(value);
 	}
 
 	/* universal button */
-	if (match(key, "window.active.button.unpressed.image.color")) {
+	if (match_glob(key, "window.active.button.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_active_button_menu_unpressed_image_color);
 		parse_hexstr(value,
@@ -226,7 +217,7 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_hexstr(value,
 			theme->window_active_button_close_unpressed_image_color);
 	}
-	if (match(key, "window.inactive.button.unpressed.image.color")) {
+	if (match_glob(key, "window.inactive.button.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_inactive_button_menu_unpressed_image_color);
 		parse_hexstr(value,
@@ -238,82 +229,82 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 
 	/* individual buttons */
-	if (match(key, "window.active.button.menu.unpressed.image.color")) {
+	if (match_glob(key, "window.active.button.menu.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_active_button_menu_unpressed_image_color);
 	}
-	if (match(key, "window.active.button.iconify.unpressed.image.color")) {
+	if (match_glob(key, "window.active.button.iconify.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_active_button_iconify_unpressed_image_color);
 	}
-	if (match(key, "window.active.button.max.unpressed.image.color")) {
+	if (match_glob(key, "window.active.button.max.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_active_button_max_unpressed_image_color);
 	}
-	if (match(key, "window.active.button.close.unpressed.image.color")) {
+	if (match_glob(key, "window.active.button.close.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_active_button_close_unpressed_image_color);
 	}
-	if (match(key, "window.inactive.button.menu.unpressed.image.color")) {
+	if (match_glob(key, "window.inactive.button.menu.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_inactive_button_menu_unpressed_image_color);
 	}
-	if (match(key, "window.inactive.button.iconify.unpressed.image.color")) {
+	if (match_glob(key, "window.inactive.button.iconify.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_inactive_button_iconify_unpressed_image_color);
 	}
-	if (match(key, "window.inactive.button.max.unpressed.image.color")) {
+	if (match_glob(key, "window.inactive.button.max.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_inactive_button_max_unpressed_image_color);
 	}
-	if (match(key, "window.inactive.button.close.unpressed.image.color")) {
+	if (match_glob(key, "window.inactive.button.close.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_inactive_button_close_unpressed_image_color);
 	}
 
-	if (match(key, "menu.width.min")) {
+	if (match_glob(key, "menu.width.min")) {
 		theme->menu_min_width = atoi(value);
 	}
-	if (match(key, "menu.width.max")) {
+	if (match_glob(key, "menu.width.max")) {
 		theme->menu_max_width = atoi(value);
 	}
 
-	if (match(key, "menu.items.bg.color")) {
+	if (match_glob(key, "menu.items.bg.color")) {
 		parse_hexstr(value, theme->menu_items_bg_color);
 	}
-	if (match(key, "menu.items.text.color")) {
+	if (match_glob(key, "menu.items.text.color")) {
 		parse_hexstr(value, theme->menu_items_text_color);
 	}
-	if (match(key, "menu.items.active.bg.color")) {
+	if (match_glob(key, "menu.items.active.bg.color")) {
 		parse_hexstr(value, theme->menu_items_active_bg_color);
 	}
-	if (match(key, "menu.items.active.text.color")) {
+	if (match_glob(key, "menu.items.active.text.color")) {
 		parse_hexstr(value, theme->menu_items_active_text_color);
 	}
 
-	if (match(key, "menu.separator.width")) {
+	if (match_glob(key, "menu.separator.width")) {
 		theme->menu_separator_line_thickness = atoi(value);
 	}
-	if (match(key, "menu.separator.padding.width")) {
+	if (match_glob(key, "menu.separator.padding.width")) {
 		theme->menu_separator_padding_width = atoi(value);
 	}
-	if (match(key, "menu.separator.padding.height")) {
+	if (match_glob(key, "menu.separator.padding.height")) {
 		theme->menu_separator_padding_height = atoi(value);
 	}
-	if (match(key, "menu.separator.color")) {
+	if (match_glob(key, "menu.separator.color")) {
 		parse_hexstr(value, theme->menu_separator_color);
 	}
 
-	if (match(key, "osd.bg.color")) {
+	if (match_glob(key, "osd.bg.color")) {
 		parse_hexstr(value, theme->osd_bg_color);
 	}
-	if (match(key, "osd.border.width")) {
+	if (match_glob(key, "osd.border.width")) {
 		theme->osd_border_width = atoi(value);
 	}
-	if (match(key, "osd.border.color")) {
+	if (match_glob(key, "osd.border.color")) {
 		parse_hexstr(value, theme->osd_border_color);
 	}
-	if (match(key, "osd.label.text.color")) {
+	if (match_glob(key, "osd.label.text.color")) {
 		parse_hexstr(value, theme->osd_label_text_color);
 	}
 }

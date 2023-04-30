@@ -150,6 +150,17 @@ new_output_notify(struct wl_listener *listener, void *data)
 		}
 	}
 
+	if (rc.adaptive_sync) {
+		wlr_output_enable_adaptive_sync(wlr_output, true);
+		if (!wlr_output_test(wlr_output)) {
+			wlr_output_enable_adaptive_sync(wlr_output, false);
+			wlr_log(WLR_DEBUG,
+				"failed to enable adaptive sync for output %s", wlr_output->name);
+		} else {
+			wlr_log(WLR_INFO, "adaptive sync enabled for output %s", wlr_output->name);
+		}
+	}
+
 	wlr_output_commit(wlr_output);
 
 	struct output *output = znew(*output);
@@ -205,20 +216,6 @@ new_output_notify(struct wl_listener *listener, void *data)
 	wlr_scene_node_raise_to_top(&output->layer_tree[3]->node);
 	wlr_scene_node_raise_to_top(&output->layer_popup_tree->node);
 	wlr_scene_node_raise_to_top(&output->session_lock_tree->node);
-
-	if (rc.adaptive_sync) {
-		wlr_log(WLR_INFO, "enable adaptive sync on %s", wlr_output->name);
-		struct wlr_output_state pending = { 0 };
-		wlr_output_state_set_adaptive_sync_enabled(&pending, true);
-		if (!wlr_output_test_state(wlr_output, &pending)) {
-			wlr_log(WLR_ERROR, "adaptive sync failed, ignoring");
-			wlr_output_state_set_adaptive_sync_enabled(&pending, false);
-		}
-		if (!wlr_output_commit_state(wlr_output, &pending)) {
-			wlr_log(WLR_ERROR, "failed to commit output %s",
-				wlr_output->name);
-		}
-	}
 
 	/*
 	 * Wait until wlr_output_layout_add_auto() returns before
@@ -310,6 +307,7 @@ output_config_apply(struct server *server,
 			}
 			wlr_output_set_scale(o, head->state.scale);
 			wlr_output_set_transform(o, head->state.transform);
+			wlr_output_enable_adaptive_sync(o, head->state.adaptive_sync_enabled);
 		}
 		if (!wlr_output_commit(o)) {
 			wlr_log(WLR_ERROR, "Output config commit failed");

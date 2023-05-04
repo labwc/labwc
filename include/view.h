@@ -202,9 +202,6 @@ void view_adjust_size(struct view *view, int *w, int *h);
 void view_evacuate_region(struct view *view);
 void view_on_output_destroy(struct view *view);
 
-void view_init(struct view *view);
-void view_destroy(struct view *view);
-
 /* xdg.c */
 struct wlr_xdg_surface *xdg_surface_from_view(struct view *view);
 

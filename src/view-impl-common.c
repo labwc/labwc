@@ -1,11 +1,17 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /* view-impl-common.c: common code for shell view->impl functions */
+#include <assert.h>
 #include <stdio.h>
 #include <strings.h>
 #include "common/list.h"
+#include "common/mem.h"
 #include "labwc.h"
+#include "menu/menu.h"
+#include "node.h"
+#include "ssd.h"
 #include "view.h"
 #include "view-impl-common.h"
+#include "workspaces.h"
 
 void
 view_impl_move_to_front(struct view *view)
@@ -100,4 +106,91 @@ view_impl_remove_common_listeners(struct view *view)
 	wl_list_remove(&view->request_maximize.link);
 	wl_list_remove(&view->request_fullscreen.link);
 	wl_list_remove(&view->set_title.link);
+}
+
+void
+view_init(struct view *view)
+{
+	assert(view);
+
+	view->workspace = view->server->workspace_current;
+	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
+	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
+	node_descriptor_create(&view->scene_tree->node,
+		LAB_NODE_DESC_VIEW, view);
+
+	view->impl->setup_common_listeners(view);
+	view->impl->setup_specific_listeners(view);
+
+	wl_list_insert(&view->server->views, &view->link);
+}
+
+void
+view_destroy(struct view *view)
+{
+	assert(view);
+	struct server *server = view->server;
+	bool need_cursor_update = false;
+
+	view->impl->remove_common_listeners(view);
+	view->impl->remove_specific_listeners(view);
+
+	if (view->toplevel.handle) {
+		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
+	}
+
+	if (server->grabbed_view == view) {
+		/* Application got killed while moving around */
+		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+		server->grabbed_view = NULL;
+		need_cursor_update = true;
+		regions_hide_overlay(&server->seat);
+	}
+
+	if (server->focused_view == view) {
+		server->focused_view = NULL;
+		need_cursor_update = true;
+	}
+
+	if (server->seat.pressed.view == view) {
+		seat_reset_pressed(&server->seat);
+	}
+
+	if (view->tiled_region_evacuate) {
+		zfree(view->tiled_region_evacuate);
+	}
+
+	osd_on_view_destroy(view);
+	ssd_destroy(view->ssd);
+	view->ssd = NULL;
+
+	if (view->scene_tree) {
+		wlr_scene_node_destroy(&view->scene_tree->node);
+		view->scene_tree = NULL;
+	}
+
+	/*
+	 * The layer-shell top-layer is disabled when an application is running
+	 * in fullscreen mode, so if that's the case, we have to re-enable it
+	 * here.
+	 */
+	if (view->fullscreen && view->output) {
+		uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
+		wlr_scene_node_set_enabled(&view->output->layer_tree[top]->node,
+			true);
+	}
+
+	/* If we spawned a window menu, close it */
+	if (server->menu_current
+			&& server->menu_current->triggered_by_view == view) {
+		menu_close_root(server);
+	}
+
+	/* Remove view from server->views */
+	wl_list_remove(&view->link);
+	free(view);
+
+	if (need_cursor_update) {
+		cursor_update_focus(server);
+	}
 }

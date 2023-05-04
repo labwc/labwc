@@ -56,6 +56,7 @@ enum action_type {
 	ACTION_TYPE_RECONFIGURE,
 	ACTION_TYPE_SHOW_MENU,
 	ACTION_TYPE_TOGGLE_MAXIMIZE,
+	ACTION_TYPE_MAXIMIZE,
 	ACTION_TYPE_TOGGLE_FULLSCREEN,
 	ACTION_TYPE_TOGGLE_DECORATIONS,
 	ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP,
@@ -87,6 +88,7 @@ const char *action_names[] = {
 	"Reconfigure",
 	"ShowMenu",
 	"ToggleMaximize",
+	"Maximize",
 	"ToggleFullscreen",
 	"ToggleDecorations",
 	"ToggleAlwaysOnTop",
@@ -456,6 +458,11 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_TOGGLE_MAXIMIZE:
 			if (view) {
 				view_toggle_maximize(view);
+			}
+			break;
+		case ACTION_TYPE_MAXIMIZE:
+			if (view) {
+				view_maximize(view, true, /*store_natural_geometry*/ true);
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_FULLSCREEN:

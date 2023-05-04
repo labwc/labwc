@@ -74,6 +74,9 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="ToggleMaximize">*
 	Toggle maximize state of focused window.
 
+*<action name="Maximize">*
+	Maximize focused window.
+
 *<action name="ToggleAlwaysOnTop">*
 	Toggle always-on-top of focused window.
 

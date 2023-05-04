@@ -38,10 +38,8 @@ struct view_impl {
 	void (*maximize)(struct view *view, bool maximize);
 	void (*move_to_front)(struct view *view);
 	void (*move_to_back)(struct view *view);
-	void (*setup_common_listeners)(struct view *view);
-	void (*setup_specific_listeners)(struct view *view);
-	void (*remove_common_listeners)(struct view *view);
-	void (*remove_specific_listeners)(struct view *view);
+	void (*listeners_init)(struct view *view);
+	void (*listeners_remove)(struct view *view);
 };
 
 struct view {

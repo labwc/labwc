@@ -119,8 +119,7 @@ view_init(struct view *view)
 	node_descriptor_create(&view->scene_tree->node,
 		LAB_NODE_DESC_VIEW, view);
 
-	view->impl->setup_common_listeners(view);
-	view->impl->setup_specific_listeners(view);
+	view->impl->listeners_init(view);
 
 	wl_list_insert(&view->server->views, &view->link);
 }
@@ -132,8 +131,7 @@ view_destroy(struct view *view)
 	struct server *server = view->server;
 	bool need_cursor_update = false;
 
-	view->impl->remove_common_listeners(view);
-	view->impl->remove_specific_listeners(view);
+	view->impl->listeners_remove(view);
 
 	if (view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);

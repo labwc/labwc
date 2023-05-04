@@ -481,7 +481,22 @@ xdg_activation_handle_request(struct wl_listener *listener, void *data)
 }
 
 static void
-xdg_setup_common_listeners(struct view *view)
+xdg_listeners_init_specific(struct view *view)
+{
+	struct xdg_toplevel_view *xdg_view = xdg_toplevel_view_from_view(view);
+	struct wlr_xdg_surface *xdg_surface = xdg_view->xdg_surface;
+	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
+
+	/* Events specific to XDG toplevel views */
+	xdg_view->set_app_id.notify = handle_set_app_id;
+	wl_signal_add(&toplevel->events.set_app_id, &xdg_view->set_app_id);
+
+	xdg_view->new_popup.notify = handle_new_xdg_popup;
+	wl_signal_add(&xdg_surface->events.new_popup, &xdg_view->new_popup);
+}
+
+static void
+xdg_listeners_init(struct view *view)
 {
 	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
 	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
@@ -513,29 +528,19 @@ xdg_setup_common_listeners(struct view *view)
 
 	view->set_title.notify = handle_set_title;
 	wl_signal_add(&toplevel->events.set_title, &view->set_title);
-}
-
-static void
-xdg_setup_specific_listeners(struct view *view)
-{
-	struct xdg_toplevel_view *xdg_view = xdg_toplevel_view_from_view(view);
-	struct wlr_xdg_surface *xdg_surface = xdg_view->xdg_surface;
-	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
 
 	/* Events specific to XDG toplevel views */
-	xdg_view->set_app_id.notify = handle_set_app_id;
-	wl_signal_add(&toplevel->events.set_app_id, &xdg_view->set_app_id);
-
-	xdg_view->new_popup.notify = handle_new_xdg_popup;
-	wl_signal_add(&xdg_surface->events.new_popup, &xdg_view->new_popup);
+	xdg_listeners_init_specific(view);
 }
 
 static void
-xdg_remove_specific_listeners(struct view *view)
+xdg_listeners_remove(struct view *view)
 {
-	struct xdg_toplevel_view *xdg_view = xdg_toplevel_view_from_view(view);
+	/* Remove common listeners */
+	view_impl_remove_common_listeners(view);
 
 	/* Remove xdg-shell view specific listeners */
+	struct xdg_toplevel_view *xdg_view = xdg_toplevel_view_from_view(view);
 	wl_list_remove(&xdg_view->set_app_id.link);
 	wl_list_remove(&xdg_view->new_popup.link);
 }
@@ -551,10 +556,8 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.maximize = xdg_toplevel_view_maximize,
 	.move_to_front = view_impl_move_to_front,
 	.move_to_back = view_impl_move_to_back,
-	.setup_common_listeners = xdg_setup_common_listeners,
-	.setup_specific_listeners = xdg_setup_specific_listeners,
-	.remove_common_listeners = view_impl_remove_common_listeners,
-	.remove_specific_listeners = xdg_remove_specific_listeners,
+	.listeners_init = xdg_listeners_init,
+	.listeners_remove = xdg_listeners_remove,
 };
 
 /*

@@ -575,7 +575,34 @@ xwayland_view_set_fullscreen(struct view *view, bool fullscreen)
 }
 
 static void
-xwayland_setup_common_listeners(struct view *view)
+xwayland_listeners_init_specific(struct view *view)
+{
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+	struct wlr_xwayland_surface *xsurface = xwayland_view->xwayland_surface;
+
+	/* Events specific to XWayland views */
+	xwayland_view->request_activate.notify = handle_request_activate;
+	wl_signal_add(&xsurface->events.request_activate,
+		&xwayland_view->request_activate);
+
+	xwayland_view->request_configure.notify = handle_request_configure;
+	wl_signal_add(&xsurface->events.request_configure,
+		&xwayland_view->request_configure);
+
+	xwayland_view->set_app_id.notify = handle_set_class;
+	wl_signal_add(&xsurface->events.set_class, &xwayland_view->set_app_id);
+
+	xwayland_view->set_decorations.notify = handle_set_decorations;
+	wl_signal_add(&xsurface->events.set_decorations,
+		&xwayland_view->set_decorations);
+
+	xwayland_view->override_redirect.notify = handle_override_redirect;
+	wl_signal_add(&xsurface->events.set_override_redirect,
+		&xwayland_view->override_redirect);
+}
+
+static void
+xwayland_listeners_init(struct view *view)
 {
 	struct wlr_xwayland_surface *xsurface = xwayland_surface_from_view(view);
 
@@ -606,41 +633,19 @@ xwayland_setup_common_listeners(struct view *view)
 
 	view->set_title.notify = handle_set_title;
 	wl_signal_add(&xsurface->events.set_title, &view->set_title);
-}
-
-static void
-xwayland_setup_specific_listeners(struct view *view)
-{
-	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
-	struct wlr_xwayland_surface *xsurface = xwayland_view->xwayland_surface;
 
 	/* Events specific to XWayland views */
-	xwayland_view->request_activate.notify = handle_request_activate;
-	wl_signal_add(&xsurface->events.request_activate,
-		&xwayland_view->request_activate);
-
-	xwayland_view->request_configure.notify = handle_request_configure;
-	wl_signal_add(&xsurface->events.request_configure,
-		&xwayland_view->request_configure);
-
-	xwayland_view->set_app_id.notify = handle_set_class;
-	wl_signal_add(&xsurface->events.set_class, &xwayland_view->set_app_id);
-
-	xwayland_view->set_decorations.notify = handle_set_decorations;
-	wl_signal_add(&xsurface->events.set_decorations,
-		&xwayland_view->set_decorations);
-
-	xwayland_view->override_redirect.notify = handle_override_redirect;
-	wl_signal_add(&xsurface->events.set_override_redirect,
-		&xwayland_view->override_redirect);
+	xwayland_listeners_init_specific(view);
 }
 
 static void
-xwayland_remove_specific_listeners(struct view *view)
+xwayland_listeners_remove(struct view *view)
 {
-	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+	/* Remove common listeners */
+	view_impl_remove_common_listeners(view);
 
 	/* Remove XWayland view specific listeners */
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
 	wl_list_remove(&xwayland_view->request_activate.link);
 	wl_list_remove(&xwayland_view->request_configure.link);
 	wl_list_remove(&xwayland_view->set_app_id.link);
@@ -659,10 +664,8 @@ static const struct view_impl xwayland_view_impl = {
 	.maximize = xwayland_view_maximize,
 	.move_to_front = xwayland_view_move_to_front,
 	.move_to_back = xwayland_view_move_to_back,
-	.setup_common_listeners = xwayland_setup_common_listeners,
-	.setup_specific_listeners = xwayland_setup_specific_listeners,
-	.remove_common_listeners = view_impl_remove_common_listeners,
-	.remove_specific_listeners = xwayland_remove_specific_listeners,
+	.listeners_init = xwayland_listeners_init,
+	.listeners_remove = xwayland_listeners_remove,
 };
 
 struct xwayland_view *

@@ -6,6 +6,11 @@
 bool
 match_glob(const gchar *pattern, const gchar *string)
 {
-	return g_pattern_match_simple(g_utf8_casefold(pattern, -1), g_utf8_casefold(string, -1));
+	gchar *p = g_utf8_casefold(pattern, -1);
+	gchar *s = g_utf8_casefold(string, -1);
+	bool ret = g_pattern_match_simple(p, s);
+	g_free(p);
+	g_free(s);
+	return ret;
 }
 

@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | Release notes | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2023-05-08 | [0.6.3]       | 0.16.2          | 13050         |
 | 2023-03-20 | [0.6.2]       | 0.16.2          | 12157         |
 | 2023-01-29 | [0.6.1]       | 0.16.1          | 11828         |
 | 2022-11-17 | [0.6.0]       | 0.16.0          | 10830         |
@@ -20,6 +21,75 @@ The format is based on [Keep a Changelog]
 | 2021-06-28 | [0.3.0]       | 0.14.0          | 5051          |
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
+
+## 0.6.3 - 2023-05-08
+
+### Added
+
+- Add `focus.followMouseRequiresMovement` to allow a stricter
+  focus-what-is-under-the-cursor configuration. #862
+
+- Support window-rules including properties and on-first-map actions.
+  Any actions in labwc-actions(5) can be used. Only 'serverDecoration'
+  has been added as a property so far. Example config:
+
+      <windowRules>
+        <windowRule identifier="some-application">
+          <action name="Maximize"/>
+        </windowRule>
+        <windowRule identifier="foo*" serverDecoration="yes|no"/>
+      </windowRules>
+
+- Support configuration of window switcher field definitions.
+  Issues #852 #855 #879
+
+      <windowSwitcher show="yes" preview="yes" outlines="yes">
+        <fields>
+          <field content="type" width="25%" />
+          <field content="app_id" width="25%" />
+          <field content="title" width="50%" />
+        </fields>
+      </windowSwitcher>
+
+- Add actions:
+    - 'Lower' Written-by: @jech
+    - 'Maximize'
+- Support ext-session-lock protocol. Helped-by: @heroin-moose
+- Handle XWayland unmanaged surface requests for 'activate' and
+  'override-redirect'. Fixes: #874
+- Add config support for scroll-factor. Fixes #846
+- Support 'follow' attribute for SendToDesktop action. Fixes #841
+
+### Fixed
+
+- Fix adaptive sync configuration. Helped-by: @heroin-moose #642
+- Ignore SIGPIPE to fix crash caused by Wayland clients requesting X11
+  clipboard but closing the read-fd before/while the X11 clipboard is
+  being written to. Fixes #890
+- Ellipsize on-screen-display text
+- Validate PID before activating XWayland unmanaged surfaces to check that
+  the surface trying to grab focus is actually a child of the topmost
+  mapped window.
+- Respect cursor constraint hints when cursor movement occurs after
+  unlocking the pointer. Written-by: @FuzzyQuills Fixes #872
+- Fix invisible cursor on startup and output loss/restore.
+  Reported-by: @Flrian Fixes #820
+- Fix decoration protocol implementation
+    - Respect earlier decoration negotiation results via the
+      xdg-decoration protocol. Previously setting `<decoration>` to
+      `client` would cause applications which prefer server side
+      decorations to not have any decorations at all.
+      Fixes #297 #831
+    - Handle results of kde-server-decoration negotiations
+- Fix `<focus><followMouse>` cursor glitches and issues with focus
+  switching via Alt-Tab. Issue #830 #849
+
+### Changed
+
+- Make `<windowSwitcher>` a toplevel element rather than a child of
+  `<core>`
+- Default to follow="true" for SendToDesktop action as per Openbox 3.6
+  specification.
 
 ## 0.6.2 - 2023-03-20
 
@@ -522,6 +592,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
+[0.6.3]: https://github.com/labwc/labwc/releases/tag/0.6.3
 [0.6.2]: https://github.com/labwc/labwc/releases/tag/0.6.2
 [0.6.1]: https://github.com/labwc/labwc/releases/tag/0.6.1
 [0.6.0]: https://github.com/labwc/labwc/releases/tag/0.6.0

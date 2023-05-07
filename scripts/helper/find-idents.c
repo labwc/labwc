@@ -60,7 +60,52 @@ enum {
 static char *current_buffer_position;
 static struct token *tokens;
 static int nr_tokens, alloc_tokens;
-static int current_line = 1;
+static int current_line;
+static char **argv_tokens;
+static int found_token;
+
+static const char find_banned_usage[] =
+"Usage: find-banned [OPTIONS...] FILE\n"
+"When FILE is -, read stdin\n"
+"OPTIONS:\n"
+"  --tokens=<tokens>     Comma-separated string of idents to grep for\n";
+
+static void
+usage(void)
+{
+	printf("%s", find_banned_usage);
+	exit(0);
+}
+
+char **
+split(char *str, char delim)
+{
+	if (!str) {
+		return NULL;
+	}
+	int argc = 1;
+	char *p = str;
+	while (*p) {
+		if (*p == delim) {
+			argc++;
+		}
+		++p;
+	}
+
+	char **argv = calloc(argc + 1, sizeof(*argv));
+	char **argvp = argv;
+	p = str;
+	while (*str) {
+		if (*str == delim) {
+			*argvp++ = strndup(p, str-p);
+			p = str + 1;
+		}
+		++str;
+	}
+	*argvp++ = strndup(p, str-p);
+	*argvp = NULL;
+	return argv;
+}
 
 void
 buf_init(struct buf *s)
@@ -369,33 +414,66 @@ grep(struct token *tokens, const char *filename, const char *pattern)
 	return found;
 }
 
-int
-main(int argc, char **argv)
+static void
+process_one_file(const char *filename)
 {
 	struct token *tokens;
-	int found = false;
-
-	if (argc < 2) {
-		fprintf(stderr, "usage: %s <file> [<patterns>...]\n", argv[0]);
-		return EXIT_FAILURE;
-	}
-
-	char *buffer = read_file(argv[1]);
+	char *buffer = read_file(filename);
 	if (!buffer) {
-		return EXIT_FAILURE;
+		exit(EXIT_FAILURE);
 	}
+	current_line = 1;
 	tokens = lex(buffer);
 	free(buffer);
 
-	if (argc == 2) {
+	if (!argv_tokens) {
 		/* Dump all idents */
-		grep(tokens, argv[1], NULL);
+		grep(tokens, filename, NULL);
 	} else {
-		for (int i = 2; i < argc; ++i) {
-			found |= grep(tokens, argv[1], argv[i]);
+		for (char **p = argv_tokens; *p; p++) {
+			found_token |= grep(tokens, filename, *p);
+		}
+	}
+}
+
+int
+main(int argc, char **argv)
+{
+	if (argc < 2) {
+		usage();
+	}
+	for (int i = 1; i < argc; ++i) {
+		char *arg = argv[i];
+
+		if (!strncmp(arg, "--tokens=", 9)) {
+			argv_tokens = split(arg + 9, ',');
+		}
+		if (!strcmp(arg, "-")) {
+			char *line = NULL;
+			size_t len = 0;
+			while ((getline(&line, &len, stdin) != -1)) {
+				char *p = strrchr(line, '\n');
+				if (p) {
+					*p = '\0';
+				}
+				process_one_file(line);
+			}
+			free(line);
+			break;
+		}
+		if (arg[0] != '-') {
+			process_one_file(arg);
+			break;
 		}
 	}
 
+	if (argv_tokens) {
+		for (char **p = argv_tokens; *p; p++) {
+			free(*p);
+		}
+		free(argv_tokens);
+	}
+
 	/* return failure (1) if we have found a banned identifier */
-	return found;
+	return found_token;
 }

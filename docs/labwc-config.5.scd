@@ -347,7 +347,7 @@ defined as shown below.
 <windowRules>
 
   <!-- Action -->
-  <windowRule identifier="">
+  <windowRule identifier="" title="">
     <action name=""/>
   </windowRule>
 
@@ -359,14 +359,17 @@ defined as shown below.
 
 *Actions*
 
-*<windowRules><windowRule identifier="">*
+*<windowRules><windowRule identifier="" title="">*
 	Define a window rule for any window which matches the criteria defined
-	by the attribute *identifier*. Matching against patterns with '\*'
-	(wildcard) and '?' (joker) is supported. Pattern matching is
-	case-insensitive.
+	by the attributes *identifier* or *title*. If both are defined, AND
+	logic is used, so both have to match.
+	Matching against patterns with '\*' (wildcard) and '?' (joker) is
+	supported. Pattern matching is case-insensitive.
 
 	*identifier* relates to app_id for native Wayland windows and WM_CLASS
 	for XWayland clients.
+
+	*title* is the title of the window.
 
 *Properties*
 

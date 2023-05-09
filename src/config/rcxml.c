@@ -88,9 +88,16 @@ fill_window_rule(char *nodename, char *content)
 		/* nop */
 	} else if (!current_window_rule) {
 		wlr_log(WLR_ERROR, "no window-rule");
+
+	/* Criteria */
 	} else if (!strcmp(nodename, "identifier")) {
 		free(current_window_rule->identifier);
 		current_window_rule->identifier = xstrdup(content);
+	} else if (!strcmp(nodename, "title")) {
+		free(current_window_rule->title);
+		current_window_rule->title = xstrdup(content);
+
+	/* Event */
 	} else if (!strcmp(nodename, "event")) {
 		/*
 		 * This is just in readiness for adding any other types of
@@ -99,8 +106,12 @@ fill_window_rule(char *nodename, char *content)
 		if (!strcasecmp(content, "onFirstMap")) {
 			current_window_rule->event = LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP;
 		}
+
+	/* Properties */
 	} else if (!strcasecmp(nodename, "serverDecoration")) {
 		set_property(content, &current_window_rule->server_decoration);
+
+	/* Actions */
 	} else if (!strcmp(nodename, "name.action")) {
 		current_window_rule_action = action_create(content);
 		if (current_window_rule_action) {
@@ -1028,6 +1039,29 @@ post_processing(void)
 }
 
 static void
+rule_destroy(struct window_rule *rule)
+{
+	wl_list_remove(&rule->link);
+	zfree(rule->identifier);
+	zfree(rule->title);
+	action_list_free(&rule->actions);
+	zfree(rule);
+}
+
+static void
+validate(void)
+{
+	/* Window-rule criteria */
+	struct window_rule *rule, *next;
+	wl_list_for_each_safe(rule, next, &rc.window_rules, link) {
+		if (!rule->identifier && !rule->title) {
+			wlr_log(WLR_ERROR, "deleting rule %p as no criteria", rule);
+			rule_destroy(rule);
+		}
+	}
+}
+
+static void
 rcxml_path(char *buf, size_t len)
 {
 	if (!rc.config_dir) {
@@ -1091,6 +1125,7 @@ rcxml_read(const char *filename)
 	free(b.buf);
 no_config:
 	post_processing();
+	validate();
 }
 
 void
@@ -1140,10 +1175,7 @@ rcxml_finish(void)
 
 	struct window_rule *rule, *rule_tmp;
 	wl_list_for_each_safe(rule, rule_tmp, &rc.window_rules, link) {
-		wl_list_remove(&rule->link);
-		zfree(rule->identifier);
-		action_list_free(&rule->actions);
-		zfree(rule);
+		rule_destroy(rule);
 	}
 
 	/* Reset state vars for starting fresh when Reload is triggered */

@@ -4,7 +4,7 @@ labwc-config(5)
 
 labwc - configuration files
 
-# CONFIGURATION
+# DESCRIPTION
 
 Labwc uses openbox-3.6 specification for configuration and theming, but does not
 support all options. The following files form the basis of the labwc
@@ -41,8 +41,15 @@ but the remainder of the theme specification and associated files are described
 in labwc-theme(5).
 
 *rc.xml* is the main configuration file and all its options are described in
-detail below. Configuration must be wrapped in a <labwc_config> root-element,
-like this:
+detail below.
+
+# CONFIGURATION
+
+This section describes *rc.xml* configuration options.
+
+## SYNTAX
+
+Configuration must be wrapped in a <labwc_config> root-element like this:
 
 ```
 <?xml version="1.0"?>
@@ -50,13 +57,53 @@ like this:
 
 <!-- settings -->
 
-
 </labwc_config>
 ```
 
-The rest of this man page describes configuration options.
+*labwc* parses XML in an element/attribute agnostic way. This is a design
+decision to increase config file flexibility and keep code simple. In practical
+terms, this means that `<a><b>c</b></a>` is equivalent to `<a b="c" />`.
+
+The following three are therefore treated the same:
+
+```
+<action>
+  <name>Execute</name>
+  <command>foot</command>
+</action>
+```
+
+```
+<action name="Execute">
+  <command>foot</command>
+</action>
+```
+
+```
+<action name="Execute" command="foot" />
+```
+
+The benefit of the final one is brevity whereas the advantage of the first two
+is that you can add ' and " within the `<command>` block, for example:
+
+```
+<command>sh -c 'grim -g "`slurp`"'</command>
+```
+
+Elements at the same level can have the same name whereas attributes cannot.
+Therefore, where multiple objects of the same kind are required (for example
+*<action>* and *<keybind>*) the top-node of the object has to be an element.
 
 ## CORE
+
+```
+<core>
+  <decoration>server</decoration>
+  <gap>0</gap>
+  <adaptiveSync>no</adaptiveSync>
+  <reuseOutputMode>no</reuseOutputMode>
+</core>
+```
 
 *<core><decoration>* [server|client]
 	Specify server or client side decorations for xdg-shell views. Note

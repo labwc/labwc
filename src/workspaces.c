@@ -72,6 +72,9 @@ _osd_update(struct server *server)
 
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
+		if (!output_is_usable(output)) {
+			continue;
+		}
 		struct lab_data_buffer *buffer = buffer_create_cairo(width, height,
 			output->wlr_output->scale, true);
 		if (!buffer) {
@@ -209,7 +212,9 @@ _osd_show(struct server *server)
 	_osd_update(server);
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
-		wlr_scene_node_set_enabled(&output->workspace_osd->node, true);
+		if (output_is_usable(output) && output->workspace_osd) {
+			wlr_scene_node_set_enabled(&output->workspace_osd->node, true);
+		}
 	}
 	struct wlr_keyboard *keyboard = &server->seat.keyboard_group->keyboard;
 	if (keyboard_any_modifiers_pressed(keyboard)) {
@@ -286,6 +291,9 @@ workspaces_osd_hide(struct seat *seat)
 	struct output *output;
 	struct server *server = seat->server;
 	wl_list_for_each(output, &server->outputs, link) {
+		if (!output->workspace_osd) {
+			continue;
+		}
 		wlr_scene_node_set_enabled(&output->workspace_osd->node, false);
 		wlr_scene_buffer_set_buffer(output->workspace_osd, NULL);
 	}

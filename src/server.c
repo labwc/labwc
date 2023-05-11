@@ -307,6 +307,7 @@ server_init(struct server *server)
 	 * | layer-shell       | background-layer | Yes        | swaybg
 	 */
 
+	server->view_tree_always_on_bottom = wlr_scene_tree_create(&server->scene->tree);
 	server->view_tree = wlr_scene_tree_create(&server->scene->tree);
 	server->view_tree_always_on_top = wlr_scene_tree_create(&server->scene->tree);
 	server->xdg_popup_tree = wlr_scene_tree_create(&server->scene->tree);

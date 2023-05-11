@@ -61,6 +61,7 @@ enum action_type {
 	ACTION_TYPE_TOGGLE_FULLSCREEN,
 	ACTION_TYPE_TOGGLE_DECORATIONS,
 	ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP,
+	ACTION_TYPE_TOGGLE_ALWAYS_ON_BOTTOM,
 	ACTION_TYPE_FOCUS,
 	ACTION_TYPE_ICONIFY,
 	ACTION_TYPE_MOVE,
@@ -93,6 +94,7 @@ const char *action_names[] = {
 	"ToggleFullscreen",
 	"ToggleDecorations",
 	"ToggleAlwaysOnTop",
+	"ToggleAlwaysOnBottom",
 	"Focus",
 	"Iconify",
 	"Move",
@@ -513,6 +515,11 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP:
 			if (view) {
 				view_toggle_always_on_top(view);
+			}
+			break;
+		case ACTION_TYPE_TOGGLE_ALWAYS_ON_BOTTOM:
+			if (view) {
+				view_toggle_always_on_bottom(view);
 			}
 			break;
 		case ACTION_TYPE_FOCUS:

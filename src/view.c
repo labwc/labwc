@@ -627,6 +627,28 @@ view_toggle_always_on_top(struct view *view)
 	}
 }
 
+static bool
+view_is_always_on_bottom(struct view *view)
+{
+	assert(view);
+	return view->scene_tree->node.parent ==
+		view->server->view_tree_always_on_bottom;
+}
+
+void
+view_toggle_always_on_bottom(struct view *view)
+{
+	assert(view);
+	if (view_is_always_on_bottom(view)) {
+		view->workspace = view->server->workspace_current;
+		wlr_scene_node_reparent(&view->scene_tree->node,
+			view->workspace->tree);
+	} else {
+		wlr_scene_node_reparent(&view->scene_tree->node,
+			view->server->view_tree_always_on_bottom);
+	}
+}
+
 void
 view_move_to_workspace(struct view *view, struct workspace *workspace)
 {

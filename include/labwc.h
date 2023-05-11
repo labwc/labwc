@@ -263,6 +263,7 @@ struct server {
 
 	/* Tree for all non-layer xdg/xwayland-shell surfaces with always-on-top/below */
 	struct wlr_scene_tree *view_tree_always_on_top;
+	struct wlr_scene_tree *view_tree_always_on_bottom;
 #if HAVE_XWAYLAND
 	/* Tree for unmanaged xsurfaces without initialized view (usually popups) */
 	struct wlr_scene_tree *unmanaged_tree;

@@ -80,6 +80,13 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="ToggleAlwaysOnTop">*
 	Toggle always-on-top of focused window.
 
+*<action name="ToggleAlwaysOnBottom">*
+	Toggle bewteen layers 'always-on-bottom' and 'normal'. When a window is
+	in the 'always-on-bottom' layer, it is rendered below all other
+	top-level windows. It is anticipated that this action will be useful
+	when defining window-rules for desktop-management tools that do not
+	support the wlr-layer-shell protocol.
+
 *<action name="ToggleKeybinds">*
 	Stop handling keybinds other than ToggleKeybinds itself.
 	This can be used to allow A-Tab and similar keybinds to be delivered

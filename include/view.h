@@ -171,8 +171,11 @@ void view_maximize(struct view *view, bool maximize,
 void view_set_fullscreen(struct view *view, bool fullscreen);
 void view_toggle_maximize(struct view *view);
 void view_toggle_decorations(struct view *view);
-void view_toggle_always_on_top(struct view *view);
+
 bool view_is_always_on_top(struct view *view);
+void view_toggle_always_on_top(struct view *view);
+void view_toggle_always_on_bottom(struct view *view);
+
 bool view_is_tiled(struct view *view);
 bool view_is_floating(struct view *view);
 void view_move_to_workspace(struct view *view, struct workspace *workspace);

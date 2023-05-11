@@ -11,6 +11,7 @@
 #include "common/mem.h"
 #include "common/parse-bool.h"
 #include "common/spawn.h"
+#include "common/string-helpers.h"
 #include "debug.h"
 #include "labwc.h"
 #include "menu/menu.h"
@@ -135,35 +136,69 @@ void
 action_arg_from_xml_node(struct action *action, char *nodename, char *content)
 {
 	assert(action);
-	if (!strcmp(nodename, "command.action")) {
-		/* Execute */
-		action_arg_add_str(action, NULL, content);
-	} else if (!strcmp(nodename, "execute.action")) {
-		/*
-		 * <action name="Execute"><execute>foo</execute></action>
-		 * is deprecated, but we support it anyway for backward
-		 * compatibility with old openbox-menu generators
-		 */
-		action_arg_add_str(action, NULL, content);
-	} else if (!strcmp(nodename, "direction.action")) {
-		/* MoveToEdge, SnapToEdge */
-		action_arg_add_str(action, NULL, content);
-	} else if (!strcmp(nodename, "menu.action")) {
-		/* ShowMenu */
-		action_arg_add_str(action, NULL, content);
-	} else if (!strcmp(nodename, "to.action")) {
-		/* GoToDesktop, SendToDesktop */
-		action_arg_add_str(action, "to", content);
-	} else if (!strcmp(nodename, "follow.action")) {
-		/* SendToDesktop */
-		action_arg_add_bool(action, "follow", parse_bool(content, true));
-	} else if (!strcmp(nodename, "region.action")) {
-		/* SnapToRegion */
-		action_arg_add_str(action, NULL, content);
-	} else if (!strcmp(nodename, "output.action")) {
-		/* FocusOutput */
-		action_arg_add_str(action, NULL, content);
+
+	char *argument = xstrdup(nodename);
+	string_truncate_at_pattern(argument, ".action");
+
+	switch (action->type) {
+	case ACTION_TYPE_EXECUTE:
+		if (!strcmp(argument, "command")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		} else if (!strcmp(argument, "execute")) {
+			/*
+			 * <action name="Execute"><execute>foo</execute></action>
+			 * is deprecated, but we support it anyway for backward
+			 * compatibility with old openbox-menu generators
+			 */
+			action_arg_add_str(action, "command", content);
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_MOVE_TO_EDGE:
+	case ACTION_TYPE_SNAP_TO_EDGE:
+		if (!strcmp(argument, "direction")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_SHOW_MENU:
+		if (!strcmp(argument, "menu")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_SEND_TO_DESKTOP:
+		if (!strcmp(argument, "follow")) {
+			action_arg_add_bool(action, argument, parse_bool(content, true));
+			goto cleanup;
+		}
+		/* Falls through to GoToDesktop */
+	case ACTION_TYPE_GO_TO_DESKTOP:
+		if (!strcmp(argument, "to")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_SNAP_TO_REGION:
+		if (!strcmp(argument, "region")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		};
+		break;
+	case ACTION_TYPE_FOCUS_OUTPUT:
+		if (!strcmp(argument, "output")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		break;
 	}
+
+	wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s'",
+		action_names[action->type], argument);
+
+cleanup:
+	free(argument);
 }
 
 static const char *

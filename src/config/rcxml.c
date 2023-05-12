@@ -808,28 +808,28 @@ rcxml_init(void)
 }
 
 static struct {
-	const char *binding, *action, *command;
+	const char *binding, *action, *attribute, *value;
 } key_combos[] = {
-	{ "A-Tab", "NextWindow", NULL },
-	{ "W-Return", "Execute", "alacritty" },
-	{ "A-F3", "Execute", "bemenu-run" },
-	{ "A-F4", "Close", NULL },
-	{ "W-a", "ToggleMaximize", NULL },
-	{ "A-Left", "MoveToEdge", "left" },
-	{ "A-Right", "MoveToEdge", "right" },
-	{ "A-Up", "MoveToEdge", "up" },
-	{ "A-Down", "MoveToEdge", "down" },
-	{ "W-Left", "SnapToEdge", "left" },
-	{ "W-Right", "SnapToEdge", "right" },
-	{ "W-Up", "SnapToEdge", "up" },
-	{ "W-Down", "SnapToEdge", "down" },
-	{ "A-Space", "ShowMenu", "client-menu"},
-	{ "XF86_AudioLowerVolume", "Execute", "amixer sset Master 5%-" },
-	{ "XF86_AudioRaiseVolume", "Execute", "amixer sset Master 5%+" },
-	{ "XF86_AudioMute", "Execute", "amixer sset Master toggle" },
-	{ "XF86_MonBrightnessUp", "Execute", "brightnessctl set +10%" },
-	{ "XF86_MonBrightnessDown", "Execute", "brightnessctl set 10%-" },
-	{ NULL, NULL, NULL },
+	{ "A-Tab", "NextWindow", NULL, NULL },
+	{ "W-Return", "Execute", "command", "alacritty" },
+	{ "A-F3", "Execute", "command", "bemenu-run" },
+	{ "A-F4", "Close", NULL, NULL },
+	{ "W-a", "ToggleMaximize", NULL, NULL },
+	{ "A-Left", "MoveToEdge", "direction", "left" },
+	{ "A-Right", "MoveToEdge", "direction", "right" },
+	{ "A-Up", "MoveToEdge", "direction", "up" },
+	{ "A-Down", "MoveToEdge", "direction", "down" },
+	{ "W-Left", "SnapToEdge", "direction", "left" },
+	{ "W-Right", "SnapToEdge", "direction", "right" },
+	{ "W-Up", "SnapToEdge", "direction", "up" },
+	{ "W-Down", "SnapToEdge", "direction", "down" },
+	{ "A-Space", "ShowMenu", "menu", "client-menu"},
+	{ "XF86_AudioLowerVolume", "Execute", "command", "amixer sset Master 5%-" },
+	{ "XF86_AudioRaiseVolume", "Execute", "command", "amixer sset Master 5%+" },
+	{ "XF86_AudioMute", "Execute", "command", "amixer sset Master toggle" },
+	{ "XF86_MonBrightnessUp", "Execute", "command", "brightnessctl set +10%" },
+	{ "XF86_MonBrightnessDown", "Execute", "command", "brightnessctl set 10%-" },
+	{ NULL, NULL, NULL, NULL },
 };
 
 static void
@@ -846,8 +846,8 @@ load_default_key_bindings(void)
 		action = action_create(key_combos[i].action);
 		wl_list_append(&k->actions, &action->link);
 
-		if (key_combos[i].command) {
-			action_arg_add_str(action, NULL, key_combos[i].command);
+		if (key_combos[i].attribute && key_combos[i].value) {
+			action_arg_add_str(action, key_combos[i].attribute, key_combos[i].value);
 		}
 	}
 }
@@ -956,7 +956,7 @@ load_default_mouse_bindings(void)
 		 * slightly more sophisticated approach will be needed.
 		 */
 		if (current->attribute && current->value) {
-			action_arg_add_str(action, (char *)current->attribute, current->value);
+			action_arg_add_str(action, current->attribute, current->value);
 		}
 	}
 	wlr_log(WLR_DEBUG, "Loaded %u merged mousebinds", count);

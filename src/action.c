@@ -122,38 +122,38 @@ const char *action_names[] = {
 };
 
 void
-action_arg_add_str(struct action *action, char *key, const char *value)
+action_arg_add_str(struct action *action, const char *key, const char *value)
 {
+	assert(action);
+	assert(key);
 	assert(value && "Tried to add NULL action string argument");
 	struct action_arg_str *arg = znew(*arg);
 	arg->base.type = LAB_ACTION_ARG_STR;
-	if (key) {
-		arg->base.key = xstrdup(key);
-	}
+	arg->base.key = xstrdup(key);
 	arg->value = xstrdup(value);
 	wl_list_append(&action->args, &arg->base.link);
 }
 
 static void
-action_arg_add_bool(struct action *action, char *key, bool value)
+action_arg_add_bool(struct action *action, const char *key, bool value)
 {
+	assert(action);
+	assert(key);
 	struct action_arg_bool *arg = znew(*arg);
 	arg->base.type = LAB_ACTION_ARG_BOOL;
-	if (key) {
-		arg->base.key = xstrdup(key);
-	}
+	arg->base.key = xstrdup(key);
 	arg->value = value;
 	wl_list_append(&action->args, &arg->base.link);
 }
 
 static void
-action_arg_add_int(struct action *action, char *key, int value)
+action_arg_add_int(struct action *action, const char *key, int value)
 {
+	assert(action);
+	assert(key);
 	struct action_arg_int *arg = znew(*arg);
 	arg->base.type = LAB_ACTION_ARG_INT;
-	if (key) {
-		arg->base.key = xstrdup(key);
-	}
+	arg->base.key = xstrdup(key);
 	arg->value = value;
 	wl_list_append(&action->args, &arg->base.link);
 }
@@ -252,12 +252,10 @@ action_str_from_arg(struct action_arg *arg)
 static const char *
 get_arg_value_str(struct action *action, const char *key, const char *default_value)
 {
+	assert(action);
 	assert(key);
 	struct action_arg *arg;
 	wl_list_for_each(arg, &action->args, link) {
-		if (!arg->key) {
-			continue;
-		}
 		if (!strcasecmp(key, arg->key)) {
 			return action_str_from_arg(arg);
 		}
@@ -268,12 +266,10 @@ get_arg_value_str(struct action *action, const char *key, const char *default_va
 static bool
 get_arg_value_bool(struct action *action, const char *key, bool default_value)
 {
+	assert(action);
 	assert(key);
 	struct action_arg *arg;
 	wl_list_for_each(arg, &action->args, link) {
-		if (!arg->key) {
-			continue;
-		}
 		if (!strcasecmp(key, arg->key)) {
 			assert(arg->type == LAB_ACTION_ARG_BOOL);
 			return ((struct action_arg_bool *)arg)->value;
@@ -285,12 +281,10 @@ get_arg_value_bool(struct action *action, const char *key, bool default_value)
 static int
 get_arg_value_int(struct action *action, const char *key, int default_value)
 {
+	assert(action);
 	assert(key);
 	struct action_arg *arg;
 	wl_list_for_each(arg, &action->args, link) {
-		if (!arg->key) {
-			continue;
-		}
 		if (!strcasecmp(key, arg->key)) {
 			assert(arg->type == LAB_ACTION_ARG_INT);
 			return ((struct action_arg_int *)arg)->value;

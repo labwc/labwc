@@ -20,7 +20,7 @@ struct action {
 
 struct action *action_create(const char *action_name);
 
-void action_arg_add_str(struct action *action, char *key, const char *value);
+void action_arg_add_str(struct action *action, const char *key, const char *value);
 
 void action_arg_from_xml_node(struct action *action, char *nodename, char *content);
 

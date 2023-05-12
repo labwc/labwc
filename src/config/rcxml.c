@@ -1014,24 +1014,6 @@ post_processing(void)
 	if (rc.workspace_config.popuptime == INT_MIN) {
 		rc.workspace_config.popuptime = 1000;
 	}
-	struct region *region, *region_tmp;
-	wl_list_for_each_safe(region, region_tmp, &rc.regions, link) {
-		struct wlr_box box = region->percentage;
-		bool invalid = !region->name
-			|| box.x < 0 || box.x > 100
-			|| box.y < 0 || box.y > 100
-			|| box.width <= 0 || box.width > 100
-			|| box.height <= 0 || box.height > 100;
-		if (invalid) {
-			wlr_log(WLR_ERROR,
-				"Removing invalid region '%s': %d%% x %d%% @ %d%%,%d%%",
-				region->name, box.width, box.height, box.x, box.y);
-			wl_list_remove(&region->link);
-			zfree(region->name);
-			free(region);
-		}
-	}
-
 	if (!wl_list_length(&rc.window_switcher.fields)) {
 		wlr_log(WLR_INFO, "load default window switcher fields");
 		load_default_window_switcher_fields();
@@ -1051,11 +1033,30 @@ rule_destroy(struct window_rule *rule)
 static void
 validate(void)
 {
+	/* Regions */
+	struct region *region, *region_tmp;
+	wl_list_for_each_safe(region, region_tmp, &rc.regions, link) {
+		struct wlr_box box = region->percentage;
+		bool invalid = !region->name
+			|| box.x < 0 || box.x > 100
+			|| box.y < 0 || box.y > 100
+			|| box.width <= 0 || box.width > 100
+			|| box.height <= 0 || box.height > 100;
+		if (invalid) {
+			wlr_log(WLR_ERROR,
+				"Removing invalid region '%s': %d%% x %d%% @ %d%%,%d%%",
+				region->name, box.width, box.height, box.x, box.y);
+			wl_list_remove(&region->link);
+			zfree(region->name);
+			free(region);
+		}
+	}
+
 	/* Window-rule criteria */
 	struct window_rule *rule, *next;
 	wl_list_for_each_safe(rule, next, &rc.window_rules, link) {
 		if (!rule->identifier && !rule->title) {
-			wlr_log(WLR_ERROR, "deleting rule %p as no criteria", rule);
+			wlr_log(WLR_ERROR, "Deleting rule %p as it has no criteria", rule);
 			rule_destroy(rule);
 		}
 	}

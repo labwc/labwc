@@ -249,6 +249,20 @@ action_str_from_arg(struct action_arg *arg)
 	return ((struct action_arg_str *)arg)->value;
 }
 
+static bool
+arg_value_exists(struct action *action, const char *key)
+{
+	assert(action);
+	assert(key);
+	struct action_arg *arg;
+	wl_list_for_each(arg, &action->args, link) {
+		if (!strcasecmp(key, arg->key)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 static const char *
 get_arg_value_str(struct action *action, const char *key, const char *default_value)
 {
@@ -344,6 +358,46 @@ actions_contain_toggle_keybinds(struct wl_list *action_list)
 			return true;
 		}
 	}
+	return false;
+}
+
+/* Checks for *required* arguments */
+bool
+action_is_valid(struct action *action)
+{
+	const char *arg_name = NULL;
+	switch (action->type) {
+	case ACTION_TYPE_EXECUTE:
+		arg_name = "command";
+		break;
+	case ACTION_TYPE_MOVE_TO_EDGE:
+	case ACTION_TYPE_SNAP_TO_EDGE:
+		arg_name = "direction";
+		break;
+	case ACTION_TYPE_SHOW_MENU:
+		arg_name = "menu";
+		break;
+	case ACTION_TYPE_GO_TO_DESKTOP:
+	case ACTION_TYPE_SEND_TO_DESKTOP:
+		arg_name = "to";
+		break;
+	case ACTION_TYPE_SNAP_TO_REGION:
+		arg_name = "region";
+		break;
+	case ACTION_TYPE_FOCUS_OUTPUT:
+		arg_name = "output";
+		break;
+	default:
+		/* No arguments required */
+		return true;
+	}
+
+	if (arg_value_exists(action, arg_name)) {
+		return true;
+	}
+
+	wlr_log(WLR_ERROR, "Missing required argument for %s: %s",
+		action_names[action->type], arg_name);
 	return false;
 }
 

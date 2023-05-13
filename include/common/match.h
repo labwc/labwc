@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_MATCH_H
-#define __LABWC_MATCH_H
+#ifndef LABWC_MATCH_H
+#define LABWC_MATCH_H
 #include <glib.h>
 
 /**
@@ -11,4 +11,4 @@
  */
 bool match_glob(const gchar *pattern, const gchar *string);
 
-#endif /* __LABWC_MATCH_H */
+#endif /* LABWC_MATCH_H */

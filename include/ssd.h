@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_SSD_H
-#define __LABWC_SSD_H
+#ifndef LABWC_SSD_H
+#define LABWC_SSD_H
 
 #include <wayland-server-core.h>
 
@@ -95,4 +95,4 @@ bool ssd_debug_is_root_node(const struct ssd *ssd, struct wlr_scene_node *node);
 const char *ssd_debug_get_node_name(const struct ssd *ssd,
 	struct wlr_scene_node *node);
 
-#endif /* __LABWC_SSD_H */
+#endif /* LABWC_SSD_H */

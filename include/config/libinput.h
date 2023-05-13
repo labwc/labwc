@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_LIBINPUT_H
-#define __LABWC_LIBINPUT_H
+#ifndef LABWC_LIBINPUT_H
+#define LABWC_LIBINPUT_H
 
 #include <libinput.h>
 #include <string.h>
@@ -30,4 +30,4 @@ enum device_type get_device_type(const char *s);
 struct libinput_category *libinput_category_create(void);
 struct libinput_category *libinput_category_get_default(void);
 
-#endif /* __LABWC_LIBINPUT_H */
+#endif /* LABWC_LIBINPUT_H */

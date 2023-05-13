@@ -5,8 +5,8 @@
  * Copyright Johan Malm 2020
  */
 
-#ifndef __LABWC_BUF_H
-#define __LABWC_BUF_H
+#ifndef LABWC_BUF_H
+#define LABWC_BUF_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,4 +39,4 @@ void buf_init(struct buf *s);
  */
 void buf_add(struct buf *s, const char *data);
 
-#endif /* __LABWC_BUF_H */
+#endif /* LABWC_BUF_H */

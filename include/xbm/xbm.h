@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_XBM_H
-#define __LABWC_XBM_H
+#ifndef LABWC_XBM_H
+#define LABWC_XBM_H
 
 #include <wlr/render/wlr_renderer.h>
 
@@ -11,4 +11,4 @@
  */
 void xbm_load(struct theme *theme);
 
-#endif /* __LABWC_XBM_H */
+#endif /* LABWC_XBM_H */

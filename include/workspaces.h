@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_WORKSPACES_H
-#define __LABWC_WORKSPACES_H
+#ifndef LABWC_WORKSPACES_H
+#define LABWC_WORKSPACES_H
 
 struct seat;
 struct view;
@@ -25,4 +25,4 @@ void workspaces_destroy(struct server *server);
 void workspaces_osd_hide(struct seat *seat);
 struct workspace *workspaces_find(struct workspace *anchor, const char *name);
 
-#endif /* __LABWC_WORKSPACES_H */
+#endif /* LABWC_WORKSPACES_H */

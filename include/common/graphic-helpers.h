@@ -1,4 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
+#ifndef LABWC_GRAPHIC_HELPERS_H
+#define LABWC_GRAPHIC_HELPERS_H
 
 #include <cairo.h>
 #include <wayland-server-core.h>
@@ -44,3 +46,5 @@ void set_cairo_color(cairo_t *cairo, float *color);
 /* Draws a border with a specified line width */
 void draw_cairo_border(cairo_t *cairo, double width, double height,
 		double line_width);
+
+#endif /* LABWC_GRAPHIC_HELPERS_H */

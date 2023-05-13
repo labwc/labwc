@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __WINDOW_RULES_H
-#define __WINDOW_RULES_H
+#ifndef LABWC_WINDOW_RULES_H
+#define LABWC_WINDOW_RULES_H
 
 enum window_rule_event {
 	LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP = 0,
@@ -35,4 +35,4 @@ struct view;
 void window_rules_apply(struct view *view, enum window_rule_event event);
 enum property window_rules_get_property(struct view *view, const char *property);
 
-#endif /* __WINDOW_RULES_H */
+#endif /* LABWC_WINDOW_RULES_H */

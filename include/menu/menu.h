@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_MENU_H
-#define __LABWC_MENU_H
+#ifndef LABWC_MENU_H
+#define LABWC_MENU_H
 
 #include <wayland-server.h>
 
@@ -115,4 +115,4 @@ void menu_close_root(struct server *server);
 /* menu_reconfigure - reload theme and content */
 void menu_reconfigure(struct server *server);
 
-#endif /* __LABWC_MENU_H */
+#endif /* LABWC_MENU_H */

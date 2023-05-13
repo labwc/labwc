@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_MEM_H
-#define __LABWC_MEM_H
+#ifndef LABWC_MEM_H
+#define LABWC_MEM_H
 
 #include <stdlib.h>
 
@@ -52,4 +52,4 @@ char *xstrdup(const char *str);
 	free(ptr); (ptr) = NULL; \
 } while (0)
 
-#endif /* __LABWC_MEM_H */
+#endif /* LABWC_MEM_H */

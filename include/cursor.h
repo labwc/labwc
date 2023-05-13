@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_CURSOR_H
-#define __LABWC_CURSOR_H
+#ifndef LABWC_CURSOR_H
+#define LABWC_CURSOR_H
 
 #include <wlr/util/edges.h>
 #include "ssd.h"
@@ -119,4 +119,4 @@ void cursor_update_image(struct seat *seat);
 void cursor_init(struct seat *seat);
 void cursor_finish(struct seat *seat);
 
-#endif /* __LABWC_CURSOR_H */
+#endif /* LABWC_CURSOR_H */

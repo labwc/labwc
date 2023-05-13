@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_SSD_INTERNAL_H
-#define __LABWC_SSD_INTERNAL_H
+#ifndef LABWC_SSD_INTERNAL_H
+#define LABWC_SSD_INTERNAL_H
 
 #include <wlr/util/box.h>
 #include "ssd.h"
@@ -136,4 +136,4 @@ void ssd_extents_create(struct ssd *ssd);
 void ssd_extents_update(struct ssd *ssd);
 void ssd_extents_destroy(struct ssd *ssd);
 
-#endif /* __LABWC_SSD_INTERNAL_H */
+#endif /* LABWC_SSD_INTERNAL_H */

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_KEYBIND_H
-#define __LABWC_KEYBIND_H
+#ifndef LABWC_KEYBIND_H
+#define LABWC_KEYBIND_H
 
 #include <wlr/types/wlr_keyboard.h>
 #include <xkbcommon/xkbcommon.h>
@@ -30,4 +30,4 @@ uint32_t parse_modifier(const char *symname);
 
 bool keybind_the_same(struct keybind *a, struct keybind *b);
 
-#endif /* __LABWC_KEYBIND_H */
+#endif /* LABWC_KEYBIND_H */

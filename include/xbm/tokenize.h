@@ -5,8 +5,8 @@
  * Copyright Johan Malm 2020
  */
 
-#ifndef __LABWC_TOKENIZE_H
-#define __LABWC_TOKENIZE_H
+#ifndef LABWC_TOKENIZE_H
+#define LABWC_TOKENIZE_H
 
 enum token_type {
 	TOKEN_NONE = 0,
@@ -31,4 +31,4 @@ struct token {
  */
 struct token *tokenize_xbm(char *buffer);
 
-#endif /* __LABWC_TOKENIZE_H */
+#endif /* LABWC_TOKENIZE_H */

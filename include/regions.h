@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_REGIONS_H
-#define __LABWC_REGIONS_H
+#ifndef LABWC_REGIONS_H
+#define LABWC_REGIONS_H
 
 #include <wlr/util/box.h>
 
@@ -76,4 +76,4 @@ struct region *regions_from_name(const char *region_name, struct output *output)
 void regions_show_overlay(struct view *view, struct seat *seat, struct region *region);
 void regions_hide_overlay(struct seat *seat);
 
-#endif /* __LABWC_REGIONS_H */
+#endif /* LABWC_REGIONS_H */

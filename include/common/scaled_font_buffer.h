@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LAB_COMMON_SCALED_FONT_BUFFER_H
-#define __LAB_COMMON_SCALED_FONT_BUFFER_H
+#ifndef LABWC_SCALED_FONT_BUFFER_H
+#define LABWC_SCALED_FONT_BUFFER_H
 
 #include "common/font.h"
 
@@ -56,4 +56,4 @@ void scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text
  */
 void scaled_font_buffer_set_max_width(struct scaled_font_buffer *self, int max_width);
 
-#endif /* __LAB_COMMON_SCALED_FONT_BUFFER_H */
+#endif /* LABWC_SCALED_FONT_BUFFER_H */

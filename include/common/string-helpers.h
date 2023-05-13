@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_STRING_HELPERS_H
-#define __LABWC_STRING_HELPERS_H
+#ifndef LABWC_STRING_HELPERS_H
+#define LABWC_STRING_HELPERS_H
 
 /**
  * string_strip - strip white space left and right
@@ -16,4 +16,4 @@ char *string_strip(char *s);
  */
 void string_truncate_at_pattern(char *buf, const char *pattern);
 
-#endif /* __LABWC_STRING_HELPERS_H */
+#endif /* LABWC_STRING_HELPERS_H */

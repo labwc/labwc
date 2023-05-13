@@ -128,6 +128,30 @@ post_processing(struct server *server)
 	}
 }
 
+static void
+validate_menu(struct menu *menu)
+{
+	struct menuitem *item;
+	struct action *action, *action_tmp;
+	wl_list_for_each(item, &menu->menuitems, link) {
+		wl_list_for_each_safe(action, action_tmp, &item->actions, link) {
+			if (!action_is_valid(action)) {
+				wl_list_remove(&action->link);
+				action_free(action);
+				wlr_log(WLR_ERROR, "Removed invalid menu action");
+			}
+		}
+	}
+}
+
+static void
+validate(struct server *server)
+{
+	for (int i = 0; i < nr_menus; ++i) {
+		validate_menu(menus + i);
+	}
+}
+
 static struct menuitem *
 item_create(struct menu *menu, const char *text, bool show_arrow)
 {
@@ -730,6 +754,7 @@ menu_init(struct server *server)
 	init_rootmenu(server);
 	init_windowmenu(server);
 	post_processing(server);
+	validate(server);
 }
 
 void

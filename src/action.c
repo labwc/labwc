@@ -401,23 +401,30 @@ action_is_valid(struct action *action)
 	return false;
 }
 
-void action_list_free(struct wl_list *action_list)
+void
+action_free(struct action *action)
 {
+	/* Free args */
 	struct action_arg *arg, *arg_tmp;
+	wl_list_for_each_safe(arg, arg_tmp, &action->args, link) {
+		wl_list_remove(&arg->link);
+		zfree(arg->key);
+		if (arg->type == LAB_ACTION_ARG_STR) {
+			struct action_arg_str *str_arg = (struct action_arg_str *)arg;
+			zfree(str_arg->value);
+		}
+		zfree(arg);
+	}
+	zfree(action);
+}
+
+void
+action_list_free(struct wl_list *action_list)
+{
 	struct action *action, *action_tmp;
-	/* Free actions */
 	wl_list_for_each_safe(action, action_tmp, action_list, link) {
 		wl_list_remove(&action->link);
-		/* Free args */
-		wl_list_for_each_safe(arg, arg_tmp, &action->args, link) {
-			wl_list_remove(&arg->link);
-			zfree(arg->key);
-			if (arg->type == LAB_ACTION_ARG_STR) {
-				free((void *)action_str_from_arg(arg));
-			}
-			zfree(arg);
-		}
-		zfree(action);
+		action_free(action);
 	}
 }
 

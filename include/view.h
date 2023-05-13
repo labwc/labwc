@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_VIEW_H
-#define __LABWC_VIEW_H
+#ifndef LABWC_VIEW_H
+#define LABWC_VIEW_H
 
 #include "config.h"
 #include <stdbool.h>
@@ -202,4 +202,4 @@ void view_destroy(struct view *view);
 /* xdg.c */
 struct wlr_xdg_surface *xdg_surface_from_view(struct view *view);
 
-#endif /* __LABWC_VIEW_H */
+#endif /* LABWC_VIEW_H */

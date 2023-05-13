@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_LAYERS_H
-#define __LABWC_LAYERS_H
+#ifndef LABWC_LAYERS_H
+#define LABWC_LAYERS_H
 #include <wayland-server.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 
@@ -36,4 +36,4 @@ void layers_init(struct server *server);
 
 void layers_arrange(struct output *output);
 
-#endif /* __LABWC_LAYERS_H */
+#endif /* LABWC_LAYERS_H */

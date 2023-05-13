@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_XWAYLAND_H
-#define __LABWC_XWAYLAND_H
+#ifndef LABWC_XWAYLAND_H
+#define LABWC_XWAYLAND_H
 #include "config.h"
 #if HAVE_XWAYLAND
 #include "view.h"
@@ -55,4 +55,4 @@ void xwayland_server_init(struct server *server,
 void xwayland_server_finish(struct server *server);
 
 #endif /* HAVE_XWAYLAND */
-#endif /* __LABWC_XWAYLAND_H */
+#endif /* LABWC_XWAYLAND_H */

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_DIR_H
-#define __LABWC_DIR_H
+#ifndef LABWC_DIR_H
+#define LABWC_DIR_H
 
 char *config_dir(void);
 
@@ -10,4 +10,4 @@ char *config_dir(void);
  */
 char *theme_dir(const char *theme_name);
 
-#endif /* __LABWC_DIR_H */
+#endif /* LABWC_DIR_H */

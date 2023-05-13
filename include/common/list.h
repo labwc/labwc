@@ -1,4 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
+#ifndef LABWC_LIST_H
+#define LABWC_LIST_H
 #include <wayland-server-core.h>
 
 /**
@@ -17,3 +19,5 @@ wl_list_append(struct wl_list *list, struct wl_list *elm)
 {
 	wl_list_insert(list->prev, elm);
 }
+
+#endif /* LABWC_LIST_H */

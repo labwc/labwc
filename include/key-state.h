@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_KEY_STATE_H
-#define __LABWC_KEY_STATE_H
+#ifndef LABWC_KEY_STATE_H
+#define LABWC_KEY_STATE_H
 
 /*
  * All keycodes in these functions are (Linux) libinput evdev scancodes which is
@@ -22,4 +22,4 @@ bool key_state_corresponding_press_event_was_bound(uint32_t keycode);
 void key_state_bound_key_remove(uint32_t keycode);
 int key_state_nr_keys(void);
 
-#endif /* __LABWC_KEY_STATE_H */
+#endif /* LABWC_KEY_STATE_H */

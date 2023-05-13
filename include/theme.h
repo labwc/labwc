@@ -5,8 +5,8 @@
  * Copyright Johan Malm 2020-2021
  */
 
-#ifndef __LABWC_THEME_H
-#define __LABWC_THEME_H
+#ifndef LABWC_THEME_H
+#define LABWC_THEME_H
 
 #include <stdio.h>
 #include <wlr/render/wlr_renderer.h>
@@ -100,4 +100,4 @@ void theme_init(struct theme *theme, const char *theme_name);
  */
 void theme_finish(struct theme *theme);
 
-#endif /* __LABWC_THEME_H */
+#endif /* LABWC_THEME_H */

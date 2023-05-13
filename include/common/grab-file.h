@@ -5,8 +5,8 @@
  * Copyright Johan Malm 2020
  */
 
-#ifndef __LABWC_GRAB_FILE_H
-#define __LABWC_GRAB_FILE_H
+#ifndef LABWC_GRAB_FILE_H
+#define LABWC_GRAB_FILE_H
 
 /**
  * grab_file - read file into memory buffer
@@ -15,4 +15,4 @@
  */
 char *grab_file(const char *filename);
 
-#endif /* __LABWC_GRAB_FILE_H */
+#endif /* LABWC_GRAB_FILE_H */

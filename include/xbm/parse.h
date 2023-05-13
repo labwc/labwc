@@ -5,8 +5,8 @@
  * Copyright Johan Malm 2020
  */
 
-#ifndef __LABWC_PARSE_H
-#define __LABWC_PARSE_H
+#ifndef LABWC_PARSE_H
+#define LABWC_PARSE_H
 
 #include "xbm/tokenize.h"
 #include <stdint.h>
@@ -35,4 +35,4 @@ struct pixmap parse_xbm_tokens(struct token *tokens);
  */
 struct pixmap parse_xbm_builtin(const char *button, int size);
 
-#endif /* __LABWC_PARSE_H */
+#endif /* LABWC_PARSE_H */

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_SESSION_H
-#define __LABWC_SESSION_H
+#ifndef LABWC_SESSION_H
+#define LABWC_SESSION_H
 
 /**
  * session_environment_init - set enrivonment variables based on <key>=<value>
@@ -17,4 +17,4 @@ void session_environment_init(const char *dir);
  */
 void session_autostart_init(const char *dir);
 
-#endif /* __LABWC_SESSION_H */
+#endif /* LABWC_SESSION_H */

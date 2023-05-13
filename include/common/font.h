@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_FONT_H
-#define __LABWC_FONT_H
+#ifndef LABWC_FONT_H
+#define LABWC_FONT_H
 
 struct lab_data_buffer;
 
@@ -54,4 +54,4 @@ void font_buffer_create(struct lab_data_buffer **buffer, int max_width,
  */
 void font_finish(void);
 
-#endif /* __LABWC_FONT_H */
+#endif /* LABWC_FONT_H */

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LAB_COMMON_SCALED_SCENE_BUFFER_H
-#define __LAB_COMMON_SCALED_SCENE_BUFFER_H
+#ifndef LABWC_SCALED_SCENE_BUFFER_H
+#define LABWC_SCALED_SCENE_BUFFER_H
 
 #define LAB_SCALED_BUFFER_MAX_CACHE 2
 
@@ -66,4 +66,4 @@ struct scaled_scene_buffer_cache_entry {
 	double scale;
 };
 
-#endif /* __LAB_COMMON_SCALED_SCENE_BUFFER_H */
+#endif /* LABWC_SCALED_SCENE_BUFFER_H */

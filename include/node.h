@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_NODE_DESCRIPTOR_H
-#define __LABWC_NODE_DESCRIPTOR_H
+#ifndef LABWC_NODE_DESCRIPTOR_H
+#define LABWC_NODE_DESCRIPTOR_H
 #include <wlr/types/wlr_scene.h>
 
 struct view;
@@ -79,4 +79,4 @@ struct menuitem *node_menuitem_from_node(
 struct ssd_button *node_ssd_button_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
-#endif /* __LABWC_NODE_DESCRIPTOR_H */
+#endif /* LABWC_NODE_DESCRIPTOR_H */

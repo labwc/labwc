@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef __LABWC_PARSE_BOOL_H
-#define __LABWC_PARSE_BOOL_H
+#ifndef LABWC_PARSE_BOOL_H
+#define LABWC_PARSE_BOOL_H
 #include <stdbool.h>
 
 /**
@@ -21,4 +21,4 @@ int parse_bool(const char *str, int default_value);
 void set_bool(const char *str, bool *variable);
 void set_bool_as_int(const char *str, int *variable);
 
-#endif /* __LABWC_PARSE_BOOL_H */
+#endif /* LABWC_PARSE_BOOL_H */

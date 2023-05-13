@@ -1122,6 +1122,45 @@ rule_destroy(struct window_rule *rule)
 }
 
 static void
+validate_actions(void)
+{
+	struct action *action, *action_tmp;
+
+	struct keybind *keybind;
+	wl_list_for_each(keybind, &rc.keybinds, link) {
+		wl_list_for_each_safe(action, action_tmp, &keybind->actions, link) {
+			if (!action_is_valid(action)) {
+				wl_list_remove(&action->link);
+				action_free(action);
+				wlr_log(WLR_ERROR, "Removed invalid keybind action");
+			}
+		}
+	}
+
+	struct mousebind *mousebind;
+	wl_list_for_each(mousebind, &rc.mousebinds, link) {
+		wl_list_for_each_safe(action, action_tmp, &mousebind->actions, link) {
+			if (!action_is_valid(action)) {
+				wl_list_remove(&action->link);
+				action_free(action);
+				wlr_log(WLR_ERROR, "Removed invalid mousebind action");
+			}
+		}
+	}
+
+	struct window_rule *rule;
+	wl_list_for_each(rule, &rc.window_rules, link) {
+		wl_list_for_each_safe(action, action_tmp, &rule->actions, link) {
+			if (!action_is_valid(action)) {
+				wl_list_remove(&action->link);
+				action_free(action);
+				wlr_log(WLR_ERROR, "Removed invalid window rule action");
+			}
+		}
+	}
+}
+
+static void
 validate(void)
 {
 	/* Regions */
@@ -1144,13 +1183,15 @@ validate(void)
 	}
 
 	/* Window-rule criteria */
-	struct window_rule *rule, *next;
-	wl_list_for_each_safe(rule, next, &rc.window_rules, link) {
+	struct window_rule *rule, *rule_tmp;
+	wl_list_for_each_safe(rule, rule_tmp, &rc.window_rules, link) {
 		if (!rule->identifier && !rule->title) {
 			wlr_log(WLR_ERROR, "Deleting rule %p as it has no criteria", rule);
 			rule_destroy(rule);
 		}
 	}
+
+	validate_actions();
 }
 
 static void

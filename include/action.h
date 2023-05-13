@@ -30,6 +30,8 @@ bool actions_contain_toggle_keybinds(struct wl_list *action_list);
 
 void actions_run(struct view *activator, struct server *server,
 	struct wl_list *actions, uint32_t resize_edges);
+
+void action_free(struct action *action);
 void action_list_free(struct wl_list *action_list);
 
 #endif /* LABWC_ACTION_H */

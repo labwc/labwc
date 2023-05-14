@@ -340,10 +340,10 @@
         <action name="ShowMenu" menu="root-menu" />
       </mousebind>
       <mousebind direction="Up" action="Scroll">
-        <action name="GoToDesktop" to="left" />
+        <action name="GoToDesktop" to="left" wrap="yes" />
       </mousebind>
       <mousebind direction="Down" action="Scroll">
-        <action name="GoToDesktop" to="right" />
+        <action name="GoToDesktop" to="right" wrap="yes" />
       </mousebind>
     </context>
 

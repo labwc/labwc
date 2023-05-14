@@ -179,6 +179,10 @@ action_arg_from_xml_node(struct action *action, char *nodename, char *content)
 			action_arg_add_str(action, argument, content);
 			goto cleanup;
 		}
+		if (!strcmp(argument, "wrap")) {
+			action_arg_add_bool(action, argument, parse_bool(content, true));
+			goto cleanup;
+		}
 		break;
 	case ACTION_TYPE_SNAP_TO_REGION:
 		if (!strcmp(argument, "region")) {
@@ -546,18 +550,21 @@ actions_run(struct view *activator, struct server *server,
 					resize_edges);
 			}
 			break;
-		case ACTION_TYPE_GO_TO_DESKTOP:
-			if (!arg) {
-				wlr_log(WLR_ERROR, "Missing argument for GoToDesktop");
+		case ACTION_TYPE_GO_TO_DESKTOP: {
+			const char *to = get_arg_value_str(action, "to", NULL);
+			if (!to) {
+				wlr_log(WLR_ERROR,
+					"Missing 'to' argument for GoToDesktop");
 				break;
 			}
+			bool wrap = get_arg_value_bool(action, "wrap", true);
 			struct workspace *target;
-			const char *target_name = action_str_from_arg(arg);
-			target = workspaces_find(server->workspace_current, target_name);
+			target = workspaces_find(server->workspace_current, to, wrap);
 			if (target) {
 				workspaces_switch_to(target);
 			}
 			break;
+		}
 		case ACTION_TYPE_SEND_TO_DESKTOP:
 			if (view) {
 				const char *to = get_arg_value_str(action, "to", NULL);
@@ -567,7 +574,9 @@ actions_run(struct view *activator, struct server *server,
 					break;
 				}
 				bool follow = get_arg_value_bool(action, "follow", true);
-				struct workspace *target = workspaces_find(view->workspace, to);
+				bool wrap = get_arg_value_bool(action, "wrap", true);
+				struct workspace *target;
+				target = workspaces_find(view->workspace, to, wrap);
 				if (target) {
 					view_move_to_workspace(view, target);
 					if (follow) {

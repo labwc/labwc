@@ -91,20 +91,26 @@ Actions are used in menus and keyboard/mouse bindings.
 	to the center of the window. If the given output does not contain
 	any windows, the cursor is centered on the given output.
 
-*<action name="GoToDesktop" to="value" />*
+*<action name="GoToDesktop" to="value" wrap="yes" />*
 	Switch to workspace.
 
 	*to* The workspace to switch to. Supported values are "last", "left",
 	"right" or the full name of a workspace or its index (starting at 1)
 	as configured in rc.xml.
 
-*<action name="SendToDesktop" to="value" follow="yes" />*
+	*wrap* [yes|no] Wrap around from last desktop to first, and vice
+	versa. Default yes.
+
+*<action name="SendToDesktop" to="value" follow="yes" wrap="yes" />*
 	Send active window to workspace.
 
 	*to* The workspace to send the window to. Supported values are the same
 	as for GoToDesktop.
 
 	*follow* [yes|no] Also switch to the specified workspace. Default yes.
+
+	*wrap* [yes|no] Wrap around from last desktop to first, and vice
+	versa. Default yes.
 
 *<action name="None">*
 	If used as the only action for a binding: clear an earlier defined binding.

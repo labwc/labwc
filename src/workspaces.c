@@ -172,22 +172,30 @@ add_workspace(struct server *server, const char *name)
 }
 
 static struct workspace *
-get_prev(struct workspace *current, struct wl_list *workspaces)
+get_prev(struct workspace *current, struct wl_list *workspaces, bool wrap)
 {
 	struct wl_list *target_link = current->link.prev;
 	if (target_link == workspaces) {
-		/* Current workspace is the first one, roll over */
+		/* Current workspace is the first one */
+		if (!wrap) {
+			return NULL;
+		}
+		/* Roll over */
 		target_link = target_link->prev;
 	}
 	return wl_container_of(target_link, current, link);
 }
 
 static struct workspace *
-get_next(struct workspace *current, struct wl_list *workspaces)
+get_next(struct workspace *current, struct wl_list *workspaces, bool wrap)
 {
 	struct wl_list *target_link = current->link.next;
 	if (target_link == workspaces) {
-		/* Current workspace is the last one, roll over */
+		/* Current workspace is the last one */
+		if (!wrap) {
+			return NULL;
+		}
+		/* Roll over */
 		target_link = target_link->next;
 	}
 	return wl_container_of(target_link, current, link);
@@ -304,7 +312,7 @@ workspaces_osd_hide(struct seat *seat)
 }
 
 struct workspace *
-workspaces_find(struct workspace *anchor, const char *name)
+workspaces_find(struct workspace *anchor, const char *name, bool wrap)
 {
 	assert(anchor);
 	if (!name) {
@@ -324,9 +332,9 @@ workspaces_find(struct workspace *anchor, const char *name)
 	} else if (!strcasecmp(name, "last")) {
 		return anchor->server->workspace_last;
 	} else if (!strcasecmp(name, "left")) {
-		return get_prev(anchor, workspaces);
+		return get_prev(anchor, workspaces, wrap);
 	} else if (!strcasecmp(name, "right")) {
-		return get_next(anchor, workspaces);
+		return get_next(anchor, workspaces, wrap);
 	} else {
 		wl_list_for_each(target, workspaces, link) {
 			if (!strcasecmp(target->name, name)) {

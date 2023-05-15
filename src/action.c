@@ -77,8 +77,8 @@ enum action_type {
 	ACTION_TYPE_RESIZE_RELATIVE,
 	ACTION_TYPE_MOVETO,
 	ACTION_TYPE_MOVE_RELATIVE,
-	ACTION_TYPE_GO_TO_DESKTOP,
 	ACTION_TYPE_SEND_TO_DESKTOP,
+	ACTION_TYPE_GO_TO_DESKTOP,
 	ACTION_TYPE_SNAP_TO_REGION,
 	ACTION_TYPE_TOGGLE_KEYBINDS,
 	ACTION_TYPE_FOCUS_OUTPUT,
@@ -113,8 +113,8 @@ const char *action_names[] = {
 	"ResizeRelative",
 	"MoveTo",
 	"MoveRelative",
-	"GoToDesktop",
 	"SendToDesktop",
+	"GoToDesktop",
 	"SnapToRegion",
 	"ToggleKeybinds",
 	"FocusOutput",
@@ -225,7 +225,7 @@ action_arg_from_xml_node(struct action *action, char *nodename, char *content)
 		if (!strcmp(argument, "region")) {
 			action_arg_add_str(action, argument, content);
 			goto cleanup;
-		};
+		}
 		break;
 	case ACTION_TYPE_FOCUS_OUTPUT:
 		if (!strcmp(argument, "output")) {
@@ -550,34 +550,24 @@ actions_run(struct view *activator, struct server *server,
 			debug_dump_scene(server);
 			break;
 		case ACTION_TYPE_EXECUTE:
-			if (!arg) {
-				wlr_log(WLR_ERROR, "Missing argument for Execute");
-				break;
+			{
+				struct buf cmd;
+				buf_init(&cmd);
+				buf_add(&cmd, action_str_from_arg(arg));
+				buf_expand_shell_variables(&cmd);
+				spawn_async_no_shell(cmd.buf);
+				free(cmd.buf);
 			}
-			struct buf cmd;
-			buf_init(&cmd);
-			buf_add(&cmd, action_str_from_arg(arg));
-			buf_expand_shell_variables(&cmd);
-			spawn_async_no_shell(cmd.buf);
-			free(cmd.buf);
 			break;
 		case ACTION_TYPE_EXIT:
 			wl_display_terminate(server->wl_display);
 			break;
 		case ACTION_TYPE_MOVE_TO_EDGE:
-			if (!arg) {
-				wlr_log(WLR_ERROR, "Missing argument for MoveToEdge");
-				break;
-			}
 			if (view) {
 				view_move_to_edge(view, action_str_from_arg(arg));
 			}
 			break;
 		case ACTION_TYPE_SNAP_TO_EDGE:
-			if (!arg) {
-				wlr_log(WLR_ERROR, "Missing argument for SnapToEdge");
-				break;
-			}
 			if (view) {
 				view_snap_to_edge(view, action_str_from_arg(arg),
 					/*store_natural_geometry*/ true);
@@ -597,11 +587,7 @@ actions_run(struct view *activator, struct server *server,
 			kill(getpid(), SIGHUP);
 			break;
 		case ACTION_TYPE_SHOW_MENU:
-			if (arg) {
-				show_menu(server, view, action_str_from_arg(arg));
-			} else {
-				wlr_log(WLR_ERROR, "Missing argument for ShowMenu");
-			}
+			show_menu(server, view, action_str_from_arg(arg));
 			break;
 		case ACTION_TYPE_TOGGLE_MAXIMIZE:
 			if (view) {
@@ -688,46 +674,36 @@ actions_run(struct view *activator, struct server *server,
 				view_move(view, view->pending.x + x, view->pending.y + y);
 			}
 			break;
-		case ACTION_TYPE_GO_TO_DESKTOP: {
-			const char *to = get_arg_value_str(action, "to", NULL);
-			if (!to) {
-				wlr_log(WLR_ERROR,
-					"Missing 'to' argument for GoToDesktop");
+		case ACTION_TYPE_SEND_TO_DESKTOP:
+			if (!view) {
 				break;
 			}
-			bool wrap = get_arg_value_bool(action, "wrap", true);
-			struct workspace *target;
-			target = workspaces_find(server->workspace_current, to, wrap);
-			if (target) {
-				workspaces_switch_to(target);
-			}
-			break;
-		}
-		case ACTION_TYPE_SEND_TO_DESKTOP:
-			if (view) {
+			/* Falls through to GoToDesktop */
+		case ACTION_TYPE_GO_TO_DESKTOP:
+			{
+				bool follow = true;
+				bool wrap = get_arg_value_bool(action, "wrap", true);
 				const char *to = get_arg_value_str(action, "to", NULL);
-				if (!to) {
-					wlr_log(WLR_ERROR,
-						"Missing 'to' argument for SendToDesktop");
+				/*
+				 * `to` is always != NULL here because otherwise we would have
+				 * removed the action during the initial parsing step as it is
+				 * a required argument for both SendToDesktop and GoToDesktop.
+				 */
+				struct workspace *target = workspaces_find(
+					server->workspace_current, to, wrap);
+				if (!target) {
 					break;
 				}
-				bool follow = get_arg_value_bool(action, "follow", true);
-				bool wrap = get_arg_value_bool(action, "wrap", true);
-				struct workspace *target;
-				target = workspaces_find(view->workspace, to, wrap);
-				if (target) {
+				if (action->type == ACTION_TYPE_SEND_TO_DESKTOP) {
 					view_move_to_workspace(view, target);
-					if (follow) {
-						workspaces_switch_to(target);
-					}
+					follow = get_arg_value_bool(action, "follow", true);
+				}
+				if (follow) {
+					workspaces_switch_to(target);
 				}
 			}
 			break;
 		case ACTION_TYPE_SNAP_TO_REGION:
-			if (!arg) {
-				wlr_log(WLR_ERROR, "Missing argument for SnapToRegion");
-				break;
-			}
 			if (!view) {
 				break;
 			}
@@ -750,12 +726,10 @@ actions_run(struct view *activator, struct server *server,
 				server->seat.inhibit_keybinds ? "Disabled" : "Enabled");
 			break;
 		case ACTION_TYPE_FOCUS_OUTPUT:
-			if (!arg) {
-				wlr_log(WLR_ERROR, "Missing argument for FocusOutput");
-				break;
+			{
+				const char *output_name = action_str_from_arg(arg);
+				desktop_focus_output(output_from_name(server, output_name));
 			}
-			const char *output_name = action_str_from_arg(arg);
-			desktop_focus_output(output_from_name(server, output_name));
 			break;
 		case ACTION_TYPE_INVALID:
 			wlr_log(WLR_ERROR, "Not executing unknown action");

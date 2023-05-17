@@ -55,6 +55,10 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 	wlr_scene_node_destroy(&output->layer_popup_tree->node);
 	wlr_scene_node_destroy(&output->osd_tree->node);
 	wlr_scene_node_destroy(&output->session_lock_tree->node);
+	if (output->workspace_osd) {
+		wlr_scene_node_destroy(&output->workspace_osd->node);
+		output->workspace_osd = NULL;
+	}
 
 	struct view *view;
 	struct server *server = output->server;

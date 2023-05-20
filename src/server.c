@@ -285,8 +285,31 @@ server_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create scene");
 		exit(EXIT_FAILURE);
 	}
+
+	/*
+	 * The order in which the scene-trees below are created determines the
+	 * z-order for nodes which cover the whole work-area.  For per-output
+	 * scene-trees, see new_output_notify() in src/output.c
+	 *
+	 * | Type              | Scene Tree       | Per Output | Example
+	 * | ----------------- | ---------------- | ---------- | -------
+	 * | ext-session       | lock-screen      | Yes        | swaylock
+	 * | layer-shell       | layer-popups     | Yes        |
+	 * | layer-shell       | overlay-layer    | Yes        |
+	 * | layer-shell       | top-layer        | Yes        | waybar
+	 * | server            | labwc-menus      | No         |
+	 * | xwayland-OR       | unmanaged        | No         | dmenu
+	 * | xdg-popups        | xdg-popups       | No         |
+	 * | toplevels windows | always-on-top    | No         |
+	 * | toplevels windows | normal           | No         | firefox
+	 * | toplevels windows | always-on-bottom | No         | pcmanfm-qt --desktop
+	 * | layer-shell       | bottom-layer     | Yes        | waybar
+	 * | layer-shell       | background-layer | Yes        | swaybg
+	 */
+
 	server->view_tree = wlr_scene_tree_create(&server->scene->tree);
 	server->view_tree_always_on_top = wlr_scene_tree_create(&server->scene->tree);
+	server->xdg_popup_tree = wlr_scene_tree_create(&server->scene->tree);
 #if HAVE_XWAYLAND
 	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->tree);
 #endif

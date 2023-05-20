@@ -85,8 +85,18 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 	 * provide the proper parent scene node of the xdg popup. To enable
 	 * this, we always set the user data field of xdg_surfaces to the
 	 * corresponding scene node.
+	 *
+	 * xdg-popups live in server->xdg_popup_tree so that they can be
+	 * rendered above always-on-top windows
 	 */
-	struct wlr_scene_tree *parent_tree = parent->surface->data;
+	struct wlr_scene_tree *parent_tree = NULL;
+	if (parent->role == WLR_XDG_SURFACE_ROLE_POPUP) {
+		parent_tree = parent->surface->data;
+	} else {
+		parent_tree = view->server->xdg_popup_tree;
+		wlr_scene_node_set_position(&view->server->xdg_popup_tree->node,
+			view->current.x, view->current.y);
+	}
 	wlr_popup->base->surface->data =
 		wlr_scene_xdg_surface_create(parent_tree, wlr_popup->base);
 	node_descriptor_create(wlr_popup->base->surface->data,

@@ -9,6 +9,7 @@
 #include "node.h"
 #include "ssd.h"
 #include "view.h"
+#include "window-rules.h"
 #include "workspaces.h"
 #include "xwayland.h"
 
@@ -191,7 +192,9 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 			continue;
 		}
 		view = node_view_from_node(node);
-		if (isfocusable(view)) {
+
+		enum property skip = window_rules_get_property(view, "skipWindowSwitcher");
+		if (isfocusable(view) && skip != LAB_PROP_TRUE) {
 			return view;
 		}
 	} while (view != start_view);

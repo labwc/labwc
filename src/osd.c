@@ -15,6 +15,7 @@
 #include "theme.h"
 #include "node.h"
 #include "view.h"
+#include "window-rules.h"
 #include "workspaces.h"
 
 #define OSD_ITEM_HEIGHT (20)
@@ -69,7 +70,8 @@ get_osd_height(struct wl_list *node_list)
 			continue;
 		}
 		view = node_view_from_node(node);
-		if (!isfocusable(view)) {
+		enum property skip = window_rules_get_property(view, "skipWindowSwitcher");
+		if (!isfocusable(view) || skip == LAB_PROP_TRUE) {
 			continue;
 		}
 		height += OSD_ITEM_HEIGHT;
@@ -344,7 +346,8 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			continue;
 		}
 		struct view *view = node_view_from_node(node);
-		if (!isfocusable(view)) {
+		enum property skip = window_rules_get_property(view, "skipWindowSwitcher");
+		if (!isfocusable(view) || skip == LAB_PROP_TRUE) {
 			continue;
 		}
 

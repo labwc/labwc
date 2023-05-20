@@ -26,6 +26,8 @@ struct window_rule {
 	struct wl_list actions;
 
 	enum property server_decoration;
+	enum property skip_taskbar;
+	enum property skip_window_switcher;
 
 	struct wl_list link; /* struct rcxml.window_rules */
 };

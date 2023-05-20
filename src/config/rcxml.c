@@ -110,6 +110,10 @@ fill_window_rule(char *nodename, char *content)
 	/* Properties */
 	} else if (!strcasecmp(nodename, "serverDecoration")) {
 		set_property(content, &current_window_rule->server_decoration);
+	} else if (!strcasecmp(nodename, "skipTaskbar")) {
+		set_property(content, &current_window_rule->skip_taskbar);
+	} else if (!strcasecmp(nodename, "skipWindowSwitcher")) {
+		set_property(content, &current_window_rule->skip_window_switcher);
 
 	/* Actions */
 	} else if (!strcmp(nodename, "name.action")) {

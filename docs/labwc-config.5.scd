@@ -430,6 +430,15 @@ situation.
 	*serverDecoration* over-rules any other setting for server-side window
 	decoration on first map.
 
+*<windowRules><windowRule skipTaskbar="">* [yes|no|default]
+	*skipTaskbar* removes window foreign-toplevel protocol handle so that
+	it does not appear in clients such as panels and taskbars using that
+	protocol.
+
+*<windowRules><windowRule skipWindowSwitcher="">* [yes|no|default]
+	*skipWindowSwitcher* removes window from the Window Switcher (alt-tab
+	on-screen-display)
+
 ## ENVIRONMENT VARIABLES
 
 *XCURSOR_THEME* and *XCURSOR_SIZE* are supported to set cursor theme

@@ -34,6 +34,22 @@ view_impl_map(struct view *view)
 	if (!view->been_mapped) {
 		window_rules_apply(view, LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP);
 	}
+
+	/*
+	 * It's tempting to just never create the foreign-toplevel handle in the
+	 * map handlers, but the app_id/title might not have been set at that
+	 * point, so it's safer to process the property here
+	 */
+	enum property ret = window_rules_get_property(view, "skipTaskbar");
+	if (ret == LAB_PROP_TRUE) {
+		if (view->toplevel.handle) {
+			wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
+		}
+	}
+
+	wlr_log(WLR_DEBUG, "[map] identifier=%s, title=%s\n",
+		view_get_string_prop(view, "app_id"),
+		view_get_string_prop(view, "title"));
 }
 
 static bool

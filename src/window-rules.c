@@ -81,10 +81,17 @@ window_rules_get_property(struct view *view, const char *property)
 		 * for.
 		 */
 		if (view_matches_criteria(rule, view)) {
-			if (!strcasecmp(property, "serverDecoration")) {
-				if (rule->server_decoration) {
-					return rule->server_decoration;
-				}
+			if (rule->server_decoration
+					&& !strcasecmp(property, "serverDecoration")) {
+				return rule->server_decoration;
+			}
+			if (rule->skip_taskbar
+					&& !strcasecmp(property, "skipTaskbar")) {
+				return rule->skip_taskbar;
+			}
+			if (rule->skip_window_switcher
+					&& !strcasecmp(property, "skipWindowSwitcher")) {
+				return rule->skip_window_switcher;
 			}
 		}
 	}

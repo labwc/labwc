@@ -34,9 +34,9 @@ that the environment file is treated differently by openbox where it is simply
 sourced prior to running openbox.
 
 The *menu.xml* file defines the context/root-menus and is described in
-labwc-menu(5)
+labwc-menu(5).
 
-There is a small <theme> section in rc.xml, for example to set rouned corners,
+There is a small <theme> section in rc.xml, for example to set rounded corners,
 but the remainder of the theme specification and associated files are described
 in labwc-theme(5).
 
@@ -177,7 +177,7 @@ Therefore, where multiple objects of the same kind are required (for example
 ## WINDOW SNAPPING
 
 *<snapping><range>*
-	The distance in pixels from the edge of an ouput for window Move
+	The distance in pixels from the edge of an output for window Move
 	operations to trigger SnapToEdge. A range of 0 disables window snapping.
 	Default is 1.
 
@@ -242,7 +242,8 @@ Therefore, where multiple objects of the same kind are required (for example
 	modifiers include S (shift); C (control); A (alt); W (super). Unlike
 	Openbox, multiple space-separated key combinations and key-chains are
 	not supported. The application "wev" (wayland event viewer) is packaged
-	in a lot of distributions and can be used to view all available keynames.
+	in a lot of distributions and can be used to view all available
+	keynames.
 
 *<keyboard><keybind key=""><action name="">*
 	Keybind action. See labwc-action(5)

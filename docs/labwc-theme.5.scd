@@ -79,16 +79,16 @@ labwc-config(5).
 	Border color of inactive window
 
 *window.active.title.bg.color*
-	Background color for the focussed window's titlebar
+	Background color for the focused window's titlebar
 
 *window.inactive.title.bg.color*
-	Background color for non-focussed windows' titlebars
+	Background color for non-focused windows' titlebars
 
 *window.active.label.text.color*
-	Text color for the focussed window's titlebar
+	Text color for the focused window's titlebar
 
 *window.inactive.label.text.color*
-	Text color non-focussed windows' titlebars
+	Text color non-focused windows' titlebars
 
 *window.label.text.justify*
 	Specifies how window titles are aligned in the titlebar for both

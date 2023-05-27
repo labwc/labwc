@@ -4,6 +4,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
+#include "cursor.h"
 #include "dnd.h"
 #include "labwc.h"  /* for struct seat */
 
@@ -135,8 +136,17 @@ handle_drag_destroy(struct wl_listener *listener, void *data)
 	seat->drag.active = false;
 	wl_list_remove(&seat->drag.events.destroy.link);
 	wlr_scene_node_set_enabled(&seat->drag.icons->node, false);
-	/* TODO: Not sure we actually need the following */
-	desktop_focus_topmost_mapped_view(seat->server);
+
+	/*
+	 * Keyboard focus is not changed during drag, so we need to refocus the
+	 * current surface under the cursor.
+	 */
+	struct cursor_context ctx = get_cursor_context(seat->server);
+	if (!ctx.surface) {
+		return;
+	}
+	seat_focus_surface(seat, NULL);
+	seat_focus_surface(seat, ctx.surface);
 }
 
 /* Public API */

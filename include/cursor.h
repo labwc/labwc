@@ -2,6 +2,7 @@
 #ifndef LABWC_CURSOR_H
 #define LABWC_CURSOR_H
 
+#include <wlr/types/wlr_cursor.h>
 #include <wlr/util/edges.h>
 #include "ssd.h"
 

@@ -3,6 +3,7 @@
 #define LABWC_SSD_H
 
 #include <wayland-server-core.h>
+#include "common/border.h"
 
 #define SSD_BUTTON_COUNT 4
 #define SSD_BUTTON_WIDTH 26
@@ -46,13 +47,6 @@ struct ssd_hover_state;
 struct view;
 struct wlr_scene;
 struct wlr_scene_node;
-
-struct border {
-	int top;
-	int right;
-	int bottom;
-	int left;
-};
 
 /*
  * Public SSD API

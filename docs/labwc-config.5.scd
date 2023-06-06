@@ -239,6 +239,12 @@ Therefore, where multiple objects of the same kind are required (for example
 *<theme><font place=""><weight>*
 	Font weight (normal or bold). Default is normal.
 
+## MARGIN
+
+*<margin top="" bottom="" left="" right="" output="" />*
+	Specify the number of pixels to reserve at the edges of an output.
+	New, maximized and tiled windows will not be placed in these areas.
+
 ## KEYBOARD
 
 *<keyboard><keybind key="">*

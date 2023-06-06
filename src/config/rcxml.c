@@ -29,12 +29,14 @@
 #include "workspaces.h"
 
 static bool in_regions;
+static bool in_usable_area_override;
 static bool in_keybind;
 static bool in_mousebind;
 static bool in_libinput_category;
 static bool in_window_switcher_field;
 static bool in_window_rules;
 
+static struct usable_area_override *current_usable_area_override;
 static struct keybind *current_keybind;
 static struct mousebind *current_mousebind;
 static struct libinput_category *current_libinput_category;
@@ -57,6 +59,36 @@ enum font_place {
 
 static void load_default_key_bindings(void);
 static void load_default_mouse_bindings(void);
+
+static void
+fill_usable_area_override(char *nodename, char *content)
+{
+	if (!strcasecmp(nodename, "margin")) {
+		current_usable_area_override = znew(*current_usable_area_override);
+		wl_list_append(&rc.usable_area_overrides, &current_usable_area_override->link);
+		return;
+	}
+	string_truncate_at_pattern(nodename, ".margin");
+	if (!content) {
+		/* nop */
+	} else if (!current_usable_area_override) {
+		wlr_log(WLR_ERROR, "no usable-area-override object");
+	} else if (!strcmp(nodename, "output")) {
+		free(current_usable_area_override->output);
+		current_usable_area_override->output = xstrdup(content);
+	} else if (!strcmp(nodename, "left")) {
+		current_usable_area_override->margin.left = atoi(content);
+	} else if (!strcmp(nodename, "right")) {
+		current_usable_area_override->margin.right = atoi(content);
+	} else if (!strcmp(nodename, "top")) {
+		current_usable_area_override->margin.top = atoi(content);
+	} else if (!strcmp(nodename, "bottom")) {
+		current_usable_area_override->margin.bottom = atoi(content);
+	} else {
+		wlr_log(WLR_ERROR, "Unexpected data usable-area-override parser: %s=\"%s\"",
+			nodename, content);
+	}
+}
 
 /* Does a boolean-parse but also allows 'default' */
 static void
@@ -476,6 +508,9 @@ entry(xmlNode *node, char *nodename, char *content)
 		printf("%s: %s\n", nodename, content);
 	}
 
+	if (in_usable_area_override) {
+		fill_usable_area_override(nodename, content);
+	}
 	if (in_keybind) {
 		fill_keybind(nodename, content);
 	}
@@ -562,6 +597,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "name.context.mouse")) {
 		current_mouse_context = content;
 		current_mousebind = NULL;
+
 	} else if (!strcasecmp(nodename, "repeatRate.keyboard")) {
 		rc.repeat_rate = atoi(content);
 	} else if (!strcasecmp(nodename, "repeatDelay.keyboard")) {
@@ -652,6 +688,12 @@ xml_tree_walk(xmlNode *node)
 		if (!strcasecmp((char *)n->name, "comment")) {
 			continue;
 		}
+		if (!strcasecmp((char *)n->name, "margin")) {
+			in_usable_area_override = true;
+			traverse(n);
+			in_usable_area_override = false;
+			continue;
+		}
 		if (!strcasecmp((char *)n->name, "keybind")) {
 			in_keybind = true;
 			traverse(n);
@@ -720,6 +762,7 @@ rcxml_init(void)
 	static bool has_run;
 
 	if (!has_run) {
+		wl_list_init(&rc.usable_area_overrides);
 		wl_list_init(&rc.keybinds);
 		wl_list_init(&rc.mousebinds);
 		wl_list_init(&rc.libinput_categories);
@@ -1141,6 +1184,13 @@ rcxml_finish(void)
 	zfree(rc.font_osd.name);
 	zfree(rc.theme_name);
 
+	struct usable_area_override *area, *area_tmp;
+	wl_list_for_each_safe(area, area_tmp, &rc.usable_area_overrides, link) {
+		wl_list_remove(&area->link);
+		zfree(area->output);
+		zfree(area);
+	}
+
 	struct keybind *k, *k_tmp;
 	wl_list_for_each_safe(k, k_tmp, &rc.keybinds, link) {
 		wl_list_remove(&k->link);
@@ -1184,6 +1234,7 @@ rcxml_finish(void)
 	}
 
 	/* Reset state vars for starting fresh when Reload is triggered */
+	current_usable_area_override = NULL;
 	current_keybind = NULL;
 	current_mousebind = NULL;
 	current_libinput_category = NULL;

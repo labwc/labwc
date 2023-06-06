@@ -89,6 +89,17 @@
     </names>
   </desktops>
 
+  <!--
+    # <margin> can be used to reserve space where new/maximized/tiled
+    # windows will not be placed. Clients using layer-shell protocol reserve
+    # space automatically, so <margin> is only intended for other, specialist
+    # cases.
+    #
+    # If output is left empty, the margin will be applied to all outputs.
+
+    <margin top="" bottom="" left="" right="" output="" />
+  -->
+
   <!-- Percent based regions based on output usable area, % char is required -->
   <!--
     <regions>

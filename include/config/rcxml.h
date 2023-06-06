@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <wayland-server-core.h>
 
+#include "common/border.h"
 #include "common/buf.h"
 #include "common/font.h"
 #include "config/libinput.h"
@@ -16,6 +17,12 @@ enum window_switcher_field_content {
 	LAB_FIELD_TYPE,
 	LAB_FIELD_APP_ID,
 	LAB_FIELD_TITLE,
+};
+
+struct usable_area_override {
+	struct border margin;
+	char *output;
+	struct wl_list link; /* struct rcxml.usable_area_overrides */
 };
 
 struct window_switcher_field {
@@ -46,6 +53,9 @@ struct rcxml {
 	struct font font_osd;
 	/* Pointer to current theme */
 	struct theme *theme;
+
+	/* <margin top="" bottom="" left="" right="" output="" /> */
+	struct wl_list usable_area_overrides;
 
 	/* keyboard */
 	int repeat_rate;

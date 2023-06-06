@@ -45,6 +45,9 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="Resize">*
 	Begin interactive resize of window under cursor
 
+*<action name="MoveTo" x="" y="" />*
+	Move to position (x, y)
+
 *<action name="SnapToEdge" direction="value" />*
 	Resize window to fill half the output in the given direction. Supports
 	directions "left", "up", "right", "down" and "center".

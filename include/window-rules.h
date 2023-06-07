@@ -21,6 +21,7 @@ enum property {
 struct window_rule {
 	char *identifier;
 	char *title;
+	bool match_once;
 
 	enum window_rule_event event;
 	struct wl_list actions;

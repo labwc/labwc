@@ -387,20 +387,41 @@
   </libinput>
 
   <!--
-    Window Rules
-      - Criteria can consist of 'identifier' or 'title' or both (in which case
-        AND logic is used).
-      - 'identifier' relates to app_id for native Wayland windows and WM_CLASS
-        for XWayland clients.
-      - Matching against patterns with '*' (wildcard) and '?' (joker) is
-        supported. Pattern matching is case-insensitive.
+    # Window Rules
+    #   - Criteria can consist of 'identifier' or 'title' or both (in which case
+    #     AND logic is used).
+    #   - 'identifier' relates to app_id for native Wayland windows and WM_CLASS
+    #     for XWayland clients.
+    #   - Criteria can also contain `matchOnce="true"` meaning that the rule
+    #     must only apply to the first instance of the window with that
+    #     particular 'identifier' or 'title'.
+    #   - Matching against patterns with '*' (wildcard) and '?' (joker) is
+    #     supported. Pattern matching is case-insensitive.
 
-  <windowRules>
-    <windowRule identifier="*"><action name="Maximize"/></windowRule>
-    <windowRule identifier="foo" serverDecoration="yes"/>
-    <windowRule title="bar" serverDecoration="yes"/>
-    <windowRule identifier="baz" title="quax" serverDecoration="yes"/>
-  </windowRules>
+    <windowRules>
+      <windowRule identifier="*"><action name="Maximize"/></windowRule>
+      <windowRule identifier="foo" serverDecoration="yes"/>
+      <windowRule title="bar" serverDecoration="yes"/>
+      <windowRule identifier="baz" title="quax" serverDecoration="yes"/>
+    </windowRules>
+
+    # Example below for `lxqt-panel` and `pcmanfm-qt \-\-desktop`
+    # where 'matchOnce' is used to avoid applying rule to the panel configuration
+    # window with the same 'app_id'
+
+    <windowRules>
+      <windowRule identifier="lxqt-panel" matchOnce="true">
+        <skipTaskbar>yes</skipTaskbar>
+        <action name="MoveTo" x="0" y="0" />
+        <action name="ToggleAlwaysOnTop"/>
+      </windowRule>
+      <windowRule title="pcmanfm-desktop*">
+        <skipTaskbar>yes</skipTaskbar>
+        <skipWindowSwitcher>yes</skipWindowSwitcher>
+        <action name="MoveTo" x="0" y="0" />
+        <action name="ToggleAlwaysOnBottom"/>
+      </windowRule>
+    </windowRules>
   -->
 
 </labwc_config>

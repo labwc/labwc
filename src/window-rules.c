@@ -14,12 +14,43 @@
 #include "view.h"
 #include "window-rules.h"
 
+static bool
+other_instances_exist(struct view *self, const char *id, const char *title)
+{
+	struct wl_list *views = &self->server->views;
+	const char *prop = NULL;
+	struct view *view;
+
+	wl_list_for_each(view, views, link) {
+		if (view == self) {
+			continue;
+		}
+		if (id) {
+			prop = view_get_string_prop(view, "app_id");
+			if (prop && !strcmp(prop, id)) {
+				return true;
+			}
+		}
+		if (title) {
+			prop = view_get_string_prop(view, "title");
+			if (prop && !strcmp(prop, title)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 /* Try to match against identifier AND title (if set) */
 static bool
 view_matches_criteria(struct window_rule *rule, struct view *view)
 {
 	const char *id = view_get_string_prop(view, "app_id");
 	const char *title = view_get_string_prop(view, "title");
+
+	if (rule->match_once && other_instances_exist(view, id, title)) {
+		return false;
+	}
 
 	if (rule->identifier && rule->title) {
 		if (!id || !title) {

@@ -128,6 +128,8 @@ fill_window_rule(char *nodename, char *content)
 	} else if (!strcmp(nodename, "title")) {
 		free(current_window_rule->title);
 		current_window_rule->title = xstrdup(content);
+	} else if (!strcasecmp(nodename, "matchOnce")) {
+		set_bool(content, &current_window_rule->match_once);
 
 	/* Event */
 	} else if (!strcmp(nodename, "event")) {

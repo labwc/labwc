@@ -411,9 +411,9 @@ defined as shown below.
 </windowRules>
 ```
 
-*Actions*
+*Criteria*
 
-*<windowRules><windowRule identifier="" title="">*
+*<windowRules><windowRule identifier="" title="" matchOnce="">*
 	Define a window rule for any window which matches the criteria defined
 	by the attributes *identifier* or *title*. If both are defined, AND
 	logic is used, so both have to match.
@@ -424,6 +424,9 @@ defined as shown below.
 	for XWayland clients.
 
 	*title* is the title of the window.
+
+	*matchOnce* can be true|false. If true, the rule will only apply to the
+	first instance of the window with the specified identifier or title.
 
 *Properties*
 

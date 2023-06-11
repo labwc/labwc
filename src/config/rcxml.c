@@ -802,46 +802,73 @@ load_default_key_bindings(void)
 	}
 }
 
+/*
+ * `struct mouse_combo` variable description and examples:
+ *
+ * | Variable  | Description                | Examples
+ * |-----------|----------------------------|---------------------
+ * | context   | context name               | Maximize, Root
+ * | button    | mousebind button/direction | Left, Up
+ * | event     | mousebind action           | Click, Scroll
+ * | action    | action name                | ToggleMaximize, GoToDesktop
+ * | attribute | action attribute           | to
+ * | value     | action attribute value     | left
+ *
+ * <mouse>
+ *   <context name="Maximize">
+ *     <mousebind button="Left" action="Click">
+ *       <action name="Focus"/>
+ *       <action name="Raise"/>
+ *       <action name="ToggleMaximize"/>
+ *     </mousebind>
+ *   </context>
+ *   <context name="Root">
+ *     <mousebind direction="Up" action="Scroll">
+ *       <action name="GoToDesktop" to="left" wrap="yes"/>
+ *     </mousebind>
+ *   </context>
+ * </mouse>
+ */
 static struct mouse_combos {
-	const char *context, *button, *event, *action, *command;
+	const char *context, *button, *event, *action, *attribute, *value;
 } mouse_combos[] = {
-	{ "Left", "Left", "Drag", "Resize", NULL},
-	{ "Top", "Left", "Drag", "Resize", NULL},
-	{ "Bottom", "Left", "Drag", "Resize", NULL},
-	{ "Right", "Left", "Drag", "Resize", NULL},
-	{ "TLCorner", "Left", "Drag", "Resize", NULL},
-	{ "TRCorner", "Left", "Drag", "Resize", NULL},
-	{ "BRCorner", "Left", "Drag", "Resize", NULL},
-	{ "BLCorner", "Left", "Drag", "Resize", NULL},
-	{ "Frame", "A-Left", "Press", "Focus", NULL},
-	{ "Frame", "A-Left", "Press", "Raise", NULL},
-	{ "Frame", "A-Left", "Drag", "Move", NULL},
-	{ "Frame", "A-Right", "Press", "Focus", NULL},
-	{ "Frame", "A-Right", "Press", "Raise", NULL},
-	{ "Frame", "A-Right", "Drag", "Resize", NULL},
-	{ "Titlebar", "Left", "Press", "Focus", NULL},
-	{ "Titlebar", "Left", "Press", "Raise", NULL},
-	{ "Title", "Left", "Drag", "Move", NULL },
-	{ "Title", "Left", "DoubleClick", "ToggleMaximize", NULL },
-	{ "TitleBar", "Right", "Click", "Focus", NULL},
-	{ "TitleBar", "Right", "Click", "Raise", NULL},
-	{ "TitleBar", "Right", "Click", "ShowMenu", "client-menu"},
-	{ "Close", "Left", "Click", "Close", NULL },
-	{ "Iconify", "Left", "Click", "Iconify", NULL},
-	{ "Maximize", "Left", "Click", "ToggleMaximize", NULL},
-	{ "WindowMenu", "Left", "Click", "ShowMenu", "client-menu"},
-	{ "Root", "Left", "Press", "ShowMenu", "root-menu"},
-	{ "Root", "Right", "Press", "ShowMenu", "root-menu"},
-	{ "Root", "Middle", "Press", "ShowMenu", "root-menu"},
-	{ "Root", "Up", "Scroll", "GoToDesktop", "left"},
-	{ "Root", "Down", "Scroll", "GoToDesktop", "right"},
-	{ "Client", "Left", "Press", "Focus", NULL},
-	{ "Client", "Left", "Press", "Raise", NULL},
-	{ "Client", "Right", "Press", "Focus", NULL},
-	{ "Client", "Right", "Press", "Raise", NULL},
-	{ "Client", "Middle", "Press", "Focus", NULL},
-	{ "Client", "Middle", "Press", "Raise", NULL},
-	{ NULL, NULL, NULL, NULL, NULL },
+	{ "Left", "Left", "Drag", "Resize", NULL, NULL},
+	{ "Top", "Left", "Drag", "Resize", NULL, NULL},
+	{ "Bottom", "Left", "Drag", "Resize", NULL, NULL},
+	{ "Right", "Left", "Drag", "Resize", NULL, NULL},
+	{ "TLCorner", "Left", "Drag", "Resize", NULL, NULL},
+	{ "TRCorner", "Left", "Drag", "Resize", NULL, NULL},
+	{ "BRCorner", "Left", "Drag", "Resize", NULL, NULL},
+	{ "BLCorner", "Left", "Drag", "Resize", NULL, NULL},
+	{ "Frame", "A-Left", "Press", "Focus", NULL, NULL},
+	{ "Frame", "A-Left", "Press", "Raise", NULL, NULL},
+	{ "Frame", "A-Left", "Drag", "Move", NULL, NULL},
+	{ "Frame", "A-Right", "Press", "Focus", NULL, NULL},
+	{ "Frame", "A-Right", "Press", "Raise", NULL, NULL},
+	{ "Frame", "A-Right", "Drag", "Resize", NULL, NULL},
+	{ "Titlebar", "Left", "Press", "Focus", NULL, NULL},
+	{ "Titlebar", "Left", "Press", "Raise", NULL, NULL},
+	{ "Title", "Left", "Drag", "Move", NULL, NULL },
+	{ "Title", "Left", "DoubleClick", "ToggleMaximize", NULL, NULL },
+	{ "TitleBar", "Right", "Click", "Focus", NULL, NULL},
+	{ "TitleBar", "Right", "Click", "Raise", NULL, NULL},
+	{ "TitleBar", "Right", "Click", "ShowMenu", "menu", "client-menu"},
+	{ "Close", "Left", "Click", "Close", NULL, NULL },
+	{ "Iconify", "Left", "Click", "Iconify", NULL, NULL},
+	{ "Maximize", "Left", "Click", "ToggleMaximize", NULL, NULL},
+	{ "WindowMenu", "Left", "Click", "ShowMenu", "menu", "client-menu"},
+	{ "Root", "Left", "Press", "ShowMenu", "menu", "root-menu"},
+	{ "Root", "Right", "Press", "ShowMenu", "menu", "root-menu"},
+	{ "Root", "Middle", "Press", "ShowMenu", "menu", "root-menu"},
+	{ "Root", "Up", "Scroll", "GoToDesktop", "to", "left"},
+	{ "Root", "Down", "Scroll", "GoToDesktop", "to", "right"},
+	{ "Client", "Left", "Press", "Focus", NULL, NULL},
+	{ "Client", "Left", "Press", "Raise", NULL, NULL},
+	{ "Client", "Right", "Press", "Focus", NULL, NULL},
+	{ "Client", "Right", "Press", "Raise", NULL, NULL},
+	{ "Client", "Middle", "Press", "Focus", NULL, NULL},
+	{ "Client", "Middle", "Press", "Raise", NULL, NULL},
+	{ NULL, NULL, NULL, NULL, NULL, NULL },
 };
 
 static void
@@ -873,8 +900,13 @@ load_default_mouse_bindings(void)
 		action = action_create(current->action);
 		wl_list_append(&m->actions, &action->link);
 
-		if (current->command) {
-			action_arg_add_str(action, NULL, current->command);
+		/*
+		 * Only one attribute/value (of string type) is required for the
+		 * built-in binds.  If more are required in the future, a
+		 * slightly more sophisticated approach will be needed.
+		 */
+		if (current->attribute && current->value) {
+			action_arg_add_str(action, (char *)current->attribute, current->value);
 		}
 	}
 	wlr_log(WLR_DEBUG, "Loaded %u merged mousebinds", count);

@@ -303,7 +303,7 @@
     </context>
 
     <context name="Iconify">
-      <mousebind button="left" action="Click">
+      <mousebind button="Left" action="Click">
         <action name="Iconify" />
       </mousebind>
     </context>

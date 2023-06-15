@@ -1606,14 +1606,65 @@ view_toggle_keybinds(struct view *view)
 }
 
 void
+mappable_connect(struct mappable *mappable, struct wlr_surface *surface,
+		wl_notify_func_t notify_map, wl_notify_func_t notify_unmap)
+{
+	assert(mappable);
+	assert(!mappable->connected);
+	mappable->map.notify = notify_map;
+	wl_signal_add(&surface->events.map, &mappable->map);
+	mappable->unmap.notify = notify_unmap;
+	wl_signal_add(&surface->events.unmap, &mappable->unmap);
+	mappable->connected = true;
+}
+
+void
+mappable_disconnect(struct mappable *mappable)
+{
+	assert(mappable);
+	assert(mappable->connected);
+	wl_list_remove(&mappable->map.link);
+	wl_list_remove(&mappable->unmap.link);
+	mappable->connected = false;
+}
+
+static void
+handle_map(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, mappable.map);
+	view->impl->map(view);
+}
+
+static void
+handle_unmap(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, mappable.unmap);
+	view->impl->unmap(view, /* client_request */ true);
+}
+
+/*
+ * TODO: after the release of wlroots 0.17, consider incorporating this
+ * function into a more general view_set_surface() function, which could
+ * connect other surface event handlers (like commit) as well.
+ */
+void
+view_connect_map(struct view *view, struct wlr_surface *surface)
+{
+	assert(view);
+	mappable_connect(&view->mappable, surface, handle_map, handle_unmap);
+}
+
+void
 view_destroy(struct view *view)
 {
 	assert(view);
 	struct server *server = view->server;
 	bool need_cursor_update = false;
 
-	wl_list_remove(&view->map.link);
-	wl_list_remove(&view->unmap.link);
+	if (view->mappable.connected) {
+		mappable_disconnect(&view->mappable);
+	}
+
 	wl_list_remove(&view->request_move.link);
 	wl_list_remove(&view->request_resize.link);
 	wl_list_remove(&view->request_minimize.link);

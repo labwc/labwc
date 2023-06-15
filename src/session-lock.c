@@ -42,10 +42,10 @@ refocus_output(struct session_lock_output *output)
 
 	struct session_lock_output *iter;
 	wl_list_for_each(iter, &output->lock->session_lock_outputs, link) {
-		if (iter == output || !iter->surface) {
+		if (iter == output || !iter->surface || !iter->surface->surface) {
 			continue;
 		}
-		if (iter->surface->mapped) {
+		if (iter->surface->surface->mapped) {
 			focus_surface(output->lock, iter->surface->surface);
 			return;
 		}
@@ -110,7 +110,7 @@ found_lock_output:
 	wl_signal_add(&lock_surface->events.destroy, &lock_output->surface_destroy);
 
 	lock_output->surface_map.notify = handle_surface_map;
-	wl_signal_add(&lock_surface->events.map, &lock_output->surface_map);
+	wl_signal_add(&lock_surface->surface->events.map, &lock_output->surface_map);
 
 	lock_output_reconfigure(lock_output);
 }

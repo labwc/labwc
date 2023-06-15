@@ -70,6 +70,13 @@ enum view_wants_focus {
 struct view;
 struct wlr_surface;
 
+/* Common to struct view and struct xwayland_unmanaged */
+struct mappable {
+	bool connected;
+	struct wl_listener map;
+	struct wl_listener unmap;
+};
+
 /* Basic size hints (subset of XSizeHints from X11) */
 struct view_size_hints {
 	int min_width;
@@ -194,8 +201,8 @@ struct view {
 		struct wl_listener destroy;
 	} toplevel;
 
-	struct wl_listener map;
-	struct wl_listener unmap;
+	struct mappable mappable;
+
 	struct wl_listener destroy;
 	struct wl_listener surface_destroy;
 	struct wl_listener commit;
@@ -345,6 +352,10 @@ view_is_focusable(struct view *view) {
 	return view_is_focusable_from(view, NULL);
 }
 
+void mappable_connect(struct mappable *mappable, struct wlr_surface *surface,
+	wl_notify_func_t notify_map, wl_notify_func_t notify_unmap);
+void mappable_disconnect(struct mappable *mappable);
+
 void view_toggle_keybinds(struct view *view);
 
 void view_set_activated(struct view *view, bool activated);
@@ -427,6 +438,7 @@ void view_adjust_size(struct view *view, int *w, int *h);
 
 void view_evacuate_region(struct view *view);
 void view_on_output_destroy(struct view *view);
+void view_connect_map(struct view *view, struct wlr_surface *surface);
 void view_destroy(struct view *view);
 
 enum view_axis view_axis_parse(const char *direction);

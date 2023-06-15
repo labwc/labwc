@@ -13,12 +13,14 @@ struct xwayland_unmanaged {
 	struct wlr_scene_node *node;
 	struct wl_list link;
 
+	struct mappable mappable;
+
+	struct wl_listener associate;
+	struct wl_listener dissociate;
 	struct wl_listener request_activate;
 	struct wl_listener request_configure;
 /*	struct wl_listener request_fullscreen; */
 	struct wl_listener set_geometry;
-	struct wl_listener map;
-	struct wl_listener unmap;
 	struct wl_listener destroy;
 	struct wl_listener set_override_redirect;
 };
@@ -28,6 +30,8 @@ struct xwayland_view {
 	struct wlr_xwayland_surface *xwayland_surface;
 
 	/* Events unique to XWayland views */
+	struct wl_listener associate;
+	struct wl_listener dissociate;
 	struct wl_listener request_activate;
 	struct wl_listener request_configure;
 	struct wl_listener set_class;

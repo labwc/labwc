@@ -37,7 +37,7 @@ static void
 handle_map(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
-		wl_container_of(listener, unmanaged, map);
+		wl_container_of(listener, unmanaged, mappable.map);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	assert(!unmanaged->node);
 
@@ -95,7 +95,7 @@ static void
 handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
-		wl_container_of(listener, unmanaged, unmap);
+		wl_container_of(listener, unmanaged, mappable.unmap);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	struct seat *seat = &unmanaged->server->seat;
 	assert(unmanaged->node);
@@ -117,15 +117,42 @@ handle_unmap(struct wl_listener *listener, void *data)
 }
 
 static void
+handle_associate(struct wl_listener *listener, void *data)
+{
+	struct xwayland_unmanaged *unmanaged =
+		wl_container_of(listener, unmanaged, associate);
+	assert(unmanaged->xwayland_surface &&
+		unmanaged->xwayland_surface->surface);
+
+	mappable_connect(&unmanaged->mappable,
+		unmanaged->xwayland_surface->surface,
+		handle_map, handle_unmap);
+}
+
+static void
+handle_dissociate(struct wl_listener *listener, void *data)
+{
+	struct xwayland_unmanaged *unmanaged =
+		wl_container_of(listener, unmanaged, dissociate);
+
+	mappable_disconnect(&unmanaged->mappable);
+}
+
+static void
 handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, destroy);
+
+	if (unmanaged->mappable.connected) {
+		mappable_disconnect(&unmanaged->mappable);
+	}
+
+	wl_list_remove(&unmanaged->associate.link);
+	wl_list_remove(&unmanaged->dissociate.link);
 	wl_list_remove(&unmanaged->request_configure.link);
 	wl_list_remove(&unmanaged->set_override_redirect.link);
 	wl_list_remove(&unmanaged->request_activate.link);
-	wl_list_remove(&unmanaged->map.link);
-	wl_list_remove(&unmanaged->unmap.link);
 	wl_list_remove(&unmanaged->destroy.link);
 	free(unmanaged);
 }
@@ -139,9 +166,9 @@ handle_set_override_redirect(struct wl_listener *listener, void *data)
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	struct server *server = unmanaged->server;
 
-	bool mapped = xsurface->mapped;
+	bool mapped = xsurface->surface && xsurface->surface->mapped;
 	if (mapped) {
-		handle_unmap(&unmanaged->unmap, NULL);
+		handle_unmap(&unmanaged->mappable.unmap, NULL);
 	}
 	handle_destroy(&unmanaged->destroy, NULL);
 
@@ -155,7 +182,7 @@ handle_request_activate(struct wl_listener *listener, void *data)
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, request_activate);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
-	if (!xsurface->mapped) {
+	if (!xsurface->surface || !xsurface->surface->mapped) {
 		return;
 	}
 	struct server *server = unmanaged->server;
@@ -191,14 +218,14 @@ xwayland_unmanaged_create(struct server *server,
 	 */
 	assert(!xsurface->data);
 
-	CONNECT_SIGNAL(xsurface, unmanaged, map);
-	CONNECT_SIGNAL(xsurface, unmanaged, unmap);
+	CONNECT_SIGNAL(xsurface, unmanaged, associate);
+	CONNECT_SIGNAL(xsurface, unmanaged, dissociate);
 	CONNECT_SIGNAL(xsurface, unmanaged, destroy);
 	CONNECT_SIGNAL(xsurface, unmanaged, request_activate);
 	CONNECT_SIGNAL(xsurface, unmanaged, request_configure);
 	CONNECT_SIGNAL(xsurface, unmanaged, set_override_redirect);
 
 	if (mapped) {
-		handle_map(&unmanaged->map, xsurface);
+		handle_map(&unmanaged->mappable.map, NULL);
 	}
 }

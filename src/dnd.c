@@ -89,9 +89,9 @@ drag_icon_create(struct seat *seat, struct wlr_drag_icon *wlr_icon)
 	self->events.unmap.notify = handle_icon_unmap;
 	self->events.destroy.notify = handle_icon_destroy;
 
-	wl_signal_add(&wlr_icon->events.map, &self->events.map);
+	wl_signal_add(&wlr_icon->surface->events.map, &self->events.map);
 	wl_signal_add(&wlr_icon->surface->events.commit, &self->events.commit);
-	wl_signal_add(&wlr_icon->events.unmap, &self->events.unmap);
+	wl_signal_add(&wlr_icon->surface->events.unmap, &self->events.unmap);
 	wl_signal_add(&wlr_icon->events.destroy, &self->events.destroy);
 }
 

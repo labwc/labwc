@@ -175,8 +175,8 @@ handle_surface_commit(struct wl_listener *listener, void *data)
 		process_keyboard_interactivity(layer);
 	}
 
-	if (committed || layer->mapped != layer_surface->mapped) {
-		layer->mapped = layer_surface->mapped;
+	if (committed || layer->mapped != layer_surface->surface->mapped) {
+		layer->mapped = layer_surface->surface->mapped;
 		output_update_usable_area(output);
 		/*
 		 * Update cursor focus here to ensure we
@@ -401,10 +401,10 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 		&surface->surface_commit);
 
 	surface->map.notify = handle_map;
-	wl_signal_add(&layer_surface->events.map, &surface->map);
+	wl_signal_add(&layer_surface->surface->events.map, &surface->map);
 
 	surface->unmap.notify = handle_unmap;
-	wl_signal_add(&layer_surface->events.unmap, &surface->unmap);
+	wl_signal_add(&layer_surface->surface->events.unmap, &surface->unmap);
 
 	surface->new_popup.notify = handle_new_popup;
 	wl_signal_add(&layer_surface->events.new_popup, &surface->new_popup);

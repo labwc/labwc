@@ -69,6 +69,7 @@ struct rcxml {
 
 	struct {
 		int popuptime;
+		int count;
 		struct wl_list workspaces;  /* struct workspace.link */
 	} workspace_config;
 

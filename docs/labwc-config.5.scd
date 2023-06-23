@@ -196,7 +196,7 @@ Therefore, where multiple objects of the same kind are required (for example
 
 ## WORKSPACES
 
-*<desktops><names><name>*
+*<desktops number=""><names><name>*
 	Define workspaces. A workspace covers all outputs. The OSD only shows
 	windows on the current workspace. Workspaces can be switched to with
 	GoToDesktop and windows can be moved with SendToDesktop. See

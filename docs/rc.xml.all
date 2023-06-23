@@ -69,16 +69,17 @@
     See man labwc-actions for further information.
 
     Workspaces can be configured like this:
-    <desktops>
+    <desktops number="4">
       <popupTime>1000</popupTime>
       <names>
         <name>Workspace 1</name>
         <name>Workspace 2</name>
         <name>Workspace 3</name>
+        <name>Workspace 4</name>
       </names>
     </desktops>
   -->
-  <desktops>
+  <desktops number="4">
     <!--
       popupTime defaults to 1000 so could be left out.
       Set to 0 to completely disable the workspace OSD.
@@ -86,6 +87,9 @@
     <popupTime>1000</popupTime>
     <names>
       <name>Default</name>
+      <name>Browsing</name>
+      <name>Music</name>
+      <name>Chat</name>
     </names>
   </desktops>
 

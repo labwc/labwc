@@ -616,7 +616,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "popupTime.desktops")) {
 		rc.workspace_config.popuptime = atoi(content);
 	} else if (!strcasecmp(nodename, "number.desktops")) {
-		rc.workspace_config.count = MAX(1, atoi(content));
+		rc.workspace_config.min_nr_workspaces = MAX(1, atoi(content));
 	}
 }
 
@@ -759,7 +759,7 @@ rcxml_init(void)
 	rc.window_switcher.outlines = true;
 
 	rc.workspace_config.popuptime = INT_MIN;
-	rc.workspace_config.count = 1;
+	rc.workspace_config.min_nr_workspaces = 1;
 }
 
 static struct {
@@ -1048,14 +1048,14 @@ post_processing(void)
 		assert(l && libinput_category_get_default() == l);
 	}
 
-	int workspaces_configured = wl_list_length(&rc.workspace_config.workspaces);
-	if (workspaces_configured < rc.workspace_config.count) {
+	int nr_workspaces = wl_list_length(&rc.workspace_config.workspaces);
+	if (nr_workspaces < rc.workspace_config.min_nr_workspaces) {
 		struct workspace *workspace;
-		char workspace_name[32]; // Maximum length of workspace name "Workspace X"
-		for (int i = workspaces_configured; i < rc.workspace_config.count; i++) {
+		for (int i = nr_workspaces; i < rc.workspace_config.min_nr_workspaces; i++) {
 			workspace = znew(*workspace);
-			snprintf(workspace_name, sizeof(workspace_name), "Workspace %d", i + 1);
-			workspace->name = xstrdup(workspace_name);
+			char *workspace_name = malloc(sizeof(char) * 32);
+			snprintf(workspace_name, 32, "Workspace %d", i + 1);
+			workspace->name = workspace_name;
 			wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
 		}
 	}

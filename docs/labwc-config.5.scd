@@ -202,6 +202,10 @@ Therefore, where multiple objects of the same kind are required (for example
 	GoToDesktop and windows can be moved with SendToDesktop. See
 	labwc-actions(5) for more information about their arguments.
 
+	The number attribute defines the minimum number of workspaces. Default is 1. 
+	The number attribute is optional. If the number attribute is specified, names.name
+	is not required.
+
 *<desktops><popupTime>*
 	Define the timeout after which to hide the workspace OSD.
 	A setting of 0 disables the OSD. Default is 1000 ms.

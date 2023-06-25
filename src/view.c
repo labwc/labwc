@@ -230,6 +230,9 @@ view_minimize(struct view *view, bool minimized)
 		wlr_foreign_toplevel_handle_v1_set_minimized(
 			view->toplevel.handle, minimized);
 	}
+	if (view->impl->minimize) {
+		view->impl->minimize(view, minimized);
+	}
 	view->minimized = minimized;
 	if (minimized) {
 		view->impl->unmap(view);

@@ -36,6 +36,7 @@ struct view_impl {
 	void (*set_fullscreen)(struct view *view, bool fullscreen);
 	void (*unmap)(struct view *view);
 	void (*maximize)(struct view *view, bool maximize);
+	void (*minimize)(struct view *view, bool minimize);
 	void (*move_to_front)(struct view *view);
 	void (*move_to_back)(struct view *view);
 };

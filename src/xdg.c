@@ -315,6 +315,12 @@ xdg_toplevel_view_maximize(struct view *view, bool maximized)
 }
 
 static void
+xdg_toplevel_view_minimize(struct view *view, bool minimized)
+{
+	/* noop */
+}
+
+static void
 xdg_toplevel_view_set_activated(struct view *view, bool activated)
 {
 	wlr_xdg_toplevel_set_activated(xdg_toplevel_from_view(view), activated);
@@ -465,6 +471,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.set_fullscreen = xdg_toplevel_view_set_fullscreen,
 	.unmap = xdg_toplevel_view_unmap,
 	.maximize = xdg_toplevel_view_maximize,
+	.minimize = xdg_toplevel_view_minimize,
 	.move_to_front = view_impl_move_to_front,
 	.move_to_back = view_impl_move_to_back,
 };

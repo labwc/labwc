@@ -23,6 +23,7 @@
 enum action_arg_type {
 	LAB_ACTION_ARG_STR = 0,
 	LAB_ACTION_ARG_BOOL,
+	LAB_ACTION_ARG_INT,
 };
 
 struct action_arg {
@@ -40,6 +41,11 @@ struct action_arg_str {
 struct action_arg_bool {
 	struct action_arg base;
 	bool value;
+};
+
+struct action_arg_int {
+	struct action_arg base;
+	int value;
 };
 
 enum action_type {
@@ -127,6 +133,18 @@ action_arg_add_bool(struct action *action, char *key, bool value)
 {
 	struct action_arg_bool *arg = znew(*arg);
 	arg->base.type = LAB_ACTION_ARG_BOOL;
+	if (key) {
+		arg->base.key = xstrdup(key);
+	}
+	arg->value = value;
+	wl_list_append(&action->args, &arg->base.link);
+}
+
+static void
+action_arg_add_int(struct action *action, char *key, int value)
+{
+	struct action_arg_int *arg = znew(*arg);
+	arg->base.type = LAB_ACTION_ARG_INT;
 	if (key) {
 		arg->base.key = xstrdup(key);
 	}
@@ -242,6 +260,23 @@ get_arg_value_bool(struct action *action, const char *key, bool default_value)
 		if (!strcasecmp(key, arg->key)) {
 			assert(arg->type == LAB_ACTION_ARG_BOOL);
 			return ((struct action_arg_bool *)arg)->value;
+		}
+	}
+	return default_value;
+}
+
+static int
+get_arg_value_int(struct action *action, const char *key, int default_value)
+{
+	assert(key);
+	struct action_arg *arg;
+	wl_list_for_each(arg, &action->args, link) {
+		if (!arg->key) {
+			continue;
+		}
+		if (!strcasecmp(key, arg->key)) {
+			assert(arg->type == LAB_ACTION_ARG_INT);
+			return ((struct action_arg_int *)arg)->value;
 		}
 	}
 	return default_value;

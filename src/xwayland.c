@@ -510,6 +510,13 @@ xwayland_view_maximize(struct view *view, bool maximized)
 		maximized);
 }
 
+static void
+xwayland_view_minimize(struct view *view, bool minimized)
+{
+	wlr_xwayland_surface_set_minimized(xwayland_surface_from_view(view),
+		minimized);
+}
+
 enum z_direction {
 	LAB_TO_FRONT,
 	LAB_TO_BACK,
@@ -604,6 +611,7 @@ static const struct view_impl xwayland_view_impl = {
 	.set_fullscreen = xwayland_view_set_fullscreen,
 	.unmap = xwayland_view_unmap,
 	.maximize = xwayland_view_maximize,
+	.minimize = xwayland_view_minimize,
 	.move_to_front = xwayland_view_move_to_front,
 	.move_to_back = xwayland_view_move_to_back,
 };

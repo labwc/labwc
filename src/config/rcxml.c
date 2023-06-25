@@ -1051,11 +1051,11 @@ post_processing(void)
 	int nr_workspaces = wl_list_length(&rc.workspace_config.workspaces);
 	if (nr_workspaces < rc.workspace_config.min_nr_workspaces) {
 		struct workspace *workspace;
+		char workspace_name[32];
 		for (int i = nr_workspaces; i < rc.workspace_config.min_nr_workspaces; i++) {
 			workspace = znew(*workspace);
-			char *workspace_name = malloc(sizeof(char) * 32);
-			snprintf(workspace_name, 32, "Workspace %d", i + 1);
-			workspace->name = workspace_name;
+			snprintf(workspace_name, sizeof(workspace_name), "Workspace %d", i + 1);
+			workspace->name = xstrdup(workspace_name);
 			wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
 		}
 	}

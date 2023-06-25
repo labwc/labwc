@@ -86,7 +86,12 @@
       popupTime defaults to 1000 so could be left out.
       Set to 0 to completely disable the workspace OSD.
     -->
-
+  <desktops>
+    <popupTime>1000</popupTime>
+    <names>
+      <name>Default</name>
+    </names>
+  </desktops>
 
   <!-- Percent based regions based on output usable area, % char is required -->
   <!--

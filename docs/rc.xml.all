@@ -473,6 +473,7 @@
       - accelProfile [flat|adaptive]
       - tapButtonMap [lrm|lmr]
       - clickMethod [none|buttonAreas|clickfinger]
+      - sendEventsMode [yes|no|disabledOnExternalMouse]
   -->
   <libinput>
     <device category="default">
@@ -487,6 +488,7 @@
       <middleEmulation></middleEmulation>
       <disableWhileTyping></disableWhileTyping>
       <clickMethod></clickMethod>
+      <sendEventsMode></sendEventsMode>
     </device>
   </libinput>
 

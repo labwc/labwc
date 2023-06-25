@@ -461,6 +461,29 @@ get_accel_profile(const char *s)
 	return -1;
 }
 
+static int
+get_send_events_mode(const char *s)
+{
+	if (!s) {
+		goto err;
+	}
+
+	int ret = parse_bool(s, -1);
+	if (ret >= 0) {
+		return ret
+			? LIBINPUT_CONFIG_SEND_EVENTS_ENABLED
+			: LIBINPUT_CONFIG_SEND_EVENTS_DISABLED;
+	}
+
+	if (!strcasecmp(s, "disabledOnExternalMouse")) {
+		return LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
+	}
+
+err:
+	wlr_log(WLR_INFO, "Not a recognised send events mode");
+	return -1;
+}
+
 static void
 fill_libinput_category(char *nodename, char *content)
 {
@@ -576,6 +599,9 @@ fill_libinput_category(char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "invalid clickMethod");
 		}
+	} else if (!strcasecmp(nodename, "sendEventsMode")) {
+		current_libinput_category->send_events_mode =
+			get_send_events_mode(content);
 	}
 }
 

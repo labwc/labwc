@@ -684,6 +684,20 @@ extending outward from the snapped edge.
 
 	The default method depends on the touchpad hardware.
 
+*<libinput><device><sendEventsMode>* [yes|no|disabledOnExternalMouse]
+	Optionally enable or disable sending any device events.
+
+	The options available are:
+	- *yes* - Events are sent as usual
+	- *no* - No events are sent from this device
+	- *disabledOnExternalMouse* - This device does not send events if an
+	  external mouse has been detected.
+
+	It is possible to prevent events from a device in the config and then do
+	a Reconfigure to temporarily enable / disable specific devices.
+
+	By default, this setting is not configured.
+
 ## WINDOW RULES
 
 Two types of window rules are supported, actions and properties. They are

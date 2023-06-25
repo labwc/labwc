@@ -24,6 +24,7 @@ libinput_category_init(struct libinput_category *l)
 	l->middle_emu = -1;
 	l->dwt = -1;
 	l->click_method = -1;
+	l->send_events_mode = -1;
 }
 
 enum lab_libinput_device_type

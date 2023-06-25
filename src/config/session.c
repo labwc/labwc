@@ -79,12 +79,7 @@ build_path(const char *dir, const char *filename)
 	if (string_empty(dir) || string_empty(filename)) {
 		return NULL;
 	}
-	int len = strlen(dir) + strlen(filename) + 2;
-	char *buffer = znew_n(char, len);
-	strcat(buffer, dir);
-	strcat(buffer, "/");
-	strcat(buffer, filename);
-	return buffer;
+	return strdup_printf("%s/%s", dir, filename);
 }
 
 static void
@@ -98,19 +93,11 @@ update_activation_env(const char *env_keys)
 	}
 	wlr_log(WLR_INFO, "Updating dbus execution environment");
 
-	char *cmd;
-	const char *dbus = "dbus-update-activation-environment ";
-	const char *systemd = "systemctl --user import-environment ";
-
-	cmd = znew_n(char, strlen(dbus) + strlen(env_keys) + 1);
-	strcat(cmd, dbus);
-	strcat(cmd, env_keys);
+	char *cmd = strdup_printf("dbus-update-activation-environment %s", env_keys);
 	spawn_async_no_shell(cmd);
 	free(cmd);
 
-	cmd = znew_n(char, strlen(systemd) + strlen(env_keys) + 1);
-	strcat(cmd, systemd);
-	strcat(cmd, env_keys);
+	cmd = strdup_printf("systemctl --user import-environment %s", env_keys);
 	spawn_async_no_shell(cmd);
 	free(cmd);
 }
@@ -148,10 +135,7 @@ session_autostart_init(const char *dir)
 		goto out;
 	}
 	wlr_log(WLR_INFO, "run autostart file %s", autostart);
-	int len = strlen(autostart) + 4;
-	char *cmd = znew_n(char, len);
-	strcat(cmd, "sh ");
-	strcat(cmd, autostart);
+	char *cmd = strdup_printf("sh %s", autostart);
 	spawn_async_no_shell(cmd);
 	free(cmd);
 out:

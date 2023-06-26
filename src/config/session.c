@@ -73,7 +73,7 @@ read_environment_file(const char *filename)
 	fclose(stream);
 }
 
-static const char *
+static char *
 build_path(const char *dir, const char *filename)
 {
 	if (string_empty(dir) || string_empty(filename)) {
@@ -112,12 +112,12 @@ session_environment_init(const char *dir)
 	 */
 	setenv("XDG_CURRENT_DESKTOP", "wlroots", 0);
 
-	const char *environment = build_path(dir, "environment");
+	char *environment = build_path(dir, "environment");
 	if (!environment) {
 		return;
 	}
 	read_environment_file(environment);
-	free((void *)environment);
+	free(environment);
 }
 
 void
@@ -126,7 +126,7 @@ session_autostart_init(const char *dir)
 	/* Update dbus and systemd user environment, each may fail gracefully */
 	update_activation_env("DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP");
 
-	const char *autostart = build_path(dir, "autostart");
+	char *autostart = build_path(dir, "autostart");
 	if (!autostart) {
 		return;
 	}
@@ -139,5 +139,5 @@ session_autostart_init(const char *dir)
 	spawn_async_no_shell(cmd);
 	free(cmd);
 out:
-	free((void *)autostart);
+	free(autostart);
 }

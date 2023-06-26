@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | Release notes | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2023-07-14 | [0.6.4]       | 0.16.2          | 13675         |
 | 2023-05-08 | [0.6.3]       | 0.16.2          | 13050         |
 | 2023-03-20 | [0.6.2]       | 0.16.2          | 12157         |
 | 2023-01-29 | [0.6.1]       | 0.16.1          | 11828         |
@@ -21,6 +22,47 @@ The format is based on [Keep a Changelog]
 | 2021-06-28 | [0.3.0]       | 0.14.0          | 5051          |
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
+
+## 0.6.4 - 2023-07-14
+
+### Added
+
+- Add support for `ext_idle_notify` protocol.
+- Window-switcher: #879 #969
+  - Set item-height based on font-heigth
+  - Add theme option:
+    - osd.window-switcher.width
+    - osd.window-switcher.padding
+    - osd.window-switcher.item.padding.x
+    - osd.window-switcher.item.padding.y
+    - osd.window-switcher.item.active.border.width
+- Actions:
+  - Add `MoveTo`, `ToggleAlwaysOnBottom`.
+  - Add `MoveRelative`, `ResizeRelative`. Written-by: @Ph42oN
+  - Add option `wrap` for `GoToDesktop` and `SendToDesktop`
+- Add config options `<margin>` to override usable area for panels/docks
+  which do not support layer-shell protocol.
+- Add `number` attribute to `<desktops>` to simplify configuration.
+  Written-by: @Sachin-Bhat
+- Window rules: #787 #933
+  - Add properties: `skipTaskbar` and `skipWindowSwitcher`
+  - Add criteria `title` and `matchOnce`
+
+### Fixed
+
+- Support XML CDATA for `<menu><item><action><command>` in order to provide
+  backward compatibility with obmenu-generator #972
+- Call `wlr_xwayland_surface_set_minimized()` on xwayland window (un)minimize
+  to fix blank surface after minimizing fullscreen Steam windows. #958
+- Fix focus at the end of drag-and-drop operation respecting
+  `<focus><followMouse>` if enabled. #939 #976
+- Render xdg-popups above always-on-top layer.
+- Do not render On-Screen-Displays on disabled outputs. #914
+
+### Changed
+
+- Make `ToggleKeybinds` applicable only to the window that has keyboard focus
+  when the action is executed.
 
 ## 0.6.3 - 2023-05-08
 
@@ -592,6 +634,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
+[0.6.4]: https://github.com/labwc/labwc/releases/tag/0.6.4
 [0.6.3]: https://github.com/labwc/labwc/releases/tag/0.6.3
 [0.6.2]: https://github.com/labwc/labwc/releases/tag/0.6.2
 [0.6.1]: https://github.com/labwc/labwc/releases/tag/0.6.1

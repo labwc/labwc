@@ -75,6 +75,7 @@ enum action_type {
 	ACTION_TYPE_LOWER,
 	ACTION_TYPE_RESIZE,
 	ACTION_TYPE_MOVETO,
+	ACTION_TYPE_MOVE_RELATIVE,
 	ACTION_TYPE_GO_TO_DESKTOP,
 	ACTION_TYPE_SEND_TO_DESKTOP,
 	ACTION_TYPE_SNAP_TO_REGION,
@@ -109,6 +110,7 @@ const char *action_names[] = {
 	"Lower",
 	"Resize",
 	"MoveTo",
+	"MoveRelative",
 	"GoToDesktop",
 	"SendToDesktop",
 	"SnapToRegion",
@@ -191,6 +193,7 @@ action_arg_from_xml_node(struct action *action, char *nodename, char *content)
 		}
 		break;
 	case ACTION_TYPE_MOVETO:
+	case ACTION_TYPE_MOVE_RELATIVE:
 		if (!strcmp(argument, "x") || !strcmp(argument, "y")) {
 			action_arg_add_int(action, argument, atoi(content));
 			goto cleanup;
@@ -605,6 +608,13 @@ actions_run(struct view *activator, struct server *server,
 				int x = get_arg_value_int(action, "x", 0);
 				int y = get_arg_value_int(action, "y", 0);
 				view_move(view, x, y);
+			}
+			break;
+		case ACTION_TYPE_MOVE_RELATIVE:
+			if (view) {
+				int x = get_arg_value_int(action, "x", 0);
+				int y = get_arg_value_int(action, "y", 0);
+				view_move(view, view->current.x + x, view->current.y + y);
 			}
 			break;
 		case ACTION_TYPE_GO_TO_DESKTOP: {

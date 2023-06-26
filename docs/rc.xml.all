@@ -64,10 +64,6 @@
   </snapping>
 
   <!--
-    Use GoToDesktop left | right to switch workspaces.
-    Use SendToDesktop left | right to move windows.
-    See man labwc-actions for further information.
-
     Workspaces can be configured like this:
     <desktops>
       <popupTime>1000</popupTime>
@@ -81,11 +77,14 @@
 
     Or it can also be configured like this:
     <desktops number="4" />
+
+    popupTime defaults to 1000 so could be left out.
+    Set to 0 to completely disable the workspace OSD.
+
+    Use GoToDesktop left | right to switch workspaces.
+    Use SendToDesktop left | right to move windows.
+    See man labwc-actions for further information.
   -->
-    <!--
-      popupTime defaults to 1000 so could be left out.
-      Set to 0 to completely disable the workspace OSD.
-    -->
   <desktops>
     <popupTime>1000</popupTime>
     <names>
@@ -94,12 +93,12 @@
   </desktops>
 
   <!--
-    # <margin> can be used to reserve space where new/maximized/tiled
-    # windows will not be placed. Clients using layer-shell protocol reserve
-    # space automatically, so <margin> is only intended for other, specialist
-    # cases.
-    #
-    # If output is left empty, the margin will be applied to all outputs.
+    <margin> can be used to reserve space where new/maximized/tiled
+    windows will not be placed. Clients using layer-shell protocol reserve
+    space automatically, so <margin> is only intended for other, specialist
+    cases.
+
+    If output is left empty, the margin will be applied to all outputs.
 
     <margin top="" bottom="" left="" right="" output="" />
   -->
@@ -193,7 +192,7 @@
     <keybind key="XF86_MonBrightnessDown">
       <action name="Execute" command="brightnessctl set 10%-" />
     </keybind>
-    <!-- SnapToRegion via W-Numpad -->
+  <!-- SnapToRegion via W-Numpad -->
     <!--
     <keybind key="W-KP_7"><action name="SnapToRegion" region="top-left" /></keybind>
     <keybind key="W-KP_8"><action name="SnapToRegion" region="top" /></keybind>
@@ -204,7 +203,7 @@
     <keybind key="W-KP_1"><action name="SnapToRegion" region="bottom-left" /></keybind>
     <keybind key="W-KP_2"><action name="SnapToRegion" region="bottom" /></keybind>
     <keybind key="W-KP_3"><action name="SnapToRegion" region="bottom-right" /></keybind>
-    -->
+  -->
   </keyboard>
 
   <!--

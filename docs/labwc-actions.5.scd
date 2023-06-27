@@ -45,6 +45,11 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="Resize">*
 	Begin interactive resize of window under cursor
 
+*<action name="ResizeRelative" left="" right="" top="" bottom="" >*
+	Resize window relative to its current size. Values of left, right,
+	top or bottom tell how much to resize on that edge of window,
+	positive values grow window, negative shrink window.
+
 *<action name="MoveTo" x="" y="" />*
 	Move to position (x, y)
 

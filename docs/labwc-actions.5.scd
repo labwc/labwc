@@ -48,6 +48,10 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="MoveTo" x="" y="" />*
 	Move to position (x, y)
 
+*<action name="MoveRelative" x="" y="" />*
+	Move window relative to its current position. Positive value of x moves
+	it right, negative left. Positive value of y moves it down, negative up.
+
 *<action name="SnapToEdge" direction="value" />*
 	Resize window to fill half the output in the given direction. Supports
 	directions "left", "up", "right", "down" and "center".

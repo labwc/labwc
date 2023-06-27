@@ -614,7 +614,7 @@ actions_run(struct view *activator, struct server *server,
 			if (view) {
 				int x = get_arg_value_int(action, "x", 0);
 				int y = get_arg_value_int(action, "y", 0);
-				view_move(view, view->current.x + x, view->current.y + y);
+				view_move(view, view->pending.x + x, view->pending.y + y);
 			}
 			break;
 		case ACTION_TYPE_GO_TO_DESKTOP: {

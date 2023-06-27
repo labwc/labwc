@@ -204,6 +204,17 @@ view_move_resize(struct view *view, struct wlr_box geo)
 }
 
 void
+view_resize_relative(struct view *view, int left, int right, int top, int bottom)
+{
+	struct wlr_box newgeo = view->pending;
+	newgeo.x -= left;
+	newgeo.width += left + right;
+	newgeo.y -= top;
+	newgeo.height += top + bottom;
+	view_move_resize(view, newgeo);
+}
+
+void
 view_adjust_size(struct view *view, int *w, int *h)
 {
 	assert(view);

@@ -74,6 +74,7 @@ enum action_type {
 	ACTION_TYPE_RAISE,
 	ACTION_TYPE_LOWER,
 	ACTION_TYPE_RESIZE,
+	ACTION_TYPE_RESIZE_RELATIVE,
 	ACTION_TYPE_MOVETO,
 	ACTION_TYPE_MOVE_RELATIVE,
 	ACTION_TYPE_GO_TO_DESKTOP,
@@ -109,6 +110,7 @@ const char *action_names[] = {
 	"Raise",
 	"Lower",
 	"Resize",
+	"ResizeRelative",
 	"MoveTo",
 	"MoveRelative",
 	"GoToDesktop",
@@ -189,6 +191,13 @@ action_arg_from_xml_node(struct action *action, char *nodename, char *content)
 	case ACTION_TYPE_SHOW_MENU:
 		if (!strcmp(argument, "menu")) {
 			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_RESIZE_RELATIVE:
+		if (!strcmp(argument, "left") || !strcmp(argument, "right") ||
+				!strcmp(argument, "top") || !strcmp(argument, "bottom")) {
+			action_arg_add_int(action, argument, atoi(content));
 			goto cleanup;
 		}
 		break;
@@ -601,6 +610,15 @@ actions_run(struct view *activator, struct server *server,
 			if (view) {
 				interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 					resize_edges);
+			}
+			break;
+		case ACTION_TYPE_RESIZE_RELATIVE:
+			if (view) {
+				int left = get_arg_value_int(action, "left", 0);
+				int right = get_arg_value_int(action, "right", 0);
+				int top = get_arg_value_int(action, "top", 0);
+				int bottom = get_arg_value_int(action, "bottom", 0);
+				view_resize_relative(view, left, right, top, bottom);
 			}
 			break;
 		case ACTION_TYPE_MOVETO:

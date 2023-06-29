@@ -141,13 +141,18 @@ elements are not listed here, but are supported.
 	Border color of on-screen-display
 
 *osd.border.width*
-	Border width of on-screen-display
+	Border width of on-screen-display. Inherits *border.width* if not set.
 
 *osd.label.text.color*
 	Text color of on-screen-display
 
 *osd.window-switcher.width*
 	Width of window switcher in pixels. Default is 600.
+
+*osd.window-switcher.padding*
+	Padding of window switcher in pixels. This is the space between the
+	window-switcher border and its items. Inherits *osd.border.width* if
+	not set.
 
 *osd.window-switcher.item.padding.x*
 	Horizontal padding of window switcher entries in pixels.

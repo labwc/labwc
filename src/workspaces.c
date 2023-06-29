@@ -91,7 +91,11 @@ _osd_update(struct server *server)
 
 		/* Border */
 		set_cairo_color(cairo, theme->osd_border_color);
-		draw_cairo_border(cairo, width, height, theme->osd_border_width);
+		struct wlr_fbox fbox = {
+			.width = width,
+			.height = height,
+		};
+		draw_cairo_border(cairo, fbox, theme->osd_border_width);
 
 		uint16_t x = (width - marker_width) / 2;
 		wl_list_for_each(workspace, &server->workspaces, link) {

@@ -7,6 +7,7 @@
 
 struct wlr_scene_tree;
 struct wlr_scene_rect;
+struct wlr_fbox;
 
 struct multi_rect {
 	struct wlr_scene_tree *tree;
@@ -44,7 +45,6 @@ void multi_rect_set_size(struct multi_rect *rect, int width, int height);
 void set_cairo_color(cairo_t *cairo, float *color);
 
 /* Draws a border with a specified line width */
-void draw_cairo_border(cairo_t *cairo, double width, double height,
-		double line_width);
+void draw_cairo_border(cairo_t *cairo, struct wlr_fbox fbox, double line_width);
 
 #endif /* LABWC_GRAPHIC_HELPERS_H */

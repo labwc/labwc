@@ -5,6 +5,7 @@
 #include <drm_fourcc.h>
 #include <pango/pangocairo.h>
 #include <wlr/util/log.h>
+#include <wlr/util/box.h>
 #include "buffer.h"
 #include "common/buf.h"
 #include "common/font.h"
@@ -69,8 +70,13 @@ get_osd_height(struct wl_list *node_list)
 		if (!isfocusable(view) || skip == LAB_PROP_TRUE) {
 			continue;
 		}
-		height += rc.theme->osd_window_switcher_item_height;
+
+		/* Include item border width */
+		height += rc.theme->osd_window_switcher_item_height
+			+ rc.theme->osd_border_width * 2;
 	}
+
+	/* Add OSD border width */
 	height += 2 * rc.theme->osd_border_width;
 	return height;
 }
@@ -294,10 +300,13 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 
 	/* Draw border */
 	set_cairo_color(cairo, theme->osd_border_color);
-	draw_cairo_border(cairo, w, h, theme->osd_border_width);
+	struct wlr_fbox fbox = {
+		.width = w,
+		.height = h,
+	};
+	draw_cairo_border(cairo, fbox, theme->osd_border_width);
 
 	/* Set up text rendering */
-	int item_width = w - 2 * theme->osd_border_width;
 	set_cairo_color(cairo, theme->osd_label_text_color);
 	PangoLayout *layout = pango_cairo_create_layout(cairo);
 	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
@@ -329,6 +338,12 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 	struct buf buf;
 	buf_init(&buf);
 
+	/*
+	 * Subtract 4x border-width to allow for both the OSD border and the
+	 * item border. This is the width of the area available for text fields.
+	 */
+	int available_width = w - 4 * theme->osd_border_width;
+
 	/* Draw text for each node */
 	wl_list_for_each_reverse(node, node_list, link) {
 		if (!node->data) {
@@ -341,11 +356,32 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			continue;
 		}
 
-		int x = theme->osd_border_width + theme->osd_window_switcher_item_padding_x;
+		/*
+		 *    OSD border
+		 * +---------------------------------+
+		 * |                                 |
+		 * |  item border                    |
+		 * |+-------------------------------+|
+		 * ||                               ||
+		 * ||padding between each field     ||
+		 * ||| field-1 | field-2 | field-n |||
+		 * ||                               ||
+		 * ||                               ||
+		 * |+-------------------------------+|
+		 * |                                 |
+		 * |                                 |
+		 * +---------------------------------+
+		 */
+		y += theme->osd_border_width;
+		int x = theme->osd_window_switcher_item_padding_x
+			+ 2 * theme->osd_border_width;
+
+		int nr_fields = wl_list_length(&rc.window_switcher.fields);
 		struct window_switcher_field *field;
 		wl_list_for_each(field, &rc.window_switcher.fields, link) {
 			buf.len = 0;
-			cairo_move_to(cairo, x, y + theme->osd_window_switcher_item_padding_y - 1);
+			cairo_move_to(cairo, x,
+				y + theme->osd_window_switcher_item_padding_y - 1);
 
 			switch (field->content) {
 			case LAB_FIELD_TYPE:
@@ -360,8 +396,9 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			default:
 				break;
 			}
-			int field_width = field->width / 100.0 * item_width
-				- 2 * theme->osd_window_switcher_item_padding_x;
+			int field_width = (available_width - (nr_fields + 1)
+				* theme->osd_window_switcher_item_padding_x)
+				* field->width / 100.0;
 			pango_layout_set_width(layout, field_width * PANGO_SCALE);
 			pango_layout_set_text(layout, buf.buf, -1);
 			pango_cairo_show_layout(cairo, layout);
@@ -370,13 +407,19 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 
 		if (view == cycle_view) {
 			/* Highlight current window */
-			cairo_rectangle(cairo, theme->osd_border_width, y,
-				theme->osd_window_switcher_width - 2 * theme->osd_border_width,
-				theme->osd_window_switcher_item_height);
+			struct wlr_fbox fbox = {
+				.x = theme->osd_border_width,
+				.y = y - theme->osd_border_width,
+				.width = theme->osd_window_switcher_width
+					- 2 * theme->osd_border_width,
+				.height = theme->osd_window_switcher_item_height
+					+ 2 * theme->osd_border_width,
+			};
+			draw_cairo_border(cairo, fbox, theme->osd_border_width);
 			cairo_stroke(cairo);
 		}
 
-		y += theme->osd_window_switcher_item_height;
+		y += theme->osd_border_width + theme->osd_window_switcher_item_height;
 	}
 	free(buf.buf);
 	g_object_unref(layout);

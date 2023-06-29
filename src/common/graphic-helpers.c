@@ -4,6 +4,7 @@
 #include <cairo.h>
 #include <stdlib.h>
 #include <wlr/types/wlr_scene.h>
+#include <wlr/util/box.h>
 #include "common/graphic-helpers.h"
 #include "common/mem.h"
 
@@ -62,18 +63,17 @@ multi_rect_set_size(struct multi_rect *rect, int width, int height)
 
 /* Draws a border with a specified line width */
 void
-draw_cairo_border(cairo_t *cairo, double width, double height, double line_width)
+draw_cairo_border(cairo_t *cairo, struct wlr_fbox fbox, double line_width)
 {
 	cairo_save(cairo);
 
-	double x, y, w, h;
 	/* The anchor point of a line is in the center */
-	x = line_width / 2;
-	y = x;
-	w = width - line_width;
-	h = height - line_width;
+	fbox.x += line_width / 2.0;
+	fbox.y += line_width / 2.0;
+	fbox.width -= line_width;
+	fbox.height -= line_width;
 	cairo_set_line_width(cairo, line_width);
-	cairo_rectangle(cairo, x, y, w, h);
+	cairo_rectangle(cairo, fbox.x, fbox.y, fbox.width, fbox.height);
 	cairo_stroke(cairo);
 
 	cairo_restore(cairo);

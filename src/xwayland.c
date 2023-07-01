@@ -183,19 +183,7 @@ static void
 handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, unmap);
-	view->impl->unmap(view);
-
-	/*
-	 * Some xwayland clients leave unmapped child views around, typically
-	 * when a dialog window is closed. Although handle_destroy() is not
-	 * called for these, we have to deal with them as such in terms of the
-	 * foreign-toplevel protocol to avoid panels and the like still showing
-	 * them.
-	 */
-	if (view->toplevel.handle) {
-		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
-		view->toplevel.handle = NULL;
-	}
+	view->impl->unmap(view, /* client_request */ true);
 }
 
 static void
@@ -492,7 +480,7 @@ xwayland_view_map(struct view *view)
 }
 
 static void
-xwayland_view_unmap(struct view *view)
+xwayland_view_unmap(struct view *view, bool client_request)
 {
 	if (!view->mapped) {
 		return;
@@ -501,6 +489,16 @@ xwayland_view_unmap(struct view *view)
 	wl_list_remove(&view->commit.link);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 	desktop_focus_topmost_mapped_view(view->server);
+
+	/*
+	 * If the view was explicitly unmapped by the client (rather
+	 * than just minimized), destroy the foreign toplevel handle so
+	 * the unmapped view doesn't show up in panels and the like.
+	 */
+	if (client_request && view->toplevel.handle) {
+		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
+		view->toplevel.handle = NULL;
+	}
 }
 
 static void

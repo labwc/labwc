@@ -246,7 +246,7 @@ view_minimize(struct view *view, bool minimized)
 	}
 	view->minimized = minimized;
 	if (minimized) {
-		view->impl->unmap(view);
+		view->impl->unmap(view, /* client_request */ false);
 		_view_set_activated(view, false);
 		if (view == view->server->focused_view) {
 			/*

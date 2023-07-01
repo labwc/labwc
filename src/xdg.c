@@ -151,7 +151,7 @@ static void
 handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, unmap);
-	view->impl->unmap(view);
+	view->impl->unmap(view, /* client_request */ true);
 }
 
 static void
@@ -452,7 +452,7 @@ xdg_toplevel_view_map(struct view *view)
 }
 
 static void
-xdg_toplevel_view_unmap(struct view *view)
+xdg_toplevel_view_unmap(struct view *view, bool client_request)
 {
 	if (view->mapped) {
 		view->mapped = false;

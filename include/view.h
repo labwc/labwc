@@ -34,7 +34,13 @@ struct view_impl {
 	void (*map)(struct view *view);
 	void (*set_activated)(struct view *view, bool activated);
 	void (*set_fullscreen)(struct view *view, bool fullscreen);
-	void (*unmap)(struct view *view);
+	/*
+	 * client_request is true if the client unmapped its own
+	 * surface; false if we are just minimizing the view. The two
+	 * cases are similar but have subtle differences (e.g., when
+	 * minimizing we don't destroy the foreign toplevel handle).
+	 */
+	void (*unmap)(struct view *view, bool client_request);
 	void (*maximize)(struct view *view, bool maximize);
 	void (*minimize)(struct view *view, bool minimize);
 	void (*move_to_front)(struct view *view);

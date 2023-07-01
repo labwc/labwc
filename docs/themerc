@@ -54,6 +54,7 @@ osd.border.width: 1
 osd.label.text.color: #000000
 
 osd.window-switcher.width: 600
-osd.window-switcher.padding: 1
+osd.window-switcher.padding: 4
 osd.window-switcher.item.padding.x: 10
-osd.window-switcher.item.padding.y: 6
+osd.window-switcher.item.padding.y: 1
+osd.window-switcher.item.active.border.width: 2

@@ -71,6 +71,7 @@ struct theme {
 	int osd_window_switcher_padding;
 	int osd_window_switcher_item_padding_x;
 	int osd_window_switcher_item_padding_y;
+	int osd_window_switcher_item_active_border_width;
 
 	/* textures */
 	struct lab_data_buffer *xbm_close_active_unpressed;

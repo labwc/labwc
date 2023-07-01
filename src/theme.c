@@ -141,9 +141,10 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#888888", theme->menu_separator_color);
 
 	theme->osd_window_switcher_width = 600;
-	theme->osd_window_switcher_padding = INT_MIN;
+	theme->osd_window_switcher_padding = 4;
 	theme->osd_window_switcher_item_padding_x = 10;
-	theme->osd_window_switcher_item_padding_y = 6;
+	theme->osd_window_switcher_item_padding_y = 1;
+	theme->osd_window_switcher_item_active_border_width = 2;
 
 	/* inherit settings in post_processing() if not set elsewhere */
 	theme->osd_bg_color[0] = FLT_MIN;
@@ -320,6 +321,9 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "osd.window-switcher.item.padding.y")) {
 		theme->osd_window_switcher_item_padding_y = atoi(value);
+	}
+	if (match_glob(key, "osd.window-switcher.item.active.border.width")) {
+		theme->osd_window_switcher_item_active_border_width = atoi(value);
 	}
 	if (match_glob(key, "osd.label.text.color")) {
 		parse_hexstr(value, theme->osd_label_text_color);
@@ -557,9 +561,6 @@ post_processing(struct theme *theme)
 	}
 	if (theme->osd_border_width == INT_MIN) {
 		theme->osd_border_width = theme->border_width;
-	}
-	if (theme->osd_window_switcher_padding == INT_MIN) {
-		theme->osd_window_switcher_padding = theme->osd_border_width;
 	}
 	if (theme->osd_label_text_color[0] == FLT_MIN) {
 		memcpy(theme->osd_label_text_color,

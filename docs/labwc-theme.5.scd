@@ -151,8 +151,7 @@ elements are not listed here, but are supported.
 
 *osd.window-switcher.padding*
 	Padding of window switcher in pixels. This is the space between the
-	window-switcher border and its items. Inherits *osd.border.width* if
-	not set.
+	window-switcher border and its items. Default is 4.
 
 *osd.window-switcher.item.padding.x*
 	Horizontal padding of window switcher entries in pixels.
@@ -160,7 +159,11 @@ elements are not listed here, but are supported.
 
 *osd.window-switcher.item.padding.y*
 	Vertical padding of window switcher entries in pixels.
-	Default is 6.
+	Default is 1.
+
+*osd.window-switcher.item.active.border.width*
+	Border width of the selection box in the window switcher in pixels.
+	Default is 2.
 
 *border.color*
 	Set all border colors. This is obsolete, but supported for backward

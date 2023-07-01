@@ -339,12 +339,10 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 	struct buf buf;
 	buf_init(&buf);
 
-	/*
-	 * Subtract 4x border-width to allow for both the OSD border and the
-	 * item border. This is the width of the area available for text fields.
-	 */
-	int available_width = w - 4 * theme->osd_border_width
-		- 2 * theme->osd_window_switcher_padding;
+	/* This is the width of the area available for text fields */
+	int available_width = w - 2 * theme->osd_border_width
+		- 2 * theme->osd_window_switcher_padding
+		- 2 * theme->osd_window_switcher_item_active_border_width;
 
 	/* Draw text for each node */
 	wl_list_for_each_reverse(node, node_list, link) {
@@ -412,14 +410,15 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			/* Highlight current window */
 			struct wlr_fbox fbox = {
 				.x = theme->osd_border_width + theme->osd_window_switcher_padding,
-				.y = y - theme->osd_border_width,
+				.y = y - theme->osd_window_switcher_item_active_border_width,
 				.width = theme->osd_window_switcher_width
 					- 2 * theme->osd_border_width
 					- 2 * theme->osd_window_switcher_padding,
 				.height = theme->osd_window_switcher_item_height
-					+ 2 * theme->osd_border_width,
+					+ theme->osd_window_switcher_item_active_border_width,
 			};
-			draw_cairo_border(cairo, fbox, theme->osd_border_width);
+			draw_cairo_border(cairo, fbox,
+				theme->osd_window_switcher_item_active_border_width);
 			cairo_stroke(cairo);
 		}
 

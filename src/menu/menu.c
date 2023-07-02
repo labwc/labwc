@@ -307,6 +307,9 @@ entry(xmlNode *node, char *nodename, char *content)
 		return;
 	}
 	string_truncate_at_pattern(nodename, ".openbox_menu");
+	if (getenv("LABWC_DEBUG_MENU_NODENAMES")) {
+		printf("%s: %s\n", nodename, content);
+	}
 	if (in_item) {
 		fill_item(nodename, content);
 	}

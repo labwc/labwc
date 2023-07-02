@@ -164,15 +164,12 @@ action_arg_from_xml_node(struct action *action, char *nodename, char *content)
 
 	switch (action->type) {
 	case ACTION_TYPE_EXECUTE:
-		if (!strcmp(argument, "command")) {
-			action_arg_add_str(action, argument, content);
-			goto cleanup;
-		} else if (!strcmp(argument, "execute")) {
-			/*
-			 * <action name="Execute"><execute>foo</execute></action>
-			 * is deprecated, but we support it anyway for backward
-			 * compatibility with old openbox-menu generators
-			 */
+		/*
+		 * <action name="Execute"> with an <execute> child is
+		 * deprecated, but we support it anyway for backward
+		 * compatibility with old openbox-menu generators
+		 */
+		if (!strcmp(argument, "command") || !strcmp(argument, "execute")) {
 			action_arg_add_str(action, "command", content);
 			goto cleanup;
 		}

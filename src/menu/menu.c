@@ -14,6 +14,7 @@
 #include "common/buf.h"
 #include "common/font.h"
 #include "common/list.h"
+#include "common/match.h"
 #include "common/mem.h"
 #include "common/nodename.h"
 #include "common/scaled_font_buffer.h"
@@ -300,19 +301,53 @@ item_destroy(struct menuitem *item)
 	free(item);
 }
 
+/*
+ * We support XML CDATA for <command> in menu.xml in order to provide backward
+ * compatibility with obmenu-generator. For example:
+ *
+ * <menu id="" label="">
+ *   <item label="">
+ *     <action name="Execute">
+ *       <command><![CDATA[xdg-open .]]></command>
+ *     </action>
+ *   </item>
+ * </menu>
+ *
+ * <execute> is an old, deprecated openbox variety of <command>. We support it
+ * for backward compatibility with old openbox-menu generators. It has the same
+ * function and <command>
+ *
+ * The match_glob() wildcard allows for nested menus giving nodenames with
+ * ...menu.menu... or ...menu.menu.menu... and so on.
+ */
+static bool
+nodename_supports_cdata(char *nodename)
+{
+	return match_glob("command.action.item.*menu.openbox_menu", nodename)
+		|| match_glob("execute.action.item.*menu.openbox_menu", nodename);
+}
+
 static void
 entry(xmlNode *node, char *nodename, char *content)
 {
-	if (!nodename || !content) {
+	if (!nodename) {
+		return;
+	}
+	xmlChar *cdata = NULL;
+	if (!content && nodename_supports_cdata(nodename)) {
+		cdata = xmlNodeGetContent(node);
+	}
+	if (!content && !cdata) {
 		return;
 	}
 	string_truncate_at_pattern(nodename, ".openbox_menu");
 	if (getenv("LABWC_DEBUG_MENU_NODENAMES")) {
-		printf("%s: %s\n", nodename, content);
+		printf("%s: %s\n", nodename, content ? content : (char *)cdata);
 	}
 	if (in_item) {
-		fill_item(nodename, content);
+		fill_item(nodename, content ? content : (char *)cdata);
 	}
+	xmlFree(cdata);
 }
 
 static void

@@ -629,9 +629,10 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_MOVE_RELATIVE:
-			if (view) {
+			if (view && !view->fullscreen) {
 				int x = get_arg_value_int(action, "x", 0);
 				int y = get_arg_value_int(action, "y", 0);
+				view_maximize(view, false, false);
 				view_move(view, view->pending.x + x, view->pending.y + y);
 			}
 			break;

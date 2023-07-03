@@ -5640,6 +5640,7 @@ sub process {
 			    $var !~ /^(?:xmlReadFile|xmlDocGetRootElement)/ &&
 			    $var !~ /^(?:xmlFreeDoc|xmlCleanupParser)/ &&
 			    $var !~ /^(?:xmlParseMemory)/ &&
+			    $var !~ /^(?:xmlFree)/ &&
 			    $var !~ /^(?:GString|GError)/ &&
 			    $var !~ /^(?:XKB_KEY_XF86Switch_VT_1)/ &&
 

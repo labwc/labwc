@@ -324,7 +324,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 		/* Center workspace indicator on the x axis */
 		int x = font_width(&rc.font_osd, workspace_name);
 		x = (theme->osd_window_switcher_width - x) / 2;
-		cairo_move_to(cairo, x, y);
+		cairo_move_to(cairo, x, y + theme->osd_window_switcher_item_active_border_width);
 		PangoWeight weight = pango_font_description_get_weight(desc);
 		pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
 		pango_layout_set_font_description(layout, desc);
@@ -372,17 +372,18 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 		 * |                                 |
 		 * +---------------------------------+
 		 */
-		y += theme->osd_border_width;
-		int x = theme->osd_window_switcher_item_padding_x
-			+ 2 * theme->osd_border_width
-			+ theme->osd_window_switcher_padding;
+		int x = theme->osd_border_width
+			+ theme->osd_window_switcher_padding
+			+ theme->osd_window_switcher_item_active_border_width
+			+ theme->osd_window_switcher_item_padding_x;
 
 		int nr_fields = wl_list_length(&rc.window_switcher.fields);
 		struct window_switcher_field *field;
 		wl_list_for_each(field, &rc.window_switcher.fields, link) {
 			buf.len = 0;
-			cairo_move_to(cairo, x,
-				y + theme->osd_window_switcher_item_padding_y - 1);
+			cairo_move_to(cairo, x, y
+				+ theme->osd_window_switcher_item_padding_y
+				+ theme->osd_window_switcher_item_active_border_width);
 
 			switch (field->content) {
 			case LAB_FIELD_TYPE:
@@ -410,19 +411,18 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			/* Highlight current window */
 			struct wlr_fbox fbox = {
 				.x = theme->osd_border_width + theme->osd_window_switcher_padding,
-				.y = y - theme->osd_window_switcher_item_active_border_width,
+				.y = y,
 				.width = theme->osd_window_switcher_width
 					- 2 * theme->osd_border_width
 					- 2 * theme->osd_window_switcher_padding,
-				.height = theme->osd_window_switcher_item_height
-					+ theme->osd_window_switcher_item_active_border_width,
+				.height = theme->osd_window_switcher_item_height,
 			};
 			draw_cairo_border(cairo, fbox,
 				theme->osd_window_switcher_item_active_border_width);
 			cairo_stroke(cairo);
 		}
 
-		y += theme->osd_border_width + theme->osd_window_switcher_item_height;
+		y += theme->osd_window_switcher_item_height;
 	}
 	free(buf.buf);
 	g_object_unref(layout);

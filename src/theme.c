@@ -540,7 +540,8 @@ post_processing(struct theme *theme)
 	theme->title_height = font_height(&rc.font_activewindow)
 		+ 2 * theme->padding_height;
 	theme->osd_window_switcher_item_height = font_height(&rc.font_osd)
-		+ 2 * theme->osd_window_switcher_item_padding_y;
+		+ 2 * theme->osd_window_switcher_item_padding_y
+		+ 2 * theme->osd_window_switcher_item_active_border_width;
 
 	if (rc.corner_radius >= theme->title_height) {
 		theme->title_height = rc.corner_radius + 1;

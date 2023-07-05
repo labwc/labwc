@@ -54,34 +54,6 @@ get_formatted_app_id(struct view *view)
 	return s;
 }
 
-static int
-get_osd_height(struct wl_list *node_list)
-{
-	int height = 0;
-	struct view *view;
-	struct wlr_scene_node *node;
-	wl_list_for_each(node, node_list, link) {
-		if (!node->data) {
-			/* We found some non-view, most likely the region overlay */
-			continue;
-		}
-		view = node_view_from_node(node);
-		enum property skip = window_rules_get_property(view, "skipWindowSwitcher");
-		if (!isfocusable(view) || skip == LAB_PROP_TRUE) {
-			continue;
-		}
-
-		/* Include item border width */
-		height += rc.theme->osd_window_switcher_item_height
-			+ rc.theme->osd_border_width * 2;
-	}
-
-	/* Add OSD border width */
-	height += 2 * rc.theme->osd_border_width;
-	height += 2 * rc.theme->osd_window_switcher_padding;
-	return height;
-}
-
 static void
 destroy_osd_nodes(struct output *output)
 {
@@ -428,6 +400,33 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 	g_object_unref(layout);
 
 	cairo_surface_flush(surf);
+}
+
+static int
+get_osd_height(struct wl_list *node_list)
+{
+	int height = 0;
+	struct view *view;
+	struct wlr_scene_node *node;
+	wl_list_for_each(node, node_list, link) {
+		if (!node->data) {
+			/* We found some non-view, most likely the region overlay */
+			continue;
+		}
+		view = node_view_from_node(node);
+		enum property skip = window_rules_get_property(view, "skipWindowSwitcher");
+		if (!isfocusable(view) || skip == LAB_PROP_TRUE) {
+			continue;
+		}
+
+		/* Include item border width */
+		height += rc.theme->osd_window_switcher_item_height;
+	}
+
+	/* Add OSD border width */
+	height += 2 * rc.theme->osd_border_width;
+	height += 2 * rc.theme->osd_window_switcher_padding;
+	return height;
 }
 
 static void

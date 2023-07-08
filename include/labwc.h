@@ -17,8 +17,6 @@
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
-#include <wlr/types/wlr_idle.h>
-#include <wlr/types/wlr_idle_inhibit_v1.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
 #include <wlr/types/wlr_keyboard_group.h>
@@ -117,8 +115,6 @@ struct seat {
 	} smooth_scroll_offset;
 
 	struct wlr_pointer_constraint_v1 *current_constraint;
-	struct wlr_idle *wlr_idle;
-	struct wlr_idle_inhibit_manager_v1 *wlr_idle_inhibit_manager;
 
 	/* In support for ToggleKeybinds */
 	uint32_t nr_inhibited_keybind_views;
@@ -194,7 +190,6 @@ struct seat {
 	struct wl_listener touch_frame;
 
 	struct wl_listener constraint_commit;
-	struct wl_listener idle_inhibitor_create;
 	struct wl_listener pressed_surface_destroy;
 
 	struct wlr_virtual_pointer_manager_v1 *virtual_pointer;
@@ -349,12 +344,6 @@ struct output {
 struct constraint {
 	struct seat *seat;
 	struct wlr_pointer_constraint_v1 *constraint;
-	struct wl_listener destroy;
-};
-
-struct idle_inhibitor {
-	struct seat *seat;
-	struct wlr_idle_inhibitor_v1 *wlr_inhibitor;
 	struct wl_listener destroy;
 };
 

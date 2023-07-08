@@ -11,6 +11,7 @@
 #include "common/scene-helpers.h"
 #include "config/mousebind.h"
 #include "dnd.h"
+#include "idle.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "regions.h"
@@ -709,7 +710,7 @@ cursor_motion(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, cursor_motion);
 	struct server *server = seat->server;
 	struct wlr_pointer_motion_event *event = data;
-	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
+	idle_manager_notify_activity(seat->seat);
 
 	wlr_relative_pointer_manager_v1_send_relative_motion(
 		server->relative_pointer_manager,
@@ -735,7 +736,7 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(
 		listener, seat, cursor_motion_absolute);
 	struct wlr_pointer_motion_absolute_event *event = data;
-	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
+	idle_manager_notify_activity(seat->seat);
 
 	double lx, ly;
 	wlr_cursor_absolute_to_layout_coords(seat->cursor,
@@ -988,7 +989,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	 */
 	struct seat *seat = wl_container_of(listener, seat, cursor_button);
 	struct wlr_pointer_button_event *event = data;
-	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
+	idle_manager_notify_activity(seat->seat);
 
 	switch (event->state) {
 	case WLR_BUTTON_PRESSED:
@@ -1089,7 +1090,7 @@ cursor_axis(struct wl_listener *listener, void *data)
 	struct wlr_pointer_axis_event *event = data;
 	struct server *server = seat->server;
 	struct cursor_context ctx = get_cursor_context(server);
-	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
+	idle_manager_notify_activity(seat->seat);
 
 	/* Bindings swallow mouse events if activated */
 	bool handled = handle_cursor_axis(server, &ctx, event);

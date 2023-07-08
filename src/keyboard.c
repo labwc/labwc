@@ -3,6 +3,7 @@
 #include <wlr/backend/multi.h>
 #include <wlr/backend/session.h>
 #include "action.h"
+#include "idle.h"
 #include "key-state.h"
 #include "labwc.h"
 #include "regions.h"
@@ -305,7 +306,7 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	struct wlr_keyboard_key_event *event = data;
 	struct wlr_seat *wlr_seat = seat->seat;
 	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
-	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
+	idle_manager_notify_activity(seat->seat);
 
 	/* any new press/release cancels current keybind repeat */
 	keyboard_cancel_keybind_repeat(keyboard);

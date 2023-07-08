@@ -289,33 +289,6 @@ new_input_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-destroy_idle_inhibitor(struct wl_listener *listener, void *data)
-{
-	struct idle_inhibitor *idle_inhibitor = wl_container_of(listener,
-		idle_inhibitor, destroy);
-	struct seat *seat = idle_inhibitor->seat;
-	wl_list_remove(&idle_inhibitor->destroy.link);
-	wlr_idle_set_enabled(seat->wlr_idle, seat->seat, wl_list_length(
-			&seat->wlr_idle_inhibit_manager->inhibitors) <= 1);
-	free(idle_inhibitor);
-}
-
-static void
-new_idle_inhibitor(struct wl_listener *listener, void *data)
-{
-	struct wlr_idle_inhibitor_v1 *wlr_inhibitor = data;
-	struct seat *seat = wl_container_of(listener, seat,
-		idle_inhibitor_create);
-
-	struct idle_inhibitor *inhibitor = znew(*inhibitor);
-	inhibitor->seat = seat;
-	inhibitor->wlr_inhibitor = wlr_inhibitor;
-	inhibitor->destroy.notify = destroy_idle_inhibitor;
-	wl_signal_add(&wlr_inhibitor->events.destroy, &inhibitor->destroy);
-	wlr_idle_set_enabled(seat->wlr_idle, seat->seat, 0);
-}
-
-static void
 new_virtual_pointer(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, virtual_pointer_new);
@@ -360,13 +333,6 @@ seat_init(struct server *server)
 	wl_list_init(&seat->inputs);
 	seat->new_input.notify = new_input_notify;
 	wl_signal_add(&server->backend->events.new_input, &seat->new_input);
-
-	seat->wlr_idle = wlr_idle_create(server->wl_display);
-	seat->wlr_idle_inhibit_manager = wlr_idle_inhibit_v1_create(
-		server->wl_display);
-	wl_signal_add(&seat->wlr_idle_inhibit_manager->events.new_inhibitor,
-		&seat->idle_inhibitor_create);
-	seat->idle_inhibitor_create.notify = new_idle_inhibitor;
 
 	seat->virtual_pointer = wlr_virtual_pointer_manager_v1_create(
 		server->wl_display);

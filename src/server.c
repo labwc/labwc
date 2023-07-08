@@ -19,6 +19,7 @@
 #include "config/rcxml.h"
 #include "config/session.h"
 #include "decorations.h"
+#include "idle.h"
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
@@ -393,6 +394,8 @@ server_init(struct server *server)
 	wlr_gamma_control_manager_v1_create(server->wl_display);
 	wlr_viewporter_create(server->wl_display);
 	wlr_single_pixel_buffer_manager_v1_create(server->wl_display);
+
+	idle_manager_create(server->wl_display, server->seat.seat);
 
 	server->relative_pointer_manager = wlr_relative_pointer_manager_v1_create(
 		server->wl_display);

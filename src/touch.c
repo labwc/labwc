@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <wlr/types/wlr_touch.h>
+#include "idle.h"
 #include "labwc.h"
 #include "common/scene-helpers.h"
 
@@ -29,7 +30,7 @@ touch_motion(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, touch_motion);
 	struct wlr_touch_motion_event *event = data;
-	wlr_idle_notify_activity(seat->wlr_idle, seat->seat);
+	idle_manager_notify_activity(seat->seat);
 
 	double sx, sy;
 	if (touch_get_coords(seat, event->touch, event->x, event->y, &sx, &sy)) {

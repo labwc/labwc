@@ -454,7 +454,21 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 	cairo_set_operator(cairo, CAIRO_OPERATOR_CLEAR);
 	cairo_paint(cairo);
 
-	/* fill */
+	/*
+	 * Create outline path and fill. Illustration of top-left corner buffer:
+	 *
+	 *          _,,ooO"""""""""+
+	 *        ,oO"'   ^        |
+	 *      ,o"       |        |
+	 *     o"         |r       |
+	 *    o'          |        |
+	 *    O     r     v        |
+	 *    O<--------->+        |
+	 *    O                    |
+	 *    O                    |
+	 *    O                    |
+	 *    +--------------------+
+	 */
 	cairo_set_line_width(cairo, 0.0);
 	cairo_new_sub_path(cairo);
 	switch (ctx->corner) {
@@ -479,28 +493,102 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 	cairo_fill_preserve(cairo);
 	cairo_stroke(cairo);
 
-	/* border */
-	cairo_set_line_cap(cairo, CAIRO_LINE_CAP_ROUND);
+	/*
+	 * Stroke horizontal and vertical borders, shown by Xs and Ys
+	 * respectively in the figure below:
+	 *
+	 *          _,,ooO"XXXXXXXXX
+	 *        ,oO"'            |
+	 *      ,o"                |
+	 *     o"                  |
+	 *    o'                   |
+	 *    O                    |
+	 *    Y                    |
+	 *    Y                    |
+	 *    Y                    |
+	 *    Y                    |
+	 *    Y--------------------+
+	 */
+	cairo_set_line_cap(cairo, CAIRO_LINE_CAP_BUTT);
 	set_cairo_color(cairo, ctx->border_color);
 	cairo_set_line_width(cairo, ctx->line_width);
 	double half_line_width = ctx->line_width / 2.0;
 	switch (ctx->corner) {
 	case LAB_CORNER_TOP_LEFT:
 		cairo_move_to(cairo, half_line_width, h);
-		cairo_line_to(cairo, half_line_width, r + half_line_width);
-		cairo_arc(cairo, r, r, r - half_line_width, 180 * deg, 270 * deg);
+		cairo_line_to(cairo, half_line_width, r);
+		cairo_move_to(cairo, r, half_line_width);
 		cairo_line_to(cairo, w, half_line_width);
 		break;
 	case LAB_CORNER_TOP_RIGHT:
 		cairo_move_to(cairo, 0, half_line_width);
 		cairo_line_to(cairo, w - r, half_line_width);
-		cairo_arc(cairo, w - r, r, r - half_line_width, -90 * deg, 0 * deg);
+		cairo_move_to(cairo, w - half_line_width, r);
 		cairo_line_to(cairo, w - half_line_width, h);
 		break;
 	default:
 		wlr_log(WLR_ERROR, "unknown corner type");
 	}
 	cairo_stroke(cairo);
+
+	/*
+	 * If radius==0 the borders stroked above go right up to (and including)
+	 * the corners, so there is not need to do any more.
+	 */
+	if (!r) {
+		goto out;
+	}
+
+	/*
+	 * Stroke the arc section of the border of the corner piece.
+	 *
+	 * Note: This figure is drawn at a more zoomed in scale compared with
+	 * those above.
+	 *
+	 *                 ,,ooooO""  ^
+	 *            ,ooo""'      |  |
+	 *         ,oOO"           |  | line-thickness
+	 *       ,OO"              |  |
+	 *     ,OO"         _,,ooO""  v
+	 *    ,O"         ,oO"'
+	 *   ,O'        ,o"
+	 *  ,O'        o"
+	 *  o'        o'
+	 *  O         O
+	 *  O---------O            +
+	 *       <----------------->
+	 *          radius
+	 *
+	 * We handle the edge-case where line-thickness > radius by merely
+	 * setting line-thickness = radius and in effect drawing a quadrant of a
+	 * circle. In this case the X and Y borders butt up against the arc and
+	 * overlap each other (as their line-thickessnes are greater than the
+	 * linethickness of the arc). As a result, there is no inner rounded
+	 * corners.
+	 *
+	 * So, in order to have inner rounded corners cornerRadius should be
+	 * greater than border.width.
+	 *
+	 * Also, see diagrams in https://github.com/labwc/labwc/pull/990
+	 */
+	double line_width = MIN(ctx->line_width, r);
+	cairo_set_line_width(cairo, line_width);
+	half_line_width = line_width / 2.0;
+	switch (ctx->corner) {
+	case LAB_CORNER_TOP_LEFT:
+		cairo_move_to(cairo, half_line_width, r);
+		cairo_arc(cairo, r, r, r - half_line_width, 180 * deg, 270 * deg);
+		break;
+	case LAB_CORNER_TOP_RIGHT:
+		cairo_move_to(cairo, w - r, half_line_width);
+		cairo_arc(cairo, w - r, r, r - half_line_width, -90 * deg, 0 * deg);
+		break;
+	default:
+		break;
+	}
+	cairo_stroke(cairo);
+
+out:
 	cairo_surface_flush(surf);
 
 	return buffer;

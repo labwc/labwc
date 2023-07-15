@@ -638,7 +638,7 @@ post_processing(struct theme *theme)
 		+ 2 * theme->osd_window_switcher_item_active_border_width;
 
 	if (rc.corner_radius >= theme->title_height) {
-		theme->title_height = rc.corner_radius + 1;
+		rc.corner_radius = theme->title_height - 1;
 	}
 
 	if (theme->menu_max_width < theme->menu_min_width) {

@@ -8,10 +8,10 @@ labwc - actions
 
 Actions are used in menus and keyboard/mouse bindings.
 
-*<action name="Close">*
+*<action name="Close" />*
 	Close top-most window.
 
-*<action name="Kill">*
+*<action name="Kill" />*
 	Kill the process associated with the current window by sending it the
 	SIGTERM signal.
 
@@ -20,32 +20,32 @@ Actions are used in menus and keyboard/mouse bindings.
 	labwc supports <execute> as an alternative to <command> even though
 	openbox documentation states that it is deprecated.
 
-*<action name="Exit">*
+*<action name="Exit" />*
 	Exit labwc.
 
-*<action name="Focus">*
+*<action name="Focus" />*
 	Give focus to window under cursor.
 
-*<action name="Raise">*
+*<action name="Raise" />*
 	Restack the current window above other open windows.
 
-*<action name="Lower">*
+*<action name="Lower" />*
 	Restack the current window below other open windows.
 
-*<action name="Iconify">*
+*<action name="Iconify" />*
 	Iconify (minimize) focused window.
 
-*<action name="Move">*
+*<action name="Move" />*
 	Begin interactive move of window under cursor
 
 *<action name="MoveToEdge" direction="value" />*
 	Move window to edge of outputs. Understands directions "left", "up",
 	"right" and "down".
 
-*<action name="Resize">*
+*<action name="Resize" />*
 	Begin interactive resize of window under cursor
 
-*<action name="ResizeRelative" left="" right="" top="" bottom="" >*
+*<action name="ResizeRelative" left="" right="" top="" bottom="" />*
 	Resize window relative to its current size. Values of left, right,
 	top or bottom tell how much to resize on that edge of window,
 	positive values grow window, negative shrink window.
@@ -65,41 +65,41 @@ Actions are used in menus and keyboard/mouse bindings.
 	Resize and move active window according to the given region.
 	See labwc-config(5) for further information on how to define regions.
 
-*<action name="NextWindow">*
+*<action name="NextWindow" />*
 	Cycle focus to next window.
 
-*<action name="PreviousWindow">*
+*<action name="PreviousWindow" />*
 	Cycle focus to previous window.
 
-*<action name="Reconfigure">*
+*<action name="Reconfigure" />*
 	Re-load configuration and theme files.
 
 *<action name="ShowMenu" menu="value" />*
 	Show menu. Valid menu names are "root-menu" and "client-menu".
 
-*<action name="ToggleDecorations">*
+*<action name="ToggleDecorations" />*
 	Toggle decorations of focused window.
 
-*<action name="ToggleFullscreen">*
+*<action name="ToggleFullscreen" />*
 	Toggle fullscreen state of focused window.
 
-*<action name="ToggleMaximize">*
+*<action name="ToggleMaximize" />*
 	Toggle maximize state of focused window.
 
-*<action name="Maximize">*
+*<action name="Maximize" />*
 	Maximize focused window.
 
-*<action name="ToggleAlwaysOnTop">*
+*<action name="ToggleAlwaysOnTop" />*
 	Toggle always-on-top of focused window.
 
-*<action name="ToggleAlwaysOnBottom">*
+*<action name="ToggleAlwaysOnBottom" />*
 	Toggle between layers 'always-on-bottom' and 'normal'. When a window is
 	in the 'always-on-bottom' layer, it is rendered below all other
 	top-level windows. It is anticipated that this action will be useful
 	when defining window-rules for desktop-management tools that do not
 	support the wlr-layer-shell protocol.
 
-*<action name="ToggleKeybinds">*
+*<action name="ToggleKeybinds" />*
 	Stop handling keybinds other than ToggleKeybinds itself.
 	This can be used to allow A-Tab and similar keybinds to be delivered
 	to Virtual Machines, VNC clients or nested compositors.
@@ -136,7 +136,7 @@ Actions are used in menus and keyboard/mouse bindings.
 	*wrap* [yes|no] Wrap around from last desktop to first, and vice
 	versa. Default yes.
 
-*<action name="None">*
+*<action name="None" />*
 	If used as the only action for a binding: clear an earlier defined binding.
 
 # SEE ALSO

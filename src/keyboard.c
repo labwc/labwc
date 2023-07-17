@@ -120,6 +120,11 @@ static bool is_modifier_key(xkb_keysym_t sym)
 		|| sym == XKB_KEY_Super_R;
 }
 
+struct keysyms {
+	const xkb_keysym_t *syms;
+	int nr_syms;
+};
+
 static bool
 handle_compositor_keybindings(struct keyboard *keyboard,
 		struct wlr_keyboard_key_event *event)
@@ -130,9 +135,11 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 
 	/* Translate libinput keycode -> xkbcommon */
 	uint32_t keycode = event->keycode + 8;
+
 	/* Get a list of keysyms based on the keymap for this keyboard */
-	const xkb_keysym_t *syms;
-	int nsyms = xkb_state_key_get_syms(wlr_keyboard->xkb_state, keycode, &syms);
+	struct keysyms translated = { 0 };
+	translated.nr_syms = xkb_state_key_get_syms(wlr_keyboard->xkb_state,
+		keycode, &translated.syms);
 
 	bool handled = false;
 
@@ -180,8 +187,8 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 
 	/* Catch C-A-F1 to C-A-F12 to change tty */
 	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
-		for (int i = 0; i < nsyms; i++) {
-			unsigned int vt = syms[i] - XKB_KEY_XF86Switch_VT_1 + 1;
+		for (int i = 0; i < translated.nr_syms; i++) {
+			unsigned int vt = translated.syms[i] - XKB_KEY_XF86Switch_VT_1 + 1;
 			if (vt >= 1 && vt <= 12) {
 				change_vt(server, vt);
 				/*
@@ -196,8 +203,8 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 
 	if (server->osd_state.cycle_view) {
 		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
-			for (int i = 0; i < nsyms; i++) {
-				if (syms[i] == XKB_KEY_Escape) {
+			for (int i = 0; i < translated.nr_syms; i++) {
+				if (translated.syms[i] == XKB_KEY_Escape) {
 					/*
 					 * Cancel view-cycle
 					 *
@@ -216,8 +223,8 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 			bool backwards = modifiers & WLR_MODIFIER_SHIFT;
 			/* ignore if this is a modifier key being pressed */
 			bool ignore = false;
-			for (int i = 0; i < nsyms; i++) {
-				ignore |= is_modifier_key(syms[i]);
+			for (int i = 0; i < translated.nr_syms; i++) {
+				ignore |= is_modifier_key(translated.syms[i]);
 			}
 
 			if (!ignore) {
@@ -236,8 +243,8 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 
 	/* Handle compositor key bindings */
 	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
-		for (int i = 0; i < nsyms; i++) {
-			handled |= handle_keybinding(server, modifiers, syms[i]);
+		for (int i = 0; i < translated.nr_syms; i++) {
+			handled |= handle_keybinding(server, modifiers, translated.syms[i]);
 		}
 	}
 

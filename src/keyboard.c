@@ -141,6 +141,17 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	translated.nr_syms = xkb_state_key_get_syms(wlr_keyboard->xkb_state,
 		keycode, &translated.syms);
 
+	/*
+	 * Get keysyms from the keyboard as if there was no modifier
+	 * translations. For example, get Shift+1 rather than Shift+! (with US
+	 * keyboard layout).
+	 */
+	struct keysyms raw = { 0 };
+	xkb_layout_index_t layout_index =
+		xkb_state_key_get_layout(wlr_keyboard->xkb_state, keycode);
+	raw.nr_syms = xkb_keymap_key_get_syms_by_level(wlr_keyboard->keymap,
+		keycode, layout_index, 0, &raw.syms);
+
 	bool handled = false;
 
 	key_state_set_pressed(event->keycode,
@@ -245,6 +256,12 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 		for (int i = 0; i < translated.nr_syms; i++) {
 			handled |= handle_keybinding(server, modifiers, translated.syms[i]);
+		}
+		if (handled) {
+			goto out;
+		}
+		for (int i = 0; i < raw.nr_syms; i++) {
+			handled |= handle_keybinding(server, modifiers, raw.syms[i]);
 		}
 	}
 

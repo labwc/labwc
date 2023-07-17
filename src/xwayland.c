@@ -201,7 +201,6 @@ handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, destroy);
 	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
-	assert(data && data == xwayland_view->xwayland_surface);
 	assert(xwayland_view->xwayland_surface->data == view);
 
 	if (view->surface) {
@@ -355,7 +354,6 @@ handle_set_decorations(struct wl_listener *listener, void *data)
 	struct xwayland_view *xwayland_view =
 		wl_container_of(listener, xwayland_view, set_decorations);
 	struct view *view = &xwayland_view->base;
-	assert(data && data == xwayland_view->xwayland_surface);
 
 	view_set_decorations(view, want_deco(xwayland_view->xwayland_surface));
 }
@@ -366,8 +364,7 @@ handle_override_redirect(struct wl_listener *listener, void *data)
 	struct xwayland_view *xwayland_view =
 		wl_container_of(listener, xwayland_view, override_redirect);
 	struct view *view = &xwayland_view->base;
-	struct wlr_xwayland_surface *xsurface = data;
-	assert(xsurface && xsurface == xwayland_view->xwayland_surface);
+	struct wlr_xwayland_surface *xsurface = xwayland_view->xwayland_surface;
 
 	struct server *server = view->server;
 	bool mapped = xsurface->mapped;

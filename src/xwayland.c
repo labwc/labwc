@@ -748,6 +748,11 @@ xwayland_server_init(struct server *server, struct wlr_compositor *compositor)
 void
 xwayland_server_finish(struct server *server)
 {
-	wlr_xwayland_destroy(server->xwayland);
+	struct wlr_xwayland *xwayland = server->xwayland;
+	/*
+	 * Reset server->xwayland to NULL first to prevent callbacks (like
+	 * server_global_filter) from accessing it as it is destroyed
+	 */
 	server->xwayland = NULL;
+	wlr_xwayland_destroy(xwayland);
 }

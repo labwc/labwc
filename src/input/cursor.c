@@ -252,8 +252,8 @@ cursor_set(struct seat *seat, enum lab_cursors cursor)
 		return;
 	}
 
-	wlr_xcursor_manager_set_cursor_image(
-		seat->xcursor_manager, cursor_names[cursor], seat->cursor);
+	wlr_cursor_set_xcursor(seat->cursor, seat->xcursor_manager,
+		cursor_names[cursor]);
 	seat->server_cursor = cursor;
 }
 
@@ -274,8 +274,15 @@ cursor_update_image(struct seat *seat)
 		}
 		return;
 	}
-	wlr_xcursor_manager_set_cursor_image(
-		seat->xcursor_manager, cursor_names[cursor], seat->cursor);
+	/*
+	 * Call wlr_cursor_unset_image() first to force wlroots to
+	 * update the cursor (e.g. for a new output). Otherwise,
+	 * wlr_cursor_set_xcursor() may detect that we are setting the
+	 * same cursor as before, and do nothing.
+	 */
+	wlr_cursor_unset_image(seat->cursor);
+	wlr_cursor_set_xcursor(seat->cursor, seat->xcursor_manager,
+		cursor_names[cursor]);
 }
 
 bool

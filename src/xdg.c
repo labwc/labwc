@@ -320,6 +320,71 @@ xdg_toplevel_view_minimize(struct view *view, bool minimized)
 	/* noop */
 }
 
+static struct wlr_xdg_toplevel *
+top_parent_of(struct view *view)
+{
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+	while (toplevel->parent) {
+		toplevel = toplevel->parent;
+	}
+	return toplevel;
+}
+
+enum z_direction {
+	LAB_TO_FRONT,
+	LAB_TO_BACK,
+};
+
+static void
+move_sub_views(struct view *parent, enum z_direction z_direction)
+{
+	assert(parent);
+
+	if (parent->type != LAB_XDG_SHELL_VIEW) {
+		return;
+	}
+
+	struct wlr_xdg_toplevel *parent_toplevel = xdg_toplevel_from_view(parent);
+	struct view *view, *next;
+	wl_list_for_each_reverse_safe(view, next, &parent->server->views, link)
+	{
+		/* need to stop here, otherwise loops keeps going forever */
+		if (view == parent) {
+			break;
+		}
+		if (view->type != LAB_XDG_SHELL_VIEW) {
+			continue;
+		}
+		if (!view->mapped && !view->minimized) {
+			continue;
+		}
+		if (top_parent_of(view) != parent_toplevel) {
+			continue;
+		}
+		if (z_direction == LAB_TO_FRONT) {
+			view_impl_move_to_front(view);
+		} else if (z_direction == LAB_TO_BACK) {
+			view_impl_move_to_back(view);
+		}
+	}
+}
+
+static void
+xdg_toplevel_view_move_to_front(struct view *view)
+{
+	view_impl_move_to_front(view);
+
+	/* Show modal dialog above parent window */
+	move_sub_views(view, LAB_TO_FRONT);
+}
+
+static void
+xdg_toplevel_view_move_to_back(struct view *view)
+{
+	view_impl_move_to_back(view);
+	move_sub_views(view, LAB_TO_BACK);
+}
+
 static void
 xdg_toplevel_view_set_activated(struct view *view, bool activated)
 {
@@ -472,8 +537,8 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.unmap = xdg_toplevel_view_unmap,
 	.maximize = xdg_toplevel_view_maximize,
 	.minimize = xdg_toplevel_view_minimize,
-	.move_to_front = view_impl_move_to_front,
-	.move_to_back = view_impl_move_to_back,
+	.move_to_front = xdg_toplevel_view_move_to_front,
+	.move_to_back = xdg_toplevel_view_move_to_back,
 };
 
 void

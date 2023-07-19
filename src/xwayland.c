@@ -552,18 +552,27 @@ move_sub_views(struct view *parent, enum z_direction z_direction)
 	}
 }
 
+static struct view *
+root_view_of_view(struct view *view)
+{
+	struct wlr_xwayland_surface *root = top_parent_of(view);
+	return (struct view *)root->data;
+}
+
 static void
 xwayland_view_move_to_front(struct view *view)
 {
-	view_impl_move_to_front(view);
-	move_sub_views(view, LAB_TO_FRONT);
+	struct view *root = root_view_of_view(view);
+	view_impl_move_to_front(root);
+	move_sub_views(root, LAB_TO_FRONT);
 }
 
 static void
 xwayland_view_move_to_back(struct view *view)
 {
-	view_impl_move_to_back(view);
-	move_sub_views(view, LAB_TO_BACK);
+	struct view *root = root_view_of_view(view);
+	view_impl_move_to_back(root);
+	move_sub_views(root, LAB_TO_BACK);
 }
 
 static void

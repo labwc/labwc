@@ -369,20 +369,35 @@ move_sub_views(struct view *parent, enum z_direction z_direction)
 	}
 }
 
+/* Return the most senior parent (=root) view */
+static struct view *
+root_view_of_view(struct view *view)
+{
+	struct wlr_xdg_toplevel *root = top_parent_of(view);
+	struct wlr_xdg_surface *surface = (struct wlr_xdg_surface *)root->base;
+	return (struct view *)surface->data;
+}
+
+/*
+ * In the view_move_to_{front,back} functions, a modal dialog is always shown
+ * above its parent window, and the two always move together, so other window
+ * cannot come between them.
+ * This is consistent with GTK3/Qt5 applications on mutter and openbox.
+ */
 static void
 xdg_toplevel_view_move_to_front(struct view *view)
 {
-	view_impl_move_to_front(view);
-
-	/* Show modal dialog above parent window */
-	move_sub_views(view, LAB_TO_FRONT);
+	struct view *root = root_view_of_view(view);
+	view_impl_move_to_front(root);
+	move_sub_views(root, LAB_TO_FRONT);
 }
 
 static void
 xdg_toplevel_view_move_to_back(struct view *view)
 {
-	view_impl_move_to_back(view);
-	move_sub_views(view, LAB_TO_BACK);
+	struct view *root = root_view_of_view(view);
+	view_impl_move_to_back(root);
+	move_sub_views(root, LAB_TO_BACK);
 }
 
 static void

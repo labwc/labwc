@@ -667,11 +667,10 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_MOVE_RELATIVE:
-			if (view && !view->fullscreen) {
+			if (view) {
 				int x = get_arg_value_int(action, "x", 0);
 				int y = get_arg_value_int(action, "y", 0);
-				view_maximize(view, false, false);
-				view_move(view, view->pending.x + x, view->pending.y + y);
+				view_move_relative(view, x, y);
 			}
 			break;
 		case ACTION_TYPE_SEND_TO_DESKTOP:

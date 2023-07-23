@@ -206,8 +206,9 @@ view_move_resize(struct view *view, struct wlr_box geo)
 void
 view_resize_relative(struct view *view, int left, int right, int top, int bottom)
 {
-	if (view->fullscreen || view->maximized)
+	if (view->fullscreen || view->maximized) {
 		return;
+	}
 	struct wlr_box newgeo = view->pending;
 	newgeo.x -= left;
 	newgeo.width += left + right;
@@ -215,6 +216,20 @@ view_resize_relative(struct view *view, int left, int right, int top, int bottom
 	newgeo.height += top + bottom;
 	view_move_resize(view, newgeo);
 	view_set_untiled(view);
+}
+
+void
+view_move_relative(struct view *view, int x, int y)
+{
+	if (view->fullscreen) {
+		return;
+	}
+	view_maximize(view, false, /*store_natural_geometry*/ false);
+	if (view_is_tiled(view)) {
+		view_set_untiled(view);
+		view_restore_to(view, view->natural_geometry);
+	}
+	view_move(view, view->pending.x + x, view->pending.y + y);
 }
 
 void

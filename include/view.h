@@ -165,6 +165,7 @@ void view_close(struct view *view);
 void view_move_resize(struct view *view, struct wlr_box geo);
 void view_resize_relative(struct view *view,
 	int left, int right, int top, int bottom);
+void view_move_relative(struct view *view, int x, int y);
 void view_move(struct view *view, int x, int y);
 void view_moved(struct view *view);
 void view_minimize(struct view *view, bool minimized);

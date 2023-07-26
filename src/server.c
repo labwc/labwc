@@ -180,7 +180,15 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 		}
 	}
 #endif
+	struct blocked_protocol *proto;
+	wl_list_for_each(proto, &rc.blocked_protocols, link) {
+		if (!strcmp(iface->name, proto->interface_name)) {
+			wlr_log(WLR_INFO, "blocking protocol %s", proto->interface_name);
+			return false;
+		}
+	}
 
+	wlr_log(WLR_DEBUG, "protocol not blocked: %s", iface->name);
 	return true;
 }
 

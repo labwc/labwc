@@ -31,6 +31,11 @@ struct window_switcher_field {
 	struct wl_list link; /* struct rcxml.window_switcher.fields */
 };
 
+struct blocked_protocol {
+	struct wl_list link; /* struct rcxml.blocked_protocols */
+	char *interface_name;
+};
+
 struct rcxml {
 	char *config_dir;
 
@@ -94,6 +99,7 @@ struct rcxml {
 	} window_switcher;
 
 	struct wl_list window_rules; /* struct window_rule.link */
+	struct wl_list blocked_protocols; /* struct blocked_protocol.link */
 };
 
 extern struct rcxml rc;

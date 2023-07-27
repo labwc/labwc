@@ -24,6 +24,7 @@
 #include "layers.h"
 #include "menu/menu.h"
 #include "regions.h"
+#include "server-unpriv.h"
 #include "theme.h"
 #include "view.h"
 #include "workspaces.h"
@@ -180,11 +181,14 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 		}
 	}
 #endif
-	struct blocked_protocol *proto;
-	wl_list_for_each(proto, &rc.blocked_protocols, link) {
-		if (!strcmp(iface->name, proto->interface_name)) {
-			wlr_log(WLR_INFO, "blocking protocol %s", proto->interface_name);
-			return false;
+	if (is_unpriv_client(client)) {
+		struct blocked_protocol *proto;
+		wl_list_for_each(proto, &rc.blocked_protocols, link) {
+			if (!strcmp(iface->name, proto->interface_name)) {
+				wlr_log(WLR_INFO, "blocking protocol %s",
+					proto->interface_name);
+				return false;
+			}
 		}
 	}
 
@@ -484,6 +488,10 @@ server_start(struct server *server)
 		wlr_log_errno(WLR_ERROR, "unable to set WAYLAND_DISPLAY");
 	} else {
 		wlr_log(WLR_DEBUG, "WAYLAND_DISPLAY=%s", socket);
+	}
+
+	if (!wl_list_empty(&rc.blocked_protocols)) {
+		unpriv_socket_start(server);
 	}
 }
 

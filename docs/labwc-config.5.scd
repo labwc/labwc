@@ -102,6 +102,7 @@ Therefore, where multiple objects of the same kind are required (for example
   <gap>0</gap>
   <adaptiveSync>no</adaptiveSync>
   <reuseOutputMode>no</reuseOutputMode>
+  <ignoreExclusiveArea>no</ignoreExclusiveArea>
 </core>
 ```
 
@@ -122,6 +123,10 @@ Therefore, where multiple objects of the same kind are required (for example
 	This may prevent unnecessary screenblank delays when starting labwc
 	(also known as flicker free boot). If the existing output mode can not
 	be used with labwc the preferred mode of the monitor is used instead.
+	Default is no.
+
+*<core><ignoreExclusiveArea>* [yes|no]
+	Ignore the exclusive area provided by wlr_layer clients.
 	Default is no.
 
 ## WINDOW SWITCHER

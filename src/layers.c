@@ -93,6 +93,9 @@ layers_arrange(struct output *output)
 			scene_output->y);
 	}
 
+	if (rc.ignore_exclusive_area)
+		usable_area = full_area;
+
 	output->usable_area = usable_area;
 }
 

@@ -39,6 +39,7 @@ struct rcxml {
 	int gap;
 	bool adaptive_sync;
 	bool reuse_output_mode;
+	bool ignore_exclusive_area;
 
 	/* focus */
 	bool focus_follow_mouse;

@@ -569,6 +569,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.gap = atoi(content);
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
 		set_bool(content, &rc.adaptive_sync);
+	} else if (!strcasecmp(nodename, "ignoreExclusiveArea.core")) {
+		set_bool(content, &rc.ignore_exclusive_area);
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);
 	} else if (!strcmp(nodename, "name.theme")) {

@@ -12,6 +12,7 @@
     <gap>0</gap>
     <adaptiveSync>no</adaptiveSync>
     <reuseOutputMode>no</reuseOutputMode>
+    <ignoreExclusiveArea>no</ignoreExclusiveArea>
   </core>
 
   <!-- <font><theme> can be defined without an attribute to set all places -->

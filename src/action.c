@@ -181,7 +181,14 @@ action_arg_from_xml_node(struct action *action, char *nodename, char *content)
 	case ACTION_TYPE_MOVE_TO_EDGE:
 	case ACTION_TYPE_SNAP_TO_EDGE:
 		if (!strcmp(argument, "direction")) {
-			action_arg_add_str(action, argument, content);
+			enum view_edge edge = view_edge_parse(content);
+			if ((edge == VIEW_EDGE_CENTER && action->type != ACTION_TYPE_SNAP_TO_EDGE)
+					|| edge == VIEW_EDGE_INVALID) {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			} else {
+				action_arg_add_int(action, argument, edge);
+			}
 			goto cleanup;
 		}
 		break;
@@ -564,13 +571,16 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_MOVE_TO_EDGE:
 			if (view) {
-				view_move_to_edge(view, action_str_from_arg(arg));
+				/* Config parsing makes sure that direction is a valid direction */
+				enum view_edge edge = get_arg_value_int(action, "direction", 0);
+				view_move_to_edge(view, edge);
 			}
 			break;
 		case ACTION_TYPE_SNAP_TO_EDGE:
 			if (view) {
-				view_snap_to_edge(view, action_str_from_arg(arg),
-					/*store_natural_geometry*/ true);
+				/* Config parsing makes sure that direction is a valid direction */
+				enum view_edge edge = get_arg_value_int(action, "direction", 0);
+				view_snap_to_edge(view, edge, /*store_natural_geometry*/ true);
 			}
 			break;
 		case ACTION_TYPE_NEXT_WINDOW:

@@ -527,6 +527,10 @@ enum z_direction {
 	LAB_TO_BACK,
 };
 
+/*
+ * TODO: Combine append_children() and move_sub_views() as much as possible.
+ * https://github.com/labwc/labwc/pull/998#discussion_r1284085575
+ */
 static void
 move_sub_views(struct view *parent, enum z_direction z_direction)
 {
@@ -563,7 +567,7 @@ move_sub_views(struct view *parent, enum z_direction z_direction)
 }
 
 static struct view *
-root_view_of_view(struct view *view)
+xwayland_view_get_root(struct view *view)
 {
 	struct wlr_xwayland_surface *root = top_parent_of(view);
 	return (struct view *)root->data;
@@ -572,7 +576,7 @@ root_view_of_view(struct view *view)
 static void
 xwayland_view_move_to_front(struct view *view)
 {
-	struct view *root = root_view_of_view(view);
+	struct view *root = xwayland_view_get_root(view);
 	view_impl_move_to_front(root);
 	move_sub_views(root, LAB_TO_FRONT);
 }
@@ -580,9 +584,41 @@ xwayland_view_move_to_front(struct view *view)
 static void
 xwayland_view_move_to_back(struct view *view)
 {
-	struct view *root = root_view_of_view(view);
+	struct view *root = xwayland_view_get_root(view);
 	view_impl_move_to_back(root);
 	move_sub_views(root, LAB_TO_BACK);
+}
+
+static void
+xwayland_view_append_children(struct view *self, struct wl_array *children)
+{
+	struct wlr_xwayland_surface *surface = xwayland_surface_from_view(self);
+	struct view *view;
+
+	wl_list_for_each_reverse(view, &self->server->views, link)
+	{
+		if (view == self) {
+			continue;
+		}
+		if (view->type != LAB_XWAYLAND_VIEW) {
+			continue;
+		}
+		/*
+		 * This happens when a view has never been mapped or when a
+		 * client has requested a `handle_unmap`.
+		 */
+		if (!view->surface) {
+			continue;
+		}
+		if (!view->mapped && !view->minimized) {
+			continue;
+		}
+		if (top_parent_of(view) != surface) {
+			continue;
+		}
+		struct view **child = wl_array_add(children, sizeof(*child));
+		*child = view;
+	}
 }
 
 static void
@@ -628,6 +664,8 @@ static const struct view_impl xwayland_view_impl = {
 	.minimize = xwayland_view_minimize,
 	.move_to_front = xwayland_view_move_to_front,
 	.move_to_back = xwayland_view_move_to_back,
+	.get_root = xwayland_view_get_root,
+	.append_children = xwayland_view_append_children,
 };
 
 void

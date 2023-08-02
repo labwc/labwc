@@ -119,21 +119,21 @@ snap_to_edge(struct view *view)
 	 */
 	struct wlr_box *area = &view->output->usable_area;
 	if (cursor_x <= area->x + snap_range) {
-		view_snap_to_edge(view, "left",
+		view_snap_to_edge(view, VIEW_EDGE_LEFT,
 			/*store_natural_geometry*/ false);
 	} else if (cursor_x >= area->x + area->width - snap_range) {
-		view_snap_to_edge(view, "right",
+		view_snap_to_edge(view, VIEW_EDGE_RIGHT,
 			/*store_natural_geometry*/ false);
 	} else if (cursor_y <= area->y + snap_range) {
 		if (rc.snap_top_maximize) {
 			view_maximize(view, true,
 				/*store_natural_geometry*/ false);
 		} else {
-			view_snap_to_edge(view, "up",
+			view_snap_to_edge(view, VIEW_EDGE_UP,
 				/*store_natural_geometry*/ false);
 		}
 	} else if (cursor_y >= area->y + area->height - snap_range) {
-		view_snap_to_edge(view, "down",
+		view_snap_to_edge(view, VIEW_EDGE_DOWN,
 			/*store_natural_geometry*/ false);
 	} else {
 		/* Not close to any edge */

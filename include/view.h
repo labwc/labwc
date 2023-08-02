@@ -26,6 +26,16 @@ enum ssd_preference {
 	LAB_SSD_PREF_SERVER,
 };
 
+enum view_edge {
+	VIEW_EDGE_INVALID = 0,
+
+	VIEW_EDGE_LEFT,
+	VIEW_EDGE_RIGHT,
+	VIEW_EDGE_UP,
+	VIEW_EDGE_DOWN,
+	VIEW_EDGE_CENTER,
+};
+
 struct view;
 struct view_impl {
 	void (*configure)(struct view *view, struct wlr_box geo);
@@ -196,11 +206,9 @@ void view_move_to_workspace(struct view *view, struct workspace *workspace);
 void view_set_decorations(struct view *view, bool decorations);
 void view_toggle_fullscreen(struct view *view);
 void view_adjust_for_layout_change(struct view *view);
-void view_move_to_edge(struct view *view, const char *direction);
-void view_snap_to_edge(struct view *view, const char *direction,
-	bool store_natural_geometry);
-void view_snap_to_region(struct view *view, struct region *region,
-	bool store_natural_geometry);
+void view_move_to_edge(struct view *view, enum view_edge direction);
+void view_snap_to_edge(struct view *view, enum view_edge direction, bool store_natural_geometry);
+void view_snap_to_region(struct view *view, struct region *region, bool store_natural_geometry);
 
 void view_move_to_front(struct view *view);
 void view_move_to_back(struct view *view);
@@ -215,6 +223,8 @@ void view_adjust_size(struct view *view, int *w, int *h);
 void view_evacuate_region(struct view *view);
 void view_on_output_destroy(struct view *view);
 void view_destroy(struct view *view);
+
+enum view_edge view_edge_parse(const char *direction);
 
 /* xdg.c */
 struct wlr_xdg_surface *xdg_surface_from_view(struct view *view);

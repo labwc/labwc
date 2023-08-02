@@ -25,16 +25,6 @@
  * They may be called repeatably during output layout changes.
  */
 
-enum view_edge {
-	VIEW_EDGE_INVALID = 0,
-
-	VIEW_EDGE_LEFT,
-	VIEW_EDGE_RIGHT,
-	VIEW_EDGE_UP,
-	VIEW_EDGE_DOWN,
-	VIEW_EDGE_CENTER,
-};
-
 static enum view_edge
 view_edge_invert(enum view_edge edge)
 {
@@ -858,16 +848,12 @@ view_on_output_destroy(struct view *view)
 }
 
 void
-view_move_to_edge(struct view *view, const char *direction)
+view_move_to_edge(struct view *view, enum view_edge edge)
 {
 	assert(view);
 	struct output *output = view->output;
 	if (!output_is_usable(output)) {
 		wlr_log(WLR_ERROR, "view has no output, not moving to edge");
-		return;
-	}
-	if (!direction) {
-		wlr_log(WLR_ERROR, "invalid edge, not moving view");
 		return;
 	}
 
@@ -883,28 +869,32 @@ view_move_to_edge(struct view *view, const char *direction)
 	}
 
 	int x = 0, y = 0;
-	if (!strcasecmp(direction, "left")) {
+	switch (edge) {
+	case VIEW_EDGE_LEFT:
 		x = usable.x + margin.left + rc.gap;
 		y = view->pending.y;
-	} else if (!strcasecmp(direction, "up")) {
+		break;
+	case VIEW_EDGE_UP:
 		x = view->pending.x;
 		y = usable.y + margin.top + rc.gap;
-	} else if (!strcasecmp(direction, "right")) {
+		break;
+	case VIEW_EDGE_RIGHT:
 		x = usable.x + usable.width - view->pending.width
 			- margin.right - rc.gap;
 		y = view->pending.y;
-	} else if (!strcasecmp(direction, "down")) {
+		break;
+	case VIEW_EDGE_DOWN:
 		x = view->pending.x;
 		y = usable.y + usable.height - view->pending.height
 			- margin.bottom - rc.gap;
-	} else {
-		wlr_log(WLR_ERROR, "invalid edge, not moving view");
+		break;
+	default:
 		return;
 	}
 	view_move(view, x, y);
 }
 
-static enum view_edge
+enum view_edge
 view_edge_parse(const char *direction)
 {
 	if (!direction) {
@@ -926,8 +916,7 @@ view_edge_parse(const char *direction)
 }
 
 void
-view_snap_to_edge(struct view *view, const char *direction,
-		bool store_natural_geometry)
+view_snap_to_edge(struct view *view, enum view_edge edge, bool store_natural_geometry)
 {
 	assert(view);
 	if (view->fullscreen) {
@@ -936,11 +925,6 @@ view_snap_to_edge(struct view *view, const char *direction,
 	struct output *output = view->output;
 	if (!output_is_usable(output)) {
 		wlr_log(WLR_ERROR, "view has no output, not snapping to edge");
-		return;
-	}
-	enum view_edge edge = view_edge_parse(direction);
-	if (edge == VIEW_EDGE_INVALID) {
-		wlr_log(WLR_ERROR, "invalid edge, not snapping view");
 		return;
 	}
 

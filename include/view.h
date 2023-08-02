@@ -45,6 +45,8 @@ struct view_impl {
 	void (*minimize)(struct view *view, bool minimize);
 	void (*move_to_front)(struct view *view);
 	void (*move_to_back)(struct view *view);
+	struct view *(*get_root)(struct view *self);
+	void (*append_children)(struct view *self, struct wl_array *children);
 };
 
 struct view {
@@ -203,6 +205,8 @@ void view_snap_to_region(struct view *view, struct region *region,
 
 void view_move_to_front(struct view *view);
 void view_move_to_back(struct view *view);
+struct view *view_get_root(struct view *view);
+void view_append_children(struct view *view, struct wl_array *children);
 
 const char *view_get_string_prop(struct view *view, const char *prop);
 void view_update_title(struct view *view);

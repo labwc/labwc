@@ -233,8 +233,8 @@ view_adjust_size(struct view *view, int *w, int *h)
 	*h = MAX(*h, LAB_MIN_VIEW_HEIGHT);
 }
 
-void
-view_minimize(struct view *view, bool minimized)
+static void
+_minimize(struct view *view, bool minimized)
 {
 	assert(view);
 	if (view->minimized == minimized) {
@@ -265,6 +265,40 @@ view_minimize(struct view *view, bool minimized)
 	} else {
 		view->impl->map(view);
 	}
+}
+
+static void
+minimize_sub_views(struct view *view, bool minimized)
+{
+	struct view **child;
+	struct wl_array children;
+
+	wl_array_init(&children);
+	view_append_children(view, &children);
+	wl_array_for_each(child, &children) {
+		_minimize(*child, minimized);
+		minimize_sub_views(*child, minimized);
+	}
+	wl_array_release(&children);
+}
+
+/*
+ * Minimize the whole view-hierarchy from top to bottom regardless of which one
+ * in the hierarchy requested the minimize. For example, if an 'About' or
+ * 'Open File' dialog is minimized, its toplevel is minimized also. And vice
+ * versa.
+ */
+void
+view_minimize(struct view *view, bool minimized)
+{
+	/*
+	 * Minimize the root window first because some xwayland clients send a
+	 * request-unmap to sub-windows at this point (for example gimp and its
+	 * 'open file' dialog), so it saves trying to unmap them twice
+	 */
+	struct view *root = view_get_root(view);
+	_minimize(root, minimized);
+	minimize_sub_views(root, minimized);
 }
 
 static bool
@@ -1040,6 +1074,25 @@ view_move_to_back(struct view *view)
 	if (view->impl->move_to_back) {
 		view->impl->move_to_back(view);
 		cursor_update_focus(view->server);
+	}
+}
+
+struct view *
+view_get_root(struct view *view)
+{
+	assert(view);
+	if (view->impl->get_root) {
+		return view->impl->get_root(view);
+	}
+	return view;
+}
+
+void
+view_append_children(struct view *view, struct wl_array *children)
+{
+	assert(view);
+	if (view->impl->append_children) {
+		view->impl->append_children(view, children);
 	}
 }
 

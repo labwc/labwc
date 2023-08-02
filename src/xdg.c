@@ -335,6 +335,10 @@ enum z_direction {
 	LAB_TO_BACK,
 };
 
+/*
+ * TODO: Combine append_children() and move_sub_views() as much as possible.
+ * https://github.com/labwc/labwc/pull/998#discussion_r1284085575
+ */
 static void
 move_sub_views(struct view *parent, enum z_direction z_direction)
 {
@@ -371,7 +375,7 @@ move_sub_views(struct view *parent, enum z_direction z_direction)
 
 /* Return the most senior parent (=root) view */
 static struct view *
-root_view_of_view(struct view *view)
+xdg_toplevel_view_get_root(struct view *view)
 {
 	struct wlr_xdg_toplevel *root = top_parent_of(view);
 	struct wlr_xdg_surface *surface = (struct wlr_xdg_surface *)root->base;
@@ -387,7 +391,7 @@ root_view_of_view(struct view *view)
 static void
 xdg_toplevel_view_move_to_front(struct view *view)
 {
-	struct view *root = root_view_of_view(view);
+	struct view *root = xdg_toplevel_view_get_root(view);
 	view_impl_move_to_front(root);
 	move_sub_views(root, LAB_TO_FRONT);
 }
@@ -395,9 +399,34 @@ xdg_toplevel_view_move_to_front(struct view *view)
 static void
 xdg_toplevel_view_move_to_back(struct view *view)
 {
-	struct view *root = root_view_of_view(view);
+	struct view *root = xdg_toplevel_view_get_root(view);
 	view_impl_move_to_back(root);
 	move_sub_views(root, LAB_TO_BACK);
+}
+
+static void
+xdg_toplevel_view_append_children(struct view *self, struct wl_array *children)
+{
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(self);
+	struct view *view;
+
+	wl_list_for_each_reverse(view, &self->server->views, link)
+	{
+		if (view == self) {
+			continue;
+		}
+		if (view->type != LAB_XDG_SHELL_VIEW) {
+			continue;
+		}
+		if (!view->mapped && !view->minimized) {
+			continue;
+		}
+		if (top_parent_of(view) != toplevel) {
+			continue;
+		}
+		struct view **child = wl_array_add(children, sizeof(*child));
+		*child = view;
+	}
 }
 
 static void
@@ -554,6 +583,8 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.minimize = xdg_toplevel_view_minimize,
 	.move_to_front = xdg_toplevel_view_move_to_front,
 	.move_to_back = xdg_toplevel_view_move_to_back,
+	.get_root = xdg_toplevel_view_get_root,
+	.append_children = xdg_toplevel_view_append_children,
 };
 
 void

@@ -411,6 +411,22 @@ top_left_edge_boundary_check(struct view *view)
 }
 
 static void
+init_foreign_toplevel(struct view *view)
+{
+	foreign_toplevel_handle_create(view);
+
+	struct wlr_xwayland_surface *surface = xwayland_surface_from_view(view);
+	if (!surface->parent) {
+		return;
+	}
+	struct view *parent = (struct view *)surface->parent->data;
+	if (!parent->toplevel.handle) {
+		return;
+	}
+	wlr_foreign_toplevel_handle_v1_set_parent(view->toplevel.handle, parent->toplevel.handle);
+}
+
+static void
 xwayland_view_map(struct view *view)
 {
 	if (view->mapped) {
@@ -447,7 +463,7 @@ xwayland_view_map(struct view *view)
 	}
 
 	if (!view->toplevel.handle) {
-		foreign_toplevel_handle_create(view);
+		init_foreign_toplevel(view);
 	}
 
 	if (!view->been_mapped) {

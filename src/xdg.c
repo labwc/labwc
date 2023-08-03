@@ -450,6 +450,22 @@ xdg_toplevel_view_get_string_prop(struct view *view, const char *prop)
 }
 
 static void
+init_foreign_toplevel(struct view *view)
+{
+	foreign_toplevel_handle_create(view);
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+	if (!toplevel->parent) {
+		return;
+	}
+	struct wlr_xdg_surface *surface = toplevel->parent->base;
+	struct view *parent = surface->data;
+	if (!parent->toplevel.handle) {
+		return;
+	}
+	wlr_foreign_toplevel_handle_v1_set_parent(view->toplevel.handle, parent->toplevel.handle);
+}
+
+static void
 xdg_toplevel_view_map(struct view *view)
 {
 	if (view->mapped) {
@@ -465,7 +481,9 @@ xdg_toplevel_view_map(struct view *view)
 	if (!view->been_mapped) {
 		struct wlr_xdg_toplevel_requested *requested =
 			&xdg_toplevel_from_view(view)->requested;
-		foreign_toplevel_handle_create(view);
+
+		init_foreign_toplevel(view);
+
 		view_set_decorations(view, has_ssd(view));
 
 		/*

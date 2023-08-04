@@ -69,6 +69,7 @@ cairo = dependency('cairo')
 pangocairo = dependency('pangocairo')
 input = dependency('libinput', version: '>=1.14')
 math = cc.find_library('m')
+png = dependency('libpng')
 
 if get_option('xwayland').enabled() and not wlroots_has_xwayland
 	error('no wlroots Xwayland support')
@@ -103,6 +104,7 @@ labwc_deps = [
   pangocairo,
   input,
   math,
+  png,
 ]
 
 subdir('include')

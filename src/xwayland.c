@@ -489,7 +489,7 @@ static void
 xwayland_view_unmap(struct view *view, bool client_request)
 {
 	if (!view->mapped) {
-		return;
+		goto out;
 	}
 	view->mapped = false;
 	wl_list_remove(&view->commit.link);
@@ -501,6 +501,7 @@ xwayland_view_unmap(struct view *view, bool client_request)
 	 * than just minimized), destroy the foreign toplevel handle so
 	 * the unmapped view doesn't show up in panels and the like.
 	 */
+out:
 	if (client_request && view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
 		view->toplevel.handle = NULL;

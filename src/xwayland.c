@@ -410,14 +410,23 @@ top_left_edge_boundary_check(struct view *view)
 static void
 xwayland_view_map(struct view *view)
 {
+	struct wlr_xwayland_surface *xwayland_surface = xwayland_surface_from_view(view);
 	if (view->mapped) {
+		return;
+	}
+	if (!xwayland_surface->surface) {
+		/*
+		 * We may get here if a user minimizes an xwayland dialog at the
+		 * same time as the client requests unmap, which xwayland
+		 * clients sometimes do without actually requesting destroy
+		 * even if they don't intend to use that view/surface anymore
+		 */
+		wlr_log(WLR_DEBUG, "Cannot map view without wlr_surface");
 		return;
 	}
 	view->mapped = true;
 	ensure_initial_geometry_and_output(view);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
-	struct wlr_xwayland_surface *xwayland_surface =
-		xwayland_surface_from_view(view);
 	if (!view->fullscreen && xwayland_surface->fullscreen) {
 		view_set_fullscreen(view, true);
 	}

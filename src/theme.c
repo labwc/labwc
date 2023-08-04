@@ -2,7 +2,7 @@
 /*
  * Theme engine for labwc
  *
- * Copyright (C) Johan Malm 2020-2021
+ * Copyright (C) Johan Malm 2020-2023
  */
 
 #define _POSIX_C_SOURCE 200809L
@@ -28,6 +28,78 @@
 #include "xbm/xbm.h"
 #include "buffer.h"
 #include "ssd.h"
+
+struct button {
+	const char *name;
+	char fallback_button[6];	/* built-in 6x6 button */
+	struct {
+		struct lab_data_buffer **buffer;
+		float *rgba;
+	} active, inactive;
+};
+
+static void
+load_buttons(struct theme *theme)
+{
+	struct button buttons[] = {
+		{
+			"menu",
+			{ 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
+			{
+				&theme->button_menu_active_unpressed,
+				theme->window_active_button_menu_unpressed_image_color,
+			},
+			{
+				&theme->button_menu_inactive_unpressed,
+				theme->window_inactive_button_menu_unpressed_image_color,
+			},
+		},
+		{
+			"iconify",
+			{ 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
+			{
+				&theme->button_iconify_active_unpressed,
+				theme->window_active_button_iconify_unpressed_image_color,
+			},
+			{
+				&theme->button_iconify_inactive_unpressed,
+				theme->window_inactive_button_iconify_unpressed_image_color,
+			},
+		},
+		{
+			"max",
+			{ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
+			{
+				&theme->button_maximize_active_unpressed,
+				theme->window_active_button_max_unpressed_image_color,
+			},
+			{
+				&theme->button_maximize_inactive_unpressed,
+				theme->window_inactive_button_max_unpressed_image_color,
+			},
+		},
+		{
+			"close",
+			{ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
+			{
+				&theme->button_close_active_unpressed,
+				theme->window_active_button_close_unpressed_image_color,
+			},
+			{
+				&theme->button_close_inactive_unpressed,
+				theme->window_inactive_button_close_unpressed_image_color,
+			},
+		},
+	};
+
+	char filename[4096] = {0};
+	for (size_t i = 0; i < sizeof(buttons) / sizeof(buttons[0]); ++i) {
+		struct button *b = &buttons[i];
+		snprintf(filename, sizeof(filename), "%s.xbm", b->name);
+		xbm_load_button(filename, b->active.buffer, b->fallback_button, b->active.rgba);
+		xbm_load_button(filename, b->inactive.buffer, b->fallback_button, b->inactive.rgba);
+	}
+}
 
 static int
 hex_to_dec(char c)
@@ -695,7 +767,7 @@ theme_init(struct theme *theme, const char *theme_name)
 
 	post_processing(theme);
 	create_corners(theme);
-	xbm_load(theme);
+	load_buttons(theme);
 }
 
 void

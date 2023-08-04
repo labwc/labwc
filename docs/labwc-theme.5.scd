@@ -27,10 +27,10 @@ labwc-config(5).
 
 # DATA TYPES
 
-*color RGB values*
-	Colors can be specified by hexadecimal RGB values in the format #rrggbb.
-	Other formats will be supported later for better openbox theme
-	compatibility.
+*color*
+	Colors can be specified by either of the following:
+	- #rrggbb (hexadecimal RGB values)
+	- #rrggbb aaa (same but with decimal alpha value)
 
 *justification*
 	Justification determines the horizontal alignment of text. Valid options

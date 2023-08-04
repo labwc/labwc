@@ -18,7 +18,8 @@ searched for in the following order:
 Choosing a theme is done by editing the <name> key in the <theme> section of
 the rc.xml configuration file (labwc-config(5)).
 
-A theme consists of a themerc file and optionally some xbm icons.
+A theme consists of a themerc file and optionally some titlebar icons (referred
+to as buttons).
 
 Theme settings specified in themerc can be overridden by creating a
 'themerc-override' file in the configuration directory, which is normally
@@ -175,19 +176,26 @@ elements are not listed here, but are supported.
 
 # BUTTONS
 
-The images used for the titlebar buttons are 1-bit xbm (X Bitmaps). These are
-masks where 0=clear and 1=colored. The xbm image files are placed in the same
-directory within your theme as the themerc file. Here are all the possible xbm
-files looked for:
+The images used for the titlebar icons are referred to as buttons.
+
+The image formats listed below are supported. They are listed in order of
+precedence, where the first format in the list is searched for first.
+
+- png
+- xbm
+
+By default, buttons are 1-bit xbm (X Bitmaps). These are masks where 0=clear and
+1=colored. The xbm image files are placed in the same directory as the themerc
+file within a particular theme. The following xbm buttons are supported:
 
 - max.xbm
 - iconify.xbm
 - close.xbm
 - menu.xbm
 
-More will be supported later.
-
-Note: menu.xbm is not part of openbox-3.6 spec
+One advantage of xbm buttons over other formats is that they change color based
+on the theme. Other formats use the suffices "-active" and "-inactive" to align
+with the respective titlebar colors. For example: "close-active.png"
 
 # DEFINITIONS
 

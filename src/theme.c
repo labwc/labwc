@@ -24,6 +24,7 @@
 #include "common/match.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
+#include "button-png.h"
 #include "theme.h"
 #include "xbm/xbm.h"
 #include "buffer.h"
@@ -95,9 +96,23 @@ load_buttons(struct theme *theme)
 	char filename[4096] = {0};
 	for (size_t i = 0; i < sizeof(buttons) / sizeof(buttons[0]); ++i) {
 		struct button *b = &buttons[i];
+
+		/* Try png icon first */
+		snprintf(filename, sizeof(filename), "%s-active.png", b->name);
+		png_load(filename, b->active.buffer);
+		snprintf(filename, sizeof(filename), "%s-inactive.png", b->name);
+		png_load(filename, b->inactive.buffer);
+
+		/* If there were no png buttons, use xbm */
 		snprintf(filename, sizeof(filename), "%s.xbm", b->name);
-		xbm_load_button(filename, b->active.buffer, b->fallback_button, b->active.rgba);
-		xbm_load_button(filename, b->inactive.buffer, b->fallback_button, b->inactive.rgba);
+		if (!*b->active.buffer) {
+			xbm_load_button(filename, b->active.buffer,
+				b->fallback_button, b->active.rgba);
+		}
+		if (!*b->inactive.buffer) {
+			xbm_load_button(filename, b->inactive.buffer,
+				b->fallback_button, b->inactive.rgba);
+		}
 	}
 }
 

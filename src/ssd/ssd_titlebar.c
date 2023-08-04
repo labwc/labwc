@@ -53,7 +53,8 @@ ssd_titlebar_create(struct ssd *ssd)
 			corner_top_right = &theme->corner_top_right_inactive_normal->base;
 			menu_button_unpressed = &theme->button_menu_inactive_unpressed->base;
 			iconify_button_unpressed = &theme->button_iconify_inactive_unpressed->base;
-			maximize_button_unpressed = &theme->button_maximize_inactive_unpressed->base;
+			maximize_button_unpressed =
+				&theme->button_maximize_inactive_unpressed->base;
 			close_button_unpressed = &theme->button_close_inactive_unpressed->base;
 			wlr_scene_node_set_enabled(&parent->node, false);
 		}

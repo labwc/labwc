@@ -43,18 +43,18 @@ ssd_titlebar_create(struct ssd *ssd)
 			color = theme->window_active_title_bg_color;
 			corner_top_left = &theme->corner_top_left_active_normal->base;
 			corner_top_right = &theme->corner_top_right_active_normal->base;
-			menu_button_unpressed = &theme->xbm_menu_active_unpressed->base;
-			iconify_button_unpressed = &theme->xbm_iconify_active_unpressed->base;
-			close_button_unpressed = &theme->xbm_close_active_unpressed->base;
-			maximize_button_unpressed = &theme->xbm_maximize_active_unpressed->base;
+			menu_button_unpressed = &theme->button_menu_active_unpressed->base;
+			iconify_button_unpressed = &theme->button_iconify_active_unpressed->base;
+			close_button_unpressed = &theme->button_close_active_unpressed->base;
+			maximize_button_unpressed = &theme->button_maximize_active_unpressed->base;
 		} else {
 			color = theme->window_inactive_title_bg_color;
 			corner_top_left = &theme->corner_top_left_inactive_normal->base;
 			corner_top_right = &theme->corner_top_right_inactive_normal->base;
-			menu_button_unpressed = &theme->xbm_menu_inactive_unpressed->base;
-			iconify_button_unpressed = &theme->xbm_iconify_inactive_unpressed->base;
-			maximize_button_unpressed = &theme->xbm_maximize_inactive_unpressed->base;
-			close_button_unpressed = &theme->xbm_close_inactive_unpressed->base;
+			menu_button_unpressed = &theme->button_menu_inactive_unpressed->base;
+			iconify_button_unpressed = &theme->button_iconify_inactive_unpressed->base;
+			maximize_button_unpressed = &theme->button_maximize_inactive_unpressed->base;
+			close_button_unpressed = &theme->button_close_inactive_unpressed->base;
 			wlr_scene_node_set_enabled(&parent->node, false);
 		}
 		wl_list_init(&subtree->parts);

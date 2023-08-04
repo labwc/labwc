@@ -76,15 +76,15 @@ struct theme {
 	int osd_window_switcher_item_active_border_width;
 
 	/* textures */
-	struct lab_data_buffer *xbm_close_active_unpressed;
-	struct lab_data_buffer *xbm_maximize_active_unpressed;
-	struct lab_data_buffer *xbm_iconify_active_unpressed;
-	struct lab_data_buffer *xbm_menu_active_unpressed;
+	struct lab_data_buffer *button_close_active_unpressed;
+	struct lab_data_buffer *button_maximize_active_unpressed;
+	struct lab_data_buffer *button_iconify_active_unpressed;
+	struct lab_data_buffer *button_menu_active_unpressed;
 
-	struct lab_data_buffer *xbm_close_inactive_unpressed;
-	struct lab_data_buffer *xbm_maximize_inactive_unpressed;
-	struct lab_data_buffer *xbm_iconify_inactive_unpressed;
-	struct lab_data_buffer *xbm_menu_inactive_unpressed;
+	struct lab_data_buffer *button_close_inactive_unpressed;
+	struct lab_data_buffer *button_maximize_inactive_unpressed;
+	struct lab_data_buffer *button_iconify_inactive_unpressed;
+	struct lab_data_buffer *button_menu_inactive_unpressed;
 
 	struct lab_data_buffer *corner_top_left_active_normal;
 	struct lab_data_buffer *corner_top_right_active_normal;

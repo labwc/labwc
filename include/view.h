@@ -370,7 +370,7 @@ void view_move_to_workspace(struct view *view, struct workspace *workspace);
 void view_set_decorations(struct view *view, bool decorations);
 void view_toggle_fullscreen(struct view *view);
 void view_adjust_for_layout_change(struct view *view);
-void view_move_to_edge(struct view *view, enum view_edge direction);
+void view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_windows);
 void view_snap_to_edge(struct view *view, enum view_edge direction, bool store_natural_geometry);
 void view_snap_to_region(struct view *view, struct region *region, bool store_natural_geometry);
 

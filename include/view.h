@@ -8,6 +8,9 @@
 #include <wayland-util.h>
 #include <wlr/util/box.h>
 
+#define LAB_MIN_VIEW_WIDTH  100
+#define LAB_MIN_VIEW_HEIGHT  60
+
 /*
  * In labwc, a view is a container for surfaces which can be moved around by
  * the user. In practice this means XDG toplevel and XWayland windows.

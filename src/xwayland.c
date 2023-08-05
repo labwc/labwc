@@ -522,50 +522,6 @@ xwayland_view_minimize(struct view *view, bool minimized)
 		minimized);
 }
 
-enum z_direction {
-	LAB_TO_FRONT,
-	LAB_TO_BACK,
-};
-
-/*
- * TODO: Combine append_children() and move_sub_views() as much as possible.
- * https://github.com/labwc/labwc/pull/998#discussion_r1284085575
- */
-static void
-move_sub_views(struct view *parent, enum z_direction z_direction)
-{
-	assert(parent);
-
-	if (parent->type != LAB_XWAYLAND_VIEW) {
-		return;
-	}
-
-	struct wlr_xwayland_surface *parent_xwayland_surface =
-		xwayland_surface_from_view(parent);
-	struct view *view, *next;
-	wl_list_for_each_reverse_safe(view, next, &parent->server->views, link)
-	{
-		/* need to stop here, otherwise loops keeps going forever */
-		if (view == parent) {
-			break;
-		}
-		if (view->type != LAB_XWAYLAND_VIEW) {
-			continue;
-		}
-		if (!view->mapped && !view->minimized) {
-			continue;
-		}
-		if (top_parent_of(view) != parent_xwayland_surface) {
-			continue;
-		}
-		if (z_direction == LAB_TO_FRONT) {
-			view_impl_move_to_front(view);
-		} else if (z_direction == LAB_TO_BACK) {
-			view_impl_move_to_back(view);
-		}
-	}
-}
-
 static struct view *
 xwayland_view_get_root(struct view *view)
 {
@@ -578,15 +534,15 @@ xwayland_view_move_to_front(struct view *view)
 {
 	struct view *root = xwayland_view_get_root(view);
 	view_impl_move_to_front(root);
-	move_sub_views(root, LAB_TO_FRONT);
+	view_impl_move_sub_views(root, LAB_TO_FRONT);
 }
 
 static void
 xwayland_view_move_to_back(struct view *view)
 {
 	struct view *root = xwayland_view_get_root(view);
+	view_impl_move_sub_views(root, LAB_TO_BACK);
 	view_impl_move_to_back(root);
-	move_sub_views(root, LAB_TO_BACK);
 }
 
 static void

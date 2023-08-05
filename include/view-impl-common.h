@@ -7,10 +7,17 @@
  * Please note: only xdg-shell-toplevel-view and xwayland-view view_impl
  * functions should call these functions.
  */
+
+enum z_direction {
+	LAB_TO_FRONT,
+	LAB_TO_BACK,
+};
+
 struct view;
 
 void view_impl_move_to_front(struct view *view);
 void view_impl_move_to_back(struct view *view);
+void view_impl_move_sub_views(struct view *parent, enum z_direction z_direction);
 void view_impl_map(struct view *view);
 
 /*

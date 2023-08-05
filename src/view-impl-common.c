@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /* view-impl-common.c: common code for shell view->impl functions */
+#include <assert.h>
 #include <stdio.h>
 #include <strings.h>
 #include "common/list.h"
@@ -22,6 +23,29 @@ view_impl_move_to_back(struct view *view)
 	wl_list_remove(&view->link);
 	wl_list_append(&view->server->views, &view->link);
 	wlr_scene_node_lower_to_bottom(&view->scene_tree->node);
+}
+
+void
+view_impl_move_sub_views(struct view *parent, enum z_direction z_direction)
+{
+	assert(parent);
+	if (!parent->impl->append_children) {
+		return;
+	}
+
+	struct wl_array subviews;
+	wl_array_init(&subviews);
+	parent->impl->append_children(parent, &subviews);
+
+	struct view **view;
+	wl_array_for_each(view, &subviews) {
+		if (z_direction == LAB_TO_FRONT) {
+			view_impl_move_to_front(*view);
+		} else if (z_direction == LAB_TO_BACK) {
+			view_impl_move_to_back(*view);
+		}
+	}
+	wl_array_release(&subviews);
 }
 
 void

@@ -66,6 +66,8 @@ enum action_type {
 	ACTION_TYPE_EXIT,
 	ACTION_TYPE_MOVE_TO_EDGE,
 	ACTION_TYPE_SNAP_TO_EDGE,
+	ACTION_TYPE_GROW_TO_EDGE,
+	ACTION_TYPE_SHRINK_TO_EDGE,
 	ACTION_TYPE_NEXT_WINDOW,
 	ACTION_TYPE_PREVIOUS_WINDOW,
 	ACTION_TYPE_RECONFIGURE,
@@ -105,6 +107,8 @@ const char *action_names[] = {
 	"Exit",
 	"MoveToEdge",
 	"SnapToEdge",
+	"GrowToEdge",
+	"ShrinkToEdge",
 	"NextWindow",
 	"PreviousWindow",
 	"Reconfigure",
@@ -272,6 +276,8 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		}
 		/* Falls through */
 	case ACTION_TYPE_SNAP_TO_EDGE:
+	case ACTION_TYPE_GROW_TO_EDGE:
+	case ACTION_TYPE_SHRINK_TO_EDGE:
 		if (!strcmp(argument, "direction")) {
 			enum view_edge edge = view_edge_parse(content);
 			if ((edge == VIEW_EDGE_CENTER && action->type != ACTION_TYPE_SNAP_TO_EDGE)
@@ -411,6 +417,8 @@ action_is_valid(struct action *action)
 		break;
 	case ACTION_TYPE_MOVE_TO_EDGE:
 	case ACTION_TYPE_SNAP_TO_EDGE:
+	case ACTION_TYPE_GROW_TO_EDGE:
+	case ACTION_TYPE_SHRINK_TO_EDGE:
 		arg_name = "direction";
 		arg_type = LAB_ACTION_ARG_INT;
 		break;
@@ -652,6 +660,20 @@ actions_run(struct view *activator, struct server *server,
 				/* Config parsing makes sure that direction is a valid direction */
 				enum view_edge edge = action_get_int(action, "direction", 0);
 				view_snap_to_edge(view, edge, /*store_natural_geometry*/ true);
+			}
+			break;
+		case ACTION_TYPE_GROW_TO_EDGE:
+			if (view) {
+				/* Config parsing makes sure that direction is a valid direction */
+				enum view_edge edge = action_get_int(action, "direction", 0);
+				view_grow_to_edge(view, edge);
+			}
+			break;
+		case ACTION_TYPE_SHRINK_TO_EDGE:
+			if (view) {
+				/* Config parsing makes sure that direction is a valid direction */
+				enum view_edge edge = action_get_int(action, "direction", 0);
+				view_shrink_to_edge(view, edge);
 			}
 			break;
 		case ACTION_TYPE_NEXT_WINDOW:

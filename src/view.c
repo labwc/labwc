@@ -1162,6 +1162,40 @@ view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_wind
 	view_move(view, view->pending.x + dx, view->pending.y + dy);
 }
 
+void
+view_grow_to_edge(struct view *view, enum view_edge direction)
+{
+	assert(view);
+	if (view->fullscreen || view->maximized) {
+		return;
+	}
+	if (!output_is_usable(view->output)) {
+		wlr_log(WLR_ERROR, "view has no output, not growing view");
+		return;
+	}
+
+	struct wlr_box geo = view->pending;
+	snap_grow_to_next_edge(view, direction, &geo);
+	view_move_resize(view, geo);
+}
+
+void
+view_shrink_to_edge(struct view *view, enum view_edge direction)
+{
+	assert(view);
+	if (view->fullscreen || view->maximized) {
+		return;
+	}
+	if (!output_is_usable(view->output)) {
+		wlr_log(WLR_ERROR, "view has no output, not shrinking view");
+		return;
+	}
+
+	struct wlr_box geo = view->pending;
+	snap_shrink_to_next_edge(view, direction, &geo);
+	view_move_resize(view, geo);
+}
+
 enum view_edge
 view_edge_parse(const char *direction)
 {

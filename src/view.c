@@ -9,6 +9,7 @@
 #include "menu/menu.h"
 #include "regions.h"
 #include "resize_indicator.h"
+#include "snap.h"
 #include "ssd.h"
 #include "view.h"
 #include "window-rules.h"
@@ -1127,50 +1128,38 @@ view_on_output_destroy(struct view *view)
 }
 
 void
-view_move_to_edge(struct view *view, enum view_edge edge)
+view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_windows)
 {
 	assert(view);
-	struct output *output = view->output;
-	if (!output_is_usable(output)) {
+	if (!output_is_usable(view->output)) {
 		wlr_log(WLR_ERROR, "view has no output, not moving to edge");
 		return;
 	}
 
-	struct border margin = ssd_get_margin(view->ssd);
-	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-	if (usable.height == output->wlr_output->height
-			&& output->wlr_output->scale != 1) {
-		usable.height /= output->wlr_output->scale;
-	}
-	if (usable.width == output->wlr_output->width
-			&& output->wlr_output->scale != 1) {
-		usable.width /= output->wlr_output->scale;
+	int dx = 0, dy = 0;
+	if (snap_to_windows) {
+		snap_vector_to_next_edge(view, direction, &dx, &dy);
+	} else {
+		struct border distance = snap_get_max_distance(view);
+		switch (direction) {
+		case VIEW_EDGE_LEFT:
+			dx = distance.left;
+			break;
+		case VIEW_EDGE_UP:
+			dy = distance.top;
+			break;
+		case VIEW_EDGE_RIGHT:
+			dx = distance.right;
+			break;
+		case VIEW_EDGE_DOWN:
+			dy = distance.bottom;
+			break;
+		default:
+			return;
+		}
 	}
 
-	int x = 0, y = 0;
-	switch (edge) {
-	case VIEW_EDGE_LEFT:
-		x = usable.x + margin.left + rc.gap;
-		y = view->pending.y;
-		break;
-	case VIEW_EDGE_UP:
-		x = view->pending.x;
-		y = usable.y + margin.top + rc.gap;
-		break;
-	case VIEW_EDGE_RIGHT:
-		x = usable.x + usable.width - view->pending.width
-			- margin.right - rc.gap;
-		y = view->pending.y;
-		break;
-	case VIEW_EDGE_DOWN:
-		x = view->pending.x;
-		y = usable.y + usable.height - view->pending.height
-			- margin.bottom - rc.gap;
-		break;
-	default:
-		return;
-	}
-	view_move(view, x, y);
+	view_move(view, view->pending.x + dx, view->pending.y + dy);
 }
 
 enum view_edge

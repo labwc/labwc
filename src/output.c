@@ -565,6 +565,24 @@ output_usable_area_in_layout_coords(struct output *output)
 	return box;
 }
 
+struct wlr_box
+output_usable_area_scaled(struct output *output)
+{
+	if (!output) {
+		return (struct wlr_box){0};
+	}
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
+	if (usable.height == output->wlr_output->height
+			&& output->wlr_output->scale != 1) {
+		usable.height /= output->wlr_output->scale;
+	}
+	if (usable.width == output->wlr_output->width
+			&& output->wlr_output->scale != 1) {
+		usable.width /= output->wlr_output->scale;
+	}
+	return usable;
+}
+
 void
 handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 {

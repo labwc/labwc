@@ -20,6 +20,7 @@ labwc_sources = files(
   'seat.c',
   'server.c',
   'session-lock.c',
+  'snap.c',
   'touch.c',
   'theme.c',
   'view.c',

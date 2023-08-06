@@ -923,6 +923,12 @@ cursor_button_press(struct seat *seat, struct wlr_pointer_button_event *event)
 		}
 	}
 
+	if (ctx.type == LAB_SSD_ROOT && wlr_seat_pointer_has_grab(seat->seat)) {
+		/* Let a click on the desktop cancel an active popup grab */
+		wlr_seat_pointer_end_grab(seat->seat);
+		return;
+	}
+
 	/* Bindings to the Frame context swallow mouse events if activated */
 	bool consumed_by_frame_context =
 		handle_press_mousebinding(server, &ctx, event->button, resize_edges);

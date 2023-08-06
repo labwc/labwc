@@ -257,13 +257,13 @@ action_str_from_arg(struct action_arg *arg)
 }
 
 static bool
-arg_value_exists(struct action *action, const char *key)
+arg_value_exists(struct action *action, const char *key, enum action_arg_type type)
 {
 	assert(action);
 	assert(key);
 	struct action_arg *arg;
 	wl_list_for_each(arg, &action->args, link) {
-		if (!strcasecmp(key, arg->key)) {
+		if (!strcasecmp(key, arg->key) && arg->type == type) {
 			return true;
 		}
 	}
@@ -373,6 +373,8 @@ bool
 action_is_valid(struct action *action)
 {
 	const char *arg_name = NULL;
+	enum action_arg_type arg_type = LAB_ACTION_ARG_STR;
+
 	switch (action->type) {
 	case ACTION_TYPE_EXECUTE:
 		arg_name = "command";
@@ -380,6 +382,7 @@ action_is_valid(struct action *action)
 	case ACTION_TYPE_MOVE_TO_EDGE:
 	case ACTION_TYPE_SNAP_TO_EDGE:
 		arg_name = "direction";
+		arg_type = LAB_ACTION_ARG_INT;
 		break;
 	case ACTION_TYPE_SHOW_MENU:
 		arg_name = "menu";
@@ -399,7 +402,7 @@ action_is_valid(struct action *action)
 		return true;
 	}
 
-	if (arg_value_exists(action, arg_name)) {
+	if (arg_value_exists(action, arg_name, arg_type)) {
 		return true;
 	}
 

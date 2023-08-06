@@ -159,7 +159,7 @@ action_arg_add_int(struct action *action, const char *key, int value)
 }
 
 void
-action_arg_from_xml_node(struct action *action, char *nodename, char *content)
+action_arg_from_xml_node(struct action *action, const char *nodename, const char *content)
 {
 	assert(action);
 

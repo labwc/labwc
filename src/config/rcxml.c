@@ -847,7 +847,8 @@ load_default_key_bindings(void)
 		wl_list_append(&k->actions, &action->link);
 
 		if (key_combos[i].attribute && key_combos[i].value) {
-			action_arg_add_str(action, key_combos[i].attribute, key_combos[i].value);
+			action_arg_from_xml_node(action,
+				key_combos[i].attribute, key_combos[i].value);
 		}
 	}
 }
@@ -956,7 +957,8 @@ load_default_mouse_bindings(void)
 		 * slightly more sophisticated approach will be needed.
 		 */
 		if (current->attribute && current->value) {
-			action_arg_add_str(action, current->attribute, current->value);
+			action_arg_from_xml_node(action,
+				current->attribute, current->value);
 		}
 	}
 	wlr_log(WLR_DEBUG, "Loaded %u merged mousebinds", count);

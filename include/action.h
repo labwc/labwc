@@ -24,7 +24,7 @@ bool action_is_valid(struct action *action);
 
 void action_arg_add_str(struct action *action, const char *key, const char *value);
 
-void action_arg_from_xml_node(struct action *action, char *nodename, char *content);
+void action_arg_from_xml_node(struct action *action, const char *nodename, const char *content);
 
 bool actions_contain_toggle_keybinds(struct wl_list *action_list);
 

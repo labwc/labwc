@@ -47,15 +47,18 @@ resistance_move_apply(struct view *view, double *x, double *y)
 	struct edges other_edges; /* The edges of the monitor/other view */
 	struct edges flags = { 0 };
 
+	/* Use the effective height to properly snap shaded views */
+	int eff_height = view_effective_height(view, /* use_pending */ false);
+
 	view_edges.left = vgeom.x - border.left + 1;
 	view_edges.top = vgeom.y - border.top + 1;
 	view_edges.right = vgeom.x + vgeom.width + border.right;
-	view_edges.bottom = vgeom.y + vgeom.height + border.bottom;
+	view_edges.bottom = vgeom.y + eff_height + border.bottom;
 
 	target_edges.left = *x - border.left;
 	target_edges.top = *y - border.top;
 	target_edges.right = *x + vgeom.width + border.right;
-	target_edges.bottom = *y + vgeom.height + border.bottom;
+	target_edges.bottom = *y + eff_height + border.bottom;
 
 	if (!rc.screen_edge_strength) {
 		return;
@@ -91,7 +94,7 @@ resistance_move_apply(struct view *view, double *x, double *y)
 		if (flags.top == 1) {
 			*y = other_edges.top + border.top;
 		} else if (flags.bottom == 1) {
-			*y = other_edges.bottom - vgeom.height - border.bottom;
+			*y = other_edges.bottom - eff_height - border.bottom;
 		}
 
 		/* reset the flags */

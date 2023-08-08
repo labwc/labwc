@@ -168,8 +168,9 @@ build_grid(struct overlap_bitmap *bmp, struct view *view)
 			bmp->rows[nr_rows++] = y;
 		}
 
-		x = v->pending.x + v->pending.width + margin.right;
-		y = v->pending.y + v->pending.height + margin.bottom;
+		x = v->pending.x + margin.right + v->pending.width;
+		y = v->pending.y + margin.bottom
+			+ view_effective_height(v, /* use_pending */ true);
 
 		/* Add a column if the right view edge is in the usable region */
 		if (x > usable.x && x < usable_right) {
@@ -259,8 +260,9 @@ build_overlap(struct overlap_bitmap *bmp, struct view *view)
 		struct border margin = ssd_get_margin(v->ssd);
 		int lx = v->pending.x - margin.left;
 		int ly = v->pending.y - margin.top;
-		int hx = v->pending.x + v->pending.width + margin.right;
-		int hy = v->pending.y + v->pending.height + margin.bottom;
+		int hx = v->pending.x + margin.right + v->pending.width;
+		int hy = v->pending.y + margin.bottom
+			+ view_effective_height(v, /* use_pending */ true);
 
 		/*
 		 * Find the first and last row and column intervals spanned by

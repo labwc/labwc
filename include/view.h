@@ -148,6 +148,7 @@ struct view {
 	bool ssd_enabled;
 	bool ssd_titlebar_hidden;
 	enum ssd_preference ssd_preference;
+	bool shaded;
 	bool minimized;
 	enum view_axis maximized;
 	bool fullscreen;
@@ -395,6 +396,13 @@ bool view_adjust_floating_geometry(struct view *view, struct wlr_box *geometry);
 void view_store_natural_geometry(struct view *view);
 
 /**
+ * view_effective_height - effective height of view, with respect to shaded state
+ * @view: view for which effective height is desired
+ * @use_pending: if false, report current height; otherwise, report pending height
+ */
+int view_effective_height(struct view *view, bool use_pending);
+
+/**
  * view_center - center view within some region
  * @view: view to be centered
  * @ref: optional reference region (in layout coordinates) to center
@@ -462,6 +470,8 @@ const char *view_get_string_prop(struct view *view, const char *prop);
 void view_update_title(struct view *view);
 void view_update_app_id(struct view *view);
 void view_reload_ssd(struct view *view);
+
+void view_set_shade(struct view *view, bool shaded);
 
 struct view_size_hints view_get_size_hints(struct view *view);
 void view_adjust_size(struct view *view, int *w, int *h);

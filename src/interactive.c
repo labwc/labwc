@@ -80,10 +80,11 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		cursor_set(seat, LAB_CURSOR_GRAB);
 		break;
 	case LAB_INPUT_STATE_RESIZE:
-		if (view->fullscreen || view->maximized == VIEW_AXIS_BOTH) {
+		if (view->shaded || view->fullscreen ||
+				view->maximized == VIEW_AXIS_BOTH) {
 			/*
-			 * We don't allow resizing while fullscreen or
-			 * maximized in both directions.
+			 * We don't allow resizing while shaded,
+			 * fullscreen or maximized in both directions.
 			 */
 			return;
 		}

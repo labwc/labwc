@@ -718,6 +718,8 @@ init_windowmenu(struct server *server)
 		fill_item("name.action", "ToggleMaximize");
 		current_item = item_create(menu, _("Fullscreen"), false);
 		fill_item("name.action", "ToggleFullscreen");
+		current_item = item_create(menu, _("Shade"), false);
+		fill_item("name.action", "ToggleShade");
 		current_item = item_create(menu, _("Decorations"), false);
 		fill_item("name.action", "ToggleDecorations");
 		current_item = item_create(menu, _("Always on Top"), false);

@@ -334,6 +334,16 @@ ssd_set_active(struct ssd *ssd, bool active)
 }
 
 void
+ssd_enable_shade(struct ssd *ssd, bool enable)
+{
+	if (!ssd) {
+		return;
+	}
+	wlr_scene_node_set_enabled(&ssd->border.tree->node, !enable);
+	wlr_scene_node_set_enabled(&ssd->extents.tree->node, !enable);
+}
+
+void
 ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable)
 {
 	if (!ssd) {

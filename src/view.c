@@ -1975,6 +1975,18 @@ view_connect_map(struct view *view, struct wlr_surface *surface)
 }
 
 void
+view_toggle_shade(struct view *view)
+{
+	assert(view);
+	if (!view->ssd) {
+		return;
+	}
+	view->shaded = !view->shaded;
+	ssd_enable_shade(view->ssd, view->shaded);
+	wlr_scene_node_set_enabled(view->scene_node, !view->shaded);
+}
+
+void
 view_destroy(struct view *view)
 {
 	assert(view);

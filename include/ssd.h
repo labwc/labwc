@@ -68,6 +68,7 @@ void ssd_destroy(struct ssd *ssd);
 void ssd_titlebar_hide(struct ssd *ssd);
 
 void ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable);
+void ssd_enable_shade(struct ssd *ssd, bool enable);
 
 struct ssd_hover_state *ssd_hover_state_new(void);
 void ssd_update_button_hover(struct wlr_scene_node *node,

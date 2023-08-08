@@ -148,6 +148,7 @@ struct view {
 	bool ssd_enabled;
 	bool ssd_titlebar_hidden;
 	enum ssd_preference ssd_preference;
+	bool shaded;
 	bool minimized;
 	enum view_axis maximized;
 	bool fullscreen;
@@ -462,6 +463,7 @@ const char *view_get_string_prop(struct view *view, const char *prop);
 void view_update_title(struct view *view);
 void view_update_app_id(struct view *view);
 void view_reload_ssd(struct view *view);
+void view_toggle_shade(struct view *view);
 
 struct view_size_hints view_get_size_hints(struct view *view);
 void view_adjust_size(struct view *view, int *w, int *h);

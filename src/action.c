@@ -103,6 +103,7 @@ enum action_type {
 	ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE,
 	ACTION_TYPE_AUTO_PLACE,
 	ACTION_TYPE_TOGGLE_TEARING,
+	ACTION_TYPE_TOGGLE_SHADE,
 };
 
 const char *action_names[] = {
@@ -151,6 +152,7 @@ const char *action_names[] = {
 	"VirtualOutputRemove",
 	"AutoPlace",
 	"ToggleTearing",
+	"ToggleShade",
 	NULL
 };
 
@@ -958,6 +960,11 @@ actions_run(struct view *activator, struct server *server,
 				view->tearing_hint = !view->tearing_hint;
 				wlr_log(WLR_DEBUG, "tearing %sabled",
 					view->tearing_hint ? "en" : "dis");
+			}
+			break;
+		case ACTION_TYPE_TOGGLE_SHADE:
+			if (view) {
+				view_toggle_shade(view);
 			}
 			break;
 		case ACTION_TYPE_INVALID:

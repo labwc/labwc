@@ -12,6 +12,9 @@
   <item label="Fullscreen">
     <action name="ToggleFullscreen" />
   </item>
+  <item label="Roll up/down">
+    <action name="ToggleShade" />
+  </item>
   <item label="Decorations">
     <action name="ToggleDecorations" />
   </item>

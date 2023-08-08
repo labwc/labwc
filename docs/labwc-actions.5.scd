@@ -229,6 +229,15 @@ Actions are used in menus and keyboard/mouse bindings.
 	Use the automatic placement policy to move the active window to a
 	position on its output that will minimize overlap with other windows.
 
+*<action name="Shade" />*++
+*<action name="Unshade" />*++
+*<action name="ToggleShade" />*
+	Set, unset, or toggle, respectively, the "shaded" state of the active
+	window. When shaded, window contents are hidden, leaving only the
+	titlebar visible. Full-screen windows or those without server-side
+	decorations (including those for which the server-side titlebar has been
+	hidden) are not eligible for shading.
+
 *<action name="None" />*
 	If used as the only action for a binding: clear an earlier defined
 	binding.

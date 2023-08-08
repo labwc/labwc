@@ -471,7 +471,12 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		 */
 		wlr_seat_pointer_notify_clear_focus(wlr_seat);
 		if (!seat->drag.active) {
-			cursor_set(seat, cursor_get_from_ssd(ctx->type));
+			enum lab_cursors cursor = cursor_get_from_ssd(ctx->type);
+			if (ctx->view && ctx->view->shaded && cursor > LAB_CURSOR_GRAB) {
+				/* Prevent resize cursor on borders for shaded SSD */
+				cursor = LAB_CURSOR_DEFAULT;
+			}
+			cursor_set(seat, cursor);
 		}
 	}
 }

@@ -923,8 +923,15 @@ cursor_button_press(struct seat *seat, struct wlr_pointer_button_event *event)
 		}
 	}
 
-	if (ctx.type == LAB_SSD_ROOT && wlr_seat_pointer_has_grab(seat->seat)) {
-		/* Let a click on the desktop cancel an active popup grab */
+	if (ctx.type != LAB_SSD_CLIENT && wlr_seat_pointer_has_grab(seat->seat)) {
+		/*
+		 * If we have an active popup grab (an open popup) we want to
+		 * cancel that grab whenever the user presses on anything that
+		 * is not the client itself, for example the desktop or any
+		 * part of the server side decoration.
+		 *
+		 * Note: This does not work for XWayland clients
+		 */
 		wlr_seat_pointer_end_grab(seat->seat);
 		return;
 	}

@@ -16,8 +16,9 @@
 static int
 round_to_increment(int val, int base, int inc)
 {
-	if (base < 0 || inc <= 0)
+	if (base < 0 || inc <= 0) {
 		return val;
+	}
 	return base + (val - base + inc / 2) / inc * inc;
 }
 

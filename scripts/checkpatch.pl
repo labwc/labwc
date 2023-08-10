@@ -5508,11 +5508,32 @@ sub process {
 				}
 			}
 
+
+			# We need this for the labwc-custom check below. It
+			# avoids false positives with do { } while (); etc.
+			my $starts_with_if_while_etc = 0;
+			if ($s =~ /^\+\s*(if|while|for|switch).*/) {
+				$starts_with_if_while_etc = 1;
+			}
+
 			# Find out what is on the end of the line after the
 			# conditional.
 			substr($s, 0, length($c), '');
 			$s =~ s/\n.*//g;
 			$s =~ s/$;//g;	# Remove any comments
+
+			# Find if/while/for/switch without opening braces
+			# because (as opposed to Linux coding style) we use
+			# braces for single statement blocks.
+			#
+			# include/ssd-internal.h contains a macro that we can't
+			# deal with, so ignore that
+			#
+			if ($starts_with_if_while_etc && !length($s)
+					&& $filename ne "include/ssd-internal.h") {
+				CHK("BRACES", "[labwc-custom] open brace { expected after if/while/for/switch - even with single statement blocks");
+			}
+
 			if (length($c) && $s !~ /^\s*{?\s*\\*\s*$/ &&
 			    $c !~ /}\s*while\s*/)
 			{

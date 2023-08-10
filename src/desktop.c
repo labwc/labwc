@@ -435,3 +435,4 @@ get_cursor_context(struct server *server)
 	wlr_log(WLR_ERROR, "Unknown node detected");
 	return ret;
 }
+

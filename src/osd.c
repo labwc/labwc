@@ -258,12 +258,11 @@ get_title(struct view *view)
 static void
 render_osd(struct server *server, cairo_t *cairo, int w, int h,
 		struct wl_list *node_list, bool show_workspace,
-		const char *workspace_name)
+		const char *workspace_name, enum lab_view_criteria criteria)
 {
 	struct view *cycle_view = server->osd_state.cycle_view;
 	struct theme *theme = server->theme;
 
-	struct wlr_scene_node *node;
 	cairo_surface_t *surf = cairo_get_target(cairo);
 
 	/* Draw background */
@@ -317,17 +316,11 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 		- 2 * theme->osd_window_switcher_item_active_border_width;
 
 	/* Draw text for each node */
-	wl_list_for_each_reverse(node, node_list, link) {
-		if (!node->data) {
-			/* We found some non-view, most likely the region overlay */
-			continue;
-		}
-		struct view *view = node_view_from_node(node);
-		enum property skip = window_rules_get_property(view, "skipWindowSwitcher");
-		if (!isfocusable(view) || skip == LAB_PROP_TRUE) {
-			continue;
-		}
-
+	struct view **view;
+	struct wl_array views;
+	wl_array_init(&views);
+	desktop_views_append(server, &views, criteria);
+	wl_array_for_each(view, &views) {
 		/*
 		 *    OSD border
 		 * +---------------------------------+
@@ -359,13 +352,13 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 
 			switch (field->content) {
 			case LAB_FIELD_TYPE:
-				buf_add(&buf, get_type(view));
+				buf_add(&buf, get_type(*view));
 				break;
 			case LAB_FIELD_APP_ID:
-				buf_add(&buf, get_app_id(view));
+				buf_add(&buf, get_app_id(*view));
 				break;
 			case LAB_FIELD_TITLE:
-				buf_add(&buf, get_title(view));
+				buf_add(&buf, get_title(*view));
 				break;
 			default:
 				break;
@@ -379,7 +372,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			x += field_width + theme->osd_window_switcher_item_padding_x;
 		}
 
-		if (view == cycle_view) {
+		if (*view == cycle_view) {
 			/* Highlight current window */
 			struct wlr_fbox fbox = {
 				.x = theme->osd_border_width + theme->osd_window_switcher_padding,
@@ -398,30 +391,23 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 	}
 	free(buf.buf);
 	g_object_unref(layout);
+	wl_array_release(&views);
 
 	cairo_surface_flush(surf);
 }
 
 static int
-get_osd_height(struct wl_list *node_list)
+get_osd_height(struct server *server, enum lab_view_criteria criteria)
 {
 	int height = 0;
-	struct view *view;
-	struct wlr_scene_node *node;
-	wl_list_for_each(node, node_list, link) {
-		if (!node->data) {
-			/* We found some non-view, most likely the region overlay */
-			continue;
-		}
-		view = node_view_from_node(node);
-		enum property skip = window_rules_get_property(view, "skipWindowSwitcher");
-		if (!isfocusable(view) || skip == LAB_PROP_TRUE) {
-			continue;
-		}
+	struct wl_array views;
+	wl_array_init(&views);
+	desktop_views_append(server, &views, criteria);
 
-		/* Include item border width */
-		height += rc.theme->osd_window_switcher_item_height;
-	}
+	/* Includes item border width */
+	size_t len = views.size / sizeof(struct view *);
+	height += len * rc.theme->osd_window_switcher_item_height;
+	wl_array_release(&views);
 
 	/* Add OSD border width */
 	height += 2 * rc.theme->osd_border_width;
@@ -439,9 +425,16 @@ display_osd(struct output *output)
 	bool show_workspace = wl_list_length(&rc.workspace_config.workspaces) > 1;
 	const char *workspace_name = server->workspace_current->name;
 
+	struct wl_array views;
+	wl_array_init(&views);
+	view_array_append(server, &views,
+		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
+		| LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP
+		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER);
+
 	float scale = output->wlr_output->scale;
 	int w = theme->osd_window_switcher_width;
-	int h = get_osd_height(node_list);
+	int h = get_osd_height(server, criteria);
 	if (show_workspace) {
 		/* workspace indicator */
 		h += theme->osd_window_switcher_item_height;
@@ -455,7 +448,8 @@ display_osd(struct output *output)
 
 	/* Render OSD image */
 	cairo_t *cairo = output->osd_buffer->cairo;
-	render_osd(server, cairo, w, h, node_list, show_workspace, workspace_name);
+	render_osd(server, cairo, w, h, node_list, show_workspace,
+		workspace_name, criteria);
 
 	struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
 		output->osd_tree, &output->osd_buffer->base);

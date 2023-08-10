@@ -25,8 +25,8 @@
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "button-png.h"
+#include "button/button-xbm.h"
 #include "theme.h"
-#include "xbm/xbm.h"
 #include "buffer.h"
 #include "ssd.h"
 
@@ -106,11 +106,11 @@ load_buttons(struct theme *theme)
 		/* If there were no png buttons, use xbm */
 		snprintf(filename, sizeof(filename), "%s.xbm", b->name);
 		if (!*b->active.buffer) {
-			xbm_load_button(filename, b->active.buffer,
+			button_xbm_load(filename, b->active.buffer,
 				b->fallback_button, b->active.rgba);
 		}
 		if (!*b->inactive.buffer) {
-			xbm_load_button(filename, b->inactive.buffer,
+			button_xbm_load(filename, b->inactive.buffer,
 				b->fallback_button, b->inactive.rgba);
 		}
 	}

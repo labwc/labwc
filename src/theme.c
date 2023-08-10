@@ -24,7 +24,7 @@
 #include "common/match.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
-#include "button-png.h"
+#include "button/button-png.h"
 #include "button/button-xbm.h"
 #include "theme.h"
 #include "buffer.h"

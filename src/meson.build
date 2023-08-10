@@ -15,7 +15,6 @@ labwc_sources = files(
   'node.c',
   'osd.c',
   'output.c',
-  'button-png.c',
   'regions.c',
   'resistance.c',
   'seat.c',

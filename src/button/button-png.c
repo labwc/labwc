@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
-#include "button-png.h"
+#include "button/button-png.h"
 #include "common/dir.h"
 #include "labwc.h"
 #include "theme.h"

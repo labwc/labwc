@@ -160,6 +160,36 @@ struct xdg_toplevel_view {
 	struct wl_listener new_popup;
 };
 
+enum lab_view_criteria {
+	LAB_VIEW_CRITERIA_ALL = 0,
+	LAB_VIEW_CRITERIA_CURRENT_WORKSPACE = 1 << 0,
+	LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP = 1 << 1,
+	LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER = 1 << 2,
+};
+
+/**
+ * view_array_append - append views that match criteria to array
+ * @server: server context
+ * @views: arrays to append to
+ * @criteria: criteria to match against
+ *
+ * Note: This array has a very short shelf-life so it is intended to be used
+ *       with a single-use-throw-away approach.
+ *
+ * Example usage:
+ *
+ *	struct view **view;
+ *	struct wl_array views;
+ *	wl_array_init(&views);
+ *	view_array_append(server, &views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE);
+ *	wl_array_for_each(view, &views) {
+ *		// Do something with *view
+ *	}
+ *	wl_array_release(&views);
+ */
+void view_array_append(struct server *server, struct wl_array *views,
+	enum lab_view_criteria criteria);
+
 bool view_inhibits_keybinds(struct view *view);
 void view_toggle_keybinds(struct view *view);
 

@@ -42,6 +42,6 @@ endif
 subdir('common')
 subdir('config')
 subdir('decorations')
-subdir('xbm')
+subdir('button')
 subdir('menu')
 subdir('ssd')

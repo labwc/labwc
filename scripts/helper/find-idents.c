@@ -274,7 +274,7 @@ get_special_token(struct token *token)
 	/* Compare with longest special tokens first */
 	int k;
 	for (k = strlen(buf); k > 0; k--) {
-		for (int j = 0; sizeof(specials) / sizeof(specials[0]); j++) {
+		for (size_t j = 0; j < sizeof(specials) / sizeof(specials[0]); j++) {
 			if (strlen(specials[j].combo) < k) {
 				break;
 			}

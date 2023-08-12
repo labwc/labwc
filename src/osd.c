@@ -258,7 +258,7 @@ get_title(struct view *view)
 static void
 render_osd(struct server *server, cairo_t *cairo, int w, int h,
 		struct wl_list *node_list, bool show_workspace,
-		const char *workspace_name, enum lab_view_criteria criteria)
+		const char *workspace_name, struct wl_array *views)
 {
 	struct view *cycle_view = server->osd_state.cycle_view;
 	struct theme *theme = server->theme;
@@ -317,10 +317,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 
 	/* Draw text for each node */
 	struct view **view;
-	struct wl_array views;
-	wl_array_init(&views);
-	desktop_views_append(server, &views, criteria);
-	wl_array_for_each(view, &views) {
+	wl_array_for_each(view, views) {
 		/*
 		 *    OSD border
 		 * +---------------------------------+
@@ -391,23 +388,18 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 	}
 	free(buf.buf);
 	g_object_unref(layout);
-	wl_array_release(&views);
 
 	cairo_surface_flush(surf);
 }
 
 static int
-get_osd_height(struct server *server, enum lab_view_criteria criteria)
+get_osd_height(struct server *server, struct wl_array *views)
 {
 	int height = 0;
-	struct wl_array views;
-	wl_array_init(&views);
-	desktop_views_append(server, &views, criteria);
 
 	/* Includes item border width */
-	size_t len = views.size / sizeof(struct view *);
+	size_t len = views->size / sizeof(struct view *);
 	height += len * rc.theme->osd_window_switcher_item_height;
-	wl_array_release(&views);
 
 	/* Add OSD border width */
 	height += 2 * rc.theme->osd_border_width;
@@ -434,7 +426,7 @@ display_osd(struct output *output)
 
 	float scale = output->wlr_output->scale;
 	int w = theme->osd_window_switcher_width;
-	int h = get_osd_height(server, criteria);
+	int h = get_osd_height(server, &views);
 	if (show_workspace) {
 		/* workspace indicator */
 		h += theme->osd_window_switcher_item_height;
@@ -449,7 +441,8 @@ display_osd(struct output *output)
 	/* Render OSD image */
 	cairo_t *cairo = output->osd_buffer->cairo;
 	render_osd(server, cairo, w, h, node_list, show_workspace,
-		workspace_name, criteria);
+		workspace_name, &views);
+	wl_array_release(&views);
 
 	struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
 		output->osd_tree, &output->osd_buffer->base);

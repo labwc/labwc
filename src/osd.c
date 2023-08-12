@@ -392,21 +392,6 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 	cairo_surface_flush(surf);
 }
 
-static int
-get_osd_height(struct server *server, struct wl_array *views)
-{
-	int height = 0;
-
-	/* Includes item border width */
-	size_t len = views->size / sizeof(struct view *);
-	height += len * rc.theme->osd_window_switcher_item_height;
-
-	/* Add OSD border width */
-	height += 2 * rc.theme->osd_border_width;
-	height += 2 * rc.theme->osd_window_switcher_padding;
-	return height;
-}
-
 static void
 display_osd(struct output *output)
 {
@@ -426,7 +411,9 @@ display_osd(struct output *output)
 
 	float scale = output->wlr_output->scale;
 	int w = theme->osd_window_switcher_width;
-	int h = get_osd_height(server, &views);
+	int h = views.size / sizeof(struct view *) * rc.theme->osd_window_switcher_item_height
+		+ 2 * rc.theme->osd_border_width
+		+ 2 * rc.theme->osd_window_switcher_padding;
 	if (show_workspace) {
 		/* workspace indicator */
 		h += theme->osd_window_switcher_item_height;

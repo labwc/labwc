@@ -922,8 +922,12 @@ cursor_button_press(struct seat *seat, struct wlr_pointer_button_event *event)
 			seat_set_focus_layer(seat, layer);
 		}
 	}
+	if (ctx.type == LAB_SSD_LAYER_SUBSURFACE) {
+		seat_focus_surface(seat, ctx.surface);
+	}
 
-	if (ctx.type != LAB_SSD_CLIENT && wlr_seat_pointer_has_grab(seat->seat)) {
+	if (ctx.type != LAB_SSD_CLIENT && ctx.type != LAB_SSD_LAYER_SUBSURFACE
+			&& wlr_seat_pointer_has_grab(seat->seat)) {
 		/*
 		 * If we have an active popup grab (an open popup) we want to
 		 * cancel that grab whenever the user presses on anything that

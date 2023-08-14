@@ -423,6 +423,7 @@ get_cursor_context(struct server *server)
 					 * setting the margin with the pointer.
 					 */
 					ret.surface = surface;
+					ret.type = LAB_SSD_LAYER_SUBSURFACE;
 					return ret;
 				}
 			}

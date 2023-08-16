@@ -153,6 +153,14 @@ view_close(struct view *view)
 }
 
 void
+view_close_popups(struct view *view)
+{
+	if (view->impl->close_popups) {
+		view->impl->close_popups(view);
+	}
+}
+
+void
 view_move(struct view *view, int x, int y)
 {
 	assert(view);

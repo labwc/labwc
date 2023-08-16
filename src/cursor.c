@@ -879,6 +879,9 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 				continue;
 			}
 			consumed_by_frame_context |= mousebind->context == LAB_SSD_FRAME;
+			if (ctx->view) {
+				view_close_popups(ctx->view);
+			}
 			actions_run(ctx->view, server, &mousebind->actions, resize_edges);
 		}
 	}

@@ -309,6 +309,16 @@ xdg_toplevel_view_close(struct view *view)
 }
 
 static void
+xdg_toplevel_view_close_popups(struct view *view)
+{
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+	struct wlr_xdg_popup *popup, *next;
+	wl_list_for_each_safe(popup, next, &toplevel->base->popups, link) {
+		wlr_xdg_popup_destroy(popup);
+	}
+}
+
+static void
 xdg_toplevel_view_maximize(struct view *view, bool maximized)
 {
 	wlr_xdg_toplevel_set_maximized(xdg_toplevel_from_view(view), maximized);
@@ -549,6 +559,7 @@ xdg_toplevel_view_unmap(struct view *view, bool client_request)
 static const struct view_impl xdg_toplevel_view_impl = {
 	.configure = xdg_toplevel_view_configure,
 	.close = xdg_toplevel_view_close,
+	.close_popups = xdg_toplevel_view_close_popups,
 	.get_string_prop = xdg_toplevel_view_get_string_prop,
 	.map = xdg_toplevel_view_map,
 	.set_activated = xdg_toplevel_view_set_activated,

@@ -52,6 +52,9 @@
     <screenEdgeStrength>20</screenEdgeStrength>
   </resistance>
 
+  <!-- Show a simple resize and move indicator -->
+  <resize popupShow="Never" />
+
   <focus>
     <followMouse>no</followMouse>
     <followMouseRequiresMovement>yes</followMouseRequiresMovement>

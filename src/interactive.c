@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "labwc.h"
 #include "regions.h"
+#include "resize_indicator.h"
 #include "view.h"
 
 static int
@@ -96,6 +97,9 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 	server->grab_y = seat->cursor->y;
 	server->grab_box = geometry;
 	server->resize_edges = edges;
+	if (rc.resize_indicator) {
+		resize_indicator_show(view);
+	}
 }
 
 /* Returns true if view was snapped to any edge */
@@ -172,6 +176,7 @@ interactive_finish(struct view *view)
 				}
 			}
 		}
+		resize_indicator_hide(view);
 
 		view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		view->server->grabbed_view = NULL;
@@ -190,6 +195,7 @@ void
 interactive_cancel(struct view *view)
 {
 	if (view->server->grabbed_view == view) {
+		resize_indicator_hide(view);
 		view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		view->server->grabbed_view = NULL;
 		/* Update focus/cursor image */

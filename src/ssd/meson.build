@@ -1,4 +1,5 @@
 labwc_sources += files(
+  'resize_indicator.c',
   'ssd.c',
   'ssd_part.c',
   'ssd_titlebar.c',

@@ -10,6 +10,7 @@
 #include "common/buf.h"
 #include "common/font.h"
 #include "config/libinput.h"
+#include "resize_indicator.h"
 #include "theme.h"
 
 enum window_switcher_field_content {
@@ -77,6 +78,8 @@ struct rcxml {
 	/* window snapping */
 	int snap_edge_range;
 	bool snap_top_maximize;
+
+	enum resize_indicator_mode resize_indicator;
 
 	struct {
 		int popuptime;

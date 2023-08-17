@@ -657,6 +657,16 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.workspace_config.popuptime = atoi(content);
 	} else if (!strcasecmp(nodename, "number.desktops")) {
 		rc.workspace_config.min_nr_workspaces = MAX(1, atoi(content));
+	} else if (!strcasecmp(nodename, "popupShow.resize")) {
+		if (!strcasecmp(content, "Always")) {
+			rc.resize_indicator = LAB_RESIZE_INDICATOR_ALWAYS;
+		} else if (!strcasecmp(content, "Never")) {
+			rc.resize_indicator = LAB_RESIZE_INDICATOR_NEVER;
+		} else if (!strcasecmp(content, "Nonpixel")) {
+			rc.resize_indicator = LAB_RESIZE_INDICATOR_NON_PIXEL;
+		} else {
+			wlr_log(WLR_ERROR, "Invalid value for <resize popupShow />");
+		}
 	}
 }
 
@@ -805,6 +815,8 @@ rcxml_init(void)
 	rc.window_switcher.show = true;
 	rc.window_switcher.preview = true;
 	rc.window_switcher.outlines = true;
+
+	rc.resize_indicator = LAB_RESIZE_INDICATOR_NEVER;
 
 	rc.workspace_config.popuptime = INT_MIN;
 	rc.workspace_config.min_nr_workspaces = 1;

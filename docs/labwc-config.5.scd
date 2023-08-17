@@ -249,6 +249,22 @@ Therefore, where multiple objects of the same kind are required (for example
 	Specify the number of pixels to reserve at the edges of an output.
 	New, maximized and tiled windows will not be placed in these areas.
 
+## RESIZE
+
+*<resize><popupShow>* [Never|Always|Nonpixel]
+	Show a small indicator on top of the window when resizing or moving.
+	When the application sets size-hints (usually X11 terminal emulators),
+	the indicator will show the dimensions divided by size hints instead.
+	In the case of terminal emulators this usually means columns x rows.
+
+	The different values mean:
+	- *Never* Do not render the indicator
+	- *Always* Render the indicator while moving and resizing windows
+	- *Nonpixel* Only render the indicator during resize for windows using
+	  size-hints
+
+	Default is Never.
+
 ## KEYBOARD
 
 *<keyboard><keybind key="">*

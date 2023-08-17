@@ -51,6 +51,7 @@ font_extents(struct font *font, const char *string)
 	pango_extents_to_pixels(&rect, NULL);
 
 	/* we put a 2 px edge on each side - because Openbox does it :) */
+	/* TODO: remove the 4 pixel addition and always do the padding by the caller */
 	rect.width += 4;
 
 	cairo_destroy(c);

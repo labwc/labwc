@@ -7,6 +7,7 @@
 #include "labwc.h"
 #include "menu/menu.h"
 #include "regions.h"
+#include "resize_indicator.h"
 #include "ssd.h"
 #include "view.h"
 #include "window-rules.h"
@@ -181,6 +182,9 @@ view_moved(struct view *view)
 	cursor_update_focus(view->server);
 	if (view->toplevel.handle) {
 		foreign_toplevel_update_outputs(view);
+	}
+	if (rc.resize_indicator && view->server->grabbed_view == view) {
+		resize_indicator_update(view);
 	}
 }
 

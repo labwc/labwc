@@ -24,6 +24,7 @@
 #include "layers.h"
 #include "menu/menu.h"
 #include "regions.h"
+#include "resize_indicator.h"
 #include "theme.h"
 #include "view.h"
 #include "workspaces.h"
@@ -54,6 +55,7 @@ reload_config_and_theme(void)
 	menu_reconfigure(g_server);
 	seat_reconfigure(g_server);
 	regions_reconfigure(g_server);
+	resize_indicator_reconfigure(g_server);
 	kde_server_decoration_update_default();
 }
 

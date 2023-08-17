@@ -128,6 +128,13 @@ struct view {
 	struct wl_event_source *pending_configure_timeout;
 
 	struct ssd *ssd;
+	struct resize_indicator {
+		int width, height;
+		struct wlr_scene_tree *tree;
+		struct wlr_scene_rect *border;
+		struct wlr_scene_rect *background;
+		struct scaled_font_buffer *text;
+	} resize_indicator;
 
 	struct foreign_toplevel {
 		struct wlr_foreign_toplevel_handle_v1 *handle;

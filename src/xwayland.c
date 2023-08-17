@@ -50,6 +50,21 @@ xwayland_apply_size_hints(struct view *view, int *w, int *h)
 	return false;
 }
 
+static void
+xwayland_view_fill_size_hints(struct view *view, struct wlr_box *box)
+{
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		xcb_size_hints_t *hints = xwayland_surface_from_view(view)->size_hints;
+		if (hints) {
+			box->width = hints->width_inc;
+			box->height = hints->height_inc;
+			return;
+		}
+	}
+	box->width = 0;
+	box->height = 0;
+}
+
 static struct wlr_xwayland_surface *
 top_parent_of(struct view *view)
 {
@@ -639,6 +654,7 @@ static const struct view_impl xwayland_view_impl = {
 	.move_to_back = xwayland_view_move_to_back,
 	.get_root = xwayland_view_get_root,
 	.append_children = xwayland_view_append_children,
+	.fill_size_hints = xwayland_view_fill_size_hints,
 };
 
 void

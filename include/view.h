@@ -57,6 +57,7 @@ struct view_impl {
 	void (*move_to_back)(struct view *view);
 	struct view *(*get_root)(struct view *self);
 	void (*append_children)(struct view *self, struct wl_array *children);
+	void (*fill_size_hints)(struct view *self, struct wlr_box *box);
 };
 
 struct view {

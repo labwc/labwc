@@ -37,6 +37,7 @@ static bool in_mousebind;
 static bool in_libinput_category;
 static bool in_window_switcher_field;
 static bool in_window_rules;
+static bool in_blocked_protocols;
 
 static struct usable_area_override *current_usable_area_override;
 static struct keybind *current_keybind;
@@ -163,6 +164,16 @@ fill_window_rule(char *nodename, char *content)
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else {
 		action_arg_from_xml_node(current_window_rule_action, nodename, content);
+	}
+}
+
+static void
+fill_blocked_protocols(char *nodename, char *content)
+{
+	if (!strcasecmp(nodename, "name.interface.blockedProtocols")) {
+		struct blocked_protocol *proto = znew(*proto);
+		proto->interface_name = xstrdup(content);
+		wl_list_append(&rc.blocked_protocols, &proto->link);
 	}
 }
 
@@ -536,6 +547,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		fill_window_rule(nodename, content);
 		return;
 	}
+	if (in_blocked_protocols) {
+		fill_blocked_protocols(nodename, content);
+		return;
+	}
 
 	/* handle nodes without content, e.g. <keyboard><default /> */
 	if (!strcmp(nodename, "default.keyboard")) {
@@ -738,6 +753,12 @@ xml_tree_walk(xmlNode *node)
 			in_window_rules = false;
 			continue;
 		}
+		if (!strcasecmp((char *)n->name, "blockedProtocols")) {
+			in_blocked_protocols = true;
+			traverse(n);
+			in_blocked_protocols = false;
+			continue;
+		}
 		traverse(n);
 	}
 }
@@ -778,6 +799,7 @@ rcxml_init(void)
 		wl_list_init(&rc.regions);
 		wl_list_init(&rc.window_switcher.fields);
 		wl_list_init(&rc.window_rules);
+		wl_list_init(&rc.blocked_protocols);
 	}
 	has_run = true;
 
@@ -1321,6 +1343,13 @@ rcxml_finish(void)
 	struct window_rule *rule, *rule_tmp;
 	wl_list_for_each_safe(rule, rule_tmp, &rc.window_rules, link) {
 		rule_destroy(rule);
+	}
+
+	struct blocked_protocol *proto, *proto_tmp;
+	wl_list_for_each_safe(proto, proto_tmp, &rc.blocked_protocols, link) {
+		wl_list_remove(&proto->link);
+		zfree(proto->interface_name);
+		zfree(proto);
 	}
 
 	/* Reset state vars for starting fresh when Reload is triggered */

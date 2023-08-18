@@ -19,44 +19,63 @@
 #define LAB_FALLBACK_WIDTH  640
 #define LAB_FALLBACK_HEIGHT 480
 
+static bool
+matches_criteria(struct view *view, enum lab_view_criteria criteria)
+{
+	if (!isfocusable(view)) {
+		return false;
+	}
+	if (criteria & LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+		/*
+		 * Always-on-top views are always on the current desktop and are
+		 * special in that they live in a different tree.
+		 */
+		struct server *server = view->server;
+		if (view->scene_tree->node.parent != server->workspace_current->tree
+				&& !view_is_always_on_top(view)) {
+			return false;
+		}
+	}
+	if (criteria & LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP) {
+		if (view_is_always_on_top(view)) {
+			return false;
+		}
+	}
+	if (criteria & LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER) {
+		if (window_rules_get_property(view, "skipWindowSwitcher") == LAB_PROP_TRUE) {
+			return false;
+		}
+	}
+	return true;
+}
+
+struct view *
+view_next(struct wl_list *head, struct view *view, enum lab_view_criteria criteria)
+{
+	assert(head);
+
+	struct wl_list *elm = view ? &view->link : head;
+
+	for (elm = elm->next; elm != head; elm = elm->next) {
+		view = wl_container_of(elm, view, link);
+		if (matches_criteria(view, criteria)) {
+			return view;
+		}
+	}
+	return NULL;
+}
+
 void
 view_array_append(struct server *server, struct wl_array *views,
 		enum lab_view_criteria criteria)
 {
 	struct view *view;
-	wl_list_for_each(view, &server->views, link)
-	{
-		if (!isfocusable(view)) {
+	for_each_view(view, &server->views, criteria) {
+		struct view **entry = wl_array_add(views, sizeof(*entry));
+		if (!entry) {
+			wlr_log(WLR_ERROR, "wl_array_add(): out of memory");
 			continue;
 		}
-
-		if (criteria & LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
-			/*
-			 * Always-on-top views are always on the current
-			 * desktop and are special in that they live in a
-			 * different tree.
-			 */
-			if (view_is_always_on_top(view)) {
-				goto next;
-			}
-			if (view->scene_tree->node.parent != server->workspace_current->tree) {
-				continue;
-			}
-		}
-next:
-		if (criteria & LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP) {
-			if (view_is_always_on_top(view)) {
-				continue;
-			}
-		}
-		if (criteria & LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER) {
-			if (window_rules_get_property(view, "skipWindowSwitcher")
-					== LAB_PROP_TRUE) {
-				continue;
-			}
-		}
-
-		struct view **entry = wl_array_add(views, sizeof(*entry));
 		*entry = view;
 	}
 }

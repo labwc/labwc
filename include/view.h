@@ -161,23 +161,54 @@ struct xdg_toplevel_view {
 };
 
 enum lab_view_criteria {
-	LAB_VIEW_CRITERIA_ALL = 0,
+	LAB_VIEW_CRITERIA_NONE = 0,
 	LAB_VIEW_CRITERIA_CURRENT_WORKSPACE = 1 << 0,
 	LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP = 1 << 1,
 	LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER = 1 << 2,
 };
 
 /**
- * view_array_append - append views that match criteria to array
+ * for_each_view() - iterate over all views which match criteria
+ * @view: Iterator.
+ * @head: Head of list to iterate over.
+ * @criteria: Criteria to match against.
+ * Example:
+ *	struct view *view;
+ *	for_each_view(view, &server->views, LAB_VIEW_CRITERIA_NONE) {
+ *		printf("%s\n", view_get_string_prop(view, "app_id"));
+ *	}
+ */
+#define for_each_view(view, head, criteria)		\
+	for (view = view_next(head, NULL, criteria);	\
+	     view;					\
+	     view = view_next(head, view, criteria))
+
+/**
+ * view_next() - Get next view which matches criteria.
+ * @head: Head of list to iterate over.
+ * @view: Current view from which to find the next one. If NULL is provided as
+ *	  the view argument, the start of the list will be used.
+ * @criteria: Criteria to match against.
+ *
+ * Returns NULL if there are no views matching the criteria.
+ */
+struct view *view_next(struct wl_list *head, struct view *view,
+	enum lab_view_criteria criteria);
+
+/**
+ * view_array_append() - Append views that match criteria to array
  * @server: server context
  * @views: arrays to append to
  * @criteria: criteria to match against
+ *
+ * This function is useful in cases where the calling function may change the
+ * stacking order or where it needs to iterate over the views multiple times,
+ * for example to get the number of views before processing them.
  *
  * Note: This array has a very short shelf-life so it is intended to be used
  *       with a single-use-throw-away approach.
  *
  * Example usage:
- *
  *	struct view **view;
  *	struct wl_array views;
  *	wl_array_init(&views);

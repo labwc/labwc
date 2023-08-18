@@ -5526,10 +5526,11 @@ sub process {
 			# because (as opposed to Linux coding style) we use
 			# braces for single statement blocks.
 			#
-			# include/ssd-internal.h contains a macro that we can't
-			# deal with, so ignore that
+			# We ignore a couple of header-files which contain
+			# macros that we cannot deal with.
 			#
 			if ($starts_with_if_while_etc && !length($s)
+					&& $filename ne "include/view.h"
 					&& $filename ne "include/ssd-internal.h") {
 				CHK("BRACES", "[labwc-custom] open brace { expected after if/while/for/switch - even with single statement blocks");
 			}

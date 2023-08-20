@@ -16,7 +16,7 @@
 enum window_switcher_field_content {
 	LAB_FIELD_NONE = 0,
 	LAB_FIELD_TYPE,
-	LAB_FIELD_APP_ID,
+	LAB_FIELD_IDENTIFIER,
 	LAB_FIELD_TITLE,
 };
 

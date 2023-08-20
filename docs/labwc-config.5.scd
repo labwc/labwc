@@ -143,7 +143,8 @@ Therefore, where multiple objects of the same kind are required (for example
 
 		- *type* Show view type ("xdg-shell" or "xwayland")
 
-		- *app_id* Show app_id (class for XWayland)
+		- *identifier* Show identifier (app_id for native Wayland
+		  windows and WM_CLASS for XWayland clients)
 
 		- *title* Show window title if different to app_id
 

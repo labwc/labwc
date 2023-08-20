@@ -352,7 +352,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			case LAB_FIELD_TYPE:
 				buf_add(&buf, get_type(*view));
 				break;
-			case LAB_FIELD_APP_ID:
+			case LAB_FIELD_IDENTIFIER:
 				buf_add(&buf, get_app_id(*view));
 				break;
 			case LAB_FIELD_TITLE:

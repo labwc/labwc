@@ -7,6 +7,7 @@
 #include <wlr/util/log.h>
 #include <wlr/util/box.h>
 #include "buffer.h"
+#include "common/array.h"
 #include "common/buf.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"
@@ -411,7 +412,7 @@ display_osd(struct output *output)
 
 	float scale = output->wlr_output->scale;
 	int w = theme->osd_window_switcher_width;
-	int h = views.size / sizeof(struct view *) * rc.theme->osd_window_switcher_item_height
+	int h = wl_array_len(&views) * rc.theme->osd_window_switcher_item_height
 		+ 2 * rc.theme->osd_border_width
 		+ 2 * rc.theme->osd_window_switcher_padding;
 	if (show_workspace) {

@@ -388,7 +388,6 @@ struct view *desktop_cycle_view(struct server *server, struct view *start_view,
 	enum lab_cycle_dir dir);
 struct view *desktop_focused_view(struct server *server);
 void desktop_focus_topmost_mapped_view(struct server *server);
-bool isfocusable(struct view *view);
 
 void keyboard_cancel_keybind_repeat(struct keyboard *keyboard);
 void keyboard_key_notify(struct wl_listener *listener, void *data);

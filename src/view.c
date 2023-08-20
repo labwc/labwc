@@ -22,7 +22,7 @@
 static bool
 matches_criteria(struct view *view, enum lab_view_criteria criteria)
 {
-	if (!isfocusable(view)) {
+	if (!view_isfocusable(view)) {
 		return false;
 	}
 	if (criteria & LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
@@ -78,6 +78,15 @@ view_array_append(struct server *server, struct wl_array *views,
 		}
 		*entry = view;
 	}
+}
+
+bool
+view_isfocusable(struct view *view)
+{
+	if (!view->surface) {
+		return false;
+	}
+	return (view->mapped || view->minimized);
 }
 
 /**

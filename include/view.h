@@ -229,6 +229,20 @@ struct view *view_next(struct wl_list *head, struct view *view,
 void view_array_append(struct server *server, struct wl_array *views,
 	enum lab_view_criteria criteria);
 
+/**
+ * view_isfocusable() - Check whether or not a view can be focused
+ * @view: view to be checked
+ *
+ * The purpose of this test is to filter out views (generally Xwayland) which
+ * are not meant to be focused such as those with surfaces
+ *	a. that have been created but never mapped;
+ *	b. set to NULL after client minimize-request.
+ *
+ * The only views that are allowed to be focusd are those that have a surface
+ * and have been mapped at some point since creation.
+ */
+bool view_isfocusable(struct view *view);
+
 bool view_inhibits_keybinds(struct view *view);
 void view_toggle_keybinds(struct view *view);
 

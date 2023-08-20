@@ -45,7 +45,7 @@ desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 	/*
 	 * Guard against views with no mapped surfaces when handling
 	 * 'request_activate' and 'request_minimize'.
-	 * See notes by isfocusable()
+	 * See notes by view_isfocusable()
 	 */
 	if (!view->surface) {
 		return;
@@ -81,23 +81,6 @@ desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 	seat_focus_surface(seat, view->surface);
 }
 
-/*
- * Some xwayland apps produce unmapped surfaces on startup and also leave
- * some unmapped surfaces kicking around on 'close' (for example leafpad's
- * "about" dialogue). Whilst this is not normally a problem, we have to be
- * careful when cycling between views. The only views we should focus are
- * those that are already mapped and those that have been minimized.
- */
-bool
-isfocusable(struct view *view)
-{
-	/* filter out those xwayland surfaces that have never been mapped */
-	if (!view->surface) {
-		return false;
-	}
-	return (view->mapped || view->minimized);
-}
-
 static struct wl_list *
 get_prev_item(struct wl_list *item)
 {
@@ -122,7 +105,7 @@ first_view(struct server *server)
 			continue;
 		}
 		struct view *view = node_view_from_node(node);
-		if (isfocusable(view)) {
+		if (view_isfocusable(view)) {
 			return view;
 		}
 	}
@@ -194,7 +177,7 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 		view = node_view_from_node(node);
 
 		enum property skip = window_rules_get_property(view, "skipWindowSwitcher");
-		if (isfocusable(view) && skip != LAB_PROP_TRUE) {
+		if (view_isfocusable(view) && skip != LAB_PROP_TRUE) {
 			return view;
 		}
 	} while (view != start_view);
@@ -269,7 +252,7 @@ desktop_focus_output(struct output *output)
 			continue;
 		}
 		view = node_view_from_node(node);
-		if (!isfocusable(view)) {
+		if (!view_isfocusable(view)) {
 			continue;
 		}
 		if (wlr_output_layout_intersects(layout,

@@ -39,10 +39,14 @@
     </font>
   </theme>
 
+  <!--
+    Just as for window-rules, 'identifier' relates to app_id for native Wayland
+    windows and WM_CLASS for XWayland clients.
+  -->
   <windowSwitcher show="yes" preview="yes" outlines="yes">
     <fields>
       <field content="type" width="25%" />
-      <field content="app_id" width="25%" />
+      <field content="identifier" width="25%" />
       <field content="title" width="50%" />
     </fields>
   </windowSwitcher>

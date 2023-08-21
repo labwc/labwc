@@ -56,7 +56,7 @@ static void
 xdg_toplevel_decoration(struct wl_listener *listener, void *data)
 {
 	struct wlr_xdg_toplevel_decoration_v1 *wlr_xdg_decoration = data;
-	struct wlr_xdg_surface *xdg_surface = wlr_xdg_decoration->surface;
+	struct wlr_xdg_surface *xdg_surface = wlr_xdg_decoration->toplevel->base;
 	if (!xdg_surface || !xdg_surface->data) {
 		wlr_log(WLR_ERROR,
 			"Invalid surface supplied for xdg decorations");

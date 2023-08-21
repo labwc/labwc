@@ -12,7 +12,7 @@
 #include <wlr/util/log.h>
 #include "buffer.h"
 #include "button/button-png.h"
-#include "common/dir.h"
+#include "button/common.h"
 #include "labwc.h"
 #include "theme.h"
 
@@ -22,15 +22,6 @@ file_exists(const char *path)
 {
 	struct stat st;
 	return (!stat(path, &st));
-}
-
-/* Share with xbm.c:xbm_path() */
-static char *
-button_path(const char *filename)
-{
-	static char buffer[4096] = { 0 };
-	snprintf(buffer, sizeof(buffer), "%s/%s", theme_dir(rc.theme_name), filename);
-	return buffer;
 }
 
 /*
@@ -62,14 +53,15 @@ ispng(const char *filename)
 #undef PNG_BYTES_TO_CHECK
 
 void
-png_load(const char *filename, struct lab_data_buffer **buffer)
+png_load(const char *button_name, struct lab_data_buffer **buffer)
 {
 	if (*buffer) {
 		wlr_buffer_drop(&(*buffer)->base);
 		*buffer = NULL;
 	}
 
-	char *path = button_path(filename);
+	char path[4096] = { 0 };
+	button_filename(button_name, path, sizeof(path));
 	if (!file_exists(path) || !ispng(path)) {
 		return;
 	}

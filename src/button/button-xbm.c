@@ -14,6 +14,7 @@
 #include <string.h>
 #include <drm_fourcc.h>
 #include "button/button-xbm.h"
+#include "button/common.h"
 #include "common/dir.h"
 #include "common/grab-file.h"
 #include "common/mem.h"
@@ -257,16 +258,8 @@ parse_xbm_builtin(const char *button, int size)
 	return pixmap;
 }
 
-static char *
-xbm_path(const char *button)
-{
-	static char buffer[4096] = { 0 };
-	snprintf(buffer, sizeof(buffer), "%s/%s", theme_dir(rc.theme_name), button);
-	return buffer;
-}
-
 void
-button_xbm_load(const char *filename, struct lab_data_buffer **buffer,
+button_xbm_load(const char *button_name, struct lab_data_buffer **buffer,
 		char *fallback_button, float *rgba)
 {
 	struct pixmap pixmap = {0};
@@ -278,7 +271,9 @@ button_xbm_load(const char *filename, struct lab_data_buffer **buffer,
 	color = u32(rgba);
 
 	/* Read file into memory as it's easier to tokenzie that way */
-	char *token_buffer = grab_file(xbm_path(filename));
+	char filename[4096] = { 0 };
+	button_filename(button_name, filename, sizeof(filename));
+	char *token_buffer = grab_file(filename);
 	if (token_buffer) {
 		struct token *tokens = tokenize_xbm(token_buffer);
 		free(token_buffer);

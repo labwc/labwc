@@ -54,7 +54,7 @@ png_load(const char *button_name, struct lab_data_buffer **buffer)
 
 	char path[4096] = { 0 };
 	button_filename(button_name, path, sizeof(path));
-	if (!file_exists(path) || !ispng(path)) {
+	if (!ispng(path)) {
 		return;
 	}
 

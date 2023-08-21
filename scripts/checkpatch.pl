@@ -5653,7 +5653,7 @@ sub process {
 #Ignore Page<foo> variants
 			    $var !~ /^(?:Clear|Set|TestClear|TestSet|)Page[A-Z]/ &&
 
-#Ignore some pango and libxml2 CamelCase variants
+#labwc-custom check to ignore some pango/libxml2/etc CamelCase variants
 			    $var !~ /^(?:PangoLayout|PangoFontDescription)/ &&
 			    $var !~ /^(?:PangoTabArray|PangoRectangle)/ &&
 			    $var !~ /^(?:PangoWeight|_PangoFontDescription)/ &&
@@ -5664,6 +5664,7 @@ sub process {
 			    $var !~ /^(?:xmlParseMemory)/ &&
 			    $var !~ /^(?:xmlFree)/ &&
 			    $var !~ /^(?:GString|GError)/ &&
+			    $var !~ /^(?:RsvgRectangle|RsvgHandle)/ &&
 			    $var !~ /^(?:XKB_KEY_XF86Switch_VT_1)/ &&
 
 #Ignore SI style variants like nS, mV and dB

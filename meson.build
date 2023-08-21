@@ -70,6 +70,7 @@ pangocairo = dependency('pangocairo')
 input = dependency('libinput', version: '>=1.14')
 math = cc.find_library('m')
 png = dependency('libpng')
+svg = dependency('librsvg-2.0', version: '>=2.46', required: false)
 
 if get_option('xwayland').enabled() and not wlroots_has_xwayland
 	error('no wlroots Xwayland support')
@@ -77,6 +78,8 @@ endif
 have_xwayland = xcb.found() and wlroots_has_xwayland
 conf_data = configuration_data()
 conf_data.set10('HAVE_XWAYLAND', have_xwayland)
+
+conf_data.set10('HAVE_RSVG', svg.found())
 
 msgfmt = find_program('msgfmt', required: get_option('nls'))
 if msgfmt.found()
@@ -106,6 +109,11 @@ labwc_deps = [
   math,
   png,
 ]
+if svg.found()
+  labwc_deps += [
+    svg,
+  ]
+endif
 
 subdir('include')
 subdir('src')

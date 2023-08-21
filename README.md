@@ -151,6 +151,7 @@ Run-time dependencies include:
 
 - wlroots, wayland, libinput, xkbcommon
 - libxml2, cairo, pango, glib-2.0
+- libpng, librsvg-2.0
 - xwayland, xcb (optional)
 
 Build dependencies include:

@@ -182,6 +182,7 @@ The image formats listed below are supported. They are listed in order of
 precedence, where the first format in the list is searched for first.
 
 - png
+- svg
 - xbm
 
 By default, buttons are 1-bit xbm (X Bitmaps). These are masks where 0=clear and

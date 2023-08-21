@@ -8,17 +8,11 @@
 #include <sys/stat.h>
 #include <wlr/util/log.h>
 #include "common/buf.h"
+#include "common/file-helpers.h"
 #include "common/mem.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 #include "config/session.h"
-
-static bool
-isfile(const char *path)
-{
-	struct stat st;
-	return (!stat(path, &st));
-}
 
 static bool
 string_empty(const char *s)
@@ -130,7 +124,7 @@ session_autostart_init(const char *dir)
 	if (!autostart) {
 		return;
 	}
-	if (!isfile(autostart)) {
+	if (!file_exists(autostart)) {
 		wlr_log(WLR_ERROR, "no autostart file");
 		goto out;
 	}

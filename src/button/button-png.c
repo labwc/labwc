@@ -8,21 +8,13 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
 #include "button/button-png.h"
 #include "button/common.h"
+#include "common/file-helpers.h"
 #include "labwc.h"
 #include "theme.h"
-
-/* Share with session.c:isfile() */
-static bool
-file_exists(const char *path)
-{
-	struct stat st;
-	return (!stat(path, &st));
-}
 
 /*
  * cairo_image_surface_create_from_png() does not gracefully handle non-png

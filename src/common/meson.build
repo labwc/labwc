@@ -2,6 +2,7 @@ labwc_sources += files(
   'buf.c',
   'dir.c',
   'fd_util.c',
+  'file-helpers.c',
   'font.c',
   'grab-file.c',
   'graphic-helpers.c',

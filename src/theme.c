@@ -6,6 +6,7 @@
  */
 
 #define _POSIX_C_SOURCE 200809L
+#include "config.h"
 #include <cairo.h>
 #include <ctype.h>
 #include <drm_fourcc.h>
@@ -25,6 +26,11 @@
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "button/button-png.h"
+
+#if HAVE_RSVG
+#include "button/button-svg.h"
+#endif
+
 #include "button/button-xbm.h"
 #include "theme.h"
 #include "buffer.h"
@@ -38,6 +44,15 @@ struct button {
 		float *rgba;
 	} active, inactive;
 };
+
+static void
+drop(struct lab_data_buffer **buffer)
+{
+	if (*buffer) {
+		wlr_buffer_drop(&(*buffer)->base);
+		*buffer = NULL;
+	}
+}
 
 static void
 load_buttons(struct theme *theme)
@@ -97,13 +112,29 @@ load_buttons(struct theme *theme)
 	for (size_t i = 0; i < sizeof(buttons) / sizeof(buttons[0]); ++i) {
 		struct button *b = &buttons[i];
 
+		drop(b->active.buffer);
+		drop(b->inactive.buffer);
+
 		/* Try png icon first */
 		snprintf(filename, sizeof(filename), "%s-active.png", b->name);
 		png_load(filename, b->active.buffer);
 		snprintf(filename, sizeof(filename), "%s-inactive.png", b->name);
 		png_load(filename, b->inactive.buffer);
 
-		/* If there were no png buttons, use xbm */
+#if HAVE_RSVG
+		/* Then try svg icon */
+		int size = theme->title_height - 2 * theme->padding_height;
+		if (!*b->active.buffer) {
+			snprintf(filename, sizeof(filename), "%s-active.svg", b->name);
+			button_svg_load(filename, b->active.buffer, size);
+		}
+		if (!*b->inactive.buffer) {
+			snprintf(filename, sizeof(filename), "%s-inactive.svg", b->name);
+			button_svg_load(filename, b->inactive.buffer, size);
+		}
+#endif
+
+		/* If there were no png/svg buttons, use xbm */
 		snprintf(filename, sizeof(filename), "%s.xbm", b->name);
 		if (!*b->active.buffer) {
 			button_xbm_load(filename, b->active.buffer,

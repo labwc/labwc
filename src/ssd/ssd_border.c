@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include <assert.h>
 #include "common/scene-helpers.h"
 #include "labwc.h"
 #include "ssd-internal.h"
@@ -13,6 +14,9 @@
 void
 ssd_border_create(struct ssd *ssd)
 {
+	assert(ssd);
+	assert(!ssd->border.tree);
+
 	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
 	int width = view->current.width;
@@ -23,10 +27,12 @@ ssd_border_create(struct ssd *ssd)
 	struct wlr_scene_tree *parent;
 	struct ssd_sub_tree *subtree;
 
+	ssd->border.tree = wlr_scene_tree_create(ssd->tree);
+	wlr_scene_node_set_position(&ssd->border.tree->node, -theme->border_width, 0);
+
 	FOR_EACH_STATE(ssd, subtree) {
-		subtree->tree = wlr_scene_tree_create(ssd->tree);
+		subtree->tree = wlr_scene_tree_create(ssd->border.tree);
 		parent = subtree->tree;
-		wlr_scene_node_set_position(&parent->node, -theme->border_width, 0);
 		if (subtree == &ssd->border.active) {
 			color = theme->window_active_border_color;
 		} else {
@@ -51,7 +57,24 @@ ssd_border_create(struct ssd *ssd)
 void
 ssd_border_update(struct ssd *ssd)
 {
+	assert(ssd);
+	assert(ssd->border.tree);
+
 	struct view *view = ssd->view;
+	if (view->maximized && ssd->border.tree->node.enabled) {
+		/* Disable borders on maximize */
+		wlr_scene_node_set_enabled(&ssd->border.tree->node, false);
+		ssd->margin = ssd_thickness(ssd->view);
+	}
+
+	if (view->maximized) {
+		return;
+	} else if (!ssd->border.tree->node.enabled) {
+		/* And re-enabled them when unmaximized */
+		wlr_scene_node_set_enabled(&ssd->border.tree->node, true);
+		ssd->margin = ssd_thickness(ssd->view);
+	}
+
 	struct theme *theme = view->server->theme;
 
 	int width = view->current.width;
@@ -106,9 +129,8 @@ ssd_border_update(struct ssd *ssd)
 void
 ssd_border_destroy(struct ssd *ssd)
 {
-	if (!ssd->border.active.tree) {
-		return;
-	}
+	assert(ssd);
+	assert(ssd->border.tree);
 
 	struct ssd_sub_tree *subtree;
 	FOR_EACH_STATE(ssd, subtree) {
@@ -116,6 +138,9 @@ ssd_border_destroy(struct ssd *ssd)
 		wlr_scene_node_destroy(&subtree->tree->node);
 		subtree->tree = NULL;
 	} FOR_EACH_END
+
+	wlr_scene_node_destroy(&ssd->border.tree->node);
+	ssd->border.tree = NULL;
 }
 
 #undef FOR_EACH_STATE

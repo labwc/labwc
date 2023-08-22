@@ -27,6 +27,15 @@ ssd_thickness(struct view *view)
 	}
 
 	struct theme *theme = view->server->theme;
+
+	if (view->maximized) {
+		struct border thickness = { 0 };
+		if (!ssd_titlebar_is_hidden(view->ssd)) {
+			thickness.top += theme->title_height;
+		}
+		return thickness;
+	}
+
 	struct border thickness = {
 		.top = theme->title_height + theme->border_width,
 		.bottom = theme->border_width,

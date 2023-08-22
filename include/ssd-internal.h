@@ -62,7 +62,7 @@ struct ssd {
 
 	/* Borders allow resizing as well */
 	struct {
-		/* struct wlr_scene_tree *tree;      unused for now */
+		struct wlr_scene_tree *tree;
 		struct ssd_sub_tree active;
 		struct ssd_sub_tree inactive;
 	} border;

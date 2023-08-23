@@ -67,16 +67,16 @@ ssd_titlebar_create(struct ssd *ssd)
 			width - SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT, theme->title_height,
 			SSD_BUTTON_WIDTH, 0, color);
 		/* Buttons */
-		add_scene_button_corner(&subtree->parts,
+		ssd_button_add_corner(&subtree->parts,
 			LAB_SSD_BUTTON_WINDOW_MENU, LAB_SSD_PART_CORNER_TOP_LEFT, parent,
 			corner_top_left, menu_button_unpressed, 0, view);
-		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_ICONIFY, parent,
+		ssd_button_add(&subtree->parts, LAB_SSD_BUTTON_ICONIFY, parent,
 			color, iconify_button_unpressed,
 			width - SSD_BUTTON_WIDTH * 3, view);
-		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_MAXIMIZE, parent,
+		ssd_button_add(&subtree->parts, LAB_SSD_BUTTON_MAXIMIZE, parent,
 			color, maximize_button_unpressed,
 			width - SSD_BUTTON_WIDTH * 2, view);
-		add_scene_button_corner(&subtree->parts,
+		ssd_button_add_corner(&subtree->parts,
 			LAB_SSD_BUTTON_CLOSE, LAB_SSD_PART_CORNER_TOP_RIGHT, parent,
 			corner_top_right, close_button_unpressed,
 			width - SSD_BUTTON_WIDTH * 1, view);
@@ -95,24 +95,18 @@ set_squared_corners(struct ssd *ssd, bool enable)
 {
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
-	enum ssd_part_type ssd_type[2] = { LAB_SSD_BUTTON_WINDOW_MENU, LAB_SSD_BUTTON_CLOSE };
+	enum ssd_part_type ssd_type[2] = {
+		LAB_SSD_PART_CORNER_TOP_LEFT,
+		LAB_SSD_PART_CORNER_TOP_RIGHT
+	};
 
 	FOR_EACH_STATE(ssd, subtree) {
+		float *bg_color = subtree == &ssd->titlebar.active
+			? rc.theme->window_active_title_bg_color
+			: rc.theme->window_inactive_title_bg_color;
 		for (size_t i = 0; i < sizeof(ssd_type) / sizeof(ssd_type[0]); i++) {
 			part = ssd_get_part(&subtree->parts, ssd_type[i]);
-			struct ssd_button *button = node_ssd_button_from_node(part->node);
-
-			/* Toggle background between invisible and titlebar background color */
-			struct wlr_scene_rect *rect = lab_wlr_scene_get_rect(button->background);
-			wlr_scene_rect_set_color(rect, !enable ? (float[4]) {0, 0, 0, 0} : (
-				subtree == &ssd->titlebar.active
-					? rc.theme->window_active_title_bg_color
-					: rc.theme->window_inactive_title_bg_color));
-
-			/* Toggle rounded corner image itself */
-			struct wlr_scene_node *rounded_corner =
-				wl_container_of(part->node->link.prev, rounded_corner, link);
-			wlr_scene_node_set_enabled(rounded_corner, !enable);
+			ssd_button_enable_rounded_corner(part, bg_color, !enable);
 		}
 	} FOR_EACH_END
 

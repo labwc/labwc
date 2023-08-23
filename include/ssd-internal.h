@@ -111,15 +111,18 @@ struct ssd_part *add_scene_rect(
 struct ssd_part *add_scene_buffer(
 	struct wl_list *list, enum ssd_part_type type,
 	struct wlr_scene_tree *parent, struct wlr_buffer *buffer, int x, int y);
-struct ssd_part *add_scene_button(
+
+/* SSD button */
+struct ssd_part *ssd_button_add(
 	struct wl_list *part_list, enum ssd_part_type type,
 	struct wlr_scene_tree *parent, float *bg_color,
 	struct wlr_buffer *icon_buffer, int x, struct view *view);
-struct ssd_part *add_scene_button_corner(
+struct ssd_part *ssd_button_add_corner(
 	struct wl_list *part_list, enum ssd_part_type type,
 	enum ssd_part_type corner_type, struct wlr_scene_tree *parent,
 	struct wlr_buffer *corner_buffer, struct wlr_buffer *icon_buffer,
 	int x, struct view *view);
+void ssd_button_enable_rounded_corner(struct ssd_part *ssd_part, float *color, bool enable);
 
 /* SSD internal helpers */
 struct ssd_part *ssd_get_part(

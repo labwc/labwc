@@ -18,6 +18,7 @@ enum node_descriptor_type {
 	LAB_NODE_DESC_MENUITEM,
 	LAB_NODE_DESC_TREE,
 	LAB_NODE_DESC_SSD_BUTTON,
+	LAB_NODE_DESC_SSD_ROUNDED,
 };
 
 struct node_descriptor {
@@ -77,6 +78,14 @@ struct menuitem *node_menuitem_from_node(
  * @wlr_scene_node: wlr_scene_node from which to return data
  */
 struct ssd_button *node_ssd_button_from_node(
+	struct wlr_scene_node *wlr_scene_node);
+
+/**
+ * node_ssd_rounded_from_node - return ssd_rounded struct from node
+ * @wlr_scene_node: wlr_scene_node from which to return data
+ */
+struct ssd_rounded;
+struct ssd_rounded *node_ssd_rounded_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 #endif /* LABWC_NODE_DESCRIPTOR_H */

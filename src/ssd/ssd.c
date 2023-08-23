@@ -62,15 +62,6 @@ ssd_max_extents(struct view *view)
 	};
 }
 
-bool
-ssd_is_button(enum ssd_part_type type)
-{
-	return type == LAB_SSD_BUTTON_CLOSE
-		|| type == LAB_SSD_BUTTON_MAXIMIZE
-		|| type == LAB_SSD_BUTTON_ICONIFY
-		|| type == LAB_SSD_BUTTON_WINDOW_MENU;
-}
-
 enum ssd_part_type
 ssd_get_part_type(const struct ssd *ssd, struct wlr_scene_node *node)
 {
@@ -246,8 +237,7 @@ ssd_destroy(struct ssd *ssd)
 
 	/* Maybe reset hover view */
 	struct view *view = ssd->view;
-	struct ssd_hover_state *hover_state;
-	hover_state = view->server->ssd_hover_state;
+	struct ssd_hover_state *hover_state = view->server->ssd_hover_state;
 	if (hover_state->view == view) {
 		hover_state->view = NULL;
 		hover_state->node = NULL;
@@ -326,24 +316,6 @@ ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable)
 	struct ssd_part *part = ssd_get_part(&ssd->border.active.parts, LAB_SSD_PART_TOP);
 	struct wlr_scene_rect *rect = lab_wlr_scene_get_rect(part->node);
 	wlr_scene_rect_set_color(rect, color);
-}
-
-struct ssd_hover_state *
-ssd_hover_state_new(void)
-{
-	return znew(struct ssd_hover_state);
-}
-
-enum ssd_part_type
-ssd_button_get_type(const struct ssd_button *button)
-{
-	return button ? button->type : LAB_SSD_NONE;
-}
-
-struct view *
-ssd_button_get_view(const struct ssd_button *button)
-{
-	return button ? button->view : NULL;
 }
 
 bool

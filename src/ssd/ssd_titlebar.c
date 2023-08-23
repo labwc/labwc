@@ -330,35 +330,4 @@ ssd_update_title(struct ssd *ssd)
 	ssd_update_title_positions(ssd);
 }
 
-void
-ssd_update_button_hover(struct wlr_scene_node *node,
-		struct ssd_hover_state *hover_state)
-{
-	struct ssd_button *button = NULL;
-	if (!node || !node->data) {
-		goto disable_old_hover;
-	}
-
-	struct node_descriptor *desc = node->data;
-	if (desc->type == LAB_NODE_DESC_SSD_BUTTON) {
-		button = node_ssd_button_from_node(node);
-		if (button->hover == hover_state->node) {
-			/* Cursor is still on the same button */
-			return;
-		}
-	}
-
-disable_old_hover:
-	if (hover_state->node) {
-		wlr_scene_node_set_enabled(hover_state->node, false);
-		hover_state->view = NULL;
-		hover_state->node = NULL;
-	}
-	if (button) {
-		wlr_scene_node_set_enabled(button->hover, true);
-		hover_state->view = button->view;
-		hover_state->node = button->hover;
-	}
-}
-
 #undef FOR_EACH_STATE

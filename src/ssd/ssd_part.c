@@ -152,7 +152,7 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 	wlr_scene_node_set_position(button_root->node, x, 0);
 
 	/* Background */
-	add_scene_rect(part_list, type, parent,
+	struct ssd_part *bg_rect = add_scene_rect(part_list, type, parent,
 		SSD_BUTTON_WIDTH, rc.theme->title_height, 0, 0, bg_color);
 
 	/* Icon */
@@ -175,6 +175,7 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 	button->type = type;
 	button->view = view;
 	button->hover = hover;
+	button->background = bg_rect->node;
 	return button_root;
 }
 

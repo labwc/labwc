@@ -17,6 +17,7 @@ struct ssd_button {
 	struct view *view;
 	enum ssd_part_type type;
 	struct wlr_scene_node *hover;
+	struct wlr_scene_node *background;
 
 	struct wl_listener destroy;
 };
@@ -41,6 +42,7 @@ struct ssd {
 	 * don't update things we don't have to.
 	 */
 	struct {
+		bool squared_corners;   /* To un-round corner buttons on maximize */
 		struct wlr_box geometry;
 		struct ssd_state_title {
 			char *text;

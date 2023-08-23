@@ -90,15 +90,49 @@ is_direct_child(struct wlr_scene_node *node, struct ssd_sub_tree *subtree)
 	return node->parent == subtree->tree;
 }
 
+static void
+set_squared_corners(struct ssd *ssd, bool enable)
+{
+	struct ssd_part *part;
+	struct ssd_sub_tree *subtree;
+	enum ssd_part_type ssd_type[2] = { LAB_SSD_BUTTON_WINDOW_MENU, LAB_SSD_BUTTON_CLOSE };
+
+	FOR_EACH_STATE(ssd, subtree) {
+		for (size_t i = 0; i < sizeof(ssd_type) / sizeof(ssd_type[0]); i++) {
+			part = ssd_get_part(&subtree->parts, ssd_type[i]);
+			struct ssd_button *button = node_ssd_button_from_node(part->node);
+
+			/* Toggle background between invisible and titlebar background color */
+			struct wlr_scene_rect *rect = lab_wlr_scene_get_rect(button->background);
+			wlr_scene_rect_set_color(rect, !enable ? (float[4]) {0, 0, 0, 0} : (
+				subtree == &ssd->titlebar.active
+					? rc.theme->window_active_title_bg_color
+					: rc.theme->window_inactive_title_bg_color));
+
+			/* Toggle rounded corner image itself */
+			struct wlr_scene_node *rounded_corner =
+				wl_container_of(part->node->link.prev, rounded_corner, link);
+			wlr_scene_node_set_enabled(rounded_corner, !enable);
+		}
+	} FOR_EACH_END
+
+	ssd->state.squared_corners = enable;
+}
+
 void
 ssd_titlebar_update(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
 	int width = view->current.width;
+	struct theme *theme = view->server->theme;
+
+	if (view->maximized != ssd->state.squared_corners) {
+		set_squared_corners(ssd, view->maximized);
+	}
+
 	if (width == ssd->state.geometry.width) {
 		return;
 	}
-	struct theme *theme = view->server->theme;
 
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;

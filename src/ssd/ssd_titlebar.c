@@ -17,6 +17,8 @@
 	&(ssd)->titlebar.active, \
 	&(ssd)->titlebar.inactive)
 
+static void set_squared_corners(struct ssd *ssd, bool enable);
+
 void
 ssd_titlebar_create(struct ssd *ssd)
 {
@@ -81,7 +83,12 @@ ssd_titlebar_create(struct ssd *ssd)
 			corner_top_right, close_button_unpressed,
 			width - SSD_BUTTON_WIDTH * 1, view);
 	} FOR_EACH_END
+
 	ssd_update_title(ssd);
+
+	if (view->maximized) {
+		set_squared_corners(ssd, view->maximized);
+	}
 }
 
 static bool

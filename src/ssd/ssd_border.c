@@ -52,6 +52,10 @@ ssd_border_create(struct ssd *ssd)
 			theme->border_width + SSD_BUTTON_WIDTH,
 			-(ssd->titlebar.height + theme->border_width), color);
 	} FOR_EACH_END
+
+	if (view->maximized) {
+		wlr_scene_node_set_enabled(&ssd->border.tree->node, false);
+	}
 }
 
 void

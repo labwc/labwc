@@ -196,6 +196,15 @@ ssd_get_margin(const struct ssd *ssd)
 }
 
 void
+ssd_update_margin(struct ssd *ssd)
+{
+	if (!ssd) {
+		return;
+	}
+	ssd->margin = ssd_thickness(ssd->view);
+}
+
+void
 ssd_update_geometry(struct ssd *ssd)
 {
 	if (!ssd) {
@@ -209,6 +218,10 @@ ssd_update_geometry(struct ssd *ssd)
 			/* Dynamically resize extents based on position and usable_area */
 			ssd_extents_update(ssd);
 			ssd->state.geometry = current;
+		}
+		if (ssd->state.squared_corners != ssd->view->maximized) {
+			ssd_border_update(ssd);
+			ssd_titlebar_update(ssd);
 		}
 		return;
 	}

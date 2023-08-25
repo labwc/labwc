@@ -648,6 +648,13 @@ set_maximized(struct view *view, bool maximized)
 			view->toplevel.handle, maximized);
 	}
 	view->maximized = maximized;
+
+	/*
+	 * Ensure that follow-up actions like SnapToEdge / SnapToRegion
+	 * use up-to-date SSD margin information. Otherwise we will end
+	 * up using an outdated ssd->margin to calculate offsets.
+	 */
+	ssd_update_margin(view->ssd);
 }
 
 /*

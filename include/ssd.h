@@ -60,6 +60,7 @@ struct wlr_scene_node;
  */
 struct ssd *ssd_create(struct view *view, bool active);
 struct border ssd_get_margin(const struct ssd *ssd);
+void ssd_update_margin(struct ssd *ssd);
 void ssd_set_active(struct ssd *ssd, bool active);
 void ssd_update_title(struct ssd *ssd);
 void ssd_update_geometry(struct ssd *ssd);

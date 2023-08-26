@@ -102,6 +102,8 @@ struct seat {
 	struct server *server;
 	struct wlr_keyboard_group *keyboard_group;
 
+	struct wl_list touch_points; /* struct touch_point.link */
+
 	/*
 	 * Enum of most recent server-side cursor image.  Set by
 	 * cursor_set().  Cleared when a client surface is entered

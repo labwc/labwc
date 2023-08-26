@@ -329,6 +329,7 @@ seat_init(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 
+	wl_list_init(&seat->touch_points);
 	wl_list_init(&seat->constraint_commit.link);
 	wl_list_init(&seat->inputs);
 	seat->new_input.notify = new_input_notify;

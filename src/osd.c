@@ -425,6 +425,10 @@ display_osd(struct output *output)
 		wlr_buffer_drop(&output->osd_buffer->base);
 	}
 	output->osd_buffer = buffer_create_cairo(w, h, scale, true);
+	if (!output->osd_buffer) {
+		wlr_log(WLR_ERROR, "Failed to allocate cairo buffer for the window switcher");
+		return;
+	}
 
 	/* Render OSD image */
 	cairo_t *cairo = output->osd_buffer->cairo;
@@ -462,7 +466,7 @@ osd_update(struct server *server)
 		return;
 	}
 
-	if (rc.window_switcher.show) {
+	if (rc.window_switcher.show && rc.theme->osd_window_switcher_width > 0) {
 		/* Display the actual OSD */
 		struct output *output;
 		wl_list_for_each(output, &server->outputs, link) {

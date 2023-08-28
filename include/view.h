@@ -172,6 +172,12 @@ struct view {
 	struct wl_listener set_title;
 };
 
+struct view_query {
+	struct wl_list link;
+	char *identifier;
+	char *title;
+};
+
 struct xdg_toplevel_view {
 	struct view base;
 	struct wlr_xdg_surface *xdg_surface;
@@ -193,6 +199,22 @@ enum lab_view_criteria {
  * wlr_surface, or NULL if the surface has no associated view.
  */
 struct view *view_from_wlr_surface(struct wlr_surface *surface);
+
+/**
+ * view_query_free() - Free a given view query
+ * @query: Query to be freed.
+ */
+void view_query_free(struct view_query *view);
+
+/**
+ * view_matches_query() - Check if view matches the given criteria
+ * @view: View to checked.
+ * @query: Criteria to match against.
+ *
+ * Returns true if %view matches all of the criteria given in %query, false
+ * otherwise.
+ */
+bool view_matches_query(struct view *view, struct view_query *query);
 
 /**
  * for_each_view() - iterate over all views which match criteria

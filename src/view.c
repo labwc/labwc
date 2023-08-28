@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <strings.h>
+#include "common/match.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "labwc.h"
@@ -49,6 +50,36 @@ view_from_wlr_surface(struct wlr_surface *surface)
 	}
 #endif
 	return NULL;
+}
+
+void
+view_query_free(struct view_query *query)
+{
+	wl_list_remove(&query->link);
+	free(query->identifier);
+	free(query->title);
+	free(query);
+}
+
+bool
+view_matches_query(struct view *view, struct view_query *query)
+{
+	bool match = true;
+	bool empty = true;
+
+	const char *identifier = view_get_string_prop(view, "app_id");
+	if (match && query->identifier) {
+		empty = false;
+		match &= match_glob(query->identifier, identifier);
+	}
+
+	const char *title = view_get_string_prop(view, "title");
+	if (match && query->title) {
+		empty = false;
+		match &= match_glob(query->title, title);
+	}
+
+	return !empty && match;
 }
 
 static bool

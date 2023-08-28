@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <wlr/util/log.h>
 #include "action.h"
+#include "common/array-size.h"
 #include "common/list.h"
 #include "common/mem.h"
 #include "common/parse-bool.h"
@@ -24,6 +25,8 @@ enum action_arg_type {
 	LAB_ACTION_ARG_STR = 0,
 	LAB_ACTION_ARG_BOOL,
 	LAB_ACTION_ARG_INT,
+	LAB_ACTION_ARG_QUERY_LIST,
+	LAB_ACTION_ARG_ACTION_LIST,
 };
 
 struct action_arg {
@@ -46,6 +49,11 @@ struct action_arg_bool {
 struct action_arg_int {
 	struct action_arg base;
 	int value;
+};
+
+struct action_arg_list {
+	struct action_arg base;
+	struct wl_list value;
 };
 
 enum action_type {
@@ -82,6 +90,8 @@ enum action_type {
 	ACTION_TYPE_SNAP_TO_REGION,
 	ACTION_TYPE_TOGGLE_KEYBINDS,
 	ACTION_TYPE_FOCUS_OUTPUT,
+	ACTION_TYPE_IF,
+	ACTION_TYPE_FOR_EACH,
 };
 
 const char *action_names[] = {
@@ -118,6 +128,8 @@ const char *action_names[] = {
 	"SnapToRegion",
 	"ToggleKeybinds",
 	"FocusOutput",
+	"If",
+	"ForEach",
 	NULL
 };
 
@@ -158,6 +170,30 @@ action_arg_add_int(struct action *action, const char *key, int value)
 	wl_list_append(&action->args, &arg->base.link);
 }
 
+static void
+action_arg_add_list(struct action *action, const char *key, enum action_arg_type type)
+{
+	assert(action);
+	assert(key);
+	struct action_arg_list *arg = znew(*arg);
+	arg->base.type = type;
+	arg->base.key = xstrdup(key);
+	wl_list_init(&arg->value);
+	wl_list_append(&action->args, &arg->base.link);
+}
+
+void
+action_arg_add_querylist(struct action *action, const char *key)
+{
+	action_arg_add_list(action, key, LAB_ACTION_ARG_QUERY_LIST);
+}
+
+void
+action_arg_add_actionlist(struct action *action, const char *key)
+{
+	action_arg_add_list(action, key, LAB_ACTION_ARG_ACTION_LIST);
+}
+
 static void *
 action_get_arg(struct action *action, const char *key, enum action_arg_type type)
 {
@@ -191,6 +227,20 @@ action_get_int(struct action *action, const char *key, int default_value)
 {
 	struct action_arg_int *arg = action_get_arg(action, key, LAB_ACTION_ARG_INT);
 	return arg ? arg->value : default_value;
+}
+
+struct wl_list *
+action_get_querylist(struct action *action, const char *key)
+{
+	struct action_arg_list *arg = action_get_arg(action, key, LAB_ACTION_ARG_QUERY_LIST);
+	return arg ? &arg->value : NULL;
+}
+
+struct wl_list *
+action_get_actionlist(struct action *action, const char *key)
+{
+	struct action_arg_list *arg = action_get_arg(action, key, LAB_ACTION_ARG_ACTION_LIST);
+	return arg ? &arg->value : NULL;
 }
 
 void
@@ -327,6 +377,20 @@ actions_contain_toggle_keybinds(struct wl_list *action_list)
 	return false;
 }
 
+static bool
+action_list_is_valid(struct wl_list *actions)
+{
+	assert(actions);
+
+	struct action *action;
+	wl_list_for_each(action, actions, link) {
+		if (!action_is_valid(action)) {
+			return false;
+		}
+	}
+	return true;
+}
+
 /* Checks for *required* arguments */
 bool
 action_is_valid(struct action *action)
@@ -356,6 +420,19 @@ action_is_valid(struct action *action)
 	case ACTION_TYPE_FOCUS_OUTPUT:
 		arg_name = "output";
 		break;
+	case ACTION_TYPE_IF:
+	case ACTION_TYPE_FOR_EACH:
+		; /* works around "a label can only be part of a statement" */
+		static const char * const branches[] = { "then", "else" };
+		for (size_t i = 0; i < ARRAY_SIZE(branches); i++) {
+			struct wl_list *children = action_get_actionlist(action, branches[i]);
+			if (children && !action_list_is_valid(children)) {
+				wlr_log(WLR_ERROR, "Invalid action in %s '%s' branch",
+					action_names[action->type], branches[i]);
+				return false;
+			}
+		}
+		return true;
 	default:
 		/* No arguments required */
 		return true;
@@ -381,6 +458,15 @@ action_free(struct action *action)
 		if (arg->type == LAB_ACTION_ARG_STR) {
 			struct action_arg_str *str_arg = (struct action_arg_str *)arg;
 			zfree(str_arg->value);
+		} else if (arg->type == LAB_ACTION_ARG_ACTION_LIST) {
+			struct action_arg_list *list_arg = (struct action_arg_list *)arg;
+			action_list_free(&list_arg->value);
+		} else if (arg->type == LAB_ACTION_ARG_QUERY_LIST) {
+			struct action_arg_list *list_arg = (struct action_arg_list *)arg;
+			struct view_query *elm, *next;
+			wl_list_for_each_safe(elm, next, &list_arg->value, link) {
+				view_query_free(elm);
+			}
 		}
 		zfree(arg);
 	}
@@ -463,6 +549,31 @@ view_for_action(struct view *activator, struct server *server,
 	}
 	default:
 		return server->focused_view;
+	}
+}
+
+static void
+run_if_action(struct view *view, struct server *server, struct action *action)
+{
+	struct view_query *query;
+	struct wl_list *queries, *actions;
+	const char *branch = "then";
+
+	queries = action_get_querylist(action, "query");
+	if (queries) {
+		branch = "else";
+		/* All queries are OR'ed */
+		wl_list_for_each(query, queries, link) {
+			if (view_matches_query(view, query)) {
+				branch = "then";
+				break;
+			}
+		}
+	}
+
+	actions = action_get_actionlist(action, branch);
+	if (actions) {
+		actions_run(view, server, actions, 0);
 	}
 }
 
@@ -691,6 +802,23 @@ actions_run(struct view *activator, struct server *server,
 			{
 				const char *output_name = action_get_str(action, "output", NULL);
 				desktop_focus_output(output_from_name(server, output_name));
+			}
+			break;
+		case ACTION_TYPE_IF:
+			if (view) {
+				run_if_action(view, server, action);
+			}
+			break;
+		case ACTION_TYPE_FOR_EACH:
+			{
+				struct wl_array views;
+				struct view **item;
+				wl_array_init(&views);
+				view_array_append(server, &views, LAB_VIEW_CRITERIA_NONE);
+				wl_array_for_each(item, &views) {
+					run_if_action(*item, server, action);
+				}
+				wl_array_release(&views);
 			}
 			break;
 		case ACTION_TYPE_INVALID:

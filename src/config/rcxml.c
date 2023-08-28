@@ -27,6 +27,7 @@
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "regions.h"
+#include "view.h"
 #include "window-rules.h"
 #include "workspaces.h"
 
@@ -37,6 +38,9 @@ static bool in_mousebind;
 static bool in_libinput_category;
 static bool in_window_switcher_field;
 static bool in_window_rules;
+static bool in_action_query;
+static bool in_action_then_branch;
+static bool in_action_else_branch;
 
 static struct usable_area_override *current_usable_area_override;
 static struct keybind *current_keybind;
@@ -49,6 +53,8 @@ static struct region *current_region;
 static struct window_switcher_field *current_field;
 static struct window_rule *current_window_rule;
 static struct action *current_window_rule_action;
+static struct view_query *current_view_query;
+static struct action *current_child_action;
 
 enum font_place {
 	FONT_PLACE_NONE = 0,
@@ -243,6 +249,79 @@ fill_region(char *nodename, char *content)
 	} else {
 		wlr_log(WLR_ERROR, "Unexpected data in region parser: %s=\"%s\"",
 			nodename, content);
+	}
+}
+
+static void
+fill_action_query(char *nodename, char *content, struct action *action)
+{
+	string_truncate_at_pattern(nodename, ".keybind.keyboard");
+	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
+
+	if (!strcasecmp(nodename, "query.action")) {
+		current_view_query = NULL;
+	}
+
+	string_truncate_at_pattern(nodename, ".query.action");
+
+	if (!content) {
+		return;
+	}
+
+	if (!current_view_query) {
+		struct wl_list *queries = action_get_querylist(action, "query");
+		if (!queries) {
+			action_arg_add_querylist(action, "query");
+			queries = action_get_querylist(action, "query");
+		}
+		current_view_query = znew(*current_view_query);
+		wl_list_append(queries, &current_view_query->link);
+	}
+
+	if (!strcasecmp(nodename, "identifier")) {
+		current_view_query->identifier = xstrdup(content);
+	} else if (!strcasecmp(nodename, "title")) {
+		current_view_query->title = xstrdup(content);
+	}
+}
+
+static void
+fill_child_action(char *nodename, char *content, struct action *parent,
+	const char *branch_name)
+{
+	string_truncate_at_pattern(nodename, ".keybind.keyboard");
+	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
+	string_truncate_at_pattern(nodename, ".then.action");
+	string_truncate_at_pattern(nodename, ".else.action");
+
+	if (!strcasecmp(nodename, "action")) {
+		current_child_action = NULL;
+	}
+
+	if (!content) {
+		return;
+	}
+
+	struct wl_list *siblings = action_get_actionlist(parent, branch_name);
+	if (!siblings) {
+		action_arg_add_actionlist(parent, branch_name);
+		siblings = action_get_actionlist(parent, branch_name);
+	}
+
+	if (!strcasecmp(nodename, "name.action")) {
+		if (!strcasecmp(content, "If") || !strcasecmp(content, "ForEach")) {
+			wlr_log(WLR_ERROR, "action '%s' cannot be a child action", content);
+			return;
+		}
+		current_child_action = action_create(content);
+		if (current_child_action) {
+			wl_list_append(siblings, &current_child_action->link);
+		}
+	} else if (!current_child_action) {
+		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
+			"nodename: '%s' content: '%s'", nodename, content);
+	} else {
+		action_arg_from_xml_node(current_child_action, nodename, content);
 	}
 }
 
@@ -539,10 +618,32 @@ entry(xmlNode *node, char *nodename, char *content)
 		fill_usable_area_override(nodename, content);
 	}
 	if (in_keybind) {
-		fill_keybind(nodename, content);
+		if (in_action_query) {
+			fill_action_query(nodename, content,
+				current_keybind_action);
+		} else if (in_action_then_branch) {
+			fill_child_action(nodename, content,
+				current_keybind_action, "then");
+		} else if (in_action_else_branch) {
+			fill_child_action(nodename, content,
+				current_keybind_action, "else");
+		} else {
+			fill_keybind(nodename, content);
+		}
 	}
 	if (in_mousebind) {
-		fill_mousebind(nodename, content);
+		if (in_action_query) {
+			fill_action_query(nodename, content,
+				current_mousebind_action);
+		} else if (in_action_then_branch) {
+			fill_child_action(nodename, content,
+				current_mousebind_action, "then");
+		} else if (in_action_else_branch) {
+			fill_child_action(nodename, content,
+				current_mousebind_action, "else");
+		} else {
+			fill_mousebind(nodename, content);
+		}
 	}
 	if (in_libinput_category) {
 		fill_libinput_category(nodename, content);
@@ -769,6 +870,24 @@ xml_tree_walk(xmlNode *node)
 			in_window_rules = true;
 			traverse(n);
 			in_window_rules = false;
+			continue;
+		}
+		if (!strcasecmp((char *)n->name, "query")) {
+			in_action_query = true;
+			traverse(n);
+			in_action_query = false;
+			continue;
+		}
+		if (!strcasecmp((char *)n->name, "then")) {
+			in_action_then_branch = true;
+			traverse(n);
+			in_action_then_branch = false;
+			continue;
+		}
+		if (!strcasecmp((char *)n->name, "else")) {
+			in_action_else_branch = true;
+			traverse(n);
+			in_action_else_branch = false;
 			continue;
 		}
 		traverse(n);
@@ -1366,6 +1485,8 @@ rcxml_finish(void)
 	current_mouse_context = NULL;
 	current_keybind_action = NULL;
 	current_mousebind_action = NULL;
+	current_child_action = NULL;
+	current_view_query = NULL;
 	current_region = NULL;
 	current_field = NULL;
 	current_window_rule = NULL;

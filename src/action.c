@@ -158,6 +158,41 @@ action_arg_add_int(struct action *action, const char *key, int value)
 	wl_list_append(&action->args, &arg->base.link);
 }
 
+static void *
+action_get_arg(struct action *action, const char *key, enum action_arg_type type)
+{
+	assert(action);
+	assert(key);
+	struct action_arg *arg;
+	wl_list_for_each(arg, &action->args, link) {
+		if (!strcasecmp(key, arg->key) && arg->type == type) {
+			return arg;
+		}
+	}
+	return NULL;
+}
+
+static const char *
+action_get_str(struct action *action, const char *key, const char *default_value)
+{
+	struct action_arg_str *arg = action_get_arg(action, key, LAB_ACTION_ARG_STR);
+	return arg ? arg->value : default_value;
+}
+
+static bool
+action_get_bool(struct action *action, const char *key, bool default_value)
+{
+	struct action_arg_bool *arg = action_get_arg(action, key, LAB_ACTION_ARG_BOOL);
+	return arg ? arg->value : default_value;
+}
+
+static int
+action_get_int(struct action *action, const char *key, int default_value)
+{
+	struct action_arg_int *arg = action_get_arg(action, key, LAB_ACTION_ARG_INT);
+	return arg ? arg->value : default_value;
+}
+
 void
 action_arg_from_xml_node(struct action *action, const char *nodename, const char *content)
 {
@@ -256,63 +291,6 @@ action_str_from_arg(struct action_arg *arg)
 	return ((struct action_arg_str *)arg)->value;
 }
 
-static bool
-arg_value_exists(struct action *action, const char *key, enum action_arg_type type)
-{
-	assert(action);
-	assert(key);
-	struct action_arg *arg;
-	wl_list_for_each(arg, &action->args, link) {
-		if (!strcasecmp(key, arg->key) && arg->type == type) {
-			return true;
-		}
-	}
-	return false;
-}
-
-static const char *
-get_arg_value_str(struct action *action, const char *key, const char *default_value)
-{
-	assert(action);
-	assert(key);
-	struct action_arg *arg;
-	wl_list_for_each(arg, &action->args, link) {
-		if (!strcasecmp(key, arg->key)) {
-			return action_str_from_arg(arg);
-		}
-	}
-	return default_value;
-}
-
-static bool
-get_arg_value_bool(struct action *action, const char *key, bool default_value)
-{
-	assert(action);
-	assert(key);
-	struct action_arg *arg;
-	wl_list_for_each(arg, &action->args, link) {
-		if (!strcasecmp(key, arg->key)) {
-			assert(arg->type == LAB_ACTION_ARG_BOOL);
-			return ((struct action_arg_bool *)arg)->value;
-		}
-	}
-	return default_value;
-}
-
-static int
-get_arg_value_int(struct action *action, const char *key, int default_value)
-{
-	assert(action);
-	assert(key);
-	struct action_arg *arg;
-	wl_list_for_each(arg, &action->args, link) {
-		if (!strcasecmp(key, arg->key)) {
-			assert(arg->type == LAB_ACTION_ARG_INT);
-			return ((struct action_arg_int *)arg)->value;
-		}
-	}
-	return default_value;
-}
 
 static struct action_arg *
 action_get_first_arg(struct action *action)
@@ -402,7 +380,7 @@ action_is_valid(struct action *action)
 		return true;
 	}
 
-	if (arg_value_exists(action, arg_name, arg_type)) {
+	if (action_get_arg(action, arg_name, arg_type)) {
 		return true;
 	}
 
@@ -575,14 +553,14 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_MOVE_TO_EDGE:
 			if (view) {
 				/* Config parsing makes sure that direction is a valid direction */
-				enum view_edge edge = get_arg_value_int(action, "direction", 0);
+				enum view_edge edge = action_get_int(action, "direction", 0);
 				view_move_to_edge(view, edge);
 			}
 			break;
 		case ACTION_TYPE_SNAP_TO_EDGE:
 			if (view) {
 				/* Config parsing makes sure that direction is a valid direction */
-				enum view_edge edge = get_arg_value_int(action, "direction", 0);
+				enum view_edge edge = action_get_int(action, "direction", 0);
 				view_snap_to_edge(view, edge, /*store_natural_geometry*/ true);
 			}
 			break;
@@ -665,24 +643,24 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_RESIZE_RELATIVE:
 			if (view) {
-				int left = get_arg_value_int(action, "left", 0);
-				int right = get_arg_value_int(action, "right", 0);
-				int top = get_arg_value_int(action, "top", 0);
-				int bottom = get_arg_value_int(action, "bottom", 0);
+				int left = action_get_int(action, "left", 0);
+				int right = action_get_int(action, "right", 0);
+				int top = action_get_int(action, "top", 0);
+				int bottom = action_get_int(action, "bottom", 0);
 				view_resize_relative(view, left, right, top, bottom);
 			}
 			break;
 		case ACTION_TYPE_MOVETO:
 			if (view) {
-				int x = get_arg_value_int(action, "x", 0);
-				int y = get_arg_value_int(action, "y", 0);
+				int x = action_get_int(action, "x", 0);
+				int y = action_get_int(action, "y", 0);
 				view_move(view, x, y);
 			}
 			break;
 		case ACTION_TYPE_MOVE_RELATIVE:
 			if (view) {
-				int x = get_arg_value_int(action, "x", 0);
-				int y = get_arg_value_int(action, "y", 0);
+				int x = action_get_int(action, "x", 0);
+				int y = action_get_int(action, "y", 0);
 				view_move_relative(view, x, y);
 			}
 			break;
@@ -694,8 +672,8 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_GO_TO_DESKTOP:
 			{
 				bool follow = true;
-				bool wrap = get_arg_value_bool(action, "wrap", true);
-				const char *to = get_arg_value_str(action, "to", NULL);
+				bool wrap = action_get_bool(action, "wrap", true);
+				const char *to = action_get_str(action, "to", NULL);
 				/*
 				 * `to` is always != NULL here because otherwise we would have
 				 * removed the action during the initial parsing step as it is
@@ -708,7 +686,7 @@ actions_run(struct view *activator, struct server *server,
 				}
 				if (action->type == ACTION_TYPE_SEND_TO_DESKTOP) {
 					view_move_to_workspace(view, target);
-					follow = get_arg_value_bool(action, "follow", true);
+					follow = action_get_bool(action, "follow", true);
 				}
 				if (follow) {
 					workspaces_switch_to(target,

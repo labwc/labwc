@@ -148,6 +148,56 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="None" />*
 	If used as the only action for a binding: clear an earlier defined binding.
 
+# CONDITIONAL ACTIONS
+
+Actions that execute other actions. Used in keyboard/mouse bindings.
+
+*<action name="If">*
+	This action will execute one set of actions if the focused window
+	matches the criteria, or another if it does not.
+
+	The arguments are as follows:
+
+	```
+	<action name="If">
+	  <query/>
+	  <then><action/></then>
+	  <else><action/></else>
+	</action>
+	```
+
+	*query*
+		Define a query with zero or more conditions. All conditions must
+		be evaluated as true in order for the window to match this
+		query. Multiple queries can be defined.
+
+		Pattern matching is done according to glob(7) and is
+		case-insensitive.
+
+		Conditions are as follows:
+
+		*identifier*
+			XDG shell app_id for Wayland clients, WM_CLASS for
+			XWayland clients.
+
+		*title*
+			XDG shell title for Wayland clients, WM_NAME for
+			XWayland clients.
+
+		This argument is optional.
+	
+	*then*
+		A list of actions to be executed if the window matches any
+		query. This argument is optional.
+
+	*else*
+		A list of actions to be executed if the window does not match
+		any query. This argument is optional.
+
+*<action name="ForEach">*
+	Identical to "If" action, but applies to all windows, not just the
+	focused one.
+
 # SEE ALSO
 
-labwc(1), labwc-config(5), labwc-theme(5)
+labwc(1), labwc-config(5), labwc-theme(5), glob(7)

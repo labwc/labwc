@@ -284,25 +284,6 @@ cleanup:
 	free(argument);
 }
 
-static const char *
-action_str_from_arg(struct action_arg *arg)
-{
-	assert(arg->type == LAB_ACTION_ARG_STR);
-	return ((struct action_arg_str *)arg)->value;
-}
-
-
-static struct action_arg *
-action_get_first_arg(struct action *action)
-{
-	struct action_arg *arg;
-	struct wl_list *item = action->args.next;
-	if (item == &action->args) {
-		return NULL;
-	}
-	return wl_container_of(item, arg, link);
-}
-
 static enum action_type
 action_type_from_str(const char *action_name)
 {
@@ -496,19 +477,9 @@ actions_run(struct view *activator, struct server *server,
 
 	struct view *view;
 	struct action *action;
-	struct action_arg *arg;
 	wl_list_for_each(action, actions, link) {
-		/* Get arg now so we don't have to repeat every time we only need one */
-		arg = action_get_first_arg(action);
-
-		if (arg && arg->type == LAB_ACTION_ARG_STR) {
-			wlr_log(WLR_DEBUG, "Handling action %u: %s %s",
-				action->type, action_names[action->type],
-				action_str_from_arg(arg));
-		} else {
-			wlr_log(WLR_DEBUG, "Handling action %u: %s",
-				action->type, action_names[action->type]);
-		}
+		wlr_log(WLR_DEBUG, "Handling action %u: %s", action->type,
+			action_names[action->type]);
 
 		/*
 		 * Refetch view because it may have been changed due to the
@@ -541,7 +512,7 @@ actions_run(struct view *activator, struct server *server,
 			{
 				struct buf cmd;
 				buf_init(&cmd);
-				buf_add(&cmd, action_str_from_arg(arg));
+				buf_add(&cmd, action_get_str(action, "command", NULL));
 				buf_expand_tilde(&cmd);
 				spawn_async_no_shell(cmd.buf);
 				free(cmd.buf);
@@ -578,7 +549,7 @@ actions_run(struct view *activator, struct server *server,
 			kill(getpid(), SIGHUP);
 			break;
 		case ACTION_TYPE_SHOW_MENU:
-			show_menu(server, view, action_str_from_arg(arg));
+			show_menu(server, view, action_get_str(action, "menu", NULL));
 			break;
 		case ACTION_TYPE_TOGGLE_MAXIMIZE:
 			if (view) {
@@ -702,7 +673,7 @@ actions_run(struct view *activator, struct server *server,
 			if (!output) {
 				break;
 			}
-			const char *region_name = action_str_from_arg(arg);
+			const char *region_name = action_get_str(action, "region", NULL);
 			struct region *region = regions_from_name(region_name, output);
 			if (region) {
 				view_snap_to_region(view, region,
@@ -718,7 +689,7 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_FOCUS_OUTPUT:
 			{
-				const char *output_name = action_str_from_arg(arg);
+				const char *output_name = action_get_str(action, "output", NULL);
 				desktop_focus_output(output_from_name(server, output_name));
 			}
 			break;

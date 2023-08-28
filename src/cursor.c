@@ -300,8 +300,7 @@ update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
 	 * context menus (in contrast) do not use an XDG popup grab and
 	 * do not work properly if we send leave/enter events.
 	 */
-	if (seat->seat->pointer_state.grab ==
-			seat->seat->pointer_state.default_grab) {
+	if (!wlr_seat_pointer_has_grab(seat->seat)) {
 		return false;
 	}
 	if (seat->pressed.surface && ctx->surface != seat->pressed.surface) {
@@ -960,16 +959,6 @@ cursor_button_release(struct seat *seat, struct wlr_pointer_button_event *event)
 
 	seat_reset_pressed(seat);
 
-	if (pressed_surface && ctx.surface != pressed_surface) {
-		/*
-		 * Button released but originally pressed over a different surface.
-		 * Just send the release event to the still focused surface.
-		 */
-		wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
-			event->button, event->state);
-		return;
-	}
-
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		if (close_menu) {
 			menu_close_root(server);
@@ -983,6 +972,22 @@ cursor_button_release(struct seat *seat, struct wlr_pointer_button_event *event)
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		/* Exit interactive move/resize mode */
 		interactive_finish(server->grabbed_view);
+
+		if (pressed_surface) {
+			/* Ensure CSD clients see the release event */
+			wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
+				event->button, event->state);
+		}
+		return;
+	}
+
+	if (pressed_surface && ctx.surface != pressed_surface) {
+		/*
+		 * Button released but originally pressed over a different surface.
+		 * Just send the release event to the still focused surface.
+		 */
+		wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
+			event->button, event->state);
 		return;
 	}
 

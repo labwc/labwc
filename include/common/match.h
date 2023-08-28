@@ -2,6 +2,7 @@
 #ifndef LABWC_MATCH_H
 #define LABWC_MATCH_H
 #include <glib.h>
+#include <stdbool.h>
 
 /**
  * match_glob() - Pattern match using '*' wildcards and '?' jokers.

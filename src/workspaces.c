@@ -340,6 +340,8 @@ workspaces_find(struct workspace *anchor, const char *name, bool wrap)
 				return target;
 			}
 		}
+	} else if (!strcasecmp(name, "current")) {
+		return anchor;
 	} else if (!strcasecmp(name, "last")) {
 		return anchor->server->workspace_last;
 	} else if (!strcasecmp(name, "left")) {

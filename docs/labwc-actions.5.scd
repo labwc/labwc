@@ -127,9 +127,9 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="GoToDesktop" to="value" wrap="yes" />*
 	Switch to workspace.
 
-	*to* The workspace to switch to. Supported values are "last", "left",
-	"right" or the full name of a workspace or its index (starting at 1)
-	as configured in rc.xml.
+	*to* The workspace to switch to. Supported values are "current", "last",
+	"left", "right" or the full name of a workspace or its index (starting
+	at 1) as configured in rc.xml.
 
 	*wrap* [yes|no] Wrap around from last desktop to first, and vice
 	versa. Default yes.

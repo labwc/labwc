@@ -37,6 +37,8 @@ static struct menu *current_menu;
 static struct menu *menus;
 static int nr_menus, alloc_menus;
 
+/* TODO: split this whole file into parser.c and actions.c*/
+
 static struct menu *
 menu_create(struct server *server, const char *id, const char *label)
 {
@@ -841,20 +843,12 @@ menu_open(struct menu *menu, int x, int y)
 	menu->server->input_mode = LAB_INPUT_STATE_MENU;
 }
 
-void
-menu_process_cursor_motion(struct wlr_scene_node *node)
+static void
+menu_process_item_selection(struct menuitem *item)
 {
-	assert(node && node->data);
-	struct menuitem *item = node_menuitem_from_node(node);
-
-	/* This function shall only be called for menu nodes */
 	assert(item);
 
 	if (!item->selectable) {
-		return;
-	}
-	if (node == &item->selected.tree->node) {
-		/* We are on an already selected item */
 		return;
 	}
 
@@ -868,6 +862,8 @@ menu_process_cursor_motion(struct wlr_scene_node *node)
 	if (item->submenu) {
 		/* Sync the triggering view */
 		item->submenu->triggered_by_view = item->parent->triggered_by_view;
+		/* Ensure the submenu has its parent set correctly */
+		item->submenu->parent = item->parent;
 		/* And open the new submenu tree */
 		wlr_scene_node_set_enabled(
 			&item->submenu->scene_tree->node, true);
@@ -875,14 +871,61 @@ menu_process_cursor_motion(struct wlr_scene_node *node)
 	item->parent->selection.menu = item->submenu;
 }
 
-bool
-menu_call_actions(struct wlr_scene_node *node)
+/* Get the deepest submenu with active item selection or the root menu itself */
+static struct menu *
+get_selection_leaf(struct server *server)
 {
-	assert(node && node->data);
-	struct menuitem *item = node_menuitem_from_node(node);
+	struct menu *menu = server->menu_current;
+	if (!menu) {
+		return NULL;
+	}
 
-	if (item->submenu) {
-		/* We received a click on an item that just opens a submenu */
+	while (menu->selection.menu) {
+		if (!menu->selection.menu->selection.item) {
+			return menu;
+		}
+		menu = menu->selection.menu;
+	}
+
+	return menu;
+}
+
+/* Selects the next or previous sibling of the currently selected item */
+static void
+menu_item_select(struct server *server, bool forward)
+{
+	struct menu *menu = get_selection_leaf(server);
+	if (!menu) {
+		return;
+	}
+
+	struct menuitem *item = NULL;
+	struct menuitem *selection = menu->selection.item;
+	struct wl_list *start = selection ? &selection->link : &menu->menuitems;
+	struct wl_list *current = start;
+	while (!item || !item->selectable) {
+		current = forward ? current->next : current->prev;
+		if (current == start) {
+			return;
+		}
+		if (current == &menu->menuitems) {
+			/* Allow wrap around */
+			item = NULL;
+			continue;
+		}
+		item = wl_container_of(current, item, link);
+	}
+
+	menu_process_item_selection(item);
+}
+
+static bool
+menu_execute_item(struct menuitem *item)
+{
+	assert(item);
+
+	if (item->submenu || !item->selectable) {
+		/* We received a click on a separator or item that just opens a submenu */
 		return false;
 	}
 
@@ -898,6 +941,89 @@ menu_call_actions(struct wlr_scene_node *node)
 	item->parent->server->menu_current = NULL;
 
 	return true;
+}
+
+/* Keyboard based selection */
+void
+menu_item_select_next(struct server *server)
+{
+	menu_item_select(server, /* forward */ true);
+}
+
+void
+menu_item_select_previous(struct server *server)
+{
+	menu_item_select(server, /* forward */ false);
+}
+
+bool
+menu_call_selected_actions(struct server *server)
+{
+	struct menu *menu = get_selection_leaf(server);
+	if (!menu || !menu->selection.item) {
+		return false;
+	}
+
+	return menu_execute_item(menu->selection.item);
+}
+
+/* Selects the first item on the submenu attached to the current selection */
+void
+menu_submenu_enter(struct server *server)
+{
+	struct menu *menu = get_selection_leaf(server);
+	if (!menu || !menu->selection.menu) {
+		return;
+	}
+
+	struct wl_list *start = &menu->selection.menu->menuitems;
+	struct wl_list *current = start;
+	struct menuitem *item = NULL;
+	while (!item || !item->selectable) {
+		current = current->next;
+		if (current == start) {
+			return;
+		}
+		item = wl_container_of(current, item, link);
+	}
+
+	menu_process_item_selection(item);
+}
+
+/* Re-selects the selected item on the parent menu of the current selection */
+void
+menu_submenu_leave(struct server *server)
+{
+	struct menu *menu = get_selection_leaf(server);
+	if (!menu || !menu->parent || !menu->parent->selection.item) {
+		return;
+	}
+
+	menu_process_item_selection(menu->parent->selection.item);
+}
+
+/* Mouse based selection */
+void
+menu_process_cursor_motion(struct wlr_scene_node *node)
+{
+	assert(node && node->data);
+	struct menuitem *item = node_menuitem_from_node(node);
+
+	if (item->selectable && node == &item->selected.tree->node) {
+		/* We are on an already selected item */
+		return;
+	}
+
+	menu_process_item_selection(item);
+}
+
+bool
+menu_call_actions(struct wlr_scene_node *node)
+{
+	assert(node && node->data);
+	struct menuitem *item = node_menuitem_from_node(node);
+
+	return menu_execute_item(item);
 }
 
 void

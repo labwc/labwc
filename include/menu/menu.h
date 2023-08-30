@@ -62,6 +62,13 @@ struct menu {
 	struct view *triggered_by_view;  /* may be NULL */
 };
 
+/* For keyboard support */
+void menu_item_select_next(struct server *server);
+void menu_item_select_previous(struct server *server);
+void menu_submenu_enter(struct server *server);
+void menu_submenu_leave(struct server *server);
+bool menu_call_selected_actions(struct server *server);
+
 void menu_init(struct server *server);
 void menu_finish(void);
 

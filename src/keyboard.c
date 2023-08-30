@@ -6,6 +6,7 @@
 #include "idle.h"
 #include "key-state.h"
 #include "labwc.h"
+#include "menu/menu.h"
 #include "regions.h"
 #include "view.h"
 #include "workspaces.h"
@@ -125,6 +126,42 @@ struct keysyms {
 	int nr_syms;
 };
 
+static void
+handle_menu_keys(struct server *server, struct keysyms *syms)
+{
+	assert(server->input_mode == LAB_INPUT_STATE_MENU);
+
+	for (int i = 0; i < syms->nr_syms; i++) {
+		switch (syms->syms[i]) {
+		case XKB_KEY_Down:
+			menu_item_select_next(server);
+			break;
+		case XKB_KEY_Up:
+			menu_item_select_previous(server);
+			break;
+		case XKB_KEY_Right:
+			menu_submenu_enter(server);
+			break;
+		case XKB_KEY_Left:
+			menu_submenu_leave(server);
+			break;
+		case XKB_KEY_Return:
+			if (menu_call_selected_actions(server)) {
+				menu_close_root(server);
+				cursor_update_focus(server);
+			}
+			break;
+		case XKB_KEY_Escape:
+			menu_close_root(server);
+			cursor_update_focus(server);
+			break;
+		default:
+			continue;
+		}
+		break;
+	}
+}
+
 static bool
 handle_compositor_keybindings(struct keyboard *keyboard,
 		struct wlr_keyboard_key_event *event)
@@ -210,6 +247,18 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 				goto out;
 			}
 		}
+	}
+
+	if (server->input_mode == LAB_INPUT_STATE_MENU) {
+		/*
+		 * Usually, release events are already caught via _press_event_was_bound().
+		 * But to be on the safe side we will simply ignore them here as well.
+		 */
+		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+			handle_menu_keys(server, &translated);
+		}
+		handled = true;
+		goto out;
 	}
 
 	if (server->osd_state.cycle_view) {

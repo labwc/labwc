@@ -232,7 +232,7 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 	/* Update menu extents */
 	menu->size.height += menuitem->height;
 
-	wl_list_insert(&menu->menuitems, &menuitem->link);
+	wl_list_append(&menu->menuitems, &menuitem->link);
 	wl_list_init(&menuitem->actions);
 	return menuitem;
 }
@@ -272,7 +272,7 @@ separator_create(struct menu *menu, const char *label)
 		theme->menu_separator_padding_height);
 
 	menu->size.height += menuitem->height;
-	wl_list_insert(&menu->menuitems, &menuitem->link);
+	wl_list_append(&menu->menuitems, &menuitem->link);
 	wl_list_init(&menuitem->actions);
 	return menuitem;
 }
@@ -571,7 +571,7 @@ menu_get_full_width(struct menu *menu)
 	int child_width;
 	int max_child_width = 0;
 	struct menuitem *item;
-	wl_list_for_each_reverse(item, &menu->menuitems, link) {
+	wl_list_for_each(item, &menu->menuitems, link) {
 		if (!item->submenu) {
 			continue;
 		}
@@ -636,7 +636,7 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 	int rel_y;
 	int new_lx, new_ly;
 	struct menuitem *item;
-	wl_list_for_each_reverse(item, &menu->menuitems, link) {
+	wl_list_for_each(item, &menu->menuitems, link) {
 		if (!item->submenu) {
 			continue;
 		}
@@ -663,7 +663,7 @@ menu_hide_submenu(const char *id)
 		menu = menus + i;
 		bool should_reposition = false;
 		struct menuitem *item, *next;
-		wl_list_for_each_reverse_safe(item, next, &menu->menuitems, link) {
+		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
 			if (item->submenu == hide_menu) {
 				item_destroy(item);
 				should_reposition = true;
@@ -675,7 +675,7 @@ menu_hide_submenu(const char *id)
 		}
 		/* Re-position items vertically */
 		menu->size.height = 0;
-		wl_list_for_each_reverse(item, &menu->menuitems, link) {
+		wl_list_for_each(item, &menu->menuitems, link) {
 			wlr_scene_node_set_position(&item->tree->node, 0,
 				menu->size.height);
 			menu->size.height += item->height;

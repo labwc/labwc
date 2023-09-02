@@ -392,6 +392,8 @@
       <accelProfile></accelProfile>
       <tap>yes</tap>
       <tapButtonMap></tapButtonMap>
+      <tapAndDrag></tapAndDrag>
+      <dragLock></dragLock>
       <middleEmulation></middleEmulation>
       <disableWhileTyping></disableWhileTyping>
     </device>

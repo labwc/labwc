@@ -21,6 +21,8 @@ struct libinput_category {
 	int left_handed;
 	enum libinput_config_tap_state tap;
 	enum libinput_config_tap_button_map tap_button_map;
+	enum libinput_config_drag_state tap_and_drag;
+	enum libinput_config_drag_lock_state drag_lock;
 	enum libinput_config_accel_profile accel_profile;
 	enum libinput_config_middle_emulation_state middle_emu;
 	enum libinput_config_dwt_state dwt;

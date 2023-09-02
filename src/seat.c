@@ -95,6 +95,24 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 			dc->tap_button_map);
 	}
 
+	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0
+			|| dc->tap_and_drag < 0) {
+		wlr_log(WLR_INFO, "tap-and-drag not configured");
+	} else {
+		wlr_log(WLR_INFO, "tap-and-drag configured");
+		libinput_device_config_tap_set_drag_enabled(
+			libinput_dev, dc->tap_and_drag);
+	}
+
+	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0
+			|| dc->drag_lock < 0) {
+		wlr_log(WLR_INFO, "drag lock not configured");
+	} else {
+		wlr_log(WLR_INFO, "drag lock configured");
+		libinput_device_config_tap_set_drag_lock_enabled(
+			libinput_dev, dc->drag_lock);
+	}
+
 	if (libinput_device_config_scroll_has_natural_scroll(libinput_dev) <= 0
 			|| dc->natural_scroll < 0) {
 		wlr_log(WLR_INFO, "natural scroll not configured");

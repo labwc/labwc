@@ -407,6 +407,14 @@ Therefore, where multiple objects of the same kind are required (for example
 	left button, right button, and middle button, respectively (lrm) (the
 	default), or to left button, middle button, and right button (lmr).
 
+*<libinput><device category=""><tapAndDrag>* [yes|no]
+	Enable or disable tap-and-drag for this category. Tap-and-drag processes
+	a tap immediately followed by a finger down as the start of a drag.
+
+*<libinput><device category=""><dragLock>* [yes|no]
+	Enable or disable drag lock for this category. Drag lock ignores a
+	momentary release of a finger during tap-and-dragging.
+
 *<libinput><device category=""><middleEmulation>* [yes|no]
 	Enable or disable middle button emulation for this category. Middle
 	emulation processes a simultaneous left and right click as a press of

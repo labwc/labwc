@@ -408,6 +408,22 @@ fill_libinput_category(char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "invalid tapButtonMap");
 		}
+	} else if (!strcasecmp(nodename, "tapAndDrag")) {
+		int ret = parse_bool(content, -1);
+		if (ret < 0) {
+			return;
+		}
+		current_libinput_category->tap_and_drag = ret
+			? LIBINPUT_CONFIG_DRAG_ENABLED
+			: LIBINPUT_CONFIG_DRAG_DISABLED;
+	} else if (!strcasecmp(nodename, "dragLock")) {
+		int ret = parse_bool(content, -1);
+		if (ret < 0) {
+			return;
+		}
+		current_libinput_category->drag_lock = ret
+			? LIBINPUT_CONFIG_DRAG_LOCK_ENABLED
+			: LIBINPUT_CONFIG_DRAG_LOCK_DISABLED;
 	} else if (!strcasecmp(nodename, "accelProfile")) {
 		current_libinput_category->accel_profile =
 			get_accel_profile(content);

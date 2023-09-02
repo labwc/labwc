@@ -96,7 +96,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	}
 
 	if (libinput_device_config_scroll_has_natural_scroll(libinput_dev) <= 0
-		|| dc->natural_scroll < 0) {
+			|| dc->natural_scroll < 0) {
 		wlr_log(WLR_INFO, "natural scroll not configured");
 	} else {
 		wlr_log(WLR_INFO, "natural scroll configured");
@@ -105,7 +105,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	}
 
 	if (libinput_device_config_left_handed_is_available(libinput_dev) <= 0
-		|| dc->left_handed < 0) {
+			|| dc->left_handed < 0) {
 		wlr_log(WLR_INFO, "left-handed mode not configured");
 	} else {
 		wlr_log(WLR_INFO, "left-handed mode configured");
@@ -137,7 +137,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	}
 
 	if (libinput_device_config_dwt_is_available(libinput_dev) == 0
-		|| dc->dwt < 0) {
+			|| dc->dwt < 0) {
 		wlr_log(WLR_INFO, "dwt not configured");
 	} else {
 		wlr_log(WLR_INFO, "dwt configured");

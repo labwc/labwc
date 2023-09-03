@@ -285,6 +285,12 @@ handle_request_activate(struct wl_listener *listener, void *data)
 	struct xwayland_view *xwayland_view =
 		wl_container_of(listener, xwayland_view, request_activate);
 	struct view *view = &xwayland_view->base;
+
+	if (window_rules_get_property(view, "ignoreFocusRequest") == LAB_PROP_TRUE) {
+		wlr_log(WLR_INFO, "Ignoring focus request due to window rule configuration");
+		return;
+	}
+
 	desktop_focus_and_activate_view(&view->server->seat, view);
 	view_move_to_front(view);
 }

@@ -482,6 +482,9 @@ situation.
 	*skipWindowSwitcher* removes window from the Window Switcher (alt-tab
 	on-screen-display)
 
+*<windowRules><windowRule ignoreFocusRequest="">* [yes|no|default]
+	*ignoreFocusRequest* prevent window to activate itself.
+
 ## ENVIRONMENT VARIABLES
 
 *XCURSOR_THEME* and *XCURSOR_SIZE* are supported to set cursor theme

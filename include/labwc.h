@@ -41,9 +41,9 @@
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/util/log.h>
 #include <xkbcommon/xkbcommon.h>
-#include "cursor.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
+#include "input/cursor.h"
 #include "regions.h"
 #include "session-lock.h"
 #if HAVE_NLS

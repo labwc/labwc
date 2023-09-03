@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "key-state.h"
+#include "input/key-state.h"
 
 #define MAX_PRESSED_KEYS (16)
 

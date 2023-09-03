@@ -9,7 +9,7 @@
 #include <wlr/types/wlr_touch.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
-#include "key-state.h"
+#include "input/key-state.h"
 #include "labwc.h"
 #include "view.h"
 

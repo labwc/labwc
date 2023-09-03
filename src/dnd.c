@@ -4,8 +4,8 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
-#include "cursor.h"
 #include "dnd.h"
+#include "input/cursor.h"
 #include "labwc.h"  /* for struct seat */
 #include "view.h"
 

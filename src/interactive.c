@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "input/keyboard.h"
 #include "labwc.h"
 #include "regions.h"
 #include "resize_indicator.h"

@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_touch.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
+#include "input/keyboard.h"
 #include "input/key-state.h"
 #include "labwc.h"
 #include "view.h"
@@ -223,10 +224,7 @@ new_keyboard(struct seat *seat, struct wlr_input_device *device, bool virtual)
 		wlr_keyboard_group_add_keyboard(seat->keyboard_group, kb);
 	}
 
-	keyboard->key.notify = keyboard_key_notify;
-	wl_signal_add(&kb->events.key, &keyboard->key);
-	keyboard->modifier.notify = keyboard_modifiers_notify;
-	wl_signal_add(&kb->events.modifiers, &keyboard->modifier);
+	keyboard_setup_handlers(keyboard);
 
 	wlr_seat_set_keyboard(seat->seat, kb);
 

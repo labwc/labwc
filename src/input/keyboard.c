@@ -5,6 +5,7 @@
 #include <wlr/interfaces/wlr_keyboard.h>
 #include "action.h"
 #include "idle.h"
+#include "input/keyboard.h"
 #include "input/key-state.h"
 #include "labwc.h"
 #include "menu/menu.h"
@@ -52,7 +53,7 @@ end_cycling(struct server *server)
 	should_cancel_cycling_on_next_key_release = false;
 }
 
-void
+static void
 keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 {
 	struct keyboard *keyboard = wl_container_of(listener, keyboard, modifier);
@@ -476,7 +477,7 @@ keyboard_cancel_keybind_repeat(struct keyboard *keyboard)
 	}
 }
 
-void
+static void
 keyboard_key_notify(struct wl_listener *listener, void *data)
 {
 	/* This event is raised when a key is pressed or released. */
@@ -548,6 +549,17 @@ keyboard_init(struct seat *seat)
 	wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
 
 	keybind_update_keycodes(seat->server);
+}
+
+void
+keyboard_setup_handlers(struct keyboard *keyboard)
+{
+	struct wlr_keyboard *wlr_kb = keyboard->wlr_keyboard;
+
+	keyboard->key.notify = keyboard_key_notify;
+	wl_signal_add(&wlr_kb->events.key, &keyboard->key);
+	keyboard->modifier.notify = keyboard_modifiers_notify;
+	wl_signal_add(&wlr_kb->events.modifiers, &keyboard->modifier);
 }
 
 void

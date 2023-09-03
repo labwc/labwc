@@ -12,6 +12,7 @@
 #include "common/graphic-helpers.h"
 #include "common/list.h"
 #include "common/mem.h"
+#include "input/keyboard.h"
 #include "labwc.h"
 #include "regions.h"
 #include "view.h"

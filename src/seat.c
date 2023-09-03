@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_touch.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
+#include "input/input.h"
 #include "input/keyboard.h"
 #include "input/key-state.h"
 #include "labwc.h"
@@ -415,8 +416,7 @@ seat_init(struct server *server)
 	}
 	wlr_cursor_attach_output_layout(seat->cursor, server->output_layout);
 
-	cursor_init(seat);
-	keyboard_init(seat);
+	input_handlers_init(seat);
 }
 
 void
@@ -431,8 +431,7 @@ seat_finish(struct server *server)
 		input_device_destroy(&input->destroy, NULL);
 	}
 
-	cursor_finish(seat);
-	keyboard_finish(seat);
+	input_handlers_finish(seat);
 }
 
 static void

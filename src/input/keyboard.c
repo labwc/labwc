@@ -5,7 +5,7 @@
 #include <wlr/interfaces/wlr_keyboard.h>
 #include "action.h"
 #include "idle.h"
-#include "key-state.h"
+#include "input/key-state.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "regions.h"

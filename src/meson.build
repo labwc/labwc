@@ -1,15 +1,12 @@
 labwc_sources = files(
   'action.c',
   'buffer.c',
-  'cursor.c',
   'debug.c',
   'desktop.c',
   'dnd.c',
   'foreign.c',
   'idle.c',
   'interactive.c',
-  'keyboard.c',
-  'key-state.c',
   'layers.c',
   'main.c',
   'node.c',
@@ -21,7 +18,6 @@ labwc_sources = files(
   'server.c',
   'session-lock.c',
   'snap.c',
-  'touch.c',
   'theme.c',
   'view.c',
   'view-impl-common.c',
@@ -39,9 +35,10 @@ if have_xwayland
 endif
 
 
+subdir('button')
 subdir('common')
 subdir('config')
 subdir('decorations')
-subdir('button')
+subdir('input')
 subdir('menu')
 subdir('ssd')

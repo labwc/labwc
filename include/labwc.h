@@ -418,9 +418,6 @@ void keyboard_init(struct seat *seat);
 bool keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard);
 void keyboard_finish(struct seat *seat);
 
-void touch_init(struct seat *seat);
-void touch_finish(struct seat *seat);
-
 void seat_init(struct server *server);
 void seat_finish(struct server *server);
 void seat_reconfigure(struct server *server);

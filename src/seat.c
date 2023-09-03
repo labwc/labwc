@@ -417,9 +417,8 @@ seat_init(struct server *server)
 	}
 	wlr_cursor_attach_output_layout(seat->cursor, server->output_layout);
 
-	keyboard_init(seat);
 	cursor_init(seat);
-	touch_init(seat);
+	keyboard_init(seat);
 }
 
 void
@@ -434,14 +433,8 @@ seat_finish(struct server *server)
 		input_device_destroy(&input->destroy, NULL);
 	}
 
-	keyboard_finish(seat);
-	/*
-	 * Caution - touch_finish() unregisters event listeners from
-	 * seat->cursor and must come before cursor_finish(), otherwise
-	 * a use-after-free occurs.
-	 */
-	touch_finish(seat);
 	cursor_finish(seat);
+	keyboard_finish(seat);
 }
 
 static void

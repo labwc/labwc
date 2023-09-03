@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <wayland-util.h>
 #include <wlr/types/wlr_touch.h>
-#include "idle.h"
-#include "labwc.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "idle.h"
+#include "input/touch.h"
+#include "labwc.h"
 
 /* Holds layout -> surface offsets to report motion events in relative coords */
 struct touch_point {

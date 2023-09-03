@@ -14,6 +14,7 @@
 #include "dnd.h"
 #include "idle.h"
 #include "input/gestures.h"
+#include "input/touch.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "regions.h"
@@ -1201,6 +1202,7 @@ cursor_init(struct seat *seat)
 	wl_signal_add(&seat->cursor->events.frame, &seat->cursor_frame);
 
 	gestures_init(seat);
+	touch_init(seat);
 
 	seat->request_cursor.notify = request_cursor_notify;
 	wl_signal_add(&seat->seat->events.request_set_cursor,
@@ -1226,6 +1228,7 @@ void cursor_finish(struct seat *seat)
 	wl_list_remove(&seat->cursor_frame.link);
 
 	gestures_finish(seat);
+	touch_finish(seat);
 
 	wl_list_remove(&seat->request_cursor.link);
 	wl_list_remove(&seat->request_set_selection.link);

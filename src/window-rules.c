@@ -124,6 +124,10 @@ window_rules_get_property(struct view *view, const char *property)
 					&& !strcasecmp(property, "skipWindowSwitcher")) {
 				return rule->skip_window_switcher;
 			}
+			if (rule->ignore_focus_request
+					&& !strcasecmp(property, "ignoreFocusRequest")) {
+				return rule->ignore_focus_request;
+			}
 		}
 	}
 	return LAB_PROP_UNSPECIFIED;

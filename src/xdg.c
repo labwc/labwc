@@ -590,6 +590,11 @@ xdg_activation_handle_request(struct wl_listener *listener, void *data)
 	 * for the seat / serial being correct and then allow the request.
 	 */
 
+	if (window_rules_get_property(view, "ignoreFocusRequest") == LAB_PROP_TRUE) {
+		wlr_log(WLR_INFO, "Ignoring focus request due to window rule configuration");
+		return;
+	}
+
 	/*
 	 * TODO: This is the exact same code as used in foreign.c.
 	 *       Refactor it into a public helper function somewhere.

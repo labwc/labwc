@@ -6,11 +6,17 @@
 #include <xkbcommon/xkbcommon.h>
 
 #define MAX_KEYSYMS 32
+#define MAX_KEYCODES 16
+
+struct server;
 
 struct keybind {
 	uint32_t modifiers;
 	xkb_keysym_t *keysyms;
 	size_t keysyms_len;
+	xkb_keycode_t keycodes[MAX_KEYCODES];
+	size_t keycodes_len;
+	int keycodes_layout;
 	struct wl_list actions;  /* struct action.link */
 	struct wl_list link;     /* struct rcxml.keybinds */
 };
@@ -30,4 +36,5 @@ uint32_t parse_modifier(const char *symname);
 
 bool keybind_the_same(struct keybind *a, struct keybind *b);
 
+void keybind_update_keycodes(struct server *server);
 #endif /* LABWC_KEYBIND_H */

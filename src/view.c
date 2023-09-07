@@ -6,6 +6,7 @@
 #include "common/match.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "input/keyboard.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "regions.h"
@@ -265,6 +266,17 @@ view_set_activated(struct view *view, bool activated)
 	if (view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_set_activated(
 			view->toplevel.handle, activated);
+	}
+
+	if (rc.kb_layout_per_window) {
+		if (!activated) {
+			/* Store configured keyboard layout per view */
+			view->keyboard_layout =
+				view->server->seat.keyboard_group->keyboard.modifiers.group;
+		} else {
+			/* Switch to previously stored keyboard layout */
+			keyboard_update_layout(&view->server->seat, view->keyboard_layout);
+		}
 	}
 }
 

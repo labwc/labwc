@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <wayland-util.h>
 #include <wlr/util/box.h>
+#include <xkbcommon/xkbcommon.h>
 
 #define LAB_MIN_VIEW_WIDTH  100
 #define LAB_MIN_VIEW_HEIGHT  60
@@ -143,6 +144,7 @@ struct view {
 	bool fullscreen;
 	enum view_edge tiled;
 	bool inhibits_keybinds;
+	xkb_layout_index_t keyboard_layout;
 
 	/* Pointer to an output owned struct region, may be NULL */
 	struct region *tiled_region;

@@ -339,11 +339,11 @@ fill_mousebind(char *nodename, char *content)
 	}
 }
 
-static enum libinput_config_accel_profile
+static int
 get_accel_profile(const char *s)
 {
 	if (!s) {
-		return LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT;
+		return -1;
 	}
 	if (!strcasecmp(s, "flat")) {
 		return LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT;
@@ -351,7 +351,7 @@ get_accel_profile(const char *s)
 	if (!strcasecmp(s, "adaptive")) {
 		return LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE;
 	}
-	return LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT;
+	return -1;
 }
 
 static void

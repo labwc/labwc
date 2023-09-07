@@ -21,11 +21,11 @@ struct libinput_category {
 	int left_handed;
 	enum libinput_config_tap_state tap;
 	enum libinput_config_tap_button_map tap_button_map;
-	enum libinput_config_drag_state tap_and_drag;
-	enum libinput_config_drag_lock_state drag_lock;
-	enum libinput_config_accel_profile accel_profile;
-	enum libinput_config_middle_emulation_state middle_emu;
-	enum libinput_config_dwt_state dwt;
+	int tap_and_drag; /* -1 or libinput_config_drag_state */
+	int drag_lock; /* -1 or libinput_config_drag_lock_state */
+	int accel_profile; /* -1 or libinput_config_accel_profile */
+	int middle_emu; /* -1 or libinput_config_middle_emulation_state */
+	int dwt; /* -1 or libinput_config_dwt_state */
 };
 
 enum device_type get_device_type(const char *s);

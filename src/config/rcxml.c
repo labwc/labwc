@@ -735,6 +735,12 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.repeat_delay = atoi(content);
 	} else if (!strcasecmp(nodename, "numlock.keyboard")) {
 		set_bool(content, &rc.kb_numlock_enable);
+	} else if (!strcasecmp(nodename, "layoutScope.keyboard")) {
+		/*
+		 * This can be changed to an enum later on
+		 * if we decide to also support "application".
+		 */
+		rc.kb_layout_per_window = !strcasecmp(content, "window");
 	} else if (!strcasecmp(nodename, "screenEdgeStrength.resistance")) {
 		rc.screen_edge_strength = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
@@ -953,6 +959,7 @@ rcxml_init(void)
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
 	rc.kb_numlock_enable = true;
+	rc.kb_layout_per_window = false;
 	rc.screen_edge_strength = 20;
 
 	rc.snap_edge_range = 1;

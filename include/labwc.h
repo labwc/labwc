@@ -39,7 +39,6 @@
 #include <wlr/types/wlr_virtual_pointer_v1.h>
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/util/log.h>
-#include <xkbcommon/xkbcommon.h>
 #include "config/keybind.h"
 #include "config/rcxml.h"
 #include "input/cursor.h"

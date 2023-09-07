@@ -283,6 +283,10 @@ windows using the mouse.
 	When recognizing a new keyboard enable or disable Num Lock.
 	Default is on.
 
+*<keyboard layoutScope="">* [global|window]
+	Stores the keyboard layout either globally or per window and restores
+	it when switching back to the window. Default is global.
+
 *<keyboard><keybind key="" layoutDependent="">*
 	Define a *key* binding in the format *modifier-key*, where supported
 	modifiers are:

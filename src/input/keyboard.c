@@ -84,6 +84,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 			}
 		}
 	}
+	wlr_seat_set_keyboard(seat->seat, wlr_keyboard);
 	wlr_seat_keyboard_notify_modifiers(seat->seat, &wlr_keyboard->modifiers);
 }
 
@@ -485,7 +486,6 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	struct seat *seat = keyboard->base.seat;
 	struct wlr_keyboard_key_event *event = data;
 	struct wlr_seat *wlr_seat = seat->seat;
-	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
 	idle_manager_notify_activity(seat->seat);
 
 	/* any new press/release cancels current keybind repeat */
@@ -497,7 +497,7 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 			start_keybind_repeat(seat->server, keyboard, event);
 		}
 	} else {
-		wlr_seat_set_keyboard(wlr_seat, wlr_keyboard);
+		wlr_seat_set_keyboard(wlr_seat, keyboard->wlr_keyboard);
 		wlr_seat_keyboard_notify_key(wlr_seat, event->time_msec,
 			event->keycode, event->state);
 	}
@@ -528,6 +528,41 @@ keyboard_set_numlock(struct wlr_keyboard *keyboard)
 	 */
 	wlr_keyboard_notify_modifiers(keyboard, keyboard->modifiers.depressed,
 		keyboard->modifiers.latched, locked, keyboard->modifiers.group);
+}
+
+void
+keyboard_update_layout(struct seat *seat, xkb_layout_index_t layout)
+{
+	assert(seat);
+
+	struct input *input;
+	struct keyboard *keyboard;
+	struct wlr_keyboard *kb = NULL;
+
+	/* We are not using wlr_seat_get_keyboard() here because it might be a virtual one */
+	wl_list_for_each(input, &seat->inputs, link) {
+		if (input->wlr_input_device->type != WLR_INPUT_DEVICE_KEYBOARD) {
+			continue;
+		}
+		keyboard = (struct keyboard *)input;
+		if (keyboard->is_virtual) {
+			continue;
+		}
+		kb = keyboard->wlr_keyboard;
+		break;
+	}
+	if (!kb) {
+		wlr_log(WLR_INFO, "Restoring kb layout failed: no physical keyboard found");
+		return;
+	}
+	if (kb->modifiers.group == layout) {
+		return;
+	}
+
+	/* By updating a member of the keyboard group, all members of the group will get updated */
+	wlr_log(WLR_DEBUG, "Updating group layout to %u", layout);
+	wlr_keyboard_notify_modifiers(kb, kb->modifiers.depressed,
+		kb->modifiers.latched, kb->modifiers.locked, layout);
 }
 
 void

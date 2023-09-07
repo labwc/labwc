@@ -142,6 +142,7 @@
   -->
   <keyboard>
     <numlock>on</numlock>
+    <layoutScope>global</layoutScope>
     <repeatRate>25</repeatRate>
     <repeatDelay>600</repeatDelay>
     <keybind key="A-Tab">

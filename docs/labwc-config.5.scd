@@ -316,7 +316,7 @@ Therefore, where multiple objects of the same kind are required (for example
 *<mouse><scrollFactor>*
 	Set scroll factor. Default is 1.0.
 
-*<mouse><context name=""><mousebind button="" direction=""><action>*
+*<mouse><context name=""><mousebind button="" direction="" action=""><action>*
 	Multiple *<mousebind>* can exist within one *<context>*; and multiple
 	*<action>* can exist within one *<mousebind>*
 
@@ -349,13 +349,16 @@ Therefore, where multiple objects of the same kind are required (for example
 	- Middle
 	- Right
 
+	Mouse buttons can be combined with modifier-keys (shift, super, control and alt), for example:
+	<mousebind button="A-Right" action="Press">
+
 	Supported scroll *directions* are:
 	- Up
 	- Down
 	- Left
 	- Right
 
-	Supported mouse actions include:
+	Supported mouse *actions* include:
 	- Press: Pressing the specified button down in the context.
 	- Release: Releasing the specified button in the context.
 	- Click: Pressing and then releasing inside of the the context.

@@ -14,6 +14,7 @@ struct keybind {
 	uint32_t modifiers;
 	xkb_keysym_t *keysyms;
 	size_t keysyms_len;
+	bool use_syms_only;
 	xkb_keycode_t keycodes[MAX_KEYCODES];
 	size_t keycodes_len;
 	int keycodes_layout;

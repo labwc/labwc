@@ -268,13 +268,21 @@ Therefore, where multiple objects of the same kind are required (for example
 
 ## KEYBOARD
 
-*<keyboard><keybind key="">*
-	Define a key binding in the format *modifier-key*, where supported
+*<keyboard><keybind key="" layoutDependent="">*
+	Define a *key* binding in the format *modifier-key*, where supported
 	modifiers include S (shift); C (control); A (alt); W (super). Unlike
 	Openbox, multiple space-separated key combinations and key-chains are
 	not supported. The application "wev" (wayland event viewer) is packaged
 	in a lot of distributions and can be used to view all available
 	keynames.
+
+	*layoutDependent* [yes|no]
+	Make this specific keybind depend on the currently active keyboard
+	layout. If enabled, a keybind using a key which does not exist in
+	the currently active layout will not be executed. The physical key
+	to trigger a keybind may also change along with the active layout.
+	If set to "no" (or is absent) the keybind will be layout agnostic.
+	Default is no.
 
 *<keyboard><keybind key=""><action name="">*
 	Keybind action. See labwc-action(5)

@@ -59,6 +59,9 @@ update_keycodes_iter(struct xkb_keymap *keymap, xkb_keycode_t key, void *data)
 			/* Prevent storing keycodes from multiple layouts */
 			continue;
 		}
+		if (keybind->use_syms_only) {
+			continue;
+		}
 		for (int i = 0; i < nr_syms; i++) {
 			xkb_keysym_t sym = syms[i];
 			for (size_t j = 0; j < keybind->keysyms_len; j++) {

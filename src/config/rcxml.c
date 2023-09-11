@@ -267,6 +267,8 @@ fill_keybind(char *nodename, char *content)
 	} else if (!current_keybind) {
 		wlr_log(WLR_ERROR, "expect <keybind key=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
+	} else if (!strcasecmp(nodename, "layoutDependent")) {
+		set_bool(content, &current_keybind->use_syms_only);
 	} else if (!strcmp(nodename, "name.action")) {
 		current_keybind_action = action_create(content);
 		if (current_keybind_action) {

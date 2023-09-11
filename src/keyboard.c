@@ -86,7 +86,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 }
 
 static bool
-handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
+handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym, xkb_keycode_t code)
 {
 	struct keybind *keybind;
 	wl_list_for_each(keybind, &rc.keybinds, link) {
@@ -98,11 +98,23 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym)
 				&& !actions_contain_toggle_keybinds(&keybind->actions)) {
 			continue;
 		}
-		for (size_t i = 0; i < keybind->keysyms_len; i++) {
-			if (xkb_keysym_to_lower(sym) == keybind->keysyms[i]) {
-				key_state_store_pressed_keys_as_bound();
-				actions_run(NULL, server, &keybind->actions, 0);
-				return true;
+		if (sym == XKB_KEY_NoSymbol) {
+			/* Use keycodes */
+			for (size_t i = 0; i < keybind->keycodes_len; i++) {
+				if (keybind->keycodes[i] == code) {
+					key_state_store_pressed_keys_as_bound();
+					actions_run(NULL, server, &keybind->actions, 0);
+					return true;
+				}
+			}
+		} else {
+			/* Use syms */
+			for (size_t i = 0; i < keybind->keysyms_len; i++) {
+				if (xkb_keysym_to_lower(sym) == keybind->keysyms[i]) {
+					key_state_store_pressed_keys_as_bound();
+					actions_run(NULL, server, &keybind->actions, 0);
+					return true;
+				}
 			}
 		}
 	}
@@ -301,16 +313,58 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		goto out;
 	}
 
-	/* Handle compositor key bindings */
+	/*
+	 * Handle compositor keybinds
+	 *
+	 * When matching against keybinds, we process the input keys in the
+	 * following order of precedence:
+	 *   a. Keycodes (of physical keys) (not if keybind is layoutDependent)
+	 *   b. Translated keysyms (taking into account modifiers, so if Shift+1
+	 *      were pressed on a us keyboard, the keysym would be '!')
+	 *   c. Raw keysyms (ignoring modifiers such as shift, so in the above
+	 *      example the keysym would just be '1')
+	 *
+	 * The reasons for this approach are:
+	 *   1. To make keybinds keyboard-layout agnostic (by checking keycodes
+	 *      before keysyms). This means that in a multi-layout situation,
+	 *      keybinds work regardless of which layout is active at the time
+	 *      of the key-press.
+	 *   2. To support keybinds relating to keysyms that are only available
+	 *      in a particular layout, for example å, ä and ö.
+	 *   3. To support keybinds that are only valid with a modifier, for
+	 *      example the numpad keys with NumLock enabled: KP_x. These would
+	 *      only be matched by the translated keysyms.
+	 *   4. To support keybinds such as `S-1` (by checking raw keysyms).
+	 *
+	 * Reason 4 will also be satisfied by matching the keycodes. However,
+	 * when a keybind is configured to be layoutDependent we still need
+	 * the raw keysym fallback.
+	 */
+
 	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
-		for (int i = 0; i < translated.nr_syms; i++) {
-			handled |= handle_keybinding(server, modifiers, translated.syms[i]);
-		}
+		/* First try keycodes */
+		handled |= handle_keybinding(server, modifiers, XKB_KEY_NoSymbol, keycode);
 		if (handled) {
+			wlr_log(WLR_DEBUG, "keycodes matched");
 			goto out;
 		}
+
+		/* Then fall back to keysyms */
+		for (int i = 0; i < translated.nr_syms; i++) {
+			handled |= handle_keybinding(server, modifiers,
+				translated.syms[i], keycode);
+		}
+		if (handled) {
+			wlr_log(WLR_DEBUG, "translated keysyms matched");
+			goto out;
+		}
+
+		/* And finally test for keysyms without modifier */
 		for (int i = 0; i < raw.nr_syms; i++) {
-			handled |= handle_keybinding(server, modifiers, raw.syms[i]);
+			handled |= handle_keybinding(server, modifiers, raw.syms[i], keycode);
+		}
+		if (handled) {
+			wlr_log(WLR_DEBUG, "raw keysyms matched");
 		}
 	}
 
@@ -413,6 +467,8 @@ keyboard_init(struct seat *seat)
 	}
 	xkb_context_unref(context);
 	wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
+
+	keybind_update_keycodes(seat->server);
 }
 
 void

@@ -57,6 +57,7 @@ reload_config_and_theme(void)
 	regions_reconfigure(g_server);
 	resize_indicator_reconfigure(g_server);
 	kde_server_decoration_update_default();
+	keybind_update_keycodes(g_server);
 }
 
 static int

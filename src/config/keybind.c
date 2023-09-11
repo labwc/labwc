@@ -10,6 +10,7 @@
 #include "common/mem.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
+#include "labwc.h"
 
 uint32_t
 parse_modifier(const char *symname)
@@ -40,6 +41,73 @@ keybind_the_same(struct keybind *a, struct keybind *b)
 		}
 	}
 	return true;
+}
+
+static void
+update_keycodes_iter(struct xkb_keymap *keymap, xkb_keycode_t key, void *data)
+{
+	struct keybind *keybind;
+	const xkb_keysym_t *syms;
+	xkb_layout_index_t layout = *(xkb_layout_index_t *)data;
+	int nr_syms = xkb_keymap_key_get_syms_by_level(keymap, key, layout, 0, &syms);
+	if (!nr_syms) {
+		return;
+	}
+	wl_list_for_each(keybind, &rc.keybinds, link) {
+		if (keybind->keycodes_layout >= 0
+				&& (xkb_layout_index_t)keybind->keycodes_layout != layout) {
+			/* Prevent storing keycodes from multiple layouts */
+			continue;
+		}
+		if (keybind->use_syms_only) {
+			continue;
+		}
+		for (int i = 0; i < nr_syms; i++) {
+			xkb_keysym_t sym = syms[i];
+			for (size_t j = 0; j < keybind->keysyms_len; j++) {
+				if (sym != keybind->keysyms[j]) {
+					continue;
+				}
+				/* Found keycode for sym */
+				if (keybind->keycodes_len == MAX_KEYCODES) {
+					wlr_log(WLR_ERROR,
+						"Already stored %lu keycodes for keybind",
+						keybind->keycodes_len);
+					break;
+				}
+				bool keycode_exists = false;
+				for (size_t k = 0; k < keybind->keycodes_len; k++) {
+					if (keybind->keycodes[k] == key) {
+						keycode_exists = true;
+						break;
+					}
+				}
+				if (keycode_exists) {
+					continue;
+				}
+				keybind->keycodes[keybind->keycodes_len++] = key;
+				keybind->keycodes_layout = layout;
+			}
+		}
+	}
+}
+
+void
+keybind_update_keycodes(struct server *server)
+{
+	struct xkb_state *state = server->seat.keyboard_group->keyboard.xkb_state;
+	struct xkb_keymap *keymap = xkb_state_get_keymap(state);
+
+	struct keybind *keybind;
+	wl_list_for_each(keybind, &rc.keybinds, link) {
+		keybind->keycodes_len = 0;
+		keybind->keycodes_layout = -1;
+	}
+	xkb_layout_index_t layouts = xkb_keymap_num_layouts(keymap);
+	for (xkb_layout_index_t i = 0; i < layouts; i++) {
+		wlr_log(WLR_DEBUG, "Found layout %s", xkb_keymap_layout_get_name(keymap, i));
+		xkb_keymap_key_for_each(keymap, update_keycodes_iter, &i);
+	}
 }
 
 struct keybind *

@@ -94,6 +94,12 @@ Elements at the same level can have the same name whereas attributes cannot.
 Therefore, where multiple objects of the same kind are required (for example
 *<action>* and *<keybind>*) the top-node of the object has to be an element.
 
+## BOOLEANS
+
+Note that in this manual, Boolean values are listed as [yes|no] for simplicity,
+but it's also possible to use [true|false] and\/or [on|off];
+this is for compatibility with Openbox.
+
 ## CORE
 
 ```

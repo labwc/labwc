@@ -33,6 +33,13 @@ buf_expand_shell_variables(struct buf *s)
 				++p;
 			}
 			*p = '\0';
+
+			/* Don't expand single $ (as used by subshells) */
+			if (!strlen(environment_variable.buf)) {
+				buf_add(&new, "$");
+				continue;
+			}
+
 			i += strlen(environment_variable.buf);
 			strip_curly_braces(environment_variable.buf);
 			p = getenv(environment_variable.buf);

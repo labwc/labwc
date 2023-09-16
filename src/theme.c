@@ -117,9 +117,9 @@ load_buttons(struct theme *theme)
 
 		/* Try png icon first */
 		snprintf(filename, sizeof(filename), "%s-active.png", b->name);
-		png_load(filename, b->active.buffer);
+		button_png_load(filename, b->active.buffer);
 		snprintf(filename, sizeof(filename), "%s-inactive.png", b->name);
-		png_load(filename, b->inactive.buffer);
+		button_png_load(filename, b->inactive.buffer);
 
 #if HAVE_RSVG
 		/* Then try svg icon */

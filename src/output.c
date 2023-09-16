@@ -16,6 +16,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/region.h>
 #include <wlr/util/log.h>
+#include "common/array-size.h"
 #include "common/mem.h"
 #include "labwc.h"
 #include "layers.h"
@@ -48,8 +49,7 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 	wl_list_remove(&output->frame.link);
 	wl_list_remove(&output->destroy.link);
 
-	int nr_layers = sizeof(output->layer_tree) / sizeof(output->layer_tree[0]);
-	for (int i = 0; i < nr_layers; i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		wlr_scene_node_destroy(&output->layer_tree[i]->node);
 	}
 	wlr_scene_node_destroy(&output->layer_popup_tree->node);
@@ -186,8 +186,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 	 * Create layer-trees (background, bottom, top and overlay) and
 	 * a layer-popup-tree.
 	 */
-	int nr_layers = sizeof(output->layer_tree) / sizeof(output->layer_tree[0]);
-	for (int i = 0; i < nr_layers; i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		output->layer_tree[i] =
 			wlr_scene_tree_create(&server->scene->tree);
 		node_descriptor_create(&output->layer_tree[i]->node,

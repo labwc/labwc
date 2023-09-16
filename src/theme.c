@@ -19,6 +19,7 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include <strings.h>
+#include "common/array-size.h"
 #include "common/dir.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"
@@ -109,7 +110,7 @@ load_buttons(struct theme *theme)
 	};
 
 	char filename[4096] = {0};
-	for (size_t i = 0; i < sizeof(buttons) / sizeof(buttons[0]); ++i) {
+	for (size_t i = 0; i < ARRAY_SIZE(buttons); ++i) {
 		struct button *b = &buttons[i];
 
 		drop(b->active.buffer);

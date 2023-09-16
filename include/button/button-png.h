@@ -4,6 +4,6 @@
 
 struct lab_data_buffer;
 
-void png_load(const char *button_name, struct lab_data_buffer **buffer);
+void button_png_load(const char *button_name, struct lab_data_buffer **buffer);
 
 #endif /* LABWC_BUTTON_PNG_H */

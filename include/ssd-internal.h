@@ -3,13 +3,14 @@
 #define LABWC_SSD_INTERNAL_H
 
 #include <wlr/util/box.h>
+#include "common/array-size.h"
 #include "ssd.h"
 
 #define FOR_EACH(tmp, ...) \
 { \
 	__typeof__(tmp) _x[] = { __VA_ARGS__, NULL }; \
 	size_t _i = 0; \
-	for ((tmp) = _x[_i]; _i < sizeof(_x) / sizeof(_x[0]) - 1; (tmp) = _x[++_i])
+	for ((tmp) = _x[_i]; _i < ARRAY_SIZE(_x) - 1; (tmp) = _x[++_i])
 
 #define FOR_EACH_END }
 

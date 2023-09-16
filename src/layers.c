@@ -14,6 +14,7 @@
 #include <wayland-server.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/util/log.h>
+#include "common/array-size.h"
 #include "common/list.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
@@ -76,8 +77,7 @@ layers_arrange(struct output *output)
 		return;
 	}
 
-	int nr_layers = sizeof(output->layer_tree) / sizeof(output->layer_tree[0]);
-	for (int i = 0; i < nr_layers; i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		struct wlr_scene_tree *layer = output->layer_tree[i];
 
 		/*

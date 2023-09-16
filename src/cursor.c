@@ -7,6 +7,7 @@
 #include <wlr/types/wlr_primary_selection.h>
 #include <wlr/util/region.h>
 #include "action.h"
+#include "common/array-size.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "config/mousebind.h"
@@ -51,14 +52,12 @@ static const char * const cursors_x11[] = {
 	"left_side"
 };
 
-#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 static_assert(
 	ARRAY_SIZE(cursors_xdg) == LAB_CURSOR_COUNT,
 	"XDG cursor names are out of sync");
 static_assert(
 	ARRAY_SIZE(cursors_x11) == LAB_CURSOR_COUNT,
 	"X11 cursor names are out of sync");
-#undef ARRAY_SIZE
 
 enum lab_cursors
 cursor_get_from_edge(uint32_t resize_edges)

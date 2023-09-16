@@ -105,7 +105,7 @@ set_squared_corners(struct ssd *ssd, bool enable)
 	enum ssd_part_type ssd_type[2] = { LAB_SSD_BUTTON_WINDOW_MENU, LAB_SSD_BUTTON_CLOSE };
 
 	FOR_EACH_STATE(ssd, subtree) {
-		for (size_t i = 0; i < sizeof(ssd_type) / sizeof(ssd_type[0]); i++) {
+		for (size_t i = 0; i < ARRAY_SIZE(ssd_type); i++) {
 			part = ssd_get_part(&subtree->parts, ssd_type[i]);
 			struct ssd_button *button = node_ssd_button_from_node(part->node);
 

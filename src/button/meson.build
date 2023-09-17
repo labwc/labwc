@@ -4,7 +4,7 @@ labwc_sources += files(
   'common.c',
 )
 
-if svg.found()
+if have_rsvg
   labwc_sources += files(
     'button-svg.c',
   )

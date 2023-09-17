@@ -79,7 +79,12 @@ have_xwayland = xcb.found() and wlroots_has_xwayland
 conf_data = configuration_data()
 conf_data.set10('HAVE_XWAYLAND', have_xwayland)
 
-conf_data.set10('HAVE_RSVG', svg.found())
+if get_option('svg').disabled()
+  have_rsvg = false
+else
+  have_rsvg = svg.found()
+endif
+conf_data.set10('HAVE_RSVG', have_rsvg)
 
 msgfmt = find_program('msgfmt', required: get_option('nls'))
 if msgfmt.found()
@@ -109,7 +114,7 @@ labwc_deps = [
   math,
   png,
 ]
-if svg.found()
+if have_rsvg
   labwc_deps += [
     svg,
   ]

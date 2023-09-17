@@ -65,7 +65,6 @@ void ssd_set_active(struct ssd *ssd, bool active);
 void ssd_update_title(struct ssd *ssd);
 void ssd_update_geometry(struct ssd *ssd);
 void ssd_destroy(struct ssd *ssd);
-bool ssd_titlebar_is_hidden(struct ssd *ssd);
 void ssd_titlebar_hide(struct ssd *ssd);
 
 void ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable);

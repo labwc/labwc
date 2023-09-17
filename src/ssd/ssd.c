@@ -21,6 +21,13 @@ ssd_thickness(struct view *view)
 	/*
 	 * Check preconditions for displaying SSD. Note that this
 	 * needs to work even before ssd_create() has been called.
+	 *
+	 * For that reason we are not using the .enabled state of
+	 * the titlebar node here but rather check for the view
+	 * boolean. If we were to use the .enabled state this would
+	 * cause issues on Reconfigure events with views which were
+	 * in border-only deco mode as view->ssd would only be set
+	 * after ssd_create() returns.
 	 */
 	if (!view->ssd_enabled || view->fullscreen) {
 		return (struct border){ 0 };
@@ -30,7 +37,7 @@ ssd_thickness(struct view *view)
 
 	if (view->maximized) {
 		struct border thickness = { 0 };
-		if (!ssd_titlebar_is_hidden(view->ssd)) {
+		if (!view->ssd_titlebar_hidden) {
 			thickness.top += theme->title_height;
 		}
 		return thickness;
@@ -43,7 +50,7 @@ ssd_thickness(struct view *view)
 		.right = theme->border_width,
 	};
 
-	if (ssd_titlebar_is_hidden(view->ssd)) {
+	if (view->ssd_titlebar_hidden) {
 		thickness.top -= theme->title_height;
 	}
 	return thickness;
@@ -177,8 +184,8 @@ ssd_create(struct view *view, bool active)
 	ssd_extents_create(ssd);
 	ssd_border_create(ssd);
 	ssd_titlebar_create(ssd);
-	if (rc.ssd_keep_border && view->ssd_titlebar_hidden) {
-		/* Ensure we keep the old state when exiting fullscreen */
+	if (view->ssd_titlebar_hidden) {
+		/* Ensure we keep the old state on Reconfigure or when exiting fullscreen */
 		ssd_titlebar_hide(ssd);
 	}
 	ssd->margin = ssd_thickness(view);
@@ -229,12 +236,6 @@ ssd_update_geometry(struct ssd *ssd)
 	ssd_border_update(ssd);
 	ssd_titlebar_update(ssd);
 	ssd->state.geometry = current;
-}
-
-bool
-ssd_titlebar_is_hidden(struct ssd *ssd)
-{
-	return ssd && !ssd->titlebar.tree->node.enabled;
 }
 
 void

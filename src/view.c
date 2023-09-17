@@ -740,9 +740,13 @@ view_toggle_decorations(struct view *view)
 {
 	assert(view);
 	if (rc.ssd_keep_border && view->ssd_enabled && view->ssd
-			&& !ssd_titlebar_is_hidden(view->ssd)) {
-		ssd_titlebar_hide(view->ssd);
+			&& !view->ssd_titlebar_hidden) {
+		/*
+		 * ssd_titlebar_hidden has to be set before calling
+		 * ssd_titlebar_hide() to make ssd_thickness() happy.
+		 */
 		view->ssd_titlebar_hidden = true;
+		ssd_titlebar_hide(view->ssd);
 		if (!view_is_floating(view)) {
 			view_apply_special_geometry(view);
 		}

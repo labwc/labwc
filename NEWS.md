@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog]
 
 # Summary of Releases
 
-| Date       | Release notes | wlroots version | lines-of-code |
+| Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
 | 2023-07-14 | [0.6.4]       | 0.16.2          | 13675         |
 | 2023-05-08 | [0.6.3]       | 0.16.2          | 13050         |
@@ -634,17 +634,17 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[0.6.4]: https://github.com/labwc/labwc/releases/tag/0.6.4
-[0.6.3]: https://github.com/labwc/labwc/releases/tag/0.6.3
-[0.6.2]: https://github.com/labwc/labwc/releases/tag/0.6.2
-[0.6.1]: https://github.com/labwc/labwc/releases/tag/0.6.1
-[0.6.0]: https://github.com/labwc/labwc/releases/tag/0.6.0
-[0.5.3]: https://github.com/labwc/labwc/releases/tag/0.5.3
-[0.5.2]: https://github.com/labwc/labwc/releases/tag/0.5.2
-[0.5.1]: https://github.com/labwc/labwc/releases/tag/0.5.1
-[0.5.0]: https://github.com/labwc/labwc/releases/tag/0.5.0
-[0.4.0]: https://github.com/labwc/labwc/releases/tag/0.4.0
-[0.3.0]: https://github.com/labwc/labwc/releases/tag/0.3.0
-[0.2.0]: https://github.com/labwc/labwc/releases/tag/0.2.0
-[0.1.0]: https://github.com/labwc/labwc/releases/tag/0.1.0
+[0.6.4]: https://github.com/labwc/labwc/compare/0.6.3...0.6.4
+[0.6.3]: https://github.com/labwc/labwc/compare/0.6.2...0.6.3
+[0.6.2]: https://github.com/labwc/labwc/compare/0.6.1...0.6.2
+[0.6.1]: https://github.com/labwc/labwc/compare/0.6.0...0.6.1
+[0.6.0]: https://github.com/labwc/labwc/compare/0.5.0...0.6.0
+[0.5.3]: https://github.com/labwc/labwc/compare/0.5.2...0.5.3
+[0.5.2]: https://github.com/labwc/labwc/compare/0.5.1...0.5.2
+[0.5.1]: https://github.com/labwc/labwc/compare/0.5.0...0.5.1
+[0.5.0]: https://github.com/labwc/labwc/compare/0.4.0...0.5.0
+[0.4.0]: https://github.com/labwc/labwc/compare/0.3.0...0.4.0
+[0.3.0]: https://github.com/labwc/labwc/compare/0.2.0...0.3.0
+[0.2.0]: https://github.com/labwc/labwc/compare/0.1.0...0.2.0
+[0.1.0]: https://github.com/labwc/labwc/compare/081339e...0.1.0
 

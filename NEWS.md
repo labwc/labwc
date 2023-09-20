@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2023-09-23 | [0.6.5]       | 0.16.2          | 14809         |
 | 2023-07-14 | [0.6.4]       | 0.16.2          | 13675         |
 | 2023-05-08 | [0.6.3]       | 0.16.2          | 13050         |
 | 2023-03-20 | [0.6.2]       | 0.16.2          | 12157         |
@@ -22,6 +23,83 @@ The format is based on [Keep a Changelog]
 | 2021-06-28 | [0.3.0]       | 0.14.0          | 5051          |
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
+
+## 0.6.5 - 2023-09-23
+
+### Added
+
+- Support png and svg titlebar buttons
+- Support on/off boolean configuration values (in addition to true, false,
+  yes and no). Written-by: @redtide
+- keybinds
+  - Allow non-english based keybinds
+  - Make keybind agnostic to keyboard layout. Fixes #1069
+  - Add optional layoutDependent argument to only trigger if the
+    configured key exists in the currently active keyboard layout.
+    `<keybind key="" layoutDependent="">`
+  - Fallback on raw keysyms (as if there were no pressed modifier) for
+    bindings which do not match against translated keysyms. This allows
+    users to define keybinds such as "S-1" rather than "S-exclam". It also
+    supports "W-S-Tab".  Fixes #163 #365 #992
+- window-rules: add ignoreFocusRequest property
+- config: support libinput `<tapAndDrag>` and `<dragLock>`.
+  Written-by: @tokyo4j
+- Handle keyboard input for menus. Fixes #1058
+- Server-side decoration:
+  - Make corners square on maximize
+  - Disable border on maximize. Fixes #1044
+- Add window resize indicator and associated `<resize><popupShow>` config
+  option
+- Add `<theme><keepBorder>` to give `ToggleDecoration` three states:
+  (1) disable titlebar; (2) disable whole SSD; and (3) enables whole SSD
+  When the keepBorder action is disabled, the old two-state behavior is
+  restored. Fixes #813
+- Minimize whole window hierarchy from top to bottom regardless of which
+  window requested the minimize. For example, if an 'About' or 'Open File'
+  dialog is minimized, its toplevel is minimized also, and vice versa.
+- Move window's stacking order with dialogs so that other window cannot be
+  positioned between them. Also position xdg popups above their parent
+  windows.This is consistent with Gtk3 and Qt5. Fixes #823
+
+### Fixed
+
+- Clarify in labwc-config(5) that keyboard modifiers can be used for
+  mousebinds. Fixes #1075
+- Ensure interactive move/resize ends correctly for CSD clients. Fixes #1053
+- Fix invalid value in `<accelProfile>` falling back as "flat"
+- Fix touch bug to avoid jumping when a touch point moves off of a surface
+  Written-by: @bi4k8
+- Prevent crash with theme setting `osd.window-switcher.width: 0`.
+  Fixes #1050
+- Cancel cursor popup grab on mouse-press outside client itself, for
+  example on any part of the server side decoration or the desktop.
+  Fixes #949
+- Prevent cursor press on layer-subsurface from cancelling popup grab
+  Fixes #1030
+- xwayland: fix client request-unmap bug relating to foreign-toplevel handle
+- xwayland: fix race condition resulting in map view without surface
+- Limit SSD corner radius to the height of the titlebar
+- Fix rounded-corner bug producing weird artefacts when very large border
+  thickness is used. Fixes #988
+- Ensure `string_prop()` handlers deal with destroying views. Fixes #1082
+- Fix SSD thickness calculation bug relating to titlebar. Fixes #1083
+- common/buf.c:
+  - Do not expand `$()` in `buf_expand_shell_variables()`
+  - Do not use memcpy for overlapping regions
+
+### Changed
+
+- Use `identifier` for window-switcher field rather than `app_id` to be
+  consistent with window rules.
+
+      <windowSwitcher>
+        <fields>
+          <field content="identifier" width="25%"/>
+        </fields>
+      </windowSwithcer>
+
+- Do not expand environment variables in `Exec` action `<command>`
+  argument (but still resolve tilde).
 
 ## 0.6.4 - 2023-07-14
 
@@ -634,6 +712,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
+[0.6.5]: https://github.com/labwc/labwc/compare/0.6.4...0.6.5
 [0.6.4]: https://github.com/labwc/labwc/compare/0.6.3...0.6.4
 [0.6.3]: https://github.com/labwc/labwc/compare/0.6.2...0.6.3
 [0.6.2]: https://github.com/labwc/labwc/compare/0.6.1...0.6.2

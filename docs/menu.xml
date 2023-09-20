@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <openbox_menu>
-
+<!-- Note: for localization support of menu items "client-menu" has to be removed here -->
 <menu id="client-menu">
   <item label="Minimize">
     <action name="Iconify" />

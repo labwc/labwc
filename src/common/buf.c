@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <ctype.h>
+#include <stdbool.h>
 #include "common/buf.h"
 #include "common/mem.h"
 
@@ -15,6 +16,12 @@ strip_curly_braces(char *s)
 	s[len] = 0;
 }
 
+static bool
+isvalid(char p)
+{
+	return isalnum(p) || p == '_' || p == '{' || p == '}';
+}
+
 void
 buf_expand_shell_variables(struct buf *s)
 {
@@ -24,12 +31,12 @@ buf_expand_shell_variables(struct buf *s)
 	buf_init(&environment_variable);
 
 	for (int i = 0 ; i < s->len ; i++) {
-		if (s->buf[i] == '$') {
+		if (s->buf[i] == '$' && isvalid(s->buf[i+1])) {
 			/* expand environment variable */
 			environment_variable.len = 0;
 			buf_add(&environment_variable, s->buf + i + 1);
 			char *p = environment_variable.buf;
-			while (isalnum(*p) || *p == '_' || *p == '{' || *p == '}') {
+			while (isvalid(*p)) {
 				++p;
 			}
 			*p = '\0';

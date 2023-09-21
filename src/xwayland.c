@@ -355,8 +355,17 @@ xwayland_view_close(struct view *view)
 static const char *
 xwayland_view_get_string_prop(struct view *view, const char *prop)
 {
-	struct wlr_xwayland_surface *xwayland_surface =
-		xwayland_surface_from_view(view);
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+	struct wlr_xwayland_surface *xwayland_surface = xwayland_view->xwayland_surface;
+	if (!xwayland_surface) {
+		/*
+		 * This may happen due to a matchOnce rule when
+		 * a view is destroyed while A-Tab is open. See
+		 * https://github.com/labwc/labwc/issues/1082#issuecomment-1716137180
+		 */
+		return "";
+	}
+
 	if (!strcmp(prop, "title")) {
 		return xwayland_surface->title;
 	}

@@ -439,7 +439,19 @@ position_xdg_toplevel_view(struct view *view)
 static const char *
 xdg_toplevel_view_get_string_prop(struct view *view, const char *prop)
 {
-	struct wlr_xdg_toplevel *xdg_toplevel = xdg_toplevel_from_view(view);
+	struct xdg_toplevel_view *xdg_view = xdg_toplevel_view_from_view(view);
+	struct wlr_xdg_toplevel *xdg_toplevel = xdg_view->xdg_surface
+		? xdg_view->xdg_surface->toplevel
+		: NULL;
+	if (!xdg_toplevel) {
+		/*
+		 * This may happen due to a matchOnce rule when
+		 * a view is destroyed while A-Tab is open. See
+		 * https://github.com/labwc/labwc/issues/1082#issuecomment-1716137180
+		 */
+		return "";
+	}
+
 	if (!strcmp(prop, "title")) {
 		return xdg_toplevel->title;
 	}

@@ -38,6 +38,7 @@ process_line(char *line)
 	buf_init(&value);
 	buf_add(&value, string_strip(++p));
 	buf_expand_shell_variables(&value);
+	buf_expand_tilde(&value);
 	if (string_empty(key) || !value.len) {
 		goto error;
 	}

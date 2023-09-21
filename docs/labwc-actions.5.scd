@@ -19,6 +19,7 @@ Actions are used in menus and keyboard/mouse bindings.
 	Execute command.  Note that in the interest of backward compatibility,
 	labwc supports <execute> as an alternative to <command> even though
 	openbox documentation states that it is deprecated.
+	Note: Tilde (~) is expanded in the command before passing to execvp()
 
 *<action name="Exit" />*
 	Exit labwc.

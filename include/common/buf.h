@@ -19,7 +19,13 @@ struct buf {
 };
 
 /**
- * buf_expand_shell_variables - expand $foo, ${foo} and ~ in buffer
+ * buf_expand_tilde - expand ~ in buffer
+ * @s: buffer
+ */
+void buf_expand_tilde(struct buf *s);
+
+/**
+ * buf_expand_shell_variables - expand $foo and ${foo} in buffer
  * @s: buffer
  * Note: $$ is not handled
  */

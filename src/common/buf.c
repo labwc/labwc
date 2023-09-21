@@ -5,6 +5,35 @@
 #include "common/mem.h"
 
 static void
+buf_add_one_char(struct buf *s, char ch)
+{
+	if (s->alloc <= s->len + 1) {
+		s->alloc = s->alloc * 3 / 2 + 16;
+		s->buf = xrealloc(s->buf, s->alloc);
+	}
+	s->buf[s->len++] = ch;
+	s->buf[s->len] = '\0';
+}
+
+void
+buf_expand_tilde(struct buf *s)
+{
+	struct buf new;
+	buf_init(&new);
+	for (int i = 0 ; i < s->len ; i++) {
+		if (s->buf[i] == '~') {
+			buf_add(&new, getenv("HOME"));
+		} else {
+			buf_add_one_char(&new, s->buf[i]);
+		}
+	}
+	free(s->buf);
+	s->buf = new.buf;
+	s->len = new.len;
+	s->alloc = new.alloc;
+}
+
+static void
 strip_curly_braces(char *s)
 {
 	size_t len = strlen(s);
@@ -46,22 +75,15 @@ buf_expand_shell_variables(struct buf *s)
 			if (p) {
 				buf_add(&new, p);
 			}
-		} else if (s->buf[i] == '~') {
-			/* expand tilde */
-			buf_add(&new, getenv("HOME"));
 		} else {
-			/* just add one character at a time */
-			if (new.alloc <= new.len + 1) {
-				new.alloc = new.alloc * 3 / 2 + 16;
-				new.buf = xrealloc(new.buf, new.alloc);
-			}
-			new.buf[new.len++] = s->buf[i];
-			new.buf[new.len] = '\0';
+			buf_add_one_char(&new, s->buf[i]);
 		}
 	}
 	free(environment_variable.buf);
 	free(s->buf);
 	s->buf = new.buf;
+	s->len = new.len;
+	s->alloc = new.alloc;
 }
 
 void

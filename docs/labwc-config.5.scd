@@ -32,6 +32,8 @@ variables accordingly. It is recommended to specify keyboard layout settings and
 cursor size/theme here; see environment variable section below for details. Note
 that the environment file is treated differently by openbox where it is simply
 sourced prior to running openbox.
+Note: Tilde (~) and environment variables in the value are expanded, but
+subshell syntax and apostrophes are ignored.
 
 The *menu.xml* file defines the context/root-menus and is described in
 labwc-menu(5).

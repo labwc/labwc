@@ -564,7 +564,7 @@ actions_run(struct view *activator, struct server *server,
 				struct buf cmd;
 				buf_init(&cmd);
 				buf_add(&cmd, action_str_from_arg(arg));
-				buf_expand_shell_variables(&cmd);
+				buf_expand_tilde(&cmd);
 				spawn_async_no_shell(cmd.buf);
 				free(cmd.buf);
 			}

@@ -68,6 +68,10 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 			view_on_output_destroy(view);
 		}
 	}
+	/*
+	 * output->scene_output (if still around at this point) is
+	 * destroyed automatically when the wlr_output is destroyed
+	 */
 	free(output);
 }
 
@@ -115,6 +119,30 @@ static bool
 can_reuse_mode(struct wlr_output *wlr_output)
 {
 	return wlr_output->current_mode && wlr_output_test(wlr_output);
+}
+
+static void
+add_output_to_layout(struct server *server, struct output *output)
+{
+	struct wlr_output *wlr_output = output->wlr_output;
+	struct wlr_output_layout_output *layout_output =
+		wlr_output_layout_add_auto(server->output_layout, wlr_output);
+	if (!layout_output) {
+		wlr_log(WLR_ERROR, "unable to add output to layout");
+		return;
+	}
+
+	if (!output->scene_output) {
+		output->scene_output =
+			wlr_scene_output_create(server->scene, wlr_output);
+		if (!output->scene_output) {
+			wlr_log(WLR_ERROR, "unable to create scene output");
+			return;
+		}
+	}
+
+	wlr_scene_output_layout_add_output(server->scene_layout, layout_output,
+		output->scene_output);
 }
 
 static void
@@ -269,9 +297,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 	 */
 	server->pending_output_layout_change++;
 
-	wlr_output_layout_add_auto(server->output_layout, wlr_output);
-	output->scene_output = wlr_scene_get_scene_output(server->scene, wlr_output);
-	assert(output->scene_output);
+	add_output_to_layout(server, output);
 
 	/* Create regions from config */
 	regions_reconfigure_output(output);
@@ -299,7 +325,12 @@ output_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create output layout");
 		exit(EXIT_FAILURE);
 	}
-	wlr_scene_attach_output_layout(server->scene, server->output_layout);
+	server->scene_layout = wlr_scene_attach_output_layout(server->scene,
+		server->output_layout);
+	if (!server->scene_layout) {
+		wlr_log(WLR_ERROR, "unable to create scene layout");
+		exit(EXIT_FAILURE);
+	}
 
 	/* Enable screen recording with wf-recorder */
 	wlr_xdg_output_manager_v1_create(server->wl_display,
@@ -362,10 +393,7 @@ output_config_apply(struct server *server,
 
 		/* Only do Layout specific actions if the commit went trough */
 		if (need_to_add) {
-			wlr_output_layout_add_auto(server->output_layout, o);
-			output->scene_output =
-				wlr_scene_get_scene_output(server->scene, o);
-			assert(output->scene_output);
+			add_output_to_layout(server, output);
 		}
 
 		if (output_enabled) {
@@ -384,6 +412,15 @@ output_config_apply(struct server *server,
 
 		if (need_to_remove) {
 			regions_evacuate_output(output);
+			/*
+			 * At time of writing, wlr_output_layout_remove()
+			 * indirectly destroys the wlr_scene_output, but
+			 * this behavior may change in future. To remove
+			 * doubt and avoid either a leak or double-free,
+			 * explicitly destroy the wlr_scene_output before
+			 * calling wlr_output_layout_remove().
+			 */
+			wlr_scene_output_destroy(output->scene_output);
 			wlr_output_layout_remove(server->output_layout, o);
 			output->scene_output = NULL;
 		}

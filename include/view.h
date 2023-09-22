@@ -37,6 +37,17 @@ enum view_edge {
 };
 
 struct view;
+
+/* Basic size hints (subset of XSizeHints from X11) */
+struct view_size_hints {
+	int min_width;
+	int min_height;
+	int width_inc;
+	int height_inc;
+	int base_width;
+	int base_height;
+};
+
 struct view_impl {
 	void (*configure)(struct view *view, struct wlr_box geo);
 	void (*close)(struct view *view);
@@ -57,7 +68,7 @@ struct view_impl {
 	void (*move_to_back)(struct view *view);
 	struct view *(*get_root)(struct view *self);
 	void (*append_children)(struct view *self, struct wl_array *children);
-	void (*fill_size_hints)(struct view *self, struct wlr_box *box);
+	struct view_size_hints (*get_size_hints)(struct view *self);
 };
 
 struct view {
@@ -306,6 +317,7 @@ void view_update_title(struct view *view);
 void view_update_app_id(struct view *view);
 void view_reload_ssd(struct view *view);
 
+struct view_size_hints view_get_size_hints(struct view *view);
 void view_adjust_size(struct view *view, int *w, int *h);
 
 void view_evacuate_region(struct view *view);

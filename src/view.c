@@ -296,20 +296,68 @@ view_move_relative(struct view *view, int x, int y)
 	view_move(view, view->pending.x + x, view->pending.y + y);
 }
 
+struct view_size_hints
+view_get_size_hints(struct view *view)
+{
+	if (view->impl->get_size_hints) {
+		return view->impl->get_size_hints(view);
+	}
+	return (struct view_size_hints){0};
+}
+
+static void
+substitute_nonzero(int *a, int *b)
+{
+	if (!(*a)) {
+		*a = *b;
+	} else if (!(*b)) {
+		*b = *a;
+	}
+}
+
+static int
+round_to_increment(int val, int base, int inc)
+{
+	if (base < 0 || inc <= 0) {
+		return val;
+	}
+	return base + (val - base + inc / 2) / inc * inc;
+}
+
 void
 view_adjust_size(struct view *view, int *w, int *h)
 {
 	assert(view);
+	struct view_size_hints hints = view_get_size_hints(view);
 
-#if HAVE_XWAYLAND
-	if (xwayland_apply_size_hints(view, w, h)) {
-		/* We don't want to cap the size to keep the aspect ratio */
-		return;
+	/*
+	 * "If a base size is not provided, the minimum size is to be
+	 * used in its place and vice versa." (ICCCM 4.1.2.3)
+	 */
+	substitute_nonzero(&hints.min_width, &hints.base_width);
+	substitute_nonzero(&hints.min_height, &hints.base_height);
+
+	/*
+	 * Snap width/height to requested size increments (if any).
+	 * Typically, terminal emulators use these to make sure that the
+	 * terminal is resized to a width/height evenly divisible by the
+	 * cell (character) size.
+	 */
+	*w = round_to_increment(*w, hints.base_width, hints.width_inc);
+	*h = round_to_increment(*h, hints.base_height, hints.height_inc);
+
+	/*
+	 * If a minimum width/height was not set, then use default.
+	 * This is currently always the case for xdg-shell views.
+	 */
+	if (hints.min_width < 1) {
+		hints.min_width = LAB_MIN_VIEW_WIDTH;
 	}
-#endif
-
-	*w = MAX(*w, LAB_MIN_VIEW_WIDTH);
-	*h = MAX(*h, LAB_MIN_VIEW_HEIGHT);
+	if (hints.min_height < 1) {
+		hints.min_height = LAB_MIN_VIEW_HEIGHT;
+	}
+	*w = MAX(*w, hints.min_width);
+	*h = MAX(*h, hints.min_height);
 }
 
 static void

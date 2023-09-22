@@ -13,56 +13,21 @@
 #include "workspaces.h"
 #include "xwayland.h"
 
-static int
-round_to_increment(int val, int base, int inc)
+static struct view_size_hints
+xwayland_view_get_size_hints(struct view *view)
 {
-	if (base < 0 || inc <= 0) {
-		return val;
+	xcb_size_hints_t *hints = xwayland_surface_from_view(view)->size_hints;
+	if (!hints) {
+		return (struct view_size_hints){0};
 	}
-	return base + (val - base + inc / 2) / inc * inc;
-}
-
-bool
-xwayland_apply_size_hints(struct view *view, int *w, int *h)
-{
-	assert(view);
-	if (view->type == LAB_XWAYLAND_VIEW) {
-		xcb_size_hints_t *hints =
-			xwayland_surface_from_view(view)->size_hints;
-
-		/*
-		 * Honor size increments from WM_SIZE_HINTS. Typically, X11
-		 * terminal emulators will use WM_SIZE_HINTS to make sure that
-		 * the terminal is resized to a width/height evenly divisible by
-		 * the cell (character) size.
-		 */
-		if (hints) {
-			*w = round_to_increment(*w, hints->base_width,
-				hints->width_inc);
-			*h = round_to_increment(*h, hints->base_height,
-				hints->height_inc);
-
-			*w = MAX(*w, MAX(1, hints->min_width));
-			*h = MAX(*h, MAX(1, hints->min_height));
-			return true;
-		}
-	}
-	return false;
-}
-
-static void
-xwayland_view_fill_size_hints(struct view *view, struct wlr_box *box)
-{
-	if (view->type == LAB_XWAYLAND_VIEW) {
-		xcb_size_hints_t *hints = xwayland_surface_from_view(view)->size_hints;
-		if (hints) {
-			box->width = hints->width_inc;
-			box->height = hints->height_inc;
-			return;
-		}
-	}
-	box->width = 0;
-	box->height = 0;
+	return (struct view_size_hints){
+		.min_width = hints->min_width,
+		.min_height = hints->min_height,
+		.width_inc = hints->width_inc,
+		.height_inc = hints->height_inc,
+		.base_width = hints->base_width,
+		.base_height = hints->base_height,
+	};
 }
 
 static struct wlr_xwayland_surface *
@@ -669,7 +634,7 @@ static const struct view_impl xwayland_view_impl = {
 	.move_to_back = xwayland_view_move_to_back,
 	.get_root = xwayland_view_get_root,
 	.append_children = xwayland_view_append_children,
-	.fill_size_hints = xwayland_view_fill_size_hints,
+	.get_size_hints = xwayland_view_get_size_hints,
 };
 
 void

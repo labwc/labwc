@@ -49,18 +49,6 @@ resize_indicator_init(struct view *view)
 	resize_indicator_reconfigure_view(indicator);
 }
 
-static struct wlr_box
-get_size_hints(struct view *view)
-{
-	assert(view);
-
-	struct wlr_box hints = { 0 };
-	if (view->impl->fill_size_hints) {
-		view->impl->fill_size_hints(view, &hints);
-	}
-	return hints;
-}
-
 static bool
 wants_indicator(struct view *view)
 {
@@ -70,8 +58,8 @@ wants_indicator(struct view *view)
 		if (view->server->input_mode != LAB_INPUT_STATE_RESIZE) {
 			return false;
 		}
-		struct wlr_box size_hints = get_size_hints(view);
-		if (size_hints.width && size_hints.height) {
+		struct view_size_hints hints = view_get_size_hints(view);
+		if (hints.width_inc && hints.height_inc) {
 			return true;
 		}
 	}
@@ -173,10 +161,12 @@ resize_indicator_update(struct view *view)
 	switch (view->server->input_mode) {
 	case LAB_INPUT_STATE_RESIZE:
 		; /* works around "a label can only be part of a statement" */
-		struct wlr_box size_hints = get_size_hints(view);
+		struct view_size_hints hints = view_get_size_hints(view);
 		snprintf(text, sizeof(text), "%d x %d",
-			view->current.width / MAX(1, size_hints.width),
-			view->current.height / MAX(1, size_hints.height));
+			MAX(0, view->current.width - hints.base_width)
+				/ MAX(1, hints.width_inc),
+			MAX(0, view->current.height - hints.base_height)
+				/ MAX(1, hints.height_inc));
 		break;
 	case LAB_INPUT_STATE_MOVE:
 		; /* works around "a label can only be part of a statement" */

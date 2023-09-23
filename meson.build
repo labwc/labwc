@@ -130,6 +130,11 @@ subdir('include')
 subdir('src')
 subdir('docs')
 
+dep_cmocka = dependency('cmocka', required: get_option('test'))
+if dep_cmocka.found()
+  subdir('t')
+endif
+
 executable(
   meson.project_name(),
   labwc_sources,

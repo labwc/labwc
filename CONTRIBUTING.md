@@ -225,6 +225,16 @@ We have a very small, modest API and encourage you to use it.
 
 3. `wl_list_append()` to add elements at end of lists - [common/list.h]
 
+4. `wl_array_len()` to get number of elements in a `wl_array` [common/array.h]
+
+5. `ARRAY_SIZE()` to get number of elements in visible array
+   [common/array-size.h]
+
+[common/mem.h]: https://github.com/labwc/labwc/blob/master/include/common/mem.h
+[common/list.h]: https://github.com/labwc/labwc/blob/master/include/common/list.h
+[common/array.h]: https://github.com/labwc/labwc/blob/master/include/common/array.h
+[common/array-size.h]: https://github.com/labwc/labwc/blob/master/include/common/array-size.h
+
 ### The Use of glib
 
 We try to keep the use of glib pretty minimal for the following reasons:
@@ -375,8 +385,6 @@ follow the steps to be taken:
 [Drew Devault's preferred coding style]: https://git.sr.ht/~sircmpwn/cstyle
 [Linux kernel coding style]: https://www.kernel.org/doc/html/v4.10/process/coding-style.html
 [kernel-doc format]: https://docs.kernel.org/doc-guide/kernel-doc.html
-[common/mem.h]: https://github.com/labwc/labwc/blob/master/include/common/mem.h
-[common/list.h]: https://github.com/labwc/labwc/blob/master/include/common/list.h
 [commit messages]: https://gitlab.freedesktop.org/wlroots/wlroots/-/blob/master/CONTRIBUTING.md#commit-messages 
 [GNU C extensions]: https://gcc.gnu.org/onlinedocs/gcc/C-Extensions.html
 [`wl_container_of()`]: https://github.com/wayland-project/wayland/blob/985ab55d59db45ea62795c76dff5949343e86b2f/src/wayland-util.h#L409

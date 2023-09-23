@@ -88,7 +88,7 @@ focus_next_surface(struct server *server, struct wlr_xwayland_surface *xsurface)
 	 * to the topmost mapped view. This fixes dmenu
 	 * not giving focus back when closed with ESC.
 	 */
-	desktop_focus_topmost_mapped_view(server);
+	desktop_focus_topmost_view(server);
 }
 
 static void
@@ -166,7 +166,7 @@ unmanaged_handle_request_activate(struct wl_listener *listener, void *data)
 	 * Validate that the unmanaged surface trying to grab focus is actually
 	 * a child of the topmost mapped view before granting the request.
 	 */
-	struct view *view = desktop_topmost_mapped_view(server);
+	struct view *view = desktop_topmost_focusable_view(server);
 	if (view && view->type == LAB_XWAYLAND_VIEW) {
 		struct wlr_xwayland_surface *surf =
 			wlr_xwayland_surface_from_wlr_surface(view->surface);

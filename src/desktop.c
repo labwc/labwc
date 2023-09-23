@@ -190,7 +190,7 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 }
 
 struct view *
-desktop_topmost_mapped_view(struct server *server)
+desktop_topmost_focusable_view(struct server *server)
 {
 	struct view *view;
 	struct wl_list *node_list;
@@ -202,7 +202,7 @@ desktop_topmost_mapped_view(struct server *server)
 			continue;
 		}
 		view = node_view_from_node(node);
-		if (view->mapped) {
+		if (view->mapped && view_isfocusable(view)) {
 			return view;
 		}
 	}
@@ -210,9 +210,9 @@ desktop_topmost_mapped_view(struct server *server)
 }
 
 void
-desktop_focus_topmost_mapped_view(struct server *server)
+desktop_focus_topmost_view(struct server *server)
 {
-	struct view *view = desktop_topmost_mapped_view(server);
+	struct view *view = desktop_topmost_focusable_view(server);
 	if (view) {
 		desktop_focus_view(view, /*raise*/ true);
 	} else {

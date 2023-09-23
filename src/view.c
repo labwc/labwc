@@ -115,6 +115,9 @@ view_isfocusable(struct view *view)
 	if (!view->surface) {
 		return false;
 	}
+	if (view->impl->wants_focus && !view->impl->wants_focus(view)) {
+		return false;
+	}
 	return (view->mapped || view->minimized);
 }
 

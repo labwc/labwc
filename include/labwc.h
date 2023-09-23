@@ -378,7 +378,7 @@ void foreign_toplevel_update_outputs(struct view *view);
 void desktop_focus_view(struct view *view, bool raise);
 void desktop_arrange_all_views(struct server *server);
 void desktop_focus_output(struct output *output);
-struct view *desktop_topmost_mapped_view(struct server *server);
+struct view *desktop_topmost_focusable_view(struct server *server);
 
 enum lab_cycle_dir {
 	LAB_CYCLE_DIR_NONE,
@@ -393,7 +393,7 @@ enum lab_cycle_dir {
  */
 struct view *desktop_cycle_view(struct server *server, struct view *start_view,
 	enum lab_cycle_dir dir);
-void desktop_focus_topmost_mapped_view(struct server *server);
+void desktop_focus_topmost_view(struct server *server);
 
 void keyboard_cancel_keybind_repeat(struct keyboard *keyboard);
 void keyboard_key_notify(struct wl_listener *listener, void *data);

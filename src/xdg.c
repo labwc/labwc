@@ -554,7 +554,7 @@ xdg_toplevel_view_unmap(struct view *view, bool client_request)
 		view->mapped = false;
 		wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 		wl_list_remove(&view->commit.link);
-		desktop_focus_topmost_mapped_view(view->server);
+		desktop_focus_topmost_view(view->server);
 	}
 }
 

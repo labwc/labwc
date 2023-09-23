@@ -69,6 +69,8 @@ struct view_impl {
 	struct view *(*get_root)(struct view *self);
 	void (*append_children)(struct view *self, struct wl_array *children);
 	struct view_size_hints (*get_size_hints)(struct view *self);
+	/* if not implemented, view is assumed to want focus */
+	bool (*wants_focus)(struct view *self);
 };
 
 struct view {

@@ -227,7 +227,7 @@ handle_unlock(struct wl_listener *listener, void *data)
 {
 	struct session_lock *lock = wl_container_of(listener, lock, unlock);
 	session_lock_destroy(lock);
-	desktop_focus_topmost_mapped_view(g_server);
+	desktop_focus_topmost_view(g_server);
 }
 
 static void

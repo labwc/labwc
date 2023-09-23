@@ -30,6 +30,16 @@ xwayland_view_get_size_hints(struct view *view)
 	};
 }
 
+static bool
+xwayland_view_wants_focus(struct view *view)
+{
+	xcb_icccm_wm_hints_t *hints = xwayland_surface_from_view(view)->hints;
+	if (!hints) {
+		return true;
+	}
+	return (bool)hints->input;
+}
+
 static struct wlr_xwayland_surface *
 top_parent_of(struct view *view)
 {
@@ -505,7 +515,7 @@ xwayland_view_unmap(struct view *view, bool client_request)
 	view->mapped = false;
 	wl_list_remove(&view->commit.link);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
-	desktop_focus_topmost_mapped_view(view->server);
+	desktop_focus_topmost_view(view->server);
 
 	/*
 	 * If the view was explicitly unmapped by the client (rather
@@ -634,6 +644,7 @@ static const struct view_impl xwayland_view_impl = {
 	.get_root = xwayland_view_get_root,
 	.append_children = xwayland_view_append_children,
 	.get_size_hints = xwayland_view_get_size_hints,
+	.wants_focus = xwayland_view_wants_focus,
 };
 
 void

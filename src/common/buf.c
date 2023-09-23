@@ -41,7 +41,7 @@ strip_curly_braces(char *s)
 		return;
 	}
 	len -= 2;
-	memcpy(s, s + 1, len);
+	memmove(s, s + 1, len);
 	s[len] = 0;
 }
 

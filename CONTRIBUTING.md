@@ -357,15 +357,16 @@ follow the steps to be taken:
 1. If appropriate, update `revision` in `subprojects/wlroots.wrap` and run
    `git commit -m 'wlroots.wrap: use A.B.C'`
 2. Update `NEWS.md` with the release details and run
-   `git commit -m 'NEWS.md: update notes on X.Y.Z'`
+   `git commit -m 'NEWS.md: update notes for X.Y.Z'`
+   Note: If new dependencies are needed, make this clear.
 3. In `meson.build` update the version and (if required) the wlroots
    dependency version. Then run `git commit -m 'build: bump version to X.Y.Z'`
 4. Run `git tag -a X.Y.Z`. The first line of the commit message should be
    "labwc X.Y.Z" and the body should be the `NEWS.md` additions removing
    hash characters (#) from the headings as these will otherwise be
    ignored by git.
-5. On github, create a 'Release' as some distros use this as a trigger
-6. Re-build labwc.github.io man pages
+5. On github, create a 'Release' as some distros use this as a trigger. Set it
+   as 'latest release'.
 
 [scope document]: https://github.com/labwc/labwc-scope#readme
 [`wlroots/docs/env_vars.md`]: https://gitlab.freedesktop.org/wlroots/wlroots/-/blob/master/docs/env_vars.md

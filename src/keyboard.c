@@ -41,8 +41,8 @@ keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard)
 static void
 end_cycling(struct server *server)
 {
-	desktop_focus_and_activate_view(&server->seat, server->osd_state.cycle_view);
 	if (server->osd_state.cycle_view) {
+		desktop_focus_view(server->osd_state.cycle_view);
 		view_move_to_front(server->osd_state.cycle_view);
 	}
 

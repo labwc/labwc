@@ -257,7 +257,8 @@ bool view_isfocusable(struct view *view);
 bool view_inhibits_keybinds(struct view *view);
 void view_toggle_keybinds(struct view *view);
 
-void view_set_activated(struct view *view);
+void view_focus(struct view *view);
+void view_defocus(struct view *view);
 void view_set_output(struct view *view, struct output *output);
 void view_close(struct view *view);
 

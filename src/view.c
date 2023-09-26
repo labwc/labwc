@@ -85,7 +85,7 @@ view_matches_query(struct view *view, struct view_query *query)
 static bool
 matches_criteria(struct view *view, enum lab_view_criteria criteria)
 {
-	if (!view_isfocusable(view)) {
+	if (!view_is_focusable(view)) {
 		return false;
 	}
 	if (criteria & LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
@@ -144,8 +144,9 @@ view_array_append(struct server *server, struct wl_array *views,
 }
 
 bool
-view_isfocusable(struct view *view)
+view_is_focusable(struct view *view)
 {
+	assert(view);
 	if (!view->surface) {
 		return false;
 	}
@@ -322,6 +323,7 @@ view_move_resize(struct view *view, struct wlr_box geo)
 void
 view_resize_relative(struct view *view, int left, int right, int top, int bottom)
 {
+	assert(view);
 	if (view->fullscreen || view->maximized) {
 		return;
 	}
@@ -337,6 +339,7 @@ view_resize_relative(struct view *view, int left, int right, int top, int bottom
 void
 view_move_relative(struct view *view, int x, int y)
 {
+	assert(view);
 	if (view->fullscreen) {
 		return;
 	}
@@ -351,6 +354,7 @@ view_move_relative(struct view *view, int x, int y)
 struct view_size_hints
 view_get_size_hints(struct view *view)
 {
+	assert(view);
 	if (view->impl->get_size_hints) {
 		return view->impl->get_size_hints(view);
 	}
@@ -458,6 +462,7 @@ minimize_sub_views(struct view *view, bool minimized)
 void
 view_minimize(struct view *view, bool minimized)
 {
+	assert(view);
 	/*
 	 * Minimize the root window first because some xwayland clients send a
 	 * request-unmap to sub-windows at this point (for example gimp and its
@@ -765,14 +770,16 @@ view_restore_to(struct view *view, struct wlr_box geometry)
 bool
 view_is_tiled(struct view *view)
 {
-	return view && (view->tiled || view->tiled_region
+	assert(view);
+	return (view->tiled || view->tiled_region
 		|| view->tiled_region_evacuate);
 }
 
 bool
 view_is_floating(struct view *view)
 {
-	return view && !(view->fullscreen || view->maximized || view->tiled
+	assert(view);
+	return !(view->fullscreen || view->maximized || view->tiled
 		|| view->tiled_region || view->tiled_region_evacuate);
 }
 
@@ -1323,34 +1330,21 @@ view_reload_ssd(struct view *view)
 	}
 }
 
-static void
-inhibit_keybinds(struct view *view, bool inhibit)
+void
+view_toggle_keybinds(struct view *view)
 {
-	assert(view->inhibits_keybinds != inhibit);
-
-	view->inhibits_keybinds = inhibit;
-	if (inhibit) {
+	assert(view);
+	view->inhibits_keybinds = !view->inhibits_keybinds;
+	if (view->inhibits_keybinds) {
 		view->server->seat.nr_inhibited_keybind_views++;
 	} else {
 		view->server->seat.nr_inhibited_keybind_views--;
 	}
 
 	if (view->ssd_enabled) {
-		ssd_enable_keybind_inhibit_indicator(view->ssd, inhibit);
+		ssd_enable_keybind_inhibit_indicator(view->ssd,
+			view->inhibits_keybinds);
 	}
-}
-
-bool
-view_inhibits_keybinds(struct view *view)
-{
-	return view && view->inhibits_keybinds;
-}
-
-void
-view_toggle_keybinds(struct view *view)
-{
-	assert(view);
-	inhibit_keybinds(view, !view->inhibits_keybinds);
 }
 
 void

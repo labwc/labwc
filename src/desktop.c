@@ -114,7 +114,7 @@ first_view(struct server *server)
 			continue;
 		}
 		struct view *view = node_view_from_node(node);
-		if (view_isfocusable(view)) {
+		if (view_is_focusable(view)) {
 			return view;
 		}
 	}
@@ -186,7 +186,7 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 		view = node_view_from_node(node);
 
 		enum property skip = window_rules_get_property(view, "skipWindowSwitcher");
-		if (view_isfocusable(view) && skip != LAB_PROP_TRUE) {
+		if (view_is_focusable(view) && skip != LAB_PROP_TRUE) {
 			return view;
 		}
 	} while (view != start_view);
@@ -208,7 +208,7 @@ desktop_topmost_focusable_view(struct server *server)
 			continue;
 		}
 		view = node_view_from_node(node);
-		if (view->mapped && view_isfocusable(view)) {
+		if (view->mapped && view_is_focusable(view)) {
 			return view;
 		}
 	}
@@ -247,7 +247,7 @@ desktop_focus_output(struct output *output)
 			continue;
 		}
 		view = node_view_from_node(node);
-		if (!view_isfocusable(view)) {
+		if (!view_is_focusable(view)) {
 			continue;
 		}
 		if (wlr_output_layout_intersects(layout,

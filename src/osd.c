@@ -479,7 +479,7 @@ osd_update(struct server *server)
 
 	/* Outline current window */
 	if (rc.window_switcher.outlines) {
-		if (view_isfocusable(server->osd_state.cycle_view)) {
+		if (view_is_focusable(server->osd_state.cycle_view)) {
 			osd_update_preview_outlines(server->osd_state.cycle_view);
 		}
 	}

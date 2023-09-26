@@ -203,8 +203,34 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 
 	bool handled = false;
 
-	key_state_set_pressed(event->keycode,
-		event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
+	/*
+	 * keyboard_key_notify() is called before keyboard_key_modifier(), so
+	 * 'modifiers' refers to modifiers that were pressed before the key
+	 * event in hand. Consequently, we use is_modifier_key() to find out if
+	 * the key event being processed is a modifier.
+	 *
+	 * Sway solves this differently by saving the 'modifiers' state and
+	 * checking if it has changed each time we get to the equivalent of this
+	 * function. If it has changed, it concludes that the last key was a
+	 * modifier and then deletes it from the buffer of pressed keycodes.
+	 * For us the equivalent would look something like this:
+	 *
+	 * static uint32_t last_modifiers;
+	 * bool last_key_was_a_modifier = last_modifiers != modifiers;
+	 * last_modifiers = modifiers;
+	 * if (last_key_was_a_modifier) {
+	 *	key_state_remove_last_pressed_key(last_pressed_keycode);
+	 * }
+	 */
+
+	bool ismodifier = false;
+	for (int i = 0; i < translated.nr_syms; i++) {
+		ismodifier |= is_modifier_key(translated.syms[i]);
+	}
+	if (!ismodifier) {
+		key_state_set_pressed(event->keycode,
+			event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
+	}
 
 	/*
 	 * Ignore labwc keybindings if input is inhibited
@@ -293,13 +319,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 
 			/* cycle to next */
 			bool backwards = modifiers & WLR_MODIFIER_SHIFT;
-			/* ignore if this is a modifier key being pressed */
-			bool ignore = false;
-			for (int i = 0; i < translated.nr_syms; i++) {
-				ignore |= is_modifier_key(translated.syms[i]);
-			}
-
-			if (!ignore) {
+			if (!ismodifier) {
 				enum lab_cycle_dir dir = backwards
 					? LAB_CYCLE_DIR_BACKWARD
 					: LAB_CYCLE_DIR_FORWARD;
@@ -311,6 +331,19 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		/* don't send any key events to clients when osd onscreen */
 		handled = true;
 		goto out;
+	}
+
+	/*
+	 * A keybind is not considered valid if other keys are pressed at the
+	 * same time.
+	 *
+	 * In labwc, a keybind is defined by one/many modifier keys + _one_
+	 * non-modifier key. Returning early on >1 pressed non-modifier keys
+	 * avoids false positive matches where 'other' keys were pressed at the
+	 * same time.
+	 */
+	if (key_state_nr_pressed_keys() > 1) {
+		return false;
 	}
 
 	/*

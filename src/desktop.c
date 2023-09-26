@@ -69,16 +69,7 @@ desktop_focus_and_activate_view(struct seat *seat, struct view *view)
 		return;
 	}
 
-	struct wlr_surface *prev_surface;
-	prev_surface = seat->seat->keyboard_state.focused_surface;
-
-	/* Do not re-focus an already focused surface. */
-	if (prev_surface == view->surface) {
-		return;
-	}
-
-	view_set_activated(view);
-	seat_focus_surface(seat, view->surface);
+	view_set_focused(view, true);
 }
 
 static struct wl_list *

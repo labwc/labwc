@@ -187,19 +187,46 @@ _view_set_activated(struct view *view, bool activated)
 	}
 }
 
+/*
+ * Gives or removes keyboard focus to/from the view and updates the
+ * view's "activated" state to match.
+ */
 void
-view_set_activated(struct view *view)
+view_set_focused(struct view *view, bool focused)
 {
 	assert(view);
-	struct view *last = view->server->focused_view;
-	if (last == view) {
-		return;
+	struct seat *seat = &view->server->seat;
+	struct view *focused_view = view->server->focused_view;
+	struct wlr_surface *focused_surface =
+		seat->seat->keyboard_state.focused_surface;
+
+	/*
+	 * Here we assume that server->focused_view is the only view in
+	 * the "activated" state. We do NOT assume that focused_view is
+	 * necessarily in sync with focused_surface, since keyboard
+	 * focus can be updated independently for various reasons
+	 * (screen lockers, unmanaged XWayland surfaces, etc.)
+	 */
+	if (focused) {
+		if (view != focused_view) {
+			if (focused_view) {
+				_view_set_activated(focused_view, false);
+			}
+			_view_set_activated(view, true);
+			view->server->focused_view = view;
+		}
+		if (view->surface != focused_surface) {
+			seat_focus_surface(seat, view->surface);
+		}
+	} else {
+		if (view == focused_view) {
+			_view_set_activated(view, false);
+			view->server->focused_view = NULL;
+		}
+		if (view->surface == focused_surface) {
+			seat_focus_surface(seat, NULL);
+		}
 	}
-	if (last) {
-		_view_set_activated(last, false);
-	}
-	_view_set_activated(view, true);
-	view->server->focused_view = view;
 }
 
 void
@@ -377,18 +404,7 @@ _minimize(struct view *view, bool minimized)
 	view->minimized = minimized;
 	if (minimized) {
 		view->impl->unmap(view, /* client_request */ false);
-		_view_set_activated(view, false);
-		if (view == view->server->focused_view) {
-			/*
-			 * Prevents clearing the active view when
-			 * we don't actually have keyboard focus.
-			 *
-			 * This may happen when using a custom mouse
-			 * focus configuration or by using the foreign
-			 * toplevel protocol via some panel.
-			 */
-			view->server->focused_view = NULL;
-		}
+		view_set_focused(view, false);
 	} else {
 		view->impl->map(view);
 	}

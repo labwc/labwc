@@ -102,3 +102,9 @@ key_state_nr_keys(void)
 {
 	return bound.nr_keys;
 }
+
+int
+key_state_nr_pressed_keys(void)
+{
+	return pressed.nr_keys;
+}

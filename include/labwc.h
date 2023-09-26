@@ -246,6 +246,13 @@ struct server {
 	uint32_t resize_edges;
 
 	/* SSD state */
+	/*
+	 * Currently focused view (cached value). This pointer is used
+	 * primarily to track which view is being drawn with "active"
+	 * SSD coloring. We consider it a bug if this gets out of sync
+	 * with the actual keyboard focus (according to wlroots). See
+	 * also desktop_focused_view().
+	 */
 	struct view *focused_view;
 	struct ssd_hover_state *ssd_hover_state;
 
@@ -370,7 +377,7 @@ void foreign_toplevel_update_outputs(struct view *view);
  *              cannot assume this means that the window actually has keyboard
  *              or pointer focus, in this compositor are they called together.
  */
-void desktop_focus_and_activate_view(struct seat *seat, struct view *view);
+void desktop_focus_view(struct view *view);
 void desktop_arrange_all_views(struct server *server);
 void desktop_focus_output(struct output *output);
 struct view *desktop_topmost_mapped_view(struct server *server);
@@ -388,6 +395,13 @@ enum lab_cycle_dir {
  */
 struct view *desktop_cycle_view(struct server *server, struct view *start_view,
 	enum lab_cycle_dir dir);
+/**
+ * desktop_focused_view - return the view that is currently focused
+ * (determined on-the-fly from the wlroots keyboard focus). The return
+ * value should ideally match server->focused_view (we consider it a
+ * bug otherwise) but is guaranteed to be up-to-date even if
+ * server->focused_view gets out of sync.
+ */
 struct view *desktop_focused_view(struct server *server);
 void desktop_focus_topmost_mapped_view(struct server *server);
 

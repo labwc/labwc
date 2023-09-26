@@ -478,7 +478,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	}
 
 	if (ctx.view && rc.focus_follow_mouse) {
-		desktop_focus_and_activate_view(seat, ctx.view);
+		desktop_focus_view(ctx.view);
 		if (rc.raise_on_focus) {
 			view_move_to_front(ctx.view);
 		}
@@ -522,7 +522,7 @@ _cursor_update_focus(struct server *server)
 			&& !rc.focus_follow_mouse_requires_movement
 			&& !server->osd_state.cycle_view) {
 		/* Prevents changing keyboard focus during A-Tab */
-		desktop_focus_and_activate_view(&server->seat, ctx.view);
+		desktop_focus_view(ctx.view);
 		if (rc.raise_on_focus) {
 			view_move_to_front(ctx.view);
 		}

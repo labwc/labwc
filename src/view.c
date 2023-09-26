@@ -187,19 +187,50 @@ _view_set_activated(struct view *view, bool activated)
 	}
 }
 
+/*
+ * Give the view keyboard focus and mark it active. This function should
+ * only be called by desktop_focus_view(), which contains additional
+ * checks to make sure it's okay to give focus.
+ */
 void
-view_set_activated(struct view *view)
+view_focus(struct view *view)
 {
 	assert(view);
-	struct view *last = view->server->focused_view;
-	if (last == view) {
-		return;
+	/* Update seat focus */
+	struct seat *seat = &view->server->seat;
+	if (view->surface != seat->seat->keyboard_state.focused_surface) {
+		seat_focus_surface(seat, view->surface);
 	}
-	if (last) {
-		_view_set_activated(last, false);
+	/* Update active view */
+	if (view != view->server->focused_view) {
+		if (view->server->focused_view) {
+			_view_set_activated(view->server->focused_view, false);
+		}
+		_view_set_activated(view, true);
+		view->server->focused_view = view;
 	}
-	_view_set_activated(view, true);
-	view->server->focused_view = view;
+}
+
+/*
+ * Take keyboard focus from the view and mark it inactive. It's rarely
+ * necessary to call this function directly; usually it's better to
+ * focus a different view instead by calling something like
+ * desktop_focus_topmost_mapped_view().
+ */
+void
+view_defocus(struct view *view)
+{
+	assert(view);
+	/* Update seat focus */
+	struct seat *seat = &view->server->seat;
+	if (view->surface == seat->seat->keyboard_state.focused_surface) {
+		seat_focus_surface(seat, NULL);
+	}
+	/* Update active view */
+	if (view == view->server->focused_view) {
+		_view_set_activated(view, false);
+		view->server->focused_view = NULL;
+	}
 }
 
 void
@@ -377,18 +408,7 @@ _minimize(struct view *view, bool minimized)
 	view->minimized = minimized;
 	if (minimized) {
 		view->impl->unmap(view, /* client_request */ false);
-		_view_set_activated(view, false);
-		if (view == view->server->focused_view) {
-			/*
-			 * Prevents clearing the active view when
-			 * we don't actually have keyboard focus.
-			 *
-			 * This may happen when using a custom mouse
-			 * focus configuration or by using the foreign
-			 * toplevel protocol via some panel.
-			 */
-			view->server->focused_view = NULL;
-		}
+		view_defocus(view);
 	} else {
 		view->impl->map(view);
 	}

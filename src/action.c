@@ -634,7 +634,7 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_FOCUS:
 			if (view) {
-				desktop_focus_and_activate_view(&server->seat, view);
+				desktop_focus_view(view);
 			}
 			break;
 		case ACTION_TYPE_ICONIFY:

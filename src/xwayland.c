@@ -256,8 +256,7 @@ handle_request_activate(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	desktop_focus_view(view);
-	view_move_to_front(view);
+	desktop_focus_view(view, /*raise*/ true);
 }
 
 static void

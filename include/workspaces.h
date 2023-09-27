@@ -2,10 +2,12 @@
 #ifndef LABWC_WORKSPACES_H
 #define LABWC_WORKSPACES_H
 
+#include <stdbool.h>
+#include <wayland-util.h>
+
 struct seat;
-struct view;
 struct server;
-struct wl_list;
+struct wlr_scene_tree;
 
 /* Double use: as config in config/rcxml.c and as instance in workspaces.c */
 struct workspace {
@@ -20,7 +22,7 @@ struct workspace {
 };
 
 void workspaces_init(struct server *server);
-void workspaces_switch_to(struct workspace *target);
+void workspaces_switch_to(struct workspace *target, bool update_focus);
 void workspaces_destroy(struct server *server);
 void workspaces_osd_hide(struct seat *seat);
 struct workspace *workspaces_find(struct workspace *anchor, const char *name,

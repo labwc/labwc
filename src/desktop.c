@@ -35,7 +35,7 @@ desktop_arrange_all_views(struct server *server)
 }
 
 void
-desktop_focus_view(struct view *view)
+desktop_focus_view(struct view *view, bool raise)
 {
 	assert(view);
 	/*
@@ -56,7 +56,7 @@ desktop_focus_view(struct view *view)
 	if (view->minimized) {
 		/*
 		 * Unminimizing will map the view which triggers a call to this
-		 * function again.
+		 * function again (with raise=true).
 		 */
 		view_minimize(view, false);
 		return;
@@ -66,7 +66,19 @@ desktop_focus_view(struct view *view)
 		return;
 	}
 
+	/*
+	 * Switch workspace if necessary to make the view visible
+	 * (unnecessary for "always on top" views).
+	 */
+	if (!view_is_always_on_top(view)) {
+		workspaces_switch_to(view->workspace, /*update_focus*/ false);
+	}
+
 	view_focus(view);
+
+	if (raise) {
+		view_move_to_front(view);
+	}
 }
 
 static struct wl_list *
@@ -225,8 +237,7 @@ desktop_focus_topmost_mapped_view(struct server *server)
 {
 	struct view *view = desktop_topmost_mapped_view(server);
 	if (view) {
-		desktop_focus_view(view);
-		view_move_to_front(view);
+		desktop_focus_view(view, /*raise*/ true);
 	} else {
 		/*
 		 * Defocus previous focused surface/view if no longer
@@ -262,7 +273,7 @@ desktop_focus_output(struct output *output)
 		}
 		if (wlr_output_layout_intersects(layout,
 				output->wlr_output, &view->current)) {
-			desktop_focus_view(view);
+			desktop_focus_view(view, /*raise*/ false);
 			wlr_cursor_warp(output->server->seat.cursor, NULL,
 				view->current.x + view->current.width / 2,
 				view->current.y + view->current.height / 2);

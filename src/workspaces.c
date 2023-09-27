@@ -255,8 +255,13 @@ workspaces_init(struct server *server)
 	}
 }
 
+/*
+ * update_focus should normally be set to true. It is set to false only
+ * when this function is called from desktop_focus_view(), in order to
+ * avoid unnecessary extra focus changes and possible recursion.
+ */
 void
-workspaces_switch_to(struct workspace *target)
+workspaces_switch_to(struct workspace *target, bool update_focus)
 {
 	assert(target);
 	struct server *server = target->server;
@@ -281,9 +286,11 @@ workspaces_switch_to(struct workspace *target)
 	 * Make sure we are focusing what the user sees.
 	 * Only refocus if the focus is not already on an always-on-top view.
 	 */
-	struct view *view = desktop_focused_view(server);
-	if (!view || !view_is_always_on_top(view)) {
-		desktop_focus_topmost_mapped_view(server);
+	if (update_focus) {
+		struct view *view = desktop_focused_view(server);
+		if (!view || !view_is_always_on_top(view)) {
+			desktop_focus_topmost_mapped_view(server);
+		}
 	}
 
 	/* And finally show the OSD */

@@ -94,7 +94,7 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym, x
 			continue;
 		}
 		if (server->seat.nr_inhibited_keybind_views
-				&& view_inhibits_keybinds(desktop_focused_view(server))
+				&& view_inhibits_keybinds(server->focused_view)
 				&& !actions_contain_toggle_keybinds(&keybind->actions)) {
 			continue;
 		}

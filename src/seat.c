@@ -11,6 +11,7 @@
 #include "common/mem.h"
 #include "key-state.h"
 #include "labwc.h"
+#include "view.h"
 
 static void
 input_device_destroy(struct wl_listener *listener, void *data)
@@ -335,6 +336,26 @@ new_virtual_keyboard(struct wl_listener *listener, void *data)
 	seat_add_device(seat, input);
 }
 
+static void
+focus_change_notify(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, focus_change);
+	struct wlr_seat_keyboard_focus_change_event *event = data;
+	struct server *server = seat->server;
+	struct view *view = event->new_surface ?
+		view_from_wlr_surface(event->new_surface) : NULL;
+
+	if (view != server->focused_view) {
+		if (server->focused_view) {
+			view_set_activated(server->focused_view, false);
+		}
+		if (view) {
+			view_set_activated(view, true);
+		}
+		server->focused_view = view;
+	}
+}
+
 void
 seat_init(struct server *server)
 {
@@ -352,6 +373,10 @@ seat_init(struct server *server)
 	wl_list_init(&seat->inputs);
 	seat->new_input.notify = new_input_notify;
 	wl_signal_add(&server->backend->events.new_input, &seat->new_input);
+
+	seat->focus_change.notify = focus_change_notify;
+	wl_signal_add(&seat->seat->keyboard_state.events.focus_change,
+		&seat->focus_change);
 
 	seat->virtual_pointer = wlr_virtual_pointer_manager_v1_create(
 		server->wl_display);
@@ -382,6 +407,7 @@ seat_finish(struct server *server)
 {
 	struct seat *seat = &server->seat;
 	wl_list_remove(&seat->new_input.link);
+	wl_list_remove(&seat->focus_change.link);
 
 	struct input *input, *next;
 	wl_list_for_each_safe(input, next, &seat->inputs, link) {

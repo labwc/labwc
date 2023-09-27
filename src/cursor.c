@@ -602,7 +602,7 @@ create_constraint(struct wl_listener *listener, void *data)
 	constraint->destroy.notify = destroy_constraint;
 	wl_signal_add(&wlr_constraint->events.destroy, &constraint->destroy);
 
-	struct view *view = desktop_focused_view(server);
+	struct view *view = server->focused_view;
 	if (view && view->surface == wlr_constraint->surface) {
 		constrain_cursor(server, wlr_constraint);
 	}

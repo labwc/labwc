@@ -377,7 +377,7 @@ void foreign_toplevel_update_outputs(struct view *view);
  *              cannot assume this means that the window actually has keyboard
  *              or pointer focus, in this compositor are they called together.
  */
-void desktop_focus_view(struct view *view);
+void desktop_focus_view(struct view *view, bool raise);
 void desktop_arrange_all_views(struct server *server);
 void desktop_focus_output(struct output *output);
 struct view *desktop_topmost_mapped_view(struct server *server);

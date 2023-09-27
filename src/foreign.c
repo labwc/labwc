@@ -34,11 +34,7 @@ handle_request_activate(struct wl_listener *listener, void *data)
 	struct view *view = wl_container_of(listener, view, toplevel.activate);
 	// struct wlr_foreign_toplevel_handle_v1_activated_event *event = data;
 	/* In a multi-seat world we would select seat based on event->seat here. */
-	if (view->workspace != view->server->workspace_current) {
-		workspaces_switch_to(view->workspace);
-	}
-	desktop_focus_view(view);
-	view_move_to_front(view);
+	desktop_focus_view(view, /*raise*/ true);
 }
 
 static void

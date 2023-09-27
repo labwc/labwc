@@ -634,7 +634,7 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_FOCUS:
 			if (view) {
-				desktop_focus_view(view);
+				desktop_focus_view(view, /*raise*/ false);
 			}
 			break;
 		case ACTION_TYPE_ICONIFY:
@@ -711,7 +711,8 @@ actions_run(struct view *activator, struct server *server,
 					follow = get_arg_value_bool(action, "follow", true);
 				}
 				if (follow) {
-					workspaces_switch_to(target);
+					workspaces_switch_to(target,
+						/*update_focus*/ true);
 				}
 			}
 			break;

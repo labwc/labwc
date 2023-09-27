@@ -42,8 +42,8 @@ static void
 end_cycling(struct server *server)
 {
 	if (server->osd_state.cycle_view) {
-		desktop_focus_view(server->osd_state.cycle_view);
-		view_move_to_front(server->osd_state.cycle_view);
+		desktop_focus_view(server->osd_state.cycle_view,
+			/*raise*/ true);
 	}
 
 	/* osd_finish() additionally resets cycle_view to NULL */

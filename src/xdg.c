@@ -607,16 +607,8 @@ xdg_activation_handle_request(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	/*
-	 * TODO: This is the exact same code as used in foreign.c.
-	 *       Refactor it into a public helper function somewhere.
-	 */
 	wlr_log(WLR_DEBUG, "Activating surface");
-	if (view->workspace != view->server->workspace_current) {
-		workspaces_switch_to(view->workspace);
-	}
-	desktop_focus_view(view);
-	view_move_to_front(view);
+	desktop_focus_view(view, /*raise*/ true);
 }
 
 /*

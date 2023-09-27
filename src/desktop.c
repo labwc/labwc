@@ -74,7 +74,10 @@ desktop_focus_view(struct view *view, bool raise)
 		workspaces_switch_to(view->workspace, /*update_focus*/ false);
 	}
 
-	view_focus(view);
+	struct seat *seat = &server->seat;
+	if (view->surface != seat->seat->keyboard_state.focused_surface) {
+		seat_focus_surface(seat, view->surface);
+	}
 
 	if (raise) {
 		view_move_to_front(view);
@@ -147,7 +150,7 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 
 	if (!start_view) {
 		start_view = first_view(server);
-		if (!start_view || start_view != desktop_focused_view(server)) {
+		if (!start_view || start_view != server->focused_view) {
 			return start_view;  /* may be NULL */
 		}
 	}
@@ -206,32 +209,6 @@ desktop_topmost_mapped_view(struct server *server)
 	return NULL;
 }
 
-struct view *
-desktop_focused_view(struct server *server)
-{
-	struct seat *seat = &server->seat;
-	struct wlr_surface *focused_surface =
-		seat->seat->keyboard_state.focused_surface;
-	struct view *focused_view = NULL;
-
-	if (focused_surface) {
-		struct view *view;
-		wl_list_for_each(view, &server->views, link) {
-			if (view->surface == focused_surface) {
-				focused_view = view;
-				break;
-			}
-		}
-	}
-
-	/* warn so we can identify cases where this occurs */
-	if (focused_view != server->focused_view) {
-		wlr_log(WLR_ERROR, "server->focused_view is out of sync");
-	}
-
-	return focused_view;
-}
-
 void
 desktop_focus_topmost_mapped_view(struct server *server)
 {
@@ -242,12 +219,8 @@ desktop_focus_topmost_mapped_view(struct server *server)
 		/*
 		 * Defocus previous focused surface/view if no longer
 		 * focusable (e.g. unmapped or on a different workspace).
-		 * Note than a non-view surface may have been focused.
 		 */
 		seat_focus_surface(&server->seat, NULL);
-		if (server->focused_view) {
-			view_defocus(server->focused_view);
-		}
 	}
 }
 

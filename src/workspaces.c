@@ -287,7 +287,7 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	 * Only refocus if the focus is not already on an always-on-top view.
 	 */
 	if (update_focus) {
-		struct view *view = desktop_focused_view(server);
+		struct view *view = server->focused_view;
 		if (!view || !view_is_always_on_top(view)) {
 			desktop_focus_topmost_mapped_view(server);
 		}

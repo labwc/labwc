@@ -503,7 +503,7 @@ view_for_action(struct view *activator, struct server *server,
 		return ctx.view;
 	}
 	default:
-		return desktop_focused_view(server);
+		return server->focused_view;
 	}
 }
 

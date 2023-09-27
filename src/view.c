@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <strings.h>
+#include <wlr/xwayland.h>
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "labwc.h"
@@ -18,6 +19,34 @@
 #define LAB_MIN_VIEW_HEIGHT  60
 #define LAB_FALLBACK_WIDTH  640
 #define LAB_FALLBACK_HEIGHT 480
+
+struct view *
+view_from_wlr_surface(struct wlr_surface *surface)
+{
+	assert(surface);
+	/*
+	 * TODO:
+	 * - find a way to get rid of xdg/xwayland-specific stuff
+	 * - look up root/toplevel surface if passed a subsurface?
+	 */
+	if (wlr_surface_is_xdg_surface(surface)) {
+		struct wlr_xdg_surface *xdg_surface =
+			wlr_xdg_surface_from_wlr_surface(surface);
+		if (xdg_surface) {
+			return xdg_surface->data;
+		}
+	}
+#if HAVE_XWAYLAND
+	if (wlr_surface_is_xwayland_surface(surface)) {
+		struct wlr_xwayland_surface *xsurface =
+			wlr_xwayland_surface_from_wlr_surface(surface);
+		if (xsurface) {
+			return xsurface->data;
+		}
+	}
+#endif
+	return NULL;
+}
 
 static bool
 matches_criteria(struct view *view, enum lab_view_criteria criteria)
@@ -174,9 +203,10 @@ view_discover_output(struct view *view)
 		view->current.y + view->current.height / 2);
 }
 
-static void
-_view_set_activated(struct view *view, bool activated)
+void
+view_set_activated(struct view *view, bool activated)
 {
+	assert(view);
 	ssd_set_active(view->ssd, activated);
 	if (view->impl->set_activated) {
 		view->impl->set_activated(view, activated);
@@ -184,52 +214,6 @@ _view_set_activated(struct view *view, bool activated)
 	if (view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_set_activated(
 			view->toplevel.handle, activated);
-	}
-}
-
-/*
- * Give the view keyboard focus and mark it active. This function should
- * only be called by desktop_focus_view(), which contains additional
- * checks to make sure it's okay to give focus.
- */
-void
-view_focus(struct view *view)
-{
-	assert(view);
-	/* Update seat focus */
-	struct seat *seat = &view->server->seat;
-	if (view->surface != seat->seat->keyboard_state.focused_surface) {
-		seat_focus_surface(seat, view->surface);
-	}
-	/* Update active view */
-	if (view != view->server->focused_view) {
-		if (view->server->focused_view) {
-			_view_set_activated(view->server->focused_view, false);
-		}
-		_view_set_activated(view, true);
-		view->server->focused_view = view;
-	}
-}
-
-/*
- * Take keyboard focus from the view and mark it inactive. It's rarely
- * necessary to call this function directly; usually it's better to
- * focus a different view instead by calling something like
- * desktop_focus_topmost_mapped_view().
- */
-void
-view_defocus(struct view *view)
-{
-	assert(view);
-	/* Update seat focus */
-	struct seat *seat = &view->server->seat;
-	if (view->surface == seat->seat->keyboard_state.focused_surface) {
-		seat_focus_surface(seat, NULL);
-	}
-	/* Update active view */
-	if (view == view->server->focused_view) {
-		_view_set_activated(view, false);
-		view->server->focused_view = NULL;
 	}
 }
 
@@ -408,7 +392,6 @@ _minimize(struct view *view, bool minimized)
 	view->minimized = minimized;
 	if (minimized) {
 		view->impl->unmap(view, /* client_request */ false);
-		view_defocus(view);
 	} else {
 		view->impl->map(view);
 	}

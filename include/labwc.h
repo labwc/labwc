@@ -167,6 +167,7 @@ struct seat {
 	struct wl_client *active_client_while_inhibited;
 	struct wl_list inputs;
 	struct wl_listener new_input;
+	struct wl_listener focus_change;
 
 	struct wl_listener cursor_motion;
 	struct wl_listener cursor_motion_absolute;
@@ -247,11 +248,8 @@ struct server {
 
 	/* SSD state */
 	/*
-	 * Currently focused view (cached value). This pointer is used
-	 * primarily to track which view is being drawn with "active"
-	 * SSD coloring. We consider it a bug if this gets out of sync
-	 * with the actual keyboard focus (according to wlroots). See
-	 * also desktop_focused_view().
+	 * Currently focused view. Updated with each "focus change"
+	 * event. This view is drawn with "active" SSD coloring.
 	 */
 	struct view *focused_view;
 	struct ssd_hover_state *ssd_hover_state;
@@ -395,14 +393,6 @@ enum lab_cycle_dir {
  */
 struct view *desktop_cycle_view(struct server *server, struct view *start_view,
 	enum lab_cycle_dir dir);
-/**
- * desktop_focused_view - return the view that is currently focused
- * (determined on-the-fly from the wlroots keyboard focus). The return
- * value should ideally match server->focused_view (we consider it a
- * bug otherwise) but is guaranteed to be up-to-date even if
- * server->focused_view gets out of sync.
- */
-struct view *desktop_focused_view(struct server *server);
 void desktop_focus_topmost_mapped_view(struct server *server);
 
 void keyboard_cancel_keybind_repeat(struct keyboard *keyboard);

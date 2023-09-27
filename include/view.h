@@ -187,6 +187,12 @@ enum lab_view_criteria {
 };
 
 /**
+ * view_from_wlr_surface() - returns the view associated with a
+ * wlr_surface, or NULL if the surface has no associated view.
+ */
+struct view *view_from_wlr_surface(struct wlr_surface *surface);
+
+/**
  * for_each_view() - iterate over all views which match criteria
  * @view: Iterator.
  * @head: Head of list to iterate over.
@@ -257,8 +263,7 @@ bool view_isfocusable(struct view *view);
 bool view_inhibits_keybinds(struct view *view);
 void view_toggle_keybinds(struct view *view);
 
-void view_focus(struct view *view);
-void view_defocus(struct view *view);
+void view_set_activated(struct view *view, bool activated);
 void view_set_output(struct view *view, struct output *output);
 void view_close(struct view *view);
 

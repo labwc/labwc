@@ -37,6 +37,20 @@ xwayland_view_wants_focus(struct view *view)
 	if (!hints) {
 		return true;
 	}
+	/*
+	 * Paraphrased from ICCCM section 4.1.7 (Input Focus):
+	 *
+	 * Clients set the input field of WM_HINTS to True to indicate
+	 * that they require window manager assistance in acquiring the
+	 * input focus. Clients set the input field to False to request
+	 * that the window manager not set the input focus to their
+	 * top-level window.
+	 *
+	 * Clients that use XSetInputFocus() to explicitly set the input
+	 * focus should set the WM_TAKE_FOCUS atom in WM_PROTOCOLS.
+	 * Currently, labwc does not support this method of taking focus
+	 * and thus makes no use of WM_TAKE_FOCUS.
+	 */
 	return (bool)hints->input;
 }
 

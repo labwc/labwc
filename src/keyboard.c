@@ -233,18 +233,6 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	}
 
 	/*
-	 * Ignore labwc keybindings if input is inhibited
-	 * It's important to do this after key_state_set_pressed() to ensure
-	 * _all_ key press/releases are registered
-	 */
-	if (seat->active_client_while_inhibited) {
-		return false;
-	}
-	if (seat->server->session_lock) {
-		return false;
-	}
-
-	/*
 	 * If a user lets go of the modifier (e.g. alt) before the 'normal' key
 	 * (e.g. tab) when window-cycling, we do not end the cycling until both
 	 * keys have been released.  If we end the window-cycling on release of
@@ -267,6 +255,18 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 			&& event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 		key_state_bound_key_remove(event->keycode);
 		return true;
+	}
+
+	/*
+	 * Ignore labwc keybindings if input is inhibited
+	 * It's important to do this after key_state_set_pressed() to ensure
+	 * _all_ key press/releases are registered
+	 */
+	if (seat->active_client_while_inhibited) {
+		return false;
+	}
+	if (seat->server->session_lock) {
+		return false;
 	}
 
 	uint32_t modifiers = wlr_keyboard_get_modifiers(wlr_keyboard);

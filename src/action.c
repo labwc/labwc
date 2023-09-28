@@ -73,6 +73,7 @@ enum action_type {
 	ACTION_TYPE_MOVE,
 	ACTION_TYPE_RAISE,
 	ACTION_TYPE_LOWER,
+	ACTION_TYPE_RAISELOWER,
 	ACTION_TYPE_RESIZE,
 	ACTION_TYPE_RESIZE_RELATIVE,
 	ACTION_TYPE_MOVETO,
@@ -109,6 +110,7 @@ const char *action_names[] = {
 	"Move",
 	"Raise",
 	"Lower",
+	"RaiseLower",
 	"Resize",
 	"ResizeRelative",
 	"MoveTo",
@@ -655,6 +657,15 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_LOWER:
 			if (view) {
 				view_move_to_back(view);
+			}
+			break;
+		case ACTION_TYPE_RAISELOWER:
+			if (view) {
+				if (view == view->server->focused_view) {
+					view_move_to_back(view);
+				} else {
+					view_move_to_front(view);
+				}
 			}
 			break;
 		case ACTION_TYPE_RESIZE:

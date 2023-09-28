@@ -33,6 +33,10 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="Lower" />*
 	Restack the current window below other open windows.
 
+*<action name="RaiseLower" />*
+	Raise the window if it is currently behind any other windows. Lower the
+	window it is above all other windows.
+
 *<action name="Iconify" />*
 	Iconify (minimize) focused window.
 

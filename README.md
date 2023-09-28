@@ -163,6 +163,15 @@ Disable xwayland with `meson -Dxwayland=disabled build/`
 
 For OS/distribution specific details see see [wiki].
 
+To enforce the supplied wlroots.wrap file, run:
+
+    meson setup build/ --force-fallback-for=wlroots
+
+If installing after using the wlroots.wrap file, use the following to
+prevent installing the wlroots headers:
+
+    meson install --skip-subprojects -C build/
+
 ## 3. Configuration
 
 User config files are located at `${XDG_CONFIG_HOME:-$HOME/.config/labwc/}`

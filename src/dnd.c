@@ -14,7 +14,7 @@ static void
 handle_icon_map(struct wl_listener *listener, void *data)
 {
 	struct drag_icon *self = wl_container_of(listener, self, events.map);
-	struct wlr_drag_icon *icon = data;
+	struct wlr_drag_icon *icon = self->icon;
 	if (icon->data) {
 		struct wlr_scene_tree *surface_tree = icon->data;
 		wlr_scene_node_set_enabled(&surface_tree->node, true);
@@ -40,7 +40,7 @@ static void
 handle_icon_unmap(struct wl_listener *listener, void *data)
 {
 	struct drag_icon *self = wl_container_of(listener, self, events.unmap);
-	struct wlr_drag_icon *icon = data;
+	struct wlr_drag_icon *icon = self->icon;
 	struct wlr_scene_tree *surface_tree = icon->data;
 	if (surface_tree) {
 		wlr_scene_node_set_enabled(&surface_tree->node, false);

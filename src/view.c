@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <strings.h>
-#include <wlr/xwayland.h>
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "labwc.h"
@@ -14,6 +13,10 @@
 #include "window-rules.h"
 #include "workspaces.h"
 #include "xwayland.h"
+
+#if HAVE_XWAYLAND
+#include <wlr/xwayland.h>
+#endif
 
 #define LAB_MIN_VIEW_WIDTH  100
 #define LAB_MIN_VIEW_HEIGHT  60

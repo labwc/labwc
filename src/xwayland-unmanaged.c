@@ -153,11 +153,12 @@ static void
 unmanaged_handle_request_activate(struct wl_listener *listener, void *data)
 {
 	wlr_log(WLR_DEBUG, "handle unmanaged request_activate");
-	struct wlr_xwayland_surface *xsurface = data;
+	struct xwayland_unmanaged *unmanaged =
+		wl_container_of(listener, unmanaged, request_activate);
+	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	if (!xsurface->mapped) {
 		return;
 	}
-	struct xwayland_unmanaged *unmanaged = xsurface->data;
 	struct server *server = unmanaged->server;
 	struct seat *seat = &server->seat;
 

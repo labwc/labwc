@@ -221,7 +221,8 @@ handle_destroy(struct wl_listener *listener, void *data)
 	/*
 	 * Break view <-> xsurface association.  Note that the xsurface
 	 * may not actually be destroyed at this point; it may become an
-	 * "unmanaged" surface instead.
+	 * "unmanaged" surface instead (in that case it is important
+	 * that xsurface->data not point to the destroyed view).
 	 */
 	xwayland_view->xwayland_surface->data = NULL;
 	xwayland_view->xwayland_surface = NULL;

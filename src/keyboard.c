@@ -68,7 +68,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 			|| seat->workspace_osd_shown_by_modifier) {
 		if (!keyboard_any_modifiers_pressed(wlr_keyboard))  {
 			if (server->osd_state.cycle_view) {
-				if (key_state_nr_keys()) {
+				if (key_state_nr_bound_keys()) {
 					should_cancel_cycling_on_next_key_release = true;
 				} else {
 					end_cycling(server);

@@ -20,7 +20,7 @@ void key_state_set_pressed(uint32_t keycode, bool ispressed);
 void key_state_store_pressed_keys_as_bound(void);
 bool key_state_corresponding_press_event_was_bound(uint32_t keycode);
 void key_state_bound_key_remove(uint32_t keycode);
-int key_state_nr_keys(void);
+int key_state_nr_bound_keys(void);
 int key_state_nr_pressed_keys(void);
 
 #endif /* LABWC_KEY_STATE_H */

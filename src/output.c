@@ -298,7 +298,7 @@ output_config_apply(struct server *server,
 
 		wlr_output_enable(o, output_enabled);
 		if (output_enabled) {
-			/* Output specifc actions only */
+			/* Output specific actions only */
 			if (head->state.mode) {
 				wlr_output_set_mode(o, head->state.mode);
 			} else {

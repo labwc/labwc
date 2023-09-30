@@ -98,7 +98,7 @@ key_state_bound_key_remove(uint32_t keycode)
 }
 
 int
-key_state_nr_keys(void)
+key_state_nr_bound_keys(void)
 {
 	return bound.nr_keys;
 }

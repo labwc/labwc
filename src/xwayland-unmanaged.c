@@ -144,7 +144,6 @@ unmanaged_handle_override_redirect(struct wl_listener *listener, void *data)
 		unmanaged_handle_unmap(&unmanaged->unmap, NULL);
 	}
 	unmanaged_handle_destroy(&unmanaged->destroy, NULL);
-	xsurface->data = NULL;
 
 	xwayland_view_create(server, xsurface, mapped);
 }
@@ -185,7 +184,12 @@ xwayland_unmanaged_create(struct server *server,
 	struct xwayland_unmanaged *unmanaged = znew(*unmanaged);
 	unmanaged->server = server;
 	unmanaged->xwayland_surface = xsurface;
-	xsurface->data = unmanaged;
+	/*
+	 * xsurface->data is presumed to be a (struct view *) if set,
+	 * so it must be left NULL for an unmanaged surface (it should
+	 * be NULL already at this point).
+	 */
+	assert(!xsurface->data);
 
 	wl_signal_add(&xsurface->events.request_configure,
 		&unmanaged->request_configure);

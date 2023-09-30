@@ -164,9 +164,15 @@ Disable xwayland with `meson -Dxwayland=disabled build/`
 
 For OS/distribution specific details see see [wiki].
 
+If the right version of `wlroots` is not found on the system, the build setup
+will automatically download the wlroots repo. If this fallback is not desired
+please use:
+
+    meson setup --wrap-mode=nodownload build/
+
 To enforce the supplied wlroots.wrap file, run:
 
-    meson setup build/ --force-fallback-for=wlroots
+    meson setup --force-fallback-for=wlroots build/
 
 If installing after using the wlroots.wrap file, use the following to
 prevent installing the wlroots headers:

@@ -107,20 +107,12 @@ See [scope] for full details on implemented features.
 High-level summary of items that Labwc supports:
 
 - [x] Config files (rc.xml, autostart, environment, menu.xml)
-- [x] Theme files and xbm icons
+- [x] Theme files and xbm/png/svg icons
 - [x] Basic desktop and client menus
 - [x] HiDPI
 - [x] wlroots protocols such as `output-management`, `layer-shell` and
   `foreign-toplevel`
 - [x] Optionally xwayland
-
-Items which are *not* intended to be implemented:
-
-- Icons (except window buttons)
-- Animations
-- Gradients for decoration and menus
-- Any theme option not required to reasonably render common themes (it is
-  amazing how few options are actually required).
 
 ### 1.5 Videos
 

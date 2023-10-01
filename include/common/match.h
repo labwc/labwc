@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef LABWC_MATCH_H
 #define LABWC_MATCH_H
-#include <glib.h>
+
 #include <stdbool.h>
 
 /**
@@ -10,6 +10,6 @@
  * @string: String to search.
  * Note: Comparison case-insensitive.
  */
-bool match_glob(const gchar *pattern, const gchar *string);
+bool match_glob(const char *pattern, const char *string);
 
 #endif /* LABWC_MATCH_H */

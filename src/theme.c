@@ -213,6 +213,7 @@ theme_builtin(struct theme *theme)
 {
 	theme->border_width = 1;
 	theme->padding_height = 3;
+	theme->title_height = 0;
 	theme->menu_overlap_x = 0;
 	theme->menu_overlap_y = 0;
 
@@ -398,6 +399,10 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "menu.width.max")) {
 		theme->menu_max_width = atoi(value);
+	}
+
+	if (match_glob(key, "title.height")) {
+		theme->title_height = atoi(value);
 	}
 
 	if (match_glob(key, "menu.items.bg.color")) {
@@ -750,8 +755,9 @@ create_corners(struct theme *theme)
 static void
 post_processing(struct theme *theme)
 {
-	theme->title_height = font_height(&rc.font_activewindow)
-		+ 2 * theme->padding_height;
+	int h = font_height(&rc.font_activewindow) + 2 * theme->padding_height;
+	theme->title_height = MAX(theme->title_height, h);
+
 	theme->osd_window_switcher_item_height = font_height(&rc.font_osd)
 		+ 2 * theme->osd_window_switcher_item_padding_y
 		+ 2 * theme->osd_window_switcher_item_active_border_width;

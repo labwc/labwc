@@ -880,6 +880,19 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 /* Set in cursor_button_press(), used in cursor_button_release() */
 static bool close_menu;
 
+static struct wlr_surface *
+top_parent_of(struct wlr_surface *wlr_surface)
+{
+	struct wlr_subsurface *subsurface = wl_container_of(wlr_surface, subsurface, surface);
+	struct wlr_surface *parent = subsurface->parent;
+	if (!parent) {
+		return NULL;
+	} else if (wlr_surface_is_layer_surface(parent)) {
+		return parent;
+	}
+	return top_parent_of(parent);
+}
+
 static void
 cursor_button_press(struct seat *seat, struct wlr_pointer_button_event *event)
 {
@@ -915,7 +928,14 @@ cursor_button_press(struct seat *seat, struct wlr_pointer_button_event *event)
 		}
 	}
 	if (ctx.type == LAB_SSD_LAYER_SUBSURFACE) {
-		seat_focus_surface(seat, ctx.surface);
+		struct wlr_surface *top = top_parent_of(ctx.surface);
+		if (top) {
+			struct wlr_layer_surface_v1 *layer =
+				wlr_layer_surface_v1_from_wlr_surface(top);
+			if (layer->current.keyboard_interactive) {
+				seat_set_focus_layer(seat, layer);
+			}
+		}
 	}
 
 	if (ctx.type != LAB_SSD_CLIENT && ctx.type != LAB_SSD_LAYER_SUBSURFACE

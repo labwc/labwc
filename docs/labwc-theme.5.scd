@@ -47,6 +47,10 @@ labwc-config(5).
 	Vertical padding size, used for spacing out elements in the window decorations.
 	Default is 3.
 
+*titlebar.height*
+	Window title bar height.
+	Default equals the vertical font extents of the title plus 2x padding.height.
+
 *menu.items.padding.x*
 	Horizontal padding of menu text entries in pixels.
 	Default is 7.
@@ -201,11 +205,6 @@ with the respective titlebar colors. For example: "close-active.png"
 # DEFINITIONS
 
 The handle is the window edge decoration at the bottom of the window.
-
-# DERIVED DIMENSIONS
-
-The window title bar height is equal to the vertical font extents of the title.
-Padding will be added to this later.
 
 # SEE ALSO
 

@@ -9,6 +9,10 @@
 border.width: 1
 padding.height: 3
 
+# The following options has no default, but fallbacks back to
+# font-height + 2x padding.height if not set.
+# titlebar.height:
+
 # window border
 window.active.border.color: #dddad6
 window.inactive.border.color: #f6f5f4

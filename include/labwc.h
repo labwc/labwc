@@ -76,7 +76,7 @@ struct input {
 	struct wlr_input_device *wlr_input_device;
 	struct seat *seat;
 	struct wl_listener destroy;
-	struct wl_list link; /* seat::inputs */
+	struct wl_list link; /* seat.inputs */
 };
 
 /*
@@ -325,7 +325,7 @@ struct server {
 #define LAB_NR_LAYERS (4)
 
 struct output {
-	struct wl_list link; /* server::outputs */
+	struct wl_list link; /* server.outputs */
 	struct server *server;
 	struct wlr_output *wlr_output;
 	struct wlr_scene_output *scene_output;

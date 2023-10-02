@@ -25,7 +25,7 @@ struct ssd_button {
 
 struct ssd_sub_tree {
 	struct wlr_scene_tree *tree;
-	struct wl_list parts; /* ssd_part::link */
+	struct wl_list parts; /* ssd_part.link */
 };
 
 struct ssd_state_title_width {

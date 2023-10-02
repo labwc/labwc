@@ -11,7 +11,7 @@ struct touch_point {
 	int32_t touch_id;
 	uint32_t x_offset;
 	uint32_t y_offset;
-	struct wl_list link; /* seat::touch_points */
+	struct wl_list link; /* seat.touch_points */
 };
 
 static struct wlr_surface*

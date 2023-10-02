@@ -37,7 +37,7 @@ struct menuitem {
 	struct wlr_scene_tree *tree;
 	struct menu_scene normal;
 	struct menu_scene selected;
-	struct wl_list link; /* menu::menuitems */
+	struct wl_list link; /* menu.menuitems */
 };
 
 /* This could be the root-menu or a submenu */

@@ -20,6 +20,7 @@ enum lab_justification {
 struct theme {
 	int border_width;
 	int padding_height;
+	int title_height;
 	int menu_overlap_x;
 	int menu_overlap_y;
 
@@ -92,7 +93,6 @@ struct theme {
 	struct lab_data_buffer *corner_top_right_inactive_normal;
 
 	/* not set in rc.xml/themerc, but derived from font & padding_height */
-	int title_height;
 	int osd_window_switcher_item_height;
 };
 

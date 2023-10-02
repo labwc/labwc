@@ -915,7 +915,14 @@ cursor_button_press(struct seat *seat, struct wlr_pointer_button_event *event)
 		}
 	}
 	if (ctx.type == LAB_SSD_LAYER_SUBSURFACE) {
-		seat_focus_surface(seat, ctx.surface);
+		struct wlr_surface *top = get_toplevel(ctx.surface);
+		if (top) {
+			struct wlr_layer_surface_v1 *layer =
+				wlr_layer_surface_v1_from_wlr_surface(top);
+			if (layer->current.keyboard_interactive) {
+				seat_set_focus_layer(seat, layer);
+			}
+		}
 	}
 
 	if (ctx.type != LAB_SSD_CLIENT && ctx.type != LAB_SSD_LAYER_SUBSURFACE

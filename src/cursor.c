@@ -914,9 +914,12 @@ cursor_button_press(struct seat *seat, struct wlr_pointer_button_event *event)
 			seat_set_focus_layer(seat, layer);
 		}
 	}
-	if (ctx.type == LAB_SSD_LAYER_SUBSURFACE) {
-		seat_focus_surface(seat, ctx.surface);
-	}
+
+	/*
+	 * TODO: We may need to handle press on layer-shell subsurfaces here,
+	 * but need to check keyboard interactivity before focusing them
+	 * otherwise we break waybar. See issue #1131
+	 */
 
 	if (ctx.type != LAB_SSD_CLIENT && ctx.type != LAB_SSD_LAYER_SUBSURFACE
 			&& wlr_seat_pointer_has_grab(seat->seat)) {

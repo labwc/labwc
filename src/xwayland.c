@@ -49,7 +49,8 @@ xwayland_view_wants_focus(struct view *view)
 	 * Clients that use XSetInputFocus() to explicitly set the input
 	 * focus should set the WM_TAKE_FOCUS atom in WM_PROTOCOLS.
 	 * Currently, labwc does not support this method of taking focus
-	 * and thus makes no use of WM_TAKE_FOCUS.
+	 * and thus ignores WM_TAKE_FOCUS. These views can still be
+	 * focused by explicit user action (e.g. clicking in them).
 	 */
 	return (bool)hints->input;
 }

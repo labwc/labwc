@@ -38,16 +38,13 @@ void
 desktop_focus_view(struct view *view, bool raise)
 {
 	assert(view);
-	if (!view_isfocusable(view)) {
-		return;
-	}
-
 	/*
 	 * Guard against views with no mapped surfaces when handling
 	 * 'request_activate' and 'request_minimize'.
-	 * view_isfocusable() should return false for those views.
 	 */
-	assert(view->surface);
+	if (!view->surface) {
+		return;
+	}
 
 	struct server *server = view->server;
 	if (input_inhibit_blocks_surface(&server->seat, view->surface->resource)
@@ -64,11 +61,9 @@ desktop_focus_view(struct view *view, bool raise)
 		return;
 	}
 
-	/*
-	 * view_isfocusable() should return false for any views that are
-	 * neither mapped nor minimized.
-	 */
-	assert(view->mapped);
+	if (!view->mapped) {
+		return;
+	}
 
 	/*
 	 * Switch workspace if necessary to make the view visible

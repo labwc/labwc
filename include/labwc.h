@@ -375,6 +375,18 @@ void foreign_toplevel_update_outputs(struct view *view);
  *              cannot assume this means that the window actually has keyboard
  *              or pointer focus, in this compositor are they called together.
  */
+
+/**
+ * desktop_focus_view() - do multiple things to make a view "active" and
+ * ready to use:
+ *  - unminimize
+ *  - switch to the workspace it's on
+ *  - give input (keyboard) focus
+ *  - optionally raise above other views
+ *
+ * It's okay to call this function even if the view isn't mapped or the
+ * session is locked/input is inhibited; it will simply do nothing.
+ */
 void desktop_focus_view(struct view *view, bool raise);
 void desktop_arrange_all_views(struct server *server);
 void desktop_focus_output(struct output *output);
@@ -393,6 +405,15 @@ enum lab_cycle_dir {
  */
 struct view *desktop_cycle_view(struct server *server, struct view *start_view,
 	enum lab_cycle_dir dir);
+
+/**
+ * desktop_focus_topmost_view() - focus the topmost view on the current
+ * workspace, skipping views that claim not to want focus (those can
+ * still be focused by explicit request, e.g. by clicking in them).
+ *
+ * This function is typically called when the focused view is hidden
+ * (closes, is minimized, etc.) to focus the "next" view underneath.
+ */
 void desktop_focus_topmost_view(struct server *server);
 
 void keyboard_cancel_keybind_repeat(struct keyboard *keyboard);

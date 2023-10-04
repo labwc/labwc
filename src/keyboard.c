@@ -257,20 +257,6 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		return true;
 	}
 
-	/*
-	 * Ignore labwc keybindings if input is inhibited
-	 * It's important to do this after key_state_set_pressed() to ensure
-	 * _all_ key press/releases are registered
-	 */
-	if (seat->active_client_while_inhibited) {
-		return false;
-	}
-	if (seat->server->session_lock) {
-		return false;
-	}
-
-	uint32_t modifiers = wlr_keyboard_get_modifiers(wlr_keyboard);
-
 	/* Catch C-A-F1 to C-A-F12 to change tty */
 	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 		for (int i = 0; i < translated.nr_syms; i++) {
@@ -286,6 +272,20 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 			}
 		}
 	}
+
+	/*
+	 * Ignore labwc keybindings if input is inhibited
+	 * It's important to do this after key_state_set_pressed() to ensure
+	 * _all_ key press/releases are registered
+	 */
+	if (seat->active_client_while_inhibited) {
+		return false;
+	}
+	if (seat->server->session_lock) {
+		return false;
+	}
+
+	uint32_t modifiers = wlr_keyboard_get_modifiers(wlr_keyboard);
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		/*

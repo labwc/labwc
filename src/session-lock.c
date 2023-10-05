@@ -148,6 +148,14 @@ handle_commit(struct wl_listener *listener, void *data)
 	}
 }
 
+static void
+align_session_lock_tree(struct output *output)
+{
+	struct wlr_box box;
+	wlr_output_layout_get_box(g_server->output_layout, output->wlr_output, &box);
+	wlr_scene_node_set_position(&output->session_lock_tree->node, box.x, box.y);
+}
+
 void
 session_lock_output_create(struct session_lock *lock, struct output *output)
 {
@@ -178,9 +186,7 @@ session_lock_output_create(struct session_lock *lock, struct output *output)
 		goto exit_session;
 	}
 
-	struct wlr_box box;
-	wlr_output_layout_get_box(g_server->output_layout, output->wlr_output, &box);
-	wlr_scene_node_set_position(&output->session_lock_tree->node, box.x, box.y);
+	align_session_lock_tree(output);
 
 	lock_output->output = output;
 	lock_output->tree = tree;
@@ -301,7 +307,8 @@ handle_manager_destroy(struct wl_listener *listener, void *data)
 	wlr_session_lock_manager = NULL;
 }
 
-void session_lock_init(struct server *server)
+void
+session_lock_init(struct server *server)
 {
 	g_server = server;
 	wlr_session_lock_manager = wlr_session_lock_manager_v1_create(server->wl_display);
@@ -311,4 +318,23 @@ void session_lock_init(struct server *server)
 
 	manager_destroy.notify = handle_manager_destroy;
 	wl_signal_add(&wlr_session_lock_manager->events.destroy, &manager_destroy);
+}
+
+void
+session_lock_update_for_layout_change(void)
+{
+	if (!g_server->session_lock) {
+		return;
+	}
+
+	struct output *output;
+	wl_list_for_each(output, &g_server->outputs, link) {
+		align_session_lock_tree(output);
+	}
+
+	struct session_lock *lock = g_server->session_lock;
+	struct session_lock_output *lock_output;
+	wl_list_for_each(lock_output, &lock->session_lock_outputs, link) {
+		lock_output_reconfigure(lock_output);
+	}
 }

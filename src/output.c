@@ -272,6 +272,7 @@ static void
 output_update_for_layout_change(struct server *server)
 {
 	output_update_all_usable_areas(server, /*layout_changed*/ true);
+	session_lock_update_for_layout_change();
 
 	/*
 	 * "Move" each wlr_output_cursor (in per-output coordinates) to

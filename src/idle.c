@@ -2,7 +2,6 @@
 
 #include <assert.h>
 #include <stdlib.h>
-#include <wlr/types/wlr_idle.h>
 #include <wlr/types/wlr_idle_notify_v1.h>
 #include <wlr/types/wlr_idle_inhibit_v1.h>
 #include "common/mem.h"
@@ -14,7 +13,6 @@ struct lab_idle_inhibitor {
 };
 
 struct lab_idle_manager {
-	struct wlr_idle *kde;
 	struct wlr_idle_notifier_v1 *ext;
 	struct {
 		struct wlr_idle_inhibit_manager_v1 *manager;
@@ -40,7 +38,6 @@ handle_idle_inhibitor_destroy(struct wl_listener *listener, void *data)
 		bool still_inhibited =
 			wl_list_length(&manager->inhibitor.manager->inhibitors) > 1;
 		wlr_idle_notifier_v1_set_inhibited(manager->ext, still_inhibited);
-		wlr_idle_set_enabled(manager->kde, manager->wlr_seat, !still_inhibited);
 	}
 
 	wl_list_remove(&idle_inhibitor->on_destroy.link);
@@ -59,7 +56,6 @@ handle_idle_inhibitor_new(struct wl_listener *listener, void *data)
 	wl_signal_add(&wlr_inhibitor->events.destroy, &inhibitor->on_destroy);
 
 	wlr_idle_notifier_v1_set_inhibited(manager->ext, true);
-	wlr_idle_set_enabled(manager->kde, manager->wlr_seat, false);
 }
 
 static void
@@ -80,7 +76,6 @@ idle_manager_create(struct wl_display *display, struct wlr_seat *wlr_seat)
 	manager = znew(*manager);
 	manager->wlr_seat = wlr_seat;
 
-	manager->kde = wlr_idle_create(display);
 	manager->ext = wlr_idle_notifier_v1_create(display);
 
 	manager->inhibitor.manager = wlr_idle_inhibit_v1_create(display);
@@ -105,6 +100,5 @@ idle_manager_notify_activity(struct wlr_seat *seat)
 		return;
 	}
 
-	wlr_idle_notify_activity(manager->kde, seat);
 	wlr_idle_notifier_v1_notify_activity(manager->ext, seat);
 }

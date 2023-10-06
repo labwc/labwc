@@ -143,7 +143,7 @@ handle_commit(struct wl_listener *listener, void *data)
 	struct session_lock_output *output = wl_container_of(listener, output, commit);
 	uint32_t require_reconfigure = WLR_OUTPUT_STATE_MODE
 		| WLR_OUTPUT_STATE_SCALE | WLR_OUTPUT_STATE_TRANSFORM;
-	if (event->committed & require_reconfigure) {
+	if (event->state->committed & require_reconfigure) {
 		lock_output_reconfigure(output);
 	}
 }

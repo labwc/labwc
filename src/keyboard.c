@@ -133,7 +133,9 @@ static bool is_modifier_key(xkb_keysym_t sym)
 		|| sym == XKB_KEY_Super_R
 		/* Right hand Alt key for Mod5 */
 		|| sym == XKB_KEY_Mode_switch
-		|| sym == XKB_KEY_ISO_Level3_Shift;
+		|| sym == XKB_KEY_ISO_Level3_Shift
+		/* Prevents storing layout change notifier in pressed */
+		|| sym == XKB_KEY_ISO_Next_Group;
 }
 
 struct keysyms {

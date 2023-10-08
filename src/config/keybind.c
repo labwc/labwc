@@ -15,14 +15,19 @@
 uint32_t
 parse_modifier(const char *symname)
 {
+	/* Mod2 == NumLock */
 	if (!strcmp(symname, "S")) {
 		return WLR_MODIFIER_SHIFT;
 	} else if (!strcmp(symname, "C")) {
 		return WLR_MODIFIER_CTRL;
-	} else if (!strcmp(symname, "A")) {
+	} else if (!strcmp(symname, "A") || !strcmp(symname, "Mod1")) {
 		return WLR_MODIFIER_ALT;
-	} else if (!strcmp(symname, "W")) {
+	} else if (!strcmp(symname, "W") || !strcmp(symname, "Mod4")) {
 		return WLR_MODIFIER_LOGO;
+	} else if (!strcmp(symname, "M") || !strcmp(symname, "Mod5")) {
+		return WLR_MODIFIER_MOD5;
+	} else if (!strcmp(symname, "H") || !strcmp(symname, "Mod3")) {
+		return WLR_MODIFIER_MOD3;
 	} else {
 		return 0;
 	}

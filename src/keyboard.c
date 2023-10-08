@@ -130,7 +130,10 @@ static bool is_modifier_key(xkb_keysym_t sym)
 		|| sym == XKB_KEY_Control_L
 		|| sym == XKB_KEY_Control_R
 		|| sym == XKB_KEY_Super_L
-		|| sym == XKB_KEY_Super_R;
+		|| sym == XKB_KEY_Super_R
+		/* Right hand Alt key for Mod5 */
+		|| sym == XKB_KEY_Mode_switch
+		|| sym == XKB_KEY_ISO_Level3_Shift;
 }
 
 struct keysyms {

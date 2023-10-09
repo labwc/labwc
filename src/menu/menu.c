@@ -33,22 +33,14 @@ static struct action *current_item_action;
 static int menu_level;
 static struct menu *current_menu;
 
-/* vector for <menu id="" label=""> elements */
-static struct menu *menus;
-static int nr_menus, alloc_menus;
-
 /* TODO: split this whole file into parser.c and actions.c*/
 
 static struct menu *
 menu_create(struct server *server, const char *id, const char *label)
 {
-	if (nr_menus == alloc_menus) {
-		alloc_menus = (alloc_menus + 16) * 2;
-		menus = xrealloc(menus, alloc_menus * sizeof(struct menu));
-	}
-	struct menu *menu = menus + nr_menus;
-	memset(menu, 0, sizeof(*menu));
-	nr_menus++;
+	struct menu *menu = znew(*menu);
+	wl_list_append(&server->menus, &menu->link);
+
 	wl_list_init(&menu->menuitems);
 	menu->id = xstrdup(id);
 	menu->label = xstrdup(label ? label : id);
@@ -62,14 +54,13 @@ menu_create(struct server *server, const char *id, const char *label)
 }
 
 struct menu *
-menu_get_by_id(const char *id)
+menu_get_by_id(struct server *server, const char *id)
 {
 	if (!id) {
 		return NULL;
 	}
 	struct menu *menu;
-	for (int i = 0; i < nr_menus; ++i) {
-		menu = menus + i;
+	wl_list_for_each(menu, &server->menus, link) {
 		if (!strcmp(menu->id, id)) {
 			return menu;
 		}
@@ -124,8 +115,7 @@ static void
 post_processing(struct server *server)
 {
 	struct menu *menu;
-	for (int i = 0; i < nr_menus; ++i) {
-		menu = menus + i;
+	wl_list_for_each(menu, &server->menus, link) {
 		menu_update_width(menu);
 	}
 }
@@ -149,8 +139,9 @@ validate_menu(struct menu *menu)
 static void
 validate(struct server *server)
 {
-	for (int i = 0; i < nr_menus; ++i) {
-		validate_menu(menus + i);
+	struct menu *menu;
+	wl_list_for_each(menu, &server->menus, link) {
+		validate_menu(menu);
 	}
 }
 
@@ -473,7 +464,7 @@ handle_menu_element(xmlNode *n, struct server *server)
 		 * <menu id=""> creates an entry which points to a menu
 		 * defined elsewhere
 		 */
-		struct menu *menu = menu_get_by_id(id);
+		struct menu *menu = menu_get_by_id(server, id);
 		if (menu) {
 			current_item = item_create(current_menu, menu->label, true);
 			if (current_item) {
@@ -663,15 +654,14 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 }
 
 static void
-menu_hide_submenu(const char *id)
+menu_hide_submenu(struct server *server, const char *id)
 {
 	struct menu *menu, *hide_menu;
-	hide_menu = menu_get_by_id(id);
+	hide_menu = menu_get_by_id(server, id);
 	if (!hide_menu) {
 		return;
 	}
-	for (int i = 0; i < nr_menus; ++i) {
-		menu = menus + i;
+	wl_list_for_each(menu, &server->menus, link) {
 		bool should_reposition = false;
 		struct menuitem *item, *next;
 		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
@@ -697,7 +687,7 @@ menu_hide_submenu(const char *id)
 static void
 init_rootmenu(struct server *server)
 {
-	struct menu *menu = menu_get_by_id("root-menu");
+	struct menu *menu = menu_get_by_id(server, "root-menu");
 
 	/* Default menu if no menu.xml found */
 	if (!menu) {
@@ -715,7 +705,7 @@ init_rootmenu(struct server *server)
 static void
 init_windowmenu(struct server *server)
 {
-	struct menu *menu = menu_get_by_id("client-menu");
+	struct menu *menu = menu_get_by_id(server, "client-menu");
 
 	/* Default menu if no menu.xml found */
 	if (!menu) {
@@ -754,13 +744,14 @@ init_windowmenu(struct server *server)
 	}
 
 	if (wl_list_length(&rc.workspace_config.workspaces) == 1) {
-		menu_hide_submenu("workspaces");
+		menu_hide_submenu(server, "workspaces");
 	}
 }
 
 void
 menu_init(struct server *server)
 {
+	wl_list_init(&server->menus);
 	parse_xml("menu.xml", server);
 	init_rootmenu(server);
 	init_windowmenu(server);
@@ -769,11 +760,10 @@ menu_init(struct server *server)
 }
 
 void
-menu_finish(void)
+menu_finish(struct server *server)
 {
-	struct menu *menu;
-	for (int i = 0; i < nr_menus; ++i) {
-		menu = menus + i;
+	struct menu *menu, *tmp_menu;
+	wl_list_for_each_safe(menu, tmp_menu, &server->menus, link) {
 		struct menuitem *item, *next;
 		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
 			item_destroy(item);
@@ -783,10 +773,9 @@ menu_finish(void)
 		 * including node descriptors and scaled_font_buffers.
 		 */
 		wlr_scene_node_destroy(&menu->scene_tree->node);
+		wl_list_remove(&menu->link);
+		zfree(menu);
 	}
-	zfree(menus);
-	alloc_menus = 0;
-	nr_menus = 0;
 }
 
 /* Sets selection (or clears selection if passing NULL) */
@@ -1049,7 +1038,7 @@ menu_close_root(struct server *server)
 void
 menu_reconfigure(struct server *server)
 {
-	menu_finish();
+	menu_finish(server);
 	server->menu_current = NULL;
 	menu_init(server);
 }

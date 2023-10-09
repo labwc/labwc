@@ -732,6 +732,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.repeat_rate = atoi(content);
 	} else if (!strcasecmp(nodename, "repeatDelay.keyboard")) {
 		rc.repeat_delay = atoi(content);
+	} else if (!strcasecmp(nodename, "numlock.keyboard")) {
+		set_bool(content, &rc.kb_numlock_enable);
 	} else if (!strcasecmp(nodename, "screenEdgeStrength.resistance")) {
 		rc.screen_edge_strength = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
@@ -949,6 +951,7 @@ rcxml_init(void)
 	rc.scroll_factor = 1.0;
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
+	rc.kb_numlock_enable = true;
 	rc.screen_edge_strength = 20;
 
 	rc.snap_edge_range = 1;

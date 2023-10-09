@@ -419,6 +419,7 @@ void desktop_focus_topmost_view(struct server *server);
 void keyboard_cancel_keybind_repeat(struct keyboard *keyboard);
 void keyboard_key_notify(struct wl_listener *listener, void *data);
 void keyboard_modifiers_notify(struct wl_listener *listener, void *data);
+void keyboard_set_numlock(struct wlr_keyboard *keyboard);
 void keyboard_init(struct seat *seat);
 bool keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard);
 void keyboard_finish(struct seat *seat);

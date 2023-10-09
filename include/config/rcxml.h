@@ -62,6 +62,7 @@ struct rcxml {
 	/* keyboard */
 	int repeat_rate;
 	int repeat_delay;
+	bool kb_numlock_enable;
 	struct wl_list keybinds;   /* struct keybind.link */
 
 	/* mouse */

@@ -141,6 +141,7 @@
     your favourite terminal or application launcher. See rc.xml for an example.
   -->
   <keyboard>
+    <numlock>on</numlock>
     <repeatRate>25</repeatRate>
     <repeatDelay>600</repeatDelay>
     <keybind key="A-Tab">

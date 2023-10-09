@@ -201,7 +201,7 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 	menuitem->selected.buffer = scaled_font_buffer_create(menuitem->selected.tree);
 	if (!menuitem->normal.buffer || !menuitem->selected.buffer) {
 		wlr_log(WLR_ERROR, "Failed to create menu item '%s'", text);
-		/**
+		/*
 		 * Destroying the root node will destroy everything,
 		 * including the node descriptor and scaled_font_buffers.
 		 */
@@ -483,9 +483,9 @@ handle_menu_element(xmlNode *n, struct server *server)
 			wlr_log(WLR_ERROR, "no menu with id '%s'", id);
 		}
 	}
-	zfree(label);
-	zfree(execute);
-	zfree(id);
+	free(label);
+	free(execute);
+	free(id);
 }
 
 /* This can be one of <separator> and <separator label=""> */
@@ -494,9 +494,7 @@ handle_separator_element(xmlNode *n)
 {
 	char *label = (char *)xmlGetProp(n, (const xmlChar *)"label");
 	current_item = separator_create(current_menu, label);
-	if (label) {
-		free(label);
-	}
+	free(label);
 }
 
 static void
@@ -943,7 +941,7 @@ menu_execute_item(struct menuitem *item)
 	actions_run(item->parent->triggered_by_view,
 		item->parent->server, &item->actions, 0);
 
-	/**
+	/*
 	 * We close the menu here to provide a faster feedback to the user.
 	 * We do that without resetting the input state so src/cursor.c
 	 * can do its own clean up on the following RELEASE event.

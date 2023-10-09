@@ -278,10 +278,20 @@ this is for compatibility with Openbox.
 
 *<keyboard><keybind key="" layoutDependent="">*
 	Define a *key* binding in the format *modifier-key*, where supported
-	modifiers include S (shift); C (control); A (alt); W (super). Unlike
-	Openbox, multiple space-separated key combinations and key-chains are
-	not supported. The application "wev" (wayland event viewer) is packaged
-	in a lot of distributions and can be used to view all available
+	modifiers are:
+	- S (shift)
+	- C (control)
+	- A or Mod1 (alt)
+	- H or Mod3 (hyper)
+	- W or Mod4 (super / logo)
+	- M or Mod5 (meta)
+
+	Multiple modifiers can be combined like *A-S-f* for Alt-Shift-f.
+	The key itself can be any unicode character or a keyname like *Return*.
+
+	Unlike Openbox, multiple space-separated key combinations and key-chains
+	are not supported. The application "wev" (wayland event viewer) is
+	packaged in a lot of distributions and can be used to view all available
 	keynames.
 
 	*layoutDependent* [yes|no]
@@ -365,14 +375,15 @@ this is for compatibility with Openbox.
 	- Middle
 	- Right
 
-	Mouse buttons can be combined with modifier-keys (shift, super, control and alt), for example:
-	<mousebind button="A-Right" action="Press">
-
 	Supported scroll *directions* are:
 	- Up
 	- Down
 	- Left
 	- Right
+
+	Mouse buttons and directions can be combined with modifier-keys (shift (S),
+	super/logo (W), control (C), alt (A), meta (M) and hyper (H)), for example:
+	<mousebind button="A-Right" action="Press">
 
 	Supported mouse *actions* include:
 	- Press: Pressing the specified button down in the context.

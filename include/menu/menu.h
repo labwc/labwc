@@ -60,6 +60,7 @@ struct menu {
 
 	/* Used to match a window-menu to the view that triggered it. */
 	struct view *triggered_by_view;  /* may be NULL */
+	struct wl_list link; /* server.menus */
 };
 
 /* For keyboard support */
@@ -70,14 +71,14 @@ void menu_submenu_leave(struct server *server);
 bool menu_call_selected_actions(struct server *server);
 
 void menu_init(struct server *server);
-void menu_finish(void);
+void menu_finish(struct server *server);
 
 /**
  * menu_get_by_id - get menu by id
  *
  * @id id string defined in menu.xml like "root-menu"
  */
-struct menu *menu_get_by_id(const char *id);
+struct menu *menu_get_by_id(struct server *server, const char *id);
 
 /**
  * menu_open - open menu on position (x, y)

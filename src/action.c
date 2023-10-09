@@ -493,7 +493,7 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 	}
 
 	bool force_menu_top_left = false;
-	struct menu *menu = menu_get_by_id(menu_name);
+	struct menu *menu = menu_get_by_id(server, menu_name);
 	if (!menu) {
 		return;
 	}

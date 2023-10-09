@@ -320,6 +320,7 @@ struct server {
 	struct theme *theme;
 
 	struct menu *menu_current;
+	struct wl_list menus;
 };
 
 #define LAB_NR_LAYERS (4)

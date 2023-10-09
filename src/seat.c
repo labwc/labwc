@@ -211,6 +211,14 @@ new_keyboard(struct seat *seat, struct wlr_input_device *device, bool virtual)
 
 	wlr_keyboard_set_keymap(kb, seat->keyboard_group->keyboard.keymap);
 
+	/*
+	 * This needs to be before wlr_keyboard_group_add_keyboard().
+	 * For some reason, wlroots takes the modifier state from the
+	 * new keyboard and syncs it to the others in the group, rather
+	 * than the other way around.
+	 */
+	keyboard_set_numlock(kb);
+
 	if (!virtual) {
 		wlr_keyboard_group_add_keyboard(seat->keyboard_group, kb);
 	}

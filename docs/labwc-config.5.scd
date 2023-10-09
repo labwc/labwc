@@ -276,6 +276,10 @@ this is for compatibility with Openbox.
 
 ## KEYBOARD
 
+*<keyboard><numlock>* [on|off]
+	When recognizing a new keyboard enable or disable Num Lock.
+	Default is on.
+
 *<keyboard><keybind key="" layoutDependent="">*
 	Define a *key* binding in the format *modifier-key*, where supported
 	modifiers are:

@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <wlr/backend/multi.h>
 #include <wlr/backend/session.h>
+#include <wlr/interfaces/wlr_keyboard.h>
 #include "action.h"
 #include "idle.h"
 #include "key-state.h"
@@ -487,6 +488,33 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 		wlr_seat_keyboard_notify_key(wlr_seat, event->time_msec,
 			event->keycode, event->state);
 	}
+}
+
+void
+keyboard_set_numlock(struct wlr_keyboard *keyboard)
+{
+	xkb_mod_index_t num_idx =
+		xkb_map_mod_get_index(keyboard->keymap, XKB_MOD_NAME_NUM);
+	if (num_idx == XKB_MOD_INVALID) {
+		wlr_log(WLR_INFO, "Failed to set Num Lock: not found in keymap");
+		return;
+	}
+
+	xkb_mod_mask_t locked = keyboard->modifiers.locked;
+	if (rc.kb_numlock_enable) {
+		locked |= (xkb_mod_mask_t)1 << num_idx;
+	} else {
+		locked &= ~((xkb_mod_mask_t)1 << num_idx);
+	}
+
+	/*
+	 * This updates the xkb-state + kb->modifiers and also triggers the
+	 * keyboard->events.modifiers signal (the signal has no effect in
+	 * current labwc usage since the keyboard is not part of a
+	 * keyboard-group yet).
+	 */
+	wlr_keyboard_notify_modifiers(keyboard, keyboard->modifiers.depressed,
+		keyboard->modifiers.latched, locked, keyboard->modifiers.group);
 }
 
 void

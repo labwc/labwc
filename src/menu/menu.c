@@ -524,26 +524,18 @@ xml_tree_walk(xmlNode *node, struct server *server)
 	}
 }
 
+/*
+ * @stream can come from either of the following:
+ *   - fopen() in the case of reading a file such as menu.xml
+ *   - popen() when processing pipemenus
+ */
 static void
-parse_xml(const char *filename, struct server *server)
+parse(struct server *server, FILE *stream)
 {
-	FILE *stream;
 	char *line = NULL;
 	size_t len = 0;
 	struct buf b;
-	static char menuxml[4096] = { 0 };
 
-	if (!rc.config_dir) {
-		return;
-	}
-	snprintf(menuxml, sizeof(menuxml), "%s/%s", rc.config_dir, filename);
-
-	stream = fopen(menuxml, "r");
-	if (!stream) {
-		wlr_log(WLR_ERROR, "cannot read %s", menuxml);
-		return;
-	}
-	wlr_log(WLR_INFO, "read menu file %s", menuxml);
 	buf_init(&b);
 	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');
@@ -553,7 +545,6 @@ parse_xml(const char *filename, struct server *server)
 		buf_add(&b, line);
 	}
 	free(line);
-	fclose(stream);
 	xmlDoc *d = xmlParseMemory(b.buf, b.len);
 	if (!d) {
 		wlr_log(WLR_ERROR, "xmlParseMemory()");
@@ -564,6 +555,26 @@ parse_xml(const char *filename, struct server *server)
 	xmlCleanupParser();
 err:
 	free(b.buf);
+}
+
+static void
+parse_xml(const char *filename, struct server *server)
+{
+	static char buf[4096] = { 0 };
+
+	if (!rc.config_dir) {
+		return;
+	}
+	snprintf(buf, sizeof(buf), "%s/%s", rc.config_dir, filename);
+
+	FILE *stream = fopen(buf, "r");
+	if (!stream) {
+		wlr_log(WLR_ERROR, "cannot read %s", buf);
+		return;
+	}
+	wlr_log(WLR_INFO, "read menu file %s", buf);
+	parse(server, stream);
+	fclose(stream);
 }
 
 static int

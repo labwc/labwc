@@ -123,21 +123,23 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym, x
 	return false;
 }
 
-static bool is_modifier_key(xkb_keysym_t sym)
+static bool
+is_modifier_key(xkb_keysym_t sym)
 {
-	return sym == XKB_KEY_Shift_L
-		|| sym == XKB_KEY_Shift_R
-		|| sym == XKB_KEY_Alt_L
-		|| sym == XKB_KEY_Alt_R
-		|| sym == XKB_KEY_Control_L
-		|| sym == XKB_KEY_Control_R
-		|| sym == XKB_KEY_Super_L
-		|| sym == XKB_KEY_Super_R
-		/* Right hand Alt key for Mod5 */
-		|| sym == XKB_KEY_Mode_switch
-		|| sym == XKB_KEY_ISO_Level3_Shift
-		/* Prevents storing layout change notifier in pressed */
-		|| sym == XKB_KEY_ISO_Next_Group;
+	switch (sym) {
+	case XKB_KEY_Shift_L:   case XKB_KEY_Shift_R:
+	case XKB_KEY_Alt_L:     case XKB_KEY_Alt_R:
+	case XKB_KEY_Control_L: case XKB_KEY_Control_R:
+	case XKB_KEY_Super_L:   case XKB_KEY_Super_R:
+	case XKB_KEY_Hyper_L:   case XKB_KEY_Hyper_R:
+	case XKB_KEY_Meta_L:    case XKB_KEY_Meta_R:
+	case XKB_KEY_Mode_switch:
+	case XKB_KEY_ISO_Level3_Shift:
+	case XKB_KEY_ISO_Level5_Shift:
+		return true;
+	default:
+		return false;
+	}
 }
 
 struct keysyms {
@@ -230,11 +232,16 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	 * }
 	 */
 
-	bool ismodifier = false;
+	bool is_modifier = false;
+	bool is_layout_switch = false;
+	uint32_t modifiers = wlr_keyboard_get_modifiers(wlr_keyboard);
+
 	for (int i = 0; i < translated.nr_syms; i++) {
-		ismodifier |= is_modifier_key(translated.syms[i]);
+		is_modifier |= is_modifier_key(translated.syms[i]);
+		is_layout_switch |= translated.syms[i] == XKB_KEY_ISO_Next_Group;
 	}
-	if (!ismodifier) {
+
+	if (!is_modifier && !is_layout_switch) {
 		key_state_set_pressed(event->keycode,
 			event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
 	}
@@ -292,8 +299,6 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		return false;
 	}
 
-	uint32_t modifiers = wlr_keyboard_get_modifiers(wlr_keyboard);
-
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		/*
 		 * Usually, release events are already caught via _press_event_was_bound().
@@ -326,7 +331,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 
 			/* cycle to next */
 			bool backwards = modifiers & WLR_MODIFIER_SHIFT;
-			if (!ismodifier) {
+			if (!is_modifier) {
 				enum lab_cycle_dir dir = backwards
 					? LAB_CYCLE_DIR_BACKWARD
 					: LAB_CYCLE_DIR_FORWARD;

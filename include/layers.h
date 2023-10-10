@@ -11,6 +11,8 @@ struct seat;
 struct lab_layer_surface {
 	struct wlr_scene_layer_surface_v1 *scene_layer_surface;
 	struct server *server;
+	struct output *output;
+	struct wlr_scene_tree *tree;
 
 	bool mapped;
 

@@ -34,6 +34,7 @@ struct xwayland_view {
 	struct wl_listener set_decorations;
 	struct wl_listener set_override_redirect;
 	struct wl_listener set_strut_partial;
+	struct wl_listener focus_in;
 
 	/* Not (yet) implemented */
 /*	struct wl_listener set_role; */

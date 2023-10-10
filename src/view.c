@@ -178,6 +178,15 @@ view_is_focusable_from(struct view *view, struct wlr_surface *prev)
 			&& prev && view_is_related(view, prev)));
 }
 
+void
+view_offer_focus(struct view *view)
+{
+	assert(view);
+	if (view->impl->offer_focus) {
+		view->impl->offer_focus(view);
+	}
+}
+
 /**
  * All view_apply_xxx_geometry() functions must *not* modify
  * any state besides repositioning or resizing the view.

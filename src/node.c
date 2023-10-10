@@ -11,7 +11,7 @@ descriptor_destroy(struct node_descriptor *node_descriptor)
 		return;
 	}
 	wl_list_remove(&node_descriptor->destroy.link);
-	free(node_descriptor);
+	zfree(node_descriptor);
 }
 
 static void

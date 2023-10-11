@@ -568,6 +568,8 @@ output_usable_area_in_layout_coords(struct output *output)
 void
 handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 {
+	struct server *server = wl_container_of(listener, server,
+		output_power_manager_set_mode);
 	struct wlr_output_power_v1_set_mode_event *event = data;
 
 	switch (event->mode) {
@@ -581,6 +583,11 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 			wlr_output_rollback(event->output);
 		}
 		wlr_output_commit(event->output);
+		/*
+		 * Re-set the cursor image so that the cursor
+		 * isn't invisible on the newly enabled output.
+		 */
+		cursor_update_image(&server->seat);
 		break;
 	}
 }

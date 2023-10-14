@@ -192,6 +192,8 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 struct view *
 desktop_topmost_focusable_view(struct server *server)
 {
+	struct wlr_surface *prev =
+		server->seat.seat->keyboard_state.focused_surface;
 	struct view *view;
 	struct wl_list *node_list;
 	struct wlr_scene_node *node;
@@ -202,7 +204,7 @@ desktop_topmost_focusable_view(struct server *server)
 			continue;
 		}
 		view = node_view_from_node(node);
-		if (view->mapped && view_is_focusable(view)) {
+		if (view->mapped && view_is_focusable_from(view, prev)) {
 			return view;
 		}
 	}

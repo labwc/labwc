@@ -291,6 +291,14 @@ void view_array_append(struct server *server, struct wl_array *views,
 enum view_wants_focus view_wants_focus(struct view *view);
 
 /**
+ * view_is_focusable_from() - variant of view_is_focusable()
+ * that takes into account the previously focused surface
+ * @view: view to be checked
+ * @prev_surface: previously focused surface
+ */
+bool view_is_focusable_from(struct view *view, struct wlr_surface *prev);
+
+/**
  * view_is_focusable() - Check whether or not a view can be focused
  * @view: view to be checked
  *
@@ -302,7 +310,10 @@ enum view_wants_focus view_wants_focus(struct view *view);
  * The only views that are allowed to be focusd are those that have a surface
  * and have been mapped at some point since creation.
  */
-bool view_is_focusable(struct view *view);
+static inline bool
+view_is_focusable(struct view *view) {
+	return view_is_focusable_from(view, NULL);
+}
 
 void view_toggle_keybinds(struct view *view);
 

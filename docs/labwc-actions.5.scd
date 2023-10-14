@@ -54,6 +54,10 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="MoveTo" x="" y="" />*
 	Move to position (x, y)
 
+*<action name="MoveToCursor" />*
+	Move to be centered on cursor.
+	Tries to prevent any part of the window from going off-screen.
+
 *<action name="MoveRelative" x="" y="" />*
 	Move window relative to its current position. Positive value of x moves
 	it right, negative left. Positive value of y moves it down, negative up.

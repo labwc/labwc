@@ -351,6 +351,50 @@ view_move_relative(struct view *view, int x, int y)
 	view_move(view, view->pending.x + x, view->pending.y + y);
 }
 
+void
+view_move_to_cursor(struct view *view)
+{
+	assert(view);
+
+	struct output *pending_output = output_nearest_to_cursor(view->server);
+	if (!output_is_usable(pending_output)) {
+		return;
+	}
+	if (view->fullscreen) {
+		view_set_fullscreen(view, false);
+	}
+	if (view->maximized) {
+		view_maximize(view, false, /*store_natural_geometry*/ false);
+	}
+	if (view_is_tiled(view)) {
+		view_set_untiled(view);
+		view_restore_to(view, view->natural_geometry);
+	}
+
+	struct border margin = ssd_thickness(view);
+	struct wlr_box geo = view->pending;
+	geo.width += margin.left + margin.right;
+	geo.height += margin.top + margin.bottom;
+
+	int x = view->server->seat.cursor->x - (geo.width / 2);
+	int y = view->server->seat.cursor->y - (geo.height / 2);
+
+	struct wlr_box usable = output_usable_area_in_layout_coords(pending_output);
+	if (x + geo.width > usable.x + usable.width) {
+		x = usable.x + usable.width - geo.width;
+	}
+	x = MAX(x, usable.x);
+
+	if (y + geo.height > usable.y + usable.height) {
+		y = usable.y + usable.height - geo.height;
+	}
+	y = MAX(y, usable.y);
+
+	x += margin.left;
+	y += margin.top;
+	view_move(view, x, y);
+}
+
 struct view_size_hints
 view_get_size_hints(struct view *view)
 {

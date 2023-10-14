@@ -323,6 +323,7 @@ void view_toggle_maximize(struct view *view);
 void view_toggle_decorations(struct view *view);
 
 bool view_is_always_on_top(struct view *view);
+bool view_is_always_on_bottom(struct view *view);
 void view_toggle_always_on_top(struct view *view);
 void view_toggle_always_on_bottom(struct view *view);
 

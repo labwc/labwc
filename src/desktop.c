@@ -67,9 +67,9 @@ desktop_focus_view(struct view *view, bool raise)
 
 	/*
 	 * Switch workspace if necessary to make the view visible
-	 * (unnecessary for "always on top" views).
+	 * (unnecessary for "always on {top,bottom}" views).
 	 */
-	if (!view_is_always_on_top(view)) {
+	if (!view_is_always_on_top(view) && !view_is_always_on_bottom(view)) {
 		workspaces_switch_to(view->workspace, /*update_focus*/ false);
 	}
 

@@ -6,7 +6,7 @@
 
 struct wlr_scene_tree;
 struct wlr_scene_buffer;
-struct scaled_scene_buffere;
+struct scaled_scene_buffer;
 
 struct scaled_font_buffer {
 	struct wlr_scene_buffer *scene_buffer;

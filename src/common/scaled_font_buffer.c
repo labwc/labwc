@@ -30,10 +30,12 @@ static void
 _destroy(struct scaled_scene_buffer *scaled_buffer)
 {
 	struct scaled_font_buffer *self = scaled_buffer->data;
+	scaled_buffer->data = NULL;
+
 	zfree(self->text);
 	zfree(self->font.name);
 	zfree(self->arrow);
-	zfree(scaled_buffer->data);
+	free(self);
 }
 
 static const struct scaled_scene_buffer_impl impl = {
@@ -48,7 +50,7 @@ scaled_font_buffer_create(struct wlr_scene_tree *parent)
 	assert(parent);
 	struct scaled_font_buffer *self = znew(*self);
 	struct scaled_scene_buffer *scaled_buffer =
-		scaled_scene_buffer_create(parent, &impl);
+		scaled_scene_buffer_create(parent, &impl, /* drop_buffer */ true);
 	if (!scaled_buffer) {
 		free(self);
 		return NULL;

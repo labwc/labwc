@@ -26,6 +26,7 @@ struct scaled_scene_buffer {
 	void *data;  /* opaque user data */
 
 	/* Private */
+	bool drop_buffer;
 	double active_scale;
 	struct wl_list cache;  /* struct scaled_buffer_cache_entry.link */
 	struct wl_listener destroy;
@@ -51,10 +52,34 @@ struct scaled_scene_buffer {
  * wlr_scene_buffer is being destroyed. If implementation->destroy is set
  * it will also get called so a consumer of this API may clean up its own
  * allocations.
+ *
+ * All requested lab_data_buffers via impl->create_buffer() will be locked
+ * during the lifetime of the buffer in the internal cache and unlocked
+ * when being evacuated from the cache (due to LAB_SCALED_BUFFER_MAX_CACHE
+ * or the internal wlr_scene_buffer being destroyed).
+ *
+ * If drop_buffer was set during creation of the scaled_scene_buffer, the
+ * backing wlr_buffer behind a lab_data_buffer will also get dropped
+ * (via wlr_buffer_drop). If there are no more locks (consumers) of the
+ * respective buffer this will then cause the lab_data_buffer to be free'd.
+ *
+ * In the case of the buffer provider dropping the buffer itself (due to
+ * for example a Reconfigure event) the lock prevents the buffer from being
+ * destroyed until the buffer is evacuated from the internal cache and thus
+ * unlocked.
+ *
+ * This allows using scaled_scene_buffer for an autoscaling font_buffer
+ * (which gets free'd automatically) and also for theme components like
+ * rounded corner images or button icons whose buffers only exist once but
+ * are references by multiple windows with their own scaled_scene_buffers.
+ *
+ * The rough idea is: use drop_buffer = true for one-shot buffers and false
+ * for buffers that should outlive the scaled_scene_buffer instance itself.
  */
 struct scaled_scene_buffer *scaled_scene_buffer_create(
 	struct wlr_scene_tree *parent,
-	const struct scaled_scene_buffer_impl *implementation);
+	const struct scaled_scene_buffer_impl *implementation,
+	bool drop_buffer);
 
 /* Clear the cache of existing buffers, useful in case the content changes */
 void scaled_scene_buffer_invalidate_cache(struct scaled_scene_buffer *self);

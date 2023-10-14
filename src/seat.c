@@ -13,6 +13,10 @@
 #include "labwc.h"
 #include "view.h"
 
+#if HAVE_XWAYLAND
+#include <wlr/xwayland.h>
+#endif
+
 static void
 input_device_destroy(struct wl_listener *listener, void *data)
 {
@@ -352,6 +356,31 @@ focus_change_notify(struct wl_listener *listener, void *data)
 	struct server *server = seat->server;
 	struct view *view = event->new_surface ?
 		view_from_wlr_surface(event->new_surface) : NULL;
+
+#if HAVE_XWAYLAND
+	/*
+	 * If an xwayland-unmanaged surface was focused belonging to the
+	 * same application as the focused view, allow the view to remain
+	 * active. This fixes an issue with menus immediately closing in
+	 * some X11 apps (try LibreOffice with SAL_USE_VCLPLUGIN=gen).
+	 */
+	struct wlr_surface *old_surface =
+		server->focused_view ? server->focused_view->surface : NULL;
+
+	if (old_surface && event->new_surface && !view
+			&& wlr_surface_is_xwayland_surface(old_surface)
+			&& wlr_surface_is_xwayland_surface(event->new_surface)) {
+		struct wlr_xwayland_surface *old_xsurface =
+			wlr_xwayland_surface_from_wlr_surface(old_surface);
+		struct wlr_xwayland_surface *new_xsurface =
+			wlr_xwayland_surface_from_wlr_surface(event->new_surface);
+
+		if (old_xsurface && new_xsurface
+				&& old_xsurface->pid == new_xsurface->pid) {
+			return;
+		}
+	}
+#endif
 
 	if (view != server->focused_view) {
 		if (server->focused_view) {

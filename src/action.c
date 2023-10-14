@@ -84,6 +84,7 @@ enum action_type {
 	ACTION_TYPE_RESIZE,
 	ACTION_TYPE_RESIZE_RELATIVE,
 	ACTION_TYPE_MOVETO,
+	ACTION_TYPE_MOVETO_CURSOR,
 	ACTION_TYPE_MOVE_RELATIVE,
 	ACTION_TYPE_SEND_TO_DESKTOP,
 	ACTION_TYPE_GO_TO_DESKTOP,
@@ -122,6 +123,7 @@ const char *action_names[] = {
 	"Resize",
 	"ResizeRelative",
 	"MoveTo",
+	"MoveToCursor",
 	"MoveRelative",
 	"SendToDesktop",
 	"GoToDesktop",
@@ -744,6 +746,11 @@ actions_run(struct view *activator, struct server *server,
 				int x = action_get_int(action, "x", 0);
 				int y = action_get_int(action, "y", 0);
 				view_move_relative(view, x, y);
+			}
+			break;
+		case ACTION_TYPE_MOVETO_CURSOR:
+			if (view) {
+				view_move_to_cursor(view);
 			}
 			break;
 		case ACTION_TYPE_SEND_TO_DESKTOP:

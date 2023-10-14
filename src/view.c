@@ -872,7 +872,7 @@ view_toggle_always_on_top(struct view *view)
 	}
 }
 
-static bool
+bool
 view_is_always_on_bottom(struct view *view)
 {
 	assert(view);

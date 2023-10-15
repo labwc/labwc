@@ -37,6 +37,7 @@ enum view_edge {
 };
 
 struct view;
+struct wlr_surface;
 
 /* Basic size hints (subset of XSizeHints from X11) */
 struct view_size_hints {
@@ -68,6 +69,8 @@ struct view_impl {
 	void (*move_to_back)(struct view *view);
 	struct view *(*get_root)(struct view *self);
 	void (*append_children)(struct view *self, struct wl_array *children);
+	/* determines if view and surface are owned by the same process */
+	bool (*is_related)(struct view *self, struct wlr_surface *surface);
 	struct view_size_hints (*get_size_hints)(struct view *self);
 	/* if not implemented, view is assumed to want focus */
 	bool (*wants_focus)(struct view *self);
@@ -340,6 +343,13 @@ void view_move_to_front(struct view *view);
 void view_move_to_back(struct view *view);
 struct view *view_get_root(struct view *view);
 void view_append_children(struct view *view, struct wl_array *children);
+
+/**
+ * view_is_related() - determine if view and surface are owned by the
+ * same application/process. Currently only implemented for xwayland
+ * views/surfaces.
+ */
+bool view_is_related(struct view *view, struct wlr_surface *surface);
 
 const char *view_get_string_prop(struct view *view, const char *prop);
 void view_update_title(struct view *view);

@@ -1285,6 +1285,17 @@ view_append_children(struct view *view, struct wl_array *children)
 	}
 }
 
+bool
+view_is_related(struct view *view, struct wlr_surface *surface)
+{
+	assert(view);
+	assert(surface);
+	if (view->impl->is_related) {
+		return view->impl->is_related(view, surface);
+	}
+	return false;
+}
+
 const char *
 view_get_string_prop(struct view *view, const char *prop)
 {

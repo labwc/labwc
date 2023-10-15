@@ -30,29 +30,61 @@ xwayland_view_get_size_hints(struct view *view)
 	};
 }
 
-static bool
+static enum view_wants_focus
 xwayland_view_wants_focus(struct view *view)
 {
-	xcb_icccm_wm_hints_t *hints = xwayland_surface_from_view(view)->hints;
-	if (!hints) {
-		return true;
-	}
+	struct wlr_xwayland_surface *xsurface =
+		xwayland_surface_from_view(view);
+
+	switch (wlr_xwayland_icccm_input_model(xsurface)) {
 	/*
-	 * Paraphrased from ICCCM section 4.1.7 (Input Focus):
+	 * Abbreviated from ICCCM section 4.1.7 (Input Focus):
 	 *
-	 * Clients set the input field of WM_HINTS to True to indicate
-	 * that they require window manager assistance in acquiring the
-	 * input focus. Clients set the input field to False to request
-	 * that the window manager not set the input focus to their
-	 * top-level window.
+	 * Passive Input - The client expects keyboard input but never
+	 * explicitly sets the input focus.
+	 * Locally Active Input - The client expects keyboard input and
+	 * explicitly sets the input focus, but it only does so when one
+	 * of its windows already has the focus.
 	 *
-	 * Clients that use XSetInputFocus() to explicitly set the input
-	 * focus should set the WM_TAKE_FOCUS atom in WM_PROTOCOLS.
-	 * Currently, labwc does not support this method of taking focus
-	 * and thus ignores WM_TAKE_FOCUS. These views can still be
-	 * focused by explicit user action (e.g. clicking in them).
+	 * Passive and Locally Active clients set the input field of
+	 * WM_HINTS to True, which indicates that they require window
+	 * manager assistance in acquiring the input focus.
 	 */
-	return (bool)hints->input;
+	case WLR_ICCCM_INPUT_MODEL_PASSIVE:
+	case WLR_ICCCM_INPUT_MODEL_LOCAL:
+		return VIEW_WANTS_FOCUS_ALWAYS;
+
+	/*
+	 * Globally Active Input - The client expects keyboard input and
+	 * explicitly sets the input focus, even when it is in windows
+	 * the client does not own. ... It wants to prevent the window
+	 * manager from setting the input focus to any of its windows
+	 * [because it may or may not want focus].
+	 *
+	 * Globally Active client windows may receive a WM_TAKE_FOCUS
+	 * message from the window manager. If they want the focus, they
+	 * should respond with a SetInputFocus request.
+	 *
+	 * [Currently, labwc does not fully support clients voluntarily
+	 * taking focus via the WM_TAKE_FOCUS + SetInputFocus mechanism
+	 * and avoids automatically focusing Globally Active windows.
+	 * This may change in future.]
+	 */
+	case WLR_ICCCM_INPUT_MODEL_GLOBAL:
+		return VIEW_WANTS_FOCUS_OFFER;
+
+	/*
+	 * No Input - The client never expects keyboard input.
+	 *
+	 * No Input and Globally Active clients set the input field to
+	 * False, which requests that the window manager not set the
+	 * input focus to their top-level window.
+	 */
+	case WLR_ICCCM_INPUT_MODEL_NONE:
+		break;
+	}
+
+	return VIEW_WANTS_FOCUS_NEVER;
 }
 
 static struct wlr_xwayland_surface *

@@ -432,6 +432,13 @@ void seat_init(struct server *server);
 void seat_finish(struct server *server);
 void seat_reconfigure(struct server *server);
 void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
+
+/**
+ * seat_focus_lock_surface() - ONLY to be called from session-lock.c to
+ * focus lock screen surfaces. Use seat_focus_surface() otherwise.
+ */
+void seat_focus_lock_surface(struct seat *seat, struct wlr_surface *surface);
+
 void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer);
 void seat_set_pressed(struct seat *seat, struct view *view,
 	struct wlr_scene_node *node, struct wlr_surface *surface,

@@ -46,12 +46,6 @@ desktop_focus_view(struct view *view, bool raise)
 		return;
 	}
 
-	struct server *server = view->server;
-	if (input_inhibit_blocks_surface(&server->seat, view->surface->resource)
-			|| server->session_lock) {
-		return;
-	}
-
 	if (view->minimized) {
 		/*
 		 * Unminimizing will map the view which triggers a call to this
@@ -80,7 +74,7 @@ desktop_focus_view(struct view *view, bool raise)
 	 * that expect to be able to control focus themselves, but can't
 	 * under labwc since it's disallowed at the wlroots level.
 	 */
-	struct seat *seat = &server->seat;
+	struct seat *seat = &view->server->seat;
 	if (view->surface != seat->seat->keyboard_state.focused_surface) {
 		seat_focus_surface(seat, view->surface);
 	}

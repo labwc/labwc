@@ -21,6 +21,7 @@ jobs:
   build:
     name: Build
     needs: codestyle
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:

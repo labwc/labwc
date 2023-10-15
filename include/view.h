@@ -36,6 +36,21 @@ enum view_edge {
 	VIEW_EDGE_CENTER,
 };
 
+enum view_wants_focus {
+	/* View does not want focus */
+	VIEW_WANTS_FOCUS_NEVER = 0,
+	/* View wants focus */
+	VIEW_WANTS_FOCUS_ALWAYS,
+	/*
+	 * View should be offered focus and may accept or decline
+	 * (a.k.a. ICCCM Globally Active input model). Labwc generally
+	 * avoids focusing these views automatically (e.g. when another
+	 * view on top is closed) but they may be focused by user action
+	 * (e.g. mouse click).
+	 */
+	VIEW_WANTS_FOCUS_OFFER,
+};
+
 struct view;
 struct wlr_surface;
 
@@ -72,8 +87,8 @@ struct view_impl {
 	/* determines if view and surface are owned by the same process */
 	bool (*is_related)(struct view *self, struct wlr_surface *surface);
 	struct view_size_hints (*get_size_hints)(struct view *self);
-	/* if not implemented, view is assumed to want focus */
-	bool (*wants_focus)(struct view *self);
+	/* if not implemented, VIEW_WANTS_FOCUS_ALWAYS is assumed */
+	enum view_wants_focus (*wants_focus)(struct view *self);
 };
 
 struct view {
@@ -272,6 +287,8 @@ struct view *view_next(struct wl_list *head, struct view *view,
  */
 void view_array_append(struct server *server, struct wl_array *views,
 	enum lab_view_criteria criteria);
+
+enum view_wants_focus view_wants_focus(struct view *view);
 
 /**
  * view_is_focusable() - Check whether or not a view can be focused

@@ -143,6 +143,16 @@ view_array_append(struct server *server, struct wl_array *views,
 	}
 }
 
+enum view_wants_focus
+view_wants_focus(struct view *view)
+{
+	assert(view);
+	if (view->impl->wants_focus) {
+		return view->impl->wants_focus(view);
+	}
+	return VIEW_WANTS_FOCUS_ALWAYS;
+}
+
 bool
 view_is_focusable(struct view *view)
 {
@@ -150,7 +160,7 @@ view_is_focusable(struct view *view)
 	if (!view->surface) {
 		return false;
 	}
-	if (view->impl->wants_focus && !view->impl->wants_focus(view)) {
+	if (view_wants_focus(view) != VIEW_WANTS_FOCUS_ALWAYS) {
 		return false;
 	}
 	return (view->mapped || view->minimized);

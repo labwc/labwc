@@ -531,7 +531,7 @@ xwayland_view_unmap(struct view *view, bool client_request)
 	view->mapped = false;
 	wl_list_remove(&view->commit.link);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
-	desktop_focus_topmost_view(view->server);
+	view_impl_unmap(view);
 
 	/*
 	 * If the view was explicitly unmapped by the client (rather

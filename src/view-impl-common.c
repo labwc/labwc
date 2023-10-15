@@ -75,6 +75,15 @@ view_impl_map(struct view *view)
 		view_get_string_prop(view, "title"));
 }
 
+void
+view_impl_unmap(struct view *view)
+{
+	struct seat *seat = &view->server->seat;
+	if (seat->seat->keyboard_state.focused_surface == view->surface) {
+		desktop_focus_topmost_view(view->server);
+	}
+}
+
 static bool
 resizing_edge(struct view *view, uint32_t edge)
 {

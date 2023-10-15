@@ -472,13 +472,27 @@ seat_reconfigure(struct server *server)
 }
 
 static void
-seat_focus(struct seat *seat, struct wlr_surface *surface)
+seat_focus(struct seat *seat, struct wlr_surface *surface, bool is_lock_surface)
 {
+	/*
+	 * Respect session lock. This check is critical, DO NOT REMOVE.
+	 * It should also come before the !surface condition, or the
+	 * lock screen may lose focus and become impossible to unlock.
+	 */
+	struct server *server = seat->server;
+	if (server->session_lock && !is_lock_surface) {
+		return;
+	}
+
 	if (!surface) {
 		wlr_seat_keyboard_notify_clear_focus(seat->seat);
 		return;
 	}
-	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
+
+	/* Respect input inhibit (also used by some lock screens) */
+	if (input_inhibit_blocks_surface(seat, surface->resource)) {
+		return;
+	}
 
 	/*
 	 * Key events associated with keybindings (both pressed and released)
@@ -490,10 +504,10 @@ seat_focus(struct seat *seat, struct wlr_surface *surface)
 	uint32_t *pressed_sent_keycodes = key_state_pressed_sent_keycodes();
 	int nr_pressed_sent_keycodes = key_state_nr_pressed_sent_keycodes();
 
+	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
 	wlr_seat_keyboard_notify_enter(seat->seat, surface,
 		pressed_sent_keycodes, nr_pressed_sent_keycodes, &kb->modifiers);
 
-	struct server *server = seat->server;
 	struct wlr_pointer_constraint_v1 *constraint =
 		wlr_pointer_constraints_v1_constraint_for_surface(server->constraints,
 			surface, seat->seat);
@@ -503,12 +517,18 @@ seat_focus(struct seat *seat, struct wlr_surface *surface)
 void
 seat_focus_surface(struct seat *seat, struct wlr_surface *surface)
 {
-	/* Respect layer-shell exlusive keyboard-interactivity. */
+	/* Respect layer-shell exclusive keyboard-interactivity. */
 	if (seat->focused_layer && seat->focused_layer->current.keyboard_interactive
 			== ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE) {
 		return;
 	}
-	seat_focus(seat, surface);
+	seat_focus(seat, surface, /*is_lock_surface*/ false);
+}
+
+void
+seat_focus_lock_surface(struct seat *seat, struct wlr_surface *surface)
+{
+	seat_focus(seat, surface, /*is_lock_surface*/ true);
 }
 
 void
@@ -519,7 +539,7 @@ seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer)
 		desktop_focus_topmost_view(seat->server);
 		return;
 	}
-	seat_focus(seat, layer->surface);
+	seat_focus(seat, layer->surface, /*is_lock_surface*/ false);
 	if (layer->current.layer >= ZWLR_LAYER_SHELL_V1_LAYER_TOP) {
 		seat->focused_layer = layer;
 	}

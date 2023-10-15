@@ -29,7 +29,7 @@ static void
 focus_surface(struct session_lock *lock, struct wlr_surface *focused)
 {
 	lock->focused = focused;
-	seat_focus_surface(&g_server->seat, focused);
+	seat_focus_lock_surface(&g_server->seat, focused);
 }
 
 static void

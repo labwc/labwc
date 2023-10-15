@@ -1,6 +1,7 @@
 [wrap-git]
-url = https://gitlab.freedesktop.org/wlroots/wlroots.git
-revision = 0.16
+# jlindgren: use 0.16-backports branch of wlroots
+url = https://github.com/jlindgren90/wlroots.git
+revision = 0.16-backports
 
 [provide]
 dependency_names = wlroots

@@ -48,11 +48,8 @@ if git.found()
 endif
 add_project_arguments('-DLABWC_VERSION=@0@'.format(version), language: 'c')
 
-wlroots = dependency(
-  'wlroots',
-  default_options: ['default_library=static', 'examples=false'],
-  version: ['>=0.16.0', '<0.17.0'],
-)
+# jlindgren: force use of wlroots subproject
+wlroots = subproject('wlroots').get_variable('wlroots')
 
 wlroots_has_xwayland = wlroots.get_variable('have_xwayland') == 'true'
 

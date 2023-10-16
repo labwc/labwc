@@ -66,12 +66,24 @@ xwayland_view_wants_focus(struct view *view)
 	 * should respond with a SetInputFocus request.
 	 *
 	 * [Currently, labwc does not fully support clients voluntarily
-	 * taking focus via the WM_TAKE_FOCUS + SetInputFocus mechanism
-	 * and avoids automatically focusing Globally Active windows.
-	 * This may change in future.]
+	 * taking focus via the WM_TAKE_FOCUS + SetInputFocus mechanism.
+	 * Instead, we try to guess whether the window wants focus based
+	 * on some heuristics -- see below.]
 	 */
 	case WLR_ICCCM_INPUT_MODEL_GLOBAL:
-		return VIEW_WANTS_FOCUS_OFFER;
+		/*
+		 * Assume the window does want focus if it wants window
+		 * decorations (according to _MOTIF_WM_HINTS). This is
+		 * a stop-gap fix to ensure that various applications
+		 * (mainly Java-based ones such as IntelliJ IDEA) get
+		 * focus normally and appear in the window switcher. It
+		 * would be better to match based on _NET_WM_WINDOW_TYPE
+		 * instead, but that property isn't currently available
+		 * through wlroots API.
+		 */
+		return (xsurface->decorations ==
+			WLR_XWAYLAND_SURFACE_DECORATIONS_ALL) ?
+			VIEW_WANTS_FOCUS_ALWAYS : VIEW_WANTS_FOCUS_OFFER;
 
 	/*
 	 * No Input - The client never expects keyboard input.

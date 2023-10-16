@@ -2,12 +2,13 @@
 #include <assert.h>
 #include <wlr/xwayland.h>
 #include "common/list.h"
+#include "common/macros.h"
 #include "common/mem.h"
 #include "labwc.h"
 #include "xwayland.h"
 
 static void
-unmanaged_handle_request_configure(struct wl_listener *listener, void *data)
+handle_request_configure(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, request_configure);
@@ -21,7 +22,7 @@ unmanaged_handle_request_configure(struct wl_listener *listener, void *data)
 }
 
 static void
-unmanaged_handle_set_geometry(struct wl_listener *listener, void *data)
+handle_set_geometry(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, set_geometry);
@@ -33,7 +34,7 @@ unmanaged_handle_set_geometry(struct wl_listener *listener, void *data)
 }
 
 static void
-unmanaged_handle_map(struct wl_listener *listener, void *data)
+handle_map(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, map);
@@ -44,8 +45,7 @@ unmanaged_handle_map(struct wl_listener *listener, void *data)
 	wlr_xwayland_surface_restack(xsurface, NULL, XCB_STACK_MODE_ABOVE);
 	wl_list_append(&unmanaged->server->unmanaged_surfaces, &unmanaged->link);
 
-	wl_signal_add(&xsurface->events.set_geometry, &unmanaged->set_geometry);
-	unmanaged->set_geometry.notify = unmanaged_handle_set_geometry;
+	CONNECT_SIGNAL(xsurface, unmanaged, set_geometry);
 
 	if (wlr_xwayland_or_surface_wants_focus(xsurface)) {
 		seat_focus_surface(&unmanaged->server->seat, xsurface->surface);
@@ -92,7 +92,7 @@ focus_next_surface(struct server *server, struct wlr_xwayland_surface *xsurface)
 }
 
 static void
-unmanaged_handle_unmap(struct wl_listener *listener, void *data)
+handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, unmap);
@@ -117,12 +117,12 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data)
 }
 
 static void
-unmanaged_handle_destroy(struct wl_listener *listener, void *data)
+handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, destroy);
 	wl_list_remove(&unmanaged->request_configure.link);
-	wl_list_remove(&unmanaged->override_redirect.link);
+	wl_list_remove(&unmanaged->set_override_redirect.link);
 	wl_list_remove(&unmanaged->request_activate.link);
 	wl_list_remove(&unmanaged->map.link);
 	wl_list_remove(&unmanaged->unmap.link);
@@ -131,25 +131,25 @@ unmanaged_handle_destroy(struct wl_listener *listener, void *data)
 }
 
 static void
-unmanaged_handle_override_redirect(struct wl_listener *listener, void *data)
+handle_set_override_redirect(struct wl_listener *listener, void *data)
 {
 	wlr_log(WLR_DEBUG, "handle unmanaged override_redirect");
 	struct xwayland_unmanaged *unmanaged =
-		wl_container_of(listener, unmanaged, override_redirect);
+		wl_container_of(listener, unmanaged, set_override_redirect);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	struct server *server = unmanaged->server;
 
 	bool mapped = xsurface->mapped;
 	if (mapped) {
-		unmanaged_handle_unmap(&unmanaged->unmap, NULL);
+		handle_unmap(&unmanaged->unmap, NULL);
 	}
-	unmanaged_handle_destroy(&unmanaged->destroy, NULL);
+	handle_destroy(&unmanaged->destroy, NULL);
 
 	xwayland_view_create(server, xsurface, mapped);
 }
 
 static void
-unmanaged_handle_request_activate(struct wl_listener *listener, void *data)
+handle_request_activate(struct wl_listener *listener, void *data)
 {
 	wlr_log(WLR_DEBUG, "handle unmanaged request_activate");
 	struct xwayland_unmanaged *unmanaged =
@@ -191,29 +191,14 @@ xwayland_unmanaged_create(struct server *server,
 	 */
 	assert(!xsurface->data);
 
-	wl_signal_add(&xsurface->events.request_configure,
-		&unmanaged->request_configure);
-	unmanaged->request_configure.notify =
-		unmanaged_handle_request_configure;
-
-	wl_signal_add(&xsurface->events.map, &unmanaged->map);
-	unmanaged->map.notify = unmanaged_handle_map;
-
-	wl_signal_add(&xsurface->events.unmap, &unmanaged->unmap);
-	unmanaged->unmap.notify = unmanaged_handle_unmap;
-
-	wl_signal_add(&xsurface->events.destroy, &unmanaged->destroy);
-	unmanaged->destroy.notify = unmanaged_handle_destroy;
-
-	wl_signal_add(&xsurface->events.set_override_redirect,
-		&unmanaged->override_redirect);
-	unmanaged->override_redirect.notify = unmanaged_handle_override_redirect;
-
-	wl_signal_add(&xsurface->events.request_activate,
-		&unmanaged->request_activate);
-	unmanaged->request_activate.notify = unmanaged_handle_request_activate;
+	CONNECT_SIGNAL(xsurface, unmanaged, map);
+	CONNECT_SIGNAL(xsurface, unmanaged, unmap);
+	CONNECT_SIGNAL(xsurface, unmanaged, destroy);
+	CONNECT_SIGNAL(xsurface, unmanaged, request_activate);
+	CONNECT_SIGNAL(xsurface, unmanaged, request_configure);
+	CONNECT_SIGNAL(xsurface, unmanaged, set_override_redirect);
 
 	if (mapped) {
-		unmanaged_handle_map(&unmanaged->map, xsurface);
+		handle_map(&unmanaged->map, xsurface);
 	}
 }

@@ -64,6 +64,7 @@ my @ignore = (
 	"PREFER_FALLTHROUGH",
 	"INITIALISED_STATIC",
 	"UNNECESSARY_ELSE",
+	"MACRO_ARG_PRECEDENCE",
 );
 my $help = 0;
 my $configuration_file = ".checkpatch.conf";

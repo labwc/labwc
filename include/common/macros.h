@@ -16,4 +16,20 @@
  */
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
+/**
+ * CONNECT_SIGNAL() - Connect a signal handler function to a wl_signal.
+ *
+ * @param src Signal emitter (struct containing wl_signal)
+ * @param dest Signal receiver (struct containing wl_listener)
+ * @param name Signal name
+ *
+ * This assumes that the common pattern is followed where:
+ *   - the wl_signal is (*src).events.<name>
+ *   - the wl_listener is (*dest).<name>
+ *   - the signal handler function is named handle_<name>
+ */
+#define CONNECT_SIGNAL(src, dest, name) \
+	(dest)->name.notify = handle_##name; \
+	wl_signal_add(&(src)->events.name, &(dest)->name)
+
 #endif /* LABWC_MACROS_H */

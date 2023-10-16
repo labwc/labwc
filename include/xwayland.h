@@ -20,7 +20,7 @@ struct xwayland_unmanaged {
 	struct wl_listener map;
 	struct wl_listener unmap;
 	struct wl_listener destroy;
-	struct wl_listener override_redirect;
+	struct wl_listener set_override_redirect;
 };
 
 struct xwayland_view {
@@ -30,9 +30,9 @@ struct xwayland_view {
 	/* Events unique to XWayland views */
 	struct wl_listener request_activate;
 	struct wl_listener request_configure;
-	struct wl_listener set_app_id;		/* TODO: s/set_app_id/class/ */
+	struct wl_listener set_class;
 	struct wl_listener set_decorations;
-	struct wl_listener override_redirect;
+	struct wl_listener set_override_redirect;
 
 	/* Not (yet) implemented */
 /*	struct wl_listener set_role; */

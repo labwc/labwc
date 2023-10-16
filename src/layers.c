@@ -38,9 +38,8 @@ apply_override(struct output *output, struct wlr_box *usable_area)
 }
 
 static void
-arrange_one_layer(struct output *output, const struct wlr_box *full_area,
-		struct wlr_box *usable_area, struct wlr_scene_tree *tree,
-		bool exclusive)
+arrange_one_layer(const struct wlr_box *full_area, struct wlr_box *usable_area,
+		struct wlr_scene_tree *tree, bool exclusive)
 {
 	struct wlr_scene_node *node;
 	wl_list_for_each(node, &tree->children, link) {
@@ -85,8 +84,8 @@ layers_arrange(struct output *output)
 		 * clients, so that the latter give way to the former regardless
 		 * of the order in which they were launched.
 		 */
-		arrange_one_layer(output, &full_area, &usable_area, layer, true);
-		arrange_one_layer(output, &full_area, &usable_area, layer, false);
+		arrange_one_layer(&full_area, &usable_area, layer, true);
+		arrange_one_layer(&full_area, &usable_area, layer, false);
 
 		/* Set node position to account for output layout change */
 		wlr_scene_node_set_position(&layer->node, scene_output->x,

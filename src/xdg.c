@@ -349,14 +349,20 @@ static void
 xdg_toplevel_view_move_to_front(struct view *view)
 {
 	struct view *root = xdg_toplevel_view_get_root(view);
+	/* FIXME: this exact code is repeated in xwayland.c */
 	view_impl_move_to_front(root);
 	view_impl_move_sub_views(root, LAB_TO_FRONT);
+	/* make sure view is in front of other sub-views */
+	if (view != root) {
+		view_impl_move_to_front(view);
+	}
 }
 
 static void
 xdg_toplevel_view_move_to_back(struct view *view)
 {
 	struct view *root = xdg_toplevel_view_get_root(view);
+	/* FIXME: this exact code is repeated in xwayland.c */
 	view_impl_move_sub_views(root, LAB_TO_BACK);
 	view_impl_move_to_back(root);
 }

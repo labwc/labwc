@@ -1,28 +1,67 @@
-# Example environment file
+##
+## Example ~/.config/labwc/environment file.
+## Uncomment lines starting with one '#' to suit your needs.
+##
 
-# This allows xdg-desktop-portal-wlr to function (e.g. for screen-recording)
-XDG_CURRENT_DESKTOP=wlroots
+##
+## Use the XKB_DEFAULT_LAYOUT variable to set the keyboard layout. For example
+## to start with Swedish keyboard layout set it to 'se'. If you are unsure what
+## your country code is, refer to the layout section of:
+## /usr/share/X11/xkb/rules/evdev.lst
+##
+## Multiple keyboard layouts can be set by comma-separating the country codes.
+## If multiple layouts are used, specify the toggle-keybind using
+## XKB_DEFAULT_OPTIONS as show below.
+##
+## For further details, see xkeyboard-config(7)
+##
 
-# Set keyboard layout to Swedish
-XKB_DEFAULT_LAYOUT=se
+# XKB_DEFAULT_LAYOUT=se
+# XKB_DEFAULT_LAYOUT=se,de
+# XKB_DEFAULT_OPTIONS=grp:alt_shift_toggle
+# XKB_DEFAULT_OPTIONS=grp:shift_caps_toggle
 
-# Set two keyboard layouts and toggle between them using alt+shift
-XKB_DEFAULT_LAYOUT=se,de
-XKB_DEFAULT_OPTIONS=grp:alt_shift_toggle
+##
+## Force firefox to use wayland backend.
+##
 
-# Force firefox to use wayland backend
-MOZ_ENABLE_WAYLAND=1
+# MOZ_ENABLE_WAYLAND=1
 
-# Set cursor theme.
-# Find icons themes with the command below or similar:
-#     find /usr/share/icons/ -type d -name "cursors"
-XCURSOR_THEME=breeze_cursors
+##
+## Set cursor theme and size. Find system icons themes with:
+## `find /usr/share/icons/ -type d -name "cursors"`
+##
 
-# Disable hardware cursors. Most users wouldn't want to do this, but if you
-# are experiencing issues with disappearing cursors, this might fix it.
-WLR_NO_HARDWARE_CURSORS=1
+# XCURSOR_THEME=breeze_cursors
+# XCURSOR_THEME=capitaine-cursors
+# XCURSOR_SIZE=24
 
-# For Java applications such as JetBrains/Intellij Idea, set this variable
-# to avoid menus with incorrect offset and blank windows
-# See https://github.com/swaywm/sway/issues/595
-_JAVA_AWT_WM_NONREPARENTING=1
+##
+## Disable hardware cursors. Most users would not want to do this, but if you
+## are experiencing issues with disappearing cursors, this might fix it.
+##
+
+# WLR_NO_HARDWARE_CURSORS=1
+
+##
+## In order for labwc to work out of the box, the environment variable below
+## is set to "1" by default to avoid menus with incorrect offset and blank
+## windows with Java applications such as JetBrains and Intellij Idea.
+## See https://github.com/swaywm/sway/issues/595
+## labwc will not override any already set environment variables, so if you for
+## some reason do not want this, then just set it to "0" (not recommended, but
+## mentioned here for completeness).
+##
+
+# _JAVA_AWT_WM_NONREPARENTING=0
+
+##
+## This allows xdg-desktop-portal-wlr to function (e.g. for screen-recording).
+## It is automatically set to "wlroots" by labwc though, so it is only
+## includeded here for completeness. Again, labwc will not over-write an
+## already set environment variable, so if you need it set to something else,
+## then uncomment and adjust.
+##
+
+# XDG_CURRENT_DESKTOP=wlroots
+

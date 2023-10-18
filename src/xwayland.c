@@ -508,9 +508,25 @@ xwayland_view_map(struct view *view)
 	view->mapped = true;
 	ensure_initial_geometry_and_output(view);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
-	if (!view->fullscreen && xwayland_surface->fullscreen) {
-		view_set_fullscreen(view, true);
-	}
+
+	/*
+	 * Per the Extended Window Manager Hints (EWMH) spec: "The Window
+	 * Manager SHOULD honor _NET_WM_STATE whenever a withdrawn window
+	 * requests to be mapped."
+	 *
+	 * The following order of operations is intended to reduce the
+	 * number of resize (Configure) events:
+	 *   1. set fullscreen state
+	 *   2. set decorations (depends on fullscreen state)
+	 *   3. set maximized (geometry depends on decorations)
+	 *
+	 * TODO: support separate horizontal/vertical maximize
+	 */
+	bool maximize = xwayland_surface->maximized_horz
+		&& xwayland_surface->maximized_vert;
+	view_set_fullscreen(view, xwayland_surface->fullscreen);
+	view_set_decorations(view, want_deco(xwayland_surface));
+	view_maximize(view, maximize, /*store_natural_geometry*/ true);
 
 	if (view->surface != xwayland_surface->surface) {
 		if (view->surface) {
@@ -538,8 +554,6 @@ xwayland_view_map(struct view *view)
 	}
 
 	if (!view->been_mapped) {
-		view_set_decorations(view, want_deco(xwayland_surface));
-
 		if (view_is_floating(view)) {
 			set_initial_position(view, xwayland_surface);
 		}

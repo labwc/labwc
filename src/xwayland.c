@@ -452,10 +452,30 @@ set_initial_position(struct view *view,
 			XCB_ICCCM_SIZE_HINT_P_POSITION));
 
 	if (has_position) {
-		/* Just make sure the view is on-screen */
-		view_adjust_for_layout_change(view);
+		/*
+		 * Make sure a floating view is onscreen. For a
+		 * maximized/fullscreen view, do nothing; if it is
+		 * unmaximized/leaves fullscreen later, we will make
+		 * sure it is on-screen at that point.
+		 */
+		if (view_is_floating(view)) {
+			view_adjust_for_layout_change(view);
+		}
 	} else {
-		view_center(view, NULL);
+		if (view_is_floating(view)) {
+			view_center(view, NULL);
+		} else {
+			/*
+			 * View is maximized/fullscreen. Center the
+			 * stored natural geometry without actually
+			 * moving the view.
+			 */
+			view_compute_centered_position(view, NULL,
+				view->natural_geometry.width,
+				view->natural_geometry.height,
+				&view->natural_geometry.x,
+				&view->natural_geometry.y);
+		}
 	}
 }
 
@@ -554,10 +574,7 @@ xwayland_view_map(struct view *view)
 	}
 
 	if (!view->been_mapped) {
-		if (view_is_floating(view)) {
-			set_initial_position(view, xwayland_surface);
-		}
-
+		set_initial_position(view, xwayland_surface);
 		/*
 		 * When mapping the view for the first time, visual
 		 * artifacts are reduced if we display it immediately at

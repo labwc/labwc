@@ -337,6 +337,8 @@ void view_move(struct view *view, int x, int y);
 void view_move_to_cursor(struct view *view);
 void view_moved(struct view *view);
 void view_minimize(struct view *view, bool minimized);
+bool view_compute_centered_position(struct view *view,
+	const struct wlr_box *ref, int w, int h, int *x, int *y);
 void view_store_natural_geometry(struct view *view);
 
 /**

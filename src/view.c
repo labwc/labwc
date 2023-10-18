@@ -539,7 +539,7 @@ view_minimize(struct view *view, bool minimized)
 	minimize_sub_views(root, minimized);
 }
 
-static bool
+bool
 view_compute_centered_position(struct view *view, const struct wlr_box *ref,
 		int w, int h, int *x, int *y)
 {

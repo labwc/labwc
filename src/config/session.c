@@ -107,6 +107,15 @@ session_environment_init(const char *dir)
 	 */
 	setenv("XDG_CURRENT_DESKTOP", "wlroots", 0);
 
+	/*
+	 * Set default for _JAVA_AWT_WM_NONREPARENTING so that Java applications
+	 * such as JetBrains/Intellij Idea do render blank windows and menus
+	 * with incorrect offset. See https://github.com/swaywm/sway/issues/595
+	 * May be overriden either by already having a value set or by the user
+	 * supplied environment file.
+	 */
+	setenv("_JAVA_AWT_WM_NONREPARENTING", "1", 0);
+
 	char *environment = build_path(dir, "environment");
 	if (!environment) {
 		return;

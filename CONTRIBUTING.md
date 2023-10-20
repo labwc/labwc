@@ -228,12 +228,12 @@ We have a very small, modest API and encourage you to use it.
 4. `wl_array_len()` to get number of elements in a `wl_array` [common/array.h]
 
 5. `ARRAY_SIZE()` to get number of elements in visible array
-   [common/array-size.h]
+   [common/macros.h]
 
 [common/mem.h]: https://github.com/labwc/labwc/blob/master/include/common/mem.h
 [common/list.h]: https://github.com/labwc/labwc/blob/master/include/common/list.h
 [common/array.h]: https://github.com/labwc/labwc/blob/master/include/common/array.h
-[common/array-size.h]: https://github.com/labwc/labwc/blob/master/include/common/array-size.h
+[common/macros.h]: https://github.com/labwc/labwc/blob/master/include/common/macros.h
 
 ### The Use of glib
 

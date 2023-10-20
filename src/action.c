@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <wlr/util/log.h>
 #include "action.h"
-#include "common/array-size.h"
+#include "common/macros.h"
 #include "common/list.h"
 #include "common/mem.h"
 #include "common/parse-bool.h"

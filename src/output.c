@@ -16,7 +16,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/region.h>
 #include <wlr/util/log.h>
-#include "common/array-size.h"
+#include "common/macros.h"
 #include "common/mem.h"
 #include "labwc.h"
 #include "layers.h"

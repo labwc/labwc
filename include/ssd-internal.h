@@ -3,7 +3,7 @@
 #define LABWC_SSD_INTERNAL_H
 
 #include <wlr/util/box.h>
-#include "common/array-size.h"
+#include "common/macros.h"
 #include "ssd.h"
 
 #define FOR_EACH(tmp, ...) \

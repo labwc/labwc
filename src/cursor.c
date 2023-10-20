@@ -7,7 +7,7 @@
 #include <wlr/types/wlr_primary_selection.h>
 #include <wlr/util/region.h>
 #include "action.h"
-#include "common/array-size.h"
+#include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "config/mousebind.h"

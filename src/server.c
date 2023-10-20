@@ -30,8 +30,6 @@
 #include "workspaces.h"
 #include "xwayland.h"
 
-#define LAB_XDG_SHELL_VERSION (2)
-
 static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;
 static struct wl_event_source *sigint_source;
@@ -359,29 +357,9 @@ server_init(struct server *server)
 	wlr_primary_selection_v1_device_manager_create(server->wl_display);
 
 	seat_init(server);
-
-	/* Init xdg-shell */
-	server->xdg_shell = wlr_xdg_shell_create(server->wl_display,
-		LAB_XDG_SHELL_VERSION);
-	if (!server->xdg_shell) {
-		wlr_log(WLR_ERROR, "unable to create the XDG shell interface");
-		exit(EXIT_FAILURE);
-	}
-	server->new_xdg_surface.notify = xdg_surface_new;
-	wl_signal_add(&server->xdg_shell->events.new_surface,
-		&server->new_xdg_surface);
-
+	xdg_shell_init(server);
 	kde_server_decoration_init(server);
 	xdg_server_decoration_init(server);
-
-	server->xdg_activation = wlr_xdg_activation_v1_create(server->wl_display);
-	if (!server->xdg_activation) {
-		wlr_log(WLR_ERROR, "unable to create xdg_activation interface");
-		exit(EXIT_FAILURE);
-	}
-	server->xdg_activation_request.notify = xdg_activation_handle_request;
-	wl_signal_add(&server->xdg_activation->events.request_activate,
-		&server->xdg_activation_request);
 
 	struct wlr_presentation *presentation =
 		wlr_presentation_create(server->wl_display, server->backend);

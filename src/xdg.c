@@ -9,6 +9,7 @@
 #include "window-rules.h"
 #include "workspaces.h"
 
+#define LAB_XDG_SHELL_VERSION (2)
 #define CONFIGURE_TIMEOUT_MS 100
 
 static struct xdg_toplevel_view *
@@ -580,7 +581,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.append_children = xdg_toplevel_view_append_children,
 };
 
-void
+static void
 xdg_activation_handle_request(struct wl_listener *listener, void *data)
 {
 	const struct wlr_xdg_activation_v1_request_activate_event *event = data;
@@ -624,7 +625,7 @@ xdg_activation_handle_request(struct wl_listener *listener, void *data)
  *   - wlr_surface->data = scene_tree
  *     to help the popups find their parent nodes
  */
-void
+static void
 xdg_surface_new(struct wl_listener *listener, void *data)
 {
 	struct server *server =
@@ -725,3 +726,26 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 
 	wl_list_insert(&server->views, &view->link);
 }
+
+void
+xdg_shell_init(struct server *server)
+{
+	server->xdg_shell = wlr_xdg_shell_create(server->wl_display,
+		LAB_XDG_SHELL_VERSION);
+	if (!server->xdg_shell) {
+		wlr_log(WLR_ERROR, "unable to create the XDG shell interface");
+		exit(EXIT_FAILURE);
+	}
+	server->new_xdg_surface.notify = xdg_surface_new;
+	wl_signal_add(&server->xdg_shell->events.new_surface, &server->new_xdg_surface);
+
+	server->xdg_activation = wlr_xdg_activation_v1_create(server->wl_display);
+	if (!server->xdg_activation) {
+		wlr_log(WLR_ERROR, "unable to create xdg_activation interface");
+		exit(EXIT_FAILURE);
+	}
+	server->xdg_activation_request.notify = xdg_activation_handle_request;
+	wl_signal_add(&server->xdg_activation->events.request_activate,
+		&server->xdg_activation_request);
+}
+

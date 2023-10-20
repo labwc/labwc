@@ -356,10 +356,7 @@ struct constraint {
 };
 
 void xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup);
-
-void xdg_activation_handle_request(struct wl_listener *listener, void *data);
-
-void xdg_surface_new(struct wl_listener *listener, void *data);
+void xdg_shell_init(struct server *server);
 
 void foreign_toplevel_handle_create(struct view *view);
 void foreign_toplevel_update_outputs(struct view *view);

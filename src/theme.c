@@ -19,7 +19,7 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include <strings.h>
-#include "common/array-size.h"
+#include "common/macros.h"
 #include "common/dir.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"

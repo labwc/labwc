@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef LABWC_ARRAY_SIZE_H
-#define LABWC_ARRAY_SIZE_H
+#ifndef LABWC_MACROS_H
+#define LABWC_MACROS_H
 
 /**
  * ARRAY_SIZE() - Get the number of elements in array.
@@ -16,4 +16,4 @@
  */
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
-#endif /* LABWC_ARRAY_SIZE_H */
+#endif /* LABWC_MACROS_H */

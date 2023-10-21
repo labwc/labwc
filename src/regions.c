@@ -208,10 +208,19 @@ regions_update_geometry(struct output *output)
 	wl_list_for_each(region, &output->regions, link) {
 		geo = &region->geo;
 		perc = &region->percentage;
-		geo->x = usable.x + usable.width * perc->x / 100;
-		geo->y = usable.y + usable.height * perc->y / 100;
-		geo->width = usable.width * perc->width / 100;
-		geo->height = usable.height * perc->height / 100;
+		/*
+		 * Add percentages (x + width, y + height) before scaling
+		 * so that there is no gap between regions due to rounding
+		 * variations
+		 */
+		int left = usable.width * perc->x / 100;
+		int right = usable.width * (perc->x + perc->width) / 100;
+		int top = usable.height * perc->y / 100;
+		int bottom = usable.height * (perc->y + perc->height) / 100;
+		geo->x = usable.x + left;
+		geo->y = usable.y + top;
+		geo->width = right - left;
+		geo->height = bottom - top;
 		region->center.x = geo->x + geo->width / 2;
 		region->center.y = geo->y + geo->height / 2;
 	}

@@ -19,8 +19,8 @@ ssd_border_create(struct ssd *ssd)
 
 	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
-	int width = view->current.width;
-	int height = view->current.height;
+	int width = view->pending.width;
+	int height = view->pending.height;
 	int full_width = width + 2 * theme->border_width;
 
 	float *color;
@@ -81,8 +81,8 @@ ssd_border_update(struct ssd *ssd)
 
 	struct theme *theme = view->server->theme;
 
-	int width = view->current.width;
-	int height = view->current.height;
+	int width = view->pending.width;
+	int height = view->pending.height;
 	int full_width = width + 2 * theme->border_width;
 
 	struct ssd_part *part;

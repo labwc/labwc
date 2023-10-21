@@ -62,10 +62,10 @@ ssd_max_extents(struct view *view)
 	assert(view);
 	struct border border = ssd_thickness(view);
 	return (struct wlr_box){
-		.x = view->current.x - border.left,
-		.y = view->current.y - border.top,
-		.width = view->current.width + border.left + border.right,
-		.height = view->current.height + border.top + border.bottom,
+		.x = view->pending.x - border.left,
+		.y = view->pending.y - border.top,
+		.width = view->pending.width + border.left + border.right,
+		.height = view->pending.height + border.top + border.bottom,
 	};
 }
 
@@ -191,7 +191,7 @@ ssd_create(struct view *view, bool active)
 	ssd->margin = ssd_thickness(view);
 	ssd_set_active(ssd, active);
 	ssd_enable_keybind_inhibit_indicator(ssd, view->inhibits_keybinds);
-	ssd->state.geometry = view->current;
+	ssd->state.geometry = view->pending;
 
 	return ssd;
 }
@@ -219,12 +219,12 @@ ssd_update_geometry(struct ssd *ssd)
 	}
 
 	struct wlr_box cached = ssd->state.geometry;
-	struct wlr_box current = ssd->view->current;
-	if (current.width == cached.width && current.height == cached.height) {
-		if (current.x != cached.x || current.y != cached.y) {
+	struct wlr_box pending = ssd->view->pending;
+	if (pending.width == cached.width && pending.height == cached.height) {
+		if (pending.x != cached.x || pending.y != cached.y) {
 			/* Dynamically resize extents based on position and usable_area */
 			ssd_extents_update(ssd);
-			ssd->state.geometry = current;
+			ssd->state.geometry = pending;
 		}
 		if (ssd->state.squared_corners != ssd->view->maximized) {
 			ssd_border_update(ssd);
@@ -235,7 +235,7 @@ ssd_update_geometry(struct ssd *ssd)
 	ssd_extents_update(ssd);
 	ssd_border_update(ssd);
 	ssd_titlebar_update(ssd);
-	ssd->state.geometry = current;
+	ssd->state.geometry = pending;
 }
 
 void

@@ -24,7 +24,7 @@ ssd_titlebar_create(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
-	int width = view->current.width;
+	int width = view->pending.width;
 
 	float *color;
 	struct wlr_scene_tree *parent;
@@ -130,7 +130,7 @@ void
 ssd_titlebar_update(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
-	int width = view->current.width;
+	int width = view->pending.width;
 	struct theme *theme = view->server->theme;
 
 	if (view->maximized != ssd->state.squared_corners) {
@@ -218,7 +218,7 @@ ssd_update_title_positions(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
-	int width = view->current.width;
+	int width = view->pending.width;
 	int title_bg_width = width - SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT;
 
 	int x, y;
@@ -286,7 +286,7 @@ ssd_update_title(struct ssd *ssd)
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
 	struct ssd_state_title_width *dstate;
-	int title_bg_width = view->current.width
+	int title_bg_width = view->pending.width
 		- SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT;
 
 	FOR_EACH_STATE(ssd, subtree) {

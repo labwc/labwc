@@ -340,34 +340,6 @@ xdg_toplevel_view_get_root(struct view *view)
 	return (struct view *)surface->data;
 }
 
-/*
- * In the view_move_to_{front,back} functions, a modal dialog is always shown
- * above its parent window, and the two always move together, so other window
- * cannot come between them.
- * This is consistent with GTK3/Qt5 applications on mutter and openbox.
- */
-static void
-xdg_toplevel_view_move_to_front(struct view *view)
-{
-	struct view *root = xdg_toplevel_view_get_root(view);
-	/* FIXME: this exact code is repeated in xwayland.c */
-	view_impl_move_to_front(root);
-	view_impl_move_sub_views(root, LAB_TO_FRONT);
-	/* make sure view is in front of other sub-views */
-	if (view != root) {
-		view_impl_move_to_front(view);
-	}
-}
-
-static void
-xdg_toplevel_view_move_to_back(struct view *view)
-{
-	struct view *root = xdg_toplevel_view_get_root(view);
-	/* FIXME: this exact code is repeated in xwayland.c */
-	view_impl_move_sub_views(root, LAB_TO_BACK);
-	view_impl_move_to_back(root);
-}
-
 static void
 xdg_toplevel_view_append_children(struct view *self, struct wl_array *children)
 {
@@ -575,8 +547,8 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.unmap = xdg_toplevel_view_unmap,
 	.maximize = xdg_toplevel_view_maximize,
 	.minimize = xdg_toplevel_view_minimize,
-	.move_to_front = xdg_toplevel_view_move_to_front,
-	.move_to_back = xdg_toplevel_view_move_to_back,
+	.move_to_front = view_impl_move_to_front,
+	.move_to_back = view_impl_move_to_back,
 	.get_root = xdg_toplevel_view_get_root,
 	.append_children = xdg_toplevel_view_append_children,
 };

@@ -635,6 +635,38 @@ xwayland_view_minimize(struct view *view, bool minimized)
 		minimized);
 }
 
+static void
+xwayland_view_move_to_front(struct view *view)
+{
+	view_impl_move_to_front(view);
+	/*
+	 * Update XWayland stacking order.
+	 *
+	 * FIXME: it would be better to restack above the next lower
+	 * view, rather than on top of all other surfaces. Restacking
+	 * the unmanaged surfaces afterward is ugly and still doesn't
+	 * account for always-on-top views.
+	 */
+	wlr_xwayland_surface_restack(xwayland_surface_from_view(view),
+		NULL, XCB_STACK_MODE_ABOVE);
+	/* Restack unmanaged surfaces on top */
+	struct wl_list *list = &view->server->unmanaged_surfaces;
+	struct xwayland_unmanaged *u;
+	wl_list_for_each(u, list, link) {
+		wlr_xwayland_surface_restack(u->xwayland_surface,
+			NULL, XCB_STACK_MODE_ABOVE);
+	}
+}
+
+static void
+xwayland_view_move_to_back(struct view *view)
+{
+	view_impl_move_to_back(view);
+	/* Update XWayland stacking order */
+	wlr_xwayland_surface_restack(xwayland_surface_from_view(view),
+		NULL, XCB_STACK_MODE_BELOW);
+}
+
 static struct view *
 xwayland_view_get_root(struct view *view)
 {
@@ -697,17 +729,6 @@ xwayland_view_set_activated(struct view *view, bool activated)
 	}
 
 	wlr_xwayland_surface_activate(xwayland_surface, activated);
-	if (activated) {
-		wlr_xwayland_surface_restack(xwayland_surface,
-			NULL, XCB_STACK_MODE_ABOVE);
-		/* Restack unmanaged surfaces on top */
-		struct xwayland_unmanaged *u;
-		struct wl_list *list = &view->server->unmanaged_surfaces;
-		wl_list_for_each(u, list, link) {
-			wlr_xwayland_surface_restack(u->xwayland_surface,
-				NULL, XCB_STACK_MODE_ABOVE);
-		}
-	}
 }
 
 static void
@@ -727,8 +748,8 @@ static const struct view_impl xwayland_view_impl = {
 	.unmap = xwayland_view_unmap,
 	.maximize = xwayland_view_maximize,
 	.minimize = xwayland_view_minimize,
-	.move_to_front = view_impl_move_to_front,
-	.move_to_back = view_impl_move_to_back,
+	.move_to_front = xwayland_view_move_to_front,
+	.move_to_back = xwayland_view_move_to_back,
 	.get_root = xwayland_view_get_root,
 	.append_children = xwayland_view_append_children,
 	.is_related = xwayland_view_is_related,

@@ -643,28 +643,6 @@ xwayland_view_get_root(struct view *view)
 }
 
 static void
-xwayland_view_move_to_front(struct view *view)
-{
-	struct view *root = xwayland_view_get_root(view);
-	/* FIXME: this exact code is repeated in xdg.c */
-	view_impl_move_to_front(root);
-	view_impl_move_sub_views(root, LAB_TO_FRONT);
-	/* make sure view is in front of other sub-views */
-	if (view != root) {
-		view_impl_move_to_front(view);
-	}
-}
-
-static void
-xwayland_view_move_to_back(struct view *view)
-{
-	struct view *root = xwayland_view_get_root(view);
-	/* FIXME: this exact code is repeated in xdg.c */
-	view_impl_move_sub_views(root, LAB_TO_BACK);
-	view_impl_move_to_back(root);
-}
-
-static void
 xwayland_view_append_children(struct view *self, struct wl_array *children)
 {
 	struct wlr_xwayland_surface *surface = xwayland_surface_from_view(self);
@@ -749,8 +727,8 @@ static const struct view_impl xwayland_view_impl = {
 	.unmap = xwayland_view_unmap,
 	.maximize = xwayland_view_maximize,
 	.minimize = xwayland_view_minimize,
-	.move_to_front = xwayland_view_move_to_front,
-	.move_to_back = xwayland_view_move_to_back,
+	.move_to_front = view_impl_move_to_front,
+	.move_to_back = view_impl_move_to_back,
 	.get_root = xwayland_view_get_root,
 	.append_children = xwayland_view_append_children,
 	.is_related = xwayland_view_is_related,

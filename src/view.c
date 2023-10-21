@@ -1325,24 +1325,70 @@ view_snap_to_region(struct view *view, struct region *region,
 	view_apply_region_geometry(view);
 }
 
+static void
+for_each_subview(struct view *view, void (*action)(struct view *))
+{
+	struct wl_array subviews;
+	struct view **subview;
+
+	wl_array_init(&subviews);
+	view_append_children(view, &subviews);
+	wl_array_for_each(subview, &subviews) {
+		action(*subview);
+	}
+	wl_array_release(&subviews);
+}
+
+static void
+move_to_front(struct view *view)
+{
+	if (view->impl->move_to_front) {
+		view->impl->move_to_front(view);
+	}
+}
+
+static void
+move_to_back(struct view *view)
+{
+	if (view->impl->move_to_back) {
+		view->impl->move_to_back(view);
+	}
+}
+
+/*
+ * In the view_move_to_{front,back} functions, a modal dialog is always
+ * shown above its parent window, and the two always move together, so
+ * other windows cannot come between them.
+ * This is consistent with GTK3/Qt5 applications on mutter and openbox.
+ */
 void
 view_move_to_front(struct view *view)
 {
 	assert(view);
-	if (view->impl->move_to_front) {
-		view->impl->move_to_front(view);
-		cursor_update_focus(view->server);
+	struct view *root = view_get_root(view);
+	assert(root);
+
+	move_to_front(root);
+	for_each_subview(root, move_to_front);
+	/* make sure view is in front of other sub-views */
+	if (view != root) {
+		move_to_front(view);
 	}
+
+	cursor_update_focus(view->server);
 }
 
 void
 view_move_to_back(struct view *view)
 {
 	assert(view);
-	if (view->impl->move_to_back) {
-		view->impl->move_to_back(view);
-		cursor_update_focus(view->server);
-	}
+	struct view *root = view_get_root(view);
+	assert(root);
+
+	for_each_subview(root, move_to_back);
+	move_to_back(root);
+
+	cursor_update_focus(view->server);
 }
 
 struct view *

@@ -90,6 +90,27 @@ handle_commit(struct wl_listener *listener, void *data)
 	struct wlr_box size;
 	wlr_xdg_surface_get_geometry(xdg_surface, &size);
 
+	/*
+	 * Qt applications occasionally fail to call set_window_geometry
+	 * after a configure request, but do correctly update the actual
+	 * surface extent. This results in a mismatch between the window
+	 * decorations (which follow the logical geometry) and the visual
+	 * size of the client area. As a workaround, we try to detect
+	 * this case and ignore the out-of-date window geometry.
+	 */
+	if (size.width != view->pending.width
+			|| size.height != view->pending.height) {
+		struct wlr_box extent;
+		wlr_surface_get_extends(xdg_surface->surface, &extent);
+		if (extent.width == view->pending.width
+				&& extent.height == view->pending.height) {
+			wlr_log(WLR_DEBUG, "window geometry for client (%s) "
+				"appears to be incorrect - ignoring",
+				view_get_string_prop(view, "app_id"));
+			size = extent; /* Use surface extent instead */
+		}
+	}
+
 	struct wlr_box *current = &view->current;
 	bool update_required = current->width != size.width
 		|| current->height != size.height;

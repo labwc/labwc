@@ -55,9 +55,12 @@ view_impl_map(struct view *view)
 void
 view_impl_unmap(struct view *view)
 {
-	struct seat *seat = &view->server->seat;
-	if (seat->seat->keyboard_state.focused_surface == view->surface) {
-		desktop_focus_topmost_view(view->server);
+	struct server *server = view->server;
+	if (view == server->focused_view) {
+		desktop_focus_topmost_view(server);
+	}
+	if (view == server->last_raised_view) {
+		server->last_raised_view = NULL;
 	}
 }
 

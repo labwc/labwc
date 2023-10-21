@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <strings.h>
+#include "common/macros.h"
 #include "common/match.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"

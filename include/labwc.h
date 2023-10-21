@@ -238,12 +238,17 @@ struct server {
 	struct wlr_box grab_box;
 	uint32_t resize_edges;
 
-	/* SSD state */
 	/*
 	 * Currently focused view. Updated with each "focus change"
 	 * event. This view is drawn with "active" SSD coloring.
 	 */
 	struct view *focused_view;
+	/*
+	 * Most recently raised view. Used to avoid unnecessarily
+	 * raising the same view over and over.
+	 */
+	struct view *last_raised_view;
+
 	struct ssd_hover_state *ssd_hover_state;
 
 	/* Tree for all non-layer xdg/xwayland-shell surfaces */

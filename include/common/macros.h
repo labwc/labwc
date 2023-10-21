@@ -32,4 +32,22 @@
 	(dest)->name.notify = handle_##name; \
 	wl_signal_add(&(src)->events.name, &(dest)->name)
 
+/**
+ * MIN() - Minimum of two values.
+ *
+ * @note Arguments may be evaluated twice.
+ */
+#ifndef MIN
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#endif
+
+/**
+ * MAX() - Maximum of two values.
+ *
+ * @note Arguments may be evaluated twice.
+ */
+#ifndef MAX
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#endif
+
 #endif /* LABWC_MACROS_H */

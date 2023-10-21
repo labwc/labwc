@@ -3,6 +3,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
+#include "common/macros.h"
 #include "common/scaled_font_buffer.h"
 #include "labwc.h"
 #include "resize_indicator.h"

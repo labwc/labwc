@@ -58,5 +58,7 @@ void xwayland_server_init(struct server *server,
 	struct wlr_compositor *compositor);
 void xwayland_server_finish(struct server *server);
 
+void xwayland_update_workarea(struct server *server);
+
 #endif /* HAVE_XWAYLAND */
 #endif /* LABWC_XWAYLAND_H */

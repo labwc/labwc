@@ -58,5 +58,7 @@ void xwayland_adjust_usable_area(struct view *view,
 	struct wlr_output_layout *layout, struct wlr_output *output,
 	struct wlr_box *usable);
 
+void xwayland_update_workarea(struct server *server);
+
 #endif /* HAVE_XWAYLAND */
 #endif /* LABWC_XWAYLAND_H */

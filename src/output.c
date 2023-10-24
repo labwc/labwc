@@ -538,6 +538,9 @@ output_update_usable_area(struct output *output)
 {
 	if (update_usable_area(output)) {
 		regions_update_geometry(output);
+#if HAVE_XWAYLAND
+		xwayland_update_workarea(output->server);
+#endif
 		desktop_arrange_all_views(output->server);
 	}
 }
@@ -557,6 +560,9 @@ output_update_all_usable_areas(struct server *server, bool layout_changed)
 		}
 	}
 	if (usable_area_changed || layout_changed) {
+#if HAVE_XWAYLAND
+		xwayland_update_workarea(server);
+#endif
 		desktop_arrange_all_views(server);
 	}
 }

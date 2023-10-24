@@ -830,6 +830,7 @@ handle_ready(struct wl_listener *listener, void *data)
 	struct server *server =
 		wl_container_of(listener, server, xwayland_ready);
 	wlr_xwayland_set_seat(server->xwayland, server->seat.seat);
+	xwayland_update_workarea(server);
 }
 
 void
@@ -918,4 +919,83 @@ xwayland_server_finish(struct server *server)
 	 */
 	server->xwayland = NULL;
 	wlr_xwayland_destroy(xwayland);
+}
+
+void
+xwayland_update_workarea(struct server *server)
+{
+	/*
+	 * Do nothing if called during destroy or before xwayland is ready.
+	 * This function will be called again from the ready signal handler.
+	 */
+	if (!server->xwayland || !server->xwayland->xwm) {
+		return;
+	}
+
+	struct wlr_box lb;
+	wlr_output_layout_get_box(server->output_layout, NULL, &lb);
+
+	/* Compute outer edges of layout (excluding negative regions) */
+	int layout_left = MAX(0, lb.x);
+	int layout_right = MAX(0, lb.x + lb.width);
+	int layout_top = MAX(0, lb.y);
+	int layout_bottom = MAX(0, lb.y + lb.height);
+
+	/* Workarea is initially the entire layout */
+	int workarea_left = layout_left;
+	int workarea_right = layout_right;
+	int workarea_top = layout_top;
+	int workarea_bottom = layout_bottom;
+
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		if (!output_is_usable(output)) {
+			continue;
+		}
+
+		struct wlr_box ob;
+		wlr_output_layout_get_box(server->output_layout,
+			output->wlr_output, &ob);
+
+		/* Compute edges of output */
+		int output_left = ob.x;
+		int output_right = ob.x + ob.width;
+		int output_top = ob.y;
+		int output_bottom = ob.y + ob.height;
+
+		/* Compute edges of usable area */
+		int usable_left = output_left + output->usable_area.x;
+		int usable_right = usable_left + output->usable_area.width;
+		int usable_top = output_top + output->usable_area.y;
+		int usable_bottom = usable_top + output->usable_area.height;
+
+		/*
+		 * Only adjust workarea edges for output edges that are
+		 * aligned with outer edges of layout
+		 */
+		if (output_left == layout_left) {
+			workarea_left = MAX(workarea_left, usable_left);
+		}
+		if (output_right == layout_right) {
+			workarea_right = MIN(workarea_right, usable_right);
+		}
+		if (output_top == layout_top) {
+			workarea_top = MAX(workarea_top, usable_top);
+		}
+		if (output_bottom == layout_bottom) {
+			workarea_bottom = MIN(workarea_bottom, usable_bottom);
+		}
+	}
+
+	/*
+	 * Set _NET_WORKAREA property. We don't report virtual desktops
+	 * to XWayland, so we set only one workarea.
+	 */
+	struct wlr_box workarea = {
+		.x = workarea_left,
+		.y = workarea_top,
+		.width = workarea_right - workarea_left,
+		.height = workarea_bottom - workarea_top,
+	};
+	wlr_xwayland_set_workareas(server->xwayland, &workarea, 1);
 }

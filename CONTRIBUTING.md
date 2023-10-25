@@ -93,7 +93,11 @@ Some distributions carry labwc in their repositories or user repositories.
 - @ptrcnull (Alpine)
 - @narrat (Arch)
 - @jbeich (FreeBSD)
+- @AndersonTorres (NixOS)
 - @adcdam (Slackware)
+- @bdantas (Tiny Core Linux)
+- @Visone-Selektah (Venom Linux)
+- @tranzystorek-io (Void Linux)
 
 kindly maintain the packages in their respective distro.
 

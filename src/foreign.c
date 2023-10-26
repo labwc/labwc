@@ -17,7 +17,8 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, toplevel.maximize);
 	struct wlr_foreign_toplevel_handle_v1_maximized_event *event = data;
-	view_maximize(view, event->maximized, /*store_natural_geometry*/ true);
+	view_maximize(view, event->maximized ? VIEW_AXIS_BOTH : VIEW_AXIS_NONE,
+		/*store_natural_geometry*/ true);
 }
 
 static void

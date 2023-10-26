@@ -102,7 +102,8 @@ _snap_next_edge(struct view *view, int start_pos, const struct snap_search def, 
 	struct view *v;
 	int p = max;
 	for_each_view(v, &server->views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
-		if (v == view || v->output != output || v->minimized || v->maximized) {
+		if (v == view || v->output != output || v->minimized
+				|| v->maximized == VIEW_AXIS_BOTH) {
 			continue;
 		}
 

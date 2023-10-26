@@ -337,7 +337,7 @@ void
 view_resize_relative(struct view *view, int left, int right, int top, int bottom)
 {
 	assert(view);
-	if (view->fullscreen || view->maximized) {
+	if (view->fullscreen || view->maximized != VIEW_AXIS_NONE) {
 		return;
 	}
 	struct wlr_box newgeo = view->pending;
@@ -356,7 +356,7 @@ view_move_relative(struct view *view, int x, int y)
 	if (view->fullscreen) {
 		return;
 	}
-	view_maximize(view, false, /*store_natural_geometry*/ false);
+	view_maximize(view, VIEW_AXIS_NONE, /*store_natural_geometry*/ false);
 	if (view_is_tiled(view)) {
 		view_set_untiled(view);
 		view_restore_to(view, view->natural_geometry);
@@ -373,12 +373,8 @@ view_move_to_cursor(struct view *view)
 	if (!output_is_usable(pending_output)) {
 		return;
 	}
-	if (view->fullscreen) {
-		view_set_fullscreen(view, false);
-	}
-	if (view->maximized) {
-		view_maximize(view, false, /*store_natural_geometry*/ false);
-	}
+	view_set_fullscreen(view, false);
+	view_maximize(view, VIEW_AXIS_NONE, /*store_natural_geometry*/ false);
 	if (view_is_tiled(view)) {
 		view_set_untiled(view);
 		view_restore_to(view, view->natural_geometry);
@@ -739,7 +735,7 @@ static void
 view_apply_maximized_geometry(struct view *view)
 {
 	assert(view);
-	assert(view->maximized);
+	assert(view->maximized != VIEW_AXIS_NONE);
 	struct output *output = view->output;
 	assert(output_is_usable(output));
 
@@ -753,6 +749,23 @@ view_apply_maximized_geometry(struct view *view)
 		box.width /= output->wlr_output->scale;
 	}
 
+	/*
+	 * If one axis (horizontal or vertical) is unmaximized, it
+	 * should use the natural geometry. But if that geometry is not
+	 * on-screen on the output where the view is maximized, then
+	 * center the unmaximized axis.
+	 */
+	struct wlr_box natural = view->natural_geometry;
+	if (view->maximized != VIEW_AXIS_BOTH) {
+		struct wlr_box intersect;
+		wlr_box_intersection(&intersect, &box, &natural);
+		if (wlr_box_empty(&intersect)) {
+			view_compute_centered_position(view, NULL,
+				natural.width, natural.height,
+				&natural.x, &natural.y);
+		}
+	}
+
 	if (view->ssd_enabled) {
 		struct border border = ssd_thickness(view);
 		box.x += border.left;
@@ -760,6 +773,15 @@ view_apply_maximized_geometry(struct view *view)
 		box.width -= border.right + border.left;
 		box.height -= border.top + border.bottom;
 	}
+
+	if (view->maximized == VIEW_AXIS_VERTICAL) {
+		box.x = natural.x;
+		box.width = natural.width;
+	} else if (view->maximized == VIEW_AXIS_HORIZONTAL) {
+		box.y = natural.y;
+		box.height = natural.height;
+	}
+
 	view_move_resize(view, box);
 }
 
@@ -775,7 +797,7 @@ view_apply_special_geometry(struct view *view)
 
 	if (view->fullscreen) {
 		view_apply_fullscreen_geometry(view);
-	} else if (view->maximized) {
+	} else if (view->maximized != VIEW_AXIS_NONE) {
 		view_apply_maximized_geometry(view);
 	} else if (view->tiled) {
 		view_apply_tiled_geometry(view);
@@ -788,14 +810,14 @@ view_apply_special_geometry(struct view *view)
 
 /* For internal use only. Does not update geometry. */
 static void
-set_maximized(struct view *view, bool maximized)
+set_maximized(struct view *view, enum view_axis maximized)
 {
 	if (view->impl->maximize) {
-		view->impl->maximize(view, maximized);
+		view->impl->maximize(view, (maximized == VIEW_AXIS_BOTH));
 	}
 	if (view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_set_maximized(
-			view->toplevel.handle, maximized);
+			view->toplevel.handle, (maximized == VIEW_AXIS_BOTH));
 	}
 	view->maximized = maximized;
 
@@ -818,8 +840,8 @@ view_restore_to(struct view *view, struct wlr_box geometry)
 	if (view->fullscreen) {
 		return;
 	}
-	if (view->maximized) {
-		set_maximized(view, false);
+	if (view->maximized != VIEW_AXIS_NONE) {
+		set_maximized(view, VIEW_AXIS_NONE);
 	}
 	view_move_resize(view, geometry);
 }
@@ -836,8 +858,8 @@ bool
 view_is_floating(struct view *view)
 {
 	assert(view);
-	return !(view->fullscreen || view->maximized || view->tiled
-		|| view->tiled_region || view->tiled_region_evacuate);
+	return !(view->fullscreen || (view->maximized != VIEW_AXIS_NONE)
+		|| view_is_tiled(view));
 }
 
 /* Reset tiled state of view without changing geometry */
@@ -851,27 +873,28 @@ view_set_untiled(struct view *view)
 }
 
 void
-view_maximize(struct view *view, bool maximize, bool store_natural_geometry)
+view_maximize(struct view *view, enum view_axis axis,
+		bool store_natural_geometry)
 {
 	assert(view);
-	if (view->maximized == maximize) {
+	if (view->maximized == axis) {
 		return;
 	}
 	if (view->fullscreen) {
 		return;
 	}
-	if (maximize) {
+	if (axis != VIEW_AXIS_NONE) {
 		/*
 		 * Maximize via keybind or client request cancels
 		 * interactive move/resize since we can't move/resize
 		 * a maximized view.
 		 */
 		interactive_cancel(view);
-		if (store_natural_geometry) {
+		if (store_natural_geometry && view_is_floating(view)) {
 			view_store_natural_geometry(view);
 		}
 	}
-	set_maximized(view, maximize);
+	set_maximized(view, axis);
 	if (view_is_floating(view)) {
 		view_apply_natural_geometry(view);
 	} else {
@@ -880,11 +903,28 @@ view_maximize(struct view *view, bool maximize, bool store_natural_geometry)
 }
 
 void
-view_toggle_maximize(struct view *view)
+view_toggle_maximize(struct view *view, enum view_axis axis)
 {
 	assert(view);
-	view_maximize(view, !view->maximized,
-		/*store_natural_geometry*/ true);
+	switch (axis) {
+	case VIEW_AXIS_HORIZONTAL:
+	case VIEW_AXIS_VERTICAL:
+		/* Toggle one axis (XOR) */
+		view_maximize(view, view->maximized ^ axis,
+			/*store_natural_geometry*/ true);
+		break;
+	case VIEW_AXIS_BOTH:
+		/*
+		 * Maximize in both directions if unmaximized or partially
+		 * maximized, otherwise unmaximize.
+		 */
+		view_maximize(view, (view->maximized == VIEW_AXIS_BOTH) ?
+			VIEW_AXIS_NONE : VIEW_AXIS_BOTH,
+			/*store_natural_geometry*/ true);
+		break;
+	default:
+		break;
+	}
 }
 
 void
@@ -1167,7 +1207,8 @@ void
 view_grow_to_edge(struct view *view, enum view_edge direction)
 {
 	assert(view);
-	if (view->fullscreen || view->maximized) {
+	/* TODO: allow grow to edge if maximized along the other axis */
+	if (view->fullscreen || view->maximized != VIEW_AXIS_NONE) {
 		return;
 	}
 	if (!output_is_usable(view->output)) {
@@ -1184,7 +1225,8 @@ void
 view_shrink_to_edge(struct view *view, enum view_edge direction)
 {
 	assert(view);
-	if (view->fullscreen || view->maximized) {
+	/* TODO: allow shrink to edge if maximized along the other axis */
+	if (view->fullscreen || view->maximized != VIEW_AXIS_NONE) {
 		return;
 	}
 	if (!output_is_usable(view->output)) {
@@ -1195,6 +1237,23 @@ view_shrink_to_edge(struct view *view, enum view_edge direction)
 	struct wlr_box geo = view->pending;
 	snap_shrink_to_next_edge(view, direction, &geo);
 	view_move_resize(view, geo);
+}
+
+enum view_axis
+view_axis_parse(const char *direction)
+{
+	if (!direction) {
+		return VIEW_AXIS_NONE;
+	}
+	if (!strcasecmp(direction, "horizontal")) {
+		return VIEW_AXIS_HORIZONTAL;
+	} else if (!strcasecmp(direction, "vertical")) {
+		return VIEW_AXIS_VERTICAL;
+	} else if (!strcasecmp(direction, "both")) {
+		return VIEW_AXIS_BOTH;
+	} else {
+		return VIEW_AXIS_NONE;
+	}
 }
 
 enum view_edge
@@ -1231,7 +1290,7 @@ view_snap_to_edge(struct view *view, enum view_edge edge, bool store_natural_geo
 		return;
 	}
 
-	if (view->tiled == edge && !view->maximized) {
+	if (view->tiled == edge && view->maximized == VIEW_AXIS_NONE) {
 		/* We are already tiled for this edge and thus should switch outputs */
 		struct wlr_output *new_output = NULL;
 		struct wlr_output *current_output = output->wlr_output;
@@ -1285,9 +1344,10 @@ view_snap_to_edge(struct view *view, enum view_edge edge, bool store_natural_geo
 		}
 	}
 
-	if (view->maximized) {
+	if (view->maximized != VIEW_AXIS_NONE) {
 		/* Unmaximize + keep using existing natural_geometry */
-		view_maximize(view, false, /*store_natural_geometry*/ false);
+		view_maximize(view, VIEW_AXIS_NONE,
+			/*store_natural_geometry*/ false);
 	} else if (store_natural_geometry) {
 		/* store current geometry as new natural_geometry */
 		view_store_natural_geometry(view);
@@ -1313,9 +1373,10 @@ view_snap_to_region(struct view *view, struct region *region,
 		return;
 	}
 
-	if (view->maximized) {
+	if (view->maximized != VIEW_AXIS_NONE) {
 		/* Unmaximize + keep using existing natural_geometry */
-		view_maximize(view, false, /*store_natural_geometry*/ false);
+		view_maximize(view, VIEW_AXIS_NONE,
+			/*store_natural_geometry*/ false);
 	} else if (store_natural_geometry) {
 		/* store current geometry as new natural_geometry */
 		view_store_natural_geometry(view);

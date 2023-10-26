@@ -29,6 +29,18 @@ enum ssd_preference {
 	LAB_SSD_PREF_SERVER,
 };
 
+/**
+ * Directions in which a view can be maximized. "None" is used
+ * internally to mean "not maximized" but is not valid in rc.xml.
+ * Therefore when parsing rc.xml, "None" means "Invalid".
+ */
+enum view_axis {
+	VIEW_AXIS_NONE = 0,
+	VIEW_AXIS_HORIZONTAL = (1 << 0),
+	VIEW_AXIS_VERTICAL = (1 << 1),
+	VIEW_AXIS_BOTH = (VIEW_AXIS_HORIZONTAL | VIEW_AXIS_VERTICAL),
+};
+
 enum view_edge {
 	VIEW_EDGE_INVALID = 0,
 
@@ -127,7 +139,7 @@ struct view {
 	bool ssd_titlebar_hidden;
 	enum ssd_preference ssd_preference;
 	bool minimized;
-	bool maximized;
+	enum view_axis maximized;
 	bool fullscreen;
 	uint32_t tiled;  /* private, enum view_edge in src/view.c */
 	bool inhibits_keybinds;
@@ -353,10 +365,10 @@ void view_store_natural_geometry(struct view *view);
 void view_center(struct view *view, const struct wlr_box *ref);
 void view_restore_to(struct view *view, struct wlr_box geometry);
 void view_set_untiled(struct view *view);
-void view_maximize(struct view *view, bool maximize,
+void view_maximize(struct view *view, enum view_axis axis,
 	bool store_natural_geometry);
 void view_set_fullscreen(struct view *view, bool fullscreen);
-void view_toggle_maximize(struct view *view);
+void view_toggle_maximize(struct view *view, enum view_axis axis);
 void view_toggle_decorations(struct view *view);
 
 bool view_is_always_on_top(struct view *view);
@@ -400,6 +412,7 @@ void view_evacuate_region(struct view *view);
 void view_on_output_destroy(struct view *view);
 void view_destroy(struct view *view);
 
+enum view_axis view_axis_parse(const char *direction);
 enum view_edge view_edge_parse(const char *direction);
 
 /* xdg.c */

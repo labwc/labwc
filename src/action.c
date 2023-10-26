@@ -296,6 +296,19 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		break;
+	case ACTION_TYPE_TOGGLE_MAXIMIZE:
+	case ACTION_TYPE_MAXIMIZE:
+		if (!strcmp(argument, "direction")) {
+			enum view_axis axis = view_axis_parse(content);
+			if (axis == VIEW_AXIS_NONE) {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			} else {
+				action_arg_add_int(action, argument, axis);
+			}
+			goto cleanup;
+		}
+		break;
 	case ACTION_TYPE_RESIZE_RELATIVE:
 		if (!strcmp(argument, "left") || !strcmp(argument, "right") ||
 				!strcmp(argument, "top") || !strcmp(argument, "bottom")) {
@@ -694,12 +707,17 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_TOGGLE_MAXIMIZE:
 			if (view) {
-				view_toggle_maximize(view);
+				enum view_axis axis = action_get_int(action,
+					"direction", VIEW_AXIS_BOTH);
+				view_toggle_maximize(view, axis);
 			}
 			break;
 		case ACTION_TYPE_MAXIMIZE:
 			if (view) {
-				view_maximize(view, true, /*store_natural_geometry*/ true);
+				enum view_axis axis = action_get_int(action,
+					"direction", VIEW_AXIS_BOTH);
+				view_maximize(view, axis,
+					/*store_natural_geometry*/ true);
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_FULLSCREEN:

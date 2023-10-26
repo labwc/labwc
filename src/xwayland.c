@@ -351,7 +351,7 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 		view_set_decorations(view,
 			want_deco(xwayland_surface_from_view(view)));
 	}
-	view_toggle_maximize(view);
+	view_toggle_maximize(view, VIEW_AXIS_BOTH);
 }
 
 static void
@@ -540,14 +540,17 @@ xwayland_view_map(struct view *view)
 	 *   1. set fullscreen state
 	 *   2. set decorations (depends on fullscreen state)
 	 *   3. set maximized (geometry depends on decorations)
-	 *
-	 * TODO: support separate horizontal/vertical maximize
 	 */
-	bool maximize = xwayland_surface->maximized_horz
-		&& xwayland_surface->maximized_vert;
 	view_set_fullscreen(view, xwayland_surface->fullscreen);
 	view_set_decorations(view, want_deco(xwayland_surface));
-	view_maximize(view, maximize, /*store_natural_geometry*/ true);
+	enum view_axis axis = VIEW_AXIS_NONE;
+	if (xwayland_surface->maximized_horz) {
+		axis |= VIEW_AXIS_HORIZONTAL;
+	}
+	if (xwayland_surface->maximized_vert) {
+		axis |= VIEW_AXIS_VERTICAL;
+	}
+	view_maximize(view, axis, /*store_natural_geometry*/ true);
 
 	if (view->surface != xwayland_surface->surface) {
 		if (view->surface) {

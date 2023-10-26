@@ -53,7 +53,7 @@ ssd_border_create(struct ssd *ssd)
 			-(ssd->titlebar.height + theme->border_width), color);
 	} FOR_EACH_END
 
-	if (view->maximized) {
+	if (view->maximized == VIEW_AXIS_BOTH) {
 		wlr_scene_node_set_enabled(&ssd->border.tree->node, false);
 	}
 }
@@ -65,13 +65,14 @@ ssd_border_update(struct ssd *ssd)
 	assert(ssd->border.tree);
 
 	struct view *view = ssd->view;
-	if (view->maximized && ssd->border.tree->node.enabled) {
+	if (view->maximized == VIEW_AXIS_BOTH
+			&& ssd->border.tree->node.enabled) {
 		/* Disable borders on maximize */
 		wlr_scene_node_set_enabled(&ssd->border.tree->node, false);
 		ssd->margin = ssd_thickness(ssd->view);
 	}
 
-	if (view->maximized) {
+	if (view->maximized == VIEW_AXIS_BOTH) {
 		return;
 	} else if (!ssd->border.tree->node.enabled) {
 		/* And re-enabled them when unmaximized */

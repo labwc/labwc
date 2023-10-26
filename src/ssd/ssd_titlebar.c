@@ -86,8 +86,8 @@ ssd_titlebar_create(struct ssd *ssd)
 
 	ssd_update_title(ssd);
 
-	if (view->maximized) {
-		set_squared_corners(ssd, view->maximized);
+	if (view->maximized == VIEW_AXIS_BOTH) {
+		set_squared_corners(ssd, true);
 	}
 }
 
@@ -133,8 +133,9 @@ ssd_titlebar_update(struct ssd *ssd)
 	int width = view->current.width;
 	struct theme *theme = view->server->theme;
 
-	if (view->maximized != ssd->state.squared_corners) {
-		set_squared_corners(ssd, view->maximized);
+	bool maximized = (view->maximized == VIEW_AXIS_BOTH);
+	if (ssd->state.squared_corners != maximized) {
+		set_squared_corners(ssd, maximized);
 	}
 
 	if (width == ssd->state.geometry.width) {

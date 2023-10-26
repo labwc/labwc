@@ -112,11 +112,13 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="ToggleFullscreen" />*
 	Toggle fullscreen state of focused window.
 
-*<action name="ToggleMaximize" />*
-	Toggle maximize state of focused window.
+*<action name="ToggleMaximize" direction="value" />*
+	Toggle maximize state of focused window. Supported directions are
+	"both" (default), "horizontal", and "vertical".
 
-*<action name="Maximize" />*
-	Maximize focused window.
+*<action name="Maximize" direction="value" />*
+	Maximize focused window. Supported directions are "both" (default),
+	"horizontal", and "vertical".
 
 *<action name="ToggleAlwaysOnTop" />*
 	Toggle always-on-top of focused window.

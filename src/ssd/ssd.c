@@ -35,7 +35,7 @@ ssd_thickness(struct view *view)
 
 	struct theme *theme = view->server->theme;
 
-	if (view->maximized) {
+	if (view->maximized == VIEW_AXIS_BOTH) {
 		struct border thickness = { 0 };
 		if (!view->ssd_titlebar_hidden) {
 			thickness.top += theme->title_height;
@@ -226,7 +226,8 @@ ssd_update_geometry(struct ssd *ssd)
 			ssd_extents_update(ssd);
 			ssd->state.geometry = current;
 		}
-		if (ssd->state.squared_corners != ssd->view->maximized) {
+		bool maximized = (ssd->view->maximized == VIEW_AXIS_BOTH);
+		if (ssd->state.squared_corners != maximized) {
 			ssd_border_update(ssd);
 			ssd_titlebar_update(ssd);
 		}

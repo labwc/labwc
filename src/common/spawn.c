@@ -46,6 +46,8 @@ spawn_async_no_shell(char const *command)
 		sigset_t set;
 		sigemptyset(&set);
 		sigprocmask(SIG_SETMASK, &set, NULL);
+		/* Restore ignored signals */
+		signal(SIGPIPE, SIG_DFL);
 		grandchild = fork();
 		if (grandchild == 0) {
 			execvp(argv[0], argv);

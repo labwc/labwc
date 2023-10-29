@@ -103,8 +103,38 @@ key_state_nr_bound_keys(void)
 	return bound.nr_keys;
 }
 
-int
-key_state_nr_pressed_keys(void)
+/*
+ * Reference:
+ * https://github.com/xkbcommon/libxkbcommon/blob/HEAD/include/xkbcommon/xkbcommon-keysyms.h
+ */
+bool
+key_state_multiple_normal_keys_pressed(void)
 {
-	return pressed.nr_keys;
+	if (pressed.nr_keys < 2) {
+		return false;
+	}
+
+	/*
+	 * If the pressed array contains multiple keys, we have to analyze a bit
+	 * further because some keys like those listed below do not always
+	 * receive release events.
+	 *   - XKB_KEY_ISO_Group_Next
+	 *   - XKB_KEY_XF86WakeUp
+	 *   - XKB_KEY_XF86Suspend
+	 *   - XKB_KEY_XF86Hibernate
+	 */
+	size_t count = 0;
+	for (int i = 0; i < pressed.nr_keys; ++i) {
+		/* Convert from udev event to xkbcommon code */
+		uint32_t keycode = pressed.keys[i] + 8;
+		if (keycode >= 0x1000000) {
+			/* XFree86 vendor specific keysyms */
+			continue;
+		} else if (keycode >= 0xFE00 && keycode <= 0xFEFF) {
+			/* Extension function and modifier keys */
+			continue;
+		}
+		++count;
+	}
+	return count > 1;
 }

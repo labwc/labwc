@@ -361,7 +361,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	 * avoids false positive matches where 'other' keys were pressed at the
 	 * same time.
 	 */
-	if (key_state_nr_pressed_keys() > 1) {
+	if (key_state_multiple_normal_keys_pressed()) {
 		return false;
 	}
 

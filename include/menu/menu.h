@@ -81,14 +81,14 @@ void menu_finish(struct server *server);
 struct menu *menu_get_by_id(struct server *server, const char *id);
 
 /**
- * menu_open - open menu on position (x, y)
+ * menu_open_root - open menu on position (x, y)
  *
  * This function will close server->menu_current, open the
  * new menu and assign @menu to server->menu_current.
  *
  * Additionally, server->input_mode wil be set to LAB_INPUT_STATE_MENU.
  */
-void menu_open(struct menu *menu, int x, int y);
+void menu_open_root(struct menu *menu, int x, int y);
 
 /**
  * menu_process_cursor_motion

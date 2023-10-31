@@ -842,7 +842,7 @@ menu_close(struct menu *menu)
 }
 
 void
-menu_open(struct menu *menu, int x, int y)
+menu_open_root(struct menu *menu, int x, int y)
 {
 	assert(menu);
 	if (menu->server->menu_current) {

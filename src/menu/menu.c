@@ -874,6 +874,13 @@ menu_process_item_selection(struct menuitem *item)
 {
 	assert(item);
 
+	/* Do not keep selecting the same item */
+	static struct menuitem *last;
+	if (item == last) {
+		return;
+	}
+	last = item;
+
 	if (!item->selectable) {
 		return;
 	}
@@ -1042,12 +1049,6 @@ menu_process_cursor_motion(struct wlr_scene_node *node)
 {
 	assert(node && node->data);
 	struct menuitem *item = node_menuitem_from_node(node);
-
-	if (item->selectable && node == &item->selected.tree->node) {
-		/* We are on an already selected item */
-		return;
-	}
-
 	menu_process_item_selection(item);
 }
 

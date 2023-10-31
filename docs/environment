@@ -10,6 +10,7 @@
 ## /usr/share/X11/xkb/rules/evdev.lst
 ##
 ## Multiple keyboard layouts can be set by comma-separating the country codes.
+## If a variant layout is needed, the syntax is layout(variant)
 ## If multiple layouts are used, specify the toggle-keybind using
 ## XKB_DEFAULT_OPTIONS as show below.
 ##
@@ -17,7 +18,7 @@
 ##
 
 # XKB_DEFAULT_LAYOUT=se
-# XKB_DEFAULT_LAYOUT=se,de
+# XKB_DEFAULT_LAYOUT=se,us(intl)
 # XKB_DEFAULT_OPTIONS=grp:alt_shift_toggle
 # XKB_DEFAULT_OPTIONS=grp:shift_caps_toggle
 

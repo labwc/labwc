@@ -593,6 +593,25 @@ menu_get_full_width(struct menu *menu)
 	return width + max_child_width;
 }
 
+static struct wlr_box
+get_submenu_position(struct menuitem *item, enum menu_align align)
+{
+	struct wlr_box pos = { 0 };
+	struct menu *menu = item->parent;
+	struct theme *theme = menu->server->theme;
+	int lx = menu->scene_tree->node.x;
+	int ly = menu->scene_tree->node.y;
+
+	if (align & LAB_MENU_OPEN_RIGHT) {
+		pos.x = lx + menu->size.width - theme->menu_overlap_x;
+	} else {
+		pos.x = lx;
+	}
+	int rel_y = item->tree->node.y;
+	pos.y = ly + rel_y - theme->menu_overlap_y;
+	return pos;
+}
+
 static void
 menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 {
@@ -650,14 +669,8 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 		if (!item->submenu) {
 			continue;
 		}
-		if (align & LAB_MENU_OPEN_RIGHT) {
-			new_lx = lx + menu->size.width - theme->menu_overlap_x;
-		} else {
-			new_lx = lx;
-		}
-		rel_y = item->tree->node.y;
-		new_ly = ly + rel_y - theme->menu_overlap_y;
-		menu_configure(item->submenu, new_lx, new_ly, align);
+		struct wlr_box pos = get_submenu_position(item, align);
+		menu_configure(item->submenu, pos.x, pos.y, align);
 	}
 }
 

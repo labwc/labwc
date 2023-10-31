@@ -29,6 +29,8 @@ struct menu_scene {
 
 struct menuitem {
 	struct wl_list actions;
+	char *execute;
+	char *id; /* needed for pipemenus */
 	struct menu *parent;
 	struct menu *submenu;
 	bool selectable;
@@ -46,6 +48,7 @@ struct menu {
 	char *label;
 	int item_height;
 	struct menu *parent;
+
 	struct {
 		int width;
 		int height;
@@ -57,6 +60,8 @@ struct menu {
 		struct menuitem *item;
 	} selection;
 	struct wlr_scene_tree *scene_tree;
+	bool is_pipemenu;
+	enum menu_align align;
 
 	/* Used to match a window-menu to the view that triggered it. */
 	struct view *triggered_by_view;  /* may be NULL */

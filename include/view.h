@@ -141,7 +141,7 @@ struct view {
 	bool minimized;
 	enum view_axis maximized;
 	bool fullscreen;
-	uint32_t tiled;  /* private, enum view_edge in src/view.c */
+	enum view_edge tiled;
 	bool inhibits_keybinds;
 
 	/* Pointer to an output owned struct region, may be NULL */

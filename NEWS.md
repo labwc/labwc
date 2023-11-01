@@ -24,7 +24,90 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## 0.6.5 - 2023-09-23
+## [unreleased]
+
+### Added
+
+- Support separate horizontal and vertical maximize by adding a
+  `direction` option to actions Maximize and ToggleMaximize.
+- Add actions GrowToEdge and ShrinkToEdge. Written-by: @digint
+- Add `snapWindows` option to MoveToEdge action. Written-by: @digint
+- Add MoveToCursor action. Written-by: @Arnaudv6
+- Add config option `<keyboard><numlock>` to enable Num Lock on startup.
+- Support Meta (M), Hyper (H), Mod1, Mod3, Mod4 and Mod5 modifiers in
+  keybind definitions. Fixes: #1061
+- Add themerc 'titlebar.height' option. Written-by: @mozlima
+- Add If and ForEach actions. Written-by: @consus
+- Allow referencing the current workspace in actions, for example:
+
+      <action name="SendToDesktop" to="current"/>
+
+### Fixed
+
+- Update XWayland stacking order when moving a window to the front/back.
+- Prevent switching workspaces for always-on-bottom windows. Fixes: #1170
+- Fix invisible cursor after wlopm --off && wlopm --on.
+- When a session is locked using 'session-lock' protocol, reconfigure for
+  output layout changes to avoid incorrect positioning
+- Account for window base size in resize indicator so that the displayed
+  size exactly matches the terminal grid, for example 80x25.
+- The following focus related issues:
+  - Fix code paths which could lead to a lock-screen losing focus, making
+    the session impossible to unlock or another surface to gain focus thus
+    breaching the session lock.
+  - Only focus topmost view on unmap if unmapped view was focused.
+  - Fix `xwayland_surface->data` bug relating to unmanaged surfaces.
+  - Fix layer subsurface focus bug to make waybar's minimize-raise work.
+    Fixes: #1131
+  - Ignore focus change to unmanaged surface belonging to same PID to fix
+    an issue with menus immediately closing in some X11 apps.
+  - Avoid focusing xwayland views that do not want focus using the ICCCM
+    "Globally Active" input model.
+  - Allow re-focus between "globally active" XWayland views of the same
+    PID.
+  - Assume that views that want decorations also want focus
+- The following keyboard and keybind related issues:
+  - Make keybind match stricter by insisting that no other non-modifier
+    keys are pressed at the same time. Also, treat synthetic
+    layout-change key event as modifier. Fixes #1091 #1129
+  - Fix keyboard release event bug after session lock. Fixes: #1114
+- Raise xdg and xwayland sub-views correctly relative to other sub-views,
+  by letting the relative stacking order between them change.
+- Honor initially maximized requests for XWayland views via
+  `_NET_WM_STATE`.
+- For initially maximized XWayland views, set the stored natural geometry
+  to be output-centered.
+- Fix regions rounding error sometimes resulting in incorrect gaps
+  between regions.
+
+### Changed
+
+- Restore `SIGPIPE` default handler before exec. Fixes: #1209
+- With the introduction of directional Maximize, right-click on the
+  maximize button now toggles horizontal maximize, while middle-click
+  toggles vertical maximize.
+- Make MoveToEdge snap to the next window edge by default rather than
+  just the screen edge.
+- Comment out variables in `docs/environment` to avoid users using the
+  file without editing it and ending up with unwanted settings.
+  Fixes: #1011
+- Set `_JAVA_AWT_WM_NONREPARENTING=1` unless already set.
+- This release has seen significant refactoring and minor improvements
+  with respect to window and surface focus (particular thanks to
+  @jlindgren). This work has helped uncover and fix some hard-to-find
+  bugs. We don't believe that there are any regressions, but can't say
+  for sure.
+- Set Num Lock to enabled by default on start up
+- Allow switching VT when locked
+- Use `fnmatch()` for pattern matching instead of `g_pattern_match_simple()`
+  because it is a POSIX-compliant function which has a glob(7) manual page
+  for reference.
+- Title context is used instead of TitleBar for the default client-menu
+  on click. This means that if a button is right-clicked, the client-menu
+  will not appear anymore.
+- Always switch to the workspace containing the view being focused.
+
+## [0.6.5] - 2023-09-23
 
 ### Added
 
@@ -712,6 +795,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
+[unreleased]: https://github.com/labwc/labwc/compare/0.6.5...HEAD
 [0.6.5]: https://github.com/labwc/labwc/compare/0.6.4...0.6.5
 [0.6.4]: https://github.com/labwc/labwc/compare/0.6.3...0.6.4
 [0.6.3]: https://github.com/labwc/labwc/compare/0.6.2...0.6.3

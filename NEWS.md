@@ -101,7 +101,7 @@ The format is based on [Keep a Changelog]
 - Do not expand environment variables in `Exec` action `<command>`
   argument (but still resolve tilde).
 
-## 0.6.4 - 2023-07-14
+## [0.6.4] - 2023-07-14
 
 ### Added
 
@@ -142,7 +142,7 @@ The format is based on [Keep a Changelog]
 - Make `ToggleKeybinds` applicable only to the window that has keyboard focus
   when the action is executed.
 
-## 0.6.3 - 2023-05-08
+## [0.6.3] - 2023-05-08
 
 ### Added
 
@@ -211,7 +211,7 @@ The format is based on [Keep a Changelog]
 - Default to follow="true" for SendToDesktop action as per Openbox 3.6
   specification.
 
-## 0.6.2 - 2023-03-20
+## [0.6.2] - 2023-03-20
 
 This release contains refactoring and simplification relating to
 view-output association and xdg/xwayland configure/map events.
@@ -269,7 +269,7 @@ Unless otherwise stated all contributions are by the core-devs
         <cycleViewPreview>yes</cycleViewPreview>
       </core>
 
-## 0.6.1 - 2023-01-29
+## [0.6.1] - 2023-01-29
 
 As usual, this release contains lots of refactoring and bug fixes with
 particular thanks going to @Consolatis, @jlindgren90, @bi4k8, @Flrian and
@@ -328,11 +328,11 @@ particular thanks going to @Consolatis, @jlindgren90, @bi4k8, @Flrian and
 
 ### Changed
 
-- Filter out wp_drm_lease_device from Xwayland to avoid Electron apps such as
+- Filter out `wp_drm_lease_device` from Xwayland to avoid Electron apps such as
   VS Code and Discord lagging over time. Issue #553. Written-by: @Joshua-Ashton
 - Do not switch output on SnapToEdge if view is maximized. Written-by: @Flrian
 
-## 0.6.0 - 2022-11-17
+## [0.6.0] - 2022-11-17
 
 This release contains significant refactoring to use the wlroots
 scene-graph API. This touches many areas of the code, particularly
@@ -342,9 +342,9 @@ this.
 
 Noteworthy, related changes include:
 
-- The use of a buffer implementation instead of using wlr_texture. It
+- The use of a buffer implementation instead of using `wlr_texture`. It
   handles both images and fonts, and scales according to output scale.
-- The use of node-descriptors to assign roles to wlr_scene_nodes in order
+- The use of node-descriptors to assign roles to `wlr_scene_nodes` in order
   to simplify the code.
 - Improving the "Debug" action to print scene-graph trees
 
@@ -355,7 +355,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 
 ### Added
 
-- Set environment variable LABWC_PID to the pid of the compositor so that
+- Set environment variable `LABWC_PID` to the pid of the compositor so that
   SIGHUP and SIGTERM can be sent to specific instances.
 - Add command line options --exit and --reconfigure.
 - Support setting keyboard repeat and delay at runtime. Written-by: @bi4k8
@@ -388,7 +388,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 - presentation-time protocol
 - Native language support for client-menus. Written-by: @01micko
 - Touch support. Written-by: @bi4k8
-- drm_lease_v1 for VR to work and leasing of desktop displays.
+- `drm_lease_v1` for VR to work and leasing of desktop displays.
   Written-by: Joshua Ashton
 - ToggleAlwaysOnTop action. Written-by: @Consolatis
 - Command line option -C to specify config directory
@@ -396,7 +396,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 - Menu `<separator />` and associated theme options:
   menu.separator.width, menu.separator.padding.width,
   menu.separator.padding.height and menu.separator.color
-- Adjust maximized and tiled windows according to usable_area taking
+- Adjust maximized and tiled windows according to `usable_area` taking
   into account exclusive layer-shell clients. Written-by: @Consolatis
 - Restore natural geometry when moving tiled/maximized window
   Fixes #391. Written-by: @Consolatis
@@ -411,7 +411,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 - Fix bugs relating to sending matching pairs of press and release
   keycodes to clients when using keybinds. Also fix related key-repeat
   bug. (Issue #510)
-- Fix wlr_output_cursor initialization bug on new output.
+- Fix `wlr_output_cursor` initialization bug on new output.
   Written-by: @jlindgren90
 - Show correct cursor for resize action triggered by keybind.
   Written-by: @jlindgren
@@ -436,14 +436,14 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
   assigned to xwayland to NULL whenever Xwayland terminates).
   Issues #166 #444. Written-by: @Consolatis. Helped-by: @droc12345
 - Increase File Descriptor (FD) limit to max because a compositor has to
-  handle many: client connections, DMA-BUFs, wl_data_device pipes and so on.
+  handle many: client connections, DMA-BUFs, `wl_data_device` pipes and so on.
   Fixes client freeze/crashes (swaywm/sway#6642). Written-by: @Joshua-Ashton
 - Fix crash when creating a cursor constraint and there is no currently
   focused view.
 - Gracefully handle dying client during interactive move.
   Written-by: @Consolatis
 - Dynamically adjust server-side-deccoration invisible resize areas based
-  on usable_area to ensure that cursor events are sent to clients such as
+  on `usable_area` to ensure that cursor events are sent to clients such as
   panels in preference to grabbing window edges. Fixes #265.
   Written-by: @Consolatis
 - Always position submenus inside output extents. Fixes #276
@@ -454,7 +454,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
   having to find the right wlroots commit if there are upstream breaking
   changes.
 - Increase accuracy of window center-alignment, taking into account
-  usable_area and window decoration. Also, top/left align if window is
+  `usable_area` and window decoration. Also, top/left align if window is
   bigger than usable area.
 - Handle view-destruction during alt-tab cycling.
   Written-by: @Joshua-Ashton
@@ -510,11 +510,11 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 
 - Call foreign-toplevel-destroy when unmapping xwayland surfaces because
   some xwayland clients leave unmapped child views around. Although
-  handle_destroy() is not called for these, we have to call
+  `handle_destroy()` is not called for these, we have to call
   foreign-toplevel-destroy to avoid clients such as panels incorrecly
   showing them.
-- Handle xwayland set_override_redirect events to fix weird behaviour with
-  gitk menus and rofi.
+- Handle xwayland `set_override_redirect` events to fix weird behaviour
+  with gitk menus and rofi.
 - Re-focus parent surface on unmapping xwayland unmanaged surfaces
   Fixes #352 relating to JetBrains and Intellij focus issues
   Written-by: Jelle De Loecker
@@ -534,7 +534,7 @@ This is a minor bugfix release mostly to ease packaging.
 
 ### Added
 
-- Honour size increments from WM_SIZE_HINTS, for example to allow
+- Honour size increments from `WM_SIZE_HINTS`, for example to allow
   xwayland terminal emulators to be resized to a width/height evenly
   divisible by the cell size. Written-by: @jlindgren90
 - Implement cursor input for overlay popups. Written-by: @Consolatis

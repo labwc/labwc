@@ -13,6 +13,10 @@
 #include "workspaces.h"
 #include "xwayland.h"
 
+#if HAVE_XWAYLAND
+#include <wlr/xwayland.h>
+#endif
+
 void
 desktop_arrange_all_views(struct server *server)
 {
@@ -81,6 +85,25 @@ desktop_focus_view(struct view *view, bool raise)
 
 	if (raise) {
 		view_move_to_front(view);
+	}
+}
+
+/* TODO: focus layer-shell surfaces also? */
+void
+desktop_focus_view_or_surface(struct seat *seat, struct view *view,
+		struct wlr_surface *surface, bool raise)
+{
+	assert(view || surface);
+	if (view) {
+		desktop_focus_view(view, raise);
+#if HAVE_XWAYLAND
+	} else if (wlr_surface_is_xwayland_surface(surface)) {
+		struct wlr_xwayland_surface *xsurface =
+			wlr_xwayland_surface_from_wlr_surface(surface);
+		if (xsurface && wlr_xwayland_or_surface_wants_focus(xsurface)) {
+			seat_focus_surface(seat, surface);
+		}
+#endif
 	}
 }
 

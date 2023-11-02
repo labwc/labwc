@@ -479,8 +479,9 @@ process_cursor_motion(struct server *server, uint32_t time)
 		dnd_icons_move(seat, seat->cursor->x, seat->cursor->y);
 	}
 
-	if (ctx.view && rc.focus_follow_mouse) {
-		desktop_focus_view(ctx.view, rc.raise_on_focus);
+	if ((ctx.view || ctx.surface) && rc.focus_follow_mouse) {
+		desktop_focus_view_or_surface(seat, ctx.view, ctx.surface,
+			rc.raise_on_focus);
 	}
 
 	struct mousebind *mousebind;
@@ -517,11 +518,12 @@ _cursor_update_focus(struct server *server)
 	/* Focus surface under cursor if it isn't already focused */
 	struct cursor_context ctx = get_cursor_context(server);
 
-	if (ctx.view && rc.focus_follow_mouse
+	if ((ctx.view || ctx.surface) && rc.focus_follow_mouse
 			&& !rc.focus_follow_mouse_requires_movement
 			&& !server->osd_state.cycle_view) {
 		/* Prevents changing keyboard focus during A-Tab */
-		desktop_focus_view(ctx.view, rc.raise_on_focus);
+		desktop_focus_view_or_surface(&server->seat, ctx.view,
+			ctx.surface, rc.raise_on_focus);
 	}
 
 	cursor_update_common(server, &ctx, msec(&now),
@@ -908,13 +910,22 @@ cursor_button_press(struct seat *seat, struct wlr_pointer_button_event *event)
 		return;
 	}
 
-	/* Handle _press_ on a layer surface */
+	/*
+	 * On press, set focus to a non-view surface that wants it.
+	 * Action processing does not run for these surfaces and thus
+	 * the Focus action (used for normal views) does not work.
+	 */
 	if (ctx.type == LAB_SSD_LAYER_SURFACE) {
 		struct wlr_layer_surface_v1 *layer =
 			wlr_layer_surface_v1_from_wlr_surface(ctx.surface);
 		if (layer && layer->current.keyboard_interactive) {
 			seat_set_focus_layer(seat, layer);
 		}
+#ifdef HAVE_XWAYLAND
+	} else if (ctx.type == LAB_SSD_UNMANAGED) {
+		desktop_focus_view_or_surface(seat, NULL, ctx.surface,
+			/*raise*/ false);
+#endif
 	}
 
 	/*

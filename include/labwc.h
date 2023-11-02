@@ -382,6 +382,14 @@ void foreign_toplevel_update_outputs(struct view *view);
  * session is locked/input is inhibited; it will simply do nothing.
  */
 void desktop_focus_view(struct view *view, bool raise);
+
+/**
+ * desktop_focus_view_or_surface() - like desktop_focus_view() but can
+ * also focus other (e.g. xwayland-unmanaged) surfaces
+ */
+void desktop_focus_view_or_surface(struct seat *seat, struct view *view,
+	struct wlr_surface *surface, bool raise);
+
 void desktop_arrange_all_views(struct server *server);
 void desktop_focus_output(struct output *output);
 struct view *desktop_topmost_focusable_view(struct server *server);

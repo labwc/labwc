@@ -542,6 +542,7 @@ bool
 view_compute_centered_position(struct view *view, const struct wlr_box *ref,
 		int w, int h, int *x, int *y)
 {
+	assert(view);
 	if (w <= 0 || h <= 0) {
 		wlr_log(WLR_ERROR, "view has empty geometry, not centering");
 		return false;
@@ -575,6 +576,47 @@ view_compute_centered_position(struct view *view, const struct wlr_box *ref,
 	*y += margin.top;
 
 	return true;
+}
+
+bool
+view_adjust_floating_geometry(struct view *view, struct wlr_box *geometry)
+{
+	assert(view);
+	if (!output_is_usable(view->output)) {
+		wlr_log(WLR_ERROR, "view has no output, not positioning");
+		return false;
+	}
+
+	bool adjusted = false;
+	/*
+	 * First check whether the view is onscreen. For now, "onscreen"
+	 * is defined as even one pixel of the client area being visible.
+	 */
+	if (wlr_output_layout_intersects(view->server->output_layout,
+			NULL, geometry)) {
+		/*
+		 * If onscreen, then make sure the titlebar is also
+		 * visible (and not overlapping any panels/docks)
+		 */
+		struct border margin = ssd_get_margin(view->ssd);
+		struct wlr_box usable =
+			output_usable_area_in_layout_coords(view->output);
+
+		if (geometry->x < usable.x + margin.left) {
+			geometry->x = usable.x + margin.left;
+			adjusted = true;
+		}
+		if (geometry->y < usable.y + margin.top) {
+			geometry->y = usable.y + margin.top;
+			adjusted = true;
+		}
+	} else {
+		/* If offscreen, then just center the view */
+		adjusted = view_compute_centered_position(view, NULL,
+			geometry->width, geometry->height,
+			&geometry->x, &geometry->y);
+	}
+	return adjusted;
 }
 
 static void
@@ -630,19 +672,9 @@ view_apply_natural_geometry(struct view *view)
 	assert(view);
 	assert(view_is_floating(view));
 
-	struct wlr_output_layout *layout = view->server->output_layout;
-	if (wlr_output_layout_intersects(layout, NULL, &view->natural_geometry)
-			|| wl_list_empty(&layout->outputs)) {
-		/* restore to original geometry */
-		view_move_resize(view, view->natural_geometry);
-	} else {
-		/* reposition if original geometry is offscreen */
-		struct wlr_box box = view->natural_geometry;
-		if (view_compute_centered_position(view, NULL, box.width,
-				box.height, &box.x, &box.y)) {
-			view_move_resize(view, box);
-		}
-	}
+	struct wlr_box geometry = view->natural_geometry;
+	view_adjust_floating_geometry(view, &geometry);
+	view_move_resize(view, geometry);
 }
 
 static void
@@ -1147,9 +1179,9 @@ view_adjust_for_layout_change(struct view *view)
 		view_apply_natural_geometry(view);
 	} else {
 		/* reposition view if it's offscreen */
-		if (!wlr_output_layout_intersects(view->server->output_layout,
-				NULL, &view->pending)) {
-			view_center(view, NULL);
+		struct wlr_box geometry = view->pending;
+		if (view_adjust_floating_geometry(view, &geometry)) {
+			view_move_resize(view, geometry);
 		}
 	}
 	if (view->toplevel.handle) {

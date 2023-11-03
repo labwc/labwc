@@ -481,19 +481,6 @@ set_initial_position(struct view *view,
 }
 
 static void
-top_left_edge_boundary_check(struct view *view)
-{
-	struct wlr_box deco = ssd_max_extents(view);
-	if (deco.x < 0) {
-		view->current.x -= deco.x;
-	}
-	if (deco.y < 0) {
-		view->current.y -= deco.y;
-	}
-	view->impl->configure(view, view->current);
-}
-
-static void
 init_foreign_toplevel(struct view *view)
 {
 	foreign_toplevel_handle_create(view);
@@ -587,10 +574,6 @@ xwayland_view_map(struct view *view)
 		 */
 		view->current = view->pending;
 		view_moved(view);
-	}
-
-	if (view->ssd_enabled && view_is_floating(view)) {
-		top_left_edge_boundary_check(view);
 	}
 
 	/* Add commit here, as xwayland map/unmap can change the wlr_surface */

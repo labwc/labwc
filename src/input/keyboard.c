@@ -105,7 +105,6 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym, x
 			/* Use keycodes */
 			for (size_t i = 0; i < keybind->keycodes_len; i++) {
 				if (keybind->keycodes[i] == code) {
-					key_state_store_pressed_keys_as_bound();
 					actions_run(NULL, server, &keybind->actions, 0);
 					return true;
 				}
@@ -114,7 +113,6 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym, x
 			/* Use syms */
 			for (size_t i = 0; i < keybind->keysyms_len; i++) {
 				if (xkb_keysym_to_lower(sym) == keybind->keysyms[i]) {
-					key_state_store_pressed_keys_as_bound();
 					actions_run(NULL, server, &keybind->actions, 0);
 					return true;
 				}
@@ -211,8 +209,6 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	raw.nr_syms = xkb_keymap_key_get_syms_by_level(wlr_keyboard->keymap,
 		keycode, layout_index, 0, &raw.syms);
 
-	bool handled = false;
-
 	/*
 	 * keyboard_key_notify() is called before keyboard_key_modifier(), so
 	 * 'modifiers' refers to modifiers that were pressed before the key
@@ -254,30 +250,44 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		key_state_set_pressed(event->keycode, true);
 	}
 
-	/*
-	 * If a user lets go of the modifier (e.g. alt) before the 'normal' key
-	 * (e.g. tab) when window-cycling, we do not end the cycling until both
-	 * keys have been released.  If we end the window-cycling on release of
-	 * the modifier only, some XWayland clients such as hexchat realise that
-	 * tab is pressed (even though we did not forward the event) and because
-	 * we absorb the equivalent release event it gets stuck on repeat.
-	 */
-	if (should_cancel_cycling_on_next_key_release
-			&& event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
-		end_cycling(server);
-		handled = true;
-		goto out;
-	}
+	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
+		/*
+		 * Release events for keys that were not bound should
+		 * always be forwarded to clients to avoid stuck keys.
+		 */
+		if (!key_state_corresponding_press_event_was_bound(
+				event->keycode)) {
+			return false;
+		}
 
-	/*
-	 * If a press event was handled by a compositor binding, then do not
-	 * forward the corresponding release event to clients
-	 */
-	if (key_state_corresponding_press_event_was_bound(event->keycode)
-			&& event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
+		/*
+		 * If a user lets go of the modifier (e.g. alt) before
+		 * the 'normal' key (e.g. tab) when window-cycling, we
+		 * do not end the cycling until both keys have been
+		 * released. If we end the window-cycling on release of
+		 * the modifier only, some XWayland clients such as
+		 * hexchat realise that tab is pressed (even though we
+		 * did not forward the event) and because we absorb the
+		 * equivalent release event it gets stuck on repeat.
+		 */
+		if (should_cancel_cycling_on_next_key_release) {
+			end_cycling(server);
+		}
+
+		/*
+		 * If a press event was handled by a compositor binding,
+		 * then do not forward the corresponding release event
+		 * to clients.
+		 */
 		key_state_bound_key_remove(event->keycode);
 		return true;
 	}
+
+	/*
+	 * Note: checks of event->state == WL_KEYBOARD_KEY_STATE_PRESSED
+	 * below are redundant, but are left in place for now.
+	 */
+	bool handled = false;
 
 	/* Catch C-A-F1 to C-A-F12 to change tty */
 	if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
@@ -308,10 +318,6 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
-		/*
-		 * Usually, release events are already caught via _press_event_was_bound().
-		 * But to be on the safe side we will simply ignore them here as well.
-		 */
 		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			handle_menu_keys(server, &translated);
 		}
@@ -423,7 +429,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 
 out:
 	if (handled) {
-		key_state_store_pressed_keys_as_bound();
+		key_state_store_pressed_key_as_bound(event->keycode);
 	}
 
 	return handled;

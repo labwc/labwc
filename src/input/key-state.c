@@ -79,10 +79,9 @@ key_state_set_pressed(uint32_t keycode, bool ispressed)
 }
 
 void
-key_state_store_pressed_keys_as_bound(void)
+key_state_store_pressed_key_as_bound(uint32_t keycode)
 {
-	memcpy(bound.keys, pressed.keys, MAX_PRESSED_KEYS * sizeof(uint32_t));
-	bound.nr_keys = pressed.nr_keys;
+	add_key(&bound, keycode);
 }
 
 bool

@@ -2,6 +2,9 @@
 #ifndef LABWC_KEY_STATE_H
 #define LABWC_KEY_STATE_H
 
+#include <stdbool.h>
+#include <stdint.h>
+
 /*
  * All keycodes in these functions are (Linux) libinput evdev scancodes which is
  * what 'wlr_keyboard' uses (e.g. 'seat->keyboard_group->keyboard->keycodes').
@@ -17,7 +20,7 @@ uint32_t *key_state_pressed_sent_keycodes(void);
 int key_state_nr_pressed_sent_keycodes(void);
 
 void key_state_set_pressed(uint32_t keycode, bool ispressed);
-void key_state_store_pressed_keys_as_bound(void);
+void key_state_store_pressed_key_as_bound(uint32_t keycode);
 bool key_state_corresponding_press_event_was_bound(uint32_t keycode);
 void key_state_bound_key_remove(uint32_t keycode);
 int key_state_nr_bound_keys(void);

@@ -79,6 +79,7 @@ enum action_type {
 	ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP,
 	ACTION_TYPE_TOGGLE_ALWAYS_ON_BOTTOM,
 	ACTION_TYPE_FOCUS,
+	ACTION_TYPE_UNFOCUS,
 	ACTION_TYPE_ICONIFY,
 	ACTION_TYPE_MOVE,
 	ACTION_TYPE_RAISE,
@@ -120,6 +121,7 @@ const char *action_names[] = {
 	"ToggleAlwaysOnTop",
 	"ToggleAlwaysOnBottom",
 	"Focus",
+	"Unfocus",
 	"Iconify",
 	"Move",
 	"Raise",
@@ -744,6 +746,9 @@ actions_run(struct view *activator, struct server *server,
 			if (view) {
 				desktop_focus_view(view, /*raise*/ false);
 			}
+			break;
+		case ACTION_TYPE_UNFOCUS:
+			seat_focus_surface(&server->seat, NULL);
 			break;
 		case ACTION_TYPE_ICONIFY:
 			if (view) {

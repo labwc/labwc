@@ -27,6 +27,9 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="Focus" />*
 	Give focus to window under cursor.
 
+*<action name="Unfocus" />*
+	Remove focus from the window that is currently focused.
+
 *<action name="Raise" />*
 	Restack the current window above other open windows.
 

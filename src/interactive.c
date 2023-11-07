@@ -114,37 +114,45 @@ snap_to_edge(struct view *view)
 		return false;
 	}
 
+	struct output *output = output_nearest_to_cursor(view->server);
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR, "output at cursor is unusable");
+		return false;
+	}
+
 	/* Translate into output local coordinates */
 	double cursor_x = view->server->seat.cursor->x;
 	double cursor_y = view->server->seat.cursor->y;
 	wlr_output_layout_output_coords(view->server->output_layout,
-		view->output->wlr_output, &cursor_x, &cursor_y);
+		output->wlr_output, &cursor_x, &cursor_y);
 
+	struct wlr_box *area = &output->usable_area;
+	enum view_edge edge;
+	if (cursor_x <= area->x + snap_range) {
+		edge = VIEW_EDGE_LEFT;
+	} else if (cursor_x >= area->x + area->width - snap_range) {
+		edge = VIEW_EDGE_RIGHT;
+	} else if (cursor_y <= area->y + snap_range) {
+		edge = VIEW_EDGE_UP;
+	} else if (cursor_y >= area->y + area->height - snap_range) {
+		edge = VIEW_EDGE_DOWN;
+	} else {
+		/* Not close to any edge */
+		return false;
+	}
+
+	view_set_output(view, output);
 	/*
 	 * Don't store natural geometry here (it was
 	 * stored already in interactive_begin())
 	 */
-	struct wlr_box *area = &view->output->usable_area;
-	if (cursor_x <= area->x + snap_range) {
-		view_snap_to_edge(view, VIEW_EDGE_LEFT,
-			/*store_natural_geometry*/ false);
-	} else if (cursor_x >= area->x + area->width - snap_range) {
-		view_snap_to_edge(view, VIEW_EDGE_RIGHT,
-			/*store_natural_geometry*/ false);
-	} else if (cursor_y <= area->y + snap_range) {
-		if (rc.snap_top_maximize) {
-			view_maximize(view, VIEW_AXIS_BOTH,
-				/*store_natural_geometry*/ false);
-		} else {
-			view_snap_to_edge(view, VIEW_EDGE_UP,
-				/*store_natural_geometry*/ false);
-		}
-	} else if (cursor_y >= area->y + area->height - snap_range) {
-		view_snap_to_edge(view, VIEW_EDGE_DOWN,
+	if (edge == VIEW_EDGE_UP && rc.snap_top_maximize) {
+		view_maximize(view, VIEW_AXIS_BOTH,
 			/*store_natural_geometry*/ false);
 	} else {
-		/* Not close to any edge */
-		return false;
+		view_snap_to_edge(view, edge,
+			/*across_outputs*/ false,
+			/*store_natural_geometry*/ false);
 	}
 
 	return true;

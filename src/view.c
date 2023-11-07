@@ -1322,7 +1322,8 @@ view_edge_parse(const char *direction)
 }
 
 void
-view_snap_to_edge(struct view *view, enum view_edge edge, bool store_natural_geometry)
+view_snap_to_edge(struct view *view, enum view_edge edge,
+			bool across_outputs, bool store_natural_geometry)
 {
 	assert(view);
 	if (view->fullscreen) {
@@ -1334,7 +1335,7 @@ view_snap_to_edge(struct view *view, enum view_edge edge, bool store_natural_geo
 		return;
 	}
 
-	if (view->tiled == edge && view->maximized == VIEW_AXIS_NONE) {
+	if (across_outputs && view->tiled == edge && view->maximized == VIEW_AXIS_NONE) {
 		/* We are already tiled for this edge and thus should switch outputs */
 		struct wlr_output *new_output = NULL;
 		struct wlr_output *current_output = output->wlr_output;
@@ -1375,13 +1376,6 @@ view_snap_to_edge(struct view *view, enum view_edge edge, bool store_natural_geo
 			 * state because the window might have been moved away
 			 * (and thus got untiled) and then snapped back to the
 			 * original edge.
-			 *
-			 * TODO: The described pattern will cause another bug
-			 *       in multi monitor setups: it will snap the
-			 *       window to the inverted edge of the nearest
-			 *       output. This is the desired behavior when
-			 *       caused by a keybind but doesn't make sense
-			 *       when caused by mouse movement.
 			 */
 			view_apply_tiled_geometry(view);
 			return;

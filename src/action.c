@@ -674,7 +674,9 @@ actions_run(struct view *activator, struct server *server,
 			if (view) {
 				/* Config parsing makes sure that direction is a valid direction */
 				enum view_edge edge = action_get_int(action, "direction", 0);
-				view_snap_to_edge(view, edge, /*store_natural_geometry*/ true);
+				view_snap_to_edge(view, edge,
+					/*across_outputs*/ true,
+					/*store_natural_geometry*/ true);
 			}
 			break;
 		case ACTION_TYPE_GROW_TO_EDGE:

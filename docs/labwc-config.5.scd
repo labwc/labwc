@@ -526,6 +526,12 @@ situation.
 *<windowRules><windowRule ignoreFocusRequest="">* [yes|no|default]
 	*ignoreFocusRequest* prevent window to activate itself.
 
+*<windowRules><windowRule fixedPosition="">* [yes|no|default]
+	*fixedPosition* disallows interactive move/resize and prevents
+	re-positioning in response to changes in reserved output space, which
+	can be caused by *<margin>* settings or exclusive layer-shell clients
+	such as panels.
+
 ## ENVIRONMENT VARIABLES
 
 *XCURSOR_THEME* and *XCURSOR_SIZE* are supported to set cursor theme

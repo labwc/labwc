@@ -442,6 +442,7 @@
       <windowRule title="pcmanfm-desktop*">
         <skipTaskbar>yes</skipTaskbar>
         <skipWindowSwitcher>yes</skipWindowSwitcher>
+	<fixedPosition>yes</fixedPosition>
         <action name="MoveTo" x="0" y="0" />
         <action name="ToggleAlwaysOnBottom"/>
       </windowRule>

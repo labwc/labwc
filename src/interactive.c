@@ -4,6 +4,7 @@
 #include "regions.h"
 #include "resize_indicator.h"
 #include "view.h"
+#include "window-rules.h"
 
 static int
 max_move_scale(double pos_cursor, double pos_current,
@@ -31,6 +32,10 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 	struct wlr_box geometry = view->current;
 
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		return;
+	}
+
+	if (window_rules_get_property(view, "fixedPosition") == LAB_PROP_TRUE) {
 		return;
 	}
 

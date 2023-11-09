@@ -587,6 +587,10 @@ view_adjust_floating_geometry(struct view *view, struct wlr_box *geometry)
 		return false;
 	}
 
+	if (window_rules_get_property(view, "fixedPosition") == LAB_PROP_TRUE) {
+		return false;
+	}
+
 	bool adjusted = false;
 	/*
 	 * First check whether the view is onscreen. For now, "onscreen"

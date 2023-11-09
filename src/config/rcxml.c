@@ -159,6 +159,8 @@ fill_window_rule(char *nodename, char *content)
 		set_property(content, &current_window_rule->skip_window_switcher);
 	} else if (!strcasecmp(nodename, "ignoreFocusRequest")) {
 		set_property(content, &current_window_rule->ignore_focus_request);
+	} else if (!strcasecmp(nodename, "fixedPosition")) {
+		set_property(content, &current_window_rule->fixed_position);
 
 	/* Actions */
 	} else if (!strcmp(nodename, "name.action")) {

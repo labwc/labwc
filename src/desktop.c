@@ -289,6 +289,32 @@ desktop_focus_output(struct output *output)
 	cursor_update_focus(output->server);
 }
 
+void
+desktop_update_top_layer_visiblity(struct server *server)
+{
+	struct view *view;
+	struct output *output;
+	uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
+
+	/* Enable all top layers */
+	wl_list_for_each(output, &server->outputs, link) {
+		if (!output_is_usable(output)) {
+			continue;
+		}
+		wlr_scene_node_set_enabled(&output->layer_tree[top]->node, true);
+	}
+
+	/* And disable them again when there is a view in fullscreen */
+	enum lab_view_criteria criteria =
+		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE | LAB_VIEW_CRITERIA_FULLSCREEN;
+	for_each_view(view, &server->views, criteria) {
+		if (!output_is_usable(view->output)) {
+			continue;
+		}
+		wlr_scene_node_set_enabled(&view->output->layer_tree[top]->node, false);
+	}
+}
+
 static struct wlr_surface *
 get_surface_from_layer_node(struct wlr_scene_node *node)
 {

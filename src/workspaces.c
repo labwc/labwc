@@ -302,6 +302,9 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	 * cursor image from the previous desktop
 	 */
 	cursor_update_focus(server);
+
+	/* Ensure that only currently visible fullscreen windows hide the top layer */
+	desktop_update_top_layer_visiblity(server);
 }
 
 void

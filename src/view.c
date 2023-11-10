@@ -100,6 +100,11 @@ matches_criteria(struct view *view, enum lab_view_criteria criteria)
 			return false;
 		}
 	}
+	if (criteria & LAB_VIEW_CRITERIA_FULLSCREEN) {
+		if (!view->fullscreen) {
+			return false;
+		}
+	}
 	if (criteria & LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP) {
 		if (view_is_always_on_top(view)) {
 			return false;
@@ -1122,9 +1127,7 @@ set_fullscreen(struct view *view, bool fullscreen)
 
 	/* Show fullscreen views above top-layer */
 	if (view->output) {
-		uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
-		wlr_scene_node_set_enabled(&view->output->layer_tree[top]->node,
-			!fullscreen);
+		desktop_update_top_layer_visiblity(view->server);
 	}
 }
 
@@ -1662,13 +1665,12 @@ view_destroy(struct view *view)
 
 	/*
 	 * The layer-shell top-layer is disabled when an application is running
-	 * in fullscreen mode, so if that's the case, we have to re-enable it
-	 * here.
+	 * in fullscreen mode, so if that's the case, we may have to re-enable
+	 * it here.
 	 */
 	if (view->fullscreen && view->output) {
-		uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
-		wlr_scene_node_set_enabled(&view->output->layer_tree[top]->node,
-			true);
+		view->fullscreen = false;
+		desktop_update_top_layer_visiblity(server);
 	}
 
 	/* If we spawned a window menu, close it */
@@ -1685,4 +1687,3 @@ view_destroy(struct view *view)
 		cursor_update_focus(server);
 	}
 }
-

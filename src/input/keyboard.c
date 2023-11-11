@@ -84,7 +84,6 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 			}
 		}
 	}
-	wlr_seat_set_keyboard(seat->seat, wlr_keyboard);
 	wlr_seat_keyboard_notify_modifiers(seat->seat, &wlr_keyboard->modifiers);
 }
 

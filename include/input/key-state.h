@@ -19,7 +19,7 @@
 uint32_t *key_state_pressed_sent_keycodes(void);
 int key_state_nr_pressed_sent_keycodes(void);
 
-void key_state_set_pressed(uint32_t keycode, bool ispressed);
+void key_state_set_pressed(uint32_t keycode, bool is_pressed, bool is_modifier);
 void key_state_store_pressed_key_as_bound(uint32_t keycode);
 bool key_state_corresponding_press_event_was_bound(uint32_t keycode);
 void key_state_bound_key_remove(uint32_t keycode);

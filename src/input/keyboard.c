@@ -237,7 +237,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	}
 
 	key_state_set_pressed(event->keycode,
-		event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
+		event->state == WL_KEYBOARD_KEY_STATE_PRESSED, is_modifier);
 
 	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 		/*

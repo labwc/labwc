@@ -45,7 +45,7 @@ jobs:
               TARGET: 'sh -xe'
 
           - name: FreeBSD
-            os: macos-12
+            os: ubuntu-latest
             env:
               TARGET: 'ssh freebsd /bin/sh -xe'
 
@@ -84,7 +84,7 @@ jobs:
 
       - name: Install FreeBSD dependencies
         if: matrix.name == 'FreeBSD'
-        uses: vmactions/freebsd-vm@v0
+        uses: vmactions/freebsd-vm@v1
         with:
           usesh: true
           prepare: |

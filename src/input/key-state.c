@@ -79,9 +79,7 @@ key_state_pressed_sent_keycodes(void)
 	report(&bound, "before - bound:");
 
 	/* pressed_sent = pressed - bound */
-	memcpy(pressed_sent.keys, pressed.keys,
-		MAX_PRESSED_KEYS * sizeof(uint32_t));
-	pressed_sent.nr_keys = pressed.nr_keys;
+	pressed_sent = pressed;
 	for (int i = 0; i < bound.nr_keys; ++i) {
 		remove_key(&pressed_sent, bound.keys[i]);
 	}

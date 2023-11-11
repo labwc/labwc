@@ -360,19 +360,6 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	}
 
 	/*
-	 * A keybind is not considered valid if other keys are pressed at the
-	 * same time.
-	 *
-	 * In labwc, a keybind is defined by one/many modifier keys + _one_
-	 * non-modifier key. Returning early on >1 pressed non-modifier keys
-	 * avoids false positive matches where 'other' keys were pressed at the
-	 * same time.
-	 */
-	if (key_state_nr_pressed_keys() > 1) {
-		return false;
-	}
-
-	/*
 	 * Handle compositor keybinds
 	 *
 	 * When matching against keybinds, we process the input keys in the

@@ -230,25 +230,14 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	 */
 
 	bool is_modifier = false;
-	bool is_layout_switch = false;
 	uint32_t modifiers = wlr_keyboard_get_modifiers(wlr_keyboard);
 
 	for (int i = 0; i < translated.nr_syms; i++) {
 		is_modifier |= is_modifier_key(translated.syms[i]);
-		is_layout_switch |= translated.syms[i] == XKB_KEY_ISO_Next_Group;
 	}
 
-	/*
-	 * An earlier press event from a key that causes a layout change event
-	 * might have been added already without us knowing that it actually was
-	 * a XKB_KEY_ISO_Next_Group sym. Thus we always try to remove the current
-	 * key from the set of pressed keys on release.
-	 */
-	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
-		key_state_set_pressed(event->keycode, false);
-	} else if (!is_modifier && !is_layout_switch) {
-		key_state_set_pressed(event->keycode, true);
-	}
+	key_state_set_pressed(event->keycode,
+		event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
 
 	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 		/*

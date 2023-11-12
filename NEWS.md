@@ -26,8 +26,20 @@ The format is based on [Keep a Changelog]
 
 ## [unreleased]
 
+We do not normally call out contributions by core devs in the changelog,
+but a special thanks goes to @jlindgren90 in this release for lots of work
+relating to surface focus and keyboard issue, amongst others.
+
 ### Added
 
+- Add `fixedPosition` window-rule property to avoid re-positioning windows
+  on reserved-output-space changes (determined by *<margin>* settings or
+  exclusive layer-shell clients) and to disallow interactive move or
+  resize, for example by alt+press.
+- Add `Unfocus` action to enable unfocusing windows on desktop click.
+  Issue: #1230
+- Add config option `<keyboard layoutScope="window">` to use per-window
+  keyboard layout. Issue #1076
 - Support separate horizontal and vertical maximize by adding a
   `direction` option to actions Maximize and ToggleMaximize.
 - Add actions GrowToEdge and ShrinkToEdge. Written-by: @digint
@@ -44,6 +56,14 @@ The format is based on [Keep a Changelog]
 
 ### Fixed
 
+- Update top-layer visiblity on workspace-switch in order to show
+  top-layer layer-shell clients correctly when there is a window in
+  fullscreen mode on another workspace. Issue: #1158
+- Make interactive window snapping with mouse more intuitive in
+  multi-output setups. Written-by: @tokyo4j
+- Try to handle missing `set_window_geometry` with Qt apps which
+  occasionally fail to call `set_window_geometry` after a configure
+  request, but correctly update the actual surface extent. Issue: #1194
 - Update XWayland stacking order when moving a window to the front/back.
 - Prevent switching workspaces for always-on-bottom windows. Fixes: #1170
 - Fix invisible cursor after wlopm --off && wlopm --on.
@@ -52,6 +72,10 @@ The format is based on [Keep a Changelog]
 - Account for window base size in resize indicator so that the displayed
   size exactly matches the terminal grid, for example 80x25.
 - The following focus related issues:
+  - Allow re-focusing xwayland-unmanaged surfaces in response to pointer
+    action (click or movement if focus-follow-mouse is enabled). This
+    enables clients such as dmenu, rofi and jgmenu to regain
+    keyboard-focus if it was lost to another client.
   - Fix code paths which could lead to a lock-screen losing focus, making
     the session impossible to unlock or another surface to gain focus thus
     breaching the session lock.
@@ -67,9 +91,11 @@ The format is based on [Keep a Changelog]
     PID.
   - Assume that views that want decorations also want focus
 - The following keyboard and keybind related issues:
-  - Make keybind match stricter by insisting that no other non-modifier
-    keys are pressed at the same time. Also, treat synthetic
-    layout-change key event as modifier. Fixes #1091 #1129
+  - Send pressed keys correctly when focusing new surface.
+  - Refactor handling of pressed/bound keys to send (to client) the
+    release events for any pressed key that was not part of a keybind,
+    typically because an unrelated non-modifier key was pressed before
+    and held during a keybind invocation. Fixes #1091
   - Fix keyboard release event bug after session lock. Fixes: #1114
 - Raise xdg and xwayland sub-views correctly relative to other sub-views,
   by letting the relative stacking order between them change.
@@ -82,6 +108,10 @@ The format is based on [Keep a Changelog]
 
 ### Changed
 
+- Move floating windows in response to changes in reserved output space
+  (determined by *<margin>* settings or exclusive layer-shell clients such
+  as panels). Users with window-rules for panels and/or desktops should
+  add the `fixedPosition` property to avoid regression. Issue: #1235
 - Restore `SIGPIPE` default handler before exec. Fixes: #1209
 - With the introduction of directional Maximize, right-click on the
   maximize button now toggles horizontal maximize, while middle-click

@@ -89,6 +89,7 @@ jobs:
           usesh: true
           prepare: |
             sed -i '' 's/quarterly/latest/' /etc/pkg/FreeBSD.conf
+            pkg set -yn pkg:mesa-dri # hack to skip llvm dependency
             pkg install -y git meson gcc pkgconf cairo pango evdev-proto \
               hwdata wayland-protocols wlroots
           run: echo "setup done"

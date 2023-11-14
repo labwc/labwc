@@ -90,6 +90,8 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 static bool
 handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym, xkb_keycode_t code)
 {
+	uint32_t evdev_scancode = code - 8;
+
 	struct keybind *keybind;
 	wl_list_for_each(keybind, &rc.keybinds, link) {
 		if (modifiers ^ keybind->modifiers) {
@@ -104,7 +106,14 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym, x
 		if (sym == XKB_KEY_NoSymbol) {
 			/* Use keycodes */
 			for (size_t i = 0; i < keybind->keycodes_len; i++) {
+				/*
+				 * Update key-state before action_run() because
+				 * the action might lead to seat_focus() in
+				 * which case we pass the 'pressed-sent' keys to
+				 * the new surface.
+				 */
 				if (keybind->keycodes[i] == code) {
+					key_state_store_pressed_key_as_bound(evdev_scancode);
 					actions_run(NULL, server, &keybind->actions, 0);
 					return true;
 				}
@@ -113,6 +122,7 @@ handle_keybinding(struct server *server, uint32_t modifiers, xkb_keysym_t sym, x
 			/* Use syms */
 			for (size_t i = 0; i < keybind->keysyms_len; i++) {
 				if (xkb_keysym_to_lower(sym) == keybind->keysyms[i]) {
+					key_state_store_pressed_key_as_bound(evdev_scancode);
 					actions_run(NULL, server, &keybind->actions, 0);
 					return true;
 				}
@@ -308,10 +318,10 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+			key_state_store_pressed_key_as_bound(event->keycode);
 			handle_menu_keys(server, &translated);
 		}
-		handled = true;
-		goto out;
+		return true;
 	}
 
 	if (server->osd_state.cycle_view) {
@@ -381,7 +391,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		handled |= handle_keybinding(server, modifiers, XKB_KEY_NoSymbol, keycode);
 		if (handled) {
 			wlr_log(WLR_DEBUG, "keycodes matched");
-			goto out;
+			return true;
 		}
 
 		/* Then fall back to keysyms */
@@ -391,7 +401,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		}
 		if (handled) {
 			wlr_log(WLR_DEBUG, "translated keysyms matched");
-			goto out;
+			return true;
 		}
 
 		/* And finally test for keysyms without modifier */
@@ -400,6 +410,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		}
 		if (handled) {
 			wlr_log(WLR_DEBUG, "raw keysyms matched");
+			return true;
 		}
 	}
 

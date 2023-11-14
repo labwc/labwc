@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <wlr/util/log.h>
 #include "input/key-state.h"
 
 #define MAX_PRESSED_KEYS (16)
@@ -12,6 +15,26 @@ struct key_array {
 };
 
 static struct key_array pressed, pressed_mods, bound, pressed_sent;
+
+static void
+report(struct key_array *array, const char *msg)
+{
+	static char *should_print;
+	static bool has_run;
+
+	if (!has_run) {
+		should_print = getenv("LABWC_DEBUG_KEY_STATE");
+		has_run = true;
+	}
+	if (!should_print) {
+		return;
+	}
+	printf("%s", msg);
+	for (int i = 0; i < array->nr_keys; ++i) {
+		printf("%d,", array->keys[i]);
+	}
+	printf("\n");
+}
 
 static bool
 key_present(struct key_array *array, uint32_t keycode)
@@ -52,6 +75,9 @@ add_key(struct key_array *array, uint32_t keycode)
 uint32_t *
 key_state_pressed_sent_keycodes(void)
 {
+	report(&pressed, "before - pressed:");
+	report(&bound, "before - bound:");
+
 	/* pressed_sent = pressed - bound */
 	memcpy(pressed_sent.keys, pressed.keys,
 		MAX_PRESSED_KEYS * sizeof(uint32_t));
@@ -59,6 +85,9 @@ key_state_pressed_sent_keycodes(void)
 	for (int i = 0; i < bound.nr_keys; ++i) {
 		remove_key(&pressed_sent, bound.keys[i]);
 	}
+
+	report(&pressed_sent, "after - pressed_sent:");
+
 	return pressed_sent.keys;
 }
 

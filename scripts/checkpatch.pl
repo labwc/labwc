@@ -5531,6 +5531,7 @@ sub process {
 			#
 			if ($starts_with_if_while_etc && !length($s)
 					&& $filename ne "include/view.h"
+					&& $filename ne "include/common/array.h"
 					&& $filename ne "include/ssd-internal.h") {
 				CHK("BRACES", "[labwc-custom] open brace { expected after if/while/for/switch - even with single statement blocks");
 			}

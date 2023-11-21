@@ -30,4 +30,15 @@ wl_array_len(struct wl_array *array)
 	return array->size / sizeof(const char *);
 }
 
+/**
+ * Iterates in reverse over an array.
+ * @pos: pointer that each array element will be assigned to
+ * @array: wl_array to iterate over
+ */
+#define wl_array_for_each_reverse(pos, array)                                          \
+	for (pos = !(array)->data ? NULL                                               \
+		: (void *)((const char *)(array)->data + (array)->size - sizeof(pos)); \
+		pos && (const char *)pos >= (const char *)(array)->data;               \
+		(pos)--)
+
 #endif /* LABWC_ARRAY_H */

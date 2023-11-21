@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include "config.h"
 #include "buffer.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"
@@ -16,6 +17,7 @@
 #include "labwc.h"
 #include "view.h"
 #include "workspaces.h"
+#include "xwayland.h"
 
 /* Internal helpers */
 static size_t
@@ -297,6 +299,10 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	/* And finally show the OSD */
 	_osd_show(server);
 
+#if HAVE_XWAYLAND
+	/* Ensure xwayland internal stacking order corresponds to the current workspace  */
+	xwayland_adjust_stacking_order(server);
+#endif
 	/*
 	 * Make sure we are not carrying around a
 	 * cursor image from the previous desktop

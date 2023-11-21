@@ -46,6 +46,8 @@ void xwayland_unmanaged_create(struct server *server,
 void xwayland_view_create(struct server *server,
 	struct wlr_xwayland_surface *xsurface, bool mapped);
 
+void xwayland_adjust_stacking_order(struct server *server);
+
 struct wlr_xwayland_surface *xwayland_surface_from_view(struct view *view);
 
 void xwayland_server_init(struct server *server,

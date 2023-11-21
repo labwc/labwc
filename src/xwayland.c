@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <wlr/xwayland.h>
+#include "common/array.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "labwc.h"
@@ -853,6 +854,46 @@ xwayland_server_init(struct server *server, struct wlr_compositor *compositor)
 			image->height, image->hotspot_x,
 			image->hotspot_y);
 	}
+}
+
+/*
+ * Until we expose the workspaces to xwayland we need a way to
+ * ensure that xwayland views on the current workspace are always
+ * stacked above xwayland views on other workspaces.
+ *
+ * If we fail to do so, issues arise in scenarios where we change
+ * the mouse focus but do not change the (xwayland) stacking order.
+ *
+ * Reproducer:
+ * - open at least two xwayland windows which allow scrolling
+ *   (some X11 terminal with 'man man' for example)
+ * - switch to another workspace, open another xwayland
+ *   window which allows scrolling and maximize it
+ * - switch back to the previous workspace with the two windows
+ * - move the mouse to the xwayland window that does *not* have focus
+ * - start scrolling
+ * - all scroll events should end up on the maximized window on the other workspace
+ */
+void
+xwayland_adjust_stacking_order(struct server *server)
+{
+	struct view **view;
+	struct wl_array views;
+
+	wl_array_init(&views);
+	view_array_append(server, &views, LAB_VIEW_CRITERIA_ALWAYS_ON_TOP);
+	view_array_append(server, &views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
+		| LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP);
+
+	/*
+	 * view_array_append() provides top-most windows
+	 * first so we simply reverse the iteration here
+	 */
+	wl_array_for_each_reverse(view, &views) {
+		view_move_to_front(*view);
+	}
+
+	wl_array_release(&views);
 }
 
 void

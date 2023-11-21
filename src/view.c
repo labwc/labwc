@@ -105,6 +105,11 @@ matches_criteria(struct view *view, enum lab_view_criteria criteria)
 			return false;
 		}
 	}
+	if (criteria & LAB_VIEW_CRITERIA_ALWAYS_ON_TOP) {
+		if (!view_is_always_on_top(view)) {
+			return false;
+		}
+	}
 	if (criteria & LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP) {
 		if (view_is_always_on_top(view)) {
 			return false;

@@ -530,7 +530,9 @@ xwayland_view_map(struct view *view)
 	 *   3. set maximized (geometry depends on decorations)
 	 */
 	view_set_fullscreen(view, xwayland_surface->fullscreen);
-	view_set_decorations(view, want_deco(xwayland_surface));
+	if (!view->been_mapped) {
+		view_set_decorations(view, want_deco(xwayland_surface));
+	}
 	enum view_axis axis = VIEW_AXIS_NONE;
 	if (xwayland_surface->maximized_horz) {
 		axis |= VIEW_AXIS_HORIZONTAL;

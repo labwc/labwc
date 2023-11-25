@@ -149,6 +149,7 @@ struct view {
 	bool minimized;
 	enum view_axis maximized;
 	bool fullscreen;
+	bool visible_on_all_workspaces;
 	enum view_edge tiled;
 	bool inhibits_keybinds;
 	xkb_layout_index_t keyboard_layout;
@@ -400,8 +401,10 @@ void view_toggle_decorations(struct view *view);
 
 bool view_is_always_on_top(struct view *view);
 bool view_is_always_on_bottom(struct view *view);
+bool view_is_omnipresent(struct view *view);
 void view_toggle_always_on_top(struct view *view);
 void view_toggle_always_on_bottom(struct view *view);
+void view_toggle_visible_on_all_workspaces(struct view *view);
 
 bool view_is_tiled(struct view *view);
 bool view_is_floating(struct view *view);

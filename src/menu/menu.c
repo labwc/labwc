@@ -723,6 +723,8 @@ init_windowmenu(struct server *server)
 		fill_item("name.action", "ToggleDecorations");
 		current_item = item_create(menu, _("AlwaysOnTop"), false);
 		fill_item("name.action", "ToggleAlwaysOnTop");
+		current_item = item_create(menu, _("ToggleOmnipresent"), false);
+		fill_item("name.action", "ToggleOmnipresent");
 
 		/* Workspace sub-menu */
 		struct menu *workspace_menu = menu_create(server, "workspaces", "");

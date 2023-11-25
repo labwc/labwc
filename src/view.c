@@ -1046,6 +1046,13 @@ view_toggle_always_on_bottom(struct view *view)
 }
 
 void
+view_toggle_visible_on_all_workspaces(struct view *view)
+{
+	assert(view);
+	view->visible_on_all_workspaces = !view->visible_on_all_workspaces;
+}
+
+void
 view_move_to_workspace(struct view *view, struct workspace *workspace)
 {
 	assert(view);

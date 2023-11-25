@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2023-11-25 | [0.6.6]       | 0.16.2          | 15796         |
 | 2023-09-23 | [0.6.5]       | 0.16.2          | 14809         |
 | 2023-07-14 | [0.6.4]       | 0.16.2          | 13675         |
 | 2023-05-08 | [0.6.3]       | 0.16.2          | 13050         |
@@ -24,11 +25,11 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## [unreleased]
+## [0.6.6] - 2023-11-25
 
 We do not normally call out contributions by core devs in the changelog,
 but a special thanks goes to @jlindgren90 in this release for lots of work
-relating to surface focus and keyboard issue, amongst others.
+relating to surface focus and keyboard issues, amongst others.
 
 ### Added
 
@@ -56,9 +57,11 @@ relating to surface focus and keyboard issue, amongst others.
 
 ### Fixed
 
+- Do not reset XWayland window SSD on unminimize
+- Keep XWayland stacking order in sync when switching workspaces
 - Update top-layer visiblity on workspace-switch in order to show
   top-layer layer-shell clients correctly when there is a window in
-  fullscreen mode on another workspace. Issue: #1158
+  fullscreen mode on another workspace. Issues: #1040 #1158
 - Make interactive window snapping with mouse more intuitive in
   multi-output setups. Written-by: @tokyo4j
 - Try to handle missing `set_window_geometry` with Qt apps which
@@ -95,7 +98,7 @@ relating to surface focus and keyboard issue, amongst others.
   - Refactor handling of pressed/bound keys to send (to client) the
     release events for any pressed key that was not part of a keybind,
     typically because an unrelated non-modifier key was pressed before
-    and held during a keybind invocation. Fixes #1091
+    and held during a keybind invocation. Fixes #1091 #1245
   - Fix keyboard release event bug after session lock. Fixes: #1114
 - Raise xdg and xwayland sub-views correctly relative to other sub-views,
   by letting the relative stacking order between them change.
@@ -826,6 +829,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
 [unreleased]: https://github.com/labwc/labwc/compare/0.6.5...HEAD
+[0.6.6]: https://github.com/labwc/labwc/compare/0.6.5...0.6.6
 [0.6.5]: https://github.com/labwc/labwc/compare/0.6.4...0.6.5
 [0.6.4]: https://github.com/labwc/labwc/compare/0.6.3...0.6.4
 [0.6.3]: https://github.com/labwc/labwc/compare/0.6.2...0.6.3

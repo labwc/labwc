@@ -518,6 +518,27 @@ xwayland_view_map(struct view *view)
 	ensure_initial_geometry_and_output(view);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 
+	if (view->surface != xwayland_surface->surface) {
+		if (view->surface) {
+			wl_list_remove(&view->surface_destroy.link);
+		}
+		view->surface = xwayland_surface->surface;
+
+		/* Required to set the surface to NULL when destroyed by the client */
+		view->surface_destroy.notify = handle_surface_destroy;
+		wl_signal_add(&view->surface->events.destroy, &view->surface_destroy);
+
+		/* Will be free'd automatically once the surface is being destroyed */
+		struct wlr_scene_tree *tree = wlr_scene_subsurface_tree_create(
+			view->scene_tree, view->surface);
+		if (!tree) {
+			/* TODO: might need further clean up */
+			wl_resource_post_no_memory(view->surface->resource);
+			return;
+		}
+		view->scene_node = &tree->node;
+	}
+
 	/*
 	 * Per the Extended Window Manager Hints (EWMH) spec: "The Window
 	 * Manager SHOULD honor _NET_WM_STATE whenever a withdrawn window
@@ -541,27 +562,6 @@ xwayland_view_map(struct view *view)
 		axis |= VIEW_AXIS_VERTICAL;
 	}
 	view_maximize(view, axis, /*store_natural_geometry*/ true);
-
-	if (view->surface != xwayland_surface->surface) {
-		if (view->surface) {
-			wl_list_remove(&view->surface_destroy.link);
-		}
-		view->surface = xwayland_surface->surface;
-
-		/* Required to set the surface to NULL when destroyed by the client */
-		view->surface_destroy.notify = handle_surface_destroy;
-		wl_signal_add(&view->surface->events.destroy, &view->surface_destroy);
-
-		/* Will be free'd automatically once the surface is being destroyed */
-		struct wlr_scene_tree *tree = wlr_scene_subsurface_tree_create(
-			view->scene_tree, view->surface);
-		if (!tree) {
-			/* TODO: might need further clean up */
-			wl_resource_post_no_memory(view->surface->resource);
-			return;
-		}
-		view->scene_node = &tree->node;
-	}
 
 	if (!view->toplevel.handle) {
 		init_foreign_toplevel(view);

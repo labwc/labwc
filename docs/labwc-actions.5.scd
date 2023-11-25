@@ -133,6 +133,9 @@ Actions are used in menus and keyboard/mouse bindings.
 	when defining window-rules for desktop-management tools that do not
 	support the wlr-layer-shell protocol.
 
+*<action name="ToggleOmnipresent" />*
+	Toggle omnipresent (visible on all workspaces / sticky) for the focused window.
+
 *<action name="ToggleKeybinds" />*
 	Stop handling keybinds other than ToggleKeybinds itself.
 	This can be used to allow A-Tab and similar keybinds to be delivered

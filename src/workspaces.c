@@ -276,6 +276,16 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	wlr_scene_node_set_enabled(
 		&server->workspace_current->tree->node, false);
 
+	/* Move Omnipresent views to new workspace */
+	struct view *view;
+	enum lab_view_criteria criteria =
+		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
+	for_each_view(view, &server->views, criteria) {
+		if (view->visible_on_all_workspaces) {
+			view_move_to_workspace(view, target);
+		}
+	}
+
 	/* Enable the new workspace */
 	wlr_scene_node_set_enabled(&target->tree->node, true);
 

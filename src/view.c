@@ -593,7 +593,9 @@ view_adjust_floating_geometry(struct view *view, struct wlr_box *geometry)
 		return false;
 	}
 
-	if (window_rules_get_property(view, "fixedPosition") == LAB_PROP_TRUE) {
+	/* Avoid moving panels out of their own reserved area ("strut") */
+	if (window_rules_get_property(view, "fixedPosition") == LAB_PROP_TRUE
+			|| view_has_strut_partial(view)) {
 		return false;
 	}
 
@@ -1548,6 +1550,14 @@ view_is_related(struct view *view, struct wlr_surface *surface)
 		return view->impl->is_related(view, surface);
 	}
 	return false;
+}
+
+bool
+view_has_strut_partial(struct view *view)
+{
+	assert(view);
+	return view->impl->has_strut_partial &&
+		view->impl->has_strut_partial(view);
 }
 
 const char *

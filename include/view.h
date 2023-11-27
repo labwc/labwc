@@ -112,6 +112,8 @@ struct view_impl {
 	struct view_size_hints (*get_size_hints)(struct view *self);
 	/* if not implemented, VIEW_WANTS_FOCUS_ALWAYS is assumed */
 	enum view_wants_focus (*wants_focus)(struct view *self);
+	/* returns true if view reserves space at screen edge */
+	bool (*has_strut_partial)(struct view *self);
 };
 
 struct view {
@@ -430,6 +432,14 @@ void view_append_children(struct view *view, struct wl_array *children);
  * views/surfaces.
  */
 bool view_is_related(struct view *view, struct wlr_surface *surface);
+
+/**
+ * view_has_strut_partial() - returns true for views that reserve space
+ * at a screen edge (e.g. panels). These views are treated as if they
+ * have the fixedPosition window rule: i.e. they are not restricted to
+ * the usable area and cannot be moved/resized interactively.
+ */
+bool view_has_strut_partial(struct view *view);
 
 const char *view_get_string_prop(struct view *view, const char *prop);
 void view_update_title(struct view *view);

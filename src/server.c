@@ -5,10 +5,6 @@
 #include <sys/wait.h>
 #include <wlr/types/wlr_data_control_v1.h>
 #include <wlr/types/wlr_export_dmabuf_v1.h>
-
-/* Temporary fix for a wlroots bug: missing forward declares in the gamma header */
-#include <wlr/types/wlr_output.h>
-
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_input_inhibitor.h>
 #include <wlr/types/wlr_presentation_time.h>

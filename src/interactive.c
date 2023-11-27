@@ -35,7 +35,9 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		return;
 	}
 
-	if (window_rules_get_property(view, "fixedPosition") == LAB_PROP_TRUE) {
+	/* Prevent moving/resizing fixed-position and panel-like views */
+	if (window_rules_get_property(view, "fixedPosition") == LAB_PROP_TRUE
+			|| view_has_strut_partial(view)) {
 		return;
 	}
 

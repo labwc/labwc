@@ -103,6 +103,14 @@ xwayland_view_wants_focus(struct view *view)
 	return VIEW_WANTS_FOCUS_NEVER;
 }
 
+static bool
+xwayland_view_has_strut_partial(struct view *view)
+{
+	struct wlr_xwayland_surface *xsurface =
+		xwayland_surface_from_view(view);
+	return (bool)xsurface->strut_partial;
+}
+
 static struct wlr_xwayland_surface *
 top_parent_of(struct view *view)
 {
@@ -786,6 +794,7 @@ static const struct view_impl xwayland_view_impl = {
 	.is_related = xwayland_view_is_related,
 	.get_size_hints = xwayland_view_get_size_hints,
 	.wants_focus = xwayland_view_wants_focus,
+	.has_strut_partial = xwayland_view_has_strut_partial,
 };
 
 void

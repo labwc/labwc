@@ -217,12 +217,12 @@ theme_builtin(struct theme *theme)
 	theme->menu_overlap_x = 0;
 	theme->menu_overlap_y = 0;
 
-	parse_hexstr("#dddad6", theme->window_active_border_color);
+	parse_hexstr("#e1dedb", theme->window_active_border_color);
 	parse_hexstr("#f6f5f4", theme->window_inactive_border_color);
 
 	parse_hexstr("#ff0000", theme->window_toggled_keybinds_color);
 
-	parse_hexstr("#dddad6", theme->window_active_title_bg_color);
+	parse_hexstr("#e1dedb", theme->window_active_title_bg_color);
 	parse_hexstr("#f6f5f4", theme->window_inactive_title_bg_color);
 
 	parse_hexstr("#000000", theme->window_active_label_text_color);
@@ -248,7 +248,7 @@ theme_builtin(struct theme *theme)
 
 	parse_hexstr("#fcfbfa", theme->menu_items_bg_color);
 	parse_hexstr("#000000", theme->menu_items_text_color);
-	parse_hexstr("#dddad6", theme->menu_items_active_bg_color);
+	parse_hexstr("#e1dedb", theme->menu_items_active_bg_color);
 	parse_hexstr("#000000", theme->menu_items_active_text_color);
 
 	theme->menu_item_padding_x = 7;

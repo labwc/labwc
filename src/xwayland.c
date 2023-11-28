@@ -311,9 +311,20 @@ xwayland_view_configure(struct view *view, struct wlr_box geo)
 	wlr_xwayland_surface_configure(xwayland_surface_from_view(view),
 		geo.x, geo.y, geo.width, geo.height);
 
+	/*
+	 * For unknown reasons, XWayland surfaces that are completely
+	 * offscreen seem not to generate commit events. In rare cases,
+	 * this can prevent an offscreen window from moving onscreen
+	 * (since we wait for a commit event that never occurs). As a
+	 * workaround, move offscreen surfaces immediately.
+	 */
+	bool is_offscreen = !wlr_box_empty(&view->current) &&
+		!wlr_output_layout_intersects(view->server->output_layout, NULL,
+			&view->current);
+
 	/* If not resizing, process the move immediately */
-	if (view->current.width == geo.width
-			&& view->current.height == geo.height) {
+	if (is_offscreen || (view->current.width == geo.width
+			&& view->current.height == geo.height)) {
 		view->current.x = geo.x;
 		view->current.y = geo.y;
 		view_moved(view);

@@ -354,8 +354,17 @@ handle_cycle_view_key(struct server *server, struct keyinfo *keyinfo)
 	}
 
 	/* cycle to next */
-	bool backwards = keyinfo->modifiers & WLR_MODIFIER_SHIFT;
 	if (!keyinfo->is_modifier) {
+		bool back_key = false;
+		for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
+			if (keyinfo->translated.syms[i] == XKB_KEY_Up
+					|| keyinfo->translated.syms[i] == XKB_KEY_Left) {
+				back_key = true;
+				break;
+			}
+		}
+		bool backwards = (keyinfo->modifiers & WLR_MODIFIER_SHIFT) || back_key;
+
 		enum lab_cycle_dir dir = backwards
 			? LAB_CYCLE_DIR_BACKWARD
 			: LAB_CYCLE_DIR_FORWARD;

@@ -33,6 +33,36 @@ output_frame_notify(struct wl_listener *listener, void *data)
 	if (!output_is_usable(output)) {
 		return;
 	}
+
+	struct wlr_output *wlr_output = output->wlr_output;
+	struct server *server = output->server;
+
+	if (output->gamma_lut_changed) {
+		struct wlr_output_state pending;
+		wlr_output_state_init(&pending);
+		if (!wlr_scene_output_build_state(output->scene_output, &pending, NULL)) {
+			return;
+		}
+		output->gamma_lut_changed = false;
+		struct wlr_gamma_control_v1 *gamma_control =
+			wlr_gamma_control_manager_v1_get_control(
+				server->gamma_control_manager_v1, wlr_output);
+		if (!wlr_gamma_control_v1_apply(gamma_control, &pending)) {
+			wlr_output_state_finish(&pending);
+			return;
+		}
+
+		if (!wlr_output_commit_state(output->wlr_output, &pending)) {
+			wlr_gamma_control_v1_send_failed_and_destroy(gamma_control);
+			wlr_output_state_finish(&pending);
+			return;
+		}
+
+		wlr_damage_ring_rotate(&output->scene_output->damage_ring);
+		wlr_output_state_finish(&pending);
+		return;
+	}
+
 	if (lab_wlr_scene_output_commit(output->scene_output)) {
 		struct timespec now = { 0 };
 		clock_gettime(CLOCK_MONOTONIC, &now);
@@ -314,6 +344,9 @@ new_output_notify(struct wl_listener *listener, void *data)
 void
 output_init(struct server *server)
 {
+	server->gamma_control_manager_v1 =
+		wlr_gamma_control_manager_v1_create(server->wl_display);
+
 	server->new_output.notify = new_output_notify;
 	wl_signal_add(&server->backend->events.new_output, &server->new_output);
 
@@ -529,6 +562,17 @@ handle_output_layout_change(struct wl_listener *listener, void *data)
 	do_output_layout_change(server);
 }
 
+static void
+handle_gamma_control_set_gamma(struct wl_listener *listener, void *data)
+{
+	struct server *server = wl_container_of(listener, server, gamma_control_set_gamma);
+	const struct wlr_gamma_control_manager_v1_set_gamma_event *event = data;
+
+	struct output *output = event->output->data;
+	output->gamma_lut_changed = true;
+	wlr_output_schedule_frame(output->wlr_output);
+}
+
 void
 output_manager_init(struct server *server)
 {
@@ -541,6 +585,10 @@ output_manager_init(struct server *server)
 	server->output_manager_apply.notify = handle_output_manager_apply;
 	wl_signal_add(&server->output_manager->events.apply,
 		&server->output_manager_apply);
+
+	server->gamma_control_set_gamma.notify = handle_gamma_control_set_gamma;
+	wl_signal_add(&server->gamma_control_manager_v1->events.set_gamma,
+		&server->gamma_control_set_gamma);
 }
 
 struct output *

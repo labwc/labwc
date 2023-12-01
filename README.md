@@ -258,6 +258,7 @@ Suggested apps to use with labwc:
 - Launchers: [bemenu], [fuzzel], [wofi]
 - Output managers: [wlopm], [kanshi], [wlr-randr]
 - Screen locker: [swaylock]
+- Gamma adjustment: [gammastep]
 
 See [integration] for further details.
 
@@ -297,4 +298,5 @@ See [integration] for further details.
 [kanshi]: https://sr.ht/~emersion/kanshi/
 [wlr-randr]: https://sr.ht/~emersion/wlr-randr/
 [swaylock]: https://github.com/swaywm/swaylock
+[gammastep]: https://gitlab.com/chinstrap/gammastep
 

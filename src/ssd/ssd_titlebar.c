@@ -34,11 +34,13 @@ ssd_titlebar_create(struct ssd *ssd)
 	struct wlr_buffer *menu_button_unpressed;
 	struct wlr_buffer *iconify_button_unpressed;
 	struct wlr_buffer *maximize_button_unpressed;
+	struct wlr_buffer *restore_button_unpressed;
 	struct wlr_buffer *close_button_unpressed;
 
 	struct wlr_buffer *menu_button_hover;
 	struct wlr_buffer *iconify_button_hover;
 	struct wlr_buffer *maximize_button_hover;
+	struct wlr_buffer *restore_button_hover;
 	struct wlr_buffer *close_button_hover;
 
 	ssd->titlebar.tree = wlr_scene_tree_create(ssd->tree);
@@ -56,10 +58,12 @@ ssd_titlebar_create(struct ssd *ssd)
 			iconify_button_unpressed = &theme->button_iconify_active_unpressed->base;
 			close_button_unpressed = &theme->button_close_active_unpressed->base;
 			maximize_button_unpressed = &theme->button_maximize_active_unpressed->base;
+			restore_button_unpressed = &theme->button_restore_active_unpressed->base;
 			menu_button_hover = &theme->button_menu_active_hover->base;
 			iconify_button_hover = &theme->button_iconify_active_hover->base;
 			close_button_hover = &theme->button_close_active_hover->base;
 			maximize_button_hover = &theme->button_maximize_active_hover->base;
+			restore_button_hover = &theme->button_restore_active_hover->base;
 		} else {
 			color = theme->window_inactive_title_bg_color;
 			corner_top_left = &theme->corner_top_left_inactive_normal->base;
@@ -68,11 +72,13 @@ ssd_titlebar_create(struct ssd *ssd)
 			iconify_button_unpressed = &theme->button_iconify_inactive_unpressed->base;
 			maximize_button_unpressed =
 				&theme->button_maximize_inactive_unpressed->base;
+			restore_button_unpressed = &theme->button_restore_inactive_unpressed->base;
 			close_button_unpressed = &theme->button_close_inactive_unpressed->base;
 			menu_button_hover = &theme->button_menu_inactive_hover->base;
 			iconify_button_hover = &theme->button_iconify_inactive_hover->base;
 			close_button_hover = &theme->button_close_inactive_hover->base;
 			maximize_button_hover = &theme->button_maximize_inactive_hover->base;
+			restore_button_hover = &theme->button_restore_inactive_hover->base;
 			wlr_scene_node_set_enabled(&parent->node, false);
 		}
 		wl_list_init(&subtree->parts);
@@ -86,10 +92,11 @@ ssd_titlebar_create(struct ssd *ssd)
 			LAB_SSD_BUTTON_WINDOW_MENU, LAB_SSD_PART_CORNER_TOP_LEFT, parent,
 			corner_top_left, menu_button_unpressed, menu_button_hover, 0, view);
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_ICONIFY, parent,
-			color, iconify_button_unpressed, iconify_button_hover,
+			color, iconify_button_unpressed, iconify_button_hover, NULL, NULL,
 			width - SSD_BUTTON_WIDTH * 3, view);
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_MAXIMIZE, parent,
 			color, maximize_button_unpressed, maximize_button_hover,
+			restore_button_unpressed, restore_button_hover,
 			width - SSD_BUTTON_WIDTH * 2, view);
 		add_scene_button_corner(&subtree->parts,
 			LAB_SSD_BUTTON_CLOSE, LAB_SSD_PART_CORNER_TOP_RIGHT, parent,
@@ -172,10 +179,15 @@ ssd_titlebar_update(struct ssd *ssd)
 						width - SSD_BUTTON_WIDTH * 3, 0);
 				}
 				continue;
-			case  LAB_SSD_BUTTON_MAXIMIZE:
+			case LAB_SSD_BUTTON_MAXIMIZE:
 				if (is_direct_child(part->node, subtree)) {
 					wlr_scene_node_set_position(part->node,
 						width - SSD_BUTTON_WIDTH * 2, 0);
+					struct ssd_button *button = node_ssd_button_from_node(part->node);
+					wlr_scene_node_set_enabled (button->icon, !maximized);
+					wlr_scene_node_set_enabled (button->alticon, maximized);
+					wlr_scene_node_set_enabled (button->hover, false);
+					wlr_scene_node_set_enabled (button->althover, false);
 				}
 				continue;
 			case LAB_SSD_PART_CORNER_TOP_RIGHT:
@@ -378,13 +390,20 @@ ssd_update_button_hover(struct wlr_scene_node *node,
 disable_old_hover:
 	if (hover_state->node) {
 		wlr_scene_node_set_enabled(hover_state->node, false);
+		if (hover_state->maximized == hover_state->view->maximized)
+			wlr_scene_node_set_enabled (hover_state->old_node, true);
 		hover_state->view = NULL;
 		hover_state->node = NULL;
 	}
 	if (button) {
-		wlr_scene_node_set_enabled(button->hover, true);
+		bool maximized = button->view->maximized;
+		if (maximized && !button->alticon) maximized = false;
+		wlr_scene_node_set_enabled (maximized ? button->althover : button->hover, true);
 		hover_state->view = button->view;
-		hover_state->node = button->hover;
+		hover_state->node = maximized ? button->althover : button->hover;
+		hover_state->old_node = maximized ? button->alticon : button->icon;
+		hover_state->maximized = button->view->maximized;
+		wlr_scene_node_set_enabled (maximized ? button->alticon : button->icon, false);
 	}
 }
 

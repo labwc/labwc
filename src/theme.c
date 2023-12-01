@@ -96,6 +96,18 @@ load_buttons(struct theme *theme)
 			},
 		},
 		{
+			"max_toggled",
+			{ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
+			{
+				&theme->button_restore_active_unpressed,
+				theme->window_active_button_max_unpressed_image_color,
+			},
+			{
+				&theme->button_restore_inactive_unpressed,
+				theme->window_inactive_button_max_unpressed_image_color,
+			},
+		},
+		{
 			"close",
 			{ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
 			{
@@ -140,6 +152,18 @@ load_buttons(struct theme *theme)
 			},
 			{
 				&theme->button_maximize_inactive_hover,
+				theme->window_inactive_button_max_unpressed_image_color,
+			},
+		},
+		{
+			"max_hover_toggled",
+			{ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
+			{
+				&theme->button_restore_active_hover,
+				theme->window_active_button_max_unpressed_image_color,
+			},
+			{
+				&theme->button_restore_inactive_hover,
 				theme->window_inactive_button_max_unpressed_image_color,
 			},
 		},

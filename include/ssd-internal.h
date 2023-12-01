@@ -5,6 +5,7 @@
 #include <wlr/util/box.h>
 #include "common/macros.h"
 #include "ssd.h"
+#include "view.h"
 
 #define FOR_EACH(tmp, ...) \
 { \
@@ -17,7 +18,10 @@
 struct ssd_button {
 	struct view *view;
 	enum ssd_part_type type;
+	struct wlr_scene_node *icon;
 	struct wlr_scene_node *hover;
+	struct wlr_scene_node *alticon;
+	struct wlr_scene_node *althover;
 	struct wlr_scene_node *background;
 
 	struct wl_listener destroy;
@@ -96,6 +100,8 @@ struct ssd_part {
 struct ssd_hover_state {
 	struct view *view;
 	struct wlr_scene_node *node;
+	struct wlr_scene_node *old_node;
+	enum view_axis maximized;
 };
 
 struct wlr_buffer;
@@ -115,7 +121,9 @@ struct ssd_part *add_scene_buffer(
 struct ssd_part *add_scene_button(
 	struct wl_list *part_list, enum ssd_part_type type,
 	struct wlr_scene_tree *parent, float *bg_color,
-	struct wlr_buffer *icon_buffer, struct wlr_buffer *hover_buffer, int x, struct view *view);
+	struct wlr_buffer *icon_buffer, struct wlr_buffer *hover_buffer,
+	struct wlr_buffer *alticon_buffer, struct wlr_buffer *althover_buffer,
+	int x, struct view *view);
 struct ssd_part *add_scene_button_corner(
 	struct wl_list *part_list, enum ssd_part_type type,
 	enum ssd_part_type corner_type, struct wlr_scene_tree *parent,

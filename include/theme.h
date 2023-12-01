@@ -79,21 +79,25 @@ struct theme {
 	/* textures */
 	struct lab_data_buffer *button_close_active_unpressed;
 	struct lab_data_buffer *button_maximize_active_unpressed;
+	struct lab_data_buffer *button_restore_active_unpressed;
 	struct lab_data_buffer *button_iconify_active_unpressed;
 	struct lab_data_buffer *button_menu_active_unpressed;
 
 	struct lab_data_buffer *button_close_inactive_unpressed;
 	struct lab_data_buffer *button_maximize_inactive_unpressed;
+	struct lab_data_buffer *button_restore_inactive_unpressed;
 	struct lab_data_buffer *button_iconify_inactive_unpressed;
 	struct lab_data_buffer *button_menu_inactive_unpressed;
 
 	struct lab_data_buffer *button_close_active_hover;
 	struct lab_data_buffer *button_maximize_active_hover;
+	struct lab_data_buffer *button_restore_active_hover;
 	struct lab_data_buffer *button_iconify_active_hover;
 	struct lab_data_buffer *button_menu_active_hover;
 
 	struct lab_data_buffer *button_close_inactive_hover;
 	struct lab_data_buffer *button_maximize_inactive_hover;
+	struct lab_data_buffer *button_restore_inactive_hover;
 	struct lab_data_buffer *button_iconify_inactive_hover;
 	struct lab_data_buffer *button_menu_inactive_hover;
 

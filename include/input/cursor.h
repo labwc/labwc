@@ -11,6 +11,7 @@ struct seat;
 struct server;
 struct wlr_surface;
 struct wlr_scene_node;
+enum wlr_button_state;
 
 /* Cursors used internally by labwc */
 enum lab_cursors {
@@ -118,6 +119,11 @@ void cursor_update_focus(struct server *server);
 void cursor_update_image(struct seat *seat);
 
 void cursor_init(struct seat *seat);
+void cursor_emulate_move_absolute(struct seat *seat,
+		struct wlr_input_device *device,
+		double x, double y, uint32_t time_msec);
+void cursor_emulate_button(struct seat *seat,
+		uint32_t button, enum wlr_button_state state, uint32_t time_msec);
 void cursor_finish(struct seat *seat);
 
 #endif /* LABWC_CURSOR_H */

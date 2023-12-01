@@ -82,7 +82,7 @@ struct ssd_part *
 add_scene_button_corner(struct wl_list *part_list, enum ssd_part_type type,
 		enum ssd_part_type corner_type, struct wlr_scene_tree *parent,
 		struct wlr_buffer *corner_buffer, struct wlr_buffer *icon_buffer,
-		int x, struct view *view)
+		struct wlr_buffer *hover_buffer, int x, struct view *view)
 {
 	int offset_x;
 	float invisible[4] = { 0, 0, 0, 0 };
@@ -108,7 +108,7 @@ add_scene_button_corner(struct wl_list *part_list, enum ssd_part_type type,
 		-offset_x, -rc.theme->border_width);
 
 	/* Finally just put a usual theme button on top, using an invisible hitbox */
-	add_scene_button(part_list, type, parent, invisible, icon_buffer, 0, view);
+	add_scene_button(part_list, type, parent, invisible, icon_buffer, hover_buffer, 0, view);
 	return button_root;
 }
 
@@ -141,10 +141,9 @@ get_scale_box(struct wlr_buffer *buffer, double container_width,
 struct ssd_part *
 add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		struct wlr_scene_tree *parent, float *bg_color,
-		struct wlr_buffer *icon_buffer, int x, struct view *view)
+		struct wlr_buffer *icon_buffer, struct wlr_buffer *hover_buffer, int x, struct view *view)
 {
 	struct wlr_scene_node *hover;
-	float hover_bg[4] = {0.15f, 0.15f, 0.15f, 0.3f};
 
 	struct ssd_part *button_root = add_scene_part(part_list, type);
 	parent = wlr_scene_tree_create(parent);
@@ -166,15 +165,23 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		wlr_scene_buffer_from_node(icon_part->node),
 		icon_geo.width, icon_geo.height);
 
-	/* Hover overlay */
-	hover = add_scene_rect(part_list, type, parent, SSD_BUTTON_WIDTH,
-		rc.theme->title_height, 0, 0, hover_bg)->node;
-	wlr_scene_node_set_enabled(hover, false);
+	/* Hover icon */
+	struct wlr_box hover_geo = get_scale_box(hover_buffer,
+		SSD_BUTTON_WIDTH, rc.theme->title_height);
+	struct ssd_part *hover_part = add_scene_buffer(part_list, type,
+		parent, hover_buffer, hover_geo.x, hover_geo.y);
+
+	/* Make sure big icons are scaled down if necessary */
+	wlr_scene_buffer_set_dest_size(
+		wlr_scene_buffer_from_node(hover_part->node),
+		hover_geo.width, hover_geo.height);
+
+	wlr_scene_node_set_enabled(hover_part->node, false);
 
 	struct ssd_button *button = ssd_button_descriptor_create(button_root->node);
 	button->type = type;
 	button->view = view;
-	button->hover = hover;
+	button->hover = hover_part->node;
 	button->background = bg_rect->node;
 	return button_root;
 }

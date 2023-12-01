@@ -107,6 +107,54 @@ load_buttons(struct theme *theme)
 				theme->window_inactive_button_close_unpressed_image_color,
 			},
 		},
+		{
+			"menu_hover",
+			{ 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
+			{
+				&theme->button_menu_active_hover,
+				theme->window_active_button_menu_unpressed_image_color,
+			},
+			{
+				&theme->button_menu_inactive_hover,
+				theme->window_inactive_button_menu_unpressed_image_color,
+			},
+		},
+		{
+			"iconify_hover",
+			{ 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
+			{
+				&theme->button_iconify_active_hover,
+				theme->window_active_button_iconify_unpressed_image_color,
+			},
+			{
+				&theme->button_iconify_inactive_hover,
+				theme->window_inactive_button_iconify_unpressed_image_color,
+			},
+		},
+		{
+			"max_hover",
+			{ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
+			{
+				&theme->button_maximize_active_hover,
+				theme->window_active_button_max_unpressed_image_color,
+			},
+			{
+				&theme->button_maximize_inactive_hover,
+				theme->window_inactive_button_max_unpressed_image_color,
+			},
+		},
+		{
+			"close_hover",
+			{ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
+			{
+				&theme->button_close_active_hover,
+				theme->window_active_button_close_unpressed_image_color,
+			},
+			{
+				&theme->button_close_inactive_hover,
+				theme->window_inactive_button_close_unpressed_image_color,
+			},
+		},
 	};
 
 	char filename[4096] = {0};

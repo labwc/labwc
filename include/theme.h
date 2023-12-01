@@ -87,6 +87,16 @@ struct theme {
 	struct lab_data_buffer *button_iconify_inactive_unpressed;
 	struct lab_data_buffer *button_menu_inactive_unpressed;
 
+	struct lab_data_buffer *button_close_active_hover;
+	struct lab_data_buffer *button_maximize_active_hover;
+	struct lab_data_buffer *button_iconify_active_hover;
+	struct lab_data_buffer *button_menu_active_hover;
+
+	struct lab_data_buffer *button_close_inactive_hover;
+	struct lab_data_buffer *button_maximize_inactive_hover;
+	struct lab_data_buffer *button_iconify_inactive_hover;
+	struct lab_data_buffer *button_menu_inactive_hover;
+
 	struct lab_data_buffer *corner_top_left_active_normal;
 	struct lab_data_buffer *corner_top_right_active_normal;
 	struct lab_data_buffer *corner_top_left_inactive_normal;

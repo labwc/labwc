@@ -36,6 +36,11 @@ ssd_titlebar_create(struct ssd *ssd)
 	struct wlr_buffer *maximize_button_unpressed;
 	struct wlr_buffer *close_button_unpressed;
 
+	struct wlr_buffer *menu_button_hover;
+	struct wlr_buffer *iconify_button_hover;
+	struct wlr_buffer *maximize_button_hover;
+	struct wlr_buffer *close_button_hover;
+
 	ssd->titlebar.tree = wlr_scene_tree_create(ssd->tree);
 
 	struct ssd_sub_tree *subtree;
@@ -51,6 +56,10 @@ ssd_titlebar_create(struct ssd *ssd)
 			iconify_button_unpressed = &theme->button_iconify_active_unpressed->base;
 			close_button_unpressed = &theme->button_close_active_unpressed->base;
 			maximize_button_unpressed = &theme->button_maximize_active_unpressed->base;
+			menu_button_hover = &theme->button_menu_active_hover->base;
+			iconify_button_hover = &theme->button_iconify_active_hover->base;
+			close_button_hover = &theme->button_close_active_hover->base;
+			maximize_button_hover = &theme->button_maximize_active_hover->base;
 		} else {
 			color = theme->window_inactive_title_bg_color;
 			corner_top_left = &theme->corner_top_left_inactive_normal->base;
@@ -60,6 +69,10 @@ ssd_titlebar_create(struct ssd *ssd)
 			maximize_button_unpressed =
 				&theme->button_maximize_inactive_unpressed->base;
 			close_button_unpressed = &theme->button_close_inactive_unpressed->base;
+			menu_button_hover = &theme->button_menu_inactive_hover->base;
+			iconify_button_hover = &theme->button_iconify_inactive_hover->base;
+			close_button_hover = &theme->button_close_inactive_hover->base;
+			maximize_button_hover = &theme->button_maximize_inactive_hover->base;
 			wlr_scene_node_set_enabled(&parent->node, false);
 		}
 		wl_list_init(&subtree->parts);
@@ -71,16 +84,16 @@ ssd_titlebar_create(struct ssd *ssd)
 		/* Buttons */
 		add_scene_button_corner(&subtree->parts,
 			LAB_SSD_BUTTON_WINDOW_MENU, LAB_SSD_PART_CORNER_TOP_LEFT, parent,
-			corner_top_left, menu_button_unpressed, 0, view);
+			corner_top_left, menu_button_unpressed, menu_button_hover, 0, view);
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_ICONIFY, parent,
-			color, iconify_button_unpressed,
+			color, iconify_button_unpressed, iconify_button_hover,
 			width - SSD_BUTTON_WIDTH * 3, view);
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_MAXIMIZE, parent,
-			color, maximize_button_unpressed,
+			color, maximize_button_unpressed, maximize_button_hover,
 			width - SSD_BUTTON_WIDTH * 2, view);
 		add_scene_button_corner(&subtree->parts,
 			LAB_SSD_BUTTON_CLOSE, LAB_SSD_PART_CORNER_TOP_RIGHT, parent,
-			corner_top_right, close_button_unpressed,
+			corner_top_right, close_button_unpressed, close_button_hover,
 			width - SSD_BUTTON_WIDTH * 1, view);
 	} FOR_EACH_END
 

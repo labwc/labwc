@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_touch.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
+#include "input/drawing_tablet.h"
 #include "input/input.h"
 #include "input/keyboard.h"
 #include "input/key-state.h"
@@ -254,6 +255,16 @@ new_touch(struct seat *seat, struct wlr_input_device *dev)
 	return input;
 }
 
+static struct input *
+new_tablet(struct seat *seat, struct wlr_input_device *dev)
+{
+	struct input *input = znew(*input);
+	input->wlr_input_device = dev;
+	drawing_tablet_setup_handlers(seat, dev);
+
+	return input;
+}
+
 static void
 seat_update_capabilities(struct seat *seat)
 {
@@ -305,6 +316,10 @@ new_input_notify(struct wl_listener *listener, void *data)
 		break;
 	case WLR_INPUT_DEVICE_TOUCH:
 		input = new_touch(seat, device);
+		break;
+	case WLR_INPUT_DEVICE_TABLET_PAD:
+	case WLR_INPUT_DEVICE_TABLET_TOOL:
+		input = new_tablet(seat, device);
 		break;
 	default:
 		wlr_log(WLR_INFO, "unsupported input device");

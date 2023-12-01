@@ -17,6 +17,7 @@
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
+#include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
 #include <wlr/types/wlr_keyboard_group.h>
@@ -291,6 +292,9 @@ struct server {
 	 */
 	int pending_output_layout_change;
 
+	struct wlr_gamma_control_manager_v1 *gamma_control_manager_v1;
+	struct wl_listener gamma_control_set_gamma;
+
 	struct session_lock *session_lock;
 
 	struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
@@ -343,6 +347,7 @@ struct output {
 	struct wl_listener request_state;
 
 	bool leased;
+	bool gamma_lut_changed;
 };
 
 #undef LAB_NR_LAYERS

@@ -88,6 +88,7 @@ enum action_type {
 	ACTION_TYPE_RESIZE,
 	ACTION_TYPE_RESIZE_RELATIVE,
 	ACTION_TYPE_MOVETO,
+	ACTION_TYPE_RESIZETO,
 	ACTION_TYPE_MOVETO_CURSOR,
 	ACTION_TYPE_MOVE_RELATIVE,
 	ACTION_TYPE_SEND_TO_DESKTOP,
@@ -131,6 +132,7 @@ const char *action_names[] = {
 	"Resize",
 	"ResizeRelative",
 	"MoveTo",
+	"ResizeTo",
 	"MoveToCursor",
 	"MoveRelative",
 	"SendToDesktop",
@@ -323,6 +325,12 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 	case ACTION_TYPE_MOVETO:
 	case ACTION_TYPE_MOVE_RELATIVE:
 		if (!strcmp(argument, "x") || !strcmp(argument, "y")) {
+			action_arg_add_int(action, argument, atoi(content));
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_RESIZETO:
+		if (!strcmp(argument, "width") || !strcmp(argument, "height")) {
 			action_arg_add_int(action, argument, atoi(content));
 			goto cleanup;
 		}
@@ -799,6 +807,25 @@ actions_run(struct view *activator, struct server *server,
 				int x = action_get_int(action, "x", 0);
 				int y = action_get_int(action, "y", 0);
 				view_move(view, x, y);
+			}
+			break;
+		case ACTION_TYPE_RESIZETO:
+			if (view) {
+				int width = action_get_int(action, "width", 0);
+				int height = action_get_int(action, "height", 0);
+
+				/*
+				 * To support only setting one of width/height
+				 * in <action name="ResizeTo" width="" height=""/>
+				 * we fall back to current dimension when unset.
+				 */
+				struct wlr_box box = {
+					.x = view->pending.x,
+					.y = view->pending.y,
+					.width = width ? : view->pending.width,
+					.height = height ? : view->pending.height,
+				};
+				view_move_resize(view, box);
 			}
 			break;
 		case ACTION_TYPE_MOVE_RELATIVE:

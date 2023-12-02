@@ -4,6 +4,7 @@
 #include <linux/input-event-codes.h>
 #include <sys/time.h>
 #include <time.h>
+#include <wlr/types/wlr_cursor_shape_v1.h>
 #include <wlr/types/wlr_primary_selection.h>
 #include <wlr/util/region.h>
 #include "action.h"
@@ -21,6 +22,8 @@
 #include "resistance.h"
 #include "ssd.h"
 #include "view.h"
+
+#define LAB_CURSOR_SHAPE_V1_VERSION 1
 
 static const char * const *cursor_names = NULL;
 
@@ -156,6 +159,33 @@ request_cursor_notify(struct wl_listener *listener, void *data)
 		wlr_cursor_set_surface(seat->cursor, event->surface,
 			event->hotspot_x, event->hotspot_y);
 	}
+}
+
+static void
+request_set_shape_notify(struct wl_listener *listener, void *data)
+{
+	struct wlr_cursor_shape_manager_v1_request_set_shape_event *event = data;
+	const char *shape_name = wlr_cursor_shape_v1_name(event->shape);
+	struct seat *seat = wl_container_of(listener, seat, request_set_shape);
+	struct wlr_seat_client *focused_client = seat->seat->pointer_state.focused_client;
+
+	/* Prevent setting a cursor image when moving or resizing */
+	if (seat->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		return;
+	}
+
+	/*
+	 * This can be sent by any client, so we check to make sure this one
+	 * actually has pointer focus first.
+	 */
+	if (event->seat_client != focused_client) {
+		wlr_log(WLR_INFO, "seat client %p != focused client %p",
+			event->seat_client, focused_client);
+		return;
+	}
+
+	wlr_log(WLR_DEBUG, "set xcursor to shape %s", shape_name);
+	wlr_cursor_set_xcursor(seat->cursor, seat->xcursor_manager, shape_name);
 }
 
 static void
@@ -1225,6 +1255,18 @@ cursor_init(struct seat *seat)
 	seat->request_cursor.notify = request_cursor_notify;
 	wl_signal_add(&seat->seat->events.request_set_cursor,
 		&seat->request_cursor);
+
+	struct wlr_cursor_shape_manager_v1 *cursor_shape_manager =
+		wlr_cursor_shape_manager_v1_create(seat->server->wl_display,
+			LAB_CURSOR_SHAPE_V1_VERSION);
+	if (!cursor_shape_manager) {
+		wlr_log(WLR_ERROR, "unable to create cursor_shape interface");
+		exit(EXIT_FAILURE);
+	}
+	seat->request_set_shape.notify = request_set_shape_notify;
+	wl_signal_add(&cursor_shape_manager->events.request_set_shape,
+		&seat->request_set_shape);
+
 	seat->request_set_selection.notify = request_set_selection_notify;
 	wl_signal_add(&seat->seat->events.request_set_selection,
 		&seat->request_set_selection);
@@ -1249,6 +1291,7 @@ void cursor_finish(struct seat *seat)
 	touch_finish(seat);
 
 	wl_list_remove(&seat->request_cursor.link);
+	wl_list_remove(&seat->request_set_shape.link);
 	wl_list_remove(&seat->request_set_selection.link);
 
 	wlr_xcursor_manager_destroy(seat->xcursor_manager);

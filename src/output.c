@@ -99,6 +99,14 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 			view_on_output_destroy(view);
 		}
 	}
+
+	/*
+	 * Ensure that we don't accidentally try to dereference
+	 * the output pointer in some output event handler like
+	 * set_gamma.
+	 */
+	output->wlr_output->data = NULL;
+
 	/*
 	 * output->scene_output (if still around at this point) is
 	 * destroyed automatically when the wlr_output is destroyed
@@ -569,6 +577,9 @@ handle_gamma_control_set_gamma(struct wl_listener *listener, void *data)
 	const struct wlr_gamma_control_manager_v1_set_gamma_event *event = data;
 
 	struct output *output = event->output->data;
+	if (!output_is_usable(output)) {
+		return;
+	}
 	output->gamma_lut_changed = true;
 	wlr_output_schedule_frame(output->wlr_output);
 }

@@ -175,6 +175,7 @@ struct seat {
 	struct wl_listener swipe_end;
 
 	struct wl_listener request_cursor;
+	struct wl_listener request_set_shape;
 	struct wl_listener request_set_selection;
 	struct wl_listener request_set_primary_selection;
 

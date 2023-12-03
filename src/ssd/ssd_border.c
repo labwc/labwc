@@ -91,7 +91,7 @@ ssd_border_update(struct ssd *ssd)
 	struct ssd_sub_tree *subtree;
 	FOR_EACH_STATE(ssd, subtree) {
 		wl_list_for_each(part, &subtree->parts, link) {
-			rect = lab_wlr_scene_get_rect(part->node);
+			rect = wlr_scene_rect_from_node(part->node);
 			switch (part->type) {
 			case LAB_SSD_PART_LEFT:
 				wlr_scene_rect_set_size(rect,

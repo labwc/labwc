@@ -138,7 +138,7 @@ ssd_extents_update(struct ssd *ssd)
 
 	struct wlr_box *target;
 	wl_list_for_each(part, &ssd->extents.parts, link) {
-		rect = lab_wlr_scene_get_rect(part->node);
+		rect = wlr_scene_rect_from_node(part->node);
 		target = part->geometry;
 		switch (part->type) {
 		case LAB_SSD_PART_TOP:

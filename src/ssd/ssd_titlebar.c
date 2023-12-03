@@ -394,7 +394,7 @@ ssd_update_button_hover(struct wlr_scene_node *node,
 disable_old_hover:
 	if (hover_state->node) {
 		wlr_scene_node_set_enabled(hover_state->node, false);
-		if (hover_state->maximized == hover_state->view->maximized)
+		if (hover_state->maximized == (int) hover_state->view->maximized || hover_state->maximized == -1)
 			wlr_scene_node_set_enabled (hover_state->old_node, true);
 		hover_state->view = NULL;
 		hover_state->node = NULL;
@@ -406,7 +406,7 @@ disable_old_hover:
 		hover_state->view = button->view;
 		hover_state->node = maximized ? button->althover : button->hover;
 		hover_state->old_node = maximized ? button->alticon : button->icon;
-		hover_state->maximized = button->view->maximized;
+		hover_state->maximized = button->alticon ? (int) button->view->maximized : -1;
 		wlr_scene_node_set_enabled (maximized ? button->alticon : button->icon, false);
 	}
 }

@@ -101,7 +101,7 @@ struct ssd_hover_state {
 	struct view *view;
 	struct wlr_scene_node *node;
 	struct wlr_scene_node *old_node;
-	enum view_axis maximized;
+	int maximized;
 };
 
 struct wlr_buffer;

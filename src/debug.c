@@ -170,7 +170,7 @@ dump_tree(struct server *server, struct wlr_scene_node *node,
 
 	if (node->type == WLR_SCENE_NODE_TREE) {
 		struct wlr_scene_node *child;
-		struct wlr_scene_tree *tree = lab_scene_tree_from_node(node);
+		struct wlr_scene_tree *tree = wlr_scene_tree_from_node(node);
 		wl_list_for_each(child, &tree->children, link) {
 			dump_tree(server, child, pos + INDENT_SIZE,
 				x + child->x, y + child->y);

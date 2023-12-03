@@ -339,7 +339,7 @@ ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable)
 		: rc.theme->window_active_border_color;
 
 	struct ssd_part *part = ssd_get_part(&ssd->border.active.parts, LAB_SSD_PART_TOP);
-	struct wlr_scene_rect *rect = lab_wlr_scene_get_rect(part->node);
+	struct wlr_scene_rect *rect = wlr_scene_rect_from_node(part->node);
 	wlr_scene_rect_set_color(rect, color);
 }
 

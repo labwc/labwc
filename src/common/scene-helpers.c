@@ -6,20 +6,6 @@
 #include <wlr/util/log.h>
 #include "common/scene-helpers.h"
 
-struct wlr_scene_rect *
-lab_wlr_scene_get_rect(struct wlr_scene_node *node)
-{
-	assert(node->type == WLR_SCENE_NODE_RECT);
-	return (struct wlr_scene_rect *)node;
-}
-
-struct wlr_scene_tree *
-lab_scene_tree_from_node(struct wlr_scene_node *node)
-{
-	assert(node->type == WLR_SCENE_NODE_TREE);
-	return (struct wlr_scene_tree *)node;
-}
-
 struct wlr_surface *
 lab_wlr_surface_from_node(struct wlr_scene_node *node)
 {

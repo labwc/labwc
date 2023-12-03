@@ -31,7 +31,7 @@
 #include "workspaces.h"
 #include "xwayland.h"
 
-#define LAB_WLR_COMPOSITOR_VERSION (5)
+#define LAB_WLR_COMPOSITOR_VERSION 5
 #define LAB_WLR_FRACTIONAL_SCALE_V1_VERSION 1
 
 static struct wlr_compositor *compositor;

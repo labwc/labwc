@@ -6,6 +6,7 @@
 #include "labwc.h"
 #include "node.h"
 #include "ssd-internal.h"
+#include "common/scene-helpers.h"
 
 /* Internal helpers */
 static void
@@ -108,7 +109,7 @@ add_scene_button_corner(struct wl_list *part_list, enum ssd_part_type type,
 		-offset_x, -rc.theme->border_width);
 
 	/* Finally just put a usual theme button on top, using an invisible hitbox */
-	add_scene_button(part_list, type, parent, invisible, icon_buffer, hover_buffer, NULL, NULL, 0, view);
+	add_scene_button(part_list, type, parent, invisible, icon_buffer, hover_buffer, 0, view);
 	return button_root;
 }
 
@@ -142,7 +143,6 @@ struct ssd_part *
 add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		struct wlr_scene_tree *parent, float *bg_color,
 		struct wlr_buffer *icon_buffer, struct wlr_buffer *hover_buffer,
-		struct wlr_buffer *alticon_buffer, struct wlr_buffer *althover_buffer,
 		int x, struct view *view)
 {
 	struct ssd_part *button_root = add_scene_part(part_list, type);
@@ -178,37 +178,51 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 
 	wlr_scene_node_set_enabled(hover_part->node, false);
 
-	/* Alternate icon */
-	struct ssd_part *alticon_part, *althover_part;
-	if (alticon_buffer)
-	{
-		alticon_part = add_scene_buffer(part_list, type,
-			parent, alticon_buffer, icon_geo.x, icon_geo.y);
-
-		wlr_scene_buffer_set_dest_size(
-			wlr_scene_buffer_from_node(alticon_part->node),
-			icon_geo.width, icon_geo.height);
-
-		wlr_scene_node_set_enabled(alticon_part->node, false);
-
-		althover_part = add_scene_buffer(part_list, type,
-			parent, althover_buffer, hover_geo.x, hover_geo.y);
-
-		wlr_scene_buffer_set_dest_size(
-			wlr_scene_buffer_from_node(althover_part->node),
-			hover_geo.width, hover_geo.height);
-
-		wlr_scene_node_set_enabled(althover_part->node, false);
-	}
 	struct ssd_button *button = ssd_button_descriptor_create(button_root->node);
 	button->type = type;
 	button->view = view;
 	button->icon = icon_part->node;
-	button->alticon = alticon_buffer ? alticon_part->node : NULL;
-	button->althover = alticon_buffer ? althover_part->node : NULL;
 	button->hover = hover_part->node;
 	button->background = bg_rect->node;
+	button->alticon = NULL;
+	button->althover = NULL;
 	return button_root;
+}
+
+void
+add_alt_button(struct wl_list *part_list, enum ssd_part_type type,
+		struct wlr_buffer *icon_buffer, struct wlr_buffer *hover_buffer)
+{
+	struct ssd_part *part = ssd_get_part(part_list, type);
+	struct ssd_button *button = node_ssd_button_from_node (part->node);
+	struct wlr_scene_tree *parent = lab_scene_tree_from_node (part->node);
+
+	/* Alternate icon */
+	struct wlr_box icon_geo = get_scale_box(icon_buffer,
+		SSD_BUTTON_WIDTH, rc.theme->title_height);
+
+	struct ssd_part *alticon_part = add_scene_buffer(part_list, type,
+		parent, icon_buffer, icon_geo.x, icon_geo.y);
+
+	wlr_scene_buffer_set_dest_size(
+		wlr_scene_buffer_from_node(alticon_part->node),
+		icon_geo.width, icon_geo.height);
+
+	wlr_scene_node_set_enabled(alticon_part->node, false);
+
+	struct wlr_box hover_geo = get_scale_box(hover_buffer,
+		SSD_BUTTON_WIDTH, rc.theme->title_height);
+	struct ssd_part *althover_part = add_scene_buffer(part_list, type,
+		parent, hover_buffer, hover_geo.x, hover_geo.y);
+
+	wlr_scene_buffer_set_dest_size(
+		wlr_scene_buffer_from_node(althover_part->node),
+		hover_geo.width, hover_geo.height);
+
+	wlr_scene_node_set_enabled(althover_part->node, false);
+
+	button->alticon = alticon_part->node;
+	button->althover = althover_part->node;
 }
 
 struct ssd_part *

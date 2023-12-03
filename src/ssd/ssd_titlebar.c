@@ -92,12 +92,13 @@ ssd_titlebar_create(struct ssd *ssd)
 			LAB_SSD_BUTTON_WINDOW_MENU, LAB_SSD_PART_CORNER_TOP_LEFT, parent,
 			corner_top_left, menu_button_unpressed, menu_button_hover, 0, view);
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_ICONIFY, parent,
-			color, iconify_button_unpressed, iconify_button_hover, NULL, NULL,
+			color, iconify_button_unpressed, iconify_button_hover,
 			width - SSD_BUTTON_WIDTH * 3, view);
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_MAXIMIZE, parent,
 			color, maximize_button_unpressed, maximize_button_hover,
-			restore_button_unpressed, restore_button_hover,
 			width - SSD_BUTTON_WIDTH * 2, view);
+		add_alt_button(&subtree->parts, LAB_SSD_BUTTON_MAXIMIZE,
+			restore_button_unpressed, restore_button_hover);
 		add_scene_button_corner(&subtree->parts,
 			LAB_SSD_BUTTON_CLOSE, LAB_SSD_PART_CORNER_TOP_RIGHT, parent,
 			corner_top_right, close_button_unpressed, close_button_hover,
@@ -184,10 +185,13 @@ ssd_titlebar_update(struct ssd *ssd)
 					wlr_scene_node_set_position(part->node,
 						width - SSD_BUTTON_WIDTH * 2, 0);
 					struct ssd_button *button = node_ssd_button_from_node(part->node);
-					wlr_scene_node_set_enabled (button->icon, !maximized);
-					wlr_scene_node_set_enabled (button->alticon, maximized);
-					wlr_scene_node_set_enabled (button->hover, false);
-					wlr_scene_node_set_enabled (button->althover, false);
+					if (button->alticon)
+					{
+						wlr_scene_node_set_enabled (button->icon, !maximized);
+						wlr_scene_node_set_enabled (button->alticon, maximized);
+						wlr_scene_node_set_enabled (button->hover, false);
+						wlr_scene_node_set_enabled (button->althover, false);
+					}
 				}
 				continue;
 			case LAB_SSD_PART_CORNER_TOP_RIGHT:

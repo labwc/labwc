@@ -31,6 +31,7 @@
 #include "xwayland.h"
 
 #define LAB_WLR_COMPOSITOR_VERSION (5)
+#define LAB_WLR_FRACTIONAL_SCALE_MANAGER_VERSION (1)
 
 static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;
@@ -377,6 +378,8 @@ server_init(struct server *server)
 	wlr_data_control_manager_v1_create(server->wl_display);
 	wlr_viewporter_create(server->wl_display);
 	wlr_single_pixel_buffer_manager_v1_create(server->wl_display);
+	wlr_fractional_scale_manager_v1_create(
+		server->wl_display, LAB_WLR_FRACTIONAL_SCALE_MANAGER_VERSION);
 
 	idle_manager_create(server->wl_display, server->seat.seat);
 

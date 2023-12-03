@@ -199,6 +199,14 @@ handle_commit(struct wl_listener *listener, void *data)
 	 * reducing visual glitches.
 	 */
 	if (current->width != state->width || current->height != state->height) {
+		wlr_fractional_scale_v1_notify_scale(
+			view->surface,
+			view->output->wlr_output->scale
+		);
+		wlr_surface_set_preferred_buffer_scale(
+			view->surface,
+			ceil(view->output->wlr_output->scale)
+		);
 		view_impl_apply_geometry(view, state->width, state->height);
 	}
 }

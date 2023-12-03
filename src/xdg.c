@@ -125,6 +125,14 @@ handle_commit(struct wl_listener *listener, void *data)
 	}
 
 	if (update_required) {
+		wlr_fractional_scale_v1_notify_scale(
+			view->surface,
+			view->output->wlr_output->scale
+		);
+		wlr_surface_set_preferred_buffer_scale(
+			view->surface,
+			ceil(view->output->wlr_output->scale)
+		);
 		view_impl_apply_geometry(view, size.width, size.height);
 	}
 }
@@ -307,6 +315,14 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 		 * glitches during resize, we apply the same position
 		 * adjustments here as in handle_commit().
 		 */
+		wlr_fractional_scale_v1_notify_scale(
+			view->surface,
+			view->output->wlr_output->scale
+		);
+		wlr_surface_set_preferred_buffer_scale(
+			view->surface,
+			ceil(view->output->wlr_output->scale)
+		);
 		view_impl_apply_geometry(view, view->current.width,
 			view->current.height);
 	}

@@ -9,92 +9,6 @@
 #include "labwc.h"  /* for struct seat */
 #include "view.h"
 
-/* Internal DnD icon handlers */
-static void
-handle_icon_map(struct wl_listener *listener, void *data)
-{
-	struct drag_icon *self = wl_container_of(listener, self, events.map);
-	struct wlr_drag_icon *icon = self->icon;
-	if (icon->data) {
-		struct wlr_scene_tree *surface_tree = icon->data;
-		wlr_scene_node_set_enabled(&surface_tree->node, true);
-	} else {
-		icon->data = wlr_scene_subsurface_tree_create(
-			self->icon_tree, icon->surface);
-	}
-}
-
-static void
-handle_surface_commit(struct wl_listener *listener, void *data)
-{
-	struct drag_icon *self = wl_container_of(listener, self, events.commit);
-	struct wlr_surface *surface = data;
-	struct wlr_scene_tree *surface_tree = self->icon->data;
-	if (surface_tree) {
-		wlr_scene_node_set_position(&surface_tree->node,
-			surface_tree->node.x + surface->current.dx,
-			surface_tree->node.y + surface->current.dy);
-	}
-}
-
-static void
-handle_icon_unmap(struct wl_listener *listener, void *data)
-{
-	struct drag_icon *self = wl_container_of(listener, self, events.unmap);
-	struct wlr_drag_icon *icon = self->icon;
-	struct wlr_scene_tree *surface_tree = icon->data;
-	if (surface_tree) {
-		wlr_scene_node_set_enabled(&surface_tree->node, false);
-	}
-}
-
-static void
-handle_icon_destroy(struct wl_listener *listener, void *data)
-{
-	struct drag_icon *self = wl_container_of(listener, self, events.destroy);
-
-	wl_list_remove(&self->events.map.link);
-	wl_list_remove(&self->events.commit.link);
-	wl_list_remove(&self->events.unmap.link);
-	wl_list_remove(&self->events.destroy.link);
-
-	if (self->icon->data) {
-		struct wlr_scene_tree *tree = self->icon->data;
-		wlr_scene_node_destroy(&tree->node);
-	}
-
-	self->icon = NULL;
-	self->icon_tree = NULL;
-	free(self);
-}
-
-static void
-drag_icon_create(struct seat *seat, struct wlr_drag_icon *wlr_icon)
-{
-	assert(seat);
-	assert(wlr_icon);
-	struct drag_icon *self = znew(*self);
-
-	self->icon = wlr_icon;
-	self->icon_tree = seat->drag.icons;
-
-	/* Position will be updated by cursor movement */
-	wlr_scene_node_set_position(&self->icon_tree->node,
-		seat->cursor->x, seat->cursor->y);
-	wlr_scene_node_raise_to_top(&self->icon_tree->node);
-
-	/* Set up events */
-	self->events.map.notify = handle_icon_map;
-	self->events.commit.notify = handle_surface_commit;
-	self->events.unmap.notify = handle_icon_unmap;
-	self->events.destroy.notify = handle_icon_destroy;
-
-	wl_signal_add(&wlr_icon->surface->events.map, &self->events.map);
-	wl_signal_add(&wlr_icon->surface->events.commit, &self->events.commit);
-	wl_signal_add(&wlr_icon->surface->events.unmap, &self->events.unmap);
-	wl_signal_add(&wlr_icon->events.destroy, &self->events.destroy);
-}
-
 /* Internal DnD handlers */
 static void
 handle_drag_request(struct wl_listener *listener, void *data)
@@ -122,8 +36,8 @@ handle_drag_start(struct wl_listener *listener, void *data)
 	seat->drag.active = true;
 	seat_reset_pressed(seat);
 	if (drag->icon) {
-		/* Cleans up automatically on drag->icon->events.detroy */
-		drag_icon_create(seat, drag->icon);
+		/* Cleans up automatically on drag->icon->events.destroy */
+		wlr_scene_drag_icon_create(seat->drag.icons, drag->icon);
 		wlr_scene_node_set_enabled(&seat->drag.icons->node, true);
 	}
 	wl_signal_add(&drag->events.destroy, &seat->drag.events.destroy);

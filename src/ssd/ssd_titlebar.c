@@ -184,7 +184,7 @@ ssd_titlebar_update(struct ssd *ssd)
 				if (is_direct_child(part->node, subtree)) {
 					wlr_scene_node_set_position(part->node,
 						width - SSD_BUTTON_WIDTH * 2, 0);
-					struct ssd_button *button = 
+					struct ssd_button *button =
 						node_ssd_button_from_node(part->node);
 					if (button->alticon) {
 						wlr_scene_node_set_enabled(button->icon,

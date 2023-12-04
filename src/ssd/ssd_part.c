@@ -190,7 +190,7 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 }
 
 void
-add_alt_button(struct wl_list *part_list, enum ssd_part_type type,
+add_alt_icon(struct wl_list *part_list, enum ssd_part_type type,
 		struct wlr_buffer *icon_buffer, struct wlr_buffer *hover_buffer)
 {
 	struct ssd_part *part = ssd_get_part(part_list, type);

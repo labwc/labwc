@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <assert.h>
+#include "common/scene-helpers.h"
 #include "common/list.h"
 #include "common/mem.h"
 #include "labwc.h"
 #include "node.h"
 #include "ssd-internal.h"
-#include "common/scene-helpers.h"
 
 /* Internal helpers */
 static void

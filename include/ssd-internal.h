@@ -18,10 +18,10 @@
 struct ssd_button {
 	struct view *view;
 	enum ssd_part_type type;
-	struct wlr_scene_node *icon;
+	struct wlr_scene_node *normal;
 	struct wlr_scene_node *hover;
-	struct wlr_scene_node *alticon;
-	struct wlr_scene_node *althover;
+	struct wlr_scene_node *toggled;
+	struct wlr_scene_node *toggled_hover;
 	struct wlr_scene_node *background;
 
 	struct wl_listener destroy;
@@ -124,7 +124,7 @@ struct ssd_part *add_scene_button(
 	struct wlr_buffer *icon_buffer, struct wlr_buffer *hover_buffer,
 	int x, struct view *view);
 void
-add_alt_icon(struct wl_list *part_list, enum ssd_part_type type,
+add_toggled_icon(struct wl_list *part_list, enum ssd_part_type type,
 		struct wlr_buffer *icon_buffer, struct wlr_buffer *hover_buffer);
 struct ssd_part *add_scene_button_corner(
 	struct wl_list *part_list, enum ssd_part_type type,

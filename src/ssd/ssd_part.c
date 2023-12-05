@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <assert.h>
-#include "common/scene-helpers.h"
 #include "common/list.h"
 #include "common/mem.h"
 #include "labwc.h"
@@ -181,21 +180,21 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 	struct ssd_button *button = ssd_button_descriptor_create(button_root->node);
 	button->type = type;
 	button->view = view;
-	button->icon = icon_part->node;
+	button->normal = icon_part->node;
 	button->hover = hover_part->node;
 	button->background = bg_rect->node;
-	button->alticon = NULL;
-	button->althover = NULL;
+	button->toggled = NULL;
+	button->toggled_hover = NULL;
 	return button_root;
 }
 
 void
-add_alt_icon(struct wl_list *part_list, enum ssd_part_type type,
+add_toggled_icon(struct wl_list *part_list, enum ssd_part_type type,
 		struct wlr_buffer *icon_buffer, struct wlr_buffer *hover_buffer)
 {
 	struct ssd_part *part = ssd_get_part(part_list, type);
 	struct ssd_button *button = node_ssd_button_from_node(part->node);
-	struct wlr_scene_tree *parent = lab_scene_tree_from_node(part->node);
+	struct wlr_scene_tree *parent = wlr_scene_tree_from_node(part->node);
 
 	/* Alternate icon */
 	struct wlr_box icon_geo = get_scale_box(icon_buffer,
@@ -221,8 +220,8 @@ add_alt_icon(struct wl_list *part_list, enum ssd_part_type type,
 
 	wlr_scene_node_set_enabled(althover_part->node, false);
 
-	button->alticon = alticon_part->node;
-	button->althover = althover_part->node;
+	button->toggled = alticon_part->node;
+	button->toggled_hover = althover_part->node;
 }
 
 struct ssd_part *

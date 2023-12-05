@@ -97,7 +97,7 @@ load_buttons(struct theme *theme)
 		},
 		{
 			"max_toggled",
-			{ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
+			{ 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
 			{
 				&theme->button_restore_active_unpressed,
 				theme->window_active_button_max_unpressed_image_color,
@@ -157,7 +157,7 @@ load_buttons(struct theme *theme)
 		},
 		{
 			"max_hover_toggled",
-			{ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
+			{ 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
 			{
 				&theme->button_restore_active_hover,
 				theme->window_active_button_max_unpressed_image_color,

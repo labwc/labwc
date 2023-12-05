@@ -87,19 +87,19 @@ menu_update_width(struct menu *menu)
 	/* Update all items for the new size */
 	wl_list_for_each(item, &menu->menuitems, link) {
 		wlr_scene_rect_set_size(
-			lab_wlr_scene_get_rect(item->normal.background),
+			wlr_scene_rect_from_node(item->normal.background),
 			menu->size.width, item->height);
 
 		if (!item->selected.background) {
 			/* This is a separator. They don't have a selected background. */
 			wlr_scene_rect_set_size(
-				lab_wlr_scene_get_rect(item->normal.text),
+				wlr_scene_rect_from_node(item->normal.text),
 				menu->size.width - 2 * theme->menu_separator_padding_width,
 				theme->menu_separator_line_thickness);
 		} else {
 			/* Usual menu item */
 			wlr_scene_rect_set_size(
-				lab_wlr_scene_get_rect(item->selected.background),
+				wlr_scene_rect_from_node(item->selected.background),
 				menu->size.width, item->height);
 			if (item->native_width > max_width || item->submenu) {
 				scaled_font_buffer_set_max_width(item->normal.buffer,

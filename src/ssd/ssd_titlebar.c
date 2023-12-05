@@ -131,7 +131,7 @@ set_squared_corners(struct ssd *ssd, bool enable)
 			struct ssd_button *button = node_ssd_button_from_node(part->node);
 
 			/* Toggle background between invisible and titlebar background color */
-			struct wlr_scene_rect *rect = lab_wlr_scene_get_rect(button->background);
+			struct wlr_scene_rect *rect = wlr_scene_rect_from_node(button->background);
 			wlr_scene_rect_set_color(rect, !enable ? (float[4]) {0, 0, 0, 0} : (
 				subtree == &ssd->titlebar.active
 					? rc.theme->window_active_title_bg_color
@@ -170,7 +170,7 @@ ssd_titlebar_update(struct ssd *ssd)
 			switch (part->type) {
 			case LAB_SSD_PART_TITLEBAR:
 				wlr_scene_rect_set_size(
-					lab_wlr_scene_get_rect(part->node),
+					wlr_scene_rect_from_node(part->node),
 					width - SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT,
 					theme->title_height);
 				continue;

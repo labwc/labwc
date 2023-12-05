@@ -73,6 +73,13 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="MoveTo" x="" y="" />*
 	Move to position (x, y)
 
+*<action name="ResizeTo" width="" height="" />*
+	Resize window
+
+	*width* The width to resize the window to in pixels.
+
+	*height* The height to resize the window to in pixels.
+
 *<action name="MoveToCursor" />*
 	Move to be centered on cursor.
 	Tries to prevent any part of the window from going off-screen.

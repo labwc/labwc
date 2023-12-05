@@ -203,6 +203,10 @@ struct server {
 	struct wlr_renderer *renderer;
 	struct wlr_allocator *allocator;
 	struct wlr_backend *backend;
+	struct headless {
+		struct wlr_backend *backend;
+		char pending_output_name[4096];
+	} headless;
 	struct wlr_session *session;
 
 	struct wlr_xdg_shell *xdg_shell;

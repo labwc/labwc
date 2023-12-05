@@ -5,6 +5,7 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+#include <wlr/backend/headless.h>
 #include <wlr/util/log.h>
 #include "action.h"
 #include "common/macros.h"
@@ -98,6 +99,8 @@ enum action_type {
 	ACTION_TYPE_FOCUS_OUTPUT,
 	ACTION_TYPE_IF,
 	ACTION_TYPE_FOR_EACH,
+	ACTION_TYPE_VIRTUAL_OUTPUT_ADD,
+	ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE,
 };
 
 const char *action_names[] = {
@@ -142,6 +145,8 @@ const char *action_names[] = {
 	"FocusOutput",
 	"If",
 	"ForEach",
+	"VirtualOutputAdd",
+	"VirtualOutputRemove",
 	NULL
 };
 
@@ -359,6 +364,13 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		break;
 	case ACTION_TYPE_FOCUS_OUTPUT:
 		if (!strcmp(argument, "output")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_VIRTUAL_OUTPUT_ADD:
+	case ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE:
+		if (!strcmp(argument, "output_name")) {
 			action_arg_add_str(action, argument, content);
 			goto cleanup;
 		}
@@ -614,6 +626,57 @@ run_if_action(struct view *view, struct server *server, struct action *action)
 	actions = action_get_actionlist(action, branch);
 	if (actions) {
 		actions_run(view, server, actions, 0);
+	}
+}
+
+static void
+virtual_output_add(struct server *server, const char *output_name)
+{
+	if (output_name) {
+		/*
+		 * Prevent creating outputs with the same name
+		 */
+		struct output *output;
+		wl_list_for_each(output, &server->outputs, link) {
+			if (wlr_output_is_headless(output->wlr_output)) {
+				if (!strcmp(output->wlr_output->name, output_name)) {
+					wlr_log(WLR_DEBUG, "refusing to create virtual output with duplicate name");
+					return;
+				}
+			}
+		}
+		strncpy(server->headless.pending_output_name, output_name,
+				sizeof(server->headless.pending_output_name));
+	} else {
+		server->headless.pending_output_name[0] = '\0';
+	}
+	wlr_headless_add_output(server->headless.backend, 1920, 1080);
+}
+
+static void
+virtual_output_remove(struct server *server, const char *output_name)
+{
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		if (wlr_output_is_headless(output->wlr_output)) {
+			if (output_name) {
+				/*
+				 * Given virtual output name, find and destroy virtual output by
+				 * that name.
+				 */
+				if (!strcmp(output->wlr_output->name, output_name)) {
+					wlr_output_destroy(output->wlr_output);
+					return;
+				}
+			} else {
+				/*
+				 * When virtual output name was no supplied by user, simply
+				 * destroy the first virtual output found.
+				 */
+				wlr_output_destroy(output->wlr_output);
+				return;
+			}
+		}
 	}
 }
 
@@ -913,6 +976,18 @@ actions_run(struct view *activator, struct server *server,
 					run_if_action(*item, server, action);
 				}
 				wl_array_release(&views);
+			}
+			break;
+		case ACTION_TYPE_VIRTUAL_OUTPUT_ADD:
+			{
+				const char *output_name = action_get_str(action, "output_name", NULL);
+				virtual_output_add(server, output_name);
+			}
+			break;
+		case ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE:
+			{
+				const char *output_name = action_get_str(action, "output_name", NULL);
+				virtual_output_remove(server, output_name);
 			}
 			break;
 		case ACTION_TYPE_INVALID:

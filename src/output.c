@@ -9,6 +9,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <strings.h>
+#include <wlr/backend/drm.h>
+#include <wlr/backend/headless.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_output.h>
@@ -195,13 +197,20 @@ new_output_notify(struct wl_listener *listener, void *data)
 	struct wlr_output *wlr_output = data;
 
 	/*
+	 * Name virtual outputs.
+	 */
+	if (wlr_output_is_headless(wlr_output) && server->headless.pending_output_name[0] != '\0') {
+		wlr_output_set_name(wlr_output, server->headless.pending_output_name);
+	}
+
+	/*
 	 * We offer any display as available for lease, some apps like
 	 * gamescope, want to take ownership of a display when they can
 	 * to use planes and present directly.
 	 * This is also useful for debugging the DRM parts of
 	 * another compositor.
 	 */
-	if (server->drm_lease_manager) {
+	if (server->drm_lease_manager && wlr_output_is_drm(wlr_output)) {
 		wlr_drm_lease_v1_manager_offer_output(
 			server->drm_lease_manager, wlr_output);
 	}

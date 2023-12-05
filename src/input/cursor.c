@@ -142,7 +142,7 @@ request_cursor_notify(struct wl_listener *listener, void *data)
 		seat->seat->pointer_state.focused_client;
 
 	/*
-	 * This can be sent by any client, so we check to make sure this one is
+	 * This can be sent by any client, so we check to make sure this one
 	 * actually has pointer focus first.
 	 */
 	if (focused_client == event->seat_client) {

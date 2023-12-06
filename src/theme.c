@@ -227,6 +227,7 @@ load_buttons(struct theme *theme)
 
 		/* If there were no png/svg buttons, use xbm */
 		snprintf(filename, sizeof(filename), "%s.xbm", b->name);
+		alt_filename[0] = '\0';
 		if (b->alt_name) {
 			snprintf(alt_filename, sizeof(alt_filename), "%s.xbm", b->alt_name);
 		}

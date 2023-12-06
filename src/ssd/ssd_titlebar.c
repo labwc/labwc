@@ -18,6 +18,7 @@
 	&(ssd)->titlebar.inactive)
 
 static void set_squared_corners(struct ssd *ssd, bool enable);
+static void set_maximize_alt_icon(struct ssd *ssd, bool enable);
 
 void
 ssd_titlebar_create(struct ssd *ssd)
@@ -109,6 +110,8 @@ ssd_titlebar_create(struct ssd *ssd)
 
 	if (view->maximized == VIEW_AXIS_BOTH) {
 		set_squared_corners(ssd, true);
+		set_maximize_alt_icon(ssd, true);
+		ssd->state.was_maximized = true;
 	}
 }
 
@@ -143,8 +146,29 @@ set_squared_corners(struct ssd *ssd, bool enable)
 			wlr_scene_node_set_enabled(rounded_corner, !enable);
 		}
 	} FOR_EACH_END
+}
 
-	ssd->state.squared_corners = enable;
+static void
+set_maximize_alt_icon(struct ssd *ssd, bool enable)
+{
+	struct ssd_part *part;
+	struct ssd_button *button;
+	struct ssd_sub_tree *subtree;
+
+	FOR_EACH_STATE(ssd, subtree) {
+		part = ssd_get_part(&subtree->parts, LAB_SSD_BUTTON_MAXIMIZE);
+		button = node_ssd_button_from_node(part->node);
+
+		if (button->toggled) {
+			wlr_scene_node_set_enabled(button->toggled, enable);
+			wlr_scene_node_set_enabled(button->normal, !enable);
+		}
+
+		if (button->toggled_hover) {
+			wlr_scene_node_set_enabled(button->toggled_hover, enable);
+			wlr_scene_node_set_enabled(button->hover, !enable);
+		}
+	} FOR_EACH_END
 }
 
 void
@@ -155,8 +179,10 @@ ssd_titlebar_update(struct ssd *ssd)
 	struct theme *theme = view->server->theme;
 
 	bool maximized = (view->maximized == VIEW_AXIS_BOTH);
-	if (ssd->state.squared_corners != maximized) {
+	if (ssd->state.was_maximized != maximized) {
 		set_squared_corners(ssd, maximized);
+		set_maximize_alt_icon(ssd, maximized);
+		ssd->state.was_maximized = maximized;
 	}
 
 	if (width == ssd->state.geometry.width) {
@@ -184,18 +210,6 @@ ssd_titlebar_update(struct ssd *ssd)
 				if (is_direct_child(part->node, subtree)) {
 					wlr_scene_node_set_position(part->node,
 						width - SSD_BUTTON_WIDTH * 2, 0);
-					struct ssd_button *button =
-						node_ssd_button_from_node(part->node);
-					if (button->toggled) {
-						wlr_scene_node_set_enabled(button->normal,
-							!maximized);
-						wlr_scene_node_set_enabled(button->toggled,
-							maximized);
-						wlr_scene_node_set_enabled(button->hover,
-							false);
-						wlr_scene_node_set_enabled(button->toggled_hover,
-							false);
-					}
 				}
 				continue;
 			case LAB_SSD_PART_CORNER_TOP_RIGHT:
@@ -377,6 +391,14 @@ ssd_update_title(struct ssd *ssd)
 	ssd_update_title_positions(ssd);
 }
 
+static void
+ssd_button_set_hover(struct ssd_button *button, bool enabled)
+{
+	assert(button);
+	wlr_scene_node_set_enabled(&button->hover_tree->node, enabled);
+	wlr_scene_node_set_enabled(&button->icon_tree->node, !enabled);
+}
+
 void
 ssd_update_button_hover(struct wlr_scene_node *node,
 		struct ssd_hover_state *hover_state)
@@ -389,33 +411,22 @@ ssd_update_button_hover(struct wlr_scene_node *node,
 	struct node_descriptor *desc = node->data;
 	if (desc->type == LAB_NODE_DESC_SSD_BUTTON) {
 		button = node_ssd_button_from_node(node);
-		if (button->hover == hover_state->node) {
+		if (button == hover_state->button) {
 			/* Cursor is still on the same button */
 			return;
 		}
 	}
 
 disable_old_hover:
-	if (hover_state->node) {
-		wlr_scene_node_set_enabled(hover_state->node, false);
-		if (hover_state->maximized == (int)hover_state->view->maximized
-			|| hover_state->maximized == -1) {
-			wlr_scene_node_set_enabled(hover_state->old_node, true);
-		}
+	if (hover_state->button) {
+		ssd_button_set_hover(hover_state->button, false);
 		hover_state->view = NULL;
-		hover_state->node = NULL;
+		hover_state->button = NULL;
 	}
 	if (button) {
-		bool maximized = button->view->maximized;
-		if (maximized && !button->toggled) {
-			maximized = false;
-		}
-		wlr_scene_node_set_enabled(maximized ? button->toggled_hover : button->hover, true);
+		ssd_button_set_hover(button, true);
 		hover_state->view = button->view;
-		hover_state->node = maximized ? button->toggled_hover : button->hover;
-		hover_state->old_node = maximized ? button->toggled : button->normal;
-		hover_state->maximized = button->toggled ? (int)button->view->maximized : -1;
-		wlr_scene_node_set_enabled(maximized ? button->toggled : button->normal, false);
+		hover_state->button = button;
 	}
 }
 

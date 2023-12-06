@@ -39,6 +39,7 @@
 
 struct button {
 	const char *name;
+	const char *alt_name;
 	char fallback_button[6];	/* built-in 6x6 button */
 	struct {
 		struct lab_data_buffer **buffer;
@@ -60,7 +61,7 @@ load_buttons(struct theme *theme)
 {
 	struct button buttons[] = {
 		{
-			"menu",
+			"menu", NULL,
 			{ 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
 			{
 				&theme->button_menu_active_unpressed,
@@ -72,7 +73,7 @@ load_buttons(struct theme *theme)
 			},
 		},
 		{
-			"iconify",
+			"iconify", NULL,
 			{ 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
 			{
 				&theme->button_iconify_active_unpressed,
@@ -84,7 +85,7 @@ load_buttons(struct theme *theme)
 			},
 		},
 		{
-			"max",
+			"max", NULL,
 			{ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
 			{
 				&theme->button_maximize_active_unpressed,
@@ -96,7 +97,7 @@ load_buttons(struct theme *theme)
 			},
 		},
 		{
-			"max_toggled",
+			"max_toggled", NULL,
 			{ 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
 			{
 				&theme->button_restore_active_unpressed,
@@ -108,7 +109,7 @@ load_buttons(struct theme *theme)
 			},
 		},
 		{
-			"close",
+			"close", NULL,
 			{ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
 			{
 				&theme->button_close_active_unpressed,
@@ -120,7 +121,7 @@ load_buttons(struct theme *theme)
 			},
 		},
 		{
-			"menu_hover",
+			"menu_hover", NULL,
 			{ 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
 			{
 				&theme->button_menu_active_hover,
@@ -132,7 +133,7 @@ load_buttons(struct theme *theme)
 			},
 		},
 		{
-			"iconify_hover",
+			"iconify_hover", NULL,
 			{ 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
 			{
 				&theme->button_iconify_active_hover,
@@ -144,7 +145,7 @@ load_buttons(struct theme *theme)
 			},
 		},
 		{
-			"max_hover",
+			"max_hover", NULL,
 			{ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
 			{
 				&theme->button_maximize_active_hover,
@@ -156,7 +157,7 @@ load_buttons(struct theme *theme)
 			},
 		},
 		{
-			"max_hover_toggled",
+			"max_hover_toggled", "max_toggled_hover",
 			{ 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
 			{
 				&theme->button_restore_active_hover,
@@ -168,7 +169,7 @@ load_buttons(struct theme *theme)
 			},
 		},
 		{
-			"close_hover",
+			"close_hover", NULL,
 			{ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
 			{
 				&theme->button_close_active_hover,
@@ -182,6 +183,7 @@ load_buttons(struct theme *theme)
 	};
 
 	char filename[4096] = {0};
+	char alt_filename[4096] = {0};
 	for (size_t i = 0; i < ARRAY_SIZE(buttons); ++i) {
 		struct button *b = &buttons[i];
 
@@ -191,8 +193,16 @@ load_buttons(struct theme *theme)
 		/* Try png icon first */
 		snprintf(filename, sizeof(filename), "%s-active.png", b->name);
 		button_png_load(filename, b->active.buffer);
+		if (!*b->active.buffer && b->alt_name) {
+			snprintf(filename, sizeof(filename), "%s-active.png", b->alt_name);
+			button_png_load(filename, b->active.buffer);
+		}
 		snprintf(filename, sizeof(filename), "%s-inactive.png", b->name);
 		button_png_load(filename, b->inactive.buffer);
+		if (!*b->inactive.buffer && b->alt_name) {
+			snprintf(filename, sizeof(filename), "%s-inactive.png", b->alt_name);
+			button_png_load(filename, b->inactive.buffer);
+		}
 
 #if HAVE_RSVG
 		/* Then try svg icon */
@@ -201,20 +211,31 @@ load_buttons(struct theme *theme)
 			snprintf(filename, sizeof(filename), "%s-active.svg", b->name);
 			button_svg_load(filename, b->active.buffer, size);
 		}
+		if (!*b->active.buffer && b->alt_name) {
+			snprintf(filename, sizeof(filename), "%s-active.svg", b->alt_name);
+			button_svg_load(filename, b->active.buffer, size);
+		}
 		if (!*b->inactive.buffer) {
 			snprintf(filename, sizeof(filename), "%s-inactive.svg", b->name);
+			button_svg_load(filename, b->inactive.buffer, size);
+		}
+		if (!*b->active.buffer && b->alt_name) {
+			snprintf(filename, sizeof(filename), "%s-inactive.svg", b->alt_name);
 			button_svg_load(filename, b->inactive.buffer, size);
 		}
 #endif
 
 		/* If there were no png/svg buttons, use xbm */
 		snprintf(filename, sizeof(filename), "%s.xbm", b->name);
+		if (b->alt_name) {
+			snprintf(alt_filename, sizeof(alt_filename), "%s.xbm", b->alt_name);
+		}
 		if (!*b->active.buffer) {
-			button_xbm_load(filename, b->active.buffer,
+			button_xbm_load(filename, alt_filename, b->active.buffer,
 				b->fallback_button, b->active.rgba);
 		}
 		if (!*b->inactive.buffer) {
-			button_xbm_load(filename, b->inactive.buffer,
+			button_xbm_load(filename, alt_filename, b->inactive.buffer,
 				b->fallback_button, b->inactive.rgba);
 		}
 	}

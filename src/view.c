@@ -1229,6 +1229,56 @@ view_on_output_destroy(struct view *view)
 	view->output = NULL;
 }
 
+static struct output *
+view_get_adjacent_output(struct view *view, enum view_edge edge)
+{
+	assert(view);
+	struct output *output = view->output;
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR,
+			"view has no output, cannot find adjacent output");
+		return NULL;
+	}
+
+	/* Determine any adjacent output in the appropriate direction */
+	struct wlr_output *new_output = NULL;
+	struct wlr_output *current_output = output->wlr_output;
+	struct wlr_output_layout *layout = view->server->output_layout;
+	switch (edge) {
+	case VIEW_EDGE_LEFT:
+		new_output = wlr_output_layout_adjacent_output(
+			layout, WLR_DIRECTION_LEFT, current_output, 1, 0);
+		break;
+	case VIEW_EDGE_RIGHT:
+		new_output = wlr_output_layout_adjacent_output(
+			layout, WLR_DIRECTION_RIGHT, current_output, 1, 0);
+		break;
+	case VIEW_EDGE_UP:
+		new_output = wlr_output_layout_adjacent_output(
+			layout, WLR_DIRECTION_UP, current_output, 0, 1);
+		break;
+	case VIEW_EDGE_DOWN:
+		new_output = wlr_output_layout_adjacent_output(
+			layout, WLR_DIRECTION_DOWN, current_output, 0, 1);
+		break;
+	default:
+		break;
+	}
+
+	/* When "adjacent" output is the same as the original, there is no adjacent */
+	if (!new_output || new_output == current_output) {
+		return NULL;
+	}
+
+	output = output_from_wlr_output(view->server, new_output);
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR, "invalid output in layout");
+		return NULL;
+	}
+
+	return output;
+}
+
 void
 view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_windows)
 {
@@ -1261,7 +1311,78 @@ view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_wind
 		}
 	}
 
-	view_move(view, view->pending.x + dx, view->pending.y + dy);
+	if (dx != 0 || dy != 0) {
+		/* Move the window if a change was discovered */
+		view_move(view, view->pending.x + dx, view->pending.y + dy);
+		return;
+	}
+
+	/* If the view is maximized, do not attempt to jump displays */
+	if (view->maximized != VIEW_AXIS_NONE) {
+		return;
+	}
+
+	/* Otherwise, move to edge of next adjacent display, if possible */
+	struct output *output = view_get_adjacent_output(view, direction);
+	if (!output) {
+		return;
+	}
+
+	/* When jumping to next output, attach to edge nearest the motion */
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
+	struct border margin = ssd_get_margin(view->ssd);
+
+	/* Bounds of the possible placement zone in this output */
+	int left = usable.x + rc.gap + margin.left;
+	int right = usable.x + usable.width - rc.gap - margin.right;
+	int top = usable.y + rc.gap + margin.top;
+	int bottom = usable.y + usable.height - rc.gap - margin.bottom;
+
+	/* Default target position on new output is current target position */
+	int destination_x = view->pending.x;
+	int destination_y = view->pending.y;
+
+	/* Compute the new position in the direction of motion */
+	direction = view_edge_invert(direction);
+	switch (direction) {
+	case VIEW_EDGE_LEFT:
+		destination_x = left;
+		break;
+	case VIEW_EDGE_RIGHT:
+		destination_x = right - view->pending.width;
+		break;
+	case VIEW_EDGE_UP:
+		destination_y = top;
+		break;
+	case VIEW_EDGE_DOWN:
+		destination_y = bottom - view->pending.height;
+		break;
+	default:
+		return;
+	}
+
+	/* If more than half the view is right of usable region, align to right */
+	int midpoint = destination_x + view->pending.width / 2;
+
+	if (destination_x >= left && midpoint > usable.x + usable.width) {
+		destination_x = right - view->pending.width;
+	}
+
+	/* Never allow the window to start left of the usable edge */
+	destination_x = MAX(destination_x, left);
+
+	/* If more than half the view is below usable region, align to bottom */
+	midpoint = destination_y + view->pending.height / 2;
+	if (destination_y >= top && midpoint > usable.y + usable.height) {
+		destination_y = bottom - view->pending.height;
+	}
+
+	/* Never allow the window to start above the usable edge */
+	destination_y = MAX(destination_y, top);
+
+	view_set_untiled(view);
+	view_set_output(view, output);
+	view_move(view, destination_x, destination_y);
 }
 
 void
@@ -1353,39 +1474,10 @@ view_snap_to_edge(struct view *view, enum view_edge edge,
 	}
 
 	if (across_outputs && view->tiled == edge && view->maximized == VIEW_AXIS_NONE) {
-		/* We are already tiled for this edge and thus should switch outputs */
-		struct wlr_output *new_output = NULL;
-		struct wlr_output *current_output = output->wlr_output;
-		struct wlr_output_layout *layout = view->server->output_layout;
-		switch (edge) {
-		case VIEW_EDGE_LEFT:
-			new_output = wlr_output_layout_adjacent_output(
-				layout, WLR_DIRECTION_LEFT, current_output, 1, 0);
-			break;
-		case VIEW_EDGE_RIGHT:
-			new_output = wlr_output_layout_adjacent_output(
-				layout, WLR_DIRECTION_RIGHT, current_output, 1, 0);
-			break;
-		case VIEW_EDGE_UP:
-			new_output = wlr_output_layout_adjacent_output(
-				layout, WLR_DIRECTION_UP, current_output, 0, 1);
-			break;
-		case VIEW_EDGE_DOWN:
-			new_output = wlr_output_layout_adjacent_output(
-				layout, WLR_DIRECTION_DOWN, current_output, 0, 1);
-			break;
-		default:
-			break;
-		}
-		if (new_output && new_output != current_output) {
-			/* Move to next output */
-			edge = view_edge_invert(edge);
-			output = output_from_wlr_output(view->server, new_output);
-			if (!output_is_usable(output)) {
-				wlr_log(WLR_ERROR, "invalid output in layout");
-				return;
-			}
-		} else {
+		/* We are already tiled for this edge; try to switch outputs */
+		output = view_get_adjacent_output(view, edge);
+
+		if (!output) {
 			/*
 			 * No more output to move to
 			 *
@@ -1397,6 +1489,9 @@ view_snap_to_edge(struct view *view, enum view_edge edge,
 			view_apply_tiled_geometry(view);
 			return;
 		}
+
+		/* When switching outputs, jump to the opposite edge */
+		edge = view_edge_invert(edge);
 	}
 
 	if (view->maximized != VIEW_AXIS_NONE) {

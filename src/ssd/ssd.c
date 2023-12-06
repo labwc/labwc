@@ -227,9 +227,15 @@ ssd_update_geometry(struct ssd *ssd)
 			ssd->state.geometry = current;
 		}
 		bool maximized = (ssd->view->maximized == VIEW_AXIS_BOTH);
-		if (ssd->state.squared_corners != maximized) {
+		if (ssd->state.was_maximized != maximized) {
 			ssd_border_update(ssd);
 			ssd_titlebar_update(ssd);
+			/*
+			 * Not strictly necessary as ssd_titlebar_update()
+			 * already sets state.was_maximized but to future
+			 * proof this a bit we also set it here again.
+			 */
+			ssd->state.was_maximized = maximized;
 		}
 		return;
 	}
@@ -265,7 +271,7 @@ ssd_destroy(struct ssd *ssd)
 	hover_state = view->server->ssd_hover_state;
 	if (hover_state->view == view) {
 		hover_state->view = NULL;
-		hover_state->node = NULL;
+		hover_state->button = NULL;
 	}
 
 	/* Destroy subcomponents */

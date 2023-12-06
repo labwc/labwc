@@ -23,6 +23,8 @@ struct ssd_button {
 	struct wlr_scene_node *toggled;
 	struct wlr_scene_node *toggled_hover;
 	struct wlr_scene_node *background;
+	struct wlr_scene_tree *icon_tree;
+	struct wlr_scene_tree *hover_tree;
 
 	struct wl_listener destroy;
 };
@@ -47,7 +49,7 @@ struct ssd {
 	 * don't update things we don't have to.
 	 */
 	struct {
-		bool squared_corners;   /* To un-round corner buttons on maximize */
+		bool was_maximized;   /* To un-round corner buttons and toggle icon on maximize */
 		struct wlr_box geometry;
 		struct ssd_state_title {
 			char *text;
@@ -99,9 +101,7 @@ struct ssd_part {
 
 struct ssd_hover_state {
 	struct view *view;
-	struct wlr_scene_node *node;
-	struct wlr_scene_node *old_node;
-	int maximized;
+	struct ssd_button *button;
 };
 
 struct wlr_buffer;

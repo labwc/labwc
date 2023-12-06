@@ -640,7 +640,8 @@ virtual_output_add(struct server *server, const char *output_name)
 		wl_list_for_each(output, &server->outputs, link) {
 			if (wlr_output_is_headless(output->wlr_output)) {
 				if (!strcmp(output->wlr_output->name, output_name)) {
-					wlr_log(WLR_DEBUG, "refusing to create virtual output with duplicate name");
+					wlr_log(WLR_DEBUG,
+					"refusing to create virtual output with duplicate name");
 					return;
 				}
 			}
@@ -980,13 +981,15 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_VIRTUAL_OUTPUT_ADD:
 			{
-				const char *output_name = action_get_str(action, "output_name", NULL);
+				const char *output_name = action_get_str(action, "output_name",
+						NULL);
 				virtual_output_add(server, output_name);
 			}
 			break;
 		case ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE:
 			{
-				const char *output_name = action_get_str(action, "output_name", NULL);
+				const char *output_name = action_get_str(action, "output_name",
+						NULL);
 				virtual_output_remove(server, output_name);
 			}
 			break;

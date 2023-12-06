@@ -78,16 +78,29 @@ layers_arrange(struct output *output)
 		return;
 	}
 
-	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
+	for (int i = ARRAY_SIZE(output->layer_tree) - 1; i >= 0; i--) {
 		struct wlr_scene_tree *layer = output->layer_tree[i];
 
 		/*
 		 * Process exclusive-zone clients before non-exclusive-zone
 		 * clients, so that the latter give way to the former regardless
 		 * of the order in which they were launched.
+		 *
+		 * Also start calculating the usable_area for exclusive-zone
+		 * clients from the Overlay layer down to the Background layer
+		 * to ensure that higher layers have a higher preference for
+		 * placement.
+		 *
+		 * The 'exclusive' boolean also matches -1 which means that
+		 * the layershell client wants to use the full screen rather
+		 * than the usable area.
 		 */
-		arrange_one_layer(&full_area, &usable_area, layer, true);
-		arrange_one_layer(&full_area, &usable_area, layer, false);
+		arrange_one_layer(&full_area, &usable_area, layer, /* exclusive */ true);
+	}
+
+	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
+		struct wlr_scene_tree *layer = output->layer_tree[i];
+		arrange_one_layer(&full_area, &usable_area, layer, /* exclusive */ false);
 
 		/* Set node position to account for output layout change */
 		wlr_scene_node_set_position(&layer->node, scene_output->x,

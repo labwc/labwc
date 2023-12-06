@@ -5,7 +5,7 @@
 struct lab_data_buffer;
 
 /* button_xbm_load - Convert xbm file to buffer with cairo surface */
-void button_xbm_load(const char *button_name, struct lab_data_buffer **buffer,
-	char *fallback_button, float *rgba);
+void button_xbm_load(const char *button_name, const char *alt_name,
+	struct lab_data_buffer **buffer, char *fallback_button, float *rgba);
 
 #endif /* LABWC_BUTTON_XBM_H */

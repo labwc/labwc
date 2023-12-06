@@ -197,6 +197,16 @@ file within a particular theme. The following xbm buttons are supported:
 - iconify.xbm
 - close.xbm
 - menu.xbm
+- max_toggled.xbm
+
+Additional icons can be defined to be shown when the mouse pointer is hovering
+over the button in question:
+
+- max_hover.xbm
+- iconify_hover.xbm
+- close_hover.xbm
+- menu_hover.xbm
+- max_hover_toggled.xbm
 
 One advantage of xbm buttons over other formats is that they change color based
 on the theme. Other formats use the suffices "-active" and "-inactive" to align

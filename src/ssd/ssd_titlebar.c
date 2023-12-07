@@ -317,6 +317,7 @@ ssd_update_title(struct ssd *ssd)
 	bool title_unchanged = state->text && !strcmp(title, state->text);
 
 	float *text_color;
+	struct font *font = NULL;
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
 	struct ssd_state_title_width *dstate;
@@ -327,9 +328,11 @@ ssd_update_title(struct ssd *ssd)
 		if (subtree == &ssd->titlebar.active) {
 			dstate = &state->active;
 			text_color = theme->window_active_label_text_color;
+			font = &rc.font_activewindow;
 		} else {
 			dstate = &state->inactive;
 			text_color = theme->window_inactive_label_text_color;
+			font = &rc.font_inactivewindow;
 		}
 
 		if (title_bg_width <= 0) {
@@ -356,9 +359,8 @@ ssd_update_title(struct ssd *ssd)
 		}
 
 		if (part->buffer) {
-			/* TODO: Do we only have active window fonts? */
 			scaled_font_buffer_update(part->buffer, title,
-				title_bg_width, &rc.font_activewindow,
+				title_bg_width, font,
 				text_color, NULL);
 		}
 

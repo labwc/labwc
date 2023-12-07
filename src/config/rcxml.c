@@ -61,6 +61,7 @@ enum font_place {
 	FONT_PLACE_NONE = 0,
 	FONT_PLACE_UNKNOWN,
 	FONT_PLACE_ACTIVEWINDOW,
+	FONT_PLACE_INACTIVEWINDOW,
 	FONT_PLACE_MENUITEM,
 	FONT_PLACE_OSD,
 	/* TODO: Add all places based on Openbox's rc.xml */
@@ -564,11 +565,15 @@ fill_font(char *nodename, char *content, enum font_place place)
 		 * attribute, we set all font variables
 		 */
 		set_font_attr(&rc.font_activewindow, nodename, content);
+		set_font_attr(&rc.font_inactivewindow, nodename, content);
 		set_font_attr(&rc.font_menuitem, nodename, content);
 		set_font_attr(&rc.font_osd, nodename, content);
 		break;
 	case FONT_PLACE_ACTIVEWINDOW:
 		set_font_attr(&rc.font_activewindow, nodename, content);
+		break;
+	case FONT_PLACE_INACTIVEWINDOW:
+		set_font_attr(&rc.font_inactivewindow, nodename, content);
 		break;
 	case FONT_PLACE_MENUITEM:
 		set_font_attr(&rc.font_menuitem, nodename, content);
@@ -592,6 +597,8 @@ enum_font_place(const char *place)
 	}
 	if (!strcasecmp(place, "ActiveWindow")) {
 		return FONT_PLACE_ACTIVEWINDOW;
+	} else if (!strcasecmp(place, "InactiveWindow")) {
+		return FONT_PLACE_INACTIVEWINDOW;
 	} else if (!strcasecmp(place, "MenuItem")) {
 		return FONT_PLACE_MENUITEM;
 	} else if (!strcasecmp(place, "OnScreenDisplay")
@@ -949,6 +956,7 @@ rcxml_init(void)
 	rc.corner_radius = 8;
 
 	init_font_defaults(&rc.font_activewindow);
+	init_font_defaults(&rc.font_inactivewindow);
 	init_font_defaults(&rc.font_menuitem);
 	init_font_defaults(&rc.font_osd);
 
@@ -1256,6 +1264,9 @@ post_processing(void)
 	if (!rc.font_activewindow.name) {
 		rc.font_activewindow.name = xstrdup("sans");
 	}
+	if (!rc.font_inactivewindow.name) {
+		rc.font_inactivewindow.name = xstrdup("sans");
+	}
 	if (!rc.font_menuitem.name) {
 		rc.font_menuitem.name = xstrdup("sans");
 	}
@@ -1440,6 +1451,7 @@ void
 rcxml_finish(void)
 {
 	zfree(rc.font_activewindow.name);
+	zfree(rc.font_inactivewindow.name);
 	zfree(rc.font_menuitem.name);
 	zfree(rc.font_osd.name);
 	zfree(rc.theme_name);

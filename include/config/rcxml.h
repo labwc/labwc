@@ -51,6 +51,7 @@ struct rcxml {
 	int corner_radius;
 	bool ssd_keep_border;
 	struct font font_activewindow;
+	struct font font_inactivewindow;
 	struct font font_menuitem;
 	struct font font_osd;
 	/* Pointer to current theme */

@@ -848,7 +848,7 @@ create_corners(struct theme *theme)
 static void
 post_processing(struct theme *theme)
 {
-	int h = font_height(&rc.font_activewindow);
+	int h = MAX(font_height(&rc.font_activewindow), font_height(&rc.font_inactivewindow));
 	if (theme->title_height < h) {
 		theme->title_height = h + 2 * theme->padding_height;
 	}

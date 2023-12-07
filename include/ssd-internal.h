@@ -23,6 +23,7 @@ struct ssd_button {
 	struct wlr_scene_node *toggled;
 	struct wlr_scene_node *toggled_hover;
 	struct wlr_scene_node *background;
+	bool shade_hover;
 
 	struct wl_listener destroy;
 };

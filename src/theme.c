@@ -122,7 +122,7 @@ load_buttons(struct theme *theme)
 		},
 		{
 			"menu_hover", NULL,
-			{ 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
+			{ 0xFF, 0, 0, 0, 0, 0 },
 			{
 				&theme->button_menu_active_hover,
 				theme->window_active_button_menu_unpressed_image_color,
@@ -134,7 +134,7 @@ load_buttons(struct theme *theme)
 		},
 		{
 			"iconify_hover", NULL,
-			{ 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
+			{ 0xFF, 0, 0, 0, 0, 0 },
 			{
 				&theme->button_iconify_active_hover,
 				theme->window_active_button_iconify_unpressed_image_color,
@@ -146,7 +146,7 @@ load_buttons(struct theme *theme)
 		},
 		{
 			"max_hover", NULL,
-			{ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
+			{ 0xFF, 0, 0, 0, 0, 0 },
 			{
 				&theme->button_maximize_active_hover,
 				theme->window_active_button_max_unpressed_image_color,
@@ -158,7 +158,7 @@ load_buttons(struct theme *theme)
 		},
 		{
 			"max_hover_toggled", "max_toggled_hover",
-			{ 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
+			{ 0xFF, 0, 0, 0, 0, 0 },
 			{
 				&theme->button_restore_active_hover,
 				theme->window_active_button_max_unpressed_image_color,
@@ -170,7 +170,7 @@ load_buttons(struct theme *theme)
 		},
 		{
 			"close_hover", NULL,
-			{ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
+			{ 0xFF, 0, 0, 0, 0, 0 },
 			{
 				&theme->button_close_active_hover,
 				theme->window_active_button_close_unpressed_image_color,

@@ -417,7 +417,9 @@ disable_old_hover:
 		hover_state->node = maximized ? button->toggled_hover : button->hover;
 		hover_state->old_node = maximized ? button->toggled : button->normal;
 		hover_state->maximized = button->toggled ? (int)button->view->maximized : -1;
-		wlr_scene_node_set_enabled(maximized ? button->toggled : button->normal, false);
+		if (!button->shade_hover) {
+			wlr_scene_node_set_enabled(maximized ? button->toggled : button->normal, false);
+		}
 	}
 }
 

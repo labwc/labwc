@@ -294,7 +294,12 @@ button_xbm_load(const char *button_name, const char *alt_name,
 			}
 		}
 	}
+
 	if (!pixmap.data) {
+		if (fallback_button[0] == 0xFF) {
+			*buffer = NULL;
+			return;
+		}
 		pixmap = parse_xbm_builtin(fallback_button, 6);
 	}
 

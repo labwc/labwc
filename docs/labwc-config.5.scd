@@ -238,6 +238,7 @@ windows using the mouse.
 	The font to use for a specific element of a window, menu or OSD.
 	Places can be any of:
 	- ActiveWindow - titlebar of active window
+	- InactiveWindow - titlebar of all windows that aren't focused by the cursor
 	- MenuItem - menu item (currently only root menu)
 	- OnScreenDisplay - items in the on screen display
 	If no place attribute is provided, the setting will be applied to all

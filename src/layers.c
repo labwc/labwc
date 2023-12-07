@@ -363,7 +363,7 @@ handle_new_popup(struct wl_listener *listener, void *data)
 	popup->output_toplevel_sx_box = output_toplevel_sx_box;
 
 	if (surface->layer_surface->current.layer
-			== ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM) {
+			<= ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM) {
 		move_popup_to_top_layer(toplevel, popup);
 	}
 }

@@ -28,7 +28,7 @@
     <font place="InactiveWindow">
       <name>sans</name>
       <size>10</size>
-      <slant>italic</slant>
+      <slant>normal</slant>
       <weight>normal</weight>
     </font>
     <font place="MenuItem">

@@ -296,7 +296,7 @@ button_xbm_load(const char *button_name, const char *alt_name,
 	}
 
 	if (!pixmap.data) {
-		if (fallback_button[0] == 0xFF) {
+		if (fallback_button[0] == 0x40) {
 			*buffer = NULL;
 			return;
 		}

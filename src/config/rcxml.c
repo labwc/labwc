@@ -597,6 +597,8 @@ enum_font_place(const char *place)
 	}
 	if (!strcasecmp(place, "ActiveWindow")) {
 		return FONT_PLACE_ACTIVEWINDOW;
+	} else if (!strcasecmp(place, "InactiveWindow")) {
+		return FONT_PLACE_INACTIVEWINDOW;
 	} else if (!strcasecmp(place, "MenuItem")) {
 		return FONT_PLACE_MENUITEM;
 	} else if (!strcasecmp(place, "OnScreenDisplay")

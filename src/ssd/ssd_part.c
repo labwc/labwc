@@ -176,8 +176,7 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		wlr_scene_buffer_set_dest_size(
 			wlr_scene_buffer_from_node(hover_part->node),
 			hover_geo.width, hover_geo.height);
-	}
-	else {
+	} else {
 		float hover_bg[4] = {0.15f, 0.15f, 0.15f, 0.3f};
 		hover_part = add_scene_rect(part_list, type, parent,
 			SSD_BUTTON_WIDTH, rc.theme->title_height, 0, 0, hover_bg);
@@ -227,14 +226,12 @@ add_toggled_icon(struct wl_list *part_list, enum ssd_part_type type,
 		wlr_scene_buffer_set_dest_size(
 			wlr_scene_buffer_from_node(althover_part->node),
 			hover_geo.width, hover_geo.height);
-	}
-	else
-	{
+	} else {
 		float hover_bg[4] = {0.15f, 0.15f, 0.15f, 0.3f};
 		althover_part = add_scene_rect(part_list, type, parent,
 			SSD_BUTTON_WIDTH, rc.theme->title_height, 0, 0, hover_bg);
 	}
-	wlr_scene_node_set_enabled (althover_part->node, false);
+	wlr_scene_node_set_enabled(althover_part->node, false);
 
 	button->toggled = alticon_part->node;
 	button->toggled_hover = althover_part->node;

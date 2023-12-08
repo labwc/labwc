@@ -201,6 +201,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 	 */
 	if (wlr_output_is_headless(wlr_output) && server->headless.pending_output_name[0] != '\0') {
 		wlr_output_set_name(wlr_output, server->headless.pending_output_name);
+		server->headless.pending_output_name[0] = '\0';
 	}
 
 	/*
@@ -775,5 +776,57 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 		 */
 		cursor_update_image(&server->seat);
 		break;
+	}
+}
+
+void
+virtual_output_add(struct server *server, const char *output_name)
+{
+	if (output_name) {
+		/*
+		 * Prevent creating outputs with the same name
+		 */
+		struct output *output;
+		wl_list_for_each(output, &server->outputs, link) {
+			if (wlr_output_is_headless(output->wlr_output)) {
+				if (!strcmp(output->wlr_output->name, output_name)) {
+					wlr_log(WLR_DEBUG,
+					"refusing to create virtual output with duplicate name");
+					return;
+				}
+			}
+		}
+		strncpy(server->headless.pending_output_name, output_name,
+				sizeof(server->headless.pending_output_name));
+	} else {
+		server->headless.pending_output_name[0] = '\0';
+	}
+	wlr_headless_add_output(server->headless.backend, 1920, 1080);
+}
+
+void
+virtual_output_remove(struct server *server, const char *output_name)
+{
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		if (wlr_output_is_headless(output->wlr_output)) {
+			if (output_name) {
+				/*
+				 * Given virtual output name, find and destroy virtual output by
+				 * that name.
+				 */
+				if (!strcmp(output->wlr_output->name, output_name)) {
+					wlr_output_destroy(output->wlr_output);
+					return;
+				}
+			} else {
+				/*
+				 * When virtual output name was no supplied by user, simply
+				 * destroy the first virtual output found.
+				 */
+				wlr_output_destroy(output->wlr_output);
+				return;
+			}
+		}
 	}
 }

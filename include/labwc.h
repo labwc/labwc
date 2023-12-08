@@ -471,6 +471,8 @@ struct wlr_box output_usable_area_in_layout_coords(struct output *output);
 struct wlr_box output_usable_area_scaled(struct output *output);
 void handle_output_power_manager_set_mode(struct wl_listener *listener,
 	void *data);
+void virtual_output_add(struct server *server, const char *output_name);
+void virtual_output_remove(struct server *server, const char *output_name);
 
 void server_init(struct server *server);
 void server_start(struct server *server);

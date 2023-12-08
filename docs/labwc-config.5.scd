@@ -259,8 +259,14 @@ windows using the mouse.
 ## MARGIN
 
 *<margin top="" bottom="" left="" right="" output="" />*
-	Specify the number of pixels to reserve at the edges of an output.
-	New, maximized and tiled windows will not be placed in these areas.
+	Specify the number of pixels to reserve at the edges of an output
+	(typically a dislay/screen/monitor). New, maximized and tiled windows
+	will not be placed in these areas. The use-case for *<margin>* is as a
+	workaround for clients such as panels that do NOT support the
+	wlr-layer-shell protocol.
+
+	*output* is optional; if this attribute is not provided (rather than
+	leaving it an empty string) the margin will be applied to all outputs.
 
 ## RESIZE
 

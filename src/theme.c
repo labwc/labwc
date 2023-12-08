@@ -362,6 +362,9 @@ theme_builtin(struct theme *theme)
 	theme->osd_window_switcher_item_padding_y = 1;
 	theme->osd_window_switcher_item_active_border_width = 2;
 
+	theme->osd_workspace_switcher_boxes_width = 20;
+	theme->osd_workspace_switcher_boxes_height = 20;
+
 	/* inherit settings in post_processing() if not set elsewhere */
 	theme->osd_bg_color[0] = FLT_MIN;
 	theme->osd_border_width = INT_MIN;
@@ -547,6 +550,12 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "osd.window-switcher.item.active.border.width")) {
 		theme->osd_window_switcher_item_active_border_width = atoi(value);
+	}
+	if (match_glob(key, "osd.workspace-switcher.boxes.width")) {
+		theme->osd_workspace_switcher_boxes_width = atoi(value);
+	}
+	if (match_glob(key, "osd.workspace-switcher.boxes.height")) {
+		theme->osd_workspace_switcher_boxes_height = atoi(value);
 	}
 	if (match_glob(key, "osd.label.text.color")) {
 		parse_hexstr(value, theme->osd_label_text_color);

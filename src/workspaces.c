@@ -60,8 +60,10 @@ _osd_update(struct server *server)
 	/* Settings */
 	uint16_t margin = 10;
 	uint16_t padding = 2;
-	uint16_t rect_height = 20;
-	uint16_t rect_width = 20;
+	uint16_t rect_height = theme->osd_workspace_switcher_boxes_height;
+	uint16_t rect_width = theme->osd_workspace_switcher_boxes_width;
+	bool hide_boxes = theme->osd_workspace_switcher_boxes_width == 0 ||
+		theme->osd_workspace_switcher_boxes_height == 0;
 
 	/* Dimensions */
 	size_t workspace_count = wl_list_length(&server->workspaces);
@@ -100,19 +102,23 @@ _osd_update(struct server *server)
 		};
 		draw_cairo_border(cairo, fbox, theme->osd_border_width);
 
-		uint16_t x = (width - marker_width) / 2;
-		wl_list_for_each(workspace, &server->workspaces, link) {
-			bool active =  workspace == server->workspace_current;
-			set_cairo_color(cairo, server->theme->osd_label_text_color);
-			cairo_rectangle(cairo, x, margin,
-				rect_width - padding, rect_height);
-			cairo_stroke(cairo);
-			if (active) {
+		/* Boxes */
+		uint16_t x;
+		if (!hide_boxes) {
+			x = (width - marker_width) / 2;
+			wl_list_for_each(workspace, &server->workspaces, link) {
+				bool active =  workspace == server->workspace_current;
+				set_cairo_color(cairo, server->theme->osd_label_text_color);
 				cairo_rectangle(cairo, x, margin,
 					rect_width - padding, rect_height);
-				cairo_fill(cairo);
+				cairo_stroke(cairo);
+				if (active) {
+					cairo_rectangle(cairo, x, margin,
+						rect_width - padding, rect_height);
+					cairo_fill(cairo);
+				}
+				x += rect_width + padding;
 			}
-			x += rect_width + padding;
 		}
 
 		/* Text */
@@ -127,7 +133,11 @@ _osd_update(struct server *server)
 		/* Center workspace indicator on the x axis */
 		x = font_width(&rc.font_osd, server->workspace_current->name);
 		x = (width - x) / 2;
-		cairo_move_to(cairo, x, margin * 2 + rect_height);
+		if (!hide_boxes) {
+			cairo_move_to(cairo, x, margin * 2 + rect_height);
+		} else {
+			cairo_move_to(cairo, x, (height - font_height(&rc.font_osd)) / 2.0);
+		}
 		//pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
 		pango_layout_set_font_description(layout, desc);
 		pango_font_description_free(desc);

@@ -29,6 +29,10 @@
 static void
 output_frame_notify(struct wl_listener *listener, void *data)
 {
+	/*
+	 * This function is called every time an output is ready to display a
+	 * frame - which is typically at 60 Hz.
+	 */
 	struct output *output = wl_container_of(listener, output, frame);
 	if (!output_is_usable(output)) {
 		return;
@@ -120,33 +124,7 @@ output_request_state_notify(struct wl_listener *listener, void *data)
 	/* This ensures nested backends can be resized */
 	struct output *output = wl_container_of(listener, output, request_state);
 	const struct wlr_output_event_request_state *event = data;
-	struct wlr_output_state *pending = &output->wlr_output->pending;
 
-	if (!pending->committed) {
-		/* No pending changes, just use the supplied state as new pending */
-		wlr_output_state_copy(pending, event->state);
-		wlr_output_schedule_frame(output->wlr_output);
-		return;
-	}
-
-	if (event->state->committed == WLR_OUTPUT_STATE_MODE) {
-		/* Only the resolution has changed, apply to pending */
-		switch (event->state->mode_type) {
-		case WLR_OUTPUT_STATE_MODE_FIXED:
-			wlr_output_set_mode(output->wlr_output, event->state->mode);
-			break;
-		case WLR_OUTPUT_STATE_MODE_CUSTOM:
-			wlr_output_set_custom_mode(output->wlr_output,
-				event->state->custom_mode.width,
-				event->state->custom_mode.height,
-				event->state->custom_mode.refresh);
-			break;
-		}
-		wlr_output_schedule_frame(output->wlr_output);
-		return;
-	}
-
-	/* Fallback path for everything that we didn't handle above */
 	if (!wlr_output_commit_state(output->wlr_output, event->state)) {
 		wlr_log(WLR_ERROR, "Backend requested a new state that could not be applied");
 	}

@@ -5,7 +5,6 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
-#include <wlr/backend/headless.h>
 #include <wlr/util/log.h>
 #include "action.h"
 #include "common/macros.h"

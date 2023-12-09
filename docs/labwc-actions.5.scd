@@ -216,8 +216,8 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="VirtualOutputRemove" output_name="value" />*
 	Remove virtual output (headless backend).
 
-	*output_name* The name of virtual output. If not supplied, will remove first
-	found virtual output.
+	*output_name* The name of virtual output. If not supplied, will remove the
+	last virtual output added.
 
 *<action name="None" />*
 	If used as the only action for a binding: clear an earlier defined binding.

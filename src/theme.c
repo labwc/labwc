@@ -173,16 +173,8 @@ load_buttons(struct theme *theme)
 		/* Try png icon first */
 		snprintf(filename, sizeof(filename), "%s-active.png", b->name);
 		button_png_load(filename, b->active.buffer);
-		if (!*b->active.buffer && b->alt_name) {
-			snprintf(filename, sizeof(filename), "%s-active.png", b->alt_name);
-			button_png_load(filename, b->active.buffer);
-		}
 		snprintf(filename, sizeof(filename), "%s-inactive.png", b->name);
 		button_png_load(filename, b->inactive.buffer);
-		if (!*b->inactive.buffer && b->alt_name) {
-			snprintf(filename, sizeof(filename), "%s-inactive.png", b->alt_name);
-			button_png_load(filename, b->inactive.buffer);
-		}
 
 #if HAVE_RSVG
 		/* Then try svg icon */
@@ -191,16 +183,8 @@ load_buttons(struct theme *theme)
 			snprintf(filename, sizeof(filename), "%s-active.svg", b->name);
 			button_svg_load(filename, b->active.buffer, size);
 		}
-		if (!*b->active.buffer && b->alt_name) {
-			snprintf(filename, sizeof(filename), "%s-active.svg", b->alt_name);
-			button_svg_load(filename, b->active.buffer, size);
-		}
 		if (!*b->inactive.buffer) {
 			snprintf(filename, sizeof(filename), "%s-inactive.svg", b->name);
-			button_svg_load(filename, b->inactive.buffer, size);
-		}
-		if (!*b->active.buffer && b->alt_name) {
-			snprintf(filename, sizeof(filename), "%s-inactive.svg", b->alt_name);
 			button_svg_load(filename, b->inactive.buffer, size);
 		}
 #endif

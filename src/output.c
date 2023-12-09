@@ -196,9 +196,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 	struct server *server = wl_container_of(listener, server, new_output);
 	struct wlr_output *wlr_output = data;
 
-	/*
-	 * Name virtual outputs.
-	 */
+	/* Name virtual output */
 	if (wlr_output_is_headless(wlr_output) && server->headless.pending_output_name[0] != '\0') {
 		wlr_output_set_name(wlr_output, server->headless.pending_output_name);
 		server->headless.pending_output_name[0] = '\0';
@@ -783,9 +781,7 @@ void
 output_add_virtual(struct server *server, const char *output_name)
 {
 	if (output_name) {
-		/*
-		 * Prevent creating outputs with the same name
-		 */
+		/* Prevent creating outputs with the same name */
 		struct output *output;
 		wl_list_for_each(output, &server->outputs, link) {
 			if (wlr_output_is_headless(output->wlr_output)) {

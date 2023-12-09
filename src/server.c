@@ -258,9 +258,7 @@ server_init(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 
-	/*
-	 * Create headless backend to enable adding virtual outputs later on.
-	 */
+	/* Create headless backend to enable adding virtual outputs later on */
 	server->headless.backend = wlr_headless_backend_create(server->wl_display);
 	if (!server->headless.backend) {
 		wlr_log(WLR_ERROR, "failed to create virtual output");

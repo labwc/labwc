@@ -206,11 +206,15 @@ over the button in question:
 - iconify_hover.xbm
 - close_hover.xbm
 - menu_hover.xbm
-- max_hover_toggled.xbm
+- max_toggled_hover.xbm
 
 One advantage of xbm buttons over other formats is that they change color based
 on the theme. Other formats use the suffices "-active" and "-inactive" to align
 with the respective titlebar colors. For example: "close-active.png"
+
+For compatibility reasons, the following alternative names are supported:
+
+- max_hover_toggled.xbm for max_toggled_hover.xbm
 
 # DEFINITIONS
 

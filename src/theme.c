@@ -59,128 +59,78 @@ drop(struct lab_data_buffer **buffer)
 static void
 load_buttons(struct theme *theme)
 {
-	struct button buttons[] = {
-		{
-			"menu", NULL,
-			{ 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
-			{
-				&theme->button_menu_active_unpressed,
-				theme->window_active_button_menu_unpressed_image_color,
-			},
-			{
-				&theme->button_menu_inactive_unpressed,
-				theme->window_inactive_button_menu_unpressed_image_color,
-			},
-		},
-		{
-			"iconify", NULL,
-			{ 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
-			{
-				&theme->button_iconify_active_unpressed,
-				theme->window_active_button_iconify_unpressed_image_color,
-			},
-			{
-				&theme->button_iconify_inactive_unpressed,
-				theme->window_inactive_button_iconify_unpressed_image_color,
-			},
-		},
-		{
-			"max", NULL,
-			{ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
-			{
-				&theme->button_maximize_active_unpressed,
-				theme->window_active_button_max_unpressed_image_color,
-			},
-			{
-				&theme->button_maximize_inactive_unpressed,
-				theme->window_inactive_button_max_unpressed_image_color,
-			},
-		},
-		{
-			"max_toggled", NULL,
-			{ 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
-			{
-				&theme->button_restore_active_unpressed,
-				theme->window_active_button_max_unpressed_image_color,
-			},
-			{
-				&theme->button_restore_inactive_unpressed,
-				theme->window_inactive_button_max_unpressed_image_color,
-			},
-		},
-		{
-			"close", NULL,
-			{ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
-			{
-				&theme->button_close_active_unpressed,
-				theme->window_active_button_close_unpressed_image_color,
-			},
-			{
-				&theme->button_close_inactive_unpressed,
-				theme->window_inactive_button_close_unpressed_image_color,
-			},
-		},
-		{
-			"menu_hover", NULL,
-			{ 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
-			{
-				&theme->button_menu_active_hover,
-				theme->window_active_button_menu_unpressed_image_color,
-			},
-			{
-				&theme->button_menu_inactive_hover,
-				theme->window_inactive_button_menu_unpressed_image_color,
-			},
-		},
-		{
-			"iconify_hover", NULL,
-			{ 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
-			{
-				&theme->button_iconify_active_hover,
-				theme->window_active_button_iconify_unpressed_image_color,
-			},
-			{
-				&theme->button_iconify_inactive_hover,
-				theme->window_inactive_button_iconify_unpressed_image_color,
-			},
-		},
-		{
-			"max_hover", NULL,
-			{ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
-			{
-				&theme->button_maximize_active_hover,
-				theme->window_active_button_max_unpressed_image_color,
-			},
-			{
-				&theme->button_maximize_inactive_hover,
-				theme->window_inactive_button_max_unpressed_image_color,
-			},
-		},
-		{
-			"max_hover_toggled", "max_toggled_hover",
-			{ 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
-			{
-				&theme->button_restore_active_hover,
-				theme->window_active_button_max_unpressed_image_color,
-			},
-			{
-				&theme->button_restore_inactive_hover,
-				theme->window_inactive_button_max_unpressed_image_color,
-			},
-		},
-		{
-			"close_hover", NULL,
-			{ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
-			{
-				&theme->button_close_active_hover,
-				theme->window_active_button_close_unpressed_image_color,
-			},
-			{
-				&theme->button_close_inactive_hover,
-				theme->window_inactive_button_close_unpressed_image_color,
-			},
-		},
-	};
+	struct button buttons[] = { {
+		.name = "menu",
+		.fallback_button = { 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
+		.active.buffer = &theme->button_menu_active_unpressed,
+		.active.rgba = theme->window_active_button_menu_unpressed_image_color,
+		.inactive.buffer = &theme->button_menu_inactive_unpressed,
+		.inactive.rgba = theme->window_inactive_button_menu_unpressed_image_color,
+	}, {
+		.name = "iconify",
+		.fallback_button = { 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
+		.active.buffer = &theme->button_iconify_active_unpressed,
+		.active.rgba = theme->window_active_button_iconify_unpressed_image_color,
+		.inactive.buffer = &theme->button_iconify_inactive_unpressed,
+		.inactive.rgba = theme->window_inactive_button_iconify_unpressed_image_color,
+	}, {
+		.name = "max",
+		.fallback_button = { 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
+		.active.buffer = &theme->button_maximize_active_unpressed,
+		.active.rgba = theme->window_active_button_max_unpressed_image_color,
+		.inactive.buffer = &theme->button_maximize_inactive_unpressed,
+		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
+	}, {
+		.name = "max_toggled",
+		.fallback_button = { 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
+		.active.buffer = &theme->button_restore_active_unpressed,
+		.active.rgba = theme->window_active_button_max_unpressed_image_color,
+		.inactive.buffer = &theme->button_restore_inactive_unpressed,
+		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
+	}, {
+		.name = "close",
+		.fallback_button = { 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
+		.active.buffer = &theme->button_close_active_unpressed,
+		.active.rgba = theme->window_active_button_close_unpressed_image_color,
+		.inactive.buffer = &theme->button_close_inactive_unpressed,
+		.inactive.rgba = theme->window_inactive_button_close_unpressed_image_color,
+	}, {
+		.name = "menu_hover",
+		.fallback_button = { 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
+		.active.buffer = &theme->button_menu_active_hover,
+		.active.rgba = theme->window_active_button_menu_unpressed_image_color,
+		.inactive.buffer = &theme->button_menu_inactive_hover,
+		.inactive.rgba = theme->window_inactive_button_menu_unpressed_image_color,
+	}, {
+		.name = "iconify_hover",
+		.fallback_button = { 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
+		.active.buffer = &theme->button_iconify_active_hover,
+		.active.rgba = theme->window_active_button_iconify_unpressed_image_color,
+		.inactive.buffer = &theme->button_iconify_inactive_hover,
+		.inactive.rgba = theme->window_inactive_button_iconify_unpressed_image_color,
+	}, {
+		.name = "max_hover",
+		.fallback_button = { 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
+		.active.buffer = &theme->button_maximize_active_hover,
+		.active.rgba = theme->window_active_button_max_unpressed_image_color,
+		.inactive.buffer = &theme->button_maximize_inactive_hover,
+		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
+	}, {
+		.name = "max_hover_toggled",
+		.alt_name = "max_toggled_hover",
+		.fallback_button = { 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
+		.active.buffer = &theme->button_restore_active_hover,
+		.active.rgba = theme->window_active_button_max_unpressed_image_color,
+		.inactive.buffer = &theme->button_restore_inactive_hover,
+		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
+	}, {
+		.name = "close_hover",
+		.fallback_button = { 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
+		.active.buffer = &theme->button_close_active_hover,
+		.active.rgba = theme->window_active_button_close_unpressed_image_color,
+		.inactive.buffer = &theme->button_close_inactive_hover,
+		.inactive.rgba = theme->window_inactive_button_close_unpressed_image_color,
+	}, };
 
 	char filename[4096] = {0};
 	char alt_filename[4096] = {0};

@@ -784,12 +784,11 @@ output_add_virtual(struct server *server, const char *output_name)
 		/* Prevent creating outputs with the same name */
 		struct output *output;
 		wl_list_for_each(output, &server->outputs, link) {
-			if (wlr_output_is_headless(output->wlr_output)) {
-				if (!strcmp(output->wlr_output->name, output_name)) {
-					wlr_log(WLR_DEBUG,
+			if (wlr_output_is_headless(output->wlr_output) &&
+				!strcmp(output->wlr_output->name, output_name)) {
+				wlr_log(WLR_DEBUG,
 					"refusing to create virtual output with duplicate name");
-					return;
-				}
+				return;
 			}
 		}
 		strncpy(server->headless.pending_output_name, output_name,

@@ -56,6 +56,36 @@ drop(struct lab_data_buffer **buffer)
 	}
 }
 
+/*
+ * We use the following button filename schema: "BUTTON [TOGGLED] [STATE]"
+ * with the words separted by underscore, and the following meaning:
+ *   - BUTTON can be one of 'max', 'iconify', 'close', 'menu'
+ *   - TOGGLED is either 'toggled' or nothing
+ *   - STATE is 'hover' or nothing. In future, 'pressed' may be supported too.
+ *
+ * We believe that this is how the vast majority of extant openbox themes out
+ * there are constructed and it is consistent with the openbox.org wiki. But
+ * please be aware that it is actually different to vanilla Openbox which uses:
+ * "BUTTON [STATE] [TOGGLED]" following an unfortunate commit in 2014 which
+ * broke themes and led to some distros patching Openbox:
+ * https://github.com/danakj/openbox/commit/35e92e4c2a45b28d5c2c9b44b64aeb4222098c94
+ *
+ * Arch Linux and Debian patch Openbox to keep the old syntax (the one we use).
+ * https://gitlab.archlinux.org/archlinux/packaging/packages/openbox/-/blob/main/debian-887908.patch?ref_type=heads
+ * This patch does the following:
+ *   - reads "%s_toggled_pressed.xbm" and "%s_toggled_hover.xbm" instead of the
+ *     'hover_toggled' equivalents.
+ *   - parses 'toggled.unpressed', toggled.pressed' and 'toggled.hover' instead
+ *     of the other way around ('*.toggled') when processing themerc.
+ *
+ * For compatibility with distros which do not apply similar patches, we support
+ * the hover-before-toggle too, for example:
+ *
+ *	.name = "max_toggled_hover",
+ *	.alt_name = "max_hover_toggled",
+ *
+ * ...in the button array definition below.
+ */
 static void
 load_buttons(struct theme *theme)
 {
@@ -116,8 +146,8 @@ load_buttons(struct theme *theme)
 		.inactive.buffer = &theme->button_maximize_inactive_hover,
 		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
 	}, {
-		.name = "max_hover_toggled",
-		.alt_name = "max_toggled_hover",
+		.name = "max_toggled_hover",
+		.alt_name = "max_hover_toggled",
 		.fallback_button = { 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
 		.active.buffer = &theme->button_restore_active_hover,
 		.active.rgba = theme->window_active_button_max_unpressed_image_color,

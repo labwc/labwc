@@ -785,7 +785,7 @@ output_add_virtual(struct server *server, const char *output_name)
 		struct output *output;
 		wl_list_for_each(output, &server->outputs, link) {
 			if (wlr_output_is_headless(output->wlr_output) &&
-				!strcmp(output->wlr_output->name, output_name)) {
+					!strcmp(output->wlr_output->name, output_name)) {
 				wlr_log(WLR_DEBUG,
 					"refusing to create virtual output with duplicate name");
 				return;
@@ -796,6 +796,10 @@ output_add_virtual(struct server *server, const char *output_name)
 	} else {
 		server->headless.pending_output_name[0] = '\0';
 	}
+	/*
+	 * Setting it to (0, 0) here disallows changing resolution from tools like
+	 * wlr-randr (returns error)
+	 */
 	wlr_headless_add_output(server->headless.backend, 1920, 1080);
 }
 

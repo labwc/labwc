@@ -930,14 +930,14 @@ actions_run(struct view *activator, struct server *server,
 			{
 				const char *output_name = action_get_str(action, "output_name",
 						NULL);
-				virtual_output_add(server, output_name);
+				output_add_virtual(server, output_name);
 			}
 			break;
 		case ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE:
 			{
 				const char *output_name = action_get_str(action, "output_name",
 						NULL);
-				virtual_output_remove(server, output_name);
+				output_remove_virtual(server, output_name);
 			}
 			break;
 		case ACTION_TYPE_INVALID:

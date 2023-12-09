@@ -780,7 +780,7 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 }
 
 void
-virtual_output_add(struct server *server, const char *output_name)
+output_add_virtual(struct server *server, const char *output_name)
 {
 	if (output_name) {
 		/*
@@ -805,7 +805,7 @@ virtual_output_add(struct server *server, const char *output_name)
 }
 
 void
-virtual_output_remove(struct server *server, const char *output_name)
+output_remove_virtual(struct server *server, const char *output_name)
 {
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {

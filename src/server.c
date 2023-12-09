@@ -261,7 +261,7 @@ server_init(struct server *server)
 	/* Create headless backend to enable adding virtual outputs later on */
 	server->headless.backend = wlr_headless_backend_create(server->wl_display);
 	if (!server->headless.backend) {
-		wlr_log(WLR_ERROR, "failed to create virtual output");
+		wlr_log(WLR_ERROR, "unable to create headless backend");
 		exit(EXIT_FAILURE);
 	}
 	wlr_multi_backend_add(server->backend, server->headless.backend);
@@ -269,7 +269,7 @@ server_init(struct server *server)
 	/*
 	 * If we don't populate headless backend with a virtual output (that we
 	 * create and immediately destroy), then virtual outputs being added
-	 * later do not work properly when overlayed on real output. Content is
+	 * later do not work properly when overlaid on real output. Content is
 	 * drawn on the virtual output, but not drawn on the real output.
 	 */
 	wlr_output_destroy(wlr_headless_add_output(server->headless.backend, 0, 0));

@@ -3,6 +3,8 @@
 #include "config.h"
 #include <signal.h>
 #include <sys/wait.h>
+#include <wlr/backend/headless.h>
+#include <wlr/backend/multi.h>
 #include <wlr/types/wlr_data_control_v1.h>
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_fractional_scale_v1.h>
@@ -255,6 +257,22 @@ server_init(struct server *server)
 		fprintf(stderr, helpful_seat_error_message);
 		exit(EXIT_FAILURE);
 	}
+
+	/* Create headless backend to enable adding virtual outputs later on */
+	server->headless.backend = wlr_headless_backend_create(server->wl_display);
+	if (!server->headless.backend) {
+		wlr_log(WLR_ERROR, "unable to create headless backend");
+		exit(EXIT_FAILURE);
+	}
+	wlr_multi_backend_add(server->backend, server->headless.backend);
+
+	/*
+	 * If we don't populate headless backend with a virtual output (that we
+	 * create and immediately destroy), then virtual outputs being added
+	 * later do not work properly when overlaid on real output. Content is
+	 * drawn on the virtual output, but not drawn on the real output.
+	 */
+	wlr_output_destroy(wlr_headless_add_output(server->headless.backend, 0, 0));
 
 	/*
 	 * Autocreates a renderer, either Pixman, GLES2 or Vulkan for us. The

@@ -203,6 +203,10 @@ struct server {
 	struct wlr_renderer *renderer;
 	struct wlr_allocator *allocator;
 	struct wlr_backend *backend;
+	struct headless {
+		struct wlr_backend *backend;
+		char pending_output_name[4096];
+	} headless;
 	struct wlr_session *session;
 
 	struct wlr_xdg_shell *xdg_shell;
@@ -467,6 +471,8 @@ struct wlr_box output_usable_area_in_layout_coords(struct output *output);
 struct wlr_box output_usable_area_scaled(struct output *output);
 void handle_output_power_manager_set_mode(struct wl_listener *listener,
 	void *data);
+void output_add_virtual(struct server *server, const char *output_name);
+void output_remove_virtual(struct server *server, const char *output_name);
 
 void server_init(struct server *server);
 void server_start(struct server *server);

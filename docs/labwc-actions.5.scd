@@ -180,6 +180,45 @@ Actions are used in menus and keyboard/mouse bindings.
 	*wrap* [yes|no] Wrap around from last desktop to first, and vice
 	versa. Default yes.
 
+*<action name="VirtualOutputAdd" output_name="value" />*
+	Add virtual output (headless backend).
+
+	For example, it can be used to overlay virtual output on real output, but with
+	a different resolution (this can be done with `wlr-randr` or `wdisplays`).
+	After that, virtual output can be selected for screen sharing (casting),
+	effectively sharing only the region of the screen.
+
+	It must be noted that overlaying virtual output and real output is not
+	endorsed or explicitely supported by wlroots. For example, after configuring
+	virtual output, real output must be reconfigured as well (for the overlay
+	configuration to work correctly). This is the example configuration:
+
+```
+<keybind key="W-v">
+  <action name="VirtualOutputAdd" output_name="ScreenCasting"/>
+  <action name="Execute" command='sh -c "wlr-randr --output ScreenCasting --pos 0,0 --scale 2 --custom-mode 3840x2110; wlr-randr --output eDP-1 --pos 0,0 --scale 2 --mode 3840x2160"'/>
+</keybind>
+<keybind key="W-c">
+  <action name="VirtualOutputRemove"/>
+</keybind>
+```
+
+	Note that the vertical resolution of "ScreenCasting" output is just 50px
+	smaller than "eDP-1" output to cut off bottom panel from screen sharing.
+
+	Virtual output is also useful for extending the desktop to (maybe mobile)
+	remote systems like tablets. E.g. simply adding a virtual output, attaching
+	wayvnc to it and running a VNC client on the remote system.
+
+	*output_name* The name of virtual output. Providing virtual output name is
+	beneficial for further automation. Default is "HEADLESS-X".
+
+*<action name="VirtualOutputRemove" output_name="value" />*
+	Remove virtual output (headless backend).
+
+	*output_name* The name of virtual output. If not supplied, will remove the
+	last virtual output added.
+
 *<action name="None" />*
 	If used as the only action for a binding: clear an earlier defined binding.
 

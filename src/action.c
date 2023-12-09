@@ -98,6 +98,8 @@ enum action_type {
 	ACTION_TYPE_FOCUS_OUTPUT,
 	ACTION_TYPE_IF,
 	ACTION_TYPE_FOR_EACH,
+	ACTION_TYPE_VIRTUAL_OUTPUT_ADD,
+	ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE,
 };
 
 const char *action_names[] = {
@@ -142,6 +144,8 @@ const char *action_names[] = {
 	"FocusOutput",
 	"If",
 	"ForEach",
+	"VirtualOutputAdd",
+	"VirtualOutputRemove",
 	NULL
 };
 
@@ -359,6 +363,13 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		break;
 	case ACTION_TYPE_FOCUS_OUTPUT:
 		if (!strcmp(argument, "output")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_VIRTUAL_OUTPUT_ADD:
+	case ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE:
+		if (!strcmp(argument, "output_name")) {
 			action_arg_add_str(action, argument, content);
 			goto cleanup;
 		}
@@ -913,6 +924,20 @@ actions_run(struct view *activator, struct server *server,
 					run_if_action(*item, server, action);
 				}
 				wl_array_release(&views);
+			}
+			break;
+		case ACTION_TYPE_VIRTUAL_OUTPUT_ADD:
+			{
+				const char *output_name = action_get_str(action, "output_name",
+						NULL);
+				output_add_virtual(server, output_name);
+			}
+			break;
+		case ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE:
+			{
+				const char *output_name = action_get_str(action, "output_name",
+						NULL);
+				output_remove_virtual(server, output_name);
 			}
 			break;
 		case ACTION_TYPE_INVALID:

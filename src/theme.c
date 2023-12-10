@@ -905,6 +905,12 @@ post_processing(struct theme *theme)
 		memcpy(theme->osd_border_color, theme->osd_label_text_color,
 			sizeof(theme->osd_border_color));
 	}
+	if (theme->osd_workspace_switcher_boxes_width == 0) {
+		theme->osd_workspace_switcher_boxes_height = 0;
+	}
+	if (theme->osd_workspace_switcher_boxes_height == 0) {
+		theme->osd_workspace_switcher_boxes_width = 0;
+	}
 }
 
 void

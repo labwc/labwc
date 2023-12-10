@@ -69,7 +69,7 @@ _osd_update(struct server *server)
 	size_t workspace_count = wl_list_length(&server->workspaces);
 	uint16_t marker_width = workspace_count * (rect_width + padding) - padding;
 	uint16_t width = margin * 2 + (marker_width < 200 ? 200 : marker_width);
-	uint16_t height = margin * 3 + rect_height + font_height(&rc.font_osd);
+	uint16_t height = margin * (hide_boxes ? 2 : 3) + rect_height + font_height(&rc.font_osd);
 
 	cairo_t *cairo;
 	cairo_surface_t *surface;

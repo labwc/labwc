@@ -174,6 +174,12 @@ elements are not listed here, but are supported.
 	Border width of the selection box in the window switcher in pixels.
 	Default is 2.
 
+*osd.workspace-switcher.boxes.width*
+	Width of boxes in workspace switcher in pixels. Setting to 0 disables boxes. Default is 20.
+
+*osd.workspace-switcher.boxes.height*
+	Height of boxes in workspace switcher in pixels. Setting to 0 disables boxes.  Default is 20.
+
 *border.color*
 	Set all border colors. This is obsolete, but supported for backward
 	compatibility as some themes still contain it.

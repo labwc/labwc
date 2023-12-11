@@ -76,6 +76,9 @@ struct theme {
 	int osd_window_switcher_item_padding_y;
 	int osd_window_switcher_item_active_border_width;
 
+	int osd_workspace_switcher_boxes_width;
+	int osd_workspace_switcher_boxes_height;
+
 	/* textures */
 	struct lab_data_buffer *button_close_active_unpressed;
 	struct lab_data_buffer *button_maximize_active_unpressed;

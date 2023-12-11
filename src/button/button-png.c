@@ -12,9 +12,7 @@
 #include "buffer.h"
 #include "button/button-png.h"
 #include "button/common.h"
-#include "common/file-helpers.h"
 #include "labwc.h"
-#include "theme.h"
 
 /*
  * cairo_image_surface_create_from_png() does not gracefully handle non-png

@@ -9,10 +9,8 @@
 #include "config.h"
 #include <assert.h>
 #include <cairo.h>
-#include <ctype.h>
 #include <drm_fourcc.h>
 #include <glib.h>
-#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

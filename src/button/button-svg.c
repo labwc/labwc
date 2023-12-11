@@ -12,9 +12,7 @@
 #include "buffer.h"
 #include "button/button-svg.h"
 #include "button/common.h"
-#include "common/file-helpers.h"
 #include "labwc.h"
-#include "theme.h"
 
 void
 button_svg_load(const char *button_name, struct lab_data_buffer **buffer,

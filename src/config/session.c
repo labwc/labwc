@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
-#include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +8,6 @@
 #include <wlr/util/log.h>
 #include "common/buf.h"
 #include "common/file-helpers.h"
-#include "common/mem.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 #include "config/session.h"

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /* view-impl-common.c: common code for shell view->impl functions */
-#include <assert.h>
 #include <stdio.h>
 #include <strings.h>
 #include "common/list.h"

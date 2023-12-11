@@ -97,6 +97,7 @@ struct rcxml {
 		bool show;
 		bool preview;
 		bool outlines;
+		bool full_app_id;
 		struct wl_list fields;  /* struct window_switcher_field.link */
 	} window_switcher;
 

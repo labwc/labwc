@@ -134,7 +134,7 @@ this is for compatibility with Openbox.
 
 ## WINDOW SWITCHER
 
-*<windowSwitcher show="" preview="" outlines="">*
+*<windowSwitcher show="" preview="" outlines="" full_app_id="">*
 	*show* [yes|no] Draw the OnScreenDisplay when switching between
 	windows. Default is yes.
 
@@ -143,6 +143,10 @@ this is for compatibility with Openbox.
 
 	*outlines* [yes|no] Draw an outline around the selected window when
 	switching between windows. Default is yes.
+
+	*full_app_id* [yes|no] Display full application identifier instead of trimmed
+	variant. Trimming removes the first two nodes of 'org.' strings. Default is
+	no.
 
 *<windowSwitcher><fields><field content="" width="%">*
 	Define window switcher fields.

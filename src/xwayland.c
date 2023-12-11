@@ -517,7 +517,7 @@ set_initial_position(struct view *view,
 		}
 	} else {
 		if (view_is_floating(view)) {
-			view_center(view, NULL);
+			view_place_initial(view);
 		} else {
 			/*
 			 * View is maximized/fullscreen. Center the

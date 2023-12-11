@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 #include <assert.h>
 #include "common/macros.h"
 #include "common/mem.h"
@@ -409,19 +410,18 @@ position_xdg_toplevel_view(struct view *view)
 	struct wlr_xdg_toplevel *parent_xdg_toplevel =
 		xdg_toplevel_from_view(view)->parent;
 
-	if (!parent_xdg_toplevel) {
-		view_center(view, NULL);
-	} else {
-		/*
-		 * If child-toplevel-views, we center-align relative to their
-		 * parents
-		 */
+	if (parent_xdg_toplevel) {
+		/* Child views are center-aligned relative to their parents */
 		struct view *parent = lookup_view_by_xdg_toplevel(
 			view->server, parent_xdg_toplevel);
 		assert(parent);
 		view_set_output(view, parent->output);
 		view_center(view, &parent->pending);
+		return;
 	}
+
+	/* All other views are placed according to a configured strategy */
+	view_place_initial(view);
 }
 
 static const char *

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "config.h"
 #include <assert.h>
-#include "common/list.h"
 #include "common/scene-helpers.h"
 #include "dnd.h"
 #include "labwc.h"

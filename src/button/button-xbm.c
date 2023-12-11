@@ -15,11 +15,8 @@
 #include <drm_fourcc.h>
 #include "button/button-xbm.h"
 #include "button/common.h"
-#include "common/dir.h"
 #include "common/grab-file.h"
 #include "common/mem.h"
-#include "config/rcxml.h"
-#include "theme.h"
 #include "buffer.h"
 
 enum token_type {

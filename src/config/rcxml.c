@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
-#include <ctype.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>

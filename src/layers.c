@@ -15,7 +15,6 @@
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/util/log.h>
 #include "common/macros.h"
-#include "common/list.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
 #include "layers.h"

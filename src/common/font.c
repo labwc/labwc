@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-only
-#include <assert.h>
 #include <cairo.h>
 #include <drm_fourcc.h>
 #include <pango/pangocairo.h>

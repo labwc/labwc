@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-only
-#include <string.h>
 #include <strings.h>
 #include <wlr/util/log.h>
 #include "common/parse-bool.h"

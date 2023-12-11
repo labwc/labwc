@@ -393,6 +393,13 @@ void view_store_natural_geometry(struct view *view);
  * within; if NULL, view is centered within usable area of its output
  */
 void view_center(struct view *view, const struct wlr_box *ref);
+
+/**
+ * view_place_initial - apply initial placement strategy to view
+ * @view: view to be placed
+ */
+void view_place_initial(struct view *view);
+
 void view_restore_to(struct view *view, struct wlr_box geometry);
 void view_set_untiled(struct view *view);
 void view_maximize(struct view *view, enum view_axis axis,

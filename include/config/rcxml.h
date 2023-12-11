@@ -20,6 +20,11 @@ enum window_switcher_field_content {
 	LAB_FIELD_TITLE,
 };
 
+enum view_placement_policy {
+	LAB_PLACE_CENTER = 0,
+	LAB_PLACE_CURSOR
+};
+
 struct usable_area_override {
 	struct border margin;
 	char *output;
@@ -40,6 +45,7 @@ struct rcxml {
 	int gap;
 	bool adaptive_sync;
 	bool reuse_output_mode;
+	enum view_placement_policy placement_policy;
 
 	/* focus */
 	bool focus_follow_mouse;

@@ -678,6 +678,17 @@ view_center(struct view *view, const struct wlr_box *ref)
 	}
 }
 
+void
+view_place_initial(struct view *view)
+{
+	if (rc.placement_policy == LAB_PLACE_CURSOR) {
+		view_move_to_cursor(view);
+		return;
+	}
+
+	view_center(view, NULL);
+}
+
 static void
 view_apply_natural_geometry(struct view *view)
 {

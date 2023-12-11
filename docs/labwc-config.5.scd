@@ -132,6 +132,13 @@ this is for compatibility with Openbox.
 	be used with labwc the preferred mode of the monitor is used instead.
 	Default is no.
 
+## PLACEMENT
+
+*<placement><policy>* [center|cursor]
+	Specify a placement policy for new windows. The "center" policy will
+	always place windows at the center of the active output. The "cursor"
+	policy will center new windows under the cursor. Default is "center".
+
 ## WINDOW SWITCHER
 
 *<windowSwitcher show="" preview="" outlines="">*

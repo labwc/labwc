@@ -703,6 +703,12 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_bool(content, &rc.adaptive_sync);
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);
+	} else if (!strcmp(nodename, "policy.placement")) {
+		if (!strcmp(content, "cursor")) {
+			rc.placement_policy = LAB_PLACE_CURSOR;
+		} else {
+			rc.placement_policy = LAB_PLACE_CENTER;
+		}
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = xstrdup(content);
 	} else if (!strcmp(nodename, "cornerradius.theme")) {
@@ -948,6 +954,8 @@ rcxml_init(void)
 		wl_list_init(&rc.window_rules);
 	}
 	has_run = true;
+
+	rc.placement_policy = LAB_PLACE_CENTER;
 
 	rc.xdg_shell_server_side_deco = true;
 	rc.ssd_keep_border = true;

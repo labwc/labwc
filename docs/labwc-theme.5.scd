@@ -34,8 +34,8 @@ labwc-config(5).
 	- #rrggbb aaa (same but with decimal alpha value)
 
 *justification*
-	Justification determines the horizontal alignment of text. Valid options
-	are Left, Center and Right.
+	Justification determines the horizontal alignment of text.
+	Valid options are Left, Center and Right.
 
 # THEME ELEMENTS
 
@@ -44,12 +44,13 @@ labwc-config(5).
 	Default is 1.
 
 *padding.height*
-	Vertical padding size, used for spacing out elements in the window decorations.
-	Default is 3.
+	Vertical padding size, used for spacing out elements in the window
+	decorations. Default is 3.
 
 *titlebar.height*
 	Window title bar height.
-	Default equals the vertical font extents of the title plus 2x padding.height.
+	Default equals the vertical font extents of the title plus 2x
+	padding.height.
 
 *menu.items.padding.x*
 	Horizontal padding of menu text entries in pixels.
@@ -71,11 +72,13 @@ labwc-config(5).
 
 *menu.width.min*
 	Minimal width for menus. Default is 20.
-	A fixed width can be achieved by setting .min and .max to the same value.
+	A fixed width can be achieved by setting .min and .max to the same
+	value.
 
 *menu.width.max*
 	Maximal width for menus. Default is 200.
-	A fixed width can be achieved by setting .min and .max to the same value.
+	A fixed width can be achieved by setting .min and .max to the same
+	value.
 
 *window.active.border.color*
 	Border color of active window
@@ -85,7 +88,8 @@ labwc-config(5).
 
 *window.active.indicator.toggled-keybind.color*
 	Status indicator for the ToggleKeybinds action. Can be set to the same
-	value as set for window.active.border.color to disable the status indicator.
+	value as set for window.active.border.color to disable the status
+	indicator.
 
 *window.active.title.bg.color*
 	Background color for the focused window's titlebar
@@ -112,8 +116,8 @@ labwc-config(5).
 	state. This element is for non-focused windows.
 
 Note: The button elements (i.e. window.[in]active.button.\*) support defining
-different types of buttons individually by inserting the type ("menu", "iconify", "max"
-and "close") after the button node. For example:
+different types of buttons individually by inserting the type ("menu",
+"iconify", "max" and "close") after the button node. For example:
 window.active.button.iconify.unpressed.image.color
 This syntax is not documented on the openbox.org wiki, but is supported by
 openbox and is used by many popular themes. For the sake of brevity, these
@@ -175,10 +179,12 @@ elements are not listed here, but are supported.
 	Default is 2.
 
 *osd.workspace-switcher.boxes.width*
-	Width of boxes in workspace switcher in pixels. Setting to 0 disables boxes. Default is 20.
+	Width of boxes in workspace switcher in pixels. Setting to 0 disables
+	boxes. Default is 20.
 
 *osd.workspace-switcher.boxes.height*
-	Height of boxes in workspace switcher in pixels. Setting to 0 disables boxes.  Default is 20.
+	Height of boxes in workspace switcher in pixels. Setting to 0 disables
+	boxes. Default is 20.
 
 *border.color*
 	Set all border colors. This is obsolete, but supported for backward

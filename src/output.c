@@ -769,8 +769,8 @@ output_add_virtual(struct server *server, const char *output_name)
 				return;
 			}
 		}
-		strncpy(server->headless.pending_output_name, output_name,
-				sizeof(server->headless.pending_output_name));
+		snprintf(server->headless.pending_output_name,
+			sizeof(server->headless.pending_output_name), "%s", output_name);
 	} else {
 		server->headless.pending_output_name[0] = '\0';
 	}

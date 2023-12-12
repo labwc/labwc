@@ -362,6 +362,28 @@ translation strings under each English string.
 
 [See this tutorial for further guidance](https://www.labri.fr/perso/fleury/posts/programming/a-quick-gettext-tutorial.html)
 
+Code contributors may need to update relevant files if their additions
+affect UI elements (at the moment only `src/menu/menu.c`). In this case
+the `po/labwc.pot` file needs to be updated so that translators can
+update their translations. Remember, many translators are _not_ coders!
+
+The process is fairly trivial however does involve some manual steps.
+
+1. After adding and testing your code additions to satisfaction, backup
+`po/labwc.pot`. You need the custom header from that file for the newly
+generated .pot file in the next step.
+
+2. From the root of the repository run this:
+
+```
+xgettext --keyword=_ --language=C --add-comments -o po/labwc.pot src/menu/menu.c
+```
+
+This generates a new pot file at `po/labwc.pot`
+
+3. Copy the header from the original `labwc.pot` to the new one, check
+for sanity and commit.
+
 # Upversion
 
 It is generally only the lead-maintainer who will upversion, but in order

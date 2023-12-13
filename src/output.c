@@ -158,10 +158,14 @@ add_output_to_layout(struct server *server, struct output *output)
 			wlr_log(WLR_ERROR, "unable to create scene output");
 			return;
 		}
+		/*
+		 * Note: wlr_scene_output_layout_add_output() is not
+		 * safe to call twice, so we call it only when initially
+		 * creating the scene_output.
+		 */
+		wlr_scene_output_layout_add_output(server->scene_layout,
+			layout_output, output->scene_output);
 	}
-
-	wlr_scene_output_layout_add_output(server->scene_layout, layout_output,
-		output->scene_output);
 }
 
 static void

@@ -435,11 +435,11 @@ windows using the mouse.
 *<libinput><device category="">*
 	Define a category of devices to use the configuration values that
 	follow. The category can be set to touch (devices that define a width
-	and height), non-touch, default, or the name of a device. You can obtain
-	your devices name by running *libinput list-devices* (you may need to
-	be root or a part of the input group to perform this.) Any members of
-	this category that are not set use the default for the device. With the
-	exception of tap-to-click, which is enabled by default.
+	and height), touchpad, non-touch, default, or the name of a device. You
+	can obtain your devices name by running *libinput list-devices* (you may
+	need to be root or a part of the input group to perform this.) Any
+	members of this category that are not set use the default for the
+	device. With the exception of tap-to-click, which is enabled by default.
 
 *<libinput><device category=""><naturalScroll>* [yes|no]
 	Use natural scrolling for this category if available.

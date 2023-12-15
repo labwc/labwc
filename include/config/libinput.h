@@ -9,6 +9,7 @@
 enum device_type {
 	DEFAULT_DEVICE,
 	TOUCH_DEVICE,
+	TOUCHPAD_DEVICE,
 	NON_TOUCH_DEVICE,
 };
 

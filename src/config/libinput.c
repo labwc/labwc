@@ -32,6 +32,9 @@ get_device_type(const char *s)
 	if (!strcasecmp(s, "touch")) {
 		return TOUCH_DEVICE;
 	}
+	if (!strcasecmp(s, "touchpad")) {
+		return TOUCHPAD_DEVICE;
+	}
 	if (!strcasecmp(s, "non-touch")) {
 		return NON_TOUCH_DEVICE;
 	}

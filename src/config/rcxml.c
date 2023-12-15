@@ -460,6 +460,7 @@ fill_libinput_category(char *nodename, char *content)
 
 	if (!strcmp(nodename, "category")) {
 		if (!strcmp(content, "touch")
+				|| !strcmp(content, "touchpad")
 				|| !strcmp(content, "non-touch")
 				|| !strcmp(content, "default")) {
 			current_libinput_category->type = get_device_type(content);

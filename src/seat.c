@@ -33,17 +33,28 @@ input_device_destroy(struct wl_listener *listener, void *data)
 	free(input);
 }
 
-static bool
-is_touch_device(struct wlr_input_device *wlr_input_device)
+static enum device_type
+device_type_from_wlr_device(struct wlr_input_device *wlr_input_device)
 {
 	switch (wlr_input_device->type) {
 	case WLR_INPUT_DEVICE_TOUCH:
 	case WLR_INPUT_DEVICE_TABLET_TOOL:
-		return true;
+		return TOUCH_DEVICE;
 	default:
 		break;
 	}
-	return false;
+
+	if (wlr_input_device->type == WLR_INPUT_DEVICE_POINTER &&
+			wlr_input_device_is_libinput(wlr_input_device)) {
+		struct libinput_device *libinput_device =
+			wlr_libinput_get_device_handle(wlr_input_device);
+
+		if (libinput_device_config_tap_get_finger_count(libinput_device) > 0) {
+			return TOUCHPAD_DEVICE;
+		}
+	}
+
+	return NON_TOUCH_DEVICE;
 }
 
 static void
@@ -64,9 +75,8 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		return;
 	}
 
-	enum device_type current_type;
-	current_type = is_touch_device(wlr_input_device)
-			? TOUCH_DEVICE : NON_TOUCH_DEVICE;
+	enum device_type current_type =
+		device_type_from_wlr_device(wlr_input_device);
 
 	struct libinput_category *device_category, *dc = NULL;
 	wl_list_for_each(device_category, &rc.libinput_categories, link) {

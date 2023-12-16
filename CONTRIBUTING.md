@@ -42,8 +42,8 @@ If the compositor crashes, a good starting point is to produce a backtrace by
 building with ASAN/UBSAN:
 
 ```
-meson -Db_sanitize=address,undefined build/
-ninja -C build/
+meson setup -Db_sanitize=address,undefined build/
+meson compile -C build/
 ```
 
 ## Debug Logs

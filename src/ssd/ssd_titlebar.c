@@ -60,11 +60,22 @@ ssd_titlebar_create(struct ssd *ssd)
 			close_button_unpressed = &theme->button_close_active_unpressed->base;
 			maximize_button_unpressed = &theme->button_maximize_active_unpressed->base;
 			restore_button_unpressed = &theme->button_restore_active_unpressed->base;
-			menu_button_hover = &theme->button_menu_active_hover->base;
-			iconify_button_hover = &theme->button_iconify_active_hover->base;
-			close_button_hover = &theme->button_close_active_hover->base;
-			maximize_button_hover = &theme->button_maximize_active_hover->base;
-			restore_button_hover = &theme->button_restore_active_hover->base;
+
+			menu_button_hover = theme->button_menu_active_hover ?
+				&theme->button_menu_active_hover->base :
+				&theme->button_menu_active_unpressed->base;
+			iconify_button_hover = theme->button_iconify_active_hover ?
+				&theme->button_iconify_active_hover->base :
+				&theme->button_iconify_active_unpressed->base;
+			close_button_hover = theme->button_close_active_hover ?
+				&theme->button_close_active_hover->base :
+				&theme->button_close_active_unpressed->base;
+			maximize_button_hover = theme->button_maximize_active_hover ?
+				&theme->button_maximize_active_hover->base :
+				&theme->button_maximize_active_unpressed->base;
+			restore_button_hover = theme->button_restore_active_hover ?
+				&theme->button_restore_active_hover->base :
+				&theme->button_restore_active_unpressed->base;
 		} else {
 			color = theme->window_inactive_title_bg_color;
 			corner_top_left = &theme->corner_top_left_inactive_normal->base;
@@ -75,11 +86,23 @@ ssd_titlebar_create(struct ssd *ssd)
 				&theme->button_maximize_inactive_unpressed->base;
 			restore_button_unpressed = &theme->button_restore_inactive_unpressed->base;
 			close_button_unpressed = &theme->button_close_inactive_unpressed->base;
-			menu_button_hover = &theme->button_menu_inactive_hover->base;
-			iconify_button_hover = &theme->button_iconify_inactive_hover->base;
-			close_button_hover = &theme->button_close_inactive_hover->base;
-			maximize_button_hover = &theme->button_maximize_inactive_hover->base;
-			restore_button_hover = &theme->button_restore_inactive_hover->base;
+
+			menu_button_hover = theme->button_menu_inactive_hover ?
+				&theme->button_menu_inactive_hover->base :
+				&theme->button_menu_inactive_unpressed->base;
+			iconify_button_hover = theme->button_iconify_inactive_hover ?
+				&theme->button_iconify_inactive_hover->base :
+				&theme->button_iconify_inactive_unpressed->base;
+			close_button_hover = theme->button_close_inactive_hover ?
+				&theme->button_close_inactive_hover->base :
+				&theme->button_close_inactive_unpressed->base;
+			maximize_button_hover = theme->button_maximize_inactive_hover ?
+				&theme->button_maximize_inactive_hover->base :
+				&theme->button_maximize_inactive_unpressed->base;
+			restore_button_hover = theme->button_restore_inactive_hover ?
+				&theme->button_restore_inactive_hover->base :
+				&theme->button_restore_inactive_unpressed->base;
+
 			wlr_scene_node_set_enabled(&parent->node, false);
 		}
 		wl_list_init(&subtree->parts);

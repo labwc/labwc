@@ -92,6 +92,7 @@ struct theme {
 	struct lab_data_buffer *button_iconify_inactive_unpressed;
 	struct lab_data_buffer *button_menu_inactive_unpressed;
 
+	/* hover variants are optional and may be NULL */
 	struct lab_data_buffer *button_close_active_hover;
 	struct lab_data_buffer *button_maximize_active_hover;
 	struct lab_data_buffer *button_restore_active_hover;

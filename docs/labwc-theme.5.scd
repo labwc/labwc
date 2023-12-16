@@ -229,6 +229,30 @@ for xbm files:
 
 - max_hover_toggled.xbm for max_toggled_hover.xbm
 
+When using png or svg icons, for a full theme experience all of the
+following icons should be added:
+
+- close-active.[png|svg]
+- close_hover-active.[png|svg]
+- close_hover-inactive.[png|svg]
+- close-inactive.[png|svg]
+- iconify-active.[png|svg]
+- iconify_hover-active.[png|svg]
+- iconify_hover-inactive.[png|svg]
+- iconify-inactive.[png|svg]
+- max-active.[png|svg]
+- max_hover-active.[png|svg]
+- max_hover-inactive.[png|svg]
+- max-inactive.[png|svg]
+- max_toggled-active.[png|svg]
+- max_toggled_hover-active.[png|svg]
+- max_toggled_hover-inactive.[png|svg]
+- max_toggled-inactive.[png|svg]
+- menu-active.[png|svg]
+- menu_hover-active.[png|svg]
+- menu_hover-inactive.[png|svg]
+- menu-inactive.[png|svg]
+
 # DEFINITIONS
 
 The handle is the window edge decoration at the bottom of the window.

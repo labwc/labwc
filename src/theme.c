@@ -40,7 +40,7 @@
 struct button {
 	const char *name;
 	const char *alt_name;
-	char fallback_button[6];	/* built-in 6x6 button */
+	const char *fallback_button;  /* built-in 6x6 button */
 	struct {
 		struct lab_data_buffer **buffer;
 		float *rgba;
@@ -91,56 +91,56 @@ load_buttons(struct theme *theme)
 {
 	struct button buttons[] = { {
 		.name = "menu",
-		.fallback_button = { 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
+		.fallback_button = (const char[]){ 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
 		.active.buffer = &theme->button_menu_active_unpressed,
 		.active.rgba = theme->window_active_button_menu_unpressed_image_color,
 		.inactive.buffer = &theme->button_menu_inactive_unpressed,
 		.inactive.rgba = theme->window_inactive_button_menu_unpressed_image_color,
 	}, {
 		.name = "iconify",
-		.fallback_button = { 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
+		.fallback_button = (const char[]){ 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
 		.active.buffer = &theme->button_iconify_active_unpressed,
 		.active.rgba = theme->window_active_button_iconify_unpressed_image_color,
 		.inactive.buffer = &theme->button_iconify_inactive_unpressed,
 		.inactive.rgba = theme->window_inactive_button_iconify_unpressed_image_color,
 	}, {
 		.name = "max",
-		.fallback_button = { 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
+		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
 		.active.buffer = &theme->button_maximize_active_unpressed,
 		.active.rgba = theme->window_active_button_max_unpressed_image_color,
 		.inactive.buffer = &theme->button_maximize_inactive_unpressed,
 		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
 	}, {
 		.name = "max_toggled",
-		.fallback_button = { 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
+		.fallback_button = (const char[]){ 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
 		.active.buffer = &theme->button_restore_active_unpressed,
 		.active.rgba = theme->window_active_button_max_unpressed_image_color,
 		.inactive.buffer = &theme->button_restore_inactive_unpressed,
 		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
 	}, {
 		.name = "close",
-		.fallback_button = { 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
+		.fallback_button = (const char[]){ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
 		.active.buffer = &theme->button_close_active_unpressed,
 		.active.rgba = theme->window_active_button_close_unpressed_image_color,
 		.inactive.buffer = &theme->button_close_inactive_unpressed,
 		.inactive.rgba = theme->window_inactive_button_close_unpressed_image_color,
 	}, {
 		.name = "menu_hover",
-		.fallback_button = { 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
+		/* no fallback (non-hover variant is used instead) */
 		.active.buffer = &theme->button_menu_active_hover,
 		.active.rgba = theme->window_active_button_menu_unpressed_image_color,
 		.inactive.buffer = &theme->button_menu_inactive_hover,
 		.inactive.rgba = theme->window_inactive_button_menu_unpressed_image_color,
 	}, {
 		.name = "iconify_hover",
-		.fallback_button = { 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
+		/* no fallback (non-hover variant is used instead) */
 		.active.buffer = &theme->button_iconify_active_hover,
 		.active.rgba = theme->window_active_button_iconify_unpressed_image_color,
 		.inactive.buffer = &theme->button_iconify_inactive_hover,
 		.inactive.rgba = theme->window_inactive_button_iconify_unpressed_image_color,
 	}, {
 		.name = "max_hover",
-		.fallback_button = { 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
+		/* no fallback (non-hover variant is used instead) */
 		.active.buffer = &theme->button_maximize_active_hover,
 		.active.rgba = theme->window_active_button_max_unpressed_image_color,
 		.inactive.buffer = &theme->button_maximize_inactive_hover,
@@ -148,14 +148,14 @@ load_buttons(struct theme *theme)
 	}, {
 		.name = "max_toggled_hover",
 		.alt_name = "max_hover_toggled",
-		.fallback_button = { 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
+		/* no fallback (non-hover variant is used instead) */
 		.active.buffer = &theme->button_restore_active_hover,
 		.active.rgba = theme->window_active_button_max_unpressed_image_color,
 		.inactive.buffer = &theme->button_restore_inactive_hover,
 		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
 	}, {
 		.name = "close_hover",
-		.fallback_button = { 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
+		/* no fallback (non-hover variant is used instead) */
 		.active.buffer = &theme->button_close_active_hover,
 		.active.rgba = theme->window_active_button_close_unpressed_image_color,
 		.inactive.buffer = &theme->button_close_inactive_hover,

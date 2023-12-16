@@ -260,7 +260,8 @@ parse_xbm_builtin(const char *button, int size)
 
 void
 button_xbm_load(const char *button_name, const char *alt_name,
-	struct lab_data_buffer **buffer, char *fallback_button, float *rgba)
+	struct lab_data_buffer **buffer, const char *fallback_button,
+	float *rgba)
 {
 	struct pixmap pixmap = {0};
 	if (*buffer) {
@@ -270,7 +271,7 @@ button_xbm_load(const char *button_name, const char *alt_name,
 
 	color = u32(rgba);
 
-	/* Read file into memory as it's easier to tokenzie that way */
+	/* Read file into memory as it's easier to tokenize that way */
 	char filename[4096] = { 0 };
 	button_filename(button_name, filename, sizeof(filename));
 	char *token_buffer = grab_file(filename);
@@ -294,11 +295,13 @@ button_xbm_load(const char *button_name, const char *alt_name,
 			}
 		}
 	}
-	if (!pixmap.data) {
+	if (!pixmap.data && fallback_button) {
 		pixmap = parse_xbm_builtin(fallback_button, 6);
 	}
 
 	/* Create buffer with free_on_destroy being true */
-	*buffer = buffer_create_wrap(pixmap.data, pixmap.width, pixmap.height,
-		pixmap.width * 4, true);
+	if (pixmap.data) {
+		*buffer = buffer_create_wrap(pixmap.data, pixmap.width,
+			pixmap.height, pixmap.width * 4, true);
+	}
 }

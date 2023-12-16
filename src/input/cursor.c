@@ -91,6 +91,8 @@ cursor_get_from_edge(uint32_t resize_edges)
 			"Failed to resolve wlroots edge %u to cursor name", resize_edges);
 		assert(false);
 	}
+
+	return LAB_CURSOR_DEFAULT;
 }
 
 static enum lab_cursors

@@ -126,7 +126,7 @@ some formatting checks.
 
 The preferred line length limit is 80 columns, although this is a bit soft.
 
-Tabs are 8 columns wide. Identation with spaces is not used.
+Tabs are 8 columns wide. Indentation with spaces is not used.
 
 Opening braces go on the same line, except for function definitions.
 

@@ -3,8 +3,10 @@
 #include <assert.h>
 #include <cairo.h>
 #include <stdlib.h>
+#include <string.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
+#include "buffer.h"
 #include "common/graphic-helpers.h"
 #include "common/mem.h"
 
@@ -84,4 +86,33 @@ void
 set_cairo_color(cairo_t *cairo, float *c)
 {
 	cairo_set_source_rgba(cairo, c[0], c[1], c[2], c[3]);
+}
+
+struct surface_context
+get_cairo_surface_from_lab_data_buffer(struct lab_data_buffer *buffer)
+{
+	/* Handle CAIRO_FORMAT_ARGB32 buffers */
+	if (buffer->cairo) {
+		return (struct surface_context){
+			.is_duplicate = false,
+			.surface = cairo_get_target(buffer->cairo),
+		};
+	}
+
+	/* Handle DRM_FORMAT_ARGB8888 buffers */
+	int w = buffer->unscaled_width;
+	int h = buffer->unscaled_height;
+	cairo_surface_t *surface =
+		cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
+	if (!surface) {
+		return (struct surface_context){0};
+	}
+	unsigned char *data = cairo_image_surface_get_data(surface);
+	cairo_surface_flush(surface);
+	memcpy(data, buffer->data, h * buffer->stride);
+	cairo_surface_mark_dirty(surface);
+	return (struct surface_context){
+		.is_duplicate = true,
+		.surface = surface,
+	};
 }

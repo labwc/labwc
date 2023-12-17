@@ -129,6 +129,8 @@ buffer_create_wrap(void *pixel_data, uint32_t width, uint32_t height,
 {
 	struct lab_data_buffer *buffer = znew(*buffer);
 	wlr_buffer_init(&buffer->base, &data_buffer_impl, width, height);
+	buffer->unscaled_width = width;
+	buffer->unscaled_height = height;
 	buffer->data = pixel_data;
 	buffer->format = DRM_FORMAT_ARGB8888;
 	buffer->stride = stride;

@@ -7,6 +7,7 @@
 
 #define _POSIX_C_SOURCE 200809L
 #include "config.h"
+#include <assert.h>
 #include <cairo.h>
 #include <ctype.h>
 #include <drm_fourcc.h>
@@ -53,6 +54,61 @@ drop(struct lab_data_buffer **buffer)
 	if (*buffer) {
 		wlr_buffer_drop(&(*buffer)->base);
 		*buffer = NULL;
+	}
+}
+
+static void
+create_hover_fallback(struct theme *theme, struct lab_data_buffer **hover_buffer,
+		struct lab_data_buffer *icon_buffer)
+{
+	assert(icon_buffer);
+	assert(!*hover_buffer);
+
+	struct surface_context icon =
+		get_cairo_surface_from_lab_data_buffer(icon_buffer);
+	int icon_width = cairo_image_surface_get_width(icon.surface);
+	int icon_height = cairo_image_surface_get_height(icon.surface);
+
+	/* TODO: need to somehow respect rounded corners */
+	int width = SSD_BUTTON_WIDTH;
+	int height = theme->title_height;
+
+	if (width && height) {
+		/*
+		 * Proportionately increase size of hover_buffer if the
+		 * non-hover 'donor' buffer is larger than the allocated space.
+		 * It will get scaled down again by wlroots when rendered and as
+		 * required by the current output scale.
+		 *
+		 * This ensures that icons > width or > height keep their aspect
+		 * ratio and are rendered the same as without the hover overlay.
+		 */
+		double scale = MAX((double)icon_width / width,
+				(double)icon_height / height);
+		if (scale > 1.0f) {
+			width = (double)width * scale;
+			height = (double)height * scale;
+		}
+	}
+
+	*hover_buffer = buffer_create_cairo(width, height, 1.0, true);
+
+	cairo_t *cairo = (*hover_buffer)->cairo;
+	cairo_surface_t *surf = cairo_get_target(cairo);
+
+	/* Background */
+	cairo_set_source_surface(cairo, icon.surface,
+		(width - icon_width) / 2, (height - icon_height) / 2);
+	cairo_paint(cairo);
+
+	/* Overlay (non-multiplied alpha) */
+	set_cairo_color(cairo, (float[4]) { 0.5f, 0.5f, 0.5f, 0.3f});
+	cairo_rectangle(cairo, 0, 0, width, height);
+	cairo_fill(cairo);
+	cairo_surface_flush(surf);
+
+	if (icon.is_duplicate) {
+		cairo_surface_destroy(icon.surface);
 	}
 }
 
@@ -202,6 +258,39 @@ load_buttons(struct theme *theme)
 		if (!*b->inactive.buffer) {
 			button_xbm_load(filename, alt_filename, b->inactive.buffer,
 				b->fallback_button, b->inactive.rgba);
+		}
+	}
+
+	/*
+	 * If hover-icons do not exist, add fallbacks by coping the non-hover
+	 * variant (base) and then adding an overlay.
+	 */
+	for (size_t i = 0; i < ARRAY_SIZE(buttons); i++) {
+		struct button *hover_button = &buttons[i];
+
+		if (!strstr(hover_button->name, "_hover")) {
+			continue;
+		}
+
+		/* If name=='foo_hover', basename='foo' */
+		char basename[64]  = {0};
+		snprintf(basename, sizeof(basename), "%s", hover_button->name);
+		trim_last_field(basename, '_');
+		for (size_t j = 0; j < ARRAY_SIZE(buttons); j++) {
+			struct button *base = &buttons[j];
+			if (!strcmp(basename, base->name)) {
+				if (!*hover_button->active.buffer) {
+					create_hover_fallback(theme,
+						hover_button->active.buffer,
+						*base->active.buffer);
+				}
+				if (!*hover_button->inactive.buffer) {
+					create_hover_fallback(theme,
+						hover_button->inactive.buffer,
+						*base->inactive.buffer);
+				}
+				break;
+			}
 		}
 	}
 }

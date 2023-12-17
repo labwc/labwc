@@ -6,6 +6,15 @@
 #include "common/mem.h"
 #include "common/string-helpers.h"
 
+void
+trim_last_field(char *buf, char delim)
+{
+	char *p = strrchr(buf, delim);
+	if (p) {
+		*p = '\0';
+	}
+}
+
 static void
 rtrim(char **s)
 {

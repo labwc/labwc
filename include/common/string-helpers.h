@@ -3,6 +3,15 @@
 #define LABWC_STRING_HELPERS_H
 
 /**
+ * trim_last_field() - Trim last field of string splitting on provided delim
+ * @buf: string to trim
+ * @delim: delimitator
+ *
+ * Example: With delim='_' and buf="foo_bar_baz" the return value is "foo_bar"
+ */
+void trim_last_field(char *buf, char delim);
+
+/**
  * string_strip - strip white space left and right
  * Note: this function does a left skip, so the returning pointer cannot be
  * used to free any allocated memory

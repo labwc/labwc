@@ -219,21 +219,20 @@ load_buttons(struct theme *theme)
 	}, };
 
 	char filename[4096] = {0};
-	char alt_filename[4096] = {0};
 	for (size_t i = 0; i < ARRAY_SIZE(buttons); ++i) {
 		struct button *b = &buttons[i];
 
 		drop(b->active.buffer);
 		drop(b->inactive.buffer);
 
-		/* Try png icon first */
+		/* PNG */
 		snprintf(filename, sizeof(filename), "%s-active.png", b->name);
 		button_png_load(filename, b->active.buffer);
 		snprintf(filename, sizeof(filename), "%s-inactive.png", b->name);
 		button_png_load(filename, b->inactive.buffer);
 
 #if HAVE_RSVG
-		/* Then try svg icon */
+		/* SVG */
 		int size = theme->title_height - 2 * theme->padding_height;
 		if (!*b->active.buffer) {
 			snprintf(filename, sizeof(filename), "%s-active.svg", b->name);
@@ -245,19 +244,47 @@ load_buttons(struct theme *theme)
 		}
 #endif
 
-		/* If there were no png/svg buttons, use xbm */
+		/* XBM */
 		snprintf(filename, sizeof(filename), "%s.xbm", b->name);
-		alt_filename[0] = '\0';
-		if (b->alt_name) {
-			snprintf(alt_filename, sizeof(alt_filename), "%s.xbm", b->alt_name);
-		}
 		if (!*b->active.buffer) {
-			button_xbm_load(filename, alt_filename, b->active.buffer,
-				b->fallback_button, b->active.rgba);
+			button_xbm_load(filename, b->active.buffer, b->active.rgba);
 		}
 		if (!*b->inactive.buffer) {
-			button_xbm_load(filename, alt_filename, b->inactive.buffer,
-				b->fallback_button, b->inactive.rgba);
+			button_xbm_load(filename, b->inactive.buffer, b->inactive.rgba);
+		}
+
+		/*
+		 * XBM (alternative name)
+		 * For example max_hover_toggled instead of max_toggled_hover
+		 */
+		if (b->alt_name) {
+			snprintf(filename, sizeof(filename), "%s.xbm", b->name);
+		}  else {
+			filename[0] = '\0';
+		}
+		if (!*b->active.buffer) {
+			button_xbm_load(filename, b->active.buffer, b->active.rgba);
+		}
+		if (!*b->inactive.buffer) {
+			button_xbm_load(filename, b->inactive.buffer, b->inactive.rgba);
+		}
+
+		/*
+		 * Builtin bitmap
+		 *
+		 * Applicable to basic buttons such as max, max_toggled and
+		 * iconify. There are no bitmap fallbacks for *_hover icons.
+		 */
+		if (!b->fallback_button) {
+			continue;
+		}
+		if (!*b->active.buffer) {
+			button_xbm_from_bitmap(b->fallback_button,
+				b->active.buffer, b->active.rgba);
+		}
+		if (!*b->inactive.buffer) {
+			button_xbm_from_bitmap(b->fallback_button,
+				b->inactive.buffer, b->inactive.rgba);
 		}
 	}
 

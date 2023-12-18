@@ -259,16 +259,29 @@ parse_xbm_builtin(const char *button, int size)
 }
 
 void
-button_xbm_load(const char *button_name, const char *alt_name,
-	struct lab_data_buffer **buffer, const char *fallback_button,
-	float *rgba)
+button_xbm_from_bitmap(const char *bitmap, struct lab_data_buffer **buffer,
+		float *rgba)
 {
 	struct pixmap pixmap = {0};
 	if (*buffer) {
 		wlr_buffer_drop(&(*buffer)->base);
 		*buffer = NULL;
 	}
+	color = u32(rgba);
+	pixmap = parse_xbm_builtin(bitmap, 6);
+	*buffer = buffer_create_wrap(pixmap.data, pixmap.width, pixmap.height,
+		pixmap.width * 4, /* free_on_destroy */ true);
+}
 
+void
+button_xbm_load(const char *button_name, struct lab_data_buffer **buffer,
+		float *rgba)
+{
+	struct pixmap pixmap = {0};
+	if (*buffer) {
+		wlr_buffer_drop(&(*buffer)->base);
+		*buffer = NULL;
+	}
 	color = u32(rgba);
 
 	/* Read file into memory as it's easier to tokenize that way */
@@ -283,20 +296,8 @@ button_xbm_load(const char *button_name, const char *alt_name,
 			free(tokens);
 		}
 	}
-	if (!pixmap.data && *alt_name) {
-		button_filename(alt_name, filename, sizeof(filename));
-		char *token_buffer = grab_file(filename);
-		if (token_buffer) {
-			struct token *tokens = tokenize_xbm(token_buffer);
-			free(token_buffer);
-			pixmap = parse_xbm_tokens(tokens);
-			if (tokens) {
-				free(tokens);
-			}
-		}
-	}
-	if (!pixmap.data && fallback_button) {
-		pixmap = parse_xbm_builtin(fallback_button, 6);
+	if (!pixmap.data) {
+		return;
 	}
 
 	/* Create buffer with free_on_destroy being true */

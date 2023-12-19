@@ -56,7 +56,7 @@ void
 view_impl_unmap(struct view *view)
 {
 	struct server *server = view->server;
-	if (view == server->focused_view) {
+	if (view == server->active_view) {
 		desktop_focus_topmost_view(server);
 	}
 	if (view == server->last_raised_view) {

@@ -245,10 +245,14 @@ struct server {
 	uint32_t resize_edges;
 
 	/*
-	 * Currently focused view. Updated with each "focus change"
-	 * event. This view is drawn with "active" SSD coloring.
+	 * 'active_view' is generally the view with keyboard-focus, updated with
+	 * each "focus change". This view is drawn with "active" SSD coloring.
+	 *
+	 * The exception is when a layer-shell client takes keyboard-focus in
+	 * which case the currently active view stays active. This is important
+	 * for foreign-toplevel protocol.
 	 */
-	struct view *focused_view;
+	struct view *active_view;
 	/*
 	 * Most recently raised view. Used to avoid unnecessarily
 	 * raising the same view over and over.

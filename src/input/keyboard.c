@@ -104,8 +104,8 @@ match_keybinding_for_sym(struct server *server, uint32_t modifiers,
 			continue;
 		}
 		if (server->seat.nr_inhibited_keybind_views
-				&& server->focused_view
-				&& server->focused_view->inhibits_keybinds
+				&& server->active_view
+				&& server->active_view->inhibits_keybinds
 				&& !actions_contain_toggle_keybinds(&keybind->actions)) {
 			continue;
 		}

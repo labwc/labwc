@@ -42,7 +42,7 @@ msgid "Decorations"
 msgstr "Decorazioni"
 
 #: src/menu/menu.c:657
-msgid "AlwaysOnTop"
+msgid "Always On Top"
 msgstr "Sempre sopra"
 
 #: src/menu/menu.c:662

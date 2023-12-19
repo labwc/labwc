@@ -42,25 +42,25 @@ msgid "Decorations"
 msgstr ""
 
 #: src/menu/menu.c:724
-msgid "AlwaysOnTop"
+msgid "Always on Top"
 msgstr ""
 
-#: src/menu/menu.c:726
-msgid "ToggleOmnipresent"
-msgstr ""
-
-#: src/menu/menu.c:731
+#: src/menu/menu.c:729
 msgid "Move left"
 msgstr ""
 
-#: src/menu/menu.c:738
+#: src/menu/menu.c:736
 msgid "Move right"
 msgstr ""
 
 #: src/menu/menu.c:741
-msgid "Workspace"
+msgid "Always on Visible Workspace"
 msgstr ""
 
 #: src/menu/menu.c:744
+msgid "Workspace"
+msgstr ""
+
+#: src/menu/menu.c:747
 msgid "Close"
 msgstr ""

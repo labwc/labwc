@@ -41,7 +41,7 @@ msgid "Decorations"
 msgstr "Süslemeler"
 
 #: src/menu/menu.c:657
-msgid "AlwaysOnTop"
+msgid "Always On Top"
 msgstr "Her zaman üstte"
 
 #: src/menu/menu.c:662

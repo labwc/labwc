@@ -721,10 +721,8 @@ init_windowmenu(struct server *server)
 		fill_item("name.action", "ToggleFullscreen");
 		current_item = item_create(menu, _("Decorations"), false);
 		fill_item("name.action", "ToggleDecorations");
-		current_item = item_create(menu, _("AlwaysOnTop"), false);
+		current_item = item_create(menu, _("Always on Top"), false);
 		fill_item("name.action", "ToggleAlwaysOnTop");
-		current_item = item_create(menu, _("ToggleOmnipresent"), false);
-		fill_item("name.action", "ToggleOmnipresent");
 
 		/* Workspace sub-menu */
 		struct menu *workspace_menu = menu_create(server, "workspaces", "");
@@ -738,6 +736,11 @@ init_windowmenu(struct server *server)
 		current_item = item_create(workspace_menu, _("Move right"), false);
 		fill_item("name.action", "SendToDesktop");
 		fill_item("to.action", "right");
+		current_item = separator_create(workspace_menu, "");
+		current_item = item_create(workspace_menu,
+			_("Always on Visible Workspace"), false);
+		fill_item("name.action", "ToggleOmnipresent");
+
 		current_item = item_create(menu, _("Workspace"), true);
 		current_item->submenu = workspace_menu;
 

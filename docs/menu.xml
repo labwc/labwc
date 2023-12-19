@@ -15,7 +15,7 @@
   <item label="Decorations">
     <action name="ToggleDecorations" />
   </item>
-  <item label="AlwaysOnTop">
+  <item label="Always on Top">
     <action name="ToggleAlwaysOnTop" />
   </item>
   <!--
@@ -28,6 +28,10 @@
     </item>
     <item label="Move right">
       <action name="SendToDesktop" to="right" />
+    </item>
+    <separator />
+    <item label="Always on Visible Workspace">
+      <action name="ToggleOmnipresent" />
     </item>
   </menu>
   <item label="Close">

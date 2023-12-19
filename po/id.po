@@ -42,7 +42,7 @@ msgid "Decorations"
 msgstr "Dekorasi"
 
 #: src/menu/menu.c:657
-msgid "AlwaysOnTop"
+msgid "Always On Top"
 msgstr "Selalu di Muka"
 
 #: src/menu/menu.c:662

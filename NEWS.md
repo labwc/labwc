@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2023-12-22 | [0.7.0]       | 0.17.1          | 16576         |
 | 2023-11-25 | [0.6.6]       | 0.16.2          | 15796         |
 | 2023-09-23 | [0.6.5]       | 0.16.2          | 14809         |
 | 2023-07-14 | [0.6.4]       | 0.16.2          | 13675         |
@@ -24,6 +25,65 @@ The format is based on [Keep a Changelog]
 | 2021-06-28 | [0.3.0]       | 0.14.0          | 5051          |
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
+
+## [0.7.0] - 2023-12-22
+
+The main effort in this release has gone into porting labwc to wlroots 0.17
+and tidying up regressions. Nonetheless, it contains a significant number of
+additions and fixes as described below.
+
+Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
+`0.6` branch will be created.
+
+# Added
+
+- Support titlebar hover icons. Written-by: @spl237
+- Add theme options osd.workspace-switcher.boxes.{width,height}
+  Written-by: @kyak
+- Add actions `VirtualOutputAdd` and `VirtualOutputRemove` to control virtual
+  outputs. Written-by: @kyak (#1287)
+- Teach MoveToEdge to move windows to adjacent outputs.
+  Written-by: @ahesford
+- Implement `<font place="InactiveWindow">`. Written-by: @ludg1e (#1292)
+- Implement cursor-shape-v1 protocol to allow Wayland clients to request a
+  buffer for a cursor shape from a compositor. Written-by: @heroin-moose
+- Implement fractional-scale-v1 protocol to allow Wayland clients to properly
+  scale on outputs with fractional scale factor. Written-by: @heroin-moose
+- Add ResizeTo action (#1261)
+- Allow going backwards in window-switcher OSD by using arrow-up or arrow-left.
+  Written-by: @jp7677
+- Add `ToggleOmnipresent` action and add an "Always on Visible Workspace" entry
+  for it in the client-menu under the Workspaces submenu. Written-by: @bnason
+- Account for space taken up by XWayland clients with `_NET_WM_STRUT_PARTIAL`
+  property in the `usable_area` calculation. This increases inter-operability
+  with X11 desktop componenets.
+- Set XWayland's `_NET_WORKAREA` property based on usable area. XWayland
+  clients use the `_NET_WORKAREA` root window property to determine how much of
+  the screen is not covered by panels/docks. The property is used for example
+  by Qt to determine areas of the screen that popup menus should not overlap.
+
+# Fixed
+
+- Fix xwayland.c null pointer dereference causing crash with CLions. (#1352)
+- Fix issue with XWayland surfaces completely offscreen not generating commit
+  events and therefore preventing them from moving onscreen.
+- Do not de-active windows when layer-shell client takes keyboard focus, to
+  fix sfwbar minimize action. (#1342)
+- Move layer-shell popups from the background layer to the top layer to render
+  them above normal windows. Previously this was only done for the bottom
+  layer. In support of Raspberry Pi's `pcmanfm --desktop`. (#1293)
+- Calculate `usable_area` before positioning clients to ensure it is correct
+  before non exclusive-zone layer-shell clients are positioned or resized.
+  (#1285)
+- Prevent overriding XWayland maximized/fullscreen/tiled geometry to fix an
+  issue where some XWayland views (example: xfce4-terminal) do not end up with
+  exactly the correct geometry when tiled.
+
+# Changed
+
+- Treat XWayland panel windows as if fixedPosition rule is set
+- Use the GTK3 notebook header color as the default active title color
+  (small change from `#dddad6` to `#e1dedb`). Written-by: @dimkr
 
 ## [0.6.6] - 2023-11-25
 
@@ -828,7 +888,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.6.5...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.7.0...HEAD
+[0.7.0]: https://github.com/labwc/labwc/compare/0.6.6...0.7.0
 [0.6.6]: https://github.com/labwc/labwc/compare/0.6.5...0.6.6
 [0.6.5]: https://github.com/labwc/labwc/compare/0.6.4...0.6.5
 [0.6.4]: https://github.com/labwc/labwc/compare/0.6.3...0.6.4

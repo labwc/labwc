@@ -349,8 +349,13 @@ focus_change_notify(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, focus_change);
 	struct wlr_seat_keyboard_focus_change_event *event = data;
 	struct server *server = seat->server;
-	struct view *view = event->new_surface ?
-		view_from_wlr_surface(event->new_surface) : NULL;
+	struct wlr_surface *surface = event->new_surface;
+	struct view *view = surface ? view_from_wlr_surface(surface) : NULL;
+
+	/* Prevent focus switch to layershell client from updating view state */
+	if (surface && wlr_layer_surface_v1_try_from_wlr_surface(surface)) {
+		return;
+	}
 
 	/*
 	 * If an xwayland-unmanaged surface was focused belonging to the

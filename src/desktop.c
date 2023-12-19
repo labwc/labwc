@@ -173,7 +173,7 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 
 	if (!start_view) {
 		start_view = first_view(server);
-		if (!start_view || start_view != server->focused_view) {
+		if (!start_view || start_view != server->active_view) {
 			return start_view;  /* may be NULL */
 		}
 	}

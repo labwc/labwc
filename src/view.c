@@ -1071,7 +1071,7 @@ decorate(struct view *view)
 {
 	if (!view->ssd) {
 		view->ssd = ssd_create(view,
-			view == view->server->focused_view);
+			view == view->server->active_view);
 	}
 }
 
@@ -1797,8 +1797,8 @@ view_destroy(struct view *view)
 		regions_hide_overlay(&server->seat);
 	}
 
-	if (server->focused_view == view) {
-		server->focused_view = NULL;
+	if (server->active_view == view) {
+		server->active_view = NULL;
 		need_cursor_update = true;
 	}
 

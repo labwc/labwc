@@ -585,7 +585,7 @@ static void
 warp_cursor_to_constraint_hint(struct seat *seat,
 		struct wlr_pointer_constraint_v1 *constraint)
 {
-	if (!seat->server->focused_view) {
+	if (!seat->server->active_view) {
 		return;
 	}
 
@@ -594,8 +594,8 @@ warp_cursor_to_constraint_hint(struct seat *seat,
 		double sx = constraint->current.cursor_hint.x;
 		double sy = constraint->current.cursor_hint.y;
 		wlr_cursor_warp(seat->cursor, NULL,
-			seat->server->focused_view->current.x + sx,
-			seat->server->focused_view->current.y + sy);
+			seat->server->active_view->current.x + sx,
+			seat->server->active_view->current.y + sy);
 
 		/* Make sure we are not sending unnecessary surface movements */
 		wlr_seat_pointer_warp(seat->seat, sx, sy);
@@ -645,7 +645,7 @@ create_constraint(struct wl_listener *listener, void *data)
 	constraint->destroy.notify = destroy_constraint;
 	wl_signal_add(&wlr_constraint->events.destroy, &constraint->destroy);
 
-	struct view *view = server->focused_view;
+	struct view *view = server->active_view;
 	if (view && view->surface == wlr_constraint->surface) {
 		constrain_cursor(server, wlr_constraint);
 	}
@@ -693,8 +693,8 @@ apply_constraint(struct seat *seat, struct wlr_pointer *pointer, double *x, doub
 	double sx = seat->cursor->x;
 	double sy = seat->cursor->y;
 
-	sx -= seat->server->focused_view->current.x;
-	sy -= seat->server->focused_view->current.y;
+	sx -= seat->server->active_view->current.x;
+	sy -= seat->server->active_view->current.y;
 
 	double sx_confined, sy_confined;
 	if (!wlr_region_confine(&seat->current_constraint->region, sx, sy,

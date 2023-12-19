@@ -358,20 +358,20 @@ focus_change_notify(struct wl_listener *listener, void *data)
 	 * active. This fixes an issue with menus immediately closing in
 	 * some X11 apps (try LibreOffice with SAL_USE_VCLPLUGIN=gen).
 	 */
-	if (!view && server->focused_view && event->new_surface
-			&& view_is_related(server->focused_view,
+	if (!view && server->active_view && event->new_surface
+			&& view_is_related(server->active_view,
 				event->new_surface)) {
 		return;
 	}
 
-	if (view != server->focused_view) {
-		if (server->focused_view) {
-			view_set_activated(server->focused_view, false);
+	if (view != server->active_view) {
+		if (server->active_view) {
+			view_set_activated(server->active_view, false);
 		}
 		if (view) {
 			view_set_activated(view, true);
 		}
-		server->focused_view = view;
+		server->active_view = view;
 	}
 }
 

@@ -599,7 +599,7 @@ view_for_action(struct view *activator, struct server *server,
 		return ctx.view;
 	}
 	default:
-		return server->focused_view;
+		return server->active_view;
 	}
 }
 

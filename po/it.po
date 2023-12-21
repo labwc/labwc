@@ -3,60 +3,67 @@
 # This file is distributed under the same license as the labwc package.
 # Mick Amadio <01micko@gmail.com>, 2022.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2023-01-02 11:22+1000\n"
-"PO-Revision-Date: 2022-04-30 16:50+1000\n"
-"Last-Translator: Mick Amadio <01micko@gmail.com>\n"
-"Language-Team: Italian <it>\n"
+"PO-Revision-Date: 2023-12-21 06:49+0000\n"
+"Last-Translator: Standreas <standreas@riseup.net>\n"
+"Language-Team: Italian <https://translate.lxqt-project.org/projects/testing/labwc/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:631
+#: src/menu/menu.c:698
 msgid "Reconfigure"
-msgstr "Riconfigurare"
+msgstr "Riconfigura"
 
-#: src/menu/menu.c:633
+#: src/menu/menu.c:700
 msgid "Exit"
-msgstr "Uscita"
+msgstr "Esci"
 
-#: src/menu/menu.c:649
+#: src/menu/menu.c:716
 msgid "Minimize"
 msgstr "Riduci"
 
-#: src/menu/menu.c:651
+#: src/menu/menu.c:718
 msgid "Maximize"
 msgstr "Ingrandisci"
 
-#: src/menu/menu.c:653
+#: src/menu/menu.c:720
 msgid "Fullscreen"
 msgstr "Schermo intero"
 
-#: src/menu/menu.c:655
+#: src/menu/menu.c:722
 msgid "Decorations"
 msgstr "Decorazioni"
 
-#: src/menu/menu.c:657
-msgid "Always On Top"
+#: src/menu/menu.c:724
+#, fuzzy
+#| msgid "Always On Top"
+msgid "Always on Top"
 msgstr "Sempre sopra"
 
-#: src/menu/menu.c:662
+#: src/menu/menu.c:729
 msgid "Move left"
 msgstr "Sposta a sinistra"
 
-#: src/menu/menu.c:667
+#: src/menu/menu.c:736
 msgid "Move right"
 msgstr "Sposta a destra"
 
-#: src/menu/menu.c:672
+#: src/menu/menu.c:741
+msgid "Always on Visible Workspace"
+msgstr ""
+
+#: src/menu/menu.c:744
 msgid "Workspace"
 msgstr "Area di lavoro"
 
-#: src/menu/menu.c:675
+#: src/menu/menu.c:747
 msgid "Close"
 msgstr "Chiudi"

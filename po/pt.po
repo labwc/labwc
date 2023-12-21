@@ -1,16 +1,16 @@
 # Labwc pot file
 # Copyright (C) 2023
 # This file is distributed under the same license as the labwc package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Daniel <https://github.com/daniel005007>, 2023.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2023-01-02 11:22+1000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2023-12-21 21:00-0300\n"
+"Last-Translator: Daniel <https://github.com/daniel005007>\n"
+"Language-Team: Portuguese <pt>\n"
 "Language: pt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,48 +18,48 @@ msgstr ""
 
 #: src/menu/menu.c:698
 msgid "Reconfigure"
-msgstr ""
+msgstr "Reconfigurar"
 
 #: src/menu/menu.c:700
 msgid "Exit"
-msgstr ""
+msgstr "Sair"
 
 #: src/menu/menu.c:716
 msgid "Minimize"
-msgstr ""
+msgstr "Minimizar"
 
 #: src/menu/menu.c:718
 msgid "Maximize"
-msgstr ""
+msgstr "Maximizar"
 
 #: src/menu/menu.c:720
 msgid "Fullscreen"
-msgstr ""
+msgstr "Tela Cheia"
 
 #: src/menu/menu.c:722
 msgid "Decorations"
-msgstr ""
+msgstr "Decorações"
 
 #: src/menu/menu.c:724
 msgid "Always on Top"
-msgstr ""
+msgstr "Sempre no Topo"
 
 #: src/menu/menu.c:729
 msgid "Move left"
-msgstr ""
+msgstr "Mover para a esquerda"
 
 #: src/menu/menu.c:736
 msgid "Move right"
-msgstr ""
+msgstr "Mover para a direita"
 
 #: src/menu/menu.c:741
 msgid "Always on Visible Workspace"
-msgstr ""
+msgstr "Sempre Visível na Área de Trabalho"
 
 #: src/menu/menu.c:744
 msgid "Workspace"
-msgstr ""
+msgstr "Área de Trabalho"
 
 #: src/menu/menu.c:747
 msgid "Close"
-msgstr ""
+msgstr "Fechar"

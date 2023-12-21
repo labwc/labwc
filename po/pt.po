@@ -1,59 +1,56 @@
 # Labwc pot file
 # Copyright (C) 2023
 # This file is distributed under the same license as the labwc package.
-# May Mantari <https://github.com/mantarimay>, 2023.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2023-01-02 11:22+1000\n"
-"PO-Revision-Date: 2023-04-14 20:40+0700\n"
-"Last-Translator: May Mantari <https://github.com/mantarimay\n"
-"Language-Team: Indonesian <id>\n"
-"Language: id\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: pt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: src/menu/menu.c:698
 msgid "Reconfigure"
-msgstr "Atur Ulang"
+msgstr ""
 
 #: src/menu/menu.c:700
 msgid "Exit"
-msgstr "Keluar"
+msgstr ""
 
 #: src/menu/menu.c:716
 msgid "Minimize"
-msgstr "Sembunyikan"
+msgstr ""
 
 #: src/menu/menu.c:718
 msgid "Maximize"
-msgstr "Perluas Jendela"
+msgstr ""
 
 #: src/menu/menu.c:720
 msgid "Fullscreen"
-msgstr "Tampil Menyeluruh"
+msgstr ""
 
 #: src/menu/menu.c:722
 msgid "Decorations"
-msgstr "Dekorasi"
+msgstr ""
 
 #: src/menu/menu.c:724
-#, fuzzy
-#| msgid "Always On Top"
 msgid "Always on Top"
-msgstr "Selalu di Muka"
+msgstr ""
 
 #: src/menu/menu.c:729
 msgid "Move left"
-msgstr "Geser ke Kiri"
+msgstr ""
 
 #: src/menu/menu.c:736
 msgid "Move right"
-msgstr "Geser ke Kanan"
+msgstr ""
 
 #: src/menu/menu.c:741
 msgid "Always on Visible Workspace"
@@ -61,8 +58,8 @@ msgstr ""
 
 #: src/menu/menu.c:744
 msgid "Workspace"
-msgstr "Ruang Kerja"
+msgstr ""
 
 #: src/menu/menu.c:747
 msgid "Close"
-msgstr "Tutup"
+msgstr ""

@@ -543,7 +543,7 @@ init_foreign_toplevel(struct view *view)
 		return;
 	}
 	struct view *parent = (struct view *)surface->parent->data;
-	if (!parent->toplevel.handle) {
+	if (!parent || !parent->toplevel.handle) {
 		return;
 	}
 	wlr_foreign_toplevel_handle_v1_set_parent(view->toplevel.handle, parent->toplevel.handle);

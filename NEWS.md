@@ -64,7 +64,8 @@ Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
 
 # Fixed
 
-- Fix xwayland.c null pointer dereference causing crash with CLions. (#1352)
+- Fix xwayland.c null pointer dereference causing crash with JetBrains CLion.
+  (#1352)
 - Fix issue with XWayland surfaces completely offscreen not generating commit
   events and therefore preventing them from moving onscreen.
 - Do not de-active windows when layer-shell client takes keyboard focus, to

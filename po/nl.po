@@ -8,58 +8,61 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2023-01-02 11:22+1000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2023-12-22 10:35+0000\n"
+"Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
+"Language-Team: Dutch <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.2.1\n"
 
 #: src/menu/menu.c:698
 msgid "Reconfigure"
-msgstr ""
+msgstr "Opnieuw instellen"
 
 #: src/menu/menu.c:700
 msgid "Exit"
-msgstr ""
+msgstr "Afsluiten"
 
 #: src/menu/menu.c:716
 msgid "Minimize"
-msgstr ""
+msgstr "Minimaliseren"
 
 #: src/menu/menu.c:718
 msgid "Maximize"
-msgstr ""
+msgstr "Maximaliseren"
 
 #: src/menu/menu.c:720
 msgid "Fullscreen"
-msgstr ""
+msgstr "Schermvullende weergave"
 
 #: src/menu/menu.c:722
 msgid "Decorations"
-msgstr ""
+msgstr "Decoraties"
 
 #: src/menu/menu.c:724
 msgid "Always on Top"
-msgstr ""
+msgstr "Altijd bovenaan"
 
 #: src/menu/menu.c:729
 msgid "Move left"
-msgstr ""
+msgstr "Naar links verplaatsen"
 
 #: src/menu/menu.c:736
 msgid "Move right"
-msgstr ""
+msgstr "Naar rechts verplaatsen"
 
 #: src/menu/menu.c:741
 msgid "Always on Visible Workspace"
-msgstr ""
+msgstr "Altijd op zichtbaar werkblad"
 
 #: src/menu/menu.c:744
 msgid "Workspace"
-msgstr ""
+msgstr "Werkblad"
 
 #: src/menu/menu.c:747
 msgid "Close"
-msgstr ""
+msgstr "Sluiten"

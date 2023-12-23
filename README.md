@@ -16,9 +16,10 @@ href="NEWS.md">Release&nbsp;Notes</a>]</h3>
 - [2. Build and Installation](#2-build-and-installation)
 - [3. Configuration](#3-configuration)
 - [4. Theming](#4-theming)
-- [5. Usage](#5-usage)
-  - [5.1 Gaming](#51-gaming)
-- [6. Integration](#6-integration)
+- [5. Translations](#5-translations)
+- [6. Usage](#6-usage)
+  - [6.1 Gaming](#61-gaming)
+- [7. Integration](#7-integration)
 
 ## 1. Project Description
 
@@ -193,9 +194,17 @@ For themes, search the internet for "openbox themes" and place them in
 - https://github.com/addy-dclxvi/openbox-theme-collections
 - https://github.com/the-zero885/Lubuntu-Arc-Round-Openbox-Theme
 - https://bitbucket.org/archlabslinux/themes/
-- https://github.com/BunsenLabs/bunsen-themes
+- https://github.com/BunsenLabs/bunsen-themes##
 
-## 5. Usage
+## 5. Translations
+
+The default window bar menu can be translated on the [weblate platform](https://translate.lxqt-project.org/projects/labwc/labwc/).
+
+<a href="https://translate.lxqt-project.org/engage/labwc/?utm_source=widget">
+<img src="https://translate.lxqt-project.org/widgets/labwc/-/labwc/multi-blue.svg" alt="Translation status" />
+</a>
+
+## 6. Usage
 
     ./build/labwc [-s <command>]
 
@@ -223,7 +232,7 @@ If you have not created an rc.xml config file, default bindings will be:
 
 A root-menu can be opened by clicking on the desktop.
 
-### 5.1 Gaming
+### 6.1 Gaming
 
 Cursor confinement is supported from version `0.6.2`. If using older versions,
 use a nested [gamescope] instance for gaming.  It can be added to steam via

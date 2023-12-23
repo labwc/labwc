@@ -755,15 +755,13 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "topMaximize.snapping")) {
 		set_bool(content, &rc.snap_top_maximize);
 
-	/* <windowSwitcher show="" preview="" outlines="" full_app_id="" /> */
+	/* <windowSwitcher show="" preview="" outlines="" /> */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.show);
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.preview);
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.outlines);
-	} else if (!strcasecmp(nodename, "full_app_id.windowSwitcher")) {
-		set_bool(content, &rc.window_switcher.full_app_id);
 
 	/* Remove this long term - just a friendly warning for now */
 	} else if (strstr(nodename, "windowswitcher.core")) {
@@ -978,7 +976,6 @@ rcxml_init(void)
 	rc.window_switcher.show = true;
 	rc.window_switcher.preview = true;
 	rc.window_switcher.outlines = true;
-	rc.window_switcher.full_app_id = false;
 
 	rc.resize_indicator = LAB_RESIZE_INDICATOR_NEVER;
 

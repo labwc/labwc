@@ -44,9 +44,6 @@ get_formatted_app_id(struct view *view)
 	if (!s) {
 		return NULL;
 	}
-	if (rc.window_switcher.full_app_id) {
-		return s;
-	}
 	/* remove the first two nodes of 'org.' strings */
 	if (!strncmp(s, "org.", 4)) {
 		char *p = s + 4;

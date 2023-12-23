@@ -3,19 +3,19 @@
 # This file is distributed under the same license as the labwc package.
 # Aleksey Samoilov <samoilov.lex@gmail.com>, 2023.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2023-01-02 11:22+1000\n"
-"PO-Revision-Date: 2023-04-14 15:18+1000\n"
+"PO-Revision-Date: 2023-12-23 10:45+0300\n"
 "Last-Translator: Aleksey Samoilov <samoilov.lex@gmail.com>\n"
 "Language-Team: Russian <ru>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.1\n"
 
 #: src/menu/menu.c:698
 msgid "Reconfigure"
@@ -42,8 +42,6 @@ msgid "Decorations"
 msgstr "Декорации"
 
 #: src/menu/menu.c:724
-#, fuzzy
-#| msgid "Always On Top"
 msgid "Always on Top"
 msgstr "Всегда на переднем плане"
 
@@ -57,7 +55,7 @@ msgstr "Переместить вправо"
 
 #: src/menu/menu.c:741
 msgid "Always on Visible Workspace"
-msgstr ""
+msgstr "На всех рабочих пространствах"
 
 #: src/menu/menu.c:744
 msgid "Workspace"

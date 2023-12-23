@@ -44,6 +44,15 @@ get_formatted_app_id(struct view *view)
 	if (!s) {
 		return NULL;
 	}
+	return s;
+}
+
+static const char *
+get_trimmed_app_id(char *s)
+{
+	if (!s) {
+		return NULL;
+	}
 	/* remove the first two nodes of 'org.' strings */
 	if (!strncmp(s, "org.", 4)) {
 		char *p = s + 4;
@@ -355,6 +364,12 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			case LAB_FIELD_IDENTIFIER:
 				buf_add(&buf, get_app_id(*view));
 				break;
+			case LAB_FIELD_TRIMMED_IDENTIFIER:
+				{
+					char *s = (char *)get_app_id(*view);
+					buf_add(&buf, get_trimmed_app_id(s));
+					break;
+				}
 			case LAB_FIELD_TITLE:
 				buf_add(&buf, get_title(*view));
 				break;

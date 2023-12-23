@@ -154,6 +154,9 @@ this is for compatibility with Openbox.
 		- *identifier* Show identifier (app_id for native Wayland
 		  windows and WM_CLASS for XWayland clients)
 
+		- *trimmed_identifier* Show trimmed identifier. Trimming removes the first
+		  two nodes of 'org.' strings.
+
 		- *title* Show window title if different to app_id
 
 	*width* defines the width of the field expressed as a percentage of

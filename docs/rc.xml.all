@@ -52,7 +52,8 @@
   <windowSwitcher show="yes" preview="yes" outlines="yes">
     <fields>
       <field content="type" width="25%" />
-      <field content="identifier" width="25%" />
+      <field content="trimmed_identifier" width="25%" />
+      <!-- <field content="identifier" width="25%" /> -->
       <field content="title" width="50%" />
     </fields>
   </windowSwitcher>

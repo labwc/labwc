@@ -22,7 +22,8 @@ enum window_switcher_field_content {
 
 enum view_placement_policy {
 	LAB_PLACE_CENTER = 0,
-	LAB_PLACE_CURSOR
+	LAB_PLACE_CURSOR,
+	LAB_PLACE_AUTOMATIC
 };
 
 struct usable_area_override {

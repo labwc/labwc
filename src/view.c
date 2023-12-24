@@ -9,6 +9,7 @@
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "placement.h"
 #include "regions.h"
 #include "resize_indicator.h"
 #include "snap.h"
@@ -684,6 +685,12 @@ view_place_initial(struct view *view)
 	if (rc.placement_policy == LAB_PLACE_CURSOR) {
 		view_move_to_cursor(view);
 		return;
+	} else if (rc.placement_policy == LAB_PLACE_AUTOMATIC) {
+		int x = 0, y = 0;
+		if (placement_find_best(view, &x, &y)) {
+			view_move(view, x, y);
+			return;
+		}
 	}
 
 	view_center(view, NULL);

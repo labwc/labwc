@@ -704,7 +704,9 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);
 	} else if (!strcmp(nodename, "policy.placement")) {
-		if (!strcmp(content, "cursor")) {
+		if (!strcmp(content, "automatic")) {
+			rc.placement_policy = LAB_PLACE_AUTOMATIC;
+		} else if (!strcmp(content, "cursor")) {
 			rc.placement_policy = LAB_PLACE_CURSOR;
 		} else {
 			rc.placement_policy = LAB_PLACE_CENTER;

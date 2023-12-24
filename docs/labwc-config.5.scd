@@ -134,10 +134,12 @@ this is for compatibility with Openbox.
 
 ## PLACEMENT
 
-*<placement><policy>* [center|cursor]
+*<placement><policy>* [center|automatic|cursor]
 	Specify a placement policy for new windows. The "center" policy will
-	always place windows at the center of the active output. The "cursor"
-	policy will center new windows under the cursor. Default is "center".
+	always place windows at the center of the active output. The "automatic"
+	policy will try to place new windows in such a way that they will
+	have minimal overlap with existing windows. The "cursor" policy will
+	center new windows under the cursor. Default is "center".
 
 ## WINDOW SWITCHER
 

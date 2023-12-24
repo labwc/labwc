@@ -194,7 +194,7 @@ For themes, search the internet for "openbox themes" and place them in
 - https://github.com/addy-dclxvi/openbox-theme-collections
 - https://github.com/the-zero885/Lubuntu-Arc-Round-Openbox-Theme
 - https://bitbucket.org/archlabslinux/themes/
-- https://github.com/BunsenLabs/bunsen-themes##
+- https://github.com/BunsenLabs/bunsen-themes
 
 ## 5. Translations
 

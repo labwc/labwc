@@ -1,18 +1,18 @@
 # Labwc pot file
-# Copyright (C) 2022
+# Copyright (C) 2023
 # This file is distributed under the same license as the labwc package.
-# Oğuz Ersen <oguz@ersen.moe>, 2022.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2023-01-02 11:22+1000\n"
-"PO-Revision-Date: 2023-12-26 09:00+0000\n"
-"Last-Translator: Sabri Ünal <libreajans@gmail.com>\n"
-"Language-Team: Turkish <https://translate.lxqt-project.org/projects/labwc/"
-"labwc/tr/>\n"
-"Language: tr\n"
+"PO-Revision-Date: 2023-12-24 14:12+0000\n"
+"Last-Translator: Priit Jõerüüt <lxqtwlate@joeruut.com>\n"
+"Language-Team: Estonian <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/et/>\n"
+"Language: et\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -21,48 +21,48 @@ msgstr ""
 
 #: src/menu/menu.c:698
 msgid "Reconfigure"
-msgstr "Yeniden Yapılandır"
+msgstr "Seadista uuesti"
 
 #: src/menu/menu.c:700
 msgid "Exit"
-msgstr "Çıkış"
+msgstr "Välju"
 
 #: src/menu/menu.c:716
 msgid "Minimize"
-msgstr "Küçült"
+msgstr "Vähenda"
 
 #: src/menu/menu.c:718
 msgid "Maximize"
-msgstr "Büyüt"
+msgstr "Suurenda"
 
 #: src/menu/menu.c:720
 msgid "Fullscreen"
-msgstr "Tam Ekran"
+msgstr "Täisekraanivaade"
 
 #: src/menu/menu.c:722
 msgid "Decorations"
-msgstr "Süslemeler"
+msgstr "Akende välimus"
 
 #: src/menu/menu.c:724
 msgid "Always on Top"
-msgstr "Her Zaman Üstte"
+msgstr "Alati kõige peal"
 
 #: src/menu/menu.c:729
 msgid "Move left"
-msgstr "Sola taşı"
+msgstr "Tõsta vasakule"
 
 #: src/menu/menu.c:736
 msgid "Move right"
-msgstr "Sağa taşı"
+msgstr "Tõsta paremale"
 
 #: src/menu/menu.c:741
 msgid "Always on Visible Workspace"
-msgstr "Her Zaman Görünür Çalışma Alanında"
+msgstr "Alati nähtav töölaual"
 
 #: src/menu/menu.c:744
 msgid "Workspace"
-msgstr "Çalışma Alanı"
+msgstr "Töölaud"
 
 #: src/menu/menu.c:747
 msgid "Close"
-msgstr "Kapat"
+msgstr "Sulge"

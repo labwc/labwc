@@ -1,68 +1,68 @@
 # Labwc pot file
-# Copyright (C) 2022
+# Copyright (C) 2023
 # This file is distributed under the same license as the labwc package.
-# Oğuz Ersen <oguz@ersen.moe>, 2022.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2023-01-02 11:22+1000\n"
-"PO-Revision-Date: 2023-12-26 09:00+0000\n"
-"Last-Translator: Sabri Ünal <libreajans@gmail.com>\n"
-"Language-Team: Turkish <https://translate.lxqt-project.org/projects/labwc/"
-"labwc/tr/>\n"
-"Language: tr\n"
+"PO-Revision-Date: 2023-12-26 07:23+0000\n"
+"Last-Translator: A S Alam <amanpreet.alam@gmail.com>\n"
+"Language-Team: Punjabi <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/pa/>\n"
+"Language: pa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
 "X-Generator: Weblate 4.2.1\n"
 
 #: src/menu/menu.c:698
 msgid "Reconfigure"
-msgstr "Yeniden Yapılandır"
+msgstr "ਮੁੜ-ਸੰਰਚਨਾ ਕਰੋ"
 
 #: src/menu/menu.c:700
 msgid "Exit"
-msgstr "Çıkış"
+msgstr "ਬਾਹਰ"
 
 #: src/menu/menu.c:716
 msgid "Minimize"
-msgstr "Küçült"
+msgstr "ਘੱਟੋ-ਘੱਟ"
 
 #: src/menu/menu.c:718
 msgid "Maximize"
-msgstr "Büyüt"
+msgstr "ਵੱਧ ਤੋਂ ਵੱਧ"
 
 #: src/menu/menu.c:720
 msgid "Fullscreen"
-msgstr "Tam Ekran"
+msgstr "ਪੂਰੀ ਸਕਰੀਨ"
 
 #: src/menu/menu.c:722
 msgid "Decorations"
-msgstr "Süslemeler"
+msgstr "ਸਜਾਵਟ"
 
 #: src/menu/menu.c:724
 msgid "Always on Top"
-msgstr "Her Zaman Üstte"
+msgstr "ਹਮੇਸ਼ਾਂ ਉੱਤੇ ਰੱਖੋ"
 
 #: src/menu/menu.c:729
 msgid "Move left"
-msgstr "Sola taşı"
+msgstr "ਖੱਬੇ ਭੇਜੋ"
 
 #: src/menu/menu.c:736
 msgid "Move right"
-msgstr "Sağa taşı"
+msgstr "ਸੱਜੇ ਭੇਜੋ"
 
 #: src/menu/menu.c:741
 msgid "Always on Visible Workspace"
-msgstr "Her Zaman Görünür Çalışma Alanında"
+msgstr "ਹਮੇਸ਼ਾਂ ਦਿੱਖ ਵਰਕਸਪੇਸ ਉੱਤੇ"
 
 #: src/menu/menu.c:744
 msgid "Workspace"
-msgstr "Çalışma Alanı"
+msgstr "ਵਰਕਸਪੇਸ"
 
 #: src/menu/menu.c:747
 msgid "Close"
-msgstr "Kapat"
+msgstr "ਬੰਦ ਕਰੋ"

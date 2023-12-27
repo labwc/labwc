@@ -198,6 +198,8 @@ fill_window_switcher_field(char *nodename, char *content)
 		} else if (!strcmp(content, "app_id")) {
 			wlr_log(WLR_ERROR, "window-switcher field 'app_id' is deprecated");
 			current_field->content = LAB_FIELD_IDENTIFIER;
+		} else if (!strcmp(content, "trimmed_identifier")) {
+			current_field->content = LAB_FIELD_TRIMMED_IDENTIFIER;
 		} else if (!strcmp(content, "title")) {
 			current_field->content = LAB_FIELD_TITLE;
 		} else {
@@ -1228,7 +1230,7 @@ static struct {
 	int width;
 } fields[] = {
 	{ LAB_FIELD_TYPE, 25 },
-	{ LAB_FIELD_IDENTIFIER, 25 },
+	{ LAB_FIELD_TRIMMED_IDENTIFIER, 25 },
 	{ LAB_FIELD_TITLE, 50 },
 	{ LAB_FIELD_NONE, 0 },
 };

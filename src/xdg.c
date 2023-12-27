@@ -127,6 +127,20 @@ handle_commit(struct wl_listener *listener, void *data)
 
 	if (update_required) {
 		view_impl_apply_geometry(view, size.width, size.height);
+
+		/*
+		 * Some views (e.g., terminals that scale as multiples of rows
+		 * and columns, or windows that impose a fixed aspect ratio),
+		 * may respond to a resize but alter the width or height. When
+		 * this happens, view->pending will be out of sync with the
+		 * actual geometry (size *and* position, depending on the edge
+		 * from which the resize was attempted). When no other
+		 * configure is pending, re-sync the pending geometry with the
+		 * actual view.
+		 */
+		if (!view->pending_configure_serial) {
+			view->pending = view->current;
+		}
 	}
 }
 
@@ -145,8 +159,11 @@ handle_configure_timeout(void *data)
 	view->pending_configure_serial = 0;
 	view->pending_configure_timeout = NULL;
 
-	view_impl_apply_geometry(view, view->current.width,
-		view->current.height);
+	view_impl_apply_geometry(view,
+		view->current.width, view->current.height);
+
+	/* Re-sync pending view with current state */
+	view->pending = view->current;
 
 	return 0; /* ignored per wl_event_loop docs */
 }

@@ -20,23 +20,6 @@
 #include "window-rules.h"
 #include "workspaces.h"
 
-/* is title different from app_id/class? */
-static int
-is_title_different(struct view *view)
-{
-	switch (view->type) {
-	case LAB_XDG_SHELL_VIEW:
-		return g_strcmp0(view_get_string_prop(view, "title"),
-			view_get_string_prop(view, "app_id"));
-#if HAVE_XWAYLAND
-	case LAB_XWAYLAND_VIEW:
-		return g_strcmp0(view_get_string_prop(view, "title"),
-			view_get_string_prop(view, "class"));
-#endif
-	}
-	return 1;
-}
-
 static const char *
 get_formatted_app_id(struct view *view)
 {
@@ -256,13 +239,18 @@ get_app_id(struct view *view)
 }
 
 static const char *
-get_title(struct view *view)
+get_title_if_different(struct view *view)
 {
-	if (is_title_different(view)) {
-		return view_get_string_prop(view, "title");
-	} else {
-		return "";
+	/*
+	 * XWayland clients return WM_CLASS for 'app_id' so we don't need a
+	 * special case for that here.
+	 */
+	const char *identifier = view_get_string_prop(view, "app_id");
+	const char *title = view_get_string_prop(view, "title");
+	if (!identifier) {
+		return title;
 	}
+	return (!title || !strcmp(identifier, title)) ? NULL : title;
 }
 
 static void
@@ -371,7 +359,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 					break;
 				}
 			case LAB_FIELD_TITLE:
-				buf_add(&buf, get_title(*view));
+				buf_add(&buf, get_title_if_different(*view));
 				break;
 			default:
 				break;

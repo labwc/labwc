@@ -940,13 +940,11 @@ cursor_button_press(struct seat *seat, uint32_t button,
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
-		/* We are closing the menu on RELEASE to not leak a stray release */
-		if (ctx.type != LAB_SSD_MENU) {
-			close_menu = true;
-		} else if (menu_call_actions(ctx.node)) {
-			/* Action was successful, may fail if item just opens a submenu */
-			close_menu = true;
-		}
+		/*
+		 * We close the menu on RELEASE to not leak a stray releases and
+		 * to be consistent with Openbox
+		 */
+		close_menu = true;
 		return;
 	}
 
@@ -1011,9 +1009,13 @@ cursor_button_release(struct seat *seat, uint32_t button,
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		if (close_menu) {
-			menu_close_root(server);
-			cursor_update_common(server, &ctx, time_msec,
-				/*cursor_has_moved*/ false);
+			if (ctx.type == LAB_SSD_MENU) {
+				menu_call_selected_actions(server);
+			} else {
+				menu_close_root(server);
+				cursor_update_common(server, &ctx, time_msec,
+					/*cursor_has_moved*/ false);
+			}
 			close_menu = false;
 		}
 		return;

@@ -453,9 +453,13 @@
       <windowRule title="pcmanfm-desktop*">
         <skipTaskbar>yes</skipTaskbar>
         <skipWindowSwitcher>yes</skipWindowSwitcher>
-	<fixedPosition>yes</fixedPosition>
+        <fixedPosition>yes</fixedPosition>
         <action name="MoveTo" x="0" y="0" />
         <action name="ToggleAlwaysOnBottom"/>
+      </windowRule>
+      <windowRule identifier="org.qutebrowser.qutebrowser">
+        <action name="ResizeTo" width="1024" y="800" />
+        <action name="AutoPlace"/>
       </windowRule>
     </windowRules>
   -->

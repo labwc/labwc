@@ -162,7 +162,7 @@ out:
 }
 
 static uint32_t
-u32(float *rgba)
+argb32(float *rgba)
 {
 	uint32_t r[4] = { 0 };
 	for (int i = 0; i < 4; i++) {
@@ -264,7 +264,7 @@ button_xbm_from_bitmap(const char *bitmap, struct lab_data_buffer **buffer,
 		wlr_buffer_drop(&(*buffer)->base);
 		*buffer = NULL;
 	}
-	color = u32(rgba);
+	color = argb32(rgba);
 	pixmap = parse_xbm_builtin(bitmap, 6);
 	*buffer = buffer_create_wrap(pixmap.data, pixmap.width, pixmap.height,
 		pixmap.width * 4, /* free_on_destroy */ true);
@@ -279,7 +279,7 @@ button_xbm_load(const char *button_name, struct lab_data_buffer **buffer,
 		wlr_buffer_drop(&(*buffer)->base);
 		*buffer = NULL;
 	}
-	color = u32(rgba);
+	color = argb32(rgba);
 
 	/* Read file into memory as it's easier to tokenize that way */
 	char filename[4096] = { 0 };

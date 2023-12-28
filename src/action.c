@@ -16,6 +16,7 @@
 #include "debug.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "placement.h"
 #include "regions.h"
 #include "ssd.h"
 #include "view.h"
@@ -100,6 +101,7 @@ enum action_type {
 	ACTION_TYPE_FOR_EACH,
 	ACTION_TYPE_VIRTUAL_OUTPUT_ADD,
 	ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE,
+	ACTION_TYPE_AUTO_PLACE,
 };
 
 const char *action_names[] = {
@@ -146,6 +148,7 @@ const char *action_names[] = {
 	"ForEach",
 	"VirtualOutputAdd",
 	"VirtualOutputRemove",
+	"AutoPlace",
 	NULL
 };
 
@@ -938,6 +941,14 @@ actions_run(struct view *activator, struct server *server,
 				const char *output_name = action_get_str(action, "output_name",
 						NULL);
 				output_remove_virtual(server, output_name);
+			}
+			break;
+		case ACTION_TYPE_AUTO_PLACE:
+			if (view) {
+				int x = 0, y = 0;
+				if (placement_find_best(view, &x, &y)) {
+					view_move(view, x, y);
+				}
 			}
 			break;
 		case ACTION_TYPE_INVALID:

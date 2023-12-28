@@ -18,6 +18,8 @@ jobs:
       - name: Code Style
         run: |
           ./scripts/check
+          make -C scripts/helper
+          ./scripts/find-banned.sh
   build:
     name: Build
     needs: codestyle

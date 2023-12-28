@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2024-01-23 | [unreleased]  | 0.17.1          |               |
 | 2023-12-22 | [0.7.0]       | 0.17.1          | 16576         |
 | 2023-11-25 | [0.6.6]       | 0.16.2          | 15796         |
 | 2023-09-23 | [0.6.5]       | 0.16.2          | 14809         |
@@ -26,6 +27,110 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
+
+## [unreleased]
+
+### Added
+
+- Expose output configuration test to clients. For example, this enables
+  `wlr-randr --dryrun`
+- Add window-edge resistance for interactive moves/resizes and support negative
+  strengths to indicate attractive snapping. Written-by: @ahesford
+
+      <resistance>
+        <screenEdgeStrength>-20</screenEdgeStrength>
+        <windowEdgeStrength>-20</windowEdgeStrength>
+      </resistance>
+
+- Set keyboard layout on reconfigure. Issue #1407
+- Reset keyboard-layout group (index) for each window on reconfigure if
+  the keymap has changed.
+- Support merging multiple config files with the --merge-config command
+  line option. Issue #1406
+- Add config option to map touch events to a named output (display).
+  Optionally, make this only apply to specific named devices.
+  Written-by: @jp7677
+
+      <touch mapToOutput=""/>
+      <touch deviceName="" mapToOutput=""/>
+
+- Add tablet support including:
+    - Mapping of tablet to output (display)
+    - Emulation of cursor movement and button press/release
+    - Configuration of area and rotation
+  Written-by: @jp7677 @Consolatis
+
+      <tablet mapToOutput="HDMI-A-1" rotate="90">
+        <area top="0.0" left="0.0" width="0.0" height="0.0" />
+        <map button="Tip" to="Left" />
+        <map button="Stylus" to="Right" />
+        <map button="Stylus2" to="Middle" />
+      </tablet>
+
+- Add tearing support. #1390. Written-by: @Ph42oN @ahesford
+- Add configuration support for mouse buttons `Side`, `Extra`, `Forward`,
+  `Back` and `Task`. Written-by: @jp7677
+- config: allow `<libinput><device>` without category attribute to define a
+  `default` profile because it is more user-friendly and intuitive.
+- Add a configuration option to enable adaptive sync only when an application
+  is in fullscreen mode. Written-by: @Ph42oN
+- Add `touchpad` libinput device type to increase configuration flexibility,
+  for example allowing `naturalScroll` on touchpads, but not on regular pointer
+  devices such as mice. Written-by: @jmbaur
+- Add actions:
+    - `AutoPlace` (by @ahesford)
+    - `MoveToOutput`, `FitToOutput` (by @jp7677)
+    - `Shade`, `Unshade`, `ToggleShade` (by @ahesford @Consolatis)
+- Add config option `<placement><policy>` with supported values `center`,
+  `under-cursor` and `automatic`. The latter minimizes overlap with other
+  windows already on screen and is similar to Openbox's smart window placement.
+  Written-by: @ahesford #1312
+
+      <placement>
+        <policy>center|automatic|cursor</policy>
+      </placement>
+
+### Fixed
+
+- Fix output configuration bug causing compositor crash when refresh rate is
+  zero. Issue #1458
+- Fix disappearing cursor bug on view destruction. Issue #1393
+- Use used specified config-file (using -c command line option) on
+  reconfigure.
+- Assign outputs to new views on surface creation instead of mapping, and
+  notify the client of the preferred output scale when doing so. This fixes an
+  issue with foot: https://codeberg.org/dnkl/foot/issues/1579
+  Written-by: @ahesford
+- Cancel key repeat on vt change to fix crash on VT change on FreeBSD.
+  Issue #1424
+- Fix crash when a minimized fullscreen window closes. Written-by: @bi4k8
+- Execute menu actions after closing menus so that menu entries can issue
+  `wtype` commands to the surface with keyboard-focus. Issue #1366
+- Try to honor original window geometry on layout changes.
+- Fix virtual keyboard bug experienced with `wlrctl keyboard type xyz`. Do not
+  process virtual keyboard keycodes (just the keysyms). Issue #1367
+- Sync xdg-shell client `view->pending` when applying geometry to fix issue
+  caused by applications choosing not respond to pending resize requests either
+  by ignoring them or substituting alternative sizes (for example, when mpv
+  constrains resizes to keep its aspect ratio fixed). Written-by: @ahesford
+    
+### Changed
+
+- The new windowEdgeStrength setting makes windows resist interactive moves and
+  resizes across the edges of other windows. This can be disabled with:
+
+      <resistance>
+        <windowEdgeStrength>0</windowEdgeStrength>
+      </resistance>
+
+- Run menu actions on button release intead of press.
+- Constrain window size to that of usable area when an application is started.
+  Issue #1399
+- Support showing the full `app_id` in window-switcher (configured using the
+  keyword `identifier`).
+- For anyone using `identifier` in window-switcher field configuration, change
+  it to `trimmed_identifier` to keep looks the same. Issue #1309
+
 ## [0.7.0] - 2023-12-22
 
 The main effort in this release has gone into porting labwc to wlroots 0.17
@@ -35,7 +140,7 @@ additions and fixes as described below.
 Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
 `0.6` branch will be created.
 
-# Added
+### Added
 
 - Support titlebar hover icons. Written-by: @spl237
 - Add theme options osd.workspace-switcher.boxes.{width,height}
@@ -62,7 +167,7 @@ Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
   the screen is not covered by panels/docks. The property is used for example
   by Qt to determine areas of the screen that popup menus should not overlap.
 
-# Fixed
+### Fixed
 
 - Fix xwayland.c null pointer dereference causing crash with JetBrains CLion.
   (#1352)
@@ -80,7 +185,7 @@ Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
   issue where some XWayland views (example: xfce4-terminal) do not end up with
   exactly the correct geometry when tiled.
 
-# Changed
+### Changed
 
 - Treat XWayland panel windows as if fixedPosition rule is set
 - Use the GTK3 notebook header color as the default active title color

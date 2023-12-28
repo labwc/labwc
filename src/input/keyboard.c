@@ -154,8 +154,13 @@ match_keybinding_for_sym(struct server *server, uint32_t modifiers,
  * the raw keysym fallback.
  */
 static struct keybind *
-match_keybinding(struct server *server, struct keyinfo *keyinfo)
+match_keybinding(struct server *server, struct keyinfo *keyinfo,
+		bool is_virtual)
 {
+	if (is_virtual) {
+		goto process_syms;
+	}
+
 	/* First try keycodes */
 	struct keybind *keybind = match_keybinding_for_sym(server,
 		keyinfo->modifiers, XKB_KEY_NoSymbol, keyinfo->xkb_keycode);
@@ -164,6 +169,7 @@ match_keybinding(struct server *server, struct keyinfo *keyinfo)
 		return keybind;
 	}
 
+process_syms:
 	/* Then fall back to keysyms */
 	for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
 		keybind = match_keybinding_for_sym(server, keyinfo->modifiers,
@@ -424,7 +430,8 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	/*
 	 * Handle compositor keybinds
 	 */
-	struct keybind *keybind = match_keybinding(server, &keyinfo);
+	struct keybind *keybind =
+		match_keybinding(server, &keyinfo, keyboard->is_virtual);
 	if (keybind) {
 		/*
 		 * Update key-state before action_run() because the action

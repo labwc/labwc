@@ -931,9 +931,6 @@ menu_execute_item(struct menuitem *item)
 		return false;
 	}
 
-	actions_run(item->parent->triggered_by_view,
-		item->parent->server, &item->actions, 0);
-
 	/*
 	 * We close the menu here to provide a faster feedback to the user.
 	 * We do that without resetting the input state so src/cursor.c
@@ -941,6 +938,17 @@ menu_execute_item(struct menuitem *item)
 	 */
 	menu_close(item->parent->server->menu_current);
 	item->parent->server->menu_current = NULL;
+
+	struct server *server = item->parent->server;
+	menu_close_root(server);
+	cursor_update_focus(server);
+
+	/*
+	 * We call the actions after menu_close_root() so that virtual keyboard
+	 * input is sent to the focused_surface instead of being absorbed by the
+	 * menu. Consider for example: `wlrctl keyboard type abc`
+	 */
+	actions_run(item->parent->triggered_by_view, server, &item->actions, 0);
 
 	return true;
 }

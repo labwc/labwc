@@ -331,10 +331,7 @@ handle_menu_keys(struct server *server, struct keysyms *syms)
 			menu_submenu_leave(server);
 			break;
 		case XKB_KEY_Return:
-			if (menu_call_selected_actions(server)) {
-				menu_close_root(server);
-				cursor_update_focus(server);
-			}
+			menu_call_selected_actions(server);
 			break;
 		case XKB_KEY_Escape:
 			menu_close_root(server);

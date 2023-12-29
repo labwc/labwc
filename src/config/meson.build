@@ -3,5 +3,6 @@ labwc_sources += files(
   'keybind.c',
   'session.c',
   'mousebind.c',
+  'tablet.c',
   'libinput.c',
 )

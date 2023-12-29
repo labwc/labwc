@@ -23,6 +23,7 @@
 #include "config/keybind.h"
 #include "config/libinput.h"
 #include "config/mousebind.h"
+#include "config/tablet.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "regions.h"
@@ -615,6 +616,8 @@ entry(xmlNode *node, char *nodename, char *content)
 	/* current <theme><font place=""></font></theme> */
 	static enum font_place font_place = FONT_PLACE_NONE;
 
+	static uint32_t button_map_from;
+
 	if (!nodename) {
 		return;
 	}
@@ -680,6 +683,11 @@ entry(xmlNode *node, char *nodename, char *content)
 	if (!strcmp(nodename, "devault.mouse")
 			|| !strcmp(nodename, "default.mouse")) {
 		load_default_mouse_bindings();
+		return;
+	}
+
+	if (!strcasecmp(nodename, "map.tablet")) {
+		button_map_from = UINT32_MAX;
 		return;
 	}
 
@@ -817,6 +825,17 @@ entry(xmlNode *node, char *nodename, char *content)
 			rc.resize_indicator = LAB_RESIZE_INDICATOR_NON_PIXEL;
 		} else {
 			wlr_log(WLR_ERROR, "Invalid value for <resize popupShow />");
+		}
+	} else if (!strcasecmp(nodename, "button.map.tablet")) {
+		button_map_from = tablet_button_from_str(content);
+	} else if (!strcasecmp(nodename, "to.map.tablet")) {
+		if (button_map_from != UINT32_MAX) {
+			uint32_t button_map_to = mouse_button_from_str(content);
+			if (button_map_to != UINT32_MAX) {
+				tablet_button_mapping_add(button_map_from, button_map_to);
+			}
+		} else {
+			wlr_log(WLR_ERROR, "Missing 'button' argument for tablet button mapping");
 		}
 	}
 }
@@ -977,6 +996,10 @@ rcxml_init(void)
 
 	rc.doubleclick_time = 500;
 	rc.scroll_factor = 1.0;
+
+	rc.tablet.button_map_count = 0;
+	tablet_load_default_button_mappings();
+
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
 	rc.kb_numlock_enable = true;

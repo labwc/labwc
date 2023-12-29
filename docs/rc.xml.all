@@ -394,6 +394,18 @@
   </mouse>
 
   <!--
+    Tablet buttons emulate regular mouse buttons.
+
+    The tablet *button* can be set to any of [tip|stylus|stylus2|stylus3].
+    Valid *to* mouse buttons are [left|right|middle].
+  -->
+  <tablet>
+    <map button="tip" to="left" />
+    <map button="stylus" to="right" />
+    <map button="stylus2" to="middle" />
+  </tablet>
+
+  <!--
     The *category* element can be set to touch, touchpad, non-touch, default or
     the name of a device. You can obtain device names by running *libinput
     list-devices* as root or member of the input group.

@@ -407,7 +407,7 @@
       - tapButtonMap [lrm|lmr]
   -->
   <libinput>
-    <device category="">
+    <device category="default">
       <naturalScroll></naturalScroll>
       <leftHanded></leftHanded>
       <pointerSpeed></pointerSpeed>

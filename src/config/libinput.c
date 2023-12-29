@@ -26,7 +26,10 @@ libinput_category_init(struct libinput_category *l)
 enum device_type
 get_device_type(const char *s)
 {
-	if (!s) {
+	if (!s || !*s) {
+		return LAB_LIBINPUT_DEVICE_NONE;
+	}
+	if (!strcasecmp(s, "default")) {
 		return DEFAULT_DEVICE;
 	}
 	if (!strcasecmp(s, "touch")) {
@@ -38,7 +41,7 @@ get_device_type(const char *s)
 	if (!strcasecmp(s, "non-touch")) {
 		return NON_TOUCH_DEVICE;
 	}
-	return DEFAULT_DEVICE;
+	return LAB_LIBINPUT_DEVICE_NONE;
 }
 
 struct libinput_category *

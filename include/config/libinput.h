@@ -7,6 +7,9 @@
 #include <wayland-server-core.h>
 
 enum device_type {
+	LAB_LIBINPUT_DEVICE_NONE = 0,
+
+	// FIXME: Rename the entries below with a LAB_LIBINPUT_ prefix
 	DEFAULT_DEVICE,
 	TOUCH_DEVICE,
 	TOUCHPAD_DEVICE,

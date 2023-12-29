@@ -460,12 +460,19 @@ fill_libinput_category(char *nodename, char *content)
 	string_truncate_at_pattern(nodename, ".device.libinput");
 
 	if (!strcmp(nodename, "category")) {
-		if (!strcmp(content, "touch")
-				|| !strcmp(content, "touchpad")
-				|| !strcmp(content, "non-touch")
-				|| !strcmp(content, "default")) {
-			current_libinput_category->type = get_device_type(content);
-		} else {
+		/*
+		 * First we try to get a type based on a number of pre-defined
+		 * terms, for example: 'default', 'touch', 'touchpad' and
+		 * 'non-touch'
+		 */
+		current_libinput_category->type = get_device_type(content);
+
+		/*
+		 * If we couldn't match against any of those terms, we use the
+		 * provided value to define the device name that the settings
+		 * should be applicable to.
+		 */
+		if (current_libinput_category->type == LAB_LIBINPUT_DEVICE_NONE) {
 			current_libinput_category->name = xstrdup(content);
 		}
 	} else if (!strcasecmp(nodename, "naturalScroll")) {

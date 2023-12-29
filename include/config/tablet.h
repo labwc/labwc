@@ -4,12 +4,20 @@
 
 #include <stdint.h>
 
+enum rotation {
+	LAB_ROTATE_NONE = 0,
+	LAB_ROTATE_90,
+	LAB_ROTATE_180,
+	LAB_ROTATE_270,
+};
+
 #define BUTTON_MAP_MAX 16
 struct button_map_entry {
 	uint32_t from;
 	uint32_t to;
 };
 
+enum rotation tablet_parse_rotation(int value);
 uint32_t tablet_button_from_str(const char *button);
 uint32_t mouse_button_from_str(const char *button);
 void tablet_button_mapping_add(uint32_t from, uint32_t to);

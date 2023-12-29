@@ -826,6 +826,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "Invalid value for <resize popupShow />");
 		}
+	} else if (!strcasecmp(nodename, "rotate.tablet")) {
+		rc.tablet.rotation = tablet_parse_rotation(atoi(content));
 	} else if (!strcasecmp(nodename, "button.map.tablet")) {
 		button_map_from = tablet_button_from_str(content);
 	} else if (!strcasecmp(nodename, "to.map.tablet")) {

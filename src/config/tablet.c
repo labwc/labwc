@@ -7,6 +7,24 @@
 #include "config/tablet.h"
 #include "config/rcxml.h"
 
+enum rotation tablet_parse_rotation(int value)
+{
+	switch (value) {
+	case 0:
+		return LAB_ROTATE_NONE;
+	case 90:
+		return LAB_ROTATE_90;
+	case 180:
+		return LAB_ROTATE_180;
+	case 270:
+		return LAB_ROTATE_270;
+	default:
+		wlr_log(WLR_ERROR, "Invalid value for tablet rotation: %d", value);
+		break;
+	}
+	return LAB_ROTATE_NONE;
+}
+
 uint32_t tablet_button_from_str(const char *button)
 {
 	if (!strcasecmp(button, "Tip")) {

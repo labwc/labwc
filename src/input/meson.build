@@ -1,6 +1,6 @@
 labwc_sources += files(
   'cursor.c',
-  'drawing_tablet.c',
+  'tablet.c',
   'gestures.c',
   'input.c',
   'keyboard.c',

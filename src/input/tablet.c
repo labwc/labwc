@@ -12,6 +12,30 @@
 #include "input/tablet.h"
 
 static void
+adjust_for_rotation(enum rotation rotation, double *x, double *y)
+{
+	double tmp;
+	switch (rotation) {
+	case LAB_ROTATE_NONE:
+		break;
+	case LAB_ROTATE_90:
+		tmp = *x;
+		*x = 1.0 - *y;
+		*y = tmp;
+		break;
+	case LAB_ROTATE_180:
+		*x = 1.0 - *x;
+		*y = 1.0 - *y;
+		break;
+	case LAB_ROTATE_270:
+		tmp = *x;
+		*x = *y;
+		*y = 1.0 - tmp;
+		break;
+	}
+}
+
+static void
 handle_axis(struct wl_listener *listener, void *data)
 {
 	struct wlr_tablet_tool_axis_event *ev = data;
@@ -26,6 +50,7 @@ handle_axis(struct wl_listener *listener, void *data)
 
 		double x = tablet->x;
 		double y = tablet->y;
+		adjust_for_rotation(rc.tablet.rotation, &x, &y);
 		cursor_emulate_move_absolute(tablet->seat, &ev->tablet->base, x, y, ev->time_msec);
 	}
 	// Ignore other events

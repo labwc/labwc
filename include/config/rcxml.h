@@ -9,6 +9,7 @@
 #include "common/border.h"
 #include "common/buf.h"
 #include "common/font.h"
+#include "config/tablet.h"
 #include "config/libinput.h"
 #include "resize_indicator.h"
 #include "theme.h"
@@ -79,6 +80,12 @@ struct rcxml {
 	long doubleclick_time;     /* in ms */
 	struct wl_list mousebinds; /* struct mousebind.link */
 	double scroll_factor;
+
+	/* graphics tablet */
+	struct tablet_config {
+		uint16_t button_map_count;
+		struct button_map_entry button_map[BUTTON_MAP_MAX];
+	} tablet;
 
 	/* libinput */
 	struct wl_list libinput_categories;

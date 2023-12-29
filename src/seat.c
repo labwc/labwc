@@ -9,7 +9,7 @@
 #include <wlr/types/wlr_touch.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
-#include "input/drawing_tablet.h"
+#include "input/tablet.h"
 #include "input/input.h"
 #include "input/keyboard.h"
 #include "input/key-state.h"
@@ -270,7 +270,7 @@ new_tablet(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct input *input = znew(*input);
 	input->wlr_input_device = dev;
-	drawing_tablet_setup_handlers(seat, dev);
+	tablet_setup_handlers(seat, dev);
 
 	return input;
 }

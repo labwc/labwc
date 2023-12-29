@@ -9,7 +9,7 @@
 #include "common/mem.h"
 #include "config/rcxml.h"
 #include "input/cursor.h"
-#include "input/drawing_tablet.h"
+#include "input/tablet.h"
 
 static void
 handle_axis(struct wl_listener *listener, void *data)
@@ -109,7 +109,7 @@ setup_pen(struct seat *seat, struct wlr_input_device *wlr_device)
 }
 
 void
-drawing_tablet_setup_handlers(struct seat *seat, struct wlr_input_device *device)
+tablet_setup_handlers(struct seat *seat, struct wlr_input_device *device)
 {
 	switch (device->type) {
 	case WLR_INPUT_DEVICE_TABLET_PAD:

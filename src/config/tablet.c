@@ -7,7 +7,8 @@
 #include "config/tablet.h"
 #include "config/rcxml.h"
 
-enum rotation tablet_parse_rotation(int value)
+enum rotation
+tablet_parse_rotation(int value)
 {
 	switch (value) {
 	case 0:
@@ -25,7 +26,8 @@ enum rotation tablet_parse_rotation(int value)
 	return LAB_ROTATE_NONE;
 }
 
-uint32_t tablet_button_from_str(const char *button)
+uint32_t
+tablet_button_from_str(const char *button)
 {
 	if (!strcasecmp(button, "Tip")) {
 		return BTN_TOOL_PEN;
@@ -40,7 +42,8 @@ uint32_t tablet_button_from_str(const char *button)
 	return UINT32_MAX;
 }
 
-uint32_t mouse_button_from_str(const char *button)
+uint32_t
+mouse_button_from_str(const char *button)
 {
 	if (!strcasecmp(button, "Left")) {
 		return BTN_LEFT;
@@ -53,7 +56,8 @@ uint32_t mouse_button_from_str(const char *button)
 	return UINT32_MAX;
 }
 
-void tablet_button_mapping_add(uint32_t from, uint32_t to)
+void
+tablet_button_mapping_add(uint32_t from, uint32_t to)
 {
 	struct button_map_entry *entry;
 	for (size_t i = 0; i < rc.tablet.button_map_count; i++) {
@@ -77,7 +81,8 @@ void tablet_button_mapping_add(uint32_t from, uint32_t to)
 	rc.tablet.button_map_count++;
 }
 
-void tablet_load_default_button_mappings(void)
+void
+tablet_load_default_button_mappings(void)
 {
 	tablet_button_mapping_add(BTN_TOOL_PEN, BTN_LEFT); /* Used for the pen tip */
 	tablet_button_mapping_add(BTN_STYLUS, BTN_RIGHT);

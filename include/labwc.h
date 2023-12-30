@@ -477,6 +477,7 @@ void handle_output_power_manager_set_mode(struct wl_listener *listener,
 	void *data);
 void output_add_virtual(struct server *server, const char *output_name);
 void output_remove_virtual(struct server *server, const char *output_name);
+void output_enable_adaptive_sync(struct wlr_output *output, bool enabled);
 
 void server_init(struct server *server);
 void server_start(struct server *server);

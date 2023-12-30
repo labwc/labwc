@@ -262,6 +262,17 @@ view_discover_output(struct view *view)
 		view->current.y + view->current.height / 2);
 }
 
+static void
+set_adaptive_sync_fullscreen(struct view *view)
+{
+	if (rc.adaptive_sync != LAB_ADAPTIVE_SYNC_FULLSCREEN) {
+		return;
+	}
+	/* Enable adaptive sync if view is fullscreen */
+	output_enable_adaptive_sync(view->output->wlr_output, view->fullscreen);
+	wlr_output_commit(view->output->wlr_output);
+}
+
 void
 view_set_activated(struct view *view, bool activated)
 {
@@ -285,6 +296,7 @@ view_set_activated(struct view *view, bool activated)
 			keyboard_update_layout(&view->server->seat, view->keyboard_layout);
 		}
 	}
+	set_adaptive_sync_fullscreen(view);
 }
 
 void
@@ -1186,6 +1198,7 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 	} else {
 		view_apply_special_geometry(view);
 	}
+	set_adaptive_sync_fullscreen(view);
 }
 
 void
@@ -1853,6 +1866,9 @@ view_destroy(struct view *view)
 	if (view->fullscreen && view->output) {
 		view->fullscreen = false;
 		desktop_update_top_layer_visiblity(server);
+		if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_FULLSCREEN) {
+			wlr_output_enable_adaptive_sync(view->output->wlr_output, false);
+		}
 	}
 
 	/* If we spawned a window menu, close it */

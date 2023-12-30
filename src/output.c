@@ -249,15 +249,8 @@ new_output_notify(struct wl_listener *listener, void *data)
 		}
 	}
 
-	if (rc.adaptive_sync) {
-		wlr_output_enable_adaptive_sync(wlr_output, true);
-		if (!wlr_output_test(wlr_output)) {
-			wlr_output_enable_adaptive_sync(wlr_output, false);
-			wlr_log(WLR_DEBUG,
-				"failed to enable adaptive sync for output %s", wlr_output->name);
-		} else {
-			wlr_log(WLR_INFO, "adaptive sync enabled for output %s", wlr_output->name);
-		}
+	if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_ENABLED) {
+		output_enable_adaptive_sync(wlr_output, true);
 	}
 
 	wlr_output_commit(wlr_output);
@@ -415,7 +408,10 @@ output_config_apply(struct server *server,
 			}
 			wlr_output_set_scale(o, head->state.scale);
 			wlr_output_set_transform(o, head->state.transform);
-			wlr_output_enable_adaptive_sync(o, head->state.adaptive_sync_enabled);
+			if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_ENABLED) {
+				output_enable_adaptive_sync(o,
+					head->state.adaptive_sync_enabled);
+			}
 		}
 		if (!wlr_output_commit(o)) {
 			wlr_log(WLR_ERROR, "Output config commit failed");
@@ -808,5 +804,22 @@ output_remove_virtual(struct server *server, const char *output_name)
 				return;
 			}
 		}
+	}
+}
+
+void
+output_enable_adaptive_sync(struct wlr_output *output, bool enabled)
+{
+	if (output->pending.adaptive_sync_enabled == enabled) {
+		return;
+	}
+	wlr_output_enable_adaptive_sync(output, enabled);
+	if (!wlr_output_test(output)) {
+		wlr_output_enable_adaptive_sync(output, false);
+		wlr_log(WLR_DEBUG,
+				"failed to enable adaptive sync for output %s", output->name);
+	} else {
+		wlr_log(WLR_INFO, "adaptive sync %sabled for output %s",
+			enabled ? "en" : "dis", output->name);
 	}
 }

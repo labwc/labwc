@@ -28,6 +28,12 @@ enum view_placement_policy {
 	LAB_PLACE_AUTOMATIC
 };
 
+enum adaptive_sync_mode {
+	LAB_ADAPTIVE_SYNC_DISABLED,
+	LAB_ADAPTIVE_SYNC_ENABLED,
+	LAB_ADAPTIVE_SYNC_FULLSCREEN,
+};
+
 struct usable_area_override {
 	struct border margin;
 	char *output;
@@ -46,7 +52,7 @@ struct rcxml {
 	/* core */
 	bool xdg_shell_server_side_deco;
 	int gap;
-	bool adaptive_sync;
+	enum adaptive_sync_mode adaptive_sync;
 	bool reuse_output_mode;
 	enum view_placement_policy placement_policy;
 

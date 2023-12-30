@@ -127,6 +127,8 @@ setup_pen(struct seat *seat, struct wlr_input_device *wlr_device)
 	tablet->tablet->data = tablet;
 	tablet->x = 0.0;
 	tablet->y = 0.0;
+	wlr_log(WLR_INFO, "tablet dimensions: %.2fmm x %.2fmm",
+		tablet->tablet->width_mm, tablet->tablet->height_mm);
 	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, axis);
 	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, tip);
 	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, button);

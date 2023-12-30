@@ -122,8 +122,11 @@ this is for compatibility with Openbox.
 	The distance in pixels between views and output edges when using
 	movement actions, for example MoveToEdge. Default is 0.
 
-*<core><adaptiveSync>* [yes|no]
+*<core><adaptiveSync>* [yes|no|fullscreen]
 	Enable adaptive sync. Default is no.
+
+	*fullscreen* enables adaptive sync whenever a window is in fullscreen
+	mode.
 
 *<core><reuseOutputMode>* [yes|no]
 	Try to re-use the existing output mode (resolution / refresh rate).

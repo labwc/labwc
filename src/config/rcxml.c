@@ -611,6 +611,21 @@ enum_font_place(const char *place)
 }
 
 static void
+set_adaptive_sync_mode(const char *str, enum adaptive_sync_mode *variable)
+{
+	if (!strcasecmp(str, "fullscreen")) {
+		*variable = LAB_ADAPTIVE_SYNC_FULLSCREEN;
+	} else {
+		int ret = parse_bool(str, -1);
+		if (ret == 1) {
+			*variable = LAB_ADAPTIVE_SYNC_ENABLED;
+		} else {
+			*variable = LAB_ADAPTIVE_SYNC_DISABLED;
+		}
+	}
+}
+
+static void
 entry(xmlNode *node, char *nodename, char *content)
 {
 	/* current <theme><font place=""></font></theme> */
@@ -711,7 +726,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcmp(nodename, "gap.core")) {
 		rc.gap = atoi(content);
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
-		set_bool(content, &rc.adaptive_sync);
+		set_adaptive_sync_mode(content, &rc.adaptive_sync);
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);
 	} else if (!strcmp(nodename, "policy.placement")) {

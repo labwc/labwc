@@ -636,7 +636,17 @@ view_adjust_floating_geometry(struct view *view, struct wlr_box *geometry)
 			adjusted = true;
 		}
 	} else {
-		/* If offscreen, then just center the view */
+		/*
+		 * Reposition offscreen views; if automatic placement was is
+		 * configured, try to automatically place the windows.
+		 */
+		if (rc.placement_policy == LAB_PLACE_AUTOMATIC) {
+			if (placement_find_best(view, geometry)) {
+				return true;
+			}
+		}
+
+		/* If automatic placement failed or was not enabled, just center */
 		adjusted = view_compute_centered_position(view, NULL,
 			geometry->width, geometry->height,
 			&geometry->x, &geometry->y);
@@ -698,9 +708,9 @@ view_place_initial(struct view *view)
 		view_move_to_cursor(view);
 		return;
 	} else if (rc.placement_policy == LAB_PLACE_AUTOMATIC) {
-		int x = 0, y = 0;
-		if (placement_find_best(view, &x, &y)) {
-			view_move(view, x, y);
+		struct wlr_box geometry = view->pending;
+		if (placement_find_best(view, &geometry)) {
+			view_move(view, geometry.x, geometry.y);
 			return;
 		}
 	}

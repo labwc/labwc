@@ -945,9 +945,9 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_AUTO_PLACE:
 			if (view) {
-				int x = 0, y = 0;
-				if (placement_find_best(view, &x, &y)) {
-					view_move(view, x, y);
+				struct wlr_box geometry = view->pending;
+				if (placement_find_best(view, &geometry)) {
+					view_move(view, geometry.x, geometry.y);
 				}
 			}
 			break;

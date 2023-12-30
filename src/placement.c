@@ -396,11 +396,13 @@ compute_overlap(struct overlap_bitmap *bmp, int i, int j,
 }
 
 /*
- * Find, in (*x, *y), the placement of *view on its output that will minimize
- * overlap with all other views.
+ * Find the placement of *view, with an expected width and height of
+ * geometry->width and geometry->height, respectively, that will minimize
+ * overlap with all other views. The values geometry->x and geometry->y will be
+ * overwritten with the optimum placement.
  */
 bool
-placement_find_best(struct view *view, int *x, int *y)
+placement_find_best(struct view *view, struct wlr_box *geometry)
 {
 	assert(view);
 
@@ -416,16 +418,16 @@ placement_find_best(struct view *view, int *x, int *y)
 
 	/* Default placement is just the upper-left corner of the output */
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-	*x = usable.x + margin.left;
-	*y = usable.y + margin.top;
+	geometry->x = usable.x + margin.left;
+	geometry->y = usable.y + margin.top;
 
 	/* Build the placement grid and overlap bitmap */
 	struct overlap_bitmap bmp = { 0 };
 	build_grid(&bmp, view);
 	build_overlap(&bmp, view);
 
-	int height = view->pending.height + margin.top + margin.bottom;
-	int width = view->pending.width + margin.left + margin.right;
+	int height = geometry->height + margin.top + margin.bottom;
+	int width = geometry->width + margin.left + margin.right;
 
 	int min_overlap = INT_MAX;
 
@@ -484,18 +486,18 @@ placement_find_best(struct view *view, int *x, int *y)
 
 				if (rt) {
 					/* Extend window right from left edge */
-					*x = bmp.cols[j] + margin.left;
+					geometry->x = bmp.cols[j] + margin.left;
 				} else {
 					/* Extend window left from right edge */
-					*x = bmp.cols[j + 1] - width + margin.left;
+					geometry->x = bmp.cols[j + 1] - width + margin.left;
 				}
 
 				if (dn) {
 					/* Extend window down from top edge */
-					*y = bmp.rows[i] + margin.top;
+					geometry->y = bmp.rows[i] + margin.top;
 				} else {
 					/* Extend window up from bottom edge */
-					*y = bmp.rows[i + 1] - height + margin.top;
+					geometry->y = bmp.rows[i + 1] - height + margin.top;
 				}
 
 				/* If there is no overlap, the search is done. */

@@ -33,7 +33,7 @@ input_device_destroy(struct wl_listener *listener, void *data)
 	free(input);
 }
 
-static enum device_type
+static enum lab_libinput_device_type
 device_type_from_wlr_device(struct wlr_input_device *wlr_input_device)
 {
 	switch (wlr_input_device->type) {
@@ -76,7 +76,7 @@ get_category(struct wlr_input_device *device)
 	}
 
 	/* By type */
-	enum device_type type = device_type_from_wlr_device(device);
+	enum lab_libinput_device_type type = device_type_from_wlr_device(device);
 	wl_list_for_each_reverse(category, &rc.libinput_categories, link) {
 		if (category->type == type) {
 			return category;

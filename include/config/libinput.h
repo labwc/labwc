@@ -6,7 +6,7 @@
 #include <string.h>
 #include <wayland-server-core.h>
 
-enum device_type {
+enum lab_libinput_device_type {
 	LAB_LIBINPUT_DEVICE_NONE = 0,
 	LAB_LIBINPUT_DEVICE_DEFAULT,
 	LAB_LIBINPUT_DEVICE_TOUCH,
@@ -15,7 +15,7 @@ enum device_type {
 };
 
 struct libinput_category {
-	enum device_type type;
+	enum lab_libinput_device_type type;
 	char *name;
 	struct wl_list link;
 	float pointer_speed;
@@ -30,7 +30,7 @@ struct libinput_category {
 	int dwt; /* -1 or libinput_config_dwt_state */
 };
 
-enum device_type get_device_type(const char *s);
+enum lab_libinput_device_type get_device_type(const char *s);
 struct libinput_category *libinput_category_create(void);
 struct libinput_category *libinput_category_get_default(void);
 

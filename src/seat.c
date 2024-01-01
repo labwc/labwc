@@ -57,6 +57,36 @@ device_type_from_wlr_device(struct wlr_input_device *wlr_input_device)
 	return NON_TOUCH_DEVICE;
 }
 
+/*
+ * Get applicable profile (category) by matching first by name and secondly be
+ * type (e.g. 'touch' and 'non-touch'). If not suitable match is found based on
+ * those two criteria we fallback on 'default'.
+ */
+static struct libinput_category *
+get_category(struct wlr_input_device *device)
+{
+	/* By name */
+	struct libinput_category *category;
+	wl_list_for_each_reverse(category, &rc.libinput_categories, link) {
+		if (category->name) {
+			if (!strcasecmp(device->name, category->name)) {
+				return category;
+			}
+		}
+	}
+
+	/* By type */
+	enum device_type type = device_type_from_wlr_device(device);
+	wl_list_for_each_reverse(category, &rc.libinput_categories, link) {
+		if (category->type == type) {
+			return category;
+		}
+	}
+
+	/* Use default profile as a fallback */
+	return libinput_category_get_default();
+}
+
 static void
 configure_libinput(struct wlr_input_device *wlr_input_device)
 {
@@ -75,24 +105,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		return;
 	}
 
-	enum device_type current_type =
-		device_type_from_wlr_device(wlr_input_device);
-
-	struct libinput_category *device_category, *dc = NULL;
-	wl_list_for_each_reverse(device_category, &rc.libinput_categories, link) {
-		if (device_category->name) {
-			if (!strcasecmp(wlr_input_device->name,
-					device_category->name)) {
-				dc = device_category;
-				break;
-			}
-		} else if (device_category->type == current_type) {
-			dc = device_category;
-		} else if (device_category->type == DEFAULT_DEVICE && !dc) {
-			/* Match default category as last-resort */
-			dc = device_category;
-		}
-	}
+	struct libinput_category *dc = get_category(wlr_input_device);
 
 	/*
 	 * The above logic should have always matched SOME category

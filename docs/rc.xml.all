@@ -408,9 +408,9 @@
   </tablet>
 
   <!--
-    The *category* element can be set to touch, touchpad, non-touch, default or
-    the name of a device. You can obtain device names by running *libinput
-    list-devices* as root or member of the input group.
+    The *category* attribute is optional and can be set to touch, touchpad,
+    non-touch, default or the name of a device. You can obtain device names by
+    running *libinput list-devices* as root or member of the input group.
 
     Tap is set to *yes* be default. All others are left blank in order to use
     device defaults.

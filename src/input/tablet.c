@@ -12,6 +12,34 @@
 #include "input/tablet.h"
 
 static void
+adjust_for_tablet_area(double tablet_width, double tablet_height,
+		struct wlr_fbox box, double *x, double *y)
+{
+	if ((!box.x && !box.y && !box.width && !box.height)
+			|| !tablet_width || !tablet_height) {
+		return;
+	}
+
+	if (!box.width) {
+		box.width = tablet_width - box.x;
+	}
+	if (!box.height) {
+		box.height = tablet_height - box.y;
+	}
+
+	if (box.x + box.width <= tablet_width) {
+		const double max_x = 1;
+		double width_offset = max_x * box.x / tablet_width;
+		*x = (*x - width_offset) * tablet_width / box.width;
+	}
+	if (box.y + box.height <= tablet_height) {
+		const double max_y = 1;
+		double height_offset = max_y * box.y / tablet_height;
+		*y = (*y - height_offset) * tablet_height / box.height;
+	}
+}
+
+static void
 adjust_for_rotation(enum rotation rotation, double *x, double *y)
 {
 	double tmp;
@@ -50,6 +78,8 @@ handle_axis(struct wl_listener *listener, void *data)
 
 		double x = tablet->x;
 		double y = tablet->y;
+		adjust_for_tablet_area(tablet->tablet->width_mm, tablet->tablet->height_mm,
+			rc.tablet.box, &x, &y);
 		adjust_for_rotation(rc.tablet.rotation, &x, &y);
 		cursor_emulate_move_absolute(tablet->seat, &ev->tablet->base, x, y, ev->time_msec);
 	}

@@ -7,6 +7,17 @@
 #include "config/tablet.h"
 #include "config/rcxml.h"
 
+double
+tablet_get_dbl_if_positive(const char *content, const char *name)
+{
+	double value = atof(content);
+	if (value < 0) {
+		wlr_log(WLR_ERROR, "Invalid value for tablet area %s", name);
+		return 0;
+	}
+	return value;
+}
+
 enum rotation
 tablet_parse_rotation(int value)
 {
@@ -84,6 +95,7 @@ tablet_button_mapping_add(uint32_t from, uint32_t to)
 void
 tablet_load_default_button_mappings(void)
 {
+	rc.tablet.button_map_count = 0;
 	tablet_button_mapping_add(BTN_TOOL_PEN, BTN_LEFT); /* Used for the pen tip */
 	tablet_button_mapping_add(BTN_STYLUS, BTN_RIGHT);
 	tablet_button_mapping_add(BTN_STYLUS2, BTN_MIDDLE);

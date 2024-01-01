@@ -394,14 +394,22 @@
   </mouse>
 
   <!--
+    The active tablet area can be specified by setting the top/left
+    coordinate (in mm) and/or width/height (in mm). If width or height
+    are omitted or default (0.0), width/height will be set to the
+    remaining width/height seen from top/left.
+
     The tablet orientation can be changed in 90 degree steps, thus
-    rotation can be set to [0|90|180|270].
+    rotation can be set to [0|90|180|270]. Rotation will be applied
+    after applying tablet area transformation.
 
     Tablet buttons emulate regular mouse buttons. The tablet *button* can
     be set to any of [tip|stylus|stylus2|stylus3]. Valid *to* mouse buttons
     are [left|right|middle].
   -->
   <tablet rotate="0">
+    <!-- Active area dimensions are in mm -->
+    <area top="0.0" left="0.0" width="0.0" height="0.0">
     <map button="tip" to="left" />
     <map button="stylus" to="right" />
     <map button="stylus2" to="middle" />

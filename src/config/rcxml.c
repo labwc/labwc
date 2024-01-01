@@ -445,7 +445,12 @@ get_accel_profile(const char *s)
 static void
 fill_libinput_category(char *nodename, char *content)
 {
-	if (!strcmp(nodename, "category.device.libinput")) {
+	/*
+	 * Create a new profile (libinput-category) on `<libinput><device>`
+	 * so that the 'default' profile can be created without even providing a
+	 * category="" attribute (same as <device category="default">...)
+	 */
+	if (!strcmp(nodename, "device.libinput")) {
 		current_libinput_category = libinput_category_create();
 	}
 

@@ -252,14 +252,27 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 	return dst;
 }
 
-static void
-view_discover_output(struct view *view)
+static bool
+view_discover_output(struct view *view, struct wlr_box *geometry)
 {
 	assert(view);
 	assert(!view->fullscreen);
-	view->output = output_nearest_to(view->server,
-		view->current.x + view->current.width / 2,
-		view->current.y + view->current.height / 2);
+
+	if (!geometry) {
+		geometry = &view->current;
+	}
+
+	struct output *output =
+		output_nearest_to(view->server,
+			geometry->x + geometry->width / 2,
+			geometry->y + geometry->height / 2);
+
+	if (output && output != view->output) {
+		view->output = output;
+		return true;
+	}
+
+	return false;
 }
 
 static void
@@ -343,7 +356,7 @@ view_moved(struct view *view)
 	 * output when they enter that state.
 	 */
 	if (view_is_floating(view)) {
-		view_discover_output(view);
+		view_discover_output(view, NULL);
 	}
 	ssd_update_geometry(view->ssd);
 	cursor_update_focus(view->server);
@@ -614,11 +627,11 @@ view_adjust_floating_geometry(struct view *view, struct wlr_box *geometry)
 
 	bool adjusted = false;
 	/*
-	 * First check whether the view is onscreen. For now, "onscreen"
-	 * is defined as even one pixel of the client area being visible.
+	 * First check whether the view is the target screen, meaning that at
+	 * least one client pixel is on the screen.
 	 */
 	if (wlr_output_layout_intersects(view->server->output_layout,
-			NULL, geometry)) {
+			view->output->wlr_output, geometry)) {
 		/*
 		 * If onscreen, then make sure the titlebar is also
 		 * visible (and not overlapping any panels/docks)
@@ -988,6 +1001,7 @@ view_maximize(struct view *view, enum view_axis axis,
 		interactive_cancel(view);
 		if (store_natural_geometry && view_is_floating(view)) {
 			view_store_natural_geometry(view);
+			view_invalidate_last_layout_geometry(view);
 		}
 	}
 	set_maximized(view, axis);
@@ -1200,6 +1214,7 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 		 */
 		interactive_cancel(view);
 		view_store_natural_geometry(view);
+		view_invalidate_last_layout_geometry(view);
 	}
 
 	set_fullscreen(view, fullscreen);
@@ -1211,37 +1226,141 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 	set_adaptive_sync_fullscreen(view);
 }
 
+static bool
+last_layout_geometry_is_valid(struct view *view)
+{
+	return view->last_layout_geometry.width > 0
+		&& view->last_layout_geometry.height > 0;
+}
+
+static void
+update_last_layout_geometry(struct view *view)
+{
+	/*
+	 * Only update an invalid last-layout geometry to prevent a series of
+	 * successive layout changes from continually replacing the "preferred"
+	 * location with whatever location the view currently holds. The
+	 * "preferred" location should be whatever state was set by user
+	 * interaction, not automatic responses to layout changes.
+	 */
+	if (last_layout_geometry_is_valid(view)) {
+		return;
+	}
+
+	if (view_is_floating(view)) {
+		view->last_layout_geometry = view->pending;
+	} else {
+		view->last_layout_geometry = view->natural_geometry;
+	}
+}
+
+static bool
+apply_last_layout_geometry(struct view *view, bool force_update)
+{
+	/* Only apply a valid last-layout geometry */
+	if (!last_layout_geometry_is_valid(view)) {
+		return false;
+	}
+
+	/*
+	 * Unless forced, the last-layout geometry is only applied
+	 * when the relevant view geometry is distinct.
+	 */
+	if (!force_update) {
+		struct wlr_box *relevant = view_is_floating(view) ?
+			&view->pending : &view->natural_geometry;
+
+		if (wlr_box_equal(relevant, &view->last_layout_geometry)) {
+			return false;
+		}
+	}
+
+	view->natural_geometry = view->last_layout_geometry;
+	view_adjust_floating_geometry(view, &view->natural_geometry);
+	return true;
+}
+
+void
+view_invalidate_last_layout_geometry(struct view *view)
+{
+	assert(view);
+	view->last_layout_geometry.width = 0;
+	view->last_layout_geometry.height = 0;
+}
+
 void
 view_adjust_for_layout_change(struct view *view)
 {
 	assert(view);
 
-	/* Exit fullscreen if output is lost */
 	bool was_fullscreen = view->fullscreen;
-	if (was_fullscreen && !output_is_usable(view->output)) {
-		set_fullscreen(view, false);
+	bool is_floating = view_is_floating(view);
+
+	if (!output_is_usable(view->output)) {
+		/* A view losing an output should have a last-layout geometry */
+		update_last_layout_geometry(view);
+
+		/* Exit fullscreen and re-assess floating status */
+		if (was_fullscreen) {
+			set_fullscreen(view, false);
+			is_floating = view_is_floating(view);
+		}
+	}
+
+	/* Restore any full-screen window to natural geometry */
+	bool use_natural = was_fullscreen;
+
+	/* Capture a pointer to the last-layout geometry (only if valid) */
+	struct wlr_box *last_geometry = NULL;
+	if (last_layout_geometry_is_valid(view)) {
+		last_geometry = &view->last_layout_geometry;
 	}
 
 	/*
-	 * Floating views are always assigned to the nearest output.
-	 * Maximized/tiled views remain on the same output if possible.
+	 * Check if an output change is required:
+	 * - Floating views are always mapped to the nearest output
+	 * - Any view without a usable output needs to be repositioned
+	 * - Any view with a valid last-layout geometry might be better
+	 *   positioned on another output
 	 */
-	bool is_floating = view_is_floating(view);
-	if (is_floating || !output_is_usable(view->output)) {
-		view_discover_output(view);
+	if (is_floating || last_geometry || !output_is_usable(view->output)) {
+		/* Move the view to an appropriate output, if needed */
+		bool output_changed = view_discover_output(view, last_geometry);
+
+		/*
+		 * Try to apply the last-layout to the natural geometry
+		 * (adjusting to ensure that it fits on the screen). This is
+		 * forced if the output has changed, but will be done
+		 * opportunistically even on the same output if the last-layout
+		 * geometry is different from the view's governing geometry.
+		 */
+		if (apply_last_layout_geometry(view, output_changed)) {
+			use_natural = true;
+		}
+
+		/*
+		 * Whether or not the view has moved, the layout has changed.
+		 * Ensure that the view now has a valid last-layout geometry.
+		 */
+		update_last_layout_geometry(view);
 	}
 
 	if (!is_floating) {
 		view_apply_special_geometry(view);
-	} else if (was_fullscreen) {
+	} else if (use_natural) {
+		/*
+		 * Move the window to its natural location, either because it
+		 * was fullscreen or we are trying to restore a prior layout.
+		 */
 		view_apply_natural_geometry(view);
 	} else {
-		/* reposition view if it's offscreen */
+		/* Otherwise, just ensure the view is on screen. */
 		struct wlr_box geometry = view->pending;
 		if (view_adjust_floating_geometry(view, &geometry)) {
 			view_move_resize(view, geometry);
 		}
 	}
+
 	if (view->toplevel.handle) {
 		foreign_toplevel_update_outputs(view);
 	}
@@ -1542,6 +1661,7 @@ view_snap_to_edge(struct view *view, enum view_edge edge,
 	} else if (store_natural_geometry) {
 		/* store current geometry as new natural_geometry */
 		view_store_natural_geometry(view);
+		view_invalidate_last_layout_geometry(view);
 	}
 	view_set_untiled(view);
 	view_set_output(view, output);
@@ -1571,6 +1691,7 @@ view_snap_to_region(struct view *view, struct region *region,
 	} else if (store_natural_geometry) {
 		/* store current geometry as new natural_geometry */
 		view_store_natural_geometry(view);
+		view_invalidate_last_layout_geometry(view);
 	}
 	view_set_untiled(view);
 	view->tiled_region = region;

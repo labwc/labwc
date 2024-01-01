@@ -180,6 +180,13 @@ struct view {
 	 * maximized/fullscreen/tiled.
 	 */
 	struct wlr_box natural_geometry;
+	/*
+	 * Whenever an output layout change triggers a view relocation, the
+	 * last pending position (or natural geometry) will be saved so the
+	 * view may be restored to its original location on a subsequent layout
+	 * change.
+	 */
+	struct wlr_box last_layout_geometry;
 
 	/* used by xdg-shell views */
 	uint32_t pending_configure_serial;
@@ -420,6 +427,7 @@ bool view_is_floating(struct view *view);
 void view_move_to_workspace(struct view *view, struct workspace *workspace);
 void view_set_decorations(struct view *view, bool decorations);
 void view_toggle_fullscreen(struct view *view);
+void view_invalidate_last_layout_geometry(struct view *view);
 void view_adjust_for_layout_change(struct view *view);
 void view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_windows);
 void view_grow_to_edge(struct view *view, enum view_edge direction);

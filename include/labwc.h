@@ -357,6 +357,7 @@ struct output {
 
 	bool leased;
 	bool gamma_lut_changed;
+	bool tearing;
 };
 
 #undef LAB_NR_LAYERS

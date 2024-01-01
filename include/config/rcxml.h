@@ -34,6 +34,12 @@ enum adaptive_sync_mode {
 	LAB_ADAPTIVE_SYNC_FULLSCREEN,
 };
 
+enum tearing_mode {
+	LAB_TEARING_DISABLED,
+	LAB_TEARING_ENABLED,
+	LAB_TEARING_FULLSCREEN,
+};
+
 struct usable_area_override {
 	struct border margin;
 	char *output;
@@ -53,6 +59,7 @@ struct rcxml {
 	bool xdg_shell_server_side_deco;
 	int gap;
 	enum adaptive_sync_mode adaptive_sync;
+	enum tearing_mode allow_tearing;
 	bool reuse_output_mode;
 	enum view_placement_policy placement_policy;
 

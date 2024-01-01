@@ -273,6 +273,16 @@ set_adaptive_sync_fullscreen(struct view *view)
 	wlr_output_commit(view->output->wlr_output);
 }
 
+static void
+set_tearing_fullscreen(struct view *view)
+{
+	if (rc.allow_tearing != LAB_TEARING_FULLSCREEN) {
+		return;
+	}
+	/* Enable tearing if view is fullscreen */
+	view->output->tearing = view->fullscreen;
+}
+
 void
 view_set_activated(struct view *view, bool activated)
 {
@@ -297,6 +307,7 @@ view_set_activated(struct view *view, bool activated)
 		}
 	}
 	set_adaptive_sync_fullscreen(view);
+	set_tearing_fullscreen(view);
 }
 
 void
@@ -1199,6 +1210,7 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 		view_apply_special_geometry(view);
 	}
 	set_adaptive_sync_fullscreen(view);
+	set_tearing_fullscreen(view);
 }
 
 void
@@ -1868,6 +1880,9 @@ view_destroy(struct view *view)
 		desktop_update_top_layer_visiblity(server);
 		if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_FULLSCREEN) {
 			wlr_output_enable_adaptive_sync(view->output->wlr_output, false);
+		}
+		if (rc.allow_tearing == LAB_TEARING_FULLSCREEN) {
+			view->output->tearing = false;
 		}
 	}
 

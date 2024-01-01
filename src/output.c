@@ -68,7 +68,11 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	wlr_scene_output_commit(output->scene_output, NULL);
+	if (output->tearing) {
+		output->wlr_output->pending.tearing_page_flip = true;
+	}
+
+	lab_wlr_scene_output_commit(output->scene_output);
 
 	struct timespec now = { 0 };
 	clock_gettime(CLOCK_MONOTONIC, &now);
@@ -272,6 +276,12 @@ new_output_notify(struct wl_listener *listener, void *data)
 	wl_signal_add(&wlr_output->events.request_state, &output->request_state);
 
 	wl_list_init(&output->regions);
+
+	if (rc.allow_tearing == LAB_TEARING_ENABLED) {
+		output->tearing = true;
+	} else {
+		output->tearing = false;
+	}
 
 	/*
 	 * Create layer-trees (background, bottom, top and overlay) and

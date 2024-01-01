@@ -89,6 +89,7 @@ struct rcxml {
 
 	/* graphics tablet */
 	struct tablet_config {
+		struct wlr_fbox box;
 		enum rotation rotation;
 		uint16_t button_map_count;
 		struct button_map_entry button_map[BUTTON_MAP_MAX];

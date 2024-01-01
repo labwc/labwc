@@ -24,7 +24,7 @@ libinput_category_init(struct libinput_category *l)
 	l->dwt = -1;
 }
 
-enum device_type
+enum lab_libinput_device_type
 get_device_type(const char *s)
 {
 	if (!s || !*s) {

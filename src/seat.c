@@ -39,7 +39,7 @@ device_type_from_wlr_device(struct wlr_input_device *wlr_input_device)
 	switch (wlr_input_device->type) {
 	case WLR_INPUT_DEVICE_TOUCH:
 	case WLR_INPUT_DEVICE_TABLET_TOOL:
-		return TOUCH_DEVICE;
+		return LAB_LIBINPUT_DEVICE_TOUCH;
 	default:
 		break;
 	}
@@ -50,11 +50,11 @@ device_type_from_wlr_device(struct wlr_input_device *wlr_input_device)
 			wlr_libinput_get_device_handle(wlr_input_device);
 
 		if (libinput_device_config_tap_get_finger_count(libinput_device) > 0) {
-			return TOUCHPAD_DEVICE;
+			return LAB_LIBINPUT_DEVICE_TOUCHPAD;
 		}
 	}
 
-	return NON_TOUCH_DEVICE;
+	return LAB_LIBINPUT_DEVICE_NON_TOUCH;
 }
 
 /*

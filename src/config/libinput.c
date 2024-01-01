@@ -3,6 +3,7 @@
 #include <strings.h>
 
 #include "common/mem.h"
+#include "common/list.h"
 #include "config/libinput.h"
 #include "config/rcxml.h"
 
@@ -49,20 +50,21 @@ libinput_category_create(void)
 {
 	struct libinput_category *l = znew(*l);
 	libinput_category_init(l);
-	wl_list_insert(&rc.libinput_categories, &l->link);
+	wl_list_append(&rc.libinput_categories, &l->link);
 	return l;
 }
 
-/*
- * The default category is the first one with type == DEFAULT_DEVICE and
- * no name. After rcxml_read(), a default category always exists.
- */
+/* After rcxml_read(), a default category always exists. */
 struct libinput_category *
 libinput_category_get_default(void)
 {
 	struct libinput_category *l;
-	wl_list_for_each(l, &rc.libinput_categories, link) {
-		if (l->type == DEFAULT_DEVICE && !l->name) {
+	/*
+	 * Iterate in reverse to get the last one added in case multiple
+	 * 'default' profiles were created.
+	 */
+	wl_list_for_each_reverse(l, &rc.libinput_categories, link) {
+		if (l->type == DEFAULT_DEVICE) {
 			return l;
 		}
 	}

@@ -79,7 +79,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		device_type_from_wlr_device(wlr_input_device);
 
 	struct libinput_category *device_category, *dc = NULL;
-	wl_list_for_each(device_category, &rc.libinput_categories, link) {
+	wl_list_for_each_reverse(device_category, &rc.libinput_categories, link) {
 		if (device_category->name) {
 			if (!strcasecmp(wlr_input_device->name,
 					device_category->name)) {

@@ -435,55 +435,90 @@ windows using the mouse.
 
 ## LIBINPUT
 
-*<libinput><device category="">*
-	Define a category of devices to use the configuration values that
-	follow. The category can be set to touch (devices that define a width
-	and height), touchpad, non-touch, default, or the name of a device. You
-	can obtain your devices name by running *libinput list-devices* (you may
-	need to be root or a part of the input group to perform this.) Any
-	members of this category that are not set use the default for the
-	device. With the exception of tap-to-click, which is enabled by default.
+```
+<libinput>
+  <device category="CATEGORY">
+    <naturalScroll></naturalScroll>
+    <leftHanded></leftHanded>
+    <pointerSpeed></pointerSpeed>
+    <accelProfile></accelProfile>
+    <tap>yes</tap>
+    <tapButtonMap></tapButtonMap>
+    <tapAndDrag></tapAndDrag>
+    <dragLock></dragLock>
+    <middleEmulation></middleEmulation>
+    <disableWhileTyping></disableWhileTyping>
+  </device>
+</libinput>
+```
 
-*<libinput><device category=""><naturalScroll>* [yes|no]
+*<libinput><device>*
+	Define a new libinput configuration category (profile).
+
+	*CATEGORY* Defines a category of devices (by type or name) to apply the
+	settings that follow. The category attribute as optional. If no category
+	attribute is provided, a 'default' device profile will created that will
+	act as the fallback for all libinput devices. Category can be set to any
+	of the following types:
+	- *touch* - Devices which have a defined width/height, but do not
+	  support multitouch (i.e. they cannot track multiple locations where
+	  the screen has been touched). Drawing tablets typically fall into this
+	  type.
+	- *touchpad* - Same as 'touch' but support multitouch. This typically
+	  includes laptop track pads with two-finger scroll and swipe gestures.
+	- *non-touch* - Anything not described above, for example traditional
+	  mouse pointers.
+	- *default* - Defines a device-category applicable to all devices not
+	  matched by anything else. This can be useful for a fallback, or if you
+	  want the same settings to be applied to all devices.
+
+	If the provided category value is different from all of the above key
+	words, it will be used to match the device name directly.
+
+	A list of device names can be obtained by running
+	*libinput list-devices* (you may need to be root or a part of the input
+	group to perform this.)
+
+*<libinput><device><naturalScroll>* [yes|no]
 	Use natural scrolling for this category if available.
 
-*<libinput><device category=""><leftHanded>* [yes|no]
+*<libinput><device><leftHanded>* [yes|no]
 	Use your devices left-handed mode if available.
 
-*<libinput><device category=""><pointerSpeed>* [\-1.0 to 1.0]
+*<libinput><device><pointerSpeed>* [\-1.0 to 1.0]
 	Set the pointer speed for this category. The speed is a number between
 	\-1.0 and 1.0, with 0.0 being the default in most cases, and 1.0 being
 	the fastest.
 
-*<libinput><device category=""><accelProfile>* [flat|adaptive]
+*<libinput><device><accelProfile>* [flat|adaptive]
 	Set the pointer's acceleration profile for this category. Flat applies
 	no acceleration (the pointers velocity is constant), while adaptive
 	changes the pointers speed based the actual speed of your mouse or
 	finger on your touchpad.
 
-*<libinput><device category=""><tap>* [yes|no]
+*<libinput><device><tap>* [yes|no]
 	Enable or disable tap-to-click for this category. This is enabled by
 	default for all categories.
 
-*<libinput><device category=""><tapButtonMap>* [lrm|lmr]
+*<libinput><device><tapButtonMap>* [lrm|lmr]
 	Set the buttons mapped to one-, two-, and three-finger taps to the
 	left button, right button, and middle button, respectively (lrm) (the
 	default), or to left button, middle button, and right button (lmr).
 
-*<libinput><device category=""><tapAndDrag>* [yes|no]
+*<libinput><device><tapAndDrag>* [yes|no]
 	Enable or disable tap-and-drag for this category. Tap-and-drag processes
 	a tap immediately followed by a finger down as the start of a drag.
 
-*<libinput><device category=""><dragLock>* [yes|no]
+*<libinput><device><dragLock>* [yes|no]
 	Enable or disable drag lock for this category. Drag lock ignores a
 	momentary release of a finger during tap-and-dragging.
 
-*<libinput><device category=""><middleEmulation>* [yes|no]
+*<libinput><device><middleEmulation>* [yes|no]
 	Enable or disable middle button emulation for this category. Middle
 	emulation processes a simultaneous left and right click as a press of
 	the middle mouse button (scroll wheel).
 
-*<libinput><device category=""><disableWhileTyping>* [yes|no]
+*<libinput><device><disableWhileTyping>* [yes|no]
 	Enable or disable disable while typing for this category. DWT ignores
 	any motion events while a keyboard is typing, and for a short while
 	after as well.

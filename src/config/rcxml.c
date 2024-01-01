@@ -688,6 +688,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	}
 	if (in_libinput_category) {
 		fill_libinput_category(nodename, content);
+		return;
 	}
 	if (in_regions) {
 		fill_region(nodename, content);

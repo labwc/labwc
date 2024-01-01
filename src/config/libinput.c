@@ -10,7 +10,7 @@
 static void
 libinput_category_init(struct libinput_category *l)
 {
-	l->type = DEFAULT_DEVICE;
+	l->type = LAB_LIBINPUT_DEVICE_DEFAULT;
 	l->name = NULL;
 	l->pointer_speed = -2;
 	l->natural_scroll = -1;
@@ -31,16 +31,16 @@ get_device_type(const char *s)
 		return LAB_LIBINPUT_DEVICE_NONE;
 	}
 	if (!strcasecmp(s, "default")) {
-		return DEFAULT_DEVICE;
+		return LAB_LIBINPUT_DEVICE_DEFAULT;
 	}
 	if (!strcasecmp(s, "touch")) {
-		return TOUCH_DEVICE;
+		return LAB_LIBINPUT_DEVICE_TOUCH;
 	}
 	if (!strcasecmp(s, "touchpad")) {
-		return TOUCHPAD_DEVICE;
+		return LAB_LIBINPUT_DEVICE_TOUCHPAD;
 	}
 	if (!strcasecmp(s, "non-touch")) {
-		return NON_TOUCH_DEVICE;
+		return LAB_LIBINPUT_DEVICE_NON_TOUCH;
 	}
 	return LAB_LIBINPUT_DEVICE_NONE;
 }
@@ -64,7 +64,7 @@ libinput_category_get_default(void)
 	 * 'default' profiles were created.
 	 */
 	wl_list_for_each_reverse(l, &rc.libinput_categories, link) {
-		if (l->type == DEFAULT_DEVICE) {
+		if (l->type == LAB_LIBINPUT_DEVICE_DEFAULT) {
 			return l;
 		}
 	}

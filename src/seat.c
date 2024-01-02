@@ -10,6 +10,7 @@
 #include <wlr/util/log.h>
 #include "common/mem.h"
 #include "input/tablet.h"
+#include "input/tablet_pad.h"
 #include "input/input.h"
 #include "input/keyboard.h"
 #include "input/key-state.h"
@@ -283,7 +284,17 @@ new_tablet(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct input *input = znew(*input);
 	input->wlr_input_device = dev;
-	tablet_setup_handlers(seat, dev);
+	tablet_init(seat, dev);
+
+	return input;
+}
+
+static struct input *
+new_tablet_pad(struct seat *seat, struct wlr_input_device *dev)
+{
+	struct input *input = znew(*input);
+	input->wlr_input_device = dev;
+	tablet_pad_init(seat, dev);
 
 	return input;
 }
@@ -341,6 +352,8 @@ new_input_notify(struct wl_listener *listener, void *data)
 		input = new_touch(seat, device);
 		break;
 	case WLR_INPUT_DEVICE_TABLET_PAD:
+		input = new_tablet_pad(seat, device);
+		break;
 	case WLR_INPUT_DEVICE_TABLET_TOOL:
 		input = new_tablet(seat, device);
 		break;

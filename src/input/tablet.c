@@ -86,8 +86,8 @@ handle_axis(struct wl_listener *listener, void *data)
 	// Ignore other events
 }
 
-static uint32_t
-get_mapped_button(uint32_t src_button)
+uint32_t
+tablet_get_mapped_button(uint32_t src_button)
 {
 	struct button_map_entry *map_entry;
 	for (size_t i = 0; i < rc.tablet.button_map_count; i++) {
@@ -106,7 +106,7 @@ handle_tip(struct wl_listener *listener, void *data)
 	struct wlr_tablet_tool_tip_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
 
-	uint32_t button = get_mapped_button(BTN_TOOL_PEN);
+	uint32_t button = tablet_get_mapped_button(BTN_TOOL_PEN);
 	if (!button) {
 		return;
 	}
@@ -125,7 +125,7 @@ handle_button(struct wl_listener *listener, void *data)
 	struct wlr_tablet_tool_button_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
 
-	uint32_t button = get_mapped_button(ev->button);
+	uint32_t button = tablet_get_mapped_button(ev->button);
 	if (!button) {
 		return;
 	}
@@ -141,14 +141,8 @@ handle_destroy(struct wl_listener *listener, void *data)
 	free(tablet);
 }
 
-static void
-setup_pad(struct seat *seat, struct wlr_input_device *wlr_device)
-{
-	wlr_log(WLR_INFO, "not setting up pad");
-}
-
-static void
-setup_pen(struct seat *seat, struct wlr_input_device *wlr_device)
+void
+tablet_init(struct seat *seat, struct wlr_input_device *wlr_device)
 {
 	wlr_log(WLR_DEBUG, "setting up tablet");
 	struct drawing_tablet *tablet = znew(*tablet);
@@ -163,19 +157,4 @@ setup_pen(struct seat *seat, struct wlr_input_device *wlr_device)
 	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, tip);
 	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, button);
 	CONNECT_SIGNAL(wlr_device, &tablet->handlers, destroy);
-}
-
-void
-tablet_setup_handlers(struct seat *seat, struct wlr_input_device *device)
-{
-	switch (device->type) {
-	case WLR_INPUT_DEVICE_TABLET_PAD:
-		setup_pad(seat, device);
-		break;
-	case WLR_INPUT_DEVICE_TABLET_TOOL:
-		setup_pen(seat, device);
-		break;
-	default:
-		assert(false && "tried to add non-tablet as tablet");
-	}
 }

@@ -256,7 +256,7 @@ load_buttons(struct theme *theme)
 		 * For example max_hover_toggled instead of max_toggled_hover
 		 */
 		if (b->alt_name) {
-			snprintf(filename, sizeof(filename), "%s.xbm", b->name);
+			snprintf(filename, sizeof(filename), "%s.xbm", b->alt_name);
 		}  else {
 			filename[0] = '\0';
 		}

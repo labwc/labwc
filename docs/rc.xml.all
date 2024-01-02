@@ -404,8 +404,8 @@
     after applying tablet area transformation.
 
     Tablet buttons emulate regular mouse buttons. The tablet *button* can
-    be set to any of [tip|stylus|stylus2|stylus3]. Valid *to* mouse buttons
-    are [left|right|middle].
+    be set to any of [tip|stylus|stylus2|stylus3|pad|pad2|pad3|..|pad9].
+    Valid *to* mouse buttons are [left|right|middle].
   -->
   <tablet rotate="0">
     <!-- Active area dimensions are in mm -->

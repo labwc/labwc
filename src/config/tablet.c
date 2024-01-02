@@ -6,6 +6,7 @@
 #include <wlr/util/log.h>
 #include "config/tablet.h"
 #include "config/rcxml.h"
+#include "input/tablet_pad.h"
 
 double
 tablet_get_dbl_if_positive(const char *content, const char *name)
@@ -48,6 +49,24 @@ tablet_button_from_str(const char *button)
 		return BTN_STYLUS2;
 	} else if (!strcasecmp(button, "Stylus3")) {
 		return BTN_STYLUS3;
+	} else if (!strcasecmp(button, "Pad")) {
+		return LAB_BTN_PAD;
+	} else if (!strcasecmp(button, "Pad2")) {
+		return LAB_BTN_PAD2;
+	} else if (!strcasecmp(button, "Pad3")) {
+		return LAB_BTN_PAD3;
+	} else if (!strcasecmp(button, "Pad4")) {
+		return LAB_BTN_PAD4;
+	} else if (!strcasecmp(button, "Pad5")) {
+		return LAB_BTN_PAD5;
+	} else if (!strcasecmp(button, "Pad6")) {
+		return LAB_BTN_PAD6;
+	} else if (!strcasecmp(button, "Pad7")) {
+		return LAB_BTN_PAD7;
+	} else if (!strcasecmp(button, "Pad8")) {
+		return LAB_BTN_PAD8;
+	} else if (!strcasecmp(button, "Pad9")) {
+		return LAB_BTN_PAD9;
 	}
 	wlr_log(WLR_ERROR, "Invalid value for tablet button: %s", button);
 	return UINT32_MAX;

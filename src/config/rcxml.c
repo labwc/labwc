@@ -630,6 +630,8 @@ set_tearing_mode(const char *str, enum tearing_mode *variable)
 {
 	if (!strcasecmp(str, "fullscreen")) {
 		*variable = LAB_TEARING_FULLSCREEN;
+	} else if (!strcasecmp(str, "always"))	{
+		*variable = LAB_TEARING_ALWAYS;
 	} else {
 		int ret = parse_bool(str, -1);
 		if (ret == 1) {

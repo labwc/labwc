@@ -449,6 +449,10 @@ server_init(struct server *server)
 	wl_signal_add(&server->output_power_manager_v1->events.set_mode,
 		&server->output_power_manager_set_mode);
 
+	server->tearing_control = wlr_tearing_control_manager_v1_create(server->wl_display, 1);
+	server->tearing_new_object.notify = new_tearing_hint;
+	wl_signal_add(&server->tearing_control->events.new_object, &server->tearing_new_object);
+
 	layers_init(server);
 
 #if HAVE_XWAYLAND

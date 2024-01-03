@@ -39,6 +39,7 @@
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_virtual_pointer_v1.h>
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
+#include <wlr/types/wlr_tearing_control_v1.h>
 #include <wlr/util/log.h>
 #include "config/keybind.h"
 #include "config/rcxml.h"
@@ -318,6 +319,9 @@ struct server {
 	struct wlr_pointer_constraints_v1 *constraints;
 	struct wl_listener new_constraint;
 
+	struct wlr_tearing_control_manager_v1 *tearing_control;
+	struct wl_listener tearing_new_object;
+
 	/* Set when in cycle (alt-tab) mode */
 	struct osd_state {
 		struct view *cycle_view;
@@ -479,6 +483,8 @@ void handle_output_power_manager_set_mode(struct wl_listener *listener,
 void output_add_virtual(struct server *server, const char *output_name);
 void output_remove_virtual(struct server *server, const char *output_name);
 void output_enable_adaptive_sync(struct wlr_output *output, bool enabled);
+void new_tearing_hint(struct wl_listener *listener, void *data);
+void set_tearing(struct output *output);
 
 void server_init(struct server *server);
 void server_start(struct server *server);

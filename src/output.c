@@ -68,9 +68,7 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (output->tearing) {
-		output->wlr_output->pending.tearing_page_flip = true;
-	}
+	output->wlr_output->pending.tearing_page_flip = output->tearing;
 
 	lab_wlr_scene_output_commit(output->scene_output);
 
@@ -277,7 +275,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 
 	wl_list_init(&output->regions);
 
-	if (rc.allow_tearing == LAB_TEARING_ENABLED) {
+	if (rc.allow_tearing == LAB_TEARING_ALWAYS) {
 		output->tearing = true;
 	} else {
 		output->tearing = false;

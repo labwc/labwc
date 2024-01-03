@@ -38,6 +38,7 @@ enum tearing_mode {
 	LAB_TEARING_DISABLED,
 	LAB_TEARING_ENABLED,
 	LAB_TEARING_FULLSCREEN,
+	LAB_TEARING_ALWAYS,
 };
 
 struct usable_area_override {

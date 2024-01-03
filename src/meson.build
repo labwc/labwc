@@ -19,6 +19,7 @@ labwc_sources = files(
   'server.c',
   'session-lock.c',
   'snap.c',
+  'tearing.c',
   'theme.c',
   'view.c',
   'view-impl-common.c',

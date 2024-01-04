@@ -133,8 +133,7 @@ this is for compatibility with Openbox.
 	Allow tearing to reduce input lag. Default is no.
 	This option requires setting the environment variable WLR_DRM_NO_ATOMIC=1.
 
-	*yes* allow tearing if the active window requests it,
-	or its enabled with action ToggleTearing.
+	*yes* allow tearing if requested by the active window.
 
 *<core><reuseOutputMode>* [yes|no]
 	Try to re-use the existing output mode (resolution / refresh rate).

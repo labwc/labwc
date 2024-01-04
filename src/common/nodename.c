@@ -10,7 +10,7 @@ nodename(xmlNode *node, char *buf, int len)
 		return NULL;
 	}
 
-	/* Ignore superflous 'text.' in node name */
+	/* Ignore superfluous 'text.' in node name */
 	if (node->parent && !strcmp((char *)node->name, "text")) {
 		node = node->parent;
 	}

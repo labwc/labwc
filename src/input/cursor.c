@@ -944,7 +944,7 @@ cursor_button_press(struct seat *seat, uint32_t button,
 		if (ctx.type != LAB_SSD_MENU) {
 			close_menu = true;
 		} else if (menu_call_actions(ctx.node)) {
-			/* Action was successfull, may fail if item just opens a submenu */
+			/* Action was successful, may fail if item just opens a submenu */
 			close_menu = true;
 		}
 		return;

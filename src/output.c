@@ -33,13 +33,8 @@ get_tearing_preference(struct output *output)
 	struct server *server = output->server;
 
 	/* Never allow tearing when disabled */
-	if (rc.allow_tearing == LAB_TEARING_DISABLED) {
+	if (!rc.allow_tearing) {
 		return false;
-	}
-
-	/* Allows allow tearing when forced */
-	if (rc.allow_tearing == LAB_TEARING_ALWAYS) {
-		return true;
 	}
 
 	/* Tearing is only allowed for the output with the active view */
@@ -47,14 +42,9 @@ get_tearing_preference(struct output *output)
 		return false;
 	}
 
-	/* If the active view requests tearing, allow it */
+	/* If the active view requests tearing, or it
+		has been requested with action, allow it */
 	if (server->active_view->tearing_hint) {
-		return true;
-	}
-
-	/* If the active view is fullscreen, allow tearing if configured */
-	if (rc.allow_tearing == LAB_TEARING_FULLSCREEN &&
-			server->active_view->fullscreen) {
 		return true;
 	}
 

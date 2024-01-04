@@ -297,7 +297,6 @@ view_set_activated(struct view *view, bool activated)
 		}
 	}
 	set_adaptive_sync_fullscreen(view);
-	set_tearing(view->output);
 }
 
 void
@@ -1200,7 +1199,6 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 		view_apply_special_geometry(view);
 	}
 	set_adaptive_sync_fullscreen(view);
-	set_tearing(view->output);
 }
 
 void

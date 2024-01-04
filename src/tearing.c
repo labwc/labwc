@@ -48,33 +48,3 @@ new_tearing_hint(struct wl_listener *listener, void *data)
 	controller->destroy.notify = tearing_controller_destroy;
 	wl_signal_add(&tearing_control->events.destroy, &controller->destroy);
 }
-
-void
-set_tearing(struct output *output)
-{
-	if (rc.allow_tearing == LAB_TEARING_DISABLED) {
-		output->tearing = false;
-		return;
-	}
-
-	if (rc.allow_tearing == LAB_TEARING_ALWAYS) {
-		output->tearing = true;
-		return;
-	}
-
-	struct server *server = output->server;
-	struct view *view;
-	bool on_fullscreen = rc.allow_tearing == LAB_TEARING_FULLSCREEN;
-
-	wl_list_for_each(view, &server->views, link) {
-		if (view->output != output) {
-			continue;
-		}
-
-		if (view->tearing_hint || (on_fullscreen && view->fullscreen)) {
-			output->tearing = true;
-			return;
-		}
-	}
-	output->tearing = false;
-}

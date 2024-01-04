@@ -133,10 +133,10 @@ this is for compatibility with Openbox.
 	Allow tearing to reduce input lag. Default is no.
 	This open requires setting the environment variable WLR_DRM_NO_ATOMIC=1.
 
-	*yes* allow tearing if an open window requests it.
+	*yes* allow tearing if the active window requests it.
 
-	*fullscreen* allow tearing if an open window requests it, or if any
-	window is in fullscreen mode.
+	*fullscreen* allow tearing if the active window requests it or is in
+	fullscreen mode.
 
 	*always* allow tearing regardless of window status.
 

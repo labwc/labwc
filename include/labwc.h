@@ -361,7 +361,6 @@ struct output {
 
 	bool leased;
 	bool gamma_lut_changed;
-	bool tearing;
 };
 
 #undef LAB_NR_LAYERS
@@ -484,7 +483,6 @@ void output_add_virtual(struct server *server, const char *output_name);
 void output_remove_virtual(struct server *server, const char *output_name);
 void output_enable_adaptive_sync(struct wlr_output *output, bool enabled);
 void new_tearing_hint(struct wl_listener *listener, void *data);
-void set_tearing(struct output *output);
 
 void server_init(struct server *server);
 void server_start(struct server *server);

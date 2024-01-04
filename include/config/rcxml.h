@@ -35,7 +35,7 @@ enum adaptive_sync_mode {
 };
 
 enum tearing_mode {
-	LAB_TEARING_DISABLED,
+	LAB_TEARING_DISABLED = 0,
 	LAB_TEARING_ENABLED,
 	LAB_TEARING_FULLSCREEN,
 	LAB_TEARING_ALWAYS,

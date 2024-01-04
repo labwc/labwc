@@ -577,7 +577,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
   into account exclusive layer-shell clients. Written-by: @Consolatis
 - Restore natural geometry when moving tiled/maximized window
   Fixes #391. Written-by: @Consolatis
-- Improve action implementation to take a list of arguments in preperation
+- Improve action implementation to take a list of arguments in preparation
   for actions with multiple arguments. Written-by: @Consolatis
 
 ### Fixed
@@ -863,7 +863,7 @@ Compile with wlroots 0.13.0
 
 ### Added
 
-- Support wlr-output-management protcol for setting output position, scale
+- Support wlr-output-management protocol for setting output position, scale
   and orientation with kanshi or similar
 - Support server side decoration rounded corners
 - Change built-in theme to match default GTK style

@@ -189,7 +189,7 @@ Actions are used in menus and keyboard/mouse bindings.
 	effectively sharing only the region of the screen.
 
 	It must be noted that overlaying virtual output and real output is not
-	endorsed or explicitely supported by wlroots. For example, after configuring
+	endorsed or explicitly supported by wlroots. For example, after configuring
 	virtual output, real output must be reconfigured as well (for the overlay
 	configuration to work correctly). This is the example configuration:
 

@@ -205,7 +205,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 
 	/*
 	 * Configures the output created by the backend to use our allocator
-	 * and our renderer. Must be done once, before commiting the output
+	 * and our renderer. Must be done once, before committing the output
 	 */
 	if (!wlr_output_init_render(wlr_output, server->allocator,
 			server->renderer)) {
@@ -492,7 +492,7 @@ handle_output_manager_apply(struct wl_listener *listener, void *data)
 }
 
 /*
- * Take the way outputs are currently configured/layed out and turn that into
+ * Take the way outputs are currently configured/laid out and turn that into
  * a struct that we send to clients via the wlr_output_configuration v1
  * interface
  */

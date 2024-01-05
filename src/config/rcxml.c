@@ -1453,25 +1453,6 @@ validate(void)
 	validate_actions();
 }
 
-static void
-rcxml_path(char *buf, size_t len)
-{
-	if (!rc.config_dir) {
-		return;
-	}
-	snprintf(buf, len, "%s/rc.xml", rc.config_dir);
-}
-
-static void
-find_config_file(char *buffer, size_t len, const char *filename)
-{
-	if (filename) {
-		snprintf(buffer, len, "%s", filename);
-		return;
-	}
-	rcxml_path(buffer, len);
-}
-
 void
 rcxml_read(const char *filename)
 {

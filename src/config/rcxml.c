@@ -1501,22 +1501,20 @@ rcxml_read(const char *filename)
 		stream = fopen(rcxml, "r");
 		if (!stream) {
 			wlr_log(WLR_ERROR, "cannot read (%s)", rcxml);
-		}
-		else
-		{
-		wlr_log(WLR_INFO, "read config file %s", rcxml);
-		buf_init(&b);
-		while (getline(&line, &len, stream) != -1) {
-			char *p = strrchr(line, '\n');
-			if (p) {
-				*p = '\0';
+		} else {
+			wlr_log(WLR_INFO, "read config file %s", rcxml);
+			buf_init(&b);
+			while (getline(&line, &len, stream) != -1) {
+				char *p = strrchr(line, '\n');
+				if (p) {
+					*p = '\0';
+				}
+				buf_add(&b, line);
 			}
-			buf_add(&b, line);
-		}
-		free(line);
-		fclose(stream);
-		rcxml_parse_xml(&b);
-		free(b.buf);
+			free(line);
+			fclose(stream);
+			rcxml_parse_xml(&b);
+			free(b.buf);
 		}
 	}
 	post_processing();

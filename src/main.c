@@ -142,7 +142,7 @@ main(int argc, char *argv[])
 
 	if (!rc.config_dir) {
 		rc.config_dir = config_dir();
-		if (merge_rc == false && !config_file) {
+		if (!merge_rc && !config_file) {
 			config_file = g_strdup_printf("%s/rc.xml", rc.config_dir);
 		}
 	} else if (!config_file) {

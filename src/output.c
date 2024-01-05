@@ -810,9 +810,6 @@ output_remove_virtual(struct server *server, const char *output_name)
 void
 output_enable_adaptive_sync(struct wlr_output *output, bool enabled)
 {
-	if (output->pending.adaptive_sync_enabled == enabled) {
-		return;
-	}
 	wlr_output_enable_adaptive_sync(output, enabled);
 	if (!wlr_output_test(output)) {
 		wlr_output_enable_adaptive_sync(output, false);

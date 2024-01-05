@@ -137,7 +137,7 @@ main(int argc, char *argv[])
 	if (!rc.config_dir) {
 		rc.config_dir = config_dir();
 	} else if (!config_file) {
-		config_file = g_strdup_printf ("%s/rc.xml", rc.config_dir);
+		config_file = g_strdup_printf("%s/rc.xml", rc.config_dir);
 	}
 	wlr_log(WLR_INFO, "using config dir (%s)\n", rc.config_dir);
 	session_environment_init(rc.config_dir);

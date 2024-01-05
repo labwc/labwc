@@ -1877,7 +1877,7 @@ view_destroy(struct view *view)
 		view->fullscreen = false;
 		desktop_update_top_layer_visiblity(server);
 		if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_FULLSCREEN) {
-			wlr_output_enable_adaptive_sync(view->output->wlr_output, false);
+			set_adaptive_sync_fullscreen(view);
 		}
 	}
 

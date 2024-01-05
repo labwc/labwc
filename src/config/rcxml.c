@@ -1492,10 +1492,10 @@ rcxml_read(const char *filename)
 		line = NULL;
 		len = 0;
 		if (filename) {
-			sprintf(rcxml, "%s", filename);
+			snprintf(rcxml, sizeof(rcxml), "%s", filename);
 			i = 0;
 		} else {
-			sprintf(rcxml, "%s/rc.xml", config_dir_n(i));
+			snprintf(rcxml, sizeof(rcxml), "%s/rc.xml", config_dir_n(i));
 		}
 		/* Reading file into buffer before parsing - better for unit tests */
 		stream = fopen(rcxml, "r");

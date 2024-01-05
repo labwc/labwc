@@ -1460,7 +1460,12 @@ rcxml_read(const char *filename)
 	char *line = NULL;
 	size_t len = 0;
 	struct buf b;
-	static char rcxml[4096] = {0};
+	char rcxml[4096] = {0};
+	static char saved_filename[4096] = {0};
+
+	if (filename) {
+		snprintf(saved_filename, sizeof(rcxml), "%s", filename);
+	}
 
 	rcxml_init();
 
@@ -1474,6 +1479,9 @@ rcxml_read(const char *filename)
 		len = 0;
 		if (filename) {
 			snprintf(rcxml, sizeof(rcxml), "%s", filename);
+			i = 0;
+		} else if (saved_filename[0] != 0) {
+			snprintf(rcxml, sizeof(rcxml), "%s", saved_filename);
 			i = 0;
 		} else {
 			snprintf(rcxml, sizeof(rcxml), "%s/rc.xml", config_dir_n(i));

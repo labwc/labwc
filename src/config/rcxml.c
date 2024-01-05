@@ -14,6 +14,7 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "action.h"
+#include "common/dir.h"
 #include "common/list.h"
 #include "common/macros.h"
 #include "common/mem.h"
@@ -1487,34 +1488,37 @@ rcxml_read(const char *filename)
 	 * the first time. The specified 'filename' is only respected the first
 	 * time.
 	 */
-	if (rcxml[0] == '\0') {
-		find_config_file(rcxml, sizeof(rcxml), filename);
-	}
-	if (rcxml[0] == '\0') {
-		wlr_log(WLR_INFO, "cannot find rc.xml config file");
-		goto no_config;
-	}
-
-	/* Reading file into buffer before parsing - better for unit tests */
-	stream = fopen(rcxml, "r");
-	if (!stream) {
-		wlr_log(WLR_ERROR, "cannot read (%s)", rcxml);
-		goto no_config;
-	}
-	wlr_log(WLR_INFO, "read config file %s", rcxml);
-	buf_init(&b);
-	while (getline(&line, &len, stream) != -1) {
-		char *p = strrchr(line, '\n');
-		if (p) {
-			*p = '\0';
+	for (int i = 3; i >= 0; i--) {
+		line = NULL;
+		len = 0;
+		if (filename) {
+			sprintf(rcxml, "%s", filename);
+			i = 0;
+		} else {
+			sprintf(rcxml, "%s/rc.xml", config_dir_n(i));
 		}
-		buf_add(&b, line);
+		/* Reading file into buffer before parsing - better for unit tests */
+		stream = fopen(rcxml, "r");
+		if (!stream) {
+			wlr_log(WLR_ERROR, "cannot read (%s)", rcxml);
+		}
+		else
+		{
+		wlr_log(WLR_INFO, "read config file %s", rcxml);
+		buf_init(&b);
+		while (getline(&line, &len, stream) != -1) {
+			char *p = strrchr(line, '\n');
+			if (p) {
+				*p = '\0';
+			}
+			buf_add(&b, line);
+		}
+		free(line);
+		fclose(stream);
+		rcxml_parse_xml(&b);
+		free(b.buf);
+		}
 	}
-	free(line);
-	fclose(stream);
-	rcxml_parse_xml(&b);
-	free(b.buf);
-no_config:
 	post_processing();
 	validate();
 }

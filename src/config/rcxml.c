@@ -1474,7 +1474,7 @@ rcxml_read(const char *filename)
 	 * the first time. The specified 'filename' is only respected the first
 	 * time.
 	 */
-	for (int i = 3; i >= 0; i--) {
+	for (int i = 1; i >= 0; i--) {
 		line = NULL;
 		len = 0;
 		if (filename) {

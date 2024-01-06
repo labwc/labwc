@@ -144,7 +144,11 @@ config_dir_n(int n)
 		.len = sizeof(buf),
 		.dirs = config_dirs
 	};
-	return find_dir(&ctx, n);
+	if (n == 0) {
+		return find_dir(&ctx, getenv("XDG_CONFIG_HOME") ? 0 : 1);
+	} else {
+		return find_dir(&ctx, getenv("XDG_CONFIG_DIRS") ? 2 : 3);
+	}
 }
 
 char *

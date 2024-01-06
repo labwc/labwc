@@ -407,6 +407,11 @@ windows using the mouse.
 	- Left
 	- Middle
 	- Right
+	- Side
+	- Extra
+	- Forward
+	- Back
+	- Task
 
 	Supported scroll *directions* are:
 	- Up

@@ -505,6 +505,8 @@ set_initial_position(struct view *view,
 			XCB_ICCCM_SIZE_HINT_US_POSITION |
 			XCB_ICCCM_SIZE_HINT_P_POSITION));
 
+	view_constrain_size_to_that_of_usable_area(view);
+
 	if (has_position) {
 		/*
 		 * Make sure a floating view is onscreen. For a

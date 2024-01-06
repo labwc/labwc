@@ -407,6 +407,7 @@ void view_center(struct view *view, const struct wlr_box *ref);
  * @view: view to be placed
  */
 void view_place_initial(struct view *view);
+void view_constrain_size_to_that_of_usable_area(struct view *view);
 
 void view_restore_to(struct view *view, struct wlr_box geometry);
 void view_set_untiled(struct view *view);

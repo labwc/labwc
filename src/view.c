@@ -718,6 +718,25 @@ view_place_initial(struct view *view)
 	view_center(view, NULL);
 }
 
+void
+view_constrain_size_to_that_of_usable_area(struct view *view)
+{
+	if (!view || !view->output) {
+		return;
+	}
+	struct wlr_box *usable_area = &view->output->usable_area;
+	struct border margin = ssd_get_margin(view->ssd);
+	struct wlr_box box = {
+		.x = view->pending.x,
+		.y = view->pending.y,
+		.width = MIN(usable_area->width - margin.left - margin.right,
+			view->pending.width),
+		.height = MIN(usable_area->height - margin.top - margin.bottom,
+			view->pending.height),
+	};
+	view_move_resize(view, box);
+}
+
 static void
 view_apply_natural_geometry(struct view *view)
 {

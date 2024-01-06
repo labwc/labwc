@@ -420,6 +420,8 @@ position_xdg_toplevel_view(struct view *view)
 	struct wlr_xdg_toplevel *parent_xdg_toplevel =
 		xdg_toplevel_from_view(view)->parent;
 
+	view_constrain_size_to_that_of_usable_area(view);
+
 	if (parent_xdg_toplevel) {
 		/* Child views are center-aligned relative to their parents */
 		struct view *parent = lookup_view_by_xdg_toplevel(

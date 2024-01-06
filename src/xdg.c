@@ -415,7 +415,7 @@ lookup_view_by_xdg_toplevel(struct server *server,
 }
 
 static void
-position_xdg_toplevel_view(struct view *view)
+set_initial_position(struct view *view)
 {
 	struct wlr_xdg_toplevel *parent_xdg_toplevel =
 		xdg_toplevel_from_view(view)->parent;
@@ -520,7 +520,7 @@ xdg_toplevel_view_map(struct view *view)
 		 * is called before map (try "foot --maximized").
 		 */
 		if (view_is_floating(view)) {
-			position_xdg_toplevel_view(view);
+			set_initial_position(view);
 		}
 
 		set_fullscreen_from_request(view, requested);

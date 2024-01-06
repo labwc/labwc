@@ -544,6 +544,19 @@ fill_libinput_category(char *nodename, char *content)
 		current_libinput_category->dwt = ret
 			? LIBINPUT_CONFIG_DWT_ENABLED
 			: LIBINPUT_CONFIG_DWT_DISABLED;
+	} else if (!strcasecmp(nodename, "clickMethod")) {
+		if (!strcmp(content, "none")) {
+			current_libinput_category->click_method =
+				LIBINPUT_CONFIG_CLICK_METHOD_NONE;
+		} else if (!strcmp(content, "clickfinger")) {
+			current_libinput_category->click_method =
+				LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
+		} else if (!strcmp(content, "buttonAreas")) {
+			current_libinput_category->click_method =
+				LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS;
+		} else {
+			wlr_log(WLR_ERROR, "invalid clickMethod");
+		}
 	}
 }
 

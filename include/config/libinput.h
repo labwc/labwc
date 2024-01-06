@@ -28,6 +28,7 @@ struct libinput_category {
 	int accel_profile; /* -1 or libinput_config_accel_profile */
 	int middle_emu; /* -1 or libinput_config_middle_emulation_state */
 	int dwt; /* -1 or libinput_config_dwt_state */
+	enum libinput_config_click_method click_method;
 };
 
 enum lab_libinput_device_type get_device_type(const char *s);

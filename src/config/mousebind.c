@@ -34,6 +34,16 @@ mousebind_button_from_str(const char *str, uint32_t *modifiers)
 		return BTN_RIGHT;
 	} else if (!strcasecmp(str, "Middle")) {
 		return BTN_MIDDLE;
+	} else if (!strcasecmp(str, "Side")) {
+		return BTN_SIDE;
+	} else if (!strcasecmp(str, "Extra")) {
+		return BTN_EXTRA;
+	} else if (!strcasecmp(str, "Forward")) {
+		return BTN_FORWARD;
+	} else if (!strcasecmp(str, "Back")) {
+		return BTN_BACK;
+	} else if (!strcasecmp(str, "Task")) {
+		return BTN_TASK;
 	}
 invalid:
 	wlr_log(WLR_ERROR, "unknown button (%s)", str);

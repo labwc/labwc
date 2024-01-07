@@ -420,13 +420,14 @@
     non-touch, default or the name of a device. You can obtain device names by
     running *libinput list-devices* as root or member of the input group.
 
-    Tap is set to *yes* be default. All others are left blank in order to use
+    Tap is set to *yes* by default. All others are left blank in order to use
     device defaults.
 
     All values are [yes|no] except for:
       - pointerSpeed [-1.0 to 1.0]
       - accelProfile [flat|adaptive]
       - tapButtonMap [lrm|lmr]
+      - clickMethod [none|buttonAreas|clickfinger]
   -->
   <libinput>
     <device category="default">
@@ -440,6 +441,7 @@
       <dragLock></dragLock>
       <middleEmulation></middleEmulation>
       <disableWhileTyping></disableWhileTyping>
+      <clickMethod></clickMethod>
     </device>
   </libinput>
 

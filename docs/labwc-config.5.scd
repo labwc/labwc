@@ -504,6 +504,7 @@ windows using the mouse.
     <dragLock></dragLock>
     <middleEmulation></middleEmulation>
     <disableWhileTyping></disableWhileTyping>
+    <clickMethod></clickMethod>
   </device>
 </libinput>
 ```
@@ -578,6 +579,12 @@ windows using the mouse.
 	Enable or disable disable while typing for this category. DWT ignores
 	any motion events while a keyboard is typing, and for a short while
 	after as well.
+
+*<libinput><device><clickMethod>* [none|buttonAreas|clickfinger]
+	Set the kind of click method that shall be used. Either the location of
+	where the click happens (buttonAreas), or the number of fingers
+	(clickfinger) being used determines the kind of mouse button being
+	triggered. Choose *none* if a click shall not trigger a mouse button click.
 
 ## WINDOW RULES
 

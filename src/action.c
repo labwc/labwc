@@ -956,8 +956,9 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_TOGGLE_TEARING:
 			if (view) {
 				view->tearing_hint = !view->tearing_hint;
+				wlr_log(WLR_DEBUG, "tearing %sabled",
+					view->tearing_hint ? "en" : "dis");
 			}
-			wlr_log(WLR_DEBUG, "tearing: %d", view->tearing_hint);
 			break;
 		case ACTION_TYPE_INVALID:
 			wlr_log(WLR_ERROR, "Not executing unknown action");

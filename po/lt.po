@@ -1,68 +1,70 @@
 # Labwc pot file
-# Copyright (C) 2022
+# Copyright (C) 2023
 # This file is distributed under the same license as the labwc package.
-# Consolatis <https://github.com/Consolatis>, 2022.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2023-01-02 11:22+1000\n"
-"PO-Revision-Date: 2024-01-07 14:23+0000\n"
-"Last-Translator: Ettore Atalan <atalanttore@googlemail.com>\n"
-"Language-Team: German <https://translate.lxqt-project.org/projects/labwc/"
-"labwc/de/>\n"
-"Language: de\n"
+"PO-Revision-Date: 2024-01-04 15:23+0000\n"
+"Last-Translator: Moo <hazap@hotmail.com>\n"
+"Language-Team: Lithuanian <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/lt/>\n"
+"Language: lt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"Plural-Forms: nplurals=3; plural=(n % 10 == 1 && (n % 100 < 11 || n % 100 > "
+"19)) ? 0 : ((n % 10 >= 2 && n % 10 <= 9 && (n % 100 < 11 || n % 100 > 19)) ? "
+"1 : 2);\n"
 "X-Generator: Weblate 4.2.1\n"
 
 #: src/menu/menu.c:698
 msgid "Reconfigure"
-msgstr "Rekonfigurieren"
+msgstr "Konfigūruoti iš naujo"
 
 #: src/menu/menu.c:700
 msgid "Exit"
-msgstr "Beenden"
+msgstr "Išeiti"
 
 #: src/menu/menu.c:716
 msgid "Minimize"
-msgstr "Minimieren"
+msgstr "Suskleisti"
 
 #: src/menu/menu.c:718
 msgid "Maximize"
-msgstr "Maximieren"
+msgstr "Išskleisti"
 
 #: src/menu/menu.c:720
 msgid "Fullscreen"
-msgstr "Vollbild"
+msgstr "Visas ekranas"
 
 #: src/menu/menu.c:722
 msgid "Decorations"
-msgstr "Dekorationen"
+msgstr "Dekoracijos"
 
 #: src/menu/menu.c:724
 msgid "Always on Top"
-msgstr "Immer im Vordergrund"
+msgstr "Visada viršuje"
 
 #: src/menu/menu.c:729
 msgid "Move left"
-msgstr "nach links"
+msgstr "Perkelti kairėn"
 
 #: src/menu/menu.c:736
 msgid "Move right"
-msgstr "nach rechts"
+msgstr "Perkelti dešinėn"
 
 #: src/menu/menu.c:741
 msgid "Always on Visible Workspace"
-msgstr "Immer auf aktiver Arbeitsfläche"
+msgstr "Visada matomoje darbo srityje"
 
 #: src/menu/menu.c:744
 msgid "Workspace"
-msgstr "Arbeitsfläche"
+msgstr "Darbo sritis"
 
 #: src/menu/menu.c:747
 msgid "Close"
-msgstr "Schließen"
+msgstr "Užverti"

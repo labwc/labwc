@@ -15,7 +15,6 @@
 #include "input/keyboard.h"
 #include "input/key-state.h"
 #include "labwc.h"
-#include "libinput.h"
 #include "view.h"
 
 static void

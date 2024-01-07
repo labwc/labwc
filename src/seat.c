@@ -204,6 +204,17 @@ output_by_name(struct server *server, const char *name)
 	return NULL;
 }
 
+static void
+map_input_to_output(struct seat *seat, struct wlr_input_device *dev, char *output_name)
+{
+	struct wlr_output *output = NULL;
+	if (output_name) {
+		output = output_by_name(seat->server, output_name);
+	}
+	wlr_cursor_map_input_to_output(seat->cursor, dev, output);
+	wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
+}
+
 static struct input *
 new_pointer(struct seat *seat, struct wlr_input_device *dev)
 {
@@ -214,14 +225,9 @@ new_pointer(struct seat *seat, struct wlr_input_device *dev)
 
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
 	if (dev->type == WLR_INPUT_DEVICE_POINTER) {
-		struct wlr_output *output = NULL;
 		struct wlr_pointer *pointer = wlr_pointer_from_input_device(dev);
 		wlr_log(WLR_INFO, "map pointer to output %s\n", pointer->output_name);
-		if (pointer->output_name) {
-			output = output_by_name(seat->server, pointer->output_name);
-		}
-		wlr_cursor_map_input_to_output(seat->cursor, dev, output);
-		wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
+		map_input_to_output(seat, dev, pointer->output_name);
 	}
 	return input;
 }
@@ -267,14 +273,9 @@ new_touch(struct seat *seat, struct wlr_input_device *dev)
 
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
 	if (dev->type == WLR_INPUT_DEVICE_TOUCH) {
-		struct wlr_output *output = NULL;
 		struct wlr_touch *touch = wlr_touch_from_input_device(dev);
 		wlr_log(WLR_INFO, "map touch to output %s\n", touch->output_name);
-		if (touch->output_name) {
-			output = output_by_name(seat->server, touch->output_name);
-		}
-		wlr_cursor_map_input_to_output(seat->cursor, dev, output);
-		wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
+		map_input_to_output(seat, dev, touch->output_name);
 	}
 	return input;
 }

@@ -89,6 +89,7 @@ struct rcxml {
 
 	/* graphics tablet */
 	struct tablet_config {
+		char *output_name;
 		struct wlr_fbox box;
 		enum rotation rotation;
 		uint16_t button_map_count;

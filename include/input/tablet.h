@@ -3,6 +3,7 @@
 #define LABWC_TABLET_H
 
 #include <wayland-server-core.h>
+
 struct seat;
 struct wlr_device;
 struct wlr_input_device;

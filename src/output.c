@@ -43,11 +43,7 @@ get_tearing_preference(struct output *output)
 	}
 
 	/* If the active view requests tearing, or it is toggled on with action, allow it */
-	if (server->active_view->tearing_hint) {
-		return true;
-	}
-
-	return false;
+	return server->active_view->tearing_hint;
 }
 
 static void

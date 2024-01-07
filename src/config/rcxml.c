@@ -863,6 +863,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "Invalid value for <resize popupShow />");
 		}
+	} else if (!strcasecmp(nodename, "rotate.tablet")) {
+		rc.tablet.rotation = tablet_parse_rotation(atoi(content));
 	} else if (!strcasecmp(nodename, "left.area.tablet")) {
 		rc.tablet.box.x = tablet_get_dbl_if_positive(content, "left");
 	} else if (!strcasecmp(nodename, "top.area.tablet")) {
@@ -871,8 +873,6 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.tablet.box.width = tablet_get_dbl_if_positive(content, "width");
 	} else if (!strcasecmp(nodename, "height.area.tablet")) {
 		rc.tablet.box.height = tablet_get_dbl_if_positive(content, "height");
-	} else if (!strcasecmp(nodename, "rotate.tablet")) {
-		rc.tablet.rotation = tablet_parse_rotation(atoi(content));
 	} else if (!strcasecmp(nodename, "button.map.tablet")) {
 		button_map_from = tablet_button_from_str(content);
 	} else if (!strcasecmp(nodename, "to.map.tablet")) {

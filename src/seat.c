@@ -351,11 +351,11 @@ new_input_notify(struct wl_listener *listener, void *data)
 	case WLR_INPUT_DEVICE_TOUCH:
 		input = new_touch(seat, device);
 		break;
-	case WLR_INPUT_DEVICE_TABLET_PAD:
-		input = new_tablet_pad(seat, device);
-		break;
 	case WLR_INPUT_DEVICE_TABLET_TOOL:
 		input = new_tablet(seat, device);
+		break;
+	case WLR_INPUT_DEVICE_TABLET_PAD:
+		input = new_tablet_pad(seat, device);
 		break;
 	default:
 		wlr_log(WLR_INFO, "unsupported input device");

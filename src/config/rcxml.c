@@ -742,9 +742,12 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_adaptive_sync_mode(content, &rc.adaptive_sync);
 	} else if (!strcasecmp(nodename, "allowTearing.core")) {
 		set_bool(content, &rc.allow_tearing);
-		if (rc.allow_tearing && strcmp(getenv("WLR_DRM_NO_ATOMIC"), "1")) {
-			rc.allow_tearing = false;
-			wlr_log(WLR_INFO, "WLR_DRM_NO_ATOMIC is not 1, tearing disabled");
+		if (rc.allow_tearing) {
+			char *no_atomic_env = getenv("WLR_DRM_NO_ATOMIC");
+			if (!no_atomic_env || strcmp(no_atomic_env, "1") != 0) {
+				rc.allow_tearing = false;
+				wlr_log(WLR_ERROR, "tearing requires WLR_DRM_NO_ATOMIC=1");
+			}
 		}
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);

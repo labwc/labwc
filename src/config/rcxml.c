@@ -1498,12 +1498,12 @@ rcxml_read(const char *filename)
 	} else {
 		/* merge user config with system config */
 		rcxml = strdup_printf("%s/rc.xml", sys_config_dir());
-		rcxml_read_file (rcxml);
-		free (rcxml);
+		rcxml_read_file(rcxml);
+		free(rcxml);
 
 		rcxml = strdup_printf("%s/rc.xml", user_config_dir());
-		rcxml_read_file (rcxml);
-		free (rcxml);
+		rcxml_read_file(rcxml);
+		free(rcxml);
 	}
 
 	post_processing();

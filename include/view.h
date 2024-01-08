@@ -151,6 +151,7 @@ struct view {
 	bool minimized;
 	enum view_axis maximized;
 	bool fullscreen;
+	bool tearing_hint;
 	bool visible_on_all_workspaces;
 	enum view_edge tiled;
 	bool inhibits_keybinds;

@@ -154,6 +154,9 @@ Actions are used in menus and keyboard/mouse bindings.
 	the usual keybinds will function again until switching back to the
 	original window. There can be multiple windows with this mode set.
 
+*<action name="ToggleTearing" />*
+	Toggles tearing for the focused window.
+
 *<action name="FocusOutput" output="HDMI-A-1" />*
 	Give focus to topmost window on given output and warp the cursor
 	to the center of the window. If the given output does not contain

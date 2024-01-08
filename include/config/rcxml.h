@@ -53,6 +53,7 @@ struct rcxml {
 	bool xdg_shell_server_side_deco;
 	int gap;
 	enum adaptive_sync_mode adaptive_sync;
+	bool allow_tearing;
 	bool reuse_output_mode;
 	enum view_placement_policy placement_policy;
 

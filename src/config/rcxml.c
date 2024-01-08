@@ -740,6 +740,12 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.gap = atoi(content);
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
 		set_adaptive_sync_mode(content, &rc.adaptive_sync);
+	} else if (!strcasecmp(nodename, "allowTearing.core")) {
+		set_bool(content, &rc.allow_tearing);
+		if (rc.allow_tearing && strcmp(getenv("WLR_DRM_NO_ATOMIC"), "1")) {
+			rc.allow_tearing = false;
+			wlr_log(WLR_INFO, "WLR_DRM_NO_ATOMIC is not 1, tearing disabled");
+		}
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);
 	} else if (!strcmp(nodename, "policy.placement")) {

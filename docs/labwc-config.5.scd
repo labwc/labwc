@@ -109,6 +109,7 @@ this is for compatibility with Openbox.
   <decoration>server</decoration>
   <gap>0</gap>
   <adaptiveSync>no</adaptiveSync>
+  <allowTearing>no</allowTearing>
   <reuseOutputMode>no</reuseOutputMode>
 </core>
 ```
@@ -127,6 +128,12 @@ this is for compatibility with Openbox.
 
 	*fullscreen* enables adaptive sync whenever a window is in fullscreen
 	mode.
+
+*<core><allowTearing>* [yes|no]
+	Allow tearing to reduce input lag. Default is no.
+	This option requires setting the environment variable WLR_DRM_NO_ATOMIC=1.
+
+	*yes* allow tearing if requested by the active window.
 
 *<core><reuseOutputMode>* [yes|no]
 	Try to re-use the existing output mode (resolution / refresh rate).

@@ -27,6 +27,25 @@
 #include "view.h"
 #include "xwayland.h"
 
+static bool
+get_tearing_preference(struct output *output)
+{
+	struct server *server = output->server;
+
+	/* Never allow tearing when disabled */
+	if (!rc.allow_tearing) {
+		return false;
+	}
+
+	/* Tearing is only allowed for the output with the active view */
+	if (!server->active_view || server->active_view->output != output) {
+		return false;
+	}
+
+	/* If the active view requests tearing, or it is toggled on with action, allow it */
+	return server->active_view->tearing_hint;
+}
+
 static void
 output_frame_notify(struct wl_listener *listener, void *data)
 {
@@ -68,7 +87,9 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	wlr_scene_output_commit(output->scene_output, NULL);
+	output->wlr_output->pending.tearing_page_flip =
+		get_tearing_preference(output);
+	lab_wlr_scene_output_commit(output->scene_output);
 
 	struct timespec now = { 0 };
 	clock_gettime(CLOCK_MONOTONIC, &now);

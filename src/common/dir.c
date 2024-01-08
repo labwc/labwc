@@ -154,11 +154,11 @@ sys_config_dir(void)
 char *
 config_dir(void)
 {
-	char *res = user_config_dir ();
+	char *res = user_config_dir();
 	if (res[0] != '\0') {
 		return res;
 	}
-	return sys_config_dir ();
+	return sys_config_dir();
 }
 
 char *

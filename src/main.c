@@ -3,12 +3,12 @@
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
-#include <glib.h>
 #include "common/dir.h"
 #include "common/fd_util.h"
 #include "common/font.h"
 #include "common/mem.h"
 #include "common/spawn.h"
+#include "common/string-helpers.h"
 #include "config/session.h"
 #include "labwc.h"
 #include "theme.h"
@@ -22,7 +22,7 @@ static const struct option long_options[] = {
 	{"debug", no_argument, NULL, 'd'},
 	{"exit", no_argument, NULL, 'e'},
 	{"help", no_argument, NULL, 'h'},
-	{"mergeconfig", no_argument, NULL, 'm'},
+	{"merge-config", no_argument, NULL, 'm'},
 	{"reconfigure", no_argument, NULL, 'r'},
 	{"startup", required_argument, NULL, 's'},
 	{"version", no_argument, NULL, 'v'},
@@ -37,7 +37,7 @@ static const char labwc_usage[] =
 "  -d, --debug              Enable full logging, including debug information\n"
 "  -e, --exit               Exit the compositor\n"
 "  -h, --help               Show help message and quit\n"
-"  -m, --mergeconfig        Merge user rc.xml with system rc.xml\n"
+"  -m, --merge-config       Merge user rc.xml with system rc.xml\n"
 "  -r, --reconfigure        Reload the compositor configuration\n"
 "  -s, --startup <command>  Run command on startup\n"
 "  -v, --version            Show version number and quit\n"
@@ -143,11 +143,12 @@ main(int argc, char *argv[])
 	if (!rc.config_dir) {
 		rc.config_dir = config_dir();
 		if (!merge_rc && !config_file) {
-			config_file = g_strdup_printf("%s/rc.xml", rc.config_dir);
+			config_file = strdup_printf("%s/rc.xml", rc.config_dir);
 		}
 	} else if (!config_file) {
-		config_file = g_strdup_printf("%s/rc.xml", rc.config_dir);
+		config_file = strdup_printf("%s/rc.xml", rc.config_dir);
 	}
+
 	wlr_log(WLR_INFO, "using config dir (%s)\n", rc.config_dir);
 	session_environment_init(rc.config_dir);
 	rcxml_read(config_file);

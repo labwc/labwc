@@ -3,7 +3,8 @@
 #define LABWC_DIR_H
 
 char *config_dir(void);
-char *config_dir_n(int n);
+char *user_config_dir(void);
+char *sys_config_dir(void);
 
 /**
  * theme_dir - find theme directory containing theme @theme_name

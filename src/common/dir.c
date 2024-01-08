@@ -17,9 +17,13 @@ struct dir {
 	const char *path;
 };
 
-static struct dir config_dirs[] = {
+static struct dir user_config_dirs[] = {
 	{ "XDG_CONFIG_HOME", "labwc" },
 	{ "HOME", ".config/labwc" },
+	{ NULL, NULL }
+};
+
+static struct dir sys_config_dirs[] = {
 	{ "XDG_CONFIG_DIRS", "labwc" },
 	{ NULL, "/etc/xdg/labwc" },
 	{ NULL, NULL }
@@ -74,12 +78,12 @@ build_theme_path(struct ctx *ctx, char *prefix, const char *path)
 }
 
 static char *
-find_dir(struct ctx *ctx, int n)
+find_dir(struct ctx *ctx)
 {
 	char *debug = getenv("LABWC_DEBUG_DIR_CONFIG_AND_THEME");
 
 	for (int i = 0; ctx->dirs[i].path; i++) {
-		struct dir d = ctx->dirs[n != -1 ? n : i];
+		struct dir d = ctx->dirs[i];
 		if (!d.prefix) {
 			/* handle /etc/xdg... */
 			ctx->build_path_fn(ctx, NULL, d.path);
@@ -109,9 +113,6 @@ find_dir(struct ctx *ctx, int n)
 			}
 			g_strfreev(prefixes);
 		}
-		if (n != -1) {
-			break;
-		}
 	}
 	/* no directory was found */
 	ctx->buf[0] = '\0';
@@ -119,7 +120,7 @@ find_dir(struct ctx *ctx, int n)
 }
 
 char *
-config_dir(void)
+user_config_dir(void)
 {
 	static char buf[4096] = { 0 };
 	if (buf[0] != '\0') {
@@ -129,26 +130,35 @@ config_dir(void)
 		.build_path_fn = build_config_path,
 		.buf = buf,
 		.len = sizeof(buf),
-		.dirs = config_dirs
+		.dirs = user_config_dirs
 	};
-	return find_dir(&ctx, -1);
+	return find_dir(&ctx);
 }
 
 char *
-config_dir_n(int n)
+sys_config_dir(void)
 {
-	char buf[4096] = { 0 };
+	static char buf[4096] = { 0 };
+	if (buf[0] != '\0') {
+		return buf;
+	}
 	struct ctx ctx = {
 		.build_path_fn = build_config_path,
 		.buf = buf,
 		.len = sizeof(buf),
-		.dirs = config_dirs
+		.dirs = sys_config_dirs
 	};
-	if (n == 0) {
-		return find_dir(&ctx, getenv("XDG_CONFIG_HOME") ? 0 : 1);
-	} else {
-		return find_dir(&ctx, getenv("XDG_CONFIG_DIRS") ? 2 : 3);
+	return find_dir(&ctx);
+}
+
+char *
+config_dir(void)
+{
+	char *res = user_config_dir ();
+	if (res[0] != '\0') {
+		return res;
 	}
+	return sys_config_dir ();
 }
 
 char *
@@ -162,5 +172,5 @@ theme_dir(const char *theme_name)
 		.dirs = theme_dirs,
 		.theme_name = theme_name
 	};
-	return find_dir(&ctx, -1);
+	return find_dir(&ctx);
 }

@@ -1453,59 +1453,59 @@ validate(void)
 	validate_actions();
 }
 
-void
-rcxml_read(const char *filename)
+static void
+rcxml_read_file(const char *rcxml)
 {
 	FILE *stream;
 	char *line = NULL;
 	size_t len = 0;
 	struct buf b;
-	char rcxml[4096] = {0};
-	static char saved_filename[4096] = {0};
 
-	if (filename) {
-		snprintf(saved_filename, sizeof(rcxml), "%s", filename);
+	/* Reading file into buffer before parsing - better for unit tests */
+	stream = fopen(rcxml, "r");
+	if (!stream) {
+		wlr_log(WLR_ERROR, "cannot read (%s)", rcxml);
+	} else {
+		wlr_log(WLR_INFO, "read config file %s", rcxml);
+		buf_init(&b);
+		while (getline(&line, &len, stream) != -1) {
+			char *p = strrchr(line, '\n');
+			if (p) {
+				*p = '\0';
+			}
+			buf_add(&b, line);
+		}
+		free(line);
+		fclose(stream);
+		rcxml_parse_xml(&b);
+		free(b.buf);
 	}
+}
+
+void
+rcxml_read(const char *filename)
+{
+	char *rcxml;
+	static char saved_filename[4096] = {0};
 
 	rcxml_init();
 
-	/*
-	 * rcxml_read() can be called multiple times, but we only set rcxml[]
-	 * the first time. The specified 'filename' is only respected the first
-	 * time.
-	 */
-	for (int i = 1; i >= 0; i--) {
-		line = NULL;
-		len = 0;
-		if (filename) {
-			snprintf(rcxml, sizeof(rcxml), "%s", filename);
-			i = 0;
-		} else if (saved_filename[0] != 0) {
-			snprintf(rcxml, sizeof(rcxml), "%s", saved_filename);
-			i = 0;
-		} else {
-			snprintf(rcxml, sizeof(rcxml), "%s/rc.xml", config_dir_n(i));
-		}
-		/* Reading file into buffer before parsing - better for unit tests */
-		stream = fopen(rcxml, "r");
-		if (!stream) {
-			wlr_log(WLR_ERROR, "cannot read (%s)", rcxml);
-		} else {
-			wlr_log(WLR_INFO, "read config file %s", rcxml);
-			buf_init(&b);
-			while (getline(&line, &len, stream) != -1) {
-				char *p = strrchr(line, '\n');
-				if (p) {
-					*p = '\0';
-				}
-				buf_add(&b, line);
-			}
-			free(line);
-			fclose(stream);
-			rcxml_parse_xml(&b);
-			free(b.buf);
-		}
+	if (filename) {
+		snprintf(saved_filename, sizeof(saved_filename), "%s", filename);
+		rcxml_read_file(filename);
+	} else if (saved_filename[0] != 0) {
+		rcxml_read_file(saved_filename);
+	} else {
+		/* merge user config with system config */
+		rcxml = strdup_printf("%s/rc.xml", sys_config_dir());
+		rcxml_read_file (rcxml);
+		free (rcxml);
+
+		rcxml = strdup_printf("%s/rc.xml", user_config_dir());
+		rcxml_read_file (rcxml);
+		free (rcxml);
 	}
+
 	post_processing();
 	validate();
 }

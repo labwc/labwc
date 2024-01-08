@@ -407,6 +407,11 @@ windows using the mouse.
 	- Left
 	- Middle
 	- Right
+	- Side
+	- Extra
+	- Forward
+	- Back
+	- Task
 
 	Supported scroll *directions* are:
 	- Up
@@ -432,6 +437,57 @@ windows using the mouse.
 	allowing user specific binds.  Note that if no rc.xml is found, or if no
 	<mouse><mousebind> entries exist, the same default mousebinds will be
 	loaded even if the <default /> element is not provided.
+
+## TABLET
+
+```
+<tablet rotate="0">
+  <area top="0.0" left="0.0" width="0.0" height="0.0">
+  <map button="Tip" to="Left" />
+  <map button="Stylus" to="Right" />
+  <map button="Stylus2" to="Middle" />
+</tablet>
+```
+
+*<tablet><area top="mm" left="mm" width="mm" height="mm" />*
+	By default the complete tablet area is mapped to the full output.
+	The *area* element can be used to truncate the active area of the
+	tablet surface. By truncating the active area, it is e.g. possible
+	to maintain the same aspect ratio between output and tablet.
+
+	The active tablet area can be specified by setting the *top*/*left*
+	coordinate (in mm) and/or *width*/*height* (in mm). If width or
+	height are omitted or default (0.0), width/height will be set to
+	the remaining width/height seen from top/left.
+
+	Aspect ratio example:
+	The dimensions of the tablet are 215mm x 115mm and the output has
+	a resolution of 3440x1440. When setting height to "90", because 
+	215 x 1440 / 3440 = 90, the responsive tablet area height will be
+	truncated to match the 21:9 aspect ratio of the output. By
+	additionally setting top to "12.5", the active area is centered
+	vertically on the tablet surface.
+
+*<tablet rotate="" />* [0|90|180|270]
+	The tablet orientation can be changed in 90 degree steps. Default is
+	no rotation (0). Rotation will be applied after applying tablet area
+	transformation.
+
+*<tablet><map button="" to="" />*
+	Tablet buttons emulate regular mouse buttons. If not specified otherwise,
+	the tip (Tip) is mapped to left mouse click, the first pen button (Stylus)
+	is mapped to right mouse button click and the second pen button (Stylus2)
+	emulates a middle mouse button click.
+
+	Supported map *buttons* are:
+	- Tip
+	- Stylus
+	- Stylus2
+	- Stylus3
+	- Pad
+	- Pad2..Pad9
+
+	See mouse section above for all supported *to* mouse buttons.
 
 ## LIBINPUT
 

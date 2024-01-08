@@ -868,7 +868,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		button_map_from = tablet_button_from_str(content);
 	} else if (!strcasecmp(nodename, "to.map.tablet")) {
 		if (button_map_from != UINT32_MAX) {
-			uint32_t button_map_to = mouse_button_from_str(content);
+			uint32_t button_map_to = mousebind_button_from_str(content, NULL);
 			if (button_map_to != UINT32_MAX) {
 				tablet_button_mapping_add(button_map_from, button_map_to);
 			}

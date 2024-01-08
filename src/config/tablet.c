@@ -72,20 +72,6 @@ tablet_button_from_str(const char *button)
 	return UINT32_MAX;
 }
 
-uint32_t
-mouse_button_from_str(const char *button)
-{
-	if (!strcasecmp(button, "Left")) {
-		return BTN_LEFT;
-	} else if (!strcasecmp(button, "Right")) {
-		return BTN_RIGHT;
-	} else if (!strcasecmp(button, "Middle")) {
-		return BTN_MIDDLE;
-	}
-	wlr_log(WLR_ERROR, "Invalid value for mouse button: %s", button);
-	return UINT32_MAX;
-}
-
 void
 tablet_button_mapping_add(uint32_t from, uint32_t to)
 {

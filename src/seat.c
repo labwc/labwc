@@ -515,6 +515,9 @@ seat_reconfigure(struct server *server)
 		case WLR_INPUT_DEVICE_POINTER:
 			configure_libinput(input->wlr_input_device);
 			break;
+		case WLR_INPUT_DEVICE_TABLET_TOOL:
+			map_input_to_output(seat, input->wlr_input_device, rc.tablet.output_name);
+			break;
 		default:
 			break;
 		}

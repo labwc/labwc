@@ -106,6 +106,7 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 	wl_list_remove(&output->frame.link);
 	wl_list_remove(&output->destroy.link);
 	wl_list_remove(&output->request_state.link);
+	seat_output_layout_changed(&output->server->seat);
 
 	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		wlr_scene_node_destroy(&output->layer_tree[i]->node);
@@ -350,6 +351,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 
 	server->pending_output_layout_change--;
 	do_output_layout_change(server);
+	seat_output_layout_changed(&output->server->seat);
 }
 
 void

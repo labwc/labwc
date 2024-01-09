@@ -643,3 +643,18 @@ seat_reset_pressed(struct seat *seat)
 	seat->pressed.toplevel = NULL;
 	seat->pressed.resize_edges = 0;
 }
+
+void
+seat_output_layout_changed(struct seat *seat)
+{
+	struct input *input = NULL;
+	wl_list_for_each(input, &seat->inputs, link) {
+		switch (input->wlr_input_device->type) {
+		case WLR_INPUT_DEVICE_TABLET_TOOL:
+			map_input_to_output(seat, input->wlr_input_device, rc.tablet.output_name);
+			break;
+		default:
+			break;
+		}
+	}
+}

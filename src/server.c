@@ -67,7 +67,7 @@ reload_config_and_theme(void)
 static int
 handle_sighup(int signal, void *data)
 {
-	session_environment_init(rc.config_dir);
+	session_environment_init();
 	reload_config_and_theme();
 	return 0;
 }

@@ -150,7 +150,7 @@ main(int argc, char *argv[])
 	}
 
 	wlr_log(WLR_INFO, "using config dir (%s)\n", rc.config_dir);
-	session_environment_init(rc.config_dir);
+	session_environment_init();
 	rcxml_read(config_file);
 
 	/*
@@ -184,7 +184,7 @@ main(int argc, char *argv[])
 
 	menu_init(&server);
 
-	session_autostart_init(rc.config_dir);
+	session_autostart_init();
 	if (startup_cmd) {
 		spawn_async_no_shell(startup_cmd);
 	}

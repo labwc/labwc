@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <wlr/util/log.h>
 #include "common/buf.h"
+#include "common/dir.h"
 #include "common/file-helpers.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
@@ -45,14 +46,14 @@ error:
 	free(value.buf);
 }
 
-static void
+static bool
 read_environment_file(const char *filename)
 {
 	char *line = NULL;
 	size_t len = 0;
 	FILE *stream = fopen(filename, "r");
 	if (!stream) {
-		return;
+		return false;
 	}
 	wlr_log(WLR_INFO, "read environment file %s", filename);
 	while (getline(&line, &len, stream) != -1) {
@@ -64,6 +65,7 @@ read_environment_file(const char *filename)
 	}
 	free(line);
 	fclose(stream);
+	return true;
 }
 
 static char *
@@ -96,7 +98,7 @@ update_activation_env(const char *env_keys)
 }
 
 void
-session_environment_init(const char *dir)
+session_environment_init(void)
 {
 	/*
 	 * Set default for XDG_CURRENT_DESKTOP so xdg-desktop-portal-wlr is happy.
@@ -114,32 +116,50 @@ session_environment_init(const char *dir)
 	 */
 	setenv("_JAVA_AWT_WM_NONREPARENTING", "1", 0);
 
-	char *environment = build_path(dir, "environment");
-	if (!environment) {
-		return;
+	int i;
+	bool read = false;
+	char *environment;
+	for (i = 0; i < 2; i++)
+	{
+		environment = build_path(i ? sys_config_dir() : user_config_dir(), "environment");
+		if (environment) {
+			read = read_environment_file(environment);
+			free(environment);
+		}
+		if (read) {
+			return;
+		}
 	}
-	read_environment_file(environment);
-	free(environment);
 }
 
 void
-session_autostart_init(const char *dir)
+session_autostart_init(void)
 {
 	/* Update dbus and systemd user environment, each may fail gracefully */
 	update_activation_env("DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP");
 
-	char *autostart = build_path(dir, "autostart");
-	if (!autostart) {
-		return;
+	int i;
+	char *autostart;
+	for (i = 0; i < 2; i++)
+	{
+		autostart = build_path(i ? sys_config_dir() : user_config_dir(), "autostart");
+
+		if (autostart) {
+			if (file_exists(autostart)) {
+				break;
+			}
+			free(autostart);
+			autostart = NULL;
+		}
 	}
-	if (!file_exists(autostart)) {
+
+	if (autostart) {
+		wlr_log(WLR_INFO, "run autostart file %s", autostart);
+		char *cmd = strdup_printf("sh %s", autostart);
+		spawn_async_no_shell(cmd);
+		free(cmd);
+		free(autostart);
+	} else {
 		wlr_log(WLR_ERROR, "no autostart file");
-		goto out;
 	}
-	wlr_log(WLR_INFO, "run autostart file %s", autostart);
-	char *cmd = strdup_printf("sh %s", autostart);
-	spawn_async_no_shell(cmd);
-	free(cmd);
-out:
-	free(autostart);
 }

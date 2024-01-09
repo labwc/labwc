@@ -448,13 +448,23 @@ windows using the mouse.
 ## TABLET
 
 ```
-<tablet rotate="0">
+<tablet mapToOutput="" rotate="0">
   <area top="0.0" left="0.0" width="0.0" height="0.0">
   <map button="Tip" to="Left" />
   <map button="Stylus" to="Right" />
   <map button="Stylus2" to="Middle" />
 </tablet>
 ```
+
+*<tablet mapToOutput="" />*
+	The tablet cursor movement can be restricted to a single output.
+	If the output name is left empty or the output does not exists, the
+	tablet will span all outputs.
+
+*<tablet rotate="" />* [0|90|180|270]
+	The tablet orientation can be changed in 90 degree steps. Default is
+	no rotation (0). Rotation will be applied after applying tablet area
+	transformation.
 
 *<tablet><area top="mm" left="mm" width="mm" height="mm" />*
 	By default the complete tablet area is mapped to the full output.
@@ -474,11 +484,6 @@ windows using the mouse.
 	truncated to match the 21:9 aspect ratio of the output. By
 	additionally setting top to "12.5", the active area is centered
 	vertically on the tablet surface.
-
-*<tablet rotate="" />* [0|90|180|270]
-	The tablet orientation can be changed in 90 degree steps. Default is
-	no rotation (0). Rotation will be applied after applying tablet area
-	transformation.
 
 *<tablet><map button="" to="" />*
 	Tablet buttons emulate regular mouse buttons. If not specified otherwise,

@@ -14,6 +14,7 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "action.h"
+#include "common/dir.h"
 #include "common/list.h"
 #include "common/macros.h"
 #include "common/mem.h"
@@ -1473,69 +1474,68 @@ validate(void)
 	validate_actions();
 }
 
-static void
-rcxml_path(char *buf, size_t len)
-{
-	if (!rc.config_dir) {
-		return;
-	}
-	snprintf(buf, len, "%s/rc.xml", rc.config_dir);
-}
-
-static void
-find_config_file(char *buffer, size_t len, const char *filename)
-{
-	if (filename) {
-		snprintf(buffer, len, "%s", filename);
-		return;
-	}
-	rcxml_path(buffer, len);
-}
-
 void
 rcxml_read(const char *filename)
 {
-	FILE *stream;
-	char *line = NULL;
-	size_t len = 0;
-	struct buf b;
-	static char rcxml[4096] = {0};
-
 	rcxml_init();
 
-	/*
-	 * rcxml_read() can be called multiple times, but we only set rcxml[]
-	 * the first time. The specified 'filename' is only respected the first
-	 * time.
-	 */
-	if (rcxml[0] == '\0') {
-		find_config_file(rcxml, sizeof(rcxml), filename);
-	}
-	if (rcxml[0] == '\0') {
-		wlr_log(WLR_INFO, "cannot find rc.xml config file");
-		goto no_config;
+	struct wl_list paths;
+
+	if (filename) {
+		/* Honour command line argument -c <filename> */
+		wl_list_init(&paths);
+		struct path *path = znew(*path);
+		path->string = xstrdup(filename);
+		wl_list_append(&paths, &path->link);
+	} else {
+		paths_config_create(&paths, "rc.xml");
 	}
 
 	/* Reading file into buffer before parsing - better for unit tests */
-	stream = fopen(rcxml, "r");
-	if (!stream) {
-		wlr_log(WLR_ERROR, "cannot read (%s)", rcxml);
-		goto no_config;
-	}
-	wlr_log(WLR_INFO, "read config file %s", rcxml);
-	buf_init(&b);
-	while (getline(&line, &len, stream) != -1) {
-		char *p = strrchr(line, '\n');
-		if (p) {
-			*p = '\0';
+	struct buf b;
+
+	bool should_merge_config = rc.merge_config;
+	struct wl_list *(*iter)(struct wl_list *list);
+	iter = should_merge_config ? paths_get_prev : paths_get_next;
+
+	/*
+	 * This is the equivalent of a wl_list_for_each() which optionally
+	 * iterates in reverse depending on 'should_merge_config'
+	 *
+	 * If not merging, we iterate forwards and break after the first
+	 * iteration.
+	 *
+	 * If merging, we iterate backwards (least important XDG Base Dir first)
+	 * and keep going.
+	 */
+	for (struct wl_list *elm = iter(&paths); elm != &paths; elm = iter(elm)) {
+		struct path *path = wl_container_of(elm, path, link);
+		FILE *stream = fopen(path->string, "r");
+		if (!stream) {
+			continue;
 		}
-		buf_add(&b, line);
-	}
-	free(line);
-	fclose(stream);
-	rcxml_parse_xml(&b);
-	free(b.buf);
-no_config:
+
+		wlr_log(WLR_INFO, "read config file %s", path->string);
+
+		buf_init(&b);
+		char *line = NULL;
+		size_t len = 0;
+		while (getline(&line, &len, stream) != -1) {
+			char *p = strrchr(line, '\n');
+			if (p) {
+				*p = '\0';
+			}
+			buf_add(&b, line);
+		}
+		zfree(line);
+		fclose(stream);
+		rcxml_parse_xml(&b);
+		zfree(b.buf);
+		if (!should_merge_config) {
+			break;
+		}
+	};
+	paths_destroy(&paths);
 	post_processing();
 	validate();
 }

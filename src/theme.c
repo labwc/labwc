@@ -23,6 +23,7 @@
 #include "common/font.h"
 #include "common/graphic-helpers.h"
 #include "common/match.h"
+#include "common/mem.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "button/button-png.h"
@@ -664,60 +665,36 @@ process_line(struct theme *theme, char *line)
 }
 
 static void
-theme_read(struct theme *theme, const char *theme_name)
+theme_read(struct theme *theme, struct wl_list *paths)
 {
-	FILE *stream = NULL;
-	char *line = NULL;
-	size_t len = 0;
-	char themerc[4096];
+	bool should_merge_config = rc.merge_config;
+	struct wl_list *(*iter)(struct wl_list *list);
+	iter = should_merge_config ? paths_get_prev : paths_get_next;
 
-	if (strlen(theme_dir(theme_name))) {
-		snprintf(themerc, sizeof(themerc), "%s/themerc",
-			theme_dir(theme_name));
-		stream = fopen(themerc, "r");
-	}
-	if (!stream) {
-		if (theme_name) {
-			wlr_log(WLR_INFO, "cannot find theme %s", theme_name);
+	for (struct wl_list *elm = iter(paths); elm != paths; elm = iter(elm)) {
+		struct path *path = wl_container_of(elm, path, link);
+		FILE *stream = fopen(path->string, "r");
+		if (!stream) {
+			continue;
 		}
-		return;
-	}
-	wlr_log(WLR_INFO, "read theme %s", themerc);
-	while (getline(&line, &len, stream) != -1) {
-		char *p = strrchr(line, '\n');
-		if (p) {
-			*p = '\0';
+
+		wlr_log(WLR_INFO, "read theme %s", path->string);
+
+		char *line = NULL;
+		size_t len = 0;
+		while (getline(&line, &len, stream) != -1) {
+			char *p = strrchr(line, '\n');
+			if (p) {
+				*p = '\0';
+			}
+			process_line(theme, line);
 		}
-		process_line(theme, line);
-	}
-	free(line);
-	fclose(stream);
-}
-
-static void
-theme_read_override(struct theme *theme)
-{
-	char f[4096] = { 0 };
-	snprintf(f, sizeof(f), "%s/themerc-override", rc.config_dir);
-
-	FILE *stream = fopen(f, "r");
-	if (!stream) {
-		wlr_log(WLR_INFO, "no theme override '%s'", f);
-		return;
-	}
-
-	wlr_log(WLR_INFO, "read theme-override %s", f);
-	char *line = NULL;
-	size_t len = 0;
-	while (getline(&line, &len, stream) != -1) {
-		char *p = strrchr(line, '\n');
-		if (p) {
-			*p = '\0';
+		zfree(line);
+		fclose(stream);
+		if (!should_merge_config) {
+			break;
 		}
-		process_line(theme, line);
 	}
-	free(line);
-	fclose(stream);
 }
 
 struct rounded_corner_ctx {
@@ -1001,10 +978,15 @@ theme_init(struct theme *theme, const char *theme_name)
 	theme_builtin(theme);
 
 	/* Read <data-dir>/share/themes/$theme_name/openbox-3/themerc */
-	theme_read(theme, theme_name);
+	struct wl_list paths;
+	paths_theme_create(&paths, theme_name, "themerc");
+	theme_read(theme, &paths);
+	paths_destroy(&paths);
 
 	/* Read <config-dir>/labwc/themerc-override */
-	theme_read_override(theme);
+	paths_config_create(&paths, "themerc-override");
+	theme_read(theme, &paths);
+	paths_destroy(&paths);
 
 	post_processing(theme);
 	create_corners(theme);

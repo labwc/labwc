@@ -45,6 +45,9 @@ the `--exit` and `--reconfigure` options use.
 *-h, --help*
 	Show help message and quit
 
+*-m, --merge-config*
+	Merge user config/theme files in all XDG Base Directories
+
 *-r, --reconfigure*
 	Reload the compositor configuration
 

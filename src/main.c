@@ -21,6 +21,7 @@ static const struct option long_options[] = {
 	{"debug", no_argument, NULL, 'd'},
 	{"exit", no_argument, NULL, 'e'},
 	{"help", no_argument, NULL, 'h'},
+	{"merge-config", no_argument, NULL, 'm'},
 	{"reconfigure", no_argument, NULL, 'r'},
 	{"startup", required_argument, NULL, 's'},
 	{"version", no_argument, NULL, 'v'},
@@ -35,6 +36,7 @@ static const char labwc_usage[] =
 "  -d, --debug              Enable full logging, including debug information\n"
 "  -e, --exit               Exit the compositor\n"
 "  -h, --help               Show help message and quit\n"
+"  -m, --merge-config       Merge user config files/theme in all XDG Base Dirs\n"
 "  -r, --reconfigure        Reload the compositor configuration\n"
 "  -s, --startup <command>  Run command on startup\n"
 "  -v, --version            Show version number and quit\n"
@@ -91,7 +93,7 @@ main(int argc, char *argv[])
 	int c;
 	while (1) {
 		int index = 0;
-		c = getopt_long(argc, argv, "c:C:dehrs:vV", long_options, &index);
+		c = getopt_long(argc, argv, "c:C:dehmrs:vV", long_options, &index);
 		if (c == -1) {
 			break;
 		}
@@ -100,7 +102,7 @@ main(int argc, char *argv[])
 			config_file = optarg;
 			break;
 		case 'C':
-			rc.config_dir = xstrdup(optarg);
+			rc.config_dir = optarg;
 			break;
 		case 'd':
 			verbosity = WLR_DEBUG;
@@ -108,6 +110,9 @@ main(int argc, char *argv[])
 		case 'e':
 			send_signal_to_labwc_pid(SIGTERM);
 			exit(0);
+		case 'm':
+			rc.merge_config = true;
+			break;
 		case 'r':
 			send_signal_to_labwc_pid(SIGHUP);
 			exit(0);
@@ -133,11 +138,7 @@ main(int argc, char *argv[])
 
 	die_on_detecting_suid();
 
-	if (!rc.config_dir) {
-		rc.config_dir = config_dir();
-	}
-	wlr_log(WLR_INFO, "using config dir (%s)\n", rc.config_dir);
-	session_environment_init(rc.config_dir);
+	session_environment_init();
 	rcxml_read(config_file);
 
 	/*
@@ -171,7 +172,7 @@ main(int argc, char *argv[])
 
 	menu_init(&server);
 
-	session_autostart_init(rc.config_dir);
+	session_autostart_init();
 	if (startup_cmd) {
 		spawn_async_no_shell(startup_cmd);
 	}

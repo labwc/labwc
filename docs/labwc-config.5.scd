@@ -18,6 +18,19 @@ searched for in the following order:
 - ${XDG_CONFIG_HOME:-$HOME/.config}/labwc
 - ${XDG_CONFIG_DIRS:-/etc/xdg}/labwc
 
+When $XDG_CONFIG_HOME is defined, it replaces (rather than augments)
+$HOME/.config. The same is the case for $XDG_CONFIG_DIRS and /etc/xdg.
+
+The XDG Base Directory Specification does not specify whether or not programs
+should (a) allow the first-identified configuration file to supersede any
+others, or (b) define rules for merging the information from more than one file.
+
+By default, labwc uses option (a), reading only the first file identified.  With
+the --merge-config option, the search order is reserved, but every configuration
+file encountered is processed in turn. Thus, user-specific files will augment
+system-wide configurations, with conflicts favoring the user-specific
+alternative.
+
 The configuration directory location can be override with the -C command line
 option.
 

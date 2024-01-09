@@ -11,6 +11,7 @@
 #include <wlr/util/log.h>
 #include "action.h"
 #include "common/buf.h"
+#include "common/dir.h"
 #include "common/font.h"
 #include "common/list.h"
 #include "common/match.h"
@@ -548,21 +549,27 @@ err:
 static void
 parse_xml(const char *filename, struct server *server)
 {
-	static char buf[4096] = { 0 };
+	struct wl_list paths;
+	paths_config_create(&paths, filename);
 
-	if (!rc.config_dir) {
-		return;
-	}
-	snprintf(buf, sizeof(buf), "%s/%s", rc.config_dir, filename);
+	bool should_merge_config = rc.merge_config;
+	struct wl_list *(*iter)(struct wl_list *list);
+	iter = should_merge_config ? paths_get_prev : paths_get_next;
 
-	FILE *stream = fopen(buf, "r");
-	if (!stream) {
-		wlr_log(WLR_ERROR, "cannot read %s", buf);
-		return;
+	for (struct wl_list *elm = iter(&paths); elm != &paths; elm = iter(elm)) {
+		struct path *path = wl_container_of(elm, path, link);
+		FILE *stream = fopen(path->string, "r");
+		if (!stream) {
+			return;
+		}
+		wlr_log(WLR_INFO, "read menu file %s", path->string);
+		parse(server, stream);
+		fclose(stream);
+		if (!should_merge_config) {
+			break;
+		}
 	}
-	wlr_log(WLR_INFO, "read menu file %s", buf);
-	parse(server, stream);
-	fclose(stream);
+	paths_destroy(&paths);
 }
 
 static int

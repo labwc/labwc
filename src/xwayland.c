@@ -505,8 +505,6 @@ set_initial_position(struct view *view,
 			XCB_ICCCM_SIZE_HINT_US_POSITION |
 			XCB_ICCCM_SIZE_HINT_P_POSITION));
 
-	view_constrain_size_to_that_of_usable_area(view);
-
 	if (has_position) {
 		/*
 		 * Make sure a floating view is onscreen. For a
@@ -518,6 +516,8 @@ set_initial_position(struct view *view,
 			view_adjust_for_layout_change(view);
 		}
 	} else {
+		view_constrain_size_to_that_of_usable_area(view);
+
 		if (view_is_floating(view)) {
 			view_place_initial(view);
 		} else {

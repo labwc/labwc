@@ -737,15 +737,42 @@ view_constrain_size_to_that_of_usable_area(struct view *view)
 	if (!view || !view->output) {
 		return;
 	}
-	struct wlr_box *usable_area = &view->output->usable_area;
+
+	struct wlr_box usable_area =
+			output_usable_area_in_layout_coords(view->output);
 	struct border margin = ssd_get_margin(view->ssd);
+
+	int available_width = usable_area.width - margin.left - margin.right;
+	int available_height = usable_area.height - margin.top - margin.bottom;
+
+	if (available_width <= 0 || available_height <= 0) {
+		return;
+	}
+
+	if (available_height >= view->pending.height &&
+			available_width >= view->pending.height) {
+		return;
+	}
+
+	int width = MIN(view->pending.width, available_width);
+	int height = MIN(view->pending.height, available_height);
+
+	int right_edge = usable_area.x + usable_area.width;
+	int bottom_edge = usable_area.y + usable_area.height;
+
+	int x =
+		MAX(usable_area.x + margin.left,
+			MIN(view->pending.x, right_edge - width - margin.right));
+
+	int y =
+		MAX(usable_area.y + margin.top,
+			MIN(view->pending.y, bottom_edge - height - margin.bottom));
+
 	struct wlr_box box = {
-		.x = view->pending.x,
-		.y = view->pending.y,
-		.width = MIN(usable_area->width - margin.left - margin.right,
-			view->pending.width),
-		.height = MIN(usable_area->height - margin.top - margin.bottom,
-			view->pending.height),
+		.x = x,
+		.y = y,
+		.width = width,
+		.height = height,
 	};
 	view_move_resize(view, box);
 }

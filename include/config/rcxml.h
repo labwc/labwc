@@ -48,6 +48,7 @@ struct window_switcher_field {
 
 struct rcxml {
 	char *config_dir;
+	bool merge_config;
 
 	/* core */
 	bool xdg_shell_server_side_deco;

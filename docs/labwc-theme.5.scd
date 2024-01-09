@@ -15,6 +15,9 @@ searched for in the following order:
 - /usr/local/share/themes/<theme-name>/openbox-3/
 - /opt/share/themes/<theme-name>/openbox-3/
 
+When $XDG_DATA_HOME is defined, it replaces (rather than augments)
+$HOME/.local/share. The same is the case for $XDG_DATA_DIRS and /usr/share/.
+
 Choosing a theme is done by editing the <name> key in the <theme> section of
 the rc.xml configuration file (labwc-config(5)).
 

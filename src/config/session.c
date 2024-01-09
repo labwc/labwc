@@ -119,8 +119,7 @@ session_environment_init(void)
 	int i;
 	bool read = false;
 	char *environment;
-	for (i = 0; i < 2; i++)
-	{
+	for (i = 0; i < 2; i++)	{
 		environment = build_path(i ? sys_config_dir() : user_config_dir(), "environment");
 		if (environment) {
 			read = read_environment_file(environment);
@@ -140,8 +139,7 @@ session_autostart_init(void)
 
 	int i;
 	char *autostart;
-	for (i = 0; i < 2; i++)
-	{
+	for (i = 0; i < 2; i++)	{
 		autostart = build_path(i ? sys_config_dir() : user_config_dir(), "autostart");
 
 		if (autostart) {

@@ -394,20 +394,24 @@
   </mouse>
 
   <!--
-    The active tablet area can be specified by setting the *top*/*left*
-    coordinate (in mm) and/or *width*/*height* (in mm). If width or
-    height are omitted or default (0.0), width/height will be set to
-    the remaining width/height seen from top/left.
+    The tablet cursor movement can be restricted to a single output.
+    If output is left empty or the output does not exists, the tablet
+    will span all outputs.
 
     The tablet orientation can be changed in 90 degree steps, thus
     *rotate* can be set to [0|90|180|270]. Rotation will be applied
     after applying tablet area transformation.
 
+    The active tablet area can be specified by setting the *top*/*left*
+    coordinate (in mm) and/or *width*/*height* (in mm). If width or
+    height are omitted or default (0.0), width/height will be set to
+    the remaining width/height seen from top/left.
+
     Tablet buttons emulate regular mouse buttons. The tablet *button* can
     be set to any of [Tip|Stylus|Stylus2|Stylus3|Pad|Pad2|Pad3|..|Pad9].
     Valid *to* mouse buttons are [Left|Right|Middle].
   -->
-  <tablet rotate="0">
+  <tablet mapToOutput="" rotate="0">
     <!-- Active area dimensions are in mm -->
     <area top="0.0" left="0.0" width="0.0" height="0.0">
     <map button="Tip" to="Left" />

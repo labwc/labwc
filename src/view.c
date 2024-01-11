@@ -2030,11 +2030,6 @@ view_destroy(struct view *view)
 	osd_on_view_destroy(view);
 	undecorate(view);
 
-	if (view->scene_tree) {
-		wlr_scene_node_destroy(&view->scene_tree->node);
-		view->scene_tree = NULL;
-	}
-
 	/*
 	 * The layer-shell top-layer is disabled when an application is running
 	 * in fullscreen mode, so if that's the case, we may have to re-enable
@@ -2052,6 +2047,16 @@ view_destroy(struct view *view)
 	if (server->menu_current
 			&& server->menu_current->triggered_by_view == view) {
 		menu_close_root(server);
+	}
+
+	/*
+	 * Destroy the view's scene tree. View methods assume this is non-NULL,
+	 * so we should avoid any calls to those between this and freeing the
+	 * view.
+	 */
+	if (view->scene_tree) {
+		wlr_scene_node_destroy(&view->scene_tree->node);
+		view->scene_tree = NULL;
 	}
 
 	/* Remove view from server->views */

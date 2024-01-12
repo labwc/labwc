@@ -88,6 +88,11 @@ struct rcxml {
 	struct wl_list mousebinds; /* struct mousebind.link */
 	double scroll_factor;
 
+	/* touch tablet */
+	struct touch_config {
+		char *output_name;
+	} touch;
+
 	/* graphics tablet */
 	struct tablet_config {
 		char *output_name;

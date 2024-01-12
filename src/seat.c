@@ -263,6 +263,15 @@ new_keyboard(struct seat *seat, struct wlr_input_device *device, bool virtual)
 	return (struct input *)keyboard;
 }
 
+static void
+map_touch_to_output(struct seat *seat, struct wlr_input_device *dev)
+{
+	struct wlr_touch *touch = wlr_touch_from_input_device(dev);
+	char *output_name = touch->output_name ? touch->output_name : rc.touch.output_name;
+	wlr_log(WLR_INFO, "map touch to output %s\n", output_name);
+	map_input_to_output(seat, dev, output_name);
+}
+
 static struct input *
 new_touch(struct seat *seat, struct wlr_input_device *dev)
 {
@@ -273,9 +282,7 @@ new_touch(struct seat *seat, struct wlr_input_device *dev)
 
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
 	if (dev->type == WLR_INPUT_DEVICE_TOUCH) {
-		struct wlr_touch *touch = wlr_touch_from_input_device(dev);
-		wlr_log(WLR_INFO, "map touch to output %s\n", touch->output_name);
-		map_input_to_output(seat, dev, touch->output_name);
+		map_touch_to_output(seat, dev);
 	}
 	return input;
 }

@@ -449,7 +449,7 @@ windows using the mouse.
 
 ```
 <tablet mapToOutput="" rotate="0">
-  <area top="0.0" left="0.0" width="0.0" height="0.0">
+  <area top="0.0" left="0.0" width="0.0" height="0.0" />
   <map button="Tip" to="Left" />
   <map button="Stylus" to="Right" />
   <map button="Stylus2" to="Middle" />

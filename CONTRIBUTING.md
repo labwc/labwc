@@ -34,7 +34,7 @@
 There is no one-way-fits-all method for debugging, so you have to use your
 antennae and do some detective work.
 
-This section contains some approachies which may prove useful.
+This section contains some approaches which may prove useful.
 
 ## Backtraces
 
@@ -108,7 +108,7 @@ to open an issue so we can add you to this list.
 # Coding Style
 
 labwc is written in the [Linux kernel coding style] with a small number of
-deviations to align with [Drew Devault's preferred coding style] nameley:
+deviations to align with [Drew Devault's preferred coding style] namely:
 
 1. [Function Declaration](https://git.sr.ht/~sircmpwn/cstyle#function-declarations)
 2. [Braces for one-line statement](https://git.sr.ht/~sircmpwn/cstyle#brace-placement)
@@ -353,7 +353,7 @@ Translators can add their `MY_LOCALE.po` files to the `po` directory
 based on `po/labwc.pot` and issue a pull request. To do this they can
 generate their `MY_LOCALE.po` file in a few steps:
 
-1. Edit the `po/LINGAUS` file to add their locale name by adding a space
+1. Edit the `po/LINGUAS` file to add their locale name by adding a space
    to the end of the field and typing the locale code.
 2. Copy the po/labwc.pot to po/MY_LOCALE.po
 3. Edit the newly generated MY_LOCALE.po file with some of their
@@ -411,11 +411,11 @@ follow the steps to be taken:
 [Drew Devault's preferred coding style]: https://git.sr.ht/~sircmpwn/cstyle
 [Linux kernel coding style]: https://www.kernel.org/doc/html/v4.10/process/coding-style.html
 [kernel-doc format]: https://docs.kernel.org/doc-guide/kernel-doc.html
-[commit messages]: https://gitlab.freedesktop.org/wlroots/wlroots/-/blob/master/CONTRIBUTING.md#commit-messages 
+[commit messages]: https://gitlab.freedesktop.org/wlroots/wlroots/-/blob/master/CONTRIBUTING.md#commit-messages
 [GNU C extensions]: https://gcc.gnu.org/onlinedocs/gcc/C-Extensions.html
 [`wl_container_of()`]: https://github.com/wayland-project/wayland/blob/985ab55d59db45ea62795c76dff5949343e86b2f/src/wayland-util.h#L409
 
-[^1]: The reference docuementation for glib notes that:
+[^1]: The reference documentation for glib notes that:
       "It's important to match g_malloc() with g_free(), plain malloc() with
       free(), and (if you're using C++) new with delete and new[] with
       delete[]. Otherwise bad things can happen, since these allocators may use

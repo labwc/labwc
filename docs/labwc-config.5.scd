@@ -131,8 +131,8 @@ this is for compatibility with Openbox.
 
 *<core><allowTearing>* [yes|no]
 	Allow tearing to reduce input lag. Default is no.
-	This option requires setting the environment variable WLR_DRM_NO_ATOMIC=1.
-
+	This option requires setting the environment variable
+	WLR_DRM_NO_ATOMIC=1.
 	*yes* allow tearing if requested by the active window.
 
 *<core><reuseOutputMode>* [yes|no]
@@ -173,8 +173,8 @@ this is for compatibility with Openbox.
 		- *identifier* Show identifier (app_id for native Wayland
 		  windows and WM_CLASS for XWayland clients)
 
-		- *trimmed_identifier* Show trimmed identifier. Trimming removes the first
-		  two nodes of 'org.' strings.
+		- *trimmed_identifier* Show trimmed identifier. Trimming removes
+		  the first two nodes of 'org.' strings.
 
 		- *title* Show window title if different to app_id
 
@@ -208,7 +208,7 @@ this is for compatibility with Openbox.
 ## WINDOW SNAPPING
 
 The following two options relate to triggering window actions when moving
-windows using the mouse. 
+windows using the mouse.
 
 *<snapping><range>*
 	The distance in pixels from the edge of an output for window Move
@@ -236,9 +236,9 @@ windows using the mouse.
 	GoToDesktop and windows can be moved with SendToDesktop. See
 	labwc-actions(5) for more information about their arguments.
 
-	The number attribute defines the minimum number of workspaces. Default is 1. 
-	The number attribute is optional. If the number attribute is specified, names.name
-	is not required.
+	The number attribute defines the minimum number of workspaces. Default
+	is 1. The number attribute is optional. If the number attribute is
+	specified, names.name is not required.
 
 *<desktops><popupTime>*
 	Define the timeout after which to hide the workspace OSD.
@@ -260,7 +260,8 @@ windows using the mouse.
 	The font to use for a specific element of a window, menu or OSD.
 	Places can be any of:
 	- ActiveWindow - titlebar of active window
-	- InactiveWindow - titlebar of all windows that aren't focused by the cursor
+	- InactiveWindow - titlebar of all windows that aren't focused by the
+	  cursor
 	- MenuItem - menu item (currently only root menu)
 	- OnScreenDisplay - items in the on screen display
 	If no place attribute is provided, the setting will be applied to all
@@ -343,7 +344,7 @@ windows using the mouse.
 	Default is no.
 
 *<keyboard><keybind key=""><action name="">*
-	Keybind action. See labwc-action(5)
+	Keybind action. See labwc-action(5).
 
 *<keyboard><default />*
 	Load the default keybinds listed below. This is an addition to the
@@ -364,7 +365,7 @@ windows using the mouse.
 ```
 
 	Audio and MonBrightness keys are also bound to amixer and
-	brightnessctl respectively
+	brightnessctl, respectively.
 
 *<keyboard><repeatRate>*
 	Set the rate at which keypresses are repeated per second.
@@ -384,7 +385,7 @@ windows using the mouse.
 
 *<mouse><context name=""><mousebind button="" direction="" action=""><action>*
 	Multiple *<mousebind>* can exist within one *<context>*; and multiple
-	*<action>* can exist within one *<mousebind>*
+	*<action>* can exist within one *<mousebind>*.
 
 	Define a mouse binding. Supported context-names include:
 	- TitleBar: The decoration on top of the window, where the window
@@ -426,8 +427,9 @@ windows using the mouse.
 	- Left
 	- Right
 
-	Mouse buttons and directions can be combined with modifier-keys (shift (S),
-	super/logo (W), control (C), alt (A), meta (M) and hyper (H)), for example:
+	Mouse buttons and directions can be combined with modifier-keys
+	(shift (S), super/logo (W), control (C), alt (A), meta (M) and
+	hyper (H)), for example:
 	<mousebind button="A-Right" action="Press">
 
 	Supported mouse *actions* include:
@@ -479,17 +481,17 @@ windows using the mouse.
 
 	Aspect ratio example:
 	The dimensions of the tablet are 215mm x 115mm and the output has
-	a resolution of 3440x1440. When setting height to "90", because 
+	a resolution of 3440x1440. When setting height to "90", because
 	215 x 1440 / 3440 = 90, the responsive tablet area height will be
 	truncated to match the 21:9 aspect ratio of the output. By
 	additionally setting top to "12.5", the active area is centered
 	vertically on the tablet surface.
 
 *<tablet><map button="" to="" />*
-	Tablet buttons emulate regular mouse buttons. If not specified otherwise,
-	the tip (Tip) is mapped to left mouse click, the first pen button (Stylus)
-	is mapped to right mouse button click and the second pen button (Stylus2)
-	emulates a middle mouse button click.
+	Tablet buttons emulate regular mouse buttons. If not specified
+	otherwise, the tip (Tip) is mapped to left mouse click, the first pen
+	button (Stylus)	is mapped to right mouse button click and the second pen
+	button (Stylus2) emulates a middle mouse button click.
 
 	Supported map *buttons* are:
 	- Tip
@@ -545,7 +547,7 @@ windows using the mouse.
 
 	A list of device names can be obtained by running
 	*libinput list-devices* (you may need to be root or a part of the input
-	group to perform this.)
+	group to perform this).
 
 *<libinput><device><naturalScroll>* [yes|no]
 	Use natural scrolling for this category if available.
@@ -646,7 +648,7 @@ situation.
 
 *<windowRules><windowRule skipWindowSwitcher="">* [yes|no|default]
 	*skipWindowSwitcher* removes window from the Window Switcher (alt-tab
-	on-screen-display)
+	on-screen-display).
 
 *<windowRules><windowRule ignoreFocusRequest="">* [yes|no|default]
 	*ignoreFocusRequest* prevent window to activate itself.

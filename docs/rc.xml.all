@@ -215,16 +215,34 @@
       <action name="Execute" command="brightnessctl set 10%-" />
     </keybind>
   <!-- SnapToRegion via W-Numpad -->
-    <!--
-    <keybind key="W-KP_7"><action name="SnapToRegion" region="top-left" /></keybind>
-    <keybind key="W-KP_8"><action name="SnapToRegion" region="top" /></keybind>
-    <keybind key="W-KP_9"><action name="SnapToRegion" region="top-right" /></keybind>
-    <keybind key="W-KP_4"><action name="SnapToRegion" region="left" /></keybind>
-    <keybind key="W-KP_5"><action name="SnapToRegion" region="center" /></keybind>
-    <keybind key="W-KP_6"><action name="SnapToRegion" region="right" /></keybind>
-    <keybind key="W-KP_1"><action name="SnapToRegion" region="bottom-left" /></keybind>
-    <keybind key="W-KP_2"><action name="SnapToRegion" region="bottom" /></keybind>
-    <keybind key="W-KP_3"><action name="SnapToRegion" region="bottom-right" /></keybind>
+  <!--
+    <keybind key="W-KP_7">
+      <action name="SnapToRegion" region="top-left" />
+    </keybind>
+    <keybind key="W-KP_8">
+      <action name="SnapToRegion" region="top" />
+    </keybind>
+    <keybind key="W-KP_9">
+      <action name="SnapToRegion" region="top-right" />
+    </keybind>
+    <keybind key="W-KP_4">
+      <action name="SnapToRegion" region="left" />
+    </keybind>
+    <keybind key="W-KP_5">
+      <action name="SnapToRegion" region="center" />
+    </keybind>
+    <keybind key="W-KP_6">
+      <action name="SnapToRegion" region="right" />
+    </keybind>
+    <keybind key="W-KP_1">
+      <action name="SnapToRegion" region="bottom-left" />
+    </keybind>
+    <keybind key="W-KP_2">
+      <action name="SnapToRegion" region="bottom" />
+    </keybind>
+    <keybind key="W-KP_3">
+      <action name="SnapToRegion" region="bottom-right" />
+    </keybind>
   -->
   </keyboard>
 
@@ -237,7 +255,8 @@
     below). If the default mousebinds are largely what you want, a sensible
     approach could be to start the <mouse> section with a <default />
     element, and then (re-)define any special binds you need such as launching
-    a custom menu when right-clicking on your desktop. See rc.xml for an example.
+    a custom menu when right-clicking on your desktop. See rc.xml for an
+    example.
   -->
   <mouse>
 
@@ -450,10 +469,10 @@
 
   <!--
     # Window Rules
-    #   - Criteria can consist of 'identifier' or 'title' or both (in which case
-    #     AND logic is used).
-    #   - 'identifier' relates to app_id for native Wayland windows and WM_CLASS
-    #     for XWayland clients.
+    #   - Criteria can consist of 'identifier' or 'title' or both (in which
+    #     case AND logic is used).
+    #   - 'identifier' relates to app_id for native Wayland windows and
+    #     WM_CLASS for XWayland clients.
     #   - Criteria can also contain `matchOnce="true"` meaning that the rule
     #     must only apply to the first instance of the window with that
     #     particular 'identifier' or 'title'.
@@ -468,8 +487,8 @@
     </windowRules>
 
     # Example below for `lxqt-panel` and `pcmanfm-qt \-\-desktop`
-    # where 'matchOnce' is used to avoid applying rule to the panel configuration
-    # window with the same 'app_id'
+    # where 'matchOnce' is used to avoid applying rule to the panel
+    # configuration window with the same 'app_id'.
 
     <windowRules>
       <windowRule identifier="lxqt-panel" matchOnce="true">

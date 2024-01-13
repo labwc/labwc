@@ -447,6 +447,16 @@ windows using the mouse.
 	<mouse><mousebind> entries exist, the same default mousebinds will be
 	loaded even if the <default /> element is not provided.
 
+## TOUCH
+
+```
+<touch mapToOutput="" />
+```
+
+*<touch mapToOutput="" />*
+	Direct cursor movement to a specified output. If the compositor is
+	running in nested mode, this does not take effect.
+
 ## TABLET
 
 ```

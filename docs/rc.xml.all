@@ -414,6 +414,12 @@
   </mouse>
 
   <!--
+    Direct cursor movement to a specified output. If the compositor is
+    running in nested mode, this does not take effect.
+  -->
+  <touch mapToOutput="" />
+
+  <!--
     The tablet cursor movement can be restricted to a single output.
     If output is left empty or the output does not exists, the tablet
     will span all outputs.

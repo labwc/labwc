@@ -38,9 +38,9 @@ The menu file must be entirely enclosed within <openbox_menu> and
 
 *menu.id*
 	Each menu must be given an id, which is a unique identifier of the menu.
-	This id is used to refer to the menu in a ShowMenu action. 
-	Default identifiers are "client-menu" for the titlebar context menu and "root-menu" 
-	for the root window context menu. 
+	This id is used to refer to the menu in a ShowMenu action.
+	Default identifiers are "client-menu" for the titlebar context menu and
+	"root-menu" for the root window context menu.
 	Available localisation for the default "client-menu" is
 	only shown if no "client-menu" is present in menu.xml.
 

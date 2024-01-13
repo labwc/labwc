@@ -6,7 +6,7 @@ labwc - a wayland stacking compositor
 
 # SYNOPSIS
 
-*labwc*  [options...]
+*labwc* [options...]
 
 # DESCRIPTION
 

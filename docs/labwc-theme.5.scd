@@ -81,10 +81,10 @@ labwc-config(5).
 	value.
 
 *window.active.border.color*
-	Border color of active window
+	Border color of active window.
 
 *window.inactive.border.color*
-	Border color of inactive window
+	Border color of inactive window.
 
 *window.active.indicator.toggled-keybind.color*
 	Status indicator for the ToggleKeybinds action. Can be set to the same
@@ -92,16 +92,16 @@ labwc-config(5).
 	indicator.
 
 *window.active.title.bg.color*
-	Background color for the focused window's titlebar
+	Background color for the focused window's titlebar.
 
 *window.inactive.title.bg.color*
-	Background color for non-focused windows' titlebars
+	Background color for non-focused windows' titlebars.
 
 *window.active.label.text.color*
-	Text color for the focused window's titlebar
+	Text color for the focused window's titlebar.
 
 *window.inactive.label.text.color*
-	Text color non-focused windows' titlebars
+	Text color non-focused windows' titlebars.
 
 *window.label.text.justify*
 	Specifies how window titles are aligned in the titlebar for both
@@ -124,16 +124,16 @@ openbox and is used by many popular themes. For the sake of brevity, these
 elements are not listed here, but are supported.
 
 *menu.items.bg.color*
-	Background color of inactive menu items
+	Background color of inactive menu items.
 
 *menu.items.text.color*
-	Text color of inactive menu item
+	Text color of inactive menu item.
 
 *menu.items.active.bg.color*
-	Background color of active menu items
+	Background color of active menu items.
 
 *menu.items.active.text.color*
-	Text color of active menu item
+	Text color of active menu item.
 
 *menu.separator.width*
 	Line thickness of menu separators. Default 1.
@@ -148,16 +148,16 @@ elements are not listed here, but are supported.
 	Menu separator color. Default #888888.
 
 *osd.bg.color*
-	Background color of on-screen-display
+	Background color of on-screen-display.
 
 *osd.border.color*
-	Border color of on-screen-display
+	Border color of on-screen-display.
 
 *osd.border.width*
 	Border width of on-screen-display. Inherits *border.width* if not set.
 
 *osd.label.text.color*
-	Text color of on-screen-display
+	Text color of on-screen-display.
 
 *osd.window-switcher.width*
 	Width of window switcher in pixels. Default is 600.

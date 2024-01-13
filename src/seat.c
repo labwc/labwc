@@ -215,6 +215,14 @@ map_input_to_output(struct seat *seat, struct wlr_input_device *dev, char *outpu
 	wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
 }
 
+static void
+map_pointer_to_output(struct seat *seat, struct wlr_input_device *dev)
+{
+	struct wlr_pointer *pointer = wlr_pointer_from_input_device(dev);
+	wlr_log(WLR_INFO, "map pointer to output %s\n", pointer->output_name);
+	map_input_to_output(seat, dev, pointer->output_name);
+}
+
 static struct input *
 new_pointer(struct seat *seat, struct wlr_input_device *dev)
 {
@@ -225,9 +233,7 @@ new_pointer(struct seat *seat, struct wlr_input_device *dev)
 
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
 	if (dev->type == WLR_INPUT_DEVICE_POINTER) {
-		struct wlr_pointer *pointer = wlr_pointer_from_input_device(dev);
-		wlr_log(WLR_INFO, "map pointer to output %s\n", pointer->output_name);
-		map_input_to_output(seat, dev, pointer->output_name);
+		map_pointer_to_output(seat, dev);
 	}
 	return input;
 }
@@ -659,6 +665,9 @@ seat_output_layout_changed(struct seat *seat)
 	struct input *input = NULL;
 	wl_list_for_each(input, &seat->inputs, link) {
 		switch (input->wlr_input_device->type) {
+		case WLR_INPUT_DEVICE_POINTER:
+			map_pointer_to_output(seat, input->wlr_input_device);
+			break;
 		case WLR_INPUT_DEVICE_TOUCH:
 			map_touch_to_output(seat, input->wlr_input_device);
 			break;

@@ -279,11 +279,9 @@ new_touch(struct seat *seat, struct wlr_input_device *dev)
 	input->wlr_input_device = dev;
 	configure_libinput(dev);
 	wlr_cursor_attach_input_device(seat->cursor, dev);
-
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
-	if (dev->type == WLR_INPUT_DEVICE_TOUCH) {
-		map_touch_to_output(seat, dev);
-	}
+	map_touch_to_output(seat, dev);
+
 	return input;
 }
 

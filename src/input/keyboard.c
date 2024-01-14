@@ -13,6 +13,12 @@
 #include "view.h"
 #include "workspaces.h"
 
+enum lab_key_handled {
+	LAB_KEY_HANDLED_FALSE = 0,
+	LAB_KEY_HANDLED_TRUE = 1,
+	LAB_KEY_HANDLED_TRUE_AND_VT_CHANGED,
+};
+
 struct keysyms {
 	const xkb_keysym_t *syms;
 	int nr_syms;
@@ -298,12 +304,14 @@ handle_key_release(struct server *server, uint32_t evdev_keycode)
 }
 
 static bool
-handle_change_vt_key(struct server *server, struct keysyms *translated)
+handle_change_vt_key(struct server *server, struct keyboard *keyboard,
+		struct keysyms *translated)
 {
 	for (int i = 0; i < translated->nr_syms; i++) {
 		unsigned int vt =
 			translated->syms[i] - XKB_KEY_XF86Switch_VT_1 + 1;
 		if (vt >= 1 && vt <= 12) {
+			keyboard_cancel_keybind_repeat(keyboard);
 			change_vt(server, vt);
 			return true;
 		}
@@ -377,7 +385,7 @@ handle_cycle_view_key(struct server *server, struct keyinfo *keyinfo)
 	}
 }
 
-static bool
+static enum lab_key_handled
 handle_compositor_keybindings(struct keyboard *keyboard,
 		struct wlr_keyboard_key_event *event)
 {
@@ -395,9 +403,9 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	}
 
 	/* Catch C-A-F1 to C-A-F12 to change tty */
-	if (handle_change_vt_key(server, &keyinfo.translated)) {
+	if (handle_change_vt_key(server, keyboard, &keyinfo.translated)) {
 		key_state_store_pressed_key_as_bound(event->keycode);
-		return true;
+		return LAB_KEY_HANDLED_TRUE_AND_VT_CHANGED;
 	}
 
 	/*
@@ -504,7 +512,13 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	/* any new press/release cancels current keybind repeat */
 	keyboard_cancel_keybind_repeat(keyboard);
 
-	bool handled = handle_compositor_keybindings(keyboard, event);
+	enum lab_key_handled handled =
+		handle_compositor_keybindings(keyboard, event);
+
+	if (handled == LAB_KEY_HANDLED_TRUE_AND_VT_CHANGED) {
+		return;
+	}
+
 	if (handled) {
 		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			start_keybind_repeat(seat->server, keyboard, event);

@@ -37,9 +37,9 @@ snap_get_view_edge(struct view *view)
 	struct border edge = {
 		.left   = view->pending.x - margin.left,
 		.top    = view->pending.y - margin.top,
-		.right  = view->pending.x + view->pending.width + margin.right,
-		.bottom = view->pending.y
-			+ view_effective_height(view, true) + margin.bottom
+		.right  = view->pending.x + margin.right + view->pending.width,
+		.bottom = view->pending.y + margin.bottom
+			+ view_effective_height(view, /* use_pending */ true)
 	};
 	return edge;
 }
@@ -53,11 +53,10 @@ snap_get_max_distance(struct view *view)
 	struct border distance = {
 		.left   = usable.x + margin.left + rc.gap - view->pending.x,
 		.top    = usable.y + margin.top  + rc.gap - view->pending.y,
-		.right  = usable.x + usable.width
-			- view->pending.width
+		.right  = usable.x + usable.width - view->pending.width
 			- margin.right  - rc.gap - view->pending.x,
 		.bottom = usable.y + usable.height
-			- view_effective_height(view, true)
+			- view_effective_height(view, /* use_pending */ true)
 			- margin.bottom - rc.gap - view->pending.y
 	};
 	return distance;
@@ -118,7 +117,8 @@ _snap_next_edge(struct view *view, int start_pos, const struct snap_search def, 
 		vp += def.add_view_x        * v->pending.x;
 		vp += def.add_view_y        * v->pending.y;
 		vp += def.add_view_width    * v->pending.width;
-		vp += def.add_view_height   * view_effective_height(v, true);
+		vp += def.add_view_height
+			* view_effective_height(v, /* use_pending */ true);
 		vp += gap;
 
 		if (def.search_dir * vp > 0 && def.search_dir * (vp - p) < 0) {
@@ -137,8 +137,9 @@ _snap_move_resize_to_edge(struct view *view, enum view_edge direction, enum snap
 
 	if (mode == SNAP_MODE_SHRINK) {
 		/* limit to half of current size */
-		int eff_height = view_effective_height(view, true);
-		int width_max_dx  = max(view->pending.width  - LAB_MIN_VIEW_WIDTH,  0);
+		int eff_height =
+			view_effective_height(view, /* use_pending */ true);
+		int width_max_dx = max(view->pending.width - LAB_MIN_VIEW_WIDTH, 0);
 		int height_max_dy = max(eff_height - LAB_MIN_VIEW_HEIGHT, 0);
 		dmax.right  = min(width_max_dx,  view->pending.width  / 2);
 		dmax.bottom = min(height_max_dy, eff_height / 2);

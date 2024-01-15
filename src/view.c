@@ -26,8 +26,6 @@
 #define LAB_FALLBACK_WIDTH  640
 #define LAB_FALLBACK_HEIGHT 480
 
-static void ensure_shade_state(struct view *view, bool shaded);
-
 struct view *
 view_from_wlr_surface(struct wlr_surface *surface)
 {
@@ -386,7 +384,7 @@ view_resize_relative(struct view *view, int left, int right, int top, int bottom
 	if (view->fullscreen || view->maximized != VIEW_AXIS_NONE) {
 		return;
 	}
-	ensure_shade_state(view, false);
+	view_set_shade(view, false);
 	struct wlr_box newgeo = view->pending;
 	newgeo.x -= left;
 	newgeo.width += left + right;
@@ -1056,7 +1054,7 @@ view_maximize(struct view *view, enum view_axis axis,
 		return;
 	}
 
-	ensure_shade_state(view, false);
+	view_set_shade(view, false);
 
 	if (axis != VIEW_AXIS_NONE) {
 		/*
@@ -1587,7 +1585,8 @@ view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_wind
 		destination_y = top;
 		break;
 	case VIEW_EDGE_DOWN:
-		destination_y = bottom - view_effective_height(view, true);
+		destination_y = bottom
+			- view_effective_height(view, /* use_pending */ true);
 		break;
 	default:
 		return;
@@ -1604,9 +1603,11 @@ view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_wind
 	destination_x = MAX(destination_x, left);
 
 	/* If more than half the view is below usable region, align to bottom */
-	midpoint = destination_y + view_effective_height(view, true) / 2;
+	midpoint = destination_y
+		+ view_effective_height(view, /* use_pending */ true) / 2;
 	if (destination_y >= top && midpoint > usable.y + usable.height) {
-		destination_y = bottom - view_effective_height(view, true);
+		destination_y = bottom
+			- view_effective_height(view, /* use_pending */ true);
 	}
 
 	/* Never allow the window to start above the usable edge */
@@ -1631,7 +1632,7 @@ view_grow_to_edge(struct view *view, enum view_edge direction)
 		return;
 	}
 
-	ensure_shade_state(view, false);
+	view_set_shade(view, false);
 
 	struct wlr_box geo = view->pending;
 	snap_grow_to_next_edge(view, direction, &geo);
@@ -1717,7 +1718,7 @@ view_snap_to_edge(struct view *view, enum view_edge edge,
 		return;
 	}
 
-	ensure_shade_state(view, false);
+	view_set_shade(view, false);
 
 	if (across_outputs && view->tiled == edge && view->maximized == VIEW_AXIS_NONE) {
 		/* We are already tiled for this edge; try to switch outputs */
@@ -1772,7 +1773,7 @@ view_snap_to_region(struct view *view, struct region *region,
 		return;
 	}
 
-	ensure_shade_state(view, false);
+	view_set_shade(view, false);
 
 	if (view->maximized != VIEW_AXIS_NONE) {
 		/* Unmaximize + keep using existing natural_geometry */
@@ -2018,32 +2019,26 @@ view_connect_map(struct view *view, struct wlr_surface *surface)
 	mappable_connect(&view->mappable, surface, handle_map, handle_unmap);
 }
 
-static void
-ensure_shade_state(struct view *view, bool shaded)
+void
+view_set_shade(struct view *view, bool shaded)
 {
 	assert(view);
+
 	if (view->shaded == shaded) {
 		return;
 	}
-	view_toggle_shade(view);
-}
-
-void
-view_toggle_shade(struct view *view)
-{
-	assert(view);
 
 	/* Views without a title-bar or SSD cannot be shaded */
-	if (!view->ssd || view->ssd_titlebar_hidden) {
+	if (shaded && (!view->ssd || view->ssd_titlebar_hidden)) {
 		return;
 	}
 
 	/* Restore fullscreen views to natural size before shading */
-	if (!view->shaded && view->fullscreen) {
+	if (shaded && view->fullscreen) {
 		view_toggle_fullscreen(view);
 	}
 
-	view->shaded = !view->shaded;
+	view->shaded = shaded;
 	ssd_enable_shade(view->ssd, view->shaded);
 	wlr_scene_node_set_enabled(view->scene_node, !view->shaded);
 }

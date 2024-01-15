@@ -103,6 +103,8 @@ enum action_type {
 	ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE,
 	ACTION_TYPE_AUTO_PLACE,
 	ACTION_TYPE_TOGGLE_TEARING,
+	ACTION_TYPE_SHADE,
+	ACTION_TYPE_UNSHADE,
 	ACTION_TYPE_TOGGLE_SHADE,
 };
 
@@ -152,6 +154,8 @@ const char *action_names[] = {
 	"VirtualOutputRemove",
 	"AutoPlace",
 	"ToggleTearing",
+	"Shade",
+	"Unshade",
 	"ToggleShade",
 	NULL
 };
@@ -964,7 +968,17 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_TOGGLE_SHADE:
 			if (view) {
-				view_toggle_shade(view);
+				view_set_shade(view, !view->shaded);
+			}
+			break;
+		case ACTION_TYPE_SHADE:
+			if (view) {
+				view_set_shade(view, true);
+			}
+			break;
+		case ACTION_TYPE_UNSHADE:
+			if (view) {
+				view_set_shade(view, false);
 			}
 			break;
 		case ACTION_TYPE_INVALID:

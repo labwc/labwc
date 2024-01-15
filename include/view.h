@@ -396,6 +396,13 @@ bool view_adjust_floating_geometry(struct view *view, struct wlr_box *geometry);
 void view_store_natural_geometry(struct view *view);
 
 /**
+ * view_effective_height - effective height of view, with respect to shaded state
+ * @view: view for which effective height is desired
+ * @use_pending: if false, report current height; otherwise, report pending height
+ */
+int view_effective_height(struct view *view, bool use_pending);
+
+/**
  * view_center - center view within some region
  * @view: view to be centered
  * @ref: optional reference region (in layout coordinates) to center

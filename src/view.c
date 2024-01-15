@@ -703,6 +703,18 @@ view_store_natural_geometry(struct view *view)
 	}
 }
 
+int
+view_effective_height(struct view *view, bool use_pending)
+{
+	assert(view);
+
+	if (view->shaded) {
+		return 0;
+	}
+
+	return use_pending ? view->pending.height : view->current.height;
+}
+
 void
 view_center(struct view *view, const struct wlr_box *ref)
 {
@@ -1561,7 +1573,7 @@ view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_wind
 		destination_y = top;
 		break;
 	case VIEW_EDGE_DOWN:
-		destination_y = bottom - view->pending.height;
+		destination_y = bottom - view_effective_height(view, true);
 		break;
 	default:
 		return;
@@ -1578,9 +1590,9 @@ view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_wind
 	destination_x = MAX(destination_x, left);
 
 	/* If more than half the view is below usable region, align to bottom */
-	midpoint = destination_y + view->pending.height / 2;
+	midpoint = destination_y + view_effective_height(view, true) / 2;
 	if (destination_y >= top && midpoint > usable.y + usable.height) {
-		destination_y = bottom - view->pending.height;
+		destination_y = bottom - view_effective_height(view, true);
 	}
 
 	/* Never allow the window to start above the usable edge */
@@ -1599,9 +1611,14 @@ view_grow_to_edge(struct view *view, enum view_edge direction)
 	if (view->fullscreen || view->maximized != VIEW_AXIS_NONE) {
 		return;
 	}
+
 	if (!output_is_usable(view->output)) {
 		wlr_log(WLR_ERROR, "view has no output, not growing view");
 		return;
+	}
+
+	if (view->shaded) {
+		view_toggle_shade(view);
 	}
 
 	struct wlr_box geo = view->pending;
@@ -1613,10 +1630,17 @@ void
 view_shrink_to_edge(struct view *view, enum view_edge direction)
 {
 	assert(view);
+
 	/* TODO: allow shrink to edge if maximized along the other axis */
 	if (view->fullscreen || view->maximized != VIEW_AXIS_NONE) {
 		return;
 	}
+
+	/* Shrinking doesn't make a lot of sense in shaded mode */
+	if (view->shaded) {
+		return;
+	}
+
 	if (!output_is_usable(view->output)) {
 		wlr_log(WLR_ERROR, "view has no output, not shrinking view");
 		return;

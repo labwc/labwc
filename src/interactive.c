@@ -55,7 +55,8 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		}
 		if (!view_is_floating(view)) {
 			/*
-			 * Un-maximize and restore natural width/height.
+			 * Un-maximize, unshade and restore natural
+			 * width/height.
 			 * Don't reset tiled state yet since we may want
 			 * to keep it (in the snap-to-maximize case).
 			 */
@@ -66,6 +67,8 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			geometry.y = max_move_scale(seat->cursor->y,
 				view->current.y, view->current.height,
 				geometry.height);
+
+			view_set_shade(view, false);
 			view_restore_to(view, geometry);
 		} else {
 			/* Store natural geometry at start of move */

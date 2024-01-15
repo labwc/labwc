@@ -847,6 +847,7 @@ actions_run(struct view *activator, struct server *server,
 					.width = width ? : view->pending.width,
 					.height = height ? : view->pending.height,
 				};
+				view_set_shade(view, false);
 				view_move_resize(view, box);
 			}
 			break;

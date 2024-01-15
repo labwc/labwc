@@ -26,6 +26,8 @@
 #define LAB_FALLBACK_WIDTH  640
 #define LAB_FALLBACK_HEIGHT 480
 
+static void ensure_shade_state(struct view *view, bool shaded);
+
 struct view *
 view_from_wlr_surface(struct wlr_surface *surface)
 {
@@ -384,6 +386,7 @@ view_resize_relative(struct view *view, int left, int right, int top, int bottom
 	if (view->fullscreen || view->maximized != VIEW_AXIS_NONE) {
 		return;
 	}
+	ensure_shade_state(view, false);
 	struct wlr_box newgeo = view->pending;
 	newgeo.x -= left;
 	newgeo.width += left + right;
@@ -1044,12 +1047,17 @@ view_maximize(struct view *view, enum view_axis axis,
 		bool store_natural_geometry)
 {
 	assert(view);
+
 	if (view->maximized == axis) {
 		return;
 	}
+
 	if (view->fullscreen) {
 		return;
 	}
+
+	ensure_shade_state(view, false);
+
 	if (axis != VIEW_AXIS_NONE) {
 		/*
 		 * Maximize via keybind or client request cancels
@@ -1099,6 +1107,12 @@ void
 view_toggle_decorations(struct view *view)
 {
 	assert(view);
+
+	/* Reject decoration toggles when shaded */
+	if (view->shaded) {
+		return;
+	}
+
 	if (rc.ssd_keep_border && view->ssd_enabled && view->ssd
 			&& !view->ssd_titlebar_hidden) {
 		/*
@@ -1617,9 +1631,7 @@ view_grow_to_edge(struct view *view, enum view_edge direction)
 		return;
 	}
 
-	if (view->shaded) {
-		view_toggle_shade(view);
-	}
+	ensure_shade_state(view, false);
 
 	struct wlr_box geo = view->pending;
 	snap_grow_to_next_edge(view, direction, &geo);
@@ -1694,14 +1706,18 @@ view_snap_to_edge(struct view *view, enum view_edge edge,
 			bool across_outputs, bool store_natural_geometry)
 {
 	assert(view);
+
 	if (view->fullscreen) {
 		return;
 	}
+
 	struct output *output = view->output;
 	if (!output_is_usable(output)) {
 		wlr_log(WLR_ERROR, "view has no output, not snapping to edge");
 		return;
 	}
+
+	ensure_shade_state(view, false);
 
 	if (across_outputs && view->tiled == edge && view->maximized == VIEW_AXIS_NONE) {
 		/* We are already tiled for this edge; try to switch outputs */
@@ -1745,14 +1761,18 @@ view_snap_to_region(struct view *view, struct region *region,
 {
 	assert(view);
 	assert(region);
+
 	if (view->fullscreen) {
 		return;
 	}
+
 	/* view_apply_region_geometry() needs a usable output */
 	if (!output_is_usable(view->output)) {
 		wlr_log(WLR_ERROR, "view has no output, not snapping to region");
 		return;
 	}
+
+	ensure_shade_state(view, false);
 
 	if (view->maximized != VIEW_AXIS_NONE) {
 		/* Unmaximize + keep using existing natural_geometry */
@@ -1998,13 +2018,31 @@ view_connect_map(struct view *view, struct wlr_surface *surface)
 	mappable_connect(&view->mappable, surface, handle_map, handle_unmap);
 }
 
+static void
+ensure_shade_state(struct view *view, bool shaded)
+{
+	assert(view);
+	if (view->shaded == shaded) {
+		return;
+	}
+	view_toggle_shade(view);
+}
+
 void
 view_toggle_shade(struct view *view)
 {
 	assert(view);
-	if (!view->ssd) {
+
+	/* Views without a title-bar or SSD cannot be shaded */
+	if (!view->ssd || view->ssd_titlebar_hidden) {
 		return;
 	}
+
+	/* Restore fullscreen views to natural size before shading */
+	if (!view->shaded && view->fullscreen) {
+		view_toggle_fullscreen(view);
+	}
+
 	view->shaded = !view->shaded;
 	ssd_enable_shade(view->ssd, view->shaded);
 	wlr_scene_node_set_enabled(view->scene_node, !view->shaded);

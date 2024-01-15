@@ -159,6 +159,8 @@ resize_indicator_update(struct view *view)
 
 	char text[32]; /* 12345 x 12345 would be 13 chars + 1 null byte */
 
+	int eff_height = view_effective_height(view, false);
+
 	switch (view->server->input_mode) {
 	case LAB_INPUT_STATE_RESIZE:
 		; /* works around "a label can only be part of a statement" */
@@ -166,7 +168,7 @@ resize_indicator_update(struct view *view)
 		snprintf(text, sizeof(text), "%d x %d",
 			MAX(0, view->current.width - hints.base_width)
 				/ MAX(1, hints.width_inc),
-			MAX(0, view->current.height - hints.base_height)
+			MAX(0, eff_height - hints.base_height)
 				/ MAX(1, hints.height_inc));
 		break;
 	case LAB_INPUT_STATE_MOVE:
@@ -193,7 +195,7 @@ resize_indicator_update(struct view *view)
 	/* Center the indicator in the window */
 	wlr_scene_node_set_position(&indicator->tree->node,
 		(view->current.width - indicator->width) / 2,
-		(view->current.height - indicator->height) / 2);
+		(eff_height - indicator->height) / 2);
 
 	scaled_font_buffer_update(indicator->text, text, width, &rc.font_osd,
 		rc.theme->osd_label_text_color, NULL /* const char *arrow */);

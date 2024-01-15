@@ -1233,6 +1233,12 @@ void
 view_toggle_fullscreen(struct view *view)
 {
 	assert(view);
+
+	/* When going to fullscreen, unshade the window */
+	if (!view->fullscreen) {
+		view_set_shade(view, false);
+	}
+
 	view_set_fullscreen(view, !view->fullscreen);
 }
 
@@ -2031,11 +2037,6 @@ view_set_shade(struct view *view, bool shaded)
 	/* Views without a title-bar or SSD cannot be shaded */
 	if (shaded && (!view->ssd || view->ssd_titlebar_hidden)) {
 		return;
-	}
-
-	/* Restore fullscreen views to natural size before shading */
-	if (shaded && view->fullscreen) {
-		view_toggle_fullscreen(view);
 	}
 
 	view->shaded = shaded;

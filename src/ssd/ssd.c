@@ -339,7 +339,7 @@ ssd_enable_shade(struct ssd *ssd, bool enable)
 	if (!ssd) {
 		return;
 	}
-	wlr_scene_node_set_enabled(&ssd->border.tree->node, !enable);
+	ssd_border_update(ssd);
 	wlr_scene_node_set_enabled(&ssd->extents.tree->node, !enable);
 }
 

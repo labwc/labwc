@@ -7,12 +7,12 @@ void
 input_handlers_init(struct seat *seat)
 {
 	cursor_init(seat);
-	keyboard_init(seat);
+	keyboard_group_init(seat);
 }
 
 void
 input_handlers_finish(struct seat *seat)
 {
 	cursor_finish(seat);
-	keyboard_finish(seat);
+	keyboard_group_finish(seat);
 }

@@ -506,13 +506,16 @@ seat_finish(struct server *server)
 }
 
 static void
-configure_keyboard(struct wlr_input_device *device)
+configure_keyboard(struct seat *seat, struct input *input)
 {
+	struct wlr_input_device *device = input->wlr_input_device;
 	assert(device->type == WLR_INPUT_DEVICE_KEYBOARD);
+	struct keyboard *keyboard = (struct keyboard *)input;
 	struct wlr_keyboard *kb = wlr_keyboard_from_input_device(device);
-	wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
+	keyboard_configure(seat, kb, keyboard->is_virtual);
 }
 
+/* This is called on SIGHUP (generally in response to labwc --reconfigure */
 void
 seat_reconfigure(struct server *server)
 {
@@ -521,7 +524,7 @@ seat_reconfigure(struct server *server)
 	wl_list_for_each(input, &seat->inputs, link) {
 		switch (input->wlr_input_device->type) {
 		case WLR_INPUT_DEVICE_KEYBOARD:
-			configure_keyboard(input->wlr_input_device);
+			configure_keyboard(seat, input);
 			break;
 		case WLR_INPUT_DEVICE_POINTER:
 			configure_libinput(input->wlr_input_device);

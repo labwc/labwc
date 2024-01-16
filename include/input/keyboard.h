@@ -9,8 +9,11 @@ struct seat;
 struct keyboard;
 struct wlr_keyboard;
 
-void keyboard_init(struct seat *seat);
-void keyboard_finish(struct seat *seat);
+void keyboard_configure(struct seat *seat, struct wlr_keyboard *kb,
+	bool is_virtual);
+
+void keyboard_group_init(struct seat *seat);
+void keyboard_group_finish(struct seat *seat);
 
 void keyboard_setup_handlers(struct keyboard *keyboard);
 void keyboard_set_numlock(struct wlr_keyboard *keyboard);

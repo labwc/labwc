@@ -537,7 +537,7 @@ seat_reconfigure(struct server *server)
 			break;
 		}
 	}
-	keyboard_reload(seat);
+	keyboard_init(seat, true);
 }
 
 static void

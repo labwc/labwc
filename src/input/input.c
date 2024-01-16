@@ -7,7 +7,7 @@ void
 input_handlers_init(struct seat *seat)
 {
 	cursor_init(seat);
-	keyboard_init(seat);
+	keyboard_init(seat, false);
 }
 
 void

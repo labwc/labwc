@@ -614,6 +614,24 @@ keyboard_init(struct seat *seat)
 }
 
 void
+keyboard_reload(struct seat *seat)
+{
+	struct wlr_keyboard *kb = wlr_seat_get_keyboard(seat->seat);
+	struct xkb_rule_names rules = { 0 };
+	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+	struct xkb_keymap *keymap = xkb_map_new_from_names(context, &rules,
+		XKB_KEYMAP_COMPILE_NO_FLAGS);
+	if (keymap) {
+		wlr_keyboard_set_keymap(kb, keymap);
+		xkb_keymap_unref(keymap);
+	} else {
+		wlr_log(WLR_ERROR, "Failed to create xkb keymap");
+	}
+	xkb_context_unref(context);
+	wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
+}
+
+void
 keyboard_setup_handlers(struct keyboard *keyboard)
 {
 	struct wlr_keyboard *wlr_kb = keyboard->wlr_keyboard;

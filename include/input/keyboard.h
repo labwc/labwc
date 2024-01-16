@@ -10,6 +10,7 @@ struct keyboard;
 struct wlr_keyboard;
 
 void keyboard_init(struct seat *seat);
+void keyboard_reload(struct seat *seat);
 void keyboard_finish(struct seat *seat);
 
 void keyboard_setup_handlers(struct keyboard *keyboard);

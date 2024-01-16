@@ -592,25 +592,72 @@ keyboard_update_layout(struct seat *seat, xkb_layout_index_t layout)
 		kb->modifiers.latched, kb->modifiers.locked, layout);
 }
 
-void
-keyboard_init(struct seat *seat)
+static void
+reset_window_keyboard_layout_groups(struct server *server)
 {
-	seat->keyboard_group = wlr_keyboard_group_create();
-	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
+	if (!rc.kb_layout_per_window) {
+		return;
+	}
+
+	/*
+	 * Technically it would be possible to reconcile previous group indices
+	 * to new group ones if particular layouts exist in both old and new,
+	 * but let's keep it simple for now and just reset them all.
+	 */
+	struct view *view;
+	for_each_view(view, &server->views, LAB_VIEW_CRITERIA_NONE) {
+		view->keyboard_layout = 0;
+	}
+
+	struct view *active_view = server->active_view;
+	if (!active_view) {
+		return;
+	}
+	keyboard_update_layout(&server->seat, active_view->keyboard_layout);
+}
+
+/*
+ * Set layout based on environment variables XKB_DEFAULT_LAYOUT,
+ * XKB_DEFAULT_OPTIONS, and friends.
+ */
+static void
+set_layout(struct server *server, struct wlr_keyboard *kb)
+{
 	struct xkb_rule_names rules = { 0 };
 	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
 	struct xkb_keymap *keymap = xkb_map_new_from_names(context, &rules,
 		XKB_KEYMAP_COMPILE_NO_FLAGS);
 	if (keymap) {
-		wlr_keyboard_set_keymap(kb, keymap);
+		if (!wlr_keyboard_keymaps_match(kb->keymap, keymap)) {
+			wlr_keyboard_set_keymap(kb, keymap);
+			reset_window_keyboard_layout_groups(server);
+		}
 		xkb_keymap_unref(keymap);
 	} else {
 		wlr_log(WLR_ERROR, "Failed to create xkb keymap");
 	}
 	xkb_context_unref(context);
-	wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
+}
 
+void
+keyboard_configure(struct seat *seat, struct wlr_keyboard *kb, bool is_virtual)
+{
+	if (!is_virtual) {
+		set_layout(seat->server, kb);
+	}
+	wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
 	keybind_update_keycodes(seat->server);
+}
+
+void
+keyboard_group_init(struct seat *seat)
+{
+	if (seat->keyboard_group) {
+		return;
+	}
+	seat->keyboard_group = wlr_keyboard_group_create();
+	keyboard_configure(seat, &seat->keyboard_group->keyboard,
+		/* is_virtual */ false);
 }
 
 void
@@ -625,7 +672,7 @@ keyboard_setup_handlers(struct keyboard *keyboard)
 }
 
 void
-keyboard_finish(struct seat *seat)
+keyboard_group_finish(struct seat *seat)
 {
 	/*
 	 * All keyboard listeners must be removed before this to avoid use after

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <assert.h>
+#include <wlr/types/wlr_fractional_scale_v1.h>
+
 #include "common/macros.h"
 #include "common/mem.h"
 #include "decorations.h"
@@ -483,7 +485,13 @@ xdg_toplevel_view_map(struct view *view)
 	if (view->mapped) {
 		return;
 	}
+
 	view->mapped = true;
+
+	/*
+	 * An output should have been chosen when the surface was first
+	 * created, but take one more opportunity to assign an output if not.
+	 */
 	if (!view->output) {
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
@@ -640,6 +648,17 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->type = LAB_XDG_SHELL_VIEW;
 	view->impl = &xdg_toplevel_view_impl;
 	xdg_toplevel_view->xdg_surface = xdg_surface;
+
+	/*
+	 * Pick an output for the surface as soon as its created, so that the
+	 * client can be notified about any fractional scale before it is given
+	 * the chance to configure itself (and possibly pick its dimensions).
+	 */
+	view_set_output(view, output_nearest_to_cursor(server));
+	if (view->output) {
+		wlr_fractional_scale_v1_notify_scale(xdg_surface->surface,
+			view->output->wlr_output->scale);
+	}
 
 	view->workspace = server->workspace_current;
 	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);

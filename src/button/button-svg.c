@@ -22,6 +22,9 @@ button_svg_load(const char *button_name, struct lab_data_buffer **buffer,
 		wlr_buffer_drop(&(*buffer)->base);
 		*buffer = NULL;
 	}
+	if (!button_name || !*button_name) {
+		return;
+	}
 
 	char filename[4096] = { 0 };
 	button_filename(button_name, filename, sizeof(filename));

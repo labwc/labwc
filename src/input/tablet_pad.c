@@ -7,7 +7,6 @@
 #include "common/mem.h"
 #include "config/rcxml.h"
 #include "input/cursor.h"
-#include "input/tablet.h"
 #include "input/tablet_pad.h"
 
 static void

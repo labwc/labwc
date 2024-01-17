@@ -21,7 +21,6 @@ struct drawing_tablet {
 	} handlers;
 };
 
-uint32_t tablet_get_mapped_button(uint32_t src_button);
 void tablet_init(struct seat *seat, struct wlr_input_device *wlr_input_device);
 
 #endif /* LABWC_TABLET_H */

@@ -105,3 +105,17 @@ tablet_load_default_button_mappings(void)
 	tablet_button_mapping_add(BTN_STYLUS, BTN_RIGHT);
 	tablet_button_mapping_add(BTN_STYLUS2, BTN_MIDDLE);
 }
+
+uint32_t
+tablet_get_mapped_button(uint32_t src_button)
+{
+	struct button_map_entry *map_entry;
+	for (size_t i = 0; i < rc.tablet.button_map_count; i++) {
+		map_entry = &rc.tablet.button_map[i];
+		if (map_entry->from == src_button) {
+			return map_entry->to;
+		}
+	}
+	wlr_log(WLR_DEBUG, "no button map target for 0x%x", src_button);
+	return 0;
+}

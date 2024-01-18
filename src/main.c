@@ -87,7 +87,6 @@ main(int argc, char *argv[])
 	textdomain(GETTEXT_PACKAGE);
 #endif
 	char *startup_cmd = NULL;
-	char *config_file = NULL;
 	enum wlr_log_importance verbosity = WLR_ERROR;
 
 	int c;
@@ -99,7 +98,7 @@ main(int argc, char *argv[])
 		}
 		switch (c) {
 		case 'c':
-			config_file = optarg;
+			rc.config_file = optarg;
 			break;
 		case 'C':
 			rc.config_dir = optarg;
@@ -139,7 +138,7 @@ main(int argc, char *argv[])
 	die_on_detecting_suid();
 
 	session_environment_init();
-	rcxml_read(config_file);
+	rcxml_read(rc.config_file);
 
 	/*
 	 * Set environment variable LABWC_PID to the pid of the compositor

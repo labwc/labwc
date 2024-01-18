@@ -47,7 +47,9 @@ struct window_switcher_field {
 };
 
 struct rcxml {
+	/* from command line */
 	char *config_dir;
+	char *config_file;
 	bool merge_config;
 
 	/* core */

@@ -47,7 +47,7 @@ static void
 reload_config_and_theme(void)
 {
 	rcxml_finish();
-	rcxml_read(NULL);
+	rcxml_read(rc.config_file);
 	theme_finish(g_server->theme);
 	theme_init(g_server->theme, rc.theme_name);
 

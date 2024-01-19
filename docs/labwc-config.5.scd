@@ -479,8 +479,15 @@ windows using the mouse.
 ## TOUCH
 
 ```
-<touch mapToOutput="" />
+<touch deviceName="" mapToOutput="" />
 ```
+
+*<touch deviceName="" />*
+	A touch configuration can be bound to a specifc device. If device
+	name is left empty, the touch configuration applies to all touch
+	devices or functions as a fallback. Multiple touch configurations
+	can exist.
+	See the libinput device section for obtaining the device names.
 
 *<touch mapToOutput="" />*
 	Direct cursor movement to a specified output. If the compositor is

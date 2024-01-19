@@ -14,16 +14,10 @@
 #include "config/session.h"
 #include "labwc.h"
 
-static bool
-string_empty(const char *s)
-{
-	return !s || !*s;
-}
-
 static void
 process_line(char *line)
 {
-	if (string_empty(line) || line[0] == '#') {
+	if (string_null_or_empty(line) || line[0] == '#') {
 		return;
 	}
 	char *key = NULL;
@@ -39,7 +33,7 @@ process_line(char *line)
 	buf_add(&value, string_strip(++p));
 	buf_expand_shell_variables(&value);
 	buf_expand_tilde(&value);
-	if (string_empty(key) || !value.len) {
+	if (string_null_or_empty(key) || !value.len) {
 		goto error;
 	}
 	setenv(key, value.buf, 1);

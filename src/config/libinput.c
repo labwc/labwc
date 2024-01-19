@@ -4,6 +4,7 @@
 
 #include "common/mem.h"
 #include "common/list.h"
+#include "common/string-helpers.h"
 #include "config/libinput.h"
 #include "config/rcxml.h"
 
@@ -27,7 +28,7 @@ libinput_category_init(struct libinput_category *l)
 enum lab_libinput_device_type
 get_device_type(const char *s)
 {
-	if (!s || !*s) {
+	if (string_null_or_empty(s)) {
 		return LAB_LIBINPUT_DEVICE_NONE;
 	}
 	if (!strcasecmp(s, "default")) {

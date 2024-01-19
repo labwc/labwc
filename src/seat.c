@@ -273,7 +273,15 @@ static void
 map_touch_to_output(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct wlr_touch *touch = wlr_touch_from_input_device(dev);
-	char *output_name = touch->output_name ? touch->output_name : NULL;
+
+	char *touch_config_output_name = NULL;
+	struct touch_config_entry *config_entry =
+		touch_find_config_for_device(touch->base.name);
+	if (config_entry) {
+		touch_config_output_name = config_entry->output_name;
+	}
+
+	char *output_name = touch->output_name ? touch->output_name : touch_config_output_name;
 	wlr_log(WLR_INFO, "map touch to output %s\n", output_name);
 	map_input_to_output(seat, dev, output_name);
 }

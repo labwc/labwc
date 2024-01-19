@@ -536,6 +536,7 @@ seat_reconfigure(struct server *server)
 			break;
 		case WLR_INPUT_DEVICE_POINTER:
 			configure_libinput(input->wlr_input_device);
+			map_pointer_to_output(seat, input->wlr_input_device);
 			break;
 		case WLR_INPUT_DEVICE_TOUCH:
 			configure_libinput(input->wlr_input_device);

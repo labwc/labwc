@@ -2046,7 +2046,6 @@ view_destroy(struct view *view)
 {
 	assert(view);
 	struct server *server = view->server;
-	bool need_cursor_update = false;
 
 	if (view->mappable.connected) {
 		mappable_disconnect(&view->mappable);
@@ -2068,13 +2067,11 @@ view_destroy(struct view *view)
 		/* Application got killed while moving around */
 		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		server->grabbed_view = NULL;
-		need_cursor_update = true;
 		regions_hide_overlay(&server->seat);
 	}
 
 	if (server->active_view == view) {
 		server->active_view = NULL;
-		need_cursor_update = true;
 	}
 
 	if (server->last_raised_view == view) {
@@ -2130,7 +2127,5 @@ view_destroy(struct view *view)
 	wl_list_remove(&view->link);
 	free(view);
 
-	if (need_cursor_update) {
-		cursor_update_focus(server);
-	}
+	cursor_update_focus(server);
 }

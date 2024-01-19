@@ -1,6 +1,13 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef LABWC_STRING_HELPERS_H
 #define LABWC_STRING_HELPERS_H
+#include <stdbool.h>
+
+/**
+ * string_null_or_empty() - Check if string is NULL or empty
+ * @s: string to check
+ */
+bool string_null_or_empty(const char *s);
 
 /**
  * trim_last_field() - Trim last field of string splitting on provided delim

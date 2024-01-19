@@ -7,6 +7,7 @@
 #include <wlr/util/log.h>
 #include "common/font.h"
 #include "common/graphic-helpers.h"
+#include "common/string-helpers.h"
 #include "labwc.h"
 #include "buffer.h"
 
@@ -84,7 +85,7 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 		max_width = 2;
 	}
 
-	if (!text || !*text) {
+	if (string_null_or_empty(text)) {
 		return;
 	}
 

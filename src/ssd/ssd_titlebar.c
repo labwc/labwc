@@ -7,6 +7,7 @@
 #include "common/mem.h"
 #include "common/scaled_font_buffer.h"
 #include "common/scene-helpers.h"
+#include "common/string-helpers.h"
 #include "labwc.h"
 #include "node.h"
 #include "ssd-internal.h"
@@ -325,7 +326,7 @@ ssd_update_title(struct ssd *ssd)
 
 	struct view *view = ssd->view;
 	char *title = (char *)view_get_string_prop(view, "title");
-	if (!title || !*title) {
+	if (string_null_or_empty(title)) {
 		return;
 	}
 

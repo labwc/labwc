@@ -273,7 +273,7 @@ static void
 map_touch_to_output(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct wlr_touch *touch = wlr_touch_from_input_device(dev);
-	char *output_name = touch->output_name ? touch->output_name : rc.touch.output_name;
+	char *output_name = touch->output_name ? touch->output_name : NULL;
 	wlr_log(WLR_INFO, "map touch to output %s\n", output_name);
 	map_input_to_output(seat, dev, output_name);
 }

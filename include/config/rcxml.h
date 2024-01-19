@@ -9,6 +9,7 @@
 #include "common/border.h"
 #include "common/buf.h"
 #include "common/font.h"
+#include "config/touch.h"
 #include "config/tablet.h"
 #include "config/libinput.h"
 #include "resize_indicator.h"
@@ -92,9 +93,7 @@ struct rcxml {
 	double scroll_factor;
 
 	/* touch tablet */
-	struct touch_config {
-		char *output_name;
-	} touch;
+	struct wl_list touch_configs;
 
 	/* graphics tablet */
 	struct tablet_config {

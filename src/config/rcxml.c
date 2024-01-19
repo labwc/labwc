@@ -36,6 +36,7 @@ static bool in_regions;
 static bool in_usable_area_override;
 static bool in_keybind;
 static bool in_mousebind;
+static bool in_touch;
 static bool in_libinput_category;
 static bool in_window_switcher_field;
 static bool in_window_rules;
@@ -46,6 +47,7 @@ static bool in_action_else_branch;
 static struct usable_area_override *current_usable_area_override;
 static struct keybind *current_keybind;
 static struct mousebind *current_mousebind;
+static struct touch_config_entry *current_touch;
 static struct libinput_category *current_libinput_category;
 static const char *current_mouse_context;
 static struct action *current_keybind_action;
@@ -428,6 +430,22 @@ fill_mousebind(char *nodename, char *content)
 	}
 }
 
+static void
+fill_touch(char *nodename, char *content)
+{
+	if (!strcasecmp(nodename, "touch")) {
+		current_touch = znew(*current_touch);
+		wl_list_append(&rc.touch_configs, &current_touch->link);
+	} else if (!strcasecmp(nodename, "deviceName.touch")) {
+		current_touch->device_name = xstrdup(content);
+	} else if (!strcasecmp(nodename, "mapToOutput.touch")) {
+		current_touch->output_name = xstrdup(content);
+	} else {
+		wlr_log(WLR_ERROR, "Unexpected data in touch parser: %s=\"%s\"",
+			nodename, content);
+	}
+}
+
 static int
 get_accel_profile(const char *s)
 {
@@ -687,6 +705,10 @@ entry(xmlNode *node, char *nodename, char *content)
 			fill_mousebind(nodename, content);
 		}
 	}
+	if (in_touch) {
+		fill_touch(nodename, content);
+		return;
+	}
 	if (in_libinput_category) {
 		fill_libinput_category(nodename, content);
 		return;
@@ -866,8 +888,6 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "Invalid value for <resize popupShow />");
 		}
-	} else if (!strcasecmp(nodename, "mapToOutput.touch")) {
-		rc.touch.output_name = xstrdup(content);
 	} else if (!strcasecmp(nodename, "mapToOutput.tablet")) {
 		rc.tablet.output_name = xstrdup(content);
 	} else if (!strcasecmp(nodename, "rotate.tablet")) {
@@ -946,6 +966,12 @@ xml_tree_walk(xmlNode *node)
 			in_mousebind = true;
 			traverse(n);
 			in_mousebind = false;
+			continue;
+		}
+		if (!strcasecmp((char *)n->name, "touch")) {
+			in_touch = true;
+			traverse(n);
+			in_touch = false;
 			continue;
 		}
 		if (!strcasecmp((char *)n->name, "device")) {
@@ -1030,6 +1056,7 @@ rcxml_init(void)
 		wl_list_init(&rc.regions);
 		wl_list_init(&rc.window_switcher.fields);
 		wl_list_init(&rc.window_rules);
+		wl_list_init(&rc.touch_configs);
 	}
 	has_run = true;
 
@@ -1050,8 +1077,6 @@ rcxml_init(void)
 
 	rc.doubleclick_time = 500;
 	rc.scroll_factor = 1.0;
-
-	rc.touch.output_name = NULL;
 
 	rc.tablet.output_name = NULL;
 	rc.tablet.rotation = 0;
@@ -1574,7 +1599,13 @@ rcxml_finish(void)
 		zfree(m);
 	}
 
-	zfree(rc.touch.output_name);
+	struct touch_config_entry *touch_config, *touch_config_tmp;
+	wl_list_for_each_safe(touch_config, touch_config_tmp, &rc.touch_configs, link) {
+		wl_list_remove(&touch_config->link);
+		zfree(touch_config->device_name);
+		zfree(touch_config->output_name);
+		zfree(touch_config);
+	}
 
 	zfree(rc.tablet.output_name);
 
@@ -1609,6 +1640,7 @@ rcxml_finish(void)
 	current_usable_area_override = NULL;
 	current_keybind = NULL;
 	current_mousebind = NULL;
+	current_touch = NULL;
 	current_libinput_category = NULL;
 	current_mouse_context = NULL;
 	current_keybind_action = NULL;

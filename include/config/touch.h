@@ -11,4 +11,6 @@ struct touch_config_entry {
 	struct wl_list link;     /* struct rcxml.touch_configs */
 };
 
+struct touch_config_entry *touch_find_config_for_device(char *device_name);
+
 #endif /* LABWC_TOUCH_CONFIG_H */

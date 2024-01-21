@@ -1792,6 +1792,31 @@ view_snap_to_region(struct view *view, struct region *region,
 	view_apply_region_geometry(view);
 }
 
+void
+view_move_to_output(struct view *view, struct output *output)
+{
+	assert(view);
+	if (view->fullscreen) {
+		return;
+	}
+
+	view_invalidate_last_layout_geometry(view);
+	view_set_output(view, output);
+	if (view_is_floating(view)) {
+		struct wlr_box output_area = output_usable_area_in_layout_coords(output);
+		view->pending.x = output_area.x;
+		view->pending.y = output_area.y;
+		view_place_initial(view, /* allow_cursor */ false);
+	} else if (view->maximized != VIEW_AXIS_NONE) {
+		view_apply_maximized_geometry(view);
+	} else if (view->tiled) {
+		view_apply_tiled_geometry(view);
+	} else if (view->tiled_region) {
+		struct region *region = regions_from_name(view->tiled_region->name, output);
+		view_snap_to_region(view, region, /*store_natural_geometry*/ false);
+	}
+}
+
 static void
 for_each_subview(struct view *view, void (*action)(struct view *))
 {

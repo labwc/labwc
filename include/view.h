@@ -445,6 +445,7 @@ void view_shrink_to_edge(struct view *view, enum view_edge direction);
 void view_snap_to_edge(struct view *view, enum view_edge direction,
 	bool across_outputs, bool store_natural_geometry);
 void view_snap_to_region(struct view *view, struct region *region, bool store_natural_geometry);
+void view_move_to_output(struct view *view, struct output *output);
 
 void view_move_to_front(struct view *view);
 void view_move_to_back(struct view *view);

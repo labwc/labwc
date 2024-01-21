@@ -12,20 +12,28 @@ static void
 is_within_resistance_range(struct border view, struct border target,
 		struct border other, struct border *flags, int strength)
 {
-	if (view.left >= other.left && target.left < other.left
-			&& target.left >= other.left - strength) {
-		flags->left = 1;
-	} else if (view.right <= other.right && target.right > other.right
-			&& target.right <= other.right + strength) {
-		flags->right = 1;
+	if (view.left >= other.left) {
+		const int lo = other.left - abs(strength);
+		const int hi = other.left - MIN(strength, 0);
+		flags->left = target.left >= lo && target.left < hi;
 	}
 
-	if (view.top >= other.top && target.top < other.top
-			&& target.top >= other.top - strength) {
-		flags->top = 1;
-	} else if (view.bottom <= other.bottom && target.bottom > other.bottom
-			&& target.bottom <= other.bottom + strength) {
-		flags->bottom = 1;
+	if (!flags->left && view.right <= other.right) {
+		const int lo = other.right + MIN(strength, 0);
+		const int hi = other.right + abs(strength);
+		flags->right = target.right > lo && target.right <= hi;
+	}
+
+	if (view.top >= other.top) {
+		const int lo = other.top - abs(strength);
+		const int hi = other.top - MIN(strength, 0);
+		flags->top = target.top >= lo && target.top < hi;
+	}
+
+	if (!flags->top && view.bottom <= other.bottom) {
+		const int lo = other.bottom + MIN(strength, 0);
+		const int hi = other.bottom + abs(strength);
+		flags->bottom = target.bottom > lo && target.bottom <= hi;
 	}
 }
 
@@ -75,7 +83,7 @@ static void
 find_neighbor_edges(struct view *view, struct wlr_box new_geom,
 		struct border *next_edges, bool move)
 {
-	if (rc.window_edge_strength <= 0) {
+	if (rc.window_edge_strength == 0) {
 		return;
 	}
 
@@ -118,7 +126,7 @@ static void
 find_screen_edges(struct view *view, struct wlr_box new_geom,
 		struct border *next_edges, bool move)
 {
-	if (rc.screen_edge_strength <= 0) {
+	if (rc.screen_edge_strength == 0) {
 		return;
 	}
 

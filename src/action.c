@@ -97,6 +97,7 @@ enum action_type {
 	ACTION_TYPE_SNAP_TO_REGION,
 	ACTION_TYPE_TOGGLE_KEYBINDS,
 	ACTION_TYPE_FOCUS_OUTPUT,
+	ACTION_TYPE_MOVE_TO_OUTPUT,
 	ACTION_TYPE_IF,
 	ACTION_TYPE_FOR_EACH,
 	ACTION_TYPE_VIRTUAL_OUTPUT_ADD,
@@ -148,6 +149,7 @@ const char *action_names[] = {
 	"SnapToRegion",
 	"ToggleKeybinds",
 	"FocusOutput",
+	"MoveToOutput",
 	"If",
 	"ForEach",
 	"VirtualOutputAdd",
@@ -375,6 +377,22 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 	case ACTION_TYPE_FOCUS_OUTPUT:
 		if (!strcmp(argument, "output")) {
 			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_MOVE_TO_OUTPUT:
+		if (!strcmp(argument, "name")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		if (!strcmp(argument, "direction")) {
+			enum view_edge edge = view_edge_parse(content);
+			if (edge == VIEW_EDGE_CENTER) {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			} else {
+				action_arg_add_int(action, argument, edge);
+			}
 			goto cleanup;
 		}
 		break;
@@ -892,6 +910,25 @@ actions_run(struct view *activator, struct server *server,
 						/*update_focus*/ true);
 				}
 			}
+			break;
+		case ACTION_TYPE_MOVE_TO_OUTPUT:
+			if (!view) {
+				break;
+			}
+			const char *name = action_get_str(action, "name", NULL);
+			struct output *target = NULL;
+			if (name) {
+				target = output_from_name(view->server, name);
+			} else {
+				/* Config parsing makes sure that direction is a valid direction */
+				enum view_edge edge = action_get_int(action, "direction", 0);
+				target = view_get_adjacent_output(view, edge);
+			}
+			if (!target) {
+				wlr_log(WLR_ERROR, "Invalid output.");
+				break;
+			}
+			view_move_to_output(view, target);
 			break;
 		case ACTION_TYPE_SNAP_TO_REGION:
 			if (!view) {

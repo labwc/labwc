@@ -245,12 +245,16 @@ process_cursor_resize(struct server *server, uint32_t time)
 	struct wlr_box new_view_geo = view->current;
 
 	if (server->resize_edges & WLR_EDGE_TOP) {
+		/* Shift y to anchor bottom edge when resizing top */
+		new_view_geo.y = server->grab_box.y + dy;
 		new_view_geo.height = server->grab_box.height - dy;
 	} else if (server->resize_edges & WLR_EDGE_BOTTOM) {
 		new_view_geo.height = server->grab_box.height + dy;
 	}
 
 	if (server->resize_edges & WLR_EDGE_LEFT) {
+		/* Shift x to anchor right edge when resizing left */
+		new_view_geo.x = server->grab_box.x + dx;
 		new_view_geo.width = server->grab_box.width - dx;
 	} else if (server->resize_edges & WLR_EDGE_RIGHT) {
 		new_view_geo.width = server->grab_box.width + dx;
@@ -260,13 +264,13 @@ process_cursor_resize(struct server *server, uint32_t time)
 	view_adjust_size(view, &new_view_geo.width, &new_view_geo.height);
 
 	if (server->resize_edges & WLR_EDGE_TOP) {
-		/* anchor bottom edge */
+		/* After size adjustments, make sure to anchor bottom edge */
 		new_view_geo.y = server->grab_box.y +
 			server->grab_box.height - new_view_geo.height;
 	}
 
 	if (server->resize_edges & WLR_EDGE_LEFT) {
-		/* anchor right edge */
+		/* After size adjustments, make sure to anchor bottom right */
 		new_view_geo.x = server->grab_box.x +
 			server->grab_box.width - new_view_geo.width;
 	}

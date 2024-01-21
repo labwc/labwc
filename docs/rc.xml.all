@@ -66,6 +66,7 @@
   <!-- edge strength is in pixels -->
   <resistance>
     <screenEdgeStrength>20</screenEdgeStrength>
+    <windowEdgeStrength>20</windowEdgeStrength>
   </resistance>
 
   <!-- Show a simple resize and move indicator -->

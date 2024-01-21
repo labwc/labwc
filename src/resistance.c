@@ -1,19 +1,16 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <assert.h>
+#include <limits.h>
+#include "common/border.h"
+#include "common/macros.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "resistance.h"
 #include "view.h"
 
-struct edges {
-	int left;
-	int top;
-	int right;
-	int bottom;
-};
-
 static void
-is_within_resistance_range(struct edges view, struct edges target,
-		struct edges other, struct edges *flags, int strength)
+is_within_resistance_range(struct border view, struct border target,
+		struct border other, struct border *flags, int strength)
 {
 	if (view.left >= other.left && target.left < other.left
 			&& target.left >= other.left - strength) {
@@ -32,160 +29,210 @@ is_within_resistance_range(struct edges view, struct edges target,
 	}
 }
 
-void
-resistance_move_apply(struct view *view, double *x, double *y)
+static void
+build_view_edges(struct view *view, struct wlr_box new_geom,
+		struct border *view_edges, struct border *target_edges, bool move)
 {
-	struct server *server = view->server;
-	struct wlr_box mgeom, intersection;
-	struct wlr_box vgeom = view->current;
-	struct wlr_box tgeom = {.x = *x, .y = *y, .width = vgeom.width,
-		.height = vgeom.height};
-	struct output *output;
 	struct border border = ssd_get_margin(view->ssd);
-	struct edges view_edges; /* The edges of the current view */
-	struct edges target_edges; /* The desired edges */
-	struct edges other_edges; /* The edges of the monitor/other view */
-	struct edges flags = { 0 };
 
 	/* Use the effective height to properly snap shaded views */
 	int eff_height = view_effective_height(view, /* use_pending */ false);
 
-	view_edges.left = vgeom.x - border.left + 1;
-	view_edges.top = vgeom.y - border.top + 1;
-	view_edges.right = vgeom.x + vgeom.width + border.right;
-	view_edges.bottom = vgeom.y + eff_height + border.bottom;
+	view_edges->left = view->current.x - border.left + (move ? 1 : 0);
+	view_edges->top = view->current.y - border.top + (move ? 1 : 0);
+	view_edges->right = view->current.x + view->current.width + border.right;
+	view_edges->bottom = view->current.y + eff_height + border.bottom;
 
-	target_edges.left = *x - border.left;
-	target_edges.top = *y - border.top;
-	target_edges.right = *x + vgeom.width + border.right;
-	target_edges.bottom = *y + eff_height + border.bottom;
+	target_edges->left = new_geom.x - border.left;
+	target_edges->top = new_geom.y - border.top;
+	target_edges->right = new_geom.x + new_geom.width + border.right;
+	target_edges->bottom = new_geom.y + new_geom.height + border.bottom;
+}
 
-	if (!rc.screen_edge_strength) {
+static void
+update_nearest_edge(struct border view_edges, struct border target_edges,
+		struct border region_edges, int strength,
+		struct border *next_edges)
+{
+	struct border flags = { 0 };
+	is_within_resistance_range(view_edges,
+		target_edges, region_edges, &flags, strength);
+
+	if (flags.left == 1) {
+		next_edges->left = MAX(region_edges.left, next_edges->left);
+	} else if (flags.right == 1) {
+		next_edges->right = MIN(region_edges.right, next_edges->right);
+	}
+
+	if (flags.top == 1) {
+		next_edges->top = MAX(region_edges.top, next_edges->top);
+	} else if (flags.bottom == 1) {
+		next_edges->bottom = MIN(region_edges.bottom, next_edges->bottom);
+	}
+}
+
+static void
+find_neighbor_edges(struct view *view, struct wlr_box new_geom,
+		struct border *next_edges, bool move)
+{
+	if (rc.window_edge_strength <= 0) {
 		return;
 	}
 
-	wl_list_for_each(output, &server->outputs, link) {
+	struct border view_edges = { 0 };
+	struct border target_edges = { 0 };
+
+	build_view_edges(view, new_geom, &view_edges, &target_edges, move);
+
+	struct view *v;
+	for_each_view(v, &view->server->views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+		if (v == view || !output_is_usable(v->output)) {
+			continue;
+		}
+
+		struct border border = ssd_get_margin(v->ssd);
+
+		/*
+		 * The significance of window edges here is inverted with
+		 * respect to the usual orientation, because the edges of the
+		 * view v of interest are those that would be encountered by a
+		 * change in geometry in view along the named edge of view.
+		 * Hence, when moving or resizing view *left*, it is the
+		 * *right* edge of v that would be encountered, and vice versa;
+		 * when moving or resizing view *down* ("bottom"), it is the
+		 * *top* edge of v that would be encountered, and vice versa.
+		 */
+		struct border win_edges = {
+			.top = v->current.y + v->current.height + border.bottom,
+			.right = v->current.x - border.left,
+			.bottom = v->current.y - border.top,
+			.left = v->current.x + v->current.width + border.right,
+		};
+
+		update_nearest_edge(view_edges, target_edges,
+			win_edges, rc.window_edge_strength, next_edges);
+	}
+}
+
+static void
+find_screen_edges(struct view *view, struct wlr_box new_geom,
+		struct border *next_edges, bool move)
+{
+	if (rc.screen_edge_strength <= 0) {
+		return;
+	}
+
+	struct border view_edges = { 0 };
+	struct border target_edges = { 0 };
+
+	build_view_edges(view, new_geom, &view_edges, &target_edges, move);
+
+	struct output *output;
+	wl_list_for_each(output, &view->server->outputs, link) {
 		if (!output_is_usable(output)) {
 			continue;
 		}
 
-		mgeom = output_usable_area_in_layout_coords(output);
+		struct wlr_box mgeom =
+			output_usable_area_in_layout_coords(output);
 
-		if (!wlr_box_intersection(&intersection, &vgeom, &mgeom)
-				&& !wlr_box_intersection(&intersection, &tgeom,
-				&mgeom)) {
+		struct wlr_box ol;
+		if (!wlr_box_intersection(&ol, &view->current, &mgeom) &&
+				!wlr_box_intersection(&ol, &new_geom, &mgeom)) {
 			continue;
 		}
 
-		other_edges.left = mgeom.x;
-		other_edges.top = mgeom.y;
-		other_edges.right = mgeom.x + mgeom.width;
-		other_edges.bottom = mgeom.y + mgeom.height;
+		struct border screen_edges = {
+			.top = mgeom.y,
+			.right = mgeom.x + mgeom.width,
+			.bottom = mgeom.y + mgeom.height,
+			.left = mgeom.x,
+		};
 
-		is_within_resistance_range(view_edges, target_edges,
-			other_edges, &flags, rc.screen_edge_strength);
-
-		if (flags.left == 1) {
-			*x = other_edges.left + border.left;
-		} else if (flags.right == 1) {
-			*x = other_edges.right - vgeom.width - border.right;
-		}
-
-		if (flags.top == 1) {
-			*y = other_edges.top + border.top;
-		} else if (flags.bottom == 1) {
-			*y = other_edges.bottom - eff_height - border.bottom;
-		}
-
-		/* reset the flags */
-		flags.left = 0;
-		flags.top = 0;
-		flags.right = 0;
-		flags.bottom = 0;
+		update_nearest_edge(view_edges, target_edges,
+			screen_edges, rc.screen_edge_strength, next_edges);
 	}
 }
 
 void
-resistance_resize_apply(struct view *view, struct wlr_box *new_view_geo)
+resistance_move_apply(struct view *view, double *x, double *y)
 {
-	struct server *server = view->server;
-	struct output *output;
-	struct wlr_box mgeom, intersection;
-	struct wlr_box vgeom = view->current;
-	struct wlr_box tgeom = *new_view_geo;
+	assert(view);
+
 	struct border border = ssd_get_margin(view->ssd);
-	struct edges view_edges; /* The edges of the current view */
-	struct edges target_edges; /* The desired edges */
-	struct edges other_edges; /* The edges of the monitor/other view */
-	struct edges flags = { 0 };
 
-	view_edges.left = vgeom.x - border.left;
-	view_edges.top = vgeom.y - border.top;
-	view_edges.right = vgeom.x + vgeom.width + border.right;
-	view_edges.bottom = vgeom.y + vgeom.height + border.bottom;
+	struct border next_edges = {
+		.top = INT_MIN,
+		.right = INT_MAX,
+		.bottom = INT_MAX,
+		.left = INT_MIN,
+	};
 
-	target_edges.left = new_view_geo->x - border.left;
-	target_edges.top = new_view_geo->y - border.top;
-	target_edges.right = new_view_geo->x + new_view_geo->width
-		+ border.right;
-	target_edges.bottom = new_view_geo->y + new_view_geo->height
-		+ border.bottom;
+	struct wlr_box new_geom = {
+		.x = *x,
+		.y = *y,
+		.width = view->current.width,
+		.height = view->current.height,
+	};
 
-	if (!rc.screen_edge_strength) {
-		return;
+	find_screen_edges(view, new_geom, &next_edges, /* move */ true);
+	find_neighbor_edges(view, new_geom, &next_edges, /* move */ true);
+
+	if (next_edges.left > INT_MIN) {
+		*x = next_edges.left + border.left;
+	} else if (next_edges.right < INT_MAX) {
+		*x = next_edges.right - view->current.width - border.right;
 	}
-	wl_list_for_each(output, &server->outputs, link) {
-		if (!output_is_usable(output)) {
-			continue;
+
+	if (next_edges.top > INT_MIN) {
+		*y = next_edges.top + border.top;
+	} else if (next_edges.bottom < INT_MAX) {
+		*y = next_edges.bottom - border.bottom
+			- view_effective_height(view, /* use_pending */ false);
+	}
+}
+
+void
+resistance_resize_apply(struct view *view, struct wlr_box *new_geom)
+{
+	assert(view);
+	assert(!view->shaded);
+
+	struct border border = ssd_get_margin(view->ssd);
+
+	struct border next_edges = {
+		.top = INT_MIN,
+		.right = INT_MAX,
+		.bottom = INT_MAX,
+		.left = INT_MIN,
+	};
+
+	find_screen_edges(view, *new_geom, &next_edges, /* move */ false);
+	find_neighbor_edges(view, *new_geom, &next_edges, /* move */ false);
+
+	if (view->server->resize_edges & WLR_EDGE_LEFT) {
+		if (next_edges.left > INT_MIN) {
+			new_geom->x = next_edges.left + border.left;
+			new_geom->width = view->current.width
+				+ view->current.x - new_geom->x;
 		}
-
-		mgeom = output_usable_area_in_layout_coords(output);
-
-		if (!wlr_box_intersection(&intersection, &vgeom, &mgeom)
-				&& !wlr_box_intersection(&intersection, &tgeom,
-				&mgeom)) {
-			continue;
+	} else if (view->server->resize_edges & WLR_EDGE_RIGHT) {
+		if (next_edges.right < INT_MAX) {
+			new_geom->width = next_edges.right
+				- view->current.x - border.right;
 		}
+	}
 
-		other_edges.left = mgeom.x;
-		other_edges.top = mgeom.y;
-		other_edges.right = mgeom.x + mgeom.width;
-		other_edges.bottom = mgeom.y + mgeom.height;
-
-		is_within_resistance_range(view_edges, target_edges,
-			other_edges, &flags, rc.screen_edge_strength);
-
-		if (server->resize_edges & WLR_EDGE_LEFT) {
-			if (flags.left == 1) {
-				new_view_geo->x = other_edges.left
-					+ border.left;
-				new_view_geo->width = vgeom.width;
-			}
-		} else if (server->resize_edges & WLR_EDGE_RIGHT) {
-			if (flags.right == 1) {
-				new_view_geo->width = other_edges.right
-					- view_edges.left - border.right
-					- border.left;
-			}
+	if (view->server->resize_edges & WLR_EDGE_TOP) {
+		if (next_edges.top > INT_MIN) {
+			new_geom->y = next_edges.top + border.top;
+			new_geom->height = view->current.height
+				+ view->current.y - new_geom->y;
 		}
-
-		if (server->resize_edges & WLR_EDGE_TOP) {
-			if (flags.top == 1) {
-				new_view_geo->y = other_edges.top + border.top;
-				new_view_geo->height = vgeom.height;
-			}
-		} else if (server->resize_edges & WLR_EDGE_BOTTOM) {
-			if (flags.bottom == 1) {
-				new_view_geo->height =
-					other_edges.bottom - view_edges.top
-					- border.bottom - border.top;
-			}
+	} else if (view->server->resize_edges & WLR_EDGE_BOTTOM) {
+		if (next_edges.bottom < INT_MAX) {
+			new_geom->height = next_edges.bottom
+				- view->current.y - border.bottom;
 		}
-
-		/* reset the flags */
-		flags.left = 0;
-		flags.top = 0;
-		flags.right = 0;
-		flags.bottom = 0;
 	}
 }

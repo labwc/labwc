@@ -197,9 +197,14 @@ this is for compatibility with Openbox.
 ## RESISTANCE
 
 *<resistance><screenEdgeStrength>*
-	Screen Edge Strength is how far past the screen's edge your cursor must
-	move before the window will move with it. Resistance is counted in
-	pixels. Default is 20 pixels.
+	Screen-edge strength is the distance, in pixels, past the edge of a
+	screen the cursor must move before an interactive move or resize of a
+	window will continue past the edge. Default is 20 pixels.
+
+*<resistance><windowEdgeStrength>*
+	Window-edge strength is the distance, in pixels, past the edge of any
+	other window the cursor must move before an interactive move or resize
+	of a window will continue past the edge. Default is 20 pixels.
 
 ## FOCUS
 

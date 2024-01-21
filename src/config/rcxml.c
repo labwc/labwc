@@ -807,6 +807,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.kb_layout_per_window = !strcasecmp(content, "window");
 	} else if (!strcasecmp(nodename, "screenEdgeStrength.resistance")) {
 		rc.screen_edge_strength = atoi(content);
+	} else if (!strcasecmp(nodename, "windowEdgeStrength.resistance")) {
+		rc.window_edge_strength = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
 		rc.snap_edge_range = atoi(content);
 	} else if (!strcasecmp(nodename, "topMaximize.snapping")) {
@@ -1061,6 +1063,7 @@ rcxml_init(void)
 	rc.kb_numlock_enable = true;
 	rc.kb_layout_per_window = false;
 	rc.screen_edge_strength = 20;
+	rc.window_edge_strength = 20;
 
 	rc.snap_edge_range = 1;
 	rc.snap_top_maximize = true;

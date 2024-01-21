@@ -1465,7 +1465,7 @@ view_on_output_destroy(struct view *view)
 	view->output = NULL;
 }
 
-static struct output *
+struct output *
 view_get_adjacent_output(struct view *view, enum view_edge edge)
 {
 	assert(view);

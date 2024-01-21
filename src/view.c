@@ -728,9 +728,9 @@ view_center(struct view *view, const struct wlr_box *ref)
 }
 
 void
-view_place_initial(struct view *view)
+view_place_initial(struct view *view, bool allow_cursor)
 {
-	if (rc.placement_policy == LAB_PLACE_CURSOR) {
+	if (allow_cursor && rc.placement_policy == LAB_PLACE_CURSOR) {
 		view_move_to_cursor(view);
 		return;
 	} else if (rc.placement_policy == LAB_PLACE_AUTOMATIC) {

@@ -414,7 +414,7 @@ void view_center(struct view *view, const struct wlr_box *ref);
  * view_place_initial - apply initial placement strategy to view
  * @view: view to be placed
  */
-void view_place_initial(struct view *view);
+void view_place_initial(struct view *view, bool allow_cursor);
 void view_constrain_size_to_that_of_usable_area(struct view *view);
 
 void view_restore_to(struct view *view, struct wlr_box geometry);

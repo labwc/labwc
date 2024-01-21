@@ -435,7 +435,7 @@ set_initial_position(struct view *view)
 	}
 
 	/* All other views are placed according to a configured strategy */
-	view_place_initial(view);
+	view_place_initial(view, /* allow_cursor */ true);
 }
 
 static const char *

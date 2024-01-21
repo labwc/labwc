@@ -651,7 +651,7 @@ view_adjust_floating_geometry(struct view *view, struct wlr_box *geometry)
 		}
 	} else {
 		/*
-		 * Reposition offscreen views; if automatic placement was is
+		 * Reposition offscreen views; if automatic placement is
 		 * configured, try to automatically place the windows.
 		 */
 		if (rc.placement_policy == LAB_PLACE_AUTOMATIC) {

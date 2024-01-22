@@ -250,7 +250,6 @@
   <!--
     Multiple <mousebind> can exist within one <context>
     Multiple <actions> can exist within one <mousebind>
-    Currently, the only openbox-action not supported is "Unshade"
 
     Use <mouse><default /> to load all the default mousebinds (those listed
     below). If the default mousebinds are largely what you want, a sensible

@@ -747,7 +747,7 @@ view_place_initial(struct view *view, bool allow_cursor)
 void
 view_constrain_size_to_that_of_usable_area(struct view *view)
 {
-	if (!view || !view->output) {
+	if (!view || !view->output || view->fullscreen) {
 		return;
 	}
 

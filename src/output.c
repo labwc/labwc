@@ -550,6 +550,20 @@ custom_mode_failed:
 }
 
 static void
+handle_output_manager_test(struct wl_listener *listener, void *data)
+{
+	struct server *server = wl_container_of(listener, server, output_manager_test);
+	struct wlr_output_configuration_v1 *config = data;
+
+	if (verify_output_config_v1(config)) {
+		wlr_output_configuration_v1_send_succeeded(config);
+	} else {
+		wlr_output_configuration_v1_send_failed(config);
+	}
+	wlr_output_configuration_v1_destroy(config);
+}
+
+static void
 handle_output_manager_apply(struct wl_listener *listener, void *data)
 {
 	struct server *server =
@@ -666,6 +680,10 @@ output_manager_init(struct server *server)
 	server->output_manager_apply.notify = handle_output_manager_apply;
 	wl_signal_add(&server->output_manager->events.apply,
 		&server->output_manager_apply);
+
+	server->output_manager_test.notify = handle_output_manager_test;
+	wl_signal_add(&server->output_manager->events.test,
+		&server->output_manager_test);
 
 	server->gamma_control_set_gamma.notify = handle_gamma_control_set_gamma;
 	wl_signal_add(&server->gamma_control_manager_v1->events.set_gamma,

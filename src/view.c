@@ -763,7 +763,7 @@ view_constrain_size_to_that_of_usable_area(struct view *view)
 	}
 
 	if (available_height >= view->pending.height &&
-			available_width >= view->pending.height) {
+			available_width >= view->pending.width) {
 		return;
 	}
 

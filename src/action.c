@@ -98,6 +98,7 @@ enum action_type {
 	ACTION_TYPE_TOGGLE_KEYBINDS,
 	ACTION_TYPE_FOCUS_OUTPUT,
 	ACTION_TYPE_MOVE_TO_OUTPUT,
+	ACTION_TYPE_FIT_TO_OUTPUT,
 	ACTION_TYPE_IF,
 	ACTION_TYPE_FOR_EACH,
 	ACTION_TYPE_VIRTUAL_OUTPUT_ADD,
@@ -150,6 +151,7 @@ const char *action_names[] = {
 	"ToggleKeybinds",
 	"FocusOutput",
 	"MoveToOutput",
+	"FitToOutput",
 	"If",
 	"ForEach",
 	"VirtualOutputAdd",
@@ -929,6 +931,12 @@ actions_run(struct view *activator, struct server *server,
 				break;
 			}
 			view_move_to_output(view, target);
+			break;
+		case ACTION_TYPE_FIT_TO_OUTPUT:
+			if (!view) {
+				break;
+			}
+			view_constrain_size_to_that_of_usable_area(view);
 			break;
 		case ACTION_TYPE_SNAP_TO_REGION:
 			if (!view) {

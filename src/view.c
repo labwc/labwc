@@ -2015,7 +2015,13 @@ void
 mappable_disconnect(struct mappable *mappable)
 {
 	assert(mappable);
-	assert(mappable->connected);
+	/*
+	 * pygame-zero gets us here without a mappable_connect() first so we
+	 * have to handle this gracefully. See issue #1466
+	 */
+	if (!mappable->connected) {
+		return;
+	}
 	wl_list_remove(&mappable->map.link);
 	wl_list_remove(&mappable->unmap.link);
 	mappable->connected = false;

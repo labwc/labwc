@@ -196,24 +196,18 @@ snap_to_region(struct view *view)
 void
 interactive_finish(struct view *view)
 {
-	if (view->server->grabbed_view == view) {
-		regions_hide_overlay(&view->server->seat);
-		if (view->server->input_mode == LAB_INPUT_STATE_MOVE) {
-			if (!snap_to_region(view)) {
-				if (!snap_to_edge(view)) {
-					/* Reset tiled state if not snapped */
-					view_set_untiled(view);
-				}
-			}
-		}
-		resize_indicator_hide(view);
-
-		view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
-		view->server->grabbed_view = NULL;
-
-		/* Update focus/cursor image */
-		cursor_update_focus(view->server);
+	if (view->server->grabbed_view != view) {
+		return;
 	}
+
+	if (view->server->input_mode == LAB_INPUT_STATE_MOVE) {
+		/* Reset tiled state if not snapped */
+		if (!snap_to_region(view) && !snap_to_edge(view)) {
+			view_set_untiled(view);
+		}
+	}
+
+	interactive_cancel(view);
 }
 
 /*
@@ -224,11 +218,17 @@ interactive_finish(struct view *view)
 void
 interactive_cancel(struct view *view)
 {
-	if (view->server->grabbed_view == view) {
-		resize_indicator_hide(view);
-		view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
-		view->server->grabbed_view = NULL;
-		/* Update focus/cursor image */
-		cursor_update_focus(view->server);
+	if (view->server->grabbed_view != view) {
+		return;
 	}
+
+	regions_hide_overlay(&view->server->seat);
+
+	resize_indicator_hide(view);
+
+	view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+	view->server->grabbed_view = NULL;
+
+	/* Update focus/cursor image */
+	cursor_update_focus(view->server);
 }

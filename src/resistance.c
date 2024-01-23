@@ -54,7 +54,8 @@ build_view_edges(struct view *view, struct wlr_box new_geom,
 	target_edges->left = new_geom.x - border.left;
 	target_edges->top = new_geom.y - border.top;
 	target_edges->right = new_geom.x + new_geom.width + border.right;
-	target_edges->bottom = new_geom.y + new_geom.height + border.bottom;
+	target_edges->bottom = new_geom.y + border.bottom +
+		(view->shaded ? 0 : new_geom.height);
 }
 
 static void
@@ -111,7 +112,8 @@ find_neighbor_edges(struct view *view, struct wlr_box new_geom,
 		 * *top* edge of v that would be encountered, and vice versa.
 		 */
 		struct border win_edges = {
-			.top = v->current.y + v->current.height + border.bottom,
+			.top = v->current.y + border.bottom
+				+ view_effective_height(v, /* use_pending */ false),
 			.right = v->current.x - border.left,
 			.bottom = v->current.y - border.top,
 			.left = v->current.x + v->current.width + border.right,

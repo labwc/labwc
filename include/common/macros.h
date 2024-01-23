@@ -2,6 +2,8 @@
 #ifndef LABWC_MACROS_H
 #define LABWC_MACROS_H
 
+#include <limits.h>
+
 /**
  * ARRAY_SIZE() - Get the number of elements in array.
  * @arr: array to be sized
@@ -48,6 +50,15 @@
  */
 #ifndef MAX
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#endif
+
+/**
+ * BOUNDED_INT() - Returns true if an integer is not INT_MAX or INT_MIN
+ *
+ * @param val Value to test (integer)
+ */
+#ifndef BOUNDED_INT
+#define BOUNDED_INT(a) ((a) < INT_MAX && (a) > INT_MIN)
 #endif
 
 #endif /* LABWC_MACROS_H */

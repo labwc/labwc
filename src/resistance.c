@@ -46,16 +46,19 @@ build_view_edges(struct view *view, struct wlr_box new_geom,
 	/* Use the effective height to properly snap shaded views */
 	int eff_height = view_effective_height(view, /* use_pending */ false);
 
-	view_edges->left = view->current.x - border.left + (move ? 1 : 0);
-	view_edges->top = view->current.y - border.top + (move ? 1 : 0);
-	view_edges->right = view->current.x + view->current.width + border.right;
-	view_edges->bottom = view->current.y + eff_height + border.bottom;
+	view_edges->left = view->current.x - border.left - rc.gap + (move ? 1 : 0);
+	view_edges->top = view->current.y - border.top - rc.gap + (move ? 1 : 0);
+	view_edges->right =
+		view->current.x + view->current.width + border.right + rc.gap;
+	view_edges->bottom =
+		view->current.y + eff_height + border.bottom + rc.gap;
 
-	target_edges->left = new_geom.x - border.left;
-	target_edges->top = new_geom.y - border.top;
-	target_edges->right = new_geom.x + new_geom.width + border.right;
+	target_edges->left = new_geom.x - border.left - rc.gap;
+	target_edges->top = new_geom.y - border.top - rc.gap;
+	target_edges->right =
+		new_geom.x + new_geom.width + border.right + rc.gap;
 	target_edges->bottom = new_geom.y + border.bottom +
-		(view->shaded ? 0 : new_geom.height);
+		(view->shaded ? 0 : new_geom.height) + rc.gap;
 }
 
 static void
@@ -189,15 +192,15 @@ resistance_move_apply(struct view *view, double *x, double *y)
 	find_neighbor_edges(view, new_geom, &next_edges, /* move */ true);
 
 	if (next_edges.left > INT_MIN) {
-		*x = next_edges.left + border.left;
+		*x = next_edges.left + border.left + rc.gap;
 	} else if (next_edges.right < INT_MAX) {
-		*x = next_edges.right - view->current.width - border.right;
+		*x = next_edges.right - view->current.width - border.right - rc.gap;
 	}
 
 	if (next_edges.top > INT_MIN) {
-		*y = next_edges.top + border.top;
+		*y = next_edges.top + border.top + rc.gap;
 	} else if (next_edges.bottom < INT_MAX) {
-		*y = next_edges.bottom - border.bottom
+		*y = next_edges.bottom - border.bottom - rc.gap
 			- view_effective_height(view, /* use_pending */ false);
 	}
 }
@@ -222,27 +225,27 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_geom)
 
 	if (view->server->resize_edges & WLR_EDGE_LEFT) {
 		if (next_edges.left > INT_MIN) {
-			new_geom->x = next_edges.left + border.left;
+			new_geom->x = next_edges.left + border.left + rc.gap;
 			new_geom->width = view->current.width
 				+ view->current.x - new_geom->x;
 		}
 	} else if (view->server->resize_edges & WLR_EDGE_RIGHT) {
 		if (next_edges.right < INT_MAX) {
 			new_geom->width = next_edges.right
-				- view->current.x - border.right;
+				- view->current.x - border.right - rc.gap;
 		}
 	}
 
 	if (view->server->resize_edges & WLR_EDGE_TOP) {
 		if (next_edges.top > INT_MIN) {
-			new_geom->y = next_edges.top + border.top;
+			new_geom->y = next_edges.top + border.top + rc.gap;
 			new_geom->height = view->current.height
 				+ view->current.y - new_geom->y;
 		}
 	} else if (view->server->resize_edges & WLR_EDGE_BOTTOM) {
 		if (next_edges.bottom < INT_MAX) {
 			new_geom->height = next_edges.bottom
-				- view->current.y - border.bottom;
+				- view->current.y - border.bottom - rc.gap;
 		}
 	}
 }

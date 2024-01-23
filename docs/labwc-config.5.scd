@@ -236,16 +236,44 @@ this is for compatibility with Openbox.
 
 ## WINDOW SNAPPING
 
-The following two options relate to triggering window actions when moving
-windows using the mouse.
+Windows may be "snapped" to an edge or user-defined region of an output when
+activated with SnapToEdge actions or, optionally, by dragging windows to the
+edges of an output. Edge snapping causes a window to occupy half of its output,
+extending outward from the snapped edge.
 
 *<snapping><range>*
-	The distance in pixels from the edge of an output for window Move
-	operations to trigger SnapToEdge. A range of 0 disables window snapping.
-	Default is 1.
+	If an interactive move ends with the cursor a maximum distance *range*,
+	(in pixels) from the edge of an output, the move will trigger a
+	SnapToEdge action for that edge. A *range* of 0 disables snapping via
+	interactive moves. Default is 1.
 
 *<snapping><topMaximize>* [yes|no]
-	Maximize window if Move operation ends on the top edge. Default is yes.
+	If *yes*, an interactive move that snaps a window to the top edge will
+	maximize the window. If *no*, snapping will behave as it does with other
+	edges, causing the window to occupy the top half of an output. Default
+	is yes.
+
+*<snapping><notifyClient>* [always|region|edge|never]
+	Snapping windows can trigger corresponding tiling events for native
+	Wayland clients. Clients may use these events to alter their rendering
+	based on knowledge that some edges of the view are confined to edges of
+	a snapping region or output. For example, rounded corners may become
+	square when tiled, or media players may letter-box or pillar-box video
+	rather than imposing rigid aspect ratios on windows that will violate
+	the constraints of window snapping.
+
+	- When *always* is specified, any window that is snapped to either an
+	  output edge or a user-defined region will receive a tiling event.
+
+	- When *region* is specified, only windows snapped to a user-defined
+	  region will receive an event.
+
+	- When *edge* is specified, only windows snapped to an output edge will
+	  receive an event.
+
+	- When *never* is specified, tiling events will never be triggered.
+
+	The default is "always".
 
 ## REGIONS
 

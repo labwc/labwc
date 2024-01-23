@@ -424,32 +424,42 @@ xdg_toplevel_view_set_fullscreen(struct view *view, bool fullscreen)
 }
 
 static void
-xdg_toplevel_view_set_tiled(struct view *view)
+xdg_toplevel_view_notify_tiled(struct view *view)
 {
-	enum wlr_edges edge;
+	/* Take no action if xdg-shell tiling is disabled */
+	if (rc.snap_tiling_events_mode == LAB_TILING_EVENTS_NEVER) {
+		return;
+	}
+
+	enum wlr_edges edge = WLR_EDGE_NONE;
+
+	bool want_edge = rc.snap_tiling_events_mode & LAB_TILING_EVENTS_EDGE;
+	bool want_region = rc.snap_tiling_events_mode & LAB_TILING_EVENTS_REGION;
 
 	/*
 	 * Edge-snapped view are considered tiled on the snapped edge and those
 	 * perpendicular to it.
 	 */
-	switch (view->tiled) {
-	case VIEW_EDGE_LEFT:
-		edge = WLR_EDGE_LEFT | WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
-		break;
-	case VIEW_EDGE_RIGHT:
-		edge = WLR_EDGE_RIGHT | WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
-		break;
-	case VIEW_EDGE_UP:
-		edge = WLR_EDGE_TOP | WLR_EDGE_LEFT | WLR_EDGE_RIGHT;
-		break;
-	case VIEW_EDGE_DOWN:
-		edge = WLR_EDGE_BOTTOM | WLR_EDGE_LEFT | WLR_EDGE_RIGHT;
-		break;
-	default:
-		edge = WLR_EDGE_NONE;
+	if (want_edge) {
+		switch (view->tiled) {
+		case VIEW_EDGE_LEFT:
+			edge = WLR_EDGE_LEFT | WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
+			break;
+		case VIEW_EDGE_RIGHT:
+			edge = WLR_EDGE_RIGHT | WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
+			break;
+		case VIEW_EDGE_UP:
+			edge = WLR_EDGE_TOP | WLR_EDGE_LEFT | WLR_EDGE_RIGHT;
+			break;
+		case VIEW_EDGE_DOWN:
+			edge = WLR_EDGE_BOTTOM | WLR_EDGE_LEFT | WLR_EDGE_RIGHT;
+			break;
+		default:
+			edge = WLR_EDGE_NONE;
+		}
 	}
 
-	if (view->tiled_region) {
+	if (want_region && view->tiled_region) {
 		/* Region-snapped views are considered tiled on all edges */
 		edge = WLR_EDGE_LEFT | WLR_EDGE_RIGHT |
 			WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
@@ -629,7 +639,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.map = xdg_toplevel_view_map,
 	.set_activated = xdg_toplevel_view_set_activated,
 	.set_fullscreen = xdg_toplevel_view_set_fullscreen,
-	.set_tiled = xdg_toplevel_view_set_tiled,
+	.notify_tiled = xdg_toplevel_view_notify_tiled,
 	.unmap = xdg_toplevel_view_unmap,
 	.maximize = xdg_toplevel_view_maximize,
 	.minimize = xdg_toplevel_view_minimize,

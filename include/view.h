@@ -94,7 +94,7 @@ struct view_impl {
 	void (*map)(struct view *view);
 	void (*set_activated)(struct view *view, bool activated);
 	void (*set_fullscreen)(struct view *view, bool fullscreen);
-	void (*set_tiled)(struct view *view);
+	void (*notify_tiled)(struct view *view);
 	/*
 	 * client_request is true if the client unmapped its own
 	 * surface; false if we are just minimizing the view. The two

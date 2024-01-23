@@ -78,10 +78,11 @@
     <raiseOnFocus>no</raiseOnFocus>
   </focus>
 
-  <!-- Set range to 0 to disable window snapping completely -->
   <snapping>
+    <!-- Set range to 0 to disable window snapping completely -->
     <range>1</range>
     <topMaximize>yes</topMaximize>
+    <notifyClient>always</notifyClient>
   </snapping>
 
   <!--

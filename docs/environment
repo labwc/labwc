@@ -23,7 +23,9 @@
 # XKB_DEFAULT_OPTIONS=grp:shift_caps_toggle
 
 ##
-## Force firefox to use wayland backend.
+## Force Mozilla software like Firefox and Thunderbird to use wayland backend.
+## Firefox (>= v121) enables Wayland by default, but we include this note here
+## for those on non-rolling distributions.
 ##
 
 # MOZ_ENABLE_WAYLAND=1

@@ -15,7 +15,22 @@
 #include "workspaces.h"
 #include "xwayland.h"
 
+xcb_atom_t atoms[ATOM_LEN] = {0};
+
 static void xwayland_view_unmap(struct view *view, bool client_request);
+
+bool
+xwayland_surface_contains_window_type(
+		struct wlr_xwayland_surface *surface, enum atom window_type)
+{
+	assert(surface);
+	for (size_t i = 0; i < surface->window_type_len; i++) {
+		if (surface->window_type[i] == atoms[window_type]) {
+			return true;
+		}
+	}
+	return false;
+}
 
 static struct view_size_hints
 xwayland_view_get_size_hints(struct view *view)
@@ -313,6 +328,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&xwayland_view->set_decorations.link);
 	wl_list_remove(&xwayland_view->set_override_redirect.link);
 	wl_list_remove(&xwayland_view->set_strut_partial.link);
+	wl_list_remove(&xwayland_view->set_window_type.link);
 
 	view_destroy(view);
 }
@@ -476,6 +492,12 @@ handle_set_decorations(struct wl_listener *listener, void *data)
 	struct view *view = &xwayland_view->base;
 
 	view_set_decorations(view, want_deco(xwayland_view->xwayland_surface));
+}
+
+static void
+handle_set_window_type(struct wl_listener *listener, void *data)
+{
+	/* Intentionally left blank */
 }
 
 static void
@@ -865,6 +887,7 @@ xwayland_view_create(struct server *server,
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_decorations);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_override_redirect);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_strut_partial);
+	CONNECT_SIGNAL(xsurface, xwayland_view, set_window_type);
 
 	wl_list_insert(&view->server->views, &view->link);
 
@@ -896,10 +919,62 @@ handle_new_surface(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_ready(struct wl_listener *listener, void *data)
+sync_atoms(xcb_connection_t *xcb_conn)
+{
+	assert(xcb_conn);
+
+	wlr_log(WLR_DEBUG, "Syncing X11 atoms");
+	xcb_intern_atom_cookie_t cookies[ATOM_LEN];
+
+	/* First request everything and then loop over the results to reduce latency */
+	for (size_t i = 0; i < ATOM_LEN; i++) {
+		cookies[i] = xcb_intern_atom(xcb_conn, 0,
+			strlen(atom_names[i]), atom_names[i]);
+	}
+
+	for (size_t i = 0; i < ATOM_LEN; i++) {
+		xcb_generic_error_t *err = NULL;
+		xcb_intern_atom_reply_t *reply =
+			xcb_intern_atom_reply(xcb_conn, cookies[i], &err);
+		if (reply) {
+			atoms[i] = reply->atom;
+			wlr_log(WLR_DEBUG, "Got X11 atom for %s: %u",
+				atom_names[i], reply->atom);
+		}
+		if (err) {
+			wlr_log(WLR_INFO, "Failed to get X11 atom for %s",
+				atom_names[i]);
+		}
+		free(reply);
+		free(err);
+	}
+}
+
+static void
+handle_server_ready(struct wl_listener *listener, void *data)
+{
+	xcb_connection_t *xcb_conn = xcb_connect(NULL, NULL);
+	if (xcb_connection_has_error(xcb_conn)) {
+		wlr_log(WLR_ERROR, "Failed to create xcb connection");
+
+		/* Just clear all existing atoms */
+		for (size_t i = 0; i < ATOM_LEN; i++) {
+			atoms[i] = XCB_ATOM_NONE;
+		}
+		return;
+	}
+
+	wlr_log(WLR_DEBUG, "Connected to xwayland");
+	sync_atoms(xcb_conn);
+	wlr_log(WLR_DEBUG, "Disconnecting from xwayland");
+	xcb_disconnect(xcb_conn);
+}
+
+static void
+handle_xwm_ready(struct wl_listener *listener, void *data)
 {
 	struct server *server =
-		wl_container_of(listener, server, xwayland_ready);
+		wl_container_of(listener, server, xwayland_xwm_ready);
 	wlr_xwayland_set_seat(server->xwayland, server->seat.seat);
 	xwayland_update_workarea(server);
 }
@@ -917,9 +992,13 @@ xwayland_server_init(struct server *server, struct wlr_compositor *compositor)
 	wl_signal_add(&server->xwayland->events.new_surface,
 		&server->xwayland_new_surface);
 
-	server->xwayland_ready.notify = handle_ready;
+	server->xwayland_server_ready.notify = handle_server_ready;
+	wl_signal_add(&server->xwayland->server->events.ready,
+		&server->xwayland_server_ready);
+
+	server->xwayland_xwm_ready.notify = handle_xwm_ready;
 	wl_signal_add(&server->xwayland->events.ready,
-		&server->xwayland_ready);
+		&server->xwayland_xwm_ready);
 
 	if (setenv("DISPLAY", server->xwayland->display_name, true) < 0) {
 		wlr_log_errno(WLR_ERROR, "unable to set DISPLAY for xwayland");

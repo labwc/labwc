@@ -220,7 +220,8 @@ struct server {
 	struct wl_listener xdg_toplevel_decoration;
 #if HAVE_XWAYLAND
 	struct wlr_xwayland *xwayland;
-	struct wl_listener xwayland_ready;
+	struct wl_listener xwayland_server_ready;
+	struct wl_listener xwayland_xwm_ready;
 	struct wl_listener xwayland_new_surface;
 #endif
 

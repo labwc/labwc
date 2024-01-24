@@ -23,12 +23,6 @@
 # XKB_DEFAULT_OPTIONS=grp:shift_caps_toggle
 
 ##
-## Force firefox to use wayland backend.
-##
-
-# MOZ_ENABLE_WAYLAND=1
-
-##
 ## Set cursor theme and size. Find system icons themes with:
 ## `find /usr/share/icons/ -type d -name "cursors"`
 ##

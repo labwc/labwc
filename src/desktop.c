@@ -106,109 +106,45 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 	}
 }
 
-static struct wl_list *
-get_prev_item(struct wl_list *item)
-{
-	return item->prev;
-}
-
-static struct wl_list *
-get_next_item(struct wl_list *item)
-{
-	return item->next;
-}
-
-static struct view *
-first_view(struct server *server)
-{
-	struct wlr_scene_node *node;
-	struct wl_list *list_head =
-		&server->workspace_current->tree->children;
-	wl_list_for_each_reverse(node, list_head, link) {
-		if (!node->data) {
-			/* We found some non-view, most likely the region overlay */
-			continue;
-		}
-		struct view *view = node_view_from_node(node);
-		if (view_is_focusable(view)) {
-			return view;
-		}
-	}
-	return NULL;
-}
-
 struct view *
 desktop_cycle_view(struct server *server, struct view *start_view,
 		enum lab_cycle_dir dir)
 {
+	/* Make sure to have all nodes in their actual ordering */
+	osd_preview_restore(server);
+
+	struct view *(*iter)(struct wl_list *head, struct view *view,
+		enum lab_view_criteria criteria);
+	bool forwards = dir == LAB_CYCLE_DIR_FORWARD;
+	iter = forwards ? view_next_no_head_stop : view_prev_no_head_stop;
+
 	/*
-	 * Views are listed in stacking order, topmost first.  Usually
-	 * the topmost view is already focused, so we pre-select the
-	 * view second from the top:
+	 * TODO: These criteria are the same as in display_osd() in osd.c
+	 * for the time being.
+	 *
+	 * A future improvement could be to make this configurable for example
+	 * in rc.xml and then use rc.cycle_view_criteria (or whatever) both
+	 * here and in the osd.c window-switcher code
+	 */
+	enum lab_view_criteria criteria = LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
+		| LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP
+		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;
+
+	/*
+	 * Views are listed in stacking order, topmost first.  Usually the
+	 * topmost view is already focused, so when iterating in the forward
+	 * direction we pre-select the view second from the top:
 	 *
 	 *   View #1 (on top, currently focused)
 	 *   View #2 (pre-selected)
 	 *   View #3
 	 *   ...
-	 *
-	 * This assumption doesn't always hold with XWayland views,
-	 * where a main application window may be focused but an
-	 * focusable sub-view (e.g. an about dialog) may still be on
-	 * top of it.  In that case, we pre-select the sub-view:
-	 *
-	 *   Sub-view of #1 (on top, pre-selected)
-	 *   Main view #1 (currently focused)
-	 *   Main view #2
-	 *   ...
-	 *
-	 * The general rule is:
-	 *
-	 *   - Pre-select the top view if NOT already focused
-	 *   - Otherwise select the view second from the top
 	 */
-
-	/* Make sure to have all nodes in their actual ordering */
-	osd_preview_restore(server);
-
-	if (!start_view) {
-		start_view = first_view(server);
-		if (!start_view || start_view != server->active_view) {
-			return start_view;  /* may be NULL */
-		}
+	if (!start_view && forwards) {
+		start_view = iter(&server->views, NULL, criteria);
 	}
-	struct view *view = start_view;
-	struct wlr_scene_node *node = &view->scene_tree->node;
 
-	assert(node->parent);
-	struct wl_list *list_head = &node->parent->children;
-	struct wl_list *list_item = &node->link;
-	struct wl_list *(*iter)(struct wl_list *list);
-
-	/* Scene nodes are ordered like last node == displayed topmost */
-	iter = dir == LAB_CYCLE_DIR_FORWARD ? get_prev_item : get_next_item;
-
-	do {
-		list_item = iter(list_item);
-		if (list_item == list_head) {
-			/* Start / End of list reached. Roll over */
-			list_item = iter(list_item);
-		}
-		node = wl_container_of(list_item, node, link);
-		if (!node->data) {
-			/* We found some non-view, most likely the region overlay */
-			view = NULL;
-			continue;
-		}
-		view = node_view_from_node(node);
-
-		enum property skip = window_rules_get_property(view, "skipWindowSwitcher");
-		if (view_is_focusable(view) && skip != LAB_PROP_TRUE) {
-			return view;
-		}
-	} while (view != start_view);
-
-	/* No focusable views found, including the one we started with */
-	return NULL;
+	return iter(&server->views, start_view, criteria);
 }
 
 struct view *

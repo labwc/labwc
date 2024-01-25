@@ -611,10 +611,12 @@ view_compute_centered_position(struct view *view, const struct wlr_box *ref,
 	return true;
 }
 
-bool
-view_adjust_floating_geometry(struct view *view, struct wlr_box *geometry)
+static bool
+adjust_floating_geometry(struct view *view, struct wlr_box *geometry,
+		bool midpoint_visibility)
 {
 	assert(view);
+
 	if (!output_is_usable(view->output)) {
 		wlr_log(WLR_ERROR, "view has no output, not positioning");
 		return false;
@@ -627,16 +629,10 @@ view_adjust_floating_geometry(struct view *view, struct wlr_box *geometry)
 	}
 
 	bool adjusted = false;
-	/*
-	 * First check whether the view is the target screen, meaning that at
-	 * least one client pixel is on the screen.
-	 */
+	bool onscreen = false;
 	if (wlr_output_layout_intersects(view->server->output_layout,
 			view->output->wlr_output, geometry)) {
-		/*
-		 * If onscreen, then make sure the titlebar is also
-		 * visible (and not overlapping any panels/docks)
-		 */
+		/* Always make sure the titlebar starts within the usable area */
 		struct border margin = ssd_get_margin(view->ssd);
 		struct wlr_box usable =
 			output_usable_area_in_layout_coords(view->output);
@@ -645,27 +641,43 @@ view_adjust_floating_geometry(struct view *view, struct wlr_box *geometry)
 			geometry->x = usable.x + margin.left;
 			adjusted = true;
 		}
+
 		if (geometry->y < usable.y + margin.top) {
 			geometry->y = usable.y + margin.top;
 			adjusted = true;
 		}
-	} else {
-		/*
-		 * Reposition offscreen views; if automatic placement is
-		 * configured, try to automatically place the windows.
-		 */
-		if (rc.placement_policy == LAB_PLACE_AUTOMATIC) {
-			if (placement_find_best(view, geometry)) {
-				return true;
-			}
-		}
 
-		/* If automatic placement failed or was not enabled, just center */
-		adjusted = view_compute_centered_position(view, NULL,
-			geometry->width, geometry->height,
-			&geometry->x, &geometry->y);
+		if (!midpoint_visibility) {
+			/*
+			 * If midpoint visibility is not required, the view is
+			 * on screen if at least one pixel is visible.
+			 */
+			onscreen = true;
+		} else {
+			/* Otherwise, make sure the midpoint is on screen */
+			int mx = geometry->x + geometry->width / 2;
+			int my = geometry->y + geometry->height / 2;
+
+			onscreen = mx <= usable.x + usable.width &&
+				my <= usable.y + usable.height;
+		}
 	}
-	return adjusted;
+
+	if (onscreen) {
+		return adjusted;
+	}
+
+	/* Reposition offscreen automatically if configured to do so */
+	if (rc.placement_policy == LAB_PLACE_AUTOMATIC) {
+		if (placement_find_best(view, geometry)) {
+			return true;
+		}
+	}
+
+	/* If automatic placement failed or was not enabled, just center */
+	return view_compute_centered_position(view, NULL,
+		geometry->width, geometry->height,
+		&geometry->x, &geometry->y);
 }
 
 static void
@@ -797,7 +809,8 @@ view_apply_natural_geometry(struct view *view)
 	assert(view_is_floating(view));
 
 	struct wlr_box geometry = view->natural_geometry;
-	view_adjust_floating_geometry(view, &geometry);
+	adjust_floating_geometry(view, &geometry,
+		/* midpoint_visibility */ false);
 	view_move_resize(view, geometry);
 }
 
@@ -1352,7 +1365,8 @@ apply_last_layout_geometry(struct view *view, bool force_update)
 	}
 
 	view->natural_geometry = view->last_layout_geometry;
-	view_adjust_floating_geometry(view, &view->natural_geometry);
+	adjust_floating_geometry(view, &view->natural_geometry,
+		/* midpoint_visibility */ true);
 	return true;
 }
 
@@ -1432,7 +1446,8 @@ view_adjust_for_layout_change(struct view *view)
 	} else {
 		/* Otherwise, just ensure the view is on screen. */
 		struct wlr_box geometry = view->pending;
-		if (view_adjust_floating_geometry(view, &geometry)) {
+		if (adjust_floating_geometry(view, &geometry,
+					/* midpoint_visibility */ true)) {
 			view_move_resize(view, geometry);
 		}
 	}

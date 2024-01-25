@@ -136,6 +136,48 @@ view_next(struct wl_list *head, struct view *view, enum lab_view_criteria criter
 	return NULL;
 }
 
+struct view *
+view_next_no_head_stop(struct wl_list *head, struct view *from,
+		enum lab_view_criteria criteria)
+{
+	assert(head);
+
+	struct wl_list *elm = from ? &from->link : head;
+
+	struct wl_list *end = elm;
+	for (elm = elm->next; elm != end; elm = elm->next) {
+		if (elm == head) {
+			continue;
+		}
+		struct view *view = wl_container_of(elm, view, link);
+		if (matches_criteria(view, criteria)) {
+			return view;
+		}
+	}
+	return from;
+}
+
+struct view *
+view_prev_no_head_stop(struct wl_list *head, struct view *from,
+		enum lab_view_criteria criteria)
+{
+	assert(head);
+
+	struct wl_list *elm = from ? &from->link : head;
+
+	struct wl_list *end = elm;
+	for (elm = elm->prev; elm != end; elm = elm->prev) {
+		if (elm == head) {
+			continue;
+		}
+		struct view *view = wl_container_of(elm, view, link);
+		if (matches_criteria(view, criteria)) {
+			return view;
+		}
+	}
+	return from;
+}
+
 void
 view_array_append(struct server *server, struct wl_array *views,
 		enum lab_view_criteria criteria)

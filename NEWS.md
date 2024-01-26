@@ -38,10 +38,10 @@ The format is based on [Keep a Changelog]
   strengths to indicate attractive snapping. Written-by: @ahesford
 
 ```xml
-      <resistance>
-        <screenEdgeStrength>-20</screenEdgeStrength>
-        <windowEdgeStrength>-20</windowEdgeStrength>
-      </resistance>
+<resistance>
+  <screenEdgeStrength>-20</screenEdgeStrength>
+  <windowEdgeStrength>-20</windowEdgeStrength>
+</resistance>
 ```
 
 - Set keyboard layout on reconfigure. Issue #1407
@@ -54,23 +54,23 @@ The format is based on [Keep a Changelog]
   Written-by: @jp7677
 
 ```xml
-      <touch mapToOutput=""/>
-      <touch deviceName="" mapToOutput=""/>
+<touch mapToOutput=""/>
+<touch deviceName="" mapToOutput=""/>
 ```
 
 - Add tablet support including:
-    - Mapping of tablet to output (display)
-    - Emulation of cursor movement and button press/release
-    - Configuration of area and rotation
+  - Mapping of tablet to output (display)
+  - Emulation of cursor movement and button press/release
+  - Configuration of area and rotation
   Written-by: @jp7677 @Consolatis
 
 ```xml
-      <tablet mapToOutput="HDMI-A-1" rotate="90">
-        <area top="0.0" left="0.0" width="0.0" height="0.0" />
-        <map button="Tip" to="Left" />
-        <map button="Stylus" to="Right" />
-        <map button="Stylus2" to="Middle" />
-      </tablet>
+<tablet mapToOutput="HDMI-A-1" rotate="90">
+  <area top="0.0" left="0.0" width="0.0" height="0.0" />
+  <map button="Tip" to="Left" />
+  <map button="Stylus" to="Right" />
+  <map button="Stylus2" to="Middle" />
+</tablet>
 ```
 
 - Add tearing support. #1390. Written-by: @Ph42oN @ahesford
@@ -84,18 +84,18 @@ The format is based on [Keep a Changelog]
   for example allowing `naturalScroll` on touchpads, but not on regular pointer
   devices such as mice. Written-by: @jmbaur
 - Add actions:
-    - `AutoPlace` (by @ahesford)
-    - `MoveToOutput`, `FitToOutput` (by @jp7677)
-    - `Shade`, `Unshade`, `ToggleShade` (by @ahesford @Consolatis)
+  - `AutoPlace` (by @ahesford)
+  - `MoveToOutput`, `FitToOutput` (by @jp7677)
+  - `Shade`, `Unshade`, `ToggleShade` (by @ahesford @Consolatis)
 - Add config option `<placement><policy>` with supported values `center`,
   `under-cursor` and `automatic`. The latter minimizes overlap with other
   windows already on screen and is similar to Openbox's smart window placement.
   Written-by: @ahesford #1312
 
 ```xml
-      <placement>
-        <policy>center|automatic|cursor</policy>
-      </placement>
+<placement>
+  <policy>center|automatic|cursor</policy>
+</placement>
 ```
 
 ### Fixed
@@ -128,9 +128,9 @@ The format is based on [Keep a Changelog]
   resizes across the edges of other windows. This can be disabled with:
 
 ```xml
-      <resistance>
-        <windowEdgeStrength>0</windowEdgeStrength>
-      </resistance>
+<resistance>
+  <windowEdgeStrength>0</windowEdgeStrength>
+</resistance>
 ```
 
 - Run menu actions on button release intead of press.
@@ -230,7 +230,7 @@ relating to surface focus and keyboard issues, amongst others.
 - Allow referencing the current workspace in actions, for example:
 
 ```xml
-      <action name="SendToDesktop" to="current"/>
+<action name="SendToDesktop" to="current"/>
 ```
 
 ### Fixed
@@ -387,11 +387,11 @@ relating to surface focus and keyboard issues, amongst others.
   consistent with window rules.
 
 ```xml
-      <windowSwitcher>
-        <fields>
-          <field content="identifier" width="25%"/>
-        </fields>
-      </windowSwithcer>
+<windowSwitcher>
+  <fields>
+    <field content="identifier" width="25%"/>
+  </fields>
+</windowSwithcer>
 ```
 
 - Do not expand environment variables in `Exec` action `<command>`
@@ -450,30 +450,30 @@ relating to surface focus and keyboard issues, amongst others.
   has been added as a property so far. Example config:
 
 ```xml
-      <windowRules>
-        <windowRule identifier="some-application">
-          <action name="Maximize"/>
-        </windowRule>
-        <windowRule identifier="foo*" serverDecoration="yes|no"/>
-      </windowRules>
+<windowRules>
+  <windowRule identifier="some-application">
+    <action name="Maximize"/>
+  </windowRule>
+  <windowRule identifier="foo*" serverDecoration="yes|no"/>
+</windowRules>
 ```
 
 - Support configuration of window switcher field definitions.
   Issues #852 #855 #879
 
 ```xml
-      <windowSwitcher show="yes" preview="yes" outlines="yes">
-        <fields>
-          <field content="type" width="25%" />
-          <field content="app_id" width="25%" />
-          <field content="title" width="50%" />
-        </fields>
-      </windowSwitcher>
+<windowSwitcher show="yes" preview="yes" outlines="yes">
+  <fields>
+    <field content="type" width="25%" />
+    <field content="app_id" width="25%" />
+    <field content="title" width="50%" />
+  </fields>
+</windowSwitcher>
 ```
 
 - Add actions:
-    - 'Lower' Written-by: @jech
-    - 'Maximize'
+  - 'Lower' Written-by: @jech
+  - 'Maximize'
 - Support ext-session-lock protocol. Helped-by: @heroin-moose
 - Handle XWayland unmanaged surface requests for 'activate' and
   'override-redirect'. Fixes: #874
@@ -495,12 +495,12 @@ relating to surface focus and keyboard issues, amongst others.
 - Fix invisible cursor on startup and output loss/restore.
   Reported-by: @Flrian Fixes #820
 - Fix decoration protocol implementation
-    - Respect earlier decoration negotiation results via the
-      xdg-decoration protocol. Previously setting `<decoration>` to
-      `client` would cause applications which prefer server side
-      decorations to not have any decorations at all.
-      Fixes #297 #831
-    - Handle results of kde-server-decoration negotiations
+  - Respect earlier decoration negotiation results via the
+    xdg-decoration protocol. Previously setting `<decoration>` to
+    `client` would cause applications which prefer server side
+    decorations to not have any decorations at all.
+    Fixes #297 #831
+  - Handle results of kde-server-decoration negotiations
 - Fix `<focus><followMouse>` cursor glitches and issues with focus
   switching via Alt-Tab. Issue #830 #849
 
@@ -537,11 +537,11 @@ Unless otherwise stated all contributions are by the core-devs
   Firefox.
 
 ```xml
-      <keyboard>
-        <default/>
-        <keybind key="A-Left"><action name="None" /></keybind>
-        <keybind key="A-Right"><action name="None" /></keybind>
-      </keyboard>
+<keyboard>
+  <default/>
+  <keybind key="A-Left"><action name="None" /></keybind>
+  <keybind key="A-Right"><action name="None" /></keybind>
+</keyboard>
 ```
 
 ### Fixed
@@ -566,11 +566,11 @@ Unless otherwise stated all contributions are by the core-devs
   instead of:
 
 ```xml
-      <core>
-        <cycleViewOSD>yes</cycleViewOSD>
-        <cycleViewOutlines>yes</cycleViewOutlines>
-        <cycleViewPreview>yes</cycleViewPreview>
-      </core>
+<core>
+  <cycleViewOSD>yes</cycleViewOSD>
+  <cycleViewOutlines>yes</cycleViewOutlines>
+  <cycleViewPreview>yes</cycleViewPreview>
+</core>
 ```
 
 ## [0.6.1] - 2023-01-29
@@ -910,41 +910,41 @@ feature-type changes are listed below.
 ### Added
 
 - Add support for the following wayland protocols:
-    - `pointer_constraints` and `relative_pointer` - mostly for gaming.
-      Written-by: @Joshua-Ashton
-    - `viewporter` - needed for some games to fake modesets.
-      Written-by: @Joshua-Ashton
-    - `wlr_input_inhibit`. This enables swaylock to be run.
-      Written-by: @telent
-    - `wlr_foreign_toplevel`. This enables controlling windows from clients
-      such as waybar.
-    - `idle` and `idle_inhibit` (Written-by: @ARDiDo)
+  - `pointer_constraints` and `relative_pointer` - mostly for gaming.
+    Written-by: @Joshua-Ashton
+  - `viewporter` - needed for some games to fake modesets.
+    Written-by: @Joshua-Ashton
+  - `wlr_input_inhibit`. This enables swaylock to be run.
+    Written-by: @telent
+  - `wlr_foreign_toplevel`. This enables controlling windows from clients
+    such as waybar.
+  - `idle` and `idle_inhibit` (Written-by: @ARDiDo)
 - Support fullscreen mode.
 - Support drag-and-drop. Written-by: @ARDiDo
 - Add the following config options:
-    - Load default keybinds on `<keyboard><default />`
-    - `<keyboard><repeatRate>` and `<keyboard><repeatDelay>`
-    - Specify distance between views and output edges with `<core><gap>`
-    - `<core><adaptiveSync>`
-    - Set menu item font with `<theme><font place="MenuItem">`
-    - Allow `<theme><font>` without place="" attribute, thus enabling
-      simpler config files
-    - Support `<mousebind>` with `contexts` (e.g. `TitleBar`, `Left`,
-      `TLCorner`, `Frame`), `buttons` (e.g. `left`, `right`), and
-      `mouse actions` (e.g. `Press`, `DoubleClick`). Modifier keys are
-      also supported to handle configurations such as `alt` + mouse button
-      to move/resize windows. (Written-by: @bi4k8, @apbryan)
-    - `<libinput>` configuration. Written-by: @ARDiDo
-    - `<resistance><screenEdgeStrength>`
+  - Load default keybinds on `<keyboard><default />`
+  - `<keyboard><repeatRate>` and `<keyboard><repeatDelay>`
+  - Specify distance between views and output edges with `<core><gap>`
+  - `<core><adaptiveSync>`
+  - Set menu item font with `<theme><font place="MenuItem">`
+  - Allow `<theme><font>` without place="" attribute, thus enabling
+    simpler config files
+  - Support `<mousebind>` with `contexts` (e.g. `TitleBar`, `Left`,
+    `TLCorner`, `Frame`), `buttons` (e.g. `left`, `right`), and
+    `mouse actions` (e.g. `Press`, `DoubleClick`). Modifier keys are
+    also supported to handle configurations such as `alt` + mouse button
+    to move/resize windows. (Written-by: @bi4k8, @apbryan)
+  - `<libinput>` configuration. Written-by: @ARDiDo
+  - `<resistance><screenEdgeStrength>`
 - Support for primary selection. Written-by: @telent
 - Support 'alt-tab' on screen display when cycling between windows
   including going backwards by pressing `shift` (Written-by: @Joshua-Ashton)
   and cancelling with `escape` (Written-by: @jlindgren90)
 - Add the following theme options:
-    - set buttons colors individually (for iconify, close and maximize)
-    - `window.(in)active.label.text.color`
-    - `window.label.text.justify`
-    - OSD colors
+  - set buttons colors individually (for iconify, close and maximize)
+  - `window.(in)active.label.text.color`
+  - `window.label.text.justify`
+  - OSD colors
 - Show application title in window decoration title bar
 - Handle double click on window decoration title bar
 - Support a 'resize-edges' area that is wider than than the visible
@@ -955,9 +955,9 @@ feature-type changes are listed below.
   'Move', 'MoveToEdge', 'Resize', 'PreviousWindow', 'ShowMenu'
 - Add labwc.desktop for display managers
 - layer-shell:
-    - Take into account exclusive areas of clients (such as panels) when
-      maximizing windows
-    - Support popups
+  - Take into account exclusive areas of clients (such as panels) when
+    maximizing windows
+  - Support popups
 - Handle xwayland `set_decorations` and xdg-shell-decoration requests.
   Written-by: @Joshua-Ashton
 - Handle view min/max size better, including xwayland hint support.

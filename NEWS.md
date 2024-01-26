@@ -37,10 +37,12 @@ The format is based on [Keep a Changelog]
 - Add window-edge resistance for interactive moves/resizes and support negative
   strengths to indicate attractive snapping. Written-by: @ahesford
 
+```xml
       <resistance>
         <screenEdgeStrength>-20</screenEdgeStrength>
         <windowEdgeStrength>-20</windowEdgeStrength>
       </resistance>
+```
 
 - Set keyboard layout on reconfigure. Issue #1407
 - Reset keyboard-layout group (index) for each window on reconfigure if
@@ -51,8 +53,10 @@ The format is based on [Keep a Changelog]
   Optionally, make this only apply to specific named devices.
   Written-by: @jp7677
 
+```xml
       <touch mapToOutput=""/>
       <touch deviceName="" mapToOutput=""/>
+```
 
 - Add tablet support including:
     - Mapping of tablet to output (display)
@@ -60,12 +64,14 @@ The format is based on [Keep a Changelog]
     - Configuration of area and rotation
   Written-by: @jp7677 @Consolatis
 
+```xml
       <tablet mapToOutput="HDMI-A-1" rotate="90">
         <area top="0.0" left="0.0" width="0.0" height="0.0" />
         <map button="Tip" to="Left" />
         <map button="Stylus" to="Right" />
         <map button="Stylus2" to="Middle" />
       </tablet>
+```
 
 - Add tearing support. #1390. Written-by: @Ph42oN @ahesford
 - Add configuration support for mouse buttons `Side`, `Extra`, `Forward`,
@@ -86,9 +92,11 @@ The format is based on [Keep a Changelog]
   windows already on screen and is similar to Openbox's smart window placement.
   Written-by: @ahesford #1312
 
+```xml
       <placement>
         <policy>center|automatic|cursor</policy>
       </placement>
+```
 
 ### Fixed
 
@@ -119,9 +127,11 @@ The format is based on [Keep a Changelog]
 - The new windowEdgeStrength setting makes windows resist interactive moves and
   resizes across the edges of other windows. This can be disabled with:
 
+```xml
       <resistance>
         <windowEdgeStrength>0</windowEdgeStrength>
       </resistance>
+```
 
 - Run menu actions on button release intead of press.
 - Constrain window size to that of usable area when an application is started.
@@ -219,7 +229,9 @@ relating to surface focus and keyboard issues, amongst others.
 - Add If and ForEach actions. Written-by: @consus
 - Allow referencing the current workspace in actions, for example:
 
+```xml
       <action name="SendToDesktop" to="current"/>
+```
 
 ### Fixed
 
@@ -374,11 +386,13 @@ relating to surface focus and keyboard issues, amongst others.
 - Use `identifier` for window-switcher field rather than `app_id` to be
   consistent with window rules.
 
+```xml
       <windowSwitcher>
         <fields>
           <field content="identifier" width="25%"/>
         </fields>
       </windowSwithcer>
+```
 
 - Do not expand environment variables in `Exec` action `<command>`
   argument (but still resolve tilde).
@@ -435,16 +449,19 @@ relating to surface focus and keyboard issues, amongst others.
   Any actions in labwc-actions(5) can be used. Only 'serverDecoration'
   has been added as a property so far. Example config:
 
+```xml
       <windowRules>
         <windowRule identifier="some-application">
           <action name="Maximize"/>
         </windowRule>
         <windowRule identifier="foo*" serverDecoration="yes|no"/>
       </windowRules>
+```
 
 - Support configuration of window switcher field definitions.
   Issues #852 #855 #879
 
+```xml
       <windowSwitcher show="yes" preview="yes" outlines="yes">
         <fields>
           <field content="type" width="25%" />
@@ -452,6 +469,7 @@ relating to surface focus and keyboard issues, amongst others.
           <field content="title" width="50%" />
         </fields>
       </windowSwitcher>
+```
 
 - Add actions:
     - 'Lower' Written-by: @jech
@@ -518,11 +536,13 @@ Unless otherwise stated all contributions are by the core-devs
   For example the following could be used to allow using A-Left/Right with
   Firefox.
 
+```xml
       <keyboard>
         <default/>
         <keybind key="A-Left"><action name="None" /></keybind>
         <keybind key="A-Right"><action name="None" /></keybind>
       </keyboard>
+```
 
 ### Fixed
 
@@ -545,11 +565,13 @@ Unless otherwise stated all contributions are by the core-devs
   Use `<core><windowSwitcher show="yes" preview="no" outlines="yes" />`
   instead of:
 
+```xml
       <core>
         <cycleViewOSD>yes</cycleViewOSD>
         <cycleViewOutlines>yes</cycleViewOutlines>
         <cycleViewPreview>yes</cycleViewPreview>
       </core>
+```
 
 ## [0.6.1] - 2023-01-29
 

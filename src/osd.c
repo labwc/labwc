@@ -409,9 +409,7 @@ display_osd(struct output *output)
 	struct wl_array views;
 	wl_array_init(&views);
 	view_array_append(server, &views,
-		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
-		| LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP
-		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER);
+		LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER);
 
 	float scale = output->wlr_output->scale;
 	int w = theme->osd_window_switcher_width;

@@ -106,18 +106,6 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 	}
 }
 
-static struct wl_list *
-get_prev_item(struct wl_list *item)
-{
-	return item->prev;
-}
-
-static struct wl_list *
-get_next_item(struct wl_list *item)
-{
-	return item->next;
-}
-
 static struct view *
 first_view(struct server *server)
 {
@@ -167,48 +155,52 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 	 *   - Otherwise select the view second from the top
 	 */
 
+	int views = wl_list_length(&server->views);
+
 	/* Make sure to have all nodes in their actual ordering */
 	osd_preview_restore(server);
 
 	if (!start_view) {
-		start_view = first_view(server);
-		if (!start_view || start_view != server->active_view) {
+		struct view *view1;
+		enum lab_view_criteria criteria1 = LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;
+		for_each_view(view1, &server->views, criteria1) {
+			if (view_is_focusable(view1)) {
+				if (server->workspace_current != view1->workspace) {
+					workspaces_switch_to(view1->workspace, true);
+				}
+				start_view = view1;
+				break;
+			}
+		}
+		if (!start_view || views < 2) {
 			return start_view;  /* may be NULL */
 		}
 	}
-	struct view *view = start_view;
-	struct wlr_scene_node *node = &view->scene_tree->node;
+	struct view *(*iter)(struct wl_list *head, struct view *view,
+		enum lab_view_criteria criteria);
+	iter = dir == LAB_CYCLE_DIR_FORWARD ? view_next : view_prev;
 
-	assert(node->parent);
-	struct wl_list *list_head = &node->parent->children;
-	struct wl_list *list_item = &node->link;
-	struct wl_list *(*iter)(struct wl_list *list);
-
-	/* Scene nodes are ordered like last node == displayed topmost */
-	iter = dir == LAB_CYCLE_DIR_FORWARD ? get_prev_item : get_next_item;
-
-	do {
-		list_item = iter(list_item);
-		if (list_item == list_head) {
-			/* Start / End of list reached. Roll over */
-			list_item = iter(list_item);
-		}
-		node = wl_container_of(list_item, node, link);
-		if (!node->data) {
-			/* We found some non-view, most likely the region overlay */
-			view = NULL;
-			continue;
-		}
-		view = node_view_from_node(node);
-
-		enum property skip = window_rules_get_property(view, "skipWindowSwitcher");
-		if (view_is_focusable(view) && skip != LAB_PROP_TRUE) {
+	/*
+	 * TODO: These criteria are the same as in display_osd() in osd.c
+	 * for the time being.
+	 *
+	 * A future improvement could be to make this configurable for example
+	 * in rc.xml and then use rc.cycle_view_criteria (or whatever) both
+	 * here and in the osd.c window-switcher code
+	 */
+	enum lab_view_criteria criteria = LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;
+	if (views < 2) {
+		return start_view;
+	}
+	struct view *view;
+	for_each_view_iter(view, &start_view->link, iter, criteria) {
+		if (view_is_focusable(view)) {
 			return view;
 		}
-	} while (view != start_view);
+	}
 
 	/* No focusable views found, including the one we started with */
-	return NULL;
+	return start_view;
 }
 
 struct view *

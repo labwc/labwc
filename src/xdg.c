@@ -142,6 +142,29 @@ handle_commit(struct wl_listener *listener, void *data)
 		 */
 		if (!view->pending_configure_serial) {
 			view->pending = view->current;
+
+			/*
+			 * wlroots retains the size set by any call to
+			 * wlr_xdg_toplevel_set_size and will send the retained
+			 * values with every subsequent configure request. If a
+			 * client has resized itself in the meantime, a
+			 * configure request that sends the now-outated size
+			 * may prompt the client to resize itself unexpectedly.
+			 *
+			 * Calling wlr_xdg_toplevel_set_size to update the
+			 * value held by wlroots is undesirable here, because
+			 * that will trigger another configure event and we
+			 * don't want to get stuck in a request-response loop.
+			 * Instead, just manipulate the dimensions that *would*
+			 * be adjusted by the call, so the right values will
+			 * apply next time.
+			 *
+			 * This is not ideal, but it is the cleanest option.
+			 */
+			struct wlr_xdg_toplevel *toplevel =
+				xdg_toplevel_from_view(view);
+			toplevel->scheduled.width = view->current.width;
+			toplevel->scheduled.height = view->current.height;
 		}
 	}
 }

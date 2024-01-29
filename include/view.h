@@ -300,6 +300,22 @@ bool view_matches_query(struct view *view, struct view_query *query);
 	     view = view_next(head, view, criteria))
 
 /**
+ * for_each_view_iter() - iterate in given direction against criteria
+ * @view: Iterator.
+ * @head: Head of list to iterate over.
+ * @iter: Iterator function to get next or previous view
+ * @criteria: Criteria to match against.
+ * Example:
+ *   stuct view *(*iter)(struct wl_list *head, struct view *view,
+	enum lab_view_criteria criteria);
+ *   iter = forwards ? view_next : view_prev;
+ */
+#define for_each_view_iter(view, head, iter, criteria)	\
+	for (view = iter(head, NULL, criteria);		\
+	     view;					\
+	     view = iter(head, view, criteria))
+
+/**
  * view_next() - Get next view which matches criteria.
  * @head: Head of list to iterate over.
  * @view: Current view from which to find the next one. If NULL is provided as
@@ -309,6 +325,9 @@ bool view_matches_query(struct view *view, struct view_query *query);
  * Returns NULL if there are no views matching the criteria.
  */
 struct view *view_next(struct wl_list *head, struct view *view,
+	enum lab_view_criteria criteria);
+
+struct view *view_prev(struct wl_list *head, struct view *view,
 	enum lab_view_criteria criteria);
 
 /**

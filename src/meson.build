@@ -4,6 +4,7 @@ labwc_sources = files(
   'debug.c',
   'desktop.c',
   'dnd.c',
+  'edges.c',
   'foreign.c',
   'idle.c',
   'interactive.c',

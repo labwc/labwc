@@ -1550,27 +1550,7 @@ view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_wind
 	}
 
 	int dx = 0, dy = 0;
-	if (snap_to_windows) {
-		snap_vector_to_next_edge(view, direction, &dx, &dy);
-	} else {
-		struct border distance = snap_get_max_distance(view);
-		switch (direction) {
-		case VIEW_EDGE_LEFT:
-			dx = distance.left;
-			break;
-		case VIEW_EDGE_UP:
-			dy = distance.top;
-			break;
-		case VIEW_EDGE_RIGHT:
-			dx = distance.right;
-			break;
-		case VIEW_EDGE_DOWN:
-			dy = distance.bottom;
-			break;
-		default:
-			return;
-		}
-	}
+	snap_move_to_edge(view, direction, snap_to_windows, &dx, &dy);
 
 	if (dx != 0 || dy != 0) {
 		/* Move the window if a change was discovered */
@@ -1665,7 +1645,7 @@ view_grow_to_edge(struct view *view, enum view_edge direction)
 
 	view_set_shade(view, false);
 
-	struct wlr_box geo = view->pending;
+	struct wlr_box geo;
 	snap_grow_to_next_edge(view, direction, &geo);
 	view_move_resize(view, geo);
 }

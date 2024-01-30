@@ -127,6 +127,7 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 	 * here and in the osd.c window-switcher code
 	 */
 	enum lab_view_criteria criteria = LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
+		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
 		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;
 
 	/*

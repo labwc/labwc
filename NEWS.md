@@ -121,8 +121,34 @@ The format is based on [Keep a Changelog]
   caused by applications choosing not respond to pending resize requests either
   by ignoring them or substituting alternative sizes (for example, when mpv
   constrains resizes to keep its aspect ratio fixed). Written-by: @ahesford
-    
+
 ### Changed
+
+- When a Wayland-native window is snapped to a screen edges or user-defined
+  region, labwc will notify the application that it is "tiled", allowing the
+  application to better adapt its rendering to constrained layouts. Windows
+  with client-side decorations may respond to these notices by squaring off
+  corners and, in some cases, disabling resize abilities. This can be disabled
+  with:
+
+```xml
+<snapping>
+  <notifyClient>never</notifyClient>
+</snapping>
+```
+
+  or limited to only edge-snapped or only region-snapped windows. See the
+  labwc-config(5) manual page for more information.
+
+- When a window is dragged from a snapped position (either a screen edge or a
+  user-defined region), the snapped state is now discarded as soon as the
+  dragging begins. This means that dragging from a snapped position to a
+  maximized state (with the `topMaximize` option enabled) and then
+  un-maxmimizing the window will restore the window to its size and position
+  *before* it was snapped. In previous releases, un-maximizing would restore
+  the window to its snapped state. To preserve the snapped state of a window
+  when maximized, use the Maximize window button or the `ToggleMaximize`
+  action.
 
 - The new windowEdgeStrength setting makes windows resist interactive moves and
   resizes across the edges of other windows. This can be disabled with:
@@ -136,10 +162,11 @@ The format is based on [Keep a Changelog]
 - Run menu actions on button release intead of press.
 - Constrain window size to that of usable area when an application is started.
   Issue #1399
-- Support showing the full `app_id` in window-switcher (configured using the
-  keyword `identifier`).
-- For anyone using `identifier` in window-switcher field configuration, change
-  it to `trimmed_identifier` to keep looks the same. Issue #1309
+- Support showing the full `app_id` in the window switcher. Users with a custom
+  `windowSwitcher` configuration should use the `trimmed_identifier` field
+  label to preserve existing behavior; the `identifier` field now refers to the
+  full `app_id`. Consult the labwc-config(5) manual page for more details.
+  Issue #1309
 
 ## [0.7.0] - 2023-12-22
 

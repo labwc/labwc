@@ -35,6 +35,14 @@ enum adaptive_sync_mode {
 	LAB_ADAPTIVE_SYNC_FULLSCREEN,
 };
 
+enum tiling_events_mode {
+	LAB_TILING_EVENTS_NEVER = 0,
+	LAB_TILING_EVENTS_REGION = 1 << 0,
+	LAB_TILING_EVENTS_EDGE = 1 << 1,
+	LAB_TILING_EVENTS_ALWAYS =
+		(LAB_TILING_EVENTS_REGION | LAB_TILING_EVENTS_EDGE),
+};
+
 struct usable_area_override {
 	struct border margin;
 	char *output;
@@ -114,6 +122,7 @@ struct rcxml {
 	/* window snapping */
 	int snap_edge_range;
 	bool snap_top_maximize;
+	enum tiling_events_mode snap_tiling_events_mode;
 
 	enum resize_indicator_mode resize_indicator;
 

@@ -1043,6 +1043,15 @@ view_is_floating(struct view *view)
 		|| view_is_tiled(view));
 }
 
+static void
+view_notify_tiled(struct view *view)
+{
+	assert(view);
+	if (view->impl->notify_tiled) {
+		view->impl->notify_tiled(view);
+	}
+}
+
 /* Reset tiled state of view without changing geometry */
 void
 view_set_untiled(struct view *view)
@@ -1051,6 +1060,7 @@ view_set_untiled(struct view *view)
 	view->tiled = VIEW_EDGE_INVALID;
 	view->tiled_region = NULL;
 	zfree(view->tiled_region_evacuate);
+	view_notify_tiled(view);
 }
 
 void
@@ -1771,6 +1781,7 @@ view_snap_to_edge(struct view *view, enum view_edge edge,
 	view_set_untiled(view);
 	view_set_output(view, output);
 	view->tiled = edge;
+	view_notify_tiled(view);
 	view_apply_tiled_geometry(view);
 }
 
@@ -1804,6 +1815,7 @@ view_snap_to_region(struct view *view, struct region *region,
 	}
 	view_set_untiled(view);
 	view->tiled_region = region;
+	view_notify_tiled(view);
 	view_apply_region_geometry(view);
 }
 

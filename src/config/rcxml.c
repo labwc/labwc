@@ -835,6 +835,18 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.snap_edge_range = atoi(content);
 	} else if (!strcasecmp(nodename, "topMaximize.snapping")) {
 		set_bool(content, &rc.snap_top_maximize);
+	} else if (!strcasecmp(nodename, "notifyClient.snapping")) {
+		if (!strcasecmp(content, "always")) {
+			rc.snap_tiling_events_mode = LAB_TILING_EVENTS_ALWAYS;
+		} else if (!strcasecmp(content, "region")) {
+			rc.snap_tiling_events_mode = LAB_TILING_EVENTS_REGION;
+		} else if (!strcasecmp(content, "edge")) {
+			rc.snap_tiling_events_mode = LAB_TILING_EVENTS_EDGE;
+		} else if (!strcasecmp(content, "never")) {
+			rc.snap_tiling_events_mode = LAB_TILING_EVENTS_NEVER;
+		} else {
+			wlr_log(WLR_ERROR, "ignoring invalid value for notifyClient");
+		}
 
 	/* <windowSwitcher show="" preview="" outlines="" /> */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
@@ -1092,6 +1104,7 @@ rcxml_init(void)
 
 	rc.snap_edge_range = 1;
 	rc.snap_top_maximize = true;
+	rc.snap_tiling_events_mode = LAB_TILING_EVENTS_ALWAYS;
 
 	rc.window_switcher.show = true;
 	rc.window_switcher.preview = true;

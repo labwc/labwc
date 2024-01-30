@@ -69,6 +69,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 				geometry.height);
 
 			view_set_shade(view, false);
+			view_set_untiled(view);
 			view_restore_to(view, geometry);
 		} else {
 			/* Store natural geometry at start of move */
@@ -201,9 +202,8 @@ interactive_finish(struct view *view)
 	}
 
 	if (view->server->input_mode == LAB_INPUT_STATE_MOVE) {
-		/* Reset tiled state if not snapped */
-		if (!snap_to_region(view) && !snap_to_edge(view)) {
-			view_set_untiled(view);
+		if (!snap_to_region(view)) {
+			snap_to_edge(view);
 		}
 	}
 

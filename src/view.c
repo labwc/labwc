@@ -1540,6 +1540,42 @@ view_get_adjacent_output(struct view *view, enum view_edge edge)
 	return output;
 }
 
+static int
+shift_view_to_usable_1d(int size,
+		int cur_pos, int cur_lo, int cur_extent,
+		int next_pos, int next_lo, int next_extent,
+		int margin_lo, int margin_hi)
+{
+	int cur_min = cur_lo + rc.gap + margin_lo;
+	int cur_max = cur_lo + cur_extent - rc.gap - margin_hi;
+
+	int next_min = next_lo + rc.gap + margin_lo;
+	int next_max = next_lo + next_extent - rc.gap - margin_hi;
+
+	/*
+	 * If the view is fully within the usable area of its original display,
+	 * ensure that it is also fully within the usable area of the target.
+	 */
+	if (cur_pos >= cur_min && cur_pos + size <= cur_max) {
+		if (next_pos >= next_min && next_pos + size > next_max) {
+			next_pos = next_max - size;
+		}
+
+		return MAX(next_pos, next_min);
+	}
+
+	/*
+	 * If the view was not fully within the usable area of its original
+	 * display, kick it onscreen if its midpoint will be off the target.
+	 */
+	int midpoint = next_pos + size / 2;
+	if (next_pos >= next_min && midpoint > next_lo + next_extent) {
+		next_pos = next_max - size;
+	}
+
+	return MAX(next_pos, next_min);
+}
+
 void
 view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_windows)
 {
@@ -1603,26 +1639,19 @@ view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_wind
 		return;
 	}
 
-	/* If more than half the view is right of usable region, align to right */
-	int midpoint = destination_x + view->pending.width / 2;
+	struct wlr_box original_usable =
+		output_usable_area_in_layout_coords(view->output);
 
-	if (destination_x >= left && midpoint > usable.x + usable.width) {
-		destination_x = right - view->pending.width;
-	}
+	/* Make sure the window is appropriately in view along the x direction */
+	destination_x = shift_view_to_usable_1d(view->pending.width,
+		view->pending.x, original_usable.x, original_usable.width,
+		destination_x, usable.x, usable.width, margin.left, margin.right);
 
-	/* Never allow the window to start left of the usable edge */
-	destination_x = MAX(destination_x, left);
-
-	/* If more than half the view is below usable region, align to bottom */
-	midpoint = destination_y
-		+ view_effective_height(view, /* use_pending */ true) / 2;
-	if (destination_y >= top && midpoint > usable.y + usable.height) {
-		destination_y = bottom
-			- view_effective_height(view, /* use_pending */ true);
-	}
-
-	/* Never allow the window to start above the usable edge */
-	destination_y = MAX(destination_y, top);
+	/* Make sure the window is appropriately in view along the y direction */
+	int eff_height = view_effective_height(view, /* use_pending */ true);
+	destination_y = shift_view_to_usable_1d(eff_height,
+		view->pending.y, original_usable.y, original_usable.height,
+		destination_y, usable.y, usable.height, margin.top, margin.bottom);
 
 	view_set_untiled(view);
 	view_set_output(view, output);

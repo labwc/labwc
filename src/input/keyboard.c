@@ -56,6 +56,7 @@ keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard)
 static void
 end_cycling(struct server *server)
 {
+	osd_preview_restore(server);
 	if (server->osd_state.cycle_view) {
 		desktop_focus_view(server->osd_state.cycle_view,
 			/*raise*/ true);

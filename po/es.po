@@ -7,11 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
-"POT-Creation-Date: 2023-01-02 11:22+1000\n"
+"POT-Creation-Date: 2024-01-15 16:00-0500\n"
 "PO-Revision-Date: 2023-12-22 14:01+0000\n"
 "Last-Translator: Roberalz <lumintnian@outlook.com>\n"
-"Language-Team: Spanish <https://translate.lxqt-project.org/projects/labwc/"
-"labwc/es/>\n"
+"Language-Team: Spanish <https://translate.lxqt-project.org/projects/labwc/labwc/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,50 +18,54 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:698
+#: src/menu/menu.c:697
 msgid "Reconfigure"
 msgstr "Reconfigurar"
 
-#: src/menu/menu.c:700
+#: src/menu/menu.c:699
 msgid "Exit"
 msgstr "Salir"
 
-#: src/menu/menu.c:716
+#: src/menu/menu.c:715
 msgid "Minimize"
 msgstr "Minimizar"
 
-#: src/menu/menu.c:718
+#: src/menu/menu.c:717
 msgid "Maximize"
 msgstr "Maximizar"
 
-#: src/menu/menu.c:720
+#: src/menu/menu.c:719
 msgid "Fullscreen"
 msgstr "Pantalla completa"
 
-#: src/menu/menu.c:722
+#: src/menu/menu.c:721
+msgid "Roll up/down"
+msgstr ""
+
+#: src/menu/menu.c:723
 msgid "Decorations"
 msgstr "Decoraciones"
 
-#: src/menu/menu.c:724
+#: src/menu/menu.c:725
 msgid "Always on Top"
 msgstr "Siempre encima"
 
-#: src/menu/menu.c:729
+#: src/menu/menu.c:730
 msgid "Move left"
 msgstr "Mover a la izquierda"
 
-#: src/menu/menu.c:736
+#: src/menu/menu.c:737
 msgid "Move right"
 msgstr "Mover a la derecha"
 
-#: src/menu/menu.c:741
+#: src/menu/menu.c:742
 msgid "Always on Visible Workspace"
 msgstr "Siempre en un espacio de trabajo visible"
 
-#: src/menu/menu.c:744
+#: src/menu/menu.c:745
 msgid "Workspace"
 msgstr "Espacio de trabajo"
 
-#: src/menu/menu.c:747
+#: src/menu/menu.c:748
 msgid "Close"
 msgstr "Cerrar"

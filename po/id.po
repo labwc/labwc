@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
-"POT-Creation-Date: 2023-01-02 11:22+1000\n"
+"POT-Creation-Date: 2024-01-15 16:00-0500\n"
 "PO-Revision-Date: 2023-04-14 20:40+0700\n"
 "Last-Translator: May Mantari <https://github.com/mantarimay\n"
 "Language-Team: Indonesian <id>\n"
@@ -17,52 +17,56 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/menu/menu.c:698
+#: src/menu/menu.c:697
 msgid "Reconfigure"
 msgstr "Atur Ulang"
 
-#: src/menu/menu.c:700
+#: src/menu/menu.c:699
 msgid "Exit"
 msgstr "Keluar"
 
-#: src/menu/menu.c:716
+#: src/menu/menu.c:715
 msgid "Minimize"
 msgstr "Sembunyikan"
 
-#: src/menu/menu.c:718
+#: src/menu/menu.c:717
 msgid "Maximize"
 msgstr "Perluas Jendela"
 
-#: src/menu/menu.c:720
+#: src/menu/menu.c:719
 msgid "Fullscreen"
 msgstr "Tampil Menyeluruh"
 
-#: src/menu/menu.c:722
+#: src/menu/menu.c:721
+msgid "Roll up/down"
+msgstr ""
+
+#: src/menu/menu.c:723
 msgid "Decorations"
 msgstr "Dekorasi"
 
-#: src/menu/menu.c:724
+#: src/menu/menu.c:725
 #, fuzzy
 #| msgid "Always On Top"
 msgid "Always on Top"
 msgstr "Selalu di Muka"
 
-#: src/menu/menu.c:729
+#: src/menu/menu.c:730
 msgid "Move left"
 msgstr "Geser ke Kiri"
 
-#: src/menu/menu.c:736
+#: src/menu/menu.c:737
 msgid "Move right"
 msgstr "Geser ke Kanan"
 
-#: src/menu/menu.c:741
+#: src/menu/menu.c:742
 msgid "Always on Visible Workspace"
 msgstr ""
 
-#: src/menu/menu.c:744
+#: src/menu/menu.c:745
 msgid "Workspace"
 msgstr "Ruang Kerja"
 
-#: src/menu/menu.c:747
+#: src/menu/menu.c:748
 msgid "Close"
 msgstr "Tutup"

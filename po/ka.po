@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
-"POT-Creation-Date: 2023-01-02 11:22+1000\n"
+"POT-Creation-Date: 2024-01-15 16:00-0500\n"
 "PO-Revision-Date: 2023-02-22 09:43+0100\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <ka>\n"
@@ -18,52 +18,56 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.2.2\n"
 
-#: src/menu/menu.c:698
+#: src/menu/menu.c:697
 msgid "Reconfigure"
 msgstr "თავიდან მორგება"
 
-#: src/menu/menu.c:700
+#: src/menu/menu.c:699
 msgid "Exit"
 msgstr "გასვლა"
 
-#: src/menu/menu.c:716
+#: src/menu/menu.c:715
 msgid "Minimize"
 msgstr "ჩაკეცვა"
 
-#: src/menu/menu.c:718
+#: src/menu/menu.c:717
 msgid "Maximize"
 msgstr "გადიდება"
 
-#: src/menu/menu.c:720
+#: src/menu/menu.c:719
 msgid "Fullscreen"
 msgstr "მთელ ეკრანზე"
 
-#: src/menu/menu.c:722
+#: src/menu/menu.c:721
+msgid "Roll up/down"
+msgstr ""
+
+#: src/menu/menu.c:723
 msgid "Decorations"
 msgstr "დეკორაციები"
 
-#: src/menu/menu.c:724
+#: src/menu/menu.c:725
 #, fuzzy
 #| msgid "Always On Top"
 msgid "Always on Top"
 msgstr "ყოველთვისყველაზეზემოდან"
 
-#: src/menu/menu.c:729
+#: src/menu/menu.c:730
 msgid "Move left"
 msgstr "მარცხნივ გაწევა"
 
-#: src/menu/menu.c:736
+#: src/menu/menu.c:737
 msgid "Move right"
 msgstr "მარჯვნივ გაწევა"
 
-#: src/menu/menu.c:741
+#: src/menu/menu.c:742
 msgid "Always on Visible Workspace"
 msgstr ""
 
-#: src/menu/menu.c:744
+#: src/menu/menu.c:745
 msgid "Workspace"
 msgstr "სამუშაო ადგილი"
 
-#: src/menu/menu.c:747
+#: src/menu/menu.c:748
 msgid "Close"
 msgstr "დახურვა"

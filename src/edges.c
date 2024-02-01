@@ -137,8 +137,10 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 	struct border view_edges = { 0 };
 	struct border target_edges = { 0 };
 
-	edges_for_target_geometry(&view_edges, view,
-		use_pending ? view->pending : view->current);
+	struct wlr_box *view_geom =
+		use_pending ? &view->pending : &view->current;
+
+	edges_for_target_geometry(&view_edges, view, *view_geom);
 	edges_for_target_geometry(&target_edges, view, target);
 
 	struct view *v;
@@ -149,6 +151,20 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 
 		if (output && v->output != output) {
 			continue;
+		}
+
+		/*
+		 * If view and v are on different outputs, make sure part of
+		 * view is actually in the usable area of the output of v.
+		 */
+		if (view->output != v->output) {
+			struct wlr_box usable =
+				output_usable_area_in_layout_coords(v->output);
+
+			struct wlr_box ol;
+			if (!wlr_box_intersection(&ol, view_geom, &usable)) {
+				continue;
+			}
 		}
 
 		struct border border = ssd_get_margin(v->ssd);

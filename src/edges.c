@@ -39,17 +39,20 @@ validate_edges(struct border *valid_edges,
 		struct border view, struct border target,
 		struct border region, edge_validator_t validator)
 {
-	/* When a view snaps to a region while moving to its target, it can do
+	/*
+	 * When a view snaps to another while moving to its target, it can do
 	 * so in two ways: a view edge can snap to an "opposing" edge of the
 	 * region (left <-> right, top <-> bottom) or to an "aligned" edge
 	 * (left <-> left, right <-> right, top <-> top, bottom <-> bottom).
 	 *
 	 * When a view hits the opposing edge of a region, it should be
-	 * separated by a gap; when a view hits the aligned edge, it should not
-	 * be separated. The view and its target already include necessary
-	 * padding to reflect the gap. The region does not. To make sure the
-	 * "aligned" edges are properly aligned, add padding to the region
-	 * borders for aligned edges only.
+	 * separated by any configured gap and will resist *entry* into the
+	 * region; when a view hits the aligned edge, it should not be
+	 * separated by a gap and will resist *departure* from the region. The
+	 * view and its target already include necessary padding to reflect the
+	 * gap. The region does not. To make sure the "aligned" edges are
+	 * properly aligned with respect to the configured gap, add padding to
+	 * the region borders for aligned edges only.
 	 */
 
 	struct border region_pad = {
@@ -74,6 +77,52 @@ validate_edges(struct border *valid_edges,
 	/* Check for edges encountered during movement of bottom edge */
 	validator(&valid_edges->bottom, view.bottom, target.bottom,
 		region.top, region_pad.bottom, /* lesser */ false);
+}
+
+static void
+validate_output_edges(struct border *valid_edges,
+		struct border view, struct border target,
+		struct wlr_box usable, edge_validator_t validator)
+{
+	/*
+	 * When a view snaps to an output that contains it, it can be
+	 * transformed into either of two equivalent problems:
+	 *
+	 * 1. The output region can be treated as if it were bounded by four
+	 * half-planes, one sharing each edge of the view and extending
+	 * infinitely *away* from the output. The moving view should then be
+	 * tested as it encounters the "opposing" edge of each external region.
+	 *
+	 * 2. The output region can be treated as if it were composed of four
+	 * half-planes, one sharing each edge of the view and extending
+	 * infinitely to *overlap* the output. The moving view should then be
+	 * tested as it encounters the "aligned" edge of each overlapping
+	 * region.
+	 *
+	 * Either one of these problems can be realized by four calls to
+	 * validate_edges with suitably defined half-plane regions, but most of
+	 * the work in those validations will just be comparing invalid
+	 * infinite edges.
+	 *
+	 * To save a bit of effort, just choose Problem 1 and directly validate
+	 * only the non-infinite edges.
+	 */
+
+	/* Left edge encounters a half-infinite region to the left of the output */
+	validator(&valid_edges->left, view.left, target.left,
+		usable.x, INT_MIN, /* lesser */ true);
+
+	/* Right edge encounters a half-infinite region to the right of the output */
+	validator(&valid_edges->right, view.right, target.right,
+		usable.x + usable.width, INT_MAX, /* lesser */ false);
+
+	/* Top edge encounters a half-infinite region above the output */
+	validator(&valid_edges->top, view.top, target.top,
+		usable.y, INT_MIN, /* lesser */ true);
+
+	/* Bottom edge encounters a half-infinite region below the output */
+	validator(&valid_edges->bottom, view.bottom, target.bottom,
+		usable.y + usable.height, INT_MAX, /* lesser */ false);
 }
 
 void
@@ -154,57 +203,8 @@ edges_find_outputs(struct border *nearest_edges, struct view *view,
 			continue;
 		}
 
-		/*
-		 * Split a single "leaving output" problem into four "entering
-		 * complementary region" problems, treating the view, its
-		 * target and the screen boundaries as half planes. This
-		 * prevents unexpected snapping behavior like the bottom of a
-		 * window snapping above the top of an output, where it would
-		 * become invisible.
-		 */
-		struct border screen;
-		struct border view_eff;
-		struct border target_eff;
-
-		/* First problem: view toward upper half-plane */
-		edges_initialize(&screen);
-		edges_initialize(&view_eff);
-		edges_initialize(&target_eff);
-
-		screen.bottom = usable.y;
-		view_eff.top = view_edges.top;
-		target_eff.top = target_edges.top;
-		validate_edges(nearest_edges, view_eff, target_eff, screen, validator);
-
-		/* Second problem: view toward lower half-plane */
-		edges_initialize(&screen);
-		edges_initialize(&view_eff);
-		edges_initialize(&target_eff);
-
-		screen.top = usable.y + usable.height;
-		view_eff.bottom = view_edges.bottom;
-		target_eff.bottom = target_edges.bottom;
-		validate_edges(nearest_edges, view_eff, target_eff, screen, validator);
-
-		/* Third problem: view toward left half-plane */
-		edges_initialize(&screen);
-		edges_initialize(&view_eff);
-		edges_initialize(&target_eff);
-
-		screen.right = usable.x;
-		view_eff.left = view_edges.left;
-		target_eff.left = target_edges.left;
-		validate_edges(nearest_edges, view_eff, target_eff, screen, validator);
-
-		/* Fourth problem: view toward right half-plane */
-		edges_initialize(&screen);
-		edges_initialize(&view_eff);
-		edges_initialize(&target_eff);
-
-		screen.left = usable.x + usable.width;
-		view_eff.right = view_edges.right;
-		target_eff.right = target_edges.right;
-		validate_edges(nearest_edges, view_eff, target_eff, screen, validator);
+		validate_output_edges(nearest_edges,
+			view_edges, target_edges, usable, validator);
 	}
 }
 

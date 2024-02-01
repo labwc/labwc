@@ -383,6 +383,11 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 	assert(validator);
 	assert(nearest_edges);
 
+	if (!output_is_usable(view->output)) {
+		wlr_log(WLR_DEBUG, "ignoring edge search for view on unsable output");
+		return;
+	}
+
 	struct border view_edges = { 0 };
 	struct border target_edges = { 0 };
 
@@ -406,22 +411,13 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 			continue;
 		}
 
-		if (output && v->output != output) {
+		if (output && output != v->output && !view_on_output(v, output)) {
 			continue;
 		}
 
-		/*
-		 * If view and v are on different outputs, make sure part of
-		 * view is actually in the usable area of the output of v.
-		 */
-		if (view->output != v->output) {
-			struct wlr_box usable =
-				output_usable_area_in_layout_coords(v->output);
-
-			struct wlr_box ol;
-			if (!wlr_box_intersection(&ol, view_geom, &usable)) {
-				continue;
-			}
+		/* Both view and v must share a common output */
+		if (view->output != v->output && !(view->outputs & v->outputs)) {
+			continue;
 		}
 
 		struct border border = ssd_get_margin(v->ssd);
@@ -447,6 +443,12 @@ edges_find_outputs(struct border *nearest_edges, struct view *view,
 	assert(view);
 	assert(validator);
 	assert(nearest_edges);
+
+	if (!output_is_usable(view->output)) {
+		wlr_log(WLR_DEBUG,
+			"ignoring edge search for view on unsable output");
+		return;
+	}
 
 	struct border view_edges = { 0 };
 	struct border target_edges = { 0 };

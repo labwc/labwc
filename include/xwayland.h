@@ -105,8 +105,7 @@ void xwayland_adjust_stacking_order(struct server *server);
 
 struct wlr_xwayland_surface *xwayland_surface_from_view(struct view *view);
 
-bool xwayland_surface_contains_window_type(
-	struct wlr_xwayland_surface *surface, enum atom window_type);
+void xwayland_create_window_type_rules(void);
 
 void xwayland_server_init(struct server *server,
 	struct wlr_compositor *compositor);

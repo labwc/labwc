@@ -114,6 +114,8 @@ struct view_impl {
 	enum view_wants_focus (*wants_focus)(struct view *self);
 	/* returns true if view reserves space at screen edge */
 	bool (*has_strut_partial)(struct view *self);
+	/* returns true if view declared itself a window type */
+	bool (*contains_window_type)(struct view *view, int32_t window_type);
 };
 
 struct view {

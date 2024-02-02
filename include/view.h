@@ -349,6 +349,15 @@ enum view_wants_focus view_wants_focus(struct view *view);
 bool view_is_focusable_from(struct view *view, struct wlr_surface *prev);
 
 /**
+ * view_edge_invert() - select the opposite of a provided edge
+ *
+ * VIEW_EDGE_CENTER and VIEW_EDGE_INVALID both map to VIEW_EDGE_INVALID.
+ *
+ * @edge: edge to be inverted
+ */
+enum view_edge view_edge_invert(enum view_edge edge);
+
+/**
  * view_is_focusable() - Check whether or not a view can be focused
  * @view: view to be checked
  *

@@ -193,7 +193,7 @@ view_is_focusable_from(struct view *view, struct wlr_surface *prev)
  * They may be called repeatably during output layout changes.
  */
 
-static enum view_edge
+enum view_edge
 view_edge_invert(enum view_edge edge)
 {
 	switch (edge) {

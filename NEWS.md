@@ -88,8 +88,8 @@ The format is based on [Keep a Changelog]
   - `MoveToOutput`, `FitToOutput` (by @jp7677)
   - `Shade`, `Unshade`, `ToggleShade` (by @ahesford @Consolatis)
 - Add config option `<placement><policy>` with supported values `center`,
-  `under-cursor` and `automatic`. The latter minimizes overlap with other
-  windows already on screen and is similar to Openbox's smart window placement.
+  `cursor` and `automatic`. The latter minimizes overlap with other windows
+  already on screen and is similar to Openbox's smart window placement.
   Written-by: @ahesford #1312
 
 ```xml

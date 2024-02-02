@@ -50,6 +50,15 @@ edge_get_best(int next, int edge, bool decreasing)
 	return decreasing ? MAX(next, edge) : MIN(next, edge);
 }
 
+struct edge {
+	/* Position of an edge along the axis perpendicular to it */
+	int offset;
+
+	/* Limits of edge along axis parallel to it */
+	int min;
+	int max;
+};
+
 /*
  * edge_validator_t - edge validator signature
  * @best: pointer to the current "best" edge
@@ -57,16 +66,13 @@ edge_get_best(int next, int edge, bool decreasing)
  * @target: position to which the moving edge will be moved
  * @oppose: opposing edge of encountered region
  * @align: aligned edge of encountered region
- * @lesser: true if moving edge is top or left edge; false otherwise
  *
  * This function will be used by edge_find_neighbors and edge_find_outputs to
  * validate and select the "best" output or neighbor edge against which a
  * moving edge should be snapped. The moving edge has current position
  * "current" and desired position "target". The validator should determine
  * whether motion of the crosses the given opposed and aligned edges of a trial
- * region and should be considered a snap point. An edge is "lesser" if it
- * occupies a smaller coordinate than the opposite edge of the view region
- * (i.e., it is a top or left edge).
+ * region and should be considered a snap point.
  *
  * Opposing edges are on the opposite side of the target region from the moving
  * edge (i.e., left <-> right, top <-> bottom). When the moving edge snaps to
@@ -85,8 +91,8 @@ edge_get_best(int next, int edge, bool decreasing)
  * region edge (oppose or align) should be a preferred snap point, it should
  * update the value of *best accordingly.
  */
-typedef void (*edge_validator_t)(int *best,
-	int current, int target, int oppose, int align, bool lesser);
+typedef void (*edge_validator_t)(int *best, struct edge current,
+	struct edge target, struct edge oppose, struct edge align);
 
 void edges_initialize(struct border *edges);
 
@@ -106,5 +112,7 @@ void edges_adjust_move_coords(struct view *view, struct border edges,
 
 void edges_adjust_resize_geom(struct view *view, struct border edges,
 	uint32_t resize_edges, struct wlr_box *geom, bool use_pending);
+
+bool edges_traverse_edge(struct edge current, struct edge target, struct edge edge);
 
 #endif /* LABWC_EDGES_H */

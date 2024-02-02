@@ -12,9 +12,15 @@
 #include "view.h"
 
 static void
-check_edge(int *next, int current, int target, int oppose, int align, bool lesser)
+check_edge(int *next, struct edge current, struct edge target,
+		struct edge oppose, struct edge align)
 {
-	if (current == target) {
+	int cur = current.offset;
+	int tgt = target.offset;
+	int opp = oppose.offset;
+	int aln = align.offset;
+
+	if (cur == tgt) {
 		return;
 	}
 
@@ -32,18 +38,16 @@ check_edge(int *next, int current, int target, int oppose, int align, bool lesse
 	 */
 
 	/* Direction of motion for the edge */
-	const bool decreasing = target < current;
+	const bool decreasing = tgt < cur;
 
 	/* Check the opposing edge */
-	if ((target <= oppose && oppose < current) ||
-			(current < oppose && oppose <= target)) {
-		*next = edge_get_best(*next, oppose, decreasing);
+	if ((tgt <= opp && opp < cur) || (cur < opp && opp <= tgt)) {
+		*next = edge_get_best(*next, opp, decreasing);
 	}
 
 	/* Check the aligned edge */
-	if ((target <= align && align < current) ||
-			(current < align && align <= target)) {
-		*next = edge_get_best(*next, align, decreasing);
+	if ((tgt <= aln && aln < cur) || (cur < aln && aln <= tgt)) {
+		*next = edge_get_best(*next, aln, decreasing);
 	}
 }
 

@@ -34,10 +34,45 @@ edges_initialize(struct border *edges)
 	edges->left = INT_MIN;
 }
 
+static inline struct edge
+build_edge(struct border region, enum view_edge direction, int pad)
+{
+	struct edge edge = { 0 };
+
+	switch (direction) {
+	case VIEW_EDGE_LEFT:
+		edge.offset = clipped_sub(region.left, pad);
+		edge.min = region.top;
+		edge.max = region.bottom;
+		break;
+	case VIEW_EDGE_RIGHT:
+		edge.offset = clipped_add(region.right, pad);
+		edge.min = region.top;
+		edge.max = region.bottom;
+		break;
+	case VIEW_EDGE_UP:
+		edge.offset = clipped_sub(region.top, pad);
+		edge.min = region.left;
+		edge.max = region.right;
+		break;
+	case VIEW_EDGE_DOWN:
+		edge.offset = clipped_add(region.bottom, pad);
+		edge.min = region.left;
+		edge.max = region.right;
+		break;
+	default:
+		/* Should never be reached */
+		assert(false);
+	}
+
+	return edge;
+}
+
 static void
-validate_edges(struct border *valid_edges,
+validate_single_region_edge(int *valid_edge,
 		struct border view, struct border target,
-		struct border region, edge_validator_t validator)
+		struct border region, edge_validator_t validator,
+		enum view_edge direction)
 {
 	/*
 	 * When a view snaps to another while moving to its target, it can do
@@ -55,28 +90,53 @@ validate_edges(struct border *valid_edges,
 	 * the region borders for aligned edges only.
 	 */
 
-	struct border region_pad = {
-		.top = clipped_sub(region.top, rc.gap),
-		.right = clipped_add(region.right, rc.gap),
-		.bottom = clipped_add(region.bottom, rc.gap),
-		.left = clipped_sub(region.left, rc.gap),
-	};
+	validator(valid_edge,
+		build_edge(view, direction, 0),
+		build_edge(target, direction, 0),
+		build_edge(region, view_edge_invert(direction), 0),
+		build_edge(region, direction, rc.gap));
+}
 
+static void
+validate_edges(struct border *valid_edges,
+		struct border view, struct border target,
+		struct border region, edge_validator_t validator)
+{
 	/* Check for edges encountered during movement of left edge */
-	validator(&valid_edges->left, view.left, target.left,
-		region.right, region_pad.left, /* lesser */ true);
+	validate_single_region_edge(&valid_edges->left,
+		view, target, region, validator, VIEW_EDGE_LEFT);
 
 	/* Check for edges encountered during movement of right edge */
-	validator(&valid_edges->right, view.right, target.right,
-		region.left, region_pad.right, /* lesser */ false);
+	validate_single_region_edge(&valid_edges->right,
+		view, target, region, validator, VIEW_EDGE_RIGHT);
 
 	/* Check for edges encountered during movement of top edge */
-	validator(&valid_edges->top, view.top, target.top,
-		region.bottom, region_pad.top, /* lesser */ true);
+	validate_single_region_edge(&valid_edges->top,
+		view, target, region, validator, VIEW_EDGE_UP);
 
 	/* Check for edges encountered during movement of bottom edge */
-	validator(&valid_edges->bottom, view.bottom, target.bottom,
-		region.top, region_pad.bottom, /* lesser */ false);
+	validate_single_region_edge(&valid_edges->bottom,
+		view, target, region, validator, VIEW_EDGE_DOWN);
+}
+
+static void
+validate_single_output_edge(int *valid_edge,
+		struct border view, struct border target,
+		struct border region, edge_validator_t validator,
+		enum view_edge direction)
+{
+	static struct border unbounded = {
+		.top = INT_MIN,
+		.right = INT_MAX,
+		.bottom = INT_MAX,
+		.left = INT_MIN,
+	};
+
+	validator(valid_edge,
+		build_edge(view, direction, 0),
+		build_edge(target, direction, 0),
+		build_edge(region, direction, 0),
+		build_edge(unbounded, direction, 0));
 }
 
 static void
@@ -108,21 +168,31 @@ validate_output_edges(struct border *valid_edges,
 	 * only the non-infinite edges.
 	 */
 
+	struct border output = {
+		.top = usable.y,
+		.right = usable.x + usable.width,
+		.bottom = usable.y + usable.height,
+		.left = usable.x,
+	};
+
 	/* Left edge encounters a half-infinite region to the left of the output */
-	validator(&valid_edges->left, view.left, target.left,
-		usable.x, INT_MIN, /* lesser */ true);
+
+	validate_single_output_edge(&valid_edges->left,
+			view, target, output, validator, VIEW_EDGE_LEFT);
 
 	/* Right edge encounters a half-infinite region to the right of the output */
-	validator(&valid_edges->right, view.right, target.right,
-		usable.x + usable.width, INT_MAX, /* lesser */ false);
+
+	validate_single_output_edge(&valid_edges->right,
+			view, target, output, validator, VIEW_EDGE_RIGHT);
 
 	/* Top edge encounters a half-infinite region above the output */
-	validator(&valid_edges->top, view.top, target.top,
-		usable.y, INT_MIN, /* lesser */ true);
+
+	validate_single_output_edge(&valid_edges->top,
+			view, target, output, validator, VIEW_EDGE_UP);
 
 	/* Bottom edge encounters a half-infinite region below the output */
-	validator(&valid_edges->bottom, view.bottom, target.bottom,
-		usable.y + usable.height, INT_MAX, /* lesser */ false);
+	validate_single_output_edge(&valid_edges->bottom,
+			view, target, output, validator, VIEW_EDGE_DOWN);
 }
 
 void
@@ -145,7 +215,7 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 
 	struct view *v;
 	for_each_view(v, &view->server->views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
-		if (v == view || !output_is_usable(v->output)) {
+		if (v == view || v->minimized || !output_is_usable(v->output)) {
 			continue;
 		}
 
@@ -316,4 +386,74 @@ edges_adjust_resize_geom(struct view *view, struct border edges,
 				- view_geom->y - border.bottom - rc.gap;
 		}
 	}
+}
+
+static double
+linear_interp(int x, int x1, int y1, int x2, int y2)
+{
+	/*
+	 * For a line y = mx + b that passes through both (x1, y1) and
+	 * (x2, y2), find and return the value y for a given point x.
+	 *
+	 * The point x does not need to fall in the range [x1, x2].
+	 */
+
+	/* No need to interpolate if line is horizontal */
+	int rise = y2 - y1;
+	if (rise == 0) {
+		return y2;
+	}
+
+	/* For degenerate line, just pick a midpoint */
+	int run = x2 - x1;
+	if (run == 0) {
+		return 0.5 * (y1 + y2);
+	}
+
+	/* Othewise, linearly interpolate */
+	int dx = x - x1;
+	return y1 + dx * (rise / (double)run);
+}
+
+bool
+edges_traverse_edge(struct edge current, struct edge target, struct edge obstacle)
+{
+	/*
+	 * Each edge structure defines a line segment that can be represented
+	 * in a local coordinate system as starting at (offset, min) and
+	 * finishing at (offset, max).
+	 *
+	 * The starting and ending points of the "current" edge trace
+	 * respective lines
+	 *
+	 *   1. (current.offset, current.min) -> (target.offset, target.min)
+	 *   2. (current.offset, current.max) -> (target.offset, target.max)
+	 *
+	 * as the segment transits from its current position to its target.
+	 * Hence, motion of the entire edge from current to target will sweep a
+	 * quadrilateral bounded by (locally) vertical lines at current.offset
+	 * and target.offset as well as the segments (1) and (2) above.
+	 *
+	 * To test if the motion will encounter the obstacle edge, we need to
+	 * test if any of the obstacle edge falls within this quadrilateral.
+	 * Thus, we need to find the extent of the quadrilateral at the same
+	 * offset as the obstacle: a segment with starting point
+	 * (obstacle.offset, lo) and ending point (obstacle.offset, hi).
+	 */
+
+	double lo =
+		linear_interp(obstacle.offset,
+			current.offset, current.min, target.offset, target.min);
+
+	/* Motion misses when obstacle ends above start of quad segment */
+	if (obstacle.max < lo) {
+		return false;
+	}
+
+	double hi =
+		linear_interp(obstacle.offset,
+			current.offset, current.max, target.offset, target.max);
+
+	/* Motion hits when obstacle starts above the end of quad segment */
+	return obstacle.min <= hi;
 }

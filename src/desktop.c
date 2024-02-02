@@ -454,7 +454,11 @@ get_cursor_context(struct server *server)
 		/* node->parent is always a *wlr_scene_tree */
 		node = node->parent ? &node->parent->node : NULL;
 	}
-	wlr_log(WLR_ERROR, "Unknown node detected");
+
+	/*
+	 * TODO: add node descriptors for the OSDs and reinstate
+	 *       wlr_log(WLR_DEBUG, "Unknown node detected");
+	 */
 	return ret;
 }
 

@@ -434,18 +434,23 @@ view_move_to_cursor(struct view *view)
 	int y = view->server->seat.cursor->y - (geo.height / 2);
 
 	struct wlr_box usable = output_usable_area_in_layout_coords(pending_output);
+
+	/* Limit usable region to account for gap */
+	usable.x += rc.gap;
+	usable.y += rc.gap;
+	usable.width -= 2 * rc.gap;
+	usable.height -= 2 * rc.gap;
+
 	if (x + geo.width > usable.x + usable.width) {
 		x = usable.x + usable.width - geo.width;
 	}
-	x = MAX(x, usable.x);
+	x = MAX(x, usable.x) + margin.left;
 
 	if (y + geo.height > usable.y + usable.height) {
 		y = usable.y + usable.height - geo.height;
 	}
-	y = MAX(y, usable.y);
+	y = MAX(y, usable.y) + margin.top;
 
-	x += margin.left;
-	y += margin.top;
 	view_move(view, x, y);
 }
 

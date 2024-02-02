@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2024-01-23 | [unreleased]  | 0.17.1          |               |
+| 2024-03-01 | [0.7.1]       | 0.17.1          | 18624         |
 | 2023-12-22 | [0.7.0]       | 0.17.1          | 16576         |
 | 2023-11-25 | [0.6.6]       | 0.16.2          | 15796         |
 | 2023-09-23 | [0.6.5]       | 0.16.2          | 14809         |
@@ -28,10 +28,33 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 
-## [unreleased]
+## [0.7.1]
 
 ### Added
 
+- Support libinput option sendEventsMode to allow enabling/disabling devices.
+  Co-Authored-By: @Sachin-Bhat
+
+```xml
+<libinput>
+  <device>
+    <sendEventsMode>yes|no|disabledOnExternalMouse</sendEventsMode>
+  </device>
+</libinput>
+```
+
+- Add click method libinput option. Written-by: @datMaffin
+
+```xml
+<libinput>
+  <device>
+    <clickMethod>none|buttonAreas|clickfinger</clickMethod>
+  </device>
+</libinput>
+```
+
+- Add `data/labwc.svg` & `data/labwc-symbolic.svg`, and specify icon name
+  in labwc.desktop to enable Display Managers to show an icons for labwc.
 - Expose output configuration test to clients. For example, this enables
   `wlr-randr --dryrun`
 - Add window-edge resistance for interactive moves/resizes and support negative
@@ -90,6 +113,7 @@ The format is based on [Keep a Changelog]
 - Add config option `<placement><policy>` with supported values `center`,
   `cursor` and `automatic`. The latter minimizes overlap with other windows
   already on screen and is similar to Openbox's smart window placement.
+  The placement policies honour `<core><gap>`.
   Written-by: @ahesford #1312
 
 ```xml
@@ -100,6 +124,13 @@ The format is based on [Keep a Changelog]
 
 ### Fixed
 
+- Delay popup-unconstrain until after first commit in response to a changed
+  wlroots 0.17 interface and to get rid of the error message below. Issue #1372
+
+    [types/xdg_shell/wlr_xdg_surface.c:169] A configure is scheduled for an uninitialized xdg_surface
+
+- Notify clients about configuration errors when changing output settings.
+  Issue #1528.
 - Fix output configuration bug causing compositor crash when refresh rate is
   zero. Issue #1458
 - Fix disappearing cursor bug on view destruction. Issue #1393
@@ -124,6 +155,8 @@ The format is based on [Keep a Changelog]
 
 ### Changed
 
+- Make `MoveToCursor` honour `<core><gap>`. Issue #1494
+- Add `Roll Up/Down` client-menu entry for `ToggleShade`
 - When a Wayland-native window is snapped to a screen edges or user-defined
   region, labwc will notify the application that it is "tiled", allowing the
   application to better adapt its rendering to constrained layouts. Windows
@@ -1043,7 +1076,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.7.0...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.7.1...HEAD
+[0.7.1]: https://github.com/labwc/labwc/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/labwc/labwc/compare/0.6.6...0.7.0
 [0.6.6]: https://github.com/labwc/labwc/compare/0.6.5...0.6.6
 [0.6.5]: https://github.com/labwc/labwc/compare/0.6.4...0.6.5

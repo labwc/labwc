@@ -92,6 +92,7 @@ Some distributions carry labwc in their repositories or user repositories.
 
 - @ptrcnull (Alpine)
 - @narrat (Arch)
+- @b1rger (Debian)
 - @jbeich (FreeBSD)
 - @AndersonTorres (NixOS)
 - @adcdam (Slackware)

@@ -47,6 +47,23 @@ struct button {
 	} active, inactive;
 };
 
+enum corner {
+	LAB_CORNER_UNKNOWN = 0,
+	LAB_CORNER_TOP_LEFT,
+	LAB_CORNER_TOP_RIGHT,
+};
+
+struct rounded_corner_ctx {
+	struct wlr_box *box;
+	double radius;
+	double line_width;
+	float *fill_color;
+	float *border_color;
+	enum corner corner;
+};
+
+static struct lab_data_buffer *rounded_rect(struct rounded_corner_ctx *ctx);
+
 static void
 drop(struct lab_data_buffer **buffer)
 {
@@ -56,10 +73,29 @@ drop(struct lab_data_buffer **buffer)
 	}
 }
 
+static enum corner
+corner_from_icon_name(const char *icon_name)
+{
+	assert(icon_name);
+
+	/*
+	 * TODO: Once we implement titleLayout we can make the
+	 *       return values depend on parsed config values.
+	 */
+	if (!strcmp(icon_name, "menu")) {
+		return LAB_CORNER_TOP_LEFT;
+	} else if (!strcmp(icon_name, "close")) {
+		return LAB_CORNER_TOP_RIGHT;
+	}
+	return LAB_CORNER_UNKNOWN;
+}
+
 static void
-create_hover_fallback(struct theme *theme, struct lab_data_buffer **hover_buffer,
+create_hover_fallback(struct theme *theme, const char *icon_name,
+		struct lab_data_buffer **hover_buffer,
 		struct lab_data_buffer *icon_buffer)
 {
+	assert(icon_name);
 	assert(icon_buffer);
 	assert(!*hover_buffer);
 
@@ -68,7 +104,6 @@ create_hover_fallback(struct theme *theme, struct lab_data_buffer **hover_buffer
 	int icon_width = cairo_image_surface_get_width(icon.surface);
 	int icon_height = cairo_image_surface_get_height(icon.surface);
 
-	/* TODO: need to somehow respect rounded corners */
 	int width = SSD_BUTTON_WIDTH;
 	int height = theme->title_height;
 
@@ -101,9 +136,28 @@ create_hover_fallback(struct theme *theme, struct lab_data_buffer **hover_buffer
 	cairo_paint(cairo);
 
 	/* Overlay (non-multiplied alpha) */
-	set_cairo_color(cairo, (float[4]) { 0.5f, 0.5f, 0.5f, 0.3f});
-	cairo_rectangle(cairo, 0, 0, width, height);
-	cairo_fill(cairo);
+	float overlay_color[4] = { 0.5f, 0.5f, 0.5f, 0.3f};
+	enum corner corner = corner_from_icon_name(icon_name);
+
+	if (corner == LAB_CORNER_UNKNOWN) {
+		set_cairo_color(cairo, overlay_color);
+		cairo_rectangle(cairo, 0, 0, width, height);
+		cairo_fill(cairo);
+	} else {
+		struct rounded_corner_ctx rounded_ctx = {
+			.box = &(struct wlr_box) { .width = width, .height = height },
+			.radius = rc.corner_radius,
+			.line_width = theme->border_width,
+			.fill_color = overlay_color,
+			.border_color = overlay_color,
+			.corner = corner
+		};
+		struct lab_data_buffer *overlay_buffer = rounded_rect(&rounded_ctx);
+		cairo_set_source_surface(cairo,
+			cairo_get_target(overlay_buffer->cairo), 0, 0);
+		cairo_paint(cairo);
+		wlr_buffer_drop(&overlay_buffer->base);
+	}
 	cairo_surface_flush(surf);
 
 	if (icon.is_duplicate) {
@@ -306,12 +360,12 @@ load_buttons(struct theme *theme)
 			struct button *base = &buttons[j];
 			if (!strcmp(basename, base->name)) {
 				if (!*hover_button->active.buffer) {
-					create_hover_fallback(theme,
+					create_hover_fallback(theme, basename,
 						hover_button->active.buffer,
 						*base->active.buffer);
 				}
 				if (!*hover_button->inactive.buffer) {
-					create_hover_fallback(theme,
+					create_hover_fallback(theme, basename,
 						hover_button->inactive.buffer,
 						*base->inactive.buffer);
 				}
@@ -696,19 +750,6 @@ theme_read(struct theme *theme, struct wl_list *paths)
 		}
 	}
 }
-
-struct rounded_corner_ctx {
-	struct wlr_box *box;
-	double radius;
-	double line_width;
-	float *fill_color;
-	float *border_color;
-	enum {
-		LAB_CORNER_UNKNOWN = 0,
-		LAB_CORNER_TOP_LEFT,
-		LAB_CORNER_TOP_RIGHT,
-	} corner;
-};
 
 static struct lab_data_buffer *
 rounded_rect(struct rounded_corner_ctx *ctx)

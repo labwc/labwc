@@ -65,7 +65,7 @@ struct rounded_corner_ctx {
 static struct lab_data_buffer *rounded_rect(struct rounded_corner_ctx *ctx);
 
 static void
-drop(struct lab_data_buffer **buffer)
+zdrop(struct lab_data_buffer **buffer)
 {
 	if (*buffer) {
 		wlr_buffer_drop(&(*buffer)->base);
@@ -275,8 +275,8 @@ load_buttons(struct theme *theme)
 	for (size_t i = 0; i < ARRAY_SIZE(buttons); ++i) {
 		struct button *b = &buttons[i];
 
-		drop(b->active.buffer);
-		drop(b->inactive.buffer);
+		zdrop(b->active.buffer);
+		zdrop(b->inactive.buffer);
 
 		/* PNG */
 		snprintf(filename, sizeof(filename), "%s-active.png", b->name);
@@ -342,7 +342,7 @@ load_buttons(struct theme *theme)
 	}
 
 	/*
-	 * If hover-icons do not exist, add fallbacks by coping the non-hover
+	 * If hover-icons do not exist, add fallbacks by copying the non-hover
 	 * variant (base) and then adding an overlay.
 	 */
 	for (size_t i = 0; i < ARRAY_SIZE(buttons); i++) {
@@ -767,7 +767,7 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 
 	struct lab_data_buffer *buffer;
 	/* TODO: scale */
-	buffer = buffer_create_cairo(w, h, 1, true);
+	buffer = buffer_create_cairo(w, h, 1, /*free_on_destroy*/ true);
 
 	cairo_t *cairo = buffer->cairo;
 	cairo_surface_t *surf = cairo_get_target(cairo);
@@ -1037,12 +1037,8 @@ theme_init(struct theme *theme, const char *theme_name)
 void
 theme_finish(struct theme *theme)
 {
-	wlr_buffer_drop(&theme->corner_top_left_active_normal->base);
-	wlr_buffer_drop(&theme->corner_top_left_inactive_normal->base);
-	wlr_buffer_drop(&theme->corner_top_right_active_normal->base);
-	wlr_buffer_drop(&theme->corner_top_right_inactive_normal->base);
-	theme->corner_top_left_active_normal = NULL;
-	theme->corner_top_left_inactive_normal = NULL;
-	theme->corner_top_right_active_normal = NULL;
-	theme->corner_top_right_inactive_normal = NULL;
+	zdrop(&theme->corner_top_left_active_normal);
+	zdrop(&theme->corner_top_left_inactive_normal);
+	zdrop(&theme->corner_top_right_active_normal);
+	zdrop(&theme->corner_top_right_inactive_normal);
 }

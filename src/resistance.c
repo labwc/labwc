@@ -44,12 +44,12 @@ check_edge(int *next, struct edge current, struct edge target,
 	if (decreasing) {
 		const int lo = clipped_sub(opp, abs(tolerance));
 		const int hi = clipped_sub(opp, MIN(tolerance, 0));
-		valid = tgt >= lo && tgt < hi;
+		valid = tgt >= lo && tgt < hi && cur >= opp;
 	} else {
 		/* Check for increasing movement across opposing edge */
 		const int lo = clipped_add(opp, MIN(tolerance, 0));
 		const int hi = clipped_add(opp, abs(tolerance));
-		valid = tgt > lo && tgt <= hi;
+		valid = tgt > lo && tgt <= hi && cur <= opp;
 	}
 
 	if (valid && edges_traverse_edge(current, target, oppose)) {
@@ -61,11 +61,11 @@ check_edge(int *next, struct edge current, struct edge target,
 	if (decreasing) {
 		const int lo = clipped_sub(aln, abs(tolerance));
 		const int hi = clipped_sub(aln, MIN(tolerance, 0));
-		valid = tgt >= lo && tgt < hi;
+		valid = tgt >= lo && tgt < hi && cur >= aln;
 	} else {
 		const int lo = clipped_add(aln, MIN(tolerance, 0));
 		const int hi = clipped_add(aln, abs(tolerance));
-		valid = tgt > lo && tgt <= hi;
+		valid = tgt > lo && tgt <= hi && cur <= aln;
 	}
 
 	if (valid && edges_traverse_edge(current, target, align)) {

@@ -446,7 +446,7 @@ edges_traverse_edge(struct edge current, struct edge target, struct edge obstacl
 			current.offset, current.min, target.offset, target.min);
 
 	/* Motion misses when obstacle ends above start of quad segment */
-	if (obstacle.max < lo) {
+	if (obstacle.max <= lo) {
 		return false;
 	}
 
@@ -455,5 +455,5 @@ edges_traverse_edge(struct edge current, struct edge target, struct edge obstacl
 			current.offset, current.max, target.offset, target.max);
 
 	/* Motion hits when obstacle starts above the end of quad segment */
-	return obstacle.min <= hi;
+	return obstacle.min < hi;
 }

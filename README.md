@@ -153,7 +153,7 @@ Build dependencies include:
 
 Disable xwayland with `meson -Dxwayland=disabled build/`
 
-For OS/distribution specific details see see [wiki].
+For OS/distribution specific details see [wiki].
 
 If the right version of `wlroots` is not found on the system, the build setup
 will automatically download the wlroots repo. If this fallback is not desired

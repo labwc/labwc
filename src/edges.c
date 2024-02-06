@@ -90,11 +90,13 @@ validate_single_region_edge(int *valid_edge,
 	 * the region borders for aligned edges only.
 	 */
 
+	bool lesser = direction == VIEW_EDGE_LEFT || direction == VIEW_EDGE_UP;
+
 	validator(valid_edge,
 		build_edge(view, direction, 0),
 		build_edge(target, direction, 0),
 		build_edge(region, view_edge_invert(direction), 0),
-		build_edge(region, direction, rc.gap));
+		build_edge(region, direction, rc.gap), lesser);
 }
 
 static void
@@ -132,11 +134,13 @@ validate_single_output_edge(int *valid_edge,
 		.left = INT_MIN,
 	};
 
+	bool lesser = direction == VIEW_EDGE_LEFT || direction == VIEW_EDGE_UP;
+
 	validator(valid_edge,
 		build_edge(view, direction, 0),
 		build_edge(target, direction, 0),
 		build_edge(region, direction, 0),
-		build_edge(unbounded, direction, 0));
+		build_edge(unbounded, direction, 0), lesser);
 }
 
 static void

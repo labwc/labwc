@@ -66,6 +66,7 @@ struct edge {
  * @target: position to which the moving edge will be moved
  * @oppose: opposing edge of encountered region
  * @align: aligned edge of encountered region
+ * @lesser: true if the moving edge is top or left, false otherwise
  *
  * This function will be used by edge_find_neighbors and edge_find_outputs to
  * validate and select the "best" output or neighbor edge against which a
@@ -92,7 +93,7 @@ struct edge {
  * update the value of *best accordingly.
  */
 typedef void (*edge_validator_t)(int *best, struct edge current,
-	struct edge target, struct edge oppose, struct edge align);
+	struct edge target, struct edge oppose, struct edge align, bool lesser);
 
 void edges_initialize(struct border *edges);
 

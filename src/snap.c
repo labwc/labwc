@@ -13,7 +13,7 @@
 
 static void
 check_edge(int *next, struct edge current, struct edge target,
-		struct edge oppose, struct edge align)
+		struct edge oppose, struct edge align, bool lesser)
 {
 	int cur = current.offset;
 	int tgt = target.offset;

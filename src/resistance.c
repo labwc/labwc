@@ -11,12 +11,11 @@
 
 static void
 check_edge(int *next, struct edge current, struct edge target,
-		struct edge oppose, struct edge align, int tolerance)
+		struct edge oppose, struct edge align, int tolerance, bool lesser)
 {
 	int cur = current.offset;
 	int tgt = target.offset;
 	int opp = oppose.offset;
-	int aln = align.offset;
 
 	/* Ignore non-moving edges */
 	if (cur == tgt) {
@@ -39,9 +38,28 @@ check_edge(int *next, struct edge current, struct edge target,
 	/* Direction of motion for the edge */
 	const bool decreasing = tgt < cur;
 
+	/*
+	 * Motion resists "entry" into the space of another window, but never
+	 * resist leaving it. Without edge attraction, this only happens when
+	 * the "leading" edge of a motion (top edge upward, bottom edge
+	 * downward, left edge leftward, right edge rightward) encounters an
+	 * opposing edge. If the motion is not of a leading edge, there is no
+	 * need to check for any resistance.
+	 *
+	 * However, if there is attraction, a "trailing" edge of a motion (top
+	 * edge downward, bottom edge upward, left edge rightward, right edge
+	 * leftward) may be grabbed by the opposing edge of another window as
+	 * it passes. Hence, trailing edges still need to be tested in
+	 * attractive cases.
+	 */
+	if (tolerance >= 0 && lesser != decreasing) {
+		return;
+	}
+
 	/* Check the opposing edge */
 	bool valid = false;
 	if (decreasing) {
+		/* Check for decreasing movement across opposing edge */
 		const int lo = clipped_sub(opp, abs(tolerance));
 		const int hi = clipped_sub(opp, MIN(tolerance, 0));
 		valid = tgt >= lo && tgt < hi && cur >= opp;
@@ -55,38 +73,22 @@ check_edge(int *next, struct edge current, struct edge target,
 	if (valid && edges_traverse_edge(current, target, oppose)) {
 		*next = edge_get_best(*next, opp, decreasing);
 	}
-
-	/* Check the aligned edge */
-	valid = false;
-	if (decreasing) {
-		const int lo = clipped_sub(aln, abs(tolerance));
-		const int hi = clipped_sub(aln, MIN(tolerance, 0));
-		valid = tgt >= lo && tgt < hi && cur >= aln;
-	} else {
-		const int lo = clipped_add(aln, MIN(tolerance, 0));
-		const int hi = clipped_add(aln, abs(tolerance));
-		valid = tgt > lo && tgt <= hi && cur <= aln;
-	}
-
-	if (valid && edges_traverse_edge(current, target, align)) {
-		*next = edge_get_best(*next, aln, decreasing);
-	}
 }
 
 static void
 check_edge_output(int *next, struct edge current, struct edge target,
-		struct edge oppose, struct edge align)
+		struct edge oppose, struct edge align, bool lesser)
 {
 	check_edge(next, current, target,
-		oppose, align, rc.screen_edge_strength);
+		oppose, align, rc.screen_edge_strength, lesser);
 }
 
 static void
 check_edge_window(int *next, struct edge current, struct edge target,
-		struct edge oppose, struct edge align)
+		struct edge oppose, struct edge align, bool lesser)
 {
 	check_edge(next, current, target,
-		oppose, align, rc.window_edge_strength);
+		oppose, align, rc.window_edge_strength, lesser);
 }
 
 void

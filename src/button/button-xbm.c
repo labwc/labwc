@@ -17,6 +17,7 @@
 #include "button/common.h"
 #include "common/grab-file.h"
 #include "common/mem.h"
+#include "common/string-helpers.h"
 #include "buffer.h"
 
 enum token_type {
@@ -278,6 +279,9 @@ button_xbm_load(const char *button_name, struct lab_data_buffer **buffer,
 	if (*buffer) {
 		wlr_buffer_drop(&(*buffer)->base);
 		*buffer = NULL;
+	}
+	if (string_null_or_empty(button_name)) {
+		return;
 	}
 	color = argb32(rgba);
 

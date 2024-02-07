@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2024-01-23 | [unreleased]  | 0.17.1          |               |
 | 2023-12-22 | [0.7.0]       | 0.17.1          | 16576         |
 | 2023-11-25 | [0.6.6]       | 0.16.2          | 15796         |
 | 2023-09-23 | [0.6.5]       | 0.16.2          | 14809         |
@@ -26,6 +27,147 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
+
+## [unreleased]
+
+### Added
+
+- Expose output configuration test to clients. For example, this enables
+  `wlr-randr --dryrun`
+- Add window-edge resistance for interactive moves/resizes and support negative
+  strengths to indicate attractive snapping. Written-by: @ahesford
+
+```xml
+<resistance>
+  <screenEdgeStrength>-20</screenEdgeStrength>
+  <windowEdgeStrength>-20</windowEdgeStrength>
+</resistance>
+```
+
+- Set keyboard layout on reconfigure. Issue #1407
+- Reset keyboard-layout group (index) for each window on reconfigure if
+  the keymap has changed.
+- Support merging multiple config files with the --merge-config command
+  line option. Issue #1406
+- Add config option to map touch events to a named output (display).
+  Optionally, make this only apply to specific named devices.
+  Written-by: @jp7677
+
+```xml
+<touch mapToOutput=""/>
+<touch deviceName="" mapToOutput=""/>
+```
+
+- Add tablet support including:
+  - Mapping of tablet to output (display)
+  - Emulation of cursor movement and button press/release
+  - Configuration of area and rotation
+  Written-by: @jp7677 @Consolatis
+
+```xml
+<tablet mapToOutput="HDMI-A-1" rotate="90">
+  <area top="0.0" left="0.0" width="0.0" height="0.0" />
+  <map button="Tip" to="Left" />
+  <map button="Stylus" to="Right" />
+  <map button="Stylus2" to="Middle" />
+</tablet>
+```
+
+- Add tearing support. #1390. Written-by: @Ph42oN @ahesford
+- Add configuration support for mouse buttons `Side`, `Extra`, `Forward`,
+  `Back` and `Task`. Written-by: @jp7677
+- config: allow `<libinput><device>` without category attribute to define a
+  `default` profile because it is more user-friendly and intuitive.
+- Add a configuration option to enable adaptive sync only when an application
+  is in fullscreen mode. Written-by: @Ph42oN
+- Add `touchpad` libinput device type to increase configuration flexibility,
+  for example allowing `naturalScroll` on touchpads, but not on regular pointer
+  devices such as mice. Written-by: @jmbaur
+- Add actions:
+  - `AutoPlace` (by @ahesford)
+  - `MoveToOutput`, `FitToOutput` (by @jp7677)
+  - `Shade`, `Unshade`, `ToggleShade` (by @ahesford @Consolatis)
+- Add config option `<placement><policy>` with supported values `center`,
+  `cursor` and `automatic`. The latter minimizes overlap with other windows
+  already on screen and is similar to Openbox's smart window placement.
+  Written-by: @ahesford #1312
+
+```xml
+<placement>
+  <policy>center|automatic|cursor</policy>
+</placement>
+```
+
+### Fixed
+
+- Fix output configuration bug causing compositor crash when refresh rate is
+  zero. Issue #1458
+- Fix disappearing cursor bug on view destruction. Issue #1393
+- Use used specified config-file (using -c command line option) on
+  reconfigure.
+- Assign outputs to new views on surface creation instead of mapping, and
+  notify the client of the preferred output scale when doing so. This fixes an
+  issue with foot: https://codeberg.org/dnkl/foot/issues/1579
+  Written-by: @ahesford
+- Cancel key repeat on vt change to fix crash on VT change on FreeBSD.
+  Issue #1424
+- Fix crash when a minimized fullscreen window closes. Written-by: @bi4k8
+- Execute menu actions after closing menus so that menu entries can issue
+  `wtype` commands to the surface with keyboard-focus. Issue #1366
+- Try to honor original window geometry on layout changes.
+- Fix virtual keyboard bug experienced with `wlrctl keyboard type xyz`. Do not
+  process virtual keyboard keycodes (just the keysyms). Issue #1367
+- Sync xdg-shell client `view->pending` when applying geometry to fix issue
+  caused by applications choosing not respond to pending resize requests either
+  by ignoring them or substituting alternative sizes (for example, when mpv
+  constrains resizes to keep its aspect ratio fixed). Written-by: @ahesford
+
+### Changed
+
+- When a Wayland-native window is snapped to a screen edges or user-defined
+  region, labwc will notify the application that it is "tiled", allowing the
+  application to better adapt its rendering to constrained layouts. Windows
+  with client-side decorations may respond to these notices by squaring off
+  corners and, in some cases, disabling resize abilities. This can be disabled
+  with:
+
+```xml
+<snapping>
+  <notifyClient>never</notifyClient>
+</snapping>
+```
+
+  or limited to only edge-snapped or only region-snapped windows. See the
+  labwc-config(5) manual page for more information.
+
+- When a window is dragged from a snapped position (either a screen edge or a
+  user-defined region), the snapped state is now discarded as soon as the
+  dragging begins. This means that dragging from a snapped position to a
+  maximized state (with the `topMaximize` option enabled) and then
+  un-maxmimizing the window will restore the window to its size and position
+  *before* it was snapped. In previous releases, un-maximizing would restore
+  the window to its snapped state. To preserve the snapped state of a window
+  when maximized, use the Maximize window button or the `ToggleMaximize`
+  action.
+
+- The new windowEdgeStrength setting makes windows resist interactive moves and
+  resizes across the edges of other windows. This can be disabled with:
+
+```xml
+<resistance>
+  <windowEdgeStrength>0</windowEdgeStrength>
+</resistance>
+```
+
+- Run menu actions on button release intead of press.
+- Constrain window size to that of usable area when an application is started.
+  Issue #1399
+- Support showing the full `app_id` in the window switcher. Users with a custom
+  `windowSwitcher` configuration should use the `trimmed_identifier` field
+  label to preserve existing behavior; the `identifier` field now refers to the
+  full `app_id`. Consult the labwc-config(5) manual page for more details.
+  Issue #1309
+
 ## [0.7.0] - 2023-12-22
 
 The main effort in this release has gone into porting labwc to wlroots 0.17
@@ -35,7 +177,7 @@ additions and fixes as described below.
 Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
 `0.6` branch will be created.
 
-# Added
+### Added
 
 - Support titlebar hover icons. Written-by: @spl237
 - Add theme options osd.workspace-switcher.boxes.{width,height}
@@ -62,7 +204,7 @@ Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
   the screen is not covered by panels/docks. The property is used for example
   by Qt to determine areas of the screen that popup menus should not overlap.
 
-# Fixed
+### Fixed
 
 - Fix xwayland.c null pointer dereference causing crash with JetBrains CLion.
   (#1352)
@@ -80,7 +222,7 @@ Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
   issue where some XWayland views (example: xfce4-terminal) do not end up with
   exactly the correct geometry when tiled.
 
-# Changed
+### Changed
 
 - Treat XWayland panel windows as if fixedPosition rule is set
 - Use the GTK3 notebook header color as the default active title color
@@ -114,7 +256,9 @@ relating to surface focus and keyboard issues, amongst others.
 - Add If and ForEach actions. Written-by: @consus
 - Allow referencing the current workspace in actions, for example:
 
-      <action name="SendToDesktop" to="current"/>
+```xml
+<action name="SendToDesktop" to="current"/>
+```
 
 ### Fixed
 
@@ -269,11 +413,13 @@ relating to surface focus and keyboard issues, amongst others.
 - Use `identifier` for window-switcher field rather than `app_id` to be
   consistent with window rules.
 
-      <windowSwitcher>
-        <fields>
-          <field content="identifier" width="25%"/>
-        </fields>
-      </windowSwithcer>
+```xml
+<windowSwitcher>
+  <fields>
+    <field content="identifier" width="25%"/>
+  </fields>
+</windowSwithcer>
+```
 
 - Do not expand environment variables in `Exec` action `<command>`
   argument (but still resolve tilde).
@@ -330,27 +476,31 @@ relating to surface focus and keyboard issues, amongst others.
   Any actions in labwc-actions(5) can be used. Only 'serverDecoration'
   has been added as a property so far. Example config:
 
-      <windowRules>
-        <windowRule identifier="some-application">
-          <action name="Maximize"/>
-        </windowRule>
-        <windowRule identifier="foo*" serverDecoration="yes|no"/>
-      </windowRules>
+```xml
+<windowRules>
+  <windowRule identifier="some-application">
+    <action name="Maximize"/>
+  </windowRule>
+  <windowRule identifier="foo*" serverDecoration="yes|no"/>
+</windowRules>
+```
 
 - Support configuration of window switcher field definitions.
   Issues #852 #855 #879
 
-      <windowSwitcher show="yes" preview="yes" outlines="yes">
-        <fields>
-          <field content="type" width="25%" />
-          <field content="app_id" width="25%" />
-          <field content="title" width="50%" />
-        </fields>
-      </windowSwitcher>
+```xml
+<windowSwitcher show="yes" preview="yes" outlines="yes">
+  <fields>
+    <field content="type" width="25%" />
+    <field content="app_id" width="25%" />
+    <field content="title" width="50%" />
+  </fields>
+</windowSwitcher>
+```
 
 - Add actions:
-    - 'Lower' Written-by: @jech
-    - 'Maximize'
+  - 'Lower' Written-by: @jech
+  - 'Maximize'
 - Support ext-session-lock protocol. Helped-by: @heroin-moose
 - Handle XWayland unmanaged surface requests for 'activate' and
   'override-redirect'. Fixes: #874
@@ -372,12 +522,12 @@ relating to surface focus and keyboard issues, amongst others.
 - Fix invisible cursor on startup and output loss/restore.
   Reported-by: @Flrian Fixes #820
 - Fix decoration protocol implementation
-    - Respect earlier decoration negotiation results via the
-      xdg-decoration protocol. Previously setting `<decoration>` to
-      `client` would cause applications which prefer server side
-      decorations to not have any decorations at all.
-      Fixes #297 #831
-    - Handle results of kde-server-decoration negotiations
+  - Respect earlier decoration negotiation results via the
+    xdg-decoration protocol. Previously setting `<decoration>` to
+    `client` would cause applications which prefer server side
+    decorations to not have any decorations at all.
+    Fixes #297 #831
+  - Handle results of kde-server-decoration negotiations
 - Fix `<focus><followMouse>` cursor glitches and issues with focus
   switching via Alt-Tab. Issue #830 #849
 
@@ -413,11 +563,13 @@ Unless otherwise stated all contributions are by the core-devs
   For example the following could be used to allow using A-Left/Right with
   Firefox.
 
-      <keyboard>
-        <default/>
-        <keybind key="A-Left"><action name="None" /></keybind>
-        <keybind key="A-Right"><action name="None" /></keybind>
-      </keyboard>
+```xml
+<keyboard>
+  <default/>
+  <keybind key="A-Left"><action name="None" /></keybind>
+  <keybind key="A-Right"><action name="None" /></keybind>
+</keyboard>
+```
 
 ### Fixed
 
@@ -440,11 +592,13 @@ Unless otherwise stated all contributions are by the core-devs
   Use `<core><windowSwitcher show="yes" preview="no" outlines="yes" />`
   instead of:
 
-      <core>
-        <cycleViewOSD>yes</cycleViewOSD>
-        <cycleViewOutlines>yes</cycleViewOutlines>
-        <cycleViewPreview>yes</cycleViewPreview>
-      </core>
+```xml
+<core>
+  <cycleViewOSD>yes</cycleViewOSD>
+  <cycleViewOutlines>yes</cycleViewOutlines>
+  <cycleViewPreview>yes</cycleViewPreview>
+</core>
+```
 
 ## [0.6.1] - 2023-01-29
 
@@ -783,41 +937,41 @@ feature-type changes are listed below.
 ### Added
 
 - Add support for the following wayland protocols:
-    - `pointer_constraints` and `relative_pointer` - mostly for gaming.
-      Written-by: @Joshua-Ashton
-    - `viewporter` - needed for some games to fake modesets.
-      Written-by: @Joshua-Ashton
-    - `wlr_input_inhibit`. This enables swaylock to be run.
-      Written-by: @telent
-    - `wlr_foreign_toplevel`. This enables controlling windows from clients
-      such as waybar.
-    - `idle` and `idle_inhibit` (Written-by: @ARDiDo)
+  - `pointer_constraints` and `relative_pointer` - mostly for gaming.
+    Written-by: @Joshua-Ashton
+  - `viewporter` - needed for some games to fake modesets.
+    Written-by: @Joshua-Ashton
+  - `wlr_input_inhibit`. This enables swaylock to be run.
+    Written-by: @telent
+  - `wlr_foreign_toplevel`. This enables controlling windows from clients
+    such as waybar.
+  - `idle` and `idle_inhibit` (Written-by: @ARDiDo)
 - Support fullscreen mode.
 - Support drag-and-drop. Written-by: @ARDiDo
 - Add the following config options:
-    - Load default keybinds on `<keyboard><default />`
-    - `<keyboard><repeatRate>` and `<keyboard><repeatDelay>`
-    - Specify distance between views and output edges with `<core><gap>`
-    - `<core><adaptiveSync>`
-    - Set menu item font with `<theme><font place="MenuItem">`
-    - Allow `<theme><font>` without place="" attribute, thus enabling
-      simpler config files
-    - Support `<mousebind>` with `contexts` (e.g. `TitleBar`, `Left`,
-      `TLCorner`, `Frame`), `buttons` (e.g. `left`, `right`), and
-      `mouse actions` (e.g. `Press`, `DoubleClick`). Modifier keys are
-      also supported to handle configurations such as `alt` + mouse button
-      to move/resize windows. (Written-by: @bi4k8, @apbryan)
-    - `<libinput>` configuration. Written-by: @ARDiDo
-    - `<resistance><screenEdgeStrength>`
+  - Load default keybinds on `<keyboard><default />`
+  - `<keyboard><repeatRate>` and `<keyboard><repeatDelay>`
+  - Specify distance between views and output edges with `<core><gap>`
+  - `<core><adaptiveSync>`
+  - Set menu item font with `<theme><font place="MenuItem">`
+  - Allow `<theme><font>` without place="" attribute, thus enabling
+    simpler config files
+  - Support `<mousebind>` with `contexts` (e.g. `TitleBar`, `Left`,
+    `TLCorner`, `Frame`), `buttons` (e.g. `left`, `right`), and
+    `mouse actions` (e.g. `Press`, `DoubleClick`). Modifier keys are
+    also supported to handle configurations such as `alt` + mouse button
+    to move/resize windows. (Written-by: @bi4k8, @apbryan)
+  - `<libinput>` configuration. Written-by: @ARDiDo
+  - `<resistance><screenEdgeStrength>`
 - Support for primary selection. Written-by: @telent
 - Support 'alt-tab' on screen display when cycling between windows
   including going backwards by pressing `shift` (Written-by: @Joshua-Ashton)
   and cancelling with `escape` (Written-by: @jlindgren90)
 - Add the following theme options:
-    - set buttons colors individually (for iconify, close and maximize)
-    - `window.(in)active.label.text.color`
-    - `window.label.text.justify`
-    - OSD colors
+  - set buttons colors individually (for iconify, close and maximize)
+  - `window.(in)active.label.text.color`
+  - `window.label.text.justify`
+  - OSD colors
 - Show application title in window decoration title bar
 - Handle double click on window decoration title bar
 - Support a 'resize-edges' area that is wider than than the visible
@@ -828,9 +982,9 @@ feature-type changes are listed below.
   'Move', 'MoveToEdge', 'Resize', 'PreviousWindow', 'ShowMenu'
 - Add labwc.desktop for display managers
 - layer-shell:
-    - Take into account exclusive areas of clients (such as panels) when
-      maximizing windows
-    - Support popups
+  - Take into account exclusive areas of clients (such as panels) when
+    maximizing windows
+  - Support popups
 - Handle xwayland `set_decorations` and xdg-shell-decoration requests.
   Written-by: @Joshua-Ashton
 - Handle view min/max size better, including xwayland hint support.

@@ -61,11 +61,15 @@ ssd_max_extents(struct view *view)
 {
 	assert(view);
 	struct border border = ssd_thickness(view);
+
+	int eff_width = view->current.width;
+	int eff_height = view_effective_height(view, /* use_pending */ false);
+
 	return (struct wlr_box){
 		.x = view->current.x - border.left,
 		.y = view->current.y - border.top,
-		.width = view->current.width + border.left + border.right,
-		.height = view->current.height + border.top + border.bottom,
+		.width = eff_width + border.left + border.right,
+		.height = eff_height + border.top + border.bottom,
 	};
 }
 
@@ -220,7 +224,11 @@ ssd_update_geometry(struct ssd *ssd)
 
 	struct wlr_box cached = ssd->state.geometry;
 	struct wlr_box current = ssd->view->current;
-	if (current.width == cached.width && current.height == cached.height) {
+
+	int eff_width = current.width;
+	int eff_height = view_effective_height(ssd->view, /* use_pending */ false);
+
+	if (eff_width == cached.width && eff_height == cached.height) {
 		if (current.x != cached.x || current.y != cached.y) {
 			/* Dynamically resize extents based on position and usable_area */
 			ssd_extents_update(ssd);
@@ -331,6 +339,16 @@ ssd_set_active(struct ssd *ssd, bool active)
 	wlr_scene_node_set_enabled(&ssd->titlebar.active.tree->node, active);
 	wlr_scene_node_set_enabled(&ssd->border.inactive.tree->node, !active);
 	wlr_scene_node_set_enabled(&ssd->titlebar.inactive.tree->node, !active);
+}
+
+void
+ssd_enable_shade(struct ssd *ssd, bool enable)
+{
+	if (!ssd) {
+		return;
+	}
+	ssd_border_update(ssd);
+	wlr_scene_node_set_enabled(&ssd->extents.tree->node, !enable);
 }
 
 void

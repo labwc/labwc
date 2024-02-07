@@ -9,6 +9,7 @@
 #include "common/border.h"
 #include "common/buf.h"
 #include "common/font.h"
+#include "config/touch.h"
 #include "config/tablet.h"
 #include "config/libinput.h"
 #include "resize_indicator.h"
@@ -34,6 +35,14 @@ enum adaptive_sync_mode {
 	LAB_ADAPTIVE_SYNC_FULLSCREEN,
 };
 
+enum tiling_events_mode {
+	LAB_TILING_EVENTS_NEVER = 0,
+	LAB_TILING_EVENTS_REGION = 1 << 0,
+	LAB_TILING_EVENTS_EDGE = 1 << 1,
+	LAB_TILING_EVENTS_ALWAYS =
+		(LAB_TILING_EVENTS_REGION | LAB_TILING_EVENTS_EDGE),
+};
+
 struct usable_area_override {
 	struct border margin;
 	char *output;
@@ -47,12 +56,16 @@ struct window_switcher_field {
 };
 
 struct rcxml {
+	/* from command line */
 	char *config_dir;
+	char *config_file;
+	bool merge_config;
 
 	/* core */
 	bool xdg_shell_server_side_deco;
 	int gap;
 	enum adaptive_sync_mode adaptive_sync;
+	bool allow_tearing;
 	bool reuse_output_mode;
 	enum view_placement_policy placement_policy;
 
@@ -87,8 +100,12 @@ struct rcxml {
 	struct wl_list mousebinds; /* struct mousebind.link */
 	double scroll_factor;
 
+	/* touch tablet */
+	struct wl_list touch_configs;
+
 	/* graphics tablet */
 	struct tablet_config {
+		char *output_name;
 		struct wlr_fbox box;
 		enum rotation rotation;
 		uint16_t button_map_count;
@@ -100,10 +117,12 @@ struct rcxml {
 
 	/* resistance */
 	int screen_edge_strength;
+	int window_edge_strength;
 
 	/* window snapping */
 	int snap_edge_range;
 	bool snap_top_maximize;
+	enum tiling_events_mode snap_tiling_events_mode;
 
 	enum resize_indicator_mode resize_indicator;
 

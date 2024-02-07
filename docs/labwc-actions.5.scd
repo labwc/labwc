@@ -19,7 +19,7 @@ Actions are used in menus and keyboard/mouse bindings.
 	Execute command.  Note that in the interest of backward compatibility,
 	labwc supports <execute> as an alternative to <command> even though
 	openbox documentation states that it is deprecated.
-	Note: Tilde (~) is expanded in the command before passing to execvp()
+	Note: Tilde (~) is expanded in the command before passing to execvp().
 
 *<action name="Exit" />*
 	Exit labwc.
@@ -40,7 +40,7 @@ Actions are used in menus and keyboard/mouse bindings.
 	Iconify (minimize) focused window.
 
 *<action name="Move" />*
-	Begin interactive move of window under cursor
+	Begin interactive move of window under cursor.
 
 *<action name="MoveToEdge" direction="value" snapWindows="value" />*
 	Move window until it hits the next edge.
@@ -52,7 +52,7 @@ Actions are used in menus and keyboard/mouse bindings.
 	the next screen edge. Default is yes.
 
 *<action name="Resize" />*
-	Begin interactive resize of window under cursor
+	Begin interactive resize of window under cursor.
 
 *<action name="ResizeRelative" left="" right="" top="" bottom="" />*
 	Resize window relative to its current size. Values of left, right,
@@ -71,10 +71,10 @@ Actions are used in menus and keyboard/mouse bindings.
 	*direction* [left|up|right|down] Direction in which to shrink.
 
 *<action name="MoveTo" x="" y="" />*
-	Move to position (x, y)
+	Move to position (x, y).
 
 *<action name="ResizeTo" width="" height="" />*
-	Resize window
+	Resize window.
 
 	*width* The width to resize the window to in pixels.
 
@@ -141,7 +141,8 @@ Actions are used in menus and keyboard/mouse bindings.
 	support the wlr-layer-shell protocol.
 
 *<action name="ToggleOmnipresent" />*
-	Toggle omnipresent (visible on all workspaces / sticky) for the focused window.
+	Toggle omnipresent (visible on all workspaces / sticky) for the focused
+	window.
 
 *<action name="ToggleKeybinds" />*
 	Stop handling keybinds other than ToggleKeybinds itself.
@@ -154,10 +155,26 @@ Actions are used in menus and keyboard/mouse bindings.
 	the usual keybinds will function again until switching back to the
 	original window. There can be multiple windows with this mode set.
 
+*<action name="ToggleTearing" />*
+	Toggles tearing for the focused window.
+
 *<action name="FocusOutput" output="HDMI-A-1" />*
 	Give focus to topmost window on given output and warp the cursor
 	to the center of the window. If the given output does not contain
 	any windows, the cursor is centered on the given output.
+
+*<action name="MoveToOutput" name="HDMI-A-1" direction="value" />*
+	Moves active window to other output, unless the window state is
+	fullscreen.
+
+	If *name* is specified, the window will be sent directly to the specified
+	output and *direction* is ignored. If *name* is omitted, *direction* may
+	be one of "left", "right", "up" or "down" to indicate that the window
+	should be moved to the next output in that direction (if one exists). 
+
+*<action name="FitToOutput" />*
+	Resizes active window size to width and height of the output when the
+	window size exceeds the output size.
 
 *<action name="GoToDesktop" to="value" wrap="yes" />*
 	Switch to workspace.
@@ -183,15 +200,16 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="VirtualOutputAdd" output_name="value" />*
 	Add virtual output (headless backend).
 
-	For example, it can be used to overlay virtual output on real output, but with
-	a different resolution (this can be done with `wlr-randr` or `wdisplays`).
-	After that, virtual output can be selected for screen sharing (casting),
-	effectively sharing only the region of the screen.
+	For example, it can be used to overlay virtual output on real output,
+	but with a different resolution (this can be done with `wlr-randr`
+	or `wdisplays`). After that, virtual output can be selected for screen
+	sharing (casting), effectively sharing only the region of the screen.
 
 	It must be noted that overlaying virtual output and real output is not
-	endorsed or explicitly supported by wlroots. For example, after configuring
-	virtual output, real output must be reconfigured as well (for the overlay
-	configuration to work correctly). This is the example configuration:
+	endorsed or explicitly supported by wlroots. For example, after
+	configuring virtual output, real output must be reconfigured as well
+	(for the overlay configuration to work correctly). This is the example
+	configuration:
 
 ```
 <keybind key="W-v">
@@ -206,25 +224,36 @@ Actions are used in menus and keyboard/mouse bindings.
 	Note that the vertical resolution of "ScreenCasting" output is just 50px
 	smaller than "eDP-1" output to cut off bottom panel from screen sharing.
 
-	Virtual output is also useful for extending the desktop to (maybe mobile)
-	remote systems like tablets. E.g. simply adding a virtual output, attaching
-	wayvnc to it and running a VNC client on the remote system.
+	Virtual output is also useful for extending the desktop to (maybe
+	mobile)	remote systems like tablets. E.g. simply adding a virtual
+	output, attaching wayvnc to it and running a VNC client on the remote
+	system.
 
-	*output_name* The name of virtual output. Providing virtual output name is
-	beneficial for further automation. Default is "HEADLESS-X".
+	*output_name* The name of virtual output. Providing virtual output name
+	is beneficial for further automation. Default is "HEADLESS-X".
 
 *<action name="VirtualOutputRemove" output_name="value" />*
 	Remove virtual output (headless backend).
 
-	*output_name* The name of virtual output. If not supplied, will remove the
-	last virtual output added.
+	*output_name* The name of virtual output. If not supplied, will remove
+	the last virtual output added.
 
 *<action name="AutoPlace" />*
 	Use the automatic placement policy to move the active window to a
 	position on its output that will minimize overlap with other windows.
 
+*<action name="Shade" />*++
+*<action name="Unshade" />*++
+*<action name="ToggleShade" />*
+	Set, unset, or toggle, respectively, the "shaded" state of the active
+	window. When shaded, window contents are hidden, leaving only the
+	titlebar visible. Full-screen windows or those without server-side
+	decorations (including those for which the server-side titlebar has been
+	hidden) are not eligible for shading.
+
 *<action name="None" />*
-	If used as the only action for a binding: clear an earlier defined binding.
+	If used as the only action for a binding: clear an earlier defined
+	binding.
 
 # CONDITIONAL ACTIONS
 
@@ -263,7 +292,7 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 			XWayland clients.
 
 		This argument is optional.
-	
+
 	*then*
 		A list of actions to be executed if the window matches any
 		query. This argument is optional.

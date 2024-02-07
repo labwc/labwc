@@ -168,8 +168,9 @@ build_grid(struct overlap_bitmap *bmp, struct view *view)
 			bmp->rows[nr_rows++] = y;
 		}
 
-		x = v->pending.x + v->pending.width + margin.right;
-		y = v->pending.y + v->pending.height + margin.bottom;
+		x = v->pending.x + margin.right + v->pending.width;
+		y = v->pending.y + margin.bottom
+			+ view_effective_height(v, /* use_pending */ true);
 
 		/* Add a column if the right view edge is in the usable region */
 		if (x > usable.x && x < usable_right) {
@@ -259,8 +260,9 @@ build_overlap(struct overlap_bitmap *bmp, struct view *view)
 		struct border margin = ssd_get_margin(v->ssd);
 		int lx = v->pending.x - margin.left;
 		int ly = v->pending.y - margin.top;
-		int hx = v->pending.x + v->pending.width + margin.right;
-		int hy = v->pending.y + v->pending.height + margin.bottom;
+		int hx = v->pending.x + margin.right + v->pending.width;
+		int hy = v->pending.y + margin.bottom
+			+ view_effective_height(v, /* use_pending */ true);
 
 		/*
 		 * Find the first and last row and column intervals spanned by
@@ -416,18 +418,26 @@ placement_find_best(struct view *view, struct wlr_box *geometry)
 		return false;
 	}
 
-	/* Default placement is just the upper-left corner of the output */
+	/* Default placement is upper-left corner, respecting gaps */
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-	geometry->x = usable.x + margin.left;
-	geometry->y = usable.y + margin.top;
+	geometry->x = usable.x + margin.left + rc.gap;
+	geometry->y = usable.y + margin.top + rc.gap;
 
 	/* Build the placement grid and overlap bitmap */
 	struct overlap_bitmap bmp = { 0 };
 	build_grid(&bmp, view);
 	build_overlap(&bmp, view);
 
-	int height = geometry->height + margin.top + margin.bottom;
-	int width = geometry->width + margin.left + margin.right;
+	/* Dimensions include gap along all edges to ensure proper separation */
+	int height = geometry->height + margin.top + margin.bottom + 2 * rc.gap;
+	int width = geometry->width + margin.left + margin.right + 2 * rc.gap;
+
+	/*
+	 * Overlap search identifies corners of the target region; view
+	 * coordinates must by set in by the SSD margin and user gaps.
+	 */
+	int offset_x = margin.left + rc.gap;
+	int offset_y = margin.top + rc.gap;
 
 	int min_overlap = INT_MAX;
 
@@ -486,18 +496,20 @@ placement_find_best(struct view *view, struct wlr_box *geometry)
 
 				if (rt) {
 					/* Extend window right from left edge */
-					geometry->x = bmp.cols[j] + margin.left;
+					geometry->x = bmp.cols[j] + offset_x;
 				} else {
 					/* Extend window left from right edge */
-					geometry->x = bmp.cols[j + 1] - width + margin.left;
+					geometry->x =
+						bmp.cols[j + 1] - width + offset_x;
 				}
 
 				if (dn) {
 					/* Extend window down from top edge */
-					geometry->y = bmp.rows[i] + margin.top;
+					geometry->y = bmp.rows[i] + offset_y;
 				} else {
 					/* Extend window up from bottom edge */
-					geometry->y = bmp.rows[i + 1] - height + margin.top;
+					geometry->y =
+						bmp.rows[i + 1] - height + offset_y;
 				}
 
 				/* If there is no overlap, the search is done. */

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <assert.h>
+#include <wlr/types/wlr_fractional_scale_v1.h>
+
 #include "common/macros.h"
 #include "common/mem.h"
 #include "decorations.h"
@@ -140,6 +142,29 @@ handle_commit(struct wl_listener *listener, void *data)
 		 */
 		if (!view->pending_configure_serial) {
 			view->pending = view->current;
+
+			/*
+			 * wlroots retains the size set by any call to
+			 * wlr_xdg_toplevel_set_size and will send the retained
+			 * values with every subsequent configure request. If a
+			 * client has resized itself in the meantime, a
+			 * configure request that sends the now-outated size
+			 * may prompt the client to resize itself unexpectedly.
+			 *
+			 * Calling wlr_xdg_toplevel_set_size to update the
+			 * value held by wlroots is undesirable here, because
+			 * that will trigger another configure event and we
+			 * don't want to get stuck in a request-response loop.
+			 * Instead, just manipulate the dimensions that *would*
+			 * be adjusted by the call, so the right values will
+			 * apply next time.
+			 *
+			 * This is not ideal, but it is the cleanest option.
+			 */
+			struct wlr_xdg_toplevel *toplevel =
+				xdg_toplevel_from_view(view);
+			toplevel->scheduled.width = view->current.width;
+			toplevel->scheduled.height = view->current.height;
 		}
 	}
 }
@@ -398,6 +423,51 @@ xdg_toplevel_view_set_fullscreen(struct view *view, bool fullscreen)
 		fullscreen);
 }
 
+static void
+xdg_toplevel_view_notify_tiled(struct view *view)
+{
+	/* Take no action if xdg-shell tiling is disabled */
+	if (rc.snap_tiling_events_mode == LAB_TILING_EVENTS_NEVER) {
+		return;
+	}
+
+	enum wlr_edges edge = WLR_EDGE_NONE;
+
+	bool want_edge = rc.snap_tiling_events_mode & LAB_TILING_EVENTS_EDGE;
+	bool want_region = rc.snap_tiling_events_mode & LAB_TILING_EVENTS_REGION;
+
+	/*
+	 * Edge-snapped view are considered tiled on the snapped edge and those
+	 * perpendicular to it.
+	 */
+	if (want_edge) {
+		switch (view->tiled) {
+		case VIEW_EDGE_LEFT:
+			edge = WLR_EDGE_LEFT | WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
+			break;
+		case VIEW_EDGE_RIGHT:
+			edge = WLR_EDGE_RIGHT | WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
+			break;
+		case VIEW_EDGE_UP:
+			edge = WLR_EDGE_TOP | WLR_EDGE_LEFT | WLR_EDGE_RIGHT;
+			break;
+		case VIEW_EDGE_DOWN:
+			edge = WLR_EDGE_BOTTOM | WLR_EDGE_LEFT | WLR_EDGE_RIGHT;
+			break;
+		default:
+			edge = WLR_EDGE_NONE;
+		}
+	}
+
+	if (want_region && view->tiled_region) {
+		/* Region-snapped views are considered tiled on all edges */
+		edge = WLR_EDGE_LEFT | WLR_EDGE_RIGHT |
+			WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
+	}
+
+	wlr_xdg_toplevel_set_tiled(xdg_toplevel_from_view(view), edge);
+}
+
 static struct view *
 lookup_view_by_xdg_toplevel(struct server *server,
 		struct wlr_xdg_toplevel *xdg_toplevel)
@@ -415,10 +485,12 @@ lookup_view_by_xdg_toplevel(struct server *server,
 }
 
 static void
-position_xdg_toplevel_view(struct view *view)
+set_initial_position(struct view *view)
 {
 	struct wlr_xdg_toplevel *parent_xdg_toplevel =
 		xdg_toplevel_from_view(view)->parent;
+
+	view_constrain_size_to_that_of_usable_area(view);
 
 	if (parent_xdg_toplevel) {
 		/* Child views are center-aligned relative to their parents */
@@ -431,7 +503,7 @@ position_xdg_toplevel_view(struct view *view)
 	}
 
 	/* All other views are placed according to a configured strategy */
-	view_place_initial(view);
+	view_place_initial(view, /* allow_cursor */ true);
 }
 
 static const char *
@@ -481,7 +553,13 @@ xdg_toplevel_view_map(struct view *view)
 	if (view->mapped) {
 		return;
 	}
+
 	view->mapped = true;
+
+	/*
+	 * An output should have been chosen when the surface was first
+	 * created, but take one more opportunity to assign an output if not.
+	 */
 	if (!view->output) {
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
@@ -518,7 +596,7 @@ xdg_toplevel_view_map(struct view *view)
 		 * is called before map (try "foot --maximized").
 		 */
 		if (view_is_floating(view)) {
-			position_xdg_toplevel_view(view);
+			set_initial_position(view);
 		}
 
 		set_fullscreen_from_request(view, requested);
@@ -561,6 +639,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.map = xdg_toplevel_view_map,
 	.set_activated = xdg_toplevel_view_set_activated,
 	.set_fullscreen = xdg_toplevel_view_set_fullscreen,
+	.notify_tiled = xdg_toplevel_view_notify_tiled,
 	.unmap = xdg_toplevel_view_unmap,
 	.maximize = xdg_toplevel_view_maximize,
 	.minimize = xdg_toplevel_view_minimize,
@@ -638,6 +717,17 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	view->type = LAB_XDG_SHELL_VIEW;
 	view->impl = &xdg_toplevel_view_impl;
 	xdg_toplevel_view->xdg_surface = xdg_surface;
+
+	/*
+	 * Pick an output for the surface as soon as its created, so that the
+	 * client can be notified about any fractional scale before it is given
+	 * the chance to configure itself (and possibly pick its dimensions).
+	 */
+	view_set_output(view, output_nearest_to_cursor(server));
+	if (view->output) {
+		wlr_fractional_scale_v1_notify_scale(xdg_surface->surface,
+			view->output->wlr_output->scale);
+	}
 
 	view->workspace = server->workspace_current;
 	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);

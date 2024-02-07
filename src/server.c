@@ -47,7 +47,7 @@ static void
 reload_config_and_theme(void)
 {
 	rcxml_finish();
-	rcxml_read(NULL);
+	rcxml_read(rc.config_file);
 	theme_finish(g_server->theme);
 	theme_init(g_server->theme, rc.theme_name);
 
@@ -61,13 +61,12 @@ reload_config_and_theme(void)
 	regions_reconfigure(g_server);
 	resize_indicator_reconfigure(g_server);
 	kde_server_decoration_update_default();
-	keybind_update_keycodes(g_server);
 }
 
 static int
 handle_sighup(int signal, void *data)
 {
-	session_environment_init(rc.config_dir);
+	session_environment_init();
 	reload_config_and_theme();
 	return 0;
 }
@@ -448,6 +447,10 @@ server_init(struct server *server)
 		handle_output_power_manager_set_mode;
 	wl_signal_add(&server->output_power_manager_v1->events.set_mode,
 		&server->output_power_manager_set_mode);
+
+	server->tearing_control = wlr_tearing_control_manager_v1_create(server->wl_display, 1);
+	server->tearing_new_object.notify = new_tearing_hint;
+	wl_signal_add(&server->tearing_control->events.new_object, &server->tearing_new_object);
 
 	layers_init(server);
 

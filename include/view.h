@@ -94,6 +94,7 @@ struct view_impl {
 	void (*map)(struct view *view);
 	void (*set_activated)(struct view *view, bool activated);
 	void (*set_fullscreen)(struct view *view, bool fullscreen);
+	void (*notify_tiled)(struct view *view);
 	/*
 	 * client_request is true if the client unmapped its own
 	 * surface; false if we are just minimizing the view. The two
@@ -148,9 +149,11 @@ struct view {
 	bool ssd_enabled;
 	bool ssd_titlebar_hidden;
 	enum ssd_preference ssd_preference;
+	bool shaded;
 	bool minimized;
 	enum view_axis maximized;
 	bool fullscreen;
+	bool tearing_hint;
 	bool visible_on_all_workspaces;
 	enum view_edge tiled;
 	bool inhibits_keybinds;
@@ -346,6 +349,15 @@ enum view_wants_focus view_wants_focus(struct view *view);
 bool view_is_focusable_from(struct view *view, struct wlr_surface *prev);
 
 /**
+ * view_edge_invert() - select the opposite of a provided edge
+ *
+ * VIEW_EDGE_CENTER and VIEW_EDGE_INVALID both map to VIEW_EDGE_INVALID.
+ *
+ * @edge: edge to be inverted
+ */
+enum view_edge view_edge_invert(enum view_edge edge);
+
+/**
  * view_is_focusable() - Check whether or not a view can be focused
  * @view: view to be checked
  *
@@ -390,8 +402,14 @@ void view_moved(struct view *view);
 void view_minimize(struct view *view, bool minimized);
 bool view_compute_centered_position(struct view *view,
 	const struct wlr_box *ref, int w, int h, int *x, int *y);
-bool view_adjust_floating_geometry(struct view *view, struct wlr_box *geometry);
 void view_store_natural_geometry(struct view *view);
+
+/**
+ * view_effective_height - effective height of view, with respect to shaded state
+ * @view: view for which effective height is desired
+ * @use_pending: if false, report current height; otherwise, report pending height
+ */
+int view_effective_height(struct view *view, bool use_pending);
 
 /**
  * view_center - center view within some region
@@ -405,7 +423,8 @@ void view_center(struct view *view, const struct wlr_box *ref);
  * view_place_initial - apply initial placement strategy to view
  * @view: view to be placed
  */
-void view_place_initial(struct view *view);
+void view_place_initial(struct view *view, bool allow_cursor);
+void view_constrain_size_to_that_of_usable_area(struct view *view);
 
 void view_restore_to(struct view *view, struct wlr_box geometry);
 void view_set_untiled(struct view *view);
@@ -435,6 +454,7 @@ void view_shrink_to_edge(struct view *view, enum view_edge direction);
 void view_snap_to_edge(struct view *view, enum view_edge direction,
 	bool across_outputs, bool store_natural_geometry);
 void view_snap_to_region(struct view *view, struct region *region, bool store_natural_geometry);
+void view_move_to_output(struct view *view, struct output *output);
 
 void view_move_to_front(struct view *view);
 void view_move_to_back(struct view *view);
@@ -461,6 +481,8 @@ void view_update_title(struct view *view);
 void view_update_app_id(struct view *view);
 void view_reload_ssd(struct view *view);
 
+void view_set_shade(struct view *view, bool shaded);
+
 struct view_size_hints view_get_size_hints(struct view *view);
 void view_adjust_size(struct view *view, int *w, int *h);
 
@@ -469,6 +491,7 @@ void view_on_output_destroy(struct view *view);
 void view_connect_map(struct view *view, struct wlr_surface *surface);
 void view_destroy(struct view *view);
 
+struct output *view_get_adjacent_output(struct view *view, enum view_edge edge);
 enum view_axis view_axis_parse(const char *direction);
 enum view_edge view_edge_parse(const char *direction);
 

@@ -7,21 +7,17 @@
 #include <sys/stat.h>
 #include <wlr/util/log.h>
 #include "common/buf.h"
+#include "common/dir.h"
 #include "common/file-helpers.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 #include "config/session.h"
-
-static bool
-string_empty(const char *s)
-{
-	return !s || !*s;
-}
+#include "labwc.h"
 
 static void
 process_line(char *line)
 {
-	if (string_empty(line) || line[0] == '#') {
+	if (string_null_or_empty(line) || line[0] == '#') {
 		return;
 	}
 	char *key = NULL;
@@ -37,7 +33,7 @@ process_line(char *line)
 	buf_add(&value, string_strip(++p));
 	buf_expand_shell_variables(&value);
 	buf_expand_tilde(&value);
-	if (string_empty(key) || !value.len) {
+	if (string_null_or_empty(key) || !value.len) {
 		goto error;
 	}
 	setenv(key, value.buf, 1);
@@ -45,14 +41,15 @@ error:
 	free(value.buf);
 }
 
-static void
+/* return true on successful read */
+static bool
 read_environment_file(const char *filename)
 {
 	char *line = NULL;
 	size_t len = 0;
 	FILE *stream = fopen(filename, "r");
 	if (!stream) {
-		return;
+		return false;
 	}
 	wlr_log(WLR_INFO, "read environment file %s", filename);
 	while (getline(&line, &len, stream) != -1) {
@@ -64,15 +61,7 @@ read_environment_file(const char *filename)
 	}
 	free(line);
 	fclose(stream);
-}
-
-static char *
-build_path(const char *dir, const char *filename)
-{
-	if (string_empty(dir) || string_empty(filename)) {
-		return NULL;
-	}
-	return strdup_printf("%s/%s", dir, filename);
+	return true;
 }
 
 static void
@@ -96,7 +85,7 @@ update_activation_env(const char *env_keys)
 }
 
 void
-session_environment_init(const char *dir)
+session_environment_init(void)
 {
 	/*
 	 * Set default for XDG_CURRENT_DESKTOP so xdg-desktop-portal-wlr is happy.
@@ -114,32 +103,49 @@ session_environment_init(const char *dir)
 	 */
 	setenv("_JAVA_AWT_WM_NONREPARENTING", "1", 0);
 
-	char *environment = build_path(dir, "environment");
-	if (!environment) {
-		return;
+	struct wl_list paths;
+	paths_config_create(&paths, "environment");
+
+	bool should_merge_config = rc.merge_config;
+	struct wl_list *(*iter)(struct wl_list *list);
+	iter = should_merge_config ? paths_get_prev : paths_get_next;
+
+	for (struct wl_list *elm = iter(&paths); elm != &paths; elm = iter(elm)) {
+		struct path *path = wl_container_of(elm, path, link);
+		bool success = read_environment_file(path->string);
+		if (success && !should_merge_config) {
+			break;
+		}
 	}
-	read_environment_file(environment);
-	free(environment);
+	paths_destroy(&paths);
 }
 
 void
-session_autostart_init(const char *dir)
+session_autostart_init(void)
 {
 	/* Update dbus and systemd user environment, each may fail gracefully */
 	update_activation_env("DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP");
 
-	char *autostart = build_path(dir, "autostart");
-	if (!autostart) {
-		return;
+	struct wl_list paths;
+	paths_config_create(&paths, "autostart");
+
+	bool should_merge_config = rc.merge_config;
+	struct wl_list *(*iter)(struct wl_list *list);
+	iter = should_merge_config ? paths_get_prev : paths_get_next;
+
+	for (struct wl_list *elm = iter(&paths); elm != &paths; elm = iter(elm)) {
+		struct path *path = wl_container_of(elm, path, link);
+		if (!file_exists(path->string)) {
+			continue;
+		}
+		wlr_log(WLR_INFO, "run autostart file %s", path->string);
+		char *cmd = strdup_printf("sh %s", path->string);
+		spawn_async_no_shell(cmd);
+		free(cmd);
+
+		if (!should_merge_config) {
+			break;
+		}
 	}
-	if (!file_exists(autostart)) {
-		wlr_log(WLR_ERROR, "no autostart file");
-		goto out;
-	}
-	wlr_log(WLR_INFO, "run autostart file %s", autostart);
-	char *cmd = strdup_printf("sh %s", autostart);
-	spawn_async_no_shell(cmd);
-	free(cmd);
-out:
-	free(autostart);
+	paths_destroy(&paths);
 }

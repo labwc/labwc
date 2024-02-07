@@ -13,6 +13,12 @@
 #include "view.h"
 #include "workspaces.h"
 
+enum lab_key_handled {
+	LAB_KEY_HANDLED_FALSE = 0,
+	LAB_KEY_HANDLED_TRUE = 1,
+	LAB_KEY_HANDLED_TRUE_AND_VT_CHANGED,
+};
+
 struct keysyms {
 	const xkb_keysym_t *syms;
 	int nr_syms;
@@ -298,12 +304,14 @@ handle_key_release(struct server *server, uint32_t evdev_keycode)
 }
 
 static bool
-handle_change_vt_key(struct server *server, struct keysyms *translated)
+handle_change_vt_key(struct server *server, struct keyboard *keyboard,
+		struct keysyms *translated)
 {
 	for (int i = 0; i < translated->nr_syms; i++) {
 		unsigned int vt =
 			translated->syms[i] - XKB_KEY_XF86Switch_VT_1 + 1;
 		if (vt >= 1 && vt <= 12) {
+			keyboard_cancel_keybind_repeat(keyboard);
 			change_vt(server, vt);
 			return true;
 		}
@@ -331,10 +339,7 @@ handle_menu_keys(struct server *server, struct keysyms *syms)
 			menu_submenu_leave(server);
 			break;
 		case XKB_KEY_Return:
-			if (menu_call_selected_actions(server)) {
-				menu_close_root(server);
-				cursor_update_focus(server);
-			}
+			menu_call_selected_actions(server);
 			break;
 		case XKB_KEY_Escape:
 			menu_close_root(server);
@@ -380,7 +385,7 @@ handle_cycle_view_key(struct server *server, struct keyinfo *keyinfo)
 	}
 }
 
-static bool
+static enum lab_key_handled
 handle_compositor_keybindings(struct keyboard *keyboard,
 		struct wlr_keyboard_key_event *event)
 {
@@ -398,9 +403,9 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	}
 
 	/* Catch C-A-F1 to C-A-F12 to change tty */
-	if (handle_change_vt_key(server, &keyinfo.translated)) {
+	if (handle_change_vt_key(server, keyboard, &keyinfo.translated)) {
 		key_state_store_pressed_key_as_bound(event->keycode);
-		return true;
+		return LAB_KEY_HANDLED_TRUE_AND_VT_CHANGED;
 	}
 
 	/*
@@ -507,7 +512,13 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	/* any new press/release cancels current keybind repeat */
 	keyboard_cancel_keybind_repeat(keyboard);
 
-	bool handled = handle_compositor_keybindings(keyboard, event);
+	enum lab_key_handled handled =
+		handle_compositor_keybindings(keyboard, event);
+
+	if (handled == LAB_KEY_HANDLED_TRUE_AND_VT_CHANGED) {
+		return;
+	}
+
 	if (handled) {
 		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			start_keybind_repeat(seat->server, keyboard, event);
@@ -581,25 +592,72 @@ keyboard_update_layout(struct seat *seat, xkb_layout_index_t layout)
 		kb->modifiers.latched, kb->modifiers.locked, layout);
 }
 
-void
-keyboard_init(struct seat *seat)
+static void
+reset_window_keyboard_layout_groups(struct server *server)
 {
-	seat->keyboard_group = wlr_keyboard_group_create();
-	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
+	if (!rc.kb_layout_per_window) {
+		return;
+	}
+
+	/*
+	 * Technically it would be possible to reconcile previous group indices
+	 * to new group ones if particular layouts exist in both old and new,
+	 * but let's keep it simple for now and just reset them all.
+	 */
+	struct view *view;
+	for_each_view(view, &server->views, LAB_VIEW_CRITERIA_NONE) {
+		view->keyboard_layout = 0;
+	}
+
+	struct view *active_view = server->active_view;
+	if (!active_view) {
+		return;
+	}
+	keyboard_update_layout(&server->seat, active_view->keyboard_layout);
+}
+
+/*
+ * Set layout based on environment variables XKB_DEFAULT_LAYOUT,
+ * XKB_DEFAULT_OPTIONS, and friends.
+ */
+static void
+set_layout(struct server *server, struct wlr_keyboard *kb)
+{
 	struct xkb_rule_names rules = { 0 };
 	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
 	struct xkb_keymap *keymap = xkb_map_new_from_names(context, &rules,
 		XKB_KEYMAP_COMPILE_NO_FLAGS);
 	if (keymap) {
-		wlr_keyboard_set_keymap(kb, keymap);
+		if (!wlr_keyboard_keymaps_match(kb->keymap, keymap)) {
+			wlr_keyboard_set_keymap(kb, keymap);
+			reset_window_keyboard_layout_groups(server);
+		}
 		xkb_keymap_unref(keymap);
 	} else {
 		wlr_log(WLR_ERROR, "Failed to create xkb keymap");
 	}
 	xkb_context_unref(context);
-	wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
+}
 
+void
+keyboard_configure(struct seat *seat, struct wlr_keyboard *kb, bool is_virtual)
+{
+	if (!is_virtual) {
+		set_layout(seat->server, kb);
+	}
+	wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
 	keybind_update_keycodes(seat->server);
+}
+
+void
+keyboard_group_init(struct seat *seat)
+{
+	if (seat->keyboard_group) {
+		return;
+	}
+	seat->keyboard_group = wlr_keyboard_group_create();
+	keyboard_configure(seat, &seat->keyboard_group->keyboard,
+		/* is_virtual */ false);
 }
 
 void
@@ -614,7 +672,7 @@ keyboard_setup_handlers(struct keyboard *keyboard)
 }
 
 void
-keyboard_finish(struct seat *seat)
+keyboard_group_finish(struct seat *seat)
 {
 	/*
 	 * All keyboard listeners must be removed before this to avoid use after

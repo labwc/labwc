@@ -97,11 +97,17 @@ enum action_type {
 	ACTION_TYPE_SNAP_TO_REGION,
 	ACTION_TYPE_TOGGLE_KEYBINDS,
 	ACTION_TYPE_FOCUS_OUTPUT,
+	ACTION_TYPE_MOVE_TO_OUTPUT,
+	ACTION_TYPE_FIT_TO_OUTPUT,
 	ACTION_TYPE_IF,
 	ACTION_TYPE_FOR_EACH,
 	ACTION_TYPE_VIRTUAL_OUTPUT_ADD,
 	ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE,
 	ACTION_TYPE_AUTO_PLACE,
+	ACTION_TYPE_TOGGLE_TEARING,
+	ACTION_TYPE_SHADE,
+	ACTION_TYPE_UNSHADE,
+	ACTION_TYPE_TOGGLE_SHADE,
 };
 
 const char *action_names[] = {
@@ -144,11 +150,17 @@ const char *action_names[] = {
 	"SnapToRegion",
 	"ToggleKeybinds",
 	"FocusOutput",
+	"MoveToOutput",
+	"FitToOutput",
 	"If",
 	"ForEach",
 	"VirtualOutputAdd",
 	"VirtualOutputRemove",
 	"AutoPlace",
+	"ToggleTearing",
+	"Shade",
+	"Unshade",
+	"ToggleShade",
 	NULL
 };
 
@@ -367,6 +379,22 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 	case ACTION_TYPE_FOCUS_OUTPUT:
 		if (!strcmp(argument, "output")) {
 			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_MOVE_TO_OUTPUT:
+		if (!strcmp(argument, "name")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		if (!strcmp(argument, "direction")) {
+			enum view_edge edge = view_edge_parse(content);
+			if (edge == VIEW_EDGE_CENTER) {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			} else {
+				action_arg_add_int(action, argument, edge);
+			}
 			goto cleanup;
 		}
 		break;
@@ -839,6 +867,7 @@ actions_run(struct view *activator, struct server *server,
 					.width = width ? : view->pending.width,
 					.height = height ? : view->pending.height,
 				};
+				view_set_shade(view, false);
 				view_move_resize(view, box);
 			}
 			break;
@@ -883,6 +912,31 @@ actions_run(struct view *activator, struct server *server,
 						/*update_focus*/ true);
 				}
 			}
+			break;
+		case ACTION_TYPE_MOVE_TO_OUTPUT:
+			if (!view) {
+				break;
+			}
+			const char *name = action_get_str(action, "name", NULL);
+			struct output *target = NULL;
+			if (name) {
+				target = output_from_name(view->server, name);
+			} else {
+				/* Config parsing makes sure that direction is a valid direction */
+				enum view_edge edge = action_get_int(action, "direction", 0);
+				target = view_get_adjacent_output(view, edge);
+			}
+			if (!target) {
+				wlr_log(WLR_ERROR, "Invalid output.");
+				break;
+			}
+			view_move_to_output(view, target);
+			break;
+		case ACTION_TYPE_FIT_TO_OUTPUT:
+			if (!view) {
+				break;
+			}
+			view_constrain_size_to_that_of_usable_area(view);
 			break;
 		case ACTION_TYPE_SNAP_TO_REGION:
 			if (!view) {
@@ -949,6 +1003,28 @@ actions_run(struct view *activator, struct server *server,
 				if (placement_find_best(view, &geometry)) {
 					view_move(view, geometry.x, geometry.y);
 				}
+			}
+			break;
+		case ACTION_TYPE_TOGGLE_TEARING:
+			if (view) {
+				view->tearing_hint = !view->tearing_hint;
+				wlr_log(WLR_DEBUG, "tearing %sabled",
+					view->tearing_hint ? "en" : "dis");
+			}
+			break;
+		case ACTION_TYPE_TOGGLE_SHADE:
+			if (view) {
+				view_set_shade(view, !view->shaded);
+			}
+			break;
+		case ACTION_TYPE_SHADE:
+			if (view) {
+				view_set_shade(view, true);
+			}
+			break;
+		case ACTION_TYPE_UNSHADE:
+			if (view) {
+				view_set_shade(view, false);
 			}
 			break;
 		case ACTION_TYPE_INVALID:

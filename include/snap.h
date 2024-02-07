@@ -7,11 +7,13 @@
 
 struct wlr_box;
 
-struct border snap_get_max_distance(struct view *view);
+void snap_move_to_edge(struct view *view,
+	enum view_edge direction, bool snap_to_windows, int *dx, int *dy);
 
-void snap_vector_to_next_edge(struct view *view, enum view_edge direction, int *dx, int *dy);
-int snap_distance_to_next_edge(struct view *view, enum view_edge direction);
-void snap_grow_to_next_edge(struct view *view, enum view_edge direction, struct wlr_box *geo);
-void snap_shrink_to_next_edge(struct view *view, enum view_edge direction, struct wlr_box *geo);
+void snap_grow_to_next_edge(struct view *view,
+	enum view_edge direction, struct wlr_box *geo);
+
+void snap_shrink_to_next_edge(struct view *view,
+	enum view_edge direction, struct wlr_box *geo);
 
 #endif /* LABWC_SNAP_H */

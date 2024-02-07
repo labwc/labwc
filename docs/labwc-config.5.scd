@@ -18,6 +18,19 @@ searched for in the following order:
 - ${XDG_CONFIG_HOME:-$HOME/.config}/labwc
 - ${XDG_CONFIG_DIRS:-/etc/xdg}/labwc
 
+When $XDG_CONFIG_HOME is defined, it replaces (rather than augments)
+$HOME/.config. The same is the case for $XDG_CONFIG_DIRS and /etc/xdg.
+
+The XDG Base Directory Specification does not specify whether or not programs
+should (a) allow the first-identified configuration file to supersede any
+others, or (b) define rules for merging the information from more than one file.
+
+By default, labwc uses option (a), reading only the first file identified.  With
+the --merge-config option, the search order is reserved, but every configuration
+file encountered is processed in turn. Thus, user-specific files will augment
+system-wide configurations, with conflicts favoring the user-specific
+alternative.
+
 The configuration directory location can be override with the -C command line
 option.
 
@@ -109,6 +122,7 @@ this is for compatibility with Openbox.
   <decoration>server</decoration>
   <gap>0</gap>
   <adaptiveSync>no</adaptiveSync>
+  <allowTearing>no</allowTearing>
   <reuseOutputMode>no</reuseOutputMode>
 </core>
 ```
@@ -127,6 +141,12 @@ this is for compatibility with Openbox.
 
 	*fullscreen* enables adaptive sync whenever a window is in fullscreen
 	mode.
+
+*<core><allowTearing>* [yes|no]
+	Allow tearing to reduce input lag. Default is no.
+	This option requires setting the environment variable
+	WLR_DRM_NO_ATOMIC=1.
+	*yes* allow tearing if requested by the active window.
 
 *<core><reuseOutputMode>* [yes|no]
 	Try to re-use the existing output mode (resolution / refresh rate).
@@ -166,8 +186,8 @@ this is for compatibility with Openbox.
 		- *identifier* Show identifier (app_id for native Wayland
 		  windows and WM_CLASS for XWayland clients)
 
-		- *trimmed_identifier* Show trimmed identifier. Trimming removes the first
-		  two nodes of 'org.' strings.
+		- *trimmed_identifier* Show trimmed identifier. Trimming removes
+		  the first two nodes of 'org.' strings.
 
 		- *title* Show window title if different to app_id
 
@@ -176,10 +196,26 @@ this is for compatibility with Openbox.
 
 ## RESISTANCE
 
-*<resistance><screenEdgeStrength>*
-	Screen Edge Strength is how far past the screen's edge your cursor must
-	move before the window will move with it. Resistance is counted in
-	pixels. Default is 20 pixels.
+*<resistance><screenEdgeStrength>*++
+*<resistance><windowEdgeStrength>*
+	Resist interactive moves and resizes of a window across screen edges or
+	the edges of any other window, respectively.
+
+	When an edge strength is positive, it indicates a distance, in pixels,
+	that the cursor must move past any relevant encountered edge before an
+	interactive move or resize operation will continue across that edge.
+
+	When the strength is negative, any interactive move or resize operation
+	that brings the cursor within the absolute value of the specified
+	distance, in pixels, from any relevant edge will snap the operation to
+	that edge. Thus, as a move or resize approaches an edge, it will
+	"attract" the cursor to that edge within the specified distance. As the
+	move or resize continues past the edge, it will provide resistance until
+	the cursor has moved beyond the distance.
+
+	A strength of zero disables the corresponding resistance effect.
+
+	The default value for both parameters is 20 pixels.
 
 ## FOCUS
 
@@ -200,16 +236,44 @@ this is for compatibility with Openbox.
 
 ## WINDOW SNAPPING
 
-The following two options relate to triggering window actions when moving
-windows using the mouse. 
+Windows may be "snapped" to an edge or user-defined region of an output when
+activated with SnapToEdge actions or, optionally, by dragging windows to the
+edges of an output. Edge snapping causes a window to occupy half of its output,
+extending outward from the snapped edge.
 
 *<snapping><range>*
-	The distance in pixels from the edge of an output for window Move
-	operations to trigger SnapToEdge. A range of 0 disables window snapping.
-	Default is 1.
+	If an interactive move ends with the cursor a maximum distance *range*,
+	(in pixels) from the edge of an output, the move will trigger a
+	SnapToEdge action for that edge. A *range* of 0 disables snapping via
+	interactive moves. Default is 1.
 
 *<snapping><topMaximize>* [yes|no]
-	Maximize window if Move operation ends on the top edge. Default is yes.
+	If *yes*, an interactive move that snaps a window to the top edge will
+	maximize the window. If *no*, snapping will behave as it does with other
+	edges, causing the window to occupy the top half of an output. Default
+	is yes.
+
+*<snapping><notifyClient>* [always|region|edge|never]
+	Snapping windows can trigger corresponding tiling events for native
+	Wayland clients. Clients may use these events to alter their rendering
+	based on knowledge that some edges of the view are confined to edges of
+	a snapping region or output. For example, rounded corners may become
+	square when tiled, or media players may letter-box or pillar-box video
+	rather than imposing rigid aspect ratios on windows that will violate
+	the constraints of window snapping.
+
+	- When *always* is specified, any window that is snapped to either an
+	  output edge or a user-defined region will receive a tiling event.
+
+	- When *region* is specified, only windows snapped to a user-defined
+	  region will receive an event.
+
+	- When *edge* is specified, only windows snapped to an output edge will
+	  receive an event.
+
+	- When *never* is specified, tiling events will never be triggered.
+
+	The default is "always".
 
 ## REGIONS
 
@@ -229,9 +293,9 @@ windows using the mouse.
 	GoToDesktop and windows can be moved with SendToDesktop. See
 	labwc-actions(5) for more information about their arguments.
 
-	The number attribute defines the minimum number of workspaces. Default is 1. 
-	The number attribute is optional. If the number attribute is specified, names.name
-	is not required.
+	The number attribute defines the minimum number of workspaces. Default
+	is 1. The number attribute is optional. If the number attribute is
+	specified, names.name is not required.
 
 *<desktops><popupTime>*
 	Define the timeout after which to hide the workspace OSD.
@@ -253,7 +317,8 @@ windows using the mouse.
 	The font to use for a specific element of a window, menu or OSD.
 	Places can be any of:
 	- ActiveWindow - titlebar of active window
-	- InactiveWindow - titlebar of all windows that aren't focused by the cursor
+	- InactiveWindow - titlebar of all windows that aren't focused by the
+	  cursor
 	- MenuItem - menu item (currently only root menu)
 	- OnScreenDisplay - items in the on screen display
 	If no place attribute is provided, the setting will be applied to all
@@ -336,7 +401,7 @@ windows using the mouse.
 	Default is no.
 
 *<keyboard><keybind key=""><action name="">*
-	Keybind action. See labwc-action(5)
+	Keybind action. See labwc-action(5).
 
 *<keyboard><default />*
 	Load the default keybinds listed below. This is an addition to the
@@ -357,7 +422,7 @@ windows using the mouse.
 ```
 
 	Audio and MonBrightness keys are also bound to amixer and
-	brightnessctl respectively
+	brightnessctl, respectively.
 
 *<keyboard><repeatRate>*
 	Set the rate at which keypresses are repeated per second.
@@ -377,7 +442,7 @@ windows using the mouse.
 
 *<mouse><context name=""><mousebind button="" direction="" action=""><action>*
 	Multiple *<mousebind>* can exist within one *<context>*; and multiple
-	*<action>* can exist within one *<mousebind>*
+	*<action>* can exist within one *<mousebind>*.
 
 	Define a mouse binding. Supported context-names include:
 	- TitleBar: The decoration on top of the window, where the window
@@ -419,8 +484,9 @@ windows using the mouse.
 	- Left
 	- Right
 
-	Mouse buttons and directions can be combined with modifier-keys (shift (S),
-	super/logo (W), control (C), alt (A), meta (M) and hyper (H)), for example:
+	Mouse buttons and directions can be combined with modifier-keys
+	(shift (S), super/logo (W), control (C), alt (A), meta (M) and
+	hyper (H)), for example:
 	<mousebind button="A-Right" action="Press">
 
 	Supported mouse *actions* include:
@@ -438,16 +504,43 @@ windows using the mouse.
 	<mouse><mousebind> entries exist, the same default mousebinds will be
 	loaded even if the <default /> element is not provided.
 
+## TOUCH
+
+```
+<touch deviceName="" mapToOutput="" />
+```
+
+*<touch deviceName="" />*
+	A touch configuration can be bound to a specifc device. If device
+	name is left empty, the touch configuration applies to all touch
+	devices or functions as a fallback. Multiple touch configurations
+	can exist.
+	See the libinput device section for obtaining the device names.
+
+*<touch mapToOutput="" />*
+	Direct cursor movement to a specified output. If the compositor is
+	running in nested mode, this does not take effect.
+
 ## TABLET
 
 ```
-<tablet rotate="0">
-  <area top="0.0" left="0.0" width="0.0" height="0.0">
+<tablet mapToOutput="" rotate="0">
+  <area top="0.0" left="0.0" width="0.0" height="0.0" />
   <map button="Tip" to="Left" />
   <map button="Stylus" to="Right" />
   <map button="Stylus2" to="Middle" />
 </tablet>
 ```
+
+*<tablet mapToOutput="" />*
+	The tablet cursor movement can be restricted to a single output.
+	If the output name is left empty or the output does not exists, the
+	tablet will span all outputs.
+
+*<tablet rotate="" />* [0|90|180|270]
+	The tablet orientation can be changed in 90 degree steps. Default is
+	no rotation (0). Rotation will be applied after applying tablet area
+	transformation.
 
 *<tablet><area top="mm" left="mm" width="mm" height="mm" />*
 	By default the complete tablet area is mapped to the full output.
@@ -462,22 +555,17 @@ windows using the mouse.
 
 	Aspect ratio example:
 	The dimensions of the tablet are 215mm x 115mm and the output has
-	a resolution of 3440x1440. When setting height to "90", because 
+	a resolution of 3440x1440. When setting height to "90", because
 	215 x 1440 / 3440 = 90, the responsive tablet area height will be
 	truncated to match the 21:9 aspect ratio of the output. By
 	additionally setting top to "12.5", the active area is centered
 	vertically on the tablet surface.
 
-*<tablet rotate="" />* [0|90|180|270]
-	The tablet orientation can be changed in 90 degree steps. Default is
-	no rotation (0). Rotation will be applied after applying tablet area
-	transformation.
-
 *<tablet><map button="" to="" />*
-	Tablet buttons emulate regular mouse buttons. If not specified otherwise,
-	the tip (Tip) is mapped to left mouse click, the first pen button (Stylus)
-	is mapped to right mouse button click and the second pen button (Stylus2)
-	emulates a middle mouse button click.
+	Tablet buttons emulate regular mouse buttons. If not specified
+	otherwise, the tip (Tip) is mapped to left mouse click, the first pen
+	button (Stylus)	is mapped to right mouse button click and the second pen
+	button (Stylus2) emulates a middle mouse button click.
 
 	Supported map *buttons* are:
 	- Tip
@@ -533,7 +621,7 @@ windows using the mouse.
 
 	A list of device names can be obtained by running
 	*libinput list-devices* (you may need to be root or a part of the input
-	group to perform this.)
+	group to perform this).
 
 *<libinput><device><naturalScroll>* [yes|no]
 	Use natural scrolling for this category if available.
@@ -634,7 +722,7 @@ situation.
 
 *<windowRules><windowRule skipWindowSwitcher="">* [yes|no|default]
 	*skipWindowSwitcher* removes window from the Window Switcher (alt-tab
-	on-screen-display)
+	on-screen-display).
 
 *<windowRules><windowRule ignoreFocusRequest="">* [yes|no|default]
 	*ignoreFocusRequest* prevent window to activate itself.

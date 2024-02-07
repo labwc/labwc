@@ -55,7 +55,8 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		}
 		if (!view_is_floating(view)) {
 			/*
-			 * Un-maximize and restore natural width/height.
+			 * Un-maximize, unshade and restore natural
+			 * width/height.
 			 * Don't reset tiled state yet since we may want
 			 * to keep it (in the snap-to-maximize case).
 			 */
@@ -66,6 +67,9 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			geometry.y = max_move_scale(seat->cursor->y,
 				view->current.y, view->current.height,
 				geometry.height);
+
+			view_set_shade(view, false);
+			view_set_untiled(view);
 			view_restore_to(view, geometry);
 		} else {
 			/* Store natural geometry at start of move */
@@ -80,10 +84,11 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		cursor_set(seat, LAB_CURSOR_GRAB);
 		break;
 	case LAB_INPUT_STATE_RESIZE:
-		if (view->fullscreen || view->maximized == VIEW_AXIS_BOTH) {
+		if (view->shaded || view->fullscreen ||
+				view->maximized == VIEW_AXIS_BOTH) {
 			/*
-			 * We don't allow resizing while fullscreen or
-			 * maximized in both directions.
+			 * We don't allow resizing while shaded,
+			 * fullscreen or maximized in both directions.
 			 */
 			return;
 		}
@@ -192,24 +197,17 @@ snap_to_region(struct view *view)
 void
 interactive_finish(struct view *view)
 {
-	if (view->server->grabbed_view == view) {
-		regions_hide_overlay(&view->server->seat);
-		if (view->server->input_mode == LAB_INPUT_STATE_MOVE) {
-			if (!snap_to_region(view)) {
-				if (!snap_to_edge(view)) {
-					/* Reset tiled state if not snapped */
-					view_set_untiled(view);
-				}
-			}
-		}
-		resize_indicator_hide(view);
-
-		view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
-		view->server->grabbed_view = NULL;
-
-		/* Update focus/cursor image */
-		cursor_update_focus(view->server);
+	if (view->server->grabbed_view != view) {
+		return;
 	}
+
+	if (view->server->input_mode == LAB_INPUT_STATE_MOVE) {
+		if (!snap_to_region(view)) {
+			snap_to_edge(view);
+		}
+	}
+
+	interactive_cancel(view);
 }
 
 /*
@@ -220,11 +218,17 @@ interactive_finish(struct view *view)
 void
 interactive_cancel(struct view *view)
 {
-	if (view->server->grabbed_view == view) {
-		resize_indicator_hide(view);
-		view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
-		view->server->grabbed_view = NULL;
-		/* Update focus/cursor image */
-		cursor_update_focus(view->server);
+	if (view->server->grabbed_view != view) {
+		return;
 	}
+
+	regions_hide_overlay(&view->server->seat);
+
+	resize_indicator_hide(view);
+
+	view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+	view->server->grabbed_view = NULL;
+
+	/* Update focus/cursor image */
+	cursor_update_focus(view->server);
 }

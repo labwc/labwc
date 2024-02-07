@@ -14,6 +14,7 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "action.h"
+#include "common/dir.h"
 #include "common/list.h"
 #include "common/macros.h"
 #include "common/mem.h"
@@ -35,6 +36,7 @@ static bool in_regions;
 static bool in_usable_area_override;
 static bool in_keybind;
 static bool in_mousebind;
+static bool in_touch;
 static bool in_libinput_category;
 static bool in_window_switcher_field;
 static bool in_window_rules;
@@ -45,6 +47,7 @@ static bool in_action_else_branch;
 static struct usable_area_override *current_usable_area_override;
 static struct keybind *current_keybind;
 static struct mousebind *current_mousebind;
+static struct touch_config_entry *current_touch;
 static struct libinput_category *current_libinput_category;
 static const char *current_mouse_context;
 static struct action *current_keybind_action;
@@ -427,6 +430,22 @@ fill_mousebind(char *nodename, char *content)
 	}
 }
 
+static void
+fill_touch(char *nodename, char *content)
+{
+	if (!strcasecmp(nodename, "touch")) {
+		current_touch = znew(*current_touch);
+		wl_list_append(&rc.touch_configs, &current_touch->link);
+	} else if (!strcasecmp(nodename, "deviceName.touch")) {
+		current_touch->device_name = xstrdup(content);
+	} else if (!strcasecmp(nodename, "mapToOutput.touch")) {
+		current_touch->output_name = xstrdup(content);
+	} else {
+		wlr_log(WLR_ERROR, "Unexpected data in touch parser: %s=\"%s\"",
+			nodename, content);
+	}
+}
+
 static int
 get_accel_profile(const char *s)
 {
@@ -686,6 +705,10 @@ entry(xmlNode *node, char *nodename, char *content)
 			fill_mousebind(nodename, content);
 		}
 	}
+	if (in_touch) {
+		fill_touch(nodename, content);
+		return;
+	}
 	if (in_libinput_category) {
 		fill_libinput_category(nodename, content);
 		return;
@@ -740,6 +763,15 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.gap = atoi(content);
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
 		set_adaptive_sync_mode(content, &rc.adaptive_sync);
+	} else if (!strcasecmp(nodename, "allowTearing.core")) {
+		set_bool(content, &rc.allow_tearing);
+		if (rc.allow_tearing) {
+			char *no_atomic_env = getenv("WLR_DRM_NO_ATOMIC");
+			if (!no_atomic_env || strcmp(no_atomic_env, "1") != 0) {
+				rc.allow_tearing = false;
+				wlr_log(WLR_ERROR, "tearing requires WLR_DRM_NO_ATOMIC=1");
+			}
+		}
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);
 	} else if (!strcmp(nodename, "policy.placement")) {
@@ -797,10 +829,24 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.kb_layout_per_window = !strcasecmp(content, "window");
 	} else if (!strcasecmp(nodename, "screenEdgeStrength.resistance")) {
 		rc.screen_edge_strength = atoi(content);
+	} else if (!strcasecmp(nodename, "windowEdgeStrength.resistance")) {
+		rc.window_edge_strength = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
 		rc.snap_edge_range = atoi(content);
 	} else if (!strcasecmp(nodename, "topMaximize.snapping")) {
 		set_bool(content, &rc.snap_top_maximize);
+	} else if (!strcasecmp(nodename, "notifyClient.snapping")) {
+		if (!strcasecmp(content, "always")) {
+			rc.snap_tiling_events_mode = LAB_TILING_EVENTS_ALWAYS;
+		} else if (!strcasecmp(content, "region")) {
+			rc.snap_tiling_events_mode = LAB_TILING_EVENTS_REGION;
+		} else if (!strcasecmp(content, "edge")) {
+			rc.snap_tiling_events_mode = LAB_TILING_EVENTS_EDGE;
+		} else if (!strcasecmp(content, "never")) {
+			rc.snap_tiling_events_mode = LAB_TILING_EVENTS_NEVER;
+		} else {
+			wlr_log(WLR_ERROR, "ignoring invalid value for notifyClient");
+		}
 
 	/* <windowSwitcher show="" preview="" outlines="" /> */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
@@ -854,6 +900,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "Invalid value for <resize popupShow />");
 		}
+	} else if (!strcasecmp(nodename, "mapToOutput.tablet")) {
+		rc.tablet.output_name = xstrdup(content);
+	} else if (!strcasecmp(nodename, "rotate.tablet")) {
+		rc.tablet.rotation = tablet_parse_rotation(atoi(content));
 	} else if (!strcasecmp(nodename, "left.area.tablet")) {
 		rc.tablet.box.x = tablet_get_dbl_if_positive(content, "left");
 	} else if (!strcasecmp(nodename, "top.area.tablet")) {
@@ -862,8 +912,6 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.tablet.box.width = tablet_get_dbl_if_positive(content, "width");
 	} else if (!strcasecmp(nodename, "height.area.tablet")) {
 		rc.tablet.box.height = tablet_get_dbl_if_positive(content, "height");
-	} else if (!strcasecmp(nodename, "rotate.tablet")) {
-		rc.tablet.rotation = tablet_parse_rotation(atoi(content));
 	} else if (!strcasecmp(nodename, "button.map.tablet")) {
 		button_map_from = tablet_button_from_str(content);
 	} else if (!strcasecmp(nodename, "to.map.tablet")) {
@@ -930,6 +978,12 @@ xml_tree_walk(xmlNode *node)
 			in_mousebind = true;
 			traverse(n);
 			in_mousebind = false;
+			continue;
+		}
+		if (!strcasecmp((char *)n->name, "touch")) {
+			in_touch = true;
+			traverse(n);
+			in_touch = false;
 			continue;
 		}
 		if (!strcasecmp((char *)n->name, "device")) {
@@ -1014,6 +1068,7 @@ rcxml_init(void)
 		wl_list_init(&rc.regions);
 		wl_list_init(&rc.window_switcher.fields);
 		wl_list_init(&rc.window_rules);
+		wl_list_init(&rc.touch_configs);
 	}
 	has_run = true;
 
@@ -1035,6 +1090,8 @@ rcxml_init(void)
 	rc.doubleclick_time = 500;
 	rc.scroll_factor = 1.0;
 
+	rc.tablet.output_name = NULL;
+	rc.tablet.rotation = 0;
 	rc.tablet.box = (struct wlr_fbox){0};
 	tablet_load_default_button_mappings();
 
@@ -1043,9 +1100,11 @@ rcxml_init(void)
 	rc.kb_numlock_enable = true;
 	rc.kb_layout_per_window = false;
 	rc.screen_edge_strength = 20;
+	rc.window_edge_strength = 20;
 
 	rc.snap_edge_range = 1;
 	rc.snap_top_maximize = true;
+	rc.snap_tiling_events_mode = LAB_TILING_EVENTS_ALWAYS;
 
 	rc.window_switcher.show = true;
 	rc.window_switcher.preview = true;
@@ -1149,6 +1208,10 @@ static struct mouse_combos {
 	{ "Frame", "A-Right", "Drag", "Resize", NULL, NULL},
 	{ "Titlebar", "Left", "Press", "Focus", NULL, NULL},
 	{ "Titlebar", "Left", "Press", "Raise", NULL, NULL},
+	{ "Titlebar", "Up", "Scroll", "Unfocus", NULL, NULL},
+	{ "Titlebar", "Up", "Scroll", "Shade", NULL, NULL},
+	{ "Titlebar", "Down", "Scroll", "Unshade", NULL, NULL},
+	{ "Titlebar", "Down", "Scroll", "Focus", NULL, NULL},
 	{ "Title", "Left", "Drag", "Move", NULL, NULL },
 	{ "Title", "Left", "DoubleClick", "ToggleMaximize", NULL, NULL },
 	{ "TitleBar", "Right", "Click", "Focus", NULL, NULL},
@@ -1452,69 +1515,68 @@ validate(void)
 	validate_actions();
 }
 
-static void
-rcxml_path(char *buf, size_t len)
-{
-	if (!rc.config_dir) {
-		return;
-	}
-	snprintf(buf, len, "%s/rc.xml", rc.config_dir);
-}
-
-static void
-find_config_file(char *buffer, size_t len, const char *filename)
-{
-	if (filename) {
-		snprintf(buffer, len, "%s", filename);
-		return;
-	}
-	rcxml_path(buffer, len);
-}
-
 void
 rcxml_read(const char *filename)
 {
-	FILE *stream;
-	char *line = NULL;
-	size_t len = 0;
-	struct buf b;
-	static char rcxml[4096] = {0};
-
 	rcxml_init();
 
-	/*
-	 * rcxml_read() can be called multiple times, but we only set rcxml[]
-	 * the first time. The specified 'filename' is only respected the first
-	 * time.
-	 */
-	if (rcxml[0] == '\0') {
-		find_config_file(rcxml, sizeof(rcxml), filename);
-	}
-	if (rcxml[0] == '\0') {
-		wlr_log(WLR_INFO, "cannot find rc.xml config file");
-		goto no_config;
+	struct wl_list paths;
+
+	if (filename) {
+		/* Honour command line argument -c <filename> */
+		wl_list_init(&paths);
+		struct path *path = znew(*path);
+		path->string = xstrdup(filename);
+		wl_list_append(&paths, &path->link);
+	} else {
+		paths_config_create(&paths, "rc.xml");
 	}
 
 	/* Reading file into buffer before parsing - better for unit tests */
-	stream = fopen(rcxml, "r");
-	if (!stream) {
-		wlr_log(WLR_ERROR, "cannot read (%s)", rcxml);
-		goto no_config;
-	}
-	wlr_log(WLR_INFO, "read config file %s", rcxml);
-	buf_init(&b);
-	while (getline(&line, &len, stream) != -1) {
-		char *p = strrchr(line, '\n');
-		if (p) {
-			*p = '\0';
+	struct buf b;
+
+	bool should_merge_config = rc.merge_config;
+	struct wl_list *(*iter)(struct wl_list *list);
+	iter = should_merge_config ? paths_get_prev : paths_get_next;
+
+	/*
+	 * This is the equivalent of a wl_list_for_each() which optionally
+	 * iterates in reverse depending on 'should_merge_config'
+	 *
+	 * If not merging, we iterate forwards and break after the first
+	 * iteration.
+	 *
+	 * If merging, we iterate backwards (least important XDG Base Dir first)
+	 * and keep going.
+	 */
+	for (struct wl_list *elm = iter(&paths); elm != &paths; elm = iter(elm)) {
+		struct path *path = wl_container_of(elm, path, link);
+		FILE *stream = fopen(path->string, "r");
+		if (!stream) {
+			continue;
 		}
-		buf_add(&b, line);
-	}
-	free(line);
-	fclose(stream);
-	rcxml_parse_xml(&b);
-	free(b.buf);
-no_config:
+
+		wlr_log(WLR_INFO, "read config file %s", path->string);
+
+		buf_init(&b);
+		char *line = NULL;
+		size_t len = 0;
+		while (getline(&line, &len, stream) != -1) {
+			char *p = strrchr(line, '\n');
+			if (p) {
+				*p = '\0';
+			}
+			buf_add(&b, line);
+		}
+		zfree(line);
+		fclose(stream);
+		rcxml_parse_xml(&b);
+		zfree(b.buf);
+		if (!should_merge_config) {
+			break;
+		}
+	};
+	paths_destroy(&paths);
 	post_processing();
 	validate();
 }
@@ -1550,6 +1612,16 @@ rcxml_finish(void)
 		zfree(m);
 	}
 
+	struct touch_config_entry *touch_config, *touch_config_tmp;
+	wl_list_for_each_safe(touch_config, touch_config_tmp, &rc.touch_configs, link) {
+		wl_list_remove(&touch_config->link);
+		zfree(touch_config->device_name);
+		zfree(touch_config->output_name);
+		zfree(touch_config);
+	}
+
+	zfree(rc.tablet.output_name);
+
 	struct libinput_category *l, *l_tmp;
 	wl_list_for_each_safe(l, l_tmp, &rc.libinput_categories, link) {
 		wl_list_remove(&l->link);
@@ -1581,6 +1653,7 @@ rcxml_finish(void)
 	current_usable_area_override = NULL;
 	current_keybind = NULL;
 	current_mousebind = NULL;
+	current_touch = NULL;
 	current_libinput_category = NULL;
 	current_mouse_context = NULL;
 	current_keybind_action = NULL;

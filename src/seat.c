@@ -204,6 +204,25 @@ output_by_name(struct server *server, const char *name)
 	return NULL;
 }
 
+static void
+map_input_to_output(struct seat *seat, struct wlr_input_device *dev, char *output_name)
+{
+	struct wlr_output *output = NULL;
+	if (output_name) {
+		output = output_by_name(seat->server, output_name);
+	}
+	wlr_cursor_map_input_to_output(seat->cursor, dev, output);
+	wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
+}
+
+static void
+map_pointer_to_output(struct seat *seat, struct wlr_input_device *dev)
+{
+	struct wlr_pointer *pointer = wlr_pointer_from_input_device(dev);
+	wlr_log(WLR_INFO, "map pointer to output %s\n", pointer->output_name);
+	map_input_to_output(seat, dev, pointer->output_name);
+}
+
 static struct input *
 new_pointer(struct seat *seat, struct wlr_input_device *dev)
 {
@@ -214,14 +233,7 @@ new_pointer(struct seat *seat, struct wlr_input_device *dev)
 
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
 	if (dev->type == WLR_INPUT_DEVICE_POINTER) {
-		struct wlr_output *output = NULL;
-		struct wlr_pointer *pointer = wlr_pointer_from_input_device(dev);
-		wlr_log(WLR_INFO, "map pointer to output %s\n", pointer->output_name);
-		if (pointer->output_name) {
-			output = output_by_name(seat->server, pointer->output_name);
-		}
-		wlr_cursor_map_input_to_output(seat->cursor, dev, output);
-		wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
+		map_pointer_to_output(seat, dev);
 	}
 	return input;
 }
@@ -257,6 +269,23 @@ new_keyboard(struct seat *seat, struct wlr_input_device *device, bool virtual)
 	return (struct input *)keyboard;
 }
 
+static void
+map_touch_to_output(struct seat *seat, struct wlr_input_device *dev)
+{
+	struct wlr_touch *touch = wlr_touch_from_input_device(dev);
+
+	char *touch_config_output_name = NULL;
+	struct touch_config_entry *config_entry =
+		touch_find_config_for_device(touch->base.name);
+	if (config_entry) {
+		touch_config_output_name = config_entry->output_name;
+	}
+
+	char *output_name = touch->output_name ? touch->output_name : touch_config_output_name;
+	wlr_log(WLR_INFO, "map touch to output %s\n", output_name);
+	map_input_to_output(seat, dev, output_name);
+}
+
 static struct input *
 new_touch(struct seat *seat, struct wlr_input_device *dev)
 {
@@ -264,18 +293,9 @@ new_touch(struct seat *seat, struct wlr_input_device *dev)
 	input->wlr_input_device = dev;
 	configure_libinput(dev);
 	wlr_cursor_attach_input_device(seat->cursor, dev);
-
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
-	if (dev->type == WLR_INPUT_DEVICE_TOUCH) {
-		struct wlr_output *output = NULL;
-		struct wlr_touch *touch = wlr_touch_from_input_device(dev);
-		wlr_log(WLR_INFO, "map touch to output %s\n", touch->output_name);
-		if (touch->output_name) {
-			output = output_by_name(seat->server, touch->output_name);
-		}
-		wlr_cursor_map_input_to_output(seat->cursor, dev, output);
-		wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
-	}
+	map_touch_to_output(seat, dev);
+
 	return input;
 }
 
@@ -285,6 +305,9 @@ new_tablet(struct seat *seat, struct wlr_input_device *dev)
 	struct input *input = znew(*input);
 	input->wlr_input_device = dev;
 	tablet_init(seat, dev);
+	wlr_cursor_attach_input_device(seat->cursor, dev);
+	wlr_log(WLR_INFO, "map tablet to output %s\n", rc.tablet.output_name);
+	map_input_to_output(seat, dev, rc.tablet.output_name);
 
 	return input;
 }
@@ -351,11 +374,11 @@ new_input_notify(struct wl_listener *listener, void *data)
 	case WLR_INPUT_DEVICE_TOUCH:
 		input = new_touch(seat, device);
 		break;
-	case WLR_INPUT_DEVICE_TABLET_PAD:
-		input = new_tablet_pad(seat, device);
-		break;
 	case WLR_INPUT_DEVICE_TABLET_TOOL:
 		input = new_tablet(seat, device);
+		break;
+	case WLR_INPUT_DEVICE_TABLET_PAD:
+		input = new_tablet_pad(seat, device);
 		break;
 	default:
 		wlr_log(WLR_INFO, "unsupported input device");
@@ -491,13 +514,16 @@ seat_finish(struct server *server)
 }
 
 static void
-configure_keyboard(struct wlr_input_device *device)
+configure_keyboard(struct seat *seat, struct input *input)
 {
+	struct wlr_input_device *device = input->wlr_input_device;
 	assert(device->type == WLR_INPUT_DEVICE_KEYBOARD);
+	struct keyboard *keyboard = (struct keyboard *)input;
 	struct wlr_keyboard *kb = wlr_keyboard_from_input_device(device);
-	wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
+	keyboard_configure(seat, kb, keyboard->is_virtual);
 }
 
+/* This is called on SIGHUP (generally in response to labwc --reconfigure */
 void
 seat_reconfigure(struct server *server)
 {
@@ -506,10 +532,18 @@ seat_reconfigure(struct server *server)
 	wl_list_for_each(input, &seat->inputs, link) {
 		switch (input->wlr_input_device->type) {
 		case WLR_INPUT_DEVICE_KEYBOARD:
-			configure_keyboard(input->wlr_input_device);
+			configure_keyboard(seat, input);
 			break;
 		case WLR_INPUT_DEVICE_POINTER:
 			configure_libinput(input->wlr_input_device);
+			map_pointer_to_output(seat, input->wlr_input_device);
+			break;
+		case WLR_INPUT_DEVICE_TOUCH:
+			configure_libinput(input->wlr_input_device);
+			map_touch_to_output(seat, input->wlr_input_device);
+			break;
+		case WLR_INPUT_DEVICE_TABLET_TOOL:
+			map_input_to_output(seat, input->wlr_input_device, rc.tablet.output_name);
 			break;
 		default:
 			break;
@@ -635,4 +669,25 @@ seat_reset_pressed(struct seat *seat)
 	seat->pressed.surface = NULL;
 	seat->pressed.toplevel = NULL;
 	seat->pressed.resize_edges = 0;
+}
+
+void
+seat_output_layout_changed(struct seat *seat)
+{
+	struct input *input = NULL;
+	wl_list_for_each(input, &seat->inputs, link) {
+		switch (input->wlr_input_device->type) {
+		case WLR_INPUT_DEVICE_POINTER:
+			map_pointer_to_output(seat, input->wlr_input_device);
+			break;
+		case WLR_INPUT_DEVICE_TOUCH:
+			map_touch_to_output(seat, input->wlr_input_device);
+			break;
+		case WLR_INPUT_DEVICE_TABLET_TOOL:
+			map_input_to_output(seat, input->wlr_input_device, rc.tablet.output_name);
+			break;
+		default:
+			break;
+		}
+	}
 }

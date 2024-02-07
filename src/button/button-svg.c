@@ -12,6 +12,7 @@
 #include "buffer.h"
 #include "button/button-svg.h"
 #include "button/common.h"
+#include "common/string-helpers.h"
 #include "labwc.h"
 
 void
@@ -21,6 +22,9 @@ button_svg_load(const char *button_name, struct lab_data_buffer **buffer,
 	if (*buffer) {
 		wlr_buffer_drop(&(*buffer)->base);
 		*buffer = NULL;
+	}
+	if (string_null_or_empty(button_name)) {
+		return;
 	}
 
 	char filename[4096] = { 0 };

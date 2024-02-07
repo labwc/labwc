@@ -11,6 +11,7 @@
     <decoration>server</decoration>
     <gap>0</gap>
     <adaptiveSync>no</adaptiveSync>
+    <allowTearing>no</allowTearing>
     <reuseOutputMode>no</reuseOutputMode>
   </core>
 
@@ -65,6 +66,7 @@
   <!-- edge strength is in pixels -->
   <resistance>
     <screenEdgeStrength>20</screenEdgeStrength>
+    <windowEdgeStrength>20</windowEdgeStrength>
   </resistance>
 
   <!-- Show a simple resize and move indicator -->
@@ -76,10 +78,11 @@
     <raiseOnFocus>no</raiseOnFocus>
   </focus>
 
-  <!-- Set range to 0 to disable window snapping completely -->
   <snapping>
+    <!-- Set range to 0 to disable window snapping completely -->
     <range>1</range>
     <topMaximize>yes</topMaximize>
+    <notifyClient>always</notifyClient>
   </snapping>
 
   <!--
@@ -214,29 +217,47 @@
       <action name="Execute" command="brightnessctl set 10%-" />
     </keybind>
   <!-- SnapToRegion via W-Numpad -->
-    <!--
-    <keybind key="W-KP_7"><action name="SnapToRegion" region="top-left" /></keybind>
-    <keybind key="W-KP_8"><action name="SnapToRegion" region="top" /></keybind>
-    <keybind key="W-KP_9"><action name="SnapToRegion" region="top-right" /></keybind>
-    <keybind key="W-KP_4"><action name="SnapToRegion" region="left" /></keybind>
-    <keybind key="W-KP_5"><action name="SnapToRegion" region="center" /></keybind>
-    <keybind key="W-KP_6"><action name="SnapToRegion" region="right" /></keybind>
-    <keybind key="W-KP_1"><action name="SnapToRegion" region="bottom-left" /></keybind>
-    <keybind key="W-KP_2"><action name="SnapToRegion" region="bottom" /></keybind>
-    <keybind key="W-KP_3"><action name="SnapToRegion" region="bottom-right" /></keybind>
+  <!--
+    <keybind key="W-KP_7">
+      <action name="SnapToRegion" region="top-left" />
+    </keybind>
+    <keybind key="W-KP_8">
+      <action name="SnapToRegion" region="top" />
+    </keybind>
+    <keybind key="W-KP_9">
+      <action name="SnapToRegion" region="top-right" />
+    </keybind>
+    <keybind key="W-KP_4">
+      <action name="SnapToRegion" region="left" />
+    </keybind>
+    <keybind key="W-KP_5">
+      <action name="SnapToRegion" region="center" />
+    </keybind>
+    <keybind key="W-KP_6">
+      <action name="SnapToRegion" region="right" />
+    </keybind>
+    <keybind key="W-KP_1">
+      <action name="SnapToRegion" region="bottom-left" />
+    </keybind>
+    <keybind key="W-KP_2">
+      <action name="SnapToRegion" region="bottom" />
+    </keybind>
+    <keybind key="W-KP_3">
+      <action name="SnapToRegion" region="bottom-right" />
+    </keybind>
   -->
   </keyboard>
 
   <!--
     Multiple <mousebind> can exist within one <context>
     Multiple <actions> can exist within one <mousebind>
-    Currently, the only openbox-action not supported is "Unshade"
 
     Use <mouse><default /> to load all the default mousebinds (those listed
     below). If the default mousebinds are largely what you want, a sensible
     approach could be to start the <mouse> section with a <default />
     element, and then (re-)define any special binds you need such as launching
-    a custom menu when right-clicking on your desktop. See rc.xml for an example.
+    a custom menu when right-clicking on your desktop. See rc.xml for an
+    example.
   -->
   <mouse>
 
@@ -310,6 +331,14 @@
       <mousebind button="Right" action="Click">
         <action name="Focus" />
         <action name="Raise" />
+      </mousebind>
+      <mousebind direction="Up" action="Scroll">
+        <action name="Unshade" />
+        <action name="Focus" />
+      </mousebind>
+      <mousebind direction="Down" action="Scroll">
+        <action name="Unfocus" />
+        <action name="Shade" />
       </mousebind>
     </context>
 
@@ -394,22 +423,38 @@
   </mouse>
 
   <!--
-    The active tablet area can be specified by setting the *top*/*left*
-    coordinate (in mm) and/or *width*/*height* (in mm). If width or
-    height are omitted or default (0.0), width/height will be set to
-    the remaining width/height seen from top/left.
+    A touch configuration can be bound to a specifc device. If device
+    name is left empty, the touch configuration applies to all touch
+    devices or functions as a fallback. Multiple touch configurations
+    can exist.
+    See the libinput device section for obtaining the device names.
+
+    Direct cursor movement to a specified output. If the compositor is
+    running in nested mode, this does not take effect.
+  -->
+  <touch deviceName="" mapToOutput="" />
+
+  <!--
+    The tablet cursor movement can be restricted to a single output.
+    If output is left empty or the output does not exists, the tablet
+    will span all outputs.
 
     The tablet orientation can be changed in 90 degree steps, thus
     *rotate* can be set to [0|90|180|270]. Rotation will be applied
     after applying tablet area transformation.
 
+    The active tablet area can be specified by setting the *top*/*left*
+    coordinate (in mm) and/or *width*/*height* (in mm). If width or
+    height are omitted or default (0.0), width/height will be set to
+    the remaining width/height seen from top/left.
+
     Tablet buttons emulate regular mouse buttons. The tablet *button* can
     be set to any of [Tip|Stylus|Stylus2|Stylus3|Pad|Pad2|Pad3|..|Pad9].
     Valid *to* mouse buttons are [Left|Right|Middle].
   -->
-  <tablet rotate="0">
+  <tablet mapToOutput="" rotate="0">
     <!-- Active area dimensions are in mm -->
-    <area top="0.0" left="0.0" width="0.0" height="0.0">
+    <area top="0.0" left="0.0" width="0.0" height="0.0" />
     <map button="Tip" to="Left" />
     <map button="Stylus" to="Right" />
     <map button="Stylus2" to="Middle" />
@@ -445,10 +490,10 @@
 
   <!--
     # Window Rules
-    #   - Criteria can consist of 'identifier' or 'title' or both (in which case
-    #     AND logic is used).
-    #   - 'identifier' relates to app_id for native Wayland windows and WM_CLASS
-    #     for XWayland clients.
+    #   - Criteria can consist of 'identifier' or 'title' or both (in which
+    #     case AND logic is used).
+    #   - 'identifier' relates to app_id for native Wayland windows and
+    #     WM_CLASS for XWayland clients.
     #   - Criteria can also contain `matchOnce="true"` meaning that the rule
     #     must only apply to the first instance of the window with that
     #     particular 'identifier' or 'title'.
@@ -463,8 +508,8 @@
     </windowRules>
 
     # Example below for `lxqt-panel` and `pcmanfm-qt \-\-desktop`
-    # where 'matchOnce' is used to avoid applying rule to the panel configuration
-    # window with the same 'app_id'
+    # where 'matchOnce' is used to avoid applying rule to the panel
+    # configuration window with the same 'app_id'.
 
     <windowRules>
       <windowRule identifier="lxqt-panel" matchOnce="true">

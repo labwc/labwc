@@ -134,4 +134,10 @@ executable(
   install: true,
 )
 
-install_data('docs/labwc.desktop', install_dir: get_option('datadir') / 'wayland-sessions')
+install_data('data/labwc.desktop', install_dir: get_option('datadir') / 'wayland-sessions')
+
+icons = ['labwc-symbolic.svg', 'labwc.svg']
+foreach icon : icons
+  icon_path = join_paths('data', icon)
+  install_data(icon_path, install_dir: get_option('datadir') / 'icons/hicolor/scalable/apps')
+endforeach

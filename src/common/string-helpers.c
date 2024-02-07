@@ -6,6 +6,12 @@
 #include "common/mem.h"
 #include "common/string-helpers.h"
 
+bool
+string_null_or_empty(const char *s)
+{
+	return !s || !*s;
+}
+
 void
 trim_last_field(char *buf, char delim)
 {

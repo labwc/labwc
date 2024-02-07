@@ -7,9 +7,11 @@
  */
 
 #define _POSIX_C_SOURCE 200809L
+#include <assert.h>
 #include <strings.h>
 #include <wlr/backend/drm.h>
 #include <wlr/backend/headless.h>
+#include <wlr/backend/wayland.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_output.h>
@@ -26,6 +28,25 @@
 #include "regions.h"
 #include "view.h"
 #include "xwayland.h"
+
+static bool
+get_tearing_preference(struct output *output)
+{
+	struct server *server = output->server;
+
+	/* Never allow tearing when disabled */
+	if (!rc.allow_tearing) {
+		return false;
+	}
+
+	/* Tearing is only allowed for the output with the active view */
+	if (!server->active_view || server->active_view->output != output) {
+		return false;
+	}
+
+	/* If the active view requests tearing, or it is toggled on with action, allow it */
+	return server->active_view->tearing_hint;
+}
 
 static void
 output_frame_notify(struct wl_listener *listener, void *data)
@@ -68,7 +89,9 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	wlr_scene_output_commit(output->scene_output, NULL);
+	output->wlr_output->pending.tearing_page_flip =
+		get_tearing_preference(output);
+	lab_wlr_scene_output_commit(output->scene_output);
 
 	struct timespec now = { 0 };
 	clock_gettime(CLOCK_MONOTONIC, &now);
@@ -85,6 +108,7 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 	wl_list_remove(&output->frame.link);
 	wl_list_remove(&output->destroy.link);
 	wl_list_remove(&output->request_state.link);
+	seat_output_layout_changed(&output->server->seat);
 
 	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		wlr_scene_node_destroy(&output->layer_tree[i]->node);
@@ -329,6 +353,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 
 	server->pending_output_layout_change--;
 	do_output_layout_change(server);
+	seat_output_layout_changed(&output->server->seat);
 }
 
 void
@@ -460,8 +485,82 @@ output_config_apply(struct server *server,
 static bool
 verify_output_config_v1(const struct wlr_output_configuration_v1 *config)
 {
-	/* TODO implement */
+	const char *err_msg = NULL;
+	struct wlr_output_configuration_head_v1 *head;
+	wl_list_for_each(head, &config->heads, link) {
+		if (!head->state.enabled) {
+			continue;
+		}
+
+		/* Handle custom modes */
+		if (!head->state.mode) {
+			int32_t refresh = head->state.custom_mode.refresh;
+
+			if (wlr_output_is_drm(head->state.output) && refresh == 0) {
+				/*
+				 * wlroots has a bug which causes a divide by zero
+				 * when setting the refresh rate to 0 on a DRM output.
+				 * It is already fixed but not part of an official 0.17.x
+				 * release. Even it would be we still need to carry the
+				 * fix here to prevent older 0.17.x releases from crashing.
+				 *
+				 * https://gitlab.freedesktop.org/wlroots/wlroots/-/issues/3791
+				 */
+				err_msg = "DRM backend does not support a refresh rate of 0";
+				goto custom_mode_failed;
+			}
+
+			if (wlr_output_is_wl(head->state.output) && refresh != 0) {
+				/* Wayland backend does not support refresh rates */
+				err_msg = "Wayland backend refresh rate unsupported";
+				goto custom_mode_failed;
+			}
+		}
+
+		/*
+		 * Ensure the new output state can be applied on
+		 * its own and inform the client when it can not.
+		 *
+		 * Applying the changes may still fail later when
+		 * getting mixed with wlr_output->pending which
+		 * may contain further unrelated changes.
+		 */
+		struct wlr_output_state output_state;
+		wlr_output_state_init(&output_state);
+		wlr_output_head_v1_state_apply(&head->state, &output_state);
+
+		if (!wlr_output_test_state(head->state.output, &output_state)) {
+			wlr_output_state_finish(&output_state);
+			return false;
+		}
+		wlr_output_state_finish(&output_state);
+	}
+
 	return true;
+
+custom_mode_failed:
+	assert(err_msg);
+	wlr_log(WLR_INFO, "%s (%s: %dx%d@%d)",
+		err_msg,
+		head->state.output->name,
+		head->state.custom_mode.width,
+		head->state.custom_mode.height,
+		head->state.custom_mode.refresh);
+	return false;
+}
+
+static void
+handle_output_manager_test(struct wl_listener *listener, void *data)
+{
+	struct server *server = wl_container_of(listener, server, output_manager_test);
+	struct wlr_output_configuration_v1 *config = data;
+
+	if (verify_output_config_v1(config)) {
+		wlr_output_configuration_v1_send_succeeded(config);
+	} else {
+		wlr_output_configuration_v1_send_failed(config);
+	}
+	wlr_output_configuration_v1_destroy(config);
 }
 
 static void
@@ -581,6 +680,10 @@ output_manager_init(struct server *server)
 	server->output_manager_apply.notify = handle_output_manager_apply;
 	wl_signal_add(&server->output_manager->events.apply,
 		&server->output_manager_apply);
+
+	server->output_manager_test.notify = handle_output_manager_test;
+	wl_signal_add(&server->output_manager->events.test,
+		&server->output_manager_test);
 
 	server->gamma_control_set_gamma.notify = handle_gamma_control_set_gamma;
 	wl_signal_add(&server->gamma_control_manager_v1->events.set_gamma,

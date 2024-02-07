@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include <pixman.h>
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "labwc.h"
@@ -100,11 +101,6 @@ ssd_extents_update(struct ssd *ssd)
 	if (!view->output) {
 		return;
 	}
-	struct wlr_output_layout_output *l_output = wlr_output_layout_get(
-		view->server->output_layout, view->output->wlr_output);
-	if (!l_output) {
-		return;
-	}
 
 	struct theme *theme = view->server->theme;
 
@@ -127,10 +123,25 @@ ssd_extents_update(struct ssd *ssd)
 		-(theme->border_width + extended_area),
 		-(ssd->titlebar.height + theme->border_width + extended_area));
 
-	/* Convert usable area into layout coordinates */
-	struct wlr_box usable_area = view->output->usable_area;
-	usable_area.x += l_output->x;
-	usable_area.y += l_output->y;
+	/*
+	 * Convert all output usable areas that the
+	 * view is currently on into a pixman region
+	 */
+	int nrects;
+	pixman_region32_t usable;
+	pixman_region32_t intersection;
+	pixman_region32_init(&usable);
+	pixman_region32_init(&intersection);
+	struct output *output;
+	wl_list_for_each(output, &view->server->outputs, link) {
+		if (!view_on_output(view, output)) {
+			continue;
+		}
+		struct wlr_box usable_area =
+			output_usable_area_in_layout_coords(output);
+		pixman_region32_union_rect(&usable, &usable, usable_area.x,
+			usable_area.y, usable_area.width, usable_area.height);
+	}
 
 	/* Remember base layout coordinates */
 	int base_x, base_y;
@@ -176,11 +187,40 @@ ssd_extents_update(struct ssd *ssd)
 		part_box.height = target->height;
 
 		/* Constrain part to output->usable_area */
-		if (!wlr_box_intersection(&result_box, &part_box, &usable_area)) {
+		pixman_region32_clear(&intersection);
+		pixman_region32_intersect_rect(&intersection, &usable,
+			part_box.x, part_box.y, part_box.width, part_box.height);
+		const pixman_box32_t *inter_rects =
+			pixman_region32_rectangles(&intersection, &nrects);
+
+		if (nrects == 0) {
 			/* Not visible */
 			wlr_scene_node_set_enabled(part->node, false);
 			continue;
-		} else if (!part->node->enabled) {
+		}
+
+		/*
+		 * For each edge, the invisible grab area is resized
+		 * to not cover layer-shell clients such as panels.
+		 * However, only one resize operation is used per edge,
+		 * so if a window is in the unlikely position that it
+		 * is near a panel but also overspills onto another screen,
+		 * the invisible grab-area on the other screen would be
+		 * smaller than would normally be the case.
+		 *
+		 * Thus only use the first intersecting rect, this is
+		 * a compromise as it doesn't require us to create
+		 * multiple scene rects for a given extent edge
+		 * and still works in 95% of the cases.
+		 */
+		result_box = (struct wlr_box) {
+			.x = inter_rects[0].x1,
+			.y = inter_rects[0].y1,
+			.width = inter_rects[0].x2 - inter_rects[0].x1,
+			.height = inter_rects[0].y2 - inter_rects[0].y1
+		};
+
+		if (!part->node->enabled) {
 			wlr_scene_node_set_enabled(part->node, true);
 		}
 
@@ -204,6 +244,8 @@ ssd_extents_update(struct ssd *ssd)
 			wlr_scene_rect_set_size(rect, target->width, target->height);
 		}
 	}
+	pixman_region32_fini(&intersection);
+	pixman_region32_fini(&usable);
 }
 
 void

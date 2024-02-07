@@ -333,6 +333,34 @@ view_close(struct view *view)
 	}
 }
 
+static void
+view_update_outputs(struct view *view)
+{
+	struct output *output;
+	struct wlr_output_layout *layout = view->server->output_layout;
+
+	view->outputs = 0;
+	wl_list_for_each(output, &view->server->outputs, link) {
+		if (output_is_usable(output) && wlr_output_layout_intersects(
+				layout, output->wlr_output, &view->current)) {
+			view->outputs |= (1ull << output->scene_output->index);
+		}
+	}
+
+	if (view->toplevel.handle) {
+		foreign_toplevel_update_outputs(view);
+	}
+}
+
+bool
+view_on_output(struct view *view, struct output *output)
+{
+	assert(view);
+	assert(output);
+	return output->scene_output
+			&& (view->outputs & (1ull << output->scene_output->index));
+}
+
 void
 view_move(struct view *view, int x, int y)
 {
@@ -358,11 +386,9 @@ view_moved(struct view *view)
 	if (view_is_floating(view)) {
 		view_discover_output(view, NULL);
 	}
+	view_update_outputs(view);
 	ssd_update_geometry(view->ssd);
 	cursor_update_focus(view->server);
-	if (view->toplevel.handle) {
-		foreign_toplevel_update_outputs(view);
-	}
 	if (rc.resize_indicator && view->server->grabbed_view == view) {
 		resize_indicator_update(view);
 	}
@@ -1467,9 +1493,7 @@ view_adjust_for_layout_change(struct view *view)
 		}
 	}
 
-	if (view->toplevel.handle) {
-		foreign_toplevel_update_outputs(view);
-	}
+	view_update_outputs(view);
 }
 
 void

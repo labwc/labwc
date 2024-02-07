@@ -107,11 +107,10 @@ void
 foreign_toplevel_update_outputs(struct view *view)
 {
 	assert(view->toplevel.handle);
-	struct wlr_output_layout *layout = view->server->output_layout;
+
 	struct output *output;
 	wl_list_for_each(output, &view->server->outputs, link) {
-		if (output_is_usable(output) && wlr_output_layout_intersects(
-				layout, output->wlr_output, &view->current)) {
+		if (view_on_output(view, output)) {
 			wlr_foreign_toplevel_handle_v1_output_enter(
 				view->toplevel.handle, output->wlr_output);
 		} else {

@@ -124,7 +124,7 @@ struct view {
 	struct wl_list link;
 
 	/*
-	 * The output that the view is displayed on. Specifically:
+	 * The primary output that the view is displayed on. Specifically:
 	 *
 	 *  - For floating views, this is the output nearest to the
 	 *    center of the view. It is computed automatically when the
@@ -139,6 +139,16 @@ struct view {
 	 * by calling view_set_output() beforehand.
 	 */
 	struct output *output;
+
+	/*
+	 * The outputs that the view is displayed on.
+	 * This is used to notify the foreign toplevel
+	 * implementation and to update the SSD invisible
+	 * resize area.
+	 * It is a bitset of output->scene_output->index.
+	 */
+	uint64_t outputs;
+
 	struct workspace *workspace;
 	struct wlr_surface *surface;
 	struct wlr_scene_tree *scene_tree;
@@ -460,6 +470,7 @@ void view_move_to_front(struct view *view);
 void view_move_to_back(struct view *view);
 struct view *view_get_root(struct view *view);
 void view_append_children(struct view *view, struct wl_array *children);
+bool view_on_output(struct view *view, struct output *output);
 
 /**
  * view_is_related() - determine if view and surface are owned by the

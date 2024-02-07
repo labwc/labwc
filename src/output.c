@@ -433,10 +433,7 @@ output_config_apply(struct server *server,
 			}
 			wlr_output_set_scale(o, head->state.scale);
 			wlr_output_set_transform(o, head->state.transform);
-			if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_ENABLED) {
-				output_enable_adaptive_sync(o,
-					head->state.adaptive_sync_enabled);
-			}
+			output_enable_adaptive_sync(o, head->state.adaptive_sync_enabled);
 		}
 		if (!wlr_output_commit(o)) {
 			wlr_log(WLR_ERROR, "Output config commit failed");

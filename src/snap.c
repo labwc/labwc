@@ -121,8 +121,9 @@ snap_move_to_edge(struct view *view, enum view_edge direction,
 		struct border next_edges;
 		edges_initialize(&next_edges);
 
-		edges_find_neighbors(&next_edges, view, target,
-			output, check_edge, /* use_pending */ true);
+		edges_find_neighbors(&next_edges,
+			view, target, output, check_edge,
+			/* use_pending */ true, /* ignore_hidden */ false);
 
 		/* If any "best" edges were encountered, limit motion */
 		edges_adjust_move_coords(view, next_edges,
@@ -196,8 +197,9 @@ snap_grow_to_next_edge(struct view *view, enum view_edge direction,
 	edges_initialize(&next_edges);
 
 	/* Limit motion to any intervening edge of other views on this output */
-	edges_find_neighbors(&next_edges, view, *geo,
-		output, check_edge, /* use_pending */ true);
+	edges_find_neighbors(&next_edges,
+		view, *geo, output, check_edge,
+		/* use_pending */ true, /* ignore_hidden */ false);
 	edges_adjust_resize_geom(view, next_edges,
 		resize_edges, geo, /* use_pending */ true);
 }
@@ -255,8 +257,9 @@ snap_shrink_to_next_edge(struct view *view, enum view_edge direction,
 		view->output, check_edge, /* use_pending */ true);
 
 	/* Limit motion to any intervening edge of ther views on this output */
-	edges_find_neighbors(&next_edges, view, *geo,
-		view->output, check_edge, /* use_pending */ true);
+	edges_find_neighbors(&next_edges,
+		view, *geo, view->output, check_edge,
+		/* use_pending */ true, /* ignore_hidden */ false);
 
 	edges_adjust_resize_geom(view, next_edges,
 		resize_edges, geo, /* use_pending */ true);

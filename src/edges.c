@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
 #include <limits.h>
+#include <pixman.h>
+#include <wlr/util/edges.h>
 #include <wlr/util/box.h>
 #include "common/border.h"
 #include "common/macros.h"
@@ -8,6 +10,7 @@
 #include "edges.h"
 #include "labwc.h"
 #include "view.h"
+#include "node.h"
 
 static void
 edges_for_target_geometry(struct border *edges, struct view *view,
@@ -35,34 +38,54 @@ edges_initialize(struct border *edges)
 }
 
 static inline struct edge
-build_edge(struct border region, enum view_edge direction, int pad)
+build_edge(struct border region, enum wlr_edges direction, int pad)
 {
 	struct edge edge = { 0 };
 
 	switch (direction) {
-	case VIEW_EDGE_LEFT:
+	case WLR_EDGE_LEFT:
 		edge.offset = clipped_sub(region.left, pad);
 		edge.min = region.top;
 		edge.max = region.bottom;
 		break;
-	case VIEW_EDGE_RIGHT:
+	case WLR_EDGE_RIGHT:
 		edge.offset = clipped_add(region.right, pad);
 		edge.min = region.top;
 		edge.max = region.bottom;
 		break;
-	case VIEW_EDGE_UP:
+	case WLR_EDGE_TOP:
 		edge.offset = clipped_sub(region.top, pad);
 		edge.min = region.left;
 		edge.max = region.right;
 		break;
-	case VIEW_EDGE_DOWN:
+	case WLR_EDGE_BOTTOM:
 		edge.offset = clipped_add(region.bottom, pad);
 		edge.min = region.left;
 		edge.max = region.right;
 		break;
-	default:
+	case WLR_EDGE_NONE:
 		/* Should never be reached */
-		assert(false);
+		wlr_log(WLR_ERROR, "invalid direction");
+		abort();
+	}
+
+	return edge;
+}
+
+static inline bool
+is_lesser(enum wlr_edges direction)
+{
+	return direction == WLR_EDGE_LEFT || direction == WLR_EDGE_TOP;
+}
+
+static inline struct edge
+build_visible_edge(struct border region, enum wlr_edges direction,
+		int pad, uint32_t edges_visible)
+{
+	struct edge edge = build_edge(region, direction, pad);
+
+	if (!(edges_visible & direction)) {
+		edge.offset = is_lesser(direction) ? INT_MIN : INT_MAX;
 	}
 
 	return edge;
@@ -72,7 +95,7 @@ static void
 validate_single_region_edge(int *valid_edge,
 		struct border view, struct border target,
 		struct border region, edge_validator_t validator,
-		enum view_edge direction)
+		enum wlr_edges direction, uint32_t edges_visible)
 {
 	/*
 	 * When a view snaps to another while moving to its target, it can do
@@ -90,42 +113,63 @@ validate_single_region_edge(int *valid_edge,
 	 * the region borders for aligned edges only.
 	 */
 
-	bool lesser = direction == VIEW_EDGE_LEFT || direction == VIEW_EDGE_UP;
+	enum wlr_edges opposing = WLR_EDGE_NONE;
+
+	switch (direction) {
+	case WLR_EDGE_TOP:
+		opposing = WLR_EDGE_BOTTOM;
+		break;
+	case WLR_EDGE_BOTTOM:
+		opposing = WLR_EDGE_TOP;
+		break;
+	case WLR_EDGE_LEFT:
+		opposing = WLR_EDGE_RIGHT;
+		break;
+	case WLR_EDGE_RIGHT:
+		opposing = WLR_EDGE_LEFT;
+		break;
+	case WLR_EDGE_NONE:
+		/* Should never be reached */
+		assert(false);
+		return;
+	}
 
 	validator(valid_edge,
 		build_edge(view, direction, 0),
 		build_edge(target, direction, 0),
-		build_edge(region, view_edge_invert(direction), 0),
-		build_edge(region, direction, rc.gap), lesser);
+		build_visible_edge(region, opposing, 0, edges_visible),
+		build_visible_edge(region, direction, rc.gap, edges_visible),
+		is_lesser(direction));
 }
 
 static void
 validate_edges(struct border *valid_edges,
 		struct border view, struct border target,
-		struct border region, edge_validator_t validator)
+		struct border region, uint32_t edges_visible,
+		edge_validator_t validator)
 {
 	/* Check for edges encountered during movement of left edge */
 	validate_single_region_edge(&valid_edges->left,
-		view, target, region, validator, VIEW_EDGE_LEFT);
+		view, target, region, validator, WLR_EDGE_LEFT, edges_visible);
 
 	/* Check for edges encountered during movement of right edge */
 	validate_single_region_edge(&valid_edges->right,
-		view, target, region, validator, VIEW_EDGE_RIGHT);
+		view, target, region, validator, WLR_EDGE_RIGHT, edges_visible);
 
 	/* Check for edges encountered during movement of top edge */
 	validate_single_region_edge(&valid_edges->top,
-		view, target, region, validator, VIEW_EDGE_UP);
+		view, target, region, validator, WLR_EDGE_TOP, edges_visible);
 
 	/* Check for edges encountered during movement of bottom edge */
 	validate_single_region_edge(&valid_edges->bottom,
-		view, target, region, validator, VIEW_EDGE_DOWN);
+		view, target, region, validator, WLR_EDGE_BOTTOM, edges_visible);
 }
 
 static void
 validate_single_output_edge(int *valid_edge,
 		struct border view, struct border target,
 		struct border region, edge_validator_t validator,
-		enum view_edge direction)
+		enum wlr_edges direction)
 {
 	static struct border unbounded = {
 		.top = INT_MIN,
@@ -134,13 +178,11 @@ validate_single_output_edge(int *valid_edge,
 		.left = INT_MIN,
 	};
 
-	bool lesser = direction == VIEW_EDGE_LEFT || direction == VIEW_EDGE_UP;
-
 	validator(valid_edge,
 		build_edge(view, direction, 0),
 		build_edge(target, direction, 0),
 		build_edge(region, direction, 0),
-		build_edge(unbounded, direction, 0), lesser);
+		build_edge(unbounded, direction, 0), is_lesser(direction));
 }
 
 static void
@@ -182,27 +224,160 @@ validate_output_edges(struct border *valid_edges,
 	/* Left edge encounters a half-infinite region to the left of the output */
 
 	validate_single_output_edge(&valid_edges->left,
-			view, target, output, validator, VIEW_EDGE_LEFT);
+			view, target, output, validator, WLR_EDGE_LEFT);
 
 	/* Right edge encounters a half-infinite region to the right of the output */
 
 	validate_single_output_edge(&valid_edges->right,
-			view, target, output, validator, VIEW_EDGE_RIGHT);
+			view, target, output, validator, WLR_EDGE_RIGHT);
 
 	/* Top edge encounters a half-infinite region above the output */
 
 	validate_single_output_edge(&valid_edges->top,
-			view, target, output, validator, VIEW_EDGE_UP);
+			view, target, output, validator, WLR_EDGE_TOP);
 
 	/* Bottom edge encounters a half-infinite region below the output */
 	validate_single_output_edge(&valid_edges->bottom,
-			view, target, output, validator, VIEW_EDGE_DOWN);
+			view, target, output, validator, WLR_EDGE_BOTTOM);
+}
+
+/* Test if parts of the current view is covered by the remaining space in the region */
+static void
+subtract_view_from_space(struct view *view, pixman_region32_t *available)
+{
+	struct wlr_box view_size = ssd_max_extents(view);
+	pixman_box32_t view_rect = {
+		.x1 = view_size.x,
+		.x2 = view_size.x + view_size.width,
+		.y1 = view_size.y,
+		.y2 = view_size.y + view_size.height
+	};
+
+	pixman_region_overlap_t overlap =
+		pixman_region32_contains_rectangle(available, &view_rect);
+
+	switch (overlap) {
+	case PIXMAN_REGION_IN:
+		view->edges_visible = WLR_EDGE_TOP | WLR_EDGE_RIGHT
+			| WLR_EDGE_BOTTOM | WLR_EDGE_LEFT;
+		break;
+	case PIXMAN_REGION_OUT:
+		view->edges_visible = 0;
+		return;
+	case PIXMAN_REGION_PART:
+		; /* works around "a label can only be part of a statement" */
+		pixman_region32_t intersection;
+		pixman_region32_init(&intersection);
+		pixman_region32_intersect_rect(&intersection, available,
+			view_size.x, view_size.y,
+			view_size.width, view_size.height);
+
+		int nrects;
+		const pixman_box32_t *rects =
+			pixman_region32_rectangles(&intersection, &nrects);
+
+		view->edges_visible = 0;
+		for (int i = 0; i < nrects; i++) {
+			if (rects[i].x1 == view_rect.x1) {
+				view->edges_visible |= WLR_EDGE_LEFT;
+			}
+			if (rects[i].y1 == view_rect.y1) {
+				view->edges_visible |= WLR_EDGE_TOP;
+			}
+			if (rects[i].x2 == view_rect.x2) {
+				view->edges_visible |= WLR_EDGE_RIGHT;
+			}
+			if (rects[i].y2 == view_rect.y2) {
+				view->edges_visible |= WLR_EDGE_BOTTOM;
+			}
+		}
+		pixman_region32_fini(&intersection);
+		break;
+	}
+
+	/* Subtract the view geometry from the available region for the next check */
+	pixman_region32_t view_region;
+	pixman_region32_init_rects(&view_region, &view_rect, 1);
+	pixman_region32_subtract(available, available, &view_region);
+	pixman_region32_fini(&view_region);
+}
+
+static void
+subtract_node_tree(struct wlr_scene_tree *tree, pixman_region32_t *available,
+		struct view *ignored_view)
+{
+	struct view *view;
+	struct wlr_scene_node *node;
+	struct node_descriptor *node_desc;
+	wl_list_for_each_reverse(node, &tree->children, link) {
+		if (!node->enabled) {
+			/*
+			 * This skips everything that is not being
+			 * rendered, including minimized / unmapped
+			 * windows and workspaces other than the
+			 * current one.
+			 */
+			continue;
+		}
+
+		node_desc = node->data;
+		if (node_desc && node_desc->type == LAB_NODE_DESC_VIEW) {
+			view = node_view_from_node(node);
+			if (view != ignored_view) {
+				subtract_view_from_space(view, available);
+			}
+		} else if (node->type == WLR_SCENE_NODE_TREE) {
+			subtract_node_tree(wlr_scene_tree_from_node(node),
+				available, ignored_view);
+		}
+	}
+}
+
+void
+edges_calculate_visibility(struct server *server, struct view *ignored_view)
+{
+	/*
+	 * The region stores the available output layout space
+	 * and subtracts the window geometries in reverse rendering
+	 * order, e.g. a window rendered on top is subtracted first.
+	 *
+	 * This allows to detect if a window is actually visible.
+	 * If there is no overlap of its geometry and the remaining
+	 * region it must be completely covered by other windows.
+	 *
+	 */
+	pixman_region32_t region;
+	pixman_region32_init(&region);
+
+	/*
+	 * Initialize the region with each individual output.
+	 *
+	 * If we were to use NULL for the reference output we
+	 * would get a single combined wlr_box of the whole
+	 * layout which could cover actual invisible areas
+	 * in case the output resolutions differ.
+	 */
+	struct output *output;
+	struct wlr_box layout_box;
+	wl_list_for_each(output, &server->outputs, link) {
+		if (!output_is_usable(output)) {
+			continue;
+		}
+		wlr_output_layout_get_box(server->output_layout,
+			output->wlr_output, &layout_box);
+		pixman_region32_union_rect(&region, &region,
+			layout_box.x, layout_box.y, layout_box.width, layout_box.height);
+	}
+
+	subtract_node_tree(&server->scene->tree, &region, ignored_view);
+
+	pixman_region32_fini(&region);
 }
 
 void
 edges_find_neighbors(struct border *nearest_edges, struct view *view,
 		struct wlr_box target, struct output *output,
-		edge_validator_t validator, bool use_pending)
+		edge_validator_t validator, bool use_pending, bool ignore_hidden)
 {
 	assert(view);
 	assert(validator);
@@ -220,6 +395,14 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 	struct view *v;
 	for_each_view(v, &view->server->views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 		if (v == view || v->minimized || !output_is_usable(v->output)) {
+			continue;
+		}
+
+		uint32_t edges_visible = ignore_hidden ? v->edges_visible :
+			WLR_EDGE_TOP | WLR_EDGE_LEFT
+				| WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT;
+
+		if (edges_visible == 0) {
 			continue;
 		}
 
@@ -252,7 +435,7 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 		};
 
 		validate_edges(nearest_edges, view_edges,
-			target_edges, win_edges, validator);
+			target_edges, win_edges, edges_visible, validator);
 	}
 }
 

@@ -114,8 +114,9 @@ resistance_move_apply(struct view *view, double *x, double *y)
 
 	if (rc.window_edge_strength != 0) {
 		/* Find any relevant window edges encountered by this move */
-		edges_find_neighbors(&next_edges, view, target, NULL,
-			check_edge_window, /* use_pending */ false);
+		edges_find_neighbors(&next_edges,
+			view, target, NULL, check_edge_window,
+			/* use_pending */ false, /* ignore_hidden */ true);
 	}
 
 	/* If any "best" edges were encountered during this move, snap motion */
@@ -143,8 +144,9 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_geom)
 
 	if (rc.window_edge_strength != 0) {
 		/* Find any relevant window edges encountered by this move */
-		edges_find_neighbors(&next_edges, view, *new_geom, NULL,
-			check_edge_window, /* use_pending */ false);
+		edges_find_neighbors(&next_edges,
+			view, *new_geom, NULL, check_edge_window,
+			/* use_pending */ false, /* ignore_hidden */ true);
 	}
 
 	/* If any "best" edges were encountered during this move, snap motion */

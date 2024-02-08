@@ -166,6 +166,7 @@ struct view {
 	bool tearing_hint;
 	bool visible_on_all_workspaces;
 	enum view_edge tiled;
+	uint32_t edges_visible;  /* enum wlr_edges bitset */
 	bool inhibits_keybinds;
 	xkb_layout_index_t keyboard_layout;
 

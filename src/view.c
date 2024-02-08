@@ -2126,6 +2126,11 @@ view_set_shade(struct view *view, bool shaded)
 		return;
 	}
 
+	/* If this window is being resized, cancel the resize when shading */
+	if (shaded && view->server->input_mode == LAB_INPUT_STATE_RESIZE) {
+		interactive_cancel(view);
+	}
+
 	view->shaded = shaded;
 	ssd_enable_shade(view->ssd, view->shaded);
 	wlr_scene_node_set_enabled(view->scene_node, !view->shaded);

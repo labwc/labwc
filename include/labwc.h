@@ -40,10 +40,13 @@
 #include <wlr/types/wlr_virtual_pointer_v1.h>
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/types/wlr_tearing_control_v1.h>
+#include <wlr/types/wlr_text_input_v3.h>
+#include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/util/log.h>
 #include "config/keybind.h"
 #include "config/rcxml.h"
 #include "input/cursor.h"
+#include "input/ime.h"
 #include "regions.h"
 #include "session-lock.h"
 #if HAVE_NLS
@@ -119,6 +122,8 @@ struct seat {
 
 	/* if set, views cannot receive focus */
 	struct wlr_layer_surface_v1 *focused_layer;
+
+	struct input_method_relay *input_method_relay;
 
 	/**
 	 * pressed view/surface/node will usually be NULL and is only set on
@@ -323,6 +328,9 @@ struct server {
 
 	struct wlr_tearing_control_manager_v1 *tearing_control;
 	struct wl_listener tearing_new_object;
+
+	struct wlr_input_method_manager_v2 *input_method_manager;
+	struct wlr_text_input_manager_v3 *text_input_manager;
 
 	/* Set when in cycle (alt-tab) mode */
 	struct osd_state {

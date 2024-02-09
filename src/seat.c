@@ -536,6 +536,8 @@ seat_init(struct server *server)
 		&seat->virtual_keyboard_new);
 	seat->virtual_keyboard_new.notify = new_virtual_keyboard;
 
+	seat->input_method_relay = input_method_relay_create(seat);
+
 	seat->cursor = wlr_cursor_create();
 	if (!seat->cursor) {
 		wlr_log(WLR_ERROR, "unable to create cursor");
@@ -559,6 +561,7 @@ seat_finish(struct server *server)
 	}
 
 	input_handlers_finish(seat);
+	input_method_relay_finish(seat->input_method_relay);
 }
 
 static void
@@ -614,6 +617,7 @@ seat_focus(struct seat *seat, struct wlr_surface *surface, bool is_lock_surface)
 
 	if (!surface) {
 		wlr_seat_keyboard_notify_clear_focus(seat->seat);
+		input_method_relay_set_focus(seat->input_method_relay, NULL);
 		return;
 	}
 
@@ -635,6 +639,8 @@ seat_focus(struct seat *seat, struct wlr_surface *surface, bool is_lock_surface)
 	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
 	wlr_seat_keyboard_notify_enter(seat->seat, surface,
 		pressed_sent_keycodes, nr_pressed_sent_keycodes, &kb->modifiers);
+
+	input_method_relay_set_focus(seat->input_method_relay, surface);
 
 	struct wlr_pointer_constraint_v1 *constraint =
 		wlr_pointer_constraints_v1_constraint_for_surface(server->constraints,

@@ -384,6 +384,10 @@ server_init(struct server *server)
 	 */
 	wlr_primary_selection_v1_device_manager_create(server->wl_display);
 
+	server->input_method_manager = wlr_input_method_manager_v2_create(
+		server->wl_display);
+	server->text_input_manager = wlr_text_input_manager_v3_create(
+		server->wl_display);
 	seat_init(server);
 	xdg_shell_init(server);
 	kde_server_decoration_init(server);

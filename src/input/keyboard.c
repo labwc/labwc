@@ -97,7 +97,11 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 			}
 		}
 	}
-	wlr_seat_keyboard_notify_modifiers(seat->seat, &wlr_keyboard->modifiers);
+
+	if (!input_method_keyboard_grab_forward_modifiers(keyboard)) {
+		wlr_seat_keyboard_notify_modifiers(seat->seat,
+			&wlr_keyboard->modifiers);
+	}
 }
 
 static struct keybind *
@@ -523,7 +527,7 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			start_keybind_repeat(seat->server, keyboard, event);
 		}
-	} else {
+	} else if (!input_method_keyboard_grab_forward_key(keyboard, event)) {
 		wlr_seat_set_keyboard(wlr_seat, keyboard->wlr_keyboard);
 		wlr_seat_keyboard_notify_key(wlr_seat, event->time_msec,
 			event->keycode, event->state);

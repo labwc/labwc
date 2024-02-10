@@ -78,11 +78,8 @@ jobs:
           sed -i '/^Types/ s/deb/& deb-src/' /etc/apt/sources.list.d/debian.sources
           apt-get update
           apt-get upgrade -y
-          apt-get install -y git clang \
-            hwdata libdisplay-info-dev \
-            libxml2-dev libcairo2-dev libpango1.0-dev \
-            librsvg2-dev libxcb-ewmh-dev
-          apt-get build-dep -y wlroots
+          apt-get install -y git gcc clang
+          apt-get build-dep -y labwc
 
       - name: Install FreeBSD dependencies
         if: matrix.name == 'FreeBSD'
@@ -105,16 +102,9 @@ jobs:
             /etc/xbps.d/*-repository-*.conf
           xbps-install -Syu || xbps-install -yu xbps
           xbps-install -Syu
-          xbps-install -y git meson gcc clang pkg-config wlroots libxml2-devel \
-            wayland-devel glslang libgbm-devel libglvnd-devel libseat-devel \
-            eudev-libudev-devel libdrm-devel libinput-devel libxkbcommon-devel \
-            pixman-devel wayland-devel wayland-protocols xcb-util-errors-devel \
-            xcb-util-wm-devel xcb-util-renderutil-devel libxcb-devel \
-            xcb-util-cursor-devel xcb-util-devel xcb-util-image-devel \
-            xcb-util-keysyms-devel xcb-util-xrm-devel xorg-server-xwayland \
-            hwids libdisplay-info-devel \
-            librsvg-devel \
-            libglib-devel cairo-devel pango-devel
+          xbps-install -y git meson gcc clang pkg-config scdoc \
+            cairo-devel glib-devel libpng-devel librsvg-devel libxml2-devel \
+            pango-devel wlroots0.17-devel
 
       - name: Build with gcc
         run: |

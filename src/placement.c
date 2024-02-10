@@ -47,7 +47,6 @@ count_views(struct view *view)
 	assert(view);
 
 	struct server *server = view->server;
-	assert(server);
 
 	struct output *output = view->output;
 	if (!output_is_usable(output)) {
@@ -107,7 +106,6 @@ build_grid(struct overlap_bitmap *bmp, struct view *view)
 	assert(view);
 
 	struct server *server = view->server;
-	assert(server);
 
 	/* Always start with a fresh bitmap */
 	destroy_bitmap(bmp);
@@ -239,7 +237,6 @@ build_overlap(struct overlap_bitmap *bmp, struct view *view)
 	assert(view);
 
 	struct server *server = view->server;
-	assert(server);
 
 	if (bmp->nr_rows < 1 || bmp->nr_cols < 1) {
 		return;
@@ -407,9 +404,6 @@ bool
 placement_find_best(struct view *view, struct wlr_box *geometry)
 {
 	assert(view);
-
-	struct server *server = view->server;
-	assert(server);
 
 	struct border margin = ssd_get_margin(view->ssd);
 

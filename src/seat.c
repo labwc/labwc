@@ -628,11 +628,15 @@ seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer)
 static void
 pressed_surface_destroy(struct wl_listener *listener, void *data)
 {
-	struct wlr_surface *surface = data;
 	struct seat *seat = wl_container_of(listener, seat,
 		pressed_surface_destroy);
 
-	assert(surface == seat->pressed.surface);
+	/*
+	 * Using data directly prevents 'unused variable'
+	 * warning when compiling without asserts
+	 */
+	assert(data == seat->pressed.surface);
+
 	seat_reset_pressed(seat);
 }
 

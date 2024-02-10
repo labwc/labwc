@@ -1411,6 +1411,8 @@ post_processing(void)
 	if (!libinput_category_get_default()) {
 		/* So we still allow tap to click by default */
 		struct libinput_category *l = libinput_category_create();
+		/* Prevents unused variable warning when compiled without asserts */
+		(void)l;
 		assert(l && libinput_category_get_default() == l);
 	}
 

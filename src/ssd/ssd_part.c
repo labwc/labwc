@@ -93,6 +93,8 @@ add_scene_button_corner(struct wl_list *part_list, enum ssd_part_type type,
 		offset_x = 0;
 	} else {
 		assert(false && "invalid corner button type");
+		wlr_log(WLR_ERROR, "invalid corner button type");
+		abort();
 	}
 
 	struct ssd_part *button_root = add_scene_part(part_list, corner_type);

@@ -111,7 +111,7 @@ jobs:
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
-            meson build-gcc -Dxwayland=enabled --werror
+            meson setup build-gcc -Dxwayland=enabled --werror
             meson compile -C build-gcc
           ' | $TARGET
 
@@ -120,24 +120,44 @@ jobs:
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=clang
-            meson build-clang -Dxwayland=enabled --werror
+            meson setup build-clang -Dxwayland=enabled --werror
             meson compile -C build-clang
           ' | $TARGET
 
-      - name: Build with gcc no-xwayland
+      - name: Build with gcc - no-xwayland
         run: |
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
-            meson build-gcc-no-xwayland -Dxwayland=disabled --werror
+            meson setup build-gcc-no-xwayland -Dxwayland=disabled --werror
             meson compile -C build-gcc-no-xwayland
           ' | $TARGET
 
-      - name: Build with clang no-xwayland
+      - name: Build with clang - no-xwayland
         run: |
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=clang
-            meson build-clang-no-xwayland -Dxwayland=disabled --werror
+            meson setup build-clang-no-xwayland -Dxwayland=disabled --werror
             meson compile -C build-clang-no-xwayland
+          ' | $TARGET
+
+      - name: Build with gcc - release
+        run: |
+          echo '
+            cd "$GITHUB_WORKSPACE"
+            export CC=gcc
+            meson setup build-gcc-release -Dxwayland=enabled \
+              -Dbuildtype=release -Db_ndebug=true --werror
+            meson compile -C build-gcc-release
+          ' | $TARGET
+
+      - name: Build with clang - release
+        run: |
+          echo '
+            cd "$GITHUB_WORKSPACE"
+            export CC=clang
+            meson setup build-clang-release -Dxwayland=enabled \
+              -Dbuildtype=release -Db_ndebug=true --werror
+            meson compile -C build-clang-release
           ' | $TARGET

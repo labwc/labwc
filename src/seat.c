@@ -189,11 +189,21 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		wlr_log(WLR_INFO, "dwt configured");
 		libinput_device_config_dwt_set_enabled(libinput_dev, dc->dwt);
 	}
-	if (libinput_device_config_click_set_method(libinput_dev,
-			dc->click_method) > 0) {
+	if (dc->click_method < 0
+			||
+			(libinput_device_config_click_get_methods(libinput_dev)
+				& dc->click_method) == 0) {
 		wlr_log(WLR_INFO, "click method not configured");
 	} else {
 		wlr_log(WLR_INFO, "click method configured");
+
+		// Note, the documentation claims that:
+		// > @note [...] The device may require changing to a neutral
+		// > state first before activating the new method.
+		//
+		// However, just setting the method worked without issues.
+
+		libinput_device_config_click_set_method(libinput_dev, dc->click_method);
 	}
 }
 

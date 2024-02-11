@@ -1,8 +1,8 @@
 # Void-musl images:
-# https://github.com/void-linux/void-docker/pkgs/container/void-linux/versions
+# https://github.com/void-linux/void-containers/pkgs/container/void-musl
 #
 # Void dependencies based on:
-# https://github.com/void-linux/void-packages/blob/master/srcpkgs/wlroots/template
+# https://github.com/void-linux/void-packages/blob/master/srcpkgs/labwc/template
 #
 # Recommended GH CI Void mirror based on
 # https://docs.voidlinux.org/xbps/repositories/mirrors/changing.html
@@ -53,7 +53,7 @@ jobs:
 
           - name: Void-musl
             os: ubuntu-latest
-            container: ghcr.io/void-linux/void-linux:latest-thin-x86_64-musl
+            container: ghcr.io/void-linux/void-musl:latest
             env:
               TARGET: 'sh -xe'
 

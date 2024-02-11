@@ -582,7 +582,9 @@ windows using the mouse.
 
 *<libinput><device><clickMethod>* [none|buttonAreas|clickfinger]
 	Configure the method by which physical clicks on a touchpad are mapped to
-	mouse-button events. The click methods available are:
+	mouse-button events.
+
+	The click methods available are:
 	- *buttonAreas* - The bottom of the touchpad is divided into distinct
 	  regions corresponding to left, middle and right buttons; clicking within
 	  the region will trigger the corresponding event. Clicking the main area

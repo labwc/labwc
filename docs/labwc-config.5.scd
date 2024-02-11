@@ -581,10 +581,18 @@ windows using the mouse.
 	after as well.
 
 *<libinput><device><clickMethod>* [none|buttonAreas|clickfinger]
-	Set the kind of click method that shall be used. Either the location of
-	where the click happens (buttonAreas), or the number of fingers
-	(clickfinger) being used determines the kind of mouse button being
-	triggered. Choose *none* if a click shall not trigger a mouse button click.
+	Configure the method by which physical clicks on a touchpad are mapped to
+	mouse-button events. The click methods available are:
+	- *buttonAreas* - The bottom of the touchpad is divided into distinct
+	  regions corresponding to left, middle and right buttons; clicking within
+	  the region will trigger the corresponding event. Clicking the main area
+	  further up produces a left button event.
+	- *clickfinger* - Clicking with one, two or three finger(s) will produce
+	  left, right or middle button event without regard to the location of a
+	  click.
+	- *none* - Physical clicks will not produce button events.
+
+	The default method depends on the touchpad hardware.
 
 ## WINDOW RULES
 

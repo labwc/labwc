@@ -143,7 +143,7 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 	free(output);
 
 	if (server->fallback_output && wl_list_length(&server->outputs) == 0) {
-		output_add_virtual(server, "HEADLESS");
+		output_add_virtual(server, "NOOP-1");
 	}
 }
 
@@ -199,7 +199,7 @@ static int
 handle_virtual_output_destroy_timeout(void *data)
 {
 	struct server *server = data;
-	output_remove_virtual(server, "HEADLESS");
+	output_remove_virtual(server, "NOOP-1");
 	wl_event_source_remove(server->destroy_timeout);
 	server->destroy_timeout = NULL;
 	return 0;
@@ -417,7 +417,7 @@ output_init(struct server *server)
 	output_manager_init(server);
 
 	if (getenv("LABWC_FALLBACK_OUTPUT")) {
-		output_add_virtual(server, "HEADLESS");
+		output_add_virtual(server, "NOOP-1");
 		server->destroy_timeout = NULL;
 		server->fallback_output = true;
 	} else {

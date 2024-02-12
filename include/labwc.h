@@ -337,6 +337,9 @@ struct server {
 
 	struct menu *menu_current;
 	struct wl_list menus;
+
+	struct wl_event_source *destroy_timeout;
+	bool fallback_output;
 };
 
 #define LAB_NR_LAYERS (4)

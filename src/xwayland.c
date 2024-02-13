@@ -340,6 +340,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&xwayland_view->set_override_redirect.link);
 	wl_list_remove(&xwayland_view->set_strut_partial.link);
 	wl_list_remove(&xwayland_view->set_window_type.link);
+	wl_list_remove(&xwayland_view->map_request.link);
 
 	view_destroy(view);
 }
@@ -555,6 +556,63 @@ handle_set_strut_partial(struct wl_listener *listener, void *data)
 	}
 }
 
+/*
+ * Sets the initial geometry of maximized/fullscreen views before
+ * actually mapping them, so that they can do their initial layout and
+ * drawing with the correct geometry. This avoids visual glitches and
+ * also avoids undesired layout changes with some apps (e.g. HomeBank).
+ */
+static void
+handle_map_request(struct wl_listener *listener, void *data)
+{
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, map_request);
+	struct view *view = &xwayland_view->base;
+	struct wlr_xwayland_surface *xsurface = xwayland_view->xwayland_surface;
+
+	if (view->mapped) {
+		/* Probably shouldn't happen, but be sure */
+		return;
+	}
+
+	/* Keep the view invisible until actually mapped */
+	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
+	ensure_initial_geometry_and_output(view);
+
+	/*
+	 * Per the Extended Window Manager Hints (EWMH) spec: "The Window
+	 * Manager SHOULD honor _NET_WM_STATE whenever a withdrawn window
+	 * requests to be mapped."
+	 *
+	 * The following order of operations is intended to reduce the
+	 * number of resize (Configure) events:
+	 *   1. set fullscreen state
+	 *   2. set decorations (depends on fullscreen state)
+	 *   3. set maximized (geometry depends on decorations)
+	 */
+	view_set_fullscreen(view, xsurface->fullscreen);
+	if (!view->been_mapped) {
+		if (want_deco(xsurface)) {
+			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
+		} else {
+			view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
+		}
+	}
+	enum view_axis axis = VIEW_AXIS_NONE;
+	if (xsurface->maximized_horz) {
+		axis |= VIEW_AXIS_HORIZONTAL;
+	}
+	if (xsurface->maximized_vert) {
+		axis |= VIEW_AXIS_VERTICAL;
+	}
+	view_maximize(view, axis, /*store_natural_geometry*/ true);
+	/*
+	 * We could also call set_initial_position() here, but it's not
+	 * really necessary until the view is actually mapped (and at
+	 * that point the output layout is known for sure).
+	 */
+}
+
 static void
 set_initial_position(struct view *view,
 		struct wlr_xwayland_surface *xwayland_surface)
@@ -565,17 +623,7 @@ set_initial_position(struct view *view,
 			XCB_ICCCM_SIZE_HINT_US_POSITION |
 			XCB_ICCCM_SIZE_HINT_P_POSITION));
 
-	if (has_position) {
-		/*
-		 * Make sure a floating view is onscreen. For a
-		 * maximized/fullscreen view, do nothing; if it is
-		 * unmaximized/leaves fullscreen later, we will make
-		 * sure it is on-screen at that point.
-		 */
-		if (view_is_floating(view)) {
-			view_adjust_for_layout_change(view);
-		}
-	} else {
+	if (!has_position) {
 		view_constrain_size_to_that_of_usable_area(view);
 
 		if (view_is_floating(view)) {
@@ -594,6 +642,13 @@ set_initial_position(struct view *view,
 				&view->natural_geometry.y);
 		}
 	}
+
+	/*
+	 * Always make sure the view is onscreen and adjusted for any
+	 * layout changes that could have occurred between map_request
+	 * and the actual map event.
+	 */
+	view_adjust_for_layout_change(view);
 }
 
 static void
@@ -615,7 +670,11 @@ init_foreign_toplevel(struct view *view)
 static void
 xwayland_view_map(struct view *view)
 {
-	struct wlr_xwayland_surface *xwayland_surface = xwayland_surface_from_view(view);
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+	struct wlr_xwayland_surface *xwayland_surface =
+		xwayland_view->xwayland_surface;
+	assert(xwayland_surface);
+
 	if (view->mapped) {
 		return;
 	}
@@ -629,8 +688,16 @@ xwayland_view_map(struct view *view)
 		wlr_log(WLR_DEBUG, "Cannot map view without wlr_surface");
 		return;
 	}
+
+	/*
+	 * The map_request event may not be received when an unmanaged
+	 * (override-redirect) surface becomes managed. To make sure we
+	 * have valid geometry in that case, call handle_map_request()
+	 * explicitly (calling it twice is harmless).
+	 */
+	handle_map_request(&xwayland_view->map_request, NULL);
+
 	view->mapped = true;
-	ensure_initial_geometry_and_output(view);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 
 	if (view->surface != xwayland_surface->surface) {
@@ -653,34 +720,6 @@ xwayland_view_map(struct view *view)
 		}
 		view->scene_node = &tree->node;
 	}
-
-	/*
-	 * Per the Extended Window Manager Hints (EWMH) spec: "The Window
-	 * Manager SHOULD honor _NET_WM_STATE whenever a withdrawn window
-	 * requests to be mapped."
-	 *
-	 * The following order of operations is intended to reduce the
-	 * number of resize (Configure) events:
-	 *   1. set fullscreen state
-	 *   2. set decorations (depends on fullscreen state)
-	 *   3. set maximized (geometry depends on decorations)
-	 */
-	view_set_fullscreen(view, xwayland_surface->fullscreen);
-	if (!view->been_mapped) {
-		if (want_deco(xwayland_surface)) {
-			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
-		} else {
-			view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
-		}
-	}
-	enum view_axis axis = VIEW_AXIS_NONE;
-	if (xwayland_surface->maximized_horz) {
-		axis |= VIEW_AXIS_HORIZONTAL;
-	}
-	if (xwayland_surface->maximized_vert) {
-		axis |= VIEW_AXIS_VERTICAL;
-	}
-	view_maximize(view, axis, /*store_natural_geometry*/ true);
 
 	/*
 	 * Exclude unfocusable views from wlr-foreign-toplevel. These
@@ -950,6 +989,7 @@ xwayland_view_create(struct server *server,
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_override_redirect);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_strut_partial);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_window_type);
+	CONNECT_SIGNAL(xsurface, xwayland_view, map_request);
 
 	wl_list_insert(&view->server->views, &view->link);
 

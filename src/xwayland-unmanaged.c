@@ -8,6 +8,20 @@
 #include "xwayland.h"
 
 static void
+handle_grab_focus(struct wl_listener *listener, void *data)
+{
+	struct xwayland_unmanaged *unmanaged =
+		wl_container_of(listener, unmanaged, grab_focus);
+
+	unmanaged->ever_grabbed_focus = true;
+	if (unmanaged->node) {
+		assert(unmanaged->xwayland_surface->surface);
+		seat_focus_surface(&unmanaged->server->seat,
+			unmanaged->xwayland_surface->surface);
+	}
+}
+
+static void
 handle_request_configure(struct wl_listener *listener, void *data)
 {
 	struct xwayland_unmanaged *unmanaged =
@@ -46,7 +60,8 @@ handle_map(struct wl_listener *listener, void *data)
 
 	CONNECT_SIGNAL(xsurface, unmanaged, set_geometry);
 
-	if (wlr_xwayland_surface_override_redirect_wants_focus(xsurface)) {
+	if (wlr_xwayland_surface_override_redirect_wants_focus(xsurface)
+			|| unmanaged->ever_grabbed_focus) {
 		seat_focus_surface(&unmanaged->server->seat, xsurface->surface);
 	}
 
@@ -66,7 +81,8 @@ focus_next_surface(struct server *server, struct wlr_xwayland_surface *xsurface)
 	struct wl_list *list = &server->unmanaged_surfaces;
 	wl_list_for_each_reverse(u, list, link) {
 		struct wlr_xwayland_surface *prev = u->xwayland_surface;
-		if (wlr_xwayland_surface_override_redirect_wants_focus(prev)) {
+		if (wlr_xwayland_surface_override_redirect_wants_focus(prev)
+				|| u->ever_grabbed_focus) {
 			seat_focus_surface(&server->seat, prev->surface);
 			return;
 		}
@@ -152,9 +168,10 @@ handle_destroy(struct wl_listener *listener, void *data)
 
 	wl_list_remove(&unmanaged->associate.link);
 	wl_list_remove(&unmanaged->dissociate.link);
+	wl_list_remove(&unmanaged->grab_focus.link);
+	wl_list_remove(&unmanaged->request_activate.link);
 	wl_list_remove(&unmanaged->request_configure.link);
 	wl_list_remove(&unmanaged->set_override_redirect.link);
-	wl_list_remove(&unmanaged->request_activate.link);
 	wl_list_remove(&unmanaged->destroy.link);
 	free(unmanaged);
 }
@@ -223,6 +240,7 @@ xwayland_unmanaged_create(struct server *server,
 	CONNECT_SIGNAL(xsurface, unmanaged, associate);
 	CONNECT_SIGNAL(xsurface, unmanaged, dissociate);
 	CONNECT_SIGNAL(xsurface, unmanaged, destroy);
+	CONNECT_SIGNAL(xsurface, unmanaged, grab_focus);
 	CONNECT_SIGNAL(xsurface, unmanaged, request_activate);
 	CONNECT_SIGNAL(xsurface, unmanaged, request_configure);
 	CONNECT_SIGNAL(xsurface, unmanaged, set_override_redirect);

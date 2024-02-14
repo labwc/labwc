@@ -792,17 +792,6 @@ xwayland_view_append_children(struct view *self, struct wl_array *children)
 	}
 }
 
-static bool
-xwayland_view_is_related(struct view *view, struct wlr_surface *surface)
-{
-	struct wlr_xwayland_surface *xsurface =
-		xwayland_surface_from_view(view);
-	struct wlr_xwayland_surface *xsurface2 =
-		wlr_xwayland_surface_try_from_wlr_surface(surface);
-
-	return (xsurface2 && xsurface2->pid == xsurface->pid);
-}
-
 static void
 xwayland_view_set_activated(struct view *view, bool activated)
 {
@@ -837,7 +826,6 @@ static const struct view_impl xwayland_view_impl = {
 	.move_to_back = xwayland_view_move_to_back,
 	.get_root = xwayland_view_get_root,
 	.append_children = xwayland_view_append_children,
-	.is_related = xwayland_view_is_related,
 	.get_size_hints = xwayland_view_get_size_hints,
 	.wants_focus = xwayland_view_wants_focus,
 	.has_strut_partial = xwayland_view_has_strut_partial,

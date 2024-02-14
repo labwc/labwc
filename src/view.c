@@ -2008,17 +2008,6 @@ view_append_children(struct view *view, struct wl_array *children)
 }
 
 bool
-view_is_related(struct view *view, struct wlr_surface *surface)
-{
-	assert(view);
-	assert(surface);
-	if (view->impl->is_related) {
-		return view->impl->is_related(view, surface);
-	}
-	return false;
-}
-
-bool
 view_has_strut_partial(struct view *view)
 {
 	assert(view);

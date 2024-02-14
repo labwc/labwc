@@ -62,16 +62,6 @@ handle_map(struct wl_listener *listener, void *data)
 static void
 focus_next_surface(struct server *server, struct wlr_xwayland_surface *xsurface)
 {
-	/*
-	 * Try to focus on parent surface
-	 * This seems to fix JetBrains/Intellij window focus issues
-	 */
-	if (xsurface->parent && xsurface->parent->surface
-			&& wlr_xwayland_or_surface_wants_focus(xsurface->parent)) {
-		seat_focus_surface(&server->seat, xsurface->parent->surface);
-		return;
-	}
-
 	/* Try to focus on last created unmanaged xwayland surface */
 	struct xwayland_unmanaged *u;
 	struct wl_list *list = &server->unmanaged_surfaces;

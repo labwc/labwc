@@ -426,20 +426,11 @@ focus_change_notify(struct wl_listener *listener, void *data)
 	struct wlr_surface *surface = event->new_surface;
 	struct view *view = surface ? view_from_wlr_surface(surface) : NULL;
 
-	/* Prevent focus switch to layershell client from updating view state */
-	if (surface && wlr_layer_surface_v1_try_from_wlr_surface(surface)) {
-		return;
-	}
-
 	/*
-	 * If an xwayland-unmanaged surface was focused belonging to the
-	 * same application as the focused view, allow the view to remain
-	 * active. This fixes an issue with menus immediately closing in
-	 * some X11 apps (try LibreOffice with SAL_USE_VCLPLUGIN=gen).
+	 * Prevent focus switch to non-view surface (e.g. layer-shell
+	 * or xwayland-unmanaged) from updating view state
 	 */
-	if (!view && server->active_view && event->new_surface
-			&& view_is_related(server->active_view,
-				event->new_surface)) {
+	if (surface && !view) {
 		return;
 	}
 

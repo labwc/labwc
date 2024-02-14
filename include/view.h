@@ -352,14 +352,6 @@ void view_array_append(struct server *server, struct wl_array *views,
 enum view_wants_focus view_wants_focus(struct view *view);
 
 /**
- * view_is_focusable_from() - variant of view_is_focusable()
- * that takes into account the previously focused surface
- * @view: view to be checked
- * @prev_surface: previously focused surface
- */
-bool view_is_focusable_from(struct view *view, struct wlr_surface *prev);
-
-/**
  * view_edge_invert() - select the opposite of a provided edge
  *
  * VIEW_EDGE_CENTER and VIEW_EDGE_INVALID both map to VIEW_EDGE_INVALID.
@@ -380,10 +372,7 @@ enum view_edge view_edge_invert(enum view_edge edge);
  * The only views that are allowed to be focusd are those that have a surface
  * and have been mapped at some point since creation.
  */
-static inline bool
-view_is_focusable(struct view *view) {
-	return view_is_focusable_from(view, NULL);
-}
+bool view_is_focusable(struct view *view);
 
 void mappable_connect(struct mappable *mappable, struct wlr_surface *surface,
 	wl_notify_func_t notify_map, wl_notify_func_t notify_unmap);

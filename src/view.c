@@ -163,28 +163,16 @@ view_wants_focus(struct view *view)
 }
 
 bool
-view_is_focusable_from(struct view *view, struct wlr_surface *prev)
+view_is_focusable(struct view *view)
 {
 	assert(view);
 	if (!view->surface) {
 		return false;
 	}
-	if (!view->mapped && !view->minimized) {
+	if (view_wants_focus(view) != VIEW_WANTS_FOCUS_ALWAYS) {
 		return false;
 	}
-	enum view_wants_focus wants_focus = view_wants_focus(view);
-	/*
-	 * Consider "offer focus" (Globally Active) views as focusable
-	 * only if another surface from the same application already had
-	 * focus. The goal is to allow focusing a parent window when a
-	 * dialog/popup is closed, but still avoid focusing standalone
-	 * panels/toolbars/notifications. Note that we are basically
-	 * guessing whether Globally Active views want focus, and will
-	 * probably be wrong some of the time.
-	 */
-	return (wants_focus == VIEW_WANTS_FOCUS_ALWAYS
-		|| (wants_focus == VIEW_WANTS_FOCUS_OFFER
-			&& prev && view_is_related(view, prev)));
+	return (view->mapped || view->minimized);
 }
 
 /**

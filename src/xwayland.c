@@ -91,17 +91,15 @@ xwayland_view_wants_focus(struct view *view)
 	 */
 	case WLR_ICCCM_INPUT_MODEL_GLOBAL:
 		/*
-		 * Assume the window does want focus if it wants window
-		 * decorations (according to _MOTIF_WM_HINTS). This is
-		 * a stop-gap fix to ensure that various applications
-		 * (mainly Java-based ones such as IntelliJ IDEA) get
-		 * focus normally and appear in the window switcher. It
-		 * would be better to match based on _NET_WM_WINDOW_TYPE
-		 * instead, but that property isn't currently available
-		 * through wlroots API.
+		 * Assume that NORMAL and DIALOG windows always want
+		 * focus. These window types should show up in the
+		 * Alt-Tab switcher and be automatically focused when
+		 * they become topmost.
 		 */
-		return (xsurface->decorations ==
-			WLR_XWAYLAND_SURFACE_DECORATIONS_ALL) ?
+		return (xwayland_surface_contains_window_type(xsurface,
+				NET_WM_WINDOW_TYPE_NORMAL)
+			|| xwayland_surface_contains_window_type(xsurface,
+				NET_WM_WINDOW_TYPE_DIALOG)) ?
 			VIEW_WANTS_FOCUS_ALWAYS : VIEW_WANTS_FOCUS_OFFER;
 
 	/*

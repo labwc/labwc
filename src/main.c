@@ -178,6 +178,8 @@ main(int argc, char *argv[])
 
 	wl_display_run(server.wl_display);
 
+	session_shutdown();
+
 	server_finish(&server);
 
 	menu_finish(&server);

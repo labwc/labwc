@@ -15,4 +15,10 @@ void session_environment_init(void);
  */
 void session_autostart_init(void);
 
+/**
+ * session_shutdown - run session shutdown file as shell script
+ * Note: Same as `sh ~/.config/labwc/shutdown` (or equivalent XDG config dir)
+ */
+void session_shutdown(void);
+
 #endif /* LABWC_SESSION_H */

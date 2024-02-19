@@ -124,7 +124,8 @@ void
 session_autostart_init(void)
 {
 	/* Update dbus and systemd user environment, each may fail gracefully */
-	update_activation_env("DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP");
+	update_activation_env("DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP "
+		"XCURSOR_SIZE XCURSOR_THEME XDG_SESSION_TYPE LABWC_PID");
 
 	struct wl_list paths;
 	paths_config_create(&paths, "autostart");

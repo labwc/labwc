@@ -196,12 +196,14 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	} else {
 		wlr_log(WLR_INFO, "click method configured");
 
-		// Note, the documentation claims that:
-		// > [...] The device may require changing to a neutral state
-		// > first before activating the new method.
-		//
-		// However, just setting the method seems to work without
-		// issues.
+		/*
+		 * Note, the documentation claims that:
+		 * > [...] The device may require changing to a neutral state
+		 * > first before activating the new method.
+		 *
+		 * However, just setting the method seems to work without
+		 * issues.
+		 */
 
 		libinput_device_config_click_set_method(libinput_dev, dc->click_method);
 	}

@@ -23,6 +23,7 @@ libinput_category_init(struct libinput_category *l)
 	l->accel_profile = -1;
 	l->middle_emu = -1;
 	l->dwt = -1;
+	l->click_method = -1;
 }
 
 enum lab_libinput_device_type

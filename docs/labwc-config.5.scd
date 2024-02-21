@@ -592,6 +592,7 @@ extending outward from the snapped edge.
     <dragLock></dragLock>
     <middleEmulation></middleEmulation>
     <disableWhileTyping></disableWhileTyping>
+    <clickMethod></clickMethod>
   </device>
 </libinput>
 ```
@@ -666,6 +667,22 @@ extending outward from the snapped edge.
 	Enable or disable disable while typing for this category. DWT ignores
 	any motion events while a keyboard is typing, and for a short while
 	after as well.
+
+*<libinput><device><clickMethod>* [none|buttonAreas|clickfinger]
+	Configure the method by which physical clicks on a touchpad are mapped to
+	mouse-button events.
+
+	The click methods available are:
+	- *buttonAreas* - The bottom of the touchpad is divided into distinct
+	  regions corresponding to left, middle and right buttons; clicking within
+	  the region will trigger the corresponding event. Clicking the main area
+	  further up produces a left button event.
+	- *clickfinger* - Clicking with one, two or three finger(s) will produce
+	  left, right or middle button event without regard to the location of a
+	  click.
+	- *none* - Physical clicks will not produce button events.
+
+	The default method depends on the touchpad hardware.
 
 ## WINDOW RULES
 

@@ -518,9 +518,15 @@ verify_output_config_v1(const struct wlr_output_configuration_v1 *config)
 
 			if (wlr_output_is_wl(head->state.output) && refresh != 0) {
 				/* Wayland backend does not support refresh rates */
-				err_msg = "Wayland backend refresh rate unsupported";
+				err_msg = "Wayland backend refresh rates unsupported";
 				goto custom_mode_failed;
 			}
+		}
+
+		if (wlr_output_is_wl(head->state.output)
+				&& !head->state.adaptive_sync_enabled) {
+			err_msg = "Wayland backend requires adaptive sync";
+			goto custom_mode_failed;
 		}
 
 		/*

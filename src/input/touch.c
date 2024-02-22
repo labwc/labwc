@@ -13,6 +13,7 @@ struct touch_point {
 	int32_t touch_id;
 	uint32_t x_offset;
 	uint32_t y_offset;
+	struct wlr_surface *surface;
 	struct wl_list link; /* seat.touch_points */
 };
 
@@ -62,8 +63,10 @@ touch_motion(struct wl_listener *listener, void *data)
 
 			wlr_seat_touch_notify_motion(seat->seat, event->time_msec,
 				event->touch_id, sx, sy);
-			cursor_emulate_move_absolute(seat, &event->touch->base,
-				event->x, event->y, event->time_msec);
+			if (!touch_point->surface) {
+				cursor_emulate_move_absolute(seat, &event->touch->base,
+					event->x, event->y, event->time_msec);
+			}
 			return;
 		}
 	}
@@ -84,11 +87,10 @@ touch_down(struct wl_listener *listener, void *data)
 	struct wlr_touch_down_event *event = data;
 
 	/* Compute layout => surface offset and save for this touch point */
-	double x_offset, y_offset;
-	struct wlr_surface *surface = touch_get_coords(seat, event->touch,
-			event->x, event->y, &x_offset, &y_offset);
-
 	struct touch_point *touch_point = znew(*touch_point);
+	double x_offset, y_offset;
+	touch_point->surface = touch_get_coords(seat, event->touch,
+			event->x, event->y, &x_offset, &y_offset);
 	touch_point->touch_id = event->touch_id;
 	touch_point->x_offset = x_offset;
 	touch_point->y_offset = y_offset;
@@ -103,8 +105,8 @@ touch_down(struct wl_listener *listener, void *data)
 	double sx = lx - x_offset;
 	double sy = ly - y_offset;
 
-	if (surface) {
-		wlr_seat_touch_notify_down(seat->seat, surface,
+	if (touch_point->surface) {
+		wlr_seat_touch_notify_down(seat->seat, touch_point->surface,
 			event->time_msec, event->touch_id, sx, sy);
 	} else {
 		cursor_emulate_move_absolute(seat, &event->touch->base,
@@ -124,6 +126,10 @@ touch_up(struct wl_listener *listener, void *data)
 	struct touch_point *touch_point, *tmp;
 	wl_list_for_each_safe(touch_point, tmp, &seat->touch_points, link) {
 		if (touch_point->touch_id == event->touch_id) {
+			if (!touch_point->surface) {
+				cursor_emulate_button(seat, BTN_LEFT, WLR_BUTTON_RELEASED,
+					event->time_msec);
+			}
 			wl_list_remove(&touch_point->link);
 			zfree(touch_point);
 			break;
@@ -131,8 +137,6 @@ touch_up(struct wl_listener *listener, void *data)
 	}
 
 	wlr_seat_touch_notify_up(seat->seat, event->time_msec, event->touch_id);
-	cursor_emulate_button(seat, BTN_LEFT, WLR_BUTTON_RELEASED,
-		event->time_msec);
 }
 
 void

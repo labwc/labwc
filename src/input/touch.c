@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <wayland-util.h>
 #include <wlr/types/wlr_touch.h>
+#include <linux/input-event-codes.h>
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "idle.h"
@@ -61,6 +62,8 @@ touch_motion(struct wl_listener *listener, void *data)
 
 			wlr_seat_touch_notify_motion(seat->seat, event->time_msec,
 				event->touch_id, sx, sy);
+			cursor_emulate_move_absolute(seat, &event->touch->base,
+				event->x, event->y, event->time_msec);
 			return;
 		}
 	}
@@ -104,6 +107,12 @@ touch_down(struct wl_listener *listener, void *data)
 		wlr_seat_touch_notify_down(seat->seat, surface,
 			event->time_msec, event->touch_id, sx, sy);
 	}
+	else {
+		cursor_emulate_move_absolute(seat, &event->touch->base,
+			event->x, event->y, event->time_msec);
+		cursor_emulate_button(seat, BTN_LEFT, WLR_BUTTON_PRESSED,
+			event->time_msec);
+	}
 }
 
 static void
@@ -123,6 +132,8 @@ touch_up(struct wl_listener *listener, void *data)
 	}
 
 	wlr_seat_touch_notify_up(seat->seat, event->time_msec, event->touch_id);
+	cursor_emulate_button(seat, BTN_LEFT, WLR_BUTTON_RELEASED,
+		event->time_msec);
 }
 
 void

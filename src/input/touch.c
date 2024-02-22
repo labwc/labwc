@@ -61,9 +61,10 @@ touch_motion(struct wl_listener *listener, void *data)
 			double sx = lx - touch_point->x_offset;
 			double sy = ly - touch_point->y_offset;
 
-			wlr_seat_touch_notify_motion(seat->seat, event->time_msec,
-				event->touch_id, sx, sy);
-			if (!touch_point->surface) {
+			if (touch_point->surface) {
+				wlr_seat_touch_notify_motion(seat->seat, event->time_msec,
+					event->touch_id, sx, sy);
+			} else {
 				cursor_emulate_move_absolute(seat, &event->touch->base,
 					event->x, event->y, event->time_msec);
 			}
@@ -126,7 +127,10 @@ touch_up(struct wl_listener *listener, void *data)
 	struct touch_point *touch_point, *tmp;
 	wl_list_for_each_safe(touch_point, tmp, &seat->touch_points, link) {
 		if (touch_point->touch_id == event->touch_id) {
-			if (!touch_point->surface) {
+			if (touch_point->surface) {
+				wlr_seat_touch_notify_up(seat->seat, event->time_msec,
+					event->touch_id);
+			} else {
 				cursor_emulate_button(seat, BTN_LEFT, WLR_BUTTON_RELEASED,
 					event->time_msec);
 			}
@@ -135,8 +139,6 @@ touch_up(struct wl_listener *listener, void *data)
 			break;
 		}
 	}
-
-	wlr_seat_touch_notify_up(seat->seat, event->time_msec, event->touch_id);
 }
 
 void

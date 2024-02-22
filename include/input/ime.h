@@ -29,12 +29,19 @@ struct input_method_relay {
 	 */
 	struct text_input *active_text_input;
 
+	struct wlr_input_popup_surface_v2 *popup_surface;
+	struct wlr_scene_tree *popup_tree;
+
 	struct wl_listener new_text_input;
 	struct wl_listener new_input_method;
 
 	struct wl_listener input_method_commit;
 	struct wl_listener input_method_grab_keyboard;
 	struct wl_listener input_method_destroy;
+	struct wl_listener input_method_new_popup_surface;
+
+	struct wl_listener popup_surface_destroy;
+	struct wl_listener popup_surface_commit;
 
 	struct wl_listener keyboard_grab_destroy;
 	struct wl_listener focused_surface_destroy;

@@ -773,7 +773,7 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	 */
 	kde_server_decoration_set_view(view, xdg_surface->surface);
 
-	/* In support of xdg popups */
+	/* In support of xdg popups and IME popup */
 	xdg_surface->surface->data = tree;
 
 	view_connect_map(view, xdg_surface->surface);

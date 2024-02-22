@@ -141,6 +141,11 @@ get_special(struct server *server, struct wlr_scene_node *node)
 		/* Created on-demand */
 		return "seat->region_overlay";
 	}
+	if (server->seat.input_method_relay->popup_tree
+			&& node == &server->seat.input_method_relay->popup_tree->node) {
+		/* Created on-demand */
+		return "seat->im_relay->popup_tree";
+	}
 	if (server->osd_state.preview_outline
 			&& node == &server->osd_state.preview_outline->tree->node) {
 		/* Created on-demand */

@@ -106,8 +106,7 @@ touch_down(struct wl_listener *listener, void *data)
 	if (surface) {
 		wlr_seat_touch_notify_down(seat->seat, surface,
 			event->time_msec, event->touch_id, sx, sy);
-	}
-	else {
+	} else {
 		cursor_emulate_move_absolute(seat, &event->touch->base,
 			event->x, event->y, event->time_msec);
 		cursor_emulate_button(seat, BTN_LEFT, WLR_BUTTON_PRESSED,

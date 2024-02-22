@@ -405,10 +405,11 @@ output_update_for_layout_change(struct server *server)
 	cursor_update_image(&server->seat);
 }
 
-static void
+static bool
 output_config_apply(struct server *server,
 		struct wlr_output_configuration_v1 *config)
 {
+	bool success = true;
 	server->pending_output_layout_change++;
 
 	struct wlr_output_configuration_head_v1 *head;
@@ -436,8 +437,15 @@ output_config_apply(struct server *server,
 			output_enable_adaptive_sync(o, head->state.adaptive_sync_enabled);
 		}
 		if (!wlr_output_commit(o)) {
-			wlr_log(WLR_ERROR, "Output config commit failed");
-			continue;
+			/*
+			 * FIXME: This is only part of the story, we should revert
+			 *        all previously commited outputs as well here.
+			 *
+			 *        See https://github.com/labwc/labwc/pull/1528
+			 */
+			wlr_log(WLR_INFO, "Output config commit failed: %s", o->name);
+			success = false;
+			break;
 		}
 
 		/* Only do Layout specific actions if the commit went trough */
@@ -477,6 +485,7 @@ output_config_apply(struct server *server,
 
 	server->pending_output_layout_change--;
 	do_output_layout_change(server);
+	return success;
 }
 
 static bool
@@ -569,8 +578,7 @@ handle_output_manager_apply(struct wl_listener *listener, void *data)
 
 	bool config_is_good = verify_output_config_v1(config);
 
-	if (config_is_good) {
-		output_config_apply(server, config);
+	if (config_is_good && output_config_apply(server, config)) {
 		wlr_output_configuration_v1_send_succeeded(config);
 	} else {
 		wlr_output_configuration_v1_send_failed(config);

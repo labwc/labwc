@@ -405,40 +405,108 @@ output_update_for_layout_change(struct server *server)
 	cursor_update_image(&server->seat);
 }
 
-static void
+/* Backup previous state */
+struct output_state_backup {
+	struct wlr_output *output;
+	struct wlr_output_state state;
+	struct wlr_output_state pending;
+};
+
+static bool
 output_config_apply(struct server *server,
 		struct wlr_output_configuration_v1 *config)
 {
+	bool success = true;
 	server->pending_output_layout_change++;
+
+	struct wl_array backups;
+	struct output_state_backup *backup;
+	struct wlr_output_configuration_v1 *backup_config =
+		wlr_output_configuration_v1_create();
+	wl_array_init(&backups);
 
 	struct wlr_output_configuration_head_v1 *head;
 	wl_list_for_each(head, &config->heads, link) {
-		struct wlr_output *o = head->state.output;
-		struct output *output = output_from_wlr_output(server, o);
+		struct wlr_output *wlr_output = head->state.output;
+		struct output *output = output_from_wlr_output(server, wlr_output);
 		bool output_enabled = head->state.enabled && !output->leased;
-		bool need_to_add = output_enabled && !o->enabled;
-		bool need_to_remove = !output_enabled && o->enabled;
 
-		wlr_output_enable(o, output_enabled);
+		/*
+		 * Create a backup of the current output state so we can
+		 * properly restore everything if one of the output commits
+		 * fails.
+		 */
+		struct wlr_output_configuration_head_v1 *backup_head =
+			wlr_output_configuration_head_v1_create(backup_config, wlr_output);
+
+		backup = wl_array_add(&backups, sizeof(*backup));
+		backup->output = wlr_output;
+		wlr_output_state_init(&backup->state);
+		wlr_output_state_init(&backup->pending);
+		wlr_output_head_v1_state_apply(&backup_head->state, &backup->state);
+
+		/* Also create a backup of wlr_output->pending if required */
+		if (wlr_output->pending.committed) {
+			wlr_log(WLR_ERROR, "Backing up ->pending for %s", wlr_output->name);
+			wlr_output_state_copy(&backup->pending, &wlr_output->pending);
+		}
+
+		/* Modify the wlr_output->pending states */
+		wlr_output_enable(wlr_output, output_enabled);
 		if (output_enabled) {
 			/* Output specific actions only */
+
 			if (head->state.mode) {
-				wlr_output_set_mode(o, head->state.mode);
+				wlr_output_set_mode(wlr_output, head->state.mode);
 			} else {
 				int32_t width = head->state.custom_mode.width;
 				int32_t height = head->state.custom_mode.height;
 				int32_t refresh = head->state.custom_mode.refresh;
-				wlr_output_set_custom_mode(o, width,
+				wlr_output_set_custom_mode(wlr_output, width,
 					height, refresh);
 			}
-			wlr_output_set_scale(o, head->state.scale);
-			wlr_output_set_transform(o, head->state.transform);
-			output_enable_adaptive_sync(o, head->state.adaptive_sync_enabled);
+			wlr_output_set_scale(wlr_output, head->state.scale);
+			wlr_output_set_transform(wlr_output, head->state.transform);
+			output_enable_adaptive_sync(wlr_output,
+				head->state.adaptive_sync_enabled);
 		}
-		if (!wlr_output_commit(o)) {
-			wlr_log(WLR_ERROR, "Output config commit failed");
-			continue;
+
+		/*
+		 * Try to commit all output changes before starting the layout ones.
+		 * If only one output commit fails: roll back changes to previous
+		 * outputs as well so we either commit everything or nothing.
+		 */
+		if (!wlr_output_commit(wlr_output)) {
+			wlr_log(WLR_ERROR,
+				"Output config commit failed for %s", wlr_output->name);
+
+			wl_array_for_each(backup, &backups) {
+				if (!wlr_output_commit_state(backup->output, &backup->state)) {
+					wlr_log(WLR_ERROR, "\tFAILED to restore backup for %s",
+						backup->output->name);
+				} else {
+					wlr_log(WLR_DEBUG, "\tRestored backup for %s",
+						backup->output->name);
+				}
+				if (backup->pending.committed) {
+					wlr_log(WLR_ERROR, "\tRestoring ->pending for %s",
+						backup->output->name);
+					wlr_output_state_copy(&wlr_output->pending,
+						&backup->pending);
+				}
+			}
+			success = false;
+			goto clean_up;
 		}
+	}
+
+	wl_list_for_each(head, &config->heads, link) {
+		struct wlr_output *wlr_output = head->state.output;
+		struct output *output = output_from_wlr_output(server, wlr_output);
+
+		bool output_enabled = head->state.enabled && !output->leased;
+		bool need_to_add = output_enabled && !wlr_output->enabled;
+		bool need_to_remove = !output_enabled && wlr_output->enabled;
 
 		/* Only do Layout specific actions if the commit went trough */
 		if (need_to_add) {
@@ -447,15 +515,15 @@ output_config_apply(struct server *server,
 
 		if (output_enabled) {
 			struct wlr_box pos = {0};
-			wlr_output_layout_get_box(server->output_layout, o, &pos);
+			wlr_output_layout_get_box(server->output_layout, wlr_output, &pos);
 			if (pos.x != head->state.x || pos.y != head->state.y) {
 				/*
 				 * This overrides the automatic layout
 				 *
 				 * wlr_output_layout_add() in fact means _move()
 				 */
-				wlr_output_layout_add(server->output_layout, o,
-					head->state.x, head->state.y);
+				wlr_output_layout_add(server->output_layout,
+					wlr_output, head->state.x, head->state.y);
 			}
 		}
 
@@ -470,13 +538,26 @@ output_config_apply(struct server *server,
 			 * calling wlr_output_layout_remove().
 			 */
 			wlr_scene_output_destroy(output->scene_output);
-			wlr_output_layout_remove(server->output_layout, o);
+			wlr_output_layout_remove(server->output_layout, wlr_output);
 			output->scene_output = NULL;
 		}
 	}
 
+clean_up:
 	server->pending_output_layout_change--;
-	do_output_layout_change(server);
+	if (success) {
+		do_output_layout_change(server);
+	}
+
+	/* Destroy backups */
+	wlr_output_configuration_v1_destroy(backup_config);
+	wl_array_for_each(backup, &backups) {
+		wlr_output_state_finish(&backup->state);
+		wlr_output_state_finish(&backup->pending);
+	}
+	wl_array_release(&backups);
+
+	return success;
 }
 
 static bool
@@ -569,8 +650,7 @@ handle_output_manager_apply(struct wl_listener *listener, void *data)
 
 	bool config_is_good = verify_output_config_v1(config);
 
-	if (config_is_good) {
-		output_config_apply(server, config);
+	if (config_is_good && output_config_apply(server, config)) {
 		wlr_output_configuration_v1_send_succeeded(config);
 	} else {
 		wlr_output_configuration_v1_send_failed(config);

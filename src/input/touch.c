@@ -49,16 +49,17 @@ touch_motion(struct wl_listener *listener, void *data)
 	struct wlr_touch_motion_event *event = data;
 	idle_manager_notify_activity(seat->seat);
 
-	/* Convert coordinates: first [0, 1] => layout, then apply offsets */
-	double lx, ly;
-	wlr_cursor_absolute_to_layout_coords(seat->cursor, &event->touch->base,
-		event->x, event->y, &lx, &ly);
-
 	/* Find existing touch point to determine initial offsets to subtract */
 	struct touch_point *touch_point;
 	wl_list_for_each(touch_point, &seat->touch_points, link) {
 		if (touch_point->touch_id == event->touch_id) {
 			if (touch_point->surface) {
+				/* Convert coordinates: first [0, 1] => layout, then apply offsets */
+				double lx, ly;
+				wlr_cursor_absolute_to_layout_coords(seat->cursor, &event->touch->base,
+					event->x, event->y, &lx, &ly);
+
+				/* Apply offsets to get surface coords before reporting event */
 				double sx = lx - touch_point->x_offset;
 				double sy = ly - touch_point->y_offset;
 
@@ -98,11 +99,12 @@ touch_down(struct wl_listener *listener, void *data)
 
 	wl_list_insert(&seat->touch_points, &touch_point->link);
 
-	double lx, ly;
-	wlr_cursor_absolute_to_layout_coords(seat->cursor, &event->touch->base,
-		event->x, event->y, &lx, &ly);
-
 	if (touch_point->surface) {
+		/* Convert coordinates: first [0, 1] => layout, then apply offsets */
+		double lx, ly;
+		wlr_cursor_absolute_to_layout_coords(seat->cursor, &event->touch->base,
+			event->x, event->y, &lx, &ly);
+
 		/* Apply offsets to get surface coords before reporting event */
 		double sx = lx - x_offset;
 		double sy = ly - y_offset;

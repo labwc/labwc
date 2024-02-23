@@ -100,10 +100,11 @@ touch_down(struct wl_listener *listener, void *data)
 	wl_list_insert(&seat->touch_points, &touch_point->link);
 
 	if (touch_point->surface) {
-		/* Convert coordinates: first [0, 1] => layout, then apply offsets */
+		/* Convert coordinates: first [0, 1] => layout,
+		 * then apply offsets */
 		double lx, ly;
-		wlr_cursor_absolute_to_layout_coords(seat->cursor, &event->touch->base,
-			event->x, event->y, &lx, &ly);
+		wlr_cursor_absolute_to_layout_coords(seat->cursor,
+			&event->touch->base, event->x, event->y, &lx, &ly);
 
 		/* Apply offsets to get surface coords before reporting event */
 		double sx = lx - x_offset;

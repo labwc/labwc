@@ -8,9 +8,10 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-01-15 16:00-0500\n"
-"PO-Revision-Date: 2023-12-26 09:00+0000\n"
+"PO-Revision-Date: 2024-02-24 22:23+0000\n"
 "Last-Translator: Sabri Ünal <libreajans@gmail.com>\n"
-"Language-Team: Turkish <https://translate.lxqt-project.org/projects/labwc/labwc/tr/>\n"
+"Language-Team: Turkish <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/tr/>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -40,7 +41,7 @@ msgstr "Tam Ekran"
 
 #: src/menu/menu.c:721
 msgid "Roll up/down"
-msgstr ""
+msgstr "Yukarı/aşağı katla"
 
 #: src/menu/menu.c:723
 msgid "Decorations"

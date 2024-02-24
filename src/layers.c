@@ -260,14 +260,35 @@ popup_handle_destroy(struct wl_listener *listener, void *data)
 		wl_container_of(listener, popup, destroy);
 	wl_list_remove(&popup->destroy.link);
 	wl_list_remove(&popup->new_popup.link);
+
+	/* Usually already removed unless there was no commit at all */
+	if (popup->commit.notify) {
+		wl_list_remove(&popup->commit.link);
+	}
+
 	free(popup);
+}
+
+static void
+popup_handle_commit(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_popup *popup =
+		wl_container_of(listener, popup, commit);
+
+	if (popup->wlr_popup->base->initial_commit) {
+		wlr_xdg_popup_unconstrain_from_box(popup->wlr_popup,
+			&popup->output_toplevel_sx_box);
+
+		/* Prevent getting called over and over again */
+		wl_list_remove(&popup->commit.link);
+		popup->commit.notify = NULL;
+	}
 }
 
 static void popup_handle_new_popup(struct wl_listener *listener, void *data);
 
 static struct lab_layer_popup *
-create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_tree *parent,
-		struct wlr_box *output_toplevel_sx_box)
+create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_tree *parent)
 {
 	struct lab_layer_popup *popup = znew(*popup);
 	popup->wlr_popup = wlr_popup;
@@ -282,10 +303,13 @@ create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_tree *parent,
 
 	popup->destroy.notify = popup_handle_destroy;
 	wl_signal_add(&wlr_popup->base->events.destroy, &popup->destroy);
+
 	popup->new_popup.notify = popup_handle_new_popup;
 	wl_signal_add(&wlr_popup->base->events.new_popup, &popup->new_popup);
 
-	wlr_xdg_popup_unconstrain_from_box(wlr_popup, output_toplevel_sx_box);
+	popup->commit.notify = popup_handle_commit;
+	wl_signal_add(&wlr_popup->base->surface->events.commit, &popup->commit);
+
 	return popup;
 }
 
@@ -297,8 +321,7 @@ popup_handle_new_popup(struct wl_listener *listener, void *data)
 		wl_container_of(listener, lab_layer_popup, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
 	struct lab_layer_popup *new_popup = create_popup(wlr_popup,
-		lab_layer_popup->scene_tree,
-		&lab_layer_popup->output_toplevel_sx_box);
+		lab_layer_popup->scene_tree);
 	new_popup->output_toplevel_sx_box =
 		lab_layer_popup->output_toplevel_sx_box;
 }
@@ -357,8 +380,7 @@ handle_new_popup(struct wl_listener *listener, void *data)
 		.width = output_box.width,
 		.height = output_box.height,
 	};
-	struct lab_layer_popup *popup = create_popup(wlr_popup,
-		surface->tree, &output_toplevel_sx_box);
+	struct lab_layer_popup *popup = create_popup(wlr_popup, surface->tree);
 	popup->output_toplevel_sx_box = output_toplevel_sx_box;
 
 	if (surface->layer_surface->current.layer

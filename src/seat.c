@@ -189,8 +189,10 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		wlr_log(WLR_INFO, "dwt configured");
 		libinput_device_config_dwt_set_enabled(libinput_dev, dc->dwt);
 	}
-	if ((libinput_device_config_click_get_methods(libinput_dev)
-				& dc->click_method) == 0
+
+	if ((dc->click_method != LIBINPUT_CONFIG_CLICK_METHOD_NONE
+			&& (libinput_device_config_click_get_methods(libinput_dev)
+				& dc->click_method) == 0)
 			|| dc->click_method < 0) {
 		wlr_log(WLR_INFO, "click method not configured");
 	} else {

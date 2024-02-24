@@ -564,10 +564,7 @@ fill_libinput_category(char *nodename, char *content)
 			? LIBINPUT_CONFIG_DWT_ENABLED
 			: LIBINPUT_CONFIG_DWT_DISABLED;
 	} else if (!strcasecmp(nodename, "clickMethod")) {
-		if (!strcasecmp(content, "none")) {
-			current_libinput_category->click_method =
-				LIBINPUT_CONFIG_CLICK_METHOD_NONE;
-		} else if (!strcasecmp(content, "clickfinger")) {
+		if (!strcasecmp(content, "clickfinger")) {
 			current_libinput_category->click_method =
 				LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
 		} else if (!strcasecmp(content, "buttonAreas")) {

@@ -680,7 +680,6 @@ extending outward from the snapped edge.
 	- *clickfinger* - Clicking with one, two or three finger(s) will produce
 	  left, right or middle button event without regard to the location of a
 	  click.
-	- *none* - Physical clicks will not produce button events.
 
 	The default method depends on the touchpad hardware.
 

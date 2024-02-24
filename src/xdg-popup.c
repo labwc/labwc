@@ -16,15 +16,17 @@ struct xdg_popup {
 	struct view *parent_view;
 	struct wlr_xdg_popup *wlr_popup;
 
+	struct wl_listener commit;
 	struct wl_listener destroy;
 	struct wl_listener new_popup;
 };
 
 static void
-popup_unconstrain(struct view *view, struct wlr_xdg_popup *popup)
+popup_unconstrain(struct xdg_popup *popup)
 {
+	struct view *view = popup->parent_view;
 	struct server *server = view->server;
-	struct wlr_box *popup_box = &popup->current.geometry;
+	struct wlr_box *popup_box = &popup->wlr_popup->current.geometry;
 	struct wlr_output_layout *output_layout = server->output_layout;
 	struct wlr_output *wlr_output = wlr_output_layout_output_at(
 		output_layout, view->current.x + popup_box->x,
@@ -39,7 +41,7 @@ popup_unconstrain(struct view *view, struct wlr_xdg_popup *popup)
 		.width = output_box.width,
 		.height = output_box.height,
 	};
-	wlr_xdg_popup_unconstrain_from_box(popup, &output_toplevel_box);
+	wlr_xdg_popup_unconstrain_from_box(popup->wlr_popup, &output_toplevel_box);
 }
 
 static void
@@ -48,7 +50,26 @@ handle_xdg_popup_destroy(struct wl_listener *listener, void *data)
 	struct xdg_popup *popup = wl_container_of(listener, popup, destroy);
 	wl_list_remove(&popup->destroy.link);
 	wl_list_remove(&popup->new_popup.link);
+
+	/* Usually already removed unless there was no commit at all */
+	if (popup->commit.notify) {
+		wl_list_remove(&popup->commit.link);
+	}
 	free(popup);
+}
+
+static void
+handle_xdg_popup_commit(struct wl_listener *listener, void *data)
+{
+	struct xdg_popup *popup = wl_container_of(listener, popup, commit);
+
+	if (popup->wlr_popup->base->initial_commit) {
+		popup_unconstrain(popup);
+
+		/* Prevent getting called over and over again */
+		wl_list_remove(&popup->commit.link);
+		popup->commit.notify = NULL;
+	}
 }
 
 static void
@@ -75,8 +96,12 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 
 	popup->destroy.notify = handle_xdg_popup_destroy;
 	wl_signal_add(&wlr_popup->base->events.destroy, &popup->destroy);
+
 	popup->new_popup.notify = popup_handle_new_xdg_popup;
 	wl_signal_add(&wlr_popup->base->events.new_popup, &popup->new_popup);
+
+	popup->commit.notify = handle_xdg_popup_commit;
+	wl_signal_add(&wlr_popup->base->surface->events.commit, &popup->commit);
 
 	/*
 	 * We must add xdg popups to the scene graph so they get rendered. The
@@ -100,6 +125,4 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 		wlr_scene_xdg_surface_create(parent_tree, wlr_popup->base);
 	node_descriptor_create(wlr_popup->base->surface->data,
 		LAB_NODE_DESC_XDG_POPUP, view);
-
-	popup_unconstrain(view, wlr_popup);
 }

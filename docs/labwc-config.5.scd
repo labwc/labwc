@@ -593,6 +593,7 @@ extending outward from the snapped edge.
     <middleEmulation></middleEmulation>
     <disableWhileTyping></disableWhileTyping>
     <clickMethod></clickMethod>
+    <sendEventsMode></sendEventsMode>
   </device>
 </libinput>
 ```

@@ -17,6 +17,7 @@
 #include <wlr/types/wlr_viewporter.h>
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
+#include "xwayland-shell-v1-protocol.h"
 #endif
 #include "drm-lease-v1-protocol.h"
 #include "config/rcxml.h"
@@ -172,9 +173,11 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 	(void)iface; (void)server;
 
 #if HAVE_XWAYLAND
-	struct wl_client *xwayland_client =
-		server->xwayland ? server->xwayland->server->client : NULL;
-	if (xwayland_client && client == xwayland_client) {
+	struct wl_client *xwayland_client = (server->xwayland && server->xwayland->server)
+		? server->xwayland->server->client
+		: NULL;
+
+	if (client == xwayland_client) {
 		/*
 		 * Filter out wp_drm_lease_device_v1 for now as it is resulting in
 		 * issues with Xwayland applications lagging over time.
@@ -184,6 +187,9 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 		if (!strcmp(iface->name, wp_drm_lease_device_v1_interface.name)) {
 			return false;
 		}
+	} else if (!strcmp(iface->name, xwayland_shell_v1_interface.name)) {
+		/* Filter out the xwayland shell for usual clients */
+		return false;
 	}
 #endif
 

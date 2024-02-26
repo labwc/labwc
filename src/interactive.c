@@ -82,6 +82,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
 		seat->region_prevent_snap = keyboard_any_modifiers_pressed(keyboard);
 
+		wlr_seat_pointer_notify_clear_focus(seat->seat);
 		cursor_set(seat, LAB_CURSOR_GRAB);
 		break;
 	case LAB_INPUT_STATE_RESIZE:
@@ -107,6 +108,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		 */
 		view_set_untiled(view);
 		view_restore_to(view, view->pending);
+		wlr_seat_pointer_notify_clear_focus(seat->seat);
 		cursor_set(seat, cursor_get_from_edge(edges));
 		break;
 	default:

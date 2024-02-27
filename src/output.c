@@ -150,6 +150,32 @@ output_request_state_notify(struct wl_listener *listener, void *data)
 	struct output *output = wl_container_of(listener, output, request_state);
 	const struct wlr_output_event_request_state *event = data;
 
+	/*
+	 * If wlroots ever requests other state changes here we could
+	 * restore more of ddc9047a67cd53b2948f71fde1bbe9118000dd3f.
+	 */
+	if (event->state->committed == WLR_OUTPUT_STATE_MODE) {
+		/* Only the mode has changed */
+		switch (event->state->mode_type) {
+		case WLR_OUTPUT_STATE_MODE_FIXED:
+			wlr_output_set_mode(output->wlr_output, event->state->mode);
+			break;
+		case WLR_OUTPUT_STATE_MODE_CUSTOM:
+			wlr_output_set_custom_mode(output->wlr_output,
+				event->state->custom_mode.width,
+				event->state->custom_mode.height,
+				event->state->custom_mode.refresh);
+			break;
+		}
+		wlr_output_schedule_frame(output->wlr_output);
+		return;
+	}
+
+	/*
+	 * Fallback path for everything that we didn't handle above.
+	 * The commit will cause a black frame injection so this
+	 * path causes flickering during resize of nested outputs.
+	 */
 	if (!wlr_output_commit_state(output->wlr_output, event->state)) {
 		wlr_log(WLR_ERROR, "Backend requested a new state that could not be applied");
 	}

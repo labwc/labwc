@@ -35,6 +35,12 @@ enum adaptive_sync_mode {
 	LAB_ADAPTIVE_SYNC_FULLSCREEN,
 };
 
+enum tearing_mode {
+	LAB_TEARING_DISABLED = 0,
+	LAB_TEARING_ENABLED,
+	LAB_TEARING_FULLSCREEN,
+};
+
 enum tiling_events_mode {
 	LAB_TILING_EVENTS_NEVER = 0,
 	LAB_TILING_EVENTS_REGION = 1 << 0,
@@ -65,7 +71,7 @@ struct rcxml {
 	bool xdg_shell_server_side_deco;
 	int gap;
 	enum adaptive_sync_mode adaptive_sync;
-	bool allow_tearing;
+	enum tearing_mode allow_tearing;
 	bool reuse_output_mode;
 	enum view_placement_policy placement_policy;
 

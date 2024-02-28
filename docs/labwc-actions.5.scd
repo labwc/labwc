@@ -157,6 +157,7 @@ Actions are used in menus and keyboard/mouse bindings.
 
 *<action name="ToggleTearing" />*
 	Toggles tearing for the focused window.
+	Requires the config option 'allowTearing'.
 
 *<action name="FocusOutput" output="HDMI-A-1" />*
 	Give focus to topmost window on given output and warp the cursor

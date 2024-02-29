@@ -8,13 +8,16 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-01-15 16:00-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2024-02-29 14:23+0000\n"
+"Last-Translator: Jouni Järvinen <jounijarvis@gmail.com>\n"
+"Language-Team: Finnish <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.2.1\n"
 
 #: src/menu/menu.c:697
 msgid "Reconfigure"
@@ -22,7 +25,7 @@ msgstr ""
 
 #: src/menu/menu.c:699
 msgid "Exit"
-msgstr ""
+msgstr "Poistu"
 
 #: src/menu/menu.c:715
 msgid "Minimize"

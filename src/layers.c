@@ -118,45 +118,55 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	wlr_layer_surface_v1_destroy(layer->scene_layer_surface->layer_surface);
 }
 
+static bool
+exclusive_focus(struct seat *seat) {
+	if (!seat->focused_layer) {
+	       return false;
+	}
+	if (seat->focused_layer->current.keyboard_interactive !=
+			ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE) {
+		return false;
+	}
+	return true;
+}
+
+static bool
+has_precedence(struct seat *seat, enum zwlr_layer_shell_v1_layer layer)
+{
+	if (!seat->focused_layer) {
+		return true;
+	}
+	if (!exclusive_focus(seat)) {
+		return true;
+	}
+	if (layer >= seat->focused_layer->current.layer) {
+		return true;
+	}
+	return false;
+}
+
 static void
 process_keyboard_interactivity(struct lab_layer_surface *layer)
 {
-	struct wlr_layer_surface_v1 *layer_surface = layer->scene_layer_surface->layer_surface;
+	struct wlr_layer_surface_v1 *layer_surface =
+		layer->scene_layer_surface->layer_surface;
 	struct seat *seat = &layer->server->seat;
 
-	if (layer_surface->current.keyboard_interactive
-			&& layer_surface->current.layer >= ZWLR_LAYER_SHELL_V1_LAYER_TOP) {
-		/*
-		 * Give keyboard focus to surface if
-		 * - keyboard-interactivity is 'exclusive' or 'on-demand'; and
-		 * - surface is in top/overlay layers; and
-		 * - currently focused layer has a lower precedence
-		 *
-		 * In other words, when dealing with two surfaces with
-		 * exclusive/on-demand keyboard-interactivity (firstly the
-		 * currently focused 'focused_layer' and secondly the
-		 * 'layer_surface' for which we're just responding to a
-		 * map/commit event), the following logic applies:
-		 *
-		 * | focused_layer | layer_surface | who gets keyboard focus |
-		 * |---------------|---------------|-------------------------|
-		 * | overlay       | top           | focused_layer           |
-		 * | overlay       | overlay       | layer_surface           |
-		 * | top           | top           | layer_surface           |
-		 * | top           | overlay       | layer_surface           |
-		 */
-
-		if (!seat->focused_layer || seat->focused_layer->current.layer
-				<= layer_surface->current.layer) {
+	switch (layer_surface->current.keyboard_interactive) {
+	case ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE:
+		if (has_precedence(seat, layer_surface->current.layer)) {
 			seat_set_focus_layer(seat, layer_surface);
 		}
-	} else if (seat->focused_layer
-			&& !seat->focused_layer->current.keyboard_interactive) {
-		/*
-		 * Clear focus if keyboard-interactivity has been set to
-		 * ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE
-		 */
-		seat_set_focus_layer(seat, NULL);
+		break;
+	case ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_ON_DEMAND:
+		if (!exclusive_focus(seat)) {
+			seat_set_focus_layer(seat, layer_surface);
+		}
+		break;
+	case ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE:
+		if (seat->focused_layer) {
+			seat_set_focus_layer(seat, NULL);
+		}
 	}
 }
 

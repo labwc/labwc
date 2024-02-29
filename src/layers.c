@@ -119,9 +119,10 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 }
 
 static bool
-exclusive_focus(struct seat *seat) {
+exclusive_focus(struct seat *seat)
+{
 	if (!seat->focused_layer) {
-	       return false;
+		return false;
 	}
 	if (seat->focused_layer->current.keyboard_interactive !=
 			ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE) {

@@ -118,6 +118,35 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	wlr_layer_surface_v1_destroy(layer->scene_layer_surface->layer_surface);
 }
 
+static void
+focus_next_exclusive_focus_layer(struct server *server)
+{
+	struct seat *seat = &server->seat;
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		for (int i = ARRAY_SIZE(output->layer_tree) - 1; i >= 0; i--) {
+			struct wlr_scene_tree *tree = output->layer_tree[i];
+			struct wlr_scene_node *node;
+			wl_list_for_each(node, &tree->children, link) {
+				struct lab_layer_surface *surface =
+					node_layer_surface_from_node(node);
+				struct wlr_scene_layer_surface_v1 *scene =
+					surface->scene_layer_surface;
+				if (scene->layer_surface->current.keyboard_interactive
+						== ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE) {
+					seat_set_focus_layer(seat, scene->layer_surface);
+					return;
+				}
+			}
+
+		}
+	}
+	/* If not next exclusive-focus layer-surface exists, just clear focus */
+	if (seat->focused_layer) {
+		seat_set_focus_layer(seat, NULL);
+	}
+}
+
 static bool
 exclusive_focus(struct seat *seat)
 {
@@ -165,9 +194,7 @@ process_keyboard_interactivity(struct lab_layer_surface *layer)
 		}
 		break;
 	case ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE:
-		if (seat->focused_layer) {
-			seat_set_focus_layer(seat, NULL);
-		}
+		focus_next_exclusive_focus_layer(layer->server);
 	}
 }
 

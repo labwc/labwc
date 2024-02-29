@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-01-15 16:00-0500\n"
-"PO-Revision-Date: 2024-01-30 08:23+0000\n"
-"Last-Translator: pixis1 <vaninpixel89@gmail.com>\n"
+"PO-Revision-Date: 2024-02-26 12:23+0000\n"
+"Last-Translator: Alice Ventus <zolkin.ag@phystech.edu>\n"
 "Language-Team: Russian <https://translate.lxqt-project.org/projects/labwc/"
 "labwc/ru/>\n"
 "Language: ru\n"
@@ -41,7 +41,6 @@ msgid "Fullscreen"
 msgstr "На весь экран"
 
 #: src/menu/menu.c:721
-#, fuzzy
 msgid "Roll up/down"
 msgstr "Свернуть/развернуть в заголовок"
 

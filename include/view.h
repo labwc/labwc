@@ -30,6 +30,12 @@ enum ssd_preference {
 	LAB_SSD_PREF_SERVER,
 };
 
+enum three_state {
+	LAB_STATE_UNSPECIFIED = 0,
+	LAB_STATE_ENABLED,
+	LAB_STATE_DISABLED
+};
+
 /**
  * Directions in which a view can be maximized. "None" is used
  * internally to mean "not maximized" but is not valid in rc.xml.
@@ -163,7 +169,7 @@ struct view {
 	bool minimized;
 	enum view_axis maximized;
 	bool fullscreen;
-	bool tearing_hint;
+	enum three_state tearing_hint;
 	bool visible_on_all_workspaces;
 	enum view_edge tiled;
 	uint32_t edges_visible;  /* enum wlr_edges bitset */

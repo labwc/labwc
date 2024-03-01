@@ -44,14 +44,18 @@ get_tearing_preference(struct output *output)
 		return false;
 	}
 
+	/* If a hint has been set return the hint */
+	if (server->active_view->tearing_hint != LAB_STATE_UNSPECIFIED) {
+		return server->active_view->tearing_hint == LAB_STATE_ENABLED;
+	}
+
 	/* If configured, automatically enable tearing for fullscreen applications */
 	if (rc.allow_tearing == LAB_TEARING_FULLSCREEN
 			&& server->active_view->fullscreen) {
 		return true;
 	}
 
-	/* If the active view requests tearing, or it is toggled on with action, allow it */
-	return server->active_view->tearing_hint;
+	return false;
 }
 
 static void

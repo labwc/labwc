@@ -932,7 +932,11 @@ actions_run(struct view *activator, struct server *server,
 				target = view_get_adjacent_output(view, edge, wrap);
 			}
 			if (!target) {
-				wlr_log(WLR_ERROR, "Invalid output.");
+				/*
+				 * Most likely because we're already on the
+				 * output furthest in the requested direction.
+				 */
+				wlr_log(WLR_DEBUG, "Invalid output");
 				break;
 			}
 			view_move_to_output(view, target);

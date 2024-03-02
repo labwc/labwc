@@ -511,7 +511,7 @@ extending outward from the snapped edge.
 ```
 
 *<touch deviceName="" />*
-	A touch configuration can be bound to a specifc device. If device
+	A touch configuration can be bound to a specific device. If device
 	name is left empty, the touch configuration applies to all touch
 	devices or functions as a fallback. Multiple touch configurations
 	can exist.

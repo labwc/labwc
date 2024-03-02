@@ -1530,6 +1530,10 @@ view_get_adjacent_output(struct view *view, enum view_edge edge)
 		return NULL;
 	}
 
+	struct wlr_box box = output_usable_area_in_layout_coords(view->output);
+	int lx = box.x + box.width / 2;
+	int ly = box.y + box.height / 2;
+
 	/* Determine any adjacent output in the appropriate direction */
 	struct wlr_output *new_output = NULL;
 	struct wlr_output *current_output = output->wlr_output;
@@ -1537,19 +1541,19 @@ view_get_adjacent_output(struct view *view, enum view_edge edge)
 	switch (edge) {
 	case VIEW_EDGE_LEFT:
 		new_output = wlr_output_layout_adjacent_output(
-			layout, WLR_DIRECTION_LEFT, current_output, 1, 0);
+			layout, WLR_DIRECTION_LEFT, current_output, lx, ly);
 		break;
 	case VIEW_EDGE_RIGHT:
 		new_output = wlr_output_layout_adjacent_output(
-			layout, WLR_DIRECTION_RIGHT, current_output, 1, 0);
+			layout, WLR_DIRECTION_RIGHT, current_output, lx, ly);
 		break;
 	case VIEW_EDGE_UP:
 		new_output = wlr_output_layout_adjacent_output(
-			layout, WLR_DIRECTION_UP, current_output, 0, 1);
+			layout, WLR_DIRECTION_UP, current_output, lx, ly);
 		break;
 	case VIEW_EDGE_DOWN:
 		new_output = wlr_output_layout_adjacent_output(
-			layout, WLR_DIRECTION_DOWN, current_output, 0, 1);
+			layout, WLR_DIRECTION_DOWN, current_output, lx, ly);
 		break;
 	default:
 		break;

@@ -1,0 +1,69 @@
+# Labwc pot file
+# Copyright (C) 2024
+# This file is distributed under the same license as the labwc package.
+# zenobit <zenobit@disroot.org>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: labwc\n"
+"Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
+"POT-Creation-Date: 2024-01-15 16:00-0500\n"
+"PO-Revision-Date: 2024-03-02 02:00+0100\n"
+"Last-Translator: zenobit <zenobit@disroot.org>\n"
+"Language-Team: Czech <zenobit@disroot.org>\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/menu/menu.c:697
+msgid "Reconfigure"
+msgstr "Překonfigurovat"
+
+#: src/menu/menu.c:699
+msgid "Exit"
+msgstr "Odejít"
+
+#: src/menu/menu.c:715
+msgid "Minimize"
+msgstr "Minimalizovat"
+
+#: src/menu/menu.c:717
+msgid "Maximize"
+msgstr "Maximalizovat"
+
+#: src/menu/menu.c:719
+msgid "Fullscreen"
+msgstr "Na celou obrazovku"
+
+#: src/menu/menu.c:721
+msgid "Roll up/down"
+msgstr "Rolovat nahoru/dolů"
+
+#: src/menu/menu.c:723
+msgid "Decorations"
+msgstr "Dekorace"
+
+#: src/menu/menu.c:725
+msgid "Always on Top"
+msgstr "Vždy nahoře"
+
+#: src/menu/menu.c:730
+msgid "Move left"
+msgstr "Posunout doleva"
+
+#: src/menu/menu.c:737
+msgid "Move right"
+msgstr "Posunout doprava"
+
+#: src/menu/menu.c:742
+msgid "Always on Visible Workspace"
+msgstr "Vždy na viditelné Pracovní Ploše"
+
+#: src/menu/menu.c:745
+msgid "Workspace"
+msgstr "Pracovní Plocha"
+
+#: src/menu/menu.c:748
+msgid "Close"
+msgstr "Zavřít"

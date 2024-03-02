@@ -397,6 +397,10 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			}
 			goto cleanup;
 		}
+		if (!strcmp(argument, "wrap")) {
+			action_arg_add_bool(action, argument, parse_bool(content, false));
+			goto cleanup;
+		}
 		break;
 	case ACTION_TYPE_VIRTUAL_OUTPUT_ADD:
 	case ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE:
@@ -924,7 +928,8 @@ actions_run(struct view *activator, struct server *server,
 			} else {
 				/* Config parsing makes sure that direction is a valid direction */
 				enum view_edge edge = action_get_int(action, "direction", 0);
-				target = view_get_adjacent_output(view, edge);
+				bool wrap = action_get_bool(action, "wrap", false);
+				target = view_get_adjacent_output(view, edge, wrap);
 			}
 			if (!target) {
 				wlr_log(WLR_ERROR, "Invalid output.");

@@ -166,7 +166,7 @@ this is for compatibility with Openbox.
 
 ## WINDOW SWITCHER
 
-*<windowSwitcher show="" preview="" outlines="">*
+*<windowSwitcher show="" preview="" outlines="" allWorkspaces="">*
 	*show* [yes|no] Draw the OnScreenDisplay when switching between
 	windows. Default is yes.
 
@@ -175,6 +175,10 @@ this is for compatibility with Openbox.
 
 	*outlines* [yes|no] Draw an outline around the selected window when
 	switching between windows. Default is yes.
+
+	*allWorkspaces* [yes|no] Show windows regardless of what workspace
+	they are on. Default no (that is only windows on the current workspace
+	are shown).
 
 *<windowSwitcher><fields><field content="" width="%">*
 	Define window switcher fields.

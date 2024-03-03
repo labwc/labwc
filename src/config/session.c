@@ -20,7 +20,11 @@ static const char *const env_vars[] = {
 	"DISPLAY",
 	"WAYLAND_DISPLAY",
 	"XDG_CURRENT_DESKTOP",
-	NULL,
+	"XCURSOR_SIZE",
+	"XCURSOR_THEME",
+	"XDG_SESSION_TYPE",
+	"LABWC_PID",
+	NULL
 };
 
 static void

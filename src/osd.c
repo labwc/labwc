@@ -255,8 +255,8 @@ get_title_if_different(struct view *view)
 
 static void
 render_osd(struct server *server, cairo_t *cairo, int w, int h,
-		struct wl_list *node_list, bool show_workspace,
-		const char *workspace_name, struct wl_array *views)
+		bool show_workspace, const char *workspace_name,
+		struct wl_array *views)
 {
 	struct view *cycle_view = server->osd_state.cycle_view;
 	struct theme *theme = server->theme;
@@ -401,8 +401,6 @@ display_osd(struct output *output)
 {
 	struct server *server = output->server;
 	struct theme *theme = server->theme;
-	struct wl_list *node_list =
-		&server->workspace_current->tree->children;
 	bool show_workspace = wl_list_length(&rc.workspace_config.workspaces) > 1;
 	const char *workspace_name = server->workspace_current->name;
 
@@ -435,8 +433,7 @@ display_osd(struct output *output)
 
 	/* Render OSD image */
 	cairo_t *cairo = output->osd_buffer->cairo;
-	render_osd(server, cairo, w, h, node_list, show_workspace,
-		workspace_name, &views);
+	render_osd(server, cairo, w, h, show_workspace, workspace_name, &views);
 	wl_array_release(&views);
 
 	struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
@@ -458,13 +455,24 @@ display_osd(struct output *output)
 	cursor_update_focus(server);
 }
 
+static int
+nr_entries(struct server *server)
+{
+	struct wl_array views;
+	wl_array_init(&views);
+	view_array_append(server, &views,
+		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
+		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
+		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER);
+	int count = wl_array_len(&views);
+	wl_array_release(&views);
+	return count;
+}
+
 void
 osd_update(struct server *server)
 {
-	struct wl_list *node_list =
-		&server->workspace_current->tree->children;
-
-	if (wl_list_empty(node_list) || !server->osd_state.cycle_view) {
+	if (!nr_entries(server) || !server->osd_state.cycle_view) {
 		osd_finish(server);
 		return;
 	}

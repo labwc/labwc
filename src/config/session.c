@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,10 +10,22 @@
 #include "common/buf.h"
 #include "common/dir.h"
 #include "common/file-helpers.h"
+#include "common/mem.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 #include "config/session.h"
 #include "labwc.h"
+
+static const char *const env_vars[] = {
+	"DISPLAY",
+	"WAYLAND_DISPLAY",
+	"XDG_CURRENT_DESKTOP",
+	"XCURSOR_SIZE",
+	"XCURSOR_THEME",
+	"XDG_SESSION_TYPE",
+	"LABWC_PID",
+	NULL
+};
 
 static void
 process_line(char *line)
@@ -65,7 +78,7 @@ read_environment_file(const char *filename)
 }
 
 static void
-update_activation_env(const char *env_keys)
+update_activation_env(bool initialize)
 {
 	if (!getenv("DBUS_SESSION_BUS_ADDRESS")) {
 		/* Prevent accidentally auto-launching a dbus session */
@@ -75,13 +88,22 @@ update_activation_env(const char *env_keys)
 	}
 	wlr_log(WLR_INFO, "Updating dbus execution environment");
 
-	char *cmd = strdup_printf("dbus-update-activation-environment %s", env_keys);
+	char *env_keys = str_join(env_vars, "%s", " ");
+	char *env_unset_keys = initialize ? NULL : str_join(env_vars, "%s=", " ");
+
+	char *cmd =
+		strdup_printf("dbus-update-activation-environment %s",
+			initialize ? env_keys : env_unset_keys);
 	spawn_async_no_shell(cmd);
 	free(cmd);
 
-	cmd = strdup_printf("systemctl --user import-environment %s", env_keys);
+	cmd = strdup_printf("systemctl --user %s %s",
+		initialize ? "import-environment" : "unset-environment", env_keys);
 	spawn_async_no_shell(cmd);
 	free(cmd);
+
+	free(env_keys);
+	free(env_unset_keys);
 }
 
 void
@@ -120,15 +142,11 @@ session_environment_init(void)
 	paths_destroy(&paths);
 }
 
-void
-session_autostart_init(void)
+static void
+run_session_script(const char *script)
 {
-	/* Update dbus and systemd user environment, each may fail gracefully */
-	update_activation_env("DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP "
-		"XCURSOR_SIZE XCURSOR_THEME XDG_SESSION_TYPE LABWC_PID");
-
 	struct wl_list paths;
-	paths_config_create(&paths, "autostart");
+	paths_config_create(&paths, script);
 
 	bool should_merge_config = rc.merge_config;
 	struct wl_list *(*iter)(struct wl_list *list);
@@ -139,7 +157,7 @@ session_autostart_init(void)
 		if (!file_exists(path->string)) {
 			continue;
 		}
-		wlr_log(WLR_INFO, "run autostart file %s", path->string);
+		wlr_log(WLR_INFO, "run session script %s", path->string);
 		char *cmd = strdup_printf("sh %s", path->string);
 		spawn_async_no_shell(cmd);
 		free(cmd);
@@ -149,4 +167,21 @@ session_autostart_init(void)
 		}
 	}
 	paths_destroy(&paths);
+}
+
+void
+session_autostart_init(void)
+{
+	/* Update dbus and systemd user environment, each may fail gracefully */
+	update_activation_env(/* initialize */ true);
+	run_session_script("autostart");
+}
+
+void
+session_shutdown(void)
+{
+	run_session_script("shutdown");
+
+	/* Clear the dbus and systemd user environment, each may fail gracefully */
+	update_activation_env(/* initialize */ false);
 }

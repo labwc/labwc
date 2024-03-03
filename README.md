@@ -127,8 +127,11 @@ High-level summary of items that Labwc supports:
 
 The obligatory screenshot:
 
-<a href="https://i.imgur.com/vOelinT.png">
-  <img src="https://i.imgur.com/vOelinTl.png">
+<a href="https://labwc.github.io/img/scrot1.png">
+  <img src="https://labwc.github.io/img/scrot1-small.png">
+</a><br />
+<a href="https://labwc.github.io/obligatory-screenshot.html">
+  <small>Screenshot description</small>
 </a>
 
 ## 2. Build and Installation

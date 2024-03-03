@@ -6,11 +6,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <wlr/backend/drm.h>
+#include <wlr/backend/multi.h>
 #include <wlr/util/log.h>
 #include "common/buf.h"
 #include "common/dir.h"
 #include "common/file-helpers.h"
 #include "common/mem.h"
+#include "common/parse-bool.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 #include "config/session.h"
@@ -74,14 +77,53 @@ read_environment_file(const char *filename)
 }
 
 static void
-update_activation_env(bool initialize)
+backend_check_drm(struct wlr_backend *backend, void *is_drm)
 {
+	if (wlr_backend_is_drm(backend)) {
+		*(bool *)is_drm = true;
+	}
+}
+
+static bool
+should_update_activation(struct server *server)
+{
+	assert(server);
+
+	static const char *act_env = "LABWC_UPDATE_ACTIVATION_ENV";
+	char *env = getenv(act_env);
+	if (env) {
+		/* Respect any valid preference from the environment */
+		int enabled = parse_bool(env, -1);
+
+		if (enabled == -1) {
+			wlr_log(WLR_ERROR, "ignoring non-Boolean variable %s", act_env);
+		} else {
+			wlr_log(WLR_DEBUG, "%s is %s",
+				act_env, enabled ? "true" : "false");
+			return enabled;
+		}
+	}
+
+	/* With no valid preference, update when a DRM backend is in use */
+	bool have_drm = false;
+	wlr_multi_for_each_backend(server->backend, backend_check_drm, &have_drm);
+	return have_drm;
+}
+
+static void
+update_activation_env(struct server *server, bool initialize)
+{
+	if (!should_update_activation(server)) {
+		return;
+	}
+
 	if (!getenv("DBUS_SESSION_BUS_ADDRESS")) {
 		/* Prevent accidentally auto-launching a dbus session */
 		wlr_log(WLR_INFO, "Not updating dbus execution environment: "
 			"DBUS_SESSION_BUS_ADDRESS not set");
 		return;
 	}
+
 	wlr_log(WLR_INFO, "Updating dbus execution environment");
 
 	char *env_keys = str_join(env_vars, "%s", " ");
@@ -166,18 +208,18 @@ run_session_script(const char *script)
 }
 
 void
-session_autostart_init(void)
+session_autostart_init(struct server *server)
 {
 	/* Update dbus and systemd user environment, each may fail gracefully */
-	update_activation_env(/* initialize */ true);
+	update_activation_env(server, /* initialize */ true);
 	run_session_script("autostart");
 }
 
 void
-session_shutdown(void)
+session_shutdown(struct server *server)
 {
 	run_session_script("shutdown");
 
 	/* Clear the dbus and systemd user environment, each may fail gracefully */
-	update_activation_env(/* initialize */ false);
+	update_activation_env(server, /* initialize */ false);
 }

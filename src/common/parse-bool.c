@@ -14,11 +14,15 @@ parse_bool(const char *str, int default_value)
 		return true;
 	} else if (!strcasecmp(str, "on")) {
 		return true;
+	} else if (!strcmp(str, "1")) {
+		return true;
 	} else if (!strcasecmp(str, "no")) {
 		return false;
 	} else if (!strcasecmp(str, "false")) {
 		return false;
 	} else if (!strcasecmp(str, "off")) {
+		return false;
+	} else if (!strcmp(str, "0")) {
 		return false;
 	}
 error_not_a_boolean:

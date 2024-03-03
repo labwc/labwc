@@ -171,14 +171,14 @@ main(int argc, char *argv[])
 
 	menu_init(&server);
 
-	session_autostart_init();
+	session_autostart_init(&server);
 	if (startup_cmd) {
 		spawn_async_no_shell(startup_cmd);
 	}
 
 	wl_display_run(server.wl_display);
 
-	session_shutdown();
+	session_shutdown(&server);
 
 	server_finish(&server);
 

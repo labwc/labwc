@@ -135,10 +135,12 @@ struct rcxml {
 	/* Regions */
 	struct wl_list regions;  /* struct region.link */
 
+	/* Window Switcher */
 	struct {
 		bool show;
 		bool preview;
 		bool outlines;
+		uint32_t criteria;
 		struct wl_list fields;  /* struct window_switcher_field.link */
 	} window_switcher;
 

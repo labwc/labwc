@@ -118,17 +118,7 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 	bool forwards = dir == LAB_CYCLE_DIR_FORWARD;
 	iter = forwards ? view_next_no_head_stop : view_prev_no_head_stop;
 
-	/*
-	 * TODO: These criteria are the same as in display_osd() in osd.c
-	 * for the time being.
-	 *
-	 * A future improvement could be to make this configurable for example
-	 * in rc.xml and then use rc.cycle_view_criteria (or whatever) both
-	 * here and in the osd.c window-switcher code
-	 */
-	enum lab_view_criteria criteria = LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
-		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
-		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;
+	enum lab_view_criteria criteria = rc.window_switcher.criteria;
 
 	/*
 	 * Views are listed in stacking order, topmost first.  Usually the

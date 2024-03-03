@@ -406,10 +406,7 @@ display_osd(struct output *output)
 
 	struct wl_array views;
 	wl_array_init(&views);
-	view_array_append(server, &views,
-		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
-		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
-		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER);
+	view_array_append(server, &views, rc.window_switcher.criteria);
 
 	float scale = output->wlr_output->scale;
 	int w = theme->osd_window_switcher_width;
@@ -460,10 +457,7 @@ nr_entries(struct server *server)
 {
 	struct wl_array views;
 	wl_array_init(&views);
-	view_array_append(server, &views,
-		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
-		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
-		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER);
+	view_array_append(server, &views, rc.window_switcher.criteria);
 	int count = wl_array_len(&views);
 	wl_array_release(&views);
 	return count;

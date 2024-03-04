@@ -352,9 +352,9 @@ Base both bugfixes and new features on `master`.
 
 ### Weblate Instance
 
-Translators can make an account at [LXQt Weblate](https://translate.lxqt-project.org/projects/labwc/labwc/)
+Translators can create an account at [LXQt Weblate](https://translate.lxqt-project.org/projects/labwc/labwc/)
 and use the web interface. Adding new languages should work, otherwise the
-administrators can be contacted.
+administrators can be contacted. Suggestions for improving existing translations can be added without account.
 
 ### Github Pull Request
 

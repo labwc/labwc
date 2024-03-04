@@ -397,20 +397,16 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 }
 
 static void
-display_osd(struct output *output)
+display_osd(struct output *output, struct wl_array *views)
 {
 	struct server *server = output->server;
 	struct theme *theme = server->theme;
 	bool show_workspace = wl_list_length(&rc.workspace_config.workspaces) > 1;
 	const char *workspace_name = server->workspace_current->name;
 
-	struct wl_array views;
-	wl_array_init(&views);
-	view_array_append(server, &views, rc.window_switcher.criteria);
-
 	float scale = output->wlr_output->scale;
 	int w = theme->osd_window_switcher_width;
-	int h = wl_array_len(&views) * rc.theme->osd_window_switcher_item_height
+	int h = wl_array_len(views) * rc.theme->osd_window_switcher_item_height
 		+ 2 * rc.theme->osd_border_width
 		+ 2 * rc.theme->osd_window_switcher_padding;
 	if (show_workspace) {
@@ -430,8 +426,7 @@ display_osd(struct output *output)
 
 	/* Render OSD image */
 	cairo_t *cairo = output->osd_buffer->cairo;
-	render_osd(server, cairo, w, h, show_workspace, workspace_name, &views);
-	wl_array_release(&views);
+	render_osd(server, cairo, w, h, show_workspace, workspace_name, views);
 
 	struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
 		output->osd_tree, &output->osd_buffer->base);
@@ -452,23 +447,16 @@ display_osd(struct output *output)
 	cursor_update_focus(server);
 }
 
-static int
-nr_entries(struct server *server)
+void
+osd_update(struct server *server)
 {
 	struct wl_array views;
 	wl_array_init(&views);
 	view_array_append(server, &views, rc.window_switcher.criteria);
-	int count = wl_array_len(&views);
-	wl_array_release(&views);
-	return count;
-}
 
-void
-osd_update(struct server *server)
-{
-	if (!nr_entries(server) || !server->osd_state.cycle_view) {
+	if (!wl_array_len(&views) || !server->osd_state.cycle_view) {
 		osd_finish(server);
-		return;
+		goto out;
 	}
 
 	if (rc.window_switcher.show && rc.theme->osd_window_switcher_width > 0) {
@@ -477,7 +465,7 @@ osd_update(struct server *server)
 		wl_list_for_each(output, &server->outputs, link) {
 			destroy_osd_nodes(output);
 			if (output_is_usable(output)) {
-				display_osd(output);
+				display_osd(output, &views);
 			}
 		}
 	}
@@ -492,4 +480,6 @@ osd_update(struct server *server)
 	if (rc.window_switcher.preview) {
 		preview_cycled_view(server->osd_state.cycle_view);
 	}
+out:
+	wl_array_release(&views);
 }

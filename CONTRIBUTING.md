@@ -350,6 +350,17 @@ Base both bugfixes and new features on `master`.
 
 # Native Language Support
 
+## Translators
+
+### Weblate Instance
+
+Translators can create an account at [LXQt Weblate](https://translate.lxqt-project.org/projects/labwc/labwc/)
+and use the web interface. Adding new languages should work, otherwise the
+administrators can be contacted. Suggestions for improving existing translations 
+can be added without account.
+
+### Github Pull Request
+
 Translators can add their `MY_LOCALE.po` files to the `po` directory
 based on `po/labwc.pot` and issue a pull request. To do this they can
 generate their `MY_LOCALE.po` file in a few steps:
@@ -362,6 +373,8 @@ contact and locale details in the header of the file then add the
 translation strings under each English string.
 
 [See this tutorial for further guidance](https://www.labri.fr/perso/fleury/posts/programming/a-quick-gettext-tutorial.html)
+
+## Coders
 
 Code contributors may need to update relevant files if their additions
 affect UI elements (at the moment only `src/menu/menu.c`). In this case

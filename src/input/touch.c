@@ -7,6 +7,9 @@
 #include "idle.h"
 #include "input/touch.h"
 #include "labwc.h"
+#include "config/mousebind.h"
+#include "action.h"
+#include "view.h"
 
 /* Holds layout -> surface offsets to report motion events in relative coords */
 struct touch_point {
@@ -108,6 +111,16 @@ touch_down(struct wl_listener *listener, void *data)
 		/* Apply offsets to get surface coords before reporting event */
 		double sx = lx - x_offset;
 		double sy = ly - y_offset;
+
+		struct view *view = view_from_wlr_surface(touch_point->surface);
+		struct mousebind *mousebind;
+		wl_list_for_each(mousebind, &rc.mousebinds,link) {
+			if (mousebind->mouse_event == MOUSE_ACTION_PRESS
+				&& mousebind->button == BTN_LEFT
+				&& mousebind->context == LAB_SSD_CLIENT) {
+					actions_run(view, seat->server, &mousebind->actions, 0);
+			}
+		}
 
 		wlr_seat_touch_notify_down(seat->seat, touch_point->surface,
 			event->time_msec, event->touch_id, sx, sy);

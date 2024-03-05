@@ -85,7 +85,7 @@ XDG_CURRENT_DESKTOP
 XDG_SESSION_TYPE
 XCURSOR_SIZE
 XCURSOR_THEME
-LABWC_PWD
+LABWC_PID
 ```
 
 This behavior is enabled by default whenever labwc uses the "DRM" wlroots

@@ -150,6 +150,32 @@ output_request_state_notify(struct wl_listener *listener, void *data)
 	struct output *output = wl_container_of(listener, output, request_state);
 	const struct wlr_output_event_request_state *event = data;
 
+	/*
+	 * If wlroots ever requests other state changes here we could
+	 * restore more of ddc9047a67cd53b2948f71fde1bbe9118000dd3f.
+	 */
+	if (event->state->committed == WLR_OUTPUT_STATE_MODE) {
+		/* Only the mode has changed */
+		switch (event->state->mode_type) {
+		case WLR_OUTPUT_STATE_MODE_FIXED:
+			wlr_output_set_mode(output->wlr_output, event->state->mode);
+			break;
+		case WLR_OUTPUT_STATE_MODE_CUSTOM:
+			wlr_output_set_custom_mode(output->wlr_output,
+				event->state->custom_mode.width,
+				event->state->custom_mode.height,
+				event->state->custom_mode.refresh);
+			break;
+		}
+		wlr_output_schedule_frame(output->wlr_output);
+		return;
+	}
+
+	/*
+	 * Fallback path for everything that we didn't handle above.
+	 * The commit will cause a black frame injection so this
+	 * path causes flickering during resize of nested outputs.
+	 */
 	if (!wlr_output_commit_state(output->wlr_output, event->state)) {
 		wlr_log(WLR_ERROR, "Backend requested a new state that could not be applied");
 	}
@@ -405,10 +431,11 @@ output_update_for_layout_change(struct server *server)
 	cursor_update_image(&server->seat);
 }
 
-static void
+static bool
 output_config_apply(struct server *server,
 		struct wlr_output_configuration_v1 *config)
 {
+	bool success = true;
 	server->pending_output_layout_change++;
 
 	struct wlr_output_configuration_head_v1 *head;
@@ -436,8 +463,15 @@ output_config_apply(struct server *server,
 			output_enable_adaptive_sync(o, head->state.adaptive_sync_enabled);
 		}
 		if (!wlr_output_commit(o)) {
-			wlr_log(WLR_ERROR, "Output config commit failed");
-			continue;
+			/*
+			 * FIXME: This is only part of the story, we should revert
+			 *        all previously commited outputs as well here.
+			 *
+			 *        See https://github.com/labwc/labwc/pull/1528
+			 */
+			wlr_log(WLR_INFO, "Output config commit failed: %s", o->name);
+			success = false;
+			break;
 		}
 
 		/* Only do Layout specific actions if the commit went trough */
@@ -477,6 +511,7 @@ output_config_apply(struct server *server,
 
 	server->pending_output_layout_change--;
 	do_output_layout_change(server);
+	return success;
 }
 
 static bool
@@ -509,9 +544,15 @@ verify_output_config_v1(const struct wlr_output_configuration_v1 *config)
 
 			if (wlr_output_is_wl(head->state.output) && refresh != 0) {
 				/* Wayland backend does not support refresh rates */
-				err_msg = "Wayland backend refresh rate unsupported";
+				err_msg = "Wayland backend refresh rates unsupported";
 				goto custom_mode_failed;
 			}
+		}
+
+		if (wlr_output_is_wl(head->state.output)
+				&& !head->state.adaptive_sync_enabled) {
+			err_msg = "Wayland backend requires adaptive sync";
+			goto custom_mode_failed;
 		}
 
 		/*
@@ -569,8 +610,7 @@ handle_output_manager_apply(struct wl_listener *listener, void *data)
 
 	bool config_is_good = verify_output_config_v1(config);
 
-	if (config_is_good) {
-		output_config_apply(server, config);
+	if (config_is_good && output_config_apply(server, config)) {
 		wlr_output_configuration_v1_send_succeeded(config);
 	} else {
 		wlr_output_configuration_v1_send_failed(config);

@@ -1,18 +1,18 @@
 # Labwc pot file
-# Copyright (C) 2022
+# Copyright (C) 2024
 # This file is distributed under the same license as the labwc package.
-# Oğuz Ersen <oguz@ersen.moe>, 2022.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-01-15 16:00-0500\n"
-"PO-Revision-Date: 2024-02-24 22:23+0000\n"
-"Last-Translator: Sabri Ünal <libreajans@gmail.com>\n"
-"Language-Team: Turkish <https://translate.lxqt-project.org/projects/labwc/"
-"labwc/tr/>\n"
-"Language: tr\n"
+"PO-Revision-Date: 2024-02-19 21:23+0000\n"
+"Last-Translator: winerysearch <david.fitala@gmail.com>\n"
+"Language-Team: Hungarian <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/hu/>\n"
+"Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -21,52 +21,52 @@ msgstr ""
 
 #: src/menu/menu.c:697
 msgid "Reconfigure"
-msgstr "Yeniden Yapılandır"
+msgstr "Rekonfigurál"
 
 #: src/menu/menu.c:699
 msgid "Exit"
-msgstr "Çıkış"
+msgstr "Kilépés"
 
 #: src/menu/menu.c:715
 msgid "Minimize"
-msgstr "Küçült"
+msgstr "Kis méret"
 
 #: src/menu/menu.c:717
 msgid "Maximize"
-msgstr "Büyüt"
+msgstr "Teljes méret"
 
 #: src/menu/menu.c:719
 msgid "Fullscreen"
-msgstr "Tam Ekran"
+msgstr "Teljes képernyő"
 
 #: src/menu/menu.c:721
 msgid "Roll up/down"
-msgstr "Yukarı/aşağı katla"
+msgstr "Felhúz / Legördül"
 
 #: src/menu/menu.c:723
 msgid "Decorations"
-msgstr "Süslemeler"
+msgstr "Dekorációk"
 
 #: src/menu/menu.c:725
 msgid "Always on Top"
-msgstr "Her Zaman Üstte"
+msgstr "Mindig felül"
 
 #: src/menu/menu.c:730
 msgid "Move left"
-msgstr "Sola taşı"
+msgstr "Balra dokkol"
 
 #: src/menu/menu.c:737
 msgid "Move right"
-msgstr "Sağa taşı"
+msgstr "Jobbra dokkol"
 
 #: src/menu/menu.c:742
 msgid "Always on Visible Workspace"
-msgstr "Her Zaman Görünür Çalışma Alanında"
+msgstr "Kitűz"
 
 #: src/menu/menu.c:745
 msgid "Workspace"
-msgstr "Çalışma Alanı"
+msgstr "Munkaasztal"
 
 #: src/menu/menu.c:748
 msgid "Close"
-msgstr "Kapat"
+msgstr "Bezárás"

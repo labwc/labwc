@@ -7,10 +7,6 @@
 
 <labwc_config>
 
-  <core>
-    <gap>10</gap>
-  </core>
-
   <theme>
     <name></name>
     <cornerRadius>8</cornerRadius>

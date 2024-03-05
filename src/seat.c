@@ -91,6 +91,24 @@ get_category(struct wlr_input_device *device)
 static void
 configure_libinput(struct wlr_input_device *wlr_input_device)
 {
+	/*
+	 * TODO: We do not check any return values for the various
+	 *       libinput_device_config_*_set_*() calls. It would
+	 *       be nice if we could inform the users via log file
+	 *       that some libinput setting could not be applied.
+	 *
+	 * TODO: We are currently using int32_t with -1 as default
+	 *       to desribe the not-configured state. This is not
+	 *       really optimal as we can't properly deal with
+	 *       enum values that are 0. After some discussion via
+	 *       IRC the best way forward seem to be to use a
+	 *       uint32_t instead and UINT32_MAX as indicator for
+	 *       a not-configured state. This allows to properly
+	 *       test the enum being a member of a bitset via
+	 *       mask & value == value. All libinput enums are
+	 *       way below UINT32_MAX.
+	 */
+
 	if (!wlr_input_device) {
 		wlr_log(WLR_ERROR, "no wlr_input_device");
 		return;
@@ -188,6 +206,36 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	} else {
 		wlr_log(WLR_INFO, "dwt configured");
 		libinput_device_config_dwt_set_enabled(libinput_dev, dc->dwt);
+	}
+
+	if ((dc->click_method != LIBINPUT_CONFIG_CLICK_METHOD_NONE
+			&& (libinput_device_config_click_get_methods(libinput_dev)
+				& dc->click_method) == 0)
+			|| dc->click_method < 0) {
+		wlr_log(WLR_INFO, "click method not configured");
+	} else {
+		wlr_log(WLR_INFO, "click method configured");
+
+		/*
+		 * Note, the documentation claims that:
+		 * > [...] The device may require changing to a neutral state
+		 * > first before activating the new method.
+		 *
+		 * However, just setting the method seems to work without
+		 * issues.
+		 */
+
+		libinput_device_config_click_set_method(libinput_dev, dc->click_method);
+	}
+
+	if ((dc->send_events_mode != LIBINPUT_CONFIG_SEND_EVENTS_ENABLED
+			&& (libinput_device_config_send_events_get_modes(libinput_dev)
+				& dc->send_events_mode) == 0)
+			|| dc->send_events_mode < 0) {
+		wlr_log(WLR_INFO, "send events mode not configured");
+	} else {
+		wlr_log(WLR_INFO, "send events mode configured");
+		libinput_device_config_send_events_set_mode(libinput_dev, dc->send_events_mode);
 	}
 }
 

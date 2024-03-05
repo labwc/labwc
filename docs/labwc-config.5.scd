@@ -8,7 +8,7 @@ labwc - configuration files
 
 Labwc uses openbox-3.6 specification for configuration and theming, but does not
 support all options. The following files form the basis of the labwc
-configuration: rc.xml, menu.xml, autostart and environment.
+configuration: rc.xml, menu.xml, autostart, shutdown and environment.
 
 No configuration files are needed to start and run labwc.
 
@@ -34,11 +34,8 @@ alternative.
 The configuration directory location can be override with the -C command line
 option.
 
-All configuration and theme files except autostart are re-loaded on receiving
-signal SIGHUP.
-
-The *autostart* file is executed as a shell script. This is the place for
-executing clients for handling background images, panels and similar.
+All configuration and theme files except autostart and shutdown are re-loaded on
+receiving signal SIGHUP.
 
 The *environment* file is parsed as *variable=value* and sets environment
 variables accordingly. It is recommended to specify keyboard layout settings and
@@ -47,6 +44,20 @@ that the environment file is treated differently by openbox where it is simply
 sourced prior to running openbox.
 Note: Tilde (~) and environment variables in the value are expanded, but
 subshell syntax and apostrophes are ignored.
+
+The *autostart* file is executed as a shell script after labwc has read its
+configuration and set variables defined in the environment file. Additionally,
+the environment variables WAYLAND_DISPLAY and (when labwc is built with Xwayland
+support) DISPLAY will be defined. This is the place for executing clients for
+handling background images, panels and other tasks that should run automatically
+when labwc launches.
+
+The *shutdown* file is executed as a shell script when labwc is preparing to
+terminate itself. All environment variables, including WAYLAND_DISPLAY and
+DISPLAY, will be available to the script. However, because the script runs
+asynchronously with other termination tasks, the shutdown file should not assume
+that the display will be usable. This file is useful to perform any custom
+operations necessary to finalize a labwc session.
 
 The *menu.xml* file defines the context/root-menus and is described in
 labwc-menu(5).
@@ -511,7 +522,7 @@ extending outward from the snapped edge.
 ```
 
 *<touch deviceName="" />*
-	A touch configuration can be bound to a specifc device. If device
+	A touch configuration can be bound to a specific device. If device
 	name is left empty, the touch configuration applies to all touch
 	devices or functions as a fallback. Multiple touch configurations
 	can exist.
@@ -592,6 +603,8 @@ extending outward from the snapped edge.
     <dragLock></dragLock>
     <middleEmulation></middleEmulation>
     <disableWhileTyping></disableWhileTyping>
+    <clickMethod></clickMethod>
+    <sendEventsMode></sendEventsMode>
   </device>
 </libinput>
 ```
@@ -666,6 +679,36 @@ extending outward from the snapped edge.
 	Enable or disable disable while typing for this category. DWT ignores
 	any motion events while a keyboard is typing, and for a short while
 	after as well.
+
+*<libinput><device><clickMethod>* [none|buttonAreas|clickfinger]
+	Configure the method by which physical clicks on a touchpad are mapped to
+	mouse-button events.
+
+	The click methods available are:
+	- *buttonAreas* - The bottom of the touchpad is divided into distinct
+	  regions corresponding to left, middle and right buttons; clicking within
+	  the region will trigger the corresponding event. Clicking the main area
+	  further up produces a left button event.
+	- *clickfinger* - Clicking with one, two or three finger(s) will produce
+	  left, right or middle button event without regard to the location of a
+	  click.
+	- *none* - Physical clicks will not produce button events.
+
+	The default method depends on the touchpad hardware.
+
+*<libinput><device><sendEventsMode>* [yes|no|disabledOnExternalMouse]
+	Optionally enable or disable sending any device events.
+
+	The options available are:
+	- *yes* - Events are sent as usual
+	- *no* - No events are sent from this device
+	- *disabledOnExternalMouse* - This device does not send events if an
+	  external mouse has been detected.
+
+	It is possible to prevent events from a device in the config and then do
+	a Reconfigure to temporarily enable / disable specific devices.
+
+	By default, this setting is not configured.
 
 ## WINDOW RULES
 

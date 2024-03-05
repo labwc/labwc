@@ -1,19 +1,23 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_scene.h>
+#include "common/graphic-helpers.h"
 #include "common/scene-helpers.h"
 #include "debug.h"
 #include "labwc.h"
 #include "node.h"
 #include "ssd.h"
 #include "view.h"
+#include "workspaces.h"
 
 #define HEADER_CHARS "------------------------------"
 
 #define INDENT_SIZE 3
+#define LEFT_COL_SPACE 35
+
 #define IGNORE_SSD true
 #define IGNORE_MENU true
-#define LEFT_COL_SPACE 35
+#define IGNORE_OSD_PREVIEW_OUTLINE true
 
 static struct view *last_view;
 
@@ -42,13 +46,13 @@ get_layer_name(uint32_t layer)
 {
 	switch (layer) {
 	case ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND:
-		return "layer-background";
+		return "output->layer-background";
 	case ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM:
-		return "layer-bottom";
+		return "output->layer-bottom";
 	case ZWLR_LAYER_SHELL_V1_LAYER_TOP:
-		return "layer-top";
+		return "output->layer-top";
 	case ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY:
-		return "layer-overlay";
+		return "output->layer-overlay";
 	default:
 		abort();
 	}
@@ -57,16 +61,27 @@ get_layer_name(uint32_t layer)
 static const char *
 get_view_part(struct view *view, struct wlr_scene_node *node)
 {
-	if (view && node == &view->scene_tree->node) {
-		return "view";
+	static char view_name[LEFT_COL_SPACE];
+	if (!view) {
+		return NULL;
 	}
-	if (view && node == view->scene_node) {
+	if (node == &view->scene_tree->node) {
+		const char *app_id = view_get_string_prop(view, "app_id");
+		if (!app_id) {
+			return "view";
+		}
+		snprintf(view_name, sizeof(view_name), "view (%s)", app_id);
+		return view_name;
+	}
+	if (node == view->scene_node) {
 		return "view->scene_node";
 	}
-	if (view) {
-		return ssd_debug_get_node_name(view->ssd, node);
+	if (view->resize_indicator.tree
+			&& node == &view->resize_indicator.tree->node) {
+		/* Created on-demand */
+		return "view->resize_indicator";
 	}
-	return NULL;
+	return ssd_debug_get_node_name(view->ssd, node);
 }
 
 static const char *
@@ -81,12 +96,20 @@ get_special(struct server *server, struct wlr_scene_node *node)
 	if (node == &server->view_tree->node) {
 		return "server->view_tree";
 	}
+	if (node == &server->view_tree_always_on_bottom->node) {
+		return "server->always_on_bottom";
+	}
 	if (node == &server->view_tree_always_on_top->node) {
-		return "server->view_tree_always_on_top";
+		return "server->always_on_top";
 	}
 	if (node->parent == server->view_tree) {
-		/* Add node_descriptor just to get the name here? */
-		return "workspace";
+		struct workspace *workspace;
+		wl_list_for_each(workspace, &server->workspaces, link) {
+			if (&workspace->tree->node == node) {
+				return workspace->name;
+			}
+		}
+		return "unknown workspace";
 	}
 	if (node->parent == &server->scene->tree) {
 		struct output *output;
@@ -95,14 +118,33 @@ get_special(struct server *server, struct wlr_scene_node *node)
 				return "output->osd_tree";
 			}
 			if (node == &output->layer_popup_tree->node) {
-				return "output->popup_tree";
+				return "output->layer_popup_tree";
 			}
 			for (int i = 0; i < 4; i++) {
 				if (node == &output->layer_tree[i]->node) {
 					return get_layer_name(i);
 				}
 			}
+			if (node == &output->session_lock_tree->node) {
+				return "output->session_lock_tree";
+			}
 		}
+	}
+	if (node == &server->xdg_popup_tree->node) {
+		return "server->xdg_popup_tree";
+	}
+	if (node == &server->seat.drag.icons->node) {
+		return "seat->drag.icons";
+	}
+	if (server->seat.region_overlay.tree
+			&& node == &server->seat.region_overlay.tree->node) {
+		/* Created on-demand */
+		return "seat->region_overlay";
+	}
+	if (server->osd_state.preview_outline
+			&& node == &server->osd_state.preview_outline->tree->node) {
+		/* Created on-demand */
+		return "osd_state->preview_outline";
 	}
 #if HAVE_XWAYLAND
 	if (node == &server->unmanaged_tree->node) {
@@ -155,15 +197,21 @@ dump_tree(struct server *server, struct wlr_scene_node *node,
 			HEADER_CHARS, HEADER_CHARS, HEADER_CHARS);
 		printf(" ");
 	}
-	int padding = LEFT_COL_SPACE - pos - strlen(type);
+	int max_width = LEFT_COL_SPACE - pos;
+	int padding = max_width - strlen(type);
+	if (padding < 0) {
+		padding = 0;
+	}
 	if (!pos) {
 		padding += 3;
 	}
-	printf("%s %*c %4d  %4d  [%p]\n", type, padding, ' ', x, y, node);
+	printf("%.*s %*c %4d  %4d  [%p]\n", max_width - 1, type, padding, ' ', x, y, node);
 
 	if ((IGNORE_MENU && node == &server->menu_tree->node)
 			|| (IGNORE_SSD && last_view
-			&& ssd_debug_is_root_node(last_view->ssd, node))) {
+				&& ssd_debug_is_root_node(last_view->ssd, node))
+			|| (IGNORE_OSD_PREVIEW_OUTLINE && server->osd_state.preview_outline
+				&& node == &server->osd_state.preview_outline->tree->node)) {
 		printf("%*c%s\n", pos + 4 + INDENT_SIZE, ' ', "<skipping children>");
 		return;
 	}

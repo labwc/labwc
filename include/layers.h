@@ -28,6 +28,7 @@ struct lab_layer_popup {
 	/* To simplify moving popup nodes from the bottom to the top layer */
 	struct wlr_box output_toplevel_sx_box;
 
+	struct wl_listener commit;
 	struct wl_listener destroy;
 	struct wl_listener new_popup;
 };

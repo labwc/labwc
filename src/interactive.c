@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "edges.h"
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "regions.h"
@@ -122,6 +123,9 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 	server->resize_edges = edges;
 	if (rc.resize_indicator) {
 		resize_indicator_show(view);
+	}
+	if (rc.window_edge_strength) {
+		edges_calculate_visibility(server, view);
 	}
 }
 

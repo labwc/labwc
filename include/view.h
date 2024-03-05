@@ -166,6 +166,7 @@ struct view {
 	bool tearing_hint;
 	bool visible_on_all_workspaces;
 	enum view_edge tiled;
+	uint32_t edges_visible;  /* enum wlr_edges bitset */
 	bool inhibits_keybinds;
 	xkb_layout_index_t keyboard_layout;
 
@@ -502,7 +503,8 @@ void view_on_output_destroy(struct view *view);
 void view_connect_map(struct view *view, struct wlr_surface *surface);
 void view_destroy(struct view *view);
 
-struct output *view_get_adjacent_output(struct view *view, enum view_edge edge);
+struct output *view_get_adjacent_output(struct view *view, enum view_edge edge,
+	bool wrap);
 enum view_axis view_axis_parse(const char *direction);
 enum view_edge view_edge_parse(const char *direction);
 

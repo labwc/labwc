@@ -163,6 +163,9 @@ osd_preview_restore(struct server *server)
 {
 	struct osd_state *osd_state = &server->osd_state;
 	if (osd_state->preview_node) {
+		wlr_scene_node_reparent(osd_state->preview_node,
+			osd_state->preview_parent);
+
 		if (osd_state->preview_anchor) {
 			wlr_scene_node_place_above(osd_state->preview_node,
 				osd_state->preview_anchor);
@@ -176,6 +179,7 @@ osd_preview_restore(struct server *server)
 			wlr_scene_node_set_enabled(osd_state->preview_node, false);
 		}
 		osd_state->preview_node = NULL;
+		osd_state->preview_parent = NULL;
 		osd_state->preview_anchor = NULL;
 	}
 }
@@ -190,8 +194,11 @@ preview_cycled_view(struct view *view)
 	/* Move previous selected node back to its original place */
 	osd_preview_restore(view->server);
 
-	/* Remember the sibling right before the selected node */
+	/* Store some pointers so we can reset the preview later on */
 	osd_state->preview_node = &view->scene_tree->node;
+	osd_state->preview_parent = view->scene_tree->node.parent;
+
+	/* Remember the sibling right before the selected node */
 	osd_state->preview_anchor = lab_wlr_scene_get_prev_node(
 		osd_state->preview_node);
 	while (osd_state->preview_anchor && !osd_state->preview_anchor->data) {
@@ -205,6 +212,14 @@ preview_cycled_view(struct view *view)
 	if (!osd_state->preview_was_enabled) {
 		wlr_scene_node_set_enabled(osd_state->preview_node, true);
 	}
+
+	/*
+	 * FIXME: This abuses an implementation detail of the always-on-top tree.
+	 *        Create a permanent server->osd_preview_tree instead that can
+	 *        also be used as parent for the preview outlines.
+	 */
+	wlr_scene_node_reparent(osd_state->preview_node,
+		view->server->view_tree_always_on_top);
 
 	/* Finally raise selected node to the top */
 	wlr_scene_node_raise_to_top(osd_state->preview_node);

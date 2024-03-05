@@ -337,6 +337,7 @@ struct server {
 		struct view *cycle_view;
 		bool preview_was_enabled;
 		struct wlr_scene_node *preview_node;
+		struct wlr_scene_tree *preview_parent;
 		struct wlr_scene_node *preview_anchor;
 		struct multi_rect *preview_outline;
 	} osd_state;

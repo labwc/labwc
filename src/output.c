@@ -10,7 +10,6 @@
 #include <assert.h>
 #include <strings.h>
 #include <wlr/backend/drm.h>
-#include <wlr/backend/headless.h>
 #include <wlr/backend/wayland.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
@@ -227,15 +226,22 @@ new_output_notify(struct wl_listener *listener, void *data)
 	struct server *server = wl_container_of(listener, server, new_output);
 	struct wlr_output *wlr_output = data;
 
-	/* Name virtual output */
-	if (wlr_output_is_headless(wlr_output) && server->headless.pending_output_name[0] != '\0') {
-		wlr_output_set_name(wlr_output, server->headless.pending_output_name);
-		server->headless.pending_output_name[0] = '\0';
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		if (output->wlr_output == wlr_output) {
+			/*
+			 * This is a duplicated notification.
+			 * We may end up here when a virtual output
+			 * was added before the headless backend was
+			 * started up.
+			 */
+			return;
+		}
 	}
 
 	/*
 	 * We offer any display as available for lease, some apps like
-	 * gamescope, want to take ownership of a display when they can
+	 * gamescope want to take ownership of a display when they can
 	 * to use planes and present directly.
 	 * This is also useful for debugging the DRM parts of
 	 * another compositor.
@@ -305,7 +311,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 
 	wlr_output_commit(wlr_output);
 
-	struct output *output = znew(*output);
+	output = znew(*output);
 	output->wlr_output = wlr_output;
 	wlr_output->data = output;
 	output->server = server;
@@ -891,59 +897,6 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 		 */
 		cursor_update_image(&server->seat);
 		break;
-	}
-}
-
-void
-output_add_virtual(struct server *server, const char *output_name)
-{
-	if (output_name) {
-		/* Prevent creating outputs with the same name */
-		struct output *output;
-		wl_list_for_each(output, &server->outputs, link) {
-			if (wlr_output_is_headless(output->wlr_output) &&
-					!strcmp(output->wlr_output->name, output_name)) {
-				wlr_log(WLR_DEBUG,
-					"refusing to create virtual output with duplicate name");
-				return;
-			}
-		}
-		snprintf(server->headless.pending_output_name,
-			sizeof(server->headless.pending_output_name), "%s", output_name);
-	} else {
-		server->headless.pending_output_name[0] = '\0';
-	}
-	/*
-	 * Setting it to (0, 0) here disallows changing resolution from tools like
-	 * wlr-randr (returns error)
-	 */
-	wlr_headless_add_output(server->headless.backend, 1920, 1080);
-}
-
-void
-output_remove_virtual(struct server *server, const char *output_name)
-{
-	struct output *output;
-	wl_list_for_each(output, &server->outputs, link) {
-		if (wlr_output_is_headless(output->wlr_output)) {
-			if (output_name) {
-				/*
-				 * Given virtual output name, find and destroy virtual output by
-				 * that name.
-				 */
-				if (!strcmp(output->wlr_output->name, output_name)) {
-					wlr_output_destroy(output->wlr_output);
-					return;
-				}
-			} else {
-				/*
-				 * When virtual output name was no supplied by user, simply
-				 * destroy the first virtual output found.
-				 */
-				wlr_output_destroy(output->wlr_output);
-				return;
-			}
-		}
 	}
 }
 

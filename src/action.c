@@ -16,6 +16,7 @@
 #include "debug.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "output-virtual.h"
 #include "placement.h"
 #include "regions.h"
 #include "ssd.h"
@@ -996,14 +997,15 @@ actions_run(struct view *activator, struct server *server,
 			{
 				const char *output_name = action_get_str(action, "output_name",
 						NULL);
-				output_add_virtual(server, output_name);
+				output_virtual_add(server, output_name,
+					/*store_wlr_output*/ NULL);
 			}
 			break;
 		case ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE:
 			{
 				const char *output_name = action_get_str(action, "output_name",
 						NULL);
-				output_remove_virtual(server, output_name);
+				output_virtual_remove(server, output_name);
 			}
 			break;
 		case ACTION_TYPE_AUTO_PLACE:

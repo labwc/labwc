@@ -211,7 +211,6 @@ struct server {
 	struct wlr_backend *backend;
 	struct headless {
 		struct wlr_backend *backend;
-		char pending_output_name[4096];
 	} headless;
 	struct wlr_session *session;
 
@@ -491,8 +490,6 @@ struct wlr_box output_usable_area_in_layout_coords(struct output *output);
 struct wlr_box output_usable_area_scaled(struct output *output);
 void handle_output_power_manager_set_mode(struct wl_listener *listener,
 	void *data);
-void output_add_virtual(struct server *server, const char *output_name);
-void output_remove_virtual(struct server *server, const char *output_name);
 void output_enable_adaptive_sync(struct wlr_output *output, bool enabled);
 void new_tearing_hint(struct wl_listener *listener, void *data);
 

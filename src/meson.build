@@ -13,6 +13,7 @@ labwc_sources = files(
   'node.c',
   'osd.c',
   'output.c',
+  'output-virtual.c',
   'placement.c',
   'regions.c',
   'resistance.c',

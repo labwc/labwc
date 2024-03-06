@@ -163,12 +163,12 @@ Actions are used in menus and keyboard/mouse bindings.
 	to the center of the window. If the given output does not contain
 	any windows, the cursor is centered on the given output.
 
-*<action name="MoveToOutput" name="HDMI-A-1" direction="value" wrap="no" />*
+*<action name="MoveToOutput" output="HDMI-A-1" direction="value" wrap="no" />*
 	Moves active window to other output, unless the window state is
 	fullscreen.
 
-	If *name* is specified, the window will be sent directly to the specified
-	output and *direction* is ignored. If *name* is omitted, *direction* may
+	If *output* is specified, the window will be sent directly to the specified
+	output and *direction* is ignored. If *output* is omitted, *direction* may
 	be one of "left", "right", "up" or "down" to indicate that the window
 	should be moved to the next output in that direction (if one exists). 
 

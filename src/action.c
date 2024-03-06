@@ -383,7 +383,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		}
 		break;
 	case ACTION_TYPE_MOVE_TO_OUTPUT:
-		if (!strcmp(argument, "name")) {
+		if (!strcmp(argument, "output")) {
 			action_arg_add_str(action, argument, content);
 			goto cleanup;
 		}
@@ -921,10 +921,10 @@ actions_run(struct view *activator, struct server *server,
 			if (!view) {
 				break;
 			}
-			const char *name = action_get_str(action, "name", NULL);
+			const char *output_name = action_get_str(action, "output", NULL);
 			struct output *target = NULL;
-			if (name) {
-				target = output_from_name(view->server, name);
+			if (output_name) {
+				target = output_from_name(view->server, output_name);
 			} else {
 				/* Config parsing makes sure that direction is a valid direction */
 				enum view_edge edge = action_get_int(action, "direction", 0);

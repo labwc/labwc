@@ -926,7 +926,6 @@ actions_run(struct view *activator, struct server *server,
 			if (output_name) {
 				target = output_from_name(view->server, output_name);
 			} else {
-				/* Config parsing makes sure that direction is a valid direction */
 				enum view_edge edge = action_get_int(action, "direction", 0);
 				bool wrap = action_get_bool(action, "wrap", false);
 				target = view_get_adjacent_output(view, edge, wrap);
@@ -934,7 +933,8 @@ actions_run(struct view *activator, struct server *server,
 			if (!target) {
 				/*
 				 * Most likely because we're already on the
-				 * output furthest in the requested direction.
+				 * output furthest in the requested direction
+				 * or the output or direction was invalid.
 				 */
 				wlr_log(WLR_DEBUG, "Invalid output");
 				break;

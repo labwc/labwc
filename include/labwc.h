@@ -135,6 +135,10 @@ struct seat {
 	 * This allows to keep dragging a scrollbar or selecting text even
 	 * when moving outside of the window.
 	 *
+	 * It is also used to:
+	 * - determine the target view for action in "Drag" mousebind
+	 * - validate view move/resize requests from CSD clients
+	 *
 	 * Both (view && !surface) and (surface && !view) are possible.
 	 */
 	struct {

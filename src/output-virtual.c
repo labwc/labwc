@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include <stdlib.h>
 #include <wlr/backend/headless.h>
 #include <wlr/types/wlr_output.h>
+#include "common/string-helpers.h"
 #include "labwc.h"
 #include "output-virtual.h"
+
+static struct wlr_output *fallback_output = NULL;
 
 void
 output_virtual_add(struct server *server, const char *output_name,
@@ -77,7 +81,8 @@ output_virtual_remove(struct server *server, const char *output_name)
 {
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
-		if (!wlr_output_is_headless(output->wlr_output)) {
+		if (!wlr_output_is_headless(output->wlr_output)
+				|| output->wlr_output == fallback_output) {
 			continue;
 		}
 
@@ -98,5 +103,34 @@ output_virtual_remove(struct server *server, const char *output_name)
 			wlr_output_destroy(output->wlr_output);
 			return;
 		}
+	}
+}
+
+void
+output_virtual_update_fallback(struct server *server)
+{
+	struct wl_list *layout_outputs = &server->output_layout->outputs;
+	const char *fallback_output_name = getenv("LABWC_FALLBACK_OUTPUT");
+
+	if (!fallback_output && wl_list_empty(layout_outputs)
+			&& !string_null_or_empty(fallback_output_name)) {
+		wlr_log(WLR_DEBUG, "adding fallback output %s", fallback_output_name);
+
+		output_virtual_add(server, fallback_output_name, &fallback_output);
+	} else if (fallback_output && (wl_list_length(layout_outputs) > 1
+			|| string_null_or_empty(fallback_output_name))) {
+		wlr_log(WLR_DEBUG, "destroying fallback output %s",
+			fallback_output->name);
+
+		/*
+		 * We must reset fallback_output to NULL before destroying it.
+		 *
+		 * Otherwise we may end up trying to destroy the same wlr_output
+		 * twice due to wlr_output_destroy() removing the output from the
+		 * layout which in turn causes us to be called again.
+		 */
+		struct wlr_output *wlr_output = fallback_output;
+		fallback_output = NULL;
+		wlr_output_destroy(wlr_output);
 	}
 }

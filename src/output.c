@@ -24,6 +24,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "node.h"
+#include "output-virtual.h"
 #include "regions.h"
 #include "view.h"
 #include "xwayland.h"
@@ -694,6 +695,12 @@ handle_output_layout_change(struct wl_listener *listener, void *data)
 {
 	struct server *server =
 		wl_container_of(listener, server, output_layout_change);
+
+	/* Prevents unnecessary layout recalculations */
+	server->pending_output_layout_change++;
+	output_virtual_update_fallback(server);
+	server->pending_output_layout_change--;
+
 	do_output_layout_change(server);
 }
 

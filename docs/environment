@@ -68,3 +68,18 @@
 
 # XDG_CURRENT_DESKTOP=wlroots
 
+##
+## This causes a virtual output to be created automatically whenever there
+## are no outputs around. This helps for cases like wayvnc so there is always
+## an output available to connect to. The name can be chosen freely but there
+## must be no duplicate output names, for this reason using VIRTUAL-x or a
+## physical connector name like HDMI-A-1 is not recommended as wlroots may
+## want to create outputs with those names later on which would then fail.
+##
+## Using an output name that starts with NOOP- has the additional benefit
+## that wayvnc will detect it being a virtual output and allow clients to
+## resize the output to match the client resolution.
+##
+
+# LABWC_FALLBACK_OUTPUT=NOOP-fallback
+

@@ -228,7 +228,9 @@ handle_request_move(struct wl_listener *listener, void *data)
 	 * want.
 	 */
 	struct view *view = wl_container_of(listener, view, request_move);
-	interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
+	if (view == view->server->seat.pressed.view) {
+		interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
+	}
 }
 
 static void
@@ -244,7 +246,9 @@ handle_request_resize(struct wl_listener *listener, void *data)
 	 */
 	struct wlr_xwayland_resize_event *event = data;
 	struct view *view = wl_container_of(listener, view, request_resize);
-	interactive_begin(view, LAB_INPUT_STATE_RESIZE, event->edges);
+	if (view == view->server->seat.pressed.view) {
+		interactive_begin(view, LAB_INPUT_STATE_RESIZE, event->edges);
+	}
 }
 
 static void

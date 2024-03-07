@@ -2,6 +2,7 @@
 #include "config.h"
 #include <assert.h>
 #include "common/scene-helpers.h"
+#include "common/surface-helpers.h"
 #include "dnd.h"
 #include "labwc.h"
 #include "layers.h"
@@ -255,21 +256,6 @@ get_surface_from_layer_node(struct wlr_scene_node *node)
 	return NULL;
 }
 
-static bool
-is_layer_descendant(struct wlr_scene_node *node)
-{
-	goto start;
-	while (node) {
-		struct node_descriptor *desc = node->data;
-		if (desc && desc->type == LAB_NODE_DESC_LAYER_SURFACE) {
-			return true;
-		}
-start:
-		node = node->parent ? &node->parent->node : NULL;
-	}
-	return false;
-}
-
 /* TODO: make this less big and scary */
 struct cursor_context
 get_cursor_context(struct server *server)
@@ -354,24 +340,23 @@ get_cursor_context(struct server *server)
 		/* Edge-case nodes without node-descriptors */
 		if (node->type == WLR_SCENE_NODE_BUFFER) {
 			struct wlr_surface *surface = lab_wlr_surface_from_node(node);
-			if (surface) {
-				if (wlr_layer_surface_v1_try_from_wlr_surface(surface)) {
-					ret.type = LAB_SSD_LAYER_SURFACE;
-				}
-				if (is_layer_descendant(node)) {
-					/*
-					 * layer-shell subsurfaces need to be
-					 * able to receive pointer actions.
-					 *
-					 * Test by running
-					 * `gtk-layer-demo -k exclusive`, then
-					 * open the 'set margin' dialog and try
-					 * setting the margin with the pointer.
-					 */
-					ret.surface = surface;
-					ret.type = LAB_SSD_LAYER_SUBSURFACE;
-					return ret;
-				}
+
+			/*
+			 * Handle layer-shell subsurfaces
+			 *
+			 * These don't have node-descriptors, but need to be
+			 * able to receive pointer actions so we have to process
+			 * them here.
+			 *
+			 * Test by running `gtk-layer-demo -k exclusive`, then
+			 * open the 'set margin' dialog and try setting the
+			 * margin with the pointer.
+			 */
+			if (surface && wlr_subsurface_try_from_wlr_surface(surface)
+					&& subsurface_parent_layer(surface)) {
+				ret.surface = surface;
+				ret.type = LAB_SSD_LAYER_SUBSURFACE;
+				return ret;
 			}
 		}
 

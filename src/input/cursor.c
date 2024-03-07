@@ -11,6 +11,7 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "common/surface-helpers.h"
 #include "config/mousebind.h"
 #include "dnd.h"
 #include "idle.h"
@@ -965,8 +966,16 @@ cursor_button_press(struct seat *seat, uint32_t button,
 	 * the Focus action (used for normal views) does not work.
 	 */
 	if (ctx.type == LAB_SSD_LAYER_SURFACE) {
+		wlr_log(WLR_DEBUG, "press on layer-surface");
 		struct wlr_layer_surface_v1 *layer =
 			wlr_layer_surface_v1_try_from_wlr_surface(ctx.surface);
+		if (layer && layer->current.keyboard_interactive) {
+			seat_set_focus_layer(seat, layer);
+		}
+	} else if (ctx.type == LAB_SSD_LAYER_SUBSURFACE) {
+		wlr_log(WLR_DEBUG, "press on layer-subsurface");
+		struct wlr_layer_surface_v1 *layer =
+			subsurface_parent_layer(ctx.surface);
 		if (layer && layer->current.keyboard_interactive) {
 			seat_set_focus_layer(seat, layer);
 		}
@@ -976,12 +985,6 @@ cursor_button_press(struct seat *seat, uint32_t button,
 			/*raise*/ false);
 #endif
 	}
-
-	/*
-	 * TODO: We may need to handle press on layer-shell subsurfaces here,
-	 * but need to check keyboard interactivity before focusing them
-	 * otherwise we break waybar. See issue #1131
-	 */
 
 	if (ctx.type != LAB_SSD_CLIENT && ctx.type != LAB_SSD_LAYER_SUBSURFACE
 			&& wlr_seat_pointer_has_grab(seat->seat)) {

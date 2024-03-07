@@ -237,8 +237,7 @@ handle_request_move(struct wl_listener *listener, void *data)
 	 * move, typically because the user clicked on their client-side
 	 * decorations. Note that a more sophisticated compositor should check
 	 * the provied serial against a list of button press serials sent to
-	 * this
-	 * client, to prevent the client from requesting this whenever they
+	 * this client, to prevent the client from requesting this whenever they
 	 * want.
 	 */
 	struct view *view = wl_container_of(listener, view, request_move);
@@ -253,8 +252,7 @@ handle_request_resize(struct wl_listener *listener, void *data)
 	 * resize, typically because the user clicked on their client-side
 	 * decorations. Note that a more sophisticated compositor should check
 	 * the provied serial against a list of button press serials sent to
-	 * this
-	 * client, to prevent the client from requesting this whenever they
+	 * this client, to prevent the client from requesting this whenever they
 	 * want.
 	 */
 	struct wlr_xdg_toplevel_resize_event *event = data;

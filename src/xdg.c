@@ -148,7 +148,7 @@ handle_commit(struct wl_listener *listener, void *data)
 			 * wlr_xdg_toplevel_set_size and will send the retained
 			 * values with every subsequent configure request. If a
 			 * client has resized itself in the meantime, a
-			 * configure request that sends the now-outated size
+			 * configure request that sends the now-outdated size
 			 * may prompt the client to resize itself unexpectedly.
 			 *
 			 * Calling wlr_xdg_toplevel_set_size to update the
@@ -236,7 +236,7 @@ handle_request_move(struct wl_listener *listener, void *data)
 	 * This event is raised when a client would like to begin an interactive
 	 * move, typically because the user clicked on their client-side
 	 * decorations. Note that a more sophisticated compositor should check
-	 * the provied serial against a list of button press serials sent to
+	 * the provided serial against a list of button press serials sent to
 	 * this client, to prevent the client from requesting this whenever they
 	 * want.
 	 */
@@ -253,7 +253,7 @@ handle_request_resize(struct wl_listener *listener, void *data)
 	 * This event is raised when a client would like to begin an interactive
 	 * resize, typically because the user clicked on their client-side
 	 * decorations. Note that a more sophisticated compositor should check
-	 * the provied serial against a list of button press serials sent to
+	 * the provided serial against a list of button press serials sent to
 	 * this client, to prevent the client from requesting this whenever they
 	 * want.
 	 */

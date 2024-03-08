@@ -62,7 +62,7 @@ output_virtual_add(struct server *server, const char *output_name,
 		wlr_output_set_name(wlr_output, output_name);
 	}
 	if (store_wlr_output) {
-		/* Ensures that we can use the new wlr_output pointer within new_output_nofity() */
+		/* Ensures that we can use the new wlr_output pointer within new_output_notify() */
 		*store_wlr_output = wlr_output;
 	}
 

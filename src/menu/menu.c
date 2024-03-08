@@ -435,7 +435,7 @@ handle_menu_element(xmlNode *n, struct server *server)
 		 *
 		 * Openbox spec requires a label="" defined here, but it is
 		 * actually pointless so we handle it with or without the label
-		 * attritute to make it easier for users to define "root-menu"
+		 * attribute to make it easier for users to define "root-menu"
 		 * and "client-menu".
 		 */
 		struct menu **submenu = NULL;

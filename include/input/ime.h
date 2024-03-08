@@ -12,7 +12,7 @@ struct keyboard;
 /*
  * The relay structure manages the relationship between text-inputs and
  * input-method on a given seat. Multiple text-inputs may be bound to a relay,
- * but at most one will be "active" (commucating with input-method) at a time.
+ * but at most one will be "active" (communicating with input-method) at a time.
  * At most one input-method may be bound to the seat. When an input-method and
  * an active text-input is present, the relay passes messages between them.
  */

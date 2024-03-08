@@ -377,7 +377,7 @@ enum view_edge view_edge_invert(enum view_edge edge);
  *	a. that have been created but never mapped;
  *	b. set to NULL after client minimize-request.
  *
- * The only views that are allowed to be focusd are those that have a surface
+ * The only views that are allowed to be focused are those that have a surface
  * and have been mapped at some point since creation.
  */
 bool view_is_focusable(struct view *view);

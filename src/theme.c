@@ -167,7 +167,7 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 
 /*
  * We use the following button filename schema: "BUTTON [TOGGLED] [STATE]"
- * with the words separted by underscore, and the following meaning:
+ * with the words separated by underscore, and the following meaning:
  *   - BUTTON can be one of 'max', 'iconify', 'close', 'menu'
  *   - TOGGLED is either 'toggled' or nothing
  *   - STATE is 'hover' or nothing. In future, 'pressed' may be supported too.
@@ -884,8 +884,8 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 	 * We handle the edge-case where line-thickness > radius by merely
 	 * setting line-thickness = radius and in effect drawing a quadrant of a
 	 * circle. In this case the X and Y borders butt up against the arc and
-	 * overlap each other (as their line-thickessnes are greater than the
-	 * linethickness of the arc). As a result, there is no inner rounded
+	 * overlap each other (as their line-thicknesses are greater than the
+	 * line-thickness of the arc). As a result, there is no inner rounded
 	 * corners.
 	 *
 	 * So, in order to have inner rounded corners cornerRadius should be

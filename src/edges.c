@@ -384,7 +384,7 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 	assert(nearest_edges);
 
 	if (!output_is_usable(view->output)) {
-		wlr_log(WLR_DEBUG, "ignoring edge search for view on unsable output");
+		wlr_log(WLR_DEBUG, "ignoring edge search for view on unusable output");
 		return;
 	}
 
@@ -446,7 +446,7 @@ edges_find_outputs(struct border *nearest_edges, struct view *view,
 
 	if (!output_is_usable(view->output)) {
 		wlr_log(WLR_DEBUG,
-			"ignoring edge search for view on unsable output");
+			"ignoring edge search for view on unusable output");
 		return;
 	}
 
@@ -599,7 +599,7 @@ linear_interp(int x, int x1, int y1, int x2, int y2)
 		return 0.5 * (y1 + y2);
 	}
 
-	/* Othewise, linearly interpolate */
+	/* Otherwise, linearly interpolate */
 	int dx = x - x1;
 	return y1 + dx * (rise / (double)run);
 }

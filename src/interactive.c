@@ -215,7 +215,7 @@ interactive_finish(struct view *view)
 }
 
 /*
- * Cancels interative move/resize without changing the state of the of
+ * Cancels interactive move/resize without changing the state of the of
  * the view in any way. This may leave the tiled state inconsistent with
  * the actual geometry of the view.
  */

@@ -177,7 +177,7 @@ The format is based on [Keep a Changelog]
   user-defined region), the snapped state is now discarded as soon as the
   dragging begins. This means that dragging from a snapped position to a
   maximized state (with the `topMaximize` option enabled) and then
-  un-maxmimizing the window will restore the window to its size and position
+  un-maximizing the window will restore the window to its size and position
   *before* it was snapped. In previous releases, un-maximizing would restore
   the window to its snapped state. To preserve the snapped state of a window
   when maximized, use the Maximize window button or the `ToggleMaximize`
@@ -192,7 +192,7 @@ The format is based on [Keep a Changelog]
 </resistance>
 ```
 
-- Run menu actions on button release intead of press.
+- Run menu actions on button release instead of press.
 - Constrain window size to that of usable area when an application is started.
   Issue #1399
 - Support showing the full `app_id` in the window switcher. Users with a custom
@@ -231,7 +231,7 @@ Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
   for it in the client-menu under the Workspaces submenu. Written-by: @bnason
 - Account for space taken up by XWayland clients with `_NET_WM_STRUT_PARTIAL`
   property in the `usable_area` calculation. This increases inter-operability
-  with X11 desktop componenets.
+  with X11 desktop components.
 - Set XWayland's `_NET_WORKAREA` property based on usable area. XWayland
   clients use the `_NET_WORKAREA` root window property to determine how much of
   the screen is not covered by panels/docks. The property is used for example
@@ -297,7 +297,7 @@ relating to surface focus and keyboard issues, amongst others.
 
 - Do not reset XWayland window SSD on unminimize
 - Keep XWayland stacking order in sync when switching workspaces
-- Update top-layer visiblity on workspace-switch in order to show
+- Update top-layer visibility on workspace-switch in order to show
   top-layer layer-shell clients correctly when there is a window in
   fullscreen mode on another workspace. Issues: #1040 #1158
 - Make interactive window snapping with mouse more intuitive in
@@ -433,7 +433,7 @@ relating to surface focus and keyboard issues, amongst others.
 - xwayland: fix client request-unmap bug relating to foreign-toplevel handle
 - xwayland: fix race condition resulting in map view without surface
 - Limit SSD corner radius to the height of the titlebar
-- Fix rounded-corner bug producing weird artefacts when very large border
+- Fix rounded-corner bug producing weird artifacts when very large border
   thickness is used. Fixes #988
 - Ensure `string_prop()` handlers deal with destroying views. Fixes #1082
 - Fix SSD thickness calculation bug relating to titlebar. Fixes #1083
@@ -463,7 +463,7 @@ relating to surface focus and keyboard issues, amongst others.
 
 - Add support for `ext_idle_notify` protocol.
 - Window-switcher: #879 #969
-  - Set item-height based on font-heigth
+  - Set item-height based on font-height
   - Add theme option:
     - osd.window-switcher.width
     - osd.window-switcher.padding
@@ -674,7 +674,7 @@ particular thanks going to @Consolatis, @jlindgren90, @bi4k8, @Flrian and
 - Prevent re-focus for always-on-top views when switching workspaces.
   Written-by: @Consolatis
 - Make sure a default libinput category always exists to avoid devices not
-  being configured is some insances. Written-by: @jlindgren90
+  being configured is some instances. Written-by: @jlindgren90
 - Update cursor if it is within the OSD area when OSD appears/disappears.
   Written-by: @bi4k8
 - Provide generic parsing of XML action arguments to enable the use of the
@@ -741,7 +741,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
   of outlines. Written-by: @Flrian
 - Render submenu arrows
 - Allow highest level menu definitions - typically used for root-menu and
-  client-menu - to be defined without label attritube, for example like this:
+  client-menu - to be defined without label attribute, for example like this:
   `<openbox_menu><menu id="root-menu">...</menu></openbox>`. Issue #472
 - Allow xdg-desktop-portal-wlr to work out of the box by initializing dbus
   and systemd activation environment. This enables for example OBS Studio
@@ -784,7 +784,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 - Enable tap be default on non-touch devices (which some laptop trackpads
   apparently are)
 - Handle missing cursor theme (issue #246). Written-by: @Consolatis
-- Fix various surface syncronization, stacking, positioning and focus
+- Fix various surface synchronization, stacking, positioning and focus
   issues, including those related to both xwayland, scroll/drag events
   and also #526 #483
 - On first map, do not center xwayland views with explicitly specified
@@ -806,7 +806,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
   focused view.
 - Gracefully handle dying client during interactive move.
   Written-by: @Consolatis
-- Dynamically adjust server-side-deccoration invisible resize areas based
+- Dynamically adjust server-side-decoration invisible resize areas based
   on `usable_area` to ensure that cursor events are sent to clients such as
   panels in preference to grabbing window edges. Fixes #265.
   Written-by: @Consolatis
@@ -828,7 +828,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
   unmaximized geometry is known when started in maximized mode.
   Fixes issue #305. Reported-by: @01micko
 - Support `<menu><item><action name="Execute"><execute>`
-  `<exectue>` is a deprecated name for `<command>`, but is supported for
+  `<execute>` is a deprecated name for `<command>`, but is supported for
   backward compatibility with old menu-generators.
 - Keep xwayland-shell SSD state on unmap/map cycle.
   Written-by: @Consolatis
@@ -875,7 +875,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 - Call foreign-toplevel-destroy when unmapping xwayland surfaces because
   some xwayland clients leave unmapped child views around. Although
   `handle_destroy()` is not called for these, we have to call
-  foreign-toplevel-destroy to avoid clients such as panels incorrecly
+  foreign-toplevel-destroy to avoid clients such as panels incorrectly
   showing them.
 - Handle xwayland `set_override_redirect` events to fix weird behaviour
   with gitk menus and rofi.
@@ -883,7 +883,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
   Fixes #352 relating to JetBrains and Intellij focus issues
   Written-by: Jelle De Loecker
 - Do not segfault on missing drag icon. Written-by: @Consolatis
-- Fix windows irratically sticking to edges during move/resize.
+- Fix windows erratically sticking to edges during move/resize.
   Fixes issues #331 and #309
 
 ## [0.5.2] - 2022-05-17

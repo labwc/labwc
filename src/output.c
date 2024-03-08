@@ -221,7 +221,7 @@ static void
 new_output_notify(struct wl_listener *listener, void *data)
 {
 	/*
-	 * This event is rasied by the backend when a new output (aka display
+	 * This event is raised by the backend when a new output (aka display
 	 * or monitor) becomes available.
 	 */
 	struct server *server = wl_container_of(listener, server, new_output);

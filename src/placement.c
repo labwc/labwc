@@ -68,7 +68,7 @@ count_views(struct view *view)
 	return nviews;
 }
 
-/* Sort and de-deplicate a list of points that define a 1-D grid */
+/* Sort and de-duplicate a list of points that define a 1-D grid */
 static int
 order_grid(int *edges, int nedges)
 {

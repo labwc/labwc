@@ -5,8 +5,8 @@
 struct server;
 
 /**
- * session_environment_init - set enrivonment variables based on <key>=<value>
- * pairs in `${XDG_CONFIG_DIRS:-/etc/xdg}/lawbc/environment` with user override
+ * session_environment_init - set environment variables based on <key>=<value>
+ * pairs in `${XDG_CONFIG_DIRS:-/etc/xdg}/labwc/environment` with user override
  * in `${XDG_CONFIG_HOME:-$HOME/.config}`
  */
 void session_environment_init(void);

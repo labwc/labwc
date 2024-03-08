@@ -98,7 +98,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	 *       that some libinput setting could not be applied.
 	 *
 	 * TODO: We are currently using int32_t with -1 as default
-	 *       to desribe the not-configured state. This is not
+	 *       to describe the not-configured state. This is not
 	 *       really optimal as we can't properly deal with
 	 *       enum values that are 0. After some discussion via
 	 *       IRC the best way forward seem to be to use a

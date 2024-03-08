@@ -90,7 +90,7 @@ modification.
 
 Openbox spec is somewhat of a stable standard considering how long it has
 remained unchanged for and how wide-spread its adoption is by lightweight
-distributions such as LXDE, LXQt, BunsenLabs, ArchLabs, Mabox and Raspian. Some
+distributions such as LXDE, LXQt, BunsenLabs, ArchLabs, Mabox and Raspbian. Some
 widely used themes (for example Numix and Arc) have built-in support.
 
 We could have invented a whole new syntax, but that's not where we want to

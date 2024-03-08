@@ -78,7 +78,7 @@ struct input {
  * Virtual keyboards should not belong to seat->keyboard_group. As a result we
  * need to be able to ascertain which wlr_keyboard key/modifier events come from
  * and we achieve that by using `struct keyboard` which inherits `struct input`
- * and adds keybord specific listeners and a wlr_keyboard pointer.
+ * and adds keyboard specific listeners and a wlr_keyboard pointer.
  */
 struct keyboard {
 	struct input base;

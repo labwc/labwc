@@ -64,7 +64,7 @@ the `--exit` and `--reconfigure` options use.
 
 # SESSION MANAGEMENT
 
-To enable the use of graphical clients launched via D-Bus or systemd servie
+To enable the use of graphical clients launched via D-Bus or systemd service
 activation, labwc can update both activation environments on launch. Provided
 that labwc is aware of an active D-Bus user session (*i.e.*, the environment
 variable `DBUS_SESSION_BUS_ADDRESS` is defined), the compositor will invoke the

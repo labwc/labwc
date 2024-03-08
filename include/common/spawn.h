@@ -3,7 +3,7 @@
 #define LABWC_SPAWN_H
 
 /**
- * spawn_async_no_shell - execute asyncronously
+ * spawn_async_no_shell - execute asynchronously
  * @command: command to be executed
  */
 void spawn_async_no_shell(char const *command);

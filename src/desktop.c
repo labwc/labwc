@@ -157,6 +157,34 @@ desktop_topmost_focusable_view(struct server *server)
 	return NULL;
 }
 
+/*
+ * On Wayland there is no concept of _NET_WM_WINDOW_TYPE_DESKTOP, but we think
+ * it seems intuitive to focus the 'Desktop' when the last toplevel window is
+ * closed on a workspace. We do this by giving the first background layer-shell
+ * client with on-demand keyboard interactivity the focus.
+ */
+static struct wlr_layer_surface_v1 *
+get_desktop(struct server *server)
+{
+	struct output *output = output_nearest_to_cursor(server);
+	struct wlr_scene_tree *tree =
+		output->layer_tree[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM];
+
+	struct wlr_scene_node *node;
+	wl_list_for_each(node, &tree->children, link) {
+		struct lab_layer_surface *layer =
+			node_layer_surface_from_node(node);
+		struct wlr_scene_layer_surface_v1 *scene =
+			layer->scene_layer_surface;
+
+		if (scene->layer_surface->current.keyboard_interactive ==
+			ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_ON_DEMAND) {
+			return scene->layer_surface;
+		}
+	}
+	return NULL;
+}
+
 void
 desktop_focus_topmost_view(struct server *server)
 {
@@ -169,6 +197,12 @@ desktop_focus_topmost_view(struct server *server)
 		 * focusable (e.g. unmapped or on a different workspace).
 		 */
 		seat_focus_surface(&server->seat, NULL);
+
+		struct wlr_layer_surface_v1 *layer = get_desktop(server);
+		if (layer) {
+			wlr_log(WLR_ERROR, "found desktop");
+			seat_set_focus_layer(&server->seat, layer);
+		}
 	}
 }
 

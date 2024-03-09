@@ -37,13 +37,23 @@ option.
 All configuration and theme files except autostart and shutdown are re-loaded on
 receiving signal SIGHUP.
 
-The *environment* file is parsed as *variable=value* and sets environment
-variables accordingly. It is recommended to specify keyboard layout settings and
-cursor size/theme here; see environment variable section below for details. Note
-that the environment file is treated differently by openbox where it is simply
-sourced prior to running openbox.
-Note: Tilde (~) and environment variables in the value are expanded, but
-subshell syntax and apostrophes are ignored.
+Environment variables may be set within *environment* files, wherein each line
+defines shell variables in the format *variable=value*. It is recommended to
+specify keyboard layout settings and cursor size/theme here; see environment
+variable section below for details. Within an XDG Base Directory, a file named
+"environment" will be parsed first, followed by any file matching the glob
+"environment.d/\*.env". Files within the environment.d directory are parsed in
+an arbitrary order; any variables that must be set in a particular sequence
+should be set within the same file. Unless the --merge-config option is
+specified, labwc will consider a particular XDG Base Directory to have provided
+an environment file if that directory contains either the "environment"
+directory or at least one "environment.d/\*.env" file.
+
+Note: environment files are treated differently by Openbox, which will simply
+source the file as a valid shell script before running the window manager. Files
+are instead parsed directly by labwc, although any environment variables
+referenced as $VARIABLE or ${VARIABLE} will be substituted and the tilde (~)
+will be expanded as the user's home directory.
 
 The *autostart* file is executed as a shell script after labwc has read its
 configuration and set variables defined in the environment file. Additionally,

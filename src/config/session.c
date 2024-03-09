@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
+#include <dirent.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <wlr/backend/drm.h>
 #include <wlr/backend/multi.h>
 #include <wlr/util/log.h>
@@ -49,9 +51,10 @@ process_line(char *line)
 	buf_add(&value, string_strip(++p));
 	buf_expand_shell_variables(&value);
 	buf_expand_tilde(&value);
-	if (string_null_or_empty(key) || !value.len) {
+	if (string_null_or_empty(key)) {
 		goto error;
 	}
+
 	setenv(key, value.buf, 1);
 error:
 	free(value.buf);
@@ -78,6 +81,71 @@ read_environment_file(const char *filename)
 	free(line);
 	fclose(stream);
 	return true;
+}
+
+static char *
+strdup_env_path_validate(const char *prefix, struct dirent *dirent)
+{
+	assert(prefix);
+
+	/* Valid environment files always end in '.env' */
+	if (!str_endswith(dirent->d_name, ".env")) {
+		return NULL;
+	}
+
+	char *full_path = strdup_printf("%s/%s", prefix, dirent->d_name);
+	if (!full_path) {
+		return NULL;
+	}
+
+	/* Valid environment files must be regular files */
+	struct stat statbuf;
+	if (stat(full_path, &statbuf) == 0 && S_ISREG(statbuf.st_mode)) {
+		return full_path;
+	}
+
+	free(full_path);
+	return NULL;
+}
+
+static bool
+read_environment_dir(const char *path_prefix)
+{
+	bool success = false;
+	char *path = strdup_printf("%s.d", path_prefix);
+
+	errno = 0;
+	DIR *envdir = opendir(path);
+
+	if (!envdir) {
+		if (errno != ENOENT) {
+			const char *err_msg = strerror(errno);
+			wlr_log(WLR_INFO,
+				"failed to read environment directory: %s",
+				err_msg ? err_msg : "reason unknown");
+		}
+
+		goto env_dir_cleanup;
+	}
+
+	struct dirent *dirent;
+	while ((dirent = readdir(envdir)) != NULL) {
+		char *env_file_path = strdup_env_path_validate(path, dirent);
+		if (!env_file_path) {
+			continue;
+		}
+
+		if (read_environment_file(env_file_path)) {
+			success = true;
+		}
+
+		free(env_file_path);
+	}
+
+env_dir_cleanup:
+	closedir(envdir);
+	free(path);
+	return success;
 }
 
 static void
@@ -176,7 +244,13 @@ session_environment_init(void)
 
 	for (struct wl_list *elm = iter(&paths); elm != &paths; elm = iter(elm)) {
 		struct path *path = wl_container_of(elm, path, link);
+
+		/* Process an environment file itself */
 		bool success = read_environment_file(path->string);
+
+		/* Process a correponding environment.d directory */
+		success |= read_environment_dir(path->string);
+
 		if (success && !should_merge_config) {
 			break;
 		}

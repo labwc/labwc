@@ -118,45 +118,64 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	wlr_layer_surface_v1_destroy(layer->scene_layer_surface->layer_surface);
 }
 
-static void
-process_keyboard_interactivity(struct lab_layer_surface *layer)
+static bool
+focused_layer_has_exclusive_interactivity(struct seat *seat)
 {
-	struct wlr_layer_surface_v1 *layer_surface = layer->scene_layer_surface->layer_surface;
-	struct seat *seat = &layer->server->seat;
+	if (!seat->focused_layer) {
+		return false;
+	}
+	return seat->focused_layer->current.keyboard_interactive ==
+		ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE;
+}
 
-	if (layer_surface->current.keyboard_interactive
-			&& layer_surface->current.layer >= ZWLR_LAYER_SHELL_V1_LAYER_TOP) {
-		/*
-		 * Give keyboard focus to surface if
-		 * - keyboard-interactivity is 'exclusive' or 'on-demand'; and
-		 * - surface is in top/overlay layers; and
-		 * - currently focused layer has a lower precedence
-		 *
-		 * In other words, when dealing with two surfaces with
-		 * exclusive/on-demand keyboard-interactivity (firstly the
-		 * currently focused 'focused_layer' and secondly the
-		 * 'layer_surface' for which we're just responding to a
-		 * map/commit event), the following logic applies:
-		 *
-		 * | focused_layer | layer_surface | who gets keyboard focus |
-		 * |---------------|---------------|-------------------------|
-		 * | overlay       | top           | focused_layer           |
-		 * | overlay       | overlay       | layer_surface           |
-		 * | top           | top           | layer_surface           |
-		 * | top           | overlay       | layer_surface           |
-		 */
+/*
+ * Precedence is defined as being in the same or higher (overlay is highest)
+ * than the layer with current keyboard focus.
+ */
+static bool
+has_precedence(struct seat *seat, enum zwlr_layer_shell_v1_layer layer)
+{
+	if (!seat->focused_layer) {
+		return true;
+	}
+	if (!focused_layer_has_exclusive_interactivity(seat)) {
+		return true;
+	}
+	if (layer >= seat->focused_layer->current.layer) {
+		return true;
+	}
+	return false;
+}
 
-		if (!seat->focused_layer || seat->focused_layer->current.layer
-				<= layer_surface->current.layer) {
+void
+layer_try_set_focus(struct seat *seat, struct wlr_layer_surface_v1 *layer_surface)
+{
+	switch (layer_surface->current.keyboard_interactive) {
+	case ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE:
+		wlr_log(WLR_DEBUG, "interactive-exclusive '%p'", layer_surface);
+		if (has_precedence(seat, layer_surface->current.layer)) {
 			seat_set_focus_layer(seat, layer_surface);
 		}
-	} else if (seat->focused_layer
-			&& !seat->focused_layer->current.keyboard_interactive) {
-		/*
-		 * Clear focus if keyboard-interactivity has been set to
-		 * ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE
-		 */
-		seat_set_focus_layer(seat, NULL);
+		break;
+	case ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_ON_DEMAND:
+		wlr_log(WLR_DEBUG, "interactive-on-demand '%p'", layer_surface);
+		if (!focused_layer_has_exclusive_interactivity(seat)) {
+			seat_set_focus_layer(seat, layer_surface);
+		}
+		break;
+	case ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE:
+		wlr_log(WLR_DEBUG, "interactive-none '%p'", layer_surface);
+		if (seat->focused_layer == layer_surface) {
+			wlr_log(WLR_DEBUG, "unset focus '%p'", layer_surface);
+			/*
+			 * TODO: consider transferring focus other layer-shell
+			 * clients with exclusive focus (that in the case of
+			 * multiple clients we could have stolen it from and
+			 * arguably should give it back to).
+			 */
+			seat_set_focus_layer(seat, NULL);
+		}
+		break;
 	}
 }
 
@@ -184,7 +203,8 @@ handle_surface_commit(struct wl_listener *listener, void *data)
 	}
 	/* Process keyboard-interactivity change */
 	if (committed & WLR_LAYER_SURFACE_V1_STATE_KEYBOARD_INTERACTIVITY) {
-		process_keyboard_interactivity(layer);
+		struct seat *seat = &layer->server->seat;
+		layer_try_set_focus(seat, layer_surface);
 	}
 
 	if (committed || layer->mapped != layer_surface->surface->mapped) {
@@ -250,7 +270,8 @@ handle_map(struct wl_listener *listener, void *data)
 	 * the scene. See wlr_scene_surface_create() documentation.
 	 */
 
-	process_keyboard_interactivity(layer);
+	struct seat *seat = &layer->server->seat;
+	layer_try_set_focus(seat, layer->scene_layer_surface->layer_surface);
 }
 
 static void

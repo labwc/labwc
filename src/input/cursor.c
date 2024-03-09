@@ -18,6 +18,7 @@
 #include "input/gestures.h"
 #include "input/touch.h"
 #include "labwc.h"
+#include "layers.h"
 #include "menu/menu.h"
 #include "regions.h"
 #include "resistance.h"
@@ -970,14 +971,14 @@ cursor_button_press(struct seat *seat, uint32_t button,
 		struct wlr_layer_surface_v1 *layer =
 			wlr_layer_surface_v1_try_from_wlr_surface(ctx.surface);
 		if (layer && layer->current.keyboard_interactive) {
-			seat_set_focus_layer(seat, layer);
+			layer_try_set_focus(seat, layer);
 		}
 	} else if (ctx.type == LAB_SSD_LAYER_SUBSURFACE) {
 		wlr_log(WLR_DEBUG, "press on layer-subsurface");
 		struct wlr_layer_surface_v1 *layer =
 			subsurface_parent_layer(ctx.surface);
 		if (layer && layer->current.keyboard_interactive) {
-			seat_set_focus_layer(seat, layer);
+			layer_try_set_focus(seat, layer);
 		}
 #ifdef HAVE_XWAYLAND
 	} else if (ctx.type == LAB_SSD_UNMANAGED) {

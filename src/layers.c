@@ -118,6 +118,62 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	wlr_layer_surface_v1_destroy(layer->scene_layer_surface->layer_surface);
 }
 
+static inline bool
+has_exclusive_interactivity(struct wlr_scene_layer_surface_v1 *scene)
+{
+	return scene->layer_surface->current.keyboard_interactive
+		== ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE;
+}
+
+/*
+ * Try to transfer focus to other layer-shell clients with exclusive focus on
+ * the output nearest to the cursor. If none exist (which is likely to generally
+ * be the case) just unset layer focus and try to give it to the topmost
+ * toplevel if one exists.
+ */
+static void
+try_to_focus_next_layer_or_toplevel(struct server *server)
+{
+	struct seat *seat = &server->seat;
+	struct output *output = output_nearest_to_cursor(server);
+
+	enum zwlr_layer_shell_v1_layer overlay = ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY;
+	enum zwlr_layer_shell_v1_layer top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
+	for (size_t i = overlay; i >= top; i--) {
+		struct wlr_scene_tree *tree = output->layer_tree[i];
+		struct wlr_scene_node *node;
+		/*
+		 * In wlr_scene.c they were added at end of list so we
+		 * iterate in reverse to process last client first.
+		 */
+		wl_list_for_each_reverse(node, &tree->children, link) {
+			struct lab_layer_surface *layer = node_layer_surface_from_node(node);
+			struct wlr_scene_layer_surface_v1 *scene = layer->scene_layer_surface;
+			struct wlr_layer_surface_v1 *layer_surface = scene->layer_surface;
+			/*
+			 * In case we have just come from the unmap handler and
+			 * the commit has not yet been processed.
+			 */
+			if (!layer_surface->surface->mapped) {
+				continue;
+			}
+			if (has_exclusive_interactivity(scene)) {
+				wlr_log(WLR_DEBUG, "focus next exclusive layer client");
+				seat_set_focus_layer(seat, layer_surface);
+				return;
+			}
+		}
+	}
+
+	/*
+	 * Unfocus the current layer-surface and focus the topmost toplevel if
+	 * one exists on the current workspace.
+	 */
+	if (seat->focused_layer) {
+		seat_set_focus_layer(seat, NULL);
+	}
+}
+
 static bool
 focused_layer_has_exclusive_interactivity(struct seat *seat)
 {
@@ -166,14 +222,7 @@ layer_try_set_focus(struct seat *seat, struct wlr_layer_surface_v1 *layer_surfac
 	case ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE:
 		wlr_log(WLR_DEBUG, "interactive-none '%p'", layer_surface);
 		if (seat->focused_layer == layer_surface) {
-			wlr_log(WLR_DEBUG, "unset focus '%p'", layer_surface);
-			/*
-			 * TODO: consider transferring focus other layer-shell
-			 * clients with exclusive focus (that in the case of
-			 * multiple clients we could have stolen it from and
-			 * arguably should give it back to).
-			 */
-			seat_set_focus_layer(seat, NULL);
+			try_to_focus_next_layer_or_toplevel(seat->server);
 		}
 		break;
 	}
@@ -223,7 +272,6 @@ handle_node_destroy(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, node_destroy);
-
 	/*
 	 * TODO: Determine if this layer is being used by an exclusive client.
 	 * If it is, try and find another layer owned by this client to pass
@@ -250,7 +298,7 @@ handle_unmap(struct wl_listener *listener, void *data)
 	}
 	struct seat *seat = &layer->server->seat;
 	if (seat->focused_layer == layer_surface) {
-		seat_set_focus_layer(seat, NULL);
+		try_to_focus_next_layer_or_toplevel(layer->server);
 	}
 }
 

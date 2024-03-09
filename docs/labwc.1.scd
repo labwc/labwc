@@ -56,6 +56,19 @@ the `--exit` and `--reconfigure` options use.
 *-s, --startup* <command>
 	Run command on startup
 
+*-S, --session* <command>
+	Run command on startup and terminate compositor on exit. This is useful
+	for session management as it allows the session client to terminate
+	labwc by exiting itself. This is a Wayland specific use-case because
+	under X, xinit starts the server and keeps it alive for as long as the
+	session client. Thus either the session client starts the Window
+	Manager, or the Window Manager can be launched independently first. On
+	Wayland, the Compositor is both Display Server and Window Manager, so
+	the described session management mechanisms do not work because the
+	Compositor needs to be running before the session can function.  As some
+	session clients support both X11 and Wayland, this command line option
+	avoids re-writes and fragmentation.
+
 *-v, --version*
 	Show the version number and quit
 

@@ -499,7 +499,7 @@ void new_tearing_hint(struct wl_listener *listener, void *data);
 
 void server_init(struct server *server);
 void server_start(struct server *server);
-void server_finish(struct server *server);
+void server_finish(struct server *server, pid_t primary_client_pid);
 
 /* Updates onscreen display 'alt-tab' buffer */
 void osd_update(struct server *server);

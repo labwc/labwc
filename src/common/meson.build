@@ -14,5 +14,6 @@ labwc_sources += files(
   'scaled_scene_buffer.c',
   'scene-helpers.c',
   'spawn.c',
+  'spawn-primary-client.c',
   'string-helpers.c',
 )

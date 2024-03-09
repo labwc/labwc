@@ -665,9 +665,7 @@ seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer)
 		return;
 	}
 	seat_focus(seat, layer->surface, /*is_lock_surface*/ false);
-	if (layer->current.layer >= ZWLR_LAYER_SHELL_V1_LAYER_TOP) {
-		seat->focused_layer = layer;
-	}
+	seat->focused_layer = layer;
 }
 
 static void

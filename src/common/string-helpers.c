@@ -86,7 +86,7 @@ strdup_printf(const char *fmt, ...)
 }
 
 char *
-str_join(const char * const parts[],
+str_join(const char *const parts[],
 		const char *restrict fmt, const char *restrict sep)
 {
 	assert(parts);
@@ -154,3 +154,19 @@ str_join(const char * const parts[],
 	return buf;
 }
 
+bool
+str_endswith(const char *const string, const char *const suffix)
+{
+	size_t len_str = string ? strlen(string) : 0;
+	size_t len_sfx = suffix ? strlen(suffix) : 0;
+
+	if (len_str < len_sfx) {
+		return false;
+	}
+
+	if (len_sfx == 0) {
+		return true;
+	}
+
+	return strcmp(string + len_str - len_sfx, suffix) == 0;
+}

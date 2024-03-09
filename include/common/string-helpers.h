@@ -59,7 +59,18 @@ char *strdup_printf(const char *fmt, ...);
  * The separator is arbitrary. When the separator is NULL, a single space will
  * be used.
  */
-char *str_join(const char * const parts[],
+char *str_join(const char *const parts[],
 	const char *restrict fmt, const char *restrict sep);
+
+/**
+ * str_endswith - indicate whether a string ends with a given suffix
+ * @string: string to test
+ * @suffix: suffix to expect in string
+ *
+ * If suffix is "" or NULL, this method always returns true; otherwise, this
+ * method returns true if and only if the full suffix exists at the end of the
+ * string.
+ */
+bool str_endswith(const char *const string, const char *const suffix);
 
 #endif /* LABWC_STRING_HELPERS_H */

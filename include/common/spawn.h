@@ -5,6 +5,12 @@
 #include <sys/types.h>
 
 /**
+ * spawn_primary_client - execute asynchronously
+ * @command: command to be executed
+ */
+pid_t spawn_primary_client(const char *command);
+
+/**
  * spawn_async_no_shell - execute asynchronously
  * @command: command to be executed
  */

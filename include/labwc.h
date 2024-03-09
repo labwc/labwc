@@ -348,6 +348,8 @@ struct server {
 
 	struct menu *menu_current;
 	struct wl_list menus;
+
+	pid_t primary_client_pid;
 };
 
 #define LAB_NR_LAYERS (4)

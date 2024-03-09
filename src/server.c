@@ -90,6 +90,7 @@ handle_sigchld(int signal, void *data)
 {
 	siginfo_t info;
 	info.si_pid = 0;
+	struct server *server = data;
 
 	/* First call waitid() with NOWAIT which doesn't consume the zombie */
 	if (waitid(P_ALL, /*id*/ 0, &info, WEXITED | WNOHANG | WNOWAIT) == -1) {
@@ -102,8 +103,7 @@ handle_sigchld(int signal, void *data)
 	}
 
 #if HAVE_XWAYLAND
-	/* Verify that we do not break xwayland lazy initialization */
-	struct server *server = data;
+	/* Ensure that we do not break xwayland lazy initialization */
 	if (server->xwayland && server->xwayland->server
 			&& info.si_pid == server->xwayland->server->pid) {
 		return 0;
@@ -137,6 +137,11 @@ handle_sigchld(int signal, void *data)
 		wlr_log(WLR_ERROR,
 			"spawned child %ld terminated unexpectedly: %d"
 			" please report", (long)info.si_pid, info.si_code);
+	}
+
+	if (info.si_pid == server->primary_client_pid) {
+		wlr_log(WLR_INFO, "primary client %ld exited", (long)info.si_pid);
+		wl_display_terminate(server->wl_display);
 	}
 
 	return 0;
@@ -290,6 +295,7 @@ get_headless_backend(struct wlr_backend *backend, void *data)
 void
 server_init(struct server *server)
 {
+	server->primary_client_pid = -1;
 	server->wl_display = wl_display_create();
 	if (!server->wl_display) {
 		wlr_log(WLR_ERROR, "cannot allocate a wayland display");

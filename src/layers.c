@@ -318,8 +318,10 @@ handle_map(struct wl_listener *listener, void *data)
 	 * the scene. See wlr_scene_surface_create() documentation.
 	 */
 
-	struct seat *seat = &layer->server->seat;
-	layer_try_set_focus(seat, layer->scene_layer_surface->layer_surface);
+	/*
+	 * Processing of keyboard-interactivity changes is done in the
+	 * commit-handler.
+	 */
 }
 
 static void

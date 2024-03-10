@@ -21,6 +21,7 @@
 #include "common/nodename.h"
 #include "common/parse-bool.h"
 #include "common/string-helpers.h"
+#include "config/default-bindings.h"
 #include "config/keybind.h"
 #include "config/libinput.h"
 #include "config/mousebind.h"
@@ -1165,127 +1166,32 @@ rcxml_init(void)
 	rc.workspace_config.min_nr_workspaces = 1;
 }
 
-static struct {
-	const char *binding, *action, *attribute, *value;
-} key_combos[] = {
-	{ "A-Tab", "NextWindow", NULL, NULL },
-	{ "W-Return", "Execute", "command", "alacritty" },
-	{ "A-F3", "Execute", "command", "bemenu-run" },
-	{ "A-F4", "Close", NULL, NULL },
-	{ "W-a", "ToggleMaximize", NULL, NULL },
-	{ "A-Left", "MoveToEdge", "direction", "left" },
-	{ "A-Right", "MoveToEdge", "direction", "right" },
-	{ "A-Up", "MoveToEdge", "direction", "up" },
-	{ "A-Down", "MoveToEdge", "direction", "down" },
-	{ "W-Left", "SnapToEdge", "direction", "left" },
-	{ "W-Right", "SnapToEdge", "direction", "right" },
-	{ "W-Up", "SnapToEdge", "direction", "up" },
-	{ "W-Down", "SnapToEdge", "direction", "down" },
-	{ "A-Space", "ShowMenu", "menu", "client-menu"},
-	{ "XF86_AudioLowerVolume", "Execute", "command", "amixer sset Master 5%-" },
-	{ "XF86_AudioRaiseVolume", "Execute", "command", "amixer sset Master 5%+" },
-	{ "XF86_AudioMute", "Execute", "command", "amixer sset Master toggle" },
-	{ "XF86_MonBrightnessUp", "Execute", "command", "brightnessctl set +10%" },
-	{ "XF86_MonBrightnessDown", "Execute", "command", "brightnessctl set 10%-" },
-	{ NULL, NULL, NULL, NULL },
-};
-
 static void
 load_default_key_bindings(void)
 {
 	struct keybind *k;
 	struct action *action;
 	for (int i = 0; key_combos[i].binding; i++) {
-		k = keybind_create(key_combos[i].binding);
+		struct key_combos *current = &key_combos[i];
+		k = keybind_create(current->binding);
 		if (!k) {
 			continue;
 		}
 
-		action = action_create(key_combos[i].action);
+		action = action_create(current->action);
 		wl_list_append(&k->actions, &action->link);
 
-		if (key_combos[i].attribute && key_combos[i].value) {
+		for (size_t j = 0; j < ARRAY_SIZE(current->attributes); j++) {
+			if (!current->attributes[j].name
+					|| !current->attributes[j].value) {
+				break;
+			}
 			action_arg_from_xml_node(action,
-				key_combos[i].attribute, key_combos[i].value);
+				current->attributes[j].name,
+				current->attributes[j].value);
 		}
 	}
 }
-
-/*
- * `struct mouse_combo` variable description and examples:
- *
- * | Variable  | Description                | Examples
- * |-----------|----------------------------|---------------------
- * | context   | context name               | Maximize, Root
- * | button    | mousebind button/direction | Left, Up
- * | event     | mousebind action           | Click, Scroll
- * | action    | action name                | ToggleMaximize, GoToDesktop
- * | attribute | action attribute           | to
- * | value     | action attribute value     | left
- *
- * <mouse>
- *   <context name="Maximize">
- *     <mousebind button="Left" action="Click">
- *       <action name="Focus"/>
- *       <action name="Raise"/>
- *       <action name="ToggleMaximize"/>
- *     </mousebind>
- *   </context>
- *   <context name="Root">
- *     <mousebind direction="Up" action="Scroll">
- *       <action name="GoToDesktop" to="left" wrap="yes"/>
- *     </mousebind>
- *   </context>
- * </mouse>
- */
-static struct mouse_combos {
-	const char *context, *button, *event, *action, *attribute, *value;
-} mouse_combos[] = {
-	{ "Left", "Left", "Drag", "Resize", NULL, NULL},
-	{ "Top", "Left", "Drag", "Resize", NULL, NULL},
-	{ "Bottom", "Left", "Drag", "Resize", NULL, NULL},
-	{ "Right", "Left", "Drag", "Resize", NULL, NULL},
-	{ "TLCorner", "Left", "Drag", "Resize", NULL, NULL},
-	{ "TRCorner", "Left", "Drag", "Resize", NULL, NULL},
-	{ "BRCorner", "Left", "Drag", "Resize", NULL, NULL},
-	{ "BLCorner", "Left", "Drag", "Resize", NULL, NULL},
-	{ "Frame", "A-Left", "Press", "Focus", NULL, NULL},
-	{ "Frame", "A-Left", "Press", "Raise", NULL, NULL},
-	{ "Frame", "A-Left", "Drag", "Move", NULL, NULL},
-	{ "Frame", "A-Right", "Press", "Focus", NULL, NULL},
-	{ "Frame", "A-Right", "Press", "Raise", NULL, NULL},
-	{ "Frame", "A-Right", "Drag", "Resize", NULL, NULL},
-	{ "Titlebar", "Left", "Press", "Focus", NULL, NULL},
-	{ "Titlebar", "Left", "Press", "Raise", NULL, NULL},
-	{ "Titlebar", "Up", "Scroll", "Unfocus", NULL, NULL},
-	{ "Titlebar", "Up", "Scroll", "Shade", NULL, NULL},
-	{ "Titlebar", "Down", "Scroll", "Unshade", NULL, NULL},
-	{ "Titlebar", "Down", "Scroll", "Focus", NULL, NULL},
-	{ "Title", "Left", "Drag", "Move", NULL, NULL },
-	{ "Title", "Left", "DoubleClick", "ToggleMaximize", NULL, NULL },
-	{ "TitleBar", "Right", "Click", "Focus", NULL, NULL},
-	{ "TitleBar", "Right", "Click", "Raise", NULL, NULL},
-	{ "Title", "Right", "Click", "ShowMenu", "menu", "client-menu"},
-	{ "Close", "Left", "Click", "Close", NULL, NULL },
-	{ "Iconify", "Left", "Click", "Iconify", NULL, NULL},
-	{ "Maximize", "Left", "Click", "ToggleMaximize", NULL, NULL},
-	{ "Maximize", "Right", "Click", "ToggleMaximize", "direction", "horizontal"},
-	{ "Maximize", "Middle", "Click", "ToggleMaximize", "direction", "vertical"},
-	{ "WindowMenu", "Left", "Click", "ShowMenu", "menu", "client-menu"},
-	{ "WindowMenu", "Right", "Click", "ShowMenu", "menu", "client-menu"},
-	{ "Root", "Left", "Press", "ShowMenu", "menu", "root-menu"},
-	{ "Root", "Right", "Press", "ShowMenu", "menu", "root-menu"},
-	{ "Root", "Middle", "Press", "ShowMenu", "menu", "root-menu"},
-	{ "Root", "Up", "Scroll", "GoToDesktop", "to", "left"},
-	{ "Root", "Down", "Scroll", "GoToDesktop", "to", "right"},
-	{ "Client", "Left", "Press", "Focus", NULL, NULL},
-	{ "Client", "Left", "Press", "Raise", NULL, NULL},
-	{ "Client", "Right", "Press", "Focus", NULL, NULL},
-	{ "Client", "Right", "Press", "Raise", NULL, NULL},
-	{ "Client", "Middle", "Press", "Focus", NULL, NULL},
-	{ "Client", "Middle", "Press", "Raise", NULL, NULL},
-	{ NULL, NULL, NULL, NULL, NULL, NULL },
-};
 
 static void
 load_default_mouse_bindings(void)
@@ -1293,9 +1199,8 @@ load_default_mouse_bindings(void)
 	uint32_t count = 0;
 	struct mousebind *m;
 	struct action *action;
-	struct mouse_combos *current;
 	for (int i = 0; mouse_combos[i].context; i++) {
-		current = &mouse_combos[i];
+		struct mouse_combos *current = &mouse_combos[i];
 		if (i == 0
 				|| strcmp(current->context, mouse_combos[i - 1].context)
 				|| strcmp(current->button, mouse_combos[i - 1].button)
@@ -1316,14 +1221,14 @@ load_default_mouse_bindings(void)
 		action = action_create(current->action);
 		wl_list_append(&m->actions, &action->link);
 
-		/*
-		 * Only one attribute/value (of string type) is required for the
-		 * built-in binds.  If more are required in the future, a
-		 * slightly more sophisticated approach will be needed.
-		 */
-		if (current->attribute && current->value) {
+		for (size_t j = 0; j < ARRAY_SIZE(current->attributes); j++) {
+			if (!current->attributes[j].name
+					|| !current->attributes[j].value) {
+				break;
+			}
 			action_arg_from_xml_node(action,
-				current->attribute, current->value);
+				current->attributes[j].name,
+				current->attributes[j].value);
 		}
 	}
 	wlr_log(WLR_DEBUG, "Loaded %u merged mousebinds", count);

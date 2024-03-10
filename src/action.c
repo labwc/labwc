@@ -594,6 +594,8 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 			force_menu_top_left = true;
 		} else if (ssd_part_contains(LAB_SSD_PART_TITLEBAR, type)) {
 			force_menu_top_left = false;
+		} else if (rc.menu_client_menu_at_pointer) {
+			force_menu_top_left = false;
 		} else {
 			force_menu_top_left = true;
 		}

@@ -100,6 +100,8 @@ struct rcxml {
 	struct wl_list mousebinds; /* struct mousebind.link */
 	double scroll_factor;
 
+	bool menu_client_menu_at_pointer;
+
 	/* touch tablet */
 	struct wl_list touch_configs;
 

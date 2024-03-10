@@ -887,6 +887,11 @@ entry(xmlNode *node, char *nodename, char *content)
 			wlr_log(WLR_ERROR, "ignoring invalid value for notifyClient");
 		}
 
+	} else if (!strcasecmp(nodename, "menu_clientMenuAtPointer")) {
+		if (parse_bool(content, -1) == true) {
+			rc.menu_client_menu_at_pointer = true;
+		};
+
 	/* <windowSwitcher show="" preview="" outlines="" /> */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.show);
@@ -1156,6 +1161,8 @@ rcxml_init(void)
 	rc.window_switcher.criteria = LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
 		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
 		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;
+
+	rc.menu_client_menu_at_pointer = false;
 
 	rc.resize_indicator = LAB_RESIZE_INDICATOR_NEVER;
 

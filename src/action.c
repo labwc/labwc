@@ -321,6 +321,10 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			action_arg_add_str(action, argument, content);
 			goto cleanup;
 		}
+		if (!strcasecmp(argument, "atCursor")) {
+			action_arg_add_bool(action, argument, parse_bool(content, true));
+			goto cleanup;
+		}
 		break;
 	case ACTION_TYPE_TOGGLE_MAXIMIZE:
 	case ACTION_TYPE_MAXIMIZE:
@@ -571,7 +575,8 @@ action_list_free(struct wl_list *action_list)
 }
 
 static void
-show_menu(struct server *server, struct view *view, const char *menu_name)
+show_menu(struct server *server, struct view *view,
+		const char *menu_name, bool at_cursor)
 {
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH
 			&& server->input_mode != LAB_INPUT_STATE_MENU) {
@@ -579,34 +584,25 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 		return;
 	}
 
-	bool force_menu_top_left = false;
 	struct menu *menu = menu_get_by_id(server, menu_name);
 	if (!menu) {
 		return;
 	}
-	if (!strcasecmp(menu_name, "client-menu")) {
-		if (!view) {
-			return;
-		}
-		enum ssd_part_type type = ssd_at(view->ssd, server->scene,
-			server->seat.cursor->x, server->seat.cursor->y);
-		if (type == LAB_SSD_BUTTON_WINDOW_MENU) {
-			force_menu_top_left = true;
-		} else if (ssd_part_contains(LAB_SSD_PART_TITLEBAR, type)) {
-			force_menu_top_left = false;
-		} else {
-			force_menu_top_left = true;
-		}
+
+	int x = server->seat.cursor->x;
+	int y = server->seat.cursor->y;
+
+	/* The client menu needs an active client */
+	if (!view && strcasecmp(menu_name, "client-menu") == 0) {
+		return;
 	}
 
-	int x, y;
-	if (force_menu_top_left) {
+	/* Place menu in the view corner if desired (and menu is not root-menu) */
+	if (!at_cursor && view) {
 		x = view->current.x;
 		y = view->current.y;
-	} else {
-		x = server->seat.cursor->x;
-		y = server->seat.cursor->y;
 	}
+
 	/* Replaced by next show_menu() or cleaned on view_destroy() */
 	menu->triggered_by_view = view;
 	menu_open(menu, x, y);
@@ -764,7 +760,9 @@ actions_run(struct view *activator, struct server *server,
 			kill(getpid(), SIGHUP);
 			break;
 		case ACTION_TYPE_SHOW_MENU:
-			show_menu(server, view, action_get_str(action, "menu", NULL));
+			show_menu(server, view,
+				action_get_str(action, "menu", NULL),
+				action_get_bool(action, "atCursor", true));
 			break;
 		case ACTION_TYPE_TOGGLE_MAXIMIZE:
 			if (view) {

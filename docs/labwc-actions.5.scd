@@ -105,8 +105,17 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="Reconfigure" />*
 	Re-load configuration and theme files.
 
-*<action name="ShowMenu" menu="value" />*
-	Show menu. Valid menu names are "root-menu" and "client-menu".
+*<action name="ShowMenu" menu="value" atCursor="yes" />*
+	Show a menu.
+
+	*menu* The name of the menu to show. The menus "root-menu" and
+	"client-menu" are guaranteed to exist, but others may be defined
+	explicitly. See labwc-menu(5) for more information.
+
+	*atCursor* [yes|no] When opening a menu, open the menu at the location
+	of the mouse cursor. When set to no, the menu will appear at the
+	upper-left corner of the window associated with the action. Default is
+	yes.
 
 *<action name="ToggleDecorations" />*
 	Toggle decorations of focused window.

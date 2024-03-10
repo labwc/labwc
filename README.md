@@ -227,6 +227,7 @@ If you have not created an rc.xml config file, default bindings will be:
 | `alt`-`mouse-right`      | resize window
 | `alt`-`arrow`            | move window to edge
 | `super`-`arrow`          | resize window to fill half the output
+| `alt`-`space`            | show the window menu
 | `XF86_AudioLowerVolume`  | amixer sset Master 5%-
 | `XF86_AudioRaiseVolume`  | amixer sset Master 5%+
 | `XF86_AudioMute`         | amixer sset Master toggle

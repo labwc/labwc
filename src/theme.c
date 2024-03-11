@@ -25,6 +25,7 @@
 #include "common/match.h"
 #include "common/mem.h"
 #include "common/parse-bool.h"
+#include "common/parse-double.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "button/button-png.h"
@@ -500,6 +501,11 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#000000",
 		theme->window_inactive_button_close_unpressed_image_color);
 
+	theme->window_active_shadow_size = 60;
+	theme->window_inactive_shadow_size = 40;
+	parse_hexstr("#00000060", theme->window_active_shadow_color);
+	parse_hexstr("#00000040", theme->window_inactive_shadow_color);
+
 	parse_hexstr("#fcfbfa", theme->menu_items_bg_color);
 	parse_hexstr("#000000", theme->menu_items_text_color);
 	parse_hexstr("#e1dedb", theme->menu_items_active_bg_color);
@@ -675,6 +681,30 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "window.inactive.button.close.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_inactive_button_close_unpressed_image_color);
+	}
+
+	/* window drop-shadows */
+	if (match_glob(key, "window.active.shadow.size")) {
+		theme->window_active_shadow_size = atoi(value);
+		if (theme->window_active_shadow_size < 0) {
+			wlr_log(WLR_ERROR, "window.active.shadow.size cannot "
+				"be negative, clamping it to 0.");
+			theme->window_active_shadow_size = 0;
+		}
+	}
+	if (match_glob(key, "window.inactive.shadow.size")) {
+		theme->window_inactive_shadow_size = atoi(value);
+		if (theme->window_inactive_shadow_size < 0) {
+			wlr_log(WLR_ERROR, "window.inactive.shadow.size cannot "
+				"be negative, clamping it to 0.");
+			theme->window_inactive_shadow_size = 0;
+		}
+	}
+	if (match_glob(key, "window.active.shadow.color")) {
+		parse_hexstr(value, theme->window_active_shadow_color);
+	}
+	if (match_glob(key, "window.inactive.shadow.color")) {
+		parse_hexstr(value, theme->window_inactive_shadow_color);
 	}
 
 	if (match_glob(key, "menu.width.min")) {
@@ -1035,6 +1065,185 @@ create_corners(struct theme *theme)
 	theme->corner_top_right_inactive_normal = rounded_rect(&ctx);
 }
 
+/*
+ * Draw the buffer used to render the edges of window drop-shadows. The buffer
+ * is 1 pixel tall and `visible_size` pixels wide and can be rotated and scaled for the
+ * different edges.  The buffer is drawn as would be found at the right-hand
+ * edge of a window. The gradient has a color of `start_color` at its left edge
+ * fading to clear at its right edge.
+ */
+static void
+shadow_edge_gradient(struct lab_data_buffer *buffer,
+		int visible_size, int total_size, float start_color[4])
+{
+	if (!buffer) {
+		/* This type of shadow is disabled, do nothing */
+		return;
+	}
+
+	assert(buffer->format == DRM_FORMAT_ARGB8888);
+	uint8_t *pixels = buffer->data;
+
+	/* Inset portion which is obscured */
+	int inset = total_size - visible_size;
+
+	/* Standard deviation normalised against the shadow width, squared */
+	double variance = 0.3 * 0.3;
+
+	for (int x = 0; x < visible_size; x++) {
+		/*
+		 * x normalised against total shadow width. We add on inset here
+		 * because we don't bother drawing inset for the edge shadow
+		 * buffers but still need the pattern to line up with the corner
+		 * shadow buffers which do have inset drawn.
+		 */
+		double xn = (double)(x + inset) / (double)total_size;
+
+		/* Gausian dropoff */
+		double alpha = exp(-(xn * xn) / variance);
+
+		/* RGBA values are all pre-multiplied */
+		pixels[4 * x] = start_color[2] * alpha * 255;
+		pixels[4 * x + 1] = start_color[1] * alpha * 255;
+		pixels[4 * x + 2] = start_color[0] * alpha * 255;
+		pixels[4 * x + 3] = start_color[3] * alpha * 255;
+	}
+}
+
+/*
+ * Draw the buffer used to render the corners of window drop-shadows.  The
+ * shadow looks better if the buffer is inset behind the window, so the buffer
+ * is square with a size of radius+inset.  The buffer is drawn for the
+ * bottom-right corner but can be rotated for other corners.  The gradient fades
+ * from `start_color` at the top-left to clear at the opposite edge.
+ *
+ * If the window is translucent we don't want the shadow to be visible through
+ * it.  For the bottom corners of the window this is easy, we just erase the
+ * square of the buffer which will be behind the window.  For the top it's a
+ * little more complicated because the titlebar can have rounded corners.
+ * However, the titlebar itself is always opaque so we only have to erase the
+ * L-shaped area of the buffer which can appear behind the non-titlebar part of
+ * the window.
+ */
+static void
+shadow_corner_gradient(struct lab_data_buffer *buffer, int visible_size,
+	int total_size, int titlebar_height, float start_color[4])
+{
+	if (!buffer) {
+		/* This type of shadow is disabled, do nothing */
+		return;
+	}
+
+	assert(buffer->format == DRM_FORMAT_ARGB8888);
+	uint8_t *pixels = buffer->data;
+
+	/* Standard deviation normalised against the shadow width, squared */
+	double variance = 0.3 * 0.3;
+
+	int inset = total_size - visible_size;
+
+	for (int y = 0; y < total_size; y++) {
+		uint8_t *pixel_row = &pixels[y * buffer->stride];
+		for (int x = 0; x < total_size; x++) {
+			/* x and y normalised against total shadow width */
+			double x_norm = (double)(x) / (double)total_size;
+			double y_norm = (double)(y) / (double)total_size;
+			/*
+			 * For Gaussian drop-off in 2d you can just calculate
+			 * the outer product of the horizontal and vertical
+			 * profiles.
+			 */
+			double gauss_x = exp(-(x_norm * x_norm) / variance);
+			double gauss_y = exp(-(y_norm * y_norm) / variance);
+			double alpha = gauss_x * gauss_y;
+
+			/*
+			 * Erase the L-shaped region which could be visible
+			 * through a transparent window but not obscured by the
+			 * titlebar. If inset is smaller than the titlebar
+			 * height then there's nothing to do, this is handled by
+			 * (inset - titlebar_height) being negative.
+			 */
+			bool in1 = x < inset && y < inset - titlebar_height;
+			bool in2 = x < inset - titlebar_height && y < inset;
+			if (in1 || in2) {
+				alpha = 0.0;
+			}
+
+			/* RGBA values are all pre-multiplied */
+			pixel_row[4 * x] = start_color[2] * alpha * 255;
+			pixel_row[4 * x + 1] = start_color[1] * alpha * 255;
+			pixel_row[4 * x + 2] = start_color[0] * alpha * 255;
+			pixel_row[4 * x + 3] = start_color[3] * alpha * 255;
+		}
+	}
+}
+
+static void
+create_shadows(struct theme *theme)
+{
+	/* Size of shadow visible extending beyond the window */
+	int visible_active_size = theme->window_active_shadow_size;
+	int visible_inactive_size = theme->window_inactive_shadow_size;
+	/* How far inside the window the shadow inset begins */
+	int inset_active = (double)visible_active_size * SSD_SHADOW_INSET;
+	int inset_inactive = (double)visible_inactive_size * SSD_SHADOW_INSET;
+	/* Total width including visible and obscured portion */
+	int total_active_size = visible_active_size + inset_active;
+	int total_inactive_size = visible_inactive_size + inset_inactive;
+
+	/*
+	 * Edge shadows don't need to be inset so the buffers are sized just for
+	 * the visible width.  Corners are inset so the buffers are larger for
+	 * this.
+	 */
+	if (visible_active_size > 0) {
+		theme->shadow_edge_active = buffer_create_cairo(
+			visible_active_size, 1, 1.0, true);
+		theme->shadow_corner_top_active = buffer_create_cairo(
+			total_active_size, total_active_size, 1.0, true);
+		theme->shadow_corner_bottom_active = buffer_create_cairo(
+			total_active_size, total_active_size, 1.0, true);
+		if (!theme->shadow_corner_top_active
+				|| !theme->shadow_corner_bottom_active
+				|| !theme->shadow_edge_active) {
+			wlr_log(WLR_ERROR, "Failed to allocate shadow buffer");
+			return;
+		}
+	}
+	if (visible_inactive_size > 0) {
+		theme->shadow_edge_inactive = buffer_create_cairo(
+			visible_inactive_size, 1, 1.0, true);
+		theme->shadow_corner_top_inactive = buffer_create_cairo(
+			total_inactive_size, total_inactive_size, 1.0, true);
+		theme->shadow_corner_bottom_inactive = buffer_create_cairo(
+			total_inactive_size, total_inactive_size, 1.0, true);
+		if (!theme->shadow_corner_top_inactive
+				|| !theme->shadow_corner_bottom_inactive
+				|| !theme->shadow_edge_inactive) {
+			wlr_log(WLR_ERROR, "Failed to allocate shadow buffer");
+			return;
+		}
+	}
+
+	shadow_edge_gradient(theme->shadow_edge_active, visible_active_size,
+		total_active_size, theme->window_active_shadow_color);
+	shadow_edge_gradient(theme->shadow_edge_inactive, visible_inactive_size,
+		total_inactive_size, theme->window_inactive_shadow_color);
+	shadow_corner_gradient(theme->shadow_corner_top_active,
+		visible_active_size, total_active_size,
+		theme->title_height, theme->window_active_shadow_color);
+	shadow_corner_gradient(theme->shadow_corner_bottom_active,
+		visible_active_size, total_active_size, 0,
+		theme->window_active_shadow_color);
+	shadow_corner_gradient(theme->shadow_corner_top_inactive,
+		visible_inactive_size, total_inactive_size,
+		theme->title_height, theme->window_inactive_shadow_color);
+	shadow_corner_gradient(theme->shadow_corner_bottom_inactive,
+		visible_inactive_size, total_inactive_size, 0,
+		theme->window_inactive_shadow_color);
+}
+
 static void
 fill_colors_with_osd_theme(struct theme *theme, float colors[3][4])
 {
@@ -1154,6 +1363,7 @@ theme_init(struct theme *theme, const char *theme_name)
 	post_processing(theme);
 	create_corners(theme);
 	load_buttons(theme);
+	create_shadows(theme);
 }
 
 void
@@ -1163,4 +1373,10 @@ theme_finish(struct theme *theme)
 	zdrop(&theme->corner_top_left_inactive_normal);
 	zdrop(&theme->corner_top_right_active_normal);
 	zdrop(&theme->corner_top_right_inactive_normal);
+	zdrop(&theme->shadow_corner_top_active);
+	zdrop(&theme->shadow_corner_bottom_active);
+	zdrop(&theme->shadow_edge_active);
+	zdrop(&theme->shadow_corner_top_inactive);
+	zdrop(&theme->shadow_corner_bottom_inactive);
+	zdrop(&theme->shadow_edge_inactive);
 }

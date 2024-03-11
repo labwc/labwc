@@ -130,6 +130,20 @@ This syntax is not documented on the openbox.org wiki, but is supported by
 openbox and is used by many popular themes. For the sake of brevity, these
 elements are not listed here, but are supported.
 
+*window.active.shadow.size*
+	Size of the drop-shadow for the focused window, in pixels. Default is 60.
+
+*window.inactive.shadow.size*
+	Size of drop-shadows for non-focused windows, in pixels. Default is 40.
+
+*window.active.shadow.color*
+	Color of the drop-shadow for the focused window, including opacity. Default
+	is #00000060 (black with 38% opacity).
+
+*window.inactive.shadow.color*
+	Color of drop-shadows for non-focused windows, including opacity. Default is
+	#00000040 (black with 25% opacity).
+
 *menu.items.bg.color*
 	Background color of inactive menu items.
 

@@ -24,6 +24,7 @@
     <name></name>
     <cornerRadius>8</cornerRadius>
     <keepBorder>yes</keepBorder>
+    <dropShadows>no</dropShadows>
     <font place="ActiveWindow">
       <name>sans</name>
       <size>10</size>

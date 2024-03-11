@@ -64,10 +64,12 @@ struct rcxml {
 	char *theme_name;
 	int corner_radius;
 	bool ssd_keep_border;
+	bool shadows_enabled;
 	struct font font_activewindow;
 	struct font font_inactivewindow;
 	struct font font_menuitem;
 	struct font font_osd;
+
 	/* Pointer to current theme */
 	struct theme *theme;
 

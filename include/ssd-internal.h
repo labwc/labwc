@@ -76,6 +76,12 @@ struct ssd {
 		struct ssd_sub_tree inactive;
 	} border;
 
+	struct {
+		struct wlr_scene_tree *tree;
+		struct ssd_sub_tree active;
+		struct ssd_sub_tree inactive;
+	} shadow;
+
 	/*
 	 * Space between the extremities of the view's wlr_surface
 	 * and the max extents of the server-side decorations.
@@ -149,5 +155,9 @@ void ssd_border_destroy(struct ssd *ssd);
 void ssd_extents_create(struct ssd *ssd);
 void ssd_extents_update(struct ssd *ssd);
 void ssd_extents_destroy(struct ssd *ssd);
+
+void ssd_shadow_create(struct ssd *ssd);
+void ssd_shadow_update(struct ssd *ssd);
+void ssd_shadow_destroy(struct ssd *ssd);
 
 #endif /* LABWC_SSD_INTERNAL_H */

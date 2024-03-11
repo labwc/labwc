@@ -31,7 +31,7 @@ file encountered is processed in turn. Thus, user-specific files will augment
 system-wide configurations, with conflicts favoring the user-specific
 alternative.
 
-The configuration directory location can be override with the -C command line
+The configuration directory location can be overridden with the -C command line
 option.
 
 All configuration and theme files except autostart and shutdown are re-loaded on

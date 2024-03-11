@@ -934,6 +934,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.workspace_config.popuptime = atoi(content);
 	} else if (!strcasecmp(nodename, "number.desktops")) {
 		rc.workspace_config.min_nr_workspaces = MAX(1, atoi(content));
+	} else if (!strcasecmp(nodename, "prefix.desktops")) {
+		rc.workspace_config.prefix = xstrdup(content);
 	} else if (!strcasecmp(nodename, "popupShow.resize")) {
 		if (!strcasecmp(content, "Always")) {
 			rc.resize_indicator = LAB_RESIZE_INDICATOR_ALWAYS;
@@ -1465,10 +1467,14 @@ post_processing(void)
 
 	int nr_workspaces = wl_list_length(&rc.workspace_config.workspaces);
 	if (nr_workspaces < rc.workspace_config.min_nr_workspaces) {
+		char *ws_name = xstrdup("Workspace");
+		if (rc.workspace_config.prefix) {
+			ws_name = rc.workspace_config.prefix;
+		}
 		struct workspace *workspace;
 		for (int i = nr_workspaces; i < rc.workspace_config.min_nr_workspaces; i++) {
 			workspace = znew(*workspace);
-			workspace->name = strdup_printf("Workspace %d", i + 1);
+			workspace->name = strdup_printf("%s %d", ws_name, i + 1);
 			wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
 		}
 	}

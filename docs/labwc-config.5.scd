@@ -303,10 +303,9 @@ extending outward from the snapped edge.
 ## WORKSPACES
 
 *<desktops number=""><names><name>*
-	Define workspaces. A workspace covers all outputs. The OSD only shows
-	windows on the current workspace. Workspaces can be switched to with
-	GoToDesktop and windows can be moved with SendToDesktop. See
-	labwc-actions(5) for more information about their arguments.
+	Define workspaces. A workspace covers all outputs. Workspaces can be
+	switched to with GoToDesktop and windows can be moved with SendToDesktop.
+	See labwc-actions(5) for more information about their arguments.
 
 	The number attribute defines the minimum number of workspaces. Default
 	is 1. The number attribute is optional. If the number attribute is
@@ -315,6 +314,9 @@ extending outward from the snapped edge.
 *<desktops><popupTime>*
 	Define the timeout after which to hide the workspace OSD.
 	A setting of 0 disables the OSD. Default is 1000 ms.
+
+*<desktops><prefix>*
+	Set the prefix to use when using "number" above. Default is "Workspace"
 
 ## THEME
 

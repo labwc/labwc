@@ -934,6 +934,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.workspace_config.popuptime = atoi(content);
 	} else if (!strcasecmp(nodename, "number.desktops")) {
 		rc.workspace_config.min_nr_workspaces = MAX(1, atoi(content));
+	} else if (!strcasecmp(nodename, "prefix.desktops")) {
+		rc.workspace_config.prefix = xstrdup(content);
 	} else if (!strcasecmp(nodename, "popupShow.resize")) {
 		if (!strcasecmp(content, "Always")) {
 			rc.resize_indicator = LAB_RESIZE_INDICATOR_ALWAYS;
@@ -1465,10 +1467,14 @@ post_processing(void)
 
 	int nr_workspaces = wl_list_length(&rc.workspace_config.workspaces);
 	if (nr_workspaces < rc.workspace_config.min_nr_workspaces) {
+		if (!rc.workspace_config.prefix) {
+			rc.workspace_config.prefix = xstrdup("Workspace");
+		}
 		struct workspace *workspace;
 		for (int i = nr_workspaces; i < rc.workspace_config.min_nr_workspaces; i++) {
 			workspace = znew(*workspace);
-			workspace->name = strdup_printf("Workspace %d", i + 1);
+			workspace->name = strdup_printf("%s %d",
+				rc.workspace_config.prefix, i + 1);
 			wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
 		}
 	}
@@ -1638,6 +1644,7 @@ rcxml_finish(void)
 	zfree(rc.font_menuitem.name);
 	zfree(rc.font_osd.name);
 	zfree(rc.theme_name);
+	zfree(rc.workspace_config.prefix);
 
 	struct usable_area_override *area, *area_tmp;
 	wl_list_for_each_safe(area, area_tmp, &rc.usable_area_overrides, link) {

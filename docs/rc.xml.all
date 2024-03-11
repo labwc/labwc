@@ -100,8 +100,20 @@
     Or it can also be configured like this:
     <desktops number="4" />
 
+    Or like this:
+    <desktops>
+      <popupTime>500</popupTime>
+      <number>5</number>
+      <prefix>ws</prefix>
+    </desktops>
+
+    Or:
+    <desktops number="4" popupTime="500" prefix="ws" />
+
     popupTime defaults to 1000 so could be left out.
     Set to 0 to completely disable the workspace OSD.
+
+    prefix defaults to "Workspace" when using number instead of names.
 
     Use GoToDesktop left | right to switch workspaces.
     Use SendToDesktop left | right to move windows.

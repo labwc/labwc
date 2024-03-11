@@ -230,18 +230,24 @@ get_type(struct view *view)
 {
 	switch (view->type) {
 	case LAB_XDG_SHELL_VIEW:
-		if (rc.window_switcher.all_workspaces) {
-			return "[W] ";
-		} else {
-			return "[xdg-shell]";
-		}
+		return "[xdg-shell]";
 #if HAVE_XWAYLAND
 	case LAB_XWAYLAND_VIEW:
-		if (rc.window_switcher.all_workspaces) {
-			return "[X] ";
-		} else {
-			return "[xwayland]";
-		}
+		return "[xwayland]";
+#endif
+	}
+	return "";
+}
+
+static const char *
+get_winfo(struct view *view)
+{
+	switch (view->type) {
+	case LAB_XDG_SHELL_VIEW:
+		return "[W] ";
+#if HAVE_XWAYLAND
+	case LAB_XWAYLAND_VIEW:
+		return "[X] ";
 #endif
 	}
 	return "";
@@ -385,7 +391,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 						buf_add(&buf, "   ");
 					}
 				}
-				buf_add(&buf, get_type(*view));
+				buf_add(&buf, get_winfo(*view));
 				if (rc.window_switcher.all_workspaces &&
 						wl_list_length(&server->outputs) > 1) {
 					buf_add(&buf, (*view)->output->wlr_output->name);

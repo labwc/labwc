@@ -1468,7 +1468,7 @@ post_processing(void)
 	int nr_workspaces = wl_list_length(&rc.workspace_config.workspaces);
 	if (nr_workspaces < rc.workspace_config.min_nr_workspaces) {
 		if (!rc.workspace_config.prefix) {
-			rc.workspace_config.prefix= xstrdup("Workspace");
+			rc.workspace_config.prefix = xstrdup("Workspace");
 		}
 		struct workspace *workspace;
 		for (int i = nr_workspaces; i < rc.workspace_config.min_nr_workspaces; i++) {

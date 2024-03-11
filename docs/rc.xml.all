@@ -107,6 +107,9 @@
       <prefix>ws</prefix>
     </desktops>
 
+    Or:
+    <desktops number="4" popupTime="500" prefix="ws" />
+
     popupTime defaults to 1000 so could be left out.
     Set to 0 to completely disable the workspace OSD.
 

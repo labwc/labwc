@@ -206,7 +206,7 @@ this is for compatibility with Openbox.
 
 	*content* defines what the field shows and can be any of:
 
-		- *type* Show view type ("xdg-shell" or "xwayland")
+		- *type* Show view type ("W" for xdg-shell or "X" for xwayland)
 
 		- *identifier* Show identifier (app_id for native Wayland
 		  windows and WM_CLASS for XWayland clients)

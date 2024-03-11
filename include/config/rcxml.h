@@ -141,6 +141,7 @@ struct rcxml {
 		bool show;
 		bool preview;
 		bool outlines;
+		bool allworkspaces;
 		uint32_t criteria;
 		struct wl_list fields;  /* struct window_switcher_field.link */
 	} window_switcher;

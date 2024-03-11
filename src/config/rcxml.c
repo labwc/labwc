@@ -1473,7 +1473,8 @@ post_processing(void)
 		struct workspace *workspace;
 		for (int i = nr_workspaces; i < rc.workspace_config.min_nr_workspaces; i++) {
 			workspace = znew(*workspace);
-			workspace->name = strdup_printf("%s %d", rc.workspace_config.prefix, i + 1);
+			workspace->name = strdup_printf("%s %d", 
+				rc.workspace_config.prefix, i + 1);
 			wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
 		}
 	}

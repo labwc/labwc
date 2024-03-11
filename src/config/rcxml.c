@@ -896,12 +896,9 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_bool(content, &rc.window_switcher.outlines);
 	} else if (!strcasecmp(nodename, "allWorkspaces.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.allworkspaces);
-		if (parse_bool(content, -1) == true) {
+		if (rc.window_switcher.allworkspaces) {
 			rc.window_switcher.criteria &=
 				~LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
-		} else {
-			rc.window_switcher.criteria |=
-				LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
 		}
 
 	/* Remove this long term - just a friendly warning for now */

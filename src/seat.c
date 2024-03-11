@@ -296,6 +296,11 @@ new_keyboard(struct seat *seat, struct wlr_input_device *device, bool virtual)
 	keyboard->wlr_keyboard = kb;
 	keyboard->is_virtual = virtual;
 
+	if (!seat->keyboard_group->keyboard.keymap) {
+		wlr_log(WLR_ERROR, "cannot set keymap");
+		exit(EXIT_FAILURE);
+	}
+
 	wlr_keyboard_set_keymap(kb, seat->keyboard_group->keyboard.keymap);
 
 	/*

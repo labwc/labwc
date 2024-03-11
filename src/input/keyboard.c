@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#define _POSIX_C_SOURCE 200809L
 #include <assert.h>
+#include <stdlib.h>
 #include <wlr/backend/multi.h>
 #include <wlr/backend/session.h>
 #include <wlr/interfaces/wlr_keyboard.h>
@@ -628,6 +630,8 @@ reset_window_keyboard_layout_groups(struct server *server)
 static void
 set_layout(struct server *server, struct wlr_keyboard *kb)
 {
+	static bool fallback_mode;
+
 	struct xkb_rule_names rules = { 0 };
 	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
 	struct xkb_keymap *keymap = xkb_map_new_from_names(context, &rules,
@@ -639,7 +643,14 @@ set_layout(struct server *server, struct wlr_keyboard *kb)
 		}
 		xkb_keymap_unref(keymap);
 	} else {
-		wlr_log(WLR_ERROR, "Failed to create xkb keymap");
+		wlr_log(WLR_ERROR, "failed to create xkb keymap for layout '%s'",
+			getenv("XKB_DEFAULT_LAYOUT"));
+		if (!fallback_mode) {
+			wlr_log(WLR_ERROR, "entering fallback mode with layout 'us'");
+			fallback_mode = true;
+			setenv("XKB_DEFAULT_LAYOUT", "us", 1);
+			set_layout(server, kb);
+		}
 	}
 	xkb_context_unref(context);
 }

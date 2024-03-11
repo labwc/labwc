@@ -1644,6 +1644,7 @@ rcxml_finish(void)
 	zfree(rc.font_menuitem.name);
 	zfree(rc.font_osd.name);
 	zfree(rc.theme_name);
+	zfree(rc.workspace_config.prefix);
 
 	struct usable_area_override *area, *area_tmp;
 	wl_list_for_each_safe(area, area_tmp, &rc.usable_area_overrides, link) {

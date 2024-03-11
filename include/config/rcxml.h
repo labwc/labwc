@@ -21,6 +21,7 @@ enum window_switcher_field_content {
 	LAB_FIELD_IDENTIFIER,
 	LAB_FIELD_TRIMMED_IDENTIFIER,
 	LAB_FIELD_TITLE,
+	LAB_FIELD_WINFO,
 };
 
 enum view_placement_policy {
@@ -141,7 +142,7 @@ struct rcxml {
 		bool show;
 		bool preview;
 		bool outlines;
-		bool allworkspaces;
+		bool all_workspaces;
 		uint32_t criteria;
 		struct wl_list fields;  /* struct window_switcher_field.link */
 	} window_switcher;

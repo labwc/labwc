@@ -1163,7 +1163,6 @@ rcxml_init(void)
 	rc.window_switcher.show = true;
 	rc.window_switcher.preview = true;
 	rc.window_switcher.outlines = true;
-	rc.window_switcher.all_workspaces = false;
 	rc.window_switcher.criteria = LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
 		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
 		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;

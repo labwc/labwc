@@ -1253,12 +1253,15 @@ cursor_frame(struct wl_listener *listener, void *data)
 }
 
 void
-cursor_init(struct seat *seat)
+cursor_load(struct seat *seat)
 {
 	const char *xcursor_theme = getenv("XCURSOR_THEME");
 	const char *xcursor_size = getenv("XCURSOR_SIZE");
 	uint32_t size = xcursor_size ? atoi(xcursor_size) : 24;
 
+	if (seat->xcursor_manager) {
+		wlr_xcursor_manager_destroy(seat->xcursor_manager);
+	}
 	seat->xcursor_manager = wlr_xcursor_manager_create(xcursor_theme, size);
 	wlr_xcursor_manager_load(seat->xcursor_manager, 1);
 
@@ -1293,6 +1296,12 @@ cursor_init(struct seat *seat)
 			"Cursor theme is missing cursor names, using fallback");
 		cursor_names = cursors_x11;
 	}
+}
+
+void
+cursor_init(struct seat *seat)
+{
+	cursor_load(seat);
 
 	/* Set the initial cursor image so the cursor is visible right away */
 	cursor_set(seat, LAB_CURSOR_DEFAULT);

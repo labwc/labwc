@@ -119,6 +119,7 @@ void cursor_update_focus(struct server *server);
 void cursor_update_image(struct seat *seat);
 
 void cursor_init(struct seat *seat);
+void cursor_load(struct seat *seat);
 void cursor_emulate_move_absolute(struct seat *seat,
 		struct wlr_input_device *device,
 		double x, double y, uint32_t time_msec);

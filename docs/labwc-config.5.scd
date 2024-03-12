@@ -208,7 +208,7 @@ this is for compatibility with Openbox.
 
 		- *type* Show view type ("xdg-shell" or "xwayland")
 
-		- *winfo* Show window info *type* "X" or "W"
+		- *winfo* Show workspace name, *type* "X" or "W"
 		  along with *state* M/m/F (max, min, full)
 
 		- *identifier* Show identifier (app_id for native Wayland

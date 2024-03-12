@@ -1297,7 +1297,7 @@ cursor_load(struct seat *seat)
 		cursor_names = cursors_x11;
 	}
 }
- 
+
 void
 cursor_init(struct seat *seat)
 {

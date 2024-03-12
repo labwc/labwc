@@ -379,7 +379,11 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 				buf_add(&buf, get_type(*view));
 				break;
 			case LAB_FIELD_WINFO:
-				buf_add(&buf, (*view)->workspace->name);
+				if (rc.window_switcher.all_workspaces) {
+					buf_add(&buf, (*view)->workspace->name);
+				} else {
+					buf_add(&buf, "    ");
+				}
 				if ((*view)->maximized) {
 					buf_add(&buf, " M ");
 				} else if ((*view)->minimized) {

@@ -296,6 +296,11 @@ new_keyboard(struct seat *seat, struct wlr_input_device *device, bool virtual)
 	keyboard->wlr_keyboard = kb;
 	keyboard->is_virtual = virtual;
 
+	if (!seat->keyboard_group->keyboard.keymap) {
+		wlr_log(WLR_ERROR, "cannot set keymap");
+		exit(EXIT_FAILURE);
+	}
+
 	wlr_keyboard_set_keymap(kb, seat->keyboard_group->keyboard.keymap);
 
 	/*
@@ -529,6 +534,7 @@ seat_init(struct server *server)
 
 	seat->input_method_relay = input_method_relay_create(seat);
 
+	seat->xcursor_manager = NULL;
 	seat->cursor = wlr_cursor_create();
 	if (!seat->cursor) {
 		wlr_log(WLR_ERROR, "unable to create cursor");
@@ -571,6 +577,7 @@ seat_reconfigure(struct server *server)
 {
 	struct seat *seat = &server->seat;
 	struct input *input;
+	cursor_load(seat);
 	wl_list_for_each(input, &seat->inputs, link) {
 		switch (input->wlr_input_device->type) {
 		case WLR_INPUT_DEVICE_KEYBOARD:

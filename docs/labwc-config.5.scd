@@ -208,9 +208,6 @@ this is for compatibility with Openbox.
 
 		- *type* Show view type ("xdg-shell" or "xwayland")
 
-		- *winfo* Show workspace name, *type* "X" or "W"
-		  along with *state* M/m/F (max, min, full)
-
 		- *identifier* Show identifier (app_id for native Wayland
 		  windows and WM_CLASS for XWayland clients)
 
@@ -218,6 +215,14 @@ this is for compatibility with Openbox.
 		  the first two nodes of 'org.' strings.
 
 		- *title* Show window title if different to app_id
+
+		- *workspace* Show workspace name
+
+		- *state* Show window state, M/m/F (max/min/full)
+
+		- *type_short* Show view type ("W" or "X")
+
+		- *output* Show output id, if more than one output detected
 
 	*width* defines the width of the field expressed as a percentage of
 	the overall window switcher width. The "%" character is required.

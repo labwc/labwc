@@ -64,12 +64,21 @@
   </windowSwitcher>
 
   <!--
-    When using all workspaces option of window switcher, there is a replacement
-    for "type" above called "winfo" that will give more info about the window,
-    workspace name, state of window (min, max, full) and output that it's on 
-    if more than one monitor is being used. 
+    When using all workspaces option of window switcher, there are extra fields
+    that can be used, workspace (variable length), state (single space), 
+    type_short (3 spaces), output (variable length), and can be set up 
+    like this. Note: output only shows if more than one output available.
 
-      <field content="winfo" width="25%" />
+    <windowSwitcher show="yes" preview="no" outlines="no" allWorkspaces="yes">
+      <fields>
+        <field content="workspace" width="5%" />
+        <field content="state" width="3%" />
+        <field content="type_short" width="3%" />
+        <field content="output" width="9%" />
+        <field content="identifier" width="30%" />
+        <field content="title" width="50%" />
+       </fields>  
+    </windowSwitcher>
   -->
 
   <!-- edge strength is in pixels -->

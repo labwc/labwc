@@ -3,19 +3,21 @@
 # This file is distributed under the same license as the labwc package.
 # May Mantari <https://github.com/mantarimay>, 2023.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-01-15 16:00-0500\n"
-"PO-Revision-Date: 2023-04-14 20:40+0700\n"
-"Last-Translator: May Mantari <https://github.com/mantarimay\n"
-"Language-Team: Indonesian <id>\n"
+"PO-Revision-Date: 2024-03-12 21:48+0000\n"
+"Last-Translator: alwanasary <baity.jannati@gmail.com>\n"
+"Language-Team: Indonesian <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 4.2.1\n"
 
 #: src/menu/menu.c:697
 msgid "Reconfigure"
@@ -39,15 +41,13 @@ msgstr "Tampil Menyeluruh"
 
 #: src/menu/menu.c:721
 msgid "Roll up/down"
-msgstr ""
+msgstr "Gulir atas/bawah"
 
 #: src/menu/menu.c:723
 msgid "Decorations"
 msgstr "Dekorasi"
 
 #: src/menu/menu.c:725
-#, fuzzy
-#| msgid "Always On Top"
 msgid "Always on Top"
 msgstr "Selalu di Muka"
 
@@ -61,7 +61,7 @@ msgstr "Geser ke Kanan"
 
 #: src/menu/menu.c:742
 msgid "Always on Visible Workspace"
-msgstr ""
+msgstr "Selalu pada Ruang Kerja yang Terlihat"
 
 #: src/menu/menu.c:745
 msgid "Workspace"

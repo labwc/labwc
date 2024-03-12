@@ -63,6 +63,15 @@
     </fields>
   </windowSwitcher>
 
+  <!--
+    When using all workspaces optiion of window switcher, there is a replacement
+    for "type" above called "winfo" that will give more info about the window,
+    workspace name, state of window (min, max, full) and output that it's on 
+    if more than one monitor is being used. 
+
+      <field content="winfo" width="25%" />
+  -->
+
   <!-- edge strength is in pixels -->
   <resistance>
     <screenEdgeStrength>20</screenEdgeStrength>

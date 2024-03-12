@@ -378,20 +378,24 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			case LAB_FIELD_TYPE:
 				buf_add(&buf, get_type(*view));
 				break;
-			case LAB_FIELD_WINFO:
-				if (rc.window_switcher.all_workspaces) {
-					buf_add(&buf, (*view)->workspace->name);
-				}
-				if ((*view)->maximized) {
-					buf_add(&buf, " M ");
-				} else if ((*view)->minimized) {
-					buf_add(&buf, " m ");
-				} else if ((*view)->fullscreen) {
-					buf_add(&buf, " F ");
-				} else {
-					buf_add(&buf, "   ");
-				}
+			case LAB_FIELD_TYPE_SHORT:
 				buf_add(&buf, get_winfo(*view));
+				break;
+			case LAB_FIELD_WORKSPACE:
+				buf_add(&buf, (*view)->workspace->name);
+				break;
+			case LAB_FIELD_WIN_STATE:
+				if ((*view)->maximized) {
+					buf_add(&buf, "M");
+				} else if ((*view)->minimized) {
+					buf_add(&buf, "m");
+				} else if ((*view)->fullscreen) {
+					buf_add(&buf, "F");
+				} else {
+					buf_add(&buf, " ");
+				}
+				break;
+			case LAB_FIELD_OUTPUT:
 				if (wl_list_length(&server->outputs) > 1 &&
 						output_is_usable((*view)->output)) {
 					buf_add(&buf, (*view)->output->wlr_output->name);

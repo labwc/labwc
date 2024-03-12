@@ -206,8 +206,14 @@ fill_window_switcher_field(char *nodename, char *content)
 			current_field->content = LAB_FIELD_TRIMMED_IDENTIFIER;
 		} else if (!strcmp(content, "title")) {
 			current_field->content = LAB_FIELD_TITLE;
-		} else if (!strcmp(content, "winfo")) {
-			current_field->content = LAB_FIELD_WINFO;
+		} else if (!strcmp(content, "workspace")) {
+			current_field->content = LAB_FIELD_WORKSPACE;
+		} else if (!strcmp(content, "state")) {
+			current_field->content = LAB_FIELD_WIN_STATE;
+		} else if (!strcmp(content, "type_short")) {
+			current_field->content = LAB_FIELD_TYPE_SHORT;
+		} else if (!strcmp(content, "output")) {
+			current_field->content = LAB_FIELD_OUTPUT;
 		} else {
 			wlr_log(WLR_ERROR, "bad windowSwitcher field '%s'", content);
 		}
@@ -897,8 +903,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.outlines);
 	} else if (!strcasecmp(nodename, "allWorkspaces.windowSwitcher")) {
-		set_bool(content, &rc.window_switcher.all_workspaces);
-		if (rc.window_switcher.all_workspaces) {
+		if (parse_bool(content, -1) == true) {
 			rc.window_switcher.criteria &=
 				~LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
 		}

@@ -390,7 +390,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 					buf_add(&buf, "   ");
 				}
 				buf_add(&buf, get_winfo(*view));
-				if (wl_list_length(&server->outputs) > 1 && 
+				if (wl_list_length(&server->outputs) > 1 &&
 						output_is_usable((*view)->output)) {
 					buf_add(&buf, (*view)->output->wlr_output->name);
 				}

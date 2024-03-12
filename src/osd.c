@@ -244,10 +244,10 @@ get_winfo(struct view *view)
 {
 	switch (view->type) {
 	case LAB_XDG_SHELL_VIEW:
-		return "[W] ";
+		return "[W]";
 #if HAVE_XWAYLAND
 	case LAB_XWAYLAND_VIEW:
-		return "[X] ";
+		return "[X]";
 #endif
 	}
 	return "";
@@ -399,6 +399,8 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 				if (wl_list_length(&server->outputs) > 1 &&
 						output_is_usable((*view)->output)) {
 					buf_add(&buf, (*view)->output->wlr_output->name);
+				} else {
+					buf_add(&buf, " ");
 				}
 				break;
 			case LAB_FIELD_IDENTIFIER:

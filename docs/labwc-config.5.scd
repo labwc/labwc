@@ -207,7 +207,9 @@ this is for compatibility with Openbox.
 	*content* defines what the field shows and can be any of:
 
 		- *type* Show view type ("xdg-shell" or "xwayland")
-		- *type* Show view type all workspaces ("W" or "X")
+
+		- *winfo* Show window info *type* "X" or "W"
+		  along with *state* M/m/F (max, min, full)
 
 		- *identifier* Show identifier (app_id for native Wayland
 		  windows and WM_CLASS for XWayland clients)

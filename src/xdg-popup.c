@@ -27,19 +27,16 @@ popup_unconstrain(struct xdg_popup *popup)
 	struct view *view = popup->parent_view;
 	struct server *server = view->server;
 	struct wlr_box *popup_box = &popup->wlr_popup->current.geometry;
-	struct wlr_output_layout *output_layout = server->output_layout;
-	struct wlr_output *wlr_output = wlr_output_layout_output_at(
-		output_layout, view->current.x + popup_box->x,
+	struct output *output = output_nearest_to(server,
+		view->current.x + popup_box->x,
 		view->current.y + popup_box->y);
-
-	struct wlr_box output_box;
-	wlr_output_layout_get_box(output_layout, wlr_output, &output_box);
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
 	struct wlr_box output_toplevel_box = {
-		.x = output_box.x - view->current.x,
-		.y = output_box.y - view->current.y,
-		.width = output_box.width,
-		.height = output_box.height,
+		.x = usable.x - view->current.x,
+		.y = usable.y - view->current.y,
+		.width = usable.width,
+		.height = usable.height,
 	};
 	wlr_xdg_popup_unconstrain_from_box(popup->wlr_popup, &output_toplevel_box);
 }

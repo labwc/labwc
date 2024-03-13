@@ -140,8 +140,9 @@ read_environment_dir(const char *path_prefix)
 		free(env_file_path);
 	}
 
-env_dir_cleanup:
 	closedir(envdir);
+
+env_dir_cleanup:
 	free(path);
 	return success;
 }

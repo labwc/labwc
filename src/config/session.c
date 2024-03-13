@@ -45,18 +45,16 @@ process_line(char *line)
 	}
 	*p = '\0';
 	key = string_strip(line);
+	if (string_null_or_empty(key)) {
+		return;
+	}
 
 	struct buf value;
 	buf_init(&value);
 	buf_add(&value, string_strip(++p));
 	buf_expand_shell_variables(&value);
 	buf_expand_tilde(&value);
-	if (string_null_or_empty(key)) {
-		goto error;
-	}
-
 	setenv(key, value.buf, 1);
-error:
 	free(value.buf);
 }
 

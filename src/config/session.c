@@ -118,18 +118,14 @@ read_environment_dir(const char *path_prefix)
 	DIR *envdir = opendir(path);
 
 	if (!envdir) {
-		if (errno == ENOENT) {
-			wlr_log(WLR_INFO,
-				"no %s.d directory found",
-				path_prefix);
-		} else {
+		if (errno != ENOENT) {
 			const char *err_msg = strerror(errno);
 			wlr_log(WLR_INFO,
 				"failed to read environment directory: %s",
 				err_msg ? err_msg : "reason unknown");
 		}
 
-		goto no_dir_cleanup;
+		goto env_dir_cleanup;
 	}
 
 	struct dirent *dirent;
@@ -148,7 +144,7 @@ read_environment_dir(const char *path_prefix)
 
 	closedir(envdir);
 
-no_dir_cleanup:
+env_dir_cleanup:
 	free(path);
 	return success;
 }

@@ -8,9 +8,10 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-01-15 16:00-0500\n"
-"PO-Revision-Date: 2024-01-02 15:23+0000\n"
-"Last-Translator: Masamichi Ito <ito32bit+github@gmail.com>\n"
-"Language-Team: Japanese <https://translate.lxqt-project.org/projects/labwc/labwc/ja/>\n"
+"PO-Revision-Date: 2024-03-12 21:48+0000\n"
+"Last-Translator: Hiroaki Yamamoto <hrak1529@gmail.com>\n"
+"Language-Team: Japanese <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -20,7 +21,7 @@ msgstr ""
 
 #: src/menu/menu.c:697
 msgid "Reconfigure"
-msgstr ""
+msgstr "再設定"
 
 #: src/menu/menu.c:699
 msgid "Exit"
@@ -28,43 +29,43 @@ msgstr "終了"
 
 #: src/menu/menu.c:715
 msgid "Minimize"
-msgstr ""
+msgstr "最小化"
 
 #: src/menu/menu.c:717
 msgid "Maximize"
-msgstr ""
+msgstr "最大化"
 
 #: src/menu/menu.c:719
 msgid "Fullscreen"
-msgstr ""
+msgstr "フルスクリーン"
 
 #: src/menu/menu.c:721
 msgid "Roll up/down"
-msgstr ""
+msgstr "折りたたむ/広げる"
 
 #: src/menu/menu.c:723
 msgid "Decorations"
-msgstr ""
+msgstr "デコレーション"
 
 #: src/menu/menu.c:725
 msgid "Always on Top"
-msgstr ""
+msgstr "常に最全面に表示"
 
 #: src/menu/menu.c:730
 msgid "Move left"
-msgstr ""
+msgstr "左に移動"
 
 #: src/menu/menu.c:737
 msgid "Move right"
-msgstr ""
+msgstr "右に移動"
 
 #: src/menu/menu.c:742
 msgid "Always on Visible Workspace"
-msgstr ""
+msgstr "現在のワークスペースに常に表示"
 
 #: src/menu/menu.c:745
 msgid "Workspace"
-msgstr ""
+msgstr "ワークスペース"
 
 #: src/menu/menu.c:748
 msgid "Close"

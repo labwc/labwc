@@ -21,6 +21,10 @@ enum window_switcher_field_content {
 	LAB_FIELD_IDENTIFIER,
 	LAB_FIELD_TRIMMED_IDENTIFIER,
 	LAB_FIELD_TITLE,
+	LAB_FIELD_WORKSPACE,
+	LAB_FIELD_WIN_STATE,
+	LAB_FIELD_TYPE_SHORT,
+	LAB_FIELD_OUTPUT,
 };
 
 enum view_placement_policy {

@@ -207,6 +207,14 @@ fill_window_switcher_field(char *nodename, char *content)
 			current_field->content = LAB_FIELD_TRIMMED_IDENTIFIER;
 		} else if (!strcmp(content, "title")) {
 			current_field->content = LAB_FIELD_TITLE;
+		} else if (!strcmp(content, "workspace")) {
+			current_field->content = LAB_FIELD_WORKSPACE;
+		} else if (!strcmp(content, "state")) {
+			current_field->content = LAB_FIELD_WIN_STATE;
+		} else if (!strcmp(content, "type_short")) {
+			current_field->content = LAB_FIELD_TYPE_SHORT;
+		} else if (!strcmp(content, "output")) {
+			current_field->content = LAB_FIELD_OUTPUT;
 		} else {
 			wlr_log(WLR_ERROR, "bad windowSwitcher field '%s'", content);
 		}

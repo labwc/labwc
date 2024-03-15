@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-01-15 16:00-0500\n"
-"PO-Revision-Date: 2024-03-12 21:48+0000\n"
+"PO-Revision-Date: 2024-03-15 16:23+0000\n"
 "Last-Translator: Hiroaki Yamamoto <hrak1529@gmail.com>\n"
 "Language-Team: Japanese <https://translate.lxqt-project.org/projects/labwc/"
 "labwc/ja/>\n"
@@ -49,7 +49,7 @@ msgstr "デコレーション"
 
 #: src/menu/menu.c:725
 msgid "Always on Top"
-msgstr "常に最全面に表示"
+msgstr "常に最前面に表示"
 
 #: src/menu/menu.c:730
 msgid "Move left"

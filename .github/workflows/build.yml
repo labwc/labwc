@@ -22,7 +22,7 @@ jobs:
   #        ./scripts/find-banned.sh
   build:
     name: Build
-    needs: codestyle
+    #needs: codestyle
     timeout-minutes: 20
     strategy:
       fail-fast: false

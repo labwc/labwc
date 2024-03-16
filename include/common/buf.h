@@ -45,4 +45,23 @@ void buf_init(struct buf *s);
  */
 void buf_add(struct buf *s, const char *data);
 
+/**
+ * buf_add_char - add single char to C string buffer
+ * @s: buffer
+ * @data: char to be added
+ */
+void buf_add_char(struct buf *s, char data);
+
+/**
+ * buf_clear - clear the buffer, internal allocations are preserved
+ * @s: buffer
+ */
+void buf_clear(struct buf *s);
+
+/**
+ * buf_reset - reset the buffer, internal allocations are free'd
+ * @s: buffer
+ */
+void buf_reset(struct buf *s);
+
 #endif /* LABWC_BUF_H */

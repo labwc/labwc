@@ -770,6 +770,11 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 	/* TODO: scale */
 	buffer = buffer_create_cairo(w, h, 1, /*free_on_destroy*/ true);
 
+	if (!buffer) {
+		wlr_log(WLR_ERROR, "failed to create cairo buffer, fonts missing?");
+		exit(2);
+	}
+
 	cairo_t *cairo = buffer->cairo;
 	cairo_surface_t *surf = cairo_get_target(cairo);
 

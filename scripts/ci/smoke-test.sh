@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-LET_IT_SMOKE=y
+: ${LABWC_RUNS:=1}
 
 if ! test -x "$1/labwc"; then
 	echo "$1/labwc not found"
@@ -41,35 +41,19 @@ gdb_run() {
 		--args "${args[@]}"
 	return $?
 }
-
-if test "$LET_IT_SMOKE" = "y"; then
-	ret=0
-	for x in {1..20}; do
-		printf "Starting run %2s\n" $x
-		output=$(gdb_run 2>&1)
-		ret=$?
-		if test $ret -ne 0; then
-			echo "Crash enountered:"
-			echo "-----------------"
-			echo "$output"
-			break
-		fi
-	done
-	exit $ret
-fi
-
-echo "Starting ${args[@]}"
-output=$("${args[@]}" 2>&1)
-ret=$?
-
-if test $ret -ge 128; then
-	echo
-	echo "labwc crashed, restarting under gdb"
-	echo
-	gdb_run
-else
-	echo "$output"
-fi
+echo "running with $LABWC_RUNS runs"
+ret=0
+for((i=1; i<=LABWC_RUNS; i++)); do
+	printf "Starting run %2s\n" $i
+	output=$(gdb_run 2>&1)
+	ret=$?
+	if test $ret -ne 0; then
+		echo "Crash encountered:"
+		echo "------------------"
+		echo "$output"
+		break
+	fi
+done
 
 echo "labwc terminated with return code $ret"
 exit $ret

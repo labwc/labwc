@@ -196,5 +196,5 @@ jobs:
             export CC=gcc
             meson setup build-gcc-ci -Dxwayland=enabled --werror
             meson compile -C build-gcc-ci
-            scripts/ci/smoke-test.sh build-gcc-ci
+            LABWC_RUNS=20 scripts/ci/smoke-test.sh build-gcc-ci
           ' | $TARGET

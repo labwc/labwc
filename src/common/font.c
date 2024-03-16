@@ -14,9 +14,13 @@
 PangoFontDescription *
 font_to_pango_desc(struct font *font)
 {
-	PangoFontDescription *desc = pango_font_description_new();
-	pango_font_description_set_family(desc, font->name);
-	pango_font_description_set_size(desc, font->size * PANGO_SCALE);
+	char buf[4096];
+	snprintf(buf, sizeof(buf), "%s %d", font->name, font->size * PANGO_SCALE);
+	PangoFontDescription *desc = pango_font_description_from_string(buf);
+	wlr_log(WLR_ERROR, "got desc for %s: %p", buf, desc);
+	//PangoFontDescription *desc = pango_font_description_new();
+	//pango_font_description_set_family(desc, font->name);
+	//pango_font_description_set_size(desc, font->size * PANGO_SCALE);
 	if (font->slant == FONT_SLANT_ITALIC) {
 		pango_font_description_set_style(desc, PANGO_STYLE_ITALIC);
 	}

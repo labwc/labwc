@@ -228,6 +228,13 @@ layer_try_set_focus(struct seat *seat, struct wlr_layer_surface_v1 *layer_surfac
 	}
 }
 
+static bool
+is_on_demand(struct wlr_layer_surface_v1 *layer_surface)
+{
+	return layer_surface->current.keyboard_interactive ==
+		ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_ON_DEMAND;
+}
+
 static void
 handle_surface_commit(struct wl_listener *listener, void *data)
 {
@@ -252,9 +259,28 @@ handle_surface_commit(struct wl_listener *listener, void *data)
 	}
 	/* Process keyboard-interactivity change */
 	if (committed & WLR_LAYER_SURFACE_V1_STATE_KEYBOARD_INTERACTIVITY) {
+		/*
+		 * On-demand interactivity should only be honoured through
+		 * normal focus semantics (for example by surface receiving
+		 * cursor-button-press).
+		 */
+		if (is_on_demand(layer_surface)) {
+			struct seat *seat = &layer->server->seat;
+			if (seat->focused_layer == layer_surface) {
+				/*
+				 * Must be change from EXCLUSIVE to ON_DEMAND,
+				 * so we should give us focus.
+				 */
+				struct server *server = layer->server;
+				try_to_focus_next_layer_or_toplevel(server);
+			}
+			goto out;
+		}
+		/* Handle EXCLUSIVE and NONE requests */
 		struct seat *seat = &layer->server->seat;
 		layer_try_set_focus(seat, layer_surface);
 	}
+out:
 
 	if (committed || layer->mapped != layer_surface->surface->mapped) {
 		layer->mapped = layer_surface->surface->mapped;

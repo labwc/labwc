@@ -30,6 +30,7 @@ static PangoRectangle
 font_extents(struct font *font, const char *string)
 {
 	PangoRectangle rect = { 0 };
+	wlr_log(WLR_ERROR, "\tinitial rect height: %d", rect.height);
 	if (!string) {
 		return rect;
 	}
@@ -53,6 +54,7 @@ font_extents(struct font *font, const char *string)
 	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_MIDDLE);
 	pango_layout_get_extents(layout, NULL, &rect);
 	pango_extents_to_pixels(&rect, NULL);
+	wlr_log(WLR_ERROR, "\textents_to_pixels height: %d", rect.height);
 
 	/* we put a 2 px edge on each side - because Openbox does it :) */
 	/* TODO: remove the 4 pixel addition and always do the padding by the caller */

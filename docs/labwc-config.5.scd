@@ -216,6 +216,14 @@ this is for compatibility with Openbox.
 
 		- *title* Show window title if different to app_id
 
+		- *workspace* Show workspace name
+
+		- *state* Show window state, M/m/F (max/min/full)
+
+		- *type_short* Show view type ("W" or "X")
+
+		- *output* Show output id, if more than one output detected
+
 	*width* defines the width of the field expressed as a percentage of
 	the overall window switcher width. The "%" character is required.
 

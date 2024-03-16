@@ -240,6 +240,20 @@ get_type(struct view *view)
 }
 
 static const char *
+get_type_short(struct view *view)
+{
+	switch (view->type) {
+	case LAB_XDG_SHELL_VIEW:
+		return "[W]";
+#if HAVE_XWAYLAND
+	case LAB_XWAYLAND_VIEW:
+		return "[X]";
+#endif
+	}
+	return "";
+}
+
+static const char *
 get_app_id(struct view *view)
 {
 	switch (view->type) {
@@ -363,6 +377,31 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			switch (field->content) {
 			case LAB_FIELD_TYPE:
 				buf_add(&buf, get_type(*view));
+				break;
+			case LAB_FIELD_TYPE_SHORT:
+				buf_add(&buf, get_type_short(*view));
+				break;
+			case LAB_FIELD_WORKSPACE:
+				buf_add(&buf, (*view)->workspace->name);
+				break;
+			case LAB_FIELD_WIN_STATE:
+				if ((*view)->maximized) {
+					buf_add(&buf, "M");
+				} else if ((*view)->minimized) {
+					buf_add(&buf, "m");
+				} else if ((*view)->fullscreen) {
+					buf_add(&buf, "F");
+				} else {
+					buf_add(&buf, " ");
+				}
+				break;
+			case LAB_FIELD_OUTPUT:
+				if (wl_list_length(&server->outputs) > 1 &&
+						output_is_usable((*view)->output)) {
+					buf_add(&buf, (*view)->output->wlr_output->name);
+				} else {
+					buf_add(&buf, " ");
+				}
 				break;
 			case LAB_FIELD_IDENTIFIER:
 				buf_add(&buf, get_app_id(*view));

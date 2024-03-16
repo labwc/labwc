@@ -15,9 +15,10 @@ PangoFontDescription *
 font_to_pango_desc(struct font *font)
 {
 	char buf[4096];
+	wlr_log(WLR_ERROR, "pango scale: %d font->size %d", PANGO_SCALE, font->size);
 	snprintf(buf, sizeof(buf), "%s %d", font->name, font->size * PANGO_SCALE);
 	PangoFontDescription *desc = pango_font_description_from_string(buf);
-	wlr_log(WLR_ERROR, "got desc for %s: %p", buf, desc);
+	wlr_log(WLR_ERROR, "got desc for '%s': %p", buf, desc);
 	//PangoFontDescription *desc = pango_font_description_new();
 	//pango_font_description_set_family(desc, font->name);
 	//pango_font_description_set_size(desc, font->size * PANGO_SCALE);

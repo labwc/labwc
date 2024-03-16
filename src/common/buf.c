@@ -5,6 +5,15 @@
 #include "common/buf.h"
 #include "common/mem.h"
 
+static void
+buf_replace_by(struct buf *dst, struct buf *src)
+{
+	free(dst->buf);
+	dst->buf = src->buf;
+	dst->len = src->len;
+	dst->alloc = src->alloc;
+}
+
 void
 buf_expand_tilde(struct buf *s)
 {
@@ -17,10 +26,7 @@ buf_expand_tilde(struct buf *s)
 			buf_add_char(&new, s->buf[i]);
 		}
 	}
-	free(s->buf);
-	s->buf = new.buf;
-	s->len = new.len;
-	s->alloc = new.alloc;
+	buf_replace_by(s, &new);
 }
 
 static void
@@ -70,10 +76,7 @@ buf_expand_shell_variables(struct buf *s)
 		}
 	}
 	buf_finish(&environment_variable);
-	free(s->buf);
-	s->buf = new.buf;
-	s->len = new.len;
-	s->alloc = new.alloc;
+	buf_replace_by(s, &new);
 }
 
 void

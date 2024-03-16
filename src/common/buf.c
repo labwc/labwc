@@ -52,7 +52,7 @@ buf_expand_shell_variables(struct buf *s)
 	for (int i = 0 ; i < s->len ; i++) {
 		if (s->buf[i] == '$' && isvalid(s->buf[i+1])) {
 			/* expand environment variable */
-			environment_variable.len = 0;
+			buf_clear(&environment_variable);
 			buf_add(&environment_variable, s->buf + i + 1);
 			char *p = environment_variable.buf;
 			while (isvalid(*p)) {

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+: ${LABWC_RUNS:=1}
+
 if ! test -x "$1/labwc"; then
 	echo "$1/labwc not found"
 	exit 1
@@ -14,11 +16,7 @@ args=(
 export XDG_RUNTIME_DIR=$(mktemp -d)
 export WLR_BACKENDS=headless
 
-echo "Starting ${args[@]}"
-output=$("${args[@]}" 2>&1)
-ret=$?
-
-if test $ret -ge 128; then
+gdb_run() {
 	# Not using -Db_sanitize=address,undefined
 	# because it slows down the usual execution
 	# way too much and spams pages over pages
@@ -30,10 +28,8 @@ if test $ret -ge 128; then
 	# just running labwc again is a lot faster
 	# anyway.
 
-	echo
-	echo "labwc crashed, restarting under gdb"
-	echo
 	gdb --batch                       \
+		--return-child-result     \
 		-ex run                   \
 		-ex 'bt full'             \
 		-ex 'echo \n'             \
@@ -43,9 +39,23 @@ if test $ret -ge 128; then
 		-ex 'set listsize 50'     \
 		-ex list                  \
 		--args "${args[@]}"
-else
-	echo "$output"
-fi
+	return $?
+}
+
+echo "Running with LABWC_RUNS=$LABWC_RUNS"
+
+ret=0
+for((i=1; i<=LABWC_RUNS; i++)); do
+	printf "Starting run %2s\n" $i
+	output=$(gdb_run 2>&1)
+	ret=$?
+	if test $ret -ne 0; then
+		echo "Crash encountered:"
+		echo "------------------"
+		echo "$output"
+		break
+	fi
+done
 
 echo "labwc terminated with return code $ret"
 exit $ret

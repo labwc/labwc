@@ -38,9 +38,13 @@ font_extents(struct font *font, const char *string)
 	PangoLayout *layout;
 
 	surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
+	wlr_log(WLR_ERROR, "\tsurface: %p", surface);
 	c = cairo_create(surface);
+	wlr_log(WLR_ERROR, "\tcairo: %p", c);
 	layout = pango_cairo_create_layout(c);
+	wlr_log(WLR_ERROR, "\tlayout: %p", layout);
 	PangoFontDescription *desc = font_to_pango_desc(font);
+	wlr_log(WLR_ERROR, "\tfont desc: %p", desc);
 
 	pango_layout_set_font_description(layout, desc);
 	pango_layout_set_text(layout, string, -1);

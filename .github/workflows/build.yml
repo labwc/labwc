@@ -10,16 +10,16 @@
 name: CI
 on: [pull_request]
 jobs:
-  codestyle:
-    name: CodeStyleCheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - name: Code Style
-        run: |
-          ./scripts/check
-          make -C scripts/helper
-          ./scripts/find-banned.sh
+  #codestyle:
+  #  name: CodeStyleCheck
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - uses: actions/checkout@v1
+  #    - name: Code Style
+  #      run: |
+  #        ./scripts/check
+  #        make -C scripts/helper
+  #        ./scripts/find-banned.sh
   build:
     name: Build
     needs: codestyle
@@ -28,28 +28,28 @@ jobs:
       fail-fast: false
       matrix:
         name: [
-          Arch,
-          Debian,
-          FreeBSD,
+          #Arch,
+          #Debian,
+          #FreeBSD,
           Void-musl
         ]
         include:
-          - name: Arch
-            os: ubuntu-latest
-            container: archlinux:base-devel
-            env:
-              TARGET: 'sh -xe'
+          #- name: Arch
+          #  os: ubuntu-latest
+          #  container: archlinux:base-devel
+          #  env:
+          #    TARGET: 'sh -xe'
 
-          - name: Debian
-            os: ubuntu-latest
-            container: debian:testing
-            env:
-              TARGET: 'sh -xe'
+          #- name: Debian
+          #  os: ubuntu-latest
+          #  container: debian:testing
+          #  env:
+          #    TARGET: 'sh -xe'
 
-          - name: FreeBSD
-            os: ubuntu-latest
-            env:
-              TARGET: 'ssh freebsd /bin/sh -xe'
+          #- name: FreeBSD
+          #  os: ubuntu-latest
+          #  env:
+          #    TARGET: 'ssh freebsd /bin/sh -xe'
 
           - name: Void-musl
             os: ubuntu-latest

@@ -65,6 +65,8 @@ int
 font_height(struct font *font)
 {
 	PangoRectangle rectangle = font_extents(font, "abcdefg");
+	wlr_log(WLR_ERROR, "font %p height: %d, name: %s -> %d",
+		font, font->size, font->name, rectangle.height);
 	return rectangle.height;
 }
 

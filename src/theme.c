@@ -919,6 +919,9 @@ out:
 static void
 create_corners(struct theme *theme)
 {
+	wlr_log(WLR_ERROR, "title height: %d, border width: %d",
+		theme->title_height, theme->border_width);
+
 	struct wlr_box box = {
 		.x = 0,
 		.y = 0,

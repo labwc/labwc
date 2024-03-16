@@ -1,19 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <assert.h>
 #include <ctype.h>
 #include <stdbool.h>
 #include "common/buf.h"
 #include "common/mem.h"
-
-static void
-buf_add_one_char(struct buf *s, char ch)
-{
-	if (s->alloc <= s->len + 1) {
-		s->alloc = s->alloc * 3 / 2 + 16;
-		s->buf = xrealloc(s->buf, s->alloc);
-	}
-	s->buf[s->len++] = ch;
-	s->buf[s->len] = '\0';
-}
 
 void
 buf_expand_tilde(struct buf *s)
@@ -24,7 +14,7 @@ buf_expand_tilde(struct buf *s)
 		if (s->buf[i] == '~') {
 			buf_add(&new, getenv("HOME"));
 		} else {
-			buf_add_one_char(&new, s->buf[i]);
+			buf_add_char(&new, s->buf[i]);
 		}
 	}
 	free(s->buf);
@@ -76,7 +66,7 @@ buf_expand_shell_variables(struct buf *s)
 				buf_add(&new, p);
 			}
 		} else {
-			buf_add_one_char(&new, s->buf[i]);
+			buf_add_char(&new, s->buf[i]);
 		}
 	}
 	free(environment_variable.buf);
@@ -89,6 +79,8 @@ buf_expand_shell_variables(struct buf *s)
 void
 buf_init(struct buf *s)
 {
+	/* we can't assert(!s->buf) here because struct may be uninitialized */
+
 	s->alloc = 256;
 	s->buf = xmalloc(s->alloc);
 	s->buf[0] = '\0';
@@ -98,6 +90,8 @@ buf_init(struct buf *s)
 void
 buf_add(struct buf *s, const char *data)
 {
+	assert(s->buf);
+
 	if (!data || data[0] == '\0') {
 		return;
 	}
@@ -109,4 +103,33 @@ buf_add(struct buf *s, const char *data)
 	memcpy(s->buf + s->len, data, len);
 	s->len += len;
 	s->buf[s->len] = 0;
+}
+
+void
+buf_add_char(struct buf *s, char ch)
+{
+	assert(s->buf);
+
+	if (s->alloc <= s->len + 1) {
+		s->alloc = s->alloc * 3 / 2 + 16;
+		s->buf = xrealloc(s->buf, s->alloc);
+	}
+	s->buf[s->len++] = ch;
+	s->buf[s->len] = '\0';
+}
+
+void
+buf_clear(struct buf *s)
+{
+	assert(s->buf);
+
+	s->len = 0;
+	s->buf[0] = '\0';
+}
+
+void
+buf_reset(struct buf *s)
+{
+	zfree(s->buf);
+	buf_init(s);
 }

@@ -286,7 +286,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 		int nr_fields = wl_list_length(&rc.window_switcher.fields);
 		struct window_switcher_field *field;
 		wl_list_for_each(field, &rc.window_switcher.fields, link) {
-			buf.len = 0;
+			buf_clear(&buf);
 			cairo_move_to(cairo, x, y
 				+ theme->osd_window_switcher_item_padding_y
 				+ theme->osd_window_switcher_item_active_border_width);

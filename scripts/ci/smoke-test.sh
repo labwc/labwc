@@ -44,7 +44,7 @@ gdb_run() {
 
 if test "$LET_IT_SMOKE" = "y"; then
 	ret=0
-	for x in {1..10}; do
+	for x in {1..20}; do
 		printf "Starting run %2s\n" $x
 		output=$(gdb_run 2>&1)
 		ret=$?

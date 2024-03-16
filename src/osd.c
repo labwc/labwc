@@ -442,7 +442,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 
 		y += theme->osd_window_switcher_item_height;
 	}
-	free(buf.buf);
+	buf_finish(&buf);
 	g_object_unref(layout);
 
 	cairo_surface_flush(surf);

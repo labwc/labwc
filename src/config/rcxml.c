@@ -1539,7 +1539,7 @@ rcxml_read(const char *filename)
 		zfree(line);
 		fclose(stream);
 		rcxml_parse_xml(&b);
-		zfree(b.buf);
+		buf_finish(&b);
 		if (!should_merge_config) {
 			break;
 		}

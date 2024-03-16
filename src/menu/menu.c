@@ -543,7 +543,7 @@ parse(struct server *server, FILE *stream)
 	xmlFreeDoc(d);
 	xmlCleanupParser();
 err:
-	free(b.buf);
+	buf_finish(&b);
 }
 
 static void

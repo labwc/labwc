@@ -69,7 +69,7 @@ buf_expand_shell_variables(struct buf *s)
 			buf_add_char(&new, s->buf[i]);
 		}
 	}
-	free(environment_variable.buf);
+	buf_finish(&environment_variable);
 	free(s->buf);
 	s->buf = new.buf;
 	s->len = new.len;
@@ -79,7 +79,10 @@ buf_expand_shell_variables(struct buf *s)
 void
 buf_init(struct buf *s)
 {
-	/* we can't assert(!s->buf) here because struct may be uninitialized */
+	/*
+	 * We can't assert(!s->buf) here because
+	 * the supplied struct may be uninitialized.
+	 */
 
 	s->alloc = 256;
 	s->buf = xmalloc(s->alloc);
@@ -130,6 +133,21 @@ buf_clear(struct buf *s)
 void
 buf_reset(struct buf *s)
 {
-	zfree(s->buf);
+	assert(s->buf);
+
+	buf_finish(s);
 	buf_init(s);
+}
+
+void
+buf_finish(struct buf *s)
+{
+	assert(s->buf);
+
+	/*
+	 * Using zfree rather than free ensures that the
+	 * asserts will be triggered whenever something
+	 * other than buf_init() is called on the buffer.
+	 */
+	zfree(s->buf);
 }

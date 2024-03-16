@@ -100,7 +100,7 @@ find_dir(struct ctx *ctx)
 		char *pfxenv = getenv(d.prefix);
 		buf_add(&prefix, pfxenv ? pfxenv : d.default_prefix);
 		if (!prefix.len) {
-			free(prefix.buf);
+			buf_finish(&prefix);
 			continue;
 		}
 
@@ -130,7 +130,7 @@ find_dir(struct ctx *ctx)
 			wl_list_append(ctx->list, &path->link);
 		}
 		g_strfreev(prefixes);
-		free(prefix.buf);
+		buf_finish(&prefix);
 	}
 }
 

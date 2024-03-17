@@ -19,54 +19,54 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:697
+#: src/menu/menu.c:704
 msgid "Reconfigure"
 msgstr "配置重载"
 
-#: src/menu/menu.c:699
+#: src/menu/menu.c:706
 msgid "Exit"
 msgstr "退出"
 
-#: src/menu/menu.c:715
+#: src/menu/menu.c:722
 msgid "Minimize"
 msgstr "最小化"
 
-#: src/menu/menu.c:717
+#: src/menu/menu.c:724
 msgid "Maximize"
 msgstr "最大化"
 
-#: src/menu/menu.c:719
+#: src/menu/menu.c:726
 msgid "Fullscreen"
 msgstr "全屏"
 
-#: src/menu/menu.c:721
+#: src/menu/menu.c:728
 msgid "Roll up/down"
 msgstr "滚动 上/下"
 
-#: src/menu/menu.c:723
+#: src/menu/menu.c:730
 msgid "Decorations"
 msgstr "装饰"
 
-#: src/menu/menu.c:725
+#: src/menu/menu.c:732
 msgid "Always on Top"
 msgstr "最上层显示"
 
-#: src/menu/menu.c:730
+#: src/menu/menu.c:737
 msgid "Move left"
 msgstr "左移"
 
-#: src/menu/menu.c:737
+#: src/menu/menu.c:744
 msgid "Move right"
 msgstr "右移"
 
-#: src/menu/menu.c:742
+#: src/menu/menu.c:749
 msgid "Always on Visible Workspace"
 msgstr "始终在可见工作区"
 
-#: src/menu/menu.c:745
+#: src/menu/menu.c:752 src/config/rcxml.c:1384
 msgid "Workspace"
 msgstr "工作区"
 
-#: src/menu/menu.c:748
+#: src/menu/menu.c:755
 msgid "Close"
 msgstr "关闭"

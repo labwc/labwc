@@ -16,54 +16,54 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/menu/menu.c:697
+#: src/menu/menu.c:704
 msgid "Reconfigure"
 msgstr "Překonfigurovat"
 
-#: src/menu/menu.c:699
+#: src/menu/menu.c:706
 msgid "Exit"
 msgstr "Odejít"
 
-#: src/menu/menu.c:715
+#: src/menu/menu.c:722
 msgid "Minimize"
 msgstr "Minimalizovat"
 
-#: src/menu/menu.c:717
+#: src/menu/menu.c:724
 msgid "Maximize"
 msgstr "Maximalizovat"
 
-#: src/menu/menu.c:719
+#: src/menu/menu.c:726
 msgid "Fullscreen"
 msgstr "Na celou obrazovku"
 
-#: src/menu/menu.c:721
+#: src/menu/menu.c:728
 msgid "Roll up/down"
 msgstr "Rolovat nahoru/dolů"
 
-#: src/menu/menu.c:723
+#: src/menu/menu.c:730
 msgid "Decorations"
 msgstr "Dekorace"
 
-#: src/menu/menu.c:725
+#: src/menu/menu.c:732
 msgid "Always on Top"
 msgstr "Vždy nahoře"
 
-#: src/menu/menu.c:730
+#: src/menu/menu.c:737
 msgid "Move left"
 msgstr "Posunout doleva"
 
-#: src/menu/menu.c:737
+#: src/menu/menu.c:744
 msgid "Move right"
 msgstr "Posunout doprava"
 
-#: src/menu/menu.c:742
+#: src/menu/menu.c:749
 msgid "Always on Visible Workspace"
 msgstr "Vždy na viditelné Pracovní Ploše"
 
-#: src/menu/menu.c:745
+#: src/menu/menu.c:752 src/config/rcxml.c:1384
 msgid "Workspace"
 msgstr "Pracovní Plocha"
 
-#: src/menu/menu.c:748
+#: src/menu/menu.c:755
 msgid "Close"
 msgstr "Zavřít"

@@ -377,9 +377,10 @@ translation strings under each English string.
 ## Coders
 
 Code contributors may need to update relevant files if their additions
-affect UI elements (at the moment only `src/menu/menu.c`). In this case
-the `po/labwc.pot` file needs to be updated so that translators can
-update their translations. Remember, many translators are _not_ coders!
+affect UI elements (at the moment only `src/menu/menu.c` and 
+`src/config/rcxml.c`). In this case the `po/labwc.pot` file needs to be
+updated so that translators can update their translations. Remember,
+many translators are _not_ coders!
 
 The process is fairly trivial however does involve some manual steps.
 
@@ -390,13 +391,13 @@ generated .pot file in the next step.
 2. From the root of the repository run this:
 
 ```
-xgettext --keyword=_ --language=C --add-comments -o po/labwc.pot src/menu/menu.c
+xgettext --keyword=_ --language=C --add-comments -o po/labwc.pot src/menu/menu.c src/config/rcxml.c
 ```
 
 This generates a new pot file at `po/labwc.pot`
 
-3. Copy the header from the original `labwc.pot` to the new one, check
-for sanity and commit.
+3. Copy the header from the original `labwc.pot` to the new one, keeping
+the newly generated dates, check for sanity and commit.
 
 # Upversion
 

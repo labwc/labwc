@@ -19,54 +19,54 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:697
+#: src/menu/menu.c:704
 msgid "Reconfigure"
 msgstr "Atur Ulang"
 
-#: src/menu/menu.c:699
+#: src/menu/menu.c:706
 msgid "Exit"
 msgstr "Keluar"
 
-#: src/menu/menu.c:715
+#: src/menu/menu.c:722
 msgid "Minimize"
 msgstr "Sembunyikan"
 
-#: src/menu/menu.c:717
+#: src/menu/menu.c:724
 msgid "Maximize"
 msgstr "Perluas Jendela"
 
-#: src/menu/menu.c:719
+#: src/menu/menu.c:726
 msgid "Fullscreen"
 msgstr "Tampil Menyeluruh"
 
-#: src/menu/menu.c:721
+#: src/menu/menu.c:728
 msgid "Roll up/down"
 msgstr "Gulir atas/bawah"
 
-#: src/menu/menu.c:723
+#: src/menu/menu.c:730
 msgid "Decorations"
 msgstr "Dekorasi"
 
-#: src/menu/menu.c:725
+#: src/menu/menu.c:732
 msgid "Always on Top"
 msgstr "Selalu di Muka"
 
-#: src/menu/menu.c:730
+#: src/menu/menu.c:737
 msgid "Move left"
 msgstr "Geser ke Kiri"
 
-#: src/menu/menu.c:737
+#: src/menu/menu.c:744
 msgid "Move right"
 msgstr "Geser ke Kanan"
 
-#: src/menu/menu.c:742
+#: src/menu/menu.c:749
 msgid "Always on Visible Workspace"
 msgstr "Selalu pada Ruang Kerja yang Terlihat"
 
-#: src/menu/menu.c:745
+#: src/menu/menu.c:752 src/config/rcxml.c:1384
 msgid "Workspace"
 msgstr "Ruang Kerja"
 
-#: src/menu/menu.c:748
+#: src/menu/menu.c:755
 msgid "Close"
 msgstr "Tutup"

@@ -654,7 +654,12 @@ xwayland_view_map(struct view *view)
 	}
 	view_maximize(view, axis, /*store_natural_geometry*/ true);
 
-	if (!view->toplevel.handle) {
+	/*
+	 * Exclude unfocusable views from wlr-foreign-toplevel. These
+	 * views (notifications, floating toolbars, etc.) should not be
+	 * shown in taskbars/docks/etc.
+	 */
+	if (!view->toplevel.handle && view_is_focusable(view)) {
 		init_foreign_toplevel(view);
 	}
 

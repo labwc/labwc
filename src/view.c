@@ -2010,7 +2010,18 @@ view_move_to_front(struct view *view)
 	}
 
 	struct view *root = view_get_root(view);
-	assert(root);
+
+	/*
+	 * The case of root == NULL is unlikely, but has been reported when
+	 * starting games on XWayland. It's believed to be caused by setting
+	 * override-redirect on the root wlr_xwayland_surface making it not be
+	 * associated with a view anymore.
+	 *
+	 * I this case we just raise the original view instead.
+	 */
+	if (!root) {
+		root = view;
+	}
 
 	move_to_front(root);
 	for_each_subview(root, move_to_front);
@@ -2027,7 +2038,11 @@ view_move_to_back(struct view *view)
 {
 	assert(view);
 	struct view *root = view_get_root(view);
-	assert(root);
+
+	/* See comment in view_move_to_front() */
+	if (!root) {
+		root = view;
+	}
 
 	for_each_subview(root, move_to_back);
 	move_to_back(root);

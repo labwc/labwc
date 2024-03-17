@@ -199,7 +199,8 @@ resize_indicator_update(struct view *view)
 		(eff_height - indicator->height) / 2);
 
 	scaled_font_buffer_update(indicator->text, text, width, &rc.font_osd,
-		rc.theme->osd_label_text_color, NULL /* const char *arrow */);
+		rc.theme->osd_label_text_color, rc.theme->osd_bg_color,
+		NULL /* const char *arrow */);
 }
 
 void

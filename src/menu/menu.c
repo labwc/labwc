@@ -205,9 +205,11 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 
 	/* Font buffers */
 	scaled_font_buffer_update(menuitem->normal.buffer, text, menuitem->native_width,
-		&rc.font_menuitem, theme->menu_items_text_color, arrow);
+		&rc.font_menuitem, theme->menu_items_text_color,
+		theme->menu_items_bg_color, arrow);
 	scaled_font_buffer_update(menuitem->selected.buffer, text, menuitem->native_width,
-		&rc.font_menuitem, theme->menu_items_active_text_color, arrow);
+		&rc.font_menuitem, theme->menu_items_active_text_color,
+		theme->menu_items_active_bg_color, arrow);
 
 	/* Center font nodes */
 	x = theme->menu_item_padding_x;

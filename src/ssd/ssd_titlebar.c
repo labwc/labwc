@@ -334,7 +334,8 @@ ssd_update_title(struct ssd *ssd)
 	struct ssd_state_title *state = &ssd->state.title;
 	bool title_unchanged = state->text && !strcmp(title, state->text);
 
-	float *text_color;
+	const float *text_color;
+	const float *bg_color;
 	struct font *font = NULL;
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
@@ -346,10 +347,12 @@ ssd_update_title(struct ssd *ssd)
 		if (subtree == &ssd->titlebar.active) {
 			dstate = &state->active;
 			text_color = theme->window_active_label_text_color;
+			bg_color = theme->window_active_title_bg_color;
 			font = &rc.font_activewindow;
 		} else {
 			dstate = &state->inactive;
 			text_color = theme->window_inactive_label_text_color;
+			bg_color = theme->window_inactive_title_bg_color;
 			font = &rc.font_inactivewindow;
 		}
 
@@ -379,7 +382,7 @@ ssd_update_title(struct ssd *ssd)
 		if (part->buffer) {
 			scaled_font_buffer_update(part->buffer, title,
 				title_bg_width, font,
-				text_color, NULL);
+				text_color, bg_color, NULL);
 		}
 
 		/* And finally update the cache */

@@ -77,8 +77,8 @@ font_width(struct font *font, const char *string)
 
 void
 font_buffer_create(struct lab_data_buffer **buffer, int max_width,
-	const char *text, struct font *font, float *color, const char *arrow,
-	double scale)
+	const char *text, struct font *font, const float *color,
+	const float *bg_color, const char *arrow, double scale)
 {
 	/* Allow a minimum of one pixel each for text and arrow */
 	if (max_width < 2) {
@@ -113,6 +113,15 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 
 	cairo_t *cairo = (*buffer)->cairo;
 	cairo_surface_t *surf = cairo_get_target(cairo);
+
+	/*
+	 * Fill background color first - necessary for subpixel
+	 * rendering, which does not work properly on transparency
+	 */
+	set_cairo_color(cairo, bg_color);
+	cairo_rectangle(cairo, 0, 0, (*buffer)->unscaled_width,
+		(*buffer)->unscaled_height);
+	cairo_fill(cairo);
 
 	set_cairo_color(cairo, color);
 	cairo_move_to(cairo, 0, 0);

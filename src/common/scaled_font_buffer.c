@@ -19,7 +19,7 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 
 	/* Buffer gets free'd automatically along the backing wlr_buffer */
 	font_buffer_create(&buffer, self->max_width, self->text,
-		&self->font, self->color, self->arrow, scale);
+		&self->font, self->color, self->bg_color, self->arrow, scale);
 
 	self->width = buffer ? buffer->unscaled_width : 0;
 	self->height = buffer ? buffer->unscaled_height : 0;
@@ -64,8 +64,8 @@ scaled_font_buffer_create(struct wlr_scene_tree *parent)
 
 void
 scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
-		int max_width, struct font *font, float *color,
-		const char *arrow)
+		int max_width, struct font *font, const float *color,
+		const float *bg_color, const char *arrow)
 {
 	assert(self);
 	assert(text);
@@ -87,6 +87,7 @@ scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 	self->font.slant = font->slant;
 	self->font.weight = font->weight;
 	memcpy(self->color, color, sizeof(self->color));
+	memcpy(self->bg_color, bg_color, sizeof(self->bg_color));
 	self->arrow = arrow ? xstrdup(arrow) : NULL;
 
 	/* Invalidate cache and force a new render */

@@ -83,7 +83,7 @@ draw_cairo_border(cairo_t *cairo, struct wlr_fbox fbox, double line_width)
 
 /* Sets the cairo color. Splits the single color channels */
 void
-set_cairo_color(cairo_t *cairo, float *c)
+set_cairo_color(cairo_t *cairo, const float *c)
 {
 	cairo_set_source_rgba(cairo, c[0], c[1], c[2], c[3]);
 }

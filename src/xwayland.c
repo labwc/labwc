@@ -766,7 +766,14 @@ static struct view *
 xwayland_view_get_root(struct view *view)
 {
 	struct wlr_xwayland_surface *root = top_parent_of(view);
-	return (struct view *)root->data;
+
+	/*
+	 * The case of root->data == NULL is unlikely, but has been reported
+	 * when starting XWayland games (for example 'Fall Guys'). It is
+	 * believed to be caused by setting override-redirect on the root
+	 * wlr_xwayland_surface making it not be associated with a view anymore.
+	 */
+	return (root && root->data) ? (struct view *)root->data : view;
 }
 
 static void

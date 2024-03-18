@@ -10,7 +10,6 @@
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_fractional_scale_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
-#include <wlr/types/wlr_input_inhibitor.h>
 #include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
@@ -148,61 +147,6 @@ handle_sigchld(int signal, void *data)
 	}
 
 	return 0;
-}
-
-static void
-seat_inhibit_input(struct seat *seat,  struct wl_client *active_client)
-{
-	seat->active_client_while_inhibited = active_client;
-
-	if (seat->focused_layer && active_client !=
-			wl_resource_get_client(seat->focused_layer->resource)) {
-		seat_set_focus_layer(seat, NULL);
-	}
-	struct wlr_surface *previous_kb_surface =
-		seat->seat->keyboard_state.focused_surface;
-	if (previous_kb_surface && active_client !=
-			wl_resource_get_client(previous_kb_surface->resource)) {
-		seat_focus_surface(seat, NULL);	  /* keyboard focus */
-	}
-
-	struct wlr_seat_client *previous_ptr_client =
-		seat->seat->pointer_state.focused_client;
-	if (previous_ptr_client && previous_ptr_client->client != active_client) {
-		wlr_seat_pointer_clear_focus(seat->seat);
-	}
-}
-
-static void
-seat_disinhibit_input(struct seat *seat)
-{
-	seat->active_client_while_inhibited = NULL;
-
-	/*
-	 * Triggers a refocus of the topmost surface layer if necessary
-	 * TODO: Make layer surface focus per-output based on cursor position
-	 */
-	output_update_all_usable_areas(seat->server, /*layout_changed*/ false);
-}
-
-static void
-handle_input_inhibit(struct wl_listener *listener, void *data)
-{
-	wlr_log(WLR_INFO, "activate input inhibit");
-
-	struct server *server =
-		wl_container_of(listener, server, input_inhibit_activate);
-	seat_inhibit_input(&server->seat, server->input_inhibit->active_client);
-}
-
-static void
-handle_input_disinhibit(struct wl_listener *listener, void *data)
-{
-	wlr_log(WLR_INFO, "deactivate input inhibit");
-
-	struct server *server =
-		wl_container_of(listener, server, input_inhibit_deactivate);
-	seat_disinhibit_input(&server->seat);
 }
 
 static void
@@ -520,21 +464,6 @@ server_init(struct server *server)
 	server->new_constraint.notify = create_constraint;
 	wl_signal_add(&server->constraints->events.new_constraint,
 		&server->new_constraint);
-
-	server->input_inhibit =
-		wlr_input_inhibit_manager_create(server->wl_display);
-	if (!server->input_inhibit) {
-		wlr_log(WLR_ERROR, "unable to create input inhibit manager");
-		exit(EXIT_FAILURE);
-	}
-
-	wl_signal_add(&server->input_inhibit->events.activate,
-		&server->input_inhibit_activate);
-	server->input_inhibit_activate.notify = handle_input_inhibit;
-
-	wl_signal_add(&server->input_inhibit->events.deactivate,
-		&server->input_inhibit_deactivate);
-	server->input_inhibit_deactivate.notify = handle_input_disinhibit;
 
 	server->foreign_toplevel_manager =
 		wlr_foreign_toplevel_manager_v1_create(server->wl_display);

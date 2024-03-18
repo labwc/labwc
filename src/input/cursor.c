@@ -358,15 +358,6 @@ cursor_update_image(struct seat *seat)
 		cursor_names[cursor]);
 }
 
-bool
-input_inhibit_blocks_surface(struct seat *seat, struct wl_resource *resource)
-{
-	struct wl_client *inhibiting_client =
-		seat->active_client_while_inhibited;
-	return inhibiting_client
-		&& inhibiting_client != wl_resource_get_client(resource);
-}
-
 static bool
 update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
 {
@@ -472,8 +463,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		return false;
 	}
 
-	if (ctx->surface && !input_inhibit_blocks_surface(seat,
-			ctx->surface->resource)) {
+	if (ctx->surface) {
 		/*
 		 * Cursor is over an input-enabled client surface.  The
 		 * cursor image will be set by request_cursor_notify()

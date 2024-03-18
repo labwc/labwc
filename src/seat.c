@@ -637,11 +637,6 @@ seat_focus(struct seat *seat, struct wlr_surface *surface, bool is_lock_surface)
 		return;
 	}
 
-	/* Respect input inhibit (also used by some lock screens) */
-	if (input_inhibit_blocks_surface(seat, surface->resource)) {
-		return;
-	}
-
 	if (!wlr_seat_get_keyboard(seat->seat)) {
 		/*
 		 * wlr_seat_keyboard_notify_enter() sends wl_keyboard.modifiers,

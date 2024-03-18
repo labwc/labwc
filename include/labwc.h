@@ -164,7 +164,6 @@ struct seat {
 	/* Used to prevent region snapping when starting a move with A-Left */
 	bool region_prevent_snap;
 
-	struct wl_client *active_client_while_inhibited;
 	struct wl_list inputs;
 	struct wl_listener new_input;
 	struct wl_listener focus_change;
@@ -241,10 +240,6 @@ struct server {
 	struct wl_listener xwayland_xwm_ready;
 	struct wl_listener xwayland_new_surface;
 #endif
-
-	struct wlr_input_inhibit_manager *input_inhibit;
-	struct wl_listener input_inhibit_activate;
-	struct wl_listener input_inhibit_deactivate;
 
 	struct wlr_xdg_activation_v1 *xdg_activation;
 	struct wl_listener xdg_activation_request;
@@ -430,7 +425,7 @@ void foreign_toplevel_update_outputs(struct view *view);
  *  - optionally raise above other views
  *
  * It's okay to call this function even if the view isn't mapped or the
- * session is locked/input is inhibited; it will simply do nothing.
+ * session is locked; it will simply do nothing.
  */
 void desktop_focus_view(struct view *view, bool raise);
 
@@ -513,13 +508,6 @@ void new_tearing_hint(struct wl_listener *listener, void *data);
 void server_init(struct server *server);
 void server_start(struct server *server);
 void server_finish(struct server *server);
-
-/*
- * wlroots "input inhibitor" extension (required for swaylock) blocks
- * any client other than the requesting client from receiving events
- */
-bool input_inhibit_blocks_surface(struct seat *seat,
-	struct wl_resource *resource);
 
 void create_constraint(struct wl_listener *listener, void *data);
 void constrain_cursor(struct server *server, struct wlr_pointer_constraint_v1

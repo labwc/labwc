@@ -431,7 +431,7 @@ output_init(struct server *server)
 	 * Create an output layout, which is a wlroots utility for working with
 	 * an arrangement of screens in a physical layout.
 	 */
-	server->output_layout = wlr_output_layout_create();
+	server->output_layout = wlr_output_layout_create(server->wl_display);
 	if (!server->output_layout) {
 		wlr_log(WLR_ERROR, "unable to create output layout");
 		exit(EXIT_FAILURE);

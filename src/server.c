@@ -515,7 +515,8 @@ server_finish(struct server *server)
 	wl_display_destroy_clients(server->wl_display);
 
 	seat_finish(server);
-	wlr_output_layout_destroy(server->output_layout);
+
+	// FIXME: evaluate if removing output_layout_destroy is correct
 
 	wl_display_destroy(server->wl_display);
 

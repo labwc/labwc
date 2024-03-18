@@ -124,22 +124,21 @@ _osd_update(struct server *server)
 		/* Text */
 		set_cairo_color(cairo, server->theme->osd_label_text_color);
 		PangoLayout *layout = pango_cairo_create_layout(cairo);
-		pango_layout_set_width(layout, (width - 2 * margin) * PANGO_SCALE);
 		pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 
-		PangoFontDescription *desc = font_to_pango_desc(&rc.font_osd);
-		pango_layout_set_font_description(layout, desc);
-
 		/* Center workspace indicator on the x axis */
-		x = font_width(&rc.font_osd, server->workspace_current->name);
-		x = (width - x) / 2;
+		int req_width = font_width(&rc.font_osd, server->workspace_current->name);
+		req_width = MIN(req_width, width - 2 * margin);
+		x = (width - req_width) / 2;
 		if (!hide_boxes) {
 			cairo_move_to(cairo, x, margin * 2 + rect_height);
 		} else {
 			cairo_move_to(cairo, x, (height - font_height(&rc.font_osd)) / 2.0);
 		}
+		PangoFontDescription *desc = font_to_pango_desc(&rc.font_osd);
 		//pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
 		pango_layout_set_font_description(layout, desc);
+		pango_layout_set_width(layout, req_width * PANGO_SCALE);
 		pango_font_description_free(desc);
 		pango_layout_set_text(layout, server->workspace_current->name, -1);
 		pango_cairo_show_layout(cairo, layout);

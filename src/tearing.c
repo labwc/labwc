@@ -15,7 +15,7 @@ set_tearing_hint(struct wl_listener *listener, void *data)
 {
 	struct tearing_controller *controller = wl_container_of(listener, controller, set_hint);
 	struct view *view = view_from_wlr_surface(controller->tearing_control->surface);
-	if (view && controller->tearing_control->hint) {
+	if (view && controller->tearing_control->current) {
 		view->tearing_hint = true;
 	}
 }

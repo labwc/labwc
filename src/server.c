@@ -2,6 +2,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "config.h"
 #include <signal.h>
+#include <string.h>
 #include <sys/wait.h>
 #include <wlr/backend/headless.h>
 #include <wlr/backend/multi.h>
@@ -42,6 +43,7 @@ static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;
 static struct wl_event_source *sigint_source;
 static struct wl_event_source *sigterm_source;
+static struct wl_event_source *sigchld_source;
 
 static struct server *g_server;
 
@@ -80,6 +82,63 @@ handle_sigterm(int signal, void *data)
 	struct wl_display *display = data;
 
 	wl_display_terminate(display);
+	return 0;
+}
+
+static int
+handle_sigchld(int signal, void *data)
+{
+	siginfo_t info;
+	info.si_pid = 0;
+
+	/* First call waitid() with NOWAIT which doesn't consume the zombie */
+	if (waitid(P_ALL, /*id*/ 0, &info, WEXITED | WNOHANG | WNOWAIT) == -1) {
+		return 0;
+	}
+
+	if (info.si_pid == 0) {
+		/* No children in waitable state */
+		return 0;
+	}
+
+#if HAVE_XWAYLAND
+	/* Verify that we do not break xwayland lazy initialization */
+	struct server *server = data;
+	if (server->xwayland && server->xwayland->server
+			&& info.si_pid == server->xwayland->server->pid) {
+		return 0;
+	}
+#endif
+
+	/* And then do the actual (consuming) lookup again */
+	int ret = waitid(P_PID, info.si_pid, &info, WEXITED);
+	if (ret == -1) {
+		wlr_log(WLR_ERROR, "blocking waitid() for %ld failed: %d",
+			(long)info.si_pid, ret);
+		return 0;
+	}
+
+	switch (info.si_code) {
+	case CLD_EXITED:
+		wlr_log(info.si_status == 0 ? WLR_DEBUG : WLR_ERROR,
+			"spawned child %ld exited with %d",
+			(long)info.si_pid, info.si_status);
+		break;
+	case CLD_KILLED:
+	case CLD_DUMPED:
+		; /* works around "a label can only be part of a statement" */
+		const char *signame = strsignal(info.si_status);
+		wlr_log(WLR_ERROR,
+			"spawned child %ld terminated with signal %d (%s)",
+				(long)info.si_pid, info.si_status,
+				signame ? signame : "unknown");
+		break;
+	default:
+		wlr_log(WLR_ERROR,
+			"spawned child %ld terminated unexpectedly: %d"
+			" please report", (long)info.si_pid, info.si_code);
+	}
+
 	return 0;
 }
 
@@ -239,6 +298,8 @@ server_init(struct server *server)
 		event_loop, SIGINT, handle_sigterm, server->wl_display);
 	sigterm_source = wl_event_loop_add_signal(
 		event_loop, SIGTERM, handle_sigterm, server->wl_display);
+	sigchld_source = wl_event_loop_add_signal(
+		event_loop, SIGCHLD, handle_sigchld, server);
 	server->wl_event_loop = event_loop;
 
 	/*

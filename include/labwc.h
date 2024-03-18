@@ -369,6 +369,7 @@ struct output {
 	struct wl_list link; /* server.outputs */
 	struct server *server;
 	struct wlr_output *wlr_output;
+	struct wlr_output_state pending;
 	struct wlr_scene_output *scene_output;
 	struct wlr_scene_tree *layer_tree[LAB_NR_LAYERS];
 	struct wlr_scene_tree *layer_popup_tree;

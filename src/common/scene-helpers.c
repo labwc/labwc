@@ -5,7 +5,9 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
 #include "common/scene-helpers.h"
+#include "labwc.h"
 #include "magnifier.h"
+#include "output-state.h"
 
 struct wlr_surface *
 lab_wlr_surface_from_node(struct wlr_scene_node *node)
@@ -57,7 +59,7 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 	 */
 	if (!wlr_output->needs_frame && !pixman_region32_not_empty(
 			&scene_output->damage_ring.current) && !wants_magnification) {
-		return false;
+		return true;
 	}
 
 	if (!wlr_scene_output_build_state(scene_output, state, NULL)) {
@@ -71,7 +73,7 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 		magnify(output, state->buffer, &additional_damage);
 	}
 
-	if (state == &wlr_output->pending) {
+	if (state == &output->pending) {
 		if (!wlr_output_commit(wlr_output)) {
 			wlr_log(WLR_INFO, "Failed to commit output %s",
 				wlr_output->name);

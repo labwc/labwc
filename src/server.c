@@ -29,6 +29,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
+#include "output-state.h"
 #include "output-virtual.h"
 #include "regions.h"
 #include "resize-indicator.h"

@@ -15,6 +15,7 @@ labwc_sources = files(
   'osd.c',
   'osd-field.c',
   'output.c',
+  'output-state.c',
   'output-virtual.c',
   'overlay.c',
   'placement.c',

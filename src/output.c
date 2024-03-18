@@ -24,6 +24,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "node.h"
+#include "output-state.h"
 #include "output-virtual.h"
 #include "regions.h"
 #include "view.h"
@@ -111,11 +112,11 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		 */
 		output_apply_gamma(output);
 	} else {
-		output->wlr_output->pending.tearing_page_flip =
+		output->pending.tearing_page_flip =
 			get_tearing_preference(output);
 
 		lab_wlr_scene_output_commit(output->scene_output,
-			&output->wlr_output->pending);
+			&output->pending);
 	}
 
 	struct timespec now = { 0 };
@@ -157,6 +158,8 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 			view_on_output_destroy(view);
 		}
 	}
+
+	wlr_output_state_finish(&output->pending);
 
 	/*
 	 * Ensure that we don't accidentally try to dereference
@@ -299,6 +302,12 @@ new_output_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
+	output = znew(*output);
+	output->wlr_output = wlr_output;
+	wlr_output->data = output;
+	output->server = server;
+	output_state_init(output);
+
 	wlr_log(WLR_DEBUG, "enable output");
 	wlr_output_enable(wlr_output, true);
 
@@ -311,7 +320,9 @@ new_output_notify(struct wl_listener *listener, void *data)
 		wlr_log(WLR_DEBUG, "set preferred mode");
 		/* The mode is a tuple of (width, height, refresh rate). */
 		preferred_mode = wlr_output_preferred_mode(wlr_output);
-		wlr_output_set_mode(wlr_output, preferred_mode);
+		if (preferred_mode) {
+			wlr_output_set_mode(wlr_output, preferred_mode);
+		}
 	}
 
 	/*
@@ -341,10 +352,6 @@ new_output_notify(struct wl_listener *listener, void *data)
 
 	wlr_output_commit(wlr_output);
 
-	output = znew(*output);
-	output->wlr_output = wlr_output;
-	wlr_output->data = output;
-	output->server = server;
 	wlr_output_effective_resolution(wlr_output,
 		&output->usable_area.width, &output->usable_area.height);
 	wl_list_insert(&server->outputs, &output->link);
@@ -923,9 +930,6 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 		break;
 	case ZWLR_OUTPUT_POWER_V1_MODE_ON:
 		wlr_output_enable(event->output, true);
-		if (!wlr_output_test(event->output)) {
-			wlr_output_rollback(event->output);
-		}
 		wlr_output_commit(event->output);
 		/*
 		 * Re-set the cursor image so that the cursor

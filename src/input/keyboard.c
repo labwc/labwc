@@ -457,8 +457,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 		if (cur_keybind && cur_keybind->on_release) {
 			key_state_bound_key_remove(event->keycode);
-			if (seat->server->session_lock_manager->locked
-					|| seat->active_client_while_inhibited) {
+			if (seat->server->session_lock_manager->locked) {
 				cur_keybind = NULL;
 				return true;
 			}
@@ -476,13 +475,10 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	}
 
 	/*
-	 * Ignore labwc keybindings if input is inhibited
+	 * Ignore labwc keybindings if the session is locked.
 	 * It's important to do this after key_state_set_pressed() to ensure
 	 * _all_ key press/releases are registered
 	 */
-	if (seat->active_client_while_inhibited) {
-		return false;
-	}
 	if (seat->server->session_lock_manager->locked) {
 		return false;
 	}

@@ -619,11 +619,6 @@ seat_focus(struct seat *seat, struct wlr_surface *surface, bool is_lock_surface)
 		return;
 	}
 
-	/* Respect input inhibit (also used by some lock screens) */
-	if (input_inhibit_blocks_surface(seat, surface->resource)) {
-		return;
-	}
-
 	/*
 	 * Key events associated with keybindings (both pressed and released)
 	 * are not sent to clients. When changing surface-focus it is therefore

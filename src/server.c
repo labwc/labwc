@@ -442,7 +442,6 @@ server_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create presentation interface");
 		exit(EXIT_FAILURE);
 	}
-	wlr_scene_set_presentation(server->scene, presentation);
 
 	wlr_export_dmabuf_manager_v1_create(server->wl_display);
 	wlr_screencopy_manager_v1_create(server->wl_display);

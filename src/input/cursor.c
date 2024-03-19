@@ -1153,7 +1153,7 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	bool notify;
 	switch (event->state) {
-	case WLR_BUTTON_PRESSED:
+	case WL_POINTER_BUTTON_STATE_PRESSED:
 		notify = cursor_process_button_press(seat, event->button,
 			event->time_msec);
 		if (notify) {
@@ -1161,7 +1161,7 @@ cursor_button(struct wl_listener *listener, void *data)
 				event->button, event->state);
 		}
 		break;
-	case WLR_BUTTON_RELEASED:
+	case WL_POINTER_BUTTON_STATE_RELEASED:
 		notify = cursor_process_button_release(seat, event->button,
 			event->time_msec);
 		if (notify) {
@@ -1207,19 +1207,19 @@ cursor_emulate_move_absolute(struct seat *seat, struct wlr_input_device *device,
 
 void
 cursor_emulate_button(struct seat *seat, uint32_t button,
-		enum wlr_button_state state, uint32_t time_msec)
+		enum wl_pointer_button_state state, uint32_t time_msec)
 {
 	idle_manager_notify_activity(seat->seat);
 
 	bool notify;
 	switch (state) {
-	case WLR_BUTTON_PRESSED:
+	case WL_POINTER_BUTTON_STATE_PRESSED:
 		notify = cursor_process_button_press(seat, button, time_msec);
 		if (notify) {
 			wlr_seat_pointer_notify_button(seat->seat, time_msec, button, state);
 		}
 		break;
-	case WLR_BUTTON_RELEASED:
+	case WL_POINTER_BUTTON_STATE_RELEASED:
 		notify = cursor_process_button_release(seat, button, time_msec);
 		if (notify) {
 			wlr_seat_pointer_notify_button(seat->seat, time_msec, button, state);
@@ -1272,14 +1272,14 @@ handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 			&server->seat.keyboard_group->keyboard);
 
 	enum direction direction = LAB_DIRECTION_INVALID;
-	if (event->orientation == WLR_AXIS_ORIENTATION_HORIZONTAL) {
+	if (event->orientation == WL_POINTER_AXIS_HORIZONTAL_SCROLL) {
 		int rel = compare_delta(event, &server->seat.smooth_scroll_offset.x);
 		if (rel < 0) {
 			direction = LAB_DIRECTION_LEFT;
 		} else if (rel > 0) {
 			direction = LAB_DIRECTION_RIGHT;
 		}
-	} else if (event->orientation == WLR_AXIS_ORIENTATION_VERTICAL) {
+	} else if (event->orientation == WL_POINTER_AXIS_VERTICAL_SCROLL) {
 		int rel = compare_delta(event, &server->seat.smooth_scroll_offset.y);
 		if (rel < 0) {
 			direction = LAB_DIRECTION_UP;

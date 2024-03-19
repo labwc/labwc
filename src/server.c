@@ -291,7 +291,7 @@ server_init(struct server *server)
 	 * window if an x11 server is running.
 	 */
 	server->backend = wlr_backend_autocreate(
-		server->wl_display, &server->session);
+		server->wl_event_loop, &server->session);
 	if (!server->backend) {
 		wlr_log(WLR_ERROR, "unable to create backend");
 		fprintf(stderr, helpful_seat_error_message);
@@ -304,7 +304,8 @@ server_init(struct server *server)
 
 	if (!server->headless.backend) {
 		wlr_log(WLR_DEBUG, "manually creating headless backend");
-		server->headless.backend = wlr_headless_backend_create(server->wl_display);
+		server->headless.backend = wlr_headless_backend_create(
+			server->wl_event_loop);
 	} else {
 		wlr_log(WLR_DEBUG, "headless backend already exists");
 	}

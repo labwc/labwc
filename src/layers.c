@@ -469,6 +469,7 @@ handle_new_popup(struct wl_listener *listener, void *data)
 	wlr_output_layout_get_box(server->output_layout,
 		output->wlr_output, &output_box);
 
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	/*
 	 * Output geometry expressed in the coordinate system of the toplevel
 	 * parent of popup. We store this struct the lab_layer_popup struct
@@ -476,10 +477,10 @@ handle_new_popup(struct wl_listener *listener, void *data)
 	 * the bottom to the top layer.
 	 */
 	struct wlr_box output_toplevel_sx_box = {
-		.x = output_box.x - lx,
-		.y = output_box.y - ly,
-		.width = output_box.width,
-		.height = output_box.height,
+		.x = usable.x - lx,
+		.y = usable.y - ly,
+		.width = usable.width,
+		.height = usable.height,
 	};
 	struct lab_layer_popup *popup = create_popup(wlr_popup, surface->tree);
 	popup->output_toplevel_sx_box = output_toplevel_sx_box;

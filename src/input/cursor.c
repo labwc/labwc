@@ -1333,7 +1333,7 @@ cursor_axis(struct wl_listener *listener, void *data)
 		wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,
 			event->orientation, rc.scroll_factor * event->delta,
 			round(rc.scroll_factor * event->delta_discrete),
-			event->source);
+			event->source, event->relative_direction);
 	}
 }
 

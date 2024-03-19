@@ -116,7 +116,11 @@ handle_button(struct wl_listener *listener, void *data)
 	} else {
 		uint32_t button = tablet_get_mapped_button(ev->button);
 		if (button) {
-			cursor_emulate_button(pad->seat, button, ev->state, ev->time_msec);
+			cursor_emulate_button(pad->seat, button,
+				ev->state == WLR_BUTTON_PRESSED
+					? WL_POINTER_BUTTON_STATE_PRESSED
+					: WL_POINTER_BUTTON_STATE_RELEASED,
+				ev->time_msec);
 		}
 	}
 }

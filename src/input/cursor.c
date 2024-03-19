@@ -928,7 +928,7 @@ static bool close_menu;
 
 static void
 cursor_button_press(struct seat *seat, uint32_t button,
-		enum wlr_button_state button_state, uint32_t time_msec)
+		enum wl_pointer_button_state button_state, uint32_t time_msec)
 {
 	struct server *server = seat->server;
 	struct cursor_context ctx = get_cursor_context(server);
@@ -1004,7 +1004,7 @@ cursor_button_press(struct seat *seat, uint32_t button,
 
 static void
 cursor_button_release(struct seat *seat, uint32_t button,
-		enum wlr_button_state button_state, uint32_t time_msec)
+		enum wl_pointer_button_state button_state, uint32_t time_msec)
 {
 	struct server *server = seat->server;
 	struct cursor_context ctx = get_cursor_context(server);
@@ -1071,10 +1071,10 @@ cursor_button(struct wl_listener *listener, void *data)
 	idle_manager_notify_activity(seat->seat);
 
 	switch (event->state) {
-	case WLR_BUTTON_PRESSED:
+	case WL_POINTER_BUTTON_STATE_PRESSED:
 		cursor_button_press(seat, event->button, event->state, event->time_msec);
 		break;
-	case WLR_BUTTON_RELEASED:
+	case WL_POINTER_BUTTON_STATE_RELEASED:
 		cursor_button_release(seat, event->button, event->state, event->time_msec);
 		break;
 	}
@@ -1108,15 +1108,15 @@ cursor_emulate_move_absolute(struct seat *seat, struct wlr_input_device *device,
 
 void
 cursor_emulate_button(struct seat *seat, uint32_t button,
-		enum wlr_button_state state, uint32_t time_msec)
+		enum wl_pointer_button_state state, uint32_t time_msec)
 {
 	idle_manager_notify_activity(seat->seat);
 
 	switch (state) {
-	case WLR_BUTTON_PRESSED:
+	case WL_POINTER_BUTTON_STATE_PRESSED:
 		cursor_button_press(seat, button, state, time_msec);
 		break;
-	case WLR_BUTTON_RELEASED:
+	case WL_POINTER_BUTTON_STATE_RELEASED:
 		cursor_button_release(seat, button, state, time_msec);
 		break;
 	}
@@ -1165,14 +1165,14 @@ handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 			&server->seat.keyboard_group->keyboard);
 
 	enum direction direction = LAB_DIRECTION_INVALID;
-	if (event->orientation == WLR_AXIS_ORIENTATION_HORIZONTAL) {
+	if (event->orientation == WL_POINTER_AXIS_HORIZONTAL_SCROLL) {
 		int rel = compare_delta(event, &server->seat.smooth_scroll_offset.x);
 		if (rel < 0) {
 			direction = LAB_DIRECTION_LEFT;
 		} else if (rel > 0) {
 			direction = LAB_DIRECTION_RIGHT;
 		}
-	} else if (event->orientation == WLR_AXIS_ORIENTATION_VERTICAL) {
+	} else if (event->orientation == WL_POINTER_AXIS_VERTICAL_SCROLL) {
 		int rel = compare_delta(event, &server->seat.smooth_scroll_offset.y);
 		if (rel < 0) {
 			direction = LAB_DIRECTION_UP;

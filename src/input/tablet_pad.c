@@ -21,7 +21,17 @@ handle_button(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	cursor_emulate_button(tablet_pad->seat, button, ev->state, ev->time_msec);
+	enum wl_pointer_button_state state;
+	switch (ev->state) {
+	case WLR_BUTTON_PRESSED:
+		state = WL_POINTER_BUTTON_STATE_PRESSED;
+		break;
+	case WLR_BUTTON_RELEASED:
+		state = WL_POINTER_BUTTON_STATE_RELEASED;
+		break;
+	}
+
+	cursor_emulate_button(tablet_pad->seat, button, state, ev->time_msec);
 }
 
 static void

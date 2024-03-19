@@ -3,6 +3,7 @@
 #
 # Void dependencies based on:
 # https://github.com/void-linux/void-packages/blob/master/srcpkgs/labwc/template
+# https://github.com/void-linux/void-packages/blob/master/srcpkgs/wlroots0.17/template
 #
 # Recommended GH CI Void mirror based on
 # https://docs.voidlinux.org/xbps/repositories/mirrors/changing.html
@@ -80,7 +81,8 @@ jobs:
           apt-get update
           apt-get upgrade -y
           apt-get install -y git gcc clang gdb xwayland
-          apt-get build-dep -y labwc
+          apt-get build-dep -y labwc libwlroots-dev
+          apt-get remove -y libwlroots-dev
 
       - name: Install FreeBSD dependencies
         if: matrix.name == 'FreeBSD'
@@ -106,6 +108,13 @@ jobs:
           xbps-install -y git meson gcc clang pkg-config scdoc \
             cairo-devel glib-devel libpng-devel librsvg-devel libxml2-devel \
             pango-devel wlroots0.17-devel gdb bash xorg-server-xwayland \
+            wayland-devel glslang hwids \
+            libgbm-devel libglvnd-devel libseat-devel eudev-libudev-devel \
+            libdrm-devel libinput-devel libxkbcommon-devel pixman-devel wayland-devel \
+            wayland-protocols vulkan-loader Vulkan-Headers xcb-util-errors-devel \
+            xcb-util-wm-devel xcb-util-renderutil-devel libdisplay-info-devel libliftoff-devel \
+            libxcb-devel xcb-util-cursor-devel xcb-util-devel xcb-util-image-devel \
+            xcb-util-keysyms-devel xcb-util-xrm-devel xorg-server-xwayland \
             dejavu-fonts-ttf
 
       # These build are executed on all runners
@@ -151,7 +160,7 @@ jobs:
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
             meson setup build-gcc-release -Dxwayland=enabled \
-              -Dbuildtype=release -Db_ndebug=true --werror
+              -Dbuildtype=release -Db_ndebug=true -Dwlroots:werror=false --werror
             meson compile -C build-gcc-release
           ' | $TARGET
 
@@ -173,7 +182,7 @@ jobs:
             cd "$GITHUB_WORKSPACE"
             export CC=clang
             meson setup build-clang-release -Dxwayland=enabled \
-              -Dbuildtype=release -Db_ndebug=true --werror
+              -Dbuildtype=release -Db_ndebug=true -Dwlroots:werror=false --werror
             meson compile -C build-clang-release
           ' | $TARGET
 

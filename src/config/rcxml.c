@@ -611,7 +611,11 @@ fill_libinput_category(char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "sendEventsMode")) {
 		current_libinput_category->send_events_mode =
 			get_send_events_mode(content);
-	}
+    } else if (!strcasecmp(nodename, "calibrationMatrix")) {
+        current_libinput_category->no_calibration_matrix = false;
+        float *m = current_libinput_category->calibration_matrix;
+        sscanf(content, "%f%f%f%f%f%f", &m[0], &m[1], &m[2], &m[3], &m[4], &m[5]);
+    }
 }
 
 static void

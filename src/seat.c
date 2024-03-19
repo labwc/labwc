@@ -237,6 +237,14 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		wlr_log(WLR_INFO, "send events mode configured");
 		libinput_device_config_send_events_set_mode(libinput_dev, dc->send_events_mode);
 	}
+
+	if (libinput_device_config_calibration_has_matrix(libinput_dev) == 0
+			|| dc->no_calibration_matrix) {
+		wlr_log(WLR_INFO, "calibration matrix not configured");
+	} else {
+        wlr_log(WLR_INFO, "calibration matrix configured");
+        libinput_device_config_calibration_set_matrix(libinput_dev, dc->calibration_matrix);
+    }
 }
 
 static struct wlr_output *

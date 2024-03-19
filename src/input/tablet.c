@@ -441,8 +441,8 @@ handle_tip(struct wl_listener *listener, void *data)
 			cursor_emulate_button(tablet->seat,
 				button,
 				ev->state == WLR_TABLET_TOOL_TIP_DOWN
-					? WLR_BUTTON_PRESSED
-					: WLR_BUTTON_RELEASED,
+					? WL_POINTER_BUTTON_STATE_PRESSED
+					: WL_POINTER_BUTTON_STATE_RELEASED,
 				ev->time_msec);
 		}
 	}
@@ -500,7 +500,11 @@ handle_button(struct wl_listener *listener, void *data)
 	} else {
 		if (button) {
 			is_down_mouse_emulation = ev->state == WLR_BUTTON_PRESSED;
-			cursor_emulate_button(tablet->seat, button, ev->state, ev->time_msec);
+			cursor_emulate_button(tablet->seat, button,
+				ev->state == WLR_BUTTON_PRESSED
+					? WL_POINTER_BUTTON_STATE_PRESSED
+					: WL_POINTER_BUTTON_STATE_RELEASED,
+				ev->time_msec);
 		}
 	}
 }

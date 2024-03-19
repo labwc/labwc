@@ -124,6 +124,9 @@ handle_button(struct wl_listener *listener, void *data)
 	case WLR_BUTTON_RELEASED:
 		state = WL_POINTER_BUTTON_STATE_RELEASED;
 		break;
+	default:
+		wlr_log(WLR_ERROR, "invalid button state: %u", ev->state);
+		return;
 	}
 	cursor_emulate_button(tablet->seat, button, state, ev->time_msec);
 }

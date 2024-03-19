@@ -229,7 +229,7 @@ struct server {
 	struct wlr_xdg_shell *xdg_shell;
 	struct wlr_layer_shell_v1 *layer_shell;
 
-	struct wl_listener new_xdg_surface;
+	struct wl_listener new_xdg_toplevel;
 	struct wl_listener new_layer_surface;
 
 	struct wl_listener kde_server_decoration;

@@ -743,19 +743,14 @@ xdg_activation_handle_request(struct wl_listener *listener, void *data)
  *     to help the popups find their parent nodes
  */
 static void
-xdg_surface_new(struct wl_listener *listener, void *data)
+xdg_toplevel_new(struct wl_listener *listener, void *data)
 {
 	struct server *server =
-		wl_container_of(listener, server, new_xdg_surface);
-	struct wlr_xdg_surface *xdg_surface = data;
+		wl_container_of(listener, server, new_xdg_toplevel);
+	struct wlr_xdg_toplevel *xdg_toplevel = data;
+	struct wlr_xdg_surface *xdg_surface = xdg_toplevel->base;
 
-	/*
-	 * We deal with popups in xdg-popup.c and layers.c as they have to be
-	 * treated differently
-	 */
-	if (xdg_surface->role != WLR_XDG_SURFACE_ROLE_TOPLEVEL) {
-		return;
-	}
+	assert(xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL);
 
 	wlr_xdg_surface_ping(xdg_surface);
 
@@ -850,8 +845,9 @@ xdg_shell_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create the XDG shell interface");
 		exit(EXIT_FAILURE);
 	}
-	server->new_xdg_surface.notify = xdg_surface_new;
-	wl_signal_add(&server->xdg_shell->events.new_surface, &server->new_xdg_surface);
+
+	server->new_xdg_toplevel.notify = xdg_toplevel_new;
+	wl_signal_add(&server->xdg_shell->events.new_toplevel, &server->new_xdg_toplevel);
 
 	server->xdg_activation = wlr_xdg_activation_v1_create(server->wl_display);
 	if (!server->xdg_activation) {

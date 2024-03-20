@@ -504,9 +504,7 @@
       - tapButtonMap [lrm|lmr]
       - clickMethod [none|buttonAreas|clickfinger]
       - sendEventsMode [yes|no|disabledOnExternalMouse]
-      - calibrationMatrix [six float values split by space],
-      visit https://wayland.freedesktop.org/libinput/doc/latest/absolute-axes.html#calibration-of-absolute-devices
-      for more information
+      - calibrationMatrix [six float values split by space]
   -->
   <libinput>
     <device category="default">

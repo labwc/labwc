@@ -629,6 +629,7 @@ extending outward from the snapped edge.
     <disableWhileTyping></disableWhileTyping>
     <clickMethod></clickMethod>
     <sendEventsMode></sendEventsMode>
+    <calibrationMatrix></calibrationMatrix>
   </device>
 </libinput>
 ```
@@ -733,6 +734,24 @@ extending outward from the snapped edge.
 	a Reconfigure to temporarily enable / disable specific devices.
 
 	By default, this setting is not configured.
+
+*<libinput><device><calibrationMatrix>* [six float values split by space]
+	Apply the 3x3 transformation matrix to absolute device coordinates. This
+	matrix has no effect on relative events.
+
+	Given a 6-element array [a b c d e f], the matrix is applied as
+	[ a  b  c ]   [ x ]
+	[ d  e  f ] * [ y ]
+	[ 0  0  1 ]   [ 1 ]
+
+	The most common matrices are:
+	90 deg cw:		180 deg cw:		270 deg cw: 	reflect along y axis:
+	[ 0 -1 1]		[ -1  0 1]		[  0 1 0 ] 		[ -1 0 1 ]
+	[ 1  0 0]		[  0 -1 1]		[ -1 0 1 ]		[  1 0 0 ]
+	[ 0  0 1]		[  0  0 1]		[  0 0 1 ]		[  0 0 1 ]
+
+	visit https://wayland.freedesktop.org/libinput/doc/latest/absolute-axes.html#calibration-of-absolute-devices
+	for more information
 
 ## WINDOW RULES
 

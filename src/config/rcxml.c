@@ -617,13 +617,13 @@ fill_libinput_category(char *nodename, char *content)
 		current_libinput_category->have_calibration_matrix = true;
 		float *mat = current_libinput_category->calibration_matrix;
 		gchar **elements = g_strsplit(content, " ", -1);
-		guint length = g_strv_length(elements);
-		for (guint i = 0; i < length; ++i) {
+		for (guint i = 0; elements[i]; ++i) {
 			char *end_str = NULL;
 			mat[i] = strtof(elements[i], &end_str);
-			if (i == 6 || errno == ERANGE || !end_str) {
-				wlr_log(WLR_ERROR,
-						"bad calibration matrix value, expect six floats");
+			if (errno == ERANGE || *end_str != '\0' || i == 6 || *elements[i] == '\0') {
+				wlr_log(WLR_ERROR, "invalid calibration matrix element"
+									" %s (index %d), expect six floats",
+									elements[i], i);
 				current_libinput_category->have_calibration_matrix = false;
 				errno = 0;
 				break;

@@ -238,8 +238,9 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		libinput_device_config_send_events_set_mode(libinput_dev, dc->send_events_mode);
 	}
 
+	/* Non-zero if the device can be calibrated, zero otherwise. */
 	if (libinput_device_config_calibration_has_matrix(libinput_dev) == 0
-			|| dc->no_calibration_matrix) {
+			|| !dc->have_calibration_matrix) {
 		wlr_log(WLR_INFO, "calibration matrix not configured");
 	} else {
 		wlr_log(WLR_INFO, "calibration matrix configured");

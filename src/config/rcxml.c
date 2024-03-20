@@ -2,6 +2,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <fcntl.h>
+#include <glib.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <stdbool.h>
@@ -612,11 +613,23 @@ fill_libinput_category(char *nodename, char *content)
 		current_libinput_category->send_events_mode =
 			get_send_events_mode(content);
 	} else if (!strcasecmp(nodename, "calibrationMatrix")) {
-		float *m = current_libinput_category->calibration_matrix;
-		int r = sscanf(content, "%f%f%f%f%f%f", &m[0], &m[1], &m[2], &m[3], &m[4], &m[5]);
-		if (r == 6) {
-			current_libinput_category->no_calibration_matrix = false;
+		errno = 0;
+		current_libinput_category->have_calibration_matrix = true;
+		float *mat = current_libinput_category->calibration_matrix;
+		gchar **elements = g_strsplit(content, " ", -1);
+		guint length = g_strv_length(elements);
+		for (guint i = 0; i < length; ++i) {
+			char *end_str = NULL;
+			mat[i] = strtof(elements[i], &end_str);
+			if (i == 6 || errno == ERANGE || !end_str) {
+				wlr_log(WLR_ERROR,
+						"bad calibration matrix value, expect six floats");
+				current_libinput_category->have_calibration_matrix = false;
+				errno = 0;
+				break;
+			}
 		}
+		g_strfreev(elements);
 	}
 }
 

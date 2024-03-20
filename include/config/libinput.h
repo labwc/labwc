@@ -30,8 +30,8 @@ struct libinput_category {
 	int dwt;                        /* -1 or libinput_config_dwt_state */
 	int click_method;               /* -1 or libinput_config_click_method */
 	int send_events_mode;           /* -1 or libinput_config_send_events_mode */
-	bool no_calibration_matrix;     /* false if have calibration matrix */
-	float calibration_matrix[6];    /* calibration matrix */
+	bool have_calibration_matrix;
+	float calibration_matrix[6];
 };
 
 enum lab_libinput_device_type get_device_type(const char *s);

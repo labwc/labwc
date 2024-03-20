@@ -740,18 +740,20 @@ extending outward from the snapped edge.
 	matrix has no effect on relative events.
 
 	Given a 6-element array [a b c d e f], the matrix is applied as
+```
 	[ a  b  c ]   [ x ]
 	[ d  e  f ] * [ y ]
 	[ 0  0  1 ]   [ 1 ]
 
-	The most common matrices are:
-	90 deg cw:		180 deg cw:		270 deg cw: 	reflect along y axis:
+The most common matrices are:
+	90 deg cw:		180 deg cw:		270 deg cw:		reflect along y axis:
 	[ 0 -1 1]		[ -1  0 1]		[  0 1 0 ] 		[ -1 0 1 ]
 	[ 1  0 0]		[  0 -1 1]		[ -1 0 1 ]		[  1 0 0 ]
 	[ 0  0 1]		[  0  0 1]		[  0 0 1 ]		[  0 0 1 ]
+```
 
 	visit https://wayland.freedesktop.org/libinput/doc/latest/absolute-axes.html#calibration-of-absolute-devices
-	for more information
+	for more information.
 
 ## WINDOW RULES
 

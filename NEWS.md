@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2024-03-21 | [unreleased]  | 0.17.2          |               |
 | 2024-03-01 | [0.7.1]       | 0.17.1          | 18624         |
 | 2023-12-22 | [0.7.0]       | 0.17.1          | 16576         |
 | 2023-11-25 | [0.6.6]       | 0.16.2          | 15796         |
@@ -27,6 +28,142 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
+## [unreleased]
+
+This release is shaping up to be the second in a row that is larger than
+usual in terms of both fixes and new features, for example input-methods.
+As usual, most of the commits are by the core devs: @Consolatis,
+@ahesford, @jlindgren90 and @johanmalm, but there are also a few new strong
+contributors as noted in the log.
+
+### Added
+
+- Support libinput config option for calibration matrices.
+  `<libinput><device><calibrationMatrix>`. Written-by: @SnowNF
+- Add new window-switcher field content types `workspace`, `state`,
+  `type_short` and `output`. Written-by: @droc12345 PR #1623
+
+```xml
+<windowSwitcher allWorkspaces="yes">
+  <fields>
+    <field content="workspace" width="5%" />
+    <field content="state" width="3%" />
+    <field content="type_short" width="3%" />
+    <field content="output" width="9%" />
+    <field content="identifier" width="30%" />
+    <field content="title" width="50%" />
+  </fields>
+</windowSwitcher>
+```
+
+- Support input methods (or input method editors, commonly abbreviated
+  IMEs) like Fcitx5, using protocols text-input-v3 and input-method-v2.
+  This includes IME popups. Written-by: @tokyo4j
+- Add `atCursor` attribute to action `ShowMenu` so that a window's
+  "client-menu" could optionally be launched at the pointer using a
+  keybind as follows:
+
+```xml
+<action name="ShowMenu" menu="value" atCursor="yes" />
+```
+
+- Support workspace-prefix (`<desktops><prefix>`) for workspace-switcher
+  onscreen display when naming workspaces by digits, for example 1, 2, 3
+  Written-by: @droc12345
+- Process all `*.env` files in an `environment.d` directory alongside and
+  in the same way as each potential `environment` file.
+- Allow empty variables in `environment` files. In other words, respond to
+  variable declarations of the form "VARIABLE=", with no following value,
+  by setting the corresponding environemtn variable as an empty string.
+- Add optional headless fallback output that is automatically created when
+  no other output exists.  Enable this by setting the environment variable
+  `LABWC_FALLBACK_OUTPUT` to the desired output name.  The feature
+  benefits applications like wayvnc the most by ensuring that there is
+  always an output available to connect to.
+  Co-Authored-By: Simon Long <simon@raspberrypi.com>
+- Optionally show windows on all workspaces in window-switcher.
+
+```xml
+<windowSwitcher allWorkspaces="yes">
+```
+
+- Handle touch on headerbar using cursor emulate events. Issue #1550
+  Written-by: @spl237
+- Updated dbus activation environment with more environment variables
+  (`XCURSOR_SIZE`, `XCURSOR_THEME`, `XDG_SESSION_TYPE`, `LABWC_PID`)
+  Written-by: @winerysearch  Issue #694
+- Run `shutdown` script on exit (equivalent to `autostart` on startup)
+- Add `wrap` argument to action `MoveToOutput`. Wrap is disabled by
+  default to keep the user interface consistent. Example usage:
+
+```xml
+<action name="MoveToOutput" direction="right" wrap="yes" />
+```
+
+### Fixed
+
+- Fix workspace-switcher on-screen-display positioning of text using
+  right-to-left (RTL) locales. Written-by: @micko01 Issue #1633
+- Unconstrain xdg-shell popups to usable area (rather than full output) so
+  that popups do not cover layer-shell clients such as panels.
+  Written-by: @tokyo4j
+- Exclude unfocusable XWayland windows (for example notifications and
+  floating toolbars) from being processed by wlr-foreign-toplevel protocol
+  as these windows should not be shown in taskbars/docks/etc.
+- Render text buffers with opaque backgrounds because subpixel text
+  rendering over a transparent background does not work properly with
+  cairo/pango. PR #1631
+- Fallback on layout 'us' if a keymap cannot be created for the provided
+  `XKB_DEFAULT_LAYOUT`. If keymap still cannot be created, exit with a
+  helpful message instead of a segv crash.
+- Reload cursor theme and size on reconfigure. Written-by: @spl237
+  Issue #1587
+- Fix a number of surface-focus releted short-comings:
+  - Handle cursor-button-press on layer-shell subsurfaces and fix bug in
+    `get_cursor_context()` which resulted in layer-surfaces not being
+    detected correctly. PR #1594
+  - Overhaul the logic for giving keyboard focus to layer-shell clients.
+    PR #1599
+- Fix move/resize bug manifesting itself on touchpad taps with
+  `<tapAndDrag>` disabled because libinput sends button press & release
+  signals so quickly that `interactive_finish()` is never called.
+  Written-by: @tokyo4j
+- Include always-on-top windows in window-switcher.
+- Make resize flicker free again when running labwc nested (it was a
+  regression caused by wlroots 0.17).
+- Clean up dbus and systemd activation environments on exit
+- Fix `view_get_adjacent_output()` bug resulting in often returning an
+  incorrect output when using more than two outputs. Issue #1582
+
+### Changed
+
+- If your `rc.xml` contains a keybind to show menu "client-menu", it will
+  be launched at pointer rather than the top-left part of the window. To
+  keep the old behaviour, redefine it as follows:
+
+```xml
+<keybind key="A-Space">
+  <action name="ShowMenu" menu="client-menu" atCursor="No"/>
+</keybind>
+```
+
+- Change action `MoveToOutput` argument 'name' to 'output' (because 'name'
+  is already used by the action itself).  Issue #1589
+
+```xml
+<action name="MoveToOutput" output="HDMI-A-1"/>
+```
+
+- Do not deactivate window when giving keyboard focus to a non-view
+  surface such as a popup or layer-shell surface.  This matches Openbox
+  behavior.
+- Treat Globally Active XWayland windows according to type to fix focus
+  issues with IntelliJ IDEA and JDownloader 2. Issues: #1139 #1341
+  Also revert f6e3527 which allowed re-focus between Globally Active
+  XWayland windows of the same PID.
+- Only update dbus and systemd activation environments when running on
+  the DRM backend or by explicit request using environment variable
+  `LABWC_UPDATE_ACTIVATION_ENV`.
 
 ## [0.7.1]
 

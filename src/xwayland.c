@@ -642,7 +642,11 @@ init_foreign_toplevel(struct view *view)
 static void
 xwayland_view_map(struct view *view)
 {
-	struct wlr_xwayland_surface *xwayland_surface = xwayland_surface_from_view(view);
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+	struct wlr_xwayland_surface *xwayland_surface =
+		xwayland_view->xwayland_surface;
+	assert(xwayland_surface);
+
 	if (view->mapped) {
 		return;
 	}
@@ -656,6 +660,15 @@ xwayland_view_map(struct view *view)
 		wlr_log(WLR_DEBUG, "Cannot map view without wlr_surface");
 		return;
 	}
+
+	/*
+	 * The map_request event may not be received when an unmanaged
+	 * (override-redirect) surface becomes managed. To make sure we
+	 * have valid geometry in that case, call handle_map_request()
+	 * explicitly (calling it twice is harmless).
+	 */
+	handle_map_request(&xwayland_view->map_request, NULL);
+
 	view->mapped = true;
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 

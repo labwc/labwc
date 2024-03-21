@@ -617,7 +617,8 @@ fill_libinput_category(char *nodename, char *content)
 		current_libinput_category->have_calibration_matrix = true;
 		float *mat = current_libinput_category->calibration_matrix;
 		gchar **elements = g_strsplit(content, " ", -1);
-		for (guint i = 0; elements[i]; ++i) {
+		guint i = 0;
+		for (; elements[i]; ++i) {
 			char *end_str = NULL;
 			mat[i] = strtof(elements[i], &end_str);
 			if (errno == ERANGE || *end_str != '\0' || i == 6 || *elements[i] == '\0') {
@@ -628,6 +629,11 @@ fill_libinput_category(char *nodename, char *content)
 				errno = 0;
 				break;
 			}
+		}
+		if (i != 6 && current_libinput_category->have_calibration_matrix) {
+			wlr_log(WLR_ERROR, "wrong number of calibration matrix elements,"
+								" expected 6, got %d", i);
+			current_libinput_category->have_calibration_matrix = false;
 		}
 		g_strfreev(elements);
 	}

@@ -67,12 +67,20 @@ struct xwayland_unmanaged {
 
 	struct wl_listener associate;
 	struct wl_listener dissociate;
+	struct wl_listener grab_focus;
 	struct wl_listener request_activate;
 	struct wl_listener request_configure;
 /*	struct wl_listener request_fullscreen; */
 	struct wl_listener set_geometry;
 	struct wl_listener destroy;
 	struct wl_listener set_override_redirect;
+
+	/*
+	 * True if the surface has performed a keyboard grab. labwc
+	 * honors keyboard grabs and will give the surface focus when
+	 * it's mapped (which may occur slightly later) and on top.
+	 */
+	bool ever_grabbed_focus;
 };
 
 struct xwayland_view {
@@ -89,6 +97,7 @@ struct xwayland_view {
 	struct wl_listener set_override_redirect;
 	struct wl_listener set_strut_partial;
 	struct wl_listener set_window_type;
+	struct wl_listener focus_in;
 
 	/* Not (yet) implemented */
 /*	struct wl_listener set_role; */

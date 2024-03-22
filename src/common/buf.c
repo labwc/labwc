@@ -5,13 +5,40 @@
 #include "common/buf.h"
 #include "common/mem.h"
 
+#define BUF_INITIAL_SIZE 256
+
+#define BUF_CLEARED(s) ((s) && !(s)->buf && !(s)->alloc && !(s)->len)
+#define BUF_INITIALIZED(s) ((s) && (s)->buf && (s)->alloc >= BUF_INITIAL_SIZE)
+
+/*
+ * Replace dst by src, src is invalid after this call
+ * but it may be reused when calling buf_init(src).
+ *
+ * dst must either have been initialized with buf_init()
+ * or cleared out (e.g. created by znew() or on the stack
+ * like struct buf foo = {0}).
+ */
 static void
 buf_replace_by(struct buf *dst, struct buf *src)
 {
+	assert(dst);
+	assert(BUF_INITIALIZED(src));
+
+	/*
+	 * Tries to ensure that we don't accidentally try
+	 * to free a random uninitialized dst->buf pointer
+	 */
+	assert(BUF_CLEARED(dst) || BUF_INITIALIZED(dst));
+
 	free(dst->buf);
-	dst->buf = src->buf;
-	dst->len = src->len;
-	dst->alloc = src->alloc;
+	*dst = *src;
+
+	/*
+	 * Reset src so we don't accidentally end up
+	 * reusing it with a shared internal ->buf ptr
+	 * and invalid ->len and ->alloc states.
+	 */
+	*src = (struct buf){0};
 }
 
 void
@@ -87,7 +114,7 @@ buf_init(struct buf *s)
 	 * the supplied struct may be uninitialized.
 	 */
 
-	s->alloc = 256;
+	s->alloc = BUF_INITIAL_SIZE;
 	s->buf = xmalloc(s->alloc);
 	s->buf[0] = '\0';
 	s->len = 0;

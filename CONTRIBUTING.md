@@ -94,6 +94,7 @@ Some distributions carry labwc in their repositories or user repositories.
 - @narrat (Arch)
 - @b1rger (Debian)
 - @jbeich (FreeBSD)
+- @epsilon-0 (Gentoo)
 - @AndersonTorres (NixOS)
 - @adcdam (Slackware)
 - @bdantas (Tiny Core Linux)

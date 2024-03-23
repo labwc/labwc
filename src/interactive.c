@@ -129,39 +129,53 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 	}
 }
 
+enum view_edge
+edge_from_cursor(struct seat *seat, struct output **dest_output)
+{
+	int snap_range = rc.snap_edge_range;
+	if (!snap_range) {
+		return VIEW_EDGE_INVALID;
+	}
+
+	struct output *output = output_nearest_to_cursor(seat->server);
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR, "output at cursor is unusable");
+		return VIEW_EDGE_INVALID;
+	}
+	*dest_output = output;
+
+	/* Translate into output local coordinates */
+	double cursor_x = seat->cursor->x;
+	double cursor_y = seat->cursor->y;
+	wlr_output_layout_output_coords(seat->server->output_layout,
+		output->wlr_output, &cursor_x, &cursor_y);
+
+	struct wlr_box *area = &output->usable_area;
+	if (cursor_x <= area->x + snap_range) {
+		return VIEW_EDGE_LEFT;
+	} else if (cursor_x >= area->x + area->width - snap_range) {
+		return VIEW_EDGE_RIGHT;
+	} else if (cursor_y <= area->y + snap_range) {
+		if (rc.snap_top_maximize) {
+			return VIEW_EDGE_CENTER;
+		} else {
+			return VIEW_EDGE_UP;
+		}
+	} else if (cursor_y >= area->y + area->height - snap_range) {
+		return VIEW_EDGE_DOWN;
+	} else {
+		/* Not close to any edge */
+		return VIEW_EDGE_INVALID;
+	}
+}
+
 /* Returns true if view was snapped to any edge */
 static bool
 snap_to_edge(struct view *view)
 {
-	int snap_range = rc.snap_edge_range;
-	if (!snap_range) {
-		return false;
-	}
-
-	struct output *output = output_nearest_to_cursor(view->server);
-	if (!output_is_usable(output)) {
-		wlr_log(WLR_ERROR, "output at cursor is unusable");
-		return false;
-	}
-
-	/* Translate into output local coordinates */
-	double cursor_x = view->server->seat.cursor->x;
-	double cursor_y = view->server->seat.cursor->y;
-	wlr_output_layout_output_coords(view->server->output_layout,
-		output->wlr_output, &cursor_x, &cursor_y);
-
-	struct wlr_box *area = &output->usable_area;
-	enum view_edge edge;
-	if (cursor_x <= area->x + snap_range) {
-		edge = VIEW_EDGE_LEFT;
-	} else if (cursor_x >= area->x + area->width - snap_range) {
-		edge = VIEW_EDGE_RIGHT;
-	} else if (cursor_y <= area->y + snap_range) {
-		edge = VIEW_EDGE_UP;
-	} else if (cursor_y >= area->y + area->height - snap_range) {
-		edge = VIEW_EDGE_DOWN;
-	} else {
-		/* Not close to any edge */
+	struct output *output;
+	enum view_edge edge = edge_from_cursor(&view->server->seat, &output);
+	if (edge == VIEW_EDGE_INVALID) {
 		return false;
 	}
 
@@ -170,7 +184,8 @@ snap_to_edge(struct view *view)
 	 * Don't store natural geometry here (it was
 	 * stored already in interactive_begin())
 	 */
-	if (edge == VIEW_EDGE_UP && rc.snap_top_maximize) {
+	if (edge == VIEW_EDGE_CENTER) {
+		/* <topMaximize> */
 		view_maximize(view, VIEW_AXIS_BOTH,
 			/*store_natural_geometry*/ false);
 	} else {
@@ -226,7 +241,7 @@ interactive_cancel(struct view *view)
 		return;
 	}
 
-	regions_hide_overlay(&view->server->seat);
+	overlay_hide(&view->server->seat);
 
 	resize_indicator_hide(view);
 

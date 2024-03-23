@@ -55,7 +55,7 @@ process_line(char *line)
 	buf_expand_shell_variables(&value);
 	buf_expand_tilde(&value);
 	setenv(key, value.buf, 1);
-	free(value.buf);
+	buf_finish(&value);
 }
 
 /* return true on successful read */

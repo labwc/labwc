@@ -5,6 +5,30 @@
 #include "common/buf.h"
 #include "common/mem.h"
 
+#define BUF_INITIAL_SIZE 256
+
+/*
+ * Replace dst by src, src is invalid after this call
+ * but it may be reused when calling buf_init(src).
+ *
+ * dst must either have been initialized with buf_init()
+ * or zeroed out (e.g. created by znew() or on the stack
+ * with something like struct buf foo = {0}).
+ */
+static void
+buf_replace_by(struct buf *dst, struct buf *src)
+{
+	free(dst->buf);
+	*dst = *src;
+
+	/*
+	 * Reset src so we don't accidentally end up
+	 * reusing it with a shared internal ->buf ptr
+	 * and invalid ->len and ->alloc states.
+	 */
+	*src = (struct buf){0};
+}
+
 void
 buf_expand_tilde(struct buf *s)
 {
@@ -17,10 +41,7 @@ buf_expand_tilde(struct buf *s)
 			buf_add_char(&new, s->buf[i]);
 		}
 	}
-	free(s->buf);
-	s->buf = new.buf;
-	s->len = new.len;
-	s->alloc = new.alloc;
+	buf_replace_by(s, &new);
 }
 
 static void
@@ -52,7 +73,7 @@ buf_expand_shell_variables(struct buf *s)
 	for (int i = 0 ; i < s->len ; i++) {
 		if (s->buf[i] == '$' && isvalid(s->buf[i+1])) {
 			/* expand environment variable */
-			environment_variable.len = 0;
+			buf_clear(&environment_variable);
 			buf_add(&environment_variable, s->buf + i + 1);
 			char *p = environment_variable.buf;
 			while (isvalid(*p)) {
@@ -69,19 +90,19 @@ buf_expand_shell_variables(struct buf *s)
 			buf_add_char(&new, s->buf[i]);
 		}
 	}
-	free(environment_variable.buf);
-	free(s->buf);
-	s->buf = new.buf;
-	s->len = new.len;
-	s->alloc = new.alloc;
+	buf_finish(&environment_variable);
+	buf_replace_by(s, &new);
 }
 
 void
 buf_init(struct buf *s)
 {
-	/* we can't assert(!s->buf) here because struct may be uninitialized */
+	/*
+	 * We can't assert(!s->buf) here because
+	 * the supplied struct may be uninitialized.
+	 */
 
-	s->alloc = 256;
+	s->alloc = BUF_INITIAL_SIZE;
 	s->buf = xmalloc(s->alloc);
 	s->buf[0] = '\0';
 	s->len = 0;
@@ -130,6 +151,21 @@ buf_clear(struct buf *s)
 void
 buf_reset(struct buf *s)
 {
-	zfree(s->buf);
+	assert(s->buf);
+
+	buf_finish(s);
 	buf_init(s);
+}
+
+void
+buf_finish(struct buf *s)
+{
+	assert(s->buf);
+
+	/*
+	 * Using zfree rather than free ensures that the
+	 * asserts will be triggered whenever something
+	 * other than buf_init() is called on the buffer.
+	 */
+	zfree(s->buf);
 }

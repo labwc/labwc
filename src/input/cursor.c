@@ -225,16 +225,7 @@ process_cursor_move(struct server *server, uint32_t time)
 	resistance_move_apply(view, &dx, &dy);
 	view_move(view, dx, dy);
 
-	/* Region overlay */
-	if (!regions_should_snap(server)) {
-		return;
-	}
-	struct region *region = regions_from_cursor(server);
-	if (region) {
-		regions_show_overlay(view, &server->seat, region);
-	} else {
-		regions_hide_overlay(&server->seat);
-	}
+	overlay_show(&server->seat, view);
 }
 
 static void

@@ -136,10 +136,10 @@ get_special(struct server *server, struct wlr_scene_node *node)
 	if (node == &server->seat.drag.icons->node) {
 		return "seat->drag.icons";
 	}
-	if (server->seat.region_overlay.tree
-			&& node == &server->seat.region_overlay.tree->node) {
+	if (server->seat.overlay.tree
+			&& node == &server->seat.overlay.tree->node) {
 		/* Created on-demand */
-		return "seat->region_overlay";
+		return "seat->overlay";
 	}
 	if (server->seat.input_method_relay->popup_tree
 			&& node == &server->seat.input_method_relay->popup_tree->node) {

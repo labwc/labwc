@@ -100,6 +100,9 @@ Configuration must be wrapped in a <labwc_config> root-element like this:
 decision to increase config file flexibility and keep code simple. In practical
 terms, this means that `<a><b>c</b></a>` is equivalent to `<a b="c" />`.
 
+Note: This does not apply to all aspects of menu.xml, specifically the
+attributes id, label and execute.
+
 The following three are therefore treated the same:
 
 ```

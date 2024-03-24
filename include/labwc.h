@@ -160,7 +160,6 @@ struct seat {
 		struct wlr_scene_tree *icons;
 	} drag;
 
-	/* Private use by overlay.c */
 	struct overlay overlay;
 	/* Used to prevent region snapping when starting a move with A-Left */
 	bool region_prevent_snap;

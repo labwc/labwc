@@ -32,24 +32,16 @@ create_overlay(struct seat *seat)
 }
 
 static void
-cancel_pending_overlay(struct overlay *overlay)
+show_overlay(struct seat *seat, struct wlr_box *box)
 {
-	if (overlay->timer) {
-		wl_event_source_timer_update(overlay->timer, 0);
-	}
-	overlay->pending.view = NULL;
-	overlay->pending.box = (struct wlr_box){0};
-}
+	struct server *server = seat->server;
+	struct view *view = server->grabbed_view;
+	assert(view);
 
-static void
-show_overlay(struct seat *seat, struct view *view, struct wlr_box *box)
-{
 	if (!seat->overlay.tree) {
 		create_overlay(seat);
 	}
 
-	/* Update overlay */
-	struct server *server = seat->server;
 	struct wlr_scene_node *node = &seat->overlay.tree->node;
 	if (!wlr_renderer_is_pixman(server->renderer)) {
 		/* Hardware assisted rendering: Half transparent overlay */
@@ -66,19 +58,22 @@ show_overlay(struct seat *seat, struct view *view, struct wlr_box *box)
 	}
 	wlr_scene_node_set_position(node, box->x, box->y);
 	wlr_scene_node_set_enabled(node, true);
-
-	cancel_pending_overlay(&seat->overlay);
 }
 
 static void
-show_region_overlay(struct seat *seat, struct view *view, struct region *region)
+show_region_overlay(struct seat *seat, struct region *region)
 {
 	if (region == seat->overlay.active.region) {
 		return;
 	}
 	seat->overlay.active.region = region;
 	seat->overlay.active.edge = VIEW_EDGE_INVALID;
-	show_overlay(seat, view, &region->geo);
+	seat->overlay.active.output = NULL;
+	if (seat->overlay.timer) {
+		wl_event_source_timer_update(seat->overlay.timer, 0);
+	}
+
+	show_overlay(seat, &region->geo);
 }
 
 /* TODO: share logic with view_get_edge_snap_box() */
@@ -109,37 +104,40 @@ static struct wlr_box get_edge_snap_box(enum view_edge edge, struct output *outp
 }
 
 static int
-handle_overlay_timeout(void *data)
+handle_edge_overlay_timeout(void *data)
 {
 	struct seat *seat = data;
-	show_overlay(seat, seat->overlay.pending.view,
-		&seat->overlay.pending.box);
+	assert(seat->overlay.active.edge != VIEW_EDGE_INVALID
+		&& seat->overlay.active.output);
+	struct wlr_box box = get_edge_snap_box(seat->overlay.active.edge,
+		seat->overlay.active.output);
+	show_overlay(seat, &box);
 	return 0;
 }
 
 static void
-show_edge_overlay_delayed(struct seat *seat, struct view *view,
-		enum view_edge edge, struct output *output)
+show_edge_overlay_delayed(struct seat *seat, enum view_edge edge,
+		struct output *output)
 {
-	if (seat->overlay.active.edge == edge) {
+	if (seat->overlay.active.edge == edge
+			&& seat->overlay.active.output == output) {
 		return;
 	}
-	seat->overlay.active.edge = edge;
 	seat->overlay.active.region = NULL;
+	seat->overlay.active.edge = edge;
+	seat->overlay.active.output = output;
 
-	seat->overlay.pending.view = view;
-	seat->overlay.pending.box = get_edge_snap_box(edge, output);
 	if (!seat->overlay.timer) {
 		seat->overlay.timer = wl_event_loop_add_timer(
 			seat->server->wl_event_loop,
-			handle_overlay_timeout, seat);
+			handle_edge_overlay_timeout, seat);
 	}
 	/* Delay for 150ms */
 	wl_event_source_timer_update(seat->overlay.timer, 150);
 }
 
 void
-overlay_show(struct seat *seat, struct view *view)
+overlay_show(struct seat *seat)
 {
 	struct server *server = seat->server;
 
@@ -147,7 +145,7 @@ overlay_show(struct seat *seat, struct view *view)
 	if (regions_should_snap(server)) {
 		struct region *region = regions_from_cursor(server);
 		if (region) {
-			show_region_overlay(seat, view, region);
+			show_region_overlay(seat, region);
 			return;
 		}
 	}
@@ -161,7 +159,7 @@ overlay_show(struct seat *seat, struct view *view)
 		 * flickering when dragging view across output edges in
 		 * multi-monitor setup.
 		 */
-		show_edge_overlay_delayed(seat, view, edge, output);
+		show_edge_overlay_delayed(seat, edge, output);
 		return;
 	}
 
@@ -171,9 +169,12 @@ overlay_show(struct seat *seat, struct view *view)
 void
 overlay_hide(struct seat *seat)
 {
-	cancel_pending_overlay(&seat->overlay);
-	seat->overlay.active.edge = VIEW_EDGE_INVALID;
 	seat->overlay.active.region = NULL;
+	seat->overlay.active.edge = VIEW_EDGE_INVALID;
+	seat->overlay.active.output = NULL;
+	if (seat->overlay.timer) {
+		wl_event_source_timer_update(seat->overlay.timer, 0);
+	}
 
 	if (!seat->overlay.tree) {
 		return;

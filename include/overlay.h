@@ -14,23 +14,23 @@ struct overlay {
 		struct multi_rect *pixman_rect;
 	};
 
-	/* For caching previously shown overlay */
+	/* Represents currently shown or delayed overlay */
 	struct {
+		/* Region overlay */
 		struct region *region;
+
+		/* Snap-to-edge overlay */
 		enum view_edge edge;
+		struct output *output;
 	} active;
 
 	/* For delayed snap-to-edge overlay */
 	struct wl_event_source *timer;
-	struct {
-		struct view *view;
-		struct wlr_box box;
-	} pending;
 };
 
-/* Calls overlay_hide() internally if the view is not to be snapped */
-void overlay_show(struct seat *seat, struct view *view);
-/* This function must be called when grabbed view is destroyed */
+/* Calls overlay_hide() internally if there's no overlay to show */
+void overlay_show(struct seat *seat);
+/* This function must be called when server->grabbed_view is destroyed */
 void overlay_hide(struct seat *seat);
 
 #endif

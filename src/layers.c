@@ -337,6 +337,7 @@ handle_map(struct wl_listener *listener, void *data)
 	if (wlr_output) {
 		output_update_usable_area(wlr_output->data);
 	}
+
 	/*
 	 * Since moving to the wlroots scene-graph API, there is no need to
 	 * call wlr_surface_send_enter() from here since that will be done
@@ -344,10 +345,8 @@ handle_map(struct wl_listener *listener, void *data)
 	 * the scene. See wlr_scene_surface_create() documentation.
 	 */
 
-	/*
-	 * Processing of keyboard-interactivity changes is done in the
-	 * commit-handler.
-	 */
+	struct seat *seat = &layer->server->seat;
+	layer_try_set_focus(seat, layer->scene_layer_surface->layer_surface);
 }
 
 static void

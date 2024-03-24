@@ -100,20 +100,22 @@ Configuration must be wrapped in a <labwc_config> root-element like this:
 decision to increase config file flexibility and keep code simple. In practical
 terms, this means that `<a><b>c</b></a>` is usually equivalent to `<a b="c" />`.
 However, there are some caveats:
-- In menu.xml, the attributes `id` and `label` *must* be expressed as attributes
-  rather than as separate child tags.
-- Ordering of attributes can sometimes be singificant. For example, when setting
-  fonts via attributes rather than children,
-  
-      <font place="ActiveWindow" name="..." size="..." />
 
-  will set a font for active window titles, while
-  
-       <font name="..." size="..." place="ActiveWindow" />
-       
-  will set a font as if `place` were unspecified, because `name` and `size` will be
-  processed before `place`.
-  
+	1. In menu.xml, the attributes *id*, *label* and *execute* must be
+	expressed as attributes rather than as separate child elements.
+
+	2. Ordering of attributes can sometimes be singificant. For example,
+	when setting fonts via attributes rather than children,
+
+		*<font place="ActiveWindow" name="..." size="..." />*
+
+	will set a font for active window titles, while
+
+		*<font name="..." size="..." place="ActiveWindow" />*
+
+	will set a font as if *place* were unspecified, because *name* and
+	*size* will be processed before *place*.
+
 In general, it is recommended that attributes not be used to collapse more than
 one level of the configuration hierarchy.
 

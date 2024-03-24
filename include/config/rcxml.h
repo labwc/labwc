@@ -25,6 +25,9 @@ enum window_switcher_field_content {
 	LAB_FIELD_WIN_STATE,
 	LAB_FIELD_TYPE_SHORT,
 	LAB_FIELD_OUTPUT,
+	LAB_FIELD_CUSTOM,
+
+	LAB_FIELD_COUNT
 };
 
 enum view_placement_policy {
@@ -56,6 +59,7 @@ struct usable_area_override {
 struct window_switcher_field {
 	enum window_switcher_field_content content;
 	int width;
+	char *format;
 	struct wl_list link; /* struct rcxml.window_switcher.fields */
 };
 

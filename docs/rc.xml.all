@@ -77,8 +77,30 @@
         <field content="output" width="9%" />
         <field content="identifier" width="30%" />
         <field content="title" width="50%" />
-       </fields>  
+      </fields>  
     </windowSwitcher>
+
+    A new custom field has been added that will effectively replace the above.
+    It's used like this.
+
+    <windowSwitcher show="yes" preview="no" outlines="no" allWorkspaces="yes">
+      <fields>
+        <field content="custom" format="%b %3s %-10o %-20W %-10i %t" width="100%" />
+      </fields>  
+    </windowSwitcher>
+
+    Note: you can embed text into the string, or rearrange the order of elements
+    or leave them out completely. Recommend using a monospace font for the osd
+    Printf style formatting, including spacing and justification.
+    Fields are:
+      %B -> type (backend)
+      %b -> type_short (backend)
+      %I -> identifier
+      %i -> trimmed_identifier
+      %s -> state
+      %o -> output
+      %W -> workspace
+      %t -> title
   -->
 
   <!-- edge strength is in pixels -->

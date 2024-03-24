@@ -216,9 +216,13 @@ fill_window_switcher_field(char *nodename, char *content)
 			current_field->content = LAB_FIELD_TYPE_SHORT;
 		} else if (!strcmp(content, "output")) {
 			current_field->content = LAB_FIELD_OUTPUT;
+		} else if (!strcmp(content, "custom")) {
+			current_field->content = LAB_FIELD_CUSTOM;
 		} else {
 			wlr_log(WLR_ERROR, "bad windowSwitcher field '%s'", content);
 		}
+	} else if (!strcmp(nodename, "format")) {
+		current_field->format = xstrdup(content);
 	} else if (!strcmp(nodename, "width") && !strchr(content, '%')) {
 		wlr_log(WLR_ERROR, "Removing invalid field, %s='%s' misses"
 			" trailing %%", nodename, content);
@@ -1635,6 +1639,7 @@ rcxml_finish(void)
 	struct window_switcher_field *field, *field_tmp;
 	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.fields, link) {
 		wl_list_remove(&field->link);
+		zfree(field->format);
 		zfree(field);
 	}
 

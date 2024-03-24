@@ -11,6 +11,7 @@
 #include "common/buf.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"
+#include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
@@ -282,6 +283,169 @@ get_title_if_different(struct view *view)
 	return (!title || !strcmp(identifier, title)) ? NULL : title;
 }
 
+typedef void field_set_fn_t(struct buf *buf, struct view *view, const char *format);
+
+static void
+field_set_type(struct buf *buf, struct view *view, const char *format)
+{
+	buf_add(buf, get_type(view));
+}
+
+static void
+field_set_type_short(struct buf *buf, struct view *view, const char *format)
+{
+	buf_add(buf, get_type_short(view));
+}
+
+static void
+field_set_workspace(struct buf *buf, struct view *view, const char *format)
+{
+	buf_add(buf, view->workspace->name);
+}
+
+static void
+field_set_win_state(struct buf *buf, struct view *view, const char *format)
+{
+	if (view->maximized) {
+		buf_add(buf, "M");
+	} else if (view->minimized) {
+		buf_add(buf, "m");
+	} else if (view->fullscreen) {
+		buf_add(buf, "F");
+	} else {
+		buf_add(buf, " ");
+	}
+}
+
+static void
+field_set_output(struct buf *buf, struct view *view, const char *format)
+{
+	if (wl_list_length(&view->server->outputs) > 1 &&
+			output_is_usable(view->output)) {
+		buf_add(buf, view->output->wlr_output->name);
+	} else {
+		buf_add(buf, " ");
+	}
+}
+
+static void
+field_set_identifier(struct buf *buf, struct view *view, const char *format)
+{
+	buf_add(buf, get_app_id(view));
+}
+
+static void
+field_set_identifier_trimmed(struct buf *buf, struct view *view, const char *format)
+{
+	char *s = (char *)get_app_id(view);
+	buf_add(buf, get_trimmed_app_id(s));
+}
+
+static void
+field_set_title(struct buf *buf, struct view *view, const char *format)
+{
+	buf_add(buf, get_title_if_different(view));
+}
+
+/* forward declare */
+static field_set_fn_t * const field_handlers[];
+
+static void
+field_set_custom(struct buf *buf, struct view *view, const char *format)
+{
+	if (!format) {
+		wlr_log(WLR_ERROR, "Missing format for custom window switcher field");
+		return;
+	}
+
+	/* FIXME: completely random, add check in the string formatting branch */
+	char fmt[20];
+	unsigned char fmt_len = 0;
+
+	struct buf field_result;
+	buf_init(&field_result);
+
+	/* FIXME: similarly random */
+	char field_formatted[4096];
+
+	for (const char *p = format; *p; p++) {
+		if (!fmt_len) {
+			if (*p == '%') {
+				fmt[fmt_len++] = *p;
+			} else {
+				/*
+				 * Just relay anything not part of a
+				 * format string to the output buffer.
+				 */
+				buf_add_char(buf, *p);
+			}
+			continue;
+		}
+		enum window_switcher_field_content field = LAB_FIELD_NONE;
+
+		/* Allow string formatting */
+		/* TODO: add . for manual truncating? */
+		if (*p == '-' || *p == '#' || (*p >= '0' && *p <= '9')) {
+			fmt[fmt_len++] = *p;
+			continue;
+		}
+
+		/* Handlers */
+		if (*p == 'B') {
+			field = LAB_FIELD_TYPE;
+		} else if (*p == 'b') {
+			field = LAB_FIELD_TYPE_SHORT;
+		} else if (*p == 'W') {
+			field = LAB_FIELD_WORKSPACE;
+		} else if (*p == 's') {
+			field = LAB_FIELD_WIN_STATE;
+		} else if (*p == 'o') {
+			field = LAB_FIELD_OUTPUT;
+		} else if (*p == 'I') {
+			field = LAB_FIELD_IDENTIFIER;
+		} else if (*p == 'i') {
+			field = LAB_FIELD_TRIMMED_IDENTIFIER;
+		} else if (*p == 't') {
+			field = LAB_FIELD_TITLE;
+		} else {
+			wlr_log(WLR_ERROR,
+				"invalid format character found for osd %s: '%c'",
+				format, *p);
+			goto reset_format;
+		}
+		fmt[fmt_len++] = 's';
+		fmt[fmt_len++] = '\0';
+
+		/* Generate the actual content*/
+		assert(field < LAB_FIELD_COUNT && field_handlers[field]);
+		field_handlers[field](&field_result, view, NULL);
+
+		/* Throw it at snprintf to allow formatting / padding */
+		snprintf(field_formatted, sizeof(field_formatted), fmt, field_result.buf);
+
+		/* And finally write it to the output buffer */
+		buf_add(buf, field_formatted);
+
+reset_format:
+		/* Reset format string and tmp field result buffer */
+		fmt_len = 0;
+		field_result.len = 0;
+	}
+	free(field_result.buf);
+}
+
+static field_set_fn_t * const field_handlers[] = {
+	[LAB_FIELD_TYPE] = field_set_type,
+	[LAB_FIELD_TYPE_SHORT] = field_set_type_short,
+	[LAB_FIELD_WORKSPACE] = field_set_workspace,
+	[LAB_FIELD_WIN_STATE] = field_set_win_state,
+	[LAB_FIELD_OUTPUT] = field_set_output,
+	[LAB_FIELD_IDENTIFIER] = field_set_identifier,
+	[LAB_FIELD_TRIMMED_IDENTIFIER] = field_set_identifier_trimmed,
+	[LAB_FIELD_TITLE] = field_set_title,
+	[LAB_FIELD_CUSTOM] = field_set_custom,
+};
+
 static void
 render_osd(struct server *server, cairo_t *cairo, int w, int h,
 		bool show_workspace, const char *workspace_name,
@@ -374,50 +538,9 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 				+ theme->osd_window_switcher_item_padding_y
 				+ theme->osd_window_switcher_item_active_border_width);
 
-			switch (field->content) {
-			case LAB_FIELD_TYPE:
-				buf_add(&buf, get_type(*view));
-				break;
-			case LAB_FIELD_TYPE_SHORT:
-				buf_add(&buf, get_type_short(*view));
-				break;
-			case LAB_FIELD_WORKSPACE:
-				buf_add(&buf, (*view)->workspace->name);
-				break;
-			case LAB_FIELD_WIN_STATE:
-				if ((*view)->maximized) {
-					buf_add(&buf, "M");
-				} else if ((*view)->minimized) {
-					buf_add(&buf, "m");
-				} else if ((*view)->fullscreen) {
-					buf_add(&buf, "F");
-				} else {
-					buf_add(&buf, " ");
-				}
-				break;
-			case LAB_FIELD_OUTPUT:
-				if (wl_list_length(&server->outputs) > 1 &&
-						output_is_usable((*view)->output)) {
-					buf_add(&buf, (*view)->output->wlr_output->name);
-				} else {
-					buf_add(&buf, " ");
-				}
-				break;
-			case LAB_FIELD_IDENTIFIER:
-				buf_add(&buf, get_app_id(*view));
-				break;
-			case LAB_FIELD_TRIMMED_IDENTIFIER:
-				{
-					char *s = (char *)get_app_id(*view);
-					buf_add(&buf, get_trimmed_app_id(s));
-					break;
-				}
-			case LAB_FIELD_TITLE:
-				buf_add(&buf, get_title_if_different(*view));
-				break;
-			default:
-				break;
-			}
+			assert(field->content < LAB_FIELD_COUNT && field_handlers[field->content]);
+			field_handlers[field->content](&buf, *view, field->format);
+
 			int field_width = (available_width - (nr_fields + 1)
 				* theme->osd_window_switcher_item_padding_x)
 				* field->width / 100.0;

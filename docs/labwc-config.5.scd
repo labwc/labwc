@@ -224,6 +224,9 @@ this is for compatibility with Openbox.
 
 		- *output* Show output id, if more than one output detected
 
+		- *custom* This field will replace any/all of the above.
+		  It uses a printf style for it's formatting.
+
 	*width* defines the width of the field expressed as a percentage of
 	the overall window switcher width. The "%" character is required.
 

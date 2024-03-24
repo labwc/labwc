@@ -102,13 +102,17 @@ static void
 output_destroy_notify(struct wl_listener *listener, void *data)
 {
 	struct output *output = wl_container_of(listener, output, destroy);
+	struct seat *seat = &output->server->seat;
 	regions_evacuate_output(output);
-	regions_destroy(&output->server->seat, &output->regions);
+	regions_destroy(seat, &output->regions);
+	if (seat->overlay.active.output == output) {
+		overlay_hide(seat);
+	}
 	wl_list_remove(&output->link);
 	wl_list_remove(&output->frame.link);
 	wl_list_remove(&output->destroy.link);
 	wl_list_remove(&output->request_state.link);
-	seat_output_layout_changed(&output->server->seat);
+	seat_output_layout_changed(seat);
 
 	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		wlr_scene_node_destroy(&output->layer_tree[i]->node);

@@ -80,6 +80,8 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
 		/* Any change to the modifier state re-enable region snap */
 		seat->region_prevent_snap = false;
+		/* Pressing/releasing modifier key may show/hide region overlay */
+		overlay_show(seat);
 	}
 
 	if (server->osd_state.cycle_view
@@ -96,10 +98,6 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 				workspaces_osd_hide(seat);
 			}
 		}
-	}
-	/* Pressing/releasing modifier key may show/hide region overlay */
-	if (server->grabbed_view) {
-		overlay_show(seat, server->grabbed_view);
 	}
 
 	if (!input_method_keyboard_grab_forward_modifiers(keyboard)) {

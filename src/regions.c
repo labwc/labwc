@@ -163,6 +163,9 @@ regions_destroy(struct seat *seat, struct wl_list *regions)
 	struct region *region, *region_tmp;
 	wl_list_for_each_safe(region, region_tmp, regions, link) {
 		wl_list_remove(&region->link);
+		if (seat && seat->overlay.active.region == region) {
+			seat->overlay.active.region = NULL;
+		}
 		zfree(region->name);
 		zfree(region);
 	}

@@ -29,7 +29,7 @@ struct overlay {
 };
 
 /* Calls overlay_hide() internally if there's no overlay to show */
-void overlay_show(struct seat *seat);
+void overlay_update(struct seat *seat);
 /* This function must be called when server->grabbed_view is destroyed */
 void overlay_hide(struct seat *seat);
 

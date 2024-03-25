@@ -174,7 +174,7 @@ show_edge_overlay(struct seat *seat, enum view_edge edge,
 }
 
 void
-overlay_show(struct seat *seat)
+overlay_update(struct seat *seat)
 {
 	struct server *server = seat->server;
 

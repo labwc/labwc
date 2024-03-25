@@ -71,6 +71,7 @@ struct theme {
 	float osd_label_text_color[4];
 
 	int osd_window_switcher_width;
+	int osd_window_switcher_width_percent;
 	int osd_window_switcher_padding;
 	int osd_window_switcher_item_padding_x;
 	int osd_window_switcher_item_padding_y;

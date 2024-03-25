@@ -490,6 +490,7 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#888888", theme->menu_separator_color);
 
 	theme->osd_window_switcher_width = 600;
+	theme->osd_window_switcher_width_percent = 0;
 	theme->osd_window_switcher_padding = 4;
 	theme->osd_window_switcher_item_padding_x = 10;
 	theme->osd_window_switcher_item_padding_y = 1;
@@ -671,6 +672,9 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "osd.window-switcher.width")) {
 		theme->osd_window_switcher_width = atoi(value);
+	}
+	if (match_glob(key, "osd.window-switcher.width.percent")) {
+		theme->osd_window_switcher_width_percent = atoi(value);
 	}
 	if (match_glob(key, "osd.window-switcher.padding")) {
 		theme->osd_window_switcher_padding = atoi(value);

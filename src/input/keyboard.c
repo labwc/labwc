@@ -81,7 +81,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 		/* Any change to the modifier state re-enable region snap */
 		seat->region_prevent_snap = false;
 		/* Pressing/releasing modifier key may show/hide region overlay */
-		overlay_show(seat);
+		overlay_update(seat);
 	}
 
 	if (server->osd_state.cycle_view

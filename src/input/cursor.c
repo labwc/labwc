@@ -225,7 +225,7 @@ process_cursor_move(struct server *server, uint32_t time)
 	resistance_move_apply(view, &dx, &dy);
 	view_move(view, dx, dy);
 
-	overlay_show(&server->seat);
+	overlay_update(&server->seat);
 }
 
 static void

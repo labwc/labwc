@@ -266,6 +266,7 @@ ssd_titlebar_hide(struct ssd *ssd)
 	ssd->titlebar.height = 0;
 	ssd_border_update(ssd);
 	ssd_extents_update(ssd);
+	ssd_shadow_update(ssd);
 	ssd->margin = ssd_thickness(ssd->view);
 }
 
@@ -357,6 +358,7 @@ ssd_enable_shade(struct ssd *ssd, bool enable)
 	}
 	ssd_border_update(ssd);
 	wlr_scene_node_set_enabled(&ssd->extents.tree->node, !enable);
+	ssd_shadow_update(ssd);
 }
 
 void

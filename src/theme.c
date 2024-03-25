@@ -670,6 +670,12 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_hexstr(value, theme->osd_border_color);
 	}
 	if (match_glob(key, "osd.window-switcher.width")) {
+		theme->osd_width_should_parse_as_percentage = false;
+		char *p = strrchr(value, '%');
+		if (p) {
+			*p = '\0';
+			theme->osd_width_should_parse_as_percentage = true;
+		}
 		theme->osd_window_switcher_width = atoi(value);
 	}
 	if (match_glob(key, "osd.window-switcher.padding")) {

@@ -60,7 +60,10 @@ osd.border.color: #000000
 osd.border.width: 1
 osd.label.text.color: #000000
 
+# width can be set as percent (of screen width)
+# example 50% or 75% instead of 600, max 100%
 osd.window-switcher.width: 600
+
 osd.window-switcher.padding: 4
 osd.window-switcher.item.padding.x: 10
 osd.window-switcher.item.padding.y: 1

@@ -132,6 +132,7 @@ get_wlr_direction(enum view_edge edge)
 	default:
 		/* not reached */
 		assert(false);
+		return 0;
 	}
 }
 

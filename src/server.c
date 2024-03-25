@@ -564,7 +564,7 @@ server_start(struct server *server)
 }
 
 void
-server_finish(struct server *server)
+server_finish(struct server *server, pid_t primary_client_pid)
 {
 #if HAVE_XWAYLAND
 	xwayland_server_finish(server);
@@ -573,6 +573,11 @@ server_finish(struct server *server)
 		wl_event_source_remove(sighup_source);
 	}
 	wl_display_destroy_clients(server->wl_display);
+
+	int status;
+	if (primary_client_pid) {
+		waitpid(primary_client_pid, &status, 0);
+	}
 
 	seat_finish(server);
 	wlr_output_layout_destroy(server->output_layout);

@@ -15,5 +15,6 @@ labwc_sources += files(
   'scene-helpers.c',
   'surface-helpers.c',
   'spawn.c',
+  'spawn-primary-client.c',
   'string-helpers.c',
 )

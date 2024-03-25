@@ -8,6 +8,7 @@
 #include "common/font.h"
 #include "common/mem.h"
 #include "common/spawn.h"
+#include "common/spawn-primary-client.h"
 #include "config/session.h"
 #include "labwc.h"
 #include "theme.h"
@@ -24,6 +25,7 @@ static const struct option long_options[] = {
 	{"merge-config", no_argument, NULL, 'm'},
 	{"reconfigure", no_argument, NULL, 'r'},
 	{"startup", required_argument, NULL, 's'},
+	{"session", required_argument, NULL, 'S'},
 	{"version", no_argument, NULL, 'v'},
 	{"verbose", no_argument, NULL, 'V'},
 	{0, 0, 0, 0}
@@ -39,6 +41,7 @@ static const char labwc_usage[] =
 "  -m, --merge-config       Merge user config files/theme in all XDG Base Dirs\n"
 "  -r, --reconfigure        Reload the compositor configuration\n"
 "  -s, --startup <command>  Run command on startup\n"
+"  -S, --session <command>  Run command on startup and terminate on exit\n"
 "  -v, --version            Show version number and quit\n"
 "  -V, --verbose            Enable more verbose logging\n";
 
@@ -87,12 +90,13 @@ main(int argc, char *argv[])
 	textdomain(GETTEXT_PACKAGE);
 #endif
 	char *startup_cmd = NULL;
+	char *primary_client = NULL;
 	enum wlr_log_importance verbosity = WLR_ERROR;
 
 	int c;
 	while (1) {
 		int index = 0;
-		c = getopt_long(argc, argv, "c:C:dehmrs:vV", long_options, &index);
+		c = getopt_long(argc, argv, "c:C:dehmrs:S:vV", long_options, &index);
 		if (c == -1) {
 			break;
 		}
@@ -117,6 +121,9 @@ main(int argc, char *argv[])
 			exit(0);
 		case 's':
 			startup_cmd = optarg;
+			break;
+		case 'S':
+			primary_client = optarg;
 			break;
 		case 'v':
 			printf("labwc " LABWC_VERSION "\n");
@@ -171,6 +178,18 @@ main(int argc, char *argv[])
 
 	menu_init(&server);
 
+	/* Start session-manager if one is specified by -S|--session */
+	struct wl_event_source *sigchld_source = NULL;
+	pid_t primary_client_pid = 0;
+	if (primary_client) {
+		bool ret = spawn_primary_client(&server, primary_client,
+			&primary_client_pid, &sigchld_source);
+		if (!ret) {
+			wlr_log(WLR_ERROR, "fatal error with primary client");
+			goto out;
+		}
+	}
+
 	session_autostart_init(&server);
 	if (startup_cmd) {
 		spawn_async_no_shell(startup_cmd);
@@ -178,9 +197,10 @@ main(int argc, char *argv[])
 
 	wl_display_run(server.wl_display);
 
+out:
 	session_shutdown(&server);
 
-	server_finish(&server);
+	server_finish(&server, primary_client_pid);
 
 	menu_finish(&server);
 	theme_finish(&theme);

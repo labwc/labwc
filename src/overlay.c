@@ -116,8 +116,36 @@ handle_edge_overlay_timeout(void *data)
 	return 0;
 }
 
+static enum wlr_direction
+get_wlr_direction(enum view_edge edge)
+{
+	switch (edge) {
+	case VIEW_EDGE_LEFT:
+		return WLR_DIRECTION_LEFT;
+	case VIEW_EDGE_RIGHT:
+		return WLR_DIRECTION_RIGHT;
+	case VIEW_EDGE_UP:
+	case VIEW_EDGE_CENTER:
+		return WLR_DIRECTION_UP;
+	case VIEW_EDGE_DOWN:
+		return WLR_DIRECTION_DOWN;
+	default:
+		/* not reached */
+		assert(false);
+	}
+}
+
+static bool
+edge_has_adjacent_output_from_cursor(struct seat *seat, struct output *output,
+		enum view_edge edge)
+{
+	return wlr_output_layout_adjacent_output(
+		seat->server->output_layout, get_wlr_direction(edge),
+		output->wlr_output, seat->cursor->x, seat->cursor->y);
+}
+
 static void
-show_edge_overlay_delayed(struct seat *seat, enum view_edge edge,
+show_edge_overlay(struct seat *seat, enum view_edge edge,
 		struct output *output)
 {
 	if (seat->overlay.active.edge == edge
@@ -128,13 +156,21 @@ show_edge_overlay_delayed(struct seat *seat, enum view_edge edge,
 	seat->overlay.active.edge = edge;
 	seat->overlay.active.output = output;
 
-	if (!seat->overlay.timer) {
-		seat->overlay.timer = wl_event_loop_add_timer(
-			seat->server->wl_event_loop,
-			handle_edge_overlay_timeout, seat);
+	if (edge_has_adjacent_output_from_cursor(seat, output, edge)) {
+		if (!seat->overlay.timer) {
+			seat->overlay.timer = wl_event_loop_add_timer(
+				seat->server->wl_event_loop,
+				handle_edge_overlay_timeout, seat);
+		}
+		/*
+		 * Delay overlay for 150ms to prevent flickering when dragging
+		 * view across output edges in multi-monitor setup.
+		 */
+		wl_event_source_timer_update(seat->overlay.timer, 150);
+	} else {
+		/* Show overlay now */
+		handle_edge_overlay_timeout(seat);
 	}
-	/* Delay for 150ms */
-	wl_event_source_timer_update(seat->overlay.timer, 150);
 }
 
 void
@@ -155,12 +191,7 @@ overlay_show(struct seat *seat)
 	struct output *output;
 	enum view_edge edge = edge_from_cursor(seat, &output);
 	if (edge != VIEW_EDGE_INVALID) {
-		/*
-		 * Snap-to-edge overlay is delayed for 150ms to prevent
-		 * flickering when dragging view across output edges in
-		 * multi-monitor setup.
-		 */
-		show_edge_overlay_delayed(seat, edge, output);
+		show_edge_overlay(seat, edge, output);
 		return;
 	}
 

@@ -58,6 +58,10 @@ show_overlay(struct seat *seat, struct wlr_box *box)
 	}
 	wlr_scene_node_set_position(node, box->x, box->y);
 	wlr_scene_node_set_enabled(node, true);
+
+	if (seat->overlay.timer) {
+		wl_event_source_timer_update(seat->overlay.timer, 0);
+	}
 }
 
 static void
@@ -69,9 +73,6 @@ show_region_overlay(struct seat *seat, struct region *region)
 	seat->overlay.active.region = region;
 	seat->overlay.active.edge = VIEW_EDGE_INVALID;
 	seat->overlay.active.output = NULL;
-	if (seat->overlay.timer) {
-		wl_event_source_timer_update(seat->overlay.timer, 0);
-	}
 
 	show_overlay(seat, &region->geo);
 }

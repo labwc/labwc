@@ -163,10 +163,10 @@ show_edge_overlay(struct seat *seat, enum view_edge edge,
 				handle_edge_overlay_timeout, seat);
 		}
 		/*
-		 * Delay overlay for 150ms to prevent flickering when dragging
+		 * Delay overlay for 100ms to prevent flickering when dragging
 		 * view across output edges in multi-monitor setup.
 		 */
-		wl_event_source_timer_update(seat->overlay.timer, 150);
+		wl_event_source_timer_update(seat->overlay.timer, 100);
 	} else {
 		/* Show overlay now */
 		handle_edge_overlay_timeout(seat);

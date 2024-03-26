@@ -678,9 +678,8 @@ entry(struct theme *theme, const char *key, const char *value)
 			theme->osd_width_should_parse_as_percentage = true;
 		}
 		theme->osd_window_switcher_width = atoi(value);
-		if (theme->osd_width_should_parse_as_percentage &&
-				theme->osd_window_switcher_width > 100) {
-			theme->osd_window_switcher_width = 100;
+		if (theme->osd_window_switcher_width < 0) {
+			theme->osd_window_switcher_width = 0;
 		}
 	}
 	if (match_glob(key, "osd.window-switcher.padding")) {
@@ -1017,6 +1016,10 @@ post_processing(struct theme *theme)
 	}
 	if (theme->osd_workspace_switcher_boxes_height == 0) {
 		theme->osd_workspace_switcher_boxes_width = 0;
+	}
+	if (theme->osd_width_should_parse_as_percentage) {
+		theme->osd_window_switcher_width = 
+			MIN(theme->osd_window_switcher_width, 100);
 	}
 }
 

@@ -494,6 +494,7 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#888888", theme->menu_separator_color);
 
 	theme->osd_window_switcher_width = 600;
+	theme->osd_window_switcher_width_is_percent = false;
 	theme->osd_window_switcher_padding = 4;
 	theme->osd_window_switcher_item_padding_x = 10;
 	theme->osd_window_switcher_item_padding_y = 1;
@@ -674,7 +675,12 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_hexstr(value, theme->osd_border_color);
 	}
 	if (match_glob(key, "osd.window-switcher.width")) {
-		theme->osd_window_switcher_width = atoi(value);
+		if (strrchr(value, '%')) {
+			theme->osd_window_switcher_width_is_percent = true;
+		} else {
+			theme->osd_window_switcher_width_is_percent = false;
+		}
+		theme->osd_window_switcher_width = MAX(atoi(value), 0);
 	}
 	if (match_glob(key, "osd.window-switcher.padding")) {
 		theme->osd_window_switcher_padding = atoi(value);
@@ -1010,6 +1016,10 @@ post_processing(struct theme *theme)
 	}
 	if (theme->osd_workspace_switcher_boxes_height == 0) {
 		theme->osd_workspace_switcher_boxes_width = 0;
+	}
+	if (theme->osd_window_switcher_width_is_percent) {
+		theme->osd_window_switcher_width =
+			MIN(theme->osd_window_switcher_width, 100);
 	}
 }
 

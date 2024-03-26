@@ -321,7 +321,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 	if (show_workspace) {
 		/* Center workspace indicator on the x axis */
 		int x = font_width(&rc.font_osd, workspace_name);
-		x = (theme->osd_window_switcher_width - x) / 2;
+		x = (w - x) / 2;
 		cairo_move_to(cairo, x, y + theme->osd_window_switcher_item_active_border_width);
 		PangoWeight weight = pango_font_description_get_weight(desc);
 		pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
@@ -432,7 +432,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 			struct wlr_fbox fbox = {
 				.x = theme->osd_border_width + theme->osd_window_switcher_padding,
 				.y = y,
-				.width = theme->osd_window_switcher_width
+				.width = w
 					- 2 * theme->osd_border_width
 					- 2 * theme->osd_window_switcher_padding,
 				.height = theme->osd_window_switcher_item_height,
@@ -460,6 +460,10 @@ display_osd(struct output *output, struct wl_array *views)
 
 	float scale = output->wlr_output->scale;
 	int w = theme->osd_window_switcher_width;
+	if (theme->osd_window_switcher_width_is_percent) {
+		w = output->wlr_output->width / output->wlr_output->scale
+			* theme->osd_window_switcher_width / 100;
+	}
 	int h = wl_array_len(views) * rc.theme->osd_window_switcher_item_height
 		+ 2 * rc.theme->osd_border_width
 		+ 2 * rc.theme->osd_window_switcher_padding;

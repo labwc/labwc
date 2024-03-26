@@ -596,6 +596,9 @@ extending outward from the snapped edge.
 	no rotation (0). Rotation will be applied after applying tablet area
 	transformation.
 
+	See also *calibrationMatrix* in libinput section below for advanced
+	transformation.
+
 *<tablet><area top="mm" left="mm" width="mm" height="mm" />*
 	By default the complete tablet area is mapped to the full output.
 	The *area* element can be used to truncate the active area of the

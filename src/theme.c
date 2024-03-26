@@ -494,6 +494,7 @@ theme_builtin(struct theme *theme)
 	theme->osd_window_switcher_item_padding_x = 10;
 	theme->osd_window_switcher_item_padding_y = 1;
 	theme->osd_window_switcher_item_active_border_width = 2;
+	theme->osd_width_should_parse_as_percentage = false;
 
 	theme->osd_workspace_switcher_boxes_width = 20;
 	theme->osd_workspace_switcher_boxes_height = 20;

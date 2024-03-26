@@ -677,6 +677,10 @@ entry(struct theme *theme, const char *key, const char *value)
 			theme->osd_width_should_parse_as_percentage = true;
 		}
 		theme->osd_window_switcher_width = atoi(value);
+		if (theme->osd_width_should_parse_as_percentage &&
+				theme->osd_window_switcher_width > 100) {
+			theme->osd_window_switcher_width = 100;
+		}
 	}
 	if (match_glob(key, "osd.window-switcher.padding")) {
 		theme->osd_window_switcher_padding = atoi(value);

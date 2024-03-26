@@ -1018,7 +1018,7 @@ post_processing(struct theme *theme)
 		theme->osd_workspace_switcher_boxes_width = 0;
 	}
 	if (theme->osd_width_should_parse_as_percentage) {
-		theme->osd_window_switcher_width = 
+		theme->osd_window_switcher_width =
 			MIN(theme->osd_window_switcher_width, 100);
 	}
 }

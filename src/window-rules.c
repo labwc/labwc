@@ -67,6 +67,8 @@ view_matches_criteria(struct window_rule *rule, struct view *view)
 			return false;
 		}
 		return match_glob(rule->title, title);
+	} else if (rule->window_type >= 0 && view->impl->contains_window_type) {
+		return view->impl->contains_window_type(view, rule->window_type);
 	} else {
 		wlr_log(WLR_ERROR, "rule has no identifier or title\n");
 		return false;

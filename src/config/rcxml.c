@@ -33,6 +33,7 @@
 #include "view.h"
 #include "window-rules.h"
 #include "workspaces.h"
+#include "xwayland.h"
 
 static bool in_regions;
 static bool in_usable_area_override;
@@ -124,6 +125,7 @@ fill_window_rule(char *nodename, char *content)
 {
 	if (!strcasecmp(nodename, "windowRule.windowRules")) {
 		current_window_rule = znew(*current_window_rule);
+		current_window_rule->window_type = -1; // Window types are >= 0
 		wl_list_append(&rc.window_rules, &current_window_rule->link);
 		wl_list_init(&current_window_rule->actions);
 		return;
@@ -1197,6 +1199,10 @@ rcxml_init(void)
 
 	rc.workspace_config.popuptime = INT_MIN;
 	rc.workspace_config.min_nr_workspaces = 1;
+
+#if HAVE_XWAYLAND
+	xwayland_create_window_type_rules();
+#endif
 }
 
 static void
@@ -1499,7 +1505,7 @@ validate(void)
 	/* Window-rule criteria */
 	struct window_rule *rule, *rule_tmp;
 	wl_list_for_each_safe(rule, rule_tmp, &rc.window_rules, link) {
-		if (!rule->identifier && !rule->title) {
+		if (!rule->identifier && !rule->title && rule->window_type < 0) {
 			wlr_log(WLR_ERROR, "Deleting rule %p as it has no criteria", rule);
 			rule_destroy(rule);
 		}

@@ -6,6 +6,8 @@
 #include "common/array.h"
 #include "common/macros.h"
 #include "common/mem.h"
+#include "common/list.h"
+#include "action.h"
 #include "labwc.h"
 #include "node.h"
 #include "ssd.h"
@@ -19,7 +21,7 @@ xcb_atom_t atoms[ATOM_LEN] = {0};
 
 static void xwayland_view_unmap(struct view *view, bool client_request);
 
-bool
+static bool
 xwayland_surface_contains_window_type(
 		struct wlr_xwayland_surface *surface, enum atom window_type)
 {
@@ -30,6 +32,15 @@ xwayland_surface_contains_window_type(
 		}
 	}
 	return false;
+}
+
+static bool
+xwayland_view_contains_window_type(struct view *view, int32_t window_type)
+{
+	assert(view);
+	assert(view->type == LAB_XWAYLAND_VIEW);
+	struct wlr_xwayland_surface *surface = xwayland_surface_from_view(view);
+	return xwayland_surface_contains_window_type(surface, window_type);
 }
 
 static struct view_size_hints
@@ -845,6 +856,7 @@ static const struct view_impl xwayland_view_impl = {
 	.get_size_hints = xwayland_view_get_size_hints,
 	.wants_focus = xwayland_view_wants_focus,
 	.has_strut_partial = xwayland_view_has_strut_partial,
+	.contains_window_type = xwayland_view_contains_window_type,
 };
 
 void
@@ -979,6 +991,25 @@ handle_xwm_ready(struct wl_listener *listener, void *data)
 		wl_container_of(listener, server, xwayland_xwm_ready);
 	wlr_xwayland_set_seat(server->xwayland, server->seat.seat);
 	xwayland_update_workarea(server);
+}
+
+void
+xwayland_create_window_type_rules(void)
+{
+	// Desktop window type
+	struct window_rule *rule = znew(*rule);
+	rule->window_type = NET_WM_WINDOW_TYPE_DESKTOP;
+	rule->server_decoration = LAB_PROP_FALSE;
+	rule->skip_taskbar = LAB_PROP_TRUE;
+	rule->skip_window_switcher = LAB_PROP_TRUE;
+	rule->ignore_focus_request = LAB_PROP_TRUE;
+	rule->fixed_position = LAB_PROP_TRUE;
+	struct action *action_on_bottom = action_create("ToggleAlwaysOnBottom");
+	struct action *action_move_to = action_create("MoveTo");
+	wl_list_init(&rule->actions);
+	wl_list_append(&rule->actions, &action_on_bottom->link);
+	wl_list_append(&rule->actions, &action_move_to->link);
+	wl_list_append(&rc.window_rules, &rule->link);
 }
 
 void

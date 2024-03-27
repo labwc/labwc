@@ -48,18 +48,6 @@
       <slant>normal</slant>
       <weight>normal</weight>
     </font>
-    <dropShadow type="active">
-      <enabled>yes</enabled>
-      <radius>40</radius>
-      <opacity>0.8</opacity>
-      <inset>15</inset>
-    </dropShadow>
-    <dropShadow type="inactive">
-      <enabled>yes</enabled>
-      <radius>30</radius>
-      <opacity>0.6</opacity>
-      <inset>8</inset>
-    </dropShadow>
   </theme>
 
   <!--

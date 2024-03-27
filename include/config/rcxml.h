@@ -86,14 +86,7 @@ struct rcxml {
 	struct font font_inactivewindow;
 	struct font font_menuitem;
 	struct font font_osd;
-	bool dropshadow_enabled_active;
-	bool dropshadow_enabled_inactive;
-	int dropshadow_radius_active;
-	int dropshadow_radius_inactive;
-	double dropshadow_opacity_active;
-	double dropshadow_opacity_inactive;
-	int dropshadow_inset_active;
-	int dropshadow_inset_inactive;
+
 	/* Pointer to current theme */
 	struct theme *theme;
 

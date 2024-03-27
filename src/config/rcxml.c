@@ -71,12 +71,6 @@ enum font_place {
 	/* TODO: Add all places based on Openbox's rc.xml */
 };
 
-enum dropshadow_type {
-	DROPSHADOW_TYPE_NONE = 0,
-	DROPSHADOW_TYPE_INACTIVE,
-	DROPSHADOW_TYPE_ACTIVE,
-};
-
 static void load_default_key_bindings(void);
 static void load_default_mouse_bindings(void);
 
@@ -714,20 +708,6 @@ enum_font_place(const char *place)
 	return FONT_PLACE_UNKNOWN;
 }
 
-static enum dropshadow_type
-enum_dropshadow_type(const char *type)
-{
-	if (!type || type[0] == '\0') {
-		return DROPSHADOW_TYPE_NONE;
-	}
-	if (!strcasecmp(type, "Active")) {
-		return DROPSHADOW_TYPE_ACTIVE;
-	} else if (!strcasecmp(type, "Inactive")) {
-		return DROPSHADOW_TYPE_INACTIVE;
-	}
-	return DROPSHADOW_TYPE_NONE;
-}
-
 static void
 set_adaptive_sync_mode(const char *str, enum adaptive_sync_mode *variable)
 {
@@ -748,8 +728,6 @@ entry(xmlNode *node, char *nodename, char *content)
 {
 	/* current <theme><font place=""></font></theme> */
 	static enum font_place font_place = FONT_PLACE_NONE;
-	/* current <theme><dropShadow type=""></dropShadow></theme> */
-	static enum dropshadow_type dropshadow_type = DROPSHADOW_TYPE_NONE;
 
 	static uint32_t button_map_from;
 
@@ -885,41 +863,6 @@ entry(xmlNode *node, char *nodename, char *content)
 		fill_font(nodename, content, font_place);
 	} else if (!strcmp(nodename, "weight.font.theme")) {
 		fill_font(nodename, content, font_place);
-	} else if (!strcasecmp(nodename, "type.dropShadow.theme")) {
-		dropshadow_type = enum_dropshadow_type(content);
-	} else if (!strcasecmp(nodename, "enabled.dropShadow.theme")) {
-		/* If dropshadow_type is NONE then set both */
-		bool enabled = parse_bool(content, false);
-		if (dropshadow_type != DROPSHADOW_TYPE_ACTIVE) {
-			rc.dropshadow_enabled_inactive = enabled;
-		}
-		if (dropshadow_type != DROPSHADOW_TYPE_INACTIVE) {
-			rc.dropshadow_enabled_active = enabled;
-		}
-	} else if (!strcasecmp(nodename, "radius.dropShadow.theme")) {
-		/* If dropshadow_type is NONE then set both */
-		if (dropshadow_type != DROPSHADOW_TYPE_ACTIVE) {
-			rc.dropshadow_radius_inactive = atoi(content);
-		}
-		if (dropshadow_type != DROPSHADOW_TYPE_INACTIVE) {
-			rc.dropshadow_radius_active = atoi(content);
-		}
-	} else if (!strcasecmp(nodename, "opacity.dropShadow.theme")) {
-		/* If dropshadow_type is NONE then set both */
-		if (dropshadow_type != DROPSHADOW_TYPE_ACTIVE) {
-			rc.dropshadow_opacity_inactive = atof(content);
-		}
-		if (dropshadow_type != DROPSHADOW_TYPE_INACTIVE) {
-			rc.dropshadow_opacity_active = atof(content);
-		}
-	} else if (!strcasecmp(nodename, "inset.dropShadow.theme")) {
-		/* If dropshadow_type is NONE then set both */
-		if (dropshadow_type != DROPSHADOW_TYPE_ACTIVE) {
-			rc.dropshadow_inset_inactive = atoi(content);
-		}
-		if (dropshadow_type != DROPSHADOW_TYPE_INACTIVE) {
-			rc.dropshadow_inset_active = atoi(content);
-		}
 	} else if (!strcasecmp(nodename, "followMouse.focus")) {
 		set_bool(content, &rc.focus_follow_mouse);
 	} else if (!strcasecmp(nodename, "followMouseRequiresMovement.focus")) {
@@ -1213,15 +1156,6 @@ rcxml_init(void)
 	init_font_defaults(&rc.font_inactivewindow);
 	init_font_defaults(&rc.font_menuitem);
 	init_font_defaults(&rc.font_osd);
-
-	rc.dropshadow_enabled_active = false;
-	rc.dropshadow_enabled_inactive = false;
-	rc.dropshadow_radius_active = 40;
-	rc.dropshadow_radius_inactive = 30;
-	rc.dropshadow_opacity_active = 0.8;
-	rc.dropshadow_opacity_inactive = 0.6;
-	rc.dropshadow_inset_active = 15;
-	rc.dropshadow_inset_inactive = 8;
 
 	rc.focus_follow_mouse = false;
 	rc.focus_follow_mouse_requires_movement = true;

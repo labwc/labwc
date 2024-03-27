@@ -27,6 +27,7 @@ static void
 set_shadow_geometry(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
+	struct theme *theme = view->server->theme;
 	int width = view->current.width;
 	int height = view_effective_height(view, false) + ssd->titlebar.height;
 
@@ -35,10 +36,13 @@ set_shadow_geometry(struct ssd *ssd)
 
 	FOR_EACH_STATE(ssd, subtree) {
 		bool active = subtree == &ssd->shadow.active;
-		int visible_shadow_width = active ? rc.dropshadow_radius_active
-			: rc.dropshadow_radius_inactive;
-		int inset = active ? rc.dropshadow_inset_active
-			: rc.dropshadow_inset_inactive;
+		int visible_shadow_width = active ? theme->window_active_shadow_radius
+			: theme->window_inactive_shadow_radius;
+		/* inset as a proportion of shadow width */
+		double inset_proportion = active ? theme->window_active_shadow_inset
+			: theme->window_inactive_shadow_inset;
+		/* inset in actual pixels */
+		int inset = inset_proportion * (double)visible_shadow_width;
 		int total_shadow_width = visible_shadow_width + inset;
 
 		wl_list_for_each(part, &subtree->parts, link) {

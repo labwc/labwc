@@ -343,11 +343,11 @@ ssd_set_active(struct ssd *ssd, bool active)
 	wlr_scene_node_set_enabled(&ssd->border.active.tree->node, active);
 	wlr_scene_node_set_enabled(&ssd->titlebar.active.tree->node, active);
 	wlr_scene_node_set_enabled(&ssd->shadow.active.tree->node,
-		active && rc.dropshadow_enabled_active);
+		active && rc.theme->window_active_shadow_enabled);
 	wlr_scene_node_set_enabled(&ssd->border.inactive.tree->node, !active);
 	wlr_scene_node_set_enabled(&ssd->titlebar.inactive.tree->node, !active);
 	wlr_scene_node_set_enabled(&ssd->shadow.inactive.tree->node,
-		!active && rc.dropshadow_enabled_inactive);
+		!active && rc.theme->window_inactive_shadow_enabled);
 }
 
 void

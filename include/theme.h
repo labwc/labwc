@@ -79,6 +79,16 @@ struct theme {
 	int osd_workspace_switcher_boxes_width;
 	int osd_workspace_switcher_boxes_height;
 
+	/* window drop-shadows */
+	bool window_active_shadow_enabled;
+	bool window_inactive_shadow_enabled;
+	int window_active_shadow_radius;
+	int window_inactive_shadow_radius;
+	double window_active_shadow_opacity;
+	double window_inactive_shadow_opacity;
+	double window_active_shadow_inset;
+	double window_inactive_shadow_inset;
+
 	/* textures */
 	struct lab_data_buffer *button_close_active_unpressed;
 	struct lab_data_buffer *button_maximize_active_unpressed;

@@ -24,6 +24,7 @@
 #include "common/graphic-helpers.h"
 #include "common/match.h"
 #include "common/mem.h"
+#include "common/parse-bool.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "button/button-png.h"
@@ -627,6 +628,32 @@ entry(struct theme *theme, const char *key, const char *value)
 			theme->window_inactive_button_close_unpressed_image_color);
 	}
 
+	/* window drop-shadows */
+	if (match_glob(key, "window.active.shadow.enabled")) {
+		theme->window_active_shadow_enabled = parse_bool(value, false);
+	}
+	if (match_glob(key, "window.inactive.shadow.enabled")) {
+		theme->window_inactive_shadow_enabled = parse_bool(value, false);
+	}
+	if (match_glob(key, "window.active.shadow.radius")) {
+		theme->window_active_shadow_radius = atoi(value);
+	}
+	if (match_glob(key, "window.inactive.shadow.radius")) {
+		theme->window_inactive_shadow_radius = atoi(value);
+	}
+	if (match_glob(key, "window.active.shadow.opacity")) {
+		theme->window_active_shadow_opacity = atof(value);
+	}
+	if (match_glob(key, "window.inactive.shadow.opacity")) {
+		theme->window_inactive_shadow_opacity = atof(value);
+	}
+	if (match_glob(key, "window.active.shadow.inset")) {
+		theme->window_active_shadow_inset = atof(value);
+	}
+	if (match_glob(key, "window.inactive.shadow.inset")) {
+		theme->window_inactive_shadow_inset = atof(value);
+	}
+
 	if (match_glob(key, "menu.width.min")) {
 		theme->menu_min_width = atoi(value);
 	}
@@ -1017,11 +1044,15 @@ shadow_corner_gradient(cairo_t *cr, int radius, int inset, double opacity)
 static void
 create_shadows(struct theme *theme)
 {
+	int inset_active = (double)theme->window_active_shadow_radius
+		* theme->window_active_shadow_inset;
+	int inset_inactive = (double)theme->window_inactive_shadow_radius
+		* theme->window_inactive_shadow_inset;
 	/* Total width including visible and obscured portion */
-	int total_active_width = rc.dropshadow_radius_active
-		+ rc.dropshadow_inset_active;
-	int total_inactive_width = rc.dropshadow_radius_inactive
-		+ rc.dropshadow_inset_inactive;
+	int total_active_width =
+		theme->window_active_shadow_radius + inset_active;
+	int total_inactive_width =
+		theme->window_inactive_shadow_radius + inset_inactive;
 
 	theme->shadow_corner_active = buffer_create_cairo(
 		total_active_width,
@@ -1041,17 +1072,17 @@ create_shadows(struct theme *theme)
 	}
 
 	shadow_edge_gradient(theme->shadow_edge_active->cairo,
-		total_active_width, rc.dropshadow_inset_active,
-		rc.dropshadow_opacity_active);
+		total_active_width, inset_active,
+		theme->window_active_shadow_opacity);
 	shadow_corner_gradient(theme->shadow_corner_active->cairo,
-		total_active_width, rc.dropshadow_inset_active,
-		rc.dropshadow_opacity_active);
+		total_active_width, inset_active,
+		theme->window_active_shadow_opacity);
 	shadow_edge_gradient(theme->shadow_edge_inactive->cairo,
-		total_inactive_width, rc.dropshadow_inset_inactive,
-		rc.dropshadow_opacity_inactive);
+		total_inactive_width, inset_inactive,
+		theme->window_inactive_shadow_opacity);
 	shadow_corner_gradient(theme->shadow_corner_inactive->cairo,
-		total_inactive_width, rc.dropshadow_inset_inactive,
-		rc.dropshadow_opacity_inactive);
+		total_inactive_width, inset_inactive,
+		theme->window_inactive_shadow_opacity);
 }
 
 static void

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
-"POT-Creation-Date: 2024-01-15 16:00-0500\n"
-"PO-Revision-Date: 2023-12-22 14:01+0000\n"
+"POT-Creation-Date: 2024-03-17 11:06+1000\n"
+"PO-Revision-Date: 2024-03-19 11:08+0000\n"
 "Last-Translator: Roberalz <lumintnian@outlook.com>\n"
 "Language-Team: Basque <https://translate.lxqt-project.org/projects/labwc/labwc/eu/>\n"
 "Language: eu\n"
@@ -40,7 +40,7 @@ msgstr "Pantaila osoa"
 
 #: src/menu/menu.c:728
 msgid "Roll up/down"
-msgstr ""
+msgstr "Ibili gora/behera"
 
 #: src/menu/menu.c:730
 msgid "Decorations"

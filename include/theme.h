@@ -84,8 +84,8 @@ struct theme {
 	bool window_inactive_shadow_enabled;
 	int window_active_shadow_radius;
 	int window_inactive_shadow_radius;
-	double window_active_shadow_opacity;
-	double window_inactive_shadow_opacity;
+	float window_active_shadow_color[4];
+	float window_inactive_shadow_color[4];
 	double window_active_shadow_inset;
 	double window_inactive_shadow_inset;
 

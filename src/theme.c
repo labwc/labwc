@@ -641,11 +641,11 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "window.inactive.shadow.radius")) {
 		theme->window_inactive_shadow_radius = atoi(value);
 	}
-	if (match_glob(key, "window.active.shadow.opacity")) {
-		theme->window_active_shadow_opacity = atof(value);
+	if (match_glob(key, "window.active.shadow.color")) {
+		parse_hexstr(value, theme->window_active_shadow_color);
 	}
-	if (match_glob(key, "window.inactive.shadow.opacity")) {
-		theme->window_inactive_shadow_opacity = atof(value);
+	if (match_glob(key, "window.inactive.shadow.color")) {
+		parse_hexstr(value, theme->window_inactive_shadow_color);
 	}
 	if (match_glob(key, "window.active.shadow.inset")) {
 		theme->window_active_shadow_inset = atof(value);
@@ -983,20 +983,24 @@ create_corners(struct theme *theme)
  * 0 at the right edge, as would be found at the right edge of a window.
  */
 static void
-shadow_edge_gradient(cairo_t *cr, int width, int inset, double opacity)
+shadow_edge_gradient(cairo_t *cr, int width, int inset, float start_color[4])
 {
 	double inset_proportion = (double)inset / (double)(width + inset);
+	float end_color[4] =
+		{start_color[0], start_color[1], start_color[2], 0.0};
 
 	cairo_surface_t *surf = cairo_get_target(cr);
 	cairo_pattern_t *pat = cairo_pattern_create_linear(
 		0.0, 0.0, (double)width, 0.0);
 
-	cairo_pattern_add_color_stop_rgba(pat, 0.0, 0.0, 0.0, 0.0, opacity);
+	cairo_pattern_add_color_stop_rgba(pat, 0.0,
+		start_color[0], start_color[1], start_color[2], start_color[3]);
 	/* The shadow should only start fading from the window edge, otherwise
 	 * the configured inset effectively reduces opacity. */
-	cairo_pattern_add_color_stop_rgba(
-		pat, inset_proportion, 0.0, 0.0, 0.0, opacity);
-	cairo_pattern_add_color_stop_rgba(pat, 1.0, 0.0, 0.0, 0.0, 0.0);
+	cairo_pattern_add_color_stop_rgba(pat, inset_proportion,
+		start_color[0], start_color[1], start_color[2], start_color[3]);
+	cairo_pattern_add_color_stop_rgba(pat, 1.0,
+		end_color[0], end_color[1], end_color[2], end_color[3]);
 
 	cairo_save(cr);
 	cairo_rectangle(cr, 0.0, 0.0, (double)width, 1.0);
@@ -1015,20 +1019,24 @@ shadow_edge_gradient(cairo_t *cr, int width, int inset, double opacity)
  * max opacity is `opacity`, fading to 0 at the other corners.
  */
 static void
-shadow_corner_gradient(cairo_t *cr, int radius, int inset, double opacity)
+shadow_corner_gradient(cairo_t *cr, int radius, int inset, float start_color[4])
 {
 	double inset_proportion = (double)inset / (double)(radius + inset);
+	float end_color[4] =
+		{start_color[0], start_color[1], start_color[2], 0.0};
 
 	cairo_surface_t *surf = cairo_get_target(cr);
 	cairo_pattern_t *pat = cairo_pattern_create_radial(
 		0.0, 0.0, 0.0, 0.0, 0.0, (double)radius);
 
-	cairo_pattern_add_color_stop_rgba(pat, 0.0, 0.0, 0.0, 0.0, opacity);
+	cairo_pattern_add_color_stop_rgba(pat, 0.0,
+		start_color[0], start_color[1], start_color[2], start_color[3]);
 	/* The shadow should only start fading from the window edge, otherwise
 	 * the configured inset effectively reduces opacity. */
-	cairo_pattern_add_color_stop_rgba(
-		pat, inset_proportion, 0.0, 0.0, 0.0, opacity);
-	cairo_pattern_add_color_stop_rgba(pat, 1.0, 0.0, 0.0, 0.0, 0.0);
+	cairo_pattern_add_color_stop_rgba(pat, inset_proportion,
+		start_color[0], start_color[1], start_color[2], start_color[3]);
+	cairo_pattern_add_color_stop_rgba(pat, 1.0,
+		end_color[0], end_color[1], end_color[2], end_color[3]);
 
 	cairo_save(cr);
 	cairo_rectangle(cr, 0.0, 0.0, (double)radius, (double)radius);
@@ -1073,16 +1081,16 @@ create_shadows(struct theme *theme)
 
 	shadow_edge_gradient(theme->shadow_edge_active->cairo,
 		total_active_width, inset_active,
-		theme->window_active_shadow_opacity);
+		theme->window_active_shadow_color);
 	shadow_corner_gradient(theme->shadow_corner_active->cairo,
 		total_active_width, inset_active,
-		theme->window_active_shadow_opacity);
+		theme->window_active_shadow_color);
 	shadow_edge_gradient(theme->shadow_edge_inactive->cairo,
 		total_inactive_width, inset_inactive,
-		theme->window_inactive_shadow_opacity);
+		theme->window_inactive_shadow_color);
 	shadow_corner_gradient(theme->shadow_corner_inactive->cairo,
 		total_inactive_width, inset_inactive,
-		theme->window_inactive_shadow_opacity);
+		theme->window_inactive_shadow_color);
 }
 
 static void

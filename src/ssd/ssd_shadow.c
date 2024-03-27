@@ -35,10 +35,11 @@ set_shadow_geometry(struct ssd *ssd)
 
 	FOR_EACH_STATE(ssd, subtree) {
 		bool active = subtree == &ssd->shadow.active;
-		int radius = active ? rc.dropshadow_radius_active
+		int visible_shadow_width = active ? rc.dropshadow_radius_active
 			: rc.dropshadow_radius_inactive;
 		int inset = active ? rc.dropshadow_inset_active
 			: rc.dropshadow_inset_inactive;
+		int total_shadow_width = visible_shadow_width + inset;
 
 		wl_list_for_each(part, &subtree->parts, link) {
 			struct wlr_scene_buffer *scene_buf =
@@ -51,44 +52,44 @@ set_shadow_geometry(struct ssd *ssd)
 				continue;
 			case LAB_SSD_PART_CORNER_BOTTOM_LEFT:
 				wlr_scene_node_set_position(part->node,
-					-radius + inset,
+					-visible_shadow_width,
 					-ssd->titlebar.height + height - inset);
 				continue;
 			case LAB_SSD_PART_CORNER_TOP_LEFT:
 				wlr_scene_node_set_position(part->node,
-					-radius + inset,
-					-ssd->titlebar.height - radius + inset);
+					-visible_shadow_width,
+					-ssd->titlebar.height - visible_shadow_width);
 				continue;
 			case LAB_SSD_PART_CORNER_TOP_RIGHT:
 				wlr_scene_node_set_position(part->node,
 					width - inset,
-					-ssd->titlebar.height - radius + inset);
+					-ssd->titlebar.height - visible_shadow_width);
 				continue;
 			case LAB_SSD_PART_RIGHT:
 				wlr_scene_node_set_position(part->node,
 					width - inset,
 					-ssd->titlebar.height + inset);
 				wlr_scene_buffer_set_dest_size(scene_buf,
-					radius, height - 2 * inset);
+					total_shadow_width, height - 2 * inset);
 				continue;
 			case LAB_SSD_PART_BOTTOM:
 				wlr_scene_node_set_position(part->node, inset,
 					-ssd->titlebar.height + height - inset);
 				wlr_scene_buffer_set_dest_size(scene_buf,
-					width - 2 * inset, radius);
+					width - 2 * inset, total_shadow_width);
 				continue;
 			case LAB_SSD_PART_LEFT:
 				wlr_scene_node_set_position(part->node,
-					-radius + inset,
+					-visible_shadow_width,
 					-ssd->titlebar.height + inset);
 				wlr_scene_buffer_set_dest_size(scene_buf,
-					radius, height - 2 * inset);
+					total_shadow_width, height - 2 * inset);
 				continue;
 			case LAB_SSD_PART_TOP:
 				wlr_scene_node_set_position(part->node, inset,
-					-ssd->titlebar.height - radius + inset);
+					-ssd->titlebar.height - visible_shadow_width);
 				wlr_scene_buffer_set_dest_size(scene_buf,
-					width - 2 * inset, radius);
+					width - 2 * inset, total_shadow_width);
 				continue;
 			default:
 				continue;

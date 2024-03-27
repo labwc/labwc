@@ -1001,16 +1001,22 @@ shadow_corner_gradient(cairo_t *cr, int radius, double opacity)
 static void
 create_shadows(struct theme *theme)
 {
+	/* Total width including visible and obscured portion */
+	int total_active_width = rc.dropshadow_radius_active
+		+ rc.dropshadow_inset_active;
+	int total_inactive_width = rc.dropshadow_radius_inactive
+		+ rc.dropshadow_inset_inactive;
+
 	theme->shadow_corner_active = buffer_create_cairo(
-		rc.dropshadow_radius_active,
-		rc.dropshadow_radius_active, 1.0, true);
+		total_active_width,
+		total_active_width, 1.0, true);
 	theme->shadow_edge_active = buffer_create_cairo(
-		rc.dropshadow_radius_active, 1, 1.0, true);
+		total_active_width, 1, 1.0, true);
 	theme->shadow_corner_inactive = buffer_create_cairo(
-		rc.dropshadow_radius_inactive,
-		rc.dropshadow_radius_inactive, 1.0, true);
+		total_inactive_width,
+		total_inactive_width, 1.0, true);
 	theme->shadow_edge_inactive = buffer_create_cairo(
-		rc.dropshadow_radius_inactive, 1, 1.0, true);
+		total_inactive_width, 1, 1.0, true);
 	if (!theme->shadow_corner_active || !theme->shadow_edge_active
 			|| !theme->shadow_corner_inactive
 			|| !theme->shadow_edge_inactive) {
@@ -1019,13 +1025,13 @@ create_shadows(struct theme *theme)
 	}
 
 	shadow_edge_gradient(theme->shadow_edge_active->cairo,
-		rc.dropshadow_radius_active, rc.dropshadow_opacity_active);
+		total_active_width, rc.dropshadow_opacity_active);
 	shadow_corner_gradient(theme->shadow_corner_active->cairo,
-		rc.dropshadow_radius_active, rc.dropshadow_opacity_active);
+		total_active_width, rc.dropshadow_opacity_active);
 	shadow_edge_gradient(theme->shadow_edge_inactive->cairo,
-		rc.dropshadow_radius_inactive, rc.dropshadow_opacity_inactive);
+		total_inactive_width, rc.dropshadow_opacity_inactive);
 	shadow_corner_gradient(theme->shadow_corner_inactive->cairo,
-		rc.dropshadow_radius_inactive, rc.dropshadow_opacity_inactive);
+		total_inactive_width, rc.dropshadow_opacity_inactive);
 }
 
 static void

@@ -956,13 +956,21 @@ create_corners(struct theme *theme)
  * 0 at the right edge, as would be found at the right edge of a window.
  */
 static void
-shadow_edge_gradient(cairo_t *cr, int width, double opacity)
+shadow_edge_gradient(cairo_t *cr, int width, int inset, double opacity)
 {
+	double inset_proportion = (double)inset / (double)(width + inset);
+
 	cairo_surface_t *surf = cairo_get_target(cr);
 	cairo_pattern_t *pat = cairo_pattern_create_linear(
 		0.0, 0.0, (double)width, 0.0);
+
 	cairo_pattern_add_color_stop_rgba(pat, 0.0, 0.0, 0.0, 0.0, opacity);
+	/* The shadow should only start fading from the window edge, otherwise
+	 * the configured inset effectively reduces opacity. */
+	cairo_pattern_add_color_stop_rgba(
+		pat, inset_proportion, 0.0, 0.0, 0.0, opacity);
 	cairo_pattern_add_color_stop_rgba(pat, 1.0, 0.0, 0.0, 0.0, 0.0);
+
 	cairo_save(cr);
 	cairo_rectangle(cr, 0.0, 0.0, (double)width, 1.0);
 	cairo_clip(cr);
@@ -980,13 +988,21 @@ shadow_edge_gradient(cairo_t *cr, int width, double opacity)
  * max opacity is `opacity`, fading to 0 at the other corners.
  */
 static void
-shadow_corner_gradient(cairo_t *cr, int radius, double opacity)
+shadow_corner_gradient(cairo_t *cr, int radius, int inset, double opacity)
 {
+	double inset_proportion = (double)inset / (double)(radius + inset);
+
 	cairo_surface_t *surf = cairo_get_target(cr);
 	cairo_pattern_t *pat = cairo_pattern_create_radial(
 		0.0, 0.0, 0.0, 0.0, 0.0, (double)radius);
+
 	cairo_pattern_add_color_stop_rgba(pat, 0.0, 0.0, 0.0, 0.0, opacity);
+	/* The shadow should only start fading from the window edge, otherwise
+	 * the configured inset effectively reduces opacity. */
+	cairo_pattern_add_color_stop_rgba(
+		pat, inset_proportion, 0.0, 0.0, 0.0, opacity);
 	cairo_pattern_add_color_stop_rgba(pat, 1.0, 0.0, 0.0, 0.0, 0.0);
+
 	cairo_save(cr);
 	cairo_rectangle(cr, 0.0, 0.0, (double)radius, (double)radius);
 	cairo_clip(cr);
@@ -1025,13 +1041,17 @@ create_shadows(struct theme *theme)
 	}
 
 	shadow_edge_gradient(theme->shadow_edge_active->cairo,
-		total_active_width, rc.dropshadow_opacity_active);
+		total_active_width, rc.dropshadow_inset_active,
+		rc.dropshadow_opacity_active);
 	shadow_corner_gradient(theme->shadow_corner_active->cairo,
-		total_active_width, rc.dropshadow_opacity_active);
+		total_active_width, rc.dropshadow_inset_active,
+		rc.dropshadow_opacity_active);
 	shadow_edge_gradient(theme->shadow_edge_inactive->cairo,
-		total_inactive_width, rc.dropshadow_opacity_inactive);
+		total_inactive_width, rc.dropshadow_inset_inactive,
+		rc.dropshadow_opacity_inactive);
 	shadow_corner_gradient(theme->shadow_corner_inactive->cairo,
-		total_inactive_width, rc.dropshadow_opacity_inactive);
+		total_inactive_width, rc.dropshadow_inset_inactive,
+		rc.dropshadow_opacity_inactive);
 }
 
 static void

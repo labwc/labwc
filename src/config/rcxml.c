@@ -735,6 +735,12 @@ entry(xmlNode *node, char *nodename, char *content)
 	/* current <theme><font place=""></font></theme> */
 	static enum font_place font_place = FONT_PLACE_NONE;
 
+	static enum {
+		EDGE_TYPE_INTERIOR = 1,
+		EDGE_TYPE_EXTERIOR = 2,
+		EDGE_TYPE_BOTH = 1 | 2,
+	} edge_type = EDGE_TYPE_BOTH;
+
 	static uint32_t button_map_from;
 
 	if (!nodename) {
@@ -906,8 +912,19 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.window_edge_strength = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
 		rc.snap_edge_range = atoi(content);
+	} else if (!strcasecmp(nodename, "edgeType.previewTimeout.snapping")) {
+		if (!strcasecmp(content, "interior")) {
+			edge_type = EDGE_TYPE_INTERIOR;
+		} else if (!strcasecmp(content, "exterior")) {
+			edge_type = EDGE_TYPE_EXTERIOR;
+		}
 	} else if (!strcasecmp(nodename, "previewTimeout.snapping")) {
-		rc.snap_preview_timeout = atoi(content);
+		if (edge_type & EDGE_TYPE_INTERIOR) {
+			rc.snap_preview_interior_timeout = atoi(content);
+		}
+		if (edge_type & EDGE_TYPE_EXTERIOR) {
+			rc.snap_preview_exterior_timeout = atoi(content);
+		}
 	} else if (!strcasecmp(nodename, "topMaximize.snapping")) {
 		set_bool(content, &rc.snap_top_maximize);
 	} else if (!strcasecmp(nodename, "notifyClient.snapping")) {
@@ -1185,7 +1202,8 @@ rcxml_init(void)
 	rc.window_edge_strength = 20;
 
 	rc.snap_edge_range = 1;
-	rc.snap_preview_timeout = 500;
+	rc.snap_preview_interior_timeout = 500;
+	rc.snap_preview_exterior_timeout = 500;
 	rc.snap_top_maximize = true;
 	rc.snap_tiling_events_mode = LAB_TILING_EVENTS_ALWAYS;
 

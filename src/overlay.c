@@ -181,7 +181,7 @@ overlay_update(struct seat *seat)
 {
 	struct server *server = seat->server;
 
-	/* Region overlay */
+	/* Region-snapping overlay */
 	if (regions_should_snap(server)) {
 		struct region *region = regions_from_cursor(server);
 		if (region) {
@@ -190,7 +190,7 @@ overlay_update(struct seat *seat)
 		}
 	}
 
-	/* Snap-to-edge overlay */
+	/* Edge-snapping overlay */
 	struct output *output;
 	enum view_edge edge = edge_from_cursor(seat, &output);
 	if (edge != VIEW_EDGE_INVALID) {

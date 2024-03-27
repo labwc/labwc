@@ -116,35 +116,6 @@ handle_edge_overlay_timeout(void *data)
 	return 0;
 }
 
-static enum wlr_direction
-get_wlr_direction(enum view_edge edge)
-{
-	switch (edge) {
-	case VIEW_EDGE_LEFT:
-		return WLR_DIRECTION_LEFT;
-	case VIEW_EDGE_RIGHT:
-		return WLR_DIRECTION_RIGHT;
-	case VIEW_EDGE_UP:
-	case VIEW_EDGE_CENTER:
-		return WLR_DIRECTION_UP;
-	case VIEW_EDGE_DOWN:
-		return WLR_DIRECTION_DOWN;
-	default:
-		/* not reached */
-		assert(false);
-		return 0;
-	}
-}
-
-static bool
-edge_has_adjacent_output_from_cursor(struct seat *seat, struct output *output,
-		enum view_edge edge)
-{
-	return wlr_output_layout_adjacent_output(
-		seat->server->output_layout, get_wlr_direction(edge),
-		output->wlr_output, seat->cursor->x, seat->cursor->y);
-}
-
 static void
 show_edge_overlay(struct seat *seat, enum view_edge edge,
 		struct output *output)
@@ -157,17 +128,15 @@ show_edge_overlay(struct seat *seat, enum view_edge edge,
 	seat->overlay.active.edge = edge;
 	seat->overlay.active.output = output;
 
-	if (edge_has_adjacent_output_from_cursor(seat, output, edge)) {
+	if (rc.snap_preview_timeout > 0) {
 		if (!seat->overlay.timer) {
 			seat->overlay.timer = wl_event_loop_add_timer(
 				seat->server->wl_event_loop,
 				handle_edge_overlay_timeout, seat);
 		}
-		/*
-		 * Delay overlay for 100ms to prevent flickering when dragging
-		 * view across output edges in multi-monitor setup.
-		 */
-		wl_event_source_timer_update(seat->overlay.timer, 100);
+		/* Show overlay <previewTimeout>ms later */
+		wl_event_source_timer_update(seat->overlay.timer,
+			rc.snap_preview_timeout);
 	} else {
 		/* Show overlay now */
 		struct wlr_box box = get_edge_snap_box(seat->overlay.active.edge,

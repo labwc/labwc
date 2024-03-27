@@ -906,6 +906,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.window_edge_strength = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
 		rc.snap_edge_range = atoi(content);
+	} else if (!strcasecmp(nodename, "previewTimeout.snapping")) {
+		rc.snap_preview_timeout = atoi(content);
 	} else if (!strcasecmp(nodename, "topMaximize.snapping")) {
 		set_bool(content, &rc.snap_top_maximize);
 	} else if (!strcasecmp(nodename, "notifyClient.snapping")) {
@@ -1183,6 +1185,7 @@ rcxml_init(void)
 	rc.window_edge_strength = 20;
 
 	rc.snap_edge_range = 1;
+	rc.snap_preview_timeout = 400;
 	rc.snap_top_maximize = true;
 	rc.snap_tiling_events_mode = LAB_TILING_EVENTS_ALWAYS;
 

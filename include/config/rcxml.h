@@ -125,7 +125,8 @@ struct rcxml {
 
 	/* window snapping */
 	int snap_edge_range;
-	int snap_preview_timeout;
+	int snap_preview_interior_timeout;
+	int snap_preview_exterior_timeout;
 	bool snap_top_maximize;
 	enum tiling_events_mode snap_tiling_events_mode;
 

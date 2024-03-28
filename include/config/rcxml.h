@@ -86,6 +86,7 @@ struct rcxml {
 	struct font font_inactivewindow;
 	struct font font_menuitem;
 	struct font font_osd;
+
 	/* Pointer to current theme */
 	struct theme *theme;
 

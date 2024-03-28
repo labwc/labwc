@@ -126,6 +126,32 @@ This syntax is not documented on the openbox.org wiki, but is supported by
 openbox and is used by many popular themes. For the sake of brevity, these
 elements are not listed here, but are supported.
 
+*window.active.shadow.enabled*
+	Should a drop-shadow be rendered for the focused window.
+
+*window.inactive.shadow.enabled*
+	Should drop-shadows be rendered for non-focused windows.
+
+*window.active.shadow.inset*
+	How far behind the focused window should its drop-shadow be inset, in
+	pixels. This determines the corner radius of the shadow.
+
+*window.inactive.shadow.inset*
+	How far behind non-focused windows should drop-shadows be inset, in pixels.
+	This determines the corner radius of the shadows.
+
+*window.active.shadow.radius*
+	Size of the drop-shadow for the focused window, in pixels.
+
+*window.inactive.shadow.radius*
+	Size of drop-shadows for non-focused windows, in pixels.
+
+*window.active.shadow.color*
+	Color of the drop-shadow for the focused window, including opacity.
+
+*window.inactive.shadow.color*
+	Color of drop-shadows for non-focused windows, including opacity.
+
 *menu.items.bg.color*
 	Background color of inactive menu items.
 

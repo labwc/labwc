@@ -33,6 +33,14 @@ window.label.text.justify: center
 window.active.button.unpressed.image.color: #000000
 window.inactive.button.unpressed.image.color: #000000
 
+# window drop-shadows
+window.*.shadow.enabled: false
+window.*.shadow.inset: 0.5
+window.active.shadow.radius: 30
+window.inactive.shadow.radius: 20
+window.active.shadow.color: #000000 60
+window.inactive.shadow.color: #000000 40
+
 # Note that "menu", "iconify", "max", "close" buttons colors can be defined
 # individually by inserting the type after the button node, for example:
 #

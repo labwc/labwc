@@ -10,6 +10,7 @@ labwc_sources += files(
   'mem.c',
   'nodename.c',
   'parse-bool.c',
+  'parse-double.c',
   'scaled_font_buffer.c',
   'scaled_scene_buffer.c',
   'scene-helpers.c',

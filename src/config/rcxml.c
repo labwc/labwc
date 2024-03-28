@@ -21,6 +21,7 @@
 #include "common/mem.h"
 #include "common/nodename.h"
 #include "common/parse-bool.h"
+#include "common/parse-double.h"
 #include "common/string-helpers.h"
 #include "config/default-bindings.h"
 #include "config/keybind.h"
@@ -537,7 +538,7 @@ fill_libinput_category(char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "leftHanded")) {
 		set_bool_as_int(content, &current_libinput_category->left_handed);
 	} else if (!strcasecmp(nodename, "pointerSpeed")) {
-		current_libinput_category->pointer_speed = atof(content);
+		set_float(content, &current_libinput_category->pointer_speed);
 		if (current_libinput_category->pointer_speed < -1) {
 			current_libinput_category->pointer_speed = -1;
 		} else if (current_libinput_category->pointer_speed > 1) {
@@ -883,7 +884,7 @@ entry(xmlNode *node, char *nodename, char *content)
 			wlr_log(WLR_ERROR, "invalid doubleClickTime");
 		}
 	} else if (!strcasecmp(nodename, "scrollFactor.mouse")) {
-		rc.scroll_factor = atof(content);
+		set_double(content, &rc.scroll_factor);
 	} else if (!strcasecmp(nodename, "name.context.mouse")) {
 		current_mouse_context = content;
 		current_mousebind = NULL;

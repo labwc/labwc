@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <strings.h>
 #include <wlr/util/log.h>
+#include "common/parse-double.h"
 #include "config/tablet.h"
 #include "config/rcxml.h"
 #include "input/tablet_pad.h"
@@ -11,7 +12,8 @@
 double
 tablet_get_dbl_if_positive(const char *content, const char *name)
 {
-	double value = atof(content);
+	double value = 0;
+	set_double(content, &value);
 	if (value < 0) {
 		wlr_log(WLR_ERROR, "Invalid value for tablet area %s", name);
 		return 0;

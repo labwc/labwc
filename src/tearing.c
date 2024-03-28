@@ -14,8 +14,16 @@ set_tearing_hint(struct wl_listener *listener, void *data)
 {
 	struct tearing_controller *controller = wl_container_of(listener, controller, set_hint);
 	struct view *view = view_from_wlr_surface(controller->tearing_control->surface);
-	if (view && controller->tearing_control->hint) {
-		view->tearing_hint = true;
+	if (view) {
+		/*
+		 * tearing_control->hint is actually an enum:
+		 * WP_TEARING_CONTROL_V1_PRESENTATION_HINT_VSYNC = 0
+		 * WP_TEARING_CONTROL_V1_PRESENTATION_HINT_ASYNC = 1
+		 *
+		 * Using it as a bool here allows us to not ship the XML.
+		 */
+		view->tearing_hint = controller->tearing_control->hint
+			? LAB_STATE_ENABLED : LAB_STATE_DISABLED;
 	}
 }
 

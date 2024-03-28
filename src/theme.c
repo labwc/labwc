@@ -985,8 +985,8 @@ create_corners(struct theme *theme)
 static void
 shadow_edge_gradient(cairo_t *cr, int width, float start_color[4])
 {
-	float end_color[4] =
-		{start_color[0], start_color[1], start_color[2], 0.0};
+	float end_color[4] = {
+		start_color[0], start_color[1], start_color[2], 0.0};
 
 	cairo_surface_t *surf = cairo_get_target(cr);
 	cairo_pattern_t *pat = cairo_pattern_create_linear(
@@ -1012,19 +1012,20 @@ shadow_edge_gradient(cairo_t *cr, int width, float start_color[4])
  * Draw a gradient corner square, with the centre of the radius at
  * the top-left of the buffer, as found at the bottom-right of a window.  The
  * max opacity is `opacity`, fading to 0 at the other corners.  The result will
- * will have a cut-out in the top-left to stop the shadow appearing behind the
+ * have a cut-out in the top-left to stop the shadow appearing behind the
  * window, the corner radius of this cutout is set by `cutout_corner_radius`.
  */
 static void
 shadow_corner_gradient(cairo_t *cr, int radius, double inset,
 	int cutout_corner_radius, float start_color[4])
 {
-	float end_color[4] =
-		{start_color[0], start_color[1], start_color[2], 0.0};
+	float end_color[4] = {
+		start_color[0], start_color[1], start_color[2], 0.0};
 
 	/* The inset passed is how big the inset is as a proportion of the
 	 * visible shadow width. But for the gradient we want to know how big
-	 * the inset is as a proportion of total shadow width. */
+	 * the inset is as a proportion of total shadow width.
+	 */
 	inset = inset / (1.0 + inset);
 
 	cairo_surface_t *surf = cairo_get_target(cr);
@@ -1034,7 +1035,8 @@ shadow_corner_gradient(cairo_t *cr, int radius, double inset,
 	cairo_pattern_add_color_stop_rgba(pat, 0.0,
 		start_color[0], start_color[1], start_color[2], start_color[3]);
 	/* The shadow should only start fading from the window edge, otherwise
-	 * the configured inset effectively reduces opacity. */
+	 * the configured inset effectively reduces opacity.
+	 */
 	cairo_pattern_add_color_stop_rgba(pat, inset,
 		start_color[0], start_color[1], start_color[2], start_color[3]);
 	cairo_pattern_add_color_stop_rgba(pat, 1.0,
@@ -1051,7 +1053,8 @@ shadow_corner_gradient(cairo_t *cr, int radius, double inset,
 	 * the window otherwise things will look odd of the window is
 	 * translucent! The inset is just to make the corner gradient look
 	 * right, it should never actually be seen.  The rectangle we erase
-	 * might need a rounded corner to match a rounded titlebar. */
+	 * might need a rounded corner to match a rounded titlebar.
+	 */
 	double pi = 3.142;
 	cairo_save(cr);
 	cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
@@ -1088,7 +1091,8 @@ create_shadows(struct theme *theme)
 
 	/* Edge shadows don't need to be inset so the buffers are sized just for
 	 * the visible width.  Corners are inset so the buffers are larger for
-	 * this. */
+	 * this.
+	 */
 	theme->shadow_edge_active = buffer_create_cairo(
 		theme->window_active_shadow_radius, 1, 1.0, true);
 	theme->shadow_edge_inactive = buffer_create_cairo(

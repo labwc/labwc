@@ -80,11 +80,13 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
 		/* Any change to the modifier state re-enable region snap */
 		seat->region_prevent_snap = false;
+		/* Pressing/releasing modifier key may show/hide region overlay */
+		overlay_update(seat);
 	}
 
-	if (server->osd_state.cycle_view || server->grabbed_view
+	if (server->osd_state.cycle_view
 			|| seat->workspace_osd_shown_by_modifier) {
-		if (!keyboard_any_modifiers_pressed(wlr_keyboard))  {
+		if (!keyboard_any_modifiers_pressed(wlr_keyboard)) {
 			if (server->osd_state.cycle_view) {
 				if (key_state_nr_bound_keys()) {
 					should_cancel_cycling_on_next_key_release = true;
@@ -94,9 +96,6 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 			}
 			if (seat->workspace_osd_shown_by_modifier) {
 				workspaces_osd_hide(seat);
-			}
-			if (server->grabbed_view) {
-				regions_hide_overlay(seat);
 			}
 		}
 	}

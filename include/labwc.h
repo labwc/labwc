@@ -47,6 +47,7 @@
 #include "config/rcxml.h"
 #include "input/cursor.h"
 #include "input/ime.h"
+#include "overlay.h"
 #include "regions.h"
 #include "session-lock.h"
 #if HAVE_NLS
@@ -159,9 +160,7 @@ struct seat {
 		struct wlr_scene_tree *icons;
 	} drag;
 
-	/* Private use by regions.c */
-	struct region *region_active;
-	struct region_overlay region_overlay;
+	struct overlay overlay;
 	/* Used to prevent region snapping when starting a move with A-Left */
 	bool region_prevent_snap;
 
@@ -479,6 +478,8 @@ void seat_output_layout_changed(struct seat *seat);
 void interactive_begin(struct view *view, enum input_mode mode, uint32_t edges);
 void interactive_finish(struct view *view);
 void interactive_cancel(struct view *view);
+/* Possibly returns VIEW_EDGE_CENTER if <topMaximize> is yes */
+enum view_edge edge_from_cursor(struct seat *seat, struct output **dest_output);
 
 void output_init(struct server *server);
 void output_manager_init(struct server *server);

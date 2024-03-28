@@ -25,14 +25,6 @@ struct region {
 	} center;
 };
 
-struct region_overlay {
-	struct wlr_scene_tree *tree;
-	union {
-		struct wlr_scene_rect *overlay;
-		struct multi_rect *pixman_overlay;
-	};
-};
-
 /* Returns true if we should show the region overlay or snap to region */
 bool regions_should_snap(struct server *server);
 
@@ -72,8 +64,5 @@ void regions_destroy(struct seat *seat, struct wl_list *regions);
 /* Get output local region from cursor or name, may be NULL */
 struct region *regions_from_cursor(struct server *server);
 struct region *regions_from_name(const char *region_name, struct output *output);
-
-void regions_show_overlay(struct view *view, struct seat *seat, struct region *region);
-void regions_hide_overlay(struct seat *seat);
 
 #endif /* LABWC_REGIONS_H */

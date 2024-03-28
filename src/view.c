@@ -2223,7 +2223,7 @@ view_destroy(struct view *view)
 		/* Application got killed while moving around */
 		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		server->grabbed_view = NULL;
-		regions_hide_overlay(&server->seat);
+		overlay_hide(&server->seat);
 	}
 
 	if (server->active_view == view) {

@@ -100,8 +100,8 @@ handle_tip(struct wl_listener *listener, void *data)
 	cursor_emulate_button(tablet->seat,
 		button,
 		ev->state == WLR_TABLET_TOOL_TIP_DOWN
-			? WLR_BUTTON_PRESSED
-			: WLR_BUTTON_RELEASED,
+			? WL_POINTER_BUTTON_STATE_PRESSED
+			: WL_POINTER_BUTTON_STATE_RELEASED,
 		ev->time_msec);
 }
 
@@ -116,7 +116,19 @@ handle_button(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	cursor_emulate_button(tablet->seat, button, ev->state, ev->time_msec);
+	enum wl_pointer_button_state state;
+	switch (ev->state) {
+	case WLR_BUTTON_PRESSED:
+		state = WL_POINTER_BUTTON_STATE_PRESSED;
+		break;
+	case WLR_BUTTON_RELEASED:
+		state = WL_POINTER_BUTTON_STATE_RELEASED;
+		break;
+	default:
+		wlr_log(WLR_ERROR, "invalid button state: %u", ev->state);
+		return;
+	}
+	cursor_emulate_button(tablet->seat, button, state, ev->time_msec);
 }
 
 static void

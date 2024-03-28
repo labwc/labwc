@@ -5,6 +5,8 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
 #include "common/scene-helpers.h"
+#include "labwc.h"
+#include "output-state.h"
 
 struct wlr_surface *
 lab_wlr_surface_from_node(struct wlr_scene_node *node)
@@ -43,7 +45,8 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output)
 {
 	assert(scene_output);
 	struct wlr_output *wlr_output = scene_output->output;
-	struct wlr_output_state *state = &wlr_output->pending;
+	struct output *output = wlr_output->data;
+	struct wlr_output_state *state = &output->pending;
 
 	if (!wlr_output->needs_frame && !pixman_region32_not_empty(
 			&scene_output->damage_ring.current)) {

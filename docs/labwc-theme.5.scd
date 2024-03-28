@@ -164,6 +164,8 @@ elements are not listed here, but are supported.
 
 *osd.window-switcher.width*
 	Width of window switcher in pixels. Default is 600.
+	Width can also be percent of the width of the monitor.
+	% is mandatory as last character in this case, max 100%
 
 *osd.window-switcher.padding*
 	Padding of window switcher in pixels. This is the space between the

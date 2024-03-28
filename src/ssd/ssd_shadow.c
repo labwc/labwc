@@ -43,7 +43,6 @@ set_shadow_geometry(struct ssd *ssd)
 			: theme->window_inactive_shadow_inset;
 		/* inset in actual pixels */
 		int inset = inset_proportion * (double)visible_shadow_width;
-		int total_shadow_width = visible_shadow_width + inset;
 
 		wl_list_for_each(part, &subtree->parts, link) {
 			struct wlr_scene_buffer *scene_buf =
@@ -71,29 +70,28 @@ set_shadow_geometry(struct ssd *ssd)
 				continue;
 			case LAB_SSD_PART_RIGHT:
 				wlr_scene_node_set_position(part->node,
-					width - inset,
-					-ssd->titlebar.height + inset);
+					width, -ssd->titlebar.height + inset);
 				wlr_scene_buffer_set_dest_size(scene_buf,
-					total_shadow_width, height - 2 * inset);
+					visible_shadow_width, height - 2 * inset);
 				continue;
 			case LAB_SSD_PART_BOTTOM:
 				wlr_scene_node_set_position(part->node, inset,
-					-ssd->titlebar.height + height - inset);
+					-ssd->titlebar.height + height);
 				wlr_scene_buffer_set_dest_size(scene_buf,
-					width - 2 * inset, total_shadow_width);
+					width - 2 * inset, visible_shadow_width);
 				continue;
 			case LAB_SSD_PART_LEFT:
 				wlr_scene_node_set_position(part->node,
 					-visible_shadow_width,
 					-ssd->titlebar.height + inset);
 				wlr_scene_buffer_set_dest_size(scene_buf,
-					total_shadow_width, height - 2 * inset);
+					visible_shadow_width, height - 2 * inset);
 				continue;
 			case LAB_SSD_PART_TOP:
 				wlr_scene_node_set_position(part->node, inset,
 					-ssd->titlebar.height - visible_shadow_width);
 				wlr_scene_buffer_set_dest_size(scene_buf,
-					width - 2 * inset, total_shadow_width);
+					width - 2 * inset, visible_shadow_width);
 				continue;
 			default:
 				continue;
@@ -124,7 +122,8 @@ ssd_shadow_create(struct ssd *ssd)
 	ssd->shadow.tree = wlr_scene_tree_create(ssd->tree);
 
 	struct theme *theme = ssd->view->server->theme;
-	struct wlr_buffer *corner_buffer;
+	struct wlr_buffer *corner_top_buffer;
+	struct wlr_buffer *corner_bottom_buffer;
 	struct wlr_buffer *edge_buffer;
 	struct ssd_sub_tree *subtree;
 	struct wlr_scene_tree *parent;
@@ -133,23 +132,25 @@ ssd_shadow_create(struct ssd *ssd)
 		subtree->tree = wlr_scene_tree_create(ssd->shadow.tree);
 		parent = subtree->tree;
 		if (subtree == &ssd->shadow.active) {
-			corner_buffer = &theme->shadow_corner_active->base;
+			corner_top_buffer = &theme->shadow_corner_top_active->base;
+			corner_bottom_buffer = &theme->shadow_corner_bottom_active->base;
 			edge_buffer = &theme->shadow_edge_active->base;
 		} else {
-			corner_buffer = &theme->shadow_corner_inactive->base;
+			corner_top_buffer = &theme->shadow_corner_top_inactive->base;
+			corner_bottom_buffer = &theme->shadow_corner_bottom_inactive->base;
 			edge_buffer = &theme->shadow_edge_inactive->base;
 		}
 		wl_list_init(&subtree->parts);
 
 		make_shadow(&subtree->parts,
 			LAB_SSD_PART_CORNER_BOTTOM_RIGHT, parent,
-			corner_buffer, WL_OUTPUT_TRANSFORM_NORMAL);
+			corner_bottom_buffer, WL_OUTPUT_TRANSFORM_NORMAL);
 		make_shadow(&subtree->parts, LAB_SSD_PART_CORNER_BOTTOM_LEFT,
-			parent, corner_buffer, WL_OUTPUT_TRANSFORM_90);
+			parent, corner_bottom_buffer, WL_OUTPUT_TRANSFORM_90);
 		make_shadow(&subtree->parts, LAB_SSD_PART_CORNER_TOP_LEFT,
-			parent, corner_buffer, WL_OUTPUT_TRANSFORM_180);
+			parent, corner_top_buffer, WL_OUTPUT_TRANSFORM_180);
 		make_shadow(&subtree->parts, LAB_SSD_PART_CORNER_TOP_RIGHT,
-			parent, corner_buffer, WL_OUTPUT_TRANSFORM_270);
+			parent, corner_top_buffer, WL_OUTPUT_TRANSFORM_270);
 		make_shadow(&subtree->parts, LAB_SSD_PART_RIGHT, parent,
 			edge_buffer, WL_OUTPUT_TRANSFORM_NORMAL);
 		make_shadow(&subtree->parts, LAB_SSD_PART_BOTTOM, parent,

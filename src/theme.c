@@ -983,9 +983,8 @@ create_corners(struct theme *theme)
  * 0 at the right edge, as would be found at the right edge of a window.
  */
 static void
-shadow_edge_gradient(cairo_t *cr, int width, int inset, float start_color[4])
+shadow_edge_gradient(cairo_t *cr, int width, float start_color[4])
 {
-	double inset_proportion = (double)inset / (double)(width + inset);
 	float end_color[4] =
 		{start_color[0], start_color[1], start_color[2], 0.0};
 
@@ -994,10 +993,6 @@ shadow_edge_gradient(cairo_t *cr, int width, int inset, float start_color[4])
 		0.0, 0.0, (double)width, 0.0);
 
 	cairo_pattern_add_color_stop_rgba(pat, 0.0,
-		start_color[0], start_color[1], start_color[2], start_color[3]);
-	/* The shadow should only start fading from the window edge, otherwise
-	 * the configured inset effectively reduces opacity. */
-	cairo_pattern_add_color_stop_rgba(pat, inset_proportion,
 		start_color[0], start_color[1], start_color[2], start_color[3]);
 	cairo_pattern_add_color_stop_rgba(pat, 1.0,
 		end_color[0], end_color[1], end_color[2], end_color[3]);
@@ -1016,14 +1011,21 @@ shadow_edge_gradient(cairo_t *cr, int width, int inset, float start_color[4])
 /*
  * Draw a gradient corner square, with the centre of the radius at
  * the top-left of the buffer, as found at the bottom-right of a window.  The
- * max opacity is `opacity`, fading to 0 at the other corners.
+ * max opacity is `opacity`, fading to 0 at the other corners.  The result will
+ * will have a cut-out in the top-left to stop the shadow appearing behind the
+ * window, the corner radius of this cutout is set by `cutout_corner_radius`.
  */
 static void
-shadow_corner_gradient(cairo_t *cr, int radius, int inset, float start_color[4])
+shadow_corner_gradient(cairo_t *cr, int radius, double inset,
+	int cutout_corner_radius, float start_color[4])
 {
-	double inset_proportion = (double)inset / (double)(radius + inset);
 	float end_color[4] =
 		{start_color[0], start_color[1], start_color[2], 0.0};
+
+	/* The inset passed is how big the inset is as a proportion of the
+	 * visible shadow width. But for the gradient we want to know how big
+	 * the inset is as a proportion of total shadow width. */
+	inset = inset / (1.0 + inset);
 
 	cairo_surface_t *surf = cairo_get_target(cr);
 	cairo_pattern_t *pat = cairo_pattern_create_radial(
@@ -1033,7 +1035,7 @@ shadow_corner_gradient(cairo_t *cr, int radius, int inset, float start_color[4])
 		start_color[0], start_color[1], start_color[2], start_color[3]);
 	/* The shadow should only start fading from the window edge, otherwise
 	 * the configured inset effectively reduces opacity. */
-	cairo_pattern_add_color_stop_rgba(pat, inset_proportion,
+	cairo_pattern_add_color_stop_rgba(pat, inset,
 		start_color[0], start_color[1], start_color[2], start_color[3]);
 	cairo_pattern_add_color_stop_rgba(pat, 1.0,
 		end_color[0], end_color[1], end_color[2], end_color[3]);
@@ -1043,6 +1045,28 @@ shadow_corner_gradient(cairo_t *cr, int radius, int inset, float start_color[4])
 	cairo_clip(cr);
 	cairo_set_source(cr, pat);
 	cairo_mask(cr, pat);
+	cairo_restore(cr);
+
+	/* Finally, erase the portion of the shadow which will be inset behind
+	 * the window otherwise things will look odd of the window is
+	 * translucent! The inset is just to make the corner gradient look
+	 * right, it should never actually be seen.  The rectangle we erase
+	 * might need a rounded corner to match a rounded titlebar. */
+	double pi = 3.142;
+	cairo_save(cr);
+	cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+	/* top left */
+	cairo_move_to(cr, 0.0, 0.0);
+	/* top right */
+	cairo_line_to(cr, inset * radius, 0.0);
+	/* bottom right, with radius */
+	cairo_arc(cr, inset * radius - cutout_corner_radius,
+		inset * radius - cutout_corner_radius,
+		cutout_corner_radius, 0.0, pi / 2.0);
+	/* bottom left */
+	cairo_line_to(cr, 0.0, inset * radius);
+	cairo_close_path(cr);
+	cairo_fill(cr);
 	cairo_restore(cr);
 
 	cairo_pattern_destroy(pat);
@@ -1062,35 +1086,54 @@ create_shadows(struct theme *theme)
 	int total_inactive_width =
 		theme->window_inactive_shadow_radius + inset_inactive;
 
-	theme->shadow_corner_active = buffer_create_cairo(
+	/* Edge shadows don't need to be inset so the buffers are sized just for
+	 * the visible width.  Corners are inset so the buffers are larger for
+	 * this. */
+	theme->shadow_edge_active = buffer_create_cairo(
+		theme->window_active_shadow_radius, 1, 1.0, true);
+	theme->shadow_edge_inactive = buffer_create_cairo(
+		theme->window_inactive_shadow_radius, 1, 1.0, true);
+	theme->shadow_corner_top_active = buffer_create_cairo(
 		total_active_width,
 		total_active_width, 1.0, true);
-	theme->shadow_edge_active = buffer_create_cairo(
-		total_active_width, 1, 1.0, true);
-	theme->shadow_corner_inactive = buffer_create_cairo(
+	theme->shadow_corner_bottom_active = buffer_create_cairo(
+		total_active_width,
+		total_active_width, 1.0, true);
+	theme->shadow_corner_top_inactive = buffer_create_cairo(
 		total_inactive_width,
 		total_inactive_width, 1.0, true);
-	theme->shadow_edge_inactive = buffer_create_cairo(
-		total_inactive_width, 1, 1.0, true);
-	if (!theme->shadow_corner_active || !theme->shadow_edge_active
-			|| !theme->shadow_corner_inactive
+	theme->shadow_corner_bottom_inactive = buffer_create_cairo(
+		total_inactive_width,
+		total_inactive_width, 1.0, true);
+
+	if (!theme->shadow_corner_top_active
+			|| !theme->shadow_corner_bottom_active
+			|| !theme->shadow_edge_active
+			|| !theme->shadow_corner_top_inactive
+			|| !theme->shadow_corner_bottom_inactive
 			|| !theme->shadow_edge_inactive) {
 		wlr_log(WLR_ERROR, "Failed to allocate buffer for shadow");
 		return;
 	}
 
 	shadow_edge_gradient(theme->shadow_edge_active->cairo,
-		total_active_width, inset_active,
-		theme->window_active_shadow_color);
-	shadow_corner_gradient(theme->shadow_corner_active->cairo,
-		total_active_width, inset_active,
+		theme->window_active_shadow_radius,
 		theme->window_active_shadow_color);
 	shadow_edge_gradient(theme->shadow_edge_inactive->cairo,
-		total_inactive_width, inset_inactive,
+		theme->window_inactive_shadow_radius,
 		theme->window_inactive_shadow_color);
-	shadow_corner_gradient(theme->shadow_corner_inactive->cairo,
-		total_inactive_width, inset_inactive,
-		theme->window_inactive_shadow_color);
+	shadow_corner_gradient(theme->shadow_corner_top_active->cairo,
+		total_active_width, theme->window_active_shadow_inset,
+		rc.corner_radius, theme->window_active_shadow_color);
+	shadow_corner_gradient(theme->shadow_corner_bottom_active->cairo,
+		total_active_width, theme->window_active_shadow_inset,
+		0, theme->window_active_shadow_color);
+	shadow_corner_gradient(theme->shadow_corner_top_inactive->cairo,
+		total_inactive_width, theme->window_inactive_shadow_inset,
+		rc.corner_radius, theme->window_inactive_shadow_color);
+	shadow_corner_gradient(theme->shadow_corner_bottom_inactive->cairo,
+		total_inactive_width, theme->window_inactive_shadow_inset,
+		0, theme->window_inactive_shadow_color);
 }
 
 static void
@@ -1185,8 +1228,10 @@ theme_finish(struct theme *theme)
 	zdrop(&theme->corner_top_left_inactive_normal);
 	zdrop(&theme->corner_top_right_active_normal);
 	zdrop(&theme->corner_top_right_inactive_normal);
-	zdrop(&theme->shadow_corner_active);
+	zdrop(&theme->shadow_corner_top_active);
+	zdrop(&theme->shadow_corner_bottom_active);
 	zdrop(&theme->shadow_edge_active);
-	zdrop(&theme->shadow_corner_inactive);
+	zdrop(&theme->shadow_corner_top_inactive);
+	zdrop(&theme->shadow_corner_bottom_inactive);
 	zdrop(&theme->shadow_edge_inactive);
 }

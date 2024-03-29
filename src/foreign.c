@@ -34,6 +34,12 @@ handle_request_activate(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, toplevel.activate);
 	// struct wlr_foreign_toplevel_handle_v1_activated_event *event = data;
+
+	if (view->server->osd_state.cycle_view) {
+		wlr_log(WLR_INFO, "Preventing focus request while in window switcher");
+		return;
+	}
+
 	/* In a multi-seat world we would select seat based on event->seat here. */
 	desktop_focus_view(view, /*raise*/ true);
 }

@@ -529,7 +529,8 @@ process_cursor_motion(struct server *server, uint32_t time)
 		dnd_icons_move(seat, seat->cursor->x, seat->cursor->y);
 	}
 
-	if ((ctx.view || ctx.surface) && rc.focus_follow_mouse) {
+	if ((ctx.view || ctx.surface) && rc.focus_follow_mouse
+			&& !server->osd_state.cycle_view) {
 		desktop_focus_view_or_surface(seat, ctx.view, ctx.surface,
 			rc.raise_on_focus);
 	}
@@ -806,6 +807,10 @@ static bool
 handle_release_mousebinding(struct server *server,
 		struct cursor_context *ctx, uint32_t button)
 {
+	if (server->osd_state.cycle_view) {
+		return false;
+	}
+
 	struct mousebind *mousebind;
 	bool consumed_by_frame_context = false;
 
@@ -892,6 +897,10 @@ static bool
 handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 		uint32_t button, uint32_t resize_edges)
 {
+	if (server->osd_state.cycle_view) {
+		return false;
+	}
+
 	struct mousebind *mousebind;
 	bool double_click = is_double_click(rc.doubleclick_time, button, ctx);
 	bool consumed_by_frame_context = false;

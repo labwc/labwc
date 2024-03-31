@@ -300,14 +300,14 @@ extending outward from the snapped edge.
 	interactive moves. Default is 1.
 
 *<snapping><preview><enabled>* [yes|no]
-	Show a preview when snaping to a window to an edge. Default is yes.
+	Show a preview when snapping to a window to an edge. Default is yes.
 
 *<snapping><preview><delay><inner>*++
 *<snapping><preview><delay><outer>*
-	Sets the delay to show a preview when snapping a window to each type of edges.
-	Defaults are 500 ms.
-	*inner* edges are edges with an adjacent output and *outer* edges are edges
-	without an adjacent output.
+	Sets the delay to show a preview when snapping a window to each type of
+	edge. Defaults are 500 ms.
+	*inner* edges are edges with an adjacent output and *outer* edges are
+	edges without an adjacent output.
 
 *<snapping><topMaximize>* [yes|no]
 	If *yes*, an interactive move that snaps a window to the top edge will
@@ -351,7 +351,8 @@ extending outward from the snapped edge.
 
 *<desktops number=""><names><name>*
 	Define workspaces. A workspace covers all outputs. Workspaces can be
-	switched to with GoToDesktop and windows can be moved with SendToDesktop.
+	switched to with GoToDesktop and windows can be moved with
+	SendToDesktop.
 	See labwc-actions(5) for more information about their arguments.
 
 	The number attribute defines the minimum number of workspaces. Default
@@ -738,14 +739,14 @@ extending outward from the snapped edge.
 	after as well.
 
 *<libinput><device><clickMethod>* [none|buttonAreas|clickfinger]
-	Configure the method by which physical clicks on a touchpad are mapped to
-	mouse-button events.
+	Configure the method by which physical clicks on a touchpad are mapped
+	to mouse-button events.
 
 	The click methods available are:
 	- *buttonAreas* - The bottom of the touchpad is divided into distinct
-	  regions corresponding to left, middle and right buttons; clicking within
-	  the region will trigger the corresponding event. Clicking the main area
-	  further up produces a left button event.
+	  regions corresponding to left, middle and right buttons; clicking
+	  within the region will trigger the corresponding event. Clicking the
+	  main area further up produces a left button event.
 	- *clickfinger* - Clicking with one, two or three finger(s) will produce
 	  left, right or middle button event without regard to the location of a
 	  click.

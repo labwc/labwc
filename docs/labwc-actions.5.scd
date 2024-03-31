@@ -176,10 +176,11 @@ Actions are used in menus and keyboard/mouse bindings.
 	Moves active window to other output, unless the window state is
 	fullscreen.
 
-	If *output* is specified, the window will be sent directly to the specified
-	output and *direction* is ignored. If *output* is omitted, *direction* may
-	be one of "left", "right", "up" or "down" to indicate that the window
-	should be moved to the next output in that direction (if one exists). 
+	If *output* is specified, the window will be sent directly to the
+	specified output and *direction* is ignored. If *output* is omitted,
+	*direction* may	be one of "left", "right", "up" or "down" to indicate
+	that the window	should be moved to the next output in that direction
+	(if one exists).
 
 	*wrap* [yes|no] When using the direction attribute, wrap around from
 	right-to-left or top-to-bottom, and vice versa. Default no.

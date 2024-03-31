@@ -357,7 +357,7 @@ Base both bugfixes and new features on `master`.
 
 Translators can create an account at [LXQt Weblate](https://translate.lxqt-project.org/projects/labwc/labwc/)
 and use the web interface. Adding new languages should work, otherwise the
-administrators can be contacted. Suggestions for improving existing translations 
+administrators can be contacted. Suggestions for improving existing translations
 can be added without account.
 
 ### Github Pull Request
@@ -378,7 +378,7 @@ translation strings under each English string.
 ## Coders
 
 Code contributors may need to update relevant files if their additions
-affect UI elements (at the moment only `src/menu/menu.c` and 
+affect UI elements (at the moment only `src/menu/menu.c` and
 `src/config/rcxml.c`). In this case the `po/labwc.pot` file needs to be
 updated so that translators can update their translations. Remember,
 many translators are _not_ coders!

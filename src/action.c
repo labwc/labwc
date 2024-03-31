@@ -81,6 +81,7 @@ enum action_type {
 	ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP,
 	ACTION_TYPE_TOGGLE_ALWAYS_ON_BOTTOM,
 	ACTION_TYPE_TOGGLE_OMNIPRESENT,
+	ACTION_TYPE_TOGGLE_SNAP_TO_EDGE,
 	ACTION_TYPE_FOCUS,
 	ACTION_TYPE_UNFOCUS,
 	ACTION_TYPE_ICONIFY,
@@ -134,6 +135,7 @@ const char *action_names[] = {
 	"ToggleAlwaysOnTop",
 	"ToggleAlwaysOnBottom",
 	"ToggleOmnipresent",
+	"ToggleSnapToEdge",
 	"Focus",
 	"Unfocus",
 	"Iconify",
@@ -304,10 +306,12 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 	case ACTION_TYPE_SNAP_TO_EDGE:
 	case ACTION_TYPE_GROW_TO_EDGE:
 	case ACTION_TYPE_SHRINK_TO_EDGE:
+	case ACTION_TYPE_TOGGLE_SNAP_TO_EDGE:
 		if (!strcmp(argument, "direction")) {
 			enum view_edge edge = view_edge_parse(content);
-			if ((edge == VIEW_EDGE_CENTER && action->type != ACTION_TYPE_SNAP_TO_EDGE)
-					|| edge == VIEW_EDGE_INVALID) {
+			if (edge == VIEW_EDGE_INVALID || (edge == VIEW_EDGE_CENTER
+					&& action->type != ACTION_TYPE_SNAP_TO_EDGE
+					&& action->type != ACTION_TYPE_TOGGLE_SNAP_TO_EDGE)) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			} else {
@@ -495,6 +499,7 @@ action_is_valid(struct action *action)
 	case ACTION_TYPE_SNAP_TO_EDGE:
 	case ACTION_TYPE_GROW_TO_EDGE:
 	case ACTION_TYPE_SHRINK_TO_EDGE:
+	case ACTION_TYPE_TOGGLE_SNAP_TO_EDGE:
 		arg_name = "direction";
 		arg_type = LAB_ACTION_ARG_INT;
 		break;
@@ -730,6 +735,13 @@ actions_run(struct view *activator, struct server *server,
 				view_snap_to_edge(view, edge,
 					/*across_outputs*/ true,
 					/*store_natural_geometry*/ true);
+			}
+			break;
+		case ACTION_TYPE_TOGGLE_SNAP_TO_EDGE:
+			if (view) {
+				/* Config parsing makes sure that direction is a valid direction */
+				enum view_edge edge = action_get_int(action, "direction", 0);
+				view_toggle_snap_to_edge(view, edge);
 			}
 			break;
 		case ACTION_TYPE_GROW_TO_EDGE:

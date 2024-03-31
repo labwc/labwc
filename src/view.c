@@ -1841,6 +1841,20 @@ view_edge_parse(const char *direction)
 }
 
 void
+view_toggle_snap_to_edge(struct view *view, enum view_edge edge)
+{
+	assert(view);
+
+	if (view->tiled != edge) {
+		view_snap_to_edge(view, edge, /*across_outputs*/ true,
+			/*store_natural_geometry*/ true);
+	} else {
+		view_restore_to(view, view->natural_geometry);
+		view_set_untiled(view);
+	}
+}
+
+void
 view_snap_to_edge(struct view *view, enum view_edge edge,
 			bool across_outputs, bool store_natural_geometry)
 {

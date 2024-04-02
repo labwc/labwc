@@ -8,6 +8,7 @@
 #include "decorations.h"
 #include "labwc.h"
 #include "node.h"
+#include "snap-constraints.h"
 #include "view.h"
 #include "view-impl-common.h"
 #include "window-rules.h"
@@ -141,6 +142,7 @@ handle_commit(struct wl_listener *listener, void *data)
 		 * actual view.
 		 */
 		if (!view->pending_configure_serial) {
+			snap_constraints_update(view);
 			view->pending = view->current;
 
 			/*
@@ -188,6 +190,7 @@ handle_configure_timeout(void *data)
 		view->current.width, view->current.height);
 
 	/* Re-sync pending view with current state */
+	snap_constraints_update(view);
 	view->pending = view->current;
 
 	return 0; /* ignored per wl_event_loop docs */

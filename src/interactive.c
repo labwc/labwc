@@ -4,6 +4,7 @@
 #include "labwc.h"
 #include "regions.h"
 #include "resize_indicator.h"
+#include "snap.h"
 #include "view.h"
 #include "window-rules.h"
 

@@ -105,12 +105,12 @@ void edges_adjust_geom(struct view *view, struct border edges,
 	uint32_t resize_edges, struct wlr_box *geom);
 
 void edges_find_neighbors(struct border *nearest_edges, struct view *view,
-	struct wlr_box target, struct output *output,
-	edge_validator_t validator, bool use_pending, bool ignore_hidden);
+	struct wlr_box origin, struct wlr_box target,
+	struct output *output, edge_validator_t validator, bool ignore_hidden);
 
 void edges_find_outputs(struct border *nearest_edges, struct view *view,
-	struct wlr_box target, struct output *output,
-	edge_validator_t validator, bool use_pending);
+	struct wlr_box origin, struct wlr_box target,
+	struct output *output, edge_validator_t validator);
 
 void edges_adjust_move_coords(struct view *view, struct border edges,
 	int *x, int *y, bool use_pending);

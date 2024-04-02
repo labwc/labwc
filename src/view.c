@@ -13,6 +13,7 @@
 #include "placement.h"
 #include "regions.h"
 #include "resize_indicator.h"
+#include "snap-constraints.h"
 #include "snap.h"
 #include "ssd.h"
 #include "view.h"
@@ -2202,6 +2203,8 @@ view_destroy(struct view *view)
 {
 	assert(view);
 	struct server *server = view->server;
+
+	snap_constraints_invalidate(view);
 
 	if (view->mappable.connected) {
 		mappable_disconnect(&view->mappable);

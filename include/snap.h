@@ -16,4 +16,7 @@ void snap_grow_to_next_edge(struct view *view,
 void snap_shrink_to_next_edge(struct view *view,
 	enum view_edge direction, struct wlr_box *geo);
 
+void snap_invalidate_edge_cache(struct view *view);
+void snap_update_cache_geometry(struct view *view);
+
 #endif /* LABWC_SNAP_H */

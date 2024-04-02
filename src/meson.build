@@ -21,6 +21,7 @@ labwc_sources = files(
   'seat.c',
   'server.c',
   'session-lock.c',
+  'snap-constraints.c',
   'snap.c',
   'tearing.c',
   'theme.c',

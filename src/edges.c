@@ -376,8 +376,8 @@ edges_calculate_visibility(struct server *server, struct view *ignored_view)
 
 void
 edges_find_neighbors(struct border *nearest_edges, struct view *view,
-		struct wlr_box target, struct output *output,
-		edge_validator_t validator, bool use_pending, bool ignore_hidden)
+		struct wlr_box origin, struct wlr_box target,
+		struct output *output, edge_validator_t validator, bool ignore_hidden)
 {
 	assert(view);
 	assert(validator);
@@ -391,10 +391,7 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 	struct border view_edges = { 0 };
 	struct border target_edges = { 0 };
 
-	struct wlr_box *view_geom =
-		use_pending ? &view->pending : &view->current;
-
-	edges_for_target_geometry(&view_edges, view, *view_geom);
+	edges_for_target_geometry(&view_edges, view, origin);
 	edges_for_target_geometry(&target_edges, view, target);
 
 	struct view *v;
@@ -437,8 +434,8 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 
 void
 edges_find_outputs(struct border *nearest_edges, struct view *view,
-		struct wlr_box target, struct output *output,
-		edge_validator_t validator, bool use_pending)
+		struct wlr_box origin, struct wlr_box target,
+		struct output *output, edge_validator_t validator)
 {
 	assert(view);
 	assert(validator);
@@ -453,10 +450,7 @@ edges_find_outputs(struct border *nearest_edges, struct view *view,
 	struct border view_edges = { 0 };
 	struct border target_edges = { 0 };
 
-	struct wlr_box *view_geom =
-		use_pending ? &view->pending : &view->current;
-
-	edges_for_target_geometry(&view_edges, view, *view_geom);
+	edges_for_target_geometry(&view_edges, view, origin);
 	edges_for_target_geometry(&target_edges, view, target);
 
 	struct output *o;
@@ -473,7 +467,7 @@ edges_find_outputs(struct border *nearest_edges, struct view *view,
 			output_usable_area_in_layout_coords(o);
 
 		struct wlr_box ol;
-		if (!wlr_box_intersection(&ol, view_geom, &usable) &&
+		if (!wlr_box_intersection(&ol, &origin, &usable) &&
 				!wlr_box_intersection(&ol, &target, &usable)) {
 			continue;
 		}

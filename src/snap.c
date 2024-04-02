@@ -4,10 +4,9 @@
 #include <wlr/util/box.h>
 #include "common/border.h"
 #include "common/macros.h"
-#include "config/rcxml.h"
 #include "edges.h"
 #include "labwc.h"
-#include "resistance.h"
+#include "snap-constraints.h"
 #include "snap.h"
 #include "view.h"
 
@@ -121,9 +120,8 @@ snap_move_to_edge(struct view *view, enum view_edge direction,
 		struct border next_edges;
 		edges_initialize(&next_edges);
 
-		edges_find_neighbors(&next_edges,
-			view, target, output, check_edge,
-			/* use_pending */ true, /* ignore_hidden */ false);
+		edges_find_neighbors(&next_edges, view, view->pending, target,
+			output, check_edge, /* ignore_hidden */ false);
 
 		/* If any "best" edges were encountered, limit motion */
 		edges_adjust_move_coords(view, next_edges,
@@ -135,8 +133,8 @@ snap_move_to_edge(struct view *view, enum view_edge direction,
 }
 
 void
-snap_grow_to_next_edge(struct view *view, enum view_edge direction,
-		struct wlr_box *geo)
+snap_grow_to_next_edge(struct view *view,
+		enum view_edge direction, struct wlr_box *geo)
 {
 	assert(view);
 	assert(!view->shaded);
@@ -196,17 +194,26 @@ snap_grow_to_next_edge(struct view *view, enum view_edge direction,
 	struct border next_edges;
 	edges_initialize(&next_edges);
 
+	/* Use a constrained, effective geometry for snapping if appropriate */
+	struct wlr_box origin = snap_constraints_effective(view, direction);
+
 	/* Limit motion to any intervening edge of other views on this output */
-	edges_find_neighbors(&next_edges,
-		view, *geo, output, check_edge,
-		/* use_pending */ true, /* ignore_hidden */ false);
+	edges_find_neighbors(&next_edges, view, origin, *geo,
+		output, check_edge, /* ignore_hidden */ false);
+
 	edges_adjust_resize_geom(view, next_edges,
 		resize_edges, geo, /* use_pending */ true);
+
+	/*
+	 * Record effective geometry after snapping in case the client opts to
+	 * ignore or modify the configured geometry
+	 */
+	snap_constraints_set(view, direction, *geo);
 }
 
 void
-snap_shrink_to_next_edge(struct view *view, enum view_edge direction,
-		struct wlr_box *geo)
+snap_shrink_to_next_edge(struct view *view,
+		enum view_edge direction, struct wlr_box *geo)
 {
 	assert(view);
 	assert(!view->shaded);
@@ -252,15 +259,23 @@ snap_shrink_to_next_edge(struct view *view, enum view_edge direction,
 	struct border next_edges;
 	edges_initialize(&next_edges);
 
+	/* Use a constrained, effective geometry for snapping if appropriate */
+	struct wlr_box origin = snap_constraints_effective(view, direction);
+
 	/* Snap to output edges if the moving edge started off-screen */
-	edges_find_outputs(&next_edges, view, *geo,
-		view->output, check_edge, /* use_pending */ true);
+	edges_find_outputs(&next_edges, view,
+		origin, *geo, view->output, check_edge);
 
 	/* Limit motion to any intervening edge of ther views on this output */
-	edges_find_neighbors(&next_edges,
-		view, *geo, view->output, check_edge,
-		/* use_pending */ true, /* ignore_hidden */ false);
+	edges_find_neighbors(&next_edges, view, origin, *geo,
+		view->output, check_edge, /* ignore_hidden */ false);
 
 	edges_adjust_resize_geom(view, next_edges,
 		resize_edges, geo, /* use_pending */ true);
+
+	/*
+	 * Record effective geometry after snapping in case the client opts to
+	 * ignore or modify the configured geometry
+	 */
+	snap_constraints_set(view, direction, *geo);
 }

@@ -299,6 +299,15 @@ extending outward from the snapped edge.
 	SnapToEdge action for that edge. A *range* of 0 disables snapping via
 	interactive moves. Default is 1.
 
+*<snapping><previewDelay edgeType="">*
+	Set the delay to show a preview when snapping a window to an edge.
+	Default is 500 ms.
+
+	The *edgeType* attribute is optional and specifies the position of edges
+	to apply the delay. This can be either of:
+	- *interior* - Edges with an adjacent output
+	- *exterior* - Edges without an adjacent output
+
 *<snapping><topMaximize>* [yes|no]
 	If *yes*, an interactive move that snaps a window to the top edge will
 	maximize the window. If *no*, snapping will behave as it does with other

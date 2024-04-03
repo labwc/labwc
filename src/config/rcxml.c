@@ -732,13 +732,14 @@ set_adaptive_sync_mode(const char *str, enum adaptive_sync_mode *variable)
 static void
 entry(xmlNode *node, char *nodename, char *content)
 {
-	/* current <theme><font place=""></font></theme> */
+	/* current <theme><font place=""> */
 	static enum font_place font_place = FONT_PLACE_NONE;
 
+	/* current <snapping><previewDelay edgeType=""> */
 	static enum {
-		EDGE_TYPE_INTERIOR = 1,
-		EDGE_TYPE_EXTERIOR = 2,
-		EDGE_TYPE_BOTH = 1 | 2,
+		EDGE_TYPE_INTERIOR = (1 << 0),
+		EDGE_TYPE_EXTERIOR = (1 << 1),
+		EDGE_TYPE_BOTH = (EDGE_TYPE_INTERIOR | EDGE_TYPE_EXTERIOR),
 	} edge_type = EDGE_TYPE_BOTH;
 
 	static uint32_t button_map_from;

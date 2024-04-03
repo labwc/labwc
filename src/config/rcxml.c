@@ -912,18 +912,18 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.window_edge_strength = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
 		rc.snap_edge_range = atoi(content);
-	} else if (!strcasecmp(nodename, "edgeType.previewTimeout.snapping")) {
+	} else if (!strcasecmp(nodename, "edgeType.previewDelay.snapping")) {
 		if (!strcasecmp(content, "interior")) {
 			edge_type = EDGE_TYPE_INTERIOR;
 		} else if (!strcasecmp(content, "exterior")) {
 			edge_type = EDGE_TYPE_EXTERIOR;
 		}
-	} else if (!strcasecmp(nodename, "previewTimeout.snapping")) {
+	} else if (!strcasecmp(nodename, "previewDelay.snapping")) {
 		if (edge_type & EDGE_TYPE_INTERIOR) {
-			rc.snap_preview_interior_timeout = atoi(content);
+			rc.snap_preview_delay_interior = atoi(content);
 		}
 		if (edge_type & EDGE_TYPE_EXTERIOR) {
-			rc.snap_preview_exterior_timeout = atoi(content);
+			rc.snap_preview_delay_exterior = atoi(content);
 		}
 	} else if (!strcasecmp(nodename, "topMaximize.snapping")) {
 		set_bool(content, &rc.snap_top_maximize);
@@ -1202,8 +1202,8 @@ rcxml_init(void)
 	rc.window_edge_strength = 20;
 
 	rc.snap_edge_range = 1;
-	rc.snap_preview_interior_timeout = 500;
-	rc.snap_preview_exterior_timeout = 500;
+	rc.snap_preview_delay_interior = 500;
+	rc.snap_preview_delay_exterior = 500;
 	rc.snap_top_maximize = true;
 	rc.snap_tiling_events_mode = LAB_TILING_EVENTS_ALWAYS;
 

@@ -157,21 +157,21 @@ show_edge_overlay(struct seat *seat, enum view_edge edge,
 	seat->overlay.active.edge = edge;
 	seat->overlay.active.output = output;
 
-	int timeout;
+	int delay;
 	if (edge_has_adjacent_output_from_cursor(seat, output, edge)) {
-		timeout = rc.snap_preview_interior_timeout;
+		delay = rc.snap_preview_delay_interior;
 	} else {
-		timeout = rc.snap_preview_exterior_timeout;
+		delay = rc.snap_preview_delay_exterior;
 	}
 
-	if (timeout > 0) {
+	if (delay > 0) {
 		if (!seat->overlay.timer) {
 			seat->overlay.timer = wl_event_loop_add_timer(
 				seat->server->wl_event_loop,
 				handle_edge_overlay_timeout, seat);
 		}
-		/* Show overlay <previewTimeout>ms later */
-		wl_event_source_timer_update(seat->overlay.timer, timeout);
+		/* Show overlay <snapping><previewDelay>ms later */
+		wl_event_source_timer_update(seat->overlay.timer, delay);
 	} else {
 		/* Show overlay now */
 		struct wlr_box box = get_edge_snap_box(seat->overlay.active.edge,

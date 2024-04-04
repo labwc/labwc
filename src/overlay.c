@@ -149,6 +149,9 @@ static void
 show_edge_overlay(struct seat *seat, enum view_edge edge,
 		struct output *output)
 {
+	if (!rc.snap_preview_enabled) {
+		return;
+	}
 	if (seat->overlay.active.edge == edge
 			&& seat->overlay.active.output == output) {
 		return;
@@ -159,9 +162,9 @@ show_edge_overlay(struct seat *seat, enum view_edge edge,
 
 	int delay;
 	if (edge_has_adjacent_output_from_cursor(seat, output, edge)) {
-		delay = rc.snap_preview_delay_interior;
+		delay = rc.snap_preview_delay_inner;
 	} else {
-		delay = rc.snap_preview_delay_exterior;
+		delay = rc.snap_preview_delay_outer;
 	}
 
 	if (delay > 0) {
@@ -170,7 +173,7 @@ show_edge_overlay(struct seat *seat, enum view_edge edge,
 				seat->server->wl_event_loop,
 				handle_edge_overlay_timeout, seat);
 		}
-		/* Show overlay <snapping><previewDelay>ms later */
+		/* Show overlay <snapping><preview><delay>ms later */
 		wl_event_source_timer_update(seat->overlay.timer, delay);
 	} else {
 		/* Show overlay now */

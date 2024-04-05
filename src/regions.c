@@ -5,11 +5,9 @@
 #include <float.h>
 #include <math.h>
 #include <string.h>
-#include <wlr/render/pixman.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
-#include "common/graphic-helpers.h"
 #include "common/list.h"
 #include "common/mem.h"
 #include "input/keyboard.h"
@@ -28,32 +26,6 @@ regions_should_snap(struct server *server)
 
 	struct wlr_keyboard *keyboard = &server->seat.keyboard_group->keyboard;
 	return keyboard_any_modifiers_pressed(keyboard);
-}
-
-static void
-overlay_create(struct seat *seat)
-{
-	assert(!seat->region_overlay.tree);
-
-	struct server *server = seat->server;
-	struct wlr_scene_tree *parent = wlr_scene_tree_create(&server->scene->tree);
-
-	seat->region_overlay.tree = parent;
-	wlr_scene_node_set_enabled(&parent->node, false);
-	if (!wlr_renderer_is_pixman(server->renderer)) {
-		/* Hardware assisted rendering: Half transparent overlay */
-		float color[4] = { 0.25, 0.25, 0.35, 0.5 };
-		seat->region_overlay.overlay = wlr_scene_rect_create(parent, 0, 0, color);
-	} else {
-		/* Software rendering: Outlines */
-		int line_width = server->theme->osd_border_width;
-		float *colors[3] = {
-			server->theme->osd_bg_color,
-			server->theme->osd_label_text_color,
-			server->theme->osd_bg_color
-		};
-		seat->region_overlay.pixman_overlay = multi_rect_create(parent, colors, line_width);
-	}
 }
 
 struct region *
@@ -99,61 +71,6 @@ regions_from_cursor(struct server *server)
 		}
 	}
 	return closest_region;
-}
-
-void
-regions_show_overlay(struct view *view, struct seat *seat, struct region *region)
-{
-	assert(view);
-	assert(seat);
-	assert(region);
-
-	/* Don't show active region */
-	if (seat->region_active == region) {
-		return;
-	}
-
-	if (!seat->region_overlay.tree) {
-		overlay_create(seat);
-	}
-
-	/* Update overlay */
-	struct server *server = seat->server;
-	struct wlr_scene_node *node = &seat->region_overlay.tree->node;
-	if (!wlr_renderer_is_pixman(server->renderer)) {
-		/* Hardware assisted rendering: Half transparent overlay */
-		wlr_scene_rect_set_size(seat->region_overlay.overlay,
-			region->geo.width, region->geo.height);
-	} else {
-		/* Software rendering: Outlines */
-		multi_rect_set_size(seat->region_overlay.pixman_overlay,
-			region->geo.width, region->geo.height);
-	}
-	if (node->parent != view->scene_tree->node.parent) {
-		wlr_scene_node_reparent(node, view->scene_tree->node.parent);
-		wlr_scene_node_place_below(node, &view->scene_tree->node);
-	}
-	wlr_scene_node_set_position(node, region->geo.x, region->geo.y);
-	wlr_scene_node_set_enabled(node, true);
-	seat->region_active = region;
-}
-
-void
-regions_hide_overlay(struct seat *seat)
-{
-	assert(seat);
-	if (!seat->region_active) {
-		return;
-	}
-
-	struct server *server = seat->server;
-	struct wlr_scene_node *node = &seat->region_overlay.tree->node;
-
-	wlr_scene_node_set_enabled(node, false);
-	if (node->parent != &server->scene->tree) {
-		wlr_scene_node_reparent(node, &server->scene->tree);
-	}
-	seat->region_active = NULL;
 }
 
 void
@@ -246,10 +163,10 @@ regions_destroy(struct seat *seat, struct wl_list *regions)
 	struct region *region, *region_tmp;
 	wl_list_for_each_safe(region, region_tmp, regions, link) {
 		wl_list_remove(&region->link);
-		zfree(region->name);
-		if (seat && seat->region_active == region) {
-			seat->region_active = NULL;
+		if (seat && seat->overlay.active.region == region) {
+			overlay_hide(seat);
 		}
+		zfree(region->name);
 		zfree(region);
 	}
 }

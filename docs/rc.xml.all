@@ -99,6 +99,9 @@
   <snapping>
     <!-- Set range to 0 to disable window snapping completely -->
     <range>1</range>
+    <preview enabled="yes">
+      <delay inner="500" outer="500" />
+    </preview>
     <topMaximize>yes</topMaximize>
     <notifyClient>always</notifyClient>
   </snapping>

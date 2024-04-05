@@ -1035,12 +1035,6 @@ cursor_button_release(struct seat *seat, uint32_t button,
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		/* Exit interactive move/resize mode */
 		interactive_finish(server->grabbed_view);
-
-		if (pressed_surface) {
-			/* Ensure CSD clients see the release event */
-			wlr_seat_pointer_notify_button(seat->seat, time_msec,
-				button, button_state);
-		}
 		return;
 	}
 

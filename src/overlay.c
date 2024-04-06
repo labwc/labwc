@@ -16,7 +16,7 @@ create_overlay(struct seat *seat)
 	seat->overlay.tree = parent;
 	wlr_scene_node_set_enabled(&parent->node, false);
 	if (!wlr_renderer_is_pixman(server->renderer)) {
-		/* Hardware assisted rendering: Half transparent overlay */
+		/* Hardware assisted rendering: Half transparent overlay, pre-multiplied */
 		float color[4] = { 0.25, 0.25, 0.35, 0.5 };
 		seat->overlay.rect = wlr_scene_rect_create(parent, 0, 0, color);
 	} else {

@@ -135,8 +135,8 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 		(width - icon_width) / 2, (height - icon_height) / 2);
 	cairo_paint(cairo);
 
-	/* Overlay (non-multiplied alpha) */
-	float overlay_color[4] = { 0.5f, 0.5f, 0.5f, 0.3f};
+	/* Overlay (pre-multiplied alpha) */
+	float overlay_color[4] = { 0.15f, 0.15f, 0.15f, 0.3f};
 	enum corner corner = corner_from_icon_name(icon_name);
 
 	if (corner == LAB_CORNER_UNKNOWN) {
@@ -406,6 +406,10 @@ parse_hexstr(const char *hex, float *rgba)
 	rgba[2] = (hex_to_dec(hex[5]) * 16 + hex_to_dec(hex[6])) / 255.0;
 	if (strlen(hex) > 7) {
 		rgba[3] = atoi(hex + 7) / 100.0;
+		/* Pre-multiply everything as expected by wlr_scene */
+		rgba[0] *= rgba[3];
+		rgba[1] *= rgba[3];
+		rgba[2] *= rgba[3];
 	} else {
 		rgba[3] = 1.0;
 	}

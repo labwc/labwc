@@ -1059,7 +1059,7 @@ cursor_button_release(struct seat *seat, uint32_t button,
 	bool consumed_by_frame_context =
 		handle_release_mousebinding(server, &ctx, button);
 
-	if (ctx.surface && !consumed_by_frame_context) {
+	if (!consumed_by_frame_context) {
 		/* Notify client with pointer focus of button release */
 		wlr_seat_pointer_notify_button(seat->seat, time_msec,
 			button, button_state);

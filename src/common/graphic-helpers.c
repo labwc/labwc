@@ -85,7 +85,19 @@ draw_cairo_border(cairo_t *cairo, struct wlr_fbox fbox, double line_width)
 void
 set_cairo_color(cairo_t *cairo, const float *c)
 {
-	cairo_set_source_rgba(cairo, c[0], c[1], c[2], c[3]);
+	/*
+	 * We are dealing with pre-multiplied colors
+	 * but cairo expects unmultiplied colors here
+	 */
+	float alpha = c[3];
+
+	if (alpha == 0.0f) {
+		cairo_set_source_rgba(cairo, 0, 0, 0, 0);
+		return;
+	}
+
+	cairo_set_source_rgba(cairo, c[0] / alpha, c[1] / alpha,
+		c[2] / alpha, alpha);
 }
 
 struct surface_context

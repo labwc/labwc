@@ -115,13 +115,23 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	cairo_surface_t *surf = cairo_get_target(cairo);
 
 	/*
-	 * Fill background color first - necessary for subpixel
-	 * rendering, which does not work properly on transparency
+	 * Fill with the background color first IF the background color
+	 * is opaque. This is necessary for subpixel rendering to work
+	 * properly (it does not work on top of transparency).
+	 *
+	 * However, if the background color is not opaque, leave the
+	 * buffer unfilled (completely transparent) since the background
+	 * is already rendered by the scene element underneath. In this
+	 * case we have to disable subpixel rendering.
+	 *
+	 * Note: the 0.999 cutoff was chosen to be greater than 254/255
+	 * (about 0.996) but leave some margin for rounding errors.
 	 */
-	set_cairo_color(cairo, bg_color);
-	cairo_rectangle(cairo, 0, 0, (*buffer)->unscaled_width,
-		(*buffer)->unscaled_height);
-	cairo_fill(cairo);
+	bool opaque_bg = (bg_color[3] > 0.999f);
+	if (opaque_bg) {
+		set_cairo_color(cairo, bg_color);
+		cairo_paint(cairo);
+	}
 
 	set_cairo_color(cairo, color);
 	cairo_move_to(cairo, 0, 0);
@@ -130,6 +140,15 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	pango_layout_set_width(layout, text_extents.width * PANGO_SCALE);
 	pango_layout_set_text(layout, text, -1);
 	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
+
+	if (!opaque_bg) {
+		/* disable subpixel rendering */
+		cairo_font_options_t *opts = cairo_font_options_create();
+		cairo_font_options_set_antialias(opts, CAIRO_ANTIALIAS_GRAY);
+		PangoContext *ctx = pango_layout_get_context(layout);
+		pango_cairo_context_set_font_options(ctx, opts);
+		cairo_font_options_destroy(opts);
+	}
 
 	PangoFontDescription *desc = font_to_pango_desc(font);
 	pango_layout_set_font_description(layout, desc);

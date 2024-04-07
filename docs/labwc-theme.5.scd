@@ -34,7 +34,11 @@ labwc-config(5).
 *color*
 	Colors can be specified by either of the following:
 	- #rrggbb (hexadecimal RGB values)
-	- #rrggbb aaa (same but with decimal alpha value)
+	- #rrggbb aaa (same but with decimal alpha value percentage)
+	- #rrggbbaa (same but with inline alpha value in hex encoding)
+
+	Note: the #rrggbb aaa notation is deprecated starting from
+	labwc 0.7.2 and may be removed in future releases.
 
 *justification*
 	Justification determines the horizontal alignment of text.

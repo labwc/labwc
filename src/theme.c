@@ -404,15 +404,27 @@ parse_hexstr(const char *hex, float *rgba)
 	rgba[0] = (hex_to_dec(hex[1]) * 16 + hex_to_dec(hex[2])) / 255.0;
 	rgba[1] = (hex_to_dec(hex[3]) * 16 + hex_to_dec(hex[4])) / 255.0;
 	rgba[2] = (hex_to_dec(hex[5]) * 16 + hex_to_dec(hex[6])) / 255.0;
-	if (strlen(hex) > 7) {
-		rgba[3] = atoi(hex + 7) / 100.0;
-		/* Pre-multiply everything as expected by wlr_scene */
-		rgba[0] *= rgba[3];
-		rgba[1] *= rgba[3];
-		rgba[2] *= rgba[3];
-	} else {
-		rgba[3] = 1.0;
+	rgba[3] = 1.0;
+
+	size_t len = strlen(hex);
+	if (len >= 9 && hex[7] == ' ') {
+		/* Deprecated #aabbcc 100 alpha encoding to support openbox themes */
+		rgba[3] = atoi(hex + 8) / 100.0;
+		wlr_log(WLR_ERROR,
+			"The theme uses deprecated alpha notation %s, please convert to "
+			"#rrggbbaa to ensure your config works on newer labwc releases", hex);
+	} else if (len == 9) {
+		/* Inline alpha encoding like #aabbccff */
+		rgba[3] = (hex_to_dec(hex[7]) * 16 + hex_to_dec(hex[8])) / 255.0;
+	} else if (len > 7) {
+		/* More than just #aabbcc */
+		wlr_log(WLR_ERROR, "invalid alpha color encoding: '%s'", hex);
 	}
+
+	/* Pre-multiply everything as expected by wlr_scene */
+	rgba[0] *= rgba[3];
+	rgba[1] *= rgba[3];
+	rgba[2] *= rgba[3];
 }
 
 static enum lab_justification

@@ -5655,15 +5655,8 @@ sub process {
 			    $var !~ /^(?:Clear|Set|TestClear|TestSet|)Page[A-Z]/ &&
 
 #labwc-custom check to ignore some pango/libxml2/etc CamelCase variants
-			    $var !~ /^(?:PangoLayout|PangoFontDescription)/ &&
-			    $var !~ /^(?:PangoTabArray|PangoRectangle)/ &&
-			    $var !~ /^(?:PangoWeight|_PangoFontDescription)/ &&
-			    $var !~ /^(?:xmlNode|xmlIsBlankNode|xmlAttr)/ &&
-			    $var !~ /^(?:xmlGetProp|xmlChar|xmlDoc)/ &&
-			    $var !~ /^(?:xmlReadFile|xmlDocGetRootElement)/ &&
-			    $var !~ /^(?:xmlFreeDoc|xmlCleanupParser)/ &&
-			    $var !~ /^(?:xmlParseMemory)/ &&
-			    $var !~ /^(?:xmlFree)/ &&
+			    $var !~ /^(?:_?Pango\w+)/ &&
+			    $var !~ /^(?:xml\w+)/ &&
 			    $var !~ /^(?:GString|GError)/ &&
 			    $var !~ /^(?:RsvgRectangle|RsvgHandle)/ &&
 			    $var !~ /^(?:XKB_KEY_XF86Switch_VT_1)/ &&

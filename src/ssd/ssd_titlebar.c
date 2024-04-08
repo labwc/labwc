@@ -99,11 +99,16 @@ ssd_titlebar_create(struct ssd *ssd)
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_ICONIFY, parent,
 			color, iconify_button_unpressed, iconify_button_hover,
 			width - SSD_BUTTON_WIDTH * 3, view);
-		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_MAXIMIZE, parent,
+
+		/* Maximize button has an alternate state when maximized */
+		struct ssd_part *btn_max_root = add_scene_button(
+			&subtree->parts, LAB_SSD_BUTTON_MAXIMIZE, parent,
 			color, maximize_button_unpressed, maximize_button_hover,
 			width - SSD_BUTTON_WIDTH * 2, view);
-		add_toggled_icon(&subtree->parts, LAB_SSD_BUTTON_MAXIMIZE,
+		struct ssd_button *btn_max = node_ssd_button_from_node(btn_max_root->node);
+		add_toggled_icon(btn_max, &subtree->parts, LAB_SSD_BUTTON_MAXIMIZE,
 			restore_button_unpressed, restore_button_hover);
+
 		add_scene_button_corner(&subtree->parts,
 			LAB_SSD_BUTTON_CLOSE, LAB_SSD_PART_CORNER_TOP_RIGHT, parent,
 			corner_top_right, close_button_unpressed, close_button_hover,

@@ -422,6 +422,13 @@ popup_handle_new_popup(struct wl_listener *listener, void *data)
 	struct wlr_xdg_popup *wlr_popup = data;
 	struct lab_layer_popup *new_popup = create_popup(wlr_popup,
 		lab_layer_popup->scene_tree);
+
+	if (!new_popup) {
+		wl_resource_post_no_memory(wlr_popup->resource);
+		wlr_xdg_popup_destroy(wlr_popup);
+		return;
+	}
+
 	new_popup->output_toplevel_sx_box =
 		lab_layer_popup->output_toplevel_sx_box;
 }
@@ -481,6 +488,12 @@ handle_new_popup(struct wl_listener *listener, void *data)
 		.height = output_box.height,
 	};
 	struct lab_layer_popup *popup = create_popup(wlr_popup, surface->tree);
+	if (!popup) {
+		wl_resource_post_no_memory(wlr_popup->resource);
+		wlr_xdg_popup_destroy(wlr_popup);
+		return;
+	}
+
 	popup->output_toplevel_sx_box = output_toplevel_sx_box;
 
 	if (surface->layer_surface->current.layer

@@ -60,6 +60,17 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
+	if (!output->scene_output) {
+		/*
+		 * TODO: This is a short term fix for issue #1667,
+		 *       a proper fix would require restructuring
+		 *       the life cycle of scene outputs, e.g.
+		 *       creating them on new_output_notify() only.
+		 */
+		wlr_log(WLR_INFO, "Failed to render new frame: no scene-output");
+		return;
+	}
+
 	struct wlr_output *wlr_output = output->wlr_output;
 	struct server *server = output->server;
 

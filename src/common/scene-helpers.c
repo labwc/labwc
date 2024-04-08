@@ -55,7 +55,7 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output)
 		return false;
 	}
 	if (!wlr_output_commit(wlr_output)) {
-		wlr_log(WLR_ERROR, "Failed to commit output %s",
+		wlr_log(WLR_INFO, "Failed to commit output %s",
 			wlr_output->name);
 		return false;
 	}

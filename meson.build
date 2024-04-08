@@ -87,6 +87,10 @@ else
 endif
 conf_data.set10('HAVE_RSVG', have_rsvg)
 
+if get_option('static_analyzer').enabled()
+  add_project_arguments(['-fanalyzer'], language: 'c')
+endif
+
 msgfmt = find_program('msgfmt', required: get_option('nls'))
 if msgfmt.found()
   source_root = meson.current_source_dir()

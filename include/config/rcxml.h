@@ -15,18 +15,6 @@
 #include "resize_indicator.h"
 #include "theme.h"
 
-enum window_switcher_field_content {
-	LAB_FIELD_NONE = 0,
-	LAB_FIELD_TYPE,
-	LAB_FIELD_IDENTIFIER,
-	LAB_FIELD_TRIMMED_IDENTIFIER,
-	LAB_FIELD_TITLE,
-	LAB_FIELD_WORKSPACE,
-	LAB_FIELD_WIN_STATE,
-	LAB_FIELD_TYPE_SHORT,
-	LAB_FIELD_OUTPUT,
-};
-
 enum view_placement_policy {
 	LAB_PLACE_CENTER = 0,
 	LAB_PLACE_CURSOR,
@@ -51,12 +39,6 @@ struct usable_area_override {
 	struct border margin;
 	char *output;
 	struct wl_list link; /* struct rcxml.usable_area_overrides */
-};
-
-struct window_switcher_field {
-	enum window_switcher_field_content content;
-	int width;
-	struct wl_list link; /* struct rcxml.window_switcher.fields */
 };
 
 struct rcxml {

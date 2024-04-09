@@ -14,38 +14,12 @@
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
-#include "theme.h"
 #include "node.h"
+#include "osd.h"
+#include "theme.h"
 #include "view.h"
 #include "window-rules.h"
 #include "workspaces.h"
-
-static const char *
-get_formatted_app_id(struct view *view)
-{
-	char *s = (char *)view_get_string_prop(view, "app_id");
-	if (!s) {
-		return NULL;
-	}
-	return s;
-}
-
-static const char *
-get_trimmed_app_id(char *s)
-{
-	if (!s) {
-		return NULL;
-	}
-	/* remove the first two nodes of 'org.' strings */
-	if (!strncmp(s, "org.", 4)) {
-		char *p = s + 4;
-		p = strchr(p, '.');
-		if (p) {
-			return ++p;
-		}
-	}
-	return s;
-}
 
 static void
 destroy_osd_nodes(struct output *output)
@@ -225,63 +199,6 @@ preview_cycled_view(struct view *view)
 	wlr_scene_node_raise_to_top(osd_state->preview_node);
 }
 
-static const char *
-get_type(struct view *view)
-{
-	switch (view->type) {
-	case LAB_XDG_SHELL_VIEW:
-		return "[xdg-shell]";
-#if HAVE_XWAYLAND
-	case LAB_XWAYLAND_VIEW:
-		return "[xwayland]";
-#endif
-	}
-	return "";
-}
-
-static const char *
-get_type_short(struct view *view)
-{
-	switch (view->type) {
-	case LAB_XDG_SHELL_VIEW:
-		return "[W]";
-#if HAVE_XWAYLAND
-	case LAB_XWAYLAND_VIEW:
-		return "[X]";
-#endif
-	}
-	return "";
-}
-
-static const char *
-get_app_id(struct view *view)
-{
-	switch (view->type) {
-	case LAB_XDG_SHELL_VIEW:
-		return get_formatted_app_id(view);
-#if HAVE_XWAYLAND
-	case LAB_XWAYLAND_VIEW:
-		return view_get_string_prop(view, "class");
-#endif
-	}
-	return "";
-}
-
-static const char *
-get_title_if_different(struct view *view)
-{
-	/*
-	 * XWayland clients return WM_CLASS for 'app_id' so we don't need a
-	 * special case for that here.
-	 */
-	const char *identifier = view_get_string_prop(view, "app_id");
-	const char *title = view_get_string_prop(view, "title");
-	if (!identifier) {
-		return title;
-	}
-	return (!title || !strcmp(identifier, title)) ? NULL : title;
-}
-
 static void
 render_osd(struct server *server, cairo_t *cairo, int w, int h,
 		bool show_workspace, const char *workspace_name,
@@ -374,50 +291,8 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 				+ theme->osd_window_switcher_item_padding_y
 				+ theme->osd_window_switcher_item_active_border_width);
 
-			switch (field->content) {
-			case LAB_FIELD_TYPE:
-				buf_add(&buf, get_type(*view));
-				break;
-			case LAB_FIELD_TYPE_SHORT:
-				buf_add(&buf, get_type_short(*view));
-				break;
-			case LAB_FIELD_WORKSPACE:
-				buf_add(&buf, (*view)->workspace->name);
-				break;
-			case LAB_FIELD_WIN_STATE:
-				if ((*view)->maximized) {
-					buf_add(&buf, "M");
-				} else if ((*view)->minimized) {
-					buf_add(&buf, "m");
-				} else if ((*view)->fullscreen) {
-					buf_add(&buf, "F");
-				} else {
-					buf_add(&buf, " ");
-				}
-				break;
-			case LAB_FIELD_OUTPUT:
-				if (wl_list_length(&server->outputs) > 1 &&
-						output_is_usable((*view)->output)) {
-					buf_add(&buf, (*view)->output->wlr_output->name);
-				} else {
-					buf_add(&buf, " ");
-				}
-				break;
-			case LAB_FIELD_IDENTIFIER:
-				buf_add(&buf, get_app_id(*view));
-				break;
-			case LAB_FIELD_TRIMMED_IDENTIFIER:
-				{
-					char *s = (char *)get_app_id(*view);
-					buf_add(&buf, get_trimmed_app_id(s));
-					break;
-				}
-			case LAB_FIELD_TITLE:
-				buf_add(&buf, get_title_if_different(*view));
-				break;
-			default:
-				break;
-			}
+			osd_field_get_content(field, &buf, *view);
+
 			int field_width = (available_width - (nr_fields + 1)
 				* theme->osd_window_switcher_item_padding_x)
 				* field->width / 100.0;

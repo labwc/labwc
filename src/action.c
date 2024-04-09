@@ -16,6 +16,7 @@
 #include "debug.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "osd.h"
 #include "output-virtual.h"
 #include "placement.h"
 #include "regions.h"

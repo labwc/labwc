@@ -30,6 +30,7 @@
 #include "config/tablet.h"
 #include "config/rcxml.h"
 #include "labwc.h"
+#include "osd.h"
 #include "regions.h"
 #include "view.h"
 #include "window-rules.h"
@@ -187,7 +188,7 @@ static void
 fill_window_switcher_field(char *nodename, char *content)
 {
 	if (!strcasecmp(nodename, "field.fields.windowswitcher")) {
-		current_field = znew(*current_field);
+		current_field = osd_field_create();
 		wl_list_append(&rc.window_switcher.fields, &current_field->link);
 		return;
 	}
@@ -197,39 +198,8 @@ fill_window_switcher_field(char *nodename, char *content)
 		/* intentionally left empty */
 	} else if (!current_field) {
 		wlr_log(WLR_ERROR, "no <field>");
-	} else if (!strcmp(nodename, "content")) {
-		if (!strcmp(content, "type")) {
-			current_field->content = LAB_FIELD_TYPE;
-		} else if (!strcmp(content, "identifier")) {
-			current_field->content = LAB_FIELD_IDENTIFIER;
-		} else if (!strcmp(content, "app_id")) {
-			wlr_log(WLR_ERROR, "window-switcher field 'app_id' is deprecated");
-			current_field->content = LAB_FIELD_IDENTIFIER;
-		} else if (!strcmp(content, "trimmed_identifier")) {
-			current_field->content = LAB_FIELD_TRIMMED_IDENTIFIER;
-		} else if (!strcmp(content, "title")) {
-			current_field->content = LAB_FIELD_TITLE;
-		} else if (!strcmp(content, "workspace")) {
-			current_field->content = LAB_FIELD_WORKSPACE;
-		} else if (!strcmp(content, "state")) {
-			current_field->content = LAB_FIELD_WIN_STATE;
-		} else if (!strcmp(content, "type_short")) {
-			current_field->content = LAB_FIELD_TYPE_SHORT;
-		} else if (!strcmp(content, "output")) {
-			current_field->content = LAB_FIELD_OUTPUT;
-		} else {
-			wlr_log(WLR_ERROR, "bad windowSwitcher field '%s'", content);
-		}
-	} else if (!strcmp(nodename, "width") && !strchr(content, '%')) {
-		wlr_log(WLR_ERROR, "Removing invalid field, %s='%s' misses"
-			" trailing %%", nodename, content);
-		wl_list_remove(&current_field->link);
-		zfree(current_field);
-	} else if (!strcmp(nodename, "width")) {
-		current_field->width = atoi(content);
 	} else {
-		wlr_log(WLR_ERROR, "Unexpected data in field parser: %s=\"%s\"",
-			nodename, content);
+		osd_field_arg_from_xml_node(current_field, nodename, content);
 	}
 }
 
@@ -1516,6 +1486,16 @@ validate(void)
 	}
 
 	validate_actions();
+
+	/* OSD fields */
+	struct window_switcher_field *field, *field_tmp;
+	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.fields, link) {
+		if (!osd_field_validate(field)) {
+			wlr_log(WLR_ERROR, "Deleting invalid window switcher field %p", field);
+			wl_list_remove(&field->link);
+			osd_field_free(field);
+		}
+	}
 }
 
 void
@@ -1645,7 +1625,7 @@ rcxml_finish(void)
 	struct window_switcher_field *field, *field_tmp;
 	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.fields, link) {
 		wl_list_remove(&field->link);
-		zfree(field);
+		osd_field_free(field);
 	}
 
 	struct window_rule *rule, *rule_tmp;

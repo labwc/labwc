@@ -11,6 +11,7 @@
 #include "input/key-state.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "osd.h"
 #include "regions.h"
 #include "view.h"
 #include "workspaces.h"

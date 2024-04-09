@@ -77,7 +77,22 @@
         <field content="output" width="9%" />
         <field content="identifier" width="30%" />
         <field content="title" width="50%" />
-       </fields>
+      </fields>
+    </windowSwitcher>
+
+    custom format - (introduced in 0.7.2)
+    It allows one to replace all the above "fields" with one line, using a
+    printf style format. For field explanations, "man 5 labwc-config".
+
+    The example below would print "foobar",then type of window (wayland, X),
+    then state of window (M/m/F), then output (shows if more than 1 active),
+    then workspace name, then identifier/app-id, then the window title.
+    Uses 100% of OSD window width.
+
+    <windowSwitcher show="yes" preview="no" outlines="no" allWorkspaces="yes">
+      <fields>
+        <field content="custom" format="foobar %b %3s %-10o %-20W %-10i %t" width="100%" />
+      </fields>
     </windowSwitcher>
   -->
 

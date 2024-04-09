@@ -52,10 +52,8 @@ show_overlay(struct seat *seat, struct wlr_box *box)
 		multi_rect_set_size(seat->overlay.pixman_rect,
 			box->width, box->height);
 	}
-	if (node->parent != view->scene_tree->node.parent) {
-		wlr_scene_node_reparent(node, view->scene_tree->node.parent);
-		wlr_scene_node_place_below(node, &view->scene_tree->node);
-	}
+	wlr_scene_node_reparent(node, view->scene_tree->node.parent);
+	wlr_scene_node_place_below(node, &view->scene_tree->node);
 	wlr_scene_node_set_position(node, box->x, box->y);
 	wlr_scene_node_set_enabled(node, true);
 
@@ -225,7 +223,5 @@ overlay_hide(struct seat *seat)
 	struct wlr_scene_node *node = &seat->overlay.tree->node;
 
 	wlr_scene_node_set_enabled(node, false);
-	if (node->parent != &server->scene->tree) {
-		wlr_scene_node_reparent(node, &server->scene->tree);
-	}
+	wlr_scene_node_reparent(node, &server->scene->tree);
 }

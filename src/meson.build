@@ -12,6 +12,7 @@ labwc_sources = files(
   'main.c',
   'node.c',
   'osd.c',
+  'osd_field.c',
   'output.c',
   'output-virtual.c',
   'overlay.c',

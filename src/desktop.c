@@ -7,6 +7,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "node.h"
+#include "osd.h"
 #include "ssd.h"
 #include "view.h"
 #include "window-rules.h"

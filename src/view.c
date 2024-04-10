@@ -10,6 +10,7 @@
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "osd.h"
 #include "placement.h"
 #include "regions.h"
 #include "resize_indicator.h"

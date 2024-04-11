@@ -16,6 +16,7 @@
 #include <wlr/types/wlr_screencopy_v1.h>
 #include <wlr/types/wlr_single_pixel_buffer_v1.h>
 #include <wlr/types/wlr_viewporter.h>
+#include <wlr/types/wlr_tablet_v2.h>
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
 #include "xwayland-shell-v1-protocol.h"
@@ -549,6 +550,8 @@ server_init(struct server *server)
 	server->tearing_control = wlr_tearing_control_manager_v1_create(server->wl_display, 1);
 	server->tearing_new_object.notify = new_tearing_hint;
 	wl_signal_add(&server->tearing_control->events.new_object, &server->tearing_new_object);
+
+	server->tablet_manager = wlr_tablet_v2_create(server->wl_display);
 
 	layers_init(server);
 

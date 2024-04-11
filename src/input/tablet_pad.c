@@ -27,19 +27,22 @@ handle_button(struct wl_listener *listener, void *data)
 static void
 handle_destroy(struct wl_listener *listener, void *data)
 {
-	struct drawing_tablet_pad *tablet =
-		wl_container_of(listener, tablet, handlers.destroy);
-	free(tablet);
+	struct drawing_tablet_pad *pad =
+		wl_container_of(listener, pad, handlers.destroy);
+
+	wl_list_remove(&pad->handlers.button.link);
+	wl_list_remove(&pad->handlers.destroy.link);
+	free(pad);
 }
 
 void
 tablet_pad_init(struct seat *seat, struct wlr_input_device *wlr_device)
 {
 	wlr_log(WLR_DEBUG, "setting up tablet pad");
-	struct drawing_tablet_pad *tablet = znew(*tablet);
-	tablet->seat = seat;
-	tablet->tablet = wlr_tablet_pad_from_input_device(wlr_device);
-	tablet->tablet->data = tablet;
-	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, button);
-	CONNECT_SIGNAL(wlr_device, &tablet->handlers, destroy);
+	struct drawing_tablet_pad *pad = znew(*pad);
+	pad->seat = seat;
+	pad->tablet = wlr_tablet_pad_from_input_device(wlr_device);
+	pad->tablet->data = pad;
+	CONNECT_SIGNAL(pad->tablet, &pad->handlers, button);
+	CONNECT_SIGNAL(wlr_device, &pad->handlers, destroy);
 }

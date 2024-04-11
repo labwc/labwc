@@ -42,6 +42,7 @@
 #include <wlr/types/wlr_tearing_control_v1.h>
 #include <wlr/types/wlr_text_input_v3.h>
 #include <wlr/types/wlr_input_method_v2.h>
+#include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/util/log.h>
 #include "config/keybind.h"
 #include "config/rcxml.h"
@@ -332,6 +333,8 @@ struct server {
 
 	struct wlr_input_method_manager_v2 *input_method_manager;
 	struct wlr_text_input_manager_v3 *text_input_manager;
+
+	struct wlr_tablet_manager_v2 *tablet_manager;
 
 	/* Set when in cycle (alt-tab) mode */
 	struct osd_state {

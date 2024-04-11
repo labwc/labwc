@@ -124,6 +124,11 @@ handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct drawing_tablet *tablet =
 		wl_container_of(listener, tablet, handlers.destroy);
+
+	wl_list_remove(&tablet->handlers.tip.link);
+	wl_list_remove(&tablet->handlers.button.link);
+	wl_list_remove(&tablet->handlers.axis.link);
+	wl_list_remove(&tablet->handlers.destroy.link);
 	free(tablet);
 }
 

@@ -1091,6 +1091,8 @@ void
 cursor_emulate_move_absolute(struct seat *seat, struct wlr_input_device *device,
 		double x, double y, uint32_t time_msec)
 {
+	idle_manager_notify_activity(seat->seat);
+
 	double lx, ly;
 	wlr_cursor_absolute_to_layout_coords(seat->cursor,
 		device, x, y, &lx, &ly);

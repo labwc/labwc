@@ -875,7 +875,11 @@ situation.
 	on-screen-display).
 
 *<windowRules><windowRule ignoreFocusRequest="">* [yes|no|default]
-	*ignoreFocusRequest* prevent window to activate itself.
+	*ignoreFocusRequest* prevents window to activate itself.
+
+*<windowRules><windowRule ignoreConfigureRequest="">* [yes|no|default]
+	*ignoreConfigureRequest* prevents a X11 window to position and size
+	itself.
 
 *<windowRules><windowRule fixedPosition="">* [yes|no|default]
 	*fixedPosition* disallows interactive move/resize and prevents

@@ -31,6 +31,7 @@ struct window_rule {
 	enum property skip_taskbar;
 	enum property skip_window_switcher;
 	enum property ignore_focus_request;
+	enum property ignore_configure_request;
 	enum property fixed_position;
 
 	struct wl_list link; /* struct rcxml.window_rules */

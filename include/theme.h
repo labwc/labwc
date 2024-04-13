@@ -80,6 +80,9 @@ struct theme {
 	int osd_workspace_switcher_boxes_width;
 	int osd_workspace_switcher_boxes_height;
 
+	bool snapping_preview_region_fill;
+	bool snapping_preview_edge_fill;
+
 	/* textures */
 	struct lab_data_buffer *button_close_active_unpressed;
 	struct lab_data_buffer *button_maximize_active_unpressed;

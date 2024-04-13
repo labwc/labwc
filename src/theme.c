@@ -24,6 +24,7 @@
 #include "common/graphic-helpers.h"
 #include "common/match.h"
 #include "common/mem.h"
+#include "common/parse-bool.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "button/button-png.h"
@@ -520,6 +521,9 @@ theme_builtin(struct theme *theme)
 	theme->osd_border_width = INT_MIN;
 	theme->osd_border_color[0] = FLT_MIN;
 	theme->osd_label_text_color[0] = FLT_MIN;
+
+	theme->snapping_preview_region_fill = true;
+	theme->snapping_preview_edge_fill = true;
 }
 
 static void
@@ -714,6 +718,12 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "osd.label.text.color")) {
 		parse_hexstr(value, theme->osd_label_text_color);
+	}
+	if (match_glob(key, "snapping.preview.region.fill")) {
+		theme->snapping_preview_region_fill = parse_bool(value, true);
+	}
+	if (match_glob(key, "snapping.preview.edge.fill")) {
+		theme->snapping_preview_edge_fill = parse_bool(value, true);
 	}
 }
 

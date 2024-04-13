@@ -7,12 +7,19 @@
 #include "regions.h"
 #include "view.h"
 
-struct overlay {
-	struct wlr_scene_tree *tree;
+struct overlay_rect {
+	struct wlr_scene_node *node;
+	bool fill;
 	union {
-		struct wlr_scene_rect *rect;
+		/* if fill is true */
+		struct wlr_scene_rect *scene_rect;
+		/* if fill is false */
 		struct multi_rect *pixman_rect;
 	};
+};
+
+struct overlay {
+	struct overlay_rect region_rect, edge_rect;
 
 	/* Represents currently shown or delayed overlay */
 	struct {
@@ -28,6 +35,7 @@ struct overlay {
 	struct wl_event_source *timer;
 };
 
+void overlay_reconfigure(struct seat *seat);
 /* Calls overlay_hide() internally if there's no overlay to show */
 void overlay_update(struct seat *seat);
 /* This function must be called when server->grabbed_view is destroyed */

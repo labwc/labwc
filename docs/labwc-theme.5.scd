@@ -198,6 +198,16 @@ elements are not listed here, but are supported.
 	Height of boxes in workspace switcher in pixels. Setting to 0 disables
 	boxes. Default is 20.
 
+*snapping.preview.region.fill* [yes|no]
+	Show a filled rectangle as the preview when a window is snapped to a region.
+	Otherwise, an outlined rectangle is shown instead.
+	If software rendering is used, an outlined rectangle is always shown.
+
+*snapping.preview.edge.fill* [yes|no]
+	Show a filled rectangle as the preview when a window is snapped to an edge.
+	Otherwise, an outlined rectangle is shown instead.
+	If software rendering is used, an outlined rectangle is always shown.
+
 *border.color*
 	Set both *window.active.border.color* and *window.inactive.border.color*.
 	This is obsolete, but supported for backward compatibility as some themes

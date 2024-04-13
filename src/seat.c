@@ -587,6 +587,7 @@ seat_reconfigure(struct server *server)
 	struct seat *seat = &server->seat;
 	struct input *input;
 	cursor_load(seat);
+	overlay_reconfigure(seat);
 	wl_list_for_each(input, &seat->inputs, link) {
 		switch (input->wlr_input_device->type) {
 		case WLR_INPUT_DEVICE_KEYBOARD:

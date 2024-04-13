@@ -71,3 +71,6 @@ osd.window-switcher.item.active.border.width: 2
 
 osd.workspace-switcher.boxes.width: 20
 osd.workspace-switcher.boxes.height: 20
+
+snapping.preview.region.fill: yes
+snapping.preview.edge.fill: yes

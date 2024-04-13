@@ -278,6 +278,15 @@ static const char helpful_seat_error_message[] =
 "If the above does not work, try running with `WLR_RENDERER=pixman labwc` in\n"
 "order to use the software rendering fallback\n";
 
+static void
+get_headless_backend(struct wlr_backend *backend, void *data)
+{
+	if (wlr_backend_is_headless(backend)) {
+		struct wlr_backend **headless = data;
+		*headless = backend;
+	}
+}
+
 void
 server_init(struct server *server)
 {
@@ -327,7 +336,16 @@ server_init(struct server *server)
 	}
 
 	/* Create headless backend to enable adding virtual outputs later on */
-	server->headless.backend = wlr_headless_backend_create(server->wl_display);
+	wlr_multi_for_each_backend(server->backend,
+		get_headless_backend, &server->headless.backend);
+
+	if (!server->headless.backend) {
+		wlr_log(WLR_DEBUG, "manually creating headless backend");
+		server->headless.backend = wlr_headless_backend_create(server->wl_display);
+	} else {
+		wlr_log(WLR_DEBUG, "headless backend already exists");
+	}
+
 	if (!server->headless.backend) {
 		wlr_log(WLR_ERROR, "unable to create headless backend");
 		exit(EXIT_FAILURE);

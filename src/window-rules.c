@@ -114,6 +114,10 @@ window_rules_get_property(struct view *view, const char *property)
 					&& !strcasecmp(property, "ignoreFocusRequest")) {
 				return rule->ignore_focus_request;
 			}
+			if (rule->ignore_configure_request
+					&& !strcasecmp(property, "ignoreConfigureRequest")) {
+				return rule->ignore_configure_request;
+			}
 			if (rule->fixed_position
 					&& !strcasecmp(property, "fixedPosition")) {
 				return rule->fixed_position;

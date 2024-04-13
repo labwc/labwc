@@ -377,8 +377,10 @@ handle_request_configure(struct wl_listener *listener, void *data)
 		wl_container_of(listener, xwayland_view, request_configure);
 	struct view *view = &xwayland_view->base;
 	struct wlr_xwayland_surface_configure_event *event = data;
+	bool ignore_configure_requests = window_rules_get_property(
+		view, "ignoreConfigureRequest") == LAB_PROP_TRUE;
 
-	if (view_is_floating(view)) {
+	if (view_is_floating(view) && !ignore_configure_requests) {
 		/* Honor client configure requests for floating views */
 		struct wlr_box box = {.x = event->x, .y = event->y,
 			.width = event->width, .height = event->height};

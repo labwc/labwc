@@ -47,6 +47,7 @@ static bool in_window_rules;
 static bool in_action_query;
 static bool in_action_then_branch;
 static bool in_action_else_branch;
+static bool in_action_none_branch;
 
 static struct usable_area_override *current_usable_area_override;
 static struct keybind *current_keybind;
@@ -282,6 +283,7 @@ fill_child_action(char *nodename, char *content, struct action *parent,
 	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
 	string_truncate_at_pattern(nodename, ".then.action");
 	string_truncate_at_pattern(nodename, ".else.action");
+	string_truncate_at_pattern(nodename, ".none.action");
 
 	if (!strcasecmp(nodename, "action")) {
 		current_child_action = NULL;
@@ -731,6 +733,9 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else if (in_action_else_branch) {
 			fill_child_action(nodename, content,
 				current_keybind_action, "else");
+		} else if (in_action_none_branch) {
+			fill_child_action(nodename, content,
+				current_keybind_action, "none");
 		} else {
 			fill_keybind(nodename, content);
 		}
@@ -745,6 +750,9 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else if (in_action_else_branch) {
 			fill_child_action(nodename, content,
 				current_mousebind_action, "else");
+		} else if (in_action_none_branch) {
+			fill_child_action(nodename, content,
+				current_mousebind_action, "none");
 		} else {
 			fill_mousebind(nodename, content);
 		}
@@ -1083,6 +1091,12 @@ xml_tree_walk(xmlNode *node)
 			in_action_else_branch = true;
 			traverse(n);
 			in_action_else_branch = false;
+			continue;
+		}
+		if (!strcasecmp((char *)n->name, "none")) {
+			in_action_none_branch = true;
+			traverse(n);
+			in_action_none_branch = false;
 			continue;
 		}
 		traverse(n);

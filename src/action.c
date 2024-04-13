@@ -515,7 +515,7 @@ action_is_valid(struct action *action)
 	case ACTION_TYPE_IF:
 	case ACTION_TYPE_FOR_EACH:
 		; /* works around "a label can only be part of a statement" */
-		static const char * const branches[] = { "then", "else" };
+		static const char * const branches[] = { "then", "else", "none" };
 		for (size_t i = 0; i < ARRAY_SIZE(branches); i++) {
 			struct wl_list *children = action_get_actionlist(action, branches[i]);
 			if (children && !action_list_is_valid(children)) {
@@ -636,7 +636,7 @@ view_for_action(struct view *activator, struct server *server,
 	}
 }
 
-static void
+static bool
 run_if_action(struct view *view, struct server *server, struct action *action)
 {
 	struct view_query *query;
@@ -659,6 +659,7 @@ run_if_action(struct view *view, struct server *server, struct action *action)
 	if (actions) {
 		actions_run(view, server, actions, 0);
 	}
+	return !strcmp(branch, "then");
 }
 
 void
@@ -984,12 +985,20 @@ actions_run(struct view *activator, struct server *server,
 			{
 				struct wl_array views;
 				struct view **item;
+				bool matches = false;
 				wl_array_init(&views);
 				view_array_append(server, &views, LAB_VIEW_CRITERIA_NONE);
 				wl_array_for_each(item, &views) {
-					run_if_action(*item, server, action);
+					matches |= run_if_action(*item, server, action);
 				}
 				wl_array_release(&views);
+				if (!matches) {
+					struct wl_list *actions;
+					actions = action_get_actionlist(action, "none");
+					if (actions) {
+						actions_run(view, server, actions, 0);
+					}
+				}
 			}
 			break;
 		case ACTION_TYPE_VIRTUAL_OUTPUT_ADD:
@@ -1052,4 +1061,3 @@ actions_run(struct view *activator, struct server *server,
 		}
 	}
 }
-

@@ -6,7 +6,8 @@
 #include "view.h"
 
 static void
-create_overlay_rect(struct seat *seat, struct overlay_rect *rect, int fill)
+create_overlay_rect(struct seat *seat, struct overlay_rect *rect, int fill,
+		float bg_color[4], int border_width, float border_colors[3][4])
 {
 	struct server *server = seat->server;
 
@@ -18,20 +19,18 @@ create_overlay_rect(struct seat *seat, struct overlay_rect *rect, int fill)
 
 	if (rect->fill) {
 		/* Create a filled rectangle */
-		float color[4] = { 0.25, 0.25, 0.35, 0.5 };
 		rect->scene_rect = wlr_scene_rect_create(&server->scene->tree,
-			0, 0, color);
+			0, 0, bg_color);
 		rect->node = &rect->scene_rect->node;
 	} else {
 		/* Create outlines */
-		int line_width = server->theme->osd_border_width;
 		float *colors[3] = {
-			server->theme->osd_bg_color,
-			server->theme->osd_label_text_color,
-			server->theme->osd_bg_color
+			border_colors[0],
+			border_colors[1],
+			border_colors[2],
 		};
 		rect->pixman_rect = multi_rect_create(&server->scene->tree,
-			colors, line_width);
+			colors, border_width);
 		rect->node = &rect->pixman_rect->tree->node;
 	}
 
@@ -49,9 +48,15 @@ void overlay_reconfigure(struct seat *seat)
 
 	struct theme *theme = seat->server->theme;
 	create_overlay_rect(seat, &seat->overlay.region_rect,
-		theme->snapping_preview_region_fill);
+		theme->snapping_preview_region_fill,
+		theme->snapping_preview_region_bg_color,
+		theme->snapping_preview_region_border_width,
+		theme->snapping_preview_region_border_color);
 	create_overlay_rect(seat, &seat->overlay.edge_rect,
-		theme->snapping_preview_edge_fill);
+		theme->snapping_preview_edge_fill,
+		theme->snapping_preview_edge_bg_color,
+		theme->snapping_preview_edge_border_width,
+		theme->snapping_preview_edge_border_color);
 }
 
 static void

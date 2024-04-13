@@ -74,3 +74,9 @@ osd.workspace-switcher.boxes.height: 20
 
 snapping.preview.region.fill: yes
 snapping.preview.edge.fill: yes
+snapping.preview.region.bg.color: #8080b380
+snapping.preview.edge.bg.color: #8080b380
+snapping.preview.region.border.width: 1
+snapping.preview.edge.border.width: 1
+snapping.preview.region.border.color: #dddda6,#000000,#dddda6
+snapping.preview.edge.border.color: #dddda6,#000000,#dddda6

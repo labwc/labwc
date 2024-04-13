@@ -33,7 +33,7 @@ multi_rect_create(struct wlr_scene_tree *parent, float *colors[3], int line_widt
 		wlr_scene_node_set_position(&rect->top[i]->node,
 			i * line_width, i * line_width);
 		wlr_scene_node_set_position(&rect->left[i]->node,
-			i * line_width, i * line_width);
+			i * line_width, (i + 1) * line_width);
 	}
 	return rect;
 }
@@ -44,10 +44,22 @@ multi_rect_set_size(struct multi_rect *rect, int width, int height)
 	assert(rect);
 	int line_width = rect->line_width;
 
+	/*
+	 * The outmost outline is drawn like below:
+	 *
+	 * |--width--|
+	 *
+	 * +---------+  ---
+	 * +-+-----+-+   |
+	 * | |     | | height
+	 * | |     | |   |
+	 * +-+-----+-+   |
+	 * +---------+  ---
+	 */
 	for (size_t i = 0; i < 3; i++) {
 		/* Reposition, top and left don't ever change */
 		wlr_scene_node_set_position(&rect->right[i]->node,
-			width - (i + 1) * line_width, i * line_width);
+			width - (i + 1) * line_width, (i + 1) * line_width);
 		wlr_scene_node_set_position(&rect->bottom[i]->node,
 			i * line_width, height - (i + 1) * line_width);
 
@@ -57,9 +69,9 @@ multi_rect_set_size(struct multi_rect *rect, int width, int height)
 		wlr_scene_rect_set_size(rect->bottom[i],
 			width - i * line_width * 2, line_width);
 		wlr_scene_rect_set_size(rect->left[i],
-			line_width, height - i * line_width * 2);
+			line_width, height - (i + 1) * line_width * 2);
 		wlr_scene_rect_set_size(rect->right[i],
-			line_width, height - i * line_width * 2);
+			line_width, height - (i + 1) * line_width * 2);
 	}
 }
 

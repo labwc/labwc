@@ -83,6 +83,14 @@ struct theme {
 	bool snapping_preview_region_fill;
 	bool snapping_preview_edge_fill;
 
+	float snapping_preview_region_bg_color[4];
+	float snapping_preview_edge_bg_color[4];
+
+	int snapping_preview_region_border_width;
+	int snapping_preview_edge_border_width;
+	float snapping_preview_region_border_color[3][4];
+	float snapping_preview_edge_border_color[3][4];
+
 	/* textures */
 	struct lab_data_buffer *button_close_active_unpressed;
 	struct lab_data_buffer *button_maximize_active_unpressed;

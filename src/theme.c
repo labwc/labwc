@@ -428,6 +428,16 @@ parse_hexstr(const char *hex, float *rgba)
 	rgba[2] *= rgba[3];
 }
 
+static void
+parse_hexstrs(const char *hexes, float colors[3][4])
+{
+	gchar **elements = g_strsplit(hexes, ",", -1);
+	for (int i = 0; elements[i] && i < 3; i++) {
+		parse_hexstr(elements[i], colors[i]);
+	}
+	g_strfreev(elements);
+}
+
 static enum lab_justification
 parse_justification(const char *str)
 {
@@ -524,6 +534,19 @@ theme_builtin(struct theme *theme)
 
 	theme->snapping_preview_region_fill = true;
 	theme->snapping_preview_edge_fill = true;
+
+	parse_hexstr("#8080b380", theme->snapping_preview_region_bg_color);
+	parse_hexstr("#8080b380", theme->snapping_preview_edge_bg_color);
+
+	/* inherit settings in post_processing() if not set elsewhere */
+	theme->snapping_preview_region_border_width = INT_MIN;
+	theme->snapping_preview_edge_border_width = INT_MIN;
+	memset(theme->snapping_preview_region_border_color, 0,
+		sizeof(theme->snapping_preview_region_border_color));
+	theme->snapping_preview_region_border_color[0][0] = FLT_MIN;
+	memset(theme->snapping_preview_edge_border_color, 0,
+		sizeof(theme->snapping_preview_edge_border_color));
+	theme->snapping_preview_edge_border_color[0][0] = FLT_MIN;
 }
 
 static void
@@ -724,6 +747,24 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "snapping.preview.edge.fill")) {
 		theme->snapping_preview_edge_fill = parse_bool(value, true);
+	}
+	if (match_glob(key, "snapping.preview.region.bg.color")) {
+		parse_hexstr(value, theme->snapping_preview_region_bg_color);
+	}
+	if (match_glob(key, "snapping.preview.edge.bg.color")) {
+		parse_hexstr(value, theme->snapping_preview_edge_bg_color);
+	}
+	if (match_glob(key, "snapping.preview.region.border.width")) {
+		theme->snapping_preview_region_border_width = atoi(value);
+	}
+	if (match_glob(key, "snapping.preview.edge.border.width")) {
+		theme->snapping_preview_edge_border_width = atoi(value);
+	}
+	if (match_glob(key, "snapping.preview.region.border.color")) {
+		parse_hexstrs(value, theme->snapping_preview_region_border_color);
+	}
+	if (match_glob(key, "snapping.preview.edge.border.color")) {
+		parse_hexstrs(value, theme->snapping_preview_edge_border_color);
 	}
 }
 
@@ -983,6 +1024,14 @@ create_corners(struct theme *theme)
 }
 
 static void
+fill_colors_with_osd_theme(struct theme *theme, float colors[3][4])
+{
+	memcpy(colors[0], theme->osd_bg_color, sizeof(colors[0]));
+	memcpy(colors[1], theme->osd_label_text_color, sizeof(colors[1]));
+	memcpy(colors[2], theme->osd_bg_color, sizeof(colors[2]));
+}
+
+static void
 post_processing(struct theme *theme)
 {
 	int h = MAX(font_height(&rc.font_activewindow), font_height(&rc.font_inactivewindow));
@@ -1042,6 +1091,23 @@ post_processing(struct theme *theme)
 	if (theme->osd_window_switcher_width_is_percent) {
 		theme->osd_window_switcher_width =
 			MIN(theme->osd_window_switcher_width, 100);
+	}
+
+	if (theme->snapping_preview_region_border_width == INT_MIN) {
+		theme->snapping_preview_region_border_width =
+			theme->osd_border_width;
+	}
+	if (theme->snapping_preview_edge_border_width == INT_MIN) {
+		theme->snapping_preview_edge_border_width =
+			theme->osd_border_width;
+	}
+	if (theme->snapping_preview_region_border_color[0][0] == FLT_MIN) {
+		fill_colors_with_osd_theme(theme,
+			theme->snapping_preview_region_border_color);
+	}
+	if (theme->snapping_preview_edge_border_color[0][0] == FLT_MIN) {
+		fill_colors_with_osd_theme(theme,
+			theme->snapping_preview_edge_border_color);
 	}
 }
 

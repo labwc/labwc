@@ -205,6 +205,34 @@ elements are not listed here, but are supported.
 	Otherwise, an outlined rectangle is shown instead.
 	If software rendering is used, an outlined rectangle is always shown.
 
+*snapping.preview.region.bg.color*
+	Color of a filled rectangle shown as the preview when a window is snapped to
+	a region. Default is #8080b380.
+
+*snapping.preview.edge.bg.color*
+	Color of a filled rectangle shown as the preview when a window is snapped to
+	an edge. Default is #8080b380.
+
+*snapping.preview.region.border.width*
+	Border width of an outlined rectangle shown as the preview when a window is
+	snapped to a region. Inherits `osd.border.width` if not set.
+
+*snapping.preview.edge.border.width*
+	Border width of an outlined rectangle shown as the preview when a window is
+	snapped to an edge. Inherits `osd.border.width` if not set.
+
+*snapping.preview.region.border.color*
+	Color(s) of an outlined rectangle shown as the preview when a window is
+	snapped to a region. Possible value is a color or up to 3 colors separated
+	by commas (e.g. "#ffffff,#000000,#ffffff"). When multiple colors are
+	specified, a multi-line rectangle with each line having the specified color
+	is drawn. If not set, this inherits the on-screen-display theme
+	("[*osd.bg.color*],[*osd.label.text.color*],[*osd.bg.color*]").
+
+*snapping.preview.edge.border.color*
+	Color(s) of an outlined rectangle shown as the preview when a window is
+	snapped to an edge. See *snapping.preview.region.border.color* for details.
+
 *border.color*
 	Set all border colors. This is obsolete, but supported for backward
 	compatibility as some themes still contain it.

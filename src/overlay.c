@@ -56,9 +56,19 @@ show_overlay(struct seat *seat, struct wlr_box *box)
 	wlr_scene_node_place_below(node, &view->scene_tree->node);
 	wlr_scene_node_set_position(node, box->x, box->y);
 	wlr_scene_node_set_enabled(node, true);
+}
 
-	if (seat->overlay.timer) {
-		wl_event_source_timer_update(seat->overlay.timer, 0);
+static void
+inactivate_overlay(struct overlay *overlay)
+{
+	if (overlay->tree) {
+		wlr_scene_node_set_enabled(&overlay->tree->node, false);
+	}
+	overlay->active.region = NULL;
+	overlay->active.edge = VIEW_EDGE_INVALID;
+	overlay->active.output = NULL;
+	if (overlay->timer) {
+		wl_event_source_timer_update(overlay->timer, 0);
 	}
 }
 
@@ -68,9 +78,8 @@ show_region_overlay(struct seat *seat, struct region *region)
 	if (region == seat->overlay.active.region) {
 		return;
 	}
+	inactivate_overlay(&seat->overlay);
 	seat->overlay.active.region = region;
-	seat->overlay.active.edge = VIEW_EDGE_INVALID;
-	seat->overlay.active.output = NULL;
 
 	show_overlay(seat, &region->geo);
 }
@@ -154,7 +163,7 @@ show_edge_overlay(struct seat *seat, enum view_edge edge,
 			&& seat->overlay.active.output == output) {
 		return;
 	}
-	seat->overlay.active.region = NULL;
+	inactivate_overlay(&seat->overlay);
 	seat->overlay.active.edge = edge;
 	seat->overlay.active.output = output;
 
@@ -209,19 +218,17 @@ overlay_update(struct seat *seat)
 void
 overlay_hide(struct seat *seat)
 {
-	seat->overlay.active.region = NULL;
-	seat->overlay.active.edge = VIEW_EDGE_INVALID;
-	seat->overlay.active.output = NULL;
-	if (seat->overlay.timer) {
-		wl_event_source_timer_update(seat->overlay.timer, 0);
-	}
-
-	if (!seat->overlay.tree) {
-		return;
-	}
+	struct overlay *overlay = &seat->overlay;
 	struct server *server = seat->server;
-	struct wlr_scene_node *node = &seat->overlay.tree->node;
 
-	wlr_scene_node_set_enabled(node, false);
-	wlr_scene_node_reparent(node, &server->scene->tree);
+	inactivate_overlay(overlay);
+
+	/*
+	 * Reparent the rectangle nodes to server's scene-tree so they don't
+	 * get destroyed on view destruction
+	 */
+	if (seat->overlay.tree) {
+		wlr_scene_node_reparent(&overlay->tree->node,
+			&server->scene->tree);
+	}
 }

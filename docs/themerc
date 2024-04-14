@@ -55,7 +55,7 @@ menu.separator.padding.height: 3
 menu.separator.color: #888888
 
 # on screen display (window-cycle dialog)
-osd.bg.color: #dddda6
+osd.bg.color: #e1dedb
 osd.border.color: #000000
 osd.border.width: 1
 osd.label.text.color: #000000

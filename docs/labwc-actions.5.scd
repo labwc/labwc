@@ -318,6 +318,10 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 	Identical to "If" action, but applies to all windows, not just the
 	focused one.
 
+	The *ForEach* action has another optional *none* branch which gets
+	executed when no window has been matched by the query. This allows
+	for example to implement a run-or-raise functionality.
+
 # SEE ALSO
 
 labwc(1), labwc-config(5), labwc-theme(5), glob(7)

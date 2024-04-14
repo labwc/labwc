@@ -87,10 +87,10 @@ find_dir(struct ctx *ctx)
 {
 	char *debug = getenv("LABWC_DEBUG_DIR_CONFIG_AND_THEME");
 
+	struct buf prefix = BUF_INIT;
 	for (int i = 0; ctx->dirs[i].path; i++) {
 		struct dir d = ctx->dirs[i];
-		struct buf prefix;
-		buf_init(&prefix);
+		buf_clear(&prefix);
 
 		/*
 		 * Replace (rather than augment) $HOME/.config with
@@ -100,7 +100,6 @@ find_dir(struct ctx *ctx)
 		char *pfxenv = getenv(d.prefix);
 		buf_add(&prefix, pfxenv ? pfxenv : d.default_prefix);
 		if (!prefix.len) {
-			free(prefix.buf);
 			continue;
 		}
 
@@ -130,8 +129,8 @@ find_dir(struct ctx *ctx)
 			wl_list_append(ctx->list, &path->link);
 		}
 		g_strfreev(prefixes);
-		free(prefix.buf);
 	}
+	buf_reset(&prefix);
 }
 
 void

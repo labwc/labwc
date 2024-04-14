@@ -8,11 +8,13 @@
 #ifndef LABWC_GRAB_FILE_H
 #define LABWC_GRAB_FILE_H
 
+#include "common/buf.h"
+
 /**
  * grab_file - read file into memory buffer
  * @filename: file to read
- * Returns pointer to buffer. Free with free().
+ * Free returned buffer with buf_reset().
  */
-char *grab_file(const char *filename);
+struct buf grab_file(const char *filename);
 
 #endif /* LABWC_GRAB_FILE_H */

@@ -15,7 +15,6 @@
 #include "common/dir.h"
 #include "common/font.h"
 #include "common/list.h"
-#include "common/match.h"
 #include "common/mem.h"
 #include "common/nodename.h"
 #include "common/scaled_font_buffer.h"
@@ -639,9 +638,8 @@ parse_stream(struct server *server, FILE *stream)
 {
 	char *line = NULL;
 	size_t len = 0;
-	struct buf b;
+	struct buf b = BUF_INIT;
 
-	buf_init(&b);
 	while (getline(&line, &len, stream) != -1) {
 		char *p = strrchr(line, '\n');
 		if (p) {
@@ -651,7 +649,7 @@ parse_stream(struct server *server, FILE *stream)
 	}
 	free(line);
 	parse_buf(server, &b);
-	free(b.buf);
+	buf_reset(&b);
 }
 
 static void
@@ -1140,7 +1138,7 @@ pipemenu_ctx_destroy(struct pipe_context *ctx)
 	wl_event_source_remove(ctx->event_read);
 	wl_event_source_remove(ctx->event_timeout);
 	spawn_piped_close(ctx->pid, ctx->pipe_fd);
-	free(ctx->buf.buf);
+	buf_reset(&ctx->buf);
 	free(ctx);
 	waiting_for_pipe_menu = false;
 }
@@ -1230,7 +1228,7 @@ parse_pipemenu(struct menuitem *item)
 	ctx->item = item;
 	ctx->pid = pid;
 	ctx->pipe_fd = pipe_fd;
-	buf_init(&ctx->buf);
+	ctx->buf = BUF_INIT;
 
 	ctx->event_read = wl_event_loop_add_fd(ctx->server->wl_event_loop,
 		pipe_fd, WL_EVENT_READABLE, handle_pipemenu_readable, ctx);

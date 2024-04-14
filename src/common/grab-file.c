@@ -10,18 +10,19 @@
 #include "common/buf.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-char *
+struct buf
 grab_file(const char *filename)
 {
 	char *line = NULL;
 	size_t len = 0;
 	FILE *stream = fopen(filename, "r");
 	if (!stream) {
-		return NULL;
+		return BUF_INIT;
 	}
-	struct buf buffer;
-	buf_init(&buffer);
+	struct buf buffer = BUF_INIT;
 	while ((getline(&line, &len, stream) != -1)) {
 		char *p = strrchr(line, '\n');
 		if (p) {
@@ -31,5 +32,5 @@ grab_file(const char *filename)
 	}
 	free(line);
 	fclose(stream);
-	return buffer.buf;
+	return buffer;
 }

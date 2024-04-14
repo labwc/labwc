@@ -196,8 +196,9 @@ elements are not listed here, but are supported.
 	boxes. Default is 20.
 
 *border.color*
-	Set all border colors. This is obsolete, but supported for backward
-	compatibility as some themes still contain it.
+	Set both *window.active.border.color* and *window.inactive.border.color*.
+	This is obsolete, but supported for backward compatibility as some themes
+	still contain it.
 
 # BUTTONS
 

@@ -155,16 +155,19 @@ elements are not listed here, but are supported.
 	Menu separator color. Default #888888.
 
 *osd.bg.color*
-	Background color of on-screen-display.
+	Background color of on-screen-display. Inherits
+	*window.active.title.bg.color* if not set.
 
 *osd.border.color*
-	Border color of on-screen-display.
+	Border color of on-screen-display. Inherits *osd.label.text.color* if not
+	set.
 
 *osd.border.width*
 	Border width of on-screen-display. Inherits *border.width* if not set.
 
 *osd.label.text.color*
-	Text color of on-screen-display.
+	Text color of on-screen-display. Inherits *window.active.label.text.color* if
+	not set.
 
 *osd.window-switcher.width*
 	Width of window switcher in pixels. Default is 600.

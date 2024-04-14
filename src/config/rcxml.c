@@ -1530,8 +1530,6 @@ rcxml_read(const char *filename)
 	}
 
 	/* Reading file into buffer before parsing - better for unit tests */
-	struct buf b;
-
 	bool should_merge_config = rc.merge_config;
 	struct wl_list *(*iter)(struct wl_list *list);
 	iter = should_merge_config ? paths_get_prev : paths_get_next;
@@ -1555,7 +1553,7 @@ rcxml_read(const char *filename)
 
 		wlr_log(WLR_INFO, "read config file %s", path->string);
 
-		buf_init(&b);
+		struct buf b = BUF_INIT;
 		char *line = NULL;
 		size_t len = 0;
 		while (getline(&line, &len, stream) != -1) {
@@ -1568,7 +1566,7 @@ rcxml_read(const char *filename)
 		zfree(line);
 		fclose(stream);
 		rcxml_parse_xml(&b);
-		zfree(b.buf);
+		buf_reset(&b);
 		if (!should_merge_config) {
 			break;
 		}

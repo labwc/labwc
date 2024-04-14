@@ -2,14 +2,15 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <string.h>
 #include "common/buf.h"
+#include "common/macros.h"
 #include "common/mem.h"
 
 void
 buf_expand_tilde(struct buf *s)
 {
-	struct buf new;
-	buf_init(&new);
+	struct buf new = BUF_INIT;
 	for (int i = 0 ; i < s->len ; i++) {
 		if (s->buf[i] == '~') {
 			buf_add(&new, getenv("HOME"));
@@ -17,10 +18,7 @@ buf_expand_tilde(struct buf *s)
 			buf_add_char(&new, s->buf[i]);
 		}
 	}
-	free(s->buf);
-	s->buf = new.buf;
-	s->len = new.len;
-	s->alloc = new.alloc;
+	buf_move(s, &new);
 }
 
 static void
@@ -44,10 +42,8 @@ isvalid(char p)
 void
 buf_expand_shell_variables(struct buf *s)
 {
-	struct buf new;
-	struct buf environment_variable;
-	buf_init(&new);
-	buf_init(&environment_variable);
+	struct buf new = BUF_INIT;
+	struct buf environment_variable = BUF_INIT;
 
 	for (int i = 0 ; i < s->len ; i++) {
 		if (s->buf[i] == '$' && isvalid(s->buf[i+1])) {
@@ -69,37 +65,43 @@ buf_expand_shell_variables(struct buf *s)
 			buf_add_char(&new, s->buf[i]);
 		}
 	}
-	free(environment_variable.buf);
-	free(s->buf);
-	s->buf = new.buf;
-	s->len = new.len;
-	s->alloc = new.alloc;
+	buf_reset(&environment_variable);
+	buf_move(s, &new);
 }
 
-void
-buf_init(struct buf *s)
+static void
+buf_expand(struct buf *s, int new_alloc)
 {
-	/* we can't assert(!s->buf) here because struct may be uninitialized */
-
-	s->alloc = 256;
-	s->buf = xmalloc(s->alloc);
-	s->buf[0] = '\0';
-	s->len = 0;
+	/*
+	 * "s->alloc &&" ensures that s->data is always allocated after
+	 * returning (even if new_alloc == 0). The extra check is not
+	 * really necessary but makes it easier for analyzers to see
+	 * that we never overwrite a string literal.
+	 */
+	if (s->alloc && new_alloc <= s->alloc) {
+		return;
+	}
+	new_alloc = MAX(new_alloc, 256);
+	new_alloc = MAX(new_alloc, s->alloc * 3 / 2);
+	if (s->alloc) {
+		assert(s->buf);
+		s->buf = xrealloc(s->buf, new_alloc);
+	} else {
+		assert(!s->len);
+		s->buf = xmalloc(new_alloc);
+		s->buf[0] = '\0';
+	}
+	s->alloc = new_alloc;
 }
 
 void
 buf_add(struct buf *s, const char *data)
 {
-	assert(s->buf);
-
 	if (!data || data[0] == '\0') {
 		return;
 	}
 	int len = strlen(data);
-	if (s->alloc <= s->len + len + 1) {
-		s->alloc = s->alloc + len;
-		s->buf = xrealloc(s->buf, s->alloc);
-	}
+	buf_expand(s, s->len + len + 1);
 	memcpy(s->buf + s->len, data, len);
 	s->len += len;
 	s->buf[s->len] = 0;
@@ -108,12 +110,7 @@ buf_add(struct buf *s, const char *data)
 void
 buf_add_char(struct buf *s, char ch)
 {
-	assert(s->buf);
-
-	if (s->alloc <= s->len + 1) {
-		s->alloc = s->alloc * 3 / 2 + 16;
-		s->buf = xrealloc(s->buf, s->alloc);
-	}
+	buf_expand(s, s->len + 1);
 	s->buf[s->len++] = ch;
 	s->buf[s->len] = '\0';
 }
@@ -121,15 +118,30 @@ buf_add_char(struct buf *s, char ch)
 void
 buf_clear(struct buf *s)
 {
-	assert(s->buf);
-
-	s->len = 0;
-	s->buf[0] = '\0';
+	if (s->alloc) {
+		assert(s->buf);
+		s->len = 0;
+		s->buf[0] = '\0';
+	} else {
+		*s = BUF_INIT;
+	}
 }
 
 void
 buf_reset(struct buf *s)
 {
-	zfree(s->buf);
-	buf_init(s);
+	if (s->alloc) {
+		free(s->buf);
+	}
+	*s = BUF_INIT;
+}
+
+void
+buf_move(struct buf *dst, struct buf *src)
+{
+	if (dst->alloc) {
+		free(dst->buf);
+	}
+	*dst = *src;
+	*src = BUF_INIT;
 }

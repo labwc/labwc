@@ -189,9 +189,7 @@ field_set_custom(struct buf *buf, struct view *view, const char *format)
 	char fmt[LAB_FIELD_SINGLE_FMT_MAX_LEN];
 	unsigned char fmt_position = 0;
 
-	struct buf field_result;
-	buf_init(&field_result);
-
+	struct buf field_result = BUF_INIT;
 	char converted_field[4096];
 
 	for (const char *p = format; *p; p++) {
@@ -255,7 +253,7 @@ reset_format:
 		buf_clear(&field_result);
 		fmt_position = 0;
 	}
-	free(field_result.buf);
+	buf_reset(&field_result);
 }
 
 static const struct field_converter field_converter[LAB_FIELD_COUNT] = {

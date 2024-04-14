@@ -706,12 +706,11 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_EXECUTE:
 			{
-				struct buf cmd;
-				buf_init(&cmd);
+				struct buf cmd = BUF_INIT;
 				buf_add(&cmd, action_get_str(action, "command", NULL));
 				buf_expand_tilde(&cmd);
 				spawn_async_no_shell(cmd.buf);
-				free(cmd.buf);
+				buf_reset(&cmd);
 			}
 			break;
 		case ACTION_TYPE_EXIT:

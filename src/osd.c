@@ -251,8 +251,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 	}
 	pango_font_description_free(desc);
 
-	struct buf buf;
-	buf_init(&buf);
+	struct buf buf = BUF_INIT;
 
 	/* This is the width of the area available for text fields */
 	int available_width = w - 2 * theme->osd_border_width
@@ -319,7 +318,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 
 		y += theme->osd_window_switcher_item_height;
 	}
-	free(buf.buf);
+	buf_reset(&buf);
 	g_object_unref(layout);
 
 	cairo_surface_flush(surf);

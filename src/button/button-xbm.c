@@ -288,15 +288,15 @@ button_xbm_load(const char *button_name, struct lab_data_buffer **buffer,
 	/* Read file into memory as it's easier to tokenize that way */
 	char filename[4096] = { 0 };
 	button_filename(button_name, filename, sizeof(filename));
-	char *token_buffer = grab_file(filename);
-	if (token_buffer) {
-		struct token *tokens = tokenize_xbm(token_buffer);
-		free(token_buffer);
+	struct buf token_buf = grab_file(filename);
+	if (token_buf.len) {
+		struct token *tokens = tokenize_xbm(token_buf.buf);
 		pixmap = parse_xbm_tokens(tokens);
 		if (tokens) {
 			free(tokens);
 		}
 	}
+	buf_reset(&token_buf);
 	if (!pixmap.data) {
 		return;
 	}

@@ -523,6 +523,12 @@ theme_builtin(struct theme *theme)
 	theme->osd_window_switcher_item_padding_y = 1;
 	theme->osd_window_switcher_item_active_border_width = 2;
 
+	/* inherit settings in post_processing() if not set elsewhere */
+	theme->osd_window_switcher_preview_border_width = INT_MIN;
+	memset(theme->osd_window_switcher_preview_border_color, 0,
+		sizeof(theme->osd_window_switcher_preview_border_color));
+	theme->osd_window_switcher_preview_border_color[0][0] = FLT_MIN;
+
 	theme->osd_workspace_switcher_boxes_width = 20;
 	theme->osd_workspace_switcher_boxes_height = 20;
 
@@ -732,6 +738,12 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "osd.window-switcher.item.active.border.width")) {
 		theme->osd_window_switcher_item_active_border_width = atoi(value);
+	}
+	if (match_glob(key, "osd.window-switcher.preview.border.width")) {
+		theme->osd_window_switcher_preview_border_width = atoi(value);
+	}
+	if (match_glob(key, "osd.window-switcher.preview.border.color")) {
+		parse_hexstrs(value, theme->osd_window_switcher_preview_border_color);
 	}
 	if (match_glob(key, "osd.workspace-switcher.boxes.width")) {
 		theme->osd_workspace_switcher_boxes_width = atoi(value);
@@ -1091,6 +1103,14 @@ post_processing(struct theme *theme)
 	if (theme->osd_window_switcher_width_is_percent) {
 		theme->osd_window_switcher_width =
 			MIN(theme->osd_window_switcher_width, 100);
+	}
+	if (theme->osd_window_switcher_preview_border_width == INT_MIN) {
+		theme->osd_window_switcher_preview_border_width =
+			theme->osd_border_width;
+	}
+	if (theme->osd_window_switcher_preview_border_color[0][0] == FLT_MIN) {
+		fill_colors_with_osd_theme(theme,
+			theme->osd_window_switcher_preview_border_color);
 	}
 
 	if (theme->snapping_preview_region_border_width == INT_MIN) {

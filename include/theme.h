@@ -76,6 +76,8 @@ struct theme {
 	int osd_window_switcher_item_padding_y;
 	int osd_window_switcher_item_active_border_width;
 	bool osd_window_switcher_width_is_percent;
+	int osd_window_switcher_preview_border_width;
+	float osd_window_switcher_preview_border_color[3][4];
 
 	int osd_workspace_switcher_boxes_width;
 	int osd_workspace_switcher_boxes_height;

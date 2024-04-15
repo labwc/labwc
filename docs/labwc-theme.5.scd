@@ -190,6 +190,18 @@ elements are not listed here, but are supported.
 	Border width of the selection box in the window switcher in pixels.
 	Default is 2.
 
+*osd.window-switcher.preview.border.width*
+	Border width of the outlines shown as the preview of the window selected by
+	window switcher. Inherits *osd.border.width* if not set.
+
+*osd.window-switcher.preview.border.color*
+	Color(s) of the outlines shown as the preview of the window selected by
+	window switcher. Possible value is a color or up to 3 colors separated
+	by commas (e.g. "#ffffff,#000000,#ffffff"). When multiple colors are
+	specified, a multi-line rectangle with each line having the specified color
+	is drawn. If not set, this inherits the on-screen-display theme
+	("[*osd.bg.color*],[*osd.label.text.color*],[*osd.bg.color*]").
+
 *osd.workspace-switcher.boxes.width*
 	Width of boxes in workspace switcher in pixels. Setting to 0 disables
 	boxes. Default is 20.
@@ -226,15 +238,13 @@ elements are not listed here, but are supported.
 
 *snapping.preview.region.border.color*
 	Color(s) of an outlined rectangle shown as the preview when a window is
-	snapped to a region. Possible value is a color or up to 3 colors separated
-	by commas (e.g. "#ffffff,#000000,#ffffff"). When multiple colors are
-	specified, a multi-line rectangle with each line having the specified color
-	is drawn. If not set, this inherits the on-screen-display theme
-	("[*osd.bg.color*],[*osd.label.text.color*],[*osd.bg.color*]").
+	snapped to a region. Possible values and the default value are the same as
+	those of *osd.window-switcher.preview.border.color*.
 
 *snapping.preview.edge.border.color*
 	Color(s) of an outlined rectangle shown as the preview when a window is
-	snapped to an edge. See *snapping.preview.region.border.color* for details.
+	snapped to an edge. Possible values and the default value are the same as
+	those of *osd.window-switcher.preview.border.color*.
 
 *border.color*
 	Set both *window.active.border.color* and *window.inactive.border.color*.

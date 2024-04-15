@@ -38,11 +38,11 @@ osd_update_preview_outlines(struct view *view)
 	struct server *server = view->server;
 	struct multi_rect *rect = view->server->osd_state.preview_outline;
 	if (!rect) {
-		int line_width = server->theme->osd_border_width;
+		int line_width = server->theme->osd_window_switcher_preview_border_width;
 		float *colors[] = {
-			server->theme->osd_bg_color,
-			server->theme->osd_label_text_color,
-			server->theme->osd_bg_color
+			server->theme->osd_window_switcher_preview_border_color[0],
+			server->theme->osd_window_switcher_preview_border_color[1],
+			server->theme->osd_window_switcher_preview_border_color[2],
 		};
 		rect = multi_rect_create(&server->scene->tree, colors, line_width);
 		wlr_scene_node_place_above(&rect->tree->node, &server->menu_tree->node);

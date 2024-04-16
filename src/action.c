@@ -756,48 +756,32 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW:
 			if (view) {
-				/* Config parsing makes sure that direction is a valid direction */
-				struct wl_array views;
-				struct view **item;
+				int dx, dy, distance;
 				enum view_edge direction = action_get_int(action, "direction", 0);
-				int distance, dx, dy;
+				struct view *v;
+				struct view *closest_view = NULL;
 				int min_distance = INT_MAX;
-				struct view *nearest_view = NULL;
-				wl_array_init(&views);
-				view_array_append(server, &views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE);
-				wl_array_for_each(item, &views) {
-					if (*item == view) {
+				for_each_view(v, &server->views,
+					      LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+					if (v->minimized) {
 						continue;
 					}
-					if ((*item)->minimized) {
+					dx = v->current.x - view->current.x;
+					dy = v->current.y - view->current.y;
+					distance = dx * dx + dy * dy;
+					if ((direction == VIEW_EDGE_UP && dy >= 0)
+					    || (direction == VIEW_EDGE_LEFT && dx >= 0)
+					    || (direction == VIEW_EDGE_DOWN && dy <= 0)
+					    || (direction == VIEW_EDGE_RIGHT && dx <= 0)) {
 						continue;
 					}
-					dx = (*item)->current.x - view->current.x;
-					dy = (*item)->current.y - view->current.y;
-					switch (direction) {
-					case VIEW_EDGE_LEFT:
-						if (dx >= 0) continue;
-						break;
-					case VIEW_EDGE_RIGHT:
-						if (dx <= 0) continue;
-						break;
-					case VIEW_EDGE_DOWN:
-						if (dy <= 0) continue;
-						break;
-					case VIEW_EDGE_UP:
-						if (dy >= 0) continue;
-						break;
-					default:
-						continue;
-					}
-					distance = dx*dx + dy*dy;
 					if (distance < min_distance) {
 						min_distance = distance;
-						nearest_view = *item;
+						closest_view = v;
 					}
 				}
-				if (nearest_view) {
-					desktop_focus_view(nearest_view, /*raise*/ true);
+				if (closest_view) {
+					desktop_focus_view(closest_view, /*raise*/ true);
 				}
 			}
 			break;

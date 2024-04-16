@@ -43,11 +43,10 @@ specify keyboard layout settings and cursor size/theme here; see environment
 variable section below for details. Within an XDG Base Directory, a file named
 "environment" will be parsed first, followed by any file matching the glob
 "environment.d/\*.env". Files within the environment.d directory are parsed in
-an arbitrary order; any variables that must be set in a particular sequence
-should be set within the same file. Unless the --merge-config option is
-specified, labwc will consider a particular XDG Base Directory to have provided
-an environment file if that directory contains either the "environment"
-file or at least one "environment.d/\*.env" file.
+alphabetical order. Unless the --merge-config option is specified, labwc will
+consider a particular XDG Base Directory to have provided an environment file if
+that directory contains either the "environment" file or at least one
+"environment.d/\*.env" file.
 
 Note: environment files are treated differently by Openbox, which will simply
 source the file as a valid shell script before running the window manager. Files

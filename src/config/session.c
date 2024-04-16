@@ -86,11 +86,6 @@ strdup_env_path_validate(const char *prefix, struct dirent *dirent)
 {
 	assert(prefix);
 
-	/* Valid environment files always end in '.env' */
-	if (!str_endswith(dirent->d_name, ".env")) {
-		return NULL;
-	}
-
 	char *full_path = strdup_printf("%s/%s", prefix, dirent->d_name);
 	if (!full_path) {
 		return NULL;
@@ -106,16 +101,25 @@ strdup_env_path_validate(const char *prefix, struct dirent *dirent)
 	return NULL;
 }
 
+static int
+env_file_filter(const struct dirent *dirent)
+{
+	/* Valid environment files always end in '.env' */
+	return str_endswith(dirent->d_name, ".env");
+}
+
 static bool
 read_environment_dir(const char *path_prefix)
 {
 	bool success = false;
 	char *path = strdup_printf("%s.d", path_prefix);
 
-	errno = 0;
-	DIR *envdir = opendir(path);
+	struct dirent **dirlist = NULL;
 
-	if (!envdir) {
+	errno = 0;
+	int num_entries = scandir(path, &dirlist, env_file_filter, alphasort);
+
+	if (num_entries < 0) {
 		if (errno != ENOENT) {
 			const char *err_msg = strerror(errno);
 			wlr_log(WLR_INFO,
@@ -126,9 +130,10 @@ read_environment_dir(const char *path_prefix)
 		goto env_dir_cleanup;
 	}
 
-	struct dirent *dirent;
-	while ((dirent = readdir(envdir)) != NULL) {
-		char *env_file_path = strdup_env_path_validate(path, dirent);
+	for (int i = 0; i < num_entries; i++) {
+		char *env_file_path = strdup_env_path_validate(path, dirlist[i]);
+		free(dirlist[i]);
+
 		if (!env_file_path) {
 			continue;
 		}
@@ -140,7 +145,7 @@ read_environment_dir(const char *path_prefix)
 		free(env_file_path);
 	}
 
-	closedir(envdir);
+	free(dirlist);
 
 env_dir_cleanup:
 	free(path);

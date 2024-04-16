@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <limits.h>
+#include <wayland-util.h>
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <signal.h>
@@ -71,6 +73,7 @@ enum action_type {
 	ACTION_TYPE_SNAP_TO_EDGE,
 	ACTION_TYPE_GROW_TO_EDGE,
 	ACTION_TYPE_SHRINK_TO_EDGE,
+	ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW,
 	ACTION_TYPE_NEXT_WINDOW,
 	ACTION_TYPE_PREVIOUS_WINDOW,
 	ACTION_TYPE_RECONFIGURE,
@@ -124,6 +127,7 @@ const char *action_names[] = {
 	"SnapToEdge",
 	"GrowToEdge",
 	"ShrinkToEdge",
+	"DirectionalTargetWindow",
 	"NextWindow",
 	"PreviousWindow",
 	"Reconfigure",
@@ -304,6 +308,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		/* Falls through */
 	case ACTION_TYPE_SNAP_TO_EDGE:
 	case ACTION_TYPE_GROW_TO_EDGE:
+	case ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW:
 	case ACTION_TYPE_SHRINK_TO_EDGE:
 		if (!strcmp(argument, "direction")) {
 			enum view_edge edge = view_edge_parse(content);
@@ -492,6 +497,7 @@ action_is_valid(struct action *action)
 	case ACTION_TYPE_EXECUTE:
 		arg_name = "command";
 		break;
+	case ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW:
 	case ACTION_TYPE_MOVE_TO_EDGE:
 	case ACTION_TYPE_SNAP_TO_EDGE:
 	case ACTION_TYPE_GROW_TO_EDGE:
@@ -746,6 +752,53 @@ actions_run(struct view *activator, struct server *server,
 				/* Config parsing makes sure that direction is a valid direction */
 				enum view_edge edge = action_get_int(action, "direction", 0);
 				view_shrink_to_edge(view, edge);
+			}
+			break;
+		case ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW:
+			if (view) {
+				/* Config parsing makes sure that direction is a valid direction */
+				struct wl_array views;
+				struct view **item;
+				enum view_edge direction = action_get_int(action, "direction", 0);
+				int distance, dx, dy;
+				int min_distance = INT_MAX;
+				struct view *nearest_view = NULL;
+				wl_array_init(&views);
+				view_array_append(server, &views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE);
+				wl_array_for_each(item, &views) {
+					if (*item == view) {
+						continue;
+					}
+					if ((*item)->minimized) {
+						continue;
+					}
+					dx = (*item)->current.x - view->current.x;
+					dy = (*item)->current.y - view->current.y;
+					switch (direction) {
+					case VIEW_EDGE_LEFT:
+						if (dx >= 0) continue;
+						break;
+					case VIEW_EDGE_RIGHT:
+						if (dx <= 0) continue;
+						break;
+					case VIEW_EDGE_DOWN:
+						if (dy <= 0) continue;
+						break;
+					case VIEW_EDGE_UP:
+						if (dy >= 0) continue;
+						break;
+					default:
+						continue;
+					}
+					distance = dx*dx + dy*dy;
+					if (distance < min_distance) {
+						min_distance = distance;
+						nearest_view = *item;
+					}
+				}
+				if (nearest_view) {
+					desktop_focus_view(nearest_view, /*raise*/ true);
+				}
 			}
 			break;
 		case ACTION_TYPE_NEXT_WINDOW:

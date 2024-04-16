@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-only
-#include <limits.h>
-#include <wayland-util.h>
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <signal.h>
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+#include <limits.h>
+#include <wayland-util.h>
 #include <wlr/util/log.h>
 #include "action.h"
 #include "common/macros.h"

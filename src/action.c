@@ -762,7 +762,7 @@ actions_run(struct view *activator, struct server *server,
 				struct view *closest_view = NULL;
 				int min_distance = INT_MAX;
 				for_each_view(v, &server->views,
-					      LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+					LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 					if (v->minimized) {
 						continue;
 					}
@@ -770,9 +770,9 @@ actions_run(struct view *activator, struct server *server,
 					dy = v->current.y - view->current.y;
 					distance = dx * dx + dy * dy;
 					if ((direction == VIEW_EDGE_UP && dy >= 0)
-					    || (direction == VIEW_EDGE_LEFT && dx >= 0)
-					    || (direction == VIEW_EDGE_DOWN && dy <= 0)
-					    || (direction == VIEW_EDGE_RIGHT && dx <= 0)) {
+						|| (direction == VIEW_EDGE_LEFT && dx >= 0)
+						|| (direction == VIEW_EDGE_DOWN && dy <= 0)
+						|| (direction == VIEW_EDGE_RIGHT && dx <= 0)) {
 						continue;
 					}
 					if (distance < min_distance) {

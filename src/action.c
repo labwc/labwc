@@ -709,7 +709,7 @@ actions_run(struct view *activator, struct server *server,
 				struct buf cmd = BUF_INIT;
 				buf_add(&cmd, action_get_str(action, "command", NULL));
 				buf_expand_tilde(&cmd);
-				spawn_async_no_shell(cmd.buf);
+				spawn_async_no_shell(cmd.data);
 				buf_reset(&cmd);
 			}
 			break;

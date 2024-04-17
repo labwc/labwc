@@ -1107,7 +1107,7 @@ xml_tree_walk(xmlNode *node)
 void
 rcxml_parse_xml(struct buf *b)
 {
-	xmlDoc *d = xmlParseMemory(b->buf, b->len);
+	xmlDoc *d = xmlParseMemory(b->data, b->len);
 	if (!d) {
 		wlr_log(WLR_ERROR, "error parsing config file");
 		return;

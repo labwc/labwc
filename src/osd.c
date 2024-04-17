@@ -296,7 +296,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 				* theme->osd_window_switcher_item_padding_x)
 				* field->width / 100.0;
 			pango_layout_set_width(layout, field_width * PANGO_SCALE);
-			pango_layout_set_text(layout, buf.buf, -1);
+			pango_layout_set_text(layout, buf.data, -1);
 			pango_cairo_show_layout(cairo, layout);
 			x += field_width + theme->osd_window_switcher_item_padding_x;
 		}

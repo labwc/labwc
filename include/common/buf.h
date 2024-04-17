@@ -13,9 +13,9 @@ struct buf {
 	 * Pointer to underlying string buffer. If alloc != 0, then
 	 * this was allocated via malloc().
 	 */
-	char *buf;
+	char *data;
 	/**
-	 * Allocated length of buf. If zero, buf was not allocated
+	 * Allocated length of buf. If zero, data was not allocated
 	 * (either NULL or literal empty string).
 	 */
 	int alloc;
@@ -28,7 +28,7 @@ struct buf {
 };
 
 /** Value used to initialize a struct buf to an empty string */
-#define BUF_INIT ((struct buf){.buf = ""})
+#define BUF_INIT ((struct buf){.data = ""})
 
 /**
  * buf_expand_tilde - expand ~ in buffer

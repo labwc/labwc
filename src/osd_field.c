@@ -237,7 +237,7 @@ field_set_custom(struct buf *buf, struct view *view, const char *format)
 			fmt[fmt_position++] = 's';
 			fmt[fmt_position++] = '\0';
 			snprintf(converted_field, sizeof(converted_field),
-				fmt, field_result.buf);
+				fmt, field_result.data);
 
 			/* And finally write it to the output buffer */
 			buf_add(buf, converted_field);

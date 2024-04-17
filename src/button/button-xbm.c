@@ -290,7 +290,7 @@ button_xbm_load(const char *button_name, struct lab_data_buffer **buffer,
 	button_filename(button_name, filename, sizeof(filename));
 	struct buf token_buf = grab_file(filename);
 	if (token_buf.len) {
-		struct token *tokens = tokenize_xbm(token_buf.buf);
+		struct token *tokens = tokenize_xbm(token_buf.data);
 		pixmap = parse_xbm_tokens(tokens);
 		if (tokens) {
 			free(tokens);

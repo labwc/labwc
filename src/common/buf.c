@@ -6,6 +6,7 @@
 #include "common/buf.h"
 #include "common/macros.h"
 #include "common/mem.h"
+#include "common/string-helpers.h"
 
 void
 buf_expand_tilde(struct buf *s)
@@ -97,7 +98,7 @@ buf_expand(struct buf *s, int new_alloc)
 void
 buf_add(struct buf *s, const char *data)
 {
-	if (!data || data[0] == '\0') {
+	if (string_null_or_empty(data)) {
 		return;
 	}
 	int len = strlen(data);

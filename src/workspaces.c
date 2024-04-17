@@ -388,15 +388,92 @@ workspaces_find(struct workspace *anchor, const char *name, bool wrap)
 	return NULL;
 }
 
+static void
+destroy_workspace(struct workspace *workspace)
+{
+	wlr_scene_node_destroy(&workspace->tree->node);
+	zfree(workspace->name);
+	wl_list_remove(&workspace->link);
+	free(workspace);
+}
+
+void
+workspaces_reconfigure(struct server *server)
+{
+	/*
+	 * Compare actual workspace list with the new desired configuration to:
+	 *   - Update names
+	 *   - Add workspaces if more workspaces are desired
+	 *   - Destroy workspaces if fewer workspace are desired
+	 */
+
+	struct wl_list *actual_workspace_link = server->workspaces.next;
+
+	struct workspace *configured_workspace;
+	wl_list_for_each(configured_workspace,
+			&rc.workspace_config.workspaces, link) {
+		struct workspace *actual_workspace = wl_container_of(
+			actual_workspace_link, actual_workspace, link);
+
+		if (actual_workspace_link == &server->workspaces) {
+			/* # of configured workspaces increased */
+			wlr_log(WLR_DEBUG, "Adding workspace \"%s\"",
+				configured_workspace->name);
+			add_workspace(server, configured_workspace->name);
+			continue;
+		}
+		if (strcmp(actual_workspace->name, configured_workspace->name)) {
+			/* Workspace is renamed */
+			wlr_log(WLR_DEBUG, "Renaming workspace \"%s\" to \"%s\"",
+				actual_workspace->name, configured_workspace->name);
+			free(actual_workspace->name);
+			actual_workspace->name = xstrdup(configured_workspace->name);
+		}
+		actual_workspace_link = actual_workspace_link->next;
+	}
+
+	if (actual_workspace_link == &server->workspaces) {
+		return;
+	}
+
+	/* # of configured workspaces decreased */
+	overlay_hide(&server->seat);
+	struct workspace *first_workspace =
+		wl_container_of(server->workspaces.next, first_workspace, link);
+
+	while (actual_workspace_link != &server->workspaces) {
+		struct workspace *actual_workspace = wl_container_of(
+			actual_workspace_link, actual_workspace, link);
+
+		wlr_log(WLR_DEBUG, "Destroying workspace \"%s\"",
+			actual_workspace->name);
+
+		struct view *view;
+		wl_list_for_each(view, &server->views, link) {
+			if (view->workspace == actual_workspace) {
+				view_move_to_workspace(view, first_workspace);
+			}
+		}
+
+		if (server->workspace_current == actual_workspace) {
+			workspaces_switch_to(first_workspace,
+				/* update_focus */ true);
+		}
+		if (server->workspace_last == actual_workspace) {
+			server->workspace_last = first_workspace;
+		}
+
+		actual_workspace_link = actual_workspace_link->next;
+		destroy_workspace(actual_workspace);
+	}
+}
+
 void
 workspaces_destroy(struct server *server)
 {
 	struct workspace *workspace, *tmp;
 	wl_list_for_each_safe(workspace, tmp, &server->workspaces, link) {
-		wlr_scene_node_destroy(&workspace->tree->node);
-		zfree(workspace->name);
-		wl_list_remove(&workspace->link);
-		free(workspace);
+		destroy_workspace(workspace);
 	}
 	assert(wl_list_empty(&server->workspaces));
 }

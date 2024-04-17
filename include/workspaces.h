@@ -27,5 +27,6 @@ void workspaces_destroy(struct server *server);
 void workspaces_osd_hide(struct seat *seat);
 struct workspace *workspaces_find(struct workspace *anchor, const char *name,
 	bool wrap);
+void workspaces_reconfigure(struct server *server);
 
 #endif /* LABWC_WORKSPACES_H */

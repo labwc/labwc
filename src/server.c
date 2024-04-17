@@ -63,6 +63,7 @@ reload_config_and_theme(struct server *server)
 	regions_reconfigure(server);
 	resize_indicator_reconfigure(server);
 	kde_server_decoration_update_default();
+	workspaces_reconfigure(server);
 }
 
 static int

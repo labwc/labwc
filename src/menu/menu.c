@@ -617,7 +617,7 @@ xml_tree_walk(xmlNode *node, struct server *server)
 static bool
 parse_buf(struct server *server, struct buf *buf)
 {
-	xmlDoc *d = xmlParseMemory(buf->buf, buf->len);
+	xmlDoc *d = xmlParseMemory(buf->data, buf->len);
 	if (!d) {
 		wlr_log(WLR_ERROR, "xmlParseMemory()");
 		return false;
@@ -1195,7 +1195,7 @@ handle_pipemenu_readable(int fd, uint32_t mask, void *_ctx)
 	}
 
 	/* Guard against badly formed data such as binary input */
-	if (!starts_with_less_than(ctx->buf.buf)) {
+	if (!starts_with_less_than(ctx->buf.data)) {
 		wlr_log(WLR_ERROR, "expect xml data to start with '<'; abort pipemenu");
 		goto clean_up;
 	}

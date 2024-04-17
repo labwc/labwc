@@ -53,7 +53,7 @@ process_line(char *line)
 	buf_add(&value, string_strip(++p));
 	buf_expand_shell_variables(&value);
 	buf_expand_tilde(&value);
-	setenv(key, value.buf, 1);
+	setenv(key, value.data, 1);
 	buf_reset(&value);
 }
 

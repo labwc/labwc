@@ -112,7 +112,7 @@ find_dir(struct ctx *ctx)
 		 * .default_prefix in the same way.
 		 */
 		gchar * *prefixes;
-		prefixes = g_strsplit(prefix.buf, ":", -1);
+		prefixes = g_strsplit(prefix.data, ":", -1);
 		for (gchar * *p = prefixes; *p; p++) {
 			ctx->build_path_fn(ctx, *p, d.path);
 			if (debug) {

@@ -1295,6 +1295,30 @@ view_set_decorations(struct view *view, bool decorations)
 }
 
 void
+view_set_titlebar(struct view *view, bool enabled)
+{
+	/* Reject decoration toggles when shaded */
+	if (view->shaded) {
+		return;
+	}
+
+	if (enabled == !view->ssd_titlebar_hidden) {
+		return;
+	}
+
+	/*
+	 * ssd_titlebar_hidden has to be set before calling
+	 * ssd_titlebar_hide() to make ssd_thickness() happy.
+	 */
+	view->ssd_titlebar_hidden = !enabled;
+	ssd_set_titlebar(view->ssd, enabled);
+
+	if (!view_is_floating(view)) {
+		view_apply_special_geometry(view);
+	}
+}
+
+void
 view_toggle_fullscreen(struct view *view)
 {
 	assert(view);

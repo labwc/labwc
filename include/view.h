@@ -452,6 +452,7 @@ bool view_is_tiled(struct view *view);
 bool view_is_floating(struct view *view);
 void view_move_to_workspace(struct view *view, struct workspace *workspace);
 void view_set_decorations(struct view *view, bool decorations);
+void view_set_titlebar(struct view *view, bool enabled);
 void view_toggle_fullscreen(struct view *view);
 void view_invalidate_last_layout_geometry(struct view *view);
 void view_adjust_for_layout_change(struct view *view);

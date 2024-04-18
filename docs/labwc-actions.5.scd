@@ -126,6 +126,23 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="Undecorate" />*
 	Disable server side decorations of focused window.
 
+*<action name="ToggleTitlebar" />*
+	Toggle titlebar of focused window.
+
+	If the 'keepBorder' configuration option is enabled (as in the default
+	configuraton), then a border will be left as the only decorations around the
+	window.
+
+	This has no effect on windows that do not have server side decorations.
+
+*<action name="ShowTitlebar" />*
+	Hide titlebar of focused window.
+	See 'ToggleTitlebar' for details.
+
+*<action name="HideTitlebar" />*
+	Show titlebar of focused window.
+	See 'ToggleTitlebar' for details.
+
 *<action name="ToggleFullscreen" />*
 	Toggle fullscreen state of focused window.
 

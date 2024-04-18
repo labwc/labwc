@@ -81,6 +81,9 @@ enum action_type {
 	ACTION_TYPE_TOGGLE_DECORATIONS,
 	ACTION_TYPE_DECORATE,
 	ACTION_TYPE_UNDECORATE,
+	ACTION_TYPE_TOGGLE_TITLEBAR,
+	ACTION_TYPE_SHOW_TITLEBAR,
+	ACTION_TYPE_HIDE_TITLEBAR,
 	ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP,
 	ACTION_TYPE_TOGGLE_ALWAYS_ON_BOTTOM,
 	ACTION_TYPE_TOGGLE_OMNIPRESENT,
@@ -136,6 +139,9 @@ const char *action_names[] = {
 	"ToggleDecorations",
 	"Decorate",
 	"Undecorate",
+	"ToggleTitlebar",
+	"ShowTitlebar",
+	"HideTitlebar",
 	"ToggleAlwaysOnTop",
 	"ToggleAlwaysOnBottom",
 	"ToggleOmnipresent",
@@ -802,6 +808,21 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_UNDECORATE:
 			if (view) {
 				view_set_decorations(view, false);
+			}
+			break;
+		case ACTION_TYPE_TOGGLE_TITLEBAR:
+			if (view) {
+				view_set_titlebar(view, view->ssd_titlebar_hidden);
+			}
+			break;
+		case ACTION_TYPE_SHOW_TITLEBAR:
+			if (view) {
+				view_set_titlebar(view, true);
+			}
+			break;
+		case ACTION_TYPE_HIDE_TITLEBAR:
+			if (view) {
+				view_set_titlebar(view, false);
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP:

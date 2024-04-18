@@ -397,6 +397,10 @@ extending outward from the snapped edge.
 *<theme><cornerRadius>*
 	The radius of server side decoration top corners. Default is 8.
 
+*<theme><titlebar>* [yes|no]
+	Set this to 'no' to only keep a small border (and resize area)
+	around the window. Default is yes.
+
 *<theme><keepBorder>* [yes|no]
 	Even when disabling server side decorations via ToggleDecorations,
 	keep a small border (and resize area) around the window. Default is yes.

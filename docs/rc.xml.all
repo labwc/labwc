@@ -23,6 +23,7 @@
   <theme>
     <name></name>
     <cornerRadius>8</cornerRadius>
+    <titlebar>yes</titlebar>
     <keepBorder>yes</keepBorder>
     <font place="ActiveWindow">
       <name>sans</name>

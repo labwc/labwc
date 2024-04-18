@@ -838,6 +838,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.theme_name = xstrdup(content);
 	} else if (!strcmp(nodename, "cornerradius.theme")) {
 		rc.corner_radius = atoi(content);
+	} else if (!strcmp(nodename, "titlebar.theme")) {
+		set_bool(content, &rc.ssd_titlebar);
 	} else if (!strcasecmp(nodename, "keepBorder.theme")) {
 		set_bool(content, &rc.ssd_keep_border);
 	} else if (!strcmp(nodename, "name.font.theme")) {
@@ -1146,6 +1148,7 @@ rcxml_init(void)
 	rc.placement_policy = LAB_PLACE_CENTER;
 
 	rc.xdg_shell_server_side_deco = true;
+	rc.ssd_titlebar = true;
 	rc.ssd_keep_border = true;
 	rc.corner_radius = 8;
 

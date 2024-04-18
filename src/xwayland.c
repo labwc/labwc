@@ -869,6 +869,7 @@ xwayland_view_create(struct server *server,
 	xsurface->data = view;
 
 	view->workspace = server->workspace_current;
+	view->ssd_titlebar_hidden = !rc.ssd_titlebar;
 	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
 	node_descriptor_create(&view->scene_tree->node, LAB_NODE_DESC_VIEW, view);
 

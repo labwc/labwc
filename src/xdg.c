@@ -735,6 +735,7 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	}
 
 	view->workspace = server->workspace_current;
+	view->ssd_titlebar_hidden = !rc.ssd_titlebar;
 	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 

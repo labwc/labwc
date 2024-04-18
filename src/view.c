@@ -1198,24 +1198,6 @@ view_toggle_decorations(struct view *view)
 {
 	assert(view);
 
-	/* Reject decoration toggles when shaded */
-	if (view->shaded) {
-		return;
-	}
-
-	if (rc.ssd_keep_border && view->ssd_enabled && view->ssd
-			&& !view->ssd_titlebar_hidden) {
-		/*
-		 * ssd_titlebar_hidden has to be set before calling
-		 * ssd_titlebar_hide() to make ssd_thickness() happy.
-		 */
-		view->ssd_titlebar_hidden = true;
-		ssd_titlebar_hide(view->ssd);
-		if (!view_is_floating(view)) {
-			view_apply_special_geometry(view);
-		}
-		return;
-	}
 	view_set_decorations(view, !view->ssd_enabled);
 }
 
@@ -1313,7 +1295,6 @@ view_set_decorations(struct view *view, bool decorations)
 			decorate(view);
 		} else {
 			undecorate(view);
-			view->ssd_titlebar_hidden = false;
 		}
 		if (!view_is_floating(view)) {
 			view_apply_special_geometry(view);

@@ -30,6 +30,12 @@ enum ssd_preference {
 	LAB_SSD_PREF_SERVER,
 };
 
+enum ssd_mode {
+	LAB_SSD_MODE_NONE,
+	LAB_SSD_MODE_BORDER,
+	LAB_SSD_MODE_FULL
+};
+
 /**
  * Directions in which a view can be maximized. "None" is used
  * internally to mean "not maximized" but is not valid in rc.xml.
@@ -452,7 +458,7 @@ void view_toggle_visible_on_all_workspaces(struct view *view);
 bool view_is_tiled(struct view *view);
 bool view_is_floating(struct view *view);
 void view_move_to_workspace(struct view *view, struct workspace *workspace);
-void view_set_decorations(struct view *view, bool decorations);
+void view_set_decorations(struct view *view, enum ssd_mode mode);
 void view_toggle_fullscreen(struct view *view);
 void view_invalidate_last_layout_geometry(struct view *view);
 void view_adjust_for_layout_change(struct view *view);

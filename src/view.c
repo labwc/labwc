@@ -1198,25 +1198,14 @@ view_toggle_decorations(struct view *view)
 {
 	assert(view);
 
-	/* Reject decoration toggles when shaded */
-	if (view->shaded) {
-		return;
-	}
-
-	if (rc.ssd_keep_border && view->ssd_enabled && view->ssd
+	if (rc.ssd_keep_border && view->ssd_enabled
 			&& !view->ssd_titlebar_hidden) {
-		/*
-		 * ssd_titlebar_hidden has to be set before calling
-		 * ssd_titlebar_hide() to make ssd_thickness() happy.
-		 */
-		view->ssd_titlebar_hidden = true;
-		ssd_titlebar_hide(view->ssd);
-		if (!view_is_floating(view)) {
-			view_apply_special_geometry(view);
-		}
-		return;
+		view_set_decorations(view, LAB_SSD_MODE_BORDER);
+	} else if (view->ssd_enabled) {
+		view_set_decorations(view, LAB_SSD_MODE_NONE);
+	} else {
+		view_set_decorations(view, LAB_SSD_MODE_FULL);
 	}
-	view_set_decorations(view, !view->ssd_enabled);
 }
 
 bool
@@ -1299,25 +1288,38 @@ undecorate(struct view *view)
 }
 
 void
-view_set_decorations(struct view *view, bool decorations)
+view_set_decorations(struct view *view, enum ssd_mode mode)
 {
 	assert(view);
 
-	if (view->ssd_enabled != decorations && !view->fullscreen) {
-		/*
-		 * Set view->ssd_enabled first since it is referenced
-		 * within the call tree of ssd_create()
-		 */
-		view->ssd_enabled = decorations;
-		if (decorations) {
-			decorate(view);
-		} else {
-			undecorate(view);
-			view->ssd_titlebar_hidden = false;
-		}
-		if (!view_is_floating(view)) {
-			view_apply_special_geometry(view);
-		}
+	if (view->shaded || view->fullscreen) {
+		return;
+	}
+
+	bool ssd_enabled = mode != LAB_SSD_MODE_NONE;
+	bool titlebar_hidden = mode != LAB_SSD_MODE_FULL;
+
+	if (view->ssd_enabled == ssd_enabled
+			&& view->ssd_titlebar_hidden == titlebar_hidden) {
+		return;
+	}
+
+	/*
+	 * Set these first since they are referenced
+	 * within the call tree of ssd_create() and ssd_thickness()
+	 */
+	view->ssd_enabled = ssd_enabled;
+	view->ssd_titlebar_hidden = titlebar_hidden;
+
+	if (ssd_enabled) {
+		decorate(view);
+		ssd_set_titlebar(view->ssd, !titlebar_hidden);
+	} else {
+		undecorate(view);
+	}
+
+	if (!view_is_floating(view)) {
+		view_apply_special_geometry(view);
 	}
 }
 

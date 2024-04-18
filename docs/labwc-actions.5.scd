@@ -118,13 +118,13 @@ Actions are used in menus and keyboard/mouse bindings.
 	yes.
 
 *<action name="ToggleDecorations" />*
-	Toggle decorations of focused window.
+	Toggle server side decorations of focused window.
 
 *<action name="Decorate" />*
-	Enable decorations of focused window.
+	Enable server side decorations of focused window.
 
 *<action name="Undecorate" />*
-	Disable decorations of focused window.
+	Disable server side decorations of focused window.
 
 *<action name="ToggleFullscreen" />*
 	Toggle fullscreen state of focused window.

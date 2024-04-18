@@ -398,8 +398,9 @@ extending outward from the snapped edge.
 	The radius of server side decoration top corners. Default is 8.
 
 *<theme><keepBorder>* [yes|no]
-	Even when disabling server side decorations via ToggleDecorations,
-	keep a small border (and resize area) around the window. Default is yes.
+	Keep a small border (and resize area) even for undecorated windows. Default is yes.
+
+	This has no effect on windows that do not have server side decorations.
 
 *<theme><font place="">*
 	The font to use for a specific element of a window, menu or OSD.

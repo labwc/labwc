@@ -1,2 +1,9 @@
+# VS Code cache
+.cache
+
+# vim swap files
 *.swp
 *.swo
+
+# Qt Creator settings
+*.user

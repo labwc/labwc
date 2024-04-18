@@ -23,7 +23,6 @@
   <theme>
     <name></name>
     <cornerRadius>8</cornerRadius>
-    <keepBorder>yes</keepBorder>
     <font place="ActiveWindow">
       <name>sans</name>
       <size>10</size>

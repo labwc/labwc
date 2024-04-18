@@ -72,14 +72,6 @@ ssd_border_update(struct ssd *ssd)
 		ssd->margin = ssd_thickness(ssd->view);
 	}
 
-	if (!rc.ssd_keep_border && view->ssd_titlebar_hidden) {
-		if (ssd->border.tree->node.enabled) {
-			wlr_scene_node_set_enabled(&ssd->border.tree->node, false);
-			ssd->margin = ssd_thickness(ssd->view);
-		}
-		return;
-	}
-
 	if (view->maximized == VIEW_AXIS_BOTH) {
 		return;
 	} else if (!ssd->border.tree->node.enabled) {

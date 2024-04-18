@@ -33,10 +33,6 @@ ssd_thickness(struct view *view)
 		return (struct border){ 0 };
 	}
 
-	if (!rc.ssd_keep_border && view->ssd_titlebar_hidden) {
-		return (struct border){ 0 };
-	}
-
 	struct theme *theme = view->server->theme;
 
 	if (view->maximized == VIEW_AXIS_BOTH) {

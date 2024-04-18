@@ -129,9 +129,9 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="ToggleTitlebar" />*
 	Toggle titlebar of focused window.
 
-	If the 'keepBorder' configuration option is enabled (as in the default
-	configuraton), then a border will be left as the only decorations around the
-	window.
+	A border will be left as the only decorations around the window.
+	If you completely want to remove all server side decorations, use
+	'ToggleDecorations' instead.
 
 	This has no effect on windows that do not have server side decorations.
 

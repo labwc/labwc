@@ -11,6 +11,20 @@
 	(wl_resource_get_client((wlr_obj1)->resource) \
 	== wl_resource_get_client((wlr_obj2)->resource))
 
+static bool
+is_keyboard_emulated_by_input_method(struct wlr_keyboard *keyboard,
+		struct wlr_input_method_v2 *input_method)
+{
+	if (!keyboard || !input_method) {
+		return false;
+	}
+
+	struct wlr_virtual_keyboard_v1 *virtual_keyboard =
+		wlr_input_device_get_virtual_keyboard(&keyboard->base);
+
+	return virtual_keyboard && SAME_CLIENT(virtual_keyboard, input_method);
+}
+
 /*
  * Get keyboard grab of the seat from keyboard if we should forward events
  * to it.
@@ -31,11 +45,8 @@ get_keyboard_grab(struct keyboard *keyboard)
 	 * input-method so key events don't loop between the compositor and
 	 * the input-method.
 	 */
-	struct wlr_virtual_keyboard_v1 *virtual_keyboard =
-		wlr_input_device_get_virtual_keyboard(
-			keyboard->base.wlr_input_device);
-	if (virtual_keyboard && SAME_CLIENT(virtual_keyboard,
-			input_method->keyboard_grab)) {
+	if (is_keyboard_emulated_by_input_method(
+			keyboard->wlr_keyboard, input_method)) {
 		return NULL;
 	}
 
@@ -298,11 +309,15 @@ handle_input_method_grab_keyboard(struct wl_listener *listener, void *data)
 		input_method_grab_keyboard);
 	struct wlr_input_method_keyboard_grab_v2 *keyboard_grab = data;
 
-	/* Send modifier state to grab */
 	struct wlr_keyboard *active_keyboard =
 		wlr_seat_get_keyboard(relay->seat->seat);
-	wlr_input_method_keyboard_grab_v2_set_keyboard(
-		keyboard_grab, active_keyboard);
+
+	if (!is_keyboard_emulated_by_input_method(
+			active_keyboard, relay->input_method)) {
+		/* Send modifier state to grab */
+		wlr_input_method_keyboard_grab_v2_set_keyboard(
+			keyboard_grab, active_keyboard);
+	}
 
 	relay->keyboard_grab_destroy.notify = handle_keyboard_grab_destroy;
 	wl_signal_add(&keyboard_grab->events.destroy,

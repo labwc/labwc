@@ -1194,12 +1194,11 @@ view_toggle_maximize(struct view *view, enum view_axis axis)
 }
 
 void
-view_toggle_decorations(struct view *view)
+view_toggle_decorations(struct view *view, bool keep_border)
 {
 	assert(view);
 
-	if (rc.ssd_keep_border && view->ssd_enabled
-			&& !view->ssd_titlebar_hidden) {
+	if (keep_border && view->ssd_enabled && !view->ssd_titlebar_hidden) {
 		view_set_decorations(view, LAB_SSD_MODE_BORDER);
 	} else if (view->ssd_enabled) {
 		view_set_decorations(view, LAB_SSD_MODE_NONE);

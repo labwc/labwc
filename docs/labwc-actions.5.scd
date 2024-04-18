@@ -117,7 +117,7 @@ Actions are used in menus and keyboard/mouse bindings.
 	upper-left corner of the window associated with the action. Default is
 	yes.
 
-*<action name="ToggleDecorations" />*
+*<action name="ToggleDecorations" keepBorder="value" />*
 	Toggle decorations of focused window.
 
 	This is a 3-state action which can be executed multiple times:
@@ -125,14 +125,18 @@ Actions are used in menus and keyboard/mouse bindings.
 	- Remaining decorations will be disabled
 	- Decorations will be shown normally
 
-	By disabling the theme configuration 'keepBorder' the first step
-	will be removed and the action only toggles between on and off.
+	*keepBorder* [yes|no] If set to no, the first step will be removed and
+	the action only toggles between on and off. Default is the theme
+	configuration of the same name.
 
 *<action name="Decorate" />*
 	Enable decorations of focused window.
 
-*<action name="Undecorate" />*
+*<action name="Undecorate" keepBorder="value" />*
 	Disable decorations of focused window.
+
+	*keepBorder* [yes|no] Keep a small border (and resize area) around the
+	window. Default is the theme configuration of the same name.
 
 *<action name="ToggleFullscreen" />*
 	Toggle fullscreen state of focused window.

@@ -344,6 +344,13 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		break;
+	case ACTION_TYPE_TOGGLE_DECORATIONS:
+	case ACTION_TYPE_UNDECORATE:
+		if (!strcasecmp(argument, "keepBorder")) {
+			action_arg_add_bool(action, argument, parse_bool(content, true));
+			goto cleanup;
+		}
+		break;
 	case ACTION_TYPE_RESIZE_RELATIVE:
 		if (!strcmp(argument, "left") || !strcmp(argument, "right") ||
 				!strcmp(argument, "top") || !strcmp(argument, "bottom")) {
@@ -791,7 +798,9 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_TOGGLE_DECORATIONS:
 			if (view) {
-				view_toggle_decorations(view);
+				bool keep_border = action_get_bool(
+					action, "keepBorder", rc.ssd_keep_border);
+				view_toggle_decorations(view, keep_border);
 			}
 			break;
 		case ACTION_TYPE_DECORATE:
@@ -801,7 +810,13 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_UNDECORATE:
 			if (view) {
-				view_set_decorations(view, LAB_SSD_MODE_NONE);
+				bool keep_border = action_get_bool(
+					action, "keepBorder", rc.ssd_keep_border);
+				if (keep_border) {
+					view_set_decorations(view, LAB_SSD_MODE_BORDER);
+				} else {
+					view_set_decorations(view, LAB_SSD_MODE_NONE);
+				}
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP:

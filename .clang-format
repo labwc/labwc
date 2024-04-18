@@ -1,0 +1,25 @@
+# Note: this is an VERY rough approximation of labwc's coding style (see
+# CONTRIBUTING.md) and is intended only as a hint for IDE formatting
+# aids. DO NOT rely on clang-format or your IDE for correct formatting;
+# always check the result manually (and run ./scripts/check)!
+#
+# Some notable things that clang-format gets wrong:
+#  - no support for double-indenting before an opening brace
+#  - does not always round continuation indent/alignment to tab stops
+
+BasedOnStyle: LLVM
+UseTab: Always
+IndentWidth: 8
+ContinuationIndentWidth: 8
+AlignAfterOpenBracket: DontAlign
+AlwaysBreakAfterDefinitionReturnType: true
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Linux
+IndentCaseLabels: false
+SpaceBeforeParens: ControlStatementsExceptControlMacros
+ForEachMacros: ['for_each_view',
+                'wl_array_for_each',
+                'wl_list_for_each',
+                'wl_list_for_each_reverse',
+                'wl_list_for_each_reverse_safe',
+                'wl_list_for_each_safe']

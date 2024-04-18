@@ -1193,14 +1193,6 @@ view_toggle_maximize(struct view *view, enum view_axis axis)
 	}
 }
 
-void
-view_toggle_decorations(struct view *view)
-{
-	assert(view);
-
-	view_set_decorations(view, !view->ssd_enabled);
-}
-
 bool
 view_is_always_on_top(struct view *view)
 {

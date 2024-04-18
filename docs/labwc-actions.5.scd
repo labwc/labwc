@@ -120,6 +120,12 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="ToggleDecorations" />*
 	Toggle decorations of focused window.
 
+*<action name="Decorate" />*
+	Enable decorations of focused window.
+
+*<action name="Undecorate" />*
+	Disable decorations of focused window.
+
 *<action name="ToggleFullscreen" />*
 	Toggle fullscreen state of focused window.
 

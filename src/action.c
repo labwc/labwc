@@ -79,6 +79,8 @@ enum action_type {
 	ACTION_TYPE_MAXIMIZE,
 	ACTION_TYPE_TOGGLE_FULLSCREEN,
 	ACTION_TYPE_TOGGLE_DECORATIONS,
+	ACTION_TYPE_DECORATE,
+	ACTION_TYPE_UNDECORATE,
 	ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP,
 	ACTION_TYPE_TOGGLE_ALWAYS_ON_BOTTOM,
 	ACTION_TYPE_TOGGLE_OMNIPRESENT,
@@ -132,6 +134,8 @@ const char *action_names[] = {
 	"Maximize",
 	"ToggleFullscreen",
 	"ToggleDecorations",
+	"Decorate",
+	"Undecorate",
 	"ToggleAlwaysOnTop",
 	"ToggleAlwaysOnBottom",
 	"ToggleOmnipresent",
@@ -787,7 +791,17 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_TOGGLE_DECORATIONS:
 			if (view) {
-				view_toggle_decorations(view);
+				view_set_decorations(view, !view->ssd_enabled);
+			}
+			break;
+		case ACTION_TYPE_DECORATE:
+			if (view) {
+				view_set_decorations(view, true);
+			}
+			break;
+		case ACTION_TYPE_UNDECORATE:
+			if (view) {
+				view_set_decorations(view, false);
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP:

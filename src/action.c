@@ -812,7 +812,9 @@ actions_run(struct view *activator, struct server *server,
 			if (view) {
 				bool keep_border = action_get_bool(
 					action, "keepBorder", rc.ssd_keep_border);
-				if (keep_border) {
+				if (!view->ssd_enabled) {
+					/* do not add a border to CSD windows */
+				} else if (keep_border) {
 					view_set_decorations(view, LAB_SSD_MODE_BORDER);
 				} else {
 					view_set_decorations(view, LAB_SSD_MODE_NONE);

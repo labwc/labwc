@@ -128,6 +128,12 @@ Actions are used in menus and keyboard/mouse bindings.
 	By disabling the theme configuration 'keepBorder' the first step
 	will be removed and the action only toggles between on and off.
 
+*<action name="Decorate" />*
+	Enable decorations of focused window.
+
+*<action name="Undecorate" />*
+	Disable decorations of focused window.
+
 *<action name="ToggleFullscreen" />*
 	Toggle fullscreen state of focused window.
 

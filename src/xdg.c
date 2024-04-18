@@ -599,7 +599,11 @@ xdg_toplevel_view_map(struct view *view)
 
 		init_foreign_toplevel(view);
 
-		view_set_decorations(view, has_ssd(view));
+		if (has_ssd(view)) {
+			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
+		} else {
+			view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
+		}
 
 		/*
 		 * Set initial "pending" dimensions (may be modified by

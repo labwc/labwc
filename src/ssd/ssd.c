@@ -190,7 +190,7 @@ ssd_create(struct view *view, bool active)
 	ssd_titlebar_create(ssd);
 	if (view->ssd_titlebar_hidden) {
 		/* Ensure we keep the old state on Reconfigure or when exiting fullscreen */
-		ssd_titlebar_hide(ssd);
+		ssd_set_titlebar(ssd, false);
 	}
 	ssd->margin = ssd_thickness(view);
 	ssd_set_active(ssd, active);
@@ -254,13 +254,13 @@ ssd_update_geometry(struct ssd *ssd)
 }
 
 void
-ssd_titlebar_hide(struct ssd *ssd)
+ssd_set_titlebar(struct ssd *ssd, bool enabled)
 {
-	if (!ssd || !ssd->titlebar.tree->node.enabled) {
+	if (!ssd || ssd->titlebar.tree->node.enabled == enabled) {
 		return;
 	}
-	wlr_scene_node_set_enabled(&ssd->titlebar.tree->node, false);
-	ssd->titlebar.height = 0;
+	wlr_scene_node_set_enabled(&ssd->titlebar.tree->node, enabled);
+	ssd->titlebar.height = enabled ? ssd->view->server->theme->title_height : 0;
 	ssd_border_update(ssd);
 	ssd_extents_update(ssd);
 	ssd->margin = ssd_thickness(ssd->view);

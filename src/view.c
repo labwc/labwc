@@ -212,6 +212,16 @@ view_wants_focus(struct view *view)
 }
 
 bool
+view_contains_window_type(struct view *view, enum window_type window_type)
+{
+	assert(view);
+	if (view->impl->contains_window_type) {
+		return view->impl->contains_window_type(view, window_type);
+	}
+	return false;
+}
+
+bool
 view_is_focusable(struct view *view)
 {
 	assert(view);

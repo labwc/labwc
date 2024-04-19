@@ -14,63 +14,50 @@
 #include "window-rules.h"
 
 static bool
-other_instances_exist(struct view *self, const char *id, const char *title)
+matches_criteria(struct window_rule *rule, struct view *view)
+{
+	const char *id = view_get_string_prop(view, "app_id");
+	const char *title = view_get_string_prop(view, "title");
+
+	if (rule->identifier) {
+		if (!id || !match_glob(rule->identifier, id)) {
+			return false;
+		}
+	}
+	if (rule->title) {
+		if (!title || !match_glob(rule->title, title)) {
+			return false;
+		}
+	}
+	if (rule->window_type >= 0) {
+		if (!view_contains_window_type(view, rule->window_type)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+static bool
+other_instances_exist(struct window_rule *rule, struct view *self)
 {
 	struct wl_list *views = &self->server->views;
-	const char *prop = NULL;
 	struct view *view;
 
 	wl_list_for_each(view, views, link) {
-		if (view == self) {
-			continue;
-		}
-		if (id) {
-			prop = view_get_string_prop(view, "app_id");
-			if (prop && !strcmp(prop, id)) {
-				return true;
-			}
-		}
-		if (title) {
-			prop = view_get_string_prop(view, "title");
-			if (prop && !strcmp(prop, title)) {
-				return true;
-			}
+		if (view != self && matches_criteria(rule, view)) {
+			return true;
 		}
 	}
 	return false;
 }
 
-/* Try to match against identifier AND title (if set) */
 static bool
 view_matches_criteria(struct window_rule *rule, struct view *view)
 {
-	const char *id = view_get_string_prop(view, "app_id");
-	const char *title = view_get_string_prop(view, "title");
-
-	if (rule->match_once && other_instances_exist(view, id, title)) {
+	if (rule->match_once && other_instances_exist(rule, view)) {
 		return false;
 	}
-
-	if (rule->identifier && rule->title) {
-		if (!id || !title) {
-			return false;
-		}
-		return match_glob(rule->identifier, id)
-			&& match_glob(rule->title, title);
-	} else if (rule->identifier) {
-		if (!id) {
-			return false;
-		}
-		return match_glob(rule->identifier, id);
-	} else if (rule->title) {
-		if (!title) {
-			return false;
-		}
-		return match_glob(rule->title, title);
-	} else {
-		wlr_log(WLR_ERROR, "rule has no identifier or title\n");
-		return false;
-	}
+	return matches_criteria(rule, view);
 }
 
 void

@@ -67,6 +67,26 @@ enum view_wants_focus {
 	VIEW_WANTS_FOCUS_OFFER,
 };
 
+enum window_type {
+	/* https://specifications.freedesktop.org/wm-spec/wm-spec-1.4.html#idm45649101374512 */
+	NET_WM_WINDOW_TYPE_DESKTOP = 0,
+	NET_WM_WINDOW_TYPE_DOCK,
+	NET_WM_WINDOW_TYPE_TOOLBAR,
+	NET_WM_WINDOW_TYPE_MENU,
+	NET_WM_WINDOW_TYPE_UTILITY,
+	NET_WM_WINDOW_TYPE_SPLASH,
+	NET_WM_WINDOW_TYPE_DIALOG,
+	NET_WM_WINDOW_TYPE_DROPDOWN_MENU,
+	NET_WM_WINDOW_TYPE_POPUP_MENU,
+	NET_WM_WINDOW_TYPE_TOOLTIP,
+	NET_WM_WINDOW_TYPE_NOTIFICATION,
+	NET_WM_WINDOW_TYPE_COMBO,
+	NET_WM_WINDOW_TYPE_DND,
+	NET_WM_WINDOW_TYPE_NORMAL,
+
+	WINDOW_TYPE_LEN
+};
+
 struct view;
 struct wlr_surface;
 
@@ -113,6 +133,8 @@ struct view_impl {
 	enum view_wants_focus (*wants_focus)(struct view *self);
 	/* returns true if view reserves space at screen edge */
 	bool (*has_strut_partial)(struct view *self);
+	/* returns true if view declared itself a window type */
+	bool (*contains_window_type)(struct view *view, int32_t window_type);
 };
 
 struct view {
@@ -358,6 +380,7 @@ void view_array_append(struct server *server, struct wl_array *views,
 	enum lab_view_criteria criteria);
 
 enum view_wants_focus view_wants_focus(struct view *view);
+bool view_contains_window_type(struct view *view, enum window_type window_type);
 
 /**
  * view_edge_invert() - select the opposite of a provided edge

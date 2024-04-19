@@ -820,7 +820,7 @@ defined as shown below.
 <windowRules>
 
   <!-- Action -->
-  <windowRule identifier="" title="">
+  <windowRule identifier="" title="" type="">
     <action name=""/>
   </windowRule>
 
@@ -832,10 +832,10 @@ defined as shown below.
 
 *Criteria*
 
-*<windowRules><windowRule identifier="" title="" matchOnce="">*
+*<windowRules><windowRule identifier="" title="" type="" matchOnce="">*
 	Define a window rule for any window which matches the criteria defined
-	by the attributes *identifier* or *title*. If both are defined, AND
-	logic is used, so both have to match.
+	by the attributes *identifier*, *title*, or *type*. If more than one
+	is defined, AND logic is used, so all have to match.
 	Matching against patterns with '\*' (wildcard) and '?' (joker) is
 	supported. Pattern matching is case-insensitive.
 
@@ -843,6 +843,12 @@ defined as shown below.
 	for XWayland clients.
 
 	*title* is the title of the window.
+
+	*type* [desktop|dock|toolbar|menu|utility|splash|dialog|dropdown_menu|
+	popup_menu|tooltip|notification|combo|dnd|normal] relates to
+	NET_WM_WINDOW_TYPE for XWayland clients. Native wayland clients have
+	type "dialog" when they have a parent or a fixed size, or "normal"
+	otherwise.
 
 	*matchOnce* can be true|false. If true, the rule will only apply to the
 	first instance of the window with the specified identifier or title.

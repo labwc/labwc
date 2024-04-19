@@ -77,6 +77,45 @@ enum font_place {
 static void load_default_key_bindings(void);
 static void load_default_mouse_bindings(void);
 
+static int
+parse_window_type(const char *type)
+{
+	if (!type) {
+		return -1;
+	}
+	if (!strcasecmp(type, "desktop")) {
+		return NET_WM_WINDOW_TYPE_DESKTOP;
+	} else if (!strcasecmp(type, "dock")) {
+		return NET_WM_WINDOW_TYPE_DOCK;
+	} else if (!strcasecmp(type, "toolbar")) {
+		return NET_WM_WINDOW_TYPE_TOOLBAR;
+	} else if (!strcasecmp(type, "menu")) {
+		return NET_WM_WINDOW_TYPE_MENU;
+	} else if (!strcasecmp(type, "utility")) {
+		return NET_WM_WINDOW_TYPE_UTILITY;
+	} else if (!strcasecmp(type, "splash")) {
+		return NET_WM_WINDOW_TYPE_SPLASH;
+	} else if (!strcasecmp(type, "dialog")) {
+		return NET_WM_WINDOW_TYPE_DIALOG;
+	} else if (!strcasecmp(type, "dropdown_menu")) {
+		return NET_WM_WINDOW_TYPE_DROPDOWN_MENU;
+	} else if (!strcasecmp(type, "popup_menu")) {
+		return NET_WM_WINDOW_TYPE_POPUP_MENU;
+	} else if (!strcasecmp(type, "tooltip")) {
+		return NET_WM_WINDOW_TYPE_TOOLTIP;
+	} else if (!strcasecmp(type, "notification")) {
+		return NET_WM_WINDOW_TYPE_NOTIFICATION;
+	} else if (!strcasecmp(type, "combo")) {
+		return NET_WM_WINDOW_TYPE_COMBO;
+	} else if (!strcasecmp(type, "dnd")) {
+		return NET_WM_WINDOW_TYPE_DND;
+	} else if (!strcasecmp(type, "normal")) {
+		return NET_WM_WINDOW_TYPE_NORMAL;
+	} else {
+		return -1;
+	}
+}
+
 static void
 fill_usable_area_override(char *nodename, char *content)
 {
@@ -127,6 +166,7 @@ fill_window_rule(char *nodename, char *content)
 {
 	if (!strcasecmp(nodename, "windowRule.windowRules")) {
 		current_window_rule = znew(*current_window_rule);
+		current_window_rule->window_type = -1; // Window types are >= 0
 		wl_list_append(&rc.window_rules, &current_window_rule->link);
 		wl_list_init(&current_window_rule->actions);
 		return;
@@ -145,6 +185,8 @@ fill_window_rule(char *nodename, char *content)
 	} else if (!strcmp(nodename, "title")) {
 		free(current_window_rule->title);
 		current_window_rule->title = xstrdup(content);
+	} else if (!strcmp(nodename, "type")) {
+		current_window_rule->window_type = parse_window_type(content);
 	} else if (!strcasecmp(nodename, "matchOnce")) {
 		set_bool(content, &current_window_rule->match_once);
 
@@ -1493,7 +1535,7 @@ validate(void)
 	/* Window-rule criteria */
 	struct window_rule *rule, *rule_tmp;
 	wl_list_for_each_safe(rule, rule_tmp, &rc.window_rules, link) {
-		if (!rule->identifier && !rule->title) {
+		if (!rule->identifier && !rule->title && rule->window_type < 0) {
 			wlr_log(WLR_ERROR, "Deleting rule %p as it has no criteria", rule);
 			rule_destroy(rule);
 		}

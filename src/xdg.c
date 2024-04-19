@@ -43,6 +43,28 @@ xdg_toplevel_from_view(struct view *view)
 	return xdg_surface->toplevel;
 }
 
+static bool
+xdg_toplevel_view_contains_window_type(struct view *view, int32_t window_type)
+{
+	assert(view);
+
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+	struct wlr_xdg_toplevel_state *state = &toplevel->current;
+	bool is_dialog = (state->min_width != 0 && state->min_height != 0
+		&& (state->min_width == state->max_width
+		|| state->min_height == state->max_height))
+		|| toplevel->parent;
+
+	switch (window_type) {
+	case NET_WM_WINDOW_TYPE_NORMAL:
+		return !is_dialog;
+	case NET_WM_WINDOW_TYPE_DIALOG:
+		return is_dialog;
+	default:
+		return false;
+	}
+}
+
 static void
 handle_new_popup(struct wl_listener *listener, void *data)
 {
@@ -652,6 +674,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.move_to_back = view_impl_move_to_back,
 	.get_root = xdg_toplevel_view_get_root,
 	.append_children = xdg_toplevel_view_append_children,
+	.contains_window_type = xdg_toplevel_view_contains_window_type,
 };
 
 static void

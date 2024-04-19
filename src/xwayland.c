@@ -15,13 +15,13 @@
 #include "workspaces.h"
 #include "xwayland.h"
 
-xcb_atom_t atoms[ATOM_LEN] = {0};
+xcb_atom_t atoms[WINDOW_TYPE_LEN] = {0};
 
 static void xwayland_view_unmap(struct view *view, bool client_request);
 
-bool
+static bool
 xwayland_surface_contains_window_type(
-		struct wlr_xwayland_surface *surface, enum atom window_type)
+		struct wlr_xwayland_surface *surface, enum window_type window_type)
 {
 	assert(surface);
 	for (size_t i = 0; i < surface->window_type_len; i++) {
@@ -30,6 +30,14 @@ xwayland_surface_contains_window_type(
 		}
 	}
 	return false;
+}
+
+static bool
+xwayland_view_contains_window_type(struct view *view, int32_t window_type)
+{
+	assert(view);
+	struct wlr_xwayland_surface *surface = xwayland_surface_from_view(view);
+	return xwayland_surface_contains_window_type(surface, window_type);
 }
 
 static struct view_size_hints
@@ -845,6 +853,7 @@ static const struct view_impl xwayland_view_impl = {
 	.get_size_hints = xwayland_view_get_size_hints,
 	.wants_focus = xwayland_view_wants_focus,
 	.has_strut_partial = xwayland_view_has_strut_partial,
+	.contains_window_type = xwayland_view_contains_window_type,
 };
 
 void
@@ -926,15 +935,15 @@ sync_atoms(xcb_connection_t *xcb_conn)
 	assert(xcb_conn);
 
 	wlr_log(WLR_DEBUG, "Syncing X11 atoms");
-	xcb_intern_atom_cookie_t cookies[ATOM_LEN];
+	xcb_intern_atom_cookie_t cookies[WINDOW_TYPE_LEN];
 
 	/* First request everything and then loop over the results to reduce latency */
-	for (size_t i = 0; i < ATOM_LEN; i++) {
+	for (size_t i = 0; i < WINDOW_TYPE_LEN; i++) {
 		cookies[i] = xcb_intern_atom(xcb_conn, 0,
 			strlen(atom_names[i]), atom_names[i]);
 	}
 
-	for (size_t i = 0; i < ATOM_LEN; i++) {
+	for (size_t i = 0; i < WINDOW_TYPE_LEN; i++) {
 		xcb_generic_error_t *err = NULL;
 		xcb_intern_atom_reply_t *reply =
 			xcb_intern_atom_reply(xcb_conn, cookies[i], &err);
@@ -960,7 +969,7 @@ handle_server_ready(struct wl_listener *listener, void *data)
 		wlr_log(WLR_ERROR, "Failed to create xcb connection");
 
 		/* Just clear all existing atoms */
-		for (size_t i = 0; i < ATOM_LEN; i++) {
+		for (size_t i = 0; i < WINDOW_TYPE_LEN; i++) {
 			atoms[i] = XCB_ATOM_NONE;
 		}
 		return;

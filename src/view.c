@@ -1292,7 +1292,13 @@ resolve_ssd_mode(struct view *view, enum ssd_mode mode)
 {
 	assert(view);
 
-	if (mode == LAB_SSD_MODE_YES) {
+	if (mode == LAB_SSD_MODE_INITIAL) {
+		if (has_ssd(view)) {
+			return LAB_SSD_MODE_FULL;
+		} else {
+			return LAB_SSD_MODE_NONE;
+		}
+	} else if (mode == LAB_SSD_MODE_YES) {
 		return LAB_SSD_MODE_FULL;
 	} else if (mode == LAB_SSD_MODE_NO) {
 		if (rc.ssd_keep_border && has_ssd(view)) {
@@ -1875,6 +1881,8 @@ ssd_mode_parse(const char *mode)
 		return LAB_SSD_MODE_BORDER;
 	} else if (!strcasecmp(mode, "none")) {
 		return LAB_SSD_MODE_NONE;
+	} else if (!strcasecmp(mode, "initial")) {
+		return LAB_SSD_MODE_INITIAL;
 	} else if (!strcasecmp(mode, "yes")) {
 		return LAB_SSD_MODE_YES;
 	} else {

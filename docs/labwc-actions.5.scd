@@ -131,10 +131,11 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="Decorate" mode="value" />*
 	Enable decorations of focused window.
 
-	*mode* [yes|no|full|border|none] "full", "border" and "none" are the
-	three modes described in 'ToggleDecorations'. "yes" and "no"
-	automatically select an appropriate mode based on 'keepBorder' and
-	whether the window has client side decorations. Default is yes.
+	*mode* [yes|no|initial|full|border|none] "full", "border" and "none"
+	are the three modes described in 'ToggleDecorations'. "yes", "no", and
+	"initial" automatically select an appropriate mode based on
+	'keepBorder' and whether the window has client side decorations.
+	Default is yes.
 
 *<action name="Undecorate" />*
 	Disable decorations of focused window.

@@ -1287,6 +1287,24 @@ undecorate(struct view *view)
 	view->ssd = NULL;
 }
 
+static enum ssd_mode
+resolve_ssd_mode(struct view *view, enum ssd_mode mode)
+{
+	assert(view);
+
+	if (mode == LAB_SSD_MODE_YES) {
+		return LAB_SSD_MODE_FULL;
+	} else if (mode == LAB_SSD_MODE_NO) {
+		if (rc.ssd_keep_border && has_ssd(view)) {
+			return LAB_SSD_MODE_BORDER;
+		} else {
+			return LAB_SSD_MODE_NONE;
+		}
+	} else {
+		return mode;
+	}
+}
+
 void
 view_set_decorations(struct view *view, enum ssd_mode mode)
 {
@@ -1296,8 +1314,9 @@ view_set_decorations(struct view *view, enum ssd_mode mode)
 		return;
 	}
 
-	bool ssd_enabled = mode != LAB_SSD_MODE_NONE;
-	bool titlebar_hidden = mode != LAB_SSD_MODE_FULL;
+	enum ssd_mode resolved = resolve_ssd_mode(view, mode);
+	bool ssd_enabled = resolved != LAB_SSD_MODE_NONE;
+	bool titlebar_hidden = resolved != LAB_SSD_MODE_FULL;
 
 	if (view->ssd_enabled == ssd_enabled
 			&& view->ssd_titlebar_hidden == titlebar_hidden) {
@@ -1841,6 +1860,25 @@ view_edge_parse(const char *direction)
 		return VIEW_EDGE_CENTER;
 	} else {
 		return VIEW_EDGE_INVALID;
+	}
+}
+
+enum ssd_mode
+ssd_mode_parse(const char *mode)
+{
+	if (!mode) {
+		return LAB_SSD_MODE_NO;
+	}
+	if (!strcasecmp(mode, "full")) {
+		return LAB_SSD_MODE_FULL;
+	} else if (!strcasecmp(mode, "border")) {
+		return LAB_SSD_MODE_BORDER;
+	} else if (!strcasecmp(mode, "none")) {
+		return LAB_SSD_MODE_NONE;
+	} else if (!strcasecmp(mode, "yes")) {
+		return LAB_SSD_MODE_YES;
+	} else {
+		return LAB_SSD_MODE_NO;
 	}
 }
 

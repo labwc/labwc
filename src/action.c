@@ -344,6 +344,13 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		break;
+	case ACTION_TYPE_DECORATE:
+		if (!strcmp(argument, "mode")) {
+			enum ssd_mode mode = ssd_mode_parse(content);
+			action_arg_add_int(action, argument, mode);
+			goto cleanup;
+		}
+		break;
 	case ACTION_TYPE_RESIZE_RELATIVE:
 		if (!strcmp(argument, "left") || !strcmp(argument, "right") ||
 				!strcmp(argument, "top") || !strcmp(argument, "bottom")) {
@@ -796,12 +803,14 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_DECORATE:
 			if (view) {
-				view_set_decorations(view, LAB_SSD_MODE_FULL);
+				enum ssd_mode mode = action_get_int(action,
+					"mode", LAB_SSD_MODE_YES);
+				view_set_decorations(view, mode);
 			}
 			break;
 		case ACTION_TYPE_UNDECORATE:
 			if (view) {
-				view_set_decorations(view, LAB_SSD_MODE_NONE);
+				view_set_decorations(view, LAB_SSD_MODE_NO);
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP:

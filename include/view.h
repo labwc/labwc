@@ -33,7 +33,9 @@ enum ssd_preference {
 enum ssd_mode {
 	LAB_SSD_MODE_NONE,
 	LAB_SSD_MODE_BORDER,
-	LAB_SSD_MODE_FULL
+	LAB_SSD_MODE_FULL,
+	LAB_SSD_MODE_YES,
+	LAB_SSD_MODE_NO
 };
 
 /**
@@ -503,6 +505,7 @@ struct output *view_get_adjacent_output(struct view *view, enum view_edge edge,
 	bool wrap);
 enum view_axis view_axis_parse(const char *direction);
 enum view_edge view_edge_parse(const char *direction);
+enum ssd_mode ssd_mode_parse(const char *mode);
 
 /* xdg.c */
 struct wlr_xdg_surface *xdg_surface_from_view(struct view *view);

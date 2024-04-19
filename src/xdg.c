@@ -53,37 +53,6 @@ handle_new_popup(struct wl_listener *listener, void *data)
 	xdg_popup_create(view, wlr_popup);
 }
 
-static bool
-has_ssd(struct view *view)
-{
-	/* Window-rules take priority if they exist for this view */
-	switch (window_rules_get_property(view, "serverDecoration")) {
-	case LAB_PROP_TRUE:
-		return true;
-	case LAB_PROP_FALSE:
-		return false;
-	default:
-		break;
-	}
-
-	/*
-	 * view->ssd_preference may be set by the decoration implementation
-	 * e.g. src/decorations/xdg-deco.c or src/decorations/kde-deco.c.
-	 */
-	switch (view->ssd_preference) {
-	case LAB_SSD_PREF_SERVER:
-		return true;
-	case LAB_SSD_PREF_CLIENT:
-		return false;
-	default:
-		/*
-		 * We don't know anything about the client preference
-		 * so fall back to core.decoration settings in rc.xml
-		 */
-		return rc.xdg_shell_server_side_deco;
-	}
-}
-
 static void
 handle_commit(struct wl_listener *listener, void *data)
 {

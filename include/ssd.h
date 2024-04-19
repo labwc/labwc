@@ -87,6 +87,7 @@ bool ssd_is_button(enum ssd_part_type type);
 bool ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate);
 
 /* TODO: clean up / update */
+bool has_ssd(struct view *view);
 struct border ssd_thickness(struct view *view);
 struct wlr_box ssd_max_extents(struct view *view);
 

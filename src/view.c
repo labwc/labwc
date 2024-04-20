@@ -71,13 +71,13 @@ view_matches_query(struct view *view, struct view_query *query)
 	const char *identifier = view_get_string_prop(view, "app_id");
 	if (match && query->identifier) {
 		empty = false;
-		match &= match_glob(query->identifier, identifier);
+		match &= identifier && match_glob(query->identifier, identifier);
 	}
 
 	const char *title = view_get_string_prop(view, "title");
 	if (match && query->title) {
 		empty = false;
-		match &= match_glob(query->title, title);
+		match &= title && match_glob(query->title, title);
 	}
 
 	if (match && query->window_type >= 0) {

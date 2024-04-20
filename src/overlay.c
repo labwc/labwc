@@ -48,15 +48,15 @@ void overlay_reconfigure(struct seat *seat)
 
 	struct theme *theme = seat->server->theme;
 	create_overlay_rect(seat, &seat->overlay.region_rect,
-		theme->snapping_preview_region_fill,
-		theme->snapping_preview_region_bg_color,
-		theme->snapping_preview_region_border_width,
-		theme->snapping_preview_region_border_color);
+		theme->snapping_overlay_region_fill,
+		theme->snapping_overlay_region_bg_color,
+		theme->snapping_overlay_region_border_width,
+		theme->snapping_overlay_region_border_color);
 	create_overlay_rect(seat, &seat->overlay.edge_rect,
-		theme->snapping_preview_edge_fill,
-		theme->snapping_preview_edge_bg_color,
-		theme->snapping_preview_edge_border_width,
-		theme->snapping_preview_edge_border_color);
+		theme->snapping_overlay_edge_fill,
+		theme->snapping_overlay_edge_bg_color,
+		theme->snapping_overlay_edge_border_width,
+		theme->snapping_overlay_edge_border_color);
 }
 
 static void
@@ -188,7 +188,7 @@ static void
 show_edge_overlay(struct seat *seat, enum view_edge edge,
 		struct output *output)
 {
-	if (!rc.snap_preview_enabled) {
+	if (!rc.snap_overlay_enabled) {
 		return;
 	}
 	if (seat->overlay.active.edge == edge
@@ -201,9 +201,9 @@ show_edge_overlay(struct seat *seat, enum view_edge edge,
 
 	int delay;
 	if (edge_has_adjacent_output_from_cursor(seat, output, edge)) {
-		delay = rc.snap_preview_delay_inner;
+		delay = rc.snap_overlay_delay_inner;
 	} else {
-		delay = rc.snap_preview_delay_outer;
+		delay = rc.snap_overlay_delay_outer;
 	}
 
 	if (delay > 0) {

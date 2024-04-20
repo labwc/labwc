@@ -538,21 +538,21 @@ theme_builtin(struct theme *theme)
 	theme->osd_border_color[0] = FLT_MIN;
 	theme->osd_label_text_color[0] = FLT_MIN;
 
-	theme->snapping_preview_region_fill = true;
-	theme->snapping_preview_edge_fill = true;
+	theme->snapping_overlay_region_fill = true;
+	theme->snapping_overlay_edge_fill = true;
 
-	parse_hexstr("#8080b380", theme->snapping_preview_region_bg_color);
-	parse_hexstr("#8080b380", theme->snapping_preview_edge_bg_color);
+	parse_hexstr("#8080b380", theme->snapping_overlay_region_bg_color);
+	parse_hexstr("#8080b380", theme->snapping_overlay_edge_bg_color);
 
 	/* inherit settings in post_processing() if not set elsewhere */
-	theme->snapping_preview_region_border_width = INT_MIN;
-	theme->snapping_preview_edge_border_width = INT_MIN;
-	memset(theme->snapping_preview_region_border_color, 0,
-		sizeof(theme->snapping_preview_region_border_color));
-	theme->snapping_preview_region_border_color[0][0] = FLT_MIN;
-	memset(theme->snapping_preview_edge_border_color, 0,
-		sizeof(theme->snapping_preview_edge_border_color));
-	theme->snapping_preview_edge_border_color[0][0] = FLT_MIN;
+	theme->snapping_overlay_region_border_width = INT_MIN;
+	theme->snapping_overlay_edge_border_width = INT_MIN;
+	memset(theme->snapping_overlay_region_border_color, 0,
+		sizeof(theme->snapping_overlay_region_border_color));
+	theme->snapping_overlay_region_border_color[0][0] = FLT_MIN;
+	memset(theme->snapping_overlay_edge_border_color, 0,
+		sizeof(theme->snapping_overlay_edge_border_color));
+	theme->snapping_overlay_edge_border_color[0][0] = FLT_MIN;
 }
 
 static void
@@ -754,29 +754,29 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "osd.label.text.color")) {
 		parse_hexstr(value, theme->osd_label_text_color);
 	}
-	if (match_glob(key, "snapping.preview.region.fill")) {
-		theme->snapping_preview_region_fill = parse_bool(value, true);
+	if (match_glob(key, "snapping.overlay.region.fill")) {
+		theme->snapping_overlay_region_fill = parse_bool(value, true);
 	}
-	if (match_glob(key, "snapping.preview.edge.fill")) {
-		theme->snapping_preview_edge_fill = parse_bool(value, true);
+	if (match_glob(key, "snapping.overlay.edge.fill")) {
+		theme->snapping_overlay_edge_fill = parse_bool(value, true);
 	}
-	if (match_glob(key, "snapping.preview.region.bg.color")) {
-		parse_hexstr(value, theme->snapping_preview_region_bg_color);
+	if (match_glob(key, "snapping.overlay.region.bg.color")) {
+		parse_hexstr(value, theme->snapping_overlay_region_bg_color);
 	}
-	if (match_glob(key, "snapping.preview.edge.bg.color")) {
-		parse_hexstr(value, theme->snapping_preview_edge_bg_color);
+	if (match_glob(key, "snapping.overlay.edge.bg.color")) {
+		parse_hexstr(value, theme->snapping_overlay_edge_bg_color);
 	}
-	if (match_glob(key, "snapping.preview.region.border.width")) {
-		theme->snapping_preview_region_border_width = atoi(value);
+	if (match_glob(key, "snapping.overlay.region.border.width")) {
+		theme->snapping_overlay_region_border_width = atoi(value);
 	}
-	if (match_glob(key, "snapping.preview.edge.border.width")) {
-		theme->snapping_preview_edge_border_width = atoi(value);
+	if (match_glob(key, "snapping.overlay.edge.border.width")) {
+		theme->snapping_overlay_edge_border_width = atoi(value);
 	}
-	if (match_glob(key, "snapping.preview.region.border.color")) {
-		parse_hexstrs(value, theme->snapping_preview_region_border_color);
+	if (match_glob(key, "snapping.overlay.region.border.color")) {
+		parse_hexstrs(value, theme->snapping_overlay_region_border_color);
 	}
-	if (match_glob(key, "snapping.preview.edge.border.color")) {
-		parse_hexstrs(value, theme->snapping_preview_edge_border_color);
+	if (match_glob(key, "snapping.overlay.edge.border.color")) {
+		parse_hexstrs(value, theme->snapping_overlay_edge_border_color);
 	}
 }
 
@@ -1113,21 +1113,21 @@ post_processing(struct theme *theme)
 			theme->osd_window_switcher_preview_border_color);
 	}
 
-	if (theme->snapping_preview_region_border_width == INT_MIN) {
-		theme->snapping_preview_region_border_width =
+	if (theme->snapping_overlay_region_border_width == INT_MIN) {
+		theme->snapping_overlay_region_border_width =
 			theme->osd_border_width;
 	}
-	if (theme->snapping_preview_edge_border_width == INT_MIN) {
-		theme->snapping_preview_edge_border_width =
+	if (theme->snapping_overlay_edge_border_width == INT_MIN) {
+		theme->snapping_overlay_edge_border_width =
 			theme->osd_border_width;
 	}
-	if (theme->snapping_preview_region_border_color[0][0] == FLT_MIN) {
+	if (theme->snapping_overlay_region_border_color[0][0] == FLT_MIN) {
 		fill_colors_with_osd_theme(theme,
-			theme->snapping_preview_region_border_color);
+			theme->snapping_overlay_region_border_color);
 	}
-	if (theme->snapping_preview_edge_border_color[0][0] == FLT_MIN) {
+	if (theme->snapping_overlay_edge_border_color[0][0] == FLT_MIN) {
 		fill_colors_with_osd_theme(theme,
-			theme->snapping_preview_edge_border_color);
+			theme->snapping_overlay_edge_border_color);
 	}
 }
 

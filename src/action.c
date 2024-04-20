@@ -683,7 +683,7 @@ directional_target_window(struct view *view, struct server *server,
 	int cx = view->current.x + view->current.width / 2;
 	int cy = view->current.y + view->current.height / 2;
 	for_each_view(v, &server->views,
-					LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+			LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 		if (v->minimized) {
 			continue;
 		}

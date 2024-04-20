@@ -674,6 +674,8 @@ directional_target_window(struct view *view, struct server *server,
 {
 	int dx, dy, distance, distance_wrap;
 	struct view *v;
+	struct output *v_output;
+	struct wlr_box v_usable;
 	struct view *closest_view = NULL;
 	struct view *closest_view_wrap = NULL;
 	int min_distance = INT_MAX;
@@ -682,11 +684,14 @@ directional_target_window(struct view *view, struct server *server,
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	int cx = view->current.x + view->current.width / 2;
 	int cy = view->current.y + view->current.height / 2;
+	assert(view);
 	for_each_view(v, &server->views,
 			LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 		if (v->minimized) {
 			continue;
 		}
+		v_output = v->output;
+		v_usable = output_usable_area_in_layout_coords(v_output);
 		dx = v->current.x + v->current.width/2 - cx;
 		dy = v->current.y + v->current.height/2 - cy;
 		distance = dx * dx + dy * dy;
@@ -698,7 +703,7 @@ directional_target_window(struct view *view, struct server *server,
 			}
 			if (dx > 0) {
 				distance = INT_MAX;
-				dx = usable.width - dx;
+				dx = v_usable.x + v_usable.width - dx;
 				distance_wrap = dx * dx + dy * dy;
 			}
 			break;
@@ -708,7 +713,7 @@ directional_target_window(struct view *view, struct server *server,
 			}
 			if (dx < 0) {
 				distance = INT_MAX;
-				dx = usable.width + dx;
+				dx = usable.x + usable.width + dx;
 				distance_wrap = dx * dx + dy * dy;
 			}
 			break;
@@ -718,7 +723,7 @@ directional_target_window(struct view *view, struct server *server,
 			}
 			if (dy > 0) {
 				distance = INT_MAX;
-				dy = usable.height - dy;
+				dy = v_usable.y + v_usable.height - dy;
 				distance_wrap = dx * dx + dy * dy;
 			}
 			break;
@@ -728,12 +733,11 @@ directional_target_window(struct view *view, struct server *server,
 			}
 			if (dy < 0) {
 				distance = INT_MAX;
-				dy = usable.height + dy;
+				dy = usable.y + usable.height + dy;
 				distance_wrap = dx * dx + dy * dy;
 			}
 			break;
 		default:
-		wlr_log(WLR_ERROR, "invalid direction");
 		return NULL;
 		}
 		if (distance < min_distance) {

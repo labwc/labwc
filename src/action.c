@@ -850,7 +850,7 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW:
 			if (view) {
-				/* Config parsing makes sure that direction is a valid direction */	
+				/* Config parsing makes sure that direction is a valid direction */
 				enum view_edge direction = action_get_int(action, "direction", 0);
 				bool wrap = action_get_bool(action, "wrap", false);
 				struct view *closest_view = directional_target_window(view, server,

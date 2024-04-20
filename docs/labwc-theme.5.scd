@@ -210,15 +210,25 @@ elements are not listed here, but are supported.
 	Height of boxes in workspace switcher in pixels. Setting to 0 disables
 	boxes. Default is 20.
 
-*snapping.overlay.region.fill* [yes|no]
+*snapping.overlay.region.bg.enabled* [yes|no]
 	Show a filled rectangle as an overlay when a window is snapped to a region.
-	Otherwise, an outlined rectangle is shown instead.
-	If software rendering is used, an outlined rectangle is always shown.
+	Default is yes for hardware-based renderers and no for software-based
+	renderers.
 
-*snapping.overlay.edge.fill* [yes|no]
+*snapping.overlay.edge.bg.enabled* [yes|no]
 	Show a filled rectangle as an overlay when a window is snapped to an edge.
-	Otherwise, an outlined rectangle is shown instead.
-	If software rendering is used, an outlined rectangle is always shown.
+	Default is yes for hardware-based renderer and no for software-based
+	renderers.
+
+*snapping.overlay.region.border.enabled* [yes|no]
+	Show an outlined rectangle as an overlay when a window is snapped to a
+	region. Default is no for hardware-based renderers and yes for software-based
+	renderers.
+
+*snapping.overlay.edge.border.enabled* [yes|no]
+	Show an outlined rectangle as an overlay when a window is snapped to an edge.
+	Default is no for hardware-based renderer and yes for software-based
+	renderers.
 
 *snapping.overlay.region.bg.color*
 	Color of a filled rectangle shown as an overlay when a window is snapped to

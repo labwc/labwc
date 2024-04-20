@@ -51,7 +51,7 @@ reload_config_and_theme(struct server *server)
 	rcxml_finish();
 	rcxml_read(rc.config_file);
 	theme_finish(server->theme);
-	theme_init(server->theme, rc.theme_name);
+	theme_init(server->theme, server, rc.theme_name);
 
 	struct view *view;
 	wl_list_for_each(view, &server->views, link) {

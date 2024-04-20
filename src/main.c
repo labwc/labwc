@@ -171,7 +171,7 @@ main(int argc, char *argv[])
 	server_start(&server);
 
 	struct theme theme = { 0 };
-	theme_init(&theme, rc.theme_name);
+	theme_init(&theme, &server, rc.theme_name);
 	rc.theme = &theme;
 	server.theme = &theme;
 

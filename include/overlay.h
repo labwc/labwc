@@ -8,14 +8,13 @@
 #include "view.h"
 
 struct overlay_rect {
-	struct wlr_scene_node *node;
-	bool fill;
-	union {
-		/* if fill is true */
-		struct wlr_scene_rect *scene_rect;
-		/* if fill is false */
-		struct multi_rect *pixman_rect;
-	};
+	struct wlr_scene_tree *tree;
+
+	bool bg_enabled;
+	struct wlr_scene_rect *bg_rect;
+
+	bool border_enabled;
+	struct multi_rect *border_rect;
 };
 
 struct overlay {

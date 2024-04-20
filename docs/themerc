@@ -74,8 +74,18 @@ osd.window-switcher.preview.border.color: #dddda6,#000000,#dddda6
 osd.workspace-switcher.boxes.width: 20
 osd.workspace-switcher.boxes.height: 20
 
-snapping.overlay.region.fill: yes
-snapping.overlay.edge.fill: yes
+# Default values for following options change depending on the rendering
+# backend. For software-based renderers, *.bg.enabled is "no" and
+# *.border.enabled is "yes" if not set. For hardware-based renderers,
+# *.bg.enabled is "yes" and *.border.enabled is "no" if not set.
+# Setting *.bg.enabled to "yes" for software-based renderer with translucent
+# background color may severely impact performance.
+#
+# snapping.overlay.region.bg.enabled:
+# snapping.overlay.edge.bg.enabled:
+# snapping.overlay.region.border.enabled:
+# snapping.overlay.edge.border.enabled:
+
 snapping.overlay.region.bg.color: #8080b380
 snapping.overlay.edge.bg.color: #8080b380
 snapping.overlay.region.border.width: 1

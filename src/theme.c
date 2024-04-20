@@ -17,6 +17,7 @@
 #include <string.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
+#include <wlr/render/pixman.h>
 #include <strings.h>
 #include "common/macros.h"
 #include "common/dir.h"
@@ -28,6 +29,7 @@
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "button/button-png.h"
+#include "labwc.h"
 
 #if HAVE_RSVG
 #include "button/button-svg.h"
@@ -463,7 +465,7 @@ parse_justification(const char *str)
  * theme_builtin() applies a theme that is similar to vanilla GTK
  */
 static void
-theme_builtin(struct theme *theme)
+theme_builtin(struct theme *theme, struct server *server)
 {
 	theme->border_width = 1;
 	theme->padding_height = 3;
@@ -538,21 +540,31 @@ theme_builtin(struct theme *theme)
 	theme->osd_border_color[0] = FLT_MIN;
 	theme->osd_label_text_color[0] = FLT_MIN;
 
-	theme->snapping_overlay_region_fill = true;
-	theme->snapping_overlay_edge_fill = true;
+	if (wlr_renderer_is_pixman(server->renderer)) {
+		/* Draw only outlined overlay by default to save CPU resource */
+		theme->snapping_overlay_region.bg_enabled = false;
+		theme->snapping_overlay_edge.bg_enabled = false;
+		theme->snapping_overlay_region.border_enabled = true;
+		theme->snapping_overlay_edge.border_enabled = true;
+	} else {
+		theme->snapping_overlay_region.bg_enabled = true;
+		theme->snapping_overlay_edge.bg_enabled = true;
+		theme->snapping_overlay_region.border_enabled = false;
+		theme->snapping_overlay_edge.border_enabled = false;
+	}
 
-	parse_hexstr("#8080b380", theme->snapping_overlay_region_bg_color);
-	parse_hexstr("#8080b380", theme->snapping_overlay_edge_bg_color);
+	parse_hexstr("#8080b380", theme->snapping_overlay_region.bg_color);
+	parse_hexstr("#8080b380", theme->snapping_overlay_edge.bg_color);
 
 	/* inherit settings in post_processing() if not set elsewhere */
-	theme->snapping_overlay_region_border_width = INT_MIN;
-	theme->snapping_overlay_edge_border_width = INT_MIN;
-	memset(theme->snapping_overlay_region_border_color, 0,
-		sizeof(theme->snapping_overlay_region_border_color));
-	theme->snapping_overlay_region_border_color[0][0] = FLT_MIN;
-	memset(theme->snapping_overlay_edge_border_color, 0,
-		sizeof(theme->snapping_overlay_edge_border_color));
-	theme->snapping_overlay_edge_border_color[0][0] = FLT_MIN;
+	theme->snapping_overlay_region.border_width = INT_MIN;
+	theme->snapping_overlay_edge.border_width = INT_MIN;
+	memset(theme->snapping_overlay_region.border_color, 0,
+		sizeof(theme->snapping_overlay_region.border_color));
+	theme->snapping_overlay_region.border_color[0][0] = FLT_MIN;
+	memset(theme->snapping_overlay_edge.border_color, 0,
+		sizeof(theme->snapping_overlay_edge.border_color));
+	theme->snapping_overlay_edge.border_color[0][0] = FLT_MIN;
 }
 
 static void
@@ -754,29 +766,35 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "osd.label.text.color")) {
 		parse_hexstr(value, theme->osd_label_text_color);
 	}
-	if (match_glob(key, "snapping.overlay.region.fill")) {
-		theme->snapping_overlay_region_fill = parse_bool(value, true);
+	if (match_glob(key, "snapping.overlay.region.bg.enabled")) {
+		set_bool(value, &theme->snapping_overlay_region.bg_enabled);
 	}
-	if (match_glob(key, "snapping.overlay.edge.fill")) {
-		theme->snapping_overlay_edge_fill = parse_bool(value, true);
+	if (match_glob(key, "snapping.overlay.edge.bg.enabled")) {
+		set_bool(value, &theme->snapping_overlay_edge.bg_enabled);
+	}
+	if (match_glob(key, "snapping.overlay.region.border.enabled")) {
+		set_bool(value, &theme->snapping_overlay_region.border_enabled);
+	}
+	if (match_glob(key, "snapping.overlay.edge.border.enabled")) {
+		set_bool(value, &theme->snapping_overlay_edge.border_enabled);
 	}
 	if (match_glob(key, "snapping.overlay.region.bg.color")) {
-		parse_hexstr(value, theme->snapping_overlay_region_bg_color);
+		parse_hexstr(value, theme->snapping_overlay_region.bg_color);
 	}
 	if (match_glob(key, "snapping.overlay.edge.bg.color")) {
-		parse_hexstr(value, theme->snapping_overlay_edge_bg_color);
+		parse_hexstr(value, theme->snapping_overlay_edge.bg_color);
 	}
 	if (match_glob(key, "snapping.overlay.region.border.width")) {
-		theme->snapping_overlay_region_border_width = atoi(value);
+		theme->snapping_overlay_region.border_width = atoi(value);
 	}
 	if (match_glob(key, "snapping.overlay.edge.border.width")) {
-		theme->snapping_overlay_edge_border_width = atoi(value);
+		theme->snapping_overlay_edge.border_width = atoi(value);
 	}
 	if (match_glob(key, "snapping.overlay.region.border.color")) {
-		parse_hexstrs(value, theme->snapping_overlay_region_border_color);
+		parse_hexstrs(value, theme->snapping_overlay_region.border_color);
 	}
 	if (match_glob(key, "snapping.overlay.edge.border.color")) {
-		parse_hexstrs(value, theme->snapping_overlay_edge_border_color);
+		parse_hexstrs(value, theme->snapping_overlay_edge.border_color);
 	}
 }
 
@@ -1113,32 +1131,32 @@ post_processing(struct theme *theme)
 			theme->osd_window_switcher_preview_border_color);
 	}
 
-	if (theme->snapping_overlay_region_border_width == INT_MIN) {
-		theme->snapping_overlay_region_border_width =
+	if (theme->snapping_overlay_region.border_width == INT_MIN) {
+		theme->snapping_overlay_region.border_width =
 			theme->osd_border_width;
 	}
-	if (theme->snapping_overlay_edge_border_width == INT_MIN) {
-		theme->snapping_overlay_edge_border_width =
+	if (theme->snapping_overlay_edge.border_width == INT_MIN) {
+		theme->snapping_overlay_edge.border_width =
 			theme->osd_border_width;
 	}
-	if (theme->snapping_overlay_region_border_color[0][0] == FLT_MIN) {
+	if (theme->snapping_overlay_region.border_color[0][0] == FLT_MIN) {
 		fill_colors_with_osd_theme(theme,
-			theme->snapping_overlay_region_border_color);
+			theme->snapping_overlay_region.border_color);
 	}
-	if (theme->snapping_overlay_edge_border_color[0][0] == FLT_MIN) {
+	if (theme->snapping_overlay_edge.border_color[0][0] == FLT_MIN) {
 		fill_colors_with_osd_theme(theme,
-			theme->snapping_overlay_edge_border_color);
+			theme->snapping_overlay_edge.border_color);
 	}
 }
 
 void
-theme_init(struct theme *theme, const char *theme_name)
+theme_init(struct theme *theme, struct server *server, const char *theme_name)
 {
 	/*
 	 * Set some default values. This is particularly important on
 	 * reconfigure as not all themes set all options
 	 */
-	theme_builtin(theme);
+	theme_builtin(theme, server);
 
 	/* Read <data-dir>/share/themes/$theme_name/openbox-3/themerc */
 	struct wl_list paths;

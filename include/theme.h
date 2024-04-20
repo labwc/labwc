@@ -17,6 +17,14 @@ enum lab_justification {
 	LAB_JUSTIFY_RIGHT,
 };
 
+struct theme_snapping_overlay {
+	bool bg_enabled;
+	bool border_enabled;
+	float bg_color[4];
+	int border_width;
+	float border_color[3][4];
+};
+
 struct theme {
 	int border_width;
 	int padding_height;
@@ -82,16 +90,8 @@ struct theme {
 	int osd_workspace_switcher_boxes_width;
 	int osd_workspace_switcher_boxes_height;
 
-	bool snapping_overlay_region_fill;
-	bool snapping_overlay_edge_fill;
-
-	float snapping_overlay_region_bg_color[4];
-	float snapping_overlay_edge_bg_color[4];
-
-	int snapping_overlay_region_border_width;
-	int snapping_overlay_edge_border_width;
-	float snapping_overlay_region_border_color[3][4];
-	float snapping_overlay_edge_border_color[3][4];
+	struct theme_snapping_overlay
+		snapping_overlay_region, snapping_overlay_edge;
 
 	/* textures */
 	struct lab_data_buffer *button_close_active_unpressed;
@@ -128,13 +128,16 @@ struct theme {
 	int osd_window_switcher_item_height;
 };
 
+struct server;
+
 /**
  * theme_init - read openbox theme and generate button textures
  * @theme: theme data
+ * @server: server
  * @theme_name: theme-name in <theme-dir>/<theme-name>/openbox-3/themerc
  * Note <theme-dir> is obtained in theme-dir.c
  */
-void theme_init(struct theme *theme, const char *theme_name);
+void theme_init(struct theme *theme, struct server *server, const char *theme_name);
 
 /**
  * theme_finish - free button textures

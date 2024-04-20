@@ -1235,6 +1235,17 @@ view_wants_decorations(struct view *view)
 }
 
 void
+view_set_decorations(struct view *view, enum ssd_mode mode, bool force_ssd)
+{
+	assert(view);
+
+	if (force_ssd || !view_wants_decorations(view)
+			|| mode < view_get_ssd_mode(view)) {
+		view_set_ssd_mode(view, mode);
+	}
+}
+
+void
 view_toggle_decorations(struct view *view)
 {
 	assert(view);

@@ -7,6 +7,7 @@
  */
 
 #include <assert.h>
+#include <strings.h>
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "labwc.h"
@@ -327,6 +328,21 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 			|| candidate == LAB_SSD_PART_CORNER_BOTTOM_LEFT;
 	}
 	return false;
+}
+
+enum ssd_mode
+ssd_mode_parse(const char *mode)
+{
+	if (!mode) {
+		return LAB_SSD_MODE_FULL;
+	}
+	if (!strcasecmp(mode, "none")) {
+		return LAB_SSD_MODE_NONE;
+	} else if (!strcasecmp(mode, "border")) {
+		return LAB_SSD_MODE_BORDER;
+	} else {
+		return LAB_SSD_MODE_FULL;
+	}
 }
 
 void

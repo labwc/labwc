@@ -78,6 +78,7 @@ enum action_type {
 	ACTION_TYPE_TOGGLE_MAXIMIZE,
 	ACTION_TYPE_MAXIMIZE,
 	ACTION_TYPE_TOGGLE_FULLSCREEN,
+	ACTION_TYPE_SET_DECORATIONS,
 	ACTION_TYPE_TOGGLE_DECORATIONS,
 	ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP,
 	ACTION_TYPE_TOGGLE_ALWAYS_ON_BOTTOM,
@@ -131,6 +132,7 @@ const char *action_names[] = {
 	"ToggleMaximize",
 	"Maximize",
 	"ToggleFullscreen",
+	"SetDecorations",
 	"ToggleDecorations",
 	"ToggleAlwaysOnTop",
 	"ToggleAlwaysOnBottom",
@@ -337,6 +339,17 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			} else {
 				action_arg_add_int(action, argument, axis);
 			}
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_SET_DECORATIONS:
+		if (!strcmp(argument, "decorations")) {
+			enum ssd_mode mode = ssd_mode_parse(content);
+			action_arg_add_int(action, argument, mode);
+			goto cleanup;
+		}
+		if (!strcasecmp(argument, "forceSSD")) {
+			action_arg_add_bool(action, argument, parse_bool(content, false));
 			goto cleanup;
 		}
 		break;
@@ -783,6 +796,15 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_TOGGLE_FULLSCREEN:
 			if (view) {
 				view_toggle_fullscreen(view);
+			}
+			break;
+		case ACTION_TYPE_SET_DECORATIONS:
+			if (view) {
+				enum ssd_mode mode = action_get_int(action,
+					"decorations", LAB_SSD_MODE_FULL);
+				bool force_ssd = action_get_bool(action,
+					"forceSSD", false);
+				view_set_decorations(view, mode, force_ssd);
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_DECORATIONS:

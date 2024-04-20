@@ -10,6 +10,7 @@
 #include "config/rcxml.h"
 #include "input/cursor.h"
 #include "input/tablet.h"
+#include "labwc.h"
 
 static bool
 tool_supports_absolute_motion(struct wlr_tablet_tool *tool)
@@ -168,8 +169,13 @@ tablet_init(struct seat *seat, struct wlr_input_device *wlr_device)
 	wlr_log(WLR_DEBUG, "setting up tablet");
 	struct drawing_tablet *tablet = znew(*tablet);
 	tablet->seat = seat;
+	tablet->wlr_input_device = wlr_device;
 	tablet->tablet = wlr_tablet_from_input_device(wlr_device);
 	tablet->tablet->data = tablet;
+	if (seat->server->tablet_manager) {
+		tablet->tablet_v2 = wlr_tablet_create(
+			seat->server->tablet_manager, seat->seat, wlr_device);
+	}
 	tablet->x = 0.0;
 	tablet->y = 0.0;
 	wlr_log(WLR_INFO, "tablet dimensions: %.2fmm x %.2fmm",

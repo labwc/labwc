@@ -80,6 +80,11 @@ view_matches_query(struct view *view, struct view_query *query)
 		match &= match_glob(query->title, title);
 	}
 
+	if (match && query->window_type >= 0) {
+		empty = false;
+		match &= view_contains_window_type(view, query->window_type);
+	}
+
 	return !empty && match;
 }
 

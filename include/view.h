@@ -486,6 +486,7 @@ bool view_is_floating(struct view *view);
 void view_move_to_workspace(struct view *view, struct workspace *workspace);
 enum ssd_mode view_get_ssd_mode(struct view *view);
 void view_set_ssd_mode(struct view *view, enum ssd_mode mode);
+void view_set_decorations(struct view *view, enum ssd_mode mode, bool force_ssd);
 void view_toggle_fullscreen(struct view *view);
 void view_invalidate_last_layout_geometry(struct view *view);
 void view_adjust_for_layout_change(struct view *view);

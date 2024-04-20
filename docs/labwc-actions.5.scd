@@ -120,6 +120,17 @@ Actions are used in menus and keyboard/mouse bindings.
 	upper-left corner of the window associated with the action. Default is
 	yes.
 
+*<action name="SetDecorations" decorations="value" forceSSD="no" />*
+	Set decorations of focused window.
+
+	*decorations* [full|border|none] *full* enables the whole server side
+	decorations. With *border*. only the borders and invisible resize area
+	are enabled. *none* disables everything.
+
+	*forceSSD* [yes|no] If this is no, this action will be ignored for
+	windows that have client side decorations if it would increase the
+	amount of decoration. Default is no.
+
 *<action name="ToggleDecorations" />*
 	Toggle decorations of focused window.
 

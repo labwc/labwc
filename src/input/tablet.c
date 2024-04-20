@@ -5,12 +5,18 @@
 #include <wlr/types/wlr_tablet_pad.h>
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/util/log.h>
+#include <wlr/types/wlr_scene.h>
 #include "common/macros.h"
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "config/rcxml.h"
+#include "config/mousebind.h"
 #include "input/cursor.h"
 #include "input/tablet.h"
+#include "input/tablet-tool.h"
 #include "labwc.h"
+#include "idle.h"
+#include "action.h"
 
 static bool
 tool_supports_absolute_motion(struct wlr_tablet_tool *tool)
@@ -76,14 +82,92 @@ adjust_for_rotation(enum rotation rotation, double *x, double *y)
 	}
 }
 
+static struct wlr_surface*
+tablet_get_coords(struct drawing_tablet *tablet, double *x, double *y)
+{
+	*x = tablet->x;
+	*y = tablet->y;
+	adjust_for_tablet_area(tablet->tablet->width_mm, tablet->tablet->height_mm,
+		rc.tablet.box, x, y);
+	adjust_for_rotation(rc.tablet.rotation, x, y);
+
+	if (!tablet->tablet_v2) {
+		return NULL;
+	}
+
+	/* Convert coordinates: first [0, 1] => layout, then layout => surface */
+	double lx, ly;
+	wlr_cursor_absolute_to_layout_coords(tablet->seat->cursor,
+		tablet->wlr_input_device, *x, *y, &lx, &ly);
+
+	double sx, sy;
+	struct wlr_scene_node *node =
+		wlr_scene_node_at(&tablet->seat->server->scene->tree.node, lx, ly, &sx, &sy);
+
+	/* Find the surface and return it if it accepts tablet events */
+	struct wlr_surface *surface = lab_wlr_surface_from_node(node);
+
+	if (surface && !wlr_surface_accepts_tablet_v2(tablet->tablet_v2, surface)) {
+		return NULL;
+	}
+	return surface;
+}
+
+static void
+notify_motion(struct drawing_tablet *tablet, struct drawing_tablet_tool *tool,
+		struct wlr_surface *surface, double x, double y, uint32_t time)
+{
+	idle_manager_notify_activity(tool->seat->seat);
+
+	if (surface != tool->tool_v2->focused_surface) {
+		wlr_tablet_v2_tablet_tool_notify_proximity_in(tool->tool_v2,
+			tablet->tablet_v2, surface);
+	}
+
+	wlr_cursor_warp_absolute(tablet->seat->cursor,
+		tablet->wlr_input_device, x, y);
+
+	double sx, sy;
+	bool notify = cursor_process_motion(tablet->seat->server, time, &sx, &sy);
+	if (notify) {
+		wlr_tablet_v2_tablet_tool_notify_motion(tool->tool_v2, sx, sy);
+	}
+}
+
 static void
 handle_proximity(struct wl_listener *listener, void *data)
 {
 	struct wlr_tablet_tool_proximity_event *ev = data;
+	struct drawing_tablet *tablet = ev->tablet->data;
+	struct drawing_tablet_tool *tool = ev->tool->data;
 
 	if (!tool_supports_absolute_motion(ev->tool)) {
 		if (ev->state == WLR_TABLET_TOOL_PROXIMITY_IN) {
 			wlr_log(WLR_INFO, "ignoring not supporting tablet tool");
+		}
+		return;
+	}
+
+	tablet->x = ev->x;
+	tablet->y = ev->y;
+
+	double x, y;
+	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y);
+
+	if (tablet->seat->server->tablet_manager && !tool) {
+		/*
+		 * Unfortunately `wlr_tool` is only present in the events, so
+		 * use proximity for creating a `wlr_tablet_v2_tablet_tool`.
+		 */
+		tablet_tool_init(tablet->seat, ev->tool);
+	}
+
+	if (tool && surface) {
+		if (tool->tool_v2 && ev->state == WLR_TABLET_TOOL_PROXIMITY_IN) {
+			notify_motion(tablet, tool, surface, x, y, ev->time_msec);
+		}
+		if (tool->tool_v2 && ev->state == WLR_TABLET_TOOL_PROXIMITY_OUT) {
+			wlr_tablet_v2_tablet_tool_notify_proximity_out(tool->tool_v2);
 		}
 	}
 }
@@ -93,27 +177,84 @@ handle_axis(struct wl_listener *listener, void *data)
 {
 	struct wlr_tablet_tool_axis_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
+	struct drawing_tablet_tool *tool = ev->tool->data;
 
 	if (!tool_supports_absolute_motion(ev->tool)) {
 		return;
 	}
 
-	if (ev->updated_axes & (WLR_TABLET_TOOL_AXIS_X | WLR_TABLET_TOOL_AXIS_Y)) {
-		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_X) {
-			tablet->x = ev->x;
-		}
-		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_Y) {
-			tablet->y = ev->y;
-		}
-
-		double x = tablet->x;
-		double y = tablet->y;
-		adjust_for_tablet_area(tablet->tablet->width_mm, tablet->tablet->height_mm,
-			rc.tablet.box, &x, &y);
-		adjust_for_rotation(rc.tablet.rotation, &x, &y);
-		cursor_emulate_move_absolute(tablet->seat, &ev->tablet->base, x, y, ev->time_msec);
+	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_X) {
+		tablet->x = ev->x;
 	}
-	// Ignore other events
+	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_Y) {
+		tablet->y = ev->y;
+	}
+	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_TILT_X) {
+		tablet->tilt_x = ev->tilt_x;
+	}
+	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_TILT_Y) {
+		tablet->tilt_y = ev->tilt_y;
+	}
+
+	double x, y;
+	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y);
+
+	if (tool && ((surface
+			&& tablet->seat->server->input_mode == LAB_INPUT_STATE_PASSTHROUGH)
+			|| wlr_tablet_tool_v2_has_implicit_grab(tool->tool_v2))) {
+		if (ev->updated_axes & (WLR_TABLET_TOOL_AXIS_X | WLR_TABLET_TOOL_AXIS_Y)) {
+			notify_motion(tablet, tool, surface, x, y, ev->time_msec);
+		}
+		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_DISTANCE) {
+			wlr_tablet_v2_tablet_tool_notify_distance(tool->tool_v2,
+				ev->distance);
+		}
+		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_PRESSURE) {
+			wlr_tablet_v2_tablet_tool_notify_pressure(tool->tool_v2,
+				ev->pressure);
+		}
+		if (ev->updated_axes
+				& (WLR_TABLET_TOOL_AXIS_TILT_X | WLR_TABLET_TOOL_AXIS_TILT_Y)) {
+			/*
+			 * From https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/stable/tablet/tablet-v2.xml
+			 * "Other extra axes are in physical units as specified in the protocol.
+			 * The current extra axes with physical units are tilt, rotation and
+			 * wheel rotation.
+			 * Sent whenever one or both of the tilt axes on a tool change. Each tilt
+			 * value is in degrees, relative to the z-axis of the tablet.
+			 * The angle is positive when the top of a tool tilts along the
+			 * positive x or y axis."
+			 * Based on that we only need to apply rotation but no area transformation.
+			 */
+			double tilt_x = tablet->tilt_x;
+			double tilt_y = tablet->tilt_y;
+			adjust_for_rotation(rc.tablet.rotation, &tilt_x, &tilt_y);
+
+			wlr_tablet_v2_tablet_tool_notify_tilt(tool->tool_v2,
+				tilt_x, tilt_y);
+		}
+		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_ROTATION) {
+			wlr_tablet_v2_tablet_tool_notify_rotation(tool->tool_v2,
+				ev->rotation);
+		}
+		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_SLIDER) {
+			wlr_tablet_v2_tablet_tool_notify_slider(tool->tool_v2,
+				ev->slider);
+		}
+		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_WHEEL) {
+			wlr_tablet_v2_tablet_tool_notify_wheel(tool->tool_v2,
+				ev->wheel_delta, 0);
+		}
+	} else {
+		if (ev->updated_axes & (WLR_TABLET_TOOL_AXIS_X | WLR_TABLET_TOOL_AXIS_Y)) {
+			if (tool && tool->tool_v2->focused_surface) {
+				wlr_tablet_v2_tablet_tool_notify_proximity_out(
+					tool->tool_v2);
+			}
+			cursor_emulate_move_absolute(tablet->seat, &ev->tablet->base,
+				x, y, ev->time_msec);
+		}
+	}
 }
 
 static void
@@ -121,18 +262,55 @@ handle_tip(struct wl_listener *listener, void *data)
 {
 	struct wlr_tablet_tool_tip_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
+	struct drawing_tablet_tool *tool = ev->tool->data;
 
-	uint32_t button = tablet_get_mapped_button(BTN_TOOL_PEN);
-	if (!button) {
-		return;
+	double x, y;
+	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y);
+
+	if (tool && (surface || wlr_tablet_tool_v2_has_implicit_grab(tool->tool_v2))) {
+		idle_manager_notify_activity(tool->seat->seat);
+
+		if (ev->state == WLR_TABLET_TOOL_TIP_DOWN) {
+			bool notify = cursor_process_button_press(tool->seat, BTN_LEFT,
+				ev->time_msec);
+			if (notify) {
+				wlr_tablet_v2_tablet_tool_notify_down(tool->tool_v2);
+				wlr_tablet_tool_v2_start_implicit_grab(tool->tool_v2);
+			}
+		} else if (ev->state == WLR_TABLET_TOOL_TIP_UP) {
+			bool notify = cursor_process_button_release(tool->seat, BTN_LEFT,
+				ev->time_msec);
+			if (notify) {
+				wlr_tablet_v2_tablet_tool_notify_up(tool->tool_v2);
+			}
+
+			bool exit_interactive = cursor_finish_button_release(tool->seat);
+			if (exit_interactive && tool->tool_v2->focused_surface) {
+				/*
+				 * Re-enter the surface after a resize/move to ensure
+				 * being back in tablet mode.
+				 */
+				wlr_tablet_v2_tablet_tool_notify_proximity_out(tool->tool_v2);
+				wlr_tablet_v2_tablet_tool_notify_proximity_in(tool->tool_v2,
+					tablet->tablet_v2, surface);
+			}
+
+			if (!surface) {
+				/* Out-of-surface movement ended on the desktop */
+				wlr_tablet_v2_tablet_tool_notify_proximity_out(tool->tool_v2);
+			}
+		}
+	} else {
+		uint32_t button = tablet_get_mapped_button(BTN_TOOL_PEN);
+		if (button) {
+			cursor_emulate_button(tablet->seat,
+				button,
+				ev->state == WLR_TABLET_TOOL_TIP_DOWN
+					? WLR_BUTTON_PRESSED
+					: WLR_BUTTON_RELEASED,
+				ev->time_msec);
+		}
 	}
-
-	cursor_emulate_button(tablet->seat,
-		button,
-		ev->state == WLR_TABLET_TOOL_TIP_DOWN
-			? WLR_BUTTON_PRESSED
-			: WLR_BUTTON_RELEASED,
-		ev->time_msec);
 }
 
 static void
@@ -140,13 +318,34 @@ handle_button(struct wl_listener *listener, void *data)
 {
 	struct wlr_tablet_tool_button_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
+	struct drawing_tablet_tool *tool = ev->tool->data;
 
-	uint32_t button = tablet_get_mapped_button(ev->button);
-	if (!button) {
-		return;
+	double x, y;
+	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y);
+
+	if (tool && surface) {
+		idle_manager_notify_activity(tool->seat->seat);
+
+		struct view *view = view_from_wlr_surface(surface);
+		struct mousebind *mousebind;
+		wl_list_for_each(mousebind, &rc.mousebinds, link) {
+			if (mousebind->mouse_event == MOUSE_ACTION_PRESS
+					&& mousebind->button == BTN_RIGHT
+					&& mousebind->context == LAB_SSD_CLIENT) {
+				actions_run(view, tool->seat->server, &mousebind->actions, 0);
+			}
+		}
+
+		wlr_tablet_v2_tablet_tool_notify_button(tool->tool_v2, ev->button,
+			ev->state == WLR_BUTTON_PRESSED
+				? ZWP_TABLET_PAD_V2_BUTTON_STATE_PRESSED
+				: ZWP_TABLET_PAD_V2_BUTTON_STATE_RELEASED);
+	} else {
+		uint32_t button = tablet_get_mapped_button(ev->button);
+		if (button) {
+			cursor_emulate_button(tablet->seat, button, ev->state, ev->time_msec);
+		}
 	}
-
-	cursor_emulate_button(tablet->seat, button, ev->state, ev->time_msec);
 }
 
 static void
@@ -178,6 +377,8 @@ tablet_init(struct seat *seat, struct wlr_input_device *wlr_device)
 	}
 	tablet->x = 0.0;
 	tablet->y = 0.0;
+	tablet->tilt_x = 0.0;
+	tablet->tilt_y = 0.0;
 	wlr_log(WLR_INFO, "tablet dimensions: %.2fmm x %.2fmm",
 		tablet->tablet->width_mm, tablet->tablet->height_mm);
 	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, axis);

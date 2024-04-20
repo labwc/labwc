@@ -12,6 +12,29 @@
 #include "labwc.h"
 
 static void
+handle_set_cursor(struct wl_listener *listener, void *data)
+{
+	struct drawing_tablet_tool *tool =
+		wl_container_of(listener, tool, handlers.set_cursor);
+	struct wlr_tablet_v2_event_cursor *ev = data;
+
+	struct seat *seat = tool->seat;
+	struct wlr_seat_client *focused_client =
+		seat->seat->pointer_state.focused_client;
+
+	if (seat->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		return;
+	}
+
+	if (ev->seat_client != focused_client) {
+		return;
+	}
+
+	wlr_cursor_set_surface(seat->cursor, ev->surface,
+		ev->hotspot_x, ev->hotspot_y);
+}
+
+static void
 handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct drawing_tablet_tool *tool =
@@ -40,5 +63,6 @@ tablet_tool_init(struct seat *seat,
 		wlr_tablet_tool->rotation ? " rotation" : "",
 		wlr_tablet_tool->slider ? " slider" : "",
 		wlr_tablet_tool->wheel ? " wheel" : "");
+	CONNECT_SIGNAL(tool->tool_v2, &tool->handlers, set_cursor);
 	CONNECT_SIGNAL(wlr_tablet_tool, &tool->handlers, destroy);
 }

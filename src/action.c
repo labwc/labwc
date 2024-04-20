@@ -687,9 +687,6 @@ directional_target_window(struct view *view, struct server *server,
 		if (v->minimized) {
 			continue;
 		}
-		if (v == view) {
-			continue;
-		}
 		dx = v->current.x + v->current.width/2 - cx;
 		dy = v->current.y + v->current.height/2 - cy;
 		distance = dx * dx + dy * dy;

@@ -669,7 +669,8 @@ run_if_action(struct view *view, struct server *server, struct action *action)
 }
 
 static struct view*
-directional_target_window(struct view *view, struct server *server, enum view_edge direction, bool wrap)
+directional_target_window(struct view *view, struct server *server,
+		enum view_edge direction, bool wrap)
 {
 	int dx, dy, distance, distance_wrap;
 	struct view *v;
@@ -844,7 +845,8 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW:
 			if (view) {
 				enum view_edge direction = action_get_int(action, "direction", 0);
-				struct view *closest_view = directional_target_window(view, server, direction, /*wrap*/ true);
+				struct view *closest_view = directional_target_window(view, server,
+						direction, /*wrap*/ true);
 				if (closest_view) {
 					desktop_focus_view(closest_view, /*raise*/ true);
 				}

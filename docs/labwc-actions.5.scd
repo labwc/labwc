@@ -73,7 +73,7 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="DirectionalTargetWindow" direction="value" />*
 	Focus jumps to closest window in given direction.
 
-	*direction* [left|up|right|down] Direction in which to shrink.	
+	*direction* [left|up|right|down] Direction in which to jump.	
 
 *<action name="MoveTo" x="" y="" />*
 	Move to position (x, y).

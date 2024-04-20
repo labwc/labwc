@@ -118,6 +118,32 @@ void cursor_update_focus(struct server *server);
  */
 void cursor_update_image(struct seat *seat);
 
+/**
+ * Processes cursor motion. The return value indicates if a client
+ * should be notified. Parameters sx, sy holds the surface coordinates
+ * in that case.
+ */
+bool cursor_process_motion(struct server *server, uint32_t time, double *sx, double *sy);
+
+/**
+ * Processes cursor button press. The return value indicates if a client
+ * should be notified.
+ */
+bool cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_msec);
+
+/**
+ * Processes cursor button release. The return value indicates if the client
+ * should be notified. Should be followed by cursor_finish_button_release()
+ * after notifying a client.
+ */
+bool cursor_process_button_release(struct seat *seat, uint32_t button, uint32_t time_msec);
+
+/**
+ * Finishes cursor button release. The return value indicates if an interactive
+ * move/resize had been finished. Should be called after notifying a client.
+ */
+bool cursor_finish_button_release(struct seat *seat);
+
 void cursor_init(struct seat *seat);
 void cursor_reload(struct seat *seat);
 void cursor_emulate_move_absolute(struct seat *seat,

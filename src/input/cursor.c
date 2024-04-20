@@ -354,8 +354,9 @@ update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
 	return false;
 }
 
-static void
-process_cursor_motion_out_of_surface(struct server *server, uint32_t time)
+static bool
+process_cursor_motion_out_of_surface(struct server *server,
+		double *sx, double *sy)
 {
 	struct view *view = server->seat.pressed.view;
 	struct wlr_scene_node *node = server->seat.pressed.node;
@@ -374,28 +375,29 @@ process_cursor_motion_out_of_surface(struct server *server, uint32_t time)
 #endif
 	} else {
 		wlr_log(WLR_ERROR, "Can't detect surface for out-of-surface movement");
-		return;
+		return false;
 	}
 
-	double sx = server->seat.cursor->x - lx;
-	double sy = server->seat.cursor->y - ly;
+	*sx = server->seat.cursor->x - lx;
+	*sy = server->seat.cursor->y - ly;
 	/* Take into account invisible xdg-shell CSD borders */
 	if (view && view->type == LAB_XDG_SHELL_VIEW) {
 		struct wlr_box geo;
 		wlr_xdg_surface_get_geometry(xdg_surface_from_view(view), &geo);
-		sx += geo.x;
-		sy += geo.y;
+		*sx += geo.x;
+		*sy += geo.y;
 	}
 
-	wlr_seat_pointer_notify_motion(server->seat.seat, time, sx, sy);
+	return true;
 }
 
 /*
- * Common logic shared by cursor_update_focus() and process_cursor_motion()
+ * Common logic shared by cursor_update_focus(), process_cursor_motion()
+ * and cursor_axis()
  */
-static void
+static bool
 cursor_update_common(struct server *server, struct cursor_context *ctx,
-		uint32_t time_msec, bool cursor_has_moved)
+		uint32_t time_msec, bool cursor_has_moved, double *sx, double *sy)
 {
 	struct seat *seat = &server->seat;
 	struct wlr_seat *wlr_seat = seat->seat;
@@ -407,7 +409,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		 * Prevent updating focus/cursor image during
 		 * interactive move/resize
 		 */
-		return;
+		return false;
 	}
 
 	/* TODO: verify drag_icon logic */
@@ -422,9 +424,9 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 			 * we can keep scrolling or selecting text even
 			 * if the cursor moves outside of the surface.
 			 */
-			process_cursor_motion_out_of_surface(server, time_msec);
+			return process_cursor_motion_out_of_surface(server, sx, sy);
 		}
-		return;
+		return false;
 	}
 
 	if (ctx->surface && !input_inhibit_blocks_surface(seat,
@@ -457,8 +459,9 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 			seat->server_cursor = LAB_CURSOR_CLIENT;
 		}
 		if (cursor_has_moved) {
-			wlr_seat_pointer_notify_motion(wlr_seat, time_msec,
-				ctx->sx, ctx->sy);
+			*sx = ctx->sx;
+			*sy = ctx->sy;
+			return true;
 		}
 	} else {
 		/*
@@ -477,6 +480,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 			cursor_set(seat, cursor);
 		}
 	}
+	return false;
 }
 
 uint32_t
@@ -495,16 +499,16 @@ cursor_get_resize_edges(struct wlr_cursor *cursor, struct cursor_context *ctx)
 	return resize_edges;
 }
 
-static void
-process_cursor_motion(struct server *server, uint32_t time)
+bool
+cursor_process_motion(struct server *server, uint32_t time, double *sx, double *sy)
 {
 	/* If the mode is non-passthrough, delegate to those functions. */
 	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
 		process_cursor_move(server, time);
-		return;
+		return false;
 	} else if (server->input_mode == LAB_INPUT_STATE_RESIZE) {
 		process_cursor_resize(server, time);
-		return;
+		return false;
 	}
 
 	/* Otherwise, find view under the pointer and send the event along */
@@ -514,7 +518,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	if (ctx.type == LAB_SSD_MENU) {
 		menu_process_cursor_motion(ctx.node);
 		cursor_set(&server->seat, LAB_CURSOR_DEFAULT);
-		return;
+		return false;
 	}
 
 	if (seat->drag.active) {
@@ -543,7 +547,8 @@ process_cursor_motion(struct server *server, uint32_t time)
 		}
 	}
 
-	cursor_update_common(server, &ctx, time, /*cursor_has_moved*/ true);
+	return cursor_update_common(server, &ctx, time,
+		/* cursor_has_moved */ true, sx, sy);
 }
 
 static uint32_t
@@ -569,8 +574,9 @@ _cursor_update_focus(struct server *server)
 			ctx.surface, rc.raise_on_focus);
 	}
 
+	double sx, sy;
 	cursor_update_common(server, &ctx, msec(&now),
-		/*cursor_has_moved*/ false);
+		/*cursor_has_moved*/ false, &sx, &sy);
 }
 
 void
@@ -738,7 +744,11 @@ preprocess_cursor_motion(struct seat *seat, struct wlr_pointer *pointer,
 	 * without any input.
 	 */
 	wlr_cursor_move(seat->cursor, &pointer->base, dx, dy);
-	process_cursor_motion(seat->server, time_msec);
+	double sx, sy;
+	bool notify = cursor_process_motion(seat->server, time_msec, &sx, &sy);
+	if (notify) {
+		wlr_seat_pointer_notify_motion(seat->seat, time_msec, sx, sy);
+	}
 }
 
 static void
@@ -947,9 +957,8 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 
 static uint32_t press_msec;
 
-static void
-cursor_button_press(struct seat *seat, uint32_t button,
-		enum wlr_button_state button_state, uint32_t time_msec)
+bool
+cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_msec)
 {
 	struct server *server = seat->server;
 	struct cursor_context ctx = get_cursor_context(server);
@@ -972,7 +981,7 @@ cursor_button_press(struct seat *seat, uint32_t button,
 		 * so subsequent release always closes menu or selects menu item.
 		 */
 		press_msec = 0;
-		return;
+		return false;
 	}
 
 	/*
@@ -1012,7 +1021,7 @@ cursor_button_press(struct seat *seat, uint32_t button,
 		 * Note: This does not work for XWayland clients
 		 */
 		wlr_seat_pointer_end_grab(seat->seat);
-		return;
+		return false;
 	}
 
 	/* Bindings to the Frame context swallow mouse events if activated */
@@ -1021,14 +1030,15 @@ cursor_button_press(struct seat *seat, uint32_t button,
 
 	if (ctx.surface && !consumed_by_frame_context) {
 		/* Notify client with pointer focus of button press */
-		wlr_seat_pointer_notify_button(seat->seat, time_msec,
-			button, button_state);
+		return true;
 	}
+
+	return false;
 }
 
-static void
-cursor_button_release(struct seat *seat, uint32_t button,
-		enum wlr_button_state button_state, uint32_t time_msec)
+bool
+cursor_process_button_release(struct seat *seat, uint32_t button,
+		uint32_t time_msec)
 {
 	struct server *server = seat->server;
 	struct cursor_context ctx = get_cursor_context(server);
@@ -1043,24 +1053,20 @@ cursor_button_release(struct seat *seat, uint32_t button,
 				menu_call_selected_actions(server);
 			} else {
 				menu_close_root(server);
+				double sx, sy;
 				cursor_update_common(server, &ctx, time_msec,
-					/*cursor_has_moved*/ false);
+					/*cursor_has_moved*/ false, &sx, &sy);
 			}
 		}
-		return;
+		return false;
 	}
 
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		if (pressed_surface) {
 			/* Ensure CSD clients see the release event */
-			wlr_seat_pointer_notify_button(seat->seat, time_msec,
-				button, button_state);
+			return true;
 		}
-
-		/* Exit interactive move/resize mode */
-		interactive_finish(server->grabbed_view);
-
-		return;
+		return false;
 	}
 
 	if (pressed_surface && ctx.surface != pressed_surface) {
@@ -1068,9 +1074,7 @@ cursor_button_release(struct seat *seat, uint32_t button,
 		 * Button released but originally pressed over a different surface.
 		 * Just send the release event to the still focused surface.
 		 */
-		wlr_seat_pointer_notify_button(seat->seat, time_msec,
-			button, button_state);
-		return;
+		return true;
 	}
 
 	/* Bindings to the Frame context swallow mouse events if activated */
@@ -1079,9 +1083,25 @@ cursor_button_release(struct seat *seat, uint32_t button,
 
 	if (!consumed_by_frame_context) {
 		/* Notify client with pointer focus of button release */
-		wlr_seat_pointer_notify_button(seat->seat, time_msec,
-			button, button_state);
+		return true;
 	}
+
+	return false;
+}
+
+bool
+cursor_finish_button_release(struct seat *seat)
+{
+	struct server *server = seat->server;
+
+	if (server->input_mode == LAB_INPUT_STATE_MOVE
+			|| server->input_mode == LAB_INPUT_STATE_RESIZE) {
+		/* Exit interactive move/resize mode */
+		interactive_finish(server->grabbed_view);
+		return true;
+	}
+
+	return false;
 }
 
 static void
@@ -1095,12 +1115,24 @@ cursor_button(struct wl_listener *listener, void *data)
 	struct wlr_pointer_button_event *event = data;
 	idle_manager_notify_activity(seat->seat);
 
+	bool notify;
 	switch (event->state) {
 	case WLR_BUTTON_PRESSED:
-		cursor_button_press(seat, event->button, event->state, event->time_msec);
+		notify = cursor_process_button_press(seat, event->button,
+			event->time_msec);
+		if (notify) {
+			wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
+				event->button, event->state);
+		}
 		break;
 	case WLR_BUTTON_RELEASED:
-		cursor_button_release(seat, event->button, event->state, event->time_msec);
+		notify = cursor_process_button_release(seat, event->button,
+			event->time_msec);
+		if (notify) {
+			wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
+				event->button, event->state);
+		}
+		cursor_finish_button_release(seat);
 		break;
 	}
 }
@@ -1129,7 +1161,11 @@ cursor_emulate_move_absolute(struct seat *seat, struct wlr_input_device *device,
 		dx, dy, dx, dy);
 
 	wlr_cursor_move(seat->cursor, device, dx, dy);
-	process_cursor_motion(seat->server, time_msec);
+	double sx, sy;
+	bool notify = cursor_process_motion(seat->server, time_msec, &sx, &sy);
+	if (notify) {
+		wlr_seat_pointer_notify_motion(seat->seat, time_msec, sx, sy);
+	}
 	wlr_seat_pointer_notify_frame(seat->seat);
 }
 
@@ -1139,12 +1175,20 @@ cursor_emulate_button(struct seat *seat, uint32_t button,
 {
 	idle_manager_notify_activity(seat->seat);
 
+	bool notify;
 	switch (state) {
 	case WLR_BUTTON_PRESSED:
-		cursor_button_press(seat, button, state, time_msec);
+		notify = cursor_process_button_press(seat, button, time_msec);
+		if (notify) {
+			wlr_seat_pointer_notify_button(seat->seat, time_msec, button, state);
+		}
 		break;
 	case WLR_BUTTON_RELEASED:
-		cursor_button_release(seat, button, state, time_msec);
+		notify = cursor_process_button_release(seat, button, time_msec);
+		if (notify) {
+			wlr_seat_pointer_notify_button(seat->seat, time_msec, button, state);
+		}
+		cursor_finish_button_release(seat);
 		break;
 	}
 }
@@ -1245,7 +1289,9 @@ cursor_axis(struct wl_listener *listener, void *data)
 
 	if (ctx.surface && !handled) {
 		/* Make sure we are sending the events to the surface under the cursor */
-		cursor_update_common(server, &ctx, event->time_msec, false);
+		double sx, sy;
+		cursor_update_common(server, &ctx, event->time_msec,
+			/*cursor_has_moved*/ false, &sx, &sy);
 
 		/* Notify the client with pointer focus of the axis event. */
 		wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,

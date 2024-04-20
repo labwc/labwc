@@ -668,6 +668,85 @@ run_if_action(struct view *view, struct server *server, struct action *action)
 	return !strcmp(branch, "then");
 }
 
+static struct view*
+directional_target_window(struct view *view, struct server *server, enum view_edge direction, bool wrap)
+{
+	int dx, dy, distance, distance_wrap;
+	struct view *v;
+	struct view *closest_view = NULL;
+	struct view *closest_view_wrap = NULL;
+	int min_distance = INT_MAX;
+	int min_distance_wrap = INT_MAX;
+	struct output *output = view->output;
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
+	int cx = view->current.x + view->current.width/2;
+	int cy = view->current.y + view-> current.height/2;
+	for_each_view(v, &server->views,
+					LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+		if (v->minimized) {
+			continue;
+		}
+		if (v == view) {
+			continue;
+		}
+		dx = v->current.x + v->current.width/2 - cx;
+		dy = v->current.y + v->current.height/2 - cy;
+		distance = dx * dx + dy * dy;
+		distance_wrap = INT_MAX;
+		switch(direction) {
+		case VIEW_EDGE_LEFT:
+			if (dx == 0) continue;
+			if (dx > 0) {
+				distance = INT_MAX;
+				dx = usable.width - dx;
+				distance_wrap = dx * dx + dy * dy;
+			}
+			break;
+		case VIEW_EDGE_RIGHT:
+			if (dx == 0) continue;
+			if (dx < 0) {
+				distance = INT_MAX;
+				dx = usable.width + dx;
+				distance_wrap = dx * dx + dy * dy;
+			}
+			break;
+		case VIEW_EDGE_UP:
+			if (dy == 0) continue;
+			if (dy > 0) {
+				distance = INT_MAX;
+				dy = usable.height - dy;
+				distance_wrap = dx * dx + dy * dy;
+			}
+			break;
+		case VIEW_EDGE_DOWN:
+			if (dy == 0) continue;
+			if (dy < 0) {
+				distance = INT_MAX;
+				dy = usable.height + dy;
+				distance_wrap = dx * dx + dy * dy;
+			}
+			break;
+		default: 
+		wlr_log(WLR_ERROR, "invalid direction");
+		return NULL;
+		}
+		if (distance < min_distance) {
+			min_distance = distance;
+			closest_view = v;
+		} else if (distance_wrap < min_distance_wrap) {
+			min_distance_wrap = distance_wrap;
+			closest_view_wrap = v;
+		}
+	}
+	if (closest_view) {
+		return closest_view;
+	}
+	if (closest_view_wrap && wrap) {
+		return closest_view_wrap;
+	}
+	return NULL;
+}
+
 void
 actions_run(struct view *activator, struct server *server,
 	struct wl_list *actions, uint32_t resize_edges)
@@ -756,32 +835,10 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW:
 			if (view) {
-				int dx, dy, distance;
 				enum view_edge direction = action_get_int(action, "direction", 0);
-				struct view *v;
-				struct view *closest_view = NULL;
-				int min_distance = INT_MAX;
-				for_each_view(v, &server->views,
-					LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
-					if (v->minimized) {
-						continue;
-					}
-					dx = v->current.x - view->current.x;
-					dy = v->current.y - view->current.y;
-					distance = dx * dx + dy * dy;
-					if ((direction == VIEW_EDGE_UP && dy >= 0)
-						|| (direction == VIEW_EDGE_LEFT && dx >= 0)
-						|| (direction == VIEW_EDGE_DOWN && dy <= 0)
-						|| (direction == VIEW_EDGE_RIGHT && dx <= 0)) {
-						continue;
-					}
-					if (distance < min_distance) {
-						min_distance = distance;
-						closest_view = v;
-					}
-				}
+				struct view* closest_view = directional_target_window(view, server, direction, true);
 				if (closest_view) {
-					desktop_focus_view(closest_view, /*raise*/ true);
+					desktop_focus_view(closest_view, true);
 				}
 			}
 			break;

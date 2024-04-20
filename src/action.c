@@ -679,8 +679,8 @@ directional_target_window(struct view *view, struct server *server, enum view_ed
 	int min_distance_wrap = INT_MAX;
 	struct output *output = view->output;
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-	int cx = view->current.x + view->current.width/2;
-	int cy = view->current.y + view-> current.height/2;
+	int cx = view->current.x + view->current.width / 2;
+	int cy = view->current.y + view->current.height / 2;
 	for_each_view(v, &server->views,
 					LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 		if (v->minimized) {
@@ -693,9 +693,11 @@ directional_target_window(struct view *view, struct server *server, enum view_ed
 		dy = v->current.y + v->current.height/2 - cy;
 		distance = dx * dx + dy * dy;
 		distance_wrap = INT_MAX;
-		switch(direction) {
+		switch (direction) {
 		case VIEW_EDGE_LEFT:
-			if (dx == 0) continue;
+			if (dx == 0) {
+				continue;
+			}
 			if (dx > 0) {
 				distance = INT_MAX;
 				dx = usable.width - dx;
@@ -703,7 +705,9 @@ directional_target_window(struct view *view, struct server *server, enum view_ed
 			}
 			break;
 		case VIEW_EDGE_RIGHT:
-			if (dx == 0) continue;
+			if (dx == 0) {
+				continue;
+			}
 			if (dx < 0) {
 				distance = INT_MAX;
 				dx = usable.width + dx;
@@ -711,7 +715,9 @@ directional_target_window(struct view *view, struct server *server, enum view_ed
 			}
 			break;
 		case VIEW_EDGE_UP:
-			if (dy == 0) continue;
+			if (dy == 0) {
+				continue;
+			}
 			if (dy > 0) {
 				distance = INT_MAX;
 				dy = usable.height - dy;
@@ -719,7 +725,9 @@ directional_target_window(struct view *view, struct server *server, enum view_ed
 			}
 			break;
 		case VIEW_EDGE_DOWN:
-			if (dy == 0) continue;
+			if (dy == 0) {
+				continue;
+			}
 			if (dy < 0) {
 				distance = INT_MAX;
 				dy = usable.height + dy;
@@ -836,9 +844,10 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW:
 			if (view) {
 				enum view_edge direction = action_get_int(action, "direction", 0);
-				struct view* closest_view = directional_target_window(view, server, direction, true);
+				struct view *closest_view = directional_target_window(view, server, direction, 
+																		/*wrap*/ true);
 				if (closest_view) {
-					desktop_focus_view(closest_view, true);
+					desktop_focus_view(closest_view, /*raise*/ true);
 				}
 			}
 			break;

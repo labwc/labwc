@@ -734,7 +734,7 @@ directional_target_window(struct view *view, struct server *server, enum view_ed
 				distance_wrap = dx * dx + dy * dy;
 			}
 			break;
-		default: 
+		default:
 		wlr_log(WLR_ERROR, "invalid direction");
 		return NULL;
 		}
@@ -844,8 +844,7 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW:
 			if (view) {
 				enum view_edge direction = action_get_int(action, "direction", 0);
-				struct view *closest_view = directional_target_window(view, server, direction, 
-																		/*wrap*/ true);
+				struct view *closest_view = directional_target_window(view, server, direction, /*wrap*/ true);
 				if (closest_view) {
 					desktop_focus_view(closest_view, /*raise*/ true);
 				}

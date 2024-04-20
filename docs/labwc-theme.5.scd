@@ -210,39 +210,39 @@ elements are not listed here, but are supported.
 	Height of boxes in workspace switcher in pixels. Setting to 0 disables
 	boxes. Default is 20.
 
-*snapping.preview.region.fill* [yes|no]
-	Show a filled rectangle as the preview when a window is snapped to a region.
+*snapping.overlay.region.fill* [yes|no]
+	Show a filled rectangle as an overlay when a window is snapped to a region.
 	Otherwise, an outlined rectangle is shown instead.
 	If software rendering is used, an outlined rectangle is always shown.
 
-*snapping.preview.edge.fill* [yes|no]
-	Show a filled rectangle as the preview when a window is snapped to an edge.
+*snapping.overlay.edge.fill* [yes|no]
+	Show a filled rectangle as an overlay when a window is snapped to an edge.
 	Otherwise, an outlined rectangle is shown instead.
 	If software rendering is used, an outlined rectangle is always shown.
 
-*snapping.preview.region.bg.color*
-	Color of a filled rectangle shown as the preview when a window is snapped to
+*snapping.overlay.region.bg.color*
+	Color of a filled rectangle shown as an overlay when a window is snapped to
 	a region. Default is #8080b380.
 
-*snapping.preview.edge.bg.color*
-	Color of a filled rectangle shown as the preview when a window is snapped to
+*snapping.overlay.edge.bg.color*
+	Color of a filled rectangle shown as an overlay when a window is snapped to
 	an edge. Default is #8080b380.
 
-*snapping.preview.region.border.width*
-	Border width of an outlined rectangle shown as the preview when a window is
+*snapping.overlay.region.border.width*
+	Border width of an outlined rectangle shown as an overlay when a window is
 	snapped to a region. Inherits `osd.border.width` if not set.
 
-*snapping.preview.edge.border.width*
+*snapping.overlay.edge.border.width*
 	Border width of an outlined rectangle shown as the preview when a window is
 	snapped to an edge. Inherits `osd.border.width` if not set.
 
-*snapping.preview.region.border.color*
-	Color(s) of an outlined rectangle shown as the preview when a window is
+*snapping.overlay.region.border.color*
+	Color(s) of an outlined rectangle shown as an overlay when a window is
 	snapped to a region. Possible values and the default value are the same as
 	those of *osd.window-switcher.preview.border.color*.
 
-*snapping.preview.edge.border.color*
-	Color(s) of an outlined rectangle shown as the preview when a window is
+*snapping.overlay.edge.border.color*
+	Color(s) of an outlined rectangle shown as an overlay when a window is
 	snapped to an edge. Possible values and the default value are the same as
 	those of *osd.window-switcher.preview.border.color*.
 

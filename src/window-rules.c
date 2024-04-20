@@ -14,37 +14,13 @@
 #include "window-rules.h"
 
 static bool
-matches_criteria(struct window_rule *rule, struct view *view)
-{
-	const char *id = view_get_string_prop(view, "app_id");
-	const char *title = view_get_string_prop(view, "title");
-
-	if (rule->identifier) {
-		if (!id || !match_glob(rule->identifier, id)) {
-			return false;
-		}
-	}
-	if (rule->title) {
-		if (!title || !match_glob(rule->title, title)) {
-			return false;
-		}
-	}
-	if (rule->window_type >= 0) {
-		if (!view_contains_window_type(view, rule->window_type)) {
-			return false;
-		}
-	}
-	return true;
-}
-
-static bool
-other_instances_exist(struct window_rule *rule, struct view *self)
+other_instances_exist(struct view *self, struct view_query *query)
 {
 	struct wl_list *views = &self->server->views;
 	struct view *view;
 
 	wl_list_for_each(view, views, link) {
-		if (view != self && matches_criteria(rule, view)) {
+		if (view != self && view_matches_query(view, query)) {
 			return true;
 		}
 	}
@@ -54,10 +30,15 @@ other_instances_exist(struct window_rule *rule, struct view *self)
 static bool
 view_matches_criteria(struct window_rule *rule, struct view *view)
 {
-	if (rule->match_once && other_instances_exist(rule, view)) {
+	struct view_query query = {0};
+	query.identifier = rule->identifier;
+	query.title = rule->title;
+	query.window_type = rule->window_type;
+
+	if (rule->match_once && other_instances_exist(view, &query)) {
 		return false;
 	}
-	return matches_criteria(rule, view);
+	return view_matches_query(view, &query);
 }
 
 void

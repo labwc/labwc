@@ -262,6 +262,7 @@ struct view_query {
 	struct wl_list link;
 	char *identifier;
 	char *title;
+	int window_type;
 };
 
 struct xdg_toplevel_view {

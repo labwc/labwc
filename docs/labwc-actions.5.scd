@@ -304,6 +304,10 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 			XDG shell title for Wayland clients, WM_NAME for
 			XWayland clients.
 
+		*type*
+			Internal heuristics for Wayland clients,
+			NET_WM_WINDOW_TYPE for XWayland clients.
+
 		This argument is optional.
 
 	*then*

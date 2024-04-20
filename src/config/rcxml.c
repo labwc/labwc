@@ -314,6 +314,8 @@ fill_action_query(char *nodename, char *content, struct action *action)
 		current_view_query->identifier = xstrdup(content);
 	} else if (!strcasecmp(nodename, "title")) {
 		current_view_query->title = xstrdup(content);
+	} else if (!strcmp(nodename, "type")) {
+		current_view_query->window_type = parse_window_type(content);
 	}
 }
 

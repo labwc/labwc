@@ -45,34 +45,34 @@ static struct wl_event_source *sigint_source;
 static struct wl_event_source *sigterm_source;
 static struct wl_event_source *sigchld_source;
 
-static struct server *g_server;
-
 static void
-reload_config_and_theme(void)
+reload_config_and_theme(struct server *server)
 {
 	rcxml_finish();
 	rcxml_read(rc.config_file);
-	theme_finish(g_server->theme);
-	theme_init(g_server->theme, rc.theme_name);
+	theme_finish(server->theme);
+	theme_init(server->theme, rc.theme_name);
 
 	struct view *view;
-	wl_list_for_each(view, &g_server->views, link) {
+	wl_list_for_each(view, &server->views, link) {
 		view_reload_ssd(view);
 	}
 
-	menu_reconfigure(g_server);
-	seat_reconfigure(g_server);
-	regions_reconfigure(g_server);
-	resize_indicator_reconfigure(g_server);
+	menu_reconfigure(server);
+	seat_reconfigure(server);
+	regions_reconfigure(server);
+	resize_indicator_reconfigure(server);
 	kde_server_decoration_update_default();
 }
 
 static int
 handle_sighup(int signal, void *data)
 {
+	struct server *server = data;
+
 	session_environment_init();
-	reload_config_and_theme();
-	output_virtual_update_fallback(g_server);
+	reload_config_and_theme(server);
+	output_virtual_update_fallback(server);
 	return 0;
 }
 
@@ -308,7 +308,7 @@ server_init(struct server *server)
 	struct wl_event_loop *event_loop = NULL;
 	event_loop = wl_display_get_event_loop(server->wl_display);
 	sighup_source = wl_event_loop_add_signal(
-		event_loop, SIGHUP, handle_sighup, NULL);
+		event_loop, SIGHUP, handle_sighup, server);
 	sigint_source = wl_event_loop_add_signal(
 		event_loop, SIGINT, handle_sigterm, server->wl_display);
 	sigterm_source = wl_event_loop_add_signal(
@@ -554,8 +554,6 @@ server_init(struct server *server)
 #if HAVE_XWAYLAND
 	xwayland_server_init(server, compositor);
 #endif
-	/* used when handling SIGHUP */
-	g_server = server;
 }
 
 void

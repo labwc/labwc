@@ -257,6 +257,28 @@ handle_axis(struct wl_listener *listener, void *data)
 	}
 }
 
+static uint32_t
+to_stylus_button(uint32_t button)
+{
+	/*
+	 * Use the mapping that is used by XWayland and GTK, even
+	 * if it isn't the order one would expect. This is also
+	 * consistent with the mapping for mouse emulation
+	 */
+	switch (button) {
+	case BTN_LEFT:
+		return BTN_TOOL_PEN;
+	case BTN_RIGHT:
+		return BTN_STYLUS2;
+	case BTN_MIDDLE:
+		return BTN_STYLUS;
+	case BTN_SIDE:
+		return BTN_STYLUS3;
+	default:
+		return 0;
+	}
+}
+
 static void
 handle_tip(struct wl_listener *listener, void *data)
 {
@@ -267,8 +289,15 @@ handle_tip(struct wl_listener *listener, void *data)
 	double x, y;
 	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y);
 
+	uint32_t button = tablet_get_mapped_button(BTN_TOOL_PEN);
+
 	if (tool && (surface || wlr_tablet_tool_v2_has_implicit_grab(tool->tool_v2))) {
 		idle_manager_notify_activity(tool->seat->seat);
+
+		uint32_t stylus_button = to_stylus_button(button);
+		if (stylus_button != BTN_TOOL_PEN) {
+			wlr_log(WLR_INFO, "ignoring stylus tool pen mapping for tablet mode");
+		}
 
 		if (ev->state == WLR_TABLET_TOOL_TIP_DOWN) {
 			bool notify = cursor_process_button_press(tool->seat, BTN_LEFT,
@@ -301,7 +330,6 @@ handle_tip(struct wl_listener *listener, void *data)
 			}
 		}
 	} else {
-		uint32_t button = tablet_get_mapped_button(BTN_TOOL_PEN);
 		if (button) {
 			cursor_emulate_button(tablet->seat,
 				button,
@@ -323,25 +351,35 @@ handle_button(struct wl_listener *listener, void *data)
 	double x, y;
 	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y);
 
+	uint32_t button = tablet_get_mapped_button(ev->button);
+
 	if (tool && surface) {
 		idle_manager_notify_activity(tool->seat->seat);
 
-		struct view *view = view_from_wlr_surface(surface);
-		struct mousebind *mousebind;
-		wl_list_for_each(mousebind, &rc.mousebinds, link) {
-			if (mousebind->mouse_event == MOUSE_ACTION_PRESS
-					&& mousebind->button == BTN_RIGHT
-					&& mousebind->context == LAB_SSD_CLIENT) {
-				actions_run(view, tool->seat->server, &mousebind->actions, 0);
+		if (button) {
+			struct view *view = view_from_wlr_surface(surface);
+			struct mousebind *mousebind;
+			wl_list_for_each(mousebind, &rc.mousebinds, link) {
+				if (mousebind->mouse_event == MOUSE_ACTION_PRESS
+						&& mousebind->button == button
+						&& mousebind->context == LAB_SSD_CLIENT) {
+					actions_run(view, tool->seat->server,
+						&mousebind->actions, 0);
+				}
 			}
 		}
 
-		wlr_tablet_v2_tablet_tool_notify_button(tool->tool_v2, ev->button,
-			ev->state == WLR_BUTTON_PRESSED
-				? ZWP_TABLET_PAD_V2_BUTTON_STATE_PRESSED
-				: ZWP_TABLET_PAD_V2_BUTTON_STATE_RELEASED);
+		uint32_t stylus_button = to_stylus_button(button);
+		if (stylus_button && stylus_button != BTN_TOOL_PEN) {
+			wlr_tablet_v2_tablet_tool_notify_button(tool->tool_v2,
+				stylus_button,
+				ev->state == WLR_BUTTON_PRESSED
+					? ZWP_TABLET_PAD_V2_BUTTON_STATE_PRESSED
+					: ZWP_TABLET_PAD_V2_BUTTON_STATE_RELEASED);
+		} else {
+			wlr_log(WLR_INFO, "invalid stylus button mapping for tablet mode");
+		}
 	} else {
-		uint32_t button = tablet_get_mapped_button(ev->button);
 		if (button) {
 			cursor_emulate_button(tablet->seat, button, ev->state, ev->time_msec);
 		}

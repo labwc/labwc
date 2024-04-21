@@ -4,6 +4,7 @@
 #include "common/graphic-helpers.h"
 #include "common/scene-helpers.h"
 #include "debug.h"
+#include "input/ime.h"
 #include "labwc.h"
 #include "node.h"
 #include "ssd.h"

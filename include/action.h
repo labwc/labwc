@@ -2,6 +2,7 @@
 #ifndef LABWC_ACTION_H
 #define LABWC_ACTION_H
 
+#include <stdbool.h>
 #include <wayland-util.h>
 
 struct view;

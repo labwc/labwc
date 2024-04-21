@@ -2,6 +2,9 @@
 #ifndef LABWC_WINDOW_RULES_H
 #define LABWC_WINDOW_RULES_H
 
+#include <stdbool.h>
+#include <wayland-util.h>
+
 enum window_rule_event {
 	LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP = 0,
 };

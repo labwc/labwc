@@ -46,7 +46,6 @@
 #include "config/keybind.h"
 #include "config/rcxml.h"
 #include "input/cursor.h"
-#include "input/ime.h"
 #include "overlay.h"
 #include "regions.h"
 #include "session-lock.h"

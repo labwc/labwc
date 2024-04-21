@@ -2,11 +2,11 @@
 #ifndef LABWC_SCALED_SCENE_BUFFER_H
 #define LABWC_SCALED_SCENE_BUFFER_H
 
+#include <wayland-server-core.h>
+
 #define LAB_SCALED_BUFFER_MAX_CACHE 2
 
-struct wl_list;
 struct wlr_buffer;
-struct wl_listener;
 struct wlr_scene_tree;
 struct lab_data_buffer;
 struct scaled_scene_buffer;

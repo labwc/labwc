@@ -2,6 +2,8 @@
 #ifndef LABWC_DEFAULT_BINDINGS_H
 #define LABWC_DEFAULT_BINDINGS_H
 
+#include <stddef.h>
+
 static struct key_combos {
 	const char *binding, *action;
 	struct {

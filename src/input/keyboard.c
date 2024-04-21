@@ -7,6 +7,7 @@
 #include <wlr/interfaces/wlr_keyboard.h>
 #include "action.h"
 #include "idle.h"
+#include "input/ime.h"
 #include "input/keyboard.h"
 #include "input/key-state.h"
 #include "labwc.h"

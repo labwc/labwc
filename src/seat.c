@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_touch.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
+#include "input/ime.h"
 #include "input/tablet.h"
 #include "input/tablet_pad.h"
 #include "input/input.h"

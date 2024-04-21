@@ -3,6 +3,7 @@
 #define LABWC_TOUCH_CONFIG_H
 
 #include <stdint.h>
+#include <wayland-util.h>
 
 struct touch_config_entry {
 	char *device_name;

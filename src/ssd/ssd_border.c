@@ -6,6 +6,7 @@
 #include "ssd-internal.h"
 #include "theme.h"
 #include "view.h"
+#include "window-rules.h"
 
 #define FOR_EACH_STATE(ssd, tmp) FOR_EACH(tmp, \
 	&(ssd)->border.active, \
@@ -33,12 +34,21 @@ ssd_border_create(struct ssd *ssd)
 	FOR_EACH_STATE(ssd, subtree) {
 		subtree->tree = wlr_scene_tree_create(ssd->border.tree);
 		parent = subtree->tree;
-		if (subtree == &ssd->border.active) {
-			color = theme->window_active_border_color;
+
+		/* Here the color changing is enough */
+		float *custom_color = window_rules_get_custom_border_color(view);
+		if (custom_color) {
+			color = custom_color;
 		} else {
-			color = theme->window_inactive_border_color;
-			wlr_scene_node_set_enabled(&parent->node, false);
+			if (subtree == &ssd->border.active) {
+				color = theme->window_active_border_color;
+				wlr_scene_node_set_enabled(&parent->node, true);
+			} else {
+				color = theme->window_inactive_border_color;
+				wlr_scene_node_set_enabled(&parent->node, false);
+			}
 		}
+
 		wl_list_init(&subtree->parts);
 		add_scene_rect(&subtree->parts, LAB_SSD_PART_LEFT, parent,
 			theme->border_width, height, 0, 0, color);

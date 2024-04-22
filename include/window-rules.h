@@ -21,6 +21,7 @@ enum property {
  *   - 'app_id' for native Wayland windows
  *   - 'WM_CLASS' for XWayland clients
  */
+
 struct window_rule {
 	char *identifier;
 	char *title;
@@ -38,11 +39,22 @@ struct window_rule {
 	enum property fixed_position;
 
 	struct wl_list link; /* struct rcxml.window_rules */
+
+	/* Customisation window title and borders*/
+	bool has_custom_border;
+	float custom_border_color[4];
 };
 
 struct view;
 
 void window_rules_apply(struct view *view, enum window_rule_event event);
 enum property window_rules_get_property(struct view *view, const char *property);
+
+/**
+ * window_rules_get_custom_border_color - check for presence of custom color in window rules
+ * @view: view data
+ * @return: pointer to custom color or NULL if there is no custom color
+ */
+float *window_rules_get_custom_border_color(struct view *view);
 
 #endif /* LABWC_WINDOW_RULES_H */

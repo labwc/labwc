@@ -126,3 +126,17 @@ window_rules_get_property(struct view *view, const char *property)
 	}
 	return LAB_PROP_UNSPECIFIED;
 }
+
+float*
+window_rules_get_custom_border_color(struct view *view)
+{
+	struct window_rule *rule;
+	wl_list_for_each_reverse(rule, &rc.window_rules, link) {
+		if (view_matches_criteria(rule, view)) {
+			if (rule->has_custom_border) {
+				return rule->custom_border_color;
+			}
+		}
+	}
+	return NULL;
+}

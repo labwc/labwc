@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2024-03-21 | [unreleased]  | 0.17.2          |               |
+| 2024-04-22 | [unreleased]  | 0.17.2          | 21300         |
 | 2024-03-01 | [0.7.1]       | 0.17.1          | 18624         |
 | 2023-12-22 | [0.7.0]       | 0.17.1          | 16576         |
 | 2023-11-25 | [0.6.6]       | 0.16.2          | 15796         |
@@ -31,12 +31,104 @@ The format is based on [Keep a Changelog]
 ## [unreleased]
 
 This release is shaping up to be the second in a row that is larger than
-usual in terms of both fixes and new features, for example input-methods.
-As usual, most of the commits are by the core devs: @Consolatis,
-@ahesford, @jlindgren90 and @johanmalm, but there are also a few new strong
-contributors as noted in the log.
+usual in terms of both fixes and new features. Significant additions
+include input-methods, pipemenus, snap-to-edge overlays and optionally
+drop-shadows.
+
+As usual, most of the commits are by the core devs: @ahesford, @Consolatis,
+@jlindgren90, @johanmalm and @tokyo4j, but we also have many great
+contributions from others as noted in the log.
 
 ### Added
+
+- Support drop-shadows (disabled by default) for windows using server-side
+  decorations. Written-by: @cillian64
+
+```xml
+<theme>
+  <dropShadows>yes|no</dropShadows>
+</theme>
+```
+
+```
+window.active.shadow.size: 60
+window.inactive.shadow.size: 40
+window.active.shadow.color: #00000060
+window.inactive.shadow.color: #00000040
+```
+
+- Add window-rule `ignoreConfigureRequest` to ignore X11 client-side
+  configure requests (positioning and resizing). #1446
+- Support window-rules based on window type: `<windowRule type="">`, where
+  type can be for example `NET_WM_WINDOW_TYPE_DESKTOP` for an XWayland
+  window. Written-by: @xi @txgk
+- Add `none` branch to the `ForEach` action. Written-by: @nicolas3121
+  #1298
+
+```
+<action name="ForEach">
+  <query identifier="foo"/>
+  <then>
+    <!-- carry out some action on match -->
+  </then>
+  <none>
+    <!-- carry out some action if there were no matches at all -->
+  </none>
+</action>
+```
+
+- Add -S|--session `<command>` option to start `<command>` on startup and
+  to terminate the compositor when <command> exits. This is useful for
+  session management as it allows the session client (for example
+  `lxqt-session`) to terminate labwc - be exiting itself.
+- In theme setting color definitions, support inline alpha encoding like
+  `#aabbccff`
+- Add window-switcher custom field inspired by printf formatting. #1670
+  Written-by: @droc12345 and @Consolatis
+
+```xml
+<windowSwitcher>
+  <fields>
+    <field content="custom" format="foobar %b %3s %-10o %-20W %-10i%t" width="100%" />
+  </fields>
+</windowSwitcher>
+```
+
+- Support defining window-switcher width as a percentage of output
+  (display) width. Written-by: @droc12345
+
+```
+osd.window-switcher.width: 75%
+```
+
+- Support Openbox compatible pipe-menus. See labwc-menu(5) for usage.
+- Add snap-to-edge overlay. Written-by: @tokyo4j. PR #1652 #1702
+  This includes the following new config and theme settings:
+
+```xml
+<snapping>
+  <overlay>
+    <enabled>yes|no</enabled>
+    <delay inner="500" outer="500"/>
+  </overlay>
+</snapping>
+```
+
+```
+snapping.overlay.[region|edge].bg.enabled: yes|no
+snapping.overlay.[region|edge].border.enabled: yes|no
+snapping.overlay.[region|edge].bg.color: #8080b380
+snapping.overlay.[region|edge].border.width: 1
+snapping.overlay.[region|edge].border.color: #ffffff,#000000,#ffffff
+```
+
+- Add theme settings listed below for window-switcher preview border.
+  Written-by: @tokyo4j
+
+```
+osd.window-switcher.preview.border.width: 2
+osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
+```
 
 - Support libinput config option for calibration matrices.
   `<libinput><device><calibrationMatrix>`. Written-by: @SnowNF
@@ -79,7 +171,7 @@ contributors as noted in the log.
   no other output exists.  Enable this by setting the environment variable
   `LABWC_FALLBACK_OUTPUT` to the desired output name.  The feature
   benefits applications like wayvnc the most by ensuring that there is
-  always an output available to connect to.
+  always an output available to connect to. #1618
   Co-Authored-By: Simon Long <simon@raspberrypi.com>
 - Optionally show windows on all workspaces in window-switcher.
 
@@ -102,6 +194,24 @@ contributors as noted in the log.
 
 ### Fixed
 
+- Fix crash on `Kill` action with XWayland windows. #1739
+- Update workspaces on `--reconfigure`. Written-by: @tokyo4j
+- Notify idle manager when emulating cursor movement.
+- Fix GrowToEdge/ShrinkToEdge action bug caused by clients ignoring the
+  requested size, for example a terminal honouring size-hints.
+- Fix `assert()` on VT switch. Issue #1667
+- Ensure titlebar has consistent look when using transparency. #1684
+- Fix dnd bug where dnd does not finish properly on cursor-button-release
+  if there is no surface under the cursor such as on the desktop when no
+  background client is running. #1673
+- Send cursor-button release event to CSD client before finishing window
+  dragging to avoid a bug whereby the release event is incorrectly sent to
+  a layer-shell client at the end of a drag.
+- Validate double-click against SSD part type because clicks on
+  different parts of a client in quick succession should not be
+  interpreted as a double click. #1657
+- Fix bug that region overlay is not shown when a modifier key is re-
+  pressed.
 - Fix workspace-switcher on-screen-display positioning of text using
   right-to-left (RTL) locales. Written-by: @micko01 Issue #1633
 - Unconstrain xdg-shell popups to usable area (rather than full output) so
@@ -112,7 +222,7 @@ contributors as noted in the log.
   as these windows should not be shown in taskbars/docks/etc.
 - Render text buffers with opaque backgrounds because subpixel text
   rendering over a transparent background does not work properly with
-  cairo/pango. PR #1631
+  cairo/pango. PR #1631 issue #1684
 - Fallback on layout 'us' if a keymap cannot be created for the provided
   `XKB_DEFAULT_LAYOUT`. If keymap still cannot be created, exit with a
   helpful message instead of a segv crash.
@@ -123,7 +233,7 @@ contributors as noted in the log.
     `get_cursor_context()` which resulted in layer-surfaces not being
     detected correctly. PR #1594
   - Overhaul the logic for giving keyboard focus to layer-shell clients.
-    PR #1599
+    PR #1599 Issue #1653
 - Fix move/resize bug manifesting itself on touchpad taps with
   `<tapAndDrag>` disabled because libinput sends button press & release
   signals so quickly that `interactive_finish()` is never called.
@@ -137,6 +247,9 @@ contributors as noted in the log.
 
 ### Changed
 
+- In theme settings, mark color definitions in the format `#rrggbb aaa` as
+  deprecated (still supported, but will removed in some future release) in
+  favor of the more commonly used `#rrggbbaa`.
 - If your `rc.xml` contains a keybind to show menu "client-menu", it will
   be launched at pointer rather than the top-left part of the window. To
   keep the old behaviour, redefine it as follows:

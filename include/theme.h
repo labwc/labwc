@@ -93,6 +93,12 @@ struct theme {
 	struct theme_snapping_overlay
 		snapping_overlay_region, snapping_overlay_edge;
 
+	/* window drop-shadows */
+	int window_active_shadow_size;
+	int window_inactive_shadow_size;
+	float window_active_shadow_color[4];
+	float window_inactive_shadow_color[4];
+
 	/* textures */
 	struct lab_data_buffer *button_close_active_unpressed;
 	struct lab_data_buffer *button_maximize_active_unpressed;
@@ -123,6 +129,13 @@ struct theme {
 	struct lab_data_buffer *corner_top_right_active_normal;
 	struct lab_data_buffer *corner_top_left_inactive_normal;
 	struct lab_data_buffer *corner_top_right_inactive_normal;
+
+	struct lab_data_buffer *shadow_corner_top_active;
+	struct lab_data_buffer *shadow_corner_bottom_active;
+	struct lab_data_buffer *shadow_edge_active;
+	struct lab_data_buffer *shadow_corner_top_inactive;
+	struct lab_data_buffer *shadow_corner_bottom_inactive;
+	struct lab_data_buffer *shadow_edge_inactive;
 
 	/* not set in rc.xml/themerc, but derived from font & padding_height */
 	int osd_window_switcher_item_height;

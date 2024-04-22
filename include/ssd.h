@@ -10,6 +10,13 @@
 #define SSD_EXTENDED_AREA 8
 
 /*
+ * Shadows should start at a point inset from the actual window border, see
+ * discussion on https://github.com/labwc/labwc/pull/1648.  This constant
+ * specifies inset as a multiple of visible shadow size.
+ */
+#define SSD_SHADOW_INSET 0.3
+
+/*
  * Sequence these according to the order they should be processed for
  * press and hover events. Bear in mind that some of their respective
  * interactive areas overlap, so for example buttons need to come before title.

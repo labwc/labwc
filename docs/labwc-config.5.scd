@@ -401,6 +401,9 @@ extending outward from the snapped edge.
 	Even when disabling server side decorations via ToggleDecorations,
 	keep a small border (and resize area) around the window. Default is yes.
 
+*<theme><dropShadows>* [yes|no]
+	Should drop-shadows be rendered behind windows. Default is no.
+
 *<theme><font place="">*
 	The font to use for a specific element of a window, menu or OSD.
 	Places can be any of:

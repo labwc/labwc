@@ -884,6 +884,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.corner_radius = atoi(content);
 	} else if (!strcasecmp(nodename, "keepBorder.theme")) {
 		set_bool(content, &rc.ssd_keep_border);
+	} else if (!strcasecmp(nodename, "dropShadows.theme")) {
+		set_bool(content, &rc.shadows_enabled);
 	} else if (!strcmp(nodename, "name.font.theme")) {
 		fill_font(nodename, content, font_place);
 	} else if (!strcmp(nodename, "size.font.theme")) {
@@ -1192,6 +1194,7 @@ rcxml_init(void)
 	rc.xdg_shell_server_side_deco = true;
 	rc.ssd_keep_border = true;
 	rc.corner_radius = 8;
+	rc.shadows_enabled = false;
 
 	init_font_defaults(&rc.font_activewindow);
 	init_font_defaults(&rc.font_inactivewindow);

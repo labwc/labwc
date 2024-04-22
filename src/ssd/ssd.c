@@ -185,6 +185,7 @@ ssd_create(struct view *view, bool active)
 	ssd->tree = wlr_scene_tree_create(view->scene_tree);
 	wlr_scene_node_lower_to_bottom(&ssd->tree->node);
 	ssd->titlebar.height = view->server->theme->title_height;
+	ssd_shadow_create(ssd);
 	ssd_extents_create(ssd);
 	ssd_border_create(ssd);
 	ssd_titlebar_create(ssd);
@@ -238,6 +239,7 @@ ssd_update_geometry(struct ssd *ssd)
 		if (ssd->state.was_maximized != maximized) {
 			ssd_border_update(ssd);
 			ssd_titlebar_update(ssd);
+			ssd_shadow_update(ssd);
 			/*
 			 * Not strictly necessary as ssd_titlebar_update()
 			 * already sets state.was_maximized but to future
@@ -250,6 +252,7 @@ ssd_update_geometry(struct ssd *ssd)
 	ssd_extents_update(ssd);
 	ssd_border_update(ssd);
 	ssd_titlebar_update(ssd);
+	ssd_shadow_update(ssd);
 	ssd->state.geometry = current;
 }
 
@@ -263,6 +266,7 @@ ssd_titlebar_hide(struct ssd *ssd)
 	ssd->titlebar.height = 0;
 	ssd_border_update(ssd);
 	ssd_extents_update(ssd);
+	ssd_shadow_update(ssd);
 	ssd->margin = ssd_thickness(ssd->view);
 }
 
@@ -286,6 +290,7 @@ ssd_destroy(struct ssd *ssd)
 	ssd_titlebar_destroy(ssd);
 	ssd_border_destroy(ssd);
 	ssd_extents_destroy(ssd);
+	ssd_shadow_destroy(ssd);
 	wlr_scene_node_destroy(&ssd->tree->node);
 
 	free(ssd);
@@ -337,8 +342,16 @@ ssd_set_active(struct ssd *ssd, bool active)
 	}
 	wlr_scene_node_set_enabled(&ssd->border.active.tree->node, active);
 	wlr_scene_node_set_enabled(&ssd->titlebar.active.tree->node, active);
+	if (ssd->shadow.active.tree) {
+		wlr_scene_node_set_enabled(
+			&ssd->shadow.active.tree->node, active);
+	}
 	wlr_scene_node_set_enabled(&ssd->border.inactive.tree->node, !active);
 	wlr_scene_node_set_enabled(&ssd->titlebar.inactive.tree->node, !active);
+	if (ssd->shadow.inactive.tree) {
+		wlr_scene_node_set_enabled(
+			&ssd->shadow.inactive.tree->node, !active);
+	}
 }
 
 void
@@ -349,6 +362,7 @@ ssd_enable_shade(struct ssd *ssd, bool enable)
 	}
 	ssd_border_update(ssd);
 	wlr_scene_node_set_enabled(&ssd->extents.tree->node, !enable);
+	ssd_shadow_update(ssd);
 }
 
 void

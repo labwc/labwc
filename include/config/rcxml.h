@@ -94,6 +94,7 @@ struct rcxml {
 
 	/* graphics tablet */
 	struct tablet_config {
+		bool force_mouse_emulation;
 		char *output_name;
 		struct wlr_fbox box;
 		enum rotation rotation;

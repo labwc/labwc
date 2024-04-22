@@ -691,12 +691,13 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_KILL:
-			if (view && view->surface) {
+			if (view) {
 				/* Send SIGTERM to the process associated with the surface */
-				pid_t pid = -1;
-				struct wl_client *client = view->surface->resource->client;
-				wl_client_get_credentials(client, &pid, NULL, NULL);
-				if (pid != -1) {
+				assert(view->impl->get_pid);
+				pid_t pid = view->impl->get_pid(view);
+				if (pid == getpid()) {
+					wlr_log(WLR_ERROR, "Preventing sending SIGTERM to labwc");
+				} else if (pid > 0) {
 					kill(pid, SIGTERM);
 				}
 			}

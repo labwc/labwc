@@ -135,6 +135,8 @@ struct view_impl {
 	bool (*has_strut_partial)(struct view *self);
 	/* returns true if view declared itself a window type */
 	bool (*contains_window_type)(struct view *view, int32_t window_type);
+	/* returns the client pid that this view belongs to */
+	pid_t (*get_pid)(struct view *view);
 };
 
 struct view {

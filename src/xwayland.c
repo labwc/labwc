@@ -838,6 +838,19 @@ xwayland_view_set_fullscreen(struct view *view, bool fullscreen)
 		fullscreen);
 }
 
+static pid_t
+xwayland_view_get_pid(struct view *view)
+{
+	assert(view);
+
+	struct wlr_xwayland_surface *xwayland_surface =
+		xwayland_surface_from_view(view);
+	if (!xwayland_surface) {
+		return -1;
+	}
+	return xwayland_surface->pid;
+}
+
 static const struct view_impl xwayland_view_impl = {
 	.configure = xwayland_view_configure,
 	.close = xwayland_view_close,
@@ -856,6 +869,7 @@ static const struct view_impl xwayland_view_impl = {
 	.wants_focus = xwayland_view_wants_focus,
 	.has_strut_partial = xwayland_view_has_strut_partial,
 	.contains_window_type = xwayland_view_contains_window_type,
+	.get_pid = xwayland_view_get_pid,
 };
 
 void

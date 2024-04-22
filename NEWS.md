@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2024-04-20 | [unreleased]  | 0.17.2          | 20799         |
+| 2024-04-22 | [unreleased]  | 0.17.2          | 21300         |
 | 2024-03-01 | [0.7.1]       | 0.17.1          | 18624         |
 | 2023-12-22 | [0.7.0]       | 0.17.1          | 16576         |
 | 2023-11-25 | [0.6.6]       | 0.16.2          | 15796         |
@@ -31,8 +31,8 @@ The format is based on [Keep a Changelog]
 ## [unreleased]
 
 This release is shaping up to be the second in a row that is larger than
-usual in terms of both fixes and new features, for example input-methods
-and pipemenus.
+usual in terms of both fixes and new features. Significant additions
+include input-methods, pipemenus, snap-to-edge overlays and drop-shadows.
 
 As usual, most of the commits are by the core devs: @ahesford, @Consolatis,
 @jlindgren90, @johanmalm and @tokyo4j, but we also have many great
@@ -40,6 +40,24 @@ contributions from others as noted in the log.
 
 ### Added
 
+- Support drop-shadows for windows using server-side decorations.
+  Written-by: @cillian64
+
+```xml
+<theme>
+  <dropShadows>yes|no</dropShadows>
+</theme>
+```
+
+```
+window.active.shadow.size: 60
+window.inactive.shadow.size: 40
+window.active.shadow.color: #00000060
+window.inactive.shadow.color: #00000040
+```
+
+- Add window-rule `ignoreConfigureRequest` to ignore X11 client-side
+  configure requests (positioning and resizing). #1446
 - Support window-rules based on window type: `<windowRule type="">`, where
   type can be for example `NET_WM_WINDOW_TYPE_DESKTOP` for an XWayland
   window. Written-by: @xi @txgk
@@ -82,15 +100,25 @@ contributions from others as noted in the log.
 osd.window-switcher.width: 75%
 ```
 
-- Support pipe menus. See labwc-menu(5) for usage.
+- Support Openbox compatible pipe-menus. See labwc-menu(5) for usage.
 - Add snap-to-edge overlay. Written-by: @tokyo4j. PR #1652 #1702
-  This includes the following new settings:
+  This includes the following new config and theme settings:
+
+```xml
+<snapping>
+  <overlay>
+    <enabled>yes|no</enabled>
+    <delay inner="500" outer="500"/>
+  </overlay>
+</snapping>
+```
 
 ```
-snapping.preview.[region|edge].fill: yes|no
-snapping.preview.[region|edge].bg.color: #8080b380
-snapping.preview.[region|edge].border.color: #ffffff,#000000,#ffffff
-snapping.preview.[region|edge].border.width: 1
+snapping.overlay.[region|edge].bg.enabled: yes|no
+snapping.overlay.[region|edge].border.enabled: yes|no
+snapping.overlay.[region|edge].bg.color: #8080b380
+snapping.overlay.[region|edge].border.width: 1
+snapping.overlay.[region|edge].border.color: #ffffff,#000000,#ffffff
 ```
 
 - Add theme settings listed below for window-switcher preview border.
@@ -165,20 +193,19 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 
 ### Fixed
 
-- Notify idle manager when emulating cursor move (forgotten in original
-  implementation).
+- Fix crash on `Kill` action with XWayland windows. #1739
+- Update workspaces on `--reconfigure`. Written-by: @tokyo4j
+- Notify idle manager when emulating cursor movement.
 - Fix GrowToEdge/ShrinkToEdge action bug caused by clients ignoring the
   requested size, for example a terminal honouring size-hints.
 - Fix `assert()` on VT switch. Issue #1667
-- Use pre-multiplied colors by default to ensure consistent colors for
-  titlebars with transparency (because the corner pieces uses different
-  technology to the remainder of the titlebar). #1684
+- Ensure titlebar has consistent look when using transparency. #1684
 - Fix dnd bug where dnd does not finish properly on cursor-button-release
   if there is no surface under the cursor such as on the desktop when no
   background client is running. #1673
 - Send cursor-button release event to CSD client before finishing window
-  dragging to avoid a bug whereby the release event is incorrectly sent a
-  layer-shell client at the end of a drag.
+  dragging to avoid a bug whereby the release event is incorrectly sent to
+  a layer-shell client at the end of a drag.
 - Validate double-click against SSD part type because clicks on
   different parts of a client in quick succession should not be
   interpreted as a double click. #1657
@@ -219,8 +246,9 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 
 ### Changed
 
-- In theme settings, mark color definitions in the format #rrggbb aaa` as
-  deprecated (still supported, but will removed in some future release).
+- In theme settings, mark color definitions in the format `#rrggbb aaa` as
+  deprecated (still supported, but will removed in some future release) in
+  favor of the more commonly used `#rrggbbaa`.
 - If your `rc.xml` contains a keybind to show menu "client-menu", it will
   be launched at pointer rather than the top-left part of the window. To
   keep the old behaviour, redefine it as follows:

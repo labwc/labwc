@@ -659,6 +659,20 @@ xdg_toplevel_view_unmap(struct view *view, bool client_request)
 	}
 }
 
+static pid_t
+xdg_view_get_pid(struct view *view)
+{
+	assert(view);
+	pid_t pid = -1;
+
+	if (view->surface && view->surface->resource
+			&& view->surface->resource->client) {
+		struct wl_client *client = view->surface->resource->client;
+		wl_client_get_credentials(client, &pid, NULL, NULL);
+	}
+	return pid;
+}
+
 static const struct view_impl xdg_toplevel_view_impl = {
 	.configure = xdg_toplevel_view_configure,
 	.close = xdg_toplevel_view_close,
@@ -675,6 +689,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.get_root = xdg_toplevel_view_get_root,
 	.append_children = xdg_toplevel_view_append_children,
 	.contains_window_type = xdg_toplevel_view_contains_window_type,
+	.get_pid = xdg_view_get_pid,
 };
 
 static void

@@ -32,7 +32,8 @@ The format is based on [Keep a Changelog]
 
 This release is shaping up to be the second in a row that is larger than
 usual in terms of both fixes and new features. Significant additions
-include input-methods, pipemenus, snap-to-edge overlays and drop-shadows.
+include input-methods, pipemenus, snap-to-edge overlays and optionally
+drop-shadows.
 
 As usual, most of the commits are by the core devs: @ahesford, @Consolatis,
 @jlindgren90, @johanmalm and @tokyo4j, but we also have many great
@@ -40,8 +41,8 @@ contributions from others as noted in the log.
 
 ### Added
 
-- Support drop-shadows for windows using server-side decorations.
-  Written-by: @cillian64
+- Support drop-shadows (disabled by default) for windows using server-side
+  decorations. Written-by: @cillian64
 
 ```xml
 <theme>

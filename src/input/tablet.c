@@ -91,7 +91,8 @@ tablet_get_coords(struct drawing_tablet *tablet, double *x, double *y)
 		rc.tablet.box, x, y);
 	adjust_for_rotation(rc.tablet.rotation, x, y);
 
-	if (!tablet->tablet_v2) {
+	if (rc.tablet.force_mouse_emulation
+			|| !tablet->tablet_v2) {
 		return NULL;
 	}
 
@@ -154,7 +155,8 @@ handle_proximity(struct wl_listener *listener, void *data)
 	double x, y;
 	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y);
 
-	if (tablet->seat->server->tablet_manager && !tool) {
+	if (!rc.tablet.force_mouse_emulation
+			&& tablet->seat->server->tablet_manager && !tool) {
 		/*
 		 * Unfortunately `wlr_tool` is only present in the events, so
 		 * use proximity for creating a `wlr_tablet_v2_tablet_tool`.

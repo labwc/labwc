@@ -1020,6 +1020,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "Invalid value for <resize popupShow />");
 		}
+	} else if (!strcasecmp(nodename, "mouseEmulation.tablet")) {
+		set_bool(content, &rc.tablet.force_mouse_emulation);
 	} else if (!strcasecmp(nodename, "mapToOutput.tablet")) {
 		rc.tablet.output_name = xstrdup(content);
 	} else if (!strcasecmp(nodename, "rotate.tablet")) {
@@ -1229,6 +1231,7 @@ rcxml_init(void)
 	rc.doubleclick_time = 500;
 	rc.scroll_factor = 1.0;
 
+	rc.tablet.force_mouse_emulation = false;
 	rc.tablet.output_name = NULL;
 	rc.tablet.rotation = 0;
 	rc.tablet.box = (struct wlr_fbox){0};

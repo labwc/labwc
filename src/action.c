@@ -729,7 +729,8 @@ directional_target_window(struct view *view, struct server *server,
 	struct view *closest_view_wrap = NULL;
 	struct output *output = view->output;
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-	float dx, dy, distance, distance_wrap;
+	float dx, dy;
+	int distance, distance_wrap;
 	int min_distance = INT_MAX;
 	int min_distance_wrap = INT_MAX;
 	for_each_view(v, &server->views,

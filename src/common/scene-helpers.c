@@ -83,14 +83,6 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 		return false;
 	}
 
-	/*
-	 * FIXME: Remove the following line as soon as
-	 * https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4253
-	 * is merged. At that point wlr_scene handles damage tracking internally
-	 * again.
-	 */
-	wlr_damage_ring_rotate(&scene_output->damage_ring);
-
 	if (!wlr_box_empty(&additional_damage)) {
 		wlr_damage_ring_add_box(&scene_output->damage_ring, &additional_damage);
 	}

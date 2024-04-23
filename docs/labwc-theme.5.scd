@@ -131,18 +131,20 @@ openbox and is used by many popular themes. For the sake of brevity, these
 elements are not listed here, but are supported.
 
 *window.active.shadow.size*
-	Size of the drop-shadow for the focused window, in pixels. Default is 60.
+	Size of the drop-shadow for the focused window, in pixels.
+	Default is 60.
 
 *window.inactive.shadow.size*
-	Size of drop-shadows for non-focused windows, in pixels. Default is 40.
+	Size of drop-shadows for non-focused windows, in pixels.
+	Default is 40.
 
 *window.active.shadow.color*
-	Color of the drop-shadow for the focused window, including opacity. Default
-	is #00000060 (black with 38% opacity).
+	Color of the drop-shadow for the focused window, including opacity.
+	Default is #00000060 (black with 38% opacity).
 
 *window.inactive.shadow.color*
-	Color of drop-shadows for non-focused windows, including opacity. Default is
-	#00000040 (black with 25% opacity).
+	Color of drop-shadows for non-focused windows, including opacity.
+	Default is #00000040 (black with 25% opacity).
 
 *menu.items.bg.color*
 	Background color of inactive menu items.
@@ -173,15 +175,15 @@ elements are not listed here, but are supported.
 	*window.active.title.bg.color* if not set.
 
 *osd.border.color*
-	Border color of on-screen-display. Inherits *osd.label.text.color* if not
-	set.
+	Border color of on-screen-display. Inherits *osd.label.text.color* if
+	not set.
 
 *osd.border.width*
 	Border width of on-screen-display. Inherits *border.width* if not set.
 
 *osd.label.text.color*
-	Text color of on-screen-display. Inherits *window.active.label.text.color* if
-	not set.
+	Text color of on-screen-display. Inherits
+	*window.active.label.text.color* if not set.
 
 *osd.window-switcher.width*
 	Width of window switcher in pixels. Default is 600.
@@ -205,15 +207,15 @@ elements are not listed here, but are supported.
 	Default is 2.
 
 *osd.window-switcher.preview.border.width*
-	Border width of the outlines shown as the preview of the window selected by
-	window switcher. Inherits *osd.border.width* if not set.
+	Border width of the outlines shown as the preview of the window selected
+	by window switcher. Inherits *osd.border.width* if not set.
 
 *osd.window-switcher.preview.border.color*
 	Color(s) of the outlines shown as the preview of the window selected by
 	window switcher. Possible value is a color or up to 3 colors separated
 	by commas (e.g. "#ffffff,#000000,#ffffff"). When multiple colors are
-	specified, a multi-line rectangle with each line having the specified color
-	is drawn. If not set, this inherits the on-screen-display theme
+	specified, a multi-line rectangle with each line having the specified
+	color is drawn. If not set, this inherits the on-screen-display theme
 	("[*osd.bg.color*],[*osd.label.text.color*],[*osd.bg.color*]").
 
 *osd.workspace-switcher.boxes.width*
@@ -225,55 +227,55 @@ elements are not listed here, but are supported.
 	boxes. Default is 20.
 
 *snapping.overlay.region.bg.enabled* [yes|no]
-	Show a filled rectangle as an overlay when a window is snapped to a region.
-	Default is yes for hardware-based renderers and no for software-based
-	renderers.
+	Show a filled rectangle as an overlay when a window is snapped to a
+	region. Default is yes for hardware-based renderers and no for
+	software-based renderers.
 
 *snapping.overlay.edge.bg.enabled* [yes|no]
-	Show a filled rectangle as an overlay when a window is snapped to an edge.
-	Default is yes for hardware-based renderer and no for software-based
-	renderers.
+	Show a filled rectangle as an overlay when a window is snapped to an
+	edge. Default is yes for hardware-based renderer and no for
+	software-based renderers.
 
 *snapping.overlay.region.border.enabled* [yes|no]
 	Show an outlined rectangle as an overlay when a window is snapped to a
-	region. Default is no for hardware-based renderers and yes for software-based
-	renderers.
+	region. Default is no for hardware-based renderers and yes for
+	software-based renderers.
 
 *snapping.overlay.edge.border.enabled* [yes|no]
-	Show an outlined rectangle as an overlay when a window is snapped to an edge.
-	Default is no for hardware-based renderer and yes for software-based
-	renderers.
+	Show an outlined rectangle as an overlay when a window is snapped to an
+	edge. Default is no for hardware-based renderer and yes for
+	software-based renderers.
 
 *snapping.overlay.region.bg.color*
-	Color of a filled rectangle shown as an overlay when a window is snapped to
-	a region. Default is #8080b380.
+	Color of a filled rectangle shown as an overlay when a window is snapped
+	to a region. Default is #8080b380.
 
 *snapping.overlay.edge.bg.color*
-	Color of a filled rectangle shown as an overlay when a window is snapped to
-	an edge. Default is #8080b380.
+	Color of a filled rectangle shown as an overlay when a window is snapped
+	to an edge. Default is #8080b380.
 
 *snapping.overlay.region.border.width*
-	Border width of an outlined rectangle shown as an overlay when a window is
-	snapped to a region. Inherits `osd.border.width` if not set.
+	Border width of an outlined rectangle shown as an overlay when a window
+	is snapped to a region. Inherits `osd.border.width` if not set.
 
 *snapping.overlay.edge.border.width*
-	Border width of an outlined rectangle shown as the preview when a window is
-	snapped to an edge. Inherits `osd.border.width` if not set.
+	Border width of an outlined rectangle shown as the preview when a window
+	is snapped to an edge. Inherits `osd.border.width` if not set.
 
 *snapping.overlay.region.border.color*
 	Color(s) of an outlined rectangle shown as an overlay when a window is
-	snapped to a region. Possible values and the default value are the same as
-	those of *osd.window-switcher.preview.border.color*.
+	snapped to a region. Possible values and the default value are the same
+	as those of *osd.window-switcher.preview.border.color*.
 
 *snapping.overlay.edge.border.color*
 	Color(s) of an outlined rectangle shown as an overlay when a window is
-	snapped to an edge. Possible values and the default value are the same as
-	those of *osd.window-switcher.preview.border.color*.
+	snapped to an edge. Possible values and the default value are the same
+	as those of *osd.window-switcher.preview.border.color*.
 
 *border.color*
-	Set both *window.active.border.color* and *window.inactive.border.color*.
-	This is obsolete, but supported for backward compatibility as some themes
-	still contain it.
+	Set both *window.active.border.color* and
+	*window.inactive.border.color*. This is obsolete, but supported for
+	backward compatibility as some themes still contain it.
 
 # BUTTONS
 

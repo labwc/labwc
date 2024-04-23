@@ -80,7 +80,7 @@ window.inactive.shadow.color: #00000040
 - Add -S|--session `<command>` option to start `<command>` on startup and
   to terminate the compositor when <command> exits. This is useful for
   session management as it allows the session client (for example
-  `lxqt-session`) to terminate labwc - be exiting itself.
+  `lxqt-session`) to terminate labwc when exiting itself.
 - In theme setting color definitions, support inline alpha encoding like
   `#aabbccff`
 - Add window-switcher custom field inspired by printf formatting. #1670
@@ -166,7 +166,7 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
   in the same way as each potential `environment` file.
 - Allow empty variables in `environment` files. In other words, respond to
   variable declarations of the form "VARIABLE=", with no following value,
-  by setting the corresponding environemtn variable as an empty string.
+  by setting the corresponding environment variable as an empty string.
 - Add optional headless fallback output that is automatically created when
   no other output exists.  Enable this by setting the environment variable
   `LABWC_FALLBACK_OUTPUT` to the desired output name.  The feature
@@ -228,7 +228,7 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
   helpful message instead of a segv crash.
 - Reload cursor theme and size on reconfigure. Written-by: @spl237
   Issue #1587
-- Fix a number of surface-focus releted short-comings:
+- Fix a number of surface-focus related short-comings:
   - Handle cursor-button-press on layer-shell subsurfaces and fix bug in
     `get_cursor_context()` which resulted in layer-surfaces not being
     detected correctly. PR #1594

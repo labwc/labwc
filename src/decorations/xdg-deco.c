@@ -7,9 +7,11 @@
 
 struct xdg_deco {
 	struct wlr_xdg_toplevel_decoration_v1 *wlr_xdg_decoration;
+	enum wlr_xdg_toplevel_decoration_v1_mode client_mode;
 	struct view *view;
 	struct wl_listener destroy;
 	struct wl_listener request_mode;
+	struct wl_listener surface_commit;
 };
 
 static void
@@ -18,7 +20,24 @@ xdg_deco_destroy(struct wl_listener *listener, void *data)
 	struct xdg_deco *xdg_deco = wl_container_of(listener, xdg_deco, destroy);
 	wl_list_remove(&xdg_deco->destroy.link);
 	wl_list_remove(&xdg_deco->request_mode.link);
+	if (xdg_deco->surface_commit.notify) {
+		wl_list_remove(&xdg_deco->surface_commit.link);
+		xdg_deco->surface_commit.notify = NULL;
+	}
 	free(xdg_deco);
+}
+
+static void
+handle_surface_commit(struct wl_listener *listener, void *data)
+{
+	struct xdg_deco *xdg_deco = wl_container_of(listener, xdg_deco, surface_commit);
+	struct wlr_xdg_toplevel_decoration_v1 *deco = xdg_deco->wlr_xdg_decoration;
+
+	if (deco->toplevel->base->initial_commit) {
+		wlr_xdg_toplevel_decoration_v1_set_mode(deco, xdg_deco->client_mode);
+		wl_list_remove(&xdg_deco->surface_commit.link);
+		xdg_deco->surface_commit.notify = NULL;
+	}
 }
 
 static void
@@ -46,8 +65,22 @@ xdg_deco_request_mode(struct wl_listener *listener, void *data)
 			"requested: %u", client_mode);
 	}
 
-	wlr_xdg_toplevel_decoration_v1_set_mode(xdg_deco->wlr_xdg_decoration,
-		client_mode);
+	/*
+	 * We may get multiple request_mode calls in an unitialized state.
+	 * Just update the last requested mode and only add the commit
+	 * handler on the first uninitialized state call.
+	 */
+	xdg_deco->client_mode = client_mode;
+
+	if (xdg_deco->wlr_xdg_decoration->toplevel->base->initialized) {
+		wlr_xdg_toplevel_decoration_v1_set_mode(xdg_deco->wlr_xdg_decoration,
+			client_mode);
+	} else if (!xdg_deco->surface_commit.notify) {
+		xdg_deco->surface_commit.notify = handle_surface_commit;
+		wl_signal_add(
+			&xdg_deco->wlr_xdg_decoration->toplevel->base->surface->events.commit,
+			&xdg_deco->surface_commit);
+	}
 	if (client_mode == WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE) {
 		view_set_ssd_mode(xdg_deco->view, LAB_SSD_MODE_FULL);
 	} else {

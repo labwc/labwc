@@ -781,14 +781,6 @@ xwayland_view_move_to_front(struct view *view)
 	 */
 	wlr_xwayland_surface_restack(xwayland_surface_from_view(view),
 		NULL, XCB_STACK_MODE_ABOVE);
-
-	/* Restack unmanaged surfaces on top */
-	struct wl_list *list = &view->server->unmanaged_surfaces;
-	struct xwayland_unmanaged *u;
-	wl_list_for_each(u, list, link) {
-		wlr_xwayland_surface_restack(u->xwayland_surface,
-			NULL, XCB_STACK_MODE_ABOVE);
-	}
 }
 
 static void

@@ -515,7 +515,7 @@ edges_adjust_move_coords(struct view *view, struct border edges,
 
 	if (view_geom->x != *x) {
 		int lshift = border.left + rc.gap;
-		int rshift = border.right + rc.gap + view->pending.width;
+		int rshift = border.right + rc.gap + view_geom->width;
 
 		adjust_move_coords_1d(x, edges.left, lshift,
 			edges.right, rshift, *x < view_geom->x);
@@ -524,7 +524,7 @@ edges_adjust_move_coords(struct view *view, struct border edges,
 	if (view_geom->y != *y) {
 		int tshift = border.top + rc.gap;
 		int bshift = border.bottom + rc.gap
-			+ view_effective_height(view, /* use_pending */ true);
+			+ view_effective_height(view, use_pending);
 
 		adjust_move_coords_1d(y, edges.top, tshift,
 			edges.bottom, bshift, *y < view_geom->y);

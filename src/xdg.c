@@ -82,6 +82,12 @@ handle_commit(struct wl_listener *listener, void *data)
 	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
 	assert(view->surface);
 
+	if (xdg_surface->initial_commit) {
+		wlr_log(WLR_DEBUG, "scheduling configure");
+		wlr_xdg_surface_schedule_configure(xdg_surface);
+		return;
+	}
+
 	struct wlr_box size;
 	wlr_xdg_surface_get_geometry(xdg_surface, &size);
 
@@ -214,6 +220,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	/* Remove xdg-shell view specific listeners */
 	wl_list_remove(&xdg_toplevel_view->set_app_id.link);
 	wl_list_remove(&xdg_toplevel_view->new_popup.link);
+	wl_list_remove(&view->commit.link);
 
 	if (view->pending_configure_timeout) {
 		wl_event_source_remove(view->pending_configure_timeout);
@@ -560,7 +567,6 @@ xdg_toplevel_view_map(struct view *view)
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
-	view->surface = xdg_surface->surface;
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 	if (!view->been_mapped) {
 		struct wlr_xdg_toplevel_requested *requested =
@@ -614,9 +620,6 @@ xdg_toplevel_view_map(struct view *view)
 		view_moved(view);
 	}
 
-	view->commit.notify = handle_commit;
-	wl_signal_add(&xdg_surface->surface->events.commit, &view->commit);
-
 	view_impl_map(view);
 	view->been_mapped = true;
 }
@@ -627,7 +630,6 @@ xdg_toplevel_view_unmap(struct view *view, bool client_request)
 	if (view->mapped) {
 		view->mapped = false;
 		wlr_scene_node_set_enabled(&view->scene_tree->node, false);
-		wl_list_remove(&view->commit.link);
 		view_impl_unmap(view);
 	}
 }
@@ -816,7 +818,8 @@ xdg_toplevel_new(struct wl_listener *listener, void *data)
 	kde_server_decoration_set_view(view, xdg_surface->surface);
 
 	/* In support of xdg popups and IME popup */
-	xdg_surface->surface->data = tree;
+	view->surface = xdg_surface->surface;
+	view->surface->data = tree;
 
 	view_connect_map(view, xdg_surface->surface);
 
@@ -828,6 +831,7 @@ xdg_toplevel_new(struct wl_listener *listener, void *data)
 	CONNECT_SIGNAL(toplevel, view, request_maximize);
 	CONNECT_SIGNAL(toplevel, view, request_fullscreen);
 	CONNECT_SIGNAL(toplevel, view, set_title);
+	CONNECT_SIGNAL(view->surface, view, commit);
 
 	/* Events specific to XDG toplevel views */
 	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, set_app_id);

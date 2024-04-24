@@ -497,11 +497,18 @@
     height are omitted or default (0.0), width/height will be set to
     the remaining width/height seen from top/left.
 
-    Tablet buttons emulate regular mouse buttons. The tablet *button* can
-    be set to any of [Tip|Stylus|Stylus2|Stylus3|Pad|Pad2|Pad3|..|Pad9].
-    Valid *to* mouse buttons are [Left|Right|Middle].
+    The tablet can be forced to always use mouse emulation. This prevents
+    tablet specific restrictions, e.g. no support for drag&drop, but also
+    omits tablet specific features like reporting pen pressure.
+
+    Pen buttons emulate regular mouse buttons. The pen *button* can be any
+    of [Stylus|Stylus2|Stylus3] and can be mapped to mouse buttons
+    [Right|Middle|Side]. Tablet pad buttons [Pad|Pad2|Pad3|..|Pad9] also
+    emulate regular mouse buttons and can be mapped to any mouse button.
+    When using mouse emulation, the pen tip [tip] and the stylus buttons
+    can be set to any available mouse button [Left|Right|Middle|..|Task].
   -->
-  <tablet mapToOutput="" rotate="0">
+  <tablet mapToOutput="" rotate="0" mouseEmulation="no">
     <!-- Active area dimensions are in mm -->
     <area top="0.0" left="0.0" width="0.0" height="0.0" />
     <map button="Tip" to="Left" />

@@ -929,9 +929,6 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 	return consumed_by_frame_context;
 }
 
-/* Set in cursor_button_press(), used in cursor_button_release() */
-static bool close_menu;
-
 static void
 cursor_button_press(struct seat *seat, uint32_t button,
 		enum wlr_button_state button_state, uint32_t time_msec)
@@ -949,11 +946,6 @@ cursor_button_press(struct seat *seat, uint32_t button,
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
-		/*
-		 * We close the menu on RELEASE to not leak a stray releases and
-		 * to be consistent with Openbox
-		 */
-		close_menu = true;
 		return;
 	}
 
@@ -1019,15 +1011,12 @@ cursor_button_release(struct seat *seat, uint32_t button,
 	seat_reset_pressed(seat);
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
-		if (close_menu) {
-			if (ctx.type == LAB_SSD_MENU) {
-				menu_call_selected_actions(server);
-			} else {
-				menu_close_root(server);
-				cursor_update_common(server, &ctx, time_msec,
-					/*cursor_has_moved*/ false);
-			}
-			close_menu = false;
+		if (ctx.type == LAB_SSD_MENU) {
+			menu_call_selected_actions(server);
+		} else {
+			menu_close_root(server);
+			cursor_update_common(server, &ctx, time_msec,
+				/*cursor_has_moved*/ false);
 		}
 		return;
 	}

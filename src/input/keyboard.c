@@ -410,6 +410,11 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 
 	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 		if (cur_keybind && cur_keybind->mod_only) {
+			if (seat->active_client_while_inhibited
+					|| seat->server->session_lock) {
+				cur_keybind = NULL;
+				return false;
+			}
 			key_state_store_pressed_key_as_bound(event->keycode);
 			actions_run(NULL, server, &cur_keybind->actions, 0);
 			cur_keybind = NULL;

@@ -3,14 +3,15 @@
 #define LABWC_VIEW_H
 
 #include "config.h"
+#include "ssd.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <wayland-util.h>
 #include <wlr/util/box.h>
 #include <xkbcommon/xkbcommon.h>
 
-#define LAB_MIN_VIEW_WIDTH  100
-#define LAB_MIN_VIEW_HEIGHT  60
+#define LAB_MIN_VIEW_WIDTH (SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT)
+#define LAB_MIN_VIEW_HEIGHT 60
 
 /*
  * In labwc, a view is a container for surfaces which can be moved around by

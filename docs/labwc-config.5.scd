@@ -492,6 +492,23 @@ extending outward from the snapped edge.
 	If set to "no" (or is absent) the keybind will be layout agnostic.
 	Default is no.
 
+*<keyboard><keybind key="" onRelease="yes|no">*
+	*onRelease*, when yes, fires the keybind action when the key or key
+	combination is released, rather than first pressed. This is useful to
+	bind actions to only modifier keys, where the action should fire when
+	the modifier is used without another key. Default is no.
+
+	The example below will trigger the launch of rofi when the super key is
+	pressed & released, without interference from other multi-key
+	combinations that include the super key:
+
+
+	```
+	<keybind key="Super_L" onRelease="yes">
+	  <action name="Execute" command="rofi -show drun"/>
+	</keybind>
+	```
+
 *<keyboard><keybind key=""><action name="">*
 	Keybind action. See labwc-actions(5).
 

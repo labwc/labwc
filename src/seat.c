@@ -592,6 +592,7 @@ seat_reconfigure(struct server *server)
 	struct input *input;
 	cursor_reload(seat);
 	overlay_reconfigure(seat);
+	keyboard_reset_current_keybind();
 	wl_list_for_each(input, &seat->inputs, link) {
 		switch (input->wlr_input_device->type) {
 		case WLR_INPUT_DEVICE_KEYBOARD:

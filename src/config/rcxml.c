@@ -1034,6 +1034,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "Missing 'button' argument for tablet button mapping");
 		}
+	} else if (!strcasecmp(nodename, "ignoreButtonReleasePeriod.menu")) {
+		rc.menu_ignore_button_release_period = atoi(content);
 	}
 }
 
@@ -1238,6 +1240,8 @@ rcxml_init(void)
 
 	rc.workspace_config.popuptime = INT_MIN;
 	rc.workspace_config.min_nr_workspaces = 1;
+
+	rc.menu_ignore_button_release_period = 250;
 }
 
 static void

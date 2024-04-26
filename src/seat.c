@@ -397,6 +397,7 @@ seat_update_capabilities(struct seat *seat)
 			caps |= WL_SEAT_CAPABILITY_KEYBOARD;
 			break;
 		case WLR_INPUT_DEVICE_POINTER:
+		case WLR_INPUT_DEVICE_TABLET_TOOL:
 			caps |= WL_SEAT_CAPABILITY_POINTER;
 			break;
 		case WLR_INPUT_DEVICE_TOUCH:

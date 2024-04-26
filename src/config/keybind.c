@@ -131,7 +131,9 @@ keybind_create(const char *keybind)
 			k->modifiers |= modifier;
 		} else {
 			sym = xkb_keysym_from_name(symname, XKB_KEYSYM_CASE_INSENSITIVE);
-			if (!keyboard_is_modifier_key (sym)) k->mod_only = FALSE;
+			if (!keyboard_is_modifier_key(sym)) {
+				k->mod_only = FALSE;
+			}
 			if (sym == XKB_KEY_NoSymbol && g_utf8_strlen(symname, -1) == 1) {
 				/*
 				 * xkb_keysym_from_name() only handles a legacy set of single

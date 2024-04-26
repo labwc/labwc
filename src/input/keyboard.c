@@ -38,7 +38,7 @@ struct keyinfo {
 
 static bool should_cancel_cycling_on_next_key_release;
 
-struct keybind *cur_keybind = NULL;
+struct keybind *cur_keybind;
 
 static void
 change_vt(struct server *server, unsigned int vt)

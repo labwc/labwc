@@ -38,6 +38,8 @@ struct keyinfo {
 
 static bool should_cancel_cycling_on_next_key_release;
 
+struct keybind *cur_keybind = NULL;
+
 static void
 change_vt(struct server *server, unsigned int vt)
 {
@@ -207,8 +209,8 @@ process_syms:
 	return NULL;
 }
 
-static bool
-is_modifier_key(xkb_keysym_t sym)
+bool
+keyboard_is_modifier_key(xkb_keysym_t sym)
 {
 	switch (sym) {
 	case XKB_KEY_Shift_L:   case XKB_KEY_Shift_R:
@@ -273,7 +275,7 @@ get_keyinfo(struct wlr_keyboard *wlr_keyboard, uint32_t evdev_keycode)
 	keyinfo.is_modifier = false;
 	for (int i = 0; i < keyinfo.translated.nr_syms; i++) {
 		keyinfo.is_modifier |=
-			is_modifier_key(keyinfo.translated.syms[i]);
+			keyboard_is_modifier_key(keyinfo.translated.syms[i]);
 	}
 
 	return keyinfo;
@@ -407,7 +409,14 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		keyinfo.is_modifier);
 
 	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
-		return handle_key_release(server, event->keycode);
+		if (cur_keybind && cur_keybind->mod_only) {
+			key_state_store_pressed_key_as_bound(event->keycode);
+			actions_run(NULL, server, &cur_keybind->actions, 0);
+			cur_keybind = NULL;
+			return true;
+		} else {
+			return handle_key_release(server, event->keycode);
+		}
 	}
 
 	/* Catch C-A-F1 to C-A-F12 to change tty */
@@ -443,16 +452,17 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	/*
 	 * Handle compositor keybinds
 	 */
-	struct keybind *keybind =
+	cur_keybind =
 		match_keybinding(server, &keyinfo, keyboard->is_virtual);
-	if (keybind) {
+	if (cur_keybind && !cur_keybind->mod_only) {
 		/*
 		 * Update key-state before action_run() because the action
 		 * might lead to seat_focus() in which case we pass the
 		 * 'pressed-sent' keys to the new surface.
 		 */
 		key_state_store_pressed_key_as_bound(event->keycode);
-		actions_run(NULL, server, &keybind->actions, 0);
+		actions_run(NULL, server, &cur_keybind->actions, 0);
+		cur_keybind = NULL;
 		return true;
 	}
 

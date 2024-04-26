@@ -20,5 +20,6 @@ void keyboard_set_numlock(struct wlr_keyboard *keyboard);
 void keyboard_update_layout(struct seat *seat, xkb_layout_index_t layout);
 void keyboard_cancel_keybind_repeat(struct keyboard *keyboard);
 bool keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard);
+bool keyboard_is_modifier_key(xkb_keysym_t sym);
 
 #endif /* LABWC_KEYBOARD_H */

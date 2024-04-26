@@ -10,6 +10,7 @@
 #include "common/mem.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
+#include "input/keyboard.h"
 #include "labwc.h"
 
 uint32_t
@@ -122,6 +123,7 @@ keybind_create(const char *keybind)
 	struct keybind *k = znew(*k);
 	xkb_keysym_t keysyms[MAX_KEYSYMS];
 	gchar **symnames = g_strsplit(keybind, "-", -1);
+	k->mod_only = TRUE;
 	for (size_t i = 0; symnames[i]; i++) {
 		char *symname = symnames[i];
 		uint32_t modifier = parse_modifier(symname);
@@ -129,6 +131,7 @@ keybind_create(const char *keybind)
 			k->modifiers |= modifier;
 		} else {
 			sym = xkb_keysym_from_name(symname, XKB_KEYSYM_CASE_INSENSITIVE);
+			if (!keyboard_is_modifier_key (sym)) k->mod_only = FALSE;
 			if (sym == XKB_KEY_NoSymbol && g_utf8_strlen(symname, -1) == 1) {
 				/*
 				 * xkb_keysym_from_name() only handles a legacy set of single

@@ -229,6 +229,16 @@ ssd_update_geometry(struct ssd *ssd)
 	int eff_width = current.width;
 	int eff_height = view_effective_height(ssd->view, /* use_pending */ false);
 
+	if (eff_width > 0 && eff_width < LAB_MIN_VIEW_WIDTH) {
+		/*
+		 * Prevent negative values in calculations like
+		 * `width - SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT`
+		 */
+		wlr_log(WLR_ERROR,
+			"view width is smaller than its minimal value");
+		return;
+	}
+
 	if (eff_width == cached.width && eff_height == cached.height) {
 		if (current.x != cached.x || current.y != cached.y) {
 			/* Dynamically resize extents based on position and usable_area */

@@ -415,7 +415,6 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 				cur_keybind = NULL;
 				return false;
 			}
-			key_state_store_pressed_key_as_bound(event->keycode);
 			actions_run(NULL, server, &cur_keybind->actions, 0);
 			cur_keybind = NULL;
 			return true;
@@ -459,15 +458,17 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	 */
 	cur_keybind =
 		match_keybinding(server, &keyinfo, keyboard->is_virtual);
-	if (cur_keybind && !cur_keybind->mod_only) {
+	if (cur_keybind) {
 		/*
 		 * Update key-state before action_run() because the action
 		 * might lead to seat_focus() in which case we pass the
 		 * 'pressed-sent' keys to the new surface.
 		 */
 		key_state_store_pressed_key_as_bound(event->keycode);
-		actions_run(NULL, server, &cur_keybind->actions, 0);
-		cur_keybind = NULL;
+		if (!cur_keybind->mod_only) {
+			actions_run(NULL, server, &cur_keybind->actions, 0);
+			cur_keybind = NULL;
+		}
 		return true;
 	}
 

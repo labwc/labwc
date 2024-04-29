@@ -493,7 +493,7 @@ extending outward from the snapped edge.
 	Default is no.
 
 *<keyboard><keybind key=""><action name="">*
-	Keybind action. See labwc-action(5).
+	Keybind action. See labwc-actions(5).
 
 *<keyboard><default />*
 	Load the default keybinds listed below. This is an addition to the

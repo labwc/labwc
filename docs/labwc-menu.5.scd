@@ -57,7 +57,7 @@ The menu file must be entirely enclosed within <openbox_menu> and
 	The visible name of the menu item.
 
 *menu.item.action*
-	See labwc-action(5). Note: XML CDATA is supported for this node in
+	See labwc-actions(5). Note: XML CDATA is supported for this node in
 	order to maintain compatibility with obmenu-generator.
 
 *menu.separator*
@@ -107,4 +107,4 @@ interpreted as a user-override.
 
 # SEE ALSO
 
-labwc(1), labwc-action(5), labwc-config(5), labwc-theme(5)
+labwc(1), labwc-actions(5), labwc-config(5), labwc-theme(5)

@@ -142,6 +142,8 @@ context_from_str(const char *str)
 		return LAB_SSD_ROOT;
 	} else if (!strcasecmp(str, "Root")) {
 		return LAB_SSD_ROOT;
+	} else if (!strcasecmp(str, "All")) {
+		return LAB_SSD_ALL;
 	}
 	wlr_log(WLR_ERROR, "unknown mouse context (%s)", str);
 	return LAB_SSD_NONE;

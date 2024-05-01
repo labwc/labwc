@@ -43,7 +43,7 @@ lab_wlr_scene_get_prev_node(struct wlr_scene_node *node)
 
 /* TODO: move to rc. (or theme?) settings */
 #define magnifier_border 1      /* in pixels */
-#define magnifier_crop_size 100 /* how many pixels in each direction of the cursor */
+#define magnifier_crop_size 200 /* how many pixels in each direction of the cursor */
 
 static void
 magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
@@ -151,10 +151,10 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 
 	/* Borders */
 	struct wlr_box border_box = {
-		.x = ox - (width / 2 + magnifier_border) * rc.magnification,
-		.y = oy - (height / 2 + magnifier_border) * rc.magnification,
-		.width = (width + magnifier_border * 2) * rc.magnification,
-		.height = (height + magnifier_border * 2) * rc.magnification,
+		.x = ox - (width / 2 + magnifier_border),
+		.y = oy - (height / 2 + magnifier_border),
+		.width = (width + magnifier_border * 2),
+		.height = (height + magnifier_border * 2),
 	};
 	struct wlr_render_rect_options bg_opts = {
 		.box = border_box,
@@ -171,12 +171,17 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	}
 	opts = (struct wlr_render_texture_options) {
 		.texture = tmp_texture,
-		.src_box = (struct wlr_fbox) { 0, 0, width, height },
+		.src_box = (struct wlr_fbox) {
+			.x = width * (rc.magnification - 1) / (2 * rc.magnification),
+			.y = height * (rc.magnification - 1) / (2 * rc.magnification),
+			.width = width / rc.magnification,
+			.height = height / rc.magnification,
+		},
 		.dst_box = (struct wlr_box) {
-			.x = ox - (width / 2) * rc.magnification,
-			.y = oy - (height / 2) * rc.magnification,
-			.width = width * rc.magnification,
-			.height = height * rc.magnification,
+			.x = ox - (width / 2),
+			.y = oy - (height / 2),
+			.width = width,
+			.height = height,
 		},
 		.alpha = NULL,
 		.clip = NULL,

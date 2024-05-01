@@ -1204,6 +1204,8 @@ rcxml_init(void)
 	rc.focus_follow_mouse = false;
 	rc.focus_follow_mouse_requires_movement = true;
 	rc.raise_on_focus = false;
+	rc.magnify = false;
+	rc.magnification = 2;
 
 	rc.doubleclick_time = 500;
 	rc.scroll_factor = 1.0;

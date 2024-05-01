@@ -20,4 +20,12 @@ struct wlr_scene_node *lab_wlr_scene_get_prev_node(struct wlr_scene_node *node);
 /* A variant of wlr_scene_output_commit() that respects wlr_output->pending */
 bool lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output);
 
+enum magnify_dir {
+    MAGNIFY_INCREASE,
+    MAGNIFY_DECREASE
+};
+
+void magnify_toggle (void);
+void magnify_set_scale (enum magnify_dir dir);
+
 #endif /* LABWC_SCENE_HELPERS_H */

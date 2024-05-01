@@ -559,6 +559,7 @@ extending outward from the snapped edge.
 	  through to the application.
 	- Desktop: The desktop background, where no windows are present.
 	- Root: A synonym for Desktop (for compatibility).
+	- All: Anywhere on the screen.
 
 	Supported mouse *buttons* are:
 	- Left

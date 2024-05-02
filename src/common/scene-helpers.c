@@ -43,7 +43,6 @@ lab_wlr_scene_get_prev_node(struct wlr_scene_node *node)
 
 /* TODO: move to rc. (or theme?) settings */
 #define magnifier_border 1      /* in pixels */
-#define magnifier_crop_size 200 /* how many pixels in each direction of the cursor */
 
 static void
 magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
@@ -77,10 +76,10 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	oy *= output->wlr_output->scale;
 
 	/* TODO: refactor, to use rc. settings */
-	int width = magnifier_crop_size * 2 + 1;
+	int width = rc.mag_size + 1;
 	int height = width;
-	double x = ox - magnifier_crop_size;
-	double y = oy - magnifier_crop_size;
+	double x = ox - (rc.mag_size / 2.0);
+	double y = oy - (rc.mag_size / 2.0);
 	double cropped_width = width;
 	double cropped_height = height;
 	double dst_x = 0;
@@ -172,10 +171,10 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	opts = (struct wlr_render_texture_options) {
 		.texture = tmp_texture,
 		.src_box = (struct wlr_fbox) {
-			.x = width * (rc.magnification - 1) / (2 * rc.magnification),
-			.y = height * (rc.magnification - 1) / (2 * rc.magnification),
-			.width = width / rc.magnification,
-			.height = height / rc.magnification,
+			.x = width * (rc.mag_scale - 1) / (2 * rc.mag_scale),
+			.y = height * (rc.mag_scale - 1) / (2 * rc.mag_scale),
+			.width = width / rc.mag_scale,
+			.height = height / rc.mag_scale,
 		},
 		.dst_box = (struct wlr_box) {
 			.x = ox - (width / 2),
@@ -243,14 +242,14 @@ void magnify_set_scale (enum magnify_dir dir)
 {
 	if (dir == MAGNIFY_INCREASE) {
 		if (rc.magnify) {
-			rc.magnification++;
+			rc.mag_scale++;
 		} else {
 			rc.magnify = true;
-			rc.magnification = 2;
+			rc.mag_scale = 2;
 		}
 	} else {
-		if (rc.magnify && rc.magnification > 2) {
-			rc.magnification--;
+		if (rc.magnify && rc.mag_scale > 2) {
+			rc.mag_scale--;
 		} else {
 			rc.magnify = false;
 		}
@@ -274,12 +273,12 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output)
 
 	if (!wlr_output->needs_frame && !pixman_region32_not_empty(
 			&scene_output->damage_ring.current) && !wants_magnification
-			&& last_mag != rc.magnify && last_scale != rc.magnification) {
+			&& last_mag != rc.magnify && last_scale != rc.mag_scale) {
 		return false;
 	}
 
 	last_mag = rc.magnify;
-	last_scale = rc.magnification;
+	last_scale = rc.mag_scale;
 
 	if (!wlr_scene_output_build_state(scene_output, state, NULL)) {
 		wlr_log(WLR_ERROR, "Failed to build output state for %s",

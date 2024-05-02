@@ -1206,8 +1206,6 @@ rcxml_init(void)
 	rc.focus_follow_mouse = false;
 	rc.focus_follow_mouse_requires_movement = true;
 	rc.raise_on_focus = false;
-	rc.magnify = false;
-	rc.magnification = 2;
 
 	rc.doubleclick_time = 500;
 	rc.scroll_factor = 1.0;
@@ -1244,6 +1242,10 @@ rcxml_init(void)
 	rc.workspace_config.min_nr_workspaces = 1;
 
 	rc.menu_ignore_button_release_period = 250;
+
+	rc.magnify = false;
+	rc.mag_scale = 2;
+	rc.mag_size = 400;
 }
 
 static void

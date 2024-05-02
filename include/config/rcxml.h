@@ -60,9 +60,6 @@ struct rcxml {
 	bool focus_follow_mouse_requires_movement;
 	bool raise_on_focus;
 
-	bool magnify;
-	int magnification;
-
 	/* theme */
 	char *theme_name;
 	int corner_radius;
@@ -143,6 +140,11 @@ struct rcxml {
 
 	/* Menu */
 	unsigned int menu_ignore_button_release_period;
+
+	/* magnifier */
+	bool magnify;
+	int mag_scale;
+	int mag_size;
 };
 
 extern struct rcxml rc;

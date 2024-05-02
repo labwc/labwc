@@ -142,7 +142,6 @@ struct rcxml {
 	unsigned int menu_ignore_button_release_period;
 
 	/* magnifier */
-	bool magnify;
 	int mag_scale;
 	int mag_size;
 };

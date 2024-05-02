@@ -1243,7 +1243,6 @@ rcxml_init(void)
 
 	rc.menu_ignore_button_release_period = 250;
 
-	rc.magnify = false;
 	rc.mag_scale = 2;
 	rc.mag_size = 400;
 }

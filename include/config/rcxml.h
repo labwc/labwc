@@ -139,7 +139,6 @@ struct rcxml {
 	struct wl_list window_rules; /* struct window_rule.link */
 
 	/* magnifier */
-	bool magnify;
 	int mag_scale;
 	int mag_size;
 };

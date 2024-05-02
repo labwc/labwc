@@ -12,6 +12,8 @@
 #include <wlr/render/drm_format_set.h>
 #include "common/macros.h"
 
+static bool magnify_on;
+
 struct wlr_surface *
 lab_wlr_surface_from_node(struct wlr_scene_node *node)
 {
@@ -208,7 +210,7 @@ output_wants_magnification(struct output *output)
 	static double x = -1;
 	static double y = -1;
 	struct wlr_cursor *cursor = output->server->seat.cursor;
-	if (!rc.magnify) {
+	if (!magnify_on) {
 		x = -1;
 		y = -1;
 		return false;
@@ -227,10 +229,10 @@ output_wants_magnification(struct output *output)
 
 void magnify_toggle (void)
 {
-	if (rc.magnify) {
-		rc.magnify = false;
+	if (magnify_on) {
+		magnify_on = false;
 	} else {
-		rc.magnify = true;
+		magnify_on = true;
 	}
 }
 
@@ -241,17 +243,17 @@ void magnify_toggle (void)
 void magnify_set_scale (enum magnify_dir dir)
 {
 	if (dir == MAGNIFY_INCREASE) {
-		if (rc.magnify) {
+		if (magnify_on) {
 			rc.mag_scale++;
 		} else {
-			rc.magnify = true;
+			magnify_on = true;
 			rc.mag_scale = 2;
 		}
 	} else {
-		if (rc.magnify && rc.mag_scale > 2) {
+		if (magnify_on && rc.mag_scale > 2) {
 			rc.mag_scale--;
 		} else {
-			rc.magnify = false;
+			magnify_on = false;
 		}
 	}
 }
@@ -273,11 +275,11 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output)
 
 	if (!wlr_output->needs_frame && !pixman_region32_not_empty(
 			&scene_output->damage_ring.current) && !wants_magnification
-			&& last_mag != rc.magnify && last_scale != rc.mag_scale) {
+			&& last_mag != magnify_on && last_scale != rc.mag_scale) {
 		return false;
 	}
 
-	last_mag = rc.magnify;
+	last_mag = magnify_on;
 	last_scale = rc.mag_scale;
 
 	if (!wlr_scene_output_build_state(scene_output, state, NULL)) {
@@ -287,7 +289,7 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output)
 	}
 
 	struct wlr_box additional_damage = {0};
-	if (state->buffer && rc.magnify) {
+	if (state->buffer && magnify_on) {
 		magnify(output, state->buffer, &additional_damage);
 	}
 

@@ -1239,7 +1239,6 @@ rcxml_init(void)
 	rc.workspace_config.popuptime = INT_MIN;
 	rc.workspace_config.min_nr_workspaces = 1;
 
-	rc.magnify = false;
 	rc.mag_scale = 2;
 	rc.mag_size = 400;
 }

@@ -60,9 +60,6 @@ struct rcxml {
 	bool focus_follow_mouse_requires_movement;
 	bool raise_on_focus;
 
-	bool magnify;
-	int magnification;
-
 	/* theme */
 	char *theme_name;
 	int corner_radius;
@@ -140,6 +137,11 @@ struct rcxml {
 	} window_switcher;
 
 	struct wl_list window_rules; /* struct window_rule.link */
+
+	/* magnifier */
+	bool magnify;
+	int mag_scale;
+	int mag_size;
 };
 
 extern struct rcxml rc;

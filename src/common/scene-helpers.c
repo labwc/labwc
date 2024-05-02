@@ -271,16 +271,14 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output)
 	struct output *output = wlr_output->data;
 	bool wants_magnification = output_wants_magnification(output);
 	static bool last_mag = false;
-	static int last_scale = 2;
 
 	if (!wlr_output->needs_frame && !pixman_region32_not_empty(
 			&scene_output->damage_ring.current) && !wants_magnification
-			&& last_mag != magnify_on && last_scale != rc.mag_scale) {
+			&& last_mag != magnify_on) {
 		return false;
 	}
 
 	last_mag = magnify_on;
-	last_scale = rc.mag_scale;
 
 	if (!wlr_scene_output_build_state(scene_output, state, NULL)) {
 		wlr_log(WLR_ERROR, "Failed to build output state for %s",

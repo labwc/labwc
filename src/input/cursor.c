@@ -829,12 +829,15 @@ handle_release_mousebinding(struct server *server,
 					 */
 					consumed_by_frame_context |=
 						mousebind->context == LAB_SSD_FRAME;
+					consumed_by_frame_context |=
+						mousebind->context == LAB_SSD_ALL;
 				}
 				continue;
 			default:
 				continue;
 			}
 			consumed_by_frame_context |= mousebind->context == LAB_SSD_FRAME;
+			consumed_by_frame_context |= mousebind->context == LAB_SSD_ALL;
 			actions_run(ctx->view, server, &mousebind->actions,
 				/*resize_edges*/ 0);
 		}
@@ -919,6 +922,8 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 					 */
 					consumed_by_frame_context |=
 						mousebind->context == LAB_SSD_FRAME;
+					consumed_by_frame_context |=
+						mousebind->context == LAB_SSD_ALL;
 					mousebind->pressed_in_context = true;
 				}
 				continue;
@@ -933,6 +938,7 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 				continue;
 			}
 			consumed_by_frame_context |= mousebind->context == LAB_SSD_FRAME;
+			consumed_by_frame_context |= mousebind->context == LAB_SSD_ALL;
 			actions_run(ctx->view, server, &mousebind->actions, resize_edges);
 		}
 	}

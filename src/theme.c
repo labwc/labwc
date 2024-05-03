@@ -848,7 +848,7 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->mag_border_width = atoi(value);
 	}
 	if (match_glob(key, "magnifier.border.color")) {
-		parse_hexstrs(value, theme->mag_border_color);
+		parse_hexstr(value, theme->mag_border_color);
 	}
 	if (match_glob(key, "magnifier.filter")) {
 		theme->mag_filter = atoi(value);

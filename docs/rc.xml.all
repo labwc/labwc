@@ -599,12 +599,15 @@
       colour of the border for the magnifier window.
     'borderWidth' sets the width in pixels of the border for the
       magnifier window.
+    'useFilter' sets whether to use a bilinear filter on the magnified
+      output or simply to take nearest pixel.
   -->
     <magnifier>
         <size>400</size>
         <initScale>2</initScale>
         <borderColour>#ff0000</borderColour>
         <borderWidth>1</borderWidth>
+        <useFilter>true</useFilter>
     </magnifier>
 
 </labwc_config>

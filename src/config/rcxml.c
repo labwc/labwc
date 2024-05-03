@@ -1058,6 +1058,8 @@ entry(xmlNode *node, char *nodename, char *content)
 			&rc.mag_border_col.b);
 	} else if (!strcasecmp(nodename, "borderWidth.magnifier")) {
 		rc.mag_border_width = atoi(content);
+	} else if (!strcasecmp(nodename, "useFilter.magnifier")) {
+		set_bool(content, &rc.mag_filter);
 	}
 }
 
@@ -1271,6 +1273,7 @@ rcxml_init(void)
 	rc.mag_border_col.g = 0;
 	rc.mag_border_col.b = 0;
 	rc.mag_border_width = 1;
+	rc.mag_filter = true;
 }
 
 static void

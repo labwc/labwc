@@ -152,6 +152,7 @@ struct rcxml {
 	int mag_size;
 	struct rgb_colour mag_border_col;
 	int mag_border_width;
+	bool mag_filter;
 };
 
 extern struct rcxml rc;

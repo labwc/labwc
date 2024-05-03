@@ -74,7 +74,6 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	ox *= output->wlr_output->scale;
 	oy *= output->wlr_output->scale;
 
-	/* TODO: refactor, to use rc. settings */
 	int width = rc.mag_size + 1;
 	int height = width;
 	double x = ox - (rc.mag_size / 2.0);
@@ -156,7 +155,6 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	};
 	struct wlr_render_rect_options bg_opts = {
 		.box = border_box,
-		/* TODO: make this a rc. setting */
 		.color = (struct wlr_render_color) {
 			.r = rc.mag_border_col.r / 255.0,
 			.g = rc.mag_border_col.g / 255.0,
@@ -188,8 +186,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		},
 		.alpha = NULL,
 		.clip = NULL,
-		//.filter_mode = WLR_SCALE_FILTER_NEAREST,
-		.filter_mode = WLR_SCALE_FILTER_BILINEAR,
+		.filter_mode = rc.mag_filter ? WLR_SCALE_FILTER_BILINEAR : WLR_SCALE_FILTER_NEAREST,
 	};
 	wlr_render_pass_add_texture(tmp_render_pass, &opts);
 	if (!wlr_render_pass_submit(tmp_render_pass)) {

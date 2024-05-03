@@ -17,6 +17,11 @@
 
   <placement>
     <policy>center</policy>
+    <!--
+      When <placement><policy> is "cascade", the offset to cascade new
+      windows can be defined like this:
+      <cascadeOffset x="40" y="30" />
+    -->
   </placement>
 
   <!-- <font><theme> can be defined without an attribute to set all places -->

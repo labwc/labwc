@@ -1,4 +1,5 @@
 labwc_sources += files(
+	'box.c',
   'buf.c',
   'dir.c',
   'fd-util.c',

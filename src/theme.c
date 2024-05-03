@@ -571,6 +571,14 @@ theme_builtin(struct theme *theme, struct server *server)
 	memset(theme->snapping_overlay_edge.border_color, 0,
 		sizeof(theme->snapping_overlay_edge.border_color));
 	theme->snapping_overlay_edge.border_color[0][0] = FLT_MIN;
+
+	/* magnifier */
+	theme->mag_scale = 2;
+	theme->mag_width = 400;
+	theme->mag_height = 400;
+	parse_hexstr("#ff0000", theme->mag_border_color);
+	theme->mag_border_width = 1;
+	theme->mag_filter = true;
 }
 
 static void
@@ -825,6 +833,25 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "snapping.overlay.edge.border.color")) {
 		parse_hexstrs(value, theme->snapping_overlay_edge.border_color);
+	}
+
+	if (match_glob(key, "magnifier.init-scale")) {
+		theme->mag_scale = atoi(value);
+	}
+	if (match_glob(key, "magnifier.width")) {
+		theme->mag_width = atoi(value);
+	}
+	if (match_glob(key, "magnifier.height")) {
+		theme->mag_height = atoi(value);
+	}
+	if (match_glob(key, "magnifier.border.width")) {
+		theme->mag_border_width = atoi(value);
+	}
+	if (match_glob(key, "magnifier.border.color")) {
+		parse_hexstrs(value, theme->mag_border_color);
+	}
+	if (match_glob(key, "magnifier.filter")) {
+		theme->mag_filter = atoi(value);
 	}
 }
 

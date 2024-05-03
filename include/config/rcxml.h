@@ -41,12 +41,6 @@ struct usable_area_override {
 	struct wl_list link; /* struct rcxml.usable_area_overrides */
 };
 
-struct rgb_colour {
-	int r;
-	int g;
-	int b;
-};
-
 struct rcxml {
 	/* from command line */
 	char *config_dir;
@@ -146,14 +140,6 @@ struct rcxml {
 
 	/* Menu */
 	unsigned int menu_ignore_button_release_period;
-
-	/* magnifier */
-	int mag_scale;
-	int mag_width;
-	int mag_height;
-	struct rgb_colour mag_border_col;
-	int mag_border_width;
-	bool mag_filter;
 };
 
 extern struct rcxml rc;

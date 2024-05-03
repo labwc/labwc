@@ -6,6 +6,7 @@
 #include <wlr/util/log.h>
 #include "common/scene-helpers.h"
 #include "labwc.h"
+#include "theme.h"
 
 #include <wlr/render/pass.h>
 #include <wlr/types/wlr_buffer.h>
@@ -13,6 +14,7 @@
 #include "common/macros.h"
 
 static bool magnify_on;
+static int mag_scale = 0;
 
 struct wlr_surface *
 lab_wlr_surface_from_node(struct wlr_scene_node *node)
@@ -66,6 +68,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 
 	/* Fetch scale-adjusted cursor coordinates */
 	struct server *server = output->server;
+	struct theme *theme = server->theme;
 	struct wlr_cursor *cursor = server->seat.cursor;
 	double ox = cursor->x;
 	double oy = cursor->y;
@@ -73,10 +76,13 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	ox *= output->wlr_output->scale;
 	oy *= output->wlr_output->scale;
 
-	int width = rc.mag_width + 1;
-	int height = rc.mag_height + 1;
-	double x = ox - (rc.mag_width / 2.0);
-	double y = oy - (rc.mag_height / 2.0);
+	if (!mag_scale) {
+		mag_scale = theme->mag_scale;
+	}
+	int width = theme->mag_width + 1;
+	int height = theme->mag_height + 1;
+	double x = ox - (theme->mag_width / 2.0);
+	double y = oy - (theme->mag_height / 2.0);
 	double cropped_width = width;
 	double cropped_height = height;
 	double dst_x = 0;
@@ -147,18 +153,18 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 
 	/* Borders */
 	struct wlr_box border_box = {
-		.x = ox - (width / 2 + rc.mag_border_width),
-		.y = oy - (height / 2 + rc.mag_border_width),
-		.width = (width + rc.mag_border_width * 2),
-		.height = (height + rc.mag_border_width * 2),
+		.x = ox - (width / 2 + theme->mag_border_width),
+		.y = oy - (height / 2 + theme->mag_border_width),
+		.width = (width + theme->mag_border_width * 2),
+		.height = (height + theme->mag_border_width * 2),
 	};
 	struct wlr_render_rect_options bg_opts = {
 		.box = border_box,
 		.color = (struct wlr_render_color) {
-			.r = rc.mag_border_col.r / 255.0,
-			.g = rc.mag_border_col.g / 255.0,
-			.b = rc.mag_border_col.b / 255.0,
-			.a = 1
+			.r = theme->mag_border_color[0],
+			.g = theme->mag_border_color[1],
+			.b = theme->mag_border_color[2],
+			.a = theme->mag_border_color[3]
 		},
 		.clip = NULL,
 	};
@@ -172,10 +178,10 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	opts = (struct wlr_render_texture_options) {
 		.texture = tmp_texture,
 		.src_box = (struct wlr_fbox) {
-			.x = width * (rc.mag_scale - 1) / (2 * rc.mag_scale),
-			.y = height * (rc.mag_scale - 1) / (2 * rc.mag_scale),
-			.width = width / rc.mag_scale,
-			.height = height / rc.mag_scale,
+			.x = width * (mag_scale - 1) / (2 * mag_scale),
+			.y = height * (mag_scale - 1) / (2 * mag_scale),
+			.width = width / mag_scale,
+			.height = height / mag_scale,
 		},
 		.dst_box = (struct wlr_box) {
 			.x = ox - (width / 2),
@@ -185,7 +191,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		},
 		.alpha = NULL,
 		.clip = NULL,
-		.filter_mode = rc.mag_filter ? WLR_SCALE_FILTER_BILINEAR : WLR_SCALE_FILTER_NEAREST,
+		.filter_mode = theme->mag_filter ? WLR_SCALE_FILTER_BILINEAR : WLR_SCALE_FILTER_NEAREST,
 	};
 	wlr_render_pass_add_texture(tmp_render_pass, &opts);
 	if (!wlr_render_pass_submit(tmp_render_pass)) {
@@ -244,14 +250,14 @@ magnify_set_scale(enum magnify_dir dir)
 {
 	if (dir == MAGNIFY_INCREASE) {
 		if (magnify_on) {
-			rc.mag_scale++;
+			mag_scale++;
 		} else {
 			magnify_on = true;
-			rc.mag_scale = 2;
+			mag_scale = 2;
 		}
 	} else {
-		if (magnify_on && rc.mag_scale > 2) {
-			rc.mag_scale--;
+		if (magnify_on && mag_scale > 2) {
+			mag_scale--;
 		} else {
 			magnify_on = false;
 		}

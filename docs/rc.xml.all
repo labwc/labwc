@@ -589,17 +589,19 @@
   <!--
     Magnifier settings
 
-    'size' sets the width and height in pixels of the magnifier window.
-    'initScale' sets the initial magnification factor when first booted.
+    'width' sets the width in pixels of the magnifier window.
+    'height' sets the height in pixels of the magnifier window.
+    'initScale' sets the initial magnification factor at boot.
     'borderColour' is an XML RGB string with a leading # which sets the
-      colour of the border for the magnifier window.
-    'borderWidth' sets the width in pixels of the border for the
+      colour of the border of the magnifier window.
+    'borderWidth' sets the width in pixels of the border of the
       magnifier window.
     'useFilter' sets whether to use a bilinear filter on the magnified
       output or simply to take nearest pixel.
   -->
     <magnifier>
-        <size>400</size>
+        <width>400</width>
+        <height>400</height>
         <initScale>2</initScale>
         <borderColour>#ff0000</borderColour>
         <borderWidth>1</borderWidth>

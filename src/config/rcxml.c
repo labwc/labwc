@@ -1047,8 +1047,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "Missing 'button' argument for tablet button mapping");
 		}
-	} else if (!strcasecmp(nodename, "size.magnifier")) {
-		rc.mag_size = atoi(content);
+	} else if (!strcasecmp(nodename, "width.magnifier")) {
+		rc.mag_width = atoi(content);
+	} else if (!strcasecmp(nodename, "height.magnifier")) {
+		rc.mag_height = atoi(content);
 	} else if (!strcasecmp(nodename, "initScale.magnifier")) {
 		rc.mag_scale = atoi(content);
 	} else if (!strcasecmp(nodename, "borderColour.magnifier")) {
@@ -1264,7 +1266,8 @@ rcxml_init(void)
 	rc.workspace_config.min_nr_workspaces = 1;
 
 	rc.mag_scale = 2;
-	rc.mag_size = 400;
+	rc.mag_width = 400;
+	rc.mag_height = 400;
 	rc.mag_border_col.r = 255;
 	rc.mag_border_col.g = 0;
 	rc.mag_border_col.b = 0;

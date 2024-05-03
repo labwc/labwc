@@ -169,7 +169,7 @@ const char *action_names[] = {
 	"ToggleShade",
 	"ToggleMagnify",
 	"ZoomIn",
-	"ZoomOut"
+	"ZoomOut",
 	NULL
 };
 

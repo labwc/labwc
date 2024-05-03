@@ -112,7 +112,8 @@ enum action_type {
 	ACTION_TYPE_UNSHADE,
 	ACTION_TYPE_TOGGLE_SHADE,
 	ACTION_TYPE_TOGGLE_MAGNIFY,
-	ACTION_TYPE_SET_MAGNIFICATION
+	ACTION_TYPE_ZOOM_IN,
+	ACTION_TYPE_ZOOM_OUT
 };
 
 const char *action_names[] = {
@@ -167,7 +168,8 @@ const char *action_names[] = {
 	"Unshade",
 	"ToggleShade",
 	"ToggleMagnify",
-	"SetMagnification",
+	"ZoomIn",
+	"ZoomOut"
 	NULL
 };
 
@@ -416,12 +418,6 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 	case ACTION_TYPE_VIRTUAL_OUTPUT_ADD:
 	case ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE:
 		if (!strcmp(argument, "output_name")) {
-			action_arg_add_str(action, argument, content);
-			goto cleanup;
-		}
-		break;
-	case ACTION_TYPE_SET_MAGNIFICATION:
-		if (!strcmp(argument, "scale")) {
 			action_arg_add_str(action, argument, content);
 			goto cleanup;
 		}
@@ -1060,15 +1056,11 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_TOGGLE_MAGNIFY:
 			magnify_toggle();
 			break;
-		case ACTION_TYPE_SET_MAGNIFICATION:
-			{
-				const char *dir = action_get_str(action, "scale", NULL);
-				if (!strcmp(dir, "up")) {
-					magnify_set_scale(MAGNIFY_INCREASE);
-				} else if (!strcmp(dir, "down")) {
-					magnify_set_scale(MAGNIFY_DECREASE);
-				}
-			}
+		case ACTION_TYPE_ZOOM_IN:
+			magnify_set_scale(MAGNIFY_INCREASE);
+			break;
+		case ACTION_TYPE_ZOOM_OUT:
+			magnify_set_scale(MAGNIFY_DECREASE);
 			break;
 		case ACTION_TYPE_INVALID:
 			wlr_log(WLR_ERROR, "Not executing unknown action");

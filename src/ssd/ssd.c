@@ -309,7 +309,7 @@ ssd_destroy(struct ssd *ssd)
 bool
 ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 {
-	if (whole == candidate) {
+	if (whole == candidate || whole == LAB_SSD_ALL) {
 		return true;
 	}
 	if (whole == LAB_SSD_PART_TITLEBAR) {

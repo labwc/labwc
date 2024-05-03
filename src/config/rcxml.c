@@ -749,10 +749,19 @@ set_adaptive_sync_mode(const char *str, enum adaptive_sync_mode *variable)
 static bool parse_rgb(const char *str, int *r, int *g, int *b)
 {
 	int rr, rg, rb;
-	if (!str) return false;
-	if (strlen(str) != 7) return false;
-	if (str[0] != '#') return false;
-	if (sscanf(str, "#%2X%2X%2X", &rr, &rg, &rb) != 3) return false;
+
+	if (!str) {
+		return false;
+	}
+	if (strlen(str) != 7) {
+		return false;
+	}
+	if (str[0] != '#') {
+		return false;
+	}
+	if (sscanf(str, "#%2X%2X%2X", &rr, &rg, &rb) != 3) {
+		return false;
+	}
 	*r = rr;
 	*g = rg;
 	*b = rb;

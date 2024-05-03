@@ -909,40 +909,6 @@ situation.
 	option has been exposed for unusual use-cases. It is equivalent to
 	Openbox's `<hideDelay>`. Default is 250 ms.
 
-## MAGNIFIER
-
-```
-<magnifier>
-  <width>400</width>
-  <height>400</height>
-  <initScale>2</initScale>
-  <borderColour>#ff0000</borderColour>
-  <borderWidth>1</borderWidth>
-  <useFilter>true</useFilter>
-</magnifier>
-```
-
-*<magnifier><width>*
-	The width of the magnifier window in pixels.
-
-*<magnifier><height>*
-	The height of the magnifier window in pixels.
-
-*<magnifier><initScale>*
-	The number of times by which the magnified image is scaled. This
-	is the default value at boot time; this can be modified at run-time
-	in a keyboard or mouse binding by calling 'ZoomIn' or 'ZoomOut'.
-
-*<magnifier><borderColour>* [#RRGGBB]
-	The colour of the magnfier border as an RGB value.
-
-*<magnifier><borderWidth>*
-	The width of the magnifier window border in pixels.
-
-*<magnifier><useFilter>* [yes|no|default]
-	Whether to apply a bilinear filter to the magnified image, or
-	just to use nearest-neighbour.
-
 ## ENVIRONMENT VARIABLES
 
 *XCURSOR_THEME* and *XCURSOR_SIZE* are supported to set cursor theme

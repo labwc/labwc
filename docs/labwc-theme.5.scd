@@ -277,6 +277,27 @@ elements are not listed here, but are supported.
 	*window.inactive.border.color*. This is obsolete, but supported for
 	backward compatibility as some themes still contain it.
 
+*magnifier.width*
+	Width of magnifier window in pixels.
+
+*magnifier.height*
+	Height of magnifier window in pixels.
+
+*magnifier.border.width*
+	Width of magnifier window border in pixels.
+
+*magnifier.border.color*
+	Color of the magnfier window border.
+
+*magnifier.init-scale*
+	Initial number of times by which magnified image is scaled. Value
+	is the default at boot; can be modified at run-time	in a keyboard
+	or mouse binding by calling 'ZoomIn' or 'ZoomOut'.
+
+*magnifier.filter*
+	Set to 1 to apply a bilinear filter to the magnified image.
+	Set to 0 to use nearest-neighbour.
+
 # BUTTONS
 
 The images used for the titlebar icons are referred to as buttons.

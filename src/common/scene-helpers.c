@@ -74,10 +74,10 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	ox *= output->wlr_output->scale;
 	oy *= output->wlr_output->scale;
 
-	int width = rc.mag_size + 1;
-	int height = width;
-	double x = ox - (rc.mag_size / 2.0);
-	double y = oy - (rc.mag_size / 2.0);
+	int width = rc.mag_width + 1;
+	int height = rc.mag_height + 1;
+	double x = ox - (rc.mag_width / 2.0);
+	double y = oy - (rc.mag_height / 2.0);
 	double cropped_width = width;
 	double cropped_height = height;
 	double dst_x = 0;

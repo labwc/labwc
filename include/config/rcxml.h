@@ -149,7 +149,8 @@ struct rcxml {
 
 	/* magnifier */
 	int mag_scale;
-	int mag_size;
+	int mag_width;
+	int mag_height;
 	struct rgb_colour mag_border_col;
 	int mag_border_width;
 	bool mag_filter;

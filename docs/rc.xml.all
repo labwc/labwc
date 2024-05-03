@@ -593,12 +593,18 @@
   <!--
     Magnifier settings
 
-    'scale' sets the initial magnification factor when first booted.
     'size' sets the width and height in pixels of the magnifier window.
+    'initScale' sets the initial magnification factor when first booted.
+    'borderColour' is an XML RGB string with a leading # which sets the
+      colour of the border for the magnifier window.
+    'borderWidth' sets the width in pixels of the border for the
+      magnifier window.
   -->
     <magnifier>
-        <scale>2</scale>
         <size>400</size>
+        <initScale>2</initScale>
+        <borderColour>#ff0000</borderColour>
+        <borderWidth>1</borderWidth>
     </magnifier>
 
 </labwc_config>

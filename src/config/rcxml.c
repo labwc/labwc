@@ -746,6 +746,19 @@ set_adaptive_sync_mode(const char *str, enum adaptive_sync_mode *variable)
 	}
 }
 
+static bool parse_rgb(const char *str, int *r, int *g, int *b)
+{
+	int rr, rg, rb;
+	if (!str) return false;
+	if (strlen(str) != 7) return false;
+	if (str[0] != '#') return false;
+	if (sscanf(str, "#%2X%2X%2X", &rr, &rg, &rb) != 3) return false;
+	*r = rr;
+	*g = rg;
+	*b = rb;
+	return true;
+}
+
 static void
 entry(xmlNode *node, char *nodename, char *content)
 {
@@ -1036,10 +1049,15 @@ entry(xmlNode *node, char *nodename, char *content)
 		}
 	} else if (!strcasecmp(nodename, "ignoreButtonReleasePeriod.menu")) {
 		rc.menu_ignore_button_release_period = atoi(content);
-	} else if (!strcasecmp(nodename, "scale.magnifier")) {
-		rc.mag_scale = atoi(content);
 	} else if (!strcasecmp(nodename, "size.magnifier")) {
 		rc.mag_size = atoi(content);
+	} else if (!strcasecmp(nodename, "initScale.magnifier")) {
+		rc.mag_scale = atoi(content);
+	} else if (!strcasecmp(nodename, "borderColour.magnifier")) {
+		parse_rgb(content, &rc.mag_border_col.r, &rc.mag_border_col.g,
+			&rc.mag_border_col.b);
+	} else if (!strcasecmp(nodename, "borderWidth.magnifier")) {
+		rc.mag_border_width = atoi(content);
 	}
 }
 
@@ -1249,6 +1267,10 @@ rcxml_init(void)
 
 	rc.mag_scale = 2;
 	rc.mag_size = 400;
+	rc.mag_border_col.r = 255;
+	rc.mag_border_col.g = 0;
+	rc.mag_border_col.b = 0;
+	rc.mag_border_width = 1;
 }
 
 static void

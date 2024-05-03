@@ -135,9 +135,6 @@ static struct key_combos {
 			.value = "brightnessctl set 10%-",
 		},
 	}, {
-		.binding = "C-A-m",
-		.action = "ToggleMagnify",
-	}, {
 		.binding = NULL,
 	},
 };
@@ -444,24 +441,6 @@ static struct mouse_combos {
 		.button = "Middle",
 		.event = "Press",
 		.action = "Raise",
-	}, {
-		.context = "All",
-		.button = "W-Up",
-		.event = "Scroll",
-		.action = "SetMagnification",
-		.attributes[0] = {
-			.name = "scale",
-			.value = "up",
-		},
-	}, {
-		.context = "All",
-		.button = "W-Down",
-		.event = "Scroll",
-		.action = "SetMagnification",
-		.attributes[0] = {
-			.name = "scale",
-			.value = "down",
-		},
 	}, {
 		.context = NULL,
 	},

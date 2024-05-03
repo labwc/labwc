@@ -1061,11 +1061,13 @@ actions_run(struct view *activator, struct server *server,
 			magnify_toggle();
 			break;
 		case ACTION_TYPE_SET_MAGNIFICATION:
-			const char *dir = action_get_str(action, "scale", NULL);
-			if (!strcmp(dir, "up")) {
-				magnify_set_scale(MAGNIFY_INCREASE);
-			} else if (!strcmp(dir, "down")) {
-				magnify_set_scale(MAGNIFY_DECREASE);
+			{
+				const char *dir = action_get_str(action, "scale", NULL);
+				if (!strcmp(dir, "up")) {
+					magnify_set_scale(MAGNIFY_INCREASE);
+				} else if (!strcmp(dir, "down")) {
+					magnify_set_scale(MAGNIFY_DECREASE);
+				}
 			}
 			break;
 		case ACTION_TYPE_INVALID:

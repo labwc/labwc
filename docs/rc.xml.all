@@ -586,4 +586,15 @@
     </windowRules>
   -->
 
+  <!--
+    Magnifier settings
+
+    'scale' sets the initial magnification factor when first booted.
+    'size' sets the width and height in pixels of the magnifier window.
+  -->
+    <magnifier>
+        <scale>2</scale>
+        <size>400</size>
+    </magnifier>
+
 </labwc_config>

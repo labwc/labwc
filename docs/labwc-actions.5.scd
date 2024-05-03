@@ -264,6 +264,17 @@ Actions are used in menus and keyboard/mouse bindings.
 	decorations (including those for which the server-side titlebar has been
 	hidden) are not eligible for shading.
 
+*<action name="ToggleMagnify">*
+	Toggle the screen magnifier on or off at the last magnification level
+	used.
+
+*<action name="ZoomIn">*++
+*<action name="ZoomOut">*
+	Increase or decrease the magnification level for the screen magnifier.
+	If the magnifier is currently off, ZoomIn will enable it at the lowest
+	magnification (x2). If the magnifier is on and at a magnification of
+	x2, ZoomOut will turn it off.
+
 *<action name="None" />*
 	If used as the only action for a binding: clear an earlier defined
 	binding.

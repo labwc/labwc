@@ -299,6 +299,7 @@ cursor_update_image(struct seat *seat)
 		 */
 		if (seat->seat->pointer_state.focused_surface) {
 			seat->server_cursor = LAB_CURSOR_DEFAULT;
+			wlr_cursor_set_xcursor(seat->cursor, seat->xcursor_manager, "");
 			cursor_update_focus(seat->server);
 		}
 		return;
@@ -1254,7 +1255,7 @@ cursor_frame(struct wl_listener *listener, void *data)
 	wlr_seat_pointer_notify_frame(seat->seat);
 }
 
-void
+static void
 cursor_load(struct seat *seat)
 {
 	const char *xcursor_theme = getenv("XCURSOR_THEME");
@@ -1298,6 +1299,13 @@ cursor_load(struct seat *seat)
 			"Cursor theme is missing cursor names, using fallback");
 		cursor_names = cursors_x11;
 	}
+}
+
+void
+cursor_reload(struct seat *seat)
+{
+	cursor_load(seat);
+	cursor_update_image(seat);
 }
 
 void

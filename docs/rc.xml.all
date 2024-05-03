@@ -16,7 +16,7 @@
   </core>
 
   <placement>
-    <policy>center</policy>
+    <policy>automatic</policy>
   </placement>
 
   <!-- <font><theme> can be defined without an attribute to set all places -->

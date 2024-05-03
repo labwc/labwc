@@ -42,7 +42,6 @@ lab_wlr_scene_get_prev_node(struct wlr_scene_node *node)
 	return prev;
 }
 
-
 static void
 magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
 {
@@ -226,7 +225,8 @@ output_wants_magnification(struct output *output)
  * Toggles magnification on and off
  */
 
-void magnify_toggle (void)
+void
+magnify_toggle(void)
 {
 	if (magnify_on) {
 		magnify_on = false;
@@ -239,7 +239,8 @@ void magnify_toggle (void)
  * Increases and decreases magnification scale
  */
 
-void magnify_set_scale (enum magnify_dir dir)
+void
+magnify_set_scale(enum magnify_dir dir)
 {
 	if (dir == MAGNIFY_INCREASE) {
 		if (magnify_on) {

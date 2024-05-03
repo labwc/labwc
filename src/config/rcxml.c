@@ -1036,6 +1036,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		}
 	} else if (!strcasecmp(nodename, "ignoreButtonReleasePeriod.menu")) {
 		rc.menu_ignore_button_release_period = atoi(content);
+	} else if (!strcasecmp(nodename, "scale.magnifier")) {
+		rc.mag_scale = atoi(content);
+	} else if (!strcasecmp(nodename, "size.magnifier")) {
+		rc.mag_size = atoi(content);
 	}
 }
 

@@ -144,13 +144,17 @@ struct rcxml {
 
 	struct wl_list window_rules; /* struct window_rule.link */
 
-	/* magnifier */
+	/* Menu */
+	unsigned int menu_ignore_button_release_period;
+
+  /* magnifier */
 	int mag_scale;
 	int mag_width;
 	int mag_height;
 	struct rgb_colour mag_border_col;
 	int mag_border_width;
 	bool mag_filter;
+
 };
 
 extern struct rcxml rc;

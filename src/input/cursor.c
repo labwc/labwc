@@ -935,12 +935,17 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 	return consumed_by_frame_context;
 }
 
+static uint32_t press_msec;
+
 static void
 cursor_button_press(struct seat *seat, uint32_t button,
 		enum wlr_button_state button_state, uint32_t time_msec)
 {
 	struct server *server = seat->server;
 	struct cursor_context ctx = get_cursor_context(server);
+
+	/* Used on next button release to check if it can close menu or select menu item */
+	press_msec = time_msec;
 
 	/* Determine closest resize edges in case action is Resize */
 	uint32_t resize_edges = cursor_get_resize_edges(seat->cursor, &ctx);
@@ -952,6 +957,11 @@ cursor_button_press(struct seat *seat, uint32_t button,
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
+		/*
+		 * If menu was already opened on press, set a very small value
+		 * so subsequent release always closes menu or selects menu item.
+		 */
+		press_msec = 0;
 		return;
 	}
 
@@ -1017,12 +1027,15 @@ cursor_button_release(struct seat *seat, uint32_t button,
 	seat_reset_pressed(seat);
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
-		if (ctx.type == LAB_SSD_MENU) {
-			menu_call_selected_actions(server);
-		} else {
-			menu_close_root(server);
-			cursor_update_common(server, &ctx, time_msec,
-				/*cursor_has_moved*/ false);
+		/* TODO: take into account overflow of time_msec */
+		if (time_msec - press_msec > rc.menu_ignore_button_release_period) {
+			if (ctx.type == LAB_SSD_MENU) {
+				menu_call_selected_actions(server);
+			} else {
+				menu_close_root(server);
+				cursor_update_common(server, &ctx, time_msec,
+					/*cursor_has_moved*/ false);
+			}
 		}
 		return;
 	}

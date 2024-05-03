@@ -892,6 +892,24 @@ situation.
 	can be caused by *<margin>* settings or exclusive layer-shell clients
 	such as panels.
 
+## MENU
+
+```
+<menu>
+  <ignoreButtonReleasePeriod>250</ignoreButtonReleasePeriod>
+</menu>
+```
+
+*<menu><ignoreButtonReleasePeriod>*
+	How long (in milliseconds) the initial button release event is ignored
+	for. The reason for this logic and behaviour is to avoid a fast
+	press-move-release sequence indended to just open the menu resulting in
+	the closure of the menu or the selection of (typically the first) menu
+	item. This behaviour only affects the first button-release. It is not
+	anticipated that most users will want to change this, but the config
+	option has been exposed for unusual use-cases. It is equivalent to
+	Openbox's `<hideDelay>`. Default is 250 ms.
+
 ## ENVIRONMENT VARIABLES
 
 *XCURSOR_THEME* and *XCURSOR_SIZE* are supported to set cursor theme

@@ -4,6 +4,7 @@
 #include <strings.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_security_context_v1.h>
+#include "common/box.h"
 #include "common/macros.h"
 #include "common/match.h"
 #include "common/mem.h"
@@ -877,6 +878,94 @@ view_center(struct view *view, const struct wlr_box *ref)
 	}
 }
 
+/*
+ * Algorithm based on KWin's implementation:
+ * https://github.com/KDE/kwin/blob/df9f8f8346b5b7645578e37365dabb1a7b02ca5a/src/placement.cpp#L589
+ */
+static void
+view_cascade(struct view *view)
+{
+	/* "cascade" policy places a new view at center by default */
+	struct wlr_box center = view->pending;
+	view_compute_centered_position(view, NULL,
+		center.width, center.height, &center.x, &center.y);
+	struct border margin = ssd_get_margin(view->ssd);
+	center.x -= margin.left;
+	center.y -= margin.top;
+	center.width += margin.left + margin.right;
+	center.height += margin.top + margin.bottom;
+
+	/* Candidate geometry to which the view is moved */
+	struct wlr_box candidate = center;
+
+	struct wlr_box usable = output_usable_area_in_layout_coords(view->output);
+
+	/* TODO: move this logic to rcxml.c */
+	int offset_x = rc.placement_cascade_offset_x;
+	int offset_y = rc.placement_cascade_offset_y;
+	struct theme *theme = view->server->theme;
+	int default_offset = theme->title_height + theme->border_width + 5;
+	if (offset_x <= 0) {
+		offset_x = default_offset;
+	}
+	if (offset_y <= 0) {
+		offset_y = default_offset;
+	}
+
+	/*
+	 * Keep updating the candidate until it doesn't cover any existing views
+	 * or doesn't fit within the usable area.
+	 */
+	bool candidate_updated = true;
+	while (candidate_updated) {
+		candidate_updated = false;
+		struct wlr_box covered = {0};
+
+		/* Iterate over views from top to bottom */
+		struct view *other_view;
+		for_each_view(other_view, &view->server->views,
+				LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+			struct wlr_box other = ssd_max_extents(other_view);
+			if (other_view == view
+					|| view->minimized
+					|| !box_intersects(&candidate, &other)) {
+				continue;
+			}
+			/*
+			 * If the candidate covers an existing view whose
+			 * top-left corner is not covered by other views,
+			 * shift the candidate to bottom-right.
+			 */
+			if (box_contains(&candidate, &other)
+					&& !wlr_box_contains_point(
+						&covered, other.x, other.y)) {
+				candidate.x = other.x + offset_x;
+				candidate.y = other.y + offset_y;
+				if (!box_contains(&usable, &candidate)) {
+					/*
+					 * If the candidate doesn't fit within
+					 * the usable area, fall back to center
+					 * and finish updating the candidate.
+					 */
+					candidate = center;
+					break;
+				} else {
+					/* Repeat with the new candidate */
+					candidate_updated = true;
+					break;
+				}
+			}
+			/*
+			 * We use just a bounding box to represent the covered
+			 * area, which would be fine for our use-case.
+			 */
+			box_union(&covered, &covered, &other);
+		}
+	}
+
+	view_move(view, candidate.x + margin.left, candidate.y + margin.top);
+}
+
 void
 view_place_by_policy(struct view *view, bool allow_cursor,
 		enum view_placement_policy policy)
@@ -890,6 +979,9 @@ view_place_by_policy(struct view *view, bool allow_cursor,
 			view_move(view, geometry.x, geometry.y);
 			return;
 		}
+	} else if (policy == LAB_PLACE_CASCADE) {
+		view_cascade(view);
+		return;
 	}
 
 	view_center(view, NULL);
@@ -1076,14 +1168,11 @@ view_apply_maximized_geometry(struct view *view)
 	 * center the unmaximized axis.
 	 */
 	struct wlr_box natural = view->natural_geometry;
-	if (view->maximized != VIEW_AXIS_BOTH) {
-		struct wlr_box intersect;
-		wlr_box_intersection(&intersect, &box, &natural);
-		if (wlr_box_empty(&intersect)) {
-			view_compute_centered_position(view, NULL,
-				natural.width, natural.height,
-				&natural.x, &natural.y);
-		}
+	if (view->maximized != VIEW_AXIS_BOTH
+			&& !box_intersects(&box, &natural)) {
+		view_compute_centered_position(view, NULL,
+			natural.width, natural.height,
+			&natural.x, &natural.y);
 	}
 
 	if (view->ssd_enabled) {
@@ -1993,6 +2082,8 @@ view_placement_parse(const char *policy)
 		return LAB_PLACE_CURSOR;
 	} else if (!strcasecmp(policy, "center")) {
 		return LAB_PLACE_CENTER;
+	} else if (!strcasecmp(policy, "cascade")) {
+		return LAB_PLACE_CASCADE;
 	}
 
 	return LAB_PLACE_INVALID;

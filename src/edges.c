@@ -5,6 +5,7 @@
 #include <wlr/util/edges.h>
 #include <wlr/util/box.h>
 #include "common/border.h"
+#include "common/box.h"
 #include "common/macros.h"
 #include "config/rcxml.h"
 #include "edges.h"
@@ -466,9 +467,8 @@ edges_find_outputs(struct border *nearest_edges, struct view *view,
 		struct wlr_box usable =
 			output_usable_area_in_layout_coords(o);
 
-		struct wlr_box ol;
-		if (!wlr_box_intersection(&ol, &origin, &usable) &&
-				!wlr_box_intersection(&ol, &target, &usable)) {
+		if (!box_intersects(&origin, &usable)
+				&& !box_intersects(&target, &usable)) {
 			continue;
 		}
 

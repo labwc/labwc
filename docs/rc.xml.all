@@ -18,6 +18,11 @@
 
   <placement>
     <policy>center</policy>
+    <!--
+      When <placement><policy> is "cascade", the offset for cascading new
+      windows can be overwritten like this:
+      <cascadeOffset x="40" y="30" />
+    -->
   </placement>
 
   <!-- <font><theme> can be defined without an attribute to set all places -->

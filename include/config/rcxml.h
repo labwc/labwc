@@ -19,7 +19,8 @@ enum view_placement_policy {
 	LAB_PLACE_INVALID = 0,
 	LAB_PLACE_CENTER,
 	LAB_PLACE_CURSOR,
-	LAB_PLACE_AUTOMATIC
+	LAB_PLACE_AUTOMATIC,
+	LAB_PLACE_CASCADE,
 };
 
 enum adaptive_sync_mode {
@@ -56,6 +57,8 @@ struct rcxml {
 	bool reuse_output_mode;
 	enum view_placement_policy placement_policy;
 	bool xwayland_persistence;
+	int placement_cascade_offset_x;
+	int placement_cascade_offset_y;
 
 	/* focus */
 	bool focus_follow_mouse;

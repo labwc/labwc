@@ -43,9 +43,6 @@ lab_wlr_scene_get_prev_node(struct wlr_scene_node *node)
 }
 
 
-/* TODO: move to rc. (or theme?) settings */
-#define magnifier_border 1      /* in pixels */
-
 static void
 magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
 {
@@ -152,15 +149,20 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 
 	/* Borders */
 	struct wlr_box border_box = {
-		.x = ox - (width / 2 + magnifier_border),
-		.y = oy - (height / 2 + magnifier_border),
-		.width = (width + magnifier_border * 2),
-		.height = (height + magnifier_border * 2),
+		.x = ox - (width / 2 + rc.mag_border_width),
+		.y = oy - (height / 2 + rc.mag_border_width),
+		.width = (width + rc.mag_border_width * 2),
+		.height = (height + rc.mag_border_width * 2),
 	};
 	struct wlr_render_rect_options bg_opts = {
 		.box = border_box,
 		/* TODO: make this a rc. setting */
-		.color = (struct wlr_render_color) { 1, 0, 0, 1 },
+		.color = (struct wlr_render_color) {
+			.r = rc.mag_border_col.r / 255.0,
+			.g = rc.mag_border_col.g / 255.0,
+			.b = rc.mag_border_col.b / 255.0,
+			.a = 1
+		},
 		.clip = NULL,
 	};
 	wlr_render_pass_add_rect(tmp_render_pass, &bg_opts);

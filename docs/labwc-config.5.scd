@@ -931,7 +931,8 @@ situation.
 *<magnifier><initScale>*
 	The number of times by which the magnified image is scaled. This
 	is the default value at boot time; this can be modified at run-time
-	in a keyboard or mouse binding by calling SetMagnification.
+	in a keyboard or mouse binding by calling 'SetMagnification scale up'
+	or 'SetMagnification scale down'.
 
 *<magnifier><borderColour>* [#RRGGBB]
 	The colour of the magnfier border as an RGB value.

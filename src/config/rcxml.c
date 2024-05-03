@@ -1034,6 +1034,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "Missing 'button' argument for tablet button mapping");
 		}
+	} else if (!strcasecmp(nodename, "scale.magnifier")) {
+		rc.mag_scale = atoi(content);
+	} else if (!strcasecmp(nodename, "size.magnifier")) {
+		rc.mag_size = atoi(content);
 	}
 }
 

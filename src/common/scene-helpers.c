@@ -191,7 +191,8 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		},
 		.alpha = NULL,
 		.clip = NULL,
-		.filter_mode = theme->mag_filter ? WLR_SCALE_FILTER_BILINEAR : WLR_SCALE_FILTER_NEAREST,
+		.filter_mode = theme->mag_filter ? WLR_SCALE_FILTER_BILINEAR
+			: WLR_SCALE_FILTER_NEAREST,
 	};
 	wlr_render_pass_add_texture(tmp_render_pass, &opts);
 	if (!wlr_render_pass_submit(tmp_render_pass)) {

@@ -744,6 +744,15 @@ static void
 xwayland_view_move_to_front(struct view *view)
 {
 	view_impl_move_to_front(view);
+
+	if (view->shaded) {
+		/*
+		 * Ensure that we don't raise a shaded window
+		 * to the front which then steals mouse events.
+		 */
+		return;
+	}
+
 	/*
 	 * Update XWayland stacking order.
 	 *
@@ -754,6 +763,7 @@ xwayland_view_move_to_front(struct view *view)
 	 */
 	wlr_xwayland_surface_restack(xwayland_surface_from_view(view),
 		NULL, XCB_STACK_MODE_ABOVE);
+
 	/* Restack unmanaged surfaces on top */
 	struct wl_list *list = &view->server->unmanaged_surfaces;
 	struct xwayland_unmanaged *u;
@@ -851,6 +861,20 @@ xwayland_view_get_pid(struct view *view)
 	return xwayland_surface->pid;
 }
 
+static void
+xwayland_view_shade(struct view *view, bool shaded)
+{
+	assert(view);
+
+	/* Ensure that clicks on some xwayland surface don't end up on the shaded one */
+	if (shaded) {
+		wlr_xwayland_surface_restack(xwayland_surface_from_view(view),
+			NULL, XCB_STACK_MODE_BELOW);
+	} else {
+		xwayland_adjust_stacking_order(view->server);
+	}
+}
+
 static const struct view_impl xwayland_view_impl = {
 	.configure = xwayland_view_configure,
 	.close = xwayland_view_close,
@@ -863,6 +887,7 @@ static const struct view_impl xwayland_view_impl = {
 	.minimize = xwayland_view_minimize,
 	.move_to_front = xwayland_view_move_to_front,
 	.move_to_back = xwayland_view_move_to_back,
+	.shade = xwayland_view_shade,
 	.get_root = xwayland_view_get_root,
 	.append_children = xwayland_view_append_children,
 	.get_size_hints = xwayland_view_get_size_hints,

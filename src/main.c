@@ -80,6 +80,35 @@ send_signal_to_labwc_pid(int signal)
 	kill(pid, signal);
 }
 
+struct idle_ctx {
+	struct server *server;
+	const char *primary_client;
+	const char *startup_cmd;
+};
+
+static void
+idle_callback(void *data)
+{
+	/* Idle callbacks destroy automatically once triggerd */
+	struct idle_ctx *ctx = data;
+
+	/* Start session-manager if one is specified by -S|--session */
+	if (ctx->primary_client) {
+		ctx->server->primary_client_pid = spawn_primary_client(ctx->primary_client);
+		if (ctx->server->primary_client_pid < 0) {
+			wlr_log(WLR_ERROR, "fatal error starting primary client: %s",
+				ctx->primary_client);
+			wl_display_terminate(ctx->server->wl_display);
+			return;
+		}
+	}
+
+	session_autostart_init(ctx->server);
+	if (ctx->startup_cmd) {
+		spawn_async_no_shell(ctx->startup_cmd);
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -177,24 +206,16 @@ main(int argc, char *argv[])
 
 	menu_init(&server);
 
-	/* Start session-manager if one is specified by -S|--session */
-	if (primary_client) {
-		server.primary_client_pid = spawn_primary_client(primary_client);
-		if (server.primary_client_pid < 0) {
-			wlr_log(WLR_ERROR, "fatal error starting primary client: %s",
-				primary_client);
-			goto out;
-		}
-	}
-
-	session_autostart_init(&server);
-	if (startup_cmd) {
-		spawn_async_no_shell(startup_cmd);
-	}
+	/* Delay startup of applications until the event loop is ready */
+	struct idle_ctx idle_ctx = {
+		.server = &server,
+		.primary_client = primary_client,
+		.startup_cmd = startup_cmd
+	};
+	wl_event_loop_add_idle(server.wl_event_loop, idle_callback, &idle_ctx);
 
 	wl_display_run(server.wl_display);
 
-out:
 	session_shutdown(&server);
 
 	server_finish(&server);

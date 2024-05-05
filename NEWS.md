@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2024-04-22 | [unreleased]  | 0.17.2          | 21300         |
+| 2024-05-10 | [0.7.2]       | 0.17.3          | 21368         |
 | 2024-03-01 | [0.7.1]       | 0.17.1          | 18624         |
 | 2023-12-22 | [0.7.0]       | 0.17.1          | 16576         |
 | 2023-11-25 | [0.6.6]       | 0.16.2          | 15796         |
@@ -28,7 +28,7 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## [unreleased]
+## [0.7.2]
 
 This release is shaping up to be the second in a row that is larger than
 usual in terms of both fixes and new features. Significant additions
@@ -41,6 +41,9 @@ contributions from others as noted in the log.
 
 ### Added
 
+- Add `<menu><ignoreButtonReleasePeriod>` to prevent clicks with small movements
+  from inadvertantly closing a menu or selecting a menu item. This is the
+  equivalent of `<menu><hideDelay>` on Openbox. #1760
 - Support drop-shadows (disabled by default) for windows using server-side
   decorations. Written-by: @cillian64
 
@@ -65,7 +68,7 @@ window.inactive.shadow.color: #00000040
 - Add `none` branch to the `ForEach` action. Written-by: @nicolas3121
   #1298
 
-```
+```xml
 <action name="ForEach">
   <query identifier="foo"/>
   <then>
@@ -194,6 +197,20 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 
 ### Fixed
 
+- Prevent Chromium from crashing when started after a virtual keyboard is
+  destroyed. #1789
+- Fix top-layer not showing when there is a minimized full-screen window
+  Written-by: @fberg
+- Prevent the following whilst window-switcher cycling (#1640):
+  - Cursor actions on the window previews
+  - Request-xdg-activation
+  - Foreign toplevel request-activate
+  - XWayland request-activate
+- Prevent shaded XWayland windows from getting cursor events. #1753
+- Fix menu-parser use-after-free bug. #1780
+- Update top layer visibility on map to fix bug with Steam's Big Picture Mode
+  window which requests fullscreen before mapping. #1763
+- Do not update server-side-decoration if window is too small. #1762
 - Fix crash on `Kill` action with XWayland windows. #1739
 - Update workspaces on `--reconfigure`. Written-by: @tokyo4j
 - Notify idle manager when emulating cursor movement.
@@ -226,8 +243,9 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 - Fallback on layout 'us' if a keymap cannot be created for the provided
   `XKB_DEFAULT_LAYOUT`. If keymap still cannot be created, exit with a
   helpful message instead of a segv crash.
-- Reload cursor theme and size on reconfigure. Written-by: @spl237
-  Issue #1587
+- Reload cursor theme and size on reconfigure. This gives instant feedback, but
+  only works for server side cursors or clients using the cursor-shape protocol.
+  Written-by: @spl237 and @Consolatis. #1587 #1619
 - Fix a number of surface-focus related short-comings:
   - Handle cursor-button-press on layer-shell subsurfaces and fix bug in
     `get_cursor_context()` which resulted in layer-surfaces not being
@@ -247,6 +265,7 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 
 ### Changed
 
+- Support press-move-release when interacting with the labwc root-menu. #1750
 - In theme settings, mark color definitions in the format `#rrggbb aaa` as
   deprecated (still supported, but will removed in some future release) in
   favor of the more commonly used `#rrggbbaa`.
@@ -1326,7 +1345,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.7.1...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.7.2...HEAD
+[0.7.2]: https://github.com/labwc/labwc/compare/0.7.1...0.7.2
 [0.7.1]: https://github.com/labwc/labwc/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/labwc/labwc/compare/0.6.6...0.7.0
 [0.6.6]: https://github.com/labwc/labwc/compare/0.6.5...0.6.6

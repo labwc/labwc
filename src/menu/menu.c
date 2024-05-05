@@ -960,6 +960,11 @@ void
 menu_finish(struct server *server)
 {
 	menu_free_from(server, NULL);
+
+	/* Reset state vars for starting fresh when Reload is triggered */
+	current_item = NULL;
+	current_item_action = NULL;
+	current_menu = NULL;
 }
 
 /* Sets selection (or clears selection if passing NULL) */

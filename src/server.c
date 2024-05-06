@@ -329,6 +329,18 @@ server_init(struct server *server)
 	signal(SIGPIPE, SIG_IGN);
 
 	/*
+	 * Some day in the future, signal handlers may be assigned to these
+	 * SIGUSR? signals. To give users a chance to develop extensions bound
+	 * to these signals, make signalling labwc with SIGUSR[12] "safe" by
+	 * ignoring these signals (as one may accidentally SIGUSR a labwc
+	 * process not supporting such extensions).
+	 * When signal handler assignment(s) is made, the corresponding
+	 * signal(SIGUSR?, SIG_DFL); call(s) in spawn.c can be removed.
+	 */
+	signal(SIGUSR1, SIG_IGN);
+	signal(SIGUSR2, SIG_IGN);
+
+	/*
 	 * The backend is a feature which abstracts the underlying input and
 	 * output hardware. The autocreate option will choose the most suitable
 	 * backend based on the current environment, such as opening an x11

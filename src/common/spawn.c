@@ -23,6 +23,8 @@ reset_signals_and_limits(void)
 
 	/* Restore ignored signals */
 	signal(SIGPIPE, SIG_DFL);
+	signal(SIGUSR1, SIG_DFL);
+	signal(SIGUSR2, SIG_DFL);
 }
 
 static bool

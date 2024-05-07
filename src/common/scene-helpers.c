@@ -89,10 +89,11 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	}
 
 	if (theme->mag_fullscreen) {
-		// The lines below were the first attempt at enabling fullscreen (with no other changes required).
-		// They appeared to work with a 4K monitor set to 1080p, but when the monitor was set to native
-		// 4K, they resulted in a corrupt magnifier. Keeping here for the time being in case they are useful later...
-		//int width = output_buffer->width * 2 + 1;			
+		// The lines below were the first attempt at enabling fullscreen (with no other changes
+		// required). They appeared to work with a 4K monitor set to 1080p, but when the monitor
+		// was set to native 4K, they resulted in a corrupt magnifier. Keeping here for the time
+		// being in case they are useful later...
+		//int width = output_buffer->width * 2 + 1;
 		//int height = output_buffer->height * 2 + 1;
 		//double x = ox - ((width - 1) / 2.0);
 		//double y = oy - ((height - 1) / 2.0);
@@ -204,25 +205,25 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		assert(tmp_texture);
 	}
 	if (theme->mag_fullscreen) {
-			src_box.x = ox / mag_scale;
-			src_box.y = oy / mag_scale;
-			src_box.width = width / mag_scale;
-			src_box.height = height / mag_scale;
+		src_box.x = ox / mag_scale;
+		src_box.y = oy / mag_scale;
+		src_box.width = width / mag_scale;
+		src_box.height = height / mag_scale;
 
-			dst_box.x = 0;
-			dst_box.y = 0;
-			dst_box.width = width;
-			dst_box.height = height;
+		dst_box.x = 0;
+		dst_box.y = 0;
+		dst_box.width = width;
+		dst_box.height = height;
 	} else {
-			src_box.x = width * (mag_scale - 1) / (2 * mag_scale);
-			src_box.y = height * (mag_scale - 1) / (2 * mag_scale);
-			src_box.width = width / mag_scale;
-			src_box.height = height / mag_scale;
+		src_box.x = width * (mag_scale - 1) / (2 * mag_scale);
+		src_box.y = height * (mag_scale - 1) / (2 * mag_scale);
+		src_box.width = width / mag_scale;
+		src_box.height = height / mag_scale;
 
-			dst_box.x = ox - (width / 2);
-			dst_box.y = oy - (height / 2);
-			dst_box.width = width;
-			dst_box.height = height;
+		dst_box.x = ox - (width / 2);
+		dst_box.y = oy - (height / 2);
+		dst_box.width = width;
+		dst_box.height = height;
 	}
 
 	opts = (struct wlr_render_texture_options) {

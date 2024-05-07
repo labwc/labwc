@@ -278,25 +278,25 @@ elements are not listed here, but are supported.
 	backward compatibility as some themes still contain it.
 
 *magnifier.width*
-	Width of magnifier window in pixels.
+	Width of magnifier window in pixels. Default is 400.
 
 *magnifier.height*
-	Height of magnifier window in pixels.
+	Height of magnifier window in pixels. Default is 400.
 
 *magnifier.border.width*
-	Width of magnifier window border in pixels.
+	Width of magnifier window border in pixels. Default is 1.
 
 *magnifier.border.color*
-	Color of the magnfier window border.
+	Color of the magnfier window border. Default is #ff0000 (red).
 
 *magnifier.init-scale*
 	Initial number of times by which magnified image is scaled. Value
 	is the default at boot; can be modified at run-time	in a keyboard
-	or mouse binding by calling 'ZoomIn' or 'ZoomOut'.
+	or mouse binding by calling 'ZoomIn' or 'ZoomOut'. Default is x2.
 
 *magnifier.filter*
 	Set to 1 to apply a bilinear filter to the magnified image.
-	Set to 0 to use nearest-neighbour.
+	Set to 0 to use nearest-neighbour. Default is 1 - bilinear filtered.
 
 # BUTTONS
 

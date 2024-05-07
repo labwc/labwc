@@ -456,10 +456,13 @@ int view_effective_height(struct view *view, bool use_pending);
 void view_center(struct view *view, const struct wlr_box *ref);
 
 /**
- * view_place_initial - apply initial placement strategy to view
+ * view_place_by_policy - apply placement strategy to view
  * @view: view to be placed
+ * @allow_cursor: set to false to ignore center-on-cursor policy
+ * @policy: placement policy to apply
  */
-void view_place_initial(struct view *view, bool allow_cursor);
+void view_place_by_policy(struct view *view, bool allow_cursor,
+	enum view_placement_policy);
 void view_constrain_size_to_that_of_usable_area(struct view *view);
 
 void view_restore_to(struct view *view, struct wlr_box geometry);
@@ -525,6 +528,7 @@ struct output *view_get_adjacent_output(struct view *view, enum view_edge edge,
 	bool wrap);
 enum view_axis view_axis_parse(const char *direction);
 enum view_edge view_edge_parse(const char *direction);
+enum view_placement_policy view_placement_parse(const char *policy);
 
 /* xdg.c */
 struct wlr_xdg_surface *xdg_surface_from_view(struct view *view);

@@ -422,6 +422,19 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		break;
+	case ACTION_TYPE_AUTO_PLACE:
+		if (!strcmp(argument, "policy")) {
+			enum view_placement_policy policy =
+				view_placement_parse(content);
+			if (policy == LAB_PLACE_INVALID) {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+						action_names[action->type], argument, content);
+			} else {
+				action_arg_add_int(action, argument, policy);
+			}
+			goto cleanup;
+		}
+		break;
 	}
 
 	wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s'",
@@ -1030,10 +1043,10 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_AUTO_PLACE:
 			if (view) {
-				struct wlr_box geometry = view->pending;
-				if (placement_find_best(view, &geometry)) {
-					view_move(view, geometry.x, geometry.y);
-				}
+				enum view_placement_policy policy =
+					action_get_int(action, "policy", LAB_PLACE_AUTOMATIC);
+				view_place_by_policy(view,
+					/* allow_cursor */ true, policy);
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_TEARING:

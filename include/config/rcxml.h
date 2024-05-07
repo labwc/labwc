@@ -16,7 +16,8 @@
 #include "theme.h"
 
 enum view_placement_policy {
-	LAB_PLACE_CENTER = 0,
+	LAB_PLACE_INVALID = 0,
+	LAB_PLACE_CENTER,
 	LAB_PLACE_CURSOR,
 	LAB_PLACE_AUTOMATIC
 };

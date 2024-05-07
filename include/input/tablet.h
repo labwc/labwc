@@ -13,11 +13,11 @@ struct drawing_tablet {
 	struct wlr_tablet *tablet;
 	double x, y;
 	struct {
+		struct wl_listener proximity;
 		struct wl_listener axis;
 		struct wl_listener tip;
 		struct wl_listener button;
 		struct wl_listener destroy;
-		// no interest in proximity events
 	} handlers;
 };
 

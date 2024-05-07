@@ -11,6 +11,18 @@
 #include "input/cursor.h"
 #include "input/tablet.h"
 
+static bool
+tool_supports_absolute_motion(struct wlr_tablet_tool *tool)
+{
+	switch (tool->type) {
+	case WLR_TABLET_TOOL_TYPE_MOUSE:
+	case WLR_TABLET_TOOL_TYPE_LENS:
+		return false;
+	default:
+		return true;
+	}
+}
+
 static void
 adjust_for_tablet_area(double tablet_width, double tablet_height,
 		struct wlr_fbox box, double *x, double *y)
@@ -64,10 +76,27 @@ adjust_for_rotation(enum rotation rotation, double *x, double *y)
 }
 
 static void
+handle_proximity(struct wl_listener *listener, void *data)
+{
+	struct wlr_tablet_tool_proximity_event *ev = data;
+
+	if (!tool_supports_absolute_motion(ev->tool)) {
+		if (ev->state == WLR_TABLET_TOOL_PROXIMITY_IN) {
+			wlr_log(WLR_INFO, "ignoring not supporting tablet tool");
+		}
+	}
+}
+
+static void
 handle_axis(struct wl_listener *listener, void *data)
 {
 	struct wlr_tablet_tool_axis_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
+
+	if (!tool_supports_absolute_motion(ev->tool)) {
+		return;
+	}
+
 	if (ev->updated_axes & (WLR_TABLET_TOOL_AXIS_X | WLR_TABLET_TOOL_AXIS_Y)) {
 		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_X) {
 			tablet->x = ev->x;
@@ -127,6 +156,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 
 	wl_list_remove(&tablet->handlers.tip.link);
 	wl_list_remove(&tablet->handlers.button.link);
+	wl_list_remove(&tablet->handlers.proximity.link);
 	wl_list_remove(&tablet->handlers.axis.link);
 	wl_list_remove(&tablet->handlers.destroy.link);
 	free(tablet);
@@ -145,6 +175,7 @@ tablet_init(struct seat *seat, struct wlr_input_device *wlr_device)
 	wlr_log(WLR_INFO, "tablet dimensions: %.2fmm x %.2fmm",
 		tablet->tablet->width_mm, tablet->tablet->height_mm);
 	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, axis);
+	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, proximity);
 	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, tip);
 	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, button);
 	CONNECT_SIGNAL(wlr_device, &tablet->handlers, destroy);

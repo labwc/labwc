@@ -89,10 +89,10 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	}
 
 	if (theme->mag_fullscreen) {
-		// The lines below were the first attempt at enabling fullscreen (with no other changes
-		// required). They appeared to work with a 4K monitor set to 1080p, but when the monitor
-		// was set to native 4K, they resulted in a corrupt magnifier. Keeping here for the time
-		// being in case they are useful later...
+		// The lines below were the first attempt at enabling fullscreen (with no
+		// other changes required). They appeared to work with a 4K monitor set to
+		// 1080p, but when the monitor was set to native 4K, they resulted in a
+		// corrupt magnifier. Keeping here for now in case they are useful later...
 		//int width = output_buffer->width * 2 + 1;
 		//int height = output_buffer->height * 2 + 1;
 		//double x = ox - ((width - 1) / 2.0);

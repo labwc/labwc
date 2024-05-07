@@ -233,6 +233,9 @@ desktop_update_top_layer_visiblity(struct server *server)
 	enum lab_view_criteria criteria =
 		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE | LAB_VIEW_CRITERIA_FULLSCREEN;
 	for_each_view(view, &server->views, criteria) {
+		if (view->minimized) {
+			continue;
+		}
 		if (!output_is_usable(view->output)) {
 			continue;
 		}

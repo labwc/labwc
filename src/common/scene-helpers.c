@@ -204,26 +204,22 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		tmp_texture = wlr_texture_from_buffer(server->renderer, tmp_buffer);
 		assert(tmp_texture);
 	}
-	if (theme->mag_fullscreen) {
-		src_box.x = ox / mag_scale;
-		src_box.y = oy / mag_scale;
-		src_box.width = width / mag_scale;
-		src_box.height = height / mag_scale;
 
+	src_box.width = width / mag_scale;
+	src_box.height = height / mag_scale;
+	dst_box.width = width;
+	dst_box.height = height;
+
+	if (theme->mag_fullscreen) {
+		src_box.x = MAX(0, MIN(ox - width / (2 * mag_scale), width * (mag_scale - 1) / mag_scale));
+		src_box.y = MAX(0, MIN(oy - height / (2 * mag_scale), height * (mag_scale - 1) / mag_scale));
 		dst_box.x = 0;
 		dst_box.y = 0;
-		dst_box.width = width;
-		dst_box.height = height;
 	} else {
 		src_box.x = width * (mag_scale - 1) / (2 * mag_scale);
 		src_box.y = height * (mag_scale - 1) / (2 * mag_scale);
-		src_box.width = width / mag_scale;
-		src_box.height = height / mag_scale;
-
 		dst_box.x = ox - (width / 2);
 		dst_box.y = oy - (height / 2);
-		dst_box.width = width;
-		dst_box.height = height;
 	}
 
 	opts = (struct wlr_render_texture_options) {

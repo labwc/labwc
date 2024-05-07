@@ -648,6 +648,11 @@ view_minimize(struct view *view, bool minimized)
 	struct view *root = view_get_root(view);
 	_minimize(root, minimized);
 	minimize_sub_views(root, minimized);
+
+	/* Enable top-layer when full-screen views are minimized */
+	if (view->fullscreen && view->output) {
+		desktop_update_top_layer_visiblity(view->server);
+	}
 }
 
 bool

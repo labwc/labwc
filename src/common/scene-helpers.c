@@ -47,6 +47,11 @@ lab_wlr_scene_get_prev_node(struct wlr_scene_node *node)
 static void
 magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
 {
+	int width, height;
+	double x, y;
+	struct wlr_box border_box, dst_box;
+	struct wlr_fbox src_box;
+
 	/* Reuse a single scratch buffer */
 	static struct wlr_buffer *tmp_buffer = NULL;
 	static struct wlr_texture *tmp_texture = NULL;
@@ -75,14 +80,32 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	wlr_output_layout_output_coords(server->output_layout, output->wlr_output, &ox, &oy);
 	ox *= output->wlr_output->scale;
 	oy *= output->wlr_output->scale;
+	if (ox < 0 || oy < 0 || ox > output_buffer->width || oy > output_buffer->height) {
+		return;
+	}
 
 	if (!mag_scale) {
 		mag_scale = theme->mag_scale;
 	}
-	int width = theme->mag_width + 1;
-	int height = theme->mag_height + 1;
-	double x = ox - (theme->mag_width / 2.0);
-	double y = oy - (theme->mag_height / 2.0);
+
+	if (theme->mag_fullscreen) {
+		// The lines below were the first attempt at enabling fullscreen (with no other changes required).
+		// They appeared to work with a 4K monitor set to 1080p, but when the monitor was set to native
+		// 4K, they resulted in a corrupt magnifier. Keeping here for the time being in case they are useful later...
+		//int width = output_buffer->width * 2 + 1;			
+		//int height = output_buffer->height * 2 + 1;
+		//double x = ox - ((width - 1) / 2.0);
+		//double y = oy - ((height - 1) / 2.0);
+		width = output_buffer->width;
+		height = output_buffer->height;
+		x = 0;
+		y = 0;
+	} else {
+		width = theme->mag_width + 1;
+		height = theme->mag_height + 1;
+		x = ox - (theme->mag_width / 2.0);
+		y = oy - (theme->mag_height / 2.0);
+	}
 	double cropped_width = width;
 	double cropped_height = height;
 	double dst_x = 0;
@@ -152,43 +175,60 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		server->renderer, output_buffer, NULL);
 
 	/* Borders */
-	struct wlr_box border_box = {
-		.x = ox - (width / 2 + theme->mag_border_width),
-		.y = oy - (height / 2 + theme->mag_border_width),
-		.width = (width + theme->mag_border_width * 2),
-		.height = (height + theme->mag_border_width * 2),
-	};
-	struct wlr_render_rect_options bg_opts = {
-		.box = border_box,
-		.color = (struct wlr_render_color) {
-			.r = theme->mag_border_color[0],
-			.g = theme->mag_border_color[1],
-			.b = theme->mag_border_color[2],
-			.a = theme->mag_border_color[3]
-		},
-		.clip = NULL,
-	};
-	wlr_render_pass_add_rect(tmp_render_pass, &bg_opts);
+	if (theme->mag_fullscreen) {
+		border_box.x = 0;
+		border_box.y = 0;
+		border_box.width = width;
+		border_box.height = height;
+	} else {
+		border_box.x = ox - (width / 2 + theme->mag_border_width);
+		border_box.y = oy - (height / 2 + theme->mag_border_width);
+		border_box.width = (width + theme->mag_border_width * 2);
+		border_box.height = (height + theme->mag_border_width * 2);
+		struct wlr_render_rect_options bg_opts = {
+			.box = border_box,
+			.color = (struct wlr_render_color) {
+				.r = theme->mag_border_color[0],
+				.g = theme->mag_border_color[1],
+				.b = theme->mag_border_color[2],
+				.a = theme->mag_border_color[3]
+			},
+			.clip = NULL,
+		};
+		wlr_render_pass_add_rect(tmp_render_pass, &bg_opts);
+	}
 
 	/* Paste the magnified result back into the output buffer */
 	if (!tmp_texture) {
 		tmp_texture = wlr_texture_from_buffer(server->renderer, tmp_buffer);
 		assert(tmp_texture);
 	}
+	if (theme->mag_fullscreen) {
+			src_box.x = ox / mag_scale;
+			src_box.y = oy / mag_scale;
+			src_box.width = width / mag_scale;
+			src_box.height = height / mag_scale;
+
+			dst_box.x = 0;
+			dst_box.y = 0;
+			dst_box.width = width;
+			dst_box.height = height;
+	} else {
+			src_box.x = width * (mag_scale - 1) / (2 * mag_scale);
+			src_box.y = height * (mag_scale - 1) / (2 * mag_scale);
+			src_box.width = width / mag_scale;
+			src_box.height = height / mag_scale;
+
+			dst_box.x = ox - (width / 2);
+			dst_box.y = oy - (height / 2);
+			dst_box.width = width;
+			dst_box.height = height;
+	}
+
 	opts = (struct wlr_render_texture_options) {
 		.texture = tmp_texture,
-		.src_box = (struct wlr_fbox) {
-			.x = width * (mag_scale - 1) / (2 * mag_scale),
-			.y = height * (mag_scale - 1) / (2 * mag_scale),
-			.width = width / mag_scale,
-			.height = height / mag_scale,
-		},
-		.dst_box = (struct wlr_box) {
-			.x = ox - (width / 2),
-			.y = oy - (height / 2),
-			.width = width,
-			.height = height,
-		},
+		.src_box = src_box,
+		.dst_box = dst_box,
 		.alpha = NULL,
 		.clip = NULL,
 		.filter_mode = theme->mag_filter ? WLR_SCALE_FILTER_BILINEAR

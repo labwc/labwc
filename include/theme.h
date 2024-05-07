@@ -147,6 +147,7 @@ struct theme {
 	float mag_border_color[4];
 	int mag_border_width;
 	int mag_filter;
+	int mag_fullscreen;
 };
 
 struct server;

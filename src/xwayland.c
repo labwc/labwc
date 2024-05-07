@@ -571,7 +571,8 @@ set_initial_position(struct view *view,
 		view_constrain_size_to_that_of_usable_area(view);
 
 		if (view_is_floating(view)) {
-			view_place_initial(view, /* allow_cursor */ true);
+			view_place_by_policy(view,
+				/* allow_cursor */ true, rc.placement_policy);
 		} else {
 			/*
 			 * View is maximized/fullscreen. Center the

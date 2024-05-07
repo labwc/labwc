@@ -833,12 +833,13 @@ view_center(struct view *view, const struct wlr_box *ref)
 }
 
 void
-view_place_initial(struct view *view, bool allow_cursor)
+view_place_by_policy(struct view *view, bool allow_cursor,
+		enum view_placement_policy policy)
 {
-	if (allow_cursor && rc.placement_policy == LAB_PLACE_CURSOR) {
+	if (allow_cursor && policy == LAB_PLACE_CURSOR) {
 		view_move_to_cursor(view);
 		return;
-	} else if (rc.placement_policy == LAB_PLACE_AUTOMATIC) {
+	} else if (policy == LAB_PLACE_AUTOMATIC) {
 		struct wlr_box geometry = view->pending;
 		if (placement_find_best(view, &geometry)) {
 			view_move(view, geometry.x, geometry.y);
@@ -1866,6 +1867,24 @@ view_edge_parse(const char *direction)
 	}
 }
 
+enum view_placement_policy
+view_placement_parse(const char *policy)
+{
+	if (!policy) {
+		return LAB_PLACE_CENTER;
+	}
+
+	if (!strcasecmp(policy, "automatic")) {
+		return LAB_PLACE_AUTOMATIC;
+	} else if (!strcasecmp(policy, "cursor")) {
+		return LAB_PLACE_CURSOR;
+	} else if (!strcasecmp(policy, "center")) {
+		return LAB_PLACE_CENTER;
+	}
+
+	return LAB_PLACE_INVALID;
+}
+
 void
 view_snap_to_edge(struct view *view, enum view_edge edge,
 			bool across_outputs, bool store_natural_geometry)
@@ -1969,7 +1988,8 @@ view_move_to_output(struct view *view, struct output *output)
 		struct wlr_box output_area = output_usable_area_in_layout_coords(output);
 		view->pending.x = output_area.x;
 		view->pending.y = output_area.y;
-		view_place_initial(view, /* allow_cursor */ false);
+		view_place_by_policy(view,
+				/* allow_cursor */ false, rc.placement_policy);
 	} else if (view->maximized != VIEW_AXIS_NONE) {
 		view_apply_maximized_geometry(view);
 	} else if (view->tiled) {

@@ -44,6 +44,17 @@ lab_wlr_scene_get_prev_node(struct wlr_scene_node *node)
 	return prev;
 }
 
+static double constrain (double lower, double in, double upper)
+{
+	if (in < lower) {
+		return lower;
+	}
+	if (in > upper) {
+		return upper;
+	}
+	return in;
+}
+
 static void
 magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
 {
@@ -211,8 +222,10 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	dst_box.height = height;
 
 	if (theme->mag_fullscreen) {
-		src_box.x = MAX(0, MIN(ox - width / (2 * mag_scale), width * (mag_scale - 1) / mag_scale));
-		src_box.y = MAX(0, MIN(oy - height / (2 * mag_scale), height * (mag_scale - 1) / mag_scale));
+		src_box.x = constrain (0.0, ox - (ox / mag_scale),
+			width * (mag_scale - 1.0) / mag_scale);
+		src_box.y = constrain (0.0, oy - (oy / mag_scale),
+			height * (mag_scale - 1.0) / mag_scale);
 		dst_box.x = 0;
 		dst_box.y = 0;
 	} else {

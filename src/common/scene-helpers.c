@@ -14,7 +14,8 @@
 #include "common/macros.h"
 
 static bool magnify_on;
-static int mag_scale = 0;
+static double mag_scale = 0.0;
+#define MAG_INCREMENT 0.2
 
 struct wlr_surface *
 lab_wlr_surface_from_node(struct wlr_scene_node *node)
@@ -100,7 +101,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		return;
 	}
 
-	if (!mag_scale) {
+	if (mag_scale == 0.0) {
 		mag_scale = theme->mag_scale;
 	}
 
@@ -306,14 +307,14 @@ magnify_set_scale(enum magnify_dir dir)
 {
 	if (dir == MAGNIFY_INCREASE) {
 		if (magnify_on) {
-			mag_scale++;
+			mag_scale += MAG_INCREMENT;
 		} else {
 			magnify_on = true;
-			mag_scale = 2;
+			mag_scale = 1.0 + MAG_INCREMENT;
 		}
 	} else {
-		if (magnify_on && mag_scale > 2) {
-			mag_scale--;
+		if (magnify_on && mag_scale > 1.0 + MAG_INCREMENT) {
+			mag_scale -= MAG_INCREMENT;
 		} else {
 			magnify_on = false;
 		}

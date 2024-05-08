@@ -44,7 +44,7 @@ lab_wlr_scene_get_prev_node(struct wlr_scene_node *node)
 	return prev;
 }
 
-static double constrain (double lower, double in, double upper)
+static double constrain(double lower, double in, double upper)
 {
 	if (in < lower) {
 		return lower;
@@ -62,6 +62,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	double x, y;
 	struct wlr_box border_box, dst_box;
 	struct wlr_fbox src_box;
+	bool fullscreen = false;
 
 	/* Reuse a single scratch buffer */
 	static struct wlr_buffer *tmp_buffer = NULL;
@@ -91,7 +92,11 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	wlr_output_layout_output_coords(server->output_layout, output->wlr_output, &ox, &oy);
 	ox *= output->wlr_output->scale;
 	oy *= output->wlr_output->scale;
-	if (ox < 0 || oy < 0 || ox > output_buffer->width || oy > output_buffer->height) {
+	if (theme->mag_width == -1 || theme->mag_height == -1) {
+		fullscreen = true;
+	}
+	if ((ox < 0 || oy < 0 || ox >= output_buffer->width || oy >= output_buffer->height)
+		&& fullscreen) {
 		return;
 	}
 
@@ -99,7 +104,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		mag_scale = theme->mag_scale;
 	}
 
-	if (theme->mag_fullscreen) {
+	if (fullscreen) {
 		// The lines below were the first attempt at enabling fullscreen (with no
 		// other changes required). They appeared to work with a 4K monitor set to
 		// 1080p, but when the monitor was set to native 4K, they resulted in a
@@ -187,7 +192,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		server->renderer, output_buffer, NULL);
 
 	/* Borders */
-	if (theme->mag_fullscreen) {
+	if (fullscreen) {
 		border_box.x = 0;
 		border_box.y = 0;
 		border_box.width = width;
@@ -221,10 +226,10 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	dst_box.width = width;
 	dst_box.height = height;
 
-	if (theme->mag_fullscreen) {
-		src_box.x = constrain (0.0, ox - (ox / mag_scale),
+	if (fullscreen) {
+		src_box.x = constrain(0.0, ox - (ox / mag_scale),
 			width * (mag_scale - 1.0) / mag_scale);
-		src_box.y = constrain (0.0, oy - (oy / mag_scale),
+		src_box.y = constrain(0.0, oy - (oy / mag_scale),
 			height * (mag_scale - 1.0) / mag_scale);
 		dst_box.x = 0;
 		dst_box.y = 0;

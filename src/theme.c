@@ -853,9 +853,6 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "magnifier.filter")) {
 		theme->mag_filter = atoi(value);
 	}
-	if (match_glob(key, "magnifier.fullscreen")) {
-		theme->mag_fullscreen = atoi(value);
-	}
 }
 
 static void

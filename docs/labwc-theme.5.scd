@@ -279,9 +279,11 @@ elements are not listed here, but are supported.
 
 *magnifier.width*
 	Width of magnifier window in pixels. Default is 400.
+	Set to -1 to use fullscreen magnifier.
 
 *magnifier.height*
 	Height of magnifier window in pixels. Default is 400.
+	Set to -1 to use fullscreen magnifier.
 
 *magnifier.border.width*
 	Width of magnifier window border in pixels. Default is 1.

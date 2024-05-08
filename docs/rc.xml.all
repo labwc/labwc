@@ -580,7 +580,7 @@
         <action name="ToggleAlwaysOnBottom"/>
       </windowRule>
       <windowRule identifier="org.qutebrowser.qutebrowser">
-        <action name="ResizeTo" width="1024" y="800" />
+        <action name="ResizeTo" width="1024" height="800" />
         <action name="AutoPlace"/>
       </windowRule>
     </windowRules>

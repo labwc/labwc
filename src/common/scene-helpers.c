@@ -15,7 +15,6 @@
 
 static bool magnify_on;
 static double mag_scale = 0.0;
-#define MAG_INCREMENT 0.2
 
 struct wlr_surface *
 lab_wlr_surface_from_node(struct wlr_scene_node *node)
@@ -235,8 +234,8 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		dst_box.x = 0;
 		dst_box.y = 0;
 	} else {
-		src_box.x = width * (mag_scale - 1) / (2 * mag_scale);
-		src_box.y = height * (mag_scale - 1) / (2 * mag_scale);
+		src_box.x = width * (mag_scale - 1.0) / (2.0 * mag_scale);
+		src_box.y = height * (mag_scale - 1.0) / (2.0 * mag_scale);
 		dst_box.x = ox - (width / 2);
 		dst_box.y = oy - (height / 2);
 	}
@@ -305,6 +304,7 @@ magnify_toggle(void)
 void
 magnify_set_scale(enum magnify_dir dir)
 {
+#define MAG_INCREMENT 0.2
 	if (dir == MAGNIFY_INCREASE) {
 		if (magnify_on) {
 			mag_scale += MAG_INCREMENT;

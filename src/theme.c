@@ -526,6 +526,8 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->menu_separator_padding_height = 3;
 	parse_hexstr("#888888", theme->menu_separator_color);
 
+	parse_hexstr("#589bda", theme->menu_title_bg_color);
+
 	theme->osd_window_switcher_width = 600;
 	theme->osd_window_switcher_width_is_percent = false;
 	theme->osd_window_switcher_padding = 4;
@@ -753,6 +755,10 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "menu.separator.color")) {
 		parse_hexstr(value, theme->menu_separator_color);
+	}
+
+	if (match_glob(key, "menu.title.bg.color")) {
+		parse_hexstr(value, theme->menu_title_bg_color);
 	}
 
 	if (match_glob(key, "osd.bg.color")) {

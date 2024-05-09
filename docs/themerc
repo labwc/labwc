@@ -62,6 +62,7 @@ menu.separator.width: 1
 menu.separator.padding.width: 6
 menu.separator.padding.height: 3
 menu.separator.color: #888888
+menu.title.bg.color: #589bda
 
 # on screen display (window-cycle dialog)
 osd.bg.color: #e1dedb

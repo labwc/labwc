@@ -108,26 +108,42 @@ menu_update_width(struct menu *menu)
 	}
 	menu->size.width = max_width + 2 * theme->menu_item_padding_x;
 
+	/*
+	 * TODO: This function is getting a bit unwieldy. Consider calculating
+	 * the menu-window width up-front to avoid this post_processing() and
+	 * second-bite-of-the-cherry stuff
+	 */
+
 	/* Update all items for the new size */
 	wl_list_for_each(item, &menu->menuitems, link) {
 		wlr_scene_rect_set_size(
 			wlr_scene_rect_from_node(item->normal.background),
 			menu->size.width, item->height);
 
-		if (!item->selected.background) {
-			/* This is a separator. They don't have a selected background. */
+		/*
+		 * Separator lines are special because they change width with
+		 * the menu.
+		 */
+		if (item->type == LAB_MENU_SEPARATOR_LINE) {
+			int width = menu->size.width
+				- 2 * theme->menu_separator_padding_width
+				- 2 * theme->menu_item_padding_x;
 			wlr_scene_rect_set_size(
 				wlr_scene_rect_from_node(item->normal.text),
-				menu->size.width - 2 * theme->menu_separator_padding_width,
-				theme->menu_separator_line_thickness);
-		} else {
-			/* Usual menu item */
+				width, theme->menu_separator_line_thickness);
+		}
+
+		if (item->selectable) {
+			/* Only selectable items have item->selected.background */
 			wlr_scene_rect_set_size(
 				wlr_scene_rect_from_node(item->selected.background),
 				menu->size.width, item->height);
-			if (item->native_width > max_width || item->submenu || item->execute) {
-				scaled_font_buffer_set_max_width(item->normal.buffer,
-					max_width);
+		}
+
+		if (item->native_width > max_width || item->submenu || item->execute) {
+			scaled_font_buffer_set_max_width(item->normal.buffer,
+				max_width);
+			if (item->selectable) {
 				scaled_font_buffer_set_max_width(item->selected.buffer,
 					max_width);
 			}
@@ -178,11 +194,13 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = true;
+	menuitem->type = LAB_MENU_ITEM;
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
 
 	const char *arrow = show_arrow ? "›" : NULL;
 
+	/* TODO: Consider setting this somewhere else */
 	if (!menu->item_height) {
 		menu->item_height = font_height(&rc.font_menuitem)
 			+ 2 * theme->menu_item_padding_y;
@@ -265,33 +283,67 @@ separator_create(struct menu *menu, const char *label)
 	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = false;
+	menuitem->type = string_null_or_empty(label) ? LAB_MENU_SEPARATOR_LINE
+		: LAB_MENU_TITLE;
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
-	menuitem->height = theme->menu_separator_line_thickness +
-			2 * theme->menu_separator_padding_height;
 
+	if (menuitem->type == LAB_MENU_TITLE) {
+		menuitem->height = menu->item_height;
+		menuitem->native_width = font_width(&rc.font_menuitem, label);
+	} else if (menuitem->type == LAB_MENU_SEPARATOR_LINE) {
+		menuitem->height = theme->menu_separator_line_thickness +
+				2 * theme->menu_separator_padding_height;
+	}
+
+	/* Menu item root node */
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
 	node_descriptor_create(&menuitem->tree->node,
 		LAB_NODE_DESC_MENUITEM, menuitem);
+
+	/* Tree to hold background and text/line buffer */
 	menuitem->normal.tree = wlr_scene_tree_create(menuitem->tree);
+
+	/* Item background nodes */
+	float *bg_color = menuitem->type == LAB_MENU_TITLE
+		? theme->menu_title_bg_color : theme->menu_items_bg_color;
 	menuitem->normal.background = &wlr_scene_rect_create(
 		menuitem->normal.tree,
-		menu->size.width, menuitem->height,
-		theme->menu_items_bg_color)->node;
+		menu->size.width, menuitem->height, bg_color)->node;
 
-	int width = menu->size.width - 2 * theme->menu_separator_padding_width;
-	menuitem->normal.text = &wlr_scene_rect_create(
-		menuitem->normal.tree,
-		width > 0 ? width : 0,
-		theme->menu_separator_line_thickness,
-		theme->menu_separator_color)->node;
-
+	/* Draw separator line or title */
+	if (menuitem->type == LAB_MENU_TITLE) {
+		menuitem->normal.buffer = scaled_font_buffer_create(menuitem->normal.tree);
+		if (!menuitem->normal.buffer) {
+			wlr_log(WLR_ERROR, "Failed to create menu item '%s'", label);
+			wlr_scene_node_destroy(&menuitem->tree->node);
+			free(menuitem);
+			return NULL;
+		}
+		menuitem->normal.text = &menuitem->normal.buffer->scene_buffer->node;
+		/* Font buffer */
+		scaled_font_buffer_update(menuitem->normal.buffer, label,
+			menuitem->native_width, &rc.font_menuitem,
+			theme->menu_items_text_color, bg_color, /* arrow */ NULL);
+		/* Center font nodes */
+		int x, y;
+		x = theme->menu_item_padding_x;
+		y = (menu->item_height - menuitem->normal.buffer->height) / 2;
+		wlr_scene_node_set_position(menuitem->normal.text, x, y);
+	} else {
+		int nominal_width = theme->menu_min_width;
+		menuitem->normal.text = &wlr_scene_rect_create(
+			menuitem->normal.tree, nominal_width,
+			theme->menu_separator_line_thickness,
+			theme->menu_separator_color)->node;
+		wlr_scene_node_set_position(&menuitem->tree->node, 0, menu->size.height);
+		/* Vertically center-align separator line */
+		wlr_scene_node_set_position(menuitem->normal.text,
+			theme->menu_separator_padding_width
+			+ theme->menu_item_padding_x,
+			theme->menu_separator_padding_height);
+	}
 	wlr_scene_node_set_position(&menuitem->tree->node, 0, menu->size.height);
-
-	/* Vertically center-align separator line */
-	wlr_scene_node_set_position(menuitem->normal.text,
-		theme->menu_separator_padding_width,
-		theme->menu_separator_padding_height);
 
 	menu->size.height += menuitem->height;
 	wl_list_append(&menu->menuitems, &menuitem->link);

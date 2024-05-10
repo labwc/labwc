@@ -59,7 +59,7 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 	 */
 	if (!wlr_output->needs_frame && !pixman_region32_not_empty(
 			&scene_output->damage_ring.current) && !wants_magnification) {
-		return false;
+		return true;
 	}
 
 	if (!wlr_scene_output_build_state(scene_output, state, NULL)) {

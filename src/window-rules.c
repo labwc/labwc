@@ -7,7 +7,9 @@
 #include <strings.h>
 #include <wlr/util/log.h>
 #include "action.h"
+#include "common/list.h"
 #include "common/match.h"
+#include "common/mem.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "view.h"
@@ -125,4 +127,23 @@ window_rules_get_property(struct view *view, const char *property)
 		}
 	}
 	return LAB_PROP_UNSPECIFIED;
+}
+
+void
+create_default_window_type_rules(void)
+{
+	// Desktop window type
+	struct window_rule *rule = znew(*rule);
+	rule->window_type = NET_WM_WINDOW_TYPE_DESKTOP;
+	rule->server_decoration = LAB_PROP_FALSE;
+	rule->skip_taskbar = LAB_PROP_TRUE;
+	rule->skip_window_switcher = LAB_PROP_TRUE;
+	rule->ignore_focus_request = LAB_PROP_TRUE;
+	rule->fixed_position = LAB_PROP_TRUE;
+	struct action *action_on_bottom = action_create("ToggleAlwaysOnBottom");
+	struct action *action_move_to = action_create("MoveTo");
+	wl_list_init(&rule->actions);
+	wl_list_append(&rule->actions, &action_on_bottom->link);
+	wl_list_append(&rule->actions, &action_move_to->link);
+	wl_list_append(&rc.window_rules, &rule->link);
 }

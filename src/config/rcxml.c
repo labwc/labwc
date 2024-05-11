@@ -162,9 +162,25 @@ set_property(const char *str, enum property *variable)
 }
 
 static void
+rule_destroy(struct window_rule *rule)
+{
+	wl_list_remove(&rule->link);
+	zfree(rule->identifier);
+	zfree(rule->title);
+	action_list_free(&rule->actions);
+	zfree(rule);
+}
+
+static void
 fill_window_rule(char *nodename, char *content)
 {
-	if (!strcasecmp(nodename, "windowRule.windowRules")) {
+	if (!strcasecmp(nodename, "clear.windowRules")) {
+		struct window_rule *rule, *rule_tmp;
+		wl_list_for_each_safe(rule, rule_tmp, &rc.window_rules, link) {
+			rule_destroy(rule);
+		}
+		return;
+	} else if (!strcasecmp(nodename, "windowRule.windowRules")) {
 		current_window_rule = znew(*current_window_rule);
 		current_window_rule->window_type = -1; // Window types are >= 0
 		wl_list_append(&rc.window_rules, &current_window_rule->link);
@@ -1242,6 +1258,8 @@ rcxml_init(void)
 	rc.workspace_config.min_nr_workspaces = 1;
 
 	rc.menu_ignore_button_release_period = 250;
+
+	create_default_window_type_rules();
 }
 
 static void
@@ -1468,16 +1486,6 @@ post_processing(void)
 		wlr_log(WLR_INFO, "load default window switcher fields");
 		load_default_window_switcher_fields();
 	}
-}
-
-static void
-rule_destroy(struct window_rule *rule)
-{
-	wl_list_remove(&rule->link);
-	zfree(rule->identifier);
-	zfree(rule->title);
-	action_list_free(&rule->actions);
-	zfree(rule);
 }
 
 static void

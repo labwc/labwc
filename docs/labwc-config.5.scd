@@ -891,6 +891,16 @@ situation.
 	can be caused by *<margin>* settings or exclusive layer-shell clients
 	such as panels.
 
+*Window type rules*
+
+To make X11 desktop managers work more seamless in a Wayland environment, labwc
+sets a special window rule by default, targeting EWMH desktop windows
+(NET_WM_WINDOW_TYPE_DESKTOP). It sets these windows to have the properties that
+would normally be expected from a desktop manager, like *skipTaskbar*,
+*skipWindowSwitcher*, *fixedPosition*, *ToggleAlwaysOnBottom*, etc.
+
+Default window rules can be removed with `<windowRules><clear>`.
+
 ## MENU
 
 ```

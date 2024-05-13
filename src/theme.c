@@ -579,6 +579,7 @@ theme_builtin(struct theme *theme, struct server *server)
 	parse_hexstr("#ff0000", theme->mag_border_color);
 	theme->mag_border_width = 1;
 	theme->mag_filter = true;
+	theme->mag_increment = 0.2;
 }
 
 static void
@@ -852,6 +853,9 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "magnifier.filter")) {
 		theme->mag_filter = atoi(value);
+	}
+	if (match_glob(key, "magnifier.increment")) {
+		theme->mag_increment = atof(value);
 	}
 }
 

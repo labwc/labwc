@@ -387,16 +387,20 @@ view_update_outputs(struct view *view)
 	struct output *output;
 	struct wlr_output_layout *layout = view->server->output_layout;
 
-	view->outputs = 0;
+	uint64_t new_outputs = 0;
 	wl_list_for_each(output, &view->server->outputs, link) {
 		if (output_is_usable(output) && wlr_output_layout_intersects(
 				layout, output->wlr_output, &view->current)) {
-			view->outputs |= (1ull << output->scene_output->index);
+			new_outputs |= (1ull << output->scene_output->index);
 		}
 	}
 
-	if (view->toplevel.handle) {
-		foreign_toplevel_update_outputs(view);
+	if (new_outputs != view->outputs) {
+		view->outputs = new_outputs;
+		if (view->toplevel.handle) {
+			foreign_toplevel_update_outputs(view);
+		}
+		desktop_update_top_layer_visiblity(view->server);
 	}
 }
 
@@ -2037,6 +2041,7 @@ view_move_to_front(struct view *view)
 	}
 
 	cursor_update_focus(view->server);
+	desktop_update_top_layer_visiblity(view->server);
 }
 
 void
@@ -2050,6 +2055,7 @@ view_move_to_back(struct view *view)
 	move_to_back(root);
 
 	cursor_update_focus(view->server);
+	desktop_update_top_layer_visiblity(view->server);
 }
 
 struct view *

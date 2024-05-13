@@ -229,17 +229,23 @@ desktop_update_top_layer_visiblity(struct server *server)
 		wlr_scene_node_set_enabled(&output->layer_tree[top]->node, true);
 	}
 
-	/* And disable them again when there is a view in fullscreen */
-	enum lab_view_criteria criteria =
-		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE | LAB_VIEW_CRITERIA_FULLSCREEN;
-	for_each_view(view, &server->views, criteria) {
+	/*
+	 * And disable them again when there is a fullscreen view without
+	 * any views above it
+	 */
+	uint64_t outputs_covered = 0;
+	for_each_view(view, &server->views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 		if (view->minimized) {
 			continue;
 		}
 		if (!output_is_usable(view->output)) {
 			continue;
 		}
-		wlr_scene_node_set_enabled(&view->output->layer_tree[top]->node, false);
+		if (view->fullscreen && !(view->outputs & outputs_covered)) {
+			wlr_scene_node_set_enabled(
+				&view->output->layer_tree[top]->node, false);
+		}
+		outputs_covered |= view->outputs;
 	}
 }
 

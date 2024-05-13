@@ -124,6 +124,25 @@ keybind_create(const char *keybind)
 	gchar **symnames = g_strsplit(keybind, "-", -1);
 	for (size_t i = 0; symnames[i]; i++) {
 		char *symname = symnames[i];
+		/*
+		 * Since "-" is used as a separator, a keybind string like "W--"
+		 * becomes "W", "", "". This means that it is impossible to bind
+		 * an action to the "-" key in this way.
+		 * We detect empty ""s outputted by g_strsplit and treat them as
+		 * literal "-"s.
+		 */
+		if (!symname[0]) {
+			/*
+			 * You might have noticed that in the "W--" example, the
+			 * output is "W", "", ""; which turns into "W", "-",
+			 * "-". In order to avoid such duplications, we perform
+			 * a lookahead on the tokens to treat that edge-case.
+			 */
+			if (symnames[i+1] && !symnames[i+1][0]) {
+				continue;
+			}
+			symname = "-";
+		}
 		uint32_t modifier = parse_modifier(symname);
 		if (modifier != 0) {
 			k->modifiers |= modifier;

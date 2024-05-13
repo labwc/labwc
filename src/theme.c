@@ -855,7 +855,7 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->mag_filter = atoi(value);
 	}
 	if (match_glob(key, "magnifier.increment")) {
-		theme->mag_increment = atof(value);
+		set_float(value, &theme->mag_increment);
 	}
 }
 

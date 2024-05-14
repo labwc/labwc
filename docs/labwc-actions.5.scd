@@ -272,8 +272,9 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="ZoomOut">*
 	Increase or decrease the magnification level for the screen magnifier.
 	If the magnifier is currently off, ZoomIn will enable it at the lowest
-	magnification (x2). If the magnifier is on and at a magnification of
-	x2, ZoomOut will turn it off.
+	magnification, equal to (1 + the magnifier increment set in the theme).
+	If the magnifier is on and at the lowest magnification, ZoomOut will
+	turn it off.
 
 *<action name="None" />*
 	If used as the only action for a binding: clear an earlier defined

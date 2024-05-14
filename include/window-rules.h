@@ -44,5 +44,6 @@ struct view;
 
 void window_rules_apply(struct view *view, enum window_rule_event event);
 enum property window_rules_get_property(struct view *view, const char *property);
+void create_default_window_type_rules(void);
 
 #endif /* LABWC_WINDOW_RULES_H */

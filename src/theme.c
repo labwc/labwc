@@ -573,13 +573,8 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->snapping_overlay_edge.border_color[0][0] = FLT_MIN;
 
 	/* magnifier */
-	theme->mag_scale = 2;
-	theme->mag_width = 400;
-	theme->mag_height = 400;
 	parse_hexstr("#ff0000", theme->mag_border_color);
 	theme->mag_border_width = 1;
-	theme->mag_filter = true;
-	theme->mag_increment = 0.2;
 }
 
 static void
@@ -836,26 +831,11 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_hexstrs(value, theme->snapping_overlay_edge.border_color);
 	}
 
-	if (match_glob(key, "magnifier.init-scale")) {
-		theme->mag_scale = atoi(value);
-	}
-	if (match_glob(key, "magnifier.width")) {
-		theme->mag_width = atoi(value);
-	}
-	if (match_glob(key, "magnifier.height")) {
-		theme->mag_height = atoi(value);
-	}
 	if (match_glob(key, "magnifier.border.width")) {
 		theme->mag_border_width = atoi(value);
 	}
 	if (match_glob(key, "magnifier.border.color")) {
 		parse_hexstr(value, theme->mag_border_color);
-	}
-	if (match_glob(key, "magnifier.filter")) {
-		theme->mag_filter = atoi(value);
-	}
-	if (match_glob(key, "magnifier.increment")) {
-		set_float(value, &theme->mag_increment);
 	}
 }
 

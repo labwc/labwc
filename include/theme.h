@@ -141,13 +141,8 @@ struct theme {
 	int osd_window_switcher_item_height;
 
 	/* magnifier */
-	int mag_scale;
-	int mag_width;
-	int mag_height;
 	float mag_border_color[4];
 	int mag_border_width;
-	int mag_filter;
-	float mag_increment;
 };
 
 struct server;

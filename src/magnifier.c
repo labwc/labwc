@@ -49,7 +49,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	wlr_output_layout_output_coords(server->output_layout, output->wlr_output, &ox, &oy);
 	ox *= output->wlr_output->scale;
 	oy *= output->wlr_output->scale;
-	if (theme->mag_width == -1 || theme->mag_height == -1) {
+	if (rc.mag_width == -1 || rc.mag_height == -1) {
 		fullscreen = true;
 	}
 	if ((ox < 0 || oy < 0 || ox >= output_buffer->width || oy >= output_buffer->height)
@@ -58,7 +58,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	}
 
 	if (mag_scale == 0.0) {
-		mag_scale = theme->mag_scale;
+		mag_scale = rc.mag_scale;
 	}
 
 	if (fullscreen) {
@@ -67,10 +67,10 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		x = 0;
 		y = 0;
 	} else {
-		width = theme->mag_width + 1;
-		height = theme->mag_height + 1;
-		x = ox - (theme->mag_width / 2.0);
-		y = oy - (theme->mag_height / 2.0);
+		width = rc.mag_width + 1;
+		height = rc.mag_height + 1;
+		x = ox - (rc.mag_width / 2.0);
+		y = oy - (rc.mag_height / 2.0);
 	}
 	double cropped_width = width;
 	double cropped_height = height;
@@ -201,7 +201,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		.dst_box = dst_box,
 		.alpha = NULL,
 		.clip = NULL,
-		.filter_mode = theme->mag_filter ? WLR_SCALE_FILTER_BILINEAR
+		.filter_mode = rc.mag_filter ? WLR_SCALE_FILTER_BILINEAR
 			: WLR_SCALE_FILTER_NEAREST,
 	};
 	wlr_render_pass_add_texture(tmp_render_pass, &opts);
@@ -266,18 +266,17 @@ void
 magnify_set_scale(struct server *server, enum magnify_dir dir)
 {
 	struct output *output = output_nearest_to_cursor(server);
-	struct theme *theme = server->theme;
 
 	if (dir == MAGNIFY_INCREASE) {
 		if (magnify_on) {
-			mag_scale += theme->mag_increment;
+			mag_scale += rc.mag_increment;
 		} else {
 			magnify_on = true;
-			mag_scale = 1.0 + theme->mag_increment;
+			mag_scale = 1.0 + rc.mag_increment;
 		}
 	} else {
-		if (magnify_on && mag_scale > 1.0 + theme->mag_increment) {
-			mag_scale -= theme->mag_increment;
+		if (magnify_on && mag_scale > 1.0 + rc.mag_increment) {
+			mag_scale -= rc.mag_increment;
 		} else {
 			magnify_on = false;
 		}

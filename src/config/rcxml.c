@@ -1484,6 +1484,10 @@ post_processing(void)
 		wlr_log(WLR_INFO, "load default window switcher fields");
 		load_default_window_switcher_fields();
 	}
+
+	if (rc.mag_scale <= 0.0) {
+		rc.mag_scale = 1.0;
+	}
 }
 
 static void

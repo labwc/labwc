@@ -1036,6 +1036,16 @@ entry(xmlNode *node, char *nodename, char *content)
 		}
 	} else if (!strcasecmp(nodename, "ignoreButtonReleasePeriod.menu")) {
 		rc.menu_ignore_button_release_period = atoi(content);
+	} else if (!strcasecmp(nodename, "width.magnifier")) {
+		rc.mag_width = atoi(content);
+	} else if (!strcasecmp(nodename, "height.magnifier")) {
+		rc.mag_height = atoi(content);
+	} else if (!strcasecmp(nodename, "initScale.magnifier")) {
+		set_float(content, &rc.mag_scale);
+	} else if (!strcasecmp(nodename, "increment.magnifier")) {
+		set_float(content, &rc.mag_increment);
+	} else if (!strcasecmp(nodename, "useFilter.magnifier")) {
+		set_bool(content, &rc.mag_filter);
 	}
 }
 
@@ -1242,6 +1252,12 @@ rcxml_init(void)
 	rc.workspace_config.min_nr_workspaces = 1;
 
 	rc.menu_ignore_button_release_period = 250;
+
+	rc.mag_width = 400;
+	rc.mag_height = 400;
+	rc.mag_scale = 2.0;
+	rc.mag_increment = 0.2;
+	rc.mag_filter = true;
 }
 
 static void
@@ -1467,6 +1483,10 @@ post_processing(void)
 	if (!wl_list_length(&rc.window_switcher.fields)) {
 		wlr_log(WLR_INFO, "load default window switcher fields");
 		load_default_window_switcher_fields();
+	}
+
+	if (rc.mag_scale <= 0.0) {
+		rc.mag_scale = 1.0;
 	}
 }
 

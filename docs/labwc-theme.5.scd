@@ -277,6 +277,12 @@ elements are not listed here, but are supported.
 	*window.inactive.border.color*. This is obsolete, but supported for
 	backward compatibility as some themes still contain it.
 
+*magnifier.border.width*
+	Width of magnifier window border in pixels. Default is 1.
+
+*magnifier.border.color*
+	Color of the magnfier window border. Default is #ff0000 (red).
+
 # BUTTONS
 
 The images used for the titlebar icons are referred to as buttons.

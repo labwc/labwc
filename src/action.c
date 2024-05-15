@@ -15,6 +15,7 @@
 #include "common/string-helpers.h"
 #include "debug.h"
 #include "labwc.h"
+#include "magnifier.h"
 #include "menu/menu.h"
 #include "osd.h"
 #include "output-virtual.h"
@@ -110,6 +111,9 @@ enum action_type {
 	ACTION_TYPE_SHADE,
 	ACTION_TYPE_UNSHADE,
 	ACTION_TYPE_TOGGLE_SHADE,
+	ACTION_TYPE_TOGGLE_MAGNIFY,
+	ACTION_TYPE_ZOOM_IN,
+	ACTION_TYPE_ZOOM_OUT
 };
 
 const char *action_names[] = {
@@ -163,6 +167,9 @@ const char *action_names[] = {
 	"Shade",
 	"Unshade",
 	"ToggleShade",
+	"ToggleMagnify",
+	"ZoomIn",
+	"ZoomOut",
 	NULL
 };
 
@@ -1045,6 +1052,15 @@ actions_run(struct view *activator, struct server *server,
 			if (view) {
 				view_set_shade(view, false);
 			}
+			break;
+		case ACTION_TYPE_TOGGLE_MAGNIFY:
+			magnify_toggle(server);
+			break;
+		case ACTION_TYPE_ZOOM_IN:
+			magnify_set_scale(server, MAGNIFY_INCREASE);
+			break;
+		case ACTION_TYPE_ZOOM_OUT:
+			magnify_set_scale(server, MAGNIFY_DECREASE);
 			break;
 		case ACTION_TYPE_INVALID:
 			wlr_log(WLR_ERROR, "Not executing unknown action");

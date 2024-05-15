@@ -139,6 +139,10 @@ struct theme {
 
 	/* not set in rc.xml/themerc, but derived from font & padding_height */
 	int osd_window_switcher_item_height;
+
+	/* magnifier */
+	float mag_border_color[4];
+	int mag_border_width;
 };
 
 struct server;

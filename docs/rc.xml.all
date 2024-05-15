@@ -589,4 +589,23 @@
   <menu>
     <ignoreButtonReleasePeriod>250</ignoreButtonReleasePeriod>
   </menu>
+
+  <!--
+    Magnifier settings
+    'width' sets the width in pixels of the magnifier window.
+    'height' sets the height in pixels of the magnifier window.
+    'initScale' sets the initial magnification factor at boot.
+    'increment' sets the amount by which the magnification factor
+      changes when 'ZoomIn' or 'ZoomOut' are called.
+    'useFilter' sets whether to use a bilinear filter on the magnified
+      output or simply to take nearest pixel.
+  -->
+  <magnifier>
+    <width>400</width>
+    <height>400</height>
+    <initScale>2.0</initScale>
+    <increment>0.2</increment>
+    <useFilter>true</useFilter>
+  </magnifier>
+
 </labwc_config>

@@ -140,6 +140,13 @@ struct rcxml {
 
 	/* Menu */
 	unsigned int menu_ignore_button_release_period;
+
+	/* Magnifier */
+	int mag_width;
+	int mag_height;
+	float mag_scale;
+	float mag_increment;
+	bool mag_filter;
 };
 
 extern struct rcxml rc;

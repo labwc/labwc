@@ -115,6 +115,8 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	}
 	if (!tmp_texture) {
 		wlr_log(WLR_ERROR, "Failed to allocate temporary texture");
+		wlr_buffer_drop(tmp_buffer);
+		tmp_buffer = NULL;
 		return;
 	}
 

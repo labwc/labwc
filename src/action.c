@@ -13,9 +13,9 @@
 #include "common/parse-bool.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
-#include "common/scene-helpers.h"
 #include "debug.h"
 #include "labwc.h"
+#include "magnifier.h"
 #include "menu/menu.h"
 #include "osd.h"
 #include "output-virtual.h"
@@ -1054,13 +1054,13 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_MAGNIFY:
-			magnify_toggle();
+			magnify_toggle(server);
 			break;
 		case ACTION_TYPE_ZOOM_IN:
-			magnify_set_scale(MAGNIFY_INCREASE);
+			magnify_set_scale(server, MAGNIFY_INCREASE);
 			break;
 		case ACTION_TYPE_ZOOM_OUT:
-			magnify_set_scale(MAGNIFY_DECREASE);
+			magnify_set_scale(server, MAGNIFY_DECREASE);
 			break;
 		case ACTION_TYPE_INVALID:
 			wlr_log(WLR_ERROR, "Not executing unknown action");

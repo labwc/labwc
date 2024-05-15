@@ -96,7 +96,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 
 	/* (Re)create the temporary buffer if required */
 	if (tmp_buffer && (tmp_buffer->width != width || tmp_buffer->height != height)) {
-		wlr_log(WLR_ERROR, "tmp buffer size changed, dropping");
+		wlr_log(WLR_DEBUG, "tmp buffer size changed, dropping");
 		assert(tmp_texture);
 		wlr_texture_destroy(tmp_texture);
 		wlr_buffer_drop(tmp_buffer);
@@ -112,16 +112,26 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		return;
 	}
 
+	/* Paste the magnified result back into the output buffer */
+	if (!tmp_texture) {
+		tmp_texture = wlr_texture_from_buffer(server->renderer, tmp_buffer);
+	}
+	if (!tmp_texture) {
+		wlr_log(WLR_ERROR, "Failed to allocate temporary texture");
+		return;
+	}
+
 	/* Extract source region into temporary buffer */
 
 	struct wlr_render_pass *tmp_render_pass = wlr_renderer_begin_buffer_pass(
 		server->renderer, tmp_buffer, NULL);
 
-	/* FIXME, try to re-use the existing output texture instead */
 	wlr_buffer_lock(output_buffer);
 	struct wlr_texture *output_texture = wlr_texture_from_buffer(
 		server->renderer, output_buffer);
-	assert(output_texture);
+	if (!output_texture) {
+		goto cleanup;
+	}
 
 	struct wlr_render_texture_options opts = {
 		.texture = output_texture,
@@ -165,12 +175,6 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 			.clip = NULL,
 		};
 		wlr_render_pass_add_rect(tmp_render_pass, &bg_opts);
-	}
-
-	/* Paste the magnified result back into the output buffer */
-	if (!tmp_texture) {
-		tmp_texture = wlr_texture_from_buffer(server->renderer, tmp_buffer);
-		assert(tmp_texture);
 	}
 
 	src_box.width = width / mag_scale;

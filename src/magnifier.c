@@ -179,7 +179,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	dst_box.height = height;
 
 	if (fullscreen) {
-		src_box.x = CLAMP(ox - (ox / mag_scale), 0.0, 
+		src_box.x = CLAMP(ox - (ox / mag_scale), 0.0,
 			width * (mag_scale - 1.0) / mag_scale);
 		src_box.y = CLAMP(oy - (oy / mag_scale), 0.0,
 			height * (mag_scale - 1.0) / mag_scale);

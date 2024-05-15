@@ -1041,7 +1041,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "height.magnifier")) {
 		rc.mag_height = atoi(content);
 	} else if (!strcasecmp(nodename, "initScale.magnifier")) {
-		rc.mag_scale = atoi(content);
+		set_float(content, &rc.mag_scale);
 	} else if (!strcasecmp(nodename, "increment.magnifier")) {
 		set_float(content, &rc.mag_increment);
 	} else if (!strcasecmp(nodename, "useFilter.magnifier")) {
@@ -1255,7 +1255,7 @@ rcxml_init(void)
 
 	rc.mag_width = 400;
 	rc.mag_height = 400;
-	rc.mag_scale = 2;
+	rc.mag_scale = 2.0;
 	rc.mag_increment = 0.2;
 	rc.mag_filter = true;
 }

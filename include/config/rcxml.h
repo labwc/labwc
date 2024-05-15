@@ -144,7 +144,7 @@ struct rcxml {
 	/* Magnifier */
 	int mag_width;
 	int mag_height;
-	int mag_scale;
+	float mag_scale;
 	float mag_increment;
 	bool mag_filter;
 };

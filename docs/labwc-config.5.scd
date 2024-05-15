@@ -932,7 +932,7 @@ situation.
 *<magnifier><initScale>*
 	Initial number of times by which magnified image is scaled. Value
 	is the default at boot; can be modified at run-time in a keyboard
-	or mouse binding by calling 'ZoomIn' or 'ZoomOut'. Default is x2.
+	or mouse binding by calling 'ZoomIn' or 'ZoomOut'. Default is x2.0.
 
 *<magnifier><increment>*
 	Step by which magnification changes on each call to 'ZoomIn' or

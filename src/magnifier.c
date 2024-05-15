@@ -60,6 +60,9 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	if (mag_scale == 0.0) {
 		mag_scale = rc.mag_scale;
 	}
+	if (mag_scale == 0.0) {
+		mag_scale = 1.0;
+	}
 
 	if (fullscreen) {
 		width = output_buffer->width;

@@ -8,7 +8,7 @@
 #include "common/macros.h"
 
 bool magnify_on;
-double mag_scale = 0.0, mag_increment = 0.0;
+double mag_scale = 0.0;
 
 #define CLAMP(in, lower, upper) MAX(MIN(in, upper), lower)
 
@@ -59,9 +59,6 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 
 	if (mag_scale == 0.0) {
 		mag_scale = theme->mag_scale;
-	}
-	if (mag_increment == 0.0) {
-		mag_increment = theme->mag_increment;
 	}
 
 	if (fullscreen) {
@@ -267,17 +264,18 @@ void
 magnify_set_scale(struct server *server, enum magnify_dir dir)
 {
 	struct output *output = output_nearest_to_cursor(server);
+	struct theme *theme = server->theme;
 
 	if (dir == MAGNIFY_INCREASE) {
 		if (magnify_on) {
-			mag_scale += mag_increment;
+			mag_scale += theme->mag_increment;
 		} else {
 			magnify_on = true;
-			mag_scale = 1.0 + mag_increment;
+			mag_scale = 1.0 + theme->mag_increment;
 		}
 	} else {
-		if (magnify_on && mag_scale > 1.0 + mag_increment) {
-			mag_scale -= mag_increment;
+		if (magnify_on && mag_scale > 1.0 + theme->mag_increment) {
+			mag_scale -= theme->mag_increment;
 		} else {
 			magnify_on = false;
 		}

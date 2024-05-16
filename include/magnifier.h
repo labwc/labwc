@@ -3,10 +3,11 @@
 #define LABWC_MAGNIFIER_H
 
 #include <stdbool.h>
-#include <wayland-server-core.h>
 
 struct server;
 struct output;
+struct wlr_buffer;
+struct wlr_box;
 
 enum magnify_dir {
 	MAGNIFY_INCREASE,

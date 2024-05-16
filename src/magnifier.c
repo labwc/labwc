@@ -2,15 +2,15 @@
 
 #include <assert.h>
 #include <wlr/types/wlr_output.h>
-#include "magnifier.h"
-#include "labwc.h"
-#include "theme.h"
 #include "common/macros.h"
+#include "labwc.h"
+#include "magnifier.h"
+#include "theme.h"
 
-bool magnify_on;
-double mag_scale = 0.0;
+static bool magnify_on;
+static double mag_scale = 0.0;
 
-#define CLAMP(in, lower, upper) MAX(MIN(in, upper), lower)
+#define CLAMP(in, lower, upper) MAX(MIN((in), (upper)), (lower))
 
 void
 magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
@@ -241,10 +241,7 @@ output_wants_magnification(struct output *output)
 	return output_nearest_to_cursor(output->server) == output;
 }
 
-/*
- * Toggles magnification on and off
- */
-
+/* Toggles magnification on and off */
 void
 magnify_toggle(struct server *server)
 {
@@ -261,10 +258,7 @@ magnify_toggle(struct server *server)
 	}
 }
 
-/*
- * Increases and decreases magnification scale
- */
-
+/* Increases and decreases magnification scale */
 void
 magnify_set_scale(struct server *server, enum magnify_dir dir)
 {
@@ -290,13 +284,9 @@ magnify_set_scale(struct server *server, enum magnify_dir dir)
 	}
 }
 
-/*
- * Report whether magnification is enabled
- */
-
+/* Report whether magnification is enabled */
 bool
 is_magnify_on(void)
 {
 	return magnify_on;
 }
-

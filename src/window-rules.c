@@ -34,6 +34,8 @@ view_matches_criteria(struct window_rule *rule, struct view *view)
 	query.identifier = rule->identifier;
 	query.title = rule->title;
 	query.window_type = rule->window_type;
+	query.sandbox_engine = rule->sandbox_engine;
+	query.sandbox_app_id = rule->sandbox_app_id;
 
 	if (rule->match_once && other_instances_exist(view, &query)) {
 		return false;

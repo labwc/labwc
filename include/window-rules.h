@@ -25,6 +25,8 @@ struct window_rule {
 	char *identifier;
 	char *title;
 	int window_type;
+	char *sandbox_engine;
+	char *sandbox_app_id;
 	bool match_once;
 
 	enum window_rule_event event;

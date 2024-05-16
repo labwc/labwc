@@ -14,6 +14,7 @@
 #include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
+#include <wlr/types/wlr_security_context_v1.h>
 #include <wlr/types/wlr_single_pixel_buffer_v1.h>
 #include <wlr/types/wlr_viewporter.h>
 #include <wlr/types/wlr_tablet_v2.h>
@@ -261,6 +262,15 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 	}
 #endif
 
+	/* Do not allow security_context_manager_v1 to clients with a security context attached */
+	const struct wlr_security_context_v1_state *security_context =
+		wlr_security_context_manager_v1_lookup_client(
+			server->security_context_manager_v1, (struct wl_client *)client);
+	if (security_context && global == server->security_context_manager_v1->global) {
+		wlr_log(WLR_DEBUG, "blocking security_context_manager_v1 for the sandboxed client");
+		return false;
+	}
+
 	return true;
 }
 
@@ -493,6 +503,8 @@ server_init(struct server *server)
 	wlr_export_dmabuf_manager_v1_create(server->wl_display);
 	wlr_screencopy_manager_v1_create(server->wl_display);
 	wlr_data_control_manager_v1_create(server->wl_display);
+	server->security_context_manager_v1 =
+		wlr_security_context_manager_v1_create(server->wl_display);
 	wlr_viewporter_create(server->wl_display);
 	wlr_single_pixel_buffer_manager_v1_create(server->wl_display);
 	wlr_fractional_scale_manager_v1_create(server->wl_display,

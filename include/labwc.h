@@ -335,6 +335,7 @@ struct server {
 	struct wlr_text_input_manager_v3 *text_input_manager;
 
 	struct wlr_tablet_manager_v2 *tablet_manager;
+	struct wlr_security_context_manager_v1 *security_context_manager_v1;
 
 	/* Set when in cycle (alt-tab) mode */
 	struct osd_state {

@@ -189,6 +189,12 @@ fill_window_rule(char *nodename, char *content)
 		current_window_rule->window_type = parse_window_type(content);
 	} else if (!strcasecmp(nodename, "matchOnce")) {
 		set_bool(content, &current_window_rule->match_once);
+	} else if (!strcasecmp(nodename, "sandboxEngine")) {
+		free(current_window_rule->sandbox_engine);
+		current_window_rule->sandbox_engine = xstrdup(content);
+	} else if (!strcasecmp(nodename, "sandboxAppId")) {
+		free(current_window_rule->sandbox_app_id);
+		current_window_rule->sandbox_app_id = xstrdup(content);
 
 	/* Event */
 	} else if (!strcmp(nodename, "event")) {
@@ -323,6 +329,10 @@ fill_action_query(char *nodename, char *content, struct action *action)
 		current_view_query->title = xstrdup(content);
 	} else if (!strcmp(nodename, "type")) {
 		current_view_query->window_type = parse_window_type(content);
+	} else if (!strcasecmp(nodename, "sandboxEngine")) {
+		current_view_query->sandbox_engine = xstrdup(content);
+	} else if (!strcasecmp(nodename, "sandboxAppId")) {
+		current_view_query->sandbox_app_id = xstrdup(content);
 	}
 }
 
@@ -1508,6 +1518,8 @@ rule_destroy(struct window_rule *rule)
 	wl_list_remove(&rule->link);
 	zfree(rule->identifier);
 	zfree(rule->title);
+	zfree(rule->sandbox_engine);
+	zfree(rule->sandbox_app_id);
 	action_list_free(&rule->actions);
 	zfree(rule);
 }
@@ -1576,7 +1588,8 @@ validate(void)
 	/* Window-rule criteria */
 	struct window_rule *rule, *rule_tmp;
 	wl_list_for_each_safe(rule, rule_tmp, &rc.window_rules, link) {
-		if (!rule->identifier && !rule->title && rule->window_type < 0) {
+		if (!rule->identifier && !rule->title && rule->window_type < 0
+				&& !rule->sandbox_engine && !rule->sandbox_app_id) {
 			wlr_log(WLR_ERROR, "Deleting rule %p as it has no criteria", rule);
 			rule_destroy(rule);
 		}

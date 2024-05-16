@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <strings.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_security_context_v1.h>
 #include "common/macros.h"
 #include "common/match.h"
 #include "common/mem.h"
@@ -53,6 +54,17 @@ view_from_wlr_surface(struct wlr_surface *surface)
 	return NULL;
 }
 
+static const struct wlr_security_context_v1_state *
+security_context_from_view(struct view *view)
+{
+	if (view && view->surface && view->surface->resource) {
+		struct wl_client *client = wl_resource_get_client(view->surface->resource);
+		return wlr_security_context_manager_v1_lookup_client(
+			view->server->security_context_manager_v1, client);
+	}
+	return NULL;
+}
+
 struct view_query *
 view_query_create(void)
 {
@@ -67,6 +79,8 @@ view_query_free(struct view_query *query)
 	wl_list_remove(&query->link);
 	free(query->identifier);
 	free(query->title);
+	free(query->sandbox_engine);
+	free(query->sandbox_app_id);
 	free(query);
 }
 
@@ -91,6 +105,22 @@ view_matches_query(struct view *view, struct view_query *query)
 	if (match && query->window_type >= 0) {
 		empty = false;
 		match &= view_contains_window_type(view, query->window_type);
+	}
+
+	if (match && query->sandbox_engine) {
+		const struct wlr_security_context_v1_state *security_context =
+			security_context_from_view(view);
+		empty = false;
+		match &= security_context && security_context->sandbox_engine
+			&& match_glob(query->sandbox_engine, security_context->sandbox_engine);
+	}
+
+	if (match && query->sandbox_app_id) {
+		const struct wlr_security_context_v1_state *security_context =
+			security_context_from_view(view);
+		empty = false;
+		match &= security_context && security_context->app_id
+			&& match_glob(query->sandbox_app_id, security_context->app_id);
 	}
 
 	return !empty && match;

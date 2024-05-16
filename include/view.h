@@ -267,6 +267,8 @@ struct view_query {
 	char *identifier;
 	char *title;
 	int window_type;
+	char *sandbox_engine;
+	char *sandbox_app_id;
 };
 
 struct xdg_toplevel_view {

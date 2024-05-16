@@ -851,7 +851,8 @@ defined as shown below.
 
 *Criteria*
 
-*<windowRules><windowRule identifier="" title="" type="" matchOnce="">*
+*<windowRules><windowRule identifier="" title="" sandboxEngine=""
+sandboxAppId="" type="" matchOnce="">*
 	Define a window rule for any window which matches the criteria defined
 	by the attributes *identifier*, *title*, or *type*. If more than one
 	is defined, AND logic is used, so all have to match.
@@ -862,6 +863,11 @@ defined as shown below.
 	for XWayland clients.
 
 	*title* is the title of the window.
+
+	*sandboxEngine* is a sandbox engine name from the security context.
+
+	*sandboxAppId* is a sandbox-specific identifier for an application
+	from the security context.
 
 	*type* [desktop|dock|toolbar|menu|utility|splash|dialog|dropdown_menu|
 	popup_menu|tooltip|notification|combo|dnd|normal] relates to

@@ -552,8 +552,8 @@
 
   <!--
     # Window Rules
-    #   - Criteria can consist of 'identifier' or 'title' or both (in which
-    #     case AND logic is used).
+    #   - Criteria can consist of 'identifier', 'title', 'sandboxEngine' or
+    #     'sandboxAppId'. AND logic is used when multiple options are specified.
     #   - 'identifier' relates to app_id for native Wayland windows and
     #     WM_CLASS for XWayland clients.
     #   - Criteria can also contain `matchOnce="true"` meaning that the rule

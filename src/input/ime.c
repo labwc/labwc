@@ -164,13 +164,14 @@ update_text_inputs_focused_surface(struct input_method_relay *relay)
 }
 
 static void
-update_popup_position(struct input_method_relay *relay)
+update_popup_position(struct input_method_popup *popup)
 {
+	struct input_method_relay *relay = popup->relay;
 	struct server *server = relay->seat->server;
 	struct text_input *text_input = relay->active_text_input;
 
-	if (!text_input || !relay->focused_surface || !relay->popup_surface
-			|| !relay->popup_surface->surface->mapped) {
+	if (!text_input || !relay->focused_surface
+			|| !popup->popup_surface->surface->mapped) {
 		return;
 	}
 
@@ -225,8 +226,8 @@ update_popup_position(struct input_method_relay *relay)
 		.anchor = XDG_POSITIONER_ANCHOR_BOTTOM_LEFT,
 		.gravity = XDG_POSITIONER_GRAVITY_BOTTOM_RIGHT,
 		.size = {
-			.width = relay->popup_surface->surface->current.width,
-			.height = relay->popup_surface->surface->current.height,
+			.width = popup->popup_surface->surface->current.width,
+			.height = popup->popup_surface->surface->current.height,
 		},
 		.constraint_adjustment =
 			XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_FLIP_Y
@@ -238,17 +239,26 @@ update_popup_position(struct input_method_relay *relay)
 	wlr_xdg_positioner_rules_unconstrain_box(&rules, &output_box, &popup_box);
 
 	wlr_scene_node_set_position(
-		&relay->popup_tree->node, popup_box.x, popup_box.y);
-	/* Make sure IME popup is always on top, above layer-shell surfaces */
+		&popup->tree->node, popup_box.x, popup_box.y);
+	/* Make sure IME popups are always on top, above layer-shell surfaces */
 	wlr_scene_node_raise_to_top(&relay->popup_tree->node);
 
 	wlr_input_popup_surface_v2_send_text_input_rectangle(
-		relay->popup_surface, &(struct wlr_box){
+		popup->popup_surface, &(struct wlr_box){
 			.x = cursor_rect.x - popup_box.x,
 			.y = cursor_rect.y - popup_box.y,
 			.width = cursor_rect.width,
 			.height = cursor_rect.height,
 		});
+}
+
+static void
+update_popups_position(struct input_method_relay *relay)
+{
+	struct input_method_popup *popup;
+	wl_list_for_each(popup, &relay->popups, link) {
+		update_popup_position(popup);
+	}
 }
 
 static void
@@ -342,20 +352,20 @@ handle_input_method_destroy(struct wl_listener *listener, void *data)
 static void
 handle_popup_surface_destroy(struct wl_listener *listener, void *data)
 {
-	struct input_method_relay *relay =
-		wl_container_of(listener, relay, popup_surface_destroy);
-	wl_list_remove(&relay->popup_surface_destroy.link);
-	wl_list_remove(&relay->popup_surface_commit.link);
-	relay->popup_surface = NULL;
-	relay->popup_tree = NULL;
+	struct input_method_popup *popup =
+		wl_container_of(listener, popup, destroy);
+	wl_list_remove(&popup->destroy.link);
+	wl_list_remove(&popup->commit.link);
+	wl_list_remove(&popup->link);
+	free(popup);
 }
 
 static void
 handle_popup_surface_commit(struct wl_listener *listener, void *data)
 {
-	struct input_method_relay *relay =
-		wl_container_of(listener, relay, popup_surface_commit);
-	update_popup_position(relay);
+	struct input_method_popup *popup =
+		wl_container_of(listener, popup, commit);
+	update_popup_position(popup);
 }
 
 static void
@@ -364,32 +374,22 @@ handle_input_method_new_popup_surface(struct wl_listener *listener, void *data)
 	struct input_method_relay *relay = wl_container_of(listener, relay,
 		input_method_new_popup_surface);
 
-	if (relay->popup_surface) {
-		/*
-		 * With current input-method-v2 protocol, creating multiple IME
-		 * popups is not useful because they just stack up at the same
-		 * position.
-		 *
-		 * Discussed here:
-		 * https://gitlab.freedesktop.org/wayland/wayland-protocols/-/issues/40#note_847039
-		 */
-		wlr_log(WLR_INFO,
-			"Creating multiple IME popups is not supported");
-		return;
-	}
+	struct input_method_popup *popup = znew(*popup);
+	popup->popup_surface = data;
+	popup->relay = relay;
 
-	relay->popup_surface = data;
+	popup->destroy.notify = handle_popup_surface_destroy;
+	wl_signal_add(&popup->popup_surface->events.destroy, &popup->destroy);
 
-	wl_signal_add(&relay->popup_surface->events.destroy,
-		&relay->popup_surface_destroy);
-	wl_signal_add(&relay->popup_surface->surface->events.commit,
-		&relay->popup_surface_commit);
+	popup->commit.notify = handle_popup_surface_commit;
+	wl_signal_add(&popup->popup_surface->surface->events.commit,
+		&popup->commit);
 
-	relay->popup_tree = wlr_scene_subsurface_tree_create(
-		&relay->seat->server->scene->tree,
-		relay->popup_surface->surface);
-	node_descriptor_create(
-		&relay->popup_tree->node, LAB_NODE_DESC_IME_POPUP, NULL);
+	popup->tree = wlr_scene_subsurface_tree_create(
+		relay->popup_tree, popup->popup_surface->surface);
+	node_descriptor_create(&popup->tree->node, LAB_NODE_DESC_IME_POPUP, NULL);
+
+	wl_list_insert(&relay->popups, &popup->link);
 }
 
 static void
@@ -469,7 +469,7 @@ handle_text_input_enable(struct wl_listener *listener, void *data)
 
 	update_active_text_input(relay);
 	if (relay->active_text_input == text_input) {
-		update_popup_position(relay);
+		update_popups_position(relay);
 		send_state_to_input_method(relay);
 	}
 }
@@ -495,7 +495,7 @@ handle_text_input_commit(struct wl_listener *listener, void *data)
 	struct input_method_relay *relay = text_input->relay;
 
 	if (relay->active_text_input == text_input) {
-		update_popup_position(relay);
+		update_popups_position(relay);
 		send_state_to_input_method(relay);
 	}
 }
@@ -565,6 +565,8 @@ input_method_relay_create(struct seat *seat)
 	struct input_method_relay *relay = znew(*relay);
 	relay->seat = seat;
 	wl_list_init(&relay->text_inputs);
+	wl_list_init(&relay->popups);
+	relay->popup_tree = wlr_scene_tree_create(&seat->server->scene->tree);
 
 	relay->new_text_input.notify = handle_new_text_input;
 	wl_signal_add(&seat->server->text_input_manager->events.text_input,
@@ -575,8 +577,6 @@ input_method_relay_create(struct seat *seat)
 		&relay->new_input_method);
 
 	relay->focused_surface_destroy.notify = handle_focused_surface_destroy;
-	relay->popup_surface_destroy.notify = handle_popup_surface_destroy;
-	relay->popup_surface_commit.notify = handle_popup_surface_commit;
 
 	return relay;
 }

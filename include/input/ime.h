@@ -29,7 +29,7 @@ struct input_method_relay {
 	 */
 	struct text_input *active_text_input;
 
-	struct wlr_input_popup_surface_v2 *popup_surface;
+	struct wl_list popups; /* input_method_popup.link */
 	struct wlr_scene_tree *popup_tree;
 
 	struct wl_listener new_text_input;
@@ -40,11 +40,18 @@ struct input_method_relay {
 	struct wl_listener input_method_destroy;
 	struct wl_listener input_method_new_popup_surface;
 
-	struct wl_listener popup_surface_destroy;
-	struct wl_listener popup_surface_commit;
-
 	struct wl_listener keyboard_grab_destroy;
 	struct wl_listener focused_surface_destroy;
+};
+
+struct input_method_popup {
+	struct wlr_input_popup_surface_v2 *popup_surface;
+	struct wlr_scene_tree *tree;
+	struct input_method_relay *relay;
+	struct wl_list link; /* input_method_relay.popups */
+
+	struct wl_listener destroy;
+	struct wl_listener commit;
 };
 
 struct text_input {

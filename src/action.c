@@ -918,6 +918,11 @@ actions_run(struct view *activator, struct server *server,
 				if (action->type == ACTION_TYPE_SEND_TO_DESKTOP) {
 					view_move_to_workspace(view, target);
 					follow = action_get_bool(action, "follow", true);
+
+					/* Ensure that the focus is not on another desktop */
+					if (!follow && server->active_view == view) {
+						desktop_focus_topmost_view(server);
+					}
 				}
 				if (follow) {
 					workspaces_switch_to(target,

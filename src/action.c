@@ -904,6 +904,9 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_MOVETO_CURSOR:
+			wlr_log(WLR_ERROR,
+				"Action MoveToCursor is deprecated. To ensure your config works in future labwc "
+				"releases, please use <action name=\"AutoPlace\" policy=\"cursor\">");
 			if (view) {
 				view_move_to_cursor(view);
 			}

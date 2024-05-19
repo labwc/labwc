@@ -150,7 +150,12 @@ Actions are used in menus and keyboard/mouse bindings.
 	"both" (default), "horizontal", and "vertical".
 
 *<action name="Maximize" direction="value" />*
-	Maximize focused window. Supported directions are "both" (default),
+	Maximize focused window in the direction(s) specified. Supported
+	directions are "both" (default), "horizontal", and "vertical".
+
+*<action name="UnMaximize" direction="value" />*
+	Unmaximize focused window in the direction(s) specified and return it to
+	its pre-maximized dimensions. Supported directions are "both" (default),
 	"horizontal", and "vertical".
 
 *<action name="ToggleAlwaysOnTop" />*

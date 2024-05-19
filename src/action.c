@@ -78,6 +78,7 @@ enum action_type {
 	ACTION_TYPE_SHOW_MENU,
 	ACTION_TYPE_TOGGLE_MAXIMIZE,
 	ACTION_TYPE_MAXIMIZE,
+	ACTION_TYPE_UNMAXIMIZE,
 	ACTION_TYPE_TOGGLE_FULLSCREEN,
 	ACTION_TYPE_TOGGLE_DECORATIONS,
 	ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP,
@@ -134,6 +135,7 @@ const char *action_names[] = {
 	"ShowMenu",
 	"ToggleMaximize",
 	"Maximize",
+	"UnMaximize",
 	"ToggleFullscreen",
 	"ToggleDecorations",
 	"ToggleAlwaysOnTop",
@@ -336,6 +338,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		break;
 	case ACTION_TYPE_TOGGLE_MAXIMIZE:
 	case ACTION_TYPE_MAXIMIZE:
+	case ACTION_TYPE_UNMAXIMIZE:
 		if (!strcmp(argument, "direction")) {
 			enum view_axis axis = view_axis_parse(content);
 			if (axis == VIEW_AXIS_NONE) {
@@ -798,6 +801,14 @@ actions_run(struct view *activator, struct server *server,
 				enum view_axis axis = action_get_int(action,
 					"direction", VIEW_AXIS_BOTH);
 				view_maximize(view, axis,
+					/*store_natural_geometry*/ true);
+			}
+			break;
+		case ACTION_TYPE_UNMAXIMIZE:
+			if (view) {
+				enum view_axis axis = action_get_int(action,
+					"direction", VIEW_AXIS_BOTH);
+				view_maximize(view, view->maximized & ~axis,
 					/*store_natural_geometry*/ true);
 			}
 			break;

@@ -80,7 +80,8 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output)
 	 */
 	wlr_damage_ring_rotate(&scene_output->damage_ring);
 
-	if (!wlr_box_empty(&additional_damage) && is_magnify_on() && wants_magnification) {
+	if (!wlr_box_empty(&additional_damage) && is_magnify_on()
+			&& wants_magnification) {
 		wlr_damage_ring_add_box(&scene_output->damage_ring, &additional_damage);
 	}
 	return true;

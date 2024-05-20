@@ -66,6 +66,8 @@ struct rounded_corner_ctx {
 	enum corner corner;
 };
 
+#define zero_array(arr) memset(arr, 0, sizeof(arr))
+
 static struct lab_data_buffer *rounded_rect(struct rounded_corner_ctx *ctx);
 
 static void
@@ -533,8 +535,7 @@ theme_builtin(struct theme *theme, struct server *server)
 
 	/* inherit settings in post_processing() if not set elsewhere */
 	theme->osd_window_switcher_preview_border_width = INT_MIN;
-	memset(theme->osd_window_switcher_preview_border_color, 0,
-		sizeof(theme->osd_window_switcher_preview_border_color));
+	zero_array(theme->osd_window_switcher_preview_border_color);
 	theme->osd_window_switcher_preview_border_color[0][0] = FLT_MIN;
 
 	theme->osd_workspace_switcher_boxes_width = 20;
@@ -565,11 +566,9 @@ theme_builtin(struct theme *theme, struct server *server)
 	/* inherit settings in post_processing() if not set elsewhere */
 	theme->snapping_overlay_region.border_width = INT_MIN;
 	theme->snapping_overlay_edge.border_width = INT_MIN;
-	memset(theme->snapping_overlay_region.border_color, 0,
-		sizeof(theme->snapping_overlay_region.border_color));
+	zero_array(theme->snapping_overlay_region.border_color);
 	theme->snapping_overlay_region.border_color[0][0] = FLT_MIN;
-	memset(theme->snapping_overlay_edge.border_color, 0,
-		sizeof(theme->snapping_overlay_edge.border_color));
+	zero_array(theme->snapping_overlay_edge.border_color);
 	theme->snapping_overlay_edge.border_color[0][0] = FLT_MIN;
 
 	/* magnifier */

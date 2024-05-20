@@ -47,15 +47,17 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output)
 	struct wlr_output_state *state = &wlr_output->pending;
 	struct output *output = wlr_output->data;
 	bool wants_magnification = output_wants_magnification(output);
-	static bool last_mag = false;
 
+	/*
+	 * FIXME: Regardless of wants_magnification, we are currently adding
+	 * damages to next frame when magnifier is shown, which forces
+	 * rendering on every output commit and overloads CPU.
+	 * We also need to verify the necessity of wants_magnification.
+	 */
 	if (!wlr_output->needs_frame && !pixman_region32_not_empty(
-			&scene_output->damage_ring.current) && !wants_magnification
-			&& last_mag != is_magnify_on()) {
+			&scene_output->damage_ring.current) && !wants_magnification) {
 		return false;
 	}
-
-	last_mag = is_magnify_on();
 
 	if (!wlr_scene_output_build_state(scene_output, state, NULL)) {
 		wlr_log(WLR_ERROR, "Failed to build output state for %s",

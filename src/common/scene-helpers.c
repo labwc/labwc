@@ -50,8 +50,7 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output)
 	static bool last_mag = false;
 
 	if (!wlr_output->needs_frame && !pixman_region32_not_empty(
-			&scene_output->damage_ring.current) && !wants_magnification
-			&& last_mag != is_magnify_on()) {
+			&scene_output->damage_ring.current)) {
 		return false;
 	}
 
@@ -64,7 +63,7 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output)
 	}
 
 	struct wlr_box additional_damage = {0};
-	if (state->buffer && is_magnify_on()) {
+	if (state->buffer && is_magnify_on() && wants_magnification) {
 		magnify(output, state->buffer, &additional_damage);
 	}
 
@@ -81,7 +80,7 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output)
 	 */
 	wlr_damage_ring_rotate(&scene_output->damage_ring);
 
-	if (!wlr_box_empty(&additional_damage)) {
+	if (!wlr_box_empty(&additional_damage) && is_magnify_on() && wants_magnification) {
 		wlr_damage_ring_add_box(&scene_output->damage_ring, &additional_damage);
 	}
 	return true;

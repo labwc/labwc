@@ -120,7 +120,9 @@ notify_motion(struct drawing_tablet *tablet, struct drawing_tablet_tool *tool,
 {
 	idle_manager_notify_activity(tool->seat->seat);
 
+	bool enter_surface = false;
 	if (surface != tool->tool_v2->focused_surface) {
+		enter_surface = true;
 		wlr_tablet_v2_tablet_tool_notify_proximity_in(tool->tool_v2,
 			tablet->tablet_v2, surface);
 	}
@@ -132,6 +134,39 @@ notify_motion(struct drawing_tablet *tablet, struct drawing_tablet_tool *tool,
 	bool notify = cursor_process_motion(tablet->seat->server, time, &sx, &sy);
 	if (notify) {
 		wlr_tablet_v2_tablet_tool_notify_motion(tool->tool_v2, sx, sy);
+		if (enter_surface) {
+			/*
+			 * By re-using the existing cursor logic, we are also
+			 * setting pointer focus with
+			 * `wlr_seat_pointer_notify_clear_focus` when a tablet
+			 * pen enters a surface. This is a good thing. A side
+			 * effect is though, that a client will be notified
+			 * about a pointer event (pointer enter at coordinate)
+			 * and tablet events (proximity-in, move-to-coordinate)
+			 * at the same time. Following tablet actions, as long
+			 * as the pen stays on the surface, emit only tablet
+			 * events. That said, the client still thinks that there
+			 * is a pointer at the coordinate where the tablet
+			 * entered the surface. This can conflict with e.g. menu
+			 * or scrollbars because the client might be conflicted
+			 * about which coordinates (pointer or tablet) have
+			 * priority when both coordinates are on the same menu
+			 * or scrollbar.
+			 * It looks like that -1/-1 are valid coordinates (based
+			 * solemnly on testing with several client). Notifying
+			 * pointer motion to -1/-1, the pointer is sort-of out
+			 * of the way and is never on the same control element
+			 * with the tablet pen, so no conflicts anymore for the
+			 * client.
+			 * Note that Gnome/Mutter sends a pointer-leave
+			 * notification on tablet proximity-in to the client to
+			 * avoid this conflict. Going that way would probably
+			 * involve much more refactoring in labwc, and I'm not
+			 * sure what will break since I have the feeling that a
+			 * lot of internals rely on correct pointer focus.
+			 */
+			wlr_seat_pointer_notify_motion(tool->seat->seat, time, -1, -1);
+		}
 	}
 }
 

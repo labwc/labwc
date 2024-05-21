@@ -259,7 +259,7 @@ elements are not listed here, but are supported.
 	is snapped to a region. Inherits `osd.border.width` if not set.
 
 *snapping.overlay.edge.border.width*
-	Border width of an outlined rectangle shown as the preview when a window
+	Border width of an outlined rectangle shown as an overlay when a window
 	is snapped to an edge. Inherits `osd.border.width` if not set.
 
 *snapping.overlay.region.border.color*

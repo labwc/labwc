@@ -289,6 +289,11 @@ fill_region(char *nodename, char *content)
 static void
 fill_action_query(char *nodename, char *content, struct action *action)
 {
+	if (!action) {
+		wlr_log(WLR_ERROR, "No parent action for query: %s=%s", nodename, content);
+		return;
+	}
+
 	string_truncate_at_pattern(nodename, ".keybind.keyboard");
 	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
 
@@ -325,6 +330,11 @@ static void
 fill_child_action(char *nodename, char *content, struct action *parent,
 	const char *branch_name)
 {
+	if (!parent) {
+		wlr_log(WLR_ERROR, "No parent action for branch: %s=%s", nodename, content);
+		return;
+	}
+
 	string_truncate_at_pattern(nodename, ".keybind.keyboard");
 	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
 	string_truncate_at_pattern(nodename, ".then.action");

@@ -7,7 +7,7 @@
 #include "common/mem.h"
 #include "config/rcxml.h"
 #include "input/cursor.h"
-#include "input/tablet_pad.h"
+#include "input/tablet-pad.h"
 
 static void
 handle_button(struct wl_listener *listener, void *data)

@@ -4,9 +4,9 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "common/macros.h"
-#include "common/scaled_font_buffer.h"
+#include "common/scaled-font-buffer.h"
 #include "labwc.h"
-#include "resize_indicator.h"
+#include "resize-indicator.h"
 #include "view.h"
 
 static void

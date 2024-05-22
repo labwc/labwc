@@ -17,7 +17,7 @@
 #include "common/list.h"
 #include "common/mem.h"
 #include "common/nodename.h"
-#include "common/scaled_font_buffer.h"
+#include "common/scaled-font-buffer.h"
 #include "common/scene-helpers.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"

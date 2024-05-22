@@ -7,7 +7,7 @@
 #include "common/parse-double.h"
 #include "config/tablet.h"
 #include "config/rcxml.h"
-#include "input/tablet_pad.h"
+#include "input/tablet-pad.h"
 
 double
 tablet_get_dbl_if_positive(const char *content, const char *name)

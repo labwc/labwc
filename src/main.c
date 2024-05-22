@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "common/dir.h"
-#include "common/fd_util.h"
+#include "common/fd-util.h"
 #include "common/font.h"
 #include "common/mem.h"
 #include "common/spawn.h"

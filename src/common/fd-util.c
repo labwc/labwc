@@ -4,7 +4,7 @@
 #include <sys/resource.h>
 #include <wlr/util/log.h>
 
-#include "common/fd_util.h"
+#include "common/fd-util.h"
 
 static struct rlimit original_nofile_rlimit = {0};
 

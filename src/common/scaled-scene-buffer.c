@@ -9,7 +9,7 @@
 #include <wlr/util/log.h>
 #include "buffer.h"
 #include "common/mem.h"
-#include "common/scaled_scene_buffer.h"
+#include "common/scaled-scene-buffer.h"
 
 /**
  * TODO

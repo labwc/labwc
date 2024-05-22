@@ -8,8 +8,8 @@
 #include "buffer.h"
 #include "common/font.h"
 #include "common/mem.h"
-#include "common/scaled_scene_buffer.h"
-#include "common/scaled_font_buffer.h"
+#include "common/scaled-scene-buffer.h"
+#include "common/scaled-font-buffer.h"
 
 static struct lab_data_buffer *
 _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)

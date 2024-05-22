@@ -30,7 +30,7 @@
 #include "menu/menu.h"
 #include "output-virtual.h"
 #include "regions.h"
-#include "resize_indicator.h"
+#include "resize-indicator.h"
 #include "theme.h"
 #include "view.h"
 #include "workspaces.h"

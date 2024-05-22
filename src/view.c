@@ -13,7 +13,7 @@
 #include "osd.h"
 #include "placement.h"
 #include "regions.h"
-#include "resize_indicator.h"
+#include "resize-indicator.h"
 #include "snap-constraints.h"
 #include "snap.h"
 #include "ssd.h"

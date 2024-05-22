@@ -12,7 +12,7 @@
 #include "config/touch.h"
 #include "config/tablet.h"
 #include "config/libinput.h"
-#include "resize_indicator.h"
+#include "resize-indicator.h"
 #include "theme.h"
 
 enum view_placement_policy {

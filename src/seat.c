@@ -11,7 +11,7 @@
 #include "common/mem.h"
 #include "input/ime.h"
 #include "input/tablet.h"
-#include "input/tablet_pad.h"
+#include "input/tablet-pad.h"
 #include "input/input.h"
 #include "input/keyboard.h"
 #include "input/key-state.h"

@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <wlr/util/log.h>
 #include "common/spawn.h"
-#include "common/fd_util.h"
+#include "common/fd-util.h"
 
 static void
 reset_signals_and_limits(void)

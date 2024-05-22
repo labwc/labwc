@@ -112,6 +112,10 @@ Actions are used in menus and keyboard/mouse bindings.
 	Resize and move the active window back to its untiled or unmaximized
 	position if it had been maximized or tiled to a direction or region.
 
+*<action name="CycleNearRegion" region="value" />*
+	Cycle focus to the next window (mostly) in the given region.
+	See labwc-config(5) for further information on how to define regions.
+
 *<action name="NextWindow" />*++
 *<action name="PreviousWindow" />*
 	Cycle focus to next/previous window respectively.++

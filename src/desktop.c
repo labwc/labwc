@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "config.h"
 #include <assert.h>
+#include <string.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_output_layout.h>
@@ -8,6 +9,7 @@
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xdg_shell.h>
+#include "common/macros.h"
 #include "common/scene-helpers.h"
 #include "dnd.h"
 #include "labwc.h"
@@ -16,6 +18,7 @@
 #include "output.h"
 #include "ssd.h"
 #include "view.h"
+#include "regions.h"
 #include "workspaces.h"
 
 #if HAVE_XWAYLAND
@@ -130,6 +133,129 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 		}
 #endif
 	}
+}
+
+static bool
+view_is_assigned_to_region(struct view *view, struct region *region)
+{
+	if (!view || !region) {
+		return false;
+	}
+
+	if (view->tiled_region && view->tiled_region->name
+			&& !strcmp(view->tiled_region->name, region->name)) {
+		return true;
+	}
+
+	if (view->tiled_region_evacuate
+			&& !strcmp(view->tiled_region_evacuate, region->name)) {
+		return true;
+	}
+
+	return false;
+}
+
+static bool
+view_matches_region(struct view *view, struct region *region,
+		double view_threshold, double region_threshold)
+{
+	if (!view || !region) {
+		return false;
+	}
+
+	if (view_is_assigned_to_region(view, region)) {
+		return true;
+	}
+
+	if (view_threshold <= 0 && region_threshold <= 0) {
+		return false;
+	}
+
+	struct wlr_box overlap;
+	wlr_box_intersection(&overlap, &view->current, &region->geo);
+	double overlap_area = (double)overlap.height * (double)overlap.width;
+	if (overlap_area <= 0) {
+		return false;
+	}
+
+	if (view_threshold > 0) {
+		double view_area = (double)view->current.height * (double)view->current.width;
+		if (view_area > 0 && overlap_area >= view_threshold * view_area) {
+			return true;
+		}
+	}
+
+	if (region_threshold > 0) {
+		double region_area = (double)region->geo.height * (double)region->geo.width;
+		if (region_area > 0 && overlap_area >= region_threshold * region_area) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static struct view *
+cycle_prev_wrap(struct wl_list *head, struct view *from,
+		enum lab_view_criteria criteria)
+{
+	struct view *view = view_prev(head, from, criteria);
+	return view ? view : view_prev(head, NULL, criteria);
+}
+
+struct view *
+desktop_cycle_view_in_region(struct server *server, struct view *active_view,
+		struct region *region, enum lab_view_criteria criteria,
+		double view_threshold, double region_threshold)
+{
+	if (!active_view) {
+		struct view *cur;
+		for_each_view(cur, &server->views, criteria) {
+			if (cur->minimized) {
+				continue;
+			}
+			if (!region || view_matches_region(cur, region,
+					view_threshold, region_threshold)) {
+				return cur;
+			}
+		}
+		return NULL;
+	}
+
+	if (region && (!active_view
+			|| !view_matches_region(active_view, region,
+				view_threshold, region_threshold))) {
+		/*
+		 * If the currently focused view is not in-region, always focus the
+		 * topmost matching view first.
+		 */
+		struct view *cur;
+		for_each_view(cur, &server->views, criteria) {
+			if (!cur->minimized && view_matches_region(cur, region,
+					view_threshold, region_threshold)) {
+				return cur;
+			}
+		}
+		return NULL;
+	}
+
+	/*
+	 * If the currently active/focused window is already in-region, cycle
+	 * through in reverse order so that we cycle through all windows, and
+	 * not just the two most recent (focusing raises).
+	 */
+	struct view *start = active_view;
+	struct view *cur = cycle_prev_wrap(&server->views, start, criteria);
+	while (cur && cur != start) {
+		if (!cur->minimized
+				&& (!region
+					|| view_matches_region(cur, region,
+						view_threshold, region_threshold))) {
+			return cur;
+		}
+		cur = cycle_prev_wrap(&server->views, cur, criteria);
+	}
+	return NULL;
 }
 
 static struct view *
@@ -399,4 +525,3 @@ get_cursor_context(struct server *server)
 	 */
 	return ret;
 }
-

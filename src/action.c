@@ -111,6 +111,7 @@ enum action_type {
 	ACTION_TYPE_TOGGLE_SNAP_TO_REGION,
 	ACTION_TYPE_SNAP_TO_REGION,
 	ACTION_TYPE_UNSNAP,
+	ACTION_TYPE_CYCLE_IN_REGION,
 	ACTION_TYPE_TOGGLE_KEYBINDS,
 	ACTION_TYPE_FOCUS_OUTPUT,
 	ACTION_TYPE_MOVE_TO_OUTPUT,
@@ -180,6 +181,7 @@ const char *action_names[] = {
 	"ToggleSnapToRegion",
 	"SnapToRegion",
 	"UnSnap",
+	"CycleInRegion",
 	"ToggleKeybinds",
 	"FocusOutput",
 	"MoveToOutput",
@@ -473,6 +475,17 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 	case ACTION_TYPE_SNAP_TO_REGION:
 		if (!strcmp(argument, "region")) {
 			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_CYCLE_IN_REGION:
+		if (!strcasecmp(argument, "region")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		if (!strcasecmp(argument, "windowOverlapPercent")
+				|| !strcasecmp(argument, "regionOverlapPercent")) {
+			action_arg_add_int(action, argument, atoi(content));
 			goto cleanup;
 		}
 		break;
@@ -1206,6 +1219,44 @@ run_action(struct view *view, struct server *server, struct action *action,
 			view_toggle_visible_on_all_workspaces(view);
 		}
 		break;
+	case ACTION_TYPE_CYCLE_IN_REGION:
+	{
+		struct view *active_view = view ? view : server->active_view;
+		enum lab_view_criteria criteria = rc.window_switcher.criteria;
+		int window_overlap_percent = action_get_int(action, "windowOverlapPercent", 0);
+		int region_overlap_percent = action_get_int(action, "regionOverlapPercent", 0);
+
+		window_overlap_percent = CLAMP(window_overlap_percent, 0, 100);
+		region_overlap_percent = CLAMP(region_overlap_percent, 0, 100);
+
+		double view_threshold = (double)window_overlap_percent / 100.0;
+		double region_threshold = (double)region_overlap_percent / 100.0;
+
+		const char *region_name = action_get_str(action, "region", NULL);
+		struct region *region = NULL;
+		if (region_name) {
+			if (!active_view) {
+				break;
+			}
+			struct output *output = active_view->output;
+			if (!output_is_usable(output)) {
+				break;
+			}
+			region = regions_from_name(region_name, output);
+			if (!region) {
+				wlr_log(WLR_ERROR, "Invalid CycleInRegion region: '%s'",
+					region_name);
+				break;
+			}
+		}
+
+		struct view *new_view = desktop_cycle_view_in_region(
+			server, active_view, region, criteria, view_threshold, region_threshold);
+		if (new_view) {
+			desktop_focus_view(new_view, /*raise*/ true);
+		}
+		break;
+	}
 	case ACTION_TYPE_FOCUS:
 		if (view) {
 			desktop_focus_view(view, /*raise*/ false);

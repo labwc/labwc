@@ -119,9 +119,15 @@ High-level summary of items that Labwc supports:
 
 | video link     | date        | content
 | -------------- | ------------| -------
+| [Video (3:17)] | 24-May-2024 | 0.7.2 release video
 | [Video (2:48)] | 31-Oct-2022 | 0.6.0 release video
 | [Video (1:10)] | 05-Aug-2021 | window gymnastics, theming and waybar
 | [Video (3:42)] | 25-Feb-2021 | setting background and themes; xwayland/xdg-shell windows
+
+[Video (3:17)]: https://youtu.be/gNIj6VU-IH8
+[Video (2:48)]: https://youtu.be/guBnx18EQiA
+[Video (1:10)]: https://youtu.be/AU_M3n_FS-E
+[Video (3:42)]: https://youtu.be/rE1bQjSVJzg
 
 ### 1.6 Screenshot
 
@@ -292,6 +298,3 @@ See [integration] for further details.
 [wlr-randr]: https://sr.ht/~emersion/wlr-randr/
 [swaylock]: https://github.com/swaywm/swaylock
 
-[Video (2:48)]: https://youtu.be/guBnx18EQiA
-[Video (1:10)]: https://youtu.be/AU_M3n_FS-E
-[Video (3:42)]: https://youtu.be/rE1bQjSVJzg

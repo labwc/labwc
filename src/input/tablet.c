@@ -121,7 +121,8 @@ notify_motion(struct drawing_tablet *tablet, struct drawing_tablet_tool *tool,
 	idle_manager_notify_activity(tool->seat->seat);
 
 	bool enter_surface = false;
-	if (surface != tool->tool_v2->focused_surface) {
+	/* Postpone proximity-in on a new surface when the tip is down */
+	if (surface != tool->tool_v2->focused_surface && !tool->tool_v2->is_down) {
 		enter_surface = true;
 		wlr_tablet_v2_tablet_tool_notify_proximity_in(tool->tool_v2,
 			tablet->tablet_v2, surface);
@@ -199,6 +200,10 @@ handle_proximity(struct wl_listener *listener, void *data)
 		tablet_tool_init(tablet->seat, ev->tool);
 	}
 
+	/*
+	 * We have a tablet tool (aka pen/stylus) and a tablet protocol capable
+	 * surface, let's send tablet notifications.
+	 */
 	if (tool && surface) {
 		if (tool->tool_v2 && ev->state == WLR_TABLET_TOOL_PROXIMITY_IN) {
 			notify_motion(tablet, tool, surface, x, y, ev->time_msec);
@@ -208,6 +213,8 @@ handle_proximity(struct wl_listener *listener, void *data)
 		}
 	}
 }
+
+static bool is_down_mouse_emulation = false;
 
 static void
 handle_axis(struct wl_listener *listener, void *data)
@@ -236,7 +243,18 @@ handle_axis(struct wl_listener *listener, void *data)
 	double x, y;
 	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y);
 
-	if (tool && ((surface
+	/*
+	 * We are sending tablet notifications on the following conditions:
+	 * - a tablet tool (aka pen/stylus) had been created earlier on
+	 *   proximity-in
+	 * - there is no current tip or button press (e.g. from out-of-surface
+	 *   scrolling) that started on a non tablet capable surface
+	 * - the surface below the tip understands the tablet protocol and is in
+	 *   pass through state (notifications are allowed to the client), or we
+	 *   don't have a tablet-capable surface but are still having an active
+	 *   grab (e.g. from out-of-surface scrolling).
+	 */
+	if (tool && !is_down_mouse_emulation && ((surface
 			&& tablet->seat->server->input_mode == LAB_INPUT_STATE_PASSTHROUGH)
 			|| wlr_tablet_tool_v2_has_implicit_grab(tool->tool_v2))) {
 		if (ev->updated_axes & (WLR_TABLET_TOOL_AXIS_X | WLR_TABLET_TOOL_AXIS_Y)) {
@@ -351,7 +369,17 @@ handle_tip(struct wl_listener *listener, void *data)
 
 	uint32_t button = tablet_get_mapped_button(BTN_TOOL_PEN);
 
-	if (tool && (surface || wlr_tablet_tool_v2_has_implicit_grab(tool->tool_v2))) {
+	/*
+	 * We are sending tablet notifications on the following conditions:
+	 * - a tablet tool (aka pen/stylus) had been created earlier on
+	 *   proximity-in
+	 * - there is no current tip or button press (e.g. from out-of-surface
+	 *   scrolling) that started on a non tablet capable surface
+	 * - the surface below tip understands the tablet protocol, or we don't
+	 *   have a tablet-capable surface but are still having an active grab.
+	 */
+	if (tool && !is_down_mouse_emulation && (surface
+			|| wlr_tablet_tool_v2_has_implicit_grab(tool->tool_v2))) {
 		idle_manager_notify_activity(tool->seat->seat);
 
 		uint32_t stylus_button = to_stylus_button(button);
@@ -392,6 +420,7 @@ handle_tip(struct wl_listener *listener, void *data)
 		}
 	} else {
 		if (button) {
+			is_down_mouse_emulation = ev->state == WLR_TABLET_TOOL_TIP_DOWN;
 			cursor_emulate_button(tablet->seat,
 				button,
 				ev->state == WLR_TABLET_TOOL_TIP_DOWN
@@ -414,7 +443,15 @@ handle_button(struct wl_listener *listener, void *data)
 
 	uint32_t button = tablet_get_mapped_button(ev->button);
 
-	if (tool && surface) {
+	/*
+	 * We are sending tablet notifications on the following conditions:
+	 * - a tablet tool (aka pen/stylus) had been created earlier on
+	 *   proximity-in
+	 * - there is no current tip or button press (e.g. out of surface
+	 *   scrolling) that started on a non tablet capable surface
+	 * - the surface below the tip understands the tablet protocol.
+	 */
+	if (tool && !is_down_mouse_emulation && surface) {
 		idle_manager_notify_activity(tool->seat->seat);
 
 		if (button) {
@@ -445,6 +482,7 @@ handle_button(struct wl_listener *listener, void *data)
 		}
 	} else {
 		if (button) {
+			is_down_mouse_emulation = ev->state == WLR_BUTTON_PRESSED;
 			cursor_emulate_button(tablet->seat, button, ev->state, ev->time_msec);
 		}
 	}

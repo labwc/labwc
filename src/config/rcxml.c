@@ -313,7 +313,7 @@ fill_action_query(char *nodename, char *content, struct action *action)
 			action_arg_add_querylist(action, "query");
 			queries = action_get_querylist(action, "query");
 		}
-		current_view_query = znew(*current_view_query);
+		current_view_query = view_query_create();
 		wl_list_append(queries, &current_view_query->link);
 	}
 

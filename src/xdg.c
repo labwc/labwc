@@ -824,9 +824,9 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	xdg_surface->surface->data = tree;
 
 	view_connect_map(view, xdg_surface->surface);
-	CONNECT_SIGNAL(xdg_surface, view, destroy);
 
 	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
+	CONNECT_SIGNAL(toplevel, view, destroy);
 	CONNECT_SIGNAL(toplevel, view, request_move);
 	CONNECT_SIGNAL(toplevel, view, request_resize);
 	CONNECT_SIGNAL(toplevel, view, request_minimize);

@@ -49,7 +49,7 @@ endif
 add_project_arguments('-DLABWC_VERSION=@0@'.format(version), language: 'c')
 
 wlroots = dependency(
-  'wlroots',
+  'wlroots-0.18',
   default_options: ['default_library=static', 'examples=false'],
   version: ['>=0.18.0', '<0.19.0'],
 )

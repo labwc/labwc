@@ -3,4 +3,5 @@ url = https://gitlab.freedesktop.org/wlroots/wlroots.git
 revision = master
 
 [provide]
-dependency_names = wlroots
+dependency_names = wlroots-0.18
+wlroots-0.18=wlroots

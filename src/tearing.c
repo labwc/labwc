@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include "common/mem.h"
 #include "labwc.h"
 #include "view.h"
 
@@ -23,6 +24,8 @@ static void
 tearing_controller_destroy(struct wl_listener *listener, void *data)
 {
 	struct tearing_controller *controller = wl_container_of(listener, controller, destroy);
+	wl_list_remove(&controller->set_hint.link);
+	wl_list_remove(&controller->destroy.link);
 	free(controller);
 }
 
@@ -38,13 +41,12 @@ new_tearing_hint(struct wl_listener *listener, void *data)
 	wlr_log(WLR_DEBUG, "New presentation hint %d received for surface %p",
 		hint, tearing_control->surface);
 
-	struct tearing_controller *controller = calloc(1, sizeof(struct tearing_controller));
-	if (!controller) {
-		return;
-	}
+	struct tearing_controller *controller = znew(*controller);
 	controller->tearing_control = tearing_control;
+
 	controller->set_hint.notify = set_tearing_hint;
 	wl_signal_add(&tearing_control->events.set_hint, &controller->set_hint);
+
 	controller->destroy.notify = tearing_controller_destroy;
 	wl_signal_add(&tearing_control->events.destroy, &controller->destroy);
 }

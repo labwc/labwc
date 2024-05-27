@@ -306,6 +306,13 @@ enum lab_view_criteria {
 struct view *view_from_wlr_surface(struct wlr_surface *surface);
 
 /**
+ * view_query_create() - Create a new heap allocated view query with
+ * all members initialized to their default values (window_type = -1,
+ * NULL for strings)
+ */
+struct view_query *view_query_create(void);
+
+/**
  * view_query_free() - Free a given view query
  * @query: Query to be freed.
  */

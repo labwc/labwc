@@ -53,6 +53,14 @@ view_from_wlr_surface(struct wlr_surface *surface)
 	return NULL;
 }
 
+struct view_query *
+view_query_create(void)
+{
+	struct view_query *query = znew(*query);
+	query->window_type = -1;
+	return query;
+}
+
 void
 view_query_free(struct view_query *query)
 {

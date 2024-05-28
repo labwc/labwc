@@ -403,10 +403,11 @@ handle_tip(struct wl_listener *listener, void *data)
 			}
 
 			bool exit_interactive = cursor_finish_button_release(tool->seat);
-			if (exit_interactive && tool->tool_v2->focused_surface) {
+			if (exit_interactive && surface && tool->tool_v2->focused_surface) {
 				/*
 				 * Re-enter the surface after a resize/move to ensure
-				 * being back in tablet mode.
+				 * being back in tablet mode, but only if we are still
+				 * above a tablet capable surface.
 				 */
 				wlr_tablet_v2_tablet_tool_notify_proximity_out(tool->tool_v2);
 				wlr_tablet_v2_tablet_tool_notify_proximity_in(tool->tool_v2,

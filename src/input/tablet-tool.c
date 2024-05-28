@@ -40,6 +40,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	struct drawing_tablet_tool *tool =
 		wl_container_of(listener, tool, handlers.destroy);
 
+	wl_list_remove(&tool->link);
 	wl_list_remove(&tool->handlers.set_cursor.link);
 	wl_list_remove(&tool->handlers.destroy.link);
 	free(tool);
@@ -65,4 +66,5 @@ tablet_tool_init(struct seat *seat,
 		wlr_tablet_tool->wheel ? " wheel" : "");
 	CONNECT_SIGNAL(tool->tool_v2, &tool->handlers, set_cursor);
 	CONNECT_SIGNAL(wlr_tablet_tool, &tool->handlers, destroy);
+	wl_list_insert(&seat->tablet_tools, &tool->link);
 }

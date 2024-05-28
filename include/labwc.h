@@ -193,6 +193,8 @@ struct seat {
 	struct wl_listener touch_motion;
 	struct wl_listener touch_frame;
 
+	struct wl_list tablet_tools;
+
 	struct wl_listener constraint_commit;
 	struct wl_listener pressed_surface_destroy;
 

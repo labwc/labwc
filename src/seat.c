@@ -553,6 +553,8 @@ seat_init(struct server *server)
 	}
 	wlr_cursor_attach_output_layout(seat->cursor, server->output_layout);
 
+	wl_list_init(&seat->tablet_tools);
+
 	input_handlers_init(seat);
 }
 

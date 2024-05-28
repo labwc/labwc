@@ -17,6 +17,7 @@
 #include "idle.h"
 #include "input/gestures.h"
 #include "input/touch.h"
+#include "input/tablet-tool.h"
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
@@ -138,6 +139,22 @@ request_cursor_notify(struct wl_listener *listener, void *data)
 	if (seat->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		/* Prevent setting a cursor image when moving or resizing */
 		return;
+	}
+
+	/*
+	 * Omit cursor notifications from a pointer when a tablet
+	 * tool (stylus/pen) is in proximity. We expect to get cursor
+	 * notifications from the tablet tool instead.
+	 * Receiving cursor notifications from pointer and tablet tool at
+	 * the same time is a side effect of also setting pointer focus
+	 * when a tablet tool enters proximity on a tablet-capable surface.
+	 * See also `notify_motion()` in `input/tablet.c`.
+	 */
+	struct drawing_tablet_tool *tool;
+	wl_list_for_each(tool, &seat->tablet_tools, link) {
+		if (tool->tool_v2->focused_surface) {
+			return;
+		}
 	}
 
 	/*

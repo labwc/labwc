@@ -14,6 +14,7 @@ struct drawing_tablet_tool {
 		struct wl_listener set_cursor;
 		struct wl_listener destroy;
 	} handlers;
+	struct wl_list link; /* seat.tablet_tools */
 };
 
 void tablet_tool_init(struct seat *seat,

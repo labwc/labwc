@@ -621,7 +621,7 @@ seat_focus(struct seat *seat, struct wlr_surface *surface, bool is_lock_surface)
 	 * lock screen may lose focus and become impossible to unlock.
 	 */
 	struct server *server = seat->server;
-	if (server->session_lock && !is_lock_surface) {
+	if (server->session_lock_manager->locked && !is_lock_surface) {
 		return;
 	}
 

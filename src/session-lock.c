@@ -10,6 +10,7 @@ struct session_lock_output {
 	struct session_lock_manager *manager;
 	struct output *output;
 	struct wlr_session_lock_surface_v1 *surface;
+	struct wl_event_source *blank_timer;
 
 	struct wl_list link; /* session_lock_manager.outputs */
 
@@ -124,6 +125,7 @@ session_lock_output_destroy(struct session_lock_output *output)
 	wl_list_remove(&output->commit.link);
 	wl_list_remove(&output->destroy.link);
 	wl_list_remove(&output->link);
+	wl_event_source_remove(output->blank_timer);
 	free(output);
 }
 
@@ -155,6 +157,14 @@ align_session_lock_tree(struct output *output)
 	wlr_scene_node_set_position(&output->session_lock_tree->node, box.x, box.y);
 }
 
+static int
+handle_output_blank_timeout(void *data)
+{
+	struct session_lock_output *lock_output = data;
+	wlr_scene_node_set_enabled(&lock_output->background->node, true);
+	return 0;
+}
+
 void
 session_lock_output_create(struct session_lock_manager *manager, struct output *output)
 {
@@ -179,6 +189,15 @@ session_lock_output_create(struct session_lock_manager *manager, struct output *
 		wlr_scene_node_destroy(&tree->node);
 		free(lock_output);
 		goto exit_session;
+	}
+
+	/* Delay blanking output by 100ms to prevent flashing */
+	lock_output->blank_timer =
+		wl_event_loop_add_timer(manager->server->wl_event_loop,
+			handle_output_blank_timeout, lock_output);
+	if (!manager->locked) {
+		wlr_scene_node_set_enabled(&background->node, false);
+		wl_event_source_timer_update(lock_output->blank_timer, 100);
 	}
 
 	align_session_lock_tree(output);

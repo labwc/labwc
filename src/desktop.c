@@ -336,6 +336,7 @@ get_cursor_context(struct server *server)
 				ret.type = LAB_SSD_CLIENT;
 				ret.surface = get_surface_from_layer_node(node);
 				return ret;
+			case LAB_NODE_DESC_SESSION_LOCK_SURFACE: /* fallthrough */
 			case LAB_NODE_DESC_IME_POPUP:
 				ret.type = LAB_SSD_CLIENT;
 				ret.surface = lab_wlr_surface_from_node(ret.node);

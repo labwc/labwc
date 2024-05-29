@@ -238,6 +238,10 @@ struct view {
 		struct wlr_scene_rect *background;
 		struct scaled_font_buffer *text;
 	} resize_indicator;
+	struct resize_outlines {
+		struct wlr_box view_geo;
+		struct multi_rect *rect;
+	} resize_outlines;
 
 	struct foreign_toplevel {
 		struct wlr_foreign_toplevel_handle_v1 *handle;

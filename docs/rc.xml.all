@@ -103,8 +103,12 @@
     <windowEdgeStrength>20</windowEdgeStrength>
   </resistance>
 
-  <!-- Show a simple resize and move indicator -->
-  <resize popupShow="Never" />
+  <resize>
+    <!-- Show a simple resize and move indicator -->
+    <popupShow>Never</popupShow>
+    <!-- Let client redraw its contents while resizing -->
+    <drawContents>yes</drawContents>
+  </resize>
 
   <focus>
     <followMouse>no</followMouse>

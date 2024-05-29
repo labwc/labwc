@@ -7,6 +7,7 @@
 #include "common/scaled-font-buffer.h"
 #include "labwc.h"
 #include "resize-indicator.h"
+#include "resize-outlines.h"
 #include "view.h"
 
 static void
@@ -159,25 +160,30 @@ resize_indicator_update(struct view *view)
 
 	char text[32]; /* 12345 x 12345 would be 13 chars + 1 null byte */
 
-	int eff_height = view_effective_height(view, /* use_pending */ false);
-	int eff_width = view->current.width;
+	struct wlr_box view_box;
+	if (resize_outlines_enabled(view)) {
+		view_box = view->resize_outlines.view_geo;
+	} else {
+		view_box = view->current;
+		view_box.height = view_effective_height(view, /* use_pending */ false);
+	}
 
 	switch (view->server->input_mode) {
 	case LAB_INPUT_STATE_RESIZE:
 		; /* works around "a label can only be part of a statement" */
 		struct view_size_hints hints = view_get_size_hints(view);
 		snprintf(text, sizeof(text), "%d x %d",
-			MAX(0, eff_width - hints.base_width)
+			MAX(0, view_box.width - hints.base_width)
 				/ MAX(1, hints.width_inc),
-			MAX(0, eff_height - hints.base_height)
+			MAX(0, view_box.height - hints.base_height)
 				/ MAX(1, hints.height_inc));
 		break;
 	case LAB_INPUT_STATE_MOVE:
 		; /* works around "a label can only be part of a statement" */
 		struct border margin = ssd_get_margin(view->ssd);
 		snprintf(text, sizeof(text), "%d , %d",
-			view->current.x - margin.left,
-			view->current.y - margin.top);
+			view_box.x - margin.left,
+			view_box.y - margin.top);
 		break;
 	default:
 		wlr_log(WLR_ERROR, "Invalid input mode for indicator update %u",
@@ -194,9 +200,9 @@ resize_indicator_update(struct view *view)
 	resize_indicator_set_size(indicator, width);
 
 	/* Center the indicator in the window */
-	wlr_scene_node_set_position(&indicator->tree->node,
-		(eff_width - indicator->width) / 2,
-		(eff_height - indicator->height) / 2);
+	int x = view_box.x - view->current.x + (view_box.width - indicator->width) / 2;
+	int y = view_box.y - view->current.y + (view_box.height - indicator->height) / 2;
+	wlr_scene_node_set_position(&indicator->tree->node, x, y);
 
 	scaled_font_buffer_update(indicator->text, text, width, &rc.font_osd,
 		rc.theme->osd_label_text_color, rc.theme->osd_bg_color,

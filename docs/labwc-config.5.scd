@@ -456,6 +456,11 @@ extending outward from the snapped edge.
 
 	Default is Never.
 
+*<resize><drawContents>* [yes|no]
+	Let the application redraw its contents while resizing. If disabled, an
+	outlined rectangle is shown to indicate the geometry of resized window.
+	Default is yes.
+
 ## KEYBOARD
 
 *<keyboard><numlock>* [on|off]

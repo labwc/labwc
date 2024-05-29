@@ -1030,6 +1030,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "Invalid value for <resize popupShow />");
 		}
+	} else if (!strcasecmp(nodename, "drawContents.resize")) {
+		set_bool(content, &rc.resize_draw_contents);
 	} else if (!strcasecmp(nodename, "mouseEmulation.tablet")) {
 		set_bool(content, &rc.tablet.force_mouse_emulation);
 	} else if (!strcasecmp(nodename, "mapToOutput.tablet")) {
@@ -1269,6 +1271,7 @@ rcxml_init(void)
 		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;
 
 	rc.resize_indicator = LAB_RESIZE_INDICATOR_NEVER;
+	rc.resize_draw_contents = true;
 
 	rc.workspace_config.popuptime = INT_MIN;
 	rc.workspace_config.min_nr_workspaces = 1;

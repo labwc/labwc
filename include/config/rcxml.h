@@ -118,6 +118,7 @@ struct rcxml {
 	enum tiling_events_mode snap_tiling_events_mode;
 
 	enum resize_indicator_mode resize_indicator;
+	bool resize_draw_contents;
 
 	struct {
 		int popuptime;

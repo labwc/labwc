@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "common/mem.h"
 #include "labwc.h"
+#include "node.h"
 
 struct session_lock_output {
 	struct wlr_scene_tree *tree;
@@ -49,13 +50,29 @@ refocus_output(struct session_lock_output *output)
 }
 
 static void
+update_focus(void *data)
+{
+	struct session_lock_output *output = data;
+	cursor_update_focus(output->manager->server);
+	if (!output->manager->focused) {
+		focus_surface(output->manager, output->surface->surface);
+	}
+}
+
+static void
 handle_surface_map(struct wl_listener *listener, void *data)
 {
 	struct session_lock_output *output =
 		wl_container_of(listener, output, surface_map);
-	if (!output->manager->focused) {
-		focus_surface(output->manager, output->surface->surface);
-	}
+	/*
+	 * In order to update cursor shape on map, the call to
+	 * cursor_update_focus() should be delayed because only the
+	 * role-specific surface commit/map handler has been processed in
+	 * wlroots at this moment and get_cursor_context() returns NULL as a
+	 * buffer has not been actually attached to the surface.
+	 */
+	wl_event_loop_add_idle(
+		output->manager->server->wl_event_loop, update_focus, output);
 }
 
 static void
@@ -103,7 +120,10 @@ handle_new_surface(struct wl_listener *listener, void *data)
 
 found_lock_output:
 	lock_output->surface = lock_surface;
-	wlr_scene_subsurface_tree_create(lock_output->tree, lock_surface->surface);
+	struct wlr_scene_tree *surface_tree =
+		wlr_scene_subsurface_tree_create(lock_output->tree, lock_surface->surface);
+	node_descriptor_create(&surface_tree->node,
+		LAB_NODE_DESC_SESSION_LOCK_SURFACE, NULL);
 
 	lock_output->surface_destroy.notify = handle_surface_destroy;
 	wl_signal_add(&lock_surface->events.destroy, &lock_output->surface_destroy);
@@ -247,6 +267,7 @@ handle_lock_unlock(struct wl_listener *listener, void *data)
 	session_lock_destroy(manager);
 	manager->locked = false;
 	desktop_focus_topmost_view(manager->server);
+	cursor_update_focus(manager->server);
 }
 
 static void

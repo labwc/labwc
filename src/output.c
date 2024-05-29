@@ -395,8 +395,8 @@ new_output_notify(struct wl_listener *listener, void *data)
 	/* Create regions from config */
 	regions_reconfigure_output(output);
 
-	if (server->session_lock) {
-		session_lock_output_create(server->session_lock, output);
+	if (server->session_lock_manager->locked) {
+		session_lock_output_create(server->session_lock_manager, output);
 	}
 
 	server->pending_output_layout_change--;
@@ -442,7 +442,7 @@ static void
 output_update_for_layout_change(struct server *server)
 {
 	output_update_all_usable_areas(server, /*layout_changed*/ true);
-	session_lock_update_for_layout_change();
+	session_lock_update_for_layout_change(server);
 
 	/*
 	 * "Move" each wlr_output_cursor (in per-output coordinates) to

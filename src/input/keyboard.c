@@ -424,7 +424,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	if (seat->active_client_while_inhibited) {
 		return false;
 	}
-	if (seat->server->session_lock) {
+	if (seat->server->session_lock_manager->locked) {
 		return false;
 	}
 

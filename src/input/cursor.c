@@ -248,6 +248,28 @@ process_cursor_move(struct server *server, uint32_t time)
 static void
 process_cursor_resize(struct server *server, uint32_t time)
 {
+	/* Rate-limit resize events respecting monitor refresh rate */
+	static uint32_t last_resize_time = 0;
+	static struct view *last_resize_view = NULL;
+
+	if (server->grabbed_view == last_resize_view) {
+		int32_t refresh = 0;
+		if (output_is_usable(last_resize_view->output)) {
+			refresh = last_resize_view->output->wlr_output->refresh;
+		}
+		/* Limit to 250Hz if refresh rate is not available */
+		if (refresh <= 0) {
+			refresh = 250000;
+		}
+		/* Not caring overflow, but it won't be observable */
+		if (time - last_resize_time < 1000000 / (uint32_t)refresh) {
+			return;
+		}
+	}
+
+	last_resize_time = time;
+	last_resize_view = server->grabbed_view;
+
 	double dx = server->seat.cursor->x - server->grab_x;
 	double dy = server->seat.cursor->y - server->grab_y;
 

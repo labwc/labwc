@@ -30,6 +30,7 @@ install_data(
     'environment',
     'menu.xml',
     'README',
+    'shutdown',
     'themerc',
     'rc.xml',
     'rc.xml.all'

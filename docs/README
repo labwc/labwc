@@ -3,6 +3,7 @@ Config layout for ~/.config/labwc/
 - environment
 - menu.xml
 - rc.xml
+- shutdown
 - themerc-override
 
 See `man labwc-config and `man labwc-theme` for further details.

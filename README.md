@@ -107,7 +107,7 @@ See [scope] for full details on implemented features.
 
 High-level summary of items that Labwc supports:
 
-- [x] Config files (rc.xml, autostart, environment, menu.xml)
+- [x] Config files (rc.xml, autostart, shutdown, environment, menu.xml)
 - [x] Theme files and xbm/png/svg icons
 - [x] Basic desktop and client menus
 - [x] HiDPI
@@ -182,7 +182,7 @@ prevent installing the wlroots headers:
 ## 3. Configuration
 
 User config files are located at `${XDG_CONFIG_HOME:-$HOME/.config/labwc/}`
-with the following five files being used: [rc.xml], [menu.xml], [autostart],
+with the following five files being used: [rc.xml], [menu.xml], [autostart], [shutdown],
 [environment] and [themerc-override].
 
 Run `labwc --reconfigure` to reload configuration and theme.
@@ -277,6 +277,7 @@ See [integration] for further details.
 [rc.xml]: docs/rc.xml.all
 [menu.xml]: docs/menu.xml
 [autostart]: docs/autostart
+[shutdown]: docs/shutdown
 [environment]: docs/environment
 [themerc-override]: docs/themerc
 [themerc]: docs/themerc

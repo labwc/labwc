@@ -391,6 +391,8 @@ handle_input_method_new_popup_surface(struct wl_listener *listener, void *data)
 	node_descriptor_create(&popup->tree->node, LAB_NODE_DESC_IME_POPUP, NULL);
 
 	wl_list_insert(&relay->popups, &popup->link);
+
+	update_popup_position(popup);
 }
 
 static void

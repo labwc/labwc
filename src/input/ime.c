@@ -354,6 +354,7 @@ handle_popup_surface_destroy(struct wl_listener *listener, void *data)
 {
 	struct input_method_popup *popup =
 		wl_container_of(listener, popup, destroy);
+	wlr_scene_node_destroy(&popup->tree->node);
 	wl_list_remove(&popup->destroy.link);
 	wl_list_remove(&popup->commit.link);
 	wl_list_remove(&popup->link);

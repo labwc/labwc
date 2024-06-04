@@ -504,6 +504,7 @@ focus_change_notify(struct wl_listener *listener, void *data)
 		}
 		if (view) {
 			view_set_activated(view, true);
+			tablet_pad_enter_surface(seat, surface);
 		}
 		server->active_view = view;
 	}

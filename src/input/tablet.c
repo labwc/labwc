@@ -510,6 +510,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	struct drawing_tablet *tablet =
 		wl_container_of(listener, tablet, handlers.destroy);
 
+	wl_list_remove(&tablet->link);
 	wl_list_remove(&tablet->handlers.tip.link);
 	wl_list_remove(&tablet->handlers.button.link);
 	wl_list_remove(&tablet->handlers.proximity.link);
@@ -547,4 +548,5 @@ tablet_init(struct seat *seat, struct wlr_input_device *wlr_device)
 	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, tip);
 	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, button);
 	CONNECT_SIGNAL(wlr_device, &tablet->handlers, destroy);
+	wl_list_insert(&seat->tablets, &tablet->link);
 }

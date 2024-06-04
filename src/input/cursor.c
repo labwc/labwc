@@ -18,6 +18,7 @@
 #include "input/gestures.h"
 #include "input/touch.h"
 #include "input/tablet-tool.h"
+#include "input/tablet-pad.h"
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
@@ -150,11 +151,8 @@ request_cursor_notify(struct wl_listener *listener, void *data)
 	 * when a tablet tool enters proximity on a tablet-capable surface.
 	 * See also `notify_motion()` in `input/tablet.c`.
 	 */
-	struct drawing_tablet_tool *tool;
-	wl_list_for_each(tool, &seat->tablet_tools, link) {
-		if (tool->tool_v2->focused_surface) {
-			return;
-		}
+	if (tablet_tool_has_focused_surface(seat)) {
+		return;
 	}
 
 	/*

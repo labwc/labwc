@@ -11,6 +11,19 @@
 #include "input/tablet-tool.h"
 #include "labwc.h"
 
+bool
+tablet_tool_has_focused_surface(struct seat *seat)
+{
+	struct drawing_tablet_tool *tool;
+	wl_list_for_each(tool, &seat->tablet_tools, link) {
+		if (tool->tool_v2->focused_surface) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 static void
 handle_set_cursor(struct wl_listener *listener, void *data)
 {

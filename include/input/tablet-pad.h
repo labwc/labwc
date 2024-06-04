@@ -25,6 +25,7 @@ struct drawing_tablet_pad {
 		struct wl_listener button;
 		struct wl_listener destroy;
 	} handlers;
+	struct wl_list link; /* seat.tablet_pads */
 };
 
 void tablet_pad_init(struct seat *seat, struct wlr_input_device *wlr_input_device);

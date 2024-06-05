@@ -728,12 +728,16 @@ view_compute_centered_position(struct view *view, const struct wlr_box *ref,
 	*x = ref->x + (ref->width - width) / 2;
 	*y = ref->y + (ref->height - height) / 2;
 
-	/* If view is bigger than usable area, just top/left align it */
+	/* Fit the view within the usable area */
 	if (*x < usable.x) {
 		*x = usable.x;
+	} else if (*x + width > usable.x + usable.width) {
+		*x = usable.x + usable.width - width;
 	}
 	if (*y < usable.y) {
 		*y = usable.y;
+	} else if (*y + height > usable.y + usable.height) {
+		*y = usable.y + usable.height - height;
 	}
 
 	*x += margin.left;

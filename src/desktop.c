@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "config.h"
 #include <assert.h>
+#include "common/macros.h"
 #include "common/scene-helpers.h"
 #include "common/surface-helpers.h"
 #include "dnd.h"
@@ -137,6 +138,32 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 	}
 
 	return iter(&server->views, start_view, criteria);
+}
+
+struct view *
+desktop_cycle_view_near_region(struct server *server, struct view *active_view,
+		struct region *region)
+{
+	struct view *(*iter)(struct wl_list *head, struct view *view,
+		enum lab_view_criteria criteria);
+	enum lab_view_criteria criteria = rc.window_switcher.criteria |
+		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
+
+	struct view *cur;
+        struct wlr_box intersect;
+
+	iter = view_prev_no_head_stop;
+
+	cur = iter(&server->views, active_view, criteria);
+	while (cur && cur != active_view) {
+	        wlr_box_intersection(&intersect, &cur->current, &region->geo);
+		if (!cur->minimized && !wlr_box_empty(&intersect)) {
+			return cur;
+		}
+		cur = iter(&server->views, cur, criteria);
+	}
+	/* no matching views found */
+	return NULL;
 }
 
 struct view *

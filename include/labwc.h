@@ -455,6 +455,14 @@ struct view *desktop_cycle_view(struct server *server, struct view *start_view,
 	enum lab_cycle_dir dir);
 
 /**
+ * desktop_cycle_view_near_region - return view to 'cycle' to within region
+ * @active_view: reference point for finding next view to cycle to
+ * Note: If !active_view, the top-most focusable view is returned
+ */
+struct view *desktop_cycle_view_near_region(struct server *server,
+		struct view *active_view, struct region *region);
+
+/**
  * desktop_focus_topmost_view() - focus the topmost view on the current
  * workspace, skipping views that claim not to want focus (those can
  * still be focused by explicit request, e.g. by clicking in them).

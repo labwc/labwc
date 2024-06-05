@@ -99,6 +99,10 @@ Actions are used in menus and keyboard/mouse bindings.
 	Resize and move active window according to the given region.
 	See labwc-config(5) for further information on how to define regions.
 
+*<action name="CycleNearRegion" region="value" />*
+	Cycle focus to the next window (mostly) in the given region.
+	See labwc-config(5) for further information on how to define regions.
+
 *<action name="NextWindow" />*
 	Cycle focus to next window.
 

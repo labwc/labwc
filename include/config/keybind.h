@@ -20,7 +20,7 @@ struct keybind {
 	int keycodes_layout;
 	struct wl_list actions;  /* struct action.link */
 	struct wl_list link;     /* struct rcxml.keybinds */
-	bool mod_only;           /* set if only modifier keys used */
+	bool on_release;         /* set if only modifier keys used */
 };
 
 /**

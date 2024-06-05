@@ -122,7 +122,7 @@ keybind_create(const char *keybind)
 	xkb_keysym_t sym;
 	struct keybind *k = znew(*k);
 	xkb_keysym_t keysyms[MAX_KEYSYMS];
-	bool mod_only = TRUE;
+	bool on_release = true;
 	gchar **symnames = g_strsplit(keybind, "-", -1);
 	for (size_t i = 0; symnames[i]; i++) {
 		char *symname = symnames[i];
@@ -132,7 +132,7 @@ keybind_create(const char *keybind)
 		} else {
 			sym = xkb_keysym_from_name(symname, XKB_KEYSYM_CASE_INSENSITIVE);
 			if (!keyboard_is_modifier_key(sym)) {
-				mod_only = FALSE;
+				on_release = false;
 			}
 			if (sym == XKB_KEY_NoSymbol && g_utf8_strlen(symname, -1) == 1) {
 				/*
@@ -168,7 +168,7 @@ keybind_create(const char *keybind)
 	if (!k) {
 		return NULL;
 	}
-	k->mod_only = mod_only;
+	k->on_release = on_release;
 	wl_list_append(&rc.keybinds, &k->link);
 	k->keysyms = xmalloc(k->keysyms_len * sizeof(xkb_keysym_t));
 	memcpy(k->keysyms, keysyms, k->keysyms_len * sizeof(xkb_keysym_t));

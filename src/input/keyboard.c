@@ -38,7 +38,7 @@ struct keyinfo {
 
 static bool should_cancel_cycling_on_next_key_release;
 
-struct keybind *cur_keybind;
+static struct keybind *cur_keybind;
 
 static void
 change_vt(struct server *server, unsigned int vt)
@@ -409,11 +409,12 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		keyinfo.is_modifier);
 
 	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
-		if (cur_keybind && cur_keybind->mod_only) {
+		if (cur_keybind && cur_keybind->on_release) {
+			key_state_bound_key_remove(event->keycode);
 			if (seat->active_client_while_inhibited
 					|| seat->server->session_lock) {
 				cur_keybind = NULL;
-				return false;
+				return true;
 			}
 			actions_run(NULL, server, &cur_keybind->actions, 0);
 			cur_keybind = NULL;
@@ -465,7 +466,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		 * 'pressed-sent' keys to the new surface.
 		 */
 		key_state_store_pressed_key_as_bound(event->keycode);
-		if (!cur_keybind->mod_only) {
+		if (!cur_keybind->on_release) {
 			actions_run(NULL, server, &cur_keybind->actions, 0);
 			cur_keybind = NULL;
 		}

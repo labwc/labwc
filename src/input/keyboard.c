@@ -412,7 +412,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		if (cur_keybind && cur_keybind->on_release) {
 			key_state_bound_key_remove(event->keycode);
 			if (seat->active_client_while_inhibited
-					|| seat->server->session_lock) {
+					|| seat->server->session_lock_manager->locked) {
 				cur_keybind = NULL;
 				return true;
 			}

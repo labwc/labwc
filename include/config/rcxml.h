@@ -137,6 +137,9 @@ struct rcxml {
 	} window_switcher;
 
 	struct wl_list window_rules; /* struct window_rule.link */
+
+	/* Menu */
+	unsigned int menu_ignore_button_release_period;
 };
 
 extern struct rcxml rc;

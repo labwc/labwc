@@ -178,8 +178,8 @@ Actions are used in menus and keyboard/mouse bindings.
 
 	If *output* is specified, the window will be sent directly to the
 	specified output and *direction* is ignored. If *output* is omitted,
-	*direction* may	be one of "left", "right", "up" or "down" to indicate
-	that the window	should be moved to the next output in that direction
+	*direction* may be one of "left", "right", "up" or "down" to indicate
+	that the window should be moved to the next output in that direction
 	(if one exists).
 
 	*wrap* [yes|no] When using the direction attribute, wrap around from
@@ -238,7 +238,7 @@ Actions are used in menus and keyboard/mouse bindings.
 	smaller than "eDP-1" output to cut off bottom panel from screen sharing.
 
 	Virtual output is also useful for extending the desktop to (maybe
-	mobile)	remote systems like tablets. E.g. simply adding a virtual
+	mobile) remote systems like tablets. E.g. simply adding a virtual
 	output, attaching wayvnc to it and running a VNC client on the remote
 	system.
 

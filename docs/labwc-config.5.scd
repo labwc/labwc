@@ -103,7 +103,7 @@ However, there are some caveats:
 	1. In menu.xml, the attributes *id*, *label* and *execute* must be
 	expressed as attributes rather than as separate child elements.
 
-	2. Ordering of attributes can sometimes be singificant. For example,
+	2. Ordering of attributes can sometimes be significant. For example,
 	when setting fonts via attributes rather than children,
 
 		*<font place="ActiveWindow" name="..." size="..." />*
@@ -257,14 +257,15 @@ this is for compatibility with Openbox.
 			- 'o' - output name (show if more than 1 monitor active)
 			- 'T' - title of window
 			- 't' - title of window (if different than wm-class/app-id)
-		  Recommend using with a mono space font, to keep alignment.
+		  Recommend using with a monospace font, to keep alignment.
 		- *custom - subset of printf options allowed -- man 3 printf*
 			- random text may be inserted
 			- field length, example "%10" use 10 spaces, even if text uses less
-			- left jusify text, example "%-"
+			- left justify text, example "%-"
 			- right justify text, example "%" instead of "%-"
-			- example, %-10 would left justify and make room for 10 charaters
-		- Only one custom format allowed now. Future enhancements may allow more than one.
+			- example, %-10 would left justify and make room for 10 characters
+		- Only one custom format allowed now. Future enhancements may
+		  allow more than one.
 
 	*width* defines the width of the field expressed as a percentage of
 	the overall window switcher width. The "%" character is required.
@@ -492,7 +493,7 @@ extending outward from the snapped edge.
 	Default is no.
 
 *<keyboard><keybind key=""><action name="">*
-	Keybind action. See labwc-action(5).
+	Keybind action. See labwc-actions(5).
 
 *<keyboard><default />*
 	Load the default keybinds listed below. This is an addition to the
@@ -658,7 +659,7 @@ extending outward from the snapped edge.
 *<tablet><map button="" to="" />*
 	Tablet buttons emulate regular mouse buttons. If not specified
 	otherwise, the tip (Tip) is mapped to left mouse click, the first pen
-	button (Stylus)	is mapped to right mouse button click and the second pen
+	button (Stylus) is mapped to right mouse button click and the second pen
 	button (Stylus2) emulates a middle mouse button click.
 
 	Supported map *buttons* are:
@@ -889,6 +890,24 @@ situation.
 	re-positioning in response to changes in reserved output space, which
 	can be caused by *<margin>* settings or exclusive layer-shell clients
 	such as panels.
+
+## MENU
+
+```
+<menu>
+  <ignoreButtonReleasePeriod>250</ignoreButtonReleasePeriod>
+</menu>
+```
+
+*<menu><ignoreButtonReleasePeriod>*
+	How long (in milliseconds) the initial button release event is ignored
+	for. The reason for this logic and behaviour is to avoid a fast
+	press-move-release sequence indended to just open the menu resulting in
+	the closure of the menu or the selection of (typically the first) menu
+	item. This behaviour only affects the first button-release. It is not
+	anticipated that most users will want to change this, but the config
+	option has been exposed for unusual use-cases. It is equivalent to
+	Openbox's `<hideDelay>`. Default is 250 ms.
 
 ## ENVIRONMENT VARIABLES
 

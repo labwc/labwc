@@ -150,13 +150,13 @@ desktop_cycle_view_near_region(struct server *server, struct view *active_view,
 		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
 
 	struct view *cur;
-        struct wlr_box intersect;
+	struct wlr_box intersect;
 
 	iter = view_prev_no_head_stop;
 
 	cur = iter(&server->views, active_view, criteria);
 	while (cur && cur != active_view) {
-	        wlr_box_intersection(&intersect, &cur->current, &region->geo);
+		wlr_box_intersection(&intersect, &cur->current, &region->geo);
 		if (!cur->minimized && !wlr_box_empty(&intersect)) {
 			return cur;
 		}

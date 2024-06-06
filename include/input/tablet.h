@@ -15,7 +15,12 @@ struct drawing_tablet {
 	struct wlr_tablet *tablet;
 	struct wlr_tablet_v2_tablet *tablet_v2;
 	double x, y;
+	double distance;
+	double pressure;
 	double tilt_x, tilt_y;
+	double rotation;
+	double slider;
+	double wheel_delta;
 	struct {
 		struct wl_listener proximity;
 		struct wl_listener axis;

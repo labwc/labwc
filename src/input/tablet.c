@@ -233,11 +233,26 @@ handle_axis(struct wl_listener *listener, void *data)
 	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_Y) {
 		tablet->y = ev->y;
 	}
+	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_DISTANCE) {
+		tablet->distance = ev->distance;
+	}
+	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_PRESSURE) {
+		tablet->pressure = ev->pressure;
+	}
 	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_TILT_X) {
 		tablet->tilt_x = ev->tilt_x;
 	}
 	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_TILT_Y) {
 		tablet->tilt_y = ev->tilt_y;
+	}
+	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_ROTATION) {
+		tablet->rotation = ev->rotation;
+	}
+	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_SLIDER) {
+		tablet->slider = ev->slider;
+	}
+	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_WHEEL) {
+		tablet->wheel_delta = ev->wheel_delta;
 	}
 
 	double x, y;
@@ -257,19 +272,19 @@ handle_axis(struct wl_listener *listener, void *data)
 	if (tool && !is_down_mouse_emulation && ((surface
 			&& tablet->seat->server->input_mode == LAB_INPUT_STATE_PASSTHROUGH)
 			|| wlr_tablet_tool_v2_has_implicit_grab(tool->tool_v2))) {
-		if (ev->updated_axes & (WLR_TABLET_TOOL_AXIS_X | WLR_TABLET_TOOL_AXIS_Y)) {
-			notify_motion(tablet, tool, surface, x, y, ev->time_msec);
-		}
-		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_DISTANCE) {
+		/* motion seems to be supported by all tools */
+		notify_motion(tablet, tool, surface, x, y, ev->time_msec);
+
+		/* notify about other axis based on tool capabilities */
+		if (ev->tool->distance) {
 			wlr_tablet_v2_tablet_tool_notify_distance(tool->tool_v2,
-				ev->distance);
+				tablet->distance);
 		}
-		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_PRESSURE) {
+		if (ev->tool->pressure) {
 			wlr_tablet_v2_tablet_tool_notify_pressure(tool->tool_v2,
-				ev->pressure);
+				tablet->pressure);
 		}
-		if (ev->updated_axes
-				& (WLR_TABLET_TOOL_AXIS_TILT_X | WLR_TABLET_TOOL_AXIS_TILT_Y)) {
+		if (ev->tool->tilt) {
 			/*
 			 * From https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/stable/tablet/tablet-v2.xml
 			 * "Other extra axes are in physical units as specified in the protocol.
@@ -288,17 +303,17 @@ handle_axis(struct wl_listener *listener, void *data)
 			wlr_tablet_v2_tablet_tool_notify_tilt(tool->tool_v2,
 				tilt_x, tilt_y);
 		}
-		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_ROTATION) {
+		if (ev->tool->rotation) {
 			wlr_tablet_v2_tablet_tool_notify_rotation(tool->tool_v2,
-				ev->rotation);
+				tablet->rotation);
 		}
-		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_SLIDER) {
+		if (ev->tool->slider) {
 			wlr_tablet_v2_tablet_tool_notify_slider(tool->tool_v2,
-				ev->slider);
+				tablet->slider);
 		}
-		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_WHEEL) {
+		if (ev->tool->wheel) {
 			wlr_tablet_v2_tablet_tool_notify_wheel(tool->tool_v2,
-				ev->wheel_delta, 0);
+				tablet->wheel_delta, 0);
 		}
 	} else {
 		if (ev->updated_axes & (WLR_TABLET_TOOL_AXIS_X | WLR_TABLET_TOOL_AXIS_Y)) {
@@ -518,8 +533,13 @@ tablet_init(struct seat *seat, struct wlr_input_device *wlr_device)
 	}
 	tablet->x = 0.0;
 	tablet->y = 0.0;
+	tablet->distance = 0.0;
+	tablet->pressure = 0.0;
 	tablet->tilt_x = 0.0;
 	tablet->tilt_y = 0.0;
+	tablet->rotation = 0.0;
+	tablet->slider = 0.0;
+	tablet->wheel_delta = 0.0;
 	wlr_log(WLR_INFO, "tablet dimensions: %.2fmm x %.2fmm",
 		tablet->tablet->width_mm, tablet->tablet->height_mm);
 	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, axis);

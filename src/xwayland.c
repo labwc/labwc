@@ -1129,6 +1129,56 @@ xwayland_adjust_stacking_order(struct server *server)
 }
 
 void
+xwayland_reset_cursor(struct server *server)
+{
+	/*
+	 * As xwayland caches the pixel data when not yet started up
+	 * due to the delayed lazy startup approach, we do have to
+	 * re-set the xwayland cursor image. Otherwise the first X11
+	 * client connected will cause the xwayland server to use
+	 * the cached (and potentially destroyed) pixel data.
+	 *
+	 * Calling this function after reloading the cursor theme
+	 * ensures that the cached pixel data keeps being valid.
+	 *
+	 * To reproduce:
+	 * - Compile with b_sanitize=address,undefined
+	 * - Start labwc (nothing in autostart that could create
+	 *   a X11 connection, e.g. no GTK or X11 application)
+	 * - Reconfigure
+	 * - Start some X11 client
+	 */
+
+	if (!server->xwayland) {
+		return;
+	}
+
+	struct wlr_xcursor *xcursor = wlr_xcursor_manager_get_xcursor(
+		server->seat.xcursor_manager, XCURSOR_DEFAULT, 1);
+
+	if (xcursor && !server->xwayland->xwm) {
+		/* Prevents setting the cursor on an active xwayland server */
+		struct wlr_xcursor_image *image = xcursor->images[0];
+		wlr_xwayland_set_cursor(server->xwayland, image->buffer,
+			image->width * 4, image->width,
+			image->height, image->hotspot_x,
+			image->hotspot_y);
+		return;
+	}
+
+	if (server->xwayland->cursor) {
+		/*
+		 * The previous configured theme has set the
+		 * default cursor or the xwayland server is
+		 * currently running but still has a cached
+		 * xcursor set that will be used on the next
+		 * xwayland destroy -> lazy startup cycle.
+		 */
+		zfree(server->xwayland->cursor);
+	}
+}
+
+void
 xwayland_server_finish(struct server *server)
 {
 	struct wlr_xwayland *xwayland = server->xwayland;

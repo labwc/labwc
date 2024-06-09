@@ -26,6 +26,7 @@
 #include "resistance.h"
 #include "ssd.h"
 #include "view.h"
+#include "xwayland.h"
 
 #define LAB_CURSOR_SHAPE_V1_VERSION 1
 
@@ -1403,6 +1404,9 @@ void
 cursor_reload(struct seat *seat)
 {
 	cursor_load(seat);
+#if HAVE_XWAYLAND
+	xwayland_reset_cursor(seat->server);
+#endif
 	cursor_update_image(seat);
 }
 

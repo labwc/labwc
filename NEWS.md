@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2024-06-09 | [unreleased]  | 0.17.3          |               |
 | 2024-05-10 | [0.7.2]       | 0.17.3          | 21368         |
 | 2024-03-01 | [0.7.1]       | 0.17.1          | 18624         |
 | 2023-12-22 | [0.7.0]       | 0.17.1          | 16576         |
@@ -27,6 +28,54 @@ The format is based on [Keep a Changelog]
 | 2021-06-28 | [0.3.0]       | 0.14.0          | 5051          |
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
+
+## [unreleased]
+
+### Added
+
+- Add `onRelease` option to `<keybind>` in support of binding `Super_L` to a
+  menu. Written-by: @spl237 PR #1888
+- Add initial support for `security-context-v1` (user configurable blocklists
+  are still missing). Written-by: @nesteroff PR #1817
+- Add partial support for `tablet-v2-manager`. Written-by: @jp7677 PR #1678
+- Add action `UnMaximize`. PR #1831
+- Support multiple IME popups. PR #1823
+- Add `All` context for mouse bindings which need to be handled irrespective of
+  the mouse pointer location. This enables Super+mouse-scroll to change
+  magnification. Written-by: @spl237 PR #1768
+- Add `SetDecorations` action. Written-by: @xi PR #1733
+- Add `policy` option to `AutoPlace` action. PR #1784
+- Add window type filter to If-actions. Written-by: @xi PR #1731
+- Add screen magnifier which can be controlled with the `ZoomIn`, `ZoomOut` and
+  `ToggleMagnify` actions. Written-by: @spl237 PR #1774
+
+### Fixed
+
+- Prevent child views from opening outside of usable area. PR #1878
+- Fix IME popups issues (flicker when popup surface is initially mapped
+  and incorrectly showing multiple popups). PR #1872
+- Rate-limit cursor-driven resize events based on monitor's refresh rate. This
+  fixes the lag when resizing windows of some apps on XWayland, for example
+  Chromium and Steam. PR #1861
+- Session-lock: fix flashing & update cursor shape. PR #1858
+- Remove tearing-controller listeners on destroy. PR #1853
+- Handle invalid `ForEach` and `If` action cofigs. PR #1838
+- Delay startup of applications until event loop is ready. This avoids race
+  conditions when using autostart scripts that trigger a labwc SIGHUP. #1588
+- With `SendToDesktop` action follow=no option, ensure the topmost window is
+  focused. #1800
+- Prevent XWayland from using incorrect keymap. #1816
+- Allow keybinds containing the hyphen key to be defined with `-`.
+  Written-by: @toast #1811
+- Show/hide `top` layer more smartly. Before this commit, `top` layers were
+  hidden whenever there was a fullscreen window in the corresponding output.
+  With this commit, `top` layers are hidden only when there is a fullscreen
+  window without other windows above it in the corresponding output.
+
+### Changed
+
+- Action `MoveToCursor` is deprecated in favour of:
+  `<action name="AutoPlace" policy="cursor"/>`.
 
 ## [0.7.2]
 

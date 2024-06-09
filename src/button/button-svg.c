@@ -29,12 +29,15 @@ button_svg_load(const char *button_name, struct lab_data_buffer **buffer,
 
 	char filename[4096] = { 0 };
 	button_filename(button_name, filename, sizeof(filename));
+	if (string_null_or_empty(filename)) {
+		return;
+	}
 
 	GError *err = NULL;
 	RsvgRectangle viewport = { .width = size, .height = size };
 	RsvgHandle *svg = rsvg_handle_new_from_file(filename, &err);
 	if (err) {
-		wlr_log(WLR_DEBUG, "error reading svg %s-%s\n", filename, err->message);
+		wlr_log(WLR_DEBUG, "error reading svg %s-%s", filename, err->message);
 		g_error_free(err);
 		/*
 		 * rsvg_handle_new_from_file() returns NULL if an error occurs,

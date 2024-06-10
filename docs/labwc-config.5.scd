@@ -680,28 +680,39 @@ extending outward from the snapped edge.
 	also omits tablet specific features like reporting pen pressure.
 
 *<tablet><map button="" to="" />*
-	Pen buttons emulate regular mouse buttons. If not specified
-	otherwise, the first pen button (Stylus) is mapped to right mouse
-	button click and the second pen button (Stylus2) emulates a middle
-	mouse button click. For mouse emulation, the tip (Tip) is mapped to
-	left mouse click.
+	Pen and pad buttons behave like regular mouse buttons.With mouse
+	emulation set to "no", which is the default, and if not	specified
+	otherwise, the first pen button is mapped to the right mouse button,
+	the second pen button to the middle mouse button and a third pen
+	button is mapped to the side mouse button.
 
 	Supported map *buttons* are:
-	- Tip (mouse emulation only)
+	- Stylus
+	- Stylus2
+	- Stylus3
+
+	The stylus buttons can be mapped *to*:
+	- Right
+	- Middle
+	- Side
+
+	The tip cannot be remapped.
+
+	When using mouse emulation, all pen buttons emulate regular mouse
+	buttons. The tip, stylus and pad buttons can be mapped to all
+	available mouse	buttons. If not specified otherwise, the tip is
+	mapped to left mouse click, the first pen button (Stylus) is mapped
+	to right mouse button click and the second pen button (Stylus2)
+	emulates a middle mouse	button click.
+
+	Supported map *buttons* for mouse emulation are:
+	- Tip
 	- Stylus
 	- Stylus2
 	- Stylus3
 	- Pad
 	- Pad2..Pad9
 
-	The stylus buttons (Stylus, Stylus2 and Stylus3) can be mapped *to*:
-	- Right
-	- Middle
-	- Side
-
-	The tablet pad buttons can be mapped to all available mouse buttons.
-	When using mouse emulation only, the tip and stylus buttons can also be
-	mapped to all available mouse buttons.
 	See mouse section above for all supported mouse buttons.
 
 ## LIBINPUT

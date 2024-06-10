@@ -235,6 +235,20 @@ is_modifier_key(xkb_keysym_t sym)
 	}
 }
 
+static bool
+is_modifier(struct wlr_keyboard *wlr_keyboard, uint32_t evdev_keycode)
+{
+	const xkb_keysym_t *syms = NULL;
+	int nr_syms = xkb_state_key_get_syms(wlr_keyboard->xkb_state,
+		evdev_keycode + 8, &syms);
+	for (int i = 0; i < nr_syms; i++) {
+		if (is_modifier_key(syms[i])) {
+			return true;
+		}
+	}
+	return false;
+}
+
 static struct keyinfo
 get_keyinfo(struct wlr_keyboard *wlr_keyboard, uint32_t evdev_keycode)
 {
@@ -275,7 +289,7 @@ get_keyinfo(struct wlr_keyboard *wlr_keyboard, uint32_t evdev_keycode)
 	 * bool last_key_was_a_modifier = last_modifiers != modifiers;
 	 * last_modifiers = modifiers;
 	 * if (last_key_was_a_modifier) {
-	 *	key_state_remove_last_pressed_key(last_pressed_keycode);
+	 *   key_state_remove_last_pressed_key(last_pressed_keycode);
 	 * }
 	 */
 	keyinfo.modifiers = wlr_keyboard_get_modifiers(wlr_keyboard);
@@ -552,7 +566,13 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	}
 
 	if (handled) {
-		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+		/*
+		 * We do not start the repeat-timer on pressed modifiers (like
+		 * Super_L) because it is only for our own internal use with
+		 * keybinds and it messes up modifier-onRelease-keybinds.
+		 */
+		if (!is_modifier(keyboard->wlr_keyboard, event->keycode)
+				&& event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			start_keybind_repeat(seat->server, keyboard, event);
 		}
 	} else if (!input_method_keyboard_grab_forward_key(keyboard, event)) {

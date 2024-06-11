@@ -470,7 +470,7 @@ handle_button(struct wl_listener *listener, void *data)
 	if (tool && !is_down_mouse_emulation && surface) {
 		idle_manager_notify_activity(tool->seat->seat);
 
-		if (button) {
+		if (button && ev->state == WLR_BUTTON_PRESSED) {
 			struct view *view = view_from_wlr_surface(surface);
 			struct mousebind *mousebind;
 			wl_list_for_each(mousebind, &rc.mousebinds, link) {

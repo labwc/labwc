@@ -605,6 +605,11 @@ xml_tree_walk(xmlNode *node, struct server *server)
 			continue;
 		}
 		if (!strcasecmp((char *)n->name, "item")) {
+			if (!current_menu) {
+				wlr_log(WLR_ERROR,
+					"ignoring <item> without parent <menu>");
+				continue;
+			}
 			in_item = true;
 			traverse(n, server);
 			in_item = false;

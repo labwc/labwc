@@ -38,7 +38,7 @@ struct keyinfo {
 
 static bool should_cancel_cycling_on_next_key_release;
 
-static struct keybind *cur_keybind;
+struct keybind *cur_keybind;
 
 /* Called on --reconfigure to prevent segfault when handling release keybinds */
 void
@@ -438,7 +438,6 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 				return true;
 			}
 			actions_run(NULL, server, &cur_keybind->actions, 0);
-			cur_keybind = NULL;
 			return true;
 		} else {
 			return handle_key_release(server, event->keycode);
@@ -488,8 +487,6 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		key_state_store_pressed_key_as_bound(event->keycode);
 		if (!cur_keybind->on_release) {
 			actions_run(NULL, server, &cur_keybind->actions, 0);
-			/* This cancels any pending on-release keybinds */
-			cur_keybind = NULL;
 		}
 		return true;
 	}

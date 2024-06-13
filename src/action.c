@@ -177,6 +177,8 @@ const char *action_names[] = {
 	NULL
 };
 
+extern struct keybind *cur_keybind;
+
 void
 action_arg_add_str(struct action *action, const char *key, const char *value)
 {
@@ -706,6 +708,8 @@ actions_run(struct view *activator, struct server *server,
 		wlr_log(WLR_ERROR, "empty actions");
 		return;
 	}
+
+	cur_keybind = NULL;
 
 	struct view *view;
 	struct action *action;

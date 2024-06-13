@@ -24,6 +24,7 @@
 #include "ssd.h"
 #include "view.h"
 #include "workspaces.h"
+#include "input/keyboard.h"
 
 enum action_arg_type {
 	LAB_ACTION_ARG_STR = 0,
@@ -176,8 +177,6 @@ const char *action_names[] = {
 	"ZoomOut",
 	NULL
 };
-
-extern struct keybind *cur_keybind;
 
 void
 action_arg_add_str(struct action *action, const char *key, const char *value)

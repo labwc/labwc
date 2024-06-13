@@ -9,6 +9,8 @@ struct seat;
 struct keyboard;
 struct wlr_keyboard;
 
+extern struct keybind *cur_keybind;
+
 void keyboard_reset_current_keybind(void);
 void keyboard_configure(struct seat *seat, struct wlr_keyboard *kb,
 	bool is_virtual);

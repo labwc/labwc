@@ -709,7 +709,7 @@ actions_run(struct view *activator, struct server *server,
 	}
 
 	/* This cancels any pending on-release keybinds */
-	keyboard_reset_current_keybind ();
+	keyboard_reset_current_keybind();
 
 	struct view *view;
 	struct action *action;

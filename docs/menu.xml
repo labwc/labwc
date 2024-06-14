@@ -12,7 +12,7 @@
   <item label="Fullscreen">
     <action name="ToggleFullscreen" />
   </item>
-  <item label="Roll up/down">
+  <item label="Roll Up/Down">
     <action name="ToggleShade" />
   </item>
   <item label="Decorations">
@@ -26,10 +26,10 @@
     if there is only a single workspace available.
   -->
   <menu id="workspaces" label="Workspace">
-    <item label="Move left">
+    <item label="Move Left">
       <action name="SendToDesktop" to="left" />
     </item>
-    <item label="Move right">
+    <item label="Move Right">
       <action name="SendToDesktop" to="right" />
     </item>
     <separator />

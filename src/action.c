@@ -708,7 +708,8 @@ actions_run(struct view *activator, struct server *server,
 		return;
 	}
 
-	cur_keybind = NULL;
+	/* This cancels any pending on-release keybinds */
+	keyboard_reset_current_keybind ();
 
 	struct view *view;
 	struct action *action;

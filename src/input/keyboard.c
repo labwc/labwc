@@ -38,7 +38,7 @@ struct keyinfo {
 
 static bool should_cancel_cycling_on_next_key_release;
 
-struct keybind *cur_keybind;
+static struct keybind *cur_keybind;
 
 /* Called on --reconfigure to prevent segfault when handling release keybinds */
 void

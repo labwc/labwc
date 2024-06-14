@@ -845,7 +845,7 @@ init_windowmenu(struct server *server)
 		fill_item("name.action", "ToggleMaximize");
 		current_item = item_create(menu, _("Fullscreen"), false);
 		fill_item("name.action", "ToggleFullscreen");
-		current_item = item_create(menu, _("Roll up/down"), false);
+		current_item = item_create(menu, _("Roll Up/Down"), false);
 		fill_item("name.action", "ToggleShade");
 		current_item = item_create(menu, _("Decorations"), false);
 		fill_item("name.action", "ToggleDecorations");
@@ -854,14 +854,14 @@ init_windowmenu(struct server *server)
 
 		/* Workspace sub-menu */
 		struct menu *workspace_menu = menu_create(server, "workspaces", "");
-		current_item = item_create(workspace_menu, _("Move left"), false);
+		current_item = item_create(workspace_menu, _("Move Left"), false);
 		/*
 		 * <action name="SendToDesktop"><follow> is true by default so
 		 * GoToDesktop will be called as part of the action.
 		 */
 		fill_item("name.action", "SendToDesktop");
 		fill_item("to.action", "left");
-		current_item = item_create(workspace_menu, _("Move right"), false);
+		current_item = item_create(workspace_menu, _("Move Right"), false);
 		fill_item("name.action", "SendToDesktop");
 		fill_item("to.action", "right");
 		current_item = separator_create(workspace_menu, "");

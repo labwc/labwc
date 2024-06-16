@@ -684,6 +684,9 @@ extending outward from the snapped edge.
 	tablet specific restrictions, e.g. no support for drag-and-drop, but
 	also omits tablet specific features like reporting pen pressure.
 
+	Use the *ToggleTabletMouseEmulation* action for toggling between
+	mouse emulation on and off.
+
 *<tablet><map button="" to="" />*
 	Pen and pad buttons behave like regular mouse buttons.With mouse
 	emulation set to "no", which is the default, and if not	specified

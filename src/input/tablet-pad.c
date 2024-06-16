@@ -25,12 +25,25 @@ tablet_pad_attach_tablet(struct seat *seat)
 	/* loop over all tablets and all pads and link by device group */
 	struct drawing_tablet *tablet;
 	wl_list_for_each(tablet, &seat->tablets, link) {
+		if (!wlr_input_device_is_libinput(tablet->wlr_input_device)) {
+			/*
+			 * Prevent iterating over non-libinput devices. This might
+			 * be the case when a tablet is exposed by the Wayland
+			 * protocol backend when running labwc as a nested compositor.
+			 */
+			continue;
+		}
+
 		struct libinput_device *tablet_device =
 			wlr_libinput_get_device_handle(tablet->wlr_input_device);
 		struct libinput_device_group *tablet_group =
 			libinput_device_get_device_group(tablet_device);
 
 		wl_list_for_each(pad, &seat->tablet_pads, link) {
+			if (!wlr_input_device_is_libinput(pad->wlr_input_device)) {
+				continue;
+			}
+
 			struct libinput_device *pad_device =
 				wlr_libinput_get_device_handle(pad->wlr_input_device);
 			struct libinput_device_group *pad_group =

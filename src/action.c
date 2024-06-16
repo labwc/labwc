@@ -114,6 +114,7 @@ enum action_type {
 	ACTION_TYPE_SHADE,
 	ACTION_TYPE_UNSHADE,
 	ACTION_TYPE_TOGGLE_SHADE,
+	ACTION_TYPE_TOGGLE_TABLET_MOUSE_EMULATION,
 	ACTION_TYPE_TOGGLE_MAGNIFY,
 	ACTION_TYPE_ZOOM_IN,
 	ACTION_TYPE_ZOOM_OUT
@@ -172,6 +173,7 @@ const char *action_names[] = {
 	"Shade",
 	"Unshade",
 	"ToggleShade",
+	"ToggleTabletMouseEmulation",
 	"ToggleMagnify",
 	"ZoomIn",
 	"ZoomOut",
@@ -1110,6 +1112,9 @@ actions_run(struct view *activator, struct server *server,
 			if (view) {
 				view_set_shade(view, false);
 			}
+			break;
+		case ACTION_TYPE_TOGGLE_TABLET_MOUSE_EMULATION:
+			rc.tablet.force_mouse_emulation = !rc.tablet.force_mouse_emulation;
 			break;
 		case ACTION_TYPE_TOGGLE_MAGNIFY:
 			magnify_toggle(server);

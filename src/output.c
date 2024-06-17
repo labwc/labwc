@@ -49,6 +49,36 @@ get_tearing_preference(struct output *output)
 }
 
 static void
+output_apply_gamma(struct output *output)
+{
+	assert(output);
+	assert(output->gamma_lut_changed);
+
+	struct server *server = output->server;
+	struct wlr_scene_output *scene_output = output->scene_output;
+
+	struct wlr_output_state pending;
+	wlr_output_state_init(&pending);
+
+	output->gamma_lut_changed = false;
+	struct wlr_gamma_control_v1 *gamma_control =
+		wlr_gamma_control_manager_v1_get_control(
+			server->gamma_control_manager_v1,
+			output->wlr_output);
+
+	if (!wlr_gamma_control_v1_apply(gamma_control, &pending)) {
+		wlr_output_state_finish(&pending);
+		return;
+	}
+
+	if (!lab_wlr_scene_output_commit(scene_output, &pending)) {
+		wlr_gamma_control_v1_send_failed_and_destroy(gamma_control);
+	}
+
+	wlr_output_state_finish(&pending);
+}
+
+static void
 output_frame_notify(struct wl_listener *listener, void *data)
 {
 	/*
@@ -71,38 +101,22 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	struct wlr_output *wlr_output = output->wlr_output;
-	struct server *server = output->server;
-
 	if (output->gamma_lut_changed) {
-		struct wlr_output_state pending;
-		wlr_output_state_init(&pending);
-		if (!wlr_scene_output_build_state(output->scene_output, &pending, NULL)) {
-			return;
-		}
-		output->gamma_lut_changed = false;
-		struct wlr_gamma_control_v1 *gamma_control =
-			wlr_gamma_control_manager_v1_get_control(
-				server->gamma_control_manager_v1, wlr_output);
-		if (!wlr_gamma_control_v1_apply(gamma_control, &pending)) {
-			wlr_output_state_finish(&pending);
-			return;
-		}
+		/*
+		 * We are not mixing the gamma state with
+		 * other pending output changes to make it
+		 * easier to handle a failed output commit
+		 * due to gamma without impacting other
+		 * unrelated output changes.
+		 */
+		output_apply_gamma(output);
+	} else {
+		output->wlr_output->pending.tearing_page_flip =
+			get_tearing_preference(output);
 
-		if (!wlr_output_commit_state(output->wlr_output, &pending)) {
-			wlr_gamma_control_v1_send_failed_and_destroy(gamma_control);
-			wlr_output_state_finish(&pending);
-			return;
-		}
-
-		wlr_damage_ring_rotate(&output->scene_output->damage_ring);
-		wlr_output_state_finish(&pending);
-		return;
+		lab_wlr_scene_output_commit(output->scene_output,
+			&output->wlr_output->pending);
 	}
-
-	output->wlr_output->pending.tearing_page_flip =
-		get_tearing_preference(output);
-	lab_wlr_scene_output_commit(output->scene_output);
 
 	struct timespec now = { 0 };
 	clock_gettime(CLOCK_MONOTONIC, &now);

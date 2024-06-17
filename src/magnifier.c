@@ -96,7 +96,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 
 	/* (Re)create the temporary buffer if required */
 	if (tmp_buffer && (tmp_buffer->width != width || tmp_buffer->height != height)) {
-		wlr_log(WLR_DEBUG, "tmp buffer size changed, dropping");
+		wlr_log(WLR_DEBUG, "tmp magnifier buffer size changed, dropping");
 		assert(tmp_texture);
 		wlr_texture_destroy(tmp_texture);
 		wlr_buffer_drop(tmp_buffer);
@@ -117,7 +117,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		tmp_texture = wlr_texture_from_buffer(server->renderer, tmp_buffer);
 	}
 	if (!tmp_texture) {
-		wlr_log(WLR_ERROR, "Failed to allocate temporary texture");
+		wlr_log(WLR_ERROR, "Failed to allocate temporary magnifier texture");
 		wlr_buffer_drop(tmp_buffer);
 		tmp_buffer = NULL;
 		return;
@@ -209,7 +209,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	};
 	wlr_render_pass_add_texture(tmp_render_pass, &opts);
 	if (!wlr_render_pass_submit(tmp_render_pass)) {
-		wlr_log(WLR_ERROR, "Failed to submit render pass");
+		wlr_log(WLR_ERROR, "Failed to submit magnifier render pass");
 		goto cleanup;
 	}
 

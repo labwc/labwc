@@ -40,11 +40,12 @@ lab_wlr_scene_get_prev_node(struct wlr_scene_node *node)
  * as it doesn't use the pending state at all.
  */
 bool
-lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output)
+lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
+		struct wlr_output_state *state)
 {
 	assert(scene_output);
+	assert(state);
 	struct wlr_output *wlr_output = scene_output->output;
-	struct wlr_output_state *state = &wlr_output->pending;
 	struct output *output = wlr_output->data;
 	bool wants_magnification = output_wants_magnification(output);
 
@@ -70,11 +71,18 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output)
 		magnify(output, state->buffer, &additional_damage);
 	}
 
-	if (!wlr_output_commit(wlr_output)) {
-		wlr_log(WLR_INFO, "Failed to commit output %s",
+	if (state == &wlr_output->pending) {
+		if (!wlr_output_commit(wlr_output)) {
+			wlr_log(WLR_INFO, "Failed to commit output %s",
+				wlr_output->name);
+			return false;
+		}
+	} else if (!wlr_output_commit_state(wlr_output, state)) {
+		wlr_log(WLR_INFO, "Failed to commit state for output %s",
 			wlr_output->name);
 		return false;
 	}
+
 	/*
 	 * FIXME: Remove the following line as soon as
 	 * https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4253

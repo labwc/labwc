@@ -841,10 +841,12 @@ view_store_natural_geometry(struct view *view)
 
 	/**
 	 * If an application was started maximized or fullscreened, its
-	 * natural_geometry width/height may still be zero in which case we set
-	 * some fallback values. This is the case with foot and Qt applications.
+	 * natural_geometry width/height may still be zero (or very small
+	 * values) in which case we set some fallback values. This is the case
+	 * with foot and some Qt/Tk applications.
 	 */
-	if (wlr_box_empty(&view->pending)) {
+	if (view->pending.width < LAB_MIN_VIEW_WIDTH
+			|| view->pending.height < LAB_MIN_VIEW_HEIGHT) {
 		set_fallback_geometry(view);
 	} else {
 		view->natural_geometry = view->pending;

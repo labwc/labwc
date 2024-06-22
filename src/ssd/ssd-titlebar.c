@@ -123,7 +123,7 @@ ssd_titlebar_create(struct ssd *ssd)
 		set_maximize_alt_icon(ssd, true);
 		ssd->state.was_maximized = true;
 	}
-	if (view_is_tiled(view) && !maximized) {
+	if (view_is_tiled_and_notify_tiled(view) && !maximized) {
 		set_squared_corners(ssd, true);
 		ssd->state.was_tiled_not_maximized = true;
 	}
@@ -193,7 +193,9 @@ ssd_titlebar_update(struct ssd *ssd)
 	struct theme *theme = view->server->theme;
 
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
-	bool tiled_not_maximized = view_is_tiled(ssd->view) && !maximized;
+	bool tiled_not_maximized = view_is_tiled_and_notify_tiled(ssd->view)
+		&& !maximized;
+
 	if (ssd->state.was_maximized != maximized
 			|| ssd->state.was_tiled_not_maximized != tiled_not_maximized) {
 		set_squared_corners(ssd, maximized || tiled_not_maximized);

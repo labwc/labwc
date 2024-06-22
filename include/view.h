@@ -495,6 +495,7 @@ void view_toggle_always_on_bottom(struct view *view);
 void view_toggle_visible_on_all_workspaces(struct view *view);
 
 bool view_is_tiled(struct view *view);
+bool view_is_tiled_and_notify_tiled(struct view *view);
 bool view_is_floating(struct view *view);
 void view_move_to_workspace(struct view *view, struct workspace *workspace);
 enum ssd_mode view_get_ssd_mode(struct view *view);

@@ -1172,6 +1172,23 @@ view_is_tiled(struct view *view)
 }
 
 bool
+view_is_tiled_and_notify_tiled(struct view *view)
+{
+	switch (rc.snap_tiling_events_mode) {
+	case LAB_TILING_EVENTS_NEVER:
+		return false;
+	case LAB_TILING_EVENTS_REGION:
+		return view->tiled_region || view->tiled_region_evacuate;
+	case LAB_TILING_EVENTS_EDGE:
+		return view->tiled;
+	case LAB_TILING_EVENTS_ALWAYS:
+		return view_is_tiled(view);
+	}
+
+	return false;
+}
+
+bool
 view_is_floating(struct view *view)
 {
 	assert(view);

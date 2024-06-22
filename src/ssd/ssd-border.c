@@ -86,6 +86,38 @@ ssd_border_update(struct ssd *ssd)
 	int height = view_effective_height(view, /* use_pending */ false);
 	int full_width = width + 2 * theme->border_width;
 
+	/*
+	 * From here on we have to cover the following border scenarios:
+	 * Non-tiled (partial border, rounded corners):
+	 *    _____________
+	 *   o           oox
+	 *  |---------------|
+	 *  |_______________|
+	 *
+	 * Tiled (full border, squared corners):
+	 *   _______________
+	 *  |o           oox|
+	 *  |---------------|
+	 *  |_______________|
+	 *
+	 * Tiled or non-tiled with zero title height (full boarder, no title):
+	 *   _______________
+	 *  |_______________|
+	 */
+
+	int side_height = ssd->state.was_tiled_not_maximized
+		? height + ssd->titlebar.height
+		: height;
+	int side_y = ssd->state.was_tiled_not_maximized
+		? -ssd->titlebar.height
+		: 0;
+	int top_width = ssd->titlebar.height <= 0 || ssd->state.was_tiled_not_maximized
+		? full_width
+		: width - 2 * SSD_BUTTON_WIDTH;
+	int top_x = ssd->titlebar.height <= 0 || ssd->state.was_tiled_not_maximized
+		? 0
+		: theme->border_width + SSD_BUTTON_WIDTH;
+
 	struct ssd_part *part;
 	struct wlr_scene_rect *rect;
 	struct ssd_sub_tree *subtree;
@@ -95,34 +127,35 @@ ssd_border_update(struct ssd *ssd)
 			switch (part->type) {
 			case LAB_SSD_PART_LEFT:
 				wlr_scene_rect_set_size(rect,
-					theme->border_width, height);
+					theme->border_width,
+					side_height);
+				wlr_scene_node_set_position(part->node,
+					0,
+					side_y);
 				continue;
 			case LAB_SSD_PART_RIGHT:
 				wlr_scene_rect_set_size(rect,
-					theme->border_width, height);
+					theme->border_width,
+					side_height);
 				wlr_scene_node_set_position(part->node,
-					theme->border_width + width, 0);
+					theme->border_width + width,
+					side_y);
 				continue;
 			case LAB_SSD_PART_BOTTOM:
 				wlr_scene_rect_set_size(rect,
-					full_width, theme->border_width);
+					full_width,
+					theme->border_width);
 				wlr_scene_node_set_position(part->node,
-					0, height);
+					0,
+					height);
 				continue;
 			case LAB_SSD_PART_TOP:
-				if (ssd->titlebar.height > 0) {
-					wlr_scene_rect_set_size(rect,
-						width - 2 * SSD_BUTTON_WIDTH,
-						theme->border_width);
-					wlr_scene_node_set_position(part->node,
-						theme->border_width + SSD_BUTTON_WIDTH,
-						-(ssd->titlebar.height + theme->border_width));
-				} else {
-					wlr_scene_rect_set_size(rect,
-						full_width, theme->border_width);
-					wlr_scene_node_set_position(part->node,
-						0, -theme->border_width);
-				}
+				wlr_scene_rect_set_size(rect,
+					top_width,
+					theme->border_width);
+				wlr_scene_node_set_position(part->node,
+					top_x,
+					-(ssd->titlebar.height + theme->border_width));
 				continue;
 			default:
 				continue;

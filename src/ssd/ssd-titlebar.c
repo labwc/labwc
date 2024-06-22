@@ -117,10 +117,15 @@ ssd_titlebar_create(struct ssd *ssd)
 
 	ssd_update_title(ssd);
 
-	if (view->maximized == VIEW_AXIS_BOTH) {
+	bool maximized = view->maximized == VIEW_AXIS_BOTH;
+	if (maximized) {
 		set_squared_corners(ssd, true);
 		set_maximize_alt_icon(ssd, true);
 		ssd->state.was_maximized = true;
+	}
+	if (view_is_tiled(view) && !maximized) {
+		set_squared_corners(ssd, true);
+		ssd->state.was_tiled_not_maximized = true;
 	}
 }
 
@@ -187,11 +192,16 @@ ssd_titlebar_update(struct ssd *ssd)
 	int width = view->current.width;
 	struct theme *theme = view->server->theme;
 
-	bool maximized = (view->maximized == VIEW_AXIS_BOTH);
-	if (ssd->state.was_maximized != maximized) {
-		set_squared_corners(ssd, maximized);
-		set_maximize_alt_icon(ssd, maximized);
+	bool maximized = view->maximized == VIEW_AXIS_BOTH;
+	bool tiled_not_maximized = view_is_tiled(ssd->view) && !maximized;
+	if (ssd->state.was_maximized != maximized
+			|| ssd->state.was_tiled_not_maximized != tiled_not_maximized) {
+		set_squared_corners(ssd, maximized || tiled_not_maximized);
+		if (ssd->state.was_maximized != maximized) {
+			set_maximize_alt_icon(ssd, maximized);
+		}
 		ssd->state.was_maximized = maximized;
+		ssd->state.was_tiled_not_maximized = tiled_not_maximized;
 	}
 
 	if (width == ssd->state.geometry.width) {

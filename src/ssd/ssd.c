@@ -248,8 +248,8 @@ ssd_update_geometry(struct ssd *ssd)
 		}
 		bool maximized = ssd->view->maximized == VIEW_AXIS_BOTH;
 		if (ssd->state.was_maximized != maximized) {
-			ssd_border_update(ssd);
 			ssd_titlebar_update(ssd);
+			ssd_border_update(ssd);
 			ssd_shadow_update(ssd);
 			/*
 			 * Not strictly necessary as ssd_titlebar_update()
@@ -261,14 +261,15 @@ ssd_update_geometry(struct ssd *ssd)
 		bool tiled_and_not_maximized = view_is_tiled(ssd->view) && !maximized;
 		if (ssd->state.was_tiled_not_maximized != tiled_and_not_maximized) {
 			ssd_titlebar_update(ssd);
+			ssd_border_update(ssd);
 			/* see above about being future proof */
 			ssd->state.was_tiled_not_maximized = tiled_and_not_maximized;
 		}
 		return;
 	}
 	ssd_extents_update(ssd);
-	ssd_border_update(ssd);
 	ssd_titlebar_update(ssd);
+	ssd_border_update(ssd);
 	ssd_shadow_update(ssd);
 	ssd->state.geometry = current;
 }

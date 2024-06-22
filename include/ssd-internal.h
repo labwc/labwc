@@ -50,6 +50,7 @@ struct ssd {
 	 */
 	struct {
 		bool was_maximized;   /* To un-round corner buttons and toggle icon on maximize */
+		bool was_tiled_not_maximized;   /* To un-round corner buttons */
 		struct wlr_box geometry;
 		struct ssd_state_title {
 			char *text;

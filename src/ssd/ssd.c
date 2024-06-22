@@ -246,7 +246,7 @@ ssd_update_geometry(struct ssd *ssd)
 			ssd_extents_update(ssd);
 			ssd->state.geometry = current;
 		}
-		bool maximized = (ssd->view->maximized == VIEW_AXIS_BOTH);
+		bool maximized = ssd->view->maximized == VIEW_AXIS_BOTH;
 		if (ssd->state.was_maximized != maximized) {
 			ssd_border_update(ssd);
 			ssd_titlebar_update(ssd);
@@ -257,6 +257,12 @@ ssd_update_geometry(struct ssd *ssd)
 			 * proof this a bit we also set it here again.
 			 */
 			ssd->state.was_maximized = maximized;
+		}
+		bool tiled_and_not_maximized = view_is_tiled(ssd->view) && !maximized;
+		if (ssd->state.was_tiled_not_maximized != tiled_and_not_maximized) {
+			ssd_titlebar_update(ssd);
+			/* see above about being future proof */
+			ssd->state.was_tiled_not_maximized = tiled_and_not_maximized;
 		}
 		return;
 	}

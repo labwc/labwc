@@ -384,6 +384,16 @@ handle_menu_keys(struct server *server, struct keysyms *syms)
 }
 
 static void
+toggle_direction(enum lab_cycle_dir *direction)
+{
+	if (*direction == LAB_CYCLE_DIR_FORWARD) {
+		*direction = LAB_CYCLE_DIR_BACKWARD;
+	} else if (*direction == LAB_CYCLE_DIR_BACKWARD) {
+		*direction = LAB_CYCLE_DIR_FORWARD;
+	}
+}
+
+static void
 handle_cycle_view_key(struct server *server, struct keyinfo *keyinfo)
 {
 	for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
@@ -395,23 +405,30 @@ handle_cycle_view_key(struct server *server, struct keyinfo *keyinfo)
 		}
 	}
 
-	/* cycle to next */
+	/* cycle to next/previous */
 	if (!keyinfo->is_modifier) {
-		bool back_key = false;
+		enum lab_cycle_dir direction = server->osd_state.initial_direction;
 		for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
 			if (keyinfo->translated.syms[i] == XKB_KEY_Up
 					|| keyinfo->translated.syms[i] == XKB_KEY_Left) {
-				back_key = true;
+				direction = LAB_CYCLE_DIR_BACKWARD;
 				break;
 			}
 		}
-		bool backwards = (keyinfo->modifiers & WLR_MODIFIER_SHIFT) || back_key;
 
-		enum lab_cycle_dir dir = backwards
-			? LAB_CYCLE_DIR_BACKWARD
-			: LAB_CYCLE_DIR_FORWARD;
+		/*
+		 * Shift reverses the direction - unless shift was part of the
+		 * original keybind in which case we do the opposite.
+		 * For example with S-A-Tab bound to PreviousWindow, shift with
+		 * subsequent key presses should carry on cycling backwards.
+		 */
+		bool shift_is_pressed = keyinfo->modifiers & WLR_MODIFIER_SHIFT;
+		if (shift_is_pressed != server->osd_state.initial_keybind_contained_shift) {
+			toggle_direction(&direction);
+		}
+
 		server->osd_state.cycle_view = desktop_cycle_view(server,
-			server->osd_state.cycle_view, dir);
+			server->osd_state.cycle_view, direction);
 		osd_update(server);
 	}
 }

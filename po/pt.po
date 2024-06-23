@@ -10,8 +10,7 @@ msgstr ""
 "POT-Creation-Date: 2024-03-17 11:06+1000\n"
 "PO-Revision-Date: 2024-03-27 22:23+0000\n"
 "Last-Translator: Hugo Carvalho <hugokarvalho@hotmail.com>\n"
-"Language-Team: Portuguese <https://translate.lxqt-project.org/projects/labwc/"
-"labwc/pt/>\n"
+"Language-Team: Portuguese <https://translate.lxqt-project.org/projects/labwc/labwc/pt/>\n"
 "Language: pt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,54 +18,60 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
 "X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:704
+#: src/menu/menu.c:829
 msgid "Reconfigure"
 msgstr "Reconfigurar"
 
-#: src/menu/menu.c:706
+#: src/menu/menu.c:831
 msgid "Exit"
 msgstr "Sair"
 
-#: src/menu/menu.c:722
+#: src/menu/menu.c:847
 msgid "Minimize"
 msgstr "Minimizar"
 
-#: src/menu/menu.c:724
+#: src/menu/menu.c:849
 msgid "Maximize"
 msgstr "Maximizar"
 
-#: src/menu/menu.c:726
+#: src/menu/menu.c:851
 msgid "Fullscreen"
 msgstr "Ecrã inteiro"
 
-#: src/menu/menu.c:728
-msgid "Roll up/down"
+#: src/menu/menu.c:853
+#, fuzzy
+#| msgid "Roll up/down"
+msgid "Roll Up/Down"
 msgstr "Rolar para cima/baixo"
 
-#: src/menu/menu.c:730
+#: src/menu/menu.c:855
 msgid "Decorations"
 msgstr "Decorações"
 
-#: src/menu/menu.c:732
+#: src/menu/menu.c:857
 msgid "Always on Top"
 msgstr "Sempre no topo"
 
-#: src/menu/menu.c:737
-msgid "Move left"
+#: src/menu/menu.c:862
+#, fuzzy
+#| msgid "Move left"
+msgid "Move Left"
 msgstr "Mover para a esquerda"
 
-#: src/menu/menu.c:744
-msgid "Move right"
+#: src/menu/menu.c:869
+#, fuzzy
+#| msgid "Move right"
+msgid "Move Right"
 msgstr "Mover para a direita"
 
-#: src/menu/menu.c:749
+#: src/menu/menu.c:874
 msgid "Always on Visible Workspace"
 msgstr "Sempre visível na área de trabalho"
 
-#: src/menu/menu.c:752 src/config/rcxml.c:1384
+#: src/menu/menu.c:877 src/config/rcxml.c:1497
 msgid "Workspace"
 msgstr "Área de trabalho"
 
-#: src/menu/menu.c:755
+#: src/menu/menu.c:880
 msgid "Close"
 msgstr "Fechar"

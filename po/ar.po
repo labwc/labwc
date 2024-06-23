@@ -18,54 +18,60 @@ msgstr ""
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
 "X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:704
+#: src/menu/menu.c:829
 msgid "Reconfigure"
 msgstr "إعادة تهيئة"
 
-#: src/menu/menu.c:706
+#: src/menu/menu.c:831
 msgid "Exit"
 msgstr "أخرج"
 
-#: src/menu/menu.c:722
+#: src/menu/menu.c:847
 msgid "Minimize"
 msgstr "صغّر"
 
-#: src/menu/menu.c:724
+#: src/menu/menu.c:849
 msgid "Maximize"
 msgstr "كبّر"
 
-#: src/menu/menu.c:726
+#: src/menu/menu.c:851
 msgid "Fullscreen"
 msgstr "ملء الشاشة"
 
-#: src/menu/menu.c:728
-msgid "Roll up/down"
+#: src/menu/menu.c:853
+#, fuzzy
+#| msgid "Roll up/down"
+msgid "Roll Up/Down"
 msgstr "طي/إلغاء طي"
 
-#: src/menu/menu.c:730
+#: src/menu/menu.c:855
 msgid "Decorations"
 msgstr "إخف الإطار"
 
-#: src/menu/menu.c:732
+#: src/menu/menu.c:857
 msgid "Always on Top"
 msgstr "دائمًا في القمة"
 
-#: src/menu/menu.c:737
-msgid "Move left"
+#: src/menu/menu.c:862
+#, fuzzy
+#| msgid "Move left"
+msgid "Move Left"
 msgstr "أنقل يسارا"
 
-#: src/menu/menu.c:744
-msgid "Move right"
+#: src/menu/menu.c:869
+#, fuzzy
+#| msgid "Move right"
+msgid "Move Right"
 msgstr "أنقل يمينا"
 
-#: src/menu/menu.c:749
+#: src/menu/menu.c:874
 msgid "Always on Visible Workspace"
 msgstr "أظهر في مساحات العمل دائما"
 
-#: src/menu/menu.c:752 src/config/rcxml.c:1384
+#: src/menu/menu.c:877 src/config/rcxml.c:1497
 msgid "Workspace"
 msgstr "مساحة عمل"
 
-#: src/menu/menu.c:755
+#: src/menu/menu.c:880
 msgid "Close"
 msgstr "غلق"

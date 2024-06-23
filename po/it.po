@@ -18,54 +18,60 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:704
+#: src/menu/menu.c:829
 msgid "Reconfigure"
 msgstr "Riconfigura"
 
-#: src/menu/menu.c:706
+#: src/menu/menu.c:831
 msgid "Exit"
 msgstr "Esci"
 
-#: src/menu/menu.c:722
+#: src/menu/menu.c:847
 msgid "Minimize"
 msgstr "Minimizza"
 
-#: src/menu/menu.c:724
+#: src/menu/menu.c:849
 msgid "Maximize"
 msgstr "Massimizza"
 
-#: src/menu/menu.c:726
+#: src/menu/menu.c:851
 msgid "Fullscreen"
 msgstr "Schermo intero"
 
-#: src/menu/menu.c:728
-msgid "Roll up/down"
+#: src/menu/menu.c:853
+#, fuzzy
+#| msgid "Roll up/down"
+msgid "Roll Up/Down"
 msgstr "Arrotola/srotola"
 
-#: src/menu/menu.c:730
+#: src/menu/menu.c:855
 msgid "Decorations"
 msgstr "Decorazioni"
 
-#: src/menu/menu.c:732
+#: src/menu/menu.c:857
 msgid "Always on Top"
 msgstr "Sempre sopra"
 
-#: src/menu/menu.c:737
-msgid "Move left"
+#: src/menu/menu.c:862
+#, fuzzy
+#| msgid "Move left"
+msgid "Move Left"
 msgstr "Sposta a sinistra"
 
-#: src/menu/menu.c:744
-msgid "Move right"
+#: src/menu/menu.c:869
+#, fuzzy
+#| msgid "Move right"
+msgid "Move Right"
 msgstr "Sposta a destra"
 
-#: src/menu/menu.c:749
+#: src/menu/menu.c:874
 msgid "Always on Visible Workspace"
 msgstr "Sempre sull'area di lavoro visibile"
 
-#: src/menu/menu.c:752 src/config/rcxml.c:1384
+#: src/menu/menu.c:877 src/config/rcxml.c:1497
 msgid "Workspace"
 msgstr "Area di lavoro"
 
-#: src/menu/menu.c:755
+#: src/menu/menu.c:880
 msgid "Close"
 msgstr "Chiudi"

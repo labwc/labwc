@@ -18,56 +18,60 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.2.2\n"
 
-#: src/menu/menu.c:704
+#: src/menu/menu.c:829
 msgid "Reconfigure"
 msgstr "თავიდან მორგება"
 
-#: src/menu/menu.c:706
+#: src/menu/menu.c:831
 msgid "Exit"
 msgstr "გასვლა"
 
-#: src/menu/menu.c:722
+#: src/menu/menu.c:847
 msgid "Minimize"
 msgstr "ჩაკეცვა"
 
-#: src/menu/menu.c:724
+#: src/menu/menu.c:849
 msgid "Maximize"
 msgstr "გადიდება"
 
-#: src/menu/menu.c:726
+#: src/menu/menu.c:851
 msgid "Fullscreen"
 msgstr "მთელ ეკრანზე"
 
-#: src/menu/menu.c:728
-msgid "Roll up/down"
+#: src/menu/menu.c:853
+msgid "Roll Up/Down"
 msgstr ""
 
-#: src/menu/menu.c:730
+#: src/menu/menu.c:855
 msgid "Decorations"
 msgstr "დეკორაციები"
 
-#: src/menu/menu.c:732
+#: src/menu/menu.c:857
 #, fuzzy
 #| msgid "Always On Top"
 msgid "Always on Top"
 msgstr "ყოველთვისყველაზეზემოდან"
 
-#: src/menu/menu.c:737
-msgid "Move left"
+#: src/menu/menu.c:862
+#, fuzzy
+#| msgid "Move left"
+msgid "Move Left"
 msgstr "მარცხნივ გაწევა"
 
-#: src/menu/menu.c:744
-msgid "Move right"
+#: src/menu/menu.c:869
+#, fuzzy
+#| msgid "Move right"
+msgid "Move Right"
 msgstr "მარჯვნივ გაწევა"
 
-#: src/menu/menu.c:749
+#: src/menu/menu.c:874
 msgid "Always on Visible Workspace"
 msgstr ""
 
-#: src/menu/menu.c:752 src/config/rcxml.c:1384
+#: src/menu/menu.c:877 src/config/rcxml.c:1497
 msgid "Workspace"
 msgstr "სამუშაო ადგილი"
 
-#: src/menu/menu.c:755
+#: src/menu/menu.c:880
 msgid "Close"
 msgstr "დახურვა"

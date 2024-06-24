@@ -40,7 +40,6 @@ msgstr "ਪੂਰੀ ਸਕਰੀਨ"
 
 #: src/menu/menu.c:853
 #, fuzzy
-#| msgid "Roll up/down"
 msgid "Roll Up/Down"
 msgstr "ਉੱਤੇ/ਹੇਠਾਂ ਸਕਰਾਓ"
 
@@ -54,13 +53,11 @@ msgstr "ਹਮੇਸ਼ਾਂ ਉੱਤੇ ਰੱਖੋ"
 
 #: src/menu/menu.c:862
 #, fuzzy
-#| msgid "Move left"
 msgid "Move Left"
 msgstr "ਖੱਬੇ ਭੇਜੋ"
 
 #: src/menu/menu.c:869
 #, fuzzy
-#| msgid "Move right"
 msgid "Move Right"
 msgstr "ਸੱਜੇ ਭੇਜੋ"
 

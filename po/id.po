@@ -40,7 +40,6 @@ msgstr "Tampil Menyeluruh"
 
 #: src/menu/menu.c:853
 #, fuzzy
-#| msgid "Roll up/down"
 msgid "Roll Up/Down"
 msgstr "Gulir atas/bawah"
 
@@ -54,13 +53,11 @@ msgstr "Selalu di Muka"
 
 #: src/menu/menu.c:862
 #, fuzzy
-#| msgid "Move left"
 msgid "Move Left"
 msgstr "Geser ke Kiri"
 
 #: src/menu/menu.c:869
 #, fuzzy
-#| msgid "Move right"
 msgid "Move Right"
 msgstr "Geser ke Kanan"
 

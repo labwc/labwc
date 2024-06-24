@@ -40,7 +40,6 @@ msgstr "Pantaila osoa"
 
 #: src/menu/menu.c:853
 #, fuzzy
-#| msgid "Roll up/down"
 msgid "Roll Up/Down"
 msgstr "Ibili gora/behera"
 
@@ -54,13 +53,11 @@ msgstr "Beti gainean"
 
 #: src/menu/menu.c:862
 #, fuzzy
-#| msgid "Move left"
 msgid "Move Left"
 msgstr "Mugitu ezkerrera"
 
 #: src/menu/menu.c:869
 #, fuzzy
-#| msgid "Move right"
 msgid "Move Right"
 msgstr "Mugitu eskuinera"
 

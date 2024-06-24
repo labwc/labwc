@@ -40,7 +40,6 @@ msgstr "Schermvullende weergave"
 
 #: src/menu/menu.c:853
 #, fuzzy
-#| msgid "Roll up/down"
 msgid "Roll Up/Down"
 msgstr "Op-/Afrollen"
 
@@ -54,13 +53,11 @@ msgstr "Altijd bovenaan"
 
 #: src/menu/menu.c:862
 #, fuzzy
-#| msgid "Move left"
 msgid "Move Left"
 msgstr "Naar links verplaatsen"
 
 #: src/menu/menu.c:869
 #, fuzzy
-#| msgid "Move right"
 msgid "Move Right"
 msgstr "Naar rechts verplaatsen"
 

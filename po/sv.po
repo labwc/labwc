@@ -40,7 +40,6 @@ msgstr "Fullskärm"
 
 #: src/menu/menu.c:853
 #, fuzzy
-#| msgid "Roll up/down"
 msgid "Roll Up/Down"
 msgstr "Rulla upp/ned"
 
@@ -54,13 +53,11 @@ msgstr "Alltid överst"
 
 #: src/menu/menu.c:862
 #, fuzzy
-#| msgid "Move left"
 msgid "Move Left"
 msgstr "Flytta till vänster"
 
 #: src/menu/menu.c:869
 #, fuzzy
-#| msgid "Move right"
 msgid "Move Right"
 msgstr "Flytta till höger"
 

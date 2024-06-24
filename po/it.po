@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-03-17 11:06+1000\n"
-"PO-Revision-Date: 2024-01-23 09:23+0000\n"
+"PO-Revision-Date: 2024-06-23 13:43+0000\n"
 "Last-Translator: Standreas <standreas@riseup.net>\n"
 "Language-Team: Italian <https://translate.lxqt-project.org/projects/labwc/labwc/it/>\n"
 "Language: it\n"
@@ -39,8 +39,6 @@ msgid "Fullscreen"
 msgstr "Schermo intero"
 
 #: src/menu/menu.c:853
-#, fuzzy
-#| msgid "Roll up/down"
 msgid "Roll Up/Down"
 msgstr "Arrotola/srotola"
 
@@ -53,14 +51,10 @@ msgid "Always on Top"
 msgstr "Sempre sopra"
 
 #: src/menu/menu.c:862
-#, fuzzy
-#| msgid "Move left"
 msgid "Move Left"
 msgstr "Sposta a sinistra"
 
 #: src/menu/menu.c:869
-#, fuzzy
-#| msgid "Move right"
 msgid "Move Right"
 msgstr "Sposta a destra"
 

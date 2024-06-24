@@ -40,7 +40,6 @@ msgstr "Plein écran"
 
 #: src/menu/menu.c:853
 #, fuzzy
-#| msgid "Roll up/down"
 msgid "Roll Up/Down"
 msgstr "Enrouler/Dérouler"
 
@@ -54,13 +53,11 @@ msgstr "Toujours au dessus"
 
 #: src/menu/menu.c:862
 #, fuzzy
-#| msgid "Move left"
 msgid "Move Left"
 msgstr "Bouger à gauche"
 
 #: src/menu/menu.c:869
 #, fuzzy
-#| msgid "Move right"
 msgid "Move Right"
 msgstr "Bouger à droite"
 

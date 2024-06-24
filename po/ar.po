@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-03-17 11:06+1000\n"
-"PO-Revision-Date: 2024-03-11 10:23+0000\n"
+"PO-Revision-Date: 2024-06-24 19:19+0000\n"
 "Last-Translator: Abdullah Albaroty <albaroty@gmail.com>\n"
 "Language-Team: Arabic <https://translate.lxqt-project.org/projects/labwc/labwc/ar/>\n"
 "Language: ar\n"
@@ -39,8 +39,6 @@ msgid "Fullscreen"
 msgstr "ملء الشاشة"
 
 #: src/menu/menu.c:853
-#, fuzzy
-#| msgid "Roll up/down"
 msgid "Roll Up/Down"
 msgstr "طي/إلغاء طي"
 
@@ -53,14 +51,10 @@ msgid "Always on Top"
 msgstr "دائمًا في القمة"
 
 #: src/menu/menu.c:862
-#, fuzzy
-#| msgid "Move left"
 msgid "Move Left"
 msgstr "أنقل يسارا"
 
 #: src/menu/menu.c:869
-#, fuzzy
-#| msgid "Move right"
 msgid "Move Right"
 msgstr "أنقل يمينا"
 

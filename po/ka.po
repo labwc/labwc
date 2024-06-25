@@ -47,17 +47,14 @@ msgid "Decorations"
 msgstr "დეკორაციები"
 
 #: src/menu/menu.c:857
-#, fuzzy
 msgid "Always on Top"
 msgstr "ყოველთვისყველაზეზემოდან"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "მარცხნივ გაწევა"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "მარჯვნივ გაწევა"
 

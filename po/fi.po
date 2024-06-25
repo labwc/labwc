@@ -39,7 +39,6 @@ msgid "Fullscreen"
 msgstr "Koko näyttö"
 
 #: src/menu/menu.c:853
-#, fuzzy
 msgid "Roll Up/Down"
 msgstr "Rullaa ylös/alas"
 
@@ -52,12 +51,10 @@ msgid "Always on Top"
 msgstr "Aina ylimpänä"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "Siirrä vasemmalle"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "Siirrä oikealle"
 

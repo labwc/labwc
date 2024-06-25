@@ -39,7 +39,6 @@ msgid "Fullscreen"
 msgstr "Pantaila osoa"
 
 #: src/menu/menu.c:853
-#, fuzzy
 msgid "Roll Up/Down"
 msgstr "Ibili gora/behera"
 
@@ -52,12 +51,10 @@ msgid "Always on Top"
 msgstr "Beti gainean"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "Mugitu ezkerrera"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "Mugitu eskuinera"
 

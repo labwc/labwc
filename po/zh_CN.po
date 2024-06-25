@@ -39,7 +39,6 @@ msgid "Fullscreen"
 msgstr "全屏"
 
 #: src/menu/menu.c:853
-#, fuzzy
 msgid "Roll Up/Down"
 msgstr "滚动 上/下"
 
@@ -52,12 +51,10 @@ msgid "Always on Top"
 msgstr "最上层显示"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "左移"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "右移"
 

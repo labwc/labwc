@@ -39,7 +39,6 @@ msgid "Fullscreen"
 msgstr "Tam Ekran"
 
 #: src/menu/menu.c:853
-#, fuzzy
 msgid "Roll Up/Down"
 msgstr "Yukarı/aşağı katla"
 
@@ -52,12 +51,10 @@ msgid "Always on Top"
 msgstr "Her Zaman Üstte"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "Sola taşı"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "Sağa taşı"
 

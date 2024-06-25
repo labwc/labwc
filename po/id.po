@@ -39,7 +39,6 @@ msgid "Fullscreen"
 msgstr "Tampil Menyeluruh"
 
 #: src/menu/menu.c:853
-#, fuzzy
 msgid "Roll Up/Down"
 msgstr "Gulir atas/bawah"
 
@@ -52,12 +51,10 @@ msgid "Always on Top"
 msgstr "Selalu di Muka"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "Geser ke Kiri"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "Geser ke Kanan"
 

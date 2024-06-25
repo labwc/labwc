@@ -39,7 +39,6 @@ msgid "Fullscreen"
 msgstr "Πλήρης οθόνη"
 
 #: src/menu/menu.c:853
-#, fuzzy
 msgid "Roll Up/Down"
 msgstr "Τύλιγμα/Ξετύλιγμα"
 
@@ -52,12 +51,10 @@ msgid "Always on Top"
 msgstr "Πάντα στο προσκήνιο"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "Στα αριστερά"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "Στα δεξιά"
 

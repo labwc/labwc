@@ -39,7 +39,6 @@ msgid "Fullscreen"
 msgstr "フルスクリーン"
 
 #: src/menu/menu.c:853
-#, fuzzy
 msgid "Roll Up/Down"
 msgstr "折りたたむ/広げる"
 
@@ -52,12 +51,10 @@ msgid "Always on Top"
 msgstr "常に最前面に表示"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "左に移動"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "右に移動"
 

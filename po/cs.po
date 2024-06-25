@@ -37,7 +37,6 @@ msgid "Fullscreen"
 msgstr "Na celou obrazovku"
 
 #: src/menu/menu.c:853
-#, fuzzy
 msgid "Roll Up/Down"
 msgstr "Rolovat nahoru/dolů"
 
@@ -50,12 +49,10 @@ msgid "Always on Top"
 msgstr "Vždy nahoře"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "Posunout doleva"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "Posunout doprava"
 

@@ -39,7 +39,6 @@ msgid "Fullscreen"
 msgstr "Visas ekranas"
 
 #: src/menu/menu.c:853
-#, fuzzy
 msgid "Roll Up/Down"
 msgstr "Užraityti/atraityti"
 
@@ -52,12 +51,10 @@ msgid "Always on Top"
 msgstr "Visada viršuje"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "Perkelti kairėn"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "Perkelti dešinėn"
 

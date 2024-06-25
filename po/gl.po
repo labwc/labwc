@@ -39,7 +39,6 @@ msgid "Fullscreen"
 msgstr "Pantalla completa"
 
 #: src/menu/menu.c:853
-#, fuzzy
 msgid "Roll Up/Down"
 msgstr "Rodar cara arriba/abaixo"
 
@@ -52,12 +51,10 @@ msgid "Always on Top"
 msgstr "Sempre enriba"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "Mover á esquerda"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "Mover á dereita"
 

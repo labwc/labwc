@@ -39,7 +39,6 @@ msgid "Fullscreen"
 msgstr "На весь экран"
 
 #: src/menu/menu.c:853
-#, fuzzy
 msgid "Roll Up/Down"
 msgstr "Свернуть/развернуть в заголовок"
 
@@ -52,12 +51,10 @@ msgid "Always on Top"
 msgstr "Всегда на переднем плане"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "Переместить влево"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "Переместить вправо"
 

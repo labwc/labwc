@@ -39,7 +39,6 @@ msgid "Fullscreen"
 msgstr "ਪੂਰੀ ਸਕਰੀਨ"
 
 #: src/menu/menu.c:853
-#, fuzzy
 msgid "Roll Up/Down"
 msgstr "ਉੱਤੇ/ਹੇਠਾਂ ਸਕਰਾਓ"
 
@@ -52,12 +51,10 @@ msgid "Always on Top"
 msgstr "ਹਮੇਸ਼ਾਂ ਉੱਤੇ ਰੱਖੋ"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "ਖੱਬੇ ਭੇਜੋ"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "ਸੱਜੇ ਭੇਜੋ"
 

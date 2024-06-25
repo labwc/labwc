@@ -39,7 +39,6 @@ msgid "Fullscreen"
 msgstr "Teljes képernyő"
 
 #: src/menu/menu.c:853
-#, fuzzy
 msgid "Roll Up/Down"
 msgstr "Felhúz / Legördül"
 
@@ -52,12 +51,10 @@ msgid "Always on Top"
 msgstr "Mindig felül"
 
 #: src/menu/menu.c:862
-#, fuzzy
 msgid "Move Left"
 msgstr "Balra dokkol"
 
 #: src/menu/menu.c:869
-#, fuzzy
 msgid "Move Right"
 msgstr "Jobbra dokkol"
 

@@ -5,6 +5,8 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+#include <limits.h>
+#include <wayland-util.h>
 #include <wlr/util/log.h>
 #include "action.h"
 #include "common/macros.h"
@@ -73,6 +75,7 @@ enum action_type {
 	ACTION_TYPE_SNAP_TO_EDGE,
 	ACTION_TYPE_GROW_TO_EDGE,
 	ACTION_TYPE_SHRINK_TO_EDGE,
+	ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW,
 	ACTION_TYPE_NEXT_WINDOW,
 	ACTION_TYPE_PREVIOUS_WINDOW,
 	ACTION_TYPE_RECONFIGURE,
@@ -132,6 +135,7 @@ const char *action_names[] = {
 	"SnapToEdge",
 	"GrowToEdge",
 	"ShrinkToEdge",
+	"DirectionalTargetWindow",
 	"NextWindow",
 	"PreviousWindow",
 	"Reconfigure",
@@ -310,6 +314,12 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		break;
+	case ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW:
+		if (!strcasecmp(argument, "wrap")) {
+			action_arg_add_bool(action, argument, parse_bool(content, false));
+			goto cleanup;
+		}
+		/* Falls through */
 	case ACTION_TYPE_MOVE_TO_EDGE:
 		if (!strcasecmp(argument, "snapWindows")) {
 			action_arg_add_bool(action, argument, parse_bool(content, true));
@@ -531,6 +541,7 @@ action_is_valid(struct action *action)
 	case ACTION_TYPE_EXECUTE:
 		arg_name = "command";
 		break;
+	case ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW:
 	case ACTION_TYPE_MOVE_TO_EDGE:
 	case ACTION_TYPE_SNAP_TO_EDGE:
 	case ACTION_TYPE_GROW_TO_EDGE:
@@ -701,6 +712,131 @@ run_if_action(struct view *view, struct server *server, struct action *action)
 	return !strcmp(branch, "then");
 }
 
+static int
+rightmost_visible_point(struct server *server, struct view *view)
+{
+	struct output *output = view->output;
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
+	struct wlr_box o_usable;
+	struct output *o;
+	int rightmost_point = usable.x + usable.width;
+	int cy = view->current.y + view->current.height/2;
+	wl_list_for_each(o, &server->outputs, link) {
+		if (!output_is_usable(o)) {
+			continue;
+		}
+		o_usable = output_usable_area_in_layout_coords(o);
+		if (o_usable.x >= rightmost_point
+				&& o_usable.y <= cy
+				&& o_usable.y + o_usable.height >= cy) {
+			rightmost_point = o_usable.x + o_usable.width;
+		}
+	}
+	return rightmost_point;
+}
+
+static int
+lowest_visible_point(struct server *server, struct view *view)
+{
+	struct output *output = view->output;
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
+	struct wlr_box o_usable;
+	struct output *o;
+	int lowest_point = usable.y + usable.height;
+	int cx = view->current.x + view->current.width/2;
+	wl_list_for_each(o, &server->outputs, link) {
+		if (!output_is_usable(o)) {
+			continue;
+		}
+		o_usable = output_usable_area_in_layout_coords(o);
+		if (o_usable.y >= lowest_point
+				&& o_usable.x <= cx
+				&& o_usable.x + o_usable.width >= cx) {
+			lowest_point = o_usable.y + o_usable.height;
+		}
+	}
+	return lowest_point;
+}
+
+static struct view*
+directional_target_window(struct view *view, struct server *server,
+		enum view_edge direction, bool wrap)
+{
+	assert(view);
+	struct view *v;
+	struct view *closest_view = NULL;
+	struct view *closest_view_wrap = NULL;
+	struct output *output = view->output;
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
+	float dx, dy;
+	int distance, distance_wrap;
+	int min_distance = INT_MAX;
+	int min_distance_wrap = INT_MAX;
+	for_each_view(v, &server->views,
+			LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+		if (v->minimized) {
+			continue;
+		}
+		distance = INT_MAX;
+		distance_wrap = INT_MAX;
+		dx = v->current.x + v->current.width/2.
+				- view->current.x - view->current.width/2.;
+		dy = v->current.y + v->current.height/2.
+				- view->current.y - view->current.height/2.;
+		switch (direction) {
+		case VIEW_EDGE_LEFT:
+			if (dx < 0 && dy*dy/(dx*dx) < 2) {
+				distance = (dx*dx + dy*dy) * (1 + dy*dy/(dx*dx));
+			} else if (dx > 0 && dy*dy/(dx*dx) < 2) {
+				dx = rightmost_visible_point(server, v) - dx;
+				distance_wrap = (dx*dx + dy*dy) * (1 + dy*dy/(dx*dx));
+			}
+			break;
+		case VIEW_EDGE_RIGHT:
+			if (dx > 0  && dy*dy/(dx*dx) < 2) {
+				distance = (dx*dx + dy*dy) * (1 + dy*dy/(dx*dx));
+			} else if (dx < 0  && dy*dy/(dx*dx) < 2) {
+				dx = usable.x + usable.width + dx;
+				distance_wrap = (dx*dx + dy*dy) * (1 + dy*dy/(dx*dx));
+			}
+
+			break;
+		case VIEW_EDGE_UP:
+			if (dy < 0 && dx*dx/(dy*dy) < 2) {
+				distance = (dx * dx + dy * dy) * (1 + dx*dx/(dy*dy));
+			} else if (dy > 0  && dx*dx/(dy*dy) < 2) {
+				dy = lowest_visible_point(server, v) - dy;
+				distance_wrap = (dx*dx + dy*dy) * (1 + dx*dx/(dy*dy));
+			}
+			break;
+		case VIEW_EDGE_DOWN:
+			if (dy > 0 && dx*dx/(dy*dy) < 2) {
+				distance = (dx*dx + dy*dy) * (1 + dx*dx/(dy*dy));
+			} else if (dy < 0  && dx*dx/(dy*dy) < 2) {
+				dy = usable.y + usable.height + dy;
+				distance_wrap = (dx*dx + dy*dy) * (1 + dx*dx/(dy*dy));
+			}
+			break;
+		default:
+		return NULL;
+		}
+		if (distance < min_distance) {
+			min_distance = distance;
+			closest_view = v;
+		} else if (distance_wrap < min_distance_wrap) {
+			min_distance_wrap = distance_wrap;
+			closest_view_wrap = v;
+		}
+	}
+	if (closest_view) {
+		return closest_view;
+	}
+	if (wrap && closest_view_wrap) {
+		return closest_view_wrap;
+	}
+	return NULL;
+}
+
 void
 actions_run(struct view *activator, struct server *server,
 	struct wl_list *actions, uint32_t resize_edges)
@@ -788,6 +924,18 @@ actions_run(struct view *activator, struct server *server,
 				/* Config parsing makes sure that direction is a valid direction */
 				enum view_edge edge = action_get_int(action, "direction", 0);
 				view_shrink_to_edge(view, edge);
+			}
+			break;
+		case ACTION_TYPE_DIRECTIONAL_TARGET_WINDOW:
+			if (view) {
+				/* Config parsing makes sure that direction is a valid direction */
+				enum view_edge direction = action_get_int(action, "direction", 0);
+				bool wrap = action_get_bool(action, "wrap", false);
+				struct view *closest_view = directional_target_window(view, server,
+						direction, wrap);
+				if (closest_view) {
+					desktop_focus_view(closest_view, /*raise*/ true);
+				}
 			}
 			break;
 		case ACTION_TYPE_NEXT_WINDOW:

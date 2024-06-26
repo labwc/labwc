@@ -210,6 +210,12 @@ struct seat {
 struct lab_data_buffer;
 struct workspace;
 
+enum lab_cycle_dir {
+	LAB_CYCLE_DIR_NONE,
+	LAB_CYCLE_DIR_FORWARD,
+	LAB_CYCLE_DIR_BACKWARD,
+};
+
 struct server {
 	struct wl_display *wl_display;
 	struct wl_event_loop *wl_event_loop;  /* Can be used for timer events */
@@ -349,6 +355,8 @@ struct server {
 		struct wlr_scene_tree *preview_parent;
 		struct wlr_scene_node *preview_anchor;
 		struct multi_rect *preview_outline;
+		enum lab_cycle_dir initial_direction;
+		bool initial_keybind_contained_shift;
 	} osd_state;
 
 	struct theme *theme;
@@ -441,12 +449,6 @@ struct view *desktop_topmost_focusable_view(struct server *server);
  * based on the existence of a fullscreen window on the current workspace.
  */
 void desktop_update_top_layer_visiblity(struct server *server);
-
-enum lab_cycle_dir {
-	LAB_CYCLE_DIR_NONE,
-	LAB_CYCLE_DIR_FORWARD,
-	LAB_CYCLE_DIR_BACKWARD,
-};
 
 /**
  * desktop_cycle_view - return view to 'cycle' to

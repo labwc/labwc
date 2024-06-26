@@ -99,11 +99,14 @@ Actions are used in menus and keyboard/mouse bindings.
 	Resize and move active window according to the given region.
 	See labwc-config(5) for further information on how to define regions.
 
-*<action name="NextWindow" />*
-	Cycle focus to next window.
-
+*<action name="NextWindow" />*++
 *<action name="PreviousWindow" />*
-	Cycle focus to previous window.
+	Cycle focus to next/previous window respectively.++
+	Default keybind for NextWindow is Alt-Tab.
+
+	The shift key is used to reverse direction while cycling.
+
+	The arrow keys are used to move forwards/backwards while cycling.
 
 *<action name="Reconfigure" />*
 	Re-load configuration and theme files.

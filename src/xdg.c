@@ -14,7 +14,7 @@
 #include "window-rules.h"
 #include "workspaces.h"
 
-#define LAB_XDG_SHELL_VERSION (2)
+#define LAB_XDG_SHELL_VERSION (3)
 #define CONFIGURE_TIMEOUT_MS 100
 
 static struct xdg_toplevel_view *

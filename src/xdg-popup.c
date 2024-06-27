@@ -19,6 +19,7 @@ struct xdg_popup {
 	struct wl_listener commit;
 	struct wl_listener destroy;
 	struct wl_listener new_popup;
+	struct wl_listener reposition;
 };
 
 static void
@@ -47,6 +48,7 @@ handle_xdg_popup_destroy(struct wl_listener *listener, void *data)
 	struct xdg_popup *popup = wl_container_of(listener, popup, destroy);
 	wl_list_remove(&popup->destroy.link);
 	wl_list_remove(&popup->new_popup.link);
+	wl_list_remove(&popup->reposition.link);
 
 	/* Usually already removed unless there was no commit at all */
 	if (popup->commit.notify) {
@@ -67,6 +69,13 @@ handle_xdg_popup_commit(struct wl_listener *listener, void *data)
 		wl_list_remove(&popup->commit.link);
 		popup->commit.notify = NULL;
 	}
+}
+
+static void
+handle_xdg_popup_reposition(struct wl_listener *listener, void *data)
+{
+	struct xdg_popup *popup = wl_container_of(listener, popup, reposition);
+	popup_unconstrain(popup);
 }
 
 static void
@@ -99,6 +108,9 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 
 	popup->commit.notify = handle_xdg_popup_commit;
 	wl_signal_add(&wlr_popup->base->surface->events.commit, &popup->commit);
+
+	popup->reposition.notify = handle_xdg_popup_reposition;
+	wl_signal_add(&wlr_popup->events.reposition, &popup->reposition);
 
 	/*
 	 * We must add xdg popups to the scene graph so they get rendered. The

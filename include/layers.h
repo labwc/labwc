@@ -32,6 +32,7 @@ struct lab_layer_popup {
 	struct wl_listener commit;
 	struct wl_listener destroy;
 	struct wl_listener new_popup;
+	struct wl_listener reposition;
 };
 
 void layers_init(struct server *server);

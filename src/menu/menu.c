@@ -702,22 +702,23 @@ menu_get_full_width(struct menu *menu)
 	return width + max_child_width;
 }
 
+/**
+ * get_submenu_position() - get output layout coordinates of menu window
+ * @item: the menuitem that triggers the submenu (static or dynamic)
+ */
 static struct wlr_box
 get_submenu_position(struct menuitem *item, enum menu_align align)
 {
 	struct wlr_box pos = { 0 };
 	struct menu *menu = item->parent;
 	struct theme *theme = menu->server->theme;
-	int lx = menu->scene_tree->node.x;
-	int ly = menu->scene_tree->node.y;
+	pos.x = menu->scene_tree->node.x;
+	pos.y = menu->scene_tree->node.y;
 
 	if (align & LAB_MENU_OPEN_RIGHT) {
-		pos.x = lx + menu->size.width - theme->menu_overlap_x;
-	} else {
-		pos.x = lx;
+		pos.x += menu->size.width - theme->menu_overlap_x;
 	}
-	int rel_y = item->tree->node.y;
-	pos.y = ly + rel_y - theme->menu_overlap_y;
+	pos.y += item->tree->node.y - theme->menu_overlap_y;
 	return pos;
 }
 
@@ -1117,19 +1118,9 @@ create_pipe_menu(struct pipe_context *ctx)
 	/* Set menu-widths before configuring */
 	post_processing(ctx->server);
 
-	/*
-	 * TODO:
-	 * (1) Combine this with the code in get_submenu_position()
-	 *     and/or menu_configure()
-	 * (2) Take into account menu_overlap_{x,y}
-	 */
 	enum menu_align align = ctx->item->parent->align;
-	int x = pipe_parent->scene_tree->node.x;
-	int y = pipe_parent->scene_tree->node.y + ctx->item->tree->node.y;
-	if (align & LAB_MENU_OPEN_RIGHT) {
-		x += pipe_parent->size.width;
-	}
-	menu_configure(pipe_menu, x, y, align);
+	struct wlr_box pos = get_submenu_position(ctx->item, align);
+	menu_configure(pipe_menu, pos.x, pos.y, align);
 
 	validate(ctx->server);
 

@@ -1109,9 +1109,22 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_TOGGLE_TEARING:
 			if (view) {
-				view->tearing_hint = !view->tearing_hint;
-				wlr_log(WLR_DEBUG, "tearing %sabled",
-					view->tearing_hint ? "en" : "dis");
+				switch (view->force_tearing) {
+				case LAB_STATE_UNSPECIFIED:
+					view->force_tearing =
+						output_get_tearing_allowance(view->output)
+							? LAB_STATE_DISABLED : LAB_STATE_ENABLED;
+					break;
+				case LAB_STATE_DISABLED:
+					view->force_tearing = LAB_STATE_ENABLED;
+					break;
+				case LAB_STATE_ENABLED:
+					view->force_tearing = LAB_STATE_DISABLED;
+					break;
+				}
+				wlr_log(WLR_ERROR, "force tearing %sabled",
+					view->force_tearing == LAB_STATE_ENABLED
+						? "en" : "dis");
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_SHADE:

@@ -531,6 +531,7 @@ struct output *output_nearest_to_cursor(struct server *server);
 bool output_is_usable(struct output *output);
 void output_update_usable_area(struct output *output);
 void output_update_all_usable_areas(struct server *server, bool layout_changed);
+bool output_get_tearing_allowance(struct output *output);
 struct wlr_box output_usable_area_in_layout_coords(struct output *output);
 struct wlr_box output_usable_area_scaled(struct output *output);
 void handle_output_power_manager_set_mode(struct wl_listener *listener,

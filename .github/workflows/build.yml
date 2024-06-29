@@ -127,6 +127,15 @@ jobs:
             meson compile -C build-gcc
           ' | $TARGET
 
+      - name: Build with gcc - enforce gles2 renderer
+        run: |
+          echo '
+            cd "$GITHUB_WORKSPACE"
+            export CC=gcc
+            meson setup build-gcc-gles2 -Dxwayland=enabled -Dwlroots:renderers=gles2 --werror
+            meson compile -C build-gcc-gles2
+          ' | $TARGET
+
       - name: Build with clang
         run: |
           echo '

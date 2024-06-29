@@ -771,6 +771,20 @@ set_adaptive_sync_mode(const char *str, enum adaptive_sync_mode *variable)
 }
 
 static void
+set_tearing_mode(const char *str, enum tearing_mode *variable)
+{
+	if (!strcasecmp(str, "fullscreen")) {
+		*variable = LAB_TEARING_FULLSCREEN;
+	} else if (!strcasecmp(str, "fullscreenForced")) {
+		*variable = LAB_TEARING_FULLSCREEN_FORCED;
+	} else if (parse_bool(str, -1) == 1) {
+		*variable = LAB_TEARING_ENABLED;
+	} else {
+		*variable = LAB_TEARING_DISABLED;
+	}
+}
+
+static void
 entry(xmlNode *node, char *nodename, char *content)
 {
 	/* current <theme><font place=""></font></theme> */
@@ -884,11 +898,11 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
 		set_adaptive_sync_mode(content, &rc.adaptive_sync);
 	} else if (!strcasecmp(nodename, "allowTearing.core")) {
-		set_bool(content, &rc.allow_tearing);
+		set_tearing_mode(content, &rc.allow_tearing);
 		if (rc.allow_tearing) {
 			char *no_atomic_env = getenv("WLR_DRM_NO_ATOMIC");
 			if (!no_atomic_env || strcmp(no_atomic_env, "1") != 0) {
-				rc.allow_tearing = false;
+				rc.allow_tearing = LAB_TEARING_DISABLED;
 				wlr_log(WLR_ERROR, "tearing requires WLR_DRM_NO_ATOMIC=1");
 			}
 		}

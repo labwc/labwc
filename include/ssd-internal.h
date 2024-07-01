@@ -59,6 +59,8 @@ struct ssd {
 		} title;
 	} state;
 
+	struct wlr_scene_rect *view_background;
+
 	/* An invisible area around the view which allows resizing */
 	struct ssd_sub_tree extents;
 

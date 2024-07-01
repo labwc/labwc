@@ -169,7 +169,7 @@ set_shadow_geometry(struct ssd *ssd)
 	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
 	int titlebar_height = ssd->titlebar.height;
-	int width = view->current.width;
+	int width = MAX(view->current.width, LAB_MIN_VIEW_WIDTH);
 	int height = view_effective_height(view, false) + titlebar_height;
 
 	struct ssd_part *part;

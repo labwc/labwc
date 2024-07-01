@@ -34,18 +34,41 @@ get_tearing_preference(struct output *output)
 {
 	struct server *server = output->server;
 
-	/* Never allow tearing when disabled */
+	/* never allow tearing when disabled */
 	if (!rc.allow_tearing) {
 		return false;
 	}
 
-	/* Tearing is only allowed for the output with the active view */
-	if (!server->active_view || server->active_view->output != output) {
+	struct view *view = server->active_view;
+
+	/* tearing is only allowed for the output with the active view */
+	if (!view || view->output != output) {
 		return false;
 	}
 
-	/* If the active view requests tearing, or it is toggled on with action, allow it */
-	return server->active_view->tearing_hint;
+	/* allow tearing when the active view is in fullscreen mode */
+	if ((rc.allow_tearing == LAB_TEARING_FULLSCREEN
+			|| rc.allow_tearing == LAB_TEARING_FULLSCREEN_FORCED)
+			&& view->fullscreen) {
+		if (view->force_tearing == LAB_STATE_UNSPECIFIED) {
+			/* ignore tearing hint when fullscreen-forced */
+			return rc.allow_tearing == LAB_TEARING_FULLSCREEN_FORCED
+				|| view->tearing_hint;
+		} else {
+			return view->force_tearing == LAB_STATE_ENABLED;
+		}
+	}
+
+	/* allow tearing in fullscreen or windows mode */
+	if (rc.allow_tearing == LAB_TEARING_ENABLED) {
+		if (view->force_tearing == LAB_STATE_UNSPECIFIED) {
+			return view->tearing_hint;
+		} else {
+			return view->force_tearing == LAB_STATE_ENABLED;
+		}
+	}
+
+	return false;
 }
 
 static void

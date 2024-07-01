@@ -187,7 +187,16 @@ Actions are used in menus and keyboard/mouse bindings.
 	original window. There can be multiple windows with this mode set.
 
 *<action name="ToggleTearing" />*
-	Toggles tearing for the focused window.
+	Toggles tearing for the focused window between enabled and disabled.
+	This overrides the preference (tearing hint) from the focused window.
+
+	Requires the config option 'allowTearing'. When 'allowTearing' is set
+	to 'fullscreen' or 'fullscreenForced', tearing will still only be
+	enabled if the active window is in fullscreen mode.
+
+	The first invocation of this action will always forcefully enable
+	tearing, even if tearing is already enabled due to application
+	preference or tearing options.
 
 *<action name="FocusOutput" output="HDMI-A-1" />*
 	Give focus to topmost window on given output and warp the cursor

@@ -40,7 +40,7 @@ device_type_from_wlr_device(struct wlr_input_device *wlr_input_device)
 {
 	switch (wlr_input_device->type) {
 	case WLR_INPUT_DEVICE_TOUCH:
-	case WLR_INPUT_DEVICE_TABLET_TOOL:
+	case WLR_INPUT_DEVICE_TABLET:
 		return LAB_LIBINPUT_DEVICE_TOUCH;
 	default:
 		break;
@@ -397,7 +397,7 @@ seat_update_capabilities(struct seat *seat)
 			caps |= WL_SEAT_CAPABILITY_KEYBOARD;
 			break;
 		case WLR_INPUT_DEVICE_POINTER:
-		case WLR_INPUT_DEVICE_TABLET_TOOL:
+		case WLR_INPUT_DEVICE_TABLET:
 			caps |= WL_SEAT_CAPABILITY_POINTER;
 			break;
 		case WLR_INPUT_DEVICE_TOUCH:
@@ -438,7 +438,7 @@ new_input_notify(struct wl_listener *listener, void *data)
 	case WLR_INPUT_DEVICE_TOUCH:
 		input = new_touch(seat, device);
 		break;
-	case WLR_INPUT_DEVICE_TABLET_TOOL:
+	case WLR_INPUT_DEVICE_TABLET:
 		input = new_tablet(seat, device);
 		break;
 	case WLR_INPUT_DEVICE_TABLET_PAD:
@@ -609,7 +609,7 @@ seat_reconfigure(struct server *server)
 			configure_libinput(input->wlr_input_device);
 			map_touch_to_output(seat, input->wlr_input_device);
 			break;
-		case WLR_INPUT_DEVICE_TABLET_TOOL:
+		case WLR_INPUT_DEVICE_TABLET:
 			map_input_to_output(seat, input->wlr_input_device, rc.tablet.output_name);
 			break;
 		default:
@@ -634,11 +634,6 @@ seat_focus(struct seat *seat, struct wlr_surface *surface, bool is_lock_surface)
 	if (!surface) {
 		wlr_seat_keyboard_notify_clear_focus(seat->seat);
 		input_method_relay_set_focus(seat->input_method_relay, NULL);
-		return;
-	}
-
-	/* Respect input inhibit (also used by some lock screens) */
-	if (input_inhibit_blocks_surface(seat, surface->resource)) {
 		return;
 	}
 
@@ -764,7 +759,7 @@ seat_output_layout_changed(struct seat *seat)
 		case WLR_INPUT_DEVICE_TOUCH:
 			map_touch_to_output(seat, input->wlr_input_device);
 			break;
-		case WLR_INPUT_DEVICE_TABLET_TOOL:
+		case WLR_INPUT_DEVICE_TABLET:
 			map_input_to_output(seat, input->wlr_input_device, rc.tablet.output_name);
 			break;
 		default:

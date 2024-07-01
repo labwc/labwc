@@ -12,6 +12,7 @@
 #include "labwc.h"
 #include "menu/menu.h"
 #include "osd.h"
+#include "output-state.h"
 #include "placement.h"
 #include "regions.h"
 #include "resize-indicator.h"

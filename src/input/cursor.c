@@ -358,15 +358,6 @@ cursor_update_image(struct seat *seat)
 		cursor_names[cursor]);
 }
 
-bool
-input_inhibit_blocks_surface(struct seat *seat, struct wl_resource *resource)
-{
-	struct wl_client *inhibiting_client =
-		seat->active_client_while_inhibited;
-	return inhibiting_client
-		&& inhibiting_client != wl_resource_get_client(resource);
-}
-
 static bool
 update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
 {
@@ -472,8 +463,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		return false;
 	}
 
-	if (ctx->surface && !input_inhibit_blocks_surface(seat,
-			ctx->surface->resource)) {
+	if (ctx->surface) {
 		/*
 		 * Cursor is over an input-enabled client surface.  The
 		 * cursor image will be set by request_cursor_notify()
@@ -1163,7 +1153,7 @@ cursor_button(struct wl_listener *listener, void *data)
 
 	bool notify;
 	switch (event->state) {
-	case WLR_BUTTON_PRESSED:
+	case WL_POINTER_BUTTON_STATE_PRESSED:
 		notify = cursor_process_button_press(seat, event->button,
 			event->time_msec);
 		if (notify) {
@@ -1171,7 +1161,7 @@ cursor_button(struct wl_listener *listener, void *data)
 				event->button, event->state);
 		}
 		break;
-	case WLR_BUTTON_RELEASED:
+	case WL_POINTER_BUTTON_STATE_RELEASED:
 		notify = cursor_process_button_release(seat, event->button,
 			event->time_msec);
 		if (notify) {
@@ -1217,19 +1207,19 @@ cursor_emulate_move_absolute(struct seat *seat, struct wlr_input_device *device,
 
 void
 cursor_emulate_button(struct seat *seat, uint32_t button,
-		enum wlr_button_state state, uint32_t time_msec)
+		enum wl_pointer_button_state state, uint32_t time_msec)
 {
 	idle_manager_notify_activity(seat->seat);
 
 	bool notify;
 	switch (state) {
-	case WLR_BUTTON_PRESSED:
+	case WL_POINTER_BUTTON_STATE_PRESSED:
 		notify = cursor_process_button_press(seat, button, time_msec);
 		if (notify) {
 			wlr_seat_pointer_notify_button(seat->seat, time_msec, button, state);
 		}
 		break;
-	case WLR_BUTTON_RELEASED:
+	case WL_POINTER_BUTTON_STATE_RELEASED:
 		notify = cursor_process_button_release(seat, button, time_msec);
 		if (notify) {
 			wlr_seat_pointer_notify_button(seat->seat, time_msec, button, state);
@@ -1282,14 +1272,14 @@ handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 			&server->seat.keyboard_group->keyboard);
 
 	enum direction direction = LAB_DIRECTION_INVALID;
-	if (event->orientation == WLR_AXIS_ORIENTATION_HORIZONTAL) {
+	if (event->orientation == WL_POINTER_AXIS_HORIZONTAL_SCROLL) {
 		int rel = compare_delta(event, &server->seat.smooth_scroll_offset.x);
 		if (rel < 0) {
 			direction = LAB_DIRECTION_LEFT;
 		} else if (rel > 0) {
 			direction = LAB_DIRECTION_RIGHT;
 		}
-	} else if (event->orientation == WLR_AXIS_ORIENTATION_VERTICAL) {
+	} else if (event->orientation == WL_POINTER_AXIS_VERTICAL_SCROLL) {
 		int rel = compare_delta(event, &server->seat.smooth_scroll_offset.y);
 		if (rel < 0) {
 			direction = LAB_DIRECTION_UP;
@@ -1343,7 +1333,7 @@ cursor_axis(struct wl_listener *listener, void *data)
 		wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,
 			event->orientation, rc.scroll_factor * event->delta,
 			round(rc.scroll_factor * event->delta_discrete),
-			event->source);
+			event->source, event->relative_direction);
 	}
 }
 

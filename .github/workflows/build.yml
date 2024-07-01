@@ -3,6 +3,7 @@
 #
 # Void dependencies based on:
 # https://github.com/void-linux/void-packages/blob/master/srcpkgs/labwc/template
+# https://github.com/void-linux/void-packages/blob/master/srcpkgs/wlroots0.17/template
 #
 # Recommended GH CI Void mirror based on
 # https://docs.voidlinux.org/xbps/repositories/mirrors/changing.html
@@ -80,7 +81,8 @@ jobs:
           apt-get update
           apt-get upgrade -y
           apt-get install -y git gcc clang gdb xwayland
-          apt-get build-dep -y labwc
+          apt-get build-dep -y labwc libwlroots-dev
+          apt-get remove -y libwlroots-dev
 
       - name: Install FreeBSD dependencies
         if: matrix.name == 'FreeBSD'
@@ -106,6 +108,13 @@ jobs:
           xbps-install -y git meson gcc clang pkg-config scdoc \
             cairo-devel glib-devel libpng-devel librsvg-devel libxml2-devel \
             pango-devel wlroots0.17-devel gdb bash xorg-server-xwayland \
+            wayland-devel glslang hwids \
+            libgbm-devel libglvnd-devel libseat-devel eudev-libudev-devel \
+            libdrm-devel libinput-devel libxkbcommon-devel pixman-devel wayland-devel \
+            wayland-protocols vulkan-loader Vulkan-Headers xcb-util-errors-devel \
+            xcb-util-wm-devel xcb-util-renderutil-devel libdisplay-info-devel libliftoff-devel \
+            libxcb-devel xcb-util-cursor-devel xcb-util-devel xcb-util-image-devel \
+            xcb-util-keysyms-devel xcb-util-xrm-devel xorg-server-xwayland \
             dejavu-fonts-ttf
 
       # These build are executed on all runners
@@ -116,6 +125,15 @@ jobs:
             export CC=gcc
             meson setup build-gcc -Dxwayland=enabled --werror
             meson compile -C build-gcc
+          ' | $TARGET
+
+      - name: Build with gcc - enforce gles2 renderer
+        run: |
+          echo '
+            cd "$GITHUB_WORKSPACE"
+            export CC=gcc
+            meson setup build-gcc-gles2 -Dxwayland=enabled -Dwlroots:renderers=gles2 --werror
+            meson compile -C build-gcc-gles2
           ' | $TARGET
 
       - name: Build with clang
@@ -151,7 +169,7 @@ jobs:
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
             meson setup build-gcc-release -Dxwayland=enabled \
-              -Dbuildtype=release -Db_ndebug=true --werror
+              -Dbuildtype=release -Db_ndebug=true -Dwlroots:werror=false --werror
             meson compile -C build-gcc-release
           ' | $TARGET
 
@@ -165,39 +183,40 @@ jobs:
             meson compile -C build-gcc-static_analyzer
           ' | $TARGET
 
-
-      # Runtime tests, these run on Debian and Void only (the later due to libmusl being used)
       - name: Build with clang - release
         run: |
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=clang
             meson setup build-clang-release -Dxwayland=enabled \
-              -Dbuildtype=release -Db_ndebug=true --werror
+              -Dbuildtype=release -Db_ndebug=true -Dwlroots:werror=false --werror
             meson compile -C build-clang-release
           ' | $TARGET
 
+      # Runtime tests, these run on Debian and Void only (the later due to libmusl being used)
       - name: Build with gcc - runtime test
         if: matrix.name == 'Debian'
         run: |
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
-            meson setup build-gcc-ci -Dxwayland=enabled -Db_sanitize=undefined --werror
+            meson setup build-gcc-ci -Dxwayland=enabled -Db_sanitize=undefined --werror \
+              --force-fallback-for=wayland
             meson compile -C build-gcc-ci
             scripts/ci/smoke-test.sh build-gcc-ci
           ' | $TARGET
 
-      - name: Build with clang - runtime test
-        if: matrix.name == 'Debian'
-        run: |
-          echo '
-            cd "$GITHUB_WORKSPACE"
-            export CC=clang
-            meson setup build-clang-ci -Dxwayland=enabled -Db_sanitize=undefined --werror
-            meson compile -C build-clang-ci
-            scripts/ci/smoke-test.sh build-clang-ci
-          ' | $TARGET
+      # Doesn't work with --force-fallback for some reason, re-enable later
+      #- name: Build with clang - runtime test
+      #  if: matrix.name == 'Debian'
+      #  run: |
+      #    echo '
+      #      cd "$GITHUB_WORKSPACE"
+      #      export CC=clang
+      #      meson setup build-clang-ci -Dxwayland=enabled -Db_sanitize=undefined --werror --force-fallback-for=wayland
+      #      meson compile -C build-clang-ci
+      #      scripts/ci/smoke-test.sh build-clang-ci
+      #    ' | $TARGET
 
       # Void-musl doesn't support sanitizer
       - name: Build with gcc - runtime test w/o sanitizer
@@ -206,7 +225,7 @@ jobs:
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
-            meson setup build-gcc-ci -Dxwayland=enabled --werror
+            meson setup build-gcc-ci -Dxwayland=enabled --werror --force-fallback-for=wayland
             meson compile -C build-gcc-ci
             LABWC_RUNS=20 scripts/ci/smoke-test.sh build-gcc-ci
           ' | $TARGET

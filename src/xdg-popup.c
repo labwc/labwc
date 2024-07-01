@@ -101,7 +101,7 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 	popup->wlr_popup = wlr_popup;
 
 	popup->destroy.notify = handle_xdg_popup_destroy;
-	wl_signal_add(&wlr_popup->base->events.destroy, &popup->destroy);
+	wl_signal_add(&wlr_popup->events.destroy, &popup->destroy);
 
 	popup->new_popup.notify = popup_handle_new_xdg_popup;
 	wl_signal_add(&wlr_popup->base->events.new_popup, &popup->new_popup);

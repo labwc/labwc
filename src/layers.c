@@ -412,7 +412,7 @@ create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_tree *parent)
 		LAB_NODE_DESC_LAYER_POPUP, popup);
 
 	popup->destroy.notify = popup_handle_destroy;
-	wl_signal_add(&wlr_popup->base->events.destroy, &popup->destroy);
+	wl_signal_add(&wlr_popup->events.destroy, &popup->destroy);
 
 	popup->new_popup.notify = popup_handle_new_popup;
 	wl_signal_add(&wlr_popup->base->events.new_popup, &popup->new_popup);

@@ -49,15 +49,15 @@ endif
 add_project_arguments('-DLABWC_VERSION=@0@'.format(version), language: 'c')
 
 wlroots = dependency(
-  'wlroots',
+  'wlroots-0.18',
   default_options: ['default_library=static', 'examples=false'],
-  version: ['>=0.17.0', '<0.18.0'],
+  version: ['>=0.18.0', '<0.19.0'],
 )
 
 wlroots_has_xwayland = wlroots.get_variable('have_xwayland') == 'true'
 
 wayland_server = dependency('wayland-server', version: '>=1.19.0')
-wayland_protos = dependency('wayland-protocols')
+wayland_protos = dependency('wayland-protocols', version: '>=1.35')
 xkbcommon = dependency('xkbcommon')
 xcb = dependency('xcb', required: get_option('xwayland'))
 xcb_icccm = dependency('xcb-icccm', required: get_option('xwayland'))

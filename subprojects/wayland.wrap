@@ -1,0 +1,6 @@
+[wrap-git]
+url = https://gitlab.freedesktop.org/wayland/wayland.git
+revision = main
+
+[provide]
+dependency_names = wayland

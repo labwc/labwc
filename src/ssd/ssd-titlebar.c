@@ -218,7 +218,8 @@ ssd_titlebar_update(struct ssd *ssd)
 			case LAB_SSD_PART_TITLEBAR:
 				wlr_scene_rect_set_size(
 					wlr_scene_rect_from_node(part->node),
-					width - SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT,
+					MAX(0, width -
+						SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT),
 					theme->title_height);
 				continue;
 			case LAB_SSD_BUTTON_ICONIFY:

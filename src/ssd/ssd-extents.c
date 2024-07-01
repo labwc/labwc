@@ -113,6 +113,9 @@ ssd_extents_update(struct ssd *ssd)
 	int side_width = full_width + extended_area * 2 - corner_size * 2;
 	int side_height = full_height + extended_area * 2 - corner_size * 2;
 
+	side_width = MAX(0, side_width);
+	side_height = MAX(0, side_height);
+
 	struct wlr_box part_box;
 	struct wlr_box result_box;
 	struct ssd_part *part;

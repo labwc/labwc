@@ -114,6 +114,7 @@ ssd_border_update(struct ssd *ssd)
 	int top_width = ssd->titlebar.height <= 0 || ssd->state.was_tiled_not_maximized
 		? full_width
 		: width - 2 * SSD_BUTTON_WIDTH;
+	top_width = MAX(0, top_width);
 	int top_x = ssd->titlebar.height <= 0 || ssd->state.was_tiled_not_maximized
 		? 0
 		: theme->border_width + SSD_BUTTON_WIDTH;

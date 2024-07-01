@@ -423,6 +423,7 @@ server_init(struct server *server)
 	 * | Type              | Scene Tree       | Per Output | Example
 	 * | ----------------- | ---------------- | ---------- | -------
 	 * | ext-session       | lock-screen      | Yes        | swaylock
+	 * | compositor-menu   | menu_tree        | No         | root-menu
 	 * | layer-shell       | layer-popups     | Yes        |
 	 * | layer-shell       | overlay-layer    | Yes        |
 	 * | layer-shell       | top-layer        | Yes        | waybar
@@ -443,6 +444,11 @@ server_init(struct server *server)
 #if HAVE_XWAYLAND
 	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->tree);
 #endif
+
+	/*
+	 * menu_tree is moved to top in new_output_notify() when layer-shell
+	 * layers are positioned
+	 */
 	server->menu_tree = wlr_scene_tree_create(&server->scene->tree);
 
 	workspaces_init(server);

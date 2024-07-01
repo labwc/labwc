@@ -723,13 +723,33 @@ get_submenu_position(struct menuitem *item, enum menu_align align)
 }
 
 static void
+invert_vertical_alignment(enum menu_align *align)
+{
+	/* TODO: don't use separate bits for bottom/top */
+	if (*align & LAB_MENU_OPEN_BOTTOM) {
+		*align &= ~LAB_MENU_OPEN_BOTTOM;
+		*align |= LAB_MENU_OPEN_TOP;
+	} else {
+		*align &= ~LAB_MENU_OPEN_TOP;
+		*align |= LAB_MENU_OPEN_BOTTOM;
+	}
+}
+
+static void
+print_state(enum menu_align align)
+{
+	if (align & LAB_MENU_OPEN_BOTTOM) {
+		wlr_log(WLR_ERROR, "XXX top-aligned");
+	}
+	if (align & LAB_MENU_OPEN_TOP) {
+		wlr_log(WLR_ERROR, "XXX top-bottom");
+	}
+}
+
+static void
 menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 {
 	struct theme *theme = menu->server->theme;
-
-	/* Get output local coordinates + output usable area */
-	double ox = lx;
-	double oy = ly;
 	struct wlr_output *wlr_output = wlr_output_layout_output_at(
 		menu->server->output_layout, lx, ly);
 	struct output *output = wlr_output ? output_from_wlr_output(
@@ -740,9 +760,18 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 			"Not enough screen space", menu->id, menu->label);
 		return;
 	}
+
+	struct wlr_box full_area = { 0 };
+	wlr_output_effective_resolution(output->wlr_output,
+		&full_area.width, &full_area.height);
+
+	/* Get output local coordinates */
+	double ox = lx;
+	double oy = ly;
 	wlr_output_layout_output_coords(menu->server->output_layout,
 		wlr_output, &ox, &oy);
 
+	/* Determine horizontal alignment */
 	if (align == LAB_MENU_OPEN_AUTO) {
 		int full_width = menu_get_full_width(menu);
 		if (ox + full_width > output->usable_area.width) {
@@ -752,14 +781,26 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 		}
 	}
 
-	if (oy + menu->size.height > output->usable_area.height) {
-		align &= ~LAB_MENU_OPEN_BOTTOM;
-		align |= LAB_MENU_OPEN_TOP;
-	} else {
+	/*
+	 * For a top-level menu window (root) we prefer top-alignment, whereas
+	 * with submenus we just inherit the alignment of the parent.
+	 *
+	 * If that alignment doesn't fit within the output we try the following
+	 * (further down in code):
+	 *   - Invert alignment
+	 *   - Revert to original alignment but offset to fit within output
+	 *   - TODO: Shrink menu to height of output
+	 */
+	bool is_root = !menu->parent;
+	if (is_root) {
 		align &= ~LAB_MENU_OPEN_TOP;
 		align |= LAB_MENU_OPEN_BOTTOM;
 	}
 
+	/*
+	 * TODO: consider applying menu_overlap_{x,y} in one place rather than
+	 * both there and in get_submenu_position()
+	 */
 	if (align & LAB_MENU_OPEN_LEFT) {
 		lx -= menu->size.width - theme->menu_overlap_x;
 	}
@@ -770,6 +811,32 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 			ly += menu->item_height;
 		}
 	}
+
+	print_state(align);
+	invert_vertical_alignment(&align);
+	print_state(align);
+
+	/* It it doesn't fit, try to invert the alignment */
+	if (align & LAB_MENU_OPEN_BOTTOM) {
+		if (oy + menu->size.height > full_area.height) {
+			invert_vertical_alignment(&align);
+		}
+	} else if (align & LAB_MENU_OPEN_TOP) {
+		if (oy < menu->size.height) {
+			invert_vertical_alignment(&align);
+		}
+	}
+
+	/* If it still doesn't fit, revert to original alignment and offset */
+	if (align & LAB_MENU_OPEN_TOP) {
+		invert_vertical_alignment(&align);
+		if (oy + menu->size.height > full_area.height) {
+			ly -= oy + menu->size.height - full_area.height;
+		}
+	}
+
+	/* TODO: If menu doesn't fit on screen (vertically) - shrink it! */
+
 	wlr_scene_node_set_position(&menu->scene_tree->node, lx, ly);
 
 	/* Needed for pipemenus to inherit alignment */

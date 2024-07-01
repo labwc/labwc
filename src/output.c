@@ -396,6 +396,9 @@ new_output_notify(struct wl_listener *listener, void *data)
 	wlr_scene_node_raise_to_top(&output->layer_tree[3]->node);
 	wlr_scene_node_raise_to_top(&output->layer_popup_tree->node);
 	wlr_scene_node_raise_to_top(&output->session_lock_tree->node);
+	wlr_scene_node_raise_to_top(&server->menu_tree->node);
+
+
 
 	/*
 	 * Wait until wlr_output_layout_add_auto() returns before

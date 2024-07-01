@@ -459,6 +459,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 	 * Set the z-positions to achieve the following order (from top to
 	 * bottom):
 	 *	- session lock layer
+	 *	- compositor menu
 	 *	- layer-shell popups
 	 *	- overlay layer
 	 *	- top layer
@@ -471,6 +472,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 	wlr_scene_node_raise_to_top(&output->layer_tree[2]->node);
 	wlr_scene_node_raise_to_top(&output->layer_tree[3]->node);
 	wlr_scene_node_raise_to_top(&output->layer_popup_tree->node);
+	wlr_scene_node_raise_to_top(&server->menu_tree->node);
 	wlr_scene_node_raise_to_top(&output->session_lock_tree->node);
 
 	configure_new_output(server, output);

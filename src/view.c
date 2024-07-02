@@ -815,8 +815,8 @@ adjust_floating_geometry(struct view *view, struct wlr_box *geometry,
 		&geometry->x, &geometry->y);
 }
 
-static void
-set_fallback_geometry(struct view *view)
+void
+view_set_fallback_natural_geometry(struct view *view)
 {
 	view->natural_geometry.width = LAB_FALLBACK_WIDTH;
 	view->natural_geometry.height = LAB_FALLBACK_HEIGHT;
@@ -839,18 +839,14 @@ view_store_natural_geometry(struct view *view)
 		return;
 	}
 
-	/**
-	 * If an application was started maximized or fullscreened, its
-	 * natural_geometry width/height may still be zero (or very small
-	 * values) in which case we set some fallback values. This is the case
-	 * with foot and some Qt/Tk applications.
+	/*
+	 * Note that for xdg-shell views that start fullscreen or maximized,
+	 * we end up storing a natural geometry of 0x0. This is intentional.
+	 * When leaving fullscreen or unmaximizing, we pass 0x0 to the
+	 * xdg-toplevel configure event, which means the application should
+	 * choose its own size.
 	 */
-	if (view->pending.width < LAB_MIN_VIEW_WIDTH
-			|| view->pending.height < LAB_MIN_VIEW_HEIGHT) {
-		set_fallback_geometry(view);
-	} else {
-		view->natural_geometry = view->pending;
-	}
+	view->natural_geometry = view->pending;
 }
 
 int
@@ -947,8 +943,11 @@ view_apply_natural_geometry(struct view *view)
 	assert(view_is_floating(view));
 
 	struct wlr_box geometry = view->natural_geometry;
-	adjust_floating_geometry(view, &geometry,
-		/* midpoint_visibility */ false);
+	/* Only adjust natural geometry if known (not 0x0) */
+	if (!wlr_box_empty(&geometry)) {
+		adjust_floating_geometry(view, &geometry,
+			/* midpoint_visibility */ false);
+	}
 	view_move_resize(view, geometry);
 }
 
@@ -1246,6 +1245,18 @@ view_maximize(struct view *view, enum view_axis axis,
 			view_invalidate_last_layout_geometry(view);
 		}
 	}
+
+	/*
+	 * When natural geometry is unknown (0x0) for an xdg-shell view,
+	 * we normally send a configure event of 0x0 to get the client's
+	 * preferred size, but this doesn't work if unmaximizing only
+	 * one axis. So in that corner case, set a fallback geometry.
+	 */
+	if ((axis == VIEW_AXIS_HORIZONTAL || axis == VIEW_AXIS_VERTICAL)
+			&& wlr_box_empty(&view->natural_geometry)) {
+		view_set_fallback_natural_geometry(view);
+	}
+
 	set_maximized(view, axis);
 	if (view_is_floating(view)) {
 		view_apply_natural_geometry(view);

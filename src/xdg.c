@@ -76,6 +76,26 @@ handle_new_popup(struct wl_listener *listener, void *data)
 }
 
 static void
+do_late_positioning(struct view *view)
+{
+	struct server *server = view->server;
+	if (server->input_mode == LAB_INPUT_STATE_MOVE
+			&& view == server->grabbed_view) {
+		/* Keep view underneath cursor */
+		interactive_anchor_to_cursor(view, &view->pending);
+		/* Update grab offsets */
+		server->grab_x = server->seat.cursor->x;
+		server->grab_y = server->seat.cursor->y;
+		server->grab_box = view->pending;
+	} else {
+		/* TODO: smart placement? */
+		view_compute_centered_position(view, NULL,
+			view->pending.width, view->pending.height,
+			&view->pending.x, &view->pending.y);
+	}
+}
+
+static void
 handle_commit(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, commit);
@@ -84,6 +104,20 @@ handle_commit(struct wl_listener *listener, void *data)
 
 	struct wlr_box size;
 	wlr_xdg_surface_get_geometry(xdg_surface, &size);
+	bool update_required = false;
+
+	/*
+	 * If we didn't know the natural size when leaving fullscreen or
+	 * unmaximizing, then the pending size will be 0x0. In this case,
+	 * the pending x/y is also unset and we still need to position
+	 * the window.
+	 */
+	if (wlr_box_empty(&view->pending)) {
+		view->pending.width = size.width;
+		view->pending.height = size.height;
+		do_late_positioning(view);
+		update_required = true;
+	}
 
 	/*
 	 * Qt applications occasionally fail to call set_window_geometry
@@ -107,8 +141,9 @@ handle_commit(struct wl_listener *listener, void *data)
 	}
 
 	struct wlr_box *current = &view->current;
-	bool update_required = current->width != size.width
-		|| current->height != size.height;
+	if (current->width != size.width || current->height != size.height) {
+		update_required = true;
+	}
 
 	uint32_t serial = view->pending_configure_serial;
 	if (serial > 0 && serial == xdg_surface->current.configure_serial) {
@@ -320,7 +355,15 @@ static void
 xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 {
 	uint32_t serial = 0;
-	view_adjust_size(view, &geo.width, &geo.height);
+
+	/*
+	 * Leave a size of 0x0 unchanged; this has special meaning in
+	 * an xdg-toplevel configure event and requests the application
+	 * to choose its own preferred size.
+	 */
+	if (!wlr_box_empty(&geo)) {
+		view_adjust_size(view, &geo.width, &geo.height);
+	}
 
 	/*
 	 * We do not need to send a configure request unless the size
@@ -563,11 +606,12 @@ xdg_toplevel_view_map(struct view *view)
 	view->surface = xdg_surface->surface;
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 	if (!view->been_mapped) {
-		struct wlr_xdg_toplevel_requested *requested =
-			&xdg_toplevel_from_view(view)->requested;
-
 		init_foreign_toplevel(view);
 
+		/*
+		 * FIXME: is this needed or is the earlier logic in
+		 * xdg_surface_new() enough?
+		 */
 		if (view_wants_decorations(view)) {
 			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
 		} else {
@@ -575,8 +619,7 @@ xdg_toplevel_view_map(struct view *view)
 		}
 
 		/*
-		 * Set initial "pending" dimensions (may be modified by
-		 * view_set_fullscreen/view_maximize() below). "Current"
+		 * Set initial "pending" dimensions. "Current"
 		 * dimensions remain zero until handle_commit().
 		 */
 		if (wlr_box_empty(&view->pending)) {
@@ -588,21 +631,10 @@ xdg_toplevel_view_map(struct view *view)
 
 		/*
 		 * Set initial "pending" position for floating views.
-		 * Do this before view_set_fullscreen/view_maximize() so
-		 * that the position is saved with the natural geometry.
-		 *
-		 * FIXME: the natural geometry is not saved if either
-		 * handle_request_fullscreen/handle_request_maximize()
-		 * is called before map (try "foot --maximized").
 		 */
 		if (view_is_floating(view)) {
 			set_initial_position(view);
 		}
-
-		set_fullscreen_from_request(view, requested);
-		view_maximize(view, requested->maximized ?
-			VIEW_AXIS_BOTH : VIEW_AXIS_NONE,
-			/*store_natural_geometry*/ true);
 
 		/*
 		 * Set initial "current" position directly before
@@ -811,6 +843,31 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	CONNECT_SIGNAL(xdg_surface, xdg_toplevel_view, new_popup);
 
 	wl_list_insert(&server->views, &view->link);
+
+	/* FIXME: is view_wants_decorations() reliable this early? */
+	if (view_wants_decorations(view)) {
+		view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
+	} else {
+		view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
+	}
+
+	/*
+	 * Handle initial fullscreen/maximize requests. This needs to be
+	 * done early (before map) in order to send the correct size to
+	 * the initial configure event and avoid flicker.
+	 *
+	 * Note that at this point, wlroots has already scheduled (but
+	 * not yet sent) the initial configure event with a size of 0x0.
+	 * In normal (non-fullscreen/maximized) cases, the zero size
+	 * requests the application to choose its own size.
+	 */
+	if (toplevel->requested.fullscreen) {
+		set_fullscreen_from_request(view, &toplevel->requested);
+	}
+	if (toplevel->requested.maximized) {
+		view_maximize(view, VIEW_AXIS_BOTH,
+			/*store_natural_geometry*/ true);
+	}
 }
 
 void

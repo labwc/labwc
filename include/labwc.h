@@ -486,6 +486,15 @@ void seat_set_pressed(struct seat *seat, struct view *view,
 void seat_reset_pressed(struct seat *seat);
 void seat_output_layout_changed(struct seat *seat);
 
+/**
+ * interactive_anchor_to_cursor() - repositions the view to remain
+ * underneath the cursor when its size changes during interactive move.
+ *
+ * geometry->{width,height} are provided by the caller.
+ * geometry->{x,y} are computed by this function.
+ */
+void interactive_anchor_to_cursor(struct view *view, struct wlr_box *geometry);
+
 void interactive_begin(struct view *view, enum input_mode mode, uint32_t edges);
 void interactive_finish(struct view *view);
 void interactive_cancel(struct view *view);

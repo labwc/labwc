@@ -270,12 +270,17 @@ handle_lock_unlock(struct wl_listener *listener, void *data)
 	cursor_update_focus(manager->server);
 }
 
+/* Called when session-lock is destroyed without unlock */
 static void
 handle_lock_destroy(struct wl_listener *listener, void *data)
 {
 	struct session_lock_manager *manager =
 		wl_container_of(listener, manager, lock_destroy);
 
+	/*
+	 * Destroy session-lock, but manager->locked remains true and
+	 * lock_outputs still hides the screens.
+	 */
 	wl_list_remove(&manager->lock_destroy.link);
 	wl_list_remove(&manager->lock_unlock.link);
 	wl_list_remove(&manager->lock_new_surface.link);
@@ -295,6 +300,7 @@ handle_new_session_lock(struct wl_listener *listener, void *data)
 	}
 	if (manager->locked) {
 		wlr_log(WLR_INFO, "replacing abandoned lock");
+		/* clear lock-outputs */
 		session_lock_destroy(manager);
 	}
 	assert(wl_list_empty(&manager->session_lock_outputs));

@@ -266,7 +266,12 @@ handle_lock_unlock(struct wl_listener *listener, void *data)
 		wl_container_of(listener, manager, lock_unlock);
 	session_lock_destroy(manager);
 	manager->locked = false;
-	desktop_focus_topmost_view(manager->server);
+
+	if (manager->last_active_view) {
+		desktop_focus_view(manager->last_active_view, /* raise */ false);
+	}
+	manager->last_active_view = NULL;
+
 	cursor_update_focus(manager->server);
 }
 
@@ -305,6 +310,9 @@ handle_new_session_lock(struct wl_listener *listener, void *data)
 		session_lock_destroy(manager);
 	}
 	assert(wl_list_empty(&manager->session_lock_outputs));
+
+	/* Remember the focused view to restore it on unlock */
+	manager->last_active_view = manager->server->active_view;
 
 	struct output *output;
 	wl_list_for_each(output, &manager->server->outputs, link) {

@@ -318,6 +318,7 @@ handle_new_session_lock(struct wl_listener *listener, void *data)
 
 	/* Remember the focused view to restore it on unlock */
 	manager->last_active_view = manager->server->active_view;
+	seat_focus_surface(&manager->server->seat, NULL);
 
 	struct output *output;
 	wl_list_for_each(output, &manager->server->outputs, link) {

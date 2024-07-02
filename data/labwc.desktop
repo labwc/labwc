@@ -4,4 +4,4 @@ Comment=A wayland stacking compositor
 Exec=labwc
 Icon=labwc
 Type=Application
-DesktopNames=wlroots
+DesktopNames=labwc;wlroots

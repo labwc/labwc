@@ -241,7 +241,12 @@ ssd_shadow_create(struct ssd *ssd)
 	struct wlr_scene_tree *parent;
 
 	FOR_EACH_STATE(ssd, subtree) {
-		if (subtree == &ssd->shadow.active) {
+		wl_list_init(&subtree->parts);
+
+		if (!rc.shadows_enabled) {
+			/* Shadows are globally disabled */
+			continue;
+		} else if (subtree == &ssd->shadow.active) {
 			if (theme->window_active_shadow_size == 0) {
 				/* Active window shadows are disabled */
 				continue;
@@ -264,7 +269,6 @@ ssd_shadow_create(struct ssd *ssd)
 			corner_bottom_buffer = &theme->shadow_corner_bottom_inactive->base;
 			edge_buffer = &theme->shadow_edge_inactive->base;
 		}
-		wl_list_init(&subtree->parts);
 
 		make_shadow(&subtree->parts,
 			LAB_SSD_PART_CORNER_BOTTOM_RIGHT, parent,
@@ -310,6 +314,16 @@ ssd_shadow_destroy(struct ssd *ssd)
 {
 	assert(ssd);
 	assert(ssd->shadow.tree);
+
+	struct ssd_sub_tree *subtree;
+	FOR_EACH_STATE(ssd, subtree) {
+		ssd_destroy_parts(&subtree->parts);
+		/*
+		 * subtree->tree will be destroyed when its
+		 * parent (ssd->shadow.tree) is destroyed.
+		 */
+		subtree->tree = NULL;
+	} FOR_EACH_END
 
 	wlr_scene_node_destroy(&ssd->shadow.tree->node);
 	ssd->shadow.tree = NULL;

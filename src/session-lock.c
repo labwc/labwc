@@ -13,7 +13,7 @@ struct session_lock_output {
 	struct wlr_session_lock_surface_v1 *surface;
 	struct wl_event_source *blank_timer;
 
-	struct wl_list link; /* session_lock_manager.outputs */
+	struct wl_list link; /* session_lock_manager.lock_outputs */
 
 	struct wl_listener destroy;
 	struct wl_listener commit;
@@ -37,7 +37,7 @@ refocus_output(struct session_lock_output *output)
 	}
 
 	struct session_lock_output *iter;
-	wl_list_for_each(iter, &output->manager->session_lock_outputs, link) {
+	wl_list_for_each(iter, &output->manager->lock_outputs, link) {
 		if (iter == output || !iter->surface || !iter->surface->surface) {
 			continue;
 		}
@@ -109,7 +109,7 @@ handle_new_surface(struct wl_listener *listener, void *data)
 	struct wlr_session_lock_surface_v1 *lock_surface = data;
 	struct output *output = lock_surface->output->data;
 	struct session_lock_output *lock_output;
-	wl_list_for_each(lock_output, &manager->session_lock_outputs, link) {
+	wl_list_for_each(lock_output, &manager->lock_outputs, link) {
 		if (lock_output->output == output) {
 			goto found_lock_output;
 		}
@@ -211,7 +211,10 @@ session_lock_output_create(struct session_lock_manager *manager, struct output *
 		goto exit_session;
 	}
 
-	/* Delay blanking output by 100ms to prevent flashing */
+	/*
+	 * Delay blanking output by 100ms to prevent flicker. If the session is
+	 * already locked, blank immediately.
+	 */
 	lock_output->blank_timer =
 		wl_event_loop_add_timer(manager->server->wl_event_loop,
 			handle_output_blank_timeout, lock_output);
@@ -235,7 +238,7 @@ session_lock_output_create(struct session_lock_manager *manager, struct output *
 
 	lock_output_reconfigure(lock_output);
 
-	wl_list_insert(&manager->session_lock_outputs, &lock_output->link);
+	wl_list_insert(&manager->lock_outputs, &lock_output->link);
 	return;
 
 exit_session:
@@ -248,7 +251,7 @@ static void
 session_lock_destroy(struct session_lock_manager *manager)
 {
 	struct session_lock_output *lock_output, *next;
-	wl_list_for_each_safe(lock_output, next, &manager->session_lock_outputs, link) {
+	wl_list_for_each_safe(lock_output, next, &manager->lock_outputs, link) {
 		wlr_scene_node_destroy(&lock_output->tree->node);
 	}
 	if (manager->lock) {
@@ -270,12 +273,17 @@ handle_lock_unlock(struct wl_listener *listener, void *data)
 	cursor_update_focus(manager->server);
 }
 
+/* Called when session-lock is destroyed without unlock */
 static void
 handle_lock_destroy(struct wl_listener *listener, void *data)
 {
 	struct session_lock_manager *manager =
 		wl_container_of(listener, manager, lock_destroy);
 
+	/*
+	 * Destroy session-lock, but manager->locked remains true and
+	 * lock_outputs still hides the screens.
+	 */
 	wl_list_remove(&manager->lock_destroy.link);
 	wl_list_remove(&manager->lock_unlock.link);
 	wl_list_remove(&manager->lock_new_surface.link);
@@ -295,9 +303,10 @@ handle_new_session_lock(struct wl_listener *listener, void *data)
 	}
 	if (manager->locked) {
 		wlr_log(WLR_INFO, "replacing abandoned lock");
+		/* clear manager->lock_outputs */
 		session_lock_destroy(manager);
 	}
-	assert(wl_list_empty(&manager->session_lock_outputs));
+	assert(wl_list_empty(&manager->lock_outputs));
 
 	struct output *output;
 	wl_list_for_each(output, &manager->server->outputs, link) {
@@ -336,7 +345,7 @@ session_lock_init(struct server *server)
 	server->session_lock_manager = manager;
 	manager->server = server;
 	manager->wlr_manager = wlr_session_lock_manager_v1_create(server->wl_display);
-	wl_list_init(&manager->session_lock_outputs);
+	wl_list_init(&manager->lock_outputs);
 
 	manager->new_lock.notify = handle_new_session_lock;
 	wl_signal_add(&manager->wlr_manager->events.new_lock, &manager->new_lock);
@@ -359,7 +368,7 @@ session_lock_update_for_layout_change(struct server *server)
 
 	struct session_lock_manager *manager = server->session_lock_manager;
 	struct session_lock_output *lock_output;
-	wl_list_for_each(lock_output, &manager->session_lock_outputs, link) {
+	wl_list_for_each(lock_output, &manager->lock_outputs, link) {
 		lock_output_reconfigure(lock_output);
 	}
 }

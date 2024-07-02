@@ -19,7 +19,7 @@ struct session_lock_manager {
 	struct wlr_session_lock_v1 *lock;
 	bool locked;
 
-	struct wl_list session_lock_outputs;
+	struct wl_list lock_outputs;
 
 	struct wl_listener new_lock;
 	struct wl_listener destroy;

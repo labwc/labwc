@@ -899,6 +899,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		if (rc.placement_policy == LAB_PLACE_INVALID) {
 			rc.placement_policy = LAB_PLACE_CENTER;
 		}
+	} else if (!strcasecmp(nodename, "x.cascadeOffset.placement")) {
+		rc.placement_cascade_offset_x = atoi(content);
+	} else if (!strcasecmp(nodename, "y.cascadeOffset.placement")) {
+		rc.placement_cascade_offset_y = atoi(content);
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = xstrdup(content);
 	} else if (!strcmp(nodename, "cornerradius.theme")) {
@@ -1227,6 +1231,8 @@ rcxml_init(void)
 	has_run = true;
 
 	rc.placement_policy = LAB_PLACE_CENTER;
+	rc.placement_cascade_offset_x = 0;
+	rc.placement_cascade_offset_y = 0;
 
 	rc.xdg_shell_server_side_deco = true;
 	rc.ssd_keep_border = true;

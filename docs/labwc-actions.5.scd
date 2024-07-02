@@ -276,9 +276,9 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="AutoPlace" policy="value"/>*
 	Reposition the window according to the desired placement policy.
 
-	*policy* [automatic|cursor|center] Use the specified policy, which has
-	the same meaning as the corresponding value for *<placement><policy>*.
-	Default is automatic.
+	*policy* [automatic|cursor|center|cascade] Use the specified policy,
+	which has the same meaning as the corresponding value for
+	*<placement><policy>*. Default is automatic.
 
 *<action name="Shade" />*++
 *<action name="Unshade" />*++

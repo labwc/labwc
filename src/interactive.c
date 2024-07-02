@@ -22,6 +22,16 @@ max_move_scale(double pos_cursor, double pos_current,
 }
 
 void
+interactive_anchor_to_cursor(struct view *view, struct wlr_box *geometry)
+{
+	struct wlr_cursor *cursor = view->server->seat.cursor;
+	geometry->x = max_move_scale(cursor->x, view->current.x,
+		view->current.width, geometry->width);
+	geometry->y = max_move_scale(cursor->y, view->current.y,
+		view->current.height, geometry->height);
+}
+
+void
 interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 {
 	/*
@@ -61,14 +71,17 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			 * width/height.
 			 * Don't reset tiled state yet since we may want
 			 * to keep it (in the snap-to-maximize case).
+			 *
+			 * If the natural geometry is unknown (possible
+			 * with xdg-shell views), then we set a size of
+			 * 0x0 here and determine the correct geometry
+			 * later. See do_late_positioning() in xdg.c.
 			 */
-			geometry = view->natural_geometry;
-			geometry.x = max_move_scale(seat->cursor->x,
-				view->current.x, view->current.width,
-				geometry.width);
-			geometry.y = max_move_scale(seat->cursor->y,
-				view->current.y, view->current.height,
-				geometry.height);
+			geometry.width = view->natural_geometry.width;
+			geometry.height = view->natural_geometry.height;
+			if (!wlr_box_empty(&geometry)) {
+				interactive_anchor_to_cursor(view, &geometry);
+			}
 
 			view_set_shade(view, false);
 			view_set_untiled(view);

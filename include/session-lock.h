@@ -10,6 +10,8 @@ struct server;
 struct session_lock_manager {
 	struct server *server;
 	struct wlr_session_lock_manager_v1 *wlr_manager;
+	/* View re-focused on unlock */
+	struct view *last_active_view;
 	struct wlr_surface *focused;
 	/*
 	 * When not locked: lock=NULL, locked=false

@@ -287,6 +287,7 @@ handle_lock_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&manager->lock_destroy.link);
 	wl_list_remove(&manager->lock_unlock.link);
 	wl_list_remove(&manager->lock_new_surface.link);
+	manager->lock = NULL;
 }
 
 static void
@@ -323,6 +324,7 @@ handle_new_session_lock(struct wl_listener *listener, void *data)
 	wl_signal_add(&lock->events.destroy, &manager->lock_destroy);
 
 	manager->locked = true;
+	manager->lock = lock;
 	wlr_session_lock_v1_send_locked(lock);
 }
 

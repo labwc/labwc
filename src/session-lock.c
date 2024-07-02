@@ -276,12 +276,6 @@ handle_lock_destroy(struct wl_listener *listener, void *data)
 	struct session_lock_manager *manager =
 		wl_container_of(listener, manager, lock_destroy);
 
-	float *black = (float[4]) { 0.f, 0.f, 0.f, 1.f };
-	struct session_lock_output *lock_output;
-	wl_list_for_each(lock_output, &manager->session_lock_outputs, link) {
-		wlr_scene_rect_set_color(lock_output->background, black);
-	}
-
 	wl_list_remove(&manager->lock_destroy.link);
 	wl_list_remove(&manager->lock_unlock.link);
 	wl_list_remove(&manager->lock_new_surface.link);

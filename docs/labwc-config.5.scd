@@ -194,6 +194,13 @@ this is for compatibility with Openbox.
 	be used with labwc the preferred mode of the monitor is used instead.
 	Default is no.
 
+*<core><xwaylandPersistence>* [yes|no]
+	Keep XWayland alive even when no clients are connected, rather than
+	using a "lazy" policy that allows the server to launch on demand and die
+	when it is no longer needed. Default is no.
+
+	Note: changing this setting requires a restart of labwc.
+
 ## PLACEMENT
 
 *<placement><policy>* [center|automatic|cursor]

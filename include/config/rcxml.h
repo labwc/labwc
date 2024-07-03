@@ -55,6 +55,7 @@ struct rcxml {
 	bool allow_tearing;
 	bool reuse_output_mode;
 	enum view_placement_policy placement_policy;
+	bool xwayland_persistence;
 
 	/* focus */
 	bool focus_follow_mouse;

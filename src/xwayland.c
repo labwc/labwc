@@ -6,6 +6,7 @@
 #include "common/array.h"
 #include "common/macros.h"
 #include "common/mem.h"
+#include "config/rcxml.h"
 #include "labwc.h"
 #include "node.h"
 #include "ssd.h"
@@ -1052,7 +1053,8 @@ void
 xwayland_server_init(struct server *server, struct wlr_compositor *compositor)
 {
 	server->xwayland =
-		wlr_xwayland_create(server->wl_display, compositor, true);
+		wlr_xwayland_create(server->wl_display,
+			compositor, /* lazy */ !rc.xwayland_persistence);
 	if (!server->xwayland) {
 		wlr_log(WLR_ERROR, "cannot create xwayland server");
 		exit(EXIT_FAILURE);

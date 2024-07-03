@@ -899,6 +899,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		if (rc.placement_policy == LAB_PLACE_INVALID) {
 			rc.placement_policy = LAB_PLACE_CENTER;
 		}
+	} else if (!strcasecmp(nodename, "xwaylandPersistence.core")) {
+		set_bool(content, &rc.xwayland_persistence);
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = xstrdup(content);
 	} else if (!strcmp(nodename, "cornerradius.theme")) {

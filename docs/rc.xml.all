@@ -13,6 +13,7 @@
     <adaptiveSync>no</adaptiveSync>
     <allowTearing>no</allowTearing>
     <reuseOutputMode>no</reuseOutputMode>
+    <xwaylandPersistence>no</xwaylandPersistence>
   </core>
 
   <placement>

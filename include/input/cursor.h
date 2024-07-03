@@ -146,6 +146,9 @@ bool cursor_finish_button_release(struct seat *seat);
 
 void cursor_init(struct seat *seat);
 void cursor_reload(struct seat *seat);
+void cursor_emulate_move(struct seat *seat,
+		struct wlr_input_device *device,
+		double dx, double dy, uint32_t time_msec);
 void cursor_emulate_move_absolute(struct seat *seat,
 		struct wlr_input_device *device,
 		double x, double y, uint32_t time_msec);

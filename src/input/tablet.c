@@ -20,7 +20,7 @@
 #include "action.h"
 
 static enum motion
-tool_motion_mode(struct wlr_tablet_tool *tool)
+tool_motion_mode(enum motion motion, struct wlr_tablet_tool *tool)
 {
 	/*
 	 * Absolute positioning doesn't make sense
@@ -31,7 +31,7 @@ tool_motion_mode(struct wlr_tablet_tool *tool)
 	case WLR_TABLET_TOOL_TYPE_LENS:
 		return LAB_TABLET_MOTION_RELATIVE;
 	default:
-		return LAB_TABLET_MOTION_ABSOLUTE;
+		return motion;
 	}
 }
 
@@ -235,7 +235,8 @@ handle_proximity(struct wl_listener *listener, void *data)
 	struct drawing_tablet_tool *tool = ev->tool->data;
 
 	if (ev->state == WLR_TABLET_TOOL_PROXIMITY_IN) {
-		tablet->motion_mode = tool_motion_mode(ev->tool);
+		tablet->motion_mode =
+			tool_motion_mode(rc.tablet_tool.motion, ev->tool);
 	}
 
 	/*

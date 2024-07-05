@@ -83,6 +83,30 @@ adjust_for_rotation(enum rotation rotation, double *x, double *y)
 	}
 }
 
+static void
+adjust_for_rotation_relative(enum rotation rotation, double *dx, double *dy)
+{
+	double tmp;
+	switch (rotation) {
+	case LAB_ROTATE_NONE:
+		break;
+	case LAB_ROTATE_90:
+		tmp = *dx;
+		*dx = -*dy;
+		*dy = tmp;
+		break;
+	case LAB_ROTATE_180:
+		*dx = -*dx;
+		*dy = -*dy;
+		break;
+	case LAB_ROTATE_270:
+		tmp = *dx;
+		*dx = *dy;
+		*dy = -tmp;
+		break;
+	}
+}
+
 static struct wlr_surface*
 tablet_get_coords(struct drawing_tablet *tablet, double *x, double *y)
 {
@@ -228,6 +252,9 @@ handle_axis(struct wl_listener *listener, void *data)
 		return;
 	}
 
+	tablet->tilt_x = 0;
+	tablet->tilt_y = 0;
+
 	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_X) {
 		tablet->x = ev->x;
 	}
@@ -299,7 +326,7 @@ handle_axis(struct wl_listener *listener, void *data)
 			 */
 			double tilt_x = tablet->tilt_x;
 			double tilt_y = tablet->tilt_y;
-			adjust_for_rotation(rc.tablet.rotation, &tilt_x, &tilt_y);
+			adjust_for_rotation_relative(rc.tablet.rotation, &tilt_x, &tilt_y);
 
 			wlr_tablet_v2_tablet_tool_notify_tilt(tool->tool_v2,
 				tilt_x, tilt_y);

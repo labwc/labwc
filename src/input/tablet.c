@@ -111,6 +111,13 @@ adjust_for_rotation_relative(enum rotation rotation, double *dx, double *dy)
 	}
 }
 
+static void
+adjust_for_motion_sensitivity(double motion_sensitivity, double *dx, double *dy)
+{
+	*dx = *dx * motion_sensitivity;
+	*dy = *dy * motion_sensitivity;
+}
+
 static struct wlr_surface*
 tablet_get_coords(struct drawing_tablet *tablet, double *x, double *y, double *dx, double *dy)
 {
@@ -122,6 +129,7 @@ tablet_get_coords(struct drawing_tablet *tablet, double *x, double *y, double *d
 		rc.tablet.box, x, y);
 	adjust_for_rotation(rc.tablet.rotation, x, y);
 	adjust_for_rotation_relative(rc.tablet.rotation, dx, dy);
+	adjust_for_motion_sensitivity(rc.tablet_tool.relative_motion_sensitivity, dx, dy);
 
 	if (rc.tablet.force_mouse_emulation
 			|| !tablet->tablet_v2) {

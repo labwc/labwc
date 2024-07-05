@@ -105,6 +105,7 @@ struct rcxml {
 	} tablet;
 	struct tablet_tool_config {
 		enum motion motion;
+		double relative_motion_sensitivity;
 	} tablet_tool;
 
 	/* libinput */

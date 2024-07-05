@@ -1063,6 +1063,9 @@ entry(xmlNode *node, char *nodename, char *content)
 		}
 	} else if (!strcasecmp(nodename, "motion.tabletTool")) {
 		rc.tablet_tool.motion = tablet_parse_motion(content);
+	} else if (!strcasecmp(nodename, "relativeMotionSensitivity.tabletTool")) {
+		rc.tablet_tool.relative_motion_sensitivity =
+			tablet_get_dbl_if_positive(content, "relativeMotionSensitivity");
 	} else if (!strcasecmp(nodename, "ignoreButtonReleasePeriod.menu")) {
 		rc.menu_ignore_button_release_period = atoi(content);
 	} else if (!strcasecmp(nodename, "width.magnifier")) {
@@ -1255,6 +1258,7 @@ rcxml_init(void)
 	rc.tablet.box = (struct wlr_fbox){0};
 	tablet_load_default_button_mappings();
 	rc.tablet_tool.motion = LAB_TABLET_MOTION_ABSOLUTE;
+	rc.tablet_tool.relative_motion_sensitivity = 1.0;
 
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;

@@ -19,15 +19,19 @@
 #include "idle.h"
 #include "action.h"
 
-static bool
-tool_supports_absolute_motion(struct wlr_tablet_tool *tool)
+static enum lab_tablet_motion_mode
+tool_motion_mode(struct wlr_tablet_tool *tool)
 {
+	/*
+	 * Absolute positioning doesn't make sense
+	 * for tablet mouses and lenses.
+	 */
 	switch (tool->type) {
 	case WLR_TABLET_TOOL_TYPE_MOUSE:
 	case WLR_TABLET_TOOL_TYPE_LENS:
-		return false;
+		return LAB_TABLET_MOTION_RELATIVE;
 	default:
-		return true;
+		return LAB_TABLET_MOTION_ABSOLUTE;
 	}
 }
 
@@ -108,29 +112,47 @@ adjust_for_rotation_relative(enum rotation rotation, double *dx, double *dy)
 }
 
 static struct wlr_surface*
-tablet_get_coords(struct drawing_tablet *tablet, double *x, double *y)
+tablet_get_coords(struct drawing_tablet *tablet, double *x, double *y, double *dx, double *dy)
 {
 	*x = tablet->x;
 	*y = tablet->y;
+	*dx = tablet->dx;
+	*dy = tablet->dy;
 	adjust_for_tablet_area(tablet->tablet->width_mm, tablet->tablet->height_mm,
 		rc.tablet.box, x, y);
 	adjust_for_rotation(rc.tablet.rotation, x, y);
+	adjust_for_rotation_relative(rc.tablet.rotation, dx, dy);
 
 	if (rc.tablet.force_mouse_emulation
 			|| !tablet->tablet_v2) {
 		return NULL;
 	}
 
-	/* Convert coordinates: first [0, 1] => layout, then layout => surface */
-	double lx, ly;
-	wlr_cursor_absolute_to_layout_coords(tablet->seat->cursor,
-		tablet->wlr_input_device, *x, *y, &lx, &ly);
+	/* convert coordinates: first [0, 1] => layout, then layout => surface */
+
+	/* initialize here to avoid a maybe-uninitialized compiler warning */
+	double lx = -1, ly = -1;
+	switch (tablet->motion_mode) {
+	case LAB_TABLET_MOTION_ABSOLUTE:
+		wlr_cursor_absolute_to_layout_coords(tablet->seat->cursor,
+			tablet->wlr_input_device, *x, *y, &lx, &ly);
+		break;
+	case LAB_TABLET_MOTION_RELATIVE:
+		/*
+		 * Deltas dx,dy will be directly passed into wlr_cursor_move,
+		 * so we can add those directly here to determine our future
+		 * position.
+		 */
+		lx = tablet->seat->cursor->x + *dx;
+		ly = tablet->seat->cursor->y + *dy;
+		break;
+	}
 
 	double sx, sy;
 	struct wlr_scene_node *node =
 		wlr_scene_node_at(&tablet->seat->server->scene->tree.node, lx, ly, &sx, &sy);
 
-	/* Find the surface and return it if it accepts tablet events */
+	/* find the surface and return it if it accepts tablet events */
 	struct wlr_surface *surface = lab_wlr_surface_from_node(node);
 
 	if (surface && !wlr_surface_accepts_tablet_v2(tablet->tablet_v2, surface)) {
@@ -141,7 +163,8 @@ tablet_get_coords(struct drawing_tablet *tablet, double *x, double *y)
 
 static void
 notify_motion(struct drawing_tablet *tablet, struct drawing_tablet_tool *tool,
-		struct wlr_surface *surface, double x, double y, uint32_t time)
+		struct wlr_surface *surface, double x, double y, double dx, double dy,
+		uint32_t time)
 {
 	idle_manager_notify_activity(tool->seat->seat);
 
@@ -153,8 +176,16 @@ notify_motion(struct drawing_tablet *tablet, struct drawing_tablet_tool *tool,
 			tablet->tablet_v2, surface);
 	}
 
-	wlr_cursor_warp_absolute(tablet->seat->cursor,
-		tablet->wlr_input_device, x, y);
+	switch (tablet->motion_mode) {
+	case LAB_TABLET_MOTION_ABSOLUTE:
+		wlr_cursor_warp_absolute(tablet->seat->cursor,
+			tablet->wlr_input_device, x, y);
+		break;
+	case LAB_TABLET_MOTION_RELATIVE:
+		wlr_cursor_move(tablet->seat->cursor,
+			tablet->wlr_input_device, dx, dy);
+		break;
+	}
 
 	double sx, sy;
 	bool notify = cursor_process_motion(tablet->seat->server, time, &sx, &sy);
@@ -203,18 +234,22 @@ handle_proximity(struct wl_listener *listener, void *data)
 	struct drawing_tablet *tablet = ev->tablet->data;
 	struct drawing_tablet_tool *tool = ev->tool->data;
 
-	if (!tool_supports_absolute_motion(ev->tool)) {
-		if (ev->state == WLR_TABLET_TOOL_PROXIMITY_IN) {
-			wlr_log(WLR_INFO, "ignoring not supporting tablet tool");
-		}
-		return;
+	if (ev->state == WLR_TABLET_TOOL_PROXIMITY_IN) {
+		tablet->motion_mode = tool_motion_mode(ev->tool);
 	}
+
+	/*
+	 * Reset relative coordinates, we don't want to move the
+	 * cursor on proximity-in for relative positioning.
+	 */
+	tablet->dx = 0;
+	tablet->dy = 0;
 
 	tablet->x = ev->x;
 	tablet->y = ev->y;
 
-	double x, y;
-	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y);
+	double x, y, dx, dy;
+	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y, &dx, &dy);
 
 	if (!rc.tablet.force_mouse_emulation
 			&& tablet->seat->server->tablet_manager && !tool) {
@@ -231,7 +266,7 @@ handle_proximity(struct wl_listener *listener, void *data)
 	 */
 	if (tool && surface) {
 		if (tool->tool_v2 && ev->state == WLR_TABLET_TOOL_PROXIMITY_IN) {
-			notify_motion(tablet, tool, surface, x, y, ev->time_msec);
+			notify_motion(tablet, tool, surface, x, y, dx, dy, ev->time_msec);
 		}
 		if (tool->tool_v2 && ev->state == WLR_TABLET_TOOL_PROXIMITY_OUT) {
 			wlr_tablet_v2_tablet_tool_notify_proximity_out(tool->tool_v2);
@@ -248,18 +283,22 @@ handle_axis(struct wl_listener *listener, void *data)
 	struct drawing_tablet *tablet = ev->tablet->data;
 	struct drawing_tablet_tool *tool = ev->tool->data;
 
-	if (!tool_supports_absolute_motion(ev->tool)) {
-		return;
-	}
-
+	/*
+	 * Reset relative coordinates. If those axes aren't updated,
+	 * the delta is zero.
+	 */
+	tablet->dx = 0;
+	tablet->dy = 0;
 	tablet->tilt_x = 0;
 	tablet->tilt_y = 0;
 
 	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_X) {
 		tablet->x = ev->x;
+		tablet->dx = ev->dx;
 	}
 	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_Y) {
 		tablet->y = ev->y;
+		tablet->dy = ev->dy;
 	}
 	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_DISTANCE) {
 		tablet->distance = ev->distance;
@@ -283,8 +322,8 @@ handle_axis(struct wl_listener *listener, void *data)
 		tablet->wheel_delta = ev->wheel_delta;
 	}
 
-	double x, y;
-	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y);
+	double x, y, dx, dy;
+	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y, &dx, &dy);
 
 	/*
 	 * We are sending tablet notifications on the following conditions:
@@ -301,7 +340,7 @@ handle_axis(struct wl_listener *listener, void *data)
 			&& tablet->seat->server->input_mode == LAB_INPUT_STATE_PASSTHROUGH)
 			|| wlr_tablet_tool_v2_has_implicit_grab(tool->tool_v2))) {
 		/* motion seems to be supported by all tools */
-		notify_motion(tablet, tool, surface, x, y, ev->time_msec);
+		notify_motion(tablet, tool, surface, x, y, dx, dy, ev->time_msec);
 
 		/* notify about other axis based on tool capabilities */
 		if (ev->tool->distance) {
@@ -349,8 +388,19 @@ handle_axis(struct wl_listener *listener, void *data)
 				wlr_tablet_v2_tablet_tool_notify_proximity_out(
 					tool->tool_v2);
 			}
-			cursor_emulate_move_absolute(tablet->seat, &ev->tablet->base,
-				x, y, ev->time_msec);
+
+			switch (tablet->motion_mode) {
+			case LAB_TABLET_MOTION_ABSOLUTE:
+				cursor_emulate_move_absolute(tablet->seat,
+					&ev->tablet->base,
+					x, y, ev->time_msec);
+				break;
+			case LAB_TABLET_MOTION_RELATIVE:
+				cursor_emulate_move(tablet->seat,
+					&ev->tablet->base,
+					dx, dy, ev->time_msec);
+				break;
+			}
 		}
 	}
 }
@@ -407,8 +457,8 @@ handle_tip(struct wl_listener *listener, void *data)
 	struct drawing_tablet *tablet = ev->tablet->data;
 	struct drawing_tablet_tool *tool = ev->tool->data;
 
-	double x, y;
-	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y);
+	double x, y, dx, dy;
+	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y, &dx, &dy);
 
 	uint32_t button = tablet_get_mapped_button(BTN_TOOL_PEN);
 
@@ -482,8 +532,8 @@ handle_button(struct wl_listener *listener, void *data)
 	struct drawing_tablet *tablet = ev->tablet->data;
 	struct drawing_tablet_tool *tool = ev->tool->data;
 
-	double x, y;
-	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y);
+	double x, y, dx, dy;
+	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y, &dx, &dy);
 
 	uint32_t button = tablet_get_mapped_button(ev->button);
 

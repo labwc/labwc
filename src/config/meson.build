@@ -5,5 +5,6 @@ labwc_sources += files(
   'mousebind.c',
   'touch.c',
   'tablet.c',
+  'tablet-tool.c',
   'libinput.c',
 )

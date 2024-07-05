@@ -1061,6 +1061,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "Missing 'button' argument for tablet button mapping");
 		}
+	} else if (!strcasecmp(nodename, "motion.tabletTool")) {
+		rc.tablet_tool.motion = tablet_parse_motion(content);
 	} else if (!strcasecmp(nodename, "ignoreButtonReleasePeriod.menu")) {
 		rc.menu_ignore_button_release_period = atoi(content);
 	} else if (!strcasecmp(nodename, "width.magnifier")) {
@@ -1252,6 +1254,7 @@ rcxml_init(void)
 	rc.tablet.rotation = 0;
 	rc.tablet.box = (struct wlr_fbox){0};
 	tablet_load_default_button_mappings();
+	rc.tablet_tool.motion = LAB_TABLET_MOTION_ABSOLUTE;
 
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;

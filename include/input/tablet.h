@@ -9,17 +9,12 @@ struct seat;
 struct wlr_device;
 struct wlr_input_device;
 
-enum lab_tablet_motion_mode {
-	LAB_TABLET_MOTION_ABSOLUTE = 0,
-	LAB_TABLET_MOTION_RELATIVE,
-};
-
 struct drawing_tablet {
 	struct wlr_input_device *wlr_input_device;
 	struct seat *seat;
 	struct wlr_tablet *tablet;
 	struct wlr_tablet_v2_tablet *tablet_v2;
-	enum lab_tablet_motion_mode motion_mode;
+	enum motion motion_mode;
 	double x, y, dx, dy;
 	double distance;
 	double pressure;

@@ -19,7 +19,7 @@
 #include "idle.h"
 #include "action.h"
 
-static enum lab_tablet_motion_mode
+static enum motion
 tool_motion_mode(struct wlr_tablet_tool *tool)
 {
 	/*

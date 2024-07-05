@@ -11,6 +11,7 @@
 #include "common/font.h"
 #include "config/touch.h"
 #include "config/tablet.h"
+#include "config/tablet-tool.h"
 #include "config/libinput.h"
 #include "resize-indicator.h"
 #include "theme.h"
@@ -102,6 +103,9 @@ struct rcxml {
 		uint16_t button_map_count;
 		struct button_map_entry button_map[BUTTON_MAP_MAX];
 	} tablet;
+	struct tablet_tool_config {
+		enum motion motion;
+	} tablet_tool;
 
 	/* libinput */
 	struct wl_list libinput_categories;

@@ -110,7 +110,7 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 	int icon_width = cairo_image_surface_get_width(icon.surface);
 	int icon_height = cairo_image_surface_get_height(icon.surface);
 
-	int width = SSD_BUTTON_WIDTH;
+	int width = theme->window_button_width;
 	int height = theme->title_height;
 
 	if (width && height) {
@@ -488,6 +488,8 @@ theme_builtin(struct theme *theme, struct server *server)
 	parse_hexstr("#000000", theme->window_inactive_label_text_color);
 	theme->window_label_text_justify = parse_justification("Center");
 
+	theme->window_button_width = 26;
+
 	parse_hexstr("#000000",
 		theme->window_active_button_menu_unpressed_image_color);
 	parse_hexstr("#000000",
@@ -640,6 +642,15 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "window.label.text.justify")) {
 		theme->window_label_text_justify = parse_justification(value);
+	}
+
+	if (match_glob(key, "window.button.width")) {
+		theme->window_button_width = atoi(value);
+		if (theme->window_button_width < 1) {
+			wlr_log(WLR_ERROR, "window.button.width cannot "
+				"be less than 1, clamping it to 1.");
+			theme->window_button_width = 1;
+		}
 	}
 
 	/* universal button */
@@ -1065,7 +1076,7 @@ create_corners(struct theme *theme)
 	struct wlr_box box = {
 		.x = 0,
 		.y = 0,
-		.width = SSD_BUTTON_WIDTH + theme->border_width,
+		.width = theme->window_button_width + theme->border_width,
 		.height = theme->title_height + theme->border_width,
 	};
 

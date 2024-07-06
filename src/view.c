@@ -611,6 +611,7 @@ view_adjust_size(struct view *view, int *w, int *h)
 {
 	assert(view);
 	struct view_size_hints hints = view_get_size_hints(view);
+	int min_view_width = rc.theme->window_button_width * SSD_BUTTON_COUNT;
 
 	/*
 	 * "If a base size is not provided, the minimum size is to be
@@ -633,7 +634,7 @@ view_adjust_size(struct view *view, int *w, int *h)
 	 * This is currently always the case for xdg-shell views.
 	 */
 	if (hints.min_width < 1) {
-		hints.min_width = LAB_MIN_VIEW_WIDTH;
+		hints.min_width = min_view_width;
 	}
 	if (hints.min_height < 1) {
 		hints.min_height = LAB_MIN_VIEW_HEIGHT;

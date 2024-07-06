@@ -233,10 +233,11 @@ ssd_update_geometry(struct ssd *ssd)
 	struct wlr_box cached = ssd->state.geometry;
 	struct wlr_box current = ssd->view->current;
 
+	int min_view_width = rc.theme->window_button_width * SSD_BUTTON_COUNT;
 	int eff_width = current.width;
 	int eff_height = view_effective_height(ssd->view, /* use_pending */ false);
 
-	if (eff_width > 0 && eff_width < LAB_MIN_VIEW_WIDTH) {
+	if (eff_width > 0 && eff_width < min_view_width) {
 		/*
 		 * Prevent negative values in calculations like
 		 * `width - SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT`

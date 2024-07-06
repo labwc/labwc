@@ -29,6 +29,9 @@ window.active.label.text.color: #000000
 window.inactive.label.text.color: #000000
 window.label.text.justify: center
 
+# window button width
+window.button.width: 26
+
 # window buttons
 window.active.button.unpressed.image.color: #000000
 window.inactive.button.unpressed.image.color: #000000

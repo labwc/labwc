@@ -10,7 +10,6 @@
 #include <wlr/util/box.h>
 #include <xkbcommon/xkbcommon.h>
 
-#define LAB_MIN_VIEW_WIDTH (SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT)
 #define LAB_MIN_VIEW_HEIGHT 60
 
 /*

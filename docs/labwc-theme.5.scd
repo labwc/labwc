@@ -114,6 +114,10 @@ labwc-config(5).
 	Specifies how window titles are aligned in the titlebar for both
 	focused and unfocused windows. Type justification. Default Left.
 
+*window.button.width*
+	Width of a titlebar button, in pixels.
+	Default is 26.
+
 *window.active.button.unpressed.image.color*
 	Color of the images in titlebar buttons in their default, unpressed,
 	state. This element is for the focused window.

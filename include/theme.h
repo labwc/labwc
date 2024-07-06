@@ -45,6 +45,9 @@ struct theme {
 	float window_inactive_label_text_color[4];
 	enum lab_justification window_label_text_justify;
 
+	/* button width */
+	int window_button_width;
+
 	/* button colors */
 	float window_active_button_menu_unpressed_image_color[4];
 	float window_active_button_iconify_unpressed_image_color[4];

@@ -671,7 +671,7 @@ parse_xml(const char *filename, struct server *server)
 		struct path *path = wl_container_of(elm, path, link);
 		FILE *stream = fopen(path->string, "r");
 		if (!stream) {
-			return;
+			continue;
 		}
 		wlr_log(WLR_INFO, "read menu file %s", path->string);
 		parse_stream(server, stream);

@@ -187,6 +187,10 @@ tablet_pad_init(struct seat *seat, struct wlr_input_device *wlr_device)
 			seat->server->tablet_manager, seat->seat, wlr_device);
 	}
 	pad->pad->data = pad;
+	wlr_log(WLR_INFO, "tablet pad capabilities: %zu button(s) %zu strip(s) %zu ring(s)",
+		pad->pad->button_count,
+		pad->pad->strip_count,
+		pad->pad->ring_count);
 	CONNECT_SIGNAL(pad->pad, &pad->handlers, button);
 	CONNECT_SIGNAL(pad->pad, &pad->handlers, ring);
 	CONNECT_SIGNAL(pad->pad, &pad->handlers, strip);

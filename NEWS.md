@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2024-06-09 | [unreleased]  | 0.17.3          |               |
+| 2024-06-12 | [0.7.3]       | 0.17.4          | 22731         |
 | 2024-05-10 | [0.7.2]       | 0.17.3          | 21368         |
 | 2024-03-01 | [0.7.1]       | 0.17.1          | 18624         |
 | 2023-12-22 | [0.7.0]       | 0.17.1          | 16576         |
@@ -29,15 +29,28 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## [unreleased]
+## [0.7.3]
+
+Following a couple of big releases, this one feels like more steady with lots of
+focus on bug fixes and stability. In terms of new features the most noteworthy
+ones include improved tablet support (by @jp7677), `Super_L` on-release keybinds
+(by @spl237 from the Raspberry Pi teams) and the screen magnifier which was a
+joint effort by @spl237 and @Consolatis.
 
 ### Added
 
+- Add config option `<core><xwaylandPersistence>` to support keeping XWayland
+  alive even when no clients are connected. PR #1961
+- Support xdg-shell protocol v3 with popup repositioning. #1950
+  Also see https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/3514
+  which adds support on the wlroots side.
+- Add action `ToggleTabletMouseEmulation`. Written-by: jp7677 PR #1915
+- Implement `<resize><drawContents>`. With thanks to @tokyo4j PR #1863
 - Add `onRelease` option to `<keybind>` in support of binding `Super_L` to a
   menu. Written-by: @spl237 PR #1888
 - Add initial support for `security-context-v1` (user configurable blocklists
   are still missing). Written-by: @nesteroff PR #1817
-- Add partial support for `tablet-v2-manager`. Written-by: @jp7677 PR #1678
+- Add support for `tablet-v2-manager`. Written-by: @jp7677 PR #1678 #1882
 - Add action `UnMaximize`. PR #1831
 - Support multiple IME popups. PR #1823
 - Add `All` context for mouse bindings which need to be handled irrespective of
@@ -51,6 +64,33 @@ The format is based on [Keep a Changelog]
 
 ### Fixed
 
+- When looking for menu.xml, go through all paths rather than just giving up
+  if not found in the first path searched. This makes it consistent with how
+  other config/theme files are handled. PR #1971
+- Fix memory leaks in theme.c and menu.c. PR #1971
+- Fix session-lock bugs related to keyboard focus. PR #1952
+  - Clear focused surface on lock
+  - Restore focused view on unlock
+- Fix memory leak in ssd/ssd-shadow.c PR #1954
+- Respect `menu.overlap.x` when using pipemenus. PR #1940
+- Do not try to restore windows to very small width/height on unmaximize.
+  This fixes a bug with Thonny (Python IDE made with Tk). PR #1938
+- Conditially set squared server-side decoration (SSD) corners when a view is
+  tiled. Written-by: @jp7677 PR #1926
+- Remember initial direction when starting window-cycling with `PreviousView`.
+  Also make the toggling of direction when shift is pressed relative to the
+  initial direction. For example if W-j is bound to PreviousWindow, subsequent
+  key presses will continue to cycle backwards unless shift is also pressed.
+  Written-by: @droc12345 PR #1919
+- Show dnd icon above layer-shell surfaces. PR #1936
+- Initialize locale after reading environment files so that client-menu items
+  and workspace names follow the env var `LANG` should that be set in
+  `~/.config/labwc/environment` (which is not recommended, but we prefer to
+  handle it properly if it is). PR #1927
+- Fix crash on `menu.xml` containing `<item>` without a parent `<menu>`.
+  PR #1907
+- Reset XWayland cursor image on cursor theme reload to avoid trying to read
+  destroyed pixel data. PR #1895
 - Prevent child views from opening outside of usable area. PR #1878
 - Fix IME popups issues (flicker when popup surface is initially mapped
   and incorrectly showing multiple popups). PR #1872
@@ -74,15 +114,15 @@ The format is based on [Keep a Changelog]
 
 ### Changed
 
+- Remove subprojects/seatd.wrap as no longer needed
 - Action `MoveToCursor` is deprecated in favour of:
   `<action name="AutoPlace" policy="cursor"/>`.
 
 ## [0.7.2]
 
-This release is shaping up to be the second in a row that is larger than
-usual in terms of both fixes and new features. Significant additions
-include input-methods, pipemenus, snap-to-edge overlays and optionally
-drop-shadows.
+This release shaped up to be the second in a row that is larger than usual in
+terms of both fixes and new features. Significant additions include
+input-methods, pipemenus, snap-to-edge overlays and optionally drop-shadows.
 
 As usual, most of the commits are by the core devs: @ahesford, @Consolatis,
 @jlindgren90, @johanmalm and @tokyo4j, but we also have many great
@@ -1394,7 +1434,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.7.2...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.7.3...HEAD
+[0.7.3]: https://github.com/labwc/labwc/compare/0.7.2...0.7.3
 [0.7.2]: https://github.com/labwc/labwc/compare/0.7.1...0.7.2
 [0.7.1]: https://github.com/labwc/labwc/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/labwc/labwc/compare/0.6.6...0.7.0

@@ -938,6 +938,8 @@ menu_free(struct menu *menu)
 	 */
 	wlr_scene_node_destroy(&menu->scene_tree->node);
 	wl_list_remove(&menu->link);
+	zfree(menu->id);
+	zfree(menu->label);
 	zfree(menu);
 }
 

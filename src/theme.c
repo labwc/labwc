@@ -1397,10 +1397,35 @@ theme_init(struct theme *theme, struct server *server, const char *theme_name)
 void
 theme_finish(struct theme *theme)
 {
+	zdrop(&theme->button_close_active_unpressed);
+	zdrop(&theme->button_maximize_active_unpressed);
+	zdrop(&theme->button_restore_active_unpressed);
+	zdrop(&theme->button_iconify_active_unpressed);
+	zdrop(&theme->button_menu_active_unpressed);
+
+	zdrop(&theme->button_close_inactive_unpressed);
+	zdrop(&theme->button_maximize_inactive_unpressed);
+	zdrop(&theme->button_restore_inactive_unpressed);
+	zdrop(&theme->button_iconify_inactive_unpressed);
+	zdrop(&theme->button_menu_inactive_unpressed);
+
+	zdrop(&theme->button_close_active_hover);
+	zdrop(&theme->button_maximize_active_hover);
+	zdrop(&theme->button_restore_active_hover);
+	zdrop(&theme->button_iconify_active_hover);
+	zdrop(&theme->button_menu_active_hover);
+
+	zdrop(&theme->button_close_inactive_hover);
+	zdrop(&theme->button_maximize_inactive_hover);
+	zdrop(&theme->button_restore_inactive_hover);
+	zdrop(&theme->button_iconify_inactive_hover);
+	zdrop(&theme->button_menu_inactive_hover);
+
 	zdrop(&theme->corner_top_left_active_normal);
 	zdrop(&theme->corner_top_left_inactive_normal);
 	zdrop(&theme->corner_top_right_active_normal);
 	zdrop(&theme->corner_top_right_inactive_normal);
+
 	zdrop(&theme->shadow_corner_top_active);
 	zdrop(&theme->shadow_corner_bottom_active);
 	zdrop(&theme->shadow_edge_active);

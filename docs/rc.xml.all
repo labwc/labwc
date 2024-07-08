@@ -522,6 +522,16 @@
   </tablet>
 
   <!--
+    All tablet tools, except of type mouse and lens, use absolute
+    positioning by default. The *motion* attribute allows to set tools
+    to relative motion instead. When using relative motion,
+    *relativeMotionSensitivity* controls the speed of the cursor. Using
+    a value lower than 1.0 decreases the speed, using a value greater than
+    1.0 increases the speed of the cursor.
+  -->
+  <tabletTool motion="absolute" relativeMotionSensitivity="1.0" />
+
+  <!--
     The *category* attribute is optional and can be set to touch, touchpad,
     non-touch, default or the name of a device. You can obtain device names by
     running *libinput list-devices* as root or member of the input group.

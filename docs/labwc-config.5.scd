@@ -730,6 +730,24 @@ extending outward from the snapped edge.
 
 	See mouse section above for all supported mouse buttons.
 
+## TABLET TOOL
+
+```
+<tabletTool motion="absolute" relativeMotionSensitivity="1" />
+```
+
+*<tabletTool motion="">* [absolute|relative]
+	All tablet tools, except of type mouse and lens, use "absolute"
+	positioning by default. The *motion* attribute allows to set tools
+	to relative motion instead. Positioning for a tablet mouse or
+	tablet lens cannot be changed, those tools always use relative mode.
+
+*<tabletTool relativeMotionSensitivity="">*
+	When using relative motion, *relativeMotionSensitivity* controls
+	the speed of the cursor. Using a value lower than 1.0 decreases the
+	speed, using a value greater than 1.0 increases the speed of the
+	cursor. The default is "1.0".
+
 ## LIBINPUT
 
 ```

@@ -665,10 +665,39 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.get_pid = xdg_view_get_pid,
 };
 
+struct token_data {
+	bool had_valid_surface;
+	bool had_valid_seat;
+	struct wl_listener destroy;
+};
+
+static void
+xdg_activation_handle_token_destroy(struct wl_listener *listener, void *data)
+{
+	struct token_data *token_data = wl_container_of(listener, token_data, destroy);
+	wl_list_remove(&token_data->destroy.link);
+	free(token_data);
+}
+
+static void
+xdg_activation_handle_new_token(struct wl_listener *listener, void *data)
+{
+	struct wlr_xdg_activation_token_v1 *token = data;
+	struct token_data *token_data = znew(*token_data);
+	token_data->had_valid_surface = !!token->surface;
+	token_data->had_valid_seat = !!token->seat;
+	token->data = token_data;
+
+	token_data->destroy.notify = xdg_activation_handle_token_destroy;
+	wl_signal_add(&token->events.destroy, &token_data->destroy);
+}
+
 static void
 xdg_activation_handle_request(struct wl_listener *listener, void *data)
 {
 	const struct wlr_xdg_activation_v1_request_activate_event *event = data;
+	struct token_data *token_data = event->token->data;
+	assert(token_data);
 
 	struct wlr_xdg_surface *xdg_surface =
 		wlr_xdg_surface_try_from_wlr_surface(event->surface);
@@ -681,17 +710,16 @@ xdg_activation_handle_request(struct wl_listener *listener, void *data)
 		wlr_log(WLR_INFO, "Not activating surface - no view attached to surface");
 		return;
 	}
-	if (!event->token->seat) {
+
+	if (!token_data->had_valid_seat) {
 		wlr_log(WLR_INFO, "Denying focus request, seat wasn't supplied");
 		return;
 	}
-	/*
-	 * We do not check for event->token->surface here because it may already
-	 * be destroyed and thus being NULL. With wlroots 0.17 we can hook into
-	 * the `new_token` signal, attach further information to the token and
-	 * then react to that information here instead. For now we just check
-	 * for the seat / serial being correct and then allow the request.
-	 */
+
+	if (!token_data->had_valid_surface) {
+		wlr_log(WLR_INFO, "Denying focus request, source surface not set");
+		return;
+	}
 
 	if (window_rules_get_property(view, "ignoreFocusRequest") == LAB_PROP_TRUE) {
 		wlr_log(WLR_INFO, "Ignoring focus request due to window rule configuration");
@@ -830,8 +858,13 @@ xdg_shell_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create xdg_activation interface");
 		exit(EXIT_FAILURE);
 	}
+
 	server->xdg_activation_request.notify = xdg_activation_handle_request;
 	wl_signal_add(&server->xdg_activation->events.request_activate,
 		&server->xdg_activation_request);
+
+	server->xdg_activation_new_token.notify = xdg_activation_handle_new_token;
+	wl_signal_add(&server->xdg_activation->events.new_token,
+		&server->xdg_activation_new_token);
 }
 

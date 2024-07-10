@@ -248,6 +248,7 @@ struct server {
 
 	struct wlr_xdg_activation_v1 *xdg_activation;
 	struct wl_listener xdg_activation_request;
+	struct wl_listener xdg_activation_new_token;
 
 	struct wl_list views;
 	struct wl_list unmanaged_surfaces;

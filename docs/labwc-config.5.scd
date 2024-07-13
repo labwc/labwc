@@ -966,7 +966,7 @@ situation.
 *<menu><ignoreButtonReleasePeriod>*
 	How long (in milliseconds) the initial button release event is ignored
 	for. The reason for this logic and behaviour is to avoid a fast
-	press-move-release sequence indended to just open the menu resulting in
+	press-move-release sequence intended to just open the menu resulting in
 	the closure of the menu or the selection of (typically the first) menu
 	item. This behaviour only affects the first button-release. It is not
 	anticipated that most users will want to change this, but the config

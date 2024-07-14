@@ -225,6 +225,7 @@ render_osd(struct server *server, cairo_t *cairo, int w, int h,
 	/* Set up text rendering */
 	set_cairo_color(cairo, theme->osd_label_text_color);
 	PangoLayout *layout = pango_cairo_create_layout(cairo);
+	pango_context_set_round_glyph_positions(pango_layout_get_context(layout), false);
 	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 
 	PangoFontDescription *desc = font_to_pango_desc(&rc.font_osd);

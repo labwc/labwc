@@ -40,6 +40,7 @@ font_extents(struct font *font, const char *string)
 	surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
 	c = cairo_create(surface);
 	layout = pango_cairo_create_layout(c);
+	pango_context_set_round_glyph_positions(pango_layout_get_context(layout), false);
 	PangoFontDescription *desc = font_to_pango_desc(font);
 
 	pango_layout_set_font_description(layout, desc);
@@ -137,6 +138,7 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	cairo_move_to(cairo, 0, 0);
 
 	PangoLayout *layout = pango_cairo_create_layout(cairo);
+	pango_context_set_round_glyph_positions(pango_layout_get_context(layout), false);
 	pango_layout_set_width(layout, text_extents.width * PANGO_SCALE);
 	pango_layout_set_text(layout, text, -1);
 	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);

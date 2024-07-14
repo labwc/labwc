@@ -39,6 +39,7 @@ jobs:
             container: archlinux:base-devel
             env:
               TARGET: 'sh -xe'
+              PKG_CONFIG_PATH: '/usr/lib/wlroots0.17/pkgconfig'
 
           - name: Debian
             os: ubuntu-latest
@@ -69,7 +70,7 @@ jobs:
         run: |
           pacman-key --init
           pacman -Syu --noconfirm
-          pacman -S --noconfirm git meson clang wlroots libdrm libinput \
+          pacman -S --noconfirm git meson clang wlroots0.17 libdrm libinput \
             wayland-protocols cairo pango libxml2 xorg-xwayland librsvg \
             libdisplay-info
 
@@ -91,7 +92,7 @@ jobs:
             sed -i '' 's/quarterly/latest/' /etc/pkg/FreeBSD.conf
             pkg set -yn pkg:mesa-dri # hack to skip llvm dependency
             pkg install -y git meson gcc pkgconf cairo pango evdev-proto \
-              hwdata wayland-protocols wlroots libdisplay-info
+              hwdata wayland-protocols wlroots017 libdisplay-info
           run: echo "setup done"
 
       - name: Install Void Linux dependencies

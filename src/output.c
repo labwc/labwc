@@ -168,6 +168,11 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 	 */
 	output->wlr_output->data = NULL;
 
+	if (output->fps_timer) {
+		wl_event_source_remove(output->fps_timer);
+		output->fps_timer = NULL;
+	}
+
 	/*
 	 * output->scene_output (if still around at this point) is
 	 * destroyed automatically when the wlr_output is destroyed

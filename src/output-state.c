@@ -2,8 +2,24 @@
 
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_management_v1.h>
+#include <wlr/util/log.h>
 #include "labwc.h"
 #include "output-state.h"
+
+//#define FPS_TIMEOUT (2 * 1000)
+
+#ifdef FPS_TIMEOUT
+static int
+handle_fps_timer(void *data)
+{
+	struct output *output = data;
+	wlr_log(WLR_DEBUG, "%s commit: avg %.2f fps",
+		output->wlr_output->name, (double)output->frames / (FPS_TIMEOUT / 1000));
+	wl_event_source_timer_update(output->fps_timer, FPS_TIMEOUT);
+	output->frames = 0;
+	return 0;
+}
+#endif
 
 void
 output_state_init(struct output *output)
@@ -37,8 +53,18 @@ bool
 wlr_output_commit(struct wlr_output *wlr_output)
 {
 	struct output *output = wlr_output->data;
+#ifdef FPS_TIMEOUT
+	if (!output->fps_timer) {
+		output->fps_timer = wl_event_loop_add_timer(
+			output->server->wl_event_loop, handle_fps_timer, output);
+		wl_event_source_timer_update(output->fps_timer, FPS_TIMEOUT);
+	}
+#endif
 	bool committed = wlr_output_commit_state(wlr_output, &output->pending);
 	if (committed) {
+#ifdef FPS_TIMEOUT
+		output->frames++;
+#endif
 		wlr_output_state_finish(&output->pending);
 		wlr_output_state_init(&output->pending);
 	} else {

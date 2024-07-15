@@ -371,6 +371,7 @@ struct output {
 	struct server *server;
 	struct wlr_output *wlr_output;
 	struct wlr_output_state pending;
+	struct wl_event_source *fps_timer;
 	struct wlr_scene_output *scene_output;
 	struct wlr_scene_tree *layer_tree[LAB_NR_LAYERS];
 	struct wlr_scene_tree *layer_popup_tree;
@@ -389,6 +390,7 @@ struct output {
 
 	bool leased;
 	bool gamma_lut_changed;
+	uint32_t frames;
 };
 
 #undef LAB_NR_LAYERS

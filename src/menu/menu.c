@@ -506,6 +506,23 @@ handle_menu_element(xmlNode *n, struct server *server)
 
 	if (execute && label && id) {
 		wlr_log(WLR_DEBUG, "pipemenu '%s:%s:%s'", id, label, execute);
+		if (!current_menu) {
+			/*
+			 * We currently do not support pipemenus without a
+			 * parent <item> such as the one the example below:
+			 *
+			 * <?xml version="1.0" encoding="UTF-8"?>
+			 * <openbox_menu>
+			 *   <menu id="root-menu" label="foo" execute="bar"/>
+			 * </openbox_menu>
+			 *
+			 * TODO: Consider supporting this
+			 */
+			wlr_log(WLR_ERROR,
+				"pipemenu '%s:%s:%s' has no parent <menu>",
+				id, label, execute);
+			goto error;
+		}
 		current_item = item_create(current_menu, label, /* arrow */ true);
 		current_item_action = NULL;
 		current_item->execute = xstrdup(execute);

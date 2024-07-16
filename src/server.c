@@ -360,6 +360,7 @@ server_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create scene");
 		exit(EXIT_FAILURE);
 	}
+	server->direct_scanout_enabled = server->scene->direct_scanout;
 
 	/*
 	 * The order in which the scene-trees below are created determines the

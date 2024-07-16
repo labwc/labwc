@@ -112,7 +112,6 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		return;
 	}
 
-	/* Paste the magnified result back into the output buffer */
 	if (!tmp_texture) {
 		tmp_texture = wlr_texture_from_buffer(server->renderer, tmp_buffer);
 	}
@@ -124,7 +123,6 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	}
 
 	/* Extract source region into temporary buffer */
-
 	struct wlr_render_pass *tmp_render_pass = wlr_renderer_begin_buffer_pass(
 		server->renderer, tmp_buffer, NULL);
 
@@ -198,6 +196,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		dst_box.y = oy - (height / 2);
 	}
 
+	/* Paste the magnified result back into the output buffer */
 	opts = (struct wlr_render_texture_options) {
 		.texture = tmp_texture,
 		.src_box = src_box,
@@ -241,18 +240,21 @@ output_wants_magnification(struct output *output)
 	return output_nearest_to_cursor(output->server) == output;
 }
 
+static void
+enable_magnifier(struct server *server, bool enable)
+{
+	magnify_on = enable;
+	server->scene->direct_scanout = enable ? false
+		: server->direct_scanout_enabled;
+}
+
 /* Toggles magnification on and off */
 void
 magnify_toggle(struct server *server)
 {
+	enable_magnifier(server, !magnify_on);
+
 	struct output *output = output_nearest_to_cursor(server);
-
-	if (magnify_on) {
-		magnify_on = false;
-	} else {
-		magnify_on = true;
-	}
-
 	if (output) {
 		wlr_output_schedule_frame(output->wlr_output);
 	}
@@ -268,14 +270,14 @@ magnify_set_scale(struct server *server, enum magnify_dir dir)
 		if (magnify_on) {
 			mag_scale += rc.mag_increment;
 		} else {
-			magnify_on = true;
+			enable_magnifier(server, true);
 			mag_scale = 1.0 + rc.mag_increment;
 		}
 	} else {
 		if (magnify_on && mag_scale > 1.0 + rc.mag_increment) {
 			mag_scale -= rc.mag_increment;
 		} else {
-			magnify_on = false;
+			enable_magnifier(server, false);
 		}
 	}
 

@@ -279,9 +279,12 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 	if (!view->mapped && !view->output) {
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
-	bool maximized = xdg_toplevel_from_view(view)->requested.maximized;
-	view_maximize(view, maximized ? VIEW_AXIS_BOTH : VIEW_AXIS_NONE,
-		/*store_natural_geometry*/ true);
+
+	if (view->mapped) {
+		bool maximized = xdg_toplevel_from_view(view)->requested.maximized;
+		view_maximize(view, maximized ? VIEW_AXIS_BOTH : VIEW_AXIS_NONE,
+			/*store_natural_geometry*/ true);
+	}
 }
 
 static void
@@ -303,8 +306,11 @@ handle_request_fullscreen(struct wl_listener *listener, void *data)
 	if (!view->mapped && !view->output) {
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
-	set_fullscreen_from_request(view,
-		&xdg_toplevel_from_view(view)->requested);
+
+	if (view->mapped) {
+		set_fullscreen_from_request(view,
+			&xdg_toplevel_from_view(view)->requested);
+	}
 }
 
 static void

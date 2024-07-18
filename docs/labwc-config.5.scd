@@ -186,10 +186,13 @@ this is for compatibility with Openbox.
 	mode.
 
 *<core><allowTearing>* [yes|no]
-	Allow tearing to reduce input lag. Default is no.
-	This option requires setting the environment variable
-	WLR_DRM_NO_ATOMIC=1.
-	*yes* allow tearing if requested by the active window.
+	Allow tearing, if requested by the active window, to reduce input lag.
+	Default is no.
+
+	Note: Enabling this option with atomic mode setting is experimental. If
+	you experience undesirable side effects when tearing is allowed,
+	consider setting the environment variable WLR_DRM_NO_ATOMIC=1 when
+	launching labwc.
 
 *<core><reuseOutputMode>* [yes|no]
 	Try to re-use the existing output mode (resolution / refresh rate).

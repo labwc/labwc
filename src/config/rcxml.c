@@ -1235,6 +1235,12 @@ rcxml_init(void)
 	rc.corner_radius = 8;
 	rc.shadows_enabled = false;
 
+	rc.gap = 0;
+	rc.adaptive_sync = LAB_ADAPTIVE_SYNC_DISABLED;
+	rc.allow_tearing = false;
+	rc.reuse_output_mode = false;
+	rc.xwayland_persistence = false;
+
 	init_font_defaults(&rc.font_activewindow);
 	init_font_defaults(&rc.font_inactivewindow);
 	init_font_defaults(&rc.font_menuitem);

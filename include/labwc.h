@@ -389,6 +389,8 @@ struct output {
 
 	bool leased;
 	bool gamma_lut_changed;
+
+	uint32_t nr_tearing_failures;
 };
 
 #undef LAB_NR_LAYERS

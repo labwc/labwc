@@ -30,6 +30,14 @@
 #include "view.h"
 #include "xwayland.h"
 
+static unsigned int
+get_tearing_retry_count(struct output *output)
+{
+	/* Two seconds worth of frames, guessing 60Hz if refresh is invalid */
+	int refresh = output->wlr_output->refresh;
+	return refresh > 0 ? refresh / 500 : 120;
+}
+
 static bool
 get_tearing_preference(struct output *output)
 {
@@ -42,6 +50,11 @@ get_tearing_preference(struct output *output)
 
 	/* Tearing is only allowed for the output with the active view */
 	if (!server->active_view || server->active_view->output != output) {
+		return false;
+	}
+
+	/* Tearing should not have failed too many times */
+	if (output->nr_tearing_failures >= get_tearing_retry_count(output)) {
 		return false;
 	}
 
@@ -112,11 +125,27 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		 */
 		output_apply_gamma(output);
 	} else {
-		output->pending.tearing_page_flip =
-			get_tearing_preference(output);
+		struct wlr_scene_output *scene_output = output->scene_output;
+		struct wlr_output_state *pending = &output->pending;
 
-		lab_wlr_scene_output_commit(output->scene_output,
-			&output->pending);
+		pending->tearing_page_flip = get_tearing_preference(output);
+
+		bool committed =
+			lab_wlr_scene_output_commit(scene_output, pending);
+
+		if (pending->tearing_page_flip) {
+			if (committed) {
+				output->nr_tearing_failures = 0;
+			} else {
+				if (++output->nr_tearing_failures >=
+						get_tearing_retry_count(output)) {
+					wlr_log(WLR_INFO, "setting tearing allowance failed "
+						"for two consecutive seconds, disabling");
+				}
+				pending->tearing_page_flip = false;
+				lab_wlr_scene_output_commit(scene_output, pending);
+			}
+		}
 	}
 
 	struct timespec now = { 0 };

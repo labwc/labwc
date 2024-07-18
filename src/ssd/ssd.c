@@ -138,6 +138,11 @@ ssd_get_part_type(const struct ssd *ssd, struct wlr_scene_node *node)
 			}
 		}
 	}
+
+	if (ssd->view_background && node == &ssd->view_background->node) {
+		return LAB_SSD_CLIENT;
+	}
+
 	return LAB_SSD_NONE;
 }
 
@@ -230,16 +235,6 @@ ssd_update_geometry(struct ssd *ssd)
 	int eff_width = current.width;
 	int eff_height = view_effective_height(ssd->view, /* use_pending */ false);
 
-	if (eff_width > 0 && eff_width < LAB_MIN_VIEW_WIDTH) {
-		/*
-		 * Prevent negative values in calculations like
-		 * `width - SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT`
-		 */
-		wlr_log(WLR_ERROR,
-			"view width is smaller than its minimal value");
-		return;
-	}
-
 	if (eff_width == cached.width && eff_height == cached.height) {
 		if (current.x != cached.x || current.y != cached.y) {
 			/* Dynamically resize extents based on position and usable_area */
@@ -267,6 +262,25 @@ ssd_update_geometry(struct ssd *ssd)
 		}
 		return;
 	}
+
+	if (current.width < LAB_MIN_VIEW_WIDTH) {
+		/*
+		 * This draws a border-colored background behind the
+		 * view for poorly behaving clients that don't follow
+		 * our requested minimal size.
+		 */
+		if (!ssd->view_background) {
+			ssd->view_background = wlr_scene_rect_create(ssd->tree, 0, 0,
+				ssd->view == ssd->view->server->active_view
+					? rc.theme->window_active_border_color
+					: rc.theme->window_inactive_border_color);
+		}
+		wlr_scene_rect_set_size(ssd->view_background, LAB_MIN_VIEW_WIDTH, current.height);
+		wlr_scene_node_set_enabled(&ssd->view_background->node, true);
+	} else if (ssd->view_background) {
+		wlr_scene_node_set_enabled(&ssd->view_background->node, false);
+	}
+
 	ssd_extents_update(ssd);
 	ssd_titlebar_update(ssd);
 	ssd_border_update(ssd);
@@ -385,6 +399,11 @@ ssd_set_active(struct ssd *ssd, bool active)
 		wlr_scene_node_set_enabled(
 			&ssd->shadow.inactive.tree->node, !active);
 	}
+	if (ssd->view_background) {
+		wlr_scene_rect_set_color(ssd->view_background, active
+			? rc.theme->window_active_border_color
+			: rc.theme->window_inactive_border_color);
+	}
 }
 
 void
@@ -465,5 +484,17 @@ ssd_debug_get_node_name(const struct ssd *ssd, struct wlr_scene_node *node)
 	if (node == &ssd->extents.tree->node) {
 		return "extents";
 	}
+
+	/* These are only created on demand */
+	if (ssd->shadow.active.tree && node == &ssd->shadow.active.tree->node) {
+		return "shadow.active";
+	}
+	if (ssd->shadow.inactive.tree && node == &ssd->shadow.inactive.tree->node) {
+		return "shadow.inactive";
+	}
+	if (ssd->view_background && node == &ssd->view_background->node) {
+		return "view_background";
+	}
+
 	return NULL;
 }

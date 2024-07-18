@@ -10,6 +10,10 @@
 static bool magnify_on;
 static double mag_scale = 0.0;
 
+/* Reuse a single scratch buffer */
+static struct wlr_buffer *tmp_buffer = NULL;
+static struct wlr_texture *tmp_texture = NULL;
+
 #define CLAMP(in, lower, upper) MAX(MIN((in), (upper)), (lower))
 
 void
@@ -20,10 +24,6 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	struct wlr_box border_box, dst_box;
 	struct wlr_fbox src_box;
 	bool fullscreen = false;
-
-	/* Reuse a single scratch buffer */
-	static struct wlr_buffer *tmp_buffer = NULL;
-	static struct wlr_texture *tmp_texture = NULL;
 
 	/* TODO: This looks way too complicated to just get the used format */
 	struct wlr_drm_format wlr_drm_format = {0};
@@ -125,6 +125,10 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	/* Extract source region into temporary buffer */
 	struct wlr_render_pass *tmp_render_pass = wlr_renderer_begin_buffer_pass(
 		server->renderer, tmp_buffer, NULL);
+	if (!tmp_render_pass) {
+		wlr_log(WLR_ERROR, "Failed to begin magnifier render pass");
+		return;
+	}
 
 	wlr_buffer_lock(output_buffer);
 	struct wlr_texture *output_texture = wlr_texture_from_buffer(
@@ -152,6 +156,10 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	/* Render to the output buffer itself */
 	tmp_render_pass = wlr_renderer_begin_buffer_pass(
 		server->renderer, output_buffer, NULL);
+	if (!tmp_render_pass) {
+		wlr_log(WLR_ERROR, "Failed to begin second magnifier render pass");
+		goto cleanup;
+	}
 
 	/* Borders */
 	if (fullscreen) {
@@ -283,6 +291,18 @@ magnify_set_scale(struct server *server, enum magnify_dir dir)
 
 	if (output) {
 		wlr_output_schedule_frame(output->wlr_output);
+	}
+}
+
+/* Reset any buffers held by the magnifier */
+void
+magnify_reset(void)
+{
+	if (tmp_texture && tmp_buffer) {
+		wlr_texture_destroy(tmp_texture);
+		wlr_buffer_drop(tmp_buffer);
+		tmp_buffer = NULL;
+		tmp_texture = NULL;
 	}
 }
 

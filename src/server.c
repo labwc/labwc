@@ -28,6 +28,7 @@
 #include "idle.h"
 #include "labwc.h"
 #include "layers.h"
+#include "magnifier.h"
 #include "menu/menu.h"
 #include "output-state.h"
 #include "output-virtual.h"
@@ -249,6 +250,51 @@ get_headless_backend(struct wlr_backend *backend, void *data)
 	}
 }
 
+static void
+handle_renderer_lost(struct wl_listener *listener, void *data)
+{
+	struct server *server = wl_container_of(listener, server, renderer_lost);
+
+	wlr_log(WLR_INFO, "Re-creating renderer after GPU reset");
+
+	struct wlr_renderer *renderer = wlr_renderer_autocreate(server->backend);
+	if (!renderer) {
+		wlr_log(WLR_ERROR, "Unable to create renderer");
+		return;
+	}
+
+	struct wlr_allocator *allocator =
+		wlr_allocator_autocreate(server->backend, renderer);
+	if (!allocator) {
+		wlr_log(WLR_ERROR, "Unable to create allocator");
+		wlr_renderer_destroy(renderer);
+		return;
+	}
+
+	struct wlr_renderer *old_renderer = server->renderer;
+	struct wlr_allocator *old_allocator = server->allocator;
+	server->renderer = renderer;
+	server->allocator = allocator;
+
+	wl_list_remove(&server->renderer_lost.link);
+	wl_signal_add(&server->renderer->events.lost, &server->renderer_lost);
+
+	wlr_compositor_set_renderer(compositor, renderer);
+
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		wlr_output_init_render(output->wlr_output,
+			server->allocator, server->renderer);
+	}
+
+	reload_config_and_theme(server);
+
+	magnify_reset();
+
+	wlr_allocator_destroy(old_allocator);
+	wlr_renderer_destroy(old_renderer);
+}
+
 void
 server_init(struct server *server)
 {
@@ -335,6 +381,9 @@ server_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create renderer");
 		exit(EXIT_FAILURE);
 	}
+
+	server->renderer_lost.notify = handle_renderer_lost;
+	wl_signal_add(&server->renderer->events.lost, &server->renderer_lost);
 
 	wlr_renderer_init_wl_display(server->renderer, server->wl_display);
 

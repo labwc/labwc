@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2024-06-19 | [0.7.4]       | 0.17.4          | 22746         |
 | 2024-06-12 | [0.7.3]       | 0.17.4          | 22731         |
 | 2024-05-10 | [0.7.2]       | 0.17.3          | 21368         |
 | 2024-03-01 | [0.7.1]       | 0.17.1          | 18624         |
@@ -28,6 +29,14 @@ The format is based on [Keep a Changelog]
 | 2021-06-28 | [0.3.0]       | 0.14.0          | 5051          |
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
+
+## [0.7.4]
+
+### Fixed
+
+- Make SSD borders respect snapped state on Reconfigure. PR #2003
+- Fix magnifier by disabling direct scanout when active. PR #1989
+- Fix crash triggered by pipemenu without parent `<menu>` element. PR #1988
 
 ## [0.7.3]
 
@@ -1434,7 +1443,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.7.3...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.7.4...HEAD
+[0.7.4]: https://github.com/labwc/labwc/compare/0.7.3...0.7.4
 [0.7.3]: https://github.com/labwc/labwc/compare/0.7.2...0.7.3
 [0.7.2]: https://github.com/labwc/labwc/compare/0.7.1...0.7.2
 [0.7.1]: https://github.com/labwc/labwc/compare/0.7.0...0.7.1

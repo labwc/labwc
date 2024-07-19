@@ -76,6 +76,18 @@ handle_new_popup(struct wl_listener *listener, void *data)
 }
 
 static void
+set_fullscreen_from_request(struct view *view,
+		struct wlr_xdg_toplevel_requested *requested)
+{
+	if (!view->fullscreen && requested->fullscreen
+			&& requested->fullscreen_output) {
+		view_set_output(view, output_from_wlr_output(view->server,
+			requested->fullscreen_output));
+	}
+	view_set_fullscreen(view, requested->fullscreen);
+}
+
+static void
 do_late_positioning(struct view *view)
 {
 	struct server *server = view->server;
@@ -100,11 +112,28 @@ handle_commit(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, commit);
 	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
 	assert(view->surface);
 
 	if (xdg_surface->initial_commit) {
 		wlr_log(WLR_DEBUG, "scheduling configure");
 		wlr_xdg_surface_schedule_configure(xdg_surface);
+		/*
+		 * Handle initial fullscreen/maximize requests immediately after
+		 * scheduling the initial configure event (before it is sent) in
+		 * order to send the correct size and avoid flicker.
+		 *
+		 * In normal (non-fullscreen/maximized) cases, the initial
+		 * configure event is sent with a zero size, which requests the
+		 * application to choose its own size.
+		 */
+		if (toplevel->requested.fullscreen) {
+			set_fullscreen_from_request(view, &toplevel->requested);
+		}
+		if (toplevel->requested.maximized) {
+			view_maximize(view, VIEW_AXIS_BOTH,
+				/*store_natural_geometry*/ true);
+		}
 		return;
 	}
 
@@ -311,30 +340,38 @@ static void
 handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+
+	if (!toplevel->base->initialized) {
+		/*
+		 * Do nothing if we have not received the initial commit yet.
+		 * We will maximize the view in the commit handler.
+		 */
+		return;
+	}
+
 	if (!view->mapped && !view->output) {
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
-	bool maximized = xdg_toplevel_from_view(view)->requested.maximized;
+	bool maximized = toplevel->requested.maximized;
 	view_maximize(view, maximized ? VIEW_AXIS_BOTH : VIEW_AXIS_NONE,
 		/*store_natural_geometry*/ true);
-}
-
-static void
-set_fullscreen_from_request(struct view *view,
-		struct wlr_xdg_toplevel_requested *requested)
-{
-	if (!view->fullscreen && requested->fullscreen
-			&& requested->fullscreen_output) {
-		view_set_output(view, output_from_wlr_output(view->server,
-			requested->fullscreen_output));
-	}
-	view_set_fullscreen(view, requested->fullscreen);
 }
 
 static void
 handle_request_fullscreen(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_fullscreen);
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+
+	if (!toplevel->base->initialized) {
+		/*
+		 * Do nothing if we have not received the initial commit yet.
+		 * We will fullscreen the view in the commit handler.
+		 */
+		return;
+	}
+
 	if (!view->mapped && !view->output) {
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
@@ -876,24 +913,6 @@ xdg_toplevel_new(struct wl_listener *listener, void *data)
 		view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
 	} else {
 		view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
-	}
-
-	/*
-	 * Handle initial fullscreen/maximize requests. This needs to be
-	 * done early (before map) in order to send the correct size to
-	 * the initial configure event and avoid flicker.
-	 *
-	 * Note that at this point, wlroots has already scheduled (but
-	 * not yet sent) the initial configure event with a size of 0x0.
-	 * In normal (non-fullscreen/maximized) cases, the zero size
-	 * requests the application to choose its own size.
-	 */
-	if (toplevel->requested.fullscreen) {
-		set_fullscreen_from_request(view, &toplevel->requested);
-	}
-	if (toplevel->requested.maximized) {
-		view_maximize(view, VIEW_AXIS_BOTH,
-			/*store_natural_geometry*/ true);
 	}
 }
 

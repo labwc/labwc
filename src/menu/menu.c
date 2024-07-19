@@ -114,23 +114,32 @@ menu_update_width(struct menu *menu)
 			wlr_scene_rect_from_node(item->normal.background),
 			menu->size.width, item->height);
 
-		if (!item->selected.background) {
-			/* This is a separator. They don't have a selected background. */
+		/*
+		 * Separator lines are special because they change width with
+		 * the menu.
+		 */
+		if (item->type == LAB_MENU_SEPARATOR_LINE) {
+			int width = menu->size.width
+				- 2 * theme->menu_separator_padding_width
+				- 2 * theme->menu_item_padding_x;
 			wlr_scene_rect_set_size(
 				wlr_scene_rect_from_node(item->normal.text),
-				menu->size.width - 2 * theme->menu_separator_padding_width,
-				theme->menu_separator_line_thickness);
-		} else {
-			/* Usual menu item */
-			wlr_scene_rect_set_size(
-				wlr_scene_rect_from_node(item->selected.background),
-				menu->size.width, item->height);
-			if (item->native_width > max_width || item->submenu || item->execute) {
-				scaled_font_buffer_set_max_width(item->normal.buffer,
-					max_width);
-				scaled_font_buffer_set_max_width(item->selected.buffer,
-					max_width);
-			}
+				width, theme->menu_separator_line_thickness);
+		}
+
+		if (!item->selected.background) {
+			continue;
+		}
+
+		wlr_scene_rect_set_size(
+			wlr_scene_rect_from_node(item->selected.background),
+			menu->size.width, item->height);
+
+		if (item->native_width > max_width || item->submenu || item->execute) {
+			scaled_font_buffer_set_max_width(item->normal.buffer,
+				max_width);
+			scaled_font_buffer_set_max_width(item->selected.buffer,
+				max_width);
 		}
 	}
 }
@@ -178,11 +187,13 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = true;
+	menuitem->type = LAB_MENU_ITEM;
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
 
 	const char *arrow = show_arrow ? "›" : NULL;
 
+	/* TODO: Consider setting this somewhere else */
 	if (!menu->item_height) {
 		menu->item_height = font_height(&rc.font_menuitem)
 			+ 2 * theme->menu_item_padding_y;
@@ -265,33 +276,69 @@ separator_create(struct menu *menu, const char *label)
 	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = false;
+	menuitem->type = label ? LAB_MENU_TITLE : LAB_MENU_SEPARATOR_LINE;
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
-	menuitem->height = theme->menu_separator_line_thickness +
-			2 * theme->menu_separator_padding_height;
 
+	if (!menu->item_height) {
+		menu->item_height = font_height(&rc.font_menuitem)
+			+ 2 * theme->menu_item_padding_y;
+	}
+	if (menuitem->type == LAB_MENU_TITLE) {
+		menuitem->height = menu->item_height;
+		menuitem->native_width = font_width(&rc.font_menuitem, label);
+	} else if (menuitem->type == LAB_MENU_SEPARATOR_LINE){
+		menuitem->height = theme->menu_separator_line_thickness +
+				2 * theme->menu_separator_padding_height;
+	}
+
+	/* Menu item root node */
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
 	node_descriptor_create(&menuitem->tree->node,
 		LAB_NODE_DESC_MENUITEM, menuitem);
+
+	/* Tree to hold background and text/line buffer */
 	menuitem->normal.tree = wlr_scene_tree_create(menuitem->tree);
+
+	/* Item background nodes */
+	float *bg_color = label ? theme->menu_title_bg_color : theme->menu_items_bg_color;
 	menuitem->normal.background = &wlr_scene_rect_create(
 		menuitem->normal.tree,
-		menu->size.width, menuitem->height,
-		theme->menu_items_bg_color)->node;
+		menu->size.width, menuitem->height, bg_color)->node;
 
-	int width = menu->size.width - 2 * theme->menu_separator_padding_width;
-	menuitem->normal.text = &wlr_scene_rect_create(
-		menuitem->normal.tree,
-		width > 0 ? width : 0,
-		theme->menu_separator_line_thickness,
-		theme->menu_separator_color)->node;
-
+	/* Draw separator line or title */
+	if (menuitem->type == LAB_MENU_TITLE) {
+		menuitem->normal.buffer = scaled_font_buffer_create(menuitem->normal.tree);
+		if (!menuitem->normal.buffer) {
+			wlr_log(WLR_ERROR, "Failed to create menu item '%s'", label);
+			wlr_scene_node_destroy(&menuitem->tree->node);
+			free(menuitem);
+			return NULL;
+		}
+		menuitem->normal.text = &menuitem->normal.buffer->scene_buffer->node;
+		/* Font buffer */
+		scaled_font_buffer_update(menuitem->normal.buffer, label,
+			menuitem->native_width, &rc.font_menuitem,
+			theme->menu_items_text_color, bg_color, /* arrow */ NULL);
+		/* Center font nodes */
+		int x, y;
+		x = theme->menu_item_padding_x;
+		y = (menu->item_height - menuitem->normal.buffer->height) / 2;
+		wlr_scene_node_set_position(menuitem->normal.text, x, y);
+	} else {
+		int nominal_width = theme->menu_min_width;
+		menuitem->normal.text = &wlr_scene_rect_create(
+			menuitem->normal.tree, nominal_width,
+			theme->menu_separator_line_thickness,
+			theme->menu_separator_color)->node;
+		wlr_scene_node_set_position(&menuitem->tree->node, 0, menu->size.height);
+		/* Vertically center-align separator line */
+		wlr_scene_node_set_position(menuitem->normal.text,
+			theme->menu_separator_padding_width
+			+ theme->menu_item_padding_x,
+			theme->menu_separator_padding_height);
+	}
 	wlr_scene_node_set_position(&menuitem->tree->node, 0, menu->size.height);
-
-	/* Vertically center-align separator line */
-	wlr_scene_node_set_position(menuitem->normal.text,
-		theme->menu_separator_padding_width,
-		theme->menu_separator_padding_height);
 
 	menu->size.height += menuitem->height;
 	wl_list_append(&menu->menuitems, &menuitem->link);
@@ -507,26 +554,18 @@ handle_menu_element(xmlNode *n, struct server *server)
 	if (execute && label && id) {
 		wlr_log(WLR_DEBUG, "pipemenu '%s:%s:%s'", id, label, execute);
 		if (!current_menu) {
-			/*
-			 * We currently do not support pipemenus without a
-			 * parent <item> such as the one the example below:
-			 *
-			 * <?xml version="1.0" encoding="UTF-8"?>
-			 * <openbox_menu>
-			 *   <menu id="root-menu" label="foo" execute="bar"/>
-			 * </openbox_menu>
-			 *
-			 * TODO: Consider supporting this
-			 */
-			wlr_log(WLR_ERROR,
-				"pipemenu '%s:%s:%s' has no parent <menu>",
-				id, label, execute);
-			goto error;
+			current_menu = menu_create(server, id, label);
+			current_menu->is_pipemenu = true;
+			current_item = item_create(current_menu, label, /* arrow */ true);
+			current_item_action = NULL;
+			current_item->execute = xstrdup(execute);
+			current_item->id = xstrdup(id);
+		} else {
+			current_item = item_create(current_menu, label, /* arrow */ true);
+			current_item_action = NULL;
+			current_item->execute = xstrdup(execute);
+			current_item->id = xstrdup(id);
 		}
-		current_item = item_create(current_menu, label, /* arrow */ true);
-		current_item_action = NULL;
-		current_item->execute = xstrdup(execute);
-		current_item->id = xstrdup(id);
 	} else if ((label && id) || is_toplevel_static_menu_definition(n, id)) {
 		/*
 		 * (label && id) refers to <menu id="" label=""> which is an
@@ -582,7 +621,16 @@ handle_menu_element(xmlNode *n, struct server *server)
 		}
 
 		struct menu *menu = menu_get_by_id(server, id);
-		if (menu) {
+		if (menu && menu->is_pipemenu) {
+			current_item = item_create(current_menu, menu->label, true);
+			struct menuitem *item;
+			wl_list_for_each(item, &menu->menuitems, link) {
+				current_item->execute = xstrdup(item->execute);
+				char buffer[256];
+				sprintf(buffer, "%s%d", item->id, rand());
+				current_item->id = xstrdup(buffer);
+			}
+		} else if (menu) {
 			current_item = item_create(current_menu, menu->label, true);
 			if (current_item) {
 				current_item->submenu = menu;

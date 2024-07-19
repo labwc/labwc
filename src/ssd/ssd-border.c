@@ -56,6 +56,14 @@ ssd_border_create(struct ssd *ssd)
 	if (view->maximized == VIEW_AXIS_BOTH) {
 		wlr_scene_node_set_enabled(&ssd->border.tree->node, false);
 	}
+
+	if (view->current.width > 0 && view->current.height > 0) {
+		/*
+		 * The SSD is recreated by a Reconfigure request
+		 * thus we may need to handle squared corners.
+		 */
+		ssd_border_update(ssd);
+	}
 }
 
 void

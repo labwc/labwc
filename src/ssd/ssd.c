@@ -188,8 +188,14 @@ ssd_create(struct view *view, bool active)
 	ssd->titlebar.height = view->server->theme->title_height;
 	ssd_shadow_create(ssd);
 	ssd_extents_create(ssd);
-	ssd_border_create(ssd);
+	/*
+	 * We need to create the borders after the titlebar because it sets
+	 * ssd->state.was_tiled_not_maximized which ssd_border_create()
+	 * reacts to. TODO: Set the state here instead so the order does
+	 * not matter anymore.
+	 */
 	ssd_titlebar_create(ssd);
+	ssd_border_create(ssd);
 	if (view->ssd_titlebar_hidden) {
 		/* Ensure we keep the old state on Reconfigure or when exiting fullscreen */
 		ssd_set_titlebar(ssd, false);

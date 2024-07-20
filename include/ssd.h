@@ -6,7 +6,6 @@
 #include "common/border.h"
 
 #define SSD_BUTTON_COUNT 4
-#define SSD_BUTTON_WIDTH 26
 #define SSD_EXTENDED_AREA 8
 
 /*

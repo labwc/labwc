@@ -971,6 +971,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "ignoring invalid value for notifyClient");
 		}
+	} else if (!strcasecmp(nodename, "dragResistance.snapping")) {
+		rc.snap_drag_resistance = atoi(content);
 
 	/* <windowSwitcher show="" preview="" outlines="" /> */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
@@ -1278,6 +1280,7 @@ rcxml_init(void)
 	rc.snap_overlay_delay_outer = 500;
 	rc.snap_top_maximize = true;
 	rc.snap_tiling_events_mode = LAB_TILING_EVENTS_ALWAYS;
+	rc.snap_drag_resistance = 20;
 
 	rc.window_switcher.show = true;
 	rc.window_switcher.preview = true;

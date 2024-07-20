@@ -256,7 +256,16 @@ struct server {
 	/* cursor interactive */
 	enum input_mode input_mode;
 	struct view *grabbed_view;
+	/*
+	 * When an interactive move is requested for tiled/maximized views by CSD
+	 * clients or by Drag actions, the actual motion and untiling of the view
+	 * can be delayed to prevent the view from being unintentionally untiled.
+	 * During this delay, move_pending is set.
+	 */
+	bool move_pending;
+	/* Cursor position when interactive move/resize is requested */
 	double grab_x, grab_y;
+	/* View geometry when interactive move/resize is requested */
 	struct wlr_box grab_box;
 	uint32_t resize_edges;
 
@@ -496,6 +505,15 @@ void seat_output_layout_changed(struct seat *seat);
  * geometry->{x,y} are computed by this function.
  */
 void interactive_anchor_to_cursor(struct view *view, struct wlr_box *geometry);
+
+/**
+ * interactive_move_tiled_view_to() - Un-tile the tiled/maximized view at the
+ * start of an interactive move or when an interactive move is pending.
+ * Returns true if the distance of cursor motion exceeds the value of
+ * <snapping><dragResistance> and the view is un-tiled.
+ */
+bool interactive_move_tiled_view_to(struct server *server, struct view *view,
+	struct wlr_box *geometry);
 
 void interactive_begin(struct view *view, enum input_mode mode, uint32_t edges);
 void interactive_finish(struct view *view);

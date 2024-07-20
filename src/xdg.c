@@ -94,6 +94,7 @@ do_late_positioning(struct view *view)
 	if (server->input_mode == LAB_INPUT_STATE_MOVE
 			&& view == server->grabbed_view) {
 		/* Keep view underneath cursor */
+		/* TODO: resistance is not considered */
 		interactive_anchor_to_cursor(view, &view->pending);
 		/* Update grab offsets */
 		server->grab_x = server->seat.cursor->x;

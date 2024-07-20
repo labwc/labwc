@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <assert.h>
 #include "edges.h"
 #include "input/keyboard.h"
 #include "labwc.h"
@@ -29,6 +30,38 @@ interactive_anchor_to_cursor(struct view *view, struct wlr_box *geometry)
 		view->current.width, geometry->width);
 	geometry->y = max_move_scale(cursor->y, view->current.y,
 		view->current.height, geometry->height);
+}
+
+bool
+interactive_move_tiled_view_to(struct server *server, struct view *view,
+		struct wlr_box *geometry)
+{
+	assert(!view_is_floating(view));
+
+	int resistance = rc.snap_drag_resistance;
+
+	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
+		/* When called from cursor motion handler */
+		assert(server->move_pending && server->grabbed_view == view);
+
+		double dx = server->seat.cursor->x - server->grab_x;
+		double dy = server->seat.cursor->y - server->grab_y;
+		if (dx * dx + dy * dy < resistance * resistance) {
+			return false;
+		}
+	} else {
+		/* When called from interactive_begin() */
+		if (resistance > 0) {
+			return false;
+		}
+	}
+
+	view_set_shade(view, false);
+	view_set_untiled(view);
+	view_restore_to(view, *geometry);
+	server->move_pending = false;
+
+	return true;
 }
 
 void
@@ -83,9 +116,15 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 				interactive_anchor_to_cursor(view, &geometry);
 			}
 
-			view_set_shade(view, false);
-			view_set_untiled(view);
-			view_restore_to(view, geometry);
+			/*
+			 * If <snapping><dragResistance> is non-zero, the
+			 * tiled/maximized view is un-tiled later in cursor
+			 * motion handler.
+			 */
+			if (!interactive_move_tiled_view_to(
+					server, view, &geometry)) {
+				server->move_pending = true;
+			}
 		} else {
 			/* Store natural geometry at start of move */
 			view_store_natural_geometry(view);
@@ -261,6 +300,7 @@ interactive_cancel(struct view *view)
 
 	view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 	view->server->grabbed_view = NULL;
+	view->server->move_pending = false;
 
 	/* Update focus/cursor image */
 	cursor_update_focus(view->server);

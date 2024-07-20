@@ -232,9 +232,19 @@ request_set_primary_selection_notify(struct wl_listener *listener, void *data)
 static void
 process_cursor_move(struct server *server, uint32_t time)
 {
+	struct view *view = server->grabbed_view;
+
+	/*
+	 * Un-tile the view when interactive move is delayed and the distance
+	 * of cursor movement exceeds <snapping><dragResistance>.
+	 */
+	if (server->move_pending && !interactive_move_tiled_view_to(
+			server, server->grabbed_view, &server->grab_box)) {
+		return;
+	}
+
 	double dx = server->seat.cursor->x - server->grab_x;
 	double dy = server->seat.cursor->y - server->grab_y;
-	struct view *view = server->grabbed_view;
 
 	/* Move the grabbed view to the new position. */
 	dx += server->grab_box.x;

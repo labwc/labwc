@@ -347,6 +347,10 @@ extending outward from the snapped edge.
 	SnapToEdge action for that edge. A *range* of 0 disables snapping via
 	interactive moves. Default is 1.
 
+*<snapping><dragResistance>*
+	Sets the movement of cursor in pixel required for a tiled or maximized
+	window to be moved with an interactive move. Default is 20.
+
 *<snapping><overlay><enabled>* [yes|no]
 	Show an overlay when snapping to a window to an edge. Default is yes.
 

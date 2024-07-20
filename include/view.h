@@ -147,6 +147,7 @@ struct view_impl {
 	struct view_size_hints (*get_size_hints)(struct view *self);
 	/* if not implemented, VIEW_WANTS_FOCUS_ALWAYS is assumed */
 	enum view_wants_focus (*wants_focus)(struct view *self);
+	void (*offer_focus)(struct view *self);
 	/* returns true if view reserves space at screen edge */
 	bool (*has_strut_partial)(struct view *self);
 	/* returns true if view declared itself a window type */
@@ -478,6 +479,12 @@ enum view_edge view_edge_invert(enum view_edge edge);
  * and have been mapped at some point since creation.
  */
 bool view_is_focusable(struct view *view);
+
+/*
+ * For use by desktop_focus_view() only - please do not call directly.
+ * See the description of VIEW_WANTS_FOCUS_OFFER for more information.
+ */
+void view_offer_focus(struct view *view);
 
 void mappable_connect(struct mappable *mappable, struct wlr_surface *surface,
 	wl_notify_func_t notify_map, wl_notify_func_t notify_unmap);

@@ -651,10 +651,6 @@ xdg_toplevel_view_map(struct view *view)
 	if (!view->been_mapped) {
 		init_foreign_toplevel(view);
 
-		/*
-		 * FIXME: is this needed or is the earlier logic in
-		 * xdg_surface_new() enough?
-		 */
 		if (view_wants_decorations(view)) {
 			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
 		} else {
@@ -907,13 +903,6 @@ xdg_toplevel_new(struct wl_listener *listener, void *data)
 	CONNECT_SIGNAL(xdg_surface, xdg_toplevel_view, new_popup);
 
 	wl_list_insert(&server->views, &view->link);
-
-	/* FIXME: is view_wants_decorations() reliable this early? */
-	if (view_wants_decorations(view)) {
-		view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
-	} else {
-		view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
-	}
 }
 
 void

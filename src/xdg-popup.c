@@ -27,10 +27,15 @@ popup_unconstrain(struct xdg_popup *popup)
 {
 	struct view *view = popup->parent_view;
 	struct server *server = view->server;
-	struct wlr_box *popup_box = &popup->wlr_popup->current.geometry;
+
+	int parent_lx, parent_ly;
+	struct wlr_scene_tree *parent_tree = popup->wlr_popup->parent->data;
+	wlr_scene_node_coords(&parent_tree->node, &parent_lx, &parent_ly);
+
+	struct wlr_box *popup_box = &popup->wlr_popup->scheduled.geometry;
 	struct output *output = output_nearest_to(server,
-		view->current.x + popup_box->x,
-		view->current.y + popup_box->y);
+		parent_lx + popup_box->x,
+		parent_ly + popup_box->y);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
 	struct wlr_box output_toplevel_box = {
@@ -116,7 +121,7 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 	 * We must add xdg popups to the scene graph so they get rendered. The
 	 * wlroots scene graph provides a helper for this, but to use it we must
 	 * provide the proper parent scene node of the xdg popup. To enable
-	 * this, we always set the user data field of xdg_surfaces to the
+	 * this, we always set the user data field of wlr_surfaces to the
 	 * corresponding scene node.
 	 *
 	 * xdg-popups live in server->xdg_popup_tree so that they can be

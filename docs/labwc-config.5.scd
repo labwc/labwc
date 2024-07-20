@@ -8,7 +8,7 @@ labwc - configuration files
 
 Labwc uses openbox-3.6 specification for configuration and theming, but does not
 support all options. The following files form the basis of the labwc
-configuration: rc.xml, menu.xml, autostart, shutdown and environment.
+configuration: rc.xml, menu.xml, autostart, shutdown, environment and xinitrc.
 
 No configuration files are needed to start and run labwc.
 
@@ -77,6 +77,10 @@ in labwc-theme(5).
 
 *rc.xml* is the main configuration file and all its options are described in
 detail below.
+
+The *xinitrc* file is executed as a shell script whenever labwc launches the
+Xwayland X11 server. This may happen multiple times throughout the session if
+Xwayland is not configured to persist when no X11 clients are connected.
 
 # CONFIGURATION
 

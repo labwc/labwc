@@ -5,6 +5,7 @@ Config layout for ~/.config/labwc/
 - rc.xml
 - shutdown
 - themerc-override
+- xinitrc
 
 See `man labwc-config and `man labwc-theme` for further details.
 

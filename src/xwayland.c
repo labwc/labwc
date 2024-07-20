@@ -7,6 +7,7 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
+#include "config/session.h"
 #include "labwc.h"
 #include "node.h"
 #include "ssd.h"
@@ -1072,6 +1073,9 @@ sync_atoms(xcb_connection_t *xcb_conn)
 static void
 handle_server_ready(struct wl_listener *listener, void *data)
 {
+	/* Fire an Xwayland startup script if one (or many) can be found */
+	session_run_script("xinitrc");
+
 	xcb_connection_t *xcb_conn = xcb_connect(NULL, NULL);
 	if (xcb_connection_has_error(xcb_conn)) {
 		wlr_log(WLR_ERROR, "Failed to create xcb connection");

@@ -94,11 +94,6 @@ xwayland_view_wants_focus(struct view *view)
 	 * Globally Active client windows may receive a WM_TAKE_FOCUS
 	 * message from the window manager. If they want the focus, they
 	 * should respond with a SetInputFocus request.
-	 *
-	 * [Currently, labwc does not fully support clients voluntarily
-	 * taking focus via the WM_TAKE_FOCUS + SetInputFocus mechanism.
-	 * Instead, we try to guess whether the window wants focus based
-	 * on some heuristics -- see below.]
 	 */
 	case WLR_ICCCM_INPUT_MODEL_GLOBAL:
 		/*
@@ -133,6 +128,12 @@ xwayland_view_has_strut_partial(struct view *view)
 	struct wlr_xwayland_surface *xsurface =
 		xwayland_surface_from_view(view);
 	return (bool)xsurface->strut_partial;
+}
+
+static void
+xwayland_view_offer_focus(struct view *view)
+{
+	wlr_xwayland_surface_offer_focus(xwayland_surface_from_view(view));
 }
 
 static struct wlr_xwayland_surface *
@@ -331,6 +332,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&xwayland_view->set_override_redirect.link);
 	wl_list_remove(&xwayland_view->set_strut_partial.link);
 	wl_list_remove(&xwayland_view->set_window_type.link);
+	wl_list_remove(&xwayland_view->focus_in.link);
 	wl_list_remove(&xwayland_view->map_request.link);
 
 	view_destroy(view);
@@ -556,6 +558,18 @@ handle_set_strut_partial(struct wl_listener *listener, void *data)
 
 	if (view->mapped) {
 		output_update_all_usable_areas(view->server, false);
+	}
+}
+
+static void
+handle_focus_in(struct wl_listener *listener, void *data)
+{
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, focus_in);
+	struct view *view = &xwayland_view->base;
+	struct seat *seat = &view->server->seat;
+	if (view->surface != seat->seat->keyboard_state.focused_surface) {
+		seat_focus_surface(seat, view->surface);
 	}
 }
 
@@ -916,6 +930,7 @@ static const struct view_impl xwayland_view_impl = {
 	.append_children = xwayland_view_append_children,
 	.get_size_hints = xwayland_view_get_size_hints,
 	.wants_focus = xwayland_view_wants_focus,
+	.offer_focus = xwayland_view_offer_focus,
 	.has_strut_partial = xwayland_view_has_strut_partial,
 	.contains_window_type = xwayland_view_contains_window_type,
 	.get_pid = xwayland_view_get_pid,
@@ -964,6 +979,7 @@ xwayland_view_create(struct server *server,
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_override_redirect);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_strut_partial);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_window_type);
+	CONNECT_SIGNAL(xsurface, xwayland_view, focus_in);
 	CONNECT_SIGNAL(xsurface, xwayland_view, map_request);
 
 	view_init(view);

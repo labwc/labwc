@@ -149,7 +149,7 @@ handle_commit(struct wl_listener *listener, void *data)
 	 * the pending x/y is also unset and we still need to position
 	 * the window.
 	 */
-	if (wlr_box_empty(&view->pending)) {
+	if (wlr_box_empty(&view->pending) && !wlr_box_empty(&size)) {
 		view->pending.width = size.width;
 		view->pending.height = size.height;
 		do_late_positioning(view);

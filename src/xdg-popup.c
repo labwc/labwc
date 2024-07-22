@@ -28,19 +28,33 @@ popup_unconstrain(struct xdg_popup *popup)
 	struct view *view = popup->parent_view;
 	struct server *server = view->server;
 
+	/* Get position of parent toplevel/popup */
 	int parent_lx, parent_ly;
 	struct wlr_scene_tree *parent_tree = popup->wlr_popup->parent->data;
 	wlr_scene_node_coords(&parent_tree->node, &parent_lx, &parent_ly);
 
+	/* Get usable area to constrain by */
 	struct wlr_box *popup_box = &popup->wlr_popup->scheduled.geometry;
 	struct output *output = output_nearest_to(server,
 		parent_lx + popup_box->x,
 		parent_ly + popup_box->y);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
+	/* Get offset of toplevel window from its surface */
+	int toplevel_dx = 0;
+	int toplevel_dy = 0;
+	struct wlr_xdg_surface *toplevel_surface = xdg_surface_from_view(view);
+	if (toplevel_surface) {
+		toplevel_dx = toplevel_surface->current.geometry.x;
+		toplevel_dy = toplevel_surface->current.geometry.y;
+	} else {
+		wlr_log(WLR_ERROR, "toplevel is not valid XDG surface");
+	}
+
+	/* Geometry of usable area relative to toplevel surface */
 	struct wlr_box output_toplevel_box = {
-		.x = usable.x - view->current.x,
-		.y = usable.y - view->current.y,
+		.x = usable.x - (view->current.x - toplevel_dx),
+		.y = usable.y - (view->current.y - toplevel_dy),
 		.width = usable.width,
 		.height = usable.height,
 	};

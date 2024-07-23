@@ -26,6 +26,7 @@
 #include "node.h"
 #include "output-state.h"
 #include "output-virtual.h"
+#include "protocols/cosmic-workspaces.h"
 #include "regions.h"
 #include "view.h"
 #include "xwayland.h"
@@ -276,6 +277,9 @@ add_output_to_layout(struct server *server, struct output *output)
 		wlr_scene_output_layout_add_output(server->scene_layout,
 			layout_output, output->scene_output);
 	}
+
+	lab_cosmic_workspace_group_output_enter(
+		server->workspaces.cosmic_group, output->wlr_output);
 }
 
 static void
@@ -567,6 +571,10 @@ output_config_apply(struct server *server,
 
 		if (need_to_remove) {
 			regions_evacuate_output(output);
+
+			lab_cosmic_workspace_group_output_leave(
+				server->workspaces.cosmic_group, output->wlr_output);
+
 			/*
 			 * At time of writing, wlr_output_layout_remove()
 			 * indirectly destroys the wlr_scene_output, but

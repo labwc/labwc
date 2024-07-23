@@ -301,6 +301,11 @@ struct server {
 		struct wl_list all;  /* struct workspace.link */
 		struct workspace *current;
 		struct workspace *last;
+		struct lab_cosmic_workspace_manager *cosmic_manager;
+		struct lab_cosmic_workspace_group *cosmic_group;
+		struct {
+			struct wl_listener layout_output_added;
+		} on;
 	} workspaces;
 
 	struct wl_list outputs;

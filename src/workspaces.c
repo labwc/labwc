@@ -15,9 +15,12 @@
 #include "common/mem.h"
 #include "input/keyboard.h"
 #include "labwc.h"
+#include "protocols/cosmic-workspaces.h"
 #include "view.h"
 #include "workspaces.h"
 #include "xwayland.h"
+
+#define COSMIC_WORKSPACES_VERSION 1
 
 /* Internal helpers */
 static size_t
@@ -172,6 +175,15 @@ _osd_update(struct server *server)
 	}
 }
 
+/* cosmic workspace handlers */
+static void
+handle_workspace_activate(struct wl_listener *listener, void *data)
+{
+	struct workspace *workspace = wl_container_of(listener, workspace, on.activate);
+	workspaces_switch_to(workspace, /* update_focus */ true);
+	wlr_log(WLR_INFO, "activating workspace %s", workspace->name);
+}
+
 /* Internal API */
 static void
 add_workspace(struct server *server, const char *name)
@@ -186,6 +198,15 @@ add_workspace(struct server *server, const char *name)
 	} else {
 		wlr_scene_node_set_enabled(&workspace->tree->node, false);
 	}
+
+	bool active = server->workspaces.current == workspace;
+	workspace->cosmic_workspace = lab_cosmic_workspace_create(server->workspaces.cosmic_group);
+	lab_cosmic_workspace_set_name(workspace->cosmic_workspace, name);
+	lab_cosmic_workspace_set_active(workspace->cosmic_workspace, active);
+	lab_cosmic_workspace_set_hidden(workspace->cosmic_workspace, !active);
+
+	workspace->on.activate.notify = handle_workspace_activate;
+	wl_signal_add(&workspace->cosmic_workspace->events.activate, &workspace->on.activate);
 }
 
 static struct workspace *
@@ -260,6 +281,13 @@ _osd_show(struct server *server)
 void
 workspaces_init(struct server *server)
 {
+	server->workspaces.cosmic_manager = lab_cosmic_workspace_manager_create(
+		server->wl_display, /* capabilities */ CW_CAP_WS_ACTIVATE,
+		COSMIC_WORKSPACES_VERSION);
+
+	server->workspaces.cosmic_group = lab_cosmic_workspace_group_create(
+		server->workspaces.cosmic_manager);
+
 	wl_list_init(&server->workspaces.all);
 
 	struct workspace *conf;
@@ -285,6 +313,11 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	/* Disable the old workspace */
 	wlr_scene_node_set_enabled(
 		&server->workspaces.current->tree->node, false);
+
+	lab_cosmic_workspace_set_active(
+		server->workspaces.current->cosmic_workspace, false);
+	lab_cosmic_workspace_set_hidden(
+		server->workspaces.current->cosmic_workspace, true);
 
 	/* Move Omnipresent views to new workspace */
 	struct view *view;
@@ -331,6 +364,9 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 
 	/* Ensure that only currently visible fullscreen windows hide the top layer */
 	desktop_update_top_layer_visiblity(server);
+
+	lab_cosmic_workspace_set_active(target->cosmic_workspace, true);
+	lab_cosmic_workspace_set_hidden(target->cosmic_workspace, false);
 }
 
 void
@@ -395,6 +431,8 @@ destroy_workspace(struct workspace *workspace)
 	wlr_scene_node_destroy(&workspace->tree->node);
 	zfree(workspace->name);
 	wl_list_remove(&workspace->link);
+
+	lab_cosmic_workspace_destroy(workspace->cosmic_workspace);
 	free(workspace);
 }
 
@@ -429,6 +467,8 @@ workspaces_reconfigure(struct server *server)
 				actual_workspace->name, configured_workspace->name);
 			free(actual_workspace->name);
 			actual_workspace->name = xstrdup(configured_workspace->name);
+			lab_cosmic_workspace_set_name(
+				actual_workspace->cosmic_workspace, actual_workspace->name);
 		}
 		actual_workspace_link = actual_workspace_link->next;
 	}

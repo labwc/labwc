@@ -579,15 +579,6 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 	surface->node_destroy.notify = handle_node_destroy;
 	wl_signal_add(&surface->scene_layer_surface->tree->node.events.destroy,
 		&surface->node_destroy);
-
-	/*
-	 * Temporarily set the layer's current state to pending so that
-	 * it can easily be arranged.
-	 */
-	struct wlr_layer_surface_v1_state old_state = layer_surface->current;
-	layer_surface->current = layer_surface->pending;
-	output_update_usable_area(output);
-	layer_surface->current = old_state;
 }
 
 void

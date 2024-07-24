@@ -14,6 +14,7 @@ static void
 multi_rect_destroy_notify(struct wl_listener *listener, void *data)
 {
 	struct multi_rect *rect = wl_container_of(listener, rect, destroy);
+	wl_list_remove(&rect->destroy.link);
 	free(rect);
 }
 

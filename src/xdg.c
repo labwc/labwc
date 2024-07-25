@@ -840,7 +840,7 @@ xdg_toplevel_new(struct wl_listener *listener, void *data)
 			view->output->wlr_output->scale);
 	}
 
-	view->workspace = server->workspace_current;
+	view->workspace = server->workspaces.current;
 	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 

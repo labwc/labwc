@@ -106,7 +106,7 @@ get_special(struct server *server, struct wlr_scene_node *node)
 	}
 	if (node->parent == server->view_tree) {
 		struct workspace *workspace;
-		wl_list_for_each(workspace, &server->workspaces, link) {
+		wl_list_for_each(workspace, &server->workspaces.all, link) {
 			if (&workspace->tree->node == node) {
 				return workspace->name;
 			}

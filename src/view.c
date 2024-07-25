@@ -140,7 +140,7 @@ matches_criteria(struct view *view, enum lab_view_criteria criteria)
 		 * special in that they live in a different tree.
 		 */
 		struct server *server = view->server;
-		if (view->scene_tree->node.parent != server->workspace_current->tree
+		if (view->scene_tree->node.parent != server->workspaces.current->tree
 				&& !view_is_always_on_top(view)) {
 			return false;
 		}
@@ -1451,7 +1451,7 @@ view_toggle_always_on_top(struct view *view)
 {
 	assert(view);
 	if (view_is_always_on_top(view)) {
-		view->workspace = view->server->workspace_current;
+		view->workspace = view->server->workspaces.current;
 		wlr_scene_node_reparent(&view->scene_tree->node,
 			view->workspace->tree);
 	} else {
@@ -1473,7 +1473,7 @@ view_toggle_always_on_bottom(struct view *view)
 {
 	assert(view);
 	if (view_is_always_on_bottom(view)) {
-		view->workspace = view->server->workspace_current;
+		view->workspace = view->server->workspaces.current;
 		wlr_scene_node_reparent(&view->scene_tree->node,
 			view->workspace->tree);
 	} else {

@@ -66,7 +66,7 @@ _osd_update(struct server *server)
 		theme->osd_workspace_switcher_boxes_height == 0;
 
 	/* Dimensions */
-	size_t workspace_count = wl_list_length(&server->workspaces);
+	size_t workspace_count = wl_list_length(&server->workspaces.all);
 	uint16_t marker_width = workspace_count * (rect_width + padding) - padding;
 	uint16_t width = margin * 2 + (marker_width < 200 ? 200 : marker_width);
 	uint16_t height = margin * (hide_boxes ? 2 : 3) + rect_height + font_height(&rc.font_osd);
@@ -106,8 +106,8 @@ _osd_update(struct server *server)
 		uint16_t x;
 		if (!hide_boxes) {
 			x = (width - marker_width) / 2;
-			wl_list_for_each(workspace, &server->workspaces, link) {
-				bool active =  workspace == server->workspace_current;
+			wl_list_for_each(workspace, &server->workspaces.all, link) {
+				bool active =  workspace == server->workspaces.current;
 				set_cairo_color(cairo, server->theme->osd_label_text_color);
 				cairo_rectangle(cairo, x, margin,
 					rect_width - padding, rect_height);
@@ -128,7 +128,7 @@ _osd_update(struct server *server)
 		pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 
 		/* Center workspace indicator on the x axis */
-		int req_width = font_width(&rc.font_osd, server->workspace_current->name);
+		int req_width = font_width(&rc.font_osd, server->workspaces.current->name);
 		req_width = MIN(req_width, width - 2 * margin);
 		x = (width - req_width) / 2;
 		if (!hide_boxes) {
@@ -141,7 +141,7 @@ _osd_update(struct server *server)
 		pango_layout_set_font_description(layout, desc);
 		pango_layout_set_width(layout, req_width * PANGO_SCALE);
 		pango_font_description_free(desc);
-		pango_layout_set_text(layout, server->workspace_current->name, -1);
+		pango_layout_set_text(layout, server->workspaces.current->name, -1);
 		pango_cairo_show_layout(cairo, layout);
 
 		g_object_unref(layout);
@@ -180,9 +180,9 @@ add_workspace(struct server *server, const char *name)
 	workspace->server = server;
 	workspace->name = xstrdup(name);
 	workspace->tree = wlr_scene_tree_create(server->view_tree);
-	wl_list_append(&server->workspaces, &workspace->link);
-	if (!server->workspace_current) {
-		server->workspace_current = workspace;
+	wl_list_append(&server->workspaces.all, &workspace->link);
+	if (!server->workspaces.current) {
+		server->workspaces.current = workspace;
 	} else {
 		wlr_scene_node_set_enabled(&workspace->tree->node, false);
 	}
@@ -260,7 +260,7 @@ _osd_show(struct server *server)
 void
 workspaces_init(struct server *server)
 {
-	wl_list_init(&server->workspaces);
+	wl_list_init(&server->workspaces.all);
 
 	struct workspace *conf;
 	wl_list_for_each(conf, &rc.workspace_config.workspaces, link) {
@@ -278,13 +278,13 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 {
 	assert(target);
 	struct server *server = target->server;
-	if (target == server->workspace_current) {
+	if (target == server->workspaces.current) {
 		return;
 	}
 
 	/* Disable the old workspace */
 	wlr_scene_node_set_enabled(
-		&server->workspace_current->tree->node, false);
+		&server->workspaces.current->tree->node, false);
 
 	/* Move Omnipresent views to new workspace */
 	struct view *view;
@@ -300,10 +300,10 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	wlr_scene_node_set_enabled(&target->tree->node, true);
 
 	/* Save the last visited workspace */
-	server->workspace_last = server->workspace_current;
+	server->workspaces.last = server->workspaces.current;
 
 	/* Make sure new views will spawn on the new workspace */
-	server->workspace_current = target;
+	server->workspaces.current = target;
 
 	/*
 	 * Make sure we are focusing what the user sees.
@@ -362,7 +362,7 @@ workspaces_find(struct workspace *anchor, const char *name, bool wrap)
 	size_t index = 0;
 	struct workspace *target;
 	size_t wants_index = parse_workspace_index(name);
-	struct wl_list *workspaces = &anchor->server->workspaces;
+	struct wl_list *workspaces = &anchor->server->workspaces.all;
 
 	if (wants_index) {
 		wl_list_for_each(target, workspaces, link) {
@@ -373,7 +373,7 @@ workspaces_find(struct workspace *anchor, const char *name, bool wrap)
 	} else if (!strcasecmp(name, "current")) {
 		return anchor;
 	} else if (!strcasecmp(name, "last")) {
-		return anchor->server->workspace_last;
+		return anchor->server->workspaces.last;
 	} else if (!strcasecmp(name, "left")) {
 		return get_prev(anchor, workspaces, wrap);
 	} else if (!strcasecmp(name, "right")) {
@@ -408,7 +408,7 @@ workspaces_reconfigure(struct server *server)
 	 *   - Destroy workspaces if fewer workspace are desired
 	 */
 
-	struct wl_list *actual_workspace_link = server->workspaces.next;
+	struct wl_list *actual_workspace_link = server->workspaces.all.next;
 
 	struct workspace *configured_workspace;
 	wl_list_for_each(configured_workspace,
@@ -416,7 +416,7 @@ workspaces_reconfigure(struct server *server)
 		struct workspace *actual_workspace = wl_container_of(
 			actual_workspace_link, actual_workspace, link);
 
-		if (actual_workspace_link == &server->workspaces) {
+		if (actual_workspace_link == &server->workspaces.all) {
 			/* # of configured workspaces increased */
 			wlr_log(WLR_DEBUG, "Adding workspace \"%s\"",
 				configured_workspace->name);
@@ -433,16 +433,16 @@ workspaces_reconfigure(struct server *server)
 		actual_workspace_link = actual_workspace_link->next;
 	}
 
-	if (actual_workspace_link == &server->workspaces) {
+	if (actual_workspace_link == &server->workspaces.all) {
 		return;
 	}
 
 	/* # of configured workspaces decreased */
 	overlay_hide(&server->seat);
 	struct workspace *first_workspace =
-		wl_container_of(server->workspaces.next, first_workspace, link);
+		wl_container_of(server->workspaces.all.next, first_workspace, link);
 
-	while (actual_workspace_link != &server->workspaces) {
+	while (actual_workspace_link != &server->workspaces.all) {
 		struct workspace *actual_workspace = wl_container_of(
 			actual_workspace_link, actual_workspace, link);
 
@@ -456,12 +456,12 @@ workspaces_reconfigure(struct server *server)
 			}
 		}
 
-		if (server->workspace_current == actual_workspace) {
+		if (server->workspaces.current == actual_workspace) {
 			workspaces_switch_to(first_workspace,
 				/* update_focus */ true);
 		}
-		if (server->workspace_last == actual_workspace) {
-			server->workspace_last = first_workspace;
+		if (server->workspaces.last == actual_workspace) {
+			server->workspaces.last = first_workspace;
 		}
 
 		actual_workspace_link = actual_workspace_link->next;
@@ -473,8 +473,8 @@ void
 workspaces_destroy(struct server *server)
 {
 	struct workspace *workspace, *tmp;
-	wl_list_for_each_safe(workspace, tmp, &server->workspaces, link) {
+	wl_list_for_each_safe(workspace, tmp, &server->workspaces.all, link) {
 		destroy_workspace(workspace);
 	}
-	assert(wl_list_empty(&server->workspaces));
+	assert(wl_list_empty(&server->workspaces.all));
 }

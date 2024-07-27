@@ -1,7 +1,7 @@
 project(
   'labwc',
   'c',
-  version: '0.7.3',
+  version: '0.7.4',
   license: 'GPL-2.0-only',
   meson_version: '>=0.59.0',
   default_options: [

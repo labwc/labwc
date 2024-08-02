@@ -349,7 +349,6 @@ static bool
 view_discover_output(struct view *view, struct wlr_box *geometry)
 {
 	assert(view);
-	assert(!view->fullscreen);
 
 	if (!geometry) {
 		geometry = &view->current;
@@ -362,6 +361,10 @@ view_discover_output(struct view *view, struct wlr_box *geometry)
 
 	if (output && output != view->output) {
 		view->output = output;
+		/* Show fullscreen views above top-layer */
+		if (view->fullscreen) {
+			desktop_update_top_layer_visiblity(view->server);
+		}
 		return true;
 	}
 
@@ -409,12 +412,15 @@ void
 view_set_output(struct view *view, struct output *output)
 {
 	assert(view);
-	assert(!view->fullscreen);
 	if (!output_is_usable(output)) {
 		wlr_log(WLR_ERROR, "invalid output set for view");
 		return;
 	}
 	view->output = output;
+	/* Show fullscreen views above top-layer */
+	if (view->fullscreen) {
+		desktop_update_top_layer_visiblity(view->server);
+	}
 }
 
 void
@@ -1701,22 +1707,13 @@ view_adjust_for_layout_change(struct view *view)
 {
 	assert(view);
 
-	bool was_fullscreen = view->fullscreen;
 	bool is_floating = view_is_floating(view);
+	bool use_natural = false;
 
 	if (!output_is_usable(view->output)) {
 		/* A view losing an output should have a last-layout geometry */
 		update_last_layout_geometry(view);
-
-		/* Exit fullscreen and re-assess floating status */
-		if (was_fullscreen) {
-			set_fullscreen(view, false);
-			is_floating = view_is_floating(view);
-		}
 	}
-
-	/* Restore any full-screen window to natural geometry */
-	bool use_natural = was_fullscreen;
 
 	/* Capture a pointer to the last-layout geometry (only if valid) */
 	struct wlr_box *last_geometry = NULL;
@@ -1757,8 +1754,8 @@ view_adjust_for_layout_change(struct view *view)
 		view_apply_special_geometry(view);
 	} else if (use_natural) {
 		/*
-		 * Move the window to its natural location, either because it
-		 * was fullscreen or we are trying to restore a prior layout.
+		 * Move the window to its natural location, because
+		 * we are trying to restore a prior layout.
 		 */
 		view_apply_natural_geometry(view);
 	} else {
@@ -1788,11 +1785,6 @@ void
 view_on_output_destroy(struct view *view)
 {
 	assert(view);
-	/*
-	 * This is the only time we modify view->output for a fullscreen
-	 * view. We expect view_adjust_for_layout_change() to be called
-	 * shortly afterward, which will exit fullscreen.
-	 */
 	view->output = NULL;
 }
 
@@ -2194,9 +2186,6 @@ void
 view_move_to_output(struct view *view, struct output *output)
 {
 	assert(view);
-	if (view->fullscreen) {
-		return;
-	}
 
 	view_invalidate_last_layout_geometry(view);
 	view_set_output(view, output);
@@ -2206,6 +2195,8 @@ view_move_to_output(struct view *view, struct output *output)
 		view->pending.y = output_area.y;
 		view_place_by_policy(view,
 				/* allow_cursor */ false, rc.placement_policy);
+	} else if (view->fullscreen) {
+		view_apply_fullscreen_geometry(view);
 	} else if (view->maximized != VIEW_AXIS_NONE) {
 		view_apply_maximized_geometry(view);
 	} else if (view->tiled) {

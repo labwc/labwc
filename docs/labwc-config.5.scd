@@ -499,7 +499,7 @@ extending outward from the snapped edge.
 	Stores the keyboard layout either globally or per window and restores
 	it when switching back to the window. Default is global.
 
-*<keyboard><keybind key="" layoutDependent="" onRelease="">*
+*<keyboard><keybind key="" layoutDependent="" onRelease="" allowWhenLocked="">*
 	Define a *key* binding in the format *modifier-key*, where supported
 	modifiers are:
 	- S (shift)
@@ -540,6 +540,9 @@ extending outward from the snapped edge.
 	  <action name="Execute" command="rofi -show drun"/>
 	</keybind>
 	```
+
+	*allowWhenLocked* [yes|no]
+	Make this keybind work even if the screen is locked. Default is no.
 
 *<keyboard><keybind key=""><action name="">*
 	Keybind action. See labwc-actions(5).

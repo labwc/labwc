@@ -407,6 +407,8 @@ fill_keybind(char *nodename, char *content)
 		set_bool(content, &current_keybind->on_release);
 	} else if (!strcasecmp(nodename, "layoutDependent")) {
 		set_bool(content, &current_keybind->use_syms_only);
+	} else if (!strcasecmp(nodename, "allowWhenLocked")) {
+		set_bool(content, &current_keybind->allow_when_locked);
 	} else if (!strcmp(nodename, "name.action")) {
 		current_keybind_action = action_create(content);
 		if (current_keybind_action) {

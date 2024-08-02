@@ -449,6 +449,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	struct server *server = seat->server;
 	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
 	struct keyinfo keyinfo = get_keyinfo(wlr_keyboard, event->keycode);
+	bool locked = seat->server->session_lock_manager->locked;
 
 	key_state_set_pressed(event->keycode,
 		event->state == WL_KEYBOARD_KEY_STATE_PRESSED,
@@ -457,7 +458,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 		if (cur_keybind && cur_keybind->on_release) {
 			key_state_bound_key_remove(event->keycode);
-			if (seat->server->session_lock_manager->locked) {
+			if (locked && !cur_keybind->allow_when_locked) {
 				cur_keybind = NULL;
 				return true;
 			}
@@ -479,27 +480,25 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	 * It's important to do this after key_state_set_pressed() to ensure
 	 * _all_ key press/releases are registered
 	 */
-	if (seat->server->session_lock_manager->locked) {
-		return false;
-	}
+	if (!locked) {
+		if (server->input_mode == LAB_INPUT_STATE_MENU) {
+			key_state_store_pressed_key_as_bound(event->keycode);
+			handle_menu_keys(server, &keyinfo.translated);
+			return true;
+		}
 
-	if (server->input_mode == LAB_INPUT_STATE_MENU) {
-		key_state_store_pressed_key_as_bound(event->keycode);
-		handle_menu_keys(server, &keyinfo.translated);
-		return true;
-	}
-
-	if (server->osd_state.cycle_view) {
-		key_state_store_pressed_key_as_bound(event->keycode);
-		handle_cycle_view_key(server, &keyinfo);
-		return true;
+		if (server->osd_state.cycle_view) {
+			key_state_store_pressed_key_as_bound(event->keycode);
+			handle_cycle_view_key(server, &keyinfo);
+			return true;
+		}
 	}
 
 	/*
 	 * Handle compositor keybinds
 	 */
 	cur_keybind = match_keybinding(server, &keyinfo, keyboard->is_virtual);
-	if (cur_keybind) {
+	if (cur_keybind && (!locked || cur_keybind->allow_when_locked)) {
 		/*
 		 * Update key-state before action_run() because the action
 		 * might lead to seat_focus() in which case we pass the

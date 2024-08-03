@@ -503,8 +503,12 @@ void seat_output_layout_changed(struct seat *seat);
  *
  * geometry->{width,height} are provided by the caller.
  * geometry->{x,y} are computed by this function.
+ *
+ * @note When drag-resistance is used, cursor_x/y should be the original
+ *       cursor position when the button was pressed.
  */
-void interactive_anchor_to_cursor(struct view *view, struct wlr_box *geometry);
+void interactive_anchor_to_cursor(struct view *view, struct wlr_box *geometry,
+	int cursor_x, int cursor_y);
 
 /**
  * interactive_move_tiled_view_to() - Un-tile the tiled/maximized view at the

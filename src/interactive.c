@@ -23,12 +23,12 @@ max_move_scale(double pos_cursor, double pos_current,
 }
 
 void
-interactive_anchor_to_cursor(struct view *view, struct wlr_box *geometry)
+interactive_anchor_to_cursor(struct view *view, struct wlr_box *geometry,
+		int cursor_x, int cursor_y)
 {
-	struct wlr_cursor *cursor = view->server->seat.cursor;
-	geometry->x = max_move_scale(cursor->x, view->current.x,
+	geometry->x = max_move_scale(cursor_x, view->current.x,
 		view->current.width, geometry->width);
-	geometry->y = max_move_scale(cursor->y, view->current.y,
+	geometry->y = max_move_scale(cursor_y, view->current.y,
 		view->current.height, geometry->height);
 }
 
@@ -113,7 +113,8 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			geometry.width = view->natural_geometry.width;
 			geometry.height = view->natural_geometry.height;
 			if (!wlr_box_empty(&geometry)) {
-				interactive_anchor_to_cursor(view, &geometry);
+				interactive_anchor_to_cursor(view, &geometry,
+					seat->cursor->x, seat->cursor->y);
 			}
 
 			/*

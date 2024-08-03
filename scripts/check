@@ -19,14 +19,10 @@ run_checks () {
 		return $?
 	fi
 
-	find src/ include/ \( -name "*.c" -o -name "*.h" \) -type f |
-	{
-		errors=0
-		while IFS= read -r file; do
-			run_checkpatch "$file" || errors=1
-		done
-		return ${errors}
-	}
+	find src/ include/ \( -name "*.c" -o -name "*.h" \) -type f -print0 |
+	nice xargs -0 --max-args 1 --max-procs $(nproc) \
+		scripts/checkpatch.pl --terse --no-tree --strict --file
+	return $?
 }
 
 main () {

@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://gitlab.freedesktop.org/wayland/wayland.git
+revision = 1.23.0
+
+[provide]
+dependency_names = wayland-1.23.0
+wayland-1.23=wayland

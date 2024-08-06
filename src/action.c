@@ -25,6 +25,7 @@
 #include "view.h"
 #include "workspaces.h"
 #include "input/keyboard.h"
+#include "config/rcxml.h"
 
 enum action_arg_type {
 	LAB_ACTION_ARG_STR = 0,
@@ -641,6 +642,16 @@ show_menu(struct server *server, struct view *view,
 	if (!at_cursor && view) {
 		x = view->current.x;
 		y = view->current.y;
+	}
+	/*
+	 * Fixed placement overrides every menu placement except for client-menu
+	 * which is constrained by the view
+	 */
+	if (rc.resize_popup_position) {
+		if (strcasecmp(menu_name, "client-menu")) {
+			x = rc.resize_popup_fixed_position.x;
+			y = rc.resize_popup_fixed_position.y;
+		}
 	}
 
 	/* Replaced by next show_menu() or cleaned on view_destroy() */

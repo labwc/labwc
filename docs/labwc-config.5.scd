@@ -489,6 +489,19 @@ extending outward from the snapped edge.
 	outlined rectangle is shown to indicate the geometry of resized window.
 	Default is yes.
 
+*<resize><popupPosition>* see rc.xml.all for example
+	Let the menu placement be set by x,y coordinates, if set then the
+	atCursor placement is overridden, except for the client-menu, which
+	is constrained to the view. Default is not enabled.
+
+	Note: openbox allows 'Center', 'Top', or 'Fixed' we only use Fixed.
+
+*<resize><popupFixedPosition>*
+	set x, y coordinates for menu placement
+	- x,y accept positive offsets only.
+	- 0,0 places menu at top left corner of desktop
+	- monitor width -1, monitor height -1 places menu at bottom right.
+
 ## KEYBOARD
 
 *<keyboard><numlock>* [on|off]

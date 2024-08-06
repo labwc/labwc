@@ -129,6 +129,11 @@ struct rcxml {
 
 	enum resize_indicator_mode resize_indicator;
 	bool resize_draw_contents;
+	bool resize_popup_position; /* x,y placement for menu */
+	struct {
+		int x;
+		int y;
+	} resize_popup_fixed_position;
 
 	struct {
 		int popuptime;

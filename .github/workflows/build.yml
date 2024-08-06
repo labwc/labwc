@@ -81,6 +81,7 @@ jobs:
           apt-get upgrade -y
           apt-get install -y git gcc clang gdb xwayland
           apt-get build-dep -y labwc
+          apt-get install libwlroots-0.18-dev
 
       - name: Install FreeBSD dependencies
         if: matrix.name == 'FreeBSD'

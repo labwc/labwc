@@ -38,28 +38,50 @@ get_tearing_retry_count(struct output *output)
 	return refresh > 0 ? refresh / 500 : 120;
 }
 
-static bool
-get_tearing_preference(struct output *output)
+bool
+output_get_tearing_allowance(struct output *output)
 {
 	struct server *server = output->server;
 
-	/* Never allow tearing when disabled */
+	/* never allow tearing when disabled */
 	if (!rc.allow_tearing) {
 		return false;
 	}
 
-	/* Tearing is only allowed for the output with the active view */
-	if (!server->active_view || server->active_view->output != output) {
+	struct view *view = server->active_view;
+
+	/* tearing is only allowed for the output with the active view */
+	if (!view || view->output != output) {
 		return false;
 	}
 
-	/* Tearing should not have failed too many times */
+	/* tearing should not have failed too many times */
 	if (output->nr_tearing_failures >= get_tearing_retry_count(output)) {
 		return false;
 	}
 
-	/* If the active view requests tearing, or it is toggled on with action, allow it */
-	return server->active_view->tearing_hint;
+	/* allow tearing for any window when requested or forced */
+	if (rc.allow_tearing == LAB_TEARING_ENABLED) {
+		if (view->force_tearing == LAB_STATE_UNSPECIFIED) {
+			return view->tearing_hint;
+		} else {
+			return view->force_tearing == LAB_STATE_ENABLED;
+		}
+	}
+
+	/* remaining tearing options apply only to full-screen windows */
+	if (!view->fullscreen) {
+		return false;
+	}
+
+	if (view->force_tearing == LAB_STATE_UNSPECIFIED) {
+		/* honor the tearing hint or the fullscreen-force preference */
+		return view->tearing_hint ||
+			rc.allow_tearing == LAB_TEARING_FULLSCREEN_FORCED;
+	}
+
+	/* honor tearing as requested by action */
+	return view->force_tearing == LAB_STATE_ENABLED;
 }
 
 static void
@@ -128,7 +150,7 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		struct wlr_scene_output *scene_output = output->scene_output;
 		struct wlr_output_state *pending = &output->pending;
 
-		pending->tearing_page_flip = get_tearing_preference(output);
+		pending->tearing_page_flip = output_get_tearing_allowance(output);
 
 		bool committed =
 			lab_wlr_scene_output_commit(scene_output, pending);

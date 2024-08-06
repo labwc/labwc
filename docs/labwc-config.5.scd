@@ -525,6 +525,9 @@ extending outward from the snapped edge.
 	If set to "no" (or is absent) the keybind will be layout agnostic.
 	Default is no.
 
+	*allowWhenLocked* [yes|no]
+	Make this keybind work even if the screen is locked. Default is no.
+
 	*onRelease* [yes|no]
 	When yes, fires the keybind action when the key or key
 	combination is released, rather than first pressed. This is useful to
@@ -540,9 +543,6 @@ extending outward from the snapped edge.
 	  <action name="Execute" command="rofi -show drun"/>
 	</keybind>
 	```
-
-	*allowWhenLocked* [yes|no]
-	Make this keybind work even if the screen is locked. Default is no.
 
 *<keyboard><keybind key=""><action name="">*
 	Keybind action. See labwc-actions(5).

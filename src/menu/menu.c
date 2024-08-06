@@ -132,6 +132,14 @@ menu_update_width(struct menu *menu)
 				scaled_font_buffer_set_max_width(item->normal.buffer,
 					max_width);
 			}
+			if (theme->menu_label_text_justify == LAB_JUSTIFY_CENTER) {
+				int x, y;
+				x = (max_width - theme->menu_item_padding_x -
+						item->native_width) / 2;
+				x = x < 0 ? 0 : x;
+				y = (menu->item_height - item->normal.buffer->height) / 2;
+				wlr_scene_node_set_position(item->normal.text, x, y);
+			}
 		}
 
 		if (!item->selected.background) {
@@ -287,14 +295,21 @@ separator_create(struct menu *menu, const char *label)
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
 
+	/*
+	 * Convert empty label ie "", to a regular separator line
+	 * if one desires an empty title line then set label to " "
+	 */
+	if (label && !strlen(label)) {
+		menuitem->type = LAB_MENU_SEPARATOR_LINE;
+	}
 	/* make sure item height is greater than zero */
 	if (!menu->item_height) {
-		menu->item_height = font_height(&rc.font_menuitem)
+		menu->item_height = font_height(&rc.font_menuheader)
 			+ 2 * theme->menu_item_padding_y;
 	}
 	if (menuitem->type == LAB_MENU_TITLE) {
 		menuitem->height = menu->item_height;
-		menuitem->native_width = font_width(&rc.font_menuitem, label);
+		menuitem->native_width = font_width(&rc.font_menuheader, label);
 	} else if (menuitem->type == LAB_MENU_SEPARATOR_LINE) {
 		menuitem->height = theme->menu_separator_line_thickness +
 				2 * theme->menu_separator_padding_height;
@@ -309,7 +324,10 @@ separator_create(struct menu *menu, const char *label)
 	menuitem->normal.tree = wlr_scene_tree_create(menuitem->tree);
 
 	/* Item background nodes */
-	float *bg_color = label ? theme->menu_title_bg_color : theme->menu_items_bg_color;
+	float *bg_color = menuitem->type == LAB_MENU_TITLE ?
+	theme->menu_title_bg_color : theme->menu_items_bg_color;
+	float *text_color = menuitem->type == LAB_MENU_TITLE ?
+	theme->menu_title_text_color : theme->menu_items_text_color;
 	menuitem->normal.background = &wlr_scene_rect_create(
 		menuitem->normal.tree,
 		menu->size.width, menuitem->height, bg_color)->node;
@@ -326,8 +344,8 @@ separator_create(struct menu *menu, const char *label)
 		menuitem->normal.text = &menuitem->normal.buffer->scene_buffer->node;
 		/* Font buffer */
 		scaled_font_buffer_update(menuitem->normal.buffer, label,
-			menuitem->native_width, &rc.font_menuitem,
-			theme->menu_items_text_color, bg_color, /* arrow */ NULL);
+			menuitem->native_width, &rc.font_menuheader,
+			text_color, bg_color, /* arrow */ NULL);
 		/* Center font nodes */
 		int x, y;
 		x = theme->menu_item_padding_x;

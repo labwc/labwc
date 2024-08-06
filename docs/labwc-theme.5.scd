@@ -67,6 +67,10 @@ labwc-config(5).
 	Vertical padding of menu text entries in pixels.
 	Default is 4.
 
+*menu.label.text.justify*
+	Specifies how menu titles are aligned in the titlebar.
+	Type justification. Default Left.
+
 *menu.overlap.x*
 	Horizontal overlap in pixels between submenus and their parents. A
 	positive value move submenus over the top of their parents, whereas a
@@ -173,6 +177,12 @@ elements are not listed here, but are supported.
 
 *menu.separator.color*
 	Menu separator color. Default #888888.
+
+*menu.title.bg.color*
+	Background color of separator label.
+
+*menu.title.text.color*
+	Text color of separator label.
 
 *osd.bg.color*
 	Background color of on-screen-display. Inherits

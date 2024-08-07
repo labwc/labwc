@@ -256,13 +256,6 @@ struct server {
 	/* cursor interactive */
 	enum input_mode input_mode;
 	struct view *grabbed_view;
-	/*
-	 * When an interactive move is requested for tiled/maximized views by CSD
-	 * clients or by Drag actions, the actual motion and untiling of the view
-	 * can be delayed to prevent the view from being unintentionally untiled.
-	 * During this delay, move_pending is set.
-	 */
-	bool move_pending;
 	/* Cursor position when interactive move/resize is requested */
 	double grab_x, grab_y;
 	/* View geometry when interactive move/resize is requested */
@@ -498,27 +491,15 @@ void seat_reset_pressed(struct seat *seat);
 void seat_output_layout_changed(struct seat *seat);
 
 /**
- * interactive_anchor_to_cursor() - repositions the view to remain
- * underneath the cursor when its size changes during interactive move.
+ * interactive_adjust_grabbed_view() - Reposition the given geometry of the
+ * grabbed view while an interactive move, preserving the relative cursor
+ * position. This function also updates server->grab_box as if the view were
+ * floating with the given geometry at the start of the interactive move.
  *
- * geometry->{width,height} are provided by the caller.
- * geometry->{x,y} are computed by this function.
- *
- * @note When <unSnapThreshold> is non-zero, cursor_x/y should be the original
- *       cursor position when the button was pressed.
+ * geo->{width,height} are provided by the caller.
+ * geo->{x,y} are computed by this function.
  */
-void interactive_anchor_to_cursor(struct view *view, struct wlr_box *geometry,
-	int cursor_x, int cursor_y);
-
-/**
- * interactive_move_tiled_view_to() - Un-tile the tiled/maximized view at the
- * start of an interactive move or when an interactive move is pending.
- * Returns true if the distance of cursor motion exceeds the value of
- * <resistance><unSnapThreshold> and the view is un-tiled.
- */
-bool interactive_move_tiled_view_to(struct server *server, struct view *view,
-	struct wlr_box *geometry);
-
+void interactive_adjust_grabbed_view(struct server *server, struct wlr_box *geo);
 void interactive_begin(struct view *view, enum input_mode mode, uint32_t edges);
 void interactive_finish(struct view *view);
 void interactive_cancel(struct view *view);

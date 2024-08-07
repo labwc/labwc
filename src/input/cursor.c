@@ -234,23 +234,31 @@ process_cursor_move(struct server *server, uint32_t time)
 {
 	struct view *view = server->grabbed_view;
 
+	int dx = server->seat.cursor->x - server->grab_x;
+	int dy = server->seat.cursor->y - server->grab_y;
+
+	struct wlr_box new_geo = {
+		.x = server->grab_box.x + dx,
+		.y = server->grab_box.y + dy,
+		.width = -1,
+		.height = -1,
+	};
+
 	/*
-	 * Un-tile the view when interactive move is delayed and the distance
-	 * of cursor movement exceeds <resistance><unSnapThreshold>.
+	 * new_geo can be set 0x0 when un-tiling an initially maximized
+	 * window as view->natural_geometry is 0x0. In that case, we configure
+	 * the window with 0x0 and then later adjust the new geometry submitted
+	 * by the client (see do_late_positioning() in xdg.c).
 	 */
-	if (server->move_pending && !interactive_move_tiled_view_to(
-			server, server->grabbed_view, &server->grab_box)) {
-		return;
+	resistance_unsnap_apply(view, &new_geo);
+
+	resistance_move_apply(view, &new_geo.x, &new_geo.y);
+
+	if (new_geo.width == -1 && new_geo.height == -1) {
+		view_move(view, new_geo.x, new_geo.y);
+	} else {
+		view_restore_to(view, new_geo);
 	}
-
-	double dx = server->seat.cursor->x - server->grab_x;
-	double dy = server->seat.cursor->y - server->grab_y;
-
-	/* Move the grabbed view to the new position. */
-	dx += server->grab_box.x;
-	dy += server->grab_box.y;
-	resistance_move_apply(view, &dx, &dy);
-	view_move(view, dx, dy);
 
 	overlay_update(&server->seat);
 }

@@ -135,6 +135,7 @@ struct rcxml {
 	int screen_edge_strength;
 	int window_edge_strength;
 	int unsnap_threshold;
+	int unmaximize_threshold;
 
 	/* window snapping */
 	int snap_edge_range;

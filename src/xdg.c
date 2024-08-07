@@ -93,14 +93,8 @@ do_late_positioning(struct view *view)
 	struct server *server = view->server;
 	if (server->input_mode == LAB_INPUT_STATE_MOVE
 			&& view == server->grabbed_view) {
-		/* Anchor view to original grab position */
-		interactive_anchor_to_cursor(view, &view->pending,
-			server->grab_x, server->grab_y);
-		/* Next update grab offsets */
-		server->grab_box = view->pending;
-		/* Finally, move by same distance cursor has moved */
-		view->pending.x += server->seat.cursor->x - server->grab_x;
-		view->pending.y += server->seat.cursor->y - server->grab_y;
+		/* Reposition the view while anchoring it to cursor */
+		interactive_anchor_to_cursor(server, &view->pending);
 	} else {
 		/* TODO: smart placement? */
 		view_compute_centered_position(view, NULL,

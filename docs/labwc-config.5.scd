@@ -330,6 +330,11 @@ this is for compatibility with Openbox.
 	Sets the movement of cursor in pixel required for a tiled or maximized
 	window to be moved with an interactive move. Default is 20.
 
+*<resistance><unMaximizeThreshold>*
+	Sets the one-dimentional movement of cursor in pixel required for a
+	*vertically or horizontally* maximized window to be moved with an
+	interactive move. Default is 150.
+
 ## FOCUS
 
 *<focus><followMouse>* [yes|no]

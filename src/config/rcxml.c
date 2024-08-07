@@ -1043,6 +1043,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.window_edge_strength = atoi(content);
 	} else if (!strcasecmp(nodename, "unSnapThreshold.resistance")) {
 		rc.unsnap_threshold = atoi(content);
+	} else if (!strcasecmp(nodename, "unMaximizeThreshold.resistance")) {
+		rc.unmaximize_threshold = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
 		rc.snap_edge_range = atoi(content);
 	} else if (!strcasecmp(nodename, "enabled.overlay.snapping")) {
@@ -1370,6 +1372,7 @@ rcxml_init(void)
 	rc.screen_edge_strength = 20;
 	rc.window_edge_strength = 20;
 	rc.unsnap_threshold = 20;
+	rc.unmaximize_threshold = 150;
 
 	rc.snap_edge_range = 1;
 	rc.snap_overlay_enabled = true;

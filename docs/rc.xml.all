@@ -107,7 +107,10 @@
   <resistance>
     <screenEdgeStrength>20</screenEdgeStrength>
     <windowEdgeStrength>20</windowEdgeStrength>
+    <!-- resistance for maximized/tiled windows -->
     <unSnapThreshold>20</unSnapThreshold>
+    <!-- resistance for vertically/horizontally maximized windows -->
+    <unMaximizeThreshold>150</unMaximizeThreshold>
   </resistance>
 
   <resize>

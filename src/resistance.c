@@ -91,8 +91,38 @@ check_edge_window(int *next, struct edge current, struct edge target,
 		oppose, align, rc.window_edge_strength, lesser);
 }
 
+bool
+resistance_unsnap_apply(struct view *view, int *x, int *y)
+{
+	if (view_is_floating(view)) {
+		return false;
+	}
+
+	int dx = *x - view->current.x;
+	int dy = *y - view->current.y;
+	if (view->maximized == VIEW_AXIS_HORIZONTAL) {
+		if (abs(dx) < rc.unmaximize_threshold) {
+			*x = view->current.x;
+			return false;
+		}
+	} else if (view->maximized == VIEW_AXIS_VERTICAL) {
+		if (abs(dy) < rc.unmaximize_threshold) {
+			*y = view->current.y;
+			return false;
+		}
+	} else {
+		if (dx * dx + dy * dy < rc.unsnap_threshold * rc.unsnap_threshold) {
+			*x = view->current.x;
+			*y = view->current.y;
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void
-resistance_move_apply(struct view *view, double *x, double *y)
+resistance_move_apply(struct view *view, int *x, int *y)
 {
 	assert(view);
 

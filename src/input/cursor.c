@@ -235,24 +235,34 @@ process_cursor_move(struct server *server, uint32_t time)
 {
 	struct view *view = server->grabbed_view;
 
-	/*
-	 * Un-tile the view when interactive move is delayed and the distance
-	 * of cursor movement exceeds <resistance><unSnapThreshold>.
-	 */
-	if (server->move_pending && !interactive_move_tiled_view_to(
-			server, server->grabbed_view, &server->grab_box)) {
-		return;
+	int x = server->grab_box.x + (server->seat.cursor->x - server->grab_x);
+	int y = server->grab_box.y + (server->seat.cursor->y - server->grab_y);
+
+	/* Apply resistance for maximized/tiled view */
+	bool needs_untile = resistance_unsnap_apply(view, &x, &y);
+	if (needs_untile) {
+		/*
+		 * When the view needs to be un-tiled, resize it to natural
+		 * geometry while anchoring it to cursor. If the natural
+		 * geometry is unknown (possible with xdg-shell views), then
+		 * we set a size of 0x0 here and determine the correct geometry
+		 * later. See do_late_positioning() in xdg.c.
+		 */
+		struct wlr_box new_geo = {
+			.width = view->natural_geometry.width,
+			.height = view->natural_geometry.height,
+		};
+		interactive_anchor_to_cursor(server, &new_geo);
+		view_set_untiled(view);
+		view_restore_to(view, new_geo);
+		x = new_geo.x;
+		y = new_geo.y;
 	}
 
-	double dx = server->seat.cursor->x - server->grab_x;
-	double dy = server->seat.cursor->y - server->grab_y;
+	/* Then apply window & edge resistance */
+	resistance_move_apply(view, &x, &y);
 
-	/* Move the grabbed view to the new position. */
-	dx += server->grab_box.x;
-	dy += server->grab_box.y;
-	resistance_move_apply(view, &dx, &dy);
-	view_move(view, dx, dy);
-
+	view_move(view, x, y);
 	overlay_update(&server->seat);
 }
 

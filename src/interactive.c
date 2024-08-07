@@ -56,7 +56,6 @@ interactive_move_tiled_view_to(struct server *server, struct view *view,
 		}
 	}
 
-	view_set_shade(view, false);
 	view_set_untiled(view);
 	view_restore_to(view, *geometry);
 	server->move_pending = false;
@@ -100,11 +99,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		}
 		if (!view_is_floating(view)) {
 			/*
-			 * Un-maximize, unshade and restore natural
-			 * width/height.
-			 * Don't reset tiled state yet since we may want
-			 * to keep it (in the snap-to-maximize case).
-			 *
+			 * Un-maximize and restore natural width/height.
 			 * If the natural geometry is unknown (possible
 			 * with xdg-shell views), then we set a size of
 			 * 0x0 here and determine the correct geometry

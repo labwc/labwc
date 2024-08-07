@@ -30,6 +30,80 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
+## [unreleased]
+
+The main focus in this release has been to port labwc to wlroots 0.18 and to
+grind out associated regressions. Nonetheless, it contains a few non-related
+additions and fixes as described below.
+
+As a one-off note, there appears to be an issue with increased commit failures
+when using wlroots-0.18, particularly with intel drivers. If this turns out to
+be an issue for anyone please try running with `WLR_DRM_NO_ATOMIC=1` or run the
+labwc v0.7 branch or its latest release until this is resolved.
+
+A v0.7 branch has been created for bug fixes beyond `0.7.3` (built with wlroots
+`0.17`).
+
+A big thank you goes to @Consolatis for carefully crafting the commits to port
+across to wlroots 0.18.0. Many thanks also to the other core devs @ahesford,
+@jlindgren90, @johanmalm and @tokyo4j for reviewing, merging as well as
+contributing many patches with fixes and new features. And in this release we
+have some great contributions from @jp7677, @kode54, @xi and @heroin-moose which
+have been attributed with a 'Written-by' against each relevant log entry.
+
+### Added
+
+- Add options `fullscreen` and `fullscreenForced` for `<core><allowTearing>`
+  Written-by: @jp7677 & @Consolatis PR #1941
+- Optionally allow keybindings when session is locked, which for example can be
+  useful for volume settings. Written-by: @xi PR #2041
+
+```xml
+<keyboard><keybind key="" allowWhenLocked="">
+```
+
+- Add resistance when dragging tiled/maximized windows with config option
+  `<snapping><dragResistance>`. PR #2009
+- Implement support for renderer loss recovery. Written-by: @kode54 PR #1997
+- Support xinitrc scripts to configure XWayland server on launch. PR #1963
+- Add theme option `window.button.width` to set window button size.
+  Written-by: @heroin-moose PR #1965
+- Add `cascade` placement policy. PR #1890
+
+```xml
+<placement>
+  <policy>cascade</policy>
+  <cascadeOffset x="40" y="30"/>
+</placement>
+```
+
+- Support relative tablet motion. Written-by: @jp7677 PR #1962
+
+```xml
+<tabletTool motion="absolute|relative" relativeMotionSensitivity="1.0"/>
+```
+
+### Fixed
+
+- Take into account CSD borders when unconstraining XDG popups. PR #2016
+- Choose xdg-popup output depending on xdg-positioner PR #2016
+- Fix wlroots-0.18 regression causing flicker with some layer-shell clients like
+  fuzzel on launch. PR #2021
+- Fix incorrect condition in server-side-deco logic PR #2020
+- Fix flicker of snapped windows in nested session. PR #2010
+- Fix tearing with atomic mode setting. Written-by: @kode54 PR #1996
+- Handle initially maximized and fullscreen xdg-shell windows better.
+  PRs #1956 and #2007
+- Set initial geometry of maximized and fullscreen XWayland windows in the
+  `map_request` handler to avoid visual glitches with some apps. PR #1529
+- Disable pango glyph position rounding to avoid text geometry jump around when
+  changing scale.
+- Verify source surface for `xdg_activation` request
+
+### Changed
+
+- Make windows stay fullscreen when associated output is disconnected. PR #2040
+
 ## [0.7.4]
 
 ### Fixed
@@ -1443,7 +1517,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.7.4...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.7.3...HEAD
 [0.7.4]: https://github.com/labwc/labwc/compare/0.7.3...0.7.4
 [0.7.3]: https://github.com/labwc/labwc/compare/0.7.2...0.7.3
 [0.7.2]: https://github.com/labwc/labwc/compare/0.7.1...0.7.2

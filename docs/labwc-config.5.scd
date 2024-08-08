@@ -691,6 +691,9 @@ extending outward from the snapped edge.
 	If the output name is left empty or the output does not exists, the
 	tablet will span all outputs.
 
+	The tablet cursor automatically applies the orientation/rotation of
+	a mapped output for absolute motion.
+
 *<tablet rotate="" />* [0|90|180|270]
 	The tablet orientation can be changed in 90 degree steps. Default is
 	no rotation (0). Rotation will be applied after applying tablet area

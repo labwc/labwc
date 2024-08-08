@@ -330,7 +330,6 @@
 
     <!-- time is in ms -->
     <doubleClickTime>500</doubleClickTime>
-    <scrollFactor>1.0</scrollFactor>
 
     <context name="Frame">
       <mousebind button="A-Left" action="Press">
@@ -559,6 +558,7 @@
       - clickMethod [none|buttonAreas|clickfinger]
       - sendEventsMode [yes|no|disabledOnExternalMouse]
       - calibrationMatrix [six float values split by space]
+      - scrollFactor [float]
   -->
   <libinput>
     <device category="default">
@@ -575,6 +575,7 @@
       <clickMethod></clickMethod>
       <sendEventsMode></sendEventsMode>
       <calibrationMatrix></calibrationMatrix>
+      <scrollFactor>1.0</scrollFactor>
     </device>
   </libinput>
 

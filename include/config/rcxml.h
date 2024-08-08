@@ -110,7 +110,6 @@ struct rcxml {
 	/* mouse */
 	long doubleclick_time;     /* in ms */
 	struct wl_list mousebinds; /* struct mousebind.link */
-	double scroll_factor;
 
 	/* touch tablet */
 	struct wl_list touch_configs;

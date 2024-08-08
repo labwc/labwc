@@ -31,6 +31,7 @@ struct libinput_category {
 	int click_method;               /* -1 or libinput_config_click_method */
 	int send_events_mode;           /* -1 or libinput_config_send_events_mode */
 	bool have_calibration_matrix;
+	double scroll_factor;
 	float calibration_matrix[6];
 };
 

@@ -1335,6 +1335,13 @@ cursor_axis(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, cursor_axis);
 	struct wlr_pointer_axis_event *event = data;
 	struct server *server = seat->server;
+
+	/* input->scroll_factor is set for pointer/touch devices */
+	assert(event->pointer->base.type == WLR_INPUT_DEVICE_POINTER
+		|| event->pointer->base.type == WLR_INPUT_DEVICE_TOUCH);
+	struct input *input = event->pointer->base.data;
+	double scroll_factor = input->scroll_factor;
+
 	struct cursor_context ctx = get_cursor_context(server);
 	idle_manager_notify_activity(seat->seat);
 
@@ -1349,8 +1356,8 @@ cursor_axis(struct wl_listener *listener, void *data)
 
 		/* Notify the client with pointer focus of the axis event. */
 		wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,
-			event->orientation, rc.scroll_factor * event->delta,
-			round(rc.scroll_factor * event->delta_discrete),
+			event->orientation, scroll_factor * event->delta,
+			round(scroll_factor * event->delta_discrete),
 			event->source, event->relative_direction);
 	}
 }

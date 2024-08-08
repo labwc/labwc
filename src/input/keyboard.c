@@ -698,7 +698,15 @@ set_layout(struct server *server, struct wlr_keyboard *kb)
 	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
 	struct xkb_keymap *keymap = xkb_map_new_from_names(context, &rules,
 		XKB_KEYMAP_COMPILE_NO_FLAGS);
-	if (keymap) {
+
+	/*
+	 * With XKB_DEFAULT_LAYOUT set to empty odd things happen with
+	 * xkb_map_new_from_names() resulting in the keyboard not working, so
+	 * we protect against that.
+	 */
+	const char *layout = getenv("XKB_DEFAULT_LAYOUT");
+	bool layout_empty = layout && !*layout;
+	if (keymap && !layout_empty) {
 		if (!wlr_keyboard_keymaps_match(kb->keymap, keymap)) {
 			wlr_keyboard_set_keymap(kb, keymap);
 			reset_window_keyboard_layout_groups(server);
@@ -706,7 +714,7 @@ set_layout(struct server *server, struct wlr_keyboard *kb)
 		xkb_keymap_unref(keymap);
 	} else {
 		wlr_log(WLR_ERROR, "failed to create xkb keymap for layout '%s'",
-			getenv("XKB_DEFAULT_LAYOUT"));
+			layout);
 		if (!fallback_mode) {
 			wlr_log(WLR_ERROR, "entering fallback mode with layout 'us'");
 			fallback_mode = true;

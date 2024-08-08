@@ -982,7 +982,7 @@ actions_run(struct view *activator, struct server *server,
 				 * a required argument for both SendToDesktop and GoToDesktop.
 				 */
 				struct workspace *target = workspaces_find(
-					server->workspace_current, to, wrap);
+					server->workspaces.current, to, wrap);
 				if (!target) {
 					break;
 				}

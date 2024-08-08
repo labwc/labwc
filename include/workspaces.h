@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include <wayland-util.h>
+#include <wayland-server-core.h>
 
 struct seat;
 struct server;
@@ -19,6 +20,13 @@ struct workspace {
 
 	char *name;
 	struct wlr_scene_tree *tree;
+
+	struct lab_cosmic_workspace *cosmic_workspace;
+	struct {
+		struct wl_listener activate;
+		struct wl_listener deactivate;
+		struct wl_listener remove;
+	} on;
 };
 
 void workspaces_init(struct server *server);

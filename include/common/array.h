@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef LABWC_ARRAY_H
 #define LABWC_ARRAY_H
+#include <stdio.h>
+#include <stdlib.h>
 #include <wayland-server-core.h>
 
 /*
@@ -40,5 +42,35 @@ wl_array_len(struct wl_array *array)
 		: (void *)((const char *)(array)->data + (array)->size - sizeof(pos)); \
 		pos && (const char *)pos >= (const char *)(array)->data;               \
 		(pos)--)
+
+/**
+ * array_add() - add item to wl_array and exit on allocation error
+ * @_arr: wl_array to add the item to
+ * @_val: the item to add to the array
+ *
+ * Let us illustrate the function of this macro by an example:
+ *
+ *   uint32_t value = 5;
+ *   array_add(array, value);
+ *
+ * ...is the equivalent of the code below which is how you would
+ * otherwise use the wl_array API:
+ *
+ *   uint32_t *elm = wl_array_add(array, sizeof(uint32_t));
+ *   if (!elm) {
+ *       perror("failed to allocate memory");
+ *       exit(EXIT_FAILURE);
+ *   }
+ *   *elm = value;
+ */
+#define array_add(_arr, _val) do {                           \
+		__typeof__(_val) *_entry = wl_array_add(     \
+			(_arr), sizeof(__typeof__(_val)));   \
+		if (!_entry) {                               \
+			perror("Failed to allocate memory"); \
+			exit(EXIT_FAILURE);                  \
+		}                                            \
+		*_entry = (_val);                            \
+	} while (0)
 
 #endif /* LABWC_ARRAY_H */

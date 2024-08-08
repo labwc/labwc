@@ -23,10 +23,10 @@ struct drawing_tablet {
 	double slider;
 	double wheel_delta;
 	struct {
-		struct wl_listener proximity;
-		struct wl_listener axis;
-		struct wl_listener tip;
-		struct wl_listener button;
+		struct wl_listener tablet_tool_proximity;
+		struct wl_listener tablet_tool_axis;
+		struct wl_listener tablet_tool_tip;
+		struct wl_listener tablet_tool_button;
 		struct wl_listener destroy;
 	} handlers;
 	struct wl_list link; /* seat.tablets */

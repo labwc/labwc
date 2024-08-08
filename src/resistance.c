@@ -92,7 +92,41 @@ check_edge_window(int *next, struct edge current, struct edge target,
 }
 
 void
-resistance_move_apply(struct view *view, double *x, double *y)
+resistance_unsnap_apply(struct view *view, struct wlr_box *new_geo)
+{
+	if (view_is_floating(view)) {
+		return;
+	}
+
+	int threshold2 = rc.unsnap_threshold * rc.unsnap_threshold;
+	int dx2 = (new_geo->x - view->current.x) * (new_geo->x - view->current.x);
+	int dy2 = (new_geo->y - view->current.y) * (new_geo->y - view->current.y);
+	if (view->maximized == VIEW_AXIS_HORIZONTAL) {
+		if (dx2 < threshold2) {
+			new_geo->x = view->current.x;
+			return;
+		}
+	} else if (view->maximized == VIEW_AXIS_VERTICAL) {
+		if (dy2 < threshold2) {
+			new_geo->y = view->current.y;
+			return;
+		}
+	} else {
+		if (dx2 + dy2 < threshold2) {
+			new_geo->x = view->current.x;
+			new_geo->y = view->current.y;
+			return;
+		}
+	}
+
+	new_geo->width = view->natural_geometry.width;
+	new_geo->height = view->natural_geometry.height;
+
+	interactive_adjust_grabbed_view(view->server, new_geo);
+}
+
+void
+resistance_move_apply(struct view *view, int *x, int *y)
 {
 	assert(view);
 

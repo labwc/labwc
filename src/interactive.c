@@ -22,46 +22,28 @@ max_move_scale(double pos_cursor, double pos_current,
 	return pos_new;
 }
 
-void
-interactive_anchor_to_cursor(struct view *view, struct wlr_box *geometry,
-		int cursor_x, int cursor_y)
+/* Resize (window) geometry while preserving relative cursor position */
+static void
+resize_with_cursor(struct wlr_box *box, int cursor_x, int cursor_y,
+		int width, int height)
 {
-	geometry->x = max_move_scale(cursor_x, view->current.x,
-		view->current.width, geometry->width);
-	geometry->y = max_move_scale(cursor_y, view->current.y,
-		view->current.height, geometry->height);
+	box->x = max_move_scale(cursor_x, box->x, box->width, width);
+	box->y = max_move_scale(cursor_y, box->y, box->height, height);
+	box->width = width;
+	box->height = height;
 }
 
-bool
-interactive_move_tiled_view_to(struct server *server, struct view *view,
-		struct wlr_box *geometry)
+void
+interactive_adjust_grabbed_view(struct server *server, struct wlr_box *geo)
 {
-	assert(!view_is_floating(view));
-
-	int threshold = rc.unsnap_threshold;
-
-	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
-		/* When called from cursor motion handler */
-		assert(server->move_pending && server->grabbed_view == view);
-
-		double dx = server->seat.cursor->x - server->grab_x;
-		double dy = server->seat.cursor->y - server->grab_y;
-		if (dx * dx + dy * dy < threshold * threshold) {
-			return false;
-		}
-	} else {
-		/* When called from interactive_begin() */
-		if (threshold > 0) {
-			return false;
-		}
+	assert(server->input_mode == LAB_INPUT_STATE_MOVE);
+	if (wlr_box_empty(geo)) {
+		return;
 	}
-
-	view_set_shade(view, false);
-	view_set_untiled(view);
-	view_restore_to(view, *geometry);
-	server->move_pending = false;
-
-	return true;
+	resize_with_cursor(&server->grab_box, server->grab_x, server->grab_y,
+		geo->width, geo->height);
+	geo->x = server->grab_box.x + (server->seat.cursor->x - server->grab_x);
+	geo->y = server->grab_box.y + (server->seat.cursor->y - server->grab_y);
 }
 
 void
@@ -98,35 +80,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			 */
 			return;
 		}
-		if (!view_is_floating(view)) {
-			/*
-			 * Un-maximize, unshade and restore natural
-			 * width/height.
-			 * Don't reset tiled state yet since we may want
-			 * to keep it (in the snap-to-maximize case).
-			 *
-			 * If the natural geometry is unknown (possible
-			 * with xdg-shell views), then we set a size of
-			 * 0x0 here and determine the correct geometry
-			 * later. See do_late_positioning() in xdg.c.
-			 */
-			geometry.width = view->natural_geometry.width;
-			geometry.height = view->natural_geometry.height;
-			if (!wlr_box_empty(&geometry)) {
-				interactive_anchor_to_cursor(view, &geometry,
-					seat->cursor->x, seat->cursor->y);
-			}
-
-			/*
-			 * If <resistance><unSnapThreshold> is non-zero, the
-			 * tiled/maximized view is un-tiled later in cursor
-			 * motion handler.
-			 */
-			if (!interactive_move_tiled_view_to(
-					server, view, &geometry)) {
-				server->move_pending = true;
-			}
-		} else {
+		if (view_is_floating(view)) {
 			/* Store natural geometry at start of move */
 			view_store_natural_geometry(view);
 			view_invalidate_last_layout_geometry(view);
@@ -175,6 +129,19 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 	server->grab_y = seat->cursor->y;
 	server->grab_box = geometry;
 	server->resize_edges = edges;
+
+	/*
+	 * When starting an interactive move for a maximized/tiled window,
+	 * un-tile it immediately <unSnapThreshold> is zero. Otherwise, un-tile
+	 * it later in cursor motion handler.
+	 */
+	if (mode == LAB_INPUT_STATE_MOVE && !view_is_floating(view)
+			&& rc.unsnap_threshold <= 0) {
+		struct wlr_box natural_geo = view->natural_geometry;
+		interactive_adjust_grabbed_view(server, &natural_geo);
+		view_restore_to(view, natural_geo);
+	}
+
 	if (rc.resize_indicator) {
 		resize_indicator_show(view);
 	}
@@ -187,7 +154,8 @@ enum view_edge
 edge_from_cursor(struct seat *seat, struct output **dest_output)
 {
 	int snap_range = rc.snap_edge_range;
-	if (!snap_range) {
+	if (!snap_range || seat->server->grabbed_view->maximized
+			!= VIEW_AXIS_NONE) {
 		return VIEW_EDGE_INVALID;
 	}
 
@@ -301,7 +269,6 @@ interactive_cancel(struct view *view)
 
 	view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 	view->server->grabbed_view = NULL;
-	view->server->move_pending = false;
 
 	/* Update focus/cursor image */
 	cursor_update_focus(view->server);

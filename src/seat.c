@@ -114,7 +114,11 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		wlr_log(WLR_ERROR, "no wlr_input_device");
 		return;
 	}
+	struct input *input = wlr_input_device->data;
+
+	/* Set scroll factor to 1.0 for Wayland/X11 backends or virtual pointers */
 	if (!wlr_input_device_is_libinput(wlr_input_device)) {
+		input->scroll_factor = 1.0;
 		return;
 	}
 
@@ -247,6 +251,9 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		wlr_log(WLR_INFO, "calibration matrix configured");
 		libinput_device_config_calibration_set_matrix(libinput_dev, dc->calibration_matrix);
 	}
+
+	wlr_log(WLR_INFO, "scroll factor configured");
+	input->scroll_factor = dc->scroll_factor;
 }
 
 static struct wlr_output *
@@ -286,6 +293,7 @@ new_pointer(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct input *input = znew(*input);
 	input->wlr_input_device = dev;
+	dev->data = input;
 	configure_libinput(dev);
 	wlr_cursor_attach_input_device(seat->cursor, dev);
 
@@ -354,6 +362,7 @@ new_touch(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct input *input = znew(*input);
 	input->wlr_input_device = dev;
+	dev->data = input;
 	configure_libinput(dev);
 	wlr_cursor_attach_input_device(seat->cursor, dev);
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */

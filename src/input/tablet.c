@@ -125,9 +125,9 @@ tablet_get_coords(struct drawing_tablet *tablet, double *x, double *y, double *d
 	*y = tablet->y;
 	*dx = tablet->dx;
 	*dy = tablet->dy;
+	adjust_for_rotation(rc.tablet.rotation, x, y);
 	adjust_for_tablet_area(tablet->tablet->width_mm, tablet->tablet->height_mm,
 		rc.tablet.box, x, y);
-	adjust_for_rotation(rc.tablet.rotation, x, y);
 	adjust_for_rotation_relative(rc.tablet.rotation, dx, dy);
 	adjust_for_motion_sensitivity(rc.tablet_tool.relative_motion_sensitivity, dx, dy);
 

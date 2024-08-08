@@ -590,9 +590,6 @@ extending outward from the snapped edge.
 *<mouse><doubleClickTime>*
 	Set double click time in milliseconds. Default is 500.
 
-*<mouse><scrollFactor>*
-	Set scroll factor. Default is 1.0.
-
 *<mouse><context name=""><mousebind button="" direction="" action=""><action>*
 	Multiple *<mousebind>* can exist within one *<context>*; and multiple
 	*<action>* can exist within one *<mousebind>*.
@@ -798,6 +795,7 @@ extending outward from the snapped edge.
     <clickMethod></clickMethod>
     <sendEventsMode></sendEventsMode>
     <calibrationMatrix></calibrationMatrix>
+    <scrollFactor>1.0</scrollFactor>
   </device>
 </libinput>
 ```
@@ -922,6 +920,9 @@ The most common matrices are:
 
 	visit https://wayland.freedesktop.org/libinput/doc/latest/absolute-axes.html#calibration-of-absolute-devices
 	for more information.
+
+*<libinput><scrollFactor>*
+	Set scroll factor. Default is 1.0.
 
 ## WINDOW RULES
 

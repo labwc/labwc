@@ -323,6 +323,13 @@ new_output_notify(struct wl_listener *listener, void *data)
 		}
 	}
 
+	if (wlr_output_is_wl(wlr_output)) {
+		char title[64];
+		snprintf(title, sizeof(title), "%s - %s", "labwc", wlr_output->name);
+		wlr_wl_output_set_title(wlr_output, title);
+		wlr_wl_output_set_app_id(wlr_output, "labwc");
+	}
+
 	/*
 	 * We offer any display as available for lease, some apps like
 	 * gamescope want to take ownership of a display when they can

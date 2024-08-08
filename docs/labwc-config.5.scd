@@ -326,6 +326,10 @@ this is for compatibility with Openbox.
 
 	The default value for both parameters is 20 pixels.
 
+*<resistance><unSnapThreshold>*
+	Sets the movement of cursor in pixel required for a tiled or maximized
+	window to be moved with an interactive move. Default is 20.
+
 ## FOCUS
 
 *<focus><followMouse>* [yes|no]
@@ -355,10 +359,6 @@ extending outward from the snapped edge.
 	(in pixels) from the edge of an output, the move will trigger a
 	SnapToEdge action for that edge. A *range* of 0 disables snapping via
 	interactive moves. Default is 1.
-
-*<snapping><dragResistance>*
-	Sets the movement of cursor in pixel required for a tiled or maximized
-	window to be moved with an interactive move. Default is 20.
 
 *<snapping><overlay><enabled>* [yes|no]
 	Show an overlay when snapping to a window to an edge. Default is yes.

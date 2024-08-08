@@ -236,7 +236,7 @@ process_cursor_move(struct server *server, uint32_t time)
 
 	/*
 	 * Un-tile the view when interactive move is delayed and the distance
-	 * of cursor movement exceeds <snapping><dragResistance>.
+	 * of cursor movement exceeds <resistance><unSnapThreshold>.
 	 */
 	if (server->move_pending && !interactive_move_tiled_view_to(
 			server, server->grabbed_view, &server->grab_box)) {

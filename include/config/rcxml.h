@@ -124,6 +124,7 @@ struct rcxml {
 	/* resistance */
 	int screen_edge_strength;
 	int window_edge_strength;
+	int unsnap_threshold;
 
 	/* window snapping */
 	int snap_edge_range;
@@ -132,7 +133,6 @@ struct rcxml {
 	int snap_overlay_delay_outer;
 	bool snap_top_maximize;
 	enum tiling_events_mode snap_tiling_events_mode;
-	int snap_drag_resistance;
 
 	enum resize_indicator_mode resize_indicator;
 	bool resize_draw_contents;

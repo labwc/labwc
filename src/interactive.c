@@ -38,7 +38,7 @@ interactive_move_tiled_view_to(struct server *server, struct view *view,
 {
 	assert(!view_is_floating(view));
 
-	int resistance = rc.snap_drag_resistance;
+	int threshold = rc.unsnap_threshold;
 
 	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
 		/* When called from cursor motion handler */
@@ -46,12 +46,12 @@ interactive_move_tiled_view_to(struct server *server, struct view *view,
 
 		double dx = server->seat.cursor->x - server->grab_x;
 		double dy = server->seat.cursor->y - server->grab_y;
-		if (dx * dx + dy * dy < resistance * resistance) {
+		if (dx * dx + dy * dy < threshold * threshold) {
 			return false;
 		}
 	} else {
 		/* When called from interactive_begin() */
-		if (resistance > 0) {
+		if (threshold > 0) {
 			return false;
 		}
 	}
@@ -118,7 +118,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			}
 
 			/*
-			 * If <snapping><dragResistance> is non-zero, the
+			 * If <resistance><unSnapThreshold> is non-zero, the
 			 * tiled/maximized view is un-tiled later in cursor
 			 * motion handler.
 			 */

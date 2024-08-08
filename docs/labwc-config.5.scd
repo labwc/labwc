@@ -696,7 +696,7 @@ extending outward from the snapped edge.
 
 *<tablet rotate="" />* [0|90|180|270]
 	The tablet orientation can be changed in 90 degree steps. Default is
-	no rotation (0). Rotation will be applied after applying tablet area
+	no rotation (0). Rotation will be applied before applying tablet area
 	transformation.
 
 	See also *calibrationMatrix* in libinput section below for advanced

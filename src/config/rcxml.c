@@ -965,6 +965,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.screen_edge_strength = atoi(content);
 	} else if (!strcasecmp(nodename, "windowEdgeStrength.resistance")) {
 		rc.window_edge_strength = atoi(content);
+	} else if (!strcasecmp(nodename, "unSnapThreshold.resistance")) {
+		rc.unsnap_threshold = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
 		rc.snap_edge_range = atoi(content);
 	} else if (!strcasecmp(nodename, "enabled.overlay.snapping")) {
@@ -987,8 +989,6 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "ignoring invalid value for notifyClient");
 		}
-	} else if (!strcasecmp(nodename, "dragResistance.snapping")) {
-		rc.snap_drag_resistance = atoi(content);
 
 	/* <windowSwitcher show="" preview="" outlines="" /> */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
@@ -1289,6 +1289,7 @@ rcxml_init(void)
 	rc.kb_layout_per_window = false;
 	rc.screen_edge_strength = 20;
 	rc.window_edge_strength = 20;
+	rc.unsnap_threshold = 20;
 
 	rc.snap_edge_range = 1;
 	rc.snap_overlay_enabled = true;
@@ -1296,7 +1297,6 @@ rcxml_init(void)
 	rc.snap_overlay_delay_outer = 500;
 	rc.snap_top_maximize = true;
 	rc.snap_tiling_events_mode = LAB_TILING_EVENTS_ALWAYS;
-	rc.snap_drag_resistance = 20;
 
 	rc.window_switcher.show = true;
 	rc.window_switcher.preview = true;

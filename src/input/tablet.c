@@ -236,7 +236,7 @@ notify_motion(struct drawing_tablet *tablet, struct drawing_tablet_tool *tool,
 }
 
 static void
-handle_proximity(struct wl_listener *listener, void *data)
+handle_tablet_tool_proximity(struct wl_listener *listener, void *data)
 {
 	struct wlr_tablet_tool_proximity_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
@@ -286,7 +286,7 @@ handle_proximity(struct wl_listener *listener, void *data)
 static bool is_down_mouse_emulation = false;
 
 static void
-handle_axis(struct wl_listener *listener, void *data)
+handle_tablet_tool_axis(struct wl_listener *listener, void *data)
 {
 	struct wlr_tablet_tool_axis_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
@@ -460,7 +460,7 @@ seat_pointer_end_grab(struct drawing_tablet_tool *tool,
 }
 
 static void
-handle_tip(struct wl_listener *listener, void *data)
+handle_tablet_tool_tip(struct wl_listener *listener, void *data)
 {
 	struct wlr_tablet_tool_tip_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
@@ -535,7 +535,7 @@ handle_tip(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_button(struct wl_listener *listener, void *data)
+handle_tablet_tool_button(struct wl_listener *listener, void *data)
 {
 	struct wlr_tablet_tool_button_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
@@ -604,10 +604,10 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&tablet->link);
 	tablet_pad_attach_tablet(tablet->seat);
 
-	wl_list_remove(&tablet->handlers.tip.link);
-	wl_list_remove(&tablet->handlers.button.link);
-	wl_list_remove(&tablet->handlers.proximity.link);
-	wl_list_remove(&tablet->handlers.axis.link);
+	wl_list_remove(&tablet->handlers.tablet_tool_tip.link);
+	wl_list_remove(&tablet->handlers.tablet_tool_button.link);
+	wl_list_remove(&tablet->handlers.tablet_tool_proximity.link);
+	wl_list_remove(&tablet->handlers.tablet_tool_axis.link);
 	wl_list_remove(&tablet->handlers.destroy.link);
 	free(tablet);
 }
@@ -636,10 +636,10 @@ tablet_init(struct seat *seat, struct wlr_input_device *wlr_device)
 	tablet->wheel_delta = 0.0;
 	wlr_log(WLR_INFO, "tablet dimensions: %.2fmm x %.2fmm",
 		tablet->tablet->width_mm, tablet->tablet->height_mm);
-	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, axis);
-	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, proximity);
-	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, tip);
-	CONNECT_SIGNAL(tablet->tablet, &tablet->handlers, button);
+	CONNECT_SIGNAL(seat->cursor, &tablet->handlers, tablet_tool_axis);
+	CONNECT_SIGNAL(seat->cursor, &tablet->handlers, tablet_tool_proximity);
+	CONNECT_SIGNAL(seat->cursor, &tablet->handlers, tablet_tool_tip);
+	CONNECT_SIGNAL(seat->cursor, &tablet->handlers, tablet_tool_button);
 	CONNECT_SIGNAL(wlr_device, &tablet->handlers, destroy);
 
 	wl_list_insert(&seat->tablets, &tablet->link);

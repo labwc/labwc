@@ -60,13 +60,13 @@
 
 ##
 ## This allows xdg-desktop-portal-wlr to function (e.g. for screen-recording).
-## It is automatically set to "wlroots" by labwc though, so it is only
+## It is automatically set to "labwc:wlroots" by labwc though, so it is only
 ## included here for completeness. Again, labwc will not over-write an
 ## already set environment variable, so if you need it set to something else,
 ## then uncomment and adjust.
 ##
 
-# XDG_CURRENT_DESKTOP=wlroots
+# XDG_CURRENT_DESKTOP=labwc:wlroots
 
 ##
 ## This causes a virtual output to be created automatically whenever there

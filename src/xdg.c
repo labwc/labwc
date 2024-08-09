@@ -785,10 +785,17 @@ xdg_activation_handle_request(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (!token_data->had_valid_surface) {
-		wlr_log(WLR_INFO, "Denying focus request, source surface not set");
-		return;
-	}
+	/*
+	 * TODO: The verification of source surface is temporarily disabled to
+	 * allow activation of some clients (e.g. thunderbird). Reland this
+	 * check when we implement the configuration for activation policy or
+	 * urgency hints.
+	 *
+	 * if (!token_data->had_valid_surface) {
+	 *	wlr_log(WLR_INFO, "Denying focus request, source surface not set");
+	 *	return;
+	 * }
+	 */
 
 	if (window_rules_get_property(view, "ignoreFocusRequest") == LAB_PROP_TRUE) {
 		wlr_log(WLR_INFO, "Ignoring focus request due to window rule configuration");

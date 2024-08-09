@@ -20,6 +20,9 @@ font_to_pango_desc(struct font *font)
 	if (font->slant == FONT_SLANT_ITALIC) {
 		pango_font_description_set_style(desc, PANGO_STYLE_ITALIC);
 	}
+	if (font->slant == FONT_SLANT_OBLIQUE) {
+		pango_font_description_set_style(desc, PANGO_STYLE_OBLIQUE);
+	}
 	if (font->weight == FONT_WEIGHT_BOLD) {
 		pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
 	}

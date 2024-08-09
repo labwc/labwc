@@ -27,6 +27,12 @@ struct menu_scene {
 	struct scaled_font_buffer *buffer;
 };
 
+enum menuitem_type {
+	LAB_MENU_ITEM = 0,
+	LAB_MENU_SEPARATOR_LINE,
+	LAB_MENU_TITLE,
+};
+
 struct menuitem {
 	struct wl_list actions;
 	char *execute;
@@ -34,11 +40,13 @@ struct menuitem {
 	struct menu *parent;
 	struct menu *submenu;
 	bool selectable;
+	enum menuitem_type type;
 	int height;
 	int native_width;
 	struct wlr_scene_tree *tree;
 	struct menu_scene normal;
 	struct menu_scene selected;
+	struct view *client_list_view;  /* used by internal client-list */
 	struct wl_list link; /* menu.menuitems */
 };
 

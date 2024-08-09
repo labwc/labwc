@@ -448,6 +448,7 @@ extending outward from the snapped edge.
 	- ActiveWindow - titlebar of active window
 	- InactiveWindow - titlebar of all windows that aren't focused by the
 	  cursor
+	- MenuHeader - menu header font ie separator labels
 	- MenuItem - menu item (currently only root menu)
 	- OnScreenDisplay - items in the on screen display
 	If no place attribute is provided, the setting will be applied to all
@@ -460,7 +461,7 @@ extending outward from the snapped edge.
 	Font size in pixels. Default is 10.
 
 *<theme><font place=""><slant>*
-	Font slant (normal or italic). Default is normal.
+	Font slant (normal, oblique or italic). Default is normal.
 
 *<theme><font place=""><weight>*
 	Font weight (normal or bold). Default is normal.
@@ -497,6 +498,19 @@ extending outward from the snapped edge.
 	Let the application redraw its contents while resizing. If disabled, an
 	outlined rectangle is shown to indicate the geometry of resized window.
 	Default is yes.
+
+*<resize><popupPosition>* see rc.xml.all for example
+	Let the menu placement be set by x,y coordinates, if set then the
+	atCursor placement is overridden, except for the client-menu, which
+	is constrained to the view. Default is not enabled.
+
+	Note: openbox allows 'Center', 'Top', or 'Fixed' we only use Fixed.
+
+*<resize><popupFixedPosition>*
+	set x, y coordinates for menu placement
+	- x,y accept positive offsets only.
+	- 0,0 places menu at top left corner of desktop
+	- monitor width -1, monitor height -1 places menu at bottom right.
 
 ## KEYBOARD
 

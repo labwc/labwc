@@ -80,6 +80,7 @@ struct rcxml {
 	bool shadows_enabled;
 	struct font font_activewindow;
 	struct font font_inactivewindow;
+	struct font font_menuheader;
 	struct font font_menuitem;
 	struct font font_osd;
 
@@ -136,6 +137,11 @@ struct rcxml {
 
 	enum resize_indicator_mode resize_indicator;
 	bool resize_draw_contents;
+	bool resize_popup_position; /* x,y placement for menu */
+	struct {
+		int x;
+		int y;
+	} resize_popup_fixed_position;
 
 	struct {
 		int popuptime;

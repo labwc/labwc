@@ -176,6 +176,15 @@ ssd_resize_edges(enum ssd_part_type type)
 	}
 }
 
+static int
+get_button_width(int view_width)
+{
+	/* view_width may be 0 if view isn't mapped yet */
+	int theme_button_width = rc.theme->window_button_width;
+	return (view_width > 0 && view_width < theme_button_width * SSD_BUTTON_COUNT)
+		? view_width / SSD_BUTTON_COUNT : theme_button_width;
+}
+
 struct ssd *
 ssd_create(struct view *view, bool active)
 {
@@ -186,6 +195,7 @@ ssd_create(struct view *view, bool active)
 	ssd->tree = wlr_scene_tree_create(view->scene_tree);
 	wlr_scene_node_lower_to_bottom(&ssd->tree->node);
 	ssd->titlebar.height = view->server->theme->title_height;
+	ssd->titlebar.button_width = get_button_width(view->current.width);
 	ssd_shadow_create(ssd);
 	ssd_extents_create(ssd);
 	/*
@@ -223,6 +233,21 @@ ssd_update_margin(struct ssd *ssd)
 	ssd->margin = ssd_thickness(ssd->view);
 }
 
+/*
+ * Clears pointers to this view's SSD from the global hover state.
+ * Must be called before the SSD or any buttons are destroyed.
+ */
+static void
+ssd_reset_hover_state(struct ssd *ssd)
+{
+	struct ssd_hover_state *hover_state =
+		ssd->view->server->ssd_hover_state;
+	if (hover_state->view == ssd->view) {
+		hover_state->view = NULL;
+		hover_state->button = NULL;
+	}
+}
+
 void
 ssd_update_geometry(struct ssd *ssd)
 {
@@ -233,19 +258,8 @@ ssd_update_geometry(struct ssd *ssd)
 	struct wlr_box cached = ssd->state.geometry;
 	struct wlr_box current = ssd->view->current;
 
-	int min_view_width = rc.theme->window_button_width * SSD_BUTTON_COUNT;
 	int eff_width = current.width;
 	int eff_height = view_effective_height(ssd->view, /* use_pending */ false);
-
-	if (eff_width > 0 && eff_width < min_view_width) {
-		/*
-		 * Prevent negative values in calculations like
-		 * `width - SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT`
-		 */
-		wlr_log(WLR_ERROR,
-			"view width is smaller than its minimal value");
-		return;
-	}
 
 	if (eff_width == cached.width && eff_height == cached.height) {
 		if (current.x != cached.x || current.y != cached.y) {
@@ -274,6 +288,22 @@ ssd_update_geometry(struct ssd *ssd)
 		}
 		return;
 	}
+
+	/*
+	 * Rather than resizing/re-rendering individual buttons and
+	 * icons in ssd_titlebar_update(), it's simpler to just recreate
+	 * them all. This case is only hit for abnormally small views,
+	 * so it's probably not worth optimizing further.
+	 */
+	int button_width = get_button_width(current.width);
+	if (button_width != ssd->titlebar.button_width) {
+		/* Reset hover state before recreating buttons */
+		ssd_reset_hover_state(ssd);
+		ssd_titlebar_destroy(ssd);
+		ssd->titlebar.button_width = button_width;
+		ssd_titlebar_create(ssd);
+	}
+
 	ssd_extents_update(ssd);
 	ssd_titlebar_update(ssd);
 	ssd_border_update(ssd);
@@ -302,16 +332,9 @@ ssd_destroy(struct ssd *ssd)
 		return;
 	}
 
-	/* Maybe reset hover view */
-	struct view *view = ssd->view;
-	struct ssd_hover_state *hover_state;
-	hover_state = view->server->ssd_hover_state;
-	if (hover_state->view == view) {
-		hover_state->view = NULL;
-		hover_state->button = NULL;
-	}
-
 	/* Destroy subcomponents */
+	/* Reset hover state before destroying */
+	ssd_reset_hover_state(ssd);
 	ssd_titlebar_destroy(ssd);
 	ssd_border_destroy(ssd);
 	ssd_extents_destroy(ssd);

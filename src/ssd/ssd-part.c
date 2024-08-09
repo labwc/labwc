@@ -82,7 +82,7 @@ struct ssd_part *
 add_scene_button_corner(struct wl_list *part_list, enum ssd_part_type type,
 		enum ssd_part_type corner_type, struct wlr_scene_tree *parent,
 		struct wlr_buffer *corner_buffer, struct wlr_buffer *icon_buffer,
-		struct wlr_buffer *hover_buffer, int x, struct view *view)
+		struct wlr_buffer *hover_buffer, int x, int width, struct view *view)
 {
 	int offset_x;
 	float invisible[4] = { 0, 0, 0, 0 };
@@ -106,17 +106,29 @@ add_scene_button_corner(struct wl_list *part_list, enum ssd_part_type type,
 	 * Background, x and y adjusted for border_width which is
 	 * already included in rendered theme.c / corner_buffer
 	 */
-	add_scene_buffer(part_list, corner_type, parent, corner_buffer,
-		-offset_x, -rc.theme->border_width);
+	struct ssd_part *corner_part =
+		add_scene_buffer(part_list, corner_type, parent, corner_buffer,
+			-offset_x, -rc.theme->border_width);
+
+	/*
+	 * Scale down corner if needed for very small views. The
+	 * rendering will not be perfect, but this is an abnormal case
+	 * so we probably don't care.
+	 */
+	wlr_scene_buffer_set_dest_size(
+		wlr_scene_buffer_from_node(corner_part->node),
+		width + rc.theme->border_width,
+		rc.theme->title_height + rc.theme->border_width);
 
 	/* Finally just put a usual theme button on top, using an invisible hitbox */
-	add_scene_button(part_list, type, parent, invisible, icon_buffer, hover_buffer, 0, view);
+	add_scene_button(part_list, type, parent, invisible, icon_buffer,
+		hover_buffer, 0, width, view);
 	return button_root;
 }
 
 static struct wlr_box
 get_scale_box(struct wlr_buffer *buffer, double container_width,
-		double container_height)
+		double container_height, double max_scale)
 {
 	struct wlr_box icon_geo = {
 		.width = buffer->width,
@@ -127,6 +139,7 @@ get_scale_box(struct wlr_buffer *buffer, double container_width,
 	if (icon_geo.width && icon_geo.height) {
 		double scale = MIN(container_width / icon_geo.width,
 			container_height / icon_geo.height);
+		scale = MIN(scale, max_scale);
 		if (scale < 1.0f) {
 			icon_geo.width = (double)icon_geo.width * scale;
 			icon_geo.height = (double)icon_geo.height * scale;
@@ -144,7 +157,7 @@ struct ssd_part *
 add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		struct wlr_scene_tree *parent, float *bg_color,
 		struct wlr_buffer *icon_buffer, struct wlr_buffer *hover_buffer,
-		int x, struct view *view)
+		int x, int width, struct view *view)
 {
 	struct ssd_part *button_root = add_scene_part(part_list, type);
 	parent = wlr_scene_tree_create(parent);
@@ -153,13 +166,19 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 
 	/* Background */
 	struct ssd_part *bg_rect = add_scene_rect(part_list, type, parent,
-		rc.theme->window_button_width, rc.theme->title_height, 0, 0,
-		bg_color);
+		width, rc.theme->title_height, 0, 0, bg_color);
 
 	/* Icon */
 	struct wlr_scene_tree *icon_tree = wlr_scene_tree_create(parent);
+	/*
+	 * Always scale icon down proportionally if the button is
+	 * narrowed from the default (as for a very small view). The
+	 * hover icon is already pre-rendered in a default-size buffer
+	 * and so doesn't need this extra step.
+	 */
+	double max_icon_scale = (double)width / rc.theme->window_button_width;
 	struct wlr_box icon_geo = get_scale_box(icon_buffer,
-		rc.theme->window_button_width, rc.theme->title_height);
+		width, rc.theme->title_height, max_icon_scale);
 	struct ssd_part *icon_part = add_scene_buffer(part_list, type,
 		icon_tree, icon_buffer, icon_geo.x, icon_geo.y);
 
@@ -172,7 +191,7 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 	struct wlr_scene_tree *hover_tree = wlr_scene_tree_create(parent);
 	wlr_scene_node_set_enabled(&hover_tree->node, false);
 	struct wlr_box hover_geo = get_scale_box(hover_buffer,
-		rc.theme->window_button_width, rc.theme->title_height);
+		width, rc.theme->title_height, /*max_scale*/ 1.0);
 	struct ssd_part *hover_part = add_scene_buffer(part_list, type,
 		hover_tree, hover_buffer, hover_geo.x, hover_geo.y);
 
@@ -197,11 +216,18 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 void
 add_toggled_icon(struct ssd_button *button, struct wl_list *part_list,
 		enum ssd_part_type type, struct wlr_buffer *icon_buffer,
-		struct wlr_buffer *hover_buffer)
+		struct wlr_buffer *hover_buffer, int width)
 {
 	/* Alternate icon */
+	/*
+	 * Always scale icon down proportionally if the button is
+	 * narrowed from the default (as for a very small view). The
+	 * hover icon is already pre-rendered in a default-size buffer
+	 * and so doesn't need this extra step.
+	 */
+	double max_icon_scale = (double)width / rc.theme->window_button_width;
 	struct wlr_box icon_geo = get_scale_box(icon_buffer,
-		rc.theme->window_button_width, rc.theme->title_height);
+		width, rc.theme->title_height, max_icon_scale);
 
 	struct ssd_part *alticon_part = add_scene_buffer(part_list, type,
 		button->icon_tree, icon_buffer, icon_geo.x, icon_geo.y);
@@ -213,7 +239,7 @@ add_toggled_icon(struct ssd_button *button, struct wl_list *part_list,
 	wlr_scene_node_set_enabled(alticon_part->node, false);
 
 	struct wlr_box hover_geo = get_scale_box(hover_buffer,
-		rc.theme->window_button_width, rc.theme->title_height);
+		width, rc.theme->title_height, /*max_scale*/ 1.0);
 	struct ssd_part *althover_part = add_scene_buffer(part_list, type,
 		button->hover_tree, hover_buffer, hover_geo.x, hover_geo.y);
 

@@ -17,7 +17,7 @@ struct drawing_tablet_tool {
 	struct wl_list link; /* seat.tablet_tools */
 };
 
-void tablet_tool_init(struct seat *seat,
+void tablet_tool_create(struct seat *seat,
 	struct wlr_tablet_tool *wlr_tablet_tool);
 bool tablet_tool_has_focused_surface(struct seat *seat);
 

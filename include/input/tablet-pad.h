@@ -36,7 +36,7 @@ struct drawing_tablet_pad {
 	struct wl_list link; /* seat.tablet_pads */
 };
 
-void tablet_pad_init(struct seat *seat, struct wlr_input_device *wlr_input_device);
+void tablet_pad_create(struct seat *seat, struct wlr_input_device *wlr_input_device);
 void tablet_pad_attach_tablet(struct seat *seat);
 void tablet_pad_enter_surface(struct seat *seat, struct wlr_surface *wlr_surface);
 

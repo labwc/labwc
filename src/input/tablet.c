@@ -266,7 +266,7 @@ handle_tablet_tool_proximity(struct wl_listener *listener, void *data)
 		 * Unfortunately `wlr_tool` is only present in the events, so
 		 * use proximity for creating a `wlr_tablet_v2_tablet_tool`.
 		 */
-		tablet_tool_init(tablet->seat, ev->tool);
+		tablet_tool_create(tablet->seat, ev->tool);
 	}
 
 	/*
@@ -604,16 +604,12 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&tablet->link);
 	tablet_pad_attach_tablet(tablet->seat);
 
-	wl_list_remove(&tablet->handlers.tablet_tool_tip.link);
-	wl_list_remove(&tablet->handlers.tablet_tool_button.link);
-	wl_list_remove(&tablet->handlers.tablet_tool_proximity.link);
-	wl_list_remove(&tablet->handlers.tablet_tool_axis.link);
 	wl_list_remove(&tablet->handlers.destroy.link);
 	free(tablet);
 }
 
 void
-tablet_init(struct seat *seat, struct wlr_input_device *wlr_device)
+tablet_create(struct seat *seat, struct wlr_input_device *wlr_device)
 {
 	wlr_log(WLR_DEBUG, "setting up tablet");
 	struct drawing_tablet *tablet = znew(*tablet);
@@ -636,12 +632,26 @@ tablet_init(struct seat *seat, struct wlr_input_device *wlr_device)
 	tablet->wheel_delta = 0.0;
 	wlr_log(WLR_INFO, "tablet dimensions: %.2fmm x %.2fmm",
 		tablet->tablet->width_mm, tablet->tablet->height_mm);
-	CONNECT_SIGNAL(seat->cursor, &tablet->handlers, tablet_tool_axis);
-	CONNECT_SIGNAL(seat->cursor, &tablet->handlers, tablet_tool_proximity);
-	CONNECT_SIGNAL(seat->cursor, &tablet->handlers, tablet_tool_tip);
-	CONNECT_SIGNAL(seat->cursor, &tablet->handlers, tablet_tool_button);
 	CONNECT_SIGNAL(wlr_device, &tablet->handlers, destroy);
 
 	wl_list_insert(&seat->tablets, &tablet->link);
 	tablet_pad_attach_tablet(tablet->seat);
+}
+
+void
+tablet_init(struct seat *seat)
+{
+	CONNECT_SIGNAL(seat->cursor, seat, tablet_tool_axis);
+	CONNECT_SIGNAL(seat->cursor, seat, tablet_tool_proximity);
+	CONNECT_SIGNAL(seat->cursor, seat, tablet_tool_tip);
+	CONNECT_SIGNAL(seat->cursor, seat, tablet_tool_button);
+}
+
+void
+tablet_finish(struct seat *seat)
+{
+	wl_list_remove(&seat->tablet_tool_axis.link);
+	wl_list_remove(&seat->tablet_tool_proximity.link);
+	wl_list_remove(&seat->tablet_tool_tip.link);
+	wl_list_remove(&seat->tablet_tool_button.link);
 }

@@ -2,6 +2,7 @@
 #include <wayland-util.h>
 #include <wlr/types/wlr_touch.h>
 #include <linux/input-event-codes.h>
+#include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "idle.h"
@@ -9,7 +10,6 @@
 #include "labwc.h"
 #include "config/mousebind.h"
 #include "action.h"
-#include "view.h"
 
 /* Holds layout -> surface offsets to report motion events in relative coords */
 struct touch_point {
@@ -46,7 +46,7 @@ touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
 }
 
 static void
-touch_motion(struct wl_listener *listener, void *data)
+handle_touch_motion(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, touch_motion);
 	struct wlr_touch_motion_event *event = data;
@@ -78,7 +78,7 @@ touch_motion(struct wl_listener *listener, void *data)
 }
 
 static void
-touch_frame(struct wl_listener *listener, void *data)
+handle_touch_frame(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, touch_frame);
 
@@ -86,7 +86,7 @@ touch_frame(struct wl_listener *listener, void *data)
 }
 
 static void
-touch_down(struct wl_listener *listener, void *data)
+handle_touch_down(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, touch_down);
 	struct wlr_touch_down_event *event = data;
@@ -133,7 +133,7 @@ touch_down(struct wl_listener *listener, void *data)
 }
 
 static void
-touch_up(struct wl_listener *listener, void *data)
+handle_touch_up(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, touch_up);
 	struct wlr_touch_up_event *event = data;
@@ -159,14 +159,10 @@ touch_up(struct wl_listener *listener, void *data)
 void
 touch_init(struct seat *seat)
 {
-	seat->touch_down.notify = touch_down;
-	wl_signal_add(&seat->cursor->events.touch_down, &seat->touch_down);
-	seat->touch_up.notify = touch_up;
-	wl_signal_add(&seat->cursor->events.touch_up, &seat->touch_up);
-	seat->touch_motion.notify = touch_motion;
-	wl_signal_add(&seat->cursor->events.touch_motion, &seat->touch_motion);
-	seat->touch_frame.notify = touch_frame;
-	wl_signal_add(&seat->cursor->events.touch_frame, &seat->touch_frame);
+	CONNECT_SIGNAL(seat->cursor, seat, touch_down);
+	CONNECT_SIGNAL(seat->cursor, seat, touch_up);
+	CONNECT_SIGNAL(seat->cursor, seat, touch_motion);
+	CONNECT_SIGNAL(seat->cursor, seat, touch_frame);
 }
 
 void

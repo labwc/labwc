@@ -192,6 +192,11 @@ struct seat {
 	struct wl_listener touch_motion;
 	struct wl_listener touch_frame;
 
+	struct wl_listener tablet_tool_proximity;
+	struct wl_listener tablet_tool_axis;
+	struct wl_listener tablet_tool_tip;
+	struct wl_listener tablet_tool_button;
+
 	struct wl_list tablets;
 	struct wl_list tablet_tools;
 	struct wl_list tablet_pads;

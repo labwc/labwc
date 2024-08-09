@@ -13,12 +13,13 @@
 #include "common/scene-helpers.h"
 #include "common/surface-helpers.h"
 #include "config/mousebind.h"
+#include "config/tablet-tool.h"
 #include "dnd.h"
 #include "idle.h"
 #include "input/gestures.h"
 #include "input/touch.h"
+#include "input/tablet.h"
 #include "input/tablet-tool.h"
-#include "input/tablet-pad.h"
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
@@ -1450,6 +1451,8 @@ cursor_init(struct seat *seat)
 	gestures_init(seat);
 	touch_init(seat);
 
+	tablet_init(seat);
+
 	seat->request_cursor.notify = request_cursor_notify;
 	wl_signal_add(&seat->seat->events.request_set_cursor,
 		&seat->request_cursor);
@@ -1487,6 +1490,8 @@ void cursor_finish(struct seat *seat)
 
 	gestures_finish(seat);
 	touch_finish(seat);
+
+	tablet_finish(seat);
 
 	wl_list_remove(&seat->request_cursor.link);
 	wl_list_remove(&seat->request_set_shape.link);

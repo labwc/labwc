@@ -367,7 +367,7 @@ new_tablet(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct input *input = znew(*input);
 	input->wlr_input_device = dev;
-	tablet_init(seat, dev);
+	tablet_create(seat, dev);
 	wlr_cursor_attach_input_device(seat->cursor, dev);
 	wlr_log(WLR_INFO, "map tablet to output %s\n", rc.tablet.output_name);
 	map_input_to_output(seat, dev, rc.tablet.output_name);
@@ -380,7 +380,7 @@ new_tablet_pad(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct input *input = znew(*input);
 	input->wlr_input_device = dev;
-	tablet_pad_init(seat, dev);
+	tablet_pad_create(seat, dev);
 
 	return input;
 }

@@ -175,7 +175,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 }
 
 void
-tablet_pad_init(struct seat *seat, struct wlr_input_device *wlr_device)
+tablet_pad_create(struct seat *seat, struct wlr_input_device *wlr_device)
 {
 	wlr_log(WLR_DEBUG, "setting up tablet pad");
 	struct drawing_tablet_pad *pad = znew(*pad);

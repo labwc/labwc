@@ -23,15 +23,13 @@ struct drawing_tablet {
 	double slider;
 	double wheel_delta;
 	struct {
-		struct wl_listener tablet_tool_proximity;
-		struct wl_listener tablet_tool_axis;
-		struct wl_listener tablet_tool_tip;
-		struct wl_listener tablet_tool_button;
 		struct wl_listener destroy;
 	} handlers;
 	struct wl_list link; /* seat.tablets */
 };
 
-void tablet_init(struct seat *seat, struct wlr_input_device *wlr_input_device);
+void tablet_init(struct seat *seat);
+void tablet_finish(struct seat *seat);
+void tablet_create(struct seat *seat, struct wlr_input_device *wlr_input_device);
 
 #endif /* LABWC_TABLET_H */

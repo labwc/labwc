@@ -3,6 +3,7 @@
 #include "config.h"
 #include <signal.h>
 #include <string.h>
+#include <fcntl.h>
 #include <sys/wait.h>
 #include <wlr/backend/headless.h>
 #include <wlr/backend/multi.h>
@@ -553,10 +554,19 @@ server_init(struct server *server)
 }
 
 void
-server_start(struct server *server)
+server_start(struct server *server, const char* socket_name, int socket_fd)
 {
 	/* Add a Unix socket to the Wayland display. */
-	const char *socket = wl_display_add_socket_auto(server->wl_display);
+	const char *socket = NULL;
+	if (socket_name && socket_fd != -1) {
+		fcntl(socket_fd, F_SETFD, FD_CLOEXEC);
+		if (wl_display_add_socket_fd(server->wl_display, socket_fd) >= 0) {
+			socket = socket_name;
+		}
+	} else {
+		socket = wl_display_add_socket_auto(server->wl_display);
+	}
+
 	if (!socket) {
 		wlr_log_errno(WLR_ERROR, "unable to open wayland socket");
 		exit(EXIT_FAILURE);

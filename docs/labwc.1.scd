@@ -75,6 +75,12 @@ the `--exit` and `--reconfigure` options use.
 *-V, --verbose*
 	Enable more verbose logging
 
+*--socket* <name>
+	Sets the Wayland socket name (for Wayland socket handover)
+
+*--wayland-fd* <fd>
+	Sets the Wayland socket file descriptor (for Wayland socket handover)
+
 # SESSION MANAGEMENT
 
 To enable the use of graphical clients launched via D-Bus or systemd service

@@ -544,7 +544,7 @@ void output_enable_adaptive_sync(struct wlr_output *output, bool enabled);
 void new_tearing_hint(struct wl_listener *listener, void *data);
 
 void server_init(struct server *server);
-void server_start(struct server *server);
+void server_start(struct server *server, const char *socket_name, int socket_fd);
 void server_finish(struct server *server);
 
 void create_constraint(struct wl_listener *listener, void *data);

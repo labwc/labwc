@@ -27,6 +27,8 @@ static const struct option long_options[] = {
 	{"session", required_argument, NULL, 'S'},
 	{"version", no_argument, NULL, 'v'},
 	{"verbose", no_argument, NULL, 'V'},
+	{"socket", required_argument, NULL, 'w'},
+	{"wayland-fd", required_argument, NULL, 'W'},
 	{0, 0, 0, 0}
 };
 
@@ -42,7 +44,9 @@ static const char labwc_usage[] =
 "  -s, --startup <command>  Run command on startup\n"
 "  -S, --session <command>  Run command on startup and terminate on exit\n"
 "  -v, --version            Show version number and quit\n"
-"  -V, --verbose            Enable more verbose logging\n";
+"  -V, --verbose            Enable more verbose logging\n"
+"      --socket <name>      Sets the Wayland socket name (for Wayland socket handover)\n"
+"      --wayland-fd <fd>    Sets the Wayland socket fd (for Wayland socket handover)\n";
 
 static void
 usage(void)
@@ -114,6 +118,8 @@ main(int argc, char *argv[])
 {
 	char *startup_cmd = NULL;
 	char *primary_client = NULL;
+	char *socket_name = NULL;
+	int socket_fd = -1;
 	enum wlr_log_importance verbosity = WLR_ERROR;
 
 	int c;
@@ -153,6 +159,12 @@ main(int argc, char *argv[])
 			exit(0);
 		case 'V':
 			verbosity = WLR_INFO;
+			break;
+		case 'w':
+			socket_name = optarg;
+			break;
+		case 'W':
+			socket_fd = atoi(optarg);
 			break;
 		case 'h':
 		default:
@@ -196,11 +208,20 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	/* Fail if only one of --socket and --wayland-fd are given */
+	if (!socket_name ^ (socket_fd == -1)) {
+		wlr_log(WLR_ERROR,
+				"both --socket and --wayland-fd are required "
+				"for Wayland socket handover, but only one was "
+				"provided\n");
+		exit(EXIT_FAILURE);
+	}
+
 	increase_nofile_limit();
 
 	struct server server = { 0 };
 	server_init(&server);
-	server_start(&server);
+	server_start(&server, socket_name, socket_fd);
 
 	struct theme theme = { 0 };
 	theme_init(&theme, &server, rc.theme_name);

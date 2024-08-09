@@ -71,6 +71,8 @@ enum input_mode {
 struct input {
 	struct wlr_input_device *wlr_input_device;
 	struct seat *seat;
+	/* Set for pointer/touch devices */
+	double scroll_factor;
 	struct wl_listener destroy;
 	struct wl_list link; /* seat.inputs */
 };

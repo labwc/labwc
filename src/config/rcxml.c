@@ -63,6 +63,8 @@ static struct window_rule *current_window_rule;
 static struct action *current_window_rule_action;
 static struct view_query *current_view_query;
 static struct action *current_child_action;
+/* for backword compatibility of <mouse><scrollFactor> */
+static double mouse_scroll_factor = -1;
 
 enum font_place {
 	FONT_PLACE_NONE = 0,
@@ -679,6 +681,8 @@ fill_libinput_category(char *nodename, char *content)
 			current_libinput_category->have_calibration_matrix = false;
 		}
 		g_strfreev(elements);
+	} else if (!strcasecmp(nodename, "scrollFactor")) {
+		set_double(content, &current_libinput_category->scroll_factor);
 	}
 }
 
@@ -944,7 +948,8 @@ entry(xmlNode *node, char *nodename, char *content)
 			wlr_log(WLR_ERROR, "invalid doubleClickTime");
 		}
 	} else if (!strcasecmp(nodename, "scrollFactor.mouse")) {
-		set_double(content, &rc.scroll_factor);
+		/* This is deprecated. Show an error message in post_processing() */
+		set_double(content, &mouse_scroll_factor);
 	} else if (!strcasecmp(nodename, "name.context.mouse")) {
 		current_mouse_context = content;
 		current_mousebind = NULL;
@@ -1273,7 +1278,6 @@ rcxml_init(void)
 	rc.raise_on_focus = false;
 
 	rc.doubleclick_time = 500;
-	rc.scroll_factor = 1.0;
 
 	rc.tablet.force_mouse_emulation = false;
 	rc.tablet.output_name = NULL;
@@ -1517,11 +1521,20 @@ post_processing(void)
 		rc.font_osd.name = xstrdup("sans");
 	}
 	if (!libinput_category_get_default()) {
-		/* So we still allow tap to click by default */
+		/* So we set default values of <tap> and <scrollFactor> */
 		struct libinput_category *l = libinput_category_create();
 		/* Prevents unused variable warning when compiled without asserts */
 		(void)l;
 		assert(l && libinput_category_get_default() == l);
+	}
+	if (mouse_scroll_factor >= 0) {
+		wlr_log(WLR_ERROR, "<mouse><scrollFactor> is deprecated"
+				" and overwrites <libinput><scrollFactor>."
+				" Use only <libinput><scrollFactor>.");
+		struct libinput_category *l;
+		wl_list_for_each(l, &rc.libinput_categories, link) {
+			l->scroll_factor = mouse_scroll_factor;
+		}
 	}
 
 	int nr_workspaces = wl_list_length(&rc.workspace_config.workspaces);
@@ -1794,4 +1807,5 @@ rcxml_finish(void)
 	current_field = NULL;
 	current_window_rule = NULL;
 	current_window_rule_action = NULL;
+	mouse_scroll_factor = -1;
 }

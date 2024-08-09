@@ -26,6 +26,7 @@ libinput_category_init(struct libinput_category *l)
 	l->click_method = -1;
 	l->send_events_mode = -1;
 	l->have_calibration_matrix = false;
+	l->scroll_factor = 1.0;
 }
 
 enum lab_libinput_device_type

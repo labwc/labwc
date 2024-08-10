@@ -241,6 +241,10 @@ handle_tablet_tool_proximity(struct wl_listener *listener, void *data)
 	struct wlr_tablet_tool_proximity_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
 	struct drawing_tablet_tool *tool = ev->tool->data;
+	if (!tablet) {
+		wlr_log(WLR_DEBUG, "tool proximity event before tablet create");
+		return;
+	}
 
 	if (ev->state == WLR_TABLET_TOOL_PROXIMITY_IN) {
 		tablet->motion_mode =
@@ -291,6 +295,10 @@ handle_tablet_tool_axis(struct wl_listener *listener, void *data)
 	struct wlr_tablet_tool_axis_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
 	struct drawing_tablet_tool *tool = ev->tool->data;
+	if (!tablet) {
+		wlr_log(WLR_DEBUG, "tool axis event before tablet create");
+		return;
+	}
 
 	/*
 	 * Reset relative coordinates. If those axes aren't updated,
@@ -465,6 +473,10 @@ handle_tablet_tool_tip(struct wl_listener *listener, void *data)
 	struct wlr_tablet_tool_tip_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
 	struct drawing_tablet_tool *tool = ev->tool->data;
+	if (!tablet) {
+		wlr_log(WLR_DEBUG, "tool tip event before tablet create");
+		return;
+	}
 
 	double x, y, dx, dy;
 	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y, &dx, &dy);
@@ -540,6 +552,10 @@ handle_tablet_tool_button(struct wl_listener *listener, void *data)
 	struct wlr_tablet_tool_button_event *ev = data;
 	struct drawing_tablet *tablet = ev->tablet->data;
 	struct drawing_tablet_tool *tool = ev->tool->data;
+	if (!tablet) {
+		wlr_log(WLR_DEBUG, "tool button event before tablet create");
+		return;
+	}
 
 	double x, y, dx, dy;
 	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y, &dx, &dy);

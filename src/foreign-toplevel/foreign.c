@@ -57,6 +57,7 @@ foreign_toplevel_create(struct view *view)
 	wl_signal_init(&toplevel->events.toplevel_destroy);
 
 	wlr_foreign_toplevel_init(toplevel);
+	ext_foreign_toplevel_init(toplevel);
 
 	return toplevel;
 }
@@ -74,5 +75,6 @@ foreign_toplevel_destroy(struct foreign_toplevel *toplevel)
 	assert(toplevel);
 	wl_signal_emit_mutable(&toplevel->events.toplevel_destroy, NULL);
 	assert(!toplevel->wlr_toplevel.handle);
+	assert(!toplevel->ext_toplevel.handle);
 	free(toplevel);
 }

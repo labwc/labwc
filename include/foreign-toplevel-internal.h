@@ -42,6 +42,27 @@ struct foreign_toplevel {
 
 	} wlr_toplevel;
 
+	struct ext_foreign_toplevel {
+		struct wlr_ext_foreign_toplevel_handle_v1 *handle;
+
+		/* Client side events */
+		struct {
+			struct wl_listener handle_destroy;
+		} on;
+
+		/* Compositor side state updates */
+		struct {
+			struct wl_listener new_app_id;
+			struct wl_listener new_title;
+		} on_view;
+
+		/* Internal signals */
+		struct {
+			struct wl_listener toplevel_destroy;
+		} on_foreign_toplevel;
+
+	} ext_toplevel;
+
 	/* TODO: add struct xdg_x11_mapped_toplevel at some point */
 
 	struct {
@@ -50,6 +71,7 @@ struct foreign_toplevel {
 	} events;
 };
 
+void ext_foreign_toplevel_init(struct foreign_toplevel *toplevel);
 void wlr_foreign_toplevel_init(struct foreign_toplevel *toplevel);
 
 void foreign_request_minimize(struct foreign_toplevel *toplevel, bool minimized);

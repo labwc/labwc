@@ -5,7 +5,6 @@ labwc_sources = files(
   'desktop.c',
   'dnd.c',
   'edges.c',
-  'foreign.c',
   'idle.c',
   'interactive.c',
   'layers.c',
@@ -54,6 +53,7 @@ subdir('img')
 subdir('common')
 subdir('config')
 subdir('decorations')
+subdir('foreign-toplevel')
 subdir('input')
 subdir('menu')
 subdir('ssd')

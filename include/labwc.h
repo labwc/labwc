@@ -16,7 +16,6 @@
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_data_device.h>
-#include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
@@ -420,9 +419,6 @@ struct constraint {
 
 void xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup);
 void xdg_shell_init(struct server *server);
-
-void foreign_toplevel_handle_create(struct view *view);
-void foreign_toplevel_update_outputs(struct view *view);
 
 /*
  * desktop.c routines deal with a collection of views

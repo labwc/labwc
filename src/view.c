@@ -10,6 +10,7 @@
 #include "common/mem.h"
 #include "common/parse-bool.h"
 #include "common/scene-helpers.h"
+#include "foreign-toplevel.h"
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "menu/menu.h"
@@ -490,10 +491,6 @@ view_set_activated(struct view *view, bool activated)
 	if (view->impl->set_activated) {
 		view->impl->set_activated(view, activated);
 	}
-	if (view->toplevel.handle) {
-		wlr_foreign_toplevel_handle_v1_set_activated(
-			view->toplevel.handle, activated);
-	}
 
 	wl_signal_emit_mutable(&view->events.activated, &activated);
 
@@ -550,9 +547,6 @@ view_update_outputs(struct view *view)
 
 	if (new_outputs != view->outputs) {
 		view->outputs = new_outputs;
-		if (view->toplevel.handle) {
-			foreign_toplevel_update_outputs(view);
-		}
 		wl_signal_emit_mutable(&view->events.new_outputs, NULL);
 		desktop_update_top_layer_visiblity(view->server);
 	}
@@ -759,10 +753,7 @@ _minimize(struct view *view, bool minimized)
 	if (view->minimized == minimized) {
 		return;
 	}
-	if (view->toplevel.handle) {
-		wlr_foreign_toplevel_handle_v1_set_minimized(
-			view->toplevel.handle, minimized);
-	}
+
 	if (view->impl->minimize) {
 		view->impl->minimize(view, minimized);
 	}
@@ -1333,10 +1324,6 @@ set_maximized(struct view *view, enum view_axis maximized)
 	if (view->impl->maximize) {
 		view->impl->maximize(view, (maximized == VIEW_AXIS_BOTH));
 	}
-	if (view->toplevel.handle) {
-		wlr_foreign_toplevel_handle_v1_set_maximized(
-			view->toplevel.handle, (maximized == VIEW_AXIS_BOTH));
-	}
 
 	view->maximized = maximized;
 	wl_signal_emit_mutable(&view->events.maximized, NULL);
@@ -1696,10 +1683,6 @@ set_fullscreen(struct view *view, bool fullscreen)
 
 	if (view->impl->set_fullscreen) {
 		view->impl->set_fullscreen(view, fullscreen);
-	}
-	if (view->toplevel.handle) {
-		wlr_foreign_toplevel_handle_v1_set_fullscreen(
-			view->toplevel.handle, fullscreen);
 	}
 
 	view->fullscreen = fullscreen;
@@ -2358,11 +2341,11 @@ view_update_title(struct view *view)
 {
 	assert(view);
 	const char *title = view_get_string_prop(view, "title");
-	if (!view->toplevel.handle || !title) {
+	if (!title) {
 		return;
 	}
 	ssd_update_title(view->ssd);
-	wlr_foreign_toplevel_handle_v1_set_title(view->toplevel.handle, title);
+
 	wl_signal_emit_mutable(&view->events.new_title, NULL);
 }
 
@@ -2371,11 +2354,9 @@ view_update_app_id(struct view *view)
 {
 	assert(view);
 	const char *app_id = view_get_string_prop(view, "app_id");
-	if (!view->toplevel.handle || !app_id) {
+	if (!app_id) {
 		return;
 	}
-	wlr_foreign_toplevel_handle_v1_set_app_id(
-		view->toplevel.handle, app_id);
 
 	if (view->ssd_enabled) {
 		ssd_update_window_icon(view->ssd);
@@ -2533,8 +2514,9 @@ view_destroy(struct view *view)
 	wl_list_remove(&view->set_title.link);
 	wl_list_remove(&view->destroy.link);
 
-	if (view->toplevel.handle) {
-		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
+	if (view->foreign_toplevel) {
+		foreign_toplevel_destroy(view->foreign_toplevel);
+		view->foreign_toplevel = NULL;
 	}
 
 	if (server->grabbed_view == view) {

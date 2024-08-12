@@ -1007,6 +1007,7 @@ xwayland_view_create(struct server *server,
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_window_type);
 	CONNECT_SIGNAL(xsurface, xwayland_view, map_request);
 
+	view_init(view);
 	wl_list_insert(&view->server->views, &view->link);
 
 	if (xsurface->surface) {

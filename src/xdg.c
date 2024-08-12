@@ -976,6 +976,7 @@ xdg_toplevel_new(struct wl_listener *listener, void *data)
 	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, request_show_window_menu);
 	CONNECT_SIGNAL(xdg_surface, xdg_toplevel_view, new_popup);
 
+	view_init(view);
 	wl_list_insert(&server->views, &view->link);
 }
 

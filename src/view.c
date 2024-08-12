@@ -395,6 +395,8 @@ view_set_activated(struct view *view, bool activated)
 			view->toplevel.handle, activated);
 	}
 
+	wl_signal_emit_mutable(&view->events.activated, &activated);
+
 	if (rc.kb_layout_per_window) {
 		if (!activated) {
 			/* Store configured keyboard layout per view */
@@ -451,6 +453,7 @@ view_update_outputs(struct view *view)
 		if (view->toplevel.handle) {
 			foreign_toplevel_update_outputs(view);
 		}
+		wl_signal_emit_mutable(&view->events.new_outputs, NULL);
 		desktop_update_top_layer_visiblity(view->server);
 	}
 }
@@ -663,7 +666,10 @@ _minimize(struct view *view, bool minimized)
 	if (view->impl->minimize) {
 		view->impl->minimize(view, minimized);
 	}
+
 	view->minimized = minimized;
+	wl_signal_emit_mutable(&view->events.minimized, NULL);
+
 	if (minimized) {
 		view->impl->unmap(view, /* client_request */ false);
 	} else {
@@ -1234,7 +1240,9 @@ set_maximized(struct view *view, enum view_axis maximized)
 		wlr_foreign_toplevel_handle_v1_set_maximized(
 			view->toplevel.handle, (maximized == VIEW_AXIS_BOTH));
 	}
+
 	view->maximized = maximized;
+	wl_signal_emit_mutable(&view->events.maximized, NULL);
 
 	/*
 	 * Ensure that follow-up actions like SnapToEdge / SnapToRegion
@@ -1595,7 +1603,9 @@ set_fullscreen(struct view *view, bool fullscreen)
 		wlr_foreign_toplevel_handle_v1_set_fullscreen(
 			view->toplevel.handle, fullscreen);
 	}
+
 	view->fullscreen = fullscreen;
+	wl_signal_emit_mutable(&view->events.fullscreened, NULL);
 
 	/* Re-show decorations when no longer fullscreen */
 	if (!fullscreen && view->ssd_enabled) {
@@ -2338,6 +2348,7 @@ view_update_title(struct view *view)
 	}
 	ssd_update_title(view->ssd);
 	wlr_foreign_toplevel_handle_v1_set_title(view->toplevel.handle, title);
+	wl_signal_emit_mutable(&view->events.new_title, NULL);
 }
 
 void
@@ -2350,6 +2361,7 @@ view_update_app_id(struct view *view)
 	}
 	wlr_foreign_toplevel_handle_v1_set_app_id(
 		view->toplevel.handle, app_id);
+	wl_signal_emit_mutable(&view->events.new_app_id, NULL);
 }
 
 void
@@ -2454,6 +2466,20 @@ view_set_shade(struct view *view, bool shaded)
 	if (view->impl->shade) {
 		view->impl->shade(view, shaded);
 	}
+}
+
+void
+view_init(struct view *view)
+{
+	assert(view);
+
+	wl_signal_init(&view->events.new_app_id);
+	wl_signal_init(&view->events.new_title);
+	wl_signal_init(&view->events.new_outputs);
+	wl_signal_init(&view->events.maximized);
+	wl_signal_init(&view->events.minimized);
+	wl_signal_init(&view->events.fullscreened);
+	wl_signal_init(&view->events.activated);
 }
 
 void

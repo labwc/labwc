@@ -6,6 +6,7 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "decorations.h"
+#include "foreign-toplevel.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "node.h"
@@ -670,17 +671,19 @@ xdg_toplevel_view_get_string_prop(struct view *view, const char *prop)
 static void
 init_foreign_toplevel(struct view *view)
 {
-	foreign_toplevel_handle_create(view);
+	assert(!view->foreign_toplevel);
+	view->foreign_toplevel = foreign_toplevel_create(view);
+
 	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
 	if (!toplevel->parent) {
 		return;
 	}
 	struct wlr_xdg_surface *surface = toplevel->parent->base;
 	struct view *parent = surface->data;
-	if (!parent->toplevel.handle) {
+	if (!parent->foreign_toplevel) {
 		return;
 	}
-	wlr_foreign_toplevel_handle_v1_set_parent(view->toplevel.handle, parent->toplevel.handle);
+	foreign_toplevel_set_parent(view->foreign_toplevel, parent->foreign_toplevel);
 }
 
 static void
@@ -701,6 +704,15 @@ xdg_toplevel_view_map(struct view *view)
 	}
 	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
+
+	if (!view->foreign_toplevel) {
+		init_foreign_toplevel(view);
+		/*
+		 * Initial outputs will be synced via
+		 * view->events.new_outputs on view_moved()
+		 */
+	}
+
 	if (!view->been_mapped) {
 		if (view_wants_decorations(view)) {
 			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
@@ -736,11 +748,6 @@ xdg_toplevel_view_map(struct view *view)
 		view_moved(view);
 	}
 
-	if (!view->toplevel.handle) {
-		init_foreign_toplevel(view);
-		foreign_toplevel_update_outputs(view);
-	}
-
 	view_impl_map(view);
 	view->been_mapped = true;
 }
@@ -759,8 +766,9 @@ xdg_toplevel_view_unmap(struct view *view, bool client_request)
 	 * than just minimized), destroy the foreign toplevel handle so
 	 * the unmapped view doesn't show up in panels and the like.
 	 */
-	if (client_request && view->toplevel.handle) {
-		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
+	if (client_request && view->foreign_toplevel) {
+		foreign_toplevel_destroy(view->foreign_toplevel);
+		view->foreign_toplevel = NULL;
 	}
 }
 

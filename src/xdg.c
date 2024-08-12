@@ -6,6 +6,7 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "decorations.h"
+#include "foreign-toplevel.h"
 #include "labwc.h"
 #include "node.h"
 #include "snap-constraints.h"
@@ -619,17 +620,19 @@ xdg_toplevel_view_get_string_prop(struct view *view, const char *prop)
 static void
 init_foreign_toplevel(struct view *view)
 {
-	foreign_toplevel_handle_create(view);
+	assert(!view->foreign_toplevel);
+	view->foreign_toplevel = foreign_toplevel_create(view);
+
 	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
 	if (!toplevel->parent) {
 		return;
 	}
 	struct wlr_xdg_surface *surface = toplevel->parent->base;
 	struct view *parent = surface->data;
-	if (!parent->toplevel.handle) {
+	if (!parent->foreign_toplevel) {
 		return;
 	}
-	wlr_foreign_toplevel_handle_v1_set_parent(view->toplevel.handle, parent->toplevel.handle);
+	foreign_toplevel_set_parent(view->foreign_toplevel, parent->foreign_toplevel);
 }
 
 static void

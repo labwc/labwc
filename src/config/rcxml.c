@@ -15,6 +15,7 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "action.h"
+#include "common/buf.h"
 #include "common/dir.h"
 #include "common/list.h"
 #include "common/macros.h"
@@ -35,6 +36,7 @@
 #include "view.h"
 #include "window-rules.h"
 #include "workspaces.h"
+#include "config/yaml2xml.h"
 
 static bool in_regions;
 static bool in_usable_area_override;
@@ -1651,19 +1653,19 @@ rcxml_read(const char *filename)
 {
 	rcxml_init();
 
-	struct wl_list paths;
+	struct wl_list paths_xml, paths_yaml;
 
 	if (filename) {
 		/* Honour command line argument -c <filename> */
-		wl_list_init(&paths);
+		wl_list_init(&paths_xml);
 		struct path *path = znew(*path);
 		path->string = xstrdup(filename);
-		wl_list_append(&paths, &path->link);
+		wl_list_append(&paths_xml, &path->link);
 	} else {
-		paths_config_create(&paths, "rc.xml");
+		paths_config_create(&paths_xml, "rc.xml");
+		paths_config_create(&paths_yaml, "rc.yaml");
 	}
 
-	/* Reading file into buffer before parsing - better for unit tests */
 	bool should_merge_config = rc.merge_config;
 	struct wl_list *(*iter)(struct wl_list *list);
 	iter = should_merge_config ? paths_get_prev : paths_get_next;
@@ -1677,15 +1679,17 @@ rcxml_read(const char *filename)
 	 *
 	 * If merging, we iterate backwards (least important XDG Base Dir first)
 	 * and keep going.
+	 *
+	 * We start with the XML version if it exists.
 	 */
-	for (struct wl_list *elm = iter(&paths); elm != &paths; elm = iter(elm)) {
+	for (struct wl_list *elm = iter(&paths_xml); elm != &paths_xml; elm = iter(elm)) {
 		struct path *path = wl_container_of(elm, path, link);
 		FILE *stream = fopen(path->string, "r");
 		if (!stream) {
 			continue;
 		}
 
-		wlr_log(WLR_INFO, "read config file %s", path->string);
+		wlr_log(WLR_INFO, "read xml config file %s", path->string);
 
 		struct buf b = BUF_INIT;
 		char *line = NULL;
@@ -1705,7 +1709,26 @@ rcxml_read(const char *filename)
 			break;
 		}
 	};
-	paths_destroy(&paths);
+
+	/* ...then we do the YAML verion */
+	for (struct wl_list *elm = iter(&paths_yaml); elm != &paths_yaml; elm = iter(elm)) {
+		struct path *path = wl_container_of(elm, path, link);
+
+		wlr_log(WLR_INFO, "read yaml config file %s", path->string);
+
+		struct buf b = BUF_INIT;
+		bool success = yaml_to_xml(&b, path->string);
+		if (success) {
+			rcxml_parse_xml(&b);
+		}
+		buf_reset(&b);
+		if (!should_merge_config) {
+			break;
+		}
+	};
+
+	paths_destroy(&paths_xml);
+	paths_destroy(&paths_yaml);
 	post_processing();
 	validate();
 }

@@ -72,6 +72,7 @@ pixman = dependency('pixman-1')
 math = cc.find_library('m')
 png = dependency('libpng')
 svg = dependency('librsvg-2.0', version: '>=2.46', required: false)
+yaml = dependency('yaml-0.1')
 
 if get_option('xwayland').enabled() and not wlroots_has_xwayland
 	error('no wlroots Xwayland support')
@@ -119,6 +120,7 @@ labwc_deps = [
   pixman,
   math,
   png,
+  yaml,
 ]
 if have_rsvg
   labwc_deps += [

@@ -651,8 +651,6 @@ xdg_toplevel_view_map(struct view *view)
 	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 	if (!view->been_mapped) {
-		init_foreign_toplevel(view);
-
 		if (view_wants_decorations(view)) {
 			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
 		} else {
@@ -687,6 +685,11 @@ xdg_toplevel_view_map(struct view *view)
 		view_moved(view);
 	}
 
+	if (!view->toplevel.handle) {
+		init_foreign_toplevel(view);
+		foreign_toplevel_update_outputs(view);
+	}
+
 	view_impl_map(view);
 	view->been_mapped = true;
 }
@@ -698,6 +701,15 @@ xdg_toplevel_view_unmap(struct view *view, bool client_request)
 		view->mapped = false;
 		wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 		view_impl_unmap(view);
+	}
+
+	/*
+	 * If the view was explicitly unmapped by the client (rather
+	 * than just minimized), destroy the foreign toplevel handle so
+	 * the unmapped view doesn't show up in panels and the like.
+	 */
+	if (client_request && view->toplevel.handle) {
+		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
 	}
 }
 

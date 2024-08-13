@@ -738,15 +738,6 @@ xwayland_view_map(struct view *view)
 		view->scene_node = &tree->node;
 	}
 
-	/*
-	 * Exclude unfocusable views from wlr-foreign-toplevel. These
-	 * views (notifications, floating toolbars, etc.) should not be
-	 * shown in taskbars/docks/etc.
-	 */
-	if (!view->toplevel.handle && view_is_focusable(view)) {
-		init_foreign_toplevel(view);
-	}
-
 	if (!view->been_mapped) {
 		check_natural_geometry(view);
 		set_initial_position(view, xwayland_surface);
@@ -758,6 +749,16 @@ xwayland_view_map(struct view *view)
 		 */
 		view->current = view->pending;
 		view_moved(view);
+	}
+
+	/*
+	 * Exclude unfocusable views from wlr-foreign-toplevel. These
+	 * views (notifications, floating toolbars, etc.) should not be
+	 * shown in taskbars/docks/etc.
+	 */
+	if (!view->toplevel.handle && view_is_focusable(view)) {
+		init_foreign_toplevel(view);
+		foreign_toplevel_update_outputs(view);
 	}
 
 	/* Add commit here, as xwayland map/unmap can change the wlr_surface */
@@ -797,7 +798,6 @@ xwayland_view_unmap(struct view *view, bool client_request)
 out:
 	if (client_request && view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
-		view->toplevel.handle = NULL;
 	}
 }
 

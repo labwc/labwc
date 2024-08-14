@@ -4,6 +4,8 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
+#include <wlr/util/region.h>
+#include <wlr/util/transform.h>
 #include "common/scene-helpers.h"
 #include "labwc.h"
 #include "magnifier.h"
@@ -38,6 +40,43 @@ lab_wlr_scene_get_prev_node(struct wlr_scene_node *node)
 }
 
 /*
+ * This is a slightly modified copy of scene_output_damage(),
+ * required to properly add the magnifier damage to scene_output
+ * ->damage_ring and scene_output->pending_commit_damage.
+ *
+ * The only difference is code style and removal of wlr_output_schedule_frame().
+ */
+static void
+scene_output_damage(struct wlr_scene_output *scene_output,
+		const pixman_region32_t *region)
+{
+	if (!wlr_damage_ring_add(&scene_output->damage_ring, region)) {
+		return;
+	}
+
+	struct wlr_output *output = scene_output->output;
+	enum wl_output_transform transform =
+		wlr_output_transform_invert(scene_output->output->transform);
+
+	int width = output->width;
+	int height = output->height;
+	if (transform & WL_OUTPUT_TRANSFORM_90) {
+		width = output->height;
+		height = output->width;
+	}
+
+	pixman_region32_t frame_damage;
+	pixman_region32_init(&frame_damage);
+	wlr_region_transform(&frame_damage, region, transform, width, height);
+
+	pixman_region32_union(&scene_output->pending_commit_damage,
+		&scene_output->pending_commit_damage, &frame_damage);
+	pixman_region32_intersect_rect(&scene_output->pending_commit_damage,
+		&scene_output->pending_commit_damage, 0, 0, output->width, output->height);
+	pixman_region32_fini(&frame_damage);
+}
+
+/*
  * This is a copy of wlr_scene_output_commit()
  * as it doesn't use the pending state at all.
  */
@@ -58,7 +97,7 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 	 * We also need to verify the necessity of wants_magnification.
 	 */
 	if (!wlr_output->needs_frame && !pixman_region32_not_empty(
-			&scene_output->damage_ring.current) && !wants_magnification) {
+			&scene_output->pending_commit_damage) && !wants_magnification) {
 		return true;
 	}
 
@@ -86,7 +125,13 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 	}
 
 	if (!wlr_box_empty(&additional_damage)) {
-		wlr_damage_ring_add_box(&scene_output->damage_ring, &additional_damage);
+		pixman_region32_t region;
+		pixman_region32_init_rect(&region,
+			additional_damage.x, additional_damage.y,
+			additional_damage.width, additional_damage.height);
+		scene_output_damage(scene_output, &region);
+		pixman_region32_fini(&region);
 	}
+
 	return true;
 }

@@ -1305,6 +1305,9 @@ post_processing(struct theme *theme)
 		theme->title_height = h + 2 * theme->padding_height;
 	}
 
+	theme->menu_item_height = font_height(&rc.font_menuitem)
+		+ 2 * theme->menu_item_padding_y;
+
 	theme->osd_window_switcher_item_height = font_height(&rc.font_osd)
 		+ 2 * theme->osd_window_switcher_item_padding_y
 		+ 2 * theme->osd_window_switcher_item_active_border_width;

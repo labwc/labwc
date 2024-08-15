@@ -53,7 +53,6 @@ struct menuitem {
 struct menu {
 	char *id;
 	char *label;
-	int item_height;
 	struct menu *parent;
 
 	struct {

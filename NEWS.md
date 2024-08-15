@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2024-08-16 | [0.8.0]       | 0.18.0          | 23320         |
 | 2024-06-19 | [0.7.4]       | 0.17.4          | 22746         |
 | 2024-06-12 | [0.7.3]       | 0.17.4          | 22731         |
 | 2024-05-10 | [0.7.2]       | 0.17.3          | 21368         |
@@ -30,16 +31,21 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## [unreleased]
+## [0.8.0]
 
 The main focus in this release has been to port labwc to wlroots 0.18 and to
 grind out associated regressions. Nonetheless, it contains a few non-related
 additions and fixes as described below.
 
-As a one-off note, there appears to be an issue with increased commit failures
-when using wlroots-0.18, particularly with intel drivers. If this turns out to
-be an issue for anyone please try running with `WLR_DRM_NO_ATOMIC=1` or run the
-labwc v0.7 branch or its latest release until this is resolved.
+There are a couple of regression warnings when using wlroots 0.18:
+
+1. There appears to be an issue with increased commit failures, particularly
+   with intel drivers. If this turns out to be an issue for anyone please try
+   running with `WLR_DRM_NO_ATOMIC=1` or run the labwc v0.7 branch or its latest
+   release until this is resolved.
+2. Fullscreen VRR is broken but should be fixed once wlroots 0.18.1 is released.
+   Again, if that is a problem we advise to stay with the v0.7 branch in the
+   short term until fixed. PR #2079
 
 A v0.7 branch has been created for bug fixes beyond `0.7.3` (built with wlroots
 `0.17`).
@@ -63,7 +69,7 @@ have been attributed with a 'Written-by' against each relevant log entry.
 ```
 
 - Add resistance when dragging tiled/maximized windows with config option
-  `<snapping><dragResistance>`. PR #2009
+  `<resistance><unSnapThreshold>`. PR #2009 #2056
 - Implement support for renderer loss recovery. Written-by: @kode54 PR #1997
 - Support xinitrc scripts to configure XWayland server on launch. PR #1963
 - Add theme option `window.button.width` to set window button size.
@@ -85,6 +91,9 @@ have been attributed with a 'Written-by' against each relevant log entry.
 
 ### Fixed
 
+- Make tablet rotation follow output rotation. Written-by: @jp7677. PR #2060
+- Fix error when launching windowed Chromium. PR #2069
+- Fix empty `XKB_DEFAULT_LAYOUT` bug. PR #2061
 - Take into account CSD borders when unconstraining XDG popups. PR #2016
 - Choose xdg-popup output depending on xdg-positioner PR #2016
 - Fix wlroots-0.18 regression causing flicker with some layer-shell clients like
@@ -98,7 +107,6 @@ have been attributed with a 'Written-by' against each relevant log entry.
   `map_request` handler to avoid visual glitches with some apps. PR #1529
 - Disable pango glyph position rounding to avoid text geometry jump around when
   changing scale.
-- Verify source surface for `xdg_activation` request
 
 ### Changed
 
@@ -1517,7 +1525,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.7.3...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.8.0...HEAD
+[0.8.0]: https://github.com/labwc/labwc/compare/0.7.3...0.8.0
 [0.7.4]: https://github.com/labwc/labwc/compare/0.7.3...0.7.4
 [0.7.3]: https://github.com/labwc/labwc/compare/0.7.2...0.7.3
 [0.7.2]: https://github.com/labwc/labwc/compare/0.7.1...0.7.2

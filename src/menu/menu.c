@@ -210,12 +210,7 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 
 	const char *arrow = show_arrow ? "›" : NULL;
 
-	/* TODO: Consider setting this somewhere else */
-	if (!menu->item_height) {
-		menu->item_height = font_height(&rc.font_menuitem)
-			+ 2 * theme->menu_item_padding_y;
-	}
-	menuitem->height = menu->item_height;
+	menuitem->height = theme->menu_item_height;
 
 	int x, y;
 	menuitem->native_width = font_width(&rc.font_menuitem, text);
@@ -235,11 +230,11 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 	/* Item background nodes */
 	menuitem->normal.background = &wlr_scene_rect_create(
 		menuitem->normal.tree,
-		menu->size.width, menu->item_height,
+		menu->size.width, theme->menu_item_height,
 		theme->menu_items_bg_color)->node;
 	menuitem->selected.background = &wlr_scene_rect_create(
 		menuitem->selected.tree,
-		menu->size.width, menu->item_height,
+		menu->size.width, theme->menu_item_height,
 		theme->menu_items_active_bg_color)->node;
 
 	/* Font nodes */
@@ -268,9 +263,9 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 
 	/* Center font nodes */
 	x = theme->menu_item_padding_x;
-	y = (menu->item_height - menuitem->normal.buffer->height) / 2;
+	y = (theme->menu_item_height - menuitem->normal.buffer->height) / 2;
 	wlr_scene_node_set_position(menuitem->normal.text, x, y);
-	y = (menu->item_height - menuitem->selected.buffer->height) / 2;
+	y = (theme->menu_item_height - menuitem->selected.buffer->height) / 2;
 	wlr_scene_node_set_position(menuitem->selected.text, x, y);
 
 	/* Position the item in relation to its menu */
@@ -299,7 +294,7 @@ separator_create(struct menu *menu, const char *label)
 	struct theme *theme = server->theme;
 
 	if (menuitem->type == LAB_MENU_TITLE) {
-		menuitem->height = menu->item_height;
+		menuitem->height = theme->menu_item_height;
 		menuitem->native_width = font_width(&rc.font_menuitem, label);
 	} else if (menuitem->type == LAB_MENU_SEPARATOR_LINE) {
 		menuitem->height = theme->menu_separator_line_thickness +
@@ -338,7 +333,7 @@ separator_create(struct menu *menu, const char *label)
 		/* Center font nodes */
 		int x, y;
 		x = theme->menu_item_padding_x;
-		y = (menu->item_height - menuitem->normal.buffer->height) / 2;
+		y = (theme->menu_item_height - menuitem->normal.buffer->height) / 2;
 		wlr_scene_node_set_position(menuitem->normal.text, x, y);
 	} else {
 		int nominal_width = theme->menu_min_width;
@@ -849,7 +844,7 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 		ly -= menu->size.height;
 		if (menu->parent) {
 			/* For submenus adjust y to bottom left corner */
-			ly += menu->item_height;
+			ly += theme->menu_item_height;
 		}
 	}
 	wlr_scene_node_set_position(&menu->scene_tree->node, lx, ly);

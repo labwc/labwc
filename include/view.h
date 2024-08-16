@@ -95,6 +95,7 @@ enum window_type {
 
 struct view;
 struct wlr_surface;
+struct foreign_toplevel;
 
 /* Common to struct view and struct xwayland_unmanaged */
 struct mappable {
@@ -249,16 +250,6 @@ struct view {
 		struct multi_rect *rect;
 	} resize_outlines;
 
-	struct foreign_toplevel {
-		struct wlr_foreign_toplevel_handle_v1 *handle;
-		struct wl_listener maximize;
-		struct wl_listener minimize;
-		struct wl_listener fullscreen;
-		struct wl_listener activate;
-		struct wl_listener close;
-		struct wl_listener destroy;
-	} toplevel;
-
 	struct mappable mappable;
 
 	struct wl_listener destroy;
@@ -270,6 +261,18 @@ struct view {
 	struct wl_listener request_maximize;
 	struct wl_listener request_fullscreen;
 	struct wl_listener set_title;
+
+	struct foreign_toplevel *foreign_toplevel;
+
+	struct {
+		struct wl_signal new_app_id;
+		struct wl_signal new_title;
+		struct wl_signal new_outputs;
+		struct wl_signal maximized;
+		struct wl_signal minimized;
+		struct wl_signal fullscreened;
+		struct wl_signal activated;     /* bool *activated */
+	} events;
 };
 
 struct view_query {
@@ -546,6 +549,8 @@ void view_adjust_size(struct view *view, int *w, int *h);
 void view_evacuate_region(struct view *view);
 void view_on_output_destroy(struct view *view);
 void view_connect_map(struct view *view, struct wlr_surface *surface);
+
+void view_init(struct view *view);
 void view_destroy(struct view *view);
 
 struct output *view_get_adjacent_output(struct view *view, enum view_edge edge,

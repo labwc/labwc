@@ -8,6 +8,7 @@
 #include "common/mem.h"
 #include "config/rcxml.h"
 #include "config/session.h"
+#include "foreign-toplevel.h"
 #include "labwc.h"
 #include "node.h"
 #include "ssd.h"
@@ -671,17 +672,18 @@ set_initial_position(struct view *view,
 static void
 init_foreign_toplevel(struct view *view)
 {
-	foreign_toplevel_handle_create(view);
+	assert(!view->foreign_toplevel);
+	view->foreign_toplevel = foreign_toplevel_create(view);
 
 	struct wlr_xwayland_surface *surface = xwayland_surface_from_view(view);
 	if (!surface->parent) {
 		return;
 	}
 	struct view *parent = (struct view *)surface->parent->data;
-	if (!parent || !parent->toplevel.handle) {
+	if (!parent || !parent->foreign_toplevel) {
 		return;
 	}
-	wlr_foreign_toplevel_handle_v1_set_parent(view->toplevel.handle, parent->toplevel.handle);
+	foreign_toplevel_set_parent(view->foreign_toplevel, parent->foreign_toplevel);
 }
 
 static void
@@ -743,7 +745,7 @@ xwayland_view_map(struct view *view)
 	 * views (notifications, floating toolbars, etc.) should not be
 	 * shown in taskbars/docks/etc.
 	 */
-	if (!view->toplevel.handle && view_is_focusable(view)) {
+	if (!view->foreign_toplevel && view_is_focusable(view)) {
 		init_foreign_toplevel(view);
 	}
 
@@ -795,9 +797,9 @@ xwayland_view_unmap(struct view *view, bool client_request)
 	 * the unmapped view doesn't show up in panels and the like.
 	 */
 out:
-	if (client_request && view->toplevel.handle) {
-		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
-		view->toplevel.handle = NULL;
+	if (client_request && view->foreign_toplevel) {
+		foreign_toplevel_destroy(view->foreign_toplevel);
+		view->foreign_toplevel = NULL;
 	}
 }
 
@@ -1009,6 +1011,7 @@ xwayland_view_create(struct server *server,
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_window_type);
 	CONNECT_SIGNAL(xsurface, xwayland_view, map_request);
 
+	view_init(view);
 	wl_list_insert(&view->server->views, &view->link);
 
 	if (xsurface->surface) {

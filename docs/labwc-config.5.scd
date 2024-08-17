@@ -432,6 +432,18 @@ extending outward from the snapped edge.
 *<theme><name>*
 	The name of the Openbox theme to use. It is not set by default.
 
+*<theme><titleLayout>*
+	Selection and order of buttons in a window's titlebar.
+	The following letters can be used, each only once:
+	- L: window label (aka. title)
+	- |: empty space (can be used instead of a title)
+	- W: window menu
+	- I: iconify
+	- M: maximize
+	- C: close
+
+	Example: WLIMC
+
 *<theme><cornerRadius>*
 	The radius of server side decoration top corners. Default is 8.
 

@@ -131,6 +131,11 @@ menu_update_width(struct menu *menu)
 			wlr_scene_rect_set_size(
 				wlr_scene_rect_from_node(item->normal.text),
 				width, theme->menu_separator_line_thickness);
+		} else if (item->type == LAB_MENU_TITLE) {
+			if (item->native_width > max_width) {
+				scaled_font_buffer_set_max_width(item->normal.buffer,
+					max_width);
+			}
 		}
 
 		if (item->selectable) {
@@ -553,27 +558,32 @@ handle_menu_element(xmlNode *n, struct server *server)
 
 	if (execute && label && id) {
 		wlr_log(WLR_DEBUG, "pipemenu '%s:%s:%s'", id, label, execute);
-		if (!current_menu) {
+		if (!current_menu || !current_menu->parent) {
 			/*
-			 * We currently do not support pipemenus without a
-			 * parent <item> such as the one the example below:
+			 * pipemenus without a parent
 			 *
 			 * <?xml version="1.0" encoding="UTF-8"?>
 			 * <openbox_menu>
 			 *   <menu id="root-menu" label="foo" execute="bar"/>
 			 * </openbox_menu>
-			 *
-			 * TODO: Consider supporting this
 			 */
-			wlr_log(WLR_ERROR,
-				"pipemenu '%s:%s:%s' has no parent <menu>",
-				id, label, execute);
-			goto error;
+			current_menu = menu_create(server, id, label);
+			current_menu->is_pipemenu = true;
+			current_item = item_create(current_menu, label,
+					/* arrow */ true);
+			current_item_action = NULL;
+			current_item->execute = xstrdup(execute);
+			current_item->id = xstrdup(id);
+		} else {
+			/*
+			 * pipemenus with a parent
+			 */
+			current_item = item_create(current_menu, label,
+					/* arrow */ true);
+			current_item_action = NULL;
+			current_item->execute = xstrdup(execute);
+			current_item->id = xstrdup(id);
 		}
-		current_item = item_create(current_menu, label, /* arrow */ true);
-		current_item_action = NULL;
-		current_item->execute = xstrdup(execute);
-		current_item->id = xstrdup(id);
 	} else if ((label && id) || is_toplevel_static_menu_definition(n, id)) {
 		/*
 		 * (label && id) refers to <menu id="" label=""> which is an
@@ -606,6 +616,7 @@ handle_menu_element(xmlNode *n, struct server *server)
 		}
 		++menu_level;
 		current_menu = menu_create(server, id, label);
+		current_menu->is_pipemenu = false;
 		if (submenu) {
 			*submenu = current_menu;
 		}
@@ -629,8 +640,23 @@ handle_menu_element(xmlNode *n, struct server *server)
 		}
 
 		struct menu *menu = menu_get_by_id(server, id);
-		if (menu) {
+		if (menu && menu->is_pipemenu) {
+			/*
+			 * A pipemenu without a parent
+			 */
 			current_item = item_create(current_menu, menu->label, true);
+			struct menuitem *item;
+			wl_list_for_each(item, &menu->menuitems, link) {
+				current_item->execute = xstrdup(item->execute);
+				current_item->id = strdup_printf("%s%d",
+						item->id, rand());
+			}
+		} else if (menu) {
+			/*
+			 * An inline menu defined elsewhere
+			 */
+			current_item = item_create(current_menu, menu->label,
+					true);
 			if (current_item) {
 				current_item->submenu = menu;
 			}
@@ -644,7 +670,7 @@ error:
 	free(id);
 }
 
-/* This can be one of <separator> and <separator label=""> */
+/* This can be one of <separator> or <separator label=""> */
 static void
 handle_separator_element(xmlNode *n)
 {
@@ -885,7 +911,9 @@ init_rootmenu(struct server *server)
 {
 	struct menu *menu = menu_get_by_id(server, "root-menu");
 
-	/* Default menu if no menu.xml found */
+	/*
+	 * Default menu if no root-menu inside menu.xml or menu.xml not found
+	 */
 	if (!menu) {
 		current_menu = NULL;
 		menu = menu_create(server, "root-menu", "");
@@ -903,7 +931,9 @@ init_windowmenu(struct server *server)
 {
 	struct menu *menu = menu_get_by_id(server, "client-menu");
 
-	/* Default menu if no menu.xml found */
+	/*
+	 * Default menu if no client-menu inside menu.xml or menu.xml not found
+	 */
 	if (!menu) {
 		current_menu = NULL;
 		menu = menu_create(server, "client-menu", "");

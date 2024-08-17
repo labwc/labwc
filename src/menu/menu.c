@@ -23,6 +23,8 @@
 #include "common/string-helpers.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "workspaces.h"
+#include "view.h"
 #include "node.h"
 #include "theme.h"
 
@@ -906,6 +908,107 @@ menu_hide_submenu(struct server *server, const char *id)
 	}
 }
 
+/*
+ * This is client-list-combined-menu
+ * an internal menu similar to root-menu and client-menu
+ *
+ * This will look at workspaces and produce a menu
+ * with the workspace name as a separator label
+ * and the titles of the view, if any, below each workspace name.
+ * There is also a window state indicator, similar to osd,
+ * where max, min, and fullscreen are indiciated in one space
+ * always on top/bottom are indicated in one space
+ * and active view is indicated.
+ */
+void
+create_client_list_combined_menu(struct server *server)
+{
+	struct menu *menu = menu_get_by_id(server,
+			"client-list-combined-menu");
+
+	if (menu) {
+		struct menuitem *item, *next;
+		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
+			item_destroy(item);
+		}
+	} else {
+		menu = menu_create(server, "client-list-combined-menu", "Clients...");
+	}
+
+	menu->label = xstrdup("Clients...");
+	menu->size.height = 0;
+	current_menu = NULL;
+
+	if (wl_list_empty(&menu->menuitems)) {
+		struct workspace *workspace;
+		struct view *view;
+		struct buf buffer = BUF_INIT;
+
+		wl_list_init(&menu->menuitems);
+		wl_list_for_each(workspace, &server->workspaces, link) {
+			if (!strcmp(workspace->name,
+						server->workspace_current->name)) {
+				buf_add(&buffer, ">");
+			}
+			buf_add(&buffer, workspace->name);
+			if (!strcmp(workspace->name,
+						server->workspace_current->name)) {
+				buf_add(&buffer, "<");
+			}
+			current_item = separator_create(menu, buffer.data);
+			buf_reset(&buffer);
+
+			wl_list_for_each(view, &server->views, link) {
+				if (!strcasecmp(view->workspace->name,
+							workspace->name)) {
+					if (view->maximized) {
+						buf_add(&buffer, "M");
+					} else if (view->minimized) {
+						buf_add(&buffer, "m");
+					} else if (view->fullscreen) {
+						buf_add(&buffer, "F");
+					} else {
+						buf_add(&buffer, " ");
+					}
+					if (view_is_always_on_top(view)) {
+						buf_add(&buffer, "T");
+					} else if (view_is_always_on_bottom(view)) {
+						buf_add(&buffer, "B");
+					} else if (view->visible_on_all_workspaces) {
+						buf_add(&buffer, "O");
+					} else {
+						buf_add(&buffer, " ");
+					}
+					if (view == server->active_view) {
+						buf_add(&buffer, "A ");
+					} else {
+						buf_add(&buffer, "  ");
+					}
+					buf_add(&buffer, view_get_string_prop(
+								view,
+								"title"));
+
+					current_item = item_create(menu,
+							buffer.data, false);
+					current_item->id = xstrdup(menu->id);
+					current_item->client_list_view = view;
+					fill_item("name.action", "GoToDesktop");
+					fill_item("to.action", workspace->name);
+					fill_item("name.action", "Focus");
+					fill_item("name.action", "Raise");
+					buf_reset(&buffer);
+				}
+			}
+			current_item = item_create(menu, "  Go there...", false);
+			current_item->id = xstrdup(menu->id);
+			fill_item("name.action", "GoToDesktop");
+			fill_item("to.action", workspace->name);
+		}
+	}
+	menu_update_width(menu);
+	wlr_scene_node_set_enabled(&menu->scene_tree->node, false);
+}
+
 static void
 init_rootmenu(struct server *server)
 {
@@ -985,6 +1088,7 @@ void
 menu_init(struct server *server)
 {
 	wl_list_init(&server->menus);
+	create_client_list_combined_menu(server);
 	parse_xml("menu.xml", server);
 	init_rootmenu(server);
 	init_windowmenu(server);
@@ -1155,6 +1259,12 @@ menu_open_root(struct menu *menu, int x, int y)
 		destroy_pipemenus(menu->server);
 	}
 	close_all_submenus(menu);
+	/*
+	 * dynamic internal client
+	 * similar to pipemenu but no script to execute
+	 */
+	create_client_list_combined_menu(menu->server);
+
 	menu_set_selection(menu, NULL);
 	menu_configure(menu, x, y, LAB_MENU_OPEN_AUTO);
 	wlr_scene_node_set_enabled(&menu->scene_tree->node, true);
@@ -1428,7 +1538,7 @@ menu_item_select(struct server *server, bool forward)
 		item = wl_container_of(current, item, link);
 	}
 
-	menu_process_item_selection(item);
+menu_process_item_selection(item);
 }
 
 static bool
@@ -1460,7 +1570,13 @@ menu_execute_item(struct menuitem *item)
 	 * menu_close() and destroy_pipemenus() which we have to handle
 	 * before/after action_run() respectively.
 	 */
-	actions_run(item->parent->triggered_by_view, server, &item->actions, 0);
+	if (item->id && !strcmp(item->id, "client-list-combined-menu")
+			&& item->client_list_view) {
+		actions_run(item->client_list_view, server, &item->actions, 0);
+	} else {
+		actions_run(item->parent->triggered_by_view, server,
+				&item->actions, 0);
+	}
 
 	server->menu_current = NULL;
 	destroy_pipemenus(server);

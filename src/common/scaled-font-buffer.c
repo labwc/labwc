@@ -14,12 +14,16 @@
 static struct lab_data_buffer *
 _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 {
-	struct lab_data_buffer *buffer;
+	struct lab_data_buffer *buffer = NULL;
 	struct scaled_font_buffer *self = scaled_buffer->data;
 
 	/* Buffer gets free'd automatically along the backing wlr_buffer */
 	font_buffer_create(&buffer, self->max_width, self->text,
 		&self->font, self->color, self->bg_color, self->arrow, scale);
+
+	if (!buffer) {
+		wlr_log(WLR_ERROR, "font_buffer_create() failed");
+	}
 
 	self->width = buffer ? buffer->unscaled_width : 0;
 	self->height = buffer ? buffer->unscaled_height : 0;

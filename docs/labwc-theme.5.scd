@@ -174,6 +174,10 @@ elements are not listed here, but are supported.
 *menu.separator.color*
 	Menu separator color. Default #888888.
 
+*menu.title.bg.color*
+	Menu title color. Default #589bda.
+	Note: A menu title is a separator with a label.
+
 *osd.bg.color*
 	Background color of on-screen-display. Inherits
 	*window.active.title.bg.color* if not set.

@@ -909,6 +909,60 @@ menu_hide_submenu(struct server *server, const char *id)
 }
 
 /*
+ * This is client-send-to-menu
+ * an internal menu similar to root-menu and client-menu
+ *
+ * This will look at workspaces and produce a menu
+ * with the workspace names that can be used with
+ * SendToDesktop, left/right options are included.
+ */
+void
+create_client_send_to_menu(struct server *server)
+{
+	struct menu *menu = menu_get_by_id(server,
+			"client-send-to-menu");
+
+	if (menu) {
+		struct menuitem *item, *next;
+		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
+			item_destroy(item);
+		}
+	} else {
+		menu = menu_create(server, "client-send-to-menu", "Send to...");
+	}
+
+	menu->label = xstrdup("Send to...");
+	menu->size.height = 0;
+
+	if (wl_list_empty(&menu->menuitems)) {
+		struct workspace *workspace;
+
+		wl_list_init(&menu->menuitems);
+		wl_list_for_each(workspace, &server->workspaces, link) {
+			if (!strcmp(workspace->name,
+						server->workspace_current->name)) {
+				current_item = item_create(menu, strdup_printf(">%s<",
+							workspace->name), false);
+			} else {
+				current_item = item_create(menu, workspace->name, false);
+			}
+			fill_item("name.action", "SendToDesktop");
+			fill_item("to.action", workspace->name);
+		}
+
+		current_item = separator_create(menu, "");
+		current_item = item_create(menu, "left", false);
+		fill_item("name.action", "SendToDesktop");
+		fill_item("to.action", "left");
+		current_item = item_create(menu, "right", false);
+		fill_item("name.action", "SendToDesktop");
+		fill_item("to.action", "right");
+	}
+	menu_update_width(menu);
+	wlr_scene_node_set_enabled(&menu->scene_tree->node, false);
+}
+
+/*
  * This is client-list-combined-menu
  * an internal menu similar to root-menu and client-menu
  *
@@ -1089,6 +1143,7 @@ menu_init(struct server *server)
 {
 	wl_list_init(&server->menus);
 	create_client_list_combined_menu(server);
+	create_client_send_to_menu(server);
 	parse_xml("menu.xml", server);
 	init_rootmenu(server);
 	init_windowmenu(server);
@@ -1264,6 +1319,7 @@ menu_open_root(struct menu *menu, int x, int y)
 	 * similar to pipemenu but no script to execute
 	 */
 	create_client_list_combined_menu(menu->server);
+	create_client_send_to_menu(menu->server);
 
 	menu_set_selection(menu, NULL);
 	menu_configure(menu, x, y, LAB_MENU_OPEN_AUTO);

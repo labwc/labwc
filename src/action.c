@@ -25,6 +25,7 @@
 #include "view.h"
 #include "workspaces.h"
 #include "input/keyboard.h"
+#include "config/rcxml.h"
 
 enum action_arg_type {
 	LAB_ACTION_ARG_STR = 0,
@@ -641,6 +642,31 @@ show_menu(struct server *server, struct view *view,
 	if (!at_cursor && view) {
 		x = view->current.x;
 		y = view->current.y;
+	}
+	/* Fixed placement overrides atCursor menu placement */
+	if (rc.resize_popup_position) {
+		struct output *output = output_nearest_to(server,
+				server->seat.cursor->x, server->seat.cursor->y);
+		struct wlr_box output_box;
+		wlr_output_layout_get_box(server->output_layout, output->wlr_output, &output_box);
+
+		if (rc.resize_popup_position == LAB_MENU_FIXED) {
+			x = rc.resize_popup_fixed_position.x + output_box.x;
+			y = rc.resize_popup_fixed_position.y + output_box.y;
+		} else { /* Center the menu */
+			struct menuitem *item;
+			int max_width = 0;
+
+			wl_list_for_each(item, &menu->menuitems, link) {
+				if (item->native_width > max_width) {
+					max_width = item->native_width;
+				}
+			}
+			x = (output->usable_area.width / 2) -
+				(max_width / 2) + output_box.x;
+			y = (output->usable_area.height / 2) -
+				(menu->size.height / 2) + output_box.y;
+		}
 	}
 
 	/* Replaced by next show_menu() or cleaned on view_destroy() */

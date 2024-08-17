@@ -115,7 +115,26 @@
     <popupShow>Never</popupShow>
     <!-- Let client redraw its contents while resizing -->
     <drawContents>yes</drawContents>
-  </resize>
+
+    <!-- options for fixed menu placement
+         will override all atCursor placement -->
+
+    <!--
+    <popupPosition>Fixed</popupPosition>
+    -->
+    <!-- openbox uses 'Center', 'Top', or 'Fixed'
+         but we use Fixed & Center for now', positioning
+	 is per output. -->
+
+    <popupFixedPosition>
+     <!-- openbox allows - negative offsets but that's because of X
+          we use positive offset, 0,0 is top left corner
+          monitor width - 1, monitor height - 1
+          will put the menu at bottom right corner -->
+      <x>10</x> <!-- 10 pixel from top left corner -->
+      <y>10</y>
+    </popupFixedPosition>
+    </resize>
 
   <focus>
     <followMouse>no</followMouse>

@@ -45,6 +45,12 @@ enum tiling_events_mode {
 		(LAB_TILING_EVENTS_REGION | LAB_TILING_EVENTS_EDGE),
 };
 
+enum menu_placement_policy {
+	LAB_MENU_ATCURSOR = 0,
+	LAB_MENU_CENTER,
+	LAB_MENU_FIXED,
+};
+
 struct usable_area_override {
 	struct border margin;
 	char *output;
@@ -136,6 +142,13 @@ struct rcxml {
 
 	enum resize_indicator_mode resize_indicator;
 	bool resize_draw_contents;
+	/* x,y and center placement for menu */
+	enum menu_placement_policy resize_popup_position;
+
+	struct {
+		int x;
+		int y;
+	} resize_popup_fixed_position;
 
 	struct {
 		int popuptime;

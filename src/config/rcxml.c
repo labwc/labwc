@@ -1051,6 +1051,18 @@ entry(xmlNode *node, char *nodename, char *content)
 		}
 	} else if (!strcasecmp(nodename, "drawContents.resize")) {
 		set_bool(content, &rc.resize_draw_contents);
+	} else if (!strcasecmp(nodename, "popupPosition.resize")) {
+		rc.resize_popup_position = LAB_MENU_ATCURSOR;
+		if (!strcasecmp(content, "Fixed")) {
+			rc.resize_popup_position = LAB_MENU_FIXED;
+		}
+		if (!strcasecmp(content, "Center")) {
+			rc.resize_popup_position = LAB_MENU_CENTER;
+		}
+	} else if (!strcasecmp(nodename, "x.popupFixedPosition.resize")) {
+		rc.resize_popup_fixed_position.x = atoi(content);
+	} else if (!strcasecmp(nodename, "y.popupFixedPosition.resize")) {
+		rc.resize_popup_fixed_position.y = atoi(content);
 	} else if (!strcasecmp(nodename, "mouseEmulation.tablet")) {
 		set_bool(content, &rc.tablet.force_mouse_emulation);
 	} else if (!strcasecmp(nodename, "mapToOutput.tablet")) {
@@ -1307,6 +1319,7 @@ rcxml_init(void)
 
 	rc.resize_indicator = LAB_RESIZE_INDICATOR_NEVER;
 	rc.resize_draw_contents = true;
+	rc.resize_popup_position = LAB_MENU_ATCURSOR;
 
 	rc.workspace_config.popuptime = INT_MIN;
 	rc.workspace_config.min_nr_workspaces = 1;

@@ -630,6 +630,10 @@ show_menu(struct server *server, struct view *view,
 		return;
 	}
 
+	/* need to be current to be useful */
+	create_client_list_combined_menu(menu->server);
+	create_client_send_to_menu(menu->server);
+
 	int x = server->seat.cursor->x;
 	int y = server->seat.cursor->y;
 
@@ -655,11 +659,15 @@ show_menu(struct server *server, struct view *view,
 			y = rc.resize_popup_fixed_position.y + output_box.y;
 		} else { /* Center the menu */
 			struct menuitem *item;
-			int max_width = 0;
+			struct theme *theme = server->theme;
+			int max_width = theme->menu_min_width;
 
 			wl_list_for_each(item, &menu->menuitems, link) {
 				if (item->native_width > max_width) {
-					max_width = item->native_width;
+					max_width = item->native_width <
+						theme->menu_max_width ?
+						item->native_width :
+						theme->menu_max_width;
 				}
 			}
 			x = (output->usable_area.width / 2) -

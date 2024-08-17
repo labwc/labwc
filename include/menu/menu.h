@@ -135,4 +135,7 @@ void menu_close_root(struct server *server);
 /* menu_reconfigure - reload theme and content */
 void menu_reconfigure(struct server *server);
 
+void create_client_send_to_menu(struct server *server);
+void create_client_list_combined_menu(struct server *server);
+
 #endif /* LABWC_MENU_H */

@@ -61,6 +61,12 @@
 </menu>
 
 <menu id="some-custom-menu">
+  <!--
+    Creates a separator w/title that is used as a header
+    To create an empty header with no title,
+    set label=" ", not label=""
+  -->
+  <separator label="custom menu" /> 
   <item label="Reconfigure">
     <action name="Reconfigure" />
   </item>

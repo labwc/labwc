@@ -448,6 +448,7 @@ extending outward from the snapped edge.
 	- ActiveWindow - titlebar of active window
 	- InactiveWindow - titlebar of all windows that aren't focused by the
 	  cursor
+	- MenuHeader - menu header font ie separator labels
 	- MenuItem - menu item (currently only root menu)
 	- OnScreenDisplay - items in the on screen display
 	If no place attribute is provided, the setting will be applied to all
@@ -460,7 +461,7 @@ extending outward from the snapped edge.
 	Font size in pixels. Default is 10.
 
 *<theme><font place=""><slant>*
-	Font slant (normal or italic). Default is normal.
+	Font slant (normal, oblique or italic). Default is normal.
 
 *<theme><font place=""><weight>*
 	Font weight (normal or bold). Default is normal.

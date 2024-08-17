@@ -69,6 +69,7 @@ enum font_place {
 	FONT_PLACE_UNKNOWN,
 	FONT_PLACE_ACTIVEWINDOW,
 	FONT_PLACE_INACTIVEWINDOW,
+	FONT_PLACE_MENUHEADER,
 	FONT_PLACE_MENUITEM,
 	FONT_PLACE_OSD,
 	/* TODO: Add all places based on Openbox's rc.xml */
@@ -691,8 +692,13 @@ set_font_attr(struct font *font, const char *nodename, const char *content)
 	} else if (!strcmp(nodename, "size")) {
 		font->size = atoi(content);
 	} else if (!strcmp(nodename, "slant")) {
-		font->slant = !strcasecmp(content, "italic") ?
-			FONT_SLANT_ITALIC : FONT_SLANT_NORMAL;
+		if (!strcasecmp(content, "italic")) {
+			font->slant = FONT_SLANT_ITALIC;
+		} else if (!strcasecmp(content, "oblique")) {
+			font->slant = FONT_SLANT_OBLIQUE;
+		} else {
+			font->slant = FONT_SLANT_NORMAL;
+		}
 	} else if (!strcmp(nodename, "weight")) {
 		font->weight = !strcasecmp(content, "bold") ?
 			FONT_WEIGHT_BOLD : FONT_WEIGHT_NORMAL;
@@ -715,6 +721,7 @@ fill_font(char *nodename, char *content, enum font_place place)
 		 */
 		set_font_attr(&rc.font_activewindow, nodename, content);
 		set_font_attr(&rc.font_inactivewindow, nodename, content);
+		set_font_attr(&rc.font_menuheader, nodename, content);
 		set_font_attr(&rc.font_menuitem, nodename, content);
 		set_font_attr(&rc.font_osd, nodename, content);
 		break;
@@ -723,6 +730,9 @@ fill_font(char *nodename, char *content, enum font_place place)
 		break;
 	case FONT_PLACE_INACTIVEWINDOW:
 		set_font_attr(&rc.font_inactivewindow, nodename, content);
+		break;
+	case FONT_PLACE_MENUHEADER:
+		set_font_attr(&rc.font_menuheader, nodename, content);
 		break;
 	case FONT_PLACE_MENUITEM:
 		set_font_attr(&rc.font_menuitem, nodename, content);
@@ -748,6 +758,8 @@ enum_font_place(const char *place)
 		return FONT_PLACE_ACTIVEWINDOW;
 	} else if (!strcasecmp(place, "InactiveWindow")) {
 		return FONT_PLACE_INACTIVEWINDOW;
+	} else if (!strcasecmp(place, "MenuHeader")) {
+		return FONT_PLACE_MENUHEADER;
 	} else if (!strcasecmp(place, "MenuItem")) {
 		return FONT_PLACE_MENUITEM;
 	} else if (!strcasecmp(place, "OnScreenDisplay")
@@ -1277,6 +1289,7 @@ rcxml_init(void)
 
 	init_font_defaults(&rc.font_activewindow);
 	init_font_defaults(&rc.font_inactivewindow);
+	init_font_defaults(&rc.font_menuheader);
 	init_font_defaults(&rc.font_menuitem);
 	init_font_defaults(&rc.font_osd);
 
@@ -1523,6 +1536,9 @@ post_processing(void)
 	if (!rc.font_inactivewindow.name) {
 		rc.font_inactivewindow.name = xstrdup("sans");
 	}
+	if (!rc.font_menuheader.name) {
+		rc.font_menuheader.name = xstrdup("sans");
+	}
 	if (!rc.font_menuitem.name) {
 		rc.font_menuitem.name = xstrdup("sans");
 	}
@@ -1728,6 +1744,7 @@ rcxml_finish(void)
 {
 	zfree(rc.font_activewindow.name);
 	zfree(rc.font_inactivewindow.name);
+	zfree(rc.font_menuheader.name);
 	zfree(rc.font_menuitem.name);
 	zfree(rc.font_osd.name);
 	zfree(rc.theme_name);

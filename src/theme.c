@@ -487,6 +487,7 @@ theme_builtin(struct theme *theme, struct server *server)
 	parse_hexstr("#000000", theme->window_active_label_text_color);
 	parse_hexstr("#000000", theme->window_inactive_label_text_color);
 	theme->window_label_text_justify = parse_justification("Center");
+	theme->menu_title_text_justify = parse_justification("Left");
 
 	theme->window_button_width = 26;
 
@@ -529,6 +530,7 @@ theme_builtin(struct theme *theme, struct server *server)
 	parse_hexstr("#888888", theme->menu_separator_color);
 
 	parse_hexstr("#589bda", theme->menu_title_bg_color);
+	parse_hexstr("#000000", theme->menu_title_text_color);
 
 	theme->osd_window_switcher_width = 600;
 	theme->osd_window_switcher_width_is_percent = false;
@@ -605,6 +607,9 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "menu.items.padding.y")) {
 		theme->menu_item_padding_y = atoi(value);
+	}
+	if (match_glob(key, "menu.title.text.justify")) {
+		theme->menu_title_text_justify = parse_justification(value);
 	}
 	if (match_glob(key, "menu.overlap.x")) {
 		theme->menu_overlap_x = atoi(value);
@@ -770,6 +775,10 @@ entry(struct theme *theme, const char *key, const char *value)
 
 	if (match_glob(key, "menu.title.bg.color")) {
 		parse_hexstr(value, theme->menu_title_bg_color);
+	}
+
+	if (match_glob(key, "menu.title.text.color")) {
+		parse_hexstr(value, theme->menu_title_text_color);
 	}
 
 	if (match_glob(key, "osd.bg.color")) {

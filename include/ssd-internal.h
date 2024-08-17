@@ -22,7 +22,6 @@ struct ssd_button {
 	struct wlr_scene_node *hover;
 	struct wlr_scene_node *toggled;
 	struct wlr_scene_node *toggled_hover;
-	struct wlr_scene_node *background;
 	struct wlr_scene_tree *icon_tree;
 	struct wlr_scene_tree *hover_tree;
 
@@ -127,17 +126,11 @@ struct ssd_part *add_scene_buffer(
 	struct wlr_scene_tree *parent, struct wlr_buffer *buffer, int x, int y);
 struct ssd_part *add_scene_button(
 	struct wl_list *part_list, enum ssd_part_type type,
-	struct wlr_scene_tree *parent, float *bg_color,
-	struct wlr_buffer *icon_buffer, struct wlr_buffer *hover_buffer,
-	int x, struct view *view);
+	struct wlr_scene_tree *parent, struct wlr_buffer *icon_buffer,
+	struct wlr_buffer *hover_buffer, int x, struct view *view);
 void add_toggled_icon(struct ssd_button *button, struct wl_list *part_list,
 	enum ssd_part_type type, struct wlr_buffer *icon_buffer,
 	struct wlr_buffer *hover_buffer);
-struct ssd_part *add_scene_button_corner(
-	struct wl_list *part_list, enum ssd_part_type type,
-	enum ssd_part_type corner_type, struct wlr_scene_tree *parent,
-	struct wlr_buffer *corner_buffer, struct wlr_buffer *icon_buffer,
-	struct wlr_buffer *hover_buffer, int x, struct view *view);
 
 /* SSD internal helpers */
 struct ssd_part *ssd_get_part(

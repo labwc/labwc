@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
+#include <ctype.h>
 #include <fcntl.h>
 #include <glib.h>
 #include <libxml/parser.h>
@@ -15,6 +16,7 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "action.h"
+#include "common/buf.h"
 #include "common/dir.h"
 #include "common/list.h"
 #include "common/macros.h"
@@ -35,6 +37,10 @@
 #include "view.h"
 #include "window-rules.h"
 #include "workspaces.h"
+
+#if HAVE_LIBYAML
+#include "common/yaml2xml.h"
+#endif
 
 static bool in_regions;
 static bool in_usable_area_override;
@@ -1743,6 +1749,37 @@ validate(void)
 	}
 }
 
+static bool
+file_is_xml(const char *filename)
+{
+	if (str_endswith(filename, ".xml")) {
+		return true;
+	} else if (str_endswith(filename, ".yaml")) {
+		return false;
+	}
+
+	/*
+	 * If the extension is not .xml or .yaml, judge by whther the content
+	 * starts with '<'.
+	 */
+	FILE *stream = fopen(filename, "r");
+	if (!stream) {
+		return true;
+	}
+	char c;
+	while ((c = fgetc(stream))) {
+		if (!isspace(c)) {
+			break;
+		}
+	}
+	fclose(stream);
+	if (c == '<') {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 void
 rcxml_read(const char *filename)
 {
@@ -1758,9 +1795,14 @@ rcxml_read(const char *filename)
 		wl_list_append(&paths, &path->link);
 	} else {
 		paths_config_create(&paths, "rc.xml");
+#ifdef HAVE_LIBYAML
+		struct wl_list paths_yaml;
+		wl_list_init(&paths_yaml);
+		paths_config_create(&paths_yaml, "rc.yaml");
+		wl_list_insert_list(paths.prev, &paths_yaml);
+#endif
 	}
 
-	/* Reading file into buffer before parsing - better for unit tests */
 	bool should_merge_config = rc.merge_config;
 	struct wl_list *(*iter)(struct wl_list *list);
 	iter = should_merge_config ? paths_get_prev : paths_get_next;
@@ -1782,21 +1824,30 @@ rcxml_read(const char *filename)
 			continue;
 		}
 
-		wlr_log(WLR_INFO, "read config file %s", path->string);
-
 		struct buf b = BUF_INIT;
-		char *line = NULL;
-		size_t len = 0;
-		while (getline(&line, &len, stream) != -1) {
-			char *p = strrchr(line, '\n');
-			if (p) {
-				*p = '\0';
+		if (HAVE_LIBYAML && !file_is_xml(path->string)) {
+#if HAVE_LIBYAML
+			wlr_log(WLR_INFO, "read yaml config file %s", path->string);
+			b = yaml_to_xml(stream, "labwc_config");
+#endif
+		} else {
+			wlr_log(WLR_INFO, "read xml config file %s", path->string);
+			char *line = NULL;
+			size_t len = 0;
+			while (getline(&line, &len, stream) != -1) {
+				char *p = strrchr(line, '\n');
+				if (p) {
+					*p = '\0';
+				}
+				buf_add(&b, line);
 			}
-			buf_add(&b, line);
+			zfree(line);
 		}
-		zfree(line);
+
 		fclose(stream);
-		rcxml_parse_xml(&b);
+		if (b.len > 0) {
+			rcxml_parse_xml(&b);
+		}
 		buf_reset(&b);
 		if (!should_merge_config) {
 			break;

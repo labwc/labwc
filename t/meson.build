@@ -1,17 +1,36 @@
-test_lib = static_library(
-  'test_lib',
-  sources: files(
+test_lib_sources = files(
     '../src/common/buf.c',
     '../src/common/mem.c',
-    '../src/common/string-helpers.c'
-  ),
-  include_directories: [labwc_inc],
-  dependencies: [dep_cmocka],
+    '../src/common/string-helpers.c',
 )
+
+test_deps = [
+  dep_cmocka,
+]
 
 tests = [
   'buf-simple',
 ]
+
+if have_libyaml
+  test_lib_sources += [
+    '../src/common/yaml2xml.c',
+  ]
+  test_deps += [
+    wlroots,
+    yaml,
+  ]
+  tests += [
+    'yaml2xml',
+  ]
+endif
+
+test_lib = static_library(
+  'test_lib',
+  sources: test_lib_sources,
+  include_directories: [labwc_inc],
+  dependencies: test_deps
+)
 
 foreach t : tests
   test(

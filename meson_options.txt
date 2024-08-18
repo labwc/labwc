@@ -4,3 +4,4 @@ option('svg', type: 'feature', value: 'enabled', description: 'Enable svg window
 option('nls', type: 'feature', value: 'auto', description: 'Enable native language support')
 option('static_analyzer', type: 'feature', value: 'disabled', description: 'Run gcc static analyzer')
 option('test', type: 'feature', value: 'disabled', description: 'Run tests')
+option('yaml', type: 'feature', value: 'enabled', description: 'Enable configuration in YAML')

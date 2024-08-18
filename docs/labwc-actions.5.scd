@@ -294,8 +294,10 @@ Actions are used in menus and keyboard/mouse bindings.
 	decorations (including those for which the server-side titlebar has been
 	hidden) are not eligible for shading.
 
+*<action name="EnableTabletMouseEmulation" />*++
+*<action name="DisableTabletMouseEmulation" />*++
 *<action name="ToggleTabletMouseEmulation">*
-	Toggle mouse emulation for drawing tablets on or off.
+	Enable, disable or toggle mouse emulation for drawing tablets respectively.
 
 *<action name="ToggleMagnify">*
 	Toggle the screen magnifier on or off at the last magnification level

@@ -84,14 +84,26 @@ corner_from_icon_name(const char *icon_name)
 {
 	assert(icon_name);
 
-	/*
-	 * TODO: Once we implement titleLayout we can make the
-	 *       return values depend on parsed config values.
-	 */
-	if (!strcmp(icon_name, "menu")) {
-		return LAB_CORNER_TOP_LEFT;
-	} else if (!strcmp(icon_name, "close")) {
-		return LAB_CORNER_TOP_RIGHT;
+	struct title_button *b;
+	wl_list_for_each(b, &rc.title_buttons_left, link) {
+		if ((b->type == LAB_SSD_BUTTON_WINDOW_MENU && !strcmp(icon_name, "menu"))
+			|| (b->type == LAB_SSD_BUTTON_ICONIFY && !strcmp(icon_name, "iconify"))
+			|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max"))
+			|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max_toggled"))
+			|| (b->type == LAB_SSD_BUTTON_CLOSE && !strcmp(icon_name, "close"))) {
+			return LAB_CORNER_TOP_LEFT;
+		}
+		break;
+	}
+	wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
+		if ((b->type == LAB_SSD_BUTTON_WINDOW_MENU && !strcmp(icon_name, "menu"))
+			|| (b->type == LAB_SSD_BUTTON_ICONIFY && !strcmp(icon_name, "iconify"))
+			|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max"))
+			|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max_toggled"))
+			|| (b->type == LAB_SSD_BUTTON_CLOSE && !strcmp(icon_name, "close"))) {
+			return LAB_CORNER_TOP_RIGHT;
+		}
+		break;
 	}
 	return LAB_CORNER_UNKNOWN;
 }

@@ -545,7 +545,12 @@ fill_touch(char *nodename, char *content)
 	if (!strcasecmp(nodename, "touch")) {
 		current_touch = znew(*current_touch);
 		wl_list_append(&rc.touch_configs, &current_touch->link);
-	} else if (!strcasecmp(nodename, "deviceName.touch")) {
+		return;
+	} else if (!content) {
+		return;
+	}
+
+	if (!strcasecmp(nodename, "deviceName.touch")) {
 		current_touch->device_name = xstrdup(content);
 	} else if (!strcasecmp(nodename, "mapToOutput.touch")) {
 		current_touch->output_name = xstrdup(content);

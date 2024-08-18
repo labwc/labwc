@@ -8,62 +8,65 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-03-17 11:06+1000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2024-08-18 20:01+0000\n"
+"Last-Translator: Peter  Jespersen <flywheel@illogical.dk>\n"
+"Language-Team: Danish <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.2.1\n"
 
 #: src/menu/menu.c:829
 msgid "Reconfigure"
-msgstr ""
+msgstr "Genindstil"
 
 #: src/menu/menu.c:831
 msgid "Exit"
-msgstr ""
+msgstr "Afslut"
 
 #: src/menu/menu.c:847
 msgid "Minimize"
-msgstr ""
+msgstr "Minimer"
 
 #: src/menu/menu.c:849
 msgid "Maximize"
-msgstr ""
+msgstr "Maksimer"
 
 #: src/menu/menu.c:851
 msgid "Fullscreen"
-msgstr ""
+msgstr "Fuldskærm"
 
 #: src/menu/menu.c:853
 msgid "Roll Up/Down"
-msgstr ""
+msgstr "Rul Op/Ned"
 
 #: src/menu/menu.c:855
 msgid "Decorations"
-msgstr ""
+msgstr "Dekorationer"
 
 #: src/menu/menu.c:857
 msgid "Always on Top"
-msgstr ""
+msgstr "Altid øverst"
 
 #: src/menu/menu.c:862
 msgid "Move Left"
-msgstr ""
+msgstr "Flyt til venstre"
 
 #: src/menu/menu.c:869
 msgid "Move Right"
-msgstr ""
+msgstr "Flyt til højre"
 
 #: src/menu/menu.c:874
 msgid "Always on Visible Workspace"
-msgstr ""
+msgstr "Altid på synlig arbejdsplads"
 
 #: src/menu/menu.c:877 src/config/rcxml.c:1497
 msgid "Workspace"
-msgstr ""
+msgstr "Arbejdsplads"
 
 #: src/menu/menu.c:880
 msgid "Close"
-msgstr ""
+msgstr "Luk"

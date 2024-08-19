@@ -55,10 +55,25 @@ test_expand_title(void **state)
 	free(s.data);
 }
 
+static void
+test_buf_add_fmt(void **state)
+{
+	(void)state;
+
+	struct buf s = BUF_INIT;
+
+	buf_add(&s, "foo");
+	buf_add_fmt(&s, " %s baz %d", "bar", 10);
+	assert_string_equal(s.data, "foo bar baz 10");
+
+	buf_reset(&s);
+}
+
 int main(int argc, char **argv)
 {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(test_expand_title),
+		cmocka_unit_test(test_buf_add_fmt),
 	};
 
 	return cmocka_run_group_tests(tests, NULL, NULL);

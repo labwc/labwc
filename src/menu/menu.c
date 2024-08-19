@@ -40,6 +40,16 @@ static struct menu *current_menu;
 static bool waiting_for_pipe_menu;
 static struct menuitem *selected_item;
 
+struct menu_pipe_context {
+	struct server *server;
+	struct menuitem *item;
+	struct buf buf;
+	struct wl_event_source *event_read;
+	struct wl_event_source *event_timeout;
+	pid_t pid;
+	int pipe_fd;
+};
+
 /* TODO: split this whole file into parser.c and actions.c*/
 
 static bool
@@ -347,6 +357,9 @@ fill_item(char *nodename, char *content)
 static void
 item_destroy(struct menuitem *item)
 {
+	if (item->pipe_ctx) {
+		item->pipe_ctx->item = NULL;
+	}
 	wl_list_remove(&item->link);
 	action_list_free(&item->actions);
 	wlr_scene_node_destroy(&item->tree->node);
@@ -1086,27 +1099,19 @@ menu_open_root(struct menu *menu, int x, int y)
 	selected_item = NULL;
 }
 
-struct pipe_context {
-	struct server *server;
-	struct menuitem *item;
-	struct buf buf;
-	struct wl_event_source *event_read;
-	struct wl_event_source *event_timeout;
-	pid_t pid;
-	int pipe_fd;
-};
-
 static void
-create_pipe_menu(struct pipe_context *ctx)
+create_pipe_menu(struct menu_pipe_context *ctx)
 {
+	assert(ctx->item);
+
 	struct menu *pipe_parent = ctx->item->parent;
 	if (!pipe_parent) {
-		wlr_log(WLR_ERROR, "[pipemenu %ld] invalid parent",
+		wlr_log(WLR_INFO, "[pipemenu %ld] invalid parent",
 			(long)ctx->pid);
 		return;
 	}
 	if (!pipe_parent->scene_tree->node.enabled) {
-		wlr_log(WLR_ERROR, "[pipemenu %ld] parent menu already closed",
+		wlr_log(WLR_INFO, "[pipemenu %ld] parent menu already closed",
 			(long)ctx->pid);
 		return;
 	}
@@ -1153,12 +1158,15 @@ restore_menus:
 }
 
 static void
-pipemenu_ctx_destroy(struct pipe_context *ctx)
+pipemenu_ctx_destroy(struct menu_pipe_context *ctx)
 {
 	wl_event_source_remove(ctx->event_read);
 	wl_event_source_remove(ctx->event_timeout);
 	spawn_piped_close(ctx->pid, ctx->pipe_fd);
 	buf_reset(&ctx->buf);
+	if (ctx->item) {
+		ctx->item->pipe_ctx = NULL;
+	}
 	free(ctx);
 	waiting_for_pipe_menu = false;
 }
@@ -1166,9 +1174,9 @@ pipemenu_ctx_destroy(struct pipe_context *ctx)
 static int
 handle_pipemenu_timeout(void *_ctx)
 {
-	struct pipe_context *ctx = _ctx;
+	struct menu_pipe_context *ctx = _ctx;
 	wlr_log(WLR_ERROR, "[pipemenu %ld] timeout reached, killing %s",
-		(long)ctx->pid, ctx->item->execute);
+		(long)ctx->pid, ctx->item ? ctx->item->execute : "n/a");
 	kill(ctx->pid, SIGTERM);
 	pipemenu_ctx_destroy(ctx);
 	return 0;
@@ -1183,10 +1191,18 @@ starts_with_less_than(const char *s)
 static int
 handle_pipemenu_readable(int fd, uint32_t mask, void *_ctx)
 {
-	struct pipe_context *ctx = _ctx;
+	struct menu_pipe_context *ctx = _ctx;
 	/* two 4k pages + 1 NULL byte */
 	char data[8193];
 	ssize_t size;
+
+	if (!ctx->item) {
+		/* parent menu item got destroyed in the meantime */
+		wlr_log(WLR_INFO, "[pipemenu %ld] parent menu item destroyed",
+			(long)ctx->pid);
+		kill(ctx->pid, SIGTERM);
+		goto clean_up;
+	}
 
 	do {
 		/* leave space for terminating NULL byte */
@@ -1235,6 +1251,11 @@ parse_pipemenu(struct menuitem *item)
 		return;
 	}
 
+	if (item->pipe_ctx) {
+		wlr_log(WLR_ERROR, "item already has a pipe context attached");
+		return;
+	}
+
 	int pipe_fd = 0;
 	pid_t pid = spawn_piped(item->execute, &pipe_fd);
 	if (pid <= 0) {
@@ -1243,12 +1264,13 @@ parse_pipemenu(struct menuitem *item)
 	}
 
 	waiting_for_pipe_menu = true;
-	struct pipe_context *ctx = znew(*ctx);
+	struct menu_pipe_context *ctx = znew(*ctx);
 	ctx->server = item->parent->server;
 	ctx->item = item;
 	ctx->pid = pid;
 	ctx->pipe_fd = pipe_fd;
 	ctx->buf = BUF_INIT;
+	item->pipe_ctx = ctx;
 
 	ctx->event_read = wl_event_loop_add_fd(ctx->server->wl_event_loop,
 		pipe_fd, WL_EVENT_READABLE, handle_pipemenu_readable, ctx);

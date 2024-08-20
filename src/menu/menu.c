@@ -1182,12 +1182,6 @@ handle_pipemenu_timeout(void *_ctx)
 	return 0;
 }
 
-static bool
-starts_with_less_than(const char *s)
-{
-	return (s + strspn(s, " \t\r\n"))[0] == '<';
-}
-
 static int
 handle_pipemenu_readable(int fd, uint32_t mask, void *_ctx)
 {
@@ -1231,7 +1225,7 @@ handle_pipemenu_readable(int fd, uint32_t mask, void *_ctx)
 	}
 
 	/* Guard against badly formed data such as binary input */
-	if (!starts_with_less_than(ctx->buf.data)) {
+	if (!str_starts_with(ctx->buf.data, '<', " \t\r\n")) {
 		wlr_log(WLR_ERROR, "expect xml data to start with '<'; abort pipemenu");
 		goto clean_up;
 	}

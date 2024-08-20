@@ -39,6 +39,7 @@ struct menuitem {
 	struct wlr_scene_tree *tree;
 	struct menu_scene normal;
 	struct menu_scene selected;
+	struct menu_pipe_context *pipe_ctx;
 	struct wl_list link; /* menu.menuitems */
 };
 

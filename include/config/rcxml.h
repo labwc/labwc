@@ -80,6 +80,7 @@ struct rcxml {
 	bool shadows_enabled;
 	struct font font_activewindow;
 	struct font font_inactivewindow;
+	struct font font_menuheader;
 	struct font font_menuitem;
 	struct font font_osd;
 

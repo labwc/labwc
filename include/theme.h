@@ -44,6 +44,7 @@ struct theme {
 	float window_active_label_text_color[4];
 	float window_inactive_label_text_color[4];
 	enum lab_justification window_label_text_justify;
+	enum lab_justification menu_title_text_justify;
 
 	/* button width */
 	int window_button_width;
@@ -77,6 +78,8 @@ struct theme {
 	float menu_separator_color[4];
 
 	float menu_title_bg_color[4];
+
+	float menu_title_text_color[4];
 
 	int osd_border_width;
 

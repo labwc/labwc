@@ -220,7 +220,8 @@ snap_shrink_to_next_edge(struct view *view,
 
 	*geo = view->pending;
 	uint32_t resize_edges;
-	int min_view_width = rc.theme->window_button_width * SSD_BUTTON_COUNT;
+	int min_view_width = rc.theme->window_button_width * (
+		wl_list_length(&rc.title_buttons_left) + wl_list_length(&rc.title_buttons_right));
 
 	/*
 	 * First shrink the view along the relevant edge. The maximum shrink

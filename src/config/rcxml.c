@@ -118,6 +118,59 @@ parse_window_type(const char *type)
 }
 
 static void
+fill_title_layout(char *nodename, char *content)
+{
+	char *c, *c2;
+	enum ssd_part_type type;
+	struct title_button *item;
+	struct wl_list *list = &rc.title_buttons_left;
+
+	for (c = content; *c != '\0'; c++) {
+		for (c2 = content; c2 < c; c2++) {
+			if (*c2 == *c) {
+				break;
+			}
+		}
+		if (c2 != c) {
+			continue;
+		}
+
+		switch (*c) {
+		/* case 'N': icon */
+		case 'L':
+			list = &rc.title_buttons_right;
+			rc.show_title = true;
+			continue;
+		case '|':
+			list = &rc.title_buttons_right;
+			continue;
+		case 'W':
+			type = LAB_SSD_BUTTON_WINDOW_MENU;
+			break;
+		case 'I':
+			type = LAB_SSD_BUTTON_ICONIFY;
+			break;
+		case 'M':
+			type = LAB_SSD_BUTTON_MAXIMIZE;
+			break;
+		case 'C':
+			type = LAB_SSD_BUTTON_CLOSE;
+			break;
+		/* case 'S': shade */
+		/* case 'D': omnipresent */
+		default:
+			continue;
+		}
+
+		item = znew(*item);
+		item->type = type;
+		wl_list_append(list, &item->link);
+	}
+
+	rc.title_layout_loaded = true;
+}
+
+static void
 fill_usable_area_override(char *nodename, char *content)
 {
 	if (!strcasecmp(nodename, "margin")) {
@@ -928,6 +981,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.placement_cascade_offset_y = atoi(content);
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = xstrdup(content);
+	} else if (!strcmp(nodename, "titlelayout.theme")) {
+		fill_title_layout(nodename, content);
 	} else if (!strcmp(nodename, "cornerradius.theme")) {
 		rc.corner_radius = atoi(content);
 	} else if (!strcasecmp(nodename, "keepBorder.theme")) {
@@ -1248,6 +1303,8 @@ rcxml_init(void)
 	static bool has_run;
 
 	if (!has_run) {
+		wl_list_init(&rc.title_buttons_left);
+		wl_list_init(&rc.title_buttons_right);
 		wl_list_init(&rc.usable_area_overrides);
 		wl_list_init(&rc.keybinds);
 		wl_list_init(&rc.mousebinds);
@@ -1265,6 +1322,8 @@ rcxml_init(void)
 	rc.placement_cascade_offset_y = 0;
 
 	rc.xdg_shell_server_side_deco = true;
+	rc.show_title = false;
+	rc.title_layout_loaded = false;
 	rc.ssd_keep_border = true;
 	rc.corner_radius = 8;
 	rc.shadows_enabled = false;
@@ -1507,6 +1566,10 @@ post_processing(void)
 		load_default_mouse_bindings();
 	}
 
+	if (!rc.title_layout_loaded) {
+		fill_title_layout("titlelayout.theme", "WLIMC");
+	}
+
 	/*
 	 * Replace all earlier bindings by later ones
 	 * and clear the ones with an empty action list.
@@ -1736,6 +1799,16 @@ rcxml_finish(void)
 	zfree(rc.font_osd.name);
 	zfree(rc.theme_name);
 	zfree(rc.workspace_config.prefix);
+
+	struct title_button *p, *p_tmp;
+	wl_list_for_each_safe(p, p_tmp, &rc.title_buttons_left, link) {
+		wl_list_remove(&p->link);
+		zfree(p);
+	}
+	wl_list_for_each_safe(p, p_tmp, &rc.title_buttons_right, link) {
+		wl_list_remove(&p->link);
+		zfree(p);
+	}
 
 	struct usable_area_override *area, *area_tmp;
 	wl_list_for_each_safe(area, area_tmp, &rc.usable_area_overrides, link) {

@@ -78,42 +78,6 @@ add_scene_buffer(struct wl_list *list, enum ssd_part_type type,
 	return part;
 }
 
-struct ssd_part *
-add_scene_button_corner(struct wl_list *part_list, enum ssd_part_type type,
-		enum ssd_part_type corner_type, struct wlr_scene_tree *parent,
-		struct wlr_buffer *corner_buffer, struct wlr_buffer *icon_buffer,
-		struct wlr_buffer *hover_buffer, int x, struct view *view)
-{
-	int offset_x;
-	float invisible[4] = { 0, 0, 0, 0 };
-
-	if (corner_type == LAB_SSD_PART_CORNER_TOP_LEFT) {
-		offset_x = rc.theme->border_width;
-	} else if (corner_type == LAB_SSD_PART_CORNER_TOP_RIGHT) {
-		offset_x = 0;
-	} else {
-		assert(false && "invalid corner button type");
-		wlr_log(WLR_ERROR, "invalid corner button type");
-		abort();
-	}
-
-	struct ssd_part *button_root = add_scene_part(part_list, corner_type);
-	parent = wlr_scene_tree_create(parent);
-	button_root->node = &parent->node;
-	wlr_scene_node_set_position(button_root->node, x, 0);
-
-	/*
-	 * Background, x and y adjusted for border_width which is
-	 * already included in rendered theme.c / corner_buffer
-	 */
-	add_scene_buffer(part_list, corner_type, parent, corner_buffer,
-		-offset_x, -rc.theme->border_width);
-
-	/* Finally just put a usual theme button on top, using an invisible hitbox */
-	add_scene_button(part_list, type, parent, invisible, icon_buffer, hover_buffer, 0, view);
-	return button_root;
-}
-
 static struct wlr_box
 get_scale_box(struct wlr_buffer *buffer, double container_width,
 		double container_height)
@@ -142,19 +106,19 @@ get_scale_box(struct wlr_buffer *buffer, double container_width,
 
 struct ssd_part *
 add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
-		struct wlr_scene_tree *parent, float *bg_color,
-		struct wlr_buffer *icon_buffer, struct wlr_buffer *hover_buffer,
-		int x, struct view *view)
+		struct wlr_scene_tree *parent, struct wlr_buffer *icon_buffer,
+		struct wlr_buffer *hover_buffer, int x, struct view *view)
 {
 	struct ssd_part *button_root = add_scene_part(part_list, type);
 	parent = wlr_scene_tree_create(parent);
 	button_root->node = &parent->node;
 	wlr_scene_node_set_position(button_root->node, x, 0);
 
-	/* Background */
-	struct ssd_part *bg_rect = add_scene_rect(part_list, type, parent,
+	/* Hitbox */
+	float invisible[4] = { 0, 0, 0, 0 };
+	add_scene_rect(part_list, type, parent,
 		rc.theme->window_button_width, rc.theme->title_height, 0, 0,
-		bg_color);
+		invisible);
 
 	/* Icon */
 	struct wlr_scene_tree *icon_tree = wlr_scene_tree_create(parent);
@@ -186,7 +150,6 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 	button->view = view;
 	button->normal = icon_part->node;
 	button->hover = hover_part->node;
-	button->background = bg_rect->node;
 	button->toggled = NULL;
 	button->toggled_hover = NULL;
 	button->icon_tree = icon_tree;

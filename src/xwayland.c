@@ -611,7 +611,8 @@ check_natural_geometry(struct view *view)
 	 * un-maximized size when started maximized. Try to detect this
 	 * and set a fallback size.
 	 */
-	int min_view_width = rc.theme->window_button_width * SSD_BUTTON_COUNT;
+	int min_view_width = rc.theme->window_button_width * (
+		wl_list_length(&rc.title_buttons_left) + wl_list_length(&rc.title_buttons_right));
 	if (!view_is_floating(view)
 			&& (view->natural_geometry.width < min_view_width
 			|| view->natural_geometry.height < LAB_MIN_VIEW_HEIGHT)) {

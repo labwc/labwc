@@ -28,6 +28,7 @@
   <!-- <font><theme> can be defined without an attribute to set all places -->
   <theme>
     <name></name>
+    <titleLayout>WLIMC</titleLayout>
     <cornerRadius>8</cornerRadius>
     <keepBorder>yes</keepBorder>
     <dropShadows>no</dropShadows>

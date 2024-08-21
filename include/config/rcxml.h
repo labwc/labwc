@@ -14,6 +14,7 @@
 #include "config/tablet-tool.h"
 #include "config/libinput.h"
 #include "resize-indicator.h"
+#include "ssd.h"
 #include "theme.h"
 
 enum view_placement_policy {
@@ -43,6 +44,11 @@ enum tiling_events_mode {
 	LAB_TILING_EVENTS_EDGE = 1 << 1,
 	LAB_TILING_EVENTS_ALWAYS =
 		(LAB_TILING_EVENTS_REGION | LAB_TILING_EVENTS_EDGE),
+};
+
+struct title_button {
+	enum ssd_part_type type;
+	struct wl_list link;
 };
 
 struct usable_area_override {
@@ -75,7 +81,11 @@ struct rcxml {
 
 	/* theme */
 	char *theme_name;
+	struct wl_list title_buttons_left;
+	struct wl_list title_buttons_right;
 	int corner_radius;
+	bool show_title;
+	bool title_layout_loaded;
 	bool ssd_keep_border;
 	bool shadows_enabled;
 	struct font font_activewindow;

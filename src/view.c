@@ -617,7 +617,8 @@ view_adjust_size(struct view *view, int *w, int *h)
 {
 	assert(view);
 	struct view_size_hints hints = view_get_size_hints(view);
-	int min_view_width = rc.theme->window_button_width * SSD_BUTTON_COUNT;
+	int min_view_width = rc.theme->window_button_width * (
+		wl_list_length(&rc.title_buttons_left) + wl_list_length(&rc.title_buttons_right));
 
 	/*
 	 * "If a base size is not provided, the minimum size is to be

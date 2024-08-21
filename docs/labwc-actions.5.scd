@@ -194,10 +194,20 @@ Actions are used in menus and keyboard/mouse bindings.
 	to 'fullscreen' or 'fullscreenForced', tearing will still only be
 	enabled if the active window is in fullscreen mode.
 
-*<action name="FocusOutput" output="HDMI-A-1" />*
-	Give focus to topmost window on given output and warp the cursor
-	to the center of the window. If the given output does not contain
-	any windows, the cursor is centered on the given output.
+*<action name="FocusOutput" output="HDMI-A-1" direction="value" wrap="no" />*
+	Give focus to topmost window on other output and warp the cursor
+	to the center of the window.
+
+	If *output* is specified, the focus is given to the specified output and
+	*direction* is ignored. If *output* is omitted, *direction* may be one
+	of "left", "right", "up" or "down" to indicate that the focus should be
+	given to the next output in that direction (if one exists).
+
+	*wrap* [yes|no] When using the direction attribute, wrap around
+	from right-to-left or top-to-bottom, and vice versa. Default is no.
+
+	If the target output does not contain any windows, the cursor will
+	be centered on the output.
 
 *<action name="MoveToOutput" output="HDMI-A-1" direction="value" wrap="no" />*
 	Moves active window to other output, unless the window state is

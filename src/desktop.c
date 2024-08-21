@@ -197,10 +197,10 @@ desktop_focus_output(struct output *output)
 		if (wlr_output_layout_intersects(layout,
 				output->wlr_output, &view->current)) {
 			desktop_focus_view(view, /*raise*/ false);
-			wlr_cursor_warp(output->server->seat.cursor, NULL,
+			wlr_cursor_warp(view->server->seat.cursor, NULL,
 				view->current.x + view->current.width / 2,
 				view->current.y + view->current.height / 2);
-			cursor_update_focus(output->server);
+			cursor_update_focus(view->server);
 			return;
 		}
 	}

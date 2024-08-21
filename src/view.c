@@ -1790,91 +1790,6 @@ view_on_output_destroy(struct view *view)
 	view->output = NULL;
 }
 
-static enum wlr_direction
-opposite_direction(enum wlr_direction direction)
-{
-	switch (direction) {
-	case WLR_DIRECTION_RIGHT:
-		return WLR_DIRECTION_LEFT;
-	case WLR_DIRECTION_LEFT:
-		return WLR_DIRECTION_RIGHT;
-	case WLR_DIRECTION_DOWN:
-		return WLR_DIRECTION_UP;
-	case WLR_DIRECTION_UP:
-		return WLR_DIRECTION_DOWN;
-	default:
-		return 0;
-	}
-}
-
-static enum wlr_direction
-get_wlr_direction(enum view_edge edge)
-{
-	switch (edge) {
-	case VIEW_EDGE_LEFT:
-		return WLR_DIRECTION_LEFT;
-	case VIEW_EDGE_RIGHT:
-		return WLR_DIRECTION_RIGHT;
-	case VIEW_EDGE_UP:
-		return WLR_DIRECTION_UP;
-	case VIEW_EDGE_DOWN:
-		return WLR_DIRECTION_DOWN;
-	case VIEW_EDGE_CENTER:
-	case VIEW_EDGE_INVALID:
-	default:
-		return 0;
-	}
-}
-
-struct output *
-view_get_adjacent_output(struct view *view, enum view_edge edge, bool wrap)
-{
-	assert(view);
-	struct output *output = view->output;
-	if (!output_is_usable(output)) {
-		wlr_log(WLR_ERROR,
-			"view has no output, cannot find adjacent output");
-		return NULL;
-	}
-
-	struct wlr_box box = output_usable_area_in_layout_coords(output);
-	int lx = box.x + box.width / 2;
-	int ly = box.y + box.height / 2;
-
-	/* Determine any adjacent output in the appropriate direction */
-	struct wlr_output *new_output = NULL;
-	struct wlr_output *current_output = output->wlr_output;
-	struct wlr_output_layout *layout = view->server->output_layout;
-	enum wlr_direction direction = get_wlr_direction(edge);
-	new_output = wlr_output_layout_adjacent_output(layout, direction,
-		current_output, lx, ly);
-
-	/*
-	 * Optionally wrap around from top-to-bottom or left-to-right, and vice
-	 * versa.
-	 */
-	if (wrap && !new_output) {
-		new_output = wlr_output_layout_farthest_output(layout,
-			opposite_direction(direction), current_output, lx, ly);
-	}
-
-	/*
-	 * When "adjacent" output is the same as the original, there is no
-	 * adjacent
-	 */
-	if (!new_output || new_output == current_output) {
-		return NULL;
-	}
-
-	output = output_from_wlr_output(view->server, new_output);
-	if (!output_is_usable(output)) {
-		wlr_log(WLR_ERROR, "invalid output in layout");
-		return NULL;
-	}
-
-	return output;
-}
-
 static int
 shift_view_to_usable_1d(int size,
 		int cur_pos, int cur_lo, int cur_extent,
@@ -1936,7 +1851,7 @@ view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_wind
 
 	/* Otherwise, move to edge of next adjacent display, if possible */
 	struct output *output =
-		view_get_adjacent_output(view, direction, /* wrap */ false);
+		output_get_adjacent(view->output, direction, /* wrap */ false);
 	if (!output) {
 		return;
 	}
@@ -2115,7 +2030,7 @@ view_snap_to_edge(struct view *view, enum view_edge edge,
 
 	if (across_outputs && view->tiled == edge && view->maximized == VIEW_AXIS_NONE) {
 		/* We are already tiled for this edge; try to switch outputs */
-		output = view_get_adjacent_output(view, edge, /* wrap */ false);
+		output = output_get_adjacent(view->output, edge, /* wrap */ false);
 
 		if (!output) {
 			/*

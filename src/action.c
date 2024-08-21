@@ -19,7 +19,6 @@
 #include "menu/menu.h"
 #include "osd.h"
 #include "output-virtual.h"
-#include "placement.h"
 #include "regions.h"
 #include "ssd.h"
 #include "view.h"
@@ -413,11 +412,6 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		}
 		break;
 	case ACTION_TYPE_FOCUS_OUTPUT:
-		if (!strcmp(argument, "output")) {
-			action_arg_add_str(action, argument, content);
-			goto cleanup;
-		}
-		break;
 	case ACTION_TYPE_MOVE_TO_OUTPUT:
 		if (!strcmp(argument, "output")) {
 			action_arg_add_str(action, argument, content);
@@ -551,9 +545,6 @@ action_is_valid(struct action *action)
 		break;
 	case ACTION_TYPE_SNAP_TO_REGION:
 		arg_name = "region";
-		break;
-	case ACTION_TYPE_FOCUS_OUTPUT:
-		arg_name = "output";
 		break;
 	case ACTION_TYPE_IF:
 	case ACTION_TYPE_FOR_EACH:
@@ -725,6 +716,29 @@ start_window_cycling(struct server *server, enum lab_cycle_dir direction)
 	osd_update(server);
 }
 
+static struct output *
+get_target_output(struct output *output, struct server *server,
+	struct action *action)
+{
+	const char *output_name = action_get_str(action, "output", NULL);
+	struct output *target = NULL;
+
+	if (output_name) {
+		target = output_from_name(server, output_name);
+	} else {
+		enum view_edge edge =
+			action_get_int(action, "direction", VIEW_EDGE_INVALID);
+		bool wrap = action_get_bool(action, "wrap", false);
+		target = output_get_adjacent(output, edge, wrap);
+	}
+
+	if (!target) {
+		wlr_log(WLR_DEBUG, "Invalid output");
+	}
+
+	return target;
+}
+
 void
 actions_run(struct view *activator, struct server *server,
 	struct wl_list *actions, uint32_t resize_edges)
@@ -739,6 +753,9 @@ actions_run(struct view *activator, struct server *server,
 
 	struct view *view;
 	struct action *action;
+	struct output *output;
+	struct output *target;
+
 	wl_list_for_each(action, actions, link) {
 		wlr_log(WLR_DEBUG, "Handling action %u: %s", action->type,
 			action_names[action->type]);
@@ -1009,25 +1026,10 @@ actions_run(struct view *activator, struct server *server,
 			if (!view) {
 				break;
 			}
-			const char *output_name = action_get_str(action, "output", NULL);
-			struct output *target = NULL;
-			if (output_name) {
-				target = output_from_name(view->server, output_name);
-			} else {
-				enum view_edge edge = action_get_int(action, "direction", 0);
-				bool wrap = action_get_bool(action, "wrap", false);
-				target = view_get_adjacent_output(view, edge, wrap);
+			target = get_target_output(view->output, server, action);
+			if (target) {
+				view_move_to_output(view, target);
 			}
-			if (!target) {
-				/*
-				 * Most likely because we're already on the
-				 * output furthest in the requested direction
-				 * or the output or direction was invalid.
-				 */
-				wlr_log(WLR_DEBUG, "Invalid output");
-				break;
-			}
-			view_move_to_output(view, target);
 			break;
 		case ACTION_TYPE_FIT_TO_OUTPUT:
 			if (!view) {
@@ -1039,7 +1041,7 @@ actions_run(struct view *activator, struct server *server,
 			if (!view) {
 				break;
 			}
-			struct output *output = view->output;
+			output = view->output;
 			if (!output) {
 				break;
 			}
@@ -1058,9 +1060,10 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_FOCUS_OUTPUT:
-			{
-				const char *output_name = action_get_str(action, "output", NULL);
-				desktop_focus_output(output_from_name(server, output_name));
+			output = output_nearest_to_cursor(server);
+			target = get_target_output(output, server, action);
+			if (target) {
+				desktop_focus_output(target);
 			}
 			break;
 		case ACTION_TYPE_IF:

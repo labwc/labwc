@@ -460,6 +460,7 @@ void desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 
 void desktop_arrange_all_views(struct server *server);
 void desktop_focus_output(struct output *output);
+void warp_cursor(struct view *view);
 struct view *desktop_topmost_focusable_view(struct server *server);
 
 /**
@@ -539,6 +540,21 @@ struct output *output_from_wlr_output(struct server *server,
 struct output *output_from_name(struct server *server, const char *name);
 struct output *output_nearest_to(struct server *server, int lx, int ly);
 struct output *output_nearest_to_cursor(struct server *server);
+
+/**
+ * output_get_adjacent() - get next output, in a given direction,
+ * from a given output
+ *
+ * @output: reference output
+ * @edge: direction in which to look for the nearest output
+ * @wrap: if true, wrap around at layout edge
+ *
+ * Note: if output is NULL, the output nearest the cursor will be used as the
+ * reference instead.
+ */
+struct output *output_get_adjacent(struct output *output,
+	enum view_edge edge, bool wrap);
+
 bool output_is_usable(struct output *output);
 void output_update_usable_area(struct output *output);
 void output_update_all_usable_areas(struct server *server, bool layout_changed);

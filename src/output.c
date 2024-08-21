@@ -18,6 +18,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/region.h>
 #include <wlr/util/log.h>
+#include "common/direction.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
@@ -878,6 +879,53 @@ output_nearest_to_cursor(struct server *server)
 {
 	return output_nearest_to(server, server->seat.cursor->x,
 		server->seat.cursor->y);
+}
+
+struct output *
+output_get_adjacent(struct output *output, enum view_edge edge, bool wrap)
+{
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR,
+			"output is not usable, cannot find adjacent output");
+		return NULL;
+	}
+
+	struct wlr_box box = output_usable_area_in_layout_coords(output);
+	int lx = box.x + box.width / 2;
+	int ly = box.y + box.height / 2;
+
+	/* Determine any adjacent output in the appropriate direction */
+	struct wlr_output *new_output = NULL;
+	struct wlr_output *current_output = output->wlr_output;
+	struct wlr_output_layout *layout = output->server->output_layout;
+	enum wlr_direction direction = direction_from_view_edge(edge);
+	new_output = wlr_output_layout_adjacent_output(layout, direction,
+		current_output, lx, ly);
+
+	/*
+	 * Optionally wrap around from top-to-bottom or left-to-right, and vice
+	 * versa.
+	 */
+	if (wrap && !new_output) {
+		new_output = wlr_output_layout_farthest_output(layout,
+			direction_get_opposite(direction), current_output, lx, ly);
+	}
+
+	/*
+	 * When "adjacent" output is the same as the original, there is no
+	 * adjacent
+	 */
+	if (!new_output || new_output == current_output) {
+		return NULL;
+	}
+
+	output = output_from_wlr_output(output->server, new_output);
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR, "invalid output in layout");
+		return NULL;
+	}
+
+	return output;
 }
 
 bool

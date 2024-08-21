@@ -2,6 +2,7 @@
 #ifndef LABWC_VIEW_H
 #define LABWC_VIEW_H
 
+#include "config/rcxml.h"
 #include "config.h"
 #include "ssd.h"
 #include <stdbool.h>
@@ -482,7 +483,7 @@ void view_center(struct view *view, const struct wlr_box *ref);
  * @policy: placement policy to apply
  */
 void view_place_by_policy(struct view *view, bool allow_cursor,
-	enum view_placement_policy);
+	enum view_placement_policy policy);
 void view_constrain_size_to_that_of_usable_area(struct view *view);
 
 void view_restore_to(struct view *view, struct wlr_box geometry);
@@ -548,8 +549,6 @@ void view_on_output_destroy(struct view *view);
 void view_connect_map(struct view *view, struct wlr_surface *surface);
 void view_destroy(struct view *view);
 
-struct output *view_get_adjacent_output(struct view *view, enum view_edge edge,
-	bool wrap);
 enum view_axis view_axis_parse(const char *direction);
 enum view_edge view_edge_parse(const char *direction);
 enum view_placement_policy view_placement_parse(const char *policy);

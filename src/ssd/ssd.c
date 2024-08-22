@@ -74,15 +74,6 @@ ssd_max_extents(struct view *view)
 	};
 }
 
-bool
-ssd_is_button(enum ssd_part_type type)
-{
-	return type == LAB_SSD_BUTTON_CLOSE
-		|| type == LAB_SSD_BUTTON_MAXIMIZE
-		|| type == LAB_SSD_BUTTON_ICONIFY
-		|| type == LAB_SSD_BUTTON_WINDOW_MENU;
-}
-
 enum ssd_part_type
 ssd_get_part_type(const struct ssd *ssd, struct wlr_scene_node *node)
 {
@@ -257,16 +248,17 @@ ssd_update_geometry(struct ssd *ssd)
 			ssd->state.geometry = current;
 		}
 		bool maximized = ssd->view->maximized == VIEW_AXIS_BOTH;
-		if (ssd->state.was_maximized != maximized) {
+		if (ssd->state.was_maximized != maximized
+				|| ssd->state.was_shaded != ssd->view->shaded) {
 			ssd_titlebar_update(ssd);
 			ssd_border_update(ssd);
 			ssd_shadow_update(ssd);
 			/*
 			 * Not strictly necessary as ssd_titlebar_update()
-			 * already sets state.was_maximized but to future
-			 * proof this a bit we also set it here again.
+			 * already sets these values, but set here to be safe.
 			 */
 			ssd->state.was_maximized = maximized;
+			ssd->state.was_shaded = ssd->view->shaded;
 		}
 		bool tiled_and_not_maximized = view_is_tiled(ssd->view) && !maximized;
 		if (ssd->state.was_tiled_not_maximized != tiled_and_not_maximized) {
@@ -403,6 +395,7 @@ ssd_enable_shade(struct ssd *ssd, bool enable)
 	if (!ssd) {
 		return;
 	}
+	ssd_titlebar_update(ssd);
 	ssd_border_update(ssd);
 	wlr_scene_node_set_enabled(&ssd->extents.tree->node, !enable);
 	ssd_shadow_update(ssd);

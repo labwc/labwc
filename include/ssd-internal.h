@@ -48,6 +48,7 @@ struct ssd {
 	 * don't update things we don't have to.
 	 */
 	struct {
+		bool was_shaded;   /* To toggle icon on shade */
 		bool was_maximized;   /* To un-round corner buttons and toggle icon on maximize */
 		bool was_tiled_not_maximized;   /* To un-round corner buttons */
 		struct wlr_box geometry;

@@ -323,6 +323,11 @@ static struct mouse_combos {
 		.event = "Click",
 		.action = "ToggleMaximize",
 	}, {
+		.context = "Shade",
+		.button = "Left",
+		.event = "Click",
+		.action = "ToggleShade",
+	}, {
 		.context = "Maximize",
 		.button = "Right",
 		.event = "Click",

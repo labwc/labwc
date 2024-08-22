@@ -158,7 +158,9 @@ fill_title_layout(char *nodename, char *content)
 		case 'C':
 			type = LAB_SSD_BUTTON_CLOSE;
 			break;
-		/* case 'S': shade */
+		case 'S':
+			type = LAB_SSD_BUTTON_SHADE;
+			break;
 		/* case 'D': omnipresent */
 		default:
 			continue;

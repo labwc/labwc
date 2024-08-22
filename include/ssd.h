@@ -25,6 +25,7 @@ enum ssd_part_type {
 	LAB_SSD_BUTTON_MAXIMIZE,
 	LAB_SSD_BUTTON_ICONIFY,
 	LAB_SSD_BUTTON_WINDOW_MENU,
+	LAB_SSD_BUTTON_SHADE,
 	LAB_SSD_PART_TITLEBAR,
 	LAB_SSD_PART_TITLEBAR_CORNER_RIGHT,
 	LAB_SSD_PART_TITLEBAR_CORNER_LEFT,
@@ -100,7 +101,6 @@ enum ssd_part_type ssd_at(const struct ssd *ssd,
 enum ssd_part_type ssd_get_part_type(const struct ssd *ssd,
 	struct wlr_scene_node *node);
 uint32_t ssd_resize_edges(enum ssd_part_type type);
-bool ssd_is_button(enum ssd_part_type type);
 bool ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate);
 enum ssd_mode ssd_mode_parse(const char *mode);
 

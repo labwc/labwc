@@ -79,6 +79,19 @@ zdrop(struct lab_data_buffer **buffer)
 	}
 }
 
+static bool
+match_button_by_name(struct title_button *b, const char *icon_name)
+{
+	assert(icon_name);
+	return (b->type == LAB_SSD_BUTTON_WINDOW_MENU && !strcmp(icon_name, "menu"))
+		|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max"))
+		|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max_toggled"))
+		|| (b->type == LAB_SSD_BUTTON_ICONIFY && !strcmp(icon_name, "iconify"))
+		|| (b->type == LAB_SSD_BUTTON_CLOSE && !strcmp(icon_name, "close"))
+		|| (b->type == LAB_SSD_BUTTON_SHADE && !strcmp(icon_name, "shade"))
+		|| (b->type == LAB_SSD_BUTTON_SHADE && !strcmp(icon_name, "shade_toggled"));
+}
+
 static enum corner
 corner_from_icon_name(const char *icon_name)
 {
@@ -86,21 +99,13 @@ corner_from_icon_name(const char *icon_name)
 
 	struct title_button *b;
 	wl_list_for_each(b, &rc.title_buttons_left, link) {
-		if ((b->type == LAB_SSD_BUTTON_WINDOW_MENU && !strcmp(icon_name, "menu"))
-			|| (b->type == LAB_SSD_BUTTON_ICONIFY && !strcmp(icon_name, "iconify"))
-			|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max"))
-			|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max_toggled"))
-			|| (b->type == LAB_SSD_BUTTON_CLOSE && !strcmp(icon_name, "close"))) {
+		if (match_button_by_name(b, icon_name)) {
 			return LAB_CORNER_TOP_LEFT;
 		}
 		break;
 	}
 	wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
-		if ((b->type == LAB_SSD_BUTTON_WINDOW_MENU && !strcmp(icon_name, "menu"))
-			|| (b->type == LAB_SSD_BUTTON_ICONIFY && !strcmp(icon_name, "iconify"))
-			|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max"))
-			|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max_toggled"))
-			|| (b->type == LAB_SSD_BUTTON_CLOSE && !strcmp(icon_name, "close"))) {
+		if (match_button_by_name(b, icon_name)) {
 			return LAB_CORNER_TOP_RIGHT;
 		}
 		break;
@@ -245,6 +250,20 @@ load_buttons(struct theme *theme)
 		.inactive.buffer = &theme->button_restore_inactive_unpressed,
 		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
 	}, {
+		.name = "shade",
+		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x00, 0x0c, 0x1e, 0x3f },
+		.active.buffer = &theme->button_shade_active_unpressed,
+		.active.rgba = theme->window_active_button_shade_unpressed_image_color,
+		.inactive.buffer = &theme->button_shade_inactive_unpressed,
+		.inactive.rgba = theme->window_inactive_button_shade_unpressed_image_color,
+	}, {
+		.name = "shade_toggled",
+		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x00, 0x3f, 0x1e, 0x0c },
+		.active.buffer = &theme->button_unshade_active_unpressed,
+		.active.rgba = theme->window_active_button_shade_unpressed_image_color,
+		.inactive.buffer = &theme->button_unshade_inactive_unpressed,
+		.inactive.rgba = theme->window_inactive_button_shade_unpressed_image_color,
+	}, {
 		.name = "close",
 		.fallback_button = (const char[]){ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
 		.active.buffer = &theme->button_close_active_unpressed,
@@ -280,6 +299,21 @@ load_buttons(struct theme *theme)
 		.active.rgba = theme->window_active_button_max_unpressed_image_color,
 		.inactive.buffer = &theme->button_restore_inactive_hover,
 		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
+	}, {
+		.name = "shade_hover",
+		/* no fallback (non-hover variant is used instead) */
+		.active.buffer = &theme->button_shade_active_hover,
+		.active.rgba = theme->window_active_button_shade_unpressed_image_color,
+		.inactive.buffer = &theme->button_shade_inactive_hover,
+		.inactive.rgba = theme->window_inactive_button_shade_unpressed_image_color,
+	}, {
+		.name = "shade_toggled_hover",
+		.alt_name = "shade_hover_toggled",
+		/* no fallback (non-hover variant is used instead) */
+		.active.buffer = &theme->button_unshade_active_hover,
+		.active.rgba = theme->window_active_button_shade_unpressed_image_color,
+		.inactive.buffer = &theme->button_unshade_inactive_hover,
+		.inactive.rgba = theme->window_inactive_button_shade_unpressed_image_color,
 	}, {
 		.name = "close_hover",
 		/* no fallback (non-hover variant is used instead) */
@@ -510,6 +544,8 @@ theme_builtin(struct theme *theme, struct server *server)
 	parse_hexstr("#000000",
 		theme->window_active_button_max_unpressed_image_color);
 	parse_hexstr("#000000",
+		theme->window_active_button_shade_unpressed_image_color);
+	parse_hexstr("#000000",
 		theme->window_active_button_close_unpressed_image_color);
 	parse_hexstr("#000000",
 		theme->window_inactive_button_menu_unpressed_image_color);
@@ -517,6 +553,8 @@ theme_builtin(struct theme *theme, struct server *server)
 		theme->window_inactive_button_iconify_unpressed_image_color);
 	parse_hexstr("#000000",
 		theme->window_inactive_button_max_unpressed_image_color);
+	parse_hexstr("#000000",
+		theme->window_inactive_button_shade_unpressed_image_color);
 	parse_hexstr("#000000",
 		theme->window_inactive_button_close_unpressed_image_color);
 
@@ -682,6 +720,8 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_hexstr(value,
 			theme->window_active_button_max_unpressed_image_color);
 		parse_hexstr(value,
+			theme->window_active_button_shade_unpressed_image_color);
+		parse_hexstr(value,
 			theme->window_active_button_close_unpressed_image_color);
 	}
 	if (match_glob(key, "window.inactive.button.unpressed.image.color")) {
@@ -691,6 +731,8 @@ entry(struct theme *theme, const char *key, const char *value)
 			theme->window_inactive_button_iconify_unpressed_image_color);
 		parse_hexstr(value,
 			theme->window_inactive_button_max_unpressed_image_color);
+		parse_hexstr(value,
+			theme->window_inactive_button_shade_unpressed_image_color);
 		parse_hexstr(value,
 			theme->window_inactive_button_close_unpressed_image_color);
 	}
@@ -708,6 +750,10 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_hexstr(value,
 			theme->window_active_button_max_unpressed_image_color);
 	}
+	if (match_glob(key, "window.active.button.shade.unpressed.image.color")) {
+		parse_hexstr(value,
+			theme->window_active_button_shade_unpressed_image_color);
+	}
 	if (match_glob(key, "window.active.button.close.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_active_button_close_unpressed_image_color);
@@ -723,6 +769,10 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "window.inactive.button.max.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_inactive_button_max_unpressed_image_color);
+	}
+	if (match_glob(key, "window.inactive.button.shade.unpressed.image.color")) {
+		parse_hexstr(value,
+			theme->window_inactive_button_shade_unpressed_image_color);
 	}
 	if (match_glob(key, "window.inactive.button.close.unpressed.image.color")) {
 		parse_hexstr(value,
@@ -1442,24 +1492,32 @@ theme_finish(struct theme *theme)
 	zdrop(&theme->button_close_active_unpressed);
 	zdrop(&theme->button_maximize_active_unpressed);
 	zdrop(&theme->button_restore_active_unpressed);
+	zdrop(&theme->button_shade_active_unpressed);
+	zdrop(&theme->button_unshade_active_unpressed);
 	zdrop(&theme->button_iconify_active_unpressed);
 	zdrop(&theme->button_menu_active_unpressed);
 
 	zdrop(&theme->button_close_inactive_unpressed);
 	zdrop(&theme->button_maximize_inactive_unpressed);
 	zdrop(&theme->button_restore_inactive_unpressed);
+	zdrop(&theme->button_shade_inactive_unpressed);
+	zdrop(&theme->button_unshade_inactive_unpressed);
 	zdrop(&theme->button_iconify_inactive_unpressed);
 	zdrop(&theme->button_menu_inactive_unpressed);
 
 	zdrop(&theme->button_close_active_hover);
 	zdrop(&theme->button_maximize_active_hover);
 	zdrop(&theme->button_restore_active_hover);
+	zdrop(&theme->button_shade_active_hover);
+	zdrop(&theme->button_unshade_active_hover);
 	zdrop(&theme->button_iconify_active_hover);
 	zdrop(&theme->button_menu_active_hover);
 
 	zdrop(&theme->button_close_inactive_hover);
 	zdrop(&theme->button_maximize_inactive_hover);
 	zdrop(&theme->button_restore_inactive_hover);
+	zdrop(&theme->button_shade_inactive_hover);
+	zdrop(&theme->button_unshade_inactive_hover);
 	zdrop(&theme->button_iconify_inactive_hover);
 	zdrop(&theme->button_menu_inactive_hover);
 

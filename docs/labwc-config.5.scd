@@ -438,6 +438,7 @@ extending outward from the snapped edge.
 	- L: window label (aka. title)
 	- |: empty space (can be used instead of a title)
 	- W: window menu
+	- S: shade
 	- I: iconify
 	- M: maximize
 	- C: close
@@ -615,6 +616,7 @@ extending outward from the snapped edge.
 	- WindowMenu: The button on the left.
 	- Iconify: The button that looks like an underline.
 	- Maximize: The button that looks like a box.
+	- Shade: A button that looks like an overline.
 	- Close: The button that looks like an X.
 	- Top: The top edge of the window's border.
 	- Bottom: The bottom edge of the window's border.

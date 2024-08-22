@@ -19,7 +19,7 @@
 	&(ssd)->titlebar.inactive)
 
 static void set_squared_corners(struct ssd *ssd, bool enable);
-static void set_maximize_alt_icon(struct ssd *ssd, bool enable);
+static void set_alt_button_icon(struct ssd *ssd, enum ssd_part_type type, bool enable);
 
 static void
 add_button(struct ssd *ssd, struct ssd_sub_tree *subtree, enum ssd_part_type type, int x)
@@ -29,8 +29,8 @@ add_button(struct ssd *ssd, struct ssd_sub_tree *subtree, enum ssd_part_type typ
 	struct wlr_scene_tree *parent = subtree->tree;
 	bool active = subtree == &ssd->titlebar.active;
 
-	struct ssd_part *btn_max_root;
-	struct ssd_button *btn_max;
+	struct ssd_part *btn_root;
+	struct ssd_button *btn;
 
 	switch (type) {
 	case LAB_SSD_BUTTON_WINDOW_MENU:
@@ -51,18 +51,33 @@ add_button(struct ssd *ssd, struct ssd_sub_tree *subtree, enum ssd_part_type typ
 		break;
 	case LAB_SSD_BUTTON_MAXIMIZE:
 		/* Maximize button has an alternate state when maximized */
-		btn_max_root = add_scene_button(&subtree->parts, type, parent,
+		btn_root = add_scene_button(&subtree->parts, type, parent,
 			active ? &theme->button_maximize_active_unpressed->base
 				: &theme->button_maximize_inactive_unpressed->base,
 			active ? &theme->button_maximize_active_hover->base
 				: &theme->button_maximize_inactive_hover->base,
 			x, view);
-		btn_max = node_ssd_button_from_node(btn_max_root->node);
-		add_toggled_icon(btn_max, &subtree->parts, LAB_SSD_BUTTON_MAXIMIZE,
+		btn = node_ssd_button_from_node(btn_root->node);
+		add_toggled_icon(btn, &subtree->parts, LAB_SSD_BUTTON_MAXIMIZE,
 			active ? &theme->button_restore_active_unpressed->base
 				: &theme->button_restore_inactive_unpressed->base,
 			active ? &theme->button_restore_active_hover->base
 				: &theme->button_restore_inactive_hover->base);
+		break;
+	case LAB_SSD_BUTTON_SHADE:
+		/* Shade button has an alternate state when shaded */
+		btn_root = add_scene_button(&subtree->parts, type, parent,
+			active ? &theme->button_shade_active_unpressed->base
+				: &theme->button_shade_inactive_unpressed->base,
+			active ? &theme->button_shade_active_hover->base
+				: &theme->button_shade_inactive_hover->base,
+			x, view);
+		btn = node_ssd_button_from_node(btn_root->node);
+		add_toggled_icon(btn, &subtree->parts, LAB_SSD_BUTTON_SHADE,
+			active ? &theme->button_unshade_active_unpressed->base
+				: &theme->button_unshade_inactive_unpressed->base,
+			active ? &theme->button_unshade_active_hover->base
+				: &theme->button_unshade_inactive_hover->base);
 		break;
 	case LAB_SSD_BUTTON_CLOSE:
 		add_scene_button(&subtree->parts, type, parent,
@@ -141,9 +156,14 @@ ssd_titlebar_create(struct ssd *ssd)
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
 	if (maximized) {
 		set_squared_corners(ssd, true);
-		set_maximize_alt_icon(ssd, true);
+		set_alt_button_icon(ssd, LAB_SSD_BUTTON_MAXIMIZE, true);
 		ssd->state.was_maximized = true;
 	}
+
+	if (view->shaded) {
+		set_alt_button_icon(ssd, LAB_SSD_BUTTON_SHADE, true);
+	}
+
 	if (view_is_tiled_and_notify_tiled(view) && !maximized) {
 		set_squared_corners(ssd, true);
 		ssd->state.was_tiled_not_maximized = true;
@@ -176,14 +196,14 @@ set_squared_corners(struct ssd *ssd, bool enable)
 }
 
 static void
-set_maximize_alt_icon(struct ssd *ssd, bool enable)
+set_alt_button_icon(struct ssd *ssd, enum ssd_part_type type, bool enable)
 {
 	struct ssd_part *part;
 	struct ssd_button *button;
 	struct ssd_sub_tree *subtree;
 
 	FOR_EACH_STATE(ssd, subtree) {
-		part = ssd_get_part(&subtree->parts, LAB_SSD_BUTTON_MAXIMIZE);
+		part = ssd_get_part(&subtree->parts, type);
 		if (!part) {
 			return;
 		}
@@ -214,12 +234,17 @@ ssd_titlebar_update(struct ssd *ssd)
 		&& !maximized;
 
 	if (ssd->state.was_maximized != maximized
+			|| ssd->state.was_shaded != view->shaded
 			|| ssd->state.was_tiled_not_maximized != tiled_not_maximized) {
 		set_squared_corners(ssd, maximized || tiled_not_maximized);
 		if (ssd->state.was_maximized != maximized) {
-			set_maximize_alt_icon(ssd, maximized);
+			set_alt_button_icon(ssd, LAB_SSD_BUTTON_MAXIMIZE, maximized);
+		}
+		if (ssd->state.was_shaded != view->shaded) {
+			set_alt_button_icon(ssd, LAB_SSD_BUTTON_SHADE, view->shaded);
 		}
 		ssd->state.was_maximized = maximized;
+		ssd->state.was_shaded = view->shaded;
 		ssd->state.was_tiled_not_maximized = tiled_not_maximized;
 	}
 

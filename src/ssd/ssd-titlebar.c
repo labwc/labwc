@@ -115,9 +115,9 @@ ssd_titlebar_create(struct ssd *ssd)
 		add_scene_rect(&subtree->parts, LAB_SSD_PART_TITLEBAR, parent,
 			width - theme->window_button_width * 2, theme->title_height,
 			theme->window_button_width, 0, color);
-		add_scene_buffer(&subtree->parts, LAB_SSD_PART_CORNER_TOP_LEFT, parent,
+		add_scene_buffer(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_LEFT, parent,
 			corner_top_left, -rc.theme->border_width, -rc.theme->border_width);
-		add_scene_buffer(&subtree->parts, LAB_SSD_PART_CORNER_TOP_RIGHT, parent,
+		add_scene_buffer(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_RIGHT, parent,
 			corner_top_right, width - theme->window_button_width,
 			-rc.theme->border_width);
 
@@ -167,10 +167,10 @@ set_squared_corners(struct ssd *ssd, bool enable)
 		wlr_scene_rect_set_size(
 			wlr_scene_rect_from_node(part->node), width - 2 * x, theme->title_height);
 
-		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_CORNER_TOP_LEFT);
+		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_LEFT);
 		wlr_scene_node_set_enabled(part->node, !enable);
 
-		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_CORNER_TOP_RIGHT);
+		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_RIGHT);
 		wlr_scene_node_set_enabled(part->node, !enable);
 	} FOR_EACH_END
 }
@@ -246,7 +246,7 @@ ssd_titlebar_update(struct ssd *ssd)
 		}
 
 		x = width - theme->window_button_width;
-		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_CORNER_TOP_RIGHT);
+		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_RIGHT);
 		wlr_scene_node_set_position(part->node, x, -rc.theme->border_width);
 		wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
 			part = ssd_get_part(&subtree->parts, b->type);

@@ -116,6 +116,8 @@ context_from_str(const char *str)
 		return LAB_SSD_BUTTON_WINDOW_MENU;
 	} else if (!strcasecmp(str, "Shade")) {
 		return LAB_SSD_BUTTON_SHADE;
+	} else if (!strcasecmp(str, "Omnipresent")) {
+		return LAB_SSD_BUTTON_OMNIPRESENT;
 	} else if (!strcasecmp(str, "Titlebar")) {
 		return LAB_SSD_PART_TITLEBAR;
 	} else if (!strcasecmp(str, "Title")) {

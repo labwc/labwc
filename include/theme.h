@@ -55,11 +55,13 @@ struct theme {
 	float window_active_button_max_unpressed_image_color[4];
 	float window_active_button_close_unpressed_image_color[4];
 	float window_active_button_shade_unpressed_image_color[4];
+	float window_active_button_omnipresent_unpressed_image_color[4];
 	float window_inactive_button_menu_unpressed_image_color[4];
 	float window_inactive_button_iconify_unpressed_image_color[4];
 	float window_inactive_button_max_unpressed_image_color[4];
 	float window_inactive_button_close_unpressed_image_color[4];
 	float window_inactive_button_shade_unpressed_image_color[4];
+	float window_inactive_button_omnipresent_unpressed_image_color[4];
 	/* TODO: add pressed and hover colors for buttons */
 
 	int menu_item_padding_x;
@@ -118,6 +120,8 @@ struct theme {
 	struct lab_data_buffer *button_menu_active_unpressed;
 	struct lab_data_buffer *button_shade_active_unpressed;
 	struct lab_data_buffer *button_unshade_active_unpressed;
+	struct lab_data_buffer *button_omnipresent_active_unpressed;
+	struct lab_data_buffer *button_exclusive_active_unpressed;
 
 	struct lab_data_buffer *button_close_inactive_unpressed;
 	struct lab_data_buffer *button_maximize_inactive_unpressed;
@@ -126,6 +130,8 @@ struct theme {
 	struct lab_data_buffer *button_menu_inactive_unpressed;
 	struct lab_data_buffer *button_shade_inactive_unpressed;
 	struct lab_data_buffer *button_unshade_inactive_unpressed;
+	struct lab_data_buffer *button_omnipresent_inactive_unpressed;
+	struct lab_data_buffer *button_exclusive_inactive_unpressed;
 
 	/* hover variants are optional and may be NULL */
 	struct lab_data_buffer *button_close_active_hover;
@@ -135,6 +141,8 @@ struct theme {
 	struct lab_data_buffer *button_menu_active_hover;
 	struct lab_data_buffer *button_shade_active_hover;
 	struct lab_data_buffer *button_unshade_active_hover;
+	struct lab_data_buffer *button_omnipresent_active_hover;
+	struct lab_data_buffer *button_exclusive_active_hover;
 
 	struct lab_data_buffer *button_close_inactive_hover;
 	struct lab_data_buffer *button_maximize_inactive_hover;
@@ -143,6 +151,8 @@ struct theme {
 	struct lab_data_buffer *button_menu_inactive_hover;
 	struct lab_data_buffer *button_shade_inactive_hover;
 	struct lab_data_buffer *button_unshade_inactive_hover;
+	struct lab_data_buffer *button_omnipresent_inactive_hover;
+	struct lab_data_buffer *button_exclusive_inactive_hover;
 
 	struct lab_data_buffer *corner_top_left_active_normal;
 	struct lab_data_buffer *corner_top_right_active_normal;

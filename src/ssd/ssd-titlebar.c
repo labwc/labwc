@@ -79,6 +79,21 @@ add_button(struct ssd *ssd, struct ssd_sub_tree *subtree, enum ssd_part_type typ
 			active ? &theme->button_unshade_active_hover->base
 				: &theme->button_unshade_inactive_hover->base);
 		break;
+	case LAB_SSD_BUTTON_OMNIPRESENT:
+		/* Omnipresent button has an alternate state when enabled */
+		btn_root = add_scene_button(&subtree->parts, type, parent,
+			active ? &theme->button_omnipresent_active_unpressed->base
+				: &theme->button_omnipresent_inactive_unpressed->base,
+			active ? &theme->button_omnipresent_active_hover->base
+				: &theme->button_omnipresent_inactive_hover->base,
+			x, view);
+		btn = node_ssd_button_from_node(btn_root->node);
+		add_toggled_icon(btn, &subtree->parts, LAB_SSD_BUTTON_OMNIPRESENT,
+			active ? &theme->button_exclusive_active_unpressed->base
+				: &theme->button_exclusive_inactive_unpressed->base,
+			active ? &theme->button_exclusive_active_hover->base
+				: &theme->button_exclusive_inactive_hover->base);
+		break;
 	case LAB_SSD_BUTTON_CLOSE:
 		add_scene_button(&subtree->parts, type, parent,
 			active ? &theme->button_close_active_unpressed->base
@@ -164,6 +179,10 @@ ssd_titlebar_create(struct ssd *ssd)
 		set_alt_button_icon(ssd, LAB_SSD_BUTTON_SHADE, true);
 	}
 
+	if (view->visible_on_all_workspaces) {
+		set_alt_button_icon(ssd, LAB_SSD_BUTTON_OMNIPRESENT, true);
+	}
+
 	if (view_is_tiled_and_notify_tiled(view) && !maximized) {
 		set_squared_corners(ssd, true);
 		ssd->state.was_tiled_not_maximized = true;
@@ -230,22 +249,28 @@ ssd_titlebar_update(struct ssd *ssd)
 	struct theme *theme = view->server->theme;
 
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
-	bool tiled_not_maximized = view_is_tiled_and_notify_tiled(ssd->view)
-		&& !maximized;
+	bool tiled_not_maximized =
+		view_is_tiled_and_notify_tiled(ssd->view) && !maximized;
 
 	if (ssd->state.was_maximized != maximized
-			|| ssd->state.was_shaded != view->shaded
 			|| ssd->state.was_tiled_not_maximized != tiled_not_maximized) {
 		set_squared_corners(ssd, maximized || tiled_not_maximized);
 		if (ssd->state.was_maximized != maximized) {
 			set_alt_button_icon(ssd, LAB_SSD_BUTTON_MAXIMIZE, maximized);
 		}
-		if (ssd->state.was_shaded != view->shaded) {
-			set_alt_button_icon(ssd, LAB_SSD_BUTTON_SHADE, view->shaded);
-		}
 		ssd->state.was_maximized = maximized;
-		ssd->state.was_shaded = view->shaded;
 		ssd->state.was_tiled_not_maximized = tiled_not_maximized;
+	}
+
+	if (ssd->state.was_shaded != view->shaded) {
+		set_alt_button_icon(ssd, LAB_SSD_BUTTON_SHADE, view->shaded);
+		ssd->state.was_shaded = view->shaded;
+	}
+
+	if (ssd->state.was_omnipresent != view->visible_on_all_workspaces) {
+		set_alt_button_icon(ssd, LAB_SSD_BUTTON_OMNIPRESENT,
+			view->visible_on_all_workspaces);
+		ssd->state.was_omnipresent = view->visible_on_all_workspaces;
 	}
 
 	if (width == ssd->state.geometry.width) {

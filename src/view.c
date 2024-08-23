@@ -1494,6 +1494,7 @@ view_toggle_visible_on_all_workspaces(struct view *view)
 {
 	assert(view);
 	view->visible_on_all_workspaces = !view->visible_on_all_workspaces;
+	ssd_update_geometry(view->ssd);
 }
 
 void

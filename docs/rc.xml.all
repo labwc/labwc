@@ -447,6 +447,12 @@
       </mousebind>
     </context>
 
+    <context name="Ominpresent">
+      <mousebind button="Left" action="Click">
+        <action name="ToggleOmnipresent" />
+      </mousebind>
+    </context>
+
     <context name="Iconify">
       <mousebind button="Left" action="Click">
         <action name="Iconify" />

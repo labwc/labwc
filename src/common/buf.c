@@ -103,18 +103,17 @@ buf_add_fmt(struct buf *s, const char *fmt, ...)
 	if (string_null_or_empty(fmt)) {
 		return;
 	}
-	size_t size = 0;
 	va_list ap;
 
 	va_start(ap, fmt);
-	int n = vsnprintf(NULL, size, fmt, ap);
+	int n = vsnprintf(NULL, 0, fmt, ap);
 	va_end(ap);
 
 	if (n < 0) {
 		return;
 	}
 
-	size = (size_t)n + 1;
+	size_t size = (size_t)n + 1;
 	buf_expand(s, s->len + size);
 
 	va_start(ap, fmt);

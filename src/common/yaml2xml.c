@@ -82,6 +82,10 @@ process_value(yaml_parser_t *parser, struct buf *b,
 			key_name = "font";
 		} else if (!strcasecmp(key_name, "contexts")) {
 			key_name = "context";
+		} else if (!strcasecmp(key_name, "items")) {
+			key_name = "item";
+		} else if (!strcasecmp(key_name, "menus")) {
+			key_name = "menu";
 		}
 		if (parent_name) {
 			buf_add_fmt(b, "<%s>", parent_name);

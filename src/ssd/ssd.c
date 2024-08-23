@@ -221,13 +221,16 @@ ssd_update_geometry(struct ssd *ssd)
 		return;
 	}
 
+	struct view *view = ssd->view;
+	assert(view);
+
 	struct wlr_box cached = ssd->state.geometry;
-	struct wlr_box current = ssd->view->current;
+	struct wlr_box current = view->current;
 
 	int min_view_width = rc.theme->window_button_width * (
 		wl_list_length(&rc.title_buttons_left) + wl_list_length(&rc.title_buttons_right));
 	int eff_width = current.width;
-	int eff_height = view_effective_height(ssd->view, /* use_pending */ false);
+	int eff_height = view_effective_height(view, /* use_pending */ false);
 
 	if (eff_width > 0 && eff_width < min_view_width) {
 		/*
@@ -241,39 +244,31 @@ ssd_update_geometry(struct ssd *ssd)
 		return;
 	}
 
-	if (eff_width == cached.width && eff_height == cached.height) {
-		if (current.x != cached.x || current.y != cached.y) {
-			/* Dynamically resize extents based on position and usable_area */
-			ssd_extents_update(ssd);
-			ssd->state.geometry = current;
-		}
-		bool maximized = ssd->view->maximized == VIEW_AXIS_BOTH;
-		if (ssd->state.was_maximized != maximized
-				|| ssd->state.was_shaded != ssd->view->shaded) {
-			ssd_titlebar_update(ssd);
-			ssd_border_update(ssd);
-			ssd_shadow_update(ssd);
-			/*
-			 * Not strictly necessary as ssd_titlebar_update()
-			 * already sets these values, but set here to be safe.
-			 */
-			ssd->state.was_maximized = maximized;
-			ssd->state.was_shaded = ssd->view->shaded;
-		}
-		bool tiled_and_not_maximized = view_is_tiled(ssd->view) && !maximized;
-		if (ssd->state.was_tiled_not_maximized != tiled_and_not_maximized) {
-			ssd_titlebar_update(ssd);
-			ssd_border_update(ssd);
-			/* see above about being future proof */
-			ssd->state.was_tiled_not_maximized = tiled_and_not_maximized;
-		}
-		return;
+	bool update_area = eff_width != cached.width || eff_height != cached.height;
+	bool update_extents = update_area
+		|| current.x != cached.x || current.y != cached.y;
+
+	bool maximized = view->maximized == VIEW_AXIS_BOTH;
+	bool tiled_not_maximized = view_is_tiled(view) && !maximized;
+
+	bool state_changed = ssd->state.was_maximized != maximized
+		|| ssd->state.was_shaded != view->shaded
+		|| ssd->state.was_tiled_not_maximized != tiled_not_maximized
+		|| ssd->state.was_omnipresent != view->visible_on_all_workspaces;
+
+	if (update_extents) {
+		ssd_extents_update(ssd);
 	}
-	ssd_extents_update(ssd);
-	ssd_titlebar_update(ssd);
-	ssd_border_update(ssd);
-	ssd_shadow_update(ssd);
-	ssd->state.geometry = current;
+
+	if (update_area || state_changed) {
+		ssd_titlebar_update(ssd);
+		ssd_border_update(ssd);
+		ssd_shadow_update(ssd);
+	}
+
+	if (update_extents) {
+		ssd->state.geometry = current;
+	}
 }
 
 void

@@ -438,10 +438,11 @@ extending outward from the snapped edge.
 	- L: window label (aka. title)
 	- |: empty space (can be used instead of a title)
 	- W: window menu
-	- S: shade
 	- I: iconify
 	- M: maximize
 	- C: close
+	- S: shade
+	- D: omnipresent
 
 	Example: WLIMC
 
@@ -613,11 +614,12 @@ extending outward from the snapped edge.
 	  buttons and the window title are shown.
 	- Title: The area of the titlebar (including blank space) between
 	  the window buttons, where the window title is displayed.
-	- WindowMenu: The button on the left.
-	- Iconify: The button that looks like an underline.
-	- Maximize: The button that looks like a box.
-	- Shade: A button that looks like an overline.
-	- Close: The button that looks like an X.
+	- WindowMenu: A button that, by default, displays a window menu.
+	- Iconify: A button that, by default, iconifies a window.
+	- Maximize: A button that, by default, toggles maximization of a window.
+	- Shade: A button that, by default, toggles window shading.
+	- Omnipresent: A button that, by default, toggles omnipresence of a window.
+	- Close: A button that, by default, closses a window.
 	- Top: The top edge of the window's border.
 	- Bottom: The bottom edge of the window's border.
 	- Left: The left edge of the window's border.

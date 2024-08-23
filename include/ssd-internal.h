@@ -48,9 +48,18 @@ struct ssd {
 	 * don't update things we don't have to.
 	 */
 	struct {
-		bool was_shaded;   /* To toggle icon on shade */
-		bool was_maximized;   /* To un-round corner buttons and toggle icon on maximize */
-		bool was_tiled_not_maximized;   /* To un-round corner buttons */
+		/* Button icons need to be swapped on shade or omnipresent toggles */
+		bool was_shaded;
+		bool was_omnipresent;
+
+		/*
+		 * Corners need to be (un)rounded when toggling tiling or
+		 * maximization, and the button needs to be swapped on
+		 * maximization toggles.
+		 */
+		bool was_maximized;
+		bool was_tiled_not_maximized;
+
 		struct wlr_box geometry;
 		struct ssd_state_title {
 			char *text;

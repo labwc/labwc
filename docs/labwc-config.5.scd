@@ -439,10 +439,10 @@ extending outward from the snapped edge.
 	- |: empty space (can be used instead of a title)
 	- W: window menu
 	- I: iconify
-	- M: maximize
+	- M: maximize toggle
 	- C: close
-	- S: shade
-	- D: omnipresent
+	- S: shade toggle
+	- D: all-desktops toggle
 
 	Example: WLIMC
 
@@ -618,7 +618,7 @@ extending outward from the snapped edge.
 	- Iconify: A button that, by default, iconifies a window.
 	- Maximize: A button that, by default, toggles maximization of a window.
 	- Shade: A button that, by default, toggles window shading.
-	- Omnipresent: A button that, by default, toggles omnipresence of a window.
+	- AllDesktops: A button that, by default, toggles omnipresence of a window.
 	- Close: A button that, by default, closses a window.
 	- Top: The top edge of the window's border.
 	- Bottom: The bottom edge of the window's border.

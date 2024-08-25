@@ -130,13 +130,19 @@ labwc-config(5).
 	Color of the images in titlebar buttons in their default, unpressed,
 	state. This element is for non-focused windows.
 
-Note: The button elements (i.e. window.[in]active.button.\*) support defining
-different types of buttons individually by inserting the type ("menu",
-"iconify", "max" and "close") after the button node. For example:
-window.active.button.iconify.unpressed.image.color
-This syntax is not documented on the openbox.org wiki, but is supported by
-openbox and is used by many popular themes. For the sake of brevity, these
-elements are not listed here, but are supported.
+Note: Button elements (i.e. window.[in]active.button.\*) may be defined uniquely
+for each type of button ("menu", "iconify", "max", "shade", "desk" or "close")
+by appending the type after the "button" node. For example:
+
+- window.active.button.iconify.unpressed.image.color indicates the color of the
+iconify button for active windows; while
+
+- window.inactive.button.close.unpressed.image.color indicates the color of the
+close button for inactive windows.
+
+This syntax is not documented by Openbox, but is supported and is used by many
+popular themes. For the sake of brevity, these elements are not listed here, but
+all are supported.
 
 *window.active.shadow.size*
 	Size of the drop-shadow for the focused window, in pixels.

@@ -447,7 +447,7 @@
       </mousebind>
     </context>
 
-    <context name="Omnipresent">
+    <context name="AllDesktops">
       <mousebind button="Left" action="Click">
         <action name="ToggleOmnipresent" />
       </mousebind>

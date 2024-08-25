@@ -793,7 +793,7 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_hexstr(value,
 			theme->window_active_button_shade_unpressed_image_color);
 	}
-	if (match_glob(key, "window.active.button.omnipresent.unpressed.image.color")) {
+	if (match_glob(key, "window.active.button.desk.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_active_button_omnipresent_unpressed_image_color);
 	}
@@ -817,7 +817,7 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_hexstr(value,
 			theme->window_inactive_button_shade_unpressed_image_color);
 	}
-	if (match_glob(key, "window.inactive.button.omnipresent.unpressed.image.color")) {
+	if (match_glob(key, "window.inactive.button.desk.unpressed.image.color")) {
 		parse_hexstr(value,
 			theme->window_inactive_button_omnipresent_unpressed_image_color);
 	}

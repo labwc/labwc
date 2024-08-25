@@ -318,6 +318,10 @@ file within a particular theme. The following xbm buttons are supported:
 - close.xbm
 - menu.xbm
 - max_toggled.xbm
+- desk.xbm
+- desk_toggled.xbm
+- shade.xbm
+- shade_toggled.xbm
 
 Additional icons can be defined to be shown when the mouse pointer is hovering
 over the button in question:
@@ -327,6 +331,10 @@ over the button in question:
 - close_hover.xbm
 - menu_hover.xbm
 - max_toggled_hover.xbm
+- desk_hover.xbm
+- desk_toggle_hover.xbm
+- shade_hover.xbm
+- shade_toggle_hover.xbm
 
 One advantage of xbm buttons over other formats is that they change color based
 on the theme. Other formats use the suffices "-active" and "-inactive" to align
@@ -360,6 +368,22 @@ following icons should be added:
 - menu_hover-active.[png|svg]
 - menu_hover-inactive.[png|svg]
 - menu-inactive.[png|svg]
+- shade-active.[png|svg]
+- shade_hover-active.[png|svg]
+- shade_hover-inactive.[png|svg]
+- shade-inactive.[png|svg]
+- shade_toggled-active.[png|svg]
+- shade_toggled-inactive.[png|svg]
+- shade_toggled_hover-active.[png|svg]
+- shade_toggled_hover-inactive.[png|svg]
+- desk-active.[png|svg]
+- desk_hover-active.[png|svg]
+- desk_hover-inactive.[png|svg]
+- desk-inactive.[png|svg]
+- desk_toggled-active.[png|svg]
+- desk_toggled-inactive.[png|svg]
+- desk_toggled_hover-active.[png|svg]
+- desk_toggled_hover-inactive.[png|svg]
 
 # DEFINITIONS
 

@@ -106,12 +106,22 @@ ID attributes are unique. Duplicates are ignored.
 When writing pipe menu scripts, make sure to escape XML special characters such
 as "&" ("&amp;"), "<" ("&lt;"), and ">" ("&gt;").
 
-
 # LOCALISATION
 
 Available localisation for the default "client-menu" is only shown if no
 "client-menu" is present in menu.xml. Any menu definition in menu.xml is
 interpreted as a user-override.
+
+# YAML SUPPORT
+
+Like rc.yaml, labwc supports menu.yaml instead of menu.xml. See labwc-config(5)
+for its syntax. Note that following keys in singular form can be expressed as
+plural form in menu.yaml:
+
+	- *menus* (converted to *menu*)
+	- *items* (converted to *item*)
+
+See /usr/share/docs/labwc/menu.yaml for an example menu configuration in YAML.
 
 # SEE ALSO
 

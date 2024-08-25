@@ -8,7 +8,8 @@ labwc - configuration files
 
 Labwc uses openbox-3.6 specification for configuration and theming, but does not
 support all options. The following files form the basis of the labwc
-configuration: rc.xml, menu.xml, autostart, shutdown, environment and xinitrc.
+configuration: rc.xml (or rc.yaml), menu.xml, autostart, shutdown, environment
+and xinitrc.
 
 No configuration files are needed to start and run labwc.
 
@@ -157,6 +158,77 @@ Therefore, where multiple objects of the same kind are required (for example
 Note that in this manual, Boolean values are listed as [yes|no] for simplicity,
 but it's also possible to use [true|false] and\/or [on|off];
 this is for compatibility with Openbox.
+
+## YAML SUPPORT
+
+Labwc also supports YAML language for configuration. When rc.yaml exists
+instead of rc.xml, labwc internally converts it from YAML into XML and loads
+configurations from it. For example, "foo: bar" in YAML is converted to
+"<foo>bar</foo>" in XML. See /usr/share/docs/labwc/rc.yaml for an example
+configuration in YAML.
+
+If rc.yaml includes a key-value pair where the value is an array, it is
+converted to a sequence of <key>array-element</key> in XML.
+
+For example, a YAML expression:
+
+```
+touch:
+  - deviceName: xxxx
+    mapToOutput: eDP-1
+  - deviceName: yyyy
+    mapToOutput: HDMI-1
+```
+
+is converted to an XML expression:
+
+```
+<touch>
+  <deviceName>xxxx</deviceName>
+  <mapToOutput>eDP-1</mapToOutput>
+</touch>
+<touch>
+  <deviceName>yyyy</deviceName>
+  <mapToOutput>eDP-1</mapToOutput>
+</touch>
+```
+
+To avoid unnecessary indentations, some nodes that wrap array elements in XML
+can be ommitted. This includes:
+
+	- *<windowSwitcher><fields><field>*
+	- *<regions><region>*
+	- *<windowRules><windowRule>*
+	- *<libinput><device>*
+	- *<desktops><names><name>*
+
+For example, window switcher can be configured like:
+
+```
+windowSwitcher:
+  fields:
+    - content: type
+      width: 15%
+    - content: title
+      width: 85%
+```
+
+In addition, some specific keys in singular form with a sequence value in YAML
+are converted to plural form in XML. This includes:
+
+	- *keybinds* (converted to *keybind*)
+	- *mousebinds* (converted to *mousebind*)
+	- *actions* (converted to *action*)
+	- *fonts* (converted to *font*)
+	- *contexts* (converted to *context*)
+
+For example, keybinds can be configured like:
+
+```
+keybinds:
+  - { key: W-s, action: { name: Execute, command: foot } }
+  - { key: W-a, action: { name: Execute, command: fuzzel } }
+```
 
 ## CORE
 
@@ -575,9 +647,9 @@ extending outward from the snapped edge.
 	Load the default keybinds listed below. This is an addition to the
 	openbox specification and provides a way to keep config files simpler
 	whilst allowing your specific keybinds.
-	Note that if no rc.xml is found, or if no <keyboard><keybind> entries
-	exist, the same default keybinds will be loaded even if the <default />
-	element is not provided.
+	Note that if no rc.xml or rc.yaml is found, or if no <keyboard><keybind>
+	entries exist, the same default keybinds will be loaded even if the
+	<default /> element is not provided.
 
 ```
   A-Tab - next window
@@ -668,9 +740,10 @@ extending outward from the snapped edge.
 *<mouse><default />*
 	Load default mousebinds. This is an addition to the openbox
 	specification and provides a way to keep config files simpler whilst
-	allowing user specific binds.  Note that if no rc.xml is found, or if no
-	<mouse><mousebind> entries exist, the same default mousebinds will be
-	loaded even if the <default /> element is not provided.
+	allowing user specific binds.  Note that if no rc.xml or rc.yaml is
+	found, or if no <mouse><mousebind> entries exist, the same default
+	mousebinds will be loaded even if the <default /> element is not
+	provided.
 
 ## TOUCH
 

@@ -72,6 +72,7 @@ pixman = dependency('pixman-1')
 math = cc.find_library('m')
 png = dependency('libpng')
 svg = dependency('librsvg-2.0', version: '>=2.46', required: false)
+yaml = dependency('yaml-0.1', required: false)
 
 if get_option('xwayland').enabled() and not wlroots_has_xwayland
 	error('no wlroots Xwayland support')
@@ -86,6 +87,13 @@ else
   have_rsvg = svg.found()
 endif
 conf_data.set10('HAVE_RSVG', have_rsvg)
+
+if get_option('yaml').disabled()
+  have_libyaml = false
+else
+  have_libyaml = yaml.found()
+endif
+conf_data.set10('HAVE_LIBYAML', have_libyaml)
 
 if get_option('static_analyzer').enabled()
   add_project_arguments(['-fanalyzer'], language: 'c')
@@ -123,6 +131,11 @@ labwc_deps = [
 if have_rsvg
   labwc_deps += [
     svg,
+  ]
+endif
+if have_libyaml
+  labwc_deps += [
+    yaml,
   ]
 endif
 

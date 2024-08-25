@@ -20,3 +20,9 @@ labwc_sources += files(
   'spawn.c',
   'string-helpers.c',
 )
+
+if have_libyaml
+  labwc_sources += files(
+    'yaml2xml.c',
+  )
+endif

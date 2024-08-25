@@ -1,0 +1,33 @@
+menu:
+  - id: client-menu
+    item:
+      label: Minimize
+      action: { name: Iconify }
+    item:
+      label: Maximize
+      action: { name: ToggleMaximize }
+    menu:
+      id: workspaces
+      label: Workspace
+      item:
+        label: Move Left
+        action: { name: SendToDesktop, to: left }
+      item:
+        label: Move Right
+        action: { name: SendToDesktop, to: right }
+      separator:
+      item:
+        label: Always on Visible Workspace
+        action: { name: ToggleOmnipresent }
+    item:
+      label: Close
+      action: { name: Close }
+
+  - id: root-menu
+    items:
+      - label: Terminal
+        action: { name: Execute, command: alacritty }
+      - label: Reconfigure
+        action: { name: Reconfigure }
+      - label: Exit
+        action: { name: Exit }

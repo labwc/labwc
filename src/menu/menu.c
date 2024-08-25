@@ -26,6 +26,10 @@
 #include "node.h"
 #include "theme.h"
 
+#if HAVE_LIBYAML
+#include "common/yaml2xml.h"
+#endif
+
 #define PIPEMENU_MAX_BUF_SIZE 1048576  /* 1 MiB */
 #define PIPEMENU_TIMEOUT_IN_MS 4000    /* 4 seconds */
 
@@ -566,6 +570,35 @@ is_toplevel_static_menu_definition(xmlNode *n, char *id)
 	return id && nr_parents(n) == 2;
 }
 
+static char *
+get_property(xmlNode *n, const char *name)
+{
+	/* First, search from attributes */
+	char *prop = (char *)xmlGetProp(n, (const xmlChar *)name);
+	if (prop) {
+		return prop;
+	}
+
+	/* Then search from child nodes */
+	xmlNode *child;
+	for (child = n->children; child && child->name;
+			child = child->next) {
+		if (!strcmp((char *)child->name, name)) {
+			goto found_child_node;
+		}
+	}
+	return NULL;
+
+found_child_node:
+	for (child = child->children; child && child->name;
+			child = child->next) {
+		if (child->type == XML_TEXT_NODE) {
+			return xstrdup((char *)child->content);
+		}
+	}
+	return NULL;
+}
+
 /*
  * <menu> elements have three different roles:
  *  * Definition of (sub)menu - has ID, LABEL and CONTENT
@@ -575,9 +608,9 @@ is_toplevel_static_menu_definition(xmlNode *n, char *id)
 static void
 handle_menu_element(xmlNode *n, struct server *server)
 {
-	char *label = (char *)xmlGetProp(n, (const xmlChar *)"label");
-	char *execute = (char *)xmlGetProp(n, (const xmlChar *)"execute");
-	char *id = (char *)xmlGetProp(n, (const xmlChar *)"id");
+	char *label = get_property(n, "label");
+	char *execute = get_property(n, "execute");
+	char *id = get_property(n, "id");
 
 	if (execute && label && id) {
 		wlr_log(WLR_DEBUG, "pipemenu '%s:%s:%s'", id, label, execute);
@@ -676,7 +709,7 @@ error:
 static void
 handle_separator_element(xmlNode *n)
 {
-	char *label = (char *)xmlGetProp(n, (const xmlChar *)"label");
+	char *label = get_property(n, "label");
 	current_item = separator_create(current_menu, label);
 	free(label);
 }
@@ -725,36 +758,13 @@ parse_buf(struct server *server, struct buf *buf)
 	return true;
 }
 
-/*
- * @stream can come from either of the following:
- *   - fopen() in the case of reading a file such as menu.xml
- *   - popen() when processing pipemenus
- */
-static void
-parse_stream(struct server *server, FILE *stream)
-{
-	char *line = NULL;
-	size_t len = 0;
-	struct buf b = BUF_INIT;
-
-	while (getline(&line, &len, stream) != -1) {
-		char *p = strrchr(line, '\n');
-		if (p) {
-			*p = '\0';
-		}
-		buf_add(&b, line);
-	}
-	free(line);
-	parse_buf(server, &b);
-	buf_reset(&b);
-}
-
-static void
-parse_xml(const char *filename, struct server *server)
+static bool
+parse_menu_file(const char *filename, struct server *server)
 {
 	struct wl_list paths;
 	paths_config_create(&paths, filename);
 
+	bool file_found = false;
 	bool should_merge_config = rc.merge_config;
 	struct wl_list *(*iter)(struct wl_list *list);
 	iter = should_merge_config ? paths_get_prev : paths_get_next;
@@ -765,14 +775,37 @@ parse_xml(const char *filename, struct server *server)
 		if (!stream) {
 			continue;
 		}
+		file_found = true;
 		wlr_log(WLR_INFO, "read menu file %s", path->string);
-		parse_stream(server, stream);
+
+		struct buf b = BUF_INIT;
+		if (HAVE_LIBYAML && str_endswith(path->string, ".yaml")) {
+#if HAVE_LIBYAML
+			b = yaml_to_xml(stream, "openbox_menu");
+#endif
+		} else {
+			char *line = NULL;
+			size_t len = 0;
+			while (getline(&line, &len, stream) != -1) {
+				char *p = strrchr(line, '\n');
+				if (p) {
+					*p = '\0';
+				}
+				buf_add(&b, line);
+			}
+			free(line);
+		}
 		fclose(stream);
+		if (b.len > 0) {
+			parse_buf(server, &b);
+		}
+		buf_reset(&b);
 		if (!should_merge_config) {
 			break;
 		}
 	}
 	paths_destroy(&paths);
+	return file_found;
 }
 
 static int
@@ -983,7 +1016,13 @@ void
 menu_init(struct server *server)
 {
 	wl_list_init(&server->menus);
-	parse_xml("menu.xml", server);
+	bool file_found = parse_menu_file("menu.xml", server);
+	(void)file_found;
+#if HAVE_LIBYAML
+	if (!file_found) {
+		parse_menu_file("menu.yaml", server);
+	}
+#endif
 	init_rootmenu(server);
 	init_windowmenu(server);
 	post_processing(server);

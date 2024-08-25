@@ -90,8 +90,8 @@ modification.
 
 Openbox spec is somewhat of a stable standard considering how long it has
 remained unchanged for and how wide-spread its adoption is by lightweight
-distributions such as LXDE, LXQt, BunsenLabs, ArchLabs, Mabox and Raspbian. Some
-widely used themes (for example Numix and Arc) have built-in support.
+distributions such as LXDE, LXQt, BunsenLabs, ArchLabs, Mabox and Raspbian.
+Some widely used themes (for example Numix and Arc) have built-in support.
 
 We could have invented a whole new syntax, but that's not where we want to
 spend our effort.
@@ -182,8 +182,8 @@ prevent installing the wlroots headers:
 ## 3. Configuration
 
 User config files are located at `${XDG_CONFIG_HOME:-$HOME/.config/labwc/}`
-with the following five files being used: [rc.xml], [menu.xml], [autostart], [shutdown],
-[environment] and [themerc-override].
+with the following five files being used: [rc.xml] (or [rc.yaml]), [menu.xml],
+[autostart], [shutdown], [environment] and [themerc-override].
 
 Run `labwc --reconfigure` to reload configuration and theme.
 
@@ -275,6 +275,7 @@ See [integration] for further details.
 [metacity]: https://github.com/GNOME/metacity
 
 [rc.xml]: docs/rc.xml.all
+[rc.yaml]: docs/rc.yaml
 [menu.xml]: docs/menu.xml
 [autostart]: docs/autostart
 [shutdown]: docs/shutdown

@@ -1,0 +1,89 @@
+# An example configuration file in YAML. To see all the configurations and
+# their descriptions, see docs/rc.xml.all or labwc-config(5).
+core:
+  xwaylandPersistence: yes
+placement:
+  policy: cascade
+theme:
+  dropShadows: yes
+  fonts:
+    - place: ActiveWindow
+      weight: bold
+    - place: InactiveWindow
+      weight: normal
+desktops:
+  number: 2
+windowSwitcher:
+  fields:
+    - content: type
+      width: 15%
+    - content: title
+      width: 85%
+resize:
+  drawContents: no
+focus:
+  followMouse: yes
+  followMouseRequiresMovement: yes
+  raiseOnFocus: no
+snapping:
+  range: 20
+  overlay:
+    delay:
+      inner: 100
+      outer: 0
+regions:
+  - { name: top-left,     x: 0%,  y: 0%,  width: 50%, height: 50% }
+  - { name: top-right,    x: 50%, y: 0%,  width: 50%, height: 50% }
+  - { name: bottom-left,  x: 0%,  y: 50%, width: 50%, height: 50% }
+  - { name: bottom-right, x: 50%, y: 50%, width: 50%, height: 50% }
+keyboard:
+  repeatRate: 25
+  repeatDelay: 600
+  keybinds:
+    - { key: W-bracketRight,        action: { name: ZoomIn } }
+    - { key: W-bracketLeft,         action: { name: ZoomOut } }
+    - { key: W-d,                   action: { name: Debug } }
+    - { key: W-1,                   action: { name: GoToDesktop, to: Workspace 1 } }
+    - { key: W-2,                   action: { name: GoToDesktop, to: Workspace 2 } }
+    - { key: W-m,                   action: { name: ToggleKeybinds } }
+    - { key: W-q,                   action: { name: Close } }
+    - { key: A-F4,                  action: { name: Close } }
+    - { key: A-Tab,                 action: { name: NextWindow } }
+    - { key: W-e,                   action: { name: Exit } }
+    - { key: W-v,                   action: { name: Execute, command: sh -c 'cliphist list | fuzzel --dmenu | cliphist decode | wl-copy' } }
+    - { key: W-Tab,                 action: { name: ToggleMaximize } }
+    - { key: W-s,                   action: { name: Execute, command: foot } }
+    - { key: W-a,                   action: { name: Execute, command: fuzzel } }
+    - { key: XF86_AudioLowerVolume, action: { name: Execute, command: pactl set-sink-volume @DEFAULT_SINK@ -2dB } }
+    - { key: XF86_AudioRaiseVolume, action: { name: Execute, command: pactl set-sink-volume @DEFAULT_SINK@ +2dB } }
+    - { key: XF86_AudioMute,        action: { name: Execute, command: pactl set-sink-mute @DEFAULT_SINK@ toggle } }
+    - { key: XF86_AudioMicMute,     action: { name: Execute, command: pactl set-source-mute @DEFAULT_SOURCE@ toggle } }
+    - { key: Print,                 action: { name: Execute, command: grim } }
+mouse:
+  doubleClickTime: 200
+  default:
+  contexts:
+    - name: Frame
+      mousebinds:
+        - { button: W-Left,  action: Press, actions: [ { name: Raise }, { name: Move } ] }
+        - { button: W-Right, action: Drag, action: { name: Raise } }
+        - { button: A-Left,  action: Press }
+        - { button: A-Left,  action: Drag }
+        - { button: A-Right, action: Press }
+        - { button: A-Right, action: Drag }
+touch:
+  deviceName: ELAN2514:00 04F3:2AF1
+  mapToOutput: eDP-1
+tablet:
+  mapToOutput: eDP-1
+libinput:
+  - category: non-touch
+    pointerSpeed: -0.4
+  - category: touchpad
+    naturalScroll: yes
+    tapAndDrag: no
+windowRules:
+  - identifier: ristretto
+    serverDecoration: no
+  - identifier: code-url-handler
+    action: { name: SetDecorations, decorations: border, forceSSD: yes }

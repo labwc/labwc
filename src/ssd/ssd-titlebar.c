@@ -20,6 +20,7 @@
 
 static void set_squared_corners(struct ssd *ssd, bool enable);
 static void set_alt_button_icon(struct ssd *ssd, enum ssd_part_type type, bool enable);
+static void update_visible_buttons(struct ssd *ssd);
 
 static void
 add_button(struct ssd *ssd, struct ssd_sub_tree *subtree, enum ssd_part_type type, int x)
@@ -166,6 +167,8 @@ ssd_titlebar_create(struct ssd *ssd)
 		}
 	} FOR_EACH_END
 
+	update_visible_buttons(ssd);
+
 	ssd_update_title(ssd);
 
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
@@ -183,9 +186,9 @@ ssd_titlebar_create(struct ssd *ssd)
 		set_alt_button_icon(ssd, LAB_SSD_BUTTON_OMNIPRESENT, true);
 	}
 
-	if (view_is_tiled_and_notify_tiled(view) && !maximized) {
+	if (ssd_should_be_squared(ssd)) {
 		set_squared_corners(ssd, true);
-		ssd->state.was_tiled_not_maximized = true;
+		ssd->state.was_squared = true;
 	}
 }
 
@@ -241,6 +244,56 @@ set_alt_button_icon(struct ssd *ssd, enum ssd_part_type type, bool enable)
 	} FOR_EACH_END
 }
 
+/*
+ * Usually this function just enables all the nodes for buttons, but some
+ * buttons can be hidden for small windows (e.g. xterm -geometry 1x1).
+ */
+static void
+update_visible_buttons(struct ssd *ssd)
+{
+	struct view *view = ssd->view;
+	int width = view->current.width;
+	int button_width = view->server->theme->window_button_width;
+	int button_count_left = wl_list_length(&rc.title_buttons_left);
+	int button_count_right = wl_list_length(&rc.title_buttons_right);
+
+	/* Make sure infinite loop never occurs */
+	assert(button_width > 0);
+	/*
+	 * The corner-left button is lastly removed as it's usually a window
+	 * menu button (or an app icon button in the future).
+	 */
+	while (width < button_width * (button_count_left + button_count_right)) {
+		if (button_count_left > button_count_right) {
+			button_count_left--;
+		} else {
+			button_count_right--;
+		}
+	}
+
+	int button_count;
+	struct ssd_part *part;
+	struct ssd_sub_tree *subtree;
+	struct title_button *b;
+	FOR_EACH_STATE(ssd, subtree) {
+		button_count = 0;
+		wl_list_for_each(b, &rc.title_buttons_left, link) {
+			part = ssd_get_part(&subtree->parts, b->type);
+			wlr_scene_node_set_enabled(part->node,
+				button_count < button_count_left);
+			button_count++;
+		}
+
+		button_count = 0;
+		wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
+			part = ssd_get_part(&subtree->parts, b->type);
+			wlr_scene_node_set_enabled(part->node,
+				button_count < button_count_right);
+			button_count++;
+		}
+	} FOR_EACH_END
+}
+
 void
 ssd_titlebar_update(struct ssd *ssd)
 {
@@ -249,17 +302,16 @@ ssd_titlebar_update(struct ssd *ssd)
 	struct theme *theme = view->server->theme;
 
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
-	bool tiled_not_maximized =
-		view_is_tiled_and_notify_tiled(ssd->view) && !maximized;
+	bool squared = ssd_should_be_squared(ssd);
 
 	if (ssd->state.was_maximized != maximized
-			|| ssd->state.was_tiled_not_maximized != tiled_not_maximized) {
-		set_squared_corners(ssd, maximized || tiled_not_maximized);
+			|| ssd->state.was_squared != squared) {
+		set_squared_corners(ssd, maximized || squared);
 		if (ssd->state.was_maximized != maximized) {
 			set_alt_button_icon(ssd, LAB_SSD_BUTTON_MAXIMIZE, maximized);
 		}
 		ssd->state.was_maximized = maximized;
-		ssd->state.was_tiled_not_maximized = tiled_not_maximized;
+		ssd->state.was_squared = squared;
 	}
 
 	if (ssd->state.was_shaded != view->shaded) {
@@ -277,11 +329,13 @@ ssd_titlebar_update(struct ssd *ssd)
 		return;
 	}
 
+	update_visible_buttons(ssd);
+
 	int x;
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
 	struct title_button *b;
-	int bg_offset = maximized || tiled_not_maximized ? 0 : theme->window_button_width;
+	int bg_offset = maximized || squared ? 0 : theme->window_button_width;
 	FOR_EACH_STATE(ssd, subtree) {
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR);
 		wlr_scene_rect_set_size(
@@ -343,13 +397,11 @@ ssd_titlebar_destroy(struct ssd *ssd)
  */
 
 static void
-ssd_update_title_positions(struct ssd *ssd)
+ssd_update_title_positions(struct ssd *ssd, int offset_left, int offset_right)
 {
 	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
 	int width = view->current.width;
-	int offset_left = theme->window_button_width * wl_list_length(&rc.title_buttons_left);
-	int offset_right = theme->window_button_width * wl_list_length(&rc.title_buttons_right);
 	int title_bg_width = width - offset_left - offset_right;
 
 	int x, y;
@@ -396,6 +448,33 @@ ssd_update_title_positions(struct ssd *ssd)
 	} FOR_EACH_END
 }
 
+/*
+ * Get left/right offsets of the title area based on visible/hidden states of
+ * buttons set in update_visible_buttons().
+ */
+static void
+get_title_offsets(struct ssd *ssd, int *offset_left, int *offset_right)
+{
+	struct ssd_sub_tree *subtree = &ssd->titlebar.active;
+	int button_width = ssd->view->server->theme->window_button_width;
+	*offset_left = 0;
+	*offset_right = 0;
+
+	struct title_button *b;
+	wl_list_for_each(b, &rc.title_buttons_left, link) {
+		struct ssd_part *part = ssd_get_part(&subtree->parts, b->type);
+		if (part->node->enabled) {
+			*offset_left += button_width;
+		}
+	}
+	wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
+		struct ssd_part *part = ssd_get_part(&subtree->parts, b->type);
+		if (part->node->enabled) {
+			*offset_right += button_width;
+		}
+	}
+}
+
 void
 ssd_update_title(struct ssd *ssd)
 {
@@ -419,8 +498,9 @@ ssd_update_title(struct ssd *ssd)
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
 	struct ssd_state_title_width *dstate;
-	int offset_left = theme->window_button_width * wl_list_length(&rc.title_buttons_left);
-	int offset_right = theme->window_button_width * wl_list_length(&rc.title_buttons_right);
+
+	int offset_left, offset_right;
+	get_title_offsets(ssd, &offset_left, &offset_right);
 	int title_bg_width = view->current.width - offset_left - offset_right;
 
 	FOR_EACH_STATE(ssd, subtree) {
@@ -477,7 +557,7 @@ ssd_update_title(struct ssd *ssd)
 		}
 		state->text = xstrdup(title);
 	}
-	ssd_update_title_positions(ssd);
+	ssd_update_title_positions(ssd, offset_left, offset_right);
 }
 
 static void
@@ -517,6 +597,17 @@ disable_old_hover:
 		hover_state->view = button->view;
 		hover_state->button = button;
 	}
+}
+
+bool
+ssd_should_be_squared(struct ssd *ssd)
+{
+	struct view *view = ssd->view;
+	int button_width = view->server->theme->window_button_width;
+
+	return (view_is_tiled_and_notify_tiled(view)
+			|| view->current.width < button_width * 2)
+		&& view->maximized != VIEW_AXIS_BOTH;
 }
 
 #undef FOR_EACH_STATE

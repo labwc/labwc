@@ -181,9 +181,9 @@ ssd_create(struct view *view, bool active)
 	ssd_extents_create(ssd);
 	/*
 	 * We need to create the borders after the titlebar because it sets
-	 * ssd->state.was_tiled_not_maximized which ssd_border_create()
-	 * reacts to. TODO: Set the state here instead so the order does
-	 * not matter anymore.
+	 * ssd->state.squared which ssd_border_create() reacts to.
+	 * TODO: Set the state here instead so the order does not matter
+	 * anymore.
 	 */
 	ssd_titlebar_create(ssd);
 	ssd_border_create(ssd);
@@ -227,33 +227,19 @@ ssd_update_geometry(struct ssd *ssd)
 	struct wlr_box cached = ssd->state.geometry;
 	struct wlr_box current = view->current;
 
-	int min_view_width = rc.theme->window_button_width * (
-		wl_list_length(&rc.title_buttons_left) + wl_list_length(&rc.title_buttons_right));
 	int eff_width = current.width;
 	int eff_height = view_effective_height(view, /* use_pending */ false);
-
-	if (eff_width > 0 && eff_width < min_view_width) {
-		/*
-		 * Prevent negative values in calculations like
-		 * `width - theme->window_button_width
-		 * * (wl_list_length(&rc.title_buttons_left)
-		 * + wl_list_length(&rc.title_buttons_right))`
-		 */
-		wlr_log(WLR_ERROR,
-			"view width is smaller than its minimal value");
-		return;
-	}
 
 	bool update_area = eff_width != cached.width || eff_height != cached.height;
 	bool update_extents = update_area
 		|| current.x != cached.x || current.y != cached.y;
 
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
-	bool tiled_not_maximized = view_is_tiled(view) && !maximized;
+	bool squared = ssd_should_be_squared(ssd);
 
 	bool state_changed = ssd->state.was_maximized != maximized
 		|| ssd->state.was_shaded != view->shaded
-		|| ssd->state.was_tiled_not_maximized != tiled_not_maximized
+		|| ssd->state.was_squared != squared
 		|| ssd->state.was_omnipresent != view->visible_on_all_workspaces;
 
 	if (update_extents) {

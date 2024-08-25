@@ -113,16 +113,16 @@ ssd_border_update(struct ssd *ssd)
 	 *  |_______________|
 	 */
 
-	int side_height = ssd->state.was_tiled_not_maximized
+	int side_height = ssd->state.was_squared
 		? height + ssd->titlebar.height
 		: height;
-	int side_y = ssd->state.was_tiled_not_maximized
+	int side_y = ssd->state.was_squared
 		? -ssd->titlebar.height
 		: 0;
-	int top_width = ssd->titlebar.height <= 0 || ssd->state.was_tiled_not_maximized
+	int top_width = ssd->titlebar.height <= 0 || ssd->state.was_squared
 		? full_width
 		: width - 2 * theme->window_button_width;
-	int top_x = ssd->titlebar.height <= 0 || ssd->state.was_tiled_not_maximized
+	int top_x = ssd->titlebar.height <= 0 || ssd->state.was_squared
 		? 0
 		: theme->border_width + theme->window_button_width;
 

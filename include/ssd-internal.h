@@ -53,12 +53,19 @@ struct ssd {
 		bool was_omnipresent;
 
 		/*
-		 * Corners need to be (un)rounded when toggling tiling or
-		 * maximization, and the button needs to be swapped on
+		 * Corners need to be (un)rounded and borders need be shown/hidden
+		 * when toggling maximization, and the button needs to be swapped on
 		 * maximization toggles.
 		 */
 		bool was_maximized;
-		bool was_tiled_not_maximized;
+
+		/*
+		 * Corners need to be (un)rounded but borders should be kept shown when
+		 * the window is (un)tiled and notified about it or when the window may
+		 * become so small that only a squared scene-rect can be used to render
+		 * such a small titlebar.
+		 */
+		bool was_squared;
 
 		struct wlr_box geometry;
 		struct ssd_state_title {
@@ -109,9 +116,6 @@ struct ssd_part {
 	/* This part represented in scene graph */
 	struct wlr_scene_node *node;
 
-	/* Targeted geometry. May be NULL */
-	struct wlr_box *geometry;
-
 	struct wl_list link;
 };
 
@@ -151,6 +155,7 @@ void ssd_destroy_parts(struct wl_list *list);
 void ssd_titlebar_create(struct ssd *ssd);
 void ssd_titlebar_update(struct ssd *ssd);
 void ssd_titlebar_destroy(struct ssd *ssd);
+bool ssd_should_be_squared(struct ssd *ssd);
 
 void ssd_border_create(struct ssd *ssd);
 void ssd_border_update(struct ssd *ssd);

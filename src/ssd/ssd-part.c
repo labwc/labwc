@@ -213,10 +213,6 @@ ssd_destroy_parts(struct wl_list *list)
 		}
 		/* part->buffer will free itself along the scene_buffer node */
 		part->buffer = NULL;
-		if (part->geometry) {
-			free(part->geometry);
-			part->geometry = NULL;
-		}
 		wl_list_remove(&part->link);
 		free(part);
 	}

@@ -269,7 +269,7 @@
       <action name="SnapToEdge" direction="down" />
     </keybind>
     <keybind key="A-Space">
-      <action name="ShowMenu" menu="client-menu" />
+      <action name="ShowMenu" menu="client-menu" atCursor="no" />
     </keybind>
     <keybind key="XF86_AudioLowerVolume">
       <action name="Execute" command="amixer sset Master 5%-" />
@@ -447,10 +447,10 @@
 
     <context name="WindowMenu">
       <mousebind button="Left" action="Click">
-        <action name="ShowMenu" menu="client-menu" />
+        <action name="ShowMenu" menu="client-menu" atCursor="no" />
       </mousebind>
       <mousebind button="Right" action="Click">
-        <action name="ShowMenu" menu="client-menu" />
+        <action name="ShowMenu" menu="client-menu" atCursor="no" />
       </mousebind>
     </context>
 

@@ -85,6 +85,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			 */
 			return;
 		}
+
 		if (view_is_floating(view)) {
 			/* Store natural geometry at start of move */
 			view_store_natural_geometry(view);
@@ -146,6 +147,8 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			&& rc.unsnap_threshold <= 0) {
 		struct wlr_box natural_geo = view->natural_geometry;
 		interactive_anchor_to_cursor(server, &natural_geo);
+		/* Shaded clients will not process resize events until unshaded */
+		view_set_shade(view, false);
 		view_set_untiled(view);
 		view_restore_to(view, natural_geo);
 	}

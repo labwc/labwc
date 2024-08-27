@@ -253,6 +253,8 @@ process_cursor_move(struct server *server, uint32_t time)
 			.height = view->natural_geometry.height,
 		};
 		interactive_anchor_to_cursor(server, &new_geo);
+		/* Shaded clients will not process resize events until unshaded */
+		view_set_shade(view, false);
 		view_set_untiled(view);
 		view_restore_to(view, new_geo);
 		x = new_geo.x;

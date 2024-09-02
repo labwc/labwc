@@ -134,6 +134,18 @@ Actions are used in menus and keyboard/mouse bindings.
 	windows that have client side decorations if it would increase the
 	amount of decoration. Default is no.
 
+*<action name="Decorate" />*
+	Similar to ToggleDecorations below but a single state
+	- Titlebar and borders
+
+*<action name="Undecorate" />*
+	Similar to ToggleDecorations below but a single state
+	- No titlebar or borders
+
+*<action name="Border" />*
+	Similar to ToggleDecorations below but a single state
+	- Borders only
+
 *<action name="ToggleDecorations" />*
 	Toggle decorations of focused window.
 

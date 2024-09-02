@@ -118,7 +118,10 @@ enum action_type {
 	ACTION_TYPE_TOGGLE_TABLET_MOUSE_EMULATION,
 	ACTION_TYPE_TOGGLE_MAGNIFY,
 	ACTION_TYPE_ZOOM_IN,
-	ACTION_TYPE_ZOOM_OUT
+	ACTION_TYPE_ZOOM_OUT,
+	ACTION_TYPE_DECORATE,
+	ACTION_TYPE_UNDECORATE,
+	ACTION_TYPE_BORDER
 };
 
 const char *action_names[] = {
@@ -180,6 +183,9 @@ const char *action_names[] = {
 	"ToggleMagnify",
 	"ZoomIn",
 	"ZoomOut",
+	"Decorate",
+	"Undecorate",
+	"Border",
 	NULL
 };
 
@@ -1166,6 +1172,21 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_ZOOM_OUT:
 			magnify_set_scale(server, MAGNIFY_DECREASE);
+			break;
+		case ACTION_TYPE_DECORATE:
+			if (view) {
+				view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
+			}
+			break;
+		case ACTION_TYPE_UNDECORATE:
+			if (view) {
+				view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
+			}
+			break;
+		case ACTION_TYPE_BORDER:
+			if (view) {
+				view_set_ssd_mode(view, LAB_SSD_MODE_BORDER);
+			}
 			break;
 		case ACTION_TYPE_INVALID:
 			wlr_log(WLR_ERROR, "Not executing unknown action");

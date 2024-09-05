@@ -123,6 +123,17 @@ Actions are used in menus and keyboard/mouse bindings.
 	upper-left corner of the window associated with the action. Default is
 	yes.
 
+	*position* Show the menu in the specified position on the monitor
+	that has cursor focus, see below.
+
+	The position tag has two sub-tags. <x> and <y> specify a position and
+	take either a pixel value, the string "center" which will center the
+	menu in that dimension, or a relative value specified as a percentage
+	A relative value is interpreted in terms of the monitor the menu will
+	be shown on, and will be relative to the left/top edge of the menu
+	window and monitor for positive values, and to the right/bottom edge
+	for negative values.
+
 *<action name="SetDecorations" decorations="value" forceSSD="no" />*
 	Set decorations of focused window.
 

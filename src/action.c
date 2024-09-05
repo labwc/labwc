@@ -343,6 +343,14 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			action_arg_add_bool(action, argument, parse_bool(content, true));
 			goto cleanup;
 		}
+		if (!strcasecmp(argument, "x.position")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		if (!strcasecmp(argument, "y.position")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
 		break;
 	case ACTION_TYPE_TOGGLE_MAXIMIZE:
 	case ACTION_TYPE_MAXIMIZE:
@@ -611,7 +619,8 @@ action_list_free(struct wl_list *action_list)
 
 static void
 show_menu(struct server *server, struct view *view,
-		const char *menu_name, bool at_cursor)
+		const char *menu_name, bool at_cursor,
+		const char *pos_x, const char *pos_y)
 {
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH
 			&& server->input_mode != LAB_INPUT_STATE_MENU) {
@@ -638,8 +647,62 @@ show_menu(struct server *server, struct view *view,
 		y = view->current.y;
 	}
 
+	/*
+	 * determine placement by looking at x and y
+	 * x/y can be number, "center" or a %percent of screen dimensions
+	 */
+	if (pos_x && pos_y) {
+		struct output *output = output_nearest_to(server,
+				server->seat.cursor->x, server->seat.cursor->y);
+		struct menuitem *item;
+		struct theme *theme = server->theme;
+		int max_width = theme->menu_min_width;
+
+		wl_list_for_each(item, &menu->menuitems, link) {
+			if (item->native_width > max_width) {
+				max_width = item->native_width < theme->menu_max_width
+					? item->native_width : theme->menu_max_width;
+			}
+		}
+
+		if (!strcasecmp(pos_x, "center")) {
+			x = (output->usable_area.width / 2) - (max_width / 2);
+		} else if (strchr(pos_x, '%')) {
+			x = (output->usable_area.width * atoi(pos_x)) / 100;
+		} else {
+			if (pos_x[0] == '-') {
+				int neg_x = strtol(pos_x, NULL, 10);
+				x = output->usable_area.width + neg_x;
+			} else {
+				x = atoi(pos_x);
+			}
+		}
+
+		if (!strcasecmp(pos_y, "center")) {
+			y = (output->usable_area.height / 2) - (menu->size.height / 2);
+		} else if (strchr(pos_y, '%')) {
+			y = (output->usable_area.height * atoi(pos_y)) / 100;
+		} else {
+			if (pos_y[0] == '-') {
+				int neg_y = strtol(pos_y, NULL, 10);
+				y = output->usable_area.height + neg_y;
+			} else {
+				y = atoi(pos_y);
+			}
+		}
+		/* keep menu from being off screen */
+		x = MAX(x, 0);
+		x = MIN(x, (output->usable_area.width -1));
+		y = MAX(y, 0);
+		y = MIN(y, (output->usable_area.height -1));
+		/* adjust for which monitor to appear on */
+		x += output->usable_area.x;
+		y += output->usable_area.y;
+	}
+
 	/* Replaced by next show_menu() or cleaned on view_destroy() */
 	menu->triggered_by_view = view;
+	menu->server->menu_current = menu;
 	menu_open_root(menu, x, y);
 }
 
@@ -843,7 +906,9 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_SHOW_MENU:
 			show_menu(server, view,
 				action_get_str(action, "menu", NULL),
-				action_get_bool(action, "atCursor", true));
+				action_get_bool(action, "atCursor", true),
+				action_get_str(action, "x.position", NULL),
+				action_get_str(action, "y.position", NULL));
 			break;
 		case ACTION_TYPE_TOGGLE_MAXIMIZE:
 			if (view) {

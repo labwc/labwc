@@ -81,6 +81,7 @@ struct rcxml {
 
 	/* theme */
 	char *theme_name;
+	char *icon_theme_name;
 	struct wl_list title_buttons_left;
 	struct wl_list title_buttons_right;
 	int corner_radius;

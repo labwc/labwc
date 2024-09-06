@@ -10,8 +10,7 @@
 #include <stdlib.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
-#include "button/button-png.h"
-#include "button/common.h"
+#include "img/img-png.h"
 #include "common/string-helpers.h"
 #include "labwc.h"
 
@@ -44,25 +43,22 @@ ispng(const char *filename)
 #undef PNG_BYTES_TO_CHECK
 
 void
-button_png_load(const char *button_name, struct lab_data_buffer **buffer)
+img_png_load(const char *filename, struct lab_data_buffer **buffer)
 {
 	if (*buffer) {
 		wlr_buffer_drop(&(*buffer)->base);
 		*buffer = NULL;
 	}
-	if (string_null_or_empty(button_name)) {
+	if (string_null_or_empty(filename)) {
+		return;
+	}
+	if (!ispng(filename)) {
 		return;
 	}
 
-	char path[4096] = { 0 };
-	button_filename(button_name, path, sizeof(path));
-	if (!ispng(path)) {
-		return;
-	}
-
-	cairo_surface_t *image = cairo_image_surface_create_from_png(path);
+	cairo_surface_t *image = cairo_image_surface_create_from_png(filename);
 	if (cairo_surface_status(image)) {
-		wlr_log(WLR_ERROR, "error reading png button '%s'", path);
+		wlr_log(WLR_ERROR, "error reading png button '%s'", filename);
 		cairo_surface_destroy(image);
 		return;
 	}

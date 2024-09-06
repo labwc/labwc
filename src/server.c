@@ -25,6 +25,9 @@
 #include "config/rcxml.h"
 #include "config/session.h"
 #include "decorations.h"
+#if HAVE_LIBSFDO
+#include "icon-loader.h"
+#endif
 #include "idle.h"
 #include "labwc.h"
 #include "layers.h"
@@ -55,6 +58,11 @@ reload_config_and_theme(struct server *server)
 	rcxml_read(rc.config_file);
 	theme_finish(server->theme);
 	theme_init(server->theme, server, rc.theme_name);
+
+#if HAVE_LIBSFDO
+	icon_loader_finish(server);
+	icon_loader_init(server);
+#endif
 
 	struct view *view;
 	wl_list_for_each(view, &server->views, link) {
@@ -547,6 +555,10 @@ server_init(struct server *server)
 
 	layers_init(server);
 
+#if HAVE_LIBSFDO
+	icon_loader_init(server);
+#endif
+
 #if HAVE_XWAYLAND
 	xwayland_server_init(server, compositor);
 #endif
@@ -597,4 +609,8 @@ server_finish(struct server *server)
 
 	/* TODO: clean up various scene_tree nodes */
 	workspaces_destroy(server);
+
+#if HAVE_LIBSFDO
+	icon_loader_finish(server);
+#endif
 }

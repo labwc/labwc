@@ -13,8 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <drm_fourcc.h>
-#include "button/button-xbm.h"
-#include "button/common.h"
+#include "img/img-xbm.h"
 #include "common/grab-file.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
@@ -257,7 +256,7 @@ parse_xbm_builtin(const char *button, int size)
 }
 
 void
-button_xbm_from_bitmap(const char *bitmap, struct lab_data_buffer **buffer,
+img_xbm_from_bitmap(const char *bitmap, struct lab_data_buffer **buffer,
 		float *rgba)
 {
 	struct pixmap pixmap = {0};
@@ -272,7 +271,7 @@ button_xbm_from_bitmap(const char *bitmap, struct lab_data_buffer **buffer,
 }
 
 void
-button_xbm_load(const char *button_name, struct lab_data_buffer **buffer,
+img_xbm_load(const char *filename, struct lab_data_buffer **buffer,
 		float *rgba)
 {
 	struct pixmap pixmap = {0};
@@ -280,14 +279,12 @@ button_xbm_load(const char *button_name, struct lab_data_buffer **buffer,
 		wlr_buffer_drop(&(*buffer)->base);
 		*buffer = NULL;
 	}
-	if (string_null_or_empty(button_name)) {
+	if (string_null_or_empty(filename)) {
 		return;
 	}
 	color = argb32(rgba);
 
 	/* Read file into memory as it's easier to tokenize that way */
-	char filename[4096] = { 0 };
-	button_filename(button_name, filename, sizeof(filename));
 	struct buf token_buf = grab_file(filename);
 	if (token_buf.len) {
 		struct token *tokens = tokenize_xbm(token_buf.data);

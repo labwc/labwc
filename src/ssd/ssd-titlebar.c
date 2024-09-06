@@ -4,10 +4,14 @@
 #include <assert.h>
 #include <string.h>
 #include "buffer.h"
+#include "config.h"
 #include "common/mem.h"
 #include "common/scaled-font-buffer.h"
 #include "common/scene-helpers.h"
 #include "common/string-helpers.h"
+#if HAVE_LIBSFDO
+#include "icon-loader.h"
+#endif
 #include "labwc.h"
 #include "node.h"
 #include "ssd-internal.h"
@@ -34,6 +38,7 @@ add_button(struct ssd *ssd, struct ssd_sub_tree *subtree, enum ssd_part_type typ
 	struct ssd_button *btn;
 
 	switch (type) {
+	case LAB_SSD_BUTTON_WINDOW_ICON: /* fallthrough */
 	case LAB_SSD_BUTTON_WINDOW_MENU:
 		add_scene_button(&subtree->parts, type, parent,
 			active ? &theme->button_menu_active_unpressed->base
@@ -171,6 +176,7 @@ ssd_titlebar_create(struct ssd *ssd)
 	update_visible_buttons(ssd);
 
 	ssd_update_title(ssd);
+	ssd_update_window_icon(ssd);
 
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
 	if (maximized) {
@@ -368,7 +374,9 @@ ssd_titlebar_update(struct ssd *ssd)
 			wlr_scene_node_set_position(part->node, x, 0);
 		}
 	} FOR_EACH_END
+
 	ssd_update_title(ssd);
+	ssd_update_window_icon(ssd);
 }
 
 void
@@ -386,8 +394,10 @@ ssd_titlebar_destroy(struct ssd *ssd)
 	} FOR_EACH_END
 
 	if (ssd->state.title.text) {
-		free(ssd->state.title.text);
-		ssd->state.title.text = NULL;
+		zfree(ssd->state.title.text);
+	}
+	if (ssd->state.app_id) {
+		zfree(ssd->state.app_id);
 	}
 
 	wlr_scene_node_destroy(&ssd->titlebar.tree->node);
@@ -622,6 +632,52 @@ ssd_should_be_squared(struct ssd *ssd)
 	return (view_is_tiled_and_notify_tiled(view)
 			|| view->current.width < corner_width * 2)
 		&& view->maximized != VIEW_AXIS_BOTH;
+}
+
+void
+ssd_update_window_icon(struct ssd *ssd)
+{
+#if HAVE_LIBSFDO
+	const char *app_id = view_get_string_prop(ssd->view, "app_id");
+	if (string_null_or_empty(app_id)) {
+		return;
+	}
+	if (ssd->state.app_id && !strcmp(ssd->state.app_id, app_id)) {
+		return;
+	}
+
+	free(ssd->state.app_id);
+	ssd->state.app_id = xstrdup(app_id);
+
+	struct theme *theme = ssd->view->server->theme;
+
+	int icon_size = MIN(theme->window_button_width,
+		theme->title_height - 2 * theme->padding_height);
+	/* TODO: take into account output scales */
+	int icon_scale = 1;
+
+	struct lab_data_buffer *icon_buffer = icon_loader_lookup(
+		ssd->view->server, app_id, icon_size, icon_scale);
+	if (!icon_buffer) {
+		wlr_log(WLR_DEBUG, "icon could not be loaded for %s", app_id);
+		return;
+	}
+
+	struct ssd_sub_tree *subtree;
+	FOR_EACH_STATE(ssd, subtree) {
+		struct ssd_part *part =
+			ssd_get_part(&subtree->parts, LAB_SSD_BUTTON_WINDOW_ICON);
+		if (!part) {
+			break;
+		}
+
+		struct ssd_button *button = node_ssd_button_from_node(part->node);
+		update_window_icon_buffer(button->normal, &icon_buffer->base);
+		update_window_icon_buffer(button->hover, &icon_buffer->base);
+	} FOR_EACH_END
+
+	wlr_buffer_drop(&icon_buffer->base);
+#endif
 }
 
 #undef FOR_EACH_STATE

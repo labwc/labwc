@@ -10,25 +10,18 @@
 #include <stdlib.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
-#include "button/button-svg.h"
-#include "button/common.h"
+#include "img/img-svg.h"
 #include "common/string-helpers.h"
 #include "labwc.h"
 
 void
-button_svg_load(const char *button_name, struct lab_data_buffer **buffer,
+img_svg_load(const char *filename, struct lab_data_buffer **buffer,
 		int size)
 {
 	if (*buffer) {
 		wlr_buffer_drop(&(*buffer)->base);
 		*buffer = NULL;
 	}
-	if (string_null_or_empty(button_name)) {
-		return;
-	}
-
-	char filename[4096] = { 0 };
-	button_filename(button_name, filename, sizeof(filename));
 	if (string_null_or_empty(filename)) {
 		return;
 	}

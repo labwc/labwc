@@ -2266,6 +2266,10 @@ view_update_app_id(struct view *view)
 	}
 	wlr_foreign_toplevel_handle_v1_set_app_id(
 		view->toplevel.handle, app_id);
+
+	if (view->ssd_enabled) {
+		ssd_update_window_icon(view->ssd);
+	}
 }
 
 void

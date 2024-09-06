@@ -73,6 +73,8 @@ struct ssd {
 			struct ssd_state_title_width active;
 			struct ssd_state_title_width inactive;
 		} title;
+
+		char *app_id;
 	} state;
 
 	/* An invisible area around the view which allows resizing */
@@ -145,6 +147,8 @@ struct ssd_part *add_scene_button(
 void add_toggled_icon(struct ssd_button *button, struct wl_list *part_list,
 	enum ssd_part_type type, struct wlr_buffer *icon_buffer,
 	struct wlr_buffer *hover_buffer);
+void update_window_icon_buffer(struct wlr_scene_node *button_node,
+	struct wlr_buffer *buffer);
 
 /* SSD internal helpers */
 struct ssd_part *ssd_get_part(

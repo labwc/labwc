@@ -29,14 +29,14 @@
 #include "common/parse-double.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
-#include "button/button-png.h"
+#include "img/img-png.h"
 #include "labwc.h"
 
 #if HAVE_RSVG
-#include "button/button-svg.h"
+#include "img/img-svg.h"
 #endif
 
-#include "button/button-xbm.h"
+#include "img/img-xbm.h"
 #include "theme.h"
 #include "buffer.h"
 #include "ssd.h"
@@ -223,6 +223,36 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 }
 
 /*
+ * Scan theme directories with button names (name + postfix) and write the full
+ * path of the found button file to @buf. An empty string is set if a button
+ * file is not found.
+ */
+static void
+get_button_filename(char *buf, size_t len, const char *name, const char *postfix)
+{
+	buf[0] = '\0';
+
+	char filename[4096];
+	snprintf(filename, sizeof(filename), "%s%s", name, postfix);
+
+	struct wl_list paths;
+	paths_theme_create(&paths, rc.theme_name, filename);
+
+	/*
+	 * You can't really merge buttons, so let's just iterate forwards
+	 * and stop on the first hit
+	 */
+	struct path *path;
+	wl_list_for_each(path, &paths, link) {
+		if (access(path->string, R_OK) == 0) {
+			snprintf(buf, len, "%s", path->string);
+			break;
+		}
+	}
+	paths_destroy(&paths);
+}
+
+/*
  * We use the following button filename schema: "BUTTON [TOGGLED] [STATE]"
  * with the words separated by underscore, and the following meaning:
  *   - BUTTON can be one of 'max', 'iconify', 'close', 'menu'
@@ -394,31 +424,31 @@ load_buttons(struct theme *theme)
 		zdrop(b->inactive.buffer);
 
 		/* PNG */
-		snprintf(filename, sizeof(filename), "%s-active.png", b->name);
-		button_png_load(filename, b->active.buffer);
-		snprintf(filename, sizeof(filename), "%s-inactive.png", b->name);
-		button_png_load(filename, b->inactive.buffer);
+		get_button_filename(filename, sizeof(filename), b->name, "-active.png");
+		img_png_load(filename, b->active.buffer);
+		get_button_filename(filename, sizeof(filename), b->name, "-inactive.png");
+		img_png_load(filename, b->inactive.buffer);
 
 #if HAVE_RSVG
 		/* SVG */
 		int size = theme->title_height - 2 * theme->padding_height;
 		if (!*b->active.buffer) {
-			snprintf(filename, sizeof(filename), "%s-active.svg", b->name);
-			button_svg_load(filename, b->active.buffer, size);
+			get_button_filename(filename, sizeof(filename), b->name, "-active.svg");
+			img_svg_load(filename, b->active.buffer, size);
 		}
 		if (!*b->inactive.buffer) {
-			snprintf(filename, sizeof(filename), "%s-inactive.svg", b->name);
-			button_svg_load(filename, b->inactive.buffer, size);
+			get_button_filename(filename, sizeof(filename), b->name, "-inactive.svg");
+			img_svg_load(filename, b->inactive.buffer, size);
 		}
 #endif
 
 		/* XBM */
-		snprintf(filename, sizeof(filename), "%s.xbm", b->name);
+		get_button_filename(filename, sizeof(filename), b->name, ".xbm");
 		if (!*b->active.buffer) {
-			button_xbm_load(filename, b->active.buffer, b->active.rgba);
+			img_xbm_load(filename, b->active.buffer, b->active.rgba);
 		}
 		if (!*b->inactive.buffer) {
-			button_xbm_load(filename, b->inactive.buffer, b->inactive.rgba);
+			img_xbm_load(filename, b->inactive.buffer, b->inactive.rgba);
 		}
 
 		/*
@@ -426,15 +456,15 @@ load_buttons(struct theme *theme)
 		 * For example max_hover_toggled instead of max_toggled_hover
 		 */
 		if (b->alt_name) {
-			snprintf(filename, sizeof(filename), "%s.xbm", b->alt_name);
+			get_button_filename(filename, sizeof(filename), b->alt_name, ".xbm");
 		}  else {
 			filename[0] = '\0';
 		}
 		if (!*b->active.buffer) {
-			button_xbm_load(filename, b->active.buffer, b->active.rgba);
+			img_xbm_load(filename, b->active.buffer, b->active.rgba);
 		}
 		if (!*b->inactive.buffer) {
-			button_xbm_load(filename, b->inactive.buffer, b->inactive.rgba);
+			img_xbm_load(filename, b->inactive.buffer, b->inactive.rgba);
 		}
 
 		/*
@@ -447,11 +477,11 @@ load_buttons(struct theme *theme)
 			continue;
 		}
 		if (!*b->active.buffer) {
-			button_xbm_from_bitmap(b->fallback_button,
+			img_xbm_from_bitmap(b->fallback_button,
 				b->active.buffer, b->active.rgba);
 		}
 		if (!*b->inactive.buffer) {
-			button_xbm_from_bitmap(b->fallback_button,
+			img_xbm_from_bitmap(b->fallback_button,
 				b->inactive.buffer, b->inactive.rgba);
 		}
 	}

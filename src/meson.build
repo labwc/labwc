@@ -44,8 +44,13 @@ if have_xwayland
   )
 endif
 
+if have_libsfdo
+  labwc_sources += files(
+    'icon-loader.c',
+  )
+endif
 
-subdir('button')
+subdir('img')
 subdir('common')
 subdir('config')
 subdir('decorations')

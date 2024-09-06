@@ -437,9 +437,13 @@ extending outward from the snapped edge.
 *<theme><name>*
 	The name of the Openbox theme to use. It is not set by default.
 
+*<theme><icon>*
+	The name of the icon theme to use. It is not set by default.
+
 *<theme><titlebar><layout>*
 	Selection and order of buttons in a window's titlebar.
 	The following identifiers can be used, each only once:
+	- 'icon': window icon
 	- 'menu': window menu
 	- 'iconify': iconify
 	- 'max': maximize toggle
@@ -624,6 +628,7 @@ extending outward from the snapped edge.
 	  buttons and the window title are shown.
 	- Title: The area of the titlebar (including blank space) between
 	  the window buttons, where the window title is displayed.
+	- Icon: A window icon that, by default, displays a window menu.
 	- WindowMenu: A button that, by default, displays a window menu.
 	- Iconify: A button that, by default, iconifies a window.
 	- Maximize: A button that, by default, toggles maximization of a window.

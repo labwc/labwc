@@ -151,7 +151,9 @@ fill_section(const char *content, struct wl_list *list)
 			continue;
 		}
 		enum ssd_part_type type = LAB_SSD_NONE;
-		if (!strcmp(identifier, "menu")) {
+		if (!strcmp(identifier, "icon")) {
+			type = LAB_SSD_BUTTON_WINDOW_ICON;
+		} else if (!strcmp(identifier, "menu")) {
 			type = LAB_SSD_BUTTON_WINDOW_MENU;
 		} else if (!strcmp(identifier, "iconify")) {
 			type = LAB_SSD_BUTTON_ICONIFY;
@@ -1067,6 +1069,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.placement_cascade_offset_y = atoi(content);
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = xstrdup(content);
+	} else if (!strcmp(nodename, "icon.theme")) {
+		rc.icon_theme_name = xstrdup(content);
 	} else if (!strcasecmp(nodename, "layout.titlebar.theme")) {
 		fill_title_layout(content);
 	} else if (!strcasecmp(nodename, "showTitle.titlebar.theme")) {
@@ -1658,7 +1662,7 @@ post_processing(void)
 	}
 
 	if (!rc.title_layout_loaded) {
-		fill_title_layout("menu:iconify,max,close");
+		fill_title_layout("icon:iconify,max,close");
 	}
 
 	/*
@@ -1898,6 +1902,7 @@ rcxml_finish(void)
 	zfree(rc.font_menuitem.name);
 	zfree(rc.font_osd.name);
 	zfree(rc.theme_name);
+	zfree(rc.icon_theme_name);
 	zfree(rc.workspace_config.prefix);
 
 	struct title_button *p, *p_tmp;

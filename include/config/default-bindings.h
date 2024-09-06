@@ -377,6 +377,32 @@ static struct mouse_combos {
 			.value = "no",
 		},
 	}, {
+		.context = "Icon",
+		.button = "Left",
+		.event = "Click",
+		.action = "ShowMenu",
+		.attributes[0] = {
+			.name = "menu",
+			.value = "client-menu",
+		},
+		.attributes[1] = {
+			.name = "atCursor",
+			.value = "no",
+		},
+	}, {
+		.context = "Icon",
+		.button = "Right",
+		.event = "Click",
+		.action = "ShowMenu",
+		.attributes[0] = {
+			.name = "menu",
+			.value = "client-menu",
+		},
+		.attributes[1] = {
+			.name = "atCursor",
+			.value = "no",
+		},
+	}, {
 		.context = "Root",
 		.button = "Left",
 		.event = "Press",

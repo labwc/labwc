@@ -1,0 +1,78 @@
+--- src/menu/menu.c
++++ src/menu/menu.c
+@@ -583,25 +583,30 @@ handle_menu_element(xmlNode *n, struct server *server)
+ 		wlr_log(WLR_DEBUG, "pipemenu '%s:%s:%s'", id, label, execute);
+ 		if (!current_menu) {
+ 			/*
+-			 * We currently do not support pipemenus without a
+-			 * parent <item> such as the one the example below:
++			 * pipemenus without a parent
+ 			 *
+ 			 * <?xml version="1.0" encoding="UTF-8"?>
+ 			 * <openbox_menu>
+ 			 *   <menu id="root-menu" label="foo" execute="bar"/>
+ 			 * </openbox_menu>
+-			 *
+-			 * TODO: Consider supporting this
+ 			 */
+-			wlr_log(WLR_ERROR,
+-				"pipemenu '%s:%s:%s' has no parent <menu>",
+-				id, label, execute);
+-			goto error;
++			current_menu = menu_create(server, id, label);
++			current_menu->is_pipemenu = true;
++			current_item = item_create(current_menu, label,
++					/* arrow */ true);
++			current_item_action = NULL;
++			current_item->execute = xstrdup(execute);
++			current_item->id = xstrdup(id);
++		} else {
++			/*
++			 * pipemenus with a parent
++			 */
++			current_item = item_create(current_menu, label,
++					/* arrow */ true);
++			current_item_action = NULL;
++			current_item->execute = xstrdup(execute);
++			current_item->id = xstrdup(id);
+ 		}
+-		current_item = item_create(current_menu, label, /* arrow */ true);
+-		current_item_action = NULL;
+-		current_item->execute = xstrdup(execute);
+-		current_item->id = xstrdup(id);
+ 	} else if ((label && id) || is_toplevel_static_menu_definition(n, id)) {
+ 		/*
+ 		 * (label && id) refers to <menu id="" label=""> which is an
+@@ -634,6 +639,7 @@ handle_menu_element(xmlNode *n, struct server *server)
+ 		}
+ 		++menu_level;
+ 		current_menu = menu_create(server, id, label);
++		current_menu->is_pipemenu = false;
+ 		if (submenu) {
+ 			*submenu = current_menu;
+ 		}
+@@ -657,8 +663,23 @@ handle_menu_element(xmlNode *n, struct server *server)
+ 		}
+ 
+ 		struct menu *menu = menu_get_by_id(server, id);
+-		if (menu) {
++		if (menu && menu->is_pipemenu) {
++			/*
++			 * A pipemenu without a parent
++			 */
+ 			current_item = item_create(current_menu, menu->label, true);
++			struct menuitem *item;
++			wl_list_for_each(item, &menu->menuitems, link) {
++				current_item->execute = xstrdup(item->execute);
++				current_item->id = strdup_printf("%s%d",
++						item->id, rand());
++			}
++		} else if (menu) {
++			/*
++			 * An inline menu defined elsewhere
++			 */
++			current_item = item_create(current_menu, menu->label,
++					true);
+ 			if (current_item) {
+ 				current_item->submenu = menu;
+ 			}

@@ -47,12 +47,18 @@ labwc-config(5).
 # THEME ELEMENTS
 
 *border.width*
-	Line width (integer) of border border drawn around window frames.
+	Line width (integer) of border drawn around window frames.
 	Default is 1.
 
+*padding.width*
+	Horizontal padding size, in pixels, between border and first
+	button on the left/right.
+	Default is 0.
+
 *padding.height*
-	Vertical padding size, used for spacing out elements in the window
-	decorations. Default is 3.
+	Vertical padding size, in pixels, used for spacing out elements
+	in the window decorations.
+	Default is 3.
 
 *titlebar.height*
 	Window title bar height.
@@ -121,6 +127,10 @@ labwc-config(5).
 *window.button.width*
 	Width of a titlebar button, in pixels.
 	Default is 26.
+
+*window.button.spacing*
+	Space between titlebar buttons, in pixels.
+	Default is 0.
 
 *window.active.button.unpressed.image.color*
 	Color of the images in titlebar buttons in their default, unpressed,

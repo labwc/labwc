@@ -7,6 +7,7 @@
 
 # general
 border.width: 1
+padding.width: 0
 padding.height: 3
 
 # The following options has no default, but fallbacks back to
@@ -29,8 +30,9 @@ window.active.label.text.color: #000000
 window.inactive.label.text.color: #000000
 window.label.text.justify: center
 
-# window button width
+# window button width and spacing
 window.button.width: 26
+window.button.spacing: 0
 
 # window buttons
 window.active.button.unpressed.image.color: #000000

@@ -70,6 +70,9 @@ struct rounded_corner_ctx {
 
 static struct lab_data_buffer *rounded_rect(struct rounded_corner_ctx *ctx);
 
+/* 1 degree in radians (=2π/360) */
+static const double deg = 0.017453292519943295;
+
 static void
 zdrop(struct lab_data_buffer **buffer)
 {
@@ -162,26 +165,36 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 
 	/* Overlay (pre-multiplied alpha) */
 	float overlay_color[4] = { 0.15f, 0.15f, 0.15f, 0.3f};
+	int radius = MIN(width, height) / 2;
 	enum corner corner = corner_from_icon_name(icon_name);
 
-	if (corner == LAB_CORNER_UNKNOWN) {
+	switch (theme->window_button_hover_bg_shape) {
+	case LAB_CIRCLE:
 		set_cairo_color(cairo, overlay_color);
-		cairo_rectangle(cairo, 0, 0, width, height);
+		cairo_arc(cairo, width / 2, height / 2, radius, 0 * deg, 360 * deg);
 		cairo_fill(cairo);
-	} else {
-		struct rounded_corner_ctx rounded_ctx = {
-			.box = &(struct wlr_box) { .width = width, .height = height },
-			.radius = rc.corner_radius,
-			.line_width = theme->border_width,
-			.fill_color = overlay_color,
-			.border_color = overlay_color,
-			.corner = corner
-		};
-		struct lab_data_buffer *overlay_buffer = rounded_rect(&rounded_ctx);
-		cairo_set_source_surface(cairo,
-			cairo_get_target(overlay_buffer->cairo), 0, 0);
-		cairo_paint(cairo);
-		wlr_buffer_drop(&overlay_buffer->base);
+		break;
+	case LAB_RECTANGLE:
+		if (corner == LAB_CORNER_UNKNOWN) {
+			set_cairo_color(cairo, overlay_color);
+			cairo_rectangle(cairo, 0, 0, width, height);
+			cairo_fill(cairo);
+		} else {
+			struct rounded_corner_ctx rounded_ctx = {
+				.box = &(struct wlr_box){.width = width, .height = height},
+				.radius = rc.corner_radius,
+				.line_width = theme->border_width,
+				.fill_color = overlay_color,
+				.border_color = overlay_color,
+				.corner = corner};
+			struct lab_data_buffer *overlay_buffer =
+				rounded_rect(&rounded_ctx);
+			cairo_set_source_surface(cairo,
+				cairo_get_target(overlay_buffer->cairo), 0, 0);
+			cairo_paint(cairo);
+			wlr_buffer_drop(&overlay_buffer->base);
+		}
+		break;
 	}
 	cairo_surface_flush(surf);
 
@@ -532,6 +545,18 @@ parse_justification(const char *str)
 	}
 }
 
+static enum lab_shape
+parse_shape(const char *str)
+{
+	if (!strcasecmp(str, "Rectangle")) {
+		return LAB_RECTANGLE;
+	} else if (!strcasecmp(str, "Circle")) {
+		return LAB_CIRCLE;
+	} else {
+		return LAB_RECTANGLE;
+	}
+}
+
 /*
  * We generally use Openbox defaults, but if no theme file can be found it's
  * better to populate the theme variables with some sane values as no-one
@@ -569,6 +594,7 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->padding_width = 0;
 	theme->window_button_width = 26;
 	theme->window_button_spacing = 0;
+	theme->window_button_hover_bg_shape = LAB_RECTANGLE;
 
 	parse_hexstr("#000000",
 		theme->window_active_button_menu_unpressed_image_color);
@@ -773,6 +799,9 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "window.button.spacing")) {
 		theme->window_button_spacing = get_int_if_positive(
 			value, "window.button.spacing");
+	}
+	if (match_glob(key, "window.button.hover.bg.shape")) {
+		theme->window_button_hover_bg_shape = parse_shape(value);
 	}
 
 	/* universal button */
@@ -1077,9 +1106,6 @@ theme_read(struct theme *theme, struct wl_list *paths)
 static struct lab_data_buffer *
 rounded_rect(struct rounded_corner_ctx *ctx)
 {
-	/* 1 degree in radians (=2π/360) */
-	double deg = 0.017453292519943295;
-
 	if (ctx->corner == LAB_CORNER_UNKNOWN) {
 		return NULL;
 	}

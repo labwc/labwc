@@ -34,6 +34,9 @@ window.label.text.justify: center
 window.button.width: 26
 window.button.spacing: 0
 
+# window button hover effect
+window.button.hover.bg.shape: rectangle
+
 # window buttons
 window.active.button.unpressed.image.color: #000000
 window.inactive.button.unpressed.image.color: #000000

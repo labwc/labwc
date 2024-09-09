@@ -566,7 +566,9 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->window_label_text_justify = parse_justification("Center");
 	theme->menu_title_text_justify = parse_justification("Center");
 
+	theme->padding_width = 0;
 	theme->window_button_width = 26;
+	theme->window_button_spacing = 0;
 
 	parse_hexstr("#000000",
 		theme->window_active_button_menu_unpressed_image_color);
@@ -682,6 +684,9 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "border.width")) {
 		theme->border_width = atoi(value);
 	}
+	if (match_glob(key, "padding.width")) {
+		theme->padding_width = atoi(value);
+	}
 	if (match_glob(key, "padding.height")) {
 		theme->padding_height = atoi(value);
 	}
@@ -744,6 +749,9 @@ entry(struct theme *theme, const char *key, const char *value)
 				"be less than 1, clamping it to 1.");
 			theme->window_button_width = 1;
 		}
+	}
+	if (match_glob(key, "window.button.spacing")) {
+		theme->window_button_spacing = atoi(value);
 	}
 
 	/* universal button */
@@ -1198,10 +1206,12 @@ out:
 static void
 create_corners(struct theme *theme)
 {
+	int corner_width = ssd_get_corner_width();
+
 	struct wlr_box box = {
 		.x = 0,
 		.y = 0,
-		.width = theme->window_button_width + theme->border_width,
+		.width = corner_width + theme->border_width,
 		.height = theme->title_height + theme->border_width,
 	};
 

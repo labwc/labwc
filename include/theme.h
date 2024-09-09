@@ -27,7 +27,14 @@ struct theme_snapping_overlay {
 
 struct theme {
 	int border_width;
+
+	/*
+	 * the space between title bar border and
+	 * buttons on the left/right/top
+	 */
+	int padding_width;
 	int padding_height;
+
 	int title_height;
 	int menu_overlap_x;
 	int menu_overlap_y;
@@ -48,6 +55,8 @@ struct theme {
 
 	/* button width */
 	int window_button_width;
+	/* the space between buttons */
+	int window_button_spacing;
 
 	/* button colors */
 	float window_active_button_menu_unpressed_image_color[4];

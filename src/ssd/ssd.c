@@ -205,6 +205,13 @@ ssd_get_margin(const struct ssd *ssd)
 	return ssd ? ssd->margin : (struct border){ 0 };
 }
 
+int
+ssd_get_corner_width(void)
+{
+	/* ensure a minimum corner width */
+	return MAX(rc.corner_radius, 5);
+}
+
 void
 ssd_update_margin(struct ssd *ssd)
 {

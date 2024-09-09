@@ -116,6 +116,7 @@ ssd_titlebar_create(struct ssd *ssd)
 	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
 	int width = view->current.width;
+	int corner_width = ssd_get_corner_width();
 
 	float *color;
 	struct wlr_scene_tree *parent;
@@ -144,25 +145,25 @@ ssd_titlebar_create(struct ssd *ssd)
 
 		/* Background */
 		add_scene_rect(&subtree->parts, LAB_SSD_PART_TITLEBAR, parent,
-			width - theme->window_button_width * 2, theme->title_height,
-			theme->window_button_width, 0, color);
+			width - corner_width * 2, theme->title_height,
+			corner_width, 0, color);
 		add_scene_buffer(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_LEFT, parent,
 			corner_top_left, -rc.theme->border_width, -rc.theme->border_width);
 		add_scene_buffer(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_RIGHT, parent,
-			corner_top_right, width - theme->window_button_width,
+			corner_top_right, width - corner_width,
 			-rc.theme->border_width);
 
 		/* Buttons */
 		struct title_button *b;
-		int x = 0;
+		int x = theme->padding_width;
 		wl_list_for_each(b, &rc.title_buttons_left, link) {
 			add_button(ssd, subtree, b->type, x);
-			x += theme->window_button_width;
+			x += theme->window_button_width + theme->window_button_spacing;
 		}
 
-		x = width;
+		x = width - theme->padding_width + theme->window_button_spacing;
 		wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
-			x -= theme->window_button_width;
+			x -= theme->window_button_width + theme->window_button_spacing;
 			add_button(ssd, subtree, b->type, x);
 		}
 	} FOR_EACH_END
@@ -197,11 +198,12 @@ set_squared_corners(struct ssd *ssd, bool enable)
 {
 	struct view *view = ssd->view;
 	int width = view->current.width;
+	int corner_width = ssd_get_corner_width();
 	struct theme *theme = view->server->theme;
 
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
-	int x = enable ? 0 : theme->window_button_width;
+	int x = enable ? 0 : corner_width;
 
 	FOR_EACH_STATE(ssd, subtree) {
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR);
@@ -252,18 +254,23 @@ static void
 update_visible_buttons(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
-	int width = view->current.width;
+	int width = view->current.width - (2 * view->server->theme->padding_width);
 	int button_width = view->server->theme->window_button_width;
+	int button_spacing = view->server->theme->window_button_spacing;
 	int button_count_left = wl_list_length(&rc.title_buttons_left);
 	int button_count_right = wl_list_length(&rc.title_buttons_right);
 
 	/* Make sure infinite loop never occurs */
 	assert(button_width > 0);
+
 	/*
 	 * The corner-left button is lastly removed as it's usually a window
 	 * menu button (or an app icon button in the future).
 	 */
-	while (width < button_width * (button_count_left + button_count_right)) {
+	while (width <
+		((button_width * (button_count_left + button_count_right)) +
+			(MAX((button_count_right - 1), 0) * button_spacing) +
+			(MAX((button_count_left - 1), 0) * button_spacing))) {
 		if (button_count_left > button_count_right) {
 			button_count_left--;
 		} else {
@@ -299,6 +306,7 @@ ssd_titlebar_update(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
 	int width = view->current.width;
+	int corner_width = ssd_get_corner_width();
 	struct theme *theme = view->server->theme;
 
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
@@ -335,27 +343,29 @@ ssd_titlebar_update(struct ssd *ssd)
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
 	struct title_button *b;
-	int bg_offset = maximized || squared ? 0 : theme->window_button_width;
+	int bg_offset = maximized || squared ? 0 : corner_width;
 	FOR_EACH_STATE(ssd, subtree) {
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR);
 		wlr_scene_rect_set_size(
 			wlr_scene_rect_from_node(part->node),
 			width - bg_offset * 2, theme->title_height);
 
-		x = 0;
+		x = theme->padding_width;
 		wl_list_for_each(b, &rc.title_buttons_left, link) {
 			part = ssd_get_part(&subtree->parts, b->type);
 			wlr_scene_node_set_position(part->node, x, 0);
-			x += theme->window_button_width;
+			x += theme->window_button_width + theme->window_button_spacing;
 		}
 
-		x = width - theme->window_button_width;
+		x = width - corner_width;
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_RIGHT);
 		wlr_scene_node_set_position(part->node, x, -rc.theme->border_width);
+
+		x = width - theme->padding_width + theme->window_button_spacing;
 		wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
 			part = ssd_get_part(&subtree->parts, b->type);
+			x -= theme->window_button_width + theme->window_button_spacing;
 			wlr_scene_node_set_position(part->node, x, 0);
-			x -= theme->window_button_width;
 		}
 	} FOR_EACH_END
 	ssd_update_title(ssd);
@@ -457,19 +467,23 @@ get_title_offsets(struct ssd *ssd, int *offset_left, int *offset_right)
 {
 	struct ssd_sub_tree *subtree = &ssd->titlebar.active;
 	int button_width = ssd->view->server->theme->window_button_width;
-	*offset_left = 0;
-	*offset_right = 0;
+	int button_spacing = ssd->view->server->theme->window_button_spacing;
+	int padding_width = ssd->view->server->theme->padding_width;
+	*offset_left = padding_width;
+	*offset_right = padding_width;
 
 	struct title_button *b;
 	wl_list_for_each(b, &rc.title_buttons_left, link) {
 		struct ssd_part *part = ssd_get_part(&subtree->parts, b->type);
 		if (part->node->enabled) {
+			*offset_left += *offset_left > padding_width ? button_spacing : 0;
 			*offset_left += button_width;
 		}
 	}
 	wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
 		struct ssd_part *part = ssd_get_part(&subtree->parts, b->type);
 		if (part->node->enabled) {
+			*offset_right += *offset_right > padding_width ? button_spacing : 0;
 			*offset_right += button_width;
 		}
 	}
@@ -603,10 +617,10 @@ bool
 ssd_should_be_squared(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
-	int button_width = view->server->theme->window_button_width;
+	int corner_width = ssd_get_corner_width();
 
 	return (view_is_tiled_and_notify_tiled(view)
-			|| view->current.width < button_width * 2)
+			|| view->current.width < corner_width * 2)
 		&& view->maximized != VIEW_AXIS_BOTH;
 }
 

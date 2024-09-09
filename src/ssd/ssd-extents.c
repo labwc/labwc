@@ -76,8 +76,9 @@ ssd_extents_update(struct ssd *ssd)
 	int full_height = height + theme->border_width * 2 + ssd->titlebar.height;
 	int full_width = width + 2 * theme->border_width;
 	int extended_area = SSD_EXTENDED_AREA;
+	int corner_width = ssd_get_corner_width();
 	int corner_size = extended_area + theme->border_width +
-		MIN(theme->window_button_width, width) / 2;
+		MIN(corner_width, width) / 2;
 	int side_width = full_width + extended_area * 2 - corner_size * 2;
 	int side_height = full_height + extended_area * 2 - corner_size * 2;
 

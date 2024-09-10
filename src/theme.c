@@ -670,6 +670,18 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->mag_border_width = 1;
 }
 
+static int
+get_int_if_positive(const char *content, const char *field)
+{
+	int value = atoi(content);
+	if (value < 0) {
+		wlr_log(WLR_ERROR,
+			"%s cannot be negative, clamping it to 0.", field);
+		value = 0;
+	}
+	return value;
+}
+
 static void
 entry(struct theme *theme, const char *key, const char *value)
 {
@@ -682,31 +694,39 @@ entry(struct theme *theme, const char *key, const char *value)
 	 * the first instance, "else if" cannot be used throughout this function
 	 */
 	if (match_glob(key, "border.width")) {
-		theme->border_width = atoi(value);
+		theme->border_width = get_int_if_positive(
+			value, "border.width");
 	}
 	if (match_glob(key, "padding.width")) {
-		theme->padding_width = atoi(value);
+		theme->padding_width = get_int_if_positive(
+			value, "padding.width");
 	}
 	if (match_glob(key, "padding.height")) {
-		theme->padding_height = atoi(value);
+		theme->padding_height = get_int_if_positive(
+			value, "padding.height");
 	}
 	if (match_glob(key, "titlebar.height")) {
-		theme->title_height = atoi(value);
+		theme->title_height = get_int_if_positive(
+			value, "titlebar.height");
 	}
 	if (match_glob(key, "menu.items.padding.x")) {
-		theme->menu_item_padding_x = atoi(value);
+		theme->menu_item_padding_x = get_int_if_positive(
+			value, "menu.items.padding.x");
 	}
 	if (match_glob(key, "menu.items.padding.y")) {
-		theme->menu_item_padding_y = atoi(value);
+		theme->menu_item_padding_y = get_int_if_positive(
+			value, "menu.items.padding.y");
 	}
 	if (match_glob(key, "menu.title.text.justify")) {
 		theme->menu_title_text_justify = parse_justification(value);
 	}
 	if (match_glob(key, "menu.overlap.x")) {
-		theme->menu_overlap_x = atoi(value);
+		theme->menu_overlap_x = get_int_if_positive(
+			value, "menu.overlap.x");
 	}
 	if (match_glob(key, "menu.overlap.y")) {
-		theme->menu_overlap_y = atoi(value);
+		theme->menu_overlap_y = get_int_if_positive(
+			value, "menu.overlap.y");
 	}
 
 	if (match_glob(key, "window.active.border.color")) {
@@ -751,7 +771,8 @@ entry(struct theme *theme, const char *key, const char *value)
 		}
 	}
 	if (match_glob(key, "window.button.spacing")) {
-		theme->window_button_spacing = atoi(value);
+		theme->window_button_spacing = get_int_if_positive(
+			value, "window.button.spacing");
 	}
 
 	/* universal button */
@@ -836,20 +857,12 @@ entry(struct theme *theme, const char *key, const char *value)
 
 	/* window drop-shadows */
 	if (match_glob(key, "window.active.shadow.size")) {
-		theme->window_active_shadow_size = atoi(value);
-		if (theme->window_active_shadow_size < 0) {
-			wlr_log(WLR_ERROR, "window.active.shadow.size cannot "
-				"be negative, clamping it to 0.");
-			theme->window_active_shadow_size = 0;
-		}
+		theme->window_active_shadow_size = get_int_if_positive(
+			value, "window.active.shadow.size");
 	}
 	if (match_glob(key, "window.inactive.shadow.size")) {
-		theme->window_inactive_shadow_size = atoi(value);
-		if (theme->window_inactive_shadow_size < 0) {
-			wlr_log(WLR_ERROR, "window.inactive.shadow.size cannot "
-				"be negative, clamping it to 0.");
-			theme->window_inactive_shadow_size = 0;
-		}
+		theme->window_inactive_shadow_size = get_int_if_positive(
+			value, "window.inactive.shadow.size");
 	}
 	if (match_glob(key, "window.active.shadow.color")) {
 		parse_hexstr(value, theme->window_active_shadow_color);
@@ -859,10 +872,12 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 
 	if (match_glob(key, "menu.width.min")) {
-		theme->menu_min_width = atoi(value);
+		theme->menu_min_width = get_int_if_positive(
+			value, "menu.width.min");
 	}
 	if (match_glob(key, "menu.width.max")) {
-		theme->menu_max_width = atoi(value);
+		theme->menu_max_width = get_int_if_positive(
+			value, "menu.width.max");
 	}
 
 	if (match_glob(key, "menu.items.bg.color")) {
@@ -879,13 +894,16 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 
 	if (match_glob(key, "menu.separator.width")) {
-		theme->menu_separator_line_thickness = atoi(value);
+		theme->menu_separator_line_thickness = get_int_if_positive(
+			value, "menu.separator.width");
 	}
 	if (match_glob(key, "menu.separator.padding.width")) {
-		theme->menu_separator_padding_width = atoi(value);
+		theme->menu_separator_padding_width = get_int_if_positive(
+			value, "menu.separator.padding.width");
 	}
 	if (match_glob(key, "menu.separator.padding.height")) {
-		theme->menu_separator_padding_height = atoi(value);
+		theme->menu_separator_padding_height = get_int_if_positive(
+			value, "menu.separator.padding.height");
 	}
 	if (match_glob(key, "menu.separator.color")) {
 		parse_hexstr(value, theme->menu_separator_color);
@@ -903,7 +921,8 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_hexstr(value, theme->osd_bg_color);
 	}
 	if (match_glob(key, "osd.border.width")) {
-		theme->osd_border_width = atoi(value);
+		theme->osd_border_width = get_int_if_positive(
+			value, "osd.border.width");
 	}
 	if (match_glob(key, "osd.border.color")) {
 		parse_hexstr(value, theme->osd_border_color);
@@ -914,31 +933,45 @@ entry(struct theme *theme, const char *key, const char *value)
 		} else {
 			theme->osd_window_switcher_width_is_percent = false;
 		}
-		theme->osd_window_switcher_width = MAX(atoi(value), 0);
+		theme->osd_window_switcher_width = get_int_if_positive(
+			value, "osd.window-switcher.width");
 	}
 	if (match_glob(key, "osd.window-switcher.padding")) {
-		theme->osd_window_switcher_padding = atoi(value);
+		theme->osd_window_switcher_padding = get_int_if_positive(
+			value, "osd.window-switcher.padding");
 	}
 	if (match_glob(key, "osd.window-switcher.item.padding.x")) {
-		theme->osd_window_switcher_item_padding_x = atoi(value);
+		theme->osd_window_switcher_item_padding_x =
+			get_int_if_positive(
+				value, "osd.window-switcher.item.padding.x");
 	}
 	if (match_glob(key, "osd.window-switcher.item.padding.y")) {
-		theme->osd_window_switcher_item_padding_y = atoi(value);
+		theme->osd_window_switcher_item_padding_y =
+			get_int_if_positive(
+				value, "osd.window-switcher.item.padding.y");
 	}
 	if (match_glob(key, "osd.window-switcher.item.active.border.width")) {
-		theme->osd_window_switcher_item_active_border_width = atoi(value);
+		theme->osd_window_switcher_item_active_border_width =
+			get_int_if_positive(
+				value, "osd.window-switcher.item.active.border.width");
 	}
 	if (match_glob(key, "osd.window-switcher.preview.border.width")) {
-		theme->osd_window_switcher_preview_border_width = atoi(value);
+		theme->osd_window_switcher_preview_border_width =
+			get_int_if_positive(
+				value, "osd.window-switcher.preview.border.width");
 	}
 	if (match_glob(key, "osd.window-switcher.preview.border.color")) {
 		parse_hexstrs(value, theme->osd_window_switcher_preview_border_color);
 	}
 	if (match_glob(key, "osd.workspace-switcher.boxes.width")) {
-		theme->osd_workspace_switcher_boxes_width = atoi(value);
+		theme->osd_workspace_switcher_boxes_width =
+			get_int_if_positive(
+				value, "osd.workspace-switcher.boxes.width");
 	}
 	if (match_glob(key, "osd.workspace-switcher.boxes.height")) {
-		theme->osd_workspace_switcher_boxes_height = atoi(value);
+		theme->osd_workspace_switcher_boxes_height =
+			get_int_if_positive(
+				value, "osd.workspace-switcher.boxes.height");
 	}
 	if (match_glob(key, "osd.label.text.color")) {
 		parse_hexstr(value, theme->osd_label_text_color);
@@ -962,10 +995,12 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_hexstr(value, theme->snapping_overlay_edge.bg_color);
 	}
 	if (match_glob(key, "snapping.overlay.region.border.width")) {
-		theme->snapping_overlay_region.border_width = atoi(value);
+		theme->snapping_overlay_region.border_width = get_int_if_positive(
+			value, "snapping.overlay.region.border.width");
 	}
 	if (match_glob(key, "snapping.overlay.edge.border.width")) {
-		theme->snapping_overlay_edge.border_width = atoi(value);
+		theme->snapping_overlay_edge.border_width = get_int_if_positive(
+			value, "snapping.overlay.edge.border.width");
 	}
 	if (match_glob(key, "snapping.overlay.region.border.color")) {
 		parse_hexstrs(value, theme->snapping_overlay_region.border_color);
@@ -975,7 +1010,8 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 
 	if (match_glob(key, "magnifier.border.width")) {
-		theme->mag_border_width = atoi(value);
+		theme->mag_border_width = get_int_if_positive(
+			value, "magnifier.border.width");
 	}
 	if (match_glob(key, "magnifier.border.color")) {
 		parse_hexstr(value, theme->mag_border_color);

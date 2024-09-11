@@ -167,6 +167,7 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 	float overlay_color[4] = { 0.15f, 0.15f, 0.15f, 0.3f};
 	int radius = MIN(width, height) / 2;
 	enum corner corner = corner_from_icon_name(icon_name);
+	int corner_radius = MAX(rc.corner_radius - theme->padding_width, 0);
 
 	switch (theme->window_button_hover_bg_shape) {
 	case LAB_CIRCLE:
@@ -182,7 +183,7 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 		} else {
 			struct rounded_corner_ctx rounded_ctx = {
 				.box = &(struct wlr_box){.width = width, .height = height},
-				.radius = rc.corner_radius,
+				.radius = corner_radius,
 				.line_width = theme->border_width,
 				.fill_color = overlay_color,
 				.border_color = overlay_color,

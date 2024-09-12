@@ -31,6 +31,72 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
+## [unreleased]
+
+### Added
+
+- Add theme options for circular button hover effect, button padding and button
+  spacing. Written-by: @jp7677 (#2127)
+
+```
+window.button.hover.bg.shape: circle
+padding.width: 4
+window.button.spacing: 3
+```
+
+- Add position arguments for menus. Written-by: @droc12345 (#2102)
+
+```
+<action name="ShowMenu">
+  <menu>root-menu</menu>
+  <position>
+    <x>0</x>
+    <y>0</y>
+  </position>
+</action>
+```
+
+- Allow interactive window movement when horizontally or vertically maximized
+  and add associated config option `<resistance><unMaximizeThreshold>` (#2052)
+- Add optional Shade (shade.xbm) and AllDesktops (desk.xbm) buttons and theme
+  options:
+
+```
+window.active.button.desk.unpressed.image.color
+window.inactive.button.desk.unpressed.image.color
+window.active.button.shade.unpressed.image.color
+window.inactive.button.shade.unpressed.image.color
+```
+
+- Make action `FocusOutput` behave like `MoveToOutput` by adding direction and
+  wrap arguments. Written-by: @orfeasxyz (#2100)
+- Add config option `titleLayout`. Written-by: @xi (#2088)
+- Add `Oblique` option to `<theme><font><style>`. Written-by: @droc12345 (#2097)
+- Support menu titles defined by `<separator label="">`.
+- Add the theme option `menu.title.bg.color: #589bda`
+- Add theme options `menu.title.text.color` and `menu.title.text.justify`.
+  Written-by: @droc12345 (#2097)
+- Add font place MenuHeader: `<font place="MenuHeader">`.
+  Written-by: @droc12345 (#2097)
+- Add actions `EnableTabletMouseEmulation` and `DisableTabletMouseEmulation`.
+  Written-by: @jp7677 (#2091)
+- Set 'labwc' as `app_id` and `title` for nested outputs (#2055)
+
+### Fixed
+
+- Allow server-side decoration to be smaller than minimal size by hiding
+  buttons (#2116)
+- Fix incorrect cursor shape on titlebar corner without buttons (#2105)
+- Fix delayed pipe menu response on item destroy (#2094)
+- Destroy xdg-shell foreign toplevel handle on unmap (#2075)
+- Sync XWayland foreign-toplevel and associated outputs on re-map (#2075)
+
+### Changed
+
+- Move input config `<scrollFactor>` to `<libinput>` section to allow
+  per-device configuration of scroll factor (e.g. setting different scroll
+  factors for mice and touchpads). (#2057)
+
 ## [0.8.0]
 
 The main focus in this release has been to port labwc to wlroots 0.18 and to

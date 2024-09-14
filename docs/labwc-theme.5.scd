@@ -57,8 +57,9 @@ labwc-config(5).
 
 *padding.height*
 	Vertical padding size, in pixels, used for spacing out elements
-	in the window decorations.
-	Default is 3.
+	in the window decorations. Unlike *padding.width*, this padding is
+	not applied for window buttons in PNG/XBM format, or the builtin
+	hover effects. Default is 3.
 
 *titlebar.height*
 	Window title bar height.

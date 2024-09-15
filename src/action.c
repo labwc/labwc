@@ -617,6 +617,38 @@ action_list_free(struct wl_list *action_list)
 	}
 }
 
+static int
+get_window_menu_button_offset(struct server *server, struct view *view)
+{
+	int padding_width = server->theme->padding_width;
+	int button_width = server->theme->window_button_width;
+	int button_spacing = server->theme->window_button_spacing;
+
+	struct title_button *b;
+
+	int offset = padding_width;
+	wl_list_for_each(b, &rc.title_buttons_left, link) {
+		if (b->type == LAB_SSD_BUTTON_WINDOW_MENU) {
+			return offset;
+		} else {
+			offset += button_width + button_spacing;
+		}
+	}
+
+	offset = view->current.width - padding_width;
+	wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
+		if (b->type == LAB_SSD_BUTTON_WINDOW_MENU) {
+			offset -= button_width;
+			return offset;
+		} else {
+			offset -= button_width + button_spacing;
+		}
+	}
+
+	/* no menu button */
+	return 0;
+}
+
 static void
 show_menu(struct server *server, struct view *view,
 		const char *menu_name, bool at_cursor,
@@ -637,13 +669,17 @@ show_menu(struct server *server, struct view *view,
 	int y = server->seat.cursor->y;
 
 	/* The client menu needs an active client */
-	if (!view && strcasecmp(menu_name, "client-menu") == 0) {
+	bool is_client_menu = !strcasecmp(menu_name, "client-menu");
+	if (!view && is_client_menu) {
 		return;
 	}
 
 	/* Place menu in the view corner if desired (and menu is not root-menu) */
 	if (!at_cursor && view) {
-		x = view->current.x;
+		/* push the client menu underneath the window menu button */
+		int offset = is_client_menu
+			? get_window_menu_button_offset(server, view) : 0;
+		x = view->current.x + offset;
 		y = view->current.y;
 	}
 

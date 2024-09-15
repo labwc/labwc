@@ -167,7 +167,6 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 	float overlay_color[4] = { 0.15f, 0.15f, 0.15f, 0.3f};
 	int radius = MIN(width, height) / 2;
 	enum corner corner = corner_from_icon_name(icon_name);
-	int corner_radius = MAX(rc.corner_radius - theme->padding_width, 0);
 
 	switch (theme->window_button_hover_bg_shape) {
 	case LAB_CIRCLE:
@@ -176,24 +175,43 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 		cairo_fill(cairo);
 		break;
 	case LAB_RECTANGLE:
+		set_cairo_color(cairo, overlay_color);
+		cairo_rectangle(cairo, 0, 0, width, height);
 		if (corner == LAB_CORNER_UNKNOWN) {
-			set_cairo_color(cairo, overlay_color);
-			cairo_rectangle(cairo, 0, 0, width, height);
 			cairo_fill(cairo);
 		} else {
+			/*
+			 * Round the hover overlay of corner buttons by
+			 * cropping the region within the window border.
+			 */
+			float white[4] = {1, 1, 1, 1};
 			struct rounded_corner_ctx rounded_ctx = {
-				.box = &(struct wlr_box){.width = width, .height = height},
-				.radius = corner_radius,
+				.box = &(struct wlr_box){
+					.width = theme->padding_width + width,
+					.height = height,
+				},
+				.radius = rc.corner_radius,
 				.line_width = theme->border_width,
-				.fill_color = overlay_color,
-				.border_color = overlay_color,
-				.corner = corner};
-			struct lab_data_buffer *overlay_buffer =
+				.fill_color = white,
+				.border_color = white,
+				.corner = corner,
+			};
+			struct lab_data_buffer *mask_buffer =
 				rounded_rect(&rounded_ctx);
-			cairo_set_source_surface(cairo,
-				cairo_get_target(overlay_buffer->cairo), 0, 0);
-			cairo_paint(cairo);
-			wlr_buffer_drop(&overlay_buffer->base);
+			cairo_pattern_t *mask_pattern =
+				cairo_pattern_create_for_surface(
+					cairo_get_target(mask_buffer->cairo));
+			int mask_offset;
+			if (corner == LAB_CORNER_TOP_LEFT) {
+				mask_offset = -theme->padding_width;
+			} else {
+				mask_offset = 0;
+			}
+			cairo_save(cairo);
+			cairo_translate(cairo, mask_offset, 0);
+			cairo_mask(cairo, mask_pattern);
+			cairo_restore(cairo);
+			wlr_buffer_drop(&mask_buffer->base);
 		}
 		break;
 	}

@@ -7,6 +7,7 @@
 #include "common/mem.h"
 #include "decorations.h"
 #include "labwc.h"
+#include "menu/menu.h"
 #include "node.h"
 #include "snap-constraints.h"
 #include "view.h"
@@ -373,6 +374,18 @@ handle_request_fullscreen(struct wl_listener *listener, void *data)
 	}
 	set_fullscreen_from_request(view,
 		&xdg_toplevel_from_view(view)->requested);
+}
+
+static void
+handle_request_show_window_menu(struct wl_listener *listener, void *data)
+{
+	struct xdg_toplevel_view *xdg_toplevel_view = wl_container_of(
+		listener, xdg_toplevel_view, request_show_window_menu);
+	struct server *server = xdg_toplevel_view->base.server;
+	struct menu *menu = menu_get_by_id(server, "client-menu");
+	assert(menu);
+	struct wlr_cursor *cursor = server->seat.cursor;
+	menu_open_root(menu, cursor->x, cursor->y);
 }
 
 static void
@@ -915,6 +928,7 @@ xdg_toplevel_new(struct wl_listener *listener, void *data)
 
 	/* Events specific to XDG toplevel views */
 	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, set_app_id);
+	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, request_show_window_menu);
 	CONNECT_SIGNAL(xdg_surface, xdg_toplevel_view, new_popup);
 
 	wl_list_insert(&server->views, &view->link);

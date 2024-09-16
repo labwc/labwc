@@ -6,6 +6,7 @@
 #include <strings.h>
 #include <unistd.h>
 #include <wlr/util/log.h>
+#include <linux/input-event-codes.h>
 #include "action.h"
 #include "common/macros.h"
 #include "common/list.h"
@@ -24,6 +25,7 @@
 #include "view.h"
 #include "workspaces.h"
 #include "input/keyboard.h"
+#include "config/mousebind.h"
 
 enum action_arg_type {
 	LAB_ACTION_ARG_STR = 0,
@@ -620,15 +622,50 @@ action_list_free(struct wl_list *action_list)
 static int
 get_window_menu_button_offset(struct server *server, struct view *view)
 {
+	enum ssd_part_type part = LAB_SSD_NONE;
+
+	/* find the button that triggered the window menu */
+	struct mousebind *mousebind;
+	struct action *action;
+	wl_list_for_each(mousebind, &rc.mousebinds, link) {
+		if (mousebind->button != BTN_LEFT
+				|| mousebind->mouse_event != MOUSE_ACTION_CLICK) {
+			continue;
+		}
+
+		wl_list_for_each(action, &mousebind->actions, link) {
+			if (action->type != ACTION_TYPE_SHOW_MENU) {
+				continue;
+			}
+
+			const char *menu_name =
+				action_get_str(action, "menu", NULL);
+			if (!strcasecmp(menu_name, "client-menu")) {
+				if (part && part != mousebind->context) {
+					/* found multiple menu buttons */
+					return 0;
+				} else {
+					part = mousebind->context;
+				}
+			}
+		}
+	}
+
+	if (part == LAB_SSD_NONE) {
+		/* no menu button */
+		return 0;
+	}
+
+	/* calculate the button offset */
 	int padding_width = server->theme->padding_width;
 	int button_width = server->theme->window_button_width;
 	int button_spacing = server->theme->window_button_spacing;
 
-	struct title_button *b;
+	struct title_button *button;
 
 	int offset = padding_width;
-	wl_list_for_each(b, &rc.title_buttons_left, link) {
-		if (b->type == LAB_SSD_BUTTON_WINDOW_MENU) {
+	wl_list_for_each(button, &rc.title_buttons_left, link) {
+		if (button->type == part) {
 			return offset;
 		} else {
 			offset += button_width + button_spacing;
@@ -636,8 +673,8 @@ get_window_menu_button_offset(struct server *server, struct view *view)
 	}
 
 	offset = view->current.width - padding_width;
-	wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
-		if (b->type == LAB_SSD_BUTTON_WINDOW_MENU) {
+	wl_list_for_each_reverse(button, &rc.title_buttons_right, link) {
+		if (button->type == part) {
 			offset -= button_width;
 			return offset;
 		} else {
@@ -645,7 +682,6 @@ get_window_menu_button_offset(struct server *server, struct view *view)
 		}
 	}
 
-	/* no menu button */
 	return 0;
 }
 

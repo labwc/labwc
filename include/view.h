@@ -288,6 +288,7 @@ struct xdg_toplevel_view {
 
 	/* Events unique to xdg-toplevel views */
 	struct wl_listener set_app_id;
+	struct wl_listener request_show_window_menu;
 	struct wl_listener new_popup;
 };
 

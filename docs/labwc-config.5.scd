@@ -437,19 +437,24 @@ extending outward from the snapped edge.
 *<theme><name>*
 	The name of the Openbox theme to use. It is not set by default.
 
-*<theme><titleLayout>*
+*<theme><titlebar><layout>*
 	Selection and order of buttons in a window's titlebar.
-	The following letters can be used, each only once:
-	- L: window label (aka. title)
-	- |: empty space (can be used instead of a title)
-	- W: window menu
-	- I: iconify
-	- M: maximize toggle
-	- C: close
-	- S: shade toggle
-	- D: all-desktops toggle
+	The following identifiers can be used, each only once:
+	- 'menu': window menu
+	- 'iconify': iconify
+	- 'max': maximize toggle
+	- 'close': close
+	- 'shade': shade toggle
+	- 'desk': all-desktops toggle
 
-	Example: WLIMC
+	A colon deliminator is used to separate buttons on the left and right,
+	whereas commas are used to separate items within a section. It is
+	mandatory to use one colon.
+
+	Default: menu:iconify,max,close
+
+*<theme><titlebar><showTitle>* [yes|no]
+	Show the window title in the titlebar. Default is yes.
 
 *<theme><cornerRadius>*
 	The radius of server side decoration top corners. Default is 8.

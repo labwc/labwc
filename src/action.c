@@ -665,6 +665,11 @@ show_menu(struct server *server, struct view *view,
 		return;
 	}
 
+	/* Need to refresh to show current windows and recalculate width */
+	if (!strcasecmp(menu_name, "client-list-combined-menu")) {
+		update_client_list_combined_menu(menu->server);
+	}
+
 	int x = server->seat.cursor->x;
 	int y = server->seat.cursor->y;
 

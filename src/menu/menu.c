@@ -23,6 +23,8 @@
 #include "common/string-helpers.h"
 #include "labwc.h"
 #include "menu/menu.h"
+#include "workspaces.h"
+#include "view.h"
 #include "node.h"
 #include "theme.h"
 
@@ -909,6 +911,73 @@ menu_hide_submenu(struct server *server, const char *id)
 }
 
 static void
+init_client_list_combined_menu(struct server *server)
+{
+	/* Just create placeholder. Contents will be created when launched */
+	menu_create(server, "client-list-combined-menu", "");
+}
+
+/*
+ * This is client-list-combined-menu an internal menu similar to root-menu and
+ * client-menu.
+ *
+ * This will look at workspaces and produce a menu with the workspace name as a
+ * separator label and the titles of the view, if any, below each workspace
+ * name. Active view is indicated by "*" preceeding title.
+ */
+void
+update_client_list_combined_menu(struct server *server)
+{
+	struct menu *menu = menu_get_by_id(server, "client-list-combined-menu");
+
+	if (!menu) {
+		/* Menu is created on compositor startup/reconfigure */
+		wlr_log(WLR_ERROR, "client-list-combined-menu does not exist");
+		return;
+	}
+
+	struct menuitem *item, *next;
+	wl_list_for_each_safe(item, next, &menu->menuitems, link) {
+		item_destroy(item);
+	}
+
+	menu->size.height = 0;
+
+	struct workspace *workspace;
+	struct view *view;
+	struct buf buffer = BUF_INIT;
+
+	wl_list_for_each(workspace, &server->workspaces, link) {
+		buf_add_fmt(&buffer, workspace == server->workspace_current ? ">%s<" : "%s",
+				workspace->name);
+		current_item = separator_create(menu, buffer.data);
+		buf_clear(&buffer);
+
+		wl_list_for_each(view, &server->views, link) {
+			if (view->workspace == workspace) {
+				if (view == server->active_view) {
+					buf_add(&buffer, "*");
+				}
+				buf_add(&buffer, view_get_string_prop(view, "title"));
+
+				current_item = item_create(menu, buffer.data, /*show arrow*/ false);
+				current_item->id = xstrdup(menu->id);
+				current_item->client_list_view = view;
+				fill_item("name.action", "Focus");
+				fill_item("name.action", "Raise");
+				buf_clear(&buffer);
+			}
+		}
+		current_item = item_create(menu, _("Go there..."), /*show arrow*/ false);
+		current_item->id = xstrdup(menu->id);
+		fill_item("name.action", "GoToDesktop");
+		fill_item("to.action", workspace->name);
+	}
+	buf_reset(&buffer);
+	menu_update_width(menu);
+}
+
+static void
 init_rootmenu(struct server *server)
 {
 	struct menu *menu = menu_get_by_id(server, "root-menu");
@@ -986,6 +1055,7 @@ menu_init(struct server *server)
 	parse_xml("menu.xml", server);
 	init_rootmenu(server);
 	init_windowmenu(server);
+	init_client_list_combined_menu(server);
 	post_processing(server);
 	validate(server);
 }
@@ -1467,7 +1537,13 @@ menu_execute_item(struct menuitem *item)
 	 * menu_close() and destroy_pipemenus() which we have to handle
 	 * before/after action_run() respectively.
 	 */
-	actions_run(item->parent->triggered_by_view, server, &item->actions, 0);
+	if (item->id && !strcmp(item->id, "client-list-combined-menu")
+			&& item->client_list_view) {
+		actions_run(item->client_list_view, server, &item->actions, 0);
+	} else {
+		actions_run(item->parent->triggered_by_view, server,
+				&item->actions, 0);
+	}
 
 	server->menu_current = NULL;
 	destroy_pipemenus(server);

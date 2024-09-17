@@ -48,6 +48,8 @@ The menu file must be entirely enclosed within <openbox_menu> and
 	ShowMenu action. Default identifiers are
 		- "root-menu" for the root window context menu
 		- "client-menu" for a window's titlebar context menu
+		- "client-list-combined-menu" for a list of all windows across
+		  all workspaces
 
 *menu.id* (when nested under other *<menu>* element)
 	Link to a submenu defined elsewhere (by a *<menu id="">* at toplevel)

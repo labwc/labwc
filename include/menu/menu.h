@@ -47,6 +47,7 @@ struct menuitem {
 	struct menu_scene normal;
 	struct menu_scene selected;
 	struct menu_pipe_context *pipe_ctx;
+	struct view *client_list_view;  /* used by internal client-list */
 	struct wl_list link; /* menu.menuitems */
 };
 
@@ -134,5 +135,7 @@ void menu_close_root(struct server *server);
 
 /* menu_reconfigure - reload theme and content */
 void menu_reconfigure(struct server *server);
+
+void update_client_list_combined_menu(struct server *server);
 
 #endif /* LABWC_MENU_H */

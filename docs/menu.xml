@@ -43,6 +43,11 @@
 </menu>
 
 <menu id="root-menu">
+  <!-- Make client-list-combined-menu a submenu of root-menu 
+       You must supply a label or it will not appear in root-menu -->
+  <!--
+  <menu id="client-list-combined-menu" label="Running..." />
+  -->
   <item label="Web browser">
     <action name="Execute" command="firefox" />
   </item>

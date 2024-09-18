@@ -665,10 +665,15 @@ show_menu(struct server *server, struct view *view,
 		return;
 	}
 
-	/* Need to refresh to show current windows and recalculate width */
-	if (!strcasecmp(menu_name, "client-list-combined-menu")) {
-		update_client_list_combined_menu(menu->server);
-	}
+	/*
+	 *  We always refresh the client-list-combined-menu so that it is
+	 *  up-to-date whether it is used as a menu with `menu_name` set to
+	 *  `client-list-combined-menu` *  or used as a submenu
+	 *  which we don't know at this point. It is also needed to calculate
+	 *  the proper width for placemeent, as it fluctuates depending
+	 *  on the length of the title.
+	 */
+	update_client_list_combined_menu(menu->server);
 
 	int x = server->seat.cursor->x;
 	int y = server->seat.cursor->y;

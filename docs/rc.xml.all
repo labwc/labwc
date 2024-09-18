@@ -316,6 +316,16 @@
       <action name="SnapToRegion" region="bottom-right" />
     </keybind>
   -->
+  <!-- keybind for client-list-combined-menu - will center in middle of screen -->
+  <!--
+    <keybind key="W-Space">
+      <action name="ShowMenu" menu="client-list-combined-menu" />
+      <position>
+        <x>center</x> 
+        <y>center</y>
+      </position>
+    </keybind>
+  -->
   </keyboard>
 
   <!--
@@ -492,6 +502,8 @@
       </mousebind>
       <mousebind button="Middle" action="Press">
         <action name="ShowMenu" menu="root-menu" />
+	<!-- openbox default, swap with above line to activate -->
+        <!-- <action name="ShowMenu" menu="client-list-combined-menu" /> -->
       </mousebind>
       <mousebind direction="Up" action="Scroll">
         <action name="GoToDesktop" to="left" wrap="yes" />

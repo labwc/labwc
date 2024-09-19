@@ -680,10 +680,12 @@ show_menu(struct server *server, struct view *view,
 
 	/* The client menu needs an active client */
 	bool is_client_menu = !strcasecmp(menu_name, "client-menu");
-	if (!view && is_client_menu) {
-		return;
+	if (is_client_menu) {
+		if (!view) {
+			return;
+		}
+		update_client_send_to_menu(menu->server);
 	}
-
 	/* Place menu in the view corner if desired (and menu is not root-menu) */
 	if (!at_cursor && view) {
 		/* push the client menu underneath the window menu button */

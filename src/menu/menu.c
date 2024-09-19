@@ -911,6 +911,52 @@ menu_hide_submenu(struct server *server, const char *id)
 }
 
 static void
+init_client_send_to_menu(struct server *server)
+{
+	/* Just create placeholder. Contents will be created when launched */
+	menu_create(server, "client-send-to-menu", "");
+}
+
+/*
+ * This is client-send-to-menu
+ * an internal menu similar to root-menu and client-menu
+ *
+ * This will look at workspaces and produce a menu
+ * with the workspace names that can be used with
+ * SendToDesktop, left/right options are included.
+ */
+void
+update_client_send_to_menu(struct server *server)
+{
+	struct menu *menu = menu_get_by_id(server,
+			"client-send-to-menu");
+
+	if (menu) {
+		struct menuitem *item, *next;
+		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
+			item_destroy(item);
+		}
+	}
+
+	menu->size.height = 0;
+
+	struct workspace *workspace;
+
+	wl_list_for_each(workspace, &server->workspaces, link) {
+		if (workspace == server->workspace_current) {
+			current_item = item_create(menu, strdup_printf(">%s<", workspace->name),
+					/*show arrow*/ false);
+		} else {
+			current_item = item_create(menu, workspace->name, /*show arrow*/ false);
+		}
+		fill_item("name.action", "SendToDesktop");
+		fill_item("to.action", workspace->name);
+	}
+
+	menu_update_width(menu);
+}
+
+static void
 init_client_list_combined_menu(struct server *server)
 {
 	/* Just create placeholder. Contents will be created when launched */
@@ -1056,6 +1102,7 @@ menu_init(struct server *server)
 	init_rootmenu(server);
 	init_windowmenu(server);
 	init_client_list_combined_menu(server);
+	init_client_send_to_menu(server);
 	post_processing(server);
 	validate(server);
 }

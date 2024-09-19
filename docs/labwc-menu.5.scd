@@ -49,7 +49,11 @@ The menu file must be entirely enclosed within <openbox_menu> and
 		- "root-menu" for the root window context menu
 		- "client-menu" for a window's titlebar context menu
 		- "client-list-combined-menu" for a list of all windows across
-		  all workspaces
+		  all workspaces. Will change focus to the app that gets
+		  selected or go to workspace without activating any app if
+		  "Go there" is selected.
+		- "client-send-to-menu" shows all workspaces and sends current
+		  view to that workspace when selected.
 
 *menu.id* (when nested under other *<menu>* element)
 	Link to a submenu defined elsewhere (by a *<menu id="">* at toplevel)

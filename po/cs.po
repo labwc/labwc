@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
-"POT-Creation-Date: 2024-03-17 11:06+1000\n"
+"POT-Creation-Date: 2024-09-19 21:09+1000\n"
 "PO-Revision-Date: 2024-03-02 02:00+0100\n"
 "Last-Translator: zenobit <zenobit@disroot.org>\n"
 "Language-Team: Czech <zenobit@disroot.org>\n"
@@ -16,54 +16,58 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/menu/menu.c:829
+#: src/menu/menu.c:1017
+msgid "Go there..."
+msgstr ""
+
+#: src/menu/menu.c:1037
 msgid "Reconfigure"
 msgstr "Překonfigurovat"
 
-#: src/menu/menu.c:831
+#: src/menu/menu.c:1039
 msgid "Exit"
 msgstr "Odejít"
 
-#: src/menu/menu.c:847
+#: src/menu/menu.c:1055
 msgid "Minimize"
 msgstr "Minimalizovat"
 
-#: src/menu/menu.c:849
+#: src/menu/menu.c:1057
 msgid "Maximize"
 msgstr "Maximalizovat"
 
-#: src/menu/menu.c:851
+#: src/menu/menu.c:1059
 msgid "Fullscreen"
 msgstr "Na celou obrazovku"
 
-#: src/menu/menu.c:853
+#: src/menu/menu.c:1061
 msgid "Roll Up/Down"
 msgstr "Rolovat nahoru/dolů"
 
-#: src/menu/menu.c:855
+#: src/menu/menu.c:1063
 msgid "Decorations"
 msgstr "Dekorace"
 
-#: src/menu/menu.c:857
+#: src/menu/menu.c:1065
 msgid "Always on Top"
 msgstr "Vždy nahoře"
 
-#: src/menu/menu.c:862
+#: src/menu/menu.c:1070
 msgid "Move Left"
 msgstr "Posunout doleva"
 
-#: src/menu/menu.c:869
+#: src/menu/menu.c:1077
 msgid "Move Right"
 msgstr "Posunout doprava"
 
-#: src/menu/menu.c:874
+#: src/menu/menu.c:1082
 msgid "Always on Visible Workspace"
 msgstr "Vždy na viditelné Pracovní Ploše"
 
-#: src/menu/menu.c:877 src/config/rcxml.c:1497
+#: src/menu/menu.c:1085 src/config/rcxml.c:1629
 msgid "Workspace"
 msgstr "Pracovní Plocha"
 
-#: src/menu/menu.c:880
+#: src/menu/menu.c:1088
 msgid "Close"
 msgstr "Zavřít"

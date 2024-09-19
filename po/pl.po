@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
-"POT-Creation-Date: 2024-03-17 11:06+1000\n"
+"POT-Creation-Date: 2024-09-19 21:09+1000\n"
 "PO-Revision-Date: 2024-06-24 19:19+0000\n"
 "Last-Translator: Jan Rolski <wbcwknvstb@proton.me>\n"
 "Language-Team: Polish <https://translate.lxqt-project.org/projects/labwc/labwc/pl/>\n"
@@ -18,54 +18,58 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:829
+#: src/menu/menu.c:1017
+msgid "Go there..."
+msgstr ""
+
+#: src/menu/menu.c:1037
 msgid "Reconfigure"
 msgstr "Rekonfiguruj"
 
-#: src/menu/menu.c:831
+#: src/menu/menu.c:1039
 msgid "Exit"
 msgstr "Wyjdź"
 
-#: src/menu/menu.c:847
+#: src/menu/menu.c:1055
 msgid "Minimize"
 msgstr "Minimalizuj"
 
-#: src/menu/menu.c:849
+#: src/menu/menu.c:1057
 msgid "Maximize"
 msgstr "Maksymalizuj"
 
-#: src/menu/menu.c:851
+#: src/menu/menu.c:1059
 msgid "Fullscreen"
 msgstr "Pełny ekran"
 
-#: src/menu/menu.c:853
+#: src/menu/menu.c:1061
 msgid "Roll Up/Down"
 msgstr "Zwiń w górę/w dół"
 
-#: src/menu/menu.c:855
+#: src/menu/menu.c:1063
 msgid "Decorations"
 msgstr "Dekoracje"
 
-#: src/menu/menu.c:857
+#: src/menu/menu.c:1065
 msgid "Always on Top"
 msgstr "Zawsze na wierzchu"
 
-#: src/menu/menu.c:862
+#: src/menu/menu.c:1070
 msgid "Move Left"
 msgstr "Przenieś w lewo"
 
-#: src/menu/menu.c:869
+#: src/menu/menu.c:1077
 msgid "Move Right"
 msgstr "Przenieś w prawo"
 
-#: src/menu/menu.c:874
+#: src/menu/menu.c:1082
 msgid "Always on Visible Workspace"
 msgstr "Zawsze na widocznym obszarze roboczym"
 
-#: src/menu/menu.c:877 src/config/rcxml.c:1497
+#: src/menu/menu.c:1085 src/config/rcxml.c:1629
 msgid "Workspace"
 msgstr "Przestrzeń robocza"
 
-#: src/menu/menu.c:880
+#: src/menu/menu.c:1088
 msgid "Close"
 msgstr "Zamknij"

@@ -115,9 +115,9 @@ Actions are used in menus and keyboard/mouse bindings.
 	Show a menu.
 
 	*menu* The name of the menu to show. The menus "root-menu",
-	"client-menu", and "client-list-combined-menu" are guaranteed to exist,
-	but others may be defined explicitly. See labwc-menu(5) for more
-	information.
+	"client-menu", "client-send-to-menu" and "client-list-combined-menu"
+	are guaranteed to exist, but others may be defined explicitly.
+	See labwc-menu(5) for more information.
 
 	*atCursor* [yes|no] When opening a menu, open the menu at the location
 	of the mouse cursor. When set to no, the menu will appear at the

@@ -37,6 +37,13 @@
       <action name="ToggleOmnipresent" />
     </item>
   </menu>
+  <!--
+    openbox default workspace selector
+    to use replace above workspace menu with the example below
+    the label is required, but you can change the text.
+
+    <menu id="client-send-to-menu" label="Send to..." />
+  -->
   <item label="Close">
     <action name="Close" />
   </item>

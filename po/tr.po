@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
-"POT-Creation-Date: 2024-03-17 11:06+1000\n"
+"POT-Creation-Date: 2024-09-19 21:09+1000\n"
 "PO-Revision-Date: 2024-02-24 22:23+0000\n"
 "Last-Translator: Sabri Ünal <libreajans@gmail.com>\n"
 "Language-Team: Turkish <https://translate.lxqt-project.org/projects/labwc/labwc/tr/>\n"
@@ -18,54 +18,58 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:829
+#: src/menu/menu.c:1017
+msgid "Go there..."
+msgstr ""
+
+#: src/menu/menu.c:1037
 msgid "Reconfigure"
 msgstr "Yeniden Yapılandır"
 
-#: src/menu/menu.c:831
+#: src/menu/menu.c:1039
 msgid "Exit"
 msgstr "Çıkış"
 
-#: src/menu/menu.c:847
+#: src/menu/menu.c:1055
 msgid "Minimize"
 msgstr "Küçült"
 
-#: src/menu/menu.c:849
+#: src/menu/menu.c:1057
 msgid "Maximize"
 msgstr "Büyüt"
 
-#: src/menu/menu.c:851
+#: src/menu/menu.c:1059
 msgid "Fullscreen"
 msgstr "Tam Ekran"
 
-#: src/menu/menu.c:853
+#: src/menu/menu.c:1061
 msgid "Roll Up/Down"
 msgstr "Yukarı/aşağı katla"
 
-#: src/menu/menu.c:855
+#: src/menu/menu.c:1063
 msgid "Decorations"
 msgstr "Süslemeler"
 
-#: src/menu/menu.c:857
+#: src/menu/menu.c:1065
 msgid "Always on Top"
 msgstr "Her Zaman Üstte"
 
-#: src/menu/menu.c:862
+#: src/menu/menu.c:1070
 msgid "Move Left"
 msgstr "Sola taşı"
 
-#: src/menu/menu.c:869
+#: src/menu/menu.c:1077
 msgid "Move Right"
 msgstr "Sağa taşı"
 
-#: src/menu/menu.c:874
+#: src/menu/menu.c:1082
 msgid "Always on Visible Workspace"
 msgstr "Her Zaman Görünür Çalışma Alanında"
 
-#: src/menu/menu.c:877 src/config/rcxml.c:1497
+#: src/menu/menu.c:1085 src/config/rcxml.c:1629
 msgid "Workspace"
 msgstr "Çalışma Alanı"
 
-#: src/menu/menu.c:880
+#: src/menu/menu.c:1088
 msgid "Close"
 msgstr "Kapat"

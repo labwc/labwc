@@ -1001,10 +1001,15 @@ update_client_list_combined_menu(struct server *server)
 
 		wl_list_for_each(view, &server->views, link) {
 			if (view->workspace == workspace) {
+				const char *title = view_get_string_prop(view, "title");
+				if (!view->toplevel.handle || string_null_or_empty(title)) {
+					continue;
+				}
+
 				if (view == server->active_view) {
 					buf_add(&buffer, "*");
 				}
-				buf_add(&buffer, view_get_string_prop(view, "title"));
+				buf_add(&buffer, title);
 
 				current_item = item_create(menu, buffer.data, /*show arrow*/ false);
 				current_item->id = xstrdup(menu->id);

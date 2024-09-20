@@ -67,10 +67,11 @@ struct theme {
 	enum lab_justification window_label_text_justify;
 	enum lab_justification menu_title_text_justify;
 
-	/* button width */
+	/* buttons */
 	int window_button_width;
-	/* the space between buttons */
+	int window_button_height;
 	int window_button_spacing;
+
 	/* the shape of the hover effect */
 	enum lab_shape window_button_hover_bg_shape;
 

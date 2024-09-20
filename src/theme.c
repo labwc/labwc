@@ -91,7 +91,7 @@ copy_icon_buffer(struct theme *theme, struct lab_data_buffer *icon_buffer)
 	int icon_height = cairo_image_surface_get_height(icon.surface);
 
 	int width = theme->window_button_width;
-	int height = theme->title_height;
+	int height = theme->window_button_height;
 
 	/*
 	 * Proportionately increase size of hover_buffer if the non-hover
@@ -139,7 +139,7 @@ create_hover_fallback(struct theme *theme,
 	assert(!*hover_buffer);
 
 	int width = theme->window_button_width;
-	int height = theme->title_height;
+	int height = theme->window_button_height;
 
 	*hover_buffer = copy_icon_buffer(theme, icon_buffer);
 	cairo_t *cairo = (*hover_buffer)->cairo;
@@ -171,7 +171,7 @@ create_rounded_buffer(struct theme *theme, enum corner corner,
 	cairo_t *cairo = (*rounded_buffer)->cairo;
 
 	int width = theme->window_button_width;
-	int height = theme->title_height;
+	int height = theme->window_button_height;
 
 	/*
 	 * Round the hover overlay of corner buttons by
@@ -246,7 +246,7 @@ load_button(struct theme *theme, struct button *b, int active)
 
 	zdrop(buffer);
 
-	int size = theme->title_height - 2 * theme->padding_height;
+	int size = theme->window_button_height;
 	float scale = 1; /* TODO: account for output scale */
 
 	/* PNG */
@@ -593,6 +593,7 @@ theme_builtin(struct theme *theme, struct server *server)
 
 	theme->padding_width = 0;
 	theme->window_button_width = 26;
+	theme->window_button_height = 26;
 	theme->window_button_spacing = 0;
 	theme->window_button_hover_bg_shape = LAB_RECTANGLE;
 
@@ -777,6 +778,14 @@ entry(struct theme *theme, const char *key, const char *value)
 			wlr_log(WLR_ERROR, "window.button.width cannot "
 				"be less than 1, clamping it to 1.");
 			theme->window_button_width = 1;
+		}
+	}
+	if (match_glob(key, "window.button.height")) {
+		theme->window_button_height = atoi(value);
+		if (theme->window_button_height < 1) {
+			wlr_log(WLR_ERROR, "window.button.height cannot "
+				"be less than 1, clamping it to 1.");
+			theme->window_button_height = 1;
 		}
 	}
 	if (match_glob(key, "window.button.spacing")) {

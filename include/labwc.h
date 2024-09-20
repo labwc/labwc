@@ -129,9 +129,8 @@ struct seat {
 	struct input_method_relay *input_method_relay;
 
 	/**
-	 * pressed view/surface/node will usually be NULL and is only set on
-	 * button press while the mouse is over a view or surface, and reset
-	 * to NULL on button release.
+	 * This is usually zeroed and is only set on button press while the
+	 * mouse is over a view or surface, and zeroed on button release.
 	 * It is used to send cursor motion events to a surface even though
 	 * the cursor has left the surface in the meantime.
 	 *
@@ -144,13 +143,7 @@ struct seat {
 	 *
 	 * Both (view && !surface) and (surface && !view) are possible.
 	 */
-	struct {
-		struct view *view;
-		struct wlr_scene_node *node;
-		struct wlr_surface *surface;
-		struct wlr_surface *toplevel;
-		uint32_t resize_edges;
-	} pressed;
+	struct cursor_context pressed;
 
 	struct {
 		bool active;
@@ -492,9 +485,7 @@ void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
 void seat_focus_lock_surface(struct seat *seat, struct wlr_surface *surface);
 
 void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer);
-void seat_set_pressed(struct seat *seat, struct view *view,
-	struct wlr_scene_node *node, struct wlr_surface *surface,
-	struct wlr_surface *toplevel, uint32_t resize_edges);
+void seat_set_pressed(struct seat *seat, struct cursor_context *ctx);
 void seat_reset_pressed(struct seat *seat);
 void seat_output_layout_changed(struct seat *seat);
 

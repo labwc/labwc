@@ -400,11 +400,8 @@ update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
 	}
 	if (seat->pressed.surface && ctx->surface != seat->pressed.surface) {
 		struct wlr_surface *toplevel = get_toplevel(ctx->surface);
-		if (toplevel && toplevel == seat->pressed.toplevel) {
-			/* No need to recompute resize edges here */
-			seat_set_pressed(seat, ctx->view,
-				ctx->node, ctx->surface, toplevel,
-				seat->pressed.resize_edges);
+		if (toplevel && toplevel == get_toplevel(seat->pressed.surface)) {
+			seat_set_pressed(seat, ctx);
 			return true;
 		}
 	}
@@ -597,9 +594,8 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 			 * moving/resizing the wrong view
 			 */
 			mousebind->pressed_in_context = false;
-			actions_run(seat->pressed.view,
-				server, &mousebind->actions,
-				seat->pressed.resize_edges);
+			actions_run(seat->pressed.view, server,
+				&mousebind->actions, &seat->pressed);
 		}
 	}
 
@@ -904,8 +900,7 @@ handle_release_mousebinding(struct server *server,
 			}
 			consumed_by_frame_context |= mousebind->context == LAB_SSD_FRAME;
 			consumed_by_frame_context |= mousebind->context == LAB_SSD_ALL;
-			actions_run(ctx->view, server, &mousebind->actions,
-				/*resize_edges*/ 0);
+			actions_run(ctx->view, server, &mousebind->actions, ctx);
 		}
 	}
 	/*
@@ -956,7 +951,7 @@ is_double_click(long double_click_speed, uint32_t button,
 
 static bool
 handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
-		uint32_t button, uint32_t resize_edges)
+		uint32_t button)
 {
 	if (server->osd_state.cycle_view) {
 		return false;
@@ -1005,7 +1000,7 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 			}
 			consumed_by_frame_context |= mousebind->context == LAB_SSD_FRAME;
 			consumed_by_frame_context |= mousebind->context == LAB_SSD_ALL;
-			actions_run(ctx->view, server, &mousebind->actions, resize_edges);
+			actions_run(ctx->view, server, &mousebind->actions, ctx);
 		}
 	}
 	return consumed_by_frame_context;
@@ -1022,13 +1017,9 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 	/* Used on next button release to check if it can close menu or select menu item */
 	press_msec = time_msec;
 
-	/* Determine closest resize edges in case action is Resize */
-	uint32_t resize_edges = cursor_get_resize_edges(seat->cursor, &ctx);
-
 	if (ctx.view || ctx.surface) {
-		/* Store resize edges for later action processing */
-		seat_set_pressed(seat, ctx.view, ctx.node, ctx.surface,
-			get_toplevel(ctx.surface), resize_edges);
+		/* Store cursor context for later action processing */
+		seat_set_pressed(seat, &ctx);
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
@@ -1082,7 +1073,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 
 	/* Bindings to the Frame context swallow mouse events if activated */
 	bool consumed_by_frame_context =
-		handle_press_mousebinding(server, &ctx, button, resize_edges);
+		handle_press_mousebinding(server, &ctx, button);
 
 	if (ctx.surface && !consumed_by_frame_context) {
 		/* Notify client with pointer focus of button press */
@@ -1330,7 +1321,7 @@ handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 				&& modifiers == mousebind->modifiers
 				&& mousebind->mouse_event == MOUSE_ACTION_SCROLL) {
 			handled = true;
-			actions_run(ctx->view, server, &mousebind->actions, /*resize_edges*/ 0);
+			actions_run(ctx->view, server, &mousebind->actions, ctx);
 		}
 	}
 

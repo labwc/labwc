@@ -581,7 +581,7 @@ handle_tablet_tool_button(struct wl_listener *listener, void *data)
 						&& mousebind->button == button
 						&& mousebind->context == LAB_SSD_CLIENT) {
 					actions_run(view, tool->seat->server,
-						&mousebind->actions, 0);
+						&mousebind->actions, NULL);
 				}
 			}
 		}

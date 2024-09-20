@@ -617,40 +617,8 @@ action_list_free(struct wl_list *action_list)
 	}
 }
 
-static int
-get_window_menu_button_offset(struct server *server, struct view *view)
-{
-	int padding_width = server->theme->padding_width;
-	int button_width = server->theme->window_button_width;
-	int button_spacing = server->theme->window_button_spacing;
-
-	struct title_button *b;
-
-	int offset = padding_width;
-	wl_list_for_each(b, &rc.title_buttons_left, link) {
-		if (b->type == LAB_SSD_BUTTON_WINDOW_MENU) {
-			return offset;
-		} else {
-			offset += button_width + button_spacing;
-		}
-	}
-
-	offset = view->current.width - padding_width;
-	wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
-		if (b->type == LAB_SSD_BUTTON_WINDOW_MENU) {
-			offset -= button_width;
-			return offset;
-		} else {
-			offset -= button_width + button_spacing;
-		}
-	}
-
-	/* no menu button */
-	return 0;
-}
-
 static void
-show_menu(struct server *server, struct view *view,
+show_menu(struct server *server, struct view *view, struct cursor_context *ctx,
 		const char *menu_name, bool at_cursor,
 		const char *pos_x, const char *pos_y)
 {
@@ -688,11 +656,15 @@ show_menu(struct server *server, struct view *view,
 	}
 	/* Place menu in the view corner if desired (and menu is not root-menu) */
 	if (!at_cursor && view) {
-		/* push the client menu underneath the window menu button */
-		int offset = is_client_menu
-			? get_window_menu_button_offset(server, view) : 0;
-		x = view->current.x + offset;
+		x = view->current.x;
 		y = view->current.y;
+		/* Push the client menu underneath the button */
+		if (is_client_menu && ssd_part_contains(
+				LAB_SSD_BUTTON, ctx->type)) {
+			assert(ctx->node);
+			int ly;
+			wlr_scene_node_coords(ctx->node, &x, &ly);
+		}
 	}
 
 	/*
@@ -756,7 +728,7 @@ show_menu(struct server *server, struct view *view,
 
 static struct view *
 view_for_action(struct view *activator, struct server *server,
-	struct action *action, uint32_t *resize_edges)
+	struct action *action, struct cursor_context *ctx)
 {
 	/* View is explicitly specified for mousebinds */
 	if (activator) {
@@ -768,13 +740,8 @@ view_for_action(struct view *activator, struct server *server,
 	case ACTION_TYPE_FOCUS:
 	case ACTION_TYPE_MOVE:
 	case ACTION_TYPE_RESIZE: {
-		struct cursor_context ctx = get_cursor_context(server);
-		if (action->type == ACTION_TYPE_RESIZE) {
-			/* Select resize edges for the keybind case */
-			*resize_edges = cursor_get_resize_edges(
-				server->seat.cursor, &ctx);
-		}
-		return ctx.view;
+		*ctx = get_cursor_context(server);
+		return ctx->view;
 	}
 	default:
 		return server->active_view;
@@ -802,7 +769,7 @@ run_if_action(struct view *view, struct server *server, struct action *action)
 
 	actions = action_get_actionlist(action, branch);
 	if (actions) {
-		actions_run(view, server, actions, 0);
+		actions_run(view, server, actions, NULL);
 	}
 	return !strcmp(branch, "then");
 }
@@ -852,7 +819,7 @@ get_target_output(struct output *output, struct server *server,
 
 void
 actions_run(struct view *activator, struct server *server,
-	struct wl_list *actions, uint32_t resize_edges)
+	struct wl_list *actions, struct cursor_context *cursor_ctx)
 {
 	if (!actions) {
 		wlr_log(WLR_ERROR, "empty actions");
@@ -866,6 +833,10 @@ actions_run(struct view *activator, struct server *server,
 	struct action *action;
 	struct output *output;
 	struct output *target;
+	struct cursor_context ctx = {0};
+	if (cursor_ctx) {
+		ctx = *cursor_ctx;
+	}
 
 	wl_list_for_each(action, actions, link) {
 		wlr_log(WLR_DEBUG, "Handling action %u: %s", action->type,
@@ -875,8 +846,7 @@ actions_run(struct view *activator, struct server *server,
 		 * Refetch view because it may have been changed due to the
 		 * previous action
 		 */
-		view = view_for_action(activator, server, action,
-			&resize_edges);
+		view = view_for_action(activator, server, action, &ctx);
 
 		switch (action->type) {
 		case ACTION_TYPE_CLOSE:
@@ -952,7 +922,7 @@ actions_run(struct view *activator, struct server *server,
 			kill(getpid(), SIGHUP);
 			break;
 		case ACTION_TYPE_SHOW_MENU:
-			show_menu(server, view,
+			show_menu(server, view, &ctx,
 				action_get_str(action, "menu", NULL),
 				action_get_bool(action, "atCursor", true),
 				action_get_str(action, "x.position", NULL),
@@ -1045,6 +1015,8 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_RESIZE:
 			if (view) {
+				uint32_t resize_edges = cursor_get_resize_edges(
+					server->seat.cursor, &ctx);
 				interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 					resize_edges);
 			}
@@ -1199,7 +1171,7 @@ actions_run(struct view *activator, struct server *server,
 					struct wl_list *actions;
 					actions = action_get_actionlist(action, "none");
 					if (actions) {
-						actions_run(view, server, actions, 0);
+						actions_run(view, server, actions, NULL);
 					}
 				}
 			}

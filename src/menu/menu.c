@@ -1591,10 +1591,10 @@ menu_execute_item(struct menuitem *item)
 	 */
 	if (item->id && !strcmp(item->id, "client-list-combined-menu")
 			&& item->client_list_view) {
-		actions_run(item->client_list_view, server, &item->actions, 0);
+		actions_run(item->client_list_view, server, &item->actions, NULL);
 	} else {
 		actions_run(item->parent->triggered_by_view, server,
-				&item->actions, 0);
+				&item->actions, NULL);
 	}
 
 	server->menu_current = NULL;

@@ -462,7 +462,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 				cur_keybind = NULL;
 				return true;
 			}
-			actions_run(NULL, server, &cur_keybind->actions, 0);
+			actions_run(NULL, server, &cur_keybind->actions, NULL);
 			return true;
 		} else {
 			return handle_key_release(server, event->keycode);
@@ -506,7 +506,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		 */
 		key_state_store_pressed_key_as_bound(event->keycode);
 		if (!cur_keybind->on_release) {
-			actions_run(NULL, server, &cur_keybind->actions, 0);
+			actions_run(NULL, server, &cur_keybind->actions, NULL);
 		}
 		return true;
 	}

@@ -310,6 +310,10 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 	if (whole == candidate || whole == LAB_SSD_ALL) {
 		return true;
 	}
+	if (whole == LAB_SSD_BUTTON) {
+		return candidate >= LAB_SSD_BUTTON_CLOSE
+			&& candidate <= LAB_SSD_BUTTON_OMNIPRESENT;
+	}
 	if (whole == LAB_SSD_PART_TITLEBAR) {
 		return candidate >= LAB_SSD_BUTTON_CLOSE
 			&& candidate <= LAB_SSD_PART_TITLE;

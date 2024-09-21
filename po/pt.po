@@ -8,9 +8,10 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
-"PO-Revision-Date: 2024-03-27 22:23+0000\n"
+"PO-Revision-Date: 2024-09-21 20:01+0000\n"
 "Last-Translator: Hugo Carvalho <hugokarvalho@hotmail.com>\n"
-"Language-Team: Portuguese <https://translate.lxqt-project.org/projects/labwc/labwc/pt/>\n"
+"Language-Team: Portuguese <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/pt/>\n"
 "Language: pt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -20,7 +21,7 @@ msgstr ""
 
 #: src/menu/menu.c:1017
 msgid "Go there..."
-msgstr ""
+msgstr "Ir lá..."
 
 #: src/menu/menu.c:1037
 msgid "Reconfigure"

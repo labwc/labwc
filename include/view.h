@@ -463,6 +463,12 @@ void view_set_fallback_natural_geometry(struct view *view);
 void view_store_natural_geometry(struct view *view);
 
 /**
+ * view_apply_natural_geometry - adjust view->natural_geometry if it doesn't
+ * intersect with view->output and then apply it
+ */
+void view_apply_natural_geometry(struct view *view);
+
+/**
  * view_effective_height - effective height of view, with respect to shaded state
  * @view: view for which effective height is desired
  * @use_pending: if false, report current height; otherwise, report pending height

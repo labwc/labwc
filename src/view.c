@@ -1036,7 +1036,7 @@ view_constrain_size_to_that_of_usable_area(struct view *view)
 	view_move_resize(view, box);
 }
 
-static void
+void
 view_apply_natural_geometry(struct view *view)
 {
 	assert(view);

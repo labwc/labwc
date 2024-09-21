@@ -397,15 +397,6 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 	uint32_t serial = 0;
 
 	/*
-	 * Leave a size of 0x0 unchanged; this has special meaning in
-	 * an xdg-toplevel configure event and requests the application
-	 * to choose its own preferred size.
-	 */
-	if (!wlr_box_empty(&geo)) {
-		view_adjust_size(view, &geo.width, &geo.height);
-	}
-
-	/*
 	 * We do not need to send a configure request unless the size
 	 * changed (wayland has no notion of a global position). If the
 	 * size is the same (and there is no pending configure request)

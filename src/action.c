@@ -69,6 +69,7 @@ enum action_type {
 	ACTION_TYPE_EXECUTE,
 	ACTION_TYPE_EXIT,
 	ACTION_TYPE_MOVE_TO_EDGE,
+	ACTION_TYPE_TOGGLE_SNAP_TO_EDGE,
 	ACTION_TYPE_SNAP_TO_EDGE,
 	ACTION_TYPE_GROW_TO_EDGE,
 	ACTION_TYPE_SHRINK_TO_EDGE,
@@ -99,6 +100,7 @@ enum action_type {
 	ACTION_TYPE_MOVE_RELATIVE,
 	ACTION_TYPE_SEND_TO_DESKTOP,
 	ACTION_TYPE_GO_TO_DESKTOP,
+	ACTION_TYPE_TOGGLE_SNAP_TO_REGION,
 	ACTION_TYPE_SNAP_TO_REGION,
 	ACTION_TYPE_TOGGLE_KEYBINDS,
 	ACTION_TYPE_FOCUS_OUTPUT,
@@ -130,6 +132,7 @@ const char *action_names[] = {
 	"Execute",
 	"Exit",
 	"MoveToEdge",
+	"ToggleSnapToEdge",
 	"SnapToEdge",
 	"GrowToEdge",
 	"ShrinkToEdge",
@@ -160,6 +163,7 @@ const char *action_names[] = {
 	"MoveRelative",
 	"SendToDesktop",
 	"GoToDesktop",
+	"ToggleSnapToRegion",
 	"SnapToRegion",
 	"ToggleKeybinds",
 	"FocusOutput",
@@ -319,12 +323,15 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		/* Falls through */
+	case ACTION_TYPE_TOGGLE_SNAP_TO_EDGE:
 	case ACTION_TYPE_SNAP_TO_EDGE:
 	case ACTION_TYPE_GROW_TO_EDGE:
 	case ACTION_TYPE_SHRINK_TO_EDGE:
 		if (!strcmp(argument, "direction")) {
 			enum view_edge edge = view_edge_parse(content);
-			if ((edge == VIEW_EDGE_CENTER && action->type != ACTION_TYPE_SNAP_TO_EDGE)
+			bool allow_center = action->type == ACTION_TYPE_TOGGLE_SNAP_TO_EDGE
+				|| action->type == ACTION_TYPE_SNAP_TO_EDGE;
+			if ((edge == VIEW_EDGE_CENTER && !allow_center)
 					|| edge == VIEW_EDGE_INVALID) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
@@ -413,6 +420,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		break;
+	case ACTION_TYPE_TOGGLE_SNAP_TO_REGION:
 	case ACTION_TYPE_SNAP_TO_REGION:
 		if (!strcmp(argument, "region")) {
 			action_arg_add_str(action, argument, content);
@@ -538,6 +546,7 @@ action_is_valid(struct action *action)
 		arg_name = "command";
 		break;
 	case ACTION_TYPE_MOVE_TO_EDGE:
+	case ACTION_TYPE_TOGGLE_SNAP_TO_EDGE:
 	case ACTION_TYPE_SNAP_TO_EDGE:
 	case ACTION_TYPE_GROW_TO_EDGE:
 	case ACTION_TYPE_SHRINK_TO_EDGE:
@@ -551,6 +560,7 @@ action_is_valid(struct action *action)
 	case ACTION_TYPE_SEND_TO_DESKTOP:
 		arg_name = "to";
 		break;
+	case ACTION_TYPE_TOGGLE_SNAP_TO_REGION:
 	case ACTION_TYPE_SNAP_TO_REGION:
 		arg_name = "region";
 		break;
@@ -889,10 +899,20 @@ actions_run(struct view *activator, struct server *server,
 				view_move_to_edge(view, edge, snap_to_windows);
 			}
 			break;
+		case ACTION_TYPE_TOGGLE_SNAP_TO_EDGE:
 		case ACTION_TYPE_SNAP_TO_EDGE:
 			if (view) {
 				/* Config parsing makes sure that direction is a valid direction */
 				enum view_edge edge = action_get_int(action, "direction", 0);
+				if (action->type == ACTION_TYPE_TOGGLE_SNAP_TO_EDGE
+						&& view->maximized == VIEW_AXIS_NONE
+						&& !view->fullscreen
+						&& view_is_tiled(view)
+						&& view->tiled == edge) {
+					view_set_untiled(view);
+					view_apply_natural_geometry(view);
+					break;
+				}
 				view_snap_to_edge(view, edge,
 					/*across_outputs*/ true,
 					/*store_natural_geometry*/ true);
@@ -1122,6 +1142,7 @@ actions_run(struct view *activator, struct server *server,
 			}
 			view_constrain_size_to_that_of_usable_area(view);
 			break;
+		case ACTION_TYPE_TOGGLE_SNAP_TO_REGION:
 		case ACTION_TYPE_SNAP_TO_REGION:
 			if (!view) {
 				break;
@@ -1133,6 +1154,15 @@ actions_run(struct view *activator, struct server *server,
 			const char *region_name = action_get_str(action, "region", NULL);
 			struct region *region = regions_from_name(region_name, output);
 			if (region) {
+				if (action->type == ACTION_TYPE_TOGGLE_SNAP_TO_REGION
+						&& view->maximized == VIEW_AXIS_NONE
+						&& !view->fullscreen
+						&& view_is_tiled(view)
+						&& view->tiled_region == region) {
+					view_set_untiled(view);
+					view_apply_natural_geometry(view);
+					break;
+				}
 				view_snap_to_region(view, region,
 					/*store_natural_geometry*/ true);
 			} else {

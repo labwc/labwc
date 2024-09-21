@@ -91,12 +91,21 @@ Actions are used in menus and keyboard/mouse bindings.
 	Move window relative to its current position. Positive value of x moves
 	it right, negative left. Positive value of y moves it down, negative up.
 
+*<action name="ToggleSnapToEdge" direction="value" />*++
 *<action name="SnapToEdge" direction="value" />*
 	Resize window to fill half the output in the given direction. Supports
 	directions "left", "up", "right", "down" and "center".
 
+	ToggleSnapToEdge additionally toggles the active window between
+	tiled to the given direction and its untiled position.
+
+*<action name="ToggleSnapToRegion" region="value" />*++
 *<action name="SnapToRegion" region="value" />*
 	Resize and move active window according to the given region.
+
+	ToggleSnapToRegion additionally toggles the active window between
+	tiled to the given region and its untiled position.
+
 	See labwc-config(5) for further information on how to define regions.
 
 *<action name="NextWindow" />*++

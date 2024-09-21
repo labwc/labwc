@@ -121,8 +121,8 @@ Actions are used in menus and keyboard/mouse bindings.
 
 	*atCursor* [yes|no] When opening a menu, open the menu at the location
 	of the mouse cursor. When set to no, the menu will appear at the
-	upper-left corner of the window associated with the action. Default is
-	yes.
+	upper-left corner of the window associated with the action or underneath
+	the window button that opened the menu. Default is yes.
 
 	*position* Show the menu in the specified position on the monitor
 	that has cursor focus, see below.

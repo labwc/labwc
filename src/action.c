@@ -102,6 +102,7 @@ enum action_type {
 	ACTION_TYPE_GO_TO_DESKTOP,
 	ACTION_TYPE_TOGGLE_SNAP_TO_REGION,
 	ACTION_TYPE_SNAP_TO_REGION,
+	ACTION_TYPE_UNSNAP,
 	ACTION_TYPE_TOGGLE_KEYBINDS,
 	ACTION_TYPE_FOCUS_OUTPUT,
 	ACTION_TYPE_MOVE_TO_OUTPUT,
@@ -165,6 +166,7 @@ const char *action_names[] = {
 	"GoToDesktop",
 	"ToggleSnapToRegion",
 	"SnapToRegion",
+	"UnSnap",
 	"ToggleKeybinds",
 	"FocusOutput",
 	"MoveToOutput",
@@ -1167,6 +1169,13 @@ actions_run(struct view *activator, struct server *server,
 					/*store_natural_geometry*/ true);
 			} else {
 				wlr_log(WLR_ERROR, "Invalid SnapToRegion id: '%s'", region_name);
+			}
+			break;
+		case ACTION_TYPE_UNSNAP:
+			if (view && view->maximized == VIEW_AXIS_NONE && !view->fullscreen
+					&& view_is_tiled(view)) {
+				view_set_untiled(view);
+				view_apply_natural_geometry(view);
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_KEYBINDS:

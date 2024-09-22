@@ -617,6 +617,16 @@ action_list_free(struct wl_list *action_list)
 	}
 }
 
+static enum ssd_part_type
+get_leftmost_button_type(void)
+{
+	struct title_button *b;
+	wl_list_for_each(b, &rc.title_buttons_left, link) {
+		return b->type;
+	}
+	return LAB_SSD_NONE;
+}
+
 static void
 show_menu(struct server *server, struct view *view, struct cursor_context *ctx,
 		const char *menu_name, bool at_cursor,
@@ -659,8 +669,8 @@ show_menu(struct server *server, struct view *view, struct cursor_context *ctx,
 		x = view->current.x;
 		y = view->current.y;
 		/* Push the client menu underneath the button */
-		if (is_client_menu && ssd_part_contains(
-				LAB_SSD_BUTTON, ctx->type)) {
+		if (is_client_menu && ssd_part_contains(LAB_SSD_BUTTON, ctx->type)
+				&& ctx->type != get_leftmost_button_type()) {
 			assert(ctx->node);
 			int ly;
 			wlr_scene_node_coords(ctx->node, &x, &ly);

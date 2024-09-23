@@ -244,8 +244,18 @@ handle_configure_timeout(void *data)
 	view->pending_configure_serial = 0;
 	view->pending_configure_timeout = NULL;
 
-	view_impl_apply_geometry(view,
-		view->current.width, view->current.height);
+	/*
+	 * We do not use view_impl_apply_geometry() here since in the timeout
+	 * case we prefer to always put the top-left corner of the view at the
+	 * desired position rather than anchoring some other edge or corner
+	 */
+	bool moved = view->current.x != view->pending.x
+		|| view->current.y != view->pending.y;
+	view->current.x = view->pending.x;
+	view->current.y = view->pending.y;
+	if (moved) {
+		view_moved(view);
+	}
 
 	/* Re-sync pending view with current state */
 	snap_constraints_update(view);

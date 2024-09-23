@@ -119,61 +119,139 @@ parse_window_type(const char *type)
 	}
 }
 
+/*
+ * Openbox/labwc comparison
+ *
+ * Instead of openbox's <titleLayout>WLIMC</title> we use
+ *
+ *     <titlebar>
+ *       <layout>menu:iconfiy,max,close</layout>
+ *       <showTitle>yes|no</showTitle>
+ *     </titlebar>
+ *
+ * ...using the icon names (like iconify.xbm) without the file extension for the
+ * identifier.
+ *
+ * labwc        openbox     description
+ * -----        -------     -----------
+ * menu         W           Open window menu (client-menu)
+ * iconfiy      I           Iconify (aka minimize)
+ * max          M           Maximize toggle
+ * close        C           Close
+ * shade        S           Shade toggle
+ * desk         D           All-desktops toggle (aka omnipresent)
+ */
 static void
-fill_title_layout(char *nodename, char *content)
+fill_section(const char *content, struct wl_list *list)
 {
-	char *c, *c2;
-	enum ssd_part_type type;
-	struct title_button *item;
-	struct wl_list *list = &rc.title_buttons_left;
-
-	for (c = content; *c != '\0'; c++) {
-		for (c2 = content; c2 < c; c2++) {
-			if (*c2 == *c) {
-				break;
-			}
-		}
-		if (c2 != c) {
+	gchar **identifiers = g_strsplit(content, ",", -1);
+	for (size_t i = 0; identifiers[i]; ++i) {
+		char *identifier = identifiers[i];
+		if (string_null_or_empty(identifier)) {
 			continue;
 		}
-
-		switch (*c) {
-		/* case 'N': icon */
-		case 'L':
-			list = &rc.title_buttons_right;
-			rc.show_title = true;
-			continue;
-		case '|':
-			list = &rc.title_buttons_right;
-			continue;
-		case 'W':
+		enum ssd_part_type type = LAB_SSD_NONE;
+		if (!strcmp(identifier, "menu")) {
 			type = LAB_SSD_BUTTON_WINDOW_MENU;
-			break;
-		case 'I':
+		} else if (!strcmp(identifier, "iconify")) {
 			type = LAB_SSD_BUTTON_ICONIFY;
-			break;
-		case 'M':
+		} else if (!strcmp(identifier, "max")) {
 			type = LAB_SSD_BUTTON_MAXIMIZE;
-			break;
-		case 'C':
+		} else if (!strcmp(identifier, "close")) {
 			type = LAB_SSD_BUTTON_CLOSE;
-			break;
-		case 'S':
+		} else if (!strcmp(identifier, "shade")) {
 			type = LAB_SSD_BUTTON_SHADE;
-			break;
-		case 'D':
+		} else if (!strcmp(identifier, "desk")) {
 			type = LAB_SSD_BUTTON_OMNIPRESENT;
-			break;
-		default:
+		} else {
+			wlr_log(WLR_ERROR, "invalid titleLayout identifier '%s'",
+				identifier);
 			continue;
 		}
 
-		item = znew(*item);
+		assert(type != LAB_SSD_NONE);
+
+		struct title_button *item = znew(*item);
 		item->type = type;
 		wl_list_append(list, &item->link);
 	}
+	g_strfreev(identifiers);
+}
+
+static int
+compare_strings(const void *a, const void *b)
+{
+	char * const *str1 = a;
+	char * const *str2 = b;
+	return strcmp(*str1, *str2);
+}
+
+static bool
+contains_duplicates(char *content)
+{
+	bool ret = false;
+
+	/*
+	 * The string typically looks like: 'menu:iconfiy,max,close' so we have
+	 * to split on both ':' and ','.
+	 */
+	gchar **idents = g_strsplit_set(content, ",:", -1);
+
+	/*
+	 * We've got to have at least two for duplicates to exist. Bailing out
+	 * early here also enables the below algorithm which just iterates and
+	 * checks if previous item is the same.
+	 */
+	if (g_strv_length(idents) <= 1) {
+		goto out;
+	}
+
+	qsort(idents, g_strv_length(idents), sizeof(gchar *), compare_strings);
+	for (size_t i = 1; idents[i]; ++i) {
+		if (string_null_or_empty(idents[i])) {
+			continue;
+		}
+		if (!strcmp(idents[i], idents[i-1])) {
+			ret = true;
+			wlr_log(WLR_ERROR,
+				"titleLayout identifier '%s' is a duplicate",
+				idents[i]);
+			break;
+		}
+	}
+
+out:
+	g_strfreev(idents);
+	return ret;
+}
+
+static void
+fill_title_layout(char *content)
+{
+	if (contains_duplicates(content)) {
+		wlr_log(WLR_ERROR, "titleLayout contains duplicates");
+		return;
+	}
+
+	struct wl_list *sections[] = {
+		&rc.title_buttons_left,
+		&rc.title_buttons_right,
+	};
+
+	gchar **parts = g_strsplit(content, ":", -1);
+
+	if (g_strv_length(parts) != 2) {
+		wlr_log(WLR_ERROR, "<titlebar><layout> must contain one colon");
+		goto err;
+	}
+
+	for (size_t i = 0; parts[i]; ++i) {
+		fill_section(parts[i], sections[i]);
+	}
 
 	rc.title_layout_loaded = true;
+err:
+	g_strfreev(parts);
 }
 
 static void
@@ -989,8 +1067,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.placement_cascade_offset_y = atoi(content);
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = xstrdup(content);
-	} else if (!strcmp(nodename, "titlelayout.theme")) {
-		fill_title_layout(nodename, content);
+	} else if (!strcasecmp(nodename, "layout.titlebar.theme")) {
+		fill_title_layout(content);
+	} else if (!strcasecmp(nodename, "showTitle.titlebar.theme")) {
+		rc.show_title = parse_bool(content, true);
 	} else if (!strcmp(nodename, "cornerradius.theme")) {
 		rc.corner_radius = atoi(content);
 	} else if (!strcasecmp(nodename, "keepBorder.theme")) {
@@ -1578,7 +1658,7 @@ post_processing(void)
 	}
 
 	if (!rc.title_layout_loaded) {
-		fill_title_layout("titlelayout.theme", "WLIMC");
+		fill_title_layout("menu:iconify,max,close");
 	}
 
 	/*

@@ -142,7 +142,7 @@ bool cursor_process_button_release(struct seat *seat, uint32_t button, uint32_t 
  * Finishes cursor button release. The return value indicates if an interactive
  * move/resize had been finished. Should be called after notifying a client.
  */
-bool cursor_finish_button_release(struct seat *seat);
+bool cursor_finish_button_release(struct seat *seat, uint32_t button);
 
 void cursor_init(struct seat *seat);
 void cursor_reload(struct seat *seat);

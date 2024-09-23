@@ -36,6 +36,7 @@ add_project_arguments(cc.get_supported_arguments([
   '-Wunused-macros',
 
   '-Wno-unused-parameter',
+  '-Wno-expansion-to-defined',
 ]), language: 'c')
 
 version='"@0@"'.format(meson.project_version())

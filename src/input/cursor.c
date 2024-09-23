@@ -1109,10 +1109,6 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 	}
 
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
-		if (pressed_surface) {
-			/* Ensure CSD clients see the release event */
-			return true;
-		}
 		return false;
 	}
 

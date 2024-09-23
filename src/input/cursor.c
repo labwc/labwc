@@ -903,15 +903,7 @@ handle_release_mousebinding(struct server *server,
 			actions_run(ctx->view, server, &mousebind->actions, ctx);
 		}
 	}
-	/*
-	 * Clear "pressed" status for all bindings of this mouse button,
-	 * regardless of whether handled or not
-	 */
-	wl_list_for_each(mousebind, &rc.mousebinds, link) {
-		if (mousebind->button == button) {
-			mousebind->pressed_in_context = false;
-		}
-	}
+
 	return consumed_by_frame_context;
 }
 
@@ -1137,9 +1129,17 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 }
 
 bool
-cursor_finish_button_release(struct seat *seat)
+cursor_finish_button_release(struct seat *seat, uint32_t button)
 {
 	struct server *server = seat->server;
+
+	/* Clear "pressed" status for all bindings of this mouse button */
+	struct mousebind *mousebind;
+	wl_list_for_each(mousebind, &rc.mousebinds, link) {
+		if (mousebind->button == button) {
+			mousebind->pressed_in_context = false;
+		}
+	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MOVE
 			|| server->input_mode == LAB_INPUT_STATE_RESIZE) {
@@ -1182,7 +1182,7 @@ cursor_button(struct wl_listener *listener, void *data)
 			wlr_seat_pointer_notify_button(seat->seat, event->time_msec,
 				event->button, event->state);
 		}
-		cursor_finish_button_release(seat);
+		cursor_finish_button_release(seat, event->button);
 		break;
 	}
 }
@@ -1245,7 +1245,7 @@ cursor_emulate_button(struct seat *seat, uint32_t button,
 		if (notify) {
 			wlr_seat_pointer_notify_button(seat->seat, time_msec, button, state);
 		}
-		cursor_finish_button_release(seat);
+		cursor_finish_button_release(seat, button);
 		break;
 	}
 }

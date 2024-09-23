@@ -516,7 +516,7 @@ handle_tablet_tool_tip(struct wl_listener *listener, void *data)
 				wlr_tablet_v2_tablet_tool_notify_up(tool->tool_v2);
 			}
 
-			bool exit_interactive = cursor_finish_button_release(tool->seat);
+			bool exit_interactive = cursor_finish_button_release(tool->seat, BTN_LEFT);
 			if (exit_interactive && surface && tool->tool_v2->focused_surface) {
 				/*
 				 * Re-enter the surface after a resize/move to ensure

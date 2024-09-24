@@ -1172,8 +1172,9 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_UNSNAP:
-			if (view && view->maximized == VIEW_AXIS_NONE && !view->fullscreen
-					&& view_is_tiled(view)) {
+			if (view && !view->fullscreen && !view_is_floating(view)) {
+				view_maximize(view, VIEW_AXIS_NONE,
+					/* store_natural_geometry */ false);
 				view_set_untiled(view);
 				view_apply_natural_geometry(view);
 			}

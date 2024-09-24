@@ -109,8 +109,8 @@ Actions are used in menus and keyboard/mouse bindings.
 	See labwc-config(5) for further information on how to define regions.
 
 *<action name="UnSnap" />*
-	Resize and move active window back to its untiled position if
-	it had been tiled to a direction or region.
+	Resize and move the active window back to its untiled or unmaximized
+	position if it had been maximized or tiled to a direction or region.
 
 *<action name="NextWindow" />*++
 *<action name="PreviousWindow" />*

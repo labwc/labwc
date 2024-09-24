@@ -1413,7 +1413,7 @@ rcxml_init(void)
 	rc.placement_cascade_offset_y = 0;
 
 	rc.xdg_shell_server_side_deco = true;
-	rc.show_title = false;
+	rc.show_title = true;
 	rc.title_layout_loaded = false;
 	rc.ssd_keep_border = true;
 	rc.corner_radius = 8;

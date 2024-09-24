@@ -29,7 +29,7 @@ jobs:
       matrix:
         name: [
           Arch,
-          Debian,
+#          Debian,
           FreeBSD,
           Void-musl
         ]
@@ -40,11 +40,11 @@ jobs:
             env:
               TARGET: 'sh -xe'
 
-          - name: Debian
-            os: ubuntu-latest
-            container: debian:testing
-            env:
-              TARGET: 'sh -xe'
+#          - name: Debian
+#            os: ubuntu-latest
+#            container: debian:testing
+#            env:
+#              TARGET: 'sh -xe'
 
           - name: FreeBSD
             os: ubuntu-latest

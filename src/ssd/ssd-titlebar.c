@@ -638,6 +638,10 @@ void
 ssd_update_window_icon(struct ssd *ssd)
 {
 #if HAVE_LIBSFDO
+	if (!ssd) {
+		return;
+	}
+
 	const char *app_id = view_get_string_prop(ssd->view, "app_id");
 	if (string_null_or_empty(app_id)) {
 		return;

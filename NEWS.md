@@ -33,15 +33,58 @@ The format is based on [Keep a Changelog]
 
 ## [unreleased]
 
+The most noteworthy additions in this release are:
+
+1. Titlebar window icons and layout configuration
+2. Support for the cosmic-workspace protocol and the openbox inspired
+   client-list-combined-menu for a better user experience with workspaces.
+
+Notes to package maintainers:
+
+- The SSD titlebar window icon support requires libsfdo to be added as a
+  dependency or statically linked. If this is not wanted, add -Dicon=disabled to
+  the `meson setup` command in the build script for the next release.
+- PRs #1716 and #2205 add labwc xdg-portal configuration, modify `labwc.desktop`
+  and amend `XDG_CURRENT_DESKTOP` which should enable better out-of-the-box
+  support for xdg-desktop-portal, but if you already ship a custom setup for
+  this you or have different requirements, please review this change.
+
 ### Added
 
-- Add theme options for circular button hover effect, button padding and button
-  spacing. Written-by: @jp7677 (#2127)
+- Support dmabuf feedback (#2234, #1278)
+- Add initial implementation of cosmic-workspace-unstable-v1 (#2030)
+- Optionally support SSD titlebar window icons. When an icon file is not found
+  or could not be loaded, the window menu icon is shown as before. The icon
+  theme can be selected with `<theme><icon>` (#2128)
+- Add actions `ToggleSnapToEdge` and `ToggleSnapToRegion`. These behave like
+  `SnapToEdge` and `SnapToRegion`, except that they untile the window when
+  already being tiled to the given region or direction.
+  Written-by: @jp7677 and @tokyo4j (#2154)
+- Add action `UnSnap`. This behaves like `ToggleSnapToEdge/Region` but
+  unconditionally. Written-by: @jp7677 and @tokyo4j (#2154)
+- Handle xdg-shell `show_window_menu` requests (#2167)
+- Support the openbox style menus listed below. Written-by: @droc12345
+  1. `client-list-combined-menu` shows windows across all workspaces. This can
+     be used with a mouse/key bind using:
+     `<action name="ShowMenu" menu="client-list-combined-menu"/>` (#2101)
+  2. `client-send-to` shows all workspaces that the current window can be sent
+     to. This can additional be used within a client menu using:
+     `<menu id="client-send-to-menu" label="Send to Workspace..." />` (#2152)
+- Add theme option for titlebar padding and button spacing (#2189)
 
 ```
-window.button.hover.bg.shape: circle
-padding.width: 4
-window.button.spacing: 3
+window.button.height: 26
+window.titlebar.padding.width: 0
+window.titlebar.padding.height: 0
+window.button.spacing: 0
+```
+
+- Set titlebar height based on the maximum height of any of the objects within
+  it, rather than just taking the font height into account (#2152)
+- Add theme option for setting button hover effect corner radius (#2127, #2231)
+
+```
+window.button.hover.bg.corner-radius: 0
 ```
 
 - Add position arguments for menus. Written-by: @droc12345 (#2102)
@@ -70,7 +113,15 @@ window.inactive.button.shade.unpressed.image.color
 
 - Make action `FocusOutput` behave like `MoveToOutput` by adding direction and
   wrap arguments. Written-by: @orfeasxyz (#2100)
-- Add config option `titleLayout`. Written-by: @xi (#2088)
+- Add config option for titlebar layout. Written-by: @xi (#2088, #2150)
+
+```
+<titlebar>
+  <layout>icon:iconify,max,close</layout>
+  <showTitle>yes|no</showTitle>
+</titlebar>
+```
+
 - Add `Oblique` option to `<theme><font><style>`. Written-by: @droc12345 (#2097)
 - Support menu titles defined by `<separator label="">`.
 - Add the theme option `menu.title.bg.color: #589bda`
@@ -84,6 +135,24 @@ window.inactive.button.shade.unpressed.image.color
 
 ### Fixed
 
+- Fix button release events sometimes not being sent (#2226)
+- Fix xdg-shell popups appearing on wrong output with some Qt themes. (#2224)
+- Take into account xdg-shell minimum window size for resizing. This is
+  relevant when using `<resize drawContents="no">` (#2221)
+- Fix button scaling issues (#2207, #2225)
+- Add portals.conf file, amend `labwc.desktop` and modify `XDG_CURRENT_DESKTOP`
+  for better out-of-the-box xdg-desktop-portal support. This helps with for
+  example screensharing. Written-by: @rcalixte @jp7677 (#1503, #1716)
+- Disable the Inhibit D-BUS interface in xdg-portals configuration to fix an
+  issue with some clients (like Firefox) ignoring the idle-inhibit protocol.
+  Written-by: @jp7677 (#2205)
+- Prevent `Drag` mousebinds from running without button press (#2196)
+- Handle slow un-maximize with empty natural geometry better (#2191)
+- Fix de-synced SSD when shrinking Thunderbird xdg-shell window (#2190)
+- Fix xdg-shell out-of-sync configure state when clients time out
+  Written-by: @cillian64 (#2174)
+- Fix small flicker when client initially submits a window size smaller than the
+  minimum value (#2166)
 - Allow server-side decoration to be smaller than minimal size by hiding
   buttons (#2116)
 - Fix incorrect cursor shape on titlebar corner without buttons (#2105)
@@ -93,6 +162,10 @@ window.inactive.button.shade.unpressed.image.color
 
 ### Changed
 
+- Theme options `padding.height` and `titlebar.height` have been removed to
+  minimize breaking changes with the visual appearance of the titlebar when
+  using openbox themes. As a result, and depending on your configuration,
+  the titlebar height may change by a small number of pixels (#2189)
 - Move input config `<scrollFactor>` to `<libinput>` section to allow
   per-device configuration of scroll factor (e.g. setting different scroll
   factors for mice and touchpads). (#2057)

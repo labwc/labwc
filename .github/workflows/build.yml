@@ -107,7 +107,7 @@ jobs:
           xbps-install -y git meson gcc clang pkg-config scdoc \
             cairo-devel glib-devel libpng-devel librsvg-devel libxml2-devel \
             pango-devel wlroots0.18-devel gdb bash xorg-server-xwayland \
-            dejavu-fonts-ttf
+            dejavu-fonts-ttf libsfdo-devel
 
       # These build are executed on all runners
       - name: Build with gcc

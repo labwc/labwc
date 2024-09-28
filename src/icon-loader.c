@@ -118,7 +118,20 @@ out:
 static int
 process_abs_name(struct icon_ctx *ctx, const char *icon_name)
 {
-	wlr_log(WLR_ERROR, "absolute paths not yet supported");
+	ctx->path = xstrdup(icon_name);
+	if (str_endswith(icon_name, ".png")) {
+		ctx->format = SFDO_ICON_FILE_FORMAT_PNG;
+	} else if (str_endswith(icon_name, ".svg")) {
+		ctx->format = SFDO_ICON_FILE_FORMAT_SVG;
+	} else if (str_endswith(icon_name, ".xpm")) {
+		ctx->format = SFDO_ICON_FILE_FORMAT_XPM;
+	} else {
+		goto err;
+	}
+	return 0;
+err:
+	wlr_log(WLR_ERROR, "'%s' has invalid file extension", icon_name);
+	free(ctx->path);
 	return -1;
 }
 

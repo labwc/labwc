@@ -4,6 +4,7 @@
 #include <sfdo-basedir.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
+#include "common/string-helpers.h"
 #include "config.h"
 #include "icon-loader.h"
 #include "img/img-png.h"
@@ -82,6 +83,45 @@ icon_loader_finish(struct server *server)
 	server->icon_loader = NULL;
 }
 
+struct icon_ctx {
+	char *path;
+	enum sfdo_icon_file_format format;
+};
+
+/*
+ * Return 0 on success and -1 on error
+ * The calling function is responsible for free()ing ctx->path
+ */
+static int
+process_rel_name(struct icon_ctx *ctx, const char *icon_name,
+		struct icon_loader *loader, int size, int scale)
+{
+	int ret = 0;
+	int lookup_options = SFDO_ICON_THEME_LOOKUP_OPTIONS_DEFAULT;
+#if !HAVE_RSVG
+	lookup_options |= SFDO_ICON_THEME_LOOKUP_OPTION_NO_SVG;
+#endif
+	struct sfdo_icon_file *icon_file = sfdo_icon_theme_lookup(
+		loader->icon_theme, icon_name, SFDO_NT, size, scale,
+		lookup_options);
+	if (!icon_file || icon_file == SFDO_ICON_FILE_INVALID) {
+		ret = -1;
+		goto out;
+	}
+	ctx->path = xstrdup(sfdo_icon_file_get_path(icon_file, NULL));
+	ctx->format = sfdo_icon_file_get_format(icon_file);
+out:
+	sfdo_icon_file_destroy(icon_file);
+	return ret;
+}
+
+static int
+process_abs_name(struct icon_ctx *ctx, const char *icon_name)
+{
+	wlr_log(WLR_ERROR, "absolute paths not yet supported");
+	return -1;
+}
+
 struct lab_data_buffer *
 icon_loader_lookup(struct server *server, const char *app_id, int size, int scale)
 {
@@ -96,34 +136,33 @@ icon_loader_lookup(struct server *server, const char *app_id, int size, int scal
 	if (entry) {
 		icon_name = sfdo_desktop_entry_get_icon(entry, NULL);
 	}
+
+	struct icon_ctx ctx = {0};
+	int ret;
 	if (!icon_name) {
 		/* fall back to app id */
-		icon_name = app_id;
+		ret = process_rel_name(&ctx, app_id, loader, size, scale);
+	} else if (icon_name[0] == '/') {
+		ret = process_abs_name(&ctx, icon_name);
+	} else {
+		/* this should be the case for most icons */
+		ret = process_rel_name(&ctx, icon_name, loader, size, scale);
 	}
-
-	int lookup_options = SFDO_ICON_THEME_LOOKUP_OPTIONS_DEFAULT;
-#if !HAVE_RSVG
-	lookup_options |= SFDO_ICON_THEME_LOOKUP_OPTION_NO_SVG;
-#endif
-	struct sfdo_icon_file *icon_file = sfdo_icon_theme_lookup(
-		loader->icon_theme, icon_name, SFDO_NT, size, scale,
-		lookup_options);
-	if (!icon_file || icon_file == SFDO_ICON_FILE_INVALID) {
+	if (ret < 0) {
 		return NULL;
 	}
 
 	struct lab_data_buffer *icon_buffer = NULL;
-	const char *icon_path = sfdo_icon_file_get_path(icon_file, NULL);
 
-	wlr_log(WLR_DEBUG, "loading icon file %s", icon_path);
+	wlr_log(WLR_DEBUG, "loading icon file %s", ctx.path);
 
-	switch (sfdo_icon_file_get_format(icon_file)) {
+	switch (ctx.format) {
 	case SFDO_ICON_FILE_FORMAT_PNG:
-		img_png_load(icon_path, &icon_buffer);
+		img_png_load(ctx.path, &icon_buffer);
 		break;
 	case SFDO_ICON_FILE_FORMAT_SVG:
 #if HAVE_RSVG
-		img_svg_load(icon_path, &icon_buffer, size * scale);
+		img_svg_load(ctx.path, &icon_buffer, size * scale);
 #endif
 		break;
 	case SFDO_ICON_FILE_FORMAT_XPM:
@@ -131,7 +170,6 @@ icon_loader_lookup(struct server *server, const char *app_id, int size, int scal
 		break;
 	}
 
-	sfdo_icon_file_destroy(icon_file);
-
+	free(ctx.path);
 	return icon_buffer;
 }

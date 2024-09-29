@@ -60,11 +60,6 @@ labwc-config(5).
 	in the window decorations.
 	Default is 3.
 
-*titlebar.height*
-	Window title bar height.
-	Default equals the vertical font extents of the title plus 2x
-	padding.height.
-
 *menu.items.padding.x*
 	Horizontal padding of menu text entries in pixels.
 	Default is 7.

@@ -8,7 +8,7 @@
 # general
 border.width: 1
 padding.width: 0
-padding.height: 3
+padding.height: 0
 
 # window border
 window.active.border.color: #e1dedb

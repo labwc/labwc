@@ -573,7 +573,7 @@ static void
 theme_builtin(struct theme *theme, struct server *server)
 {
 	theme->border_width = 1;
-	theme->padding_height = 3;
+	theme->padding_height = 0;
 	theme->title_height = INT_MIN;
 	theme->menu_overlap_x = 0;
 	theme->menu_overlap_y = 0;

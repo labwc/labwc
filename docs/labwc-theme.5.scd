@@ -58,7 +58,7 @@ labwc-config(5).
 *padding.height*
 	Vertical padding size, in pixels, used for spacing out elements
 	in the window decorations.
-	Default is 3.
+	Default is 0.
 
 *menu.items.padding.x*
 	Horizontal padding of menu text entries in pixels.

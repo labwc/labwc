@@ -718,7 +718,7 @@ static const char color_names[] =
 	"YellowGreen\0";
 
 struct xpm_color_entry {
-	u_int16_t name_offset;
+	uint16_t name_offset;
 	unsigned char red;
 	unsigned char green;
 	unsigned char blue;
@@ -1396,9 +1396,9 @@ enum buf_op { op_header, op_cmap, op_body };
 
 struct xpm_color {
 	char *color_string;
-	u_int16_t red;
-	u_int16_t green;
-	u_int16_t blue;
+	uint16_t red;
+	uint16_t green;
+	uint16_t blue;
 	int transparent;
 };
 
@@ -1787,7 +1787,7 @@ static struct xpm_color *lookup_color(struct xpm_color *colors, int n_colors, co
 }
 
 /* This function does all the work. */
-static u_int32_t *pixbuf_create_from_xpm(const char *(*get_buf)(enum buf_op op, void *handle),
+static uint32_t *pixbuf_create_from_xpm(const char *(*get_buf)(enum buf_op op, void *handle),
 		void *handle, int *width, int *height)
 {
 	int w, h, n_col, cpp, x_hot, y_hot, items;
@@ -1797,7 +1797,7 @@ static u_int32_t *pixbuf_create_from_xpm(const char *(*get_buf)(enum buf_op op, 
 	char *name_buf;
 	char pixel_str[32];
 	struct xpm_color *colors, *color, *fallbackcolor;
-	u_int32_t *data = NULL;
+	uint32_t *data = NULL;
 
 	fallbackcolor = NULL;
 
@@ -1869,7 +1869,7 @@ static u_int32_t *pixbuf_create_from_xpm(const char *(*get_buf)(enum buf_op op, 
 		}
 	}
 
-	data = (u_int32_t *)calloc(w * h, sizeof(u_int32_t));
+	data = (uint32_t *)calloc(w * h, sizeof(uint32_t));
 	if (!data) {
 		free(colors);
 		free(name_buf);
@@ -1929,7 +1929,7 @@ img_xpm_load(const char *filename, struct lab_data_buffer **buffer)
 
 	struct file_handle handle;
 	int w, h;
-	u_int32_t *data;
+	uint32_t *data;
 	cairo_surface_t *surface;
 	unsigned char *surface_data;
 

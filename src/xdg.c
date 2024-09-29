@@ -161,8 +161,15 @@ handle_commit(struct wl_listener *listener, void *data)
 	 */
 	if (size.width != view->pending.width
 			|| size.height != view->pending.height) {
-		struct wlr_box extent;
-		wlr_surface_get_extends(xdg_surface->surface, &extent);
+		/*
+		 * Not using wlr_surface_get_extend() since Thunderbird
+		 * sometimes resizes the window geometry and the toplevel
+		 * surface size, but not the subsurface size (see #2183).
+		 */
+		struct wlr_box extent = {
+			.width = view->surface->current.width,
+			.height = view->surface->current.height,
+		};
 		if (extent.width == view->pending.width
 				&& extent.height == view->pending.height) {
 			wlr_log(WLR_DEBUG, "window geometry for client (%s) "

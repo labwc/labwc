@@ -106,6 +106,12 @@ else
 endif
 conf_data.set10('HAVE_RSVG', have_rsvg)
 
+have_xpm = false
+if get_option('xpm').enabled()
+  have_xpm = true
+endif
+conf_data.set10('HAVE_XPM', have_xpm)
+
 have_libsfdo = sfdo_basedir.found() and sfdo_desktop.found() and sfdo_icon.found()
 conf_data.set10('HAVE_LIBSFDO', have_libsfdo)
 

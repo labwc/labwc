@@ -1466,11 +1466,22 @@ fill_colors_with_osd_theme(struct theme *theme, float colors[3][4])
 	memcpy(colors[2], theme->osd_bg_color, sizeof(colors[2]));
 }
 
+static int
+get_titlebar_height(struct theme *theme)
+{
+	int h = MAX(font_height(&rc.font_activewindow),
+		font_height(&rc.font_inactivewindow));
+	if (h < theme->window_button_height) {
+		h = theme->window_button_height;
+	}
+	h += 2 * theme->padding_height;
+	return h;
+}
+
 static void
 post_processing(struct theme *theme)
 {
-	int h = MAX(font_height(&rc.font_activewindow), font_height(&rc.font_inactivewindow));
-	theme->title_height = h + 2 * theme->padding_height;
+	theme->title_height = get_titlebar_height(theme);
 
 	theme->menu_item_height = font_height(&rc.font_menuitem)
 		+ 2 * theme->menu_item_padding_y;

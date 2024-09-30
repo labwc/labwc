@@ -8,6 +8,7 @@
 #include "config.h"
 #include "icon-loader.h"
 #include "img/img-png.h"
+#include "img/img-xpm.h"
 
 #if HAVE_RSVG
 #include "img/img-svg.h"
@@ -179,7 +180,7 @@ icon_loader_lookup(struct server *server, const char *app_id, int size, int scal
 #endif
 		break;
 	case SFDO_ICON_FILE_FORMAT_XPM:
-		/* XPM is not supported */
+		img_xpm_load(ctx.path, &icon_buffer);
 		break;
 	}
 

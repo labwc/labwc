@@ -272,11 +272,12 @@ update_visible_buttons(struct ssd *ssd)
 	/*
 	 * The corner-left button is lastly removed as it's usually a window
 	 * menu button (or an app icon button in the future).
+	 *
+	 * There is spacing to the inside of each button, including between the
+	 * innermost buttons and the window title. See also get_title_offsets().
 	 */
-	while (width <
-		((button_width * (button_count_left + button_count_right)) +
-			(MAX((button_count_right - 1), 0) * button_spacing) +
-			(MAX((button_count_left - 1), 0) * button_spacing))) {
+	while (width < ((button_width + button_spacing)
+			* (button_count_left + button_count_right))) {
 		if (button_count_left > button_count_right) {
 			button_count_left--;
 		} else {
@@ -486,15 +487,13 @@ get_title_offsets(struct ssd *ssd, int *offset_left, int *offset_right)
 	wl_list_for_each(b, &rc.title_buttons_left, link) {
 		struct ssd_part *part = ssd_get_part(&subtree->parts, b->type);
 		if (part->node->enabled) {
-			*offset_left += *offset_left > padding_width ? button_spacing : 0;
-			*offset_left += button_width;
+			*offset_left += button_width + button_spacing;
 		}
 	}
 	wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
 		struct ssd_part *part = ssd_get_part(&subtree->parts, b->type);
 		if (part->node->enabled) {
-			*offset_right += *offset_right > padding_width ? button_spacing : 0;
-			*offset_right += button_width;
+			*offset_right += button_width + button_spacing;
 		}
 	}
 }

@@ -2,6 +2,8 @@
 #include <sfdo-desktop.h>
 #include <sfdo-icon.h>
 #include <sfdo-basedir.h>
+#include <string.h>
+#include <strings.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
 #include "common/string-helpers.h"
@@ -135,6 +137,33 @@ err:
 	return -1;
 }
 
+/*
+ * Looks up an application desktop entry using fuzzy matching
+ * (e.g. "thunderbird" matches "org.mozilla.Thunderbird.desktop"
+ * and "XTerm" matches "xterm.desktop"). This is not per any spec
+ * but is needed to find icons for existing applications.
+ */
+static struct sfdo_desktop_entry *
+get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
+{
+	size_t n_entries;
+	struct sfdo_desktop_entry **entries = sfdo_desktop_db_get_entries(db, &n_entries);
+
+	for (size_t i = 0; i < n_entries; i++) {
+		struct sfdo_desktop_entry *entry = entries[i];
+		const char *desktop_id = sfdo_desktop_entry_get_id(entry, NULL);
+		/* Get portion of desktop ID after last '.' */
+		const char *dot = strrchr(desktop_id, '.');
+		const char *desktop_id_base = dot ? (dot + 1) : desktop_id;
+
+		if (!strcasecmp(app_id, desktop_id_base)) {
+			return entry;
+		}
+	}
+
+	return NULL;
+}
+
 struct lab_data_buffer *
 icon_loader_lookup(struct server *server, const char *app_id, int size, int scale)
 {
@@ -146,6 +175,9 @@ icon_loader_lookup(struct server *server, const char *app_id, int size, int scal
 	const char *icon_name = NULL;
 	struct sfdo_desktop_entry *entry = sfdo_desktop_db_get_entry_by_id(
 		loader->desktop_db, app_id, SFDO_NT);
+	if (!entry) {
+		entry = get_db_entry_by_id_fuzzy(loader->desktop_db, app_id);
+	}
 	if (entry) {
 		icon_name = sfdo_desktop_entry_get_icon(entry, NULL);
 	}

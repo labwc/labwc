@@ -455,7 +455,7 @@ extending outward from the snapped edge.
 	whereas commas are used to separate items within a section. It is
 	mandatory to use one colon.
 
-	Default: menu:iconify,max,close
+	Default: icon:iconify,max,close
 
 *<theme><titlebar><showTitle>* [yes|no]
 	Show the window title in the titlebar. Default is yes.

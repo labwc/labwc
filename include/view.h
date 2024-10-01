@@ -14,6 +14,16 @@
 #define LAB_MIN_VIEW_HEIGHT 60
 
 /*
+ * Fallback view geometry used in some cases where a better position
+ * and/or size can't be determined. Try to avoid using these except as
+ * a last resort.
+ */
+#define VIEW_FALLBACK_X 100
+#define VIEW_FALLBACK_Y 100
+#define VIEW_FALLBACK_WIDTH  640
+#define VIEW_FALLBACK_HEIGHT 480
+
+/*
  * In labwc, a view is a container for surfaces which can be moved around by
  * the user. In practice this means XDG toplevel and XWayland windows.
  */

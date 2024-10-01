@@ -251,16 +251,35 @@ handle_configure_timeout(void *data)
 	view->pending_configure_serial = 0;
 	view->pending_configure_timeout = NULL;
 
-	/*
-	 * We do not use view_impl_apply_geometry() here since in the timeout
-	 * case we prefer to always put the top-left corner of the view at the
-	 * desired position rather than anchoring some other edge or corner
-	 */
-	bool moved = view->current.x != view->pending.x
-		|| view->current.y != view->pending.y;
-	view->current.x = view->pending.x;
-	view->current.y = view->pending.y;
-	if (moved) {
+	bool empty_pending = wlr_box_empty(&view->pending);
+	if (empty_pending || view->pending.x != view->current.x
+			|| view->pending.y != view->current.y) {
+		/*
+		 * This is a pending move + resize and the client is
+		 * taking too long to respond to the resize. Apply the
+		 * move now (while keeping the current size) so that the
+		 * desktop doesn't appear unresponsive.
+		 *
+		 * We do not use view_impl_apply_geometry() here since
+		 * in this case we prefer to always put the top-left
+		 * corner of the view at the desired position rather
+		 * than anchoring some other edge or corner.
+		 *
+		 * Corner case: we may get here with an empty pending
+		 * geometry in the case of an initially-maximized view
+		 * which is taking a long time to un-maximize (seen for
+		 * example with Thunderbird on slow machines). In that
+		 * case we have no great options (we can't center the
+		 * view since we don't know the un-maximized size yet),
+		 * so set a fallback position.
+		 */
+		if (empty_pending) {
+			wlr_log(WLR_INFO, "using fallback position");
+			view->pending.x = VIEW_FALLBACK_X;
+			view->pending.y = VIEW_FALLBACK_Y;
+		}
+		view->current.x = view->pending.x;
+		view->current.y = view->pending.y;
 		view_moved(view);
 	}
 

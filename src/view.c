@@ -29,9 +29,6 @@
 #include <wlr/xwayland.h>
 #endif
 
-#define LAB_FALLBACK_WIDTH  640
-#define LAB_FALLBACK_HEIGHT 480
-
 struct view *
 view_from_wlr_surface(struct wlr_surface *surface)
 {
@@ -827,17 +824,14 @@ adjust_floating_geometry(struct view *view, struct wlr_box *geometry,
 void
 view_set_fallback_natural_geometry(struct view *view)
 {
-	view->natural_geometry.width = LAB_FALLBACK_WIDTH;
-	view->natural_geometry.height = LAB_FALLBACK_HEIGHT;
+	view->natural_geometry.width = VIEW_FALLBACK_WIDTH;
+	view->natural_geometry.height = VIEW_FALLBACK_HEIGHT;
 	view_compute_centered_position(view, NULL,
 		view->natural_geometry.width,
 		view->natural_geometry.height,
 		&view->natural_geometry.x,
 		&view->natural_geometry.y);
 }
-
-#undef LAB_FALLBACK_WIDTH
-#undef LAB_FALLBACK_HEIGHT
 
 void
 view_store_natural_geometry(struct view *view)

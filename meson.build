@@ -56,6 +56,7 @@ wlroots = dependency(
 )
 
 wlroots_has_xwayland = wlroots.get_variable('have_xwayland') == 'true'
+have_libsfdo = not get_option('icon').disabled()
 
 wayland_server = dependency('wayland-server', version: '>=1.19.0')
 wayland_protos = dependency('wayland-protocols', version: '>=1.35')
@@ -77,19 +78,19 @@ sfdo_basedir = dependency(
   'libsfdo-basedir',
   default_options: ['default_library=static', 'examples=false', 'tests=false'],
   version: '>=0.1.0',
-  required: not get_option('icon').disabled(),
+  required: have_libsfdo,
 )
 sfdo_desktop = dependency(
   'libsfdo-desktop',
   default_options: ['default_library=static', 'examples=false', 'tests=false'],
   version: '>=0.1.0',
-  required: not get_option('icon').disabled(),
+  required: have_libsfdo,
 )
 sfdo_icon = dependency(
   'libsfdo-icon',
   default_options: ['default_library=static', 'examples=false', 'tests=false'],
   version: '>=0.1.0',
-  required: not get_option('icon').disabled(),
+  required: have_libsfdo,
 )
 
 if get_option('xwayland').enabled() and not wlroots_has_xwayland
@@ -106,7 +107,6 @@ else
 endif
 conf_data.set10('HAVE_RSVG', have_rsvg)
 
-have_libsfdo = sfdo_basedir.found() and sfdo_desktop.found() and sfdo_icon.found()
 conf_data.set10('HAVE_LIBSFDO', have_libsfdo)
 
 if get_option('static_analyzer').enabled()

@@ -299,9 +299,16 @@ struct server {
 	struct wlr_scene_tree *menu_tree;
 
 	/* Workspaces */
-	struct wl_list workspaces;  /* struct workspace.link */
-	struct workspace *workspace_current;
-	struct workspace *workspace_last;
+	struct {
+		struct wl_list all;  /* struct workspace.link */
+		struct workspace *current;
+		struct workspace *last;
+		struct lab_cosmic_workspace_manager *cosmic_manager;
+		struct lab_cosmic_workspace_group *cosmic_group;
+		struct {
+			struct wl_listener layout_output_added;
+		} on;
+	} workspaces;
 
 	struct wl_list outputs;
 	struct wl_listener new_output;

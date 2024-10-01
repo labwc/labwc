@@ -331,7 +331,7 @@ display_osd(struct output *output, struct wl_array *views)
 	struct server *server = output->server;
 	struct theme *theme = server->theme;
 	bool show_workspace = wl_list_length(&rc.workspace_config.workspaces) > 1;
-	const char *workspace_name = server->workspace_current->name;
+	const char *workspace_name = server->workspaces.current->name;
 
 	float scale = output->wlr_output->scale;
 	int w = theme->osd_window_switcher_width;

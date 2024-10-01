@@ -174,6 +174,8 @@ executable(
 
 install_data('data/labwc.desktop', install_dir: get_option('datadir') / 'wayland-sessions')
 
+install_data('data/labwc-portals.conf', install_dir: get_option('datadir') / 'xdg-desktop-portal')
+
 icons = ['labwc-symbolic.svg', 'labwc.svg']
 foreach icon : icons
   icon_path = join_paths('data', icon)

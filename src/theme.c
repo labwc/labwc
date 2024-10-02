@@ -51,19 +51,13 @@ struct button {
 	} active, inactive;
 };
 
-enum corner {
-	LAB_CORNER_UNKNOWN = 0,
-	LAB_CORNER_TOP_LEFT,
-	LAB_CORNER_TOP_RIGHT,
-};
-
 struct rounded_corner_ctx {
 	struct wlr_box *box;
 	double radius;
 	double line_width;
 	float *fill_color;
 	float *border_color;
-	enum corner corner;
+	enum ssd_corner corner;
 };
 
 #define zero_array(arr) memset(arr, 0, sizeof(arr))
@@ -82,91 +76,19 @@ zdrop(struct lab_data_buffer **buffer)
 	}
 }
 
-static bool
-match_button_by_name(struct title_button *b, const char *icon_name)
+static struct lab_data_buffer *
+create_hover_overlay(struct theme *theme, enum ssd_corner corner)
 {
-	assert(icon_name);
-	return (b->type == LAB_SSD_BUTTON_WINDOW_MENU && !strcmp(icon_name, "menu"))
-		|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max"))
-		|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max_toggled"))
-		|| (b->type == LAB_SSD_BUTTON_ICONIFY && !strcmp(icon_name, "iconify"))
-		|| (b->type == LAB_SSD_BUTTON_CLOSE && !strcmp(icon_name, "close"))
-		|| (b->type == LAB_SSD_BUTTON_SHADE && !strcmp(icon_name, "shade"))
-		|| (b->type == LAB_SSD_BUTTON_SHADE && !strcmp(icon_name, "shade_toggled"))
-		|| (b->type == LAB_SSD_BUTTON_OMNIPRESENT && !strcmp(icon_name, "desk"))
-		|| (b->type == LAB_SSD_BUTTON_OMNIPRESENT && !strcmp(icon_name, "desk_toggled"));
-}
-
-static enum corner
-corner_from_icon_name(const char *icon_name)
-{
-	assert(icon_name);
-
-	struct title_button *b;
-	wl_list_for_each(b, &rc.title_buttons_left, link) {
-		if (match_button_by_name(b, icon_name)) {
-			return LAB_CORNER_TOP_LEFT;
-		}
-		break;
-	}
-	wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
-		if (match_button_by_name(b, icon_name)) {
-			return LAB_CORNER_TOP_RIGHT;
-		}
-		break;
-	}
-	return LAB_CORNER_UNKNOWN;
-}
-
-static void
-create_hover_fallback(struct theme *theme, const char *icon_name,
-		struct lab_data_buffer **hover_buffer,
-		struct lab_data_buffer *icon_buffer)
-{
-	assert(icon_name);
-	assert(icon_buffer);
-	assert(!*hover_buffer);
-
-	struct surface_context icon =
-		get_cairo_surface_from_lab_data_buffer(icon_buffer);
-	int icon_width = cairo_image_surface_get_width(icon.surface);
-	int icon_height = cairo_image_surface_get_height(icon.surface);
-
 	int width = theme->window_button_width;
 	int height = theme->title_height;
 
-	if (width && height) {
-		/*
-		 * Proportionately increase size of hover_buffer if the
-		 * non-hover 'donor' buffer is larger than the allocated space.
-		 * It will get scaled down again by wlroots when rendered and as
-		 * required by the current output scale.
-		 *
-		 * This ensures that icons > width or > height keep their aspect
-		 * ratio and are rendered the same as without the hover overlay.
-		 */
-		double scale = MAX((double)icon_width / width,
-				(double)icon_height / height);
-		if (scale > 1.0f) {
-			width = (double)width * scale;
-			height = (double)height * scale;
-		}
-	}
+	struct lab_data_buffer *hover_buffer = buffer_create_cairo(width, height, 1.0, true);
 
-	*hover_buffer = buffer_create_cairo(width, height, 1.0, true);
-
-	cairo_t *cairo = (*hover_buffer)->cairo;
+	cairo_t *cairo = hover_buffer->cairo;
 	cairo_surface_t *surf = cairo_get_target(cairo);
 
-	/* Background */
-	cairo_set_source_surface(cairo, icon.surface,
-		(width - icon_width) / 2, (height - icon_height) / 2);
-	cairo_paint(cairo);
-
-	/* Overlay (pre-multiplied alpha) */
 	float overlay_color[4] = { 0.15f, 0.15f, 0.15f, 0.3f};
 	int radius = MIN(width, height) / 2;
-	enum corner corner = corner_from_icon_name(icon_name);
 
 	switch (theme->window_button_hover_bg_shape) {
 	case LAB_CIRCLE:
@@ -217,9 +139,7 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 	}
 	cairo_surface_flush(surf);
 
-	if (icon.is_duplicate) {
-		cairo_surface_destroy(icon.surface);
-	}
+	return hover_buffer;
 }
 
 /*
@@ -416,6 +336,13 @@ load_buttons(struct theme *theme)
 		.inactive.rgba = theme->window_inactive_button_close_unpressed_image_color,
 	}, };
 
+	theme->button_hover_overlay_left =
+		create_hover_overlay(theme, LAB_CORNER_TOP_LEFT);
+	theme->button_hover_overlay_right =
+		create_hover_overlay(theme, LAB_CORNER_TOP_RIGHT);
+	theme->button_hover_overlay_middle =
+		create_hover_overlay(theme, LAB_CORNER_UNKNOWN);
+
 	char filename[4096] = {0};
 	for (size_t i = 0; i < ARRAY_SIZE(buttons); ++i) {
 		struct button *b = &buttons[i];
@@ -473,49 +400,25 @@ load_buttons(struct theme *theme)
 		 * Applicable to basic buttons such as max, max_toggled and
 		 * iconify. There are no bitmap fallbacks for *_hover icons.
 		 */
-		if (!b->fallback_button) {
-			continue;
-		}
-		if (!*b->active.buffer) {
+		if (!*b->active.buffer && b->fallback_button) {
 			img_xbm_from_bitmap(b->fallback_button,
 				b->active.buffer, b->active.rgba);
 		}
-		if (!*b->inactive.buffer) {
+		if (!*b->inactive.buffer && b->fallback_button) {
 			img_xbm_from_bitmap(b->fallback_button,
 				b->inactive.buffer, b->inactive.rgba);
 		}
-	}
 
-	/*
-	 * If hover-icons do not exist, add fallbacks by copying the non-hover
-	 * variant (base) and then adding an overlay.
-	 */
-	for (size_t i = 0; i < ARRAY_SIZE(buttons); i++) {
-		struct button *hover_button = &buttons[i];
-
-		if (!strstr(hover_button->name, "_hover")) {
-			continue;
+		/*
+		 * When *_hover icon is not provided, set hover overlay instead.
+		 * This is rendered on top of non-hover icons. Their shapes are
+		 * updated on SSD creation.
+		 */
+		if (!*b->active.buffer) {
+			*b->active.buffer = theme->button_hover_overlay_middle;
 		}
-
-		/* If name=='foo_hover', basename='foo' */
-		char basename[64]  = {0};
-		snprintf(basename, sizeof(basename), "%s", hover_button->name);
-		trim_last_field(basename, '_');
-		for (size_t j = 0; j < ARRAY_SIZE(buttons); j++) {
-			struct button *base = &buttons[j];
-			if (!strcmp(basename, base->name)) {
-				if (!*hover_button->active.buffer) {
-					create_hover_fallback(theme, basename,
-						hover_button->active.buffer,
-						*base->active.buffer);
-				}
-				if (!*hover_button->inactive.buffer) {
-					create_hover_fallback(theme, basename,
-						hover_button->inactive.buffer,
-						*base->inactive.buffer);
-				}
-				break;
-			}
+		if (!*b->inactive.buffer) {
+			*b->inactive.buffer = theme->button_hover_overlay_middle;
 		}
 	}
 }

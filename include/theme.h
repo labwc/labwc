@@ -22,6 +22,12 @@ enum lab_shape {
 	LAB_CIRCLE,
 };
 
+enum ssd_corner {
+	LAB_CORNER_UNKNOWN = 0,
+	LAB_CORNER_TOP_LEFT,
+	LAB_CORNER_TOP_RIGHT,
+};
+
 struct theme_snapping_overlay {
 	bool bg_enabled;
 	bool border_enabled;
@@ -169,6 +175,10 @@ struct theme {
 	struct lab_data_buffer *button_unshade_inactive_hover;
 	struct lab_data_buffer *button_omnipresent_inactive_hover;
 	struct lab_data_buffer *button_exclusive_inactive_hover;
+
+	struct lab_data_buffer *button_hover_overlay_left;
+	struct lab_data_buffer *button_hover_overlay_right;
+	struct lab_data_buffer *button_hover_overlay_middle;
 
 	struct lab_data_buffer *corner_top_left_active_normal;
 	struct lab_data_buffer *corner_top_right_active_normal;

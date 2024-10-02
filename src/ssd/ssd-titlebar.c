@@ -24,6 +24,7 @@
 
 static void set_squared_corners(struct ssd *ssd, bool enable);
 static void set_alt_button_icon(struct ssd *ssd, enum ssd_part_type type, bool enable);
+static void set_hover_overlays_squared(struct ssd *ssd, bool squared);
 static void update_visible_buttons(struct ssd *ssd);
 
 static void
@@ -174,6 +175,7 @@ ssd_titlebar_create(struct ssd *ssd)
 	} FOR_EACH_END
 
 	update_visible_buttons(ssd);
+	set_hover_overlays_squared(ssd, false);
 
 	ssd_update_title(ssd);
 	ssd_update_window_icon(ssd);
@@ -223,6 +225,8 @@ set_squared_corners(struct ssd *ssd, bool enable)
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_RIGHT);
 		wlr_scene_node_set_enabled(part->node, !enable);
 	} FOR_EACH_END
+
+	set_hover_overlays_squared(ssd, enable);
 }
 
 static void
@@ -241,13 +245,8 @@ set_alt_button_icon(struct ssd *ssd, enum ssd_part_type type, bool enable)
 		button = node_ssd_button_from_node(part->node);
 
 		if (button->toggled) {
-			wlr_scene_node_set_enabled(button->toggled, enable);
-			wlr_scene_node_set_enabled(button->normal, !enable);
-		}
-
-		if (button->toggled_hover) {
-			wlr_scene_node_set_enabled(button->toggled_hover, enable);
-			wlr_scene_node_set_enabled(button->hover, !enable);
+			wlr_scene_node_set_enabled(&button->toggled_tree->node, enable);
+			wlr_scene_node_set_enabled(&button->untoggled_tree->node, !enable);
 		}
 	} FOR_EACH_END
 }
@@ -583,12 +582,98 @@ ssd_update_title(struct ssd *ssd)
 	ssd_update_title_positions(ssd, offset_left, offset_right);
 }
 
+static bool
+is_hover_overlay_buffer(struct wlr_scene_node *node)
+{
+	struct wlr_scene_buffer *scene_buffer =
+		wlr_scene_buffer_from_node(node);
+	return scene_buffer->buffer == &rc.theme->button_hover_overlay_left->base
+		|| scene_buffer->buffer == &rc.theme->button_hover_overlay_right->base
+		|| scene_buffer->buffer == &rc.theme->button_hover_overlay_middle->base;
+}
+
+static struct wlr_buffer *
+hover_overlay_for_corner(enum ssd_corner corner)
+{
+	switch (corner) {
+	case LAB_CORNER_TOP_LEFT:
+		return &rc.theme->button_hover_overlay_left->base;
+	case LAB_CORNER_TOP_RIGHT:
+		return &rc.theme->button_hover_overlay_right->base;
+	case LAB_CORNER_UNKNOWN:
+		return &rc.theme->button_hover_overlay_middle->base;
+	default:
+		assert(false);
+		abort();
+	}
+}
+
+static void
+set_hover_overlay(struct ssd_button *button, enum ssd_corner corner)
+{
+	assert(button);
+
+	/*
+	 * When button->(toggled_)hover is the builtin hover overlay (not an
+	 * icon provided by user), update its shape.
+	 */
+	if (is_hover_overlay_buffer(button->hover)) {
+		wlr_scene_buffer_set_buffer(
+			wlr_scene_buffer_from_node(button->hover),
+			hover_overlay_for_corner(corner));
+	}
+	if (button->toggled_hover
+			&& is_hover_overlay_buffer(button->toggled_hover)) {
+		wlr_scene_buffer_set_buffer(
+			wlr_scene_buffer_from_node(button->toggled_hover),
+			hover_overlay_for_corner(corner));
+	}
+}
+
+/* Update the shape of hover overlay on corner buttons */
+static void
+set_hover_overlays_squared(struct ssd *ssd, bool squared)
+{
+	struct ssd_part *part;
+	struct ssd_sub_tree *subtree;
+
+	FOR_EACH_STATE(ssd, subtree) {
+		struct title_button *b;
+		wl_list_for_each(b, &rc.title_buttons_left, link) {
+			part = ssd_get_part(&subtree->parts, b->type);
+			struct ssd_button *button = node_ssd_button_from_node(part->node);
+			set_hover_overlay(button,
+				squared ? LAB_CORNER_UNKNOWN : LAB_CORNER_TOP_LEFT);
+			break;
+		}
+		wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
+			part = ssd_get_part(&subtree->parts, b->type);
+			struct ssd_button *button = node_ssd_button_from_node(part->node);
+			set_hover_overlay(button,
+				squared ? LAB_CORNER_UNKNOWN : LAB_CORNER_TOP_RIGHT);
+			break;
+		}
+	} FOR_EACH_END
+}
+
 static void
 ssd_button_set_hover(struct ssd_button *button, bool enabled)
 {
 	assert(button);
-	wlr_scene_node_set_enabled(&button->hover_tree->node, enabled);
-	wlr_scene_node_set_enabled(&button->icon_tree->node, !enabled);
+
+	/*
+	 * Keep showing non-hover icon when the hover icon is not provided and
+	 * hover overlay is shown on top of it.
+	 */
+	wlr_scene_node_set_enabled(button->normal,
+		is_hover_overlay_buffer(button->hover) || !enabled);
+	wlr_scene_node_set_enabled(button->hover, enabled);
+
+	if (button->toggled) {
+		wlr_scene_node_set_enabled(button->toggled,
+			is_hover_overlay_buffer(button->toggled_hover) || !enabled);
+		wlr_scene_node_set_enabled(button->toggled_hover, enabled);
+	}
 }
 
 void

@@ -18,12 +18,18 @@
 struct ssd_button {
 	struct view *view;
 	enum ssd_part_type type;
+
 	struct wlr_scene_node *normal;
-	struct wlr_scene_node *hover;
 	struct wlr_scene_node *toggled;
+	/*
+	 * Hover icons provided by user or builtin translucent hover overlay.
+	 * Hover overlays are rendered on top of normal/toggled nodes.
+	 */
+	struct wlr_scene_node *hover;
 	struct wlr_scene_node *toggled_hover;
-	struct wlr_scene_tree *icon_tree;
-	struct wlr_scene_tree *hover_tree;
+
+	struct wlr_scene_tree *untoggled_tree;
+	struct wlr_scene_tree *toggled_tree;
 
 	struct wl_listener destroy;
 };

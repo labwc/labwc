@@ -135,33 +135,36 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 	int width = theme->window_button_width;
 	int height = theme->title_height;
 
-	if (width && height) {
-		/*
-		 * Proportionately increase size of hover_buffer if the
-		 * non-hover 'donor' buffer is larger than the allocated space.
-		 * It will get scaled down again by wlroots when rendered and as
-		 * required by the current output scale.
-		 *
-		 * This ensures that icons > width or > height keep their aspect
-		 * ratio and are rendered the same as without the hover overlay.
-		 */
-		double scale = MAX((double)icon_width / width,
-				(double)icon_height / height);
-		if (scale > 1.0f) {
-			width = (double)width * scale;
-			height = (double)height * scale;
-		}
+	/*
+	 * Proportionately increase size of hover_buffer if the non-hover
+	 * 'donor' buffer is larger than the allocated space. It will get
+	 * scaled down again by wlroots when rendered and as required by the
+	 * current output scale.
+	 *
+	 * This ensures that icons > width or > height keep their aspect ratio
+	 * and are rendered the same as without the hover overlay.
+	 */
+	double scale = (width && height) ?
+		MAX((double)icon_width / width, (double)icon_height / height) : 1.0;
+	if (scale < 1.0) {
+		scale = 1.0;
 	}
+	int buffer_width = (double)width * scale;
+	int buffer_height = (double)height * scale;
 
-	*hover_buffer = buffer_create_cairo(width, height, 1.0, true);
+	*hover_buffer = buffer_create_cairo(buffer_width, buffer_height, 1.0, true);
 
 	cairo_t *cairo = (*hover_buffer)->cairo;
 	cairo_surface_t *surf = cairo_get_target(cairo);
 
 	/* Background */
 	cairo_set_source_surface(cairo, icon.surface,
-		(width - icon_width) / 2, (height - icon_height) / 2);
+		(buffer_width - icon_width) / 2, (buffer_height - icon_height) / 2);
 	cairo_paint(cairo);
+
+	/* Switch from buffer scale to theme scale */
+	cairo_save(cairo);
+	cairo_scale(cairo, scale, scale);
 
 	/* Overlay (pre-multiplied alpha) */
 	float overlay_color[4] = { 0.15f, 0.15f, 0.15f, 0.3f};
@@ -212,6 +215,7 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 		break;
 	}
 	cairo_surface_flush(surf);
+	cairo_restore(cairo);
 
 	if (icon.is_duplicate) {
 		cairo_surface_destroy(icon.surface);

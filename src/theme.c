@@ -198,19 +198,15 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 			};
 			struct lab_data_buffer *mask_buffer =
 				rounded_rect(&rounded_ctx);
-			cairo_pattern_t *mask_pattern =
-				cairo_pattern_create_for_surface(
-					cairo_get_target(mask_buffer->cairo));
 			int mask_offset;
 			if (corner == LAB_CORNER_TOP_LEFT) {
 				mask_offset = -theme->padding_width;
 			} else {
 				mask_offset = 0;
 			}
-			cairo_save(cairo);
-			cairo_translate(cairo, mask_offset, 0);
-			cairo_mask(cairo, mask_pattern);
-			cairo_restore(cairo);
+			cairo_mask_surface(cairo,
+				cairo_get_target(mask_buffer->cairo),
+				mask_offset, 0);
 			wlr_buffer_drop(&mask_buffer->base);
 		}
 		break;

@@ -654,7 +654,16 @@ ssd_update_window_icon(struct ssd *ssd)
 
 	struct theme *theme = ssd->view->server->theme;
 
-	int icon_size = MIN(theme->window_button_width,
+	/*
+	 * Ensure a small amount of horizontal padding within the button
+	 * area (2px on each side with the default 26px button width).
+	 * A new theme setting could be added to configure this. Using
+	 * an existing setting (padding.width or window.button.spacing)
+	 * was considered, but these settings have distinct purposes
+	 * already and are zero by default.
+	 */
+	int hpad = theme->window_button_width / 10;
+	int icon_size = MIN(theme->window_button_width - 2 * hpad,
 		theme->title_height - 2 * theme->padding_height);
 	/* TODO: take into account output scales */
 	int icon_scale = 1;

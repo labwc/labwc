@@ -25,6 +25,19 @@ struct icon_loader {
 	struct sfdo_icon_theme *icon_theme;
 };
 
+static void
+log_handler(enum sfdo_log_level level, const char *fmt, va_list args, void *tag)
+{
+	/* add a prefix if the format length is reasonable */
+	char buf[256];
+	if (snprintf(buf, sizeof(buf), "[%s] %s", (const char *)tag, fmt)
+			< (int)sizeof(buf)) {
+		fmt = buf;
+	}
+	/* sfdo_log_level and wlr_log_importance are compatible */
+	_wlr_vlog((enum wlr_log_importance)level, fmt, args);
+}
+
 void
 icon_loader_init(struct server *server)
 {
@@ -42,6 +55,15 @@ icon_loader_init(struct server *server)
 	if (!loader->icon_ctx) {
 		goto err_icon_ctx;
 	}
+
+	/* sfdo_log_level and wlr_log_importance are compatible */
+	enum sfdo_log_level level =
+		(enum sfdo_log_level)wlr_log_get_verbosity();
+	sfdo_desktop_ctx_set_log_handler(
+		loader->desktop_ctx, level, log_handler, "sfdo-desktop");
+	sfdo_icon_ctx_set_log_handler(
+		loader->icon_ctx, level, log_handler, "sfdo-icon");
+
 	loader->desktop_db = sfdo_desktop_db_load(loader->desktop_ctx, NULL);
 	if (!loader->desktop_db) {
 		goto err_desktop_db;

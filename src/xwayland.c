@@ -489,9 +489,17 @@ xwayland_view_get_string_prop(struct view *view, const char *prop)
 	if (!strcmp(prop, "class")) {
 		return xwayland_surface->class;
 	}
-	/* We give 'class' for wlr_foreign_toplevel_handle_v1_set_app_id() */
+	/*
+	 * Use the WM_CLASS 'instance' (1st string) for the app_id. Per
+	 * ICCCM, this is usually "the trailing part of the name used to
+	 * invoke the program (argv[0] stripped of any directory names)".
+	 *
+	 * In most cases, the 'class' (2nd string) is the same as the
+	 * 'instance' except for being capitalized. We want lowercase
+	 * here since we use the app_id for icon lookups.
+	 */
 	if (!strcmp(prop, "app_id")) {
-		return xwayland_surface->class;
+		return xwayland_surface->instance;
 	}
 	return "";
 }

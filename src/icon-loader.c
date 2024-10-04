@@ -5,6 +5,12 @@
 #include <string.h>
 #include <strings.h>
 #include <wlr/util/log.h>
+/*
+ * FIXME: remove when this is merged:
+ * https://gitlab.freedesktop.org/vyivel/libsfdo/-/merge_requests/5
+ */
+#include <sfdo-desktop/internal.h>
+
 #include "common/mem.h"
 #include "common/string-helpers.h"
 #include "config.h"
@@ -24,6 +30,20 @@ struct icon_loader {
 	struct sfdo_desktop_db *desktop_db;
 	struct sfdo_icon_theme *icon_theme;
 };
+
+/*
+ * FIXME: remove when this is merged:
+ * https://gitlab.freedesktop.org/vyivel/libsfdo/-/merge_requests/5
+ */
+static const char *
+desktop_entry_get_exec_name(struct sfdo_desktop_entry *entry)
+{
+	struct sfdo_desktop_exec *exec = sfdo_desktop_entry_get_exec(entry);
+	if (!exec || exec->n_literals < 1) {
+		return NULL;
+	}
+	return exec->literals[0];
+}
 
 void
 icon_loader_init(struct server *server)
@@ -152,13 +172,23 @@ get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
 
 	for (size_t i = 0; i < n_entries; i++) {
 		struct sfdo_desktop_entry *entry = entries[i];
+
+		/* Try portion of desktop ID after last '.' */
 		const char *desktop_id = sfdo_desktop_entry_get_id(entry, NULL);
-		/* Get portion of desktop ID after last '.' */
 		const char *dot = strrchr(desktop_id, '.');
 		const char *desktop_id_base = dot ? (dot + 1) : desktop_id;
-
 		if (!strcasecmp(app_id, desktop_id_base)) {
 			return entry;
+		}
+
+		/* Try basename of executable (e.g. "gimp-2.10") */
+		const char *exec_name = desktop_entry_get_exec_name(entry);
+		if (exec_name) {
+			const char *slash = strrchr(exec_name, '/');
+			const char *exec_base = slash ? (slash + 1) : exec_name;
+			if (!strcasecmp(app_id, exec_base)) {
+				return entry;
+			}
 		}
 	}
 

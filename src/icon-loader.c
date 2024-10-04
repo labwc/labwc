@@ -160,6 +160,13 @@ get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
 		if (!strcasecmp(app_id, desktop_id_base)) {
 			return entry;
 		}
+
+		/* Try desktop entry's StartupWMClass also */
+		const char *wm_class =
+			sfdo_desktop_entry_get_startup_wm_class(entry, NULL);
+		if (wm_class && !strcasecmp(app_id, wm_class)) {
+			return entry;
+		}
 	}
 
 	return NULL;

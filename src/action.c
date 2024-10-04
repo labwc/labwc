@@ -734,7 +734,6 @@ show_menu(struct server *server, struct view *view, struct cursor_context *ctx,
 
 	/* Replaced by next show_menu() or cleaned on view_destroy() */
 	menu->triggered_by_view = view;
-	menu->server->menu_current = menu;
 	menu_open_root(menu, x, y);
 }
 

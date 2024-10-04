@@ -418,8 +418,11 @@ handle_request_show_window_menu(struct wl_listener *listener, void *data)
 	struct xdg_toplevel_view *xdg_toplevel_view = wl_container_of(
 		listener, xdg_toplevel_view, request_show_window_menu);
 	struct server *server = xdg_toplevel_view->base.server;
+
 	struct menu *menu = menu_get_by_id(server, "client-menu");
 	assert(menu);
+	menu->triggered_by_view = &xdg_toplevel_view->base;
+
 	struct wlr_cursor *cursor = server->seat.cursor;
 	menu_open_root(menu, cursor->x, cursor->y);
 }

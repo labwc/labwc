@@ -114,6 +114,23 @@ struct icon_ctx {
 };
 
 /*
+ * Return the length of a filename minus any known extension
+ */
+static size_t
+length_without_extension(const char *name)
+{
+	size_t len = strlen(name);
+	if (len >= 4 && name[len - 4] == '.') {
+		const char *ext = &name[len - 3];
+		if (!strcmp(ext, "png") || !strcmp(ext, "svg")
+				|| !strcmp(ext, "xpm")) {
+			len -= 4;
+		}
+	}
+	return len;
+}
+
+/*
  * Return 0 on success and -1 on error
  * The calling function is responsible for free()ing ctx->path
  */
@@ -126,8 +143,15 @@ process_rel_name(struct icon_ctx *ctx, const char *icon_name,
 #if !HAVE_RSVG
 	lookup_options |= SFDO_ICON_THEME_LOOKUP_OPTION_NO_SVG;
 #endif
+
+	/*
+	 * Relative icon names are not supposed to include an extension,
+	 * but some .desktop files include one anyway. libsfdo does not
+	 * allow this in lookups, so strip the extension first.
+	 */
+	size_t name_len = length_without_extension(icon_name);
 	struct sfdo_icon_file *icon_file = sfdo_icon_theme_lookup(
-		loader->icon_theme, icon_name, SFDO_NT, size, scale,
+		loader->icon_theme, icon_name, name_len, size, scale,
 		lookup_options);
 	if (!icon_file || icon_file == SFDO_ICON_FILE_INVALID) {
 		ret = -1;

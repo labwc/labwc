@@ -18,12 +18,16 @@
 struct ssd_button {
 	struct view *view;
 	enum ssd_part_type type;
-	struct wlr_scene_node *normal;
-	struct wlr_scene_node *hover;
-	struct wlr_scene_node *toggled;
-	struct wlr_scene_node *toggled_hover;
-	struct wlr_scene_tree *icon_tree;
-	struct wlr_scene_tree *hover_tree;
+	/*
+	 * Bitmap of lab_button_state that represents a combination of
+	 * hover/toggled/rounded states.
+	 */
+	uint8_t state_set;
+	/*
+	 * Button nodes for each combination of hover/toggled/rounded states.
+	 * nodes[state_set] should be displayed.
+	 */
+	struct wlr_scene_node *nodes[LAB_BS_ALL + 1];
 
 	struct wl_listener destroy;
 };
@@ -140,13 +144,10 @@ struct ssd_part *add_scene_rect(
 struct ssd_part *add_scene_buffer(
 	struct wl_list *list, enum ssd_part_type type,
 	struct wlr_scene_tree *parent, struct wlr_buffer *buffer, int x, int y);
-struct ssd_part *add_scene_button(
-	struct wl_list *part_list, enum ssd_part_type type,
-	struct wlr_scene_tree *parent, struct wlr_buffer *icon_buffer,
-	struct wlr_buffer *hover_buffer, int x, struct view *view);
-void add_toggled_icon(struct ssd_button *button, struct wl_list *part_list,
-	enum ssd_part_type type, struct wlr_buffer *icon_buffer,
-	struct wlr_buffer *hover_buffer);
+struct ssd_part *add_scene_button(struct wl_list *part_list,
+	enum ssd_part_type type, struct wlr_scene_tree *parent,
+	struct lab_data_buffer *buffers[LAB_BS_ALL + 1], int x,
+	struct view *view);
 void update_window_icon_buffer(struct wlr_scene_node *button_node,
 	struct wlr_buffer *buffer);
 

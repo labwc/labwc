@@ -45,10 +45,8 @@ struct button {
 	const char *name;
 	const char *alt_name;
 	const char *fallback_button;  /* built-in 6x6 button */
-	struct {
-		struct lab_data_buffer **buffer;
-		float *rgba;
-	} active, inactive;
+	enum ssd_part_type type;
+	uint8_t state_set;
 };
 
 enum corner {
@@ -82,50 +80,10 @@ zdrop(struct lab_data_buffer **buffer)
 	}
 }
 
-static bool
-match_button_by_name(struct title_button *b, const char *icon_name)
+static struct lab_data_buffer *
+copy_icon_buffer(struct theme *theme, struct lab_data_buffer *icon_buffer)
 {
-	assert(icon_name);
-	return (b->type == LAB_SSD_BUTTON_WINDOW_MENU && !strcmp(icon_name, "menu"))
-		|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max"))
-		|| (b->type == LAB_SSD_BUTTON_MAXIMIZE && !strcmp(icon_name, "max_toggled"))
-		|| (b->type == LAB_SSD_BUTTON_ICONIFY && !strcmp(icon_name, "iconify"))
-		|| (b->type == LAB_SSD_BUTTON_CLOSE && !strcmp(icon_name, "close"))
-		|| (b->type == LAB_SSD_BUTTON_SHADE && !strcmp(icon_name, "shade"))
-		|| (b->type == LAB_SSD_BUTTON_SHADE && !strcmp(icon_name, "shade_toggled"))
-		|| (b->type == LAB_SSD_BUTTON_OMNIPRESENT && !strcmp(icon_name, "desk"))
-		|| (b->type == LAB_SSD_BUTTON_OMNIPRESENT && !strcmp(icon_name, "desk_toggled"));
-}
-
-static enum corner
-corner_from_icon_name(const char *icon_name)
-{
-	assert(icon_name);
-
-	struct title_button *b;
-	wl_list_for_each(b, &rc.title_buttons_left, link) {
-		if (match_button_by_name(b, icon_name)) {
-			return LAB_CORNER_TOP_LEFT;
-		}
-		break;
-	}
-	wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
-		if (match_button_by_name(b, icon_name)) {
-			return LAB_CORNER_TOP_RIGHT;
-		}
-		break;
-	}
-	return LAB_CORNER_UNKNOWN;
-}
-
-static void
-create_hover_fallback(struct theme *theme, const char *icon_name,
-		struct lab_data_buffer **hover_buffer,
-		struct lab_data_buffer *icon_buffer)
-{
-	assert(icon_name);
 	assert(icon_buffer);
-	assert(!*hover_buffer);
 
 	struct surface_context icon =
 		get_cairo_surface_from_lab_data_buffer(icon_buffer);
@@ -151,75 +109,100 @@ create_hover_fallback(struct theme *theme, const char *icon_name,
 	}
 	int buffer_width = (double)width * scale;
 	int buffer_height = (double)height * scale;
+	struct lab_data_buffer *buffer = buffer_create_cairo(
+		buffer_width, buffer_height, 1.0, true);
+	cairo_t *cairo = buffer->cairo;
 
-	*hover_buffer = buffer_create_cairo(buffer_width, buffer_height, 1.0, true);
-
-	cairo_t *cairo = (*hover_buffer)->cairo;
-	cairo_surface_t *surf = cairo_get_target(cairo);
-
-	/* Background */
 	cairo_set_source_surface(cairo, icon.surface,
 		(buffer_width - icon_width) / 2, (buffer_height - icon_height) / 2);
 	cairo_paint(cairo);
 
-	/* Switch from buffer scale to theme scale */
-	cairo_save(cairo);
+	/*
+	 * Scale cairo context so that we can draw hover overlay or rounded
+	 * corner on this buffer in the scene coordinates.
+	 */
 	cairo_scale(cairo, scale, scale);
-
-	/* Overlay (pre-multiplied alpha) */
-	float overlay_color[4] = { 0.15f, 0.15f, 0.15f, 0.3f};
-	int radius = MIN(width, height) / 2;
-	enum corner corner = corner_from_icon_name(icon_name);
-
-	switch (theme->window_button_hover_bg_shape) {
-	case LAB_CIRCLE:
-		set_cairo_color(cairo, overlay_color);
-		cairo_arc(cairo, width / 2, height / 2, radius, 0 * deg, 360 * deg);
-		cairo_fill(cairo);
-		break;
-	case LAB_RECTANGLE:
-		set_cairo_color(cairo, overlay_color);
-		cairo_rectangle(cairo, 0, 0, width, height);
-		if (corner == LAB_CORNER_UNKNOWN) {
-			cairo_fill(cairo);
-		} else {
-			/*
-			 * Round the hover overlay of corner buttons by
-			 * cropping the region within the window border.
-			 */
-			float white[4] = {1, 1, 1, 1};
-			struct rounded_corner_ctx rounded_ctx = {
-				.box = &(struct wlr_box){
-					.width = theme->padding_width + width,
-					.height = height,
-				},
-				.radius = rc.corner_radius,
-				.line_width = theme->border_width,
-				.fill_color = white,
-				.border_color = white,
-				.corner = corner,
-			};
-			struct lab_data_buffer *mask_buffer =
-				rounded_rect(&rounded_ctx);
-			int mask_offset;
-			if (corner == LAB_CORNER_TOP_LEFT) {
-				mask_offset = -theme->padding_width;
-			} else {
-				mask_offset = 0;
-			}
-			cairo_mask_surface(cairo,
-				cairo_get_target(mask_buffer->cairo),
-				mask_offset, 0);
-			wlr_buffer_drop(&mask_buffer->base);
-		}
-		break;
-	}
-	cairo_surface_flush(surf);
-	cairo_restore(cairo);
 
 	if (icon.is_duplicate) {
 		cairo_surface_destroy(icon.surface);
 	}
+
+	return buffer;
+}
+
+static void
+create_hover_fallback(struct theme *theme,
+		struct lab_data_buffer **hover_buffer,
+		struct lab_data_buffer *icon_buffer)
+{
+	assert(icon_buffer);
+	assert(!*hover_buffer);
+
+	int width = theme->window_button_width;
+	int height = theme->title_height;
+
+	*hover_buffer = copy_icon_buffer(theme, icon_buffer);
+	cairo_t *cairo = (*hover_buffer)->cairo;
+
+	/* Overlay (pre-multiplied alpha) */
+	float overlay_color[4] = { 0.15f, 0.15f, 0.15f, 0.3f};
+	set_cairo_color(cairo, overlay_color);
+	int radius = MIN(width, height) / 2;
+
+	switch (theme->window_button_hover_bg_shape) {
+	case LAB_CIRCLE:
+		cairo_arc(cairo, width / 2, height / 2, radius, 0 * deg, 360 * deg);
+		break;
+	case LAB_RECTANGLE:
+		cairo_rectangle(cairo, 0, 0, width, height);
+		break;
+	}
+
+	cairo_fill(cairo);
+	cairo_surface_flush(cairo_get_target(cairo));
+}
+
+static void
+create_rounded_buffer(struct theme *theme, enum corner corner,
+		struct lab_data_buffer **rounded_buffer,
+		struct lab_data_buffer *icon_buffer)
+{
+	*rounded_buffer = copy_icon_buffer(theme, icon_buffer);
+	cairo_t *cairo = (*rounded_buffer)->cairo;
+
+	int width = theme->window_button_width;
+	int height = theme->title_height;
+
+	/*
+	 * Round the hover overlay of corner buttons by
+	 * cropping the region within the window border.
+	 */
+	float white[4] = {1, 1, 1, 1};
+	struct rounded_corner_ctx rounded_ctx = {
+		.box = &(struct wlr_box){
+			.width = theme->padding_width + width,
+			.height = height,
+		},
+		.radius = rc.corner_radius,
+		.line_width = theme->border_width,
+		.fill_color = white,
+		.border_color = white,
+		.corner = corner,
+	};
+	int mask_offset;
+	if (corner == LAB_CORNER_TOP_LEFT) {
+		mask_offset = -theme->padding_width;
+	} else {
+		mask_offset = 0;
+	}
+	struct lab_data_buffer *mask_buffer = rounded_rect(&rounded_ctx);
+	cairo_set_operator(cairo, CAIRO_OPERATOR_DEST_IN);
+	cairo_set_source_surface(cairo,
+		cairo_get_target(mask_buffer->cairo), mask_offset, 0);
+	cairo_paint(cairo);
+
+	cairo_surface_flush(cairo_get_target(cairo));
+	wlr_buffer_drop(&mask_buffer->base);
 }
 
 /*
@@ -250,6 +233,93 @@ get_button_filename(char *buf, size_t len, const char *name, const char *postfix
 		}
 	}
 	paths_destroy(&paths);
+}
+
+static void
+load_button(struct theme *theme, struct button *b, int active)
+{
+	struct lab_data_buffer *(*buttons)[LAB_BS_ALL + 1] =
+		theme->window[active].buttons;
+	struct lab_data_buffer **buffer = &buttons[b->type][b->state_set];
+	float *rgba = theme->window[active].button_colors[b->type];
+	char filename[4096];
+
+	zdrop(buffer);
+
+	/* PNG */
+	get_button_filename(filename, sizeof(filename), b->name,
+		active ? "-active.png" : "-inactive.png");
+	img_png_load(filename, buffer);
+
+#if HAVE_RSVG
+	/* SVG */
+	if (!*buffer) {
+		int size = theme->title_height - 2 * theme->padding_height;
+		get_button_filename(filename, sizeof(filename), b->name,
+			active ? "-active.svg" : "-inactive.png");
+		img_svg_load(filename, buffer, size);
+	}
+#endif
+
+	/* XBM */
+	if (!*buffer) {
+		get_button_filename(filename, sizeof(filename), b->name, ".xbm");
+		img_xbm_load(filename, buffer, rgba);
+	}
+
+	/*
+	 * XBM (alternative name)
+	 * For example max_hover_toggled instead of max_toggled_hover
+	 */
+	if (!*buffer && b->alt_name) {
+		get_button_filename(filename, sizeof(filename),
+			b->alt_name, ".xbm");
+		img_xbm_load(filename, buffer, rgba);
+	}
+
+	/*
+	 * Builtin bitmap
+	 *
+	 * Applicable to basic buttons such as max, max_toggled and iconify.
+	 * There are no bitmap fallbacks for *_hover icons.
+	 */
+	if (!*buffer && b->fallback_button) {
+		img_xbm_from_bitmap(b->fallback_button, buffer, rgba);
+	}
+
+	/*
+	 * If hover-icons do not exist, add fallbacks by copying the non-hover
+	 * variant and then adding an overlay.
+	 */
+	if (!*buffer && (b->state_set & LAB_BS_HOVERD)) {
+		uint8_t non_hover_state_set = b->state_set & ~LAB_BS_HOVERD;
+		create_hover_fallback(theme, buffer,
+			buttons[b->type][non_hover_state_set]);
+	}
+
+	struct title_button *leftmost_button = NULL;
+	wl_list_for_each(leftmost_button,
+			&rc.title_buttons_left, link) {
+		break;
+	}
+	struct title_button *rightmost_button = NULL;
+	wl_list_for_each_reverse(rightmost_button,
+			&rc.title_buttons_right, link) {
+		break;
+	}
+
+	/*
+	 * If the loaded button is at the corner of the titlebar, also create
+	 * rounded variants.
+	 */
+	uint8_t rounded_state_set = b->state_set | LAB_BS_ROUNDED;
+	if (leftmost_button && leftmost_button->type == b->type) {
+		create_rounded_buffer(theme, LAB_CORNER_TOP_LEFT,
+			&buttons[b->type][rounded_state_set], *buffer);
+	} else if (rightmost_button && rightmost_button->type == b->type) {
+		create_rounded_buffer(theme, LAB_CORNER_TOP_RIGHT,
+			&buttons[b->type][rounded_state_set], *buffer);
+	}
 }
 
 /*
@@ -287,236 +357,115 @@ load_buttons(struct theme *theme)
 {
 	struct button buttons[] = { {
 		.name = "menu",
+		.type = LAB_SSD_BUTTON_WINDOW_MENU,
+		.state_set = 0,
 		.fallback_button = (const char[]){ 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
-		.active.buffer = &theme->button_menu_active_unpressed,
-		.active.rgba = theme->window_active_button_menu_unpressed_image_color,
-		.inactive.buffer = &theme->button_menu_inactive_unpressed,
-		.inactive.rgba = theme->window_inactive_button_menu_unpressed_image_color,
+	}, {
+		/* menu icon is loaded again as a fallback of window icon */
+		.name = "menu",
+		.type = LAB_SSD_BUTTON_WINDOW_ICON,
+		.state_set = 0,
+		.fallback_button = (const char[]){ 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
 	}, {
 		.name = "iconify",
+		.type = LAB_SSD_BUTTON_ICONIFY,
+		.state_set = 0,
 		.fallback_button = (const char[]){ 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
-		.active.buffer = &theme->button_iconify_active_unpressed,
-		.active.rgba = theme->window_active_button_iconify_unpressed_image_color,
-		.inactive.buffer = &theme->button_iconify_inactive_unpressed,
-		.inactive.rgba = theme->window_inactive_button_iconify_unpressed_image_color,
 	}, {
 		.name = "max",
+		.type = LAB_SSD_BUTTON_MAXIMIZE,
+		.state_set = 0,
 		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
-		.active.buffer = &theme->button_maximize_active_unpressed,
-		.active.rgba = theme->window_active_button_max_unpressed_image_color,
-		.inactive.buffer = &theme->button_maximize_inactive_unpressed,
-		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
 	}, {
 		.name = "max_toggled",
+		.type = LAB_SSD_BUTTON_MAXIMIZE,
+		.state_set = LAB_BS_TOGGLED,
 		.fallback_button = (const char[]){ 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
-		.active.buffer = &theme->button_restore_active_unpressed,
-		.active.rgba = theme->window_active_button_max_unpressed_image_color,
-		.inactive.buffer = &theme->button_restore_inactive_unpressed,
-		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
 	}, {
 		.name = "shade",
+		.type = LAB_SSD_BUTTON_SHADE,
+		.state_set = 0,
 		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x00, 0x0c, 0x1e, 0x3f },
-		.active.buffer = &theme->button_shade_active_unpressed,
-		.active.rgba = theme->window_active_button_shade_unpressed_image_color,
-		.inactive.buffer = &theme->button_shade_inactive_unpressed,
-		.inactive.rgba = theme->window_inactive_button_shade_unpressed_image_color,
 	}, {
 		.name = "shade_toggled",
+		.type = LAB_SSD_BUTTON_SHADE,
+		.state_set = LAB_BS_TOGGLED,
 		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x00, 0x3f, 0x1e, 0x0c },
-		.active.buffer = &theme->button_unshade_active_unpressed,
-		.active.rgba = theme->window_active_button_shade_unpressed_image_color,
-		.inactive.buffer = &theme->button_unshade_inactive_unpressed,
-		.inactive.rgba = theme->window_inactive_button_shade_unpressed_image_color,
 	}, {
 		.name = "desk",
+		.type = LAB_SSD_BUTTON_OMNIPRESENT,
+		.state_set = 0,
 		.fallback_button = (const char[]){ 0x33, 0x33, 0x00, 0x00, 0x33, 0x33 },
-		.active.buffer = &theme->button_omnipresent_active_unpressed,
-		.active.rgba = theme->window_active_button_omnipresent_unpressed_image_color,
-		.inactive.buffer = &theme->button_omnipresent_inactive_unpressed,
-		.inactive.rgba = theme->window_inactive_button_omnipresent_unpressed_image_color,
 	}, {
 		.name = "desk_toggled",
+		.type = LAB_SSD_BUTTON_OMNIPRESENT,
+		.state_set = LAB_BS_TOGGLED,
 		.fallback_button = (const char[]){ 0x00, 0x1e, 0x1a, 0x16, 0x1e, 0x00 },
-		.active.buffer = &theme->button_exclusive_active_unpressed,
-		.active.rgba = theme->window_active_button_omnipresent_unpressed_image_color,
-		.inactive.buffer = &theme->button_exclusive_inactive_unpressed,
-		.inactive.rgba = theme->window_inactive_button_omnipresent_unpressed_image_color,
 	}, {
 		.name = "close",
+		.type = LAB_SSD_BUTTON_CLOSE,
+		.state_set = 0,
 		.fallback_button = (const char[]){ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
-		.active.buffer = &theme->button_close_active_unpressed,
-		.active.rgba = theme->window_active_button_close_unpressed_image_color,
-		.inactive.buffer = &theme->button_close_inactive_unpressed,
-		.inactive.rgba = theme->window_inactive_button_close_unpressed_image_color,
 	}, {
 		.name = "menu_hover",
+		.type = LAB_SSD_BUTTON_WINDOW_MENU,
+		.state_set = LAB_BS_HOVERD,
 		/* no fallback (non-hover variant is used instead) */
-		.active.buffer = &theme->button_menu_active_hover,
-		.active.rgba = theme->window_active_button_menu_unpressed_image_color,
-		.inactive.buffer = &theme->button_menu_inactive_hover,
-		.inactive.rgba = theme->window_inactive_button_menu_unpressed_image_color,
+	}, {
+		/* menu_hover icon is loaded again as a fallback of window icon */
+		.name = "menu_hover",
+		.type = LAB_SSD_BUTTON_WINDOW_ICON,
+		.state_set = LAB_BS_HOVERD,
+		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "iconify_hover",
+		.type = LAB_SSD_BUTTON_ICONIFY,
+		.state_set = LAB_BS_HOVERD,
 		/* no fallback (non-hover variant is used instead) */
-		.active.buffer = &theme->button_iconify_active_hover,
-		.active.rgba = theme->window_active_button_iconify_unpressed_image_color,
-		.inactive.buffer = &theme->button_iconify_inactive_hover,
-		.inactive.rgba = theme->window_inactive_button_iconify_unpressed_image_color,
 	}, {
 		.name = "max_hover",
+		.type = LAB_SSD_BUTTON_MAXIMIZE,
+		.state_set = LAB_BS_HOVERD,
 		/* no fallback (non-hover variant is used instead) */
-		.active.buffer = &theme->button_maximize_active_hover,
-		.active.rgba = theme->window_active_button_max_unpressed_image_color,
-		.inactive.buffer = &theme->button_maximize_inactive_hover,
-		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
 	}, {
 		.name = "max_toggled_hover",
 		.alt_name = "max_hover_toggled",
+		.type = LAB_SSD_BUTTON_MAXIMIZE,
+		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERD,
 		/* no fallback (non-hover variant is used instead) */
-		.active.buffer = &theme->button_restore_active_hover,
-		.active.rgba = theme->window_active_button_max_unpressed_image_color,
-		.inactive.buffer = &theme->button_restore_inactive_hover,
-		.inactive.rgba = theme->window_inactive_button_max_unpressed_image_color,
 	}, {
 		.name = "shade_hover",
+		.type = LAB_SSD_BUTTON_SHADE,
+		.state_set = LAB_BS_HOVERD,
 		/* no fallback (non-hover variant is used instead) */
-		.active.buffer = &theme->button_shade_active_hover,
-		.active.rgba = theme->window_active_button_shade_unpressed_image_color,
-		.inactive.buffer = &theme->button_shade_inactive_hover,
-		.inactive.rgba = theme->window_inactive_button_shade_unpressed_image_color,
 	}, {
 		.name = "shade_toggled_hover",
 		.alt_name = "shade_hover_toggled",
+		.type = LAB_SSD_BUTTON_SHADE,
+		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERD,
 		/* no fallback (non-hover variant is used instead) */
-		.active.buffer = &theme->button_unshade_active_hover,
-		.active.rgba = theme->window_active_button_shade_unpressed_image_color,
-		.inactive.buffer = &theme->button_unshade_inactive_hover,
-		.inactive.rgba = theme->window_inactive_button_shade_unpressed_image_color,
 	}, {
 		.name = "desk_hover",
 		/* no fallback (non-hover variant is used instead) */
-		.active.buffer = &theme->button_omnipresent_active_hover,
-		.active.rgba = theme->window_active_button_omnipresent_unpressed_image_color,
-		.inactive.buffer = &theme->button_omnipresent_inactive_hover,
-		.inactive.rgba = theme->window_inactive_button_omnipresent_unpressed_image_color,
+		.type = LAB_SSD_BUTTON_OMNIPRESENT,
+		.state_set = LAB_BS_HOVERD,
 	}, {
 		.name = "desk_toggled_hover",
 		.alt_name = "desk_hover_toggled",
+		.type = LAB_SSD_BUTTON_OMNIPRESENT,
+		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERD,
 		/* no fallback (non-hover variant is used instead) */
-		.active.buffer = &theme->button_exclusive_active_hover,
-		.active.rgba = theme->window_active_button_omnipresent_unpressed_image_color,
-		.inactive.buffer = &theme->button_exclusive_inactive_hover,
-		.inactive.rgba = theme->window_inactive_button_omnipresent_unpressed_image_color,
 	}, {
 		.name = "close_hover",
+		.type = LAB_SSD_BUTTON_CLOSE,
+		.state_set = LAB_BS_HOVERD,
 		/* no fallback (non-hover variant is used instead) */
-		.active.buffer = &theme->button_close_active_hover,
-		.active.rgba = theme->window_active_button_close_unpressed_image_color,
-		.inactive.buffer = &theme->button_close_inactive_hover,
-		.inactive.rgba = theme->window_inactive_button_close_unpressed_image_color,
 	}, };
 
-	char filename[4096] = {0};
 	for (size_t i = 0; i < ARRAY_SIZE(buttons); ++i) {
 		struct button *b = &buttons[i];
-
-		zdrop(b->active.buffer);
-		zdrop(b->inactive.buffer);
-
-		/* PNG */
-		get_button_filename(filename, sizeof(filename), b->name, "-active.png");
-		img_png_load(filename, b->active.buffer);
-		get_button_filename(filename, sizeof(filename), b->name, "-inactive.png");
-		img_png_load(filename, b->inactive.buffer);
-
-#if HAVE_RSVG
-		/* SVG */
-		int size = theme->title_height - 2 * theme->padding_height;
-		if (!*b->active.buffer) {
-			get_button_filename(filename, sizeof(filename), b->name, "-active.svg");
-			img_svg_load(filename, b->active.buffer, size);
-		}
-		if (!*b->inactive.buffer) {
-			get_button_filename(filename, sizeof(filename), b->name, "-inactive.svg");
-			img_svg_load(filename, b->inactive.buffer, size);
-		}
-#endif
-
-		/* XBM */
-		get_button_filename(filename, sizeof(filename), b->name, ".xbm");
-		if (!*b->active.buffer) {
-			img_xbm_load(filename, b->active.buffer, b->active.rgba);
-		}
-		if (!*b->inactive.buffer) {
-			img_xbm_load(filename, b->inactive.buffer, b->inactive.rgba);
-		}
-
-		/*
-		 * XBM (alternative name)
-		 * For example max_hover_toggled instead of max_toggled_hover
-		 */
-		if (b->alt_name) {
-			get_button_filename(filename, sizeof(filename), b->alt_name, ".xbm");
-		}  else {
-			filename[0] = '\0';
-		}
-		if (!*b->active.buffer) {
-			img_xbm_load(filename, b->active.buffer, b->active.rgba);
-		}
-		if (!*b->inactive.buffer) {
-			img_xbm_load(filename, b->inactive.buffer, b->inactive.rgba);
-		}
-
-		/*
-		 * Builtin bitmap
-		 *
-		 * Applicable to basic buttons such as max, max_toggled and
-		 * iconify. There are no bitmap fallbacks for *_hover icons.
-		 */
-		if (!b->fallback_button) {
-			continue;
-		}
-		if (!*b->active.buffer) {
-			img_xbm_from_bitmap(b->fallback_button,
-				b->active.buffer, b->active.rgba);
-		}
-		if (!*b->inactive.buffer) {
-			img_xbm_from_bitmap(b->fallback_button,
-				b->inactive.buffer, b->inactive.rgba);
-		}
-	}
-
-	/*
-	 * If hover-icons do not exist, add fallbacks by copying the non-hover
-	 * variant (base) and then adding an overlay.
-	 */
-	for (size_t i = 0; i < ARRAY_SIZE(buttons); i++) {
-		struct button *hover_button = &buttons[i];
-
-		if (!strstr(hover_button->name, "_hover")) {
-			continue;
-		}
-
-		/* If name=='foo_hover', basename='foo' */
-		char basename[64]  = {0};
-		snprintf(basename, sizeof(basename), "%s", hover_button->name);
-		trim_last_field(basename, '_');
-		for (size_t j = 0; j < ARRAY_SIZE(buttons); j++) {
-			struct button *base = &buttons[j];
-			if (!strcmp(basename, base->name)) {
-				if (!*hover_button->active.buffer) {
-					create_hover_fallback(theme, basename,
-						hover_button->active.buffer,
-						*base->active.buffer);
-				}
-				if (!*hover_button->inactive.buffer) {
-					create_hover_fallback(theme, basename,
-						hover_button->inactive.buffer,
-						*base->inactive.buffer);
-				}
-				break;
-			}
-		}
+		load_button(theme, b, THEME_INACTIVE);
+		load_button(theme, b, THEME_ACTIVE);
 	}
 }
 
@@ -645,30 +594,13 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->window_button_spacing = 0;
 	theme->window_button_hover_bg_shape = LAB_RECTANGLE;
 
-	parse_hexstr("#000000",
-		theme->window_active_button_menu_unpressed_image_color);
-	parse_hexstr("#000000",
-		theme->window_active_button_iconify_unpressed_image_color);
-	parse_hexstr("#000000",
-		theme->window_active_button_max_unpressed_image_color);
-	parse_hexstr("#000000",
-		theme->window_active_button_shade_unpressed_image_color);
-	parse_hexstr("#000000",
-		theme->window_active_button_omnipresent_unpressed_image_color);
-	parse_hexstr("#000000",
-		theme->window_active_button_close_unpressed_image_color);
-	parse_hexstr("#000000",
-		theme->window_inactive_button_menu_unpressed_image_color);
-	parse_hexstr("#000000",
-		theme->window_inactive_button_iconify_unpressed_image_color);
-	parse_hexstr("#000000",
-		theme->window_inactive_button_max_unpressed_image_color);
-	parse_hexstr("#000000",
-		theme->window_inactive_button_shade_unpressed_image_color);
-	parse_hexstr("#000000",
-		theme->window_inactive_button_omnipresent_unpressed_image_color);
-	parse_hexstr("#000000",
-		theme->window_inactive_button_close_unpressed_image_color);
+	for (enum ssd_part_type type = LAB_SSD_BUTTON_FIRST;
+			type <= LAB_SSD_BUTTON_LAST; type++) {
+		parse_hexstr("#000000",
+			theme->window[THEME_INACTIVE].button_colors[type]);
+		parse_hexstr("#000000",
+			theme->window[THEME_ACTIVE].button_colors[type]);
+	}
 
 	theme->window_active_shadow_size = 60;
 	theme->window_inactive_shadow_size = 40;
@@ -855,82 +787,72 @@ entry(struct theme *theme, const char *key, const char *value)
 
 	/* universal button */
 	if (match_glob(key, "window.active.button.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_active_button_menu_unpressed_image_color);
-		parse_hexstr(value,
-			theme->window_active_button_iconify_unpressed_image_color);
-		parse_hexstr(value,
-			theme->window_active_button_max_unpressed_image_color);
-		parse_hexstr(value,
-			theme->window_active_button_shade_unpressed_image_color);
-		parse_hexstr(value,
-			theme->window_active_button_omnipresent_unpressed_image_color);
-		parse_hexstr(value,
-			theme->window_active_button_close_unpressed_image_color);
+		for (enum ssd_part_type type = LAB_SSD_BUTTON_FIRST;
+				type <= LAB_SSD_BUTTON_LAST; type++) {
+			parse_hexstr(value,
+				theme->window[THEME_ACTIVE].button_colors[type]);
+		}
 	}
 	if (match_glob(key, "window.inactive.button.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_inactive_button_menu_unpressed_image_color);
-		parse_hexstr(value,
-			theme->window_inactive_button_iconify_unpressed_image_color);
-		parse_hexstr(value,
-			theme->window_inactive_button_max_unpressed_image_color);
-		parse_hexstr(value,
-			theme->window_inactive_button_shade_unpressed_image_color);
-		parse_hexstr(value,
-			theme->window_inactive_button_omnipresent_unpressed_image_color);
-		parse_hexstr(value,
-			theme->window_inactive_button_close_unpressed_image_color);
+		for (enum ssd_part_type type = LAB_SSD_BUTTON_FIRST;
+				type <= LAB_SSD_BUTTON_LAST; type++) {
+			parse_hexstr(value,
+				theme->window[THEME_INACTIVE].button_colors[type]);
+		}
 	}
 
 	/* individual buttons */
 	if (match_glob(key, "window.active.button.menu.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_active_button_menu_unpressed_image_color);
+		parse_hexstr(value, theme->window[THEME_ACTIVE]
+			.button_colors[LAB_SSD_BUTTON_WINDOW_MENU]);
+		parse_hexstr(value, theme->window[THEME_ACTIVE]
+			.button_colors[LAB_SSD_BUTTON_WINDOW_ICON]);
 	}
 	if (match_glob(key, "window.active.button.iconify.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_active_button_iconify_unpressed_image_color);
+		parse_hexstr(value, theme->window[THEME_ACTIVE]
+			.button_colors[LAB_SSD_BUTTON_ICONIFY]);
 	}
 	if (match_glob(key, "window.active.button.max.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_active_button_max_unpressed_image_color);
+		parse_hexstr(value, theme->window[THEME_ACTIVE]
+			.button_colors[LAB_SSD_BUTTON_MAXIMIZE]);
 	}
 	if (match_glob(key, "window.active.button.shade.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_active_button_shade_unpressed_image_color);
+		parse_hexstr(value, theme->window[THEME_ACTIVE]
+			.button_colors[LAB_SSD_BUTTON_SHADE]);
 	}
 	if (match_glob(key, "window.active.button.desk.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_active_button_omnipresent_unpressed_image_color);
+		parse_hexstr(value, theme->window[THEME_ACTIVE]
+			.button_colors[LAB_SSD_BUTTON_OMNIPRESENT]);
 	}
 	if (match_glob(key, "window.active.button.close.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_active_button_close_unpressed_image_color);
+		parse_hexstr(value, theme->window[THEME_ACTIVE]
+			.button_colors[LAB_SSD_BUTTON_CLOSE]);
 	}
 	if (match_glob(key, "window.inactive.button.menu.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_inactive_button_menu_unpressed_image_color);
+		parse_hexstr(value, theme->window[THEME_INACTIVE]
+			.button_colors[LAB_SSD_BUTTON_WINDOW_MENU]);
+		parse_hexstr(value, theme->window[THEME_INACTIVE]
+			.button_colors[LAB_SSD_BUTTON_WINDOW_ICON]);
 	}
 	if (match_glob(key, "window.inactive.button.iconify.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_inactive_button_iconify_unpressed_image_color);
+		parse_hexstr(value, theme->window[THEME_INACTIVE]
+			.button_colors[LAB_SSD_BUTTON_ICONIFY]);
 	}
 	if (match_glob(key, "window.inactive.button.max.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_inactive_button_max_unpressed_image_color);
+		parse_hexstr(value, theme->window[THEME_INACTIVE]
+			.button_colors[LAB_SSD_BUTTON_MAXIMIZE]);
 	}
 	if (match_glob(key, "window.inactive.button.shade.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_inactive_button_shade_unpressed_image_color);
+		parse_hexstr(value, theme->window[THEME_INACTIVE]
+			.button_colors[LAB_SSD_BUTTON_SHADE]);
 	}
 	if (match_glob(key, "window.inactive.button.desk.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_inactive_button_omnipresent_unpressed_image_color);
+		parse_hexstr(value, theme->window[THEME_INACTIVE]
+			.button_colors[LAB_SSD_BUTTON_OMNIPRESENT]);
 	}
 	if (match_glob(key, "window.inactive.button.close.unpressed.image.color")) {
-		parse_hexstr(value,
-			theme->window_inactive_button_close_unpressed_image_color);
+		parse_hexstr(value, theme->window[THEME_INACTIVE]
+			.button_colors[LAB_SSD_BUTTON_CLOSE]);
 	}
 
 	/* window drop-shadows */
@@ -1657,45 +1579,16 @@ theme_init(struct theme *theme, struct server *server, const char *theme_name)
 void
 theme_finish(struct theme *theme)
 {
-	zdrop(&theme->button_close_active_unpressed);
-	zdrop(&theme->button_maximize_active_unpressed);
-	zdrop(&theme->button_restore_active_unpressed);
-	zdrop(&theme->button_shade_active_unpressed);
-	zdrop(&theme->button_unshade_active_unpressed);
-	zdrop(&theme->button_omnipresent_active_unpressed);
-	zdrop(&theme->button_exclusive_active_unpressed);
-	zdrop(&theme->button_iconify_active_unpressed);
-	zdrop(&theme->button_menu_active_unpressed);
-
-	zdrop(&theme->button_close_inactive_unpressed);
-	zdrop(&theme->button_maximize_inactive_unpressed);
-	zdrop(&theme->button_restore_inactive_unpressed);
-	zdrop(&theme->button_shade_inactive_unpressed);
-	zdrop(&theme->button_unshade_inactive_unpressed);
-	zdrop(&theme->button_omnipresent_inactive_unpressed);
-	zdrop(&theme->button_exclusive_inactive_unpressed);
-	zdrop(&theme->button_iconify_inactive_unpressed);
-	zdrop(&theme->button_menu_inactive_unpressed);
-
-	zdrop(&theme->button_close_active_hover);
-	zdrop(&theme->button_maximize_active_hover);
-	zdrop(&theme->button_restore_active_hover);
-	zdrop(&theme->button_shade_active_hover);
-	zdrop(&theme->button_unshade_active_hover);
-	zdrop(&theme->button_omnipresent_active_hover);
-	zdrop(&theme->button_exclusive_active_hover);
-	zdrop(&theme->button_iconify_active_hover);
-	zdrop(&theme->button_menu_active_hover);
-
-	zdrop(&theme->button_close_inactive_hover);
-	zdrop(&theme->button_maximize_inactive_hover);
-	zdrop(&theme->button_restore_inactive_hover);
-	zdrop(&theme->button_shade_inactive_hover);
-	zdrop(&theme->button_unshade_inactive_hover);
-	zdrop(&theme->button_omnipresent_inactive_hover);
-	zdrop(&theme->button_exclusive_inactive_hover);
-	zdrop(&theme->button_iconify_inactive_hover);
-	zdrop(&theme->button_menu_inactive_hover);
+	for (enum ssd_part_type type = LAB_SSD_BUTTON_FIRST;
+			type <= LAB_SSD_BUTTON_LAST; type++) {
+		for (uint8_t state_set = 0; state_set <= LAB_BS_ALL;
+				state_set++) {
+			zdrop(&theme->window[THEME_INACTIVE]
+				.buttons[type][state_set]);
+			zdrop(&theme->window[THEME_ACTIVE]
+				.buttons[type][state_set]);
+		}
+	}
 
 	zdrop(&theme->corner_top_left_active_normal);
 	zdrop(&theme->corner_top_left_inactive_normal);

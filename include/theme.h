@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <wlr/render/wlr_renderer.h>
+#include "ssd.h"
 
 enum lab_justification {
 	LAB_JUSTIFY_LEFT,
@@ -28,6 +29,14 @@ struct theme_snapping_overlay {
 	float bg_color[4];
 	int border_width;
 	float border_color[3][4];
+};
+
+enum lab_button_state {
+	LAB_BS_HOVERD = 1 << 0,
+	LAB_BS_TOGGLED = 1 << 1,
+	LAB_BS_ROUNDED = 1 << 2,
+
+	LAB_BS_ALL = LAB_BS_HOVERD | LAB_BS_TOGGLED | LAB_BS_ROUNDED,
 };
 
 struct theme {
@@ -64,21 +73,6 @@ struct theme {
 	int window_button_spacing;
 	/* the shape of the hover effect */
 	enum lab_shape window_button_hover_bg_shape;
-
-	/* button colors */
-	float window_active_button_menu_unpressed_image_color[4];
-	float window_active_button_iconify_unpressed_image_color[4];
-	float window_active_button_max_unpressed_image_color[4];
-	float window_active_button_close_unpressed_image_color[4];
-	float window_active_button_shade_unpressed_image_color[4];
-	float window_active_button_omnipresent_unpressed_image_color[4];
-	float window_inactive_button_menu_unpressed_image_color[4];
-	float window_inactive_button_iconify_unpressed_image_color[4];
-	float window_inactive_button_max_unpressed_image_color[4];
-	float window_inactive_button_close_unpressed_image_color[4];
-	float window_inactive_button_shade_unpressed_image_color[4];
-	float window_inactive_button_omnipresent_unpressed_image_color[4];
-	/* TODO: add pressed and hover colors for buttons */
 
 	int menu_item_padding_x;
 	int menu_item_padding_y;
@@ -128,47 +122,26 @@ struct theme {
 	float window_active_shadow_color[4];
 	float window_inactive_shadow_color[4];
 
+	struct {
+		/*
+		 * The texture of a window buttons for each hover/toggled/rounded
+		 * state. This can be accessed like:
+		 *
+		 * buttons[LAB_SSD_BUTTON_ICONIFY][LAB_BS_HOVERD | LAB_BS_TOGGLED]
+		 *
+		 * Elements in buttons[0] are all NULL since LAB_SSD_BUTTON_FIRST is 1.
+		 */
+		struct lab_data_buffer *buttons
+			[LAB_SSD_BUTTON_LAST + 1][LAB_BS_ALL + 1];
+
+		/* TODO: add toggled/hover/pressed/disabled colors for buttons */
+		float button_colors[LAB_SSD_BUTTON_LAST + 1][4];
+
+		/* TODO: move other window.(in)active.* entries to here */
+
+	} window[2]; /* indexed by THEME_INACTIVE and THEME_ACTIVE */
+
 	/* textures */
-	struct lab_data_buffer *button_close_active_unpressed;
-	struct lab_data_buffer *button_maximize_active_unpressed;
-	struct lab_data_buffer *button_restore_active_unpressed;
-	struct lab_data_buffer *button_iconify_active_unpressed;
-	struct lab_data_buffer *button_menu_active_unpressed;
-	struct lab_data_buffer *button_shade_active_unpressed;
-	struct lab_data_buffer *button_unshade_active_unpressed;
-	struct lab_data_buffer *button_omnipresent_active_unpressed;
-	struct lab_data_buffer *button_exclusive_active_unpressed;
-
-	struct lab_data_buffer *button_close_inactive_unpressed;
-	struct lab_data_buffer *button_maximize_inactive_unpressed;
-	struct lab_data_buffer *button_restore_inactive_unpressed;
-	struct lab_data_buffer *button_iconify_inactive_unpressed;
-	struct lab_data_buffer *button_menu_inactive_unpressed;
-	struct lab_data_buffer *button_shade_inactive_unpressed;
-	struct lab_data_buffer *button_unshade_inactive_unpressed;
-	struct lab_data_buffer *button_omnipresent_inactive_unpressed;
-	struct lab_data_buffer *button_exclusive_inactive_unpressed;
-
-	/* hover variants are optional and may be NULL */
-	struct lab_data_buffer *button_close_active_hover;
-	struct lab_data_buffer *button_maximize_active_hover;
-	struct lab_data_buffer *button_restore_active_hover;
-	struct lab_data_buffer *button_iconify_active_hover;
-	struct lab_data_buffer *button_menu_active_hover;
-	struct lab_data_buffer *button_shade_active_hover;
-	struct lab_data_buffer *button_unshade_active_hover;
-	struct lab_data_buffer *button_omnipresent_active_hover;
-	struct lab_data_buffer *button_exclusive_active_hover;
-
-	struct lab_data_buffer *button_close_inactive_hover;
-	struct lab_data_buffer *button_maximize_inactive_hover;
-	struct lab_data_buffer *button_restore_inactive_hover;
-	struct lab_data_buffer *button_iconify_inactive_hover;
-	struct lab_data_buffer *button_menu_inactive_hover;
-	struct lab_data_buffer *button_shade_inactive_hover;
-	struct lab_data_buffer *button_unshade_inactive_hover;
-	struct lab_data_buffer *button_omnipresent_inactive_hover;
-	struct lab_data_buffer *button_exclusive_inactive_hover;
 
 	struct lab_data_buffer *corner_top_left_active_normal;
 	struct lab_data_buffer *corner_top_right_active_normal;
@@ -189,6 +162,9 @@ struct theme {
 	float mag_border_color[4];
 	int mag_border_width;
 };
+
+#define THEME_INACTIVE 0
+#define THEME_ACTIVE 1
 
 struct server;
 

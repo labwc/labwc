@@ -33,10 +33,11 @@ The format is based on [Keep a Changelog]
 
 ## [unreleased]
 
-Note to package maintainers: The SSD titlebar window icon support requires
-libsfdo to be added as a dependency if your distribution want to statically
-link. If this is not wanted, add -Dicon=disabled to the `meson setup` command in
-the build script for the next release.
+Notes to package maintainers:
+
+- The SSD titlebar window icon support requires libsfdo to be added as a
+  dependency or statically linked. If this is not wanted, add -Dicon=disabled to
+  the `meson setup` command in the build script for the next release.
 
 ### Added
 
@@ -97,7 +98,7 @@ window.inactive.button.shade.unpressed.image.color
 ```
 <titlebar>
   <layout>icon:iconify,max,close</layout>
-  <showTitle>yes|on</showTitle>
+  <showTitle>yes|no</showTitle>
 </titlebar>
 ```
 

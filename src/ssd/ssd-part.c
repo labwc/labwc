@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include "buffer.h"
+#include "common/box.h"
 #include "common/list.h"
 #include "common/mem.h"
 #include "labwc.h"
@@ -80,29 +81,11 @@ add_scene_buffer(struct wl_list *list, enum ssd_part_type type,
 }
 
 static struct wlr_box
-get_scale_box(struct lab_data_buffer *buffer, double container_width,
-		double container_height)
+get_scale_box(struct lab_data_buffer *buffer, int container_width,
+		int container_height)
 {
-	struct wlr_box icon_geo = {
-		.width = buffer->logical_width,
-		.height = buffer->logical_height
-	};
-
-	/* Scale down buffer if required */
-	if (icon_geo.width && icon_geo.height) {
-		double scale = MIN(container_width / icon_geo.width,
-			container_height / icon_geo.height);
-		if (scale < 1.0f) {
-			icon_geo.width = (double)icon_geo.width * scale;
-			icon_geo.height = (double)icon_geo.height * scale;
-		}
-	}
-
-	/* Center buffer on both axis */
-	icon_geo.x = (container_width - icon_geo.width) / 2;
-	icon_geo.y = (container_height - icon_geo.height) / 2;
-
-	return icon_geo;
+	return box_fit_within(buffer->logical_width, buffer->logical_height,
+		container_width, container_height);
 }
 
 void

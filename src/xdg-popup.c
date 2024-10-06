@@ -7,6 +7,7 @@
  *	- keeping non-layer-shell xdg-popups outside the layers.c code
  */
 
+#include "common/macros.h"
 #include "common/mem.h"
 #include "labwc.h"
 #include "node.h"
@@ -33,11 +34,18 @@ popup_unconstrain(struct xdg_popup *popup)
 	struct wlr_scene_tree *parent_tree = popup->wlr_popup->parent->data;
 	wlr_scene_node_coords(&parent_tree->node, &parent_lx, &parent_ly);
 
-	/* Get usable area to constrain by */
+	/*
+	 * Get usable area to constrain by
+	 *
+	 * The scheduled top-left corner (x, y) of the popup is sometimes less
+	 * than zero, typically with Qt apps. We therefore clamp it to avoid for
+	 * example the 'File' menu of a maximized window to end up on an another
+	 * output.
+	 */
 	struct wlr_box *popup_box = &popup->wlr_popup->scheduled.geometry;
 	struct output *output = output_nearest_to(server,
-		parent_lx + popup_box->x,
-		parent_ly + popup_box->y);
+		parent_lx + MAX(popup_box->x, 0),
+		parent_ly + MAX(popup_box->y, 0));
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
 	/* Get offset of toplevel window from its surface */

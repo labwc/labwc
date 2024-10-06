@@ -44,6 +44,20 @@ xdg_toplevel_from_view(struct view *view)
 	return xdg_surface->toplevel;
 }
 
+static struct view_size_hints
+xdg_toplevel_view_get_size_hints(struct view *view)
+{
+	assert(view);
+
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+	struct wlr_xdg_toplevel_state *state = &toplevel->current;
+
+	return (struct view_size_hints){
+		.min_width = state->min_width,
+		.min_height = state->min_height,
+	};
+}
+
 static bool
 xdg_toplevel_view_contains_window_type(struct view *view, int32_t window_type)
 {
@@ -779,6 +793,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.move_to_back = view_impl_move_to_back,
 	.get_root = xdg_toplevel_view_get_root,
 	.append_children = xdg_toplevel_view_append_children,
+	.get_size_hints = xdg_toplevel_view_get_size_hints,
 	.contains_window_type = xdg_toplevel_view_contains_window_type,
 	.get_pid = xdg_view_get_pid,
 };

@@ -73,4 +73,12 @@ char *str_join(const char *const parts[],
  */
 bool str_endswith(const char *const string, const char *const suffix);
 
+/**
+ * str_starts_with - indicate whether a string starts with a given character
+ * @string: string to test
+ * @needle: character to expect in string
+ * @ignore_chars: characters to ignore at start such as space and "\t"
+ */
+bool str_starts_with(const char *s, char needle, const char *ignore_chars);
+
 #endif /* LABWC_STRING_HELPERS_H */

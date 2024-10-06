@@ -153,6 +153,8 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		view_restore_to(view, natural_geo);
 	}
 
+	wlr_seat_pointer_notify_clear_focus(seat->seat);
+
 	if (rc.resize_indicator) {
 		resize_indicator_show(view);
 	}

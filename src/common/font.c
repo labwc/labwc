@@ -109,7 +109,7 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	}
 
 	*buffer = buffer_create_cairo(text_extents.width + arrow_extents.width,
-			text_extents.height, scale, true);
+			text_extents.height, scale);
 	if (!*buffer) {
 		wlr_log(WLR_ERROR, "Failed to create font buffer");
 		return;

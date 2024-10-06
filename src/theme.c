@@ -110,7 +110,7 @@ copy_icon_buffer(struct theme *theme, struct lab_data_buffer *icon_buffer)
 	int buffer_width = (double)width * scale;
 	int buffer_height = (double)height * scale;
 	struct lab_data_buffer *buffer = buffer_create_cairo(
-		buffer_width, buffer_height, 1.0, true);
+		buffer_width, buffer_height, 1.0);
 	cairo_t *cairo = buffer->cairo;
 
 	cairo_set_source_surface(cairo, icon.surface,
@@ -1087,7 +1087,7 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 
 	struct lab_data_buffer *buffer;
 	/* TODO: scale */
-	buffer = buffer_create_cairo(w, h, 1, /*free_on_destroy*/ true);
+	buffer = buffer_create_cairo(w, h, 1);
 
 	cairo_t *cairo = buffer->cairo;
 	cairo_surface_t *surf = cairo_get_target(cairo);
@@ -1406,11 +1406,11 @@ create_shadows(struct theme *theme)
 	 */
 	if (visible_active_size > 0) {
 		theme->shadow_edge_active = buffer_create_cairo(
-			visible_active_size, 1, 1.0, true);
+			visible_active_size, 1, 1.0);
 		theme->shadow_corner_top_active = buffer_create_cairo(
-			total_active_size, total_active_size, 1.0, true);
+			total_active_size, total_active_size, 1.0);
 		theme->shadow_corner_bottom_active = buffer_create_cairo(
-			total_active_size, total_active_size, 1.0, true);
+			total_active_size, total_active_size, 1.0);
 		if (!theme->shadow_corner_top_active
 				|| !theme->shadow_corner_bottom_active
 				|| !theme->shadow_edge_active) {
@@ -1420,11 +1420,11 @@ create_shadows(struct theme *theme)
 	}
 	if (visible_inactive_size > 0) {
 		theme->shadow_edge_inactive = buffer_create_cairo(
-			visible_inactive_size, 1, 1.0, true);
+			visible_inactive_size, 1, 1.0);
 		theme->shadow_corner_top_inactive = buffer_create_cairo(
-			total_inactive_size, total_inactive_size, 1.0, true);
+			total_inactive_size, total_inactive_size, 1.0);
 		theme->shadow_corner_bottom_inactive = buffer_create_cairo(
-			total_inactive_size, total_inactive_size, 1.0, true);
+			total_inactive_size, total_inactive_size, 1.0);
 		if (!theme->shadow_corner_top_inactive
 				|| !theme->shadow_corner_bottom_inactive
 				|| !theme->shadow_edge_inactive) {

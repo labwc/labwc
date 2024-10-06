@@ -387,7 +387,7 @@ pixbuf_create_from_xpm(struct file_handle *handle)
 	free(colors);
 	free(name_buf);
 
-	return buffer_create_wrap(data, w, h, 4 * w, true);
+	return buffer_create_from_data(data, w, h, 4 * w);
 
 out:
 	g_hash_table_destroy(color_hash);

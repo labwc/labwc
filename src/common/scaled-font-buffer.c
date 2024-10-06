@@ -25,8 +25,8 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 		wlr_log(WLR_ERROR, "font_buffer_create() failed");
 	}
 
-	self->width = buffer ? buffer->unscaled_width : 0;
-	self->height = buffer ? buffer->unscaled_height : 0;
+	self->width = buffer ? buffer->logical_width : 0;
+	self->height = buffer ? buffer->logical_height : 0;
 	return buffer;
 }
 

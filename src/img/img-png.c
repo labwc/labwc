@@ -64,10 +64,20 @@ img_png_load(const char *filename, struct lab_data_buffer **buffer)
 	}
 	cairo_surface_flush(image);
 
-	double w = cairo_image_surface_get_width(image);
-	double h = cairo_image_surface_get_height(image);
-	*buffer = buffer_create_cairo((int)w, (int)h, 1.0, true);
+	if (cairo_image_surface_get_format(image) == CAIRO_FORMAT_ARGB32) {
+		/* we can wrap ARGB32 image surfaces directly */
+		*buffer = buffer_adopt_cairo_surface(image);
+		return;
+	}
+
+	/* convert to ARGB32 by painting to a new surface */
+	uint32_t w = cairo_image_surface_get_width(image);
+	uint32_t h = cairo_image_surface_get_height(image);
+	*buffer = buffer_create_cairo(w, h, 1);
 	cairo_t *cairo = (*buffer)->cairo;
 	cairo_set_source_surface(cairo, image, 0, 0);
-	cairo_paint_with_alpha(cairo, 1.0);
+	cairo_paint(cairo);
+	cairo_surface_flush((*buffer)->surface);
+	/* destroy original surface */
+	cairo_surface_destroy(image);
 }

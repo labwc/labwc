@@ -196,8 +196,8 @@ set_shadow_geometry(struct ssd *ssd)
 		 * is different).  The buffers are square so width == height.
 		 */
 		int corner_size = active
-			? theme->shadow_corner_top_active->unscaled_height
-			: theme->shadow_corner_top_inactive->unscaled_height;
+			? theme->shadow_corner_top_active->logical_height
+			: theme->shadow_corner_top_inactive->logical_height;
 
 		wl_list_for_each(part, &subtree->parts, link) {
 			set_shadow_part_geometry(part, width, height,

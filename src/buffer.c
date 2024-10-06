@@ -44,14 +44,12 @@ static void
 data_buffer_destroy(struct wlr_buffer *wlr_buffer)
 {
 	struct lab_data_buffer *buffer = data_buffer_from_buffer(wlr_buffer);
-	if (!buffer->free_on_destroy) {
-		free(buffer);
-		return;
-	}
 	if (buffer->cairo) {
-		cairo_surface_t *surf = cairo_get_target(buffer->cairo);
 		cairo_destroy(buffer->cairo);
-		cairo_surface_destroy(surf);
+	}
+	if (buffer->surface) {
+		/* this also frees buffer->data */
+		cairo_surface_destroy(buffer->surface);
 	} else if (buffer->data) {
 		free(buffer->data);
 		buffer->data = NULL;
@@ -85,19 +83,35 @@ static const struct wlr_buffer_impl data_buffer_impl = {
 };
 
 struct lab_data_buffer *
-buffer_create_cairo(uint32_t width, uint32_t height, float scale,
-	bool free_on_destroy)
+buffer_adopt_cairo_surface(cairo_surface_t *surface)
 {
-	struct lab_data_buffer *buffer = znew(*buffer);
-	buffer->unscaled_width = width;
-	buffer->unscaled_height = height;
-	width *= scale;
-	height *= scale;
+	assert(cairo_surface_get_type(surface) == CAIRO_SURFACE_TYPE_IMAGE);
+	assert(cairo_image_surface_get_format(surface) == CAIRO_FORMAT_ARGB32);
 
-	/* Allocate the buffer with the scaled size */
+	int width = cairo_image_surface_get_width(surface);
+	int height = cairo_image_surface_get_height(surface);
+
+	struct lab_data_buffer *buffer = znew(*buffer);
 	wlr_buffer_init(&buffer->base, &data_buffer_impl, width, height);
-	cairo_surface_t *surf =
-		cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+
+	buffer->surface = surface;
+	buffer->data = cairo_image_surface_get_data(buffer->surface);
+	buffer->format = DRM_FORMAT_ARGB8888;
+	buffer->stride = cairo_image_surface_get_stride(buffer->surface);
+	buffer->logical_width = width;
+	buffer->logical_height = height;
+
+	return buffer;
+}
+
+struct lab_data_buffer *
+buffer_create_cairo(uint32_t logical_width, uint32_t logical_height, float scale)
+{
+	/* Create an image surface with the scaled size */
+	cairo_surface_t *surface =
+		cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
+			lroundf(logical_width * scale),
+			lroundf(logical_height * scale));
 
 	/**
 	 * Tell cairo about the device scale so we can keep drawing in unscaled
@@ -106,34 +120,30 @@ buffer_create_cairo(uint32_t width, uint32_t height, float scale,
 	 *
 	 * For a more complete explanation see PR #389
 	 */
-	cairo_surface_set_device_scale(surf, scale, scale);
+	cairo_surface_set_device_scale(surface, scale, scale);
 
-	buffer->cairo = cairo_create(surf);
-	buffer->data = cairo_image_surface_get_data(surf);
-	buffer->format = DRM_FORMAT_ARGB8888;
-	buffer->stride = cairo_image_surface_get_stride(surf);
-	buffer->free_on_destroy = free_on_destroy;
+	/*
+	 * Adopt the image surface into a buffer, set the correct
+	 * logical size, and create a cairo context for drawing
+	 */
+	struct lab_data_buffer *buffer = buffer_adopt_cairo_surface(surface);
+	buffer->logical_width = logical_width;
+	buffer->logical_height = logical_height;
+	buffer->cairo = cairo_create(surface);
 
-	if (!buffer->data) {
-		cairo_destroy(buffer->cairo);
-		cairo_surface_destroy(surf);
-		free(buffer);
-		buffer = NULL;
-	}
 	return buffer;
 }
 
 struct lab_data_buffer *
-buffer_create_wrap(void *pixel_data, uint32_t width, uint32_t height,
-	uint32_t stride, bool free_on_destroy)
+buffer_create_from_data(void *pixel_data, uint32_t width, uint32_t height,
+		uint32_t stride)
 {
 	struct lab_data_buffer *buffer = znew(*buffer);
 	wlr_buffer_init(&buffer->base, &data_buffer_impl, width, height);
-	buffer->unscaled_width = width;
-	buffer->unscaled_height = height;
+	buffer->logical_width = width;
+	buffer->logical_height = height;
 	buffer->data = pixel_data;
 	buffer->format = DRM_FORMAT_ARGB8888;
 	buffer->stride = stride;
-	buffer->free_on_destroy = free_on_destroy;
 	return buffer;
 }

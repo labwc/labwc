@@ -84,7 +84,7 @@ _osd_update(struct server *server)
 			continue;
 		}
 		struct lab_data_buffer *buffer = buffer_create_cairo(width, height,
-			output->wlr_output->scale, true);
+			output->wlr_output->scale);
 		if (!buffer) {
 			wlr_log(WLR_ERROR, "Failed to allocate buffer for workspace OSD");
 			continue;
@@ -168,7 +168,7 @@ _osd_update(struct server *server)
 		wlr_scene_node_set_position(&output->workspace_osd->node, lx, ly);
 		wlr_scene_buffer_set_buffer(output->workspace_osd, &buffer->base);
 		wlr_scene_buffer_set_dest_size(output->workspace_osd,
-			buffer->unscaled_width, buffer->unscaled_height);
+			buffer->logical_width, buffer->logical_height);
 
 		/* And finally drop the buffer so it will get destroyed on OSD hide */
 		wlr_buffer_drop(&buffer->base);

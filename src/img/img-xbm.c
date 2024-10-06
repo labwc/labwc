@@ -266,8 +266,8 @@ img_xbm_from_bitmap(const char *bitmap, struct lab_data_buffer **buffer,
 	}
 	color = argb32(rgba);
 	pixmap = parse_xbm_builtin(bitmap, 6);
-	*buffer = buffer_create_wrap(pixmap.data, pixmap.width, pixmap.height,
-		pixmap.width * 4, /* free_on_destroy */ true);
+	*buffer = buffer_create_from_data(pixmap.data, pixmap.width, pixmap.height,
+		pixmap.width * 4);
 }
 
 void
@@ -298,9 +298,9 @@ img_xbm_load(const char *filename, struct lab_data_buffer **buffer,
 		return;
 	}
 
-	/* Create buffer with free_on_destroy being true */
+	/* Create buffer */
 	if (pixmap.data) {
-		*buffer = buffer_create_wrap(pixmap.data, pixmap.width,
-			pixmap.height, pixmap.width * 4, true);
+		*buffer = buffer_create_from_data(pixmap.data, pixmap.width,
+			pixmap.height, pixmap.width * 4);
 	}
 }

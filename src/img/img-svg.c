@@ -39,8 +39,9 @@ img_svg_load(const char *filename, struct lab_data_buffer **buffer,
 		return;
 	}
 
-	cairo_surface_t *image = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, size, size);
-	cairo_t *cr = cairo_create(image);
+	*buffer = buffer_create_cairo(size, size, 1.0);
+	cairo_surface_t *image = (*buffer)->surface;
+	cairo_t *cr = (*buffer)->cairo;
 
 	rsvg_handle_render_document(svg, cr, &viewport, &err);
 	if (err) {
@@ -55,15 +56,11 @@ img_svg_load(const char *filename, struct lab_data_buffer **buffer,
 	}
 	cairo_surface_flush(image);
 
-	double w = cairo_image_surface_get_width(image);
-	double h = cairo_image_surface_get_height(image);
-	*buffer = buffer_create_cairo((int)w, (int)h, 1.0, /* free_on_destroy */ true);
-	cairo_t *cairo = (*buffer)->cairo;
-	cairo_set_source_surface(cairo, image, 0, 0);
-	cairo_paint_with_alpha(cairo, 1.0);
+	g_object_unref(svg);
+	return;
 
 error:
-	cairo_destroy(cr);
-	cairo_surface_destroy(image);
+	wlr_buffer_drop(&(*buffer)->base);
+	*buffer = NULL;
 	g_object_unref(svg);
 }

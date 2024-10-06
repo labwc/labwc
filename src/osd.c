@@ -351,7 +351,7 @@ display_osd(struct output *output, struct wl_array *views)
 	if (output->osd_buffer) {
 		wlr_buffer_drop(&output->osd_buffer->base);
 	}
-	output->osd_buffer = buffer_create_cairo(w, h, scale, true);
+	output->osd_buffer = buffer_create_cairo(w, h, scale);
 	if (!output->osd_buffer) {
 		wlr_log(WLR_ERROR, "Failed to allocate cairo buffer for the window switcher");
 		return;

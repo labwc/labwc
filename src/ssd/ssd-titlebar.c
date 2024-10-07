@@ -635,7 +635,7 @@ ssd_update_window_icon(struct ssd *ssd)
 		for (uint8_t state_set = 0; state_set <= LAB_BS_ALL; state_set++) {
 			if (button->nodes[state_set]) {
 				update_window_icon_buffer(button->nodes[state_set],
-					&icon_buffer->base);
+					icon_buffer);
 			}
 		}
 	} FOR_EACH_END

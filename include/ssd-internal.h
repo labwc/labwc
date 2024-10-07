@@ -149,7 +149,7 @@ struct ssd_part *add_scene_button(struct wl_list *part_list,
 	struct lab_data_buffer *buffers[LAB_BS_ALL + 1], int x,
 	struct view *view);
 void update_window_icon_buffer(struct wlr_scene_node *button_node,
-	struct wlr_buffer *buffer);
+	struct lab_data_buffer *buffer);
 
 /* SSD internal helpers */
 struct ssd_part *ssd_get_part(

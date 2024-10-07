@@ -80,12 +80,12 @@ add_scene_buffer(struct wl_list *list, enum ssd_part_type type,
 }
 
 static struct wlr_box
-get_scale_box(struct wlr_buffer *buffer, double container_width,
+get_scale_box(struct lab_data_buffer *buffer, double container_width,
 		double container_height)
 {
 	struct wlr_box icon_geo = {
-		.width = buffer->width,
-		.height = buffer->height
+		.width = buffer->logical_width,
+		.height = buffer->logical_height
 	};
 
 	/* Scale down buffer if required */
@@ -107,7 +107,7 @@ get_scale_box(struct wlr_buffer *buffer, double container_width,
 
 void
 update_window_icon_buffer(struct wlr_scene_node *button_node,
-		struct wlr_buffer *buffer)
+		struct lab_data_buffer *buffer)
 {
 	struct wlr_scene_buffer *scene_buffer =
 		wlr_scene_buffer_from_node(button_node);
@@ -116,7 +116,7 @@ update_window_icon_buffer(struct wlr_scene_node *button_node,
 		rc.theme->window_button_width,
 		rc.theme->title_height);
 
-	wlr_scene_buffer_set_buffer(scene_buffer, buffer);
+	wlr_scene_buffer_set_buffer(scene_buffer, &buffer->base);
 	wlr_scene_buffer_set_dest_size(scene_buffer,
 		icon_geo.width, icon_geo.height);
 	wlr_scene_node_set_position(button_node, icon_geo.x, icon_geo.y);
@@ -145,11 +145,11 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		if (!buffers[state_set]) {
 			continue;
 		}
-		struct wlr_buffer *icon_buffer = &buffers[state_set]->base;
+		struct lab_data_buffer *icon_buffer = buffers[state_set];
 		struct wlr_box icon_geo = get_scale_box(icon_buffer,
 			rc.theme->window_button_width, rc.theme->title_height);
 		struct ssd_part *icon_part = add_scene_buffer(part_list, type,
-			parent, icon_buffer, icon_geo.x, icon_geo.y);
+			parent, &icon_buffer->base, icon_geo.x, icon_geo.y);
 		/* Make sure big icons are scaled down if necessary */
 		wlr_scene_buffer_set_dest_size(
 			wlr_scene_buffer_from_node(icon_part->node),

@@ -266,7 +266,7 @@ icon_loader_lookup(struct server *server, const char *app_id, int size,
 
 	switch (ctx.format) {
 	case SFDO_ICON_FILE_FORMAT_PNG:
-		img_png_load(ctx.path, &icon_buffer);
+		img_png_load(ctx.path, &icon_buffer, size, scale);
 		break;
 	case SFDO_ICON_FILE_FORMAT_SVG:
 #if HAVE_RSVG
@@ -274,7 +274,7 @@ icon_loader_lookup(struct server *server, const char *app_id, int size,
 #endif
 		break;
 	case SFDO_ICON_FILE_FORMAT_XPM:
-		img_xpm_load(ctx.path, &icon_buffer);
+		img_xpm_load(ctx.path, &icon_buffer, size, scale);
 		break;
 	}
 

@@ -286,9 +286,8 @@ file_buffer(enum buf_op op, struct file_handle *h)
 	return NULL;
 }
 
-/* This function does all the work. */
-static struct lab_data_buffer *
-pixbuf_create_from_xpm(struct file_handle *handle)
+static cairo_surface_t *
+xpm_load_to_surface(struct file_handle *handle)
 {
 	const char *buffer = file_buffer(op_header, handle);
 	if (!buffer) {
@@ -332,7 +331,7 @@ pixbuf_create_from_xpm(struct file_handle *handle)
 
 	char *name_buf = xzalloc(n_col * (cpp + 1));
 	struct xpm_color *colors = znew_n(struct xpm_color, n_col);
-	uint32_t *data = znew_n(uint32_t, w * h);
+	cairo_surface_t *surface = NULL;
 	struct xpm_color *fallbackcolor = NULL;
 	char pixel_str[32]; /* cpp < 32 */
 
@@ -357,14 +356,20 @@ pixbuf_create_from_xpm(struct file_handle *handle)
 		}
 	}
 
+	surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
+	uint32_t *data = (uint32_t *)cairo_image_surface_get_data(surface);
+	int stride = cairo_image_surface_get_stride(surface) / sizeof(uint32_t);
+
 	for (int ycnt = 0; ycnt < h; ycnt++) {
-		uint32_t *pixtmp = data + w * ycnt;
+		uint32_t *pixtmp = data + stride * ycnt;
 		int wbytes = w * cpp;
 
 		buffer = file_buffer(op_body, handle);
 		if (!buffer || (strlen(buffer) < (size_t)wbytes)) {
 			/* Advertised width doesn't match pixels */
 			wlr_log(WLR_DEBUG, "Dimensions do not match data");
+			cairo_surface_destroy(surface);
+			surface = NULL;
 			goto out;
 		}
 
@@ -382,24 +387,19 @@ pixbuf_create_from_xpm(struct file_handle *handle)
 			*pixtmp++ = color->argb;
 		}
 	}
-
-	g_hash_table_destroy(color_hash);
-	free(colors);
-	free(name_buf);
-
-	return buffer_create_from_data(data, w, h, 4 * w);
+	/* let cairo know pixel data has been modified */
+	cairo_surface_mark_dirty(surface);
 
 out:
 	g_hash_table_destroy(color_hash);
 	free(colors);
 	free(name_buf);
-	free(data);
-
-	return NULL;
+	return surface;
 }
 
 void
-img_xpm_load(const char *filename, struct lab_data_buffer **buffer)
+img_xpm_load(const char *filename, struct lab_data_buffer **buffer, int size,
+		float scale)
 {
 	if (*buffer) {
 		wlr_buffer_drop(&(*buffer)->base);
@@ -413,8 +413,11 @@ img_xpm_load(const char *filename, struct lab_data_buffer **buffer)
 		return;
 	}
 
-	*buffer = pixbuf_create_from_xpm(&h);
-	if (!(*buffer)) {
+	cairo_surface_t *surface = xpm_load_to_surface(&h);
+	if (surface) {
+		*buffer = buffer_convert_cairo_surface_for_icon(surface, size,
+			scale);
+	} else {
 		wlr_log(WLR_ERROR, "error loading '%s'", filename);
 	}
 

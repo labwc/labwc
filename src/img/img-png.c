@@ -43,7 +43,8 @@ ispng(const char *filename)
 #undef PNG_BYTES_TO_CHECK
 
 void
-img_png_load(const char *filename, struct lab_data_buffer **buffer)
+img_png_load(const char *filename, struct lab_data_buffer **buffer, int size,
+		float scale)
 {
 	if (*buffer) {
 		wlr_buffer_drop(&(*buffer)->base);
@@ -62,22 +63,6 @@ img_png_load(const char *filename, struct lab_data_buffer **buffer)
 		cairo_surface_destroy(image);
 		return;
 	}
-	cairo_surface_flush(image);
 
-	if (cairo_image_surface_get_format(image) == CAIRO_FORMAT_ARGB32) {
-		/* we can wrap ARGB32 image surfaces directly */
-		*buffer = buffer_adopt_cairo_surface(image);
-		return;
-	}
-
-	/* convert to ARGB32 by painting to a new surface */
-	uint32_t w = cairo_image_surface_get_width(image);
-	uint32_t h = cairo_image_surface_get_height(image);
-	*buffer = buffer_create_cairo(w, h, 1);
-	cairo_t *cairo = (*buffer)->cairo;
-	cairo_set_source_surface(cairo, image, 0, 0);
-	cairo_paint(cairo);
-	cairo_surface_flush((*buffer)->surface);
-	/* destroy original surface */
-	cairo_surface_destroy(image);
+	*buffer = buffer_convert_cairo_surface_for_icon(image, size, scale);
 }

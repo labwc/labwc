@@ -62,6 +62,18 @@ struct lab_data_buffer *buffer_create_cairo(uint32_t logical_width,
 	uint32_t logical_height, float scale);
 
 /*
+ * Create a buffer from an image surface, for display as an icon.
+ *
+ * The surface is either adopted by the buffer (which takes ownership),
+ * or copied and then destroyed.
+ *
+ * This function allows non-ARGB32 source images and converts to
+ * CAIRO_FORMAT_ARGB32 if needed.
+ */
+struct lab_data_buffer *buffer_convert_cairo_surface_for_icon(
+	cairo_surface_t *surface, uint32_t icon_size, float scale);
+
+/*
  * Create a buffer which holds (and takes ownership of) raw pixel data
  * in pre-multiplied ARGB32 format.
  *

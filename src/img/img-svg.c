@@ -15,8 +15,8 @@
 #include "labwc.h"
 
 void
-img_svg_load(const char *filename, struct lab_data_buffer **buffer,
-		int size)
+img_svg_load(const char *filename, struct lab_data_buffer **buffer, int size,
+		float scale)
 {
 	if (*buffer) {
 		wlr_buffer_drop(&(*buffer)->base);
@@ -39,7 +39,7 @@ img_svg_load(const char *filename, struct lab_data_buffer **buffer,
 		return;
 	}
 
-	*buffer = buffer_create_cairo(size, size, 1.0);
+	*buffer = buffer_create_cairo(size, size, scale);
 	cairo_surface_t *image = (*buffer)->surface;
 	cairo_t *cr = (*buffer)->cairo;
 

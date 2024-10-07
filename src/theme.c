@@ -257,7 +257,8 @@ load_button(struct theme *theme, struct button *b, int active)
 		int size = theme->title_height - 2 * theme->padding_height;
 		get_button_filename(filename, sizeof(filename), b->name,
 			active ? "-active.svg" : "-inactive.svg");
-		img_svg_load(filename, buffer, size);
+		/* TODO: account for output scale */
+		img_svg_load(filename, buffer, size, 1);
 	}
 #endif
 

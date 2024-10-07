@@ -546,6 +546,14 @@ struct wlr_box output_usable_area_scaled(struct output *output);
 void handle_output_power_manager_set_mode(struct wl_listener *listener,
 	void *data);
 void output_enable_adaptive_sync(struct wlr_output *output, bool enabled);
+
+/**
+ * output_max_scale() - get maximum scale factor of all usable outputs.
+ * Used when loading/rendering resources (e.g. icons) that may be
+ * displayed on any output.
+ */
+float output_max_scale(struct server *server);
+
 void new_tearing_hint(struct wl_listener *listener, void *data);
 
 void server_init(struct server *server);

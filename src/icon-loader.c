@@ -5,6 +5,7 @@
 #include <string.h>
 #include <strings.h>
 #include <wlr/util/log.h>
+#include "common/macros.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
 #include "config.h"
@@ -219,7 +220,8 @@ get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
 }
 
 struct lab_data_buffer *
-icon_loader_lookup(struct server *server, const char *app_id, int size, int scale)
+icon_loader_lookup(struct server *server, const char *app_id, int size,
+		float scale)
 {
 	struct icon_loader *loader = server->icon_loader;
 	if (!loader) {
@@ -236,16 +238,23 @@ icon_loader_lookup(struct server *server, const char *app_id, int size, int scal
 		icon_name = sfdo_desktop_entry_get_icon(entry, NULL);
 	}
 
+	/*
+	 * libsfdo doesn't support loading icons for fractional scales,
+	 * so round down and increase the icon size to compensate.
+	 */
+	int lookup_scale = MAX((int)scale, 1);
+	int lookup_size = lroundf(size * scale / lookup_scale);
+
 	struct icon_ctx ctx = {0};
 	int ret;
 	if (!icon_name) {
 		/* fall back to app id */
-		ret = process_rel_name(&ctx, app_id, loader, size, scale);
+		ret = process_rel_name(&ctx, app_id, loader, lookup_size, lookup_scale);
 	} else if (icon_name[0] == '/') {
 		ret = process_abs_name(&ctx, icon_name);
 	} else {
 		/* this should be the case for most icons */
-		ret = process_rel_name(&ctx, icon_name, loader, size, scale);
+		ret = process_rel_name(&ctx, icon_name, loader, lookup_size, lookup_scale);
 	}
 	if (ret < 0) {
 		return NULL;
@@ -261,7 +270,7 @@ icon_loader_lookup(struct server *server, const char *app_id, int size, int scal
 		break;
 	case SFDO_ICON_FILE_FORMAT_SVG:
 #if HAVE_RSVG
-		img_svg_load(ctx.path, &icon_buffer, size * scale);
+		img_svg_load(ctx.path, &icon_buffer, size, scale);
 #endif
 		break;
 	case SFDO_ICON_FILE_FORMAT_XPM:

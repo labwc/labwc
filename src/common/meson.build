@@ -16,6 +16,7 @@ labwc_sources += files(
   'scaled-font-buffer.c',
   'scaled-scene-buffer.c',
   'scene-helpers.c',
+  'set.c',
   'surface-helpers.c',
   'spawn.c',
   'string-helpers.c',

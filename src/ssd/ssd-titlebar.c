@@ -604,8 +604,16 @@ ssd_update_window_icon(struct ssd *ssd)
 	int hpad = theme->window_button_width / 10;
 	int icon_size = MIN(theme->window_button_width - 2 * hpad,
 		theme->title_height - 2 * theme->padding_height);
-	/* TODO: take into account output scales */
-	int icon_scale = 1;
+
+	/*
+	 * Load/render icons at the max scale of any usable output (at
+	 * this point in time). We don't want to be constantly reloading
+	 * icons as views are moved between outputs.
+	 *
+	 * TODO: currently there's no signal to reload/render icons if
+	 * outputs are reconfigured and the max scale changes.
+	 */
+	float icon_scale = output_max_scale(ssd->view->server);
 
 	struct lab_data_buffer *icon_buffer = icon_loader_lookup(
 		ssd->view->server, app_id, icon_size, icon_scale);
@@ -627,7 +635,7 @@ ssd_update_window_icon(struct ssd *ssd)
 		for (uint8_t state_set = 0; state_set <= LAB_BS_ALL; state_set++) {
 			if (button->nodes[state_set]) {
 				update_window_icon_buffer(button->nodes[state_set],
-					&icon_buffer->base);
+					icon_buffer);
 			}
 		}
 	} FOR_EACH_END

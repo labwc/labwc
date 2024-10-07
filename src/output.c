@@ -1067,3 +1067,17 @@ output_enable_adaptive_sync(struct wlr_output *output, bool enabled)
 			enabled ? "en" : "dis", output->name);
 	}
 }
+
+float
+output_max_scale(struct server *server)
+{
+	/* Never return less than 1, in case outputs are disabled */
+	float scale = 1;
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		if (output_is_usable(output)) {
+			scale = MAX(scale, output->wlr_output->scale);
+		}
+	}
+	return scale;
+}

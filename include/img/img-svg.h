@@ -5,6 +5,6 @@
 struct lab_data_buffer;
 
 void img_svg_load(const char *filename, struct lab_data_buffer **buffer,
-	int size);
+	int size, float scale);
 
 #endif /* LABWC_IMG_SVG_H */

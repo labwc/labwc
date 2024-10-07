@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include "buffer.h"
+#include "common/box.h"
 #include "common/list.h"
 #include "common/mem.h"
 #include "labwc.h"
@@ -80,34 +81,16 @@ add_scene_buffer(struct wl_list *list, enum ssd_part_type type,
 }
 
 static struct wlr_box
-get_scale_box(struct wlr_buffer *buffer, double container_width,
-		double container_height)
+get_scale_box(struct lab_data_buffer *buffer, int container_width,
+		int container_height)
 {
-	struct wlr_box icon_geo = {
-		.width = buffer->width,
-		.height = buffer->height
-	};
-
-	/* Scale down buffer if required */
-	if (icon_geo.width && icon_geo.height) {
-		double scale = MIN(container_width / icon_geo.width,
-			container_height / icon_geo.height);
-		if (scale < 1.0f) {
-			icon_geo.width = (double)icon_geo.width * scale;
-			icon_geo.height = (double)icon_geo.height * scale;
-		}
-	}
-
-	/* Center buffer on both axis */
-	icon_geo.x = (container_width - icon_geo.width) / 2;
-	icon_geo.y = (container_height - icon_geo.height) / 2;
-
-	return icon_geo;
+	return box_fit_within(buffer->logical_width, buffer->logical_height,
+		container_width, container_height);
 }
 
 void
 update_window_icon_buffer(struct wlr_scene_node *button_node,
-		struct wlr_buffer *buffer)
+		struct lab_data_buffer *buffer)
 {
 	struct wlr_scene_buffer *scene_buffer =
 		wlr_scene_buffer_from_node(button_node);
@@ -116,7 +99,7 @@ update_window_icon_buffer(struct wlr_scene_node *button_node,
 		rc.theme->window_button_width,
 		rc.theme->title_height);
 
-	wlr_scene_buffer_set_buffer(scene_buffer, buffer);
+	wlr_scene_buffer_set_buffer(scene_buffer, &buffer->base);
 	wlr_scene_buffer_set_dest_size(scene_buffer,
 		icon_geo.width, icon_geo.height);
 	wlr_scene_node_set_position(button_node, icon_geo.x, icon_geo.y);
@@ -145,11 +128,11 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		if (!buffers[state_set]) {
 			continue;
 		}
-		struct wlr_buffer *icon_buffer = &buffers[state_set]->base;
+		struct lab_data_buffer *icon_buffer = buffers[state_set];
 		struct wlr_box icon_geo = get_scale_box(icon_buffer,
 			rc.theme->window_button_width, rc.theme->title_height);
 		struct ssd_part *icon_part = add_scene_buffer(part_list, type,
-			parent, icon_buffer, icon_geo.x, icon_geo.y);
+			parent, &icon_buffer->base, icon_geo.x, icon_geo.y);
 		/* Make sure big icons are scaled down if necessary */
 		wlr_scene_buffer_set_dest_size(
 			wlr_scene_buffer_from_node(icon_part->node),

@@ -47,3 +47,29 @@ box_union(struct wlr_box *box_dest, struct wlr_box *box_a, struct wlr_box *box_b
 	box_dest->width = x2 - x1;
 	box_dest->height = y2 - y1;
 }
+
+struct wlr_box
+box_fit_within(int width, int height, int max_width, int max_height)
+{
+	struct wlr_box box;
+
+	if (width <= max_width && height <= max_height) {
+		/* No downscaling needed */
+		box.width = width;
+		box.height = height;
+	} else if (width * max_height > height * max_width) {
+		/* Wider content, fit width */
+		box.width = max_width;
+		box.height = (height * max_width + (width / 2)) / width;
+	} else {
+		/* Taller content, fit height */
+		box.width = (width * max_height + (height / 2)) / height;
+		box.height = max_height;
+	}
+
+	/* Compute centered position */
+	box.x = (max_width - box.width) / 2;
+	box.y = (max_height - box.height) / 2;
+
+	return box;
+}

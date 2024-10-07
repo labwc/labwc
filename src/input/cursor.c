@@ -857,16 +857,15 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 		event->time_msec, dx, dy);
 }
 
-static bool
+static void
 handle_release_mousebinding(struct server *server,
 		struct cursor_context *ctx, uint32_t button)
 {
 	if (server->osd_state.cycle_view) {
-		return false;
+		return;
 	}
 
 	struct mousebind *mousebind;
-	bool consumed_by_frame_context = false;
 
 	uint32_t modifiers = wlr_keyboard_get_modifiers(
 			&server->seat.keyboard_group->keyboard);
@@ -883,28 +882,12 @@ handle_release_mousebinding(struct server *server,
 					break;
 				}
 				continue;
-			case MOUSE_ACTION_DRAG:
-				if (mousebind->pressed_in_context) {
-					/*
-					 * Swallow the release event as well as
-					 * the press one
-					 */
-					consumed_by_frame_context |=
-						mousebind->context == LAB_SSD_FRAME;
-					consumed_by_frame_context |=
-						mousebind->context == LAB_SSD_ALL;
-				}
-				continue;
 			default:
 				continue;
 			}
-			consumed_by_frame_context |= mousebind->context == LAB_SSD_FRAME;
-			consumed_by_frame_context |= mousebind->context == LAB_SSD_ALL;
 			actions_run(ctx->view, server, &mousebind->actions, ctx);
 		}
 	}
-
-	return consumed_by_frame_context;
 }
 
 static bool
@@ -969,10 +952,7 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 				 * counted as a DOUBLECLICK.
 				 */
 				if (!double_click) {
-					/*
-					 * Swallow the press event as well as
-					 * the release one
-					 */
+					/* Swallow the press event */
 					consumed_by_frame_context |=
 						mousebind->context == LAB_SSD_FRAME;
 					consumed_by_frame_context |=
@@ -1020,6 +1000,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		 * so subsequent release always closes menu or selects menu item.
 		 */
 		press_msec = 0;
+		lab_set_add(&seat->bound_buttons, button);
 		return false;
 	}
 
@@ -1060,6 +1041,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		 * Note: This does not work for XWayland clients
 		 */
 		wlr_seat_pointer_end_grab(seat->seat);
+		lab_set_add(&seat->bound_buttons, button);
 		return false;
 	}
 
@@ -1072,6 +1054,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		return true;
 	}
 
+	lab_set_add(&seat->bound_buttons, button);
 	return false;
 }
 
@@ -1082,6 +1065,9 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 	struct server *server = seat->server;
 	struct cursor_context ctx = get_cursor_context(server);
 	struct wlr_surface *pressed_surface = seat->pressed.surface;
+
+	/* Always notify button release event when it's not bound */
+	const bool notify = !lab_set_contains(&seat->bound_buttons, button);
 
 	seat_reset_pressed(seat);
 
@@ -1097,15 +1083,11 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 					/*cursor_has_moved*/ false, &sx, &sy);
 			}
 		}
-		return false;
+		return notify;
 	}
 
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
-		if (pressed_surface) {
-			/* Ensure CSD clients see the release event */
-			return true;
-		}
-		return false;
+		return notify;
 	}
 
 	if (pressed_surface && ctx.surface != pressed_surface) {
@@ -1113,19 +1095,12 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 		 * Button released but originally pressed over a different surface.
 		 * Just send the release event to the still focused surface.
 		 */
-		return true;
+		return notify;
 	}
 
-	/* Bindings to the Frame context swallow mouse events if activated */
-	bool consumed_by_frame_context =
-		handle_release_mousebinding(server, &ctx, button);
+	handle_release_mousebinding(server, &ctx, button);
 
-	if (!consumed_by_frame_context) {
-		/* Notify client with pointer focus of button release */
-		return true;
-	}
-
-	return false;
+	return notify;
 }
 
 bool
@@ -1140,6 +1115,8 @@ cursor_finish_button_release(struct seat *seat, uint32_t button)
 			mousebind->pressed_in_context = false;
 		}
 	}
+
+	lab_set_remove(&seat->bound_buttons, button);
 
 	if (server->input_mode == LAB_INPUT_STATE_MOVE
 			|| server->input_mode == LAB_INPUT_STATE_RESIZE) {

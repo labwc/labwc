@@ -44,6 +44,7 @@
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/util/log.h>
+#include "common/set.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
 #include "input/cursor.h"
@@ -144,6 +145,8 @@ struct seat {
 	 * Both (view && !surface) and (surface && !view) are possible.
 	 */
 	struct cursor_context pressed;
+
+	struct lab_set bound_buttons;
 
 	struct {
 		bool active;

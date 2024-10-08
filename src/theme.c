@@ -174,14 +174,16 @@ create_rounded_buffer(struct theme *theme, enum corner corner,
 	int height = theme->window_button_height;
 
 	/*
-	 * Round the hover overlay of corner buttons by
-	 * cropping the region within the window border.
+	 * Round the corner button by cropping the region within the window
+	 * border. See the picture in #2189 for reference.
 	 */
+	int margin_x = theme->window_titlebar_padding_width;
+	int margin_y = (theme->title_height - theme->window_button_height) / 2;
 	float white[4] = {1, 1, 1, 1};
 	struct rounded_corner_ctx rounded_ctx = {
 		.box = &(struct wlr_box){
-			.width = theme->window_titlebar_padding_width + width,
-			.height = height,
+			.width = margin_x + width,
+			.height = margin_y + height,
 		},
 		.radius = rc.corner_radius,
 		.line_width = theme->border_width,
@@ -189,16 +191,11 @@ create_rounded_buffer(struct theme *theme, enum corner corner,
 		.border_color = white,
 		.corner = corner,
 	};
-	int mask_offset;
-	if (corner == LAB_CORNER_TOP_LEFT) {
-		mask_offset = -theme->window_titlebar_padding_width;
-	} else {
-		mask_offset = 0;
-	}
 	struct lab_data_buffer *mask_buffer = rounded_rect(&rounded_ctx);
 	cairo_set_operator(cairo, CAIRO_OPERATOR_DEST_IN);
-	cairo_set_source_surface(cairo,
-		cairo_get_target(mask_buffer->cairo), mask_offset, 0);
+	cairo_set_source_surface(cairo, cairo_get_target(mask_buffer->cairo),
+		(corner == LAB_CORNER_TOP_LEFT) ? -margin_x : 0,
+		-margin_y);
 	cairo_paint(cairo);
 
 	cairo_surface_flush(cairo_get_target(cairo));

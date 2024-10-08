@@ -180,7 +180,7 @@ create_rounded_buffer(struct theme *theme, enum corner corner,
 	float white[4] = {1, 1, 1, 1};
 	struct rounded_corner_ctx rounded_ctx = {
 		.box = &(struct wlr_box){
-			.width = theme->padding_width + width,
+			.width = theme->window_titlebar_padding_width + width,
 			.height = height,
 		},
 		.radius = rc.corner_radius,
@@ -191,7 +191,7 @@ create_rounded_buffer(struct theme *theme, enum corner corner,
 	};
 	int mask_offset;
 	if (corner == LAB_CORNER_TOP_LEFT) {
-		mask_offset = -theme->padding_width;
+		mask_offset = -theme->window_titlebar_padding_width;
 	} else {
 		mask_offset = 0;
 	}
@@ -573,7 +573,8 @@ static void
 theme_builtin(struct theme *theme, struct server *server)
 {
 	theme->border_width = 1;
-	theme->padding_height = 0;
+	theme->window_titlebar_padding_height = 0;
+	theme->window_titlebar_padding_width = 0;
 	theme->title_height = INT_MIN;
 	theme->menu_overlap_x = 0;
 	theme->menu_overlap_y = 0;
@@ -591,7 +592,6 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->window_label_text_justify = parse_justification("Center");
 	theme->menu_title_text_justify = parse_justification("Center");
 
-	theme->padding_width = 0;
 	theme->window_button_width = 26;
 	theme->window_button_height = 26;
 	theme->window_button_spacing = 0;
@@ -707,13 +707,13 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->border_width = get_int_if_positive(
 			value, "border.width");
 	}
-	if (match_glob(key, "padding.width")) {
-		theme->padding_width = get_int_if_positive(
-			value, "padding.width");
+	if (match_glob(key, "window.titlebar.padding.width")) {
+		theme->window_titlebar_padding_width = get_int_if_positive(
+			value, "window.titlebar.padding.width");
 	}
-	if (match_glob(key, "padding.height")) {
-		theme->padding_height = get_int_if_positive(
-			value, "padding.height");
+	if (match_glob(key, "window.titlebar.padding.height")) {
+		theme->window_titlebar_padding_height = get_int_if_positive(
+			value, "window.titlebar.padding.height");
 	}
 	if (match_glob(key, "menu.items.padding.x")) {
 		theme->menu_item_padding_x = get_int_if_positive(
@@ -1474,7 +1474,7 @@ get_titlebar_height(struct theme *theme)
 	if (h < theme->window_button_height) {
 		h = theme->window_button_height;
 	}
-	h += 2 * theme->padding_height;
+	h += 2 * theme->window_titlebar_padding_height;
 	return h;
 }
 

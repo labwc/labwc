@@ -50,14 +50,13 @@ labwc-config(5).
 	Line width (integer) of border drawn around window frames.
 	Default is 1.
 
-*padding.width*
-	Horizontal padding size, in pixels, between border and first
+*window.titlebar.padding.width*
+	Horizontal titlebar padding size, in pixels, between border and first
 	button on the left/right.
 	Default is 0.
 
-*padding.height*
-	Vertical padding size, in pixels, used for spacing out elements
-	in the window decorations.
+*window.titlebar.padding.height*
+	Vertical titlebar padding size, in pixels.
 	Default is 0.
 
 *menu.items.padding.x*

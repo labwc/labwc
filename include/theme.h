@@ -46,8 +46,8 @@ struct theme {
 	 * the space between title bar border and
 	 * buttons on the left/right/top
 	 */
-	int padding_width;
-	int padding_height;
+	int window_titlebar_padding_width;
+	int window_titlebar_padding_height;
 
 	int title_height;
 	int menu_overlap_x;
@@ -156,7 +156,10 @@ struct theme {
 	struct lab_data_buffer *shadow_corner_bottom_inactive;
 	struct lab_data_buffer *shadow_edge_inactive;
 
-	/* not set in rc.xml/themerc, but derived from font & padding_height */
+	/*
+	 * Not set in rc.xml/themerc, but derived from the tallest titlebar
+	 * object plus 2 * window_titlebar_padding_height
+	 */
 	int osd_window_switcher_item_height;
 
 	/* magnifier */

@@ -33,8 +33,31 @@ The format is based on [Keep a Changelog]
 
 ## [unreleased]
 
+Notes to package maintainers:
+
+- The SSD titlebar window icon support requires libsfdo to be added as a
+  dependency or statically linked. If this is not wanted, add -Dicon=disabled to
+  the `meson setup` command in the build script for the next release.
+
 ### Added
 
+- Optionally support SSD titlebar window icons. When an icon file is not found
+  or could not be loaded, the window menu icon as before is shown.  The icon
+  theme can be selected with `<theme><icon>` (#2128)
+- Add action `UnSnap`. This behaves like `ToggleSnapToEdge/Region` but
+  unconditionally. Written-by: @jp7677 and @tokyo4j (#2154)
+- Add actions `ToggleSnapToEdge` and `ToggleSnapToRegion`. These behave like
+  `SnapToEdge` and `SnapToRegion`, except that they untile the window when
+  already being tiled to the given region or direction.
+  Written-by: @jp7677 and @tokyo4j (#2154)
+- Handle xdg-shell `show_window_menu` requests (#2167)
+- Support the openbox style menus listed below. Written-by: @droc12345
+  1. `client-list-combined-menu` showing windows across all workspaces. This can
+     be used with a mouse/key bind using:
+     `<action name="ShowMenu" menu="client-list-combined-menu"/>` (#2101)
+  2. `client-send-to` showing all workspaces that the current window can be sent
+     to. This can additional be used within a client menu using:
+     `<menu id="client-send-to-menu" label="Send to Workspace..." />` (#2152)
 - Add theme options for circular button hover effect, button padding and button
   spacing. Written-by: @jp7677 (#2127)
 
@@ -70,7 +93,15 @@ window.inactive.button.shade.unpressed.image.color
 
 - Make action `FocusOutput` behave like `MoveToOutput` by adding direction and
   wrap arguments. Written-by: @orfeasxyz (#2100)
-- Add config option `titleLayout`. Written-by: @xi (#2088)
+- Add config option for titlebar layout. Written-by: @xi (#2088, #2150)
+
+```
+<titlebar>
+  <layout>icon:iconify,max,close</layout>
+  <showTitle>yes|no</showTitle>
+</titlebar>
+```
+
 - Add `Oblique` option to `<theme><font><style>`. Written-by: @droc12345 (#2097)
 - Support menu titles defined by `<separator label="">`.
 - Add the theme option `menu.title.bg.color: #589bda`
@@ -84,6 +115,10 @@ window.inactive.button.shade.unpressed.image.color
 
 ### Fixed
 
+- Fix xdg-shell out-of-sync configure state when clients time out.
+  Written-by: @cillian64 (#2174)
+- Fix small flicker when client initially submits a window size smaller than the
+  minimum value (#2166)
 - Allow server-side decoration to be smaller than minimal size by hiding
   buttons (#2116)
 - Fix incorrect cursor shape on titlebar corner without buttons (#2105)

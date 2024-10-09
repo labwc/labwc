@@ -74,22 +74,26 @@ ssd_titlebar_create(struct ssd *ssd)
 
 		/* Buttons */
 		struct title_button *b;
-		int x = theme->padding_width;
+		int x = theme->window_titlebar_padding_width;
+
+		/* Center vertically within titlebar */
+		int y = (theme->title_height - theme->window_button_height) / 2;
+
 		wl_list_for_each(b, &rc.title_buttons_left, link) {
 			struct lab_data_buffer **buffers =
 				theme->window[active].buttons[b->type];
 			add_scene_button(&subtree->parts, b->type, parent,
-				buffers, x, view);
+				buffers, x, y, view);
 			x += theme->window_button_width + theme->window_button_spacing;
 		}
 
-		x = width - theme->padding_width + theme->window_button_spacing;
+		x = width - theme->window_titlebar_padding_width + theme->window_button_spacing;
 		wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
 			x -= theme->window_button_width + theme->window_button_spacing;
 			struct lab_data_buffer **buffers =
 				theme->window[active].buttons[b->type];
 			add_scene_button(&subtree->parts, b->type, parent,
-				buffers, x, view);
+				buffers, x, y, view);
 		}
 	} FOR_EACH_END
 
@@ -207,7 +211,7 @@ static void
 update_visible_buttons(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
-	int width = view->current.width - (2 * view->server->theme->padding_width);
+	int width = view->current.width - (2 * view->server->theme->window_titlebar_padding_width);
 	int button_width = view->server->theme->window_button_width;
 	int button_spacing = view->server->theme->window_button_spacing;
 	int button_count_left = wl_list_length(&rc.title_buttons_left);
@@ -293,6 +297,8 @@ ssd_titlebar_update(struct ssd *ssd)
 
 	update_visible_buttons(ssd);
 
+	/* Center buttons vertically within titlebar */
+	int y = (theme->title_height - theme->window_button_height) / 2;
 	int x;
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
@@ -304,10 +310,10 @@ ssd_titlebar_update(struct ssd *ssd)
 			wlr_scene_rect_from_node(part->node),
 			width - bg_offset * 2, theme->title_height);
 
-		x = theme->padding_width;
+		x = theme->window_titlebar_padding_width;
 		wl_list_for_each(b, &rc.title_buttons_left, link) {
 			part = ssd_get_part(&subtree->parts, b->type);
-			wlr_scene_node_set_position(part->node, x, 0);
+			wlr_scene_node_set_position(part->node, x, y);
 			x += theme->window_button_width + theme->window_button_spacing;
 		}
 
@@ -315,11 +321,11 @@ ssd_titlebar_update(struct ssd *ssd)
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_RIGHT);
 		wlr_scene_node_set_position(part->node, x, -rc.theme->border_width);
 
-		x = width - theme->padding_width + theme->window_button_spacing;
+		x = width - theme->window_titlebar_padding_width + theme->window_button_spacing;
 		wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
 			part = ssd_get_part(&subtree->parts, b->type);
 			x -= theme->window_button_width + theme->window_button_spacing;
-			wlr_scene_node_set_position(part->node, x, 0);
+			wlr_scene_node_set_position(part->node, x, y);
 		}
 	} FOR_EACH_END
 
@@ -426,7 +432,7 @@ get_title_offsets(struct ssd *ssd, int *offset_left, int *offset_right)
 	struct ssd_sub_tree *subtree = &ssd->titlebar.active;
 	int button_width = ssd->view->server->theme->window_button_width;
 	int button_spacing = ssd->view->server->theme->window_button_spacing;
-	int padding_width = ssd->view->server->theme->padding_width;
+	int padding_width = ssd->view->server->theme->window_titlebar_padding_width;
 	*offset_left = padding_width;
 	*offset_right = padding_width;
 
@@ -603,7 +609,7 @@ ssd_update_window_icon(struct ssd *ssd)
 	 */
 	int hpad = theme->window_button_width / 10;
 	int icon_size = MIN(theme->window_button_width - 2 * hpad,
-		theme->title_height - 2 * theme->padding_height);
+		theme->window_button_height);
 
 	/*
 	 * Load/render icons at the max scale of any usable output (at

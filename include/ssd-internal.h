@@ -146,7 +146,7 @@ struct ssd_part *add_scene_buffer(
 	struct wlr_scene_tree *parent, struct wlr_buffer *buffer, int x, int y);
 struct ssd_part *add_scene_button(struct wl_list *part_list,
 	enum ssd_part_type type, struct wlr_scene_tree *parent,
-	struct lab_data_buffer *buffers[LAB_BS_ALL + 1], int x,
+	struct lab_data_buffer *buffers[LAB_BS_ALL + 1], int x, int y,
 	struct view *view);
 void update_window_icon_buffer(struct wlr_scene_node *button_node,
 	struct lab_data_buffer *buffer);

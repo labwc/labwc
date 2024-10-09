@@ -2284,7 +2284,7 @@ view_get_min_width(void)
 	return (rc.theme->window_button_width * (button_count_left + button_count_right)) +
 		(rc.theme->window_button_spacing * MAX((button_count_right - 1), 0)) +
 		(rc.theme->window_button_spacing * MAX((button_count_left - 1), 0)) +
-		(2 * rc.theme->padding_width);
+		(2 * rc.theme->window_titlebar_padding_width);
 }
 
 void

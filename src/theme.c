@@ -91,7 +91,7 @@ copy_icon_buffer(struct theme *theme, struct lab_data_buffer *icon_buffer)
 	int icon_height = cairo_image_surface_get_height(icon.surface);
 
 	int width = theme->window_button_width;
-	int height = theme->title_height;
+	int height = theme->window_button_height;
 
 	/*
 	 * Proportionately increase size of hover_buffer if the non-hover
@@ -139,7 +139,7 @@ create_hover_fallback(struct theme *theme,
 	assert(!*hover_buffer);
 
 	int width = theme->window_button_width;
-	int height = theme->title_height;
+	int height = theme->window_button_height;
 
 	*hover_buffer = copy_icon_buffer(theme, icon_buffer);
 	cairo_t *cairo = (*hover_buffer)->cairo;
@@ -171,17 +171,19 @@ create_rounded_buffer(struct theme *theme, enum corner corner,
 	cairo_t *cairo = (*rounded_buffer)->cairo;
 
 	int width = theme->window_button_width;
-	int height = theme->title_height;
+	int height = theme->window_button_height;
 
 	/*
-	 * Round the hover overlay of corner buttons by
-	 * cropping the region within the window border.
+	 * Round the corner button by cropping the region within the window
+	 * border. See the picture in #2189 for reference.
 	 */
+	int margin_x = theme->window_titlebar_padding_width;
+	int margin_y = (theme->title_height - theme->window_button_height) / 2;
 	float white[4] = {1, 1, 1, 1};
 	struct rounded_corner_ctx rounded_ctx = {
 		.box = &(struct wlr_box){
-			.width = theme->padding_width + width,
-			.height = height,
+			.width = margin_x + width,
+			.height = margin_y + height,
 		},
 		.radius = rc.corner_radius,
 		.line_width = theme->border_width,
@@ -189,16 +191,11 @@ create_rounded_buffer(struct theme *theme, enum corner corner,
 		.border_color = white,
 		.corner = corner,
 	};
-	int mask_offset;
-	if (corner == LAB_CORNER_TOP_LEFT) {
-		mask_offset = -theme->padding_width;
-	} else {
-		mask_offset = 0;
-	}
 	struct lab_data_buffer *mask_buffer = rounded_rect(&rounded_ctx);
 	cairo_set_operator(cairo, CAIRO_OPERATOR_DEST_IN);
-	cairo_set_source_surface(cairo,
-		cairo_get_target(mask_buffer->cairo), mask_offset, 0);
+	cairo_set_source_surface(cairo, cairo_get_target(mask_buffer->cairo),
+		(corner == LAB_CORNER_TOP_LEFT) ? -margin_x : 0,
+		-margin_y);
 	cairo_paint(cairo);
 
 	cairo_surface_flush(cairo_get_target(cairo));
@@ -246,7 +243,7 @@ load_button(struct theme *theme, struct button *b, int active)
 
 	zdrop(buffer);
 
-	int size = theme->title_height - 2 * theme->padding_height;
+	int size = theme->window_button_height;
 	float scale = 1; /* TODO: account for output scale */
 
 	/* PNG */
@@ -573,7 +570,8 @@ static void
 theme_builtin(struct theme *theme, struct server *server)
 {
 	theme->border_width = 1;
-	theme->padding_height = 3;
+	theme->window_titlebar_padding_height = 0;
+	theme->window_titlebar_padding_width = 0;
 	theme->title_height = INT_MIN;
 	theme->menu_overlap_x = 0;
 	theme->menu_overlap_y = 0;
@@ -591,8 +589,8 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->window_label_text_justify = parse_justification("Center");
 	theme->menu_title_text_justify = parse_justification("Center");
 
-	theme->padding_width = 0;
 	theme->window_button_width = 26;
+	theme->window_button_height = 26;
 	theme->window_button_spacing = 0;
 	theme->window_button_hover_bg_shape = LAB_RECTANGLE;
 
@@ -706,17 +704,13 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->border_width = get_int_if_positive(
 			value, "border.width");
 	}
-	if (match_glob(key, "padding.width")) {
-		theme->padding_width = get_int_if_positive(
-			value, "padding.width");
+	if (match_glob(key, "window.titlebar.padding.width")) {
+		theme->window_titlebar_padding_width = get_int_if_positive(
+			value, "window.titlebar.padding.width");
 	}
-	if (match_glob(key, "padding.height")) {
-		theme->padding_height = get_int_if_positive(
-			value, "padding.height");
-	}
-	if (match_glob(key, "titlebar.height")) {
-		theme->title_height = get_int_if_positive(
-			value, "titlebar.height");
+	if (match_glob(key, "window.titlebar.padding.height")) {
+		theme->window_titlebar_padding_height = get_int_if_positive(
+			value, "window.titlebar.padding.height");
 	}
 	if (match_glob(key, "menu.items.padding.x")) {
 		theme->menu_item_padding_x = get_int_if_positive(
@@ -777,6 +771,14 @@ entry(struct theme *theme, const char *key, const char *value)
 			wlr_log(WLR_ERROR, "window.button.width cannot "
 				"be less than 1, clamping it to 1.");
 			theme->window_button_width = 1;
+		}
+	}
+	if (match_glob(key, "window.button.height")) {
+		theme->window_button_height = atoi(value);
+		if (theme->window_button_height < 1) {
+			wlr_log(WLR_ERROR, "window.button.height cannot "
+				"be less than 1, clamping it to 1.");
+			theme->window_button_height = 1;
 		}
 	}
 	if (match_glob(key, "window.button.spacing")) {
@@ -1461,13 +1463,22 @@ fill_colors_with_osd_theme(struct theme *theme, float colors[3][4])
 	memcpy(colors[2], theme->osd_bg_color, sizeof(colors[2]));
 }
 
+static int
+get_titlebar_height(struct theme *theme)
+{
+	int h = MAX(font_height(&rc.font_activewindow),
+		font_height(&rc.font_inactivewindow));
+	if (h < theme->window_button_height) {
+		h = theme->window_button_height;
+	}
+	h += 2 * theme->window_titlebar_padding_height;
+	return h;
+}
+
 static void
 post_processing(struct theme *theme)
 {
-	int h = MAX(font_height(&rc.font_activewindow), font_height(&rc.font_inactivewindow));
-	if (theme->title_height < h) {
-		theme->title_height = h + 2 * theme->padding_height;
-	}
+	theme->title_height = get_titlebar_height(theme);
 
 	theme->menu_item_height = font_height(&rc.font_menuitem)
 		+ 2 * theme->menu_item_padding_y;

@@ -46,8 +46,8 @@ struct theme {
 	 * the space between title bar border and
 	 * buttons on the left/right/top
 	 */
-	int padding_width;
-	int padding_height;
+	int window_titlebar_padding_width;
+	int window_titlebar_padding_height;
 
 	int title_height;
 	int menu_overlap_x;
@@ -67,10 +67,11 @@ struct theme {
 	enum lab_justification window_label_text_justify;
 	enum lab_justification menu_title_text_justify;
 
-	/* button width */
+	/* buttons */
 	int window_button_width;
-	/* the space between buttons */
+	int window_button_height;
 	int window_button_spacing;
+
 	/* the shape of the hover effect */
 	enum lab_shape window_button_hover_bg_shape;
 
@@ -155,7 +156,10 @@ struct theme {
 	struct lab_data_buffer *shadow_corner_bottom_inactive;
 	struct lab_data_buffer *shadow_edge_inactive;
 
-	/* not set in rc.xml/themerc, but derived from font & padding_height */
+	/*
+	 * Not set in rc.xml/themerc, but derived from the tallest titlebar
+	 * object plus 2 * window_titlebar_padding_height
+	 */
 	int osd_window_switcher_item_height;
 
 	/* magnifier */

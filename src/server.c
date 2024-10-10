@@ -3,6 +3,7 @@
 #include "config.h"
 #include <signal.h>
 #include <string.h>
+#include <fcntl.h>
 #include <sys/wait.h>
 #include <wlr/backend/headless.h>
 #include <wlr/backend/multi.h>
@@ -564,11 +565,61 @@ server_init(struct server *server)
 #endif
 }
 
+static const char*
+perform_socket_handover(struct server *server)
+{
+	char *socket_name = NULL;
+	int socket_fd = -1;
+
+	/* Parse wayland socket handover environment variables */
+	if (getenv("WAYLAND_SOCKET_NAME")) {
+		socket_name = getenv("WAYLAND_SOCKET_NAME");
+		unsetenv("WAYLAND_SOCKET_NAME");
+	}
+
+	if (getenv("WAYLAND_SOCKET_FD")) {
+		socket_fd = atoi(getenv("WAYLAND_SOCKET_FD"));
+		unsetenv("WAYLAND_SOCKET_FD");
+		fcntl(socket_fd, F_SETFD, FD_CLOEXEC);
+	}
+
+	/* Warn if either environment variable is missing */
+	if (!socket_name && socket_fd == -1) {
+		return NULL;
+	} else if (!socket_name) {
+		wlr_log(WLR_ERROR,
+				"Wayland socket handover failed, missing "
+				"WAYLAND_SOCKET_FD\n");
+		return NULL;
+	} else if (socket_fd == -1) {
+		wlr_log(WLR_ERROR,
+				"Wayland socket handover failed, missing "
+				"WAYLAND_SOCKET_NAME\n");
+		return NULL;
+	}
+
+	/* Add socket to the Wayland display */
+	if (wl_display_add_socket_fd(server->wl_display, socket_fd) < 0) {
+		wlr_log(WLR_ERROR,
+				"Wayland socket handover failed, failed "
+				"to add socket FD to display\n");
+		return NULL;
+	}
+
+	return socket_name;
+}
+
 void
 server_start(struct server *server)
 {
+	/* Attempt Wayland socket handover. */
+	const char *socket = perform_socket_handover(server);
+
 	/* Add a Unix socket to the Wayland display. */
-	const char *socket = wl_display_add_socket_auto(server->wl_display);
+	if (!socket) {
+		socket = wl_display_add_socket_auto(server->wl_display);
+	}
+
 	if (!socket) {
 		wlr_log_errno(WLR_ERROR, "unable to open wayland socket");
 		exit(EXIT_FAILURE);

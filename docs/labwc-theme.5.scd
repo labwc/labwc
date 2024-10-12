@@ -126,9 +126,13 @@ labwc-config(5).
 	Space between titlebar buttons, in pixels.
 	Default is 0.
 
-*window.button.hover.bg.shape*
-	The shape of the hover effect of a titlebar button: "rectangle" or "circle".
-	Default is "rectangle".
+*window.button.hover.bg.corner-radius*
+	Radius of the hover effect of a titlebar button, in pixels.
+	Default is 0.
+
+	Note: for a circular hover effect, set *window.button.width* and
+	*window.button.height* equal and *window.button.hover.bg.corner-radius* half
+	of them.
 
 *window.active.button.unpressed.image.color*
 	Color of the images in titlebar buttons in their default, unpressed,

@@ -36,7 +36,7 @@ window.button.width: 26
 window.button.spacing: 0
 
 # window button hover effect
-window.button.hover.bg.shape: rectangle
+window.button.hover.bg.corner-radius: 0
 
 # window buttons
 window.active.button.unpressed.image.color: #000000

@@ -18,11 +18,6 @@ enum lab_justification {
 	LAB_JUSTIFY_RIGHT,
 };
 
-enum lab_shape {
-	LAB_RECTANGLE,
-	LAB_CIRCLE,
-};
-
 struct theme_snapping_overlay {
 	bool bg_enabled;
 	bool border_enabled;
@@ -72,8 +67,8 @@ struct theme {
 	int window_button_height;
 	int window_button_spacing;
 
-	/* the shape of the hover effect */
-	enum lab_shape window_button_hover_bg_shape;
+	/* the corner radius of the hover effect */
+	int window_button_hover_bg_corner_radius;
 
 	int menu_item_padding_x;
 	int menu_item_padding_y;

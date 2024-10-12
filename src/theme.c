@@ -147,18 +147,19 @@ create_hover_fallback(struct theme *theme,
 	/* Overlay (pre-multiplied alpha) */
 	float overlay_color[4] = { 0.15f, 0.15f, 0.15f, 0.3f};
 	set_cairo_color(cairo, overlay_color);
-	int radius = MIN(width, height) / 2;
+	int radius = theme->window_button_hover_bg_corner_radius;
 
-	switch (theme->window_button_hover_bg_shape) {
-	case LAB_CIRCLE:
-		cairo_arc(cairo, width / 2, height / 2, radius, 0 * deg, 360 * deg);
-		break;
-	case LAB_RECTANGLE:
-		cairo_rectangle(cairo, 0, 0, width, height);
-		break;
-	}
-
+	cairo_new_sub_path(cairo);
+	cairo_arc(cairo, radius, radius, radius, 180 * deg, 270 * deg);
+	cairo_line_to(cairo, width - radius, 0);
+	cairo_arc(cairo, width - radius, radius, radius, -90 * deg, 0 * deg);
+	cairo_line_to(cairo, width, height - radius);
+	cairo_arc(cairo, width - radius, height - radius, radius, 0 * deg, 90 * deg);
+	cairo_line_to(cairo, radius, height);
+	cairo_arc(cairo, radius, height - radius, radius, 90 * deg, 180 * deg);
+	cairo_close_path(cairo);
 	cairo_fill(cairo);
+
 	cairo_surface_flush(cairo_get_target(cairo));
 }
 
@@ -542,18 +543,6 @@ parse_justification(const char *str)
 	}
 }
 
-static enum lab_shape
-parse_shape(const char *str)
-{
-	if (!strcasecmp(str, "Rectangle")) {
-		return LAB_RECTANGLE;
-	} else if (!strcasecmp(str, "Circle")) {
-		return LAB_CIRCLE;
-	} else {
-		return LAB_RECTANGLE;
-	}
-}
-
 /*
  * We generally use Openbox defaults, but if no theme file can be found it's
  * better to populate the theme variables with some sane values as no-one
@@ -592,7 +581,7 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->window_button_width = 26;
 	theme->window_button_height = 26;
 	theme->window_button_spacing = 0;
-	theme->window_button_hover_bg_shape = LAB_RECTANGLE;
+	theme->window_button_hover_bg_corner_radius = 0;
 
 	for (enum ssd_part_type type = LAB_SSD_BUTTON_FIRST;
 			type <= LAB_SSD_BUTTON_LAST; type++) {
@@ -785,8 +774,9 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->window_button_spacing = get_int_if_positive(
 			value, "window.button.spacing");
 	}
-	if (match_glob(key, "window.button.hover.bg.shape")) {
-		theme->window_button_hover_bg_shape = parse_shape(value);
+	if (match_glob(key, "window.button.hover.bg.corner-radius")) {
+		theme->window_button_hover_bg_corner_radius = get_int_if_positive(
+			value, "window.button.hover.bg.corner-radius");
 	}
 
 	/* universal button */
@@ -1489,6 +1479,12 @@ post_processing(struct theme *theme)
 
 	if (rc.corner_radius >= theme->title_height) {
 		rc.corner_radius = theme->title_height - 1;
+	}
+
+	int min_button_hover_radius =
+		MIN(theme->window_button_width, theme->window_button_height) / 2;
+	if (theme->window_button_hover_bg_corner_radius > min_button_hover_radius) {
+		theme->window_button_hover_bg_corner_radius = min_button_hover_radius;
 	}
 
 	if (theme->menu_max_width < theme->menu_min_width) {

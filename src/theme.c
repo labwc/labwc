@@ -701,6 +701,12 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->window_titlebar_padding_height = get_int_if_positive(
 			value, "window.titlebar.padding.height");
 	}
+	if (match_glob(key, "titlebar.height")) {
+		wlr_log(WLR_ERROR, "titlebar.height is no longer supported");
+	}
+	if (match_glob(key, "padding.height")) {
+		wlr_log(WLR_ERROR, "padding.height is no longer supported");
+	}
 	if (match_glob(key, "menu.items.padding.x")) {
 		theme->menu_item_padding_x = get_int_if_positive(
 			value, "menu.items.padding.x");

@@ -297,28 +297,29 @@ load_button(struct theme *theme, struct button *b, int active)
 			buttons[b->type][non_hover_state_set]);
 	}
 
-	struct title_button *leftmost_button = NULL;
-	wl_list_for_each(leftmost_button,
-			&rc.title_buttons_left, link) {
-		break;
-	}
-	struct title_button *rightmost_button = NULL;
-	wl_list_for_each_reverse(rightmost_button,
-			&rc.title_buttons_right, link) {
-		break;
-	}
-
 	/*
 	 * If the loaded button is at the corner of the titlebar, also create
 	 * rounded variants.
 	 */
 	uint8_t rounded_state_set = b->state_set | LAB_BS_ROUNDED;
-	if (leftmost_button && leftmost_button->type == b->type) {
-		create_rounded_buffer(theme, LAB_CORNER_TOP_LEFT,
-			&buttons[b->type][rounded_state_set], *buffer);
-	} else if (rightmost_button && rightmost_button->type == b->type) {
-		create_rounded_buffer(theme, LAB_CORNER_TOP_RIGHT,
-			&buttons[b->type][rounded_state_set], *buffer);
+
+	struct title_button *leftmost_button;
+	wl_list_for_each(leftmost_button,
+			&rc.title_buttons_left, link) {
+		if (leftmost_button->type == b->type) {
+			create_rounded_buffer(theme, LAB_CORNER_TOP_LEFT,
+				&buttons[b->type][rounded_state_set], *buffer);
+		}
+		break;
+	}
+	struct title_button *rightmost_button;
+	wl_list_for_each_reverse(rightmost_button,
+			&rc.title_buttons_right, link) {
+		if (rightmost_button->type == b->type) {
+			create_rounded_buffer(theme, LAB_CORNER_TOP_RIGHT,
+				&buttons[b->type][rounded_state_set], *buffer);
+		}
+		break;
 	}
 }
 

@@ -33,6 +33,7 @@ window.label.text.justify: center
 
 # window button width and spacing
 window.button.width: 26
+window.button.height: 26
 window.button.spacing: 0
 
 # window button hover effect

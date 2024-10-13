@@ -7,6 +7,7 @@
 #include <wlr/backend/headless.h>
 #include <wlr/backend/multi.h>
 #include <wlr/types/wlr_data_control_v1.h>
+#include <wlr/types/wlr_drm.h>
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_fractional_scale_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
@@ -44,6 +45,7 @@
 
 #define LAB_WLR_COMPOSITOR_VERSION 5
 #define LAB_WLR_FRACTIONAL_SCALE_V1_VERSION 1
+#define LAB_WLR_LINUX_DMABUF_VERSION 4
 
 static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;
@@ -393,7 +395,23 @@ server_init(struct server *server)
 	server->renderer_lost.notify = handle_renderer_lost;
 	wl_signal_add(&server->renderer->events.lost, &server->renderer_lost);
 
-	wlr_renderer_init_wl_display(server->renderer, server->wl_display);
+	if (!wlr_renderer_init_wl_shm(server->renderer, server->wl_display)) {
+		wlr_log(WLR_ERROR, "Failed to initialize shared memory pool");
+		exit(EXIT_FAILURE);
+	}
+
+	if (wlr_renderer_get_texture_formats(
+			server->renderer, WLR_BUFFER_CAP_DMABUF)) {
+		if (wlr_renderer_get_drm_fd(server->renderer) >= 0) {
+			wlr_drm_create(server->wl_display, server->renderer);
+		}
+		server->linux_dmabuf = wlr_linux_dmabuf_v1_create_with_renderer(
+			server->wl_display,
+			LAB_WLR_LINUX_DMABUF_VERSION,
+			server->renderer);
+	} else {
+		wlr_log(WLR_DEBUG, "unable to initialize dmabuf");
+	}
 
 	/*
 	 * Autocreates an allocator for us. The allocator is the bridge between
@@ -501,6 +519,9 @@ server_init(struct server *server)
 	if (!presentation) {
 		wlr_log(WLR_ERROR, "unable to create presentation interface");
 		exit(EXIT_FAILURE);
+	}
+	if (server->linux_dmabuf) {
+		wlr_scene_set_linux_dmabuf_v1(server->scene, server->linux_dmabuf);
 	}
 
 	wlr_export_dmabuf_manager_v1_create(server->wl_display);

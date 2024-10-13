@@ -225,6 +225,7 @@ struct server {
 		struct wlr_backend *backend;
 	} headless;
 	struct wlr_session *session;
+	struct wlr_linux_dmabuf_v1 *linux_dmabuf;
 
 	struct wlr_xdg_shell *xdg_shell;
 	struct wlr_layer_shell_v1 *layer_shell;

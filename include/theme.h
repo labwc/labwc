@@ -78,6 +78,9 @@ struct theme {
 	float menu_items_text_color[4];
 	float menu_items_active_bg_color[4];
 	float menu_items_active_text_color[4];
+	float menu_border_color[4];
+        int menu_border_width;
+		
 
 	int menu_min_width;
 	int menu_max_width;

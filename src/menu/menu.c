@@ -48,6 +48,7 @@ static struct menuitem *selected_item;
 struct menu_pipe_context {
 	struct server *server;
 	struct menuitem *item;
+	struct menu *top_level_menu;
 	struct buf buf;
 	struct wl_event_source *event_read;
 	struct wl_event_source *event_timeout;
@@ -606,6 +607,36 @@ is_toplevel_static_menu_definition(xmlNode *n, char *id)
 	return id && nr_parents(n) == 2;
 }
 
+static bool parse_buf(struct server *server, struct buf *buf);
+static int handle_pipemenu_readable(int fd, uint32_t mask, void *_ctx);
+static int handle_pipemenu_timeout(void *_ctx);
+
+static void
+parse_root_pipemenu(struct menu *top_level_menu, const char *execute)
+{
+	int pipe_fd = 0;
+	pid_t pid = spawn_piped(execute, &pipe_fd);
+	if (pid <= 0) {
+		wlr_log(WLR_ERROR, "Failed to spawn pipe menu process %s", execute);
+		return;
+	}
+
+	struct menu_pipe_context *ctx = znew(*ctx);
+	ctx->server = top_level_menu->server;
+	ctx->top_level_menu = top_level_menu;
+	ctx->pid = pid;
+	ctx->pipe_fd = pipe_fd;
+	ctx->buf = BUF_INIT;
+	top_level_menu->pipe_ctx = ctx;
+
+	ctx->event_read = wl_event_loop_add_fd(ctx->server->wl_event_loop,
+		pipe_fd, WL_EVENT_READABLE, handle_pipemenu_readable, ctx);
+
+	ctx->event_timeout = wl_event_loop_add_timer(ctx->server->wl_event_loop,
+		handle_pipemenu_timeout, ctx);
+	wl_event_source_timer_update(ctx->event_timeout, PIPEMENU_TIMEOUT_IN_MS);
+}
+
 /*
  * <menu> elements have three different roles:
  *  * Definition of (sub)menu - has ID, LABEL and CONTENT
@@ -623,25 +654,22 @@ handle_menu_element(xmlNode *n, struct server *server)
 		wlr_log(WLR_DEBUG, "pipemenu '%s:%s:%s'", id, label, execute);
 		if (!current_menu) {
 			/*
-			 * We currently do not support pipemenus without a
-			 * parent <item> such as the one the example below:
+			 * Handle pipemenu as the root-menu such this:
 			 *
 			 * <?xml version="1.0" encoding="UTF-8"?>
 			 * <openbox_menu>
 			 *   <menu id="root-menu" label="foo" execute="bar"/>
 			 * </openbox_menu>
-			 *
-			 * TODO: Consider supporting this
 			 */
-			wlr_log(WLR_ERROR,
-				"pipemenu '%s:%s:%s' has no parent <menu>",
-				id, label, execute);
-			goto error;
+			struct menu *menu = menu_create(server, id, label);
+			parse_root_pipemenu(menu, execute);
+		} else {
+			current_item = item_create(current_menu, label,
+				/* arrow */ true);
+			current_item_action = NULL;
+			current_item->execute = xstrdup(execute);
+			current_item->id = xstrdup(id);
 		}
-		current_item = item_create(current_menu, label, /* arrow */ true);
-		current_item_action = NULL;
-		current_item->execute = xstrdup(execute);
-		current_item->id = xstrdup(id);
 	} else if ((label && id) || is_toplevel_static_menu_definition(n, id)) {
 		/*
 		 * (label && id) refers to <menu id="" label=""> which is an
@@ -1167,6 +1195,10 @@ menu_free(struct menu *menu)
 		item_destroy(item);
 	}
 
+	if (menu->pipe_ctx) {
+		menu->pipe_ctx->top_level_menu = NULL;
+	}
+
 	/*
 	 * Destroying the root node will destroy everything,
 	 * including node descriptors and scaled_font_buffers.
@@ -1339,6 +1371,34 @@ menu_open_root(struct menu *menu, int x, int y)
 static void
 create_pipe_menu(struct menu_pipe_context *ctx)
 {
+	if (ctx->top_level_menu) {
+		/*
+		 * We execute the scripts for the toplevel pipemenus at startup
+		 * or Reconfigure, but they can be opened before they finish
+		 * execution, usually with their content empty. Make sure they
+		 * are closed and emptied.
+		 */
+		if (ctx->server->menu_current == ctx->top_level_menu) {
+			menu_close_root(ctx->server);
+		}
+		struct menuitem *item, *tmp;
+		wl_list_for_each_safe(item, tmp, &ctx->top_level_menu->menuitems, link) {
+			item_destroy(item);
+		}
+
+		menu_level++;
+		current_menu = ctx->top_level_menu;
+		if (!parse_buf(ctx->server, &ctx->buf)) {
+			wlr_log(WLR_ERROR, "Failed to parse piped top level menu %s",
+				ctx->top_level_menu->id);
+		}
+		menu_level--;
+		post_processing(ctx->server);
+		validate(ctx->server);
+		menu_update_scene(current_menu);
+		return;
+	}
+
 	assert(ctx->item);
 
 	struct menu *pipe_parent = ctx->item->parent;
@@ -1404,6 +1464,9 @@ pipemenu_ctx_destroy(struct menu_pipe_context *ctx)
 	if (ctx->item) {
 		ctx->item->pipe_ctx = NULL;
 	}
+	if (ctx->top_level_menu) {
+		ctx->top_level_menu->pipe_ctx = NULL;
+	}
 	free(ctx);
 	waiting_for_pipe_menu = false;
 }
@@ -1427,7 +1490,7 @@ handle_pipemenu_readable(int fd, uint32_t mask, void *_ctx)
 	char data[8193];
 	ssize_t size;
 
-	if (!ctx->item) {
+	if (!ctx->item && !ctx->top_level_menu) {
 		/* parent menu item got destroyed in the meantime */
 		wlr_log(WLR_INFO, "[pipemenu %ld] parent menu item destroyed",
 			(long)ctx->pid);
@@ -1442,14 +1505,15 @@ handle_pipemenu_readable(int fd, uint32_t mask, void *_ctx)
 
 	if (size == -1) {
 		wlr_log_errno(WLR_ERROR, "[pipemenu %ld] failed to read data (%s)",
-			(long)ctx->pid, ctx->item->execute);
+			(long)ctx->pid, ctx->item ? ctx->item->execute : "n/a");
 		goto clean_up;
 	}
 
 	/* Limit pipemenu buffer to 1 MiB for safety */
 	if (ctx->buf.len + size > PIPEMENU_MAX_BUF_SIZE) {
 		wlr_log(WLR_ERROR, "[pipemenu %ld] too big (> %d bytes); killing %s",
-			(long)ctx->pid, PIPEMENU_MAX_BUF_SIZE, ctx->item->execute);
+			(long)ctx->pid, PIPEMENU_MAX_BUF_SIZE,
+			ctx->item ? ctx->item->execute : "n/a");
 		kill(ctx->pid, SIGTERM);
 		goto clean_up;
 	}

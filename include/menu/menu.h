@@ -42,6 +42,7 @@ struct menu {
 	char *id;
 	char *label;
 	struct menu *parent;
+	struct menu_pipe_context *pipe_ctx;
 
 	struct {
 		int width;

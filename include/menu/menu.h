@@ -24,7 +24,6 @@ struct menu_scene {
 	struct wlr_scene_tree *tree;
 	struct wlr_scene_node *text;
 	struct wlr_scene_node *background;
-	
 	struct scaled_font_buffer *buffer;
 };
 

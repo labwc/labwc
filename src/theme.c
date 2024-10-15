@@ -601,6 +601,8 @@ theme_builtin(struct theme *theme, struct server *server)
 	parse_hexstr("#000000", theme->menu_items_text_color);
 	parse_hexstr("#e1dedb", theme->menu_items_active_bg_color);
 	parse_hexstr("#000000", theme->menu_items_active_text_color);
+	
+	
 
 	theme->menu_item_padding_x = 7;
 	theme->menu_item_padding_y = 4;
@@ -916,6 +918,15 @@ entry(struct theme *theme, const char *key, const char *value)
 
 	if (match_glob(key, "menu.title.text.color")) {
 		parse_hexstr(value, theme->menu_title_text_color);
+	}
+	
+	if (match_glob(key, "menu.border.color")) {
+		parse_hexstr(value, theme->menu_border_color);
+	}
+
+	if (match_glob(key, "menu.border.width")) {
+		theme->menu_border_width = get_int_if_positive(
+			value, "menu.border.width");
 	}
 
 	if (match_glob(key, "osd.bg.color")) {

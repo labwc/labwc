@@ -86,6 +86,31 @@ menu_create(struct server *server, const char *id, const char *label)
 	/* menu->size.height will be kept up to date by adding items */
 	menu->scene_tree = wlr_scene_tree_create(server->menu_tree);
 	wlr_scene_node_set_enabled(&menu->scene_tree->node, false);
+	
+	/* Create border rectangle */
+        menu->border = wlr_scene_rect_create(menu->scene_tree, 
+        menu->size.width + 2 * server->theme->menu_border_width, 
+        2 * server->theme->menu_border_width, 
+        server->theme->menu_border_color);
+
+        /* Create background rectangle */
+        menu->background = wlr_scene_rect_create(menu->scene_tree,
+        menu->size.width,
+        menu->size.height,
+        server->theme->menu_items_bg_color);
+
+        /* Position background inside border */
+        wlr_scene_node_set_position(&menu->background->node, 
+        server->theme->menu_border_width, 
+        server->theme->menu_border_width);
+
+        /* Create a new scene tree for menu items */
+        menu->items_tree = wlr_scene_tree_create(menu->scene_tree);
+        wlr_scene_node_set_position(&menu->items_tree->node,
+        server->theme->menu_border_width,
+        server->theme->menu_border_width);
+	
+	
 	return menu;
 }
 
@@ -117,8 +142,26 @@ menu_update_width(struct menu *menu)
 			max_width = item->native_width < theme->menu_max_width
 				? item->native_width : theme->menu_max_width;
 		}
+		
 	}
 	menu->size.width = max_width + 2 * theme->menu_item_padding_x;
+  // Update border size
+        wlr_scene_rect_set_size(menu->border, 
+        menu->size.width + 2 * theme->menu_border_width, 
+        menu->size.height + 2 * theme->menu_border_width);
+
+    // Update background size and position
+        wlr_scene_rect_set_size(menu->background, 
+        menu->size.width, 
+        menu->size.height);
+        wlr_scene_node_set_position(&menu->background->node,
+        theme->menu_border_width,
+        theme->menu_border_width);
+
+    // Update items_tree position
+    wlr_scene_node_set_position(&menu->items_tree->node,
+        theme->menu_border_width,
+        theme->menu_border_width);
 
 	/*
 	 * TODO: This function is getting a bit unwieldy. Consider calculating
@@ -215,7 +258,7 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 {
 	assert(menu);
 	assert(text);
-
+       
 	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = true;
@@ -237,7 +280,10 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
 	node_descriptor_create(&menuitem->tree->node,
 		LAB_NODE_DESC_MENUITEM, menuitem);
-
+        /* Menu item root node */
+        menuitem->tree = wlr_scene_tree_create(menu->items_tree);
+        node_descriptor_create(&menuitem->tree->node,
+        LAB_NODE_DESC_MENUITEM, menuitem);
 	/* Tree for each state to hold background and text buffer */
 	menuitem->normal.tree = wlr_scene_tree_create(menuitem->tree);
 	menuitem->selected.tree = wlr_scene_tree_create(menuitem->tree);
@@ -307,6 +353,11 @@ separator_create(struct menu *menu, const char *label)
 		: LAB_MENU_TITLE;
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
+        /* Menu item root node */
+        menuitem->tree = wlr_scene_tree_create(menu->items_tree);
+        node_descriptor_create(&menuitem->tree->node,
+        LAB_NODE_DESC_MENUITEM, menuitem);
+
 
 	if (menuitem->type == LAB_MENU_TITLE) {
 		menuitem->height = theme->menu_item_height;
@@ -1150,7 +1201,10 @@ menu_free(struct menu *menu)
 	 * Destroying the root node will destroy everything,
 	 * including node descriptors and scaled_font_buffers.
 	 */
-	wlr_scene_node_destroy(&menu->scene_tree->node);
+        wlr_scene_node_destroy(&menu->border->node);
+        wlr_scene_node_destroy(&menu->background->node);
+        wlr_scene_node_destroy(&menu->items_tree->node);
+        wlr_scene_node_destroy(&menu->scene_tree->node);
 	wl_list_remove(&menu->link);
 	zfree(menu->id);
 	zfree(menu->label);

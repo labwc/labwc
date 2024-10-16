@@ -75,8 +75,8 @@ struct menu {
 	struct view *triggered_by_view;  /* may be NULL */
 	struct wl_list link; /* server.menus */
 	struct wlr_scene_rect *border;
-        struct wlr_scene_rect *background;
-        struct wlr_scene_tree *items_tree;
+	struct wlr_scene_rect *background;
+	iostruct wlr_scene_tree *items_tree;
 };
 
 /* For keyboard support */

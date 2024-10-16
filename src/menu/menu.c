@@ -86,31 +86,29 @@ menu_create(struct server *server, const char *id, const char *label)
 	/* menu->size.height will be kept up to date by adding items */
 	menu->scene_tree = wlr_scene_tree_create(server->menu_tree);
 	wlr_scene_node_set_enabled(&menu->scene_tree->node, false);
-	
 	/* Create border rectangle */
-        menu->border = wlr_scene_rect_create(menu->scene_tree, 
-        menu->size.width + 2 * server->theme->menu_border_width, 
-        2 * server->theme->menu_border_width, 
-        server->theme->menu_border_color);
+	menu->border = wlr_scene_rect_create(menu->scene_tree, 
+	menu->size.width + 2 * server->theme->menu_border_width, 
+	2 * server->theme->menu_border_width,
+	server->theme->menu_border_color);
 
-        /* Create background rectangle */
-        menu->background = wlr_scene_rect_create(menu->scene_tree,
-        menu->size.width,
-        menu->size.height,
-        server->theme->menu_items_bg_color);
+	/* Create background rectangle */
+	menu->background = wlr_scene_rect_create(menu->scene_tree,
+	menu->size.width,
+	menu->size.height,
+	server->theme->menu_items_bg_color);
 
         /* Position background inside border */
-        wlr_scene_node_set_position(&menu->background->node, 
-        server->theme->menu_border_width, 
-        server->theme->menu_border_width);
-
-        /* Create a new scene tree for menu items */
-        menu->items_tree = wlr_scene_tree_create(menu->scene_tree);
-        wlr_scene_node_set_position(&menu->items_tree->node,
+        wlr_scene_node_set_position(&menu->background->node,
         server->theme->menu_border_width,
         server->theme->menu_border_width);
-	
-	
+
+	/* Create a new scene tree for menu items */
+	menu->items_tree = wlr_scene_tree_create(menu->scene_tree);
+	wlr_scene_node_set_position(&menu->items_tree->node,
+	server->theme->menu_border_width,
+	server->theme->menu_border_width);
+
 	return menu;
 }
 
@@ -145,23 +143,21 @@ menu_update_width(struct menu *menu)
 		
 	}
 	menu->size.width = max_width + 2 * theme->menu_item_padding_x;
-  // Update border size
-        wlr_scene_rect_set_size(menu->border, 
-        menu->size.width + 2 * theme->menu_border_width, 
-        menu->size.height + 2 * theme->menu_border_width);
-
-    // Update background size and position
-        wlr_scene_rect_set_size(menu->background, 
-        menu->size.width, 
-        menu->size.height);
-        wlr_scene_node_set_position(&menu->background->node,
-        theme->menu_border_width,
-        theme->menu_border_width);
-
-    // Update items_tree position
-    wlr_scene_node_set_position(&menu->items_tree->node,
-        theme->menu_border_width,
-        theme->menu_border_width);
+	/* Update border size */
+        wlr_scene_rect_set_size(menu->border,
+        menu->size.width + 2 * theme->menu_border_width,
+	menu->size.height + 2 * theme->menu_border_width);
+	/* Update background size and position */
+        wlr_scene_rect_set_size(menu->background,
+	menu->size.width,
+	menu->size.height);
+	wlr_scene_node_set_position(&menu->background->node,
+	theme->menu_border_width,
+	theme->menu_border_width)};
+	/* Update items_tree position */
+    	wlr_scene_node_set_position(&menu->items_tree->node,
+    	theme->menu_border_width,
+	theme->menu_border_width);
 
 	/*
 	 * TODO: This function is getting a bit unwieldy. Consider calculating

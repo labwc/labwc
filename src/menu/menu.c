@@ -146,7 +146,7 @@ menu_update_width(struct menu *menu)
 	wlr_scene_rect_set_size(menu->border,
 	menu->size.width + 2 * theme->menu_border_width,
 	menu->size.height + 2 * theme->menu_border_width);
-	
+
 	/* Update background size and position */
 	wlr_scene_rect_set_size(menu->background,
 	menu->size.width,
@@ -154,7 +154,7 @@ menu_update_width(struct menu *menu)
 	wlr_scene_node_set_position(&menu->background->node,
 	theme->menu_border_width,
 	theme->menu_border_width);
-	
+
 	/* Update items_tree position */
 	wlr_scene_node_set_position(&menu->items_tree->node,
 	theme->menu_border_width,

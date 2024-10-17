@@ -147,13 +147,15 @@ menu_update_width(struct menu *menu)
         wlr_scene_rect_set_size(menu->border,
         menu->size.width + 2 * theme->menu_border_width,
 	menu->size.height + 2 * theme->menu_border_width);
+	
 	/* Update background size and position */
         wlr_scene_rect_set_size(menu->background,
 	menu->size.width,
 	menu->size.height);
 	wlr_scene_node_set_position(&menu->background->node,
 	theme->menu_border_width,
-	theme->menu_border_width)};
+	theme->menu_border_width);
+	
 	/* Update items_tree position */
     	wlr_scene_node_set_position(&menu->items_tree->node,
     	theme->menu_border_width,
@@ -254,7 +256,7 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 {
 	assert(menu);
 	assert(text);
-       
+	
 	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = true;
@@ -272,14 +274,11 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 		menuitem->native_width += font_width(&rc.font_menuitem, arrow);
 	}
 
-	/* Menu item root node */
-	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
-	node_descriptor_create(&menuitem->tree->node,
-		LAB_NODE_DESC_MENUITEM, menuitem);
         /* Menu item root node */
         menuitem->tree = wlr_scene_tree_create(menu->items_tree);
         node_descriptor_create(&menuitem->tree->node,
         LAB_NODE_DESC_MENUITEM, menuitem);
+
 	/* Tree for each state to hold background and text buffer */
 	menuitem->normal.tree = wlr_scene_tree_create(menuitem->tree);
 	menuitem->selected.tree = wlr_scene_tree_create(menuitem->tree);
@@ -349,12 +348,7 @@ separator_create(struct menu *menu, const char *label)
 		: LAB_MENU_TITLE;
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
-        /* Menu item root node */
-        menuitem->tree = wlr_scene_tree_create(menu->items_tree);
-        node_descriptor_create(&menuitem->tree->node,
-        LAB_NODE_DESC_MENUITEM, menuitem);
-
-
+    
 	if (menuitem->type == LAB_MENU_TITLE) {
 		menuitem->height = theme->menu_item_height;
 		menuitem->native_width = font_width(&rc.font_menuheader, label);
@@ -364,7 +358,7 @@ separator_create(struct menu *menu, const char *label)
 	}
 
 	/* Menu item root node */
-	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
+	menuitem->tree = wlr_scene_tree_create(menu->items_tree);
 	node_descriptor_create(&menuitem->tree->node,
 		LAB_NODE_DESC_MENUITEM, menuitem);
 

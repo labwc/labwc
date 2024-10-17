@@ -290,6 +290,16 @@ struct view_query {
 	int window_type;
 	char *sandbox_engine;
 	char *sandbox_app_id;
+	int shaded;
+	int maximized;
+	int maximizedvertical;
+	int maximizedhorizontal;
+	int iconified;
+	int focused;
+	int omnipresent;
+	enum view_edge tiled;
+	char *tiled_region;
+	char *desktop;
 };
 
 struct xdg_toplevel_view {

@@ -103,7 +103,7 @@ menu_create(struct server *server, const char *id, const char *label)
 	server->theme->menu_border_width,
 	server->theme->menu_border_width);
 
-	/* Create a new scene tree for menu items */	
+	/* Create a new scene tree for menu items */
 	menu->items_tree = wlr_scene_tree_create(menu->scene_tree);
 	wlr_scene_node_set_position(&menu->items_tree->node,
 	server->theme->menu_border_width,
@@ -139,7 +139,7 @@ menu_update_width(struct menu *menu)
 		if (item->native_width > max_width) {
 			max_width = item->native_width < theme->menu_max_width
 				? item->native_width : theme->menu_max_width;
-		}	
+		}
 	}
 	menu->size.width = max_width + 2 * theme->menu_item_padding_x;
 	/* Update border size */
@@ -255,7 +255,7 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 {
 	assert(menu);
 	assert(text);
-	
+
 	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = true;
@@ -277,7 +277,7 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 	menuitem->tree = wlr_scene_tree_create(menu->items_tree);
 	node_descriptor_create(&menuitem->tree->node,
 	LAB_NODE_DESC_MENUITEM, menuitem);
-	
+
 	/* Tree for each state to hold background and text buffer */
 	menuitem->normal.tree = wlr_scene_tree_create(menuitem->tree);
 	menuitem->selected.tree = wlr_scene_tree_create(menuitem->tree);
@@ -347,7 +347,7 @@ separator_create(struct menu *menu, const char *label)
 		: LAB_MENU_TITLE;
 	struct server *server = menu->server;
 	struct theme *theme = server->theme;
-	
+
 	if (menuitem->type == LAB_MENU_TITLE) {
 		menuitem->height = theme->menu_item_height;
 		menuitem->native_width = font_width(&rc.font_menuheader, label);
@@ -1187,9 +1187,9 @@ menu_free(struct menu *menu)
 	}
 
 	/*
-	* Destroying the root node will destroy everything,
-	* including node descriptors and scaled_font_buffers.
-	*/
+	 * Destroying the root node will destroy everything,
+	 * including node descriptors and scaled_font_buffers.
+	 */
 	wlr_scene_node_destroy(&menu->border->node);
 	wlr_scene_node_destroy(&menu->background->node);
 	wlr_scene_node_destroy(&menu->items_tree->node);

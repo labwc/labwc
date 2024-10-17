@@ -601,8 +601,6 @@ theme_builtin(struct theme *theme, struct server *server)
 	parse_hexstr("#000000", theme->menu_items_text_color);
 	parse_hexstr("#e1dedb", theme->menu_items_active_bg_color);
 	parse_hexstr("#000000", theme->menu_items_active_text_color);
-	
-	
 
 	theme->menu_item_padding_x = 7;
 	theme->menu_item_padding_y = 4;

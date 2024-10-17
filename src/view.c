@@ -8,6 +8,7 @@
 #include "common/macros.h"
 #include "common/match.h"
 #include "common/mem.h"
+#include "common/parse-bool.h"
 #include "common/scene-helpers.h"
 #include "input/keyboard.h"
 #include "labwc.h"
@@ -22,6 +23,7 @@
 #include "ssd.h"
 #include "view.h"
 #include "window-rules.h"
+#include "wlr/util/log.h"
 #include "workspaces.h"
 #include "xwayland.h"
 
@@ -76,53 +78,154 @@ void
 view_query_free(struct view_query *query)
 {
 	wl_list_remove(&query->link);
-	free(query->identifier);
-	free(query->title);
-	free(query->sandbox_engine);
-	free(query->sandbox_app_id);
-	free(query);
+	zfree(query->identifier);
+	zfree(query->title);
+	zfree(query->sandbox_engine);
+	zfree(query->sandbox_app_id);
+	zfree(query->tiled_region);
+	zfree(query->desktop);
+	zfree(query->monitor);
+	zfree(query);
+}
+
+static enum three_state
+bool_to_tristate(bool b)
+{
+	return b ? LAB_STATE_ENABLED : LAB_STATE_DISABLED;
+}
+
+static enum three_state
+match_tristate(enum three_state desired, bool actual, enum three_state old_match)
+{
+	switch (desired) {
+	case LAB_STATE_ENABLED:
+		return bool_to_tristate(actual);
+	case LAB_STATE_DISABLED:
+		return bool_to_tristate(!actual);
+	default:
+		return old_match;
+	}
 }
 
 bool
 view_matches_query(struct view *view, struct view_query *query)
 {
-	bool match = true;
-	bool empty = true;
+	enum three_state match = LAB_STATE_UNSPECIFIED;
 
-	const char *identifier = view_get_string_prop(view, "app_id");
-	if (match && query->identifier) {
-		empty = false;
-		match &= identifier && match_glob(query->identifier, identifier);
+	if (query->identifier) {
+		const char *identifier = view_get_string_prop(view, "app_id");
+		if (!(identifier && match_glob(query->identifier, identifier))) {
+			return false;
+		}
 	}
 
-	const char *title = view_get_string_prop(view, "title");
-	if (match && query->title) {
-		empty = false;
-		match &= title && match_glob(query->title, title);
+	if (query->title) {
+		const char *title = view_get_string_prop(view, "title");
+		if (!(title && match_glob(query->title, title))) {
+			return false;
+		}
 	}
 
-	if (match && query->window_type >= 0) {
-		empty = false;
-		match &= view_contains_window_type(view, query->window_type);
+	if (query->window_type >= 0) {
+		if (!view_contains_window_type(view, query->window_type)) {
+			return false;
+		}
 	}
 
-	if (match && query->sandbox_engine) {
+	if (query->sandbox_engine) {
 		const struct wlr_security_context_v1_state *security_context =
 			security_context_from_view(view);
-		empty = false;
-		match &= security_context && security_context->sandbox_engine
-			&& match_glob(query->sandbox_engine, security_context->sandbox_engine);
+		if (!(security_context && security_context->sandbox_engine &&
+			match_glob(query->sandbox_engine, security_context->sandbox_engine))) {
+			return false;
+		}
 	}
 
-	if (match && query->sandbox_app_id) {
+	if (query->sandbox_app_id) {
 		const struct wlr_security_context_v1_state *security_context =
 			security_context_from_view(view);
-		empty = false;
-		match &= security_context && security_context->app_id
-			&& match_glob(query->sandbox_app_id, security_context->app_id);
+		if (!(security_context && security_context->app_id &&
+			match_glob(query->sandbox_app_id, security_context->app_id))) {
+			return false;
+		}
 	}
 
-	return !empty && match;
+	match = match_tristate(query->shaded, view->shaded, match);
+	if (match  == LAB_STATE_DISABLED) {
+		return false;
+	}
+
+	if (query->maximized != VIEW_AXIS_INVALID) {
+		match = bool_to_tristate(view->maximized == query->maximized);
+		if (match == LAB_STATE_DISABLED) {
+			return false;
+		}
+	}
+
+	match = match_tristate(query->iconified, view->minimized, match);
+	if (match == LAB_STATE_DISABLED) {
+		return false;
+	}
+
+	match = match_tristate(query->focused, view->server->active_view == view, match);
+	if (match == LAB_STATE_DISABLED) {
+		return false;
+	}
+
+	match = match_tristate(query->omnipresent, view->visible_on_all_workspaces, match);
+	if (match == LAB_STATE_DISABLED) {
+		return false;
+	}
+
+	if (query->tiled != VIEW_EDGE_INVALID) {
+		match = bool_to_tristate(query->tiled == view->tiled);
+		if (match == LAB_STATE_DISABLED) {
+			return false;
+		}
+	}
+
+	if (query->tiled_region) {
+		match = bool_to_tristate(view->tiled_region &&
+			!strcasecmp(query->tiled_region, view->tiled_region->name));
+		if (match == LAB_STATE_DISABLED) {
+			return false;
+		}
+	}
+
+	if (query->desktop) {
+		if (!strcasecmp(query->desktop, "other")) {
+			struct workspace *current = view->server->workspaces.current;
+			match = bool_to_tristate(strcasecmp(view->workspace->name, current->name));
+		} else {
+			// TODO: perhaps allow wrapping for "left" and "right" workspaces
+			struct workspace *target =
+				workspaces_find(view->server->workspaces.current,
+						query->desktop, false);
+			match = bool_to_tristate(target &&
+					!strcasecmp(view->workspace->name, target->name));
+		}
+		if (match == LAB_STATE_DISABLED) {
+			return false;
+		}
+	}
+
+	enum ssd_mode decoration = view_get_ssd_mode(view);
+	if (query->decoration != LAB_SSD_MODE_INVALID) {
+		match = bool_to_tristate(query->decoration == decoration);
+		if (match == LAB_STATE_DISABLED) {
+			return false;
+		}
+	}
+
+	if (query->monitor) {
+		struct output *target = output_from_name(view->server, query->monitor);
+		match = bool_to_tristate(target == view->output);
+		if (match == LAB_STATE_DISABLED) {
+			return false;
+		}
+	}
+
+	return match == LAB_STATE_ENABLED;
 }
 
 static bool
@@ -1949,7 +2052,7 @@ enum view_axis
 view_axis_parse(const char *direction)
 {
 	if (!direction) {
-		return VIEW_AXIS_NONE;
+		return VIEW_AXIS_INVALID;
 	}
 	if (!strcasecmp(direction, "horizontal")) {
 		return VIEW_AXIS_HORIZONTAL;
@@ -1957,8 +2060,10 @@ view_axis_parse(const char *direction)
 		return VIEW_AXIS_VERTICAL;
 	} else if (!strcasecmp(direction, "both")) {
 		return VIEW_AXIS_BOTH;
-	} else {
+	} else if (!strcasecmp(direction, "none")) {
 		return VIEW_AXIS_NONE;
+	} else {
+		return VIEW_AXIS_INVALID;
 	}
 }
 

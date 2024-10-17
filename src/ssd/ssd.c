@@ -350,14 +350,16 @@ enum ssd_mode
 ssd_mode_parse(const char *mode)
 {
 	if (!mode) {
-		return LAB_SSD_MODE_FULL;
+		return LAB_SSD_MODE_INVALID;
 	}
 	if (!strcasecmp(mode, "none")) {
 		return LAB_SSD_MODE_NONE;
 	} else if (!strcasecmp(mode, "border")) {
 		return LAB_SSD_MODE_BORDER;
-	} else {
+	} else if (!strcasecmp(mode, "full")) {
 		return LAB_SSD_MODE_FULL;
+	} else {
+		return LAB_SSD_MODE_INVALID;
 	}
 }
 

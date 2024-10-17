@@ -62,9 +62,10 @@ enum ssd_part_type {
 };
 
 enum ssd_mode {
+	LAB_SSD_MODE_INVALID,
 	LAB_SSD_MODE_NONE,
 	LAB_SSD_MODE_BORDER,
-	LAB_SSD_MODE_FULL
+	LAB_SSD_MODE_FULL,
 };
 
 /* Forward declare arguments */

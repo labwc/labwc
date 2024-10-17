@@ -366,7 +366,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 	case ACTION_TYPE_UNMAXIMIZE:
 		if (!strcmp(argument, "direction")) {
 			enum view_axis axis = view_axis_parse(content);
-			if (axis == VIEW_AXIS_NONE) {
+			if (axis == VIEW_AXIS_NONE || axis == VIEW_AXIS_INVALID) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			} else {
@@ -378,7 +378,12 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 	case ACTION_TYPE_SET_DECORATIONS:
 		if (!strcmp(argument, "decorations")) {
 			enum ssd_mode mode = ssd_mode_parse(content);
-			action_arg_add_int(action, argument, mode);
+			if (mode != LAB_SSD_MODE_INVALID) {
+				action_arg_add_int(action, argument, mode);
+			} else {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			}
 			goto cleanup;
 		}
 		if (!strcasecmp(argument, "forceSSD")) {

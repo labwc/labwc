@@ -390,6 +390,41 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 			Internal heuristics for Wayland clients,
 			NET_WM_WINDOW_TYPE for XWayland clients.
 
+		*shaded* [yes|no]
+			Whether or not the client is rolled up.
+
+		*maximized* [both|horizontal|vertical|none]
+			Whether the client is maximized along both axes, the
+			horizontal axis only, the vertical axis only, or neither
+			axis (none).
+
+		*iconified* [yes|no]
+			Whether or not the client is iconified.
+
+		*focused* [yes|no]
+			Whether or not the client is focused.
+
+		*omnipresent* [yes|no]
+			Whether or not the client is visible on all desktops.
+
+		*desktop*
+			The desktop the client is currently on. This can be the
+			number or name of a desktop, or special relative values
+			"current", "other", "left", "right" or "last". The
+			"left" and "right" directions will not wrap.
+
+		*tiled* [up|right|down|left|center]
+			Whether the client is tiled (snapped) along the the
+			indicated screen edge.
+
+		*tiled_region*
+			Whether the client is tiled (snapped) to the indicated
+			region.
+
+		*decoration* [full|border|none]
+			Whether the client has full server-side decorations,
+			borders only, or no server-side decorations.
+
 		This argument is optional.
 
 	*then*

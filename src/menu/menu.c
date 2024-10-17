@@ -139,8 +139,7 @@ menu_update_width(struct menu *menu)
 		if (item->native_width > max_width) {
 			max_width = item->native_width < theme->menu_max_width
 				? item->native_width : theme->menu_max_width;
-		}
-		
+		}	
 	}
 	menu->size.width = max_width + 2 * theme->menu_item_padding_x;
 	/* Update border size */

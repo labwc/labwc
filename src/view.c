@@ -8,6 +8,7 @@
 #include "common/macros.h"
 #include "common/match.h"
 #include "common/mem.h"
+#include "common/parse-bool.h"
 #include "common/scene-helpers.h"
 #include "input/keyboard.h"
 #include "labwc.h"
@@ -22,6 +23,7 @@
 #include "ssd.h"
 #include "view.h"
 #include "window-rules.h"
+#include "wlr/util/log.h"
 #include "workspaces.h"
 #include "xwayland.h"
 
@@ -68,7 +70,16 @@ struct view_query *
 view_query_create(void)
 {
 	struct view_query *query = znew(*query);
-	query->window_type = -1;
+	*query = (struct view_query) {
+		.window_type = -1,
+		.shaded = -1,
+		.maximized = -1,
+		.maximizedhorizontal = -1,
+		.maximizedvertical = -1,
+		.iconified = -1,
+		.focused = -1,
+		.omnipresent = -1,
+	};
 	return query;
 }
 
@@ -76,11 +87,13 @@ void
 view_query_free(struct view_query *query)
 {
 	wl_list_remove(&query->link);
-	free(query->identifier);
-	free(query->title);
-	free(query->sandbox_engine);
-	free(query->sandbox_app_id);
-	free(query);
+	zfree(query->identifier);
+	zfree(query->title);
+	zfree(query->sandbox_engine);
+	zfree(query->sandbox_app_id);
+	zfree(query->tiled_region);
+	zfree(query->desktop);
+	zfree(query);
 }
 
 bool
@@ -120,6 +133,76 @@ view_matches_query(struct view *view, struct view_query *query)
 		empty = false;
 		match &= security_context && security_context->app_id
 			&& match_glob(query->sandbox_app_id, security_context->app_id);
+	}
+
+	if (match && query->shaded >= 0) {
+		empty = false;
+		match &= (view->shaded == query->shaded);
+		wlr_log(WLR_DEBUG, "shaded: %d\n", match);
+	}
+
+	wlr_log(WLR_DEBUG, "view->maximized: %d\n", view->maximized);
+
+	if (match && query->maximized >= 0) {
+		empty = false;
+		match &= (query->maximized == (view->maximized == VIEW_AXIS_BOTH));
+		wlr_log(WLR_DEBUG, "maximized: %d\n", match);
+	}
+
+	if (match && query->maximizedhorizontal >= 0) {
+		empty = false;
+		match &= (query->maximizedhorizontal == ((view->maximized & VIEW_AXIS_HORIZONTAL) != 0));
+		wlr_log(WLR_DEBUG, "maximizedhorizontal: %d\n", match);
+	}
+
+	if (match && query->maximizedvertical >= 0) {
+		empty = false;
+		match &= (query->maximizedvertical == ((view->maximized & VIEW_AXIS_VERTICAL) != 0));
+		wlr_log(WLR_DEBUG, "maximizedvertical: %d\n", match);
+	}
+
+	if (match && query->iconified >= 0) {
+		empty = false;
+		match &= (view->minimized == query->iconified);
+		wlr_log(WLR_DEBUG, "iconified: %d\n", match);
+	}
+
+	if (match && query->focused >= 0) {
+		empty = false;
+		match &= (query->focused == (view->server->active_view == view));
+		wlr_log(WLR_DEBUG, "focused: %d\n", match);
+	}
+
+	if (match && query->omnipresent >= 0) {
+		empty = false;
+		match &= (query->omnipresent == (view->visible_on_all_workspaces == query->omnipresent));
+		wlr_log(WLR_DEBUG, "omnipresent: %d\n", match);
+	}
+
+	if (match && query->tiled != VIEW_EDGE_INVALID) {
+		empty = false;
+		match &= (query->tiled == view->tiled);
+		wlr_log(WLR_DEBUG, "tiled: %d\n", match);
+	}
+
+	if (match && query->tiled_region && view->tiled_region) {
+		empty = false;
+		match &= !strcasecmp(query->tiled_region, view->tiled_region->name);
+		wlr_log(WLR_DEBUG, "tiled_region: %d\n", match);
+	}
+
+	if (match && query->desktop) {
+		empty = false;
+		if (!strcasecmp(query->desktop, "current")) {
+			match &= !strcasecmp(view->workspace->name, view->server->workspaces.current->name);
+		} else if (!strcasecmp(query->desktop, "other")) {
+			match &= strcasecmp(view->workspace->name, view->server->workspaces.current->name);
+		} else {
+			wlr_log(WLR_DEBUG, "view->workspace->name: %s\n", view->workspace->name);
+			match &= !strcasecmp(view->workspace->name, query->desktop);
+		}
+
+		wlr_log(WLR_DEBUG, "desktop: %d\n", match);
 	}
 
 	return !empty && match;

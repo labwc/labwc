@@ -80,6 +80,11 @@ Actions are used in menus and keyboard/mouse bindings.
 
 	*height* The height to resize the window to in pixels.
 
+*<action name="CenterCursor" fallback_to_output="false" />*
+	Warp the cursor to the center of the currently focused view. If no view
+	is currently focused and *fallback_to_output* is set to true, center the
+	cursor to the output currently being hovered.
+
 *<action name="MoveToCursor" />*
 	Move to be centered on cursor.
 	Tries to prevent any part of the window from going off-screen.

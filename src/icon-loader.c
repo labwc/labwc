@@ -69,8 +69,23 @@ icon_loader_init(struct server *server)
 	if (!loader->desktop_db) {
 		goto err_desktop_db;
 	}
+
+	/*
+	 * We set some relaxed load options to accommodate delinquent themes in
+	 * the wild, namely:
+	 *
+	 * - SFDO_ICON_THEME_LOAD_OPTION_ALLOW_MISSING to "impose less
+	 *   restrictions on the format of icon theme files"
+	 *
+	 * - SFDO_ICON_THEME_LOAD_OPTION_RELAXED to "continue loading even if it
+	 *   fails to find a theme or one of its dependencies."
+	 */
+	int load_options = SFDO_ICON_THEME_LOAD_OPTIONS_DEFAULT
+		| SFDO_ICON_THEME_LOAD_OPTION_ALLOW_MISSING
+		| SFDO_ICON_THEME_LOAD_OPTION_RELAXED;
+
 	loader->icon_theme = sfdo_icon_theme_load(loader->icon_ctx,
-		rc.icon_theme_name, SFDO_ICON_THEME_LOAD_OPTIONS_DEFAULT);
+		rc.icon_theme_name, load_options);
 	if (!loader->icon_theme) {
 		goto err_icon_theme;
 	}

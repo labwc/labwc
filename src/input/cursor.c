@@ -749,6 +749,9 @@ constrain_cursor(struct server *server, struct wlr_pointer_constraint_v1
 static void
 apply_constraint(struct seat *seat, struct wlr_pointer *pointer, double *x, double *y)
 {
+	if (!seat->server->active_view) {
+		return;
+	}
 	if (!seat->current_constraint || pointer->base.type != WLR_INPUT_DEVICE_POINTER) {
 		return;
 	}

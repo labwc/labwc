@@ -406,8 +406,7 @@ seat_update_capabilities(struct seat *seat)
 				touch_find_config_for_device(input->wlr_input_device->name);
 			if (config_entry->force_mouse_emulation) {
 				caps |= WL_SEAT_CAPABILITY_POINTER;
-			}
-			else {
+			} else {
 				caps |= WL_SEAT_CAPABILITY_TOUCH;
 			}
 			break;

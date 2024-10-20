@@ -277,6 +277,14 @@ add_output_to_layout(struct server *server, struct output *output)
 
 	lab_cosmic_workspace_group_output_enter(
 		server->workspaces.cosmic_group, output->wlr_output);
+
+	/* (Re-)create regions from config */
+	regions_reconfigure_output(output);
+
+	/* Create lock surface if needed */
+	if (server->session_lock_manager->locked) {
+		session_lock_output_create(server->session_lock_manager, output);
+	}
 }
 
 static void
@@ -451,16 +459,8 @@ new_output_notify(struct wl_listener *listener, void *data)
 
 	add_output_to_layout(server, output);
 
-	/* Create regions from config */
-	regions_reconfigure_output(output);
-
-	if (server->session_lock_manager->locked) {
-		session_lock_output_create(server->session_lock_manager, output);
-	}
-
 	server->pending_output_layout_change--;
 	do_output_layout_change(server);
-	seat_output_layout_changed(&output->server->seat);
 }
 
 void
@@ -765,6 +765,7 @@ do_output_layout_change(struct server *server)
 				"wlr_output_manager_v1_set_configuration()");
 		}
 		output_update_for_layout_change(server);
+		seat_output_layout_changed(&server->seat);
 	}
 }
 

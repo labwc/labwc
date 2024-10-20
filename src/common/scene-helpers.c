@@ -113,7 +113,7 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 	}
 
 	if (state == &output->pending) {
-		if (!wlr_output_commit(wlr_output)) {
+		if (!output_state_commit(output)) {
 			wlr_log(WLR_INFO, "Failed to commit output %s",
 				wlr_output->name);
 			return false;

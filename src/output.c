@@ -243,10 +243,11 @@ output_request_state_notify(struct wl_listener *listener, void *data)
 		/* Only the mode has changed */
 		switch (event->state->mode_type) {
 		case WLR_OUTPUT_STATE_MODE_FIXED:
-			wlr_output_set_mode(output->wlr_output, event->state->mode);
+			wlr_output_state_set_mode(&output->pending,
+				event->state->mode);
 			break;
 		case WLR_OUTPUT_STATE_MODE_CUSTOM:
-			wlr_output_set_custom_mode(output->wlr_output,
+			wlr_output_state_set_custom_mode(&output->pending,
 				event->state->custom_mode.width,
 				event->state->custom_mode.height,
 				event->state->custom_mode.refresh);
@@ -269,9 +270,10 @@ output_request_state_notify(struct wl_listener *listener, void *data)
 static void do_output_layout_change(struct server *server);
 
 static bool
-can_reuse_mode(struct wlr_output *wlr_output)
+can_reuse_mode(struct output *output)
 {
-	return wlr_output->current_mode && wlr_output_test(wlr_output);
+	struct wlr_output *wo = output->wlr_output;
+	return wo->current_mode && wlr_output_test_state(wo, &output->pending);
 }
 
 static void
@@ -372,19 +374,20 @@ new_output_notify(struct wl_listener *listener, void *data)
 	output_state_init(output);
 
 	wlr_log(WLR_DEBUG, "enable output");
-	wlr_output_enable(wlr_output, true);
+	wlr_output_state_set_enabled(&output->pending, true);
 
 	/*
 	 * Try to re-use the existing mode if configured to do so.
 	 * Failing that, try to set the preferred mode.
 	 */
 	struct wlr_output_mode *preferred_mode = NULL;
-	if (!rc.reuse_output_mode || !can_reuse_mode(wlr_output)) {
+	if (!rc.reuse_output_mode || !can_reuse_mode(output)) {
 		wlr_log(WLR_DEBUG, "set preferred mode");
 		/* The mode is a tuple of (width, height, refresh rate). */
 		preferred_mode = wlr_output_preferred_mode(wlr_output);
 		if (preferred_mode) {
-			wlr_output_set_mode(wlr_output, preferred_mode);
+			wlr_output_state_set_mode(&output->pending,
+				preferred_mode);
 		}
 	}
 
@@ -394,7 +397,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 	 * cases it's better to fallback to lower modes than to end up with
 	 * a black screen. See sway@4cdc4ac6
 	 */
-	if (!wlr_output_test(wlr_output)) {
+	if (!wlr_output_test_state(wlr_output, &output->pending)) {
 		wlr_log(WLR_DEBUG,
 			"preferred mode rejected, falling back to another mode");
 		struct wlr_output_mode *mode;
@@ -402,18 +405,18 @@ new_output_notify(struct wl_listener *listener, void *data)
 			if (mode == preferred_mode) {
 				continue;
 			}
-			wlr_output_set_mode(wlr_output, mode);
-			if (wlr_output_test(wlr_output)) {
+			wlr_output_state_set_mode(&output->pending, mode);
+			if (wlr_output_test_state(wlr_output, &output->pending)) {
 				break;
 			}
 		}
 	}
 
 	if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_ENABLED) {
-		output_enable_adaptive_sync(wlr_output, true);
+		output_enable_adaptive_sync(output, true);
 	}
 
-	wlr_output_commit(wlr_output);
+	output_state_commit(output);
 
 	wlr_output_effective_resolution(wlr_output,
 		&output->usable_area.width, &output->usable_area.height);
@@ -548,27 +551,28 @@ output_config_apply(struct server *server,
 	wl_list_for_each(head, &config->heads, link) {
 		struct wlr_output *o = head->state.output;
 		struct output *output = output_from_wlr_output(server, o);
+		struct wlr_output_state *os = &output->pending;
 		bool output_enabled = head->state.enabled && !output->leased;
 		bool need_to_add = output_enabled && !o->enabled;
 		bool need_to_remove = !output_enabled && o->enabled;
 
-		wlr_output_enable(o, output_enabled);
+		wlr_output_state_set_enabled(os, output_enabled);
 		if (output_enabled) {
 			/* Output specific actions only */
 			if (head->state.mode) {
-				wlr_output_set_mode(o, head->state.mode);
+				wlr_output_state_set_mode(os, head->state.mode);
 			} else {
-				int32_t width = head->state.custom_mode.width;
-				int32_t height = head->state.custom_mode.height;
-				int32_t refresh = head->state.custom_mode.refresh;
-				wlr_output_set_custom_mode(o, width,
-					height, refresh);
+				wlr_output_state_set_custom_mode(os,
+					head->state.custom_mode.width,
+					head->state.custom_mode.height,
+					head->state.custom_mode.refresh);
 			}
-			wlr_output_set_scale(o, head->state.scale);
-			wlr_output_set_transform(o, head->state.transform);
-			output_enable_adaptive_sync(o, head->state.adaptive_sync_enabled);
+			wlr_output_state_set_scale(os, head->state.scale);
+			wlr_output_state_set_transform(os, head->state.transform);
+			output_enable_adaptive_sync(output,
+				head->state.adaptive_sync_enabled);
 		}
-		if (!wlr_output_commit(o)) {
+		if (!output_state_commit(output)) {
 			/*
 			 * FIXME: This is only part of the story, we should revert
 			 *        all previously commited outputs as well here.
@@ -700,7 +704,6 @@ custom_mode_failed:
 static void
 handle_output_manager_test(struct wl_listener *listener, void *data)
 {
-	struct server *server = wl_container_of(listener, server, output_manager_test);
 	struct wlr_output_configuration_v1 *config = data;
 
 	if (verify_output_config_v1(config)) {
@@ -810,7 +813,6 @@ handle_output_layout_change(struct wl_listener *listener, void *data)
 static void
 handle_gamma_control_set_gamma(struct wl_listener *listener, void *data)
 {
-	struct server *server = wl_container_of(listener, server, gamma_control_set_gamma);
 	const struct wlr_gamma_control_manager_v1_set_gamma_event *event = data;
 
 	struct output *output = event->output->data;
@@ -1036,15 +1038,17 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 	struct server *server = wl_container_of(listener, server,
 		output_power_manager_set_mode);
 	struct wlr_output_power_v1_set_mode_event *event = data;
+	struct output *output = event->output->data;
+	assert(output);
 
 	switch (event->mode) {
 	case ZWLR_OUTPUT_POWER_V1_MODE_OFF:
-		wlr_output_enable(event->output, false);
-		wlr_output_commit(event->output);
+		wlr_output_state_set_enabled(&output->pending, false);
+		output_state_commit(output);
 		break;
 	case ZWLR_OUTPUT_POWER_V1_MODE_ON:
-		wlr_output_enable(event->output, true);
-		wlr_output_commit(event->output);
+		wlr_output_state_set_enabled(&output->pending, true);
+		output_state_commit(output);
 		/*
 		 * Re-set the cursor image so that the cursor
 		 * isn't invisible on the newly enabled output.
@@ -1055,16 +1059,17 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 }
 
 void
-output_enable_adaptive_sync(struct wlr_output *output, bool enabled)
+output_enable_adaptive_sync(struct output *output, bool enabled)
 {
-	wlr_output_enable_adaptive_sync(output, enabled);
-	if (!wlr_output_test(output)) {
-		wlr_output_enable_adaptive_sync(output, false);
+	wlr_output_state_set_adaptive_sync_enabled(&output->pending, enabled);
+	if (!wlr_output_test_state(output->wlr_output, &output->pending)) {
+		wlr_output_state_set_adaptive_sync_enabled(&output->pending, false);
 		wlr_log(WLR_DEBUG,
-				"failed to enable adaptive sync for output %s", output->name);
+			"failed to enable adaptive sync for output %s",
+			output->wlr_output->name);
 	} else {
 		wlr_log(WLR_INFO, "adaptive sync %sabled for output %s",
-			enabled ? "en" : "dis", output->name);
+			enabled ? "en" : "dis", output->wlr_output->name);
 	}
 }
 

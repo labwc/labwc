@@ -646,25 +646,22 @@ show_menu(struct server *server, struct view *view, struct cursor_context *ctx,
 	}
 
 	/*
-	 *  We always refresh the client-list-combined-menu so that it is
-	 *  up-to-date whether it is used as a menu with `menu_name` set to
-	 *  `client-list-combined-menu` *  or used as a submenu
-	 *  which we don't know at this point. It is also needed to calculate
-	 *  the proper width for placemeent, as it fluctuates depending
-	 *  on the length of the title.
+	 * We always refresh client-list-combined-menu and client-send-to-menu
+	 * so that they are up-to-date whether they are directly opened as a
+	 * top-level menu or opened as a submenu which we don't know at this
+	 * point. It is also needed to calculate the proper width for placement
+	 * as it fluctuates depending on application/workspace titles.
 	 */
 	update_client_list_combined_menu(menu->server);
+	update_client_send_to_menu(menu->server);
 
 	int x = server->seat.cursor->x;
 	int y = server->seat.cursor->y;
 
 	/* The client menu needs an active client */
 	bool is_client_menu = !strcasecmp(menu_name, "client-menu");
-	if (is_client_menu) {
-		if (!view) {
-			return;
-		}
-		update_client_send_to_menu(menu->server);
+	if (is_client_menu && !view) {
+		return;
 	}
 	/* Place menu in the view corner if desired (and menu is not root-menu) */
 	if (!at_cursor && view) {

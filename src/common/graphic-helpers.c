@@ -11,42 +11,38 @@
 #include "common/mem.h"
 
 static void
-multi_rect_destroy_notify(struct wl_listener *listener, void *data)
+outline_rect_destroy_notify(struct wl_listener *listener, void *data)
 {
-	struct multi_rect *rect = wl_container_of(listener, rect, destroy);
+	struct outline_rect *rect = wl_container_of(listener, rect, destroy);
 	wl_list_remove(&rect->destroy.link);
 	free(rect);
 }
 
-struct multi_rect *
-multi_rect_create(struct wlr_scene_tree *parent, float *colors[3], int line_width)
+struct outline_rect *
+outline_rect_create(struct wlr_scene_tree *parent, float color[4], int line_width)
 {
-	struct multi_rect *rect = znew(*rect);
+	struct outline_rect *rect = znew(*rect);
 	rect->line_width = line_width;
 	rect->tree = wlr_scene_tree_create(parent);
-	rect->destroy.notify = multi_rect_destroy_notify;
+	rect->destroy.notify = outline_rect_destroy_notify;
 	wl_signal_add(&rect->tree->node.events.destroy, &rect->destroy);
-	for (size_t i = 0; i < 3; i++) {
-		rect->top[i] = wlr_scene_rect_create(rect->tree, 0, 0, colors[i]);
-		rect->right[i] = wlr_scene_rect_create(rect->tree, 0, 0, colors[i]);
-		rect->bottom[i] = wlr_scene_rect_create(rect->tree, 0, 0, colors[i]);
-		rect->left[i] = wlr_scene_rect_create(rect->tree, 0, 0, colors[i]);
-		wlr_scene_node_set_position(&rect->top[i]->node,
-			i * line_width, i * line_width);
-		wlr_scene_node_set_position(&rect->left[i]->node,
-			i * line_width, (i + 1) * line_width);
-	}
+
+	rect->top = wlr_scene_rect_create(rect->tree, 0, 0, color);
+	rect->right = wlr_scene_rect_create(rect->tree, 0, 0, color);
+	rect->bottom = wlr_scene_rect_create(rect->tree, 0, 0, color);
+	rect->left = wlr_scene_rect_create(rect->tree, 0, 0, color);
+
 	return rect;
 }
 
 void
-multi_rect_set_size(struct multi_rect *rect, int width, int height)
+outline_rect_set_size(struct outline_rect *rect, int width, int height)
 {
 	assert(rect);
 	int line_width = rect->line_width;
 
 	/*
-	 * The outmost outline is drawn like below:
+	 * The outline is drawn like below:
 	 *
 	 * |--width--|
 	 *
@@ -57,22 +53,63 @@ multi_rect_set_size(struct multi_rect *rect, int width, int height)
 	 * +-+-----+-+   |
 	 * +---------+  ---
 	 */
-	for (size_t i = 0; i < 3; i++) {
-		/* Reposition, top and left don't ever change */
-		wlr_scene_node_set_position(&rect->right[i]->node,
-			width - (i + 1) * line_width, (i + 1) * line_width);
-		wlr_scene_node_set_position(&rect->bottom[i]->node,
-			i * line_width, height - (i + 1) * line_width);
 
-		/* Update sizes */
-		wlr_scene_rect_set_size(rect->top[i],
-			width - i * line_width * 2, line_width);
-		wlr_scene_rect_set_size(rect->bottom[i],
-			width - i * line_width * 2, line_width);
-		wlr_scene_rect_set_size(rect->left[i],
-			line_width, height - (i + 1) * line_width * 2);
-		wlr_scene_rect_set_size(rect->right[i],
-			line_width, height - (i + 1) * line_width * 2);
+	/* Update positions (positions of top/left rectangles are static) */
+	wlr_scene_node_set_position(&rect->top->node,
+		0, 0);
+	wlr_scene_node_set_position(&rect->bottom->node,
+		0, height - line_width);
+	wlr_scene_node_set_position(&rect->left->node,
+		0, line_width);
+	wlr_scene_node_set_position(&rect->right->node,
+		width - line_width, line_width);
+
+	/* Update sizes */
+	wlr_scene_rect_set_size(rect->top,
+		width, line_width);
+	wlr_scene_rect_set_size(rect->bottom,
+		width, line_width);
+	wlr_scene_rect_set_size(rect->left,
+		line_width, height - line_width * 2);
+	wlr_scene_rect_set_size(rect->right,
+		line_width, height - line_width * 2);
+}
+
+static void
+multi_rect_destroy_notify(struct wl_listener *listener, void *data)
+{
+	struct multi_rect *rect = wl_container_of(listener, rect, destroy);
+	for (size_t i = 0; i < 3; i++) {
+		wlr_scene_node_destroy(&rect->outlines[i]->tree->node);
+	}
+	wl_list_remove(&rect->destroy.link);
+	free(rect);
+}
+
+struct multi_rect *
+multi_rect_create(struct wlr_scene_tree *parent, float *colors[3], int line_width)
+{
+	struct multi_rect *rect = znew(*rect);
+	rect->tree = wlr_scene_tree_create(parent);
+	rect->destroy.notify = multi_rect_destroy_notify;
+	wl_signal_add(&rect->tree->node.events.destroy, &rect->destroy);
+	for (size_t i = 0; i < 3; i++) {
+		rect->outlines[i] = outline_rect_create(rect->tree, colors[i], line_width);
+		wlr_scene_node_set_position(&rect->outlines[i]->tree->node,
+			i * line_width, i * line_width);
+	}
+	return rect;
+}
+
+void
+multi_rect_set_size(struct multi_rect *multi_rect, int width, int height)
+{
+	assert(multi_rect);
+	int line_width = multi_rect->outlines[0]->line_width;
+	for (size_t i = 0; i < 3; i++) {
+		outline_rect_set_size(multi_rect->outlines[i],
+			width - i * line_width * 2,
+			height - i * line_width * 2);
 	}
 }
 

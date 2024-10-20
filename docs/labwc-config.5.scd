@@ -706,7 +706,7 @@ extending outward from the snapped edge.
 
 *<touch mouseEmulation="" />*
 	If mouseEmulation is enabled, all touch up/down/motion events are
-    translated to mouse button and motion events.
+	translated to mouse button and motion events.
 
 ## TABLET
 

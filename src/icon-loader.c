@@ -223,6 +223,11 @@ get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
 			return entry;
 		}
 
+		/* sfdo_desktop_entry_get_startup_wm_class() asserts against APPLICATION */
+		if (sfdo_desktop_entry_get_type(entry) != SFDO_DESKTOP_ENTRY_APPLICATION) {
+			continue;
+		}
+
 		/* Try desktop entry's StartupWMClass also */
 		const char *wm_class =
 			sfdo_desktop_entry_get_startup_wm_class(entry, NULL);

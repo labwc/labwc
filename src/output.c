@@ -288,6 +288,69 @@ add_output_to_layout(struct server *server, struct output *output)
 }
 
 static void
+configure_new_output(struct server *server, struct output *output)
+{
+	struct wlr_output *wlr_output = output->wlr_output;
+
+	wlr_log(WLR_DEBUG, "enable output");
+	wlr_output_state_set_enabled(&output->pending, true);
+
+	/*
+	 * Try to re-use the existing mode if configured to do so.
+	 * Failing that, try to set the preferred mode.
+	 */
+	struct wlr_output_mode *preferred_mode = NULL;
+	if (!rc.reuse_output_mode || !can_reuse_mode(output)) {
+		wlr_log(WLR_DEBUG, "set preferred mode");
+		/* The mode is a tuple of (width, height, refresh rate). */
+		preferred_mode = wlr_output_preferred_mode(wlr_output);
+		if (preferred_mode) {
+			wlr_output_state_set_mode(&output->pending,
+				preferred_mode);
+		}
+	}
+
+	/*
+	 * Sometimes the preferred mode is not available due to hardware
+	 * constraints (e.g. GPU or cable bandwidth limitations). In these
+	 * cases it's better to fallback to lower modes than to end up with
+	 * a black screen. See sway@4cdc4ac6
+	 */
+	if (!wlr_output_test_state(wlr_output, &output->pending)) {
+		wlr_log(WLR_DEBUG,
+			"preferred mode rejected, falling back to another mode");
+		struct wlr_output_mode *mode;
+		wl_list_for_each(mode, &wlr_output->modes, link) {
+			if (mode == preferred_mode) {
+				continue;
+			}
+			wlr_output_state_set_mode(&output->pending, mode);
+			if (wlr_output_test_state(wlr_output, &output->pending)) {
+				break;
+			}
+		}
+	}
+
+	if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_ENABLED) {
+		output_enable_adaptive_sync(output, true);
+	}
+
+	output_state_commit(output);
+
+	wlr_output_effective_resolution(wlr_output,
+		&output->usable_area.width, &output->usable_area.height);
+
+	/*
+	 * Wait until wlr_output_layout_add_auto() returns before
+	 * calling do_output_layout_change(); this ensures that the
+	 * wlr_output_cursor is created for the new output.
+	 */
+	server->pending_output_layout_change++;
+	add_output_to_layout(server, output);
+	server->pending_output_layout_change--;
+}
+
+static void
 new_output_notify(struct wl_listener *listener, void *data)
 {
 	/*
@@ -353,53 +416,6 @@ new_output_notify(struct wl_listener *listener, void *data)
 	output->server = server;
 	output_state_init(output);
 
-	wlr_log(WLR_DEBUG, "enable output");
-	wlr_output_state_set_enabled(&output->pending, true);
-
-	/*
-	 * Try to re-use the existing mode if configured to do so.
-	 * Failing that, try to set the preferred mode.
-	 */
-	struct wlr_output_mode *preferred_mode = NULL;
-	if (!rc.reuse_output_mode || !can_reuse_mode(output)) {
-		wlr_log(WLR_DEBUG, "set preferred mode");
-		/* The mode is a tuple of (width, height, refresh rate). */
-		preferred_mode = wlr_output_preferred_mode(wlr_output);
-		if (preferred_mode) {
-			wlr_output_state_set_mode(&output->pending,
-				preferred_mode);
-		}
-	}
-
-	/*
-	 * Sometimes the preferred mode is not available due to hardware
-	 * constraints (e.g. GPU or cable bandwidth limitations). In these
-	 * cases it's better to fallback to lower modes than to end up with
-	 * a black screen. See sway@4cdc4ac6
-	 */
-	if (!wlr_output_test_state(wlr_output, &output->pending)) {
-		wlr_log(WLR_DEBUG,
-			"preferred mode rejected, falling back to another mode");
-		struct wlr_output_mode *mode;
-		wl_list_for_each(mode, &wlr_output->modes, link) {
-			if (mode == preferred_mode) {
-				continue;
-			}
-			wlr_output_state_set_mode(&output->pending, mode);
-			if (wlr_output_test_state(wlr_output, &output->pending)) {
-				break;
-			}
-		}
-	}
-
-	if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_ENABLED) {
-		output_enable_adaptive_sync(output, true);
-	}
-
-	output_state_commit(output);
-
-	wlr_output_effective_resolution(wlr_output,
-		&output->usable_area.width, &output->usable_area.height);
 	wl_list_insert(&server->outputs, &output->link);
 
 	output->destroy.notify = output_destroy_notify;
@@ -450,16 +466,7 @@ new_output_notify(struct wl_listener *listener, void *data)
 	wlr_scene_node_raise_to_top(&output->layer_popup_tree->node);
 	wlr_scene_node_raise_to_top(&output->session_lock_tree->node);
 
-	/*
-	 * Wait until wlr_output_layout_add_auto() returns before
-	 * calling do_output_layout_change(); this ensures that the
-	 * wlr_output_cursor is created for the new output.
-	 */
-	server->pending_output_layout_change++;
-
-	add_output_to_layout(server, output);
-
-	server->pending_output_layout_change--;
+	configure_new_output(server, output);
 	do_output_layout_change(server);
 }
 

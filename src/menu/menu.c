@@ -944,8 +944,10 @@ update_client_send_to_menu(struct server *server)
 
 	wl_list_for_each(workspace, &server->workspaces.all, link) {
 		if (workspace == server->workspaces.current) {
-			current_item = item_create(menu, strdup_printf(">%s<", workspace->name),
-					/*show arrow*/ false);
+			char *label = strdup_printf(">%s<", workspace->name);
+			current_item = item_create(menu, label,
+				/*show arrow*/ false);
+			free(label);
 		} else {
 			current_item = item_create(menu, workspace->name, /*show arrow*/ false);
 		}

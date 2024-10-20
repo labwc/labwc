@@ -100,7 +100,7 @@ handle_touch_down(struct wl_listener *listener, void *data)
 
 	/* Compute layout => surface offset and save for this touch point */
 	struct touch_point *touch_point = znew(*touch_point);
-	double x_offset, y_offset;
+	double x_offset = 0.0, y_offset = 0.0;
 	touch_point->surface = touch_get_coords(seat, event->touch,
 			event->x, event->y, &x_offset, &y_offset);
 	touch_point->touch_id = event->touch_id;

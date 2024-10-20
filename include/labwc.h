@@ -330,6 +330,7 @@ struct server {
 	 * do_output_layout_change() must be called explicitly.
 	 */
 	int pending_output_layout_change;
+	bool all_outputs_off;
 
 	struct wl_listener renderer_lost;
 
@@ -406,6 +407,7 @@ struct output {
 
 	bool leased;
 	bool gamma_lut_changed;
+	bool powered_off;
 };
 
 #undef LAB_NR_LAYERS

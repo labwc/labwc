@@ -487,7 +487,9 @@ new_output_notify(struct wl_listener *listener, void *data)
 	wlr_scene_node_raise_to_top(&output->layer_popup_tree->node);
 	wlr_scene_node_raise_to_top(&output->session_lock_tree->node);
 
-	configure_new_output(server, output);
+	if (!server->all_outputs_off) {
+		configure_new_output(server, output);
+	}
 	do_output_layout_change(server);
 }
 
@@ -606,6 +608,9 @@ output_config_apply(struct server *server,
 				wlr_output_layout_add(server->output_layout, o,
 					head->state.x, head->state.y);
 			}
+			/* Reset power management state when enabling */
+			output->powered_off = false;
+			server->all_outputs_off = false;
 		}
 
 		if (need_to_remove) {
@@ -1023,6 +1028,27 @@ output_usable_area_scaled(struct output *output)
 	return usable;
 }
 
+static bool
+all_outputs_powered_off(struct server *server)
+{
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		/*
+		 * In theory we could just check output_is_usable() here
+		 * since the output should be disabled once powered off.
+		 * However, sometimes a disabled output immediately
+		 * disconnects, causing the commit to fail and wlroots
+		 * to think the output is still enabled. Checking the
+		 * explicit powered_off flag ensures that we don't turn
+		 * the output back on if it reconnects shortly after.
+		 */
+		if (output_is_usable(output) && !output->powered_off) {
+			return false;
+		}
+	}
+	return true;
+}
+
 void
 handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 {
@@ -1036,10 +1062,14 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 	case ZWLR_OUTPUT_POWER_V1_MODE_OFF:
 		wlr_output_state_set_enabled(&output->pending, false);
 		output_state_commit(output);
+		output->powered_off = true;
+		server->all_outputs_off = all_outputs_powered_off(server);
 		break;
 	case ZWLR_OUTPUT_POWER_V1_MODE_ON:
 		wlr_output_state_set_enabled(&output->pending, true);
 		output_state_commit(output);
+		output->powered_off = false;
+		server->all_outputs_off = false;
 		/*
 		 * Re-set the cursor image so that the cursor
 		 * isn't invisible on the newly enabled output.

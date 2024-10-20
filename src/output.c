@@ -241,13 +241,6 @@ output_request_state_notify(struct wl_listener *listener, void *data)
 
 static void do_output_layout_change(struct server *server);
 
-static bool
-can_reuse_mode(struct output *output)
-{
-	struct wlr_output *wo = output->wlr_output;
-	return wo->current_mode && wlr_output_test_state(wo, &output->pending);
-}
-
 static void
 add_output_to_layout(struct server *server, struct output *output)
 {
@@ -287,26 +280,36 @@ add_output_to_layout(struct server *server, struct output *output)
 	}
 }
 
-static void
-configure_new_output(struct server *server, struct output *output)
+static bool
+output_test_auto(struct wlr_output *wlr_output, struct wlr_output_state *state)
 {
-	struct wlr_output *wlr_output = output->wlr_output;
-
-	wlr_log(WLR_DEBUG, "enable output");
-	wlr_output_state_set_enabled(&output->pending, true);
+	/*
+	 * If a specific mode is requested, test only that mode. Here we
+	 * interpret a custom_mode of all zeroes as "none/any"; this is
+	 * seen e.g. with kanshi configs containing no "mode" field. In
+	 * theory, (state->committed & WLR_OUTPUT_STATE_MODE) should be
+	 * zero in this case, but this is not seen in practice.
+	 */
+	if (state->mode || state->custom_mode.width || state->custom_mode.height
+			|| state->custom_mode.refresh) {
+		return wlr_output_test_state(wlr_output, state);
+	}
 
 	/*
 	 * Try to re-use the existing mode if configured to do so.
 	 * Failing that, try to set the preferred mode.
 	 */
-	struct wlr_output_mode *preferred_mode = NULL;
-	if (!rc.reuse_output_mode || !can_reuse_mode(output)) {
-		wlr_log(WLR_DEBUG, "set preferred mode");
-		/* The mode is a tuple of (width, height, refresh rate). */
-		preferred_mode = wlr_output_preferred_mode(wlr_output);
-		if (preferred_mode) {
-			wlr_output_state_set_mode(&output->pending,
-				preferred_mode);
+	if (rc.reuse_output_mode && wlr_output->current_mode
+			&& wlr_output_test_state(wlr_output, state)) {
+		return true;
+	}
+
+	struct wlr_output_mode *preferred_mode =
+		wlr_output_preferred_mode(wlr_output);
+	if (preferred_mode) {
+		wlr_output_state_set_mode(state, preferred_mode);
+		if (wlr_output_test_state(wlr_output, state)) {
+			return true;
 		}
 	}
 
@@ -316,19 +319,37 @@ configure_new_output(struct server *server, struct output *output)
 	 * cases it's better to fallback to lower modes than to end up with
 	 * a black screen. See sway@4cdc4ac6
 	 */
-	if (!wlr_output_test_state(wlr_output, &output->pending)) {
-		wlr_log(WLR_DEBUG,
-			"preferred mode rejected, falling back to another mode");
-		struct wlr_output_mode *mode;
-		wl_list_for_each(mode, &wlr_output->modes, link) {
-			if (mode == preferred_mode) {
-				continue;
-			}
-			wlr_output_state_set_mode(&output->pending, mode);
-			if (wlr_output_test_state(wlr_output, &output->pending)) {
-				break;
-			}
+	struct wlr_output_mode *mode;
+	wl_list_for_each(mode, &wlr_output->modes, link) {
+		if (mode == preferred_mode) {
+			continue;
 		}
+		wlr_output_state_set_mode(state, mode);
+		if (wlr_output_test_state(wlr_output, state)) {
+			return true;
+		}
+	}
+
+	/* Reset mode if none worked (we may still try to commit) */
+	wlr_output_state_set_mode(state, NULL);
+	return false;
+}
+
+static void
+configure_new_output(struct server *server, struct output *output)
+{
+	struct wlr_output *wlr_output = output->wlr_output;
+
+	wlr_log(WLR_DEBUG, "enable output");
+	wlr_output_state_set_enabled(&output->pending, true);
+
+	if (!output_test_auto(wlr_output, &output->pending)) {
+		wlr_log(WLR_INFO, "mode test failed for output %s",
+			wlr_output->name);
+		/*
+		 * Continue anyway. For some reason, the test fails when
+		 * running nested, yet the following commit succeeds.
+		 */
 	}
 
 	if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_ENABLED) {
@@ -546,6 +567,11 @@ output_config_apply(struct server *server,
 					head->state.custom_mode.height,
 					head->state.custom_mode.refresh);
 			}
+			/*
+			 * Try to ensure a valid mode. Ignore failures
+			 * here and just check the commit below.
+			 */
+			(void)output_test_auto(o, os);
 			wlr_output_state_set_scale(os, head->state.scale);
 			wlr_output_state_set_transform(os, head->state.transform);
 			output_enable_adaptive_sync(output,
@@ -620,21 +646,6 @@ verify_output_config_v1(const struct wlr_output_configuration_v1 *config)
 		/* Handle custom modes */
 		if (!head->state.mode) {
 			int32_t refresh = head->state.custom_mode.refresh;
-
-			if (wlr_output_is_drm(head->state.output) && refresh == 0) {
-				/*
-				 * wlroots has a bug which causes a divide by zero
-				 * when setting the refresh rate to 0 on a DRM output.
-				 * It is already fixed but not part of an official 0.17.x
-				 * release. Even it would be we still need to carry the
-				 * fix here to prevent older 0.17.x releases from crashing.
-				 *
-				 * https://gitlab.freedesktop.org/wlroots/wlroots/-/issues/3791
-				 */
-				err_msg = "DRM backend does not support a refresh rate of 0";
-				goto custom_mode_failed;
-			}
-
 			if (wlr_output_is_wl(head->state.output) && refresh != 0) {
 				/* Wayland backend does not support refresh rates */
 				err_msg = "Wayland backend refresh rates unsupported";
@@ -660,7 +671,7 @@ verify_output_config_v1(const struct wlr_output_configuration_v1 *config)
 		wlr_output_state_init(&output_state);
 		wlr_output_head_v1_state_apply(&head->state, &output_state);
 
-		if (!wlr_output_test_state(head->state.output, &output_state)) {
+		if (!output_test_auto(head->state.output, &output_state)) {
 			wlr_output_state_finish(&output_state);
 			return false;
 		}

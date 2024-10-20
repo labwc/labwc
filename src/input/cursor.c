@@ -1237,6 +1237,7 @@ cursor_emulate_button(struct seat *seat, uint32_t button,
 		cursor_finish_button_release(seat);
 		break;
 	}
+	wlr_seat_pointer_notify_frame (seat->seat);
 }
 
 static int

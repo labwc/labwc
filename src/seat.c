@@ -389,6 +389,7 @@ static void
 seat_update_capabilities(struct seat *seat)
 {
 	struct input *input = NULL;
+	struct touch_config_entry *config_entry;
 	uint32_t caps = 0;
 
 	wl_list_for_each(input, &seat->inputs, link) {
@@ -401,7 +402,14 @@ seat_update_capabilities(struct seat *seat)
 			caps |= WL_SEAT_CAPABILITY_POINTER;
 			break;
 		case WLR_INPUT_DEVICE_TOUCH:
-			caps |= WL_SEAT_CAPABILITY_TOUCH;
+			config_entry =
+				touch_find_config_for_device(input->wlr_input_device->name);
+			if (config_entry->force_mouse_emulation) {
+				caps |= WL_SEAT_CAPABILITY_POINTER;
+			}
+			else {
+				caps |= WL_SEAT_CAPABILITY_TOUCH;
+			}
 			break;
 		default:
 			break;

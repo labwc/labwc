@@ -918,6 +918,15 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_hexstr(value, theme->menu_title_text_color);
 	}
 
+	if (match_glob(key, "menu.border.color")) {
+		parse_hexstr(value, theme->menu_border_color);
+	}
+
+	if (match_glob(key, "menu.border.width")) {
+		theme->menu_border_width = get_int_if_positive(
+			value, "menu.border.width");
+	}
+
 	if (match_glob(key, "osd.bg.color")) {
 		parse_hexstr(value, theme->osd_bg_color);
 	}

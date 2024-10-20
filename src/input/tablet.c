@@ -131,6 +131,12 @@ tablet_get_coords(struct drawing_tablet *tablet, double *x, double *y, double *d
 	adjust_for_rotation_relative(rc.tablet.rotation, dx, dy);
 	adjust_for_motion_sensitivity(rc.tablet_tool.relative_motion_sensitivity, dx, dy);
 
+	/*
+	 * Do not return a surface when mouse emulation is enforced. Not
+	 * having a surface or tablet tool (see handle_tablet_tool_proximity())
+	 * will trigger the fallback to cursor move/button emulation in the
+	 * tablet signal handlers.
+	 */
 	if (rc.tablet.force_mouse_emulation
 			|| !tablet->tablet_v2) {
 		return NULL;
@@ -264,6 +270,12 @@ handle_tablet_tool_proximity(struct wl_listener *listener, void *data)
 	double x, y, dx, dy;
 	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y, &dx, &dy);
 
+	/*
+	 * Do not attempt to create a tablet tool when mouse emulation is
+	 * enforced. Not having a tool or tablet capable surface will trigger
+	 * the fallback to cursor move/button emulation in the tablet signal
+	 * handlers.
+	 */
 	if (!rc.tablet.force_mouse_emulation
 			&& tablet->seat->server->tablet_manager && !tool) {
 		/*

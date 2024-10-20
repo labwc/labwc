@@ -27,7 +27,7 @@ touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
 	/* Fall out if mouse emulation is set */
 	struct touch_config_entry *config_entry =
 		touch_find_config_for_device(touch->base.name);
-	if (config_entry->force_mouse_emulation) {
+	if (config_entry && config_entry->force_mouse_emulation) {
 		return NULL;
 	}
 

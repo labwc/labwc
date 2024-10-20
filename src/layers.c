@@ -356,6 +356,7 @@ popup_handle_destroy(struct wl_listener *listener, void *data)
 		wl_container_of(listener, popup, destroy);
 	wl_list_remove(&popup->destroy.link);
 	wl_list_remove(&popup->new_popup.link);
+	wl_list_remove(&popup->reposition.link);
 
 	/* Usually already removed unless there was no commit at all */
 	if (popup->commit.notify) {
@@ -381,6 +382,15 @@ popup_handle_commit(struct wl_listener *listener, void *data)
 	}
 }
 
+static void
+popup_handle_reposition(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_popup *popup =
+		wl_container_of(listener, popup, reposition);
+	wlr_xdg_popup_unconstrain_from_box(popup->wlr_popup,
+		&popup->output_toplevel_sx_box);
+}
+
 static void popup_handle_new_popup(struct wl_listener *listener, void *data);
 
 static struct lab_layer_popup *
@@ -402,13 +412,16 @@ create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_tree *parent)
 		LAB_NODE_DESC_LAYER_POPUP, popup);
 
 	popup->destroy.notify = popup_handle_destroy;
-	wl_signal_add(&wlr_popup->base->events.destroy, &popup->destroy);
+	wl_signal_add(&wlr_popup->events.destroy, &popup->destroy);
 
 	popup->new_popup.notify = popup_handle_new_popup;
 	wl_signal_add(&wlr_popup->base->events.new_popup, &popup->new_popup);
 
 	popup->commit.notify = popup_handle_commit;
 	wl_signal_add(&wlr_popup->base->surface->events.commit, &popup->commit);
+
+	popup->reposition.notify = popup_handle_reposition;
+	wl_signal_add(&wlr_popup->events.reposition, &popup->reposition);
 
 	return popup;
 }
@@ -566,15 +579,6 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 	surface->node_destroy.notify = handle_node_destroy;
 	wl_signal_add(&surface->scene_layer_surface->tree->node.events.destroy,
 		&surface->node_destroy);
-
-	/*
-	 * Temporarily set the layer's current state to pending so that
-	 * it can easily be arranged.
-	 */
-	struct wlr_layer_surface_v1_state old_state = layer_surface->current;
-	layer_surface->current = layer_surface->pending;
-	output_update_usable_area(output);
-	layer_surface->current = old_state;
 }
 
 void

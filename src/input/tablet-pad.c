@@ -25,12 +25,25 @@ tablet_pad_attach_tablet(struct seat *seat)
 	/* loop over all tablets and all pads and link by device group */
 	struct drawing_tablet *tablet;
 	wl_list_for_each(tablet, &seat->tablets, link) {
+		if (!wlr_input_device_is_libinput(tablet->wlr_input_device)) {
+			/*
+			 * Prevent iterating over non-libinput devices. This might
+			 * be the case when a tablet is exposed by the Wayland
+			 * protocol backend when running labwc as a nested compositor.
+			 */
+			continue;
+		}
+
 		struct libinput_device *tablet_device =
 			wlr_libinput_get_device_handle(tablet->wlr_input_device);
 		struct libinput_device_group *tablet_group =
 			libinput_device_get_device_group(tablet_device);
 
 		wl_list_for_each(pad, &seat->tablet_pads, link) {
+			if (!wlr_input_device_is_libinput(pad->wlr_input_device)) {
+				continue;
+			}
+
 			struct libinput_device *pad_device =
 				wlr_libinput_get_device_handle(pad->wlr_input_device);
 			struct libinput_device_group *pad_group =
@@ -103,7 +116,11 @@ handle_button(struct wl_listener *listener, void *data)
 	} else {
 		uint32_t button = tablet_get_mapped_button(ev->button);
 		if (button) {
-			cursor_emulate_button(pad->seat, button, ev->state, ev->time_msec);
+			cursor_emulate_button(pad->seat, button,
+				ev->state == WLR_BUTTON_PRESSED
+					? WL_POINTER_BUTTON_STATE_PRESSED
+					: WL_POINTER_BUTTON_STATE_RELEASED,
+				ev->time_msec);
 		}
 	}
 }
@@ -158,7 +175,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 }
 
 void
-tablet_pad_init(struct seat *seat, struct wlr_input_device *wlr_device)
+tablet_pad_create(struct seat *seat, struct wlr_input_device *wlr_device)
 {
 	wlr_log(WLR_DEBUG, "setting up tablet pad");
 	struct drawing_tablet_pad *pad = znew(*pad);
@@ -170,6 +187,10 @@ tablet_pad_init(struct seat *seat, struct wlr_input_device *wlr_device)
 			seat->server->tablet_manager, seat->seat, wlr_device);
 	}
 	pad->pad->data = pad;
+	wlr_log(WLR_INFO, "tablet pad capabilities: %zu button(s) %zu strip(s) %zu ring(s)",
+		pad->pad->button_count,
+		pad->pad->strip_count,
+		pad->pad->ring_count);
 	CONNECT_SIGNAL(pad->pad, &pad->handlers, button);
 	CONNECT_SIGNAL(pad->pad, &pad->handlers, ring);
 	CONNECT_SIGNAL(pad->pad, &pad->handlers, strip);

@@ -32,21 +32,55 @@
 struct lab_data_buffer {
 	struct wlr_buffer base;
 
-	cairo_t *cairo;
-	void *data;
+	cairo_surface_t *surface; /* optional */
+	cairo_t *cairo;           /* optional */
+	void *data; /* owned by surface if surface != NULL */
 	uint32_t format;
 	size_t stride;
-	bool free_on_destroy;
-	uint32_t unscaled_width;
-	uint32_t unscaled_height;
+	/*
+	 * The logical size of the surface in layout pixels.
+	 * The raw pixel data may be larger or smaller.
+	 */
+	uint32_t logical_width;
+	uint32_t logical_height;
 };
 
-/* Create a buffer which creates a new cairo CAIRO_FORMAT_ARGB32 surface */
-struct lab_data_buffer *buffer_create_cairo(uint32_t width, uint32_t height,
-	float scale, bool free_on_destroy);
+/*
+ * Create a buffer which holds (and takes ownership of) an existing
+ * CAIRO_FORMAT_ARGB32 image surface.
+ *
+ * The logical size is set to the surface size in pixels, ignoring
+ * device scale. No cairo context is created.
+ */
+struct lab_data_buffer *buffer_adopt_cairo_surface(cairo_surface_t *surface);
 
-/* Create a buffer which wraps a given DRM_FORMAT_ARGB8888 pointer */
-struct lab_data_buffer *buffer_create_wrap(void *pixel_data, uint32_t width,
-	uint32_t height, uint32_t stride, bool free_on_destroy);
+/*
+ * Create a buffer which holds a new CAIRO_FORMAT_ARGB32 image surface.
+ * Additionally create a cairo context for drawing to the surface.
+ */
+struct lab_data_buffer *buffer_create_cairo(uint32_t logical_width,
+	uint32_t logical_height, float scale);
+
+/*
+ * Create a buffer from an image surface, for display as an icon.
+ *
+ * The surface is either adopted by the buffer (which takes ownership),
+ * or copied and then destroyed.
+ *
+ * This function allows non-ARGB32 source images and converts to
+ * CAIRO_FORMAT_ARGB32 if needed.
+ */
+struct lab_data_buffer *buffer_convert_cairo_surface_for_icon(
+	cairo_surface_t *surface, uint32_t icon_size, float scale);
+
+/*
+ * Create a buffer which holds (and takes ownership of) raw pixel data
+ * in pre-multiplied ARGB32 format.
+ *
+ * The logical size is set to the width and height of the pixel data.
+ * No cairo surface or context is created.
+ */
+struct lab_data_buffer *buffer_create_from_data(void *pixel_data, uint32_t width,
+	uint32_t height, uint32_t stride);
 
 #endif /* LABWC_BUFFER_H */

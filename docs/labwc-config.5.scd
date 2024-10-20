@@ -8,7 +8,7 @@ labwc - configuration files
 
 Labwc uses openbox-3.6 specification for configuration and theming, but does not
 support all options. The following files form the basis of the labwc
-configuration: rc.xml, menu.xml, autostart, shutdown and environment.
+configuration: rc.xml, menu.xml, autostart, shutdown, environment and xinitrc.
 
 No configuration files are needed to start and run labwc.
 
@@ -77,6 +77,10 @@ in labwc-theme(5).
 
 *rc.xml* is the main configuration file and all its options are described in
 detail below.
+
+The *xinitrc* file is executed as a shell script whenever labwc launches the
+Xwayland X11 server. This may happen multiple times throughout the session if
+Xwayland is not configured to persist when no X11 clients are connected.
 
 # CONFIGURATION
 
@@ -181,11 +185,23 @@ this is for compatibility with Openbox.
 	*fullscreen* enables adaptive sync whenever a window is in fullscreen
 	mode.
 
-*<core><allowTearing>* [yes|no]
+*<core><allowTearing>* [yes|no|fullscreen|fullscreenForced]
 	Allow tearing to reduce input lag. Default is no.
-	This option requires setting the environment variable
-	WLR_DRM_NO_ATOMIC=1.
-	*yes* allow tearing if requested by the active window.
+
+	*yes* allows tearing if requested by the active window.
+
+	*fullscreen* allows tearing if requested by the active window, but
+	only when the window is in fullscreen mode.
+
+	*fullscreenForced* enables tearing whenever the active window is in
+	fullscreen mode, whether or not the application has requested tearing.
+
+	Use the *ToggleTearing* action for forcefully enable tearing.
+
+	Note: Enabling this option with atomic mode setting is experimental. If
+	you experience undesirable side effects when tearing is allowed,
+	consider setting the environment variable WLR_DRM_NO_ATOMIC=1 when
+	launching labwc.
 
 *<core><reuseOutputMode>* [yes|no]
 	Try to re-use the existing output mode (resolution / refresh rate).
@@ -194,14 +210,31 @@ this is for compatibility with Openbox.
 	be used with labwc the preferred mode of the monitor is used instead.
 	Default is no.
 
+*<core><xwaylandPersistence>* [yes|no]
+	Keep XWayland alive even when no clients are connected, rather than
+	using a "lazy" policy that allows the server to launch on demand and die
+	when it is no longer needed. Default is no.
+
+	Note: changing this setting requires a restart of labwc.
+
 ## PLACEMENT
 
-*<placement><policy>* [center|automatic|cursor]
+*<placement><policy>* [center|automatic|cursor|cascade]
 	Specify a placement policy for new windows. The "center" policy will
 	always place windows at the center of the active output. The "automatic"
 	policy will try to place new windows in such a way that they will
 	have minimal overlap with existing windows. The "cursor" policy will
-	center new windows under the cursor. Default is "center".
+	center new windows under the cursor. The "cascade" policy will try to
+	place new windows at the center of the active output, but possibly
+	shifts its position to bottom-right not to cover existing windows.
+	Default is "center".
+
+*<placement><cascadeOffset><x>*++
+*<placement><cascadeOffset><y>*
+	Specify the offset by which a new window can be shifted from an existing
+	window when <placement><policy> is "cascade". These values must be positive.
+	Default is the height of titlebar (the sum of *titlebar.height* and
+	*border.width* from theme) plus 5 for both *x* and *y*.
 
 ## WINDOW SWITCHER
 
@@ -292,6 +325,15 @@ this is for compatibility with Openbox.
 	A strength of zero disables the corresponding resistance effect.
 
 	The default value for both parameters is 20 pixels.
+
+*<resistance><unSnapThreshold>*
+	Sets the movement of cursor in pixel required for a tiled or maximized
+	window to be moved with an interactive move. Default is 20.
+
+*<resistance><unMaximizeThreshold>*
+	Sets the one-dimentional movement of cursor in pixel required for a
+	*vertically or horizontally* maximized window to be moved with an
+	interactive move. Default is 150.
 
 ## FOCUS
 
@@ -395,6 +437,29 @@ extending outward from the snapped edge.
 *<theme><name>*
 	The name of the Openbox theme to use. It is not set by default.
 
+*<theme><icon>*
+	The name of the icon theme to use. It is not set by default.
+
+*<theme><titlebar><layout>*
+	Selection and order of buttons in a window's titlebar.
+	The following identifiers can be used, each only once:
+	- 'icon': window icon
+	- 'menu': window menu
+	- 'iconify': iconify
+	- 'max': maximize toggle
+	- 'close': close
+	- 'shade': shade toggle
+	- 'desk': all-desktops toggle
+
+	A colon deliminator is used to separate buttons on the left and right,
+	whereas commas are used to separate items within a section. It is
+	mandatory to use one colon.
+
+	Default: icon:iconify,max,close
+
+*<theme><titlebar><showTitle>* [yes|no]
+	Show the window title in the titlebar. Default is yes.
+
 *<theme><cornerRadius>*
 	The radius of server side decoration top corners. Default is 8.
 
@@ -411,6 +476,7 @@ extending outward from the snapped edge.
 	- ActiveWindow - titlebar of active window
 	- InactiveWindow - titlebar of all windows that aren't focused by the
 	  cursor
+	- MenuHeader - menu title
 	- MenuItem - menu item (currently only root menu)
 	- OnScreenDisplay - items in the on screen display
 	If no place attribute is provided, the setting will be applied to all
@@ -423,7 +489,7 @@ extending outward from the snapped edge.
 	Font size in pixels. Default is 10.
 
 *<theme><font place=""><slant>*
-	Font slant (normal or italic). Default is normal.
+	Font slant (normal, oblique or italic). Default is normal.
 
 *<theme><font place=""><weight>*
 	Font weight (normal or bold). Default is normal.
@@ -471,7 +537,7 @@ extending outward from the snapped edge.
 	Stores the keyboard layout either globally or per window and restores
 	it when switching back to the window. Default is global.
 
-*<keyboard><keybind key="" layoutDependent="">*
+*<keyboard><keybind key="" layoutDependent="" onRelease="" allowWhenLocked="">*
 	Define a *key* binding in the format *modifier-key*, where supported
 	modifiers are:
 	- S (shift)
@@ -497,8 +563,11 @@ extending outward from the snapped edge.
 	If set to "no" (or is absent) the keybind will be layout agnostic.
 	Default is no.
 
-*<keyboard><keybind key="" onRelease="yes|no">*
-	*onRelease*, when yes, fires the keybind action when the key or key
+	*allowWhenLocked* [yes|no]
+	Make this keybind work even if the screen is locked. Default is no.
+
+	*onRelease* [yes|no]
+	When yes, fires the keybind action when the key or key
 	combination is released, rather than first pressed. This is useful to
 	bind actions to only modifier keys, where the action should fire when
 	the modifier is used without another key. Default is no.
@@ -506,7 +575,6 @@ extending outward from the snapped edge.
 	The example below will trigger the launch of rofi when the super key is
 	pressed & released, without interference from other multi-key
 	combinations that include the super key:
-
 
 	```
 	<keybind key="Super_L" onRelease="yes">
@@ -551,9 +619,6 @@ extending outward from the snapped edge.
 *<mouse><doubleClickTime>*
 	Set double click time in milliseconds. Default is 500.
 
-*<mouse><scrollFactor>*
-	Set scroll factor. Default is 1.0.
-
 *<mouse><context name=""><mousebind button="" direction="" action=""><action>*
 	Multiple *<mousebind>* can exist within one *<context>*; and multiple
 	*<action>* can exist within one *<mousebind>*.
@@ -563,10 +628,13 @@ extending outward from the snapped edge.
 	  buttons and the window title are shown.
 	- Title: The area of the titlebar (including blank space) between
 	  the window buttons, where the window title is displayed.
-	- WindowMenu: The button on the left.
-	- Iconify: The button that looks like an underline.
-	- Maximize: The button that looks like a box.
-	- Close: The button that looks like an X.
+	- Icon: A window icon that, by default, displays a window menu.
+	- WindowMenu: A button that, by default, displays a window menu.
+	- Iconify: A button that, by default, iconifies a window.
+	- Maximize: A button that, by default, toggles maximization of a window.
+	- Shade: A button that, by default, toggles window shading.
+	- AllDesktops: A button that, by default, toggles omnipresence of a window.
+	- Close: A button that, by default, closses a window.
 	- Top: The top edge of the window's border.
 	- Bottom: The bottom edge of the window's border.
 	- Left: The left edge of the window's border.
@@ -656,9 +724,12 @@ extending outward from the snapped edge.
 	If the output name is left empty or the output does not exists, the
 	tablet will span all outputs.
 
+	The tablet cursor automatically applies the orientation/rotation of
+	a mapped output for absolute motion.
+
 *<tablet rotate="" />* [0|90|180|270]
 	The tablet orientation can be changed in 90 degree steps. Default is
-	no rotation (0). Rotation will be applied after applying tablet area
+	no rotation (0). Rotation will be applied before applying tablet area
 	transformation.
 
 	See also *calibrationMatrix* in libinput section below for advanced
@@ -687,6 +758,9 @@ extending outward from the snapped edge.
 	The tablet can be forced to always use mouse emulation. This prevents
 	tablet specific restrictions, e.g. no support for drag-and-drop, but
 	also omits tablet specific features like reporting pen pressure.
+
+	Use the *ToggleTabletMouseEmulation* action for toggling between
+	mouse emulation on and off.
 
 *<tablet><map button="" to="" />*
 	Pen and pad buttons behave like regular mouse buttons.With mouse
@@ -724,6 +798,24 @@ extending outward from the snapped edge.
 
 	See mouse section above for all supported mouse buttons.
 
+## TABLET TOOL
+
+```
+<tabletTool motion="absolute" relativeMotionSensitivity="1" />
+```
+
+*<tabletTool motion="">* [absolute|relative]
+	All tablet tools, except of type mouse and lens, use "absolute"
+	positioning by default. The *motion* attribute allows to set tools
+	to relative motion instead. Positioning for a tablet mouse or
+	tablet lens cannot be changed, those tools always use relative mode.
+
+*<tabletTool relativeMotionSensitivity="">*
+	When using relative motion, *relativeMotionSensitivity* controls
+	the speed of the cursor. Using a value lower than 1.0 decreases the
+	speed, using a value greater than 1.0 increases the speed of the
+	cursor. The default is "1.0".
+
 ## LIBINPUT
 
 ```
@@ -742,6 +834,7 @@ extending outward from the snapped edge.
     <clickMethod></clickMethod>
     <sendEventsMode></sendEventsMode>
     <calibrationMatrix></calibrationMatrix>
+    <scrollFactor>1.0</scrollFactor>
   </device>
 </libinput>
 ```
@@ -867,6 +960,9 @@ The most common matrices are:
 	visit https://wayland.freedesktop.org/libinput/doc/latest/absolute-axes.html#calibration-of-absolute-devices
 	for more information.
 
+*<libinput><scrollFactor>*
+	Set scroll factor. Default is 1.0.
+
 ## WINDOW RULES
 
 Two types of window rules are supported, actions and properties. They are
@@ -960,7 +1056,7 @@ situation.
 *<menu><ignoreButtonReleasePeriod>*
 	How long (in milliseconds) the initial button release event is ignored
 	for. The reason for this logic and behaviour is to avoid a fast
-	press-move-release sequence indended to just open the menu resulting in
+	press-move-release sequence intended to just open the menu resulting in
 	the closure of the menu or the selection of (typically the first) menu
 	item. This behaviour only affects the first button-release. It is not
 	anticipated that most users will want to change this, but the config

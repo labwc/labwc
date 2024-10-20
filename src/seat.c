@@ -40,7 +40,7 @@ device_type_from_wlr_device(struct wlr_input_device *wlr_input_device)
 {
 	switch (wlr_input_device->type) {
 	case WLR_INPUT_DEVICE_TOUCH:
-	case WLR_INPUT_DEVICE_TABLET_TOOL:
+	case WLR_INPUT_DEVICE_TABLET:
 		return LAB_LIBINPUT_DEVICE_TOUCH;
 	default:
 		break;
@@ -114,7 +114,11 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		wlr_log(WLR_ERROR, "no wlr_input_device");
 		return;
 	}
+	struct input *input = wlr_input_device->data;
+
+	/* Set scroll factor to 1.0 for Wayland/X11 backends or virtual pointers */
 	if (!wlr_input_device_is_libinput(wlr_input_device)) {
+		input->scroll_factor = 1.0;
 		return;
 	}
 
@@ -247,6 +251,9 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		wlr_log(WLR_INFO, "calibration matrix configured");
 		libinput_device_config_calibration_set_matrix(libinput_dev, dc->calibration_matrix);
 	}
+
+	wlr_log(WLR_INFO, "scroll factor configured");
+	input->scroll_factor = dc->scroll_factor;
 }
 
 static struct wlr_output *
@@ -286,6 +293,7 @@ new_pointer(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct input *input = znew(*input);
 	input->wlr_input_device = dev;
+	dev->data = input;
 	configure_libinput(dev);
 	wlr_cursor_attach_input_device(seat->cursor, dev);
 
@@ -354,6 +362,7 @@ new_touch(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct input *input = znew(*input);
 	input->wlr_input_device = dev;
+	dev->data = input;
 	configure_libinput(dev);
 	wlr_cursor_attach_input_device(seat->cursor, dev);
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
@@ -367,7 +376,7 @@ new_tablet(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct input *input = znew(*input);
 	input->wlr_input_device = dev;
-	tablet_init(seat, dev);
+	tablet_create(seat, dev);
 	wlr_cursor_attach_input_device(seat->cursor, dev);
 	wlr_log(WLR_INFO, "map tablet to output %s\n", rc.tablet.output_name);
 	map_input_to_output(seat, dev, rc.tablet.output_name);
@@ -380,7 +389,7 @@ new_tablet_pad(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct input *input = znew(*input);
 	input->wlr_input_device = dev;
-	tablet_pad_init(seat, dev);
+	tablet_pad_create(seat, dev);
 
 	return input;
 }
@@ -398,7 +407,7 @@ seat_update_capabilities(struct seat *seat)
 			caps |= WL_SEAT_CAPABILITY_KEYBOARD;
 			break;
 		case WLR_INPUT_DEVICE_POINTER:
-		case WLR_INPUT_DEVICE_TABLET_TOOL:
+		case WLR_INPUT_DEVICE_TABLET:
 			caps |= WL_SEAT_CAPABILITY_POINTER;
 			break;
 		case WLR_INPUT_DEVICE_TOUCH:
@@ -446,7 +455,7 @@ new_input_notify(struct wl_listener *listener, void *data)
 	case WLR_INPUT_DEVICE_TOUCH:
 		input = new_touch(seat, device);
 		break;
-	case WLR_INPUT_DEVICE_TABLET_TOOL:
+	case WLR_INPUT_DEVICE_TABLET:
 		input = new_tablet(seat, device);
 		break;
 	case WLR_INPUT_DEVICE_TABLET_PAD:
@@ -617,7 +626,7 @@ seat_reconfigure(struct server *server)
 			configure_libinput(input->wlr_input_device);
 			map_touch_to_output(seat, input->wlr_input_device);
 			break;
-		case WLR_INPUT_DEVICE_TABLET_TOOL:
+		case WLR_INPUT_DEVICE_TABLET:
 			map_input_to_output(seat, input->wlr_input_device, rc.tablet.output_name);
 			break;
 		default:
@@ -642,11 +651,6 @@ seat_focus(struct seat *seat, struct wlr_surface *surface, bool is_lock_surface)
 	if (!surface) {
 		wlr_seat_keyboard_notify_clear_focus(seat->seat);
 		input_method_relay_set_focus(seat->input_method_relay, NULL);
-		return;
-	}
-
-	/* Respect input inhibit (also used by some lock screens) */
-	if (input_inhibit_blocks_surface(seat, surface->resource)) {
 		return;
 	}
 
@@ -726,22 +730,17 @@ pressed_surface_destroy(struct wl_listener *listener, void *data)
 }
 
 void
-seat_set_pressed(struct seat *seat, struct view *view,
-	struct wlr_scene_node *node, struct wlr_surface *surface,
-	struct wlr_surface *toplevel, uint32_t resize_edges)
+seat_set_pressed(struct seat *seat, struct cursor_context *ctx)
 {
-	assert(view || surface);
+	assert(ctx);
+	assert(ctx->view || ctx->surface);
 	seat_reset_pressed(seat);
 
-	seat->pressed.view = view;
-	seat->pressed.node = node;
-	seat->pressed.surface = surface;
-	seat->pressed.toplevel = toplevel;
-	seat->pressed.resize_edges = resize_edges;
+	seat->pressed = *ctx;
 
-	if (surface) {
+	if (ctx->surface) {
 		seat->pressed_surface_destroy.notify = pressed_surface_destroy;
-		wl_signal_add(&surface->events.destroy,
+		wl_signal_add(&ctx->surface->events.destroy,
 			&seat->pressed_surface_destroy);
 	}
 }
@@ -752,12 +751,7 @@ seat_reset_pressed(struct seat *seat)
 	if (seat->pressed.surface) {
 		wl_list_remove(&seat->pressed_surface_destroy.link);
 	}
-
-	seat->pressed.view = NULL;
-	seat->pressed.node = NULL;
-	seat->pressed.surface = NULL;
-	seat->pressed.toplevel = NULL;
-	seat->pressed.resize_edges = 0;
+	seat->pressed = (struct cursor_context){0};
 }
 
 void
@@ -772,7 +766,7 @@ seat_output_layout_changed(struct seat *seat)
 		case WLR_INPUT_DEVICE_TOUCH:
 			map_touch_to_output(seat, input->wlr_input_device);
 			break;
-		case WLR_INPUT_DEVICE_TABLET_TOOL:
+		case WLR_INPUT_DEVICE_TABLET:
 			map_input_to_output(seat, input->wlr_input_device, rc.tablet.output_name);
 			break;
 		default:

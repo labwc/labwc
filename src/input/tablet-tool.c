@@ -60,7 +60,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 }
 
 void
-tablet_tool_init(struct seat *seat,
+tablet_tool_create(struct seat *seat,
 		struct wlr_tablet_tool *wlr_tablet_tool)
 {
 	wlr_log(WLR_DEBUG, "setting up tablet tool");

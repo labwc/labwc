@@ -5,6 +5,12 @@
 struct server;
 
 /**
+ * session_run_script - run a named session script (or, in merge-config mode,
+ * all named session scripts) from the XDG path.
+ */
+void session_run_script(const char *script);
+
+/**
  * session_environment_init - set environment variables based on <key>=<value>
  * pairs in `${XDG_CONFIG_DIRS:-/etc/xdg}/labwc/environment` with user override
  * in `${XDG_CONFIG_HOME:-$HOME/.config}`

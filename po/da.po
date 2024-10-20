@@ -1,0 +1,75 @@
+# Labwc pot file
+# Copyright (C) 2024
+# This file is distributed under the same license as the labwc package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: labwc\n"
+"Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
+"POT-Creation-Date: 2024-09-19 21:09+1000\n"
+"PO-Revision-Date: 2024-08-18 20:01+0000\n"
+"Last-Translator: Peter  Jespersen <flywheel@illogical.dk>\n"
+"Language-Team: Danish <https://translate.lxqt-project.org/projects/labwc/labwc/da/>\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.2.1\n"
+
+#: src/menu/menu.c:1017
+msgid "Go there..."
+msgstr ""
+
+#: src/menu/menu.c:1037
+msgid "Reconfigure"
+msgstr "Genindstil"
+
+#: src/menu/menu.c:1039
+msgid "Exit"
+msgstr "Afslut"
+
+#: src/menu/menu.c:1055
+msgid "Minimize"
+msgstr "Minimer"
+
+#: src/menu/menu.c:1057
+msgid "Maximize"
+msgstr "Maksimer"
+
+#: src/menu/menu.c:1059
+msgid "Fullscreen"
+msgstr "Fuldskærm"
+
+#: src/menu/menu.c:1061
+msgid "Roll Up/Down"
+msgstr "Rul Op/Ned"
+
+#: src/menu/menu.c:1063
+msgid "Decorations"
+msgstr "Dekorationer"
+
+#: src/menu/menu.c:1065
+msgid "Always on Top"
+msgstr "Altid øverst"
+
+#: src/menu/menu.c:1070
+msgid "Move Left"
+msgstr "Flyt til venstre"
+
+#: src/menu/menu.c:1077
+msgid "Move Right"
+msgstr "Flyt til højre"
+
+#: src/menu/menu.c:1082
+msgid "Always on Visible Workspace"
+msgstr "Altid på synlig arbejdsplads"
+
+#: src/menu/menu.c:1085 src/config/rcxml.c:1629
+msgid "Workspace"
+msgstr "Arbejdsplads"
+
+#: src/menu/menu.c:1088
+msgid "Close"
+msgstr "Luk"

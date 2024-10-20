@@ -5657,7 +5657,7 @@ sub process {
 #labwc-custom check to ignore some pango/libxml2/etc CamelCase variants
 			    $var !~ /^(?:_?Pango\w+)/ &&
 			    $var !~ /^(?:xml\w+)/ &&
-			    $var !~ /^(?:GString|GError)/ &&
+			    $var !~ /^(?:GString|GError|GHashTable)/ &&
 			    $var !~ /^(?:RsvgRectangle|RsvgHandle)/ &&
 			    $var !~ /^(?:XKB_KEY_XF86Switch_VT_1)/ &&
 

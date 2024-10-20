@@ -11,7 +11,7 @@ struct seat;
 struct server;
 struct wlr_surface;
 struct wlr_scene_node;
-enum wlr_button_state;
+enum wl_pointer_button_state;
 
 /* Cursors used internally by labwc */
 enum lab_cursors {
@@ -142,15 +142,18 @@ bool cursor_process_button_release(struct seat *seat, uint32_t button, uint32_t 
  * Finishes cursor button release. The return value indicates if an interactive
  * move/resize had been finished. Should be called after notifying a client.
  */
-bool cursor_finish_button_release(struct seat *seat);
+bool cursor_finish_button_release(struct seat *seat, uint32_t button);
 
 void cursor_init(struct seat *seat);
 void cursor_reload(struct seat *seat);
+void cursor_emulate_move(struct seat *seat,
+		struct wlr_input_device *device,
+		double dx, double dy, uint32_t time_msec);
 void cursor_emulate_move_absolute(struct seat *seat,
 		struct wlr_input_device *device,
 		double x, double y, uint32_t time_msec);
 void cursor_emulate_button(struct seat *seat,
-		uint32_t button, enum wlr_button_state state, uint32_t time_msec);
+		uint32_t button, enum wl_pointer_button_state state, uint32_t time_msec);
 void cursor_finish(struct seat *seat);
 
 #endif /* LABWC_CURSOR_H */

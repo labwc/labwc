@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
-"POT-Creation-Date: 2024-03-17 11:06+1000\n"
-"PO-Revision-Date: 2024-04-20 15:23+0000\n"
-"Last-Translator: Yannis Drougas <drougas@gmail.com>\n"
+"POT-Creation-Date: 2024-09-19 21:09+1000\n"
+"PO-Revision-Date: 2024-09-25 20:01+0000\n"
+"Last-Translator: Giannis Antypas <gianni.antypas@gmail.com>\n"
 "Language-Team: Greek <https://translate.lxqt-project.org/projects/labwc/"
 "labwc/el/>\n"
 "Language: el\n"
@@ -19,54 +19,58 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:704
+#: src/menu/menu.c:1017
+msgid "Go there..."
+msgstr "Πήγαινε εκεί..."
+
+#: src/menu/menu.c:1037
 msgid "Reconfigure"
 msgstr "Επαναρύθμιση"
 
-#: src/menu/menu.c:706
+#: src/menu/menu.c:1039
 msgid "Exit"
 msgstr "Έξοδος"
 
-#: src/menu/menu.c:722
+#: src/menu/menu.c:1055
 msgid "Minimize"
 msgstr "Ελαχιστοποίηση"
 
-#: src/menu/menu.c:724
+#: src/menu/menu.c:1057
 msgid "Maximize"
 msgstr "Μεγιστοποίηση"
 
-#: src/menu/menu.c:726
+#: src/menu/menu.c:1059
 msgid "Fullscreen"
 msgstr "Πλήρης οθόνη"
 
-#: src/menu/menu.c:728
-msgid "Roll up/down"
+#: src/menu/menu.c:1061
+msgid "Roll Up/Down"
 msgstr "Τύλιγμα/Ξετύλιγμα"
 
-#: src/menu/menu.c:730
+#: src/menu/menu.c:1063
 msgid "Decorations"
 msgstr "Διακόσμηση"
 
-#: src/menu/menu.c:732
+#: src/menu/menu.c:1065
 msgid "Always on Top"
 msgstr "Πάντα στο προσκήνιο"
 
-#: src/menu/menu.c:737
-msgid "Move left"
+#: src/menu/menu.c:1070
+msgid "Move Left"
 msgstr "Στα αριστερά"
 
-#: src/menu/menu.c:744
-msgid "Move right"
+#: src/menu/menu.c:1077
+msgid "Move Right"
 msgstr "Στα δεξιά"
 
-#: src/menu/menu.c:749
+#: src/menu/menu.c:1082
 msgid "Always on Visible Workspace"
 msgstr "Πάντα στην ενεργή επιφάνεια εργασίας"
 
-#: src/menu/menu.c:752 src/config/rcxml.c:1384
+#: src/menu/menu.c:1085 src/config/rcxml.c:1629
 msgid "Workspace"
 msgstr "Επιφάνεια εργασίας"
 
-#: src/menu/menu.c:755
+#: src/menu/menu.c:1088
 msgid "Close"
 msgstr "Κλείσιμο"

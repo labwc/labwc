@@ -7,63 +7,69 @@ msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
-"POT-Creation-Date: 2024-03-17 11:06+1000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"POT-Creation-Date: 2024-09-19 21:09+1000\n"
+"PO-Revision-Date: 2024-07-03 08:01+0000\n"
+"Last-Translator: tark1998 <tark1998@gmail.com>\n"
+"Language-Team: Korean <https://translate.lxqt-project.org/projects/labwc/labwc/ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:704
+#: src/menu/menu.c:1017
+msgid "Go there..."
+msgstr ""
+
+#: src/menu/menu.c:1037
 msgid "Reconfigure"
-msgstr ""
+msgstr "재설정"
 
-#: src/menu/menu.c:706
+#: src/menu/menu.c:1039
 msgid "Exit"
-msgstr ""
+msgstr "종료"
 
-#: src/menu/menu.c:722
+#: src/menu/menu.c:1055
 msgid "Minimize"
-msgstr ""
+msgstr "최소화"
 
-#: src/menu/menu.c:724
+#: src/menu/menu.c:1057
 msgid "Maximize"
-msgstr ""
+msgstr "최대화"
 
-#: src/menu/menu.c:726
+#: src/menu/menu.c:1059
 msgid "Fullscreen"
-msgstr ""
+msgstr "전체화면"
 
-#: src/menu/menu.c:728
-msgid "Roll up/down"
-msgstr ""
+#: src/menu/menu.c:1061
+msgid "Roll Up/Down"
+msgstr "접기/펼치기"
 
-#: src/menu/menu.c:730
+#: src/menu/menu.c:1063
 msgid "Decorations"
-msgstr ""
+msgstr "창 장식"
 
-#: src/menu/menu.c:732
+#: src/menu/menu.c:1065
 msgid "Always on Top"
-msgstr ""
+msgstr "항상 최상단에 표시"
 
-#: src/menu/menu.c:737
-msgid "Move left"
-msgstr ""
+#: src/menu/menu.c:1070
+msgid "Move Left"
+msgstr "좌로 이동"
 
-#: src/menu/menu.c:744
-msgid "Move right"
-msgstr ""
+#: src/menu/menu.c:1077
+msgid "Move Right"
+msgstr "우로 이동"
 
-#: src/menu/menu.c:749
+#: src/menu/menu.c:1082
 msgid "Always on Visible Workspace"
-msgstr ""
+msgstr "현재 작업공간에 항상 표시"
 
-#: src/menu/menu.c:752 src/config/rcxml.c:1384
+#: src/menu/menu.c:1085 src/config/rcxml.c:1629
 msgid "Workspace"
-msgstr ""
+msgstr "작업공간"
 
-#: src/menu/menu.c:755
+#: src/menu/menu.c:1088
 msgid "Close"
-msgstr ""
+msgstr "닫기"

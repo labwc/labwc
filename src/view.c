@@ -4,6 +4,7 @@
 #include <strings.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_security_context_v1.h>
+#include "common/box.h"
 #include "common/macros.h"
 #include "common/match.h"
 #include "common/mem.h"
@@ -12,6 +13,7 @@
 #include "labwc.h"
 #include "menu/menu.h"
 #include "osd.h"
+#include "output-state.h"
 #include "placement.h"
 #include "regions.h"
 #include "resize-indicator.h"
@@ -26,9 +28,6 @@
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
 #endif
-
-#define LAB_FALLBACK_WIDTH  640
-#define LAB_FALLBACK_HEIGHT 480
 
 struct view *
 view_from_wlr_surface(struct wlr_surface *surface)
@@ -138,7 +137,7 @@ matches_criteria(struct view *view, enum lab_view_criteria criteria)
 		 * special in that they live in a different tree.
 		 */
 		struct server *server = view->server;
-		if (view->scene_tree->node.parent != server->workspace_current->tree
+		if (view->scene_tree->node.parent != server->workspaces.current->tree
 				&& !view_is_always_on_top(view)) {
 			return false;
 		}
@@ -347,7 +346,6 @@ static bool
 view_discover_output(struct view *view, struct wlr_box *geometry)
 {
 	assert(view);
-	assert(!view->fullscreen);
 
 	if (!geometry) {
 		geometry = &view->current;
@@ -360,6 +358,10 @@ view_discover_output(struct view *view, struct wlr_box *geometry)
 
 	if (output && output != view->output) {
 		view->output = output;
+		/* Show fullscreen views above top-layer */
+		if (view->fullscreen) {
+			desktop_update_top_layer_visiblity(view->server);
+		}
 		return true;
 	}
 
@@ -407,12 +409,15 @@ void
 view_set_output(struct view *view, struct output *output)
 {
 	assert(view);
-	assert(!view->fullscreen);
 	if (!output_is_usable(output)) {
 		wlr_log(WLR_ERROR, "invalid output set for view");
 		return;
 	}
 	view->output = output;
+	/* Show fullscreen views above top-layer */
+	if (view->fullscreen) {
+		desktop_update_top_layer_visiblity(view->server);
+	}
 }
 
 void
@@ -609,6 +614,7 @@ view_adjust_size(struct view *view, int *w, int *h)
 {
 	assert(view);
 	struct view_size_hints hints = view_get_size_hints(view);
+	int min_width = view_get_min_width();
 
 	/*
 	 * "If a base size is not provided, the minimum size is to be
@@ -631,7 +637,7 @@ view_adjust_size(struct view *view, int *w, int *h)
 	 * This is currently always the case for xdg-shell views.
 	 */
 	if (hints.min_width < 1) {
-		hints.min_width = LAB_MIN_VIEW_WIDTH;
+		hints.min_width = min_width;
 	}
 	if (hints.min_height < 1) {
 		hints.min_height = LAB_MIN_VIEW_HEIGHT;
@@ -815,20 +821,17 @@ adjust_floating_geometry(struct view *view, struct wlr_box *geometry,
 		&geometry->x, &geometry->y);
 }
 
-static void
-set_fallback_geometry(struct view *view)
+void
+view_set_fallback_natural_geometry(struct view *view)
 {
-	view->natural_geometry.width = LAB_FALLBACK_WIDTH;
-	view->natural_geometry.height = LAB_FALLBACK_HEIGHT;
+	view->natural_geometry.width = VIEW_FALLBACK_WIDTH;
+	view->natural_geometry.height = VIEW_FALLBACK_HEIGHT;
 	view_compute_centered_position(view, NULL,
 		view->natural_geometry.width,
 		view->natural_geometry.height,
 		&view->natural_geometry.x,
 		&view->natural_geometry.y);
 }
-
-#undef LAB_FALLBACK_WIDTH
-#undef LAB_FALLBACK_HEIGHT
 
 void
 view_store_natural_geometry(struct view *view)
@@ -839,16 +842,14 @@ view_store_natural_geometry(struct view *view)
 		return;
 	}
 
-	/**
-	 * If an application was started maximized or fullscreened, its
-	 * natural_geometry width/height may still be zero in which case we set
-	 * some fallback values. This is the case with foot and Qt applications.
+	/*
+	 * Note that for xdg-shell views that start fullscreen or maximized,
+	 * we end up storing a natural geometry of 0x0. This is intentional.
+	 * When leaving fullscreen or unmaximizing, we pass 0x0 to the
+	 * xdg-toplevel configure event, which means the application should
+	 * choose its own size.
 	 */
-	if (wlr_box_empty(&view->pending)) {
-		set_fallback_geometry(view);
-	} else {
-		view->natural_geometry = view->pending;
-	}
+	view->natural_geometry = view->pending;
 }
 
 int
@@ -874,6 +875,94 @@ view_center(struct view *view, const struct wlr_box *ref)
 	}
 }
 
+/*
+ * Algorithm based on KWin's implementation:
+ * https://github.com/KDE/kwin/blob/df9f8f8346b5b7645578e37365dabb1a7b02ca5a/src/placement.cpp#L589
+ */
+static void
+view_cascade(struct view *view)
+{
+	/* "cascade" policy places a new view at center by default */
+	struct wlr_box center = view->pending;
+	view_compute_centered_position(view, NULL,
+		center.width, center.height, &center.x, &center.y);
+	struct border margin = ssd_get_margin(view->ssd);
+	center.x -= margin.left;
+	center.y -= margin.top;
+	center.width += margin.left + margin.right;
+	center.height += margin.top + margin.bottom;
+
+	/* Candidate geometry to which the view is moved */
+	struct wlr_box candidate = center;
+
+	struct wlr_box usable = output_usable_area_in_layout_coords(view->output);
+
+	/* TODO: move this logic to rcxml.c */
+	int offset_x = rc.placement_cascade_offset_x;
+	int offset_y = rc.placement_cascade_offset_y;
+	struct theme *theme = view->server->theme;
+	int default_offset = theme->title_height + theme->border_width + 5;
+	if (offset_x <= 0) {
+		offset_x = default_offset;
+	}
+	if (offset_y <= 0) {
+		offset_y = default_offset;
+	}
+
+	/*
+	 * Keep updating the candidate until it doesn't cover any existing views
+	 * or doesn't fit within the usable area.
+	 */
+	bool candidate_updated = true;
+	while (candidate_updated) {
+		candidate_updated = false;
+		struct wlr_box covered = {0};
+
+		/* Iterate over views from top to bottom */
+		struct view *other_view;
+		for_each_view(other_view, &view->server->views,
+				LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+			struct wlr_box other = ssd_max_extents(other_view);
+			if (other_view == view
+					|| view->minimized
+					|| !box_intersects(&candidate, &other)) {
+				continue;
+			}
+			/*
+			 * If the candidate covers an existing view whose
+			 * top-left corner is not covered by other views,
+			 * shift the candidate to bottom-right.
+			 */
+			if (box_contains(&candidate, &other)
+					&& !wlr_box_contains_point(
+						&covered, other.x, other.y)) {
+				candidate.x = other.x + offset_x;
+				candidate.y = other.y + offset_y;
+				if (!box_contains(&usable, &candidate)) {
+					/*
+					 * If the candidate doesn't fit within
+					 * the usable area, fall back to center
+					 * and finish updating the candidate.
+					 */
+					candidate = center;
+					break;
+				} else {
+					/* Repeat with the new candidate */
+					candidate_updated = true;
+					break;
+				}
+			}
+			/*
+			 * We use just a bounding box to represent the covered
+			 * area, which would be fine for our use-case.
+			 */
+			box_union(&covered, &covered, &other);
+		}
+	}
+
+	view_move(view, candidate.x + margin.left, candidate.y + margin.top);
+}
+
 void
 view_place_by_policy(struct view *view, bool allow_cursor,
 		enum view_placement_policy policy)
@@ -887,6 +976,9 @@ view_place_by_policy(struct view *view, bool allow_cursor,
 			view_move(view, geometry.x, geometry.y);
 			return;
 		}
+	} else if (policy == LAB_PLACE_CASCADE) {
+		view_cascade(view);
+		return;
 	}
 
 	view_center(view, NULL);
@@ -938,15 +1030,18 @@ view_constrain_size_to_that_of_usable_area(struct view *view)
 	view_move_resize(view, box);
 }
 
-static void
+void
 view_apply_natural_geometry(struct view *view)
 {
 	assert(view);
 	assert(view_is_floating(view));
 
 	struct wlr_box geometry = view->natural_geometry;
-	adjust_floating_geometry(view, &geometry,
-		/* midpoint_visibility */ false);
+	/* Only adjust natural geometry if known (not 0x0) */
+	if (!wlr_box_empty(&geometry)) {
+		adjust_floating_geometry(view, &geometry,
+			/* midpoint_visibility */ false);
+	}
 	view_move_resize(view, geometry);
 }
 
@@ -1073,14 +1168,11 @@ view_apply_maximized_geometry(struct view *view)
 	 * center the unmaximized axis.
 	 */
 	struct wlr_box natural = view->natural_geometry;
-	if (view->maximized != VIEW_AXIS_BOTH) {
-		struct wlr_box intersect;
-		wlr_box_intersection(&intersect, &box, &natural);
-		if (wlr_box_empty(&intersect)) {
-			view_compute_centered_position(view, NULL,
-				natural.width, natural.height,
-				&natural.x, &natural.y);
-		}
+	if (view->maximized != VIEW_AXIS_BOTH
+			&& !box_intersects(&box, &natural)) {
+		view_compute_centered_position(view, NULL,
+			natural.width, natural.height,
+			&natural.x, &natural.y);
 	}
 
 	if (view->ssd_enabled) {
@@ -1172,6 +1264,23 @@ view_is_tiled(struct view *view)
 }
 
 bool
+view_is_tiled_and_notify_tiled(struct view *view)
+{
+	switch (rc.snap_tiling_events_mode) {
+	case LAB_TILING_EVENTS_NEVER:
+		return false;
+	case LAB_TILING_EVENTS_REGION:
+		return view->tiled_region || view->tiled_region_evacuate;
+	case LAB_TILING_EVENTS_EDGE:
+		return view->tiled;
+	case LAB_TILING_EVENTS_ALWAYS:
+		return view_is_tiled(view);
+	}
+
+	return false;
+}
+
+bool
 view_is_floating(struct view *view)
 {
 	assert(view);
@@ -1227,6 +1336,18 @@ view_maximize(struct view *view, enum view_axis axis,
 			view_invalidate_last_layout_geometry(view);
 		}
 	}
+
+	/*
+	 * When natural geometry is unknown (0x0) for an xdg-shell view,
+	 * we normally send a configure event of 0x0 to get the client's
+	 * preferred size, but this doesn't work if unmaximizing only
+	 * one axis. So in that corner case, set a fallback geometry.
+	 */
+	if ((axis == VIEW_AXIS_HORIZONTAL || axis == VIEW_AXIS_VERTICAL)
+			&& wlr_box_empty(&view->natural_geometry)) {
+		view_set_fallback_natural_geometry(view);
+	}
+
 	set_maximized(view, axis);
 	if (view_is_floating(view)) {
 		view_apply_natural_geometry(view);
@@ -1330,7 +1451,7 @@ view_toggle_always_on_top(struct view *view)
 {
 	assert(view);
 	if (view_is_always_on_top(view)) {
-		view->workspace = view->server->workspace_current;
+		view->workspace = view->server->workspaces.current;
 		wlr_scene_node_reparent(&view->scene_tree->node,
 			view->workspace->tree);
 	} else {
@@ -1352,7 +1473,7 @@ view_toggle_always_on_bottom(struct view *view)
 {
 	assert(view);
 	if (view_is_always_on_bottom(view)) {
-		view->workspace = view->server->workspace_current;
+		view->workspace = view->server->workspaces.current;
 		wlr_scene_node_reparent(&view->scene_tree->node,
 			view->workspace->tree);
 	} else {
@@ -1366,6 +1487,7 @@ view_toggle_visible_on_all_workspaces(struct view *view)
 {
 	assert(view);
 	view->visible_on_all_workspaces = !view->visible_on_all_workspaces;
+	ssd_update_geometry(view->ssd);
 }
 
 void
@@ -1580,22 +1702,13 @@ view_adjust_for_layout_change(struct view *view)
 {
 	assert(view);
 
-	bool was_fullscreen = view->fullscreen;
 	bool is_floating = view_is_floating(view);
+	bool use_natural = false;
 
 	if (!output_is_usable(view->output)) {
 		/* A view losing an output should have a last-layout geometry */
 		update_last_layout_geometry(view);
-
-		/* Exit fullscreen and re-assess floating status */
-		if (was_fullscreen) {
-			set_fullscreen(view, false);
-			is_floating = view_is_floating(view);
-		}
 	}
-
-	/* Restore any full-screen window to natural geometry */
-	bool use_natural = was_fullscreen;
 
 	/* Capture a pointer to the last-layout geometry (only if valid) */
 	struct wlr_box *last_geometry = NULL;
@@ -1636,8 +1749,8 @@ view_adjust_for_layout_change(struct view *view)
 		view_apply_special_geometry(view);
 	} else if (use_natural) {
 		/*
-		 * Move the window to its natural location, either because it
-		 * was fullscreen or we are trying to restore a prior layout.
+		 * Move the window to its natural location, because
+		 * we are trying to restore a prior layout.
 		 */
 		view_apply_natural_geometry(view);
 	} else {
@@ -1667,97 +1780,7 @@ void
 view_on_output_destroy(struct view *view)
 {
 	assert(view);
-	/*
-	 * This is the only time we modify view->output for a fullscreen
-	 * view. We expect view_adjust_for_layout_change() to be called
-	 * shortly afterward, which will exit fullscreen.
-	 */
 	view->output = NULL;
-}
-
-static enum wlr_direction
-opposite_direction(enum wlr_direction direction)
-{
-	switch (direction) {
-	case WLR_DIRECTION_RIGHT:
-		return WLR_DIRECTION_LEFT;
-	case WLR_DIRECTION_LEFT:
-		return WLR_DIRECTION_RIGHT;
-	case WLR_DIRECTION_DOWN:
-		return WLR_DIRECTION_UP;
-	case WLR_DIRECTION_UP:
-		return WLR_DIRECTION_DOWN;
-	default:
-		return 0;
-	}
-}
-
-static enum wlr_direction
-get_wlr_direction(enum view_edge edge)
-{
-	switch (edge) {
-	case VIEW_EDGE_LEFT:
-		return WLR_DIRECTION_LEFT;
-	case VIEW_EDGE_RIGHT:
-		return WLR_DIRECTION_RIGHT;
-	case VIEW_EDGE_UP:
-		return WLR_DIRECTION_UP;
-	case VIEW_EDGE_DOWN:
-		return WLR_DIRECTION_DOWN;
-	case VIEW_EDGE_CENTER:
-	case VIEW_EDGE_INVALID:
-	default:
-		return 0;
-	}
-}
-
-struct output *
-view_get_adjacent_output(struct view *view, enum view_edge edge, bool wrap)
-{
-	assert(view);
-	struct output *output = view->output;
-	if (!output_is_usable(output)) {
-		wlr_log(WLR_ERROR,
-			"view has no output, cannot find adjacent output");
-		return NULL;
-	}
-
-	struct wlr_box box = output_usable_area_in_layout_coords(output);
-	int lx = box.x + box.width / 2;
-	int ly = box.y + box.height / 2;
-
-	/* Determine any adjacent output in the appropriate direction */
-	struct wlr_output *new_output = NULL;
-	struct wlr_output *current_output = output->wlr_output;
-	struct wlr_output_layout *layout = view->server->output_layout;
-	enum wlr_direction direction = get_wlr_direction(edge);
-	new_output = wlr_output_layout_adjacent_output(layout, direction,
-		current_output, lx, ly);
-
-	/*
-	 * Optionally wrap around from top-to-bottom or left-to-right, and vice
-	 * versa.
-	 */
-	if (wrap && !new_output) {
-		new_output = wlr_output_layout_farthest_output(layout,
-			opposite_direction(direction), current_output, lx, ly);
-	}
-
-	/*
-	 * When "adjacent" output is the same as the original, there is no
-	 * adjacent
-	 */
-	if (!new_output || new_output == current_output) {
-		return NULL;
-	}
-
-	output = output_from_wlr_output(view->server, new_output);
-	if (!output_is_usable(output)) {
-		wlr_log(WLR_ERROR, "invalid output in layout");
-		return NULL;
-	}
-
-	return output;
 }
 
 static int
@@ -1821,7 +1844,7 @@ view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_wind
 
 	/* Otherwise, move to edge of next adjacent display, if possible */
 	struct output *output =
-		view_get_adjacent_output(view, direction, /* wrap */ false);
+		output_get_adjacent(view->output, direction, /* wrap */ false);
 	if (!output) {
 		return;
 	}
@@ -1973,6 +1996,8 @@ view_placement_parse(const char *policy)
 		return LAB_PLACE_CURSOR;
 	} else if (!strcasecmp(policy, "center")) {
 		return LAB_PLACE_CENTER;
+	} else if (!strcasecmp(policy, "cascade")) {
+		return LAB_PLACE_CASCADE;
 	}
 
 	return LAB_PLACE_INVALID;
@@ -1998,7 +2023,7 @@ view_snap_to_edge(struct view *view, enum view_edge edge,
 
 	if (across_outputs && view->tiled == edge && view->maximized == VIEW_AXIS_NONE) {
 		/* We are already tiled for this edge; try to switch outputs */
-		output = view_get_adjacent_output(view, edge, /* wrap */ false);
+		output = output_get_adjacent(view->output, edge, /* wrap */ false);
 
 		if (!output) {
 			/*
@@ -2071,9 +2096,6 @@ void
 view_move_to_output(struct view *view, struct output *output)
 {
 	assert(view);
-	if (view->fullscreen) {
-		return;
-	}
 
 	view_invalidate_last_layout_geometry(view);
 	view_set_output(view, output);
@@ -2083,6 +2105,8 @@ view_move_to_output(struct view *view, struct output *output)
 		view->pending.y = output_area.y;
 		view_place_by_policy(view,
 				/* allow_cursor */ false, rc.placement_policy);
+	} else if (view->fullscreen) {
+		view_apply_fullscreen_geometry(view);
 	} else if (view->maximized != VIEW_AXIS_NONE) {
 		view_apply_maximized_geometry(view);
 	} else if (view->tiled) {
@@ -2236,6 +2260,10 @@ view_update_app_id(struct view *view)
 	}
 	wlr_foreign_toplevel_handle_v1_set_app_id(
 		view->toplevel.handle, app_id);
+
+	if (view->ssd_enabled) {
+		ssd_update_window_icon(view->ssd);
+	}
 }
 
 void
@@ -2246,6 +2274,17 @@ view_reload_ssd(struct view *view)
 		undecorate(view);
 		decorate(view);
 	}
+}
+
+int
+view_get_min_width(void)
+{
+	int button_count_left = wl_list_length(&rc.title_buttons_left);
+	int button_count_right =  wl_list_length(&rc.title_buttons_right);
+	return (rc.theme->window_button_width * (button_count_left + button_count_right)) +
+		(rc.theme->window_button_spacing * MAX((button_count_right - 1), 0)) +
+		(rc.theme->window_button_spacing * MAX((button_count_left - 1), 0)) +
+		(2 * rc.theme->window_titlebar_padding_width);
 }
 
 void
@@ -2375,6 +2414,10 @@ view_destroy(struct view *view)
 
 	if (server->active_view == view) {
 		server->active_view = NULL;
+	}
+
+	if (server->session_lock_manager->last_active_view == view) {
+		server->session_lock_manager->last_active_view = NULL;
 	}
 
 	if (server->last_raised_view == view) {

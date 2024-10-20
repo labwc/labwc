@@ -182,7 +182,7 @@ prevent installing the wlroots headers:
 ## 3. Configuration
 
 User config files are located at `${XDG_CONFIG_HOME:-$HOME/.config/labwc/}`
-with the following five files being used: [rc.xml], [menu.xml], [autostart], [shutdown],
+with the following six files being used: [rc.xml], [menu.xml], [autostart], [shutdown],
 [environment] and [themerc-override].
 
 Run `labwc --reconfigure` to reload configuration and theme.

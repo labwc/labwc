@@ -227,7 +227,7 @@ session_environment_init(void)
 	 * May be overridden either by already having a value set or by the user
 	 * supplied environment file.
 	 */
-	setenv("XDG_CURRENT_DESKTOP", "wlroots", 0);
+	setenv("XDG_CURRENT_DESKTOP", "labwc:wlroots", 0);
 
 	/*
 	 * Set default for _JAVA_AWT_WM_NONREPARENTING so that Java applications
@@ -261,8 +261,8 @@ session_environment_init(void)
 	paths_destroy(&paths);
 }
 
-static void
-run_session_script(const char *script)
+void
+session_run_script(const char *script)
 {
 	struct wl_list paths;
 	paths_config_create(&paths, script);
@@ -293,13 +293,13 @@ session_autostart_init(struct server *server)
 {
 	/* Update dbus and systemd user environment, each may fail gracefully */
 	update_activation_env(server, /* initialize */ true);
-	run_session_script("autostart");
+	session_run_script("autostart");
 }
 
 void
 session_shutdown(struct server *server)
 {
-	run_session_script("shutdown");
+	session_run_script("shutdown");
 
 	/* Clear the dbus and systemd user environment, each may fail gracefully */
 	update_activation_env(server, /* initialize */ false);

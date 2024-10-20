@@ -18,34 +18,102 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/region.h>
 #include <wlr/util/log.h>
+#include "common/direction.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "labwc.h"
 #include "layers.h"
 #include "node.h"
+#include "output-state.h"
 #include "output-virtual.h"
+#include "protocols/cosmic-workspaces.h"
 #include "regions.h"
 #include "view.h"
 #include "xwayland.h"
 
-static bool
-get_tearing_preference(struct output *output)
+static unsigned int
+get_tearing_retry_count(struct output *output)
+{
+	/* Two seconds worth of frames, guessing 60Hz if refresh is invalid */
+	int refresh = output->wlr_output->refresh;
+	return refresh > 0 ? refresh / 500 : 120;
+}
+
+bool
+output_get_tearing_allowance(struct output *output)
 {
 	struct server *server = output->server;
 
-	/* Never allow tearing when disabled */
+	/* never allow tearing when disabled */
 	if (!rc.allow_tearing) {
 		return false;
 	}
 
-	/* Tearing is only allowed for the output with the active view */
-	if (!server->active_view || server->active_view->output != output) {
+	struct view *view = server->active_view;
+
+	/* tearing is only allowed for the output with the active view */
+	if (!view || view->output != output) {
 		return false;
 	}
 
-	/* If the active view requests tearing, or it is toggled on with action, allow it */
-	return server->active_view->tearing_hint;
+	/* tearing should not have failed too many times */
+	if (output->nr_tearing_failures >= get_tearing_retry_count(output)) {
+		return false;
+	}
+
+	/* allow tearing for any window when requested or forced */
+	if (rc.allow_tearing == LAB_TEARING_ENABLED) {
+		if (view->force_tearing == LAB_STATE_UNSPECIFIED) {
+			return view->tearing_hint;
+		} else {
+			return view->force_tearing == LAB_STATE_ENABLED;
+		}
+	}
+
+	/* remaining tearing options apply only to full-screen windows */
+	if (!view->fullscreen) {
+		return false;
+	}
+
+	if (view->force_tearing == LAB_STATE_UNSPECIFIED) {
+		/* honor the tearing hint or the fullscreen-force preference */
+		return view->tearing_hint ||
+			rc.allow_tearing == LAB_TEARING_FULLSCREEN_FORCED;
+	}
+
+	/* honor tearing as requested by action */
+	return view->force_tearing == LAB_STATE_ENABLED;
+}
+
+static void
+output_apply_gamma(struct output *output)
+{
+	assert(output);
+	assert(output->gamma_lut_changed);
+
+	struct server *server = output->server;
+	struct wlr_scene_output *scene_output = output->scene_output;
+
+	struct wlr_output_state pending;
+	wlr_output_state_init(&pending);
+
+	output->gamma_lut_changed = false;
+	struct wlr_gamma_control_v1 *gamma_control =
+		wlr_gamma_control_manager_v1_get_control(
+			server->gamma_control_manager_v1,
+			output->wlr_output);
+
+	if (!wlr_gamma_control_v1_apply(gamma_control, &pending)) {
+		wlr_output_state_finish(&pending);
+		return;
+	}
+
+	if (!lab_wlr_scene_output_commit(scene_output, &pending)) {
+		wlr_gamma_control_v1_send_failed_and_destroy(gamma_control);
+	}
+
+	wlr_output_state_finish(&pending);
 }
 
 static void
@@ -71,38 +139,38 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	struct wlr_output *wlr_output = output->wlr_output;
-	struct server *server = output->server;
-
 	if (output->gamma_lut_changed) {
-		struct wlr_output_state pending;
-		wlr_output_state_init(&pending);
-		if (!wlr_scene_output_build_state(output->scene_output, &pending, NULL)) {
-			return;
-		}
-		output->gamma_lut_changed = false;
-		struct wlr_gamma_control_v1 *gamma_control =
-			wlr_gamma_control_manager_v1_get_control(
-				server->gamma_control_manager_v1, wlr_output);
-		if (!wlr_gamma_control_v1_apply(gamma_control, &pending)) {
-			wlr_output_state_finish(&pending);
-			return;
-		}
+		/*
+		 * We are not mixing the gamma state with
+		 * other pending output changes to make it
+		 * easier to handle a failed output commit
+		 * due to gamma without impacting other
+		 * unrelated output changes.
+		 */
+		output_apply_gamma(output);
+	} else {
+		struct wlr_scene_output *scene_output = output->scene_output;
+		struct wlr_output_state *pending = &output->pending;
 
-		if (!wlr_output_commit_state(output->wlr_output, &pending)) {
-			wlr_gamma_control_v1_send_failed_and_destroy(gamma_control);
-			wlr_output_state_finish(&pending);
-			return;
-		}
+		pending->tearing_page_flip = output_get_tearing_allowance(output);
 
-		wlr_damage_ring_rotate(&output->scene_output->damage_ring);
-		wlr_output_state_finish(&pending);
-		return;
+		bool committed =
+			lab_wlr_scene_output_commit(scene_output, pending);
+
+		if (pending->tearing_page_flip) {
+			if (committed) {
+				output->nr_tearing_failures = 0;
+			} else {
+				if (++output->nr_tearing_failures >=
+						get_tearing_retry_count(output)) {
+					wlr_log(WLR_INFO, "setting tearing allowance failed "
+						"for two consecutive seconds, disabling");
+				}
+				pending->tearing_page_flip = false;
+				lab_wlr_scene_output_commit(scene_output, pending);
+			}
+		}
 	}
-
-	output->wlr_output->pending.tearing_page_flip =
-		get_tearing_preference(output);
-	lab_wlr_scene_output_commit(output->scene_output);
 
 	struct timespec now = { 0 };
 	clock_gettime(CLOCK_MONOTONIC, &now);
@@ -143,6 +211,8 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 			view_on_output_destroy(view);
 		}
 	}
+
+	wlr_output_state_finish(&output->pending);
 
 	/*
 	 * Ensure that we don't accidentally try to dereference
@@ -230,6 +300,9 @@ add_output_to_layout(struct server *server, struct output *output)
 		wlr_scene_output_layout_add_output(server->scene_layout,
 			layout_output, output->scene_output);
 	}
+
+	lab_cosmic_workspace_group_output_enter(
+		server->workspaces.cosmic_group, output->wlr_output);
 }
 
 static void
@@ -253,6 +326,13 @@ new_output_notify(struct wl_listener *listener, void *data)
 			 */
 			return;
 		}
+	}
+
+	if (wlr_output_is_wl(wlr_output)) {
+		char title[64];
+		snprintf(title, sizeof(title), "%s - %s", "labwc", wlr_output->name);
+		wlr_wl_output_set_title(wlr_output, title);
+		wlr_wl_output_set_app_id(wlr_output, "labwc");
 	}
 
 	/*
@@ -285,6 +365,12 @@ new_output_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
+	output = znew(*output);
+	output->wlr_output = wlr_output;
+	wlr_output->data = output;
+	output->server = server;
+	output_state_init(output);
+
 	wlr_log(WLR_DEBUG, "enable output");
 	wlr_output_enable(wlr_output, true);
 
@@ -297,7 +383,9 @@ new_output_notify(struct wl_listener *listener, void *data)
 		wlr_log(WLR_DEBUG, "set preferred mode");
 		/* The mode is a tuple of (width, height, refresh rate). */
 		preferred_mode = wlr_output_preferred_mode(wlr_output);
-		wlr_output_set_mode(wlr_output, preferred_mode);
+		if (preferred_mode) {
+			wlr_output_set_mode(wlr_output, preferred_mode);
+		}
 	}
 
 	/*
@@ -327,10 +415,6 @@ new_output_notify(struct wl_listener *listener, void *data)
 
 	wlr_output_commit(wlr_output);
 
-	output = znew(*output);
-	output->wlr_output = wlr_output;
-	wlr_output->data = output;
-	output->server = server;
 	wlr_output_effective_resolution(wlr_output,
 		&output->usable_area.width, &output->usable_area.height);
 	wl_list_insert(&server->outputs, &output->link);
@@ -417,7 +501,7 @@ output_init(struct server *server)
 	 * Create an output layout, which is a wlroots utility for working with
 	 * an arrangement of screens in a physical layout.
 	 */
-	server->output_layout = wlr_output_layout_create();
+	server->output_layout = wlr_output_layout_create(server->wl_display);
 	if (!server->output_layout) {
 		wlr_log(WLR_ERROR, "unable to create output layout");
 		exit(EXIT_FAILURE);
@@ -517,6 +601,10 @@ output_config_apply(struct server *server,
 
 		if (need_to_remove) {
 			regions_evacuate_output(output);
+
+			lab_cosmic_workspace_group_output_leave(
+				server->workspaces.cosmic_group, output->wlr_output);
+
 			/*
 			 * At time of writing, wlr_output_layout_remove()
 			 * indirectly destroys the wlr_scene_output, but
@@ -801,6 +889,53 @@ output_nearest_to_cursor(struct server *server)
 		server->seat.cursor->y);
 }
 
+struct output *
+output_get_adjacent(struct output *output, enum view_edge edge, bool wrap)
+{
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR,
+			"output is not usable, cannot find adjacent output");
+		return NULL;
+	}
+
+	struct wlr_box box = output_usable_area_in_layout_coords(output);
+	int lx = box.x + box.width / 2;
+	int ly = box.y + box.height / 2;
+
+	/* Determine any adjacent output in the appropriate direction */
+	struct wlr_output *new_output = NULL;
+	struct wlr_output *current_output = output->wlr_output;
+	struct wlr_output_layout *layout = output->server->output_layout;
+	enum wlr_direction direction = direction_from_view_edge(edge);
+	new_output = wlr_output_layout_adjacent_output(layout, direction,
+		current_output, lx, ly);
+
+	/*
+	 * Optionally wrap around from top-to-bottom or left-to-right, and vice
+	 * versa.
+	 */
+	if (wrap && !new_output) {
+		new_output = wlr_output_layout_farthest_output(layout,
+			direction_get_opposite(direction), current_output, lx, ly);
+	}
+
+	/*
+	 * When "adjacent" output is the same as the original, there is no
+	 * adjacent
+	 */
+	if (!new_output || new_output == current_output) {
+		return NULL;
+	}
+
+	output = output_from_wlr_output(output->server, new_output);
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR, "invalid output in layout");
+		return NULL;
+	}
+
+	return output;
+}
+
 bool
 output_is_usable(struct output *output)
 {
@@ -909,9 +1044,6 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 		break;
 	case ZWLR_OUTPUT_POWER_V1_MODE_ON:
 		wlr_output_enable(event->output, true);
-		if (!wlr_output_test(event->output)) {
-			wlr_output_rollback(event->output);
-		}
 		wlr_output_commit(event->output);
 		/*
 		 * Re-set the cursor image so that the cursor
@@ -934,4 +1066,18 @@ output_enable_adaptive_sync(struct wlr_output *output, bool enabled)
 		wlr_log(WLR_INFO, "adaptive sync %sabled for output %s",
 			enabled ? "en" : "dis", output->name);
 	}
+}
+
+float
+output_max_scale(struct server *server)
+{
+	/* Never return less than 1, in case outputs are disabled */
+	float scale = 1;
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		if (output_is_usable(output)) {
+			scale = MAX(scale, output->wlr_output->scale);
+		}
+	}
+	return scale;
 }

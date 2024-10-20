@@ -27,6 +27,12 @@ struct menu_scene {
 	struct scaled_font_buffer *buffer;
 };
 
+enum menuitem_type {
+	LAB_MENU_ITEM = 0,
+	LAB_MENU_SEPARATOR_LINE,
+	LAB_MENU_TITLE,
+};
+
 struct menuitem {
 	struct wl_list actions;
 	char *execute;
@@ -34,11 +40,14 @@ struct menuitem {
 	struct menu *parent;
 	struct menu *submenu;
 	bool selectable;
+	enum menuitem_type type;
 	int height;
 	int native_width;
 	struct wlr_scene_tree *tree;
 	struct menu_scene normal;
 	struct menu_scene selected;
+	struct menu_pipe_context *pipe_ctx;
+	struct view *client_list_view;  /* used by internal client-list */
 	struct wl_list link; /* menu.menuitems */
 };
 
@@ -46,7 +55,6 @@ struct menuitem {
 struct menu {
 	char *id;
 	char *label;
-	int item_height;
 	struct menu *parent;
 
 	struct {
@@ -127,5 +135,8 @@ void menu_close_root(struct server *server);
 
 /* menu_reconfigure - reload theme and content */
 void menu_reconfigure(struct server *server);
+
+void update_client_list_combined_menu(struct server *server);
+void update_client_send_to_menu(struct server *server);
 
 #endif /* LABWC_MENU_H */

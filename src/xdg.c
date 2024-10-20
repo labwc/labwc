@@ -7,6 +7,7 @@
 #include "common/mem.h"
 #include "decorations.h"
 #include "labwc.h"
+#include "menu/menu.h"
 #include "node.h"
 #include "snap-constraints.h"
 #include "view.h"
@@ -14,7 +15,7 @@
 #include "window-rules.h"
 #include "workspaces.h"
 
-#define LAB_XDG_SHELL_VERSION (2)
+#define LAB_XDG_SHELL_VERSION (3)
 #define CONFIGURE_TIMEOUT_MS 100
 
 static struct xdg_toplevel_view *
@@ -41,6 +42,20 @@ xdg_toplevel_from_view(struct view *view)
 	assert(xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL);
 	assert(xdg_surface->toplevel);
 	return xdg_surface->toplevel;
+}
+
+static struct view_size_hints
+xdg_toplevel_view_get_size_hints(struct view *view)
+{
+	assert(view);
+
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+	struct wlr_xdg_toplevel_state *state = &toplevel->current;
+
+	return (struct view_size_hints){
+		.min_width = state->min_width,
+		.min_height = state->min_height,
+	};
 }
 
 static bool
@@ -76,14 +91,79 @@ handle_new_popup(struct wl_listener *listener, void *data)
 }
 
 static void
+set_fullscreen_from_request(struct view *view,
+		struct wlr_xdg_toplevel_requested *requested)
+{
+	if (!view->fullscreen && requested->fullscreen
+			&& requested->fullscreen_output) {
+		view_set_output(view, output_from_wlr_output(view->server,
+			requested->fullscreen_output));
+	}
+	view_set_fullscreen(view, requested->fullscreen);
+}
+
+static void
+do_late_positioning(struct view *view)
+{
+	struct server *server = view->server;
+	if (server->input_mode == LAB_INPUT_STATE_MOVE
+			&& view == server->grabbed_view) {
+		/* Reposition the view while anchoring it to cursor */
+		interactive_anchor_to_cursor(server, &view->pending);
+	} else {
+		/* TODO: smart placement? */
+		view_compute_centered_position(view, NULL,
+			view->pending.width, view->pending.height,
+			&view->pending.x, &view->pending.y);
+	}
+}
+
+static void
 handle_commit(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, commit);
 	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
 	assert(view->surface);
+
+	if (xdg_surface->initial_commit) {
+		wlr_log(WLR_DEBUG, "scheduling configure");
+		wlr_xdg_surface_schedule_configure(xdg_surface);
+		/*
+		 * Handle initial fullscreen/maximize requests immediately after
+		 * scheduling the initial configure event (before it is sent) in
+		 * order to send the correct size and avoid flicker.
+		 *
+		 * In normal (non-fullscreen/maximized) cases, the initial
+		 * configure event is sent with a zero size, which requests the
+		 * application to choose its own size.
+		 */
+		if (toplevel->requested.fullscreen) {
+			set_fullscreen_from_request(view, &toplevel->requested);
+		}
+		if (toplevel->requested.maximized) {
+			view_maximize(view, VIEW_AXIS_BOTH,
+				/*store_natural_geometry*/ true);
+		}
+		return;
+	}
 
 	struct wlr_box size;
 	wlr_xdg_surface_get_geometry(xdg_surface, &size);
+	bool update_required = false;
+
+	/*
+	 * If we didn't know the natural size when leaving fullscreen or
+	 * unmaximizing, then the pending size will be 0x0. In this case,
+	 * the pending x/y is also unset and we still need to position
+	 * the window.
+	 */
+	if (wlr_box_empty(&view->pending) && !wlr_box_empty(&size)) {
+		view->pending.width = size.width;
+		view->pending.height = size.height;
+		do_late_positioning(view);
+		update_required = true;
+	}
 
 	/*
 	 * Qt applications occasionally fail to call set_window_geometry
@@ -95,8 +175,15 @@ handle_commit(struct wl_listener *listener, void *data)
 	 */
 	if (size.width != view->pending.width
 			|| size.height != view->pending.height) {
-		struct wlr_box extent;
-		wlr_surface_get_extends(xdg_surface->surface, &extent);
+		/*
+		 * Not using wlr_surface_get_extend() since Thunderbird
+		 * sometimes resizes the window geometry and the toplevel
+		 * surface size, but not the subsurface size (see #2183).
+		 */
+		struct wlr_box extent = {
+			.width = view->surface->current.width,
+			.height = view->surface->current.height,
+		};
 		if (extent.width == view->pending.width
 				&& extent.height == view->pending.height) {
 			wlr_log(WLR_DEBUG, "window geometry for client (%s) "
@@ -107,8 +194,9 @@ handle_commit(struct wl_listener *listener, void *data)
 	}
 
 	struct wlr_box *current = &view->current;
-	bool update_required = current->width != size.width
-		|| current->height != size.height;
+	if (current->width != size.width || current->height != size.height) {
+		update_required = true;
+	}
 
 	uint32_t serial = view->pending_configure_serial;
 	if (serial > 0 && serial == xdg_surface->current.configure_serial) {
@@ -177,8 +265,37 @@ handle_configure_timeout(void *data)
 	view->pending_configure_serial = 0;
 	view->pending_configure_timeout = NULL;
 
-	view_impl_apply_geometry(view,
-		view->current.width, view->current.height);
+	bool empty_pending = wlr_box_empty(&view->pending);
+	if (empty_pending || view->pending.x != view->current.x
+			|| view->pending.y != view->current.y) {
+		/*
+		 * This is a pending move + resize and the client is
+		 * taking too long to respond to the resize. Apply the
+		 * move now (while keeping the current size) so that the
+		 * desktop doesn't appear unresponsive.
+		 *
+		 * We do not use view_impl_apply_geometry() here since
+		 * in this case we prefer to always put the top-left
+		 * corner of the view at the desired position rather
+		 * than anchoring some other edge or corner.
+		 *
+		 * Corner case: we may get here with an empty pending
+		 * geometry in the case of an initially-maximized view
+		 * which is taking a long time to un-maximize (seen for
+		 * example with Thunderbird on slow machines). In that
+		 * case we have no great options (we can't center the
+		 * view since we don't know the un-maximized size yet),
+		 * so set a fallback position.
+		 */
+		if (empty_pending) {
+			wlr_log(WLR_INFO, "using fallback position");
+			view->pending.x = VIEW_FALLBACK_X;
+			view->pending.y = VIEW_FALLBACK_Y;
+		}
+		view->current.x = view->pending.x;
+		view->current.y = view->pending.y;
+		view_moved(view);
+	}
 
 	/* Re-sync pending view with current state */
 	snap_constraints_update(view);
@@ -214,6 +331,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	/* Remove xdg-shell view specific listeners */
 	wl_list_remove(&xdg_toplevel_view->set_app_id.link);
 	wl_list_remove(&xdg_toplevel_view->new_popup.link);
+	wl_list_remove(&view->commit.link);
 
 	if (view->pending_configure_timeout) {
 		wl_event_source_remove(view->pending_configure_timeout);
@@ -269,35 +387,58 @@ static void
 handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+
+	if (!toplevel->base->initialized) {
+		/*
+		 * Do nothing if we have not received the initial commit yet.
+		 * We will maximize the view in the commit handler.
+		 */
+		return;
+	}
+
 	if (!view->mapped && !view->output) {
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
-	bool maximized = xdg_toplevel_from_view(view)->requested.maximized;
+	bool maximized = toplevel->requested.maximized;
 	view_maximize(view, maximized ? VIEW_AXIS_BOTH : VIEW_AXIS_NONE,
 		/*store_natural_geometry*/ true);
-}
-
-static void
-set_fullscreen_from_request(struct view *view,
-		struct wlr_xdg_toplevel_requested *requested)
-{
-	if (!view->fullscreen && requested->fullscreen
-			&& requested->fullscreen_output) {
-		view_set_output(view, output_from_wlr_output(view->server,
-			requested->fullscreen_output));
-	}
-	view_set_fullscreen(view, requested->fullscreen);
 }
 
 static void
 handle_request_fullscreen(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_fullscreen);
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+
+	if (!toplevel->base->initialized) {
+		/*
+		 * Do nothing if we have not received the initial commit yet.
+		 * We will fullscreen the view in the commit handler.
+		 */
+		return;
+	}
+
 	if (!view->mapped && !view->output) {
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 	set_fullscreen_from_request(view,
 		&xdg_toplevel_from_view(view)->requested);
+}
+
+static void
+handle_request_show_window_menu(struct wl_listener *listener, void *data)
+{
+	struct xdg_toplevel_view *xdg_toplevel_view = wl_container_of(
+		listener, xdg_toplevel_view, request_show_window_menu);
+	struct server *server = xdg_toplevel_view->base.server;
+
+	struct menu *menu = menu_get_by_id(server, "client-menu");
+	assert(menu);
+	menu->triggered_by_view = &xdg_toplevel_view->base;
+
+	struct wlr_cursor *cursor = server->seat.cursor;
+	menu_open_root(menu, cursor->x, cursor->y);
 }
 
 static void
@@ -320,7 +461,6 @@ static void
 xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 {
 	uint32_t serial = 0;
-	view_adjust_size(view, &geo.width, &geo.height);
 
 	/*
 	 * We do not need to send a configure request unless the size
@@ -560,14 +700,8 @@ xdg_toplevel_view_map(struct view *view)
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
-	view->surface = xdg_surface->surface;
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 	if (!view->been_mapped) {
-		struct wlr_xdg_toplevel_requested *requested =
-			&xdg_toplevel_from_view(view)->requested;
-
-		init_foreign_toplevel(view);
-
 		if (view_wants_decorations(view)) {
 			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
 		} else {
@@ -575,8 +709,7 @@ xdg_toplevel_view_map(struct view *view)
 		}
 
 		/*
-		 * Set initial "pending" dimensions (may be modified by
-		 * view_set_fullscreen/view_maximize() below). "Current"
+		 * Set initial "pending" dimensions. "Current"
 		 * dimensions remain zero until handle_commit().
 		 */
 		if (wlr_box_empty(&view->pending)) {
@@ -588,21 +721,10 @@ xdg_toplevel_view_map(struct view *view)
 
 		/*
 		 * Set initial "pending" position for floating views.
-		 * Do this before view_set_fullscreen/view_maximize() so
-		 * that the position is saved with the natural geometry.
-		 *
-		 * FIXME: the natural geometry is not saved if either
-		 * handle_request_fullscreen/handle_request_maximize()
-		 * is called before map (try "foot --maximized").
 		 */
 		if (view_is_floating(view)) {
 			set_initial_position(view);
 		}
-
-		set_fullscreen_from_request(view, requested);
-		view_maximize(view, requested->maximized ?
-			VIEW_AXIS_BOTH : VIEW_AXIS_NONE,
-			/*store_natural_geometry*/ true);
 
 		/*
 		 * Set initial "current" position directly before
@@ -614,8 +736,10 @@ xdg_toplevel_view_map(struct view *view)
 		view_moved(view);
 	}
 
-	view->commit.notify = handle_commit;
-	wl_signal_add(&xdg_surface->surface->events.commit, &view->commit);
+	if (!view->toplevel.handle) {
+		init_foreign_toplevel(view);
+		foreign_toplevel_update_outputs(view);
+	}
 
 	view_impl_map(view);
 	view->been_mapped = true;
@@ -627,8 +751,16 @@ xdg_toplevel_view_unmap(struct view *view, bool client_request)
 	if (view->mapped) {
 		view->mapped = false;
 		wlr_scene_node_set_enabled(&view->scene_tree->node, false);
-		wl_list_remove(&view->commit.link);
 		view_impl_unmap(view);
+	}
+
+	/*
+	 * If the view was explicitly unmapped by the client (rather
+	 * than just minimized), destroy the foreign toplevel handle so
+	 * the unmapped view doesn't show up in panels and the like.
+	 */
+	if (client_request && view->toplevel.handle) {
+		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
 	}
 }
 
@@ -661,14 +793,44 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.move_to_back = view_impl_move_to_back,
 	.get_root = xdg_toplevel_view_get_root,
 	.append_children = xdg_toplevel_view_append_children,
+	.get_size_hints = xdg_toplevel_view_get_size_hints,
 	.contains_window_type = xdg_toplevel_view_contains_window_type,
 	.get_pid = xdg_view_get_pid,
 };
+
+struct token_data {
+	bool had_valid_surface;
+	bool had_valid_seat;
+	struct wl_listener destroy;
+};
+
+static void
+xdg_activation_handle_token_destroy(struct wl_listener *listener, void *data)
+{
+	struct token_data *token_data = wl_container_of(listener, token_data, destroy);
+	wl_list_remove(&token_data->destroy.link);
+	free(token_data);
+}
+
+static void
+xdg_activation_handle_new_token(struct wl_listener *listener, void *data)
+{
+	struct wlr_xdg_activation_token_v1 *token = data;
+	struct token_data *token_data = znew(*token_data);
+	token_data->had_valid_surface = !!token->surface;
+	token_data->had_valid_seat = !!token->seat;
+	token->data = token_data;
+
+	token_data->destroy.notify = xdg_activation_handle_token_destroy;
+	wl_signal_add(&token->events.destroy, &token_data->destroy);
+}
 
 static void
 xdg_activation_handle_request(struct wl_listener *listener, void *data)
 {
 	const struct wlr_xdg_activation_v1_request_activate_event *event = data;
+	struct token_data *token_data = event->token->data;
+	assert(token_data);
 
 	struct wlr_xdg_surface *xdg_surface =
 		wlr_xdg_surface_try_from_wlr_surface(event->surface);
@@ -681,16 +843,22 @@ xdg_activation_handle_request(struct wl_listener *listener, void *data)
 		wlr_log(WLR_INFO, "Not activating surface - no view attached to surface");
 		return;
 	}
-	if (!event->token->seat) {
+
+	if (!token_data->had_valid_seat) {
 		wlr_log(WLR_INFO, "Denying focus request, seat wasn't supplied");
 		return;
 	}
+
 	/*
-	 * We do not check for event->token->surface here because it may already
-	 * be destroyed and thus being NULL. With wlroots 0.17 we can hook into
-	 * the `new_token` signal, attach further information to the token and
-	 * then react to that information here instead. For now we just check
-	 * for the seat / serial being correct and then allow the request.
+	 * TODO: The verification of source surface is temporarily disabled to
+	 * allow activation of some clients (e.g. thunderbird). Reland this
+	 * check when we implement the configuration for activation policy or
+	 * urgency hints.
+	 *
+	 * if (!token_data->had_valid_surface) {
+	 *	wlr_log(WLR_INFO, "Denying focus request, source surface not set");
+	 *	return;
+	 * }
 	 */
 
 	if (window_rules_get_property(view, "ignoreFocusRequest") == LAB_PROP_TRUE) {
@@ -715,19 +883,14 @@ xdg_activation_handle_request(struct wl_listener *listener, void *data)
  *     to help the popups find their parent nodes
  */
 static void
-xdg_surface_new(struct wl_listener *listener, void *data)
+xdg_toplevel_new(struct wl_listener *listener, void *data)
 {
 	struct server *server =
-		wl_container_of(listener, server, new_xdg_surface);
-	struct wlr_xdg_surface *xdg_surface = data;
+		wl_container_of(listener, server, new_xdg_toplevel);
+	struct wlr_xdg_toplevel *xdg_toplevel = data;
+	struct wlr_xdg_surface *xdg_surface = xdg_toplevel->base;
 
-	/*
-	 * We deal with popups in xdg-popup.c and layers.c as they have to be
-	 * treated differently
-	 */
-	if (xdg_surface->role != WLR_XDG_SURFACE_ROLE_TOPLEVEL) {
-		return;
-	}
+	assert(xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL);
 
 	wlr_xdg_surface_ping(xdg_surface);
 
@@ -750,7 +913,7 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 			view->output->wlr_output->scale);
 	}
 
-	view->workspace = server->workspace_current;
+	view->workspace = server->workspaces.current;
 	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 
@@ -793,21 +956,24 @@ xdg_surface_new(struct wl_listener *listener, void *data)
 	kde_server_decoration_set_view(view, xdg_surface->surface);
 
 	/* In support of xdg popups and IME popup */
-	xdg_surface->surface->data = tree;
+	view->surface = xdg_surface->surface;
+	view->surface->data = tree;
 
 	view_connect_map(view, xdg_surface->surface);
-	CONNECT_SIGNAL(xdg_surface, view, destroy);
 
 	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
+	CONNECT_SIGNAL(toplevel, view, destroy);
 	CONNECT_SIGNAL(toplevel, view, request_move);
 	CONNECT_SIGNAL(toplevel, view, request_resize);
 	CONNECT_SIGNAL(toplevel, view, request_minimize);
 	CONNECT_SIGNAL(toplevel, view, request_maximize);
 	CONNECT_SIGNAL(toplevel, view, request_fullscreen);
 	CONNECT_SIGNAL(toplevel, view, set_title);
+	CONNECT_SIGNAL(view->surface, view, commit);
 
 	/* Events specific to XDG toplevel views */
 	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, set_app_id);
+	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, request_show_window_menu);
 	CONNECT_SIGNAL(xdg_surface, xdg_toplevel_view, new_popup);
 
 	wl_list_insert(&server->views, &view->link);
@@ -822,16 +988,22 @@ xdg_shell_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create the XDG shell interface");
 		exit(EXIT_FAILURE);
 	}
-	server->new_xdg_surface.notify = xdg_surface_new;
-	wl_signal_add(&server->xdg_shell->events.new_surface, &server->new_xdg_surface);
+
+	server->new_xdg_toplevel.notify = xdg_toplevel_new;
+	wl_signal_add(&server->xdg_shell->events.new_toplevel, &server->new_xdg_toplevel);
 
 	server->xdg_activation = wlr_xdg_activation_v1_create(server->wl_display);
 	if (!server->xdg_activation) {
 		wlr_log(WLR_ERROR, "unable to create xdg_activation interface");
 		exit(EXIT_FAILURE);
 	}
+
 	server->xdg_activation_request.notify = xdg_activation_handle_request;
 	wl_signal_add(&server->xdg_activation->events.request_activate,
 		&server->xdg_activation_request);
+
+	server->xdg_activation_new_token.notify = xdg_activation_handle_new_token;
+	wl_signal_add(&server->xdg_activation->events.new_token,
+		&server->xdg_activation_new_token);
 }
 

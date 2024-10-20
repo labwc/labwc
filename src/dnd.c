@@ -37,6 +37,7 @@ handle_drag_start(struct wl_listener *listener, void *data)
 	if (drag->icon) {
 		/* Cleans up automatically on drag->icon->events.destroy */
 		wlr_scene_drag_icon_create(seat->drag.icons, drag->icon);
+		wlr_scene_node_raise_to_top(&seat->drag.icons->node);
 		wlr_scene_node_set_enabled(&seat->drag.icons->node, true);
 	}
 	wl_signal_add(&drag->events.destroy, &seat->drag.events.destroy);

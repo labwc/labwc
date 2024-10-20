@@ -10,6 +10,10 @@
 static bool magnify_on;
 static double mag_scale = 0.0;
 
+/* Reuse a single scratch buffer */
+static struct wlr_buffer *tmp_buffer = NULL;
+static struct wlr_texture *tmp_texture = NULL;
+
 #define CLAMP(in, lower, upper) MAX(MIN((in), (upper)), (lower))
 
 void
@@ -20,10 +24,6 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	struct wlr_box border_box, dst_box;
 	struct wlr_fbox src_box;
 	bool fullscreen = false;
-
-	/* Reuse a single scratch buffer */
-	static struct wlr_buffer *tmp_buffer = NULL;
-	static struct wlr_texture *tmp_texture = NULL;
 
 	/* TODO: This looks way too complicated to just get the used format */
 	struct wlr_drm_format wlr_drm_format = {0};
@@ -96,7 +96,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 
 	/* (Re)create the temporary buffer if required */
 	if (tmp_buffer && (tmp_buffer->width != width || tmp_buffer->height != height)) {
-		wlr_log(WLR_DEBUG, "tmp buffer size changed, dropping");
+		wlr_log(WLR_DEBUG, "tmp magnifier buffer size changed, dropping");
 		assert(tmp_texture);
 		wlr_texture_destroy(tmp_texture);
 		wlr_buffer_drop(tmp_buffer);
@@ -112,21 +112,23 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		return;
 	}
 
-	/* Paste the magnified result back into the output buffer */
 	if (!tmp_texture) {
 		tmp_texture = wlr_texture_from_buffer(server->renderer, tmp_buffer);
 	}
 	if (!tmp_texture) {
-		wlr_log(WLR_ERROR, "Failed to allocate temporary texture");
+		wlr_log(WLR_ERROR, "Failed to allocate temporary magnifier texture");
 		wlr_buffer_drop(tmp_buffer);
 		tmp_buffer = NULL;
 		return;
 	}
 
 	/* Extract source region into temporary buffer */
-
 	struct wlr_render_pass *tmp_render_pass = wlr_renderer_begin_buffer_pass(
 		server->renderer, tmp_buffer, NULL);
+	if (!tmp_render_pass) {
+		wlr_log(WLR_ERROR, "Failed to begin magnifier render pass");
+		return;
+	}
 
 	wlr_buffer_lock(output_buffer);
 	struct wlr_texture *output_texture = wlr_texture_from_buffer(
@@ -154,6 +156,10 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	/* Render to the output buffer itself */
 	tmp_render_pass = wlr_renderer_begin_buffer_pass(
 		server->renderer, output_buffer, NULL);
+	if (!tmp_render_pass) {
+		wlr_log(WLR_ERROR, "Failed to begin second magnifier render pass");
+		goto cleanup;
+	}
 
 	/* Borders */
 	if (fullscreen) {
@@ -198,6 +204,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		dst_box.y = oy - (height / 2);
 	}
 
+	/* Paste the magnified result back into the output buffer */
 	opts = (struct wlr_render_texture_options) {
 		.texture = tmp_texture,
 		.src_box = src_box,
@@ -209,7 +216,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	};
 	wlr_render_pass_add_texture(tmp_render_pass, &opts);
 	if (!wlr_render_pass_submit(tmp_render_pass)) {
-		wlr_log(WLR_ERROR, "Failed to submit render pass");
+		wlr_log(WLR_ERROR, "Failed to submit magnifier render pass");
 		goto cleanup;
 	}
 
@@ -241,18 +248,21 @@ output_wants_magnification(struct output *output)
 	return output_nearest_to_cursor(output->server) == output;
 }
 
+static void
+enable_magnifier(struct server *server, bool enable)
+{
+	magnify_on = enable;
+	server->scene->direct_scanout = enable ? false
+		: server->direct_scanout_enabled;
+}
+
 /* Toggles magnification on and off */
 void
 magnify_toggle(struct server *server)
 {
+	enable_magnifier(server, !magnify_on);
+
 	struct output *output = output_nearest_to_cursor(server);
-
-	if (magnify_on) {
-		magnify_on = false;
-	} else {
-		magnify_on = true;
-	}
-
 	if (output) {
 		wlr_output_schedule_frame(output->wlr_output);
 	}
@@ -268,19 +278,31 @@ magnify_set_scale(struct server *server, enum magnify_dir dir)
 		if (magnify_on) {
 			mag_scale += rc.mag_increment;
 		} else {
-			magnify_on = true;
+			enable_magnifier(server, true);
 			mag_scale = 1.0 + rc.mag_increment;
 		}
 	} else {
 		if (magnify_on && mag_scale > 1.0 + rc.mag_increment) {
 			mag_scale -= rc.mag_increment;
 		} else {
-			magnify_on = false;
+			enable_magnifier(server, false);
 		}
 	}
 
 	if (output) {
 		wlr_output_schedule_frame(output->wlr_output);
+	}
+}
+
+/* Reset any buffers held by the magnifier */
+void
+magnify_reset(void)
+{
+	if (tmp_texture && tmp_buffer) {
+		wlr_texture_destroy(tmp_texture);
+		wlr_buffer_drop(tmp_buffer);
+		tmp_buffer = NULL;
+		tmp_texture = NULL;
 	}
 }
 

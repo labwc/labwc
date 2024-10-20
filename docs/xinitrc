@@ -1,0 +1,28 @@
+#!/bin/sh
+
+## This file is run every time labwc launches Xwayland.
+##
+## In the default configuration, Xwayland will be launched lazily, and will
+## terminate after several seconds when no X11 clients are connected. Thus,
+## this script may run repeatedly throughout a single labwc session.
+
+# Configure the X resource database if a file is provided
+#
+# NOTE: when Xwayland is launched lazily, an X11 client that triggers its
+# launch may attempt to read the resource database before this command can be
+# run. In that case, it is recommended to make a symlink to .Xdefaults:
+#
+#     ln -s .Xresources "${HOME}/.Xdefaults"
+#
+# With this link in place, X11 applications will fall back to reading
+# the .Xdefaults file directly when no resource database can be read from the
+# server's root window properties.
+#
+# Invoking xrdb is still useful to pre-load the resource database for
+# subsequent clients, because any additional clients launched while the X
+# server remains alive will be able to query the database without resorting to
+# filesystem access.
+
+if [ -r "${HOME}/.Xresources" ] && command -v xrdb >/dev/null 2>&1; then
+	xrdb -merge "${HOME}/.Xresources"
+fi

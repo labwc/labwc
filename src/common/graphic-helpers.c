@@ -14,6 +14,7 @@ static void
 multi_rect_destroy_notify(struct wl_listener *listener, void *data)
 {
 	struct multi_rect *rect = wl_container_of(listener, rect, destroy);
+	wl_list_remove(&rect->destroy.link);
 	free(rect);
 }
 
@@ -124,8 +125,8 @@ get_cairo_surface_from_lab_data_buffer(struct lab_data_buffer *buffer)
 	}
 
 	/* Handle DRM_FORMAT_ARGB8888 buffers */
-	int w = buffer->unscaled_width;
-	int h = buffer->unscaled_height;
+	int w = buffer->logical_width;
+	int h = buffer->logical_height;
 	cairo_surface_t *surface =
 		cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
 	if (!surface) {

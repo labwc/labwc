@@ -25,13 +25,16 @@ The menu file must be entirely enclosed within <openbox_menu> and
   <!-- A submenu defined elsewhere -->
   <menu id="" />
 
-  <!-- Horizontal line >
+  <!-- Horizontal line -->
   <separator />
 
   <!-- An inline submenu -->
   <menu id="" label="">
     ...some content...
   </menu>
+
+  <!-- Title -->
+  <separator label=""/>
 
   <!-- Pipemenu -->
   <menu id="" label="" execute="COMMAND"/>
@@ -45,6 +48,12 @@ The menu file must be entirely enclosed within <openbox_menu> and
 	ShowMenu action. Default identifiers are
 		- "root-menu" for the root window context menu
 		- "client-menu" for a window's titlebar context menu
+		- "client-list-combined-menu" for a list of all windows across
+		  all workspaces. Will change focus to the app that gets
+		  selected or go to workspace without activating any app if
+		  "Go there" is selected.
+		- "client-send-to-menu" shows all workspaces and sends current
+		  view to that workspace when selected.
 
 *menu.id* (when nested under other *<menu>* element)
 	Link to a submenu defined elsewhere (by a *<menu id="">* at toplevel)
@@ -62,6 +71,11 @@ The menu file must be entirely enclosed within <openbox_menu> and
 
 *menu.separator*
 	Horizontal line.
+
+*menu.separator.label*
+	In a "separator" element, the label attribute transforms the separator
+	from a horizontal line to a menu title (heading) with the text specified
+	by label in it.
 
 *menu.execute*
 	Command to execute for pipe menu. See details below.

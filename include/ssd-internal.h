@@ -18,13 +18,16 @@
 struct ssd_button {
 	struct view *view;
 	enum ssd_part_type type;
-	struct wlr_scene_node *normal;
-	struct wlr_scene_node *hover;
-	struct wlr_scene_node *toggled;
-	struct wlr_scene_node *toggled_hover;
-	struct wlr_scene_node *background;
-	struct wlr_scene_tree *icon_tree;
-	struct wlr_scene_tree *hover_tree;
+	/*
+	 * Bitmap of lab_button_state that represents a combination of
+	 * hover/toggled/rounded states.
+	 */
+	uint8_t state_set;
+	/*
+	 * Button nodes for each combination of hover/toggled/rounded states.
+	 * nodes[state_set] should be displayed.
+	 */
+	struct wlr_scene_node *nodes[LAB_BS_ALL + 1];
 
 	struct wl_listener destroy;
 };
@@ -49,13 +52,33 @@ struct ssd {
 	 * don't update things we don't have to.
 	 */
 	struct {
-		bool was_maximized;   /* To un-round corner buttons and toggle icon on maximize */
+		/* Button icons need to be swapped on shade or omnipresent toggles */
+		bool was_shaded;
+		bool was_omnipresent;
+
+		/*
+		 * Corners need to be (un)rounded and borders need be shown/hidden
+		 * when toggling maximization, and the button needs to be swapped on
+		 * maximization toggles.
+		 */
+		bool was_maximized;
+
+		/*
+		 * Corners need to be (un)rounded but borders should be kept shown when
+		 * the window is (un)tiled and notified about it or when the window may
+		 * become so small that only a squared scene-rect can be used to render
+		 * such a small titlebar.
+		 */
+		bool was_squared;
+
 		struct wlr_box geometry;
 		struct ssd_state_title {
 			char *text;
 			struct ssd_state_title_width active;
 			struct ssd_state_title_width inactive;
 		} title;
+
+		char *app_id;
 	} state;
 
 	/* An invisible area around the view which allows resizing */
@@ -99,9 +122,6 @@ struct ssd_part {
 	/* This part represented in scene graph */
 	struct wlr_scene_node *node;
 
-	/* Targeted geometry. May be NULL */
-	struct wlr_box *geometry;
-
 	struct wl_list link;
 };
 
@@ -124,19 +144,12 @@ struct ssd_part *add_scene_rect(
 struct ssd_part *add_scene_buffer(
 	struct wl_list *list, enum ssd_part_type type,
 	struct wlr_scene_tree *parent, struct wlr_buffer *buffer, int x, int y);
-struct ssd_part *add_scene_button(
-	struct wl_list *part_list, enum ssd_part_type type,
-	struct wlr_scene_tree *parent, float *bg_color,
-	struct wlr_buffer *icon_buffer, struct wlr_buffer *hover_buffer,
-	int x, struct view *view);
-void add_toggled_icon(struct ssd_button *button, struct wl_list *part_list,
-	enum ssd_part_type type, struct wlr_buffer *icon_buffer,
-	struct wlr_buffer *hover_buffer);
-struct ssd_part *add_scene_button_corner(
-	struct wl_list *part_list, enum ssd_part_type type,
-	enum ssd_part_type corner_type, struct wlr_scene_tree *parent,
-	struct wlr_buffer *corner_buffer, struct wlr_buffer *icon_buffer,
-	struct wlr_buffer *hover_buffer, int x, struct view *view);
+struct ssd_part *add_scene_button(struct wl_list *part_list,
+	enum ssd_part_type type, struct wlr_scene_tree *parent,
+	struct lab_data_buffer *buffers[LAB_BS_ALL + 1], int x, int y,
+	struct view *view);
+void update_window_icon_buffer(struct wlr_scene_node *button_node,
+	struct lab_data_buffer *buffer);
 
 /* SSD internal helpers */
 struct ssd_part *ssd_get_part(
@@ -147,6 +160,7 @@ void ssd_destroy_parts(struct wl_list *list);
 void ssd_titlebar_create(struct ssd *ssd);
 void ssd_titlebar_update(struct ssd *ssd);
 void ssd_titlebar_destroy(struct ssd *ssd);
+bool ssd_should_be_squared(struct ssd *ssd);
 
 void ssd_border_create(struct ssd *ssd);
 void ssd_border_update(struct ssd *ssd);

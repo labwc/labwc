@@ -145,7 +145,7 @@ desktop_topmost_focusable_view(struct server *server)
 	struct view *view;
 	struct wl_list *node_list;
 	struct wlr_scene_node *node;
-	node_list = &server->workspace_current->tree->children;
+	node_list = &server->workspaces.current->tree->children;
 	wl_list_for_each_reverse(node, node_list, link) {
 		if (!node->data) {
 			/* We found some non-view, most likely the region overlay */
@@ -185,7 +185,7 @@ desktop_focus_output(struct output *output)
 	struct wlr_scene_node *node;
 	struct wlr_output_layout *layout = output->server->output_layout;
 	struct wl_list *list_head =
-		&output->server->workspace_current->tree->children;
+		&output->server->workspaces.current->tree->children;
 	wl_list_for_each_reverse(node, list_head, link) {
 		if (!node->data) {
 			continue;
@@ -197,10 +197,10 @@ desktop_focus_output(struct output *output)
 		if (wlr_output_layout_intersects(layout,
 				output->wlr_output, &view->current)) {
 			desktop_focus_view(view, /*raise*/ false);
-			wlr_cursor_warp(output->server->seat.cursor, NULL,
+			wlr_cursor_warp(view->server->seat.cursor, NULL,
 				view->current.x + view->current.width / 2,
 				view->current.y + view->current.height / 2);
-			cursor_update_focus(output->server);
+			cursor_update_focus(view->server);
 			return;
 		}
 	}

@@ -63,12 +63,15 @@ static struct window_rule *current_window_rule;
 static struct action *current_window_rule_action;
 static struct view_query *current_view_query;
 static struct action *current_child_action;
+/* for backword compatibility of <mouse><scrollFactor> */
+static double mouse_scroll_factor = -1;
 
 enum font_place {
 	FONT_PLACE_NONE = 0,
 	FONT_PLACE_UNKNOWN,
 	FONT_PLACE_ACTIVEWINDOW,
 	FONT_PLACE_INACTIVEWINDOW,
+	FONT_PLACE_MENUHEADER,
 	FONT_PLACE_MENUITEM,
 	FONT_PLACE_OSD,
 	/* TODO: Add all places based on Openbox's rc.xml */
@@ -114,6 +117,143 @@ parse_window_type(const char *type)
 	} else {
 		return -1;
 	}
+}
+
+/*
+ * Openbox/labwc comparison
+ *
+ * Instead of openbox's <titleLayout>WLIMC</title> we use
+ *
+ *     <titlebar>
+ *       <layout>menu:iconfiy,max,close</layout>
+ *       <showTitle>yes|no</showTitle>
+ *     </titlebar>
+ *
+ * ...using the icon names (like iconify.xbm) without the file extension for the
+ * identifier.
+ *
+ * labwc        openbox     description
+ * -----        -------     -----------
+ * menu         W           Open window menu (client-menu)
+ * iconfiy      I           Iconify (aka minimize)
+ * max          M           Maximize toggle
+ * close        C           Close
+ * shade        S           Shade toggle
+ * desk         D           All-desktops toggle (aka omnipresent)
+ */
+static void
+fill_section(const char *content, struct wl_list *list)
+{
+	gchar **identifiers = g_strsplit(content, ",", -1);
+	for (size_t i = 0; identifiers[i]; ++i) {
+		char *identifier = identifiers[i];
+		if (string_null_or_empty(identifier)) {
+			continue;
+		}
+		enum ssd_part_type type = LAB_SSD_NONE;
+		if (!strcmp(identifier, "icon")) {
+			type = LAB_SSD_BUTTON_WINDOW_ICON;
+		} else if (!strcmp(identifier, "menu")) {
+			type = LAB_SSD_BUTTON_WINDOW_MENU;
+		} else if (!strcmp(identifier, "iconify")) {
+			type = LAB_SSD_BUTTON_ICONIFY;
+		} else if (!strcmp(identifier, "max")) {
+			type = LAB_SSD_BUTTON_MAXIMIZE;
+		} else if (!strcmp(identifier, "close")) {
+			type = LAB_SSD_BUTTON_CLOSE;
+		} else if (!strcmp(identifier, "shade")) {
+			type = LAB_SSD_BUTTON_SHADE;
+		} else if (!strcmp(identifier, "desk")) {
+			type = LAB_SSD_BUTTON_OMNIPRESENT;
+		} else {
+			wlr_log(WLR_ERROR, "invalid titleLayout identifier '%s'",
+				identifier);
+			continue;
+		}
+
+		assert(type != LAB_SSD_NONE);
+
+		struct title_button *item = znew(*item);
+		item->type = type;
+		wl_list_append(list, &item->link);
+	}
+	g_strfreev(identifiers);
+}
+
+static int
+compare_strings(const void *a, const void *b)
+{
+	char * const *str1 = a;
+	char * const *str2 = b;
+	return strcmp(*str1, *str2);
+}
+
+static bool
+contains_duplicates(char *content)
+{
+	bool ret = false;
+
+	/*
+	 * The string typically looks like: 'menu:iconfiy,max,close' so we have
+	 * to split on both ':' and ','.
+	 */
+	gchar **idents = g_strsplit_set(content, ",:", -1);
+
+	/*
+	 * We've got to have at least two for duplicates to exist. Bailing out
+	 * early here also enables the below algorithm which just iterates and
+	 * checks if previous item is the same.
+	 */
+	if (g_strv_length(idents) <= 1) {
+		goto out;
+	}
+
+	qsort(idents, g_strv_length(idents), sizeof(gchar *), compare_strings);
+	for (size_t i = 1; idents[i]; ++i) {
+		if (string_null_or_empty(idents[i])) {
+			continue;
+		}
+		if (!strcmp(idents[i], idents[i-1])) {
+			ret = true;
+			wlr_log(WLR_ERROR,
+				"titleLayout identifier '%s' is a duplicate",
+				idents[i]);
+			break;
+		}
+	}
+
+out:
+	g_strfreev(idents);
+	return ret;
+}
+
+static void
+fill_title_layout(char *content)
+{
+	if (contains_duplicates(content)) {
+		wlr_log(WLR_ERROR, "titleLayout contains duplicates");
+		return;
+	}
+
+	struct wl_list *sections[] = {
+		&rc.title_buttons_left,
+		&rc.title_buttons_right,
+	};
+
+	gchar **parts = g_strsplit(content, ":", -1);
+
+	if (g_strv_length(parts) != 2) {
+		wlr_log(WLR_ERROR, "<titlebar><layout> must contain one colon");
+		goto err;
+	}
+
+	for (size_t i = 0; parts[i]; ++i) {
+		fill_section(parts[i], sections[i]);
+	}
+
+	rc.title_layout_loaded = true;
+err:
+	g_strfreev(parts);
 }
 
 static void
@@ -407,6 +547,8 @@ fill_keybind(char *nodename, char *content)
 		set_bool(content, &current_keybind->on_release);
 	} else if (!strcasecmp(nodename, "layoutDependent")) {
 		set_bool(content, &current_keybind->use_syms_only);
+	} else if (!strcasecmp(nodename, "allowWhenLocked")) {
+		set_bool(content, &current_keybind->allow_when_locked);
 	} else if (!strcmp(nodename, "name.action")) {
 		current_keybind_action = action_create(content);
 		if (current_keybind_action) {
@@ -679,6 +821,8 @@ fill_libinput_category(char *nodename, char *content)
 			current_libinput_category->have_calibration_matrix = false;
 		}
 		g_strfreev(elements);
+	} else if (!strcasecmp(nodename, "scrollFactor")) {
+		set_double(content, &current_libinput_category->scroll_factor);
 	}
 }
 
@@ -691,8 +835,13 @@ set_font_attr(struct font *font, const char *nodename, const char *content)
 	} else if (!strcmp(nodename, "size")) {
 		font->size = atoi(content);
 	} else if (!strcmp(nodename, "slant")) {
-		font->slant = !strcasecmp(content, "italic") ?
-			FONT_SLANT_ITALIC : FONT_SLANT_NORMAL;
+		if (!strcasecmp(content, "italic")) {
+			font->slant = FONT_SLANT_ITALIC;
+		} else if (!strcasecmp(content, "oblique")) {
+			font->slant = FONT_SLANT_OBLIQUE;
+		} else {
+			font->slant = FONT_SLANT_NORMAL;
+		}
 	} else if (!strcmp(nodename, "weight")) {
 		font->weight = !strcasecmp(content, "bold") ?
 			FONT_WEIGHT_BOLD : FONT_WEIGHT_NORMAL;
@@ -715,6 +864,7 @@ fill_font(char *nodename, char *content, enum font_place place)
 		 */
 		set_font_attr(&rc.font_activewindow, nodename, content);
 		set_font_attr(&rc.font_inactivewindow, nodename, content);
+		set_font_attr(&rc.font_menuheader, nodename, content);
 		set_font_attr(&rc.font_menuitem, nodename, content);
 		set_font_attr(&rc.font_osd, nodename, content);
 		break;
@@ -723,6 +873,9 @@ fill_font(char *nodename, char *content, enum font_place place)
 		break;
 	case FONT_PLACE_INACTIVEWINDOW:
 		set_font_attr(&rc.font_inactivewindow, nodename, content);
+		break;
+	case FONT_PLACE_MENUHEADER:
+		set_font_attr(&rc.font_menuheader, nodename, content);
 		break;
 	case FONT_PLACE_MENUITEM:
 		set_font_attr(&rc.font_menuitem, nodename, content);
@@ -748,6 +901,8 @@ enum_font_place(const char *place)
 		return FONT_PLACE_ACTIVEWINDOW;
 	} else if (!strcasecmp(place, "InactiveWindow")) {
 		return FONT_PLACE_INACTIVEWINDOW;
+	} else if (!strcasecmp(place, "MenuHeader")) {
+		return FONT_PLACE_MENUHEADER;
 	} else if (!strcasecmp(place, "MenuItem")) {
 		return FONT_PLACE_MENUITEM;
 	} else if (!strcasecmp(place, "OnScreenDisplay")
@@ -769,6 +924,20 @@ set_adaptive_sync_mode(const char *str, enum adaptive_sync_mode *variable)
 		} else {
 			*variable = LAB_ADAPTIVE_SYNC_DISABLED;
 		}
+	}
+}
+
+static void
+set_tearing_mode(const char *str, enum tearing_mode *variable)
+{
+	if (!strcasecmp(str, "fullscreen")) {
+		*variable = LAB_TEARING_FULLSCREEN;
+	} else if (!strcasecmp(str, "fullscreenForced")) {
+		*variable = LAB_TEARING_FULLSCREEN_FORCED;
+	} else if (parse_bool(str, -1) == 1) {
+		*variable = LAB_TEARING_ENABLED;
+	} else {
+		*variable = LAB_TEARING_DISABLED;
 	}
 }
 
@@ -886,14 +1055,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
 		set_adaptive_sync_mode(content, &rc.adaptive_sync);
 	} else if (!strcasecmp(nodename, "allowTearing.core")) {
-		set_bool(content, &rc.allow_tearing);
-		if (rc.allow_tearing) {
-			char *no_atomic_env = getenv("WLR_DRM_NO_ATOMIC");
-			if (!no_atomic_env || strcmp(no_atomic_env, "1") != 0) {
-				rc.allow_tearing = false;
-				wlr_log(WLR_ERROR, "tearing requires WLR_DRM_NO_ATOMIC=1");
-			}
-		}
+		set_tearing_mode(content, &rc.allow_tearing);
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);
 	} else if (!strcmp(nodename, "policy.placement")) {
@@ -901,8 +1063,20 @@ entry(xmlNode *node, char *nodename, char *content)
 		if (rc.placement_policy == LAB_PLACE_INVALID) {
 			rc.placement_policy = LAB_PLACE_CENTER;
 		}
+	} else if (!strcasecmp(nodename, "xwaylandPersistence.core")) {
+		set_bool(content, &rc.xwayland_persistence);
+	} else if (!strcasecmp(nodename, "x.cascadeOffset.placement")) {
+		rc.placement_cascade_offset_x = atoi(content);
+	} else if (!strcasecmp(nodename, "y.cascadeOffset.placement")) {
+		rc.placement_cascade_offset_y = atoi(content);
 	} else if (!strcmp(nodename, "name.theme")) {
 		rc.theme_name = xstrdup(content);
+	} else if (!strcmp(nodename, "icon.theme")) {
+		rc.icon_theme_name = xstrdup(content);
+	} else if (!strcasecmp(nodename, "layout.titlebar.theme")) {
+		fill_title_layout(content);
+	} else if (!strcasecmp(nodename, "showTitle.titlebar.theme")) {
+		rc.show_title = parse_bool(content, true);
 	} else if (!strcmp(nodename, "cornerradius.theme")) {
 		rc.corner_radius = atoi(content);
 	} else if (!strcasecmp(nodename, "keepBorder.theme")) {
@@ -931,7 +1105,8 @@ entry(xmlNode *node, char *nodename, char *content)
 			wlr_log(WLR_ERROR, "invalid doubleClickTime");
 		}
 	} else if (!strcasecmp(nodename, "scrollFactor.mouse")) {
-		set_double(content, &rc.scroll_factor);
+		/* This is deprecated. Show an error message in post_processing() */
+		set_double(content, &mouse_scroll_factor);
 	} else if (!strcasecmp(nodename, "name.context.mouse")) {
 		current_mouse_context = content;
 		current_mousebind = NULL;
@@ -952,6 +1127,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.screen_edge_strength = atoi(content);
 	} else if (!strcasecmp(nodename, "windowEdgeStrength.resistance")) {
 		rc.window_edge_strength = atoi(content);
+	} else if (!strcasecmp(nodename, "unSnapThreshold.resistance")) {
+		rc.unsnap_threshold = atoi(content);
+	} else if (!strcasecmp(nodename, "unMaximizeThreshold.resistance")) {
+		rc.unmaximize_threshold = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
 		rc.snap_edge_range = atoi(content);
 	} else if (!strcasecmp(nodename, "enabled.overlay.snapping")) {
@@ -1061,6 +1240,11 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "Missing 'button' argument for tablet button mapping");
 		}
+	} else if (!strcasecmp(nodename, "motion.tabletTool")) {
+		rc.tablet_tool.motion = tablet_parse_motion(content);
+	} else if (!strcasecmp(nodename, "relativeMotionSensitivity.tabletTool")) {
+		rc.tablet_tool.relative_motion_sensitivity =
+			tablet_get_dbl_if_positive(content, "relativeMotionSensitivity");
 	} else if (!strcasecmp(nodename, "ignoreButtonReleasePeriod.menu")) {
 		rc.menu_ignore_button_release_period = atoi(content);
 	} else if (!strcasecmp(nodename, "width.magnifier")) {
@@ -1216,6 +1400,8 @@ rcxml_init(void)
 	static bool has_run;
 
 	if (!has_run) {
+		wl_list_init(&rc.title_buttons_left);
+		wl_list_init(&rc.title_buttons_right);
 		wl_list_init(&rc.usable_area_overrides);
 		wl_list_init(&rc.keybinds);
 		wl_list_init(&rc.mousebinds);
@@ -1229,14 +1415,25 @@ rcxml_init(void)
 	has_run = true;
 
 	rc.placement_policy = LAB_PLACE_CENTER;
+	rc.placement_cascade_offset_x = 0;
+	rc.placement_cascade_offset_y = 0;
 
 	rc.xdg_shell_server_side_deco = true;
+	rc.show_title = true;
+	rc.title_layout_loaded = false;
 	rc.ssd_keep_border = true;
 	rc.corner_radius = 8;
 	rc.shadows_enabled = false;
 
+	rc.gap = 0;
+	rc.adaptive_sync = LAB_ADAPTIVE_SYNC_DISABLED;
+	rc.allow_tearing = false;
+	rc.reuse_output_mode = false;
+	rc.xwayland_persistence = false;
+
 	init_font_defaults(&rc.font_activewindow);
 	init_font_defaults(&rc.font_inactivewindow);
+	init_font_defaults(&rc.font_menuheader);
 	init_font_defaults(&rc.font_menuitem);
 	init_font_defaults(&rc.font_osd);
 
@@ -1245,13 +1442,14 @@ rcxml_init(void)
 	rc.raise_on_focus = false;
 
 	rc.doubleclick_time = 500;
-	rc.scroll_factor = 1.0;
 
 	rc.tablet.force_mouse_emulation = false;
 	rc.tablet.output_name = NULL;
 	rc.tablet.rotation = 0;
 	rc.tablet.box = (struct wlr_fbox){0};
 	tablet_load_default_button_mappings();
+	rc.tablet_tool.motion = LAB_TABLET_MOTION_ABSOLUTE;
+	rc.tablet_tool.relative_motion_sensitivity = 1.0;
 
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
@@ -1259,6 +1457,8 @@ rcxml_init(void)
 	rc.kb_layout_per_window = false;
 	rc.screen_edge_strength = 20;
 	rc.window_edge_strength = 20;
+	rc.unsnap_threshold = 20;
+	rc.unmaximize_threshold = 150;
 
 	rc.snap_edge_range = 1;
 	rc.snap_overlay_enabled = true;
@@ -1463,6 +1663,10 @@ post_processing(void)
 		load_default_mouse_bindings();
 	}
 
+	if (!rc.title_layout_loaded) {
+		fill_title_layout("icon:iconify,max,close");
+	}
+
 	/*
 	 * Replace all earlier bindings by later ones
 	 * and clear the ones with an empty action list.
@@ -1479,6 +1683,9 @@ post_processing(void)
 	if (!rc.font_inactivewindow.name) {
 		rc.font_inactivewindow.name = xstrdup("sans");
 	}
+	if (!rc.font_menuheader.name) {
+		rc.font_menuheader.name = xstrdup("sans");
+	}
 	if (!rc.font_menuitem.name) {
 		rc.font_menuitem.name = xstrdup("sans");
 	}
@@ -1486,11 +1693,20 @@ post_processing(void)
 		rc.font_osd.name = xstrdup("sans");
 	}
 	if (!libinput_category_get_default()) {
-		/* So we still allow tap to click by default */
+		/* So we set default values of <tap> and <scrollFactor> */
 		struct libinput_category *l = libinput_category_create();
 		/* Prevents unused variable warning when compiled without asserts */
 		(void)l;
 		assert(l && libinput_category_get_default() == l);
+	}
+	if (mouse_scroll_factor >= 0) {
+		wlr_log(WLR_ERROR, "<mouse><scrollFactor> is deprecated"
+				" and overwrites <libinput><scrollFactor>."
+				" Use only <libinput><scrollFactor>.");
+		struct libinput_category *l;
+		wl_list_for_each(l, &rc.libinput_categories, link) {
+			l->scroll_factor = mouse_scroll_factor;
+		}
 	}
 
 	int nr_workspaces = wl_list_length(&rc.workspace_config.workspaces);
@@ -1684,10 +1900,22 @@ rcxml_finish(void)
 {
 	zfree(rc.font_activewindow.name);
 	zfree(rc.font_inactivewindow.name);
+	zfree(rc.font_menuheader.name);
 	zfree(rc.font_menuitem.name);
 	zfree(rc.font_osd.name);
 	zfree(rc.theme_name);
+	zfree(rc.icon_theme_name);
 	zfree(rc.workspace_config.prefix);
+
+	struct title_button *p, *p_tmp;
+	wl_list_for_each_safe(p, p_tmp, &rc.title_buttons_left, link) {
+		wl_list_remove(&p->link);
+		zfree(p);
+	}
+	wl_list_for_each_safe(p, p_tmp, &rc.title_buttons_right, link) {
+		wl_list_remove(&p->link);
+		zfree(p);
+	}
 
 	struct usable_area_override *area, *area_tmp;
 	wl_list_for_each_safe(area, area_tmp, &rc.usable_area_overrides, link) {
@@ -1763,4 +1991,5 @@ rcxml_finish(void)
 	current_field = NULL;
 	current_window_rule = NULL;
 	current_window_rule_action = NULL;
+	mouse_scroll_factor = -1;
 }

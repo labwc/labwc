@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <wlr/render/wlr_renderer.h>
+#include "ssd.h"
 
 enum lab_justification {
 	LAB_JUSTIFY_LEFT,
@@ -25,9 +26,24 @@ struct theme_snapping_overlay {
 	float border_color[3][4];
 };
 
+enum lab_button_state {
+	LAB_BS_HOVERD = 1 << 0,
+	LAB_BS_TOGGLED = 1 << 1,
+	LAB_BS_ROUNDED = 1 << 2,
+
+	LAB_BS_ALL = LAB_BS_HOVERD | LAB_BS_TOGGLED | LAB_BS_ROUNDED,
+};
+
 struct theme {
 	int border_width;
-	int padding_height;
+
+	/*
+	 * the space between title bar border and
+	 * buttons on the left/right/top
+	 */
+	int window_titlebar_padding_width;
+	int window_titlebar_padding_height;
+
 	int title_height;
 	int menu_overlap_x;
 	int menu_overlap_y;
@@ -44,20 +60,19 @@ struct theme {
 	float window_active_label_text_color[4];
 	float window_inactive_label_text_color[4];
 	enum lab_justification window_label_text_justify;
+	enum lab_justification menu_title_text_justify;
 
-	/* button colors */
-	float window_active_button_menu_unpressed_image_color[4];
-	float window_active_button_iconify_unpressed_image_color[4];
-	float window_active_button_max_unpressed_image_color[4];
-	float window_active_button_close_unpressed_image_color[4];
-	float window_inactive_button_menu_unpressed_image_color[4];
-	float window_inactive_button_iconify_unpressed_image_color[4];
-	float window_inactive_button_max_unpressed_image_color[4];
-	float window_inactive_button_close_unpressed_image_color[4];
-	/* TODO: add pressed and hover colors for buttons */
+	/* buttons */
+	int window_button_width;
+	int window_button_height;
+	int window_button_spacing;
+
+	/* the corner radius of the hover effect */
+	int window_button_hover_bg_corner_radius;
 
 	int menu_item_padding_x;
 	int menu_item_padding_y;
+	int menu_item_height;
 
 	float menu_items_bg_color[4];
 	float menu_items_text_color[4];
@@ -71,6 +86,10 @@ struct theme {
 	int menu_separator_padding_width;
 	int menu_separator_padding_height;
 	float menu_separator_color[4];
+
+	float menu_title_bg_color[4];
+
+	float menu_title_text_color[4];
 
 	int osd_border_width;
 
@@ -99,31 +118,26 @@ struct theme {
 	float window_active_shadow_color[4];
 	float window_inactive_shadow_color[4];
 
+	struct {
+		/*
+		 * The texture of a window buttons for each hover/toggled/rounded
+		 * state. This can be accessed like:
+		 *
+		 * buttons[LAB_SSD_BUTTON_ICONIFY][LAB_BS_HOVERD | LAB_BS_TOGGLED]
+		 *
+		 * Elements in buttons[0] are all NULL since LAB_SSD_BUTTON_FIRST is 1.
+		 */
+		struct lab_data_buffer *buttons
+			[LAB_SSD_BUTTON_LAST + 1][LAB_BS_ALL + 1];
+
+		/* TODO: add toggled/hover/pressed/disabled colors for buttons */
+		float button_colors[LAB_SSD_BUTTON_LAST + 1][4];
+
+		/* TODO: move other window.(in)active.* entries to here */
+
+	} window[2]; /* indexed by THEME_INACTIVE and THEME_ACTIVE */
+
 	/* textures */
-	struct lab_data_buffer *button_close_active_unpressed;
-	struct lab_data_buffer *button_maximize_active_unpressed;
-	struct lab_data_buffer *button_restore_active_unpressed;
-	struct lab_data_buffer *button_iconify_active_unpressed;
-	struct lab_data_buffer *button_menu_active_unpressed;
-
-	struct lab_data_buffer *button_close_inactive_unpressed;
-	struct lab_data_buffer *button_maximize_inactive_unpressed;
-	struct lab_data_buffer *button_restore_inactive_unpressed;
-	struct lab_data_buffer *button_iconify_inactive_unpressed;
-	struct lab_data_buffer *button_menu_inactive_unpressed;
-
-	/* hover variants are optional and may be NULL */
-	struct lab_data_buffer *button_close_active_hover;
-	struct lab_data_buffer *button_maximize_active_hover;
-	struct lab_data_buffer *button_restore_active_hover;
-	struct lab_data_buffer *button_iconify_active_hover;
-	struct lab_data_buffer *button_menu_active_hover;
-
-	struct lab_data_buffer *button_close_inactive_hover;
-	struct lab_data_buffer *button_maximize_inactive_hover;
-	struct lab_data_buffer *button_restore_inactive_hover;
-	struct lab_data_buffer *button_iconify_inactive_hover;
-	struct lab_data_buffer *button_menu_inactive_hover;
 
 	struct lab_data_buffer *corner_top_left_active_normal;
 	struct lab_data_buffer *corner_top_right_active_normal;
@@ -137,13 +151,19 @@ struct theme {
 	struct lab_data_buffer *shadow_corner_bottom_inactive;
 	struct lab_data_buffer *shadow_edge_inactive;
 
-	/* not set in rc.xml/themerc, but derived from font & padding_height */
+	/*
+	 * Not set in rc.xml/themerc, but derived from the tallest titlebar
+	 * object plus 2 * window_titlebar_padding_height
+	 */
 	int osd_window_switcher_item_height;
 
 	/* magnifier */
 	float mag_border_color[4];
 	int mag_border_width;
 };
+
+#define THEME_INACTIVE 0
+#define THEME_ACTIVE 1
 
 struct server;
 

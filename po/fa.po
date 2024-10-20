@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
-"POT-Creation-Date: 2024-03-17 11:06+1000\n"
+"POT-Creation-Date: 2024-09-19 21:09+1000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -16,54 +16,58 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/menu/menu.c:704
+#: src/menu/menu.c:1017
+msgid "Go there..."
+msgstr ""
+
+#: src/menu/menu.c:1037
 msgid "Reconfigure"
 msgstr ""
 
-#: src/menu/menu.c:706
+#: src/menu/menu.c:1039
 msgid "Exit"
 msgstr ""
 
-#: src/menu/menu.c:722
+#: src/menu/menu.c:1055
 msgid "Minimize"
 msgstr ""
 
-#: src/menu/menu.c:724
+#: src/menu/menu.c:1057
 msgid "Maximize"
 msgstr ""
 
-#: src/menu/menu.c:726
+#: src/menu/menu.c:1059
 msgid "Fullscreen"
 msgstr ""
 
-#: src/menu/menu.c:728
-msgid "Roll up/down"
+#: src/menu/menu.c:1061
+msgid "Roll Up/Down"
 msgstr ""
 
-#: src/menu/menu.c:730
+#: src/menu/menu.c:1063
 msgid "Decorations"
 msgstr ""
 
-#: src/menu/menu.c:732
+#: src/menu/menu.c:1065
 msgid "Always on Top"
 msgstr ""
 
-#: src/menu/menu.c:737
-msgid "Move left"
+#: src/menu/menu.c:1070
+msgid "Move Left"
 msgstr ""
 
-#: src/menu/menu.c:744
-msgid "Move right"
+#: src/menu/menu.c:1077
+msgid "Move Right"
 msgstr ""
 
-#: src/menu/menu.c:749
+#: src/menu/menu.c:1082
 msgid "Always on Visible Workspace"
 msgstr ""
 
-#: src/menu/menu.c:752 src/config/rcxml.c:1384
+#: src/menu/menu.c:1085 src/config/rcxml.c:1629
 msgid "Workspace"
 msgstr ""
 
-#: src/menu/menu.c:755
+#: src/menu/menu.c:1088
 msgid "Close"
 msgstr ""

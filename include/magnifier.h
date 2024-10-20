@@ -20,5 +20,6 @@ bool output_wants_magnification(struct output *output);
 void magnify(struct output *output, struct wlr_buffer *output_buffer,
 	struct wlr_box *damage);
 bool is_magnify_on(void);
+void magnify_reset(void);
 
 #endif /* LABWC_MAGNIFIER_H */

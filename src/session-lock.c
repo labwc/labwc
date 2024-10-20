@@ -101,6 +101,19 @@ lock_output_reconfigure(struct session_lock_output *output)
 	}
 }
 
+static struct session_lock_output *
+lock_output_for_output(struct session_lock_manager *manager,
+		struct output *output)
+{
+	struct session_lock_output *lock_output;
+	wl_list_for_each(lock_output, &manager->lock_outputs, link) {
+		if (lock_output->output == output) {
+			return lock_output;
+		}
+	}
+	return NULL;
+}
+
 static void
 handle_new_surface(struct wl_listener *listener, void *data)
 {
@@ -108,17 +121,14 @@ handle_new_surface(struct wl_listener *listener, void *data)
 		wl_container_of(listener, manager, lock_new_surface);
 	struct wlr_session_lock_surface_v1 *lock_surface = data;
 	struct output *output = lock_surface->output->data;
-	struct session_lock_output *lock_output;
-	wl_list_for_each(lock_output, &manager->lock_outputs, link) {
-		if (lock_output->output == output) {
-			goto found_lock_output;
-		}
+	struct session_lock_output *lock_output =
+		lock_output_for_output(manager, output);
+	if (!lock_output) {
+		wlr_log(WLR_ERROR, "new lock surface, but no output");
+		/* TODO: Consider improving security by handling this better */
+		return;
 	}
-	wlr_log(WLR_ERROR, "new lock surface, but no output");
-	/* TODO: Consider improving security by handling this better */
-	return;
 
-found_lock_output:
 	lock_output->surface = lock_surface;
 	struct wlr_scene_tree *surface_tree =
 		wlr_scene_subsurface_tree_create(lock_output->tree, lock_surface->surface);
@@ -188,6 +198,10 @@ handle_output_blank_timeout(void *data)
 void
 session_lock_output_create(struct session_lock_manager *manager, struct output *output)
 {
+	if (lock_output_for_output(manager, output)) {
+		return; /* already created */
+	}
+
 	struct session_lock_output *lock_output = znew(*lock_output);
 
 	struct wlr_scene_tree *tree = wlr_scene_tree_create(output->session_lock_tree);

@@ -150,8 +150,7 @@ menu_update_width(struct menu *menu)
 			}
 			if (theme->menu_title_text_justify == LAB_JUSTIFY_CENTER) {
 				int x, y;
-				x = (max_width - theme->menu_item_padding_x -
-						item->native_width) / 2;
+				x = (menu->size.width - item->native_width) / 2;
 				x = x < 0 ? 0 : x;
 				y = (theme->menu_item_height - item->normal.buffer->height) / 2;
 				wlr_scene_node_set_position(item->normal.text, x, y);

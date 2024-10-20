@@ -494,7 +494,6 @@ fill_action_query(char *nodename, char *content, struct action *action)
 	} else if (!strcasecmp(nodename, "desktop")) {
 		current_view_query->desktop = xstrdup(content);
 	}
-
 }
 
 static void

@@ -72,13 +72,6 @@ view_query_create(void)
 	struct view_query *query = znew(*query);
 	*query = (struct view_query) {
 		.window_type = -1,
-		.shaded = -1,
-		.maximized = -1,
-		.maximizedhorizontal = -1,
-		.maximizedvertical = -1,
-		.iconified = -1,
-		.focused = -1,
-		.omnipresent = -1,
 	};
 	return query;
 }
@@ -96,116 +89,138 @@ view_query_free(struct view_query *query)
 	zfree(query);
 }
 
+static enum three_state
+match_tristate(enum three_state desired, bool actual, enum three_state old_match)
+{
+	switch (desired) {
+	case LAB_STATE_ENABLED:
+		return actual ? LAB_STATE_ENABLED : LAB_STATE_DISABLED;
+	case LAB_STATE_DISABLED:
+		return actual ? LAB_STATE_DISABLED : LAB_STATE_ENABLED;
+	default:
+		return old_match;
+	}
+}
+
 bool
 view_matches_query(struct view *view, struct view_query *query)
 {
-	bool match = true;
-	bool empty = true;
+	enum three_state match = LAB_STATE_UNSPECIFIED;
 
-	const char *identifier = view_get_string_prop(view, "app_id");
-	if (match && query->identifier) {
-		empty = false;
-		match &= identifier && match_glob(query->identifier, identifier);
-	}
-
-	const char *title = view_get_string_prop(view, "title");
-	if (match && query->title) {
-		empty = false;
-		match &= title && match_glob(query->title, title);
-	}
-
-	if (match && query->window_type >= 0) {
-		empty = false;
-		match &= view_contains_window_type(view, query->window_type);
-	}
-
-	if (match && query->sandbox_engine) {
-		const struct wlr_security_context_v1_state *security_context =
-			security_context_from_view(view);
-		empty = false;
-		match &= security_context && security_context->sandbox_engine
-			&& match_glob(query->sandbox_engine, security_context->sandbox_engine);
-	}
-
-	if (match && query->sandbox_app_id) {
-		const struct wlr_security_context_v1_state *security_context =
-			security_context_from_view(view);
-		empty = false;
-		match &= security_context && security_context->app_id
-			&& match_glob(query->sandbox_app_id, security_context->app_id);
-	}
-
-	if (match && query->shaded >= 0) {
-		empty = false;
-		match &= (view->shaded == query->shaded);
-		wlr_log(WLR_DEBUG, "shaded: %d\n", match);
-	}
-
-	wlr_log(WLR_DEBUG, "view->maximized: %d\n", view->maximized);
-
-	if (match && query->maximized >= 0) {
-		empty = false;
-		match &= (query->maximized == (view->maximized == VIEW_AXIS_BOTH));
-		wlr_log(WLR_DEBUG, "maximized: %d\n", match);
-	}
-
-	if (match && query->maximizedhorizontal >= 0) {
-		empty = false;
-		match &= (query->maximizedhorizontal == ((view->maximized & VIEW_AXIS_HORIZONTAL) != 0));
-		wlr_log(WLR_DEBUG, "maximizedhorizontal: %d\n", match);
-	}
-
-	if (match && query->maximizedvertical >= 0) {
-		empty = false;
-		match &= (query->maximizedvertical == ((view->maximized & VIEW_AXIS_VERTICAL) != 0));
-		wlr_log(WLR_DEBUG, "maximizedvertical: %d\n", match);
-	}
-
-	if (match && query->iconified >= 0) {
-		empty = false;
-		match &= (view->minimized == query->iconified);
-		wlr_log(WLR_DEBUG, "iconified: %d\n", match);
-	}
-
-	if (match && query->focused >= 0) {
-		empty = false;
-		match &= (query->focused == (view->server->active_view == view));
-		wlr_log(WLR_DEBUG, "focused: %d\n", match);
-	}
-
-	if (match && query->omnipresent >= 0) {
-		empty = false;
-		match &= (query->omnipresent == (view->visible_on_all_workspaces == query->omnipresent));
-		wlr_log(WLR_DEBUG, "omnipresent: %d\n", match);
-	}
-
-	if (match && query->tiled != VIEW_EDGE_INVALID) {
-		empty = false;
-		match &= (query->tiled == view->tiled);
-		wlr_log(WLR_DEBUG, "tiled: %d\n", match);
-	}
-
-	if (match && query->tiled_region && view->tiled_region) {
-		empty = false;
-		match &= !strcasecmp(query->tiled_region, view->tiled_region->name);
-		wlr_log(WLR_DEBUG, "tiled_region: %d\n", match);
-	}
-
-	if (match && query->desktop) {
-		empty = false;
-		if (!strcasecmp(query->desktop, "current")) {
-			match &= !strcasecmp(view->workspace->name, view->server->workspaces.current->name);
-		} else if (!strcasecmp(query->desktop, "other")) {
-			match &= strcasecmp(view->workspace->name, view->server->workspaces.current->name);
-		} else {
-			wlr_log(WLR_DEBUG, "view->workspace->name: %s\n", view->workspace->name);
-			match &= !strcasecmp(view->workspace->name, query->desktop);
+	if (query->identifier) {
+		const char *identifier = view_get_string_prop(view, "app_id");
+		if (!(identifier && match_glob(query->identifier, identifier))) {
+			return false;
 		}
-
-		wlr_log(WLR_DEBUG, "desktop: %d\n", match);
 	}
 
-	return !empty && match;
+	if (query->title) {
+		const char *title = view_get_string_prop(view, "title");
+		if (!(title && match_glob(query->title, title))) {
+			return false;
+		}
+	}
+
+	if (query->window_type >= 0) {
+		if (!view_contains_window_type(view, query->window_type)) {
+			return false;
+		}
+	}
+
+	if (query->sandbox_engine) {
+		const struct wlr_security_context_v1_state *security_context =
+			security_context_from_view(view);
+		if (!(security_context && security_context->sandbox_engine &&
+			match_glob(query->sandbox_engine, security_context->sandbox_engine))) {
+			return false;
+		}
+	}
+
+	if (query->sandbox_app_id) {
+		const struct wlr_security_context_v1_state *security_context =
+			security_context_from_view(view);
+		if (!(security_context && security_context->app_id &&
+			match_glob(query->sandbox_app_id, security_context->app_id))) {
+			return false;
+		}
+	}
+
+	match = match_tristate(query->shaded, view->shaded, match);
+	wlr_log(WLR_DEBUG, "shaded: %d\n", match);
+	if (match  == LAB_STATE_DISABLED) {
+		return false;
+	}
+
+	match = match_tristate(query->maximized, (view->maximized == VIEW_AXIS_BOTH), match);
+	wlr_log(WLR_DEBUG, "maximized: %d\n", match);
+	if (match == LAB_STATE_DISABLED) {
+		return false;
+	}
+
+	match = match_tristate(query->maximizedhorizontal,
+				(view->maximized == VIEW_AXIS_HORIZONTAL), match);
+	wlr_log(WLR_DEBUG, "maximizedhorizontal: %d\n", match);
+	if (match == LAB_STATE_DISABLED) {
+		return false;
+	}
+
+	match = match_tristate(query->maximizedvertical,
+				(view->maximized == VIEW_AXIS_VERTICAL), match);
+	if (match == LAB_STATE_DISABLED) {
+		return false;
+	}
+
+	match = match_tristate(query->iconified, view->minimized, match);
+	wlr_log(WLR_DEBUG, "iconified: %d\n", match);
+	if (match == LAB_STATE_DISABLED) {
+		return false;
+	}
+
+	match = match_tristate(query->focused, view->server->active_view == view, match);
+	wlr_log(WLR_DEBUG, "focused: %d\n", match);
+	if (match == LAB_STATE_DISABLED) {
+		return false;
+	}
+
+	match = match_tristate(query->omnipresent, view->visible_on_all_workspaces, match);
+	wlr_log(WLR_DEBUG, "omnipresent: %d\n", match);
+	if (match == LAB_STATE_DISABLED) {
+		return false;
+	}
+
+	if (query->tiled != VIEW_EDGE_INVALID) {
+		match = (query->tiled == view->tiled) ? LAB_STATE_ENABLED : LAB_STATE_DISABLED;
+		wlr_log(WLR_DEBUG, "tiled: %d\n", match);
+		if (match == LAB_STATE_DISABLED) {
+			return false;
+		}
+	}
+
+	if (query->tiled_region) {
+		match = (view->tiled_region &&
+			!strcasecmp(query->tiled_region, view->tiled_region->name))
+			? LAB_STATE_ENABLED
+			: LAB_STATE_DISABLED;
+		wlr_log(WLR_DEBUG, "tiled_region: %d\n", match);
+		if (match == LAB_STATE_DISABLED) {
+			return false;
+		}
+	}
+
+	if (query->desktop) {
+		if (!strcasecmp(query->desktop, "other")) {
+			return strcasecmp(view->workspace->name,
+				view->server->workspaces.current->name);
+		} else {
+			// TODO: perhaps allow wrapping for "left" and "right" workspaces
+			struct workspace *target =
+				workspaces_find(view->server->workspaces.current,
+						query->desktop, false);
+			return target && !strcasecmp(view->workspace->name, target->name);
+		}
+	}
+
+	return match == LAB_STATE_ENABLED;
 }
 
 static bool

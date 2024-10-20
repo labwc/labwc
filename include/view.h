@@ -2,6 +2,7 @@
 #ifndef LABWC_VIEW_H
 #define LABWC_VIEW_H
 
+#include "config/rcxml.h"
 #include "config.h"
 #include "ssd.h"
 #include <stdbool.h>
@@ -10,8 +11,17 @@
 #include <wlr/util/box.h>
 #include <xkbcommon/xkbcommon.h>
 
-#define LAB_MIN_VIEW_WIDTH (SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT)
 #define LAB_MIN_VIEW_HEIGHT 60
+
+/*
+ * Fallback view geometry used in some cases where a better position
+ * and/or size can't be determined. Try to avoid using these except as
+ * a last resort.
+ */
+#define VIEW_FALLBACK_X 100
+#define VIEW_FALLBACK_Y 100
+#define VIEW_FALLBACK_WIDTH  640
+#define VIEW_FALLBACK_HEIGHT 480
 
 /*
  * In labwc, a view is a container for surfaces which can be moved around by
@@ -29,6 +39,12 @@ enum ssd_preference {
 	LAB_SSD_PREF_UNSPEC = 0,
 	LAB_SSD_PREF_CLIENT,
 	LAB_SSD_PREF_SERVER,
+};
+
+enum three_state {
+	LAB_STATE_UNSPECIFIED = 0,
+	LAB_STATE_ENABLED,
+	LAB_STATE_DISABLED
 };
 
 /**
@@ -188,6 +204,7 @@ struct view {
 	enum view_axis maximized;
 	bool fullscreen;
 	bool tearing_hint;
+	enum three_state force_tearing;
 	bool visible_on_all_workspaces;
 	enum view_edge tiled;
 	uint32_t edges_visible;  /* enum wlr_edges bitset */
@@ -281,6 +298,7 @@ struct xdg_toplevel_view {
 
 	/* Events unique to xdg-toplevel views */
 	struct wl_listener set_app_id;
+	struct wl_listener request_show_window_menu;
 	struct wl_listener new_popup;
 };
 
@@ -451,7 +469,14 @@ void view_moved(struct view *view);
 void view_minimize(struct view *view, bool minimized);
 bool view_compute_centered_position(struct view *view,
 	const struct wlr_box *ref, int w, int h, int *x, int *y);
+void view_set_fallback_natural_geometry(struct view *view);
 void view_store_natural_geometry(struct view *view);
+
+/**
+ * view_apply_natural_geometry - adjust view->natural_geometry if it doesn't
+ * intersect with view->output and then apply it
+ */
+void view_apply_natural_geometry(struct view *view);
 
 /**
  * view_effective_height - effective height of view, with respect to shaded state
@@ -475,7 +500,7 @@ void view_center(struct view *view, const struct wlr_box *ref);
  * @policy: placement policy to apply
  */
 void view_place_by_policy(struct view *view, bool allow_cursor,
-	enum view_placement_policy);
+	enum view_placement_policy policy);
 void view_constrain_size_to_that_of_usable_area(struct view *view);
 
 void view_restore_to(struct view *view, struct wlr_box geometry);
@@ -495,6 +520,7 @@ void view_toggle_always_on_bottom(struct view *view);
 void view_toggle_visible_on_all_workspaces(struct view *view);
 
 bool view_is_tiled(struct view *view);
+bool view_is_tiled_and_notify_tiled(struct view *view);
 bool view_is_floating(struct view *view);
 void view_move_to_workspace(struct view *view, struct workspace *workspace);
 enum ssd_mode view_get_ssd_mode(struct view *view);
@@ -529,6 +555,7 @@ const char *view_get_string_prop(struct view *view, const char *prop);
 void view_update_title(struct view *view);
 void view_update_app_id(struct view *view);
 void view_reload_ssd(struct view *view);
+int view_get_min_width(void);
 
 void view_set_shade(struct view *view, bool shaded);
 
@@ -540,8 +567,6 @@ void view_on_output_destroy(struct view *view);
 void view_connect_map(struct view *view, struct wlr_surface *surface);
 void view_destroy(struct view *view);
 
-struct output *view_get_adjacent_output(struct view *view, enum view_edge edge,
-	bool wrap);
 enum view_axis view_axis_parse(const char *direction);
 enum view_edge view_edge_parse(const char *direction);
 enum view_placement_policy view_placement_parse(const char *policy);

@@ -42,7 +42,6 @@ handle_map(struct wl_listener *listener, void *data)
 	assert(!unmanaged->node);
 
 	/* Stack new surface on top */
-	wlr_xwayland_surface_restack(xsurface, NULL, XCB_STACK_MODE_ABOVE);
 	wl_list_append(&unmanaged->server->unmanaged_surfaces, &unmanaged->link);
 
 	CONNECT_SIGNAL(xsurface, unmanaged, set_geometry);

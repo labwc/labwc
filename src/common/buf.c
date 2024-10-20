@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
 #include <ctype.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 #include "common/buf.h"
 #include "common/macros.h"
@@ -93,6 +95,37 @@ buf_expand(struct buf *s, int new_alloc)
 		s->data[0] = '\0';
 	}
 	s->alloc = new_alloc;
+}
+
+void
+buf_add_fmt(struct buf *s, const char *fmt, ...)
+{
+	if (string_null_or_empty(fmt)) {
+		return;
+	}
+	va_list ap;
+
+	va_start(ap, fmt);
+	int n = vsnprintf(NULL, 0, fmt, ap);
+	va_end(ap);
+
+	if (n < 0) {
+		return;
+	}
+
+	size_t size = (size_t)n + 1;
+	buf_expand(s, s->len + size);
+
+	va_start(ap, fmt);
+	n = vsnprintf(s->data + s->len, size, fmt, ap);
+	va_end(ap);
+
+	if (n < 0) {
+		return;
+	}
+
+	s->len += n;
+	s->data[s->len] = 0;
 }
 
 void

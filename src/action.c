@@ -19,7 +19,6 @@
 #include "menu/menu.h"
 #include "osd.h"
 #include "output-virtual.h"
-#include "placement.h"
 #include "regions.h"
 #include "ssd.h"
 #include "view.h"
@@ -70,6 +69,7 @@ enum action_type {
 	ACTION_TYPE_EXECUTE,
 	ACTION_TYPE_EXIT,
 	ACTION_TYPE_MOVE_TO_EDGE,
+	ACTION_TYPE_TOGGLE_SNAP_TO_EDGE,
 	ACTION_TYPE_SNAP_TO_EDGE,
 	ACTION_TYPE_GROW_TO_EDGE,
 	ACTION_TYPE_SHRINK_TO_EDGE,
@@ -100,7 +100,9 @@ enum action_type {
 	ACTION_TYPE_MOVE_RELATIVE,
 	ACTION_TYPE_SEND_TO_DESKTOP,
 	ACTION_TYPE_GO_TO_DESKTOP,
+	ACTION_TYPE_TOGGLE_SNAP_TO_REGION,
 	ACTION_TYPE_SNAP_TO_REGION,
+	ACTION_TYPE_UNSNAP,
 	ACTION_TYPE_TOGGLE_KEYBINDS,
 	ACTION_TYPE_FOCUS_OUTPUT,
 	ACTION_TYPE_MOVE_TO_OUTPUT,
@@ -114,6 +116,9 @@ enum action_type {
 	ACTION_TYPE_SHADE,
 	ACTION_TYPE_UNSHADE,
 	ACTION_TYPE_TOGGLE_SHADE,
+	ACTION_TYPE_ENABLE_TABLET_MOUSE_EMULATION,
+	ACTION_TYPE_DISABLE_TABLET_MOUSE_EMULATION,
+	ACTION_TYPE_TOGGLE_TABLET_MOUSE_EMULATION,
 	ACTION_TYPE_TOGGLE_MAGNIFY,
 	ACTION_TYPE_ZOOM_IN,
 	ACTION_TYPE_ZOOM_OUT
@@ -128,6 +133,7 @@ const char *action_names[] = {
 	"Execute",
 	"Exit",
 	"MoveToEdge",
+	"ToggleSnapToEdge",
 	"SnapToEdge",
 	"GrowToEdge",
 	"ShrinkToEdge",
@@ -158,7 +164,9 @@ const char *action_names[] = {
 	"MoveRelative",
 	"SendToDesktop",
 	"GoToDesktop",
+	"ToggleSnapToRegion",
 	"SnapToRegion",
+	"UnSnap",
 	"ToggleKeybinds",
 	"FocusOutput",
 	"MoveToOutput",
@@ -172,6 +180,9 @@ const char *action_names[] = {
 	"Shade",
 	"Unshade",
 	"ToggleShade",
+	"EnableTabletMouseEmulation",
+	"DisableTabletMouseEmulation",
+	"ToggleTabletMouseEmulation",
 	"ToggleMagnify",
 	"ZoomIn",
 	"ZoomOut",
@@ -314,12 +325,15 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		/* Falls through */
+	case ACTION_TYPE_TOGGLE_SNAP_TO_EDGE:
 	case ACTION_TYPE_SNAP_TO_EDGE:
 	case ACTION_TYPE_GROW_TO_EDGE:
 	case ACTION_TYPE_SHRINK_TO_EDGE:
 		if (!strcmp(argument, "direction")) {
 			enum view_edge edge = view_edge_parse(content);
-			if ((edge == VIEW_EDGE_CENTER && action->type != ACTION_TYPE_SNAP_TO_EDGE)
+			bool allow_center = action->type == ACTION_TYPE_TOGGLE_SNAP_TO_EDGE
+				|| action->type == ACTION_TYPE_SNAP_TO_EDGE;
+			if ((edge == VIEW_EDGE_CENTER && !allow_center)
 					|| edge == VIEW_EDGE_INVALID) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
@@ -336,6 +350,14 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		}
 		if (!strcasecmp(argument, "atCursor")) {
 			action_arg_add_bool(action, argument, parse_bool(content, true));
+			goto cleanup;
+		}
+		if (!strcasecmp(argument, "x.position")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		if (!strcasecmp(argument, "y.position")) {
+			action_arg_add_str(action, argument, content);
 			goto cleanup;
 		}
 		break;
@@ -400,6 +422,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		break;
+	case ACTION_TYPE_TOGGLE_SNAP_TO_REGION:
 	case ACTION_TYPE_SNAP_TO_REGION:
 		if (!strcmp(argument, "region")) {
 			action_arg_add_str(action, argument, content);
@@ -407,11 +430,6 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		}
 		break;
 	case ACTION_TYPE_FOCUS_OUTPUT:
-		if (!strcmp(argument, "output")) {
-			action_arg_add_str(action, argument, content);
-			goto cleanup;
-		}
-		break;
 	case ACTION_TYPE_MOVE_TO_OUTPUT:
 		if (!strcmp(argument, "output")) {
 			action_arg_add_str(action, argument, content);
@@ -530,6 +548,7 @@ action_is_valid(struct action *action)
 		arg_name = "command";
 		break;
 	case ACTION_TYPE_MOVE_TO_EDGE:
+	case ACTION_TYPE_TOGGLE_SNAP_TO_EDGE:
 	case ACTION_TYPE_SNAP_TO_EDGE:
 	case ACTION_TYPE_GROW_TO_EDGE:
 	case ACTION_TYPE_SHRINK_TO_EDGE:
@@ -543,11 +562,9 @@ action_is_valid(struct action *action)
 	case ACTION_TYPE_SEND_TO_DESKTOP:
 		arg_name = "to";
 		break;
+	case ACTION_TYPE_TOGGLE_SNAP_TO_REGION:
 	case ACTION_TYPE_SNAP_TO_REGION:
 		arg_name = "region";
-		break;
-	case ACTION_TYPE_FOCUS_OUTPUT:
-		arg_name = "output";
 		break;
 	case ACTION_TYPE_IF:
 	case ACTION_TYPE_FOR_EACH:
@@ -613,8 +630,9 @@ action_list_free(struct wl_list *action_list)
 }
 
 static void
-show_menu(struct server *server, struct view *view,
-		const char *menu_name, bool at_cursor)
+show_menu(struct server *server, struct view *view, struct cursor_context *ctx,
+		const char *menu_name, bool at_cursor,
+		const char *pos_x, const char *pos_y)
 {
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH
 			&& server->input_mode != LAB_INPUT_STATE_MENU) {
@@ -627,18 +645,88 @@ show_menu(struct server *server, struct view *view,
 		return;
 	}
 
+	/*
+	 * We always refresh client-list-combined-menu and client-send-to-menu
+	 * so that they are up-to-date whether they are directly opened as a
+	 * top-level menu or opened as a submenu which we don't know at this
+	 * point. It is also needed to calculate the proper width for placement
+	 * as it fluctuates depending on application/workspace titles.
+	 */
+	update_client_list_combined_menu(menu->server);
+	update_client_send_to_menu(menu->server);
+
 	int x = server->seat.cursor->x;
 	int y = server->seat.cursor->y;
 
 	/* The client menu needs an active client */
-	if (!view && strcasecmp(menu_name, "client-menu") == 0) {
+	bool is_client_menu = !strcasecmp(menu_name, "client-menu");
+	if (is_client_menu && !view) {
 		return;
 	}
-
 	/* Place menu in the view corner if desired (and menu is not root-menu) */
 	if (!at_cursor && view) {
 		x = view->current.x;
 		y = view->current.y;
+		/* Push the client menu underneath the button */
+		if (is_client_menu && ssd_part_contains(
+				LAB_SSD_BUTTON, ctx->type)) {
+			assert(ctx->node);
+			int ly;
+			wlr_scene_node_coords(ctx->node, &x, &ly);
+		}
+	}
+
+	/*
+	 * determine placement by looking at x and y
+	 * x/y can be number, "center" or a %percent of screen dimensions
+	 */
+	if (pos_x && pos_y) {
+		struct output *output = output_nearest_to(server,
+				server->seat.cursor->x, server->seat.cursor->y);
+		struct menuitem *item;
+		struct theme *theme = server->theme;
+		int max_width = theme->menu_min_width;
+
+		wl_list_for_each(item, &menu->menuitems, link) {
+			if (item->native_width > max_width) {
+				max_width = item->native_width < theme->menu_max_width
+					? item->native_width : theme->menu_max_width;
+			}
+		}
+
+		if (!strcasecmp(pos_x, "center")) {
+			x = (output->usable_area.width / 2) - (max_width / 2);
+		} else if (strchr(pos_x, '%')) {
+			x = (output->usable_area.width * atoi(pos_x)) / 100;
+		} else {
+			if (pos_x[0] == '-') {
+				int neg_x = strtol(pos_x, NULL, 10);
+				x = output->usable_area.width + neg_x;
+			} else {
+				x = atoi(pos_x);
+			}
+		}
+
+		if (!strcasecmp(pos_y, "center")) {
+			y = (output->usable_area.height / 2) - (menu->size.height / 2);
+		} else if (strchr(pos_y, '%')) {
+			y = (output->usable_area.height * atoi(pos_y)) / 100;
+		} else {
+			if (pos_y[0] == '-') {
+				int neg_y = strtol(pos_y, NULL, 10);
+				y = output->usable_area.height + neg_y;
+			} else {
+				y = atoi(pos_y);
+			}
+		}
+		/* keep menu from being off screen */
+		x = MAX(x, 0);
+		x = MIN(x, (output->usable_area.width -1));
+		y = MAX(y, 0);
+		y = MIN(y, (output->usable_area.height -1));
+		/* adjust for which monitor to appear on */
+		x += output->usable_area.x;
+		y += output->usable_area.y;
 	}
 
 	/* Replaced by next show_menu() or cleaned on view_destroy() */
@@ -648,7 +736,7 @@ show_menu(struct server *server, struct view *view,
 
 static struct view *
 view_for_action(struct view *activator, struct server *server,
-	struct action *action, uint32_t *resize_edges)
+	struct action *action, struct cursor_context *ctx)
 {
 	/* View is explicitly specified for mousebinds */
 	if (activator) {
@@ -660,13 +748,8 @@ view_for_action(struct view *activator, struct server *server,
 	case ACTION_TYPE_FOCUS:
 	case ACTION_TYPE_MOVE:
 	case ACTION_TYPE_RESIZE: {
-		struct cursor_context ctx = get_cursor_context(server);
-		if (action->type == ACTION_TYPE_RESIZE) {
-			/* Select resize edges for the keybind case */
-			*resize_edges = cursor_get_resize_edges(
-				server->seat.cursor, &ctx);
-		}
-		return ctx.view;
+		*ctx = get_cursor_context(server);
+		return ctx->view;
 	}
 	default:
 		return server->active_view;
@@ -694,14 +777,57 @@ run_if_action(struct view *view, struct server *server, struct action *action)
 
 	actions = action_get_actionlist(action, branch);
 	if (actions) {
-		actions_run(view, server, actions, 0);
+		actions_run(view, server, actions, NULL);
 	}
 	return !strcmp(branch, "then");
 }
 
+static bool
+shift_is_pressed(struct server *server)
+{
+	uint32_t modifiers = wlr_keyboard_get_modifiers(
+			&server->seat.keyboard_group->keyboard);
+	return modifiers & WLR_MODIFIER_SHIFT;
+}
+
+static void
+start_window_cycling(struct server *server, enum lab_cycle_dir direction)
+{
+	/* Remember direction so it can be followed by subsequent key presses */
+	server->osd_state.initial_direction = direction;
+	server->osd_state.initial_keybind_contained_shift =
+		shift_is_pressed(server);
+	server->osd_state.cycle_view = desktop_cycle_view(server,
+		server->osd_state.cycle_view, direction);
+	osd_update(server);
+}
+
+static struct output *
+get_target_output(struct output *output, struct server *server,
+	struct action *action)
+{
+	const char *output_name = action_get_str(action, "output", NULL);
+	struct output *target = NULL;
+
+	if (output_name) {
+		target = output_from_name(server, output_name);
+	} else {
+		enum view_edge edge =
+			action_get_int(action, "direction", VIEW_EDGE_INVALID);
+		bool wrap = action_get_bool(action, "wrap", false);
+		target = output_get_adjacent(output, edge, wrap);
+	}
+
+	if (!target) {
+		wlr_log(WLR_DEBUG, "Invalid output");
+	}
+
+	return target;
+}
+
 void
 actions_run(struct view *activator, struct server *server,
-	struct wl_list *actions, uint32_t resize_edges)
+	struct wl_list *actions, struct cursor_context *cursor_ctx)
 {
 	if (!actions) {
 		wlr_log(WLR_ERROR, "empty actions");
@@ -713,6 +839,13 @@ actions_run(struct view *activator, struct server *server,
 
 	struct view *view;
 	struct action *action;
+	struct output *output;
+	struct output *target;
+	struct cursor_context ctx = {0};
+	if (cursor_ctx) {
+		ctx = *cursor_ctx;
+	}
+
 	wl_list_for_each(action, actions, link) {
 		wlr_log(WLR_DEBUG, "Handling action %u: %s", action->type,
 			action_names[action->type]);
@@ -721,8 +854,7 @@ actions_run(struct view *activator, struct server *server,
 		 * Refetch view because it may have been changed due to the
 		 * previous action
 		 */
-		view = view_for_action(activator, server, action,
-			&resize_edges);
+		view = view_for_action(activator, server, action, &ctx);
 
 		switch (action->type) {
 		case ACTION_TYPE_CLOSE:
@@ -765,10 +897,20 @@ actions_run(struct view *activator, struct server *server,
 				view_move_to_edge(view, edge, snap_to_windows);
 			}
 			break;
+		case ACTION_TYPE_TOGGLE_SNAP_TO_EDGE:
 		case ACTION_TYPE_SNAP_TO_EDGE:
 			if (view) {
 				/* Config parsing makes sure that direction is a valid direction */
 				enum view_edge edge = action_get_int(action, "direction", 0);
+				if (action->type == ACTION_TYPE_TOGGLE_SNAP_TO_EDGE
+						&& view->maximized == VIEW_AXIS_NONE
+						&& !view->fullscreen
+						&& view_is_tiled(view)
+						&& view->tiled == edge) {
+					view_set_untiled(view);
+					view_apply_natural_geometry(view);
+					break;
+				}
 				view_snap_to_edge(view, edge,
 					/*across_outputs*/ true,
 					/*store_natural_geometry*/ true);
@@ -789,22 +931,20 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_NEXT_WINDOW:
-			server->osd_state.cycle_view = desktop_cycle_view(server,
-				server->osd_state.cycle_view, LAB_CYCLE_DIR_FORWARD);
-			osd_update(server);
+			start_window_cycling(server, LAB_CYCLE_DIR_FORWARD);
 			break;
 		case ACTION_TYPE_PREVIOUS_WINDOW:
-			server->osd_state.cycle_view = desktop_cycle_view(server,
-				server->osd_state.cycle_view, LAB_CYCLE_DIR_BACKWARD);
-			osd_update(server);
+			start_window_cycling(server, LAB_CYCLE_DIR_BACKWARD);
 			break;
 		case ACTION_TYPE_RECONFIGURE:
 			kill(getpid(), SIGHUP);
 			break;
 		case ACTION_TYPE_SHOW_MENU:
-			show_menu(server, view,
+			show_menu(server, view, &ctx,
 				action_get_str(action, "menu", NULL),
-				action_get_bool(action, "atCursor", true));
+				action_get_bool(action, "atCursor", true),
+				action_get_str(action, "x.position", NULL),
+				action_get_str(action, "y.position", NULL));
 			break;
 		case ACTION_TYPE_TOGGLE_MAXIMIZE:
 			if (view) {
@@ -893,6 +1033,8 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_RESIZE:
 			if (view) {
+				uint32_t resize_edges = cursor_get_resize_edges(
+					server->seat.cursor, &ctx);
 				interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 					resize_edges);
 			}
@@ -964,7 +1106,7 @@ actions_run(struct view *activator, struct server *server,
 				 * a required argument for both SendToDesktop and GoToDesktop.
 				 */
 				struct workspace *target = workspaces_find(
-					server->workspace_current, to, wrap);
+					server->workspaces.current, to, wrap);
 				if (!target) {
 					break;
 				}
@@ -987,25 +1129,10 @@ actions_run(struct view *activator, struct server *server,
 			if (!view) {
 				break;
 			}
-			const char *output_name = action_get_str(action, "output", NULL);
-			struct output *target = NULL;
-			if (output_name) {
-				target = output_from_name(view->server, output_name);
-			} else {
-				enum view_edge edge = action_get_int(action, "direction", 0);
-				bool wrap = action_get_bool(action, "wrap", false);
-				target = view_get_adjacent_output(view, edge, wrap);
+			target = get_target_output(view->output, server, action);
+			if (target) {
+				view_move_to_output(view, target);
 			}
-			if (!target) {
-				/*
-				 * Most likely because we're already on the
-				 * output furthest in the requested direction
-				 * or the output or direction was invalid.
-				 */
-				wlr_log(WLR_DEBUG, "Invalid output");
-				break;
-			}
-			view_move_to_output(view, target);
 			break;
 		case ACTION_TYPE_FIT_TO_OUTPUT:
 			if (!view) {
@@ -1013,21 +1140,39 @@ actions_run(struct view *activator, struct server *server,
 			}
 			view_constrain_size_to_that_of_usable_area(view);
 			break;
+		case ACTION_TYPE_TOGGLE_SNAP_TO_REGION:
 		case ACTION_TYPE_SNAP_TO_REGION:
 			if (!view) {
 				break;
 			}
-			struct output *output = view->output;
+			output = view->output;
 			if (!output) {
 				break;
 			}
 			const char *region_name = action_get_str(action, "region", NULL);
 			struct region *region = regions_from_name(region_name, output);
 			if (region) {
+				if (action->type == ACTION_TYPE_TOGGLE_SNAP_TO_REGION
+						&& view->maximized == VIEW_AXIS_NONE
+						&& !view->fullscreen
+						&& view_is_tiled(view)
+						&& view->tiled_region == region) {
+					view_set_untiled(view);
+					view_apply_natural_geometry(view);
+					break;
+				}
 				view_snap_to_region(view, region,
 					/*store_natural_geometry*/ true);
 			} else {
 				wlr_log(WLR_ERROR, "Invalid SnapToRegion id: '%s'", region_name);
+			}
+			break;
+		case ACTION_TYPE_UNSNAP:
+			if (view && !view->fullscreen && !view_is_floating(view)) {
+				view_maximize(view, VIEW_AXIS_NONE,
+					/* store_natural_geometry */ false);
+				view_set_untiled(view);
+				view_apply_natural_geometry(view);
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_KEYBINDS:
@@ -1036,9 +1181,10 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_FOCUS_OUTPUT:
-			{
-				const char *output_name = action_get_str(action, "output", NULL);
-				desktop_focus_output(output_from_name(server, output_name));
+			output = output_nearest_to_cursor(server);
+			target = get_target_output(output, server, action);
+			if (target) {
+				desktop_focus_output(target);
 			}
 			break;
 		case ACTION_TYPE_IF:
@@ -1061,7 +1207,7 @@ actions_run(struct view *activator, struct server *server,
 					struct wl_list *actions;
 					actions = action_get_actionlist(action, "none");
 					if (actions) {
-						actions_run(view, server, actions, 0);
+						actions_run(view, server, actions, NULL);
 					}
 				}
 			}
@@ -1091,9 +1237,22 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_TOGGLE_TEARING:
 			if (view) {
-				view->tearing_hint = !view->tearing_hint;
-				wlr_log(WLR_DEBUG, "tearing %sabled",
-					view->tearing_hint ? "en" : "dis");
+				switch (view->force_tearing) {
+				case LAB_STATE_UNSPECIFIED:
+					view->force_tearing =
+						output_get_tearing_allowance(view->output)
+							? LAB_STATE_DISABLED : LAB_STATE_ENABLED;
+					break;
+				case LAB_STATE_DISABLED:
+					view->force_tearing = LAB_STATE_ENABLED;
+					break;
+				case LAB_STATE_ENABLED:
+					view->force_tearing = LAB_STATE_DISABLED;
+					break;
+				}
+				wlr_log(WLR_ERROR, "force tearing %sabled",
+					view->force_tearing == LAB_STATE_ENABLED
+						? "en" : "dis");
 			}
 			break;
 		case ACTION_TYPE_TOGGLE_SHADE:
@@ -1110,6 +1269,15 @@ actions_run(struct view *activator, struct server *server,
 			if (view) {
 				view_set_shade(view, false);
 			}
+			break;
+		case ACTION_TYPE_ENABLE_TABLET_MOUSE_EMULATION:
+			rc.tablet.force_mouse_emulation = true;
+			break;
+		case ACTION_TYPE_DISABLE_TABLET_MOUSE_EMULATION:
+			rc.tablet.force_mouse_emulation = false;
+			break;
+		case ACTION_TYPE_TOGGLE_TABLET_MOUSE_EMULATION:
+			rc.tablet.force_mouse_emulation = !rc.tablet.force_mouse_emulation;
 			break;
 		case ACTION_TYPE_TOGGLE_MAGNIFY:
 			magnify_toggle(server);

@@ -7,11 +7,13 @@
 
 # general
 border.width: 1
-padding.height: 3
 
-# The following options has no default, but fallbacks back to
-# font-height + 2x padding.height if not set.
-# titlebar.height:
+#
+# We do not support the global padding.{width,height} of openbox because
+# the default labwc button geometry has deviates from that of openbox
+#
+window.titlebar.padding.width: 0
+window.titlebar.padding.height: 0
 
 # window border
 window.active.border.color: #e1dedb
@@ -28,6 +30,14 @@ window.inactive.title.bg.color: #f6f5f4
 window.active.label.text.color: #000000
 window.inactive.label.text.color: #000000
 window.label.text.justify: center
+
+# window button width and spacing
+window.button.width: 26
+window.button.height: 26
+window.button.spacing: 0
+
+# window button hover effect
+window.button.hover.bg.corner-radius: 0
 
 # window buttons
 window.active.button.unpressed.image.color: #000000
@@ -59,6 +69,9 @@ menu.separator.width: 1
 menu.separator.padding.width: 6
 menu.separator.padding.height: 3
 menu.separator.color: #888888
+menu.title.bg.color: #589bda
+menu.title.text.color: #ffffff
+menu.title.text.justify: Center
 
 # on screen display (window-cycle dialog)
 osd.bg.color: #e1dedb

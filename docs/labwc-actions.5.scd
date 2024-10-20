@@ -91,19 +91,35 @@ Actions are used in menus and keyboard/mouse bindings.
 	Move window relative to its current position. Positive value of x moves
 	it right, negative left. Positive value of y moves it down, negative up.
 
+*<action name="ToggleSnapToEdge" direction="value" />*++
 *<action name="SnapToEdge" direction="value" />*
 	Resize window to fill half the output in the given direction. Supports
 	directions "left", "up", "right", "down" and "center".
 
+	ToggleSnapToEdge additionally toggles the active window between
+	tiled to the given direction and its untiled position.
+
+*<action name="ToggleSnapToRegion" region="value" />*++
 *<action name="SnapToRegion" region="value" />*
 	Resize and move active window according to the given region.
+
+	ToggleSnapToRegion additionally toggles the active window between
+	tiled to the given region and its untiled position.
+
 	See labwc-config(5) for further information on how to define regions.
 
-*<action name="NextWindow" />*
-	Cycle focus to next window.
+*<action name="UnSnap" />*
+	Resize and move the active window back to its untiled or unmaximized
+	position if it had been maximized or tiled to a direction or region.
 
+*<action name="NextWindow" />*++
 *<action name="PreviousWindow" />*
-	Cycle focus to previous window.
+	Cycle focus to next/previous window respectively.++
+	Default keybind for NextWindow is Alt-Tab.
+
+	The shift key is used to reverse direction while cycling.
+
+	The arrow keys are used to move forwards/backwards while cycling.
 
 *<action name="Reconfigure" />*
 	Re-load configuration and theme files.
@@ -111,14 +127,26 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="ShowMenu" menu="value" atCursor="yes" />*
 	Show a menu.
 
-	*menu* The name of the menu to show. The menus "root-menu" and
-	"client-menu" are guaranteed to exist, but others may be defined
-	explicitly. See labwc-menu(5) for more information.
+	*menu* The name of the menu to show. The menus "root-menu",
+	"client-menu", "client-send-to-menu" and "client-list-combined-menu"
+	are guaranteed to exist, but others may be defined explicitly.
+	See labwc-menu(5) for more information.
 
 	*atCursor* [yes|no] When opening a menu, open the menu at the location
 	of the mouse cursor. When set to no, the menu will appear at the
-	upper-left corner of the window associated with the action. Default is
-	yes.
+	upper-left corner of the window associated with the action or underneath
+	the window button that opened the menu. Default is yes.
+
+	*position* Show the menu in the specified position on the monitor
+	that has cursor focus, see below.
+
+	The position tag has two sub-tags. <x> and <y> specify a position and
+	take either a pixel value, the string "center" which will center the
+	menu in that dimension, or a relative value specified as a percentage
+	A relative value is interpreted in terms of the monitor the menu will
+	be shown on, and will be relative to the left/top edge of the menu
+	window and monitor for positive values, and to the right/bottom edge
+	for negative values.
 
 *<action name="SetDecorations" decorations="value" forceSSD="no" />*
 	Set decorations of focused window.
@@ -184,12 +212,27 @@ Actions are used in menus and keyboard/mouse bindings.
 	original window. There can be multiple windows with this mode set.
 
 *<action name="ToggleTearing" />*
-	Toggles tearing for the focused window.
+	Toggles tearing for the focused window between enabled and disabled.
+	This overrides the preference (tearing hint) from the focused window.
 
-*<action name="FocusOutput" output="HDMI-A-1" />*
-	Give focus to topmost window on given output and warp the cursor
-	to the center of the window. If the given output does not contain
-	any windows, the cursor is centered on the given output.
+	Requires the config option 'allowTearing'. When 'allowTearing' is set
+	to 'fullscreen' or 'fullscreenForced', tearing will still only be
+	enabled if the active window is in fullscreen mode.
+
+*<action name="FocusOutput" output="HDMI-A-1" direction="value" wrap="no" />*
+	Give focus to topmost window on other output and warp the cursor
+	to the center of the window.
+
+	If *output* is specified, the focus is given to the specified output and
+	*direction* is ignored. If *output* is omitted, *direction* may be one
+	of "left", "right", "up" or "down" to indicate that the focus should be
+	given to the next output in that direction (if one exists).
+
+	*wrap* [yes|no] When using the direction attribute, wrap around
+	from right-to-left or top-to-bottom, and vice versa. Default is no.
+
+	If the target output does not contain any windows, the cursor will
+	be centered on the output.
 
 *<action name="MoveToOutput" output="HDMI-A-1" direction="value" wrap="no" />*
 	Moves active window to other output, unless the window state is
@@ -273,9 +316,9 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="AutoPlace" policy="value"/>*
 	Reposition the window according to the desired placement policy.
 
-	*policy* [automatic|cursor|center] Use the specified policy, which has
-	the same meaning as the corresponding value for *<placement><policy>*.
-	Default is automatic.
+	*policy* [automatic|cursor|center|cascade] Use the specified policy,
+	which has the same meaning as the corresponding value for
+	*<placement><policy>*. Default is automatic.
 
 *<action name="Shade" />*++
 *<action name="Unshade" />*++
@@ -285,6 +328,11 @@ Actions are used in menus and keyboard/mouse bindings.
 	titlebar visible. Full-screen windows or those without server-side
 	decorations (including those for which the server-side titlebar has been
 	hidden) are not eligible for shading.
+
+*<action name="EnableTabletMouseEmulation" />*++
+*<action name="DisableTabletMouseEmulation" />*++
+*<action name="ToggleTabletMouseEmulation">*
+	Enable, disable or toggle mouse emulation for drawing tablets respectively.
 
 *<action name="ToggleMagnify">*
 	Toggle the screen magnifier on or off at the last magnification level

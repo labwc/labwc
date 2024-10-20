@@ -44,6 +44,7 @@
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/util/log.h>
+#include "common/set.h"
 #include "config/keybind.h"
 #include "config/rcxml.h"
 #include "input/cursor.h"
@@ -71,6 +72,8 @@ enum input_mode {
 struct input {
 	struct wlr_input_device *wlr_input_device;
 	struct seat *seat;
+	/* Set for pointer/touch devices */
+	double scroll_factor;
 	struct wl_listener destroy;
 	struct wl_list link; /* seat.inputs */
 };
@@ -127,9 +130,8 @@ struct seat {
 	struct input_method_relay *input_method_relay;
 
 	/**
-	 * pressed view/surface/node will usually be NULL and is only set on
-	 * button press while the mouse is over a view or surface, and reset
-	 * to NULL on button release.
+	 * This is usually zeroed and is only set on button press while the
+	 * mouse is over a view or surface, and zeroed on button release.
 	 * It is used to send cursor motion events to a surface even though
 	 * the cursor has left the surface in the meantime.
 	 *
@@ -142,13 +144,9 @@ struct seat {
 	 *
 	 * Both (view && !surface) and (surface && !view) are possible.
 	 */
-	struct {
-		struct view *view;
-		struct wlr_scene_node *node;
-		struct wlr_surface *surface;
-		struct wlr_surface *toplevel;
-		uint32_t resize_edges;
-	} pressed;
+	struct cursor_context pressed;
+
+	struct lab_set bound_buttons;
 
 	struct {
 		bool active;
@@ -164,7 +162,6 @@ struct seat {
 	/* Used to prevent region snapping when starting a move with A-Left */
 	bool region_prevent_snap;
 
-	struct wl_client *active_client_while_inhibited;
 	struct wl_list inputs;
 	struct wl_listener new_input;
 	struct wl_listener focus_change;
@@ -193,6 +190,11 @@ struct seat {
 	struct wl_listener touch_motion;
 	struct wl_listener touch_frame;
 
+	struct wl_listener tablet_tool_proximity;
+	struct wl_listener tablet_tool_axis;
+	struct wl_listener tablet_tool_tip;
+	struct wl_listener tablet_tool_button;
+
 	struct wl_list tablets;
 	struct wl_list tablet_tools;
 	struct wl_list tablet_pads;
@@ -210,6 +212,12 @@ struct seat {
 struct lab_data_buffer;
 struct workspace;
 
+enum lab_cycle_dir {
+	LAB_CYCLE_DIR_NONE,
+	LAB_CYCLE_DIR_FORWARD,
+	LAB_CYCLE_DIR_BACKWARD,
+};
+
 struct server {
 	struct wl_display *wl_display;
 	struct wl_event_loop *wl_event_loop;  /* Can be used for timer events */
@@ -220,11 +228,12 @@ struct server {
 		struct wlr_backend *backend;
 	} headless;
 	struct wlr_session *session;
+	struct wlr_linux_dmabuf_v1 *linux_dmabuf;
 
 	struct wlr_xdg_shell *xdg_shell;
 	struct wlr_layer_shell_v1 *layer_shell;
 
-	struct wl_listener new_xdg_surface;
+	struct wl_listener new_xdg_toplevel;
 	struct wl_listener new_layer_surface;
 
 	struct wl_listener kde_server_decoration;
@@ -236,12 +245,9 @@ struct server {
 	struct wl_listener xwayland_new_surface;
 #endif
 
-	struct wlr_input_inhibit_manager *input_inhibit;
-	struct wl_listener input_inhibit_activate;
-	struct wl_listener input_inhibit_deactivate;
-
 	struct wlr_xdg_activation_v1 *xdg_activation;
 	struct wl_listener xdg_activation_request;
+	struct wl_listener xdg_activation_new_token;
 
 	struct wl_list views;
 	struct wl_list unmanaged_surfaces;
@@ -249,11 +255,14 @@ struct server {
 	struct seat seat;
 	struct wlr_scene *scene;
 	struct wlr_scene_output_layout *scene_layout;
+	bool direct_scanout_enabled;
 
 	/* cursor interactive */
 	enum input_mode input_mode;
 	struct view *grabbed_view;
+	/* Cursor position when interactive move/resize is requested */
 	double grab_x, grab_y;
+	/* View geometry when interactive move/resize is requested */
 	struct wlr_box grab_box;
 	uint32_t resize_edges;
 
@@ -294,9 +303,16 @@ struct server {
 	struct wlr_scene_tree *menu_tree;
 
 	/* Workspaces */
-	struct wl_list workspaces;  /* struct workspace.link */
-	struct workspace *workspace_current;
-	struct workspace *workspace_last;
+	struct {
+		struct wl_list all;  /* struct workspace.link */
+		struct workspace *current;
+		struct workspace *last;
+		struct lab_cosmic_workspace_manager *cosmic_manager;
+		struct lab_cosmic_workspace_group *cosmic_group;
+		struct {
+			struct wl_listener layout_output_added;
+		} on;
+	} workspaces;
 
 	struct wl_list outputs;
 	struct wl_listener new_output;
@@ -314,6 +330,8 @@ struct server {
 	 * do_output_layout_change() must be called explicitly.
 	 */
 	int pending_output_layout_change;
+
+	struct wl_listener renderer_lost;
 
 	struct wlr_gamma_control_manager_v1 *gamma_control_manager_v1;
 	struct wl_listener gamma_control_set_gamma;
@@ -349,12 +367,16 @@ struct server {
 		struct wlr_scene_tree *preview_parent;
 		struct wlr_scene_node *preview_anchor;
 		struct multi_rect *preview_outline;
+		enum lab_cycle_dir initial_direction;
+		bool initial_keybind_contained_shift;
 	} osd_state;
 
 	struct theme *theme;
 
 	struct menu *menu_current;
 	struct wl_list menus;
+
+	struct icon_loader *icon_loader;
 
 	pid_t primary_client_pid;
 };
@@ -365,6 +387,7 @@ struct output {
 	struct wl_list link; /* server.outputs */
 	struct server *server;
 	struct wlr_output *wlr_output;
+	struct wlr_output_state pending;
 	struct wlr_scene_output *scene_output;
 	struct wlr_scene_tree *layer_tree[LAB_NR_LAYERS];
 	struct wlr_scene_tree *layer_popup_tree;
@@ -383,6 +406,8 @@ struct output {
 
 	bool leased;
 	bool gamma_lut_changed;
+
+	uint32_t nr_tearing_failures;
 };
 
 #undef LAB_NR_LAYERS
@@ -421,7 +446,7 @@ void foreign_toplevel_update_outputs(struct view *view);
  *  - optionally raise above other views
  *
  * It's okay to call this function even if the view isn't mapped or the
- * session is locked/input is inhibited; it will simply do nothing.
+ * session is locked; it will simply do nothing.
  */
 void desktop_focus_view(struct view *view, bool raise);
 
@@ -434,6 +459,7 @@ void desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 
 void desktop_arrange_all_views(struct server *server);
 void desktop_focus_output(struct output *output);
+void warp_cursor(struct view *view);
 struct view *desktop_topmost_focusable_view(struct server *server);
 
 /**
@@ -441,12 +467,6 @@ struct view *desktop_topmost_focusable_view(struct server *server);
  * based on the existence of a fullscreen window on the current workspace.
  */
 void desktop_update_top_layer_visiblity(struct server *server);
-
-enum lab_cycle_dir {
-	LAB_CYCLE_DIR_NONE,
-	LAB_CYCLE_DIR_FORWARD,
-	LAB_CYCLE_DIR_BACKWARD,
-};
 
 /**
  * desktop_cycle_view - return view to 'cycle' to
@@ -478,11 +498,20 @@ void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
 void seat_focus_lock_surface(struct seat *seat, struct wlr_surface *surface);
 
 void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer);
-void seat_set_pressed(struct seat *seat, struct view *view,
-	struct wlr_scene_node *node, struct wlr_surface *surface,
-	struct wlr_surface *toplevel, uint32_t resize_edges);
+void seat_set_pressed(struct seat *seat, struct cursor_context *ctx);
 void seat_reset_pressed(struct seat *seat);
 void seat_output_layout_changed(struct seat *seat);
+
+/**
+ * interactive_anchor_to_cursor() - repositions the geometry to remain
+ * underneath the cursor when its size changes during interactive move.
+ * This function also resizes server->grab_box and repositions it to remain
+ * underneath server->grab_{x,y}.
+ *
+ * geo->{width,height} are provided by the caller.
+ * geo->{x,y} are computed by this function.
+ */
+void interactive_anchor_to_cursor(struct server *server, struct wlr_box *geo);
 
 void interactive_begin(struct view *view, enum input_mode mode, uint32_t edges);
 void interactive_finish(struct view *view);
@@ -497,26 +526,43 @@ struct output *output_from_wlr_output(struct server *server,
 struct output *output_from_name(struct server *server, const char *name);
 struct output *output_nearest_to(struct server *server, int lx, int ly);
 struct output *output_nearest_to_cursor(struct server *server);
+
+/**
+ * output_get_adjacent() - get next output, in a given direction,
+ * from a given output
+ *
+ * @output: reference output
+ * @edge: direction in which to look for the nearest output
+ * @wrap: if true, wrap around at layout edge
+ *
+ * Note: if output is NULL, the output nearest the cursor will be used as the
+ * reference instead.
+ */
+struct output *output_get_adjacent(struct output *output,
+	enum view_edge edge, bool wrap);
+
 bool output_is_usable(struct output *output);
 void output_update_usable_area(struct output *output);
 void output_update_all_usable_areas(struct server *server, bool layout_changed);
+bool output_get_tearing_allowance(struct output *output);
 struct wlr_box output_usable_area_in_layout_coords(struct output *output);
 struct wlr_box output_usable_area_scaled(struct output *output);
 void handle_output_power_manager_set_mode(struct wl_listener *listener,
 	void *data);
 void output_enable_adaptive_sync(struct wlr_output *output, bool enabled);
+
+/**
+ * output_max_scale() - get maximum scale factor of all usable outputs.
+ * Used when loading/rendering resources (e.g. icons) that may be
+ * displayed on any output.
+ */
+float output_max_scale(struct server *server);
+
 void new_tearing_hint(struct wl_listener *listener, void *data);
 
 void server_init(struct server *server);
 void server_start(struct server *server);
 void server_finish(struct server *server);
-
-/*
- * wlroots "input inhibitor" extension (required for swaylock) blocks
- * any client other than the requesting client from receiving events
- */
-bool input_inhibit_blocks_surface(struct seat *seat,
-	struct wl_resource *resource);
 
 void create_constraint(struct wl_listener *listener, void *data);
 void constrain_cursor(struct server *server, struct wlr_pointer_constraint_v1

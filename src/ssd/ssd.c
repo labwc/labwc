@@ -74,15 +74,6 @@ ssd_max_extents(struct view *view)
 	};
 }
 
-bool
-ssd_is_button(enum ssd_part_type type)
-{
-	return type == LAB_SSD_BUTTON_CLOSE
-		|| type == LAB_SSD_BUTTON_MAXIMIZE
-		|| type == LAB_SSD_BUTTON_ICONIFY
-		|| type == LAB_SSD_BUTTON_WINDOW_MENU;
-}
-
 enum ssd_part_type
 ssd_get_part_type(const struct ssd *ssd, struct wlr_scene_node *node)
 {
@@ -188,8 +179,14 @@ ssd_create(struct view *view, bool active)
 	ssd->titlebar.height = view->server->theme->title_height;
 	ssd_shadow_create(ssd);
 	ssd_extents_create(ssd);
-	ssd_border_create(ssd);
+	/*
+	 * We need to create the borders after the titlebar because it sets
+	 * ssd->state.squared which ssd_border_create() reacts to.
+	 * TODO: Set the state here instead so the order does not matter
+	 * anymore.
+	 */
 	ssd_titlebar_create(ssd);
+	ssd_border_create(ssd);
 	if (view->ssd_titlebar_hidden) {
 		/* Ensure we keep the old state on Reconfigure or when exiting fullscreen */
 		ssd_set_titlebar(ssd, false);
@@ -208,6 +205,13 @@ ssd_get_margin(const struct ssd *ssd)
 	return ssd ? ssd->margin : (struct border){ 0 };
 }
 
+int
+ssd_get_corner_width(void)
+{
+	/* ensure a minimum corner width */
+	return MAX(rc.corner_radius, 5);
+}
+
 void
 ssd_update_margin(struct ssd *ssd)
 {
@@ -224,47 +228,40 @@ ssd_update_geometry(struct ssd *ssd)
 		return;
 	}
 
+	struct view *view = ssd->view;
+	assert(view);
+
 	struct wlr_box cached = ssd->state.geometry;
-	struct wlr_box current = ssd->view->current;
+	struct wlr_box current = view->current;
 
 	int eff_width = current.width;
-	int eff_height = view_effective_height(ssd->view, /* use_pending */ false);
+	int eff_height = view_effective_height(view, /* use_pending */ false);
 
-	if (eff_width > 0 && eff_width < LAB_MIN_VIEW_WIDTH) {
-		/*
-		 * Prevent negative values in calculations like
-		 * `width - SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT`
-		 */
-		wlr_log(WLR_ERROR,
-			"view width is smaller than its minimal value");
-		return;
+	bool update_area = eff_width != cached.width || eff_height != cached.height;
+	bool update_extents = update_area
+		|| current.x != cached.x || current.y != cached.y;
+
+	bool maximized = view->maximized == VIEW_AXIS_BOTH;
+	bool squared = ssd_should_be_squared(ssd);
+
+	bool state_changed = ssd->state.was_maximized != maximized
+		|| ssd->state.was_shaded != view->shaded
+		|| ssd->state.was_squared != squared
+		|| ssd->state.was_omnipresent != view->visible_on_all_workspaces;
+
+	if (update_extents) {
+		ssd_extents_update(ssd);
 	}
 
-	if (eff_width == cached.width && eff_height == cached.height) {
-		if (current.x != cached.x || current.y != cached.y) {
-			/* Dynamically resize extents based on position and usable_area */
-			ssd_extents_update(ssd);
-			ssd->state.geometry = current;
-		}
-		bool maximized = (ssd->view->maximized == VIEW_AXIS_BOTH);
-		if (ssd->state.was_maximized != maximized) {
-			ssd_border_update(ssd);
-			ssd_titlebar_update(ssd);
-			ssd_shadow_update(ssd);
-			/*
-			 * Not strictly necessary as ssd_titlebar_update()
-			 * already sets state.was_maximized but to future
-			 * proof this a bit we also set it here again.
-			 */
-			ssd->state.was_maximized = maximized;
-		}
-		return;
+	if (update_area || state_changed) {
+		ssd_titlebar_update(ssd);
+		ssd_border_update(ssd);
+		ssd_shadow_update(ssd);
 	}
-	ssd_extents_update(ssd);
-	ssd_border_update(ssd);
-	ssd_titlebar_update(ssd);
-	ssd_shadow_update(ssd);
-	ssd->state.geometry = current;
+
+	if (update_extents) {
+		ssd->state.geometry = current;
+	}
 }
 
 void
@@ -313,6 +310,10 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 	if (whole == candidate || whole == LAB_SSD_ALL) {
 		return true;
 	}
+	if (whole == LAB_SSD_BUTTON) {
+		return candidate >= LAB_SSD_BUTTON_CLOSE
+			&& candidate <= LAB_SSD_BUTTON_OMNIPRESENT;
+	}
 	if (whole == LAB_SSD_PART_TITLEBAR) {
 		return candidate >= LAB_SSD_BUTTON_CLOSE
 			&& candidate <= LAB_SSD_PART_TITLE;
@@ -328,7 +329,7 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 	}
 	if (whole == LAB_SSD_PART_TOP) {
 		return candidate == LAB_SSD_PART_CORNER_TOP_LEFT
-			|| candidate == LAB_SSD_PART_CORNER_BOTTOM_LEFT;
+			|| candidate == LAB_SSD_PART_CORNER_TOP_RIGHT;
 	}
 	if (whole == LAB_SSD_PART_RIGHT) {
 		return candidate == LAB_SSD_PART_CORNER_TOP_RIGHT
@@ -386,6 +387,7 @@ ssd_enable_shade(struct ssd *ssd, bool enable)
 	if (!ssd) {
 		return;
 	}
+	ssd_titlebar_update(ssd);
 	ssd_border_update(ssd);
 	wlr_scene_node_set_enabled(&ssd->extents.tree->node, !enable);
 	ssd_shadow_update(ssd);

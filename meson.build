@@ -1,7 +1,7 @@
 project(
   'labwc',
   'c',
-  version: '0.7.2',
+  version: '0.8.0',
   license: 'GPL-2.0-only',
   meson_version: '>=0.59.0',
   default_options: [
@@ -36,6 +36,7 @@ add_project_arguments(cc.get_supported_arguments([
   '-Wunused-macros',
 
   '-Wno-unused-parameter',
+  '-Wno-expansion-to-defined',
 ]), language: 'c')
 
 version='"@0@"'.format(meson.project_version())
@@ -49,15 +50,16 @@ endif
 add_project_arguments('-DLABWC_VERSION=@0@'.format(version), language: 'c')
 
 wlroots = dependency(
-  'wlroots',
+  'wlroots-0.18',
   default_options: ['default_library=static', 'examples=false'],
-  version: ['>=0.17.0', '<0.18.0'],
+  version: ['>=0.18.0', '<0.19.0'],
 )
 
 wlroots_has_xwayland = wlroots.get_variable('have_xwayland') == 'true'
+have_libsfdo = not get_option('icon').disabled()
 
 wayland_server = dependency('wayland-server', version: '>=1.19.0')
-wayland_protos = dependency('wayland-protocols')
+wayland_protos = dependency('wayland-protocols', version: '>=1.35')
 xkbcommon = dependency('xkbcommon')
 xcb = dependency('xcb', required: get_option('xwayland'))
 xcb_icccm = dependency('xcb-icccm', required: get_option('xwayland'))
@@ -72,6 +74,24 @@ pixman = dependency('pixman-1')
 math = cc.find_library('m')
 png = dependency('libpng')
 svg = dependency('librsvg-2.0', version: '>=2.46', required: false)
+sfdo_basedir = dependency(
+  'libsfdo-basedir',
+  default_options: ['default_library=static', 'examples=false', 'tests=false'],
+  version: '>=0.1.0',
+  required: have_libsfdo,
+)
+sfdo_desktop = dependency(
+  'libsfdo-desktop',
+  default_options: ['default_library=static', 'examples=false', 'tests=false'],
+  version: '>=0.1.0',
+  required: have_libsfdo,
+)
+sfdo_icon = dependency(
+  'libsfdo-icon',
+  default_options: ['default_library=static', 'examples=false', 'tests=false'],
+  version: '>=0.1.0',
+  required: have_libsfdo,
+)
 
 if get_option('xwayland').enabled() and not wlroots_has_xwayland
 	error('no wlroots Xwayland support')
@@ -86,6 +106,8 @@ else
   have_rsvg = svg.found()
 endif
 conf_data.set10('HAVE_RSVG', have_rsvg)
+
+conf_data.set10('HAVE_LIBSFDO', have_libsfdo)
 
 if get_option('static_analyzer').enabled()
   add_project_arguments(['-fanalyzer'], language: 'c')
@@ -125,10 +147,22 @@ if have_rsvg
     svg,
   ]
 endif
+if have_libsfdo
+  labwc_deps += [
+    sfdo_basedir,
+    sfdo_desktop,
+    sfdo_icon,
+  ]
+endif
 
 subdir('include')
 subdir('src')
 subdir('docs')
+
+dep_cmocka = dependency('cmocka', required: get_option('test'))
+if dep_cmocka.found()
+  subdir('t')
+endif
 
 executable(
   meson.project_name(),
@@ -139,6 +173,8 @@ executable(
 )
 
 install_data('data/labwc.desktop', install_dir: get_option('datadir') / 'wayland-sessions')
+
+install_data('data/labwc-portals.conf', install_dir: get_option('datadir') / 'xdg-desktop-portal')
 
 icons = ['labwc-symbolic.svg', 'labwc.svg']
 foreach icon : icons

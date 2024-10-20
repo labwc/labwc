@@ -52,7 +52,7 @@ window_rules_apply(struct view *view, enum window_rule_event event)
 			continue;
 		}
 		if (view_matches_criteria(rule, view)) {
-			actions_run(view, view->server, &rule->actions, 0);
+			actions_run(view, view->server, &rule->actions, NULL);
 		}
 	}
 }

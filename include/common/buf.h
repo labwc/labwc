@@ -44,6 +44,13 @@ void buf_expand_tilde(struct buf *s);
 void buf_expand_shell_variables(struct buf *s);
 
 /**
+ * buf_add_fmt - add format string to C string buffer
+ * @s: buffer
+ * @fmt: format string to be added
+ */
+void buf_add_fmt(struct buf *s, const char *fmt, ...);
+
+/**
  * buf_add - add data to C string buffer
  * @s: buffer
  * @data: data to be added

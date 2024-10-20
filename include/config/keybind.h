@@ -18,6 +18,7 @@ struct keybind {
 	xkb_keycode_t keycodes[MAX_KEYCODES];
 	size_t keycodes_len;
 	int keycodes_layout;
+	bool allow_when_locked;
 	struct wl_list actions;  /* struct action.link */
 	struct wl_list link;     /* struct rcxml.keybinds */
 	bool on_release;

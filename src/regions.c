@@ -20,7 +20,8 @@ regions_should_snap(struct server *server)
 {
 	if (server->input_mode != LAB_INPUT_STATE_MOVE
 			|| wl_list_empty(&rc.regions)
-			|| server->seat.region_prevent_snap) {
+			|| server->seat.region_prevent_snap
+			|| !view_is_floating(server->grabbed_view)) {
 		return false;
 	}
 

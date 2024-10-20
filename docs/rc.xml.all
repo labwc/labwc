@@ -13,15 +13,26 @@
     <adaptiveSync>no</adaptiveSync>
     <allowTearing>no</allowTearing>
     <reuseOutputMode>no</reuseOutputMode>
+    <xwaylandPersistence>no</xwaylandPersistence>
   </core>
 
   <placement>
     <policy>center</policy>
+    <!--
+      When <placement><policy> is "cascade", the offset for cascading new
+      windows can be overwritten like this:
+      <cascadeOffset x="40" y="30" />
+    -->
   </placement>
 
   <!-- <font><theme> can be defined without an attribute to set all places -->
   <theme>
     <name></name>
+    <icon></icon>
+    <titlebar>
+      <layout>icon:iconify,max,close</layout>
+      <showTitle>yes</showTitle>
+    </titlebar>
     <cornerRadius>8</cornerRadius>
     <keepBorder>yes</keepBorder>
     <dropShadows>no</dropShadows>
@@ -32,6 +43,12 @@
       <weight>normal</weight>
     </font>
     <font place="InactiveWindow">
+      <name>sans</name>
+      <size>10</size>
+      <slant>normal</slant>
+      <weight>normal</weight>
+    </font>
+    <font place="MenuHeader">
       <name>sans</name>
       <size>10</size>
       <slant>normal</slant>
@@ -101,6 +118,10 @@
   <resistance>
     <screenEdgeStrength>20</screenEdgeStrength>
     <windowEdgeStrength>20</windowEdgeStrength>
+    <!-- resistance for maximized/tiled windows -->
+    <unSnapThreshold>20</unSnapThreshold>
+    <!-- resistance for vertically/horizontally maximized windows -->
+    <unMaximizeThreshold>150</unMaximizeThreshold>
   </resistance>
 
   <resize>
@@ -252,7 +273,7 @@
       <action name="SnapToEdge" direction="down" />
     </keybind>
     <keybind key="A-Space">
-      <action name="ShowMenu" menu="client-menu" />
+      <action name="ShowMenu" menu="client-menu" atCursor="no" />
     </keybind>
     <keybind key="XF86_AudioLowerVolume">
       <action name="Execute" command="amixer sset Master 5%-" />
@@ -299,6 +320,16 @@
       <action name="SnapToRegion" region="bottom-right" />
     </keybind>
   -->
+  <!-- keybind for client-list-combined-menu - will center in middle of screen -->
+  <!--
+    <keybind key="W-Space">
+      <action name="ShowMenu" menu="client-list-combined-menu" />
+      <position>
+        <x>center</x> 
+        <y>center</y>
+      </position>
+    </keybind>
+  -->
   </keyboard>
 
   <!--
@@ -316,7 +347,6 @@
 
     <!-- time is in ms -->
     <doubleClickTime>500</doubleClickTime>
-    <scrollFactor>1.0</scrollFactor>
 
     <context name="Frame">
       <mousebind button="A-Left" action="Press">
@@ -421,10 +451,31 @@
 
     <context name="WindowMenu">
       <mousebind button="Left" action="Click">
-        <action name="ShowMenu" menu="client-menu" />
+        <action name="ShowMenu" menu="client-menu" atCursor="no" />
       </mousebind>
       <mousebind button="Right" action="Click">
-        <action name="ShowMenu" menu="client-menu" />
+        <action name="ShowMenu" menu="client-menu" atCursor="no" />
+      </mousebind>
+    </context>
+
+    <context name="Icon">
+      <mousebind button="Left" action="Click">
+        <action name="ShowMenu" menu="client-menu" atCursor="no" />
+      </mousebind>
+      <mousebind button="Right" action="Click">
+        <action name="ShowMenu" menu="client-menu" atCursor="no" />
+      </mousebind>
+    </context>
+
+    <context name="Shade">
+      <mousebind button="Left" action="Click">
+        <action name="ToggleShade" />
+      </mousebind>
+    </context>
+
+    <context name="AllDesktops">
+      <mousebind button="Left" action="Click">
+        <action name="ToggleOmnipresent" />
       </mousebind>
     </context>
 
@@ -464,6 +515,8 @@
       </mousebind>
       <mousebind button="Middle" action="Press">
         <action name="ShowMenu" menu="root-menu" />
+	<!-- openbox default, swap with above line to activate -->
+        <!-- <action name="ShowMenu" menu="client-list-combined-menu" /> -->
       </mousebind>
       <mousebind direction="Up" action="Scroll">
         <action name="GoToDesktop" to="left" wrap="yes" />
@@ -524,6 +577,16 @@
   </tablet>
 
   <!--
+    All tablet tools, except of type mouse and lens, use absolute
+    positioning by default. The *motion* attribute allows to set tools
+    to relative motion instead. When using relative motion,
+    *relativeMotionSensitivity* controls the speed of the cursor. Using
+    a value lower than 1.0 decreases the speed, using a value greater than
+    1.0 increases the speed of the cursor.
+  -->
+  <tabletTool motion="absolute" relativeMotionSensitivity="1.0" />
+
+  <!--
     The *category* attribute is optional and can be set to touch, touchpad,
     non-touch, default or the name of a device. You can obtain device names by
     running *libinput list-devices* as root or member of the input group.
@@ -538,6 +601,7 @@
       - clickMethod [none|buttonAreas|clickfinger]
       - sendEventsMode [yes|no|disabledOnExternalMouse]
       - calibrationMatrix [six float values split by space]
+      - scrollFactor [float]
   -->
   <libinput>
     <device category="default">
@@ -554,6 +618,7 @@
       <clickMethod></clickMethod>
       <sendEventsMode></sendEventsMode>
       <calibrationMatrix></calibrationMatrix>
+      <scrollFactor>1.0</scrollFactor>
     </device>
   </libinput>
 

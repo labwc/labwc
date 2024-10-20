@@ -6,6 +6,8 @@
 #include "common/array.h"
 #include "common/macros.h"
 #include "common/mem.h"
+#include "config/rcxml.h"
+#include "config/session.h"
 #include "labwc.h"
 #include "node.h"
 #include "ssd.h"
@@ -277,19 +279,8 @@ handle_dissociate(struct wl_listener *listener, void *data)
 	struct xwayland_view *xwayland_view =
 		wl_container_of(listener, xwayland_view, dissociate);
 
-	if (!xwayland_view->base.mappable.connected) {
-		/*
-		 * In some cases wlroots fails to emit the associate event
-		 * due to an early return in xwayland_surface_associate().
-		 * This is arguably a wlroots bug, but nevertheless it
-		 * should not bring down labwc.
-		 *
-		 * TODO: Potentially remove when starting to track
-		 *       wlroots 0.18 and it got fixed upstream.
-		 */
-		wlr_log(WLR_ERROR, "dissociate received before associate");
-		return;
-	}
+	/* https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4524 */
+	assert(xwayland_view->base.mappable.connected);
 	mappable_disconnect(&xwayland_view->base.mappable);
 }
 
@@ -339,6 +330,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&xwayland_view->set_override_redirect.link);
 	wl_list_remove(&xwayland_view->set_strut_partial.link);
 	wl_list_remove(&xwayland_view->set_window_type.link);
+	wl_list_remove(&xwayland_view->map_request.link);
 
 	view_destroy(view);
 }
@@ -497,9 +489,17 @@ xwayland_view_get_string_prop(struct view *view, const char *prop)
 	if (!strcmp(prop, "class")) {
 		return xwayland_surface->class;
 	}
-	/* We give 'class' for wlr_foreign_toplevel_handle_v1_set_app_id() */
+	/*
+	 * Use the WM_CLASS 'instance' (1st string) for the app_id. Per
+	 * ICCCM, this is usually "the trailing part of the name used to
+	 * invoke the program (argv[0] stripped of any directory names)".
+	 *
+	 * In most cases, the 'class' (2nd string) is the same as the
+	 * 'instance' except for being capitalized. We want lowercase
+	 * here since we use the app_id for icon lookups.
+	 */
 	if (!strcmp(prop, "app_id")) {
-		return xwayland_surface->class;
+		return xwayland_surface->instance;
 	}
 	return "";
 }
@@ -554,6 +554,80 @@ handle_set_strut_partial(struct wl_listener *listener, void *data)
 	}
 }
 
+/*
+ * Sets the initial geometry of maximized/fullscreen views before
+ * actually mapping them, so that they can do their initial layout and
+ * drawing with the correct geometry. This avoids visual glitches and
+ * also avoids undesired layout changes with some apps (e.g. HomeBank).
+ */
+static void
+handle_map_request(struct wl_listener *listener, void *data)
+{
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, map_request);
+	struct view *view = &xwayland_view->base;
+	struct wlr_xwayland_surface *xsurface = xwayland_view->xwayland_surface;
+
+	if (view->mapped) {
+		/* Probably shouldn't happen, but be sure */
+		return;
+	}
+
+	/* Keep the view invisible until actually mapped */
+	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
+	ensure_initial_geometry_and_output(view);
+
+	/*
+	 * Per the Extended Window Manager Hints (EWMH) spec: "The Window
+	 * Manager SHOULD honor _NET_WM_STATE whenever a withdrawn window
+	 * requests to be mapped."
+	 *
+	 * The following order of operations is intended to reduce the
+	 * number of resize (Configure) events:
+	 *   1. set fullscreen state
+	 *   2. set decorations (depends on fullscreen state)
+	 *   3. set maximized (geometry depends on decorations)
+	 */
+	view_set_fullscreen(view, xsurface->fullscreen);
+	if (!view->been_mapped) {
+		if (want_deco(xsurface)) {
+			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
+		} else {
+			view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
+		}
+	}
+	enum view_axis axis = VIEW_AXIS_NONE;
+	if (xsurface->maximized_horz) {
+		axis |= VIEW_AXIS_HORIZONTAL;
+	}
+	if (xsurface->maximized_vert) {
+		axis |= VIEW_AXIS_VERTICAL;
+	}
+	view_maximize(view, axis, /*store_natural_geometry*/ true);
+	/*
+	 * We could also call set_initial_position() here, but it's not
+	 * really necessary until the view is actually mapped (and at
+	 * that point the output layout is known for sure).
+	 */
+}
+
+static void
+check_natural_geometry(struct view *view)
+{
+	int min_width = view_get_min_width();
+
+	/*
+	 * Some applications (example: Thonny) don't set a reasonable
+	 * un-maximized size when started maximized. Try to detect this
+	 * and set a fallback size.
+	 */
+	if (!view_is_floating(view)
+			&& (view->natural_geometry.width < min_width
+			|| view->natural_geometry.height < LAB_MIN_VIEW_HEIGHT)) {
+		view_set_fallback_natural_geometry(view);
+	}
+}
+
 static void
 set_initial_position(struct view *view,
 		struct wlr_xwayland_surface *xwayland_surface)
@@ -564,17 +638,7 @@ set_initial_position(struct view *view,
 			XCB_ICCCM_SIZE_HINT_US_POSITION |
 			XCB_ICCCM_SIZE_HINT_P_POSITION));
 
-	if (has_position) {
-		/*
-		 * Make sure a floating view is onscreen. For a
-		 * maximized/fullscreen view, do nothing; if it is
-		 * unmaximized/leaves fullscreen later, we will make
-		 * sure it is on-screen at that point.
-		 */
-		if (view_is_floating(view)) {
-			view_adjust_for_layout_change(view);
-		}
-	} else {
+	if (!has_position) {
 		view_constrain_size_to_that_of_usable_area(view);
 
 		if (view_is_floating(view)) {
@@ -593,6 +657,13 @@ set_initial_position(struct view *view,
 				&view->natural_geometry.y);
 		}
 	}
+
+	/*
+	 * Always make sure the view is onscreen and adjusted for any
+	 * layout changes that could have occurred between map_request
+	 * and the actual map event.
+	 */
+	view_adjust_for_layout_change(view);
 }
 
 static void
@@ -614,7 +685,11 @@ init_foreign_toplevel(struct view *view)
 static void
 xwayland_view_map(struct view *view)
 {
-	struct wlr_xwayland_surface *xwayland_surface = xwayland_surface_from_view(view);
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+	struct wlr_xwayland_surface *xwayland_surface =
+		xwayland_view->xwayland_surface;
+	assert(xwayland_surface);
+
 	if (view->mapped) {
 		return;
 	}
@@ -628,8 +703,16 @@ xwayland_view_map(struct view *view)
 		wlr_log(WLR_DEBUG, "Cannot map view without wlr_surface");
 		return;
 	}
+
+	/*
+	 * The map_request event may not be received when an unmanaged
+	 * (override-redirect) surface becomes managed. To make sure we
+	 * have valid geometry in that case, call handle_map_request()
+	 * explicitly (calling it twice is harmless).
+	 */
+	handle_map_request(&xwayland_view->map_request, NULL);
+
 	view->mapped = true;
-	ensure_initial_geometry_and_output(view);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 
 	if (view->surface != xwayland_surface->surface) {
@@ -653,44 +736,8 @@ xwayland_view_map(struct view *view)
 		view->scene_node = &tree->node;
 	}
 
-	/*
-	 * Per the Extended Window Manager Hints (EWMH) spec: "The Window
-	 * Manager SHOULD honor _NET_WM_STATE whenever a withdrawn window
-	 * requests to be mapped."
-	 *
-	 * The following order of operations is intended to reduce the
-	 * number of resize (Configure) events:
-	 *   1. set fullscreen state
-	 *   2. set decorations (depends on fullscreen state)
-	 *   3. set maximized (geometry depends on decorations)
-	 */
-	view_set_fullscreen(view, xwayland_surface->fullscreen);
 	if (!view->been_mapped) {
-		if (want_deco(xwayland_surface)) {
-			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
-		} else {
-			view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
-		}
-	}
-	enum view_axis axis = VIEW_AXIS_NONE;
-	if (xwayland_surface->maximized_horz) {
-		axis |= VIEW_AXIS_HORIZONTAL;
-	}
-	if (xwayland_surface->maximized_vert) {
-		axis |= VIEW_AXIS_VERTICAL;
-	}
-	view_maximize(view, axis, /*store_natural_geometry*/ true);
-
-	/*
-	 * Exclude unfocusable views from wlr-foreign-toplevel. These
-	 * views (notifications, floating toolbars, etc.) should not be
-	 * shown in taskbars/docks/etc.
-	 */
-	if (!view->toplevel.handle && view_is_focusable(view)) {
-		init_foreign_toplevel(view);
-	}
-
-	if (!view->been_mapped) {
+		check_natural_geometry(view);
 		set_initial_position(view, xwayland_surface);
 		/*
 		 * When mapping the view for the first time, visual
@@ -700,6 +747,16 @@ xwayland_view_map(struct view *view)
 		 */
 		view->current = view->pending;
 		view_moved(view);
+	}
+
+	/*
+	 * Exclude unfocusable views from wlr-foreign-toplevel. These
+	 * views (notifications, floating toolbars, etc.) should not be
+	 * shown in taskbars/docks/etc.
+	 */
+	if (!view->toplevel.handle && view_is_focusable(view)) {
+		init_foreign_toplevel(view);
+		foreign_toplevel_update_outputs(view);
 	}
 
 	/* Add commit here, as xwayland map/unmap can change the wlr_surface */
@@ -739,7 +796,6 @@ xwayland_view_unmap(struct view *view, bool client_request)
 out:
 	if (client_request && view->toplevel.handle) {
 		wlr_foreign_toplevel_handle_v1_destroy(view->toplevel.handle);
-		view->toplevel.handle = NULL;
 	}
 }
 
@@ -780,14 +836,6 @@ xwayland_view_move_to_front(struct view *view)
 	 */
 	wlr_xwayland_surface_restack(xwayland_surface_from_view(view),
 		NULL, XCB_STACK_MODE_ABOVE);
-
-	/* Restack unmanaged surfaces on top */
-	struct wl_list *list = &view->server->unmanaged_surfaces;
-	struct xwayland_unmanaged *u;
-	wl_list_for_each(u, list, link) {
-		wlr_xwayland_surface_restack(u->xwayland_surface,
-			NULL, XCB_STACK_MODE_ABOVE);
-	}
 }
 
 static void
@@ -935,7 +983,7 @@ xwayland_view_create(struct server *server,
 	xwayland_view->xwayland_surface = xsurface;
 	xsurface->data = view;
 
-	view->workspace = server->workspace_current;
+	view->workspace = server->workspaces.current;
 	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
 	node_descriptor_create(&view->scene_tree->node, LAB_NODE_DESC_VIEW, view);
 
@@ -957,6 +1005,7 @@ xwayland_view_create(struct server *server,
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_override_redirect);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_strut_partial);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_window_type);
+	CONNECT_SIGNAL(xsurface, xwayland_view, map_request);
 
 	wl_list_insert(&view->server->views, &view->link);
 
@@ -1022,6 +1071,9 @@ sync_atoms(xcb_connection_t *xcb_conn)
 static void
 handle_server_ready(struct wl_listener *listener, void *data)
 {
+	/* Fire an Xwayland startup script if one (or many) can be found */
+	session_run_script("xinitrc");
+
 	xcb_connection_t *xcb_conn = xcb_connect(NULL, NULL);
 	if (xcb_connection_has_error(xcb_conn)) {
 		wlr_log(WLR_ERROR, "Failed to create xcb connection");
@@ -1052,7 +1104,8 @@ void
 xwayland_server_init(struct server *server, struct wlr_compositor *compositor)
 {
 	server->xwayland =
-		wlr_xwayland_create(server->wl_display, compositor, true);
+		wlr_xwayland_create(server->wl_display,
+			compositor, /* lazy */ !rc.xwayland_persistence);
 	if (!server->xwayland) {
 		wlr_log(WLR_ERROR, "cannot create xwayland server");
 		exit(EXIT_FAILURE);

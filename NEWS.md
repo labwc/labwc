@@ -9,7 +9,9 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2024-06-09 | [unreleased]  | 0.17.3          |               |
+| 2024-08-16 | [0.8.0]       | 0.18.0          | 23320         |
+| 2024-06-19 | [0.7.4]       | 0.17.4          | 22746         |
+| 2024-06-12 | [0.7.3]       | 0.17.4          | 22731         |
 | 2024-05-10 | [0.7.2]       | 0.17.3          | 21368         |
 | 2024-03-01 | [0.7.1]       | 0.17.1          | 18624         |
 | 2023-12-22 | [0.7.0]       | 0.17.1          | 16576         |
@@ -31,13 +33,254 @@ The format is based on [Keep a Changelog]
 
 ## [unreleased]
 
+The most noteworthy additions in this release are:
+
+1. Titlebar window icons and layout configuration
+2. Support for the cosmic-workspace protocol and the openbox inspired
+   client-list-combined-menu for a better user experience with workspaces.
+
+Notes to package maintainers:
+
+- The SSD titlebar window icon support requires libsfdo to be added as a
+  dependency or statically linked. If this is not wanted, add -Dicon=disabled to
+  the `meson setup` command in the build script for the next release.
+- PRs #1716 and #2205 add labwc xdg-portal configuration, modify `labwc.desktop`
+  and amend `XDG_CURRENT_DESKTOP` which should enable better out-of-the-box
+  support for xdg-desktop-portal, but if you already ship a custom setup for
+  this you or have different requirements, please review this change.
+
 ### Added
 
+- Support dmabuf feedback (#2234, #1278)
+- Add initial implementation of cosmic-workspace-unstable-v1 (#2030)
+- Optionally support SSD titlebar window icons. When an icon file is not found
+  or could not be loaded, the window menu icon is shown as before. The icon
+  theme can be selected with `<theme><icon>` (#2128)
+- Add actions `ToggleSnapToEdge` and `ToggleSnapToRegion`. These behave like
+  `SnapToEdge` and `SnapToRegion`, except that they untile the window when
+  already being tiled to the given region or direction.
+  Written-by: @jp7677 and @tokyo4j (#2154)
+- Add action `UnSnap`. This behaves like `ToggleSnapToEdge/Region` but
+  unconditionally. Written-by: @jp7677 and @tokyo4j (#2154)
+- Handle xdg-shell `show_window_menu` requests (#2167)
+- Support the openbox style menus listed below. Written-by: @droc12345
+  1. `client-list-combined-menu` shows windows across all workspaces. This can
+     be used with a mouse/key bind using:
+     `<action name="ShowMenu" menu="client-list-combined-menu"/>` (#2101)
+  2. `client-send-to` shows all workspaces that the current window can be sent
+     to. This can additional be used within a client menu using:
+     `<menu id="client-send-to-menu" label="Send to Workspace..." />` (#2152)
+- Add theme option for titlebar padding and button spacing (#2189)
+
+```
+window.button.height: 26
+window.titlebar.padding.width: 0
+window.titlebar.padding.height: 0
+window.button.spacing: 0
+```
+
+- Set titlebar height based on the maximum height of any of the objects within
+  it, rather than just taking the font height into account (#2152)
+- Add theme option for setting button hover effect corner radius (#2127, #2231)
+
+```
+window.button.hover.bg.corner-radius: 0
+```
+
+- Add position arguments for menus. Written-by: @droc12345 (#2102)
+
+```
+<action name="ShowMenu">
+  <menu>root-menu</menu>
+  <position>
+    <x>0</x>
+    <y>0</y>
+  </position>
+</action>
+```
+
+- Allow interactive window movement when horizontally or vertically maximized
+  and add associated config option `<resistance><unMaximizeThreshold>` (#2052)
+- Add optional Shade (shade.xbm) and AllDesktops (desk.xbm) buttons and theme
+  options:
+
+```
+window.active.button.desk.unpressed.image.color
+window.inactive.button.desk.unpressed.image.color
+window.active.button.shade.unpressed.image.color
+window.inactive.button.shade.unpressed.image.color
+```
+
+- Make action `FocusOutput` behave like `MoveToOutput` by adding direction and
+  wrap arguments. Written-by: @orfeasxyz (#2100)
+- Add config option for titlebar layout. Written-by: @xi (#2088, #2150)
+
+```
+<titlebar>
+  <layout>icon:iconify,max,close</layout>
+  <showTitle>yes|no</showTitle>
+</titlebar>
+```
+
+- Add `Oblique` option to `<theme><font><style>`. Written-by: @droc12345 (#2097)
+- Support menu titles defined by `<separator label="">`.
+- Add the theme option `menu.title.bg.color: #589bda`
+- Add theme options `menu.title.text.color` and `menu.title.text.justify`.
+  Written-by: @droc12345 (#2097)
+- Add font place MenuHeader: `<font place="MenuHeader">`.
+  Written-by: @droc12345 (#2097)
+- Add actions `EnableTabletMouseEmulation` and `DisableTabletMouseEmulation`.
+  Written-by: @jp7677 (#2091)
+- Set 'labwc' as `app_id` and `title` for nested outputs (#2055)
+
+### Fixed
+
+- Fix button release events sometimes not being sent (#2226)
+- Fix xdg-shell popups appearing on wrong output with some Qt themes. (#2224)
+- Take into account xdg-shell minimum window size for resizing. This is
+  relevant when using `<resize drawContents="no">` (#2221)
+- Fix button scaling issues (#2207, #2225)
+- Add portals.conf file, amend `labwc.desktop` and modify `XDG_CURRENT_DESKTOP`
+  for better out-of-the-box xdg-desktop-portal support. This helps with for
+  example screensharing. Written-by: @rcalixte @jp7677 (#1503, #1716)
+- Disable the Inhibit D-BUS interface in xdg-portals configuration to fix an
+  issue with some clients (like Firefox) ignoring the idle-inhibit protocol.
+  Written-by: @jp7677 (#2205)
+- Prevent `Drag` mousebinds from running without button press (#2196)
+- Handle slow un-maximize with empty natural geometry better (#2191)
+- Fix de-synced SSD when shrinking Thunderbird xdg-shell window (#2190)
+- Fix xdg-shell out-of-sync configure state when clients time out
+  Written-by: @cillian64 (#2174)
+- Fix small flicker when client initially submits a window size smaller than the
+  minimum value (#2166)
+- Allow server-side decoration to be smaller than minimal size by hiding
+  buttons (#2116)
+- Fix incorrect cursor shape on titlebar corner without buttons (#2105)
+- Fix delayed pipe menu response on item destroy (#2094)
+- Destroy xdg-shell foreign toplevel handle on unmap (#2075)
+- Sync XWayland foreign-toplevel and associated outputs on re-map (#2075)
+
+### Changed
+
+- Theme options `padding.height` and `titlebar.height` have been removed to
+  minimize breaking changes with the visual appearance of the titlebar when
+  using openbox themes. As a result, and depending on your configuration,
+  the titlebar height may change by a small number of pixels (#2189)
+- Move input config `<scrollFactor>` to `<libinput>` section to allow
+  per-device configuration of scroll factor (e.g. setting different scroll
+  factors for mice and touchpads). (#2057)
+
+## [0.8.0]
+
+The main focus in this release has been to port labwc to wlroots 0.18 and to
+grind out associated regressions. Nonetheless, it contains a few non-related
+additions and fixes as described below.
+
+There are a couple of regression warnings when using wlroots 0.18:
+
+1. There appears to be an issue with increased commit failures, particularly
+   with intel drivers. If this turns out to be an issue for anyone please try
+   running with `WLR_DRM_NO_ATOMIC=1` or run the labwc v0.7 branch or its latest
+   release until this is resolved.
+2. Fullscreen VRR is broken but should be fixed once wlroots 0.18.1 is released.
+   Again, if that is a problem we advise to stay with the v0.7 branch in the
+   short term until fixed. PR #2079
+
+A v0.7 branch has been created for bug fixes beyond `0.7.3` (built with wlroots
+`0.17`).
+
+A big thank you goes to @Consolatis for carefully crafting the commits to port
+across to wlroots 0.18.0. Many thanks also to the other core devs @ahesford,
+@jlindgren90, @johanmalm and @tokyo4j for reviewing, merging as well as
+contributing many patches with fixes and new features. And in this release we
+have some great contributions from @jp7677, @kode54, @xi and @heroin-moose which
+have been attributed with a 'Written-by' against each relevant log entry.
+
+### Added
+
+- Add options `fullscreen` and `fullscreenForced` for `<core><allowTearing>`
+  Written-by: @jp7677 & @Consolatis PR #1941
+- Optionally allow keybindings when session is locked, which for example can be
+  useful for volume settings. Written-by: @xi PR #2041
+
+```xml
+<keyboard><keybind key="" allowWhenLocked="">
+```
+
+- Add resistance when dragging tiled/maximized windows with config option
+  `<resistance><unSnapThreshold>`. PR #2009 #2056
+- Implement support for renderer loss recovery. Written-by: @kode54 PR #1997
+- Support xinitrc scripts to configure XWayland server on launch. PR #1963
+- Add theme option `window.button.width` to set window button size.
+  Written-by: @heroin-moose PR #1965
+- Add `cascade` placement policy. PR #1890
+
+```xml
+<placement>
+  <policy>cascade</policy>
+  <cascadeOffset x="40" y="30"/>
+</placement>
+```
+
+- Support relative tablet motion. Written-by: @jp7677 PR #1962
+
+```xml
+<tabletTool motion="absolute|relative" relativeMotionSensitivity="1.0"/>
+```
+
+### Fixed
+
+- Make tablet rotation follow output rotation. Written-by: @jp7677. PR #2060
+- Fix error when launching windowed Chromium. PR #2069
+- Fix empty `XKB_DEFAULT_LAYOUT` bug. PR #2061
+- Take into account CSD borders when unconstraining XDG popups. PR #2016
+- Choose xdg-popup output depending on xdg-positioner PR #2016
+- Fix wlroots-0.18 regression causing flicker with some layer-shell clients like
+  fuzzel on launch. PR #2021
+- Fix incorrect condition in server-side-deco logic PR #2020
+- Fix flicker of snapped windows in nested session. PR #2010
+- Fix tearing with atomic mode setting. Written-by: @kode54 PR #1996
+- Handle initially maximized and fullscreen xdg-shell windows better.
+  PRs #1956 and #2007
+- Set initial geometry of maximized and fullscreen XWayland windows in the
+  `map_request` handler to avoid visual glitches with some apps. PR #1529
+- Disable pango glyph position rounding to avoid text geometry jump around when
+  changing scale.
+
+### Changed
+
+- Make windows stay fullscreen when associated output is disconnected. PR #2040
+
+## [0.7.4]
+
+### Fixed
+
+- Make SSD borders respect snapped state on Reconfigure. PR #2003
+- Fix magnifier by disabling direct scanout when active. PR #1989
+- Fix crash triggered by pipemenu without parent `<menu>` element. PR #1988
+
+## [0.7.3]
+
+Following a couple of big releases, this one feels like more steady with lots of
+focus on bug fixes and stability. In terms of new features the most noteworthy
+ones include improved tablet support (by @jp7677), `Super_L` on-release keybinds
+(by @spl237 from the Raspberry Pi teams) and the screen magnifier which was a
+joint effort by @spl237 and @Consolatis.
+
+### Added
+
+- Add config option `<core><xwaylandPersistence>` to support keeping XWayland
+  alive even when no clients are connected. PR #1961
+- Support xdg-shell protocol v3 with popup repositioning. #1950
+  Also see https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/3514
+  which adds support on the wlroots side.
+- Add action `ToggleTabletMouseEmulation`. Written-by: jp7677 PR #1915
+- Implement `<resize><drawContents>`. With thanks to @tokyo4j PR #1863
 - Add `onRelease` option to `<keybind>` in support of binding `Super_L` to a
   menu. Written-by: @spl237 PR #1888
 - Add initial support for `security-context-v1` (user configurable blocklists
   are still missing). Written-by: @nesteroff PR #1817
-- Add partial support for `tablet-v2-manager`. Written-by: @jp7677 PR #1678
+- Add support for `tablet-v2-manager`. Written-by: @jp7677 PR #1678 #1882
 - Add action `UnMaximize`. PR #1831
 - Support multiple IME popups. PR #1823
 - Add `All` context for mouse bindings which need to be handled irrespective of
@@ -51,6 +294,33 @@ The format is based on [Keep a Changelog]
 
 ### Fixed
 
+- When looking for menu.xml, go through all paths rather than just giving up
+  if not found in the first path searched. This makes it consistent with how
+  other config/theme files are handled. PR #1971
+- Fix memory leaks in theme.c and menu.c. PR #1971
+- Fix session-lock bugs related to keyboard focus. PR #1952
+  - Clear focused surface on lock
+  - Restore focused view on unlock
+- Fix memory leak in ssd/ssd-shadow.c PR #1954
+- Respect `menu.overlap.x` when using pipemenus. PR #1940
+- Do not try to restore windows to very small width/height on unmaximize.
+  This fixes a bug with Thonny (Python IDE made with Tk). PR #1938
+- Conditially set squared server-side decoration (SSD) corners when a view is
+  tiled. Written-by: @jp7677 PR #1926
+- Remember initial direction when starting window-cycling with `PreviousView`.
+  Also make the toggling of direction when shift is pressed relative to the
+  initial direction. For example if W-j is bound to PreviousWindow, subsequent
+  key presses will continue to cycle backwards unless shift is also pressed.
+  Written-by: @droc12345 PR #1919
+- Show dnd icon above layer-shell surfaces. PR #1936
+- Initialize locale after reading environment files so that client-menu items
+  and workspace names follow the env var `LANG` should that be set in
+  `~/.config/labwc/environment` (which is not recommended, but we prefer to
+  handle it properly if it is). PR #1927
+- Fix crash on `menu.xml` containing `<item>` without a parent `<menu>`.
+  PR #1907
+- Reset XWayland cursor image on cursor theme reload to avoid trying to read
+  destroyed pixel data. PR #1895
 - Prevent child views from opening outside of usable area. PR #1878
 - Fix IME popups issues (flicker when popup surface is initially mapped
   and incorrectly showing multiple popups). PR #1872
@@ -74,15 +344,15 @@ The format is based on [Keep a Changelog]
 
 ### Changed
 
+- Remove subprojects/seatd.wrap as no longer needed
 - Action `MoveToCursor` is deprecated in favour of:
   `<action name="AutoPlace" policy="cursor"/>`.
 
 ## [0.7.2]
 
-This release is shaping up to be the second in a row that is larger than
-usual in terms of both fixes and new features. Significant additions
-include input-methods, pipemenus, snap-to-edge overlays and optionally
-drop-shadows.
+This release shaped up to be the second in a row that is larger than usual in
+terms of both fixes and new features. Significant additions include
+input-methods, pipemenus, snap-to-edge overlays and optionally drop-shadows.
 
 As usual, most of the commits are by the core devs: @ahesford, @Consolatis,
 @jlindgren90, @johanmalm and @tokyo4j, but we also have many great
@@ -1394,7 +1664,10 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.7.2...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.8.0...HEAD
+[0.8.0]: https://github.com/labwc/labwc/compare/0.7.3...0.8.0
+[0.7.4]: https://github.com/labwc/labwc/compare/0.7.3...0.7.4
+[0.7.3]: https://github.com/labwc/labwc/compare/0.7.2...0.7.3
 [0.7.2]: https://github.com/labwc/labwc/compare/0.7.1...0.7.2
 [0.7.1]: https://github.com/labwc/labwc/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/labwc/labwc/compare/0.6.6...0.7.0

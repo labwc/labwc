@@ -5,8 +5,6 @@
 #include <wayland-server-core.h>
 #include "common/border.h"
 
-#define SSD_BUTTON_COUNT 4
-#define SSD_BUTTON_WIDTH 26
 #define SSD_EXTENDED_AREA 8
 
 /*
@@ -23,12 +21,25 @@
  */
 enum ssd_part_type {
 	LAB_SSD_NONE = 0,
-	LAB_SSD_BUTTON_CLOSE,
+
+	LAB_SSD_BUTTON_CLOSE = 1,
 	LAB_SSD_BUTTON_MAXIMIZE,
 	LAB_SSD_BUTTON_ICONIFY,
+	LAB_SSD_BUTTON_WINDOW_ICON,
 	LAB_SSD_BUTTON_WINDOW_MENU,
+	LAB_SSD_BUTTON_SHADE,
+	LAB_SSD_BUTTON_OMNIPRESENT,
+	/* only for internal use */
+	LAB_SSD_BUTTON_FIRST = LAB_SSD_BUTTON_CLOSE,
+	LAB_SSD_BUTTON_LAST = LAB_SSD_BUTTON_OMNIPRESENT,
+	LAB_SSD_BUTTON,
+
 	LAB_SSD_PART_TITLEBAR,
+	LAB_SSD_PART_TITLEBAR_CORNER_RIGHT,
+	LAB_SSD_PART_TITLEBAR_CORNER_LEFT,
 	LAB_SSD_PART_TITLE,
+
+	/* shared by shadows, borders and extents */
 	LAB_SSD_PART_CORNER_TOP_LEFT,
 	LAB_SSD_PART_CORNER_TOP_RIGHT,
 	LAB_SSD_PART_CORNER_BOTTOM_RIGHT,
@@ -37,6 +48,7 @@ enum ssd_part_type {
 	LAB_SSD_PART_RIGHT,
 	LAB_SSD_PART_BOTTOM,
 	LAB_SSD_PART_LEFT,
+
 	LAB_SSD_CLIENT,
 	LAB_SSD_FRAME,
 	LAB_SSD_ROOT,
@@ -74,12 +86,14 @@ struct wlr_scene_node;
  */
 struct ssd *ssd_create(struct view *view, bool active);
 struct border ssd_get_margin(const struct ssd *ssd);
+int ssd_get_corner_width(void);
 void ssd_update_margin(struct ssd *ssd);
 void ssd_set_active(struct ssd *ssd, bool active);
 void ssd_update_title(struct ssd *ssd);
 void ssd_update_geometry(struct ssd *ssd);
 void ssd_destroy(struct ssd *ssd);
 void ssd_set_titlebar(struct ssd *ssd, bool enabled);
+void ssd_update_window_icon(struct ssd *ssd);
 
 void ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable);
 void ssd_enable_shade(struct ssd *ssd, bool enable);
@@ -97,7 +111,6 @@ enum ssd_part_type ssd_at(const struct ssd *ssd,
 enum ssd_part_type ssd_get_part_type(const struct ssd *ssd,
 	struct wlr_scene_node *node);
 uint32_t ssd_resize_edges(enum ssd_part_type type);
-bool ssd_is_button(enum ssd_part_type type);
 bool ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate);
 enum ssd_mode ssd_mode_parse(const char *mode);
 

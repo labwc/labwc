@@ -14,9 +14,10 @@
     - [4.3.3 The use of GNU extensions](#the-use-of-gnu-extensions)
     - [4.3.4 Naming Conventions](#naming-conventions)
 - [5. Commit Messages](#commit-messages)
-- [6. Submitting Patches](#submitting-patches)
-- [7. Native Language Support](#native-language-support)
-- [8. Upversion](#upversion)
+- [6. Unit Tests](#unit-tests)
+- [7. Submitting Patches](#submitting-patches)
+- [8. Native Language Support](#native-language-support)
+- [9. Upversion](#upversion)
 
 # How to Contribute
 
@@ -344,6 +345,29 @@ This first line should:
 
 And please wrap the commit message at max 74 characters, otherwise `git log`
 and similar look so weird. URLs and other references are exempt.
+
+# Unit Tests
+
+## Introduction
+
+The tests live in the `t/` directory.
+
+In the bigger scheme of validating that the compositor meets users' needs, unit
+tests do not contribute a great deal. However, they have a role to play in
+providing some verification that stand-alone functions behave as expected.
+
+On this project, writing unit-tests is not compulsory nor do we measure
+coverage. The inclusion of the t/ directory does not signifiy a move towards
+test-driven development. We intend to use unit tests sparingly and only when
+devs find them useful.
+
+## Usage
+
+From repo top level directory:
+
+    meson setup -Dtest=enabled build
+    meson compile -C build/
+    meson test --verbose -C build/
 
 # Submitting patches
 

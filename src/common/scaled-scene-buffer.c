@@ -72,8 +72,8 @@ _update_buffer(struct scaled_scene_buffer *self, double scale)
 		/* Ensure the buffer doesn't get deleted behind our back */
 		wlr_buffer_lock(&buffer->base);
 	}
-	self->width = buffer ? buffer->unscaled_width : 0;
-	self->height = buffer ? buffer->unscaled_height : 0;
+	self->width = buffer ? buffer->logical_width : 0;
+	self->height = buffer ? buffer->logical_height : 0;
 
 	/* Create or reuse cache entry */
 	if (wl_list_length(&self->cache) < LAB_SCALED_BUFFER_MAX_CACHE) {

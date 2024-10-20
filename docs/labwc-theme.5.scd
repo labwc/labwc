@@ -47,17 +47,17 @@ labwc-config(5).
 # THEME ELEMENTS
 
 *border.width*
-	Line width (integer) of border border drawn around window frames.
+	Line width (integer) of border drawn around window frames.
 	Default is 1.
 
-*padding.height*
-	Vertical padding size, used for spacing out elements in the window
-	decorations. Default is 3.
+*window.titlebar.padding.width*
+	Horizontal titlebar padding size, in pixels, between border and first
+	button on the left/right.
+	Default is 0.
 
-*titlebar.height*
-	Window title bar height.
-	Default equals the vertical font extents of the title plus 2x
-	padding.height.
+*window.titlebar.padding.height*
+	Vertical titlebar padding size, in pixels.
+	Default is 0.
 
 *menu.items.padding.x*
 	Horizontal padding of menu text entries in pixels.
@@ -66,6 +66,10 @@ labwc-config(5).
 *menu.items.padding.y*
 	Vertical padding of menu text entries in pixels.
 	Default is 4.
+
+*menu.title.text.justify*
+	Specifies how menu titles are aligned in the titlebar.
+	Type justification. Default Center.
 
 *menu.overlap.x*
 	Horizontal overlap in pixels between submenus and their parents. A
@@ -114,6 +118,22 @@ labwc-config(5).
 	Specifies how window titles are aligned in the titlebar for both
 	focused and unfocused windows. Type justification. Default Left.
 
+*window.button.width*
+	Width of a titlebar button, in pixels.
+	Default is 26.
+
+*window.button.spacing*
+	Space between titlebar buttons, in pixels.
+	Default is 0.
+
+*window.button.hover.bg.corner-radius*
+	Radius of the hover effect of a titlebar button, in pixels.
+	Default is 0.
+
+	Note: for a circular hover effect, set *window.button.width* and
+	*window.button.height* equal and *window.button.hover.bg.corner-radius* half
+	of them.
+
 *window.active.button.unpressed.image.color*
 	Color of the images in titlebar buttons in their default, unpressed,
 	state. This element is for the focused window.
@@ -122,13 +142,19 @@ labwc-config(5).
 	Color of the images in titlebar buttons in their default, unpressed,
 	state. This element is for non-focused windows.
 
-Note: The button elements (i.e. window.[in]active.button.\*) support defining
-different types of buttons individually by inserting the type ("menu",
-"iconify", "max" and "close") after the button node. For example:
-window.active.button.iconify.unpressed.image.color
-This syntax is not documented on the openbox.org wiki, but is supported by
-openbox and is used by many popular themes. For the sake of brevity, these
-elements are not listed here, but are supported.
+Note: Button elements (i.e. window.[in]active.button.\*) may be defined uniquely
+for each type of button ("menu", "iconify", "max", "shade", "desk" or "close")
+by appending the type after the "button" node. For example:
+
+- window.active.button.iconify.unpressed.image.color indicates the color of the
+iconify button for active windows; while
+
+- window.inactive.button.close.unpressed.image.color indicates the color of the
+close button for inactive windows.
+
+This syntax is not documented by Openbox, but is supported and is used by many
+popular themes. For the sake of brevity, these elements are not listed here, but
+all are supported.
 
 *window.active.shadow.size*
 	Size of the drop-shadow for the focused window, in pixels.
@@ -169,6 +195,13 @@ elements are not listed here, but are supported.
 
 *menu.separator.color*
 	Menu separator color. Default #888888.
+
+*menu.title.bg.color*
+	Menu title color. Default #589bda.
+	Note: A menu title is a separator with a label.
+
+*menu.title.text.color*
+	Text color of separator label.  Default #ffffff.
 
 *osd.bg.color*
 	Background color of on-screen-display. Inherits
@@ -303,6 +336,10 @@ file within a particular theme. The following xbm buttons are supported:
 - close.xbm
 - menu.xbm
 - max_toggled.xbm
+- desk.xbm
+- desk_toggled.xbm
+- shade.xbm
+- shade_toggled.xbm
 
 Additional icons can be defined to be shown when the mouse pointer is hovering
 over the button in question:
@@ -312,6 +349,10 @@ over the button in question:
 - close_hover.xbm
 - menu_hover.xbm
 - max_toggled_hover.xbm
+- desk_hover.xbm
+- desk_toggle_hover.xbm
+- shade_hover.xbm
+- shade_toggle_hover.xbm
 
 One advantage of xbm buttons over other formats is that they change color based
 on the theme. Other formats use the suffices "-active" and "-inactive" to align
@@ -345,6 +386,22 @@ following icons should be added:
 - menu_hover-active.[png|svg]
 - menu_hover-inactive.[png|svg]
 - menu-inactive.[png|svg]
+- shade-active.[png|svg]
+- shade_hover-active.[png|svg]
+- shade_hover-inactive.[png|svg]
+- shade-inactive.[png|svg]
+- shade_toggled-active.[png|svg]
+- shade_toggled-inactive.[png|svg]
+- shade_toggled_hover-active.[png|svg]
+- shade_toggled_hover-inactive.[png|svg]
+- desk-active.[png|svg]
+- desk_hover-active.[png|svg]
+- desk_hover-inactive.[png|svg]
+- desk-inactive.[png|svg]
+- desk_toggled-active.[png|svg]
+- desk_toggled-inactive.[png|svg]
+- desk_toggled_hover-active.[png|svg]
+- desk_toggled_hover-inactive.[png|svg]
 
 # DEFINITIONS
 

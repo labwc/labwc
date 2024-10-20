@@ -15,6 +15,7 @@ labwc_sources = files(
   'osd.c',
   'osd-field.c',
   'output.c',
+  'output-state.c',
   'output-virtual.c',
   'overlay.c',
   'placement.c',
@@ -43,11 +44,17 @@ if have_xwayland
   )
 endif
 
+if have_libsfdo
+  labwc_sources += files(
+    'icon-loader.c',
+  )
+endif
 
-subdir('button')
+subdir('img')
 subdir('common')
 subdir('config')
 subdir('decorations')
 subdir('input')
 subdir('menu')
 subdir('ssd')
+subdir('protocols')

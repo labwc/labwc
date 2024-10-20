@@ -112,11 +112,6 @@ idle_callback(void *data)
 int
 main(int argc, char *argv[])
 {
-#if HAVE_NLS
-	setlocale(LC_ALL, "");
-	bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
-	textdomain(GETTEXT_PACKAGE);
-#endif
 	char *startup_cmd = NULL;
 	char *primary_client = NULL;
 	enum wlr_log_importance verbosity = WLR_ERROR;
@@ -173,6 +168,14 @@ main(int argc, char *argv[])
 	die_on_detecting_suid();
 
 	session_environment_init();
+
+#if HAVE_NLS
+	/* Initialize locale after setting env vars */
+	setlocale(LC_ALL, "");
+	bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+	textdomain(GETTEXT_PACKAGE);
+#endif
+
 	rcxml_read(rc.config_file);
 
 	/*

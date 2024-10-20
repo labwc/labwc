@@ -5,6 +5,7 @@
 #include <wlr/util/edges.h>
 #include <wlr/util/box.h>
 #include "common/border.h"
+#include "common/box.h"
 #include "common/macros.h"
 #include "config/rcxml.h"
 #include "edges.h"
@@ -466,9 +467,8 @@ edges_find_outputs(struct border *nearest_edges, struct view *view,
 		struct wlr_box usable =
 			output_usable_area_in_layout_coords(o);
 
-		struct wlr_box ol;
-		if (!wlr_box_intersection(&ol, &origin, &usable) &&
-				!wlr_box_intersection(&ol, &target, &usable)) {
+		if (!box_intersects(&origin, &usable)
+				&& !box_intersects(&target, &usable)) {
 			continue;
 		}
 
@@ -515,7 +515,7 @@ edges_adjust_move_coords(struct view *view, struct border edges,
 
 	if (view_geom->x != *x) {
 		int lshift = border.left + rc.gap;
-		int rshift = border.right + rc.gap + view->pending.width;
+		int rshift = border.right + rc.gap + view_geom->width;
 
 		adjust_move_coords_1d(x, edges.left, lshift,
 			edges.right, rshift, *x < view_geom->x);
@@ -524,7 +524,7 @@ edges_adjust_move_coords(struct view *view, struct border edges,
 	if (view_geom->y != *y) {
 		int tshift = border.top + rc.gap;
 		int bshift = border.bottom + rc.gap
-			+ view_effective_height(view, /* use_pending */ true);
+			+ view_effective_height(view, use_pending);
 
 		adjust_move_coords_1d(y, edges.top, tshift,
 			edges.bottom, bshift, *y < view_geom->y);

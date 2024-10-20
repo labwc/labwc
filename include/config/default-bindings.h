@@ -323,6 +323,16 @@ static struct mouse_combos {
 		.event = "Click",
 		.action = "ToggleMaximize",
 	}, {
+		.context = "Shade",
+		.button = "Left",
+		.event = "Click",
+		.action = "ToggleShade",
+	}, {
+		.context = "AllDesktops",
+		.button = "Left",
+		.event = "Click",
+		.action = "ToggleOmnipresent",
+	}, {
 		.context = "Maximize",
 		.button = "Right",
 		.event = "Click",
@@ -355,6 +365,32 @@ static struct mouse_combos {
 		},
 	}, {
 		.context = "WindowMenu",
+		.button = "Right",
+		.event = "Click",
+		.action = "ShowMenu",
+		.attributes[0] = {
+			.name = "menu",
+			.value = "client-menu",
+		},
+		.attributes[1] = {
+			.name = "atCursor",
+			.value = "no",
+		},
+	}, {
+		.context = "Icon",
+		.button = "Left",
+		.event = "Click",
+		.action = "ShowMenu",
+		.attributes[0] = {
+			.name = "menu",
+			.value = "client-menu",
+		},
+		.attributes[1] = {
+			.name = "atCursor",
+			.value = "no",
+		},
+	}, {
+		.context = "Icon",
 		.button = "Right",
 		.event = "Click",
 		.action = "ShowMenu",

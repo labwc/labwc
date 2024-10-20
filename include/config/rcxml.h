@@ -11,15 +11,18 @@
 #include "common/font.h"
 #include "config/touch.h"
 #include "config/tablet.h"
+#include "config/tablet-tool.h"
 #include "config/libinput.h"
 #include "resize-indicator.h"
+#include "ssd.h"
 #include "theme.h"
 
 enum view_placement_policy {
 	LAB_PLACE_INVALID = 0,
 	LAB_PLACE_CENTER,
 	LAB_PLACE_CURSOR,
-	LAB_PLACE_AUTOMATIC
+	LAB_PLACE_AUTOMATIC,
+	LAB_PLACE_CASCADE,
 };
 
 enum adaptive_sync_mode {
@@ -28,12 +31,24 @@ enum adaptive_sync_mode {
 	LAB_ADAPTIVE_SYNC_FULLSCREEN,
 };
 
+enum tearing_mode {
+	LAB_TEARING_DISABLED = 0,
+	LAB_TEARING_ENABLED,
+	LAB_TEARING_FULLSCREEN,
+	LAB_TEARING_FULLSCREEN_FORCED,
+};
+
 enum tiling_events_mode {
 	LAB_TILING_EVENTS_NEVER = 0,
 	LAB_TILING_EVENTS_REGION = 1 << 0,
 	LAB_TILING_EVENTS_EDGE = 1 << 1,
 	LAB_TILING_EVENTS_ALWAYS =
 		(LAB_TILING_EVENTS_REGION | LAB_TILING_EVENTS_EDGE),
+};
+
+struct title_button {
+	enum ssd_part_type type;
+	struct wl_list link;
 };
 
 struct usable_area_override {
@@ -52,9 +67,12 @@ struct rcxml {
 	bool xdg_shell_server_side_deco;
 	int gap;
 	enum adaptive_sync_mode adaptive_sync;
-	bool allow_tearing;
+	enum tearing_mode allow_tearing;
 	bool reuse_output_mode;
 	enum view_placement_policy placement_policy;
+	bool xwayland_persistence;
+	int placement_cascade_offset_x;
+	int placement_cascade_offset_y;
 
 	/* focus */
 	bool focus_follow_mouse;
@@ -63,11 +81,17 @@ struct rcxml {
 
 	/* theme */
 	char *theme_name;
+	char *icon_theme_name;
+	struct wl_list title_buttons_left;
+	struct wl_list title_buttons_right;
 	int corner_radius;
+	bool show_title;
+	bool title_layout_loaded;
 	bool ssd_keep_border;
 	bool shadows_enabled;
 	struct font font_activewindow;
 	struct font font_inactivewindow;
+	struct font font_menuheader;
 	struct font font_menuitem;
 	struct font font_osd;
 
@@ -87,7 +111,6 @@ struct rcxml {
 	/* mouse */
 	long doubleclick_time;     /* in ms */
 	struct wl_list mousebinds; /* struct mousebind.link */
-	double scroll_factor;
 
 	/* touch tablet */
 	struct wl_list touch_configs;
@@ -101,6 +124,10 @@ struct rcxml {
 		uint16_t button_map_count;
 		struct button_map_entry button_map[BUTTON_MAP_MAX];
 	} tablet;
+	struct tablet_tool_config {
+		enum motion motion;
+		double relative_motion_sensitivity;
+	} tablet_tool;
 
 	/* libinput */
 	struct wl_list libinput_categories;
@@ -108,6 +135,8 @@ struct rcxml {
 	/* resistance */
 	int screen_edge_strength;
 	int window_edge_strength;
+	int unsnap_threshold;
+	int unmaximize_threshold;
 
 	/* window snapping */
 	int snap_edge_range;

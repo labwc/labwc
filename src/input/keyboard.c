@@ -384,6 +384,16 @@ handle_menu_keys(struct server *server, struct keysyms *syms)
 }
 
 static void
+toggle_direction(enum lab_cycle_dir *direction)
+{
+	if (*direction == LAB_CYCLE_DIR_FORWARD) {
+		*direction = LAB_CYCLE_DIR_BACKWARD;
+	} else if (*direction == LAB_CYCLE_DIR_BACKWARD) {
+		*direction = LAB_CYCLE_DIR_FORWARD;
+	}
+}
+
+static void
 handle_cycle_view_key(struct server *server, struct keyinfo *keyinfo)
 {
 	for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
@@ -397,21 +407,36 @@ handle_cycle_view_key(struct server *server, struct keyinfo *keyinfo)
 
 	/* cycle to next */
 	if (!keyinfo->is_modifier) {
-		bool back_key = false;
+		enum lab_cycle_dir direction = server->osd_state.initial_direction;
 		for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
 			if (keyinfo->translated.syms[i] == XKB_KEY_Up
 					|| keyinfo->translated.syms[i] == XKB_KEY_Left) {
-				back_key = true;
-				break;
+				direction = LAB_CYCLE_DIR_BACKWARD;
+				goto miss_shift_toggle;
+			}
+			if (keyinfo->translated.syms[i] == XKB_KEY_Down
+					|| keyinfo->translated.syms[i] == XKB_KEY_Right) {
+				direction = LAB_CYCLE_DIR_FORWARD;
+				goto miss_shift_toggle;
 			}
 		}
-		bool backwards = (keyinfo->modifiers & WLR_MODIFIER_SHIFT) || back_key;
 
-		enum lab_cycle_dir dir = backwards
-			? LAB_CYCLE_DIR_BACKWARD
-			: LAB_CYCLE_DIR_FORWARD;
+		bool shift_is_pressed = keyinfo->modifiers & WLR_MODIFIER_SHIFT;
+		if (shift_is_pressed != server->osd_state.initial_keybind_contained_shift) {
+			/*
+			 * Shift reverses the direction - unless shift was part of the
+			 * original keybind in which case we do the opposite.
+			 * For example with S-A-Tab bound to PreviousWindow, shift with
+			 * subsequent key presses should carry on cycling backwards.
+			 */
+			toggle_direction(&direction);
+		}
+
+	/* Only one direction modifier is allowed, either arrow keys OR shift */
+miss_shift_toggle:
+
 		server->osd_state.cycle_view = desktop_cycle_view(server,
-			server->osd_state.cycle_view, dir);
+			server->osd_state.cycle_view, direction);
 		osd_update(server);
 	}
 }
@@ -424,6 +449,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	struct server *server = seat->server;
 	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
 	struct keyinfo keyinfo = get_keyinfo(wlr_keyboard, event->keycode);
+	bool locked = seat->server->session_lock_manager->locked;
 
 	key_state_set_pressed(event->keycode,
 		event->state == WL_KEYBOARD_KEY_STATE_PRESSED,
@@ -432,12 +458,11 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 		if (cur_keybind && cur_keybind->on_release) {
 			key_state_bound_key_remove(event->keycode);
-			if (seat->server->session_lock_manager->locked
-					|| seat->active_client_while_inhibited) {
+			if (locked && !cur_keybind->allow_when_locked) {
 				cur_keybind = NULL;
 				return true;
 			}
-			actions_run(NULL, server, &cur_keybind->actions, 0);
+			actions_run(NULL, server, &cur_keybind->actions, NULL);
 			return true;
 		} else {
 			return handle_key_release(server, event->keycode);
@@ -451,34 +476,29 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	}
 
 	/*
-	 * Ignore labwc keybindings if input is inhibited
+	 * Ignore labwc keybindings if the session is locked.
 	 * It's important to do this after key_state_set_pressed() to ensure
 	 * _all_ key press/releases are registered
 	 */
-	if (seat->active_client_while_inhibited) {
-		return false;
-	}
-	if (seat->server->session_lock_manager->locked) {
-		return false;
-	}
+	if (!locked) {
+		if (server->input_mode == LAB_INPUT_STATE_MENU) {
+			key_state_store_pressed_key_as_bound(event->keycode);
+			handle_menu_keys(server, &keyinfo.translated);
+			return true;
+		}
 
-	if (server->input_mode == LAB_INPUT_STATE_MENU) {
-		key_state_store_pressed_key_as_bound(event->keycode);
-		handle_menu_keys(server, &keyinfo.translated);
-		return true;
-	}
-
-	if (server->osd_state.cycle_view) {
-		key_state_store_pressed_key_as_bound(event->keycode);
-		handle_cycle_view_key(server, &keyinfo);
-		return true;
+		if (server->osd_state.cycle_view) {
+			key_state_store_pressed_key_as_bound(event->keycode);
+			handle_cycle_view_key(server, &keyinfo);
+			return true;
+		}
 	}
 
 	/*
 	 * Handle compositor keybinds
 	 */
 	cur_keybind = match_keybinding(server, &keyinfo, keyboard->is_virtual);
-	if (cur_keybind) {
+	if (cur_keybind && (!locked || cur_keybind->allow_when_locked)) {
 		/*
 		 * Update key-state before action_run() because the action
 		 * might lead to seat_focus() in which case we pass the
@@ -486,7 +506,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		 */
 		key_state_store_pressed_key_as_bound(event->keycode);
 		if (!cur_keybind->on_release) {
-			actions_run(NULL, server, &cur_keybind->actions, 0);
+			actions_run(NULL, server, &cur_keybind->actions, NULL);
 		}
 		return true;
 	}
@@ -678,7 +698,15 @@ set_layout(struct server *server, struct wlr_keyboard *kb)
 	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
 	struct xkb_keymap *keymap = xkb_map_new_from_names(context, &rules,
 		XKB_KEYMAP_COMPILE_NO_FLAGS);
-	if (keymap) {
+
+	/*
+	 * With XKB_DEFAULT_LAYOUT set to empty odd things happen with
+	 * xkb_map_new_from_names() resulting in the keyboard not working, so
+	 * we protect against that.
+	 */
+	const char *layout = getenv("XKB_DEFAULT_LAYOUT");
+	bool layout_empty = layout && !*layout;
+	if (keymap && !layout_empty) {
 		if (!wlr_keyboard_keymaps_match(kb->keymap, keymap)) {
 			wlr_keyboard_set_keymap(kb, keymap);
 			reset_window_keyboard_layout_groups(server);
@@ -686,7 +714,7 @@ set_layout(struct server *server, struct wlr_keyboard *kb)
 		xkb_keymap_unref(keymap);
 	} else {
 		wlr_log(WLR_ERROR, "failed to create xkb keymap for layout '%s'",
-			getenv("XKB_DEFAULT_LAYOUT"));
+			layout);
 		if (!fallback_mode) {
 			wlr_log(WLR_ERROR, "entering fallback mode with layout 'us'");
 			fallback_mode = true;

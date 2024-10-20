@@ -398,7 +398,6 @@ static void
 seat_update_capabilities(struct seat *seat)
 {
 	struct input *input = NULL;
-	struct touch_config_entry *config_entry;
 	uint32_t caps = 0;
 
 	wl_list_for_each(input, &seat->inputs, link) {

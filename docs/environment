@@ -24,7 +24,7 @@
 
 ##
 ## Force Mozilla software like Firefox and Thunderbird to use wayland backend.
-## Firefox (>= v121) enables Wayland by default, but we include this note here
+## Firefox (>= v121) enables Wayland by default, but this note is included here
 ## for those on non-rolling distributions.
 ##
 

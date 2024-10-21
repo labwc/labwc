@@ -178,8 +178,8 @@ handle_drm_lease_request(struct wl_listener *listener, void *data)
 			continue;
 		}
 
-		wlr_output_enable(output->wlr_output, false);
-		wlr_output_commit(output->wlr_output);
+		wlr_output_state_set_enabled(&output->pending, false);
+		output_state_commit(output);
 
 		wlr_output_layout_remove(output->server->output_layout,
 			output->wlr_output);

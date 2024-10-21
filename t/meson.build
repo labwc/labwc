@@ -11,6 +11,7 @@ test_lib = static_library(
 
 tests = [
   'buf-simple',
+  'str',
 ]
 
 foreach t : tests

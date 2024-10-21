@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2024-10-25 | [0.8.1]       | 0.18.1          | 25457         |
 | 2024-08-16 | [0.8.0]       | 0.18.0          | 23320         |
 | 2024-06-19 | [0.7.4]       | 0.17.4          | 22746         |
 | 2024-06-12 | [0.7.3]       | 0.17.4          | 22731         |
@@ -31,7 +32,7 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## [unreleased]
+## [0.8.1]
 
 The most noteworthy additions in this release are:
 
@@ -51,7 +52,7 @@ Notes to package maintainers:
 
 ### Added
 
-- Support dmabuf feedback (#2234, #1278)
+- Support dmabuf feedback [#2234] [#1278]
 - Add initial implementation of cosmic-workspace-unstable-v1 (#2030)
 - Optionally support SSD titlebar window icons. When an icon file is not found
   or could not be loaded, the window menu icon is shown as before. The icon
@@ -135,6 +136,9 @@ window.inactive.button.shade.unpressed.image.color
 
 ### Fixed
 
+- Fix rare NULL-dereference when using cursor constraints [#2250]
+- Fix issue where tablet/touchscreen button events sometimes do not take effect
+  on applications immediately [#2244]
 - Fix button release events sometimes not being sent (#2226)
 - Fix xdg-shell popups appearing on wrong output with some Qt themes. (#2224)
 - Take into account xdg-shell minimum window size for resizing. This is
@@ -169,6 +173,12 @@ window.inactive.button.shade.unpressed.image.color
 - Move input config `<scrollFactor>` to `<libinput>` section to allow
   per-device configuration of scroll factor (e.g. setting different scroll
   factors for mice and touchpads). (#2057)
+
+[#2234]: https://github.com/labwc/labwc/pull/2234
+[#1278]: https://github.com/labwc/labwc/pull/1278
+
+[#2250]: https://github.com/labwc/labwc/pull/2250
+[#2244]: https://github.com/labwc/labwc/pull/2244
 
 ## [0.8.0]
 
@@ -1664,7 +1674,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.8.0...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.8.1...HEAD
+[0.8.1]: https://github.com/labwc/labwc/compare/0.8.0...0.8.1
 [0.8.0]: https://github.com/labwc/labwc/compare/0.7.3...0.8.0
 [0.7.4]: https://github.com/labwc/labwc/compare/0.7.3...0.7.4
 [0.7.3]: https://github.com/labwc/labwc/compare/0.7.2...0.7.3

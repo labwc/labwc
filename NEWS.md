@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2024-10-25 | [0.8.1]       | 0.18.1          | 25473         |
 | 2024-08-16 | [0.8.0]       | 0.18.0          | 23320         |
 | 2024-06-19 | [0.7.4]       | 0.17.4          | 22746         |
 | 2024-06-12 | [0.7.3]       | 0.17.4          | 22731         |
@@ -31,7 +32,7 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## [unreleased]
+## [0.8.1]
 
 The most noteworthy additions in this release are:
 
@@ -41,36 +42,40 @@ The most noteworthy additions in this release are:
 
 Notes to package maintainers:
 
-- The SSD titlebar window icon support requires libsfdo to be added as a
-  dependency or statically linked. If this is not wanted, add -Dicon=disabled to
-  the `meson setup` command in the build script for the next release.
-- PRs #1716 and #2205 add labwc xdg-portal configuration, modify `labwc.desktop`
-  and amend `XDG_CURRENT_DESKTOP` which should enable better out-of-the-box
-  support for xdg-desktop-portal, but if you already ship a custom setup for
-  this you or have different requirements, please review this change.
+- The SSD titlebar window icon support requires [libsfdo] to be added as a
+  (build and run-time) dependency or statically linked. If this is not wanted,
+  add `-Dicon=disabled` to the `meson setup` command in the build script for the
+  next release.
+- PRs [#1716] and [#2205] add labwc xdg-portal configuration, modify
+  `labwc.desktop` and amend `XDG_CURRENT_DESKTOP` which should enable better
+  out-of-the-box support for xdg-desktop-portal, but if you already ship a
+  custom setup for this or have different requirements, please review this
+  change.
+
+[libsfdo]: https://gitlab.freedesktop.org/vyivel/libsfdo
 
 ### Added
 
-- Support dmabuf feedback (#2234, #1278)
-- Add initial implementation of cosmic-workspace-unstable-v1 (#2030)
+- Support dmabuf feedback [#2234] [#1278]
+- Add initial implementation of cosmic-workspace-unstable-v1 [#2030]
 - Optionally support SSD titlebar window icons. When an icon file is not found
   or could not be loaded, the window menu icon is shown as before. The icon
-  theme can be selected with `<theme><icon>` (#2128)
+  theme can be selected with `<theme><icon>` [#2128]
 - Add actions `ToggleSnapToEdge` and `ToggleSnapToRegion`. These behave like
   `SnapToEdge` and `SnapToRegion`, except that they untile the window when
   already being tiled to the given region or direction.
-  Written-by: @jp7677 and @tokyo4j (#2154)
+  Written-by: @jp7677 and @tokyo4j [#2154]
 - Add action `UnSnap`. This behaves like `ToggleSnapToEdge/Region` but
-  unconditionally. Written-by: @jp7677 and @tokyo4j (#2154)
-- Handle xdg-shell `show_window_menu` requests (#2167)
+  unconditionally. Written-by: @jp7677 and @tokyo4j [#2154]
+- Handle xdg-shell `show_window_menu` requests [#2167]
 - Support the openbox style menus listed below. Written-by: @droc12345
   1. `client-list-combined-menu` shows windows across all workspaces. This can
      be used with a mouse/key bind using:
-     `<action name="ShowMenu" menu="client-list-combined-menu"/>` (#2101)
+     `<action name="ShowMenu" menu="client-list-combined-menu"/>` [#2101]
   2. `client-send-to` shows all workspaces that the current window can be sent
      to. This can additional be used within a client menu using:
-     `<menu id="client-send-to-menu" label="Send to Workspace..." />` (#2152)
-- Add theme option for titlebar padding and button spacing (#2189)
+     `<menu id="client-send-to-menu" label="Send to Workspace..." />` [#2152]
+- Add theme option for titlebar padding and button spacing [#2189]
 
 ```
 window.button.height: 26
@@ -80,16 +85,16 @@ window.button.spacing: 0
 ```
 
 - Set titlebar height based on the maximum height of any of the objects within
-  it, rather than just taking the font height into account (#2152)
-- Add theme option for setting button hover effect corner radius (#2127, #2231)
+  it, rather than just taking the font height into account [#2152]
+- Add theme option for setting button hover effect corner radius [#2127] [#2231]
 
 ```
 window.button.hover.bg.corner-radius: 0
 ```
 
-- Add position arguments for menus. Written-by: @droc12345 (#2102)
+- Add position arguments for menus. Written-by: @droc12345 [#2102]
 
-```
+```xml
 <action name="ShowMenu">
   <menu>root-menu</menu>
   <position>
@@ -100,7 +105,7 @@ window.button.hover.bg.corner-radius: 0
 ```
 
 - Allow interactive window movement when horizontally or vertically maximized
-  and add associated config option `<resistance><unMaximizeThreshold>` (#2052)
+  and add associated config option `<resistance><unMaximizeThreshold>` [#2052]
 - Add optional Shade (shade.xbm) and AllDesktops (desk.xbm) buttons and theme
   options:
 
@@ -112,63 +117,68 @@ window.inactive.button.shade.unpressed.image.color
 ```
 
 - Make action `FocusOutput` behave like `MoveToOutput` by adding direction and
-  wrap arguments. Written-by: @orfeasxyz (#2100)
-- Add config option for titlebar layout. Written-by: @xi (#2088, #2150)
+  wrap arguments. Written-by: @orfeasxyz [#2100]
+- Add config option for titlebar layout. Written-by: @xi [#2088] [#2150]
 
-```
+```xml
 <titlebar>
   <layout>icon:iconify,max,close</layout>
   <showTitle>yes|no</showTitle>
 </titlebar>
 ```
 
-- Add `Oblique` option to `<theme><font><style>`. Written-by: @droc12345 (#2097)
+- Add `Oblique` option to `<theme><font><style>`. Written-by: @droc12345 [#2097]
 - Support menu titles defined by `<separator label="">`.
 - Add the theme option `menu.title.bg.color: #589bda`
 - Add theme options `menu.title.text.color` and `menu.title.text.justify`.
-  Written-by: @droc12345 (#2097)
+  Written-by: @droc12345 [#2097]
 - Add font place MenuHeader: `<font place="MenuHeader">`.
-  Written-by: @droc12345 (#2097)
+  Written-by: @droc12345 [#2097]
 - Add actions `EnableTabletMouseEmulation` and `DisableTabletMouseEmulation`.
-  Written-by: @jp7677 (#2091)
-- Set 'labwc' as `app_id` and `title` for nested outputs (#2055)
+  Written-by: @jp7677 [#2091]
+- Set 'labwc' as `app_id` and `title` for nested outputs [#2055]
 
 ### Fixed
 
-- Fix button release events sometimes not being sent (#2226)
-- Fix xdg-shell popups appearing on wrong output with some Qt themes. (#2224)
+- Fix rare NULL-dereference when using cursor constraints [#2250]
+- Fix issue where tablet/touchscreen button events sometimes do not take effect
+  on applications immediately [#2244]
+- Fix button release events sometimes not being sent [#2226]
+- Fix xdg-shell popups appearing on wrong output with some Qt themes. [#2224]
 - Take into account xdg-shell minimum window size for resizing. This is
-  relevant when using `<resize drawContents="no">` (#2221)
-- Fix button scaling issues (#2207, #2225)
+  relevant when using `<resize drawContents="no">` [#2221]
+- Fix rounded hover effect on titlebar buttons when the window is tiled or
+  maximized [#2207]
+- Fix button scaling issue [#2225]
 - Add portals.conf file, amend `labwc.desktop` and modify `XDG_CURRENT_DESKTOP`
   for better out-of-the-box xdg-desktop-portal support. This helps with for
-  example screensharing. Written-by: @rcalixte @jp7677 (#1503, #1716)
+  example screensharing. Written-by: @rcalixte @jp7677 [#1503] [#1716]
 - Disable the Inhibit D-BUS interface in xdg-portals configuration to fix an
   issue with some clients (like Firefox) ignoring the idle-inhibit protocol.
-  Written-by: @jp7677 (#2205)
-- Prevent `Drag` mousebinds from running without button press (#2196)
-- Handle slow un-maximize with empty natural geometry better (#2191)
-- Fix de-synced SSD when shrinking Thunderbird xdg-shell window (#2190)
+  Written-by: @jp7677 [#2205]
+- Prevent `Drag` mousebinds from running without button press [#2196]
+- Handle slow un-maximize with empty natural geometry better [#2191]
+- Fix de-synced SSD when shrinking Thunderbird xdg-shell window [#2190]
 - Fix xdg-shell out-of-sync configure state when clients time out
-  Written-by: @cillian64 (#2174)
+  Written-by: @cillian64 [#2174]
 - Fix small flicker when client initially submits a window size smaller than the
-  minimum value (#2166)
+  minimum value [#2166]
 - Allow server-side decoration to be smaller than minimal size by hiding
-  buttons (#2116)
-- Fix incorrect cursor shape on titlebar corner without buttons (#2105)
-- Fix delayed pipe menu response on item destroy (#2094)
-- Destroy xdg-shell foreign toplevel handle on unmap (#2075)
-- Sync XWayland foreign-toplevel and associated outputs on re-map (#2075)
+  buttons [#2116]
+- Fix incorrect cursor shape on titlebar corner without buttons [#2105]
+- Fix delayed pipe menu response on item destroy [#2094]
+- Destroy xdg-shell foreign toplevel handle on unmap [#2075]
+- Sync XWayland foreign-toplevel and associated outputs on re-map [#2075]
 
 ### Changed
 
 - Theme options `padding.height` and `titlebar.height` have been removed to
   minimize breaking changes with the visual appearance of the titlebar when
   using openbox themes. As a result, and depending on your configuration,
-  the titlebar height may change by a small number of pixels (#2189)
+  the titlebar height may change by a small number of pixels [#2189]
 - Move input config `<scrollFactor>` to `<libinput>` section to allow
   per-device configuration of scroll factor (e.g. setting different scroll
-  factors for mice and touchpads). (#2057)
+  factors for mice and touchpads). [#2057]
 
 ## [0.8.0]
 
@@ -1664,7 +1674,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.8.0...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.8.1...HEAD
+[0.8.1]: https://github.com/labwc/labwc/compare/0.8.0...0.8.1
 [0.8.0]: https://github.com/labwc/labwc/compare/0.7.3...0.8.0
 [0.7.4]: https://github.com/labwc/labwc/compare/0.7.3...0.7.4
 [0.7.3]: https://github.com/labwc/labwc/compare/0.7.2...0.7.3
@@ -1686,4 +1697,44 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [0.3.0]: https://github.com/labwc/labwc/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/labwc/labwc/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/labwc/labwc/compare/081339e...0.1.0
+
+[#1278]: https://github.com/labwc/labwc/pull/1278
+[#1503]: https://github.com/labwc/labwc/pull/1503
+[#1716]: https://github.com/labwc/labwc/pull/1716
+[#2030]: https://github.com/labwc/labwc/pull/2030
+[#2052]: https://github.com/labwc/labwc/pull/2052
+[#2055]: https://github.com/labwc/labwc/pull/2055
+[#2057]: https://github.com/labwc/labwc/pull/2057
+[#2075]: https://github.com/labwc/labwc/pull/2075
+[#2088]: https://github.com/labwc/labwc/pull/2088
+[#2091]: https://github.com/labwc/labwc/pull/2091
+[#2094]: https://github.com/labwc/labwc/pull/2094
+[#2097]: https://github.com/labwc/labwc/pull/2097
+[#2100]: https://github.com/labwc/labwc/pull/2100
+[#2101]: https://github.com/labwc/labwc/pull/2101
+[#2102]: https://github.com/labwc/labwc/pull/2102
+[#2105]: https://github.com/labwc/labwc/pull/2105
+[#2116]: https://github.com/labwc/labwc/pull/2116
+[#2127]: https://github.com/labwc/labwc/pull/2127
+[#2128]: https://github.com/labwc/labwc/pull/2128
+[#2150]: https://github.com/labwc/labwc/pull/2150
+[#2152]: https://github.com/labwc/labwc/pull/2152
+[#2154]: https://github.com/labwc/labwc/pull/2154
+[#2166]: https://github.com/labwc/labwc/pull/2166
+[#2167]: https://github.com/labwc/labwc/pull/2167
+[#2174]: https://github.com/labwc/labwc/pull/2174
+[#2189]: https://github.com/labwc/labwc/pull/2189
+[#2190]: https://github.com/labwc/labwc/pull/2190
+[#2191]: https://github.com/labwc/labwc/pull/2191
+[#2196]: https://github.com/labwc/labwc/pull/2196
+[#2205]: https://github.com/labwc/labwc/pull/2205
+[#2207]: https://github.com/labwc/labwc/pull/2207
+[#2221]: https://github.com/labwc/labwc/pull/2221
+[#2224]: https://github.com/labwc/labwc/pull/2224
+[#2225]: https://github.com/labwc/labwc/pull/2225
+[#2226]: https://github.com/labwc/labwc/pull/2226
+[#2231]: https://github.com/labwc/labwc/pull/2231
+[#2234]: https://github.com/labwc/labwc/pull/2234
+[#2244]: https://github.com/labwc/labwc/pull/2244
+[#2250]: https://github.com/labwc/labwc/pull/2250
 

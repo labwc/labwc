@@ -24,7 +24,8 @@ static struct wlr_surface*
 touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
 		double *x_offset, double *y_offset)
 {
-	/* Do not return a surface when mouse emulation is enforced. Not
+	/*
+	 * Do not return a surface when mouse emulation is enforced. Not
 	 * having a surface will trigger the fallback to cursor move/button
 	 * emulation in the touch signal handlers.
 	 */

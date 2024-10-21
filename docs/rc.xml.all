@@ -537,8 +537,11 @@
 
     Direct cursor movement to a specified output. If the compositor is
     running in nested mode, this does not take effect.
+
+    If mouseEmulation is enabled, all touch up/down/motion events are
+    translated to mouse button and motion events.
   -->
-  <touch deviceName="" mapToOutput="" />
+  <touch deviceName="" mapToOutput="" mouseEmulation="no"/>
 
   <!--
     The tablet cursor movement can be restricted to a single output.

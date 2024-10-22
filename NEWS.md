@@ -143,7 +143,9 @@ window.inactive.button.shade.unpressed.image.color
 - Fix xdg-shell popups appearing on wrong output with some Qt themes. (#2224)
 - Take into account xdg-shell minimum window size for resizing. This is
   relevant when using `<resize drawContents="no">` (#2221)
-- Fix button scaling issues (#2207, #2225)
+- Fix rounded hover effect on titlebar buttons when the window is tiled or
+  maximized (#2207)
+- Fix button scaling issue (#2225)
 - Add portals.conf file, amend `labwc.desktop` and modify `XDG_CURRENT_DESKTOP`
   for better out-of-the-box xdg-desktop-portal support. This helps with for
   example screensharing. Written-by: @rcalixte @jp7677 (#1503, #1716)

@@ -690,7 +690,7 @@ extending outward from the snapped edge.
 ## TOUCH
 
 ```
-<touch deviceName="" mapToOutput="" />
+<touch deviceName="" mapToOutput="" mouseEmulation="no"/>
 ```
 
 *<touch deviceName="" />*
@@ -703,6 +703,10 @@ extending outward from the snapped edge.
 *<touch mapToOutput="" />*
 	Direct cursor movement to a specified output. If the compositor is
 	running in nested mode, this does not take effect.
+
+*<touch mouseEmulation="" />*
+	If mouseEmulation is enabled, all touch up/down/motion events are
+	translated to mouse button and motion events.
 
 ## TABLET
 

@@ -549,7 +549,7 @@ struct wlr_box output_usable_area_in_layout_coords(struct output *output);
 struct wlr_box output_usable_area_scaled(struct output *output);
 void handle_output_power_manager_set_mode(struct wl_listener *listener,
 	void *data);
-void output_enable_adaptive_sync(struct wlr_output *output, bool enabled);
+void output_enable_adaptive_sync(struct output *output, bool enabled);
 
 /**
  * output_max_scale() - get maximum scale factor of all usable outputs.

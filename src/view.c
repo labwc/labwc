@@ -375,8 +375,8 @@ set_adaptive_sync_fullscreen(struct view *view)
 		return;
 	}
 	/* Enable adaptive sync if view is fullscreen */
-	output_enable_adaptive_sync(view->output->wlr_output, view->fullscreen);
-	wlr_output_commit(view->output->wlr_output);
+	output_enable_adaptive_sync(view->output, view->fullscreen);
+	output_state_commit(view->output);
 }
 
 void

@@ -85,6 +85,7 @@ bool menu_call_selected_actions(struct server *server);
 
 void menu_init(struct server *server);
 void menu_finish(struct server *server);
+void menu_on_view_destroy(struct view *view);
 
 /**
  * menu_get_by_id - get menu by id

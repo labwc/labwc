@@ -2453,11 +2453,7 @@ view_destroy(struct view *view)
 		}
 	}
 
-	/* If we spawned a window menu, close it */
-	if (server->menu_current
-			&& server->menu_current->triggered_by_view == view) {
-		menu_close_root(server);
-	}
+	menu_on_view_destroy(view);
 
 	/*
 	 * Destroy the view's scene tree. View methods assume this is non-NULL,

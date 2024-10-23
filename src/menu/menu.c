@@ -1190,6 +1190,36 @@ menu_finish(struct server *server)
 	current_menu = NULL;
 }
 
+void
+menu_on_view_destroy(struct view *view)
+{
+	struct server *server = view->server;
+
+	/* If the view being destroy has an open window menu, then close it */
+	if (server->menu_current
+			&& server->menu_current->triggered_by_view == view) {
+		menu_close_root(server);
+	}
+
+	/*
+	 * TODO: Instead of just setting client_list_view to NULL and deleting
+	 * the actions (as below), consider destroying the item and somehow
+	 * updating the menu and its selection state.
+	 */
+
+	/* Also nullify the destroyed view in client-list-combined-menu */
+	struct menu *menu = menu_get_by_id(server, "client-list-combined-menu");
+	if (menu) {
+		struct menuitem *item;
+		wl_list_for_each(item, &menu->menuitems, link) {
+			if (item->client_list_view == view) {
+				item->client_list_view = NULL;
+				action_list_free(&item->actions);
+			}
+		}
+	}
+}
+
 /* Sets selection (or clears selection if passing NULL) */
 static void
 menu_set_selection(struct menu *menu, struct menuitem *item)

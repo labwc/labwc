@@ -2473,5 +2473,6 @@ view_destroy(struct view *view)
 	wl_list_remove(&view->link);
 	free(view);
 
+	update_client_list_combined_menu(server);
 	cursor_update_focus(server);
 }

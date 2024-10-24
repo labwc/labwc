@@ -77,19 +77,19 @@ svg = dependency('librsvg-2.0', version: '>=2.46', required: false)
 sfdo_basedir = dependency(
   'libsfdo-basedir',
   default_options: ['default_library=static', 'examples=false', 'tests=false'],
-  version: '>=0.1.0',
+  version: '>=0.1.3',
   required: have_libsfdo,
 )
 sfdo_desktop = dependency(
   'libsfdo-desktop',
   default_options: ['default_library=static', 'examples=false', 'tests=false'],
-  version: '>=0.1.0',
+  version: '>=0.1.3',
   required: have_libsfdo,
 )
 sfdo_icon = dependency(
   'libsfdo-icon',
   default_options: ['default_library=static', 'examples=false', 'tests=false'],
-  version: '>=0.1.0',
+  version: '>=0.1.3',
   required: have_libsfdo,
 )
 

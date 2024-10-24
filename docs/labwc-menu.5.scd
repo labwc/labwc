@@ -112,6 +112,16 @@ ID attributes are unique. Duplicates are ignored.
 When writing pipe menu scripts, make sure to escape XML special characters such
 as "&" ("&amp;"), "<" ("&lt;"), and ">" ("&gt;").
 
+A pipemenu can also be used to define the toplevel *<menu>* element. In this
+case the entire menu.xml file would be reduced to something like this (replacing
+obmenu-generator with the menu generator of your choice):
+
+```
+<?xml version="1.0"?>
+<openbox_menu>
+  <menu id="root-menu" label="" execute="obmenu-generator"/>
+</openbox_menu>
+```
 
 # LOCALISATION
 

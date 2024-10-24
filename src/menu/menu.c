@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
+#include <glib.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <signal.h>
@@ -567,6 +568,28 @@ is_toplevel_static_menu_definition(xmlNode *n, char *id)
 	return id && nr_parents(n) == 2;
 }
 
+static bool parse_buf(struct server *server, struct buf *buf);
+
+static void
+parse_root_pipemenu(struct server *server, const char *execute)
+{
+	gchar *output;
+	GError *err = NULL;
+
+	if (!g_spawn_command_line_sync(execute, &output, NULL, NULL, &err)) {
+		wlr_log(WLR_ERROR, "failed to execute root pipe-menu '%s': %s",
+			execute, err->message);
+		g_error_free(err);
+		return;
+	}
+
+	struct buf buf = BUF_INIT;
+	buf_add(&buf, output);
+	parse_buf(server, &buf);
+	g_free(output);
+	buf_reset(&buf);
+}
+
 /*
  * <menu> elements have three different roles:
  *  * Definition of (sub)menu - has ID, LABEL and CONTENT
@@ -584,25 +607,24 @@ handle_menu_element(xmlNode *n, struct server *server)
 		wlr_log(WLR_DEBUG, "pipemenu '%s:%s:%s'", id, label, execute);
 		if (!current_menu) {
 			/*
-			 * We currently do not support pipemenus without a
-			 * parent <item> such as the one the example below:
+			 * Handle pipemenu as the root-menu such this:
 			 *
 			 * <?xml version="1.0" encoding="UTF-8"?>
 			 * <openbox_menu>
 			 *   <menu id="root-menu" label="foo" execute="bar"/>
 			 * </openbox_menu>
-			 *
-			 * TODO: Consider supporting this
 			 */
-			wlr_log(WLR_ERROR,
-				"pipemenu '%s:%s:%s' has no parent <menu>",
-				id, label, execute);
-			goto error;
+			++menu_level;
+			current_menu = menu_create(server, id, label);
+			parse_root_pipemenu(server, execute);
+			--menu_level;
+		} else {
+			current_item = item_create(current_menu, label,
+				/* arrow */ true);
+			current_item_action = NULL;
+			current_item->execute = xstrdup(execute);
+			current_item->id = xstrdup(id);
 		}
-		current_item = item_create(current_menu, label, /* arrow */ true);
-		current_item_action = NULL;
-		current_item->execute = xstrdup(execute);
-		current_item->id = xstrdup(id);
 	} else if ((label && id) || is_toplevel_static_menu_definition(n, id)) {
 		/*
 		 * (label && id) refers to <menu id="" label=""> which is an

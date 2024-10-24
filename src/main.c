@@ -191,6 +191,13 @@ main(int argc, char *argv[])
 		wlr_log(WLR_DEBUG, "LABWC_PID=%s", pid);
 	}
 
+	/* useful for helper programs */
+	if (setenv("LABWC_VER", LABWC_VERSION, true) < 0) {
+		wlr_log_errno(WLR_ERROR, "unable to set LABWC_VER");
+	} else {
+		wlr_log(WLR_DEBUG, "LABWC_VER=%s", LABWC_VERSION);
+	}
+
 	if (!getenv("XDG_RUNTIME_DIR")) {
 		wlr_log(WLR_ERROR, "XDG_RUNTIME_DIR is unset");
 		exit(EXIT_FAILURE);

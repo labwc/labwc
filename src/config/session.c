@@ -29,6 +29,7 @@ static const char *const env_vars[] = {
 	"XCURSOR_THEME",
 	"XDG_SESSION_TYPE",
 	"LABWC_PID",
+	"LABWC_VER",
 	NULL
 };
 

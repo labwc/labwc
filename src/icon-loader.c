@@ -245,7 +245,7 @@ get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
 		int alen = strlen(app_id);
 		int dlen = strlen(desktop_id_base);
 
-		if (!strncmp(app_id, desktop_id, alen > dlen ? dlen : alen)) {
+		if (!strncasecmp(app_id, desktop_id, alen > dlen ? dlen : alen)) {
 			return entry;
 		}
 	}

@@ -236,6 +236,20 @@ get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
 		}
 	}
 
+	/* Try matching partial strings - catches GIMP, among others */
+	for (size_t i = 0; i < n_entries; i++) {
+		struct sfdo_desktop_entry *entry = entries[i];
+		const char *desktop_id = sfdo_desktop_entry_get_id(entry, NULL);
+		const char *dot = strrchr(desktop_id, '.');
+		const char *desktop_id_base = dot ? (dot + 1) : desktop_id;
+		int alen = strlen(app_id);
+		int dlen = strlen(desktop_id_base);
+
+		if (!strncmp(app_id, desktop_id, alen > dlen ? dlen : alen)) {
+			return entry;
+		}
+	}
+
 	return NULL;
 }
 

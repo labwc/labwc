@@ -300,6 +300,7 @@ struct view_query {
 	enum view_edge tiled;
 	char *tiled_region;
 	char *desktop;
+	enum ssd_mode decoration;
 };
 
 struct xdg_toplevel_view {

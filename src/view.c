@@ -90,13 +90,19 @@ view_query_free(struct view_query *query)
 }
 
 static enum three_state
+bool_to_tristate(bool b)
+{
+	return b ? LAB_STATE_ENABLED : LAB_STATE_DISABLED;
+}
+
+static enum three_state
 match_tristate(enum three_state desired, bool actual, enum three_state old_match)
 {
 	switch (desired) {
 	case LAB_STATE_ENABLED:
-		return actual ? LAB_STATE_ENABLED : LAB_STATE_DISABLED;
+		return bool_to_tristate(actual);
 	case LAB_STATE_DISABLED:
-		return actual ? LAB_STATE_DISABLED : LAB_STATE_ENABLED;
+		return bool_to_tristate(!actual);
 	default:
 		return old_match;
 	}
@@ -209,14 +215,26 @@ view_matches_query(struct view *view, struct view_query *query)
 
 	if (query->desktop) {
 		if (!strcasecmp(query->desktop, "other")) {
-			return strcasecmp(view->workspace->name,
-				view->server->workspaces.current->name);
+			struct workspace *current = view->server->workspaces.current;
+			match = bool_to_tristate(strcasecmp(view->workspace->name, current->name));
 		} else {
 			// TODO: perhaps allow wrapping for "left" and "right" workspaces
 			struct workspace *target =
 				workspaces_find(view->server->workspaces.current,
 						query->desktop, false);
-			return target && !strcasecmp(view->workspace->name, target->name);
+			match = bool_to_tristate(target &&
+					!strcasecmp(view->workspace->name, target->name));
+		}
+		if (match == LAB_STATE_DISABLED) {
+			return false;
+		}
+	}
+
+	enum ssd_mode decoration = view_get_ssd_mode(view);
+	if (query->decoration != LAB_SSD_MODE_INVALID) {
+		match = bool_to_tristate(query->decoration == decoration);
+		if (match == LAB_STATE_DISABLED) {
+			return false;
 		}
 	}
 

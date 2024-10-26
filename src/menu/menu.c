@@ -152,7 +152,7 @@ menu_update_width(struct menu *menu)
 				int x, y;
 				x = (menu->size.width - item->native_width) / 2;
 				x = x < 0 ? 0 : x;
-				y = (theme->menu_item_height - item->normal.buffer->height) / 2;
+				y = (theme->menu_header_height - item->normal.buffer->height) / 2;
 				wlr_scene_node_set_position(item->normal.text, x, y);
 			}
 		}
@@ -308,7 +308,7 @@ separator_create(struct menu *menu, const char *label)
 	struct theme *theme = server->theme;
 
 	if (menuitem->type == LAB_MENU_TITLE) {
-		menuitem->height = theme->menu_item_height;
+		menuitem->height = theme->menu_header_height;
 		menuitem->native_width = font_width(&rc.font_menuheader, label);
 	} else if (menuitem->type == LAB_MENU_SEPARATOR_LINE) {
 		menuitem->height = theme->menu_separator_line_thickness +
@@ -349,7 +349,7 @@ separator_create(struct menu *menu, const char *label)
 		/* Center font nodes */
 		int x, y;
 		x = theme->menu_item_padding_x;
-		y = (theme->menu_item_height - menuitem->normal.buffer->height) / 2;
+		y = (theme->menu_header_height - menuitem->normal.buffer->height) / 2;
 		wlr_scene_node_set_position(menuitem->normal.text, x, y);
 	} else {
 		int nominal_width = theme->menu_min_width;

@@ -74,6 +74,8 @@ struct theme {
 	int menu_item_padding_y;
 	int menu_item_height;
 
+	int menu_header_height;
+
 	float menu_items_bg_color[4];
 	float menu_items_text_color[4];
 	float menu_items_active_bg_color[4];

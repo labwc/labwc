@@ -80,6 +80,43 @@ end_cycling(struct server *server)
 	should_cancel_cycling_on_next_key_release = false;
 }
 
+static struct wlr_seat_client *
+seat_client_from_keyboard_resource(struct wl_resource *resource)
+{
+	return wl_resource_get_user_data(resource);
+}
+
+static void
+broadcast_modifiers_to_unfocused_clients(struct wlr_seat *seat,
+		const struct wlr_keyboard_modifiers *modifiers)
+{
+	struct wlr_seat_client *client;
+	wl_list_for_each(client, &seat->clients, link) {
+		if (client == seat->keyboard_state.focused_client) {
+			/*
+			 * We've already notified the focused client by calling
+			 * wlr_seat_keyboard_notify_modifiers()
+			 */
+			continue;
+		}
+		uint32_t serial = wlr_seat_client_next_serial(client);
+		struct wl_resource *resource;
+		wl_resource_for_each(resource, &client->keyboards) {
+			if (!seat_client_from_keyboard_resource(resource)) {
+				continue;
+			}
+			if (!modifiers) {
+				wl_keyboard_send_modifiers(resource, serial, 0,
+					0, 0, 0);
+			} else {
+				wl_keyboard_send_modifiers(resource, serial,
+					modifiers->depressed, modifiers->latched,
+					modifiers->locked, modifiers->group);
+			}
+		}
+	}
+}
+
 static void
 keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 {
@@ -112,7 +149,30 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 	}
 
 	if (!input_method_keyboard_grab_forward_modifiers(keyboard)) {
+		/* Send modifiers to focused client */
 		wlr_seat_keyboard_notify_modifiers(seat->seat,
+			&wlr_keyboard->modifiers);
+
+		/*
+		 * Also broadcast them to non-keyboard-focused clients.
+		 *
+		 * The Wayland protocol does not specify that modifiers are
+		 * broadcast, so this is not something clients can rely on in
+		 * other compositors.
+		 *
+		 * Sway used to broadcast modifiers but stopped doing so to
+		 * avoid waking up all clients when the modifiers change.
+		 *
+		 * By testing with foot and Ctrl+scroll to change font size, it
+		 * appears that Mutter does not pass modifiers to unfocused
+		 * clients, whereas KWin and Weston pass modifiers to clients
+		 * with pointer-focus.
+		 *
+		 * This could be made configurable if there are unintended
+		 * consequences. If so, modifiers ought to still be passed to
+		 * clients with pointer-focus (see issue #2271)
+		 */
+		broadcast_modifiers_to_unfocused_clients(seat->seat,
 			&wlr_keyboard->modifiers);
 	}
 }

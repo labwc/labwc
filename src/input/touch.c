@@ -123,6 +123,9 @@ handle_touch_down(struct wl_listener *listener, void *data)
 	int touch_point_count = wl_list_length(&seat->touch_points);
 
 	if (touch_point->surface) {
+		/* Clear focus to not interfere with touch input */
+		wlr_seat_pointer_notify_clear_focus(seat->seat);
+
 		/* Convert coordinates: first [0, 1] => layout */
 		double lx, ly;
 		wlr_cursor_absolute_to_layout_coords(seat->cursor,

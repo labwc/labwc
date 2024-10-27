@@ -77,6 +77,8 @@ handle_touch_motion(struct wl_listener *listener, void *data)
 				double sx = lx - touch_point->x_offset;
 				double sy = ly - touch_point->y_offset;
 
+				wlr_cursor_warp_absolute(seat->cursor,
+					&event->touch->base, event->x, event->y);
 				wlr_seat_touch_notify_motion(seat->seat, event->time_msec,
 					event->touch_id, sx, sy);
 			} else {
@@ -133,6 +135,8 @@ handle_touch_down(struct wl_listener *listener, void *data)
 			}
 		}
 
+		wlr_cursor_warp_absolute(seat->cursor,
+			&event->touch->base, event->x, event->y);
 		wlr_seat_touch_notify_down(seat->seat, touch_point->surface,
 			event->time_msec, event->touch_id, sx, sy);
 	} else {

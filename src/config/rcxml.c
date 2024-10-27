@@ -495,6 +495,8 @@ fill_action_query(char *nodename, char *content, struct action *action)
 		current_view_query->desktop = xstrdup(content);
 	} else if (!strcasecmp(nodename, "decoration")) {
 		current_view_query->decoration = ssd_mode_parse(content);
+	} else if (!strcasecmp(nodename, "monitor")) {
+		current_view_query->monitor = xstrdup(content);
 	}
 }
 

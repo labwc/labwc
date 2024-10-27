@@ -301,6 +301,7 @@ struct view_query {
 	char *tiled_region;
 	char *desktop;
 	enum ssd_mode decoration;
+	char *monitor;
 };
 
 struct xdg_toplevel_view {

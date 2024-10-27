@@ -86,6 +86,7 @@ view_query_free(struct view_query *query)
 	zfree(query->sandbox_app_id);
 	zfree(query->tiled_region);
 	zfree(query->desktop);
+	zfree(query->monitor);
 	zfree(query);
 }
 
@@ -195,7 +196,7 @@ view_matches_query(struct view *view, struct view_query *query)
 	}
 
 	if (query->tiled != VIEW_EDGE_INVALID) {
-		match = (query->tiled == view->tiled) ? LAB_STATE_ENABLED : LAB_STATE_DISABLED;
+		match = bool_to_tristate(query->tiled == view->tiled);
 		wlr_log(WLR_DEBUG, "tiled: %d\n", match);
 		if (match == LAB_STATE_DISABLED) {
 			return false;
@@ -203,10 +204,8 @@ view_matches_query(struct view *view, struct view_query *query)
 	}
 
 	if (query->tiled_region) {
-		match = (view->tiled_region &&
-			!strcasecmp(query->tiled_region, view->tiled_region->name))
-			? LAB_STATE_ENABLED
-			: LAB_STATE_DISABLED;
+		match = bool_to_tristate(view->tiled_region &&
+			!strcasecmp(query->tiled_region, view->tiled_region->name));
 		wlr_log(WLR_DEBUG, "tiled_region: %d\n", match);
 		if (match == LAB_STATE_DISABLED) {
 			return false;
@@ -233,6 +232,14 @@ view_matches_query(struct view *view, struct view_query *query)
 	enum ssd_mode decoration = view_get_ssd_mode(view);
 	if (query->decoration != LAB_SSD_MODE_INVALID) {
 		match = bool_to_tristate(query->decoration == decoration);
+		if (match == LAB_STATE_DISABLED) {
+			return false;
+		}
+	}
+
+	if (query->monitor) {
+		struct output *target = output_from_name(view->server, query->monitor);
+		match = bool_to_tristate(target == view->output);
 		if (match == LAB_STATE_DISABLED) {
 			return false;
 		}

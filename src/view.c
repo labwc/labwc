@@ -70,9 +70,7 @@ struct view_query *
 view_query_create(void)
 {
 	struct view_query *query = znew(*query);
-	*query = (struct view_query) {
-		.window_type = -1,
-	};
+	query->window_type = -1;
 	return query;
 }
 
@@ -153,51 +151,48 @@ view_matches_query(struct view *view, struct view_query *query)
 	}
 
 	match = match_tristate(query->shaded, view->shaded, match);
-	wlr_log(WLR_DEBUG, "shaded: %d\n", match);
 	if (match  == LAB_STATE_DISABLED) {
 		return false;
 	}
 
-	match = match_tristate(query->maximized, (view->maximized == VIEW_AXIS_BOTH), match);
-	wlr_log(WLR_DEBUG, "maximized: %d\n", match);
+	match =
+		match_tristate(query->maximized_full,
+			(view->maximized == VIEW_AXIS_BOTH), match);
 	if (match == LAB_STATE_DISABLED) {
 		return false;
 	}
 
-	match = match_tristate(query->maximizedhorizontal,
-				(view->maximized == VIEW_AXIS_HORIZONTAL), match);
-	wlr_log(WLR_DEBUG, "maximizedhorizontal: %d\n", match);
+	match =
+		match_tristate(query->maximized_horizontal,
+			(view->maximized == VIEW_AXIS_HORIZONTAL), match);
 	if (match == LAB_STATE_DISABLED) {
 		return false;
 	}
 
-	match = match_tristate(query->maximizedvertical,
-				(view->maximized == VIEW_AXIS_VERTICAL), match);
+	match =
+		match_tristate(query->maximized_vertical,
+			(view->maximized == VIEW_AXIS_VERTICAL), match);
 	if (match == LAB_STATE_DISABLED) {
 		return false;
 	}
 
 	match = match_tristate(query->iconified, view->minimized, match);
-	wlr_log(WLR_DEBUG, "iconified: %d\n", match);
 	if (match == LAB_STATE_DISABLED) {
 		return false;
 	}
 
 	match = match_tristate(query->focused, view->server->active_view == view, match);
-	wlr_log(WLR_DEBUG, "focused: %d\n", match);
 	if (match == LAB_STATE_DISABLED) {
 		return false;
 	}
 
 	match = match_tristate(query->omnipresent, view->visible_on_all_workspaces, match);
-	wlr_log(WLR_DEBUG, "omnipresent: %d\n", match);
 	if (match == LAB_STATE_DISABLED) {
 		return false;
 	}
 
 	if (query->tiled != VIEW_EDGE_INVALID) {
 		match = bool_to_tristate(query->tiled == view->tiled);
-		wlr_log(WLR_DEBUG, "tiled: %d\n", match);
 		if (match == LAB_STATE_DISABLED) {
 			return false;
 		}
@@ -206,7 +201,6 @@ view_matches_query(struct view *view, struct view_query *query)
 	if (query->tiled_region) {
 		match = bool_to_tristate(view->tiled_region &&
 			!strcasecmp(query->tiled_region, view->tiled_region->name));
-		wlr_log(WLR_DEBUG, "tiled_region: %d\n", match);
 		if (match == LAB_STATE_DISABLED) {
 			return false;
 		}

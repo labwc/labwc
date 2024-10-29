@@ -291,9 +291,9 @@ struct view_query {
 	char *sandbox_engine;
 	char *sandbox_app_id;
 	enum three_state shaded;
-	enum three_state maximized;
-	enum three_state maximizedvertical;
-	enum three_state maximizedhorizontal;
+	enum three_state maximized_full;
+	enum three_state maximized_vertical;
+	enum three_state maximized_horizontal;
 	enum three_state iconified;
 	enum three_state focused;
 	enum three_state omnipresent;

@@ -391,25 +391,24 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 			NET_WM_WINDOW_TYPE for XWayland clients.
 
 		*shaded* [yes|no]
-			If the client is rolled down.
+			Whether or not the client is rolled up.
 
-		*maximized* [yes|no]
-			if the client is maximized on both axis.
+		*maximized* [yes|horizontal|vertical|no]
+			Whether the client is maximized along both axes (yes),
+			the horizontal axis only (horizontal), the vertical
+			axis only (vertical) or neither axis (no).
 
-		*maximizedhorizontal* [yes|no]
-			If the client is maximized on the horizontal axis.
-
-		*maximizedvertical* [yes|no]
-			If the client is maximized on the vertical axis.
+			The keyword "full" may be used as a synonym for "yes",
+			while "none" may be used as a synonym for "no".
 
 		*iconified* [yes|no]
-			If the client is iconified.
+			Whether or not the client is iconified.
 
 		*focused* [yes|no]
-			If the client is focused.
+			Whether or not the client is focused.
 
 		*omnipresent* [yes|no]
-			If the client is visible on all desktops.
+			Whether or not the client is visible on all desktops.
 
 		*desktop*
 			The desktop the client is currently on. This can be the
@@ -418,10 +417,11 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 			"left" and "right" are hardcoded to not wrap.
 
 		*tiled* [up|right|down|left|center]
-			If the client is tiled (snapped) in the specified edge.
+			Whether the client is tiled (snapped) along the the
+			indicated screen edge.
 
 		*tiled_region*
-			If the client is tiled (snapped) in the specified
+			Whether the client is tiled (snapped) to the indicated
 			region.
 
 		This argument is optional.

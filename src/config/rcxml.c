@@ -119,6 +119,33 @@ parse_window_type(const char *type)
 	}
 }
 
+static void
+parse_maximized_query(const char *content, struct view_query *query)
+{
+	if (!query || !content) {
+		return;
+	}
+
+	query->maximized_full = LAB_STATE_UNSPECIFIED;
+	query->maximized_vertical = LAB_STATE_UNSPECIFIED;
+	query->maximized_horizontal = LAB_STATE_UNSPECIFIED;
+
+	if (!strcasecmp(content, "yes") || !strcasecmp(content, "full")) {
+		query->maximized_full = LAB_STATE_ENABLED;
+	} else if (!strcasecmp(content, "horizontal")) {
+		query->maximized_horizontal = LAB_STATE_ENABLED;
+	} else if (!strcasecmp(content, "vertical")) {
+		query->maximized_vertical = LAB_STATE_ENABLED;
+	} else if (!strcasecmp(content, "no") || !strcasecmp(content, "none")) {
+		query->maximized_full = LAB_STATE_DISABLED;
+		query->maximized_vertical = LAB_STATE_DISABLED;
+		query->maximized_horizontal = LAB_STATE_DISABLED;
+	} else {
+		wlr_log(WLR_ERROR,
+			"(%s) is not a valid maximized query state", content);
+	}
+}
+
 /*
  * Openbox/labwc comparison
  *
@@ -476,11 +503,7 @@ fill_action_query(char *nodename, char *content, struct action *action)
 	} else if (!strcasecmp(nodename, "shaded")) {
 		current_view_query->shaded = parse_bool(content, -1);
 	} else if (!strcasecmp(nodename, "maximized")) {
-		current_view_query->maximized = parse_bool(content, -1);
-	} else if (!strcasecmp(nodename, "maximizedhorizontal")) {
-		current_view_query->maximizedhorizontal = parse_bool(content, -1);
-	} else if (!strcasecmp(nodename, "maximizedvertical")) {
-		current_view_query->maximizedvertical = parse_bool(content, -1);
+		parse_maximized_query(content, current_view_query);
 	} else if (!strcasecmp(nodename, "iconified")) {
 		current_view_query->iconified = parse_bool(content, -1);
 	} else if (!strcasecmp(nodename, "focused")) {

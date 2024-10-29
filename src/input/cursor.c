@@ -1194,8 +1194,6 @@ void
 cursor_emulate_move_absolute(struct seat *seat, struct wlr_input_device *device,
 		double x, double y, uint32_t time_msec)
 {
-	idle_manager_notify_activity(seat->seat);
-
 	double lx, ly;
 	wlr_cursor_absolute_to_layout_coords(seat->cursor,
 		device, x, y, &lx, &ly);
@@ -1210,8 +1208,6 @@ void
 cursor_emulate_button(struct seat *seat, uint32_t button,
 		enum wl_pointer_button_state state, uint32_t time_msec)
 {
-	idle_manager_notify_activity(seat->seat);
-
 	bool notify;
 	switch (state) {
 	case WL_POINTER_BUTTON_STATE_PRESSED:

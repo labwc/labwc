@@ -180,8 +180,6 @@ notify_motion(struct drawing_tablet *tablet, struct drawing_tablet_tool *tool,
 		struct wlr_surface *surface, double x, double y, double dx, double dy,
 		uint32_t time)
 {
-	idle_manager_notify_activity(tool->seat->seat);
-
 	bool enter_surface = false;
 	/* Postpone proximity-in on a new surface when the tip is down */
 	if (surface != tool->tool_v2->focused_surface && !tool->tool_v2->is_down) {
@@ -252,6 +250,8 @@ handle_tablet_tool_proximity(struct wl_listener *listener, void *data)
 		return;
 	}
 
+	idle_manager_notify_activity(tablet->seat->seat);
+
 	if (ev->state == WLR_TABLET_TOOL_PROXIMITY_IN) {
 		tablet->motion_mode =
 			tool_motion_mode(rc.tablet_tool.motion, ev->tool);
@@ -311,6 +311,8 @@ handle_tablet_tool_axis(struct wl_listener *listener, void *data)
 		wlr_log(WLR_DEBUG, "tool axis event before tablet create");
 		return;
 	}
+
+	idle_manager_notify_activity(tablet->seat->seat);
 
 	/*
 	 * Reset relative coordinates. If those axes aren't updated,
@@ -490,6 +492,8 @@ handle_tablet_tool_tip(struct wl_listener *listener, void *data)
 		return;
 	}
 
+	idle_manager_notify_activity(tablet->seat->seat);
+
 	double x, y, dx, dy;
 	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y, &dx, &dy);
 
@@ -506,8 +510,6 @@ handle_tablet_tool_tip(struct wl_listener *listener, void *data)
 	 */
 	if (tool && !is_down_mouse_emulation && (surface
 			|| wlr_tablet_tool_v2_has_implicit_grab(tool->tool_v2))) {
-		idle_manager_notify_activity(tool->seat->seat);
-
 		uint32_t stylus_button = to_stylus_button(button);
 		if (stylus_button != BTN_TOOL_PEN) {
 			wlr_log(WLR_INFO, "ignoring stylus tool pen mapping for tablet mode");
@@ -569,6 +571,8 @@ handle_tablet_tool_button(struct wl_listener *listener, void *data)
 		return;
 	}
 
+	idle_manager_notify_activity(tablet->seat->seat);
+
 	double x, y, dx, dy;
 	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y, &dx, &dy);
 
@@ -583,8 +587,6 @@ handle_tablet_tool_button(struct wl_listener *listener, void *data)
 	 * - the surface below the tip understands the tablet protocol.
 	 */
 	if (tool && !is_down_mouse_emulation && surface) {
-		idle_manager_notify_activity(tool->seat->seat);
-
 		if (button && ev->state == WLR_BUTTON_PRESSED) {
 			struct view *view = view_from_wlr_surface(surface);
 			struct mousebind *mousebind;

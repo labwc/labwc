@@ -24,6 +24,17 @@ static struct wlr_surface*
 touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
 		double *x_offset, double *y_offset)
 {
+	/*
+	 * Do not return a surface when mouse emulation is enforced. Not
+	 * having a surface will trigger the fallback to cursor move/button
+	 * emulation in the touch signal handlers.
+	 */
+	struct touch_config_entry *config_entry =
+		touch_find_config_for_device(touch->base.name);
+	if (config_entry && config_entry->force_mouse_emulation) {
+		return NULL;
+	}
+
 	/* Convert coordinates: first [0, 1] => layout, then layout => surface */
 	double lx, ly;
 	wlr_cursor_absolute_to_layout_coords(seat->cursor, &touch->base,
@@ -93,7 +104,7 @@ handle_touch_down(struct wl_listener *listener, void *data)
 
 	/* Compute layout => surface offset and save for this touch point */
 	struct touch_point *touch_point = znew(*touch_point);
-	double x_offset, y_offset;
+	double x_offset = 0.0, y_offset = 0.0;
 	touch_point->surface = touch_get_coords(seat, event->touch,
 			event->x, event->y, &x_offset, &y_offset);
 	touch_point->touch_id = event->touch_id;

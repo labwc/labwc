@@ -633,6 +633,8 @@ fill_touch(char *nodename, char *content)
 		current_touch->device_name = xstrdup(content);
 	} else if (!strcasecmp(nodename, "mapToOutput.touch")) {
 		current_touch->output_name = xstrdup(content);
+	} else if (!strcasecmp(nodename, "mouseEmulation.touch")) {
+		set_bool(content, &current_touch->force_mouse_emulation);
 	} else {
 		wlr_log(WLR_ERROR, "Unexpected data in touch parser: %s=\"%s\"",
 			nodename, content);

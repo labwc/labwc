@@ -53,11 +53,15 @@ enum three_state {
  * Therefore when parsing rc.xml, "None" means "Invalid".
  */
 enum view_axis {
-	VIEW_AXIS_INVALID = -1,
 	VIEW_AXIS_NONE = 0,
 	VIEW_AXIS_HORIZONTAL = (1 << 0),
 	VIEW_AXIS_VERTICAL = (1 << 1),
 	VIEW_AXIS_BOTH = (VIEW_AXIS_HORIZONTAL | VIEW_AXIS_VERTICAL),
+	/*
+	 * If view_axis is treated as a bitfield, INVALID should never
+	 * set the HORIZONTAL or VERTICAL bits.
+	 */
+	VIEW_AXIS_INVALID = (1 << 2),
 };
 
 enum view_edge {

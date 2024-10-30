@@ -393,13 +393,10 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 		*shaded* [yes|no]
 			Whether or not the client is rolled up.
 
-		*maximized* [yes|horizontal|vertical|no]
-			Whether the client is maximized along both axes (yes),
-			the horizontal axis only (horizontal), the vertical
-			axis only (vertical) or neither axis (no).
-
-			The keyword "full" may be used as a synonym for "yes",
-			while "none" may be used as a synonym for "no".
+		*maximized* [both|horizontal|vertical|none]
+			Whether the client is maximized along both axes, the
+			horizontal axis only, the vertical axis only, or neither
+			axis (none).
 
 		*iconified* [yes|no]
 			Whether or not the client is iconified.

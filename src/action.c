@@ -366,7 +366,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 	case ACTION_TYPE_UNMAXIMIZE:
 		if (!strcmp(argument, "direction")) {
 			enum view_axis axis = view_axis_parse(content);
-			if (axis == VIEW_AXIS_NONE) {
+			if (axis == VIEW_AXIS_NONE || axis == VIEW_AXIS_INVALID) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			} else {

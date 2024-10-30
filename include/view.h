@@ -53,6 +53,7 @@ enum three_state {
  * Therefore when parsing rc.xml, "None" means "Invalid".
  */
 enum view_axis {
+	VIEW_AXIS_INVALID = -1,
 	VIEW_AXIS_NONE = 0,
 	VIEW_AXIS_HORIZONTAL = (1 << 0),
 	VIEW_AXIS_VERTICAL = (1 << 1),
@@ -291,9 +292,7 @@ struct view_query {
 	char *sandbox_engine;
 	char *sandbox_app_id;
 	enum three_state shaded;
-	enum three_state maximized_full;
-	enum three_state maximized_vertical;
-	enum three_state maximized_horizontal;
+	enum view_axis maximized;
 	enum three_state iconified;
 	enum three_state focused;
 	enum three_state omnipresent;

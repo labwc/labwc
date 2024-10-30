@@ -155,25 +155,11 @@ view_matches_query(struct view *view, struct view_query *query)
 		return false;
 	}
 
-	match =
-		match_tristate(query->maximized_full,
-			(view->maximized == VIEW_AXIS_BOTH), match);
-	if (match == LAB_STATE_DISABLED) {
-		return false;
-	}
-
-	match =
-		match_tristate(query->maximized_horizontal,
-			(view->maximized == VIEW_AXIS_HORIZONTAL), match);
-	if (match == LAB_STATE_DISABLED) {
-		return false;
-	}
-
-	match =
-		match_tristate(query->maximized_vertical,
-			(view->maximized == VIEW_AXIS_VERTICAL), match);
-	if (match == LAB_STATE_DISABLED) {
-		return false;
+	if (query->maximized != VIEW_AXIS_INVALID) {
+		match = bool_to_tristate(view->maximized == query->maximized);
+		if (match == LAB_STATE_DISABLED) {
+			return false;
+		}
 	}
 
 	match = match_tristate(query->iconified, view->minimized, match);
@@ -2066,7 +2052,7 @@ enum view_axis
 view_axis_parse(const char *direction)
 {
 	if (!direction) {
-		return VIEW_AXIS_NONE;
+		return VIEW_AXIS_INVALID;
 	}
 	if (!strcasecmp(direction, "horizontal")) {
 		return VIEW_AXIS_HORIZONTAL;
@@ -2074,8 +2060,10 @@ view_axis_parse(const char *direction)
 		return VIEW_AXIS_VERTICAL;
 	} else if (!strcasecmp(direction, "both")) {
 		return VIEW_AXIS_BOTH;
-	} else {
+	} else if (!strcasecmp(direction, "none")) {
 		return VIEW_AXIS_NONE;
+	} else {
+		return VIEW_AXIS_INVALID;
 	}
 }
 

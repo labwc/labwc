@@ -30,16 +30,19 @@ other_instances_exist(struct view *self, struct view_query *query)
 static bool
 view_matches_criteria(struct window_rule *rule, struct view *view)
 {
-	struct view_query query = {0};
-	query.identifier = rule->identifier;
-	query.title = rule->title;
-	query.window_type = rule->window_type;
-	query.sandbox_engine = rule->sandbox_engine;
-	query.sandbox_app_id = rule->sandbox_app_id;
+	struct view_query query = {
+		.identifier = rule->identifier,
+		.title = rule->title,
+		.window_type = rule->window_type,
+		.sandbox_engine = rule->sandbox_engine,
+		.sandbox_app_id = rule->sandbox_app_id,
+		.maximized = VIEW_AXIS_INVALID,
+	};
 
 	if (rule->match_once && other_instances_exist(view, &query)) {
 		return false;
 	}
+
 	return view_matches_query(view, &query);
 }
 

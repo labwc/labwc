@@ -419,7 +419,7 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 
 		*tiled_region*
 			Whether the client is tiled (snapped) to the indicated
-			region.
+			region. The indicated region may be a glob.
 
 		*decoration* [full|border|none]
 			Whether the client has full server-side decorations,

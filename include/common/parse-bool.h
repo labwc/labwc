@@ -2,6 +2,16 @@
 #ifndef LABWC_PARSE_BOOL_H
 #define LABWC_PARSE_BOOL_H
 #include <stdbool.h>
+#include "view.h"
+
+/**
+ * parse_three_state() - Parse boolean value of string as a three-state enum.
+ * @string: String to interpret. This check is case-insensitive.
+ *
+ * Return: LAB_STATE_DISABLED for false; LAB_STATE_ENABLED for true;
+ * LAB_STATE_UNSPECIFIED for non-boolean
+ */
+enum three_state parse_three_state(const char *str);
 
 /**
  * parse_bool() - Parse boolean value of string.

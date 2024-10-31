@@ -138,8 +138,7 @@ menu_update_width(struct menu *menu)
 		 */
 		if (item->type == LAB_MENU_SEPARATOR_LINE) {
 			int width = menu->size.width
-				- 2 * theme->menu_separator_padding_width
-				- 2 * theme->menu_item_padding_x;
+				- 2 * theme->menu_separator_padding_width;
 			wlr_scene_rect_set_size(
 				wlr_scene_rect_from_node(item->normal.text),
 				width, theme->menu_separator_line_thickness);
@@ -360,8 +359,7 @@ separator_create(struct menu *menu, const char *label)
 		wlr_scene_node_set_position(&menuitem->tree->node, 0, menu->size.height);
 		/* Vertically center-align separator line */
 		wlr_scene_node_set_position(menuitem->normal.text,
-			theme->menu_separator_padding_width
-			+ theme->menu_item_padding_x,
+			theme->menu_separator_padding_width,
 			theme->menu_separator_padding_height);
 	}
 	wlr_scene_node_set_position(&menuitem->tree->node, 0, menu->size.height);

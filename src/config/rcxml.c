@@ -474,15 +474,15 @@ fill_action_query(char *nodename, char *content, struct action *action)
 	} else if (!strcasecmp(nodename, "sandboxAppId")) {
 		current_view_query->sandbox_app_id = xstrdup(content);
 	} else if (!strcasecmp(nodename, "shaded")) {
-		current_view_query->shaded = parse_bool(content, -1);
+		current_view_query->shaded = parse_three_state(content);
 	} else if (!strcasecmp(nodename, "maximized")) {
 		current_view_query->maximized = view_axis_parse(content);
 	} else if (!strcasecmp(nodename, "iconified")) {
-		current_view_query->iconified = parse_bool(content, -1);
+		current_view_query->iconified = parse_three_state(content);
 	} else if (!strcasecmp(nodename, "focused")) {
-		current_view_query->focused = parse_bool(content, -1);
+		current_view_query->focused = parse_three_state(content);
 	} else if (!strcasecmp(nodename, "omnipresent")) {
-		current_view_query->omnipresent = parse_bool(content, -1);
+		current_view_query->omnipresent = parse_three_state(content);
 	} else if (!strcasecmp(nodename, "tiled")) {
 		current_view_query->tiled = view_edge_parse(content);
 	} else if (!strcasecmp(nodename, "tiled_region")) {

@@ -71,6 +71,7 @@ view_query_create(void)
 {
 	struct view_query *query = znew(*query);
 	query->window_type = -1;
+	query->maximized = VIEW_AXIS_INVALID;
 	return query;
 }
 
@@ -88,144 +89,122 @@ view_query_free(struct view_query *query)
 	zfree(query);
 }
 
-static enum three_state
-bool_to_tristate(bool b)
-{
-	return b ? LAB_STATE_ENABLED : LAB_STATE_DISABLED;
-}
-
-static enum three_state
-match_tristate(enum three_state desired, bool actual, enum three_state old_match)
+static bool
+query_tristate_match(enum three_state desired, bool actual)
 {
 	switch (desired) {
 	case LAB_STATE_ENABLED:
-		return bool_to_tristate(actual);
+		return actual;
 	case LAB_STATE_DISABLED:
-		return bool_to_tristate(!actual);
+		return !actual;
 	default:
-		return old_match;
+		return true;
 	}
+}
+
+static bool
+query_str_match(const char *condition, const char *value)
+{
+	if (!condition) {
+		return true;
+	}
+	return value && match_glob(condition, value);
 }
 
 bool
 view_matches_query(struct view *view, struct view_query *query)
 {
-	enum three_state match = LAB_STATE_UNSPECIFIED;
-
-	if (query->identifier) {
-		const char *identifier = view_get_string_prop(view, "app_id");
-		if (!(identifier && match_glob(query->identifier, identifier))) {
-			return false;
-		}
+	if (!query_str_match(query->identifier, view_get_string_prop(view, "app_id"))) {
+		return false;
 	}
 
-	if (query->title) {
-		const char *title = view_get_string_prop(view, "title");
-		if (!(title && match_glob(query->title, title))) {
-			return false;
-		}
+	if (!query_str_match(query->title, view_get_string_prop(view, "title"))) {
+		return false;
 	}
 
-	if (query->window_type >= 0) {
-		if (!view_contains_window_type(view, query->window_type)) {
-			return false;
-		}
+	if (query->window_type >= 0 && !view_contains_window_type(view, query->window_type)) {
+		return false;
 	}
 
-	if (query->sandbox_engine) {
-		const struct wlr_security_context_v1_state *security_context =
+	if (query->sandbox_engine || query->sandbox_app_id) {
+		const struct wlr_security_context_v1_state *ctx =
 			security_context_from_view(view);
-		if (!(security_context && security_context->sandbox_engine &&
-			match_glob(query->sandbox_engine, security_context->sandbox_engine))) {
+
+		if (!ctx) {
+			return false;
+		}
+
+		if (!query_str_match(query->sandbox_engine, ctx->sandbox_engine)) {
+			return false;
+		}
+
+		if (!query_str_match(query->sandbox_app_id, ctx->app_id)) {
 			return false;
 		}
 	}
 
-	if (query->sandbox_app_id) {
-		const struct wlr_security_context_v1_state *security_context =
-			security_context_from_view(view);
-		if (!(security_context && security_context->app_id &&
-			match_glob(query->sandbox_app_id, security_context->app_id))) {
-			return false;
-		}
-	}
-
-	match = match_tristate(query->shaded, view->shaded, match);
-	if (match  == LAB_STATE_DISABLED) {
+	if (!query_tristate_match(query->shaded, view->shaded)) {
 		return false;
 	}
 
-	if (query->maximized != VIEW_AXIS_INVALID) {
-		match = bool_to_tristate(view->maximized == query->maximized);
-		if (match == LAB_STATE_DISABLED) {
-			return false;
-		}
-	}
-
-	match = match_tristate(query->iconified, view->minimized, match);
-	if (match == LAB_STATE_DISABLED) {
+	if (query->maximized != VIEW_AXIS_INVALID && view->maximized != query->maximized) {
 		return false;
 	}
 
-	match = match_tristate(query->focused, view->server->active_view == view, match);
-	if (match == LAB_STATE_DISABLED) {
+	if (!query_tristate_match(query->iconified, view->minimized)) {
 		return false;
 	}
 
-	match = match_tristate(query->omnipresent, view->visible_on_all_workspaces, match);
-	if (match == LAB_STATE_DISABLED) {
+	if (!query_tristate_match(query->focused, view->server->active_view == view)) {
 		return false;
 	}
 
-	if (query->tiled != VIEW_EDGE_INVALID) {
-		match = bool_to_tristate(query->tiled == view->tiled);
-		if (match == LAB_STATE_DISABLED) {
-			return false;
-		}
+	if (!query_tristate_match(query->omnipresent, view->visible_on_all_workspaces)) {
+		return false;
 	}
 
-	if (query->tiled_region) {
-		match = bool_to_tristate(view->tiled_region &&
-			!strcasecmp(query->tiled_region, view->tiled_region->name));
-		if (match == LAB_STATE_DISABLED) {
-			return false;
-		}
+	if (query->tiled != VIEW_EDGE_INVALID && query->tiled != view->tiled) {
+		return false;
+	}
+
+	const char *tiled_region =
+		view->tiled_region ? view->tiled_region->name : NULL;
+	if (!query_str_match(query->tiled_region, tiled_region)) {
+		return false;
 	}
 
 	if (query->desktop) {
+		const char *view_workspace = view->workspace->name;
+		struct workspace *current = view->server->workspaces.current;
+
 		if (!strcasecmp(query->desktop, "other")) {
-			struct workspace *current = view->server->workspaces.current;
-			match = bool_to_tristate(strcasecmp(view->workspace->name, current->name));
+			/* "other" means the view is NOT on the current desktop */
+			if (!strcasecmp(view_workspace, current->name)) {
+				return false;
+			}
 		} else {
-			// TODO: perhaps allow wrapping for "left" and "right" workspaces
+			// TODO: perhaps wrap "left" and "right" workspaces
 			struct workspace *target =
-				workspaces_find(view->server->workspaces.current,
-						query->desktop, false);
-			match = bool_to_tristate(target &&
-					!strcasecmp(view->workspace->name, target->name));
-		}
-		if (match == LAB_STATE_DISABLED) {
-			return false;
+				workspaces_find(current, query->desktop, /* wrap */ false);
+			if (!target || strcasecmp(view_workspace, target->name)) {
+				return false;
+			}
 		}
 	}
 
-	enum ssd_mode decoration = view_get_ssd_mode(view);
-	if (query->decoration != LAB_SSD_MODE_INVALID) {
-		match = bool_to_tristate(query->decoration == decoration);
-		if (match == LAB_STATE_DISABLED) {
-			return false;
-		}
+	enum ssd_mode decor = view_get_ssd_mode(view);
+	if (query->decoration != LAB_SSD_MODE_INVALID && query->decoration != decor) {
+		return false;
 	}
 
 	if (query->monitor) {
 		struct output *target = output_from_name(view->server, query->monitor);
-		match = bool_to_tristate(target == view->output);
-		if (match == LAB_STATE_DISABLED) {
+		if (target != view->output) {
 			return false;
 		}
 	}
 
-	return match == LAB_STATE_ENABLED;
+	return true;
 }
 
 static bool

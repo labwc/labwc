@@ -489,6 +489,8 @@ void seat_finish(struct server *server);
 void seat_reconfigure(struct server *server);
 void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
 
+void seat_pointer_end_grab(struct seat *seat, struct wlr_surface *surface);
+
 /**
  * seat_focus_lock_surface() - ONLY to be called from session-lock.c to
  * focus lock screen surfaces. Use seat_focus_surface() otherwise.

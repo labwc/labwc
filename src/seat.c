@@ -596,6 +596,28 @@ configure_keyboard(struct seat *seat, struct input *input)
 	keyboard_configure(seat, kb, keyboard->is_virtual);
 }
 
+void
+seat_pointer_end_grab(struct seat *seat, struct wlr_surface *surface)
+{
+	if (!surface || !wlr_seat_pointer_has_grab(seat->seat)) {
+		return;
+	}
+
+	struct wlr_xdg_surface *xdg_surface =
+		wlr_xdg_surface_try_from_wlr_surface(surface);
+	if (!xdg_surface || xdg_surface->role != WLR_XDG_SURFACE_ROLE_POPUP) {
+		/*
+		 * If we have an active popup grab (an open popup) and we are
+		 * not on the popup itself, end that grab to close the popup.
+		 * Contrary to pointer button notifications, a tablet/touch
+		 * button notification sometimes doesn't end grabs automatically
+		 * on button notifications in another client (observed in GTK4),
+		 * so end the grab manually.
+		 */
+		wlr_seat_pointer_end_grab(seat->seat);
+	}
+}
+
 /* This is called on SIGHUP (generally in response to labwc --reconfigure */
 void
 seat_reconfigure(struct server *server)

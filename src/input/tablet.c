@@ -459,29 +459,6 @@ to_stylus_button(uint32_t button)
 }
 
 static void
-seat_pointer_end_grab(struct drawing_tablet_tool *tool,
-		struct wlr_surface *surface)
-{
-	if (!surface || !wlr_seat_pointer_has_grab(tool->seat->seat)) {
-		return;
-	}
-
-	struct wlr_xdg_surface *xdg_surface =
-		wlr_xdg_surface_try_from_wlr_surface(surface);
-	if (!xdg_surface || xdg_surface->role != WLR_XDG_SURFACE_ROLE_POPUP) {
-		/*
-		 * If we have an active popup grab (an open popup) and we are
-		 * not on the popup itself, end that grab to close the popup.
-		 * Contrary to pointer button notifications, a tablet button
-		 * notification sometimes doesn't end grabs automatically on
-		 * button notifications in another client (observed in GTK4),
-		 * so end the grab manually.
-		 */
-		wlr_seat_pointer_end_grab(tool->seat->seat);
-	}
-}
-
-static void
 handle_tablet_tool_tip(struct wl_listener *listener, void *data)
 {
 	struct wlr_tablet_tool_tip_event *ev = data;
@@ -519,7 +496,7 @@ handle_tablet_tool_tip(struct wl_listener *listener, void *data)
 			bool notify = cursor_process_button_press(tool->seat, BTN_LEFT,
 				ev->time_msec);
 			if (notify) {
-				seat_pointer_end_grab(tool, surface);
+				seat_pointer_end_grab(tool->seat, surface);
 				wlr_tablet_v2_tablet_tool_notify_down(tool->tool_v2);
 				wlr_tablet_tool_v2_start_implicit_grab(tool->tool_v2);
 			}
@@ -603,7 +580,7 @@ handle_tablet_tool_button(struct wl_listener *listener, void *data)
 		uint32_t stylus_button = to_stylus_button(button);
 		if (stylus_button && stylus_button != BTN_TOOL_PEN) {
 			if (ev->state == WLR_BUTTON_PRESSED) {
-				seat_pointer_end_grab(tool, surface);
+				seat_pointer_end_grab(tool->seat, surface);
 			}
 			wlr_tablet_v2_tablet_tool_notify_button(tool->tool_v2,
 				stylus_button,

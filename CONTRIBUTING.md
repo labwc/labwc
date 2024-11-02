@@ -21,7 +21,7 @@
 
 # How to Contribute
 
-1. Report bugs as github issues. We don't use a template, but try to provide
+1. Report bugs as github issues. We use a template prompting you to provide
    some sensible information such as what happened, what you expected to happen
    and steps to reproduce. If applicable try with default configuration.  If
    you are able to, try to do some debugging (guidelines below).

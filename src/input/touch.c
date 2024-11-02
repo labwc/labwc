@@ -125,6 +125,9 @@ handle_touch_down(struct wl_listener *listener, void *data)
 	wl_list_insert(&seat->touch_points, &touch_point->link);
 	int touch_point_count = wl_list_length(&seat->touch_points);
 
+	/* hide the cursor when starting touch input */
+	cursor_set_visible(seat, /* visible */ false);
+
 	if (touch_point->surface) {
 		seat_pointer_end_grab(seat, touch_point->surface);
 		/* Clear focus to not interfere with touch input */

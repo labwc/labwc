@@ -108,6 +108,7 @@ struct seat {
 	 * (in that case the client is expected to set its own cursor image).
 	 */
 	enum lab_cursors server_cursor;
+	bool cursor_visible;
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *xcursor_manager;
 	struct {

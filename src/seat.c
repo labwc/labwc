@@ -556,6 +556,7 @@ seat_init(struct server *server)
 	seat->input_method_relay = input_method_relay_create(seat);
 
 	seat->xcursor_manager = NULL;
+	seat->cursor_visible = true;
 	seat->cursor = wlr_cursor_create();
 	if (!seat->cursor) {
 		wlr_log(WLR_ERROR, "unable to create cursor");

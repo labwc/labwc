@@ -146,6 +146,14 @@ request_cursor_notify(struct wl_listener *listener, void *data)
 	}
 
 	/*
+	 * Omit cursor notifications when the current cursor is
+	 * invisible, e.g. on touch input.
+	 */
+	if (!seat->cursor_visible) {
+		return;
+	}
+
+	/*
 	 * Omit cursor notifications from a pointer when a tablet
 	 * tool (stylus/pen) is in proximity. We expect to get cursor
 	 * notifications from the tablet tool instead.
@@ -193,6 +201,14 @@ request_set_shape_notify(struct wl_listener *listener, void *data)
 
 	/* Prevent setting a cursor image when moving or resizing */
 	if (seat->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		return;
+	}
+
+	/*
+	 * Omit set shape when the current cursor is
+	 * invisible, e.g. on touch input.
+	 */
+	if (!seat->cursor_visible) {
 		return;
 	}
 
@@ -347,15 +363,34 @@ cursor_set(struct seat *seat, enum lab_cursors cursor)
 		return;
 	}
 
-	wlr_cursor_set_xcursor(seat->cursor, seat->xcursor_manager,
-		cursor_names[cursor]);
+	if (seat->cursor_visible) {
+		wlr_cursor_set_xcursor(seat->cursor, seat->xcursor_manager,
+			cursor_names[cursor]);
+	}
 	seat->server_cursor = cursor;
+}
+
+void
+cursor_set_visible(struct seat *seat, bool visible)
+{
+	if (seat->cursor_visible == visible) {
+		return;
+	}
+
+	seat->cursor_visible = visible;
+	cursor_update_image(seat);
 }
 
 void
 cursor_update_image(struct seat *seat)
 {
 	enum lab_cursors cursor = seat->server_cursor;
+
+	if (!seat->cursor_visible) {
+		wlr_cursor_unset_image(seat->cursor);
+		return;
+	}
+
 	if (cursor == LAB_CURSOR_CLIENT) {
 		/*
 		 * When we loose the output cursor while over a client
@@ -817,6 +852,7 @@ cursor_motion(struct wl_listener *listener, void *data)
 	struct server *server = seat->server;
 	struct wlr_pointer_motion_event *event = data;
 	idle_manager_notify_activity(seat->seat);
+	cursor_set_visible(seat, /* visible */ true);
 
 	wlr_relative_pointer_manager_v1_send_relative_motion(
 		server->relative_pointer_manager,
@@ -843,6 +879,7 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 		listener, seat, cursor_motion_absolute);
 	struct wlr_pointer_motion_absolute_event *event = data;
 	idle_manager_notify_activity(seat->seat);
+	cursor_set_visible(seat, /* visible */ true);
 
 	double lx, ly;
 	wlr_cursor_absolute_to_layout_coords(seat->cursor,
@@ -1144,6 +1181,7 @@ cursor_button(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, cursor_button);
 	struct wlr_pointer_button_event *event = data;
 	idle_manager_notify_activity(seat->seat);
+	cursor_set_visible(seat, /* visible */ true);
 
 	bool notify;
 	switch (event->state) {
@@ -1324,6 +1362,7 @@ cursor_axis(struct wl_listener *listener, void *data)
 
 	struct cursor_context ctx = get_cursor_context(server);
 	idle_manager_notify_activity(seat->seat);
+	cursor_set_visible(seat, /* visible */ true);
 
 	/* Bindings swallow mouse events if activated */
 	bool handled = handle_cursor_axis(server, &ctx, event);

@@ -109,8 +109,6 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 
 	if (state->tearing_page_flip) {
 		if (!wlr_output_test_state(wlr_output, state)) {
-			wlr_log(WLR_DEBUG, "Output test for tearing failed on %s, "
-				"trying page-flip without tearing", wlr_output->name);
 			state->tearing_page_flip = false;
 		}
 	}

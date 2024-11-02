@@ -72,6 +72,8 @@ struct cursor_context get_cursor_context(struct server *server);
  */
 void cursor_set(struct seat *seat, enum lab_cursors cursor);
 
+void cursor_set_visible(struct seat *seat, bool visible);
+
 /**
  * cursor_get_resize_edges - calculate resize edge based on cursor position
  * @cursor - the current cursor (usually server->seat.cursor)

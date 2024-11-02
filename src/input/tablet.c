@@ -251,6 +251,7 @@ handle_tablet_tool_proximity(struct wl_listener *listener, void *data)
 	}
 
 	idle_manager_notify_activity(tablet->seat->seat);
+	cursor_set_visible(tablet->seat, /* visible */ true);
 
 	if (ev->state == WLR_TABLET_TOOL_PROXIMITY_IN) {
 		tablet->motion_mode =
@@ -313,6 +314,7 @@ handle_tablet_tool_axis(struct wl_listener *listener, void *data)
 	}
 
 	idle_manager_notify_activity(tablet->seat->seat);
+	cursor_set_visible(tablet->seat, /* visible */ true);
 
 	/*
 	 * Reset relative coordinates. If those axes aren't updated,
@@ -470,6 +472,7 @@ handle_tablet_tool_tip(struct wl_listener *listener, void *data)
 	}
 
 	idle_manager_notify_activity(tablet->seat->seat);
+	cursor_set_visible(tablet->seat, /* visible */ true);
 
 	double x, y, dx, dy;
 	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y, &dx, &dy);
@@ -549,6 +552,7 @@ handle_tablet_tool_button(struct wl_listener *listener, void *data)
 	}
 
 	idle_manager_notify_activity(tablet->seat->seat);
+	cursor_set_visible(tablet->seat, /* visible */ true);
 
 	double x, y, dx, dy;
 	struct wlr_surface *surface = tablet_get_coords(tablet, &x, &y, &dx, &dy);

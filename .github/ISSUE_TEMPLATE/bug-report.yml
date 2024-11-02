@@ -1,0 +1,70 @@
+name: Bug Report
+description: File a bug report
+labels: [ "bug " ]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for taking the time to fill out this bug report.
+        This form is for bug reports only.
+        Questions and feature requests are part of Discussions.
+        Wrap text output and commands with triple backticks (```) for proper formatting.
+  - id: description
+    type: textarea
+    attributes:
+      label: Problem description
+      description: A clear and concise description of what the bug is
+      placeholder: I hit enter and my computer hacked the Gibson
+    validations:
+      required: true
+  - id: steps
+    type: textarea
+    attributes:
+      label: Steps to reproduce
+      description: Clear steps to reproduce the bug
+      placeholder: |
+        1. Launch labwc with a default configuration on multiple displays.
+        2. Launch a terminal on each output, etc, etc.
+        Expected behavior: Foo.
+        Actual behavior: Bar.
+    validations:
+      required: true
+  - id: labwc_source
+    type: dropdown
+    attributes:
+      label: labwc build source
+      description: labwc build source (binary, local, etc)
+      options:
+        - Release
+        - Local build
+    validations:
+      required: true
+  - id: labwc_version
+    type: input
+    attributes:
+      label: labwc version
+      description: labwc version or commit sha (run `labwc -v` to find out)
+      placeholder: 0.8.1
+    validations:
+      required: true
+  - id: labwc_environment
+    type: dropdown
+    attributes:
+      label: labwc environment
+      description: How is labwc being run
+      options:
+        - From a TTY or some display manager like lightdm
+        - Nested on Wayland
+        - Nested on X.Org Server
+        - With Virtualisation (VirtualBox)
+        - With Virtualisation (Qemu)
+        - Not Applicable
+        - I do not know what all that means
+    validations:
+      required: true
+  - id: distribution
+    type: input
+    attributes:
+      label: Distribution
+      description: Distribution
+      placeholder: Void Linux

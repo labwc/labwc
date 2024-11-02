@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: labwc website
+    url: https://labwc.github.io
+    about: General information, manuals and FAQ
+  - name: labwc questions
+    url: https://github.com/labwc/labwc/discussions/categories/q-a
+    about: Ask the community for help
+  - name: labwc feature requests
+    url: https://github.com/labwc/labwc/discussions/categories/feature-requests
+    about: Suggest a feature for labwc
+  - name: labwc on IRC
+    url: https://web.libera.chat/gamja/?channels=#labwc
+    about: Use IRC to get community support for labwc. Might take a while to get an answer.

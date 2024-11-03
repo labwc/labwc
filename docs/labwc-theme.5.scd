@@ -122,6 +122,10 @@ labwc-config(5).
 	Width of a titlebar button, in pixels.
 	Default is 26.
 
+*window.button.height*
+	Height of a titlebar button, in pixels.
+	Default is 26.
+
 *window.button.spacing*
 	Space between titlebar buttons, in pixels.
 	Default is 0.

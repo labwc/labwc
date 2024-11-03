@@ -118,14 +118,22 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 		magnify(output, state->buffer, &additional_damage);
 	}
 
-	if (state == &output->pending) {
-		if (!output_state_commit(output)) {
-			wlr_log(WLR_INFO, "Failed to commit output %s",
-				wlr_output->name);
-			return false;
+	bool committed = wlr_output_commit_state(wlr_output, state);
+	/*
+	 * Handle case where the ouput state test for tearing succeeded,
+	 * but actual commit failed. Retry wihout tearing.
+	 */
+	if (!committed && state->tearing_page_flip) {
+		state->tearing_page_flip = false;
+		committed = wlr_output_commit_state(wlr_output, state);
+	}
+	if (committed) {
+		if (state == &output->pending) {
+			wlr_output_state_finish(&output->pending);
+			wlr_output_state_init(&output->pending);
 		}
-	} else if (!wlr_output_commit_state(wlr_output, state)) {
-		wlr_log(WLR_INFO, "Failed to commit state for output %s",
+	} else {
+		wlr_log(WLR_INFO, "Failed to commit output %s",
 			wlr_output->name);
 		return false;
 	}

@@ -63,6 +63,8 @@ handle_touch_motion(struct wl_listener *listener, void *data)
 	struct wlr_touch_motion_event *event = data;
 	idle_manager_notify_activity(seat->seat);
 
+	int touch_point_count = wl_list_length(&seat->touch_points);
+
 	/* Find existing touch point to determine initial offsets to subtract */
 	struct touch_point *touch_point;
 	wl_list_for_each(touch_point, &seat->touch_points, link) {
@@ -77,13 +79,17 @@ handle_touch_motion(struct wl_listener *listener, void *data)
 				double sx = lx - touch_point->x_offset;
 				double sy = ly - touch_point->y_offset;
 
-				wlr_cursor_warp_absolute(seat->cursor,
-					&event->touch->base, event->x, event->y);
+				if (touch_point_count == 1) {
+					wlr_cursor_warp_absolute(seat->cursor, &event->touch->base,
+						event->x, event->y);
+				}
 				wlr_seat_touch_notify_motion(seat->seat, event->time_msec,
 					event->touch_id, sx, sy);
 			} else {
-				cursor_emulate_move_absolute(seat, &event->touch->base,
-					event->x, event->y, event->time_msec);
+				if (touch_point_count == 1) {
+					cursor_emulate_move_absolute(seat, &event->touch->base,
+						event->x, event->y, event->time_msec);
+				}
 			}
 			return;
 		}
@@ -114,6 +120,7 @@ handle_touch_down(struct wl_listener *listener, void *data)
 	touch_point->y_offset = y_offset;
 
 	wl_list_insert(&seat->touch_points, &touch_point->link);
+	int touch_point_count = wl_list_length(&seat->touch_points);
 
 	if (touch_point->surface) {
 		/* Convert coordinates: first [0, 1] => layout */
@@ -135,13 +142,17 @@ handle_touch_down(struct wl_listener *listener, void *data)
 			}
 		}
 
-		wlr_cursor_warp_absolute(seat->cursor,
-			&event->touch->base, event->x, event->y);
+		if (touch_point_count == 1) {
+			wlr_cursor_warp_absolute(seat->cursor, &event->touch->base,
+				event->x, event->y);
+		}
 		wlr_seat_touch_notify_down(seat->seat, touch_point->surface,
 			event->time_msec, event->touch_id, sx, sy);
 	} else {
-		cursor_emulate_move_absolute(seat, &event->touch->base,
-			event->x, event->y, event->time_msec);
+		if (touch_point_count == 1) {
+			cursor_emulate_move_absolute(seat, &event->touch->base,
+				event->x, event->y, event->time_msec);
+		}
 		cursor_emulate_button(seat, BTN_LEFT, WL_POINTER_BUTTON_STATE_PRESSED,
 			event->time_msec);
 	}

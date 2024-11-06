@@ -6,7 +6,7 @@ on:
   issues:
     types: [opened, closed, reopened]
   discussion:
-    types: [created]
+    types: [created, closed, deleted]
   push:
     branches:
       - 'master_disabled'
@@ -60,7 +60,25 @@ jobs:
           channel: "#labwc"
           nickname: "labwc"
           notice: true
-          message: "${{ github.actor }} opened discussion '${{ github.event.discussion.title }}' (${{ github.event.discussion.html_url }})"
+          message: "${{ github.actor }} opened discussion '${{ github.event.discussion.title }}' in [${{ github.event.discussion.category.name }}] (${{ github.event.discussion.html_url }})"
+      - name: discussion closed
+        uses: rectalogic/notify-irc@v1
+        if: github.event_name == 'discussion' && github.event.action == 'closed'
+        with:
+          server: "irc.libera.chat"
+          channel: "#labwc"
+          nickname: "labwc"
+          notice: true
+          message: "${{ github.actor }} closed discussion '${{ github.event.discussion.title }}' in [${{ github.event.discussion.category.name }}] (${{ github.event.discussion.html_url }})"
+      - name: discussion deleted
+        uses: rectalogic/notify-irc@v1
+        if: github.event_name == 'discussion' && github.event.action == 'deleted'
+        with:
+          server: "irc.libera.chat"
+          channel: "#labwc"
+          nickname: "labwc"
+          notice: true
+          message: "${{ github.actor }} deleted discussion '${{ github.event.discussion.title }}' in [${{ github.event.discussion.category.name }}] (${{ github.event.discussion.html_url }})"
       - name: irc pull request opened
         uses: rectalogic/notify-irc@v1
         if: github.event_name == 'pull_request' && github.event.action == 'opened'

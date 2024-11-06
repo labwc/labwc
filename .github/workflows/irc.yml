@@ -5,6 +5,8 @@ on:
     types: [opened, closed, reopened]
   issues:
     types: [opened, closed, reopened]
+  discussion:
+    types: [created]
   push:
     branches:
       - 'master_disabled'
@@ -50,6 +52,15 @@ jobs:
           nickname: "labwc"
           notice: true
           message: "${{ github.actor }} closed issue '${{ github.event.issue.title }}' (${{ github.event.issue.html_url }})"
+      - name: discussion started
+        uses: rectalogic/notify-irc@v1
+        if: github.event_name == 'discussion' && github.event.action == 'created'
+        with:
+          server: "irc.libera.chat"
+          channel: "#labwc"
+          nickname: "labwc"
+          notice: true
+          message: "${{ github.actor }} opened discussion '${{ github.event.discussion.title }}' (${{ github.event.discussion.html_url }})"
       - name: irc pull request opened
         uses: rectalogic/notify-irc@v1
         if: github.event_name == 'pull_request' && github.event.action == 'opened'

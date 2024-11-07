@@ -69,11 +69,36 @@ test_buf_add_fmt(void **state)
 	buf_reset(&s);
 }
 
+static void
+test_buf_add_char(void **state)
+{
+	(void)state;
+
+	const char long_string[] = "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+	size_t len = strlen(long_string);
+
+	/*
+	 * Start off with a long string so that the allocated buffer is only
+	 * just large enough to contain the string and the NULL termination.
+	 */
+	struct buf s = BUF_INIT;
+	buf_add(&s, long_string);
+	assert_int_equal(s.alloc, len + 1);
+
+	/* Check that buf_add_char() allocates space for the new character */
+	buf_add_char(&s, '+');
+	assert_true(s.alloc >= (int)len + 2);
+	assert_string_equal(s.data + s.len - 1, "+");
+
+	buf_reset(&s);
+}
+
 int main(int argc, char **argv)
 {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(test_expand_title),
 		cmocka_unit_test(test_buf_add_fmt),
+		cmocka_unit_test(test_buf_add_char),
 	};
 
 	return cmocka_run_group_tests(tests, NULL, NULL);

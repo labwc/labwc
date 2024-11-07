@@ -144,7 +144,7 @@ buf_add(struct buf *s, const char *data)
 void
 buf_add_char(struct buf *s, char ch)
 {
-	buf_expand(s, s->len + 1);
+	buf_expand(s, s->len + 2);
 	s->data[s->len++] = ch;
 	s->data[s->len] = '\0';
 }

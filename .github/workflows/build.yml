@@ -14,7 +14,7 @@ jobs:
     name: CodeStyleCheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
       - name: Code Style
         run: |
           ./scripts/check
@@ -62,7 +62,7 @@ jobs:
     container: ${{ matrix.container }}
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
 
       - name: Install Arch Linux dependencies
         if: matrix.name == 'Arch'

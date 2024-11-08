@@ -186,7 +186,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		wlr_log(WLR_INFO, "pointer acceleration unavailable");
 	} else {
 		wlr_log(WLR_INFO, "pointer acceleration configured");
-		if (dc->pointer_speed > -1) {
+		if (dc->pointer_speed >= -1) {
 			libinput_device_config_accel_set_speed(libinput_dev,
 				dc->pointer_speed);
 		}

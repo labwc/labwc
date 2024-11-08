@@ -688,19 +688,9 @@ show_menu(struct server *server, struct view *view, struct cursor_context *ctx,
 	if (pos_x && pos_y) {
 		struct output *output = output_nearest_to(server,
 				server->seat.cursor->x, server->seat.cursor->y);
-		struct menuitem *item;
-		struct theme *theme = server->theme;
-		int max_width = theme->menu_min_width;
-
-		wl_list_for_each(item, &menu->menuitems, link) {
-			if (item->native_width > max_width) {
-				max_width = item->native_width < theme->menu_max_width
-					? item->native_width : theme->menu_max_width;
-			}
-		}
 
 		if (!strcasecmp(pos_x, "center")) {
-			x = (output->usable_area.width / 2) - (max_width / 2);
+			x = (output->usable_area.width - menu->size.width) / 2;
 		} else if (strchr(pos_x, '%')) {
 			x = (output->usable_area.width * atoi(pos_x)) / 100;
 		} else {

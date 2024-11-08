@@ -716,9 +716,9 @@ show_menu(struct server *server, struct view *view, struct cursor_context *ctx,
 		}
 		/* keep menu from being off screen */
 		x = MAX(x, 0);
-		x = MIN(x, (output->usable_area.width -1));
+		x = MIN(x, output->usable_area.width - 1);
 		y = MAX(y, 0);
-		y = MIN(y, (output->usable_area.height -1));
+		y = MIN(y, output->usable_area.height - 1);
 		/* adjust for which monitor to appear on */
 		x += output->usable_area.x;
 		y += output->usable_area.y;

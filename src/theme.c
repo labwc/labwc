@@ -1520,7 +1520,7 @@ post_processing(struct theme *theme)
 	}
 	if (theme->osd_border_color[0] == FLT_MIN) {
 		/*
-		 * As per http://openbox.org/wiki/Help:Themes#osd.border.color
+		 * As per https://openbox.org/help/Themes#osd.border.color
 		 * we should fall back to window_active_border_color but
 		 * that is usually the same as window_active_title_bg_color
 		 * and thus the fallback for osd_bg_color. Which would mean

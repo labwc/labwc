@@ -263,7 +263,7 @@ Suggested apps to use with labwc:
 See [integration] for further details.
 
 [wayland]: https://wayland.freedesktop.org/
-[openbox]: http://openbox.org/wiki/Help:Contents
+[openbox]: https://openbox.org/help/Contents
 [wlroots]: https://gitlab.freedesktop.org/wlroots/wlroots
 [sway]: https://github.com/swaywm
 [wayland-protocols]: https://gitlab.freedesktop.org/wayland/wayland-protocols

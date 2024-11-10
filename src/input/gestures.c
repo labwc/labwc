@@ -84,6 +84,32 @@ handle_swipe_end(struct wl_listener *listener, void *data)
 		seat->seat, event->time_msec, event->cancelled);
 }
 
+static void
+handle_hold_begin(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, hold_begin);
+	struct wlr_pointer_hold_begin_event *event = data;
+
+	idle_manager_notify_activity(seat->seat);
+	cursor_set_visible(seat, /* visible */ true);
+
+	wlr_pointer_gestures_v1_send_hold_begin(seat->pointer_gestures,
+		seat->seat, event->time_msec, event->fingers);
+}
+
+static void
+handle_hold_end(struct wl_listener *listener, void *data)
+{
+	struct seat *seat = wl_container_of(listener, seat, hold_end);
+	struct wlr_pointer_hold_end_event *event = data;
+
+	idle_manager_notify_activity(seat->seat);
+	cursor_set_visible(seat, /* visible */ true);
+
+	wlr_pointer_gestures_v1_send_hold_end(seat->pointer_gestures,
+		seat->seat, event->time_msec, event->cancelled);
+}
+
 void
 gestures_init(struct seat *seat)
 {
@@ -95,6 +121,8 @@ gestures_init(struct seat *seat)
 	CONNECT_SIGNAL(seat->cursor, seat, swipe_begin);
 	CONNECT_SIGNAL(seat->cursor, seat, swipe_update);
 	CONNECT_SIGNAL(seat->cursor, seat, swipe_end);
+	CONNECT_SIGNAL(seat->cursor, seat, hold_begin);
+	CONNECT_SIGNAL(seat->cursor, seat, hold_end);
 }
 
 void
@@ -106,4 +134,6 @@ gestures_finish(struct seat *seat)
 	wl_list_remove(&seat->swipe_begin.link);
 	wl_list_remove(&seat->swipe_update.link);
 	wl_list_remove(&seat->swipe_end.link);
+	wl_list_remove(&seat->hold_begin.link);
+	wl_list_remove(&seat->hold_end.link);
 }

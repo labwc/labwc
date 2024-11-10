@@ -105,85 +105,6 @@ menu_get_by_id(struct server *server, const char *id)
 }
 
 static void
-menu_update_width(struct menu *menu)
-{
-	struct menuitem *item;
-	struct theme *theme = menu->server->theme;
-	int max_width = theme->menu_min_width;
-
-	/* Get widest menu item, clamped by menu_max_width */
-	wl_list_for_each(item, &menu->menuitems, link) {
-		if (item->native_width > max_width) {
-			max_width = item->native_width < theme->menu_max_width
-				? item->native_width : theme->menu_max_width;
-		}
-	}
-	menu->size.width = max_width + 2 * theme->menu_items_padding_x;
-
-	/*
-	 * TODO: This function is getting a bit unwieldy. Consider calculating
-	 * the menu-window width up-front to avoid this post_processing() and
-	 * second-bite-of-the-cherry stuff
-	 */
-
-	/* Update all items for the new size */
-	wl_list_for_each(item, &menu->menuitems, link) {
-		wlr_scene_rect_set_size(
-			wlr_scene_rect_from_node(item->normal.background),
-			menu->size.width, item->height);
-
-		/*
-		 * Separator lines are special because they change width with
-		 * the menu.
-		 */
-		if (item->type == LAB_MENU_SEPARATOR_LINE) {
-			int width = menu->size.width
-				- 2 * theme->menu_separator_padding_width;
-			wlr_scene_rect_set_size(
-				wlr_scene_rect_from_node(item->normal.text),
-				width, theme->menu_separator_line_thickness);
-		} else if (item->type == LAB_MENU_TITLE) {
-			if (item->native_width > max_width) {
-				scaled_font_buffer_set_max_width(item->normal.buffer,
-					max_width);
-			}
-			if (theme->menu_title_text_justify == LAB_JUSTIFY_CENTER) {
-				int x, y;
-				x = (menu->size.width - item->native_width) / 2;
-				x = x < 0 ? 0 : x;
-				y = (theme->menu_header_height - item->normal.buffer->height) / 2;
-				wlr_scene_node_set_position(item->normal.text, x, y);
-			}
-		}
-
-		if (item->selectable) {
-			/* Only selectable items have item->selected.background */
-			wlr_scene_rect_set_size(
-				wlr_scene_rect_from_node(item->selected.background),
-				menu->size.width, item->height);
-		}
-
-		if (item->native_width > max_width || item->submenu || item->execute) {
-			scaled_font_buffer_set_max_width(item->normal.buffer,
-				max_width);
-			if (item->selectable) {
-				scaled_font_buffer_set_max_width(item->selected.buffer,
-					max_width);
-			}
-		}
-	}
-}
-
-static void
-post_processing(struct server *server)
-{
-	struct menu *menu;
-	wl_list_for_each(menu, &server->menus, link) {
-		menu_update_width(menu);
-	}
-}
-
-static void
 validate_menu(struct menu *menu)
 {
 	struct menuitem *item;
@@ -368,6 +289,85 @@ separator_create(struct menu *menu, const char *label)
 	wl_list_append(&menu->menuitems, &menuitem->link);
 	wl_list_init(&menuitem->actions);
 	return menuitem;
+}
+
+static void
+menu_update_width(struct menu *menu)
+{
+	struct menuitem *item;
+	struct theme *theme = menu->server->theme;
+	int max_width = theme->menu_min_width;
+
+	/* Get widest menu item, clamped by menu_max_width */
+	wl_list_for_each(item, &menu->menuitems, link) {
+		if (item->native_width > max_width) {
+			max_width = item->native_width < theme->menu_max_width
+				? item->native_width : theme->menu_max_width;
+		}
+	}
+	menu->size.width = max_width + 2 * theme->menu_items_padding_x;
+
+	/*
+	 * TODO: This function is getting a bit unwieldy. Consider calculating
+	 * the menu-window width up-front to avoid this post_processing() and
+	 * second-bite-of-the-cherry stuff
+	 */
+
+	/* Update all items for the new size */
+	wl_list_for_each(item, &menu->menuitems, link) {
+		wlr_scene_rect_set_size(
+			wlr_scene_rect_from_node(item->normal.background),
+			menu->size.width, item->height);
+
+		/*
+		 * Separator lines are special because they change width with
+		 * the menu.
+		 */
+		if (item->type == LAB_MENU_SEPARATOR_LINE) {
+			int width = menu->size.width
+				- 2 * theme->menu_separator_padding_width;
+			wlr_scene_rect_set_size(
+				wlr_scene_rect_from_node(item->normal.text),
+				width, theme->menu_separator_line_thickness);
+		} else if (item->type == LAB_MENU_TITLE) {
+			if (item->native_width > max_width) {
+				scaled_font_buffer_set_max_width(item->normal.buffer,
+					max_width);
+			}
+			if (theme->menu_title_text_justify == LAB_JUSTIFY_CENTER) {
+				int x, y;
+				x = (menu->size.width - item->native_width) / 2;
+				x = x < 0 ? 0 : x;
+				y = (theme->menu_header_height - item->normal.buffer->height) / 2;
+				wlr_scene_node_set_position(item->normal.text, x, y);
+			}
+		}
+
+		if (item->selectable) {
+			/* Only selectable items have item->selected.background */
+			wlr_scene_rect_set_size(
+				wlr_scene_rect_from_node(item->selected.background),
+				menu->size.width, item->height);
+		}
+
+		if (item->native_width > max_width || item->submenu || item->execute) {
+			scaled_font_buffer_set_max_width(item->normal.buffer,
+				max_width);
+			if (item->selectable) {
+				scaled_font_buffer_set_max_width(item->selected.buffer,
+					max_width);
+			}
+		}
+	}
+}
+
+static void
+post_processing(struct server *server)
+{
+	struct menu *menu;
+	wl_list_for_each(menu, &server->menus, link) {
+		menu_update_width(menu);
+	}
 }
 
 /*

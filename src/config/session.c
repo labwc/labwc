@@ -33,6 +33,7 @@ static const char *const env_vars[] = {
 	NULL
 };
 
+#define LAB_ENV_VAR_MAX_SIZE 1024
 static void
 process_line(char *line)
 {
@@ -52,11 +53,35 @@ process_line(char *line)
 
 	struct buf value = BUF_INIT;
 	buf_add(&value, string_strip(++p));
+
+	/*
+	 * Users should not assign environment variables recursively (for
+	 * example FOO=$FOO:bar) in the environment file because they would just
+	 * keep growing on reconfigure. We could of course try to remember the
+	 * original values, but it adds complexity for which we currently cannot
+	 * see a use-case that could not easily be handled by some shell scripts
+	 * separate from the environment file.
+	 *
+	 * Consequently we just check the size of the environment variables to
+	 * defensively handle that growth issue in the case of inadvertent
+	 * recursion.
+	 */
+	if (value.len > LAB_ENV_VAR_MAX_SIZE) {
+		wlr_log(WLR_ERROR, "ignoring environment variable assignment as "
+			"its size is greater than %d bytes which indicates recursion "
+			"(%s=%s)", LAB_ENV_VAR_MAX_SIZE, key, value.data);
+		goto err;
+	}
+
 	buf_expand_shell_variables(&value);
 	buf_expand_tilde(&value);
 	setenv(key, value.data, 1);
+
+err:
 	buf_reset(&value);
 }
+
+#undef LAB_ENV_VAR_MAX_SIZE
 
 /* return true on successful read */
 static bool

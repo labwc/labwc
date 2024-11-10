@@ -50,9 +50,14 @@ that directory contains either the "environment" file or at least one
 
 Note: environment files are treated differently by Openbox, which will simply
 source the file as a valid shell script before running the window manager. Files
-are instead parsed directly by labwc, although any environment variables
-referenced as $VARIABLE or ${VARIABLE} will be substituted and the tilde (~)
-will be expanded as the user's home directory.
+are instead parsed directly by labwc so that environment variables can be
+re-loaded on --reconfigure.
+
+Any environment variables referenced as $VARIABLE or ${VARIABLE} will be
+substituted and the tilde (~) will be expanded as the user's home directory.
+
+Please note that as labwc reloads the environment file(s) on reconfigure,
+recursive/circular assignments (for example FOO=$FOO:bar) should not be made.
 
 The *autostart* file is executed as a shell script after labwc has read its
 configuration and set variables defined in the environment file. Additionally,

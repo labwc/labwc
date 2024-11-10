@@ -37,11 +37,12 @@ struct menuitem {
 	struct wl_list actions;
 	char *execute;
 	char *id; /* needed for pipemenus */
+	char *text;
+	const char *arrow;
 	struct menu *parent;
 	struct menu *submenu;
 	bool selectable;
 	enum menuitem_type type;
-	int height;
 	int native_width;
 	struct wlr_scene_tree *tree;
 	struct menu_scene normal;

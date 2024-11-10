@@ -12,6 +12,7 @@ handle_pinch_begin(struct wl_listener *listener, void *data)
 	struct wlr_pointer_pinch_begin_event *event = data;
 
 	idle_manager_notify_activity(seat->seat);
+	cursor_set_visible(seat, /* visible */ true);
 
 	wlr_pointer_gestures_v1_send_pinch_begin(seat->pointer_gestures,
 		seat->seat, event->time_msec, event->fingers);
@@ -24,6 +25,7 @@ handle_pinch_update(struct wl_listener *listener, void *data)
 	struct wlr_pointer_pinch_update_event *event = data;
 
 	idle_manager_notify_activity(seat->seat);
+	cursor_set_visible(seat, /* visible */ true);
 
 	wlr_pointer_gestures_v1_send_pinch_update(seat->pointer_gestures,
 		seat->seat, event->time_msec, event->dx, event->dy,
@@ -37,6 +39,7 @@ handle_pinch_end(struct wl_listener *listener, void *data)
 	struct wlr_pointer_pinch_end_event *event = data;
 
 	idle_manager_notify_activity(seat->seat);
+	cursor_set_visible(seat, /* visible */ true);
 
 	wlr_pointer_gestures_v1_send_pinch_end(seat->pointer_gestures,
 		seat->seat, event->time_msec, event->cancelled);
@@ -49,6 +52,7 @@ handle_swipe_begin(struct wl_listener *listener, void *data)
 	struct wlr_pointer_swipe_begin_event *event = data;
 
 	idle_manager_notify_activity(seat->seat);
+	cursor_set_visible(seat, /* visible */ true);
 
 	wlr_pointer_gestures_v1_send_swipe_begin(seat->pointer_gestures,
 		seat->seat, event->time_msec, event->fingers);
@@ -61,6 +65,7 @@ handle_swipe_update(struct wl_listener *listener, void *data)
 	struct wlr_pointer_swipe_update_event *event = data;
 
 	idle_manager_notify_activity(seat->seat);
+	cursor_set_visible(seat, /* visible */ true);
 
 	wlr_pointer_gestures_v1_send_swipe_update(seat->pointer_gestures,
 		seat->seat, event->time_msec, event->dx, event->dy);
@@ -73,6 +78,7 @@ handle_swipe_end(struct wl_listener *listener, void *data)
 	struct wlr_pointer_swipe_end_event *event = data;
 
 	idle_manager_notify_activity(seat->seat);
+	cursor_set_visible(seat, /* visible */ true);
 
 	wlr_pointer_gestures_v1_send_swipe_end(seat->pointer_gestures,
 		seat->seat, event->time_msec, event->cancelled);

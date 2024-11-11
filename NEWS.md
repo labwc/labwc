@@ -32,6 +32,61 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
+## [unreleased]
+
+Notes to package maintainers:
+
+- The wlroots dependency has been increased to `0.18.1` to avoid a crash when
+  using ext-foreign-toplevel-list protocol.
+
+### Added
+
+- Add hold gestures. @jp7677 [#2326]
+- Support ext-foreign-toplevel-list protocol
+- Support additional window rule conditions including `shaded`, `maximized`,
+  `iconified`, `focused`, `omnipresent`, `desktop`, `tiled` and `tiled_region`.
+  This also works for `If` and `ForEach` queries. @orfeasxyz @ahesford [#2245]
+- Add mouse emulation for touch devices. @spl237 [#2277]
+- Improve handling of touch events. @jp7677 [#2273]
+  This includes:
+    - Hide the cursor on touch input and keep the cursur invisible until
+      pointer or tablet input
+    - Close xdg-popups on touch down
+    - Notify idle-manager on touch down/up
+    - Clear pointer focus on touch input to avoid pointer focus interfering
+      with touch input, like showing hover effect on unexpected locations
+    - Move touch only with one touch point - in other words do not move the
+      cursor when more than one finger is down
+    - Warp cursor to touch coordinates for consistent behaviour with
+      non-touch capable surfaces including the desktop
+- Set environment variable `LABWC_VER` with current compositor version.
+  @01micko [#2257]
+- Broadcast keyboard modifiers to all clients rather than just the one with
+  keyboard focus. [#2274]
+  This enables:
+    - Clients such as panels to display the current keyboard layout without
+      introducing new wayland protocols or other IPC.
+    - Unfocused xdg-shell clients to understand button press with keyboard
+      modifiers for example Ctrl+click.
+
+### Fixed
+
+- Skip painting output when session is not active. @enometh @Madhu [#2249]
+- Ignore variable assignments > 1 KiB in environment files to guard against
+  recursive constructs like FOO=$FOO:bar which would grow on each reconfigure.
+  [#2325]
+- Improve support for non-compliant icons by matching partial strings to handle
+  for example app-id="gimp-2.10" with file "gimp.desktop". @spl237 [#2266]
+- Correctly center menu opened with `<position {x,y}="center">` @jp7677 [#2319]
+- Allow pointer speed of -1.0. @spl237 [#2321]
+- Fix off-by-one bug in `buf_add_char()` [#2313]
+- Fix menu separator-line padding regression introduced in `0.8.1`. @domo141
+  [#2291]
+- Avoid permanent disabling of tearing due to rejected commits caused by the
+  cursor plane not allowing async page flips which causes tearing page flips
+  to be rejected if the cursor is moved. @RicArch97 [#2295]
+- Use `MenuHeader` font height in separators with labels. @domo141 [#2276]
+
 ## [0.8.1]
 
 The most noteworthy additions in this release are:
@@ -1736,5 +1791,20 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2231]: https://github.com/labwc/labwc/pull/2231
 [#2234]: https://github.com/labwc/labwc/pull/2234
 [#2244]: https://github.com/labwc/labwc/pull/2244
+[#2245]: https://github.com/labwc/labwc/pull/2245
+[#2249]: https://github.com/labwc/labwc/pull/2249
 [#2250]: https://github.com/labwc/labwc/pull/2250
+[#2257]: https://github.com/labwc/labwc/pull/2257
+[#2266]: https://github.com/labwc/labwc/pull/2266
+[#2273]: https://github.com/labwc/labwc/pull/2273
+[#2274]: https://github.com/labwc/labwc/pull/2274
+[#2276]: https://github.com/labwc/labwc/pull/2276
+[#2277]: https://github.com/labwc/labwc/pull/2277
+[#2291]: https://github.com/labwc/labwc/pull/2291
+[#2295]: https://github.com/labwc/labwc/pull/2295
+[#2313]: https://github.com/labwc/labwc/pull/2313
+[#2319]: https://github.com/labwc/labwc/pull/2319
+[#2321]: https://github.com/labwc/labwc/pull/2321
+[#2325]: https://github.com/labwc/labwc/pull/2325
+[#2326]: https://github.com/labwc/labwc/pull/2326
 

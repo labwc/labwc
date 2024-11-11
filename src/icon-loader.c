@@ -117,6 +117,7 @@ icon_loader_finish(struct server *server)
 		return;
 	}
 
+	sfdo_icon_theme_destroy(loader->icon_theme);
 	sfdo_desktop_db_destroy(loader->desktop_db);
 	sfdo_icon_ctx_destroy(loader->icon_ctx);
 	sfdo_desktop_ctx_destroy(loader->desktop_ctx);

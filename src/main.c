@@ -228,11 +228,12 @@ main(int argc, char *argv[])
 
 	session_shutdown(&server);
 
-	server_finish(&server);
-
 	menu_finish(&server);
 	theme_finish(&theme);
 	rcxml_finish();
 	font_finish();
+
+	server_finish(&server);
+
 	return 0;
 }

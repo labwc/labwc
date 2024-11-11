@@ -639,6 +639,8 @@ server_finish(struct server *server)
 	/* TODO: clean up various scene_tree nodes */
 	workspaces_destroy(server);
 
+	free(server->ssd_hover_state);
+
 #if HAVE_LIBSFDO
 	icon_loader_finish(server);
 #endif

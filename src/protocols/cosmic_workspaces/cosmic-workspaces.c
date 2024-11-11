@@ -395,8 +395,18 @@ manager_handle_display_destroy(struct wl_listener *listener, void *data)
 	struct lab_cosmic_workspace_manager *manager =
 		wl_container_of(listener, manager, on.display_destroy);
 
+	struct lab_cosmic_workspace_group *group, *tmp;
+	wl_list_for_each_safe(group, tmp, &manager->groups, link) {
+		lab_cosmic_workspace_group_destroy(group);
+	}
+
+	if (manager->idle_source) {
+		wl_event_source_remove(manager->idle_source);
+	}
+
 	wl_list_remove(&manager->on.display_destroy.link);
-	manager->event_loop = NULL;
+	wl_global_destroy(manager->global);
+	free(manager);
 }
 
 /* Manager internal helpers */

@@ -347,22 +347,19 @@ display_osd(struct output *output, struct wl_array *views)
 		h += theme->osd_window_switcher_item_height;
 	}
 
-	/* Reset buffer */
-	if (output->osd_buffer) {
-		wlr_buffer_drop(&output->osd_buffer->base);
-	}
-	output->osd_buffer = buffer_create_cairo(w, h, scale);
-	if (!output->osd_buffer) {
+	struct lab_data_buffer *buffer = buffer_create_cairo(w, h, scale);
+	if (!buffer) {
 		wlr_log(WLR_ERROR, "Failed to allocate cairo buffer for the window switcher");
 		return;
 	}
 
 	/* Render OSD image */
-	cairo_t *cairo = output->osd_buffer->cairo;
+	cairo_t *cairo = buffer->cairo;
 	render_osd(server, cairo, w, h, show_workspace, workspace_name, views);
 
 	struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
-		output->osd_tree, &output->osd_buffer->base);
+		output->osd_tree, &buffer->base);
+	wlr_buffer_drop(&buffer->base);
 	wlr_scene_buffer_set_dest_size(scene_buffer, w, h);
 
 	/* Center OSD */

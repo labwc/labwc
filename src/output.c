@@ -115,6 +115,13 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		return;
 	}
 
+	/*
+	 * skip painting the session when it exists but is not active.
+	 */
+	if (output->server->session && !output->server->session->active) {
+		return;
+	}
+
 	if (!output->scene_output) {
 		/*
 		 * TODO: This is a short term fix for issue #1667,

@@ -46,17 +46,7 @@ struct theme {
 
 	int title_height;
 
-	/* colors */
-	float window_active_border_color[4];
-	float window_inactive_border_color[4];
-
 	float window_toggled_keybinds_color[4];
-
-	float window_active_title_bg_color[4];
-	float window_inactive_title_bg_color[4];
-
-	float window_active_label_text_color[4];
-	float window_inactive_label_text_color[4];
 	enum lab_justification window_label_text_justify;
 
 	/* buttons */
@@ -67,13 +57,23 @@ struct theme {
 	/* the corner radius of the hover effect */
 	int window_button_hover_bg_corner_radius;
 
-	/* window drop-shadows */
-	int window_active_shadow_size;
-	int window_inactive_shadow_size;
-	float window_active_shadow_color[4];
-	float window_inactive_shadow_color[4];
-
+	/*
+	 * Themes/textures for each active/inactive window. Indexed by
+	 * THEME_INACTIVE and THEME_ACTIVE.
+	 */
 	struct {
+		/* TODO: add toggled/hover/pressed/disabled colors for buttons */
+		float button_colors[LAB_SSD_BUTTON_LAST + 1][4];
+
+		float border_color[4];
+		float toggled_keybinds_color[4];
+		float title_bg_color[4];
+		float label_text_color[4];
+
+		/* window drop-shadows */
+		int shadow_size;
+		float shadow_color[4];
+
 		/*
 		 * The texture of a window buttons for each hover/toggled/rounded
 		 * state. This can be accessed like:
@@ -85,13 +85,15 @@ struct theme {
 		struct lab_data_buffer *buttons
 			[LAB_SSD_BUTTON_LAST + 1][LAB_BS_ALL + 1];
 
-		/* TODO: add toggled/hover/pressed/disabled colors for buttons */
-		float button_colors[LAB_SSD_BUTTON_LAST + 1][4];
+		struct lab_data_buffer *corner_top_left_normal;
+		struct lab_data_buffer *corner_top_right_normal;
 
-		/* TODO: move other window.(in)active.* entries to here */
+		struct lab_data_buffer *shadow_corner_top;
+		struct lab_data_buffer *shadow_corner_bottom;
+		struct lab_data_buffer *shadow_edge;
+	} window[2];
 
-	} window[2]; /* indexed by THEME_INACTIVE and THEME_ACTIVE */
-
+	/* Derived from font sizes */
 	int menu_item_height;
 	int menu_header_height;
 
@@ -136,19 +138,6 @@ struct theme {
 
 	struct theme_snapping_overlay
 		snapping_overlay_region, snapping_overlay_edge;
-
-	/* textures */
-	struct lab_data_buffer *corner_top_left_active_normal;
-	struct lab_data_buffer *corner_top_right_active_normal;
-	struct lab_data_buffer *corner_top_left_inactive_normal;
-	struct lab_data_buffer *corner_top_right_inactive_normal;
-
-	struct lab_data_buffer *shadow_corner_top_active;
-	struct lab_data_buffer *shadow_corner_bottom_active;
-	struct lab_data_buffer *shadow_edge_active;
-	struct lab_data_buffer *shadow_corner_top_inactive;
-	struct lab_data_buffer *shadow_corner_bottom_inactive;
-	struct lab_data_buffer *shadow_edge_inactive;
 
 	/*
 	 * Not set in rc.xml/themerc, but derived from the tallest titlebar

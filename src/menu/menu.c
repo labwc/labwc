@@ -339,15 +339,14 @@ menu_update_scene(struct menu *menu)
 	menu->scene_tree = wlr_scene_tree_create(menu->server->menu_tree);
 	wlr_scene_node_set_enabled(&menu->scene_tree->node, false);
 
-	/* Get widest menu item, clamped by menu_max_width */
-	int max_width = theme->menu_min_width;
+	/* Menu width is the maximum item width, capped by menu.width.{min,max} */
+	menu->size.width = 0;
 	wl_list_for_each(item, &menu->menuitems, link) {
-		if (item->native_width > max_width) {
-			max_width = item->native_width < theme->menu_max_width
-				? item->native_width : theme->menu_max_width;
-		}
+		menu->size.width = MAX(menu->size.width,
+			item->native_width + 2 * theme->menu_items_padding_x);
 	}
-	menu->size.width = max_width + 2 * theme->menu_items_padding_x;
+	menu->size.width = MAX(menu->size.width, theme->menu_min_width);
+	menu->size.width = MIN(menu->size.width, theme->menu_max_width);
 
 	/* Update all items for the new size */
 	int item_y = 0;

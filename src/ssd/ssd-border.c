@@ -27,6 +27,7 @@ ssd_border_create(struct ssd *ssd)
 	float *color;
 	struct wlr_scene_tree *parent;
 	struct ssd_sub_tree *subtree;
+	int active;
 
 	ssd->border.tree = wlr_scene_tree_create(ssd->tree);
 	wlr_scene_node_set_position(&ssd->border.tree->node, -theme->border_width, 0);
@@ -34,12 +35,11 @@ ssd_border_create(struct ssd *ssd)
 	FOR_EACH_STATE(ssd, subtree) {
 		subtree->tree = wlr_scene_tree_create(ssd->border.tree);
 		parent = subtree->tree;
-		if (subtree == &ssd->border.active) {
-			color = theme->window_active_border_color;
-		} else {
-			color = theme->window_inactive_border_color;
-			wlr_scene_node_set_enabled(&parent->node, false);
-		}
+		active = (subtree == &ssd->border.active) ?
+			THEME_ACTIVE : THEME_INACTIVE;
+		wlr_scene_node_set_enabled(&parent->node, active);
+		color = theme->window[active].border_color;
+
 		wl_list_init(&subtree->parts);
 		add_scene_rect(&subtree->parts, LAB_SSD_PART_LEFT, parent,
 			theme->border_width, height, 0, 0, color);

@@ -181,10 +181,9 @@ set_shadow_geometry(struct ssd *ssd)
 			continue;
 		}
 
-		bool active = subtree == &ssd->shadow.active;
-		int visible_shadow_width = active
-			? theme->window_active_shadow_size
-			: theme->window_inactive_shadow_size;
+		int active = (subtree == &ssd->shadow.active) ?
+			THEME_ACTIVE : THEME_INACTIVE;
+		int visible_shadow_width = theme->window[active].shadow_size;
 		/* inset as a proportion of shadow width */
 		double inset_proportion = SSD_SHADOW_INSET;
 		/* inset in actual pixels */
@@ -195,9 +194,8 @@ set_shadow_geometry(struct ssd *ssd)
 		 * portion.  Top and bottom are the same size (only the cutout
 		 * is different).  The buffers are square so width == height.
 		 */
-		int corner_size = active
-			? theme->shadow_corner_top_active->logical_height
-			: theme->shadow_corner_top_inactive->logical_height;
+		int corner_size =
+			theme->window[active].shadow_corner_top->logical_height;
 
 		wl_list_for_each(part, &subtree->parts, link) {
 			set_shadow_part_geometry(part, width, height,
@@ -239,6 +237,7 @@ ssd_shadow_create(struct ssd *ssd)
 	struct wlr_buffer *edge_buffer;
 	struct ssd_sub_tree *subtree;
 	struct wlr_scene_tree *parent;
+	int active;
 
 	FOR_EACH_STATE(ssd, subtree) {
 		wl_list_init(&subtree->parts);
@@ -246,29 +245,19 @@ ssd_shadow_create(struct ssd *ssd)
 		if (!rc.shadows_enabled) {
 			/* Shadows are globally disabled */
 			continue;
-		} else if (subtree == &ssd->shadow.active) {
-			if (theme->window_active_shadow_size == 0) {
-				/* Active window shadows are disabled */
-				continue;
-			}
-		} else {
-			if (theme->window_inactive_shadow_size == 0) {
-				/* Inactive window shadows are disabled */
-				continue;
-			}
+		}
+		active = (subtree == &ssd->shadow.active) ?
+			THEME_ACTIVE : THEME_INACTIVE;
+		if (theme->window[active].shadow_size == 0) {
+			/* Window shadows are disabled */
+			continue;
 		}
 
 		subtree->tree = wlr_scene_tree_create(ssd->shadow.tree);
 		parent = subtree->tree;
-		if (subtree == &ssd->shadow.active) {
-			corner_top_buffer = &theme->shadow_corner_top_active->base;
-			corner_bottom_buffer = &theme->shadow_corner_bottom_active->base;
-			edge_buffer = &theme->shadow_edge_active->base;
-		} else {
-			corner_top_buffer = &theme->shadow_corner_top_inactive->base;
-			corner_bottom_buffer = &theme->shadow_corner_bottom_inactive->base;
-			edge_buffer = &theme->shadow_edge_inactive->base;
-		}
+		corner_top_buffer = &theme->window[active].shadow_corner_top->base;
+		corner_bottom_buffer = &theme->window[active].shadow_corner_bottom->base;
+		edge_buffer = &theme->window[active].shadow_edge->base;
 
 		make_shadow(&subtree->parts,
 			LAB_SSD_PART_CORNER_BOTTOM_RIGHT, parent,

@@ -404,7 +404,7 @@ ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable)
 
 	float *color = enable
 		? rc.theme->window_toggled_keybinds_color
-		: rc.theme->window_active_border_color;
+		: rc.theme->window[THEME_ACTIVE].border_color;
 
 	struct ssd_part *part = ssd_get_part(&ssd->border.active.parts, LAB_SSD_PART_TOP);
 	struct wlr_scene_rect *rect = wlr_scene_rect_from_node(part->node);

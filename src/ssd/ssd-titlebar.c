@@ -38,6 +38,7 @@ ssd_titlebar_create(struct ssd *ssd)
 	struct wlr_scene_tree *parent;
 	struct wlr_buffer *corner_top_left;
 	struct wlr_buffer *corner_top_right;
+	int active;
 
 	ssd->titlebar.tree = wlr_scene_tree_create(ssd->tree);
 
@@ -45,18 +46,13 @@ ssd_titlebar_create(struct ssd *ssd)
 	FOR_EACH_STATE(ssd, subtree) {
 		subtree->tree = wlr_scene_tree_create(ssd->titlebar.tree);
 		parent = subtree->tree;
+		active = (subtree == &ssd->titlebar.active) ?
+			THEME_ACTIVE : THEME_INACTIVE;
+		color = theme->window[active].title_bg_color;
+		corner_top_left = &theme->window[active].corner_top_left_normal->base;
+		corner_top_right = &theme->window[active].corner_top_right_normal->base;
+		wlr_scene_node_set_enabled(&parent->node, active);
 		wlr_scene_node_set_position(&parent->node, 0, -theme->title_height);
-		if (subtree == &ssd->titlebar.active) {
-			color = theme->window_active_title_bg_color;
-			corner_top_left = &theme->corner_top_left_active_normal->base;
-			corner_top_right = &theme->corner_top_right_active_normal->base;
-		} else {
-			color = theme->window_inactive_title_bg_color;
-			corner_top_left = &theme->corner_top_left_inactive_normal->base;
-			corner_top_right = &theme->corner_top_right_inactive_normal->base;
-
-			wlr_scene_node_set_enabled(&parent->node, false);
-		}
 		wl_list_init(&subtree->parts);
 
 		/* Background */
@@ -68,9 +64,6 @@ ssd_titlebar_create(struct ssd *ssd)
 		add_scene_buffer(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_RIGHT, parent,
 			corner_top_right, width - corner_width,
 			-rc.theme->border_width);
-
-		int active = (subtree == &ssd->titlebar.active) ?
-				THEME_ACTIVE : THEME_INACTIVE;
 
 		/* Buttons */
 		struct title_button *b;
@@ -474,23 +467,19 @@ ssd_update_title(struct ssd *ssd)
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
 	struct ssd_state_title_width *dstate;
+	int active;
 
 	int offset_left, offset_right;
 	get_title_offsets(ssd, &offset_left, &offset_right);
 	int title_bg_width = view->current.width - offset_left - offset_right;
 
 	FOR_EACH_STATE(ssd, subtree) {
-		if (subtree == &ssd->titlebar.active) {
-			dstate = &state->active;
-			text_color = theme->window_active_label_text_color;
-			bg_color = theme->window_active_title_bg_color;
-			font = &rc.font_activewindow;
-		} else {
-			dstate = &state->inactive;
-			text_color = theme->window_inactive_label_text_color;
-			bg_color = theme->window_inactive_title_bg_color;
-			font = &rc.font_inactivewindow;
-		}
+		active = (subtree == &ssd->titlebar.active) ?
+			THEME_ACTIVE : THEME_INACTIVE;
+		dstate = active ? &state->active : &state->inactive;
+		text_color = theme->window[active].label_text_color;
+		bg_color = theme->window[active].title_bg_color;
+		font = &rc.font_activewindow;
 
 		if (title_bg_width <= 0) {
 			dstate->truncated = true;

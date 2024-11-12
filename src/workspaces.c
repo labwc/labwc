@@ -339,12 +339,19 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	server->workspaces.current = target;
 
 	/*
-	 * Make sure we are focusing what the user sees.
-	 * Only refocus if the focus is not already on an always-on-top view.
+	 * Make sure we are focusing what the user sees. Only refocus if
+	 * the focus is not already on an omnipresent or always-on-top view.
+	 *
+	 * TODO: Decouple always-on-top views from the omnipresent state.
+	 *       One option for that would be to create a new scene tree
+	 *       as child of every workspace tree and then reparent a-o-t
+	 *       windows to that one. Combined with adjusting the condition
+	 *       below that should take care of the issue.
 	 */
 	if (update_focus) {
 		struct view *view = server->active_view;
-		if (!view || !view_is_always_on_top(view)) {
+		if (!view || (!view->visible_on_all_workspaces
+				&& !view_is_always_on_top(view))) {
 			desktop_focus_topmost_view(server);
 		}
 	}

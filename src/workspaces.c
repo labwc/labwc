@@ -323,7 +323,7 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	struct view *view;
 	enum lab_view_criteria criteria =
 		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
-	for_each_view(view, &server->views, criteria) {
+	for_each_view_reverse(view, &server->views, criteria) {
 		if (view->visible_on_all_workspaces) {
 			view_move_to_workspace(view, target);
 		}

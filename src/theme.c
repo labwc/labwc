@@ -599,8 +599,8 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->menu_min_width = 20;
 	theme->menu_max_width = 200;
 
-	theme->menu_item_padding_x = 7;
-	theme->menu_item_padding_y = 4;
+	theme->menu_items_padding_x = 7;
+	theme->menu_items_padding_y = 4;
 	parse_hexstr("#fcfbfa", theme->menu_items_bg_color);
 	parse_hexstr("#000000", theme->menu_items_text_color);
 	parse_hexstr("#e1dedb", theme->menu_items_active_bg_color);
@@ -869,11 +869,11 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 
 	if (match_glob(key, "menu.items.padding.x")) {
-		theme->menu_item_padding_x = get_int_if_positive(
+		theme->menu_items_padding_x = get_int_if_positive(
 			value, "menu.items.padding.x");
 	}
 	if (match_glob(key, "menu.items.padding.y")) {
-		theme->menu_item_padding_y = get_int_if_positive(
+		theme->menu_items_padding_y = get_int_if_positive(
 			value, "menu.items.padding.y");
 	}
 	if (match_glob(key, "menu.items.bg.color")) {
@@ -1448,10 +1448,10 @@ post_processing(struct theme *theme)
 	theme->title_height = get_titlebar_height(theme);
 
 	theme->menu_item_height = font_height(&rc.font_menuitem)
-		+ 2 * theme->menu_item_padding_y;
+		+ 2 * theme->menu_items_padding_y;
 
 	theme->menu_header_height = font_height(&rc.font_menuheader)
-		+ 2 * theme->menu_item_padding_y;
+		+ 2 * theme->menu_items_padding_y;
 
 	theme->osd_window_switcher_item_height = font_height(&rc.font_osd)
 		+ 2 * theme->osd_window_switcher_item_padding_y

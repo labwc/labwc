@@ -44,7 +44,7 @@ struct theme {
 	int window_titlebar_padding_width;
 	int window_titlebar_padding_height;
 
-	int title_height;
+	int titlebar_height;
 
 	float window_toggled_keybinds_color[4];
 	enum lab_justification window_label_text_justify;

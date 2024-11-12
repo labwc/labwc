@@ -179,7 +179,7 @@ create_rounded_buffer(struct theme *theme, enum corner corner,
 	 * border. See the picture in #2189 for reference.
 	 */
 	int margin_x = theme->window_titlebar_padding_width;
-	int margin_y = (theme->title_height - theme->window_button_height) / 2;
+	int margin_y = (theme->titlebar_height - theme->window_button_height) / 2;
 	float white[4] = {1, 1, 1, 1};
 	struct rounded_corner_ctx rounded_ctx = {
 		.box = &(struct wlr_box){
@@ -562,7 +562,6 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->border_width = 1;
 	theme->window_titlebar_padding_height = 0;
 	theme->window_titlebar_padding_width = 0;
-	theme->title_height = INT_MIN;
 
 	parse_hexstr("#e1dedb", theme->window[THEME_ACTIVE].border_color);
 	parse_hexstr("#f6f5f4", theme->window[THEME_INACTIVE].border_color);
@@ -1243,7 +1242,7 @@ create_corners(struct theme *theme)
 		.x = 0,
 		.y = 0,
 		.width = corner_width + theme->border_width,
-		.height = theme->title_height + theme->border_width,
+		.height = theme->titlebar_height + theme->border_width,
 	};
 
 	for (int active = THEME_INACTIVE; active <= THEME_ACTIVE; active++) {
@@ -1409,7 +1408,7 @@ create_shadow(struct theme *theme, int active)
 		total_size, theme->window[active].shadow_color);
 	shadow_corner_gradient(theme->window[active].shadow_corner_top,
 		visible_size, total_size,
-		theme->title_height, theme->window[active].shadow_color);
+		theme->titlebar_height, theme->window[active].shadow_color);
 	shadow_corner_gradient(theme->window[active].shadow_corner_bottom,
 		visible_size, total_size, 0,
 		theme->window[active].shadow_color);
@@ -1445,7 +1444,7 @@ get_titlebar_height(struct theme *theme)
 static void
 post_processing(struct theme *theme)
 {
-	theme->title_height = get_titlebar_height(theme);
+	theme->titlebar_height = get_titlebar_height(theme);
 
 	theme->menu_item_height = font_height(&rc.font_menuitem)
 		+ 2 * theme->menu_items_padding_y;
@@ -1457,8 +1456,8 @@ post_processing(struct theme *theme)
 		+ 2 * theme->osd_window_switcher_item_padding_y
 		+ 2 * theme->osd_window_switcher_item_active_border_width;
 
-	if (rc.corner_radius >= theme->title_height) {
-		rc.corner_radius = theme->title_height - 1;
+	if (rc.corner_radius >= theme->titlebar_height) {
+		rc.corner_radius = theme->titlebar_height - 1;
 	}
 
 	int min_button_hover_radius =

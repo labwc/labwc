@@ -118,7 +118,7 @@ menu_update_width(struct menu *menu)
 				? item->native_width : theme->menu_max_width;
 		}
 	}
-	menu->size.width = max_width + 2 * theme->menu_item_padding_x;
+	menu->size.width = max_width + 2 * theme->menu_items_padding_x;
 
 	/*
 	 * TODO: This function is getting a bit unwieldy. Consider calculating
@@ -275,7 +275,7 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 		theme->menu_items_active_bg_color, arrow);
 
 	/* Center font nodes */
-	x = theme->menu_item_padding_x;
+	x = theme->menu_items_padding_x;
 	y = (theme->menu_item_height - menuitem->normal.buffer->height) / 2;
 	wlr_scene_node_set_position(menuitem->normal.text, x, y);
 	y = (theme->menu_item_height - menuitem->selected.buffer->height) / 2;
@@ -347,7 +347,7 @@ separator_create(struct menu *menu, const char *label)
 			text_color, bg_color, /* arrow */ NULL);
 		/* Center font nodes */
 		int x, y;
-		x = theme->menu_item_padding_x;
+		x = theme->menu_items_padding_x;
 		y = (theme->menu_header_height - menuitem->normal.buffer->height) / 2;
 		wlr_scene_node_set_position(menuitem->normal.text, x, y);
 	} else {

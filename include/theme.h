@@ -102,8 +102,8 @@ struct theme {
 	int menu_min_width;
 	int menu_max_width;
 
-	int menu_item_padding_x;
-	int menu_item_padding_y;
+	int menu_items_padding_x;
+	int menu_items_padding_y;
 	float menu_items_bg_color[4];
 	float menu_items_text_color[4];
 	float menu_items_active_bg_color[4];

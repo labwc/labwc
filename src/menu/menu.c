@@ -302,11 +302,18 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 		menu->size.width - 2 * theme->menu_items_padding_x);
 
 	int title_x = 0;
-	if (theme->menu_title_text_justify == LAB_JUSTIFY_CENTER) {
+	switch (theme->menu_title_text_justify) {
+	case LAB_JUSTIFY_CENTER:
 		title_x = (menu->size.width - menuitem->native_width) / 2;
 		title_x = MAX(title_x, 0);
-	} else {
+		break;
+	case LAB_JUSTIFY_LEFT:
 		title_x = theme->menu_items_padding_x;
+		break;
+	case LAB_JUSTIFY_RIGHT:
+		title_x = menu->size.width - menuitem->native_width
+				- theme->menu_items_padding_x;
+		break;
 	}
 	int title_y = (theme->menu_header_height - menuitem->normal.buffer->height) / 2;
 	wlr_scene_node_set_position(menuitem->normal.text, title_x, title_y);

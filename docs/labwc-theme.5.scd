@@ -59,38 +59,6 @@ labwc-config(5).
 	Vertical titlebar padding size, in pixels.
 	Default is 0.
 
-*menu.items.padding.x*
-	Horizontal padding of menu text entries in pixels.
-	Default is 7.
-
-*menu.items.padding.y*
-	Vertical padding of menu text entries in pixels.
-	Default is 4.
-
-*menu.title.text.justify*
-	Specifies how menu titles are aligned in the titlebar.
-	Type justification. Default Center.
-
-*menu.overlap.x*
-	Horizontal overlap in pixels between submenus and their parents. A
-	positive value move submenus over the top of their parents, whereas a
-	negative value creates a gap between submenus and their parents.
-	Default is 0.
-
-*menu.overlap.y*
-	Vertical offset in pixels between submenus and their parents. Positive
-	values for downwards and negative for upwards. Default is 0.
-
-*menu.width.min*
-	Minimal width for menus. Default is 20.
-	A fixed width can be achieved by setting .min and .max to the same
-	value.
-
-*menu.width.max*
-	Maximal width for menus. Default is 200.
-	A fixed width can be achieved by setting .min and .max to the same
-	value.
-
 *window.active.border.color*
 	Border color of active window.
 
@@ -176,6 +144,34 @@ all are supported.
 	Color of drop-shadows for non-focused windows, including opacity.
 	Default is #00000040 (black with 25% opacity).
 
+*menu.overlap.x*
+	Horizontal overlap in pixels between submenus and their parents. A
+	positive value move submenus over the top of their parents, whereas a
+	negative value creates a gap between submenus and their parents.
+	Default is 0.
+
+*menu.overlap.y*
+	Vertical offset in pixels between submenus and their parents. Positive
+	values for downwards and negative for upwards. Default is 0.
+
+*menu.width.min*
+	Minimal width for menus. Default is 20.
+	A fixed width can be achieved by setting .min and .max to the same
+	value.
+
+*menu.width.max*
+	Maximal width for menus. Default is 200.
+	A fixed width can be achieved by setting .min and .max to the same
+	value.
+
+*menu.items.padding.x*
+	Horizontal padding of menu text entries in pixels.
+	Default is 7.
+
+*menu.items.padding.y*
+	Vertical padding of menu text entries in pixels.
+	Default is 4.
+
 *menu.items.bg.color*
 	Background color of inactive menu items.
 
@@ -203,6 +199,10 @@ all are supported.
 *menu.title.bg.color*
 	Menu title color. Default #589bda.
 	Note: A menu title is a separator with a label.
+
+*menu.title.text.justify*
+	Specifies how menu titles are aligned in the titlebar.
+	Type justification. Default Center.
 
 *menu.title.text.color*
 	Text color of separator label.  Default #ffffff.

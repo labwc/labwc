@@ -270,6 +270,22 @@ view_next(struct wl_list *head, struct view *view, enum lab_view_criteria criter
 }
 
 struct view *
+view_prev(struct wl_list *head, struct view *view, enum lab_view_criteria criteria)
+{
+	assert(head);
+
+	struct wl_list *elm = view ? &view->link : head;
+
+	for (elm = elm->prev; elm != head; elm = elm->prev) {
+		view = wl_container_of(elm, view, link);
+		if (matches_criteria(view, criteria)) {
+			return view;
+		}
+	}
+	return NULL;
+}
+
+struct view *
 view_next_no_head_stop(struct wl_list *head, struct view *from,
 		enum lab_view_criteria criteria)
 {

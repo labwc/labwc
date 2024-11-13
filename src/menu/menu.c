@@ -1140,6 +1140,10 @@ menu_free(struct menu *menu)
 	/* Keep items clean on pipemenu destruction */
 	nullify_item_pointing_to_this_menu(menu);
 
+	if (menu->server->menu_current == menu) {
+		menu_close_root(menu->server);
+	}
+
 	struct menuitem *item, *next;
 	wl_list_for_each_safe(item, next, &menu->menuitems, link) {
 		item_destroy(item);

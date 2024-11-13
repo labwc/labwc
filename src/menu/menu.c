@@ -918,9 +918,6 @@ menu_hide_submenu(struct server *server, const char *id)
 			}
 		}
 	}
-	if (hide_menu->scene_tree) {
-		menu_update_scene(hide_menu);
-	}
 }
 
 static void

@@ -656,6 +656,17 @@ handle_menu_element(xmlNode *n, struct server *server)
 		}
 
 		struct menu *menu = menu_get_by_id(server, id);
+
+		struct menu *iter = current_menu;
+		while (iter) {
+			if (iter == menu) {
+				wlr_log(WLR_ERROR, "menus with the same id '%s' "
+					"cannot be nested", id);
+				goto error;
+			}
+			iter = iter->parent;
+		}
+
 		if (menu) {
 			current_item = item_create(current_menu, menu->label, true);
 			if (current_item) {

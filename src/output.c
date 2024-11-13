@@ -1048,6 +1048,8 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 void
 output_enable_adaptive_sync(struct output *output, bool enabled)
 {
+	assert(output_is_usable(output));
+
 	wlr_output_state_set_adaptive_sync_enabled(&output->pending, enabled);
 	if (!wlr_output_test_state(output->wlr_output, &output->pending)) {
 		wlr_output_state_set_adaptive_sync_enabled(&output->pending, false);

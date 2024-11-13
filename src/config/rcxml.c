@@ -1079,9 +1079,9 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);
 	} else if (!strcmp(nodename, "policy.placement")) {
-		rc.placement_policy = view_placement_parse(content);
-		if (rc.placement_policy == LAB_PLACE_INVALID) {
-			rc.placement_policy = LAB_PLACE_CENTER;
+		enum view_placement_policy policy = view_placement_parse(content);
+		if (policy != LAB_PLACE_INVALID) {
+			rc.placement_policy = policy;
 		}
 	} else if (!strcasecmp(nodename, "xwaylandPersistence.core")) {
 		set_bool(content, &rc.xwayland_persistence);
@@ -1434,7 +1434,7 @@ rcxml_init(void)
 	}
 	has_run = true;
 
-	rc.placement_policy = LAB_PLACE_CENTER;
+	rc.placement_policy = LAB_PLACE_CASCADE;
 	rc.placement_cascade_offset_x = 0;
 	rc.placement_cascade_offset_y = 0;
 

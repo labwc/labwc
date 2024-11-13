@@ -17,7 +17,7 @@
   </core>
 
   <placement>
-    <policy>center</policy>
+    <policy>cascade</policy>
     <!--
       When <placement><policy> is "cascade", the offset for cascading new
       windows can be overwritten like this:

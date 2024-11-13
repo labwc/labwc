@@ -454,6 +454,9 @@ view_discover_output(struct view *view, struct wlr_box *geometry)
 static void
 set_adaptive_sync_fullscreen(struct view *view)
 {
+	if (!output_is_usable(view->output)) {
+		return;
+	}
 	if (rc.adaptive_sync != LAB_ADAPTIVE_SYNC_FULLSCREEN) {
 		return;
 	}

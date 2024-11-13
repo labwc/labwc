@@ -368,6 +368,21 @@ menu_update_scene(struct menu *menu)
 }
 
 static void
+post_processing_from(struct server *server, struct menu *from)
+{
+	bool should_process = false;
+	struct menu *menu;
+	wl_list_for_each(menu, &server->menus, link) {
+		if (menu == from) {
+			should_process = true;
+		}
+		if (should_process) {
+			menu_update_scene(menu);
+		}
+	}
+}
+
+static void
 post_processing(struct server *server)
 {
 	struct menu *menu;
@@ -1359,18 +1374,14 @@ create_pipe_menu(struct menu_pipe_context *ctx)
 	}
 	ctx->item->submenu = pipe_menu;
 
-	/*
-	 * TODO: refactor validate() and post_processing() to only
-	 * operate from current point onwards
-	 */
-
 	/* Set menu-widths before configuring */
-	post_processing(ctx->server);
+	post_processing_from(ctx->server, pipe_menu);
 
 	enum menu_align align = ctx->item->parent->align;
 	struct wlr_box pos = get_submenu_position(ctx->item, align);
 	menu_configure(pipe_menu, pos.x, pos.y, align);
 
+	/*TODO: refactor validate() to only operate from current point onwards */
 	validate(ctx->server);
 
 	/* Finally open the new submenu tree */

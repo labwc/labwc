@@ -372,6 +372,11 @@ set_adaptive_sync_fullscreen(struct view *view)
 	if (rc.adaptive_sync != LAB_ADAPTIVE_SYNC_FULLSCREEN) {
 		return;
 	}
+
+	if (!output_is_usable(view->output)) {
+		return;
+	}
+
 	/* Enable adaptive sync if view is fullscreen */
 	output_enable_adaptive_sync(view->output->wlr_output, view->fullscreen);
 	wlr_output_commit(view->output->wlr_output);

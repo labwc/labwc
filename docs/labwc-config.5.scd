@@ -232,7 +232,7 @@ this is for compatibility with Openbox.
 	center new windows under the cursor. The "cascade" policy will try to
 	place new windows at the center of the active output, but possibly
 	shifts its position to bottom-right not to cover existing windows.
-	Default is "center".
+	Default is "cascade".
 
 *<placement><cascadeOffset><x>*++
 *<placement><cascadeOffset><y>*

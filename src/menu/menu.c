@@ -322,6 +322,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	*item_y += theme->menu_header_height;
 }
 
+/* (Re)creates the scene of the menu */
 static void
 menu_update_scene(struct menu *menu)
 {
@@ -370,9 +371,16 @@ menu_update_scene(struct menu *menu)
 static void
 post_processing(struct server *server)
 {
+	/*
+	 * Create menu scene after all of its contents is determined
+	 * (e.g. when finished reading menu.xml or received output from
+	 * pipemenu program).
+	 */
 	struct menu *menu;
 	wl_list_for_each(menu, &server->menus, link) {
-		menu_update_scene(menu);
+		if (!menu->scene_tree) {
+			menu_update_scene(menu);
+		}
 	}
 }
 

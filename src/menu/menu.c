@@ -437,7 +437,9 @@ item_destroy(struct menuitem *item)
 	}
 	wl_list_remove(&item->link);
 	action_list_free(&item->actions);
-	wlr_scene_node_destroy(&item->tree->node);
+	if (item->tree) {
+		wlr_scene_node_destroy(&item->tree->node);
+	}
 	free(item->execute);
 	free(item->id);
 	free(item->text);
@@ -1166,7 +1168,9 @@ menu_free(struct menu *menu)
 	 * Destroying the root node will destroy everything,
 	 * including node descriptors and scaled_font_buffers.
 	 */
-	wlr_scene_node_destroy(&menu->scene_tree->node);
+	if (menu->scene_tree) {
+		wlr_scene_node_destroy(&menu->scene_tree->node);
+	}
 	wl_list_remove(&menu->link);
 	zfree(menu->id);
 	zfree(menu->label);

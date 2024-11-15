@@ -45,6 +45,14 @@ void *xrealloc(void *ptr, size_t size);
 char *xstrdup(const char *str);
 
 /*
+ * Same as ptr = xstrdup(str) but free
+ * <ptr> before assigning the result.
+ */
+#define xstrdup_replace(ptr, str) do { \
+	free(ptr); (ptr) = xstrdup(str); \
+} while (0)
+
+/*
  * Frees memory pointed to by <ptr> and sets <ptr> to NULL.
  * Does nothing if <ptr> is already NULL.
  */

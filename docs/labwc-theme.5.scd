@@ -164,6 +164,24 @@ all are supported.
 	A fixed width can be achieved by setting .min and .max to the same
 	value.
 
+*menu.padding.width*
+	Horizontal padding of menu in pixels. Default is 0.
+
+*menu.padding.height*
+	Vertical padding of menu in pixels. Default is 0.
+
+*menu.corner-radius*
+	Corner radisu of menus in pixels. Default is 0.
+
+*menu.border.width*
+	Border width of menus in pixels. Default is 1.
+
+*menu.border.color*
+	Border color of menus. Default is #a8a5a2.
+
+*menu.bg.color*
+	Background color of menus. Inherits *menu.items.bg.color* if not set.
+
 *menu.items.padding.x*
 	Horizontal padding of menu text entries in pixels.
 	Default is 7.
@@ -172,11 +190,24 @@ all are supported.
 	Vertical padding of menu text entries in pixels.
 	Default is 4.
 
+*menu.items.corner-radius*
+	Corner radius of menu items. Default is 0.
+
+*menu.items.border.width*
+	Border width of menu items. Default is 0.
+
+*menu.items.border.color*
+	Border color of inactive menu items. Inherits *menu.border.color* if not
+	set.
+
 *menu.items.bg.color*
 	Background color of inactive menu items.
 
 *menu.items.text.color*
 	Text color of inactive menu item.
+
+*menu.items.active.border.color*
+	Border color of active menu items. Inherits *menu.border.color* if not set.
 
 *menu.items.active.bg.color*
 	Background color of active menu items.

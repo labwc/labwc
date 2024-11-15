@@ -19,6 +19,7 @@
 #include "common/mem.h"
 #include "common/nodename.h"
 #include "common/scaled-font-buffer.h"
+#include "common/scaled-rect-buffer.h"
 #include "common/scene-helpers.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
@@ -169,15 +170,25 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 	/* Hide selected state */
 	wlr_scene_node_set_enabled(&menuitem->selected.tree->node, false);
 
+	int bg_width = menu->size.width
+		- 2 * theme->menu_border_width
+		- 2 * theme->menu_padding_width;
+
 	/* Item background nodes */
-	menuitem->normal.background = &wlr_scene_rect_create(
-		menuitem->normal.tree,
-		menu->size.width, theme->menu_item_height,
-		theme->menu_items_bg_color)->node;
-	menuitem->selected.background = &wlr_scene_rect_create(
-		menuitem->selected.tree,
-		menu->size.width, theme->menu_item_height,
-		theme->menu_items_active_bg_color)->node;
+	struct scaled_rect_buffer *normal_bg_buffer = scaled_rect_buffer_create(
+		menuitem->normal.tree, bg_width, theme->menu_item_height,
+		theme->menu_items_border_width, theme->menu_items_corner_radius,
+		LAB_CORNER_ALL, EDGES_ALL, theme->menu_items_bg_color,
+		theme->menu_items_border_color);
+	assert(normal_bg_buffer);
+	menuitem->normal.background = &normal_bg_buffer->scene_buffer->node;
+	struct scaled_rect_buffer *selected_bg_buffer = scaled_rect_buffer_create(
+		menuitem->selected.tree, bg_width, theme->menu_item_height,
+		theme->menu_items_border_width, theme->menu_items_corner_radius,
+		LAB_CORNER_ALL, EDGES_ALL, theme->menu_items_active_bg_color,
+		theme->menu_items_active_border_color);
+	assert(selected_bg_buffer);
+	menuitem->selected.background = &selected_bg_buffer->scene_buffer->node;
 
 	/* Font nodes */
 	menuitem->normal.buffer = scaled_font_buffer_create(menuitem->normal.tree);
@@ -187,7 +198,9 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 	menuitem->selected.text = &menuitem->selected.buffer->scene_buffer->node;
 
 	/* Font buffers */
-	int text_width = menu->size.width - 2 * theme->menu_items_padding_x;
+	int text_width = bg_width
+		- 2 * theme->menu_items_border_width
+		- 2 * theme->menu_items_padding_x;
 	scaled_font_buffer_update(menuitem->normal.buffer, menuitem->text,
 		text_width, &rc.font_menuitem,
 		theme->menu_items_text_color,
@@ -198,14 +211,15 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 		theme->menu_items_active_bg_color, menuitem->arrow);
 
 	/* Center font nodes */
-	int x = theme->menu_items_padding_x;
+	int x = theme->menu_items_border_width + theme->menu_items_padding_x;
 	int y = (theme->menu_item_height - menuitem->normal.buffer->height) / 2;
 	wlr_scene_node_set_position(menuitem->normal.text, x, y);
 	y = (theme->menu_item_height - menuitem->selected.buffer->height) / 2;
 	wlr_scene_node_set_position(menuitem->selected.text, x, y);
 
 	/* Position the item in relation to its menu */
-	wlr_scene_node_set_position(&menuitem->tree->node, 0, *item_y);
+	wlr_scene_node_set_position(&menuitem->tree->node,
+		theme->menu_border_width + theme->menu_padding_width, *item_y);
 	*item_y += theme->menu_item_height;
 }
 
@@ -234,7 +248,8 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 	assert(menuitem->type == LAB_MENU_SEPARATOR_LINE);
 	struct menu *menu = menuitem->parent;
 	struct theme *theme = menu->server->theme;
-	int height = theme->menu_separator_line_thickness
+	int bg_width = menu->size.width - 2 * theme->menu_border_width;
+	int bg_height = theme->menu_separator_line_thickness
 		+ 2 * theme->menu_separator_padding_height;
 
 	/* Menu item root node */
@@ -245,13 +260,8 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 	/* Tree to hold background and line buffer */
 	menuitem->normal.tree = wlr_scene_tree_create(menuitem->tree);
 
-	/* Item background nodes */
-	menuitem->normal.background = &wlr_scene_rect_create(
-		menuitem->normal.tree, menu->size.width, height,
-		theme->menu_items_bg_color)->node;
-
 	/* Draw separator line */
-	int line_width = menu->size.width - 2 * theme->menu_separator_padding_width;
+	int line_width = bg_width - 2 * theme->menu_separator_padding_width;
 	menuitem->normal.text = &wlr_scene_rect_create(
 		menuitem->normal.tree, line_width,
 		theme->menu_separator_line_thickness,
@@ -261,12 +271,13 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 	wlr_scene_node_set_position(menuitem->normal.text,
 		theme->menu_separator_padding_width,
 		theme->menu_separator_padding_height);
-	wlr_scene_node_set_position(&menuitem->tree->node, 0, *item_y);
-	*item_y += height;
+	wlr_scene_node_set_position(&menuitem->tree->node,
+		theme->menu_border_width, *item_y);
+	*item_y += bg_height;
 }
 
 static void
-title_create_scene(struct menuitem *menuitem, int *item_y)
+title_create_scene(struct menuitem *menuitem, bool topmost, int *item_y)
 {
 	assert(menuitem);
 	assert(menuitem->type == LAB_MENU_TITLE);
@@ -274,6 +285,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	struct theme *theme = menu->server->theme;
 	float *bg_color = theme->menu_title_bg_color;
 	float *text_color = theme->menu_title_text_color;
+	int bg_width = menu->size.width - 2 * theme->menu_border_width;
 
 	/* Menu item root node */
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
@@ -284,36 +296,52 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	menuitem->normal.tree = wlr_scene_tree_create(menuitem->tree);
 
 	/* Background */
-	menuitem->normal.background = &wlr_scene_rect_create(
-		menuitem->normal.tree, menu->size.width,
-		theme->menu_header_height, bg_color)->node;
+	int corner_radius = theme->menu_corner_radius - theme->menu_border_width;
+	uint32_t rounded_corners = 0;
+	uint32_t edges = (WLR_DIRECTION_UP | WLR_DIRECTION_DOWN);
+	if (topmost) {
+		/*
+		 * When this title is the first item in the menu, the top edge
+		 * are rounded and not stroked so it fits in the upper menu
+		 * border.
+		 */
+		rounded_corners = (LAB_CORNER_TOP_LEFT | LAB_CORNER_TOP_RIGHT);
+		edges = WLR_DIRECTION_DOWN;
+	}
+	struct scaled_rect_buffer *bg_buffer = scaled_rect_buffer_create(
+		menuitem->normal.tree, bg_width, theme->menu_header_height,
+		theme->menu_border_width, corner_radius, rounded_corners, edges,
+		bg_color, theme->menu_border_color);
+	assert(bg_buffer);
+	menuitem->normal.background = &bg_buffer->scene_buffer->node;
 
 	/* Draw separator title */
 	menuitem->normal.buffer = scaled_font_buffer_create(menuitem->normal.tree);
 	assert(menuitem->normal.buffer);
 	menuitem->normal.text = &menuitem->normal.buffer->scene_buffer->node;
 	scaled_font_buffer_update(menuitem->normal.buffer, menuitem->text,
-		menu->size.width - 2 * theme->menu_items_padding_x,
+		bg_width - 2 * theme->menu_items_padding_x,
 		&rc.font_menuheader, text_color, bg_color, /* arrow */ NULL);
 
 	int title_x = 0;
 	switch (theme->menu_title_text_justify) {
 	case LAB_JUSTIFY_CENTER:
-		title_x = (menu->size.width - menuitem->native_width) / 2;
+		title_x = (bg_width - menuitem->native_width) / 2;
 		title_x = MAX(title_x, 0);
 		break;
 	case LAB_JUSTIFY_LEFT:
 		title_x = theme->menu_items_padding_x;
 		break;
 	case LAB_JUSTIFY_RIGHT:
-		title_x = menu->size.width - menuitem->native_width
+		title_x = bg_width - menuitem->native_width
 				- theme->menu_items_padding_x;
 		break;
 	}
 	int title_y = (theme->menu_header_height - menuitem->normal.buffer->height) / 2;
 	wlr_scene_node_set_position(menuitem->normal.text, title_x, title_y);
 
-	wlr_scene_node_set_position(&menuitem->tree->node, 0, *item_y);
+	wlr_scene_node_set_position(&menuitem->tree->node,
+		theme->menu_border_width, *item_y);
 	*item_y += theme->menu_header_height;
 }
 
@@ -338,29 +366,55 @@ menu_update_scene(struct menu *menu)
 	/* Menu width is the maximum item width, capped by menu.width.{min,max} */
 	menu->size.width = 0;
 	wl_list_for_each(item, &menu->menuitems, link) {
-		menu->size.width = MAX(menu->size.width,
-			item->native_width + 2 * theme->menu_items_padding_x);
+		int width = item->native_width
+			+ 2 * theme->menu_items_padding_x
+			+ 2 * theme->menu_items_border_width
+			+ 2 * theme->menu_padding_width
+			+ 2 * theme->menu_border_width;
+		menu->size.width = MAX(menu->size.width, width);
 	}
 	menu->size.width = MAX(menu->size.width, theme->menu_min_width);
 	menu->size.width = MIN(menu->size.width, theme->menu_max_width);
 
-	/* Update all items for the new size */
-	int item_y = 0;
+	/*
+	 * Create item scenes. menu.padding.height is applied around groups of
+	 * items segmented by titles.
+	 */
+	int item_y = theme->menu_border_width;
+	enum menuitem_type prev_item_type = LAB_MENU_TITLE;
 	wl_list_for_each(item, &menu->menuitems, link) {
 		assert(!item->tree);
 		switch (item->type) {
 		case LAB_MENU_ITEM:
+			if (prev_item_type == LAB_MENU_TITLE) {
+				item_y += theme->menu_padding_height;
+			}
 			item_create_scene(item, &item_y);
 			break;
 		case LAB_MENU_SEPARATOR_LINE:
 			separator_create_scene(item, &item_y);
 			break;
 		case LAB_MENU_TITLE:
-			title_create_scene(item, &item_y);
+			if (prev_item_type == LAB_MENU_ITEM) {
+				item_y += theme->menu_padding_height;
+			}
+			bool topmost = (&item->link == menu->menuitems.next);
+			title_create_scene(item, topmost, &item_y);
 			break;
 		}
+		prev_item_type = item->type;
 	}
-	menu->size.height = item_y;
+	menu->size.height = item_y + theme->menu_padding_height
+		+ theme->menu_border_width;
+
+	struct scaled_rect_buffer *bg_buffer = scaled_rect_buffer_create(
+		menu->scene_tree, menu->size.width, menu->size.height,
+		theme->menu_border_width, theme->menu_corner_radius,
+		LAB_CORNER_ALL, EDGES_ALL, theme->menu_bg_color,
+		theme->menu_border_color);
+	assert(bg_buffer);
+	menu->background = &bg_buffer->scene_buffer->node;
+	wlr_scene_node_lower_to_bottom(menu->background);
 }
 
 static void

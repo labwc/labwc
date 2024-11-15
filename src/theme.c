@@ -592,11 +592,21 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->menu_overlap_y = 0;
 	theme->menu_min_width = 20;
 	theme->menu_max_width = 200;
+	theme->menu_padding_width = 0;
+	theme->menu_padding_height = 0;
+	theme->menu_border_width = 1;
+	parse_hexstr("#a8a5a2", theme->menu_border_color);
+	theme->menu_bg_color[0] = FLT_MIN;
+	theme->menu_corner_radius = 0;
 
 	theme->menu_items_padding_x = 7;
 	theme->menu_items_padding_y = 4;
+	theme->menu_items_corner_radius = 0;
+	theme->menu_items_border_width = 0;
+	theme->menu_items_border_color[0] = FLT_MIN;
 	parse_hexstr("#fcfbfa", theme->menu_items_bg_color);
 	parse_hexstr("#000000", theme->menu_items_text_color);
+	theme->menu_items_active_border_color[0] = FLT_MIN;
 	parse_hexstr("#e1dedb", theme->menu_items_active_bg_color);
 	parse_hexstr("#000000", theme->menu_items_active_text_color);
 
@@ -859,6 +869,28 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->menu_max_width = get_int_if_positive(
 			value, "menu.width.max");
 	}
+	if (match_glob(key, "menu.padding.width")) {
+		theme->menu_padding_width = get_int_if_positive(
+			value, "menu.padding.width");
+	}
+	if (match_glob(key, "menu.padding.height")) {
+		theme->menu_padding_height = get_int_if_positive(
+			value, "menu.padding.height");
+	}
+	if (match_glob(key, "menu.border.width")) {
+		theme->menu_border_width = get_int_if_positive(
+			value, "menu.border.width");
+	}
+	if (match_glob(key, "menu.corner-radius")) {
+		theme->menu_corner_radius = get_int_if_positive(
+			value, "menu.corner-radius");
+	}
+	if (match_glob(key, "menu.bg.color")) {
+		parse_hexstr(value, theme->menu_bg_color);
+	}
+	if (match_glob(key, "menu.border.color")) {
+		parse_hexstr(value, theme->menu_border_color);
+	}
 
 	if (match_glob(key, "menu.items.padding.x")) {
 		theme->menu_items_padding_x = get_int_if_positive(
@@ -868,11 +900,28 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->menu_items_padding_y = get_int_if_positive(
 			value, "menu.items.padding.y");
 	}
+	if (match_glob(key, "menu.items.corner-radius")) {
+		theme->menu_items_corner_radius = get_int_if_positive(
+			value, "menu.items.corner-radius");
+	}
+	if (match_glob(key, "menu.items.border.width")) {
+		theme->menu_items_border_width = get_int_if_positive(
+			value, "menu.items.border.width");
+	}
+	/* *.bg.border.color is for compatibility with Openbox */
+	if (match_glob(key, "menu.items.border.color")
+			|| match_glob(key, "menu.items.bg.border.color")) {
+		parse_hexstr(value, theme->menu_items_border_color);
+	}
 	if (match_glob(key, "menu.items.bg.color")) {
 		parse_hexstr(value, theme->menu_items_bg_color);
 	}
 	if (match_glob(key, "menu.items.text.color")) {
 		parse_hexstr(value, theme->menu_items_text_color);
+	}
+	if (match_glob(key, "menu.items.active.border.color")
+			|| match_glob(key, "menu.items.active.bg.border.color")) {
+		parse_hexstr(value, theme->menu_items_active_border_color);
 	}
 	if (match_glob(key, "menu.items.active.bg.color")) {
 		parse_hexstr(value, theme->menu_items_active_bg_color);
@@ -1440,10 +1489,12 @@ post_processing(struct theme *theme)
 	theme->titlebar_height = get_titlebar_height(theme);
 
 	theme->menu_item_height = font_height(&rc.font_menuitem)
-		+ 2 * theme->menu_items_padding_y;
+		+ 2 * theme->menu_items_padding_y
+		+ 2 * theme->menu_items_border_width;
 
 	theme->menu_header_height = font_height(&rc.font_menuheader)
-		+ 2 * theme->menu_items_padding_y;
+		+ 2 * theme->menu_items_padding_y
+		+ 2 * theme->menu_items_border_width;
 
 	theme->osd_window_switcher_item_height = font_height(&rc.font_osd)
 		+ 2 * theme->osd_window_switcher_item_padding_y
@@ -1464,6 +1515,19 @@ post_processing(struct theme *theme)
 			"Adjusting menu.width.max: .max (%d) lower than .min (%d)",
 			theme->menu_max_width, theme->menu_min_width);
 		theme->menu_max_width = theme->menu_min_width;
+	}
+
+	if (theme->menu_bg_color[0] == FLT_MIN) {
+		memcpy(theme->menu_bg_color, theme->menu_items_bg_color,
+			sizeof(theme->menu_bg_color));
+	}
+	if (theme->menu_items_border_color[0] == FLT_MIN) {
+		memcpy(theme->menu_items_border_color,
+			theme->menu_border_color, sizeof(theme->menu_border_color));
+	}
+	if (theme->menu_items_active_border_color[0] == FLT_MIN) {
+		memcpy(theme->menu_items_active_border_color,
+			theme->menu_border_color, sizeof(theme->menu_border_color));
 	}
 
 	/* Inherit OSD settings if not set */

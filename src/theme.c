@@ -19,10 +19,11 @@
 #include <wlr/util/log.h>
 #include <wlr/render/pixman.h>
 #include <strings.h>
-#include "common/macros.h"
+#include "common/corner.h"
 #include "common/dir.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"
+#include "common/macros.h"
 #include "common/match.h"
 #include "common/mem.h"
 #include "common/parse-bool.h"
@@ -49,19 +50,13 @@ struct button {
 	uint8_t state_set;
 };
 
-enum corner {
-	LAB_CORNER_UNKNOWN = 0,
-	LAB_CORNER_TOP_LEFT,
-	LAB_CORNER_TOP_RIGHT,
-};
-
 struct rounded_corner_ctx {
 	struct wlr_box *box;
 	double radius;
 	double line_width;
 	float *fill_color;
 	float *border_color;
-	enum corner corner;
+	enum lab_corner corner;
 };
 
 #define zero_array(arr) memset(arr, 0, sizeof(arr))
@@ -164,7 +159,7 @@ create_hover_fallback(struct theme *theme,
 }
 
 static void
-create_rounded_buffer(struct theme *theme, enum corner corner,
+create_rounded_buffer(struct theme *theme, enum lab_corner corner,
 		struct lab_data_buffer **rounded_buffer,
 		struct lab_data_buffer *icon_buffer)
 {

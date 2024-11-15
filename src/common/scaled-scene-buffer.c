@@ -41,10 +41,10 @@ _cache_entry_destroy(struct scaled_scene_buffer_cache_entry *cache_entry, bool d
 	wl_list_remove(&cache_entry->link);
 	if (cache_entry->buffer) {
 		/* Allow the buffer to get dropped if there are no further consumers */
-		wlr_buffer_unlock(cache_entry->buffer);
-		if (drop_buffer) {
+		if (drop_buffer && !cache_entry->buffer->dropped) {
 			wlr_buffer_drop(cache_entry->buffer);
 		}
+		wlr_buffer_unlock(cache_entry->buffer);
 	}
 	free(cache_entry);
 }
@@ -82,10 +82,10 @@ _update_buffer(struct scaled_scene_buffer *self, double scale)
 		cache_entry = wl_container_of(self->cache.prev, cache_entry, link);
 		if (cache_entry->buffer) {
 			/* Allow the old buffer to get dropped if there are no further consumers */
-			wlr_buffer_unlock(cache_entry->buffer);
-			if (self->drop_buffer) {
+			if (self->drop_buffer && !cache_entry->buffer->dropped) {
 				wlr_buffer_drop(cache_entry->buffer);
 			}
+			wlr_buffer_unlock(cache_entry->buffer);
 		}
 		wl_list_remove(&cache_entry->link);
 	}

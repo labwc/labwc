@@ -1920,6 +1920,7 @@ rcxml_finish(void)
 	zfree(rc.theme_name);
 	zfree(rc.icon_theme_name);
 	zfree(rc.workspace_config.prefix);
+	zfree(rc.tablet.output_name);
 
 	struct title_button *p, *p_tmp;
 	wl_list_for_each_safe(p, p_tmp, &rc.title_buttons_left, link) {
@@ -1959,8 +1960,6 @@ rcxml_finish(void)
 		zfree(touch_config->output_name);
 		zfree(touch_config);
 	}
-
-	zfree(rc.tablet.output_name);
 
 	struct libinput_category *l, *l_tmp;
 	wl_list_for_each_safe(l, l_tmp, &rc.libinput_categories, link) {

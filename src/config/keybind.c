@@ -188,3 +188,12 @@ keybind_create(const char *keybind)
 	wl_list_init(&k->actions);
 	return k;
 }
+
+void
+keybind_destroy(struct keybind *keybind)
+{
+	assert(wl_list_empty(&keybind->actions));
+
+	zfree(keybind->keysyms);
+	zfree(keybind);
+}

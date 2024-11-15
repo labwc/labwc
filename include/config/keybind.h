@@ -30,6 +30,8 @@ struct keybind {
  */
 struct keybind *keybind_create(const char *keybind);
 
+void keybind_destroy(struct keybind *keybind);
+
 /**
  * parse_modifier - parse a string containing a single modifier name (e.g. "S")
  * into the represented modifier value. returns 0 for invalid modifier names.

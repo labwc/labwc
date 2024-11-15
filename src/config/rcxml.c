@@ -1626,7 +1626,7 @@ deduplicate_key_bindings(void)
 			if (keybind_the_same(existing, current)) {
 				wl_list_remove(&existing->link);
 				action_list_free(&existing->actions);
-				free(existing);
+				keybind_destroy(existing);
 				replaced++;
 				break;
 			}
@@ -1635,7 +1635,7 @@ deduplicate_key_bindings(void)
 	wl_list_for_each_safe(current, tmp, &rc.keybinds, link) {
 		if (wl_list_empty(&current->actions)) {
 			wl_list_remove(&current->link);
-			free(current);
+			keybind_destroy(current);
 			cleared++;
 		}
 	}
@@ -1948,8 +1948,7 @@ rcxml_finish(void)
 	wl_list_for_each_safe(k, k_tmp, &rc.keybinds, link) {
 		wl_list_remove(&k->link);
 		action_list_free(&k->actions);
-		zfree(k->keysyms);
-		zfree(k);
+		keybind_destroy(k);
 	}
 
 	struct mousebind *m, *m_tmp;

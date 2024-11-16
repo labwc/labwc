@@ -45,7 +45,7 @@ img_svg_load(const char *filename, struct lab_data_buffer **buffer, int size,
 
 	rsvg_handle_render_document(svg, cr, &viewport, &err);
 	if (err) {
-		wlr_log(WLR_ERROR, "error rendering svg %s-%s\n", filename, err->message);
+		wlr_log(WLR_ERROR, "error rendering svg %s-%s", filename, err->message);
 		g_error_free(err);
 		goto error;
 	}

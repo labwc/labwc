@@ -851,12 +851,10 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 
 	if (match_glob(key, "menu.overlap.x")) {
-		theme->menu_overlap_x = get_int_if_positive(
-			value, "menu.overlap.x");
+		theme->menu_overlap_x = atoi(value);
 	}
 	if (match_glob(key, "menu.overlap.y")) {
-		theme->menu_overlap_y = get_int_if_positive(
-			value, "menu.overlap.y");
+		theme->menu_overlap_y = atoi(value);
 	}
 	if (match_glob(key, "menu.width.min")) {
 		theme->menu_min_width = get_int_if_positive(

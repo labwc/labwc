@@ -50,7 +50,7 @@ output_get_tearing_allowance(struct output *output)
 	}
 
 	/* allow tearing for any window when requested or forced */
-	if (rc.allow_tearing == LAB_TEARING_ENABLED) {
+	if (rc.allow_tearing == LAB_TEARING_ENABLED || rc.allow_tearing == LAB_TEARING_ALWAYS) {
 		if (view->force_tearing == LAB_STATE_UNSPECIFIED) {
 			return view->tearing_hint;
 		} else {

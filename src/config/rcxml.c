@@ -954,6 +954,8 @@ set_tearing_mode(const char *str, enum tearing_mode *variable)
 		*variable = LAB_TEARING_FULLSCREEN;
 	} else if (!strcasecmp(str, "fullscreenForced")) {
 		*variable = LAB_TEARING_FULLSCREEN_FORCED;
+	} else if (!strcasecmp(str, "always")) {
+		*variable = LAB_TEARING_ALWAYS;
 	} else if (parse_bool(str, -1) == 1) {
 		*variable = LAB_TEARING_ENABLED;
 	} else {
@@ -1447,7 +1449,7 @@ rcxml_init(void)
 
 	rc.gap = 0;
 	rc.adaptive_sync = LAB_ADAPTIVE_SYNC_DISABLED;
-	rc.allow_tearing = false;
+	rc.allow_tearing = LAB_TEARING_DISABLED;
 	rc.reuse_output_mode = false;
 	rc.xwayland_persistence = false;
 

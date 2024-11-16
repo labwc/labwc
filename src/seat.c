@@ -284,7 +284,7 @@ static void
 map_pointer_to_output(struct seat *seat, struct wlr_input_device *dev)
 {
 	struct wlr_pointer *pointer = wlr_pointer_from_input_device(dev);
-	wlr_log(WLR_INFO, "map pointer to output %s\n", pointer->output_name);
+	wlr_log(WLR_INFO, "map pointer to output %s", pointer->output_name);
 	map_input_to_output(seat, dev, pointer->output_name);
 }
 
@@ -353,7 +353,7 @@ map_touch_to_output(struct seat *seat, struct wlr_input_device *dev)
 	}
 
 	char *output_name = touch->output_name ? touch->output_name : touch_config_output_name;
-	wlr_log(WLR_INFO, "map touch to output %s\n", output_name ? output_name : "unknown");
+	wlr_log(WLR_INFO, "map touch to output %s", output_name ? output_name : "unknown");
 	map_input_to_output(seat, dev, output_name);
 }
 
@@ -378,7 +378,7 @@ new_tablet(struct seat *seat, struct wlr_input_device *dev)
 	input->wlr_input_device = dev;
 	tablet_create(seat, dev);
 	wlr_cursor_attach_input_device(seat->cursor, dev);
-	wlr_log(WLR_INFO, "map tablet to output %s\n", rc.tablet.output_name);
+	wlr_log(WLR_INFO, "map tablet to output %s", rc.tablet.output_name);
 	map_input_to_output(seat, dev, rc.tablet.output_name);
 
 	return input;

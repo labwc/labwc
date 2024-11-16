@@ -44,13 +44,39 @@ output_get_tearing_allowance(struct output *output)
 
 	struct view *view = server->active_view;
 
+	/*
+	 * FIXME: The folling !view check prevents X11 unmanaged surfaces from tearing.
+	 *        Unmanaged surfaces also can't be toggled because they have no view.
+	 *
+	 *        We could potentially do something like:
+	 *        - add a force_tearing member to struct xwayland_unmanaged
+	 *        - find the struct xwayland_unmanaged based on
+	 *          wlr_seat->keyboard_state.focused_surface and server->unmanaged_surfaces
+	 *          This could be implemented in some helper like
+	 *          xwayland_unmanaged_try_from_wlr_surface(struct server, struct wlr_surface)
+	 *        - for LAB_TEARING_ENABLED and LAB_TEARING_ALWAYS this should be enough
+	 *        - for LAB_TEARING_FULLSCREEN and LAB_TEARING_FULLSCREEN_FORCED
+	 *          compare its size and position with the fullscreen geometry of `output`.
+	 *          This could be implemented in some helper like
+	 *          bool xwayland_unamanged_is_fullscreen(struct xwayland_unmanaged, struct output)
+	 */
+
+	/* this includes X11 unmanaged surfaces but they still can't be toggled */
+	if (rc.allow_tearing == LAB_TEARING_ALWAYS) {
+		if (view && view->force_tearing == LAB_STATE_DISABLED
+				&& view->output == output) {
+			return false;
+		}
+		return true;
+	}
+
 	/* tearing is only allowed for the output with the active view */
 	if (!view || view->output != output) {
 		return false;
 	}
 
 	/* allow tearing for any window when requested or forced */
-	if (rc.allow_tearing == LAB_TEARING_ENABLED || rc.allow_tearing == LAB_TEARING_ALWAYS) {
+	if (rc.allow_tearing == LAB_TEARING_ENABLED) {
 		if (view->force_tearing == LAB_STATE_UNSPECIFIED) {
 			return view->tearing_hint;
 		} else {

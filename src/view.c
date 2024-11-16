@@ -2474,10 +2474,6 @@ view_init(struct view *view)
 	wl_signal_init(&view->events.minimized);
 	wl_signal_init(&view->events.fullscreened);
 	wl_signal_init(&view->events.activated);
-
-	if (rc.allow_tearing == LAB_TEARING_ALWAYS) {
-		view->force_tearing = LAB_STATE_ENABLED;
-	}
 }
 
 void

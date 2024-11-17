@@ -290,6 +290,10 @@ icon_loader_lookup(struct server *server, const char *app_id, int size,
 	} else {
 		/* this should be the case for most icons */
 		ret = process_rel_name(&ctx, icon_name, loader, lookup_size, lookup_scale);
+		/* Icon defined in .desktop file could not be loaded, retry with app_id */
+		if (ret < 0) {
+			ret = process_rel_name(&ctx, app_id, loader, lookup_size, lookup_scale);
+		}
 	}
 	if (ret < 0) {
 		return NULL;

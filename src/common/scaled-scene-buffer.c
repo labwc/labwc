@@ -49,31 +49,84 @@ _cache_entry_destroy(struct scaled_scene_buffer_cache_entry *cache_entry, bool d
 	free(cache_entry);
 }
 
+static struct scaled_scene_buffer_cache_entry *
+find_cache_for_scale(struct scaled_scene_buffer *scene_buffer, double scale)
+{
+	struct scaled_scene_buffer_cache_entry *cache_entry;
+	wl_list_for_each(cache_entry, &scene_buffer->cache, link) {
+		if (cache_entry->scale == scale) {
+			return cache_entry;
+		}
+	}
+	return NULL;
+}
+
 static void
 _update_buffer(struct scaled_scene_buffer *self, double scale)
 {
 	self->active_scale = scale;
 
 	/* Search for cached buffer of specified scale */
-	struct scaled_scene_buffer_cache_entry *cache_entry, *cache_entry_tmp;
-	wl_list_for_each_safe(cache_entry, cache_entry_tmp, &self->cache, link) {
-		if (cache_entry->scale == scale) {
-			/* LRU cache, recently used in front */
-			wl_list_remove(&cache_entry->link);
-			wl_list_insert(&self->cache, &cache_entry->link);
-			wlr_scene_buffer_set_buffer(self->scene_buffer, cache_entry->buffer);
-			return;
+	struct scaled_scene_buffer_cache_entry *cache_entry =
+		find_cache_for_scale(self, scale);
+	if (cache_entry) {
+		/* LRU cache, recently used in front */
+		wl_list_remove(&cache_entry->link);
+		wl_list_insert(&self->cache, &cache_entry->link);
+		wlr_scene_buffer_set_buffer(self->scene_buffer, cache_entry->buffer);
+		/*
+		 * If found in our local cache,
+		 * - self->width and self->height are already set
+		 * - wlr_scene_buffer_set_dest_size() has already been called
+		 */
+		return;
+	}
+
+	struct wlr_buffer *wlr_buffer = NULL;
+
+	if (self->impl->equal && self->cached_buffers) {
+		/* Search from other cached scaled-scene-buffers */
+		struct scaled_scene_buffer *scene_buffer;
+		wl_list_for_each(scene_buffer, self->cached_buffers, link) {
+			if (scene_buffer == self) {
+				continue;
+			}
+			if (!self->impl->equal(self, scene_buffer)) {
+				continue;
+			}
+			cache_entry = find_cache_for_scale(scene_buffer, scale);
+			if (!cache_entry) {
+				continue;
+			}
+
+			/* Ensure self->width and self->height are set correctly */
+			self->width = scene_buffer->width;
+			self->height = scene_buffer->height;
+			wlr_buffer = cache_entry->buffer;
+			break;
 		}
 	}
 
-	/* Create new buffer, will get destroyed along the backing wlr_buffer */
-	struct lab_data_buffer *buffer = self->impl->create_buffer(self, scale);
-	if (buffer) {
-		/* Ensure the buffer doesn't get deleted behind our back */
-		wlr_buffer_lock(&buffer->base);
+	if (!wlr_buffer) {
+		/*
+		 * Create new buffer, will get destroyed along the backing
+		 * wlr_buffer
+		 */
+		struct lab_data_buffer *buffer =
+			self->impl->create_buffer(self, scale);
+		if (buffer) {
+			self->width = buffer->logical_width;
+			self->height = buffer->logical_height;
+			wlr_buffer = &buffer->base;
+		} else {
+			self->width = 0;
+			self->height = 0;
+		}
 	}
-	self->width = buffer ? buffer->logical_width : 0;
-	self->height = buffer ? buffer->logical_height : 0;
+	if (wlr_buffer) {
+		/* Ensure the buffer doesn't get deleted behind our back */
+		wlr_buffer_lock(wlr_buffer);
+	}
 
 	/* Create or reuse cache entry */
 	if (wl_list_length(&self->cache) < LAB_SCALED_BUFFER_MAX_CACHE) {
@@ -92,7 +145,7 @@ _update_buffer(struct scaled_scene_buffer *self, double scale)
 
 	/* Update the cache entry */
 	cache_entry->scale = scale;
-	cache_entry->buffer = buffer ? &buffer->base : NULL;
+	cache_entry->buffer = wlr_buffer;
 	wl_list_insert(&self->cache, &cache_entry->link);
 
 	/* And finally update the wlr_scene_buffer itself */
@@ -119,6 +172,7 @@ _handle_node_destroy(struct wl_listener *listener, void *data)
 	if (self->impl->destroy) {
 		self->impl->destroy(self);
 	}
+	wl_list_remove(&self->link);
 	free(self);
 }
 
@@ -159,7 +213,7 @@ _handle_output_leave(struct wl_listener *listener, void *data)
 struct scaled_scene_buffer *
 scaled_scene_buffer_create(struct wlr_scene_tree *parent,
 		const struct scaled_scene_buffer_impl *impl,
-		bool drop_buffer)
+		struct wl_list *cached_buffers, bool drop_buffer)
 {
 	assert(parent);
 	assert(impl);
@@ -177,6 +231,14 @@ scaled_scene_buffer_create(struct wlr_scene_tree *parent,
 	self->active_scale = 1;
 	self->drop_buffer = drop_buffer;
 	wl_list_init(&self->cache);
+
+	self->cached_buffers = cached_buffers;
+	if (self->cached_buffers) {
+		wl_list_insert(self->cached_buffers, &self->link);
+	} else {
+		/* Ensure self->link can be removed safely in the destroy handler */
+		wl_list_init(&self->link);
+	}
 
 	/* Listen to output enter/leave so we get notified about scale changes */
 	self->output_enter.notify = _handle_output_enter;

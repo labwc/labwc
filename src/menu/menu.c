@@ -187,18 +187,15 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 	menuitem->selected.text = &menuitem->selected.buffer->scene_buffer->node;
 
 	/* Font buffers */
+	int text_width = menu->size.width - 2 * theme->menu_items_padding_x;
 	scaled_font_buffer_update(menuitem->normal.buffer, menuitem->text,
-		menuitem->native_width, &rc.font_menuitem,
+		text_width, &rc.font_menuitem,
 		theme->menu_items_text_color,
 		theme->menu_items_bg_color, menuitem->arrow);
 	scaled_font_buffer_update(menuitem->selected.buffer, menuitem->text,
-		menuitem->native_width, &rc.font_menuitem,
+		text_width, &rc.font_menuitem,
 		theme->menu_items_active_text_color,
 		theme->menu_items_active_bg_color, menuitem->arrow);
-	scaled_font_buffer_set_max_width(menuitem->normal.buffer,
-		menu->size.width - 2 * theme->menu_items_padding_x);
-	scaled_font_buffer_set_max_width(menuitem->selected.buffer,
-		menu->size.width - 2 * theme->menu_items_padding_x);
 
 	/* Center font nodes */
 	int x = theme->menu_items_padding_x;
@@ -296,10 +293,8 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	assert(menuitem->normal.buffer);
 	menuitem->normal.text = &menuitem->normal.buffer->scene_buffer->node;
 	scaled_font_buffer_update(menuitem->normal.buffer, menuitem->text,
-		menuitem->native_width, &rc.font_menuheader,
-		text_color, bg_color, /* arrow */ NULL);
-	scaled_font_buffer_set_max_width(menuitem->normal.buffer,
-		menu->size.width - 2 * theme->menu_items_padding_x);
+		menu->size.width - 2 * theme->menu_items_padding_x,
+		&rc.font_menuheader, text_color, bg_color, /* arrow */ NULL);
 
 	int title_x = 0;
 	switch (theme->menu_title_text_justify) {

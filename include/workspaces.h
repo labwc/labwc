@@ -26,7 +26,7 @@ struct workspace {
 		struct wl_listener activate;
 		struct wl_listener deactivate;
 		struct wl_listener remove;
-	} on;
+	} on_cosmic;
 };
 
 void workspaces_init(struct server *server);

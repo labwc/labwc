@@ -3,3 +3,4 @@ labwc_sources += files(
 )
 
 subdir('cosmic_workspaces')
+subdir('ext-workspace')

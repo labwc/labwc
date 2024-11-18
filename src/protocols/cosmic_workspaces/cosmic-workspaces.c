@@ -209,7 +209,7 @@ workspace_set_state(struct lab_cosmic_workspace *workspace,
 	} else {
 		workspace->state_pending &= ~state;
 	}
-	manager_schedule_done_event(workspace->group->manager);
+	cosmic_manager_schedule_done_event(workspace->group->manager);
 }
 
 /* Group */
@@ -288,7 +288,7 @@ group_send_state(struct lab_cosmic_workspace_group *group, struct wl_resource *r
 	zcosmic_workspace_group_handle_v1_send_capabilities(
 		resource, &group->capabilities);
 
-	group_output_send_initial_state(group, resource);
+	cosmic_group_output_send_initial_state(group, resource);
 }
 
 /* Manager itself */
@@ -366,7 +366,8 @@ manager_handle_bind(struct wl_client *client, void *data,
 		return;
 	}
 
-	struct lab_wl_resource_addon *addon = lab_resource_addon_create(/* session context*/ NULL);
+	struct lab_wl_resource_addon *addon =
+		lab_resource_addon_create(/* session context*/ NULL);
 	addon->data = manager;
 
 	wl_resource_set_implementation(resource, &manager_impl,
@@ -443,7 +444,7 @@ manager_idle_send_done(void *data)
 
 /* Internal API */
 void
-manager_schedule_done_event(struct lab_cosmic_workspace_manager *manager)
+cosmic_manager_schedule_done_event(struct lab_cosmic_workspace_manager *manager)
 {
 	if (manager->idle_source) {
 		return;
@@ -512,7 +513,7 @@ lab_cosmic_workspace_group_create(struct lab_cosmic_workspace_manager *manager)
 		zcosmic_workspace_manager_v1_send_workspace_group(resource, group_resource);
 		group_send_state(group, group_resource);
 	}
-	manager_schedule_done_event(manager);
+	cosmic_manager_schedule_done_event(manager);
 
 	return group;
 }
@@ -587,7 +588,7 @@ lab_cosmic_workspace_create(struct lab_cosmic_workspace_group *group)
 			group_resource, workspace_resource);
 		workspace_send_initial_state(workspace, workspace_resource);
 	}
-	manager_schedule_done_event(group->manager);
+	cosmic_manager_schedule_done_event(group->manager);
 
 	return workspace;
 }
@@ -606,7 +607,7 @@ lab_cosmic_workspace_set_name(struct lab_cosmic_workspace *workspace, const char
 			zcosmic_workspace_handle_v1_send_name(resource, workspace->name);
 		}
 	}
-	manager_schedule_done_event(workspace->group->manager);
+	cosmic_manager_schedule_done_event(workspace->group->manager);
 }
 
 void
@@ -639,7 +640,7 @@ lab_cosmic_workspace_set_coordinates(struct lab_cosmic_workspace *workspace,
 	wl_resource_for_each(resource, &workspace->resources) {
 		zcosmic_workspace_handle_v1_send_coordinates(resource, &workspace->coordinates);
 	}
-	manager_schedule_done_event(workspace->group->manager);
+	cosmic_manager_schedule_done_event(workspace->group->manager);
 }
 
 void
@@ -661,7 +662,7 @@ lab_cosmic_workspace_destroy(struct lab_cosmic_workspace *workspace)
 		wl_list_remove(wl_resource_get_link(resource));
 		wl_list_init(wl_resource_get_link(resource));
 	}
-	manager_schedule_done_event(workspace->group->manager);
+	cosmic_manager_schedule_done_event(workspace->group->manager);
 
 	wl_list_remove(&workspace->link);
 	wl_array_release(&workspace->coordinates);

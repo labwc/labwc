@@ -95,14 +95,16 @@ ssd_titlebar_create(struct ssd *ssd)
 	ssd_update_title(ssd);
 	ssd_update_window_icon(ssd);
 
-	set_squared_corners(ssd, false);
-
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
+	bool squared = ssd_should_be_squared(ssd);
 	if (maximized) {
-		set_squared_corners(ssd, true);
 		set_alt_button_icon(ssd, LAB_SSD_BUTTON_MAXIMIZE, true);
 		ssd->state.was_maximized = true;
 	}
+	if (squared) {
+		ssd->state.was_squared = true;
+	}
+	set_squared_corners(ssd, maximized || squared);
 
 	if (view->shaded) {
 		set_alt_button_icon(ssd, LAB_SSD_BUTTON_SHADE, true);
@@ -110,11 +112,6 @@ ssd_titlebar_create(struct ssd *ssd)
 
 	if (view->visible_on_all_workspaces) {
 		set_alt_button_icon(ssd, LAB_SSD_BUTTON_OMNIPRESENT, true);
-	}
-
-	if (ssd_should_be_squared(ssd)) {
-		set_squared_corners(ssd, true);
-		ssd->state.was_squared = true;
 	}
 }
 

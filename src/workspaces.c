@@ -178,11 +178,11 @@ _osd_update(struct server *server)
 
 /* cosmic workspace handlers */
 static void
-handle_workspace_activate(struct wl_listener *listener, void *data)
+handle_cosmic_workspace_activate(struct wl_listener *listener, void *data)
 {
-	struct workspace *workspace = wl_container_of(listener, workspace, on.activate);
+	struct workspace *workspace = wl_container_of(listener, workspace, on_cosmic.activate);
 	workspaces_switch_to(workspace, /* update_focus */ true);
-	wlr_log(WLR_INFO, "activating workspace %s", workspace->name);
+	wlr_log(WLR_INFO, "cosmic activating workspace %s", workspace->name);
 }
 
 /* Internal API */
@@ -201,13 +201,16 @@ add_workspace(struct server *server, const char *name)
 	}
 
 	bool active = server->workspaces.current == workspace;
+
+	/* cosmic */
 	workspace->cosmic_workspace = lab_cosmic_workspace_create(server->workspaces.cosmic_group);
 	lab_cosmic_workspace_set_name(workspace->cosmic_workspace, name);
 	lab_cosmic_workspace_set_active(workspace->cosmic_workspace, active);
 	lab_cosmic_workspace_set_hidden(workspace->cosmic_workspace, !active);
 
-	workspace->on.activate.notify = handle_workspace_activate;
-	wl_signal_add(&workspace->cosmic_workspace->events.activate, &workspace->on.activate);
+	workspace->on_cosmic.activate.notify = handle_cosmic_workspace_activate;
+	wl_signal_add(&workspace->cosmic_workspace->events.activate,
+		&workspace->on_cosmic.activate);
 }
 
 static struct workspace *

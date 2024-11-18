@@ -44,7 +44,7 @@ group_output_destroy(struct group_output *group_output)
 		&group_output->wlr_output->resources,
 		zcosmic_workspace_group_handle_v1_send_output_leave);
 
-	manager_schedule_done_event(group_output->group->manager);
+	cosmic_manager_schedule_done_event(group_output->group->manager);
 
 	wl_list_remove(&group_output->link);
 	wl_list_remove(&group_output->on.group_destroy.link);
@@ -103,7 +103,7 @@ handle_group_destroy(struct wl_listener *listener, void *data)
 
 /* Internal API*/
 void
-group_output_send_initial_state(struct lab_cosmic_workspace_group *group,
+cosmic_group_output_send_initial_state(struct lab_cosmic_workspace_group *group,
 		struct wl_resource *group_resource)
 {
 	struct group_output *group_output;
@@ -150,7 +150,7 @@ lab_cosmic_workspace_group_output_enter(struct lab_cosmic_workspace_group *group
 		&group_output->wlr_output->resources,
 		zcosmic_workspace_group_handle_v1_send_output_enter);
 
-	manager_schedule_done_event(group->manager);
+	cosmic_manager_schedule_done_event(group->manager);
 }
 
 void

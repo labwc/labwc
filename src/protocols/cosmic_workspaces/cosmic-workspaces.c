@@ -8,6 +8,7 @@
 #include "cosmic-workspace-unstable-v1-protocol.h"
 #include "protocols/cosmic-workspaces.h"
 #include "protocols/cosmic-workspaces-internal.h"
+#include "protocols/transaction-addon.h"
 
 /*
  *	.--------------------.
@@ -79,37 +80,37 @@ workspace_handle_destroy(struct wl_client *client, struct wl_resource *resource)
 static void
 workspace_handle_activate(struct wl_client *client, struct wl_resource *resource)
 {
-	struct wl_resource_addon *addon = wl_resource_get_user_data(resource);
+	struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
 	if (!addon) {
 		/* workspace was destroyed from the compositor side */
 		return;
 	}
 	struct lab_cosmic_workspace *workspace = addon->data;
-	transaction_add_workspace_ev(workspace, resource, CW_PENDING_WS_ACTIVATE);
+	lab_transaction_add(addon->ctx, CW_PENDING_WS_ACTIVATE, workspace, /* argument */ NULL);
 }
 
 static void
 workspace_handle_deactivate(struct wl_client *client, struct wl_resource *resource)
 {
-	struct wl_resource_addon *addon = wl_resource_get_user_data(resource);
+	struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
 	if (!addon) {
 		/* Workspace was destroyed from the compositor side */
 		return;
 	}
 	struct lab_cosmic_workspace *workspace = addon->data;
-	transaction_add_workspace_ev(workspace, resource, CW_PENDING_WS_DEACTIVATE);
+	lab_transaction_add(addon->ctx, CW_PENDING_WS_DEACTIVATE, workspace, /*argument*/ NULL);
 }
 
 static void
 workspace_handle_remove(struct wl_client *client, struct wl_resource *resource)
 {
-	struct wl_resource_addon *addon = wl_resource_get_user_data(resource);
+	struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
 	if (!addon) {
 		/* workspace was destroyed from the compositor side */
 		return;
 	}
 	struct lab_cosmic_workspace *workspace = addon->data;
-	transaction_add_workspace_ev(workspace, resource, CW_PENDING_WS_REMOVE);
+	lab_transaction_add(addon->ctx, CW_PENDING_WS_REMOVE, workspace, /*argument*/ NULL);
 }
 
 static const struct zcosmic_workspace_handle_v1_interface workspace_impl = {
@@ -122,9 +123,9 @@ static const struct zcosmic_workspace_handle_v1_interface workspace_impl = {
 static void
 workspace_instance_resource_destroy(struct wl_resource *resource)
 {
-	struct wl_resource_addon *addon = wl_resource_get_user_data(resource);
+	struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
 	if (addon) {
-		resource_addon_destroy(addon);
+		lab_resource_addon_destroy(addon);
 		wl_resource_set_user_data(resource, NULL);
 	}
 
@@ -133,7 +134,7 @@ workspace_instance_resource_destroy(struct wl_resource *resource)
 
 static struct wl_resource *
 workspace_resource_create(struct lab_cosmic_workspace *workspace,
-		struct wl_resource *group_resource, struct session_context *ctx)
+		struct wl_resource *group_resource, struct lab_transaction_session_context *ctx)
 {
 	struct wl_client *client = wl_resource_get_client(group_resource);
 	struct wl_resource *resource = wl_resource_create(client,
@@ -144,7 +145,7 @@ workspace_resource_create(struct lab_cosmic_workspace *workspace,
 		return NULL;
 	}
 
-	struct wl_resource_addon *addon = resource_addon_create(ctx);
+	struct lab_wl_resource_addon *addon = lab_resource_addon_create(ctx);
 	addon->data = workspace;
 
 	wl_resource_set_implementation(resource, &workspace_impl, addon,
@@ -213,16 +214,26 @@ workspace_set_state(struct lab_cosmic_workspace *workspace,
 
 /* Group */
 static void
+group_handle_transaction_destroy(struct wl_listener *listener, void *data)
+{
+	struct lab_transaction *transaction = data;
+	wlr_log(WLR_ERROR, "destroying group transaction data %p", transaction->data);
+	free(transaction->data);
+}
+
+static void
 group_handle_create_workspace(struct wl_client *client,
 		struct wl_resource *resource, const char *name)
 {
-	struct wl_resource_addon *addon = wl_resource_get_user_data(resource);
+	struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
 	if (!addon) {
 		return;
 	}
 
 	struct lab_cosmic_workspace_group *group = addon->data;
-	transaction_add_workspace_group_ev(group, resource, CW_PENDING_WS_CREATE, name);
+	struct lab_transaction *transaction = lab_transaction_add(
+		addon->ctx, CW_PENDING_WS_CREATE, group, xstrdup(name));
+	wl_signal_add(&transaction->events.destroy, &group->on.transaction_destroy);
 }
 
 static void
@@ -239,9 +250,9 @@ static const struct zcosmic_workspace_group_handle_v1_interface group_impl = {
 static void
 group_instance_resource_destroy(struct wl_resource *resource)
 {
-	struct wl_resource_addon *addon = wl_resource_get_user_data(resource);
+	struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
 	if (addon) {
-		resource_addon_destroy(addon);
+		lab_resource_addon_destroy(addon);
 		wl_resource_set_user_data(resource, NULL);
 	}
 	wl_list_remove(wl_resource_get_link(resource));
@@ -249,7 +260,7 @@ group_instance_resource_destroy(struct wl_resource *resource)
 
 static struct wl_resource *
 group_resource_create(struct lab_cosmic_workspace_group *group,
-		struct wl_resource *manager_resource, struct session_context *ctx)
+		struct wl_resource *manager_resource, struct lab_transaction_session_context *ctx)
 {
 	struct wl_client *client = wl_resource_get_client(manager_resource);
 	struct wl_resource *resource = wl_resource_create(client,
@@ -260,7 +271,7 @@ group_resource_create(struct lab_cosmic_workspace_group *group,
 		return NULL;
 	}
 
-	struct wl_resource_addon *addon = resource_addon_create(ctx);
+	struct lab_wl_resource_addon *addon = lab_resource_addon_create(ctx);
 	addon->data = group;
 
 	wl_resource_set_implementation(resource, &group_impl, addon,
@@ -284,40 +295,37 @@ group_send_state(struct lab_cosmic_workspace_group *group, struct wl_resource *r
 static void
 manager_handle_commit(struct wl_client *client, struct wl_resource *resource)
 {
-	struct wl_resource_addon *addon = wl_resource_get_user_data(resource);
+	struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
 	if (!addon) {
 		return;
 	}
 
-	struct transaction_group *trans_grp;
-	struct transaction_workspace *trans_ws;
-	struct transaction *trans, *trans_tmp;
+	struct lab_cosmic_workspace *workspace;
+	struct lab_cosmic_workspace_group *group;
+	struct lab_transaction *trans, *trans_tmp;
 	wl_list_for_each_safe(trans, trans_tmp, &addon->ctx->transactions, link) {
 		switch (trans->change) {
 		case CW_PENDING_WS_CREATE:
-			trans_grp = wl_container_of(trans, trans_grp, base);
-			wl_signal_emit_mutable(
-				&trans_grp->group->events.create_workspace,
-				trans_grp->new_workspace_name);
-			free(trans_grp->new_workspace_name);
+			group = trans->src;
+			wl_signal_emit_mutable(&group->events.create_workspace, trans->data);
 			break;
 		case CW_PENDING_WS_ACTIVATE:
-			trans_ws = wl_container_of(trans, trans_ws, base);
-			wl_signal_emit_mutable(&trans_ws->workspace->events.activate, NULL);
+			workspace = trans->src;
+			wl_signal_emit_mutable(&workspace->events.activate, NULL);
 			break;
 		case CW_PENDING_WS_DEACTIVATE:
-			trans_ws = wl_container_of(trans, trans_ws, base);
-			wl_signal_emit_mutable(&trans_ws->workspace->events.deactivate, NULL);
+			workspace = trans->src;
+			wl_signal_emit_mutable(&workspace->events.deactivate, NULL);
 			break;
 		case CW_PENDING_WS_REMOVE:
-			trans_ws = wl_container_of(trans, trans_ws, base);
-			wl_signal_emit_mutable(&trans_ws->workspace->events.remove, NULL);
+			workspace = trans->src;
+			wl_signal_emit_mutable(&workspace->events.remove, NULL);
 			break;
 		default:
 			wlr_log(WLR_ERROR, "Invalid transaction state: %u", trans->change);
 		}
-		wl_list_remove(&trans->link);
-		free(trans);
+
+		lab_transaction_destroy(trans);
 	}
 }
 
@@ -336,9 +344,9 @@ static const struct zcosmic_workspace_manager_v1_interface manager_impl = {
 static void
 manager_instance_resource_destroy(struct wl_resource *resource)
 {
-	struct wl_resource_addon *addon = wl_resource_get_user_data(resource);
+	struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
 	if (addon) {
-		resource_addon_destroy(addon);
+		lab_resource_addon_destroy(addon);
 		wl_resource_set_user_data(resource, NULL);
 	}
 
@@ -358,7 +366,7 @@ manager_handle_bind(struct wl_client *client, void *data,
 		return;
 	}
 
-	struct wl_resource_addon *addon = resource_addon_create(/* session context*/ NULL);
+	struct lab_wl_resource_addon *addon = lab_resource_addon_create(/* session context*/ NULL);
 	addon->data = manager;
 
 	wl_resource_set_implementation(resource, &manager_impl,
@@ -491,11 +499,13 @@ lab_cosmic_workspace_group_create(struct lab_cosmic_workspace_manager *manager)
 	wl_signal_init(&group->events.create_workspace);
 	wl_signal_init(&group->events.destroy);
 
+	group->on.transaction_destroy.notify = group_handle_transaction_destroy;
+
 	wl_list_append(&manager->groups, &group->link);
 
 	struct wl_resource *resource, *tmp;
 	wl_resource_for_each_safe(resource, tmp, &manager->resources) {
-		struct wl_resource_addon *addon = wl_resource_get_user_data(resource);
+		struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
 		assert(addon && addon->ctx);
 		struct wl_resource *group_resource =
 			group_resource_create(group, resource, addon->ctx);
@@ -522,9 +532,9 @@ lab_cosmic_workspace_group_destroy(struct lab_cosmic_workspace_group *group)
 
 	struct wl_resource *resource, *res_tmp;
 	wl_resource_for_each_safe(resource, res_tmp, &group->resources) {
-		struct wl_resource_addon *addon = wl_resource_get_user_data(resource);
+		struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
 		if (addon) {
-			resource_addon_destroy(addon);
+			lab_resource_addon_destroy(addon);
 			wl_resource_set_user_data(resource, NULL);
 		}
 		zcosmic_workspace_group_handle_v1_send_remove(resource);
@@ -569,7 +579,7 @@ lab_cosmic_workspace_create(struct lab_cosmic_workspace_group *group)
 	/* Notify clients */
 	struct wl_resource *group_resource;
 	wl_resource_for_each(group_resource, &group->resources) {
-		struct wl_resource_addon *addon = wl_resource_get_user_data(group_resource);
+		struct lab_wl_resource_addon *addon = wl_resource_get_user_data(group_resource);
 		assert(addon && addon->ctx);
 		struct wl_resource *workspace_resource =
 			workspace_resource_create(workspace, group_resource, addon->ctx);
@@ -642,9 +652,9 @@ lab_cosmic_workspace_destroy(struct lab_cosmic_workspace *workspace)
 
 	struct wl_resource *resource, *tmp;
 	wl_resource_for_each_safe(resource, tmp, &workspace->resources) {
-		struct wl_resource_addon *addon = wl_resource_get_user_data(resource);
+		struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
 		if (addon) {
-			resource_addon_destroy(addon);
+			lab_resource_addon_destroy(addon);
 			wl_resource_set_user_data(resource, NULL);
 		}
 		zcosmic_workspace_handle_v1_send_remove(resource);

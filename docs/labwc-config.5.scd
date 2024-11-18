@@ -270,6 +270,9 @@ this is for compatibility with Openbox.
 		- *trimmed_identifier* Show trimmed identifier. Trimming removes
 		  the first two nodes of 'org.' strings.
 
+		- *desktop_entry_name* Show application name from freedesktop.org desktop
+		  entry/file. Falls back to trimmed identifier (trimmed_identifier).
+
 		- *title* Show window title if different to app_id
 
 		- *workspace* Show workspace name
@@ -289,6 +292,8 @@ this is for compatibility with Openbox.
 			- 's' - state of window (short form), values [M|m|F] (1 space)
 			- 'I' - wm-class/app-id
 			- 'i' - wm-class/app-id trimmed, remove "org." if available
+			- 'n' - desktop entry/file application name, falls back to
+			        wm-class/app-id trimmed
 			- 'W' - workspace name
 			- 'w' - workspace name (if more than 1 ws configured)
 			- 'O' - output name

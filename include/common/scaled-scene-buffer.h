@@ -17,6 +17,9 @@ struct scaled_scene_buffer_impl {
 		(struct scaled_scene_buffer *scaled_buffer, double scale);
 	/* Might be NULL or used for cleaning up */
 	void (*destroy)(struct scaled_scene_buffer *scaled_buffer);
+	/* Returns true if the two buffers are visually the same */
+	bool (*equal)(struct scaled_scene_buffer *scaled_buffer_a,
+		struct scaled_scene_buffer *scaled_buffer_b);
 };
 
 struct scaled_scene_buffer {
@@ -28,11 +31,18 @@ struct scaled_scene_buffer {
 	/* Private */
 	bool drop_buffer;
 	double active_scale;
+	/* cached wlr_buffers for each scale */
 	struct wl_list cache;  /* struct scaled_buffer_cache_entry.link */
 	struct wl_listener destroy;
 	struct wl_listener output_enter;
 	struct wl_listener output_leave;
 	const struct scaled_scene_buffer_impl *impl;
+	/*
+	 * Pointer to the per-implementation list of scaled-scene-buffers.
+	 * This is used to share the backing wlr_buffers.
+	 */
+	struct wl_list *cached_buffers;
+	struct wl_list link; /* struct scaled_scene_buffer.cached_buffers */
 };
 
 /**
@@ -52,6 +62,11 @@ struct scaled_scene_buffer {
  * wlr_scene_buffer is being destroyed. If implementation->destroy is set
  * it will also get called so a consumer of this API may clean up its own
  * allocations.
+ *
+ * Besides caching buffers for each scale per scaled_scene_buffer, we also
+ * store all the scaled_scene_buffers in a per-implementer list passed as
+ * @cached_buffers in order to reuse backing buffers for visually duplicated
+ * scaled_scene_buffers found via impl->equal().
  *
  * All requested lab_data_buffers via impl->create_buffer() will be locked
  * during the lifetime of the buffer in the internal cache and unlocked
@@ -79,7 +94,7 @@ struct scaled_scene_buffer {
 struct scaled_scene_buffer *scaled_scene_buffer_create(
 	struct wlr_scene_tree *parent,
 	const struct scaled_scene_buffer_impl *implementation,
-	bool drop_buffer);
+	struct wl_list *cached_buffers, bool drop_buffer);
 
 /* Clear the cache of existing buffers, useful in case the content changes */
 void scaled_scene_buffer_invalidate_cache(struct scaled_scene_buffer *self);

@@ -255,6 +255,18 @@ get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
 	return NULL;
 }
 
+static struct sfdo_desktop_entry *
+get_desktop_entry(struct sfdo *sfdo, const char *app_id)
+{
+	struct sfdo_desktop_entry *entry = sfdo_desktop_db_get_entry_by_id(
+		sfdo->desktop_db, app_id, SFDO_NT);
+	if (!entry) {
+		entry = get_db_entry_by_id_fuzzy(sfdo->desktop_db, app_id);
+	}
+
+	return entry;
+}
+
 struct lab_data_buffer *
 desktop_entry_icon_lookup(struct server *server, const char *app_id, int size,
 		float scale)
@@ -265,11 +277,7 @@ desktop_entry_icon_lookup(struct server *server, const char *app_id, int size,
 	}
 
 	const char *icon_name = NULL;
-	struct sfdo_desktop_entry *entry = sfdo_desktop_db_get_entry_by_id(
-		sfdo->desktop_db, app_id, SFDO_NT);
-	if (!entry) {
-		entry = get_db_entry_by_id_fuzzy(sfdo->desktop_db, app_id);
-	}
+	struct sfdo_desktop_entry *entry = get_desktop_entry(sfdo, app_id);
 	if (entry) {
 		icon_name = sfdo_desktop_entry_get_icon(entry, NULL);
 	}
@@ -320,4 +328,26 @@ desktop_entry_icon_lookup(struct server *server, const char *app_id, int size,
 
 	free(ctx.path);
 	return icon_buffer;
+}
+
+const char *
+desktop_entry_name_lookup(struct server *server, const char *app_id)
+{
+	struct sfdo *sfdo = server->sfdo;
+	if (!sfdo) {
+		return NULL;
+	}
+
+	struct sfdo_desktop_entry *entry = get_desktop_entry(sfdo, app_id);
+	if (!entry) {
+		return NULL;
+	}
+
+	size_t len;
+	const char *name = sfdo_desktop_entry_get_name(entry, &len);
+	if (!len) {
+		return NULL;
+	}
+
+	return name;
 }

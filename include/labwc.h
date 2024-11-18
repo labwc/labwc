@@ -311,6 +311,8 @@ struct server {
 		struct workspace *last;
 		struct lab_cosmic_workspace_manager *cosmic_manager;
 		struct lab_cosmic_workspace_group *cosmic_group;
+		struct lab_ext_workspace_manager *ext_manager;
+		struct lab_ext_workspace_group *ext_group;
 		struct {
 			struct wl_listener layout_output_added;
 		} on;

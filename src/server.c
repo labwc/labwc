@@ -30,7 +30,7 @@
 #include "config/session.h"
 #include "decorations.h"
 #if HAVE_LIBSFDO
-#include "icon-loader.h"
+#include "desktop-entry.h"
 #endif
 #include "idle.h"
 #include "labwc.h"
@@ -66,8 +66,8 @@ reload_config_and_theme(struct server *server)
 	theme_init(server->theme, server, rc.theme_name);
 
 #if HAVE_LIBSFDO
-	icon_loader_finish(server);
-	icon_loader_init(server);
+	desktop_entry_finish(server);
+	desktop_entry_init(server);
 #endif
 
 	struct view *view;
@@ -585,7 +585,7 @@ server_init(struct server *server)
 	layers_init(server);
 
 #if HAVE_LIBSFDO
-	icon_loader_init(server);
+	desktop_entry_init(server);
 #endif
 
 #if HAVE_XWAYLAND
@@ -629,7 +629,7 @@ server_finish(struct server *server)
 	xwayland_server_finish(server);
 #endif
 #if HAVE_LIBSFDO
-	icon_loader_finish(server);
+	desktop_entry_finish(server);
 #endif
 	if (sighup_source) {
 		wl_event_source_remove(sighup_source);

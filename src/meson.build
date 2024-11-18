@@ -45,7 +45,7 @@ endif
 
 if have_libsfdo
   labwc_sources += files(
-    'icon-loader.c',
+    'desktop-entry.c',
   )
 endif
 

@@ -10,7 +10,7 @@
 #include "common/scene-helpers.h"
 #include "common/string-helpers.h"
 #if HAVE_LIBSFDO
-#include "icon-loader.h"
+#include "desktop-entry.h"
 #endif
 #include "labwc.h"
 #include "node.h"
@@ -610,7 +610,7 @@ ssd_update_window_icon(struct ssd *ssd)
 	 */
 	float icon_scale = output_max_scale(ssd->view->server);
 
-	struct lab_data_buffer *icon_buffer = icon_loader_lookup(
+	struct lab_data_buffer *icon_buffer = desktop_entry_icon_lookup(
 		ssd->view->server, app_id, icon_size, icon_scale);
 	if (!icon_buffer) {
 		wlr_log(WLR_DEBUG, "icon could not be loaded for %s", app_id);

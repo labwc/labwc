@@ -379,7 +379,7 @@ struct server {
 	struct menu *menu_current;
 	struct wl_list menus;
 
-	struct icon_loader *icon_loader;
+	struct sfdo *sfdo;
 
 	pid_t primary_client_pid;
 };

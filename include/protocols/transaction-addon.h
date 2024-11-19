@@ -27,7 +27,8 @@ struct lab_wl_resource_addon {
 	void *data;
 };
 
-struct lab_wl_resource_addon *lab_resource_addon_create(struct lab_transaction_session_context *ctx);
+struct lab_wl_resource_addon *lab_resource_addon_create(
+	struct lab_transaction_session_context *ctx);
 
 struct lab_transaction *lab_transaction_add(struct lab_transaction_session_context *ctx,
 	uint32_t pending_change, void *src, void *argument);

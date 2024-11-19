@@ -9,7 +9,7 @@
 #include "common/mem.h"
 #include "common/string-helpers.h"
 #include "config.h"
-#include "icon-loader.h"
+#include "desktop-entry.h"
 #include "img/img-png.h"
 #include "img/img-xpm.h"
 
@@ -19,7 +19,7 @@
 
 #include "labwc.h"
 
-struct icon_loader {
+struct sfdo {
 	struct sfdo_desktop_ctx *desktop_ctx;
 	struct sfdo_icon_ctx *icon_ctx;
 	struct sfdo_desktop_db *desktop_db;
@@ -40,20 +40,20 @@ log_handler(enum sfdo_log_level level, const char *fmt, va_list args, void *tag)
 }
 
 void
-icon_loader_init(struct server *server)
+desktop_entry_init(struct server *server)
 {
-	struct icon_loader *loader = znew(*loader);
+	struct sfdo *sfdo = znew(*sfdo);
 
 	struct sfdo_basedir_ctx *basedir_ctx = sfdo_basedir_ctx_create();
 	if (!basedir_ctx) {
 		goto err_basedir_ctx;
 	}
-	loader->desktop_ctx = sfdo_desktop_ctx_create(basedir_ctx);
-	if (!loader->desktop_ctx) {
+	sfdo->desktop_ctx = sfdo_desktop_ctx_create(basedir_ctx);
+	if (!sfdo->desktop_ctx) {
 		goto err_desktop_ctx;
 	}
-	loader->icon_ctx = sfdo_icon_ctx_create(basedir_ctx);
-	if (!loader->icon_ctx) {
+	sfdo->icon_ctx = sfdo_icon_ctx_create(basedir_ctx);
+	if (!sfdo->icon_ctx) {
 		goto err_icon_ctx;
 	}
 
@@ -61,12 +61,12 @@ icon_loader_init(struct server *server)
 	enum sfdo_log_level level =
 		(enum sfdo_log_level)wlr_log_get_verbosity();
 	sfdo_desktop_ctx_set_log_handler(
-		loader->desktop_ctx, level, log_handler, "sfdo-desktop");
+		sfdo->desktop_ctx, level, log_handler, "sfdo-desktop");
 	sfdo_icon_ctx_set_log_handler(
-		loader->icon_ctx, level, log_handler, "sfdo-icon");
+		sfdo->icon_ctx, level, log_handler, "sfdo-icon");
 
-	loader->desktop_db = sfdo_desktop_db_load(loader->desktop_ctx, NULL);
-	if (!loader->desktop_db) {
+	sfdo->desktop_db = sfdo_desktop_db_load(sfdo->desktop_ctx, NULL);
+	if (!sfdo->desktop_db) {
 		goto err_desktop_db;
 	}
 
@@ -84,45 +84,46 @@ icon_loader_init(struct server *server)
 		| SFDO_ICON_THEME_LOAD_OPTION_ALLOW_MISSING
 		| SFDO_ICON_THEME_LOAD_OPTION_RELAXED;
 
-	loader->icon_theme = sfdo_icon_theme_load(loader->icon_ctx,
+	sfdo->icon_theme = sfdo_icon_theme_load(
+		sfdo->icon_ctx,
 		rc.icon_theme_name, load_options);
-	if (!loader->icon_theme) {
+	if (!sfdo->icon_theme) {
 		goto err_icon_theme;
 	}
 
 	/* basedir_ctx is not referenced by other objects */
 	sfdo_basedir_ctx_destroy(basedir_ctx);
 
-	server->icon_loader = loader;
+	server->sfdo = sfdo;
 	return;
 
 err_icon_theme:
-	sfdo_desktop_db_destroy(loader->desktop_db);
+	sfdo_desktop_db_destroy(sfdo->desktop_db);
 err_desktop_db:
-	sfdo_icon_ctx_destroy(loader->icon_ctx);
+	sfdo_icon_ctx_destroy(sfdo->icon_ctx);
 err_icon_ctx:
-	sfdo_desktop_ctx_destroy(loader->desktop_ctx);
+	sfdo_desktop_ctx_destroy(sfdo->desktop_ctx);
 err_desktop_ctx:
 	sfdo_basedir_ctx_destroy(basedir_ctx);
 err_basedir_ctx:
-	free(loader);
+	free(sfdo);
 	wlr_log(WLR_ERROR, "Failed to initialize icon loader");
 }
 
 void
-icon_loader_finish(struct server *server)
+desktop_entry_finish(struct server *server)
 {
-	struct icon_loader *loader = server->icon_loader;
-	if (!loader) {
+	struct sfdo *sfdo = server->sfdo;
+	if (!sfdo) {
 		return;
 	}
 
-	sfdo_icon_theme_destroy(loader->icon_theme);
-	sfdo_desktop_db_destroy(loader->desktop_db);
-	sfdo_icon_ctx_destroy(loader->icon_ctx);
-	sfdo_desktop_ctx_destroy(loader->desktop_ctx);
-	free(loader);
-	server->icon_loader = NULL;
+	sfdo_icon_theme_destroy(sfdo->icon_theme);
+	sfdo_desktop_db_destroy(sfdo->desktop_db);
+	sfdo_icon_ctx_destroy(sfdo->icon_ctx);
+	sfdo_desktop_ctx_destroy(sfdo->desktop_ctx);
+	free(sfdo);
+	server->sfdo = NULL;
 }
 
 struct icon_ctx {
@@ -153,7 +154,7 @@ length_without_extension(const char *name)
  */
 static int
 process_rel_name(struct icon_ctx *ctx, const char *icon_name,
-		struct icon_loader *loader, int size, int scale)
+		struct sfdo *sfdo, int size, int scale)
 {
 	int ret = 0;
 	int lookup_options = SFDO_ICON_THEME_LOOKUP_OPTIONS_DEFAULT;
@@ -168,7 +169,7 @@ process_rel_name(struct icon_ctx *ctx, const char *icon_name,
 	 */
 	size_t name_len = length_without_extension(icon_name);
 	struct sfdo_icon_file *icon_file = sfdo_icon_theme_lookup(
-		loader->icon_theme, icon_name, name_len, size, scale,
+		sfdo->icon_theme, icon_name, name_len, size, scale,
 		lookup_options);
 	if (!icon_file || icon_file == SFDO_ICON_FILE_INVALID) {
 		ret = -1;
@@ -254,21 +255,29 @@ get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
 	return NULL;
 }
 
+static struct sfdo_desktop_entry *
+get_desktop_entry(struct sfdo *sfdo, const char *app_id)
+{
+	struct sfdo_desktop_entry *entry = sfdo_desktop_db_get_entry_by_id(
+		sfdo->desktop_db, app_id, SFDO_NT);
+	if (!entry) {
+		entry = get_db_entry_by_id_fuzzy(sfdo->desktop_db, app_id);
+	}
+
+	return entry;
+}
+
 struct lab_data_buffer *
-icon_loader_lookup(struct server *server, const char *app_id, int size,
+desktop_entry_icon_lookup(struct server *server, const char *app_id, int size,
 		float scale)
 {
-	struct icon_loader *loader = server->icon_loader;
-	if (!loader) {
+	struct sfdo *sfdo = server->sfdo;
+	if (!sfdo) {
 		return NULL;
 	}
 
 	const char *icon_name = NULL;
-	struct sfdo_desktop_entry *entry = sfdo_desktop_db_get_entry_by_id(
-		loader->desktop_db, app_id, SFDO_NT);
-	if (!entry) {
-		entry = get_db_entry_by_id_fuzzy(loader->desktop_db, app_id);
-	}
+	struct sfdo_desktop_entry *entry = get_desktop_entry(sfdo, app_id);
 	if (entry) {
 		icon_name = sfdo_desktop_entry_get_icon(entry, NULL);
 	}
@@ -284,15 +293,15 @@ icon_loader_lookup(struct server *server, const char *app_id, int size,
 	int ret;
 	if (!icon_name) {
 		/* fall back to app id */
-		ret = process_rel_name(&ctx, app_id, loader, lookup_size, lookup_scale);
+		ret = process_rel_name(&ctx, app_id, sfdo, lookup_size, lookup_scale);
 	} else if (icon_name[0] == '/') {
 		ret = process_abs_name(&ctx, icon_name);
 	} else {
 		/* this should be the case for most icons */
-		ret = process_rel_name(&ctx, icon_name, loader, lookup_size, lookup_scale);
+		ret = process_rel_name(&ctx, icon_name, sfdo, lookup_size, lookup_scale);
 		/* Icon defined in .desktop file could not be loaded, retry with app_id */
 		if (ret < 0) {
-			ret = process_rel_name(&ctx, app_id, loader, lookup_size, lookup_scale);
+			ret = process_rel_name(&ctx, app_id, sfdo, lookup_size, lookup_scale);
 		}
 	}
 	if (ret < 0) {
@@ -319,4 +328,26 @@ icon_loader_lookup(struct server *server, const char *app_id, int size,
 
 	free(ctx.path);
 	return icon_buffer;
+}
+
+const char *
+desktop_entry_name_lookup(struct server *server, const char *app_id)
+{
+	struct sfdo *sfdo = server->sfdo;
+	if (!sfdo) {
+		return NULL;
+	}
+
+	struct sfdo_desktop_entry *entry = get_desktop_entry(sfdo, app_id);
+	if (!entry) {
+		return NULL;
+	}
+
+	size_t len;
+	const char *name = sfdo_desktop_entry_get_name(entry, &len);
+	if (!len) {
+		return NULL;
+	}
+
+	return name;
 }

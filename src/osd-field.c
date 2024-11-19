@@ -7,6 +7,9 @@
 #include "view.h"
 #include "workspaces.h"
 #include "labwc.h"
+#if HAVE_LIBSFDO
+#include "desktop-entry.h"
+#endif
 #include "osd.h"
 
 /* includes '%', terminating 's' and NULL byte, 8 is enough for %-9999s */
@@ -42,6 +45,20 @@ get_app_id_or_class(struct view *view, bool trim)
 		}
 	}
 	return identifier;
+}
+
+static const char *
+get_desktop_name(struct view *view)
+{
+#if HAVE_LIBSFDO
+	const char *app_id = view_get_string_prop(view, "app_id");
+	const char *name = desktop_entry_name_lookup(view->server, app_id);
+	if (name) {
+		return name;
+	}
+#endif
+
+	return get_app_id_or_class(view, /* trim */ true);
 }
 
 static const char *
@@ -165,6 +182,13 @@ field_set_identifier_trimmed(struct buf *buf, struct view *view, const char *for
 }
 
 static void
+field_set_desktop_entry_name(struct buf *buf, struct view *view, const char *format)
+{
+	/* custom type conversion-specifier: n */
+	buf_add(buf, get_desktop_name(view));
+}
+
+static void
 field_set_title(struct buf *buf, struct view *view, const char *format)
 {
 	/* custom type conversion-specifier: T */
@@ -263,6 +287,7 @@ static const struct field_converter field_converter[LAB_FIELD_COUNT] = {
 	[LAB_FIELD_WIN_STATE]          = { 's', field_set_win_state },
 	[LAB_FIELD_IDENTIFIER]         = { 'I', field_set_identifier },
 	[LAB_FIELD_TRIMMED_IDENTIFIER] = { 'i', field_set_identifier_trimmed },
+	[LAB_FIELD_DESKTOP_ENTRY_NAME] = { 'n', field_set_desktop_entry_name},
 	[LAB_FIELD_WORKSPACE]          = { 'W', field_set_workspace },
 	[LAB_FIELD_WORKSPACE_SHORT]    = { 'w', field_set_workspace_short },
 	[LAB_FIELD_OUTPUT]             = { 'O', field_set_output },
@@ -296,6 +321,8 @@ osd_field_arg_from_xml_node(struct window_switcher_field *field,
 			field->content = LAB_FIELD_IDENTIFIER;
 		} else if (!strcmp(content, "trimmed_identifier")) {
 			field->content = LAB_FIELD_TRIMMED_IDENTIFIER;
+		} else if (!strcmp(content, "desktop_entry_name")) {
+			field->content = LAB_FIELD_DESKTOP_ENTRY_NAME;
 		} else if (!strcmp(content, "title")) {
 			/* Keep old defaults */
 			field->content = LAB_FIELD_TITLE_SHORT;

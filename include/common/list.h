@@ -20,4 +20,13 @@ wl_list_append(struct wl_list *list, struct wl_list *elm)
 	wl_list_insert(list->prev, elm);
 }
 
+/**
+ * WL_LIST_INIT() - initialize a list when defining it
+ * @head: pointer to the head of the list to be initialized
+ *
+ * For example, this can be used like this:
+ * static struct wl_list list = WL_LIST_INIT(&list);
+ */
+#define WL_LIST_INIT(head) {.prev = (head), .next = (head)}
+
 #endif /* LABWC_LIST_H */

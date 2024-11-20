@@ -77,7 +77,7 @@ Notes to package maintainers:
   [#2325]
 - Improve support for non-compliant icons by matching partial strings to handle
   for example app-id="gimp-2.10" with file "gimp.desktop". @spl237 [#2266]
-- Correctly center menu opened with `<position {x,y}="center">` @jp7677 [#2319]
+- Correctly center menu opened with `<position {x,y}="center">` @tokyo4j [#2319]
 - Allow pointer speed of -1.0. @spl237 [#2321]
 - Fix off-by-one bug in `buf_add_char()` [#2313]
 - Fix menu separator-line padding regression introduced in `0.8.1`. @domo141

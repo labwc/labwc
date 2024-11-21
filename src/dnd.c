@@ -21,6 +21,7 @@ handle_drag_request(struct wl_listener *listener, void *data)
 			event->serial);
 	} else {
 		wlr_data_source_destroy(event->drag->source);
+		event->drag->source = NULL;
 		wlr_log(WLR_ERROR, "wrong source for drag request");
 	}
 }

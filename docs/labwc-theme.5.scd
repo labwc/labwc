@@ -84,7 +84,7 @@ labwc-config(5).
 
 *window.label.text.justify*
 	Specifies how window titles are aligned in the titlebar for both
-	focused and unfocused windows. Type justification. Default Left.
+	focused and unfocused windows. Type justification. Default is Left.
 
 *window.button.width*
 	Width of a titlebar button, in pixels.
@@ -185,27 +185,27 @@ all are supported.
 	Text color of active menu item.
 
 *menu.separator.width*
-	Line thickness of menu separators. Default 1.
+	Line thickness of menu separators. Default is 1.
 
 *menu.separator.padding.width*
-	Space on the left and right side of each separator line. Default 6.
+	Space on the left and right side of each separator line. Default is 6.
 
 *menu.separator.padding.height*
-	Space above and below each separator line. Default 3.
+	Space above and below each separator line. Default is 3.
 
 *menu.separator.color*
-	Menu separator color. Default #888888.
+	Menu separator color. Default is #888888.
 
 *menu.title.bg.color*
-	Menu title color. Default #589bda.
+	Menu title color. Default is #589bda.
 	Note: A menu title is a separator with a label.
 
 *menu.title.text.justify*
 	Specifies how menu titles are aligned in the titlebar.
-	Type justification. Default Center.
+	Type justification. Default is Center.
 
 *menu.title.text.color*
-	Text color of separator label.  Default #ffffff.
+	Text color of separator label. Default is #ffffff.
 
 *osd.bg.color*
 	Background color of on-screen-display. Inherits

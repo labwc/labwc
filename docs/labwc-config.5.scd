@@ -1055,6 +1055,18 @@ situation.
 	can be caused by *<margin>* settings or exclusive layer-shell clients
 	such as panels.
 
+*<windowRules><windowRule wantAbsorbedModifierReleaseEvents="">* [yes|no|default]
+	*wantAbsorbedModifierReleaseEvents* allows clients to receive modifier
+	release events even if they are part of keybinds. Most clients should
+	not receive these, but some (for example blender) need it in some
+	situations.
+
+```
+<windowRules>
+  <windowRule identifier="blender" wantAbsorbedModifierReleaseEvents="yes"/>
+</windowRules>
+```
+
 ## MENU
 
 ```

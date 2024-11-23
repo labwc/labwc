@@ -15,6 +15,7 @@
 #include "osd.h"
 #include "regions.h"
 #include "view.h"
+#include "window-rules.h"
 #include "workspaces.h"
 
 enum lab_key_handled {
@@ -363,7 +364,8 @@ get_keyinfo(struct wlr_keyboard *wlr_keyboard, uint32_t evdev_keycode)
 }
 
 static bool
-handle_key_release(struct server *server, uint32_t evdev_keycode)
+handle_key_release(struct server *server, uint32_t evdev_keycode,
+		bool is_modifier_key)
 {
 	/*
 	 * Release events for keys that were not bound should always be
@@ -386,11 +388,33 @@ handle_key_release(struct server *server, uint32_t evdev_keycode)
 		end_cycling(server);
 	}
 
+	key_state_bound_key_remove(evdev_keycode);
+
+	/*
+	 * There are some clients (for example blender) that want to see the
+	 * modifier-release-event even if it was part of a keybinds. This is
+	 * treated as a special case and can only be achieved by configuration.
+	 *
+	 * Most clients (including those using Qt and GTK) are setup to not see
+	 * these modifier release events - and actually misbehave if they do.
+	 * For example Firefox shows the menu bar if alt is pressed and then
+	 * released, whereas if only pressed (because the release is absorbed)
+	 * nothing happens. So, if Firefox saw bound modifier-release-events it
+	 * would show the menu bar every time the window-switcher is used with
+	 * alt-tab.
+	 */
+	struct view *view = server->active_view;
+	if (is_modifier_key && view) {
+		if (window_rules_get_property(view, "wantAbsorbedModifierReleaseEvents")
+				== LAB_PROP_TRUE) {
+			return false;
+		}
+	}
+
 	/*
 	 * If a press event was handled by a compositor binding, then do
 	 * not forward the corresponding release event to clients.
 	 */
-	key_state_bound_key_remove(evdev_keycode);
 	return true;
 }
 
@@ -525,7 +549,8 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 			actions_run(NULL, server, &cur_keybind->actions, NULL);
 			return true;
 		} else {
-			return handle_key_release(server, event->keycode);
+			return handle_key_release(server, event->keycode,
+				keyinfo.is_modifier);
 		}
 	}
 

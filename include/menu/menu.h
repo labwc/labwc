@@ -69,6 +69,7 @@ struct menu {
 		struct menuitem *item;
 	} selection;
 	struct wlr_scene_tree *scene_tree;
+	struct wlr_scene_node *background;
 	bool is_pipemenu;
 	enum menu_align align;
 

@@ -101,11 +101,21 @@ struct theme {
 	int menu_overlap_y;
 	int menu_min_width;
 	int menu_max_width;
+	int menu_padding_width;
+	int menu_padding_height;
+	int menu_corner_radius;
+	int menu_border_width;
+	float menu_border_color[4];
+	float menu_bg_color[4];
 
 	int menu_items_padding_x;
 	int menu_items_padding_y;
+	int menu_items_corner_radius;
+	int menu_items_border_width;
+	float menu_items_border_color[4];
 	float menu_items_bg_color[4];
 	float menu_items_text_color[4];
+	float menu_items_active_border_color[4];
 	float menu_items_active_bg_color[4];
 	float menu_items_active_text_color[4];
 

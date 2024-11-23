@@ -60,27 +60,29 @@ labwc-config(5).
 	Default is 0.
 
 *window.active.border.color*
-	Border color of active window.
+	Border color of active window. Default is #e1dedb.
 
 *window.inactive.border.color*
-	Border color of inactive window.
+	Border color of inactive window. Default is #f6f5f4.
 
 *window.active.indicator.toggled-keybind.color*
 	Status indicator for the ToggleKeybinds action. Can be set to the same
 	value as set for window.active.border.color to disable the status
-	indicator.
+	indicator. Default is #ff0000.
 
 *window.active.title.bg.color*
 	Background color for the focused window's titlebar.
+	Default is #e1dedb.
 
 *window.inactive.title.bg.color*
 	Background color for non-focused windows' titlebars.
+	Default is #f6f5f4.
 
 *window.active.label.text.color*
-	Text color for the focused window's titlebar.
+	Text color for the focused window's titlebar. Default is #000000.
 
 *window.inactive.label.text.color*
-	Text color non-focused windows' titlebars.
+	Text color non-focused windows' titlebars. Default is #000000.
 
 *window.label.text.justify*
 	Specifies how window titles are aligned in the titlebar for both
@@ -108,11 +110,11 @@ labwc-config(5).
 
 *window.active.button.unpressed.image.color*
 	Color of the images in titlebar buttons in their default, unpressed,
-	state. This element is for the focused window.
+	state. This element is for the focused window. Default is #000000.
 
 *window.inactive.button.unpressed.image.color*
 	Color of the images in titlebar buttons in their default, unpressed,
-	state. This element is for non-focused windows.
+	state. This element is for non-focused windows. Default is #000000.
 
 Note: Button elements (i.e. window.[in]active.button.\*) may be defined uniquely
 for each type of button ("menu", "iconify", "max", "shade", "desk" or "close")
@@ -173,16 +175,16 @@ all are supported.
 	Default is 4.
 
 *menu.items.bg.color*
-	Background color of inactive menu items.
+	Background color of inactive menu items. Default is #fcfbfa.
 
 *menu.items.text.color*
-	Text color of inactive menu item.
+	Text color of inactive menu item. Default is #000000.
 
 *menu.items.active.bg.color*
-	Background color of active menu items.
+	Background color of active menu items. Default is #e1dedb.
 
 *menu.items.active.text.color*
-	Text color of active menu item.
+	Text color of active menu item. Default is #000000.
 
 *menu.separator.width*
 	Line thickness of menu separators. Default is 1.

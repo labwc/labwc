@@ -597,6 +597,8 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->menu_overlap_y = 0;
 	theme->menu_min_width = 20;
 	theme->menu_max_width = 200;
+	theme->menu_border_width = INT_MIN;
+	theme->menu_border_color[0] = FLT_MIN;
 
 	theme->menu_items_padding_x = 7;
 	theme->menu_items_padding_y = 4;
@@ -863,6 +865,13 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "menu.width.max")) {
 		theme->menu_max_width = get_int_if_positive(
 			value, "menu.width.max");
+	}
+	if (match_glob(key, "menu.border.width")) {
+		theme->menu_border_width = get_int_if_positive(
+			value, "menu.border.width");
+	}
+	if (match_glob(key, "menu.border.color")) {
+		parse_hexstr(value, theme->menu_border_color);
 	}
 
 	if (match_glob(key, "menu.items.padding.x")) {
@@ -1448,7 +1457,8 @@ post_processing(struct theme *theme)
 		+ 2 * theme->menu_items_padding_y;
 
 	theme->menu_header_height = font_height(&rc.font_menuheader)
-		+ 2 * theme->menu_items_padding_y;
+		+ 2 * theme->menu_items_padding_y
+		+ 2 * theme->menu_border_width;
 
 	theme->osd_window_switcher_item_height = font_height(&rc.font_osd)
 		+ 2 * theme->osd_window_switcher_item_padding_y
@@ -1469,6 +1479,15 @@ post_processing(struct theme *theme)
 			"Adjusting menu.width.max: .max (%d) lower than .min (%d)",
 			theme->menu_max_width, theme->menu_min_width);
 		theme->menu_max_width = theme->menu_min_width;
+	}
+
+	if (theme->menu_border_width == INT_MIN) {
+		theme->menu_border_width = theme->border_width;
+	}
+	if (theme->menu_border_color[0] == FLT_MIN) {
+		memcpy(theme->menu_border_color,
+			theme->window[THEME_ACTIVE].border_color,
+			sizeof(theme->menu_border_color));
 	}
 
 	/* Inherit OSD settings if not set */

@@ -101,6 +101,8 @@ struct theme {
 	int menu_overlap_y;
 	int menu_min_width;
 	int menu_max_width;
+	int menu_border_width;
+	float menu_border_color[4];
 
 	int menu_items_padding_x;
 	int menu_items_padding_y;

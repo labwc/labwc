@@ -166,6 +166,12 @@ all are supported.
 	A fixed width can be achieved by setting .min and .max to the same
 	value.
 
+*menu.border.width*
+	Border width of menus in pixels. Inherits *border.width* if not set.
+
+*menu.border.color*
+	Border color of menus. Inherits *window.active.border.color* if not set.
+
 *menu.items.padding.x*
 	Horizontal padding of menu text entries in pixels.
 	Default is 7.

@@ -819,7 +819,9 @@ parse_xml(const char *filename, struct server *server)
 static int
 menu_get_full_width(struct menu *menu)
 {
-	int width = menu->size.width - menu->server->theme->menu_overlap_x;
+	struct theme *theme = menu->server->theme;
+	int width = menu->size.width - theme->menu_overlap_x
+		- theme->menu_border_width;
 	int child_width;
 	int max_child_width = 0;
 	struct menuitem *item;
@@ -849,9 +851,11 @@ get_submenu_position(struct menuitem *item, enum menu_align align)
 	pos.y = menu->scene_tree->node.y;
 
 	if (align & LAB_MENU_OPEN_RIGHT) {
-		pos.x += menu->size.width - theme->menu_overlap_x;
+		pos.x += menu->size.width - theme->menu_overlap_x
+			- theme->menu_border_width;
 	}
-	pos.y += item->tree->node.y - theme->menu_overlap_y;
+	pos.y += item->tree->node.y - theme->menu_overlap_y
+		- theme->menu_border_width;
 	return pos;
 }
 
@@ -894,7 +898,7 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 	}
 
 	if (align & LAB_MENU_OPEN_LEFT) {
-		lx -= menu->size.width - theme->menu_overlap_x;
+		lx -= menu->size.width - theme->menu_overlap_x - theme->menu_border_width;
 	}
 	if (align & LAB_MENU_OPEN_TOP) {
 		ly -= menu->size.height;

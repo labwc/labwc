@@ -19,6 +19,7 @@
 #include "common/mem.h"
 #include "common/nodename.h"
 #include "common/scaled-font-buffer.h"
+#include "common/scaled-rect-buffer.h"
 #include "common/scene-helpers.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
@@ -169,14 +170,17 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 	/* Hide selected state */
 	wlr_scene_node_set_enabled(&menuitem->selected.tree->node, false);
 
+	int bg_width = menu->size.width
+		- 2 * theme->menu_border_width;
+
 	/* Item background nodes */
 	menuitem->normal.background = &wlr_scene_rect_create(
 		menuitem->normal.tree,
-		menu->size.width, theme->menu_item_height,
+		bg_width, theme->menu_item_height,
 		theme->menu_items_bg_color)->node;
 	menuitem->selected.background = &wlr_scene_rect_create(
 		menuitem->selected.tree,
-		menu->size.width, theme->menu_item_height,
+		bg_width, theme->menu_item_height,
 		theme->menu_items_active_bg_color)->node;
 
 	/* Font nodes */
@@ -187,7 +191,7 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 	menuitem->selected.text = &menuitem->selected.buffer->scene_buffer->node;
 
 	/* Font buffers */
-	int text_width = menu->size.width - 2 * theme->menu_items_padding_x;
+	int text_width = bg_width - 2 * theme->menu_items_padding_x;
 	scaled_font_buffer_update(menuitem->normal.buffer, menuitem->text,
 		text_width, &rc.font_menuitem,
 		theme->menu_items_text_color,
@@ -205,7 +209,8 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 	wlr_scene_node_set_position(menuitem->selected.text, x, y);
 
 	/* Position the item in relation to its menu */
-	wlr_scene_node_set_position(&menuitem->tree->node, 0, *item_y);
+	wlr_scene_node_set_position(&menuitem->tree->node,
+		theme->menu_border_width, *item_y);
 	*item_y += theme->menu_item_height;
 }
 
@@ -234,7 +239,8 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 	assert(menuitem->type == LAB_MENU_SEPARATOR_LINE);
 	struct menu *menu = menuitem->parent;
 	struct theme *theme = menu->server->theme;
-	int height = theme->menu_separator_line_thickness
+	int bg_width = menu->size.width - 2 * theme->menu_border_width;
+	int bg_height = theme->menu_separator_line_thickness
 		+ 2 * theme->menu_separator_padding_height;
 
 	/* Menu item root node */
@@ -247,11 +253,11 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 
 	/* Item background nodes */
 	menuitem->normal.background = &wlr_scene_rect_create(
-		menuitem->normal.tree, menu->size.width, height,
+		menuitem->normal.tree, bg_width, bg_height,
 		theme->menu_items_bg_color)->node;
 
 	/* Draw separator line */
-	int line_width = menu->size.width - 2 * theme->menu_separator_padding_width;
+	int line_width = bg_width - 2 * theme->menu_separator_padding_width;
 	menuitem->normal.text = &wlr_scene_rect_create(
 		menuitem->normal.tree, line_width,
 		theme->menu_separator_line_thickness,
@@ -261,8 +267,9 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 	wlr_scene_node_set_position(menuitem->normal.text,
 		theme->menu_separator_padding_width,
 		theme->menu_separator_padding_height);
-	wlr_scene_node_set_position(&menuitem->tree->node, 0, *item_y);
-	*item_y += height;
+	wlr_scene_node_set_position(&menuitem->tree->node,
+		theme->menu_border_width, *item_y);
+	*item_y += bg_height;
 }
 
 static void
@@ -274,6 +281,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	struct theme *theme = menu->server->theme;
 	float *bg_color = theme->menu_title_bg_color;
 	float *text_color = theme->menu_title_text_color;
+	int bg_width = menu->size.width - 2 * theme->menu_border_width;
 
 	/* Menu item root node */
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
@@ -285,7 +293,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 
 	/* Background */
 	menuitem->normal.background = &wlr_scene_rect_create(
-		menuitem->normal.tree, menu->size.width,
+		menuitem->normal.tree, bg_width,
 		theme->menu_header_height, bg_color)->node;
 
 	/* Draw separator title */
@@ -293,27 +301,28 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	assert(menuitem->normal.buffer);
 	menuitem->normal.text = &menuitem->normal.buffer->scene_buffer->node;
 	scaled_font_buffer_update(menuitem->normal.buffer, menuitem->text,
-		menu->size.width - 2 * theme->menu_items_padding_x,
+		bg_width - 2 * theme->menu_items_padding_x,
 		&rc.font_menuheader, text_color, bg_color, /* arrow */ NULL);
 
 	int title_x = 0;
 	switch (theme->menu_title_text_justify) {
 	case LAB_JUSTIFY_CENTER:
-		title_x = (menu->size.width - menuitem->native_width) / 2;
+		title_x = (bg_width - menuitem->native_width) / 2;
 		title_x = MAX(title_x, 0);
 		break;
 	case LAB_JUSTIFY_LEFT:
 		title_x = theme->menu_items_padding_x;
 		break;
 	case LAB_JUSTIFY_RIGHT:
-		title_x = menu->size.width - menuitem->native_width
+		title_x = bg_width - menuitem->native_width
 				- theme->menu_items_padding_x;
 		break;
 	}
 	int title_y = (theme->menu_header_height - menuitem->normal.buffer->height) / 2;
 	wlr_scene_node_set_position(menuitem->normal.text, title_x, title_y);
 
-	wlr_scene_node_set_position(&menuitem->tree->node, 0, *item_y);
+	wlr_scene_node_set_position(&menuitem->tree->node,
+		theme->menu_border_width, *item_y);
 	*item_y += theme->menu_header_height;
 }
 
@@ -338,14 +347,16 @@ menu_update_scene(struct menu *menu)
 	/* Menu width is the maximum item width, capped by menu.width.{min,max} */
 	menu->size.width = 0;
 	wl_list_for_each(item, &menu->menuitems, link) {
-		menu->size.width = MAX(menu->size.width,
-			item->native_width + 2 * theme->menu_items_padding_x);
+		int width = item->native_width
+			+ 2 * theme->menu_items_padding_x
+			+ 2 * theme->menu_border_width;
+		menu->size.width = MAX(menu->size.width, width);
 	}
 	menu->size.width = MAX(menu->size.width, theme->menu_min_width);
 	menu->size.width = MIN(menu->size.width, theme->menu_max_width);
 
 	/* Update all items for the new size */
-	int item_y = 0;
+	int item_y = theme->menu_border_width;
 	wl_list_for_each(item, &menu->menuitems, link) {
 		assert(!item->tree);
 		switch (item->type) {
@@ -360,7 +371,15 @@ menu_update_scene(struct menu *menu)
 			break;
 		}
 	}
-	menu->size.height = item_y;
+	menu->size.height = item_y + theme->menu_border_width;
+
+	float transparent[4] = {0};
+	struct scaled_rect_buffer *bg_buffer = scaled_rect_buffer_create(
+		menu->scene_tree, menu->size.width, menu->size.height,
+		theme->menu_border_width, transparent,
+		theme->menu_border_color);
+	assert(bg_buffer);
+	wlr_scene_node_lower_to_bottom(&bg_buffer->scene_buffer->node);
 }
 
 static void

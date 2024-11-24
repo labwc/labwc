@@ -59,6 +59,8 @@ menu.overlap.x: 0
 menu.overlap.y: 0
 menu.width.min: 20
 menu.width.max: 200
+menu.border.width: 1
+menu.border.color: #aaaaaa
 menu.items.bg.color: #fcfbfa
 menu.items.text.color: #000000
 menu.items.active.bg.color: #e1dedb

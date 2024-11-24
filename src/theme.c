@@ -563,8 +563,8 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->window_titlebar_padding_height = 0;
 	theme->window_titlebar_padding_width = 0;
 
-	parse_hexstr("#e1dedb", theme->window[THEME_ACTIVE].border_color);
-	parse_hexstr("#f6f5f4", theme->window[THEME_INACTIVE].border_color);
+	parse_hexstr("#aaaaaa", theme->window[THEME_ACTIVE].border_color);
+	parse_hexstr("#aaaaaa", theme->window[THEME_INACTIVE].border_color);
 
 	parse_hexstr("#ff0000", theme->window_toggled_keybinds_color);
 

@@ -60,10 +60,10 @@ labwc-config(5).
 	Default is 0.
 
 *window.active.border.color*
-	Border color of active window. Default is #e1dedb.
+	Border color of active window. Default is #aaaaaa.
 
 *window.inactive.border.color*
-	Border color of inactive window. Default is #f6f5f4.
+	Border color of inactive window. Default is #aaaaaa.
 
 *window.active.indicator.toggled-keybind.color*
 	Status indicator for the ToggleKeybinds action. Can be set to the same

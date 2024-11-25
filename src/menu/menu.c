@@ -854,7 +854,7 @@ get_submenu_position(struct menuitem *item, enum menu_align align)
 		pos.x += menu->size.width - theme->menu_overlap_x
 			- theme->menu_border_width;
 	}
-	pos.y += item->tree->node.y - theme->menu_overlap_y
+	pos.y += item->tree->node.y + theme->menu_overlap_y
 		- theme->menu_border_width;
 	return pos;
 }

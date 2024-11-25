@@ -12,14 +12,6 @@ struct wlr_scene_tree;
 struct wlr_scene_node;
 struct scaled_font_buffer;
 
-enum menu_align {
-	LAB_MENU_OPEN_AUTO   = 0,
-	LAB_MENU_OPEN_LEFT   = 1 << 0,
-	LAB_MENU_OPEN_RIGHT  = 1 << 1,
-	LAB_MENU_OPEN_TOP    = 1 << 2,
-	LAB_MENU_OPEN_BOTTOM = 1 << 3,
-};
-
 enum menuitem_type {
 	LAB_MENU_ITEM = 0,
 	LAB_MENU_SEPARATOR_LINE,
@@ -63,7 +55,7 @@ struct menu {
 	} selection;
 	struct wlr_scene_tree *scene_tree;
 	bool is_pipemenu;
-	enum menu_align align;
+	bool align_left;
 
 	/* Used to match a window-menu to the view that triggered it. */
 	struct view *triggered_by_view;  /* may be NULL */

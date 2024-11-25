@@ -9,6 +9,7 @@
 #include <string.h>
 #include <strings.h>
 #include <wayland-server-core.h>
+#include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
 #include "action.h"
 #include "common/buf.h"
@@ -825,109 +826,83 @@ parse_xml(const char *filename, struct server *server)
 	paths_destroy(&paths);
 }
 
-static int
-menu_get_full_width(struct menu *menu)
-{
-	struct theme *theme = menu->server->theme;
-	int width = menu->size.width - theme->menu_overlap_x
-		- theme->menu_border_width;
-	int child_width;
-	int max_child_width = 0;
-	struct menuitem *item;
-	wl_list_for_each(item, &menu->menuitems, link) {
-		if (!item->submenu) {
-			continue;
-		}
-		child_width = menu_get_full_width(item->submenu);
-		if (child_width > max_child_width) {
-			max_child_width = child_width;
-		}
-	}
-	return width + max_child_width;
-}
-
-/**
- * get_submenu_position() - get output layout coordinates of menu window
- * @item: the menuitem that triggers the submenu (static or dynamic)
+/*
+ * Returns the box of a menuitem next to which its submenu is opened.
+ * This box can be shrunk or expanded by menu overlaps and borders.
  */
 static struct wlr_box
-get_submenu_position(struct menuitem *item, enum menu_align align)
+get_item_anchor_rect(struct theme *theme, struct menuitem *item)
 {
-	struct wlr_box pos = { 0 };
 	struct menu *menu = item->parent;
-	struct theme *theme = menu->server->theme;
-	pos.x = menu->scene_tree->node.x;
-	pos.y = menu->scene_tree->node.y;
-
-	if (align & LAB_MENU_OPEN_RIGHT) {
-		pos.x += menu->size.width - theme->menu_overlap_x
-			- theme->menu_border_width;
-	}
-	pos.y += item->tree->node.y + theme->menu_overlap_y
-		- theme->menu_border_width;
-	return pos;
+	int menu_x = menu->scene_tree->node.x;
+	int menu_y = menu->scene_tree->node.y;
+	int overlap_x = theme->menu_overlap_x + theme->menu_border_width;
+	int overlap_y = theme->menu_overlap_y - theme->menu_border_width;
+	return (struct wlr_box) {
+		.x = menu_x + overlap_x,
+		.y = menu_y + item->tree->node.y + overlap_y,
+		.width = menu->size.width - 2 * overlap_x,
+		.height = theme->menu_item_height - 2 * overlap_y,
+	};
 }
 
 static void
-menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
+menu_configure(struct menu *menu, struct wlr_box anchor_rect)
 {
 	struct theme *theme = menu->server->theme;
 
-	/* Get output local coordinates + output usable area */
-	double ox = lx;
-	double oy = ly;
-	struct wlr_output *wlr_output = wlr_output_layout_output_at(
-		menu->server->output_layout, lx, ly);
-	struct output *output = wlr_output ? output_from_wlr_output(
-		menu->server, wlr_output) : NULL;
+	/* Get output usable area to place the menu within */
+	struct output *output = output_nearest_to(menu->server,
+		anchor_rect.x, anchor_rect.y);
 	if (!output) {
-		wlr_log(WLR_ERROR,
-			"Failed to position menu %s (%s) and its submenus: "
-			"Not enough screen space", menu->id, menu->label);
+		wlr_log(WLR_ERROR, "no output found around (%d,%d)",
+			anchor_rect.x, anchor_rect.y);
 		return;
 	}
-	wlr_output_layout_output_coords(menu->server->output_layout,
-		wlr_output, &ox, &oy);
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
-	if (align == LAB_MENU_OPEN_AUTO) {
-		int full_width = menu_get_full_width(menu);
-		if (ox + full_width > output->usable_area.width) {
-			align = LAB_MENU_OPEN_LEFT;
-		} else {
-			align = LAB_MENU_OPEN_RIGHT;
-		}
-	}
-
-	if (oy + menu->size.height > output->usable_area.height) {
-		align &= ~LAB_MENU_OPEN_BOTTOM;
-		align |= LAB_MENU_OPEN_TOP;
+	/* Policy for menu placement */
+	struct wlr_xdg_positioner_rules rules = {0};
+	rules.size.width = menu->size.width;
+	rules.size.height = menu->size.height;
+	/* A rectangle next to which the menu is opened */
+	rules.anchor_rect = anchor_rect;
+	/*
+	 * Place menu at left or right side of anchor_rect, with their
+	 * top edges aligned. The alignment is inherited from parent.
+	 */
+	if (menu->parent && menu->parent->align_left) {
+		rules.anchor = XDG_POSITIONER_ANCHOR_TOP_LEFT;
+		rules.gravity = XDG_POSITIONER_GRAVITY_BOTTOM_LEFT;
 	} else {
-		align &= ~LAB_MENU_OPEN_TOP;
-		align |= LAB_MENU_OPEN_BOTTOM;
+		rules.anchor = XDG_POSITIONER_ANCHOR_TOP_RIGHT;
+		rules.gravity = XDG_POSITIONER_GRAVITY_BOTTOM_RIGHT;
+	}
+	/* Flip or slide the menu when it overflows from the output */
+	rules.constraint_adjustment =
+		XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_FLIP_X
+		| XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_SLIDE_X
+		| XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_SLIDE_Y;
+	if (!menu->parent) {
+		/* Allow vertically flipping the root menu */
+		rules.constraint_adjustment |=
+			XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_FLIP_Y;
 	}
 
-	if (align & LAB_MENU_OPEN_LEFT) {
-		lx -= menu->size.width - theme->menu_overlap_x - theme->menu_border_width;
-	}
-	if (align & LAB_MENU_OPEN_TOP) {
-		ly -= menu->size.height;
-		if (menu->parent) {
-			/* For submenus adjust y to bottom left corner */
-			ly += theme->menu_item_height;
-		}
-	}
-	wlr_scene_node_set_position(&menu->scene_tree->node, lx, ly);
+	struct wlr_box box;
+	wlr_xdg_positioner_rules_get_geometry(&rules, &box);
+	wlr_xdg_positioner_rules_unconstrain_box(&rules, &usable, &box);
+	wlr_scene_node_set_position(&menu->scene_tree->node, box.x, box.y);
 
-	/* Needed for pipemenus to inherit alignment */
-	menu->align = align;
+	menu->align_left = (box.x < anchor_rect.x);
 
 	struct menuitem *item;
 	wl_list_for_each(item, &menu->menuitems, link) {
 		if (!item->submenu) {
 			continue;
 		}
-		struct wlr_box pos = get_submenu_position(item, align);
-		menu_configure(item->submenu, pos.x, pos.y, align);
+		anchor_rect = get_item_anchor_rect(theme, item);
+		menu_configure(item->submenu, anchor_rect);
 	}
 }
 
@@ -1353,7 +1328,7 @@ menu_open_root(struct menu *menu, int x, int y)
 	}
 	close_all_submenus(menu);
 	menu_set_selection(menu, NULL);
-	menu_configure(menu, x, y, LAB_MENU_OPEN_AUTO);
+	menu_configure(menu, (struct wlr_box){.x = x, .y = y});
 	wlr_scene_node_set_enabled(&menu->scene_tree->node, true);
 	menu->server->menu_current = menu;
 	menu->server->input_mode = LAB_INPUT_STATE_MENU;
@@ -1403,9 +1378,9 @@ create_pipe_menu(struct menu_pipe_context *ctx)
 	/* Set menu-widths before configuring */
 	post_processing(ctx->server);
 
-	enum menu_align align = ctx->item->parent->align;
-	struct wlr_box pos = get_submenu_position(ctx->item, align);
-	menu_configure(pipe_menu, pos.x, pos.y, align);
+	struct wlr_box anchor_rect =
+		get_item_anchor_rect(ctx->server->theme, ctx->item);
+	menu_configure(pipe_menu, anchor_rect);
 
 	validate(ctx->server);
 

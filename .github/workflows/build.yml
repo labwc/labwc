@@ -186,9 +186,9 @@ jobs:
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
-            meson setup build-gcc-ci -Dxwayland=enabled -Db_sanitize=undefined --werror
-            meson compile -C build-gcc-ci
-            scripts/ci/smoke-test.sh build-gcc-ci
+            meson setup build-gcc-gdb -Dxwayland=enabled -Db_sanitize=undefined --werror
+            meson compile -C build-gcc-gdb
+            scripts/ci/smoke-test.sh build-gcc-gdb
           ' | $TARGET
 
       - name: Build with clang - runtime test
@@ -197,9 +197,31 @@ jobs:
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=clang
-            meson setup build-clang-ci -Dxwayland=enabled -Db_sanitize=undefined --werror
-            meson compile -C build-clang-ci
-            scripts/ci/smoke-test.sh build-clang-ci
+            meson setup build-clang-gdb -Dxwayland=enabled -Db_sanitize=undefined --werror
+            meson compile -C build-clang-gdb
+            scripts/ci/smoke-test.sh build-clang-gdb
+          ' | $TARGET
+
+      - name: Build with gcc - runtime leak test
+        if: matrix.name == 'Debian'
+        run: |
+          echo '
+            cd "$GITHUB_WORKSPACE"
+            export CC=gcc
+            meson setup build-gcc-leak -Dxwayland=enabled -Db_sanitize=address,undefined --werror
+            meson compile -C build-gcc-leak
+            LABWC_LEAK_TEST=1 scripts/ci/smoke-test.sh build-gcc-leak
+          ' | $TARGET
+
+      - name: Build with clang - runtime leak test
+        if: matrix.name == 'Debian'
+        run: |
+          echo '
+            cd "$GITHUB_WORKSPACE"
+            export CC=clang
+            meson setup build-clang-leak -Dxwayland=enabled -Db_sanitize=address,undefined --werror
+            meson compile -C build-clang-leak
+            LABWC_LEAK_TEST=1 scripts/ci/smoke-test.sh build-clang-leak
           ' | $TARGET
 
       # Void-musl doesn't support sanitizer

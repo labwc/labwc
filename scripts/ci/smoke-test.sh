@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 : ${LABWC_RUNS:=1}
+: ${LABWC_LEAK_TEST:=0}
 
 if ! test -x "$1/labwc"; then
 	echo "$1/labwc not found"
@@ -43,6 +44,11 @@ gdb_run() {
 }
 
 echo "Running with LABWC_RUNS=$LABWC_RUNS"
+
+if test "$LABWC_LEAK_TEST" != "0"; then
+	LSAN_OPTIONS=suppressions=scripts/asan_leak_suppressions "${args[@]}"
+	exit $?
+fi
 
 ret=0
 for((i=1; i<=LABWC_RUNS; i++)); do

@@ -38,6 +38,7 @@ struct window_rule {
 	enum property ignore_focus_request;
 	enum property ignore_configure_request;
 	enum property fixed_position;
+	enum property want_absorbed_modifier_release_events;
 
 	struct wl_list link; /* struct rcxml.window_rules */
 };

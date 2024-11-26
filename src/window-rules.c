@@ -108,6 +108,11 @@ window_rules_get_property(struct view *view, const char *property)
 					&& !strcasecmp(property, "fixedPosition")) {
 				return rule->fixed_position;
 			}
+			if (rule->want_absorbed_modifier_release_events
+					&& !strcasecmp(property,
+					"wantAbsorbedModifierReleaseEvents")) {
+				return rule->want_absorbed_modifier_release_events;
+			}
 		}
 	}
 	return LAB_PROP_UNSPECIFIED;

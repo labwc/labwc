@@ -354,6 +354,8 @@ fill_window_rule(char *nodename, char *content)
 		set_property(content, &current_window_rule->ignore_configure_request);
 	} else if (!strcasecmp(nodename, "fixedPosition")) {
 		set_property(content, &current_window_rule->fixed_position);
+	} else if (!strcasecmp(nodename, "wantAbsorbedModifierReleaseEvents")) {
+		set_property(content, &current_window_rule->want_absorbed_modifier_release_events);
 
 	/* Actions */
 	} else if (!strcmp(nodename, "name.action")) {

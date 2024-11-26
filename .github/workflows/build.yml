@@ -29,7 +29,7 @@ jobs:
       matrix:
         name: [
           Arch,
-#          Debian,
+          Debian,
           FreeBSD,
           Void-musl
         ]
@@ -40,11 +40,11 @@ jobs:
             env:
               TARGET: 'sh -xe'
 
-#          - name: Debian
-#            os: ubuntu-latest
-#            container: debian:testing
-#            env:
-#              TARGET: 'sh -xe'
+          - name: Debian
+            os: ubuntu-latest
+            container: debian:testing
+            env:
+              TARGET: 'sh -xe'
 
           - name: FreeBSD
             os: ubuntu-latest
@@ -81,7 +81,7 @@ jobs:
           apt-get upgrade -y
           apt-get install -y git gcc clang gdb xwayland
           apt-get build-dep -y labwc
-          apt-get install libwlroots-0.18-dev
+          apt-get build-dep -y libwlroots-dev
 
       - name: Install FreeBSD dependencies
         if: matrix.name == 'FreeBSD'
@@ -153,6 +153,7 @@ jobs:
             export CC=gcc
             meson setup build-gcc-release -Dxwayland=enabled \
               -Dbuildtype=release -Db_ndebug=true --werror
+            meson configure build-gcc-release -Dwlroots:b_ndebug=false || true
             meson compile -C build-gcc-release
           ' | $TARGET
 
@@ -173,6 +174,7 @@ jobs:
             export CC=clang
             meson setup build-clang-release -Dxwayland=enabled \
               -Dbuildtype=release -Db_ndebug=true --werror
+            meson configure build-clang-release -Dwlroots:b_ndebug=false || true
             meson compile -C build-clang-release
           ' | $TARGET
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+exec 1>&2
 
 if test -z "$LABWC_PID"; then
 	echo "LABWC_PID not set" >&2
@@ -7,7 +8,10 @@ fi
 
 echo "Running with pid $LABWC_PID"
 
-# Could add runtime tests here
+# Runtime tests
+echo "Executing foot"
+foot sh -c 'sleep 1; exit'
+echo "Foot exited with $?"
 
-echo "killing labwc"
+echo "Killing labwc"
 kill -s TERM $LABWC_PID

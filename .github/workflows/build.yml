@@ -71,7 +71,7 @@ jobs:
           pacman -Syu --noconfirm
           pacman -S --noconfirm git meson clang wlroots libdrm libinput \
             wayland-protocols cairo pango libxml2 xorg-xwayland librsvg \
-            libdisplay-info gdb ttf-dejavu
+            libdisplay-info gdb ttf-dejavu foot
 
       - name: Install Debian Testing dependencies
         if: matrix.name == 'Debian'
@@ -107,7 +107,7 @@ jobs:
           xbps-install -y git meson gcc clang pkg-config scdoc \
             cairo-devel glib-devel libpng-devel librsvg-devel libxml2-devel \
             pango-devel wlroots0.18-devel gdb bash xorg-server-xwayland \
-            dejavu-fonts-ttf libsfdo-devel
+            dejavu-fonts-ttf libsfdo-devel foot
 
       # These build are executed on all runners
       - name: Build with gcc
@@ -235,5 +235,5 @@ jobs:
             export CC=gcc
             meson setup build-gcc-gdb -Dxwayland=enabled --werror
             meson compile -C build-gcc-gdb
-            LABWC_RUNS=20 scripts/ci/smoke-test.sh build-gcc-gdb
+            LABWC_RUNS=2 scripts/ci/smoke-test.sh build-gcc-gdb
           ' | $TARGET

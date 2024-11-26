@@ -166,8 +166,6 @@ jobs:
             meson compile -C build-gcc-static_analyzer
           ' | $TARGET
 
-
-      # Runtime tests, these run on Debian and Void only (the later due to libmusl being used)
       - name: Build with clang - release
         run: |
           echo '
@@ -177,6 +175,8 @@ jobs:
               -Dbuildtype=release -Db_ndebug=true --werror
             meson compile -C build-clang-release
           ' | $TARGET
+
+      # Runtime tests, these run on Debian and Void only (the later due to libmusl being used)
 
       - name: Build with gcc - runtime test
         if: matrix.name == 'Debian'

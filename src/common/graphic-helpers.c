@@ -125,8 +125,8 @@ get_cairo_surface_from_lab_data_buffer(struct lab_data_buffer *buffer)
 	}
 
 	/* Handle DRM_FORMAT_ARGB8888 buffers */
-	int w = buffer->logical_width;
-	int h = buffer->logical_height;
+	int w = buffer->base.width;
+	int h = buffer->base.height;
 	cairo_surface_t *surface =
 		cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
 	if (!surface) {

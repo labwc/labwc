@@ -45,7 +45,6 @@ static void
 data_buffer_destroy(struct wlr_buffer *wlr_buffer)
 {
 	struct lab_data_buffer *buffer = data_buffer_from_buffer(wlr_buffer);
-	cairo_destroy(buffer->cairo);
 	/* this also frees buffer->data if surface_owns_data == true */
 	cairo_surface_destroy(buffer->surface);
 	if (!buffer->surface_owns_data) {
@@ -97,7 +96,6 @@ buffer_adopt_cairo_surface(cairo_surface_t *surface)
 	buffer->stride = cairo_image_surface_get_stride(buffer->surface);
 	buffer->logical_width = width;
 	buffer->logical_height = height;
-	buffer->cairo = cairo_create(surface);
 	buffer->surface_owns_data = true;
 
 	return buffer;
@@ -167,7 +165,7 @@ buffer_convert_cairo_surface_for_icon(cairo_surface_t *surface,
 		buffer = buffer_create_cairo(logical.width,
 			logical.height, scale);
 
-		cairo_t *cairo = buffer->cairo;
+		cairo_t *cairo = cairo_create(buffer->surface);
 		cairo_scale(cairo, (double)logical.width / width,
 			(double)logical.height / height);
 		cairo_set_source_surface(cairo, surface, 0, 0);
@@ -177,8 +175,9 @@ buffer_convert_cairo_surface_for_icon(cairo_surface_t *surface,
 
 		/* ensure pixel data is updated */
 		cairo_surface_flush(buffer->surface);
-		/* destroy original surface */
+		/* destroy original cairo surface & context */
 		cairo_surface_destroy(surface);
+		cairo_destroy(cairo);
 	}
 
 	return buffer;
@@ -197,7 +196,6 @@ buffer_create_from_data(void *pixel_data, uint32_t width, uint32_t height,
 	buffer->stride = stride;
 	buffer->surface = cairo_image_surface_create_for_data(
 		pixel_data, CAIRO_FORMAT_ARGB32, width, height, stride);
-	buffer->cairo = cairo_create(buffer->surface);
 	buffer->surface_owns_data = false;
 	return buffer;
 }

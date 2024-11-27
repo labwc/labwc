@@ -34,7 +34,6 @@ struct lab_data_buffer {
 
 	bool surface_owns_data;
 	cairo_surface_t *surface;
-	cairo_t *cairo;
 	void *data;
 	uint32_t format; /* currently always DRM_FORMAT_ARGB8888 */
 	size_t stride;

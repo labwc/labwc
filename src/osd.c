@@ -354,8 +354,9 @@ display_osd(struct output *output, struct wl_array *views)
 	}
 
 	/* Render OSD image */
-	cairo_t *cairo = buffer->cairo;
+	cairo_t *cairo = cairo_create(buffer->surface);
 	render_osd(server, cairo, w, h, show_workspace, workspace_name, views);
+	cairo_destroy(cairo);
 
 	struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_create(
 		output->osd_tree, &buffer->base);

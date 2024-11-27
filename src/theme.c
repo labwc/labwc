@@ -80,7 +80,12 @@ zdrop(struct lab_data_buffer **buffer)
 	}
 }
 
-static struct lab_data_buffer *
+struct icon_drawing_context {
+	struct lab_data_buffer *buffer;
+	cairo_t *cairo;
+};
+
+static struct icon_drawing_context
 copy_icon_buffer(struct theme *theme, struct lab_data_buffer *icon_buffer)
 {
 	assert(icon_buffer);
@@ -110,7 +115,7 @@ copy_icon_buffer(struct theme *theme, struct lab_data_buffer *icon_buffer)
 	int buffer_height = (double)height * scale;
 	struct lab_data_buffer *buffer = buffer_create_cairo(
 		buffer_width, buffer_height, 1.0);
-	cairo_t *cairo = buffer->cairo;
+	cairo_t *cairo = cairo_create(buffer->surface);
 
 	cairo_set_source_surface(cairo, surface,
 		(buffer_width - icon_width) / 2, (buffer_height - icon_height) / 2);
@@ -122,7 +127,10 @@ copy_icon_buffer(struct theme *theme, struct lab_data_buffer *icon_buffer)
 	 */
 	cairo_scale(cairo, scale, scale);
 
-	return buffer;
+	return (struct icon_drawing_context){
+		.buffer = buffer,
+		.cairo = cairo,
+	};
 }
 
 static void
@@ -136,8 +144,9 @@ create_hover_fallback(struct theme *theme,
 	int width = theme->window_button_width;
 	int height = theme->window_button_height;
 
-	*hover_buffer = copy_icon_buffer(theme, icon_buffer);
-	cairo_t *cairo = (*hover_buffer)->cairo;
+	struct icon_drawing_context ctx = copy_icon_buffer(theme, icon_buffer);
+	*hover_buffer = ctx.buffer;
+	cairo_t *cairo = ctx.cairo;
 
 	/* Overlay (pre-multiplied alpha) */
 	float overlay_color[4] = { 0.15f, 0.15f, 0.15f, 0.3f};
@@ -156,6 +165,7 @@ create_hover_fallback(struct theme *theme,
 	cairo_fill(cairo);
 
 	cairo_surface_flush(cairo_get_target(cairo));
+	cairo_destroy(cairo);
 }
 
 static void
@@ -163,8 +173,9 @@ create_rounded_buffer(struct theme *theme, enum corner corner,
 		struct lab_data_buffer **rounded_buffer,
 		struct lab_data_buffer *icon_buffer)
 {
-	*rounded_buffer = copy_icon_buffer(theme, icon_buffer);
-	cairo_t *cairo = (*rounded_buffer)->cairo;
+	struct icon_drawing_context ctx = copy_icon_buffer(theme, icon_buffer);
+	*rounded_buffer = ctx.buffer;
+	cairo_t *cairo = ctx.cairo;
 
 	int width = theme->window_button_width;
 	int height = theme->window_button_height;
@@ -189,12 +200,13 @@ create_rounded_buffer(struct theme *theme, enum corner corner,
 	};
 	struct lab_data_buffer *mask_buffer = rounded_rect(&rounded_ctx);
 	cairo_set_operator(cairo, CAIRO_OPERATOR_DEST_IN);
-	cairo_set_source_surface(cairo, cairo_get_target(mask_buffer->cairo),
+	cairo_set_source_surface(cairo, mask_buffer->surface,
 		(corner == LAB_CORNER_TOP_LEFT) ? -margin_x : 0,
 		-margin_y);
 	cairo_paint(cairo);
 
 	cairo_surface_flush(cairo_get_target(cairo));
+	cairo_destroy(cairo);
 	wlr_buffer_drop(&mask_buffer->base);
 }
 
@@ -1088,8 +1100,8 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 	/* TODO: scale */
 	buffer = buffer_create_cairo(w, h, 1);
 
-	cairo_t *cairo = buffer->cairo;
-	cairo_surface_t *surf = cairo_get_target(cairo);
+	cairo_surface_t *surf = buffer->surface;
+	cairo_t *cairo = cairo_create(surf);
 
 	/* set transparent background */
 	cairo_set_operator(cairo, CAIRO_OPERATOR_CLEAR);
@@ -1231,6 +1243,7 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 
 out:
 	cairo_surface_flush(surf);
+	cairo_destroy(cairo);
 
 	return buffer;
 }

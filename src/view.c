@@ -1339,7 +1339,7 @@ static void
 set_maximized(struct view *view, enum view_axis maximized)
 {
 	if (view->impl->maximize) {
-		view->impl->maximize(view, (maximized == VIEW_AXIS_BOTH));
+		view->impl->maximize(view, maximized);
 	}
 
 	view->maximized = maximized;

@@ -810,10 +810,10 @@ out:
 }
 
 static void
-xwayland_view_maximize(struct view *view, bool maximized)
+xwayland_view_maximize(struct view *view, enum view_axis maximized)
 {
 	wlr_xwayland_surface_set_maximized(xwayland_surface_from_view(view),
-		maximized);
+		maximized & VIEW_AXIS_HORIZONTAL, maximized & VIEW_AXIS_VERTICAL);
 }
 
 static void

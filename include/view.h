@@ -140,7 +140,7 @@ struct view_impl {
 	 * minimizing we don't destroy the foreign toplevel handle).
 	 */
 	void (*unmap)(struct view *view, bool client_request);
-	void (*maximize)(struct view *view, bool maximize);
+	void (*maximize)(struct view *view, enum view_axis maximized);
 	void (*minimize)(struct view *view, bool minimize);
 	struct view *(*get_root)(struct view *self);
 	void (*append_children)(struct view *self, struct wl_array *children);

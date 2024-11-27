@@ -85,10 +85,9 @@ copy_icon_buffer(struct theme *theme, struct lab_data_buffer *icon_buffer)
 {
 	assert(icon_buffer);
 
-	struct surface_context icon =
-		get_cairo_surface_from_lab_data_buffer(icon_buffer);
-	int icon_width = cairo_image_surface_get_width(icon.surface);
-	int icon_height = cairo_image_surface_get_height(icon.surface);
+	cairo_surface_t *surface = icon_buffer->surface;
+	int icon_width = cairo_image_surface_get_width(surface);
+	int icon_height = cairo_image_surface_get_height(surface);
 
 	int width = theme->window_button_width;
 	int height = theme->window_button_height;
@@ -113,7 +112,7 @@ copy_icon_buffer(struct theme *theme, struct lab_data_buffer *icon_buffer)
 		buffer_width, buffer_height, 1.0);
 	cairo_t *cairo = buffer->cairo;
 
-	cairo_set_source_surface(cairo, icon.surface,
+	cairo_set_source_surface(cairo, surface,
 		(buffer_width - icon_width) / 2, (buffer_height - icon_height) / 2);
 	cairo_paint(cairo);
 
@@ -122,10 +121,6 @@ copy_icon_buffer(struct theme *theme, struct lab_data_buffer *icon_buffer)
 	 * corner on this buffer in the scene coordinates.
 	 */
 	cairo_scale(cairo, scale, scale);
-
-	if (icon.is_duplicate) {
-		cairo_surface_destroy(icon.surface);
-	}
 
 	return buffer;
 }

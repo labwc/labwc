@@ -49,12 +49,4 @@ void draw_cairo_border(cairo_t *cairo, struct wlr_fbox fbox, double line_width);
 
 struct lab_data_buffer;
 
-struct surface_context {
-	bool is_duplicate;
-	cairo_surface_t *surface;
-};
-
-struct surface_context get_cairo_surface_from_lab_data_buffer(
-	struct lab_data_buffer *buffer);
-
 #endif /* LABWC_GRAPHIC_HELPERS_H */

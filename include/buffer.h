@@ -32,10 +32,11 @@
 struct lab_data_buffer {
 	struct wlr_buffer base;
 
-	cairo_surface_t *surface; /* optional */
-	cairo_t *cairo;           /* optional */
-	void *data; /* owned by surface if surface != NULL */
-	uint32_t format;
+	bool surface_owns_data;
+	cairo_surface_t *surface;
+	cairo_t *cairo;
+	void *data;
+	uint32_t format; /* currently always DRM_FORMAT_ARGB8888 */
 	size_t stride;
 	/*
 	 * The logical size of the surface in layout pixels.
@@ -50,7 +51,7 @@ struct lab_data_buffer {
  * CAIRO_FORMAT_ARGB32 image surface.
  *
  * The logical size is set to the surface size in pixels, ignoring
- * device scale. No cairo context is created.
+ * device scale.
  */
 struct lab_data_buffer *buffer_adopt_cairo_surface(cairo_surface_t *surface);
 
@@ -78,7 +79,6 @@ struct lab_data_buffer *buffer_convert_cairo_surface_for_icon(
  * in pre-multiplied ARGB32 format.
  *
  * The logical size is set to the width and height of the pixel data.
- * No cairo surface or context is created.
  */
 struct lab_data_buffer *buffer_create_from_data(void *pixel_data, uint32_t width,
 	uint32_t height, uint32_t stride);

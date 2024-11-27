@@ -45,15 +45,11 @@ static void
 data_buffer_destroy(struct wlr_buffer *wlr_buffer)
 {
 	struct lab_data_buffer *buffer = data_buffer_from_buffer(wlr_buffer);
-	if (buffer->cairo) {
-		cairo_destroy(buffer->cairo);
-	}
-	if (buffer->surface) {
-		/* this also frees buffer->data */
-		cairo_surface_destroy(buffer->surface);
-	} else if (buffer->data) {
+	cairo_destroy(buffer->cairo);
+	/* this also frees buffer->data if surface_owns_data == true */
+	cairo_surface_destroy(buffer->surface);
+	if (!buffer->surface_owns_data) {
 		free(buffer->data);
-		buffer->data = NULL;
 	}
 	free(buffer);
 }
@@ -101,6 +97,8 @@ buffer_adopt_cairo_surface(cairo_surface_t *surface)
 	buffer->stride = cairo_image_surface_get_stride(buffer->surface);
 	buffer->logical_width = width;
 	buffer->logical_height = height;
+	buffer->cairo = cairo_create(surface);
+	buffer->surface_owns_data = true;
 
 	return buffer;
 }
@@ -130,7 +128,6 @@ buffer_create_cairo(uint32_t logical_width, uint32_t logical_height, float scale
 	struct lab_data_buffer *buffer = buffer_adopt_cairo_surface(surface);
 	buffer->logical_width = logical_width;
 	buffer->logical_height = logical_height;
-	buffer->cairo = cairo_create(surface);
 
 	return buffer;
 }
@@ -198,5 +195,9 @@ buffer_create_from_data(void *pixel_data, uint32_t width, uint32_t height,
 	buffer->data = pixel_data;
 	buffer->format = DRM_FORMAT_ARGB8888;
 	buffer->stride = stride;
+	buffer->surface = cairo_image_surface_create_for_data(
+		pixel_data, CAIRO_FORMAT_ARGB32, width, height, stride);
+	buffer->cairo = cairo_create(buffer->surface);
+	buffer->surface_owns_data = false;
 	return buffer;
 }

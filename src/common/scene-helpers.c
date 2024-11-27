@@ -67,10 +67,11 @@ scene_output_damage(struct wlr_scene_output *scene_output,
 	pixman_region32_init(&frame_damage);
 	wlr_region_transform(&frame_damage, region, transform, width, height);
 
-	pixman_region32_union(&scene_output->pending_commit_damage,
-		&scene_output->pending_commit_damage, &frame_damage);
-	pixman_region32_intersect_rect(&scene_output->pending_commit_damage,
-		&scene_output->pending_commit_damage, 0, 0, output->width, output->height);
+	pixman_region32_union(&scene_output->WLR_PRIVATE.pending_commit_damage,
+		&scene_output->WLR_PRIVATE.pending_commit_damage, &frame_damage);
+	pixman_region32_intersect_rect(&scene_output->WLR_PRIVATE.pending_commit_damage,
+		&scene_output->WLR_PRIVATE.pending_commit_damage, 0, 0,
+		output->width, output->height);
 	pixman_region32_fini(&frame_damage);
 }
 
@@ -94,8 +95,10 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 	 * rendering on every output commit and overloads CPU.
 	 * We also need to verify the necessity of wants_magnification.
 	 */
-	if (!wlr_output->needs_frame && !pixman_region32_not_empty(
-			&scene_output->pending_commit_damage) && !wants_magnification) {
+	if (!wlr_output->needs_frame
+			&& !pixman_region32_not_empty(
+				&scene_output->WLR_PRIVATE.pending_commit_damage)
+			&& !wants_magnification) {
 		return true;
 	}
 

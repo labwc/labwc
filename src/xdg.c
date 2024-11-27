@@ -493,9 +493,10 @@ xdg_toplevel_view_close(struct view *view)
 }
 
 static void
-xdg_toplevel_view_maximize(struct view *view, bool maximized)
+xdg_toplevel_view_maximize(struct view *view, enum view_axis maximized)
 {
-	wlr_xdg_toplevel_set_maximized(xdg_toplevel_from_view(view), maximized);
+	wlr_xdg_toplevel_set_maximized(xdg_toplevel_from_view(view),
+		maximized == VIEW_AXIS_BOTH);
 }
 
 static void

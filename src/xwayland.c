@@ -443,7 +443,7 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 	if (surf->maximized_horz) {
 		maximize |= VIEW_AXIS_HORIZONTAL;
 	}
-	view_toggle_maximize(view, maximize);
+	view_maximize(view, maximize, /*store_natural_geometry*/ true);
 }
 
 static void

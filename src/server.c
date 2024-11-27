@@ -55,6 +55,7 @@
 #define LAB_WLR_FRACTIONAL_SCALE_V1_VERSION 1
 #define LAB_WLR_LINUX_DMABUF_VERSION 4
 #define EXT_FOREIGN_TOPLEVEL_LIST_VERSION 1
+#define LAB_WLR_PRESENTATION_TIME_VERSION 2
 
 static struct wlr_compositor *compositor;
 static struct wl_event_source *sighup_source;
@@ -629,8 +630,9 @@ server_init(struct server *server)
 	kde_server_decoration_init(server);
 	xdg_server_decoration_init(server);
 
-	struct wlr_presentation *presentation =
-		wlr_presentation_create(server->wl_display, server->backend);
+	struct wlr_presentation *presentation = wlr_presentation_create(
+		server->wl_display, server->backend,
+		LAB_WLR_PRESENTATION_TIME_VERSION);
 	if (!presentation) {
 		wlr_log(WLR_ERROR, "unable to create presentation interface");
 		exit(EXIT_FAILURE);

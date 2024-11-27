@@ -115,8 +115,8 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 		return;
 	}
 
-	cairo_t *cairo = (*buffer)->cairo;
-	cairo_surface_t *surf = cairo_get_target(cairo);
+	cairo_surface_t *surf = (*buffer)->surface;
+	cairo_t *cairo = cairo_create(surf);
 
 	/*
 	 * Fill with the background color first IF the background color
@@ -171,6 +171,7 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	g_object_unref(layout);
 
 	cairo_surface_flush(surf);
+	cairo_destroy(cairo);
 }
 
 void

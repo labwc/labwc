@@ -41,7 +41,7 @@ img_svg_load(const char *filename, struct lab_data_buffer **buffer, int size,
 
 	*buffer = buffer_create_cairo(size, size, scale);
 	cairo_surface_t *image = (*buffer)->surface;
-	cairo_t *cr = (*buffer)->cairo;
+	cairo_t *cr = cairo_create(image);
 
 	rsvg_handle_render_document(svg, cr, &viewport, &err);
 	if (err) {
@@ -55,6 +55,7 @@ img_svg_load(const char *filename, struct lab_data_buffer **buffer, int size,
 		goto error;
 	}
 	cairo_surface_flush(image);
+	cairo_destroy(cr);
 
 	g_object_unref(svg);
 	return;
@@ -62,5 +63,6 @@ img_svg_load(const char *filename, struct lab_data_buffer **buffer, int size,
 error:
 	wlr_buffer_drop(&(*buffer)->base);
 	*buffer = NULL;
+	cairo_destroy(cr);
 	g_object_unref(svg);
 }

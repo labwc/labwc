@@ -90,7 +90,7 @@ _osd_update(struct server *server)
 			continue;
 		}
 
-		cairo = buffer->cairo;
+		cairo = cairo_create(buffer->surface);
 
 		/* Background */
 		set_cairo_color(cairo, theme->osd_bg_color);
@@ -150,6 +150,7 @@ _osd_update(struct server *server)
 		g_object_unref(layout);
 		surface = cairo_get_target(cairo);
 		cairo_surface_flush(surface);
+		cairo_destroy(cairo);
 
 		if (!output->workspace_osd) {
 			output->workspace_osd = wlr_scene_buffer_create(

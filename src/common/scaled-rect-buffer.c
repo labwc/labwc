@@ -39,7 +39,7 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 		return NULL;
 	}
 
-	cairo_t *cairo = buffer->cairo;
+	cairo_t *cairo = cairo_create(buffer->surface);
 
 	/* Clear background */
 	cairo_set_operator(cairo, CAIRO_OPERATOR_CLEAR);
@@ -57,6 +57,8 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 	cairo_set_line_width(cairo, self->border_width);
 	set_cairo_color(cairo, self->border_color);
 	cairo_stroke(cairo);
+
+	cairo_destroy(cairo);
 
 	return buffer;
 }

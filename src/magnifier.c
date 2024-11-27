@@ -237,7 +237,7 @@ static void
 enable_magnifier(struct server *server, bool enable)
 {
 	magnify_on = enable;
-	server->scene->direct_scanout = enable ? false
+	server->scene->WLR_PRIVATE.direct_scanout = enable ? false
 		: server->direct_scanout_enabled;
 }
 

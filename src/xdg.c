@@ -149,8 +149,7 @@ handle_commit(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	struct wlr_box size;
-	wlr_xdg_surface_get_geometry(xdg_surface, &size);
+	struct wlr_box size = xdg_surface->geometry;
 	bool update_required = false;
 
 	/*
@@ -727,10 +726,8 @@ xdg_toplevel_view_map(struct view *view)
 		 * dimensions remain zero until handle_commit().
 		 */
 		if (wlr_box_empty(&view->pending)) {
-			struct wlr_box size;
-			wlr_xdg_surface_get_geometry(xdg_surface, &size);
-			view->pending.width = size.width;
-			view->pending.height = size.height;
+			view->pending.width = xdg_surface->geometry.width;
+			view->pending.height = xdg_surface->geometry.height;
 		}
 
 		/*

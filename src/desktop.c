@@ -106,7 +106,7 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 	} else {
 		struct wlr_xwayland_surface *xsurface =
 			wlr_xwayland_surface_try_from_wlr_surface(surface);
-		if (xsurface && wlr_xwayland_or_surface_wants_focus(xsurface)) {
+		if (xsurface && wlr_xwayland_surface_override_redirect_wants_focus(xsurface)) {
 			seat_focus_surface(seat, surface);
 		}
 #endif

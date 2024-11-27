@@ -46,7 +46,7 @@ handle_map(struct wl_listener *listener, void *data)
 
 	CONNECT_SIGNAL(xsurface, unmanaged, set_geometry);
 
-	if (wlr_xwayland_or_surface_wants_focus(xsurface)) {
+	if (wlr_xwayland_surface_override_redirect_wants_focus(xsurface)) {
 		seat_focus_surface(&unmanaged->server->seat, xsurface->surface);
 	}
 
@@ -66,7 +66,7 @@ focus_next_surface(struct server *server, struct wlr_xwayland_surface *xsurface)
 	struct wl_list *list = &server->unmanaged_surfaces;
 	wl_list_for_each_reverse(u, list, link) {
 		struct wlr_xwayland_surface *prev = u->xwayland_surface;
-		if (wlr_xwayland_or_surface_wants_focus(prev)) {
+		if (wlr_xwayland_surface_override_redirect_wants_focus(prev)) {
 			seat_focus_surface(&server->seat, prev->surface);
 			return;
 		}

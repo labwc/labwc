@@ -10,6 +10,7 @@
 #include "buffer.h"
 #include "common/mem.h"
 #include "common/scaled-scene-buffer.h"
+#include "node.h"
 
 /**
  * TODO
@@ -226,6 +227,8 @@ scaled_scene_buffer_create(struct wlr_scene_tree *parent,
 		free(self);
 		return NULL;
 	}
+	node_descriptor_create(&self->scene_buffer->node,
+		LAB_NODE_DESC_SCALED_SCENE_BUFFER, self);
 
 	self->impl = impl;
 	/*

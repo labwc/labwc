@@ -58,6 +58,7 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 	set_cairo_color(cairo, self->border_color);
 	cairo_stroke(cairo);
 
+	cairo_surface_flush(buffer->surface);
 	cairo_destroy(cairo);
 
 	return buffer;

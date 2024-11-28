@@ -13,14 +13,13 @@ void box_union(struct wlr_box *box_dest, struct wlr_box *box_a,
 	struct wlr_box *box_b);
 
 /*
- * Fits and centers a content box (width & height) within a bounding box
- * (max_width & max_height). The content box is downscaled if necessary
- * (preserving aspect ratio) but not upscaled.
+ * Fits and centers a content box (width & height) within a bounding box.
+ * The content box is downscaled if necessary (preserving aspect ratio) but
+ * not upscaled.
  *
  * The returned x & y coordinates are the centered content position
  * relative to the top-left corner of the bounding box.
  */
-struct wlr_box box_fit_within(int width, int height, int max_width,
-	int max_height);
+struct wlr_box box_fit_within(int width, int height, struct wlr_box *bounding_box);
 
 #endif /* LABWC_BOX_H */

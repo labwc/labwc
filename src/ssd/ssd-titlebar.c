@@ -7,11 +7,13 @@
 #include "config.h"
 #include "common/mem.h"
 #include "common/scaled-font-buffer.h"
+#include "common/scaled-img-buffer.h"
 #include "common/scene-helpers.h"
 #include "common/string-helpers.h"
 #if HAVE_LIBSFDO
 #include "desktop-entry.h"
 #endif
+#include "img/img.h"
 #include "labwc.h"
 #include "node.h"
 #include "ssd-internal.h"
@@ -73,20 +75,20 @@ ssd_titlebar_create(struct ssd *ssd)
 		int y = (theme->titlebar_height - theme->window_button_height) / 2;
 
 		wl_list_for_each(b, &rc.title_buttons_left, link) {
-			struct lab_data_buffer **buffers =
-				theme->window[active].buttons[b->type];
+			struct lab_img **imgs =
+				theme->window[active].button_imgs[b->type];
 			add_scene_button(&subtree->parts, b->type, parent,
-				buffers, x, y, view);
+				imgs, x, y, view);
 			x += theme->window_button_width + theme->window_button_spacing;
 		}
 
 		x = width - theme->window_titlebar_padding_width + theme->window_button_spacing;
 		wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
 			x -= theme->window_button_width + theme->window_button_spacing;
-			struct lab_data_buffer **buffers =
-				theme->window[active].buttons[b->type];
+			struct lab_img **imgs =
+				theme->window[active].button_imgs[b->type];
 			add_scene_button(&subtree->parts, b->type, parent,
-				buffers, x, y, view);
+				imgs, x, y, view);
 		}
 	} FOR_EACH_END
 
@@ -343,6 +345,9 @@ ssd_titlebar_destroy(struct ssd *ssd)
 	if (ssd->state.app_id) {
 		zfree(ssd->state.app_id);
 	}
+	if (ssd->state.icon_img) {
+		lab_img_destroy(ssd->state.icon_img);
+	}
 
 	wlr_scene_node_destroy(&ssd->titlebar.tree->node);
 	ssd->titlebar.tree = NULL;
@@ -593,9 +598,9 @@ ssd_update_window_icon(struct ssd *ssd)
 	 * was considered, but these settings have distinct purposes
 	 * already and are zero by default.
 	 */
-	int hpad = theme->window_button_width / 10;
-	int icon_size = MIN(theme->window_button_width - 2 * hpad,
-		theme->window_button_height);
+	int icon_padding = theme->window_button_width / 10;
+	int icon_size = MIN(theme->window_button_width - 2 * icon_padding,
+		theme->window_button_height - 2 * icon_padding);
 
 	/*
 	 * Load/render icons at the max scale of any usable output (at
@@ -607,9 +612,9 @@ ssd_update_window_icon(struct ssd *ssd)
 	 */
 	float icon_scale = output_max_scale(ssd->view->server);
 
-	struct lab_data_buffer *icon_buffer = desktop_entry_icon_lookup(
+	struct lab_img *icon_img = desktop_entry_icon_lookup(
 		ssd->view->server, app_id, icon_size, icon_scale);
-	if (!icon_buffer) {
+	if (!icon_img) {
 		wlr_log(WLR_DEBUG, "icon could not be loaded for %s", app_id);
 		return;
 	}
@@ -625,14 +630,22 @@ ssd_update_window_icon(struct ssd *ssd)
 		/* Replace all the buffers in the button with the window icon */
 		struct ssd_button *button = node_ssd_button_from_node(part->node);
 		for (uint8_t state_set = 0; state_set <= LAB_BS_ALL; state_set++) {
-			if (button->nodes[state_set]) {
-				update_window_icon_buffer(button->nodes[state_set],
-					icon_buffer);
+			struct wlr_scene_node *node = button->nodes[state_set];
+			if (node) {
+				struct scaled_img_buffer *img_buffer =
+					scaled_img_buffer_from_node(node);
+				scaled_img_buffer_update(img_buffer, icon_img,
+					theme->window_button_width,
+					theme->window_button_height,
+					icon_padding);
 			}
 		}
 	} FOR_EACH_END
 
-	wlr_buffer_drop(&icon_buffer->base);
+	if (ssd->state.icon_img) {
+		lab_img_destroy(ssd->state.icon_img);
+	}
+	ssd->state.icon_img = icon_img;
 #endif
 }
 

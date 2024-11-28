@@ -397,30 +397,26 @@ out:
 	return surface;
 }
 
-void
-img_xpm_load(const char *filename, struct lab_data_buffer **buffer, int size,
-		float scale)
+struct lab_data_buffer *
+img_xpm_load(const char *filename)
 {
-	if (*buffer) {
-		wlr_buffer_drop(&(*buffer)->base);
-		*buffer = NULL;
-	}
-
 	struct file_handle h = {0};
 	h.infile = fopen(filename, "rb");
 	if (!h.infile) {
 		wlr_log(WLR_ERROR, "error opening '%s'", filename);
-		return;
+		return NULL;
 	}
 
 	cairo_surface_t *surface = xpm_load_to_surface(&h);
+	struct lab_data_buffer *buffer = NULL;
 	if (surface) {
-		*buffer = buffer_convert_cairo_surface_for_icon(surface, size,
-			scale);
+		buffer = buffer_adopt_cairo_surface(surface);
 	} else {
 		wlr_log(WLR_ERROR, "error loading '%s'", filename);
 	}
 
 	fclose(h.infile);
 	buf_reset(&h.buf);
+
+	return buffer;
 }

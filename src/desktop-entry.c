@@ -8,14 +8,8 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
-#include "config.h"
 #include "desktop-entry.h"
-#include "img/img-png.h"
-#include "img/img-xpm.h"
-
-#if HAVE_RSVG
-#include "img/img-svg.h"
-#endif
+#include "img/img.h"
 
 #include "labwc.h"
 
@@ -267,7 +261,22 @@ get_desktop_entry(struct sfdo *sfdo, const char *app_id)
 	return entry;
 }
 
-struct lab_data_buffer *
+static enum lab_img_type
+convert_img_type(enum sfdo_icon_file_format fmt)
+{
+	switch (fmt) {
+	case SFDO_ICON_FILE_FORMAT_PNG:
+		return LAB_IMG_PNG;
+	case SFDO_ICON_FILE_FORMAT_SVG:
+		return LAB_IMG_SVG;
+	case SFDO_ICON_FILE_FORMAT_XPM:
+		return LAB_IMG_XPM;
+	default:
+		abort();
+	}
+}
+
+struct lab_img *
 desktop_entry_icon_lookup(struct server *server, const char *app_id, int size,
 		float scale)
 {
@@ -308,26 +317,12 @@ desktop_entry_icon_lookup(struct server *server, const char *app_id, int size,
 		return NULL;
 	}
 
-	struct lab_data_buffer *icon_buffer = NULL;
-
 	wlr_log(WLR_DEBUG, "loading icon file %s", ctx.path);
-
-	switch (ctx.format) {
-	case SFDO_ICON_FILE_FORMAT_PNG:
-		img_png_load(ctx.path, &icon_buffer, size, scale);
-		break;
-	case SFDO_ICON_FILE_FORMAT_SVG:
-#if HAVE_RSVG
-		img_svg_load(ctx.path, &icon_buffer, size, scale);
-#endif
-		break;
-	case SFDO_ICON_FILE_FORMAT_XPM:
-		img_xpm_load(ctx.path, &icon_buffer, size, scale);
-		break;
-	}
+	struct lab_img *img = lab_img_load(convert_img_type(ctx.format), ctx.path, NULL);
 
 	free(ctx.path);
-	return icon_buffer;
+
+	return img;
 }
 
 const char *

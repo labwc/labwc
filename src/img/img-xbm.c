@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <drm_fourcc.h>
+#include "img/img.h"
 #include "img/img-xbm.h"
 #include "common/grab-file.h"
 #include "common/mem.h"
@@ -255,32 +256,23 @@ parse_xbm_builtin(const char *button, int size)
 	return pixmap;
 }
 
-void
-img_xbm_from_bitmap(const char *bitmap, struct lab_data_buffer **buffer,
-		float *rgba)
+struct lab_data_buffer *
+img_xbm_load_from_bitmap(const char *bitmap, float *rgba)
 {
 	struct pixmap pixmap = {0};
-	if (*buffer) {
-		wlr_buffer_drop(&(*buffer)->base);
-		*buffer = NULL;
-	}
 	color = argb32(rgba);
 	pixmap = parse_xbm_builtin(bitmap, 6);
-	*buffer = buffer_create_from_data(pixmap.data, pixmap.width, pixmap.height,
+
+	return buffer_create_from_data(pixmap.data, pixmap.width, pixmap.height,
 		pixmap.width * 4);
 }
 
-void
-img_xbm_load(const char *filename, struct lab_data_buffer **buffer,
-		float *rgba)
+struct lab_data_buffer *
+img_xbm_load(const char *filename, float *rgba)
 {
 	struct pixmap pixmap = {0};
-	if (*buffer) {
-		wlr_buffer_drop(&(*buffer)->base);
-		*buffer = NULL;
-	}
 	if (string_null_or_empty(filename)) {
-		return;
+		return NULL;
 	}
 	color = argb32(rgba);
 
@@ -295,12 +287,9 @@ img_xbm_load(const char *filename, struct lab_data_buffer **buffer,
 	}
 	buf_reset(&token_buf);
 	if (!pixmap.data) {
-		return;
+		return NULL;
 	}
 
-	/* Create buffer */
-	if (pixmap.data) {
-		*buffer = buffer_create_from_data(pixmap.data, pixmap.width,
-			pixmap.height, pixmap.width * 4);
-	}
+	return buffer_create_from_data(pixmap.data, pixmap.width,
+		pixmap.height, pixmap.width * 4);
 }

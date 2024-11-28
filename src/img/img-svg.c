@@ -10,24 +10,18 @@
 #include <stdlib.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
-#include "img/img-svg.h"
 #include "common/string-helpers.h"
+#include "img/img-svg.h"
 #include "labwc.h"
 
-void
-img_svg_load(const char *filename, struct lab_data_buffer **buffer, int size,
-		float scale)
+RsvgHandle *
+img_svg_load(const char *filename)
 {
-	if (*buffer) {
-		wlr_buffer_drop(&(*buffer)->base);
-		*buffer = NULL;
-	}
 	if (string_null_or_empty(filename)) {
-		return;
+		return NULL;
 	}
 
 	GError *err = NULL;
-	RsvgRectangle viewport = { .width = size, .height = size };
 	RsvgHandle *svg = rsvg_handle_new_from_file(filename, &err);
 	if (err) {
 		wlr_log(WLR_DEBUG, "error reading svg %s-%s", filename, err->message);
@@ -36,33 +30,43 @@ img_svg_load(const char *filename, struct lab_data_buffer **buffer, int size,
 		 * rsvg_handle_new_from_file() returns NULL if an error occurs,
 		 * so there is no need to free svg here.
 		 */
-		return;
+		return NULL;
 	}
+	return svg;
+}
 
-	*buffer = buffer_create_cairo(size, size, scale);
-	cairo_surface_t *image = (*buffer)->surface;
+struct lab_data_buffer *
+img_svg_render(RsvgHandle *svg, int w, int h, int padding, double scale)
+{
+	struct lab_data_buffer *buffer = buffer_create_cairo(w, h, scale);
+	cairo_surface_t *image = buffer->surface;
 	cairo_t *cr = cairo_create(image);
+	GError *err = NULL;
 
+	RsvgRectangle viewport = {
+		.x = padding,
+		.y = padding,
+		.width = w - 2 * padding,
+		.height = h - 2 * padding,
+	};
 	rsvg_handle_render_document(svg, cr, &viewport, &err);
 	if (err) {
-		wlr_log(WLR_ERROR, "error rendering svg %s-%s", filename, err->message);
+		wlr_log(WLR_ERROR, "error rendering svg: %s", err->message);
 		g_error_free(err);
 		goto error;
 	}
-
 	if (cairo_surface_status(image)) {
-		wlr_log(WLR_ERROR, "error reading svg button '%s'", filename);
+		wlr_log(WLR_ERROR, "error reading svg file");
 		goto error;
 	}
-	cairo_surface_flush(image);
+	cairo_surface_flush(buffer->surface);
 	cairo_destroy(cr);
 
-	g_object_unref(svg);
-	return;
+	return buffer;
 
 error:
-	wlr_buffer_drop(&(*buffer)->base);
-	*buffer = NULL;
+	wlr_buffer_drop(&buffer->base);
 	cairo_destroy(cr);
 	g_object_unref(svg);
+	return NULL;
 }

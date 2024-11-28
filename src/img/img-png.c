@@ -3,6 +3,7 @@
  * Copyright (C) Johan Malm 2023
  */
 #define _POSIX_C_SOURCE 200809L
+#include <assert.h>
 #include <cairo.h>
 #include <png.h>
 #include <stdbool.h>
@@ -10,9 +11,8 @@
 #include <stdlib.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
-#include "img/img-png.h"
 #include "common/string-helpers.h"
-#include "labwc.h"
+#include "img/img-png.h"
 
 /*
  * cairo_image_surface_create_from_png() does not gracefully handle non-png
@@ -42,27 +42,22 @@ ispng(const char *filename)
 
 #undef PNG_BYTES_TO_CHECK
 
-void
-img_png_load(const char *filename, struct lab_data_buffer **buffer, int size,
-		float scale)
+struct lab_data_buffer *
+img_png_load(const char *filename)
 {
-	if (*buffer) {
-		wlr_buffer_drop(&(*buffer)->base);
-		*buffer = NULL;
-	}
 	if (string_null_or_empty(filename)) {
-		return;
+		return NULL;
 	}
 	if (!ispng(filename)) {
-		return;
+		return NULL;
 	}
 
 	cairo_surface_t *image = cairo_image_surface_create_from_png(filename);
 	if (cairo_surface_status(image)) {
-		wlr_log(WLR_ERROR, "error reading png button '%s'", filename);
+		wlr_log(WLR_ERROR, "error reading png file '%s'", filename);
 		cairo_surface_destroy(image);
-		return;
+		return NULL;
 	}
 
-	*buffer = buffer_convert_cairo_surface_for_icon(image, size, scale);
+	return buffer_adopt_cairo_surface(image);
 }

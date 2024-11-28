@@ -4,7 +4,6 @@
 
 struct lab_data_buffer;
 
-void img_xpm_load(const char *filename, struct lab_data_buffer **buffer,
-	int size, float scale);
+struct lab_data_buffer *img_xpm_load(const char *filename);
 
 #endif /* LABWC_IMG_XPM_H */

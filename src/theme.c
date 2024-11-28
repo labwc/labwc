@@ -29,14 +29,8 @@
 #include "common/parse-double.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
-#include "img/img-png.h"
+#include "img/img.h"
 #include "labwc.h"
-
-#if HAVE_RSVG
-#include "img/img-svg.h"
-#endif
-
-#include "img/img-xbm.h"
 #include "theme.h"
 #include "buffer.h"
 #include "ssd.h"
@@ -80,134 +74,63 @@ zdrop(struct lab_data_buffer **buffer)
 	}
 }
 
-struct icon_drawing_context {
-	struct lab_data_buffer *buffer;
-	cairo_t *cairo;
-};
-
-static struct icon_drawing_context
-copy_icon_buffer(struct theme *theme, struct lab_data_buffer *icon_buffer)
-{
-	assert(icon_buffer);
-
-	cairo_surface_t *surface = icon_buffer->surface;
-	int icon_width = cairo_image_surface_get_width(surface);
-	int icon_height = cairo_image_surface_get_height(surface);
-
-	int width = theme->window_button_width;
-	int height = theme->window_button_height;
-
-	/*
-	 * Proportionately increase size of hover_buffer if the non-hover
-	 * 'donor' buffer is larger than the allocated space. It will get
-	 * scaled down again by wlroots when rendered and as required by the
-	 * current output scale.
-	 *
-	 * This ensures that icons > width or > height keep their aspect ratio
-	 * and are rendered the same as without the hover overlay.
-	 */
-	double scale = (width && height) ?
-		MAX((double)icon_width / width, (double)icon_height / height) : 1.0;
-	if (scale < 1.0) {
-		scale = 1.0;
-	}
-	int buffer_width = (double)width * scale;
-	int buffer_height = (double)height * scale;
-	struct lab_data_buffer *buffer = buffer_create_cairo(
-		buffer_width, buffer_height, 1.0);
-	cairo_t *cairo = cairo_create(buffer->surface);
-
-	cairo_set_source_surface(cairo, surface,
-		(buffer_width - icon_width) / 2, (buffer_height - icon_height) / 2);
-	cairo_paint(cairo);
-
-	/*
-	 * Scale cairo context so that we can draw hover overlay or rounded
-	 * corner on this buffer in the scene coordinates.
-	 */
-	cairo_scale(cairo, scale, scale);
-
-	return (struct icon_drawing_context){
-		.buffer = buffer,
-		.cairo = cairo,
-	};
-}
-
+/* Draw rounded-rectangular hover overlay on the button buffer */
 static void
-create_hover_fallback(struct theme *theme,
-		struct lab_data_buffer **hover_buffer,
-		struct lab_data_buffer *icon_buffer)
+draw_hover_overlay_on_button(struct theme *theme, cairo_t *cairo, int w, int h)
 {
-	assert(icon_buffer);
-	assert(!*hover_buffer);
-
-	int width = theme->window_button_width;
-	int height = theme->window_button_height;
-
-	struct icon_drawing_context ctx = copy_icon_buffer(theme, icon_buffer);
-	*hover_buffer = ctx.buffer;
-	cairo_t *cairo = ctx.cairo;
-
 	/* Overlay (pre-multiplied alpha) */
 	float overlay_color[4] = { 0.15f, 0.15f, 0.15f, 0.3f};
 	set_cairo_color(cairo, overlay_color);
-	int radius = theme->window_button_hover_bg_corner_radius;
+	int r = theme->window_button_hover_bg_corner_radius;
 
 	cairo_new_sub_path(cairo);
-	cairo_arc(cairo, radius, radius, radius, 180 * deg, 270 * deg);
-	cairo_line_to(cairo, width - radius, 0);
-	cairo_arc(cairo, width - radius, radius, radius, -90 * deg, 0 * deg);
-	cairo_line_to(cairo, width, height - radius);
-	cairo_arc(cairo, width - radius, height - radius, radius, 0 * deg, 90 * deg);
-	cairo_line_to(cairo, radius, height);
-	cairo_arc(cairo, radius, height - radius, radius, 90 * deg, 180 * deg);
+	cairo_arc(cairo, r, r, r, 180 * deg, 270 * deg);
+	cairo_line_to(cairo, w - r, 0);
+	cairo_arc(cairo, w - r, r, r, -90 * deg, 0 * deg);
+	cairo_line_to(cairo, w, h - r);
+	cairo_arc(cairo, w - r, h - r, r, 0 * deg, 90 * deg);
+	cairo_line_to(cairo, r, h);
+	cairo_arc(cairo, r, h - r, r, 90 * deg, 180 * deg);
 	cairo_close_path(cairo);
 	cairo_fill(cairo);
-
-	cairo_surface_flush(cairo_get_target(cairo));
-	cairo_destroy(cairo);
 }
 
+/* Round the buffer for the leftmost button in the titlebar */
 static void
-create_rounded_buffer(struct theme *theme, enum corner corner,
-		struct lab_data_buffer **rounded_buffer,
-		struct lab_data_buffer *icon_buffer)
+round_left_corner_button(struct theme *theme, cairo_t *cairo, int w, int h)
 {
-	struct icon_drawing_context ctx = copy_icon_buffer(theme, icon_buffer);
-	*rounded_buffer = ctx.buffer;
-	cairo_t *cairo = ctx.cairo;
-
-	int width = theme->window_button_width;
-	int height = theme->window_button_height;
-
 	/*
-	 * Round the corner button by cropping the region within the window
-	 * border. See the picture in #2189 for reference.
+	 * Position of the topleft corner of the titlebar relative to the
+	 * leftmost button
 	 */
-	int margin_x = theme->window_titlebar_padding_width;
-	int margin_y = (theme->titlebar_height - theme->window_button_height) / 2;
-	float white[4] = {1, 1, 1, 1};
-	struct rounded_corner_ctx rounded_ctx = {
-		.box = &(struct wlr_box){
-			.width = margin_x + width,
-			.height = margin_y + height,
-		},
-		.radius = rc.corner_radius,
-		.line_width = theme->border_width,
-		.fill_color = white,
-		.border_color = white,
-		.corner = corner,
-	};
-	struct lab_data_buffer *mask_buffer = rounded_rect(&rounded_ctx);
-	cairo_set_operator(cairo, CAIRO_OPERATOR_DEST_IN);
-	cairo_set_source_surface(cairo, mask_buffer->surface,
-		(corner == LAB_CORNER_TOP_LEFT) ? -margin_x : 0,
-		-margin_y);
-	cairo_paint(cairo);
+	double x = -theme->window_titlebar_padding_width;
+	double y = -(theme->titlebar_height - theme->window_button_height) / 2;
 
-	cairo_surface_flush(cairo_get_target(cairo));
-	cairo_destroy(cairo);
-	wlr_buffer_drop(&mask_buffer->base);
+	double r = rc.corner_radius - (double)theme->border_width / 2.0;
+
+	cairo_new_sub_path(cairo);
+	cairo_arc(cairo, x + r, y + r, r, deg * 180, deg * 270);
+	cairo_line_to(cairo, w, y);
+	cairo_line_to(cairo, w, h);
+	cairo_line_to(cairo, x, h);
+	cairo_close_path(cairo);
+
+	cairo_set_source_rgba(cairo, 1, 1, 1, 1);
+	cairo_set_operator(cairo, CAIRO_OPERATOR_DEST_IN);
+	cairo_fill(cairo);
+}
+
+/* Round the buffer for the rightmost button in the titlebar */
+static void
+round_right_corner_button(struct theme *theme, cairo_t *cairo, int w, int h)
+{
+	/*
+	 * Horizontally flip the cairo context so we can reuse
+	 * round_left_corner_button() for rounding the rightmost button.
+	 */
+	cairo_scale(cairo, -1, 1);
+	cairo_translate(cairo, -w, 0);
+	round_left_corner_button(theme, cairo, w, h);
 }
 
 /*
@@ -243,45 +166,42 @@ get_button_filename(char *buf, size_t len, const char *name, const char *postfix
 static void
 load_button(struct theme *theme, struct button *b, int active)
 {
-	struct lab_data_buffer *(*buttons)[LAB_BS_ALL + 1] =
-		theme->window[active].buttons;
-	struct lab_data_buffer **buffer = &buttons[b->type][b->state_set];
+	struct lab_img *(*button_imgs)[LAB_BS_ALL + 1] =
+		theme->window[active].button_imgs;
+	struct lab_img **img = &button_imgs[b->type][b->state_set];
 	float *rgba = theme->window[active].button_colors[b->type];
 	char filename[4096];
 
-	zdrop(buffer);
-
-	int size = theme->window_button_height;
-	float scale = 1; /* TODO: account for output scale */
+	assert(!*img);
 
 	/* PNG */
 	get_button_filename(filename, sizeof(filename), b->name,
 		active ? "-active.png" : "-inactive.png");
-	img_png_load(filename, buffer, size, scale);
+	*img = lab_img_load(LAB_IMG_PNG, filename, rgba);
 
 #if HAVE_RSVG
 	/* SVG */
-	if (!*buffer) {
+	if (!*img) {
 		get_button_filename(filename, sizeof(filename), b->name,
 			active ? "-active.svg" : "-inactive.svg");
-		img_svg_load(filename, buffer, size, scale);
+		*img = lab_img_load(LAB_IMG_SVG, filename, rgba);
 	}
 #endif
 
 	/* XBM */
-	if (!*buffer) {
+	if (!*img) {
 		get_button_filename(filename, sizeof(filename), b->name, ".xbm");
-		img_xbm_load(filename, buffer, rgba);
+		*img = lab_img_load(LAB_IMG_XBM, filename, rgba);
 	}
 
 	/*
 	 * XBM (alternative name)
 	 * For example max_hover_toggled instead of max_toggled_hover
 	 */
-	if (!*buffer && b->alt_name) {
+	if (!*img && b->alt_name) {
 		get_button_filename(filename, sizeof(filename),
 			b->alt_name, ".xbm");
-		img_xbm_load(filename, buffer, rgba);
+		*img = lab_img_load(LAB_IMG_XBM, filename, rgba);
 	}
 
 	/*
@@ -290,32 +210,36 @@ load_button(struct theme *theme, struct button *b, int active)
 	 * Applicable to basic buttons such as max, max_toggled and iconify.
 	 * There are no bitmap fallbacks for *_hover icons.
 	 */
-	if (!*buffer && b->fallback_button) {
-		img_xbm_from_bitmap(b->fallback_button, buffer, rgba);
+	if (!*img && b->fallback_button) {
+		*img = lab_img_load_from_bitmap(b->fallback_button, rgba);
 	}
 
 	/*
 	 * If hover-icons do not exist, add fallbacks by copying the non-hover
 	 * variant and then adding an overlay.
 	 */
-	if (!*buffer && (b->state_set & LAB_BS_HOVERD)) {
-		uint8_t non_hover_state_set = b->state_set & ~LAB_BS_HOVERD;
-		create_hover_fallback(theme, buffer,
-			buttons[b->type][non_hover_state_set]);
+	if (!*img && (b->state_set & LAB_BS_HOVERD)) {
+		struct lab_img *non_hover_img =
+			button_imgs[b->type][b->state_set & ~LAB_BS_HOVERD];
+		*img = lab_img_copy(non_hover_img);
+		lab_img_add_modifier(*img,
+			draw_hover_overlay_on_button, theme);
 	}
 
 	/*
 	 * If the loaded button is at the corner of the titlebar, also create
 	 * rounded variants.
 	 */
-	uint8_t rounded_state_set = b->state_set | LAB_BS_ROUNDED;
+	struct lab_img **rounded_img =
+		&button_imgs[b->type][b->state_set | LAB_BS_ROUNDED];
 
 	struct title_button *leftmost_button;
 	wl_list_for_each(leftmost_button,
 			&rc.title_buttons_left, link) {
 		if (leftmost_button->type == b->type) {
-			create_rounded_buffer(theme, LAB_CORNER_TOP_LEFT,
-				&buttons[b->type][rounded_state_set], *buffer);
+			*rounded_img = lab_img_copy(*img);
+			lab_img_add_modifier(*rounded_img,
+				round_left_corner_button, theme);
 		}
 		break;
 	}
@@ -323,8 +247,9 @@ load_button(struct theme *theme, struct button *b, int active)
 	wl_list_for_each_reverse(rightmost_button,
 			&rc.title_buttons_right, link) {
 		if (rightmost_button->type == b->type) {
-			create_rounded_buffer(theme, LAB_CORNER_TOP_RIGHT,
-				&buttons[b->type][rounded_state_set], *buffer);
+			*rounded_img = lab_img_copy(*img);
+			lab_img_add_modifier(*rounded_img,
+				round_right_corner_button, theme);
 		}
 		break;
 	}
@@ -1588,6 +1513,12 @@ theme_init(struct theme *theme, struct server *server, const char *theme_name)
 	create_shadows(theme);
 }
 
+static void destroy_img(struct lab_img **img)
+{
+	lab_img_destroy(*img);
+	*img = NULL;
+}
+
 void
 theme_finish(struct theme *theme)
 {
@@ -1595,10 +1526,10 @@ theme_finish(struct theme *theme)
 			type <= LAB_SSD_BUTTON_LAST; type++) {
 		for (uint8_t state_set = 0; state_set <= LAB_BS_ALL;
 				state_set++) {
-			zdrop(&theme->window[THEME_INACTIVE]
-				.buttons[type][state_set]);
-			zdrop(&theme->window[THEME_ACTIVE]
-				.buttons[type][state_set]);
+			destroy_img(&theme->window[THEME_INACTIVE]
+				.button_imgs[type][state_set]);
+			destroy_img(&theme->window[THEME_ACTIVE]
+				.button_imgs[type][state_set]);
 		}
 	}
 

@@ -34,15 +34,60 @@ The format is based on [Keep a Changelog]
 
 ## [unreleased]
 
+This is a shorter release cycle compared with the usual 10-week one because it
+contains a significant number of stability and cleanliness fixes which warrant
+packaging.
+
+We do not normally describe behind-the-scenes work in this log, but will mention
+two here as an exception:
+
+1. A clean run with gcc/clang address-sanitizer has been achieved which is a
+   great position to protect from memory leaks. Thanks to @tokyo4j for fantastic
+   work with this [#2331]
+2. A buffer-sharing mechanism has been merged to improve both processor and
+   memory usage. Credits to @tokyo4j and @Consolatis for this one. [#2363]
+
 Notes to package maintainers:
 
 - The wlroots dependency has been increased to `0.18.1` to avoid a crash when
   using ext-foreign-toplevel-list protocol.
+- It is also advisable to use `0.18.2` as soon as possible to fix a crash
+  triggered when the xwayland server closes during a drag-and-drop with an
+  XWayland client.
 
 ### Added
 
+- Add window rule to send release-events of modifiers which are part of
+  keybinds. This supports clients (like blender) that want to see modifier
+  release events even when they are part of a keybinds. [#2377]
+
+```xml
+<windowRules>
+  <windowRule identifier="blender" wantAbsorbedModifierReleaseEvents="yes"/>
+</windowRules>
+```
+
+- Support menu borders [#2376]
+
+```
+menu.border.width: 1
+menu.border.color: #aaaaaa
+```
+
+- Add conversion specifier `%n` to the window-switcher `<field>` config option
+  to show desktop entry name in the window-switcher. Written-by: @jp7677 [#2360]
+
+```xml
+<windowSwitcher>
+  <fields>
+    <field content="custom" format="%n" width="25%"/>
+    <field content="title" width="75%"/>
+  </fields>
+</windowSwitcher>
+```
+
 - Add hold gestures. @jp7677 [#2326]
-- Support ext-foreign-toplevel-list protocol
+- Support ext-foreign-toplevel-list protocol [#2072]
 - Support additional window rule conditions including `shaded`, `maximized`,
   `iconified`, `focused`, `omnipresent`, `desktop`, `tiled` and `tiled_region`.
   This also works for `If` and `ForEach` queries. @orfeasxyz @ahesford [#2245]
@@ -71,6 +116,16 @@ Notes to package maintainers:
 
 ### Fixed
 
+- Fix incorrect focus behaviour when switching between workspaces with
+  omnipresent windows open [#2335]
+- Fall back to loading icon based on app-id when `Icon` defined in .desktop file
+  can not be loaded [#2361]
+- Fix regression introduced with dcd9b47 to allow negative values for theme
+  option `menu.overlap` [#2356]
+- Ensure output is usable before setting adaptive sync [#2337] [#2338]
+- Fix `menu.title.text.justify: right` not working [#2336]
+- Fix menu use-after-free [#2340] [#2350]
+- Keep focus on omnipresent windows when switching workspaces [#2329]
 - Skip painting output when session is not active. @enometh @Madhu [#2249]
 - Ignore variable assignments > 1 KiB in environment files to guard against
   recursive constructs like FOO=$FOO:bar which would grow on each reconfigure.
@@ -86,6 +141,26 @@ Notes to package maintainers:
   cursor plane not allowing async page flips which causes tearing page flips
   to be rejected if the cursor is moved. @RicArch97 [#2295]
 - Use `MenuHeader` font height in separators with labels. @domo141 [#2276]
+
+### Changed
+
+- Set default window placement policy to `cascade` instead of `center` [#2345]
+
+```xml
+<placement>
+  <policy>cascade</policy>
+</placement>
+```
+
+- Set default values of theme option `window.*.border.color` to `#aaaaaa`. This
+  makes the colors of window borders and titlebar different, but will let
+  `menu.border.color` inherit `window.active.border.color` just like Openbox
+  does, without making the menu borders around a selected menu item invisible.
+  [#2376]
+
+- Invert the y-offset of submenus applied by `menu.overlap.y` to (i) follow
+  Openbox's behavior and (ii) behave as already described in our own
+  documentation. [#2380]
 
 ## [0.8.1]
 
@@ -1760,6 +1835,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2052]: https://github.com/labwc/labwc/pull/2052
 [#2055]: https://github.com/labwc/labwc/pull/2055
 [#2057]: https://github.com/labwc/labwc/pull/2057
+[#2072]: https://github.com/labwc/labwc/pull/2072
 [#2075]: https://github.com/labwc/labwc/pull/2075
 [#2088]: https://github.com/labwc/labwc/pull/2088
 [#2091]: https://github.com/labwc/labwc/pull/2091
@@ -1807,4 +1883,19 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2321]: https://github.com/labwc/labwc/pull/2321
 [#2325]: https://github.com/labwc/labwc/pull/2325
 [#2326]: https://github.com/labwc/labwc/pull/2326
-
+[#2329]: https://github.com/labwc/labwc/pull/2329
+[#2331]: https://github.com/labwc/labwc/pull/2331
+[#2335]: https://github.com/labwc/labwc/pull/2335
+[#2336]: https://github.com/labwc/labwc/pull/2336
+[#2337]: https://github.com/labwc/labwc/pull/2337
+[#2338]: https://github.com/labwc/labwc/pull/2338
+[#2340]: https://github.com/labwc/labwc/pull/2340
+[#2345]: https://github.com/labwc/labwc/pull/2345
+[#2350]: https://github.com/labwc/labwc/pull/2350
+[#2356]: https://github.com/labwc/labwc/pull/2356
+[#2360]: https://github.com/labwc/labwc/pull/2360
+[#2361]: https://github.com/labwc/labwc/pull/2361
+[#2363]: https://github.com/labwc/labwc/pull/2363
+[#2376]: https://github.com/labwc/labwc/pull/2376
+[#2377]: https://github.com/labwc/labwc/pull/2377
+[#2380]: https://github.com/labwc/labwc/pull/2380

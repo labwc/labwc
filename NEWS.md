@@ -41,11 +41,11 @@ packaging.
 We do not normally describe behind-the-scenes work in this log, but will mention
 two here as an exception:
 
-1. A clean run with gcc/clang address-sanitizer has been achieved which is a
-   great position to protect from memory leaks. Thanks to @tokyo4j for fantastic
-   work with this [#2331]
+1. A clean run with gcc/clang memory leak check has been achieved. Thanks to
+   @tokyo4j for fantastic work with this [#2331]
 2. A buffer-sharing mechanism has been merged to improve both processor and
-   memory usage. Credits to @tokyo4j and @Consolatis for this one. [#2363]
+   memory usage in the long term. Credits to @tokyo4j and @Consolatis for this
+   one. [#2363]
 
 Notes to package maintainers:
 
@@ -120,18 +120,18 @@ menu.border.color: #aaaaaa
   omnipresent windows open [#2335]
 - Fall back to loading icon based on app-id when `Icon` defined in .desktop file
   can not be loaded [#2361]
-- Fix regression introduced with dcd9b47 to allow negative values for theme
+- Fix regression introduced with `0.8.1` to allow negative values for theme
   option `menu.overlap` [#2356]
 - Ensure output is usable before setting adaptive sync [#2337] [#2338]
 - Fix `menu.title.text.justify: right` not working [#2336]
-- Fix menu use-after-free [#2340] [#2350]
 - Keep focus on omnipresent windows when switching workspaces [#2329]
 - Skip painting output when session is not active. @enometh @Madhu [#2249]
 - Ignore variable assignments > 1 KiB in environment files to guard against
   recursive constructs like FOO=$FOO:bar which would grow on each reconfigure.
   [#2325]
-- Improve support for non-compliant icons by matching partial strings to handle
-  for example app-id="gimp-2.10" with file "gimp.desktop". @spl237 [#2266]
+- Improve support for non-compliant .desktop files by matching partial strings
+  to handle for example app-id="gimp-2.10" with file "gimp.desktop". @spl237
+  [#2266]
 - Correctly center menu opened with `<position {x,y}="center">` @tokyo4j [#2319]
 - Allow pointer speed of -1.0. @spl237 [#2321]
 - Fix off-by-one bug in `buf_add_char()` [#2313]

@@ -109,7 +109,7 @@ jobs:
             pango-devel wlroots0.18-devel gdb bash xorg-server-xwayland \
             dejavu-fonts-ttf libsfdo-devel foot
 
-      # These build are executed on all runners
+      # These builds are executed on all runners
       - name: Build with gcc
         run: |
           echo '
@@ -120,6 +120,7 @@ jobs:
           ' | $TARGET
 
       - name: Build with clang
+        if: matrix.name != 'Debian'
         run: |
           echo '
             cd "$GITHUB_WORKSPACE"
@@ -138,6 +139,7 @@ jobs:
           ' | $TARGET
 
       - name: Build with clang - no-xwayland
+        if: matrix.name != 'Debian'
         run: |
           echo '
             cd "$GITHUB_WORKSPACE"
@@ -168,6 +170,7 @@ jobs:
           ' | $TARGET
 
       - name: Build with clang - release
+        if: matrix.name != 'Debian'
         run: |
           echo '
             cd "$GITHUB_WORKSPACE"

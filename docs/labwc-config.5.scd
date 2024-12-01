@@ -999,8 +999,9 @@ sandboxAppId="" type="" matchOnce="">*
 	Define a window rule for any window which matches the criteria defined
 	by the attributes *identifier*, *title*, or *type*. If more than one
 	is defined, AND logic is used, so all have to match.
-	Matching against patterns with '\*' (wildcard) and '?' (joker) is
-	supported. Pattern matching is case-insensitive.
+	Matching is case-insensitive and is performed using shell wildcard
+	patterns (see glob(7)) so '\*' (not between brackets) matches any string
+	and '?' matches any single character.
 
 	*identifier* relates to app_id for native Wayland windows and WM_CLASS
 	for XWayland clients.

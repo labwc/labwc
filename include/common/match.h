@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 /**
- * match_glob() - Pattern match using '*' wildcards and '?' jokers.
+ * match_glob() - Pattern match using shell wildcard rules (see glob(7))
  * @pattern: Pattern to match against.
  * @string: String to search.
  * Note: Comparison case-insensitive.

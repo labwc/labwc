@@ -631,8 +631,9 @@
     #   - Criteria can also contain `matchOnce="true"` meaning that the rule
     #     must only apply to the first instance of the window with that
     #     particular 'identifier' or 'title'.
-    #   - Matching against patterns with '*' (wildcard) and '?' (joker) is
-    #     supported. Pattern matching is case-insensitive.
+    #   - Matching is case-insensitive and is performed using shell wildcard
+    #     patterns (see glob(7)) so '\*' (not between brackets) matches any string
+    #     and '?' matches any single character.
 
     <windowRules>
       <windowRule identifier="*"><action name="Maximize"/></windowRule>

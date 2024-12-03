@@ -20,6 +20,9 @@
 #include <wlr/types/wlr_single_pixel_buffer_v1.h>
 #include <wlr/types/wlr_viewporter.h>
 #include <wlr/types/wlr_tablet_v2.h>
+#include <wlr/types/wlr_xdg_foreign_registry.h>
+#include <wlr/types/wlr_xdg_foreign_v1.h>
+#include <wlr/types/wlr_xdg_foreign_v2.h>
 
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
@@ -259,7 +262,11 @@ allow_for_sandbox(const struct wlr_security_context_v1_state *security_state,
 		"wp_fractional_scale_manager_v1",
 		"wp_tearing_control_manager_v1",
 		"zwp_tablet_manager_v2",
+		"zxdg_importer_v1",
+		"zxdg_importer_v2",
 		/* plus */
+		"zxdg_exporter_v1",
+		"zxdg_exporter_v2",
 		"zwp_idle_inhibit_manager_v1",
 		"zwp_pointer_constraints_v1",
 		"zxdg_output_manager_v1",
@@ -683,6 +690,12 @@ server_init(struct server *server)
 	server->tablet_manager = wlr_tablet_v2_create(server->wl_display);
 
 	layers_init(server);
+
+	/* These get cleaned up automatically on display destroy */
+	struct wlr_xdg_foreign_registry *registry =
+		wlr_xdg_foreign_registry_create(server->wl_display);
+	wlr_xdg_foreign_v1_create(server->wl_display, registry);
+	wlr_xdg_foreign_v2_create(server->wl_display, registry);
 
 #if HAVE_LIBSFDO
 	desktop_entry_init(server);

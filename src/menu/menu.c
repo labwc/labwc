@@ -168,17 +168,31 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 
 	int arrow_width = item->arrow ?
 		font_width(&rc.font_menuitem, item->arrow) : 0;
-	int text_width = bg_width - 2 * theme->menu_items_padding_x - arrow_width;
+	int label_max_width = bg_width - 2 * theme->menu_items_padding_x - arrow_width;
 
 	/* Create label */
 	struct scaled_font_buffer *label_buffer = scaled_font_buffer_create(tree);
 	assert(label_buffer);
-	scaled_font_buffer_update(label_buffer, item->text, text_width,
-		&rc.font_menuitem, text_color, bg_color, item->arrow);
+	scaled_font_buffer_update(label_buffer, item->text, label_max_width,
+		&rc.font_menuitem, text_color, bg_color);
 	/* Vertically center and left-align label */
 	int x = theme->menu_items_padding_x;
 	int y = (theme->menu_item_height - label_buffer->height) / 2;
 	wlr_scene_node_set_position(&label_buffer->scene_buffer->node, x, y);
+
+	if (!item->arrow) {
+		return tree;
+	}
+
+	/* Create arrow for submenu items */
+	struct scaled_font_buffer *arrow_buffer = scaled_font_buffer_create(tree);
+	assert(arrow_buffer);
+	scaled_font_buffer_update(arrow_buffer, item->arrow, -1,
+		&rc.font_menuitem, text_color, bg_color);
+	/* Vertically center and right-align arrow */
+	x += label_max_width;
+	y = (theme->menu_item_height - label_buffer->height) / 2;
+	wlr_scene_node_set_position(&arrow_buffer->scene_buffer->node, x, y);
 
 	return tree;
 }
@@ -298,7 +312,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	assert(title_font_buffer);
 	scaled_font_buffer_update(title_font_buffer, menuitem->text,
 		bg_width - 2 * theme->menu_items_padding_x,
-		&rc.font_menuheader, text_color, bg_color, /* arrow */ NULL);
+		&rc.font_menuheader, text_color, bg_color);
 
 	int title_x = 0;
 	switch (theme->menu_title_text_justify) {

@@ -205,8 +205,7 @@ resize_indicator_update(struct view *view)
 	wlr_scene_node_set_position(&indicator->tree->node, x, y);
 
 	scaled_font_buffer_update(indicator->text, text, width, &rc.font_osd,
-		rc.theme->osd_label_text_color, rc.theme->osd_bg_color,
-		NULL /* const char *arrow */);
+		rc.theme->osd_label_text_color, rc.theme->osd_bg_color);
 }
 
 void

@@ -82,34 +82,19 @@ font_width(struct font *font, const char *string)
 void
 font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	const char *text, struct font *font, const float *color,
-	const float *bg_color, const char *arrow, double scale)
+	const float *bg_color, double scale)
 {
-	/* Allow a minimum of one pixel each for text and arrow */
-	if (max_width < 2) {
-		max_width = 2;
-	}
-
 	if (string_null_or_empty(text)) {
 		return;
 	}
 
 	PangoRectangle text_extents = font_extents(font, text);
-	PangoRectangle arrow_extents = font_extents(font, arrow);
 
-	if (arrow) {
-		if (arrow_extents.width >= max_width - 1) {
-			/* It would be weird to get here, but just in case */
-			arrow_extents.width = max_width - 1;
-			text_extents.width = 1;
-		} else {
-			text_extents.width = max_width - arrow_extents.width;
-		}
-	} else if (text_extents.width > max_width) {
+	if (max_width > 0 && text_extents.width > max_width) {
 		text_extents.width = max_width;
 	}
 
-	*buffer = buffer_create_cairo(text_extents.width + arrow_extents.width,
-			text_extents.height, scale);
+	*buffer = buffer_create_cairo(text_extents.width, text_extents.height, scale);
 	if (!*buffer) {
 		wlr_log(WLR_ERROR, "Failed to create font buffer");
 		return;
@@ -160,13 +145,6 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	pango_font_description_free(desc);
 	pango_cairo_update_layout(cairo, layout);
 	pango_cairo_show_layout(cairo, layout);
-
-	if (arrow) {
-		cairo_move_to(cairo, text_extents.width, 0);
-		pango_layout_set_width(layout, arrow_extents.width * PANGO_SCALE);
-		pango_layout_set_text(layout, arrow, -1);
-		pango_cairo_show_layout(cairo, layout);
-	}
 
 	g_object_unref(layout);
 

@@ -116,21 +116,20 @@ scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 	memcpy(self->color, color, sizeof(self->color));
 	memcpy(self->bg_color, bg_color, sizeof(self->bg_color));
 
-	/* Invalidate cache and force a new render */
-	scaled_scene_buffer_invalidate_cache(self->scaled_buffer);
-
-	/* Ensure the height / width is up-to-date */
-	self->width = self->scaled_buffer->width;
-	self->height = self->scaled_buffer->height;
+	/* Calculate the size of font buffer and request re-rendering */
+	font_get_buffer_size(self->max_width, self->text, &self->font,
+		&self->width, &self->height);
+	scaled_scene_buffer_request_update(self->scaled_buffer,
+		self->width, self->height);
 }
 
 void
 scaled_font_buffer_set_max_width(struct scaled_font_buffer *self, int max_width)
 {
 	self->max_width = max_width;
-	scaled_scene_buffer_invalidate_cache(self->scaled_buffer);
 
-	/* Ensure the height / width is up-to-date */
-	self->width = self->scaled_buffer->width;
-	self->height = self->scaled_buffer->height;
+	font_get_buffer_size(self->max_width, self->text, &self->font,
+		&self->width, &self->height);
+	scaled_scene_buffer_request_update(self->scaled_buffer,
+		self->width, self->height);
 }

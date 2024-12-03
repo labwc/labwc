@@ -110,7 +110,8 @@ struct scaled_rect_buffer *scaled_rect_buffer_create(
 	memcpy(self->fill_color, fill_color, sizeof(self->fill_color));
 	memcpy(self->border_color, border_color, sizeof(self->border_color));
 
-	scaled_scene_buffer_invalidate_cache(scaled_buffer);
+	scaled_scene_buffer_request_update(scaled_buffer,
+		self->width, self->height);
 
 	return self;
 }

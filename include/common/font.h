@@ -44,11 +44,10 @@ int font_width(struct font *font, const char *string);
  * @font: font description
  * @color: foreground color in rgba format
  * @bg_color: background color in rgba format
- * @arrow: arrow (utf8) character to show or NULL for none
  */
 void font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	const char *text, struct font *font, const float *color,
-	const float *bg_color, const char *arrow, double scale);
+	const float *bg_color, double scale);
 
 /**
  * font_finish - free some font related resources

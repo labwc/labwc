@@ -228,7 +228,11 @@ scaled_scene_buffer_create(struct wlr_scene_tree *parent,
 	}
 
 	self->impl = impl;
-	self->active_scale = 1;
+	/*
+	 * Set active scale to zero so that we always render a new buffer when
+	 * entering the first output
+	 */
+	self->active_scale = 0;
 	self->drop_buffer = drop_buffer;
 	wl_list_init(&self->cache);
 
@@ -254,7 +258,8 @@ scaled_scene_buffer_create(struct wlr_scene_tree *parent,
 }
 
 void
-scaled_scene_buffer_invalidate_cache(struct scaled_scene_buffer *self)
+scaled_scene_buffer_request_update(struct scaled_scene_buffer *self,
+		int width, int height)
 {
 	assert(self);
 	struct scaled_scene_buffer_cache_entry *cache_entry, *cache_entry_tmp;
@@ -262,5 +267,22 @@ scaled_scene_buffer_invalidate_cache(struct scaled_scene_buffer *self)
 		_cache_entry_destroy(cache_entry, self->drop_buffer);
 	}
 	assert(wl_list_empty(&self->cache));
-	_update_buffer(self, self->active_scale);
+
+	/*
+	 * Tell wlroots about the buffer size so we can receive output_enter
+	 * events even when the actual backing buffer is not set yet.
+	 * The buffer size set here is updated when the backing buffer is
+	 * created in _update_buffer().
+	 */
+	wlr_scene_buffer_set_dest_size(self->scene_buffer, width, height);
+	self->width = width;
+	self->height = height;
+
+	/*
+	 * Skip re-rendering if the buffer is not shown yet
+	 * TODO: don't re-render also when the buffer is temporarily invisible
+	 */
+	if (self->active_scale > 0) {
+		_update_buffer(self, self->active_scale);
+	}
 }

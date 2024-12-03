@@ -80,6 +80,18 @@ font_width(struct font *font, const char *string)
 }
 
 void
+font_get_buffer_size(int max_width, const char *text, struct font *font,
+	int *width, int *height)
+{
+	PangoRectangle text_extents = font_extents(font, text);
+	if (max_width > 0 && text_extents.width > max_width) {
+		text_extents.width = max_width;
+	}
+	*width = text_extents.width;
+	*height = text_extents.height;
+}
+
+void
 font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	const char *text, struct font *font, const float *color,
 	const float *bg_color, double scale)
@@ -88,13 +100,10 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 		return;
 	}
 
-	PangoRectangle text_extents = font_extents(font, text);
+	int width, height;
+	font_get_buffer_size(max_width, text, font, &width, &height);
 
-	if (max_width > 0 && text_extents.width > max_width) {
-		text_extents.width = max_width;
-	}
-
-	*buffer = buffer_create_cairo(text_extents.width, text_extents.height, scale);
+	*buffer = buffer_create_cairo(width, height, scale);
 	if (!*buffer) {
 		wlr_log(WLR_ERROR, "Failed to create font buffer");
 		return;
@@ -127,7 +136,7 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 
 	PangoLayout *layout = pango_cairo_create_layout(cairo);
 	pango_context_set_round_glyph_positions(pango_layout_get_context(layout), false);
-	pango_layout_set_width(layout, text_extents.width * PANGO_SCALE);
+	pango_layout_set_width(layout, width * PANGO_SCALE);
 	pango_layout_set_text(layout, text, -1);
 	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 

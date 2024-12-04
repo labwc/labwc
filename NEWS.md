@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2024-12-13 | [0.8.2]       | 0.18.2          | 26298         |
 | 2024-10-25 | [0.8.1]       | 0.18.1          | 25473         |
 | 2024-08-16 | [0.8.0]       | 0.18.0          | 23320         |
 | 2024-06-19 | [0.7.4]       | 0.17.4          | 22746         |
@@ -32,7 +33,7 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## [unreleased]
+## [0.8.2]
 
 This is a shorter release cycle compared with the usual 10-week one because it
 contains a significant number of stability and cleanliness fixes which warrant
@@ -57,6 +58,7 @@ Notes to package maintainers:
 
 ### Added
 
+- Add support for xdg-foreign-v1 and xdg-foreign-v2 protocols [#2400]
 - Add window rule to send release-events of modifiers which are part of
   keybinds. This supports clients (like blender) that want to see modifier
   release events even when they are part of a keybinds. [#2377]
@@ -116,6 +118,11 @@ menu.border.color: #aaaaaa
 
 ### Fixed
 
+- Fix crash caused by `rc.xml` `<touch>` options being specified as
+  elements rather than attributes. [#2412]
+- Fix `ShowMenu` action position with x/y arguments in multi-monitor setup.
+  [#2409]
+- Block privileged protocols for sandboxed clients [#2398]
 - Fix incorrect focus behaviour when switching between workspaces with
   omnipresent windows open [#2335]
 - Fall back to loading icon based on app-id when `Icon` defined in .desktop file
@@ -144,6 +151,10 @@ menu.border.color: #aaaaaa
 
 ### Changed
 
+- Set xwaylandPersistence default value to `yes` when compiled with wlroots
+  <0.18.2. This prevents a bug which has the potential to crash the compositor
+  when performing a drag-and-drop action at the same time as the XWayland server
+  is shutting down. [#2371] [#2414] [#2420]
 - Set default window placement policy to `cascade` instead of `center` [#2345]
 
 ```xml
@@ -157,7 +168,6 @@ menu.border.color: #aaaaaa
   `menu.border.color` inherit `window.active.border.color` just like Openbox
   does, without making the menu borders around a selected menu item invisible.
   [#2376]
-
 - Invert the y-offset of submenus applied by `menu.overlap.y` to (i) follow
   Openbox's behavior and (ii) behave as already described in our own
   documentation. [#2380]
@@ -1804,7 +1814,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.8.1...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.8.2...HEAD
+[0.8.2]: https://github.com/labwc/labwc/compare/0.8.1...0.8.2
 [0.8.1]: https://github.com/labwc/labwc/compare/0.8.0...0.8.1
 [0.8.0]: https://github.com/labwc/labwc/compare/0.7.3...0.8.0
 [0.7.4]: https://github.com/labwc/labwc/compare/0.7.3...0.7.4
@@ -1896,6 +1907,13 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2360]: https://github.com/labwc/labwc/pull/2360
 [#2361]: https://github.com/labwc/labwc/pull/2361
 [#2363]: https://github.com/labwc/labwc/pull/2363
+[#2371]: https://github.com/labwc/labwc/pull/2371
 [#2376]: https://github.com/labwc/labwc/pull/2376
 [#2377]: https://github.com/labwc/labwc/pull/2377
 [#2380]: https://github.com/labwc/labwc/pull/2380
+[#2398]: https://github.com/labwc/labwc/pull/2398
+[#2400]: https://github.com/labwc/labwc/pull/2400
+[#2409]: https://github.com/labwc/labwc/pull/2409
+[#2412]: https://github.com/labwc/labwc/pull/2412
+[#2414]: https://github.com/labwc/labwc/pull/2414
+[#2420]: https://github.com/labwc/labwc/pull/2420

@@ -678,6 +678,7 @@ show_menu(struct server *server, struct view *view, struct cursor_context *ctx,
 			assert(ctx->node);
 			int ly;
 			wlr_scene_node_coords(ctx->node, &x, &ly);
+			x -= server->theme->menu_border_width;
 		}
 	}
 

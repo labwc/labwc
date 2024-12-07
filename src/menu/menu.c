@@ -867,10 +867,7 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 	/* Get output local coordinates + output usable area */
 	double ox = lx;
 	double oy = ly;
-	struct wlr_output *wlr_output = wlr_output_layout_output_at(
-		menu->server->output_layout, lx, ly);
-	struct output *output = wlr_output ? output_from_wlr_output(
-		menu->server, wlr_output) : NULL;
+	struct output *output = output_nearest_to(menu->server, lx, ly);
 	if (!output) {
 		wlr_log(WLR_ERROR,
 			"Failed to position menu %s (%s) and its submenus: "
@@ -878,7 +875,7 @@ menu_configure(struct menu *menu, int lx, int ly, enum menu_align align)
 		return;
 	}
 	wlr_output_layout_output_coords(menu->server->output_layout,
-		wlr_output, &ox, &oy);
+		output->wlr_output, &ox, &oy);
 
 	if (align == LAB_MENU_OPEN_AUTO) {
 		int full_width = menu_get_full_width(menu);

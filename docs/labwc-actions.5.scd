@@ -124,8 +124,20 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="Reconfigure" />*
 	Re-load configuration and theme files.
 
-*<action name="ShowMenu" menu="value" atCursor="yes" />*
+*<action name="ShowMenu"/>*
+
 	Show a menu.
+
+```
+<action name="ShowMenu">
+  <menu>MENU</menu>
+  <atCursor>yes|no</atCursor>
+  <position>
+    <x>X</x>
+    <y>Y</y>
+  </position>
+</action>
+```
 
 	*menu* The name of the menu to show. The menus "root-menu",
 	"client-menu", "client-send-to-menu" and "client-list-combined-menu"

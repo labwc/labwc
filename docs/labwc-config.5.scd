@@ -224,6 +224,13 @@ this is for compatibility with Openbox.
 
 ## PLACEMENT
 
+```
+<placement>
+  <policy>cascade</policy>
+  <cascadeOffset x="40" y="30" />
+</placement>
+```
+
 *<placement><policy>* [center|automatic|cursor|cascade]
 	Specify a placement policy for new windows. The "center" policy will
 	always place windows at the center of the active output. The "automatic"
@@ -242,6 +249,16 @@ this is for compatibility with Openbox.
 	*border.width* from theme) plus 5 for both *x* and *y*.
 
 ## WINDOW SWITCHER
+
+```
+<windowSwitcher show="yes" preview="yes" outlines="yes" allWorkspaces="no">
+  <fields>
+    <field content="type" width="25%"/>
+    <field content="trimmed_identifier" width="25%"/>
+    <field content="title" width="50%"/>
+  </fields>
+</windowSwitcher>
+```
 
 *<windowSwitcher show="" preview="" outlines="" allWorkspaces="">*
 	*show* [yes|no] Draw the OnScreenDisplay when switching between

@@ -755,7 +755,8 @@ xml_tree_walk(xmlNode *node, struct server *server)
 static bool
 parse_buf(struct server *server, struct buf *buf)
 {
-	xmlDoc *d = xmlParseMemory(buf->data, buf->len);
+	int options = 0;
+	xmlDoc *d = xmlReadMemory(buf->data, buf->len, NULL, NULL, options);
 	if (!d) {
 		wlr_log(WLR_ERROR, "xmlParseMemory()");
 		return false;

@@ -16,6 +16,8 @@
 #include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
+#include <wlr/types/wlr_ext_image_capture_source_v1.h>
+#include <wlr/types/wlr_ext_image_copy_capture_v1.h>
 #include <wlr/types/wlr_security_context_v1.h>
 #include <wlr/types/wlr_single_pixel_buffer_v1.h>
 #include <wlr/types/wlr_viewporter.h>
@@ -643,6 +645,8 @@ server_init(struct server *server)
 
 	wlr_export_dmabuf_manager_v1_create(server->wl_display);
 	wlr_screencopy_manager_v1_create(server->wl_display);
+	wlr_ext_image_copy_capture_manager_v1_create(server->wl_display, 1);
+	wlr_ext_output_image_capture_source_manager_v1_create(server->wl_display, 1);
 	wlr_data_control_manager_v1_create(server->wl_display);
 	server->security_context_manager_v1 =
 		wlr_security_context_manager_v1_create(server->wl_display);

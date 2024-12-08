@@ -1088,6 +1088,17 @@ entry(xmlNode *node, char *nodename, char *content)
 		}
 	} else if (!strcasecmp(nodename, "xwaylandPersistence.core")) {
 		set_bool(content, &rc.xwayland_persistence);
+
+		/*
+		 * TODO: Temporary warning message. Revert when wlroots-0.18.2
+		 * can be linked with.
+		 */
+		if (!rc.xwayland_persistence) {
+			wlr_log(WLR_ERROR, "setting xwaylandPersistence to 'no' "
+				"is not encouraged unless wlroots-0.18.2 is used "
+				"since it has a potential risk of crashing the "
+				"entire session. See #2371 for details.");
+		}
 	} else if (!strcasecmp(nodename, "x.cascadeOffset.placement")) {
 		rc.placement_cascade_offset_x = atoi(content);
 	} else if (!strcasecmp(nodename, "y.cascadeOffset.placement")) {
@@ -1452,7 +1463,7 @@ rcxml_init(void)
 	rc.adaptive_sync = LAB_ADAPTIVE_SYNC_DISABLED;
 	rc.allow_tearing = false;
 	rc.reuse_output_mode = false;
-	rc.xwayland_persistence = false;
+	rc.xwayland_persistence = true;
 
 	init_font_defaults(&rc.font_activewindow);
 	init_font_defaults(&rc.font_inactivewindow);

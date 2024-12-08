@@ -234,19 +234,20 @@ this is for compatibility with Openbox.
 *<placement><policy>* [center|automatic|cursor|cascade]
 	Specify a placement policy for new windows. The "center" policy will
 	always place windows at the center of the active output. The "automatic"
-	policy will try to place new windows in such a way that they will
-	have minimal overlap with existing windows. The "cursor" policy will
-	center new windows under the cursor. The "cascade" policy will try to
-	place new windows at the center of the active output, but possibly
-	shifts its position to bottom-right not to cover existing windows.
-	Default is "cascade".
+	policy will try to place new windows in such a way that they will have
+	minimal overlap with existing windows. The "cursor" policy will center
+	new windows under the cursor. The "cascade" policy will try to place new
+	windows at the center of the active output, but possibly shifts its
+	position to bottom-right not to cover existing windows. Default is
+	"cascade".
 
 *<placement><cascadeOffset><x>*++
 *<placement><cascadeOffset><y>*
 	Specify the offset by which a new window can be shifted from an existing
-	window when <placement><policy> is "cascade". These values must be positive.
-	Default is the height of titlebar (the sum of *titlebar.height* and
-	*border.width* from theme) plus 5 for both *x* and *y*.
+	window when <placement><policy> is "cascade". These values must be
+	positive. Default is the height of titlebar (the sum of
+	*titlebar.height* and *border.width* from theme) plus 5 for both *x* and
+	*y*.
 
 ## WINDOW SWITCHER
 

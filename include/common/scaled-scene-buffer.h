@@ -96,8 +96,17 @@ struct scaled_scene_buffer *scaled_scene_buffer_create(
 	const struct scaled_scene_buffer_impl *implementation,
 	struct wl_list *cached_buffers, bool drop_buffer);
 
-/* Clear the cache of existing buffers, useful in case the content changes */
-void scaled_scene_buffer_invalidate_cache(struct scaled_scene_buffer *self);
+/**
+ * scaled_scene_buffer_request_update - mark the buffer that needs to be
+ * updated
+ * @width: the width of the buffer to be rendered, in scene coordinates
+ * @height: the height of the buffer to be rendered, in scene coordinates
+ *
+ * This function should be called when the states bound to the buffer are
+ * updated and ready for rendering.
+ */
+void scaled_scene_buffer_request_update(struct scaled_scene_buffer *self,
+	int width, int height);
 
 /* Private */
 struct scaled_scene_buffer_cache_entry {

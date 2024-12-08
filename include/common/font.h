@@ -37,6 +37,12 @@ int font_height(struct font *font);
 int font_width(struct font *font, const char *string);
 
 /**
+ * font_get_buffer_size - dry-run font_buffer_create() to get buffer size
+ */
+void font_get_buffer_size(int max_width, const char *text, struct font *font,
+	int *width, int *height);
+
+/**
  * font_buffer_create - Create ARGB8888 lab_data_buffer using pango
  * @buffer: buffer pointer
  * @max_width: max allowable width; will be ellipsized if longer
@@ -44,11 +50,10 @@ int font_width(struct font *font, const char *string);
  * @font: font description
  * @color: foreground color in rgba format
  * @bg_color: background color in rgba format
- * @arrow: arrow (utf8) character to show or NULL for none
  */
 void font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	const char *text, struct font *font, const float *color,
-	const float *bg_color, const char *arrow, double scale);
+	const float *bg_color, double scale);
 
 /**
  * font_finish - free some font related resources

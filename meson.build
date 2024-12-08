@@ -59,7 +59,7 @@ wlroots_has_xwayland = wlroots.get_variable('have_xwayland') == 'true'
 have_libsfdo = not get_option('icon').disabled()
 
 wayland_server = dependency('wayland-server', version: '>=1.19.0')
-wayland_protos = dependency('wayland-protocols', version: '>=1.35')
+wayland_protos = dependency('wayland-protocols', version: '>=1.37')
 xkbcommon = dependency('xkbcommon')
 xcb = dependency('xcb', required: get_option('xwayland'))
 xcb_icccm = dependency('xcb-icccm', required: get_option('xwayland'))

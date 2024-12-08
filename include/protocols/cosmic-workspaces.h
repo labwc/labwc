@@ -33,6 +33,10 @@ struct lab_cosmic_workspace_group {
 	struct wl_list link;
 	struct wl_list outputs;
 	struct wl_list resources;
+
+	struct {
+		struct wl_listener transaction_destroy;
+	} on;
 };
 
 struct lab_cosmic_workspace {

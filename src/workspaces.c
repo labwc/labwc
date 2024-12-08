@@ -16,11 +16,13 @@
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "protocols/cosmic-workspaces.h"
+#include "protocols/ext-workspaces.h"
 #include "view.h"
 #include "workspaces.h"
 #include "xwayland.h"
 
 #define COSMIC_WORKSPACES_VERSION 1
+#define EXT_WORKSPACES_VERSION 1
 
 /* Internal helpers */
 static size_t
@@ -178,11 +180,20 @@ _osd_update(struct server *server)
 
 /* cosmic workspace handlers */
 static void
-handle_workspace_activate(struct wl_listener *listener, void *data)
+handle_cosmic_workspace_activate(struct wl_listener *listener, void *data)
 {
-	struct workspace *workspace = wl_container_of(listener, workspace, on.activate);
+	struct workspace *workspace = wl_container_of(listener, workspace, on_cosmic.activate);
 	workspaces_switch_to(workspace, /* update_focus */ true);
-	wlr_log(WLR_INFO, "activating workspace %s", workspace->name);
+	wlr_log(WLR_INFO, "cosmic activating workspace %s", workspace->name);
+}
+
+/* ext workspace handlers */
+static void
+handle_ext_workspace_activate(struct wl_listener *listener, void *data)
+{
+	struct workspace *workspace = wl_container_of(listener, workspace, on_ext.activate);
+	workspaces_switch_to(workspace, /* update_focus */ true);
+	wlr_log(WLR_INFO, "ext activating workspace %s", workspace->name);
 }
 
 /* Internal API */
@@ -201,13 +212,26 @@ add_workspace(struct server *server, const char *name)
 	}
 
 	bool active = server->workspaces.current == workspace;
+
+	/* cosmic */
 	workspace->cosmic_workspace = lab_cosmic_workspace_create(server->workspaces.cosmic_group);
 	lab_cosmic_workspace_set_name(workspace->cosmic_workspace, name);
 	lab_cosmic_workspace_set_active(workspace->cosmic_workspace, active);
 	lab_cosmic_workspace_set_hidden(workspace->cosmic_workspace, !active);
 
-	workspace->on.activate.notify = handle_workspace_activate;
-	wl_signal_add(&workspace->cosmic_workspace->events.activate, &workspace->on.activate);
+	workspace->on_cosmic.activate.notify = handle_cosmic_workspace_activate;
+	wl_signal_add(&workspace->cosmic_workspace->events.activate,
+		&workspace->on_cosmic.activate);
+
+	/* ext */
+	workspace->ext_workspace = lab_ext_workspace_create(server->workspaces.ext_group);
+	lab_ext_workspace_set_name(workspace->ext_workspace, name);
+	lab_ext_workspace_set_active(workspace->ext_workspace, active);
+	lab_ext_workspace_set_hidden(workspace->ext_workspace, !active);
+
+	workspace->on_ext.activate.notify = handle_ext_workspace_activate;
+	wl_signal_add(&workspace->ext_workspace->events.activate,
+		&workspace->on_ext.activate);
 }
 
 static struct workspace *
@@ -286,8 +310,15 @@ workspaces_init(struct server *server)
 		server->wl_display, /* capabilities */ CW_CAP_WS_ACTIVATE,
 		COSMIC_WORKSPACES_VERSION);
 
+	server->workspaces.ext_manager = lab_ext_workspace_manager_create(
+		server->wl_display, /* capabilities */ WS_CAP_WS_ACTIVATE,
+		EXT_WORKSPACES_VERSION);
+
 	server->workspaces.cosmic_group = lab_cosmic_workspace_group_create(
 		server->workspaces.cosmic_manager);
+
+	server->workspaces.ext_group = lab_ext_workspace_group_create(
+		server->workspaces.ext_manager);
 
 	wl_list_init(&server->workspaces.all);
 
@@ -319,6 +350,11 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 		server->workspaces.current->cosmic_workspace, false);
 	lab_cosmic_workspace_set_hidden(
 		server->workspaces.current->cosmic_workspace, true);
+
+	lab_ext_workspace_set_active(
+		server->workspaces.current->ext_workspace, false);
+	lab_ext_workspace_set_hidden(
+		server->workspaces.current->ext_workspace, true);
 
 	/* Move Omnipresent views to new workspace */
 	struct view *view;
@@ -375,6 +411,9 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 
 	lab_cosmic_workspace_set_active(target->cosmic_workspace, true);
 	lab_cosmic_workspace_set_hidden(target->cosmic_workspace, false);
+
+	lab_ext_workspace_set_active(target->ext_workspace, true);
+	lab_ext_workspace_set_hidden(target->ext_workspace, false);
 }
 
 void
@@ -441,6 +480,7 @@ destroy_workspace(struct workspace *workspace)
 	wl_list_remove(&workspace->link);
 
 	lab_cosmic_workspace_destroy(workspace->cosmic_workspace);
+	lab_ext_workspace_destroy(workspace->ext_workspace);
 	free(workspace);
 }
 
@@ -477,6 +517,8 @@ workspaces_reconfigure(struct server *server)
 			actual_workspace->name = xstrdup(configured_workspace->name);
 			lab_cosmic_workspace_set_name(
 				actual_workspace->cosmic_workspace, actual_workspace->name);
+			lab_ext_workspace_set_name(
+				actual_workspace->ext_workspace, actual_workspace->name);
 		}
 		actual_workspace_link = actual_workspace_link->next;
 	}

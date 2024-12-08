@@ -688,40 +688,41 @@ show_menu(struct server *server, struct view *view, struct cursor_context *ctx,
 	if (pos_x && pos_y) {
 		struct output *output = output_nearest_to(server,
 				server->seat.cursor->x, server->seat.cursor->y);
+		struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
 		if (!strcasecmp(pos_x, "center")) {
-			x = (output->usable_area.width - menu->size.width) / 2;
+			x = (usable.width - menu->size.width) / 2;
 		} else if (strchr(pos_x, '%')) {
-			x = (output->usable_area.width * atoi(pos_x)) / 100;
+			x = (usable.width * atoi(pos_x)) / 100;
 		} else {
 			if (pos_x[0] == '-') {
 				int neg_x = strtol(pos_x, NULL, 10);
-				x = output->usable_area.width + neg_x;
+				x = usable.width + neg_x;
 			} else {
 				x = atoi(pos_x);
 			}
 		}
 
 		if (!strcasecmp(pos_y, "center")) {
-			y = (output->usable_area.height / 2) - (menu->size.height / 2);
+			y = (usable.height / 2) - (menu->size.height / 2);
 		} else if (strchr(pos_y, '%')) {
-			y = (output->usable_area.height * atoi(pos_y)) / 100;
+			y = (usable.height * atoi(pos_y)) / 100;
 		} else {
 			if (pos_y[0] == '-') {
 				int neg_y = strtol(pos_y, NULL, 10);
-				y = output->usable_area.height + neg_y;
+				y = usable.height + neg_y;
 			} else {
 				y = atoi(pos_y);
 			}
 		}
 		/* keep menu from being off screen */
 		x = MAX(x, 0);
-		x = MIN(x, output->usable_area.width - 1);
+		x = MIN(x, usable.width - 1);
 		y = MAX(y, 0);
-		y = MIN(y, output->usable_area.height - 1);
+		y = MIN(y, usable.height - 1);
 		/* adjust for which monitor to appear on */
-		x += output->usable_area.x;
-		y += output->usable_area.y;
+		x += usable.x;
+		y += usable.y;
 	}
 
 	/* Replaced by next show_menu() or cleaned on view_destroy() */

@@ -172,6 +172,7 @@ this is for compatibility with Openbox.
   <adaptiveSync>no</adaptiveSync>
   <allowTearing>no</allowTearing>
   <reuseOutputMode>no</reuseOutputMode>
+  <xwaylandPersistence>no</xwaylandPersistence>
 </core>
 ```
 

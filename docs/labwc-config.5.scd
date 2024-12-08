@@ -190,10 +190,12 @@ this is for compatibility with Openbox.
 	*fullscreen* enables adaptive sync whenever a window is in fullscreen
 	mode.
 
-*<core><allowTearing>* [yes|no|fullscreen|fullscreenForced]
+*<core><allowTearing>* [yes|no|fullscreen|fullscreenForced|always]
 	Allow tearing to reduce input lag. Default is no.
 
 	*yes* allows tearing if requested by the active window.
+
+	*no* tearing is disabled completely.
 
 	*fullscreen* allows tearing if requested by the active window, but
 	only when the window is in fullscreen mode.
@@ -201,7 +203,11 @@ this is for compatibility with Openbox.
 	*fullscreenForced* enables tearing whenever the active window is in
 	fullscreen mode, whether or not the application has requested tearing.
 
-	Use the *ToggleTearing* action for forcefully enable tearing.
+	*always* enable tearing for all windows by default, ignoring application
+	requests. The ToggleTearing action may be used to disable tearing.
+
+	Use the *ToggleTearing* action to forcefully enable / disable tearing
+	for the active window. Has no effect when allowTearing is set to no.
 
 	Note: Enabling this option with atomic mode setting is experimental. If
 	you experience undesirable side effects when tearing is allowed,

@@ -538,6 +538,7 @@ struct output *output_nearest_to_cursor(struct server *server);
  */
 struct output *output_get_adjacent(struct output *output,
 	enum view_edge edge, bool wrap);
+void output_center_cursor(struct output *output);
 
 bool output_is_usable(struct output *output);
 void output_update_usable_area(struct output *output);

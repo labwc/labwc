@@ -121,7 +121,8 @@ enum action_type {
 	ACTION_TYPE_TOGGLE_TABLET_MOUSE_EMULATION,
 	ACTION_TYPE_TOGGLE_MAGNIFY,
 	ACTION_TYPE_ZOOM_IN,
-	ACTION_TYPE_ZOOM_OUT
+	ACTION_TYPE_ZOOM_OUT,
+	ACTION_TYPE_CENTER_CURSOR
 };
 
 const char *action_names[] = {
@@ -186,6 +187,7 @@ const char *action_names[] = {
 	"ToggleMagnify",
 	"ZoomIn",
 	"ZoomOut",
+	"CenterCursor",
 	NULL
 };
 
@@ -473,6 +475,11 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 				action_arg_add_int(action, argument, policy);
 			}
 			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_CENTER_CURSOR:
+		if (!strcmp(argument, "fallback_to_output")) {
+			action_arg_add_bool(action, argument, parse_bool(content, false));
 		}
 		break;
 	}
@@ -1282,6 +1289,16 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_ZOOM_OUT:
 			magnify_set_scale(server, MAGNIFY_DECREASE);
+			break;
+		case ACTION_TYPE_CENTER_CURSOR:
+			/* Config parsing makes sure that direction is a valid direction */
+			bool fallback_to_output = action_get_bool(action, "fallback_to_output", false);
+			output = output_nearest_to_cursor(server);
+			if (view) {
+				view_center_cursor(view);
+			} else if (fallback_to_output && output) {
+				output_center_cursor(output);
+			}
 			break;
 		case ACTION_TYPE_INVALID:
 			wlr_log(WLR_ERROR, "Not executing unknown action");

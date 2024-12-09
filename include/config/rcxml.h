@@ -36,6 +36,7 @@ enum tearing_mode {
 	LAB_TEARING_ENABLED,
 	LAB_TEARING_FULLSCREEN,
 	LAB_TEARING_FULLSCREEN_FORCED,
+	LAB_TEARING_ALWAYS,
 };
 
 enum tiling_events_mode {

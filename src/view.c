@@ -539,7 +539,7 @@ view_update_outputs(struct view *view)
 	wl_list_for_each(output, &view->server->outputs, link) {
 		if (output_is_usable(output) && wlr_output_layout_intersects(
 				layout, output->wlr_output, &view->current)) {
-			new_outputs |= (1ull << output->scene_output->index);
+			new_outputs |= (1ull << output->scene_output->WLR_PRIVATE.index);
 		}
 	}
 
@@ -556,7 +556,7 @@ view_on_output(struct view *view, struct output *output)
 	assert(view);
 	assert(output);
 	return output->scene_output
-			&& (view->outputs & (1ull << output->scene_output->index));
+			&& (view->outputs & (1ull << output->scene_output->WLR_PRIVATE.index));
 }
 
 void
@@ -1320,7 +1320,7 @@ static void
 set_maximized(struct view *view, enum view_axis maximized)
 {
 	if (view->impl->maximize) {
-		view->impl->maximize(view, (maximized == VIEW_AXIS_BOTH));
+		view->impl->maximize(view, maximized);
 	}
 
 	view->maximized = maximized;

@@ -8,9 +8,10 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
-"PO-Revision-Date: 2024-07-03 08:01+0000\n"
-"Last-Translator: tark1998 <tark1998@gmail.com>\n"
-"Language-Team: Korean <https://translate.lxqt-project.org/projects/labwc/labwc/ko/>\n"
+"PO-Revision-Date: 2024-12-10 02:04+0000\n"
+"Last-Translator: 이정희 <daemul72@gmail.com>\n"
+"Language-Team: Korean <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -20,7 +21,7 @@ msgstr ""
 
 #: src/menu/menu.c:1017
 msgid "Go there..."
-msgstr ""
+msgstr "빨리 가기..."
 
 #: src/menu/menu.c:1037
 msgid "Reconfigure"

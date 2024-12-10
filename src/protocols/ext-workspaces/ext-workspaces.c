@@ -5,17 +5,15 @@
 #include "common/array.h"
 #include "common/mem.h"
 #include "common/list.h"
-#include "cosmic-workspace-unstable-v1-protocol.h"
-#include "protocols/cosmic-workspaces.h"
-#include "protocols/cosmic-workspaces-internal.h"
+#include "ext-workspace-v1-protocol.h"
+#include "protocols/ext-workspaces.h"
+#include "protocols/ext-workspaces-internal.h"
 #include "protocols/transaction-addon.h"
 
 /*
  *	.--------------------.
  *	|        TODO        |
  *	|--------------------|
- *	| - prevent empty    |
- *	|   done events      |
  *	| - go through xml   |
  *	|   and verify impl  |
  *	| - assert pub API   |
@@ -23,32 +21,29 @@
  *
  */
 
+/*
+ * TODO:
+ *
+ * - Add something like addon_mark_dirty(wl_resource, bool) that sets a
+ *   bool in the addon context whenever we did something that requires
+ *   a done event by the manager. Then in the manager done idle event
+ *   check against that bool and only send the done event if the context
+ *   is dirty. After that set the context to non-dirty. This should
+ *   ensure that clients do not receive empty done events for things
+ *   like output_enter / output_leave without having the output bound
+ *   on the client side.
+ */
+
 /* Only used within an assert() */
 #ifndef NDEBUG
-	#define COSMIC_WORKSPACE_V1_VERSION 1
+	#define EXT_WORKSPACE_V1_VERSION 1
 #endif
 
-/* These are just *waaay* too long */
-#define ZCOSMIC_CAP_WS_CREATE \
-	ZCOSMIC_WORKSPACE_GROUP_HANDLE_V1_ZCOSMIC_WORKSPACE_GROUP_CAPABILITIES_V1_CREATE_WORKSPACE
-#define ZCOSMIC_CAP_WS_ACTIVATE \
-	ZCOSMIC_WORKSPACE_HANDLE_V1_ZCOSMIC_WORKSPACE_CAPABILITIES_V1_ACTIVATE
-#define ZCOSMIC_CAP_WS_DEACTIVATE \
-	ZCOSMIC_WORKSPACE_HANDLE_V1_ZCOSMIC_WORKSPACE_CAPABILITIES_V1_DEACTIVATE
-#define ZCOSMIC_CAP_WS_REMOVE \
-	ZCOSMIC_WORKSPACE_HANDLE_V1_ZCOSMIC_WORKSPACE_CAPABILITIES_V1_REMOVE
-
-enum workspace_state {
-	CW_WS_STATE_ACTIVE  = 1 << 0,
-	CW_WS_STATE_URGENT  = 1 << 1,
-	CW_WS_STATE_HIDDEN  = 1 << 2,
-
-	/*
-	 * Set when creating a new workspace so we
-	 * don't end up having to send the state twice.
-	 */
-	CW_WS_STATE_INVALID = 1 << 31,
-};
+/*
+ * Set when creating a new workspace state so we
+ * don't end up having to send the state twice.
+ */
+#define WS_STATE_INVALID 0xffffffff
 
 struct ws_create_workspace_event {
 	char *name;
@@ -56,26 +51,6 @@ struct ws_create_workspace_event {
 		struct wl_listener transaction_destroy;
 	} on;
 };
-
-static void
-add_caps(struct wl_array *caps_arr, uint32_t caps)
-{
-	if (caps == CW_CAP_NONE) {
-		return;
-	}
-	if (caps & CW_CAP_GRP_WS_CREATE) {
-		array_add(caps_arr, ZCOSMIC_CAP_WS_CREATE);
-	}
-	if (caps & CW_CAP_WS_ACTIVATE) {
-		array_add(caps_arr, ZCOSMIC_CAP_WS_ACTIVATE);
-	}
-	if (caps & CW_CAP_WS_DEACTIVATE) {
-		array_add(caps_arr, ZCOSMIC_CAP_WS_DEACTIVATE);
-	}
-	if (caps & CW_CAP_WS_REMOVE) {
-		array_add(caps_arr, ZCOSMIC_CAP_WS_REMOVE);
-	}
-}
 
 /* Workspace */
 static void
@@ -92,8 +67,8 @@ workspace_handle_activate(struct wl_client *client, struct wl_resource *resource
 		/* workspace was destroyed from the compositor side */
 		return;
 	}
-	struct lab_cosmic_workspace *workspace = addon->data;
-	lab_transaction_add(addon->ctx, CW_PENDING_WS_ACTIVATE, workspace, /* argument */ NULL);
+	struct lab_ext_workspace *workspace = addon->data;
+	lab_transaction_add(addon->ctx, WS_PENDING_WS_ACTIVATE, workspace, /*argument*/ NULL);
 }
 
 static void
@@ -104,8 +79,27 @@ workspace_handle_deactivate(struct wl_client *client, struct wl_resource *resour
 		/* Workspace was destroyed from the compositor side */
 		return;
 	}
-	struct lab_cosmic_workspace *workspace = addon->data;
-	lab_transaction_add(addon->ctx, CW_PENDING_WS_DEACTIVATE, workspace, /*argument*/ NULL);
+	struct lab_ext_workspace *workspace = addon->data;
+	lab_transaction_add(addon->ctx, WS_PENDING_WS_DEACTIVATE, workspace, /*argument*/ NULL);
+}
+
+static void
+workspace_handle_assign(struct wl_client *client, struct wl_resource *resource,
+		struct wl_resource *new_group_resource)
+{
+	struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
+	if (!addon) {
+		/* workspace was destroyed from the compositor side */
+		return;
+	}
+	struct lab_ext_workspace *workspace = addon->data;
+	struct lab_wl_resource_addon *grp_addon = wl_resource_get_user_data(new_group_resource);
+	if (!grp_addon) {
+		/* group was destroyed from the compositor side */
+		return;
+	}
+	struct lab_ext_workspace_group *new_grp = grp_addon->data;
+	lab_transaction_add(addon->ctx, WS_PENDING_WS_ASSIGN, workspace, new_grp);
 }
 
 static void
@@ -116,14 +110,15 @@ workspace_handle_remove(struct wl_client *client, struct wl_resource *resource)
 		/* workspace was destroyed from the compositor side */
 		return;
 	}
-	struct lab_cosmic_workspace *workspace = addon->data;
-	lab_transaction_add(addon->ctx, CW_PENDING_WS_REMOVE, workspace, /*argument*/ NULL);
+	struct lab_ext_workspace *workspace = addon->data;
+	lab_transaction_add(addon->ctx, WS_PENDING_WS_REMOVE, workspace, /*argument*/ NULL);
 }
 
-static const struct zcosmic_workspace_handle_v1_interface workspace_impl = {
+static const struct ext_workspace_handle_v1_interface workspace_impl = {
 	.destroy = workspace_handle_destroy,
 	.activate = workspace_handle_activate,
 	.deactivate = workspace_handle_deactivate,
+	.assign = workspace_handle_assign,
 	.remove = workspace_handle_remove,
 };
 
@@ -140,12 +135,12 @@ workspace_instance_resource_destroy(struct wl_resource *resource)
 }
 
 static struct wl_resource *
-workspace_resource_create(struct lab_cosmic_workspace *workspace,
+workspace_resource_create(struct lab_ext_workspace *workspace,
 		struct wl_resource *group_resource, struct lab_transaction_session_context *ctx)
 {
 	struct wl_client *client = wl_resource_get_client(group_resource);
 	struct wl_resource *resource = wl_resource_create(client,
-			&zcosmic_workspace_handle_v1_interface,
+			&ext_workspace_handle_v1_interface,
 			wl_resource_get_version(group_resource), 0);
 	if (!resource) {
 		wl_client_post_no_memory(client);
@@ -164,48 +159,33 @@ workspace_resource_create(struct lab_cosmic_workspace *workspace,
 
 /* Workspace internal helpers */
 static void
-workspace_send_state(struct lab_cosmic_workspace *workspace, struct wl_resource *target)
+workspace_send_state(struct lab_ext_workspace *workspace, struct wl_resource *target)
 {
-	struct wl_array state;
-	wl_array_init(&state);
-
-	if (workspace->state & CW_WS_STATE_ACTIVE) {
-		array_add(&state, ZCOSMIC_WORKSPACE_HANDLE_V1_STATE_ACTIVE);
-	}
-	if (workspace->state & CW_WS_STATE_URGENT) {
-		array_add(&state, ZCOSMIC_WORKSPACE_HANDLE_V1_STATE_URGENT);
-	}
-	if (workspace->state & CW_WS_STATE_HIDDEN) {
-		array_add(&state, ZCOSMIC_WORKSPACE_HANDLE_V1_STATE_HIDDEN);
-	}
-
 	if (target) {
-		zcosmic_workspace_handle_v1_send_state(target, &state);
+		ext_workspace_handle_v1_send_state(target, workspace->state);
 	} else {
 		struct wl_resource *resource;
 		wl_resource_for_each(resource, &workspace->resources) {
-			zcosmic_workspace_handle_v1_send_state(resource, &state);
+			ext_workspace_handle_v1_send_state(resource, workspace->state);
 		}
 	}
-
-	wl_array_release(&state);
 }
 
 static void
-workspace_send_initial_state(struct lab_cosmic_workspace *workspace, struct wl_resource *resource)
+workspace_send_initial_state(struct lab_ext_workspace *workspace, struct wl_resource *resource)
 {
-	zcosmic_workspace_handle_v1_send_capabilities(resource, &workspace->capabilities);
+	ext_workspace_handle_v1_send_capabilities(resource, workspace->capabilities);
 	if (workspace->coordinates.size > 0) {
-		zcosmic_workspace_handle_v1_send_coordinates(resource, &workspace->coordinates);
+		ext_workspace_handle_v1_send_coordinates(resource, &workspace->coordinates);
 	}
 	if (workspace->name) {
-		zcosmic_workspace_handle_v1_send_name(resource, workspace->name);
+		ext_workspace_handle_v1_send_name(resource, workspace->name);
 	}
 }
 
 static void
-workspace_set_state(struct lab_cosmic_workspace *workspace,
-		enum workspace_state state, bool enabled)
+workspace_set_state(struct lab_ext_workspace *workspace,
+		enum ext_workspace_handle_v1_state state, bool enabled)
 {
 	if (!!(workspace->state_pending & state) == enabled) {
 		return;
@@ -216,7 +196,7 @@ workspace_set_state(struct lab_cosmic_workspace *workspace,
 	} else {
 		workspace->state_pending &= ~state;
 	}
-	cosmic_manager_schedule_done_event(workspace->group->manager);
+	ext_manager_schedule_done_event(workspace->group->manager);
 }
 
 /* Group */
@@ -239,12 +219,12 @@ group_handle_create_workspace(struct wl_client *client,
 		return;
 	}
 
-	struct lab_cosmic_workspace_group *group = addon->data;
+	struct lab_ext_workspace_group *group = addon->data;
 	struct ws_create_workspace_event *ev = znew(*ev);
 	ev->name = xstrdup(name);
 
 	struct lab_transaction *transaction = lab_transaction_add(
-		addon->ctx, CW_PENDING_WS_CREATE, group, ev);
+		addon->ctx, WS_PENDING_WS_CREATE, group, ev);
 
 	ev->on.transaction_destroy.notify =
 		ws_create_workspace_handle_transaction_destroy;
@@ -257,7 +237,7 @@ group_handle_destroy(struct wl_client *client, struct wl_resource *resource)
 	wl_resource_destroy(resource);
 }
 
-static const struct zcosmic_workspace_group_handle_v1_interface group_impl = {
+static const struct ext_workspace_group_handle_v1_interface group_impl = {
 	.create_workspace = group_handle_create_workspace,
 	.destroy = group_handle_destroy,
 };
@@ -274,12 +254,12 @@ group_instance_resource_destroy(struct wl_resource *resource)
 }
 
 static struct wl_resource *
-group_resource_create(struct lab_cosmic_workspace_group *group,
+group_resource_create(struct lab_ext_workspace_group *group,
 		struct wl_resource *manager_resource, struct lab_transaction_session_context *ctx)
 {
 	struct wl_client *client = wl_resource_get_client(manager_resource);
 	struct wl_resource *resource = wl_resource_create(client,
-			&zcosmic_workspace_group_handle_v1_interface,
+			&ext_workspace_group_handle_v1_interface,
 			wl_resource_get_version(manager_resource), 0);
 	if (!resource) {
 		wl_client_post_no_memory(client);
@@ -298,12 +278,12 @@ group_resource_create(struct lab_cosmic_workspace_group *group,
 
 /* Group internal helpers */
 static void
-group_send_state(struct lab_cosmic_workspace_group *group, struct wl_resource *resource)
+group_send_state(struct lab_ext_workspace_group *group, struct wl_resource *resource)
 {
-	zcosmic_workspace_group_handle_v1_send_capabilities(
-		resource, &group->capabilities);
+	ext_workspace_group_handle_v1_send_capabilities(
+		resource, group->capabilities);
 
-	cosmic_group_output_send_initial_state(group, resource);
+	ext_group_output_send_initial_state(group, resource);
 }
 
 /* Manager itself */
@@ -315,27 +295,31 @@ manager_handle_commit(struct wl_client *client, struct wl_resource *resource)
 		return;
 	}
 
-	struct lab_cosmic_workspace *workspace;
-	struct lab_cosmic_workspace_group *group;
+	struct lab_ext_workspace *workspace;
+	struct lab_ext_workspace_group *group;
 	struct lab_transaction *trans, *trans_tmp;
 	lab_transaction_for_each_safe(trans, trans_tmp, addon->ctx) {
 		switch (trans->change) {
-		case CW_PENDING_WS_CREATE:
+		case WS_PENDING_WS_CREATE:
 			group = trans->src;
 			struct ws_create_workspace_event *ev = trans->data;
 			wl_signal_emit_mutable(&group->events.create_workspace, ev->name);
 			break;
-		case CW_PENDING_WS_ACTIVATE:
+		case WS_PENDING_WS_ACTIVATE:
 			workspace = trans->src;
 			wl_signal_emit_mutable(&workspace->events.activate, NULL);
 			break;
-		case CW_PENDING_WS_DEACTIVATE:
+		case WS_PENDING_WS_DEACTIVATE:
 			workspace = trans->src;
 			wl_signal_emit_mutable(&workspace->events.deactivate, NULL);
 			break;
-		case CW_PENDING_WS_REMOVE:
+		case WS_PENDING_WS_REMOVE:
 			workspace = trans->src;
 			wl_signal_emit_mutable(&workspace->events.remove, NULL);
+			break;
+		case WS_PENDING_WS_ASSIGN:
+			workspace = trans->src;
+			wl_signal_emit_mutable(&workspace->events.assign, trans->data);
 			break;
 		default:
 			wlr_log(WLR_ERROR, "Invalid transaction state: %u", trans->change);
@@ -348,11 +332,11 @@ manager_handle_commit(struct wl_client *client, struct wl_resource *resource)
 static void
 manager_handle_stop(struct wl_client *client, struct wl_resource *resource)
 {
-	zcosmic_workspace_manager_v1_send_finished(resource);
+	ext_workspace_manager_v1_send_finished(resource);
 	wl_resource_destroy(resource);
 }
 
-static const struct zcosmic_workspace_manager_v1_interface manager_impl = {
+static const struct ext_workspace_manager_v1_interface manager_impl = {
 	.commit = manager_handle_commit,
 	.stop = manager_handle_stop,
 };
@@ -373,9 +357,9 @@ static void
 manager_handle_bind(struct wl_client *client, void *data,
 		uint32_t version, uint32_t id)
 {
-	struct lab_cosmic_workspace_manager *manager = data;
+	struct lab_ext_workspace_manager *manager = data;
 	struct wl_resource *resource = wl_resource_create(client,
-			&zcosmic_workspace_manager_v1_interface,
+			&ext_workspace_manager_v1_interface,
 			version, id);
 	if (!resource) {
 		wl_client_post_no_memory(client);
@@ -391,38 +375,39 @@ manager_handle_bind(struct wl_client *client, void *data,
 
 	wl_list_insert(&manager->resources, wl_resource_get_link(resource));
 
-	struct lab_cosmic_workspace *workspace;
-	struct lab_cosmic_workspace_group *group;
+	struct lab_ext_workspace *workspace;
+	struct lab_ext_workspace_group *group;
 	wl_list_for_each(group, &manager->groups, link) {
 		/* Create group resource */
 		struct wl_resource *group_resource =
 			group_resource_create(group, resource, addon->ctx);
-		zcosmic_workspace_manager_v1_send_workspace_group(resource, group_resource);
+		ext_workspace_manager_v1_send_workspace_group(resource, group_resource);
 		group_send_state(group, group_resource);
 
 		/* Create workspace resource */
 		wl_list_for_each(workspace, &group->workspaces, link) {
 			struct wl_resource *workspace_resource =
 				workspace_resource_create(workspace, group_resource, addon->ctx);
-			zcosmic_workspace_group_handle_v1_send_workspace(
+			ext_workspace_manager_v1_send_workspace(resource, workspace_resource);
+			ext_workspace_group_handle_v1_send_workspace_enter(
 				group_resource, workspace_resource);
 			workspace_send_initial_state(workspace, workspace_resource);
-			/* Send the current workspace state manually */
+			/* Send the current workspace state to this client only */
 			workspace_send_state(workspace, workspace_resource);
 		}
 	}
-	zcosmic_workspace_manager_v1_send_done(resource);
+	ext_workspace_manager_v1_send_done(resource);
 }
 
 static void
 manager_handle_display_destroy(struct wl_listener *listener, void *data)
 {
-	struct lab_cosmic_workspace_manager *manager =
+	struct lab_ext_workspace_manager *manager =
 		wl_container_of(listener, manager, on.display_destroy);
 
-	struct lab_cosmic_workspace_group *group, *tmp;
+	struct lab_ext_workspace_group *group, *tmp;
 	wl_list_for_each_safe(group, tmp, &manager->groups, link) {
-		lab_cosmic_workspace_group_destroy(group);
+		lab_ext_workspace_group_destroy(group);
 	}
 
 	if (manager->idle_source) {
@@ -438,10 +423,10 @@ manager_handle_display_destroy(struct wl_listener *listener, void *data)
 static void
 manager_idle_send_done(void *data)
 {
-	struct lab_cosmic_workspace_manager *manager = data;
+	struct lab_ext_workspace_manager *manager = data;
 
-	struct lab_cosmic_workspace *workspace;
-	struct lab_cosmic_workspace_group *group;
+	struct lab_ext_workspace *workspace;
+	struct lab_ext_workspace_group *group;
 	wl_list_for_each(group, &manager->groups, link) {
 		wl_list_for_each(workspace, &group->workspaces, link) {
 			if (workspace->state != workspace->state_pending) {
@@ -453,14 +438,14 @@ manager_idle_send_done(void *data)
 
 	struct wl_resource *resource;
 	wl_resource_for_each(resource, &manager->resources) {
-		zcosmic_workspace_manager_v1_send_done(resource);
+		ext_workspace_manager_v1_send_done(resource);
 	}
 	manager->idle_source = NULL;
 }
 
 /* Internal API */
 void
-cosmic_manager_schedule_done_event(struct lab_cosmic_workspace_manager *manager)
+ext_manager_schedule_done_event(struct lab_ext_workspace_manager *manager)
 {
 	if (manager->idle_source) {
 		return;
@@ -473,14 +458,14 @@ cosmic_manager_schedule_done_event(struct lab_cosmic_workspace_manager *manager)
 }
 
 /* Public API */
-struct lab_cosmic_workspace_manager *
-lab_cosmic_workspace_manager_create(struct wl_display *display, uint32_t caps, uint32_t version)
+struct lab_ext_workspace_manager *
+lab_ext_workspace_manager_create(struct wl_display *display, uint32_t caps, uint32_t version)
 {
-	assert(version <= COSMIC_WORKSPACE_V1_VERSION);
+	assert(version <= EXT_WORKSPACE_V1_VERSION);
 
-	struct lab_cosmic_workspace_manager *manager = znew(*manager);
+	struct lab_ext_workspace_manager *manager = znew(*manager);
 	manager->global = wl_global_create(display,
-			&zcosmic_workspace_manager_v1_interface,
+			&ext_workspace_manager_v1_interface,
 			version, manager, manager_handle_bind);
 
 	if (!manager->global) {
@@ -499,16 +484,14 @@ lab_cosmic_workspace_manager_create(struct wl_display *display, uint32_t caps, u
 	return manager;
 }
 
-struct lab_cosmic_workspace_group *
-lab_cosmic_workspace_group_create(struct lab_cosmic_workspace_manager *manager)
+struct lab_ext_workspace_group *
+lab_ext_workspace_group_create(struct lab_ext_workspace_manager *manager)
 {
 	assert(manager);
 
-	struct lab_cosmic_workspace_group *group = znew(*group);
+	struct lab_ext_workspace_group *group = znew(*group);
 	group->manager = manager;
-
-	wl_array_init(&group->capabilities);
-	add_caps(&group->capabilities, manager->caps & CW_CAP_GRP_ALL);
+	group->capabilities = manager->caps & WS_CAP_GRP_ALL;
 
 	wl_list_init(&group->outputs);
 	wl_list_init(&group->resources);
@@ -524,25 +507,25 @@ lab_cosmic_workspace_group_create(struct lab_cosmic_workspace_manager *manager)
 		assert(addon && addon->ctx);
 		struct wl_resource *group_resource =
 			group_resource_create(group, resource, addon->ctx);
-		zcosmic_workspace_manager_v1_send_workspace_group(resource, group_resource);
+		ext_workspace_manager_v1_send_workspace_group(resource, group_resource);
 		group_send_state(group, group_resource);
 	}
-	cosmic_manager_schedule_done_event(manager);
+	ext_manager_schedule_done_event(manager);
 
 	return group;
 }
 
 void
-lab_cosmic_workspace_group_destroy(struct lab_cosmic_workspace_group *group)
+lab_ext_workspace_group_destroy(struct lab_ext_workspace_group *group)
 {
 	if (!group) {
 		return;
 	}
 	wl_signal_emit_mutable(&group->events.destroy, NULL);
 
-	struct lab_cosmic_workspace *ws, *ws_tmp;
+	struct lab_ext_workspace *ws, *ws_tmp;
 	wl_list_for_each_safe(ws, ws_tmp, &group->workspaces, link) {
-		lab_cosmic_workspace_destroy(ws);
+		lab_ext_workspace_destroy(ws);
 	}
 
 	struct wl_resource *resource, *res_tmp;
@@ -552,7 +535,7 @@ lab_cosmic_workspace_group_destroy(struct lab_cosmic_workspace_group *group)
 			lab_resource_addon_destroy(addon);
 			wl_resource_set_user_data(resource, NULL);
 		}
-		zcosmic_workspace_group_handle_v1_send_remove(resource);
+		ext_workspace_group_handle_v1_send_removed(resource);
 		wl_list_remove(wl_resource_get_link(resource));
 		wl_list_init(wl_resource_get_link(resource));
 	}
@@ -565,23 +548,22 @@ lab_cosmic_workspace_group_destroy(struct lab_cosmic_workspace_group *group)
 			continue;
 		}
 		lab_transaction_for_each_safe(trans, trans_tmp, addon->ctx) {
-			if (trans->src == group) {
+			if (trans->src == group || trans->data == group) {
 				lab_transaction_destroy(trans);
 			}
 		}
 	}
 
 	wl_list_remove(&group->link);
-	wl_array_release(&group->capabilities);
 	free(group);
 }
 
-struct lab_cosmic_workspace *
-lab_cosmic_workspace_create(struct lab_cosmic_workspace_group *group)
+struct lab_ext_workspace *
+lab_ext_workspace_create(struct lab_ext_workspace_group *group)
 {
 	assert(group);
 
-	struct lab_cosmic_workspace *workspace = znew(*workspace);
+	struct lab_ext_workspace *workspace = znew(*workspace);
 	workspace->group = group;
 	/*
 	 * Ensures we are sending workspace->state_pending on the done event,
@@ -591,38 +573,51 @@ lab_cosmic_workspace_create(struct lab_cosmic_workspace_group *group)
 	 * Without this we might have to send the state twice, first here and
 	 * then again in the scheduled done event when there were any changes.
 	 */
-	workspace->state = CW_WS_STATE_INVALID;
-
-	wl_array_init(&workspace->capabilities);
-	add_caps(&workspace->capabilities, group->manager->caps & CW_CAP_WS_ALL);
+	workspace->state = WS_STATE_INVALID;
+	workspace->capabilities = (group->manager->caps & WS_CAP_WS_ALL) >> 16;
 
 	wl_list_init(&workspace->resources);
 	wl_array_init(&workspace->coordinates);
 	wl_signal_init(&workspace->events.activate);
 	wl_signal_init(&workspace->events.deactivate);
 	wl_signal_init(&workspace->events.remove);
+	wl_signal_init(&workspace->events.assign);
 	wl_signal_init(&workspace->events.destroy);
 
 	wl_list_append(&group->workspaces, &workspace->link);
 
 	/* Notify clients */
-	struct wl_resource *group_resource;
+	struct wl_resource *group_resource, *workspace_resource, *manager_resource;
+	struct lab_wl_resource_addon *group_addon, *manager_addon;
 	wl_resource_for_each(group_resource, &group->resources) {
-		struct lab_wl_resource_addon *addon = wl_resource_get_user_data(group_resource);
-		assert(addon && addon->ctx);
-		struct wl_resource *workspace_resource =
-			workspace_resource_create(workspace, group_resource, addon->ctx);
-		zcosmic_workspace_group_handle_v1_send_workspace(
+		group_addon = wl_resource_get_user_data(group_resource);
+		// FIXME: verify we can either user assert() or fail gracefully everywhere
+		assert(group_addon && group_addon->ctx);
+
+		workspace_resource = workspace_resource_create(
+			workspace, group_resource, group_addon->ctx);
+
+		wl_resource_for_each(manager_resource, &group->manager->resources) {
+			manager_addon = wl_resource_get_user_data(manager_resource);
+			if (!manager_addon || manager_addon->ctx != group_addon->ctx) {
+				continue;
+			}
+			ext_workspace_manager_v1_send_workspace(
+				manager_resource, workspace_resource);
+			break;
+		}
+
+		ext_workspace_group_handle_v1_send_workspace_enter(
 			group_resource, workspace_resource);
 		workspace_send_initial_state(workspace, workspace_resource);
 	}
-	cosmic_manager_schedule_done_event(group->manager);
+	ext_manager_schedule_done_event(group->manager);
 
 	return workspace;
 }
 
 void
-lab_cosmic_workspace_set_name(struct lab_cosmic_workspace *workspace, const char *name)
+lab_ext_workspace_set_name(struct lab_ext_workspace *workspace, const char *name)
 {
 	assert(workspace);
 	assert(name);
@@ -632,32 +627,32 @@ lab_cosmic_workspace_set_name(struct lab_cosmic_workspace *workspace, const char
 		workspace->name = xstrdup(name);
 		struct wl_resource *resource;
 		wl_resource_for_each(resource, &workspace->resources) {
-			zcosmic_workspace_handle_v1_send_name(resource, workspace->name);
+			ext_workspace_handle_v1_send_name(resource, workspace->name);
 		}
 	}
-	cosmic_manager_schedule_done_event(workspace->group->manager);
+	ext_manager_schedule_done_event(workspace->group->manager);
 }
 
 void
-lab_cosmic_workspace_set_active(struct lab_cosmic_workspace *workspace, bool enabled)
+lab_ext_workspace_set_active(struct lab_ext_workspace *workspace, bool enabled)
 {
-	workspace_set_state(workspace, CW_WS_STATE_ACTIVE, enabled);
+	workspace_set_state(workspace, EXT_WORKSPACE_HANDLE_V1_STATE_ACTIVE, enabled);
 }
 
 void
-lab_cosmic_workspace_set_urgent(struct lab_cosmic_workspace *workspace, bool enabled)
+lab_ext_workspace_set_urgent(struct lab_ext_workspace *workspace, bool enabled)
 {
-	workspace_set_state(workspace, CW_WS_STATE_URGENT, enabled);
+	workspace_set_state(workspace, EXT_WORKSPACE_HANDLE_V1_STATE_URGENT, enabled);
 }
 
 void
-lab_cosmic_workspace_set_hidden(struct lab_cosmic_workspace *workspace, bool enabled)
+lab_ext_workspace_set_hidden(struct lab_ext_workspace *workspace, bool enabled)
 {
-	workspace_set_state(workspace, CW_WS_STATE_HIDDEN, enabled);
+	workspace_set_state(workspace, EXT_WORKSPACE_HANDLE_V1_STATE_HIDDEN, enabled);
 }
 
 void
-lab_cosmic_workspace_set_coordinates(struct lab_cosmic_workspace *workspace,
+lab_ext_workspace_set_coordinates(struct lab_ext_workspace *workspace,
 		struct wl_array *coordinates)
 {
 	wl_array_release(&workspace->coordinates);
@@ -666,33 +661,45 @@ lab_cosmic_workspace_set_coordinates(struct lab_cosmic_workspace *workspace,
 
 	struct wl_resource *resource;
 	wl_resource_for_each(resource, &workspace->resources) {
-		zcosmic_workspace_handle_v1_send_coordinates(resource, &workspace->coordinates);
+		ext_workspace_handle_v1_send_coordinates(resource, &workspace->coordinates);
 	}
-	cosmic_manager_schedule_done_event(workspace->group->manager);
+	ext_manager_schedule_done_event(workspace->group->manager);
 }
 
 void
-lab_cosmic_workspace_destroy(struct lab_cosmic_workspace *workspace)
+lab_ext_workspace_destroy(struct lab_ext_workspace *workspace)
 {
 	if (!workspace) {
 		return;
 	}
 	wl_signal_emit_mutable(&workspace->events.destroy, NULL);
 
-	struct wl_resource *resource, *tmp;
-	wl_resource_for_each_safe(resource, tmp, &workspace->resources) {
-		struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
-		if (addon) {
-			lab_resource_addon_destroy(addon);
-			wl_resource_set_user_data(resource, NULL);
+	struct wl_resource *ws_res, *ws_tmp, *grp_res;
+	struct lab_wl_resource_addon *ws_addon, *grp_addon;
+	wl_resource_for_each_safe(ws_res, ws_tmp, &workspace->resources) {
+		ws_addon = wl_resource_get_user_data(ws_res);
+		if (ws_addon) {
+			/* Notify group about workspace leaving */
+			wl_resource_for_each(grp_res, &workspace->group->resources) {
+				grp_addon = wl_resource_get_user_data(grp_res);
+				if (!grp_addon || grp_addon->ctx != ws_addon->ctx) {
+					continue;
+				}
+				ext_workspace_group_handle_v1_send_workspace_leave(
+					grp_res, ws_res);
+				break;
+			}
+			lab_resource_addon_destroy(ws_addon);
+			wl_resource_set_user_data(ws_res, NULL);
 		}
-		zcosmic_workspace_handle_v1_send_remove(resource);
-		wl_list_remove(wl_resource_get_link(resource));
-		wl_list_init(wl_resource_get_link(resource));
+		ext_workspace_handle_v1_send_removed(ws_res);
+		wl_list_remove(wl_resource_get_link(ws_res));
+		wl_list_init(wl_resource_get_link(ws_res));
 	}
-	cosmic_manager_schedule_done_event(workspace->group->manager);
+	ext_manager_schedule_done_event(workspace->group->manager);
 
 	/* Cancel pending transactions involving this workspace */
+	struct wl_resource *resource;
 	struct lab_transaction *trans, *trans_tmp;
 	wl_resource_for_each(resource, &workspace->group->manager->resources) {
 		struct lab_wl_resource_addon *addon = wl_resource_get_user_data(resource);
@@ -708,7 +715,6 @@ lab_cosmic_workspace_destroy(struct lab_cosmic_workspace *workspace)
 
 	wl_list_remove(&workspace->link);
 	wl_array_release(&workspace->coordinates);
-	wl_array_release(&workspace->capabilities);
 	zfree(workspace->name);
 	free(workspace);
 }

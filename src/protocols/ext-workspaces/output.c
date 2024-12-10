@@ -3,13 +3,13 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
-#include "cosmic-workspace-unstable-v1-protocol.h"
-#include "protocols/cosmic-workspaces.h"
-#include "protocols/cosmic-workspaces-internal.h"
+#include "ext-workspace-v1-protocol.h"
+#include "protocols/ext-workspaces.h"
+#include "protocols/ext-workspaces-internal.h"
 
 struct group_output {
 	struct wlr_output *wlr_output;
-	struct lab_cosmic_workspace_group *group;
+	struct lab_ext_workspace_group *group;
 	struct {
 		struct wl_listener group_destroy;
 		struct wl_listener output_bind;
@@ -42,9 +42,9 @@ group_output_destroy(struct group_output *group_output)
 	group_output_send_event(
 		&group_output->group->resources,
 		&group_output->wlr_output->resources,
-		zcosmic_workspace_group_handle_v1_send_output_leave);
+		ext_workspace_group_handle_v1_send_output_leave);
 
-	cosmic_manager_schedule_done_event(group_output->group->manager);
+	ext_manager_schedule_done_event(group_output->group->manager);
 
 	wl_list_remove(&group_output->link);
 	wl_list_remove(&group_output->on.group_destroy.link);
@@ -67,7 +67,7 @@ handle_output_bind(struct wl_listener *listener, void *data)
 	struct wl_resource *group_resource;
 	wl_resource_for_each(group_resource, &group_output->group->resources) {
 		if (wl_resource_get_client(group_resource) == client) {
-			zcosmic_workspace_group_handle_v1_send_output_enter(
+			ext_workspace_group_handle_v1_send_output_enter(
 				group_resource, event->resource);
 			sent = true;
 		}
@@ -80,7 +80,7 @@ handle_output_bind(struct wl_listener *listener, void *data)
 	struct wl_list *manager_resources = &group_output->group->manager->resources;
 	wl_resource_for_each(manager_resource, manager_resources) {
 		if (wl_resource_get_client(manager_resource) == client) {
-			zcosmic_workspace_manager_v1_send_done(manager_resource);
+			ext_workspace_manager_v1_send_done(manager_resource);
 		}
 	}
 }
@@ -103,7 +103,7 @@ handle_group_destroy(struct wl_listener *listener, void *data)
 
 /* Internal API*/
 void
-cosmic_group_output_send_initial_state(struct lab_cosmic_workspace_group *group,
+ext_group_output_send_initial_state(struct lab_ext_workspace_group *group,
 		struct wl_resource *group_resource)
 {
 	struct group_output *group_output;
@@ -112,7 +112,7 @@ cosmic_group_output_send_initial_state(struct lab_cosmic_workspace_group *group,
 	wl_list_for_each(group_output, &group->outputs, link) {
 		wl_resource_for_each(output_resource, &group_output->wlr_output->resources) {
 			if (wl_resource_get_client(output_resource) == client) {
-				zcosmic_workspace_group_handle_v1_send_output_enter(
+				ext_workspace_group_handle_v1_send_output_enter(
 					group_resource, output_resource);
 			}
 		}
@@ -121,7 +121,7 @@ cosmic_group_output_send_initial_state(struct lab_cosmic_workspace_group *group,
 
 /* Public API */
 void
-lab_cosmic_workspace_group_output_enter(struct lab_cosmic_workspace_group *group,
+lab_ext_workspace_group_output_enter(struct lab_ext_workspace_group *group,
 		struct wlr_output *wlr_output)
 {
 	struct group_output *group_output;
@@ -148,13 +148,13 @@ lab_cosmic_workspace_group_output_enter(struct lab_cosmic_workspace_group *group
 	group_output_send_event(
 		&group_output->group->resources,
 		&group_output->wlr_output->resources,
-		zcosmic_workspace_group_handle_v1_send_output_enter);
+		ext_workspace_group_handle_v1_send_output_enter);
 
-	cosmic_manager_schedule_done_event(group->manager);
+	ext_manager_schedule_done_event(group->manager);
 }
 
 void
-lab_cosmic_workspace_group_output_leave(struct lab_cosmic_workspace_group *group,
+lab_ext_workspace_group_output_leave(struct lab_ext_workspace_group *group,
 		struct wlr_output *wlr_output)
 {
 	struct group_output *tmp;

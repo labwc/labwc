@@ -28,6 +28,7 @@
 #include "output-state.h"
 #include "output-virtual.h"
 #include "protocols/cosmic-workspaces.h"
+#include "protocols/ext-workspace.h"
 #include "regions.h"
 #include "view.h"
 #include "xwayland.h"
@@ -284,6 +285,8 @@ add_output_to_layout(struct server *server, struct output *output)
 
 	lab_cosmic_workspace_group_output_enter(
 		server->workspaces.cosmic_group, output->wlr_output);
+	lab_ext_workspace_group_output_enter(
+		server->workspaces.ext_group, output->wlr_output);
 
 	/* (Re-)create regions from config */
 	regions_reconfigure_output(output);
@@ -596,6 +599,8 @@ output_config_apply(struct server *server,
 
 			lab_cosmic_workspace_group_output_leave(
 				server->workspaces.cosmic_group, output->wlr_output);
+			lab_ext_workspace_group_output_leave(
+				server->workspaces.ext_group, output->wlr_output);
 
 			/*
 			 * At time of writing, wlr_output_layout_remove()

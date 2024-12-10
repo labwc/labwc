@@ -206,7 +206,6 @@ add_workspace(struct server *server, const char *name)
 	workspace->cosmic_workspace = lab_cosmic_workspace_create(server->workspaces.cosmic_group);
 	lab_cosmic_workspace_set_name(workspace->cosmic_workspace, name);
 	lab_cosmic_workspace_set_active(workspace->cosmic_workspace, active);
-	lab_cosmic_workspace_set_hidden(workspace->cosmic_workspace, !active);
 
 	workspace->on_cosmic.activate.notify = handle_cosmic_workspace_activate;
 	wl_signal_add(&workspace->cosmic_workspace->events.activate,
@@ -320,8 +319,6 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 
 	lab_cosmic_workspace_set_active(
 		server->workspaces.current->cosmic_workspace, false);
-	lab_cosmic_workspace_set_hidden(
-		server->workspaces.current->cosmic_workspace, true);
 
 	/* Move Omnipresent views to new workspace */
 	struct view *view;
@@ -377,7 +374,6 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	desktop_update_top_layer_visiblity(server);
 
 	lab_cosmic_workspace_set_active(target->cosmic_workspace, true);
-	lab_cosmic_workspace_set_hidden(target->cosmic_workspace, false);
 }
 
 void

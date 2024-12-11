@@ -219,13 +219,12 @@ this is for compatibility with Openbox.
 *<core><xwaylandPersistence>* [yes|no]
 	Keep XWayland alive even when no clients are connected, rather than
 	using a "lazy" policy that allows the server to launch on demand and die
-	when it is no longer needed. Default is yes.
+	when it is no longer needed.
 
-	This is only temporarily defaulting to yes to avoid a bug that is
-	present in wlroots <0.18.2 resulting in a compositor crash when
-	performing a drag-and-drop action at the same time as the XWayland
-	server is shutting down. This will be reverted to a default "no" when
-	wlroots-0.18.2 can be linked with.
+	When labwc is compiled with wlroots 0.18.2 or later, the default is no.
+	When labwc is compiled with wlroots < 0.18.2, the default is yes to
+	avoid a wlroots bug that can result in compositor crashes when
+	performing drag-and-drop actions when the XWayland server is shut down.
 
 	Note: changing this setting requires a restart of labwc.
 

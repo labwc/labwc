@@ -170,3 +170,10 @@ str_endswith(const char *const string, const char *const suffix)
 
 	return strcmp(string + len_str - len_sfx, suffix) == 0;
 }
+
+bool
+str_starts_with(const char *s, char needle, const char *ignore_chars)
+{
+	return (s + strspn(s, ignore_chars))[0] == needle;
+}
+

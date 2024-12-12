@@ -425,6 +425,11 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 			Whether the client has full server-side decorations,
 			borders only, or no server-side decorations.
 
+		*monitor* [current|left|right|<monitor_name>]
+			Whether the client is on a monitor relative to the to
+			the currently focused monitor (current, left, or right)
+			or on a monitor with the supplied <monitor_name>.
+
 		This argument is optional.
 
 	*then*

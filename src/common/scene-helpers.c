@@ -108,9 +108,14 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 	}
 
 	if (state->tearing_page_flip) {
+		wlr_log(WLR_ERROR, "tearing enabled");
 		if (!wlr_output_test_state(wlr_output, state)) {
+			wlr_log(WLR_ERROR,
+				"tearing output test failed, reverting for current frame");
 			state->tearing_page_flip = false;
 		}
+	} else {
+		wlr_log(WLR_ERROR, "tearing disabled");
 	}
 
 	struct wlr_box additional_damage = {0};
@@ -124,6 +129,7 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 	 * but actual commit failed. Retry wihout tearing.
 	 */
 	if (!committed && state->tearing_page_flip) {
+		wlr_log(WLR_ERROR, "tearing output commit failed, trying again without");
 		state->tearing_page_flip = false;
 		committed = wlr_output_commit_state(wlr_output, state);
 	}

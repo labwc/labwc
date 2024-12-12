@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "config.h"
 #include <assert.h>
+#include "common/macros.h"
 #include "common/scene-helpers.h"
 #include "common/surface-helpers.h"
 #include "dnd.h"
@@ -137,6 +138,52 @@ desktop_cycle_view(struct server *server, struct view *start_view,
 	}
 
 	return iter(&server->views, start_view, criteria);
+}
+
+/*
+ *  is either box overlapping the other by 80% of its own size?
+ */
+static bool
+is_mostly_overlapping(struct wlr_box *a, struct wlr_box *b)
+{
+	struct wlr_box overlap;
+	wlr_box_intersection(&overlap, a, b);
+	int overlap_area = overlap.height * overlap.width;
+	return overlap_area > 0.80 * MIN(a->height * a->width, b->height * b->width);
+}
+
+struct view *
+desktop_cycle_view_near_region(struct server *server, struct view *active_view,
+		struct region *region)
+{
+	assert(region);
+
+	struct view *(*iter)(struct wl_list *head, struct view *view,
+		enum lab_view_criteria criteria);
+	bool forwards = true;
+
+	/*
+	 * if the currently active/focused window is mostly within the region,
+	 * then we want to cycle through in reverse order so that we
+	 * cycle through all windows, and not just the two most recent.
+	 */
+	if (active_view && is_mostly_overlapping(&active_view->current, &region->geo)) {
+		forwards = false;
+	}
+	iter = forwards ? view_next_no_head_stop : view_prev_no_head_stop;
+
+	enum lab_view_criteria criteria = rc.window_switcher.criteria;
+
+	struct view *cur;
+	cur = iter(&server->views, active_view, criteria);
+	while (cur && cur != active_view) {
+		if (!cur->minimized
+			&& is_mostly_overlapping(&cur->current, &region->geo)) {
+			return cur;
+		}
+		cur = iter(&server->views, cur, criteria);
+	}
+	return NULL;
 }
 
 struct view *

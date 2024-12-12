@@ -150,7 +150,7 @@ set_squared_corners(struct ssd *ssd, bool enable)
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR);
 		wlr_scene_node_set_position(part->node, x, 0);
 		wlr_scene_rect_set_size(wlr_scene_rect_from_node(part->node),
-			width - 2 * x, theme->titlebar_height);
+			MAX(0, width - 2 * x), theme->titlebar_height);
 
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_LEFT);
 		wlr_scene_node_set_enabled(part->node, !enable);

@@ -2471,7 +2471,7 @@ view_set_shade(struct view *view, bool shaded)
 
 	view->shaded = shaded;
 	ssd_enable_shade(view->ssd, view->shaded);
-	wlr_scene_node_set_enabled(view->scene_node, !view->shaded);
+	wlr_scene_node_set_enabled(view->content_node, !view->shaded);
 
 	if (view->impl->shade) {
 		view->impl->shade(view, shaded);

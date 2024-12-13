@@ -735,7 +735,7 @@ xwayland_view_map(struct view *view)
 			wl_resource_post_no_memory(view->surface->resource);
 			return;
 		}
-		view->scene_node = &tree->node;
+		view->content_node = &tree->node;
 	}
 
 	/*

@@ -28,6 +28,7 @@ href="NEWS.md">Release&nbsp;Notes</a>]</h3>
 Labwc stands for Lab Wayland Compositor, where lab can mean any of the
 following:
 
+- Lightweight And Box-inspired
 - sense of experimentation and treading new ground
 - inspired by BunsenLabs and ArchLabs
 - your favorite pet

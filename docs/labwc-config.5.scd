@@ -589,6 +589,25 @@ extending outward from the snapped edge.
 	packaged in a lot of distributions and can be used to view all available
 	keynames.
 
+	When matching against keybinds, input keys are processed in the
+	following order of precedence:
+	- Keycodes of physical keys (except if keybind is layoutDependent)
+	- Translated keysyms taking into account modifiers (so if Shift+1 were
+	  pressed on a us keyboard, the keysym would be '!')
+	- Raw keysyms ignoring modifiers such as shift (so in the above example
+	  the keysym would just be '1')
+
+	The reasons for this approach are:
+	- To make keybinds keyboard-layout agnostic (by checking keycodes before
+	  keysyms). This means that in a multi-layout situation, keybinds work
+	  regardless of which layout is active at the time of the key-press.
+	- To support keybinds relating to keysyms that are only available in a
+	  particular layout, for example å, ä and ö.
+	- To support keybinds that are only valid with a modifier, for example
+	  the numpad keys with NumLock enabled: KP_x. These would only be
+	  matched by the translated keysyms.
+	- To support keybinds such as `S-1` (by checking raw keysyms).
+
 	*layoutDependent* [yes|no]
 	Make this specific keybind depend on the currently active keyboard
 	layout. If enabled, a keybind using a key which does not exist in

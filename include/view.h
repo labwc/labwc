@@ -492,6 +492,7 @@ void mappable_connect(struct mappable *mappable, struct wlr_surface *surface,
 void mappable_disconnect(struct mappable *mappable);
 
 void view_toggle_keybinds(struct view *view);
+void view_center_cursor(struct view *view);
 
 void view_set_activated(struct view *view, bool activated);
 void view_set_output(struct view *view, struct output *output);

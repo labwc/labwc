@@ -81,6 +81,9 @@ handle_xdg_popup_destroy(struct wl_listener *listener, void *data)
 	if (popup->commit.notify) {
 		wl_list_remove(&popup->commit.link);
 	}
+
+	cursor_update_focus(popup->parent_view->server);
+
 	free(popup);
 }
 

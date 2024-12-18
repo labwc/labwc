@@ -670,14 +670,17 @@ show_menu(struct server *server, struct view *view, struct cursor_context *ctx,
 	}
 	/* Place menu in the view corner if desired (and menu is not root-menu) */
 	if (!at_cursor && view) {
-		x = view->current.x;
+		struct wlr_box extent = ssd_max_extents(view);
+		x = extent.x;
 		y = view->current.y;
 		/* Push the client menu underneath the button */
 		if (is_client_menu && ssd_part_contains(
 				LAB_SSD_BUTTON, ctx->type)) {
 			assert(ctx->node);
-			int ly;
-			wlr_scene_node_coords(ctx->node, &x, &ly);
+			int lx, ly;
+			wlr_scene_node_coords(ctx->node, &lx, &ly);
+			/* MAX() prevents negative x when the window is maximized */
+			x = MAX(x, lx - server->theme->menu_border_width);
 		}
 	}
 

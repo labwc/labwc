@@ -197,21 +197,11 @@ desktop_focus_output(struct output *output)
 		if (wlr_output_layout_intersects(layout,
 				output->wlr_output, &view->current)) {
 			desktop_focus_view(view, /*raise*/ false);
-			wlr_cursor_warp(view->server->seat.cursor, NULL,
-				view->current.x + view->current.width / 2,
-				view->current.y + view->current.height / 2);
-			cursor_update_focus(view->server);
+			view_center_cursor(view);
 			return;
 		}
 	}
-	/* No view found on desired output */
-	struct wlr_box layout_box;
-	wlr_output_layout_get_box(output->server->output_layout,
-		output->wlr_output, &layout_box);
-	wlr_cursor_warp(output->server->seat.cursor, NULL,
-		layout_box.x + output->usable_area.x + output->usable_area.width / 2,
-		layout_box.y + output->usable_area.y + output->usable_area.height / 2);
-	cursor_update_focus(output->server);
+	output_center_cursor(output);
 }
 
 void

@@ -927,6 +927,20 @@ output_get_adjacent(struct output *output, enum view_edge edge, bool wrap)
 	return output;
 }
 
+void
+output_center_cursor(struct output *output)
+{
+	assert(output);
+	/* No view found on desired output */
+	struct wlr_box layout_box;
+	wlr_output_layout_get_box(output->server->output_layout,
+		output->wlr_output, &layout_box);
+	wlr_cursor_warp(output->server->seat.cursor, NULL,
+		layout_box.x + output->usable_area.x + output->usable_area.width / 2,
+		layout_box.y + output->usable_area.y + output->usable_area.height / 2);
+	cursor_update_focus(output->server);
+}
+
 bool
 output_is_usable(struct output *output)
 {

@@ -2414,6 +2414,16 @@ view_toggle_keybinds(struct view *view)
 }
 
 void
+view_center_cursor(struct view *view)
+{
+	assert(view);
+	wlr_cursor_warp(view->server->seat.cursor, NULL,
+		view->current.x + view->current.width / 2,
+		view->current.y + view->current.height / 2);
+	cursor_update_focus(view->server);
+}
+
+void
 mappable_connect(struct mappable *mappable, struct wlr_surface *surface,
 		wl_notify_func_t notify_map, wl_notify_func_t notify_unmap)
 {

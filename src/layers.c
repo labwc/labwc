@@ -363,6 +363,8 @@ popup_handle_destroy(struct wl_listener *listener, void *data)
 		wl_list_remove(&popup->commit.link);
 	}
 
+	cursor_update_focus(popup->server);
+
 	free(popup);
 }
 
@@ -394,9 +396,11 @@ popup_handle_reposition(struct wl_listener *listener, void *data)
 static void popup_handle_new_popup(struct wl_listener *listener, void *data);
 
 static struct lab_layer_popup *
-create_popup(struct wlr_xdg_popup *wlr_popup, struct wlr_scene_tree *parent)
+create_popup(struct server *server, struct wlr_xdg_popup *wlr_popup,
+		struct wlr_scene_tree *parent)
 {
 	struct lab_layer_popup *popup = znew(*popup);
+	popup->server = server;
 	popup->wlr_popup = wlr_popup;
 	popup->scene_tree =
 		wlr_scene_xdg_surface_create(parent, wlr_popup->base);
@@ -433,7 +437,8 @@ popup_handle_new_popup(struct wl_listener *listener, void *data)
 	struct lab_layer_popup *lab_layer_popup =
 		wl_container_of(listener, lab_layer_popup, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
-	struct lab_layer_popup *new_popup = create_popup(wlr_popup,
+	struct lab_layer_popup *new_popup = create_popup(
+		lab_layer_popup->server, wlr_popup,
 		lab_layer_popup->scene_tree);
 
 	if (!new_popup) {
@@ -500,7 +505,8 @@ handle_new_popup(struct wl_listener *listener, void *data)
 		.width = output_box.width,
 		.height = output_box.height,
 	};
-	struct lab_layer_popup *popup = create_popup(wlr_popup, surface->tree);
+	struct lab_layer_popup *popup =
+		create_popup(server, wlr_popup, surface->tree);
 	if (!popup) {
 		wl_resource_post_no_memory(wlr_popup->resource);
 		wlr_xdg_popup_destroy(wlr_popup);

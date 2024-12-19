@@ -1118,9 +1118,7 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 				menu_call_selected_actions(server);
 			} else {
 				menu_close_root(server);
-				double sx, sy;
-				cursor_update_common(server, &ctx, time_msec,
-					/*cursor_has_moved*/ false, &sx, &sy);
+				cursor_update_focus(server);
 			}
 		}
 		return notify;

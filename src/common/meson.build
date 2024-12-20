@@ -14,6 +14,7 @@ labwc_sources += files(
   'parse-bool.c',
   'parse-double.c',
   'scaled-font-buffer.c',
+  'scaled-img-buffer.c',
   'scaled-rect-buffer.c',
   'scaled-scene-buffer.c',
   'scene-helpers.c',

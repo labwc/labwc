@@ -7,7 +7,7 @@ struct server;
 void desktop_entry_init(struct server *server);
 void desktop_entry_finish(struct server *server);
 
-struct lab_data_buffer *desktop_entry_icon_lookup(struct server *server,
+struct lab_img *desktop_entry_icon_lookup(struct server *server,
 	const char *app_id, int size, float scale);
 
 /**

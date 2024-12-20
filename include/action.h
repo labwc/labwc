@@ -3,6 +3,7 @@
 #define LABWC_ACTION_H
 
 #include <stdbool.h>
+#include <sys/types.h>
 #include <wayland-util.h>
 
 struct view;
@@ -46,6 +47,8 @@ bool actions_contain_toggle_keybinds(struct wl_list *action_list);
  */
 void actions_run(struct view *activator, struct server *server,
 	struct wl_list *actions, struct cursor_context *ctx);
+
+bool action_check_prompt_result(pid_t pid, int exit_code);
 
 void action_free(struct action *action);
 void action_list_free(struct wl_list *action_list);

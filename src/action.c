@@ -493,6 +493,11 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		break;
+	case ACTION_TYPE_IF:
+		if (!strcmp(argument, "text.prompt")) {
+			action_arg_add_str(action, "prompt_text", content);
+		}
+		goto cleanup;
 	}
 
 	wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s'",
@@ -775,6 +780,112 @@ view_for_action(struct view *activator, struct server *server,
 	}
 }
 
+struct action_prompt {
+	/* Set when created */
+	struct server *server;
+	struct action *action;
+	struct view *view;
+
+	/* Set when executed */
+	pid_t pid;
+
+	struct {
+		struct wl_listener destroy;
+	} on_view;
+	struct wl_list link;
+};
+
+static struct wl_list prompts = WL_LIST_INIT(&prompts);
+
+static void
+action_prompt_destroy(struct action_prompt *prompt)
+{
+	wl_list_remove(&prompt->on_view.destroy.link);
+	wl_list_remove(&prompt->link);
+	free(prompt);
+}
+
+static void
+handle_view_destroy(struct wl_listener *listener, void *data)
+{
+	struct action_prompt *prompt = wl_container_of(listener, prompt, on_view.destroy);
+	wl_list_remove(&prompt->on_view.destroy.link);
+	wl_list_init(&prompt->on_view.destroy.link);
+	prompt->view = NULL;
+}
+
+static void
+action_prompt_create(struct view *view, struct server *server, struct action *action)
+{
+	char *command = strdup_printf("labnag -m \"%s\" -Z \"%s\" : -Z \"%s\" :",
+		action_get_str(action, "prompt_text", "Choose wisely"),
+		_("Yes"), _("No"));
+
+	int pipe_fd;
+	pid_t prompt_pid = spawn_piped(command, &pipe_fd);
+	if (prompt_pid < 0) {
+		wlr_log(WLR_ERROR, "Failed to create action prompt");
+		goto cleanup;
+	}
+	/* FIXME: closing stdout might confuse clients */
+	close(pipe_fd);
+
+	struct action_prompt *prompt = znew(*prompt);
+	prompt->server = server;
+	prompt->action = action;
+	prompt->view = view;
+	prompt->pid = prompt_pid;
+	if (view) {
+		prompt->on_view.destroy.notify = handle_view_destroy;
+		wl_signal_add(&view->events.destroy, &prompt->on_view.destroy);
+	} else {
+		/* Allows removing during destroy */
+		wl_list_init(&prompt->on_view.destroy.link);
+	}
+
+	wl_list_insert(&prompts, &prompt->link);
+
+cleanup:
+	free(command);
+}
+
+bool
+action_check_prompt_result(pid_t pid, int exit_code)
+{
+	struct action_prompt *prompt, *tmp;
+	wl_list_for_each_safe(prompt, tmp, &prompts, link) {
+		if (prompt->pid != pid) {
+			continue;
+		}
+
+		wlr_log(WLR_INFO, "Found pending prompt for exit code %d", exit_code);
+		struct wl_list *actions = NULL;
+		/*
+		 * TODO: figure out how to have more than 2 choices,
+		 *       maybe by using branch names like cond_0, cond_1
+		 *       and so on and falling back to 'then' and 'else'
+		 *       if not found?
+		 */
+		if (exit_code == 0) {
+			wlr_log(WLR_INFO, "Selected the 'then' branch");
+			actions = action_get_actionlist(prompt->action, "then");
+		} else {
+			wlr_log(WLR_INFO, "Selected the 'else' branch");
+			actions = action_get_actionlist(prompt->action, "else");
+		}
+		if (actions) {
+			wlr_log(WLR_INFO, "Running actions");
+			actions_run(prompt->view, prompt->server,
+				actions, /*cursor_ctx*/ NULL);
+		} else {
+			wlr_log(WLR_INFO, "No actions for selected branch");
+		}
+		action_prompt_destroy(prompt);
+		return true;
+	}
+	return false;
+}
+
 static bool
 run_if_action(struct view *view, struct server *server, struct action *action)
 {
@@ -791,6 +902,22 @@ run_if_action(struct view *view, struct server *server, struct action *action)
 				branch = "then";
 				break;
 			}
+		}
+	}
+
+	if (!strcmp(branch, "then")) {
+		/* At least one of the queries was matched or there was no query */
+		if (action_get_str(action, "prompt_text", NULL)) {
+			/*
+			 * We delay the selection and execution of the
+			 * branch until we get a response from the user.
+			 */
+			action_prompt_create(view, server, action);
+			/*
+			 * FIXME: Pretends to have matched the query which
+			 *        somewhat breaks the None branch in ForEach.
+			 */
+			return true;
 		}
 	}
 

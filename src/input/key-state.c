@@ -8,7 +8,7 @@
 #include "common/set.h"
 #include "input/key-state.h"
 
-static struct lab_set pressed, pressed_mods, bound, pressed_sent;
+static struct lab_set pressed, bound, pressed_sent;
 
 static void
 report(struct lab_set *key_set, const char *msg)
@@ -54,16 +54,12 @@ key_state_nr_pressed_sent_keycodes(void)
 }
 
 void
-key_state_set_pressed(uint32_t keycode, bool is_pressed, bool is_modifier)
+key_state_set_pressed(uint32_t keycode, bool is_pressed)
 {
 	if (is_pressed) {
 		lab_set_add(&pressed, keycode);
-		if (is_modifier) {
-			lab_set_add(&pressed_mods, keycode);
-		}
 	} else {
 		lab_set_remove(&pressed, keycode);
-		lab_set_remove(&pressed_mods, keycode);
 	}
 }
 
@@ -71,15 +67,6 @@ void
 key_state_store_pressed_key_as_bound(uint32_t keycode)
 {
 	lab_set_add(&bound, keycode);
-	/*
-	 * Also store any pressed modifiers as bound. This prevents
-	 * applications from seeing and handling the release event for
-	 * a modifier key that was part of a keybinding (e.g. Firefox
-	 * displays its menu bar for a lone Alt press + release).
-	 */
-	for (int i = 0; i < pressed_mods.size; ++i) {
-		lab_set_add(&bound, pressed_mods.values[i]);
-	}
 }
 
 bool

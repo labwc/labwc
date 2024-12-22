@@ -148,6 +148,14 @@ struct seat {
 
 	struct lab_set bound_buttons;
 
+	/*
+	 * True when key-press events for any modifier keys has been sent to
+	 * the client after the last wl_keyboard.enter event. This is used to
+	 * check whether we should send wl_keyboard.{leave,enter} action
+	 * invocations. See actions_run() for details.
+	 */
+	bool modifier_press_sent;
+
 	struct {
 		bool active;
 		struct {

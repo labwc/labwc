@@ -668,6 +668,8 @@ seat_focus(struct seat *seat, struct wlr_surface *surface, bool is_lock_surface)
 		return;
 	}
 
+	seat->modifier_press_sent = false;
+
 	if (!surface) {
 		wlr_seat_keyboard_notify_clear_focus(seat->seat);
 		input_method_relay_set_focus(seat->input_method_relay, NULL);

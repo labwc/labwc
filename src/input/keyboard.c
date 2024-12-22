@@ -514,8 +514,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	bool locked = seat->server->session_lock_manager->locked;
 
 	key_state_set_pressed(event->keycode,
-		event->state == WL_KEYBOARD_KEY_STATE_PRESSED,
-		keyinfo.is_modifier);
+		event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
 
 	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 		if (cur_keybind && cur_keybind->on_release) {

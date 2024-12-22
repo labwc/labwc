@@ -340,6 +340,19 @@ Actions are used in menus and keyboard/mouse bindings.
 	decorations (including those for which the server-side titlebar has been
 	hidden) are not eligible for shading.
 
+*<action name="WarpCursor" to="output" x="center" y="center" />*
+	Warp the cursor to a position relative to the active output or window.
+
+	*to* [output|window] Specifies the target area of the warp.
+	Default is "output"
+	*x* [center|value] Specifies the horizontal warp position within the target area.
+	"center": Moves the cursor to the horizontal center of the target area.
+	Positive or negative integers warp the cursor to a position offset by the specified
+	number of pixels from the left or right edge of the target area respectively.
+	Default is "center"
+	*y* [center|value] Equivalent for the vertical warp position within the target area.
+	Default is "center"
+
 *<action name="EnableTabletMouseEmulation" />*++
 *<action name="DisableTabletMouseEmulation" />*++
 *<action name="ToggleTabletMouseEmulation">*

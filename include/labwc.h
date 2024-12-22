@@ -456,7 +456,6 @@ void desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 
 void desktop_arrange_all_views(struct server *server);
 void desktop_focus_output(struct output *output);
-void warp_cursor(struct view *view);
 struct view *desktop_topmost_focusable_view(struct server *server);
 
 /**

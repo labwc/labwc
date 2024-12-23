@@ -637,7 +637,7 @@ entry(struct theme *theme, const char *key, const char *value)
 		wlr_log(WLR_ERROR, "titlebar.height is no longer supported");
 	}
 	if (match_glob(key, "padding.height")) {
-		wlr_log(WLR_ERROR, "padding.height is no longer supported");
+		wlr_log(WLR_INFO, "padding.height is no longer supported");
 	}
 
 	if (match_glob(key, "window.active.border.color")) {

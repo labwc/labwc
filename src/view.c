@@ -417,7 +417,7 @@ static struct wlr_box
 view_get_edge_snap_box(struct view *view, struct output *output,
 		enum view_edge edge)
 {
-	struct wlr_box usable = output_usable_area_scaled(output);
+	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	int x_offset = edge == VIEW_EDGE_RIGHT
 		? (usable.width + rc.gap) / 2 : rc.gap;
 	int y_offset = edge == VIEW_EDGE_DOWN

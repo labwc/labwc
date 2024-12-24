@@ -121,7 +121,8 @@ enum action_type {
 	ACTION_TYPE_TOGGLE_TABLET_MOUSE_EMULATION,
 	ACTION_TYPE_TOGGLE_MAGNIFY,
 	ACTION_TYPE_ZOOM_IN,
-	ACTION_TYPE_ZOOM_OUT
+	ACTION_TYPE_ZOOM_OUT,
+	ACTION_TYPE_WARP_CURSOR,
 };
 
 const char *action_names[] = {
@@ -186,6 +187,7 @@ const char *action_names[] = {
 	"ToggleMagnify",
 	"ZoomIn",
 	"ZoomOut",
+	"WarpCursor",
 	NULL
 };
 
@@ -472,6 +474,12 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			} else {
 				action_arg_add_int(action, argument, policy);
 			}
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_WARP_CURSOR:
+		if (!strcmp(argument, "to") || !strcmp(argument, "x") || !strcmp(argument, "y")) {
+			action_arg_add_str(action, argument, content);
 			goto cleanup;
 		}
 		break;
@@ -822,6 +830,43 @@ get_target_output(struct output *output, struct server *server,
 	}
 
 	return target;
+}
+
+static void
+warp_cursor(struct view *view, struct output *output, const char *to, const char *x, const char *y)
+{
+	struct wlr_box target_area = {0};
+	int goto_x;
+	int goto_y;
+
+	if (!strcasecmp(to, "output") && output) {
+		target_area = output_usable_area_in_layout_coords(output);
+	} else if (!strcasecmp(to, "window") && view) {
+		target_area = view->current;
+	} else {
+		wlr_log(WLR_ERROR, "Invalid argument for action WarpCursor: 'to' (%s)", to);
+	}
+
+	if (!strcasecmp(x, "center")) {
+		goto_x = target_area.x + target_area.width / 2;
+	} else {
+		int offset_x = atoi(x);
+		goto_x = offset_x >= 0 ?
+			target_area.x + offset_x :
+			target_area.x + target_area.width + offset_x;
+	}
+
+	if (!strcasecmp(y, "center")) {
+		goto_y = target_area.y + target_area.height / 2;
+	} else {
+		int offset_y = atoi(y);
+		goto_y = offset_y >= 0 ?
+			target_area.y + offset_y :
+			target_area.y + target_area.height + offset_y;
+	}
+
+	wlr_cursor_warp(output->server->seat.cursor, NULL, goto_x, goto_y);
+	cursor_update_focus(output->server);
 }
 
 void
@@ -1286,6 +1331,16 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		case ACTION_TYPE_ZOOM_OUT:
 			magnify_set_scale(server, MAGNIFY_DECREASE);
+			break;
+		case ACTION_TYPE_WARP_CURSOR:
+			{
+				const char *to = action_get_str(action, "to", "output");
+				const char *x = action_get_str(action, "x", "center");
+				const char *y = action_get_str(action, "y", "center");
+				struct output *output = output_nearest_to_cursor(server);
+
+				warp_cursor(view, output, to, x, y);
+			}
 			break;
 		case ACTION_TYPE_INVALID:
 			wlr_log(WLR_ERROR, "Not executing unknown action");

@@ -138,9 +138,9 @@ render_cairo_surface(cairo_surface_t *surface, int width, int height,
 		.height = height - 2 * padding,
 	};
 
-	struct wlr_box src_box = box_fit_within(src_w, src_h, &container);
-	double scene_scale = MIN(1.0, (double_t)container.width / (double)src_w);
-	cairo_translate(cairo, src_box.x, src_box.y);
+	struct wlr_box dst_box = box_fit_within(src_w, src_h, &container);
+	double scene_scale = (double)dst_box.width / (double)src_w;
+	cairo_translate(cairo, dst_box.x, dst_box.y);
 	cairo_scale(cairo, scene_scale, scene_scale);
 	cairo_set_source_surface(cairo, surface, 0, 0);
 	cairo_pattern_set_filter(cairo_get_source(cairo), CAIRO_FILTER_GOOD);

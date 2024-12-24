@@ -15,7 +15,6 @@
 #include "osd.h"
 #include "regions.h"
 #include "view.h"
-#include "window-rules.h"
 #include "workspaces.h"
 
 enum lab_key_handled {
@@ -364,8 +363,7 @@ get_keyinfo(struct wlr_keyboard *wlr_keyboard, uint32_t evdev_keycode)
 }
 
 static bool
-handle_key_release(struct server *server, uint32_t evdev_keycode,
-		bool is_modifier_key)
+handle_key_release(struct server *server, uint32_t evdev_keycode)
 {
 	/*
 	 * Release events for keys that were not bound should always be
@@ -388,33 +386,11 @@ handle_key_release(struct server *server, uint32_t evdev_keycode,
 		end_cycling(server);
 	}
 
-	key_state_bound_key_remove(evdev_keycode);
-
-	/*
-	 * There are some clients (for example blender) that want to see the
-	 * modifier-release-event even if it was part of a keybinds. This is
-	 * treated as a special case and can only be achieved by configuration.
-	 *
-	 * Most clients (including those using Qt and GTK) are setup to not see
-	 * these modifier release events - and actually misbehave if they do.
-	 * For example Firefox shows the menu bar if alt is pressed and then
-	 * released, whereas if only pressed (because the release is absorbed)
-	 * nothing happens. So, if Firefox saw bound modifier-release-events it
-	 * would show the menu bar every time the window-switcher is used with
-	 * alt-tab.
-	 */
-	struct view *view = server->active_view;
-	if (is_modifier_key && view) {
-		if (window_rules_get_property(view, "wantAbsorbedModifierReleaseEvents")
-				== LAB_PROP_TRUE) {
-			return false;
-		}
-	}
-
 	/*
 	 * If a press event was handled by a compositor binding, then do
 	 * not forward the corresponding release event to clients.
 	 */
+	key_state_bound_key_remove(evdev_keycode);
 	return true;
 }
 
@@ -527,17 +503,14 @@ miss_shift_toggle:
 
 static enum lab_key_handled
 handle_compositor_keybindings(struct keyboard *keyboard,
-		struct wlr_keyboard_key_event *event)
+		struct keyinfo *keyinfo, struct wlr_keyboard_key_event *event)
 {
 	struct seat *seat = keyboard->base.seat;
 	struct server *server = seat->server;
-	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
-	struct keyinfo keyinfo = get_keyinfo(wlr_keyboard, event->keycode);
 	bool locked = seat->server->session_lock_manager->locked;
 
 	key_state_set_pressed(event->keycode,
-		event->state == WL_KEYBOARD_KEY_STATE_PRESSED,
-		keyinfo.is_modifier);
+		event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
 
 	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 		if (cur_keybind && cur_keybind->on_release) {
@@ -549,13 +522,12 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 			actions_run(NULL, server, &cur_keybind->actions, NULL);
 			return true;
 		} else {
-			return handle_key_release(server, event->keycode,
-				keyinfo.is_modifier);
+			return handle_key_release(server, event->keycode);
 		}
 	}
 
 	/* Catch C-A-F1 to C-A-F12 to change tty */
-	if (handle_change_vt_key(server, keyboard, &keyinfo.translated)) {
+	if (handle_change_vt_key(server, keyboard, &keyinfo->translated)) {
 		key_state_store_pressed_key_as_bound(event->keycode);
 		return LAB_KEY_HANDLED_TRUE_AND_VT_CHANGED;
 	}
@@ -568,13 +540,13 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	if (!locked) {
 		if (server->input_mode == LAB_INPUT_STATE_MENU) {
 			key_state_store_pressed_key_as_bound(event->keycode);
-			handle_menu_keys(server, &keyinfo.translated);
+			handle_menu_keys(server, &keyinfo->translated);
 			return true;
 		}
 
 		if (server->osd_state.cycle_view) {
 			key_state_store_pressed_key_as_bound(event->keycode);
-			handle_cycle_view_key(server, &keyinfo);
+			handle_cycle_view_key(server, keyinfo);
 			return true;
 		}
 	}
@@ -582,7 +554,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	/*
 	 * Handle compositor keybinds
 	 */
-	cur_keybind = match_keybinding(server, &keyinfo, keyboard->is_virtual);
+	cur_keybind = match_keybinding(server, keyinfo, keyboard->is_virtual);
 	if (cur_keybind && (!locked || cur_keybind->allow_when_locked)) {
 		/*
 		 * Update key-state before action_run() because the action
@@ -611,8 +583,10 @@ handle_keybind_repeat(void *data)
 		.keycode = keyboard->keybind_repeat_keycode,
 		.state = WL_KEYBOARD_KEY_STATE_PRESSED
 	};
+	struct keyinfo keyinfo =
+		get_keyinfo(keyboard->wlr_keyboard, event.keycode);
 
-	handle_compositor_keybindings(keyboard, &event);
+	handle_compositor_keybindings(keyboard, &keyinfo, &event);
 	int next_repeat_ms = 1000 / keyboard->keybind_repeat_rate;
 	wl_event_source_timer_update(keyboard->keybind_repeat,
 		next_repeat_ms);
@@ -655,13 +629,15 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 	struct seat *seat = keyboard->base.seat;
 	struct wlr_keyboard_key_event *event = data;
 	struct wlr_seat *wlr_seat = seat->seat;
+	struct keyinfo keyinfo = get_keyinfo(keyboard->wlr_keyboard, event->keycode);
+
 	idle_manager_notify_activity(seat->seat);
 
 	/* any new press/release cancels current keybind repeat */
 	keyboard_cancel_keybind_repeat(keyboard);
 
 	enum lab_key_handled handled =
-		handle_compositor_keybindings(keyboard, event);
+		handle_compositor_keybindings(keyboard, &keyinfo, event);
 
 	if (handled == LAB_KEY_HANDLED_TRUE_AND_VT_CHANGED) {
 		return;
@@ -681,6 +657,7 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 		wlr_seat_set_keyboard(wlr_seat, keyboard->wlr_keyboard);
 		wlr_seat_keyboard_notify_key(wlr_seat, event->time_msec,
 			event->keycode, event->state);
+		seat->modifier_press_sent |= keyinfo.is_modifier;
 	}
 }
 

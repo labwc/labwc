@@ -1301,4 +1301,18 @@ actions_run(struct view *activator, struct server *server,
 				" This is a BUG. Please report.", action->type);
 		}
 	}
+
+	/*
+	 * We send wl_keyboard.{leave,enter} to the clint when we have sent
+	 * key-press events to it since the last wl_keyboard.leave event.
+	 * This prevents firefox to show its menu bar when a keybind with
+	 * Alt key is executed.
+	 */
+	struct seat *seat = &server->seat;
+	if (seat->modifier_press_sent) {
+		struct wlr_surface *focused_surface =
+			seat->seat->keyboard_state.focused_surface;
+		seat_focus_surface(seat, NULL);
+		seat_focus_surface(seat, focused_surface);
+	}
 }

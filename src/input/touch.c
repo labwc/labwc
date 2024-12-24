@@ -50,7 +50,7 @@ touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
 	/* Find the surface and return it if it accepts touch events */
 	struct wlr_surface *surface = lab_wlr_surface_from_node(node);
 
-	if (surface && !wlr_surface_accepts_touch(seat->seat, surface)) {
+	if (surface && !wlr_surface_accepts_touch(surface, seat->seat)) {
 		surface = NULL;
 	}
 	return surface;

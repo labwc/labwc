@@ -499,7 +499,10 @@ new_output_notify(struct wl_listener *listener, void *data)
 	wlr_scene_node_raise_to_top(&server->menu_tree->node);
 	wlr_scene_node_raise_to_top(&output->session_lock_tree->node);
 
-	configure_new_output(server, output);
+	if (rc.auto_enable_outputs) {
+		configure_new_output(server, output);
+	}
+
 	do_output_layout_change(server);
 }
 

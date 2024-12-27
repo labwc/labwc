@@ -1082,6 +1082,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_adaptive_sync_mode(content, &rc.adaptive_sync);
 	} else if (!strcasecmp(nodename, "allowTearing.core")) {
 		set_tearing_mode(content, &rc.allow_tearing);
+	} else if (!strcasecmp(nodename, "autoEnableOutputs.core")) {
+		set_bool(content, &rc.auto_enable_outputs);
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);
 	} else if (!strcmp(nodename, "policy.placement")) {
@@ -1467,6 +1469,7 @@ rcxml_init(void)
 	rc.gap = 0;
 	rc.adaptive_sync = LAB_ADAPTIVE_SYNC_DISABLED;
 	rc.allow_tearing = false;
+	rc.auto_enable_outputs = true;
 	rc.reuse_output_mode = false;
 
 #if LAB_WLR_VERSION_OLDER_THAN(0, 18, 2)

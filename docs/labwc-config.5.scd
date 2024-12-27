@@ -171,6 +171,7 @@ this is for compatibility with Openbox.
   <gap>0</gap>
   <adaptiveSync>no</adaptiveSync>
   <allowTearing>no</allowTearing>
+  <autoEnableOutputs>yes</autoEnableOutputs>
   <reuseOutputMode>no</reuseOutputMode>
   <xwaylandPersistence>yes</xwaylandPersistence>
 </core>
@@ -208,6 +209,14 @@ this is for compatibility with Openbox.
 	you experience undesirable side effects when tearing is allowed,
 	consider setting the environment variable WLR_DRM_NO_ATOMIC=1 when
 	launching labwc.
+
+*<core><autoEnableOutputs>* [yes|no]
+	Automatically enable outputs at startup and when new outputs are
+	connected. Default is yes.
+
+	Caution: Disabling this option will make the labwc session unusable
+	unless an external tool such as `wlr-randr` or `kanshi` is used to
+	manage outputs.
 
 *<core><reuseOutputMode>* [yes|no]
 	Try to re-use the existing output mode (resolution / refresh rate).

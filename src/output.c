@@ -565,8 +565,6 @@ output_config_apply(struct server *server,
 		struct output *output = output_from_wlr_output(server, o);
 		struct wlr_output_state *os = &output->pending;
 		bool output_enabled = head->state.enabled && !output->leased;
-		bool need_to_add = output_enabled && !o->enabled;
-		bool need_to_remove = !output_enabled && o->enabled;
 
 		wlr_output_state_set_enabled(os, output_enabled);
 		if (output_enabled) {
@@ -601,12 +599,19 @@ output_config_apply(struct server *server,
 			break;
 		}
 
-		/* Only do Layout specific actions if the commit went trough */
-		if (need_to_add) {
-			add_output_to_layout(server, output);
-		}
+		/*
+		 * Add or remove output from layout only if the commit went
+		 * through. Note that at startup, the output may have already
+		 * been enabled but not yet been added to the layout.
+		 */
+		bool was_in_layout =
+			!!wlr_output_layout_get(server->output_layout, o);
 
 		if (output_enabled) {
+			if (!was_in_layout) {
+				add_output_to_layout(server, output);
+			}
+
 			struct wlr_box pos = {0};
 			wlr_output_layout_get_box(server->output_layout, o, &pos);
 			if (pos.x != head->state.x || pos.y != head->state.y) {
@@ -618,9 +623,7 @@ output_config_apply(struct server *server,
 				wlr_output_layout_add(server->output_layout, o,
 					head->state.x, head->state.y);
 			}
-		}
-
-		if (need_to_remove) {
+		} else if (was_in_layout) {
 			regions_evacuate_output(output);
 
 			lab_cosmic_workspace_group_output_leave(

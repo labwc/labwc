@@ -68,6 +68,7 @@ struct rcxml {
 	int gap;
 	enum adaptive_sync_mode adaptive_sync;
 	enum tearing_mode allow_tearing;
+	bool auto_enable_outputs;
 	bool reuse_output_mode;
 	enum view_placement_policy placement_policy;
 	bool xwayland_persistence;

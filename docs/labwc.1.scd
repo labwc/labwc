@@ -39,7 +39,8 @@ the `--exit` and `--reconfigure` options use.
 	Specify a config directory
 
 *-d, --debug*
-	Enable full logging, including debug information
+	Enable full logging, including debug information. See *ENVIRONMENT
+	VARIABLES* section below for further options.
 
 *-e, --exit*
 	Exit the compositor by sending SIGTERM to `$LABWC_PID`
@@ -116,6 +117,32 @@ provide a means for properly un-setting variables in the activation environment,
 this is accomplished by setting the session variables to empty strings. For
 systemd, the command `systemctl --user unset-environment` will be invoked to
 actually remove the variables from the activation environment.
+
+# ENVIRONMENT VARIABLES
+
+Set the environment variables listed below to enable specific debug options.
+This can be done in either the *environment* file or on the command line, for
+example: *LABWC_DEBUG_FOO=1 labwc*.
+
+*LABWC_DEBUG_LIBSFDO*
+	Enable debug and info logging for libsfdo, for example for parsing of
+	.desktop files and searching for icons. Note that libsfdo error logging
+	is always enabled regardless of this environment variable but will only
+	be shown with the *-V|--version* option.
+
+*LABWC_DEBUG_DIR_CONFIG_AND_THEME*
+	Increase logging of paths for config files (for example rc.xml,
+	autostart, environment and menu.xml) as well as titlebar buttons.
+
+*LABWC_DEBUG_CONFIG_NODENAMES*++
+*LABWC_DEBUG_MENU_NODENAMES*
+	Enable logging of all nodenames (for example *policy.placement: Cascade*
+	for *<placement><policy>Cascade</policy></placement>*) for config and
+	menu files respectively.
+
+*LABWC_DEBUG_KEY_STATE*
+	Enable logging of press and release events for bound keys (generally
+	key-combinations like *Ctrl-Alt-t*)
 
 # SEE ALSO
 

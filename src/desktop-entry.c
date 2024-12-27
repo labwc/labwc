@@ -2,6 +2,7 @@
 #include <sfdo-desktop.h>
 #include <sfdo-icon.h>
 #include <sfdo-basedir.h>
+#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include <wlr/util/log.h>
@@ -13,6 +14,8 @@
 
 #include "labwc.h"
 
+static const char *debug_libsfdo;
+
 struct sfdo {
 	struct sfdo_desktop_ctx *desktop_ctx;
 	struct sfdo_icon_ctx *icon_ctx;
@@ -23,6 +26,23 @@ struct sfdo {
 static void
 log_handler(enum sfdo_log_level level, const char *fmt, va_list args, void *tag)
 {
+	/*
+	 * libsfdo info/debug logging is only provided when LABWC_DEBUG_LIBSFDO
+	 * is set to avoid disproportionately verbose logging by default for one
+	 * particularly sub-system.
+	 */
+	if (!debug_libsfdo && level > SFDO_LOG_LEVEL_ERROR) {
+		return;
+	}
+
+	/*
+	 * To avoid logging issues with .desktop files as errors, all libsfdo
+	 * error-logging is demoted to info level.
+	 */
+	if (level == SFDO_LOG_LEVEL_ERROR) {
+		level = SFDO_LOG_LEVEL_INFO;
+	}
+
 	/* add a prefix if the format length is reasonable */
 	char buf[256];
 	if (snprintf(buf, sizeof(buf), "[%s] %s", (const char *)tag, fmt)
@@ -37,6 +57,8 @@ void
 desktop_entry_init(struct server *server)
 {
 	struct sfdo *sfdo = znew(*sfdo);
+
+	debug_libsfdo = getenv("LABWC_DEBUG_LIBSFDO");
 
 	struct sfdo_basedir_ctx *basedir_ctx = sfdo_basedir_ctx_create();
 	if (!basedir_ctx) {

@@ -660,10 +660,10 @@ xdg_toplevel_view_get_string_prop(struct view *view, const char *prop)
 	}
 
 	if (!strcmp(prop, "title")) {
-		return xdg_toplevel->title;
+		return xdg_toplevel->title ? xdg_toplevel->title : "";
 	}
 	if (!strcmp(prop, "app_id")) {
-		return xdg_toplevel->app_id;
+		return xdg_toplevel->app_id ? xdg_toplevel->app_id : "";
 	}
 	return "";
 }

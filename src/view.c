@@ -2335,13 +2335,15 @@ view_has_strut_partial(struct view *view)
 		view->impl->has_strut_partial(view);
 }
 
+/* Note: It is safe to assume that this function never returns NULL */
 const char *
 view_get_string_prop(struct view *view, const char *prop)
 {
 	assert(view);
 	assert(prop);
 	if (view->impl->get_string_prop) {
-		return view->impl->get_string_prop(view, prop);
+		const char *ret = view->impl->get_string_prop(view, prop);
+		return ret ? ret : "";
 	}
 	return "";
 }

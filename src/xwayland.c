@@ -485,10 +485,10 @@ xwayland_view_get_string_prop(struct view *view, const char *prop)
 	}
 
 	if (!strcmp(prop, "title")) {
-		return xwayland_surface->title;
+		return xwayland_surface->title ? xwayland_surface->title : "";
 	}
 	if (!strcmp(prop, "class")) {
-		return xwayland_surface->class;
+		return xwayland_surface->class ? xwayland_surface->class : "";
 	}
 	/*
 	 * Use the WM_CLASS 'instance' (1st string) for the app_id. Per
@@ -500,7 +500,7 @@ xwayland_view_get_string_prop(struct view *view, const char *prop)
 	 * here since we use the app_id for icon lookups.
 	 */
 	if (!strcmp(prop, "app_id")) {
-		return xwayland_surface->instance;
+		return xwayland_surface->instance ? xwayland_surface->instance : "";
 	}
 	return "";
 }

@@ -614,7 +614,8 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 	}
 
 	if ((ctx.view || ctx.surface) && rc.focus_follow_mouse
-			&& !server->osd_state.cycle_view) {
+			&& server->input_mode
+				!= LAB_INPUT_STATE_WINDOW_SWITCHER) {
 		desktop_focus_view_or_surface(seat, ctx.view, ctx.surface,
 			rc.raise_on_focus);
 	}
@@ -655,7 +656,8 @@ _cursor_update_focus(struct server *server)
 
 	if ((ctx.view || ctx.surface) && rc.focus_follow_mouse
 			&& !rc.focus_follow_mouse_requires_movement
-			&& !server->osd_state.cycle_view) {
+			&& server->input_mode
+				!= LAB_INPUT_STATE_WINDOW_SWITCHER) {
 		/* Prevents changing keyboard focus during A-Tab */
 		desktop_focus_view_or_surface(&server->seat, ctx.view,
 			ctx.surface, rc.raise_on_focus);
@@ -901,7 +903,7 @@ static void
 handle_release_mousebinding(struct server *server,
 		struct cursor_context *ctx, uint32_t button)
 {
-	if (server->osd_state.cycle_view) {
+	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
 		return;
 	}
 
@@ -968,7 +970,7 @@ static bool
 handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 		uint32_t button)
 {
-	if (server->osd_state.cycle_view) {
+	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
 		return false;
 	}
 

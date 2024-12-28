@@ -1322,6 +1322,10 @@ menu_close(struct menu *menu)
 void
 menu_open_root(struct menu *menu, int x, int y)
 {
+	if (menu->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		return;
+	}
+
 	assert(menu);
 	if (menu->server->menu_current) {
 		menu_close(menu->server->menu_current);

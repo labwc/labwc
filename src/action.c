@@ -800,6 +800,10 @@ shift_is_pressed(struct server *server)
 static void
 start_window_cycling(struct server *server, enum lab_cycle_dir direction)
 {
+	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		return;
+	}
+
 	/* Remember direction so it can be followed by subsequent key presses */
 	server->osd_state.initial_direction = direction;
 	server->osd_state.initial_keybind_contained_shift =

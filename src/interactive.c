@@ -73,6 +73,8 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		return;
 	}
 
+	enum lab_cursors cursor_shape = LAB_CURSOR_DEFAULT;
+
 	switch (mode) {
 	case LAB_INPUT_STATE_MOVE:
 		if (view->fullscreen) {
@@ -96,7 +98,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
 		seat->region_prevent_snap = keyboard_any_modifiers_pressed(keyboard);
 
-		cursor_set(seat, LAB_CURSOR_GRAB);
+		cursor_shape = LAB_CURSOR_GRAB;
 		break;
 	case LAB_INPUT_STATE_RESIZE:
 		if (view->shaded || view->fullscreen ||
@@ -121,20 +123,21 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		 */
 		view_set_untiled(view);
 		view_restore_to(view, view->pending);
-		cursor_set(seat, cursor_get_from_edge(edges));
+		cursor_shape = cursor_get_from_edge(edges);
 		break;
 	default:
 		/* Should not be reached */
 		return;
 	}
 
-	server->input_mode = mode;
 	server->grabbed_view = view;
 	/* Remember view and cursor positions at start of move/resize */
 	server->grab_x = seat->cursor->x;
 	server->grab_y = seat->cursor->y;
 	server->grab_box = view->current;
 	server->resize_edges = edges;
+
+	seat_focus_override_begin(seat, mode, cursor_shape);
 
 	/*
 	 * Un-tile maximized/tiled view immediately if <unSnapThreshold> is
@@ -281,9 +284,8 @@ interactive_cancel(struct view *view)
 
 	resize_indicator_hide(view);
 
-	view->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 	view->server->grabbed_view = NULL;
 
-	/* Update focus/cursor image */
-	cursor_update_focus(view->server);
+	/* Restore keyboard/pointer focus */
+	seat_focus_override_end(&view->server->seat);
 }

@@ -806,6 +806,7 @@ start_window_cycling(struct server *server, enum lab_cycle_dir direction)
 		shift_is_pressed(server);
 	server->osd_state.cycle_view = desktop_cycle_view(server,
 		server->osd_state.cycle_view, direction);
+	server->input_mode = LAB_INPUT_STATE_WINDOW_SWITCHER;
 	osd_update(server);
 }
 

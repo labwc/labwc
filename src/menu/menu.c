@@ -1336,8 +1336,9 @@ menu_open_root(struct menu *menu, int x, int y)
 	menu_configure(menu, (struct wlr_box){.x = x, .y = y});
 	wlr_scene_node_set_enabled(&menu->scene_tree->node, true);
 	menu->server->menu_current = menu;
-	menu->server->input_mode = LAB_INPUT_STATE_MENU;
 	selected_item = NULL;
+	seat_focus_override_begin(&menu->server->seat,
+		LAB_INPUT_STATE_MENU, LAB_CURSOR_DEFAULT);
 }
 
 static void
@@ -1628,8 +1629,7 @@ menu_execute_item(struct menuitem *item)
 	 */
 	struct server *server = item->parent->server;
 	menu_close(server->menu_current);
-	server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
-	cursor_update_focus(server);
+	seat_focus_override_end(&server->seat);
 
 	/*
 	 * We call the actions after closing the menu so that virtual keyboard
@@ -1739,7 +1739,7 @@ menu_close_root(struct server *server)
 		server->menu_current = NULL;
 		destroy_pipemenus(server);
 	}
-	server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+	seat_focus_override_end(&server->seat);
 }
 
 void

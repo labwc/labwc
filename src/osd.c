@@ -105,7 +105,8 @@ osd_on_view_destroy(struct view *view)
 void
 osd_finish(struct server *server)
 {
-	server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+	seat_focus_override_end(&server->seat);
+
 	server->osd_state.preview_node = NULL;
 	server->osd_state.preview_anchor = NULL;
 

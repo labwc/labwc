@@ -69,15 +69,18 @@ keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard)
 static void
 end_cycling(struct server *server)
 {
-	osd_preview_restore(server);
-	if (server->osd_state.cycle_view) {
-		desktop_focus_view(server->osd_state.cycle_view,
-			/*raise*/ true);
+	should_cancel_cycling_on_next_key_release = false;
+
+	if (server->input_mode != LAB_INPUT_STATE_WINDOW_SWITCHER) {
+		return;
 	}
 
-	/* osd_finish() additionally resets cycle_view to NULL */
+	struct view *cycle_view = server->osd_state.cycle_view;
+	osd_preview_restore(server);
+	/* FIXME: osd_finish() transiently sets focus to the old surface */
 	osd_finish(server);
-	should_cancel_cycling_on_next_key_release = false;
+	/* Note that server->osd_state.cycle_view is cleared at this point */
+	desktop_focus_view(cycle_view, /*raise*/ true);
 }
 
 static struct wlr_seat_client *

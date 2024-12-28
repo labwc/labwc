@@ -116,6 +116,16 @@ struct seat {
 		double x, y;
 	} smooth_scroll_offset;
 
+	/*
+	 * The surface whose keyboard focus is temporarily cleared with
+	 * seat_focus_override_begin() and restored with
+	 * seat_focus_override_end().
+	 */
+	struct {
+		struct wlr_surface *surface;
+		struct wl_listener surface_destroy;
+	} focus_override;
+
 	struct wlr_pointer_constraint_v1 *current_constraint;
 
 	/* In support for ToggleKeybinds */
@@ -273,9 +283,13 @@ struct server {
 	 * 'active_view' is generally the view with keyboard-focus, updated with
 	 * each "focus change". This view is drawn with "active" SSD coloring.
 	 *
-	 * The exception is when a layer-shell client takes keyboard-focus in
-	 * which case the currently active view stays active. This is important
-	 * for foreign-toplevel protocol.
+	 * The exceptions are:
+	 * - when a layer-shell client takes keyboard-focus in which case the
+	 *   currently active view stays active
+	 * - when keyboard focus is temporarily cleared for server-side
+	 *   interactions like Move/Resize, window switcher and menus.
+	 *
+	 * Note that active_view is synced with foreign-toplevel clients.
 	 */
 	struct view *active_view;
 	/*
@@ -502,6 +516,20 @@ void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer)
 void seat_set_pressed(struct seat *seat, struct cursor_context *ctx);
 void seat_reset_pressed(struct seat *seat);
 void seat_output_layout_changed(struct seat *seat);
+
+/*
+ * Temporarily clear the pointer/keyboard focus from the client at the
+ * beginning of interactive move/resize, window switcher or menu interactions.
+ * The focus is kept cleared until seat_focus_override_end() is called or
+ * layer-shell/session-lock surfaces are mapped.
+ */
+void seat_focus_override_begin(struct seat *seat, enum input_mode input_mode,
+	enum lab_cursors cursor_shape);
+/*
+ * Restore the pointer/keyboard focus which was cleared in
+ * seat_focus_override_begin().
+ */
+void seat_focus_override_end(struct seat *seat);
 
 /**
  * interactive_anchor_to_cursor() - repositions the geometry to remain

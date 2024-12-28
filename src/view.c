@@ -2531,9 +2531,7 @@ view_destroy(struct view *view)
 
 	if (server->grabbed_view == view) {
 		/* Application got killed while moving around */
-		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
-		server->grabbed_view = NULL;
-		overlay_hide(&server->seat);
+		interactive_cancel(view);
 	}
 
 	if (server->active_view == view) {

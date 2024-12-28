@@ -496,7 +496,8 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		/*
 		 * Prevent updating focus/cursor image during
-		 * interactive move/resize
+		 * interactive move/resize, window switcher and
+		 * menu interaction.
 		 */
 		return false;
 	}
@@ -524,28 +525,9 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		 * cursor image will be set by request_cursor_notify()
 		 * in response to the enter event.
 		 */
-		bool has_focus = (ctx->surface ==
-			wlr_seat->pointer_state.focused_surface);
-
-		if (!has_focus || seat->server_cursor != LAB_CURSOR_CLIENT) {
-			/*
-			 * Enter the surface if necessary.  Usually we
-			 * prevent re-entering an already focused
-			 * surface, because the extra leave and enter
-			 * events can confuse clients (e.g. break
-			 * double-click detection).
-			 *
-			 * We do however send a leave/enter event pair
-			 * if a server-side cursor was set and we need
-			 * to trigger a cursor image update.
-			 */
-			if (has_focus) {
-				wlr_seat_pointer_notify_clear_focus(wlr_seat);
-			}
-			wlr_seat_pointer_notify_enter(wlr_seat, ctx->surface,
-				ctx->sx, ctx->sy);
-			seat->server_cursor = LAB_CURSOR_CLIENT;
-		}
+		wlr_seat_pointer_notify_enter(wlr_seat, ctx->surface,
+			ctx->sx, ctx->sy);
+		seat->server_cursor = LAB_CURSOR_CLIENT;
 		if (cursor_has_moved) {
 			*sx = ctx->sx;
 			*sy = ctx->sy;

@@ -133,10 +133,12 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 		overlay_update(seat);
 	}
 
-	if (server->osd_state.cycle_view
-			|| seat->workspace_osd_shown_by_modifier) {
+	bool window_switcher_active = server->input_mode
+					== LAB_INPUT_STATE_WINDOW_SWITCHER;
+
+	if (window_switcher_active || seat->workspace_osd_shown_by_modifier) {
 		if (!keyboard_any_modifiers_pressed(wlr_keyboard)) {
-			if (server->osd_state.cycle_view) {
+			if (window_switcher_active) {
 				if (key_state_nr_bound_keys()) {
 					should_cancel_cycling_on_next_key_release = true;
 				} else {
@@ -570,9 +572,7 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 			key_state_store_pressed_key_as_bound(event->keycode);
 			handle_menu_keys(server, &keyinfo.translated);
 			return true;
-		}
-
-		if (server->osd_state.cycle_view) {
+		} else if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
 			key_state_store_pressed_key_as_bound(event->keycode);
 			handle_cycle_view_key(server, &keyinfo);
 			return true;

@@ -60,7 +60,7 @@ osd_on_view_destroy(struct view *view)
 	assert(view);
 	struct osd_state *osd_state = &view->server->osd_state;
 
-	if (!osd_state->cycle_view) {
+	if (view->server->input_mode != LAB_INPUT_STATE_WINDOW_SWITCHER) {
 		/* OSD not active, no need for clean up */
 		return;
 	}

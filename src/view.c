@@ -2352,12 +2352,7 @@ void
 view_update_title(struct view *view)
 {
 	assert(view);
-	const char *title = view_get_string_prop(view, "title");
-	if (!title) {
-		return;
-	}
 	ssd_update_title(view->ssd);
-
 	wl_signal_emit_mutable(&view->events.new_title, NULL);
 }
 
@@ -2365,15 +2360,9 @@ void
 view_update_app_id(struct view *view)
 {
 	assert(view);
-	const char *app_id = view_get_string_prop(view, "app_id");
-	if (!app_id) {
-		return;
-	}
-
 	if (view->ssd_enabled) {
 		ssd_update_window_icon(view->ssd);
 	}
-
 	wl_signal_emit_mutable(&view->events.new_app_id, NULL);
 }
 

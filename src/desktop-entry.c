@@ -280,6 +280,10 @@ struct lab_img *
 desktop_entry_icon_lookup(struct server *server, const char *app_id, int size,
 		float scale)
 {
+	if (string_null_or_empty(app_id)) {
+		return NULL;
+	}
+
 	struct sfdo *sfdo = server->sfdo;
 	if (!sfdo) {
 		return NULL;
@@ -328,6 +332,10 @@ desktop_entry_icon_lookup(struct server *server, const char *app_id, int size,
 const char *
 desktop_entry_name_lookup(struct server *server, const char *app_id)
 {
+	if (string_null_or_empty(app_id)) {
+		return NULL;
+	}
+
 	struct sfdo *sfdo = server->sfdo;
 	if (!sfdo) {
 		return NULL;

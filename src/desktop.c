@@ -109,34 +109,6 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 }
 
 struct view *
-desktop_cycle_view(struct server *server, struct view *start_view,
-		enum lab_cycle_dir dir)
-{
-	struct view *(*iter)(struct wl_list *head, struct view *view,
-		enum lab_view_criteria criteria);
-	bool forwards = dir == LAB_CYCLE_DIR_FORWARD;
-	iter = forwards ? view_next_no_head_stop : view_prev_no_head_stop;
-
-	enum lab_view_criteria criteria = rc.window_switcher.criteria;
-
-	/*
-	 * Views are listed in stacking order, topmost first.  Usually the
-	 * topmost view is already focused, so when iterating in the forward
-	 * direction we pre-select the view second from the top:
-	 *
-	 *   View #1 (on top, currently focused)
-	 *   View #2 (pre-selected)
-	 *   View #3
-	 *   ...
-	 */
-	if (!start_view && forwards) {
-		start_view = iter(&server->views, NULL, criteria);
-	}
-
-	return iter(&server->views, start_view, criteria);
-}
-
-struct view *
 desktop_topmost_focusable_view(struct server *server)
 {
 	struct view *view;

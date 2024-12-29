@@ -128,6 +128,43 @@ restore_preview_node(struct server *server)
 	}
 }
 
+static bool
+shift_is_pressed(struct server *server)
+{
+	uint32_t modifiers = wlr_keyboard_get_modifiers(
+			&server->seat.keyboard_group->keyboard);
+	return modifiers & WLR_MODIFIER_SHIFT;
+}
+
+void
+osd_begin(struct server *server, enum lab_cycle_dir direction)
+{
+	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		return;
+	}
+
+	/* Remember direction so it can be followed by subsequent key presses */
+	server->osd_state.initial_direction = direction;
+	server->osd_state.initial_keybind_contained_shift =
+		shift_is_pressed(server);
+	server->osd_state.cycle_view = desktop_cycle_view(server,
+		server->osd_state.cycle_view, direction);
+
+	seat_focus_override_begin(&server->seat,
+		LAB_INPUT_STATE_WINDOW_SWITCHER, LAB_CURSOR_DEFAULT);
+	osd_update(server);
+}
+
+void
+osd_cycle(struct server *server, enum lab_cycle_dir direction)
+{
+	assert(server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER);
+
+	server->osd_state.cycle_view = desktop_cycle_view(server,
+		server->osd_state.cycle_view, direction);
+	osd_update(server);
+}
+
 void
 osd_finish(struct server *server)
 {

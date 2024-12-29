@@ -36,6 +36,13 @@ struct window_switcher_field {
 struct buf;
 struct view;
 struct server;
+enum lab_cycle_dir;
+
+/* Begin window switcher */
+void osd_begin(struct server *server, enum lab_cycle_dir direction);
+
+/* Cycle the selected view in the window switcher */
+void osd_cycle(struct server *server, enum lab_cycle_dir direction);
 
 /* Updates onscreen display 'alt-tab' buffer */
 void osd_update(struct server *server);

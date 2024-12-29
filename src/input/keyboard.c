@@ -497,10 +497,7 @@ handle_cycle_view_key(struct server *server, struct keyinfo *keyinfo)
 
 	/* Only one direction modifier is allowed, either arrow keys OR shift */
 miss_shift_toggle:
-
-		server->osd_state.cycle_view = desktop_cycle_view(server,
-			server->osd_state.cycle_view, direction);
-		osd_update(server);
+		osd_cycle(server, direction);
 	}
 }
 

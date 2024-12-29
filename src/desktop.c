@@ -112,9 +112,6 @@ struct view *
 desktop_cycle_view(struct server *server, struct view *start_view,
 		enum lab_cycle_dir dir)
 {
-	/* Make sure to have all nodes in their actual ordering */
-	osd_preview_restore(server);
-
 	struct view *(*iter)(struct wl_list *head, struct view *view,
 		enum lab_view_criteria criteria);
 	bool forwards = dir == LAB_CYCLE_DIR_FORWARD;

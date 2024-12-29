@@ -83,6 +83,11 @@ handle_new_app_id(struct wl_listener *listener, void *data)
 	assert(toplevel->wlr_toplevel.handle);
 
 	const char *app_id = view_get_string_prop(toplevel->view, "app_id");
+	const char *wlr_app_id = toplevel->wlr_toplevel.handle->app_id;
+	if (app_id && wlr_app_id && !strcmp(app_id, wlr_app_id)) {
+		/* Don't send app_id if they are the same */
+		return;
+	}
 	wlr_foreign_toplevel_handle_v1_set_app_id(toplevel->wlr_toplevel.handle, app_id);
 }
 
@@ -94,6 +99,11 @@ handle_new_title(struct wl_listener *listener, void *data)
 	assert(toplevel->wlr_toplevel.handle);
 
 	const char *title = view_get_string_prop(toplevel->view, "title");
+	const char *wlr_title = toplevel->wlr_toplevel.handle->title;
+	if (title && wlr_title && !strcmp(title, wlr_title)) {
+		/* Don't send title if they are the same */
+		return;
+	}
 	wlr_foreign_toplevel_handle_v1_set_title(toplevel->wlr_toplevel.handle, title);
 }
 
@@ -224,6 +234,12 @@ wlr_foreign_toplevel_init(struct foreign_toplevel *toplevel)
 			view_get_string_prop(view, "title"));
 		return;
 	}
+
+	/* These states may be set before the initial map */
+	handle_new_app_id(&wlr_toplevel->on_view.new_app_id, NULL);
+	handle_new_title(&wlr_toplevel->on_view.new_title, NULL);
+	handle_maximized(&wlr_toplevel->on_view.maximized, NULL);
+	handle_fullscreened(&wlr_toplevel->on_view.fullscreened, NULL);
 
 	/* Client side requests */
 	CONNECT_SIGNAL(wlr_toplevel->handle, &wlr_toplevel->on, request_maximize);

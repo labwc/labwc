@@ -76,7 +76,6 @@ end_cycling(struct server *server)
 	}
 
 	struct view *cycle_view = server->osd_state.cycle_view;
-	osd_preview_restore(server);
 	/* FIXME: osd_finish() transiently sets focus to the old surface */
 	osd_finish(server);
 	/* Note that server->osd_state.cycle_view is cleared at this point */
@@ -464,7 +463,6 @@ handle_cycle_view_key(struct server *server, struct keyinfo *keyinfo)
 	for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
 		if (keyinfo->translated.syms[i] == XKB_KEY_Escape) {
 			/* cancel view-cycle */
-			osd_preview_restore(server);
 			osd_finish(server);
 			return;
 		}

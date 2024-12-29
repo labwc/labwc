@@ -102,9 +102,36 @@ osd_on_view_destroy(struct view *view)
 	}
 }
 
+static void
+restore_preview_node(struct server *server)
+{
+	struct osd_state *osd_state = &server->osd_state;
+	if (osd_state->preview_node) {
+		wlr_scene_node_reparent(osd_state->preview_node,
+			osd_state->preview_parent);
+
+		if (osd_state->preview_anchor) {
+			wlr_scene_node_place_above(osd_state->preview_node,
+				osd_state->preview_anchor);
+		} else {
+			/* Selected view was the first node */
+			wlr_scene_node_lower_to_bottom(osd_state->preview_node);
+		}
+
+		/* Node was disabled / minimized before, disable again */
+		if (!osd_state->preview_was_enabled) {
+			wlr_scene_node_set_enabled(osd_state->preview_node, false);
+		}
+		osd_state->preview_node = NULL;
+		osd_state->preview_parent = NULL;
+		osd_state->preview_anchor = NULL;
+	}
+}
+
 void
 osd_finish(struct server *server)
 {
+	restore_preview_node(server);
 	seat_focus_override_end(&server->seat);
 
 	server->osd_state.preview_node = NULL;
@@ -134,32 +161,6 @@ osd_finish(struct server *server)
 	server->osd_state.cycle_view = NULL;
 }
 
-void
-osd_preview_restore(struct server *server)
-{
-	struct osd_state *osd_state = &server->osd_state;
-	if (osd_state->preview_node) {
-		wlr_scene_node_reparent(osd_state->preview_node,
-			osd_state->preview_parent);
-
-		if (osd_state->preview_anchor) {
-			wlr_scene_node_place_above(osd_state->preview_node,
-				osd_state->preview_anchor);
-		} else {
-			/* Selected view was the first node */
-			wlr_scene_node_lower_to_bottom(osd_state->preview_node);
-		}
-
-		/* Node was disabled / minimized before, disable again */
-		if (!osd_state->preview_was_enabled) {
-			wlr_scene_node_set_enabled(osd_state->preview_node, false);
-		}
-		osd_state->preview_node = NULL;
-		osd_state->preview_parent = NULL;
-		osd_state->preview_anchor = NULL;
-	}
-}
-
 static void
 preview_cycled_view(struct view *view)
 {
@@ -168,7 +169,7 @@ preview_cycled_view(struct view *view)
 	struct osd_state *osd_state = &view->server->osd_state;
 
 	/* Move previous selected node back to its original place */
-	osd_preview_restore(view->server);
+	restore_preview_node(view->server);
 
 	/* Store some pointers so we can reset the preview later on */
 	osd_state->preview_node = &view->scene_tree->node;

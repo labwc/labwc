@@ -789,33 +789,6 @@ run_if_action(struct view *view, struct server *server, struct action *action)
 	return !strcmp(branch, "then");
 }
 
-static bool
-shift_is_pressed(struct server *server)
-{
-	uint32_t modifiers = wlr_keyboard_get_modifiers(
-			&server->seat.keyboard_group->keyboard);
-	return modifiers & WLR_MODIFIER_SHIFT;
-}
-
-static void
-start_window_cycling(struct server *server, enum lab_cycle_dir direction)
-{
-	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
-		return;
-	}
-
-	/* Remember direction so it can be followed by subsequent key presses */
-	server->osd_state.initial_direction = direction;
-	server->osd_state.initial_keybind_contained_shift =
-		shift_is_pressed(server);
-	server->osd_state.cycle_view = desktop_cycle_view(server,
-		server->osd_state.cycle_view, direction);
-
-	seat_focus_override_begin(&server->seat,
-		LAB_INPUT_STATE_WINDOW_SWITCHER, LAB_CURSOR_DEFAULT);
-	osd_update(server);
-}
-
 static struct output *
 get_target_output(struct output *output, struct server *server,
 	struct action *action)
@@ -982,10 +955,10 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_NEXT_WINDOW:
-			start_window_cycling(server, LAB_CYCLE_DIR_FORWARD);
+			osd_begin(server, LAB_CYCLE_DIR_FORWARD);
 			break;
 		case ACTION_TYPE_PREVIOUS_WINDOW:
-			start_window_cycling(server, LAB_CYCLE_DIR_BACKWARD);
+			osd_begin(server, LAB_CYCLE_DIR_BACKWARD);
 			break;
 		case ACTION_TYPE_RECONFIGURE:
 			kill(getpid(), SIGHUP);

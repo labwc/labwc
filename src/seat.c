@@ -725,8 +725,7 @@ void
 seat_focus_surface(struct seat *seat, struct wlr_surface *surface)
 {
 	/* Don't update focus while window switcher, Move/Resize and menu interaction */
-	if (seat->server->osd_state.cycle_view || seat->server->input_mode
-			!= LAB_INPUT_STATE_PASSTHROUGH) {
+	if (seat->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		return;
 	}
 	seat_focus(seat, surface, /*replace_exclusive_layer*/ false,

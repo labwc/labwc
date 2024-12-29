@@ -1497,7 +1497,7 @@ rcxml_init(void)
 
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
-	rc.kb_numlock_enable = true;
+	rc.kb_numlock_enable = false;
 	rc.kb_layout_per_window = false;
 	rc.screen_edge_strength = 20;
 	rc.window_edge_strength = 20;

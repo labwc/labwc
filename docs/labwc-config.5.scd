@@ -565,7 +565,7 @@ extending outward from the snapped edge.
 
 *<keyboard><numlock>* [on|off]
 	When recognizing a new keyboard enable or disable Num Lock.
-	Default is on.
+	Default is off.
 
 *<keyboard layoutScope="">* [global|window]
 	Stores the keyboard layout either globally or per window and restores

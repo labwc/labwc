@@ -619,6 +619,19 @@ keyboard_cancel_keybind_repeat(struct keyboard *keyboard)
 	}
 }
 
+void
+keyboard_cancel_all_keybind_repeats(struct seat *seat)
+{
+	struct input *input;
+	struct keyboard *kb;
+	wl_list_for_each(input, &seat->inputs, link) {
+		if (input->wlr_input_device->type == WLR_INPUT_DEVICE_KEYBOARD) {
+			kb = wl_container_of(input, kb, base);
+			keyboard_cancel_keybind_repeat(kb);
+		}
+	}
+}
+
 static void
 keyboard_key_notify(struct wl_listener *listener, void *data)
 {

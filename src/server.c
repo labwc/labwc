@@ -28,15 +28,19 @@
 #include <wlr/xwayland.h>
 #include "xwayland-shell-v1-protocol.h"
 #endif
+
 #include "drm-lease-v1-protocol.h"
 #include "common/macros.h"
 #include "config/rcxml.h"
 #include "config/session.h"
 #include "decorations.h"
+
 #if HAVE_LIBSFDO
 #include "desktop-entry.h"
 #endif
+
 #include "idle.h"
+#include "input/keyboard.h"
 #include "labwc.h"
 #include "layers.h"
 #include "magnifier.h"
@@ -92,6 +96,7 @@ handle_sighup(int signal, void *data)
 {
 	struct server *server = data;
 
+	keyboard_cancel_all_keybind_repeats(&server->seat);
 	session_environment_init();
 	reload_config_and_theme(server);
 	output_virtual_update_fallback(server);

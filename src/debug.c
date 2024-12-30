@@ -70,7 +70,7 @@ get_view_part(struct view *view, struct wlr_scene_node *node)
 	}
 	if (node == &view->scene_tree->node) {
 		const char *app_id = view_get_string_prop(view, "app_id");
-		if (!string_null_or_empty(app_id)) {
+		if (string_null_or_empty(app_id)) {
 			return "view";
 		}
 		snprintf(view_name, sizeof(view_name), "view (%s)", app_id);

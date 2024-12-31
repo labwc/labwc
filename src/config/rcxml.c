@@ -49,7 +49,8 @@ struct parser_state {
 	bool in_touch;
 	bool in_libinput_category;
 	bool in_window_switcher_field;
-	bool in_window_rules;
+	bool in_window_rule;
+	bool in_action;
 	bool in_action_query;
 	bool in_action_then_branch;
 	bool in_action_else_branch;
@@ -60,14 +61,13 @@ struct parser_state {
 	struct touch_config_entry *current_touch;
 	struct libinput_category *current_libinput_category;
 	const char *current_mouse_context;
-	struct action *current_keybind_action;
-	struct action *current_mousebind_action;
 	struct region *current_region;
 	struct window_switcher_field *current_field;
 	struct window_rule *current_window_rule;
-	struct action *current_window_rule_action;
 	struct view_query *current_view_query;
-	struct action *current_child_action;
+	struct action *current_inline_action;
+	struct wl_list *current_action_siblings;
+	struct action *current_action;
 };
 
 /* for backword compatibility of <mouse><scrollFactor> */
@@ -267,8 +267,10 @@ static void
 fill_usable_area_override(char *nodename, char *content, struct parser_state *state)
 {
 	if (!strcasecmp(nodename, "margin")) {
-		state->current_usable_area_override = znew(*state->current_usable_area_override);
-		wl_list_append(&rc.usable_area_overrides, &state->current_usable_area_override->link);
+		state->current_usable_area_override =
+			znew(*state->current_usable_area_override);
+		wl_list_append(&rc.usable_area_overrides,
+				&state->current_usable_area_override->link);
 		return;
 	}
 	string_truncate_at_pattern(nodename, ".margin");
@@ -315,10 +317,14 @@ fill_window_rule(char *nodename, char *content, struct parser_state *state)
 		state->current_window_rule->window_type = -1; // Window types are >= 0
 		wl_list_append(&rc.window_rules, &state->current_window_rule->link);
 		wl_list_init(&state->current_window_rule->actions);
+		state->current_action = NULL;
+		state->current_action_siblings = &state->current_window_rule->actions;
+		state->current_inline_action = NULL;
 		return;
 	}
 
 	string_truncate_at_pattern(nodename, ".windowrule.windowrules");
+
 	if (!content) {
 		/* nop */
 	} else if (!state->current_window_rule) {
@@ -364,16 +370,16 @@ fill_window_rule(char *nodename, char *content, struct parser_state *state)
 
 	/* Actions */
 	} else if (!strcmp(nodename, "name.action")) {
-		state->current_window_rule_action = action_create(content);
-		if (state->current_window_rule_action) {
+		state->current_inline_action = action_create(content);
+		if (state->current_inline_action) {
 			wl_list_append(&state->current_window_rule->actions,
-				&state->current_window_rule_action->link);
+				&state->current_inline_action->link);
 		}
-	} else if (!state->current_window_rule_action) {
+	} else if (!state->current_inline_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else {
-		action_arg_from_xml_node(state->current_window_rule_action, nodename, content);
+		action_arg_from_xml_node(state->current_inline_action, nodename, content);
 	}
 }
 
@@ -435,15 +441,19 @@ fill_region(char *nodename, char *content, struct parser_state *state)
 }
 
 static void
-fill_action_query(char *nodename, char *content, struct action *action, struct parser_state *state)
+fill_action_query(char *nodename, char *content, struct parser_state *state)
 {
-	if (!action) {
+	if (!state->current_action) {
 		wlr_log(WLR_ERROR, "No parent action for query: %s=%s", nodename, content);
 		return;
 	}
 
+	string_truncate_at_pattern(nodename, ".windowrule.windowrules");
 	string_truncate_at_pattern(nodename, ".keybind.keyboard");
 	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
+	string_truncate_at_pattern(nodename, ".then.action");
+	string_truncate_at_pattern(nodename, ".else.action");
+	string_truncate_at_pattern(nodename, ".none.action");
 
 	if (!strcasecmp(nodename, "query.action")) {
 		state->current_view_query = NULL;
@@ -456,10 +466,10 @@ fill_action_query(char *nodename, char *content, struct action *action, struct p
 	}
 
 	if (!state->current_view_query) {
-		struct wl_list *queries = action_get_querylist(action, "query");
+		struct wl_list *queries = action_get_querylist(state->current_action, "query");
 		if (!queries) {
-			action_arg_add_querylist(action, "query");
-			queries = action_get_querylist(action, "query");
+			action_arg_add_querylist(state->current_action, "query");
+			queries = action_get_querylist(state->current_action, "query");
 		}
 		state->current_view_query = view_query_create();
 		wl_list_append(queries, &state->current_view_query->link);
@@ -499,14 +509,9 @@ fill_action_query(char *nodename, char *content, struct action *action, struct p
 }
 
 static void
-fill_child_action(char *nodename, char *content, struct action *parent,
-	const char *branch_name, struct parser_state *state)
+fill_action(char *nodename, char *content,  struct parser_state *state)
 {
-	if (!parent) {
-		wlr_log(WLR_ERROR, "No parent action for branch: %s=%s", nodename, content);
-		return;
-	}
-
+	string_truncate_at_pattern(nodename, ".windowrule.windowrules");
 	string_truncate_at_pattern(nodename, ".keybind.keyboard");
 	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
 	string_truncate_at_pattern(nodename, ".then.action");
@@ -514,33 +519,60 @@ fill_child_action(char *nodename, char *content, struct action *parent,
 	string_truncate_at_pattern(nodename, ".none.action");
 
 	if (!strcasecmp(nodename, "action")) {
-		state->current_child_action = NULL;
-	}
-
-	if (!content) {
 		return;
-	}
-
-	struct wl_list *siblings = action_get_actionlist(parent, branch_name);
-	if (!siblings) {
-		action_arg_add_actionlist(parent, branch_name);
-		siblings = action_get_actionlist(parent, branch_name);
-	}
-
-	if (!strcasecmp(nodename, "name.action")) {
-		if (!strcasecmp(content, "If") || !strcasecmp(content, "ForEach")) {
-			wlr_log(WLR_ERROR, "action '%s' cannot be a child action", content);
-			return;
+	} else if (!strcmp(nodename, "name.action")) {
+		state->current_action = action_create(content);
+		if (state->current_action) {
+			wl_list_append(state->current_action_siblings,
+					&state->current_action->link);
 		}
-		state->current_child_action = action_create(content);
-		if (state->current_child_action) {
-			wl_list_append(siblings, &state->current_child_action->link);
-		}
-	} else if (!state->current_child_action) {
+	} else if (!state->current_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else {
-		action_arg_from_xml_node(state->current_child_action, nodename, content);
+		action_arg_from_xml_node(state->current_action, nodename, content);
+	}
+}
+
+static void
+fill_child_action(char *nodename, char *content, struct parser_state *state,
+	const char *branch_name)
+{
+	string_truncate_at_pattern(nodename, ".windowrule.windowrules");
+	string_truncate_at_pattern(nodename, ".keybind.keyboard");
+	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
+	string_truncate_at_pattern(nodename, ".then.action");
+	string_truncate_at_pattern(nodename, ".else.action");
+	string_truncate_at_pattern(nodename, ".none.action");
+
+	if (!state->current_action) {
+		wlr_log(WLR_ERROR, "No parent action for branch: %s=%s", nodename, content);
+		return;
+	}
+
+	struct wl_list *siblings = action_get_actionlist(state->current_action, branch_name);
+	if (!siblings) {
+		action_arg_add_actionlist(state->current_action, branch_name);
+		siblings = action_get_actionlist(state->current_action, branch_name);
+	}
+	state->current_action_siblings = siblings;
+
+	if (!content) {
+		state->current_inline_action = NULL;
+		return;
+	}
+
+	if (!strcasecmp(nodename, "name.action")) {
+		state->current_inline_action = action_create(content);
+		if (state->current_inline_action) {
+			wl_list_append(state->current_action_siblings,
+					&state->current_inline_action->link);
+		}
+	} else if (!state->current_inline_action) {
+		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
+			"nodename: '%s' content: '%s'", nodename, content);
+	} else {
+		action_arg_from_xml_node(state->current_inline_action, nodename, content);
 	}
 }
 
@@ -550,10 +582,10 @@ fill_keybind(char *nodename, char *content, struct parser_state *state)
 	if (!content) {
 		return;
 	}
+
 	string_truncate_at_pattern(nodename, ".keybind.keyboard");
 	if (!strcmp(nodename, "key")) {
 		state->current_keybind = keybind_create(content);
-		state->current_keybind_action = NULL;
 		/*
 		 * If an invalid keybind has been provided,
 		 * keybind_create() complains.
@@ -562,6 +594,9 @@ fill_keybind(char *nodename, char *content, struct parser_state *state)
 			wlr_log(WLR_ERROR, "Invalid keybind: %s", content);
 			return;
 		}
+		state->current_action = NULL;
+		state->current_action_siblings = &state->current_keybind->actions;
+		state->current_inline_action = NULL;
 	} else if (!state->current_keybind) {
 		wlr_log(WLR_ERROR, "expect <keybind key=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
@@ -572,12 +607,12 @@ fill_keybind(char *nodename, char *content, struct parser_state *state)
 	} else if (!strcasecmp(nodename, "allowWhenLocked")) {
 		set_bool(content, &state->current_keybind->allow_when_locked);
 	} else if (!strcmp(nodename, "name.action")) {
-		state->current_keybind_action = action_create(content);
-		if (state->current_keybind_action) {
+		state->current_inline_action = action_create(content);
+		if (state->current_inline_action) {
 			wl_list_append(&state->current_keybind->actions,
-				&state->current_keybind_action->link);
+					&state->current_inline_action->link);
 		}
-	} else if (!state->current_keybind_action) {
+	} else if (!state->current_inline_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else {
@@ -586,7 +621,7 @@ fill_keybind(char *nodename, char *content, struct parser_state *state)
 		 * <region>, <direction> and so on. This is common to key- and
 		 * mousebinds.
 		 */
-		action_arg_from_xml_node(state->current_keybind_action, nodename, content);
+		action_arg_from_xml_node(state->current_inline_action, nodename, content);
 	}
 }
 
@@ -610,7 +645,13 @@ fill_mousebind(char *nodename, char *content, struct parser_state *state)
 		wlr_log(WLR_INFO, "create mousebind for %s",
 			state->current_mouse_context);
 		state->current_mousebind = mousebind_create(state->current_mouse_context);
-		state->current_mousebind_action = NULL;
+		if (!state->current_mousebind) {
+			wlr_log(WLR_ERROR, "Invalid mousebind: %s", content);
+			return;
+		}
+		state->current_action = NULL;
+		state->current_action_siblings = &state->current_mousebind->actions;
+		state->current_inline_action = NULL;
 		return;
 	} else if (!content) {
 		return;
@@ -632,16 +673,16 @@ fill_mousebind(char *nodename, char *content, struct parser_state *state)
 		state->current_mousebind->mouse_event =
 			mousebind_event_from_str(content);
 	} else if (!strcmp(nodename, "name.action")) {
-		state->current_mousebind_action = action_create(content);
-		if (state->current_mousebind_action) {
+		state->current_inline_action = action_create(content);
+		if (state->current_inline_action) {
 			wl_list_append(&state->current_mousebind->actions,
-				&state->current_mousebind_action->link);
+					&state->current_inline_action->link);
 		}
-	} else if (!state->current_mousebind_action) {
+	} else if (!state->current_inline_action) {
 		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else {
-		action_arg_from_xml_node(state->current_mousebind_action, nodename, content);
+		action_arg_from_xml_node(state->current_inline_action, nodename, content);
 	}
 }
 
@@ -978,7 +1019,7 @@ entry(xmlNode *node, struct parser_state *state)
 
 	static char buffer[256];
 	char *name = nodename(node, buffer, sizeof(buffer));
-	char *content = (char*)node->content;
+	char *content = (char *)node->content;
 
 	if (!name) {
 		return;
@@ -993,40 +1034,29 @@ entry(xmlNode *node, struct parser_state *state)
 	if (state->in_usable_area_override) {
 		fill_usable_area_override(name, content, state);
 	}
-	if (state->in_keybind) {
+
+	if ((state->in_keybind || state->in_mousebind ||
+		state->in_window_rule) && state->in_action) {
 		if (state->in_action_query) {
-			fill_action_query(name, content,
-				state->current_keybind_action, state);
+			fill_action_query(name, content, state);
 		} else if (state->in_action_then_branch) {
-			fill_child_action(name, content,
-				state->current_keybind_action, "then", state);
+			fill_child_action(name, content, state, "then");
 		} else if (state->in_action_else_branch) {
-			fill_child_action(name, content,
-				state->current_keybind_action, "else", state);
+			fill_child_action(name, content, state, "else");
 		} else if (state->in_action_none_branch) {
-			fill_child_action(name, content,
-				state->current_keybind_action, "none", state);
+			fill_child_action(name, content, state, "none");
 		} else {
-			fill_keybind(name, content, state);
+			fill_action(name, content, state);
 		}
+		return;
+	} else if (state->in_keybind) {
+		fill_keybind(name, content, state);
+		return;
+	} else if (state->in_mousebind) {
+		fill_mousebind(name, content, state);
+		return;
 	}
-	if (state->in_mousebind) {
-		if (state->in_action_query) {
-			fill_action_query(name, content,
-				state->current_mousebind_action, state);
-		} else if (state->in_action_then_branch) {
-			fill_child_action(name, content,
-				state->current_mousebind_action, "then", state);
-		} else if (state->in_action_else_branch) {
-			fill_child_action(name, content,
-				state->current_mousebind_action, "else", state);
-		} else if (state->in_action_none_branch) {
-			fill_child_action(name, content,
-				state->current_mousebind_action, "none", state);
-		} else {
-			fill_mousebind(name, content, state);
-		}
-	}
+
 	if (state->in_touch) {
 		fill_touch(name, content, state);
 		return;
@@ -1043,7 +1073,7 @@ entry(xmlNode *node, struct parser_state *state)
 		fill_window_switcher_field(name, content, state);
 		return;
 	}
-	if (state->in_window_rules) {
+	if (state->in_window_rule) {
 		fill_window_rule(name, content, state);
 		return;
 	}
@@ -1371,10 +1401,22 @@ xml_tree_walk(xmlNode *node, struct parser_state *state)
 			state->in_window_switcher_field = false;
 			continue;
 		}
-		if (!strcasecmp((char *)n->name, "windowRules")) {
-			state->in_window_rules = true;
+		if (!strcasecmp((char *)n->name, "windowRule")) {
+			state->in_window_rule = true;
 			traverse(n, state);
-			state->in_window_rules = false;
+			state->in_window_rule = false;
+			continue;
+		}
+		if (!strcasecmp((char *)n->name, "action")) {
+			struct parser_state new_state = *state;
+			new_state.current_action = NULL;
+			new_state.current_view_query = NULL;
+			new_state.in_action = true;
+			new_state.in_action_query = false;
+			new_state.in_action_then_branch = false;
+			new_state.in_action_else_branch = false;
+			new_state.in_action_none_branch = false;
+			traverse(n, &new_state);
 			continue;
 		}
 		if (!strcasecmp((char *)n->name, "query")) {

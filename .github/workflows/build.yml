@@ -71,7 +71,7 @@ jobs:
           pacman -Syu --noconfirm
           pacman -S --noconfirm git meson clang wlroots libdrm libinput \
             wayland-protocols cairo pango libxml2 xorg-xwayland librsvg \
-            libdisplay-info gdb ttf-dejavu foot
+            libdisplay-info gdb ttf-dejavu foot libsfdo
 
       - name: Install Debian Testing dependencies
         if: matrix.name == 'Debian'
@@ -181,8 +181,19 @@ jobs:
             meson compile -C build-clang-release
           ' | $TARGET
 
-      # Runtime tests, these run on Arch and Void only (the later due to libmusl being used)
+      # Non-feature build, run on Arch only
+      - name: Build with gcc - no-feature test
+        if: matrix.name == 'Arch'
+        run: |
+          echo '
+            cd "$GITHUB_WORKSPACE"
+            export CC=gcc
+            meson setup build-gcc-no-feature -Dxwayland=disabled \
+              -Dicon=disabled -Dsvg=disabled --werror
+            meson compile -C build-gcc-no-feature
+          ' | $TARGET
 
+      # Runtime tests, these run on Arch and Void only (the later due to libmusl being used)
       - name: Build with gcc - runtime test
         if: matrix.name == 'Arch'
         run: |

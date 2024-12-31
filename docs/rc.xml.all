@@ -229,7 +229,10 @@
     your favourite terminal or application launcher. See rc.xml for an example.
   -->
   <keyboard>
-    <numlock>off</numlock>
+    <!--
+      # Numlock is not set by default
+      <numlock>on|off</numlock>
+    -->
     <layoutScope>global</layoutScope>
     <repeatRate>25</repeatRate>
     <repeatDelay>600</repeatDelay>

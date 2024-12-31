@@ -160,14 +160,6 @@ restore_preview_node(struct server *server)
 	}
 }
 
-static bool
-shift_is_pressed(struct server *server)
-{
-	uint32_t modifiers = wlr_keyboard_get_modifiers(
-			&server->seat.keyboard_group->keyboard);
-	return modifiers & WLR_MODIFIER_SHIFT;
-}
-
 void
 osd_begin(struct server *server, enum lab_cycle_dir direction)
 {
@@ -175,10 +167,6 @@ osd_begin(struct server *server, enum lab_cycle_dir direction)
 		return;
 	}
 
-	/* Remember direction so it can be followed by subsequent key presses */
-	server->osd_state.initial_direction = direction;
-	server->osd_state.initial_keybind_contained_shift =
-		shift_is_pressed(server);
 	server->osd_state.cycle_view = get_next_cycle_view(server,
 		server->osd_state.cycle_view, direction);
 

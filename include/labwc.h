@@ -387,8 +387,6 @@ struct server {
 		struct wlr_scene_tree *preview_parent;
 		struct wlr_scene_node *preview_anchor;
 		struct multi_rect *preview_outline;
-		enum lab_cycle_dir initial_direction;
-		bool initial_keybind_contained_shift;
 	} osd_state;
 
 	struct theme *theme;

@@ -195,10 +195,10 @@ lab_img_render(struct lab_img *img, int width, int height, int padding,
 	return buffer;
 }
 
-void
-lab_img_destroy(struct lab_img *img)
+static void
+consider_destroy_img(struct lab_img *img)
 {
-	if (!img) {
+	if (!img->dropped || img->nr_locks > 0) {
 		return;
 	}
 
@@ -219,4 +219,29 @@ lab_img_destroy(struct lab_img *img)
 
 	wl_array_release(&img->modifiers);
 	free(img);
+}
+
+void
+lab_img_lock(struct lab_img *img)
+{
+	assert(img);
+	img->nr_locks++;
+}
+
+void
+lab_img_unlock(struct lab_img *img)
+{
+	assert(img);
+	img->nr_locks--;
+	consider_destroy_img(img);
+}
+
+void
+lab_img_drop(struct lab_img *img)
+{
+	if (!img) {
+		return;
+	}
+	img->dropped = true;
+	consider_destroy_img(img);
 }

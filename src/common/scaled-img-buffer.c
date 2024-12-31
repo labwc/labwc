@@ -26,6 +26,7 @@ static void
 _destroy(struct scaled_scene_buffer *scaled_buffer)
 {
 	struct scaled_img_buffer *self = scaled_buffer->data;
+	lab_img_unlock(self->img);
 	free(self);
 }
 
@@ -57,6 +58,7 @@ scaled_img_buffer_create(struct wlr_scene_tree *parent, struct lab_img *img,
 	struct scaled_img_buffer *self = znew(*self);
 	self->scaled_buffer = scaled_buffer;
 	self->scene_buffer = scaled_buffer->scene_buffer;
+	lab_img_lock(img);
 	self->img = img;
 	self->width = width;
 	self->height = height;
@@ -73,6 +75,8 @@ void
 scaled_img_buffer_update(struct scaled_img_buffer *self, struct lab_img *img,
 	int width, int height, int padding)
 {
+	lab_img_unlock(self->img);
+	lab_img_lock(img);
 	self->img = img;
 	self->width = width;
 	self->height = height;

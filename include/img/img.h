@@ -3,6 +3,7 @@
 #define LABWC_IMG_H
 
 #include <cairo.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <wayland-util.h>
 
@@ -19,6 +20,9 @@ struct lab_img {
 	struct theme *theme; /* Used by modifier functions */
 	struct wl_array modifiers; /* lab_img_modifier_func_t */
 	struct lab_img_cache *cache;
+
+	bool dropped;
+	int nr_locks;
 };
 
 struct lab_img *lab_img_load(enum lab_img_type type, const char *path,
@@ -69,10 +73,9 @@ void lab_img_add_modifier(struct lab_img *img, lab_img_modifier_func_t modifier,
 struct lab_data_buffer *lab_img_render(struct lab_img *img,
 	int width, int height, int padding, double scale);
 
-/**
- * lab_img_destroy() - destroy lab_img
- * @img: lab_img to destroy
- */
-void lab_img_destroy(struct lab_img *img);
+/* These functions closely follow the APIs of wlr_buffer */
+void lab_img_lock(struct lab_img *img);
+void lab_img_unlock(struct lab_img *img);
+void lab_img_drop(struct lab_img *img);
 
 #endif /* LABWC_IMG_H */

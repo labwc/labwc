@@ -637,10 +637,11 @@ _cursor_update_focus(struct server *server)
 	struct cursor_context ctx = get_cursor_context(server);
 
 	if ((ctx.view || ctx.surface) && rc.focus_follow_mouse
-			&& !rc.focus_follow_mouse_requires_movement
-			&& server->input_mode
-				!= LAB_INPUT_STATE_WINDOW_SWITCHER) {
-		/* Prevents changing keyboard focus during A-Tab */
+			&& !rc.focus_follow_mouse_requires_movement) {
+		/*
+		 * Always focus the surface below the cursor when
+		 * followMouse=yes and followMouseRequiresMovement=no.
+		 */
 		desktop_focus_view_or_surface(&server->seat, ctx.view,
 			ctx.surface, rc.raise_on_focus);
 	}

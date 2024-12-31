@@ -13,6 +13,9 @@ static struct key_combos {
 		.binding = "A-Tab",
 		.action = "NextWindow",
 	}, {
+		.binding = "A-S-Tab",
+		.action = "PreviousWindow",
+	}, {
 		.binding = "W-Return",
 		.action = "Execute",
 		.attributes[0] = {

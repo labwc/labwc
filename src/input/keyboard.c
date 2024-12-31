@@ -6,6 +6,7 @@
 #include <wlr/backend/session.h>
 #include <wlr/interfaces/wlr_keyboard.h>
 #include "action.h"
+#include "common/three-state.h"
 #include "idle.h"
 #include "input/ime.h"
 #include "input/keyboard.h"
@@ -672,6 +673,10 @@ keyboard_key_notify(struct wl_listener *listener, void *data)
 void
 keyboard_set_numlock(struct wlr_keyboard *keyboard)
 {
+	if (rc.kb_numlock_enable == LAB_STATE_UNSPECIFIED) {
+		return;
+	}
+
 	xkb_mod_index_t num_idx =
 		xkb_map_mod_get_index(keyboard->keymap, XKB_MOD_NAME_NUM);
 	if (num_idx == XKB_MOD_INVALID) {
@@ -680,9 +685,9 @@ keyboard_set_numlock(struct wlr_keyboard *keyboard)
 	}
 
 	xkb_mod_mask_t locked = keyboard->modifiers.locked;
-	if (rc.kb_numlock_enable) {
+	if (rc.kb_numlock_enable == LAB_STATE_ENABLED) {
 		locked |= (xkb_mod_mask_t)1 << num_idx;
-	} else {
+	} else if (rc.kb_numlock_enable == LAB_STATE_DISABLED) {
 		locked &= ~((xkb_mod_mask_t)1 << num_idx);
 	}
 

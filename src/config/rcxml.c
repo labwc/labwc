@@ -24,6 +24,7 @@
 #include "common/parse-bool.h"
 #include "common/parse-double.h"
 #include "common/string-helpers.h"
+#include "common/three-state.h"
 #include "config/default-bindings.h"
 #include "config/keybind.h"
 #include "config/libinput.h"
@@ -1150,7 +1151,10 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "repeatDelay.keyboard")) {
 		rc.repeat_delay = atoi(content);
 	} else if (!strcasecmp(nodename, "numlock.keyboard")) {
-		set_bool(content, &rc.kb_numlock_enable);
+		bool value;
+		set_bool(content, &value);
+		rc.kb_numlock_enable = value ? LAB_STATE_ENABLED
+			: LAB_STATE_DISABLED;
 	} else if (!strcasecmp(nodename, "layoutScope.keyboard")) {
 		/*
 		 * This can be changed to an enum later on
@@ -1497,7 +1501,7 @@ rcxml_init(void)
 
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;
-	rc.kb_numlock_enable = false;
+	rc.kb_numlock_enable = LAB_STATE_UNSPECIFIED;
 	rc.kb_layout_per_window = false;
 	rc.screen_edge_strength = 20;
 	rc.window_edge_strength = 20;

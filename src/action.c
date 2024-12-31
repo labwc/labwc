@@ -955,10 +955,18 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_NEXT_WINDOW:
-			osd_begin(server, LAB_CYCLE_DIR_FORWARD);
+			if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
+				osd_cycle(server, LAB_CYCLE_DIR_FORWARD);
+			} else {
+				osd_begin(server, LAB_CYCLE_DIR_FORWARD);
+			}
 			break;
 		case ACTION_TYPE_PREVIOUS_WINDOW:
-			osd_begin(server, LAB_CYCLE_DIR_BACKWARD);
+			if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
+				osd_cycle(server, LAB_CYCLE_DIR_BACKWARD);
+			} else {
+				osd_begin(server, LAB_CYCLE_DIR_BACKWARD);
+			}
 			break;
 		case ACTION_TYPE_RECONFIGURE:
 			kill(getpid(), SIGHUP);

@@ -447,58 +447,35 @@ handle_menu_keys(struct server *server, struct keysyms *syms)
 	}
 }
 
-static void
-toggle_direction(enum lab_cycle_dir *direction)
-{
-	if (*direction == LAB_CYCLE_DIR_FORWARD) {
-		*direction = LAB_CYCLE_DIR_BACKWARD;
-	} else if (*direction == LAB_CYCLE_DIR_BACKWARD) {
-		*direction = LAB_CYCLE_DIR_FORWARD;
-	}
-}
-
-static void
+/* Returns true if the keystroke is consumed */
+static bool
 handle_cycle_view_key(struct server *server, struct keyinfo *keyinfo)
 {
-	for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
-		if (keyinfo->translated.syms[i] == XKB_KEY_Escape) {
-			/* cancel view-cycle */
-			osd_finish(server);
-			return;
-		}
+	if (keyinfo->is_modifier) {
+		return false;
 	}
 
 	/* cycle to next */
-	if (!keyinfo->is_modifier) {
-		enum lab_cycle_dir direction = server->osd_state.initial_direction;
-		for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
-			if (keyinfo->translated.syms[i] == XKB_KEY_Up
-					|| keyinfo->translated.syms[i] == XKB_KEY_Left) {
-				direction = LAB_CYCLE_DIR_BACKWARD;
-				goto miss_shift_toggle;
-			}
-			if (keyinfo->translated.syms[i] == XKB_KEY_Down
-					|| keyinfo->translated.syms[i] == XKB_KEY_Right) {
-				direction = LAB_CYCLE_DIR_FORWARD;
-				goto miss_shift_toggle;
-			}
+	for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
+		if (keyinfo->translated.syms[i] == XKB_KEY_Escape) {
+			/* Esc deactivates window switcher */
+			osd_finish(server);
+			return true;
 		}
-
-		bool shift_is_pressed = keyinfo->modifiers & WLR_MODIFIER_SHIFT;
-		if (shift_is_pressed != server->osd_state.initial_keybind_contained_shift) {
-			/*
-			 * Shift reverses the direction - unless shift was part of the
-			 * original keybind in which case we do the opposite.
-			 * For example with S-A-Tab bound to PreviousWindow, shift with
-			 * subsequent key presses should carry on cycling backwards.
-			 */
-			toggle_direction(&direction);
+		if (keyinfo->translated.syms[i] == XKB_KEY_Up
+				|| keyinfo->translated.syms[i] == XKB_KEY_Left) {
+			/* Up/Left cycles the window backward */
+			osd_cycle(server, LAB_CYCLE_DIR_BACKWARD);
+			return true;
 		}
-
-	/* Only one direction modifier is allowed, either arrow keys OR shift */
-miss_shift_toggle:
-		osd_cycle(server, direction);
+		if (keyinfo->translated.syms[i] == XKB_KEY_Down
+				|| keyinfo->translated.syms[i] == XKB_KEY_Right) {
+			/* Down/Right cycles the window forward */
+			osd_cycle(server, LAB_CYCLE_DIR_FORWARD);
+			return true;
+		}
 	}
+	return false;
 }
 
 static enum lab_key_handled
@@ -545,9 +522,10 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 			handle_menu_keys(server, &keyinfo.translated);
 			return true;
 		} else if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-			key_state_store_pressed_key_as_bound(event->keycode);
-			handle_cycle_view_key(server, &keyinfo);
-			return true;
+			if (handle_cycle_view_key(server, &keyinfo)) {
+				key_state_store_pressed_key_as_bound(event->keycode);
+				return true;
+			}
 		}
 	}
 

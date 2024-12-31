@@ -117,8 +117,6 @@ Actions are used in menus and keyboard/mouse bindings.
 	Cycle focus to next/previous window respectively.++
 	Default keybind for NextWindow is Alt-Tab.
 
-	The shift key is used to reverse direction while cycling.
-
 	The arrow keys are used to move forwards/backwards while cycling.
 
 *<action name="Reconfigure" />*

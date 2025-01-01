@@ -293,6 +293,7 @@ add_output_to_layout(struct server *server, struct output *output)
 static bool
 output_test_auto(struct wlr_output *wlr_output, struct wlr_output_state *state)
 {
+	wlr_log(WLR_DEBUG, "testing modes for %s", wlr_output->name);
 	/*
 	 * If a specific mode is requested, test only that mode. Here we
 	 * interpret a custom_mode of all zeroes as "none/any"; this is
@@ -302,6 +303,16 @@ output_test_auto(struct wlr_output *wlr_output, struct wlr_output_state *state)
 	 */
 	if (state->mode || state->custom_mode.width || state->custom_mode.height
 			|| state->custom_mode.refresh) {
+		if (state->mode) {
+			wlr_log(WLR_DEBUG, "testing requested mode %dx%d@%d",
+				state->mode->width, state->mode->height,
+				state->mode->refresh);
+		} else {
+			wlr_log(WLR_DEBUG, "testing custom mode %dx%d@%d",
+				state->custom_mode.width,
+				state->custom_mode.height,
+				state->custom_mode.refresh);
+		}
 		return wlr_output_test_state(wlr_output, state);
 	}
 
@@ -309,14 +320,22 @@ output_test_auto(struct wlr_output *wlr_output, struct wlr_output_state *state)
 	 * Try to re-use the existing mode if configured to do so.
 	 * Failing that, try to set the preferred mode.
 	 */
-	if (rc.reuse_output_mode && wlr_output->current_mode
-			&& wlr_output_test_state(wlr_output, state)) {
-		return true;
+	if (rc.reuse_output_mode && wlr_output->current_mode) {
+		wlr_log(WLR_DEBUG, "testing current mode %dx%d@%d",
+			wlr_output->current_mode->width,
+			wlr_output->current_mode->height,
+			wlr_output->current_mode->refresh);
+		if (wlr_output_test_state(wlr_output, state)) {
+			return true;
+		}
 	}
 
 	struct wlr_output_mode *preferred_mode =
 		wlr_output_preferred_mode(wlr_output);
 	if (preferred_mode) {
+		wlr_log(WLR_DEBUG, "testing preferred mode %dx%d@%d",
+			preferred_mode->width, preferred_mode->height,
+			preferred_mode->refresh);
 		wlr_output_state_set_mode(state, preferred_mode);
 		if (wlr_output_test_state(wlr_output, state)) {
 			return true;
@@ -334,6 +353,8 @@ output_test_auto(struct wlr_output *wlr_output, struct wlr_output_state *state)
 		if (mode == preferred_mode) {
 			continue;
 		}
+		wlr_log(WLR_DEBUG, "testing fallback mode %dx%d@%d",
+			mode->width, mode->height, mode->refresh);
 		wlr_output_state_set_mode(state, mode);
 		if (wlr_output_test_state(wlr_output, state)) {
 			return true;
@@ -350,7 +371,7 @@ configure_new_output(struct server *server, struct output *output)
 {
 	struct wlr_output *wlr_output = output->wlr_output;
 
-	wlr_log(WLR_DEBUG, "enable output");
+	wlr_log(WLR_DEBUG, "enable output %s", wlr_output->name);
 	wlr_output_state_set_enabled(&output->pending, true);
 
 	if (!output_test_auto(wlr_output, &output->pending)) {

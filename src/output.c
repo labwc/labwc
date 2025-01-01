@@ -291,18 +291,24 @@ add_output_to_layout(struct server *server, struct output *output)
 }
 
 static bool
-output_test_auto(struct wlr_output *wlr_output, struct wlr_output_state *state)
+output_test_auto(struct wlr_output *wlr_output, struct wlr_output_state *state,
+		bool is_client_request)
 {
 	wlr_log(WLR_DEBUG, "testing modes for %s", wlr_output->name);
 	/*
-	 * If a specific mode is requested, test only that mode. Here we
-	 * interpret a custom_mode of all zeroes as "none/any"; this is
+	 * When a client requests a specific mode, test only that mode. Here
+	 * we interpret a custom_mode of all zeroes as "none/any"; this is
 	 * seen e.g. with kanshi configs containing no "mode" field. In
-	 * theory, (state->committed & WLR_OUTPUT_STATE_MODE) should be
-	 * zero in this case, but this is not seen in practice.
+	 * theory, (state->committed & WLR_OUTPUT_STATE_MODE) should be zero
+	 * in this case, but this is not seen in practice.
+	 *
+	 * If the wlr_output_state did not come from a client request, then
+	 * ignore the mode/custom_mode fields which are not meaningful.
 	 */
-	if (state->mode || state->custom_mode.width || state->custom_mode.height
-			|| state->custom_mode.refresh) {
+	if (is_client_request && (state->mode
+			|| state->custom_mode.width
+			|| state->custom_mode.height
+			|| state->custom_mode.refresh)) {
 		if (state->mode) {
 			wlr_log(WLR_DEBUG, "testing requested mode %dx%d@%d",
 				state->mode->width, state->mode->height,
@@ -374,7 +380,8 @@ configure_new_output(struct server *server, struct output *output)
 	wlr_log(WLR_DEBUG, "enable output %s", wlr_output->name);
 	wlr_output_state_set_enabled(&output->pending, true);
 
-	if (!output_test_auto(wlr_output, &output->pending)) {
+	if (!output_test_auto(wlr_output, &output->pending,
+			/* is_client_request */ false)) {
 		wlr_log(WLR_INFO, "mode test failed for output %s",
 			wlr_output->name);
 		/*
@@ -605,7 +612,8 @@ output_config_apply(struct server *server,
 			 * Try to ensure a valid mode. Ignore failures
 			 * here and just check the commit below.
 			 */
-			(void)output_test_auto(o, os);
+			(void)output_test_auto(o, os,
+				/* is_client_request */ true);
 			wlr_output_state_set_scale(os, head->state.scale);
 			wlr_output_state_set_transform(os, head->state.transform);
 			output_enable_adaptive_sync(output,
@@ -712,7 +720,8 @@ verify_output_config_v1(const struct wlr_output_configuration_v1 *config)
 		wlr_output_state_init(&output_state);
 		wlr_output_head_v1_state_apply(&head->state, &output_state);
 
-		if (!output_test_auto(head->state.output, &output_state)) {
+		if (!output_test_auto(head->state.output, &output_state,
+				/* is_client_request */ true)) {
 			wlr_output_state_finish(&output_state);
 			return false;
 		}

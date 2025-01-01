@@ -8,19 +8,20 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
-"PO-Revision-Date: 2023-02-22 09:43+0100\n"
-"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
-"Language-Team: Georgian <ka>\n"
+"PO-Revision-Date: 2025-01-01 21:01+0000\n"
+"Last-Translator: NorwayFun <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/ka/>\n"
 "Language: ka\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.2.2\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.2.1\n"
 
 #: src/menu/menu.c:1017
 msgid "Go there..."
-msgstr ""
+msgstr "გადასვლა..."
 
 #: src/menu/menu.c:1037
 msgid "Reconfigure"
@@ -44,7 +45,7 @@ msgstr "მთელ ეკრანზე"
 
 #: src/menu/menu.c:1061
 msgid "Roll Up/Down"
-msgstr ""
+msgstr "ახვევა/ჩამოხვევა"
 
 #: src/menu/menu.c:1063
 msgid "Decorations"
@@ -64,7 +65,7 @@ msgstr "მარჯვნივ გაწევა"
 
 #: src/menu/menu.c:1082
 msgid "Always on Visible Workspace"
-msgstr ""
+msgstr "ყოველთვის ხილულია სამუშაო სივრცეში"
 
 #: src/menu/menu.c:1085 src/config/rcxml.c:1629
 msgid "Workspace"

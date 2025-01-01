@@ -30,14 +30,14 @@ trim_last_field(char *buf, char delim)
 }
 
 static void
-rtrim(char **s)
+rtrim(char *s)
 {
-	size_t len = strlen(*s);
+	size_t len = strlen(s);
 	if (!len) {
 		return;
 	}
-	char *end = *s + len - 1;
-	while (end >= *s && isspace(*end)) {
+	char *end = s + len - 1;
+	while (end >= s && isspace(*end)) {
 		end--;
 	}
 	*(end + 1) = '\0';
@@ -46,10 +46,10 @@ rtrim(char **s)
 char *
 string_strip(char *s)
 {
-	rtrim(&s);
 	while (isspace(*s)) {
 		s++;
 	}
+	rtrim(s);
 	return s;
 }
 

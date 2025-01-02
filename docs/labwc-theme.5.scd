@@ -9,6 +9,11 @@ labwc - theme files
 The theme engine aims to be compatible with openbox and themes will be
 searched for in the following order:
 
+- ${XDG_DATA_HOME:-$HOME/.local/share}/themes/<theme-name>/labwc/
+- $HOME/.themes/<theme-name>/labwc/
+- /usr/share/themes/<theme-name>/labwc/
+- /usr/local/share/themes/<theme-name>/labwc/
+- /opt/share/themes/<theme-name>/labwc/
 - ${XDG_DATA_HOME:-$HOME/.local/share}/themes/<theme-name>/openbox-3/
 - $HOME/.themes/<theme-name>/openbox-3/
 - /usr/share/themes/<theme-name>/openbox-3/

@@ -75,7 +75,15 @@ build_config_path(struct ctx *ctx, char *prefix, const char *path)
 }
 
 static void
-build_theme_path(struct ctx *ctx, char *prefix, const char *path)
+build_theme_path_labwc(struct ctx *ctx, char *prefix, const char *path)
+{
+	assert(prefix);
+	snprintf(ctx->buf, ctx->len, "%s/%s/%s/labwc/%s", prefix, path,
+		ctx->theme_name, ctx->filename);
+}
+
+static void
+build_theme_path_openbox(struct ctx *ctx, char *prefix, const char *path)
 {
 	assert(prefix);
 	snprintf(ctx->buf, ctx->len, "%s/%s/%s/openbox-3/%s", prefix, path,
@@ -169,7 +177,7 @@ paths_theme_create(struct wl_list *paths, const char *theme_name,
 	static char buf[4096] = { 0 };
 	wl_list_init(paths);
 	struct ctx ctx = {
-		.build_path_fn = build_theme_path,
+		.build_path_fn = build_theme_path_labwc,
 		.filename = filename,
 		.buf = buf,
 		.len = sizeof(buf),
@@ -177,6 +185,9 @@ paths_theme_create(struct wl_list *paths, const char *theme_name,
 		.theme_name = theme_name,
 		.list = paths,
 	};
+	find_dir(&ctx);
+
+	ctx.build_path_fn = build_theme_path_openbox;
 	find_dir(&ctx);
 }
 

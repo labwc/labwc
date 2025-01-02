@@ -192,7 +192,7 @@ For a step-by-step initial configuration guide, see [getting-started].
 
 ## 4. Theming
 
-Themes are located at `~/.local/share/themes/\<theme-name\>/openbox-3/` or
+Themes are located at `~/.local/share/themes/\<theme-name\>/labwc/` or
 equivalent `XDG_DATA_{DIRS,HOME}` location in accordance with freedesktop XDG
 directory specification.
 

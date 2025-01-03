@@ -76,12 +76,12 @@ zdrop(struct lab_data_buffer **buffer)
 
 /* Draw rounded-rectangular hover overlay on the button buffer */
 static void
-draw_hover_overlay_on_button(struct theme *theme, cairo_t *cairo, int w, int h)
+draw_hover_overlay_on_button(cairo_t *cairo, int w, int h)
 {
 	/* Overlay (pre-multiplied alpha) */
 	float overlay_color[4] = { 0.15f, 0.15f, 0.15f, 0.3f};
 	set_cairo_color(cairo, overlay_color);
-	int r = theme->window_button_hover_bg_corner_radius;
+	int r = rc.theme->window_button_hover_bg_corner_radius;
 
 	cairo_new_sub_path(cairo);
 	cairo_arc(cairo, r, r, r, 180 * deg, 270 * deg);
@@ -97,16 +97,16 @@ draw_hover_overlay_on_button(struct theme *theme, cairo_t *cairo, int w, int h)
 
 /* Round the buffer for the leftmost button in the titlebar */
 static void
-round_left_corner_button(struct theme *theme, cairo_t *cairo, int w, int h)
+round_left_corner_button(cairo_t *cairo, int w, int h)
 {
 	/*
 	 * Position of the topleft corner of the titlebar relative to the
 	 * leftmost button
 	 */
-	double x = -theme->window_titlebar_padding_width;
-	double y = -(theme->titlebar_height - theme->window_button_height) / 2;
+	double x = -rc.theme->window_titlebar_padding_width;
+	double y = -(rc.theme->titlebar_height - rc.theme->window_button_height) / 2;
 
-	double r = rc.corner_radius - (double)theme->border_width / 2.0;
+	double r = rc.corner_radius - (double)rc.theme->border_width / 2.0;
 
 	cairo_new_sub_path(cairo);
 	cairo_arc(cairo, x + r, y + r, r, deg * 180, deg * 270);
@@ -122,7 +122,7 @@ round_left_corner_button(struct theme *theme, cairo_t *cairo, int w, int h)
 
 /* Round the buffer for the rightmost button in the titlebar */
 static void
-round_right_corner_button(struct theme *theme, cairo_t *cairo, int w, int h)
+round_right_corner_button(cairo_t *cairo, int w, int h)
 {
 	/*
 	 * Horizontally flip the cairo context so we can reuse
@@ -130,7 +130,7 @@ round_right_corner_button(struct theme *theme, cairo_t *cairo, int w, int h)
 	 */
 	cairo_scale(cairo, -1, 1);
 	cairo_translate(cairo, -w, 0);
-	round_left_corner_button(theme, cairo, w, h);
+	round_left_corner_button(cairo, w, h);
 }
 
 /*
@@ -223,7 +223,7 @@ load_button(struct theme *theme, struct button *b, int active)
 			button_imgs[b->type][b->state_set & ~LAB_BS_HOVERD];
 		*img = lab_img_copy(non_hover_img);
 		lab_img_add_modifier(*img,
-			draw_hover_overlay_on_button, theme);
+			draw_hover_overlay_on_button);
 	}
 
 	/*
@@ -239,7 +239,7 @@ load_button(struct theme *theme, struct button *b, int active)
 		if (leftmost_button->type == b->type) {
 			*rounded_img = lab_img_copy(*img);
 			lab_img_add_modifier(*rounded_img,
-				round_left_corner_button, theme);
+				round_left_corner_button);
 		}
 		break;
 	}
@@ -249,7 +249,7 @@ load_button(struct theme *theme, struct button *b, int active)
 		if (rightmost_button->type == b->type) {
 			*rounded_img = lab_img_copy(*img);
 			lab_img_add_modifier(*rounded_img,
-				round_right_corner_button, theme);
+				round_right_corner_button);
 		}
 		break;
 	}

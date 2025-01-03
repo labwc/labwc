@@ -106,10 +106,8 @@ lab_img_copy(struct lab_img *img)
 }
 
 void
-lab_img_add_modifier(struct lab_img *img,  lab_img_modifier_func_t modifier,
-	struct theme *theme)
+lab_img_add_modifier(struct lab_img *img,  lab_img_modifier_func_t modifier)
 {
-	img->theme = theme;
 	lab_img_modifier_func_t *mod = wl_array_add(&img->modifiers, sizeof(*mod));
 	*mod = modifier;
 }
@@ -185,7 +183,7 @@ lab_img_render(struct lab_img *img, int width, int height, int padding,
 	lab_img_modifier_func_t *modifier;
 	wl_array_for_each(modifier, &img->modifiers) {
 		cairo_save(cairo);
-		(*modifier)(img->theme, cairo, width, height);
+		(*modifier)(cairo, width, height);
 		cairo_restore(cairo);
 	}
 
@@ -219,4 +217,19 @@ lab_img_destroy(struct lab_img *img)
 
 	wl_array_release(&img->modifiers);
 	free(img);
+}
+
+bool
+lab_img_equal(struct lab_img *img_a, struct lab_img *img_b)
+{
+	if (img_a->cache != img_b->cache
+			|| img_a->modifiers.size != img_b->modifiers.size) {
+		return false;
+	}
+	if (img_a->modifiers.size == 0) {
+		return true;
+	} else {
+		return !memcmp(img_a->modifiers.data, img_b->modifiers.data,
+			img_a->modifiers.size);
+	}
 }

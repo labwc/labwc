@@ -79,7 +79,6 @@ struct ssd {
 		} title;
 
 		char *app_id;
-		struct lab_img *icon_img;
 	} state;
 
 	/* An invisible area around the view which allows resizing */

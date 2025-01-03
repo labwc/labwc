@@ -59,5 +59,22 @@ img_png_load(const char *filename)
 		return NULL;
 	}
 
-	return buffer_adopt_cairo_surface(image);
+	if (cairo_image_surface_get_format(image) == CAIRO_FORMAT_ARGB32) {
+		return buffer_adopt_cairo_surface(image);
+	} else {
+		/* Copy non-ARGB32 surface to ARGB32 buffer */
+		/* TODO: directly set non-ARGB32 surface in lab_data_buffer */
+		struct lab_data_buffer *buffer = buffer_create_cairo(
+			cairo_image_surface_get_width(image),
+			cairo_image_surface_get_height(image), 1);
+		cairo_t *cairo = cairo_create(buffer->surface);
+		cairo_set_source_surface(cairo, image, 0, 0);
+		cairo_paint(cairo);
+		cairo_surface_flush(cairo_get_target(cairo));
+		cairo_destroy(cairo);
+
+		cairo_surface_destroy(image);
+
+		return buffer;
+	}
 }

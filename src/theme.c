@@ -1515,7 +1515,7 @@ theme_init(struct theme *theme, struct server *server, const char *theme_name)
 
 static void destroy_img(struct lab_img **img)
 {
-	lab_img_destroy(*img);
+	lab_img_drop(*img);
 	*img = NULL;
 }
 

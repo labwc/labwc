@@ -345,9 +345,6 @@ ssd_titlebar_destroy(struct ssd *ssd)
 	if (ssd->state.app_id) {
 		zfree(ssd->state.app_id);
 	}
-	if (ssd->state.icon_img) {
-		lab_img_destroy(ssd->state.icon_img);
-	}
 
 	wlr_scene_node_destroy(&ssd->titlebar.tree->node);
 	ssd->titlebar.tree = NULL;
@@ -642,10 +639,7 @@ ssd_update_window_icon(struct ssd *ssd)
 		}
 	} FOR_EACH_END
 
-	if (ssd->state.icon_img) {
-		lab_img_destroy(ssd->state.icon_img);
-	}
-	ssd->state.icon_img = icon_img;
+	lab_img_drop(icon_img);
 #endif
 }
 

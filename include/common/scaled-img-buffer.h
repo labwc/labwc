@@ -23,6 +23,9 @@ struct scaled_img_buffer {
  * display. It gets destroyed automatically when the backing scaled_scene_buffer
  * is being destroyed which in turn happens automatically when the backing
  * wlr_scene_buffer (or one of its parents) is being destroyed.
+ *
+ * This function clones the lab_img passed as the image source, so callers are
+ * free to destroy it.
  */
 struct scaled_img_buffer *scaled_img_buffer_create(struct wlr_scene_tree *parent,
 	struct lab_img *img, int width, int height, int padding);

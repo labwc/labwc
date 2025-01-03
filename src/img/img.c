@@ -218,3 +218,18 @@ lab_img_destroy(struct lab_img *img)
 	wl_array_release(&img->modifiers);
 	free(img);
 }
+
+bool
+lab_img_equal(struct lab_img *img_a, struct lab_img *img_b)
+{
+	if (img_a == img_b) {
+		return true;
+	}
+	if (!img_a || !img_b || img_a->cache != img_b->cache
+			|| img_a->modifiers.size != img_b->modifiers.size) {
+		return false;
+	}
+	return img_a->modifiers.size == 0
+		|| !memcmp(img_a->modifiers.data, img_b->modifiers.data,
+			img_a->modifiers.size);
+}

@@ -565,7 +565,6 @@ server_init(struct server *server)
 	 * | layer-shell       | layer-popups     | Yes        |
 	 * | layer-shell       | overlay-layer    | Yes        |
 	 * | layer-shell       | top-layer        | Yes        | waybar
-	 * | server            | labwc-menus      | No         |
 	 * | xwayland-OR       | unmanaged        | No         | dmenu
 	 * | xdg-popups        | xdg-popups       | No         |
 	 * | toplevels windows | always-on-top    | No         |

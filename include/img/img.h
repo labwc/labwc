@@ -61,11 +61,11 @@ void lab_img_add_modifier(struct lab_img *img, lab_img_modifier_func_t modifier)
  * @img: source image
  * @width: width of the created buffer
  * @height: height of the created buffer
- * @padding: padding around the rendered image in the buffer
+ * @padding_x: horizontal padding around the rendered image in the buffer
  * @scale: scale of the created buffer
  */
 struct lab_data_buffer *lab_img_render(struct lab_img *img,
-	int width, int height, int padding, double scale);
+	int width, int height, int padding_x, double scale);
 
 /**
  * lab_img_destroy() - destroy lab_img

@@ -119,7 +119,7 @@ lab_img_add_modifier(struct lab_img *img,  lab_img_modifier_func_t modifier)
  */
 static struct lab_data_buffer *
 render_cairo_surface(cairo_surface_t *surface, int width, int height,
-	int padding, double scale)
+	int padding_x, double scale)
 {
 	assert(surface);
 	int src_w = cairo_image_surface_get_width(surface);
@@ -130,10 +130,10 @@ render_cairo_surface(cairo_surface_t *surface, int width, int height,
 	cairo_t *cairo = cairo_create(buffer->surface);
 
 	struct wlr_box container = {
-		.x = padding,
-		.y = padding,
-		.width = width - 2 * padding,
-		.height = height - 2 * padding,
+		.x = padding_x,
+		.y = 0,
+		.width = width - 2 * padding_x,
+		.height = height,
 	};
 
 	struct wlr_box dst_box = box_fit_within(src_w, src_h, &container);

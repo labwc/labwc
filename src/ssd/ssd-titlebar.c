@@ -600,7 +600,7 @@ ssd_update_window_icon(struct ssd *ssd)
 	 */
 	int icon_padding = theme->window_button_width / 10;
 	int icon_size = MIN(theme->window_button_width - 2 * icon_padding,
-		theme->window_button_height - 2 * icon_padding);
+		theme->window_button_height);
 
 	/*
 	 * Load/render icons at the max scale of any usable output (at

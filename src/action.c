@@ -828,12 +828,10 @@ static void
 action_prompt_create(struct view *view, struct server *server, struct action *action)
 {
 	char *command = strdup_printf(
-		"zenity --question --no-wrap --title=\"%s\" --text=\"%s\" "
-			"--ok-label=\"%s\" --cancel-label=\"%s\"",
-		action_get_str(action, "prompt_title", "labwc"),
+		"labnag -m \"%s\" -Z \"%s\" ':' -s \"%s\"",
 		action_get_str(action, "prompt_text", "Choose wisely"),
-		action_get_str(action, "prompt_option1", "Yes"),
-		action_get_str(action, "prompt_option2", "Cancel"));
+		action_get_str(action, "prompt_option2", "No"),
+		action_get_str(action, "prompt_option1", "Yes"));
 
 	int pipe_fd;
 	pid_t prompt_pid = spawn_piped(command, &pipe_fd);

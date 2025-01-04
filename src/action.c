@@ -894,7 +894,7 @@ run_if_action(struct view *view, struct server *server, struct action *action)
 	const char *branch = "then";
 
 	queries = action_get_querylist(action, "query");
-	if (queries) {
+	if (view && queries) {
 		branch = "else";
 		/* All queries are OR'ed */
 		wl_list_for_each(query, queries, link) {
@@ -1369,9 +1369,7 @@ actions_run(struct view *activator, struct server *server,
 			break;
 		}
 		case ACTION_TYPE_IF:
-			if (view) {
-				run_if_action(view, server, action);
-			}
+			run_if_action(view, server, action);
 			break;
 		case ACTION_TYPE_FOR_EACH: {
 			struct wl_array views;

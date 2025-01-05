@@ -19,6 +19,43 @@ struct scaled_img_buffer {
 };
 
 /*
+ *                                                 |                 |
+ *                                       .------------------.  .------------.
+ *                   scaled_img_buffer   | new_output_scale |  | set_buffer |
+ *                     architecture      ´------------------`  ´------------`
+ *                                                 |                ^
+ *                .--------------------------------|----------------|-------------.
+ *                |                                v                |             |
+ *                |  .-------------------.    .-------------------------.         |
+ *                |  | scaled_img_buffer |----| wlr_buffer LRU cache(2) |<----,   |
+ *                |  ´-------------------`    ´-------------------------`     |   |
+ *                |            |                           |                  |   |
+ *                |            |               .--------------------------.   |   |
+ *                |            |               | wlr_buffer LRU cache of  |   |   |
+ *   .-------.    |            |               | other scaled_img_buffers |   |   |
+ *   | theme |    |            |               |   with lab_img_equal()   |   |   |
+ *   ´-------`    |            |               ´--------------------------`   |   |
+ *       |        |            |                  /              |            |   |
+ *       |        |            |             not found         found          |   |
+ *  .---------.   |        .---------.     .----------.    .------------.     |   |
+ *  | lab_img |-img_copy-->| lab_img |-----| render() |--->| wlr_buffer |-----`   |
+ *  ´---------`   |        ´---------`     ´----------`    ´------------`         |
+ *           \    |           /                                                   |
+ *            \   ´----------/----------------------------------------------------`
+ *             \            /
+ *           .----------------.                       lab_img provides:
+ *           |  lab_img_data  |                       - render function
+ *           |   refcount=2   |                       - list of modification functions
+ *           |                `-----------------.       to apply on top of lib_img_data
+ *           |                                  |       when rendering
+ *           | provides (depending on backend): |     - lab_img_equal() comparing the
+ *           | - librsvg handle                 |       lab_img_data reference and
+ *           | - cairo surface                  |       modification function pointers
+ *           ´----------------------------------`       of two given lab_img instances
+ *
+ */
+
+/*
  * Create an auto scaling image buffer, providing a wlr_scene_buffer node for
  * display. It gets destroyed automatically when the backing scaled_scene_buffer
  * is being destroyed which in turn happens automatically when the backing

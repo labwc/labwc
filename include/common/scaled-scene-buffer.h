@@ -45,6 +45,32 @@ struct scaled_scene_buffer {
 	struct wl_list link; /* struct scaled_scene_buffer.cached_buffers */
 };
 
+/*
+ *                                  |                 |
+ *                        .------------------.  .------------.
+ *       scaled_buffer    | new_output_scale |  | set_buffer |
+ *       architecture     ´------------------`  ´------------`
+ *                                  |                ^
+ *    .-----------------------------|----------------|-----------.
+ *    |                             v                |           |
+ *    |  .---------------.    .-------------------------.        |
+ *    |  | scaled_buffer |----| wlr_buffer LRU cache(2) |<---,   |
+ *    |  ´---------------`    ´-------------------------`    |   |
+ *    |           |                       |                  |   |
+ *    |        .------.       .--------------------------.   |   |
+ *    |        | impl |       | wlr_buffer LRU cache of  |   |   |
+ *    |        ´------`       |   other scaled_buffers   |   |   |
+ *    |                       |   with impl->equal()     |   |   |
+ *    |                       ´--------------------------`   |   |
+ *    |                          /              |            |   |
+ *    |                   not found           found          |   |
+ *    |     .-----------------------.     .-----------.      |   |
+ *    |     | impl->create_buffer() |--->| wlr_buffer |------`   |
+ *    |     ´-----------------------`    ´------------`          |
+ *    |                                                          |
+ *    ´----------------------------------------------------------`
+ */
+
 /**
  * Create an auto scaling buffer that creates a wlr_scene_buffer
  * and subscribes to its output_enter and output_leave signals.

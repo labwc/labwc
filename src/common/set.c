@@ -29,16 +29,11 @@ lab_set_add(struct lab_set *set, uint32_t value)
 void
 lab_set_remove(struct lab_set *set, uint32_t value)
 {
-	bool shifting = false;
-
-	for (int i = 0; i < LAB_SET_MAX_SIZE; ++i) {
+	for (int i = 0; i < set->size; ++i) {
 		if (set->values[i] == value) {
 			--set->size;
-			shifting = true;
-		}
-		if (shifting) {
-			set->values[i] = i < LAB_SET_MAX_SIZE - 1
-				? set->values[i + 1] : 0;
+			set->values[i] = set->values[set->size];
+			return;
 		}
 	}
 }

@@ -19,9 +19,9 @@
 #include "labwc.h"
 #include "theme.h"
 
-struct lab_img_cache {
+struct lab_img_data {
 	enum lab_img_type type;
-	/* lab_img_cache is refcounted to be shared by multiple lab_imgs */
+	/* lab_img_data is refcounted to be shared by multiple lab_imgs */
 	int refcount;
 
 	/* Handler for the loaded image file */
@@ -32,11 +32,11 @@ struct lab_img_cache {
 };
 
 static struct lab_img *
-create_img(struct lab_img_cache *cache)
+create_img(struct lab_img_data *img_data)
 {
 	struct lab_img *img = znew(*img);
-	img->cache = cache;
-	cache->refcount++;
+	img->data = img_data;
+	img_data->refcount++;
 	wl_array_init(&img->modifiers);
 	return img;
 }
@@ -48,36 +48,36 @@ lab_img_load(enum lab_img_type type, const char *path, float *xbm_color)
 		return NULL;
 	}
 
-	struct lab_img_cache *cache = znew(*cache);
-	cache->type = type;
+	struct lab_img_data *img_data = znew(*img_data);
+	img_data->type = type;
 
 	switch (type) {
 	case LAB_IMG_PNG:
-		cache->buffer = img_png_load(path);
+		img_data->buffer = img_png_load(path);
 		break;
 	case LAB_IMG_XBM:
 		assert(xbm_color);
-		cache->buffer = img_xbm_load(path, xbm_color);
+		img_data->buffer = img_xbm_load(path, xbm_color);
 		break;
 	case LAB_IMG_XPM:
-		cache->buffer = img_xpm_load(path);
+		img_data->buffer = img_xpm_load(path);
 		break;
 	case LAB_IMG_SVG:
 #if HAVE_RSVG
-		cache->svg = img_svg_load(path);
+		img_data->svg = img_svg_load(path);
 #endif
 		break;
 	}
 
-	bool img_is_loaded = (bool)cache->buffer;
+	bool img_is_loaded = (bool)img_data->buffer;
 #if HAVE_RSVG
-	img_is_loaded |= (bool)cache->svg;
+	img_is_loaded |= (bool)img_data->svg;
 #endif
 
 	if (img_is_loaded) {
-		return create_img(cache);
+		return create_img(img_data);
 	} else {
-		free(cache);
+		free(img_data);
 		return NULL;
 	}
 }
@@ -90,17 +90,17 @@ lab_img_load_from_bitmap(const char *bitmap, float *rgba)
 		return NULL;
 	}
 
-	struct lab_img_cache *cache = znew(*cache);
-	cache->type = LAB_IMG_XBM;
-	cache->buffer = buffer;
+	struct lab_img_data *img_data = znew(*img_data);
+	img_data->type = LAB_IMG_XBM;
+	img_data->buffer = buffer;
 
-	return create_img(cache);
+	return create_img(img_data);
 }
 
 struct lab_img *
 lab_img_copy(struct lab_img *img)
 {
-	struct lab_img *new_img = create_img(img->cache);
+	struct lab_img *new_img = create_img(img->data);
 	wl_array_copy(&new_img->modifiers, &img->modifiers);
 	return new_img;
 }
@@ -157,16 +157,16 @@ lab_img_render(struct lab_img *img, int width, int height, int padding,
 	struct lab_data_buffer *buffer = NULL;
 
 	/* Render the image into the buffer for the given size */
-	switch (img->cache->type) {
+	switch (img->data->type) {
 	case LAB_IMG_PNG:
 	case LAB_IMG_XBM:
 	case LAB_IMG_XPM:
-		buffer = render_cairo_surface(img->cache->buffer->surface,
+		buffer = render_cairo_surface(img->data->buffer->surface,
 			width, height, padding, scale);
 		break;
 #if HAVE_RSVG
 	case LAB_IMG_SVG:
-		buffer = img_svg_render(img->cache->svg, width, height,
+		buffer = img_svg_render(img->data->svg, width, height,
 			padding, scale);
 		break;
 #endif
@@ -200,19 +200,17 @@ lab_img_destroy(struct lab_img *img)
 		return;
 	}
 
-	struct lab_img_cache *cache = img->cache;
-	cache->refcount--;
-
-	if (cache->refcount == 0) {
-		if (cache->buffer) {
-			wlr_buffer_drop(&cache->buffer->base);
+	img->data->refcount--;
+	if (img->data->refcount == 0) {
+		if (img->data->buffer) {
+			wlr_buffer_drop(&img->data->buffer->base);
 		}
 #if HAVE_RSVG
-		if (cache->svg) {
-			g_object_unref(cache->svg);
+		if (img->data->svg) {
+			g_object_unref(img->data->svg);
 		}
 #endif
-		free(cache);
+		free(img->data);
 	}
 
 	wl_array_release(&img->modifiers);
@@ -225,7 +223,7 @@ lab_img_equal(struct lab_img *img_a, struct lab_img *img_b)
 	if (img_a == img_b) {
 		return true;
 	}
-	if (!img_a || !img_b || img_a->cache != img_b->cache
+	if (!img_a || !img_b || img_a->data != img_b->data
 			|| img_a->modifiers.size != img_b->modifiers.size) {
 		return false;
 	}

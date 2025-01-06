@@ -58,11 +58,25 @@ input_method_keyboard_grab_forward_modifiers(struct keyboard *keyboard)
 {
 	struct wlr_input_method_keyboard_grab_v2 *keyboard_grab =
 		get_keyboard_grab(keyboard);
+
+	struct wlr_keyboard_modifiers *forwarded_modifiers =
+		&keyboard->base.seat->input_method_relay->forwarded_modifiers;
+	struct wlr_keyboard_modifiers *modifiers =
+		&keyboard->wlr_keyboard->modifiers;
+
+	if (forwarded_modifiers->depressed == modifiers->depressed
+			&& forwarded_modifiers->latched == modifiers->latched
+			&& forwarded_modifiers->locked == modifiers->locked
+			&& forwarded_modifiers->group == modifiers->group) {
+		return false;
+	}
+
 	if (keyboard_grab) {
+		*forwarded_modifiers = keyboard->wlr_keyboard->modifiers;
 		wlr_input_method_keyboard_grab_v2_set_keyboard(keyboard_grab,
 			keyboard->wlr_keyboard);
 		wlr_input_method_keyboard_grab_v2_send_modifiers(keyboard_grab,
-			&keyboard->wlr_keyboard->modifiers);
+			modifiers);
 		return true;
 	} else {
 		return false;
@@ -346,6 +360,7 @@ handle_input_method_grab_keyboard(struct wl_listener *listener, void *data)
 	}
 
 	relay->forwarded_pressed_keys = (struct lab_set){0};
+	relay->forwarded_modifiers = (struct wlr_keyboard_modifiers){0};
 
 	relay->keyboard_grab_destroy.notify = handle_keyboard_grab_destroy;
 	wl_signal_add(&keyboard_grab->events.destroy,

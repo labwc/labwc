@@ -78,7 +78,7 @@ input_method_keyboard_grab_forward_key(struct keyboard *keyboard,
 	 * key-press events forwarded
 	 */
 	struct lab_set *pressed_keys =
-		&keyboard->base.seat->input_method_relay->pressed_keys;
+		&keyboard->base.seat->input_method_relay->forwarded_pressed_keys;
 	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED
 			&& !lab_set_contains(pressed_keys, event->keycode)) {
 		return false;
@@ -345,7 +345,7 @@ handle_input_method_grab_keyboard(struct wl_listener *listener, void *data)
 			keyboard_grab, active_keyboard);
 	}
 
-	relay->pressed_keys = (struct lab_set){0};
+	relay->forwarded_pressed_keys = (struct lab_set){0};
 
 	relay->keyboard_grab_destroy.notify = handle_keyboard_grab_destroy;
 	wl_signal_add(&keyboard_grab->events.destroy,

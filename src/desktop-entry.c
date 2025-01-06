@@ -202,11 +202,11 @@ static int
 process_abs_name(struct icon_ctx *ctx, const char *icon_name)
 {
 	ctx->path = xstrdup(icon_name);
-	if (str_endswith(icon_name, ".png")) {
+	if (str_endswith_ignore_case(icon_name, ".png")) {
 		ctx->format = SFDO_ICON_FILE_FORMAT_PNG;
-	} else if (str_endswith(icon_name, ".svg")) {
+	} else if (str_endswith_ignore_case(icon_name, ".svg")) {
 		ctx->format = SFDO_ICON_FILE_FORMAT_SVG;
-	} else if (str_endswith(icon_name, ".xpm")) {
+	} else if (str_endswith_ignore_case(icon_name, ".xpm")) {
 		ctx->format = SFDO_ICON_FILE_FORMAT_XPM;
 	} else {
 		goto err;

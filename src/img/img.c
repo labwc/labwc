@@ -6,6 +6,7 @@
 #include "config.h"
 #include "common/box.h"
 #include "common/graphic-helpers.h"
+#include "common/list.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
@@ -29,7 +30,15 @@ struct lab_img_data {
 #if HAVE_RSVG
 	RsvgHandle *svg; /* for SVG image */
 #endif
+
+	/* Cache maintenance */
+	struct {
+		char *path;
+	} cache_key;
+	struct wl_list link;
 };
+
+static struct wl_list img_data_cache = WL_LIST_INIT(&img_data_cache);
 
 static struct lab_img *
 create_img(struct lab_img_data *img_data)
@@ -48,7 +57,26 @@ lab_img_load(enum lab_img_type type, const char *path, float *xbm_color)
 		return NULL;
 	}
 
-	struct lab_img_data *img_data = znew(*img_data);
+	struct lab_img_data *img_data;
+	wl_list_for_each(img_data, &img_data_cache, link) {
+		if (type == LAB_IMG_XBM) {
+			/*
+			 * XBM is meaningless without also comparing the color.
+			 * TODO: store and compare cache_key.xbm_color
+			 */
+			continue;
+		}
+
+		const char *cache_path = img_data->cache_key.path;
+		if (!path || !cache_path || strcmp(path, cache_path) != 0) {
+			continue;
+		}
+		assert(type == img_data->type);
+		wlr_log(WLR_DEBUG, "Using cached image data for %s", path);
+		return create_img(img_data);
+	}
+
+	img_data = znew(*img_data);
 	img_data->type = type;
 
 	switch (type) {
@@ -75,6 +103,9 @@ lab_img_load(enum lab_img_type type, const char *path, float *xbm_color)
 #endif
 
 	if (img_is_loaded) {
+		img_data->cache_key.path = xstrdup(path);
+		wl_list_insert(&img_data_cache, &img_data->link);
+		wlr_log(WLR_DEBUG, "Using new image data for %s", path);
 		return create_img(img_data);
 	} else {
 		free(img_data);
@@ -93,6 +124,7 @@ lab_img_load_from_bitmap(const char *bitmap, float *rgba)
 	struct lab_img_data *img_data = znew(*img_data);
 	img_data->type = LAB_IMG_XBM;
 	img_data->buffer = buffer;
+	wl_list_insert(&img_data_cache, &img_data->link);
 
 	return create_img(img_data);
 }
@@ -193,6 +225,32 @@ lab_img_render(struct lab_img *img, int width, int height, int padding,
 	return buffer;
 }
 
+static void
+lab_img_data_destroy(struct lab_img_data *img_data)
+{
+	assert(img_data->refcount == 0);
+	if (img_data->buffer) {
+		wlr_buffer_drop(&img_data->buffer->base);
+	}
+#if HAVE_RSVG
+	if (img_data->svg) {
+		g_object_unref(img_data->svg);
+	}
+#endif
+	wl_list_remove(&img_data->link);
+	free(img_data->cache_key.path);
+	free(img_data);
+}
+
+void
+lab_img_invalidate_cache(void)
+{
+	struct lab_img_data *img_data;
+	wl_list_for_each(img_data, &img_data_cache, link) {
+		zfree(img_data->cache_key.path);
+	}
+}
+
 void
 lab_img_destroy(struct lab_img *img)
 {
@@ -202,15 +260,7 @@ lab_img_destroy(struct lab_img *img)
 
 	img->data->refcount--;
 	if (img->data->refcount == 0) {
-		if (img->data->buffer) {
-			wlr_buffer_drop(&img->data->buffer->base);
-		}
-#if HAVE_RSVG
-		if (img->data->svg) {
-			g_object_unref(img->data->svg);
-		}
-#endif
-		free(img->data);
+		lab_img_data_destroy(img->data);
 	}
 
 	wl_array_release(&img->modifiers);

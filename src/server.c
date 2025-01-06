@@ -40,6 +40,7 @@
 #endif
 
 #include "idle.h"
+#include "img/img.h"
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "layers.h"
@@ -71,6 +72,7 @@ reload_config_and_theme(struct server *server)
 	rcxml_finish();
 	rcxml_read(rc.config_file);
 	theme_finish(server->theme);
+	lab_img_invalidate_cache();
 	theme_init(server->theme, server, rc.theme_name);
 
 #if HAVE_LIBSFDO

@@ -76,4 +76,12 @@ void lab_img_destroy(struct lab_img *img);
  */
 bool lab_img_equal(struct lab_img *img_a, struct lab_img *img_b);
 
+/**
+ * lab_img_invalidate_cache() - clear cache keys
+ *
+ * This should be called on reconfigure so new lab_imgs will not try to
+ * re-use outdated images which potentially have been changed on disk.
+ */
+void lab_img_invalidate_cache(void);
+
 #endif /* LABWC_IMG_H */

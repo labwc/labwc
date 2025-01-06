@@ -20,6 +20,7 @@
 #include "common/mem.h"
 #include "common/nodename.h"
 #include "common/scaled-font-buffer.h"
+#include "common/scaled-icon-buffer.h"
 #include "common/scaled-rect-buffer.h"
 #include "common/scene-helpers.h"
 #include "common/spawn.h"
@@ -33,6 +34,8 @@
 
 #define PIPEMENU_MAX_BUF_SIZE 1048576  /* 1 MiB */
 #define PIPEMENU_TIMEOUT_IN_MS 4000    /* 4 seconds */
+
+#define ICON_SIZE (rc.theme->menu_item_height - 2 * rc.theme->menu_items_padding_y)
 
 /* state-machine variables for processing <item></item> */
 static bool in_item;
@@ -163,6 +166,12 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	/* Tree to hold background and label buffers */
 	struct wlr_scene_tree *tree = wlr_scene_tree_create(item->tree);
 
+	int icon_width = 0;
+	int icon_size = ICON_SIZE;
+	if (item->parent->has_icons) {
+		icon_width = theme->menu_items_padding_x + icon_size;
+	}
+
 	/* Create background */
 	int bg_width = menu->size.width
 		- 2 * theme->menu_border_width;
@@ -170,7 +179,16 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 
 	int arrow_width = item->arrow ?
 		font_width(&rc.font_menuitem, item->arrow) : 0;
-	int label_max_width = bg_width - 2 * theme->menu_items_padding_x - arrow_width;
+	int label_max_width = bg_width - 2 * theme->menu_items_padding_x - arrow_width - icon_width;
+
+	/* Create icon */
+	if (item->icon_name) {
+		struct scaled_icon_buffer *icon_buffer = scaled_icon_buffer_create(
+			tree, menu->server, icon_size, icon_size);
+		scaled_icon_buffer_set_icon_name(icon_buffer, item->icon_name);
+		wlr_scene_node_set_position(&icon_buffer->scene_buffer->node,
+			theme->menu_items_padding_x, theme->menu_items_padding_y);
+	}
 
 	/* Create label */
 	struct scaled_font_buffer *label_buffer = scaled_font_buffer_create(tree);
@@ -178,7 +196,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	scaled_font_buffer_update(label_buffer, item->text, label_max_width,
 		&rc.font_menuitem, text_color, bg_color);
 	/* Vertically center and left-align label */
-	int x = theme->menu_items_padding_x;
+	int x = theme->menu_items_padding_x + icon_width;
 	int y = (theme->menu_item_height - label_buffer->height) / 2;
 	wlr_scene_node_set_position(&label_buffer->scene_buffer->node, x, y);
 
@@ -363,6 +381,10 @@ menu_update_scene(struct menu *menu)
 			+ 2 * theme->menu_border_width;
 		menu->size.width = MAX(menu->size.width, width);
 	}
+
+	if (menu->has_icons) {
+		menu->size.width += theme->menu_items_padding_x + ICON_SIZE;
+	}
 	menu->size.width = MAX(menu->size.width, theme->menu_min_width);
 	menu->size.width = MIN(menu->size.width, theme->menu_max_width);
 
@@ -436,10 +458,13 @@ fill_item(char *nodename, char *content)
 		wlr_log(WLR_ERROR, "expect <item label=\"\"> element first. "
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else if (!strcmp(nodename, "icon")) {
-		/*
-		 * Do nothing as we don't support menu icons - just avoid
-		 * logging errors if a menu.xml file contains icon="" entries.
-		 */
+#if HAVE_LIBSFDO
+		// TODO: add some rc.menu_icons bool
+		if (true && !string_null_or_empty(content)) {
+			xstrdup_replace(current_item->icon_name, content);
+			current_menu->has_icons = true;
+		}
+#endif
 	} else if (!strcmp(nodename, "name.action")) {
 		current_item_action = action_create(content);
 		if (current_item_action) {
@@ -468,6 +493,7 @@ item_destroy(struct menuitem *item)
 	free(item->execute);
 	free(item->id);
 	free(item->text);
+	free(item->icon_name);
 	free(item);
 }
 
@@ -647,6 +673,7 @@ static void
 handle_menu_element(xmlNode *n, struct server *server)
 {
 	char *label = (char *)xmlGetProp(n, (const xmlChar *)"label");
+	char *icon_name = (char *)xmlGetProp(n, (const xmlChar *)"icon");
 	char *execute = (char *)xmlGetProp(n, (const xmlChar *)"execute");
 	char *id = (char *)xmlGetProp(n, (const xmlChar *)"id");
 
@@ -666,6 +693,7 @@ handle_menu_element(xmlNode *n, struct server *server)
 		} else {
 			current_item = item_create(current_menu, label,
 				/* arrow */ true);
+			fill_item("icon", icon_name);
 			current_item_action = NULL;
 			current_item->execute = xstrdup(execute);
 			current_item->id = xstrdup(id);
@@ -695,6 +723,7 @@ handle_menu_element(xmlNode *n, struct server *server)
 			 */
 			current_item = item_create(current_menu, label, true);
 			if (current_item) {
+				fill_item("icon", icon_name);
 				submenu = &current_item->submenu;
 			} else {
 				submenu = NULL;
@@ -702,6 +731,9 @@ handle_menu_element(xmlNode *n, struct server *server)
 		}
 		++menu_level;
 		current_menu = menu_create(server, id, label);
+		if (icon_name) {
+			current_menu->icon_name = xstrdup(icon_name);
+		}
 		if (submenu) {
 			*submenu = current_menu;
 		}
@@ -739,6 +771,7 @@ handle_menu_element(xmlNode *n, struct server *server)
 		if (menu) {
 			current_item = item_create(current_menu, menu->label, true);
 			if (current_item) {
+				fill_item("icon", menu->icon_name);
 				current_item->submenu = menu;
 			}
 		} else {
@@ -747,6 +780,7 @@ handle_menu_element(xmlNode *n, struct server *server)
 	}
 error:
 	free(label);
+	free(icon_name);
 	free(execute);
 	free(id);
 }
@@ -1209,6 +1243,7 @@ menu_free(struct menu *menu)
 	wl_list_remove(&menu->link);
 	zfree(menu->id);
 	zfree(menu->label);
+	zfree(menu->icon_name);
 	zfree(menu);
 }
 

@@ -23,6 +23,7 @@ struct menuitem {
 	char *execute;
 	char *id; /* needed for pipemenus */
 	char *text;
+	char *icon_name;
 	const char *arrow;
 	struct menu *parent;
 	struct menu *submenu;
@@ -41,6 +42,7 @@ struct menuitem {
 struct menu {
 	char *id;
 	char *label;
+	char *icon_name;
 	struct menu *parent;
 	struct menu_pipe_context *pipe_ctx;
 
@@ -57,6 +59,7 @@ struct menu {
 	struct wlr_scene_tree *scene_tree;
 	bool is_pipemenu;
 	bool align_left;
+	bool has_icons;
 
 	/* Used to match a window-menu to the view that triggered it. */
 	struct view *triggered_by_view;  /* may be NULL */

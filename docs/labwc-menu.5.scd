@@ -15,29 +15,37 @@ The menu file must be entirely enclosed within <openbox_menu> and
 </openbox_menu> tags.  Inside these tags, menus are specified as follows:
 
 ```
+<!-- A toplevel menu -->
+<menu id="external_menu_settings" label="External Settings" icon="preferences-other">
+  <item label="Display setting">
+    <action name="Execute" command="wdisplays" />
+  </item>
+</menu>
+
+<!-- Another toplevel menu -->
 <menu id="">
 
   <!-- A menu entry with an action, for example to execute an application -->
-  <item label="">
+  <item label="" icon="">
     <action></action>
   </item>
 
-  <!-- A submenu defined elsewhere -->
-  <menu id="" />
+  <!-- A submenu defined elsewhere, uses external label and icon attributes -->
+  <menu id="external_menu_settings" />
 
   <!-- Horizontal line -->
   <separator />
 
   <!-- An inline submenu -->
-  <menu id="" label="">
+  <menu id="" label="" icon="">
     ...some content...
   </menu>
 
   <!-- Title -->
-  <separator label=""/>
+  <separator label="" />
 
   <!-- Pipemenu -->
-  <menu id="" label="" execute="COMMAND"/>
+  <menu id="" label="" icon="" execute="COMMAND" />
 
 </menu>
 ```
@@ -56,14 +64,27 @@ The menu file must be entirely enclosed within <openbox_menu> and
 		  view to that workspace when selected.
 
 *menu.id* (when nested under other *<menu>* element)
-	Link to a submenu defined elsewhere (by a *<menu id="">* at toplevel)
+	Link to a submenu defined elsewhere (by a *<menu id="">* at toplevel).
 
 *menu.label*
 	The title of the menu, shown in its parent. A label must be given when
 	defining a menu.
 
+*menu.icon*
+	An icon to be rendered, shown in its parent. This argument is optional.
+	See *menu.item.icon* for further details.
+
 *menu.item.label*
 	The visible name of the menu item.
+
+*menu.item.icon*
+	The name of an icon to be rendered in front of the menu entry. This
+	attribute is optional. The name follows naming conventions of "Icon="
+	entries in .desktop files. If used, it is recommended to use the name of
+	the icon only rather than a full path. This ensures that the icon will
+	be looked up in the scale of the output where the menu is rendered. E.g.
+	use of icon="vlc" is suggested over using
+	icon="/usr/share/icons/hicolor/16x16/apps/vlc.png".
 
 *menu.item.action*
 	See labwc-actions(5). Note: XML CDATA is supported for this node in

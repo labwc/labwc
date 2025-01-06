@@ -561,6 +561,7 @@ server_init(struct server *server)
 	 * | Type              | Scene Tree       | Per Output | Example
 	 * | ----------------- | ---------------- | ---------- | -------
 	 * | ext-session       | lock-screen      | Yes        | swaylock
+	 * | osd               | osd_tree         | Yes        |
 	 * | compositor-menu   | menu_tree        | No         | root-menu
 	 * | layer-shell       | layer-popups     | Yes        |
 	 * | layer-shell       | overlay-layer    | Yes        |

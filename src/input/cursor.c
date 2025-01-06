@@ -401,6 +401,7 @@ cursor_update_image(struct seat *seat)
 		if (seat->seat->pointer_state.focused_surface) {
 			seat->server_cursor = LAB_CURSOR_DEFAULT;
 			wlr_cursor_set_xcursor(seat->cursor, seat->xcursor_manager, "");
+			wlr_seat_pointer_clear_focus(seat->seat);
 			cursor_update_focus(seat->server);
 		}
 		return;

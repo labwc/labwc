@@ -1496,15 +1496,18 @@ theme_init(struct theme *theme, struct server *server, const char *theme_name)
 	 */
 	theme_builtin(theme, server);
 
-	/*
-	 * Read
-	 *   - <data-dir>/share/themes/$theme_name/labwc/themerc
-	 *   - <data-dir>/share/themes/$theme_name/openbox-3/themerc
-	 */
 	struct wl_list paths;
-	paths_theme_create(&paths, theme_name, "themerc");
-	theme_read(theme, &paths);
-	paths_destroy(&paths);
+
+	if (theme_name) {
+		/*
+		 * Read
+		 *   - <data-dir>/share/themes/$theme_name/labwc/themerc
+		 *   - <data-dir>/share/themes/$theme_name/openbox-3/themerc
+		 */
+		paths_theme_create(&paths, theme_name, "themerc");
+		theme_read(theme, &paths);
+		paths_destroy(&paths);
+	}
 
 	/* Read <config-dir>/labwc/themerc-override */
 	paths_config_create(&paths, "themerc-override");

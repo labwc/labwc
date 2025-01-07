@@ -609,7 +609,7 @@ ssd_update_window_icon(struct ssd *ssd)
 	 */
 	float icon_scale = output_max_scale(ssd->view->server);
 
-	struct lab_img *icon_img = desktop_entry_icon_lookup(
+	struct lab_img *icon_img = desktop_entry_load_icon_from_app_id(
 		ssd->view->server, app_id, icon_size, icon_scale);
 	if (!icon_img) {
 		wlr_log(WLR_DEBUG, "icon could not be loaded for %s", app_id);

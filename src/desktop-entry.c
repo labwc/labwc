@@ -299,8 +299,47 @@ convert_img_type(enum sfdo_icon_file_format fmt)
 }
 
 struct lab_img *
-desktop_entry_icon_lookup(struct server *server, const char *app_id, int size,
-		float scale)
+desktop_entry_load_icon(struct server *server, const char *icon_name, int size, float scale)
+{
+	/* static analyzer isn't able to detect the NULL check in string_null_or_empty() */
+	if (string_null_or_empty(icon_name) || !icon_name) {
+		return NULL;
+	}
+
+	struct sfdo *sfdo = server->sfdo;
+	if (!sfdo) {
+		return NULL;
+	}
+
+	/*
+	 * libsfdo doesn't support loading icons for fractional scales,
+	 * so round down and increase the icon size to compensate.
+	 */
+	int lookup_scale = MAX((int)scale, 1);
+	int lookup_size = lroundf(size * scale / lookup_scale);
+
+	struct icon_ctx ctx = {0};
+	int ret;
+	if (icon_name[0] == '/') {
+		ret = process_abs_name(&ctx, icon_name);
+	} else {
+		ret = process_rel_name(&ctx, icon_name, sfdo, lookup_size, lookup_scale);
+	}
+	if (ret < 0) {
+		wlr_log(WLR_INFO, "failed to load icon file %s", icon_name);
+		return NULL;
+	}
+
+	wlr_log(WLR_DEBUG, "loading icon file %s", ctx.path);
+	struct lab_img *img = lab_img_load(convert_img_type(ctx.format), ctx.path, NULL);
+
+	free(ctx.path);
+	return img;
+}
+
+struct lab_img *
+desktop_entry_load_icon_from_app_id(struct server *server,
+		const char *app_id, int size, float scale)
 {
 	if (string_null_or_empty(app_id)) {
 		return NULL;
@@ -317,37 +356,11 @@ desktop_entry_icon_lookup(struct server *server, const char *app_id, int size,
 		icon_name = sfdo_desktop_entry_get_icon(entry, NULL);
 	}
 
-	/*
-	 * libsfdo doesn't support loading icons for fractional scales,
-	 * so round down and increase the icon size to compensate.
-	 */
-	int lookup_scale = MAX((int)scale, 1);
-	int lookup_size = lroundf(size * scale / lookup_scale);
-
-	struct icon_ctx ctx = {0};
-	int ret;
-	if (!icon_name) {
-		/* fall back to app id */
-		ret = process_rel_name(&ctx, app_id, sfdo, lookup_size, lookup_scale);
-	} else if (icon_name[0] == '/') {
-		ret = process_abs_name(&ctx, icon_name);
-	} else {
-		/* this should be the case for most icons */
-		ret = process_rel_name(&ctx, icon_name, sfdo, lookup_size, lookup_scale);
-		/* Icon defined in .desktop file could not be loaded, retry with app_id */
-		if (ret < 0) {
-			ret = process_rel_name(&ctx, app_id, sfdo, lookup_size, lookup_scale);
-		}
+	struct lab_img *img = desktop_entry_load_icon(server, icon_name, size, scale);
+	if (!img) {
+		/* Icon not defined in .desktop file or could not be loaded */
+		img = desktop_entry_load_icon(server, app_id, size, scale);
 	}
-	if (ret < 0) {
-		return NULL;
-	}
-
-	wlr_log(WLR_DEBUG, "loading icon file %s", ctx.path);
-	struct lab_img *img = lab_img_load(convert_img_type(ctx.format), ctx.path, NULL);
-
-	free(ctx.path);
-
 	return img;
 }
 

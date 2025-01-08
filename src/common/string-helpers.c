@@ -200,3 +200,8 @@ str_starts_with(const char *s, char needle, const char *ignore_chars)
 	return (s + strspn(s, ignore_chars))[0] == needle;
 }
 
+bool
+str_equal(const char *a, const char *b)
+{
+	return a == b || (a && b && !strcmp(a, b));
+}

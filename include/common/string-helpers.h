@@ -92,4 +92,13 @@ bool str_endswith_ignore_case(const char *const string, const char *const suffix
  */
 bool str_starts_with(const char *s, char needle, const char *ignore_chars);
 
+/**
+ * str_equal - indicate whether two strings are identical
+ * @a: first string to compare
+ * @b: second string to compare
+ *
+ * If both strings are NULL, returns true.
+ */
+bool str_equal(const char *a, const char *b);
+
 #endif /* LABWC_STRING_HELPERS_H */

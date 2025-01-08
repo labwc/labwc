@@ -10,6 +10,7 @@
 #include "common/mem.h"
 #include "common/scaled-scene-buffer.h"
 #include "common/scaled-font-buffer.h"
+#include "common/string-helpers.h"
 
 static struct lab_data_buffer *
 _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
@@ -37,11 +38,6 @@ _destroy(struct scaled_scene_buffer *scaled_buffer)
 	zfree(self->text);
 	zfree(self->font.name);
 	free(self);
-}
-
-static bool str_equal(const char *a, const char *b)
-{
-	return a == b || (a && b && !strcmp(a, b));
 }
 
 static bool

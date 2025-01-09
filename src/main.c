@@ -89,7 +89,7 @@ struct idle_ctx {
 static void
 idle_callback(void *data)
 {
-	/* Idle callbacks destroy automatically once triggerd */
+	/* Idle callbacks destroy automatically once triggered */
 	struct idle_ctx *ctx = data;
 
 	/* Start session-manager if one is specified by -S|--session */

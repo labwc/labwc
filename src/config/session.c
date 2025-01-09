@@ -277,7 +277,7 @@ session_environment_init(void)
 		/* Process an environment file itself */
 		bool success = read_environment_file(path->string);
 
-		/* Process a correponding environment.d directory */
+		/* Process a corresponding environment.d directory */
 		success |= read_environment_dir(path->string);
 
 		if (success && !should_merge_config) {

@@ -379,7 +379,7 @@ compute_overlap(struct overlap_bitmap *bmp, int i, int j,
 	}
 
 	/*
-	 * If there is height left ot consider after walking rows, the region
+	 * If there is height left to consider after walking rows, the region
 	 * extends out of bounds and placement is invalid.
 	 */
 	if (height > 0) {

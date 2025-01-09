@@ -74,7 +74,7 @@ void lab_transaction_op_destroy(struct lab_transaction_op *transaction_op);
  */
 void lab_resource_addon_destroy(struct lab_wl_resource_addon *addon);
 
-/* Convinience wrappers for looping through the pending transaction ops of a ctx */
+/* Convenience wrappers for looping through the pending transaction ops of a ctx */
 #define lab_transaction_for_each(transaction_op, ctx) \
 	wl_list_for_each(transaction_op, &(ctx)->transaction_ops, link)
 

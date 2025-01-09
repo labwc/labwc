@@ -68,7 +68,7 @@ static struct window_rule *current_window_rule;
 static struct action *current_window_rule_action;
 static struct view_query *current_view_query;
 static struct action *current_child_action;
-/* for backword compatibility of <mouse><scrollFactor> */
+/* for backward compatibility of <mouse><scrollFactor> */
 static double mouse_scroll_factor = -1;
 
 enum font_place {

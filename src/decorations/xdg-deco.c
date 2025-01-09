@@ -66,7 +66,7 @@ xdg_deco_request_mode(struct wl_listener *listener, void *data)
 	}
 
 	/*
-	 * We may get multiple request_mode calls in an unitialized state.
+	 * We may get multiple request_mode calls in an uninitialized state.
 	 * Just update the last requested mode and only add the commit
 	 * handler on the first uninitialized state call.
 	 */

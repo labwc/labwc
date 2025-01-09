@@ -471,7 +471,7 @@ view_discover_output(struct view *view, struct wlr_box *geometry)
 		view->output = output;
 		/* Show fullscreen views above top-layer */
 		if (view->fullscreen) {
-			desktop_update_top_layer_visiblity(view->server);
+			desktop_update_top_layer_visibility(view->server);
 		}
 		return true;
 	}
@@ -528,7 +528,7 @@ view_set_output(struct view *view, struct output *output)
 	view->output = output;
 	/* Show fullscreen views above top-layer */
 	if (view->fullscreen) {
-		desktop_update_top_layer_visiblity(view->server);
+		desktop_update_top_layer_visibility(view->server);
 	}
 }
 
@@ -558,7 +558,7 @@ view_update_outputs(struct view *view)
 	if (new_outputs != view->outputs) {
 		view->outputs = new_outputs;
 		wl_signal_emit_mutable(&view->events.new_outputs, NULL);
-		desktop_update_top_layer_visiblity(view->server);
+		desktop_update_top_layer_visibility(view->server);
 	}
 }
 
@@ -814,7 +814,7 @@ view_minimize(struct view *view, bool minimized)
 
 	/* Enable top-layer when full-screen views are minimized */
 	if (view->fullscreen && view->output) {
-		desktop_update_top_layer_visiblity(view->server);
+		desktop_update_top_layer_visibility(view->server);
 	}
 }
 
@@ -1705,7 +1705,7 @@ set_fullscreen(struct view *view, bool fullscreen)
 
 	/* Show fullscreen views above top-layer */
 	if (view->output) {
-		desktop_update_top_layer_visiblity(view->server);
+		desktop_update_top_layer_visibility(view->server);
 	}
 }
 
@@ -2291,7 +2291,7 @@ view_move_to_front(struct view *view)
 	}
 
 	cursor_update_focus(view->server);
-	desktop_update_top_layer_visiblity(view->server);
+	desktop_update_top_layer_visibility(view->server);
 }
 
 void
@@ -2305,7 +2305,7 @@ view_move_to_back(struct view *view)
 	move_to_back(root);
 
 	cursor_update_focus(view->server);
-	desktop_update_top_layer_visiblity(view->server);
+	desktop_update_top_layer_visibility(view->server);
 }
 
 struct view *
@@ -2560,7 +2560,7 @@ view_destroy(struct view *view)
 	 */
 	if (view->fullscreen && view->output) {
 		view->fullscreen = false;
-		desktop_update_top_layer_visiblity(server);
+		desktop_update_top_layer_visibility(server);
 		if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_FULLSCREEN) {
 			set_adaptive_sync_fullscreen(view);
 		}

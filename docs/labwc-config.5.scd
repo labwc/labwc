@@ -374,7 +374,7 @@ this is for compatibility with Openbox.
 	window to be moved with an interactive move. Default is 20.
 
 *<resistance><unMaximizeThreshold>*
-	Sets the one-dimentional movement of cursor in pixel required for a
+	Sets the one-dimensional movement of cursor in pixel required for a
 	*vertically or horizontally* maximized window to be moved with an
 	interactive move. Default is 150.
 

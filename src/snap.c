@@ -267,7 +267,7 @@ snap_shrink_to_next_edge(struct view *view,
 	edges_find_outputs(&next_edges, view,
 		origin, *geo, view->output, check_edge);
 
-	/* Limit motion to any intervening edge of ther views on this output */
+	/* Limit motion to any intervening edge of other views on this output */
 	edges_find_neighbors(&next_edges, view, origin, *geo,
 		view->output, check_edge, /* ignore_hidden */ false);
 

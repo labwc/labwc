@@ -184,7 +184,7 @@ desktop_focus_output(struct output *output)
 }
 
 void
-desktop_update_top_layer_visiblity(struct server *server)
+desktop_update_top_layer_visibility(struct server *server)
 {
 	struct view *view;
 	struct output *output;

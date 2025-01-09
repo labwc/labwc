@@ -120,8 +120,8 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 
 	bool committed = wlr_output_commit_state(wlr_output, state);
 	/*
-	 * Handle case where the ouput state test for tearing succeeded,
-	 * but actual commit failed. Retry wihout tearing.
+	 * Handle case where the output state test for tearing succeeded,
+	 * but actual commit failed. Retry without tearing.
 	 */
 	if (!committed && state->tearing_page_flip) {
 		state->tearing_page_flip = false;

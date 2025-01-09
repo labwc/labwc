@@ -17,7 +17,7 @@ pid_t spawn_primary_client(const char *command);
 void spawn_async_no_shell(char const *command);
 
 /**
- * spawn_piped - execute asyncronously
+ * spawn_piped - execute asynchronously
  * @command: command to be executed
  * @pipe_fd: set to the read end of a pipe
  *           connected to stdout of the command

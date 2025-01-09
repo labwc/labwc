@@ -61,7 +61,7 @@ set_shadow_part_geometry(struct ssd_part *part, int width, int height,
 		wlr_scene_buffer_from_node(part->node);
 	/*
 	 * If the shadow inset is greater than half the overall window height
-	 * or width (eg. becaused the window is shaded or because we have a
+	 * or width (eg. because the window is shaded or because we have a
 	 * small window with massive shadows) then the corners would overlap
 	 * which looks horrible.  To avoid this, when the window is too narrow
 	 * or short we hide the edges on that axis and clip off the portion of

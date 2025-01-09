@@ -477,7 +477,7 @@ struct view *desktop_topmost_focusable_view(struct server *server);
  * Toggles the (output local) visibility of the layershell top layer
  * based on the existence of a fullscreen window on the current workspace.
  */
-void desktop_update_top_layer_visiblity(struct server *server);
+void desktop_update_top_layer_visibility(struct server *server);
 
 /**
  * desktop_focus_topmost_view() - focus the topmost view on the current

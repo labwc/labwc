@@ -358,7 +358,7 @@ tests do not contribute a great deal. However, they have a role to play in
 providing some verification that stand-alone functions behave as expected.
 
 On this project, writing unit-tests is not compulsory nor do we measure
-coverage. The inclusion of the t/ directory does not signifiy a move towards
+coverage. The inclusion of the t/ directory does not signify a move towards
 test-driven development. We intend to use unit tests sparingly and only when
 devs find them useful.
 

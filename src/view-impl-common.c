@@ -52,7 +52,7 @@ view_impl_map(struct view *view)
 	 * Some clients (e.g. Steam's Big Picture Mode window) request
 	 * fullscreen before mapping.
 	 */
-	desktop_update_top_layer_visiblity(view->server);
+	desktop_update_top_layer_visibility(view->server);
 
 	wlr_log(WLR_DEBUG, "[map] identifier=%s, title=%s",
 		view_get_string_prop(view, "app_id"),

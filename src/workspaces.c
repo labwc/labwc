@@ -402,7 +402,7 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	cursor_update_focus(server);
 
 	/* Ensure that only currently visible fullscreen windows hide the top layer */
-	desktop_update_top_layer_visiblity(server);
+	desktop_update_top_layer_visibility(server);
 
 	lab_cosmic_workspace_set_active(target->cosmic_workspace, true);
 	lab_ext_workspace_set_active(target->ext_workspace, true);

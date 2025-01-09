@@ -624,7 +624,7 @@ output_config_apply(struct server *server,
 		if (!output_state_commit(output)) {
 			/*
 			 * FIXME: This is only part of the story, we should revert
-			 *        all previously commited outputs as well here.
+			 *        all previously committed outputs as well here.
 			 *
 			 *        See https://github.com/labwc/labwc/pull/1528
 			 */

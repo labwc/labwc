@@ -1014,7 +1014,7 @@ init_client_list_combined_menu(struct server *server)
  *
  * This will look at workspaces and produce a menu with the workspace name as a
  * separator label and the titles of the view, if any, below each workspace
- * name. Active view is indicated by "*" preceeding title.
+ * name. Active view is indicated by "*" preceding title.
  */
 void
 update_client_list_combined_menu(struct server *server)

@@ -3183,7 +3183,7 @@ sub process {
 # A correctly formed commit description is:
 #    commit <SHA-1 hash length 12+ chars> ("Complete commit subject")
 # with the commit subject '("' prefix and '")' suffix
-# This is a fairly compilicated block as it tests for what appears to be
+# This is a fairly complicated block as it tests for what appears to be
 # bare SHA-1 hash with  minimum length of 5.  It also avoids several types of
 # possible SHA-1 matches.
 # A commit match can span multiple lines so this block attempts to find a
@@ -3790,7 +3790,7 @@ sub process {
 			if (CHK("LOGICAL_CONTINUATIONS",
 				"Logical continuations should be on the previous line\n" . $hereprev) &&
 			    $fix && $prevrawline =~ /^\+/) {
-				# insert logical operator at last non-comment, non-whitepsace char on previous line
+				# insert logical operator at last non-comment, non-whitespace char on previous line
 				$prevline =~ /[\s$;]*$/;
 				my $line_end = substr($prevrawline, $-[0]);
 				$fixed[$fixlinenr - 1] =~ s/\Q$line_end\E$/ $operator$line_end/;

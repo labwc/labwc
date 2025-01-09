@@ -1234,7 +1234,7 @@ shadow_edge_gradient(struct lab_data_buffer *buffer,
 		 */
 		double xn = (double)(x + inset) / (double)total_size;
 
-		/* Gausian dropoff */
+		/* Gaussian dropoff */
 		double alpha = exp(-(xn * xn) / variance);
 
 		/* RGBA values are all pre-multiplied */

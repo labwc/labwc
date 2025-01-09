@@ -26,7 +26,7 @@
  *
  * In subsequent snapped resize actions, if:
  *
- * 1. The view is the same as in the last attemped snapped resize;
+ * 1. The view is the same as in the last attempted snapped resize;
  * 2. The direction of resizing is the same as in the last attempt; and
  * 3. The geometry of the view matches that expected from the last attempt;
  *

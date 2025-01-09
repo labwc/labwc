@@ -632,9 +632,9 @@ ssd_update_window_icon(struct ssd *ssd)
 				struct scaled_img_buffer *img_buffer =
 					scaled_img_buffer_from_node(node);
 				scaled_img_buffer_update(img_buffer, icon_img,
-					theme->window_button_width,
-					theme->window_button_height,
-					icon_padding);
+					theme->window_button_width - 2 * icon_padding,
+					theme->window_button_height);
+				wlr_scene_node_set_position(node, icon_padding, 0);
 			}
 		}
 	} FOR_EACH_END

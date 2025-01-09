@@ -119,7 +119,7 @@ lab_img_add_modifier(struct lab_img *img,  lab_img_modifier_func_t modifier)
  */
 static struct lab_data_buffer *
 render_cairo_surface(cairo_surface_t *surface, int width, int height,
-	int padding_x, double scale)
+	double scale)
 {
 	assert(surface);
 	int src_w = cairo_image_surface_get_width(surface);
@@ -130,9 +130,7 @@ render_cairo_surface(cairo_surface_t *surface, int width, int height,
 	cairo_t *cairo = cairo_create(buffer->surface);
 
 	struct wlr_box container = {
-		.x = padding_x,
-		.y = 0,
-		.width = width - 2 * padding_x,
+		.width = width,
 		.height = height,
 	};
 
@@ -151,8 +149,7 @@ render_cairo_surface(cairo_surface_t *surface, int width, int height,
 }
 
 struct lab_data_buffer *
-lab_img_render(struct lab_img *img, int width, int height, int padding,
-	double scale)
+lab_img_render(struct lab_img *img, int width, int height, double scale)
 {
 	struct lab_data_buffer *buffer = NULL;
 
@@ -162,12 +159,12 @@ lab_img_render(struct lab_img *img, int width, int height, int padding,
 	case LAB_IMG_XBM:
 	case LAB_IMG_XPM:
 		buffer = render_cairo_surface(img->data->buffer->surface,
-			width, height, padding, scale);
+			width, height, scale);
 		break;
 #if HAVE_RSVG
 	case LAB_IMG_SVG:
 		buffer = img_svg_render(img->data->svg, width, height,
-			padding, scale);
+			scale);
 		break;
 #endif
 	default:

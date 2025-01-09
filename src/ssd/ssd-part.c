@@ -108,7 +108,7 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		struct ssd_part *icon_part = add_scene_part(part_list, type);
 		struct scaled_img_buffer *img_buffer = scaled_img_buffer_create(
 			parent, imgs[state_set], rc.theme->window_button_width,
-			rc.theme->window_button_height, /* padding_x */ 0);
+			rc.theme->window_button_height);
 		assert(img_buffer);
 		icon_part->node = &img_buffer->scene_buffer->node;
 		wlr_scene_node_set_enabled(icon_part->node, false);

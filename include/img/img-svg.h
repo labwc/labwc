@@ -9,6 +9,6 @@ struct lab_data_buffer;
 RsvgHandle *img_svg_load(const char *filename);
 
 struct lab_data_buffer *img_svg_render(RsvgHandle *svg, int w, int h,
-	int padding, double scale);
+	double scale);
 
 #endif /* LABWC_IMG_SVG_H */

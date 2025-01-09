@@ -36,7 +36,7 @@ img_svg_load(const char *filename)
 }
 
 struct lab_data_buffer *
-img_svg_render(RsvgHandle *svg, int w, int h, int padding_x, double scale)
+img_svg_render(RsvgHandle *svg, int w, int h, double scale)
 {
 	struct lab_data_buffer *buffer = buffer_create_cairo(w, h, scale);
 	cairo_surface_t *image = buffer->surface;
@@ -44,9 +44,7 @@ img_svg_render(RsvgHandle *svg, int w, int h, int padding_x, double scale)
 	GError *err = NULL;
 
 	RsvgRectangle viewport = {
-		.x = padding_x,
-		.y = 0,
-		.width = w - 2 * padding_x,
+		.width = w,
 		.height = h,
 	};
 	rsvg_handle_render_document(svg, cr, &viewport, &err);

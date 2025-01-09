@@ -34,8 +34,7 @@ struct scaled_scene_buffer {
 	/* cached wlr_buffers for each scale */
 	struct wl_list cache;  /* struct scaled_buffer_cache_entry.link */
 	struct wl_listener destroy;
-	struct wl_listener output_enter;
-	struct wl_listener output_leave;
+	struct wl_listener outputs_update;
 	const struct scaled_scene_buffer_impl *impl;
 	/*
 	 * Pointer to the per-implementation list of scaled-scene-buffers.

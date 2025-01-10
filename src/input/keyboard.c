@@ -54,17 +54,30 @@ change_vt(struct server *server, unsigned int vt)
 	wlr_session_change_vt(server->session, vt);
 }
 
-bool
-keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard)
+uint32_t
+keyboard_get_all_modifiers(struct seat *seat)
 {
-	xkb_mod_index_t i;
-	for (i = 0; i < xkb_keymap_num_mods(keyboard->keymap); i++) {
-		if (xkb_state_mod_index_is_active(keyboard->xkb_state,
-				i, XKB_STATE_MODS_DEPRESSED)) {
-			return true;
+	/*
+	 * As virtual keyboards like used by wayvnc are not part of the keyboard group,
+	 * we need to additionally get the modifiers of the virtual keyboards in addition
+	 * to the physical ones in the keyboard group. This ensures that mousebinds with
+	 * keyboard modifiers are detected correctly when using for example a VNC client
+	 * via wayvnc to control labwc. This function also gets called to decide when to
+	 * hide the window switcher and workspace OSDs and to indicate if the user wants
+	 * to snap a window to a region during a window move operation.
+	 */
+	struct input *input;
+	uint32_t modifiers = wlr_keyboard_get_modifiers(&seat->keyboard_group->keyboard);
+	wl_list_for_each(input, &seat->inputs, link) {
+		if (input->wlr_input_device->type != WLR_INPUT_DEVICE_KEYBOARD) {
+			continue;
+		}
+		struct keyboard *kb = wl_container_of(input, kb, base);
+		if (kb->is_virtual) {
+			modifiers |= wlr_keyboard_get_modifiers(kb->wlr_keyboard);
 		}
 	}
-	return false;
+	return modifiers;
 }
 
 static void
@@ -139,7 +152,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 					== LAB_INPUT_STATE_WINDOW_SWITCHER;
 
 	if (window_switcher_active || seat->workspace_osd_shown_by_modifier) {
-		if (!keyboard_any_modifiers_pressed(wlr_keyboard)) {
+		if (!keyboard_get_all_modifiers(seat)) {
 			if (window_switcher_active) {
 				if (key_state_nr_bound_keys()) {
 					should_cancel_cycling_on_next_key_release = true;

@@ -25,8 +25,7 @@ regions_should_snap(struct server *server)
 		return false;
 	}
 
-	struct wlr_keyboard *keyboard = &server->seat.keyboard_group->keyboard;
-	return keyboard_any_modifiers_pressed(keyboard);
+	return keyboard_get_all_modifiers(&server->seat);
 }
 
 struct region *

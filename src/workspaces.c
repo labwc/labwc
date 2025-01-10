@@ -287,8 +287,7 @@ _osd_show(struct server *server)
 			wlr_scene_node_set_enabled(&output->workspace_osd->node, true);
 		}
 	}
-	struct wlr_keyboard *keyboard = &server->seat.keyboard_group->keyboard;
-	if (keyboard_any_modifiers_pressed(keyboard)) {
+	if (keyboard_get_all_modifiers(&server->seat)) {
 		/* Hidden by release of all modifiers */
 		server->seat.workspace_osd_shown_by_modifier = true;
 	} else {

@@ -95,8 +95,7 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		}
 
 		/* Prevent region snapping when just moving via A-Left mousebind */
-		struct wlr_keyboard *keyboard = &seat->keyboard_group->keyboard;
-		seat->region_prevent_snap = keyboard_any_modifiers_pressed(keyboard);
+		seat->region_prevent_snap = keyboard_get_all_modifiers(seat);
 
 		cursor_shape = LAB_CURSOR_GRAB;
 		break;

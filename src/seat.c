@@ -305,14 +305,14 @@ new_pointer(struct seat *seat, struct wlr_input_device *dev)
 }
 
 static struct input *
-new_keyboard(struct seat *seat, struct wlr_input_device *device, bool virtual)
+new_keyboard(struct seat *seat, struct wlr_input_device *device, bool is_virtual)
 {
 	struct wlr_keyboard *kb = wlr_keyboard_from_input_device(device);
 
 	struct keyboard *keyboard = znew(*keyboard);
 	keyboard->base.wlr_input_device = device;
 	keyboard->wlr_keyboard = kb;
-	keyboard->is_virtual = virtual;
+	keyboard->is_virtual = is_virtual;
 
 	if (!seat->keyboard_group->keyboard.keymap) {
 		wlr_log(WLR_ERROR, "cannot set keymap");
@@ -329,7 +329,10 @@ new_keyboard(struct seat *seat, struct wlr_input_device *device, bool virtual)
 	 */
 	keyboard_set_numlock(kb);
 
-	if (!virtual) {
+	if (is_virtual) {
+		/* key repeat information is usually synchronized via the keyboard group */
+		wlr_keyboard_set_repeat_info(kb, rc.repeat_rate, rc.repeat_delay);
+	} else {
 		wlr_keyboard_group_add_keyboard(seat->keyboard_group, kb);
 	}
 

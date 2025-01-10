@@ -39,10 +39,13 @@ struct lab_img_data {
 };
 
 static struct wl_list img_data_cache = WL_LIST_INIT(&img_data_cache);
+static int img_data_count;
+static int img_count;
 
 static struct lab_img *
 create_img(struct lab_img_data *img_data)
 {
+	img_count++;
 	struct lab_img *img = znew(*img);
 	img->data = img_data;
 	img_data->refcount++;
@@ -106,6 +109,7 @@ lab_img_load(enum lab_img_type type, const char *path, float *xbm_color)
 		img_data->cache_key.path = xstrdup(path);
 		wl_list_insert(&img_data_cache, &img_data->link);
 		wlr_log(WLR_DEBUG, "Using new image data for %s", path);
+		img_data_count++;
 		return create_img(img_data);
 	} else {
 		free(img_data);
@@ -126,6 +130,7 @@ lab_img_load_from_bitmap(const char *bitmap, float *rgba)
 	img_data->buffer = buffer;
 	wl_list_insert(&img_data_cache, &img_data->link);
 
+	img_data_count++;
 	return create_img(img_data);
 }
 
@@ -240,6 +245,8 @@ lab_img_data_destroy(struct lab_img_data *img_data)
 	wl_list_remove(&img_data->link);
 	free(img_data->cache_key.path);
 	free(img_data);
+
+	img_data_count--;
 }
 
 void
@@ -265,6 +272,9 @@ lab_img_destroy(struct lab_img *img)
 
 	wl_array_release(&img->modifiers);
 	free(img);
+
+	img_count--;
+	wlr_log(WLR_DEBUG, "[%d/%d] lab_img/lab_img_data allocated", img_count, img_data_count);
 }
 
 bool

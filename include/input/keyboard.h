@@ -22,6 +22,6 @@ void keyboard_update_layout(struct seat *seat, xkb_layout_index_t layout);
 void keyboard_cancel_keybind_repeat(struct keyboard *keyboard);
 void keyboard_cancel_all_keybind_repeats(struct seat *seat);
 
-bool keyboard_any_modifiers_pressed(struct wlr_keyboard *keyboard);
+uint32_t keyboard_get_all_modifiers(struct seat *seat);
 
 #endif /* LABWC_KEYBOARD_H */

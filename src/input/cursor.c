@@ -17,9 +17,10 @@
 #include "dnd.h"
 #include "idle.h"
 #include "input/gestures.h"
-#include "input/touch.h"
+#include "input/keyboard.h"
 #include "input/tablet.h"
 #include "input/tablet-tool.h"
+#include "input/touch.h"
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
@@ -892,9 +893,7 @@ handle_release_mousebinding(struct server *server,
 	}
 
 	struct mousebind *mousebind;
-
-	uint32_t modifiers = wlr_keyboard_get_modifiers(
-			&server->seat.keyboard_group->keyboard);
+	uint32_t modifiers = keyboard_get_all_modifiers(&server->seat);
 
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
 		if (ssd_part_contains(mousebind->context, ctx->type)
@@ -961,9 +960,7 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 	struct mousebind *mousebind;
 	bool double_click = is_double_click(rc.doubleclick_time, button, ctx);
 	bool consumed_by_frame_context = false;
-
-	uint32_t modifiers = wlr_keyboard_get_modifiers(
-			&server->seat.keyboard_group->keyboard);
+	uint32_t modifiers = keyboard_get_all_modifiers(&server->seat);
 
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
 		if (ssd_part_contains(mousebind->context, ctx->type)
@@ -1287,9 +1284,7 @@ handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 {
 	struct mousebind *mousebind;
 	bool handled = false;
-
-	uint32_t modifiers = wlr_keyboard_get_modifiers(
-			&server->seat.keyboard_group->keyboard);
+	uint32_t modifiers = keyboard_get_all_modifiers(&server->seat);
 
 	enum direction direction = LAB_DIRECTION_INVALID;
 	if (event->orientation == WL_POINTER_AXIS_HORIZONTAL_SCROLL) {

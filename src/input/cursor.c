@@ -1249,7 +1249,12 @@ cursor_emulate_button(struct seat *seat, uint32_t button,
 	wlr_seat_pointer_notify_frame(seat->seat);
 }
 
-static int
+struct scroll_info {
+	int direction;
+	bool run_action;
+};
+
+static struct scroll_info
 compare_delta(const struct wlr_pointer_axis_event *event, double *accum)
 {
 	/*
@@ -1263,6 +1268,13 @@ compare_delta(const struct wlr_pointer_axis_event *event, double *accum)
 	 * https://lists.freedesktop.org/archives/wayland-devel/2019-April/040377.html
 	 */
 	const double SCROLL_THRESHOLD = 10.0;
+	struct scroll_info info = {0};
+
+	if (event->delta_discrete < 0 || event->delta < 0) {
+		info.direction = -1;
+	} else if (event->delta_discrete > 0 || event->delta > 0) {
+		info.direction = 1;
+	}
 
 	if (event->delta == 0.0) {
 		/* Delta 0 marks the end of a scroll */
@@ -1271,14 +1283,13 @@ compare_delta(const struct wlr_pointer_axis_event *event, double *accum)
 		/* Accumulate smooth scrolling until we hit threshold */
 		*accum += event->delta;
 	}
-	if (event->delta_discrete < 0 || *accum < -SCROLL_THRESHOLD) {
+
+	if (event->delta_discrete != 0 || fabs(*accum) > SCROLL_THRESHOLD) {
 		*accum = fmod(*accum, SCROLL_THRESHOLD);
-		return -1;
-	} else if (event->delta_discrete > 0 || *accum > SCROLL_THRESHOLD) {
-		*accum = fmod(*accum, SCROLL_THRESHOLD);
-		return 1;
+		info.run_action = true;
 	}
-	return 0;
+
+	return info;
 }
 
 static bool
@@ -1292,18 +1303,20 @@ handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 			&server->seat.keyboard_group->keyboard);
 
 	enum direction direction = LAB_DIRECTION_INVALID;
+	struct scroll_info info = {0};
+
 	if (event->orientation == WL_POINTER_AXIS_HORIZONTAL_SCROLL) {
-		int rel = compare_delta(event, &server->seat.smooth_scroll_offset.x);
-		if (rel < 0) {
+		info = compare_delta(event, &server->seat.smooth_scroll_offset.x);
+		if (info.direction < 0) {
 			direction = LAB_DIRECTION_LEFT;
-		} else if (rel > 0) {
+		} else if (info.direction > 0) {
 			direction = LAB_DIRECTION_RIGHT;
 		}
 	} else if (event->orientation == WL_POINTER_AXIS_VERTICAL_SCROLL) {
-		int rel = compare_delta(event, &server->seat.smooth_scroll_offset.y);
-		if (rel < 0) {
+		info = compare_delta(event, &server->seat.smooth_scroll_offset.y);
+		if (info.direction < 0) {
 			direction = LAB_DIRECTION_UP;
-		} else if (rel > 0) {
+		} else if (info.direction > 0) {
 			direction = LAB_DIRECTION_DOWN;
 		}
 	} else {
@@ -1320,7 +1333,13 @@ handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 				&& modifiers == mousebind->modifiers
 				&& mousebind->mouse_event == MOUSE_ACTION_SCROLL) {
 			handled = true;
-			actions_run(ctx->view, server, &mousebind->actions, ctx);
+			/*
+			 * Action may not be executed if the accumulated scroll
+			 * delta on touchpads doesn't exceed the threshold
+			 */
+			if (info.run_action) {
+				actions_run(ctx->view, server, &mousebind->actions, ctx);
+			}
 		}
 	}
 

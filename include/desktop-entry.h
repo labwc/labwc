@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef LABWC_DESKTOP_ENTRY_H
 #define LABWC_DESKTOP_ENTRY_H
+#include "config.h"
+#if HAVE_LIBSFDO
 
 struct server;
 
@@ -23,4 +25,5 @@ struct lab_img *desktop_entry_load_icon(
 const char *desktop_entry_name_lookup(struct server *server,
 	const char *app_id);
 
+#endif /* HAVE_LIBSFDO */
 #endif /* LABWC_DESKTOP_ENTRY_H */

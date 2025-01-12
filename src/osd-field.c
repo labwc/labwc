@@ -7,9 +7,7 @@
 #include "view.h"
 #include "workspaces.h"
 #include "labwc.h"
-#if HAVE_LIBSFDO
 #include "desktop-entry.h"
-#endif
 #include "osd.h"
 
 /* includes '%', terminating 's' and NULL byte, 8 is enough for %-9999s */

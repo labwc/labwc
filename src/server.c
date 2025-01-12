@@ -35,11 +35,7 @@
 #include "config/rcxml.h"
 #include "config/session.h"
 #include "decorations.h"
-
-#if HAVE_LIBSFDO
 #include "desktop-entry.h"
-#endif
-
 #include "idle.h"
 #include "input/keyboard.h"
 #include "labwc.h"

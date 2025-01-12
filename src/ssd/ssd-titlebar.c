@@ -10,9 +10,7 @@
 #include "common/scaled-img-buffer.h"
 #include "common/scene-helpers.h"
 #include "common/string-helpers.h"
-#if HAVE_LIBSFDO
 #include "desktop-entry.h"
-#endif
 #include "img/img.h"
 #include "labwc.h"
 #include "node.h"

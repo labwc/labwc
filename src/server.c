@@ -31,6 +31,7 @@
 
 #include "drm-lease-v1-protocol.h"
 #include "common/macros.h"
+#include "common/scaled-scene-buffer.h"
 #include "config/rcxml.h"
 #include "config/session.h"
 #include "decorations.h"
@@ -68,6 +69,7 @@ static struct wl_event_source *sigchld_source;
 static void
 reload_config_and_theme(struct server *server)
 {
+	scaled_scene_buffer_invalidate_sharing();
 	rcxml_finish();
 	rcxml_read(rc.config_file);
 	theme_finish(server->theme);

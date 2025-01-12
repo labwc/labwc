@@ -157,7 +157,13 @@ fill_section(const char *content, struct wl_list *list, uint32_t *found_buttons)
 		}
 		enum ssd_part_type type = LAB_SSD_NONE;
 		if (!strcmp(identifier, "icon")) {
+#if HAVE_LIBSFDO
 			type = LAB_SSD_BUTTON_WINDOW_ICON;
+#else
+			wlr_log(WLR_ERROR, "libsfdo is not linked. "
+				"Replacing 'icon' in titlebar layout with 'menu'.");
+			type = LAB_SSD_BUTTON_WINDOW_MENU;
+#endif
 		} else if (!strcmp(identifier, "menu")) {
 			type = LAB_SSD_BUTTON_WINDOW_MENU;
 		} else if (!strcmp(identifier, "iconify")) {
@@ -1672,7 +1678,16 @@ post_processing(void)
 	}
 
 	if (!rc.title_layout_loaded) {
+#if HAVE_LIBSFDO
 		fill_title_layout("icon:iconify,max,close");
+#else
+		/*
+		 * 'icon' is replaced with 'menu' in fill_title_layout() when
+		 * libsfdo is not linked, but we also replace it here not to
+		 * show error message with default settings.
+		 */
+		fill_title_layout("menu:iconify,max,close");
+#endif
 	}
 
 	/*

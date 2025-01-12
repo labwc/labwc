@@ -7,13 +7,9 @@
 #include <wlr/util/log.h>
 #include "buffer.h"
 #include "common/font.h"
-#include "common/list.h"
 #include "common/mem.h"
 #include "common/scaled-scene-buffer.h"
 #include "common/scaled-font-buffer.h"
-
-/* This holds all the scaled-font-buffers and used for sharing backing buffers */
-static struct wl_list cached_buffers = WL_LIST_INIT(&cached_buffers);
 
 static struct lab_data_buffer *
 _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
@@ -78,7 +74,7 @@ scaled_font_buffer_create(struct wlr_scene_tree *parent)
 	assert(parent);
 	struct scaled_font_buffer *self = znew(*self);
 	struct scaled_scene_buffer *scaled_buffer = scaled_scene_buffer_create(
-		parent, &impl, &cached_buffers, /* drop_buffer */ true);
+		parent, &impl, /* drop_buffer */ true);
 	if (!scaled_buffer) {
 		free(self);
 		return NULL;

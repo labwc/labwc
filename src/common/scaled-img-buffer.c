@@ -4,14 +4,11 @@
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_scene.h>
 #include "buffer.h"
-#include "common/list.h"
 #include "common/mem.h"
 #include "common/scaled-img-buffer.h"
 #include "common/scaled-scene-buffer.h"
 #include "img/img.h"
 #include "node.h"
-
-static struct wl_list cached_buffers = WL_LIST_INIT(&cached_buffers);
 
 static struct lab_data_buffer *
 _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
@@ -55,7 +52,7 @@ scaled_img_buffer_create(struct wlr_scene_tree *parent, struct lab_img *img,
 {
 	assert(img);
 	struct scaled_scene_buffer *scaled_buffer = scaled_scene_buffer_create(
-		parent, &impl, &cached_buffers, /* drop_buffer */ true);
+		parent, &impl, /* drop_buffer */ true);
 	struct scaled_img_buffer *self = znew(*self);
 	self->scaled_buffer = scaled_buffer;
 	self->scene_buffer = scaled_buffer->scene_buffer;

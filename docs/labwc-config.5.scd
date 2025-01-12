@@ -483,6 +483,12 @@ extending outward from the snapped edge.
 *<theme><icon>*
 	The name of the icon theme to use. It is not set by default.
 
+*<theme><fallbackAppIcon>*
+	The name of the icon to use as a fallback when the application icon
+	(e.g. window icon in the titlebar) is not available. The name follows
+	the ones specified in "Icon=" entries in desktop files.
+	Default is 'labwc'.
+
 *<theme><titlebar><layout>*
 	Selection and order of buttons in a window's titlebar.
 	The following identifiers can be used, each only once:

@@ -24,10 +24,16 @@ struct ssd_button {
 	 */
 	uint8_t state_set;
 	/*
-	 * Button nodes for each combination of hover/toggled/rounded states.
-	 * nodes[state_set] should be displayed.
+	 * Image buffers for each combination of hover/toggled/rounded states.
+	 * img_buffers[state_set] is displayed. Some of these can be NULL
+	 * (e.g. img_buffers[LAB_BS_ROUNDED] is set only for corner buttons).
+	 *
+	 * When "type" is LAB_SSD_BUTTON_WINDOW_ICON, these are all NULL and
+	 * window_icon is used instead.
 	 */
-	struct wlr_scene_node *nodes[LAB_BS_ALL + 1];
+	struct scaled_img_buffer *img_buffers[LAB_BS_ALL + 1];
+
+	struct scaled_icon_buffer *window_icon;
 
 	struct wl_listener destroy;
 };

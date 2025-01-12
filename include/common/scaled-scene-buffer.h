@@ -128,6 +128,14 @@ struct scaled_scene_buffer *scaled_scene_buffer_create(
 void scaled_scene_buffer_request_update(struct scaled_scene_buffer *self,
 	int width, int height);
 
+/**
+ * scaled_scene_buffer_invalidate_sharing - clear the list of entire cached
+ * scaled_scene_buffers used to share visually dupliated buffers. This should
+ * be called on Reconfigure to force updates of newly created
+ * scaled_scene_buffers rather than reusing ones created before Reconfigure.
+ */
+void scaled_scene_buffer_invalidate_sharing(void);
+
 /* Private */
 struct scaled_scene_buffer_cache_entry {
 	struct wl_list link;   /* struct scaled_scene_buffer.cache */

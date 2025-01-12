@@ -251,3 +251,13 @@ scaled_scene_buffer_request_update(struct scaled_scene_buffer *self,
 		_update_buffer(self, self->active_scale);
 	}
 }
+
+void
+scaled_scene_buffer_invalidate_sharing(void)
+{
+	struct scaled_scene_buffer *scene_buffer, *tmp;
+	wl_list_for_each_safe(scene_buffer, tmp, &all_scaled_buffers, link) {
+		wl_list_remove(&scene_buffer->link);
+		wl_list_init(&scene_buffer->link);
+	}
+}

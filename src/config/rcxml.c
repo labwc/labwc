@@ -147,7 +147,7 @@ parse_window_type(const char *type)
  * desk         D           All-desktops toggle (aka omnipresent)
  */
 static void
-fill_section(const char *content, struct wl_list *list)
+fill_section(const char *content, struct wl_list *list, uint32_t *found_buttons)
 {
 	gchar **identifiers = g_strsplit(content, ",", -1);
 	for (size_t i = 0; identifiers[i]; ++i) {
@@ -178,6 +178,14 @@ fill_section(const char *content, struct wl_list *list)
 
 		assert(type != LAB_SSD_NONE);
 
+		if (*found_buttons & (1 << type)) {
+			wlr_log(WLR_ERROR, "ignoring duplicated button type '%s'",
+				identifier);
+			continue;
+		}
+
+		*found_buttons |= (1 << type);
+
 		struct title_button *item = znew(*item);
 		item->type = type;
 		wl_list_append(list, &item->link);
@@ -185,61 +193,9 @@ fill_section(const char *content, struct wl_list *list)
 	g_strfreev(identifiers);
 }
 
-static int
-compare_strings(const void *a, const void *b)
-{
-	char * const *str1 = a;
-	char * const *str2 = b;
-	return strcmp(*str1, *str2);
-}
-
-static bool
-contains_duplicates(char *content)
-{
-	bool ret = false;
-
-	/*
-	 * The string typically looks like: 'menu:iconfiy,max,close' so we have
-	 * to split on both ':' and ','.
-	 */
-	gchar **idents = g_strsplit_set(content, ",:", -1);
-
-	/*
-	 * We've got to have at least two for duplicates to exist. Bailing out
-	 * early here also enables the below algorithm which just iterates and
-	 * checks if previous item is the same.
-	 */
-	if (g_strv_length(idents) <= 1) {
-		goto out;
-	}
-
-	qsort(idents, g_strv_length(idents), sizeof(gchar *), compare_strings);
-	for (size_t i = 1; idents[i]; ++i) {
-		if (string_null_or_empty(idents[i])) {
-			continue;
-		}
-		if (!strcmp(idents[i], idents[i-1])) {
-			ret = true;
-			wlr_log(WLR_ERROR,
-				"titleLayout identifier '%s' is a duplicate",
-				idents[i]);
-			break;
-		}
-	}
-
-out:
-	g_strfreev(idents);
-	return ret;
-}
-
 static void
 fill_title_layout(char *content)
 {
-	if (contains_duplicates(content)) {
-		wlr_log(WLR_ERROR, "titleLayout contains duplicates");
-		return;
-	}
-
 	struct wl_list *sections[] = {
 		&rc.title_buttons_left,
 		&rc.title_buttons_right,
@@ -252,8 +208,9 @@ fill_title_layout(char *content)
 		goto err;
 	}
 
+	uint32_t found_buttons = 0;
 	for (size_t i = 0; parts[i]; ++i) {
-		fill_section(parts[i], sections[i]);
+		fill_section(parts[i], sections[i], &found_buttons);
 	}
 
 	rc.title_layout_loaded = true;

@@ -36,12 +36,7 @@ struct scaled_scene_buffer {
 	struct wl_listener destroy;
 	struct wl_listener outputs_update;
 	const struct scaled_scene_buffer_impl *impl;
-	/*
-	 * Pointer to the per-implementation list of scaled-scene-buffers.
-	 * This is used to share the backing wlr_buffers.
-	 */
-	struct wl_list *cached_buffers;
-	struct wl_list link; /* struct scaled_scene_buffer.cached_buffers */
+	struct wl_list link; /* all_scaled_buffers */
 };
 
 /*
@@ -89,8 +84,8 @@ struct scaled_scene_buffer {
  * allocations.
  *
  * Besides caching buffers for each scale per scaled_scene_buffer, we also
- * store all the scaled_scene_buffers in a per-implementer list passed as
- * @cached_buffers in order to reuse backing buffers for visually duplicated
+ * store all the scaled_scene_buffers from all the implementers in a list
+ * in order to reuse backing buffers for visually duplicated
  * scaled_scene_buffers found via impl->equal().
  *
  * All requested lab_data_buffers via impl->create_buffer() will be locked
@@ -119,7 +114,7 @@ struct scaled_scene_buffer {
 struct scaled_scene_buffer *scaled_scene_buffer_create(
 	struct wlr_scene_tree *parent,
 	const struct scaled_scene_buffer_impl *implementation,
-	struct wl_list *cached_buffers, bool drop_buffer);
+	bool drop_buffer);
 
 /**
  * scaled_scene_buffer_request_update - mark the buffer that needs to be

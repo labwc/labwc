@@ -8,10 +8,17 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
+#include "common/list.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scaled-scene-buffer.h"
 #include "node.h"
+
+/*
+ * This holds all the scaled_scene_buffers from all the implementers.
+ * This is used to share visually duplicated buffers found via impl->equal().
+ */
+static struct wl_list all_scaled_buffers = WL_LIST_INIT(&all_scaled_buffers);
 
 /* Internal API */
 static void
@@ -63,11 +70,14 @@ _update_buffer(struct scaled_scene_buffer *self, double scale)
 
 	struct wlr_buffer *wlr_buffer = NULL;
 
-	if (self->impl->equal && self->cached_buffers) {
+	if (self->impl->equal) {
 		/* Search from other cached scaled-scene-buffers */
 		struct scaled_scene_buffer *scene_buffer;
-		wl_list_for_each(scene_buffer, self->cached_buffers, link) {
+		wl_list_for_each(scene_buffer, &all_scaled_buffers, link) {
 			if (scene_buffer == self) {
+				continue;
+			}
+			if (self->impl != scene_buffer->impl) {
 				continue;
 			}
 			if (!self->impl->equal(self, scene_buffer)) {
@@ -174,7 +184,7 @@ _handle_outputs_update(struct wl_listener *listener, void *data)
 struct scaled_scene_buffer *
 scaled_scene_buffer_create(struct wlr_scene_tree *parent,
 		const struct scaled_scene_buffer_impl *impl,
-		struct wl_list *cached_buffers, bool drop_buffer)
+		bool drop_buffer)
 {
 	assert(parent);
 	assert(impl);
@@ -199,13 +209,7 @@ scaled_scene_buffer_create(struct wlr_scene_tree *parent,
 	self->drop_buffer = drop_buffer;
 	wl_list_init(&self->cache);
 
-	self->cached_buffers = cached_buffers;
-	if (self->cached_buffers) {
-		wl_list_insert(self->cached_buffers, &self->link);
-	} else {
-		/* Ensure self->link can be removed safely in the destroy handler */
-		wl_list_init(&self->link);
-	}
+	wl_list_insert(&all_scaled_buffers, &self->link);
 
 	/* Listen to outputs_update so we get notified about scale changes */
 	self->outputs_update.notify = _handle_outputs_update;

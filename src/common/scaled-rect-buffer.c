@@ -7,13 +7,10 @@
 #include <wlr/util/log.h>
 #include "buffer.h"
 #include "common/graphic-helpers.h"
-#include "common/list.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scaled-scene-buffer.h"
 #include "common/scaled-rect-buffer.h"
-
-static struct wl_list cached_buffers = WL_LIST_INIT(&cached_buffers);
 
 static void
 draw_rectangle_path(cairo_t *cairo, int width, int height, int border_width)
@@ -100,7 +97,7 @@ struct scaled_rect_buffer *scaled_rect_buffer_create(
 	assert(parent);
 	struct scaled_rect_buffer *self = znew(*self);
 	struct scaled_scene_buffer *scaled_buffer = scaled_scene_buffer_create(
-		parent, &impl, &cached_buffers, /* drop_buffer */ true);
+		parent, &impl, /* drop_buffer */ true);
 	scaled_buffer->data = self;
 	self->scaled_buffer = scaled_buffer;
 	self->scene_buffer = scaled_buffer->scene_buffer;

@@ -5,6 +5,7 @@
 #include "common/box.h"
 #include "common/list.h"
 #include "common/mem.h"
+#include "common/scaled-icon-buffer.h"
 #include "common/scaled-img-buffer.h"
 #include "labwc.h"
 #include "node.h"
@@ -92,6 +93,10 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 	button_root->node = &parent->node;
 	wlr_scene_node_set_position(button_root->node, x, y);
 
+	struct ssd_button *button = ssd_button_descriptor_create(button_root->node);
+	button->type = type;
+	button->view = view;
+
 	/* Hitbox */
 	float invisible[4] = { 0, 0, 0, 0 };
 	add_scene_rect(part_list, type, parent,
@@ -99,29 +104,47 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		invisible);
 
 	/* Icons */
-	struct wlr_scene_node *nodes[LAB_BS_ALL + 1] = {0};
-	for (uint8_t state_set = LAB_BS_DEFAULT;
-			state_set <= LAB_BS_ALL; state_set++) {
-		if (!imgs[state_set]) {
-			continue;
-		}
-		struct ssd_part *icon_part = add_scene_part(part_list, type);
-		struct scaled_img_buffer *img_buffer = scaled_img_buffer_create(
-			parent, imgs[state_set], rc.theme->window_button_width,
-			rc.theme->window_button_height);
-		assert(img_buffer);
-		icon_part->node = &img_buffer->scene_buffer->node;
-		wlr_scene_node_set_enabled(icon_part->node, false);
-		nodes[state_set] = icon_part->node;
-	}
-	/* Initially show non-hover, non-toggled, unrounded variant */
-	wlr_scene_node_set_enabled(nodes[0], true);
+	int button_width = rc.theme->window_button_width;
+	int button_height = rc.theme->window_button_height;
+	/*
+	 * Ensure a small amount of horizontal padding within the button
+	 * area (2px on each side with the default 26px button width).
+	 * A new theme setting could be added to configure this. Using
+	 * an existing setting (padding.width or window.button.spacing)
+	 * was considered, but these settings have distinct purposes
+	 * already and are zero by default.
+	 */
+	int icon_padding = button_width / 10;
 
-	struct ssd_button *button = ssd_button_descriptor_create(button_root->node);
-	button->type = type;
-	button->view = view;
-	button->state_set = 0;
-	memcpy(button->nodes, nodes, sizeof(nodes));
+	if (type == LAB_SSD_BUTTON_WINDOW_ICON) {
+		struct ssd_part *icon_part = add_scene_part(part_list, type);
+		struct scaled_icon_buffer *icon_buffer =
+			scaled_icon_buffer_create(parent, view->server,
+				button_width - 2 * icon_padding, button_height);
+		assert(icon_buffer);
+		icon_part->node = &icon_buffer->scene_buffer->node;
+		wlr_scene_node_set_position(icon_part->node, icon_padding, 0);
+		button->window_icon = icon_buffer;
+	} else {
+		for (uint8_t state_set = LAB_BS_DEFAULT;
+				state_set <= LAB_BS_ALL; state_set++) {
+			if (!imgs[state_set]) {
+				continue;
+			}
+			struct ssd_part *icon_part = add_scene_part(part_list, type);
+			struct scaled_img_buffer *img_buffer = scaled_img_buffer_create(
+				parent, imgs[state_set], rc.theme->window_button_width,
+				rc.theme->window_button_height);
+			assert(img_buffer);
+			icon_part->node = &img_buffer->scene_buffer->node;
+			wlr_scene_node_set_enabled(icon_part->node, false);
+			button->img_buffers[state_set] = img_buffer;
+		}
+		/* Initially show non-hover, non-toggled, unrounded variant */
+		wlr_scene_node_set_enabled(
+			&button->img_buffers[LAB_BS_DEFAULT]->scene_buffer->node, true);
+	}
+
 	return button_root;
 }
 

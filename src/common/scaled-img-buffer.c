@@ -66,18 +66,6 @@ scaled_img_buffer_create(struct wlr_scene_tree *parent, struct lab_img *img,
 	return self;
 }
 
-void
-scaled_img_buffer_update(struct scaled_img_buffer *self, struct lab_img *img,
-	int width, int height)
-{
-	assert(img);
-	lab_img_destroy(self->img);
-	self->img = lab_img_copy(img);
-	self->width = width;
-	self->height = height;
-	scaled_scene_buffer_request_update(self->scaled_buffer, width, height);
-}
-
 struct scaled_img_buffer *
 scaled_img_buffer_from_node(struct wlr_scene_node *node)
 {

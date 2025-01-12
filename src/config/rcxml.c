@@ -1073,6 +1073,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		xstrdup_replace(rc.theme_name, content);
 	} else if (!strcmp(nodename, "icon.theme")) {
 		xstrdup_replace(rc.icon_theme_name, content);
+	} else if (!strcasecmp(nodename, "fallbackAppIcon.theme")) {
+		xstrdup_replace(rc.fallback_app_icon_name, content);
 	} else if (!strcasecmp(nodename, "layout.titlebar.theme")) {
 		fill_title_layout(content);
 	} else if (!strcasecmp(nodename, "showTitle.titlebar.theme")) {
@@ -1677,6 +1679,10 @@ post_processing(void)
 		load_default_mouse_bindings();
 	}
 
+	if (!rc.fallback_app_icon_name) {
+		rc.fallback_app_icon_name = xstrdup("labwc");
+	}
+
 	if (!rc.title_layout_loaded) {
 #if HAVE_LIBSFDO
 		fill_title_layout("icon:iconify,max,close");
@@ -1928,6 +1934,7 @@ rcxml_finish(void)
 	zfree(rc.font_osd.name);
 	zfree(rc.theme_name);
 	zfree(rc.icon_theme_name);
+	zfree(rc.fallback_app_icon_name);
 	zfree(rc.workspace_config.prefix);
 	zfree(rc.tablet.output_name);
 

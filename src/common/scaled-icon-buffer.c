@@ -27,6 +27,10 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 	} else if (self->app_id) {
 		img = desktop_entry_load_icon_from_app_id(self->server,
 			self->app_id, icon_size, scale);
+		if (!img) {
+			img = desktop_entry_load_icon(self->server,
+				rc.fallback_app_icon_name, icon_size, scale);
+		}
 	}
 
 	if (!img) {

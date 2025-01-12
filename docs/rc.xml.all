@@ -30,6 +30,7 @@
   <theme>
     <name></name>
     <icon></icon>
+    <fallbackAppIcon>labwc</fallbackAppIcon>
     <titlebar>
       <layout>icon:iconify,max,close</layout>
       <showTitle>yes</showTitle>

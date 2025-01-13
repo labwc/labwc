@@ -127,7 +127,8 @@ update_button_state(struct ssd_button *button, enum lab_button_state state,
 		button->state_set &= ~state;
 	}
 	/* Switch the displayed icon buffer to the new one */
-	for (uint8_t state_set = 0; state_set <= LAB_BS_ALL; state_set++) {
+	for (uint8_t state_set = LAB_BS_DEFAULT;
+			state_set <= LAB_BS_ALL; state_set++) {
 		if (!button->nodes[state_set]) {
 			continue;
 		}
@@ -626,7 +627,8 @@ ssd_update_window_icon(struct ssd *ssd)
 
 		/* Replace all the buffers in the button with the window icon */
 		struct ssd_button *button = node_ssd_button_from_node(part->node);
-		for (uint8_t state_set = 0; state_set <= LAB_BS_ALL; state_set++) {
+		for (uint8_t state_set = LAB_BS_DEFAULT;
+				state_set <= LAB_BS_ALL; state_set++) {
 			struct wlr_scene_node *node = button->nodes[state_set];
 			if (node) {
 				struct scaled_img_buffer *img_buffer =

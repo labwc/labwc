@@ -1531,8 +1531,8 @@ theme_finish(struct theme *theme)
 {
 	for (enum ssd_part_type type = LAB_SSD_BUTTON_FIRST;
 			type <= LAB_SSD_BUTTON_LAST; type++) {
-		for (uint8_t state_set = 0; state_set <= LAB_BS_ALL;
-				state_set++) {
+		for (uint8_t state_set = LAB_BS_DEFAULT;
+				state_set <= LAB_BS_ALL; state_set++) {
 			destroy_img(&theme->window[THEME_INACTIVE]
 				.button_imgs[type][state_set]);
 			destroy_img(&theme->window[THEME_ACTIVE]

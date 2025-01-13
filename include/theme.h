@@ -29,6 +29,8 @@ struct theme_snapping_overlay {
 };
 
 enum lab_button_state {
+	LAB_BS_DEFAULT = 0,
+
 	LAB_BS_HOVERD = 1 << 0,
 	LAB_BS_TOGGLED = 1 << 1,
 	LAB_BS_ROUNDED = 1 << 2,

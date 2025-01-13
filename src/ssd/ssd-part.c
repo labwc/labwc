@@ -100,7 +100,8 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 
 	/* Icons */
 	struct wlr_scene_node *nodes[LAB_BS_ALL + 1] = {0};
-	for (uint8_t state_set = 0; state_set <= LAB_BS_ALL; state_set++) {
+	for (uint8_t state_set = LAB_BS_DEFAULT;
+			state_set <= LAB_BS_ALL; state_set++) {
 		if (!imgs[state_set]) {
 			continue;
 		}

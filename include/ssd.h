@@ -7,8 +7,6 @@
 
 struct wlr_cursor;
 
-#define SSD_EXTENDED_AREA 8
-
 /*
  * Shadows should start at a point inset from the actual window border, see
  * discussion on https://github.com/labwc/labwc/pull/1648.  This constant

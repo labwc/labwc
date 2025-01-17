@@ -4,6 +4,7 @@
 #include <pixman.h>
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "config/rcxml.h"
 #include "labwc.h"
 #include "ssd-internal.h"
 #include "theme.h"
@@ -25,7 +26,8 @@ ssd_extents_create(struct ssd *ssd)
 	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
 	struct wl_list *part_list = &ssd->extents.parts;
-	int extended_area = SSD_EXTENDED_AREA;
+
+	int border_width = MAX(0, MAX(rc.resize_minimum_area, theme->border_width));
 
 	ssd->extents.tree = wlr_scene_tree_create(ssd->tree);
 	struct wlr_scene_tree *parent = ssd->extents.tree;
@@ -34,8 +36,7 @@ ssd_extents_create(struct ssd *ssd)
 	}
 	wl_list_init(&ssd->extents.parts);
 	wlr_scene_node_set_position(&parent->node,
-		-(theme->border_width + extended_area),
-		-(ssd->titlebar.height + theme->border_width + extended_area));
+		-border_width, -(ssd->titlebar.height + border_width));
 
 	add_extent(part_list, LAB_SSD_PART_TOP, parent);
 	add_extent(part_list, LAB_SSD_PART_LEFT, parent);
@@ -68,7 +69,8 @@ ssd_extents_update(struct ssd *ssd)
 	int height = view_effective_height(view, /* use_pending */ false);
 	int full_height = height + theme->border_width * 2 + ssd->titlebar.height;
 	int full_width = width + 2 * theme->border_width;
-	int extended_area = SSD_EXTENDED_AREA;
+	int border_width = MAX(rc.resize_minimum_area, theme->border_width);
+	int extended_area = MAX(0, rc.resize_minimum_area - theme->border_width);
 
 	struct wlr_box part_box;
 	struct wlr_box result_box;
@@ -78,8 +80,7 @@ ssd_extents_update(struct ssd *ssd)
 
 	/* Make sure we update the y offset based on titlebar shown / hidden */
 	wlr_scene_node_set_position(&ssd->extents.tree->node,
-		-(theme->border_width + extended_area),
-		-(ssd->titlebar.height + theme->border_width + extended_area));
+		-border_width, -(ssd->titlebar.height + border_width));
 
 	/*
 	 * Convert all output usable areas that the

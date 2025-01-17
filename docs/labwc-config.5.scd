@@ -583,6 +583,13 @@ extending outward from the snapped edge.
 	horizontally and vertically rather than one or the other. Default is
 	half the titlebar height.
 
+*<resize><minimumArea>*
+	Treat borders of server-side decorations as if they were at least the
+	indicated thickness, regardless of their visual size. Borders visually
+	narrower than the minimum effective thickness will be augmented with
+	invisible zones just beyond the window that serve as click targets for
+	mouse actions. Default is 8.
+
 ## KEYBOARD
 
 *<keyboard><numlock>* [on|off]

@@ -152,6 +152,7 @@ struct rcxml {
 	enum resize_indicator_mode resize_indicator;
 	bool resize_draw_contents;
 	int resize_corner_range;
+	int resize_minimum_area;
 
 	struct {
 		int popuptime;

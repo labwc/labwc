@@ -1327,20 +1327,6 @@ menu_set_selection(struct menu *menu, struct menuitem *item)
 	menu->selection.item = item;
 }
 
-static void
-close_all_submenus(struct menu *menu)
-{
-	struct menuitem *item;
-	wl_list_for_each(item, &menu->menuitems, link) {
-		if (item->submenu) {
-			wlr_scene_node_set_enabled(
-				&item->submenu->scene_tree->node, false);
-			close_all_submenus(item->submenu);
-		}
-	}
-	menu->selection.menu = NULL;
-}
-
 /*
  * We only destroy pipemenus when closing the entire menu-tree so that pipemenu
  * are cached (for as long as the menu is open). This drastically improves the
@@ -1388,17 +1374,14 @@ menu_close(struct menu *menu)
 void
 menu_open_root(struct menu *menu, int x, int y)
 {
+	assert(menu);
+
 	if (menu->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		return;
 	}
 
-	assert(menu);
-	if (menu->server->menu_current) {
-		menu_close(menu->server->menu_current);
-		destroy_pipemenus(menu->server);
-	}
-	close_all_submenus(menu);
-	menu_set_selection(menu, NULL);
+	assert(!menu->server->menu_current);
+
 	menu_configure(menu, (struct wlr_box){.x = x, .y = y});
 	wlr_scene_node_set_enabled(&menu->scene_tree->node, true);
 	menu->server->menu_current = menu;

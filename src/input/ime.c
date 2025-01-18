@@ -375,6 +375,7 @@ handle_input_method_destroy(struct wl_listener *listener, void *data)
 	assert(relay->input_method == data);
 	wl_list_remove(&relay->input_method_commit.link);
 	wl_list_remove(&relay->input_method_grab_keyboard.link);
+	wl_list_remove(&relay->input_method_new_popup_surface.link);
 	wl_list_remove(&relay->input_method_destroy.link);
 	relay->input_method = NULL;
 

@@ -193,7 +193,7 @@ struct view {
 	struct workspace *workspace;
 	struct wlr_surface *surface;
 	struct wlr_scene_tree *scene_tree;
-	struct wlr_scene_node *content_node;
+	struct wlr_scene_tree *content_tree;
 
 	bool mapped;
 	bool been_mapped;

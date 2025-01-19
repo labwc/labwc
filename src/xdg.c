@@ -934,7 +934,7 @@ xdg_toplevel_new(struct wl_listener *listener, void *data)
 		free(xdg_toplevel_view);
 		return;
 	}
-	view->content_node = &tree->node;
+	view->content_tree = tree;
 	node_descriptor_create(&view->scene_tree->node,
 		LAB_NODE_DESC_VIEW, view);
 

@@ -218,7 +218,7 @@ update_popup_position(struct input_method_popup *popup)
 
 		/*
 		 * wlr_surface->data is:
-		 * - for XDG surfaces: view->content_node
+		 * - for XDG surfaces: view->content_tree
 		 * - for layer surfaces: lab_layer_surface->scene_layer_surface->tree
 		 * - for layer popups: lab_layer_popup->scene_tree
 		 */

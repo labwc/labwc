@@ -478,7 +478,7 @@ ssd_update_title(struct ssd *ssd)
 		dstate = active ? &state->active : &state->inactive;
 		text_color = theme->window[active].label_text_color;
 		bg_color = theme->window[active].title_bg_color;
-		font = &rc.font_activewindow;
+		font = active ?  &rc.font_activewindow : &rc.font_inactivewindow;
 
 		if (title_bg_width <= 0) {
 			dstate->truncated = true;

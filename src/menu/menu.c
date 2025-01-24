@@ -1720,13 +1720,9 @@ menu_execute_item(struct menuitem *item)
 		return false;
 	}
 
-	/*
-	 * We close the menu here to provide a faster feedback to the user.
-	 * We do that without resetting the input state so src/cursor.c
-	 * can do its own clean up on the following RELEASE event.
-	 */
 	struct server *server = item->parent->server;
 	menu_close(server->menu_current);
+	server->menu_current = NULL;
 	seat_focus_override_end(&server->seat);
 
 	/*
@@ -1746,7 +1742,6 @@ menu_execute_item(struct menuitem *item)
 				&item->actions, NULL);
 	}
 
-	server->menu_current = NULL;
 	destroy_pipemenus(server);
 	return true;
 }

@@ -91,7 +91,7 @@ labwc-config(5).
 
 *window.label.text.justify*
 	Specifies how window titles are aligned in the titlebar for both
-	focused and unfocused windows. Type justification. Default is Left.
+	focused and unfocused windows. Type justification. Default is Center.
 
 *window.button.width*
 	Width of a titlebar button, in pixels.

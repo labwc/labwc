@@ -455,9 +455,18 @@ process_cursor_motion_out_of_surface(struct server *server,
 	assert(surface);
 	int lx, ly;
 
-	if (view) {
+	if (node && wlr_subsurface_try_from_wlr_surface(surface)) {
+		wlr_scene_node_coords(node, &lx, &ly);
+	} else if (view) {
 		lx = view->current.x;
 		ly = view->current.y;
+		/* Take into account invisible xdg-shell CSD borders */
+		if (view->type == LAB_XDG_SHELL_VIEW) {
+			struct wlr_box geo;
+			wlr_xdg_surface_get_geometry(xdg_surface_from_view(view), &geo);
+			lx -= geo.x;
+			ly -= geo.y;
+		}
 	} else if (node && wlr_layer_surface_v1_try_from_wlr_surface(surface)) {
 		wlr_scene_node_coords(node, &lx, &ly);
 #if HAVE_XWAYLAND
@@ -471,13 +480,6 @@ process_cursor_motion_out_of_surface(struct server *server,
 
 	*sx = server->seat.cursor->x - lx;
 	*sy = server->seat.cursor->y - ly;
-	/* Take into account invisible xdg-shell CSD borders */
-	if (view && view->type == LAB_XDG_SHELL_VIEW) {
-		struct wlr_box geo;
-		wlr_xdg_surface_get_geometry(xdg_surface_from_view(view), &geo);
-		*sx += geo.x;
-		*sy += geo.y;
-	}
 
 	return true;
 }

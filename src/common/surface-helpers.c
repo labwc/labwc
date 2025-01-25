@@ -10,7 +10,6 @@ subsurface_parent_layer(struct wlr_surface *wlr_surface)
 	struct wlr_subsurface *subsurface =
 		wlr_subsurface_try_from_wlr_surface(wlr_surface);
 	if (!subsurface) {
-		wlr_log(WLR_DEBUG, "surface %p is not subsurface", subsurface);
 		return NULL;
 	}
 	struct wlr_surface *parent = subsurface->parent;

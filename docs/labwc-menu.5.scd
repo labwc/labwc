@@ -2,11 +2,11 @@ labwc-menu(5)
 
 # NAME
 
-labwc - menu files
+labwc - menu file
 
 # DESCRIPTION
 
-Static menus are built based on content of XML files located at
+Static menus are built based on the menu.xml file located at
 "~/.config/labwc" and equivalent XDG Base Directories.
 
 # SYNTAX

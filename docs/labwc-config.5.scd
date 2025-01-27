@@ -1121,6 +1121,7 @@ situation.
 ```
 <menu>
   <ignoreButtonReleasePeriod>250</ignoreButtonReleasePeriod>
+  <showIcons>yes</showIcons>
 </menu>
 ```
 
@@ -1133,6 +1134,11 @@ situation.
 	anticipated that most users will want to change this, but the config
 	option has been exposed for unusual use-cases. It is equivalent to
 	Openbox's `<hideDelay>`. Default is 250 ms.
+
+*<menu><showIcons>*
+	Show menu icons based on the `icon` attribute of menu label elements.
+	Default is yes. Requires libsfdo. If labwc is built without it, no
+	icons will be shown.
 
 ## MAGNIFIER
 

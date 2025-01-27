@@ -240,6 +240,7 @@ wlr_foreign_toplevel_init(struct foreign_toplevel *toplevel)
 	handle_new_title(&wlr_toplevel->on_view.new_title, NULL);
 	handle_maximized(&wlr_toplevel->on_view.maximized, NULL);
 	handle_fullscreened(&wlr_toplevel->on_view.fullscreened, NULL);
+	handle_new_outputs(&wlr_toplevel->on_view.new_outputs, NULL);
 
 	/* Client side requests */
 	CONNECT_SIGNAL(wlr_toplevel->handle, &wlr_toplevel->on, request_maximize);

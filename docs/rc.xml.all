@@ -676,6 +676,7 @@
 
   <menu>
     <ignoreButtonReleasePeriod>250</ignoreButtonReleasePeriod>
+    <showIcons>yes</showIcons>
   </menu>
 
   <!--

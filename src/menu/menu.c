@@ -459,8 +459,7 @@ fill_item(char *nodename, char *content)
 			"nodename: '%s' content: '%s'", nodename, content);
 	} else if (!strcmp(nodename, "icon")) {
 #if HAVE_LIBSFDO
-		// TODO: add some rc.menu_icons bool
-		if (true && !string_null_or_empty(content)) {
+		if (rc.menu_show_icons && !string_null_or_empty(content)) {
 			xstrdup_replace(current_item->icon_name, content);
 			current_menu->has_icons = true;
 		}

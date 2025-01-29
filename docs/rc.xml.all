@@ -36,6 +36,7 @@
       <showTitle>yes</showTitle>
     </titlebar>
     <cornerRadius>8</cornerRadius>
+    <cornerSize>8</cornerSize>
     <keepBorder>yes</keepBorder>
     <dropShadows>no</dropShadows>
     <font place="ActiveWindow">

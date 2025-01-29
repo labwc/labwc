@@ -1081,6 +1081,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.show_title = parse_bool(content, true);
 	} else if (!strcmp(nodename, "cornerradius.theme")) {
 		rc.corner_radius = atoi(content);
+	} else if (!strcmp(nodename, "cornersize.theme")) {
+		rc.corner_size = MAX(0, atoi(content));
 	} else if (!strcasecmp(nodename, "keepBorder.theme")) {
 		set_bool(content, &rc.ssd_keep_border);
 	} else if (!strcasecmp(nodename, "dropShadows.theme")) {
@@ -1429,6 +1431,7 @@ rcxml_init(void)
 	rc.title_layout_loaded = false;
 	rc.ssd_keep_border = true;
 	rc.corner_radius = 8;
+	rc.corner_size = 8;
 	rc.shadows_enabled = false;
 
 	rc.gap = 0;

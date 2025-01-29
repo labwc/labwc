@@ -143,20 +143,30 @@ ssd_at(const struct ssd *ssd, struct wlr_scene *scene, double lx, double ly)
 }
 
 uint32_t
-ssd_resize_edges(enum ssd_part_type type)
+ssd_resize_edges(struct cursor_context *ctx, struct wlr_cursor *cursor)
 {
-	switch (type) {
+	assert(ctx);
+	struct view *view = ctx->view;
+	uint32_t edge = WLR_EDGE_NONE;
+
+	switch (ctx->type) {
 	case LAB_SSD_PART_TOP:
-		return WLR_EDGE_TOP;
+		edge = WLR_EDGE_TOP;
+		break;
 	case LAB_SSD_PART_RIGHT:
-		return WLR_EDGE_RIGHT;
+		edge = WLR_EDGE_RIGHT;
+		break;
 	case LAB_SSD_PART_BOTTOM:
-		return WLR_EDGE_BOTTOM;
+		edge = WLR_EDGE_BOTTOM;
+		break;
 	case LAB_SSD_PART_LEFT:
-		return WLR_EDGE_LEFT;
+		edge = WLR_EDGE_LEFT;
+		break;
 	case LAB_SSD_PART_CORNER_TOP_LEFT:
+	case LAB_SSD_PART_TITLEBAR_CORNER_LEFT:
 		return WLR_EDGE_TOP | WLR_EDGE_LEFT;
 	case LAB_SSD_PART_CORNER_TOP_RIGHT:
+	case LAB_SSD_PART_TITLEBAR_CORNER_RIGHT:
 		return WLR_EDGE_RIGHT | WLR_EDGE_TOP;
 	case LAB_SSD_PART_CORNER_BOTTOM_RIGHT:
 		return WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT;
@@ -165,6 +175,32 @@ ssd_resize_edges(enum ssd_part_type type)
 	default:
 		return WLR_EDGE_NONE;
 	}
+
+	if (!view || !cursor || !view->ssd) {
+		return edge;
+	}
+
+	if (edge == WLR_EDGE_BOTTOM || edge == WLR_EDGE_TOP) {
+		int width = view->current.width;
+		int corner_size = MAX(0, MIN(rc.corner_size, width / 2));
+
+		if (cursor->x < view->current.x + corner_size) {
+			edge |= WLR_EDGE_LEFT;
+		} else if (cursor->x > view->current.x + width - corner_size) {
+			edge |= WLR_EDGE_RIGHT;
+		}
+	} else if (edge == WLR_EDGE_LEFT || edge == WLR_EDGE_RIGHT) {
+		int height = view_effective_height(view, /* use_pending */ false);
+		int corner_size = MAX(0, MIN(rc.corner_size, height / 2));
+
+		if (cursor->y < view->current.y + corner_size) {
+			edge |= WLR_EDGE_TOP;
+		} else if (cursor->y > view->current.y + height - corner_size) {
+			edge |= WLR_EDGE_BOTTOM;
+		}
+	}
+
+	return edge;
 }
 
 struct ssd *
@@ -305,8 +341,11 @@ ssd_destroy(struct ssd *ssd)
 }
 
 bool
-ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
+ssd_part_contains(enum ssd_part_type whole,
+		struct cursor_context *ctx, struct wlr_cursor *cursor)
 {
+	assert(ctx);
+	enum ssd_part_type candidate = ctx->type;
 	if (whole == candidate || whole == LAB_SSD_ALL) {
 		return true;
 	}
@@ -327,22 +366,21 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 		return candidate >= LAB_SSD_BUTTON_CLOSE
 			&& candidate <= LAB_SSD_CLIENT;
 	}
-	if (whole == LAB_SSD_PART_TOP) {
-		return candidate == LAB_SSD_PART_CORNER_TOP_LEFT
-			|| candidate == LAB_SSD_PART_CORNER_TOP_RIGHT;
+
+	/* Perform corner tests if necessary */
+	switch (whole) {
+	case LAB_SSD_PART_CORNER_TOP_LEFT:
+		return ssd_resize_edges(ctx, cursor) == (WLR_EDGE_TOP | WLR_EDGE_LEFT);
+	case LAB_SSD_PART_CORNER_TOP_RIGHT:
+		return ssd_resize_edges(ctx, cursor) == (WLR_EDGE_TOP | WLR_EDGE_RIGHT);
+	case LAB_SSD_PART_CORNER_BOTTOM_LEFT:
+		return ssd_resize_edges(ctx, cursor) == (WLR_EDGE_BOTTOM | WLR_EDGE_LEFT);
+	case LAB_SSD_PART_CORNER_BOTTOM_RIGHT:
+		return ssd_resize_edges(ctx, cursor) == (WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT);
+	default:
+		break;
 	}
-	if (whole == LAB_SSD_PART_RIGHT) {
-		return candidate == LAB_SSD_PART_CORNER_TOP_RIGHT
-			|| candidate == LAB_SSD_PART_CORNER_BOTTOM_RIGHT;
-	}
-	if (whole == LAB_SSD_PART_BOTTOM) {
-		return candidate == LAB_SSD_PART_CORNER_BOTTOM_RIGHT
-			|| candidate == LAB_SSD_PART_CORNER_BOTTOM_LEFT;
-	}
-	if (whole == LAB_SSD_PART_LEFT) {
-		return candidate == LAB_SSD_PART_CORNER_TOP_LEFT
-			|| candidate == LAB_SSD_PART_CORNER_BOTTOM_LEFT;
-	}
+
 	return false;
 }
 

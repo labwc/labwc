@@ -103,13 +103,6 @@ cursor_get_from_edge(uint32_t resize_edges)
 	return LAB_CURSOR_DEFAULT;
 }
 
-static enum lab_cursors
-cursor_get_from_ssd(enum ssd_part_type view_area)
-{
-	uint32_t resize_edges = ssd_resize_edges(view_area);
-	return cursor_get_from_edge(resize_edges);
-}
-
 static struct wlr_surface *
 get_toplevel(struct wlr_surface *surface)
 {
@@ -546,7 +539,9 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		 */
 		wlr_seat_pointer_notify_clear_focus(wlr_seat);
 		if (!seat->drag.active) {
-			enum lab_cursors cursor = cursor_get_from_ssd(ctx->type);
+			uint32_t resize_edge =
+				ssd_resize_edges(ctx, server->seat.cursor);
+			enum lab_cursors cursor = cursor_get_from_edge(resize_edge);
 			if (ctx->view && ctx->view->shaded && cursor > LAB_CURSOR_GRAB) {
 				/* Prevent resize cursor on borders for shaded SSD */
 				cursor = LAB_CURSOR_DEFAULT;
@@ -560,7 +555,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 uint32_t
 cursor_get_resize_edges(struct wlr_cursor *cursor, struct cursor_context *ctx)
 {
-	uint32_t resize_edges = ssd_resize_edges(ctx->type);
+	uint32_t resize_edges = ssd_resize_edges(ctx, cursor);
 	if (ctx->view && !resize_edges) {
 		struct wlr_box box = ctx->view->current;
 		resize_edges |=
@@ -898,7 +893,7 @@ handle_release_mousebinding(struct server *server,
 	uint32_t modifiers = keyboard_get_all_modifiers(&server->seat);
 
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
-		if (ssd_part_contains(mousebind->context, ctx->type)
+		if (ssd_part_contains(mousebind->context, ctx, server->seat.cursor)
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {
 			switch (mousebind->mouse_event) {
@@ -965,7 +960,7 @@ handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
 	uint32_t modifiers = keyboard_get_all_modifiers(&server->seat);
 
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
-		if (ssd_part_contains(mousebind->context, ctx->type)
+		if (ssd_part_contains(mousebind->context, ctx, server->seat.cursor)
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {
 			switch (mousebind->mouse_event) {
@@ -1325,7 +1320,7 @@ handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 	}
 
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
-		if (ssd_part_contains(mousebind->context, ctx->type)
+		if (ssd_part_contains(mousebind->context, ctx, server->seat.cursor)
 				&& mousebind->direction == direction
 				&& modifiers == mousebind->modifiers
 				&& mousebind->mouse_event == MOUSE_ACTION_SCROLL) {

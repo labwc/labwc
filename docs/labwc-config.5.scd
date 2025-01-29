@@ -512,6 +512,12 @@ extending outward from the snapped edge.
 *<theme><cornerRadius>*
 	The radius of server side decoration top corners. Default is 8.
 
+*<theme><cornerSize>*
+	The size of corner regions to which the 'TLCorner', 'TRCorner',
+	'BLCorner' and 'RLCorner' mousebind contexts apply, as well as the size
+	of the border region for which mouse resizing will apply both
+	horizontally and vertically rather than one or the other. Default is 8.
+
 *<theme><keepBorder>* [yes|no]
 	Even when disabling server side decorations via ToggleDecorations,
 	keep a small border (and resize area) around the window. Default is yes.

@@ -1683,6 +1683,10 @@ post_processing(void)
 		rc.fallback_app_icon_name = xstrdup("labwc");
 	}
 
+	if (!rc.icon_theme_name && rc.theme_name) {
+		rc.icon_theme_name = xstrdup(rc.theme_name);
+	}
+
 	if (!rc.title_layout_loaded) {
 #if HAVE_LIBSFDO
 		fill_title_layout("icon:iconify,max,close");

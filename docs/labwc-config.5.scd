@@ -481,7 +481,7 @@ extending outward from the snapped edge.
 	The name of the Openbox theme to use. It is not set by default.
 
 *<theme><icon>*
-	The name of the icon theme to use. It is not set by default.
+	The name of the icon theme to use. Inherits *<theme><name>* if not set.
 
 *<theme><fallbackAppIcon>*
 	The name of the icon to use as a fallback when the application icon

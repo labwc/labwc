@@ -576,6 +576,12 @@ extending outward from the snapped edge.
 	outlined rectangle is shown to indicate the geometry of resized window.
 	Default is yes.
 
+*<resize><cornerRange>*
+	The size of corner regions to which the 'TLCorner', 'TRCorner',
+	'BLCorner' and 'RLCorner' mousebind contexts apply, as well as the size
+	of the border region for which mouse resizing will apply both
+	horizontally and vertically rather than one or the other. Default is 8.
+
 ## KEYBOARD
 
 *<keyboard><numlock>* [on|off]

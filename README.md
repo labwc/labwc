@@ -74,7 +74,7 @@ its job well. In this regard we follow in the footsteps of [metacity] which
 describes itself as a "Boring window manager for the adult in you. Many window
 managers are like Marshmallow Froot Loops; Metacity is like Cheerios."
 
-Finally, we think that an elegant solution to all of this does not need feel
+Finally, we think that an elegant solution to all of this does not need to feel
 square and pixelated like something out of the 1990s, but should look
 contemporary and enable cutting-edge performance.
 
@@ -154,6 +154,7 @@ Run-time dependencies include:
 - libxml2, cairo, pango, glib-2.0
 - libpng
 - librsvg >=2.46 (optional)
+- libsfdo (optional)
 - xwayland, xcb (optional)
 
 Build dependencies include:

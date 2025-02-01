@@ -131,6 +131,7 @@
     <popupShow>Never</popupShow>
     <!-- Let client redraw its contents while resizing -->
     <drawContents>yes</drawContents>
+    <cornerRange>8</cornerRange>
   </resize>
 
   <focus>

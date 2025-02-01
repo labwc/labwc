@@ -74,8 +74,69 @@ ssd_max_extents(struct view *view)
 	};
 }
 
+/*
+ * Resizing and mouse contexts like 'Left', 'TLCorner', etc. in the vicinity of
+ * SSD borders, titlebars and extents can have effective "corner regions" that
+ * behave differently from single-edge contexts.
+ *
+ * Corner regions are active whenever the cursor is within a prescribed size
+ * (generally rc.resize_corner_range, but clipped to view size) of the view
+ * bounds, so check the cursor against the view here.
+ */
+static enum ssd_part_type
+get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
+{
+	struct view *view = ssd ? ssd->view : NULL;
+	if (!view || !cursor || !view->ssd_enabled || view->fullscreen) {
+		return LAB_SSD_NONE;
+	}
+
+	struct wlr_box view_box = view->current;
+	view_box.height = view_effective_height(view, /* use_pending */ false);
+
+	if (!view->ssd_titlebar_hidden) {
+		/* If the titlebar is visible, consider it part of the view */
+		int titlebar_height = view->server->theme->titlebar_height;
+		view_box.y -= titlebar_height;
+		view_box.height += titlebar_height;
+	}
+
+	if (wlr_box_contains_point(&view_box, cursor->x, cursor->y)) {
+		/* A cursor in bounds of the view is never in an SSD context */
+		return LAB_SSD_NONE;
+	}
+
+	int corner_height = MAX(0, MIN(rc.resize_corner_range, view_box.height / 2));
+	int corner_width = MAX(0, MIN(rc.resize_corner_range, view_box.width / 2));
+	bool left = cursor->x < view_box.x + corner_width;
+	bool right = cursor->x > view_box.x + view_box.width - corner_width;
+	bool top = cursor->y < view_box.y + corner_height;
+	bool bottom = cursor->y > view_box.y + view_box.height - corner_height;
+
+	if (top && left) {
+		return LAB_SSD_PART_CORNER_TOP_LEFT;
+	} else if (top && right) {
+		return LAB_SSD_PART_CORNER_TOP_RIGHT;
+	} else if (bottom && left) {
+		return LAB_SSD_PART_CORNER_BOTTOM_LEFT;
+	} else if (bottom && right) {
+		return LAB_SSD_PART_CORNER_BOTTOM_RIGHT;
+	} else if (top) {
+		return LAB_SSD_PART_TOP;
+	} else if (bottom) {
+		return LAB_SSD_PART_BOTTOM;
+	} else if (left) {
+		return LAB_SSD_PART_LEFT;
+	} else if (right) {
+		return LAB_SSD_PART_RIGHT;
+	}
+
+	return LAB_SSD_NONE;
+}
+
 enum ssd_part_type
-ssd_get_part_type(const struct ssd *ssd, struct wlr_scene_node *node)
+ssd_get_part_type(const struct ssd *ssd, struct wlr_scene_node *node,
+		struct wlr_cursor *cursor)
 {
 	if (!node) {
 		return LAB_SSD_NONE;
@@ -121,25 +182,25 @@ ssd_get_part_type(const struct ssd *ssd, struct wlr_scene_node *node)
 		part_list = &ssd->border.inactive.parts;
 	}
 
+	enum ssd_part_type part_type = LAB_SSD_NONE;
+
 	if (part_list) {
 		struct ssd_part *part;
 		wl_list_for_each(part, part_list, link) {
 			if (node == part->node) {
-				return part->type;
+				part_type = part->type;
+				break;
 			}
 		}
 	}
-	return LAB_SSD_NONE;
-}
 
-enum ssd_part_type
-ssd_at(const struct ssd *ssd, struct wlr_scene *scene, double lx, double ly)
-{
-	assert(scene);
-	double sx, sy;
-	struct wlr_scene_node *node = wlr_scene_node_at(
-		&scene->tree.node, lx, ly, &sx, &sy);
-	return ssd_get_part_type(ssd, node);
+	if (part_type == LAB_SSD_NONE) {
+		return part_type;
+	}
+
+	/* Perform cursor-based context checks */
+	enum ssd_part_type resizing_type = get_resizing_type(ssd, cursor);
+	return resizing_type != LAB_SSD_NONE ? resizing_type : part_type;
 }
 
 uint32_t

@@ -334,7 +334,7 @@ There are a couple of regression warnings when using wlroots 0.18:
    release until this is resolved.
 2. Fullscreen VRR is broken but should be fixed once wlroots 0.18.1 is released.
    Again, if that is a problem we advise to stay with the v0.7 branch in the
-   short term until fixed. PR #2079
+   short term until fixed. [#2079]
 
 A v0.7 branch has been created for bug fixes beyond `0.7.3` (built with wlroots
 `0.17`).
@@ -349,21 +349,21 @@ have been attributed with a 'Written-by' against each relevant log entry.
 ### Added
 
 - Add options `fullscreen` and `fullscreenForced` for `<core><allowTearing>`
-  Written-by: @jp7677 & @Consolatis PR #1941
+  Written-by: @jp7677 & @Consolatis [#1941]
 - Optionally allow keybindings when session is locked, which for example can be
-  useful for volume settings. Written-by: @xi PR #2041
+  useful for volume settings. Written-by: @xi [#2041]
 
 ```xml
 <keyboard><keybind key="" allowWhenLocked="">
 ```
 
 - Add resistance when dragging tiled/maximized windows with config option
-  `<resistance><unSnapThreshold>`. PR #2009 #2056
-- Implement support for renderer loss recovery. Written-by: @kode54 PR #1997
-- Support xinitrc scripts to configure XWayland server on launch. PR #1963
+  `<resistance><unSnapThreshold>`. [#2009] [#2056]
+- Implement support for renderer loss recovery. Written-by: @kode54 [#1997]
+- Support xinitrc scripts to configure XWayland server on launch. [#1963]
 - Add theme option `window.button.width` to set window button size.
-  Written-by: @heroin-moose PR #1965
-- Add `cascade` placement policy. PR #1890
+  Written-by: @heroin-moose [#1965]
+- Add `cascade` placement policy [#1890]
 
 ```xml
 <placement>
@@ -372,7 +372,7 @@ have been attributed with a 'Written-by' against each relevant log entry.
 </placement>
 ```
 
-- Support relative tablet motion. Written-by: @jp7677 PR #1962
+- Support relative tablet motion. Written-by: @jp7677 [#1962]
 
 ```xml
 <tabletTool motion="absolute|relative" relativeMotionSensitivity="1.0"/>
@@ -380,10 +380,10 @@ have been attributed with a 'Written-by' against each relevant log entry.
 
 ### Fixed
 
-- Make tablet rotation follow output rotation. Written-by: @jp7677. PR #2060
-- Fix error when launching windowed Chromium. PR #2069
-- Fix empty `XKB_DEFAULT_LAYOUT` bug. PR #2061
-- Take into account CSD borders when unconstraining XDG popups. PR #2016
+- Make tablet rotation follow output rotation. Written-by: @jp7677. [#2060]
+- Fix error when launching windowed Chromium. [#2069]
+- Fix empty `XKB_DEFAULT_LAYOUT` bug. [#2061]
+- Take into account CSD borders when unconstraining XDG popups. [#2016]
 - Choose xdg-popup output depending on xdg-positioner PR #2016
 - Fix wlroots-0.18 regression causing flicker with some layer-shell clients like
   fuzzel on launch. PR #2021
@@ -1842,12 +1842,26 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#1278]: https://github.com/labwc/labwc/pull/1278
 [#1503]: https://github.com/labwc/labwc/pull/1503
 [#1716]: https://github.com/labwc/labwc/pull/1716
+[#1890]: https://github.com/labwc/labwc/pull/1890
+[#1941]: https://github.com/labwc/labwc/pull/1941
+[#1962]: https://github.com/labwc/labwc/pull/1962
+[#1963]: https://github.com/labwc/labwc/pull/1963
+[#1965]: https://github.com/labwc/labwc/pull/1965
+[#1997]: https://github.com/labwc/labwc/pull/1997
+[#2009]: https://github.com/labwc/labwc/pull/2009
+[#2016]: https://github.com/labwc/labwc/pull/2016
 [#2030]: https://github.com/labwc/labwc/pull/2030
+[#2041]: https://github.com/labwc/labwc/pull/2041
 [#2052]: https://github.com/labwc/labwc/pull/2052
 [#2055]: https://github.com/labwc/labwc/pull/2055
+[#2056]: https://github.com/labwc/labwc/pull/2056
 [#2057]: https://github.com/labwc/labwc/pull/2057
+[#2060]: https://github.com/labwc/labwc/pull/2060
+[#2061]: https://github.com/labwc/labwc/pull/2061
+[#2069]: https://github.com/labwc/labwc/pull/2069
 [#2072]: https://github.com/labwc/labwc/pull/2072
 [#2075]: https://github.com/labwc/labwc/pull/2075
+[#2079]: https://github.com/labwc/labwc/pull/2079
 [#2088]: https://github.com/labwc/labwc/pull/2088
 [#2091]: https://github.com/labwc/labwc/pull/2091
 [#2094]: https://github.com/labwc/labwc/pull/2094
@@ -1900,9 +1914,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2336]: https://github.com/labwc/labwc/pull/2336
 [#2337]: https://github.com/labwc/labwc/pull/2337
 [#2338]: https://github.com/labwc/labwc/pull/2338
-[#2340]: https://github.com/labwc/labwc/pull/2340
 [#2345]: https://github.com/labwc/labwc/pull/2345
-[#2350]: https://github.com/labwc/labwc/pull/2350
 [#2356]: https://github.com/labwc/labwc/pull/2356
 [#2360]: https://github.com/labwc/labwc/pull/2360
 [#2361]: https://github.com/labwc/labwc/pull/2361

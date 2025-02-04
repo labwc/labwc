@@ -1388,6 +1388,10 @@ post_processing(struct theme *theme)
 		rc.corner_radius = theme->titlebar_height - 1;
 	}
 
+	if (rc.resize_corner_range < 0) {
+		rc.resize_corner_range = theme->titlebar_height / 2;
+	}
+
 	int min_button_hover_radius =
 		MIN(theme->window_button_width, theme->window_button_height) / 2;
 	if (theme->window_button_hover_bg_corner_radius > min_button_hover_radius) {

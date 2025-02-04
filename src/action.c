@@ -1084,7 +1084,8 @@ actions_run(struct view *activator, struct server *server,
 			if (view) {
 				int x = action_get_int(action, "x", 0);
 				int y = action_get_int(action, "y", 0);
-				view_move(view, x, y);
+				struct border margin = ssd_thickness(view);
+				view_move(view, x + margin.left, y + margin.top);
 			}
 			break;
 		case ACTION_TYPE_RESIZETO:

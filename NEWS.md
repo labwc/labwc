@@ -33,6 +33,124 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
+## [unreleased]
+
+The eye-catching new features of this release are undoubtedly:
+1. Support for the `ext-workspace` protocol with big thanks to @Consolatis
+2. Menu enhancements including icons and dynamic root-menus. Credits here go to
+   @Consolatis, @tokyo4j and @johanmalm for improvements to both backend buffer
+   managements and front end menu mechanics.
+
+However - on the whole - the main effort of this release has gone into
+stability, usability and performance fixes, and it really feels like we have
+matured nicely against the wlroots 0.18 series.
+
+Notes to package maintainers:
+- This version introduces the ext-workspace protocol which breaks xfce4-panel
+  4.20.0. Subsequent releases has a fix for this so make sure xfce4-panel is
+  shipped at >= 4.20.1.
+
+### Added
+
+- Add config options `<resize><cornerRange>` and `<resize><minimumArea>` [#2529]
+- Menu icons support [#2509]
+
+```xml
+<menu>
+  <showIcons>yes</showIcons>
+</menu>
+```
+
+- Support toplevel pipemenus [#2238] [#2239]
+
+```xml
+<?xml version="1.0"?>
+<openbox_menu>
+  <menu id="root-menu" label="" execute="labwc-menu-generator -p -I" />
+</openbox_menu>
+```
+
+- Add `<theme><fallbackAppIcon>` to specify the icon name to be used when
+  lookups for an application icon have failed [#2518]
+- Use 'labwc' directory for themes as well as 'openbox-3' [#2488]
+- Add default Alt-Shift-Tab keybind for `PreviousWindow` [#2477]
+- Add config option `<core><autoEnableOutputs>` to allow users to avoid
+  automatically enabling outputs at startup and when new outputs are connected.
+  With autoEnableOutputs disabled, tools such as kanshi can be used to give
+  finer-grained control of which outputs are enabled, which may be useful to
+  avoid re-enabling outputs that disconnect and reconnect during powersave
+  [#2458]
+- Add WarpCursor action. Written-by: @orfeasxyz [#2118]
+- Support ext-workspace protocol [#2365]
+
+### Fixed
+
+- Prevent black flash (caused by unnecessary output commit without buffer) when
+  repeatedly calling `wlopm --on` [#2580]
+- Set custom output mode on `wlopm --on` to work around a wlroots issue:
+  https://gitlab.freedesktop.org/wlroots/wlroots/-/issues/3946 [#2578]
+- Handle layer-shell unmap without any outputs left [#2577]
+- Fix some odd, inconsistent behaviour with resize edges [#2529]
+- Cleanup overlay timer on exit [#2574]
+- Fix unexpected behavior when a menu is opened from another menu [#2537]
+- Taking into account SSD margin in `MoveTo` action [#2469] [#2563]
+- Fix UAF caused by trying to update xcursor in an output destroy-handler
+  [#2539] [#2560]
+- Send wlr-foreign-toplevel `output_enter` on initialization to fix a bug which
+  causes missing taskbar items in Waybar when configured to show windows per
+  output. [#2550]
+- Use subsurface as reference for out-of-surface cursor movement [#2542] [#2547]
+- Dynamically look up window icons in server-side-deco titlebar for output
+  scales [#2518]
+- Do not leak bound scroll events from touchpad to clients in some conditions
+  [#2516]
+- Ignore duplicated buttons in `<titlebar><layout>` rather than ignoring all of
+  it [#2524]
+- Set repeat information for virtual keyboards [#2513]
+- Honour modifier state of virtual keyboards when processing mousebinds. Helps
+  some use-cases under wayvnc [#2511]
+- Accept uppercase icon endings
+- IME: fix stuck Ctrl when pressed Ctrl+F in Firefox with Fcitx5 [#2498]
+- Fix invisible cursor on application after reconfigure [#2499]
+- Fix abort() on non-ARGB32 PNG file [#2495]
+- Ignore `wlr_output_state.mode/custom_mode` except for client request [#2486]
+- Cancel keyboard keybind-repeat on reconfigure [#2473]
+- Send initial wlr-foreign-toplevel pre-map state [#2460]
+- Fix NULL `string_prop` crash when `app_id` is NULL [#2453]
+- Fix scaling for rendering large image in non-square rectangle [#2451]
+- Fix cursor focus when menu is closed by clicking its border [#2443]
+- Update pointer focus on xdg-popup/layer popup destruction to fix bug where
+  closing a popup did not move the pointer focus to the main toplevel until the
+  cursor was moved. [#2443]
+- Improve algorithm for menu placement with xdg-positioner [#2408]
+- Do not forward IME key-release without correspinding key-press to avoid stuck
+  keys [#2437]
+
+### Changed
+
+- Make window switcher more Openbox-like in terms of key processing. The shift
+  key no longer inverts the direction of window switching, so to keep the
+  original behavior, alt-shift-tab has been added as a default keybind to cycle
+  to the previous window [#2477]
+- Do not set numlock by default, only set on|off if user specifically requests
+  it in the config file [#2483]
+- Demote libsfdo error-logging to `WLR_INFO` to avoid logging issues with
+  .desktop files as errors [#2456]
+- Always send modifier release events. This means that when a keybind is
+  triggered while focusing on an application, the key-release event of the
+  modifier key is now sent to the application. This fixes the problem of stuck
+  modifier keys in some applications including Blender and wlfreerdp. Note that
+  this change makes existing keybinds with Alt key show Firefox's menu bar. For
+  those who don't want to make those keybinds interfere with Firefox's menu bar,
+  we recommend replacing Alt key (e.g. "A-s") with Win key (e.g. "W-s") in the
+  keybinds. [#2455]
+- Removed `wantAbsorbedModifierReleaseEvents` window rule as it's no longer
+  needed [#2455]
+- Clear the keyboard/pointer focus while a window is dragged, the window
+  switcher is activated or a menu is opened. As a result, with followMouse="yes"
+  and followMouseRequiresMovement="no" in rc.xml, keyboard-focus semantics
+  have subtly changed when using the window-switcher. [#2455]
+
 ## [0.8.2]
 
 This is a shorter release cycle compared with the usual 10-week one because it
@@ -1871,6 +1989,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2102]: https://github.com/labwc/labwc/pull/2102
 [#2105]: https://github.com/labwc/labwc/pull/2105
 [#2116]: https://github.com/labwc/labwc/pull/2116
+[#2118]: https://github.com/labwc/labwc/pull/2118
 [#2127]: https://github.com/labwc/labwc/pull/2127
 [#2128]: https://github.com/labwc/labwc/pull/2128
 [#2150]: https://github.com/labwc/labwc/pull/2150
@@ -1891,6 +2010,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2226]: https://github.com/labwc/labwc/pull/2226
 [#2231]: https://github.com/labwc/labwc/pull/2231
 [#2234]: https://github.com/labwc/labwc/pull/2234
+[#2238]: https://github.com/labwc/labwc/pull/2238
+[#2239]: https://github.com/labwc/labwc/pull/2239
 [#2244]: https://github.com/labwc/labwc/pull/2244
 [#2245]: https://github.com/labwc/labwc/pull/2245
 [#2249]: https://github.com/labwc/labwc/pull/2249
@@ -1919,13 +2040,51 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2360]: https://github.com/labwc/labwc/pull/2360
 [#2361]: https://github.com/labwc/labwc/pull/2361
 [#2363]: https://github.com/labwc/labwc/pull/2363
+[#2365]: https://github.com/labwc/labwc/pull/2365
 [#2371]: https://github.com/labwc/labwc/pull/2371
 [#2376]: https://github.com/labwc/labwc/pull/2376
 [#2377]: https://github.com/labwc/labwc/pull/2377
 [#2380]: https://github.com/labwc/labwc/pull/2380
 [#2398]: https://github.com/labwc/labwc/pull/2398
 [#2400]: https://github.com/labwc/labwc/pull/2400
+[#2408]: https://github.com/labwc/labwc/pull/2408
 [#2409]: https://github.com/labwc/labwc/pull/2409
 [#2412]: https://github.com/labwc/labwc/pull/2412
 [#2414]: https://github.com/labwc/labwc/pull/2414
 [#2420]: https://github.com/labwc/labwc/pull/2420
+[#2437]: https://github.com/labwc/labwc/pull/2437
+[#2443]: https://github.com/labwc/labwc/pull/2443
+[#2451]: https://github.com/labwc/labwc/pull/2451
+[#2453]: https://github.com/labwc/labwc/pull/2453
+[#2455]: https://github.com/labwc/labwc/pull/2455
+[#2456]: https://github.com/labwc/labwc/pull/2456
+[#2458]: https://github.com/labwc/labwc/pull/2458
+[#2460]: https://github.com/labwc/labwc/pull/2460
+[#2469]: https://github.com/labwc/labwc/pull/2469
+[#2473]: https://github.com/labwc/labwc/pull/2473
+[#2477]: https://github.com/labwc/labwc/pull/2477
+[#2483]: https://github.com/labwc/labwc/pull/2483
+[#2486]: https://github.com/labwc/labwc/pull/2486
+[#2488]: https://github.com/labwc/labwc/pull/2488
+[#2492]: https://github.com/labwc/labwc/pull/2492
+[#2495]: https://github.com/labwc/labwc/pull/2495
+[#2498]: https://github.com/labwc/labwc/pull/2498
+[#2499]: https://github.com/labwc/labwc/pull/2499
+[#2509]: https://github.com/labwc/labwc/pull/2509
+[#2511]: https://github.com/labwc/labwc/pull/2511
+[#2513]: https://github.com/labwc/labwc/pull/2513
+[#2516]: https://github.com/labwc/labwc/pull/2516
+[#2518]: https://github.com/labwc/labwc/pull/2518
+[#2524]: https://github.com/labwc/labwc/pull/2524
+[#2529]: https://github.com/labwc/labwc/pull/2529
+[#2537]: https://github.com/labwc/labwc/pull/2537
+[#2539]: https://github.com/labwc/labwc/pull/2539
+[#2542]: https://github.com/labwc/labwc/pull/2542
+[#2547]: https://github.com/labwc/labwc/pull/2547
+[#2550]: https://github.com/labwc/labwc/pull/2550
+[#2560]: https://github.com/labwc/labwc/pull/2560
+[#2563]: https://github.com/labwc/labwc/pull/2563
+[#2574]: https://github.com/labwc/labwc/pull/2574
+[#2577]: https://github.com/labwc/labwc/pull/2577
+[#2578]: https://github.com/labwc/labwc/pull/2578
+[#2580]: https://github.com/labwc/labwc/pull/2580

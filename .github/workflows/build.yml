@@ -8,7 +8,18 @@
 # https://docs.voidlinux.org/xbps/repositories/mirrors/changing.html
 
 name: CI
-on: [pull_request]
+
+on:
+  pull_request:
+    paths:
+      - 'meson.build'
+      - 'meson_options.txt'
+      - 'src/**'
+      - 'include/**'
+      - 'protocols/**'
+      - 'scripts/**'
+      - '.github/workflows/**'
+
 jobs:
   codestyle:
     name: CodeStyleCheck

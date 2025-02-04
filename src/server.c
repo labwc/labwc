@@ -757,9 +757,9 @@ server_finish(struct server *server)
 		wl_event_source_remove(sighup_source);
 	}
 	wl_display_destroy_clients(server->wl_display);
+	wlr_backend_destroy(server->backend);
 	wlr_allocator_destroy(server->allocator);
 	wlr_renderer_destroy(server->renderer);
-	wlr_backend_destroy(server->backend);
 	seat_finish(server);
 	workspaces_destroy(server);
 	wlr_scene_node_destroy(&server->scene->tree.node);

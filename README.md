@@ -257,7 +257,7 @@ Suggested apps to use with labwc:
 - Screen shooter: [grim]
 - Screen recorder: [wf-recorder]
 - Background image: [swaybg]
-- Panel: [waybar], [yambar], [lavalauncher], [sfwbar]
+- Panel: [waybar], [yambar], [lavalauncher], [sfwbar], [xfce4-panel]
 - Launchers: [bemenu], [fuzzel], [wofi]
 - Output managers: [wlopm], [kanshi], [wlr-randr]
 - Screen locker: [swaylock]
@@ -294,6 +294,7 @@ See [integration] for further details.
 [yambar]: https://codeberg.org/dnkl/yambar
 [lavalauncher]: https://sr.ht/~leon_plickat/LavaLauncher
 [sfwbar]: https://github.com/LBCrion/sfwbar
+[xfce4-panel]: https://gitlab.xfce.org/xfce/xfce4-panel
 [bemenu]: https://github.com/Cloudef/bemenu
 [fuzzel]: https://codeberg.org/dnkl/fuzzel
 [wofi]: https://hg.sr.ht/~scoopta/wofi

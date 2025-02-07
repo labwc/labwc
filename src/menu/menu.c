@@ -115,7 +115,12 @@ validate_menu(struct menu *menu)
 	struct action *action, *action_tmp;
 	wl_list_for_each(item, &menu->menuitems, link) {
 		wl_list_for_each_safe(action, action_tmp, &item->actions, link) {
-			if (!action_is_valid(action)) {
+			bool is_show_menu = action_is_show_menu(action);
+			if (!action_is_valid(action) || is_show_menu) {
+				if (is_show_menu) {
+					wlr_log(WLR_ERROR, "'ShowMenu' action is"
+						" not allowed in menu items");
+				}
 				wl_list_remove(&action->link);
 				action_free(action);
 				wlr_log(WLR_ERROR, "Removed invalid menu action");

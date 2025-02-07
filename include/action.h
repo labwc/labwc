@@ -23,6 +23,7 @@ struct action {
 struct action *action_create(const char *action_name);
 
 bool action_is_valid(struct action *action);
+bool action_is_show_menu(struct action *action);
 
 void action_arg_add_str(struct action *action, const char *key, const char *value);
 void action_arg_add_actionlist(struct action *action, const char *key);

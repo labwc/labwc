@@ -606,6 +606,12 @@ action_is_valid(struct action *action)
 	return false;
 }
 
+bool
+action_is_show_menu(struct action *action)
+{
+	return action->type == ACTION_TYPE_SHOW_MENU;
+}
+
 void
 action_free(struct action *action)
 {

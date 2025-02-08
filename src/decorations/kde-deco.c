@@ -133,3 +133,8 @@ kde_server_decoration_init(struct server *server)
 	server->kde_server_decoration.notify = handle_new_server_decoration;
 }
 
+void
+kde_server_decoration_finish(struct server *server)
+{
+	wl_list_remove(&server->kde_server_decoration.link);
+}

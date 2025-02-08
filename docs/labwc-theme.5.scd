@@ -110,8 +110,8 @@ labwc-config(5).
 	Default is 0.
 
 	Note: for a circular hover effect, set *window.button.width* and
-	*window.button.height* equal and *window.button.hover.bg.corner-radius* half
-	of them.
+	*window.button.height* equal and *window.button.hover.bg.corner-radius*
+	half of them.
 
 *window.active.button.unpressed.image.color*
 	Color of the images in titlebar buttons in their default, unpressed,

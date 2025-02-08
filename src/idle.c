@@ -17,9 +17,9 @@ struct lab_idle_manager {
 	struct {
 		struct wlr_idle_inhibit_manager_v1 *manager;
 		struct wl_listener on_new_inhibitor;
+		struct wl_listener on_destroy;
 	} inhibitor;
 	struct wlr_seat *wlr_seat;
-	struct wl_listener on_display_destroy;
 };
 
 static struct lab_idle_manager *manager;
@@ -59,13 +59,10 @@ handle_idle_inhibitor_new(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_display_destroy(struct wl_listener *listener, void *data)
+handle_inhibitor_manager_destroy(struct wl_listener *listener, void *data)
 {
-	/*
-	 * All the managers will react to the display
-	 * destroy signal as well and thus clean up.
-	 */
-	wl_list_remove(&manager->on_display_destroy.link);
+	wl_list_remove(&manager->inhibitor.on_new_inhibitor.link);
+	wl_list_remove(&manager->inhibitor.on_destroy.link);
 	zfree(manager);
 }
 
@@ -83,8 +80,9 @@ idle_manager_create(struct wl_display *display, struct wlr_seat *wlr_seat)
 	wl_signal_add(&manager->inhibitor.manager->events.new_inhibitor,
 		&manager->inhibitor.on_new_inhibitor);
 
-	manager->on_display_destroy.notify = handle_display_destroy;
-	wl_display_add_destroy_listener(display, &manager->on_display_destroy);
+	manager->inhibitor.on_destroy.notify = handle_inhibitor_manager_destroy;
+	wl_signal_add(&manager->inhibitor.manager->events.destroy,
+		&manager->inhibitor.on_destroy);
 }
 
 void

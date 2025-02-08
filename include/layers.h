@@ -37,6 +37,7 @@ struct lab_layer_popup {
 };
 
 void layers_init(struct server *server);
+void layers_finish(struct server *server);
 
 void layers_arrange(struct output *output);
 void layer_try_set_focus(struct seat *seat,

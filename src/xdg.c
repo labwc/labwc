@@ -1017,3 +1017,10 @@ xdg_shell_init(struct server *server)
 		&server->xdg_activation_new_token);
 }
 
+void
+xdg_shell_finish(struct server *server)
+{
+	wl_list_remove(&server->new_xdg_toplevel.link);
+	wl_list_remove(&server->xdg_activation_request.link);
+	wl_list_remove(&server->xdg_activation_new_token.link);
+}

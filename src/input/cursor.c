@@ -1520,6 +1520,7 @@ void cursor_finish(struct seat *seat)
 	wl_list_remove(&seat->request_cursor.link);
 	wl_list_remove(&seat->request_set_shape.link);
 	wl_list_remove(&seat->request_set_selection.link);
+	wl_list_remove(&seat->request_set_primary_selection.link);
 
 	wlr_xcursor_manager_destroy(seat->xcursor_manager);
 	wlr_cursor_destroy(seat->cursor);

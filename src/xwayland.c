@@ -1237,6 +1237,10 @@ void
 xwayland_server_finish(struct server *server)
 {
 	struct wlr_xwayland *xwayland = server->xwayland;
+	wl_list_remove(&server->xwayland_new_surface.link);
+	wl_list_remove(&server->xwayland_server_ready.link);
+	wl_list_remove(&server->xwayland_xwm_ready.link);
+
 	/*
 	 * Reset server->xwayland to NULL first to prevent callbacks (like
 	 * server_global_filter) from accessing it as it is destroyed

@@ -588,6 +588,8 @@ seat_finish(struct server *server)
 	struct seat *seat = &server->seat;
 	wl_list_remove(&seat->new_input.link);
 	wl_list_remove(&seat->focus_change.link);
+	wl_list_remove(&seat->virtual_pointer_new.link);
+	wl_list_remove(&seat->virtual_keyboard_new.link);
 
 	struct input *input, *next;
 	wl_list_for_each_safe(input, next, &seat->inputs, link) {

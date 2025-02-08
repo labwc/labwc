@@ -343,7 +343,7 @@
     <keybind key="W-Space">
       <action name="ShowMenu" menu="client-list-combined-menu" />
       <position>
-        <x>center</x> 
+        <x>center</x>
         <y>center</y>
       </position>
     </keybind>
@@ -533,7 +533,7 @@
       </mousebind>
       <mousebind button="Middle" action="Press">
         <action name="ShowMenu" menu="root-menu" />
-	<!-- openbox default, swap with above line to activate -->
+        <!-- openbox default, swap with above line to activate -->
         <!-- <action name="ShowMenu" menu="client-list-combined-menu" /> -->
       </mousebind>
       <mousebind direction="Up" action="Scroll">

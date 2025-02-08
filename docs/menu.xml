@@ -50,7 +50,7 @@
 </menu>
 
 <menu id="root-menu">
-  <!-- Make client-list-combined-menu a submenu of root-menu 
+  <!-- Make client-list-combined-menu a submenu of root-menu
        You must supply a label or it will not appear in root-menu -->
   <!--
   <menu id="client-list-combined-menu" label="Running..." />

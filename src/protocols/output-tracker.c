@@ -86,11 +86,9 @@ handle_output_bind(struct wl_listener *listener, void *data)
 			sent = true;
 		}
 	}
-	if (!sent || !object_output->impl->send_done) {
-		return;
+	if (sent && object_output->impl->send_done) {
+		object_output->impl->send_done(object_output->object, client);
 	}
-
-	object_output->impl->send_done(object_output->object, client);
 }
 
 /* Public API */
@@ -142,8 +140,8 @@ output_tracker_enter(void *object, struct wl_list *object_resources,
 
 	wl_list_insert(&objects, &object_output->link);
 
-	bool sent = object_output_send_event(
-		object_resources, &wlr_output->resources, impl->send_output_enter);
+	bool sent = object_output_send_event(object_resources,
+		&wlr_output->resources, impl->send_output_enter);
 
 	if (sent && impl->send_done) {
 		impl->send_done(object, /*client*/ NULL);

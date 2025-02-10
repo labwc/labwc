@@ -598,6 +598,7 @@ seat_finish(struct server *server)
 		wl_event_source_remove(seat->workspace_osd_timer);
 		seat->workspace_osd_timer = NULL;
 	}
+	overlay_finish(seat);
 
 	input_handlers_finish(seat);
 	input_method_relay_finish(seat->input_method_relay);

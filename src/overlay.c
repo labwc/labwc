@@ -260,3 +260,12 @@ overlay_hide(struct seat *seat)
 			&server->scene->tree);
 	}
 }
+
+void
+overlay_finish(struct seat *seat)
+{
+	if (seat->overlay.timer) {
+		wl_event_source_remove(seat->overlay.timer);
+		seat->overlay.timer = NULL;
+	}
+}

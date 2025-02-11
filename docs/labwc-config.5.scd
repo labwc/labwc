@@ -295,53 +295,56 @@ this is for compatibility with Openbox.
 
 	*content* defines what the field shows and can be any of:
 
-		- *type* Show view type ("xdg-shell" or "xwayland")
+	- *type* Show view type ("xdg-shell" or "xwayland")
 
-		- *identifier* Show identifier (app_id for native Wayland
-		  windows and WM_CLASS for XWayland clients)
+	- *identifier* Show identifier (app_id for native Wayland
+	  windows and WM_CLASS for XWayland clients)
 
-		- *trimmed_identifier* Show trimmed identifier. Trimming removes
-		  the first two nodes of 'org.' strings.
+	- *trimmed_identifier* Show trimmed identifier. Trimming removes
+	  the first two nodes of 'org.' strings.
 
-		- *desktop_entry_name* Show application name from freedesktop.org desktop
-		  entry/file. Falls back to trimmed identifier (trimmed_identifier).
+	- *desktop_entry_name* Show application name from freedesktop.org
+	  desktop entry/file. Falls back to trimmed identifier
+	  (trimmed_identifier).
 
-		- *title* Show window title if different to app_id
+	- *title* Show window title if different to app_id
 
-		- *workspace* Show workspace name
+	- *workspace* Show workspace name
 
-		- *state* Show window state, M/m/F (max/min/full)
+	- *state* Show window state, M/m/F (max/min/full)
 
-		- *type_short* Show view type ("W" or "X")
+	- *type_short* Show view type ("W" or "X")
 
-		- *output* Show output id, if more than one output detected
+	- *output* Show output id, if more than one output detected
 
-		- *custom* A printf style config that can replace all the above
-		  fields are:
-			- 'B' - shell type, values [xwayland|xdg-shell]
-			- 'b' - shell type (short form), values [X|W]
-			- 'S' - state of window, values [M|m|F] (3 spaces allocated)
-			        (maximized, minimized, fullscreen)
-			- 's' - state of window (short form), values [M|m|F] (1 space)
-			- 'I' - wm-class/app-id
-			- 'i' - wm-class/app-id trimmed, remove "org." if available
-			- 'n' - desktop entry/file application name, falls back to
-			        wm-class/app-id trimmed
-			- 'W' - workspace name
-			- 'w' - workspace name (if more than 1 ws configured)
-			- 'O' - output name
-			- 'o' - output name (show if more than 1 monitor active)
-			- 'T' - title of window
-			- 't' - title of window (if different than wm-class/app-id)
-		  Recommend using with a monospace font, to keep alignment.
-		- *custom - subset of printf options allowed -- man 3 printf*
-			- random text may be inserted
-			- field length, example "%10" use 10 spaces, even if text uses less
-			- left justify text, example "%-"
-			- right justify text, example "%" instead of "%-"
-			- example, %-10 would left justify and make room for 10 characters
-		- Only one custom format allowed now. Future enhancements may
-		  allow more than one.
+	- *custom* A printf style config that can replace all the above
+	  fields are:
+		- 'B' - shell type, values [xwayland|xdg-shell]
+		- 'b' - shell type (short form), values [X|W]
+		- 'S' - state of window, values [M|m|F] (3 spaces allocated)
+		        (maximized, minimized, fullscreen)
+		- 's' - state of window (short form), values [M|m|F] (1 space)
+		- 'I' - wm-class/app-id
+		- 'i' - wm-class/app-id trimmed, remove "org." if available
+		- 'n' - desktop entry/file application name, falls back to
+		        wm-class/app-id trimmed
+		- 'W' - workspace name
+		- 'w' - workspace name (if more than 1 ws configured)
+		- 'O' - output name
+		- 'o' - output name (show if more than 1 monitor active)
+		- 'T' - title of window
+		- 't' - title of window (if different than wm-class/app-id)
+	  Recommend using with a monospace font, to keep alignment.
+	- *custom - subset of printf options allowed -- man 3 printf*
+		- random text may be inserted
+		- field length, example "%10" use 10 spaces, even if text uses
+		  less
+		- left justify text, example "%-"
+		- right justify text, example "%" instead of "%-"
+		- example, %-10 would left justify and make room for 10
+		  characters
+	- Only one custom format allowed now. Future enhancements may
+	  allow more than one.
 
 	*width* defines the width of the field expressed as a percentage of
 	the overall window switcher width. The "%" character is required.
@@ -717,7 +720,8 @@ extending outward from the snapped edge.
 	- Iconify: A button that, by default, iconifies a window.
 	- Maximize: A button that, by default, toggles maximization of a window.
 	- Shade: A button that, by default, toggles window shading.
-	- AllDesktops: A button that, by default, toggles omnipresence of a window.
+	- AllDesktops: A button that, by default, toggles omnipresence of a
+	  window.
 	- Close: A button that, by default, closses a window.
 	- Top: The top edge of the window's border.
 	- Bottom: The bottom edge of the window's border.

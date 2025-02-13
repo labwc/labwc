@@ -1068,10 +1068,16 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 
 	switch (event->mode) {
 	case ZWLR_OUTPUT_POWER_V1_MODE_OFF:
+		if (!event->output->enabled) {
+			return;
+		}
 		wlr_output_state_set_enabled(&output->pending, false);
 		output_state_commit(output);
 		break;
 	case ZWLR_OUTPUT_POWER_V1_MODE_ON:
+		if (event->output->enabled) {
+			return;
+		}
 		wlr_output_state_set_enabled(&output->pending, true);
 		if (!event->output->current_mode) {
 			/*

@@ -512,20 +512,22 @@ new_output_notify(struct wl_listener *listener, void *data)
 	 * bottom):
 	 *	- session lock layer
 	 *	- window switcher osd
-	 *	- compositor menu
+	 *	- (compositor menu)
 	 *	- layer-shell popups
 	 *	- overlay layer
 	 *	- top layer
-	 *	- views
+	 *	- (views)
 	 *	- bottom layer
 	 *	- background layer
 	 */
 	wlr_scene_node_lower_to_bottom(&output->layer_tree[1]->node);
 	wlr_scene_node_lower_to_bottom(&output->layer_tree[0]->node);
-	wlr_scene_node_raise_to_top(&output->layer_tree[2]->node);
-	wlr_scene_node_raise_to_top(&output->layer_tree[3]->node);
-	wlr_scene_node_raise_to_top(&output->layer_popup_tree->node);
-	wlr_scene_node_raise_to_top(&server->menu_tree->node);
+
+	struct wlr_scene_node *menu_node = &server->menu_tree->node;
+	wlr_scene_node_place_below(&output->layer_tree[2]->node, menu_node);
+	wlr_scene_node_place_below(&output->layer_tree[3]->node, menu_node);
+	wlr_scene_node_place_below(&output->layer_popup_tree->node, menu_node);
+
 	wlr_scene_node_raise_to_top(&output->osd_tree->node);
 	wlr_scene_node_raise_to_top(&output->session_lock_tree->node);
 

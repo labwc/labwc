@@ -580,11 +580,6 @@ server_init(struct server *server)
 #if HAVE_XWAYLAND
 	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->tree);
 #endif
-
-	/*
-	 * menu_tree is moved to top in new_output_notify() when layer-shell
-	 * layers are positioned
-	 */
 	server->menu_tree = wlr_scene_tree_create(&server->scene->tree);
 
 	workspaces_init(server);

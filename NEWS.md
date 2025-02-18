@@ -502,30 +502,30 @@ have been attributed with a 'Written-by' against each relevant log entry.
 - Fix error when launching windowed Chromium. [#2069]
 - Fix empty `XKB_DEFAULT_LAYOUT` bug. [#2061]
 - Take into account CSD borders when unconstraining XDG popups. [#2016]
-- Choose xdg-popup output depending on xdg-positioner PR #2016
+- Choose xdg-popup output depending on xdg-positioner [#2016]
 - Fix wlroots-0.18 regression causing flicker with some layer-shell clients like
-  fuzzel on launch. PR #2021
-- Fix incorrect condition in server-side-deco logic PR #2020
-- Fix flicker of snapped windows in nested session. PR #2010
-- Fix tearing with atomic mode setting. Written-by: @kode54 PR #1996
+  fuzzel on launch. [#2021]
+- Fix incorrect condition in server-side-deco logic [#2020]
+- Fix flicker of snapped windows in nested session. [#2010]
+- Fix tearing with atomic mode setting. Written-by: @kode54 [#1996]
 - Handle initially maximized and fullscreen xdg-shell windows better.
-  PRs #1956 and #2007
+  [#1956] and [#2007]
 - Set initial geometry of maximized and fullscreen XWayland windows in the
-  `map_request` handler to avoid visual glitches with some apps. PR #1529
+  `map_request` handler to avoid visual glitches with some apps. [#1529]
 - Disable pango glyph position rounding to avoid text geometry jump around when
   changing scale.
 
 ### Changed
 
-- Make windows stay fullscreen when associated output is disconnected. PR #2040
+- Make windows stay fullscreen when associated output is disconnected. [#2040]
 
 ## [0.7.4]
 
 ### Fixed
 
-- Make SSD borders respect snapped state on Reconfigure. PR #2003
-- Fix magnifier by disabling direct scanout when active. PR #1989
-- Fix crash triggered by pipemenu without parent `<menu>` element. PR #1988
+- Make SSD borders respect snapped state on Reconfigure. [#2003]
+- Fix magnifier by disabling direct scanout when active. [#1989]
+- Fix crash triggered by pipemenu without parent `<menu>` element. [#1988]
 
 ## [0.7.3]
 
@@ -538,73 +538,73 @@ joint effort by @spl237 and @Consolatis.
 ### Added
 
 - Add config option `<core><xwaylandPersistence>` to support keeping XWayland
-  alive even when no clients are connected. PR #1961
-- Support xdg-shell protocol v3 with popup repositioning. #1950
+  alive even when no clients are connected. [#1961]
+- Support xdg-shell protocol v3 with popup repositioning. [#1950]
   Also see https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/3514
   which adds support on the wlroots side.
-- Add action `ToggleTabletMouseEmulation`. Written-by: jp7677 PR #1915
-- Implement `<resize><drawContents>`. With thanks to @tokyo4j PR #1863
+- Add action `ToggleTabletMouseEmulation`. Written-by: jp7677 [#1915]
+- Implement `<resize><drawContents>`. With thanks to @tokyo4j [#1863]
 - Add `onRelease` option to `<keybind>` in support of binding `Super_L` to a
-  menu. Written-by: @spl237 PR #1888
+  menu. Written-by: @spl237 [#1888]
 - Add initial support for `security-context-v1` (user configurable blocklists
-  are still missing). Written-by: @nesteroff PR #1817
-- Add support for `tablet-v2-manager`. Written-by: @jp7677 PR #1678 #1882
-- Add action `UnMaximize`. PR #1831
-- Support multiple IME popups. PR #1823
+  are still missing). Written-by: @nesteroff [#1817]
+- Add support for `tablet-v2-manager`. Written-by: @jp7677 [#1678] [#1882]
+- Add action `UnMaximize`. [#1831]
+- Support multiple IME popups. [#1823]
 - Add `All` context for mouse bindings which need to be handled irrespective of
   the mouse pointer location. This enables Super+mouse-scroll to change
-  magnification. Written-by: @spl237 PR #1768
-- Add `SetDecorations` action. Written-by: @xi PR #1733
-- Add `policy` option to `AutoPlace` action. PR #1784
-- Add window type filter to If-actions. Written-by: @xi PR #1731
+  magnification. Written-by: @spl237 [#1768]
+- Add `SetDecorations` action. Written-by: @xi [#1733]
+- Add `policy` option to `AutoPlace` action. [#1784]
+- Add window type filter to If-actions. Written-by: @xi [#1731]
 - Add screen magnifier which can be controlled with the `ZoomIn`, `ZoomOut` and
-  `ToggleMagnify` actions. Written-by: @spl237 PR #1774
+  `ToggleMagnify` actions. Written-by: @spl237 [#1774]
 
 ### Fixed
 
 - When looking for menu.xml, go through all paths rather than just giving up
   if not found in the first path searched. This makes it consistent with how
-  other config/theme files are handled. PR #1971
-- Fix memory leaks in theme.c and menu.c. PR #1971
-- Fix session-lock bugs related to keyboard focus. PR #1952
+  other config/theme files are handled. [#1971]
+- Fix memory leaks in theme.c and menu.c. [#1971]
+- Fix session-lock bugs related to keyboard focus. [#1952]
   - Clear focused surface on lock
   - Restore focused view on unlock
-- Fix memory leak in ssd/ssd-shadow.c PR #1954
-- Respect `menu.overlap.x` when using pipemenus. PR #1940
+- Fix memory leak in ssd/ssd-shadow.c [#1954]
+- Respect `menu.overlap.x` when using pipemenus. [#1940]
 - Do not try to restore windows to very small width/height on unmaximize.
-  This fixes a bug with Thonny (Python IDE made with Tk). PR #1938
+  This fixes a bug with Thonny (Python IDE made with Tk). [#1938]
 - Conditially set squared server-side decoration (SSD) corners when a view is
-  tiled. Written-by: @jp7677 PR #1926
+  tiled. Written-by: @jp7677 [#1926]
 - Remember initial direction when starting window-cycling with `PreviousView`.
   Also make the toggling of direction when shift is pressed relative to the
   initial direction. For example if W-j is bound to PreviousWindow, subsequent
   key presses will continue to cycle backwards unless shift is also pressed.
-  Written-by: @droc12345 PR #1919
-- Show dnd icon above layer-shell surfaces. PR #1936
+  Written-by: @droc12345 [#1919]
+- Show dnd icon above layer-shell surfaces. [#1936]
 - Initialize locale after reading environment files so that client-menu items
   and workspace names follow the env var `LANG` should that be set in
   `~/.config/labwc/environment` (which is not recommended, but we prefer to
-  handle it properly if it is). PR #1927
+  handle it properly if it is). [#1927]
 - Fix crash on `menu.xml` containing `<item>` without a parent `<menu>`.
-  PR #1907
+  [#1907]
 - Reset XWayland cursor image on cursor theme reload to avoid trying to read
-  destroyed pixel data. PR #1895
-- Prevent child views from opening outside of usable area. PR #1878
+  destroyed pixel data. [#1895]
+- Prevent child views from opening outside of usable area. [#1878]
 - Fix IME popups issues (flicker when popup surface is initially mapped
-  and incorrectly showing multiple popups). PR #1872
+  and incorrectly showing multiple popups). [#1872]
 - Rate-limit cursor-driven resize events based on monitor's refresh rate. This
   fixes the lag when resizing windows of some apps on XWayland, for example
-  Chromium and Steam. PR #1861
-- Session-lock: fix flashing & update cursor shape. PR #1858
-- Remove tearing-controller listeners on destroy. PR #1853
-- Handle invalid `ForEach` and `If` action cofigs. PR #1838
+  Chromium and Steam. [#1861]
+- Session-lock: fix flashing & update cursor shape. [#1858]
+- Remove tearing-controller listeners on destroy. [#1853]
+- Handle invalid `ForEach` and `If` action cofigs. [#1838]
 - Delay startup of applications until event loop is ready. This avoids race
-  conditions when using autostart scripts that trigger a labwc SIGHUP. #1588
+  conditions when using autostart scripts that trigger a labwc SIGHUP. [#1588]
 - With `SendToDesktop` action follow=no option, ensure the topmost window is
-  focused. #1800
-- Prevent XWayland from using incorrect keymap. #1816
+  focused. [#1800]
+- Prevent XWayland from using incorrect keymap. [#1816]
 - Allow keybinds containing the hyphen key to be defined with `-`.
-  Written-by: @toast #1811
+  Written-by: @toast [#1811]
 - Show/hide `top` layer more smartly. Before this commit, `top` layers were
   hidden whenever there was a fullscreen window in the corresponding output.
   With this commit, `top` layers are hidden only when there is a fullscreen
@@ -630,7 +630,7 @@ contributions from others as noted in the log.
 
 - Add `<menu><ignoreButtonReleasePeriod>` to prevent clicks with small movements
   from inadvertantly closing a menu or selecting a menu item. This is the
-  equivalent of `<menu><hideDelay>` on Openbox. #1760
+  equivalent of `<menu><hideDelay>` on Openbox. [#1760]
 - Support drop-shadows (disabled by default) for windows using server-side
   decorations. Written-by: @cillian64
 
@@ -648,12 +648,12 @@ window.inactive.shadow.color: #00000040
 ```
 
 - Add window-rule `ignoreConfigureRequest` to ignore X11 client-side
-  configure requests (positioning and resizing). #1446
+  configure requests (positioning and resizing). [#1446]
 - Support window-rules based on window type: `<windowRule type="">`, where
   type can be for example `NET_WM_WINDOW_TYPE_DESKTOP` for an XWayland
   window. Written-by: @xi @txgk
 - Add `none` branch to the `ForEach` action. Written-by: @nicolas3121
-  #1298
+  [#1298]
 
 ```xml
 <action name="ForEach">
@@ -673,7 +673,7 @@ window.inactive.shadow.color: #00000040
   `lxqt-session`) to terminate labwc when exiting itself.
 - In theme setting color definitions, support inline alpha encoding like
   `#aabbccff`
-- Add window-switcher custom field inspired by printf formatting. #1670
+- Add window-switcher custom field inspired by printf formatting. [#1670]
   Written-by: @droc12345 and @Consolatis
 
 ```xml
@@ -692,7 +692,7 @@ osd.window-switcher.width: 75%
 ```
 
 - Support Openbox compatible pipe-menus. See labwc-menu(5) for usage.
-- Add snap-to-edge overlay. Written-by: @tokyo4j. PR #1652 #1702
+- Add snap-to-edge overlay. Written-by: @tokyo4j. [#1652] [#1702]
   This includes the following new config and theme settings:
 
 ```xml
@@ -723,7 +723,7 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 - Support libinput config option for calibration matrices.
   `<libinput><device><calibrationMatrix>`. Written-by: @SnowNF
 - Add new window-switcher field content types `workspace`, `state`,
-  `type_short` and `output`. Written-by: @droc12345 PR #1623
+  `type_short` and `output`. Written-by: @droc12345 [#1623]
 
 ```xml
 <windowSwitcher allWorkspaces="yes">
@@ -761,7 +761,7 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
   no other output exists.  Enable this by setting the environment variable
   `LABWC_FALLBACK_OUTPUT` to the desired output name.  The feature
   benefits applications like wayvnc the most by ensuring that there is
-  always an output available to connect to. #1618
+  always an output available to connect to. [#1618]
   Co-Authored-By: Simon Long <simon@raspberrypi.com>
 - Optionally show windows on all workspaces in window-switcher.
 
@@ -769,11 +769,11 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 <windowSwitcher allWorkspaces="yes">
 ```
 
-- Handle touch on headerbar using cursor emulate events. Issue #1550
+- Handle touch on headerbar using cursor emulate events. [#1550]
   Written-by: @spl237
 - Updated dbus activation environment with more environment variables
   (`XCURSOR_SIZE`, `XCURSOR_THEME`, `XDG_SESSION_TYPE`, `LABWC_PID`)
-  Written-by: @winerysearch  Issue #694
+  Written-by: @winerysearch  [#694]
 - Run `shutdown` script on exit (equivalent to `autostart` on startup)
 - Add `wrap` argument to action `MoveToOutput`. Wrap is disabled by
   default to keep the user interface consistent. Example usage:
@@ -785,39 +785,39 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 ### Fixed
 
 - Prevent Chromium from crashing when started after a virtual keyboard is
-  destroyed. #1789
+  destroyed. [#1789]
 - Fix top-layer not showing when there is a minimized full-screen window
   Written-by: @fberg
-- Prevent the following whilst window-switcher cycling (#1640):
+- Prevent the following whilst window-switcher cycling [#1640]:
   - Cursor actions on the window previews
   - Request-xdg-activation
   - Foreign toplevel request-activate
   - XWayland request-activate
-- Prevent shaded XWayland windows from getting cursor events. #1753
-- Fix menu-parser use-after-free bug. #1780
+- Prevent shaded XWayland windows from getting cursor events. [#1753]
+- Fix menu-parser use-after-free bug. [#1780]
 - Update top layer visibility on map to fix bug with Steam's Big Picture Mode
-  window which requests fullscreen before mapping. #1763
-- Do not update server-side-decoration if window is too small. #1762
-- Fix crash on `Kill` action with XWayland windows. #1739
+  window which requests fullscreen before mapping. [#1763]
+- Do not update server-side-decoration if window is too small. [#1762]
+- Fix crash on `Kill` action with XWayland windows. [#1739]
 - Update workspaces on `--reconfigure`. Written-by: @tokyo4j
 - Notify idle manager when emulating cursor movement.
 - Fix GrowToEdge/ShrinkToEdge action bug caused by clients ignoring the
   requested size, for example a terminal honouring size-hints.
-- Fix `assert()` on VT switch. Issue #1667
-- Ensure titlebar has consistent look when using transparency. #1684
+- Fix `assert()` on VT switch. [#1667]
+- Ensure titlebar has consistent look when using transparency. [#1684]
 - Fix dnd bug where dnd does not finish properly on cursor-button-release
   if there is no surface under the cursor such as on the desktop when no
-  background client is running. #1673
+  background client is running. [#1673]
 - Send cursor-button release event to CSD client before finishing window
   dragging to avoid a bug whereby the release event is incorrectly sent to
   a layer-shell client at the end of a drag.
 - Validate double-click against SSD part type because clicks on
   different parts of a client in quick succession should not be
-  interpreted as a double click. #1657
+  interpreted as a double click. [#1657]
 - Fix bug that region overlay is not shown when a modifier key is re-
   pressed.
 - Fix workspace-switcher on-screen-display positioning of text using
-  right-to-left (RTL) locales. Written-by: @micko01 Issue #1633
+  right-to-left (RTL) locales. Written-by: @micko01 Issue [#1633]
 - Unconstrain xdg-shell popups to usable area (rather than full output) so
   that popups do not cover layer-shell clients such as panels.
   Written-by: @tokyo4j
@@ -826,19 +826,19 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
   as these windows should not be shown in taskbars/docks/etc.
 - Render text buffers with opaque backgrounds because subpixel text
   rendering over a transparent background does not work properly with
-  cairo/pango. PR #1631 issue #1684
+  cairo/pango. [#1631] [#1684]
 - Fallback on layout 'us' if a keymap cannot be created for the provided
   `XKB_DEFAULT_LAYOUT`. If keymap still cannot be created, exit with a
   helpful message instead of a segv crash.
 - Reload cursor theme and size on reconfigure. This gives instant feedback, but
   only works for server side cursors or clients using the cursor-shape protocol.
-  Written-by: @spl237 and @Consolatis. #1587 #1619
+  Written-by: @spl237 and @Consolatis. [#1587] [#1619]
 - Fix a number of surface-focus related short-comings:
   - Handle cursor-button-press on layer-shell subsurfaces and fix bug in
     `get_cursor_context()` which resulted in layer-surfaces not being
-    detected correctly. PR #1594
+    detected correctly. [#1594]
   - Overhaul the logic for giving keyboard focus to layer-shell clients.
-    PR #1599 Issue #1653
+    [#1599] [#1653]
 - Fix move/resize bug manifesting itself on touchpad taps with
   `<tapAndDrag>` disabled because libinput sends button press & release
   signals so quickly that `interactive_finish()` is never called.
@@ -848,11 +848,11 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
   regression caused by wlroots 0.17).
 - Clean up dbus and systemd activation environments on exit
 - Fix `view_get_adjacent_output()` bug resulting in often returning an
-  incorrect output when using more than two outputs. Issue #1582
+  incorrect output when using more than two outputs. [#1582]
 
 ### Changed
 
-- Support press-move-release when interacting with the labwc root-menu. #1750
+- Support press-move-release when interacting with the labwc root-menu. [#1750]
 - In theme settings, mark color definitions in the format `#rrggbb aaa` as
   deprecated (still supported, but will removed in some future release) in
   favor of the more commonly used `#rrggbbaa`.
@@ -867,7 +867,7 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 ```
 
 - Change action `MoveToOutput` argument 'name' to 'output' (because 'name'
-  is already used by the action itself).  Issue #1589
+  is already used by the action itself).  [#1589]
 
 ```xml
 <action name="MoveToOutput" output="HDMI-A-1"/>
@@ -877,7 +877,7 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
   surface such as a popup or layer-shell surface.  This matches Openbox
   behavior.
 - Treat Globally Active XWayland windows according to type to fix focus
-  issues with IntelliJ IDEA and JDownloader 2. Issues: #1139 #1341
+  issues with IntelliJ IDEA and JDownloader 2. [#1139] [#1341]
   Also revert f6e3527 which allowed re-focus between Globally Active
   XWayland windows of the same PID.
 - Only update dbus and systemd activation environments when running on
@@ -923,11 +923,11 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 </resistance>
 ```
 
-- Set keyboard layout on reconfigure. Issue #1407
+- Set keyboard layout on reconfigure. [#1407]
 - Reset keyboard-layout group (index) for each window on reconfigure if
   the keymap has changed.
 - Support merging multiple config files with the --merge-config command
-  line option. Issue #1406
+  line option. [#1406]
 - Add config option to map touch events to a named output (display).
   Optionally, make this only apply to specific named devices.
   Written-by: @jp7677
@@ -970,7 +970,7 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
   `cursor` and `automatic`. The latter minimizes overlap with other windows
   already on screen and is similar to Openbox's smart window placement.
   The placement policies honour `<core><gap>`.
-  Written-by: @ahesford #1312
+  Written-by: @ahesford [#1312]
 
 ```xml
 <placement>
@@ -981,29 +981,28 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 ### Fixed
 
 - Delay popup-unconstrain until after first commit in response to a changed
-  wlroots 0.17 interface and to get rid of the error message below. Issue #1372
+  wlroots 0.17 interface and to get rid of the error message below. [#1372]
 
     [types/xdg_shell/wlr_xdg_surface.c:169] A configure is scheduled for an uninitialized xdg_surface
 
 - Notify clients about configuration errors when changing output settings.
-  Issue #1528.
+  [#1528]
 - Fix output configuration bug causing compositor crash when refresh rate is
-  zero. Issue #1458
-- Fix disappearing cursor bug on view destruction. Issue #1393
+  zero. [#1458]
+- Fix disappearing cursor bug on view destruction. [#1393]
 - Use used specified config-file (using -c command line option) on
   reconfigure.
 - Assign outputs to new views on surface creation instead of mapping, and
   notify the client of the preferred output scale when doing so. This fixes an
   issue with foot: https://codeberg.org/dnkl/foot/issues/1579
   Written-by: @ahesford
-- Cancel key repeat on vt change to fix crash on VT change on FreeBSD.
-  Issue #1424
+- Cancel key repeat on vt change to fix crash on VT change on FreeBSD. [#1424]
 - Fix crash when a minimized fullscreen window closes. Written-by: @bi4k8
 - Execute menu actions after closing menus so that menu entries can issue
-  `wtype` commands to the surface with keyboard-focus. Issue #1366
+  `wtype` commands to the surface with keyboard-focus. [#1366]
 - Try to honor original window geometry on layout changes.
 - Fix virtual keyboard bug experienced with `wlrctl keyboard type xyz`. Do not
-  process virtual keyboard keycodes (just the keysyms). Issue #1367
+  process virtual keyboard keycodes (just the keysyms). [#1367]
 - Sync xdg-shell client `view->pending` when applying geometry to fix issue
   caused by applications choosing not respond to pending resize requests either
   by ignoring them or substituting alternative sizes (for example, when mpv
@@ -1011,7 +1010,7 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 
 ### Changed
 
-- Make `MoveToCursor` honour `<core><gap>`. Issue #1494
+- Make `MoveToCursor` honour `<core><gap>`. [#1494]
 - Add `Roll Up/Down` client-menu entry for `ToggleShade`
 - When a Wayland-native window is snapped to a screen edges or user-defined
   region, labwc will notify the application that it is "tiled", allowing the
@@ -1050,12 +1049,12 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 
 - Run menu actions on button release instead of press.
 - Constrain window size to that of usable area when an application is started.
-  Issue #1399
+  [#1399]
 - Support showing the full `app_id` in the window switcher. Users with a custom
   `windowSwitcher` configuration should use the `trimmed_identifier` field
   label to preserve existing behavior; the `identifier` field now refers to the
   full `app_id`. Consult the labwc-config(5) manual page for more details.
-  Issue #1309
+  [#1309]
 
 ## [0.7.0] - 2023-12-22
 
@@ -1072,15 +1071,15 @@ Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
 - Add theme options osd.workspace-switcher.boxes.{width,height}
   Written-by: @kyak
 - Add actions `VirtualOutputAdd` and `VirtualOutputRemove` to control virtual
-  outputs. Written-by: @kyak (#1287)
+  outputs. Written-by: @kyak [#1287]
 - Teach MoveToEdge to move windows to adjacent outputs.
   Written-by: @ahesford
-- Implement `<font place="InactiveWindow">`. Written-by: @ludg1e (#1292)
+- Implement `<font place="InactiveWindow">`. Written-by: @ludg1e [#1292]
 - Implement cursor-shape-v1 protocol to allow Wayland clients to request a
   buffer for a cursor shape from a compositor. Written-by: @heroin-moose
 - Implement fractional-scale-v1 protocol to allow Wayland clients to properly
   scale on outputs with fractional scale factor. Written-by: @heroin-moose
-- Add ResizeTo action (#1261)
+- Add ResizeTo action [#1261]
 - Allow going backwards in window-switcher OSD by using arrow-up or arrow-left.
   Written-by: @jp7677
 - Add `ToggleOmnipresent` action and add an "Always on Visible Workspace" entry
@@ -1096,17 +1095,17 @@ Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
 ### Fixed
 
 - Fix xwayland.c null pointer dereference causing crash with JetBrains CLion.
-  (#1352)
+  [#1352]
 - Fix issue with XWayland surfaces completely offscreen not generating commit
   events and therefore preventing them from moving onscreen.
 - Do not de-active windows when layer-shell client takes keyboard focus, to
-  fix sfwbar minimize action. (#1342)
+  fix sfwbar minimize action. [#1342]
 - Move layer-shell popups from the background layer to the top layer to render
   them above normal windows. Previously this was only done for the bottom
-  layer. In support of Raspberry Pi's `pcmanfm --desktop`. (#1293)
+  layer. In support of Raspberry Pi's `pcmanfm --desktop`. [#1293]
 - Calculate `usable_area` before positioning clients to ensure it is correct
   before non exclusive-zone layer-shell clients are positioned or resized.
-  (#1285)
+  [#1285]
 - Prevent overriding XWayland maximized/fullscreen/tiled geometry to fix an
   issue where some XWayland views (example: xfce4-terminal) do not end up with
   exactly the correct geometry when tiled.
@@ -1129,10 +1128,9 @@ relating to surface focus and keyboard issues, amongst others.
   on reserved-output-space changes (determined by *<margin>* settings or
   exclusive layer-shell clients) and to disallow interactive move or
   resize, for example by alt+press.
-- Add `Unfocus` action to enable unfocusing windows on desktop click.
-  Issue: #1230
+- Add `Unfocus` action to enable unfocusing windows on desktop click. [#1230]
 - Add config option `<keyboard layoutScope="window">` to use per-window
-  keyboard layout. Issue #1076
+  keyboard layout. [#1076]
 - Support separate horizontal and vertical maximize by adding a
   `direction` option to actions Maximize and ToggleMaximize.
 - Add actions GrowToEdge and ShrinkToEdge. Written-by: @digint
@@ -1140,7 +1138,7 @@ relating to surface focus and keyboard issues, amongst others.
 - Add MoveToCursor action. Written-by: @Arnaudv6
 - Add config option `<keyboard><numlock>` to enable Num Lock on startup.
 - Support Meta (M), Hyper (H), Mod1, Mod3, Mod4 and Mod5 modifiers in
-  keybind definitions. Fixes: #1061
+  keybind definitions. [#1061]
 - Add themerc 'titlebar.height' option. Written-by: @mozlima
 - Add If and ForEach actions. Written-by: @consus
 - Allow referencing the current workspace in actions, for example:
@@ -1155,14 +1153,14 @@ relating to surface focus and keyboard issues, amongst others.
 - Keep XWayland stacking order in sync when switching workspaces
 - Update top-layer visibility on workspace-switch in order to show
   top-layer layer-shell clients correctly when there is a window in
-  fullscreen mode on another workspace. Issues: #1040 #1158
+  fullscreen mode on another workspace. [#1040] [#1158]
 - Make interactive window snapping with mouse more intuitive in
   multi-output setups. Written-by: @tokyo4j
 - Try to handle missing `set_window_geometry` with Qt apps which
   occasionally fail to call `set_window_geometry` after a configure
-  request, but correctly update the actual surface extent. Issue: #1194
+  request, but correctly update the actual surface extent. [#1194]
 - Update XWayland stacking order when moving a window to the front/back.
-- Prevent switching workspaces for always-on-bottom windows. Fixes: #1170
+- Prevent switching workspaces for always-on-bottom windows. [#1170]
 - Fix invisible cursor after wlopm --off && wlopm --on.
 - When a session is locked using 'session-lock' protocol, reconfigure for
   output layout changes to avoid incorrect positioning
@@ -1178,8 +1176,7 @@ relating to surface focus and keyboard issues, amongst others.
     breaching the session lock.
   - Only focus topmost view on unmap if unmapped view was focused.
   - Fix `xwayland_surface->data` bug relating to unmanaged surfaces.
-  - Fix layer subsurface focus bug to make waybar's minimize-raise work.
-    Fixes: #1131
+  - Fix layer subsurface focus bug to make waybar's minimize-raise work. [#1131]
   - Ignore focus change to unmanaged surface belonging to same PID to fix
     an issue with menus immediately closing in some X11 apps.
   - Avoid focusing xwayland views that do not want focus using the ICCCM
@@ -1192,8 +1189,8 @@ relating to surface focus and keyboard issues, amongst others.
   - Refactor handling of pressed/bound keys to send (to client) the
     release events for any pressed key that was not part of a keybind,
     typically because an unrelated non-modifier key was pressed before
-    and held during a keybind invocation. Fixes #1091 #1245
-  - Fix keyboard release event bug after session lock. Fixes: #1114
+    and held during a keybind invocation. [#1091] [#1245]
+  - Fix keyboard release event bug after session lock. [#1114]
 - Raise xdg and xwayland sub-views correctly relative to other sub-views,
   by letting the relative stacking order between them change.
 - Honor initially maximized requests for XWayland views via
@@ -1208,16 +1205,15 @@ relating to surface focus and keyboard issues, amongst others.
 - Move floating windows in response to changes in reserved output space
   (determined by *<margin>* settings or exclusive layer-shell clients such
   as panels). Users with window-rules for panels and/or desktops should
-  add the `fixedPosition` property to avoid regression. Issue: #1235
-- Restore `SIGPIPE` default handler before exec. Fixes: #1209
+  add the `fixedPosition` property to avoid regression. [#1235]
+- Restore `SIGPIPE` default handler before exec. [#1209]
 - With the introduction of directional Maximize, right-click on the
   maximize button now toggles horizontal maximize, while middle-click
   toggles vertical maximize.
 - Make MoveToEdge snap to the next window edge by default rather than
   just the screen edge.
 - Comment out variables in `docs/environment` to avoid users using the
-  file without editing it and ending up with unwanted settings.
-  Fixes: #1011
+  file without editing it and ending up with unwanted settings. [#1011]
 - Set `_JAVA_AWT_WM_NONREPARENTING=1` unless already set.
 - This release has seen significant refactoring and minor improvements
   with respect to window and surface focus (particular thanks to
@@ -1243,56 +1239,53 @@ relating to surface focus and keyboard issues, amongst others.
   yes and no). Written-by: @redtide
 - keybinds
   - Allow non-english based keybinds
-  - Make keybind agnostic to keyboard layout. Fixes #1069
+  - Make keybind agnostic to keyboard layout. [#1069]
   - Add optional layoutDependent argument to only trigger if the
     configured key exists in the currently active keyboard layout.
     `<keybind key="" layoutDependent="">`
   - Fallback on raw keysyms (as if there were no pressed modifier) for
     bindings which do not match against translated keysyms. This allows
     users to define keybinds such as "S-1" rather than "S-exclam". It also
-    supports "W-S-Tab".  Fixes #163 #365 #992
+    supports "W-S-Tab".  [#163] [#365] [#992]
 - window-rules: add ignoreFocusRequest property
 - config: support libinput `<tapAndDrag>` and `<dragLock>`.
   Written-by: @tokyo4j
-- Handle keyboard input for menus. Fixes #1058
+- Handle keyboard input for menus. [#1058]
 - Server-side decoration:
   - Make corners square on maximize
-  - Disable border on maximize. Fixes #1044
+  - Disable border on maximize. [#1044]
 - Add window resize indicator and associated `<resize><popupShow>` config
   option
 - Add `<theme><keepBorder>` to give `ToggleDecoration` three states:
   (1) disable titlebar; (2) disable whole SSD; and (3) enables whole SSD
   When the keepBorder action is disabled, the old two-state behavior is
-  restored. Fixes #813
+  restored. [#813]
 - Minimize whole window hierarchy from top to bottom regardless of which
   window requested the minimize. For example, if an 'About' or 'Open File'
   dialog is minimized, its toplevel is minimized also, and vice versa.
 - Move window's stacking order with dialogs so that other window cannot be
   positioned between them. Also position xdg popups above their parent
-  windows.This is consistent with Gtk3 and Qt5. Fixes #823
+  windows.This is consistent with Gtk3 and Qt5. [#823]
 
 ### Fixed
 
 - Clarify in labwc-config(5) that keyboard modifiers can be used for
-  mousebinds. Fixes #1075
-- Ensure interactive move/resize ends correctly for CSD clients. Fixes #1053
+  mousebinds. [#1075]
+- Ensure interactive move/resize ends correctly for CSD clients. [#1053]
 - Fix invalid value in `<accelProfile>` falling back as "flat"
 - Fix touch bug to avoid jumping when a touch point moves off of a surface
   Written-by: @bi4k8
-- Prevent crash with theme setting `osd.window-switcher.width: 0`.
-  Fixes #1050
+- Prevent crash with theme setting `osd.window-switcher.width: 0`. [#1050]
 - Cancel cursor popup grab on mouse-press outside client itself, for
-  example on any part of the server side decoration or the desktop.
-  Fixes #949
-- Prevent cursor press on layer-subsurface from cancelling popup grab
-  Fixes #1030
+  example on any part of the server side decoration or the desktop. [#949]
+- Prevent cursor press on layer-subsurface from cancelling popup grab [#1030]
 - xwayland: fix client request-unmap bug relating to foreign-toplevel handle
 - xwayland: fix race condition resulting in map view without surface
 - Limit SSD corner radius to the height of the titlebar
 - Fix rounded-corner bug producing weird artifacts when very large border
-  thickness is used. Fixes #988
-- Ensure `string_prop()` handlers deal with destroying views. Fixes #1082
-- Fix SSD thickness calculation bug relating to titlebar. Fixes #1083
+  thickness is used. [#988]
+- Ensure `string_prop()` handlers deal with destroying views. [#1082]
+- Fix SSD thickness calculation bug relating to titlebar. [#1083]
 - common/buf.c:
   - Do not expand `$()` in `buf_expand_shell_variables()`
   - Do not use memcpy for overlapping regions
@@ -1318,7 +1311,7 @@ relating to surface focus and keyboard issues, amongst others.
 ### Added
 
 - Add support for `ext_idle_notify` protocol.
-- Window-switcher: #879 #969
+- Window-switcher: [#879] [#969]
   - Set item-height based on font-height
   - Add theme option:
     - osd.window-switcher.width
@@ -1334,20 +1327,20 @@ relating to surface focus and keyboard issues, amongst others.
   which do not support layer-shell protocol.
 - Add `number` attribute to `<desktops>` to simplify configuration.
   Written-by: @Sachin-Bhat
-- Window rules: #787 #933
+- Window rules: [#787] [#933]
   - Add properties: `skipTaskbar` and `skipWindowSwitcher`
   - Add criteria `title` and `matchOnce`
 
 ### Fixed
 
 - Support XML CDATA for `<menu><item><action><command>` in order to provide
-  backward compatibility with obmenu-generator #972
+  backward compatibility with obmenu-generator [#972]
 - Call `wlr_xwayland_surface_set_minimized()` on xwayland window (un)minimize
-  to fix blank surface after minimizing fullscreen Steam windows. #958
+  to fix blank surface after minimizing fullscreen Steam windows. [#958]
 - Fix focus at the end of drag-and-drop operation respecting
-  `<focus><followMouse>` if enabled. #939 #976
+  `<focus><followMouse>` if enabled. [#939] [#976]
 - Render xdg-popups above always-on-top layer.
-- Do not render On-Screen-Displays on disabled outputs. #914
+- Do not render On-Screen-Displays on disabled outputs. [#914]
 
 ### Changed
 
@@ -1359,7 +1352,7 @@ relating to surface focus and keyboard issues, amongst others.
 ### Added
 
 - Add `focus.followMouseRequiresMovement` to allow a stricter
-  focus-what-is-under-the-cursor configuration. #862
+  focus-what-is-under-the-cursor configuration. [#862]
 
 - Support window-rules including properties and on-first-map actions.
   Any actions in labwc-actions(5) can be used. Only 'serverDecoration'
@@ -1375,7 +1368,7 @@ relating to surface focus and keyboard issues, amongst others.
 ```
 
 - Support configuration of window switcher field definitions.
-  Issues #852 #855 #879
+  Issues [#852] [#855] [#879]
 
 ```xml
 <windowSwitcher show="yes" preview="yes" outlines="yes">
@@ -1392,33 +1385,32 @@ relating to surface focus and keyboard issues, amongst others.
   - 'Maximize'
 - Support ext-session-lock protocol. Helped-by: @heroin-moose
 - Handle XWayland unmanaged surface requests for 'activate' and
-  'override-redirect'. Fixes: #874
-- Add config support for scroll-factor. Fixes #846
-- Support 'follow' attribute for SendToDesktop action. Fixes #841
+  'override-redirect'. [#874]
+- Add config support for scroll-factor. [#846]
+- Support 'follow' attribute for SendToDesktop action. [#841]
 
 ### Fixed
 
-- Fix adaptive sync configuration. Helped-by: @heroin-moose #642
+- Fix adaptive sync configuration. Helped-by: @heroin-moose [#642]
 - Ignore SIGPIPE to fix crash caused by Wayland clients requesting X11
   clipboard but closing the read-fd before/while the X11 clipboard is
-  being written to. Fixes #890
+  being written to. [#890]
 - Ellipsize on-screen-display text
 - Validate PID before activating XWayland unmanaged surfaces to check that
   the surface trying to grab focus is actually a child of the topmost
   mapped window.
 - Respect cursor constraint hints when cursor movement occurs after
-  unlocking the pointer. Written-by: @FuzzyQuills Fixes #872
+  unlocking the pointer. Written-by: @FuzzyQuills [#872]
 - Fix invisible cursor on startup and output loss/restore.
-  Reported-by: @Flrian Fixes #820
+  Reported-by: @Flrian [#820]
 - Fix decoration protocol implementation
   - Respect earlier decoration negotiation results via the
     xdg-decoration protocol. Previously setting `<decoration>` to
     `client` would cause applications which prefer server side
-    decorations to not have any decorations at all.
-    Fixes #297 #831
+    decorations to not have any decorations at all. [#297] [#831]
   - Handle results of kde-server-decoration negotiations
 - Fix `<focus><followMouse>` cursor glitches and issues with focus
-  switching via Alt-Tab. Issue #830 #849
+  switching via Alt-Tab. [#830] [#849]
 
 ### Changed
 
@@ -1442,7 +1434,7 @@ Unless otherwise stated all contributions are by the core-devs
 - Enable config option `<core><windowSwitcher preview="" />` by default.
 - Add ToggleKeybinds action to disable/enable all keybinds (other than
   ToggleKeybinds itself). This can be used to better control Virtual
-  Machines, VNC clients, nested compositors or similar. (#738 and #810)
+  Machines, VNC clients, nested compositors or similar. [#738] [#810]
 - Implement cursor constraints (Written-by: @Ph42oN) and lock confinement.
 - Support xdg-activation protocol to allow applications to activate
   themselves (e.g. raise to the top and get keyboard focus) if they
@@ -1464,8 +1456,8 @@ Unless otherwise stated all contributions are by the core-devs
 
 - Prevent cursor based region-snapping when starting a move with Alt-Left.
   If region-snapping is wanted in this situation, just press the modifier
-  again. (#761)
-- Prevent rare crash due to layering move/resize/menu operations. (#817)
+  again. [#761]
+- Prevent rare crash due to layering move/resize/menu operations. [#817]
 - Fully reset config default values on Reconfigure if not set in config
   file.
 - Fix visual glitch when resizing xfce4-terminal from left edge caused by
@@ -1502,11 +1494,11 @@ particular thanks going to @Consolatis, @jlindgren90, @bi4k8, @Flrian and
   or by using the SnapToRegion action. Written-by: @Consolatis
 - Add `<Kill>` action to send SIGTERM to a client process. Written-by: @bi4k8
 - Add config option `<core><reuseOutputMode>` to support flicker free boot
-  (issue #724). Written-by: @Consolatis
+  [#724]. Written-by: @Consolatis
 - Enable single-pixel-buffer-v1
 - Support theme setting override by reading `<config-dir>/themerc-override`
 - Scale down SSD button icons if necessary to allow using larger ones for high
-  and mixed DPI usecases. Issue #609. Written-by: @Consolatis
+  and mixed DPI usecases. [#609]. Written-by: @Consolatis
 - Handle client request for layer-change
 - Support setting color of client menu buttons. Written-by: @Flrian
 - Dynamically adjust menu width based on widest item. Written-by: @Consolatis
@@ -1526,7 +1518,7 @@ particular thanks going to @Consolatis, @jlindgren90, @bi4k8, @Flrian and
 - On un-fullscreen, restore SSD before applying previous geometry to avoid
   rendering offscreen in some instances. Written-by: @Consolatis
 - Allow snapping to the same edge. Thanks-to: @Consolatis and @Flrian
-- Send enter event when new layer surface appears under pointer. Issue #667
+- Send enter event when new layer surface appears under pointer. [#667]
 - Prevent re-focus for always-on-top views when switching workspaces.
   Written-by: @Consolatis
 - Make sure a default libinput category always exists to avoid devices not
@@ -1541,15 +1533,15 @@ particular thanks going to @Consolatis, @jlindgren90, @bi4k8, @Flrian and
 - Set inactive window button color correctly. Written-by: @ScarcelyThere
 - Fix positioning of initially-maximized XWayland views.
   Written-by: @jlindgren90
-- Check for modifiers when merging mousebinds. Issue #630.
+- Check for modifiers when merging mousebinds. [#630]
 - Handle layer-shell exclusive and on-demand keyboard-interactivity
-  correctly, and thus support xfce4-panel better. Issues #704 and #725.
+  correctly, and thus support xfce4-panel better. [#704] [#725]
 - Only overwrite wlroots's automatic layout when necessary.
 
 ### Changed
 
 - Filter out `wp_drm_lease_device` from Xwayland to avoid Electron apps such as
-  VS Code and Discord lagging over time. Issue #553. Written-by: @Joshua-Ashton
+  VS Code and Discord lagging over time. [#553] Written-by: @Joshua-Ashton
 - Do not switch output on SnapToEdge if view is maximized. Written-by: @Flrian
 
 ## [0.6.0] - 2022-11-17
@@ -1592,17 +1584,17 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 - Support font slant (itliacs) and weight (bold). Written-by: @jlindgren90
 - Support `<default />` mousebinds to load default mousebinds and provide
   a way to keep config files simpler whilst allowing user specific binds.
-  Issue #416. Written-by: @Consolatis
+  [#416]. Written-by: @Consolatis
 - Add config option `<core><cycleViewOutlines>` to enable/disable preview
   of outlines. Written-by: @Flrian
 - Render submenu arrows
 - Allow highest level menu definitions - typically used for root-menu and
   client-menu - to be defined without label attribute, for example like this:
-  `<openbox_menu><menu id="root-menu">...</menu></openbox>`. Issue #472
+  `<openbox_menu><menu id="root-menu">...</menu></openbox>`. [#472]
 - Allow xdg-desktop-portal-wlr to work out of the box by initializing dbus
   and systemd activation environment. This enables for example OBS Studio
   to work with no user configuration. If systemd or dbus is not available
-  the environment update will fail gracefully. PR #461
+  the environment update will fail gracefully. [#461]
   Written-by: @Joshua-Ashton and @Consolatis
 - Workspaces. Written-by: @Consolatis
 - presentation-time protocol
@@ -1619,18 +1611,18 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 - Adjust maximized and tiled windows according to `usable_area` taking
   into account exclusive layer-shell clients. Written-by: @Consolatis
 - Restore natural geometry when moving tiled/maximized window
-  Fixes #391. Written-by: @Consolatis
+  [#391] Written-by: @Consolatis
 - Improve action implementation to take a list of arguments in preparation
   for actions with multiple arguments. Written-by: @Consolatis
 
 ### Fixed
 
 - Remove unwanted gap when initially (on map) positioning windows larger
-  than output usable area (issue #403).
-- Prevent setting cursor icon on drag. Written-by: @Consolatis (issue #549)
+  than output usable area [#403]
+- Prevent setting cursor icon on drag. Written-by: @Consolatis [#549]
 - Fix bugs relating to sending matching pairs of press and release
   keycodes to clients when using keybinds. Also fix related key-repeat
-  bug. (Issue #510)
+  bug. [#510]
 - Fix `wlr_output_cursor` initialization bug on new output.
   Written-by: @jlindgren90
 - Show correct cursor for resize action triggered by keybind.
@@ -1639,10 +1631,10 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
   and firefox context menu. Written-by: @jlindgren90
 - Enable tap be default on non-touch devices (which some laptop trackpads
   apparently are)
-- Handle missing cursor theme (issue #246). Written-by: @Consolatis
+- Handle missing cursor theme [#246] Written-by: @Consolatis
 - Fix various surface synchronization, stacking, positioning and focus
   issues, including those related to both xwayland, scroll/drag events
-  and also #526 #483
+  and also [#526] [#483]
 - On first map, do not center xwayland views with explicitly specified
   position. Written-by: @jlindgren90
 - Give keyboard focus back to topmost mapped view when unmapping topmost
@@ -1650,11 +1642,11 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 - Fix mousebind ordering and replace earlier mousebinds by later ones
   Written-by: @Consolatis
 - Fix various bugs associated with destroying/disabling outputs, including
-  issue #497
+  [#497]
 - Hide Alt-Tab switcher when canceling via Escape. @jlindgren90
 - (Re)set seat when xwayland is ready (because wlroots reset the seat
   assigned to xwayland to NULL whenever Xwayland terminates).
-  Issues #166 #444. Written-by: @Consolatis. Helped-by: @droc12345
+  [#166] [#444] Written-by: @Consolatis. Helped-by: @droc12345
 - Increase File Descriptor (FD) limit to max because a compositor has to
   handle many: client connections, DMA-BUFs, `wl_data_device` pipes and so on.
   Fixes client freeze/crashes (swaywm/sway#6642). Written-by: @Joshua-Ashton
@@ -1664,9 +1656,9 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
   Written-by: @Consolatis
 - Dynamically adjust server-side-decoration invisible resize areas based
   on `usable_area` to ensure that cursor events are sent to clients such as
-  panels in preference to grabbing window edges. Fixes #265.
+  panels in preference to grabbing window edges. [#265]
   Written-by: @Consolatis
-- Always position submenus inside output extents. Fixes #276
+- Always position submenus inside output extents. [#276]
   Written-by: @Consolatis
 - Do not crash when changing TTY. Written-by: @bi4k8
 - Set wlroots.wrap to a specific commit rather than master because it
@@ -1682,7 +1674,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 - Check that double-clicks are on the same window. Written-by: yizixiao
 - Set xdg-shell window position before maximize on first map so that the
   unmaximized geometry is known when started in maximized mode.
-  Fixes issue #305. Reported-by: @01micko
+  [#305] Reported-by: @01micko
 - Support `<menu><item><action name="Execute"><execute>`
   `<execute>` is a deprecated name for `<command>`, but is supported for
   backward compatibility with old menu-generators.
@@ -1692,7 +1684,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 - Fix keybind insertion order to restore intended behavior of keybinds
   set by `<default />`. Written-by: @Consolatis
 - Ensure client-menu actions are always applied on window they belong to
-  This fixes #380. Written-by: @Consolatis
+  [#380]. Written-by: @Consolatis
 - Keep window margin in sync when toggling decorations.
   Written-by: @Consolatis
 - Fix handling of client-initiated configure requests.
@@ -1700,7 +1692,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 - Always react to new output configuration. Reported-by @heroin-moose and
   Written-by: @Consolatis
 - Fix bug in environment variable expansion by allowing underscores to be
-  part of the variable names. Issue #439
+  part of the variable names. [#439]
 - Fix parsing bug of adaptiveSync setting and test for support
 
 ### Changed
@@ -1736,11 +1728,10 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 - Handle xwayland `set_override_redirect` events to fix weird behaviour
   with gitk menus and rofi.
 - Re-focus parent surface on unmapping xwayland unmanaged surfaces
-  Fixes #352 relating to JetBrains and Intellij focus issues
+  [#352] relating to JetBrains and Intellij focus issues
   Written-by: Jelle De Loecker
 - Do not segfault on missing drag icon. Written-by: @Consolatis
-- Fix windows erratically sticking to edges during move/resize.
-  Fixes issues #331 and #309
+- Fix windows erratically sticking to edges during move/resize [#331] [#309]
 
 ## [0.5.2] - 2022-05-17
 
@@ -1761,20 +1752,20 @@ This is a minor bugfix release mostly to ease packaging.
 
 ### Fixed
 
-- Do not raise xwayland windows when deactivating (issue #270).
+- Do not raise xwayland windows when deactivating [#270]
   Written-by: @Consolatis
-- Restore drag mouse-bindings and proper double-click (issues #258 and
-  #259). Written-by: @Consolatis
+- Restore drag mouse-bindings and proper double-click [#258] [#259]
+  Written-by: @Consolatis
 - Implement cursor input for unmanaged xwayland surfaces outside their
   parent view. Without this menus extending outside the main application
   window do not receive mouse input. Written-by: @jlindgren90
 - Allow dragging scrollbar or selecting text even when moving cursor
-  outside of the window (issue #241). Written-by: @Consolatis
+  outside of the window [#241]. Written-by: @Consolatis
 - Fix positioning of xwayland views with multiple queued configure
   events. Written-by: @Consolatis
 - Force a pointer enter event on the surface below the cursor when
-  cycling views (issue #162). Written-by: @Consolatis
-- Fix qt application crash on touchpad scroll (issue #225).
+  cycling views [#162]. Written-by: @Consolatis
+- Fix qt application crash on touchpad scroll [#225]
   Written-by: @Consolatis
 
 ## [0.5.0] - 2022-02-18
@@ -1786,9 +1777,9 @@ work.
 
 ### Added
 
-- Render overlay layer popups to support sfwbar (issue #239)
+- Render overlay layer popups to support sfwbar [#239]
 - Support HiDPI on-screen-display images for outputs with different scales
-- Reload environment variables on SIGHUP (issue #227)
+- Reload environment variables on SIGHUP [#227]
 - Add client menu
 - Allow applications to start in fullscreen
 - Add config option `<core><cycleViewPreview>` to preview the contents
@@ -1957,18 +1948,211 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [0.2.0]: https://github.com/labwc/labwc/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/labwc/labwc/compare/081339e...0.1.0
 
+[#162]: https://github.com/labwc/labwc/pull/162
+[#163]: https://github.com/labwc/labwc/pull/163
+[#166]: https://github.com/labwc/labwc/pull/166
+[#225]: https://github.com/labwc/labwc/pull/225
+[#227]: https://github.com/labwc/labwc/pull/227
+[#239]: https://github.com/labwc/labwc/pull/239
+[#241]: https://github.com/labwc/labwc/pull/241
+[#246]: https://github.com/labwc/labwc/pull/246
+[#258]: https://github.com/labwc/labwc/pull/258
+[#259]: https://github.com/labwc/labwc/pull/259
+[#265]: https://github.com/labwc/labwc/pull/265
+[#270]: https://github.com/labwc/labwc/pull/270
+[#276]: https://github.com/labwc/labwc/pull/276
+[#297]: https://github.com/labwc/labwc/pull/297
+[#305]: https://github.com/labwc/labwc/pull/305
+[#309]: https://github.com/labwc/labwc/pull/309
+[#331]: https://github.com/labwc/labwc/pull/331
+[#352]: https://github.com/labwc/labwc/pull/352
+[#365]: https://github.com/labwc/labwc/pull/365
+[#380]: https://github.com/labwc/labwc/pull/380
+[#391]: https://github.com/labwc/labwc/pull/391
+[#403]: https://github.com/labwc/labwc/pull/403
+[#416]: https://github.com/labwc/labwc/pull/416
+[#439]: https://github.com/labwc/labwc/pull/439
+[#444]: https://github.com/labwc/labwc/pull/444
+[#461]: https://github.com/labwc/labwc/pull/461
+[#472]: https://github.com/labwc/labwc/pull/472
+[#483]: https://github.com/labwc/labwc/pull/483
+[#497]: https://github.com/labwc/labwc/pull/497
+[#510]: https://github.com/labwc/labwc/pull/510
+[#526]: https://github.com/labwc/labwc/pull/526
+[#549]: https://github.com/labwc/labwc/pull/549
+[#553]: https://github.com/labwc/labwc/pull/553
+[#609]: https://github.com/labwc/labwc/pull/609
+[#630]: https://github.com/labwc/labwc/pull/630
+[#642]: https://github.com/labwc/labwc/pull/642
+[#667]: https://github.com/labwc/labwc/pull/667
+[#694]: https://github.com/labwc/labwc/pull/694
+[#704]: https://github.com/labwc/labwc/pull/704
+[#724]: https://github.com/labwc/labwc/pull/724
+[#725]: https://github.com/labwc/labwc/pull/725
+[#738]: https://github.com/labwc/labwc/pull/738
+[#761]: https://github.com/labwc/labwc/pull/761
+[#787]: https://github.com/labwc/labwc/pull/787
+[#810]: https://github.com/labwc/labwc/pull/810
+[#813]: https://github.com/labwc/labwc/pull/813
+[#817]: https://github.com/labwc/labwc/pull/817
+[#820]: https://github.com/labwc/labwc/pull/820
+[#823]: https://github.com/labwc/labwc/pull/823
+[#830]: https://github.com/labwc/labwc/pull/830
+[#831]: https://github.com/labwc/labwc/pull/831
+[#841]: https://github.com/labwc/labwc/pull/841
+[#846]: https://github.com/labwc/labwc/pull/846
+[#849]: https://github.com/labwc/labwc/pull/849
+[#852]: https://github.com/labwc/labwc/pull/852
+[#855]: https://github.com/labwc/labwc/pull/855
+[#862]: https://github.com/labwc/labwc/pull/862
+[#872]: https://github.com/labwc/labwc/pull/872
+[#874]: https://github.com/labwc/labwc/pull/874
+[#879]: https://github.com/labwc/labwc/pull/879
+[#890]: https://github.com/labwc/labwc/pull/890
+[#914]: https://github.com/labwc/labwc/pull/914
+[#933]: https://github.com/labwc/labwc/pull/933
+[#939]: https://github.com/labwc/labwc/pull/939
+[#949]: https://github.com/labwc/labwc/pull/949
+[#958]: https://github.com/labwc/labwc/pull/958
+[#969]: https://github.com/labwc/labwc/pull/969
+[#972]: https://github.com/labwc/labwc/pull/972
+[#976]: https://github.com/labwc/labwc/pull/976
+[#988]: https://github.com/labwc/labwc/pull/988
+[#992]: https://github.com/labwc/labwc/pull/992
+[#1011]: https://github.com/labwc/labwc/pull/1011
+[#1030]: https://github.com/labwc/labwc/pull/1030
+[#1040]: https://github.com/labwc/labwc/pull/1040
+[#1044]: https://github.com/labwc/labwc/pull/1044
+[#1050]: https://github.com/labwc/labwc/pull/1050
+[#1053]: https://github.com/labwc/labwc/pull/1053
+[#1058]: https://github.com/labwc/labwc/pull/1058
+[#1061]: https://github.com/labwc/labwc/pull/1061
+[#1069]: https://github.com/labwc/labwc/pull/1069
+[#1075]: https://github.com/labwc/labwc/pull/1075
+[#1076]: https://github.com/labwc/labwc/pull/1076
+[#1082]: https://github.com/labwc/labwc/pull/1082
+[#1083]: https://github.com/labwc/labwc/pull/1083
+[#1091]: https://github.com/labwc/labwc/pull/1091
+[#1114]: https://github.com/labwc/labwc/pull/1114
+[#1131]: https://github.com/labwc/labwc/pull/1131
+[#1139]: https://github.com/labwc/labwc/pull/1139
+[#1158]: https://github.com/labwc/labwc/pull/1158
+[#1170]: https://github.com/labwc/labwc/pull/1170
+[#1194]: https://github.com/labwc/labwc/pull/1194
+[#1209]: https://github.com/labwc/labwc/pull/1209
+[#1230]: https://github.com/labwc/labwc/pull/1230
+[#1235]: https://github.com/labwc/labwc/pull/1235
+[#1245]: https://github.com/labwc/labwc/pull/1245
+[#1261]: https://github.com/labwc/labwc/pull/1261
 [#1278]: https://github.com/labwc/labwc/pull/1278
+[#1285]: https://github.com/labwc/labwc/pull/1285
+[#1287]: https://github.com/labwc/labwc/pull/1287
+[#1292]: https://github.com/labwc/labwc/pull/1292
+[#1293]: https://github.com/labwc/labwc/pull/1293
+[#1298]: https://github.com/labwc/labwc/pull/1298
+[#1309]: https://github.com/labwc/labwc/pull/1309
+[#1312]: https://github.com/labwc/labwc/pull/1312
+[#1341]: https://github.com/labwc/labwc/pull/1341
+[#1342]: https://github.com/labwc/labwc/pull/1342
+[#1352]: https://github.com/labwc/labwc/pull/1352
+[#1366]: https://github.com/labwc/labwc/pull/1366
+[#1367]: https://github.com/labwc/labwc/pull/1367
+[#1372]: https://github.com/labwc/labwc/pull/1372
+[#1393]: https://github.com/labwc/labwc/pull/1393
+[#1399]: https://github.com/labwc/labwc/pull/1399
+[#1406]: https://github.com/labwc/labwc/pull/1406
+[#1407]: https://github.com/labwc/labwc/pull/1407
+[#1424]: https://github.com/labwc/labwc/pull/1424
+[#1446]: https://github.com/labwc/labwc/pull/1446
+[#1458]: https://github.com/labwc/labwc/pull/1458
+[#1494]: https://github.com/labwc/labwc/pull/1494
 [#1503]: https://github.com/labwc/labwc/pull/1503
+[#1528]: https://github.com/labwc/labwc/pull/1528
+[#1529]: https://github.com/labwc/labwc/pull/1529
+[#1550]: https://github.com/labwc/labwc/pull/1550
+[#1582]: https://github.com/labwc/labwc/pull/1582
+[#1587]: https://github.com/labwc/labwc/pull/1587
+[#1588]: https://github.com/labwc/labwc/pull/1588
+[#1589]: https://github.com/labwc/labwc/pull/1589
+[#1594]: https://github.com/labwc/labwc/pull/1594
+[#1599]: https://github.com/labwc/labwc/pull/1599
+[#1618]: https://github.com/labwc/labwc/pull/1618
+[#1619]: https://github.com/labwc/labwc/pull/1619
+[#1623]: https://github.com/labwc/labwc/pull/1623
+[#1631]: https://github.com/labwc/labwc/pull/1631
+[#1633]: https://github.com/labwc/labwc/pull/1633
+[#1640]: https://github.com/labwc/labwc/pull/1640
+[#1652]: https://github.com/labwc/labwc/pull/1652
+[#1653]: https://github.com/labwc/labwc/pull/1653
+[#1657]: https://github.com/labwc/labwc/pull/1657
+[#1667]: https://github.com/labwc/labwc/pull/1667
+[#1670]: https://github.com/labwc/labwc/pull/1670
+[#1673]: https://github.com/labwc/labwc/pull/1673
+[#1678]: https://github.com/labwc/labwc/pull/1678
+[#1684]: https://github.com/labwc/labwc/pull/1684
+[#1702]: https://github.com/labwc/labwc/pull/1702
 [#1716]: https://github.com/labwc/labwc/pull/1716
+[#1731]: https://github.com/labwc/labwc/pull/1731
+[#1733]: https://github.com/labwc/labwc/pull/1733
+[#1739]: https://github.com/labwc/labwc/pull/1739
+[#1750]: https://github.com/labwc/labwc/pull/1750
+[#1753]: https://github.com/labwc/labwc/pull/1753
+[#1760]: https://github.com/labwc/labwc/pull/1760
+[#1762]: https://github.com/labwc/labwc/pull/1762
+[#1763]: https://github.com/labwc/labwc/pull/1763
+[#1768]: https://github.com/labwc/labwc/pull/1768
+[#1774]: https://github.com/labwc/labwc/pull/1774
+[#1780]: https://github.com/labwc/labwc/pull/1780
+[#1784]: https://github.com/labwc/labwc/pull/1784
+[#1789]: https://github.com/labwc/labwc/pull/1789
+[#1800]: https://github.com/labwc/labwc/pull/1800
+[#1811]: https://github.com/labwc/labwc/pull/1811
+[#1816]: https://github.com/labwc/labwc/pull/1816
+[#1817]: https://github.com/labwc/labwc/pull/1817
+[#1823]: https://github.com/labwc/labwc/pull/1823
+[#1831]: https://github.com/labwc/labwc/pull/1831
+[#1838]: https://github.com/labwc/labwc/pull/1838
+[#1853]: https://github.com/labwc/labwc/pull/1853
+[#1858]: https://github.com/labwc/labwc/pull/1858
+[#1861]: https://github.com/labwc/labwc/pull/1861
+[#1863]: https://github.com/labwc/labwc/pull/1863
+[#1872]: https://github.com/labwc/labwc/pull/1872
+[#1878]: https://github.com/labwc/labwc/pull/1878
+[#1882]: https://github.com/labwc/labwc/pull/1882
+[#1888]: https://github.com/labwc/labwc/pull/1888
 [#1890]: https://github.com/labwc/labwc/pull/1890
+[#1895]: https://github.com/labwc/labwc/pull/1895
+[#1907]: https://github.com/labwc/labwc/pull/1907
+[#1915]: https://github.com/labwc/labwc/pull/1915
+[#1919]: https://github.com/labwc/labwc/pull/1919
+[#1926]: https://github.com/labwc/labwc/pull/1926
+[#1927]: https://github.com/labwc/labwc/pull/1927
+[#1936]: https://github.com/labwc/labwc/pull/1936
+[#1938]: https://github.com/labwc/labwc/pull/1938
+[#1940]: https://github.com/labwc/labwc/pull/1940
 [#1941]: https://github.com/labwc/labwc/pull/1941
+[#1950]: https://github.com/labwc/labwc/pull/1950
+[#1952]: https://github.com/labwc/labwc/pull/1952
+[#1954]: https://github.com/labwc/labwc/pull/1954
+[#1956]: https://github.com/labwc/labwc/pull/1956
+[#1961]: https://github.com/labwc/labwc/pull/1961
 [#1962]: https://github.com/labwc/labwc/pull/1962
 [#1963]: https://github.com/labwc/labwc/pull/1963
 [#1965]: https://github.com/labwc/labwc/pull/1965
+[#1971]: https://github.com/labwc/labwc/pull/1971
+[#1988]: https://github.com/labwc/labwc/pull/1988
+[#1989]: https://github.com/labwc/labwc/pull/1989
+[#1996]: https://github.com/labwc/labwc/pull/1996
 [#1997]: https://github.com/labwc/labwc/pull/1997
+[#2003]: https://github.com/labwc/labwc/pull/2003
+[#2007]: https://github.com/labwc/labwc/pull/2007
 [#2009]: https://github.com/labwc/labwc/pull/2009
+[#2010]: https://github.com/labwc/labwc/pull/2010
 [#2016]: https://github.com/labwc/labwc/pull/2016
+[#2020]: https://github.com/labwc/labwc/pull/2020
+[#2021]: https://github.com/labwc/labwc/pull/2021
 [#2030]: https://github.com/labwc/labwc/pull/2030
+[#2040]: https://github.com/labwc/labwc/pull/2040
 [#2041]: https://github.com/labwc/labwc/pull/2041
 [#2052]: https://github.com/labwc/labwc/pull/2052
 [#2055]: https://github.com/labwc/labwc/pull/2055
@@ -2066,7 +2250,6 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2483]: https://github.com/labwc/labwc/pull/2483
 [#2486]: https://github.com/labwc/labwc/pull/2486
 [#2488]: https://github.com/labwc/labwc/pull/2488
-[#2492]: https://github.com/labwc/labwc/pull/2492
 [#2495]: https://github.com/labwc/labwc/pull/2495
 [#2498]: https://github.com/labwc/labwc/pull/2498
 [#2499]: https://github.com/labwc/labwc/pull/2499

@@ -1042,7 +1042,12 @@ actions_run(struct view *activator, struct server *server,
 			}
 			break;
 		case ACTION_TYPE_FOCUS:
-			if (view) {
+			if (view && server->input_mode
+					!= LAB_INPUT_STATE_WINDOW_SWITCHER) {
+				/*
+				 * TODO: check against server->input_mode
+				 * inside desktop_focus_view()
+				 */
 				desktop_focus_view(view, /*raise*/ false);
 			}
 			break;

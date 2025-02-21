@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2025-02-21 | [0.8.3]       | 0.18.2          | 27671         |
 | 2024-12-13 | [0.8.2]       | 0.18.2          | 26298         |
 | 2024-10-25 | [0.8.1]       | 0.18.1          | 25473         |
 | 2024-08-16 | [0.8.0]       | 0.18.0          | 23320         |
@@ -33,7 +34,7 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## [unreleased]
+## [0.8.3]
 
 The eye-catching new features of this release are undoubtedly:
 1. Support for the `ext-workspace` protocol with big thanks to @Consolatis
@@ -1923,7 +1924,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.8.2...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.8.3...HEAD
+[0.8.3]: https://github.com/labwc/labwc/compare/0.8.2...0.8.3
 [0.8.2]: https://github.com/labwc/labwc/compare/0.8.1...0.8.2
 [0.8.1]: https://github.com/labwc/labwc/compare/0.8.0...0.8.1
 [0.8.0]: https://github.com/labwc/labwc/compare/0.7.3...0.8.0

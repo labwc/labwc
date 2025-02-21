@@ -48,7 +48,7 @@ matured nicely against the wlroots 0.18 series.
 
 Notes to package maintainers:
 - This version introduces the ext-workspace protocol which breaks xfce4-panel
-  4.20.0. Subsequent releases has a fix for this so make sure xfce4-panel is
+  4.20.0. There is a fix in subsequent releases so make sure xfce4-panel is
   shipped at >= 4.20.1.
 
 ### Added

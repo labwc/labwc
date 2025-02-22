@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <assert.h>
+#include <wlr/render/swapchain.h>
 #include <wlr/types/wlr_output.h>
 #include "common/macros.h"
 #include "labwc.h"
@@ -24,21 +25,6 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 	struct wlr_box border_box, dst_box;
 	struct wlr_fbox src_box;
 	bool fullscreen = false;
-
-	/* TODO: This looks way too complicated to just get the used format */
-	struct wlr_drm_format wlr_drm_format = {0};
-	struct wlr_shm_attributes shm_attribs = {0};
-	struct wlr_dmabuf_attributes dma_attribs = {0};
-	if (wlr_buffer_get_dmabuf(output_buffer, &dma_attribs)) {
-		wlr_drm_format.format = dma_attribs.format;
-		wlr_drm_format.len = 1;
-		wlr_drm_format.modifiers = &dma_attribs.modifier;
-	} else if (wlr_buffer_get_shm(output_buffer, &shm_attribs)) {
-		wlr_drm_format.format = shm_attribs.format;
-	} else {
-		wlr_log(WLR_ERROR, "Failed to read buffer format");
-		return;
-	}
 
 	/* Fetch scale-adjusted cursor coordinates */
 	struct server *server = output->server;
@@ -105,7 +91,8 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 	}
 	if (!tmp_buffer) {
 		tmp_buffer = wlr_allocator_create_buffer(
-			server->allocator, width, height, &wlr_drm_format);
+			server->allocator, width, height,
+			&output->wlr_output->swapchain->format);
 	}
 	if (!tmp_buffer) {
 		wlr_log(WLR_ERROR, "Failed to allocate temporary magnifier buffer");

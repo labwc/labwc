@@ -173,6 +173,9 @@ osd_begin(struct server *server, enum lab_cycle_dir direction)
 	seat_focus_override_begin(&server->seat,
 		LAB_INPUT_STATE_WINDOW_SWITCHER, LAB_CURSOR_DEFAULT);
 	osd_update(server);
+
+	/* Update cursor, in case it is within the area covered by OSD */
+	cursor_update_focus(server);
 }
 
 void
@@ -425,9 +428,6 @@ display_osd(struct output *output, struct wl_array *views)
 		- h / 2 + output_box.y;
 	wlr_scene_node_set_position(&scene_buffer->node, lx, ly);
 	wlr_scene_node_set_enabled(&output->osd_tree->node, true);
-
-	/* Update cursor, in case it is within the area covered by OSD */
-	cursor_update_focus(server);
 }
 
 void

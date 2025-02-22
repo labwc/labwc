@@ -114,8 +114,8 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 	}
 
 	struct wlr_box additional_damage = {0};
-	if (state->buffer && is_magnify_on()) {
-		magnify(output, state->buffer, &additional_damage);
+	if (state->buffer && magnifier_is_enabled()) {
+		magnifier_draw(output, state->buffer, &additional_damage);
 	}
 
 	bool committed = wlr_output_commit_state(wlr_output, state);

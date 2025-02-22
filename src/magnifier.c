@@ -17,7 +17,7 @@ static struct wlr_texture *tmp_texture = NULL;
 #define CLAMP(in, lower, upper) MAX(MIN((in), (upper)), (lower))
 
 void
-magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
+magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
 {
 	int width, height;
 	double x, y;
@@ -258,7 +258,7 @@ enable_magnifier(struct server *server, bool enable)
 
 /* Toggles magnification on and off */
 void
-magnify_toggle(struct server *server)
+magnifier_toggle(struct server *server)
 {
 	enable_magnifier(server, !magnify_on);
 
@@ -270,7 +270,7 @@ magnify_toggle(struct server *server)
 
 /* Increases and decreases magnification scale */
 void
-magnify_set_scale(struct server *server, enum magnify_dir dir)
+magnifier_set_scale(struct server *server, enum magnify_dir dir)
 {
 	struct output *output = output_nearest_to_cursor(server);
 
@@ -296,7 +296,7 @@ magnify_set_scale(struct server *server, enum magnify_dir dir)
 
 /* Reset any buffers held by the magnifier */
 void
-magnify_reset(void)
+magnifier_reset(void)
 {
 	if (tmp_texture && tmp_buffer) {
 		wlr_texture_destroy(tmp_texture);
@@ -308,7 +308,7 @@ magnify_reset(void)
 
 /* Report whether magnification is enabled */
 bool
-is_magnify_on(void)
+magnifier_is_enabled(void)
 {
 	return magnify_on;
 }

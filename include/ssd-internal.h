@@ -83,8 +83,6 @@ struct ssd {
 			struct ssd_state_title_width active;
 			struct ssd_state_title_width inactive;
 		} title;
-
-		char *app_id;
 	} state;
 
 	/* An invisible area around the view which allows resizing */

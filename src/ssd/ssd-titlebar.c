@@ -343,9 +343,6 @@ ssd_titlebar_destroy(struct ssd *ssd)
 	if (ssd->state.title.text) {
 		zfree(ssd->state.title.text);
 	}
-	if (ssd->state.app_id) {
-		zfree(ssd->state.app_id);
-	}
 
 	wlr_scene_node_destroy(&ssd->titlebar.tree->node);
 	ssd->titlebar.tree = NULL;
@@ -575,16 +572,12 @@ ssd_update_window_icon(struct ssd *ssd)
 		return;
 	}
 
+	/*
+	 * When app id is not set, an empty string is stored here and the
+	 * fallback icon is always rendered.
+	 */
 	const char *app_id = view_get_string_prop(ssd->view, "app_id");
-	if (string_null_or_empty(app_id)) {
-		return;
-	}
-	if (ssd->state.app_id && !strcmp(ssd->state.app_id, app_id)) {
-		return;
-	}
-
-	free(ssd->state.app_id);
-	ssd->state.app_id = xstrdup(app_id);
+	assert(app_id);
 
 	struct ssd_sub_tree *subtree;
 	FOR_EACH_STATE(ssd, subtree) {

@@ -169,7 +169,7 @@ tablet_get_coords(struct drawing_tablet *tablet, double *x, double *y, double *d
 	/* find the surface and return it if it accepts tablet events */
 	struct wlr_surface *surface = lab_wlr_surface_from_node(node);
 
-	if (surface && !wlr_surface_accepts_tablet_v2(tablet->tablet_v2, surface)) {
+	if (surface && !wlr_surface_accepts_tablet_v2(surface, tablet->tablet_v2)) {
 		return NULL;
 	}
 	return surface;

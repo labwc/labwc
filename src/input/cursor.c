@@ -599,9 +599,7 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 		dnd_icons_move(seat, seat->cursor->x, seat->cursor->y);
 	}
 
-	if ((ctx.view || ctx.surface) && rc.focus_follow_mouse
-			&& server->input_mode
-				!= LAB_INPUT_STATE_WINDOW_SWITCHER) {
+	if ((ctx.view || ctx.surface) && rc.focus_follow_mouse) {
 		desktop_focus_view_or_surface(seat, ctx.view, ctx.surface,
 			rc.raise_on_focus);
 	}
@@ -641,15 +639,10 @@ _cursor_update_focus(struct server *server)
 	struct cursor_context ctx = get_cursor_context(server);
 
 	if ((ctx.view || ctx.surface) && rc.focus_follow_mouse
-			&& !rc.focus_follow_mouse_requires_movement
-			&& server->input_mode
-				!= LAB_INPUT_STATE_WINDOW_SWITCHER) {
+			&& !rc.focus_follow_mouse_requires_movement) {
 		/*
 		 * Always focus the surface below the cursor when
 		 * followMouse=yes and followMouseRequiresMovement=no.
-		 *
-		 * We should ignore them while window-switching though, because
-		 * calling desktop_focus_view() un-minimizes previewed window.
 		 */
 		desktop_focus_view_or_surface(&server->seat, ctx.view,
 			ctx.surface, rc.raise_on_focus);

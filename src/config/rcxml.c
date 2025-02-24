@@ -1267,8 +1267,10 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		rc.mag_height = atoi(content);
 	} else if (!strcasecmp(nodename, "initScale.magnifier")) {
 		set_float(content, &rc.mag_scale);
+		rc.mag_scale = MAX(1.0, rc.mag_scale);
 	} else if (!strcasecmp(nodename, "increment.magnifier")) {
 		set_float(content, &rc.mag_increment);
+		rc.mag_increment = MAX(0, rc.mag_increment);
 	} else if (!strcasecmp(nodename, "useFilter.magnifier")) {
 		set_bool(content, &rc.mag_filter);
 	}
@@ -1774,10 +1776,6 @@ post_processing(void)
 	if (!wl_list_length(&rc.window_switcher.fields)) {
 		wlr_log(WLR_INFO, "load default window switcher fields");
 		load_default_window_switcher_fields();
-	}
-
-	if (rc.mag_scale <= 0.0) {
-		rc.mag_scale = 1.0;
 	}
 }
 

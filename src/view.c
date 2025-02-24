@@ -803,6 +803,12 @@ void
 view_minimize(struct view *view, bool minimized)
 {
 	assert(view);
+
+	if (view->server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
+		wlr_log(WLR_ERROR, "not minimizing window while window switching");
+		return;
+	}
+
 	/*
 	 * Minimize the root window first because some xwayland clients send a
 	 * request-unmap to sub-windows at this point (for example gimp and its

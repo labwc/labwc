@@ -29,12 +29,6 @@ foreign_request_fullscreen(struct foreign_toplevel *toplevel, bool fullscreen)
 void
 foreign_request_activate(struct foreign_toplevel *toplevel)
 {
-	if (toplevel->view->server->input_mode
-			== LAB_INPUT_STATE_WINDOW_SWITCHER) {
-		wlr_log(WLR_INFO, "Preventing focus request while in window switcher");
-		return;
-	}
-
 	desktop_focus_view(toplevel->view, /*raise*/ true);
 }
 

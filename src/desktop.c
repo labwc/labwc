@@ -51,6 +51,11 @@ desktop_focus_view(struct view *view, bool raise)
 		return;
 	}
 
+	if (view->server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
+		wlr_log(WLR_DEBUG, "not focusing window while window switching");
+		return;
+	}
+
 	if (view->minimized) {
 		/*
 		 * Unminimizing will map the view which triggers a call to this

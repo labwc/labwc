@@ -402,11 +402,6 @@ handle_request_activate(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (view->server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-		wlr_log(WLR_INFO, "Preventing focus request while in window switcher");
-		return;
-	}
-
 	desktop_focus_view(view, /*raise*/ true);
 }
 

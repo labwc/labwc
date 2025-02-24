@@ -752,12 +752,26 @@ server_finish(struct server *server)
 		wl_event_source_remove(sighup_source);
 	}
 	wl_display_destroy_clients(server->wl_display);
+
+	seat_finish(server);
+	output_finish(server);
+	xdg_shell_finish(server);
+	layers_finish(server);
+	kde_server_decoration_finish(server);
+	xdg_server_decoration_finish(server);
+	wl_list_remove(&server->new_constraint.link);
+	wl_list_remove(&server->output_power_manager_set_mode.link);
+	wl_list_remove(&server->tearing_new_object.link);
+
 	wlr_backend_destroy(server->backend);
 	wlr_allocator_destroy(server->allocator);
+
+	wl_list_remove(&server->renderer_lost.link);
 	wlr_renderer_destroy(server->renderer);
-	seat_finish(server);
+
 	workspaces_destroy(server);
 	wlr_scene_node_destroy(&server->scene->tree.node);
+
 	wl_display_destroy(server->wl_display);
 	free(server->ssd_hover_state);
 }

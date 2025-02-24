@@ -600,3 +600,9 @@ layers_init(struct server *server)
 	wl_signal_add(&server->layer_shell->events.new_surface,
 		&server->new_layer_surface);
 }
+
+void
+layers_finish(struct server *server)
+{
+	wl_list_remove(&server->new_layer_surface.link);
+}

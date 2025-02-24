@@ -572,6 +572,15 @@ output_init(struct server *server)
 	output_manager_init(server);
 }
 
+static void output_manager_finish(struct server *server);
+
+void
+output_finish(struct server *server)
+{
+	wl_list_remove(&server->new_output.link);
+	output_manager_finish(server);
+}
+
 static void
 output_update_for_layout_change(struct server *server)
 {
@@ -888,6 +897,15 @@ output_manager_init(struct server *server)
 	server->gamma_control_set_gamma.notify = handle_gamma_control_set_gamma;
 	wl_signal_add(&server->gamma_control_manager_v1->events.set_gamma,
 		&server->gamma_control_set_gamma);
+}
+
+static void
+output_manager_finish(struct server *server)
+{
+	wl_list_remove(&server->output_layout_change.link);
+	wl_list_remove(&server->output_manager_apply.link);
+	wl_list_remove(&server->output_manager_test.link);
+	wl_list_remove(&server->gamma_control_set_gamma.link);
 }
 
 struct output *

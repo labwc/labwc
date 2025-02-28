@@ -1025,7 +1025,24 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		return;
 	}
 
-	/* handle the rest */
+	if (!strcasecmp(nodename, "prefix.desktops")) {
+		xstrdup_replace(rc.workspace_config.prefix, content ? content : "");
+		return;
+	}
+
+	/*
+	 * Nodenames where we want to honour !content have to be parsed above
+	 * this point. An example of this is:
+	 *
+	 *     <desktops>
+	 *       <prefix></prefix>
+	 *     </desktops>
+	 *
+	 * In the case of the <prefix> element having content, the node will be
+	 * processed twice; first for the element itself (with no content) and
+	 * then the content itself. In this situation xstrdup_replace() is
+	 * called twice, but the end result is the right one.
+	 */
 	if (!content) {
 		return;
 	}
@@ -1209,8 +1226,6 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		rc.workspace_config.popuptime = atoi(content);
 	} else if (!strcasecmp(nodename, "number.desktops")) {
 		rc.workspace_config.min_nr_workspaces = MAX(1, atoi(content));
-	} else if (!strcasecmp(nodename, "prefix.desktops")) {
-		xstrdup_replace(rc.workspace_config.prefix, content);
 	} else if (!strcasecmp(nodename, "popupShow.resize")) {
 		if (!strcasecmp(content, "Always")) {
 			rc.resize_indicator = LAB_RESIZE_INDICATOR_ALWAYS;
@@ -1760,13 +1775,20 @@ post_processing(void)
 		if (!rc.workspace_config.prefix) {
 			rc.workspace_config.prefix = xstrdup(_("Workspace"));
 		}
+
+		struct buf b = BUF_INIT;
 		struct workspace *workspace;
 		for (int i = nr_workspaces; i < rc.workspace_config.min_nr_workspaces; i++) {
 			workspace = znew(*workspace);
-			workspace->name = strdup_printf("%s %d",
-				rc.workspace_config.prefix, i + 1);
+			if (!string_null_or_empty(rc.workspace_config.prefix)) {
+				buf_add_fmt(&b, "%s ", rc.workspace_config.prefix);
+			}
+			buf_add_fmt(&b, "%d", i + 1);
+			workspace->name = xstrdup(b.data);
 			wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
+			buf_clear(&b);
 		}
+		buf_reset(&b);
 	}
 	if (rc.workspace_config.popuptime == INT_MIN) {
 		rc.workspace_config.popuptime = 1000;

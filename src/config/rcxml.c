@@ -1025,6 +1025,27 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		return;
 	}
 
+	if (!strcasecmp(nodename, "prefix.desktops")) {
+		/*
+		 * We parse the construct below here so that an empty prefix is
+		 * honoured.
+		 *
+		 *     <desktops>
+		 *       <prefix></prefix>
+		 *     </desktops>
+		 *
+		 * In the case of the prefix element having some content two
+		 * nodes will be processed here, one for the element itself and
+		 * one for the content.
+		 */
+		if (!content) {
+			zfree(rc.workspace_config.prefix);
+		} else {
+			xstrdup_replace(rc.workspace_config.prefix, content);
+		}
+		return;
+	}
+
 	/* handle the rest */
 	if (!content) {
 		return;
@@ -1210,7 +1231,11 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 	} else if (!strcasecmp(nodename, "number.desktops")) {
 		rc.workspace_config.min_nr_workspaces = MAX(1, atoi(content));
 	} else if (!strcasecmp(nodename, "prefix.desktops")) {
-		xstrdup_replace(rc.workspace_config.prefix, content);
+		/*
+		 * This nodename is handled higher up in this function to allow
+		 * NULL content nodes resulting from element definitions:
+		 * <prefix></prefix> and <prefix/>
+		 */
 	} else if (!strcasecmp(nodename, "popupShow.resize")) {
 		if (!strcasecmp(content, "Always")) {
 			rc.resize_indicator = LAB_RESIZE_INDICATOR_ALWAYS;
@@ -1757,14 +1782,15 @@ post_processing(void)
 
 	int nr_workspaces = wl_list_length(&rc.workspace_config.workspaces);
 	if (nr_workspaces < rc.workspace_config.min_nr_workspaces) {
-		if (!rc.workspace_config.prefix) {
-			rc.workspace_config.prefix = xstrdup(_("Workspace"));
-		}
 		struct workspace *workspace;
 		for (int i = nr_workspaces; i < rc.workspace_config.min_nr_workspaces; i++) {
 			workspace = znew(*workspace);
-			workspace->name = strdup_printf("%s %d",
-				rc.workspace_config.prefix, i + 1);
+			if (rc.workspace_config.prefix) {
+				workspace->name = strdup_printf("%s %d",
+					rc.workspace_config.prefix, i + 1);
+			} else {
+				workspace->name = strdup_printf("%d", i + 1);
+			}
 			wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
 		}
 	}

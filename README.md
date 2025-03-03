@@ -120,11 +120,13 @@ High-level summary of items that Labwc supports:
 
 | video link                | date        | duration
 | ------------------------- | ------------| -------
+| [0.8.3-release-video]     | 03-Mar-2025 | 2:35
 | [0.7.2-release-video]     | 24-May-2024 | 3:17
 | [0.6.0-release-video]     | 31-Oct-2022 | 2:48
 | [0.3.0-release-video]     | 05-Aug-2021 | 1:10
 | [pre-0.1.0-release-video] | 25-Feb-2021 | 3:42
 
+[0.8.3-release-video]: https://youtu.be/HGzqci_THwA
 [0.7.2-release-video]: https://youtu.be/gNIj6VU-IH8
 [0.6.0-release-video]: https://youtu.be/guBnx18EQiA
 [0.3.0-release-video]: https://youtu.be/AU_M3n_FS-E

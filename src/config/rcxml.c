@@ -1486,7 +1486,7 @@ rcxml_init(void)
 	rc.unsnap_threshold = 20;
 	rc.unmaximize_threshold = 150;
 
-	rc.snap_edge_range = 1;
+	rc.snap_edge_range = 10;
 	rc.snap_overlay_enabled = true;
 	rc.snap_overlay_delay_inner = 500;
 	rc.snap_overlay_delay_outer = 500;

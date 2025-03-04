@@ -409,7 +409,7 @@ extending outward from the snapped edge.
 	If an interactive move ends with the cursor a maximum distance *range*,
 	(in pixels) from the edge of an output, the move will trigger a
 	SnapToEdge action for that edge. A *range* of 0 disables snapping via
-	interactive moves. Default is 1.
+	interactive moves. Default is 10.
 
 *<snapping><overlay><enabled>* [yes|no]
 	Show an overlay when snapping to a window to an edge. Default is yes.

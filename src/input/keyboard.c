@@ -450,6 +450,9 @@ handle_menu_keys(struct server *server, struct keysyms *syms)
 		case XKB_KEY_Return:
 			menu_call_selected_actions(server);
 			break;
+		case XKB_KEY_KP_Enter:
+			menu_call_selected_actions(server);
+			break;
 		case XKB_KEY_Escape:
 			menu_close_root(server);
 			cursor_update_focus(server);

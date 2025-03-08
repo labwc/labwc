@@ -440,6 +440,11 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			action_arg_add_bool(action, argument, parse_bool(content, true));
 			goto cleanup;
 		}
+		if (!strcmp(argument, "toggle")) {
+			action_arg_add_bool(
+				action, argument, parse_bool(content, false));
+			goto cleanup;
+		}
 		break;
 	case ACTION_TYPE_TOGGLE_SNAP_TO_REGION:
 	case ACTION_TYPE_SNAP_TO_REGION:
@@ -1228,6 +1233,13 @@ run_action(struct view *view, struct server *server, struct action *action,
 		 */
 		struct workspace *target_workspace = workspaces_find(
 			server->workspaces.current, to, wrap);
+		if (action->type == ACTION_TYPE_GO_TO_DESKTOP) {
+			bool toggle = action_get_bool(action, "toggle", false);
+			if (target_workspace == server->workspaces.current
+				&& toggle) {
+				target_workspace = server->workspaces.last;
+			}
+		}
 		if (!target_workspace) {
 			break;
 		}

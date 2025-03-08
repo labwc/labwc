@@ -278,7 +278,7 @@ Actions are used in menus and keyboard/mouse bindings.
 	Resizes active window size to width and height of the output when the
 	window size exceeds the output size.
 
-*<action name="GoToDesktop" to="value" wrap="yes" />*
+*<action name="GoToDesktop" to="value" wrap="yes" toggle="no" />*
 	Switch to workspace.
 
 	*to* The workspace to switch to. Supported values are "current", "last",
@@ -287,6 +287,9 @@ Actions are used in menus and keyboard/mouse bindings.
 
 	*wrap* [yes|no] Wrap around from last desktop to first, and vice
 	versa. Default yes.
+
+	*toggle* [yes|no] Toggle to “last” if already on the workspace that
+	would be the actual destination. Default no.
 
 *<action name="SendToDesktop" to="value" follow="yes" wrap="yes" />*
 	Send active window to workspace.

@@ -941,12 +941,6 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 
 	static uint32_t button_map_from;
 
-	if (!nodename) {
-		return;
-	}
-	string_truncate_at_pattern(nodename, ".openbox_config");
-	string_truncate_at_pattern(nodename, ".labwc_config");
-
 	if (getenv("LABWC_DEBUG_CONFIG_NODENAMES")) {
 		printf("%s: %s\n", nodename, content);
 	}
@@ -1282,10 +1276,24 @@ process_node(xmlNode *node, struct parser_state *state)
 	char *name;
 
 	content = (char *)node->content;
-	if (xmlIsBlankNode(node)) {
+	name = nodename(node, buffer, sizeof(buffer));
+	if (!name) {
 		return;
 	}
-	name = nodename(node, buffer, sizeof(buffer));
+
+	string_truncate_at_pattern(name, ".openbox_config");
+	string_truncate_at_pattern(name, ".labwc_config");
+
+	if (xmlIsBlankNode(node)) {
+		/* Allow empty <desktop><prefix> */
+		if (!strcasecmp(name, "prefix.desktops")
+				&& string_null_or_empty(content)) {
+			content = "";
+		} else {
+			return;
+		}
+	}
+
 	entry(node, name, content, state);
 }
 
@@ -1765,6 +1773,7 @@ post_processing(void)
 			workspace = znew(*workspace);
 			workspace->name = strdup_printf("%s %d",
 				rc.workspace_config.prefix, i + 1);
+			string_strip(workspace->name);
 			wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
 		}
 	}

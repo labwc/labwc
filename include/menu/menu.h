@@ -20,8 +20,6 @@ enum menuitem_type {
 
 struct menuitem {
 	struct wl_list actions;
-	char *execute;
-	char *id; /* needed for pipemenus */
 	char *text;
 	char *icon_name;
 	const char *arrow;
@@ -43,6 +41,7 @@ struct menu {
 	char *id;
 	char *label;
 	char *icon_name;
+	char *execute;
 	struct menu *parent;
 	struct menu_pipe_context *pipe_ctx;
 
@@ -57,7 +56,7 @@ struct menu {
 		struct menuitem *item;
 	} selection;
 	struct wlr_scene_tree *scene_tree;
-	bool is_pipemenu;
+	bool is_pipemenu_child;
 	bool align_left;
 	bool has_icons;
 
@@ -126,8 +125,5 @@ void menu_close_root(struct server *server);
 
 /* menu_reconfigure - reload theme and content */
 void menu_reconfigure(struct server *server);
-
-void update_client_list_combined_menu(struct server *server);
-void update_client_send_to_menu(struct server *server);
 
 #endif /* LABWC_MENU_H */

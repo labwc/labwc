@@ -1797,11 +1797,11 @@ void
 menu_close_root(struct server *server)
 {
 	assert(server->input_mode == LAB_INPUT_STATE_MENU);
-	if (server->menu_current) {
-		menu_close(server->menu_current);
-		server->menu_current = NULL;
-		destroy_pipemenus(server);
-	}
+	assert(server->menu_current);
+
+	menu_close(server->menu_current);
+	server->menu_current = NULL;
+	destroy_pipemenus(server);
 	seat_focus_override_end(&server->seat);
 }
 

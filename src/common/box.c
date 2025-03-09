@@ -73,3 +73,14 @@ box_fit_within(int width, int height, struct wlr_box *bound)
 
 	return box;
 }
+
+struct wlr_fbox
+box_to_fbox(struct wlr_box *box)
+{
+	return (struct wlr_fbox){
+		.x = box->x,
+		.y = box->y,
+		.width = box->width,
+		.height = box->height,
+	};
+}

@@ -748,18 +748,7 @@ handle_menu_element(xmlNode *n, struct server *server)
 		/*
 		 * <menu id=""> (when inside another <menu> element) creates an
 		 * entry which points to a menu defined elsewhere.
-		 *
-		 * This is only supported in static menus. Pipemenus need to use
-		 * nested (inline) menu definitions, otherwise we could have a
-		 * pipemenu opening the "root-menu" or similar.
 		 */
-
-		if (current_menu && current_menu->is_pipemenu) {
-			wlr_log(WLR_ERROR,
-				"cannot link to static menu from pipemenu");
-			goto error;
-		}
-
 		struct menu *menu = menu_get_by_id(server, id);
 
 		struct menu *iter = current_menu;

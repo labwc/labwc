@@ -1251,31 +1251,13 @@ menu_free(struct menu *menu)
 	zfree(menu);
 }
 
-/**
- * menu_free_from - free menu list starting from current point
- * @from: point to free from (if NULL, all menus are freed)
- */
-static void
-menu_free_from(struct server *server, struct menu *from)
-{
-	bool destroying = !from;
-	struct menu *menu, *tmp_menu;
-	wl_list_for_each_safe(menu, tmp_menu, &server->menus, link) {
-		if (menu == from) {
-			destroying = true;
-		}
-		if (!destroying) {
-			continue;
-		}
-
-		menu_free(menu);
-	}
-}
-
 void
 menu_finish(struct server *server)
 {
-	menu_free_from(server, NULL);
+	struct menu *menu, *tmp_menu;
+	wl_list_for_each_safe(menu, tmp_menu, &server->menus, link) {
+		menu_free(menu);
+	}
 
 	/* Reset state vars for starting fresh when Reload is triggered */
 	current_item = NULL;

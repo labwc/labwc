@@ -914,7 +914,7 @@ get_item_anchor_rect(struct theme *theme, struct menuitem *item)
 }
 
 static void
-menu_configure(struct menu *menu, struct wlr_box anchor_rect)
+menu_reposition(struct menu *menu, struct wlr_box anchor_rect)
 {
 	struct theme *theme = menu->server->theme;
 
@@ -969,7 +969,7 @@ menu_configure(struct menu *menu, struct wlr_box anchor_rect)
 			continue;
 		}
 		anchor_rect = get_item_anchor_rect(theme, item);
-		menu_configure(item->submenu, anchor_rect);
+		menu_reposition(item->submenu, anchor_rect);
 	}
 }
 
@@ -1369,7 +1369,7 @@ menu_open_root(struct menu *menu, int x, int y)
 
 	assert(!menu->server->menu_current);
 
-	menu_configure(menu, (struct wlr_box){.x = x, .y = y});
+	menu_reposition(menu, (struct wlr_box){.x = x, .y = y});
 	wlr_scene_node_set_enabled(&menu->scene_tree->node, true);
 	menu->server->menu_current = menu;
 	selected_item = NULL;
@@ -1450,7 +1450,7 @@ create_pipe_menu(struct menu_pipe_context *ctx)
 
 	struct wlr_box anchor_rect =
 		get_item_anchor_rect(ctx->server->theme, ctx->item);
-	menu_configure(pipe_menu, anchor_rect);
+	menu_reposition(pipe_menu, anchor_rect);
 
 	validate(ctx->server);
 

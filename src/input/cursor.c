@@ -462,10 +462,9 @@ process_cursor_motion_out_of_surface(struct server *server,
 		ly = view->current.y;
 		/* Take into account invisible xdg-shell CSD borders */
 		if (view->type == LAB_XDG_SHELL_VIEW) {
-			struct wlr_box geo;
-			wlr_xdg_surface_get_geometry(xdg_surface_from_view(view), &geo);
-			lx -= geo.x;
-			ly -= geo.y;
+			struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
+			lx -= xdg_surface->geometry.x;
+			ly -= xdg_surface->geometry.y;
 		}
 	} else if (node && wlr_layer_surface_v1_try_from_wlr_surface(surface)) {
 		wlr_scene_node_coords(node, &lx, &ly);
@@ -1520,6 +1519,7 @@ void cursor_finish(struct seat *seat)
 	wl_list_remove(&seat->request_cursor.link);
 	wl_list_remove(&seat->request_set_shape.link);
 	wl_list_remove(&seat->request_set_selection.link);
+	wl_list_remove(&seat->request_set_primary_selection.link);
 
 	wlr_xcursor_manager_destroy(seat->xcursor_manager);
 	wlr_cursor_destroy(seat->cursor);

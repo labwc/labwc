@@ -127,3 +127,9 @@ xdg_server_decoration_init(struct server *server)
 		&server->xdg_toplevel_decoration);
 	server->xdg_toplevel_decoration.notify = xdg_toplevel_decoration;
 }
+
+void
+xdg_server_decoration_finish(struct server *server)
+{
+	wl_list_remove(&server->xdg_toplevel_decoration.link);
+}

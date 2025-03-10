@@ -1062,7 +1062,6 @@ update_client_list_combined_menu(struct server *server)
 				buf_add(&buffer, title);
 
 				current_item = item_create(menu, buffer.data, /*show arrow*/ false);
-				current_item->id = xstrdup(menu->id);
 				current_item->client_list_view = view;
 				fill_item("name.action", "Focus");
 				fill_item("name.action", "Raise");
@@ -1070,7 +1069,6 @@ update_client_list_combined_menu(struct server *server)
 			}
 		}
 		current_item = item_create(menu, _("Go there..."), /*show arrow*/ false);
-		current_item->id = xstrdup(menu->id);
 		fill_item("name.action", "GoToDesktop");
 		fill_item("to.action", workspace->name);
 	}
@@ -1682,7 +1680,7 @@ menu_execute_item(struct menuitem *item)
 	 * menu_close() and destroy_pipemenus() which we have to handle
 	 * before/after action_run() respectively.
 	 */
-	if (item->id && !strcmp(item->id, "client-list-combined-menu")
+	if (!strcmp(item->parent->id, "client-list-combined-menu")
 			&& item->client_list_view) {
 		actions_run(item->client_list_view, server, &item->actions, NULL);
 	} else {

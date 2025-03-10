@@ -1085,8 +1085,6 @@ init_rootmenu(struct server *server)
 	if (!menu) {
 		current_menu = NULL;
 		menu = menu_create(server, "root-menu", "");
-	}
-	if (wl_list_empty(&menu->menuitems)) {
 		current_item = item_create(menu, _("Reconfigure"), false);
 		fill_item("name.action", "Reconfigure");
 		current_item = item_create(menu, _("Exit"), false);
@@ -1103,8 +1101,6 @@ init_windowmenu(struct server *server)
 	if (!menu) {
 		current_menu = NULL;
 		menu = menu_create(server, "client-menu", "");
-	}
-	if (wl_list_empty(&menu->menuitems)) {
 		current_item = item_create(menu, _("Minimize"), false);
 		fill_item("name.action", "Iconify");
 		current_item = item_create(menu, _("Maximize"), false);

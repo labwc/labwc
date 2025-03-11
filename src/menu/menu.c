@@ -185,10 +185,20 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	int label_max_width = bg_width - 2 * theme->menu_items_padding_x - arrow_width - icon_width;
 
 	/* Create icon */
-	if (item->icon_name) {
+	bool show_app_icon = !strcmp(item->parent->id, "client-list-combined-menu")
+				&& item->client_list_view;
+	if (item->icon_name || show_app_icon) {
 		struct scaled_icon_buffer *icon_buffer = scaled_icon_buffer_create(
 			tree, menu->server, icon_size, icon_size);
-		scaled_icon_buffer_set_icon_name(icon_buffer, item->icon_name);
+		if (item->icon_name) {
+			/* icon set via <menu icon="..."> */
+			scaled_icon_buffer_set_icon_name(icon_buffer, item->icon_name);
+		} else if (show_app_icon) {
+			/* app icon in client-list-combined-menu */
+			const char *app_id = view_get_string_prop(
+				item->client_list_view, "app_id");
+			scaled_icon_buffer_set_app_id(icon_buffer, app_id);
+		}
 		wlr_scene_node_set_position(&icon_buffer->scene_buffer->node,
 			theme->menu_items_padding_x, theme->menu_items_padding_y);
 	}
@@ -1033,6 +1043,7 @@ update_client_list_combined_menu(struct server *server)
 				fill_item("name.action", "Focus");
 				fill_item("name.action", "Raise");
 				buf_clear(&buffer);
+				menu->has_icons = true;
 			}
 		}
 		current_item = item_create(menu, _("Go there..."), /*show arrow*/ false);

@@ -1317,13 +1317,13 @@ actions_run(struct view *activator, struct server *server,
 			rc.tablet.force_mouse_emulation = !rc.tablet.force_mouse_emulation;
 			break;
 		case ACTION_TYPE_TOGGLE_MAGNIFY:
-			magnify_toggle(server);
+			magnifier_toggle(server);
 			break;
 		case ACTION_TYPE_ZOOM_IN:
-			magnify_set_scale(server, MAGNIFY_INCREASE);
+			magnifier_set_scale(server, MAGNIFY_INCREASE);
 			break;
 		case ACTION_TYPE_ZOOM_OUT:
-			magnify_set_scale(server, MAGNIFY_DECREASE);
+			magnifier_set_scale(server, MAGNIFY_DECREASE);
 			break;
 		case ACTION_TYPE_WARP_CURSOR:
 			{

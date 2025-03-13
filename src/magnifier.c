@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <assert.h>
+#include <wlr/render/swapchain.h>
 #include <wlr/types/wlr_output.h>
+#include "common/box.h"
 #include "common/macros.h"
 #include "labwc.h"
 #include "magnifier.h"
@@ -14,88 +16,51 @@ static double mag_scale = 0.0;
 static struct wlr_buffer *tmp_buffer = NULL;
 static struct wlr_texture *tmp_texture = NULL;
 
-#define CLAMP(in, lower, upper) MAX(MIN((in), (upper)), (lower))
-
 void
-magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
+magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
 {
-	int width, height;
-	double x, y;
-	struct wlr_box border_box, dst_box;
-	struct wlr_fbox src_box;
-	bool fullscreen = false;
-
-	/* TODO: This looks way too complicated to just get the used format */
-	struct wlr_drm_format wlr_drm_format = {0};
-	struct wlr_shm_attributes shm_attribs = {0};
-	struct wlr_dmabuf_attributes dma_attribs = {0};
-	if (wlr_buffer_get_dmabuf(output_buffer, &dma_attribs)) {
-		wlr_drm_format.format = dma_attribs.format;
-		wlr_drm_format.len = 1;
-		wlr_drm_format.modifiers = &dma_attribs.modifier;
-	} else if (wlr_buffer_get_shm(output_buffer, &shm_attribs)) {
-		wlr_drm_format.format = shm_attribs.format;
-	} else {
-		wlr_log(WLR_ERROR, "Failed to read buffer format");
-		return;
-	}
-
-	/* Fetch scale-adjusted cursor coordinates */
 	struct server *server = output->server;
 	struct theme *theme = server->theme;
-	struct wlr_cursor *cursor = server->seat.cursor;
-	double ox = cursor->x;
-	double oy = cursor->y;
-	wlr_output_layout_output_coords(server->output_layout, output->wlr_output, &ox, &oy);
-	ox *= output->wlr_output->scale;
-	oy *= output->wlr_output->scale;
-	if (rc.mag_width == -1 || rc.mag_height == -1) {
-		fullscreen = true;
-	}
-	if ((ox < 0 || oy < 0 || ox >= output_buffer->width || oy >= output_buffer->height)
-		&& fullscreen) {
+	bool fullscreen = (rc.mag_width == -1 || rc.mag_height == -1);
+
+	struct wlr_box output_box = {
+		.width = output_buffer->width,
+		.height = output_buffer->height,
+	};
+
+	/* Cursor position in physical output coordinate */
+	double cursor_x = server->seat.cursor->x;
+	double cursor_y = server->seat.cursor->y;
+	wlr_output_layout_output_coords(server->output_layout,
+		output->wlr_output, &cursor_x, &cursor_y);
+	cursor_x *= output->wlr_output->scale;
+	cursor_y *= output->wlr_output->scale;
+
+	bool cursor_in_output = wlr_box_contains_point(&output_box,
+		cursor_x, cursor_y);
+	if (fullscreen && !cursor_in_output) {
 		return;
 	}
 
 	if (mag_scale == 0.0) {
 		mag_scale = rc.mag_scale;
 	}
-	if (mag_scale == 0.0) {
-		mag_scale = 1.0;
-	}
+	assert(mag_scale >= 1.0);
 
+	/* Magnifier geometry in physical output coordinate */
+	struct wlr_box mag_box;
 	if (fullscreen) {
-		width = output_buffer->width;
-		height = output_buffer->height;
-		x = 0;
-		y = 0;
+		mag_box = output_box;
 	} else {
-		width = rc.mag_width + 1;
-		height = rc.mag_height + 1;
-		x = ox - (rc.mag_width / 2.0);
-		y = oy - (rc.mag_height / 2.0);
+		mag_box.x = cursor_x - (rc.mag_width / 2.0);
+		mag_box.y = cursor_y - (rc.mag_height / 2.0);
+		mag_box.width = rc.mag_width;
+		mag_box.height = rc.mag_height;
 	}
-	double cropped_width = width;
-	double cropped_height = height;
-	double dst_x = 0;
-	double dst_y = 0;
-
-	/* Ensure everything is kept within output boundaries */
-	if (x < 0) {
-		cropped_width += x;
-		dst_x = x * -1;
-		x = 0;
-	}
-	if (y < 0) {
-		cropped_height += y;
-		dst_y = y * -1;
-		y = 0;
-	}
-	cropped_width = MIN(cropped_width, (double)output_buffer->width - x);
-	cropped_height = MIN(cropped_height, (double)output_buffer->height - y);
 
 	/* (Re)create the temporary buffer if required */
-	if (tmp_buffer && (tmp_buffer->width != width || tmp_buffer->height != height)) {
+	if (tmp_buffer && (tmp_buffer->width != mag_box.width
+			|| tmp_buffer->height != mag_box.height)) {
 		wlr_log(WLR_DEBUG, "tmp magnifier buffer size changed, dropping");
 		assert(tmp_texture);
 		wlr_texture_destroy(tmp_texture);
@@ -105,7 +70,8 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	}
 	if (!tmp_buffer) {
 		tmp_buffer = wlr_allocator_create_buffer(
-			server->allocator, width, height, &wlr_drm_format);
+			server->allocator, mag_box.width, mag_box.height,
+			&output->wlr_output->swapchain->format);
 	}
 	if (!tmp_buffer) {
 		wlr_log(WLR_ERROR, "Failed to allocate temporary magnifier buffer");
@@ -137,13 +103,17 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		goto cleanup;
 	}
 
+	struct wlr_box src_box_for_copy;
+	wlr_box_intersection(&src_box_for_copy, &mag_box, &output_box);
+
+	struct wlr_box dst_box_for_copy = src_box_for_copy;
+	dst_box_for_copy.x -= mag_box.x;
+	dst_box_for_copy.y -= mag_box.y;
+
 	struct wlr_render_texture_options opts = {
 		.texture = output_texture,
-		.src_box = (struct wlr_fbox) {
-			x, y, cropped_width, cropped_height },
-		.dst_box = (struct wlr_box) {
-			dst_x, dst_y, cropped_width, cropped_height },
-		.alpha = NULL,
+		.src_box = box_to_fbox(&src_box_for_copy),
+		.dst_box = dst_box_for_copy,
 	};
 	wlr_render_pass_add_texture(tmp_render_pass, &opts);
 	if (!wlr_render_pass_submit(tmp_render_pass)) {
@@ -161,17 +131,17 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 		goto cleanup;
 	}
 
-	/* Borders */
+	struct wlr_box damage_box;
 	if (fullscreen) {
-		border_box.x = 0;
-		border_box.y = 0;
-		border_box.width = width;
-		border_box.height = height;
+		damage_box = output_box;
 	} else {
-		border_box.x = ox - (width / 2 + theme->mag_border_width);
-		border_box.y = oy - (height / 2 + theme->mag_border_width);
-		border_box.width = (width + theme->mag_border_width * 2);
-		border_box.height = (height + theme->mag_border_width * 2);
+		/* Draw borders */
+		struct wlr_box border_box = {
+			.x = mag_box.x - theme->mag_border_width,
+			.y = mag_box.y - theme->mag_border_width,
+			.width = mag_box.width + theme->mag_border_width * 2,
+			.height = mag_box.height + theme->mag_border_width * 2,
+		};
 		struct wlr_render_rect_options bg_opts = {
 			.box = border_box,
 			.color = (struct wlr_render_color) {
@@ -180,37 +150,31 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 				.b = theme->mag_border_color[2],
 				.a = theme->mag_border_color[3]
 			},
-			.clip = NULL,
 		};
 		wlr_render_pass_add_rect(tmp_render_pass, &bg_opts);
+		wlr_box_intersection(&damage_box, &border_box, &output_box);
 	}
 
-	src_box.width = width / mag_scale;
-	src_box.height = height / mag_scale;
-	dst_box.width = width;
-	dst_box.height = height;
+	struct wlr_fbox src_box_for_paste = {
+		.width = mag_box.width / mag_scale,
+		.height = mag_box.height / mag_scale,
+	};
 
 	if (fullscreen) {
-		src_box.x = CLAMP(ox - (ox / mag_scale), 0.0,
-			width * (mag_scale - 1.0) / mag_scale);
-		src_box.y = CLAMP(oy - (oy / mag_scale), 0.0,
-			height * (mag_scale - 1.0) / mag_scale);
-		dst_box.x = 0;
-		dst_box.y = 0;
+		src_box_for_paste.x = cursor_x - (cursor_x / mag_scale);
+		src_box_for_paste.y = cursor_y - (cursor_y / mag_scale);
 	} else {
-		src_box.x = width * (mag_scale - 1.0) / (2.0 * mag_scale);
-		src_box.y = height * (mag_scale - 1.0) / (2.0 * mag_scale);
-		dst_box.x = ox - (width / 2);
-		dst_box.y = oy - (height / 2);
+		src_box_for_paste.x =
+			mag_box.width * (mag_scale - 1.0) / (2.0 * mag_scale);
+		src_box_for_paste.y =
+			mag_box.height * (mag_scale - 1.0) / (2.0 * mag_scale);
 	}
 
 	/* Paste the magnified result back into the output buffer */
 	opts = (struct wlr_render_texture_options) {
 		.texture = tmp_texture,
-		.src_box = src_box,
-		.dst_box = dst_box,
-		.alpha = NULL,
-		.clip = NULL,
+		.src_box = src_box_for_paste,
+		.dst_box = mag_box,
 		.filter_mode = rc.mag_filter ? WLR_SCALE_FILTER_BILINEAR
 			: WLR_SCALE_FILTER_NEAREST,
 	};
@@ -221,10 +185,7 @@ magnify(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box 
 	}
 
 	/* And finally mark the extra damage */
-	*damage = border_box;
-	damage->width += 1;
-	damage->height += 1;
-
+	*damage = damage_box;
 cleanup:
 	wlr_buffer_unlock(output_buffer);
 }
@@ -258,7 +219,7 @@ enable_magnifier(struct server *server, bool enable)
 
 /* Toggles magnification on and off */
 void
-magnify_toggle(struct server *server)
+magnifier_toggle(struct server *server)
 {
 	enable_magnifier(server, !magnify_on);
 
@@ -270,7 +231,7 @@ magnify_toggle(struct server *server)
 
 /* Increases and decreases magnification scale */
 void
-magnify_set_scale(struct server *server, enum magnify_dir dir)
+magnifier_set_scale(struct server *server, enum magnify_dir dir)
 {
 	struct output *output = output_nearest_to_cursor(server);
 
@@ -296,7 +257,7 @@ magnify_set_scale(struct server *server, enum magnify_dir dir)
 
 /* Reset any buffers held by the magnifier */
 void
-magnify_reset(void)
+magnifier_reset(void)
 {
 	if (tmp_texture && tmp_buffer) {
 		wlr_texture_destroy(tmp_texture);
@@ -308,7 +269,7 @@ magnify_reset(void)
 
 /* Report whether magnification is enabled */
 bool
-is_magnify_on(void)
+magnifier_is_enabled(void)
 {
 	return magnify_on;
 }

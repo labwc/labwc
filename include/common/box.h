@@ -22,4 +22,6 @@ void box_union(struct wlr_box *box_dest, struct wlr_box *box_a,
  */
 struct wlr_box box_fit_within(int width, int height, struct wlr_box *bounding_box);
 
+struct wlr_fbox box_to_fbox(struct wlr_box *box);
+
 #endif /* LABWC_BOX_H */

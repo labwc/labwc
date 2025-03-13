@@ -469,6 +469,8 @@ destroy_workspace(struct workspace *workspace)
 	wlr_scene_node_destroy(&workspace->tree->node);
 	zfree(workspace->name);
 	wl_list_remove(&workspace->link);
+	wl_list_remove(&workspace->on_cosmic.activate.link);
+	wl_list_remove(&workspace->on_ext.activate.link);
 
 	lab_cosmic_workspace_destroy(workspace->cosmic_workspace);
 	lab_ext_workspace_destroy(workspace->ext_workspace);

@@ -762,6 +762,10 @@ server_finish(struct server *server)
 	wl_list_remove(&server->new_constraint.link);
 	wl_list_remove(&server->output_power_manager_set_mode.link);
 	wl_list_remove(&server->tearing_new_object.link);
+	if (server->drm_lease_request.notify) {
+		wl_list_remove(&server->drm_lease_request.link);
+		server->drm_lease_request.notify = NULL;
+	}
 
 	wlr_backend_destroy(server->backend);
 	wlr_allocator_destroy(server->allocator);

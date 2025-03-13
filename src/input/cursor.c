@@ -1504,8 +1504,6 @@ cursor_init(struct seat *seat)
 
 void cursor_finish(struct seat *seat)
 {
-	/* TODO: either clean up all the listeners or none of them */
-
 	wl_list_remove(&seat->cursor_motion.link);
 	wl_list_remove(&seat->cursor_motion_absolute.link);
 	wl_list_remove(&seat->cursor_button.link);

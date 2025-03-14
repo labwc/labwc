@@ -44,9 +44,6 @@ void osd_begin(struct server *server, enum lab_cycle_dir direction);
 /* Cycle the selected view in the window switcher */
 void osd_cycle(struct server *server, enum lab_cycle_dir direction);
 
-/* Updates onscreen display 'alt-tab' buffer */
-void osd_update(struct server *server);
-
 /* Closes the OSD */
 void osd_finish(struct server *server);
 

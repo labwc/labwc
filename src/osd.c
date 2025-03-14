@@ -21,6 +21,8 @@
 #include "window-rules.h"
 #include "workspaces.h"
 
+static void update_osd(struct server *server);
+
 static void
 destroy_osd_nodes(struct output *output)
 {
@@ -119,7 +121,7 @@ osd_on_view_destroy(struct view *view)
 
 	if (osd_state->cycle_view) {
 		/* Update the OSD to reflect the view has now gone. */
-		osd_update(view->server);
+		update_osd(view->server);
 	}
 
 	if (view->scene_tree) {
@@ -172,7 +174,7 @@ osd_begin(struct server *server, enum lab_cycle_dir direction)
 
 	seat_focus_override_begin(&server->seat,
 		LAB_INPUT_STATE_WINDOW_SWITCHER, LAB_CURSOR_DEFAULT);
-	osd_update(server);
+	update_osd(server);
 
 	/* Update cursor, in case it is within the area covered by OSD */
 	cursor_update_focus(server);
@@ -185,7 +187,7 @@ osd_cycle(struct server *server, enum lab_cycle_dir direction)
 
 	server->osd_state.cycle_view = get_next_cycle_view(server,
 		server->osd_state.cycle_view, direction);
-	osd_update(server);
+	update_osd(server);
 }
 
 void
@@ -430,8 +432,8 @@ display_osd(struct output *output, struct wl_array *views)
 	wlr_scene_node_set_enabled(&output->osd_tree->node, true);
 }
 
-void
-osd_update(struct server *server)
+static void
+update_osd(struct server *server)
 {
 	struct wl_array views;
 	wl_array_init(&views);

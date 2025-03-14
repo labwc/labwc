@@ -303,6 +303,8 @@ this is for compatibility with Openbox.
 	- *trimmed_identifier* Show trimmed identifier. Trimming removes
 	  the first two nodes of 'org.' strings.
 
+	- *icon* Show application icon
+
 	- *desktop_entry_name* Show application name from freedesktop.org
 	  desktop entry/file. Falls back to trimmed identifier
 	  (trimmed_identifier).

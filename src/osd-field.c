@@ -319,6 +319,8 @@ osd_field_arg_from_xml_node(struct window_switcher_field *field,
 			field->content = LAB_FIELD_IDENTIFIER;
 		} else if (!strcmp(content, "trimmed_identifier")) {
 			field->content = LAB_FIELD_TRIMMED_IDENTIFIER;
+		} else if (!strcmp(content, "icon")) {
+			field->content = LAB_FIELD_ICON;
 		} else if (!strcmp(content, "desktop_entry_name")) {
 			field->content = LAB_FIELD_DESKTOP_ENTRY_NAME;
 		} else if (!strcmp(content, "title")) {

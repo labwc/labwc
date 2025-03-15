@@ -3,8 +3,8 @@
 #include <assert.h>
 #include <wlr/render/swapchain.h>
 #include <wlr/types/wlr_output.h>
+#include <wlr/util/transform.h>
 #include "common/box.h"
-#include "common/macros.h"
 #include "labwc.h"
 #include "magnifier.h"
 #include "theme.h"
@@ -15,6 +15,23 @@ static double mag_scale = 0.0;
 /* Reuse a single scratch buffer */
 static struct wlr_buffer *tmp_buffer = NULL;
 static struct wlr_texture *tmp_texture = NULL;
+
+static void
+box_logical_to_physical(struct wlr_box *box, struct wlr_output *output)
+{
+	box->x *= output->scale;
+	box->y *= output->scale;
+	box->width *= output->scale;
+	box->height *= output->scale;
+
+	int output_w = output->width;
+	int output_h = output->height;
+	wlr_output_transform_coords(output->transform,
+		&output_w, &output_h);
+	wlr_box_transform(box, box,
+		wlr_output_transform_invert(output->transform),
+		output_w, output_h);
+}
 
 void
 magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
@@ -28,16 +45,20 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 		.height = output_buffer->height,
 	};
 
-	/* Cursor position in physical output coordinate */
-	double cursor_x = server->seat.cursor->x;
-	double cursor_y = server->seat.cursor->y;
+	/* Cursor position in per-output logical coordinate */
+	double cursor_logical_x = server->seat.cursor->x;
+	double cursor_logical_y = server->seat.cursor->y;
 	wlr_output_layout_output_coords(server->output_layout,
-		output->wlr_output, &cursor_x, &cursor_y);
-	cursor_x *= output->wlr_output->scale;
-	cursor_y *= output->wlr_output->scale;
+		output->wlr_output, &cursor_logical_x, &cursor_logical_y);
+	/* Cursor position in per-output physical coordinate */
+	struct wlr_box cursor_pos = {
+		.x = cursor_logical_x,
+		.y = cursor_logical_y,
+	};
+	box_logical_to_physical(&cursor_pos, output->wlr_output);
 
 	bool cursor_in_output = wlr_box_contains_point(&output_box,
-		cursor_x, cursor_y);
+		cursor_pos.x, cursor_pos.y);
 	if (fullscreen && !cursor_in_output) {
 		return;
 	}
@@ -52,10 +73,11 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 	if (fullscreen) {
 		mag_box = output_box;
 	} else {
-		mag_box.x = cursor_x - (rc.mag_width / 2.0);
-		mag_box.y = cursor_y - (rc.mag_height / 2.0);
+		mag_box.x = cursor_logical_x - (rc.mag_width / 2.0);
+		mag_box.y = cursor_logical_y - (rc.mag_height / 2.0);
 		mag_box.width = rc.mag_width;
 		mag_box.height = rc.mag_height;
+		box_logical_to_physical(&mag_box, output->wlr_output);
 	}
 
 	/* (Re)create the temporary buffer if required */
@@ -136,11 +158,13 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 		damage_box = output_box;
 	} else {
 		/* Draw borders */
+		int border_width =
+			theme->mag_border_width * output->wlr_output->scale;
 		struct wlr_box border_box = {
-			.x = mag_box.x - theme->mag_border_width,
-			.y = mag_box.y - theme->mag_border_width,
-			.width = mag_box.width + theme->mag_border_width * 2,
-			.height = mag_box.height + theme->mag_border_width * 2,
+			.x = mag_box.x - border_width,
+			.y = mag_box.y - border_width,
+			.width = mag_box.width + border_width * 2,
+			.height = mag_box.height + border_width * 2,
 		};
 		struct wlr_render_rect_options bg_opts = {
 			.box = border_box,
@@ -162,8 +186,8 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 	};
 
 	if (fullscreen) {
-		src_box_for_paste.x = cursor_x - (cursor_x / mag_scale);
-		src_box_for_paste.y = cursor_y - (cursor_y / mag_scale);
+		src_box_for_paste.x = cursor_pos.x - (cursor_pos.x / mag_scale);
+		src_box_for_paste.y = cursor_pos.y - (cursor_pos.y / mag_scale);
 	} else {
 		src_box_for_paste.x =
 			mag_box.width * (mag_scale - 1.0) / (2.0 * mag_scale);

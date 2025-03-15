@@ -143,6 +143,13 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 		pixman_region32_init_rect(&region,
 			additional_damage.x, additional_damage.y,
 			additional_damage.width, additional_damage.height);
+		/*
+		 * Region passed to scene_output_damage() should have the same
+		 * scale as the output buffer but have a different transform.
+		 */
+		wlr_region_transform(&region, &region, wlr_output->transform,
+			wlr_output->width, wlr_output->height);
+
 		scene_output_damage(scene_output, &region);
 		pixman_region32_fini(&region);
 	}

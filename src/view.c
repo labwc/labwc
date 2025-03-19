@@ -2251,7 +2251,6 @@ move_to_front(struct view *view)
 	if (view->impl->move_to_front) {
 		view->impl->move_to_front(view);
 	}
-	view->server->last_raised_view = view;
 }
 
 static void
@@ -2259,9 +2258,6 @@ move_to_back(struct view *view)
 {
 	if (view->impl->move_to_back) {
 		view->impl->move_to_back(view);
-	}
-	if (view == view->server->last_raised_view) {
-		view->server->last_raised_view = NULL;
 	}
 }
 
@@ -2275,16 +2271,6 @@ void
 view_move_to_front(struct view *view)
 {
 	assert(view);
-	/*
-	 * This function is called often, generally on every mouse
-	 * button press (more often for focus-follows-mouse). Avoid
-	 * unnecessarily raising the same view over and over, or
-	 * attempting to raise a root view above its own sub-view.
-	 */
-	struct view *last = view->server->last_raised_view;
-	if (view == last || (last && view == view_get_root(last))) {
-		return;
-	}
 
 	struct view *root = view_get_root(view);
 	assert(root);
@@ -2537,10 +2523,6 @@ view_destroy(struct view *view)
 
 	if (server->session_lock_manager->last_active_view == view) {
 		server->session_lock_manager->last_active_view = NULL;
-	}
-
-	if (server->last_raised_view == view) {
-		server->last_raised_view = NULL;
 	}
 
 	if (server->seat.pressed.view == view) {

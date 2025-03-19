@@ -66,9 +66,6 @@ view_impl_unmap(struct view *view)
 	if (view == server->active_view) {
 		desktop_focus_topmost_view(server);
 	}
-	if (view == server->last_raised_view) {
-		server->last_raised_view = NULL;
-	}
 }
 
 static bool

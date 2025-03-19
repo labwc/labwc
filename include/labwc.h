@@ -292,11 +292,6 @@ struct server {
 	 * Note that active_view is synced with foreign-toplevel clients.
 	 */
 	struct view *active_view;
-	/*
-	 * Most recently raised view. Used to avoid unnecessarily
-	 * raising the same view over and over.
-	 */
-	struct view *last_raised_view;
 
 	struct ssd_hover_state *ssd_hover_state;
 

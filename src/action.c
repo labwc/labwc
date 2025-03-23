@@ -123,6 +123,7 @@ enum action_type {
 	ACTION_TYPE_ZOOM_IN,
 	ACTION_TYPE_ZOOM_OUT,
 	ACTION_TYPE_WARP_CURSOR,
+	ACTION_TYPE_HIDE_CURSOR,
 };
 
 const char *action_names[] = {
@@ -188,6 +189,7 @@ const char *action_names[] = {
 	"ZoomIn",
 	"ZoomOut",
 	"WarpCursor",
+	"HideCursor",
 	NULL
 };
 
@@ -1334,6 +1336,9 @@ actions_run(struct view *activator, struct server *server,
 
 				warp_cursor(view, output, to, x, y);
 			}
+			break;
+		case ACTION_TYPE_HIDE_CURSOR:
+			cursor_set_visible(&server->seat, false);
 			break;
 		case ACTION_TYPE_INVALID:
 			wlr_log(WLR_ERROR, "Not executing unknown action");

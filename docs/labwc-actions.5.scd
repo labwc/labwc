@@ -351,6 +351,12 @@ Actions are used in menus and keyboard/mouse bindings.
 	*y* [center|value] Equivalent for the vertical warp position within the target area.
 	Default is "center"
 
+*<action name="HideCursor" />*
+	Hide the pointer or stylus cursor. The cursor becomes visible again on following
+	pointer actions, stylus actions or touchpad gestures.
+	Use together with the WarpCursor action to not just hide the cursor but to
+	additionally move it away to prevent e.g. hover effects.
+
 *<action name="EnableTabletMouseEmulation" />*++
 *<action name="DisableTabletMouseEmulation" />*++
 *<action name="ToggleTabletMouseEmulation">*

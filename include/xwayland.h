@@ -59,6 +59,9 @@ struct xwayland_view {
 	struct view base;
 	struct wlr_xwayland_surface *xwayland_surface;
 
+	/* Used to detect stacking order updates */
+	int stacking_order;
+
 	/* Events unique to XWayland views */
 	struct wl_listener associate;
 	struct wl_listener dissociate;

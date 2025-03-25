@@ -142,9 +142,6 @@ struct view_impl {
 	void (*unmap)(struct view *view, bool client_request);
 	void (*maximize)(struct view *view, bool maximize);
 	void (*minimize)(struct view *view, bool minimize);
-	void (*move_to_front)(struct view *view);
-	void (*move_to_back)(struct view *view);
-	void (*shade)(struct view *view, bool shaded);
 	struct view *(*get_root)(struct view *self);
 	void (*append_children)(struct view *self, struct wl_array *children);
 	struct view_size_hints (*get_size_hints)(struct view *self);

@@ -5,6 +5,7 @@
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_security_context_v1.h>
 #include "common/box.h"
+#include "common/list.h"
 #include "common/macros.h"
 #include "common/match.h"
 #include "common/mem.h"
@@ -2248,17 +2249,17 @@ for_each_subview(struct view *view, void (*action)(struct view *))
 static void
 move_to_front(struct view *view)
 {
-	if (view->impl->move_to_front) {
-		view->impl->move_to_front(view);
-	}
+	wl_list_remove(&view->link);
+	wl_list_insert(&view->server->views, &view->link);
+	wlr_scene_node_raise_to_top(&view->scene_tree->node);
 }
 
 static void
 move_to_back(struct view *view)
 {
-	if (view->impl->move_to_back) {
-		view->impl->move_to_back(view);
-	}
+	wl_list_remove(&view->link);
+	wl_list_append(&view->server->views, &view->link);
+	wlr_scene_node_lower_to_bottom(&view->scene_tree->node);
 }
 
 /*
@@ -2282,6 +2283,12 @@ view_move_to_front(struct view *view)
 		move_to_front(view);
 	}
 
+#if HAVE_XWAYLAND
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		xwayland_adjust_stacking_order(view->server);
+	}
+#endif
+
 	cursor_update_focus(view->server);
 	desktop_update_top_layer_visibility(view->server);
 }
@@ -2295,6 +2302,12 @@ view_move_to_back(struct view *view)
 
 	for_each_subview(root, move_to_back);
 	move_to_back(root);
+
+#if HAVE_XWAYLAND
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		xwayland_adjust_stacking_order(view->server);
+	}
+#endif
 
 	cursor_update_focus(view->server);
 	desktop_update_top_layer_visibility(view->server);
@@ -2468,9 +2481,11 @@ view_set_shade(struct view *view, bool shaded)
 	ssd_enable_shade(view->ssd, view->shaded);
 	wlr_scene_node_set_enabled(&view->content_tree->node, !view->shaded);
 
-	if (view->impl->shade) {
-		view->impl->shade(view, shaded);
+#if HAVE_XWAYLAND
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		xwayland_adjust_stacking_order(view->server);
 	}
+#endif
 }
 
 void

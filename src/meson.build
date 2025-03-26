@@ -18,6 +18,7 @@ labwc_sources = files(
   'output-virtual.c',
   'overlay.c',
   'placement.c',
+  'realtime.c',
   'regions.c',
   'resistance.c',
   'resize-outlines.c',

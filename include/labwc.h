@@ -584,6 +584,8 @@ void output_enable_adaptive_sync(struct output *output, bool enabled);
  */
 float output_max_scale(struct server *server);
 
+void set_rr_scheduling(void);
+
 void new_tearing_hint(struct wl_listener *listener, void *data);
 
 void server_init(struct server *server);

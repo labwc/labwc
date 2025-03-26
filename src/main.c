@@ -205,6 +205,8 @@ main(int argc, char *argv[])
 
 	increase_nofile_limit();
 
+	set_rr_scheduling();
+	
 	struct server server = { 0 };
 	server_init(&server);
 	server_start(&server);

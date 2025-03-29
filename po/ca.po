@@ -1,0 +1,76 @@
+# Labwc pot file
+# Copyright (C) 2024
+# This file is distributed under the same license as the labwc package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: labwc\n"
+"Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
+"POT-Creation-Date: 2024-09-19 21:09+1000\n"
+"PO-Revision-Date: 2025-03-29 11:25+0000\n"
+"Last-Translator: Davidmp <opensusecatala@gmail.com>\n"
+"Language-Team: Catalan <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/ca/>\n"
+"Language: ca\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.2.1\n"
+
+#: src/menu/menu.c:1017
+msgid "Go there..."
+msgstr "Ves-hi..."
+
+#: src/menu/menu.c:1037
+msgid "Reconfigure"
+msgstr "Reconfigura"
+
+#: src/menu/menu.c:1039
+msgid "Exit"
+msgstr "Surt"
+
+#: src/menu/menu.c:1055
+msgid "Minimize"
+msgstr "Minimitza"
+
+#: src/menu/menu.c:1057
+msgid "Maximize"
+msgstr "Maximitza"
+
+#: src/menu/menu.c:1059
+msgid "Fullscreen"
+msgstr "Pantalla completa"
+
+#: src/menu/menu.c:1061
+msgid "Roll Up/Down"
+msgstr "Enrotlla amunt / avall"
+
+#: src/menu/menu.c:1063
+msgid "Decorations"
+msgstr "Decoracions"
+
+#: src/menu/menu.c:1065
+msgid "Always on Top"
+msgstr "Sempre a dalt"
+
+#: src/menu/menu.c:1070
+msgid "Move Left"
+msgstr "Mou a l'esquerra"
+
+#: src/menu/menu.c:1077
+msgid "Move Right"
+msgstr "Mou a la dreta"
+
+#: src/menu/menu.c:1082
+msgid "Always on Visible Workspace"
+msgstr "Sempre a l'espai de treball visible"
+
+#: src/menu/menu.c:1085 src/config/rcxml.c:1629
+msgid "Workspace"
+msgstr "Espai de treball"
+
+#: src/menu/menu.c:1088
+msgid "Close"
+msgstr "Tanca"

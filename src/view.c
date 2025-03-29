@@ -5,6 +5,7 @@
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_security_context_v1.h>
 #include "common/box.h"
+#include "common/list.h"
 #include "common/macros.h"
 #include "common/match.h"
 #include "common/mem.h"
@@ -2248,21 +2249,17 @@ for_each_subview(struct view *view, void (*action)(struct view *))
 static void
 move_to_front(struct view *view)
 {
-	if (view->impl->move_to_front) {
-		view->impl->move_to_front(view);
-	}
-	view->server->last_raised_view = view;
+	wl_list_remove(&view->link);
+	wl_list_insert(&view->server->views, &view->link);
+	wlr_scene_node_raise_to_top(&view->scene_tree->node);
 }
 
 static void
 move_to_back(struct view *view)
 {
-	if (view->impl->move_to_back) {
-		view->impl->move_to_back(view);
-	}
-	if (view == view->server->last_raised_view) {
-		view->server->last_raised_view = NULL;
-	}
+	wl_list_remove(&view->link);
+	wl_list_append(&view->server->views, &view->link);
+	wlr_scene_node_lower_to_bottom(&view->scene_tree->node);
 }
 
 /*
@@ -2275,16 +2272,6 @@ void
 view_move_to_front(struct view *view)
 {
 	assert(view);
-	/*
-	 * This function is called often, generally on every mouse
-	 * button press (more often for focus-follows-mouse). Avoid
-	 * unnecessarily raising the same view over and over, or
-	 * attempting to raise a root view above its own sub-view.
-	 */
-	struct view *last = view->server->last_raised_view;
-	if (view == last || (last && view == view_get_root(last))) {
-		return;
-	}
 
 	struct view *root = view_get_root(view);
 	assert(root);
@@ -2295,6 +2282,12 @@ view_move_to_front(struct view *view)
 	if (view != root) {
 		move_to_front(view);
 	}
+
+#if HAVE_XWAYLAND
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		xwayland_adjust_stacking_order(view->server);
+	}
+#endif
 
 	cursor_update_focus(view->server);
 	desktop_update_top_layer_visibility(view->server);
@@ -2309,6 +2302,12 @@ view_move_to_back(struct view *view)
 
 	for_each_subview(root, move_to_back);
 	move_to_back(root);
+
+#if HAVE_XWAYLAND
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		xwayland_adjust_stacking_order(view->server);
+	}
+#endif
 
 	cursor_update_focus(view->server);
 	desktop_update_top_layer_visibility(view->server);
@@ -2482,9 +2481,11 @@ view_set_shade(struct view *view, bool shaded)
 	ssd_enable_shade(view->ssd, view->shaded);
 	wlr_scene_node_set_enabled(&view->content_tree->node, !view->shaded);
 
-	if (view->impl->shade) {
-		view->impl->shade(view, shaded);
+#if HAVE_XWAYLAND
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		xwayland_adjust_stacking_order(view->server);
 	}
+#endif
 }
 
 void
@@ -2537,10 +2538,6 @@ view_destroy(struct view *view)
 
 	if (server->session_lock_manager->last_active_view == view) {
 		server->session_lock_manager->last_active_view = NULL;
-	}
-
-	if (server->last_raised_view == view) {
-		server->last_raised_view = NULL;
 	}
 
 	if (server->seat.pressed.view == view) {

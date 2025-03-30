@@ -150,6 +150,7 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 				.b = theme->mag_border_color[2],
 				.a = theme->mag_border_color[3]
 			},
+			.clip = NULL,
 		};
 		wlr_render_pass_add_rect(tmp_render_pass, &bg_opts);
 		wlr_box_intersection(&damage_box, &border_box, &output_box);

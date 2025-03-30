@@ -57,9 +57,8 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 	};
 	box_logical_to_physical(&cursor_pos, output->wlr_output);
 
-	bool cursor_in_output = wlr_box_contains_point(&output_box,
-		cursor_pos.x, cursor_pos.y);
-	if (fullscreen && !cursor_in_output) {
+	if (!wlr_box_contains_point(&output_box,
+			cursor_pos.x, cursor_pos.y)) {
 		return;
 	}
 

@@ -85,6 +85,7 @@ Actions are used in menus and keyboard/mouse bindings.
 	Tries to prevent any part of the window from going off-screen.
 	This action is deprecated from v0.7.3. To ensure your config works in
 	future labwc releases, please use:
+
 	*<action name="AutoPlace" policy="cursor">*
 
 *<action name="MoveRelative" x="" y="" />*
@@ -114,7 +115,8 @@ Actions are used in menus and keyboard/mouse bindings.
 
 *<action name="NextWindow" />*++
 *<action name="PreviousWindow" />*
-	Cycle focus to next/previous window respectively.++
+	Cycle focus to next/previous window, respectively.
+
 	Default keybind for NextWindow is Alt-Tab.
 
 	The arrow keys are used to move forwards/backwards while cycling.
@@ -343,24 +345,27 @@ Actions are used in menus and keyboard/mouse bindings.
 
 	*to* [output|window] Specifies the target area of the warp.
 	Default is "output"
-	*x* [center|value] Specifies the horizontal warp position within the target area.
-	"center": Moves the cursor to the horizontal center of the target area.
-	Positive or negative integers warp the cursor to a position offset by the specified
-	number of pixels from the left or right edge of the target area respectively.
-	Default is "center"
-	*y* [center|value] Equivalent for the vertical warp position within the target area.
-	Default is "center"
+
+	*x* [center|value] Specifies the horizontal warp position within the
+	target area. "center": Moves the cursor to the horizontal center of the
+	target area. Positive or negative integers warp the cursor to a position
+	offset by the specified	number of pixels from the left or right edge of
+	the target area, respectively. Default is "center"
+
+	*y* [center|value] Equivalent for the vertical warp position within the
+	target area. Default is "center"
 
 *<action name="HideCursor" />*
-	Hide the pointer or stylus cursor. The cursor becomes visible again on following
-	pointer actions, stylus actions or touchpad gestures.
-	Use together with the WarpCursor action to not just hide the cursor but to
-	additionally move it away to prevent e.g. hover effects.
+	Hide the pointer or stylus cursor. The cursor becomes visible again on
+	following pointer actions, stylus actions or touchpad gestures.
+	Use together with the WarpCursor action to not just hide the cursor but
+	to additionally move it away to prevent e.g. hover effects.
 
 *<action name="EnableTabletMouseEmulation" />*++
 *<action name="DisableTabletMouseEmulation" />*++
 *<action name="ToggleTabletMouseEmulation">*
-	Enable, disable or toggle mouse emulation for drawing tablets respectively.
+	Enable, disable or toggle mouse emulation for drawing tablets,
+	respectively.
 
 *<action name="ToggleMagnify">*
 	Toggle the screen magnifier on or off at the last magnification level

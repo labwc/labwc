@@ -1673,22 +1673,25 @@ deduplicate_key_bindings(void)
 	}
 }
 
-static struct {
-	enum window_switcher_field_content content;
-	int width;
-} fields[] = {
-	{ LAB_FIELD_TYPE, 25 },
-	{ LAB_FIELD_TRIMMED_IDENTIFIER, 25 },
-	{ LAB_FIELD_TITLE, 50 },
-	{ LAB_FIELD_NONE, 0 },
-};
-
 static void
 load_default_window_switcher_fields(void)
 {
-	struct window_switcher_field *field;
+	static const struct {
+		enum window_switcher_field_content content;
+		int width;
+	} fields[] = {
+#if HAVE_LIBSFDO
+		{ LAB_FIELD_ICON, 5 },
+		{ LAB_FIELD_DESKTOP_ENTRY_NAME, 30 },
+		{ LAB_FIELD_TITLE, 65 },
+#else
+		{ LAB_FIELD_DESKTOP_ENTRY_NAME, 30 },
+		{ LAB_FIELD_TITLE, 70 },
+#endif
+	};
 
-	for (int i = 0; fields[i].content != LAB_FIELD_NONE; i++) {
+	struct window_switcher_field *field;
+	for (size_t i = 0; i < ARRAY_SIZE(fields); i++) {
 		field = znew(*field);
 		field->content = fields[i].content;
 		field->width = fields[i].width;

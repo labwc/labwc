@@ -269,9 +269,9 @@ this is for compatibility with Openbox.
 ```
 <windowSwitcher show="yes" preview="yes" outlines="yes" allWorkspaces="no">
   <fields>
-    <field content="type" width="25%"/>
-    <field content="trimmed_identifier" width="25%"/>
-    <field content="title" width="50%"/>
+    <field content="icon" width="5%" />
+    <field content="desktop_entry_name" width="30%" />
+    <field content="title" width="65%" />
   </fields>
 </windowSwitcher>
 ```

@@ -6,6 +6,7 @@
 #include "common/array.h"
 #include "common/buf.h"
 #include "common/font.h"
+#include "common/macros.h"
 #include "common/scaled-font-buffer.h"
 #include "common/scaled-icon-buffer.h"
 #include "common/scaled-rect-buffer.h"
@@ -352,15 +353,18 @@ create_osd_scene(struct output *output, struct wl_array *views)
 				* theme->osd_window_switcher_item_padding_x)
 				* field->width / 100.0;
 			struct wlr_scene_node *node = NULL;
+			int height = -1;
 
 			if (field->content == LAB_FIELD_ICON) {
-				int icon_size = font_height(&rc.font_osd);
+				int icon_size = MIN(field_width,
+					theme->osd_window_switcher_item_icon_size);
 				struct scaled_icon_buffer *icon_buffer =
 					scaled_icon_buffer_create(item_root,
 						server, icon_size, icon_size);
 				scaled_icon_buffer_set_app_id(icon_buffer,
 					view_get_string_prop(*view, "app_id"));
 				node = &icon_buffer->scene_buffer->node;
+				height = icon_size;
 			} else {
 				buf_clear(&buf);
 				osd_field_get_content(field, &buf, *view);
@@ -370,11 +374,11 @@ create_osd_scene(struct output *output, struct wl_array *views)
 				scaled_font_buffer_update(font_buffer, buf.data, field_width,
 					&rc.font_osd, text_color, bg_color);
 				node = &font_buffer->scene_buffer->node;
+				height = font_height(&rc.font_osd);
 			}
 
 			wlr_scene_node_set_position(node, x,
-				y + theme->osd_window_switcher_item_padding_y
-					+ theme->osd_window_switcher_item_active_border_width);
+				y + (theme->osd_window_switcher_item_height - height) / 2);
 			x += field_width + theme->osd_window_switcher_item_padding_x;
 		}
 

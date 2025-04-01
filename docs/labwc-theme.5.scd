@@ -256,6 +256,11 @@ all are supported.
 	Border width of the selection box in the window switcher in pixels.
 	Default is 2.
 
+*osd.window-switcher.item.icon.size*
+	Size of the icon in window switcher, in pixels.
+	If not set, the font size derived from <theme><font place="OnScreenDisplay">
+	is used.
+
 *osd.window-switcher.preview.border.width*
 	Border width of the outlines shown as the preview of the window selected
 	by window switcher. Inherits *osd.border.width* if not set.

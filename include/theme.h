@@ -135,6 +135,7 @@ struct theme {
 	int osd_window_switcher_item_padding_x;
 	int osd_window_switcher_item_padding_y;
 	int osd_window_switcher_item_active_border_width;
+	int osd_window_switcher_item_icon_size;
 	bool osd_window_switcher_width_is_percent;
 	int osd_window_switcher_preview_border_width;
 	float osd_window_switcher_preview_border_color[3][4];

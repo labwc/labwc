@@ -542,6 +542,7 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->osd_window_switcher_item_padding_x = 10;
 	theme->osd_window_switcher_item_padding_y = 1;
 	theme->osd_window_switcher_item_active_border_width = 2;
+	theme->osd_window_switcher_item_icon_size = -1;
 
 	/* inherit settings in post_processing() if not set elsewhere */
 	theme->osd_window_switcher_preview_border_width = INT_MIN;
@@ -878,6 +879,11 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->osd_window_switcher_item_active_border_width =
 			get_int_if_positive(
 				value, "osd.window-switcher.item.active.border.width");
+	}
+	if (match_glob(key, "osd.window-switcher.item.icon.size")) {
+		theme->osd_window_switcher_item_icon_size =
+			get_int_if_positive(
+				value, "osd.window-switcher.item.icon.size");
 	}
 	if (match_glob(key, "osd.window-switcher.preview.border.width")) {
 		theme->osd_window_switcher_preview_border_width =
@@ -1380,7 +1386,13 @@ post_processing(struct theme *theme)
 	theme->menu_header_height = font_height(&rc.font_menuheader)
 		+ 2 * theme->menu_items_padding_y;
 
-	theme->osd_window_switcher_item_height = font_height(&rc.font_osd)
+	int osd_font_height = font_height(&rc.font_osd);
+	if (theme->osd_window_switcher_item_icon_size <= 0) {
+		theme->osd_window_switcher_item_icon_size = osd_font_height;
+	}
+	int osd_field_height =
+		MAX(osd_font_height, theme->osd_window_switcher_item_icon_size);
+	theme->osd_window_switcher_item_height = osd_field_height
 		+ 2 * theme->osd_window_switcher_item_padding_y
 		+ 2 * theme->osd_window_switcher_item_active_border_width;
 

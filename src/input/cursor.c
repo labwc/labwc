@@ -599,11 +599,6 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 		dnd_icons_move(seat, seat->cursor->x, seat->cursor->y);
 	}
 
-	if ((ctx.view || ctx.surface) && rc.focus_follow_mouse) {
-		desktop_focus_view_or_surface(seat, ctx.view, ctx.surface,
-			rc.raise_on_focus);
-	}
-
 	struct mousebind *mousebind;
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
 		if (mousebind->mouse_event == MOUSE_ACTION_DRAG
@@ -619,8 +614,27 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 		}
 	}
 
-	return cursor_update_common(server, &ctx, time,
+	struct wlr_surface *old_focused_surface =
+		seat->seat->pointer_state.focused_surface;
+
+	bool notify = cursor_update_common(server, &ctx, time,
 		/* cursor_has_moved */ true, sx, sy);
+
+	struct wlr_surface *new_focused_surface =
+		seat->seat->pointer_state.focused_surface;
+
+	if (rc.focus_follow_mouse && new_focused_surface
+			&& old_focused_surface != new_focused_surface) {
+		/*
+		 * If followMouse=yes, update the keyboard focus when the
+		 * cursor enters a surface
+		 */
+		desktop_focus_view_or_surface(seat,
+			view_from_wlr_surface(new_focused_surface),
+			new_focused_surface, rc.raise_on_focus);
+	}
+
+	return notify;
 }
 
 static uint32_t

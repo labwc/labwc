@@ -302,7 +302,8 @@ create_osd_scene(struct output *output, struct wl_array *views)
 		struct scaled_font_buffer *font_buffer =
 			scaled_font_buffer_create(output->osd_scene.tree);
 		wlr_scene_node_set_position(&font_buffer->scene_buffer->node,
-			x, y + theme->osd_window_switcher_item_active_border_width);
+			x, y + (theme->osd_window_switcher_item_height
+				- font_height(&font)) / 2);
 		scaled_font_buffer_update(font_buffer, workspace_name, 0,
 			&font, text_color, bg_color);
 		y += theme->osd_window_switcher_item_height;

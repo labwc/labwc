@@ -81,7 +81,12 @@ desktop_entry_init(struct server *server)
 	sfdo_icon_ctx_set_log_handler(
 		sfdo->icon_ctx, level, log_handler, "sfdo-icon");
 
-	sfdo->desktop_db = sfdo_desktop_db_load(sfdo->desktop_ctx, NULL);
+	char *locale = NULL;
+#if HAVE_NLS
+	locale = setlocale(LC_ALL, "");
+#endif
+
+	sfdo->desktop_db = sfdo_desktop_db_load(sfdo->desktop_ctx, locale);
 	if (!sfdo->desktop_db) {
 		goto err_desktop_db;
 	}

@@ -96,6 +96,7 @@ osd.window-switcher.preview.border.color: #dddda6,#000000,#dddda6
 
 osd.workspace-switcher.boxes.width: 20
 osd.workspace-switcher.boxes.height: 20
+osd.workspace-switcher.boxes.border.width: 2
 
 # Default values for following options change depending on the rendering
 # backend. For software-based renderers, *.bg.enabled is "no" and

@@ -120,7 +120,8 @@ _osd_update(struct server *server)
 					.width = rect_width,
 					.height = rect_height,
 				};
-				draw_cairo_border(cairo, fbox, 2);
+				draw_cairo_border(cairo, fbox,
+					theme->osd_workspace_switcher_boxes_border_width);
 				if (active) {
 					cairo_rectangle(cairo, x, margin,
 						rect_width, rect_height);

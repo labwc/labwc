@@ -114,12 +114,16 @@ _osd_update(struct server *server)
 			wl_list_for_each(workspace, &server->workspaces.all, link) {
 				bool active =  workspace == server->workspaces.current;
 				set_cairo_color(cairo, server->theme->osd_label_text_color);
-				cairo_rectangle(cairo, x, margin,
-					rect_width - padding, rect_height);
-				cairo_stroke(cairo);
+				struct wlr_fbox fbox = {
+					.x = x,
+					.y = margin,
+					.width = rect_width,
+					.height = rect_height,
+				};
+				draw_cairo_border(cairo, fbox, 2);
 				if (active) {
 					cairo_rectangle(cairo, x, margin,
-						rect_width - padding, rect_height);
+						rect_width, rect_height);
 					cairo_fill(cairo);
 				}
 				x += rect_width + padding;

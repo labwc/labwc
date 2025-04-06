@@ -142,6 +142,7 @@ struct theme {
 
 	int osd_workspace_switcher_boxes_width;
 	int osd_workspace_switcher_boxes_height;
+	int osd_workspace_switcher_boxes_border_width;
 
 	struct theme_snapping_overlay
 		snapping_overlay_region, snapping_overlay_edge;

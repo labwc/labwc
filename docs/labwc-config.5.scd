@@ -760,7 +760,8 @@ References:
 	Stores the keyboard layout either globally or per window and restores
 	it when switching back to the window. Default is global.
 
-*<keyboard><keybind key="" layoutDependent="" onRelease="" allowWhenLocked="">*
+*<keyboard><keybind key="" layoutDependent="" onRelease="" allowWhenLocked=""
+overrideInhibition="">*
 	Define a *key* binding in the format *modifier-key*, where supported
 	modifiers are:
 	- S (shift)
@@ -807,6 +808,11 @@ References:
 
 	*allowWhenLocked* [yes|no]
 	Make this keybind work even if the screen is locked. Default is no.
+
+	*overrideInhibition* [yes|no]
+	Make this keybind work even if the view inhibits keybinds. Default is no.
+	This can be used to prevent W-Tab and similar keybinds from being
+	delivered to Virtual Machines, VNC clients or nested compositors.
 
 	*onRelease* [yes|no]
 	When yes, fires the keybind action when the key or key

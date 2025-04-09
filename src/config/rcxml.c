@@ -602,6 +602,7 @@ fill_keybind(xmlNode *node)
 	lab_xml_get_bool(node, "onRelease", &keybind->on_release);
 	lab_xml_get_bool(node, "layoutDependent", &keybind->use_syms_only);
 	lab_xml_get_bool(node, "allowWhenLocked", &keybind->allow_when_locked);
+	lab_xml_get_bool(node, "overrideInhibition", &keybind->override_inhibition);
 
 	append_parsed_actions(node, &keybind->actions);
 }
@@ -1706,6 +1707,8 @@ deduplicate_key_bindings(void)
 			wl_list_remove(&current->link);
 			keybind_destroy(current);
 			cleared++;
+		} else if (actions_contain_toggle_keybinds(&current->actions)) {
+			current->override_inhibition = true;
 		}
 	}
 	if (replaced) {

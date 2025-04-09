@@ -25,6 +25,7 @@
 #include "common/parse-double.h"
 #include "common/string-helpers.h"
 #include "common/three-state.h"
+#include "common/xml.h"
 #include "config/default-bindings.h"
 #include "config/keybind.h"
 #include "config/libinput.h"
@@ -1414,7 +1415,9 @@ rcxml_parse_xml(struct buf *b)
 		return;
 	}
 	struct parser_state init_state = {0};
-	xml_tree_walk(xmlDocGetRootElement(d), &init_state);
+	xmlNode *root = xmlDocGetRootElement(d);
+	lab_xml_expand_dotted_props(root);
+	xml_tree_walk(root, &init_state);
 	xmlFreeDoc(d);
 	xmlCleanupParser();
 }

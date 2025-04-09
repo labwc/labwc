@@ -3,15 +3,21 @@ test_lib = static_library(
   sources: files(
     '../src/common/buf.c',
     '../src/common/mem.c',
-    '../src/common/string-helpers.c'
+    '../src/common/string-helpers.c',
+    '../src/common/xml.c',
   ),
   include_directories: [labwc_inc],
-  dependencies: [dep_cmocka],
+  dependencies: [
+		dep_cmocka,
+		glib,
+		xml2,
+	],
 )
 
 tests = [
   'buf-simple',
   'str',
+  'xml',
 ]
 
 foreach t : tests
@@ -22,6 +28,7 @@ foreach t : tests
       sources: '@0@.c'.format(t),
       include_directories: [labwc_inc],
       link_with: [test_lib],
+			dependencies: [xml2],
     ),
     is_parallel: false,
   )

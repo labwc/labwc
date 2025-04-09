@@ -23,4 +23,5 @@ labwc_sources += files(
   'surface-helpers.c',
   'spawn.c',
   'string-helpers.c',
+  'xml.c',
 )

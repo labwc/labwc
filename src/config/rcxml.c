@@ -391,40 +391,51 @@ fill_window_switcher_field(char *nodename, char *content, struct parser_state *s
 }
 
 static void
-fill_region(char *nodename, char *content, struct parser_state *state)
+fill_region(xmlNode *node)
 {
-	string_truncate_at_pattern(nodename, ".region.regions");
+	struct region *region = znew(*region);
+	wl_list_append(&rc.regions, &region->link);
 
-	if (!strcasecmp(nodename, "region.regions")) {
-		state->current_region = znew(*state->current_region);
-		wl_list_append(&rc.regions, &state->current_region->link);
-	} else if (!content) {
-		/* intentionally left empty */
-	} else if (!state->current_region) {
-		wlr_log(WLR_ERROR, "Expecting <region name=\"\" before %s='%s'",
-			nodename, content);
-	} else if (!strcasecmp(nodename, "name")) {
-		/* Prevent leaking memory if config contains multiple names */
-		if (!state->current_region->name) {
-			state->current_region->name = xstrdup(content);
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (!strcasecmp(key, "name")) {
+			xstrdup_replace(region->name, content);
+		} else if (strstr("xywidtheight", key)
+				&& !strchr(content, '%')) {
+			wlr_log(WLR_ERROR, "Removing invalid region "
+				"'%s': %s='%s' misses a trailing %%",
+				region->name, key, content);
+			wl_list_remove(&region->link);
+			zfree(region->name);
+			zfree(region);
+			return;
+		} else if (!strcmp(key, "x")) {
+			region->percentage.x = atoi(content);
+		} else if (!strcmp(key, "y")) {
+			region->percentage.y = atoi(content);
+		} else if (!strcmp(key, "width")) {
+			region->percentage.width = atoi(content);
+		} else if (!strcmp(key, "height")) {
+			region->percentage.height = atoi(content);
+		} else {
+			wlr_log(WLR_ERROR, "Unexpected data in region "
+				"parser: %s=\"%s\"", key, content);
 		}
-	} else if (strstr("xywidtheight", nodename) && !strchr(content, '%')) {
-		wlr_log(WLR_ERROR, "Removing invalid region '%s': %s='%s' misses"
-			" a trailing %%", state->current_region->name, nodename, content);
-		wl_list_remove(&state->current_region->link);
-		zfree(state->current_region->name);
-		zfree(state->current_region);
-	} else if (!strcmp(nodename, "x")) {
-		state->current_region->percentage.x = atoi(content);
-	} else if (!strcmp(nodename, "y")) {
-		state->current_region->percentage.y = atoi(content);
-	} else if (!strcmp(nodename, "width")) {
-		state->current_region->percentage.width = atoi(content);
-	} else if (!strcmp(nodename, "height")) {
-		state->current_region->percentage.height = atoi(content);
-	} else {
-		wlr_log(WLR_ERROR, "Unexpected data in region parser: %s=\"%s\"",
-			nodename, content);
+	}
+}
+
+static void
+fill_regions(xmlNode *node)
+{
+	/* TODO: make sure <regions> is empty here */
+
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (!strcasecmp(key, "region")) {
+			fill_region(child);
+		}
 	}
 }
 
@@ -1057,8 +1068,8 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		fill_libinput_category(node);
 		return;
 	}
-	if (state->in_regions) {
-		fill_region(nodename, content, state);
+	if (!strcasecmp(nodename, "regions")) {
+		fill_regions(node);
 		return;
 	}
 	if (state->in_window_switcher_field) {

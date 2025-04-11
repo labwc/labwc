@@ -281,6 +281,9 @@ all are supported.
 	Height of boxes in workspace switcher in pixels. Setting to 0 disables
 	boxes. Default is 20.
 
+*osd.workspace-switcher.boxes.border.width*
+	Border width of boxes in workspace switcher in pixels. Default is 2.
+
 *snapping.overlay.region.bg.enabled* [yes|no]
 	Show a filled rectangle as an overlay when a window is snapped to a
 	region. Default is yes for hardware-based renderers and no for

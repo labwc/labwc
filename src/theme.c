@@ -551,6 +551,7 @@ theme_builtin(struct theme *theme, struct server *server)
 
 	theme->osd_workspace_switcher_boxes_width = 20;
 	theme->osd_workspace_switcher_boxes_height = 20;
+	theme->osd_workspace_switcher_boxes_border_width = 2;
 
 	/* inherit settings in post_processing() if not set elsewhere */
 	theme->osd_bg_color[0] = FLT_MIN;
@@ -902,6 +903,11 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->osd_workspace_switcher_boxes_height =
 			get_int_if_positive(
 				value, "osd.workspace-switcher.boxes.height");
+	}
+	if (match_glob(key, "osd.workspace-switcher.boxes.border.width")) {
+		theme->osd_workspace_switcher_boxes_border_width =
+			get_int_if_positive(
+				value, "osd.workspace-switcher.boxes.border.width");
 	}
 	if (match_glob(key, "osd.label.text.color")) {
 		parse_hexstr(value, theme->osd_label_text_color);

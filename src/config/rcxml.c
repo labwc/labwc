@@ -594,7 +594,7 @@ fill_keybind(xmlNode *node)
 }
 
 static void
-fill_mousebind(char *nodename, char *content, struct parser_state *state)
+fill_mousebind(xmlNode *node, const char *context)
 {
 	/*
 	 * Example of what we are parsing:
@@ -605,46 +605,40 @@ fill_mousebind(char *nodename, char *content, struct parser_state *state)
 	 * </mousebind>
 	 */
 
-	if (!state->current_mouse_context) {
-		wlr_log(WLR_ERROR, "expect <context name=\"\"> element first. "
-			"nodename: '%s' content: '%s'", nodename, content);
-		return;
-	} else if (!strcmp(nodename, "mousebind.context.mouse")) {
-		wlr_log(WLR_INFO, "create mousebind for %s",
-			state->current_mouse_context);
-		state->current_mousebind = mousebind_create(state->current_mouse_context);
-		state->current_mousebind_action = NULL;
-		return;
-	} else if (!content) {
+	wlr_log(WLR_INFO, "create mousebind for %s", context);
+	struct mousebind *mousebind = mousebind_create(context);
+
+	char buf[256];
+	if (lab_xml_get_string(node, "button", buf, sizeof(buf))) {
+		mousebind->button = mousebind_button_from_str(
+			buf, &mousebind->modifiers);
+	}
+	if (lab_xml_get_string(node, "direction", buf, sizeof(buf))) {
+		mousebind->direction = mousebind_direction_from_str(
+			buf, &mousebind->modifiers);
+	}
+	if (lab_xml_get_string(node, "action", buf, sizeof(buf))) {
+		/* <mousebind button="" action="EVENT"> */
+		mousebind->mouse_event = mousebind_event_from_str(buf);
+	}
+
+	append_actions(node, &mousebind->actions);
+}
+
+static void
+fill_mouse_context(xmlNode *node)
+{
+	char context_name[256];
+	if (!lab_xml_get_string(node, "name", context_name, sizeof(context_name))) {
 		return;
 	}
 
-	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
-	if (!state->current_mousebind) {
-		wlr_log(WLR_ERROR,
-			"expect <mousebind button=\"\" action=\"\"> element first. "
-			"nodename: '%s' content: '%s'", nodename, content);
-	} else if (!strcmp(nodename, "button")) {
-		state->current_mousebind->button = mousebind_button_from_str(content,
-			&state->current_mousebind->modifiers);
-	} else if (!strcmp(nodename, "direction")) {
-		state->current_mousebind->direction = mousebind_direction_from_str(content,
-			&state->current_mousebind->modifiers);
-	} else if (!strcmp(nodename, "action")) {
-		/* <mousebind button="" action="EVENT"> */
-		state->current_mousebind->mouse_event =
-			mousebind_event_from_str(content);
-	} else if (!strcmp(nodename, "name.action")) {
-		state->current_mousebind_action = action_create(content);
-		if (state->current_mousebind_action) {
-			wl_list_append(&state->current_mousebind->actions,
-				&state->current_mousebind_action->link);
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (!strcasecmp(key, "mousebind")) {
+			fill_mousebind(child, context_name);
 		}
-	} else if (!state->current_mousebind_action) {
-		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
-			"nodename: '%s' content: '%s'", nodename, content);
-	} else {
-		action_arg_from_xml_node(state->current_mousebind_action, nodename, content);
 	}
 }
 
@@ -1064,8 +1058,9 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		fill_keybind(node);
 		return;
 	}
-	if (state->in_mousebind) {
-		fill_mousebind(nodename, content, state);
+	if (!strcasecmp(nodename, "context.mouse")) {
+		fill_mouse_context(node);
+		return;
 	}
 	if (state->in_touch) {
 		fill_touch(nodename, content, state);
@@ -1203,9 +1198,6 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 	} else if (!strcasecmp(nodename, "scrollFactor.mouse")) {
 		/* This is deprecated. Show an error message in post_processing() */
 		set_double(content, &mouse_scroll_factor);
-	} else if (!strcasecmp(nodename, "name.context.mouse")) {
-		state->current_mouse_context = content;
-		state->current_mousebind = NULL;
 
 	} else if (!strcasecmp(nodename, "repeatRate.keyboard")) {
 		rc.repeat_rate = atoi(content);

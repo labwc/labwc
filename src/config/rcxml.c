@@ -571,49 +571,26 @@ append_actions(xmlNode *node, struct wl_list *list)
 }
 
 static void
-fill_keybind(char *nodename, char *content, struct parser_state *state)
+fill_keybind(xmlNode *node)
 {
-	if (!content) {
+	struct keybind *keybind = NULL;
+	char keyname[256];
+
+	if (lab_xml_get_string(node, "key", keyname, sizeof(keyname))) {
+		keybind = keybind_create(keyname);
+		if (!keybind) {
+			wlr_log(WLR_ERROR, "Invalid keybind: %s", keyname);
+		}
+	}
+	if (!keybind) {
 		return;
 	}
-	string_truncate_at_pattern(nodename, ".keybind.keyboard");
-	if (!strcmp(nodename, "key")) {
-		state->current_keybind = keybind_create(content);
-		state->current_keybind_action = NULL;
-		/*
-		 * If an invalid keybind has been provided,
-		 * keybind_create() complains.
-		 */
-		if (!state->current_keybind) {
-			wlr_log(WLR_ERROR, "Invalid keybind: %s", content);
-			return;
-		}
-	} else if (!state->current_keybind) {
-		wlr_log(WLR_ERROR, "expect <keybind key=\"\"> element first. "
-			"nodename: '%s' content: '%s'", nodename, content);
-	} else if (!strcasecmp(nodename, "onRelease")) {
-		set_bool(content, &state->current_keybind->on_release);
-	} else if (!strcasecmp(nodename, "layoutDependent")) {
-		set_bool(content, &state->current_keybind->use_syms_only);
-	} else if (!strcasecmp(nodename, "allowWhenLocked")) {
-		set_bool(content, &state->current_keybind->allow_when_locked);
-	} else if (!strcmp(nodename, "name.action")) {
-		state->current_keybind_action = action_create(content);
-		if (state->current_keybind_action) {
-			wl_list_append(&state->current_keybind->actions,
-				&state->current_keybind_action->link);
-		}
-	} else if (!state->current_keybind_action) {
-		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
-			"nodename: '%s' content: '%s'", nodename, content);
-	} else {
-		/*
-		 * Here we deal with action sub-elements such as <to>, <output>,
-		 * <region>, <direction> and so on. This is common to key- and
-		 * mousebinds.
-		 */
-		action_arg_from_xml_node(state->current_keybind_action, nodename, content);
-	}
+
+	lab_xml_get_bool(node, "onRelease", &keybind->on_release);
+	lab_xml_get_bool(node, "layoutDependent", &keybind->use_syms_only);
+	lab_xml_get_bool(node, "allowWhenLocked", &keybind->allow_when_locked);
+
+	append_actions(node, &keybind->actions);
 }
 
 static void
@@ -1083,8 +1060,9 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 	if (state->in_usable_area_override) {
 		fill_usable_area_override(nodename, content, state);
 	}
-	if (state->in_keybind) {
-		fill_keybind(nodename, content, state);
+	if (!strcasecmp(nodename, "keybind.keyboard")) {
+		fill_keybind(node);
+		return;
 	}
 	if (state->in_mousebind) {
 		fill_mousebind(nodename, content, state);

@@ -241,32 +241,29 @@ err:
 }
 
 static void
-fill_usable_area_override(char *nodename, char *content, struct parser_state *state)
+fill_usable_area_override(xmlNode *node)
 {
-	if (!strcasecmp(nodename, "margin")) {
-		state->current_usable_area_override = znew(*state->current_usable_area_override);
-		wl_list_append(&rc.usable_area_overrides,
-				&state->current_usable_area_override->link);
-		return;
-	}
-	string_truncate_at_pattern(nodename, ".margin");
-	if (!content) {
-		/* nop */
-	} else if (!state->current_usable_area_override) {
-		wlr_log(WLR_ERROR, "no usable-area-override object");
-	} else if (!strcmp(nodename, "output")) {
-		xstrdup_replace(state->current_usable_area_override->output, content);
-	} else if (!strcmp(nodename, "left")) {
-		state->current_usable_area_override->margin.left = atoi(content);
-	} else if (!strcmp(nodename, "right")) {
-		state->current_usable_area_override->margin.right = atoi(content);
-	} else if (!strcmp(nodename, "top")) {
-		state->current_usable_area_override->margin.top = atoi(content);
-	} else if (!strcmp(nodename, "bottom")) {
-		state->current_usable_area_override->margin.bottom = atoi(content);
-	} else {
-		wlr_log(WLR_ERROR, "Unexpected data usable-area-override parser: %s=\"%s\"",
-			nodename, content);
+	struct usable_area_override *usable_area_override =
+		znew(*usable_area_override);
+	wl_list_append(&rc.usable_area_overrides, &usable_area_override->link);
+
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (!strcmp(key, "output")) {
+			xstrdup_replace(usable_area_override->output, content);
+		} else if (!strcmp(key, "left")) {
+			usable_area_override->margin.left = atoi(content);
+		} else if (!strcmp(key, "right")) {
+			usable_area_override->margin.right = atoi(content);
+		} else if (!strcmp(key, "top")) {
+			usable_area_override->margin.top = atoi(content);
+		} else if (!strcmp(key, "bottom")) {
+			usable_area_override->margin.bottom = atoi(content);
+		} else {
+			wlr_log(WLR_ERROR, "Unexpected data usable-area-override "
+				"parser: %s=\"%s\"", key, content);
+		}
 	}
 }
 
@@ -1051,8 +1048,9 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		printf("%s: %s\n", nodename, content);
 	}
 
-	if (state->in_usable_area_override) {
-		fill_usable_area_override(nodename, content, state);
+	if (!strcasecmp(nodename, "margin")) {
+		fill_usable_area_override(node);
+		return;
 	}
 	if (!strcasecmp(nodename, "keybind.keyboard")) {
 		fill_keybind(node);

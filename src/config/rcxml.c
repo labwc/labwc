@@ -640,27 +640,24 @@ fill_mouse_context(xmlNode *node)
 }
 
 static void
-fill_touch(char *nodename, char *content, struct parser_state *state)
+fill_touch(xmlNode *node)
 {
-	if (!strcasecmp(nodename, "touch")) {
-		state->current_touch = znew(*state->current_touch);
-		wl_list_append(&rc.touch_configs, &state->current_touch->link);
-		return;
-	}
+	struct touch_config_entry *touch_config = znew(*touch_config);
+	wl_list_append(&rc.touch_configs, &touch_config->link);
 
-	if (!content) {
-		return;
-	}
-
-	if (!strcasecmp(nodename, "deviceName.touch")) {
-		xstrdup_replace(state->current_touch->device_name, content);
-	} else if (!strcasecmp(nodename, "mapToOutput.touch")) {
-		xstrdup_replace(state->current_touch->output_name, content);
-	} else if (!strcasecmp(nodename, "mouseEmulation.touch")) {
-		set_bool(content, &state->current_touch->force_mouse_emulation);
-	} else {
-		wlr_log(WLR_ERROR, "Unexpected data in touch parser: %s=\"%s\"",
-			nodename, content);
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (!strcasecmp(key, "deviceName")) {
+			xstrdup_replace(touch_config->device_name, content);
+		} else if (!strcasecmp(key, "mapToOutput")) {
+			xstrdup_replace(touch_config->output_name, content);
+		} else if (!strcasecmp(key, "mouseEmulation")) {
+			set_bool(content, &touch_config->force_mouse_emulation);
+		} else {
+			wlr_log(WLR_ERROR, "Unexpected data in touch parser: %s=\"%s\"",
+				key, content);
+		}
 	}
 }
 
@@ -1060,8 +1057,8 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		fill_mouse_context(node);
 		return;
 	}
-	if (state->in_touch) {
-		fill_touch(nodename, content, state);
+	if (!strcasecmp(nodename, "touch")) {
+		fill_touch(node);
 		return;
 	}
 	if (state->in_libinput_category) {

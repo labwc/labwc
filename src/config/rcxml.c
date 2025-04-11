@@ -700,112 +700,102 @@ err:
 }
 
 static void
-fill_libinput_category(char *nodename, char *content, struct parser_state *state)
+fill_libinput_category(xmlNode *node)
 {
 	/*
 	 * Create a new profile (libinput-category) on `<libinput><device>`
 	 * so that the 'default' profile can be created without even providing a
 	 * category="" attribute (same as <device category="default">...)
 	 */
-	if (!strcmp(nodename, "device.libinput")) {
-		state->current_libinput_category = libinput_category_create();
-	}
+	struct libinput_category *category = libinput_category_create();
 
-	if (!content) {
-		return;
-	}
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (!strcmp(key, "category")) {
+			/*
+			 * First we try to get a type based on a number of
+			 * pre-defined terms, for example: 'default', 'touch',
+			 * 'touchpad' and 'non-touch'
+			 */
+			category->type = get_device_type(content);
 
-	if (!state->current_libinput_category) {
-		return;
-	}
-
-	string_truncate_at_pattern(nodename, ".device.libinput");
-
-	if (!strcmp(nodename, "category")) {
-		/*
-		 * First we try to get a type based on a number of pre-defined
-		 * terms, for example: 'default', 'touch', 'touchpad' and
-		 * 'non-touch'
-		 */
-		state->current_libinput_category->type = get_device_type(content);
-
-		/*
-		 * If we couldn't match against any of those terms, we use the
-		 * provided value to define the device name that the settings
-		 * should be applicable to.
-		 */
-		if (state->current_libinput_category->type == LAB_LIBINPUT_DEVICE_NONE) {
-			xstrdup_replace(state->current_libinput_category->name, content);
-		}
-	} else if (!strcasecmp(nodename, "naturalScroll")) {
-		set_bool_as_int(content, &state->current_libinput_category->natural_scroll);
-	} else if (!strcasecmp(nodename, "leftHanded")) {
-		set_bool_as_int(content, &state->current_libinput_category->left_handed);
-	} else if (!strcasecmp(nodename, "pointerSpeed")) {
-		set_float(content, &state->current_libinput_category->pointer_speed);
-		if (state->current_libinput_category->pointer_speed < -1) {
-			state->current_libinput_category->pointer_speed = -1;
-		} else if (state->current_libinput_category->pointer_speed > 1) {
-			state->current_libinput_category->pointer_speed = 1;
-		}
-	} else if (!strcasecmp(nodename, "tap")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		state->current_libinput_category->tap = ret
-			? LIBINPUT_CONFIG_TAP_ENABLED
-			: LIBINPUT_CONFIG_TAP_DISABLED;
-	} else if (!strcasecmp(nodename, "tapButtonMap")) {
-		if (!strcmp(content, "lrm")) {
-			state->current_libinput_category->tap_button_map =
-				LIBINPUT_CONFIG_TAP_MAP_LRM;
-		} else if (!strcmp(content, "lmr")) {
-			state->current_libinput_category->tap_button_map =
-				LIBINPUT_CONFIG_TAP_MAP_LMR;
-		} else {
-			wlr_log(WLR_ERROR, "invalid tapButtonMap");
-		}
-	} else if (!strcasecmp(nodename, "tapAndDrag")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		state->current_libinput_category->tap_and_drag = ret
-			? LIBINPUT_CONFIG_DRAG_ENABLED
-			: LIBINPUT_CONFIG_DRAG_DISABLED;
-	} else if (!strcasecmp(nodename, "dragLock")) {
-		if (!strcasecmp(content, "timeout")) {
-			/* "timeout" enables drag-lock with timeout */
-			state->current_libinput_category->drag_lock =
-				LIBINPUT_CONFIG_DRAG_LOCK_ENABLED;
-			return;
-		}
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		/* "yes" enables drag-lock, without timeout if libinput >= 1.27 */
-		int enabled = LIBINPUT_CONFIG_DRAG_LOCK_ENABLED;
+			/*
+			 * If we couldn't match against any of those terms, we
+			 * use the provided value to define the device name
+			 * that the settings should be applicable to.
+			 */
+			if (category->type == LAB_LIBINPUT_DEVICE_NONE) {
+				xstrdup_replace(category->name, content);
+			}
+		} else if (!strcasecmp(key, "naturalScroll")) {
+			set_bool_as_int(content, &category->natural_scroll);
+		} else if (!strcasecmp(key, "leftHanded")) {
+			set_bool_as_int(content, &category->left_handed);
+		} else if (!strcasecmp(key, "pointerSpeed")) {
+			set_float(content, &category->pointer_speed);
+			if (category->pointer_speed < -1) {
+				category->pointer_speed = -1;
+			} else if (category->pointer_speed > 1) {
+				category->pointer_speed = 1;
+			}
+		} else if (!strcasecmp(key, "tap")) {
+			int ret = parse_bool(content, -1);
+			if (ret < 0) {
+				continue;
+			}
+			category->tap = ret
+				? LIBINPUT_CONFIG_TAP_ENABLED
+				: LIBINPUT_CONFIG_TAP_DISABLED;
+		} else if (!strcasecmp(key, "tapButtonMap")) {
+			if (!strcmp(content, "lrm")) {
+				category->tap_button_map =
+					LIBINPUT_CONFIG_TAP_MAP_LRM;
+			} else if (!strcmp(content, "lmr")) {
+				category->tap_button_map =
+					LIBINPUT_CONFIG_TAP_MAP_LMR;
+			} else {
+				wlr_log(WLR_ERROR, "invalid tapButtonMap");
+			}
+		} else if (!strcasecmp(key, "tapAndDrag")) {
+			int ret = parse_bool(content, -1);
+			if (ret < 0) {
+				continue;
+			}
+			category->tap_and_drag = ret
+				? LIBINPUT_CONFIG_DRAG_ENABLED
+				: LIBINPUT_CONFIG_DRAG_DISABLED;
+		} else if (!strcasecmp(key, "dragLock")) {
+			if (!strcasecmp(content, "timeout")) {
+				/* "timeout" enables drag-lock with timeout */
+				category->drag_lock = LIBINPUT_CONFIG_DRAG_LOCK_ENABLED;
+				continue;
+			}
+			int ret = parse_bool(content, -1);
+			if (ret < 0) {
+				continue;
+			}
+			/* "yes" enables drag-lock, without timeout if libinput >= 1.27 */
+			int enabled = LIBINPUT_CONFIG_DRAG_LOCK_ENABLED;
 #if HAVE_LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY
-		enabled = LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY;
+			enabled = LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY;
 #endif
-		state->current_libinput_category->drag_lock = ret ?
-			enabled : LIBINPUT_CONFIG_DRAG_LOCK_DISABLED;
-	} else if (!strcasecmp(nodename, "threeFingerDrag")) {
+			category->drag_lock = ret ?
+				enabled : LIBINPUT_CONFIG_DRAG_LOCK_DISABLED;
+	} else if (!strcasecmp(key, "threeFingerDrag")) {
 #if HAVE_LIBINPUT_CONFIG_3FG_DRAG_ENABLED_3FG
 		if (!strcmp(content, "3")) {
-			state->current_libinput_category->three_finger_drag =
+			category->three_finger_drag =
 				LIBINPUT_CONFIG_3FG_DRAG_ENABLED_3FG;
 		} else if (!strcmp(content, "4")) {
-			state->current_libinput_category->three_finger_drag =
+			category->three_finger_drag =
 				LIBINPUT_CONFIG_3FG_DRAG_ENABLED_4FG;
 		} else {
 			int ret = parse_bool(content, -1);
 			if (ret < 0) {
-				return;
+				continue;
 			}
-			state->current_libinput_category->three_finger_drag = ret
+			category->three_finger_drag = ret
 				? LIBINPUT_CONFIG_3FG_DRAG_ENABLED_3FG
 				: LIBINPUT_CONFIG_3FG_DRAG_DISABLED;
 		}
@@ -813,80 +803,82 @@ fill_libinput_category(char *nodename, char *content, struct parser_state *state
 		wlr_log(WLR_ERROR, "<threeFingerDrag> is only"
 			" supported in libinput >= 1.28");
 #endif
-	} else if (!strcasecmp(nodename, "accelProfile")) {
-		state->current_libinput_category->accel_profile =
-			get_accel_profile(content);
-	} else if (!strcasecmp(nodename, "middleEmulation")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		state->current_libinput_category->middle_emu = ret
-			? LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED
-			: LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
-	} else if (!strcasecmp(nodename, "disableWhileTyping")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			return;
-		}
-		state->current_libinput_category->dwt = ret
-			? LIBINPUT_CONFIG_DWT_ENABLED
-			: LIBINPUT_CONFIG_DWT_DISABLED;
-	} else if (!strcasecmp(nodename, "clickMethod")) {
-		if (!strcasecmp(content, "none")) {
-			state->current_libinput_category->click_method =
-				LIBINPUT_CONFIG_CLICK_METHOD_NONE;
-		} else if (!strcasecmp(content, "clickfinger")) {
-			state->current_libinput_category->click_method =
-				LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
-		} else if (!strcasecmp(content, "buttonAreas")) {
-			state->current_libinput_category->click_method =
-				LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS;
-		} else {
-			wlr_log(WLR_ERROR, "invalid clickMethod");
-		}
-	} else if (!strcasecmp(nodename, "scrollMethod")) {
-		if (!strcasecmp(content, "none")) {
-			state->current_libinput_category->scroll_method =
-				LIBINPUT_CONFIG_SCROLL_NO_SCROLL;
-		} else if (!strcasecmp(content, "edge")) {
-			state->current_libinput_category->scroll_method =
-				LIBINPUT_CONFIG_SCROLL_EDGE;
-		} else if (!strcasecmp(content, "twofinger")) {
-			state->current_libinput_category->scroll_method =
-				LIBINPUT_CONFIG_SCROLL_2FG;
-		} else {
-			wlr_log(WLR_ERROR, "invalid scrollMethod");
-		}
-	} else if (!strcasecmp(nodename, "sendEventsMode")) {
-		state->current_libinput_category->send_events_mode =
-			get_send_events_mode(content);
-	} else if (!strcasecmp(nodename, "calibrationMatrix")) {
-		errno = 0;
-		state->current_libinput_category->have_calibration_matrix = true;
-		float *mat = state->current_libinput_category->calibration_matrix;
-		gchar **elements = g_strsplit(content, " ", -1);
-		guint i = 0;
-		for (; elements[i]; ++i) {
-			char *end_str = NULL;
-			mat[i] = strtof(elements[i], &end_str);
-			if (errno == ERANGE || *end_str != '\0' || i == 6 || *elements[i] == '\0') {
-				wlr_log(WLR_ERROR, "invalid calibration matrix element"
-									" %s (index %d), expect six floats",
-									elements[i], i);
-				state->current_libinput_category->have_calibration_matrix = false;
-				errno = 0;
-				break;
+		} else if (!strcasecmp(key, "accelProfile")) {
+			category->accel_profile =
+				get_accel_profile(content);
+		} else if (!strcasecmp(key, "middleEmulation")) {
+			int ret = parse_bool(content, -1);
+			if (ret < 0) {
+				continue;
 			}
+			category->middle_emu = ret
+				? LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED
+				: LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
+		} else if (!strcasecmp(key, "disableWhileTyping")) {
+			int ret = parse_bool(content, -1);
+			if (ret < 0) {
+				continue;
+			}
+			category->dwt = ret
+				? LIBINPUT_CONFIG_DWT_ENABLED
+				: LIBINPUT_CONFIG_DWT_DISABLED;
+		} else if (!strcasecmp(key, "clickMethod")) {
+			if (!strcasecmp(content, "none")) {
+				category->click_method =
+					LIBINPUT_CONFIG_CLICK_METHOD_NONE;
+			} else if (!strcasecmp(content, "clickfinger")) {
+				category->click_method =
+					LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
+			} else if (!strcasecmp(content, "buttonAreas")) {
+				category->click_method =
+					LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS;
+			} else {
+				wlr_log(WLR_ERROR, "invalid clickMethod");
+			}
+		} else if (!strcasecmp(key, "scrollMethod")) {
+			if (!strcasecmp(content, "none")) {
+				category->scroll_method =
+					LIBINPUT_CONFIG_SCROLL_NO_SCROLL;
+			} else if (!strcasecmp(content, "edge")) {
+				category->scroll_method =
+					LIBINPUT_CONFIG_SCROLL_EDGE;
+			} else if (!strcasecmp(content, "twofinger")) {
+				category->scroll_method =
+					LIBINPUT_CONFIG_SCROLL_2FG;
+			} else {
+				wlr_log(WLR_ERROR, "invalid scrollMethod");
+			}
+		} else if (!strcasecmp(key, "sendEventsMode")) {
+			category->send_events_mode =
+				get_send_events_mode(content);
+		} else if (!strcasecmp(key, "calibrationMatrix")) {
+			errno = 0;
+			category->have_calibration_matrix = true;
+			float *mat = category->calibration_matrix;
+			gchar **elements = g_strsplit(content, " ", -1);
+			guint i = 0;
+			for (; elements[i]; ++i) {
+				char *end_str = NULL;
+				mat[i] = strtof(elements[i], &end_str);
+				if (errno == ERANGE || *end_str != '\0' || i == 6
+						|| *elements[i] == '\0') {
+					wlr_log(WLR_ERROR, "invalid calibration "
+						"matrix element %s (index %d), "
+						"expect six floats", elements[i], i);
+					category->have_calibration_matrix = false;
+					errno = 0;
+					break;
+				}
+			}
+			if (i != 6 && category->have_calibration_matrix) {
+				wlr_log(WLR_ERROR, "wrong number of calibration "
+					"matrix elements, expected 6, got %d", i);
+				category->have_calibration_matrix = false;
+			}
+			g_strfreev(elements);
+		} else if (!strcasecmp(key, "scrollFactor")) {
+			set_double(content, &category->scroll_factor);
 		}
-		if (i != 6 && state->current_libinput_category->have_calibration_matrix) {
-			wlr_log(WLR_ERROR, "wrong number of calibration matrix elements,"
-								" expected 6, got %d", i);
-			state->current_libinput_category->have_calibration_matrix = false;
-		}
-		g_strfreev(elements);
-	} else if (!strcasecmp(nodename, "scrollFactor")) {
-		set_double(content, &state->current_libinput_category->scroll_factor);
 	}
 }
 
@@ -1061,8 +1053,8 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		fill_touch(node);
 		return;
 	}
-	if (state->in_libinput_category) {
-		fill_libinput_category(nodename, content, state);
+	if (!strcasecmp(nodename, "device.libinput")) {
+		fill_libinput_category(node);
 		return;
 	}
 	if (state->in_regions) {

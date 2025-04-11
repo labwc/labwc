@@ -25,6 +25,13 @@ struct test_case {
 		"</action>"
 	"</keybind>"
 }, {
+	"<AAA aaa='111' bbb='222'/>",
+
+	"<AAA>"
+		"<aaa>111</aaa>"
+		"<bbb>222</bbb>"
+	"</AAA>"
+}, {
 	"<AAA aaa.bbb.ccc='111' ddd.ccc='222' eee.bbb.ccc='333'/>",
 
 	"<AAA><ccc>"
@@ -50,10 +57,11 @@ struct test_case {
 }, {
 	"<AAA aaa.bbb='111' bbb='222' ccc.bbb='333'/>",
 
-	"<AAA bbb=\"222\">"
-		"<bbb><aaa>111</aaa></bbb>"
-		"<bbb><ccc>333</ccc></bbb>"
-	"</AAA>",
+	"<AAA><bbb>"
+		"<aaa>111</aaa>"
+		"222"
+		"<ccc>333</ccc>"
+	"</bbb></AAA>",
 }, {
 	"<AAA>"
 		"<BBB aaa.bbb='111'/>"

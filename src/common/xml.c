@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <assert.h>
 #include <glib.h>
 #include <stdbool.h>
 #include <strings.h>
@@ -10,10 +11,6 @@
 static xmlNode*
 create_attribute_tree(const xmlAttr *attr)
 {
-	if (!strchr((char *)attr->name, '.')) {
-		return NULL;
-	}
-
 	gchar **parts = g_strsplit((char *)attr->name, ".", -1);
 	int length = g_strv_length(parts);
 	xmlNode *root_node = NULL;
@@ -34,6 +31,12 @@ create_attribute_tree(const xmlAttr *attr)
 		}
 		parent_node = current_node;
 	}
+
+	/*
+	 * Note: empty attributes or attributes with only dots are forbidden
+	 * and root_node becomes never NULL here.
+	 */
+	assert(root_node);
 
 	xmlChar *content = xmlNodeGetContent(attr->children);
 	xmlNodeSetContent(current_node, content);

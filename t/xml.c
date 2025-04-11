@@ -90,7 +90,7 @@ struct test_case {
 }};
 
 static void
-test_lab_xml_expand_dotted_props(void **state)
+test_lab_xml_expand_dotted_attributes(void **state)
 {
 	(void)state;
 
@@ -99,7 +99,7 @@ test_lab_xml_expand_dotted_props(void **state)
 					NULL, NULL, 0);
 		xmlNode *root = xmlDocGetRootElement(doc);
 
-		lab_xml_expand_dotted_props(root);
+		lab_xml_expand_dotted_attributes(root);
 
 		xmlBuffer *buf = xmlBufferCreate();
 		xmlNodeDump(buf, root->doc, root, 0, 0);
@@ -113,7 +113,7 @@ test_lab_xml_expand_dotted_props(void **state)
 int main(int argc, char **argv)
 {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(test_lab_xml_expand_dotted_props),
+		cmocka_unit_test(test_lab_xml_expand_dotted_attributes),
 	};
 
 	return cmocka_run_group_tests(tests, NULL, NULL);

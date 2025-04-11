@@ -5,7 +5,7 @@
 #include <libxml/tree.h>
 
 /*
- * Converts dotted properties into nested nodes.
+ * Converts dotted attributes into nested nodes.
  * For example, the following node:
  *
  *   <keybind name.action="ShowMenu" menu.action="root-menu"
@@ -24,6 +24,6 @@
  *     </action>
  *   </keybind>
  */
-void lab_xml_expand_dotted_props(xmlNode *root);
+void lab_xml_expand_dotted_attributes(xmlNode *root);
 
 #endif /* LABWC_XML_H */

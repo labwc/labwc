@@ -1416,7 +1416,7 @@ rcxml_parse_xml(struct buf *b)
 	}
 	struct parser_state init_state = {0};
 	xmlNode *root = xmlDocGetRootElement(d);
-	lab_xml_expand_dotted_props(root);
+	lab_xml_expand_dotted_attributes(root);
 	xml_tree_walk(root, &init_state);
 	xmlFreeDoc(d);
 	xmlCleanupParser();

@@ -5,16 +5,16 @@
 #include "common/xml.h"
 
 /*
- * Converts a property A.B.C="X" into <C><B><A>X</A></B></C>
+ * Converts an attribute A.B.C="X" into <C><B><A>X</A></B></C>
  */
 static xmlNode*
-create_prop_tree(const xmlAttr *prop)
+create_attribute_tree(const xmlAttr *attr)
 {
-	if (!strchr((char *)prop->name, '.')) {
+	if (!strchr((char *)attr->name, '.')) {
 		return NULL;
 	}
 
-	gchar **parts = g_strsplit((char *)prop->name, ".", -1);
+	gchar **parts = g_strsplit((char *)attr->name, ".", -1);
 	int length = g_strv_length(parts);
 	xmlNode *root_node = NULL;
 	xmlNode *parent_node = NULL;
@@ -35,7 +35,7 @@ create_prop_tree(const xmlAttr *prop)
 		parent_node = current_node;
 	}
 
-	xmlChar *content = xmlNodeGetContent(prop->children);
+	xmlChar *content = xmlNodeGetContent(attr->children);
 	xmlNodeSetContent(current_node, content);
 	xmlFree(content);
 
@@ -45,7 +45,7 @@ create_prop_tree(const xmlAttr *prop)
 
 /*
  * Consider <keybind name.action="ShowMenu" x.position.action="1" y.position="2" />.
- * These three properties are represented by following trees.
+ * These three attributes are represented by following trees.
  *    action(dst)---name
  *    action(src)---position---x
  *    action--------position---y
@@ -86,7 +86,7 @@ merge_two_trees(xmlNode *dst, xmlNode *src)
 }
 
 void
-lab_xml_expand_dotted_props(xmlNode *parent)
+lab_xml_expand_dotted_attributes(xmlNode *parent)
 {
 	xmlNode *old_first_child = parent->children;
 	xmlNode *prev_tree = NULL;
@@ -95,13 +95,13 @@ lab_xml_expand_dotted_props(xmlNode *parent)
 		return;
 	}
 
-	for (xmlAttr *prop = parent->properties; prop;) {
-		/* Convert the property with dots into an xml tree */
-		xmlNode *tree = create_prop_tree(prop);
+	for (xmlAttr *attr = parent->properties; attr;) {
+		/* Convert the attribute with dots into an xml tree */
+		xmlNode *tree = create_attribute_tree(attr);
 		if (!tree) {
-			/* The property doesn't contain dots */
+			/* The attribute doesn't contain dots */
 			prev_tree = NULL;
-			prop = prop->next;
+			attr = attr->next;
 			continue;
 		}
 
@@ -116,12 +116,12 @@ lab_xml_expand_dotted_props(xmlNode *parent)
 			prev_tree = tree;
 		}
 
-		xmlAttr *next_prop = prop->next;
-		xmlRemoveProp(prop);
-		prop = next_prop;
+		xmlAttr *next_attr = attr->next;
+		xmlRemoveProp(attr);
+		attr = next_attr;
 	}
 
 	for (xmlNode *node = parent->children; node; node = node->next) {
-		lab_xml_expand_dotted_props(node);
+		lab_xml_expand_dotted_attributes(node);
 	}
 }

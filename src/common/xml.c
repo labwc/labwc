@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <strings.h>
 #include "common/xml.h"
+#include "common/parse-bool.h"
 
 /*
  * Converts an attribute A.B.C="X" into <C><B><A>X</A></B></C>
@@ -128,4 +129,70 @@ lab_xml_expand_dotted_attributes(xmlNode *parent)
 	for (xmlNode *node = parent->children; node; node = node->next) {
 		lab_xml_expand_dotted_attributes(node);
 	}
+}
+
+bool
+lab_xml_node_is_leaf(xmlNode *node)
+{
+	if (node->type != XML_ELEMENT_NODE) {
+		return false;
+	}
+	for (xmlNode *child = node->children; child; child = child->next) {
+		if (child->type != XML_TEXT_NODE) {
+			return false;
+		}
+	}
+	return true;
+}
+
+static bool
+get_node(xmlNode *node, const char *key, xmlNode **dst_node, bool leaf_only)
+{
+	for (xmlNode *child = node->last; child; child = child->prev) {
+		if (child->type != XML_ELEMENT_NODE) {
+			continue;
+		}
+		if (leaf_only && !lab_xml_node_is_leaf(child)) {
+			continue;
+		}
+		if (!strcasecmp((char *)child->name, key)) {
+			*dst_node = child;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool
+lab_xml_get_node(xmlNode *node, const char *key, xmlNode **dst_node)
+{
+	return get_node(node, key, dst_node, /* leaf_only */ false);
+}
+
+bool
+lab_xml_get_string(xmlNode *node, const char *key, char *s, size_t len)
+{
+	xmlNode *child;
+	if (get_node(node, key, &child, /* leaf_only */ true)) {
+		xmlChar *content = xmlNodeGetContent(child);
+		g_strlcpy(s, (char *)content, len);
+		xmlFree(content);
+		return true;
+	}
+	return false;
+}
+
+bool
+lab_xml_get_bool(xmlNode *node, const char *key, bool *b)
+{
+	xmlNode *child;
+	if (get_node(node, key, &child, /* leaf_only */ true)) {
+		char *s = (char *)xmlNodeGetContent(child);
+		int ret = parse_bool(s, -1);
+		if (ret >= 0) {
+			*b = ret;
+			return true;
+		}
+	}
+	return false;
 }

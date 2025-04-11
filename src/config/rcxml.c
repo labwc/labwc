@@ -943,6 +943,27 @@ set_font_attr(struct font *font, const char *nodename, const char *content)
 	}
 }
 
+static enum font_place
+enum_font_place(const char *place)
+{
+	if (!place || place[0] == '\0') {
+		return FONT_PLACE_NONE;
+	}
+	if (!strcasecmp(place, "ActiveWindow")) {
+		return FONT_PLACE_ACTIVEWINDOW;
+	} else if (!strcasecmp(place, "InactiveWindow")) {
+		return FONT_PLACE_INACTIVEWINDOW;
+	} else if (!strcasecmp(place, "MenuHeader")) {
+		return FONT_PLACE_MENUHEADER;
+	} else if (!strcasecmp(place, "MenuItem")) {
+		return FONT_PLACE_MENUITEM;
+	} else if (!strcasecmp(place, "OnScreenDisplay")
+			|| !strcasecmp(place, "OSD")) {
+		return FONT_PLACE_OSD;
+	}
+	return FONT_PLACE_UNKNOWN;
+}
+
 static void
 fill_font(char *nodename, char *content, enum font_place place)
 {
@@ -984,27 +1005,6 @@ fill_font(char *nodename, char *content, enum font_place place)
 	default:
 		break;
 	}
-}
-
-static enum font_place
-enum_font_place(const char *place)
-{
-	if (!place || place[0] == '\0') {
-		return FONT_PLACE_NONE;
-	}
-	if (!strcasecmp(place, "ActiveWindow")) {
-		return FONT_PLACE_ACTIVEWINDOW;
-	} else if (!strcasecmp(place, "InactiveWindow")) {
-		return FONT_PLACE_INACTIVEWINDOW;
-	} else if (!strcasecmp(place, "MenuHeader")) {
-		return FONT_PLACE_MENUHEADER;
-	} else if (!strcasecmp(place, "MenuItem")) {
-		return FONT_PLACE_MENUITEM;
-	} else if (!strcasecmp(place, "OnScreenDisplay")
-			|| !strcasecmp(place, "OSD")) {
-		return FONT_PLACE_OSD;
-	}
-	return FONT_PLACE_UNKNOWN;
 }
 
 static void

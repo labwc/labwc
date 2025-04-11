@@ -372,21 +372,29 @@ clear_window_switcher_fields(void)
 }
 
 static void
-fill_window_switcher_field(char *nodename, char *content, struct parser_state *state)
+fill_window_switcher_field(xmlNode *node)
 {
-	if (!strcasecmp(nodename, "field.fields.windowswitcher")) {
-		state->current_field = osd_field_create();
-		wl_list_append(&rc.window_switcher.fields, &state->current_field->link);
-		return;
-	}
+	struct window_switcher_field *field = znew(*field);
+	wl_list_append(&rc.window_switcher.fields, &field->link);
 
-	string_truncate_at_pattern(nodename, ".field.fields.windowswitcher");
-	if (!content) {
-		/* intentionally left empty */
-	} else if (!state->current_field) {
-		wlr_log(WLR_ERROR, "no <field>");
-	} else {
-		osd_field_arg_from_xml_node(state->current_field, nodename, content);
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		osd_field_arg_from_xml_node(field, key, content);
+	}
+}
+
+static void
+fill_window_switcher_fields(xmlNode *node)
+{
+	clear_window_switcher_fields();
+
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (!strcasecmp(key, "field")) {
+			fill_window_switcher_field(child);
+		}
 	}
 }
 
@@ -1072,8 +1080,8 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		fill_regions(node);
 		return;
 	}
-	if (state->in_window_switcher_field) {
-		fill_window_switcher_field(nodename, content, state);
+	if (!strcasecmp(nodename, "fields.windowSwitcher")) {
+		fill_window_switcher_fields(node);
 		return;
 	}
 	if (state->in_window_rules) {
@@ -1428,7 +1436,6 @@ xml_tree_walk(xmlNode *node, struct parser_state *state)
 			continue;
 		}
 		if (!strcasecmp((char *)n->name, "fields")) {
-			clear_window_switcher_fields();
 			state->in_window_switcher_field = true;
 			traverse(n, state);
 			state->in_window_switcher_field = false;

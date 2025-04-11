@@ -5,12 +5,14 @@ test_lib = static_library(
     '../src/common/mem.c',
     '../src/common/string-helpers.c',
     '../src/common/xml.c',
+    '../src/common/parse-bool.c',
   ),
   include_directories: [labwc_inc],
   dependencies: [
 		dep_cmocka,
 		glib,
 		xml2,
+		wlroots,
 	],
 )
 

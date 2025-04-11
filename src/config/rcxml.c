@@ -282,82 +282,82 @@ set_property(const char *str, enum property *variable)
 	*variable = ret ? LAB_PROP_TRUE : LAB_PROP_FALSE;
 }
 
+static void append_actions(xmlNode *node, struct wl_list *list);
+
 static void
-fill_window_rule(char *nodename, char *content, struct parser_state *state)
+fill_window_rule(xmlNode *node)
 {
-	if (!strcasecmp(nodename, "windowRule.windowRules")) {
-		state->current_window_rule = znew(*state->current_window_rule);
-		state->current_window_rule->window_type = -1; // Window types are >= 0
-		wl_list_append(&rc.window_rules, &state->current_window_rule->link);
-		wl_list_init(&state->current_window_rule->actions);
-		return;
+	struct window_rule *window_rule = znew(*window_rule);
+	window_rule->window_type = -1; // Window types are >= 0
+	wl_list_append(&rc.window_rules, &window_rule->link);
+	wl_list_init(&window_rule->actions);
+
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		/* Criteria */
+		if (!strcmp(key, "identifier")) {
+			xstrdup_replace(window_rule->identifier, content);
+		} else if (!strcmp(key, "title")) {
+			xstrdup_replace(window_rule->title, content);
+		} else if (!strcmp(key, "type")) {
+			window_rule->window_type = parse_window_type(content);
+		} else if (!strcasecmp(key, "matchOnce")) {
+			set_bool(content, &window_rule->match_once);
+		} else if (!strcasecmp(key, "sandboxEngine")) {
+			xstrdup_replace(window_rule->sandbox_engine, content);
+		} else if (!strcasecmp(key, "sandboxAppId")) {
+			xstrdup_replace(window_rule->sandbox_app_id, content);
+
+		/* Event */
+		} else if (!strcmp(key, "event")) {
+			/*
+			 * This is just in readiness for adding any other types of
+			 * events in the future. We default to onFirstMap anyway.
+			 */
+			if (!strcasecmp(content, "onFirstMap")) {
+				window_rule->event = LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP;
+			}
+
+		/* Properties */
+		} else if (!strcasecmp(key, "serverDecoration")) {
+			set_property(content, &window_rule->server_decoration);
+		} else if (!strcasecmp(key, "iconPriority")) {
+			if (!strcasecmp(content, "client")) {
+				window_rule->icon_prefer_client = LAB_PROP_TRUE;
+			} else if (!strcasecmp(content, "server")) {
+				window_rule->icon_prefer_client = LAB_PROP_FALSE;
+			} else {
+				wlr_log(WLR_ERROR,
+					"Invalid value for window rule property 'iconPriority'");
+			}
+		} else if (!strcasecmp(key, "skipTaskbar")) {
+			set_property(content, &window_rule->skip_taskbar);
+		} else if (!strcasecmp(key, "skipWindowSwitcher")) {
+			set_property(content, &window_rule->skip_window_switcher);
+		} else if (!strcasecmp(key, "ignoreFocusRequest")) {
+			set_property(content, &window_rule->ignore_focus_request);
+		} else if (!strcasecmp(key, "ignoreConfigureRequest")) {
+			set_property(content, &window_rule->ignore_configure_request);
+		} else if (!strcasecmp(key, "fixedPosition")) {
+			set_property(content, &window_rule->fixed_position);
+		}
 	}
 
-	string_truncate_at_pattern(nodename, ".windowrule.windowrules");
-	if (!content) {
-		/* nop */
-	} else if (!state->current_window_rule) {
-		wlr_log(WLR_ERROR, "no window-rule");
+	append_actions(node, &window_rule->actions);
+}
 
-	/* Criteria */
-	} else if (!strcmp(nodename, "identifier")) {
-		xstrdup_replace(state->current_window_rule->identifier, content);
-	} else if (!strcmp(nodename, "title")) {
-		xstrdup_replace(state->current_window_rule->title, content);
-	} else if (!strcmp(nodename, "type")) {
-		state->current_window_rule->window_type = parse_window_type(content);
-	} else if (!strcasecmp(nodename, "matchOnce")) {
-		set_bool(content, &state->current_window_rule->match_once);
-	} else if (!strcasecmp(nodename, "sandboxEngine")) {
-		xstrdup_replace(state->current_window_rule->sandbox_engine, content);
-	} else if (!strcasecmp(nodename, "sandboxAppId")) {
-		xstrdup_replace(state->current_window_rule->sandbox_app_id, content);
+static void
+fill_window_rules(xmlNode *node)
+{
+	/* TODO: make sure <windowRules> is empty here */
 
-	/* Event */
-	} else if (!strcmp(nodename, "event")) {
-		/*
-		 * This is just in readiness for adding any other types of
-		 * events in the future. We default to onFirstMap anyway.
-		 */
-		if (!strcasecmp(content, "onFirstMap")) {
-			state->current_window_rule->event = LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP;
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (!strcasecmp(key, "windowRule")) {
+			fill_window_rule(child);
 		}
-
-	/* Properties */
-	} else if (!strcasecmp(nodename, "serverDecoration")) {
-		set_property(content, &state->current_window_rule->server_decoration);
-	} else if (!strcasecmp(nodename, "iconPriority")) {
-		if (!strcasecmp(content, "client")) {
-			state->current_window_rule->icon_prefer_client = LAB_PROP_TRUE;
-		} else if (!strcasecmp(content, "server")) {
-			state->current_window_rule->icon_prefer_client = LAB_PROP_FALSE;
-		} else {
-			wlr_log(WLR_ERROR,
-				"Invalid value for window rule property 'iconPriority'");
-		}
-	} else if (!strcasecmp(nodename, "skipTaskbar")) {
-		set_property(content, &state->current_window_rule->skip_taskbar);
-	} else if (!strcasecmp(nodename, "skipWindowSwitcher")) {
-		set_property(content, &state->current_window_rule->skip_window_switcher);
-	} else if (!strcasecmp(nodename, "ignoreFocusRequest")) {
-		set_property(content, &state->current_window_rule->ignore_focus_request);
-	} else if (!strcasecmp(nodename, "ignoreConfigureRequest")) {
-		set_property(content, &state->current_window_rule->ignore_configure_request);
-	} else if (!strcasecmp(nodename, "fixedPosition")) {
-		set_property(content, &state->current_window_rule->fixed_position);
-
-	/* Actions */
-	} else if (!strcmp(nodename, "name.action")) {
-		state->current_window_rule_action = action_create(content);
-		if (state->current_window_rule_action) {
-			wl_list_append(&state->current_window_rule->actions,
-				&state->current_window_rule_action->link);
-		}
-	} else if (!state->current_window_rule_action) {
-		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
-			"nodename: '%s' content: '%s'", nodename, content);
-	} else {
-		action_arg_from_xml_node(state->current_window_rule_action, nodename, content);
 	}
 }
 
@@ -486,8 +486,6 @@ fill_action_query(struct action *action, xmlNode *node, struct view_query *query
 		}
 	}
 }
-
-static void append_actions(xmlNode *node, struct wl_list *list);
 
 static void
 parse_action_args(xmlNode *node, struct action *action)
@@ -1084,8 +1082,8 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		fill_window_switcher_fields(node);
 		return;
 	}
-	if (state->in_window_rules) {
-		fill_window_rule(nodename, content, state);
+	if (!strcasecmp(nodename, "windowRules")) {
+		fill_window_rules(node);
 		return;
 	}
 

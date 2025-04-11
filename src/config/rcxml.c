@@ -425,36 +425,6 @@ fill_region(char *nodename, char *content, struct parser_state *state)
 static void
 fill_action_query(struct action *action, xmlNode *node, struct view_query *query)
 {
-/*
-	if (!action) {
-		wlr_log(WLR_ERROR, "No parent action for query: %s=%s", nodename, content);
-		return;
-	}
-
-	string_truncate_at_pattern(nodename, ".keybind.keyboard");
-	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
-
-	if (!strcasecmp(nodename, "query.action")) {
-		state->current_view_query = NULL;
-	}
-
-	string_truncate_at_pattern(nodename, ".query.action");
-
-	if (!content) {
-		return;
-	}
-
-	if (!state->current_view_query) {
-		struct wl_list *queries = action_get_querylist(action, "query");
-		if (!queries) {
-			action_arg_add_querylist(action, "query");
-			queries = action_get_querylist(action, "query");
-		}
-		state->current_view_query = view_query_create();
-		wl_list_append(queries, &state->current_view_query->link);
-	}
-*/
-
 	xmlNode *child;
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {

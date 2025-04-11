@@ -10,6 +10,12 @@
 bool string_null_or_empty(const char *s);
 
 /**
+ * str_space_only - Check if the string only contains white-space characters
+ * @s: string to check
+ */
+bool str_space_only(const char *s);
+
+/**
  * trim_last_field() - Trim last field of string splitting on provided delim
  * @buf: string to trim
  * @delim: delimitator

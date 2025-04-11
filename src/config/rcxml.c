@@ -670,6 +670,33 @@ fill_touch(xmlNode *node)
 	}
 }
 
+static void
+fill_tablet_button_map(xmlNode *node)
+{
+	uint32_t map_from = UINT32_MAX;
+	uint32_t map_to = UINT32_MAX;
+	char map_from_buf[256];
+	char map_to_buf[256];
+
+	if (lab_xml_get_string(node, "button", map_from_buf, sizeof(map_from_buf))) {
+		map_from = tablet_button_from_str(map_from_buf);
+	}
+	if (map_from == UINT32_MAX) {
+		wlr_log(WLR_ERROR, "Invalid 'button' argument for tablet button mapping");
+		return;
+	}
+
+	if (lab_xml_get_string(node, "to", map_to_buf, sizeof(map_to_buf))) {
+		map_to = mousebind_button_from_str(map_to_buf, NULL);
+	}
+	if (map_to == UINT32_MAX) {
+		wlr_log(WLR_ERROR, "Invalid 'to' argument for tablet button mapping");
+		return;
+	}
+
+	tablet_button_mapping_add(map_from, map_to);
+}
+
 static int
 get_accel_profile(const char *s)
 {
@@ -970,8 +997,6 @@ set_tearing_mode(const char *str, enum tearing_mode *variable)
 static void
 entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 {
-	static uint32_t button_map_from;
-
 	if (!nodename) {
 		return;
 	}
@@ -1018,6 +1043,10 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		fill_font(node);
 		return;
 	}
+	if (!strcasecmp(nodename, "map.tablet")) {
+		fill_tablet_button_map(node);
+		return;
+	}
 
 	/* handle nodes without content, e.g. <keyboard><default /> */
 	if (!strcmp(nodename, "default.keyboard")) {
@@ -1027,11 +1056,6 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 	if (!strcmp(nodename, "devault.mouse")
 			|| !strcmp(nodename, "default.mouse")) {
 		load_default_mouse_bindings();
-		return;
-	}
-
-	if (!strcasecmp(nodename, "map.tablet")) {
-		button_map_from = UINT32_MAX;
 		return;
 	}
 
@@ -1249,17 +1273,6 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		rc.tablet.box.width = tablet_get_dbl_if_positive(content, "width");
 	} else if (!strcasecmp(nodename, "height.area.tablet")) {
 		rc.tablet.box.height = tablet_get_dbl_if_positive(content, "height");
-	} else if (!strcasecmp(nodename, "button.map.tablet")) {
-		button_map_from = tablet_button_from_str(content);
-	} else if (!strcasecmp(nodename, "to.map.tablet")) {
-		if (button_map_from != UINT32_MAX) {
-			uint32_t button_map_to = mousebind_button_from_str(content, NULL);
-			if (button_map_to != UINT32_MAX) {
-				tablet_button_mapping_add(button_map_from, button_map_to);
-			}
-		} else {
-			wlr_log(WLR_ERROR, "Missing 'button' argument for tablet button mapping");
-		}
 	} else if (!strcasecmp(nodename, "motion.tabletTool")) {
 		rc.tablet_tool.motion = tablet_parse_motion(content);
 	} else if (!strcasecmp(nodename, "relativeMotionSensitivity.tabletTool")) {

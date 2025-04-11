@@ -965,45 +965,50 @@ enum_font_place(const char *place)
 }
 
 static void
-fill_font(char *nodename, char *content, enum font_place place)
+fill_font(xmlNode *node)
 {
-	if (!content) {
-		return;
+	enum font_place font_place = FONT_PLACE_NONE;
+	char buf[256];
+	if (lab_xml_get_string(node, "place", buf, sizeof(buf))) {
+		font_place = enum_font_place(buf);
 	}
-	string_truncate_at_pattern(nodename, ".font.theme");
 
-	switch (place) {
-	case FONT_PLACE_NONE:
-		/*
-		 * If <theme><font></font></theme> is used without a place=""
-		 * attribute, we set all font variables
-		 */
-		set_font_attr(&rc.font_activewindow, nodename, content);
-		set_font_attr(&rc.font_inactivewindow, nodename, content);
-		set_font_attr(&rc.font_menuheader, nodename, content);
-		set_font_attr(&rc.font_menuitem, nodename, content);
-		set_font_attr(&rc.font_osd, nodename, content);
-		break;
-	case FONT_PLACE_ACTIVEWINDOW:
-		set_font_attr(&rc.font_activewindow, nodename, content);
-		break;
-	case FONT_PLACE_INACTIVEWINDOW:
-		set_font_attr(&rc.font_inactivewindow, nodename, content);
-		break;
-	case FONT_PLACE_MENUHEADER:
-		set_font_attr(&rc.font_menuheader, nodename, content);
-		break;
-	case FONT_PLACE_MENUITEM:
-		set_font_attr(&rc.font_menuitem, nodename, content);
-		break;
-	case FONT_PLACE_OSD:
-		set_font_attr(&rc.font_osd, nodename, content);
-		break;
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		switch (font_place) {
+		case FONT_PLACE_NONE:
+			/*
+			 * If <theme><font></font></theme> is used without a
+			 * place="" attribute, we set all font variables
+			 */
+			set_font_attr(&rc.font_activewindow, key, content);
+			set_font_attr(&rc.font_inactivewindow, key, content);
+			set_font_attr(&rc.font_menuheader, key, content);
+			set_font_attr(&rc.font_menuitem, key, content);
+			set_font_attr(&rc.font_osd, key, content);
+			break;
+		case FONT_PLACE_ACTIVEWINDOW:
+			set_font_attr(&rc.font_activewindow, key, content);
+			break;
+		case FONT_PLACE_INACTIVEWINDOW:
+			set_font_attr(&rc.font_inactivewindow, key, content);
+			break;
+		case FONT_PLACE_MENUHEADER:
+			set_font_attr(&rc.font_menuheader, key, content);
+			break;
+		case FONT_PLACE_MENUITEM:
+			set_font_attr(&rc.font_menuitem, key, content);
+			break;
+		case FONT_PLACE_OSD:
+			set_font_attr(&rc.font_osd, key, content);
+			break;
 
-		/* TODO: implement for all font places */
+			/* TODO: implement for all font places */
 
-	default:
-		break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -1039,9 +1044,6 @@ set_tearing_mode(const char *str, enum tearing_mode *variable)
 static void
 entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 {
-	/* current <theme><font place=""></font></theme> */
-	static enum font_place font_place = FONT_PLACE_NONE;
-
 	static uint32_t button_map_from;
 
 	if (!nodename) {
@@ -1086,6 +1088,10 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		fill_window_rules(node);
 		return;
 	}
+	if (!strcasecmp(nodename, "font.theme")) {
+		fill_font(node);
+		return;
+	}
 
 	/* handle nodes without content, e.g. <keyboard><default /> */
 	if (!strcmp(nodename, "default.keyboard")) {
@@ -1123,12 +1129,6 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 	 */
 	if (!content) {
 		return;
-	}
-	if (!strcmp(nodename, "place.font.theme")) {
-		font_place = enum_font_place(content);
-		if (font_place == FONT_PLACE_UNKNOWN) {
-			wlr_log(WLR_ERROR, "invalid font place %s", content);
-		}
 	}
 
 	if (!strcmp(nodename, "decoration.core")) {
@@ -1178,14 +1178,6 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		set_bool(content, &rc.shadows_enabled);
 	} else if (!strcasecmp(nodename, "dropShadowsOnTiled.theme")) {
 		set_bool(content, &rc.shadows_on_tiled);
-	} else if (!strcmp(nodename, "name.font.theme")) {
-		fill_font(nodename, content, font_place);
-	} else if (!strcmp(nodename, "size.font.theme")) {
-		fill_font(nodename, content, font_place);
-	} else if (!strcmp(nodename, "slant.font.theme")) {
-		fill_font(nodename, content, font_place);
-	} else if (!strcmp(nodename, "weight.font.theme")) {
-		fill_font(nodename, content, font_place);
 	} else if (!strcasecmp(nodename, "followMouse.focus")) {
 		set_bool(content, &rc.focus_follow_mouse);
 	} else if (!strcasecmp(nodename, "followMouseRequiresMovement.focus")) {

@@ -38,35 +38,6 @@
 #include "window-rules.h"
 #include "workspaces.h"
 
-struct parser_state {
-	bool in_regions;
-	bool in_usable_area_override;
-	bool in_keybind;
-	bool in_mousebind;
-	bool in_touch;
-	bool in_libinput_category;
-	bool in_window_switcher_field;
-	bool in_window_rules;
-	bool in_action_query;
-	bool in_action_then_branch;
-	bool in_action_else_branch;
-	bool in_action_none_branch;
-	struct usable_area_override *current_usable_area_override;
-	struct keybind *current_keybind;
-	struct mousebind *current_mousebind;
-	struct touch_config_entry *current_touch;
-	struct libinput_category *current_libinput_category;
-	const char *current_mouse_context;
-	struct action *current_keybind_action;
-	struct action *current_mousebind_action;
-	struct region *current_region;
-	struct window_switcher_field *current_field;
-	struct window_rule *current_window_rule;
-	struct action *current_window_rule_action;
-	struct view_query *current_view_query;
-	struct action *current_child_action;
-};
-
 /* for backward compatibility of <mouse><scrollFactor> */
 static double mouse_scroll_factor = -1;
 
@@ -1065,12 +1036,10 @@ set_tearing_mode(const char *str, enum tearing_mode *variable)
 	}
 }
 
-static void
-entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
+/* Returns true if the node's children should also be traversed */
+static bool
+entry(xmlNode *node, char *nodename, char *content)
 {
-	if (!nodename) {
-		return;
-	}
 	string_truncate_at_pattern(nodename, ".openbox_config");
 	string_truncate_at_pattern(nodename, ".labwc_config");
 
@@ -1078,81 +1047,45 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		printf("%s: %s\n", nodename, content);
 	}
 
+	/* handle nested nodes */
 	if (!strcasecmp(nodename, "margin")) {
 		fill_usable_area_override(node);
-		return;
-	}
-	if (!strcasecmp(nodename, "keybind.keyboard")) {
+	} else if (!strcasecmp(nodename, "keybind.keyboard")) {
 		fill_keybind(node);
-		return;
-	}
-	if (!strcasecmp(nodename, "context.mouse")) {
+	} else if (!strcasecmp(nodename, "context.mouse")) {
 		fill_mouse_context(node);
-		return;
-	}
-	if (!strcasecmp(nodename, "touch")) {
+	} else if (!strcasecmp(nodename, "touch")) {
 		fill_touch(node);
-		return;
-	}
-	if (!strcasecmp(nodename, "device.libinput")) {
+	} else if (!strcasecmp(nodename, "device.libinput")) {
 		fill_libinput_category(node);
-		return;
-	}
-	if (!strcasecmp(nodename, "regions")) {
+	} else if (!strcasecmp(nodename, "regions")) {
 		fill_regions(node);
-		return;
-	}
-	if (!strcasecmp(nodename, "fields.windowSwitcher")) {
+	} else if (!strcasecmp(nodename, "fields.windowSwitcher")) {
 		fill_window_switcher_fields(node);
-		return;
-	}
-	if (!strcasecmp(nodename, "windowRules")) {
+	} else if (!strcasecmp(nodename, "windowRules")) {
 		fill_window_rules(node);
-		return;
-	}
-	if (!strcasecmp(nodename, "font.theme")) {
+	} else if (!strcasecmp(nodename, "font.theme")) {
 		fill_font(node);
-		return;
-	}
-	if (!strcasecmp(nodename, "map.tablet")) {
+	} else if (!strcasecmp(nodename, "map.tablet")) {
 		fill_tablet_button_map(node);
-		return;
-	}
 
 	/* handle nodes without content, e.g. <keyboard><default /> */
-	if (!strcmp(nodename, "default.keyboard")) {
+	} else if (!strcmp(nodename, "default.keyboard")) {
 		load_default_key_bindings();
-		return;
-	}
-	if (!strcmp(nodename, "devault.mouse")
-			|| !strcmp(nodename, "default.mouse")) {
+	} else if (!strcmp(nodename, "default.mouse")) {
 		load_default_mouse_bindings();
-		return;
-	}
+	} else if (!strcasecmp(nodename, "prefix.desktops")) {
+		xstrdup_replace(rc.workspace_config.prefix, content);
 
-	if (!strcasecmp(nodename, "prefix.desktops")) {
-		xstrdup_replace(rc.workspace_config.prefix, content ? content : "");
-		return;
-	}
+	} else if (!lab_xml_node_is_leaf(node)) {
+		/* parse children of nested nodes other than above */
+		return true;
 
-	/*
-	 * Nodenames where we want to honour !content have to be parsed above
-	 * this point. An example of this is:
-	 *
-	 *     <desktops>
-	 *       <prefix></prefix>
-	 *     </desktops>
-	 *
-	 * In the case of the <prefix> element having content, the node will be
-	 * processed twice; first for the element itself (with no content) and
-	 * then the content itself. In this situation xstrdup_replace() is
-	 * called twice, but the end result is the right one.
-	 */
-	if (!content) {
-		return;
-	}
+	} else if (str_space_only(content)) {
+		/* ignore empty leaf nodes other than above */
 
-	if (!strcmp(nodename, "decoration.core")) {
+	/* handle non-empty leaf nodes */
+	} else if (!strcmp(nodename, "decoration.core")) {
 		if (!strcmp(content, "client")) {
 			rc.xdg_shell_server_side_deco = false;
 		} else {
@@ -1361,117 +1294,22 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 	} else if (!strcasecmp(nodename, "useFilter.magnifier")) {
 		set_bool(content, &rc.mag_filter);
 	}
+
+	return false;
 }
 
 static void
-process_node(xmlNode *node, struct parser_state *state)
+traverse(xmlNode *node)
 {
-	char *content;
-	static char buffer[256];
-	char *name;
-
-	content = (char *)node->content;
-	if (xmlIsBlankNode(node)) {
-		return;
-	}
-	name = nodename(node, buffer, sizeof(buffer));
-	entry(node, name, content, state);
-}
-
-static void xml_tree_walk(xmlNode *node, struct parser_state *state);
-
-static void
-traverse(xmlNode *n, struct parser_state *state)
-{
-	xmlAttr *attr;
-
-	process_node(n, state);
-	for (attr = n->properties; attr; attr = attr->next) {
-		xml_tree_walk(attr->children, state);
-	}
-	xml_tree_walk(n->children, state);
-}
-
-static void
-xml_tree_walk(xmlNode *node, struct parser_state *state)
-{
-	for (xmlNode *n = node; n && n->name; n = n->next) {
-		if (!strcasecmp((char *)n->name, "comment")) {
-			continue;
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		(void)key;
+		char buffer[256];
+		char *name = nodename(child, buffer, sizeof(buffer));
+		if (entry(child, name, content)) {
+			traverse(child);
 		}
-		if (!strcasecmp((char *)n->name, "margin")) {
-			state->in_usable_area_override = true;
-			traverse(n, state);
-			state->in_usable_area_override = false;
-			continue;
-		}
-		if (!strcasecmp((char *)n->name, "keybind")) {
-			state->in_keybind = true;
-			traverse(n, state);
-			state->in_keybind = false;
-			continue;
-		}
-		if (!strcasecmp((char *)n->name, "mousebind")) {
-			state->in_mousebind = true;
-			traverse(n, state);
-			state->in_mousebind = false;
-			continue;
-		}
-		if (!strcasecmp((char *)n->name, "touch")) {
-			state->in_touch = true;
-			traverse(n, state);
-			state->in_touch = false;
-			continue;
-		}
-		if (!strcasecmp((char *)n->name, "device")) {
-			state->in_libinput_category = true;
-			traverse(n, state);
-			state->in_libinput_category = false;
-			continue;
-		}
-		if (!strcasecmp((char *)n->name, "regions")) {
-			state->in_regions = true;
-			traverse(n, state);
-			state->in_regions = false;
-			continue;
-		}
-		if (!strcasecmp((char *)n->name, "fields")) {
-			state->in_window_switcher_field = true;
-			traverse(n, state);
-			state->in_window_switcher_field = false;
-			continue;
-		}
-		if (!strcasecmp((char *)n->name, "windowRules")) {
-			state->in_window_rules = true;
-			traverse(n, state);
-			state->in_window_rules = false;
-			continue;
-		}
-		if (!strcasecmp((char *)n->name, "query")) {
-			state->in_action_query = true;
-			traverse(n, state);
-			state->in_action_query = false;
-			continue;
-		}
-		if (!strcasecmp((char *)n->name, "then")) {
-			state->in_action_then_branch = true;
-			traverse(n, state);
-			state->in_action_then_branch = false;
-			continue;
-		}
-		if (!strcasecmp((char *)n->name, "else")) {
-			state->in_action_else_branch = true;
-			traverse(n, state);
-			state->in_action_else_branch = false;
-			continue;
-		}
-		if (!strcasecmp((char *)n->name, "none")) {
-			state->in_action_none_branch = true;
-			traverse(n, state);
-			state->in_action_none_branch = false;
-			continue;
-		}
-		traverse(n, state);
 	}
 }
 
@@ -1485,10 +1323,11 @@ rcxml_parse_xml(struct buf *b)
 		wlr_log(WLR_ERROR, "error parsing config file");
 		return;
 	}
-	struct parser_state init_state = {0};
 	xmlNode *root = xmlDocGetRootElement(d);
+
 	lab_xml_expand_dotted_attributes(root);
-	xml_tree_walk(root, &init_state);
+	traverse(root);
+
 	xmlFreeDoc(d);
 	xmlCleanupParser();
 }

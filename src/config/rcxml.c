@@ -432,112 +432,141 @@ fill_region(char *nodename, char *content, struct parser_state *state)
 }
 
 static void
-fill_action_query(char *nodename, char *content, struct action *action, struct parser_state *state)
+fill_action_query(struct action *action, xmlNode *node, struct view_query *query)
 {
-	if (!action) {
-		wlr_log(WLR_ERROR, "No parent action for query: %s=%s", nodename, content);
-		return;
-	}
-
-	string_truncate_at_pattern(nodename, ".keybind.keyboard");
-	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
-
-	if (!strcasecmp(nodename, "query.action")) {
-		state->current_view_query = NULL;
-	}
-
-	string_truncate_at_pattern(nodename, ".query.action");
-
-	if (!content) {
-		return;
-	}
-
-	if (!state->current_view_query) {
-		struct wl_list *queries = action_get_querylist(action, "query");
-		if (!queries) {
-			action_arg_add_querylist(action, "query");
-			queries = action_get_querylist(action, "query");
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (!strcasecmp(key, "identifier")) {
+			xstrdup_replace(query->identifier, content);
+		} else if (!strcasecmp(key, "title")) {
+			xstrdup_replace(query->title, content);
+		} else if (!strcmp(key, "type")) {
+			query->window_type = parse_window_type(content);
+		} else if (!strcasecmp(key, "sandboxEngine")) {
+			xstrdup_replace(query->sandbox_engine, content);
+		} else if (!strcasecmp(key, "sandboxAppId")) {
+			xstrdup_replace(query->sandbox_app_id, content);
+		} else if (!strcasecmp(key, "shaded")) {
+			query->shaded = parse_three_state(content);
+		} else if (!strcasecmp(key, "maximized")) {
+			query->maximized = view_axis_parse(content);
+		} else if (!strcasecmp(key, "iconified")) {
+			query->iconified = parse_three_state(content);
+		} else if (!strcasecmp(key, "focused")) {
+			query->focused = parse_three_state(content);
+		} else if (!strcasecmp(key, "omnipresent")) {
+			query->omnipresent = parse_three_state(content);
+		} else if (!strcasecmp(key, "tiled")) {
+			query->tiled = view_edge_parse(content);
+		} else if (!strcasecmp(key, "tiled_region")) {
+			xstrdup_replace(query->tiled_region, content);
+		} else if (!strcasecmp(key, "desktop")) {
+			xstrdup_replace(query->desktop, content);
+		} else if (!strcasecmp(key, "decoration")) {
+			query->decoration = ssd_mode_parse(content);
+		} else if (!strcasecmp(key, "monitor")) {
+			xstrdup_replace(query->monitor, content);
 		}
-		state->current_view_query = view_query_create();
-		wl_list_append(queries, &state->current_view_query->link);
-	}
-
-	if (!strcasecmp(nodename, "identifier")) {
-		xstrdup_replace(state->current_view_query->identifier, content);
-	} else if (!strcasecmp(nodename, "title")) {
-		xstrdup_replace(state->current_view_query->title, content);
-	} else if (!strcmp(nodename, "type")) {
-		state->current_view_query->window_type = parse_window_type(content);
-	} else if (!strcasecmp(nodename, "sandboxEngine")) {
-		xstrdup_replace(state->current_view_query->sandbox_engine, content);
-	} else if (!strcasecmp(nodename, "sandboxAppId")) {
-		xstrdup_replace(state->current_view_query->sandbox_app_id, content);
-	} else if (!strcasecmp(nodename, "shaded")) {
-		state->current_view_query->shaded = parse_three_state(content);
-	} else if (!strcasecmp(nodename, "maximized")) {
-		state->current_view_query->maximized = view_axis_parse(content);
-	} else if (!strcasecmp(nodename, "iconified")) {
-		state->current_view_query->iconified = parse_three_state(content);
-	} else if (!strcasecmp(nodename, "focused")) {
-		state->current_view_query->focused = parse_three_state(content);
-	} else if (!strcasecmp(nodename, "omnipresent")) {
-		state->current_view_query->omnipresent = parse_three_state(content);
-	} else if (!strcasecmp(nodename, "tiled")) {
-		state->current_view_query->tiled = view_edge_parse(content);
-	} else if (!strcasecmp(nodename, "tiled_region")) {
-		xstrdup_replace(state->current_view_query->tiled_region, content);
-	} else if (!strcasecmp(nodename, "desktop")) {
-		xstrdup_replace(state->current_view_query->desktop, content);
-	} else if (!strcasecmp(nodename, "decoration")) {
-		state->current_view_query->decoration = ssd_mode_parse(content);
-	} else if (!strcasecmp(nodename, "monitor")) {
-		xstrdup_replace(state->current_view_query->monitor, content);
 	}
 }
 
+static void append_actions(xmlNode *node, struct wl_list *list);
+
 static void
-fill_child_action(char *nodename, char *content, struct action *parent,
-	const char *branch_name, struct parser_state *state)
+parse_action_args(xmlNode *node, struct action *action)
 {
-	if (!parent) {
-		wlr_log(WLR_ERROR, "No parent action for branch: %s=%s", nodename, content);
-		return;
-	}
-
-	string_truncate_at_pattern(nodename, ".keybind.keyboard");
-	string_truncate_at_pattern(nodename, ".mousebind.context.mouse");
-	string_truncate_at_pattern(nodename, ".then.action");
-	string_truncate_at_pattern(nodename, ".else.action");
-	string_truncate_at_pattern(nodename, ".none.action");
-
-	if (!strcasecmp(nodename, "action")) {
-		state->current_child_action = NULL;
-	}
-
-	if (!content) {
-		return;
-	}
-
-	struct wl_list *siblings = action_get_actionlist(parent, branch_name);
-	if (!siblings) {
-		action_arg_add_actionlist(parent, branch_name);
-		siblings = action_get_actionlist(parent, branch_name);
-	}
-
-	if (!strcasecmp(nodename, "name.action")) {
-		if (!strcasecmp(content, "If") || !strcasecmp(content, "ForEach")) {
-			wlr_log(WLR_ERROR, "action '%s' cannot be a child action", content);
-			return;
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (!strcasecmp(key, "query")) {
+			struct wl_list *querylist =
+				action_get_querylist(action, "query");
+			if (!querylist) {
+				action_arg_add_querylist(action, "query");
+				querylist = action_get_querylist(action, "query");
+			}
+			struct view_query *query = view_query_create();
+			fill_action_query(action, child, query);
+			wl_list_append(querylist, &query->link);
+		} else if (!strcasecmp(key, "then")) {
+			struct wl_list *actions =
+				action_get_actionlist(action, "then");
+			if (!actions) {
+				action_arg_add_actionlist(action, "then");
+				actions = action_get_actionlist(action, "then");
+			}
+			append_actions(child, actions);
+		} else if (!strcasecmp(key, "else")) {
+			struct wl_list *actions =
+				action_get_actionlist(action, "else");
+			if (!actions) {
+				action_arg_add_actionlist(action, "else");
+				actions = action_get_actionlist(action, "else");
+			}
+			append_actions(child, actions);
+		} else if (!strcasecmp(key, "none")) {
+			struct wl_list *actions =
+				action_get_actionlist(action, "none");
+			if (!actions) {
+				action_arg_add_actionlist(action, "none");
+				actions = action_get_actionlist(action, "none");
+			}
+			append_actions(child, actions);
+		} else if (!strcasecmp(key, "name")) {
+			/* Ignore <action name=""> */
+		} else if (lab_xml_node_is_leaf(child)) {
+			/* Handle normal action args */
+			char buffer[256];
+			char *node_name = nodename(child, buffer, sizeof(buffer));
+			action_arg_from_xml_node(action, node_name, content);
+		} else {
+			/* Handle nested args like <position><x> in ShowMenu */
+			parse_action_args(child, action);
 		}
-		state->current_child_action = action_create(content);
-		if (state->current_child_action) {
-			wl_list_append(siblings, &state->current_child_action->link);
+	}
+}
+
+static struct action *
+parse_action(xmlNode *node)
+{
+	char name[256];
+	struct action *action = NULL;
+
+	if (lab_xml_get_string(node, "name", name, sizeof(name))) {
+		action = action_create(name);
+	}
+	if (!action) {
+		return NULL;
+	}
+
+	parse_action_args(node, action);
+	return action;
+}
+
+static void
+append_actions(xmlNode *node, struct wl_list *list)
+{
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (strcasecmp(key, "action")) {
+			continue;
 		}
-	} else if (!state->current_child_action) {
-		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
-			"nodename: '%s' content: '%s'", nodename, content);
-	} else {
-		action_arg_from_xml_node(state->current_child_action, nodename, content);
+		if (lab_xml_node_is_leaf(child)) {
+			/*
+			 * A mousebind contains two types of "action" nodes:
+			 *   <mousebind button="Left" action="Click">
+			 *     <action name="Close" />
+			 *   </mousebind>
+			 * The first node (action="Click") is skipped.
+			 */
+			continue;
+		}
+		struct action *action = parse_action(child);
+		if (action) {
+			wl_list_append(list, &action->link);
+		}
 	}
 }
 
@@ -1055,38 +1084,10 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		fill_usable_area_override(nodename, content, state);
 	}
 	if (state->in_keybind) {
-		if (state->in_action_query) {
-			fill_action_query(nodename, content,
-				state->current_keybind_action, state);
-		} else if (state->in_action_then_branch) {
-			fill_child_action(nodename, content,
-				state->current_keybind_action, "then", state);
-		} else if (state->in_action_else_branch) {
-			fill_child_action(nodename, content,
-				state->current_keybind_action, "else", state);
-		} else if (state->in_action_none_branch) {
-			fill_child_action(nodename, content,
-				state->current_keybind_action, "none", state);
-		} else {
-			fill_keybind(nodename, content, state);
-		}
+		fill_keybind(nodename, content, state);
 	}
 	if (state->in_mousebind) {
-		if (state->in_action_query) {
-			fill_action_query(nodename, content,
-				state->current_mousebind_action, state);
-		} else if (state->in_action_then_branch) {
-			fill_child_action(nodename, content,
-				state->current_mousebind_action, "then", state);
-		} else if (state->in_action_else_branch) {
-			fill_child_action(nodename, content,
-				state->current_mousebind_action, "else", state);
-		} else if (state->in_action_none_branch) {
-			fill_child_action(nodename, content,
-				state->current_mousebind_action, "none", state);
-		} else {
-			fill_mousebind(nodename, content, state);
-		}
+		fill_mousebind(nodename, content, state);
 	}
 	if (state->in_touch) {
 		fill_touch(nodename, content, state);

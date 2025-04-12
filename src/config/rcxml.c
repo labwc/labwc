@@ -359,6 +359,16 @@ fill_window_rule(char *nodename, char *content, struct parser_state *state)
 }
 
 static void
+clear_window_switcher_fields(void)
+{
+	struct window_switcher_field *field, *field_tmp;
+	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.fields, link) {
+		wl_list_remove(&field->link);
+		osd_field_free(field);
+	}
+}
+
+static void
 fill_window_switcher_field(char *nodename, char *content, struct parser_state *state)
 {
 	if (!strcasecmp(nodename, "field.fields.windowswitcher")) {
@@ -1381,6 +1391,7 @@ xml_tree_walk(xmlNode *node, struct parser_state *state)
 			continue;
 		}
 		if (!strcasecmp((char *)n->name, "fields")) {
+			clear_window_switcher_fields();
 			state->in_window_switcher_field = true;
 			traverse(n, state);
 			state->in_window_switcher_field = false;
@@ -2042,11 +2053,7 @@ rcxml_finish(void)
 
 	regions_destroy(NULL, &rc.regions);
 
-	struct window_switcher_field *field, *field_tmp;
-	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.fields, link) {
-		wl_list_remove(&field->link);
-		osd_field_free(field);
-	}
+	clear_window_switcher_fields();
 
 	struct window_rule *rule, *rule_tmp;
 	wl_list_for_each_safe(rule, rule_tmp, &rc.window_rules, link) {

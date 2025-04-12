@@ -202,8 +202,25 @@ fill_section(const char *content, struct wl_list *list, uint32_t *found_buttons)
 }
 
 static void
+clear_title_layout(void)
+{
+	struct title_button *button, *button_tmp;
+	wl_list_for_each_safe(button, button_tmp, &rc.title_buttons_left, link) {
+		wl_list_remove(&button->link);
+		zfree(button);
+	}
+	wl_list_for_each_safe(button, button_tmp, &rc.title_buttons_right, link) {
+		wl_list_remove(&button->link);
+		zfree(button);
+	}
+	rc.title_layout_loaded = false;
+}
+
+static void
 fill_title_layout(char *content)
 {
+	clear_title_layout();
+
 	struct wl_list *sections[] = {
 		&rc.title_buttons_left,
 		&rc.title_buttons_right,
@@ -1978,15 +1995,7 @@ rcxml_finish(void)
 	zfree(rc.workspace_config.prefix);
 	zfree(rc.tablet.output_name);
 
-	struct title_button *p, *p_tmp;
-	wl_list_for_each_safe(p, p_tmp, &rc.title_buttons_left, link) {
-		wl_list_remove(&p->link);
-		zfree(p);
-	}
-	wl_list_for_each_safe(p, p_tmp, &rc.title_buttons_right, link) {
-		wl_list_remove(&p->link);
-		zfree(p);
-	}
+	clear_title_layout();
 
 	struct usable_area_override *area, *area_tmp;
 	wl_list_for_each_safe(area, area_tmp, &rc.usable_area_overrides, link) {

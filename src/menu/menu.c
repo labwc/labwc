@@ -653,7 +653,12 @@ handle_menu_element(xmlNode *n, struct server *server)
 	char *execute = (char *)xmlGetProp(n, (const xmlChar *)"execute");
 	char *id = (char *)xmlGetProp(n, (const xmlChar *)"id");
 
-	if (execute && label && id) {
+	if (!id) {
+		wlr_log(WLR_ERROR, "<menu> without id is not allowed");
+		goto error;
+	}
+
+	if (execute && label) {
 		wlr_log(WLR_DEBUG, "pipemenu '%s:%s:%s'", id, label, execute);
 
 		struct menu *pipemenu = menu_create(server, id, label);
@@ -674,9 +679,9 @@ handle_menu_element(xmlNode *n, struct server *server)
 			current_item_action = NULL;
 			current_item->submenu = pipemenu;
 		}
-	} else if ((label && id) || is_toplevel_static_menu_definition(n, id)) {
+	} else if (label || is_toplevel_static_menu_definition(n, id)) {
 		/*
-		 * (label && id) refers to <menu id="" label=""> which is an
+		 * label != NULL refers to <menu id="" label=""> which is an
 		 * inline menu definition.
 		 *
 		 * is_toplevel_static_menu_definition() catches:
@@ -691,32 +696,25 @@ handle_menu_element(xmlNode *n, struct server *server)
 		 * attribute to make it easier for users to define "root-menu"
 		 * and "client-menu".
 		 */
-		struct menu **submenu = NULL;
+		struct menu *parent_menu = current_menu;
+		current_menu = menu_create(server, id, label);
+		if (icon_name) {
+			current_menu->icon_name = xstrdup(icon_name);
+		}
 		if (menu_level > 0) {
 			/*
 			 * In a nested (inline) menu definition we need to
 			 * create an item pointing to the new submenu
 			 */
-			current_item = item_create(current_menu, label, true);
-			if (current_item) {
-				fill_item("icon", icon_name);
-				submenu = &current_item->submenu;
-			} else {
-				submenu = NULL;
-			}
+			current_item = item_create(parent_menu, label, true);
+			fill_item("icon", icon_name);
+			current_item->submenu = current_menu;
 		}
 		++menu_level;
-		current_menu = menu_create(server, id, label);
-		if (icon_name) {
-			current_menu->icon_name = xstrdup(icon_name);
-		}
-		if (submenu) {
-			*submenu = current_menu;
-		}
 		traverse(n, server);
 		current_menu = current_menu->parent;
 		--menu_level;
-	} else if (id) {
+	} else {
 		/*
 		 * <menu id=""> (when inside another <menu> element) creates an
 		 * entry which points to a menu defined elsewhere.
@@ -733,6 +731,10 @@ handle_menu_element(xmlNode *n, struct server *server)
 		}
 
 		struct menu *menu = menu_get_by_id(server, id);
+		if (!menu) {
+			wlr_log(WLR_ERROR, "no menu with id '%s'", id);
+			goto error;
+		}
 
 		struct menu *iter = current_menu;
 		while (iter) {
@@ -744,15 +746,9 @@ handle_menu_element(xmlNode *n, struct server *server)
 			iter = iter->parent;
 		}
 
-		if (menu) {
-			current_item = item_create(current_menu, menu->label, true);
-			if (current_item) {
-				fill_item("icon", menu->icon_name);
-				current_item->submenu = menu;
-			}
-		} else {
-			wlr_log(WLR_ERROR, "no menu with id '%s'", id);
-		}
+		current_item = item_create(current_menu, menu->label, true);
+		fill_item("icon", menu->icon_name);
+		current_item->submenu = menu;
 	}
 error:
 	free(label);

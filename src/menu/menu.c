@@ -42,7 +42,6 @@ static bool in_item;
 static struct menuitem *current_item;
 static struct action *current_item_action;
 
-static int menu_level;
 static struct menu *current_menu;
 
 static bool waiting_for_pipe_menu;
@@ -585,56 +584,6 @@ traverse(xmlNode *n, struct server *server)
 	xml_tree_walk(n->children, server);
 }
 
-static int
-nr_parents(xmlNode *n)
-{
-	assert(n);
-	int i = 0;
-	for (xmlNode *node = n->parent; node && i < INT_MAX; ++i) {
-		node = node->parent;
-	}
-	return i;
-}
-
-/*
- * Return true for the highest level static menu definitions in the format
- * below. We use the fact that the id-attribute has two nodal parents (<menu>
- * and <openbox_menu>) as the test here.
- *
- *     <openbox_menu>
- *       <menu id="">
- *          ...
- *       </menu>
- *     </openbox_menu>
- *
- * Return false for any other <menu id=""> element which could be either:
- *
- *   (a) one found in a pipemenu; or
- *   (b) one that links to a submenu as follows (but is a child to another
- *       <menu> element.
- *
- *     <menu id="root-menu">
- *       <!-- this links to a sub menu -->
- *       <menu id="submenu-defined-elsewhere"/>
- *     </menu>
- */
-static bool
-is_toplevel_static_menu_definition(xmlNode *n, char *id)
-{
-	/*
-	 * Catch <menu id=""> elements in pipemenus
-	 *
-	 * For pipemenus we cannot just rely on nr_parents() because they have
-	 * their own hierarchy, so we just use the fact that a pipemenu cannot
-	 * be the root-menu.
-	 */
-	if (menu_level) {
-		return false;
-	}
-
-	return id && nr_parents(n) == 2;
-}
-
 static bool parse_buf(struct server *server, struct buf *buf);
 static int handle_pipemenu_readable(int fd, uint32_t mask, void *_ctx);
 static int handle_pipemenu_timeout(void *_ctx);
@@ -679,14 +628,18 @@ handle_menu_element(xmlNode *n, struct server *server)
 			current_item_action = NULL;
 			current_item->submenu = pipemenu;
 		}
-	} else if (label || is_toplevel_static_menu_definition(n, id)) {
+	} else if ((label && current_menu) || !current_menu) {
 		/*
-		 * label != NULL refers to <menu id="" label=""> which is an
-		 * inline menu definition.
+		 * (label && current_menu) refers to <menu id="" label="">
+		 * which is an nested (inline) menu definition.
 		 *
-		 * is_toplevel_static_menu_definition() catches:
+		 * (!current_menu) catches:
 		 *     <openbox_menu>
 		 *       <menu id=""></menu>
+		 *     </openbox_menu>
+		 * or
+		 *     <openbox_menu>
+		 *       <menu id="" label=""></menu>
 		 *     </openbox_menu>
 		 *
 		 * which is the highest level a menu can be defined at.
@@ -701,7 +654,7 @@ handle_menu_element(xmlNode *n, struct server *server)
 		if (icon_name) {
 			current_menu->icon_name = xstrdup(icon_name);
 		}
-		if (menu_level > 0) {
+		if (label && parent_menu) {
 			/*
 			 * In a nested (inline) menu definition we need to
 			 * create an item pointing to the new submenu
@@ -710,10 +663,8 @@ handle_menu_element(xmlNode *n, struct server *server)
 			fill_item("icon", icon_name);
 			current_item->submenu = current_menu;
 		}
-		++menu_level;
 		traverse(n, server);
-		current_menu = current_menu->parent;
-		--menu_level;
+		current_menu = parent_menu;
 	} else {
 		/*
 		 * <menu id=""> (when inside another <menu> element) creates an
@@ -1357,7 +1308,6 @@ create_pipe_menu(struct menu_pipe_context *ctx)
 {
 	struct server *server = ctx->pipemenu->server;
 	struct menu *old_current_menu = current_menu;
-	menu_level++;
 	current_menu = ctx->pipemenu;
 	if (!parse_buf(server, &ctx->buf)) {
 		goto restore_menus;
@@ -1370,7 +1320,6 @@ create_pipe_menu(struct menu_pipe_context *ctx)
 
 restore_menus:
 	current_menu = old_current_menu;
-	menu_level--;
 }
 
 static void

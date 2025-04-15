@@ -49,6 +49,7 @@ data_buffer_destroy(struct wlr_buffer *wlr_buffer)
 	if (!buffer->surface_owns_data) {
 		free(buffer->data);
 	}
+	wlr_buffer_finish(wlr_buffer);
 	free(buffer);
 }
 

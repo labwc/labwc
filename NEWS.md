@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2025-05-02 | [0.8.4]       | 0.18.2          | 27679         |
 | 2025-02-21 | [0.8.3]       | 0.18.2          | 27671         |
 | 2024-12-13 | [0.8.2]       | 0.18.2          | 26298         |
 | 2024-10-25 | [0.8.1]       | 0.18.1          | 25473         |
@@ -33,6 +34,70 @@ The format is based on [Keep a Changelog]
 | 2021-06-28 | [0.3.0]       | 0.14.0          | 5051          |
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
+
+## [0.8.4]
+
+This release predominantly consists of bug-fixes, code simplification and
+usability improvements. Amongst the new features the most noteworthy is the
+addition of icons support in the window-switcher and client-list-combined-menu.
+
+A big thank you to @tokyo4j for leading the way on a lot of work in this
+release.
+
+### Added
+
+- Support all pango font weight options (normal, thin, ultralight, light,
+  semilight, book, medium, semibold, bold, ultrabold, heavy, ultraheavy) via
+  config option `<theme><font><weight>` @spl237 [#2692] [#2693]
+- Add theme option `osd.workspace-switcher.boxes.border.width` @czkz [#2657]
+- Add theme option `osd.window-switcher.item.icon.size` @tokyo4j [#2651]
+- Localize desktop-entry application names used by the window switcher via
+  `desktop_entry_name` or the `%n` specifier @tokyo4j [#2653]
+- Add `HideCursor` action @jp7677 [#2633]
+- Support application icons in window-switcher using `<field content="icon"/>`
+  and use this by default. @tokyo4j [#2621]
+- Support application icons in client-list-combined-menu @tokyo4j [#2617]
+- Support the use of the keypad-enter key when using menu. @zeusgoose [#2610]
+- Show fallback icon in SSD titlebar when no `app_id` is set via
+  `<theme><fallbackAppIcon>` @tokyo4j [#2599]
+
+### Fixed
+
+- Enable overriding of `<touch>` configs to fix `--merge-config` bug @spl237
+  [#2700]
+- Handle initially minimized windows (for example VSCode) to fix a focus and
+  stacking bug @jlindgren90 [#2688] [#2627]
+- Minor window-switcher fix for box size and alignment @czkz [#2657]
+- Overwrite (not amend) configuration entries for `<windowSwitcher><fields>`
+  and `<theme><titlebar><layout>` in support of using --merge-config @tokyo4j
+  [#2669]
+- Consider `item.padding.y` when centering workspace name in window-
+  switcher @tokyo4j [#2651]
+- Notify XWayland of correct window stacking order to fix issue with mouse
+  scroll events and always-on-top windows. @tokyo4j [#2638]
+- Scale and transform magnifier in accordance with output settings @tokyo4j
+  [#2645]
+- Allow only `Previous/NextWindow` action while window switching to prevent
+  undefined behaviour like using `SendToDesktop` while window switching.
+  @tokyo4j [#2613]
+- Harden window stacking order while window switching @tokyo4j [#2613]
+- Do not update cursor while window switching @tokyo4j [#2613]
+- Honor no content `<desktops><prefix>` node because users need a way to
+  override the default "Workspace". @johanmalm [#2601] [#2613]
+
+### Changed
+
+- Change default window-switcher layout to show icons and desktop-entry
+  application name @tokyo4j [#2648]
+- If `<focus><followMouse>` is set to yes, the focus is now updated only when
+  the cursor enters a window content, not when the cursor moves within the
+  whole window including the titlebar. This makes the behaviour consistent with
+  that of kwin, xfwm4 and openbox @tokyo4j [#2652]
+- Show magnifier only on one output to simplify handling of different scales
+  and transforms. @tokyo4j [#2645]
+- Center labwc.svg logo vertically @jlindgren90 [#2619]
+- Increase default `<snapping><range>` to 10 to make it easier to snap windows
+  on the edge between two monitors. @johanmalm [#2602] [#2608]
 
 ## [0.8.3]
 
@@ -1924,7 +1989,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.8.3...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.8.4...HEAD
+[0.8.4]: https://github.com/labwc/labwc/compare/0.8.3...0.8.4
 [0.8.3]: https://github.com/labwc/labwc/compare/0.8.2...0.8.3
 [0.8.2]: https://github.com/labwc/labwc/compare/0.8.1...0.8.2
 [0.8.1]: https://github.com/labwc/labwc/compare/0.8.0...0.8.1
@@ -2273,3 +2339,26 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2577]: https://github.com/labwc/labwc/pull/2577
 [#2578]: https://github.com/labwc/labwc/pull/2578
 [#2580]: https://github.com/labwc/labwc/pull/2580
+[#2599]: https://github.com/labwc/labwc/pull/2599
+[#2601]: https://github.com/labwc/labwc/pull/2601
+[#2602]: https://github.com/labwc/labwc/pull/2602
+[#2608]: https://github.com/labwc/labwc/pull/2608
+[#2610]: https://github.com/labwc/labwc/pull/2610
+[#2613]: https://github.com/labwc/labwc/pull/2613
+[#2617]: https://github.com/labwc/labwc/pull/2617
+[#2619]: https://github.com/labwc/labwc/pull/2619
+[#2621]: https://github.com/labwc/labwc/pull/2621
+[#2627]: https://github.com/labwc/labwc/pull/2627
+[#2633]: https://github.com/labwc/labwc/pull/2633
+[#2638]: https://github.com/labwc/labwc/pull/2638
+[#2645]: https://github.com/labwc/labwc/pull/2645
+[#2648]: https://github.com/labwc/labwc/pull/2648
+[#2651]: https://github.com/labwc/labwc/pull/2651
+[#2652]: https://github.com/labwc/labwc/pull/2652
+[#2653]: https://github.com/labwc/labwc/pull/2653
+[#2657]: https://github.com/labwc/labwc/pull/2657
+[#2669]: https://github.com/labwc/labwc/pull/2669
+[#2688]: https://github.com/labwc/labwc/pull/2688
+[#2692]: https://github.com/labwc/labwc/pull/2692
+[#2693]: https://github.com/labwc/labwc/pull/2693
+[#2700]: https://github.com/labwc/labwc/pull/2700

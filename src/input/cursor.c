@@ -137,9 +137,9 @@ get_toplevel(struct wlr_surface *surface)
 }
 
 static void
-request_cursor_notify(struct wl_listener *listener, void *data)
+handle_request_set_cursor(struct wl_listener *listener, void *data)
 {
-	struct seat *seat = wl_container_of(listener, seat, request_cursor);
+	struct seat *seat = wl_container_of(listener, seat, request_set_cursor);
 
 	if (seat->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		/* Prevent setting a cursor image when moving or resizing */
@@ -193,7 +193,7 @@ request_cursor_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-request_set_shape_notify(struct wl_listener *listener, void *data)
+handle_request_set_shape(struct wl_listener *listener, void *data)
 {
 	struct wlr_cursor_shape_manager_v1_request_set_shape_event *event = data;
 	const char *shape_name = wlr_cursor_shape_v1_name(event->shape);
@@ -228,7 +228,7 @@ request_set_shape_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-request_set_selection_notify(struct wl_listener *listener, void *data)
+handle_request_set_selection(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(
 		listener, seat, request_set_selection);
@@ -238,7 +238,7 @@ request_set_selection_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-request_set_primary_selection_notify(struct wl_listener *listener, void *data)
+handle_request_set_primary_selection(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(
 		listener, seat, request_set_primary_selection);
@@ -843,13 +843,13 @@ preprocess_cursor_motion(struct seat *seat, struct wlr_pointer *pointer,
 }
 
 static void
-cursor_motion(struct wl_listener *listener, void *data)
+handle_motion(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits a
 	 * _relative_ pointer motion event (i.e. a delta)
 	 */
-	struct seat *seat = wl_container_of(listener, seat, cursor_motion);
+	struct seat *seat = wl_container_of(listener, seat, on_cursor.motion);
 	struct server *server = seat->server;
 	struct wlr_pointer_motion_event *event = data;
 	idle_manager_notify_activity(seat->seat);
@@ -866,7 +866,7 @@ cursor_motion(struct wl_listener *listener, void *data)
 }
 
 static void
-cursor_motion_absolute(struct wl_listener *listener, void *data)
+handle_motion_absolute(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits an
@@ -876,8 +876,7 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 	 * window from any edge, so we have to warp the mouse there. There is
 	 * also some hardware which emits these events.
 	 */
-	struct seat *seat = wl_container_of(
-		listener, seat, cursor_motion_absolute);
+	struct seat *seat = wl_container_of(listener, seat, on_cursor.motion_absolute);
 	struct wlr_pointer_motion_absolute_event *event = data;
 	idle_manager_notify_activity(seat->seat);
 	cursor_set_visible(seat, /* visible */ true);
@@ -899,7 +898,7 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_release_mousebinding(struct server *server,
+process_release_mousebinding(struct server *server,
 		struct cursor_context *ctx, uint32_t button)
 {
 	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
@@ -964,7 +963,7 @@ is_double_click(long double_click_speed, uint32_t button,
 }
 
 static bool
-handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
+process_press_mousebinding(struct server *server, struct cursor_context *ctx,
 		uint32_t button)
 {
 	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
@@ -1084,7 +1083,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 
 	/* Bindings to the Frame context swallow mouse events if activated */
 	bool consumed_by_frame_context =
-		handle_press_mousebinding(server, &ctx, button);
+		process_press_mousebinding(server, &ctx, button);
 
 	if (ctx.surface && !consumed_by_frame_context) {
 		/* Notify client with pointer focus of button press */
@@ -1133,7 +1132,7 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 		return notify;
 	}
 
-	handle_release_mousebinding(server, &ctx, button);
+	process_release_mousebinding(server, &ctx, button);
 
 	return notify;
 }
@@ -1167,13 +1166,13 @@ cursor_finish_button_release(struct seat *seat, uint32_t button)
 }
 
 static void
-cursor_button(struct wl_listener *listener, void *data)
+handle_button(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits a button
 	 * event.
 	 */
-	struct seat *seat = wl_container_of(listener, seat, cursor_button);
+	struct seat *seat = wl_container_of(listener, seat, on_cursor.button);
 	struct wlr_pointer_button_event *event = data;
 	idle_manager_notify_activity(seat->seat);
 	cursor_set_visible(seat, /* visible */ true);
@@ -1304,7 +1303,7 @@ compare_delta(const struct wlr_pointer_axis_event *event, double *accum)
 }
 
 static bool
-handle_cursor_axis(struct server *server, struct cursor_context *ctx,
+process_cursor_axis(struct server *server, struct cursor_context *ctx,
 		struct wlr_pointer_axis_event *event)
 {
 	struct mousebind *mousebind;
@@ -1356,13 +1355,13 @@ handle_cursor_axis(struct server *server, struct cursor_context *ctx,
 }
 
 static void
-cursor_axis(struct wl_listener *listener, void *data)
+handle_axis(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits an axis
 	 * event, for example when you move the scroll wheel.
 	 */
-	struct seat *seat = wl_container_of(listener, seat, cursor_axis);
+	struct seat *seat = wl_container_of(listener, seat, on_cursor.axis);
 	struct wlr_pointer_axis_event *event = data;
 	struct server *server = seat->server;
 
@@ -1377,7 +1376,7 @@ cursor_axis(struct wl_listener *listener, void *data)
 	cursor_set_visible(seat, /* visible */ true);
 
 	/* Bindings swallow mouse events if activated */
-	bool handled = handle_cursor_axis(server, &ctx, event);
+	bool handled = process_cursor_axis(server, &ctx, event);
 
 	if (ctx.surface && !handled) {
 		/* Make sure we are sending the events to the surface under the cursor */
@@ -1394,7 +1393,7 @@ cursor_axis(struct wl_listener *listener, void *data)
 }
 
 static void
-cursor_frame(struct wl_listener *listener, void *data)
+handle_frame(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits an frame
@@ -1403,7 +1402,7 @@ cursor_frame(struct wl_listener *listener, void *data)
 	 * at the same time, in which case a frame event won't be sent in
 	 * between.
 	 */
-	struct seat *seat = wl_container_of(listener, seat, cursor_frame);
+	struct seat *seat = wl_container_of(listener, seat, on_cursor.frame);
 	/* Notify the client with pointer focus of the frame event. */
 	wlr_seat_pointer_notify_frame(seat->seat);
 }
@@ -1474,26 +1473,17 @@ cursor_init(struct seat *seat)
 
 	dnd_init(seat);
 
-	seat->cursor_motion.notify = cursor_motion;
-	wl_signal_add(&seat->cursor->events.motion, &seat->cursor_motion);
-	seat->cursor_motion_absolute.notify = cursor_motion_absolute;
-	wl_signal_add(&seat->cursor->events.motion_absolute,
-		&seat->cursor_motion_absolute);
-	seat->cursor_button.notify = cursor_button;
-	wl_signal_add(&seat->cursor->events.button, &seat->cursor_button);
-	seat->cursor_axis.notify = cursor_axis;
-	wl_signal_add(&seat->cursor->events.axis, &seat->cursor_axis);
-	seat->cursor_frame.notify = cursor_frame;
-	wl_signal_add(&seat->cursor->events.frame, &seat->cursor_frame);
+	CONNECT_SIGNAL(seat->cursor, &seat->on_cursor, motion);
+	CONNECT_SIGNAL(seat->cursor, &seat->on_cursor, motion_absolute);
+	CONNECT_SIGNAL(seat->cursor, &seat->on_cursor, button);
+	CONNECT_SIGNAL(seat->cursor, &seat->on_cursor, axis);
+	CONNECT_SIGNAL(seat->cursor, &seat->on_cursor, frame);
 
 	gestures_init(seat);
 	touch_init(seat);
-
 	tablet_init(seat);
 
-	seat->request_cursor.notify = request_cursor_notify;
-	wl_signal_add(&seat->seat->events.request_set_cursor,
-		&seat->request_cursor);
+	CONNECT_SIGNAL(seat->seat, seat, request_set_cursor);
 
 	struct wlr_cursor_shape_manager_v1 *cursor_shape_manager =
 		wlr_cursor_shape_manager_v1_create(seat->server->wl_display,
@@ -1502,34 +1492,26 @@ cursor_init(struct seat *seat)
 		wlr_log(WLR_ERROR, "unable to create cursor_shape interface");
 		exit(EXIT_FAILURE);
 	}
-	seat->request_set_shape.notify = request_set_shape_notify;
-	wl_signal_add(&cursor_shape_manager->events.request_set_shape,
-		&seat->request_set_shape);
 
-	seat->request_set_selection.notify = request_set_selection_notify;
-	wl_signal_add(&seat->seat->events.request_set_selection,
-		&seat->request_set_selection);
-
-	seat->request_set_primary_selection.notify =
-		request_set_primary_selection_notify;
-	wl_signal_add(&seat->seat->events.request_set_primary_selection,
-		&seat->request_set_primary_selection);
+	CONNECT_SIGNAL(cursor_shape_manager, seat, request_set_shape);
+	CONNECT_SIGNAL(seat->seat, seat, request_set_selection);
+	CONNECT_SIGNAL(seat->seat, seat, request_set_primary_selection);
 }
 
 void cursor_finish(struct seat *seat)
 {
-	wl_list_remove(&seat->cursor_motion.link);
-	wl_list_remove(&seat->cursor_motion_absolute.link);
-	wl_list_remove(&seat->cursor_button.link);
-	wl_list_remove(&seat->cursor_axis.link);
-	wl_list_remove(&seat->cursor_frame.link);
+	wl_list_remove(&seat->on_cursor.motion.link);
+	wl_list_remove(&seat->on_cursor.motion_absolute.link);
+	wl_list_remove(&seat->on_cursor.button.link);
+	wl_list_remove(&seat->on_cursor.axis.link);
+	wl_list_remove(&seat->on_cursor.frame.link);
 
 	gestures_finish(seat);
 	touch_finish(seat);
 
 	tablet_finish(seat);
 
-	wl_list_remove(&seat->request_cursor.link);
+	wl_list_remove(&seat->request_set_cursor.link);
 	wl_list_remove(&seat->request_set_shape.link);
 	wl_list_remove(&seat->request_set_selection.link);
 	wl_list_remove(&seat->request_set_primary_selection.link);

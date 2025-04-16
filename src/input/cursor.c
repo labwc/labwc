@@ -490,7 +490,7 @@ process_cursor_motion_out_of_surface(struct server *server,
  */
 static bool
 cursor_update_common(struct server *server, struct cursor_context *ctx,
-		uint32_t time_msec, bool cursor_has_moved, double *sx, double *sy)
+		bool cursor_has_moved, double *sx, double *sy)
 {
 	struct seat *seat = &server->seat;
 	struct wlr_seat *wlr_seat = seat->seat;
@@ -617,7 +617,7 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 	struct wlr_surface *old_focused_surface =
 		seat->seat->pointer_state.focused_surface;
 
-	bool notify = cursor_update_common(server, &ctx, time,
+	bool notify = cursor_update_common(server, &ctx,
 		/* cursor_has_moved */ true, sx, sy);
 
 	struct wlr_surface *new_focused_surface =
@@ -637,18 +637,9 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 	return notify;
 }
 
-static uint32_t
-msec(const struct timespec *t)
-{
-	return t->tv_sec * 1000 + t->tv_nsec / 1000000;
-}
-
 static void
 _cursor_update_focus(struct server *server)
 {
-	struct timespec now;
-	clock_gettime(CLOCK_MONOTONIC, &now);
-
 	/* Focus surface under cursor if it isn't already focused */
 	struct cursor_context ctx = get_cursor_context(server);
 
@@ -663,8 +654,7 @@ _cursor_update_focus(struct server *server)
 	}
 
 	double sx, sy;
-	cursor_update_common(server, &ctx, msec(&now),
-		/*cursor_has_moved*/ false, &sx, &sy);
+	cursor_update_common(server, &ctx, /*cursor_has_moved*/ false, &sx, &sy);
 }
 
 void
@@ -1381,8 +1371,7 @@ handle_axis(struct wl_listener *listener, void *data)
 	if (ctx.surface && !handled) {
 		/* Make sure we are sending the events to the surface under the cursor */
 		double sx, sy;
-		cursor_update_common(server, &ctx, event->time_msec,
-			/*cursor_has_moved*/ false, &sx, &sy);
+		cursor_update_common(server, &ctx, /*cursor_has_moved*/ false, &sx, &sy);
 
 		/* Notify the client with pointer focus of the axis event. */
 		wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,

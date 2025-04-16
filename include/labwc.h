@@ -115,6 +115,7 @@ struct seat {
 	struct {
 		double x, y;
 	} smooth_scroll_offset;
+	bool cursor_scroll_wheel_emulation;
 
 	/*
 	 * The surface whose keyboard focus is temporarily cleared with

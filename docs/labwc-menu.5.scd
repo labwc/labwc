@@ -68,7 +68,11 @@ The menu file must be entirely enclosed within <openbox_menu> and
 
 *menu.label*
 	The title of the menu, shown in its parent. A label must be given when
-	defining a menu.
+	defining a menu unless it is the topmost menu element.
+
+	Note that Openbox requires a label="" defined for topmost elements too,
+	but for simplicity labwc handles these with or without the label
+	attribute.
 
 *menu.icon*
 	An icon to be rendered, shown in its parent. This argument is optional.

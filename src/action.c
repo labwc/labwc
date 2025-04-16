@@ -116,6 +116,9 @@ enum action_type {
 	ACTION_TYPE_SHADE,
 	ACTION_TYPE_UNSHADE,
 	ACTION_TYPE_TOGGLE_SHADE,
+	ACTION_TYPE_ENABLE_SCROLL_WHEEL_EMULATION,
+	ACTION_TYPE_DISABLE_SCROLL_WHEEL_EMULATION,
+	ACTION_TYPE_TOGGLE_SCROLL_WHEEL_EMULATION,
 	ACTION_TYPE_ENABLE_TABLET_MOUSE_EMULATION,
 	ACTION_TYPE_DISABLE_TABLET_MOUSE_EMULATION,
 	ACTION_TYPE_TOGGLE_TABLET_MOUSE_EMULATION,
@@ -182,6 +185,9 @@ const char *action_names[] = {
 	"Shade",
 	"Unshade",
 	"ToggleShade",
+	"EnableScrollWheelEmulation",
+	"DisableScrollWheelEmulation",
+	"ToggleScrollWheelEmulation",
 	"EnableTabletMouseEmulation",
 	"DisableTabletMouseEmulation",
 	"ToggleTabletMouseEmulation",
@@ -1308,6 +1314,16 @@ actions_run(struct view *activator, struct server *server,
 			if (view) {
 				view_set_shade(view, false);
 			}
+			break;
+		case ACTION_TYPE_ENABLE_SCROLL_WHEEL_EMULATION:
+			server->seat.cursor_scroll_wheel_emulation = true;
+			break;
+		case ACTION_TYPE_DISABLE_SCROLL_WHEEL_EMULATION:
+			server->seat.cursor_scroll_wheel_emulation = false;
+			break;
+		case ACTION_TYPE_TOGGLE_SCROLL_WHEEL_EMULATION:
+			server->seat.cursor_scroll_wheel_emulation =
+				!server->seat.cursor_scroll_wheel_emulation;
 			break;
 		case ACTION_TYPE_ENABLE_TABLET_MOUSE_EMULATION:
 			rc.tablet.force_mouse_emulation = true;

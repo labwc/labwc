@@ -86,9 +86,9 @@
   </windowSwitcher>
 
   <!--
-    We support many other kinds of contents in the window switcher like below.
+    Many other kinds of content are supported in the window switcher like below.
     Some contents are fixed-length and others are variable-length.
-    See "man 5 labwc" for details.
+    See "man 5 labwc-config" for details.
 
     <windowSwitcher show="yes" preview="no" outlines="no" allWorkspaces="yes">
       <fields>

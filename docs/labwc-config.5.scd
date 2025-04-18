@@ -770,6 +770,25 @@ extending outward from the snapped edge.
 	- Drag: Pressing the button within the context, then moving the cursor.
 	- Scroll: Scrolling in specified *direction* in the context.
 
+	Example:
+
+```
+<?xml version="1.0"?>
+<labwc_config>
+<mouse>
+  <default />
+  <context name="Frame">
+    <mousebind direction="W-S-Up" action="Scroll">
+      <action name="ResizeRelative" left="10%" right="10%" top="10%" bottom="10%" />
+    </mousebind>
+    <mousebind direction="W-S-Down" action="Scroll">
+      <action name="ResizeRelative" left="-10%" right="-10%" top="-10%" bottom="-10%" />
+    </mousebind>
+  </context>
+</mouse>
+</labwc_config>
+```
+
 *<mouse><default />*
 	Load default mousebinds. This is an addition to the openbox
 	specification and provides a way to keep config files simpler whilst

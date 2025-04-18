@@ -858,15 +858,26 @@ handle_motion(struct wl_listener *listener, void *data)
 		preprocess_cursor_motion(seat, event->pointer,
 			event->time_msec, event->delta_x, event->delta_y);
 	} else {
+		const double pointer_axis_step = 15.0;
+		struct input *input = event->pointer->base.data;
+		double scroll_factor = input->scroll_factor;
+		/* TODO: what about natural scroll? */
+
+		uint32_t orientation;
+		double direction;
 		if (fabs(event->delta_x) > fabs(event->delta_y)) {
-			cursor_emulate_axis(seat, &event->pointer->base,
-				WL_POINTER_AXIS_HORIZONTAL_SCROLL, event->delta_x, event->delta_x,
-				event->time_msec);
+			orientation = WL_POINTER_AXIS_HORIZONTAL_SCROLL;
+			direction = event->delta_x >= 0.0 ? 1.0 : -1.0;
 		} else {
-			cursor_emulate_axis(seat, &event->pointer->base,
-				WL_POINTER_AXIS_VERTICAL_SCROLL, event->delta_y, event->delta_y,
-				event->time_msec);
+			orientation = WL_POINTER_AXIS_VERTICAL_SCROLL;
+			direction = event->delta_y >= 0.0 ? 1.0 : -1.0;
 		}
+
+		cursor_emulate_axis(seat, &event->pointer->base,
+				orientation,
+				pointer_axis_step * direction * scroll_factor,
+				WLR_POINTER_AXIS_DISCRETE_STEP * direction * scroll_factor,
+				event->time_msec);
 	}
 }
 

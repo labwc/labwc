@@ -760,7 +760,11 @@ extending outward from the snapped edge.
 	Mouse buttons and directions can be combined with modifier-keys
 	(shift (S), super/logo (W), control (C), alt (A), meta (M) and
 	hyper (H)), for example:
-	<mousebind button="A-Right" action="Press">
+
+```
+<mousebind button="A-Right" action="Press">...
+<mousebind direction="W-Up" action="Scroll">...
+```
 
 	Supported mouse *actions* include:
 	- Press: Pressing the specified button down in the context.
@@ -769,6 +773,25 @@ extending outward from the snapped edge.
 	- DoubleClick: Two presses within the doubleClickTime.
 	- Drag: Pressing the button within the context, then moving the cursor.
 	- Scroll: Scrolling in specified *direction* in the context.
+
+	Example:
+
+```
+<?xml version="1.0"?>
+<labwc_config>
+<mouse>
+  <default />
+  <context name="Frame">
+    <mousebind direction="W-S-Up" action="Scroll">
+      <action name="ResizeRelative" left="10%" right="10%" top="10%" bottom="10%" />
+    </mousebind>
+    <mousebind button="W-Left" action="Drag">
+      <action name="Move" />
+    </mousebind>
+  </context>
+</mouse>
+</labwc_config>
+```
 
 *<mouse><default />*
 	Load default mousebinds. This is an addition to the openbox

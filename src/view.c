@@ -764,6 +764,11 @@ _minimize(struct view *view, bool minimized)
 	if (view->minimized == minimized) {
 		return;
 	}
+	if (!view->mapped && minimized) {
+		/* xdg_toplevel.set_minimized can be sent before mapping */
+		wlr_log(WLR_DEBUG, "not minimizing unmapped view");
+		return;
+	}
 
 	if (view->impl->minimize) {
 		view->impl->minimize(view, minimized);

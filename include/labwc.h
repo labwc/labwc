@@ -115,6 +115,7 @@ struct seat {
 	struct {
 		double x, y;
 	} smooth_scroll_offset;
+	bool cursor_scroll_wheel_emulation;
 
 	/*
 	 * The surface whose keyboard focus is temporarily cleared with
@@ -177,11 +178,11 @@ struct seat {
 	struct wl_listener new_input;
 	struct wl_listener focus_change;
 
-	struct wl_listener cursor_motion;
-	struct wl_listener cursor_motion_absolute;
-	struct wl_listener cursor_button;
-	struct wl_listener cursor_axis;
-	struct wl_listener cursor_frame;
+	struct wl_listener motion;
+	struct wl_listener motion_absolute;
+	struct wl_listener button;
+	struct wl_listener axis;
+	struct wl_listener frame;
 
 	struct wlr_pointer_gestures_v1 *pointer_gestures;
 	struct wl_listener pinch_begin;
@@ -193,7 +194,7 @@ struct seat {
 	struct wl_listener hold_begin;
 	struct wl_listener hold_end;
 
-	struct wl_listener request_cursor;
+	struct wl_listener request_set_cursor;
 	struct wl_listener request_set_shape;
 	struct wl_listener request_set_selection;
 	struct wl_listener request_set_primary_selection;

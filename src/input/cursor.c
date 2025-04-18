@@ -137,9 +137,9 @@ get_toplevel(struct wlr_surface *surface)
 }
 
 static void
-request_cursor_notify(struct wl_listener *listener, void *data)
+handle_request_set_cursor(struct wl_listener *listener, void *data)
 {
-	struct seat *seat = wl_container_of(listener, seat, request_cursor);
+	struct seat *seat = wl_container_of(listener, seat, request_set_cursor);
 
 	if (seat->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		/* Prevent setting a cursor image when moving or resizing */
@@ -193,7 +193,7 @@ request_cursor_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-request_set_shape_notify(struct wl_listener *listener, void *data)
+handle_request_set_shape(struct wl_listener *listener, void *data)
 {
 	struct wlr_cursor_shape_manager_v1_request_set_shape_event *event = data;
 	const char *shape_name = wlr_cursor_shape_v1_name(event->shape);
@@ -228,7 +228,7 @@ request_set_shape_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-request_set_selection_notify(struct wl_listener *listener, void *data)
+handle_request_set_selection(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(
 		listener, seat, request_set_selection);
@@ -238,7 +238,7 @@ request_set_selection_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-request_set_primary_selection_notify(struct wl_listener *listener, void *data)
+handle_request_set_primary_selection(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(
 		listener, seat, request_set_primary_selection);
@@ -490,7 +490,7 @@ process_cursor_motion_out_of_surface(struct server *server,
  */
 static bool
 cursor_update_common(struct server *server, struct cursor_context *ctx,
-		uint32_t time_msec, bool cursor_has_moved, double *sx, double *sy)
+		bool cursor_has_moved, double *sx, double *sy)
 {
 	struct seat *seat = &server->seat;
 	struct wlr_seat *wlr_seat = seat->seat;
@@ -617,7 +617,7 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 	struct wlr_surface *old_focused_surface =
 		seat->seat->pointer_state.focused_surface;
 
-	bool notify = cursor_update_common(server, &ctx, time,
+	bool notify = cursor_update_common(server, &ctx,
 		/* cursor_has_moved */ true, sx, sy);
 
 	struct wlr_surface *new_focused_surface =
@@ -635,12 +635,6 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 	}
 
 	return notify;
-}
-
-static uint32_t
-msec(const struct timespec *t)
-{
-	return t->tv_sec * 1000 + t->tv_nsec / 1000000;
 }
 
 static void
@@ -663,8 +657,7 @@ _cursor_update_focus(struct server *server)
 	}
 
 	double sx, sy;
-	cursor_update_common(server, &ctx, msec(&now),
-		/*cursor_has_moved*/ false, &sx, &sy);
+	cursor_update_common(server, &ctx, /*cursor_has_moved*/ false, &sx, &sy);
 }
 
 void
@@ -843,30 +836,53 @@ preprocess_cursor_motion(struct seat *seat, struct wlr_pointer *pointer,
 }
 
 static void
-cursor_motion(struct wl_listener *listener, void *data)
+handle_motion(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits a
 	 * _relative_ pointer motion event (i.e. a delta)
 	 */
-	struct seat *seat = wl_container_of(listener, seat, cursor_motion);
+	struct seat *seat = wl_container_of(listener, seat, motion);
 	struct server *server = seat->server;
 	struct wlr_pointer_motion_event *event = data;
 	idle_manager_notify_activity(seat->seat);
 	cursor_set_visible(seat, /* visible */ true);
 
-	wlr_relative_pointer_manager_v1_send_relative_motion(
-		server->relative_pointer_manager,
-		seat->seat, (uint64_t)event->time_msec * 1000,
-		event->delta_x, event->delta_y, event->unaccel_dx,
-		event->unaccel_dy);
+	if (!seat->cursor_scroll_wheel_emulation) {
+		wlr_relative_pointer_manager_v1_send_relative_motion(
+			server->relative_pointer_manager,
+			seat->seat, (uint64_t)event->time_msec * 1000,
+			event->delta_x, event->delta_y, event->unaccel_dx,
+			event->unaccel_dy);
 
-	preprocess_cursor_motion(seat, event->pointer,
-		event->time_msec, event->delta_x, event->delta_y);
+		preprocess_cursor_motion(seat, event->pointer,
+			event->time_msec, event->delta_x, event->delta_y);
+	} else {
+		const double pointer_axis_step = 15.0;
+		struct input *input = event->pointer->base.data;
+		double scroll_factor = input->scroll_factor;
+		/* TODO: what about natural scroll? */
+
+		uint32_t orientation;
+		double direction;
+		if (fabs(event->delta_x) > fabs(event->delta_y)) {
+			orientation = WL_POINTER_AXIS_HORIZONTAL_SCROLL;
+			direction = event->delta_x >= 0.0 ? 1.0 : -1.0;
+		} else {
+			orientation = WL_POINTER_AXIS_VERTICAL_SCROLL;
+			direction = event->delta_y >= 0.0 ? 1.0 : -1.0;
+		}
+
+		cursor_emulate_axis(seat, &event->pointer->base,
+				orientation,
+				pointer_axis_step * direction * scroll_factor,
+				WLR_POINTER_AXIS_DISCRETE_STEP * direction * scroll_factor,
+				event->time_msec);
+	}
 }
 
 static void
-cursor_motion_absolute(struct wl_listener *listener, void *data)
+handle_motion_absolute(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits an
@@ -876,8 +892,7 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 	 * window from any edge, so we have to warp the mouse there. There is
 	 * also some hardware which emits these events.
 	 */
-	struct seat *seat = wl_container_of(
-		listener, seat, cursor_motion_absolute);
+	struct seat *seat = wl_container_of(listener, seat, motion_absolute);
 	struct wlr_pointer_motion_absolute_event *event = data;
 	idle_manager_notify_activity(seat->seat);
 	cursor_set_visible(seat, /* visible */ true);
@@ -899,7 +914,7 @@ cursor_motion_absolute(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_release_mousebinding(struct server *server,
+process_release_mousebinding(struct server *server,
 		struct cursor_context *ctx, uint32_t button)
 {
 	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
@@ -964,7 +979,7 @@ is_double_click(long double_click_speed, uint32_t button,
 }
 
 static bool
-handle_press_mousebinding(struct server *server, struct cursor_context *ctx,
+process_press_mousebinding(struct server *server, struct cursor_context *ctx,
 		uint32_t button)
 {
 	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
@@ -1084,7 +1099,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 
 	/* Bindings to the Frame context swallow mouse events if activated */
 	bool consumed_by_frame_context =
-		handle_press_mousebinding(server, &ctx, button);
+		process_press_mousebinding(server, &ctx, button);
 
 	if (ctx.surface && !consumed_by_frame_context) {
 		/* Notify client with pointer focus of button press */
@@ -1133,7 +1148,7 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 		return notify;
 	}
 
-	handle_release_mousebinding(server, &ctx, button);
+	process_release_mousebinding(server, &ctx, button);
 
 	return notify;
 }
@@ -1167,13 +1182,13 @@ cursor_finish_button_release(struct seat *seat, uint32_t button)
 }
 
 static void
-cursor_button(struct wl_listener *listener, void *data)
+handle_button(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is forwarded by the cursor when a pointer emits a button
 	 * event.
 	 */
-	struct seat *seat = wl_container_of(listener, seat, cursor_button);
+	struct seat *seat = wl_container_of(listener, seat, button);
 	struct wlr_pointer_button_event *event = data;
 	idle_manager_notify_activity(seat->seat);
 	cursor_set_visible(seat, /* visible */ true);
@@ -1198,6 +1213,162 @@ cursor_button(struct wl_listener *listener, void *data)
 		cursor_finish_button_release(seat, event->button);
 		break;
 	}
+}
+
+struct scroll_info {
+	int direction;
+	bool run_action;
+};
+
+static struct scroll_info
+compare_delta(double delta, double delta_discrete, double *accum)
+{
+	/*
+	 * Smooth scroll deltas are in surface space, so treating each unit as a
+	 * scroll event would result in too-fast scrolling.
+	 *
+	 * This fudge factor (inherited from various historic projects, incl. Weston)
+	 * produces events at a more reasonable rate.
+	 *
+	 * For historic context, see:
+	 * https://lists.freedesktop.org/archives/wayland-devel/2019-April/040377.html
+	 */
+	const double SCROLL_THRESHOLD = 10.0;
+	struct scroll_info info = {0};
+
+	if (delta_discrete < 0 || delta < 0) {
+		info.direction = -1;
+	} else if (delta_discrete > 0 || delta > 0) {
+		info.direction = 1;
+	}
+
+	if (delta == 0.0) {
+		/* Delta 0 marks the end of a scroll */
+		*accum = 0.0;
+	} else {
+		/* Accumulate smooth scrolling until we hit threshold */
+		*accum += delta;
+	}
+
+	if (delta_discrete != 0 || fabs(*accum) > SCROLL_THRESHOLD) {
+		*accum = fmod(*accum, SCROLL_THRESHOLD);
+		info.run_action = true;
+	}
+
+	return info;
+}
+
+static bool
+process_cursor_axis(struct server *server, enum wl_pointer_axis orientation,
+		double delta, double delta_discrete)
+{
+	struct cursor_context ctx = get_cursor_context(server);
+
+	uint32_t modifiers = keyboard_get_all_modifiers(&server->seat);
+
+	enum direction direction = LAB_DIRECTION_INVALID;
+	struct scroll_info info = {0};
+
+	if (orientation == WL_POINTER_AXIS_HORIZONTAL_SCROLL) {
+		info = compare_delta(delta, delta_discrete,
+			&server->seat.smooth_scroll_offset.x);
+
+		if (info.direction < 0) {
+			direction = LAB_DIRECTION_LEFT;
+		} else if (info.direction > 0) {
+			direction = LAB_DIRECTION_RIGHT;
+		}
+	} else if (orientation == WL_POINTER_AXIS_VERTICAL_SCROLL) {
+		info = compare_delta(delta, delta_discrete,
+			&server->seat.smooth_scroll_offset.y);
+
+		if (info.direction < 0) {
+			direction = LAB_DIRECTION_UP;
+		} else if (info.direction > 0) {
+			direction = LAB_DIRECTION_DOWN;
+		}
+	} else {
+		wlr_log(WLR_DEBUG, "Failed to handle cursor axis event");
+	}
+
+	if (direction == LAB_DIRECTION_INVALID) {
+		return false;
+	}
+
+	struct mousebind *mousebind;
+	bool handled = false;
+	wl_list_for_each(mousebind, &rc.mousebinds, link) {
+		if (ssd_part_contains(mousebind->context, ctx.type)
+				&& mousebind->direction == direction
+				&& modifiers == mousebind->modifiers
+				&& mousebind->mouse_event == MOUSE_ACTION_SCROLL) {
+			handled = true;
+			/*
+			 * Action may not be executed if the accumulated scroll
+			 * delta on touchpads doesn't exceed the threshold
+			 */
+			if (info.run_action) {
+				actions_run(ctx.view, server, &mousebind->actions, &ctx);
+			}
+		}
+	}
+
+	/* Bindings swallow mouse events if activated */
+	if (ctx.surface && !handled) {
+		/* Make sure we are sending the events to the surface under the cursor */
+		double sx, sy;
+		cursor_update_common(server, &ctx, /*cursor_has_moved*/ false, &sx, &sy);
+
+		return true;
+	}
+
+	return false;
+}
+
+static void
+handle_axis(struct wl_listener *listener, void *data)
+{
+	/*
+	 * This event is forwarded by the cursor when a pointer emits an axis
+	 * event, for example when you move the scroll wheel.
+	 */
+	struct seat *seat = wl_container_of(listener, seat, axis);
+	struct server *server = seat->server;
+	struct wlr_pointer_axis_event *event = data;
+	idle_manager_notify_activity(seat->seat);
+	cursor_set_visible(seat, /* visible */ true);
+
+	/* input->scroll_factor is set for pointer/touch devices */
+	assert(event->pointer->base.type == WLR_INPUT_DEVICE_POINTER
+		|| event->pointer->base.type == WLR_INPUT_DEVICE_TOUCH);
+	struct input *input = event->pointer->base.data;
+	double scroll_factor = input->scroll_factor;
+
+	bool notify = process_cursor_axis(server, event->orientation,
+		event->delta, event->delta_discrete);
+
+	if (notify) {
+		/* Notify the client with pointer focus of the axis event. */
+		wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,
+			event->orientation, scroll_factor * event->delta,
+			round(scroll_factor * event->delta_discrete),
+			event->source, event->relative_direction);
+	}
+}
+
+static void
+handle_frame(struct wl_listener *listener, void *data)
+{
+	/*
+	 * This event is forwarded by the cursor when a pointer emits an frame
+	 * event. Frame events are sent after regular pointer events to group
+	 * multiple events together. For instance, two axis events may happen
+	 * at the same time, in which case a frame event won't be sent in
+	 * between.
+	 */
+	struct seat *seat = wl_container_of(listener, seat, frame);
+	/* Notify the client with pointer focus of the frame event. */
+	wlr_seat_pointer_notify_frame(seat->seat);
 }
 
 void
@@ -1260,152 +1431,30 @@ cursor_emulate_button(struct seat *seat, uint32_t button,
 	wlr_seat_pointer_notify_frame(seat->seat);
 }
 
-struct scroll_info {
-	int direction;
-	bool run_action;
-};
-
-static struct scroll_info
-compare_delta(const struct wlr_pointer_axis_event *event, double *accum)
+void
+cursor_emulate_axis(struct seat *seat, struct wlr_input_device *device,
+		enum wl_pointer_axis orientation, double delta, double delta_discrete,
+		uint32_t time_msec)
 {
-	/*
-	 * Smooth scroll deltas are in surface space, so treating each unit as a
-	 * scroll event would result in too-fast scrolling.
-	 *
-	 * This fudge factor (inherited from various historic projects, incl. Weston)
-	 * produces events at a more reasonable rate.
-	 *
-	 * For historic context, see:
-	 * https://lists.freedesktop.org/archives/wayland-devel/2019-April/040377.html
-	 */
-	const double SCROLL_THRESHOLD = 10.0;
-	struct scroll_info info = {0};
-
-	if (event->delta_discrete < 0 || event->delta < 0) {
-		info.direction = -1;
-	} else if (event->delta_discrete > 0 || event->delta > 0) {
-		info.direction = 1;
-	}
-
-	if (event->delta == 0.0) {
-		/* Delta 0 marks the end of a scroll */
-		*accum = 0.0;
-	} else {
-		/* Accumulate smooth scrolling until we hit threshold */
-		*accum += event->delta;
-	}
-
-	if (event->delta_discrete != 0 || fabs(*accum) > SCROLL_THRESHOLD) {
-		*accum = fmod(*accum, SCROLL_THRESHOLD);
-		info.run_action = true;
-	}
-
-	return info;
-}
-
-static bool
-handle_cursor_axis(struct server *server, struct cursor_context *ctx,
-		struct wlr_pointer_axis_event *event)
-{
-	struct mousebind *mousebind;
-	bool handled = false;
-	uint32_t modifiers = keyboard_get_all_modifiers(&server->seat);
-
-	enum direction direction = LAB_DIRECTION_INVALID;
-	struct scroll_info info = {0};
-
-	if (event->orientation == WL_POINTER_AXIS_HORIZONTAL_SCROLL) {
-		info = compare_delta(event, &server->seat.smooth_scroll_offset.x);
-		if (info.direction < 0) {
-			direction = LAB_DIRECTION_LEFT;
-		} else if (info.direction > 0) {
-			direction = LAB_DIRECTION_RIGHT;
-		}
-	} else if (event->orientation == WL_POINTER_AXIS_VERTICAL_SCROLL) {
-		info = compare_delta(event, &server->seat.smooth_scroll_offset.y);
-		if (info.direction < 0) {
-			direction = LAB_DIRECTION_UP;
-		} else if (info.direction > 0) {
-			direction = LAB_DIRECTION_DOWN;
-		}
-	} else {
-		wlr_log(WLR_DEBUG, "Failed to handle cursor axis event");
-	}
-
-	if (direction == LAB_DIRECTION_INVALID) {
-		return false;
-	}
-
-	wl_list_for_each(mousebind, &rc.mousebinds, link) {
-		if (ssd_part_contains(mousebind->context, ctx->type)
-				&& mousebind->direction == direction
-				&& modifiers == mousebind->modifiers
-				&& mousebind->mouse_event == MOUSE_ACTION_SCROLL) {
-			handled = true;
-			/*
-			 * Action may not be executed if the accumulated scroll
-			 * delta on touchpads doesn't exceed the threshold
-			 */
-			if (info.run_action) {
-				actions_run(ctx->view, server, &mousebind->actions, ctx);
-			}
-		}
-	}
-
-	return handled;
-}
-
-static void
-cursor_axis(struct wl_listener *listener, void *data)
-{
-	/*
-	 * This event is forwarded by the cursor when a pointer emits an axis
-	 * event, for example when you move the scroll wheel.
-	 */
-	struct seat *seat = wl_container_of(listener, seat, cursor_axis);
-	struct wlr_pointer_axis_event *event = data;
 	struct server *server = seat->server;
+	struct input *input = device->data;
 
+	double scroll_factor = 1.0;
 	/* input->scroll_factor is set for pointer/touch devices */
-	assert(event->pointer->base.type == WLR_INPUT_DEVICE_POINTER
-		|| event->pointer->base.type == WLR_INPUT_DEVICE_TOUCH);
-	struct input *input = event->pointer->base.data;
-	double scroll_factor = input->scroll_factor;
-
-	struct cursor_context ctx = get_cursor_context(server);
-	idle_manager_notify_activity(seat->seat);
-	cursor_set_visible(seat, /* visible */ true);
-
-	/* Bindings swallow mouse events if activated */
-	bool handled = handle_cursor_axis(server, &ctx, event);
-
-	if (ctx.surface && !handled) {
-		/* Make sure we are sending the events to the surface under the cursor */
-		double sx, sy;
-		cursor_update_common(server, &ctx, event->time_msec,
-			/*cursor_has_moved*/ false, &sx, &sy);
-
-		/* Notify the client with pointer focus of the axis event. */
-		wlr_seat_pointer_notify_axis(seat->seat, event->time_msec,
-			event->orientation, scroll_factor * event->delta,
-			round(scroll_factor * event->delta_discrete),
-			event->source, event->relative_direction);
+	if (device->type == WLR_INPUT_DEVICE_POINTER
+			|| device->type == WLR_INPUT_DEVICE_TOUCH) {
+		scroll_factor = input->scroll_factor;
 	}
-}
 
-static void
-cursor_frame(struct wl_listener *listener, void *data)
-{
-	/*
-	 * This event is forwarded by the cursor when a pointer emits an frame
-	 * event. Frame events are sent after regular pointer events to group
-	 * multiple events together. For instance, two axis events may happen
-	 * at the same time, in which case a frame event won't be sent in
-	 * between.
-	 */
-	struct seat *seat = wl_container_of(listener, seat, cursor_frame);
-	/* Notify the client with pointer focus of the frame event. */
-	wlr_seat_pointer_notify_frame(seat->seat);
+	bool notify = process_cursor_axis(server, orientation, delta, delta_discrete);
+
+	if (notify) {
+		/* Notify the client with pointer focus of the axis event. */
+		wlr_seat_pointer_notify_axis(seat->seat, time_msec,
+			orientation, scroll_factor * delta,
+			round(scroll_factor * delta_discrete),
+			WL_POINTER_AXIS_SOURCE_WHEEL, WL_POINTER_AXIS_RELATIVE_DIRECTION_IDENTICAL);
+	}
 }
 
 static void
@@ -1474,26 +1523,17 @@ cursor_init(struct seat *seat)
 
 	dnd_init(seat);
 
-	seat->cursor_motion.notify = cursor_motion;
-	wl_signal_add(&seat->cursor->events.motion, &seat->cursor_motion);
-	seat->cursor_motion_absolute.notify = cursor_motion_absolute;
-	wl_signal_add(&seat->cursor->events.motion_absolute,
-		&seat->cursor_motion_absolute);
-	seat->cursor_button.notify = cursor_button;
-	wl_signal_add(&seat->cursor->events.button, &seat->cursor_button);
-	seat->cursor_axis.notify = cursor_axis;
-	wl_signal_add(&seat->cursor->events.axis, &seat->cursor_axis);
-	seat->cursor_frame.notify = cursor_frame;
-	wl_signal_add(&seat->cursor->events.frame, &seat->cursor_frame);
+	CONNECT_SIGNAL(seat->cursor, seat, motion);
+	CONNECT_SIGNAL(seat->cursor, seat, motion_absolute);
+	CONNECT_SIGNAL(seat->cursor, seat, button);
+	CONNECT_SIGNAL(seat->cursor, seat, axis);
+	CONNECT_SIGNAL(seat->cursor, seat, frame);
 
 	gestures_init(seat);
 	touch_init(seat);
-
 	tablet_init(seat);
 
-	seat->request_cursor.notify = request_cursor_notify;
-	wl_signal_add(&seat->seat->events.request_set_cursor,
-		&seat->request_cursor);
+	CONNECT_SIGNAL(seat->seat, seat, request_set_cursor);
 
 	struct wlr_cursor_shape_manager_v1 *cursor_shape_manager =
 		wlr_cursor_shape_manager_v1_create(seat->server->wl_display,
@@ -1502,34 +1542,26 @@ cursor_init(struct seat *seat)
 		wlr_log(WLR_ERROR, "unable to create cursor_shape interface");
 		exit(EXIT_FAILURE);
 	}
-	seat->request_set_shape.notify = request_set_shape_notify;
-	wl_signal_add(&cursor_shape_manager->events.request_set_shape,
-		&seat->request_set_shape);
 
-	seat->request_set_selection.notify = request_set_selection_notify;
-	wl_signal_add(&seat->seat->events.request_set_selection,
-		&seat->request_set_selection);
-
-	seat->request_set_primary_selection.notify =
-		request_set_primary_selection_notify;
-	wl_signal_add(&seat->seat->events.request_set_primary_selection,
-		&seat->request_set_primary_selection);
+	CONNECT_SIGNAL(cursor_shape_manager, seat, request_set_shape);
+	CONNECT_SIGNAL(seat->seat, seat, request_set_selection);
+	CONNECT_SIGNAL(seat->seat, seat, request_set_primary_selection);
 }
 
 void cursor_finish(struct seat *seat)
 {
-	wl_list_remove(&seat->cursor_motion.link);
-	wl_list_remove(&seat->cursor_motion_absolute.link);
-	wl_list_remove(&seat->cursor_button.link);
-	wl_list_remove(&seat->cursor_axis.link);
-	wl_list_remove(&seat->cursor_frame.link);
+	wl_list_remove(&seat->motion.link);
+	wl_list_remove(&seat->motion_absolute.link);
+	wl_list_remove(&seat->button.link);
+	wl_list_remove(&seat->axis.link);
+	wl_list_remove(&seat->frame.link);
 
 	gestures_finish(seat);
 	touch_finish(seat);
 
 	tablet_finish(seat);
 
-	wl_list_remove(&seat->request_cursor.link);
+	wl_list_remove(&seat->request_set_cursor.link);
 	wl_list_remove(&seat->request_set_shape.link);
 	wl_list_remove(&seat->request_set_selection.link);
 	wl_list_remove(&seat->request_set_primary_selection.link);

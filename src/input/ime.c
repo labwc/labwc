@@ -230,10 +230,8 @@ update_popup_position(struct input_method_popup *popup)
 
 		if (xdg_surface) {
 			/* Take into account invisible xdg-shell CSD borders */
-			struct wlr_box geo;
-			wlr_xdg_surface_get_geometry(xdg_surface, &geo);
-			cursor_rect.x -= geo.x;
-			cursor_rect.y -= geo.y;
+			cursor_rect.x -= xdg_surface->geometry.x;
+			cursor_rect.y -= xdg_surface->geometry.y;
 		}
 	} else {
 		cursor_rect = (struct wlr_box){0};

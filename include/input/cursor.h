@@ -156,6 +156,10 @@ void cursor_emulate_move_absolute(struct seat *seat,
 		double x, double y, uint32_t time_msec);
 void cursor_emulate_button(struct seat *seat,
 		uint32_t button, enum wl_pointer_button_state state, uint32_t time_msec);
+void cursor_emulate_axis(struct seat *seat,
+		struct wlr_input_device *device,
+		enum wl_pointer_axis orientation, double delta, double delta_discrete,
+		enum wl_pointer_axis_source source, uint32_t time_msec);
 void cursor_finish(struct seat *seat);
 
 #endif /* LABWC_CURSOR_H */

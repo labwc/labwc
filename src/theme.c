@@ -413,15 +413,26 @@ hex_to_dec(char c)
 static void
 parse_hexstr(const char *hex, float *rgba)
 {
-	if (!hex || hex[0] != '#' || strlen(hex) < 7) {
+	if (hex[0] != '#') {
 		return;
 	}
-	rgba[0] = (hex_to_dec(hex[1]) * 16 + hex_to_dec(hex[2])) / 255.0;
-	rgba[1] = (hex_to_dec(hex[3]) * 16 + hex_to_dec(hex[4])) / 255.0;
-	rgba[2] = (hex_to_dec(hex[5]) * 16 + hex_to_dec(hex[6])) / 255.0;
-	rgba[3] = 1.0;
 
 	size_t len = strlen(hex);
+	if (len == 4) {
+		/* #fff is shorthand for #f0f0f0, per theme spec */
+		rgba[0] = (hex_to_dec(hex[1]) * 16) / 255.0;
+		rgba[1] = (hex_to_dec(hex[2]) * 16) / 255.0;
+		rgba[2] = (hex_to_dec(hex[3]) * 16) / 255.0;
+	} else if (len >= 7) {
+		rgba[0] = (hex_to_dec(hex[1]) * 16 + hex_to_dec(hex[2])) / 255.0;
+		rgba[1] = (hex_to_dec(hex[3]) * 16 + hex_to_dec(hex[4])) / 255.0;
+		rgba[2] = (hex_to_dec(hex[5]) * 16 + hex_to_dec(hex[6])) / 255.0;
+	} else {
+		return;
+	}
+
+	rgba[3] = 1.0;
+
 	if (len >= 9 && hex[7] == ' ') {
 		/* Deprecated #aabbcc 100 alpha encoding to support openbox themes */
 		rgba[3] = atoi(hex + 8) / 100.0;
@@ -450,6 +461,37 @@ parse_hexstrs(const char *hexes, float colors[3][4])
 		parse_hexstr(elements[i], colors[i]);
 	}
 	g_strfreev(elements);
+}
+
+static void
+parse_color(const char *str, float *rgba)
+{
+	if (str[0] == '#') {
+		parse_hexstr(str, rgba);
+	} else if (!strncasecmp(str, "rgb:", 4)) {
+		size_t len = strlen(str);
+		if (len == 9 && str[5] == '/' && str[7] == '/') {
+			/* rgb:R/G/B */
+			rgba[0] = (hex_to_dec(str[4]) * 16) / 255.0;
+			rgba[1] = (hex_to_dec(str[6]) * 16) / 255.0;
+			rgba[2] = (hex_to_dec(str[8]) * 16) / 255.0;
+			rgba[3] = 1.0;
+		} else if (len == 12 && str[6] == '/' && str[9] == '/') {
+			/* rgb:RR/GG/BB */
+			rgba[0] = (hex_to_dec(str[4]) * 16 + hex_to_dec(str[5])) / 255.0;
+			rgba[1] = (hex_to_dec(str[7]) * 16 + hex_to_dec(str[8])) / 255.0;
+			rgba[2] = (hex_to_dec(str[10]) * 16 + hex_to_dec(str[11])) / 255.0;
+			rgba[3] = 1.0;
+		}
+	} else {
+		uint32_t argb = 0;
+		if (lookup_named_color(str, &argb)) {
+			rgba[0] = ((argb >> 16) & 0xFF) / 255.0;
+			rgba[1] = ((argb >> 8) & 0xFF) / 255.0;
+			rgba[2] = (argb & 0xFF) / 255.0;
+			rgba[3] = 1.0;
+		}
+	}
 }
 
 static enum lab_justification
@@ -631,33 +673,33 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 
 	if (match_glob(key, "window.active.border.color")) {
-		parse_hexstr(value, theme->window[THEME_ACTIVE].border_color);
+		parse_color(value, theme->window[THEME_ACTIVE].border_color);
 	}
 	if (match_glob(key, "window.inactive.border.color")) {
-		parse_hexstr(value, theme->window[THEME_INACTIVE].border_color);
+		parse_color(value, theme->window[THEME_INACTIVE].border_color);
 	}
 	/* border.color is obsolete, but handled for backward compatibility */
 	if (match_glob(key, "border.color")) {
-		parse_hexstr(value, theme->window[THEME_ACTIVE].border_color);
-		parse_hexstr(value, theme->window[THEME_INACTIVE].border_color);
+		parse_color(value, theme->window[THEME_ACTIVE].border_color);
+		parse_color(value, theme->window[THEME_INACTIVE].border_color);
 	}
 
 	if (match_glob(key, "window.active.indicator.toggled-keybind.color")) {
-		parse_hexstr(value, theme->window_toggled_keybinds_color);
+		parse_color(value, theme->window_toggled_keybinds_color);
 	}
 
 	if (match_glob(key, "window.active.title.bg.color")) {
-		parse_hexstr(value, theme->window[THEME_ACTIVE].title_bg_color);
+		parse_color(value, theme->window[THEME_ACTIVE].title_bg_color);
 	}
 	if (match_glob(key, "window.inactive.title.bg.color")) {
-		parse_hexstr(value, theme->window[THEME_INACTIVE].title_bg_color);
+		parse_color(value, theme->window[THEME_INACTIVE].title_bg_color);
 	}
 
 	if (match_glob(key, "window.active.label.text.color")) {
-		parse_hexstr(value, theme->window[THEME_ACTIVE].label_text_color);
+		parse_color(value, theme->window[THEME_ACTIVE].label_text_color);
 	}
 	if (match_glob(key, "window.inactive.label.text.color")) {
-		parse_hexstr(value, theme->window[THEME_INACTIVE].label_text_color);
+		parse_color(value, theme->window[THEME_INACTIVE].label_text_color);
 	}
 	if (match_glob(key, "window.label.text.justify")) {
 		theme->window_label_text_justify = parse_justification(value);
@@ -692,69 +734,69 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "window.active.button.unpressed.image.color")) {
 		for (enum ssd_part_type type = LAB_SSD_BUTTON_FIRST;
 				type <= LAB_SSD_BUTTON_LAST; type++) {
-			parse_hexstr(value,
+			parse_color(value,
 				theme->window[THEME_ACTIVE].button_colors[type]);
 		}
 	}
 	if (match_glob(key, "window.inactive.button.unpressed.image.color")) {
 		for (enum ssd_part_type type = LAB_SSD_BUTTON_FIRST;
 				type <= LAB_SSD_BUTTON_LAST; type++) {
-			parse_hexstr(value,
+			parse_color(value,
 				theme->window[THEME_INACTIVE].button_colors[type]);
 		}
 	}
 
 	/* individual buttons */
 	if (match_glob(key, "window.active.button.menu.unpressed.image.color")) {
-		parse_hexstr(value, theme->window[THEME_ACTIVE]
+		parse_color(value, theme->window[THEME_ACTIVE]
 			.button_colors[LAB_SSD_BUTTON_WINDOW_MENU]);
-		parse_hexstr(value, theme->window[THEME_ACTIVE]
+		parse_color(value, theme->window[THEME_ACTIVE]
 			.button_colors[LAB_SSD_BUTTON_WINDOW_ICON]);
 	}
 	if (match_glob(key, "window.active.button.iconify.unpressed.image.color")) {
-		parse_hexstr(value, theme->window[THEME_ACTIVE]
+		parse_color(value, theme->window[THEME_ACTIVE]
 			.button_colors[LAB_SSD_BUTTON_ICONIFY]);
 	}
 	if (match_glob(key, "window.active.button.max.unpressed.image.color")) {
-		parse_hexstr(value, theme->window[THEME_ACTIVE]
+		parse_color(value, theme->window[THEME_ACTIVE]
 			.button_colors[LAB_SSD_BUTTON_MAXIMIZE]);
 	}
 	if (match_glob(key, "window.active.button.shade.unpressed.image.color")) {
-		parse_hexstr(value, theme->window[THEME_ACTIVE]
+		parse_color(value, theme->window[THEME_ACTIVE]
 			.button_colors[LAB_SSD_BUTTON_SHADE]);
 	}
 	if (match_glob(key, "window.active.button.desk.unpressed.image.color")) {
-		parse_hexstr(value, theme->window[THEME_ACTIVE]
+		parse_color(value, theme->window[THEME_ACTIVE]
 			.button_colors[LAB_SSD_BUTTON_OMNIPRESENT]);
 	}
 	if (match_glob(key, "window.active.button.close.unpressed.image.color")) {
-		parse_hexstr(value, theme->window[THEME_ACTIVE]
+		parse_color(value, theme->window[THEME_ACTIVE]
 			.button_colors[LAB_SSD_BUTTON_CLOSE]);
 	}
 	if (match_glob(key, "window.inactive.button.menu.unpressed.image.color")) {
-		parse_hexstr(value, theme->window[THEME_INACTIVE]
+		parse_color(value, theme->window[THEME_INACTIVE]
 			.button_colors[LAB_SSD_BUTTON_WINDOW_MENU]);
-		parse_hexstr(value, theme->window[THEME_INACTIVE]
+		parse_color(value, theme->window[THEME_INACTIVE]
 			.button_colors[LAB_SSD_BUTTON_WINDOW_ICON]);
 	}
 	if (match_glob(key, "window.inactive.button.iconify.unpressed.image.color")) {
-		parse_hexstr(value, theme->window[THEME_INACTIVE]
+		parse_color(value, theme->window[THEME_INACTIVE]
 			.button_colors[LAB_SSD_BUTTON_ICONIFY]);
 	}
 	if (match_glob(key, "window.inactive.button.max.unpressed.image.color")) {
-		parse_hexstr(value, theme->window[THEME_INACTIVE]
+		parse_color(value, theme->window[THEME_INACTIVE]
 			.button_colors[LAB_SSD_BUTTON_MAXIMIZE]);
 	}
 	if (match_glob(key, "window.inactive.button.shade.unpressed.image.color")) {
-		parse_hexstr(value, theme->window[THEME_INACTIVE]
+		parse_color(value, theme->window[THEME_INACTIVE]
 			.button_colors[LAB_SSD_BUTTON_SHADE]);
 	}
 	if (match_glob(key, "window.inactive.button.desk.unpressed.image.color")) {
-		parse_hexstr(value, theme->window[THEME_INACTIVE]
+		parse_color(value, theme->window[THEME_INACTIVE]
 			.button_colors[LAB_SSD_BUTTON_OMNIPRESENT]);
 	}
 	if (match_glob(key, "window.inactive.button.close.unpressed.image.color")) {
-		parse_hexstr(value, theme->window[THEME_INACTIVE]
+		parse_color(value, theme->window[THEME_INACTIVE]
 			.button_colors[LAB_SSD_BUTTON_CLOSE]);
 	}
 
@@ -768,10 +810,10 @@ entry(struct theme *theme, const char *key, const char *value)
 			value, "window.inactive.shadow.size");
 	}
 	if (match_glob(key, "window.active.shadow.color")) {
-		parse_hexstr(value, theme->window[THEME_ACTIVE].shadow_color);
+		parse_color(value, theme->window[THEME_ACTIVE].shadow_color);
 	}
 	if (match_glob(key, "window.inactive.shadow.color")) {
-		parse_hexstr(value, theme->window[THEME_INACTIVE].shadow_color);
+		parse_color(value, theme->window[THEME_INACTIVE].shadow_color);
 	}
 
 	if (match_glob(key, "menu.overlap.x")) {
@@ -793,7 +835,7 @@ entry(struct theme *theme, const char *key, const char *value)
 			value, "menu.border.width");
 	}
 	if (match_glob(key, "menu.border.color")) {
-		parse_hexstr(value, theme->menu_border_color);
+		parse_color(value, theme->menu_border_color);
 	}
 
 	if (match_glob(key, "menu.items.padding.x")) {
@@ -805,16 +847,16 @@ entry(struct theme *theme, const char *key, const char *value)
 			value, "menu.items.padding.y");
 	}
 	if (match_glob(key, "menu.items.bg.color")) {
-		parse_hexstr(value, theme->menu_items_bg_color);
+		parse_color(value, theme->menu_items_bg_color);
 	}
 	if (match_glob(key, "menu.items.text.color")) {
-		parse_hexstr(value, theme->menu_items_text_color);
+		parse_color(value, theme->menu_items_text_color);
 	}
 	if (match_glob(key, "menu.items.active.bg.color")) {
-		parse_hexstr(value, theme->menu_items_active_bg_color);
+		parse_color(value, theme->menu_items_active_bg_color);
 	}
 	if (match_glob(key, "menu.items.active.text.color")) {
-		parse_hexstr(value, theme->menu_items_active_text_color);
+		parse_color(value, theme->menu_items_active_text_color);
 	}
 
 	if (match_glob(key, "menu.separator.width")) {
@@ -830,28 +872,28 @@ entry(struct theme *theme, const char *key, const char *value)
 			value, "menu.separator.padding.height");
 	}
 	if (match_glob(key, "menu.separator.color")) {
-		parse_hexstr(value, theme->menu_separator_color);
+		parse_color(value, theme->menu_separator_color);
 	}
 
 	if (match_glob(key, "menu.title.bg.color")) {
-		parse_hexstr(value, theme->menu_title_bg_color);
+		parse_color(value, theme->menu_title_bg_color);
 	}
 	if (match_glob(key, "menu.title.text.justify")) {
 		theme->menu_title_text_justify = parse_justification(value);
 	}
 	if (match_glob(key, "menu.title.text.color")) {
-		parse_hexstr(value, theme->menu_title_text_color);
+		parse_color(value, theme->menu_title_text_color);
 	}
 
 	if (match_glob(key, "osd.bg.color")) {
-		parse_hexstr(value, theme->osd_bg_color);
+		parse_color(value, theme->osd_bg_color);
 	}
 	if (match_glob(key, "osd.border.width")) {
 		theme->osd_border_width = get_int_if_positive(
 			value, "osd.border.width");
 	}
 	if (match_glob(key, "osd.border.color")) {
-		parse_hexstr(value, theme->osd_border_color);
+		parse_color(value, theme->osd_border_color);
 	}
 	if (match_glob(key, "osd.window-switcher.width")) {
 		if (strrchr(value, '%')) {
@@ -910,7 +952,7 @@ entry(struct theme *theme, const char *key, const char *value)
 				value, "osd.workspace-switcher.boxes.border.width");
 	}
 	if (match_glob(key, "osd.label.text.color")) {
-		parse_hexstr(value, theme->osd_label_text_color);
+		parse_color(value, theme->osd_label_text_color);
 	}
 	if (match_glob(key, "snapping.overlay.region.bg.enabled")) {
 		set_bool(value, &theme->snapping_overlay_region.bg_enabled);
@@ -925,10 +967,10 @@ entry(struct theme *theme, const char *key, const char *value)
 		set_bool(value, &theme->snapping_overlay_edge.border_enabled);
 	}
 	if (match_glob(key, "snapping.overlay.region.bg.color")) {
-		parse_hexstr(value, theme->snapping_overlay_region.bg_color);
+		parse_color(value, theme->snapping_overlay_region.bg_color);
 	}
 	if (match_glob(key, "snapping.overlay.edge.bg.color")) {
-		parse_hexstr(value, theme->snapping_overlay_edge.bg_color);
+		parse_color(value, theme->snapping_overlay_edge.bg_color);
 	}
 	if (match_glob(key, "snapping.overlay.region.border.width")) {
 		theme->snapping_overlay_region.border_width = get_int_if_positive(
@@ -950,7 +992,7 @@ entry(struct theme *theme, const char *key, const char *value)
 			value, "magnifier.border.width");
 	}
 	if (match_glob(key, "magnifier.border.color")) {
-		parse_hexstr(value, theme->mag_border_color);
+		parse_color(value, theme->mag_border_color);
 	}
 }
 

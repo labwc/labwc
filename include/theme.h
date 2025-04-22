@@ -8,7 +8,7 @@
 #ifndef LABWC_THEME_H
 #define LABWC_THEME_H
 
-#include <stdio.h>
+#include <cairo.h>
 #include <wlr/render/wlr_renderer.h>
 #include "ssd.h"
 
@@ -88,6 +88,18 @@ struct theme {
 		 */
 		struct lab_img *button_imgs
 			[LAB_SSD_BUTTON_LAST + 1][LAB_BS_ALL + 1];
+
+		/*
+		 * The titlebar background is specified as a cairo_pattern
+		 * and then also rendered into a 1px wide buffer, which is
+		 * stretched horizontally across the titlebar.
+		 *
+		 * This approach enables vertical gradients while saving
+		 * some memory vs. rendering the entire titlebar into an
+		 * image. It does not work for horizontal gradients.
+		 */
+		cairo_pattern_t *titlebar_pattern;
+		struct lab_data_buffer *titlebar_fill;
 
 		struct lab_data_buffer *corner_top_left_normal;
 		struct lab_data_buffer *corner_top_right_normal;

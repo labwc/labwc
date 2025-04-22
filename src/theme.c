@@ -53,7 +53,7 @@ struct rounded_corner_ctx {
 	struct wlr_box *box;
 	double radius;
 	double line_width;
-	float *fill_color;
+	cairo_pattern_t *fill_pattern;
 	float *border_color;
 	enum corner corner;
 };
@@ -1109,9 +1109,23 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 	}
 	cairo_close_path(cairo);
 	cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
-	set_cairo_color(cairo, ctx->fill_color);
+	/*
+	 * We need to offset the fill pattern vertically by the border
+	 * width to line up with the rest of the titlebar. This is done
+	 * by applying a transformation matrix to the pattern temporarily.
+	 * It would be better to copy the pattern, but cairo does not
+	 * provide a simple way to this.
+	 */
+	cairo_matrix_t matrix;
+	cairo_matrix_init_translate(&matrix, 0, -ctx->line_width);
+	cairo_pattern_set_matrix(ctx->fill_pattern, &matrix);
+	cairo_set_source(cairo, ctx->fill_pattern);
 	cairo_fill_preserve(cairo);
 	cairo_stroke(cairo);
+
+	/* Reset the fill pattern transformation matrix afterward */
+	cairo_matrix_init_identity(&matrix);
+	cairo_pattern_set_matrix(ctx->fill_pattern, &matrix);
 
 	/*
 	 * Stroke horizontal and vertical borders, shown by Xs and Ys
@@ -1215,6 +1229,33 @@ out:
 	return buffer;
 }
 
+static struct lab_data_buffer *
+create_titlebar_fill(cairo_pattern_t *pattern, int height)
+{
+	/* create 1px wide buffer to be stretched horizontally */
+	struct lab_data_buffer *fill = buffer_create_cairo(1, height, 1);
+
+	cairo_t *cairo = cairo_create(fill->surface);
+	cairo_set_source(cairo, pattern);
+	cairo_paint(cairo);
+	cairo_surface_flush(fill->surface);
+	cairo_destroy(cairo);
+
+	return fill;
+}
+
+static void
+create_backgrounds(struct theme *theme)
+{
+	for (int active = THEME_INACTIVE; active <= THEME_ACTIVE; active++) {
+		theme->window[active].titlebar_pattern = color_to_pattern(
+			theme->window[active].title_bg_color);
+		theme->window[active].titlebar_fill = create_titlebar_fill(
+			theme->window[active].titlebar_pattern,
+			theme->titlebar_height);
+	}
+}
+
 static void
 create_corners(struct theme *theme)
 {
@@ -1232,7 +1273,7 @@ create_corners(struct theme *theme)
 			.box = &box,
 			.radius = rc.corner_radius,
 			.line_width = theme->border_width,
-			.fill_color = theme->window[active].title_bg_color,
+			.fill_pattern = theme->window[active].titlebar_pattern,
 			.border_color = theme->window[active].border_color,
 			.corner = LAB_CORNER_TOP_LEFT,
 		};
@@ -1567,6 +1608,7 @@ theme_init(struct theme *theme, struct server *server, const char *theme_name)
 	paths_destroy(&paths);
 
 	post_processing(theme);
+	create_backgrounds(theme);
 	create_corners(theme);
 	load_buttons(theme);
 	create_shadows(theme);
@@ -1593,6 +1635,8 @@ theme_finish(struct theme *theme)
 	}
 
 	for (int active = THEME_INACTIVE; active <= THEME_ACTIVE; active++) {
+		zfree_pattern(theme->window[active].titlebar_pattern);
+		zdrop(&theme->window[active].titlebar_fill);
 		zdrop(&theme->window[active].corner_top_left_normal);
 		zdrop(&theme->window[active].corner_top_right_normal);
 		zdrop(&theme->window[active].shadow_corner_top);

@@ -2,14 +2,15 @@
 
 #include <assert.h>
 #include <cairo.h>
+#include <glib.h> /* g_ascii_strcasecmp */
 #include <stdlib.h>
 #include <string.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
-#include "buffer.h"
 #include "common/graphic-helpers.h"
 #include "common/macros.h"
 #include "common/mem.h"
+#include "xcolor-table.h"
 
 static void
 multi_rect_destroy_notify(struct wl_listener *listener, void *data)
@@ -116,4 +117,26 @@ set_cairo_color(cairo_t *cairo, const float *c)
 
 	cairo_set_source_rgba(cairo, c[0] / alpha, c[1] / alpha,
 		c[2] / alpha, alpha);
+}
+
+static int
+compare_xcolor_entry(const void *a, const void *b)
+{
+	/* using ASCII version to avoid locale-dependent ordering */
+	return g_ascii_strcasecmp((const char *)a,
+		color_names + ((const struct xcolor_entry *)b)->name_offset);
+}
+
+bool
+lookup_named_color(const char *name, uint32_t *argb)
+{
+	struct xcolor_entry *found = bsearch(name, xcolors, ARRAY_SIZE(xcolors),
+		sizeof(struct xcolor_entry), compare_xcolor_entry);
+	if (!found) {
+		return false;
+	}
+
+	*argb = 0xFF000000u | ((uint32_t)found->red << 16)
+		| ((uint32_t)found->green << 8) | found->blue;
+	return true;
 }

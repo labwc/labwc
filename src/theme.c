@@ -26,7 +26,6 @@
 #include "common/match.h"
 #include "common/mem.h"
 #include "common/parse-bool.h"
-#include "common/parse-double.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "img/img.h"
@@ -494,6 +493,29 @@ parse_color(const char *str, float *rgba)
 	}
 }
 
+static enum lab_gradient
+parse_gradient(const char *str)
+{
+	/*
+	 * Parsing of "texture" strings is very loose, following Openbox:
+	 * just a case-insensitive match of substrings of interest, with
+	 * no regard for ordering nor whitespace.
+	 */
+	char *lower = g_ascii_strdown(str, -1);
+	enum lab_gradient gradient = LAB_GRADIENT_NONE;
+
+	if (strstr(lower, "gradient")) {
+		if (strstr(lower, "splitvertical")) {
+			gradient = LAB_GRADIENT_SPLITVERTICAL;
+		} else if (strstr(lower, "vertical")) {
+			gradient = LAB_GRADIENT_VERTICAL;
+		}
+	}
+
+	g_free(lower);
+	return gradient;
+}
+
 static enum lab_justification
 parse_justification(const char *str)
 {
@@ -530,8 +552,16 @@ theme_builtin(struct theme *theme, struct server *server)
 
 	parse_hexstr("#ff0000", theme->window_toggled_keybinds_color);
 
-	parse_hexstr("#e1dedb", theme->window[THEME_ACTIVE].title_bg_color);
-	parse_hexstr("#f6f5f4", theme->window[THEME_INACTIVE].title_bg_color);
+	theme->window[THEME_ACTIVE].title_bg.gradient = LAB_GRADIENT_NONE;
+	theme->window[THEME_INACTIVE].title_bg.gradient = LAB_GRADIENT_NONE;
+	parse_hexstr("#e1dedb", theme->window[THEME_ACTIVE].title_bg.color);
+	parse_hexstr("#f6f5f4", theme->window[THEME_INACTIVE].title_bg.color);
+	theme->window[THEME_ACTIVE].title_bg.color_split_to[0] = FLT_MIN;
+	theme->window[THEME_INACTIVE].title_bg.color_split_to[0] = FLT_MIN;
+	theme->window[THEME_ACTIVE].title_bg.color_to[0] = FLT_MIN;
+	theme->window[THEME_INACTIVE].title_bg.color_to[0] = FLT_MIN;
+	theme->window[THEME_ACTIVE].title_bg.color_to_split_to[0] = FLT_MIN;
+	theme->window[THEME_INACTIVE].title_bg.color_to_split_to[0] = FLT_MIN;
 
 	parse_hexstr("#000000", theme->window[THEME_ACTIVE].label_text_color);
 	parse_hexstr("#000000", theme->window[THEME_INACTIVE].label_text_color);
@@ -688,11 +718,35 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_color(value, theme->window_toggled_keybinds_color);
 	}
 
+	if (match_glob(key, "window.active.title.bg")) {
+		theme->window[THEME_ACTIVE].title_bg.gradient = parse_gradient(value);
+	}
+	if (match_glob(key, "window.inactive.title.bg")) {
+		theme->window[THEME_INACTIVE].title_bg.gradient = parse_gradient(value);
+	}
 	if (match_glob(key, "window.active.title.bg.color")) {
-		parse_color(value, theme->window[THEME_ACTIVE].title_bg_color);
+		parse_color(value, theme->window[THEME_ACTIVE].title_bg.color);
 	}
 	if (match_glob(key, "window.inactive.title.bg.color")) {
-		parse_color(value, theme->window[THEME_INACTIVE].title_bg_color);
+		parse_color(value, theme->window[THEME_INACTIVE].title_bg.color);
+	}
+	if (match_glob(key, "window.active.title.bg.color.splitTo")) {
+		parse_color(value, theme->window[THEME_ACTIVE].title_bg.color_split_to);
+	}
+	if (match_glob(key, "window.inactive.title.bg.color.splitTo")) {
+		parse_color(value, theme->window[THEME_INACTIVE].title_bg.color_split_to);
+	}
+	if (match_glob(key, "window.active.title.bg.colorTo")) {
+		parse_color(value, theme->window[THEME_ACTIVE].title_bg.color_to);
+	}
+	if (match_glob(key, "window.inactive.title.bg.colorTo")) {
+		parse_color(value, theme->window[THEME_INACTIVE].title_bg.color_to);
+	}
+	if (match_glob(key, "window.active.title.bg.colorTo.splitTo")) {
+		parse_color(value, theme->window[THEME_ACTIVE].title_bg.color_to_split_to);
+	}
+	if (match_glob(key, "window.inactive.title.bg.colorTo.splitTo")) {
+		parse_color(value, theme->window[THEME_INACTIVE].title_bg.color_to_split_to);
 	}
 
 	if (match_glob(key, "window.active.label.text.color")) {
@@ -1229,6 +1283,49 @@ out:
 	return buffer;
 }
 
+static void
+add_color_stop_rgba_premult(cairo_pattern_t *pattern, float offset,
+		const float c[4])
+{
+	float alpha = c[3];
+
+	if (alpha == 0.0f) {
+		cairo_pattern_add_color_stop_rgba(pattern, offset, 0, 0, 0, 0);
+	} else {
+		cairo_pattern_add_color_stop_rgba(pattern, offset,
+			c[0] / alpha, c[1] / alpha, c[2] / alpha, alpha);
+	}
+}
+
+static cairo_pattern_t *
+create_titlebar_pattern(const struct theme_background *bg, int height)
+{
+	cairo_pattern_t *pattern;
+
+	switch (bg->gradient) {
+	case LAB_GRADIENT_VERTICAL:
+		pattern = cairo_pattern_create_linear(0, 0, 0, height);
+		add_color_stop_rgba_premult(pattern, 0, bg->color);
+		add_color_stop_rgba_premult(pattern, 1, bg->color_to);
+		break;
+
+	case LAB_GRADIENT_SPLITVERTICAL:
+		pattern = cairo_pattern_create_linear(0, 0, 0, height);
+		add_color_stop_rgba_premult(pattern, 0, bg->color_split_to);
+		add_color_stop_rgba_premult(pattern, 0.5, bg->color);
+		add_color_stop_rgba_premult(pattern, 0.5, bg->color_to);
+		add_color_stop_rgba_premult(pattern, 1, bg->color_to_split_to);
+		break;
+
+	case LAB_GRADIENT_NONE:
+	default:
+		pattern = color_to_pattern(bg->color);
+		break;
+	}
+
+	return pattern;
+}
+
 static struct lab_data_buffer *
 create_titlebar_fill(cairo_pattern_t *pattern, int height)
 {
@@ -1248,8 +1345,9 @@ static void
 create_backgrounds(struct theme *theme)
 {
 	for (int active = THEME_INACTIVE; active <= THEME_ACTIVE; active++) {
-		theme->window[active].titlebar_pattern = color_to_pattern(
-			theme->window[active].title_bg_color);
+		theme->window[active].titlebar_pattern = create_titlebar_pattern(
+			&theme->window[active].title_bg,
+			theme->titlebar_height);
 		theme->window[active].titlebar_fill = create_titlebar_fill(
 			theme->window[active].titlebar_pattern,
 			theme->titlebar_height);
@@ -1445,6 +1543,33 @@ create_shadows(struct theme *theme)
 }
 
 static void
+copy_color_scaled(float dest[4], const float src[4], float scale)
+{
+	/* RGB values are premultiplied so must not exceed alpha */
+	dest[0] = fminf(src[0] * scale, src[3]);
+	dest[1] = fminf(src[1] * scale, src[3]);
+	dest[2] = fminf(src[2] * scale, src[3]);
+	dest[3] = src[3]; /* alpha */
+}
+
+static void
+fill_background_colors(struct theme_background *bg)
+{
+	/* color.splitTo is color * 5/4, per Openbox theme spec */
+	if (bg->color_split_to[0] == FLT_MIN) {
+		copy_color_scaled(bg->color_split_to, bg->color, 1.25f);
+	}
+	/* colorTo has no default in Openbox; just re-use "color" */
+	if (bg->color_to[0] == FLT_MIN) {
+		memcpy(bg->color_to, bg->color, sizeof(bg->color_to));
+	}
+	/* colorTo.splitTo is colorTo * 17/16, per Openbox theme spec */
+	if (bg->color_to_split_to[0] == FLT_MIN) {
+		copy_color_scaled(bg->color_to_split_to, bg->color_to, 1.0625f);
+	}
+}
+
+static void
 fill_colors_with_osd_theme(struct theme *theme, float colors[3][4])
 {
 	memcpy(colors[0], theme->osd_bg_color, sizeof(colors[0]));
@@ -1468,6 +1593,9 @@ static void
 post_processing(struct theme *theme)
 {
 	theme->titlebar_height = get_titlebar_height(theme);
+
+	fill_background_colors(&theme->window[THEME_INACTIVE].title_bg);
+	fill_background_colors(&theme->window[THEME_ACTIVE].title_bg);
 
 	theme->menu_item_height = font_height(&rc.font_menuitem)
 		+ 2 * theme->menu_items_padding_y;
@@ -1518,7 +1646,7 @@ post_processing(struct theme *theme)
 	/* Inherit OSD settings if not set */
 	if (theme->osd_bg_color[0] == FLT_MIN) {
 		memcpy(theme->osd_bg_color,
-			theme->window[THEME_ACTIVE].title_bg_color,
+			theme->window[THEME_ACTIVE].title_bg.color,
 			sizeof(theme->osd_bg_color));
 	}
 	if (theme->osd_border_width == INT_MIN) {

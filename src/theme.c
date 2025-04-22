@@ -53,7 +53,7 @@ struct rounded_corner_ctx {
 	struct wlr_box *box;
 	double radius;
 	double line_width;
-	float *fill_color;
+	cairo_pattern_t *fill_pattern;
 	float *border_color;
 	enum corner corner;
 };
@@ -71,6 +71,15 @@ zdrop(struct lab_data_buffer **buffer)
 	if (*buffer) {
 		wlr_buffer_drop(&(*buffer)->base);
 		*buffer = NULL;
+	}
+}
+
+static void
+zdrop_pattern(cairo_pattern_t **pattern)
+{
+	if (*pattern) {
+		cairo_pattern_destroy(*pattern);
+		*pattern = NULL;
 	}
 }
 
@@ -1109,7 +1118,7 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 	}
 	cairo_close_path(cairo);
 	cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
-	set_cairo_color(cairo, ctx->fill_color);
+	cairo_set_source(cairo, ctx->fill_pattern);
 	cairo_fill_preserve(cairo);
 	cairo_stroke(cairo);
 
@@ -1215,6 +1224,42 @@ out:
 	return buffer;
 }
 
+static struct lab_data_buffer *
+create_titlebar_fill(cairo_pattern_t *pattern, int height)
+{
+	/* create 1px wide buffer to be stretched horizontally */
+	struct lab_data_buffer *fill = buffer_create_cairo(1, height, 1);
+
+	cairo_t *cairo = cairo_create(fill->surface);
+	cairo_set_source(cairo, pattern);
+	cairo_paint(cairo);
+	cairo_surface_flush(fill->surface);
+	cairo_destroy(cairo);
+
+	return fill;
+}
+
+static void
+create_backgrounds(struct theme *theme)
+{
+	for (int active = THEME_INACTIVE; active <= THEME_ACTIVE; active++) {
+		theme->window[active].titlebar_pattern = color_to_cairo_pattern(
+			theme->window[active].title_bg_color);
+		theme->window[active].titlebar_fill = create_titlebar_fill(
+			theme->window[active].titlebar_pattern,
+			theme->titlebar_height);
+	}
+
+	theme->menu_items_bg_pattern =
+		color_to_cairo_pattern(theme->menu_items_bg_color);
+	theme->menu_items_active_bg_pattern =
+		color_to_cairo_pattern(theme->menu_items_active_bg_color);
+	theme->menu_title_bg_pattern =
+		color_to_cairo_pattern(theme->menu_title_bg_color);
+	theme->osd_bg_pattern =
+		color_to_cairo_pattern(theme->osd_bg_color);
+}
+
 static void
 create_corners(struct theme *theme)
 {
@@ -1232,7 +1277,7 @@ create_corners(struct theme *theme)
 			.box = &box,
 			.radius = rc.corner_radius,
 			.line_width = theme->border_width,
-			.fill_color = theme->window[active].title_bg_color,
+			.fill_pattern = theme->window[active].titlebar_pattern,
 			.border_color = theme->window[active].border_color,
 			.corner = LAB_CORNER_TOP_LEFT,
 		};
@@ -1567,6 +1612,7 @@ theme_init(struct theme *theme, struct server *server, const char *theme_name)
 	paths_destroy(&paths);
 
 	post_processing(theme);
+	create_backgrounds(theme);
 	create_corners(theme);
 	load_buttons(theme);
 	create_shadows(theme);
@@ -1593,10 +1639,17 @@ theme_finish(struct theme *theme)
 	}
 
 	for (int active = THEME_INACTIVE; active <= THEME_ACTIVE; active++) {
+		zdrop_pattern(&theme->window[active].titlebar_pattern);
+		zdrop(&theme->window[active].titlebar_fill);
 		zdrop(&theme->window[active].corner_top_left_normal);
 		zdrop(&theme->window[active].corner_top_right_normal);
 		zdrop(&theme->window[active].shadow_corner_top);
 		zdrop(&theme->window[active].shadow_corner_bottom);
 		zdrop(&theme->window[active].shadow_edge);
 	}
+
+	zdrop_pattern(&theme->menu_items_bg_pattern);
+	zdrop_pattern(&theme->menu_items_active_bg_pattern);
+	zdrop_pattern(&theme->menu_title_bg_pattern);
+	zdrop_pattern(&theme->osd_bg_pattern);
 }

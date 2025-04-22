@@ -204,8 +204,8 @@ resize_indicator_update(struct view *view)
 	int y = view_box.y - view->current.y + (view_box.height - indicator->height) / 2;
 	wlr_scene_node_set_position(&indicator->tree->node, x, y);
 
-	scaled_font_buffer_update(indicator->text, text, width, &rc.font_osd,
-		rc.theme->osd_label_text_color, rc.theme->osd_bg_color);
+	scaled_font_buffer_update(indicator->text, text, width, -1, &rc.font_osd,
+		rc.theme->osd_label_text_color, rc.theme->osd_bg_pattern);
 }
 
 void

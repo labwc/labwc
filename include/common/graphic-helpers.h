@@ -44,6 +44,11 @@ void multi_rect_set_size(struct multi_rect *rect, int width, int height);
  */
 void set_cairo_color(cairo_t *cairo, const float *color);
 
+/* Creates a solid color cairo pattern from premultipled RGBA */
+cairo_pattern_t *color_to_cairo_pattern(const float *color);
+
+bool is_cairo_pattern_opaque(cairo_pattern_t *pattern);
+
 /* Draws a border with a specified line width */
 void draw_cairo_border(cairo_t *cairo, struct wlr_fbox fbox, double line_width);
 

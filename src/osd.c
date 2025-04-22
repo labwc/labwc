@@ -11,6 +11,7 @@
 #include "common/scaled-icon-buffer.h"
 #include "common/scaled-rect-buffer.h"
 #include "common/scene-helpers.h"
+#include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "node.h"
@@ -369,16 +370,23 @@ create_osd_scene(struct output *output, struct wl_array *views)
 				buf_clear(&buf);
 				osd_field_get_content(field, &buf, *view);
 
-				struct scaled_font_buffer *font_buffer =
-					scaled_font_buffer_create(item_root);
-				scaled_font_buffer_update(font_buffer, buf.data, field_width,
-					&rc.font_osd, text_color, bg_color);
-				node = &font_buffer->scene_buffer->node;
-				height = font_height(&rc.font_osd);
+				if (!string_null_or_empty(buf.data)) {
+					struct scaled_font_buffer *font_buffer =
+						scaled_font_buffer_create(item_root);
+					scaled_font_buffer_update(font_buffer,
+						buf.data, field_width,
+						&rc.font_osd, text_color, bg_color);
+					node = &font_buffer->scene_buffer->node;
+					height = font_height(&rc.font_osd);
+				}
 			}
 
-			wlr_scene_node_set_position(node, x,
-				y + (theme->osd_window_switcher_item_height - height) / 2);
+			if (node) {
+				int item_height =
+					theme->osd_window_switcher_item_height;
+				wlr_scene_node_set_position(node,
+					x, y + (item_height - height) / 2);
+			}
 			x += field_width + theme->osd_window_switcher_item_padding_x;
 		}
 

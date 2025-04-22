@@ -19,11 +19,9 @@
 
 #include "buffer.h"
 #include "common/buf.h"
-#include "common/macros.h"
+#include "common/graphic-helpers.h"
 #include "common/mem.h"
 #include "img/img-xpm.h"
-
-#include "xpm-color-table.h"
 
 enum buf_op { op_header, op_cmap, op_body };
 
@@ -41,26 +39,6 @@ static inline uint32_t
 make_argb(uint8_t a, uint8_t r, uint8_t g, uint8_t b)
 {
 	return ((uint32_t)a << 24) | ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
-}
-
-static int
-compare_xcolor_entries(const void *a, const void *b)
-{
-	return g_ascii_strcasecmp((const char *)a,
-		color_names + ((const struct xcolor_entry *)b)->name_offset);
-}
-
-static bool
-lookup_named_color(const char *name, uint32_t *argb)
-{
-	struct xcolor_entry *found = bsearch(name, xcolors, ARRAY_SIZE(xcolors),
-		sizeof(struct xcolor_entry), compare_xcolor_entries);
-	if (!found) {
-		return false;
-	}
-
-	*argb = make_argb(0xFF, found->red, found->green, found->blue);
-	return true;
 }
 
 static bool

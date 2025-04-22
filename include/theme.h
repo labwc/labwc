@@ -14,6 +14,16 @@
 
 struct lab_img;
 
+/*
+ * Openbox defines 7 types of Gradient background in addition to Solid.
+ * Currently, labwc supports only Vertical and SplitVertical.
+ */
+enum lab_gradient {
+	LAB_GRADIENT_NONE, /* i.e. Solid */
+	LAB_GRADIENT_VERTICAL,
+	LAB_GRADIENT_SPLITVERTICAL,
+};
+
 enum lab_justification {
 	LAB_JUSTIFY_LEFT,
 	LAB_JUSTIFY_CENTER,
@@ -36,6 +46,16 @@ enum lab_button_state {
 	LAB_BS_ROUNDED = 1 << 2,
 
 	LAB_BS_ALL = LAB_BS_HOVERD | LAB_BS_TOGGLED | LAB_BS_ROUNDED,
+};
+
+struct theme_background {
+	/* gradient type or none/solid */
+	enum lab_gradient gradient;
+	/* gradient stops */
+	float color[4];
+	float color_split_to[4];
+	float color_to[4];
+	float color_to_split_to[4];
 };
 
 struct theme {
@@ -66,12 +86,14 @@ struct theme {
 	 * THEME_INACTIVE and THEME_ACTIVE.
 	 */
 	struct {
+		/* title background pattern (solid or gradient) */
+		struct theme_background title_bg;
+
 		/* TODO: add toggled/hover/pressed/disabled colors for buttons */
 		float button_colors[LAB_SSD_BUTTON_LAST + 1][4];
 
 		float border_color[4];
 		float toggled_keybinds_color[4];
-		float title_bg_color[4];
 		float label_text_color[4];
 
 		/* window drop-shadows */

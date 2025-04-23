@@ -297,7 +297,7 @@ create_osd_scene(struct output *output, struct wl_array *views)
 	/* Draw workspace indicator */
 	if (show_workspace) {
 		struct font font = rc.font_osd;
-		font.weight = FONT_WEIGHT_BOLD;
+		font.weight = PANGO_WEIGHT_BOLD;
 
 		/* Center workspace indicator on the x axis */
 		int x = (w - font_width(&font, workspace_name)) / 2;

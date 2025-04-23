@@ -863,29 +863,29 @@ set_font_attr(struct font *font, const char *nodename, const char *content)
 		}
 	} else if (!strcmp(nodename, "weight")) {
 		if (!strcasecmp(content, "thin")) {
-			font->weight = FONT_WEIGHT_THIN;
+			font->weight = PANGO_WEIGHT_THIN;
 		} else if (!strcasecmp(content, "ultralight")) {
-			font->weight = FONT_WEIGHT_ULTRALIGHT;
+			font->weight = PANGO_WEIGHT_ULTRALIGHT;
 		} else if (!strcasecmp(content, "light")) {
-			font->weight = FONT_WEIGHT_LIGHT;
+			font->weight = PANGO_WEIGHT_LIGHT;
 		} else if (!strcasecmp(content, "semilight")) {
-			font->weight = FONT_WEIGHT_SEMILIGHT;
+			font->weight = PANGO_WEIGHT_SEMILIGHT;
 		} else if (!strcasecmp(content, "book")) {
-			font->weight = FONT_WEIGHT_BOOK;
+			font->weight = PANGO_WEIGHT_BOOK;
 		} else if (!strcasecmp(content, "medium")) {
-			font->weight = FONT_WEIGHT_MEDIUM;
+			font->weight = PANGO_WEIGHT_MEDIUM;
 		} else if (!strcasecmp(content, "semibold")) {
-			font->weight = FONT_WEIGHT_SEMIBOLD;
+			font->weight = PANGO_WEIGHT_SEMIBOLD;
 		} else if (!strcasecmp(content, "bold")) {
-			font->weight = FONT_WEIGHT_BOLD;
+			font->weight = PANGO_WEIGHT_BOLD;
 		} else if (!strcasecmp(content, "ultrabold")) {
-			font->weight = FONT_WEIGHT_ULTRABOLD;
+			font->weight = PANGO_WEIGHT_ULTRABOLD;
 		} else if (!strcasecmp(content, "heavy")) {
-			font->weight = FONT_WEIGHT_HEAVY;
+			font->weight = PANGO_WEIGHT_HEAVY;
 		} else if (!strcasecmp(content, "ultraheavy")) {
-			font->weight = FONT_WEIGHT_ULTRAHEAVY;
+			font->weight = PANGO_WEIGHT_ULTRAHEAVY;
 		} else {
-			font->weight = FONT_WEIGHT_NORMAL;
+			font->weight = PANGO_WEIGHT_NORMAL;
 		}
 	}
 }
@@ -1475,7 +1475,7 @@ init_font_defaults(struct font *font)
 {
 	font->size = 10;
 	font->slant = FONT_SLANT_NORMAL;
-	font->weight = FONT_WEIGHT_NORMAL;
+	font->weight = PANGO_WEIGHT_NORMAL;
 }
 
 static void

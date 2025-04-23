@@ -25,30 +25,42 @@ font_to_pango_desc(struct font *font)
 	}
 	switch (font->weight)
 	{
-		case FONT_WEIGHT_THIN:			pango_font_description_set_weight(desc, PANGO_WEIGHT_THIN);
-										break;
-		case FONT_WEIGHT_ULTRALIGHT:	pango_font_description_set_weight(desc, PANGO_WEIGHT_ULTRALIGHT);
-										break;
-		case FONT_WEIGHT_LIGHT:			pango_font_description_set_weight(desc, PANGO_WEIGHT_LIGHT);
-										break;
-		case FONT_WEIGHT_SEMILIGHT:		pango_font_description_set_weight(desc, PANGO_WEIGHT_SEMILIGHT);
-										break;
-		case FONT_WEIGHT_BOOK:			pango_font_description_set_weight(desc, PANGO_WEIGHT_BOOK);
-										break;
-		case FONT_WEIGHT_MEDIUM:		pango_font_description_set_weight(desc, PANGO_WEIGHT_MEDIUM);
-										break;
-		case FONT_WEIGHT_SEMIBOLD:		pango_font_description_set_weight(desc, PANGO_WEIGHT_SEMIBOLD);
-										break;
-		case FONT_WEIGHT_BOLD:			pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
-										break;
-		case FONT_WEIGHT_ULTRABOLD:		pango_font_description_set_weight(desc, PANGO_WEIGHT_ULTRABOLD);
-										break;
-		case FONT_WEIGHT_HEAVY:			pango_font_description_set_weight(desc, PANGO_WEIGHT_HEAVY);
-										break;
-		case FONT_WEIGHT_ULTRAHEAVY:	pango_font_description_set_weight(desc, PANGO_WEIGHT_ULTRAHEAVY);
-										break;
-		default:						pango_font_description_set_weight(desc, PANGO_WEIGHT_NORMAL);
-										break;
+		case FONT_WEIGHT_THIN:
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_THIN);
+			break;
+		case FONT_WEIGHT_ULTRALIGHT:
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_ULTRALIGHT);
+			break;
+		case FONT_WEIGHT_LIGHT:
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_LIGHT);
+			break;
+		case FONT_WEIGHT_SEMILIGHT:
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_SEMILIGHT);
+			break;
+		case FONT_WEIGHT_BOOK:
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_BOOK);
+			break;
+		case FONT_WEIGHT_MEDIUM:
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_MEDIUM);
+			break;
+		case FONT_WEIGHT_SEMIBOLD:
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_SEMIBOLD);
+			break;
+		case FONT_WEIGHT_BOLD:
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
+			break;
+		case FONT_WEIGHT_ULTRABOLD:
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_ULTRABOLD);
+			break;
+		case FONT_WEIGHT_HEAVY:
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_HEAVY);
+			break;
+		case FONT_WEIGHT_ULTRAHEAVY:
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_ULTRAHEAVY);
+			break;
+		default:
+			pango_font_description_set_weight(desc, PANGO_WEIGHT_NORMAL);
+			break;
 	}
 	return desc;
 }

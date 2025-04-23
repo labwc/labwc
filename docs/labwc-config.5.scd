@@ -546,7 +546,8 @@ extending outward from the snapped edge.
 	Font slant (normal, oblique or italic). Default is normal.
 
 *<theme><font place=""><weight>*
-	Font weight (normal or bold). Default is normal.
+	Font weight (normal, thin, ultralight, light, semilight, book, medium,
+	semibold, bold, ultrabold, heavy, ultraheavy). Default is normal.
 
 ## MARGIN
 

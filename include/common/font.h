@@ -5,16 +5,10 @@
 
 struct lab_data_buffer;
 
-enum font_slant {
-	FONT_SLANT_NORMAL = 0,
-	FONT_SLANT_ITALIC,
-	FONT_SLANT_OBLIQUE
-};
-
 struct font {
 	char *name;
 	int size;
-	enum font_slant slant;
+	PangoStyle slant;
 	PangoWeight weight;
 };
 

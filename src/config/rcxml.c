@@ -855,11 +855,11 @@ set_font_attr(struct font *font, const char *nodename, const char *content)
 		font->size = atoi(content);
 	} else if (!strcmp(nodename, "slant")) {
 		if (!strcasecmp(content, "italic")) {
-			font->slant = FONT_SLANT_ITALIC;
+			font->slant = PANGO_STYLE_ITALIC;
 		} else if (!strcasecmp(content, "oblique")) {
-			font->slant = FONT_SLANT_OBLIQUE;
+			font->slant = PANGO_STYLE_OBLIQUE;
 		} else {
-			font->slant = FONT_SLANT_NORMAL;
+			font->slant = PANGO_STYLE_NORMAL;
 		}
 	} else if (!strcmp(nodename, "weight")) {
 		if (!strcasecmp(content, "thin")) {
@@ -1474,7 +1474,7 @@ static void
 init_font_defaults(struct font *font)
 {
 	font->size = 10;
-	font->slant = FONT_SLANT_NORMAL;
+	font->slant = PANGO_STYLE_NORMAL;
 	font->weight = PANGO_WEIGHT_NORMAL;
 }
 

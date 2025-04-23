@@ -17,12 +17,7 @@ font_to_pango_desc(struct font *font)
 	PangoFontDescription *desc = pango_font_description_new();
 	pango_font_description_set_family(desc, font->name);
 	pango_font_description_set_size(desc, font->size * PANGO_SCALE);
-	if (font->slant == FONT_SLANT_ITALIC) {
-		pango_font_description_set_style(desc, PANGO_STYLE_ITALIC);
-	}
-	if (font->slant == FONT_SLANT_OBLIQUE) {
-		pango_font_description_set_style(desc, PANGO_STYLE_OBLIQUE);
-	}
+	pango_font_description_set_style(desc, font->slant);
 	pango_font_description_set_weight(desc, font->weight);
 	return desc;
 }

@@ -862,8 +862,31 @@ set_font_attr(struct font *font, const char *nodename, const char *content)
 			font->slant = FONT_SLANT_NORMAL;
 		}
 	} else if (!strcmp(nodename, "weight")) {
-		font->weight = !strcasecmp(content, "bold") ?
-			FONT_WEIGHT_BOLD : FONT_WEIGHT_NORMAL;
+		if (!strcasecmp(content, "thin")) {
+			font->weight = FONT_WEIGHT_THIN;
+		} else if (!strcasecmp(content, "ultralight")) {
+			font->weight = FONT_WEIGHT_ULTRALIGHT;
+		} else if (!strcasecmp(content, "light")) {
+			font->weight = FONT_WEIGHT_LIGHT;
+		} else if (!strcasecmp(content, "semilight")) {
+			font->weight = FONT_WEIGHT_SEMILIGHT;
+		} else if (!strcasecmp(content, "book")) {
+			font->weight = FONT_WEIGHT_BOOK;
+		} else if (!strcasecmp(content, "medium")) {
+			font->weight = FONT_WEIGHT_MEDIUM;
+		} else if (!strcasecmp(content, "semibold")) {
+			font->weight = FONT_WEIGHT_SEMIBOLD;
+		} else if (!strcasecmp(content, "bold")) {
+			font->weight = FONT_WEIGHT_BOLD;
+		} else if (!strcasecmp(content, "ultrabold")) {
+			font->weight = FONT_WEIGHT_ULTRABOLD;
+		} else if (!strcasecmp(content, "heavy")) {
+			font->weight = FONT_WEIGHT_HEAVY;
+		} else if (!strcasecmp(content, "ultraheavy")) {
+			font->weight = FONT_WEIGHT_ULTRAHEAVY;
+		} else {
+			font->weight = FONT_WEIGHT_NORMAL;
+		}
 	}
 }
 

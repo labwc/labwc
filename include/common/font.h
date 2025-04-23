@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef LABWC_FONT_H
 #define LABWC_FONT_H
+#include <pango/pango-font.h>
 
 struct lab_data_buffer;
 
@@ -10,26 +11,11 @@ enum font_slant {
 	FONT_SLANT_OBLIQUE
 };
 
-enum font_weight {
-	FONT_WEIGHT_NORMAL = 0,
-	FONT_WEIGHT_THIN,
-	FONT_WEIGHT_ULTRALIGHT,
-	FONT_WEIGHT_LIGHT,
-	FONT_WEIGHT_SEMILIGHT,
-	FONT_WEIGHT_BOOK,
-	FONT_WEIGHT_MEDIUM,
-	FONT_WEIGHT_SEMIBOLD,
-	FONT_WEIGHT_BOLD,
-	FONT_WEIGHT_ULTRABOLD,
-	FONT_WEIGHT_HEAVY,
-	FONT_WEIGHT_ULTRAHEAVY
-};
-
 struct font {
 	char *name;
 	int size;
 	enum font_slant slant;
-	enum font_weight weight;
+	PangoWeight weight;
 };
 
 struct _PangoFontDescription *font_to_pango_desc(struct font *font);

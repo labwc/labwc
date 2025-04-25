@@ -361,6 +361,17 @@ Actions are used in menus and keyboard/mouse bindings.
 	Use together with the WarpCursor action to not just hide the cursor but
 	to additionally move it away to prevent e.g. hover effects.
 
+*<action name="EnableScrollWheelEmulation" />*++
+*<action name="DisableScrollWheelEmulation" />*++
+*<action name="ToggleScrollWheelEmulation">*
+	Enable, disable or toggle scroll wheel emulation on cursor motion,
+	respectively. This can be useful for trackball mouses to use the
+	rotating ball not just for moving the cursor, but also for (mouse wheel)
+	scrolling.
+
+	See also *<libinput><scrollFactor>* in labwc-config(5) for fine tuning
+	the scroll speed.
+
 *<action name="EnableTabletMouseEmulation" />*++
 *<action name="DisableTabletMouseEmulation" />*++
 *<action name="ToggleTabletMouseEmulation">*

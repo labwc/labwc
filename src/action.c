@@ -486,7 +486,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		}
 		break;
 	case ACTION_TYPE_IF:
-		if (!strcmp(argument, "prompt") || !strcmp(argument, "text.prompt")) {
+		if (!strcmp(argument, "text.prompt")) {
 			action_arg_add_str(action, "prompt_text", content);
 		} else if (!strcmp(argument, "title.prompt")) {
 			action_arg_add_str(action, "prompt_title", content);

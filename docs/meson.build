@@ -1,16 +1,15 @@
 scdoc = find_program('scdoc', required: get_option('man-pages'))
 
 if scdoc.found()
-  sections = [
-    '.1',
-    '-actions.5',
-    '-config.5',
-    '-menu.5',
-    '-theme.5',
+  manpages = [
+    'labwc.1',
+    'labwc-actions.5',
+    'labwc-config.5',
+    'labwc-menu.5',
+    'labwc-theme.5',
   ]
-  foreach s : sections
-    markdown = 'labwc' + s + '.scd'
-    manpage = 'labwc' + s
+  foreach manpage : manpages
+    markdown = manpage + '.scd'
     custom_target(
       manpage,
       input: markdown,
@@ -19,7 +18,7 @@ if scdoc.found()
       feed: true,
       capture: true,
       install: true,
-      install_dir: join_paths(get_option('mandir'), 'man' + s.split('.')[-1])
+      install_dir: join_paths(get_option('mandir'), 'man' + manpage.split('.')[-1])
     )
   endforeach
 endif

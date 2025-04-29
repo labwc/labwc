@@ -9,7 +9,7 @@ static struct touch_config_entry *
 find_default_config(void)
 {
 	struct touch_config_entry *entry;
-	wl_list_for_each(entry, &rc.touch_configs, link) {
+	wl_list_for_each_reverse(entry, &rc.touch_configs, link) {
 		if (!entry->device_name) {
 			wlr_log(WLR_INFO, "found default touch configuration");
 			return entry;
@@ -23,7 +23,7 @@ touch_find_config_for_device(char *device_name)
 {
 	wlr_log(WLR_INFO, "find touch configuration for %s", device_name);
 	struct touch_config_entry *entry;
-	wl_list_for_each(entry, &rc.touch_configs, link) {
+	wl_list_for_each_reverse(entry, &rc.touch_configs, link) {
 		if (entry->device_name && !strcasecmp(entry->device_name, device_name)) {
 			wlr_log(WLR_INFO, "found touch configuration for %s", device_name);
 			return entry;

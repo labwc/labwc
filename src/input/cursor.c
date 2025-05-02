@@ -1189,66 +1189,6 @@ handle_button(struct wl_listener *listener, void *data)
 	}
 }
 
-void
-cursor_emulate_move(struct seat *seat, struct wlr_input_device *device,
-		double dx, double dy, uint32_t time_msec)
-{
-	if (!dx && !dy) {
-		wlr_log(WLR_DEBUG, "dropping useless cursor_emulate: %.10f,%.10f", dx, dy);
-		return;
-	}
-
-	wlr_relative_pointer_manager_v1_send_relative_motion(
-		seat->server->relative_pointer_manager,
-		seat->seat, (uint64_t)time_msec * 1000,
-		dx, dy, dx, dy);
-
-	wlr_cursor_move(seat->cursor, device, dx, dy);
-	double sx, sy;
-	bool notify = cursor_process_motion(seat->server, time_msec, &sx, &sy);
-	if (notify) {
-		wlr_seat_pointer_notify_motion(seat->seat, time_msec, sx, sy);
-	}
-	wlr_seat_pointer_notify_frame(seat->seat);
-}
-
-void
-cursor_emulate_move_absolute(struct seat *seat, struct wlr_input_device *device,
-		double x, double y, uint32_t time_msec)
-{
-	double lx, ly;
-	wlr_cursor_absolute_to_layout_coords(seat->cursor,
-		device, x, y, &lx, &ly);
-
-	double dx = lx - seat->cursor->x;
-	double dy = ly - seat->cursor->y;
-
-	cursor_emulate_move(seat, device, dx, dy, time_msec);
-}
-
-void
-cursor_emulate_button(struct seat *seat, uint32_t button,
-		enum wl_pointer_button_state state, uint32_t time_msec)
-{
-	bool notify;
-	switch (state) {
-	case WL_POINTER_BUTTON_STATE_PRESSED:
-		notify = cursor_process_button_press(seat, button, time_msec);
-		if (notify) {
-			wlr_seat_pointer_notify_button(seat->seat, time_msec, button, state);
-		}
-		break;
-	case WL_POINTER_BUTTON_STATE_RELEASED:
-		notify = cursor_process_button_release(seat, button, time_msec);
-		if (notify) {
-			wlr_seat_pointer_notify_button(seat->seat, time_msec, button, state);
-		}
-		cursor_finish_button_release(seat, button);
-		break;
-	}
-	wlr_seat_pointer_notify_frame(seat->seat);
-}
-
 struct scroll_info {
 	int direction;
 	bool run_action;
@@ -1393,6 +1333,66 @@ handle_frame(struct wl_listener *listener, void *data)
 	 */
 	struct seat *seat = wl_container_of(listener, seat, on_cursor.frame);
 	/* Notify the client with pointer focus of the frame event. */
+	wlr_seat_pointer_notify_frame(seat->seat);
+}
+
+void
+cursor_emulate_move(struct seat *seat, struct wlr_input_device *device,
+		double dx, double dy, uint32_t time_msec)
+{
+	if (!dx && !dy) {
+		wlr_log(WLR_DEBUG, "dropping useless cursor_emulate: %.10f,%.10f", dx, dy);
+		return;
+	}
+
+	wlr_relative_pointer_manager_v1_send_relative_motion(
+		seat->server->relative_pointer_manager,
+		seat->seat, (uint64_t)time_msec * 1000,
+		dx, dy, dx, dy);
+
+	wlr_cursor_move(seat->cursor, device, dx, dy);
+	double sx, sy;
+	bool notify = cursor_process_motion(seat->server, time_msec, &sx, &sy);
+	if (notify) {
+		wlr_seat_pointer_notify_motion(seat->seat, time_msec, sx, sy);
+	}
+	wlr_seat_pointer_notify_frame(seat->seat);
+}
+
+void
+cursor_emulate_move_absolute(struct seat *seat, struct wlr_input_device *device,
+		double x, double y, uint32_t time_msec)
+{
+	double lx, ly;
+	wlr_cursor_absolute_to_layout_coords(seat->cursor,
+		device, x, y, &lx, &ly);
+
+	double dx = lx - seat->cursor->x;
+	double dy = ly - seat->cursor->y;
+
+	cursor_emulate_move(seat, device, dx, dy, time_msec);
+}
+
+void
+cursor_emulate_button(struct seat *seat, uint32_t button,
+		enum wl_pointer_button_state state, uint32_t time_msec)
+{
+	bool notify;
+	switch (state) {
+	case WL_POINTER_BUTTON_STATE_PRESSED:
+		notify = cursor_process_button_press(seat, button, time_msec);
+		if (notify) {
+			wlr_seat_pointer_notify_button(seat->seat, time_msec, button, state);
+		}
+		break;
+	case WL_POINTER_BUTTON_STATE_RELEASED:
+		notify = cursor_process_button_release(seat, button, time_msec);
+		if (notify) {
+			wlr_seat_pointer_notify_button(seat->seat, time_msec, button, state);
+		}
+		cursor_finish_button_release(seat, button);
+		break;
+	}
 	wlr_seat_pointer_notify_frame(seat->seat);
 }
 

@@ -1941,9 +1941,11 @@ validate(void)
 	validate_actions();
 
 	/* OSD fields */
+	int field_width_sum = 0;
 	struct window_switcher_field *field, *field_tmp;
 	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.fields, link) {
-		if (!osd_field_validate(field)) {
+		field_width_sum += field->width;
+		if (!osd_field_is_valid(field) || field_width_sum > 100) {
 			wlr_log(WLR_ERROR, "Deleting invalid window switcher field %p", field);
 			wl_list_remove(&field->link);
 			osd_field_free(field);

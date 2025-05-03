@@ -174,14 +174,19 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 		icon_width = theme->menu_items_padding_x + icon_size;
 	}
 
-	/* Create background */
-	int bg_width = menu->size.width
-		- 2 * theme->menu_border_width;
-	wlr_scene_rect_create(tree, bg_width, theme->menu_item_height, bg_color);
-
+	int bg_width = menu->size.width - 2 * theme->menu_border_width;
 	int arrow_width = item->arrow ?
 		font_width(&rc.font_menuitem, item->arrow) : 0;
-	int label_max_width = bg_width - 2 * theme->menu_items_padding_x - arrow_width - icon_width;
+	int label_max_width = bg_width - 2 * theme->menu_items_padding_x
+		- arrow_width - icon_width;
+
+	if (label_max_width <= 0) {
+		wlr_log(WLR_ERROR, "not enough space for menu contents");
+		return tree;
+	}
+
+	/* Create background */
+	wlr_scene_rect_create(tree, bg_width, theme->menu_item_height, bg_color);
 
 	/* Create icon */
 	bool show_app_icon = !strcmp(item->parent->id, "client-list-combined-menu")
@@ -283,9 +288,6 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 	assert(menuitem->type == LAB_MENU_SEPARATOR_LINE);
 	struct menu *menu = menuitem->parent;
 	struct theme *theme = menu->server->theme;
-	int bg_width = menu->size.width - 2 * theme->menu_border_width;
-	int bg_height = theme->menu_separator_line_thickness
-		+ 2 * theme->menu_separator_padding_height;
 
 	/* Menu item root node */
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
@@ -295,12 +297,21 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 	/* Tree to hold background and line buffer */
 	menuitem->normal_tree = wlr_scene_tree_create(menuitem->tree);
 
+	int bg_height = theme->menu_separator_line_thickness
+		+ 2 * theme->menu_separator_padding_height;
+	int bg_width = menu->size.width - 2 * theme->menu_border_width;
+	int line_width = bg_width - 2 * theme->menu_separator_padding_width;
+
+	if (line_width <= 0) {
+		wlr_log(WLR_ERROR, "not enough space for menu separator");
+		goto error;
+	}
+
 	/* Item background nodes */
 	wlr_scene_rect_create(menuitem->normal_tree, bg_width, bg_height,
 		theme->menu_items_bg_color);
 
 	/* Draw separator line */
-	int line_width = bg_width - 2 * theme->menu_separator_padding_width;
 	struct wlr_scene_rect *line_rect = wlr_scene_rect_create(
 		menuitem->normal_tree, line_width,
 		theme->menu_separator_line_thickness,
@@ -310,6 +321,7 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 	wlr_scene_node_set_position(&line_rect->node,
 		theme->menu_separator_padding_width,
 		theme->menu_separator_padding_height);
+error:
 	wlr_scene_node_set_position(&menuitem->tree->node,
 		theme->menu_border_width, *item_y);
 	*item_y += bg_height;
@@ -324,7 +336,6 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	struct theme *theme = menu->server->theme;
 	float *bg_color = theme->menu_title_bg_color;
 	float *text_color = theme->menu_title_text_color;
-	int bg_width = menu->size.width - 2 * theme->menu_border_width;
 
 	/* Menu item root node */
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
@@ -333,6 +344,14 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 
 	/* Tree to hold background and text buffer */
 	menuitem->normal_tree = wlr_scene_tree_create(menuitem->tree);
+
+	int bg_width = menu->size.width - 2 * theme->menu_border_width;
+	int text_width = bg_width - 2 * theme->menu_items_padding_x;
+
+	if (text_width <= 0) {
+		wlr_log(WLR_ERROR, "not enough space for menu title");
+		goto error;
+	}
 
 	/* Background */
 	wlr_scene_rect_create(menuitem->normal_tree,
@@ -343,8 +362,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 		scaled_font_buffer_create(menuitem->normal_tree);
 	assert(title_font_buffer);
 	scaled_font_buffer_update(title_font_buffer, menuitem->text,
-		bg_width - 2 * theme->menu_items_padding_x,
-		&rc.font_menuheader, text_color, bg_color);
+		text_width, &rc.font_menuheader, text_color, bg_color);
 
 	int title_x = 0;
 	switch (theme->menu_title_text_justify) {
@@ -363,7 +381,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	int title_y = (theme->menu_header_height - title_font_buffer->height) / 2;
 	wlr_scene_node_set_position(&title_font_buffer->scene_buffer->node,
 		title_x, title_y);
-
+error:
 	wlr_scene_node_set_position(&menuitem->tree->node,
 		theme->menu_border_width, *item_y);
 	*item_y += theme->menu_header_height;

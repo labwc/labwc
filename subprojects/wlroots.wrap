@@ -1,6 +1,6 @@
 [wrap-git]
-url = https://gitlab.freedesktop.org/wlroots/wlroots.git
-revision = 0.18
+url = https://gitlab.freedesktop.org/tokyo4j/wlroots.git
+revision = abort-negative-size
 
 [provide]
 dependency_names = wlroots-0.18

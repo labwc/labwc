@@ -352,7 +352,7 @@ osd_field_arg_from_xml_node(struct window_switcher_field *field,
 }
 
 bool
-osd_field_validate(struct window_switcher_field *field)
+osd_field_is_valid(struct window_switcher_field *field)
 {
 	if (field->content == LAB_FIELD_NONE) {
 		wlr_log(WLR_ERROR, "Invalid OSD field: no content set");

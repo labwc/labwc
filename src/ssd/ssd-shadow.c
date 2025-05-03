@@ -26,25 +26,21 @@ never_accepts_input(struct wlr_scene_buffer *buffer, double *sx, double *sy)
 /*
  * Setup transform and scale for shadow corner buffers. Cropping is applied if
  * the window is short or narrow enough that corners would overlap, the amount
- * to crop is controlled by vertical_overlap and horizontal_overlap.  Cropping
- * is applied before rotation so switch_axes should be true for the bottom-left
- * and top-right corners to crop horizontally instead of vertically.
+ * to crop is controlled by vertical_overlap and horizontal_overlap.
  */
 static void
 corner_scale_crop(struct wlr_scene_buffer *buffer, int horizontal_overlap,
-		int vertical_overlap, int corner_size, bool switch_axes)
+		int vertical_overlap, int corner_size)
 {
 	int width = corner_size - horizontal_overlap;
 	int height = corner_size - vertical_overlap;
-	/* Crop is applied before rotation so gets the axis flip */
 	struct wlr_fbox src_box = {
-		.x = switch_axes ? vertical_overlap : horizontal_overlap,
-		.y = switch_axes ? horizontal_overlap : vertical_overlap,
-		.width = switch_axes ? height : width,
-		.height = switch_axes ? width : height,
+		.x = horizontal_overlap,
+		.y = vertical_overlap,
+		.width = width,
+		.height = height,
 	};
 	wlr_scene_buffer_set_source_box(buffer, &src_box);
-	/* But scaling is applied after rotation so no axis flip */
 	wlr_scene_buffer_set_dest_size(buffer, width, height);
 }
 
@@ -103,28 +99,28 @@ set_shadow_part_geometry(struct ssd_part *part, int width, int height,
 		y = -titlebar_height + height - inset + vertical_overlap;
 		wlr_scene_node_set_position(part->node, x, y);
 		corner_scale_crop(scene_buf, horizontal_overlap,
-			vertical_overlap, corner_size, false);
+			vertical_overlap, corner_size);
 		break;
 	case LAB_SSD_PART_CORNER_BOTTOM_LEFT:
 		x = -visible_shadow_width;
 		y = -titlebar_height + height - inset + vertical_overlap;
 		wlr_scene_node_set_position(part->node, x, y);
 		corner_scale_crop(scene_buf, horizontal_overlap,
-			vertical_overlap, corner_size, true);
+			vertical_overlap, corner_size);
 		break;
 	case LAB_SSD_PART_CORNER_TOP_LEFT:
 		x = -visible_shadow_width;
 		y = -titlebar_height - visible_shadow_width;
 		wlr_scene_node_set_position(part->node, x, y);
 		corner_scale_crop(scene_buf, horizontal_overlap,
-			vertical_overlap, corner_size, false);
+			vertical_overlap, corner_size);
 		break;
 	case LAB_SSD_PART_CORNER_TOP_RIGHT:
 		x = width - inset + horizontal_overlap;
 		y = -titlebar_height - visible_shadow_width;
 		wlr_scene_node_set_position(part->node, x, y);
 		corner_scale_crop(scene_buf, horizontal_overlap,
-			vertical_overlap, corner_size, true);
+			vertical_overlap, corner_size);
 		break;
 	case LAB_SSD_PART_RIGHT:
 		x = width;
@@ -259,15 +255,14 @@ ssd_shadow_create(struct ssd *ssd)
 		corner_bottom_buffer = &theme->window[active].shadow_corner_bottom->base;
 		edge_buffer = &theme->window[active].shadow_edge->base;
 
-		make_shadow(&subtree->parts,
-			LAB_SSD_PART_CORNER_BOTTOM_RIGHT, parent,
-			corner_bottom_buffer, WL_OUTPUT_TRANSFORM_NORMAL);
+		make_shadow(&subtree->parts, LAB_SSD_PART_CORNER_BOTTOM_RIGHT,
+			parent, corner_bottom_buffer, WL_OUTPUT_TRANSFORM_NORMAL);
 		make_shadow(&subtree->parts, LAB_SSD_PART_CORNER_BOTTOM_LEFT,
-			parent, corner_bottom_buffer, WL_OUTPUT_TRANSFORM_90);
+			parent, corner_bottom_buffer, WL_OUTPUT_TRANSFORM_FLIPPED);
 		make_shadow(&subtree->parts, LAB_SSD_PART_CORNER_TOP_LEFT,
 			parent, corner_top_buffer, WL_OUTPUT_TRANSFORM_180);
 		make_shadow(&subtree->parts, LAB_SSD_PART_CORNER_TOP_RIGHT,
-			parent, corner_top_buffer, WL_OUTPUT_TRANSFORM_270);
+			parent, corner_top_buffer, WL_OUTPUT_TRANSFORM_FLIPPED_180);
 		make_shadow(&subtree->parts, LAB_SSD_PART_RIGHT, parent,
 			edge_buffer, WL_OUTPUT_TRANSFORM_NORMAL);
 		make_shadow(&subtree->parts, LAB_SSD_PART_BOTTOM, parent,

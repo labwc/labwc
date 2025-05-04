@@ -49,7 +49,7 @@ ssd_border_create(struct ssd *ssd)
 		add_scene_rect(&subtree->parts, LAB_SSD_PART_BOTTOM, parent,
 			full_width, theme->border_width, 0, height, color);
 		add_scene_rect(&subtree->parts, LAB_SSD_PART_TOP, parent,
-			width - 2 * corner_width, theme->border_width,
+			MAX(width - 2 * corner_width, 0), theme->border_width,
 			theme->border_width + corner_width,
 			-(ssd->titlebar.height + theme->border_width), color);
 	} FOR_EACH_END
@@ -123,7 +123,7 @@ ssd_border_update(struct ssd *ssd)
 		: 0;
 	int top_width = ssd->titlebar.height <= 0 || ssd->state.was_squared
 		? full_width
-		: width - 2 * corner_width;
+		: MAX(width - 2 * corner_width, 0);
 	int top_x = ssd->titlebar.height <= 0 || ssd->state.was_squared
 		? 0
 		: theme->border_width + corner_width;

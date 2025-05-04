@@ -8,6 +8,7 @@
 #include <wlr/util/box.h>
 #include "buffer.h"
 #include "common/graphic-helpers.h"
+#include "common/macros.h"
 #include "common/mem.h"
 
 static void
@@ -57,7 +58,7 @@ multi_rect_set_size(struct multi_rect *rect, int width, int height)
 	 * +-+-----+-+   |
 	 * +---------+  ---
 	 */
-	for (size_t i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++) {
 		/* Reposition, top and left don't ever change */
 		wlr_scene_node_set_position(&rect->right[i]->node,
 			width - (i + 1) * line_width, (i + 1) * line_width);
@@ -66,13 +67,17 @@ multi_rect_set_size(struct multi_rect *rect, int width, int height)
 
 		/* Update sizes */
 		wlr_scene_rect_set_size(rect->top[i],
-			width - i * line_width * 2, line_width);
+			MAX(width - i * line_width * 2, 0),
+			line_width);
 		wlr_scene_rect_set_size(rect->bottom[i],
-			width - i * line_width * 2, line_width);
+			MAX(width - i * line_width * 2, 0),
+			line_width);
 		wlr_scene_rect_set_size(rect->left[i],
-			line_width, height - (i + 1) * line_width * 2);
+			line_width,
+			MAX(height - (i + 1) * line_width * 2, 0));
 		wlr_scene_rect_set_size(rect->right[i],
-			line_width, height - (i + 1) * line_width * 2);
+			line_width,
+			MAX(height - (i + 1) * line_width * 2, 0));
 	}
 }
 

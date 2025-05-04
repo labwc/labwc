@@ -45,6 +45,7 @@ border_rect_set_size(struct border_rect *rect, int width, int height)
 {
 	assert(rect);
 	int border_width = rect->border_width;
+	assert(MIN(width, height) >= rect->border_width * 2);
 
 	/*
 	 * The border is drawn like below:
@@ -118,8 +119,14 @@ multi_rect_set_size(struct multi_rect *multi_rect, int width, int height)
 	assert(multi_rect);
 	int line_width = multi_rect->border_rects[0]->border_width;
 	for (size_t i = 0; i < 3; i++) {
-		border_rect_set_size(multi_rect->border_rects[i],
-			width - i * line_width * 2, height - i * line_width * 2);
+		int w = width - i * line_width * 2;
+		int h = height - i * line_width * 2;
+		bool is_valid_size = (w >= line_width * 2) && (h >= line_width * 2);
+		wlr_scene_node_set_enabled(&multi_rect->border_rects[i]->tree->node,
+			is_valid_size);
+		if (is_valid_size) {
+			border_rect_set_size(multi_rect->border_rects[i], w, h);
+		}
 	}
 }
 

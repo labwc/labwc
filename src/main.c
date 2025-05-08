@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include <pango/pangocairo.h>
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
@@ -62,6 +63,31 @@ die_on_detecting_suid(void)
 	}
 	wlr_log(WLR_ERROR, "SUID detected - aborting");
 	exit(EXIT_FAILURE);
+}
+
+static void
+die_on_no_fonts(void)
+{
+	PangoContext *context = pango_font_map_create_context(
+		pango_cairo_font_map_get_default());
+	PangoLayout *layout = pango_layout_new(context);
+	pango_layout_set_text(layout, "abcdefg", -1);
+	int nr_unknown_glyphs = pango_layout_get_unknown_glyphs_count(layout);
+	g_object_unref(layout);
+	g_object_unref(context);
+
+	if (nr_unknown_glyphs > 0) {
+		wlr_log(WLR_ERROR, "no fonts are available");
+		exit(EXIT_FAILURE);
+	}
+
+	/*
+	 * Make pango's dedicated thread exit. This prevents CI failures due to
+	 * SIGTERM delivered to the pango's thread. This kind of workaround is
+	 * not needed after we register our SIGTERM handler in
+	 * server_init() > wl_event_loop_add_signal(), which masks SIGTERM.
+	 */
+	pango_cairo_font_map_set_default(NULL);
 }
 
 static void
@@ -166,6 +192,7 @@ main(int argc, char *argv[])
 	wlr_log_init(verbosity, NULL);
 
 	die_on_detecting_suid();
+	die_on_no_fonts();
 
 	session_environment_init();
 

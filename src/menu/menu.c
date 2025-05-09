@@ -160,7 +160,7 @@ item_create(struct menu *menu, const char *text, bool show_arrow)
 
 static struct wlr_scene_tree *
 item_create_scene_for_state(struct menuitem *item, float *text_color,
-	float *bg_color)
+	float *bg_color, cairo_pattern_t *bg_pattern)
 {
 	struct menu *menu = item->parent;
 	struct theme *theme = menu->server->theme;
@@ -205,8 +205,8 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	/* Create label */
 	struct scaled_font_buffer *label_buffer = scaled_font_buffer_create(tree);
 	assert(label_buffer);
-	scaled_font_buffer_update(label_buffer, item->text, label_max_width,
-		&rc.font_menuitem, text_color, bg_color);
+	scaled_font_buffer_update(label_buffer, item->text, label_max_width, -1,
+		&rc.font_menuitem, text_color, bg_pattern);
 	/* Vertically center and left-align label */
 	int x = theme->menu_items_padding_x + icon_width;
 	int y = (theme->menu_item_height - label_buffer->height) / 2;
@@ -219,8 +219,8 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	/* Create arrow for submenu items */
 	struct scaled_font_buffer *arrow_buffer = scaled_font_buffer_create(tree);
 	assert(arrow_buffer);
-	scaled_font_buffer_update(arrow_buffer, item->arrow, -1,
-		&rc.font_menuitem, text_color, bg_color);
+	scaled_font_buffer_update(arrow_buffer, item->arrow, -1, -1,
+		&rc.font_menuitem, text_color, bg_pattern);
 	/* Vertically center and right-align arrow */
 	x += label_max_width;
 	y = (theme->menu_item_height - label_buffer->height) / 2;
@@ -245,10 +245,12 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 	/* Create scenes for unselected/selected states */
 	menuitem->normal_tree = item_create_scene_for_state(menuitem,
 		theme->menu_items_text_color,
-		theme->menu_items_bg_color);
+		theme->menu_items_bg_color,
+		theme->menu_items_bg_pattern);
 	menuitem->selected_tree = item_create_scene_for_state(menuitem,
 		theme->menu_items_active_text_color,
-		theme->menu_items_active_bg_color);
+		theme->menu_items_active_bg_color,
+		theme->menu_items_active_bg_pattern);
 	/* Hide selected state */
 	wlr_scene_node_set_enabled(&menuitem->selected_tree->node, false);
 
@@ -323,6 +325,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	struct menu *menu = menuitem->parent;
 	struct theme *theme = menu->server->theme;
 	float *bg_color = theme->menu_title_bg_color;
+	cairo_pattern_t *bg_pattern = theme->menu_title_bg_pattern;
 	float *text_color = theme->menu_title_text_color;
 	int bg_width = menu->size.width - 2 * theme->menu_border_width;
 
@@ -343,8 +346,8 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 		scaled_font_buffer_create(menuitem->normal_tree);
 	assert(title_font_buffer);
 	scaled_font_buffer_update(title_font_buffer, menuitem->text,
-		bg_width - 2 * theme->menu_items_padding_x,
-		&rc.font_menuheader, text_color, bg_color);
+		bg_width - 2 * theme->menu_items_padding_x, -1,
+		&rc.font_menuheader, text_color, bg_pattern);
 
 	int title_x = 0;
 	switch (theme->menu_title_text_justify) {

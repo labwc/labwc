@@ -287,6 +287,7 @@ create_osd_scene(struct output *output, struct wl_array *views)
 
 	float *text_color = theme->osd_label_text_color;
 	float *bg_color = theme->osd_bg_color;
+	cairo_pattern_t *bg_pattern = theme->osd_bg_pattern;
 
 	/* Draw background */
 	scaled_rect_buffer_create(output->osd_scene.tree, w, h,
@@ -306,8 +307,8 @@ create_osd_scene(struct output *output, struct wl_array *views)
 		wlr_scene_node_set_position(&font_buffer->scene_buffer->node,
 			x, y + (theme->osd_window_switcher_item_height
 				- font_height(&font)) / 2);
-		scaled_font_buffer_update(font_buffer, workspace_name, 0,
-			&font, text_color, bg_color);
+		scaled_font_buffer_update(font_buffer, workspace_name, -1, -1,
+			&font, text_color, bg_pattern);
 		y += theme->osd_window_switcher_item_height;
 	}
 
@@ -374,8 +375,8 @@ create_osd_scene(struct output *output, struct wl_array *views)
 					struct scaled_font_buffer *font_buffer =
 						scaled_font_buffer_create(item_root);
 					scaled_font_buffer_update(font_buffer,
-						buf.data, field_width,
-						&rc.font_osd, text_color, bg_color);
+						buf.data, field_width, -1,
+						&rc.font_osd, text_color, bg_pattern);
 					node = &font_buffer->scene_buffer->node;
 					height = font_height(&rc.font_osd);
 				}

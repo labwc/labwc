@@ -17,7 +17,7 @@ struct scaled_font_buffer {
 	char *text;
 	int max_width;
 	float color[4];
-	float bg_color[4];
+	cairo_pattern_t *bg_pattern;
 	struct font font;
 	struct scaled_scene_buffer *scaled_buffer;
 };
@@ -36,6 +36,10 @@ struct scaled_font_buffer *scaled_font_buffer_create(struct wlr_scene_tree *pare
 /**
  * Update an existing auto scaling font buffer.
  *
+ * If height <= 0, then the height is computed from the font.
+ *
+ * Takes a new reference to bg_pattern via cairo_pattern_reference().
+ *
  * No steps are taken to detect if its actually required to render a new buffer.
  * This should be done by the caller to prevent useless recreation of the same
  * buffer in case nothing actually changed.
@@ -46,8 +50,8 @@ struct scaled_font_buffer *scaled_font_buffer_create(struct wlr_scene_tree *pare
  * - font and color the same
  */
 void scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
-	int max_width, struct font *font, const float *color,
-	const float *bg_color);
+	int max_width, int height, struct font *font, const float *color,
+	cairo_pattern_t *bg_pattern);
 
 /**
  * Update the max width of an existing auto scaling font buffer

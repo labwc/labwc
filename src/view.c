@@ -388,6 +388,15 @@ view_is_focusable(struct view *view)
 	return (view->mapped || view->minimized);
 }
 
+void
+view_offer_focus(struct view *view)
+{
+	assert(view);
+	if (view->impl->offer_focus) {
+		view->impl->offer_focus(view);
+	}
+}
+
 /**
  * All view_apply_xxx_geometry() functions must *not* modify
  * any state besides repositioning or resizing the view.

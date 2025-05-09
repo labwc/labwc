@@ -2,6 +2,8 @@
 
 : ${LABWC_RUNS:=1}
 : ${LABWC_LEAK_TEST:=0}
+: ${LABWC_EXPECT_RETURNCODE:=0}
+: ${LABWC_VERBOSE:=0}
 
 if ! test -x "$1/labwc"; then
 	echo "$1/labwc not found"
@@ -55,13 +57,20 @@ for((i=1; i<=LABWC_RUNS; i++)); do
 	printf "Starting run %2s\n" $i
 	output=$(gdb_run 2>&1)
 	ret=$?
-	if test $ret -ne 0; then
+	if test $ret -ne $LABWC_EXPECT_RETURNCODE; then
 		echo "Crash encountered:"
 		echo "------------------"
 		echo "$output"
 		break
+	elif test $LABWC_VERBOSE -eq 1; then
+		echo "------------------"
+		echo "$output"
 	fi
 done
 
 echo "labwc terminated with return code $ret"
-exit $ret
+if test $ret -eq $LABWC_EXPECT_RETURNCODE; then
+	exit 0;
+else
+	exit 1;
+fi

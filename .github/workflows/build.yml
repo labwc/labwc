@@ -262,3 +262,15 @@ jobs:
             meson compile -C build-gcc-gdb
             LABWC_RUNS=2 scripts/ci/smoke-test.sh build-gcc-gdb
           ' | $TARGET
+
+      - name: Build with gcc - catch no font installed case
+        if: matrix.name == 'Void-musl'
+        run: |
+          echo '
+            cd "$GITHUB_WORKSPACE"
+            xbps-remove -y dejavu-fonts-ttf
+            export CC=gcc
+            meson setup build-gcc-nofont -Dxwayland=enabled --werror
+            meson compile -C build-gcc-nofont
+            LABWC_EXPECT_RETURNCODE=1 scripts/ci/smoke-test.sh build-gcc-nofont
+          ' | $TARGET

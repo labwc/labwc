@@ -104,8 +104,14 @@ seat_client_from_keyboard_resource(struct wl_resource *resource)
 
 static void
 broadcast_modifiers_to_unfocused_clients(struct wlr_seat *seat,
+		const struct keyboard *keyboard,
 		const struct wlr_keyboard_modifiers *modifiers)
 {
+	/* Prevent overwriting the group modifier by a virtual keyboard */
+	if (keyboard->is_virtual) {
+		return;
+	}
+
 	struct wlr_seat_client *client;
 	wl_list_for_each(client, &seat->clients, link) {
 		if (client == seat->keyboard_state.focused_client) {
@@ -191,7 +197,7 @@ keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 		 * clients with pointer-focus (see issue #2271)
 		 */
 		broadcast_modifiers_to_unfocused_clients(seat->seat,
-			&wlr_keyboard->modifiers);
+			keyboard, &wlr_keyboard->modifiers);
 	}
 }
 

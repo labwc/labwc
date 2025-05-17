@@ -79,6 +79,9 @@ struct scaled_icon_buffer *
 scaled_icon_buffer_create(struct wlr_scene_tree *parent, struct server *server,
 	int width, int height)
 {
+	assert(parent);
+	assert(width >= 0 && height >= 0);
+
 	struct scaled_scene_buffer *scaled_buffer = scaled_scene_buffer_create(
 		parent, &impl, /* drop_buffer */ true);
 	struct scaled_icon_buffer *self = znew(*self);

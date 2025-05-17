@@ -227,6 +227,9 @@ scaled_scene_buffer_request_update(struct scaled_scene_buffer *self,
 		int width, int height)
 {
 	assert(self);
+	assert(width >= 0);
+	assert(height >= 0);
+
 	struct scaled_scene_buffer_cache_entry *cache_entry, *cache_entry_tmp;
 	wl_list_for_each_safe(cache_entry, cache_entry_tmp, &self->cache, link) {
 		_cache_entry_destroy(cache_entry, self->drop_buffer);

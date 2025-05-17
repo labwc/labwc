@@ -58,7 +58,7 @@ ssd_titlebar_create(struct ssd *ssd)
 
 		/* Background */
 		add_scene_rect(&subtree->parts, LAB_SSD_PART_TITLEBAR, parent,
-			width - corner_width * 2, theme->titlebar_height,
+			MAX(width - corner_width * 2, 0), theme->titlebar_height,
 			corner_width, 0, color);
 		add_scene_buffer(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_LEFT, parent,
 			corner_top_left, -rc.theme->border_width, -rc.theme->border_width);
@@ -153,7 +153,7 @@ set_squared_corners(struct ssd *ssd, bool enable)
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR);
 		wlr_scene_node_set_position(part->node, x, 0);
 		wlr_scene_rect_set_size(wlr_scene_rect_from_node(part->node),
-			width - 2 * x, theme->titlebar_height);
+			MAX(width - 2 * x, 0), theme->titlebar_height);
 
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_LEFT);
 		wlr_scene_node_set_enabled(part->node, !enable);
@@ -204,9 +204,10 @@ static void
 update_visible_buttons(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
-	int width = view->current.width - (2 * view->server->theme->window_titlebar_padding_width);
-	int button_width = view->server->theme->window_button_width;
-	int button_spacing = view->server->theme->window_button_spacing;
+	struct theme *theme = view->server->theme;
+	int width = MAX(view->current.width - 2 * theme->window_titlebar_padding_width, 0);
+	int button_width = theme->window_button_width;
+	int button_spacing = theme->window_button_spacing;
 	int button_count_left = wl_list_length(&rc.title_buttons_left);
 	int button_count_right = wl_list_length(&rc.title_buttons_right);
 
@@ -301,7 +302,7 @@ ssd_titlebar_update(struct ssd *ssd)
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR);
 		wlr_scene_rect_set_size(
 			wlr_scene_rect_from_node(part->node),
-			width - bg_offset * 2, theme->titlebar_height);
+			MAX(width - bg_offset * 2, 0), theme->titlebar_height);
 
 		x = theme->window_titlebar_padding_width;
 		wl_list_for_each(b, &rc.title_buttons_left, link) {

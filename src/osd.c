@@ -301,6 +301,12 @@ create_osd_scene(struct output *output, struct wl_array *views)
 
 		/* Center workspace indicator on the x axis */
 		int x = (w - font_width(&font, workspace_name)) / 2;
+		if (x < 0) {
+			wlr_log(WLR_ERROR,
+				"not enough space for workspace name in osd");
+			goto error;
+		}
+
 		struct scaled_font_buffer *font_buffer =
 			scaled_font_buffer_create(output->osd_scene.tree);
 		wlr_scene_node_set_position(&font_buffer->scene_buffer->node,
@@ -312,11 +318,17 @@ create_osd_scene(struct output *output, struct wl_array *views)
 	}
 
 	struct buf buf = BUF_INIT;
+	int nr_fields = wl_list_length(&rc.window_switcher.fields);
 
 	/* This is the width of the area available for text fields */
-	int available_width = w - 2 * theme->osd_border_width
+	int field_widths_sum = w - 2 * theme->osd_border_width
 		- 2 * theme->osd_window_switcher_padding
-		- 2 * theme->osd_window_switcher_item_active_border_width;
+		- 2 * theme->osd_window_switcher_item_active_border_width
+		- (nr_fields + 1) * theme->osd_window_switcher_item_padding_x;
+	if (field_widths_sum <= 0) {
+		wlr_log(WLR_ERROR, "Not enough spaces for osd contents");
+		goto error;
+	}
 
 	/* Draw text for each node */
 	struct view **view;
@@ -347,12 +359,9 @@ create_osd_scene(struct output *output, struct wl_array *views)
 		struct wlr_scene_tree *item_root =
 			wlr_scene_tree_create(output->osd_scene.tree);
 
-		int nr_fields = wl_list_length(&rc.window_switcher.fields);
 		struct window_switcher_field *field;
 		wl_list_for_each(field, &rc.window_switcher.fields, link) {
-			int field_width = (available_width - (nr_fields + 1)
-				* theme->osd_window_switcher_item_padding_x)
-				* field->width / 100.0;
+			int field_width = field_widths_sum * field->width / 100.0;
 			struct wlr_scene_node *node = NULL;
 			int height = -1;
 
@@ -411,6 +420,7 @@ create_osd_scene(struct output *output, struct wl_array *views)
 	}
 	buf_reset(&buf);
 
+error:;
 	/* Center OSD */
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	wlr_scene_node_set_position(&output->osd_scene.tree->node,

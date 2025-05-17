@@ -8,11 +8,21 @@
 #ifndef LABWC_THEME_H
 #define LABWC_THEME_H
 
-#include <stdio.h>
+#include <cairo.h>
 #include <wlr/render/wlr_renderer.h>
 #include "ssd.h"
 
 struct lab_img;
+
+/*
+ * Openbox defines 7 types of Gradient background in addition to Solid.
+ * Currently, labwc supports only Vertical and SplitVertical.
+ */
+enum lab_gradient {
+	LAB_GRADIENT_NONE, /* i.e. Solid */
+	LAB_GRADIENT_VERTICAL,
+	LAB_GRADIENT_SPLITVERTICAL,
+};
 
 enum lab_justification {
 	LAB_JUSTIFY_LEFT,
@@ -36,6 +46,16 @@ enum lab_button_state {
 	LAB_BS_ROUNDED = 1 << 2,
 
 	LAB_BS_ALL = LAB_BS_HOVERD | LAB_BS_TOGGLED | LAB_BS_ROUNDED,
+};
+
+struct theme_background {
+	/* gradient type or none/solid */
+	enum lab_gradient gradient;
+	/* gradient stops */
+	float color[4];
+	float color_split_to[4];
+	float color_to[4];
+	float color_to_split_to[4];
 };
 
 struct theme {
@@ -66,12 +86,14 @@ struct theme {
 	 * THEME_INACTIVE and THEME_ACTIVE.
 	 */
 	struct {
+		/* title background pattern (solid or gradient) */
+		struct theme_background title_bg;
+
 		/* TODO: add toggled/hover/pressed/disabled colors for buttons */
 		float button_colors[LAB_SSD_BUTTON_LAST + 1][4];
 
 		float border_color[4];
 		float toggled_keybinds_color[4];
-		float title_bg_color[4];
 		float label_text_color[4];
 
 		/* window drop-shadows */
@@ -88,6 +110,18 @@ struct theme {
 		 */
 		struct lab_img *button_imgs
 			[LAB_SSD_BUTTON_LAST + 1][LAB_BS_ALL + 1];
+
+		/*
+		 * The titlebar background is specified as a cairo_pattern
+		 * and then also rendered into a 1px wide buffer, which is
+		 * stretched horizontally across the titlebar.
+		 *
+		 * This approach enables vertical gradients while saving
+		 * some memory vs. rendering the entire titlebar into an
+		 * image. It does not work for horizontal gradients.
+		 */
+		cairo_pattern_t *titlebar_pattern;
+		struct lab_data_buffer *titlebar_fill;
 
 		struct lab_data_buffer *corner_top_left_normal;
 		struct lab_data_buffer *corner_top_right_normal;
@@ -111,8 +145,10 @@ struct theme {
 	int menu_items_padding_x;
 	int menu_items_padding_y;
 	float menu_items_bg_color[4];
+	cairo_pattern_t *menu_items_bg_pattern;
 	float menu_items_text_color[4];
 	float menu_items_active_bg_color[4];
+	cairo_pattern_t *menu_items_active_bg_pattern;
 	float menu_items_active_text_color[4];
 
 	int menu_separator_line_thickness;
@@ -121,12 +157,14 @@ struct theme {
 	float menu_separator_color[4];
 
 	float menu_title_bg_color[4];
+	cairo_pattern_t *menu_title_bg_pattern;
 	enum lab_justification menu_title_text_justify;
 	float menu_title_text_color[4];
 
 	int osd_border_width;
 
 	float osd_bg_color[4];
+	cairo_pattern_t *osd_bg_pattern;
 	float osd_border_color[4];
 	float osd_label_text_color[4];
 

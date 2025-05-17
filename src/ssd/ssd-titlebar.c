@@ -35,8 +35,8 @@ ssd_titlebar_create(struct ssd *ssd)
 	int width = view->current.width;
 	int corner_width = ssd_get_corner_width();
 
-	float *color;
 	struct wlr_scene_tree *parent;
+	struct wlr_buffer *titlebar_fill;
 	struct wlr_buffer *corner_top_left;
 	struct wlr_buffer *corner_top_right;
 	int active;
@@ -49,7 +49,7 @@ ssd_titlebar_create(struct ssd *ssd)
 		parent = subtree->tree;
 		active = (subtree == &ssd->titlebar.active) ?
 			THEME_ACTIVE : THEME_INACTIVE;
-		color = theme->window[active].title_bg_color;
+		titlebar_fill = &theme->window[active].titlebar_fill->base;
 		corner_top_left = &theme->window[active].corner_top_left_normal->base;
 		corner_top_right = &theme->window[active].corner_top_right_normal->base;
 		wlr_scene_node_set_enabled(&parent->node, active);
@@ -57,9 +57,8 @@ ssd_titlebar_create(struct ssd *ssd)
 		wl_list_init(&subtree->parts);
 
 		/* Background */
-		add_scene_rect(&subtree->parts, LAB_SSD_PART_TITLEBAR, parent,
-			width - corner_width * 2, theme->titlebar_height,
-			corner_width, 0, color);
+		add_scene_buffer(&subtree->parts, LAB_SSD_PART_TITLEBAR, parent,
+			titlebar_fill, corner_width, 0);
 		add_scene_buffer(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_LEFT, parent,
 			corner_top_left, -rc.theme->border_width, -rc.theme->border_width);
 		add_scene_buffer(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_RIGHT, parent,
@@ -152,7 +151,8 @@ set_squared_corners(struct ssd *ssd, bool enable)
 	FOR_EACH_STATE(ssd, subtree) {
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR);
 		wlr_scene_node_set_position(part->node, x, 0);
-		wlr_scene_rect_set_size(wlr_scene_rect_from_node(part->node),
+		wlr_scene_buffer_set_dest_size(
+			wlr_scene_buffer_from_node(part->node),
 			width - 2 * x, theme->titlebar_height);
 
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_LEFT);
@@ -299,8 +299,8 @@ ssd_titlebar_update(struct ssd *ssd)
 	int bg_offset = maximized || squared ? 0 : corner_width;
 	FOR_EACH_STATE(ssd, subtree) {
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLEBAR);
-		wlr_scene_rect_set_size(
-			wlr_scene_rect_from_node(part->node),
+		wlr_scene_buffer_set_dest_size(
+			wlr_scene_buffer_from_node(part->node),
 			width - bg_offset * 2, theme->titlebar_height);
 
 		x = theme->window_titlebar_padding_width;
@@ -459,7 +459,7 @@ ssd_update_title(struct ssd *ssd)
 	bool title_unchanged = state->text && !strcmp(title, state->text);
 
 	const float *text_color;
-	const float *bg_color;
+	cairo_pattern_t *bg_pattern;
 	struct font *font = NULL;
 	struct ssd_part *part;
 	struct ssd_sub_tree *subtree;
@@ -475,7 +475,7 @@ ssd_update_title(struct ssd *ssd)
 			THEME_ACTIVE : THEME_INACTIVE;
 		dstate = active ? &state->active : &state->inactive;
 		text_color = theme->window[active].label_text_color;
-		bg_color = theme->window[active].title_bg_color;
+		bg_pattern = theme->window[active].titlebar_pattern;
 		font = active ?  &rc.font_activewindow : &rc.font_inactivewindow;
 
 		if (title_bg_width <= 0) {
@@ -503,8 +503,8 @@ ssd_update_title(struct ssd *ssd)
 
 		if (part->buffer) {
 			scaled_font_buffer_update(part->buffer, title,
-				title_bg_width, font,
-				text_color, bg_color);
+				title_bg_width, theme->titlebar_height, font,
+				text_color, bg_pattern);
 		}
 
 		/* And finally update the cache */

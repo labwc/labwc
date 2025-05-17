@@ -95,14 +95,16 @@ struct scaled_rect_buffer *scaled_rect_buffer_create(
 	/* TODO: support rounded corners for menus and OSDs */
 
 	assert(parent);
+	assert(width >= 0 && height >= 0);
+
 	struct scaled_rect_buffer *self = znew(*self);
 	struct scaled_scene_buffer *scaled_buffer = scaled_scene_buffer_create(
 		parent, &impl, /* drop_buffer */ true);
 	scaled_buffer->data = self;
 	self->scaled_buffer = scaled_buffer;
 	self->scene_buffer = scaled_buffer->scene_buffer;
-	self->width = MAX(width, 1);
-	self->height = MAX(height, 1);
+	self->width = width;
+	self->height = height;
 	self->border_width = border_width;
 	memcpy(self->fill_color, fill_color, sizeof(self->fill_color));
 	memcpy(self->border_color, border_color, sizeof(self->border_color));

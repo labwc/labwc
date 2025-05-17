@@ -49,7 +49,10 @@ struct scaled_img_buffer *
 scaled_img_buffer_create(struct wlr_scene_tree *parent, struct lab_img *img,
 	int width, int height)
 {
+	assert(parent);
 	assert(img);
+	assert(width >= 0 && height >= 0);
+
 	struct scaled_scene_buffer *scaled_buffer = scaled_scene_buffer_create(
 		parent, &impl, /* drop_buffer */ true);
 	struct scaled_img_buffer *self = znew(*self);

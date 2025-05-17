@@ -417,19 +417,28 @@ static void
 handle_request_maximize(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, request_maximize);
+	struct wlr_xwayland_surface *surf = xwayland_surface_from_view(view);
 	if (!view->mapped) {
 		ensure_initial_geometry_and_output(view);
 		/*
 		 * Set decorations early to avoid changing geometry
 		 * after maximize (reduces visual glitches).
 		 */
-		if (want_deco(xwayland_surface_from_view(view))) {
+		if (want_deco(surf)) {
 			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
 		} else {
 			view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
 		}
 	}
-	view_toggle_maximize(view, VIEW_AXIS_BOTH);
+
+	enum view_axis maximize = VIEW_AXIS_NONE;
+	if (surf->maximized_vert) {
+		maximize |= VIEW_AXIS_VERTICAL;
+	}
+	if (surf->maximized_horz) {
+		maximize |= VIEW_AXIS_HORIZONTAL;
+	}
+	view_maximize(view, maximize, /*store_natural_geometry*/ true);
 }
 
 static void

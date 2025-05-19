@@ -932,9 +932,6 @@ xwayland_view_create(struct server *server,
 	view->type = LAB_XWAYLAND_VIEW;
 	view->impl = &xwayland_view_impl;
 
-	/* Set to -1 so we always restack the view on map */
-	xwayland_view->stacking_order = -1;
-
 	/*
 	 * Set two-way view <-> xsurface association.  Usually the association
 	 * remains until the xsurface is destroyed (which also destroys the
@@ -1101,96 +1098,6 @@ xwayland_server_init(struct server *server, struct wlr_compositor *compositor)
 			image->width * 4, image->width,
 			image->height, image->hotspot_x,
 			image->hotspot_y);
-	}
-}
-
-enum xwayland_view_layer {
-	XWAYLAND_VIEW_HIDDEN,
-	XWAYLAND_VIEW_BOTTOM,
-	XWAYLAND_VIEW_NORMAL,
-	XWAYLAND_VIEW_TOP,
-};
-
-static enum xwayland_view_layer
-get_layer(struct view *view)
-{
-	if (view->workspace != view->server->workspaces.current) {
-		/*
-		 * Until we expose the workspaces to xwayland we need a way to
-		 * ensure that xwayland views on the current workspace are
-		 * always stacked above xwayland views on other workspaces.
-		 *
-		 * If we fail to do so, issues arise in scenarios where we
-		 * change the mouse focus but do not change the (xwayland)
-		 * stacking order.
-		 *
-		 * Reproducer:
-		 * - open at least two xwayland windows which allow scrolling
-		 *   (e.g. urxvt with 'man man')
-		 * - switch to another workspace, open another xwayland window
-		 *   which allows scrolling and maximize it
-		 * - switch back to the previous workspace with the two windows
-		 * - move the mouse to the xwayland window that does *not* have
-		 *   focus
-		 * - start scrolling
-		 * - all scroll events should end up on the maximized window on
-		 *   the other workspace
-		 */
-		return XWAYLAND_VIEW_HIDDEN;
-	} else if (view->shaded) {
-		/*
-		 * Ensure that we don't raise a shaded window to the front
-		 * which then steals mouse events.
-		 */
-		return XWAYLAND_VIEW_HIDDEN;
-	} else if (view_is_always_on_bottom(view)) {
-		return XWAYLAND_VIEW_BOTTOM;
-	} else if (view_is_always_on_top(view)) {
-		return XWAYLAND_VIEW_TOP;
-	} else {
-		return XWAYLAND_VIEW_NORMAL;
-	}
-}
-
-void
-xwayland_adjust_stacking_order(struct server *server)
-{
-	if (!server->xwayland) {
-		/* This happens when windows are unmapped on exit */
-		return;
-	}
-
-	int stacking_order = 0;
-	bool update = false;
-
-	/*
-	 * Iterate over the windows from bottom to top and notify their
-	 * stacking order to xwayland if we detect updates in it. Note
-	 * that server->views are sorted from top to bottom but doesn't
-	 * consider always-on-{top,bottom} windows.
-	 */
-	for (enum xwayland_view_layer layer = XWAYLAND_VIEW_HIDDEN;
-			layer <= XWAYLAND_VIEW_TOP; layer++) {
-		struct view *view;
-		wl_list_for_each_reverse(view, &server->views, link) {
-			if (view->type != LAB_XWAYLAND_VIEW
-					|| layer != get_layer(view)) {
-				continue;
-			}
-
-			struct xwayland_view *xwayland_view =
-				xwayland_view_from_view(view);
-
-			/* On detecting update, restack all the views above it */
-			update |= xwayland_view->stacking_order != stacking_order;
-			if (update) {
-				wlr_xwayland_surface_restack(
-					xwayland_view->xwayland_surface,
-					NULL, XCB_STACK_MODE_ABOVE);
-			}
-			xwayland_view->stacking_order = stacking_order;
-			stacking_order++;
-		}
 	}
 }
 

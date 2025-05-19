@@ -2283,12 +2283,6 @@ view_move_to_front(struct view *view)
 		move_to_front(view);
 	}
 
-#if HAVE_XWAYLAND
-	if (view->type == LAB_XWAYLAND_VIEW) {
-		xwayland_adjust_stacking_order(view->server);
-	}
-#endif
-
 	cursor_update_focus(view->server);
 	desktop_update_top_layer_visibility(view->server);
 }
@@ -2302,12 +2296,6 @@ view_move_to_back(struct view *view)
 
 	for_each_subview(root, move_to_back);
 	move_to_back(root);
-
-#if HAVE_XWAYLAND
-	if (view->type == LAB_XWAYLAND_VIEW) {
-		xwayland_adjust_stacking_order(view->server);
-	}
-#endif
 
 	cursor_update_focus(view->server);
 	desktop_update_top_layer_visibility(view->server);
@@ -2491,12 +2479,6 @@ view_set_shade(struct view *view, bool shaded)
 	view->shaded = shaded;
 	ssd_enable_shade(view->ssd, view->shaded);
 	wlr_scene_node_set_enabled(&view->content_tree->node, !view->shaded);
-
-#if HAVE_XWAYLAND
-	if (view->type == LAB_XWAYLAND_VIEW) {
-		xwayland_adjust_stacking_order(view->server);
-	}
-#endif
 }
 
 void

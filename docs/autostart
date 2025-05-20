@@ -15,6 +15,11 @@ kanshi >/dev/null 2>&1 &
 # Launch a panel such as yambar or waybar.
 waybar >/dev/null 2>&1 &
 
+# To delay the launch of a particular client it is suggested that the following
+# syntax is used: ( sleep X ; foo ) &
+# For example, with waybar a three second delay could be achieved with:
+#   ( sleep 3 ; waybar >/dev/null 2>&1 ) &
+
 # Enable notifications. Typically GNOME/KDE application notifications go
 # through the org.freedesktop.Notifications D-Bus API and require a client such
 # as mako to function correctly. Thunderbird is an example of this.
@@ -32,3 +37,4 @@ swayidle -w \
 	timeout 600 'wlopm --off \*' \
 	resume 'wlopm --on \*' \
 	before-sleep 'swaylock -f -c 000000' >/dev/null 2>&1 &
+

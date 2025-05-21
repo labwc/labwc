@@ -159,6 +159,21 @@ Actions are used in menus and keyboard/mouse bindings.
 	window and monitor for positive values, and to the right/bottom edge
 	for negative values.
 
+	The example below demonstrates how the 'root-menu' can be opened from a
+	bottom aligned panel using the command `wtype -M logo -k Space`:
+
+```
+<keybind key="W-Space">
+  <action name="ShowMenu">
+  <menu>root-menu</menu>
+  <position>
+    <x>0</x>
+    <y>-0</y>
+  </position>
+  </action>
+</keybind>
+```
+
 *<action name="SetDecorations" decorations="value" forceSSD="no" />*
 	Set decorations of focused window.
 

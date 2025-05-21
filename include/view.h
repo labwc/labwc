@@ -84,8 +84,15 @@ enum view_wants_focus {
 	VIEW_WANTS_FOCUS_OFFER,
 };
 
+/*
+ * Window types are based on the NET_WM constants from X11. See:
+ *   https://specifications.freedesktop.org/wm-spec/1.4/ar01s05.html#id-1.6.7
+ *
+ * The enum constants are intended to match wlr_xwayland_net_wm_window_type.
+ * Redefining the same constants here may seem redundant, but is necessary
+ * to make them available even in builds with xwayland support disabled.
+ */
 enum window_type {
-	/* https://specifications.freedesktop.org/wm-spec/wm-spec-1.4.html#idm45649101374512 */
 	NET_WM_WINDOW_TYPE_DESKTOP = 0,
 	NET_WM_WINDOW_TYPE_DOCK,
 	NET_WM_WINDOW_TYPE_TOOLBAR,
@@ -150,7 +157,8 @@ struct view_impl {
 	/* returns true if view reserves space at screen edge */
 	bool (*has_strut_partial)(struct view *self);
 	/* returns true if view declared itself a window type */
-	bool (*contains_window_type)(struct view *view, int32_t window_type);
+	bool (*contains_window_type)(struct view *view,
+		enum window_type window_type);
 	/* returns the client pid that this view belongs to */
 	pid_t (*get_pid)(struct view *view);
 };

@@ -60,7 +60,8 @@ xdg_toplevel_view_get_size_hints(struct view *view)
 }
 
 static bool
-xdg_toplevel_view_contains_window_type(struct view *view, int32_t window_type)
+xdg_toplevel_view_contains_window_type(struct view *view,
+		enum window_type window_type)
 {
 	assert(view);
 

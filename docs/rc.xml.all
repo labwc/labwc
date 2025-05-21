@@ -14,7 +14,7 @@
     <allowTearing>no</allowTearing>
     <autoEnableOutputs>yes</autoEnableOutputs>
     <reuseOutputMode>no</reuseOutputMode>
-    <xwaylandPersistence>yes</xwaylandPersistence>
+    <xwaylandPersistence>no</xwaylandPersistence>
   </core>
 
   <placement>

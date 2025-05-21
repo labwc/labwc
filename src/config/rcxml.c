@@ -14,7 +14,6 @@
 #include <wayland-server-core.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
-#include <wlr/version.h>
 #include "action.h"
 #include "common/dir.h"
 #include "common/list.h"
@@ -37,9 +36,6 @@
 #include "view.h"
 #include "window-rules.h"
 #include "workspaces.h"
-
-#define LAB_WLR_VERSION_OLDER_THAN(major, minor, micro) \
-	(WLR_VERSION_NUM < (((major) << 16) | ((minor) << 8) | (micro)))
 
 struct parser_state {
 	bool in_regions;
@@ -1126,15 +1122,6 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		}
 	} else if (!strcasecmp(nodename, "xwaylandPersistence.core")) {
 		set_bool(content, &rc.xwayland_persistence);
-
-#if LAB_WLR_VERSION_OLDER_THAN(0, 18, 2)
-		if (!rc.xwayland_persistence) {
-			wlr_log(WLR_ERROR, "to avoid the risk of a fatal crash, "
-				"setting xwaylandPersistence to 'no' is only "
-				"recommended when labwc is compiled against "
-				"wlroots >= 0.18.2. See #2371 for details.");
-		}
-#endif
 	} else if (!strcasecmp(nodename, "x.cascadeOffset.placement")) {
 		rc.placement_cascade_offset_x = atoi(content);
 	} else if (!strcasecmp(nodename, "y.cascadeOffset.placement")) {
@@ -1514,16 +1501,7 @@ rcxml_init(void)
 	rc.allow_tearing = false;
 	rc.auto_enable_outputs = true;
 	rc.reuse_output_mode = false;
-
-#if LAB_WLR_VERSION_OLDER_THAN(0, 18, 2)
-	/*
-	 * For wlroots < 0.18.2, keep xwayland alive by default to work around
-	 * a fatal crash when the X server is terminated during drag-and-drop.
-	 */
-	rc.xwayland_persistence = true;
-#else
 	rc.xwayland_persistence = false;
-#endif
 
 	init_font_defaults(&rc.font_activewindow);
 	init_font_defaults(&rc.font_inactivewindow);

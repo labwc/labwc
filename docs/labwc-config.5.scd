@@ -173,7 +173,7 @@ this is for compatibility with Openbox.
   <allowTearing>no</allowTearing>
   <autoEnableOutputs>yes</autoEnableOutputs>
   <reuseOutputMode>no</reuseOutputMode>
-  <xwaylandPersistence>yes</xwaylandPersistence>
+  <xwaylandPersistence>no</xwaylandPersistence>
 </core>
 ```
 
@@ -228,12 +228,7 @@ this is for compatibility with Openbox.
 *<core><xwaylandPersistence>* [yes|no]
 	Keep XWayland alive even when no clients are connected, rather than
 	using a "lazy" policy that allows the server to launch on demand and die
-	when it is no longer needed.
-
-	When labwc is compiled with wlroots 0.18.2 or later, the default is no.
-	When labwc is compiled with wlroots < 0.18.2, the default is yes to
-	avoid a wlroots bug that can result in compositor crashes when
-	performing drag-and-drop actions when the XWayland server is shut down.
+	when it is no longer needed. Default is no.
 
 	Note: changing this setting requires a restart of labwc.
 

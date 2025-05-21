@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <wlr/xwayland.h>
-#include "common/array.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
@@ -18,29 +17,49 @@
 #include "workspaces.h"
 #include "xwayland.h"
 
-xcb_atom_t atoms[WINDOW_TYPE_LEN] = {0};
-
 static void xwayland_view_unmap(struct view *view, bool client_request);
 
 static bool
-xwayland_surface_contains_window_type(
-		struct wlr_xwayland_surface *surface, enum window_type window_type)
+xwayland_view_contains_window_type(struct view *view,
+		enum window_type window_type)
 {
-	assert(surface);
-	for (size_t i = 0; i < surface->window_type_len; i++) {
-		if (surface->window_type[i] == atoms[window_type]) {
-			return true;
-		}
-	}
-	return false;
-}
+	/* Compile-time check that the enum types match */
+	static_assert(NET_WM_WINDOW_TYPE_DESKTOP ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DESKTOP
+		&& NET_WM_WINDOW_TYPE_DOCK ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DOCK
+		&& NET_WM_WINDOW_TYPE_TOOLBAR ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_TOOLBAR
+		&& NET_WM_WINDOW_TYPE_MENU ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_MENU
+		&& NET_WM_WINDOW_TYPE_UTILITY ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_UTILITY
+		&& NET_WM_WINDOW_TYPE_SPLASH ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_SPLASH
+		&& NET_WM_WINDOW_TYPE_DIALOG ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DIALOG
+		&& NET_WM_WINDOW_TYPE_DROPDOWN_MENU ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DROPDOWN_MENU
+		&& NET_WM_WINDOW_TYPE_POPUP_MENU ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_POPUP_MENU
+		&& NET_WM_WINDOW_TYPE_TOOLTIP ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_TOOLTIP
+		&& NET_WM_WINDOW_TYPE_NOTIFICATION ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_NOTIFICATION
+		&& NET_WM_WINDOW_TYPE_COMBO ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_COMBO
+		&& NET_WM_WINDOW_TYPE_DND ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DND
+		&& NET_WM_WINDOW_TYPE_NORMAL ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_NORMAL
+		&& WINDOW_TYPE_LEN ==
+			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_NORMAL + 1,
+		"enum window_type does not match wlr_xwayland_net_wm_window_type");
 
-static bool
-xwayland_view_contains_window_type(struct view *view, int32_t window_type)
-{
 	assert(view);
 	struct wlr_xwayland_surface *surface = xwayland_surface_from_view(view);
-	return xwayland_surface_contains_window_type(surface, window_type);
+	return wlr_xwayland_surface_has_window_type(surface,
+		(enum wlr_xwayland_net_wm_window_type)window_type);
 }
 
 static struct view_size_hints
@@ -102,10 +121,10 @@ xwayland_view_wants_focus(struct view *view)
 		 * Alt-Tab switcher and be automatically focused when
 		 * they become topmost.
 		 */
-		return (xwayland_surface_contains_window_type(xsurface,
-				NET_WM_WINDOW_TYPE_NORMAL)
-			|| xwayland_surface_contains_window_type(xsurface,
-				NET_WM_WINDOW_TYPE_DIALOG)) ?
+		return (wlr_xwayland_surface_has_window_type(xsurface,
+				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_NORMAL)
+			|| wlr_xwayland_surface_has_window_type(xsurface,
+				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DIALOG)) ?
 			VIEW_WANTS_FOCUS_ALWAYS : VIEW_WANTS_FOCUS_OFFER;
 
 	/*
@@ -1013,58 +1032,10 @@ handle_new_surface(struct wl_listener *listener, void *data)
 }
 
 static void
-sync_atoms(xcb_connection_t *xcb_conn)
-{
-	assert(xcb_conn);
-
-	wlr_log(WLR_DEBUG, "Syncing X11 atoms");
-	xcb_intern_atom_cookie_t cookies[WINDOW_TYPE_LEN];
-
-	/* First request everything and then loop over the results to reduce latency */
-	for (size_t i = 0; i < WINDOW_TYPE_LEN; i++) {
-		cookies[i] = xcb_intern_atom(xcb_conn, 0,
-			strlen(atom_names[i]), atom_names[i]);
-	}
-
-	for (size_t i = 0; i < WINDOW_TYPE_LEN; i++) {
-		xcb_generic_error_t *err = NULL;
-		xcb_intern_atom_reply_t *reply =
-			xcb_intern_atom_reply(xcb_conn, cookies[i], &err);
-		if (reply) {
-			atoms[i] = reply->atom;
-			wlr_log(WLR_DEBUG, "Got X11 atom for %s: %u",
-				atom_names[i], reply->atom);
-		}
-		if (err) {
-			wlr_log(WLR_INFO, "Failed to get X11 atom for %s",
-				atom_names[i]);
-		}
-		free(reply);
-		free(err);
-	}
-}
-
-static void
 handle_server_ready(struct wl_listener *listener, void *data)
 {
 	/* Fire an Xwayland startup script if one (or many) can be found */
 	session_run_script("xinitrc");
-
-	xcb_connection_t *xcb_conn = xcb_connect(NULL, NULL);
-	if (xcb_connection_has_error(xcb_conn)) {
-		wlr_log(WLR_ERROR, "Failed to create xcb connection");
-
-		/* Just clear all existing atoms */
-		for (size_t i = 0; i < WINDOW_TYPE_LEN; i++) {
-			atoms[i] = XCB_ATOM_NONE;
-		}
-		return;
-	}
-
-	wlr_log(WLR_DEBUG, "Connected to xwayland");
-	sync_atoms(xcb_conn);
-	wlr_log(WLR_DEBUG, "Disconnecting from xwayland");
-	xcb_disconnect(xcb_conn);
 }
 
 static void

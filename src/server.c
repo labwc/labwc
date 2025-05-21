@@ -13,6 +13,7 @@
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_fractional_scale_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
+#include <wlr/types/wlr_linux_drm_syncobj_v1.h>
 #include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
@@ -526,6 +527,12 @@ server_init(struct server *server)
 			server->renderer);
 	} else {
 		wlr_log(WLR_DEBUG, "unable to initialize dmabuf");
+	}
+
+	if (wlr_renderer_get_drm_fd(server->renderer) >= 0 &&
+			server->renderer->features.timeline) {
+		wlr_linux_drm_syncobj_manager_v1_create(server->wl_display, 1,
+			wlr_renderer_get_drm_fd(server->renderer));
 	}
 
 	/*

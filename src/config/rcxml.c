@@ -1115,13 +1115,13 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		set_bool(content, &rc.auto_enable_outputs);
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);
+	} else if (!strcasecmp(nodename, "xwaylandPersistence.core")) {
+		set_bool(content, &rc.xwayland_persistence);
 	} else if (!strcmp(nodename, "policy.placement")) {
 		enum view_placement_policy policy = view_placement_parse(content);
 		if (policy != LAB_PLACE_INVALID) {
 			rc.placement_policy = policy;
 		}
-	} else if (!strcasecmp(nodename, "xwaylandPersistence.core")) {
-		set_bool(content, &rc.xwayland_persistence);
 	} else if (!strcasecmp(nodename, "x.cascadeOffset.placement")) {
 		rc.placement_cascade_offset_x = atoi(content);
 	} else if (!strcasecmp(nodename, "y.cascadeOffset.placement")) {

@@ -1050,12 +1050,12 @@ view_cascade(struct view *view)
 			 * top-left corner is not covered by other views,
 			 * shift the candidate to bottom-right.
 			 */
-			if (box_contains(&candidate, &other)
+			if (wlr_box_contains_box(&candidate, &other)
 					&& !wlr_box_contains_point(
 						&covered, other.x, other.y)) {
 				candidate.x = other.x + offset_x;
 				candidate.y = other.y + offset_y;
-				if (!box_contains(&usable, &candidate)) {
+				if (!wlr_box_contains_box(&usable, &candidate)) {
 					/*
 					 * If the candidate doesn't fit within
 					 * the usable area, fall back to center

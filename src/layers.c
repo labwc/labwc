@@ -46,6 +46,9 @@ arrange_one_layer(const struct wlr_box *full_area, struct wlr_box *usable_area,
 	wl_list_for_each(node, &tree->children, link) {
 		struct lab_layer_surface *surface = node_layer_surface_from_node(node);
 		struct wlr_scene_layer_surface_v1 *scene = surface->scene_layer_surface;
+		if (!scene->layer_surface->initialized) {
+			continue;
+		}
 		if (!!scene->layer_surface->current.exclusive_zone != exclusive) {
 			continue;
 		}

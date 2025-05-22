@@ -532,7 +532,8 @@ server_init(struct server *server)
 	}
 
 	if (wlr_renderer_get_drm_fd(server->renderer) >= 0 &&
-			server->renderer->features.timeline) {
+			server->renderer->features.timeline &&
+			server->backend->features.timeline) {
 		wlr_linux_drm_syncobj_manager_v1_create(server->wl_display, 1,
 			wlr_renderer_get_drm_fd(server->renderer));
 	}

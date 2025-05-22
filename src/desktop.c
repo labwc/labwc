@@ -77,10 +77,9 @@ desktop_focus_view(struct view *view, bool raise)
 		workspaces_switch_to(view->workspace, /*update_focus*/ false);
 	}
 
+	struct seat *seat = &view->server->seat;
 	switch (view_wants_focus(view)) {
 	case VIEW_WANTS_FOCUS_ALWAYS:
-		; /* works around "a label can only be part of a statement" */
-		struct seat *seat = &view->server->seat;
 		if (view->surface != seat->seat->keyboard_state.focused_surface) {
 			seat_focus_surface(seat, view->surface);
 		}

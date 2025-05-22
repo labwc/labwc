@@ -147,6 +147,7 @@ handle_sigchld(int signal, void *data)
 		return 0;
 	}
 
+	const char *signame;
 	switch (info.si_code) {
 	case CLD_EXITED:
 		wlr_log(info.si_status == 0 ? WLR_DEBUG : WLR_ERROR,
@@ -155,8 +156,7 @@ handle_sigchld(int signal, void *data)
 		break;
 	case CLD_KILLED:
 	case CLD_DUMPED:
-		; /* works around "a label can only be part of a statement" */
-		const char *signame = strsignal(info.si_status);
+		signame = strsignal(info.si_status);
 		wlr_log(WLR_ERROR,
 			"spawned child %ld terminated with signal %d (%s)",
 				(long)info.si_pid, info.si_status,

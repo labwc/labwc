@@ -557,6 +557,22 @@ action_list_is_valid(struct wl_list *actions)
 	return true;
 }
 
+static bool
+action_branches_are_valid(struct action *action)
+{
+	static const char * const branches[] = { "then", "else", "none" };
+	for (size_t i = 0; i < ARRAY_SIZE(branches); i++) {
+		struct wl_list *children =
+			action_get_actionlist(action, branches[i]);
+		if (children && !action_list_is_valid(children)) {
+			wlr_log(WLR_ERROR, "Invalid action in %s '%s' branch",
+				action_names[action->type], branches[i]);
+			return false;
+		}
+	}
+	return true;
+}
+
 /* Checks for *required* arguments */
 bool
 action_is_valid(struct action *action)
@@ -589,17 +605,7 @@ action_is_valid(struct action *action)
 		break;
 	case ACTION_TYPE_IF:
 	case ACTION_TYPE_FOR_EACH:
-		; /* works around "a label can only be part of a statement" */
-		static const char * const branches[] = { "then", "else", "none" };
-		for (size_t i = 0; i < ARRAY_SIZE(branches); i++) {
-			struct wl_list *children = action_get_actionlist(action, branches[i]);
-			if (children && !action_list_is_valid(children)) {
-				wlr_log(WLR_ERROR, "Invalid action in %s '%s' branch",
-					action_names[action->type], branches[i]);
-				return false;
-			}
-		}
-		return true;
+		return action_branches_are_valid(action);
 	default:
 		/* No arguments required */
 		return true;

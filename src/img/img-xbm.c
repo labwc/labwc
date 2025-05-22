@@ -42,35 +42,37 @@ struct pixmap {
 	int height;
 };
 
-static uint32_t color;
-static char *current_buffer_position;
-static struct token *tokens;
-static int nr_tokens, alloc_tokens;
+struct tokenizer_context {
+	char *buffer_position;
+	struct token *tokens;
+	int nr_tokens, alloc_tokens;
+};
 
 static void
-add_token(enum token_type token_type)
+add_token(struct tokenizer_context *ctx, enum token_type token_type)
 {
-	if (nr_tokens == alloc_tokens) {
-		alloc_tokens = (alloc_tokens + 16) * 2;
-		tokens = xrealloc(tokens, alloc_tokens * sizeof(struct token));
+	if (ctx->nr_tokens == ctx->alloc_tokens) {
+		ctx->alloc_tokens = (ctx->alloc_tokens + 16) * 2;
+		ctx->tokens = xrealloc(ctx->tokens,
+			ctx->alloc_tokens * sizeof(struct token));
 	}
-	struct token *token = tokens + nr_tokens;
+	struct token *token = ctx->tokens + ctx->nr_tokens;
 	memset(token, 0, sizeof(*token));
-	nr_tokens++;
+	ctx->nr_tokens++;
 	token->type = token_type;
 }
 
 static void
-get_identifier_token(void)
+get_identifier_token(struct tokenizer_context *ctx)
 {
-	struct token *token = tokens + nr_tokens - 1;
-	token->name[token->pos] = current_buffer_position[0];
+	struct token *token = ctx->tokens + ctx->nr_tokens - 1;
+	token->name[token->pos] = ctx->buffer_position[0];
 	token->pos++;
 	if (token->pos == MAX_TOKEN_SIZE - 1) {
 		return;
 	}
-	current_buffer_position++;
-	switch (current_buffer_position[0]) {
+	ctx->buffer_position++;
+	switch (ctx->buffer_position[0]) {
 	case '\0':
 		return;
 	case 'a' ... 'z':
@@ -78,7 +80,7 @@ get_identifier_token(void)
 	case '0' ... '9':
 	case '_':
 	case '#':
-		get_identifier_token();
+		get_identifier_token(ctx);
 		break;
 	default:
 		break;
@@ -86,23 +88,23 @@ get_identifier_token(void)
 }
 
 static void
-get_number_token(void)
+get_number_token(struct tokenizer_context *ctx)
 {
-	struct token *token = tokens + nr_tokens - 1;
-	token->name[token->pos] = current_buffer_position[0];
+	struct token *token = ctx->tokens + ctx->nr_tokens - 1;
+	token->name[token->pos] = ctx->buffer_position[0];
 	token->pos++;
 	if (token->pos == MAX_TOKEN_SIZE - 1) {
 		return;
 	}
-	current_buffer_position++;
-	switch (current_buffer_position[0]) {
+	ctx->buffer_position++;
+	switch (ctx->buffer_position[0]) {
 	case '\0':
 		return;
 	case '0' ... '9':
 	case 'a' ... 'f':
 	case 'A' ... 'F':
 	case 'x':
-		get_number_token();
+		get_number_token(ctx);
 		break;
 	default:
 		break;
@@ -110,11 +112,11 @@ get_number_token(void)
 }
 
 static void
-get_special_char_token(void)
+get_special_char_token(struct tokenizer_context *ctx)
 {
-	struct token *token = tokens + nr_tokens - 1;
-	token->name[0] = current_buffer_position[0];
-	current_buffer_position++;
+	struct token *token = ctx->tokens + ctx->nr_tokens - 1;
+	token->name[0] = ctx->buffer_position[0];
+	ctx->buffer_position++;
 }
 
 /**
@@ -125,41 +127,38 @@ get_special_char_token(void)
 static struct token *
 tokenize_xbm(char *buffer)
 {
-	tokens = NULL;
-	nr_tokens = 0;
-	alloc_tokens = 0;
-
-	current_buffer_position = buffer;
+	struct tokenizer_context ctx = {0};
+	ctx.buffer_position = buffer;
 
 	for (;;) {
-		switch (current_buffer_position[0]) {
+		switch (ctx.buffer_position[0]) {
 		case '\0':
 			goto out;
 		case 'a' ... 'z':
 		case 'A' ... 'Z':
 		case '_':
 		case '#':
-			add_token(TOKEN_IDENT);
-			get_identifier_token();
+			add_token(&ctx, TOKEN_IDENT);
+			get_identifier_token(&ctx);
 			continue;
 		case '0' ... '9':
-			add_token(TOKEN_INT);
-			get_number_token();
-			struct token *token = tokens + nr_tokens - 1;
+			add_token(&ctx, TOKEN_INT);
+			get_number_token(&ctx);
+			struct token *token = ctx.tokens + ctx.nr_tokens - 1;
 			token->value = (int)strtol(token->name, NULL, 0);
 			continue;
 		case '{':
-			add_token(TOKEN_SPECIAL);
-			get_special_char_token();
+			add_token(&ctx, TOKEN_SPECIAL);
+			get_special_char_token(&ctx);
 			continue;
 		default:
 			break;
 		}
-		++current_buffer_position;
+		++ctx.buffer_position;
 	}
 out:
-	add_token(TOKEN_NONE); /* vector end marker */
-	return tokens;
+	add_token(&ctx, TOKEN_NONE); /* vector end marker */
+	return ctx.tokens;
 }
 
 static uint32_t
@@ -174,7 +173,7 @@ argb32(float *rgba)
 }
 
 static void
-process_bytes(struct pixmap *pixmap, struct token *tokens)
+process_bytes(struct pixmap *pixmap, struct token *tokens, uint32_t color)
 {
 	pixmap->data = znew_n(uint32_t, pixmap->width * pixmap->height);
 	struct token *t = tokens;
@@ -205,7 +204,7 @@ process_bytes(struct pixmap *pixmap, struct token *tokens)
  * @tokens: token vector
  */
 static struct pixmap
-parse_xbm_tokens(struct token *tokens)
+parse_xbm_tokens(struct token *tokens, uint32_t color)
 {
 	struct pixmap pixmap = { 0 };
 
@@ -214,7 +213,7 @@ parse_xbm_tokens(struct token *tokens)
 			if (t->type != TOKEN_INT) {
 				continue;
 			}
-			process_bytes(&pixmap, t);
+			process_bytes(&pixmap, t, color);
 			goto out;
 		}
 		if (strstr(t->name, "width")) {
@@ -238,7 +237,7 @@ out:
  * @button: button byte array (xbm format)
  */
 static struct pixmap
-parse_xbm_builtin(const char *button, int size)
+parse_xbm_builtin(const char *button, int size, uint32_t color)
 {
 	struct pixmap pixmap = { 0 };
 
@@ -252,16 +251,15 @@ parse_xbm_builtin(const char *button, int size)
 		t[i].type = TOKEN_INT;
 	}
 	t[size].type = 0;
-	process_bytes(&pixmap, t);
+	process_bytes(&pixmap, t, color);
 	return pixmap;
 }
 
 struct lab_data_buffer *
 img_xbm_load_from_bitmap(const char *bitmap, float *rgba)
 {
-	struct pixmap pixmap = {0};
-	color = argb32(rgba);
-	pixmap = parse_xbm_builtin(bitmap, 6);
+	uint32_t color = argb32(rgba);
+	struct pixmap pixmap = parse_xbm_builtin(bitmap, 6, color);
 
 	return buffer_create_from_data(pixmap.data, pixmap.width, pixmap.height,
 		pixmap.width * 4);
@@ -274,13 +272,13 @@ img_xbm_load(const char *filename, float *rgba)
 	if (string_null_or_empty(filename)) {
 		return NULL;
 	}
-	color = argb32(rgba);
+	uint32_t color = argb32(rgba);
 
 	/* Read file into memory as it's easier to tokenize that way */
 	struct buf token_buf = grab_file(filename);
 	if (token_buf.len) {
 		struct token *tokens = tokenize_xbm(token_buf.data);
-		pixmap = parse_xbm_tokens(tokens);
+		pixmap = parse_xbm_tokens(tokens, color);
 		if (tokens) {
 			free(tokens);
 		}

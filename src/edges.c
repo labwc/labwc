@@ -242,6 +242,40 @@ validate_output_edges(struct border *valid_edges,
 			view, target, output, validator, WLR_EDGE_BOTTOM);
 }
 
+static uint32_t
+compute_edges_visible(const struct wlr_box *view_size,
+		const pixman_box32_t *view_rect,
+		const pixman_region32_t *available)
+{
+	pixman_region32_t intersection;
+	pixman_region32_init(&intersection);
+	pixman_region32_intersect_rect(&intersection, available,
+		view_size->x, view_size->y,
+		view_size->width, view_size->height);
+
+	int nrects;
+	const pixman_box32_t *rects =
+		pixman_region32_rectangles(&intersection, &nrects);
+
+	uint32_t edges_visible = 0;
+	for (int i = 0; i < nrects; i++) {
+		if (rects[i].x1 == view_rect->x1) {
+			edges_visible |= WLR_EDGE_LEFT;
+		}
+		if (rects[i].y1 == view_rect->y1) {
+			edges_visible |= WLR_EDGE_TOP;
+		}
+		if (rects[i].x2 == view_rect->x2) {
+			edges_visible |= WLR_EDGE_RIGHT;
+		}
+		if (rects[i].y2 == view_rect->y2) {
+			edges_visible |= WLR_EDGE_BOTTOM;
+		}
+	}
+	pixman_region32_fini(&intersection);
+	return edges_visible;
+}
+
 /* Test if parts of the current view is covered by the remaining space in the region */
 static void
 subtract_view_from_space(struct view *view, pixman_region32_t *available)
@@ -266,33 +300,8 @@ subtract_view_from_space(struct view *view, pixman_region32_t *available)
 		view->edges_visible = 0;
 		return;
 	case PIXMAN_REGION_PART:
-		; /* works around "a label can only be part of a statement" */
-		pixman_region32_t intersection;
-		pixman_region32_init(&intersection);
-		pixman_region32_intersect_rect(&intersection, available,
-			view_size.x, view_size.y,
-			view_size.width, view_size.height);
-
-		int nrects;
-		const pixman_box32_t *rects =
-			pixman_region32_rectangles(&intersection, &nrects);
-
-		view->edges_visible = 0;
-		for (int i = 0; i < nrects; i++) {
-			if (rects[i].x1 == view_rect.x1) {
-				view->edges_visible |= WLR_EDGE_LEFT;
-			}
-			if (rects[i].y1 == view_rect.y1) {
-				view->edges_visible |= WLR_EDGE_TOP;
-			}
-			if (rects[i].x2 == view_rect.x2) {
-				view->edges_visible |= WLR_EDGE_RIGHT;
-			}
-			if (rects[i].y2 == view_rect.y2) {
-				view->edges_visible |= WLR_EDGE_BOTTOM;
-			}
-		}
-		pixman_region32_fini(&intersection);
+		view->edges_visible = compute_edges_visible(
+			&view_size, &view_rect, available);
 		break;
 	}
 

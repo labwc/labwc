@@ -1047,10 +1047,9 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 ### Fixed
 
 - Delay popup-unconstrain until after first commit in response to a changed
-  wlroots 0.17 interface and to get rid of the error message below. [#1372]
-
-    [types/xdg_shell/wlr_xdg_surface.c:169] A configure is scheduled for an uninitialized xdg_surface
-
+  wlroots 0.17 interface and to get rid of the error message
+  `[types/xdg_shell/wlr_xdg_surface.c:169] A configure is scheduled for an uninitialized xdg_surface`
+  [#1372]
 - Notify clients about configuration errors when changing output settings.
   [#1528]
 - Fix output configuration bug causing compositor crash when refresh rate is

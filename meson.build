@@ -159,6 +159,7 @@ endif
 subdir('include')
 subdir('src')
 subdir('docs')
+subdir('clients')
 
 dep_cmocka = dependency('cmocka', required: get_option('test'))
 if dep_cmocka.found()

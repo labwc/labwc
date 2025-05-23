@@ -2502,12 +2502,15 @@ view_init(struct view *view)
 	wl_signal_init(&view->events.minimized);
 	wl_signal_init(&view->events.fullscreened);
 	wl_signal_init(&view->events.activated);
+	wl_signal_init(&view->events.destroy);
 }
 
 void
 view_destroy(struct view *view)
 {
 	assert(view);
+	wl_signal_emit_mutable(&view->events.destroy, NULL);
+
 	struct server *server = view->server;
 
 	snap_constraints_invalidate(view);

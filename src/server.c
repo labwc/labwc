@@ -225,6 +225,9 @@ protocol_is_privileged(const struct wl_interface *iface)
 		"ext_foreign_toplevel_list_v1",
 		"ext_session_lock_manager_v1",
 		"zwlr_layer_shell_v1",
+		"ext_workspace_manager_v1",
+		"ext_image_copy_capture_manager_v1",
+		"ext_output_image_capture_source_manager_v1",
 	};
 	for (size_t i = 0; i < ARRAY_SIZE(rejected); i++) {
 		if (!strcmp(iface->name, rejected[i])) {
@@ -277,6 +280,7 @@ allow_for_sandbox(const struct wlr_security_context_v1_state *security_state,
 		"zwp_idle_inhibit_manager_v1",
 		"zwp_pointer_constraints_v1",
 		"zxdg_output_manager_v1",
+		"wp_linux_drm_syncobj_manager_v1",
 	};
 
 	for (size_t i = 0; i < ARRAY_SIZE(allowed_protocols); i++) {

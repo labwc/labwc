@@ -871,15 +871,12 @@ actions_run(struct view *activator, struct server *server,
 	/* This cancels any pending on-release keybinds */
 	keyboard_reset_current_keybind();
 
-	struct view *view;
-	struct action *action;
-	struct output *output;
-	struct output *target;
 	struct cursor_context ctx = {0};
 	if (cursor_ctx) {
 		ctx = *cursor_ctx;
 	}
 
+	struct action *action;
 	wl_list_for_each(action, actions, link) {
 		if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER
 				&& action->type != ACTION_TYPE_NEXT_WINDOW
@@ -896,7 +893,7 @@ actions_run(struct view *activator, struct server *server,
 		 * Refetch view because it may have been changed due to the
 		 * previous action
 		 */
-		view = view_for_action(activator, server, action, &ctx);
+		struct view *view = view_for_action(activator, server, action, &ctx);
 
 		switch (action->type) {
 		case ACTION_TYPE_CLOSE:
@@ -919,15 +916,14 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_DEBUG:
 			debug_dump_scene(server);
 			break;
-		case ACTION_TYPE_EXECUTE:
-			{
-				struct buf cmd = BUF_INIT;
-				buf_add(&cmd, action_get_str(action, "command", NULL));
-				buf_expand_tilde(&cmd);
-				spawn_async_no_shell(cmd.data);
-				buf_reset(&cmd);
-			}
+		case ACTION_TYPE_EXECUTE: {
+			struct buf cmd = BUF_INIT;
+			buf_add(&cmd, action_get_str(action, "command", NULL));
+			buf_expand_tilde(&cmd);
+			spawn_async_no_shell(cmd.data);
+			buf_reset(&cmd);
 			break;
+		}
 		case ACTION_TYPE_EXIT:
 			wl_display_terminate(server->wl_display);
 			break;
@@ -1146,45 +1142,46 @@ actions_run(struct view *activator, struct server *server,
 				break;
 			}
 			/* Falls through to GoToDesktop */
-		case ACTION_TYPE_GO_TO_DESKTOP:
-			{
-				bool follow = true;
-				bool wrap = action_get_bool(action, "wrap", true);
-				const char *to = action_get_str(action, "to", NULL);
-				/*
-				 * `to` is always != NULL here because otherwise we would have
-				 * removed the action during the initial parsing step as it is
-				 * a required argument for both SendToDesktop and GoToDesktop.
-				 */
-				struct workspace *target = workspaces_find(
-					server->workspaces.current, to, wrap);
-				if (!target) {
-					break;
-				}
-				if (action->type == ACTION_TYPE_SEND_TO_DESKTOP) {
-					view_move_to_workspace(view, target);
-					follow = action_get_bool(action, "follow", true);
+		case ACTION_TYPE_GO_TO_DESKTOP: {
+			bool follow = true;
+			bool wrap = action_get_bool(action, "wrap", true);
+			const char *to = action_get_str(action, "to", NULL);
+			/*
+			 * `to` is always != NULL here because otherwise we would have
+			 * removed the action during the initial parsing step as it is
+			 * a required argument for both SendToDesktop and GoToDesktop.
+			 */
+			struct workspace *target_workspace = workspaces_find(
+				server->workspaces.current, to, wrap);
+			if (!target_workspace) {
+				break;
+			}
+			if (action->type == ACTION_TYPE_SEND_TO_DESKTOP) {
+				view_move_to_workspace(view, target_workspace);
+				follow = action_get_bool(action, "follow", true);
 
-					/* Ensure that the focus is not on another desktop */
-					if (!follow && server->active_view == view) {
-						desktop_focus_topmost_view(server);
-					}
-				}
-				if (follow) {
-					workspaces_switch_to(target,
-						/*update_focus*/ true);
+				/* Ensure that the focus is not on another desktop */
+				if (!follow && server->active_view == view) {
+					desktop_focus_topmost_view(server);
 				}
 			}
+			if (follow) {
+				workspaces_switch_to(target_workspace,
+					/*update_focus*/ true);
+			}
 			break;
-		case ACTION_TYPE_MOVE_TO_OUTPUT:
+		}
+		case ACTION_TYPE_MOVE_TO_OUTPUT: {
 			if (!view) {
 				break;
 			}
-			target = get_target_output(view->output, server, action);
-			if (target) {
-				view_move_to_output(view, target);
+			struct output *target_output =
+				get_target_output(view->output, server, action);
+			if (target_output) {
+				view_move_to_output(view, target_output);
 			}
 			break;
+		}
 		case ACTION_TYPE_FIT_TO_OUTPUT:
 			if (!view) {
 				break;
@@ -1192,11 +1189,11 @@ actions_run(struct view *activator, struct server *server,
 			view_constrain_size_to_that_of_usable_area(view);
 			break;
 		case ACTION_TYPE_TOGGLE_SNAP_TO_REGION:
-		case ACTION_TYPE_SNAP_TO_REGION:
+		case ACTION_TYPE_SNAP_TO_REGION: {
 			if (!view) {
 				break;
 			}
-			output = view->output;
+			struct output *output = view->output;
 			if (!output) {
 				break;
 			}
@@ -1218,6 +1215,7 @@ actions_run(struct view *activator, struct server *server,
 				wlr_log(WLR_ERROR, "Invalid SnapToRegion id: '%s'", region_name);
 			}
 			break;
+		}
 		case ACTION_TYPE_UNSNAP:
 			if (view && !view->fullscreen && !view_is_floating(view)) {
 				view_maximize(view, VIEW_AXIS_NONE,
@@ -1231,53 +1229,54 @@ actions_run(struct view *activator, struct server *server,
 				view_toggle_keybinds(view);
 			}
 			break;
-		case ACTION_TYPE_FOCUS_OUTPUT:
-			output = output_nearest_to_cursor(server);
-			target = get_target_output(output, server, action);
-			if (target) {
-				desktop_focus_output(target);
+		case ACTION_TYPE_FOCUS_OUTPUT: {
+			struct output *output = output_nearest_to_cursor(server);
+			struct output *target_output =
+				get_target_output(output, server, action);
+			if (target_output) {
+				desktop_focus_output(target_output);
 			}
 			break;
+		}
 		case ACTION_TYPE_IF:
 			if (view) {
 				run_if_action(view, server, action);
 			}
 			break;
-		case ACTION_TYPE_FOR_EACH:
-			{
-				struct wl_array views;
-				struct view **item;
-				bool matches = false;
-				wl_array_init(&views);
-				view_array_append(server, &views, LAB_VIEW_CRITERIA_NONE);
-				wl_array_for_each(item, &views) {
-					matches |= run_if_action(*item, server, action);
-				}
-				wl_array_release(&views);
-				if (!matches) {
-					struct wl_list *actions;
-					actions = action_get_actionlist(action, "none");
-					if (actions) {
-						actions_run(view, server, actions, NULL);
-					}
+		case ACTION_TYPE_FOR_EACH: {
+			struct wl_array views;
+			struct view **item;
+			bool matches = false;
+			wl_array_init(&views);
+			view_array_append(server, &views, LAB_VIEW_CRITERIA_NONE);
+			wl_array_for_each(item, &views) {
+				matches |= run_if_action(*item, server, action);
+			}
+			wl_array_release(&views);
+			if (!matches) {
+				struct wl_list *child_actions;
+				child_actions = action_get_actionlist(action, "none");
+				if (child_actions) {
+					actions_run(view, server, child_actions, NULL);
 				}
 			}
 			break;
-		case ACTION_TYPE_VIRTUAL_OUTPUT_ADD:
-			{
-				const char *output_name = action_get_str(action, "output_name",
-						NULL);
-				output_virtual_add(server, output_name,
+		}
+		case ACTION_TYPE_VIRTUAL_OUTPUT_ADD: {
+			/* TODO: rename this argument to "outputName" */
+			const char *output_name =
+				action_get_str(action, "output_name", NULL);
+			output_virtual_add(server, output_name,
 					/*store_wlr_output*/ NULL);
-			}
 			break;
-		case ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE:
-			{
-				const char *output_name = action_get_str(action, "output_name",
-						NULL);
-				output_virtual_remove(server, output_name);
-			}
+		}
+		case ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE: {
+			/* TODO: rename this argument to "outputName" */
+			const char *output_name =
+				action_get_str(action, "output_name", NULL);
+			output_virtual_remove(server, output_name);
 			break;
+		}
 		case ACTION_TYPE_AUTO_PLACE:
 			if (view) {
 				enum view_placement_policy policy =
@@ -1349,16 +1348,15 @@ actions_run(struct view *activator, struct server *server,
 		case ACTION_TYPE_ZOOM_OUT:
 			magnifier_set_scale(server, MAGNIFY_DECREASE);
 			break;
-		case ACTION_TYPE_WARP_CURSOR:
-			{
-				const char *to = action_get_str(action, "to", "output");
-				const char *x = action_get_str(action, "x", "center");
-				const char *y = action_get_str(action, "y", "center");
-				struct output *output = output_nearest_to_cursor(server);
+		case ACTION_TYPE_WARP_CURSOR: {
+			const char *to = action_get_str(action, "to", "output");
+			const char *x = action_get_str(action, "x", "center");
+			const char *y = action_get_str(action, "y", "center");
+			struct output *output = output_nearest_to_cursor(server);
 
-				warp_cursor(view, output, to, x, y);
-			}
+			warp_cursor(view, output, to, x, y);
 			break;
+		}
 		case ACTION_TYPE_HIDE_CURSOR:
 			cursor_set_visible(&server->seat, false);
 			break;

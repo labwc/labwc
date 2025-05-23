@@ -101,11 +101,11 @@ _osd_update(struct server *server)
 
 		/* Border */
 		set_cairo_color(cairo, theme->osd_border_color);
-		struct wlr_fbox fbox = {
+		struct wlr_fbox border_fbox = {
 			.width = width,
 			.height = height,
 		};
-		draw_cairo_border(cairo, fbox, theme->osd_border_width);
+		draw_cairo_border(cairo, border_fbox, theme->osd_border_width);
 
 		/* Boxes */
 		uint16_t x;
@@ -385,9 +385,9 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	 *       below that should take care of the issue.
 	 */
 	if (update_focus) {
-		struct view *view = server->active_view;
-		if (!view || (!view->visible_on_all_workspaces
-				&& !view_is_always_on_top(view))) {
+		struct view *active_view = server->active_view;
+		if (!active_view || (!active_view->visible_on_all_workspaces
+				&& !view_is_always_on_top(active_view))) {
 			desktop_focus_topmost_view(server);
 		}
 	}

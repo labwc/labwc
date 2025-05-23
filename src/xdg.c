@@ -243,8 +243,6 @@ handle_commit(struct wl_listener *listener, void *data)
 			 *
 			 * This is not ideal, but it is the cleanest option.
 			 */
-			struct wlr_xdg_toplevel *toplevel =
-				xdg_toplevel_from_view(view);
 			toplevel->scheduled.width = view->current.width;
 			toplevel->scheduled.height = view->current.height;
 		}

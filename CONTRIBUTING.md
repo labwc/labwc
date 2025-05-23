@@ -324,6 +324,32 @@ We use the prefix `handle_` for signal-handler-functions in order to be
 consistent with sway and rootston. For example
 `view->request_resize.notify = handle_request_resize`
 
+### Switch statements with variable declarations
+
+Unlike many modern languages, C doesn't create a new scope after `case FOO:`.
+Therefore, we wrap codes following `case FOO:` that include variable
+declarations with braces (`{..}`) to reduce variable scopes. For example:
+
+```
+switch (x) {
+case FOO: {
+	int y = 1;
+	break;
+}
+case BAR: {
+	do_something();
+	int z = 1;
+	break;
+}
+case BAZ:
+	do_something();
+	break;
+}
+```
+
+But please also consider refactoring the code into a separate function if it
+becomes lengthy.
+
 # Commit Messages
 
 The log messages that explain changes are just as important as the changes

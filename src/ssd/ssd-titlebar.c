@@ -573,13 +573,6 @@ ssd_update_window_icon(struct ssd *ssd)
 		return;
 	}
 
-	/*
-	 * When app id is not set, an empty string is stored here and the
-	 * fallback icon is always rendered.
-	 */
-	const char *app_id = view_get_string_prop(ssd->view, "app_id");
-	assert(app_id);
-
 	struct ssd_sub_tree *subtree;
 	FOR_EACH_STATE(ssd, subtree) {
 		struct ssd_part *part = ssd_get_part(
@@ -590,7 +583,7 @@ ssd_update_window_icon(struct ssd *ssd)
 
 		struct ssd_button *button = node_ssd_button_from_node(part->node);
 		assert(button->window_icon);
-		scaled_icon_buffer_set_app_id(button->window_icon, app_id);
+		scaled_icon_buffer_set_view(button->window_icon, ssd->view);
 	} FOR_EACH_END
 #endif
 }

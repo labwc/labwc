@@ -34,6 +34,7 @@ add_project_arguments(cc.get_supported_arguments([
   '-Wmissing-prototypes',
   '-Walloca',
   '-Wunused-macros',
+  '-Wshadow',
 
   '-Wno-unused-parameter',
   '-Wno-expansion-to-defined',

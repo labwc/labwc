@@ -2362,10 +2362,8 @@ void
 view_update_app_id(struct view *view)
 {
 	assert(view);
-	if (view->ssd_enabled) {
-		ssd_update_window_icon(view->ssd);
-	}
 	wl_signal_emit_mutable(&view->events.new_app_id, NULL);
+	wl_signal_emit_mutable(&view->events.set_icon, NULL);
 }
 
 void
@@ -2502,6 +2500,7 @@ view_init(struct view *view)
 	wl_signal_init(&view->events.minimized);
 	wl_signal_init(&view->events.fullscreened);
 	wl_signal_init(&view->events.activated);
+	wl_signal_init(&view->events.set_icon);
 	wl_signal_init(&view->events.destroy);
 }
 

@@ -7,6 +7,8 @@
 #include <stdint.h>
 #include <wayland-util.h>
 
+struct wlr_buffer;
+
 enum lab_img_type {
 	LAB_IMG_PNG,
 	LAB_IMG_SVG,
@@ -21,6 +23,8 @@ struct lab_img {
 
 struct lab_img *lab_img_load(enum lab_img_type type, const char *path,
 	float *xbm_color);
+
+struct lab_img *lab_img_load_from_buffer(struct wlr_buffer *wlr_buffer);
 
 /**
  * lab_img_load_from_bitmap() - create button from monochrome bitmap

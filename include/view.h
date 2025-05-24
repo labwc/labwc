@@ -281,6 +281,8 @@ struct view {
 
 	struct foreign_toplevel *foreign_toplevel;
 
+	struct wlr_xdg_toplevel_icon_v1 *xdg_icon;
+
 	struct {
 		struct wl_signal new_app_id;
 		struct wl_signal new_title;
@@ -289,6 +291,11 @@ struct view {
 		struct wl_signal minimized;
 		struct wl_signal fullscreened;
 		struct wl_signal activated;     /* bool *activated */
+		/*
+		 * This is emitted when app_id, or icon set via xdg_toplevel_icon
+		 * is updated. This is listened by scaled_icon_buffer.
+		 */
+		struct wl_signal set_icon;
 		struct wl_signal destroy;
 	} events;
 };

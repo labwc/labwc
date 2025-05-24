@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <assert.h>
+#include <drm_fourcc.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
 #include "config.h"
@@ -93,6 +94,32 @@ lab_img_load_from_bitmap(const char *bitmap, float *rgba)
 	struct lab_img_data *img_data = znew(*img_data);
 	img_data->type = LAB_IMG_XBM;
 	img_data->buffer = buffer;
+
+	return create_img(img_data);
+}
+
+struct lab_img *
+lab_img_load_from_buffer(struct wlr_buffer *wlr_buffer)
+{
+	void *data;
+	uint32_t format;
+	size_t stride;
+	wlr_buffer_begin_data_ptr_access(wlr_buffer, WLR_BUFFER_DATA_PTR_ACCESS_READ,
+		&data, &format, &stride);
+	if (format != DRM_FORMAT_ARGB8888) {
+		/* TODO: support other formats */
+		wlr_buffer_end_data_ptr_access(wlr_buffer);
+		return NULL;
+	}
+	size_t buffer_size = stride * wlr_buffer->height;
+	void *copied_data = xmalloc(buffer_size);
+	memcpy(copied_data, data, buffer_size);
+	wlr_buffer_end_data_ptr_access(wlr_buffer);
+
+	struct lab_img_data *img_data = znew(*img_data);
+	img_data->type = LAB_IMG_XBM;
+	img_data->buffer = buffer_create_from_data(copied_data,
+		wlr_buffer->width, wlr_buffer->height, stride);
 
 	return create_img(img_data);
 }

@@ -61,7 +61,7 @@ The menu file must be entirely enclosed within <openbox_menu> and
 		  selected or go to workspace without activating any app if
 		  "Go there" is selected.
 		- "client-send-to-menu" shows all workspaces and sends current
-		  view to that workspace when selected.
+		  window to that workspace when selected.
 
 *menu.id* (when nested under other *<menu>* element)
 	Link to a submenu defined elsewhere (by a *<menu id="">* at toplevel).

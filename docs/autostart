@@ -29,7 +29,7 @@ mako >/dev/null 2>&1 &
 #
 # Note that in the context of idle system power management, it is *NOT* a good
 # idea to turn off displays by 'disabling outputs' for example by
-# `wlr-randr --output <whatever> --off` because this re-arranges views
+# `wlr-randr --output <whatever> --off` because this re-arranges windows
 # (since a837fef). Instead use a wlr-output-power-management client such as
 # https://git.sr.ht/~leon_plickat/wlopm
 swayidle -w \

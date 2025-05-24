@@ -178,12 +178,12 @@ this is for compatibility with Openbox.
 ```
 
 *<core><decoration>* [server|client]
-	Specify server or client side decorations for xdg-shell views. Note
+	Specify server or client side decorations for xdg-shell windows. Note
 	that it is not always possible to turn off client side decorations.
 	Default is server.
 
 *<core><gap>*
-	The distance in pixels between views and output edges when using
+	The distance in pixels between windows and output edges when using
 	movement actions, for example MoveToEdge. Default is 0.
 
 *<core><adaptiveSync>* [yes|no|fullscreen]
@@ -290,7 +290,7 @@ this is for compatibility with Openbox.
 
 	*content* defines what the field shows and can be any of:
 
-	- *type* Show view type ("xdg-shell" or "xwayland")
+	- *type* Show window type ("xdg-shell" or "xwayland")
 
 	- *identifier* Show identifier (app_id for native Wayland
 	  windows and WM_CLASS for XWayland clients)
@@ -310,7 +310,7 @@ this is for compatibility with Openbox.
 
 	- *state* Show window state, M/m/F (max/min/full)
 
-	- *type_short* Show view type ("W" or "X")
+	- *type_short* Show window type ("W" or "X")
 
 	- *output* Show output id, if more than one output detected
 
@@ -427,7 +427,7 @@ extending outward from the snapped edge.
 *<snapping><notifyClient>* [always|region|edge|never]
 	Snapping windows can trigger corresponding tiling events for native
 	Wayland clients. Clients may use these events to alter their rendering
-	based on knowledge that some edges of the view are confined to edges of
+	based on knowledge that some edges of the window are confined to edges of
 	a snapping region or output. For example, rounded corners may become
 	square when tiled, or media players may letter-box or pillar-box video
 	rather than imposing rigid aspect ratios on windows that will violate

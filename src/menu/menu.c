@@ -199,9 +199,8 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 			scaled_icon_buffer_set_icon_name(icon_buffer, item->icon_name);
 		} else if (show_app_icon) {
 			/* app icon in client-list-combined-menu */
-			const char *app_id = view_get_string_prop(
-				item->client_list_view, "app_id");
-			scaled_icon_buffer_set_app_id(icon_buffer, app_id);
+			scaled_icon_buffer_set_view(icon_buffer,
+				item->client_list_view);
 		}
 		wlr_scene_node_set_position(&icon_buffer->scene_buffer->node,
 			theme->menu_items_padding_x, theme->menu_items_padding_y);

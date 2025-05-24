@@ -45,6 +45,10 @@ arrange_one_layer(const struct wlr_box *full_area, struct wlr_box *usable_area,
 	struct wlr_scene_node *node;
 	wl_list_for_each(node, &tree->children, link) {
 		struct lab_layer_surface *surface = node_layer_surface_from_node(node);
+		/* Surface could be null during destruction */
+		if (!surface) {
+			continue;
+		}
 		struct wlr_scene_layer_surface_v1 *scene = surface->scene_layer_surface;
 		if (!scene->layer_surface->initialized) {
 			continue;

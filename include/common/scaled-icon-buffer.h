@@ -15,6 +15,7 @@ struct scaled_icon_buffer {
 	struct server *server;
 	/* for window icon */
 	struct view *view;
+	struct wl_listener view_set_icon;
 	struct wl_listener view_destroy;
 	/* for general icon (e.g. in menus) */
 	char *icon_name;

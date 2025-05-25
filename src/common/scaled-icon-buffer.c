@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <string.h>
 #include <wlr/util/log.h>
+#include "buffer.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scaled-icon-buffer.h"
@@ -16,6 +17,23 @@
 #include "view.h"
 
 static struct lab_data_buffer *
+choose_best_buffer(struct scaled_icon_buffer *self, int icon_size, double scale)
+{
+	int min_dist = INT_MAX;
+	struct lab_data_buffer *best_buffer = NULL;
+
+	struct lab_data_buffer **buffer;
+	wl_array_for_each(buffer, &self->view->icon.buffers) {
+		int dist = abs((*buffer)->base.width - (int)(icon_size * scale));
+		if (dist < min_dist) {
+			min_dist = dist;
+			best_buffer = *buffer;
+		}
+	}
+	return best_buffer;
+}
+
+static struct lab_data_buffer *
 _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 {
 #if HAVE_LIBSFDO
@@ -27,6 +45,21 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 		img = desktop_entry_load_icon(self->server,
 			self->icon_name, icon_size, scale);
 	} else if (self->view) {
+		if (self->view->icon.name) {
+			wlr_log(WLR_DEBUG, "loading icon by name: %s",
+				self->view->icon.name);
+			img = desktop_entry_load_icon(self->server,
+				self->view->icon.name, icon_size, scale);
+		}
+		if (!img) {
+			struct lab_data_buffer *buffer =
+				choose_best_buffer(self, icon_size, scale);
+			if (buffer) {
+				wlr_log(WLR_DEBUG, "loading icon by buffer");
+				return buffer_resize(buffer,
+					self->width, self->height, scale);
+			}
+		}
 		if (!img) {
 			wlr_log(WLR_DEBUG, "loading icon by app_id");
 			const char *app_id =
@@ -60,6 +93,7 @@ _destroy(struct scaled_scene_buffer *scaled_buffer)
 {
 	struct scaled_icon_buffer *self = scaled_buffer->data;
 	if (self->view) {
+		wl_list_remove(&self->view_set_icon.link);
 		wl_list_remove(&self->view_destroy.link);
 	}
 	free(self->icon_name);
@@ -108,17 +142,26 @@ scaled_icon_buffer_create(struct wlr_scene_tree *parent, struct server *server,
 }
 
 static void
+handle_view_set_icon(struct wl_listener *listener, void *data)
+{
+	struct scaled_icon_buffer *self =
+		wl_container_of(listener, self, view_set_icon);
+	scaled_scene_buffer_request_update(self->scaled_buffer,
+		self->width, self->height);
+}
+
+static void
 handle_view_destroy(struct wl_listener *listener, void *data)
 {
 	struct scaled_icon_buffer *self =
 		wl_container_of(listener, self, view_destroy);
 	wl_list_remove(&self->view_destroy.link);
+	wl_list_remove(&self->view_set_icon.link);
 	self->view = NULL;
 }
 
 void
-scaled_icon_buffer_set_view(struct scaled_icon_buffer *self,
-	struct view *view)
+scaled_icon_buffer_set_view(struct scaled_icon_buffer *self, struct view *view)
 {
 	assert(view);
 	if (self->view == view) {
@@ -126,10 +169,13 @@ scaled_icon_buffer_set_view(struct scaled_icon_buffer *self,
 	}
 
 	if (self->view) {
+		wl_list_remove(&self->view_set_icon.link);
 		wl_list_remove(&self->view_destroy.link);
 	}
 	self->view = view;
 	if (view) {
+		self->view_set_icon.notify = handle_view_set_icon;
+		wl_signal_add(&view->events.set_icon, &self->view_set_icon);
 		self->view_destroy.notify = handle_view_destroy;
 		wl_signal_add(&view->events.destroy, &self->view_destroy);
 	}

@@ -29,6 +29,7 @@ struct libinput_category {
 	int middle_emu;                 /* -1 or libinput_config_middle_emulation_state */
 	int dwt;                        /* -1 or libinput_config_dwt_state */
 	int click_method;               /* -1 or libinput_config_click_method */
+	int scroll_method;              /* -1 or libinput_config_scroll_method */
 	int send_events_mode;           /* -1 or libinput_config_send_events_mode */
 	bool have_calibration_matrix;
 	double scroll_factor;

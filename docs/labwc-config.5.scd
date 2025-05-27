@@ -941,6 +941,7 @@ extending outward from the snapped edge.
     <middleEmulation></middleEmulation>
     <disableWhileTyping></disableWhileTyping>
     <clickMethod></clickMethod>
+    <scrollMethod></scrollMethod>
     <sendEventsMode></sendEventsMode>
     <calibrationMatrix></calibrationMatrix>
     <scrollFactor>1.0</scrollFactor>
@@ -1032,6 +1033,19 @@ extending outward from the snapped edge.
 	  left, right or middle button event without regard to the location of a
 	  click.
 	- *none* - Physical clicks will not produce button events.
+
+	The default method depends on the touchpad hardware.
+
+*<libinput><device><scrollMethod>* [none|twofinger|edge]
+	Configure the method by which physical movements on a touchpad are
+	mapped to scroll events.
+
+	The scroll methods available are:
+	- *twofinger* - Scroll by two fingers being placed on the surface of the
+	  touchpad, then moving those fingers vertically or horizontally.
+	- *edge* - Scroll by moving a single finger along the right edge
+	  (vertical scroll) or bottom edge (horizontal scroll).
+	- *none* - No scroll events will be produced.
 
 	The default method depends on the touchpad hardware.
 

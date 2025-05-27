@@ -635,6 +635,7 @@
       <middleEmulation></middleEmulation>
       <disableWhileTyping></disableWhileTyping>
       <clickMethod></clickMethod>
+      <scrollMethod></scrollMethod>
       <sendEventsMode></sendEventsMode>
       <calibrationMatrix></calibrationMatrix>
       <scrollFactor>1.0</scrollFactor>

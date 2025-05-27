@@ -70,7 +70,7 @@ popup_unconstrain(struct xdg_popup *popup)
 }
 
 static void
-handle_xdg_popup_destroy(struct wl_listener *listener, void *data)
+handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct xdg_popup *popup = wl_container_of(listener, popup, destroy);
 	wl_list_remove(&popup->destroy.link);
@@ -88,7 +88,7 @@ handle_xdg_popup_destroy(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_xdg_popup_commit(struct wl_listener *listener, void *data)
+handle_commit(struct wl_listener *listener, void *data)
 {
 	struct xdg_popup *popup = wl_container_of(listener, popup, commit);
 
@@ -102,14 +102,14 @@ handle_xdg_popup_commit(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_xdg_popup_reposition(struct wl_listener *listener, void *data)
+handle_reposition(struct wl_listener *listener, void *data)
 {
 	struct xdg_popup *popup = wl_container_of(listener, popup, reposition);
 	popup_unconstrain(popup);
 }
 
 static void
-popup_handle_new_xdg_popup(struct wl_listener *listener, void *data)
+handle_new_popup(struct wl_listener *listener, void *data)
 {
 	struct xdg_popup *popup = wl_container_of(listener, popup, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
@@ -130,17 +130,10 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 	popup->parent_view = view;
 	popup->wlr_popup = wlr_popup;
 
-	popup->destroy.notify = handle_xdg_popup_destroy;
-	wl_signal_add(&wlr_popup->events.destroy, &popup->destroy);
-
-	popup->new_popup.notify = popup_handle_new_xdg_popup;
-	wl_signal_add(&wlr_popup->base->events.new_popup, &popup->new_popup);
-
-	popup->commit.notify = handle_xdg_popup_commit;
-	wl_signal_add(&wlr_popup->base->surface->events.commit, &popup->commit);
-
-	popup->reposition.notify = handle_xdg_popup_reposition;
-	wl_signal_add(&wlr_popup->events.reposition, &popup->reposition);
+	CONNECT_SIGNAL(wlr_popup, popup, destroy);
+	CONNECT_SIGNAL(wlr_popup->base, popup, new_popup);
+	CONNECT_SIGNAL(wlr_popup->base->surface, popup, commit);
+	CONNECT_SIGNAL(wlr_popup, popup, reposition);
 
 	/*
 	 * We must add xdg popups to the scene graph so they get rendered. The

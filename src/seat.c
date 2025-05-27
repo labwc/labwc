@@ -233,6 +233,17 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		libinput_device_config_click_set_method(libinput_dev, dc->click_method);
 	}
 
+	if (dc->scroll_method < 0) {
+		wlr_log(WLR_INFO, "scroll method not configured");
+	} else if (dc->scroll_method != LIBINPUT_CONFIG_SCROLL_NO_SCROLL
+			&& (libinput_device_config_scroll_get_methods(libinput_dev)
+				& dc->scroll_method) == 0) {
+		wlr_log(WLR_INFO, "scroll method not supported");
+	} else {
+		wlr_log(WLR_INFO, "scroll method configured");
+		libinput_device_config_scroll_set_method(libinput_dev, dc->scroll_method);
+	}
+
 	if ((dc->send_events_mode != LIBINPUT_CONFIG_SEND_EVENTS_ENABLED
 			&& (libinput_device_config_send_events_get_modes(libinput_dev)
 				& dc->send_events_mode) == 0)

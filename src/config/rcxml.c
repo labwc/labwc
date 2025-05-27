@@ -810,6 +810,19 @@ fill_libinput_category(char *nodename, char *content, struct parser_state *state
 		} else {
 			wlr_log(WLR_ERROR, "invalid clickMethod");
 		}
+	} else if (!strcasecmp(nodename, "scrollMethod")) {
+		if (!strcasecmp(content, "none")) {
+			state->current_libinput_category->scroll_method =
+				LIBINPUT_CONFIG_SCROLL_NO_SCROLL;
+		} else if (!strcasecmp(content, "edge")) {
+			state->current_libinput_category->scroll_method =
+				LIBINPUT_CONFIG_SCROLL_EDGE;
+		} else if (!strcasecmp(content, "twofinger")) {
+			state->current_libinput_category->scroll_method =
+				LIBINPUT_CONFIG_SCROLL_2FG;
+		} else {
+			wlr_log(WLR_ERROR, "invalid scrollMethod");
+		}
 	} else if (!strcasecmp(nodename, "sendEventsMode")) {
 		state->current_libinput_category->send_events_mode =
 			get_send_events_mode(content);

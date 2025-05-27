@@ -12,6 +12,7 @@
 #include <string.h>
 #include <strings.h>
 #include <wayland-server.h>
+#include <wlr/types/wlr_fractional_scale_v1.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/util/log.h>
 #include "common/macros.h"
@@ -551,6 +552,9 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 	struct lab_layer_surface *surface = znew(*surface);
 
 	struct output *output = layer_surface->output->data;
+
+	wlr_fractional_scale_v1_notify_scale(layer_surface->surface,
+		output->wlr_output->scale);
 
 	struct wlr_scene_tree *selected_layer =
 		output->layer_tree[layer_surface->current.layer];

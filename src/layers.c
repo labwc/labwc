@@ -357,7 +357,7 @@ handle_map(struct wl_listener *listener, void *data)
 }
 
 static void
-popup_handle_destroy(struct wl_listener *listener, void *data)
+handle_popup_destroy(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_popup *popup =
 		wl_container_of(listener, popup, destroy);
@@ -376,7 +376,7 @@ popup_handle_destroy(struct wl_listener *listener, void *data)
 }
 
 static void
-popup_handle_commit(struct wl_listener *listener, void *data)
+handle_popup_commit(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_popup *popup =
 		wl_container_of(listener, popup, commit);
@@ -392,7 +392,7 @@ popup_handle_commit(struct wl_listener *listener, void *data)
 }
 
 static void
-popup_handle_reposition(struct wl_listener *listener, void *data)
+handle_popup_reposition(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_popup *popup =
 		wl_container_of(listener, popup, reposition);
@@ -400,7 +400,7 @@ popup_handle_reposition(struct wl_listener *listener, void *data)
 		&popup->output_toplevel_sx_box);
 }
 
-static void popup_handle_new_popup(struct wl_listener *listener, void *data);
+static void handle_popup_new_popup(struct wl_listener *listener, void *data);
 
 static struct lab_layer_popup *
 create_popup(struct server *server, struct wlr_xdg_popup *wlr_popup,
@@ -422,16 +422,16 @@ create_popup(struct server *server, struct wlr_xdg_popup *wlr_popup,
 	node_descriptor_create(&popup->scene_tree->node,
 		LAB_NODE_DESC_LAYER_POPUP, popup);
 
-	popup->destroy.notify = popup_handle_destroy;
+	popup->destroy.notify = handle_popup_destroy;
 	wl_signal_add(&wlr_popup->events.destroy, &popup->destroy);
 
-	popup->new_popup.notify = popup_handle_new_popup;
+	popup->new_popup.notify = handle_popup_new_popup;
 	wl_signal_add(&wlr_popup->base->events.new_popup, &popup->new_popup);
 
-	popup->commit.notify = popup_handle_commit;
+	popup->commit.notify = handle_popup_commit;
 	wl_signal_add(&wlr_popup->base->surface->events.commit, &popup->commit);
 
-	popup->reposition.notify = popup_handle_reposition;
+	popup->reposition.notify = handle_popup_reposition;
 	wl_signal_add(&wlr_popup->events.reposition, &popup->reposition);
 
 	return popup;
@@ -439,7 +439,7 @@ create_popup(struct server *server, struct wlr_xdg_popup *wlr_popup,
 
 /* This popup's parent is a layer popup */
 static void
-popup_handle_new_popup(struct wl_listener *listener, void *data)
+handle_popup_new_popup(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_popup *lab_layer_popup =
 		wl_container_of(listener, lab_layer_popup, new_popup);

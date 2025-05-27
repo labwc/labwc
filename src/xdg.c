@@ -809,7 +809,7 @@ struct token_data {
 };
 
 static void
-xdg_activation_handle_token_destroy(struct wl_listener *listener, void *data)
+handle_xdg_activation_token_destroy(struct wl_listener *listener, void *data)
 {
 	struct token_data *token_data = wl_container_of(listener, token_data, destroy);
 	wl_list_remove(&token_data->destroy.link);
@@ -817,7 +817,7 @@ xdg_activation_handle_token_destroy(struct wl_listener *listener, void *data)
 }
 
 static void
-xdg_activation_handle_new_token(struct wl_listener *listener, void *data)
+handle_xdg_activation_new_token(struct wl_listener *listener, void *data)
 {
 	struct wlr_xdg_activation_token_v1 *token = data;
 	struct token_data *token_data = znew(*token_data);
@@ -825,12 +825,12 @@ xdg_activation_handle_new_token(struct wl_listener *listener, void *data)
 	token_data->had_valid_seat = !!token->seat;
 	token->data = token_data;
 
-	token_data->destroy.notify = xdg_activation_handle_token_destroy;
+	token_data->destroy.notify = handle_xdg_activation_token_destroy;
 	wl_signal_add(&token->events.destroy, &token_data->destroy);
 }
 
 static void
-xdg_activation_handle_request(struct wl_listener *listener, void *data)
+handle_xdg_activation_request(struct wl_listener *listener, void *data)
 {
 	const struct wlr_xdg_activation_v1_request_activate_event *event = data;
 	struct token_data *token_data = event->token->data;
@@ -998,11 +998,11 @@ xdg_shell_init(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 
-	server->xdg_activation_request.notify = xdg_activation_handle_request;
+	server->xdg_activation_request.notify = handle_xdg_activation_request;
 	wl_signal_add(&server->xdg_activation->events.request_activate,
 		&server->xdg_activation_request);
 
-	server->xdg_activation_new_token.notify = xdg_activation_handle_new_token;
+	server->xdg_activation_new_token.notify = handle_xdg_activation_new_token;
 	wl_signal_add(&server->xdg_activation->events.new_token,
 		&server->xdg_activation_new_token);
 }

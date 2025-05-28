@@ -330,8 +330,7 @@ osd_field_arg_from_xml_node(struct window_switcher_field *field,
 		} else if (!strcmp(content, "state")) {
 			field->content = LAB_FIELD_WIN_STATE;
 		} else if (!strcmp(content, "output")) {
-			/* Keep old defaults */
-			field->content = LAB_FIELD_OUTPUT_SHORT;
+			field->content = LAB_FIELD_OUTPUT;
 		} else if (!strcmp(content, "custom")) {
 			field->content = LAB_FIELD_CUSTOM;
 		} else {

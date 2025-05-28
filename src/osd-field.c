@@ -324,8 +324,7 @@ osd_field_arg_from_xml_node(struct window_switcher_field *field,
 		} else if (!strcmp(content, "desktop_entry_name")) {
 			field->content = LAB_FIELD_DESKTOP_ENTRY_NAME;
 		} else if (!strcmp(content, "title")) {
-			/* Keep old defaults */
-			field->content = LAB_FIELD_TITLE_SHORT;
+			field->content = LAB_FIELD_TITLE;
 		} else if (!strcmp(content, "workspace")) {
 			field->content = LAB_FIELD_WORKSPACE;
 		} else if (!strcmp(content, "state")) {

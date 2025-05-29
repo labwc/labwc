@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <wlr/xwayland.h>
+#include "buffer.h"
+#include "common/array.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
@@ -16,6 +18,20 @@
 #include "window-rules.h"
 #include "workspaces.h"
 #include "xwayland.h"
+
+enum atoms {
+	ATOM_NET_WM_ICON = 0,
+
+	ATOM_COUNT,
+};
+
+static const char * const atom_names[] = {
+	[ATOM_NET_WM_ICON] = "_NET_WM_ICON",
+};
+
+static_assert(ARRAY_SIZE(atom_names) == ATOM_COUNT, "atom names out of sync");
+
+static xcb_atom_t atoms[ATOM_COUNT] = {0};
 
 static void xwayland_view_unmap(struct view *view, bool client_request);
 
@@ -581,6 +597,63 @@ handle_set_strut_partial(struct wl_listener *listener, void *data)
 }
 
 static void
+update_icon(struct xwayland_view *xwayland_view)
+{
+	if (!xwayland_view->xwayland_surface) {
+		return;
+	}
+
+	xcb_window_t window_id = xwayland_view->xwayland_surface->window_id;
+
+	xcb_connection_t *xcb_conn = wlr_xwayland_get_xwm_connection(
+		xwayland_view->base.server->xwayland);
+	xcb_get_property_cookie_t cookie = xcb_get_property(xcb_conn, 0,
+		window_id, atoms[ATOM_NET_WM_ICON], XCB_ATOM_CARDINAL, 0, 0x10000);
+	xcb_get_property_reply_t *reply = xcb_get_property_reply(xcb_conn, cookie, NULL);
+	if (!reply) {
+		return;
+	}
+	xcb_ewmh_get_wm_icon_reply_t icon;
+	if (!xcb_ewmh_get_wm_icon_from_reply(&icon, reply)) {
+		wlr_log(WLR_INFO, "Invalid x11 icon");
+		view_set_icon(&xwayland_view->base, NULL, NULL);
+		goto out;
+	}
+
+	xcb_ewmh_wm_icon_iterator_t iter = xcb_ewmh_get_wm_icon_iterator(&icon);
+	struct wl_array buffers;
+	wl_array_init(&buffers);
+	for (; iter.rem; xcb_ewmh_get_wm_icon_next(&iter)) {
+		size_t stride = iter.height * 4;
+		uint32_t *buf = xzalloc(iter.width * stride);
+
+		/* Pre-multiply alpha */
+		for (uint32_t y = 0; y < iter.height; y++) {
+			for (uint32_t x = 0; x < iter.width; x++) {
+				uint32_t i = x + y * iter.width;
+				uint8_t *src_pixel = (uint8_t *)&iter.data[i];
+				uint8_t *dst_pixel = (uint8_t *)&buf[i];
+				dst_pixel[0] = src_pixel[0] * src_pixel[3] / 255;
+				dst_pixel[1] = src_pixel[1] * src_pixel[3] / 255;
+				dst_pixel[2] = src_pixel[2] * src_pixel[3] / 255;
+				dst_pixel[3] = src_pixel[3];
+			}
+		}
+
+		struct lab_data_buffer *buffer = buffer_create_from_data(
+			buf, iter.width, iter.height, stride);
+		array_add(&buffers, buffer);
+	}
+
+	/* view takes ownership of the buffers */
+	view_set_icon(&xwayland_view->base, NULL, &buffers);
+	wl_array_release(&buffers);
+
+out:
+	free(reply);
+}
+
+static void
 handle_focus_in(struct wl_listener *listener, void *data)
 {
 	struct xwayland_view *xwayland_view =
@@ -1069,11 +1142,94 @@ handle_new_surface(struct wl_listener *listener, void *data)
 	}
 }
 
+static struct xwayland_view *
+xwayland_view_from_window_id(struct server *server, xcb_window_t id)
+{
+	struct view *view;
+	wl_list_for_each(view, &server->views, link) {
+		if (view->type != LAB_XWAYLAND_VIEW) {
+			continue;
+		}
+		struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+		if (xwayland_view->xwayland_surface
+				&& xwayland_view->xwayland_surface->window_id == id) {
+			return xwayland_view;
+		}
+	}
+	return NULL;
+}
+
+#define XCB_EVENT_RESPONSE_TYPE_MASK 0x7f
+static bool
+handle_x11_event(struct wlr_xwayland *wlr_xwayland, xcb_generic_event_t *event)
+{
+	switch (event->response_type & XCB_EVENT_RESPONSE_TYPE_MASK) {
+	case XCB_PROPERTY_NOTIFY: {
+		xcb_property_notify_event_t *ev = (void *)event;
+		if (ev->atom == atoms[ATOM_NET_WM_ICON]) {
+			struct server *server = wlr_xwayland->data;
+			struct xwayland_view *xwayland_view =
+				xwayland_view_from_window_id(server, ev->window);
+			if (xwayland_view) {
+				update_icon(xwayland_view);
+			} else {
+				wlr_log(WLR_DEBUG, "icon property changed for unknown window");
+			}
+			return true;
+		}
+		break;
+	}
+	default:
+		break;
+	}
+
+	return false;
+}
+
+static void
+sync_atoms(struct server *server)
+{
+	xcb_connection_t *xcb_conn =
+		wlr_xwayland_get_xwm_connection(server->xwayland);
+	assert(xcb_conn);
+
+	wlr_log(WLR_DEBUG, "Syncing X11 atoms");
+	xcb_intern_atom_cookie_t cookies[ATOM_COUNT];
+
+	/* First request everything and then loop over the results to reduce latency */
+	for (size_t i = 0; i < ATOM_COUNT; i++) {
+		cookies[i] = xcb_intern_atom(xcb_conn, 0,
+			strlen(atom_names[i]), atom_names[i]);
+	}
+
+	for (size_t i = 0; i < ATOM_COUNT; i++) {
+		xcb_generic_error_t *err = NULL;
+		xcb_intern_atom_reply_t *reply =
+			xcb_intern_atom_reply(xcb_conn, cookies[i], &err);
+		if (reply) {
+			atoms[i] = reply->atom;
+			wlr_log(WLR_DEBUG, "Got X11 atom for %s: %u",
+				atom_names[i], reply->atom);
+		}
+		if (err) {
+			atoms[i] = XCB_ATOM_NONE;
+			wlr_log(WLR_INFO, "Failed to get X11 atom for %s",
+				atom_names[i]);
+		}
+		free(reply);
+		free(err);
+	}
+}
+
 static void
 handle_server_ready(struct wl_listener *listener, void *data)
 {
 	/* Fire an Xwayland startup script if one (or many) can be found */
 	session_run_script("xinitrc");
+
+	struct server *server =
+		wl_container_of(listener, server, xwayland_server_ready);
+	sync_atoms(server);
 }
 
 static void
@@ -1106,6 +1262,9 @@ xwayland_server_init(struct server *server, struct wlr_compositor *compositor)
 	server->xwayland_xwm_ready.notify = handle_xwm_ready;
 	wl_signal_add(&server->xwayland->events.ready,
 		&server->xwayland_xwm_ready);
+
+	server->xwayland->data = server;
+	server->xwayland->user_event_handler = handle_x11_event;
 
 	if (setenv("DISPLAY", server->xwayland->display_name, true) < 0) {
 		wlr_log_errno(WLR_ERROR, "unable to set DISPLAY for xwayland");

@@ -1043,6 +1043,7 @@ handle_xdg_toplevel_icon_set_icon(struct wl_listener *listener, void *data)
 		}
 	}
 
+	/* view takes ownership of the buffers */
 	view_set_icon(view, icon_name, &buffers);
 	wl_array_release(&buffers);
 }

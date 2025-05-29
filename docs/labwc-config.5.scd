@@ -304,7 +304,7 @@ this is for compatibility with Openbox.
 	  desktop entry/file. Falls back to trimmed identifier
 	  (trimmed_identifier).
 
-	- *title* Show window title if different to app_id
+	- *title* Show window title
 
 	- *workspace* Show workspace name
 
@@ -312,7 +312,7 @@ this is for compatibility with Openbox.
 
 	- *type_short* Show window type ("W" or "X")
 
-	- *output* Show output id, if more than one output detected
+	- *output* Show output id
 
 	- *custom* A printf style config that can replace all the above
 	  fields are:

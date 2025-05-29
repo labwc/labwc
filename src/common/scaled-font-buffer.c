@@ -7,6 +7,7 @@
 #include <wlr/util/log.h>
 #include "buffer.h"
 #include "common/font.h"
+#include "common/graphic-helpers.h"
 #include "common/mem.h"
 #include "common/scaled-scene-buffer.h"
 #include "common/scaled-font-buffer.h"
@@ -17,15 +18,23 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 {
 	struct lab_data_buffer *buffer = NULL;
 	struct scaled_font_buffer *self = scaled_buffer->data;
+	cairo_pattern_t *bg_pattern = self->bg_pattern;
+	cairo_pattern_t *solid_bg_pattern = NULL;
+
+	if (!bg_pattern) {
+		solid_bg_pattern = color_to_pattern(self->bg_color);
+		bg_pattern = solid_bg_pattern;
+	}
 
 	/* Buffer gets free'd automatically along the backing wlr_buffer */
-	font_buffer_create(&buffer, self->max_width, self->text,
-		&self->font, self->color, self->bg_color, scale);
+	font_buffer_create(&buffer, self->max_width, self->height, self->text,
+		&self->font, self->color, bg_pattern, scale);
 
 	if (!buffer) {
 		wlr_log(WLR_ERROR, "font_buffer_create() failed");
 	}
 
+	zfree_pattern(solid_bg_pattern);
 	return buffer;
 }
 
@@ -37,6 +46,7 @@ _destroy(struct scaled_scene_buffer *scaled_buffer)
 
 	zfree(self->text);
 	zfree(self->font.name);
+	zfree_pattern(self->bg_pattern);
 	free(self);
 }
 
@@ -54,7 +64,9 @@ _equal(struct scaled_scene_buffer *scaled_buffer_a,
 		&& a->font.slant == b->font.slant
 		&& a->font.weight == b->font.weight
 		&& !memcmp(a->color, b->color, sizeof(a->color))
-		&& !memcmp(a->bg_color, b->bg_color, sizeof(a->bg_color));
+		&& !memcmp(a->bg_color, b->bg_color, sizeof(a->bg_color))
+		&& a->fixed_height == b->fixed_height
+		&& a->bg_pattern == b->bg_pattern;
 }
 
 static const struct scaled_scene_buffer_impl impl = {
@@ -79,6 +91,18 @@ scaled_font_buffer_create(struct wlr_scene_tree *parent)
 	scaled_buffer->data = self;
 	self->scaled_buffer = scaled_buffer;
 	self->scene_buffer = scaled_buffer->scene_buffer;
+	return self;
+}
+
+struct scaled_font_buffer *
+scaled_font_buffer_create_for_titlebar(struct wlr_scene_tree *parent,
+		int fixed_height, cairo_pattern_t *bg_pattern)
+{
+	struct scaled_font_buffer *self = scaled_font_buffer_create(parent);
+	if (self) {
+		self->fixed_height = fixed_height;
+		self->bg_pattern = cairo_pattern_reference(bg_pattern);
+	}
 	return self;
 }
 
@@ -109,8 +133,11 @@ scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 	memcpy(self->bg_color, bg_color, sizeof(self->bg_color));
 
 	/* Calculate the size of font buffer and request re-rendering */
+	int computed_height;
 	font_get_buffer_size(self->max_width, self->text, &self->font,
-		&self->width, &self->height);
+		&self->width, &computed_height);
+	self->height = (self->fixed_height > 0) ?
+		self->fixed_height : computed_height;
 	scaled_scene_buffer_request_update(self->scaled_buffer,
 		self->width, self->height);
 }
@@ -120,8 +147,11 @@ scaled_font_buffer_set_max_width(struct scaled_font_buffer *self, int max_width)
 {
 	self->max_width = max_width;
 
+	int computed_height;
 	font_get_buffer_size(self->max_width, self->text, &self->font,
-		&self->width, &self->height);
+		&self->width, &computed_height);
+	self->height = (self->fixed_height > 0) ?
+		self->fixed_height : computed_height;
 	scaled_scene_buffer_request_update(self->scaled_buffer,
 		self->width, self->height);
 }

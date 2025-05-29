@@ -12,6 +12,19 @@ struct wlr_fbox;
  */
 void set_cairo_color(cairo_t *cairo, const float *color);
 
+/* Creates a solid color cairo pattern from premultipled RGBA */
+cairo_pattern_t *color_to_pattern(const float *color);
+
+bool is_pattern_opaque(cairo_pattern_t *pattern);
+
+/* Like zfree() but for a cairo_pattern_t */
+#define zfree_pattern(ptr) do { \
+	if (ptr) { \
+		cairo_pattern_destroy(ptr); \
+		(ptr) = NULL; \
+	} \
+} while (0)
+
 /* Draws a border with a specified line width */
 void draw_cairo_border(cairo_t *cairo, struct wlr_fbox fbox, double line_width);
 

@@ -94,7 +94,6 @@ void ssd_update_title(struct ssd *ssd);
 void ssd_update_geometry(struct ssd *ssd);
 void ssd_destroy(struct ssd *ssd);
 void ssd_set_titlebar(struct ssd *ssd, bool enabled);
-void ssd_update_window_icon(struct ssd *ssd);
 
 void ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable);
 void ssd_enable_shade(struct ssd *ssd, bool enable);

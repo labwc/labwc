@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <cairo.h>
+#include <common/box.h>
 #include <stdlib.h>
 #include <string.h>
 #include <wlr/types/wlr_scene.h>

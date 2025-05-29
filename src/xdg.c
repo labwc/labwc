@@ -2,7 +2,9 @@
 
 #include <assert.h>
 #include <wlr/types/wlr_fractional_scale_v1.h>
-
+#include <wlr/types/wlr_xdg_toplevel_icon_v1.h>
+#include "buffer.h"
+#include "common/array.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "decorations.h"
@@ -979,6 +981,36 @@ xdg_toplevel_new(struct wl_listener *listener, void *data)
 	wl_list_insert(&server->views, &view->link);
 }
 
+static void
+xdg_toplevel_icon_handle_set_icon(struct wl_listener *listener, void *data)
+{
+	struct wlr_xdg_toplevel_icon_manager_v1_set_icon_event *event = data;
+
+	struct server *server =
+		wl_container_of(listener, server, xdg_toplevel_icon_set_icon);
+	struct view *view = event->toplevel->base->data;
+	assert(view);
+
+	char *icon_name = NULL;
+	struct wl_array buffers;
+	wl_array_init(&buffers);
+
+	if (event->icon) {
+		icon_name = event->icon->name;
+
+		struct wlr_xdg_toplevel_icon_v1_buffer *icon_buffer;
+		wl_list_for_each(icon_buffer, &event->icon->buffers, link) {
+			struct lab_data_buffer *buffer =
+				buffer_create_from_wlr_buffer(icon_buffer->buffer);
+			if (buffer) {
+				array_add(&buffers, buffer);
+			}
+		}
+	}
+
+	view_set_icon(view, icon_name, buffers);
+}
+
 void
 xdg_shell_init(struct server *server)
 {
@@ -1005,6 +1037,12 @@ xdg_shell_init(struct server *server)
 	server->xdg_activation_new_token.notify = handle_xdg_activation_new_token;
 	wl_signal_add(&server->xdg_activation->events.new_token,
 		&server->xdg_activation_new_token);
+
+	server->icon_manager = wlr_xdg_toplevel_icon_manager_v1_create(
+		server->wl_display, 1);
+	server->xdg_toplevel_icon_set_icon.notify = xdg_toplevel_icon_handle_set_icon;
+	wl_signal_add(&server->icon_manager->events.set_icon,
+		&server->xdg_toplevel_icon_set_icon);
 }
 
 void
@@ -1013,4 +1051,5 @@ xdg_shell_finish(struct server *server)
 	wl_list_remove(&server->new_xdg_toplevel.link);
 	wl_list_remove(&server->xdg_activation_request.link);
 	wl_list_remove(&server->xdg_activation_new_token.link);
+	wl_list_remove(&server->xdg_toplevel_icon_set_icon.link);
 }

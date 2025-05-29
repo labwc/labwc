@@ -21,7 +21,6 @@
 #include "common/nodename.h"
 #include "common/scaled-font-buffer.h"
 #include "common/scaled-icon-buffer.h"
-#include "common/scaled-rect-buffer.h"
 #include "common/scene-helpers.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
@@ -447,13 +446,11 @@ menu_create_scene(struct menu *menu)
 	}
 	menu->size.height = item_y + theme->menu_border_width;
 
-	float transparent[4] = {0};
-	struct scaled_rect_buffer *bg_buffer = scaled_rect_buffer_create(
-		menu->scene_tree, menu->size.width, menu->size.height,
-		theme->menu_border_width, transparent,
-		theme->menu_border_color);
-	assert(bg_buffer);
-	wlr_scene_node_lower_to_bottom(&bg_buffer->scene_buffer->node);
+	struct border_rect *bg_rect = border_rect_create(
+		menu->scene_tree, theme->menu_border_color, NULL,
+		theme->menu_border_width);
+	border_rect_set_size(bg_rect, menu->size.width, menu->size.height);
+	wlr_scene_node_lower_to_bottom(&bg_rect->tree->node);
 }
 
 /*

@@ -44,6 +44,54 @@ set_cairo_color(cairo_t *cairo, const float *c)
 		c[2] / alpha, alpha);
 }
 
+cairo_pattern_t *
+color_to_pattern(const float *c)
+{
+	float alpha = c[3];
+
+	if (alpha == 0.0f) {
+		return cairo_pattern_create_rgba(0, 0, 0, 0);
+	}
+
+	return cairo_pattern_create_rgba(
+		c[0] / alpha, c[1] / alpha, c[2] / alpha, alpha);
+}
+
+/*
+ * This is used as an optimization in font rendering and errs on the
+ * side of returning false (not opaque) for unknown pattern types.
+ *
+ * The 0.999 alpha threshold was chosen to be greater than 254/255
+ * (about 0.996) while leaving some margin for rounding errors.
+ */
+bool
+is_pattern_opaque(cairo_pattern_t *pattern)
+{
+	double alpha = 0;
+	int stops = 0;
+
+	/* solid color? */
+	if (cairo_pattern_get_rgba(pattern, NULL, NULL, NULL, &alpha)
+			== CAIRO_STATUS_SUCCESS) {
+		return (alpha >= 0.999);
+	}
+
+	/* gradient? */
+	if (cairo_pattern_get_color_stop_count(pattern, &stops)
+			== CAIRO_STATUS_SUCCESS) {
+		for (int s = 0; s < stops; s++) {
+			cairo_pattern_get_color_stop_rgba(pattern, s,
+				NULL, NULL, NULL, NULL, &alpha);
+			if (alpha < 0.999) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	return false; /* unknown pattern type */
+}
+
 static int
 compare_xcolor_entry(const void *a, const void *b)
 {

@@ -71,6 +71,13 @@ struct lab_data_buffer *buffer_create_from_data(void *pixel_data, uint32_t width
 	uint32_t height, uint32_t stride);
 
 /*
+ * Create a lab_data_buffer from a wlr_buffer by copying its content.
+ * The wlr_buffer must be backed by shm.
+ */
+struct lab_data_buffer *buffer_create_from_wlr_buffer(
+	struct wlr_buffer *wlr_buffer);
+
+/*
  * Resize a buffer to the given size. The source buffer is rendered at the
  * center of the output buffer and shrunk if it overflows from the output buffer.
  */

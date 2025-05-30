@@ -371,8 +371,7 @@ create_osd_scene(struct output *output, struct wl_array *views)
 				struct scaled_icon_buffer *icon_buffer =
 					scaled_icon_buffer_create(item_root,
 						server, icon_size, icon_size);
-				scaled_icon_buffer_set_app_id(icon_buffer,
-					view_get_string_prop(*view, "app_id"));
+				scaled_icon_buffer_set_view(icon_buffer, *view);
 				node = &icon_buffer->scene_buffer->node;
 				height = icon_size;
 			} else {

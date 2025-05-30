@@ -94,7 +94,6 @@ ssd_titlebar_create(struct ssd *ssd)
 	update_visible_buttons(ssd);
 
 	ssd_update_title(ssd);
-	ssd_update_window_icon(ssd);
 
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
 	bool squared = ssd_should_be_squared(ssd);
@@ -324,7 +323,6 @@ ssd_titlebar_update(struct ssd *ssd)
 	} FOR_EACH_END
 
 	ssd_update_title(ssd);
-	ssd_update_window_icon(ssd);
 }
 
 void
@@ -563,36 +561,6 @@ ssd_should_be_squared(struct ssd *ssd)
 	return (view_is_tiled_and_notify_tiled(view)
 			|| view->current.width < corner_width * 2)
 		&& view->maximized != VIEW_AXIS_BOTH;
-}
-
-void
-ssd_update_window_icon(struct ssd *ssd)
-{
-#if HAVE_LIBSFDO
-	if (!ssd) {
-		return;
-	}
-
-	/*
-	 * When app id is not set, an empty string is stored here and the
-	 * fallback icon is always rendered.
-	 */
-	const char *app_id = view_get_string_prop(ssd->view, "app_id");
-	assert(app_id);
-
-	struct ssd_sub_tree *subtree;
-	FOR_EACH_STATE(ssd, subtree) {
-		struct ssd_part *part = ssd_get_part(
-			&subtree->parts, LAB_SSD_BUTTON_WINDOW_ICON);
-		if (!part) {
-			break;
-		}
-
-		struct ssd_button *button = node_ssd_button_from_node(part->node);
-		assert(button->window_icon);
-		scaled_icon_buffer_set_app_id(button->window_icon, app_id);
-	} FOR_EACH_END
-#endif
 }
 
 #undef FOR_EACH_STATE

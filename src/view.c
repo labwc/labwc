@@ -4,6 +4,7 @@
 #include <strings.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_security_context_v1.h>
+#include "buffer.h"
 #include "common/box.h"
 #include "common/list.h"
 #include "common/macros.h"
@@ -2371,10 +2372,8 @@ void
 view_update_app_id(struct view *view)
 {
 	assert(view);
-	if (view->ssd_enabled) {
-		ssd_update_window_icon(view->ssd);
-	}
 	wl_signal_emit_mutable(&view->events.new_app_id, NULL);
+	wl_signal_emit_mutable(&view->events.set_icon, NULL);
 }
 
 void
@@ -2500,6 +2499,29 @@ view_set_shade(struct view *view, bool shaded)
 }
 
 void
+view_set_icon(struct view *view, const char *icon_name, struct wl_array *buffers)
+{
+	/* Update icon name */
+	zfree(view->icon.name);
+	if (icon_name) {
+		view->icon.name = xstrdup(icon_name);
+	}
+
+	/* Update icon images */
+	struct lab_data_buffer **buffer;
+	wl_array_for_each(buffer, &view->icon.buffers) {
+		wlr_buffer_drop(&(*buffer)->base);
+	}
+	wl_array_release(&view->icon.buffers);
+	wl_array_init(&view->icon.buffers);
+	if (buffers) {
+		wl_array_copy(&view->icon.buffers, buffers);
+	}
+
+	wl_signal_emit_mutable(&view->events.set_icon, NULL);
+}
+
+void
 view_init(struct view *view)
 {
 	assert(view);
@@ -2511,6 +2533,7 @@ view_init(struct view *view)
 	wl_signal_init(&view->events.minimized);
 	wl_signal_init(&view->events.fullscreened);
 	wl_signal_init(&view->events.activated);
+	wl_signal_init(&view->events.set_icon);
 	wl_signal_init(&view->events.destroy);
 }
 
@@ -2568,6 +2591,10 @@ view_destroy(struct view *view)
 
 	osd_on_view_destroy(view);
 	undecorate(view);
+
+	if (view->icon.buffers.data) {
+		view_set_icon(view, NULL, NULL);
+	}
 
 	/*
 	 * The layer-shell top-layer is disabled when an application is running

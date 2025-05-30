@@ -264,6 +264,9 @@ struct server {
 	struct wl_listener xdg_activation_request;
 	struct wl_listener xdg_activation_new_token;
 
+	struct wlr_xdg_toplevel_icon_manager_v1 *xdg_toplevel_icon_manager;
+	struct wl_listener xdg_toplevel_icon_set_icon;
+
 	struct wl_list views;
 	struct wl_list unmanaged_surfaces;
 

@@ -29,6 +29,7 @@
 #include <drm_fourcc.h>
 #include <wlr/interfaces/wlr_buffer.h>
 #include "buffer.h"
+#include "common/box.h"
 #include "common/mem.h"
 
 static const struct wlr_buffer_impl data_buffer_impl;
@@ -144,5 +145,39 @@ buffer_create_from_data(void *pixel_data, uint32_t width, uint32_t height,
 	buffer->surface = cairo_image_surface_create_for_data(
 		pixel_data, CAIRO_FORMAT_ARGB32, width, height, stride);
 	buffer->surface_owns_data = false;
+	return buffer;
+}
+
+struct lab_data_buffer *
+buffer_resize(struct lab_data_buffer *src_buffer, int width, int height,
+		double scale)
+{
+	assert(src_buffer);
+	cairo_surface_t *surface = src_buffer->surface;
+
+	int src_w = cairo_image_surface_get_width(surface);
+	int src_h = cairo_image_surface_get_height(surface);
+
+	struct lab_data_buffer *buffer =
+		buffer_create_cairo(width, height, scale);
+	cairo_t *cairo = cairo_create(buffer->surface);
+
+	struct wlr_box container = {
+		.width = width,
+		.height = height,
+	};
+
+	struct wlr_box dst_box = box_fit_within(src_w, src_h, &container);
+	double scene_scale = (double)dst_box.width / (double)src_w;
+	cairo_translate(cairo, dst_box.x, dst_box.y);
+	cairo_scale(cairo, scene_scale, scene_scale);
+	cairo_set_source_surface(cairo, surface, 0, 0);
+	cairo_pattern_set_filter(cairo_get_source(cairo), CAIRO_FILTER_GOOD);
+	cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
+	cairo_paint(cairo);
+
+	cairo_surface_flush(buffer->surface);
+	cairo_destroy(cairo);
+
 	return buffer;
 }

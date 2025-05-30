@@ -113,6 +113,7 @@ add_scene_button(struct wl_list *part_list, enum ssd_part_type type,
 		struct scaled_icon_buffer *icon_buffer =
 			scaled_icon_buffer_create(parent, view->server,
 				button_width - 2 * icon_padding, button_height);
+		scaled_icon_buffer_set_view(icon_buffer, view);
 		assert(icon_buffer);
 		icon_part->node = &icon_buffer->scene_buffer->node;
 		wlr_scene_node_set_position(icon_part->node, icon_padding, 0);

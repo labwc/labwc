@@ -281,6 +281,12 @@ struct view {
 
 	struct foreign_toplevel *foreign_toplevel;
 
+	/* used by scaled_icon_buffer */
+	struct {
+		char *name;
+		struct wl_array buffers; /* struct lab_data_buffer * */
+	} icon;
+
 	struct {
 		struct wl_signal new_app_id;
 		struct wl_signal new_title;
@@ -289,6 +295,11 @@ struct view {
 		struct wl_signal minimized;
 		struct wl_signal fullscreened;
 		struct wl_signal activated;     /* bool *activated */
+		/*
+		 * This is emitted when app_id, or icon set via xdg_toplevel_icon
+		 * is updated. This is listened by scaled_icon_buffer.
+		 */
+		struct wl_signal set_icon;
 		struct wl_signal destroy;
 	} events;
 };
@@ -612,6 +623,10 @@ void view_reload_ssd(struct view *view);
 int view_get_min_width(void);
 
 void view_set_shade(struct view *view, bool shaded);
+
+/* Icon buffers set with this function are dropped later */
+void view_set_icon(struct view *view, const char *icon_name,
+	struct wl_array *buffers);
 
 struct view_size_hints view_get_size_hints(struct view *view);
 void view_adjust_size(struct view *view, int *w, int *h);

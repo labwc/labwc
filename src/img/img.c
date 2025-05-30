@@ -112,42 +112,6 @@ lab_img_add_modifier(struct lab_img *img,  lab_img_modifier_func_t modifier)
 	*mod = modifier;
 }
 
-/*
- * Takes a source surface from PNG/XBM/XPM file and output a buffer for the
- * given size. The source surface is placed at the center of the output buffer
- * and shrunk if it overflows from the output buffer.
- */
-static struct lab_data_buffer *
-render_cairo_surface(cairo_surface_t *surface, int width, int height,
-	double scale)
-{
-	assert(surface);
-	int src_w = cairo_image_surface_get_width(surface);
-	int src_h = cairo_image_surface_get_height(surface);
-
-	struct lab_data_buffer *buffer =
-		buffer_create_cairo(width, height, scale);
-	cairo_t *cairo = cairo_create(buffer->surface);
-
-	struct wlr_box container = {
-		.width = width,
-		.height = height,
-	};
-
-	struct wlr_box dst_box = box_fit_within(src_w, src_h, &container);
-	double scene_scale = (double)dst_box.width / (double)src_w;
-	cairo_translate(cairo, dst_box.x, dst_box.y);
-	cairo_scale(cairo, scene_scale, scene_scale);
-	cairo_set_source_surface(cairo, surface, 0, 0);
-	cairo_pattern_set_filter(cairo_get_source(cairo), CAIRO_FILTER_GOOD);
-	cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
-	cairo_paint(cairo);
-
-	cairo_destroy(cairo);
-
-	return buffer;
-}
-
 struct lab_data_buffer *
 lab_img_render(struct lab_img *img, int width, int height, double scale)
 {
@@ -158,13 +122,11 @@ lab_img_render(struct lab_img *img, int width, int height, double scale)
 	case LAB_IMG_PNG:
 	case LAB_IMG_XBM:
 	case LAB_IMG_XPM:
-		buffer = render_cairo_surface(img->data->buffer->surface,
-			width, height, scale);
+		buffer = buffer_resize(img->data->buffer, width, height, scale);
 		break;
 #if HAVE_RSVG
 	case LAB_IMG_SVG:
-		buffer = img_svg_render(img->data->svg, width, height,
-			scale);
+		buffer = img_svg_render(img->data->svg, width, height, scale);
 		break;
 #endif
 	default:

@@ -916,13 +916,15 @@ extending outward from the snapped edge.
 	available mouse	buttons. If not specified otherwise, the tip is
 	mapped to left mouse click, the first pen button (Stylus) is mapped
 	to right mouse button click and the second pen button (Stylus2)
-	emulates a middle mouse	button click.
+	emulates a middle mouse	button click. Buttons of a tablet tool mouse
+	are by default mapped to their (regular) mouse counterparts.
 
 	Supported map *buttons* for mouse emulation are:
 	- Tip
 	- Stylus
 	- Stylus2
 	- Stylus3
+	- Left..Task
 	- Pad
 	- Pad2..Pad9
 

@@ -51,6 +51,22 @@ tablet_button_from_str(const char *button)
 		return BTN_STYLUS2;
 	} else if (!strcasecmp(button, "Stylus3")) {
 		return BTN_STYLUS3;
+	} else if (!strcasecmp(button, "Left")) {
+		return BTN_LEFT;
+	} else if (!strcasecmp(button, "Right")) {
+		return BTN_RIGHT;
+	} else if (!strcasecmp(button, "Middle")) {
+		return BTN_MIDDLE;
+	} else if (!strcasecmp(button, "Side")) {
+		return BTN_SIDE;
+	} else if (!strcasecmp(button, "Extra")) {
+		return BTN_EXTRA;
+	} else if (!strcasecmp(button, "Forward")) {
+		return BTN_FORWARD;
+	} else if (!strcasecmp(button, "Back")) {
+		return BTN_BACK;
+	} else if (!strcasecmp(button, "Task")) {
+		return BTN_TASK;
 	} else if (!strcasecmp(button, "Pad")) {
 		return LAB_BTN_PAD;
 	} else if (!strcasecmp(button, "Pad2")) {
@@ -109,6 +125,16 @@ tablet_load_default_button_mappings(void)
 
 	tablet_button_mapping_add(BTN_STYLUS, BTN_RIGHT);
 	tablet_button_mapping_add(BTN_STYLUS2, BTN_MIDDLE);
+
+	/* pass-through buttons of a tablet tool mouse */
+	tablet_button_mapping_add(BTN_LEFT, BTN_LEFT);
+	tablet_button_mapping_add(BTN_RIGHT, BTN_RIGHT);
+	tablet_button_mapping_add(BTN_MIDDLE, BTN_MIDDLE);
+	tablet_button_mapping_add(BTN_SIDE, BTN_SIDE);
+	tablet_button_mapping_add(BTN_EXTRA, BTN_EXTRA);
+	tablet_button_mapping_add(BTN_FORWARD, BTN_FORWARD);
+	tablet_button_mapping_add(BTN_BACK, BTN_BACK);
+	tablet_button_mapping_add(BTN_TASK, BTN_TASK);
 }
 
 uint32_t

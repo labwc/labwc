@@ -103,7 +103,10 @@ void
 tablet_load_default_button_mappings(void)
 {
 	rc.tablet.button_map_count = 0;
-	tablet_button_mapping_add(BTN_TOOL_PEN, BTN_LEFT); /* Used for the pen tip */
+
+	/* used for the pen tip */
+	tablet_button_mapping_add(BTN_TOOL_PEN, BTN_LEFT);
+
 	tablet_button_mapping_add(BTN_STYLUS, BTN_RIGHT);
 	tablet_button_mapping_add(BTN_STYLUS2, BTN_MIDDLE);
 }

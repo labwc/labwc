@@ -56,6 +56,9 @@ re-loaded on --reconfigure.
 Any environment variables referenced as $VARIABLE or ${VARIABLE} will be
 substituted and the tilde (~) will be expanded as the user's home directory.
 
+Any line beginning with the character '#' in an environment file will be treated
+as a comment. Trailing comments are not supported.
+
 Please note that as labwc reloads the environment file(s) on reconfigure,
 recursive/circular assignments (for example FOO=$FOO:bar) should not be made.
 

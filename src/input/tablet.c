@@ -417,7 +417,7 @@ handle_tablet_tool_axis(struct wl_listener *listener, void *data)
 		}
 	} else {
 		if (ev->updated_axes & (WLR_TABLET_TOOL_AXIS_X | WLR_TABLET_TOOL_AXIS_Y)) {
-			if (tool && tool->tool_v2->focused_surface) {
+			if (tool && tool->tool_v2 && tool->tool_v2->focused_surface) {
 				wlr_tablet_v2_tablet_tool_notify_proximity_out(
 					tool->tool_v2);
 			}

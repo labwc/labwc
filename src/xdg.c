@@ -120,6 +120,9 @@ do_late_positioning(struct view *view)
 	}
 }
 
+/* TODO: reorder so this forward declaration isn't needed */
+static void set_pending_configure_serial(struct view *view, uint32_t serial);
+
 static void
 handle_commit(struct wl_listener *listener, void *data)
 {
@@ -129,8 +132,11 @@ handle_commit(struct wl_listener *listener, void *data)
 	assert(view->surface);
 
 	if (xdg_surface->initial_commit) {
-		wlr_log(WLR_DEBUG, "scheduling configure");
-		wlr_xdg_surface_schedule_configure(xdg_surface);
+		uint32_t serial =
+			wlr_xdg_surface_schedule_configure(xdg_surface);
+		if (serial > 0) {
+			set_pending_configure_serial(view, serial);
+		}
 		/*
 		 * Handle initial fullscreen/maximize requests immediately after
 		 * scheduling the initial configure event (before it is sent) in
@@ -493,8 +499,11 @@ xdg_toplevel_view_close(struct view *view)
 static void
 xdg_toplevel_view_maximize(struct view *view, enum view_axis maximized)
 {
-	wlr_xdg_toplevel_set_maximized(xdg_toplevel_from_view(view),
-		maximized == VIEW_AXIS_BOTH);
+	uint32_t serial = wlr_xdg_toplevel_set_maximized(
+		xdg_toplevel_from_view(view), maximized == VIEW_AXIS_BOTH);
+	if (serial > 0) {
+		set_pending_configure_serial(view, serial);
+	}
 }
 
 static void
@@ -550,14 +559,21 @@ xdg_toplevel_view_append_children(struct view *self, struct wl_array *children)
 static void
 xdg_toplevel_view_set_activated(struct view *view, bool activated)
 {
-	wlr_xdg_toplevel_set_activated(xdg_toplevel_from_view(view), activated);
+	uint32_t serial = wlr_xdg_toplevel_set_activated(
+		xdg_toplevel_from_view(view), activated);
+	if (serial > 0) {
+		set_pending_configure_serial(view, serial);
+	}
 }
 
 static void
 xdg_toplevel_view_set_fullscreen(struct view *view, bool fullscreen)
 {
-	wlr_xdg_toplevel_set_fullscreen(xdg_toplevel_from_view(view),
-		fullscreen);
+	uint32_t serial = wlr_xdg_toplevel_set_fullscreen(
+		xdg_toplevel_from_view(view), fullscreen);
+	if (serial > 0) {
+		set_pending_configure_serial(view, serial);
+	}
 }
 
 static void
@@ -602,7 +618,11 @@ xdg_toplevel_view_notify_tiled(struct view *view)
 			WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
 	}
 
-	wlr_xdg_toplevel_set_tiled(xdg_toplevel_from_view(view), edge);
+	uint32_t serial =
+		wlr_xdg_toplevel_set_tiled(xdg_toplevel_from_view(view), edge);
+	if (serial > 0) {
+		set_pending_configure_serial(view, serial);
+	}
 }
 
 static struct view *

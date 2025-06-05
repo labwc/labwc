@@ -284,9 +284,19 @@ ssd_shadow_update(struct ssd *ssd)
 	assert(ssd->shadow.tree);
 
 	struct view *view = ssd->view;
+	struct theme *theme = ssd->view->server->theme;
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
-	bool show_shadows =
-		rc.shadows_enabled && !maximized && !view_is_tiled(ssd->view);
+	bool tiled_shadows = false;
+	if (rc.shadows_on_tiled) {
+		if (rc.gap >= theme->window[THEME_ACTIVE].shadow_size
+				&& rc.gap >= theme->window[THEME_INACTIVE].shadow_size) {
+			tiled_shadows = true;
+		} else {
+			wlr_log(WLR_INFO, "gap size < shadow_size, ignore rc.shadows_ontiled");
+		}
+	};
+	bool show_shadows = rc.shadows_enabled && !maximized
+		&& (!view_is_tiled(ssd->view) || tiled_shadows);
 	wlr_scene_node_set_enabled(&ssd->shadow.tree->node, show_shadows);
 	if (show_shadows) {
 		set_shadow_geometry(ssd);

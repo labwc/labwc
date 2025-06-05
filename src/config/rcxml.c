@@ -1155,6 +1155,8 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		set_bool(content, &rc.ssd_keep_border);
 	} else if (!strcasecmp(nodename, "dropShadows.theme")) {
 		set_bool(content, &rc.shadows_enabled);
+	} else if (!strcasecmp(nodename, "dropShadowsOnTiled.theme")) {
+		set_bool(content, &rc.shadows_on_tiled);
 	} else if (!strcmp(nodename, "name.font.theme")) {
 		fill_font(nodename, content, font_place);
 	} else if (!strcmp(nodename, "size.font.theme")) {
@@ -1508,6 +1510,7 @@ rcxml_init(void)
 	rc.ssd_keep_border = true;
 	rc.corner_radius = 8;
 	rc.shadows_enabled = false;
+	rc.shadows_on_tiled = false;
 
 	rc.gap = 0;
 	rc.adaptive_sync = LAB_ADAPTIVE_SYNC_DISABLED;

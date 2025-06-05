@@ -263,6 +263,15 @@ matches_criteria(struct view *view, enum lab_view_criteria criteria)
 			return false;
 		}
 	}
+	if (criteria & LAB_VIEW_CRITERIA_NO_OMNIPRESENT) {
+		/*
+		 * TODO: Once always-on-top views use a per-workspace
+		 *       sub-tree we can remove the check from this condition.
+		 */
+		if (view->visible_on_all_workspaces || view_is_always_on_top(view)) {
+			return false;
+		}
+	}
 	return true;
 }
 

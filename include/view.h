@@ -340,6 +340,7 @@ enum lab_view_criteria {
 	/* Negative criteria */
 	LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP        = 1 << 6,
 	LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER = 1 << 7,
+	LAB_VIEW_CRITERIA_NO_OMNIPRESENT          = 1 << 8,
 };
 
 /**

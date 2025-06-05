@@ -524,6 +524,9 @@ extending outward from the snapped edge.
 *<theme><dropShadows>* [yes|no]
 	Should drop-shadows be rendered behind windows. Default is no.
 
+*<theme><dropShadowsOnTiled>* [yes|no]
+	Should drop-shadows be rendered behind tiled windows. Default is no.
+
 *<theme><font place="">*
 	The font to use for a specific element of a window, menu or OSD.
 	Places can be any of:

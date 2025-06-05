@@ -291,7 +291,8 @@ ssd_shadow_update(struct ssd *ssd)
 	struct view *view = ssd->view;
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
 	bool show_shadows =
-		rc.shadows_enabled && !maximized && !view_is_tiled(ssd->view);
+		rc.shadows_enabled && !maximized &&
+		(!view_is_tiled(ssd->view) || rc.shadows_on_tiled);
 	wlr_scene_node_set_enabled(&ssd->shadow.tree->node, show_shadows);
 	if (show_shadows) {
 		set_shadow_geometry(ssd);

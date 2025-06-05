@@ -38,6 +38,7 @@
     <cornerRadius>8</cornerRadius>
     <keepBorder>yes</keepBorder>
     <dropShadows>no</dropShadows>
+    <dropShadowsOnTiled>no</dropShadowsOnTiled>
     <font place="ActiveWindow">
       <name>sans</name>
       <size>10</size>

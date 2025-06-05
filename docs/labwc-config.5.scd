@@ -525,7 +525,10 @@ extending outward from the snapped edge.
 	Should drop-shadows be rendered behind windows. Default is no.
 
 *<theme><dropShadowsOnTiled>* [yes|no]
-	Should drop-shadows be rendered behind tiled windows. Default is no.
+	Should drop-shadows be rendered behind tiled windows. This won't take
+	effect if <core><gap> is smaller than window.active.shadow.size in theme.
+
+	Default is no.
 
 *<theme><font place="">*
 	The font to use for a specific element of a window, menu or OSD.

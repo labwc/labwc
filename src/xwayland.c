@@ -117,10 +117,34 @@ xwayland_view_wants_focus(struct view *view)
 	case WLR_ICCCM_INPUT_MODEL_GLOBAL:
 		/*
 		 * Assume that NORMAL and DIALOG windows always want
-		 * focus. These window types should show up in the
+		 * focus, unless they are one of the special window types.
+		 * These window types should show up in the
 		 * Alt-Tab switcher and be automatically focused when
 		 * they become topmost.
 		 */
+		if (wlr_xwayland_surface_has_window_type(xsurface,
+				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_COMBO) ||
+			wlr_xwayland_surface_has_window_type(xsurface,
+				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DND) ||
+			wlr_xwayland_surface_has_window_type(xsurface,
+				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DROPDOWN_MENU) ||
+			wlr_xwayland_surface_has_window_type(xsurface,
+				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_MENU) ||
+			wlr_xwayland_surface_has_window_type(xsurface,
+				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_NOTIFICATION) ||
+			wlr_xwayland_surface_has_window_type(xsurface,
+				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_POPUP_MENU) ||
+			wlr_xwayland_surface_has_window_type(xsurface,
+				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_SPLASH) ||
+			wlr_xwayland_surface_has_window_type(xsurface,
+				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DESKTOP) ||
+			wlr_xwayland_surface_has_window_type(xsurface,
+				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_TOOLTIP) ||
+			wlr_xwayland_surface_has_window_type(xsurface,
+				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_UTILITY)) {
+			return VIEW_WANTS_FOCUS_NEVER;
+		}
+
 		return (wlr_xwayland_surface_has_window_type(xsurface,
 				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_NORMAL)
 			|| wlr_xwayland_surface_has_window_type(xsurface,

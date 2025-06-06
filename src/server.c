@@ -8,6 +8,7 @@
 #include <wlr/backend/multi.h>
 #include <wlr/types/wlr_data_control_v1.h>
 #include <wlr/types/wlr_drm.h>
+#include <wlr/types/wlr_content_type_v1.h>
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_ext_foreign_toplevel_list_v1.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
@@ -664,6 +665,7 @@ server_init(struct server *server)
 		wlr_security_context_manager_v1_create(server->wl_display);
 	wlr_viewporter_create(server->wl_display);
 	wlr_single_pixel_buffer_manager_v1_create(server->wl_display);
+	wlr_content_type_manager_v1_create(server->wl_display, 1);
 	wlr_fractional_scale_manager_v1_create(server->wl_display,
 		LAB_WLR_FRACTIONAL_SCALE_V1_VERSION);
 

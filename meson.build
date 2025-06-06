@@ -110,7 +110,7 @@ conf_data.set10('HAVE_RSVG', have_rsvg)
 
 conf_data.set10('HAVE_LIBSFDO', have_libsfdo)
 
-foreach sym : ['LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY']
+foreach sym : ['LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY', 'LIBINPUT_CONFIG_3FG_DRAG_ENABLED_3FG']
 	conf_data.set10('HAVE_' + sym, cc.has_header_symbol('libinput.h', sym, dependencies: input))
 endforeach
 

@@ -25,6 +25,7 @@ struct libinput_category {
 	enum libinput_config_tap_button_map tap_button_map;
 	int tap_and_drag;               /* -1 or libinput_config_drag_state */
 	int drag_lock;                  /* -1 or libinput_config_drag_lock_state */
+	int three_finger_drag;          /* -1 or libinput_config_3fg_drag_state */
 	int accel_profile;              /* -1 or libinput_config_accel_profile */
 	int middle_emu;                 /* -1 or libinput_config_middle_emulation_state */
 	int dwt;                        /* -1 or libinput_config_dwt_state */

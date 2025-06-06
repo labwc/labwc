@@ -164,6 +164,17 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 			libinput_dev, dc->drag_lock);
 	}
 
+#if HAVE_LIBINPUT_CONFIG_3FG_DRAG_ENABLED_3FG
+	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0
+			|| dc->three_finger_drag < 0) {
+		wlr_log(WLR_INFO, "three-finger drag not configured");
+	} else {
+		wlr_log(WLR_INFO, "three-finger drag configured");
+		libinput_device_config_3fg_drag_set_enabled(
+			libinput_dev, dc->three_finger_drag);
+	}
+#endif
+
 	if (libinput_device_config_scroll_has_natural_scroll(libinput_dev) <= 0
 			|| dc->natural_scroll < 0) {
 		wlr_log(WLR_INFO, "natural scroll not configured");

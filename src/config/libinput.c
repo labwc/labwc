@@ -24,6 +24,7 @@ libinput_category_init(struct libinput_category *l)
 #else
 	l->drag_lock = -1;
 #endif
+	l->three_finger_drag = -1;
 	l->accel_profile = -1;
 	l->middle_emu = -1;
 	l->dwt = -1;

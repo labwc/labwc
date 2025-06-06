@@ -779,7 +779,7 @@ extending outward from the snapped edge.
 	- Drag: Pressing the button within the context, then moving the cursor.
 	- Scroll: Scrolling in specified *direction* in the context.
 
-	Example:
+	Example to resize window on Logo + Shift + ScrollUp:
 
 ```
 <?xml version="1.0"?>
@@ -796,6 +796,18 @@ extending outward from the snapped edge.
   </context>
 </mouse>
 </labwc_config>
+```
+
+	Example to un-bind the default alt + left-button-press to move window:
+
+```
+<mouse>
+  <default/>
+  <context name="Frame">
+    <mousebind button="A-Left" action="Press"/>
+    <mousebind button="A-Left" action="Drag"/>
+  </context>
+</mouse>
 ```
 
 *<mouse><default />*

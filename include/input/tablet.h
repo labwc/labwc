@@ -14,7 +14,6 @@ struct drawing_tablet {
 	struct seat *seat;
 	struct wlr_tablet *tablet;
 	struct wlr_tablet_v2_tablet *tablet_v2;
-	enum motion motion_mode;
 	double x, y, dx, dy;
 	double distance;
 	double pressure;

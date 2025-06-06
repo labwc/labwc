@@ -224,13 +224,12 @@ scaled_icon_buffer_set_view(struct scaled_icon_buffer *self, struct view *view)
 		wl_list_remove(&self->on_view.destroy.link);
 	}
 	self->view = view;
-	if (view) {
-		self->on_view.set_icon.notify = handle_view_set_icon;
-		wl_signal_add(&view->events.set_icon, &self->on_view.set_icon);
-		self->on_view.destroy.notify = handle_view_destroy;
-		wl_signal_add(&view->events.destroy, &self->on_view.destroy);
-	}
+	self->on_view.set_icon.notify = handle_view_set_icon;
+	wl_signal_add(&view->events.set_icon, &self->on_view.set_icon);
+	self->on_view.destroy.notify = handle_view_destroy;
+	wl_signal_add(&view->events.destroy, &self->on_view.destroy);
 
+	handle_view_set_icon(&self->on_view.set_icon, NULL);
 	scaled_scene_buffer_request_update(self->scaled_buffer, self->width, self->height);
 }
 

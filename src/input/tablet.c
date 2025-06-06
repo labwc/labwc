@@ -273,8 +273,13 @@ handle_tablet_tool_proximity(struct wl_listener *listener, void *data)
 	 * enforced. Not having a tool or tablet capable surface will trigger
 	 * the fallback to cursor move/button emulation in the tablet signal
 	 * handlers.
+	 * Also stick to mouse emulation when the current tool is a tablet mouse.
+	 * Client support for tablet mouses in tablet mode is often incomplete
+	 * and no functionality is lost since those device do not support tool
+	 * specific axis like pressure or distance.
 	 */
 	if (!rc.tablet.force_mouse_emulation
+			&& ev->tool->type != WLR_TABLET_TOOL_TYPE_MOUSE
 			&& tablet->seat->server->tablet_manager && !tool) {
 		/*
 		 * Unfortunately `wlr_tool` is only present in the events, so

@@ -959,6 +959,7 @@ extending outward from the snapped edge.
     <tapButtonMap></tapButtonMap>
     <tapAndDrag></tapAndDrag>
     <dragLock>sticky</dragLock>
+    <threeFingerDrag></threeFingerDrag>
     <middleEmulation></middleEmulation>
     <disableWhileTyping></disableWhileTyping>
     <clickMethod></clickMethod>
@@ -1032,6 +1033,16 @@ extending outward from the snapped edge.
 	release of a finger during tap-and-dragging. Both *yes* and *sticky* enable
 	drag lock, but if *yes* is set, the drag lock expires after a timeout.
 	Default is *sticky*.
+
+*<libinput><device><threeFingerDrag>* [yes|no|3|4]
+	Enable or disable the three-finger drag feature. When enabled, three
+	fingers down will result in a button down event and subsequent finger
+	motions triggers a drag.
+
+	The available options are:
+	- *no* - Disable three-finger drag.
+	- *yes* | *3* - Enable three-finger drag for 3 fingers.
+	- *4* - Enable three-finger drag for 4 fingers.
 
 *<libinput><device><middleEmulation>* [yes|no]
 	Enable or disable middle button emulation for this category. Middle

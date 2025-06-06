@@ -788,6 +788,27 @@ fill_libinput_category(char *nodename, char *content, struct parser_state *state
 		state->current_libinput_category->drag_lock = ret
 			? LIBINPUT_CONFIG_DRAG_LOCK_ENABLED
 			: LIBINPUT_CONFIG_DRAG_LOCK_DISABLED;
+	} else if (!strcasecmp(nodename, "threeFingerDrag")) {
+#if HAVE_LIBINPUT_CONFIG_3FG_DRAG_ENABLED_3FG
+		if (!strcmp(content, "3")) {
+			state->current_libinput_category->three_finger_drag =
+				LIBINPUT_CONFIG_3FG_DRAG_ENABLED_3FG;
+		} else if (!strcmp(content, "4")) {
+			state->current_libinput_category->three_finger_drag =
+				LIBINPUT_CONFIG_3FG_DRAG_ENABLED_4FG;
+		} else {
+			int ret = parse_bool(content, -1);
+			if (ret < 0) {
+				return;
+			}
+			state->current_libinput_category->three_finger_drag = ret
+				? LIBINPUT_CONFIG_3FG_DRAG_ENABLED_3FG
+				: LIBINPUT_CONFIG_3FG_DRAG_DISABLED;
+		}
+#else
+		wlr_log(WLR_ERROR, "<threeFingerDrag> is only"
+			" supported in libinput >= 1.28");
+#endif
 	} else if (!strcasecmp(nodename, "accelProfile")) {
 		state->current_libinput_category->accel_profile =
 			get_accel_profile(content);

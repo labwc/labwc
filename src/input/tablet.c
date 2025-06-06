@@ -439,6 +439,21 @@ handle_tablet_tool_axis(struct wl_listener *listener, void *data)
 				break;
 			}
 		}
+		if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_WHEEL) {
+			/*
+			 * libinput reports delta_discrete for tablet tool mouses,
+			 * but unfortunately wlroots doesn't expose it. That said,
+			 * based on the libinput source (tablet_device_has_axis()),
+			 * we only have to deal with non-high-res mouses here, so
+			 * it is relatively safe to set a fixed value.
+			 */
+			int delta_discrete = tablet->wheel_delta >= 0 ? 1 : -1;
+			cursor_emulate_axis(tablet->seat, &ev->tablet->base,
+				WL_POINTER_AXIS_VERTICAL_SCROLL,
+				tablet->wheel_delta,
+				WLR_POINTER_AXIS_DISCRETE_STEP * delta_discrete,
+				WL_POINTER_AXIS_SOURCE_WHEEL, ev->time_msec);
+		}
 	}
 }
 

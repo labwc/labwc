@@ -281,8 +281,8 @@ Actions are used in menus and keyboard/mouse bindings.
 	Switch to workspace.
 
 	*to* The workspace to switch to. Supported values are "current", "last",
-	"left", "right" or the full name of a workspace or its index (starting
-	at 1) as configured in rc.xml.
+	"left", "right", "left-occupied", "right-occupied" or the full name of a
+	workspace or its index (starting at 1) as configured in rc.xml.
 
 	*wrap* [yes|no] Wrap around from last desktop to first, and vice
 	versa. Default yes.
@@ -469,8 +469,10 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 		*desktop*
 			The desktop the client is currently on. This can be the
 			number or name of a desktop, or special relative values
-			"current", "other", "left", "right" or "last". The
-			"left" and "right" directions will not wrap.
+			"current", "other", "left", "right", "left-occupied",
+			"right-occupied" or "last".
+			The "left" , "right", "left-occupied" and
+			"right-occupied" directions will not wrap.
 
 		*tiled* [up|right|down|left|center]
 			Whether the client is tiled (snapped) along the the

@@ -269,6 +269,75 @@ get_next(struct workspace *current, struct wl_list *workspaces, bool wrap)
 	return wl_container_of(target_link, current, link);
 }
 
+static bool
+workspace_has_views(struct workspace *workspace, struct server *server)
+{
+	struct view *view;
+
+	for_each_view(view, &server->views, LAB_VIEW_CRITERIA_NO_OMNIPRESENT) {
+		if (view->workspace == workspace) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static struct workspace *
+get_adjacent_occupied(struct workspace *current, struct wl_list *workspaces,
+		bool wrap, bool reverse)
+{
+	struct server *server = current->server;
+	struct wl_list *start = &current->link;
+	struct wl_list *link = reverse ? start->prev : start->next;
+	bool has_wrapped = false;
+
+	while (true) {
+		/* Handle list boundaries */
+		if (link == workspaces) {
+			if (!wrap) {
+				break;  /* No wrapping allowed - stop searching */
+			}
+			if (has_wrapped) {
+				break;  /* Already wrapped once - stop to prevent infinite loop */
+			}
+			/* Wrap around */
+			link = reverse ? workspaces->prev : workspaces->next;
+			has_wrapped = true;
+			continue;
+		}
+
+		/* Get the workspace */
+		struct workspace *target = wl_container_of(link, target, link);
+
+		/* Check if we've come full circle */
+		if (link == start) {
+			break;
+		}
+
+		/* Check if it's occupied (and not current) */
+		if (target != current && workspace_has_views(target, server)) {
+			return target;
+		}
+
+		/* Move to next/prev */
+		link = reverse ? link->prev : link->next;
+	}
+
+	return NULL;  /* No occupied workspace found */
+}
+
+static struct workspace *
+get_prev_occupied(struct workspace *current, struct wl_list *workspaces, bool wrap)
+{
+	return get_adjacent_occupied(current, workspaces, wrap, true);
+}
+
+static struct workspace *
+get_next_occupied(struct workspace *current, struct wl_list *workspaces, bool wrap)
+{
+	return get_adjacent_occupied(current, workspaces, wrap, false);
+}
+
 static int
 _osd_handle_timeout(void *data)
 {
@@ -453,6 +522,10 @@ workspaces_find(struct workspace *anchor, const char *name, bool wrap)
 		return get_prev(anchor, workspaces, wrap);
 	} else if (!strcasecmp(name, "right")) {
 		return get_next(anchor, workspaces, wrap);
+	} else if (!strcasecmp(name, "left-occupied")) {
+		return get_prev_occupied(anchor, workspaces, wrap);
+	} else if (!strcasecmp(name, "right-occupied")) {
+		return get_next_occupied(anchor, workspaces, wrap);
 	} else {
 		wl_list_for_each(target, workspaces, link) {
 			if (!strcasecmp(target->name, name)) {

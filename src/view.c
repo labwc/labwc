@@ -2592,10 +2592,7 @@ view_destroy(struct view *view)
 	osd_on_view_destroy(view);
 	undecorate(view);
 
-	if (view->icon.buffers.data) {
-		view_set_icon(view, NULL, NULL);
-	}
-	zfree(view->icon.name);
+	view_set_icon(view, NULL, NULL);
 
 	/*
 	 * The layer-shell top-layer is disabled when an application is running

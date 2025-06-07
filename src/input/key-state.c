@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "common/set.h"
 
-static struct lab_set pressed, bound, pressed_sent;
+struct lab_set pressed, bound, pressed_sent;
 
 static void
 report(struct lab_set *key_set, const char *msg)

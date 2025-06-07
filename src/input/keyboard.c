@@ -21,6 +21,10 @@
 #include "view.h"
 #include "workspaces.h"
 
+#include <wlr/types/wlr_scene.h>
+#include "common/buf.h"
+#include "scaled-buffer/scaled-font-buffer.h"
+
 enum lab_key_handled {
 	LAB_KEY_HANDLED_FALSE = 0,
 	LAB_KEY_HANDLED_TRUE = 1,
@@ -126,6 +130,146 @@ broadcast_modifiers_to_unfocused_clients(struct wlr_seat *seat,
 	}
 }
 
+static const char *
+keycode_to_keyname(struct xkb_keymap *keymap, uint32_t keycode)
+{
+	const xkb_keysym_t *syms;
+	int syms_len = xkb_keymap_key_get_syms_by_level(keymap, keycode + 8, 0, 0, &syms);
+	if (!syms_len)
+		return NULL;
+
+	static char buf[256];
+	if (!xkb_keysym_get_name(syms[0], buf, sizeof(buf)))
+		return NULL;
+
+	return buf;
+}
+
+static const char *
+modifier_to_name(uint32_t modifier)
+{
+	switch (modifier) {
+	case WLR_MODIFIER_SHIFT:
+		return "S";
+	case WLR_MODIFIER_CAPS:
+		return "caps";
+	case WLR_MODIFIER_CTRL:
+		return "C";
+	case WLR_MODIFIER_ALT:
+		return "A";
+	case WLR_MODIFIER_MOD2:
+		return "mod2";
+	case WLR_MODIFIER_MOD3:
+		return "H";
+	case WLR_MODIFIER_LOGO:
+		return "W";
+	case WLR_MODIFIER_MOD5:
+		return "M";
+	default:
+		return "?";
+	}
+}
+
+static void
+update_key_indicator_callback(void *data)
+{
+	struct seat *seat = data;
+	uint32_t all_modifiers = keyboard_get_all_modifiers(seat);
+	float black[4] = {0, 0, 0, 1};
+	float white[4] = {1, 1, 1, 1};
+
+	extern struct lab_set pressed, bound, pressed_sent;
+
+	static struct ctx {
+		struct wlr_scene_tree *tree;
+		struct scaled_font_buffer *sfb_pressed;
+		struct scaled_font_buffer *sfb_bound;
+		struct scaled_font_buffer *sfb_pressed_sent;
+		struct scaled_font_buffer *sfb_modifiers;
+		struct xkb_keymap *keymap;
+	} ctx;
+	if (!ctx.tree) {
+		ctx.tree = wlr_scene_tree_create(&seat->server->scene->tree);
+		wlr_scene_node_set_enabled(&ctx.tree->node, false);
+
+		ctx.sfb_pressed = scaled_font_buffer_create(ctx.tree);
+		wlr_scene_node_set_position(&ctx.sfb_pressed->scene_buffer->node, 0, 0);
+		ctx.sfb_bound = scaled_font_buffer_create(ctx.tree);
+		wlr_scene_node_set_position(&ctx.sfb_bound->scene_buffer->node, 0, 20);
+		ctx.sfb_pressed_sent = scaled_font_buffer_create(ctx.tree);
+		wlr_scene_node_set_position(&ctx.sfb_pressed_sent->scene_buffer->node, 0, 40);
+		ctx.sfb_modifiers = scaled_font_buffer_create(ctx.tree);
+		wlr_scene_node_set_position(&ctx.sfb_modifiers->scene_buffer->node, 0, 60);
+
+		struct xkb_rule_names rules = { 0 };
+		struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+		ctx.keymap = xkb_map_new_from_names(context, &rules, XKB_KEYMAP_COMPILE_NO_FLAGS);
+	}
+
+	if (all_modifiers == (WLR_MODIFIER_SHIFT | WLR_MODIFIER_CTRL | WLR_MODIFIER_ALT)) {
+		for (int i = 0; i < pressed.size; i++) {
+			if (pressed.values[i] == 44) { // Z
+				wlr_log(WLR_ERROR, "enabling key indicator");
+				wlr_scene_node_set_enabled(&ctx.tree->node, true);
+				break;
+			} else if (pressed.values[i] == 45) { // X
+				wlr_log(WLR_ERROR, "disabling key indicator");
+				wlr_scene_node_set_enabled(&ctx.tree->node, false);
+				break;
+			}
+		}
+	}
+	if (!ctx.tree->node.enabled) {
+		return;
+	}
+
+	struct buf buf = BUF_INIT;
+
+	buf_reset(&buf);
+	buf_add_fmt(&buf, "pressed=");
+	for (int i = 0; i < pressed.size; i++) {
+		const char *keyname = keycode_to_keyname(ctx.keymap, pressed.values[i]);
+		buf_add_fmt(&buf, "%s (%d), ", keyname, pressed.values[i]);
+	}
+	scaled_font_buffer_update(ctx.sfb_pressed, buf.data, -1, &rc.font_osd, black, white);
+
+	buf_reset(&buf);
+	buf_add_fmt(&buf, "bound=");
+	for (int i = 0; i < bound.size; i++) {
+		const char *keyname = keycode_to_keyname(ctx.keymap, bound.values[i]);
+		buf_add_fmt(&buf, "%s (%d), ", keyname, bound.values[i]);
+	}
+	scaled_font_buffer_update(ctx.sfb_bound, buf.data, -1, &rc.font_osd, black, white);
+
+	buf_reset(&buf);
+	buf_add_fmt(&buf, "pressed_sent=");
+	for (int i = 0; i < pressed_sent.size; i++) {
+		const char *keyname = keycode_to_keyname(ctx.keymap, pressed_sent.values[i]);
+		buf_add_fmt(&buf, "%s (%d), ", keyname, pressed_sent.values[i]);
+	}
+	scaled_font_buffer_update(ctx.sfb_pressed_sent, buf.data, -1, &rc.font_osd, black, white);
+
+	buf_reset(&buf);
+	buf_add_fmt(&buf, "modifiers=");
+	for (int i = 0; i <= 7; i++) {
+		uint32_t mod = 1 << i;
+		if (all_modifiers & mod) {
+			buf_add_fmt(&buf, "%s, ", modifier_to_name(mod));
+		}
+	}
+	buf_add_fmt(&buf, "(%d)", all_modifiers);
+	scaled_font_buffer_update(ctx.sfb_modifiers, buf.data, -1, &rc.font_osd, black, white);
+
+	buf_reset(&buf);
+}
+
+static void
+update_key_indicator(struct seat *seat)
+{
+	wl_event_loop_add_idle(seat->server->wl_event_loop,
+		update_key_indicator_callback, seat);
+}
+
 static void
 handle_modifiers(struct wl_listener *listener, void *data)
 {
@@ -133,6 +277,8 @@ handle_modifiers(struct wl_listener *listener, void *data)
 	struct seat *seat = keyboard->base.seat;
 	struct server *server = seat->server;
 	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
+
+	update_key_indicator(seat);
 
 	if (server->input_mode == LAB_INPUT_STATE_MOVE) {
 		/* Any change to the modifier state re-enable region snap */
@@ -619,6 +765,9 @@ handle_key(struct wl_listener *listener, void *data)
 	struct seat *seat = keyboard->base.seat;
 	struct wlr_keyboard_key_event *event = data;
 	struct wlr_seat *wlr_seat = seat->seat;
+
+	update_key_indicator(seat);
+
 	idle_manager_notify_activity(seat->seat);
 
 	/* any new press/release cancels current keybind repeat */

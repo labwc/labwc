@@ -771,6 +771,16 @@ fill_libinput_category(char *nodename, char *content, struct parser_state *state
 			? LIBINPUT_CONFIG_DRAG_ENABLED
 			: LIBINPUT_CONFIG_DRAG_DISABLED;
 	} else if (!strcasecmp(nodename, "dragLock")) {
+		if (!strcasecmp(content, "sticky")) {
+#if HAVE_LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY
+			state->current_libinput_category->drag_lock =
+				LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY;
+#else
+			wlr_log(WLR_ERROR, "<dragLock>sticky</dragLock> is"
+				" only supported in libinput >= 1.27");
+#endif
+			return;
+		}
 		int ret = parse_bool(content, -1);
 		if (ret < 0) {
 			return;

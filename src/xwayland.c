@@ -965,6 +965,7 @@ xwayland_view_create(struct server *server,
 	view->server = server;
 	view->type = LAB_XWAYLAND_VIEW;
 	view->impl = &xwayland_view_impl;
+	view_init(view);
 
 	/*
 	 * Set two-way view <-> xsurface association.  Usually the association
@@ -1001,7 +1002,6 @@ xwayland_view_create(struct server *server,
 	CONNECT_SIGNAL(xsurface, xwayland_view, focus_in);
 	CONNECT_SIGNAL(xsurface, xwayland_view, map_request);
 
-	view_init(view);
 	wl_list_insert(&view->server->views, &view->link);
 
 	if (xsurface->surface) {

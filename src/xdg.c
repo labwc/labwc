@@ -921,6 +921,8 @@ xdg_toplevel_new(struct wl_listener *listener, void *data)
 	view->server = server;
 	view->type = LAB_XDG_SHELL_VIEW;
 	view->impl = &xdg_toplevel_view_impl;
+	view_init(view);
+
 	xdg_toplevel_view->xdg_surface = xdg_surface;
 
 	/*
@@ -997,7 +999,6 @@ xdg_toplevel_new(struct wl_listener *listener, void *data)
 	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, request_show_window_menu);
 	CONNECT_SIGNAL(xdg_surface, xdg_toplevel_view, new_popup);
 
-	view_init(view);
 	wl_list_insert(&server->views, &view->link);
 }
 

@@ -958,7 +958,7 @@ extending outward from the snapped edge.
     <tap>yes</tap>
     <tapButtonMap></tapButtonMap>
     <tapAndDrag></tapAndDrag>
-    <dragLock></dragLock>
+    <dragLock>sticky</dragLock>
     <middleEmulation></middleEmulation>
     <disableWhileTyping></disableWhileTyping>
     <clickMethod></clickMethod>
@@ -1027,9 +1027,11 @@ extending outward from the snapped edge.
 	Enable or disable tap-and-drag for this category. Tap-and-drag processes
 	a tap immediately followed by a finger down as the start of a drag.
 
-*<libinput><device><dragLock>* [yes|no]
-	Enable or disable drag lock for this category. Drag lock ignores a
-	momentary release of a finger during tap-and-dragging.
+*<libinput><device><dragLock>* [yes|no|sticky]
+	Enable or disable drag lock for this category. Drag lock ignores a temporary
+	release of a finger during tap-and-dragging. Both *yes* and *sticky* enable
+	drag lock, but if *yes* is set, the drag lock expires after a timeout.
+	Default is *sticky*.
 
 *<libinput><device><middleEmulation>* [yes|no]
 	Enable or disable middle button emulation for this category. Middle

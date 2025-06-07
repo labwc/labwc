@@ -110,6 +110,10 @@ conf_data.set10('HAVE_RSVG', have_rsvg)
 
 conf_data.set10('HAVE_LIBSFDO', have_libsfdo)
 
+foreach sym : ['LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY']
+	conf_data.set10('HAVE_' + sym, cc.has_header_symbol('libinput.h', sym, dependencies: input))
+endforeach
+
 if get_option('static_analyzer').enabled()
   add_project_arguments(['-fanalyzer'], language: 'c')
 endif

@@ -10,6 +10,22 @@ struct seat;
 struct drawing_tablet_tool {
 	struct seat *seat;
 	struct wlr_tablet_v2_tablet_tool *tool_v2;
+
+	/*
+	 * Force mouse emulation just for a specific tool,
+	 * even when global mouse emulation for tablet input
+	 * is off.
+	 */
+	bool force_mouse_emulation;
+
+	enum motion motion_mode;
+	double x, y, dx, dy;
+	double distance;
+	double pressure;
+	double tilt_x, tilt_y;
+	double rotation;
+	double slider;
+	double wheel_delta;
 	struct {
 		struct wl_listener set_cursor;
 		struct wl_listener destroy;

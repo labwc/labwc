@@ -14,13 +14,6 @@ struct drawing_tablet {
 	struct seat *seat;
 	struct wlr_tablet *tablet;
 	struct wlr_tablet_v2_tablet *tablet_v2;
-	double x, y, dx, dy;
-	double distance;
-	double pressure;
-	double tilt_x, tilt_y;
-	double rotation;
-	double slider;
-	double wheel_delta;
 	struct {
 		struct wl_listener destroy;
 	} handlers;

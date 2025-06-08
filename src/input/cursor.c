@@ -224,6 +224,16 @@ handle_request_set_shape(struct wl_listener *listener, void *data)
 		return;
 	}
 
+	/*
+	 * Omit cursor notifications from a pointer when a tablet
+	 * tool (stylus/pen) is in proximity.
+	 */
+	if (tablet_tool_has_focused_surface(seat)
+			&& event->device_type
+				!= WLR_CURSOR_SHAPE_MANAGER_V1_DEVICE_TYPE_TABLET_TOOL) {
+		return;
+	}
+
 	wlr_log(WLR_DEBUG, "set xcursor to shape %s", shape_name);
 	wlr_cursor_set_xcursor(seat->cursor, seat->xcursor_manager, shape_name);
 }

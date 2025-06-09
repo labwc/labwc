@@ -392,10 +392,14 @@ view_is_focusable(struct view *view)
 	if (!view->surface) {
 		return false;
 	}
-	if (view_wants_focus(view) != VIEW_WANTS_FOCUS_ALWAYS) {
+
+	switch (view_wants_focus(view)) {
+	case VIEW_WANTS_FOCUS_ALWAYS:
+	case VIEW_WANTS_FOCUS_LIKELY:
+		return (view->mapped || view->minimized);
+	default:
 		return false;
 	}
-	return (view->mapped || view->minimized);
 }
 
 void

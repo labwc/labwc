@@ -75,13 +75,18 @@ enum view_wants_focus {
 	/* View wants focus */
 	VIEW_WANTS_FOCUS_ALWAYS,
 	/*
-	 * View should be offered focus and may accept or decline
-	 * (a.k.a. ICCCM Globally Active input model). Labwc generally
-	 * avoids focusing these views automatically (e.g. when another
-	 * view on top is closed) but they may be focused by user action
-	 * (e.g. mouse click).
+	 * The following values apply only to XWayland views using the
+	 * Globally Active input model per the ICCCM. These views are
+	 * offered focus and will voluntarily accept or decline it.
+	 *
+	 * In some cases, labwc needs to decide in advance whether to
+	 * focus the view. For this purpose, these views are classified
+	 * (by a heuristic) as likely or unlikely to want focus. However,
+	 * it is still ultimately up to the client whether the view gets
+	 * focus or not.
 	 */
-	VIEW_WANTS_FOCUS_OFFER,
+	VIEW_WANTS_FOCUS_LIKELY,
+	VIEW_WANTS_FOCUS_UNLIKELY,
 };
 
 /*

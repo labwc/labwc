@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
+#include "common/lab-scene-rect.h"
 #include "labwc.h"
 #include "overlay.h"
 #include "view.h"
@@ -23,13 +24,16 @@ create_overlay_rect(struct seat *seat, struct overlay_rect *rect,
 
 	if (rect->border_enabled) {
 		/* Create outlines */
-		float *colors[3] = {
-			theme->border_color[0],
-			theme->border_color[1],
-			theme->border_color[2],
+		struct lab_scene_rect_options opts = {
+			.border_colors = (float *[3]) {
+				theme->border_color[0],
+				theme->border_color[1],
+				theme->border_color[2],
+			},
+			.nr_borders = 3,
+			.border_width = theme->border_width,
 		};
-		rect->border_rect = multi_rect_create(
-			rect->tree, colors, theme->border_width);
+		rect->border_rect = lab_scene_rect_create(rect->tree, &opts);
 	}
 
 	wlr_scene_node_set_enabled(&rect->tree->node, false);
@@ -67,7 +71,7 @@ show_overlay(struct seat *seat, struct overlay_rect *rect, struct wlr_box *box)
 		wlr_scene_rect_set_size(rect->bg_rect, box->width, box->height);
 	}
 	if (rect->border_enabled) {
-		multi_rect_set_size(rect->border_rect, box->width, box->height);
+		lab_scene_rect_set_size(rect->border_rect, box->width, box->height);
 	}
 
 	struct wlr_scene_node *node = &rect->tree->node;

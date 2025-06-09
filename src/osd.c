@@ -6,6 +6,7 @@
 #include "common/array.h"
 #include "common/buf.h"
 #include "common/font.h"
+#include "common/lab-scene-rect.h"
 #include "common/macros.h"
 #include "common/scaled-font-buffer.h"
 #include "common/scaled-icon-buffer.h"
@@ -46,21 +47,25 @@ osd_update_preview_outlines(struct view *view)
 {
 	/* Create / Update preview outline tree */
 	struct server *server = view->server;
-	struct multi_rect *rect = view->server->osd_state.preview_outline;
+	struct theme *theme = server->theme;
+	struct lab_scene_rect *rect = view->server->osd_state.preview_outline;
 	if (!rect) {
-		int line_width = server->theme->osd_window_switcher_preview_border_width;
-		float *colors[] = {
-			server->theme->osd_window_switcher_preview_border_color[0],
-			server->theme->osd_window_switcher_preview_border_color[1],
-			server->theme->osd_window_switcher_preview_border_color[2],
+		struct lab_scene_rect_options opts = {
+			.border_colors = (float *[3]) {
+				theme->osd_window_switcher_preview_border_color[0],
+				theme->osd_window_switcher_preview_border_color[1],
+				theme->osd_window_switcher_preview_border_color[2],
+			},
+			.nr_borders = 3,
+			.border_width = theme->osd_window_switcher_preview_border_width,
 		};
-		rect = multi_rect_create(&server->scene->tree, colors, line_width);
+		rect = lab_scene_rect_create(&server->scene->tree, &opts);
 		wlr_scene_node_place_above(&rect->tree->node, &server->menu_tree->node);
 		server->osd_state.preview_outline = rect;
 	}
 
 	struct wlr_box geo = ssd_max_extents(view);
-	multi_rect_set_size(rect, geo.width, geo.height);
+	lab_scene_rect_set_size(rect, geo.width, geo.height);
 	wlr_scene_node_set_position(&rect->tree->node, geo.x, geo.y);
 }
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <wlr/types/wlr_scene.h>
-#include "common/graphic-helpers.h"
+#include "common/lab-scene-rect.h"
 #include "ssd.h"
 #include "resize-outlines.h"
 #include "labwc.h"
@@ -19,14 +19,16 @@ resize_outlines_update(struct view *view, struct wlr_box new_geo)
 	struct resize_outlines *outlines = &view->resize_outlines;
 
 	if (!outlines->rect) {
-		float *colors[3] = {
-			view->server->theme->osd_bg_color,
-			view->server->theme->osd_label_text_color,
-			view->server->theme->osd_bg_color,
+		struct lab_scene_rect_options opts = {
+			.border_colors = (float *[3]) {
+				view->server->theme->osd_bg_color,
+				view->server->theme->osd_label_text_color,
+				view->server->theme->osd_bg_color,
+			},
+			.nr_borders = 3,
+			.border_width = 1,
 		};
-		int width = 1;
-		outlines->rect = multi_rect_create(
-			view->scene_tree, colors, width);
+		outlines->rect = lab_scene_rect_create(view->scene_tree, &opts);
 	}
 
 	struct border margin = ssd_get_margin(view->ssd);
@@ -36,7 +38,7 @@ resize_outlines_update(struct view *view, struct wlr_box new_geo)
 		.width = new_geo.width + margin.left + margin.right,
 		.height = new_geo.height + margin.top + margin.bottom,
 	};
-	multi_rect_set_size(outlines->rect, box.width, box.height);
+	lab_scene_rect_set_size(outlines->rect, box.width, box.height);
 	wlr_scene_node_set_position(&outlines->rect->tree->node,
 		box.x - view->current.x, box.y - view->current.y);
 	wlr_scene_node_set_enabled(

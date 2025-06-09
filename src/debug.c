@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_scene.h>
-#include "common/graphic-helpers.h"
+#include "common/lab-scene-rect.h"
 #include "common/scene-helpers.h"
 #include "common/string-helpers.h"
 #include "debug.h"
@@ -220,11 +220,11 @@ dump_tree(struct server *server, struct wlr_scene_node *node,
 	}
 	printf("%.*s %*c %4d  %4d  [%p]\n", max_width - 1, type, padding, ' ', x, y, node);
 
-	struct multi_rect *osd_preview_outline =
+	struct lab_scene_rect *osd_preview_outline =
 		server->osd_state.preview_outline;
-	struct multi_rect *region_snapping_overlay_outline =
+	struct lab_scene_rect *region_snapping_overlay_outline =
 		server->seat.overlay.region_rect.border_rect;
-	struct multi_rect *edge_snapping_overlay_outline =
+	struct lab_scene_rect *edge_snapping_overlay_outline =
 		server->seat.overlay.edge_rect.border_rect;
 	if ((IGNORE_MENU && node == &server->menu_tree->node)
 			|| (IGNORE_SSD && last_view

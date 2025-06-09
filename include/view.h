@@ -264,7 +264,7 @@ struct view {
 	} resize_indicator;
 	struct resize_outlines {
 		struct wlr_box view_geo;
-		struct multi_rect *rect;
+		struct lab_scene_rect *rect;
 	} resize_outlines;
 
 	struct mappable mappable;

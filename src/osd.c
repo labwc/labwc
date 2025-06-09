@@ -10,7 +10,6 @@
 #include "common/macros.h"
 #include "common/scaled-font-buffer.h"
 #include "common/scaled-icon-buffer.h"
-#include "common/scaled-rect-buffer.h"
 #include "common/scene-helpers.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
@@ -294,8 +293,15 @@ create_osd_scene(struct output *output, struct wl_array *views)
 	float *bg_color = theme->osd_bg_color;
 
 	/* Draw background */
-	scaled_rect_buffer_create(output->osd_scene.tree, w, h,
-		theme->osd_border_width, bg_color, theme->osd_border_color);
+	struct lab_scene_rect_options bg_opts = {
+		.border_colors = (float *[1]) {theme->osd_border_color},
+		.nr_borders = 1,
+		.border_width = theme->osd_border_width,
+		.bg_color = bg_color,
+		.width = w,
+		.height = h,
+	};
+	lab_scene_rect_create(output->osd_scene.tree, &bg_opts);
 
 	int y = theme->osd_border_width + theme->osd_window_switcher_padding;
 
@@ -404,19 +410,21 @@ create_osd_scene(struct output *output, struct wl_array *views)
 		}
 
 		/* Highlight around selected window's item */
-		int highlight_w = w - 2 * theme->osd_border_width
-				- 2 * theme->osd_window_switcher_padding;
-		int highlight_h = theme->osd_window_switcher_item_height;
 		int highlight_x = theme->osd_border_width
 				+ theme->osd_window_switcher_padding;
-		int border_width = theme->osd_window_switcher_item_active_border_width;
-		float transparent[4] = {0};
+		struct lab_scene_rect_options highlight_opts = {
+			.border_colors = (float *[1]) {text_color},
+			.nr_borders = 1,
+			.border_width =
+				theme->osd_window_switcher_item_active_border_width,
+			.width = w - 2 * theme->osd_border_width
+				- 2 * theme->osd_window_switcher_padding,
+			.height = theme->osd_window_switcher_item_height,
+		};
 
-		struct scaled_rect_buffer *highlight_buffer = scaled_rect_buffer_create(
-				output->osd_scene.tree, highlight_w, highlight_h,
-				border_width, transparent, text_color);
-		assert(highlight_buffer);
-		item->highlight_outline = &highlight_buffer->scene_buffer->node;
+		struct lab_scene_rect *highlight_rect = lab_scene_rect_create(
+			output->osd_scene.tree, &highlight_opts);
+		item->highlight_outline = &highlight_rect->tree->node;
 		wlr_scene_node_set_position(item->highlight_outline, highlight_x, y);
 		wlr_scene_node_set_enabled(item->highlight_outline, false);
 

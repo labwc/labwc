@@ -15,13 +15,13 @@
 #include "common/buf.h"
 #include "common/dir.h"
 #include "common/font.h"
+#include "common/lab-scene-rect.h"
 #include "common/list.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/nodename.h"
 #include "common/scaled-font-buffer.h"
 #include "common/scaled-icon-buffer.h"
-#include "common/scaled-rect-buffer.h"
 #include "common/scene-helpers.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
@@ -446,13 +446,16 @@ menu_create_scene(struct menu *menu)
 	}
 	menu->size.height = item_y + theme->menu_border_width;
 
-	float transparent[4] = {0};
-	struct scaled_rect_buffer *bg_buffer = scaled_rect_buffer_create(
-		menu->scene_tree, menu->size.width, menu->size.height,
-		theme->menu_border_width, transparent,
-		theme->menu_border_color);
-	assert(bg_buffer);
-	wlr_scene_node_lower_to_bottom(&bg_buffer->scene_buffer->node);
+	struct lab_scene_rect_options opts = {
+		.border_colors = (float *[1]) {theme->menu_border_color},
+		.nr_borders = 1,
+		.border_width = theme->menu_border_width,
+		.width = menu->size.width,
+		.height = menu->size.height,
+	};
+	struct lab_scene_rect *bg_rect =
+		lab_scene_rect_create(menu->scene_tree, &opts);
+	wlr_scene_node_lower_to_bottom(&bg_rect->tree->node);
 }
 
 /*

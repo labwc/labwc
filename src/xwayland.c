@@ -116,8 +116,8 @@ xwayland_view_wants_focus(struct view *view)
 	 */
 	case WLR_ICCCM_INPUT_MODEL_GLOBAL:
 		/*
-		 * Assume that NORMAL and DIALOG windows always want
-		 * focus. These window types should show up in the
+		 * Assume that NORMAL and DIALOG windows are likely to
+		 * want focus. These window types should show up in the
 		 * Alt-Tab switcher and be automatically focused when
 		 * they become topmost.
 		 */
@@ -125,7 +125,7 @@ xwayland_view_wants_focus(struct view *view)
 				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_NORMAL)
 			|| wlr_xwayland_surface_has_window_type(xsurface,
 				WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DIALOG)) ?
-			VIEW_WANTS_FOCUS_ALWAYS : VIEW_WANTS_FOCUS_OFFER;
+			VIEW_WANTS_FOCUS_LIKELY : VIEW_WANTS_FOCUS_UNLIKELY;
 
 	/*
 	 * No Input - The client never expects keyboard input.

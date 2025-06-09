@@ -84,7 +84,8 @@ desktop_focus_view(struct view *view, bool raise)
 			seat_focus_surface(seat, view->surface);
 		}
 		break;
-	case VIEW_WANTS_FOCUS_OFFER:
+	case VIEW_WANTS_FOCUS_LIKELY:
+	case VIEW_WANTS_FOCUS_UNLIKELY:
 		view_offer_focus(view);
 		break;
 	case VIEW_WANTS_FOCUS_NEVER:

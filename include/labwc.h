@@ -386,7 +386,7 @@ struct server {
 		struct wlr_scene_node *preview_node;
 		struct wlr_scene_tree *preview_parent;
 		struct wlr_scene_node *preview_anchor;
-		struct multi_rect *preview_outline;
+		struct lab_scene_rect *preview_outline;
 	} osd_state;
 
 	struct theme *theme;

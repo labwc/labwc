@@ -7,6 +7,7 @@
 #include "regions.h"
 #include "view.h"
 
+/* TODO: replace this with single lab_scene_rect */
 struct overlay_rect {
 	struct wlr_scene_tree *tree;
 
@@ -14,7 +15,7 @@ struct overlay_rect {
 	struct wlr_scene_rect *bg_rect;
 
 	bool border_enabled;
-	struct multi_rect *border_rect;
+	struct lab_scene_rect *border_rect;
 };
 
 struct overlay {

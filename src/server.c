@@ -760,9 +760,11 @@ server_finish(struct server *server)
 #if HAVE_LIBSFDO
 	desktop_entry_finish(server);
 #endif
-	if (server->sighup_source) {
-		wl_event_source_remove(server->sighup_source);
-	}
+	wl_event_source_remove(server->sighup_source);
+	wl_event_source_remove(server->sigint_source);
+	wl_event_source_remove(server->sigterm_source);
+	wl_event_source_remove(server->sigchld_source);
+
 	wl_display_destroy_clients(server->wl_display);
 
 	seat_finish(server);

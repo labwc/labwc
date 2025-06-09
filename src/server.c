@@ -60,12 +60,6 @@
 #define EXT_FOREIGN_TOPLEVEL_LIST_VERSION 1
 #define LAB_WLR_PRESENTATION_TIME_VERSION 2
 
-static struct wlr_compositor *compositor;
-static struct wl_event_source *sighup_source;
-static struct wl_event_source *sigint_source;
-static struct wl_event_source *sigterm_source;
-static struct wl_event_source *sigchld_source;
-
 static void
 reload_config_and_theme(struct server *server)
 {
@@ -412,7 +406,7 @@ handle_renderer_lost(struct wl_listener *listener, void *data)
 	wl_list_remove(&server->renderer_lost.link);
 	wl_signal_add(&server->renderer->events.lost, &server->renderer_lost);
 
-	wlr_compositor_set_renderer(compositor, renderer);
+	wlr_compositor_set_renderer(server->compositor, renderer);
 
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
@@ -440,18 +434,17 @@ server_init(struct server *server)
 
 	wl_display_set_global_filter(server->wl_display, server_global_filter, server);
 
-	/* Catch SIGHUP */
-	struct wl_event_loop *event_loop = NULL;
-	event_loop = wl_display_get_event_loop(server->wl_display);
-	sighup_source = wl_event_loop_add_signal(
-		event_loop, SIGHUP, handle_sighup, server);
-	sigint_source = wl_event_loop_add_signal(
-		event_loop, SIGINT, handle_sigterm, server->wl_display);
-	sigterm_source = wl_event_loop_add_signal(
-		event_loop, SIGTERM, handle_sigterm, server->wl_display);
-	sigchld_source = wl_event_loop_add_signal(
-		event_loop, SIGCHLD, handle_sigchld, server);
-	server->wl_event_loop = event_loop;
+	server->wl_event_loop = wl_display_get_event_loop(server->wl_display);
+
+	/* Catch signals */
+	server->sighup_source = wl_event_loop_add_signal(
+		server->wl_event_loop, SIGHUP, handle_sighup, server);
+	server->sigint_source = wl_event_loop_add_signal(
+		server->wl_event_loop, SIGINT, handle_sigterm, server->wl_display);
+	server->sigterm_source = wl_event_loop_add_signal(
+		server->wl_event_loop, SIGTERM, handle_sigterm, server->wl_display);
+	server->sigchld_source = wl_event_loop_add_signal(
+		server->wl_event_loop, SIGCHLD, handle_sigchld, server);
 
 	/*
 	 * Prevent wayland clients that request the X11 clipboard but closing
@@ -609,9 +602,9 @@ server_init(struct server *server)
 	 * room for you to dig your fingers in and play with their behavior if
 	 * you want.
 	 */
-	compositor = wlr_compositor_create(server->wl_display,
+	server->compositor = wlr_compositor_create(server->wl_display,
 		LAB_WLR_COMPOSITOR_VERSION, server->renderer);
-	if (!compositor) {
+	if (!server->compositor) {
 		wlr_log(WLR_ERROR, "unable to create the wlroots compositor");
 		exit(EXIT_FAILURE);
 	}
@@ -725,7 +718,7 @@ server_init(struct server *server)
 #endif
 
 #if HAVE_XWAYLAND
-	xwayland_server_init(server, compositor);
+	xwayland_server_init(server, server->compositor);
 #endif
 }
 
@@ -767,8 +760,8 @@ server_finish(struct server *server)
 #if HAVE_LIBSFDO
 	desktop_entry_finish(server);
 #endif
-	if (sighup_source) {
-		wl_event_source_remove(sighup_source);
+	if (server->sighup_source) {
+		wl_event_source_remove(server->sighup_source);
 	}
 	wl_display_destroy_clients(server->wl_display);
 

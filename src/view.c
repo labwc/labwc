@@ -2558,6 +2558,9 @@ view_destroy(struct view *view)
 	wl_list_remove(&view->set_title.link);
 	wl_list_remove(&view->destroy.link);
 
+	wl_list_remove(&view->output_commit.link);
+	wl_list_init(&view->output_commit.link);
+
 	if (view->foreign_toplevel) {
 		foreign_toplevel_destroy(view->foreign_toplevel);
 		view->foreign_toplevel = NULL;

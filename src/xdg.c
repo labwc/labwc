@@ -18,7 +18,7 @@
 #include "window-rules.h"
 #include "workspaces.h"
 
-#define LAB_XDG_SHELL_VERSION (3)
+#define LAB_XDG_SHELL_VERSION 6
 #define CONFIGURE_TIMEOUT_MS 100
 
 static struct xdg_toplevel_view *
@@ -139,6 +139,19 @@ handle_commit(struct wl_listener *listener, void *data)
 		if (serial > 0) {
 			set_pending_configure_serial(view, serial);
 		}
+
+		uint32_t wm_caps = WLR_XDG_TOPLEVEL_WM_CAPABILITIES_WINDOW_MENU
+			| WLR_XDG_TOPLEVEL_WM_CAPABILITIES_MAXIMIZE
+			| WLR_XDG_TOPLEVEL_WM_CAPABILITIES_FULLSCREEN
+			| WLR_XDG_TOPLEVEL_WM_CAPABILITIES_MINIMIZE;
+		wlr_xdg_toplevel_set_wm_capabilities(toplevel, wm_caps);
+
+		if (view->output) {
+			wlr_xdg_toplevel_set_bounds(toplevel,
+				view->output->usable_area.width,
+				view->output->usable_area.height);
+		}
+
 		/*
 		 * Handle initial fullscreen/maximize requests immediately after
 		 * scheduling the initial configure event (before it is sent) in

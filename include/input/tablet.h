@@ -49,7 +49,6 @@ struct drawing_tablet {
 void tablet_init(struct seat *seat);
 void tablet_finish(struct seat *seat);
 void tablet_create(struct seat *seat, struct wlr_input_device *wlr_input_device);
-void tablet_tool_create(struct seat *seat, struct wlr_tablet_tool *wlr_tablet_tool);
 bool tablet_tool_has_focused_surface(struct seat *seat);
 
 #endif /* LABWC_TABLET_H */

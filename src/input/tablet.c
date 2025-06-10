@@ -66,7 +66,7 @@ handle_tablet_tool_destroy(struct wl_listener *listener, void *data)
 	free(tool);
 }
 
-void
+static struct drawing_tablet_tool *
 tablet_tool_create(struct seat *seat,
 		struct wlr_tablet_tool *wlr_tablet_tool)
 {
@@ -89,6 +89,7 @@ tablet_tool_create(struct seat *seat,
 	tool->handlers.destroy.notify = handle_tablet_tool_destroy;
 
 	wl_list_insert(&seat->tablet_tools, &tool->link);
+	return tool;
 }
 
 static enum motion
@@ -330,8 +331,7 @@ handle_tablet_tool_proximity(struct wl_listener *listener, void *data)
 		 * Unfortunately `wlr_tool` is only present in the events, so
 		 * use proximity for creating a `wlr_tablet_v2_tablet_tool`.
 		 */
-		tablet_tool_create(tablet->seat, ev->tool);
-		return;
+		tool = tablet_tool_create(tablet->seat, ev->tool);
 	}
 
 	/*

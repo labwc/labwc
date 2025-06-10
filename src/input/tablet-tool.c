@@ -70,17 +70,6 @@ tablet_tool_create(struct seat *seat,
 		wlr_tablet_tool_create(seat->server->tablet_manager,
 			seat->seat, wlr_tablet_tool);
 	wlr_tablet_tool->data = tool;
-	tool->force_mouse_emulation = false;
-	tool->motion_mode = LAB_TABLET_MOTION_ABSOLUTE;
-	tool->x = 0.0;
-	tool->y = 0.0;
-	tool->distance = 0.0;
-	tool->pressure = 0.0;
-	tool->tilt_x = 0.0;
-	tool->tilt_y = 0.0;
-	tool->rotation = 0.0;
-	tool->slider = 0.0;
-	tool->wheel_delta = 0.0;
 	wlr_log(WLR_INFO, "tablet tool capabilities:%s%s%s%s%s%s",
 		wlr_tablet_tool->tilt ? " tilt" : "",
 		wlr_tablet_tool->pressure ? " pressure" : "",

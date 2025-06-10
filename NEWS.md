@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2025-06-10 | [unreleased]  | 0.19.0          | 28054         |
 | 2025-05-02 | [0.8.4]       | 0.18.2          | 27679         |
 | 2025-02-21 | [0.8.3]       | 0.18.2          | 27671         |
 | 2024-12-13 | [0.8.2]       | 0.18.2          | 26298         |
@@ -34,6 +35,81 @@ The format is based on [Keep a Changelog]
 | 2021-06-28 | [0.3.0]       | 0.14.0          | 5051          |
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
+
+## [unreleased]
+
+The main focus has been to port labwc to wlroots 0.19 [#2388] and fix associated
+issues. Special thanks to @Consolatis @jlindgren90 for this. There are a couple
+of regression warnings when using wlroots 0.19. We would like to fix these
+before releasing:
+
+- Press-drag-release menu actions broken [#2787]
+- Blurry Gtk surfaces after output on/off with scale != 1.0 [#2769]
+
+### Added
+
+- Bump `wl_compositor` version from 5 to 6 @tokyo4j [#2812]
+- Support tablet tool mouse buttons @jp7677 [#2778]
+- Add libinput config options:
+  - `<threeFingerDrag>` @m4rch3n1ng [#2795]
+  - `<dragLock>sticky</dragLock>` @tokyo4j [#2803]
+  - `<scrollMethod>none|twofinger|edge</scrollMethod>` @Consolatis [#2767]
+- Support xdg-toplevel-icon protocol @tokyo4j [#2755]
+- Add `{left,right}-occupied` options to `GoToDesktop` @DreamMaoMao
+  [#2790]
+- Add config option `<theme><dropShadowsOnTiled>` @diredocks [#2789]
+- Add missing tracking of configure serials for xdg-shell surface to fix
+  issue with mpv @jlindgren90 [#2774] [#2788]
+- Support `drm-syncobj` protocol @zeusgoose [#2737]
+- Support `ext-image-copy-capture` protocol @any1 [#2740]
+- Support both axis for XWayland client side maximize requests.
+  @Consolatis [#2728]
+- Add scroll emulation for cursor motion and associated actions @jp7677
+  [#2678]:
+   - `EnableScrollWheelEmulation`
+   - `DisableScrollWheelEmulation`
+   - `ToggleScrollWheelEmulation`
+
+### Fixed
+
+- Arrange layers on layer-shell surface `destroy` rather than `unmap` to
+  fix issues with `wshowkeys` and `kitten` @johanmalm [#1153] [#1154]
+- Window switcher fixes: @tokyo4j [#2770]
+  - Always show title with `<field content="title">`. Before this patch,
+    titles were not shown if identical to identifiers.
+  - Always show output name with `<field content="output">`. Before this
+    patch, output names were not shown if there was only one output.
+- Send fractional scale to layer-shell surfaces before map. @Consolatis [#2768]
+- Only configure initialized layer-shell surfaces to fix bug with
+  `kitten quick-access-terminal` @alex-huff [#2736] [#2745] 
+- Improve focus semantics for XWayland windows using the Globally Active
+  input model to fix issues with Zoom and WeChat @jlindgren90 [#1142] [#2811]
+- Provide better support for XWayland client keyboard focus grabs by using
+  the new `grab_focus` signal. @jlindgren90 [#1142]
+- Guard against negative sizes in window-switching and menu graphical
+  artefacts. @tokyo4j [#2727]
+- Do not broadcast keyboard modifiers from virtual keyboards to fix issue
+  with per-window layout settings. @orfeasxyz [#2723] [#2724]
+- Gracefully exit when no fonts are installed @tokyo4j [#2713]
+- config: validate total osd field width to ensure it does not exceed
+  100%.  @tokyo4j [#2710]
+
+### Changed
+
+- "Sticky" mode for drag-locking is enabled by default as recommended by
+  libinput [#2803]. The timeout based behavior can be restored via the snippet
+  below. To disable the feature all together use `no` as the value.
+
+```xml
+<libinput>
+  <device>
+    <dragLock>yes</dragLock>
+  </device>
+</libinput>
+```
+
+- TODO: Default source for icon name has changed with the support of
+  `xdg-toplevel-icon` protocol
 
 ## [0.8.4]
 
@@ -2103,6 +2179,9 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#1114]: https://github.com/labwc/labwc/pull/1114
 [#1131]: https://github.com/labwc/labwc/pull/1131
 [#1139]: https://github.com/labwc/labwc/pull/1139
+[#1142]: https://github.com/labwc/labwc/pull/1142
+[#1153]: https://github.com/labwc/labwc/pull/1153
+[#1154]: https://github.com/labwc/labwc/pull/1154
 [#1158]: https://github.com/labwc/labwc/pull/1158
 [#1170]: https://github.com/labwc/labwc/pull/1170
 [#1194]: https://github.com/labwc/labwc/pull/1194
@@ -2296,6 +2375,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2376]: https://github.com/labwc/labwc/pull/2376
 [#2377]: https://github.com/labwc/labwc/pull/2377
 [#2380]: https://github.com/labwc/labwc/pull/2380
+[#2388]: https://github.com/labwc/labwc/pull/2388
 [#2398]: https://github.com/labwc/labwc/pull/2398
 [#2400]: https://github.com/labwc/labwc/pull/2400
 [#2408]: https://github.com/labwc/labwc/pull/2408
@@ -2357,7 +2437,33 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2653]: https://github.com/labwc/labwc/pull/2653
 [#2657]: https://github.com/labwc/labwc/pull/2657
 [#2669]: https://github.com/labwc/labwc/pull/2669
+[#2678]: https://github.com/labwc/labwc/pull/2678
 [#2688]: https://github.com/labwc/labwc/pull/2688
 [#2692]: https://github.com/labwc/labwc/pull/2692
 [#2693]: https://github.com/labwc/labwc/pull/2693
 [#2700]: https://github.com/labwc/labwc/pull/2700
+[#2710]: https://github.com/labwc/labwc/pull/2710
+[#2713]: https://github.com/labwc/labwc/pull/2713
+[#2723]: https://github.com/labwc/labwc/pull/2723
+[#2724]: https://github.com/labwc/labwc/pull/2724
+[#2727]: https://github.com/labwc/labwc/pull/2727
+[#2728]: https://github.com/labwc/labwc/pull/2728
+[#2736]: https://github.com/labwc/labwc/pull/2736
+[#2737]: https://github.com/labwc/labwc/pull/2737
+[#2740]: https://github.com/labwc/labwc/pull/2740
+[#2745]: https://github.com/labwc/labwc/pull/2745
+[#2755]: https://github.com/labwc/labwc/pull/2755
+[#2767]: https://github.com/labwc/labwc/pull/2767
+[#2768]: https://github.com/labwc/labwc/pull/2768
+[#2769]: https://github.com/labwc/labwc/pull/2769
+[#2770]: https://github.com/labwc/labwc/pull/2770
+[#2774]: https://github.com/labwc/labwc/pull/2774
+[#2778]: https://github.com/labwc/labwc/pull/2778
+[#2787]: https://github.com/labwc/labwc/pull/2787
+[#2788]: https://github.com/labwc/labwc/pull/2788
+[#2789]: https://github.com/labwc/labwc/pull/2789
+[#2790]: https://github.com/labwc/labwc/pull/2790
+[#2795]: https://github.com/labwc/labwc/pull/2795
+[#2803]: https://github.com/labwc/labwc/pull/2803
+[#2811]: https://github.com/labwc/labwc/pull/2811
+[#2812]: https://github.com/labwc/labwc/pull/2812

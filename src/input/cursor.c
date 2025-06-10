@@ -20,7 +20,6 @@
 #include "input/gestures.h"
 #include "input/keyboard.h"
 #include "input/tablet.h"
-#include "input/tablet-tool.h"
 #include "input/touch.h"
 #include "labwc.h"
 #include "layers.h"

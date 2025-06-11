@@ -89,11 +89,29 @@ focus_next_surface(struct server *server, struct wlr_xwayland_surface *xsurface)
 	}
 
 	/*
-	 * If we don't find a surface to focus fall back
-	 * to the topmost mapped view. This fixes dmenu
-	 * not giving focus back when closed with ESC.
+	 * Unmanaged surfaces do not clear the active view when mapped.
+	 * Therefore, we can simply give the focus back to the active
+	 * view when the last unmanaged surface is unmapped.
+	 *
+	 * Also note that resetting the focus here is only on the
+	 * compositor side. On the xwayland server side, focus is never
+	 * given to unmanaged surfaces to begin with - keyboard grabs
+	 * are used instead.
+	 *
+	 * In the case of Globally Active input windows, calling
+	 * view_offer_focus() at this point is both unnecessary and
+	 * insufficient, since it doesn't update the seat focus
+	 * immediately and ultimately results in a loss of focus.
+	 *
+	 * For the above reasons, we avoid calling desktop_focus_view()
+	 * here and instead call seat_focus_surface() directly.
+	 *
+	 * If modifying this logic, please test for regressions with
+	 * menus/tooltips in JetBrains CLion or similar.
 	 */
-	desktop_focus_topmost_view(server);
+	if (server->active_view) {
+		seat_focus_surface(&server->seat, server->active_view->surface);
+	}
 }
 
 static void
@@ -209,9 +227,12 @@ handle_request_activate(struct wl_listener *listener, void *data)
 
 	/*
 	 * Validate that the unmanaged surface trying to grab focus is actually
-	 * a child of the topmost mapped view before granting the request.
+	 * a child of the active view before granting the request.
+	 *
+	 * FIXME: this logic is a bit incomplete/inconsistent. Refer to
+	 * https://github.com/labwc/labwc/discussions/2821 for more info.
 	 */
-	struct view *view = desktop_topmost_focusable_view(server);
+	struct view *view = server->active_view;
 	if (view && view->type == LAB_XWAYLAND_VIEW) {
 		struct wlr_xwayland_surface *surf =
 			wlr_xwayland_surface_try_from_wlr_surface(view->surface);

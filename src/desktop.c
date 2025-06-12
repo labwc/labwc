@@ -39,8 +39,27 @@ desktop_arrange_all_views(struct server *server)
 	}
 }
 
-void
-desktop_focus_view(struct view *view, bool raise)
+static void
+set_or_offer_focus(struct view *view)
+{
+	struct seat *seat = &view->server->seat;
+	switch (view_wants_focus(view)) {
+	case VIEW_WANTS_FOCUS_ALWAYS:
+		if (view->surface != seat->seat->keyboard_state.focused_surface) {
+			seat_focus_surface(seat, view->surface);
+		}
+		break;
+	case VIEW_WANTS_FOCUS_LIKELY:
+	case VIEW_WANTS_FOCUS_UNLIKELY:
+		view_offer_focus(view);
+		break;
+	case VIEW_WANTS_FOCUS_NEVER:
+		break;
+	}
+}
+
+static void
+_desktop_focus_view(struct view *view, bool raise, bool for_cursor_update)
 {
 	assert(view);
 	/*
@@ -77,34 +96,40 @@ desktop_focus_view(struct view *view, bool raise)
 		workspaces_switch_to(view->workspace, /*update_focus*/ false);
 	}
 
-	struct seat *seat = &view->server->seat;
-	switch (view_wants_focus(view)) {
-	case VIEW_WANTS_FOCUS_ALWAYS:
-		if (view->surface != seat->seat->keyboard_state.focused_surface) {
-			seat_focus_surface(seat, view->surface);
-		}
-		break;
-	case VIEW_WANTS_FOCUS_LIKELY:
-	case VIEW_WANTS_FOCUS_UNLIKELY:
-		view_offer_focus(view);
-		break;
-	case VIEW_WANTS_FOCUS_NEVER:
-		break;
-	}
-
 	if (raise) {
 		view_move_to_front(view);
 	}
+
+	/*
+	 * When followMouse=yes, only allow focusing a view that's under
+	 * the cursor (after unminimizing and potentially raising it).
+	 * Note that view_move_to_front() may also have raised sub- or
+	 * sibling views. In that case, focus the one under the cursor.
+	 */
+	if (rc.focus_follow_mouse && !for_cursor_update) {
+		struct cursor_context ctx = get_cursor_context(view->server);
+		if (ctx.view && view_get_root(ctx.view) == view_get_root(view)) {
+			set_or_offer_focus(ctx.view);
+		}
+	} else {
+		set_or_offer_focus(view);
+	}
+}
+
+void
+desktop_focus_view(struct view *view, bool raise)
+{
+	_desktop_focus_view(view, raise, /* for_cursor_update */ false);
 }
 
 /* TODO: focus layer-shell surfaces also? */
 void
-desktop_focus_view_or_surface(struct seat *seat, struct view *view,
+desktop_focus_for_cursor_update(struct seat *seat, struct view *view,
 		struct wlr_surface *surface, bool raise)
 {
 	assert(view || surface);
 	if (view) {
-		desktop_focus_view(view, raise);
+		_desktop_focus_view(view, raise, /* for_cursor_update */ true);
 #if HAVE_XWAYLAND
 	} else {
 		struct wlr_xwayland_surface *xsurface =

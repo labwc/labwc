@@ -217,7 +217,17 @@ handle_commit(struct wl_listener *listener, void *data)
 	}
 
 	if (update_required) {
+		bool was_empty = wlr_box_empty(current);
 		view_impl_apply_geometry(view, size.width, size.height);
+
+		/*
+		 * Try to focus the view once it has a valid surface
+		 * size. Before this point, the under-mouse checks in
+		 * desktop_focus_view() fail with focus-follows-mouse.
+		 */
+		if (was_empty && !wlr_box_empty(&size)) {
+			desktop_focus_view(view, /*raise*/ true);
+		}
 
 		/*
 		 * Some views (e.g., terminals that scale as multiples of rows

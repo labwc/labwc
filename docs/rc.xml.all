@@ -260,9 +260,6 @@
     <keybind key="W-Return">
       <action name="Execute" command="alacritty" />
     </keybind>
-    <keybind key="A-F3">
-      <action name="Execute" command="bemenu-run" />
-    </keybind>
     <keybind key="A-F4">
       <action name="Close" />
     </keybind>

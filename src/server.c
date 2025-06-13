@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <wlr/backend/headless.h>
 #include <wlr/backend/multi.h>
+#include <wlr/types/wlr_alpha_modifier_v1.h>
 #include <wlr/types/wlr_data_control_v1.h>
 #include <wlr/types/wlr_drm.h>
 #include <wlr/types/wlr_export_dmabuf_v1.h>
@@ -270,12 +271,13 @@ allow_for_sandbox(const struct wlr_security_context_v1_state *security_state,
 		"zxdg_importer_v2",
 		"xdg_toplevel_icon_manager_v1",
 		/* plus */
+		"wp_alpha_modifier_v1",
+		"wp_linux_drm_syncobj_manager_v1",
 		"zxdg_exporter_v1",
 		"zxdg_exporter_v2",
 		"zwp_idle_inhibit_manager_v1",
 		"zwp_pointer_constraints_v1",
 		"zxdg_output_manager_v1",
-		"wp_linux_drm_syncobj_manager_v1",
 	};
 
 	for (size_t i = 0; i < ARRAY_SIZE(allowed_protocols); i++) {
@@ -678,6 +680,8 @@ server_init(struct server *server)
 	server->foreign_toplevel_list =
 		wlr_ext_foreign_toplevel_list_v1_create(
 			server->wl_display, LAB_EXT_FOREIGN_TOPLEVEL_LIST_VERSION);
+
+	wlr_alpha_modifier_v1_create(server->wl_display);
 
 	session_lock_init(server);
 

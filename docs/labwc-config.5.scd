@@ -803,14 +803,14 @@ extending outward from the snapped edge.
 </labwc_config>
 ```
 
-	Example to un-bind the default alt + left-button-press to move window:
+	Example to un-bind the default Super + left-button-press to move window:
 
 ```
 <mouse>
   <default/>
   <context name="Frame">
-    <mousebind button="A-Left" action="Press"/>
-    <mousebind button="A-Left" action="Drag"/>
+    <mousebind button="W-Left" action="Press"/>
+    <mousebind button="W-Left" action="Drag"/>
   </context>
 </mouse>
 ```

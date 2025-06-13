@@ -184,32 +184,32 @@ static struct mouse_combos {
 		.action = "Resize",
 	}, {
 		.context = "Frame",
-		.button = "A-Left",
+		.button = "W-Left",
 		.event = "Press",
 		.action = "Focus",
 	}, {
 		.context = "Frame",
-		.button = "A-Left",
+		.button = "W-Left",
 		.event = "Press",
 		.action = "Raise",
 	}, {
 		.context = "Frame",
-		.button = "A-Left",
+		.button = "W-Left",
 		.event = "Drag",
 		.action = "Move",
 	}, {
 		.context = "Frame",
-		.button = "A-Right",
+		.button = "W-Right",
 		.event = "Press",
 		.action = "Focus",
 	}, {
 		.context = "Frame",
-		.button = "A-Right",
+		.button = "W-Right",
 		.event = "Press",
 		.action = "Raise",
 	}, {
 		.context = "Frame",
-		.button = "A-Right",
+		.button = "W-Right",
 		.event = "Drag",
 		.action = "Resize",
 	}, {

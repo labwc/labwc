@@ -156,6 +156,7 @@ struct view_impl {
 	void (*minimize)(struct view *view, bool minimize);
 	struct view *(*get_root)(struct view *self);
 	void (*append_children)(struct view *self, struct wl_array *children);
+	bool (*is_modal_dialog)(struct view *self);
 	struct view_size_hints (*get_size_hints)(struct view *self);
 	/* if not implemented, VIEW_WANTS_FOCUS_ALWAYS is assumed */
 	enum view_wants_focus (*wants_focus)(struct view *self);
@@ -612,6 +613,14 @@ void view_move_to_front(struct view *view);
 void view_move_to_back(struct view *view);
 struct view *view_get_root(struct view *view);
 void view_append_children(struct view *view, struct wl_array *children);
+
+/**
+ * view_get_modal_dialog() - returns any modal dialog found among this
+ * view's children or siblings (or possibly this view itself). Applies
+ * only to xwayland views and always returns NULL for xdg-shell views.
+ */
+struct view *view_get_modal_dialog(struct view *view);
+
 bool view_on_output(struct view *view, struct output *output);
 
 /**

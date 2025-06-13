@@ -39,6 +39,25 @@ desktop_arrange_all_views(struct server *server)
 	}
 }
 
+static void
+set_or_offer_focus(struct view *view)
+{
+	struct seat *seat = &view->server->seat;
+	switch (view_wants_focus(view)) {
+	case VIEW_WANTS_FOCUS_ALWAYS:
+		if (view->surface != seat->seat->keyboard_state.focused_surface) {
+			seat_focus_surface(seat, view->surface);
+		}
+		break;
+	case VIEW_WANTS_FOCUS_LIKELY:
+	case VIEW_WANTS_FOCUS_UNLIKELY:
+		view_offer_focus(view);
+		break;
+	case VIEW_WANTS_FOCUS_NEVER:
+		break;
+	}
+}
+
 void
 desktop_focus_view(struct view *view, bool raise)
 {
@@ -77,24 +96,17 @@ desktop_focus_view(struct view *view, bool raise)
 		workspaces_switch_to(view->workspace, /*update_focus*/ false);
 	}
 
-	struct seat *seat = &view->server->seat;
-	switch (view_wants_focus(view)) {
-	case VIEW_WANTS_FOCUS_ALWAYS:
-		if (view->surface != seat->seat->keyboard_state.focused_surface) {
-			seat_focus_surface(seat, view->surface);
-		}
-		break;
-	case VIEW_WANTS_FOCUS_LIKELY:
-	case VIEW_WANTS_FOCUS_UNLIKELY:
-		view_offer_focus(view);
-		break;
-	case VIEW_WANTS_FOCUS_NEVER:
-		break;
-	}
-
 	if (raise) {
 		view_move_to_front(view);
 	}
+
+	/*
+	 * If any child/sibling of the view is a modal dialog, focus
+	 * the dialog instead. It does not need to be raised separately
+	 * since view_move_to_front() raises all sibling views together.
+	 */
+	struct view *dialog = view_get_modal_dialog(view);
+	set_or_offer_focus(dialog ? dialog : view);
 }
 
 /* TODO: focus layer-shell surfaces also? */

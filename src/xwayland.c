@@ -933,6 +933,12 @@ xwayland_view_append_children(struct view *self, struct wl_array *children)
 	}
 }
 
+static bool
+xwayland_view_is_modal_dialog(struct view *self)
+{
+	return xwayland_surface_from_view(self)->modal;
+}
+
 static void
 xwayland_view_set_activated(struct view *view, bool activated)
 {
@@ -978,6 +984,7 @@ static const struct view_impl xwayland_view_impl = {
 	.minimize = xwayland_view_minimize,
 	.get_root = xwayland_view_get_root,
 	.append_children = xwayland_view_append_children,
+	.is_modal_dialog = xwayland_view_is_modal_dialog,
 	.get_size_hints = xwayland_view_get_size_hints,
 	.wants_focus = xwayland_view_wants_focus,
 	.offer_focus = xwayland_view_offer_focus,

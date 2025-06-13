@@ -54,10 +54,10 @@
 #include "workspaces.h"
 #include "xwayland.h"
 
+#define LAB_EXT_FOREIGN_TOPLEVEL_LIST_VERSION 1
 #define LAB_WLR_COMPOSITOR_VERSION 6
 #define LAB_WLR_FRACTIONAL_SCALE_V1_VERSION 1
 #define LAB_WLR_LINUX_DMABUF_VERSION 4
-#define EXT_FOREIGN_TOPLEVEL_LIST_VERSION 1
 #define LAB_WLR_PRESENTATION_TIME_VERSION 2
 
 static void
@@ -677,7 +677,7 @@ server_init(struct server *server)
 
 	server->foreign_toplevel_list =
 		wlr_ext_foreign_toplevel_list_v1_create(
-			server->wl_display, EXT_FOREIGN_TOPLEVEL_LIST_VERSION);
+			server->wl_display, LAB_EXT_FOREIGN_TOPLEVEL_LIST_VERSION);
 
 	session_lock_init(server);
 

@@ -1161,6 +1161,8 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		set_bool(content, &rc.reuse_output_mode);
 	} else if (!strcasecmp(nodename, "xwaylandPersistence.core")) {
 		set_bool(content, &rc.xwayland_persistence);
+	} else if (!strcasecmp(nodename, "primarySelection.core")) {
+		set_bool(content, &rc.primary_selection);
 	} else if (!strcmp(nodename, "policy.placement")) {
 		enum view_placement_policy policy = view_placement_parse(content);
 		if (policy != LAB_PLACE_INVALID) {
@@ -1549,6 +1551,7 @@ rcxml_init(void)
 	rc.auto_enable_outputs = true;
 	rc.reuse_output_mode = false;
 	rc.xwayland_persistence = false;
+	rc.primary_selection = true;
 
 	init_font_defaults(&rc.font_activewindow);
 	init_font_defaults(&rc.font_inactivewindow);

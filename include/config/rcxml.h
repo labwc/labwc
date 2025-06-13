@@ -73,6 +73,7 @@ struct rcxml {
 	bool reuse_output_mode;
 	enum view_placement_policy placement_policy;
 	bool xwayland_persistence;
+	bool primary_selection;
 	int placement_cascade_offset_x;
 	int placement_cascade_offset_y;
 

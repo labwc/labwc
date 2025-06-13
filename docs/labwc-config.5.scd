@@ -177,6 +177,7 @@ this is for compatibility with Openbox.
   <autoEnableOutputs>yes</autoEnableOutputs>
   <reuseOutputMode>no</reuseOutputMode>
   <xwaylandPersistence>no</xwaylandPersistence>
+  <primarySelection>yes</primarySelection>
 </core>
 ```
 
@@ -234,6 +235,12 @@ this is for compatibility with Openbox.
 	when it is no longer needed. Default is no.
 
 	Note: changing this setting requires a restart of labwc.
+
+*<core><primarySelection>* [yes|no]
+	Enable or disable the primary selection clipboard. May only be
+	configured at launch. This enables autoscroll (middle-click to scroll
+	up/down) in Chromium and electron based clients without inadvertantly
+	pasting the primary clipboard. Default is yes.
 
 ## PLACEMENT
 

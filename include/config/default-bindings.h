@@ -36,34 +36,6 @@ static struct key_combos {
 		.binding = "W-a",
 		.action = "ToggleMaximize",
 	}, {
-		.binding = "A-Left",
-		.action = "MoveToEdge",
-		.attributes[0] = {
-			.name = "direction",
-			.value = "left",
-		},
-	}, {
-		.binding = "A-Right",
-		.action = "MoveToEdge",
-		.attributes[0] = {
-			.name = "direction",
-			.value = "right",
-		},
-	}, {
-		.binding = "A-Up",
-		.action = "MoveToEdge",
-		.attributes[0] = {
-			.name = "direction",
-			.value = "up",
-		},
-	}, {
-		.binding = "A-Down",
-		.action = "MoveToEdge",
-		.attributes[0] = {
-			.name = "direction",
-			.value = "down",
-		},
-	}, {
 		.binding = "W-Left",
 		.action = "SnapToEdge",
 		.attributes[0] = {

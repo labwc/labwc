@@ -699,7 +699,6 @@ extending outward from the snapped edge.
   A-F3 - run bemenu
   A-F4 - close window
   W-a - toggle maximize
-  A-<arrow> - move window to edge
   W-<arrow> - resize window to fill half the output
   A-Space - show window menu
 ```

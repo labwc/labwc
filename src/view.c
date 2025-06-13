@@ -2343,6 +2343,36 @@ view_append_children(struct view *view, struct wl_array *children)
 	}
 }
 
+struct view *
+view_get_modal_dialog(struct view *view)
+{
+	assert(view);
+	if (!view->impl->is_modal_dialog) {
+		return NULL;
+	}
+	/* check view itself first */
+	if (view->impl->is_modal_dialog(view)) {
+		return view;
+	}
+
+	/* check sibling views */
+	struct view *dialog = NULL;
+	struct view *root = view_get_root(view);
+	struct wl_array children;
+	struct view **child;
+
+	wl_array_init(&children);
+	view_append_children(root, &children);
+	wl_array_for_each(child, &children) {
+		if (view->impl->is_modal_dialog(*child)) {
+			dialog = *child;
+			break;
+		}
+	}
+	wl_array_release(&children);
+	return dialog;
+}
+
 bool
 view_has_strut_partial(struct view *view)
 {

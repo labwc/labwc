@@ -8,6 +8,7 @@
 #include <wlr/backend/multi.h>
 #include <wlr/types/wlr_alpha_modifier_v1.h>
 #include <wlr/types/wlr_data_control_v1.h>
+#include <wlr/types/wlr_ext_data_control_v1.h>
 #include <wlr/types/wlr_drm.h>
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_ext_foreign_toplevel_list_v1.h>
@@ -55,6 +56,7 @@
 #include "workspaces.h"
 #include "xwayland.h"
 
+#define LAB_EXT_DATA_CONTROL_VERSION 1
 #define LAB_EXT_FOREIGN_TOPLEVEL_LIST_VERSION 1
 #define LAB_WLR_COMPOSITOR_VERSION 6
 #define LAB_WLR_FRACTIONAL_SCALE_V1_VERSION 1
@@ -212,6 +214,7 @@ protocol_is_privileged(const struct wl_interface *iface)
 		"zwp_virtual_keyboard_manager_v1",
 		"zwlr_export_dmabuf_manager_v1",
 		"zwlr_screencopy_manager_v1",
+		"ext_data_control_manager_v1",
 		"zwlr_data_control_manager_v1",
 		"wp_security_context_manager_v1",
 		"ext_idle_notifier_v1",
@@ -656,6 +659,8 @@ server_init(struct server *server)
 	wlr_ext_image_copy_capture_manager_v1_create(server->wl_display, 1);
 	wlr_ext_output_image_capture_source_manager_v1_create(server->wl_display, 1);
 	wlr_data_control_manager_v1_create(server->wl_display);
+	wlr_ext_data_control_manager_v1_create(server->wl_display,
+		LAB_EXT_DATA_CONTROL_VERSION);
 	server->security_context_manager_v1 =
 		wlr_security_context_manager_v1_create(server->wl_display);
 	wlr_viewporter_create(server->wl_display);

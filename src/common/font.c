@@ -86,15 +86,18 @@ font_get_buffer_size(int max_width, const char *text, struct font *font,
 
 void
 font_buffer_create(struct lab_data_buffer **buffer, int max_width,
-	const char *text, struct font *font, const float *color,
-	const float *bg_color, double scale)
+	int height, const char *text, struct font *font, const float *color,
+	cairo_pattern_t *bg_pattern, double scale)
 {
 	if (string_null_or_empty(text)) {
 		return;
 	}
 
-	int width, height;
-	font_get_buffer_size(max_width, text, font, &width, &height);
+	int width, computed_height;
+	font_get_buffer_size(max_width, text, font, &width, &computed_height);
+	if (height <= 0) {
+		height = computed_height;
+	}
 
 	*buffer = buffer_create_cairo(width, height, scale);
 	if (!*buffer) {
@@ -114,18 +117,16 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	 * buffer unfilled (completely transparent) since the background
 	 * is already rendered by the scene element underneath. In this
 	 * case we have to disable subpixel rendering.
-	 *
-	 * Note: the 0.999 cutoff was chosen to be greater than 254/255
-	 * (about 0.996) but leave some margin for rounding errors.
 	 */
-	bool opaque_bg = (bg_color[3] > 0.999f);
+	bool opaque_bg = is_pattern_opaque(bg_pattern);
 	if (opaque_bg) {
-		set_cairo_color(cairo, bg_color);
+		cairo_set_source(cairo, bg_pattern);
 		cairo_paint(cairo);
 	}
 
 	set_cairo_color(cairo, color);
-	cairo_move_to(cairo, 0, 0);
+	/* center vertically if height was explicitly specified */
+	cairo_move_to(cairo, 0, (height - computed_height) / 2);
 
 	PangoLayout *layout = pango_cairo_create_layout(cairo);
 	pango_context_set_round_glyph_positions(pango_layout_get_context(layout), false);

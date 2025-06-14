@@ -695,11 +695,8 @@ extending outward from the snapped edge.
 ```
   A-Tab - next window
   A-S-Tab - previous window
-  W-Return - alacritty
-  A-F3 - run bemenu
   A-F4 - close window
   W-a - toggle maximize
-  A-<arrow> - move window to edge
   W-<arrow> - resize window to fill half the output
   A-Space - show window menu
 ```
@@ -805,14 +802,14 @@ extending outward from the snapped edge.
 </labwc_config>
 ```
 
-	Example to un-bind the default alt + left-button-press to move window:
+	Example to un-bind the default Super + left-button-press to move window:
 
 ```
 <mouse>
   <default/>
   <context name="Frame">
-    <mousebind button="A-Left" action="Press"/>
-    <mousebind button="A-Left" action="Drag"/>
+    <mousebind button="W-Left" action="Press"/>
+    <mousebind button="W-Left" action="Drag"/>
   </context>
 </mouse>
 ```

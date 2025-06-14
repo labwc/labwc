@@ -16,53 +16,11 @@ static struct key_combos {
 		.binding = "A-S-Tab",
 		.action = "PreviousWindow",
 	}, {
-		.binding = "W-Return",
-		.action = "Execute",
-		.attributes[0] = {
-			.name = "command",
-			.value = "alacritty",
-		},
-	}, {
-		.binding = "A-F3",
-		.action = "Execute",
-		.attributes[0] = {
-			.name = "command",
-			.value = "bemenu-run",
-		},
-	}, {
 		.binding = "A-F4",
 		.action = "Close",
 	}, {
 		.binding = "W-a",
 		.action = "ToggleMaximize",
-	}, {
-		.binding = "A-Left",
-		.action = "MoveToEdge",
-		.attributes[0] = {
-			.name = "direction",
-			.value = "left",
-		},
-	}, {
-		.binding = "A-Right",
-		.action = "MoveToEdge",
-		.attributes[0] = {
-			.name = "direction",
-			.value = "right",
-		},
-	}, {
-		.binding = "A-Up",
-		.action = "MoveToEdge",
-		.attributes[0] = {
-			.name = "direction",
-			.value = "up",
-		},
-	}, {
-		.binding = "A-Down",
-		.action = "MoveToEdge",
-		.attributes[0] = {
-			.name = "direction",
-			.value = "down",
-		},
 	}, {
 		.binding = "W-Left",
 		.action = "SnapToEdge",
@@ -219,32 +177,32 @@ static struct mouse_combos {
 		.action = "Resize",
 	}, {
 		.context = "Frame",
-		.button = "A-Left",
+		.button = "W-Left",
 		.event = "Press",
 		.action = "Focus",
 	}, {
 		.context = "Frame",
-		.button = "A-Left",
+		.button = "W-Left",
 		.event = "Press",
 		.action = "Raise",
 	}, {
 		.context = "Frame",
-		.button = "A-Left",
+		.button = "W-Left",
 		.event = "Drag",
 		.action = "Move",
 	}, {
 		.context = "Frame",
-		.button = "A-Right",
+		.button = "W-Right",
 		.event = "Press",
 		.action = "Focus",
 	}, {
 		.context = "Frame",
-		.button = "A-Right",
+		.button = "W-Right",
 		.event = "Press",
 		.action = "Raise",
 	}, {
 		.context = "Frame",
-		.button = "A-Right",
+		.button = "W-Right",
 		.event = "Drag",
 		.action = "Resize",
 	}, {

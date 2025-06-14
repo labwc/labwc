@@ -41,6 +41,8 @@ labwc-config(5).
 	- #rrggbb (hexadecimal RGB values)
 	- #rrggbb aaa (same but with decimal alpha value percentage)
 	- #rrggbbaa (same but with inline alpha value in hex encoding)
+	- #rgb (hexadecimal RGB values where #fff is shorthand for #f0f0f0)
+	  (since 0.9.0)
 
 	Note: the #rrggbb aaa notation is deprecated starting from
 	labwc 0.7.2 and may be removed in future releases.
@@ -48,6 +50,52 @@ labwc-config(5).
 *justification*
 	Justification determines the horizontal alignment of text.
 	Valid options are Left, Center and Right.
+
+*textures*
+	Textures determine the visual look of an element. They are specified
+	through a text string with a number of fields. Capitalization is not
+	significant. The format is as follows:
+
+```
+(Solid | Gradient <type>)
+```
+
+	... where *|* stands for "or".
+
+	- *Solid* means that the background of the texture is filled with a
+	  single color. The texture must be accompanied by a single color field.
+	  For example:
+
+```
+window.*.title.bg: Solid
+window.*.title.bg.color: #f8f5f2
+```
+
+	- *Gradient* means that the background of the texture is filled with a
+	  gradient from one color to another. When Gradient is specified, it
+	  must be followed by the gradient's type. It must also be accompanied
+	  by the fields *color* and *colorTo*. Valid gradient types are:
+	  (1) *Vertical* where the gradient goes from the top edge to the bottom
+	  (2) *SplitVertical* where the gradient is split in the middle and goes
+	  out toward the top and bottom edges. SplitVertical gradients have two
+	  extra, optional color fields: *color.splitTo* and *colorTo.splitTo*.
+	  These colors are the light colors used on the far top and bottom of
+	  the SplitVertical gradient. When these are omitted, the default values
+	  for these are *color x 5/4* and *colorTo x 17/16*. Examples:
+
+```
+# Vertical gradient
+window.*.title.bg: Gradient Vertical
+window.*.title.bg.color: #658fb5
+window.*.title.bg.colorTo: #4d6982
+
+# SplitVertical gradient
+window.*.title.bg: Gradient SplitVertical
+window.*.title.bg.color: #658fb5
+window.*.title.bg.color.splitTo: #7595b9
+window.*.title.bg.colorTo: #4d6982
+window.*.title.bg.colorTo.splitTo: #557485
+```
 
 # THEME ELEMENTS
 
@@ -75,12 +123,22 @@ labwc-config(5).
 	value as set for window.active.border.color to disable the status
 	indicator. Default is #ff0000.
 
+*window.active.title.bg*
+	Texture for the focused window's titlebar. See texture section above.
+	Default is *Solid*
+
 *window.active.title.bg.color*
-	Background color for the focused window's titlebar.
+	Background color for the focused window's titlebar. See texture section
+	for additional color fields associated with gradients.
 	Default is #e1dedb.
 
+*window.inactive.title.bg*
+	Texture for non-focused windows' titlebars. See texture section above.
+	Default is *Solid*
+
 *window.inactive.title.bg.color*
-	Background color for non-focused windows' titlebars.
+	Background color for non-focused windows' titlebars. See texture section
+	for additional color fields associated with gradients.
 	Default is #f6f5f4.
 
 *window.active.label.text.color*

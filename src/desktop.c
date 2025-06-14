@@ -58,8 +58,8 @@ set_or_offer_focus(struct view *view)
 	}
 }
 
-void
-desktop_focus_view(struct view *view, bool raise)
+static void
+_desktop_focus_view(struct view *view, bool raise, bool for_cursor_update)
 {
 	assert(view);
 	/*
@@ -101,6 +101,28 @@ desktop_focus_view(struct view *view, bool raise)
 	}
 
 	/*
+	 * When followMouse=yes, prevent stealing focus from another
+	 * view under the cursor. The requested view *is* allowed to
+	 * take focus if it ends up under the cursor after raising, or
+	 * if there is no view under the cursor at all.
+	 *
+	 * If view_move_to_front() also raised child/sibling views,
+	 * then focus the sibling that's under the cursor.
+	 */
+	if (rc.focus_follow_mouse && !for_cursor_update) {
+		struct cursor_context ctx = get_cursor_context(view->server);
+		if (ctx.view && view_get_root(ctx.view) == view_get_root(view)) {
+			view = ctx.view;
+		} else if (ctx.view) {
+			/*
+			 * Do not steal focus from an unrelated view.
+			 * TODO: consider non-view surfaces also?
+			 */
+			return;
+		}
+	}
+
+	/*
 	 * If any child/sibling of the view is a modal dialog, focus
 	 * the dialog instead. It does not need to be raised separately
 	 * since view_move_to_front() raises all sibling views together.
@@ -109,14 +131,20 @@ desktop_focus_view(struct view *view, bool raise)
 	set_or_offer_focus(dialog ? dialog : view);
 }
 
+void
+desktop_focus_view(struct view *view, bool raise)
+{
+	_desktop_focus_view(view, raise, /*for_cursor_update*/ false);
+}
+
 /* TODO: focus layer-shell surfaces also? */
 void
-desktop_focus_view_or_surface(struct seat *seat, struct view *view,
+desktop_focus_for_cursor_update(struct seat *seat, struct view *view,
 		struct wlr_surface *surface, bool raise)
 {
 	assert(view || surface);
 	if (view) {
-		desktop_focus_view(view, raise);
+		_desktop_focus_view(view, raise, /*for_cursor_update*/ true);
 #if HAVE_XWAYLAND
 	} else {
 		struct wlr_xwayland_surface *xsurface =

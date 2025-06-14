@@ -639,7 +639,7 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 		 * If followMouse=yes, update the keyboard focus when the
 		 * cursor enters a surface
 		 */
-		desktop_focus_view_or_surface(seat,
+		desktop_focus_for_cursor_update(seat,
 			view_from_wlr_surface(new_focused_surface),
 			new_focused_surface, rc.raise_on_focus);
 	}
@@ -659,7 +659,7 @@ _cursor_update_focus(struct server *server)
 		 * Always focus the surface below the cursor when
 		 * followMouse=yes and followMouseRequiresMovement=no.
 		 */
-		desktop_focus_view_or_surface(&server->seat, ctx.view,
+		desktop_focus_for_cursor_update(&server->seat, ctx.view,
 			ctx.surface, rc.raise_on_focus);
 	}
 
@@ -1102,7 +1102,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		}
 #ifdef HAVE_XWAYLAND
 	} else if (ctx.type == LAB_SSD_UNMANAGED) {
-		desktop_focus_view_or_surface(seat, NULL, ctx.surface,
+		desktop_focus_for_cursor_update(seat, NULL, ctx.surface,
 			/*raise*/ false);
 #endif
 	}

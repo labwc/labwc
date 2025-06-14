@@ -25,6 +25,14 @@ window.active.indicator.toggled-keybind.color: #ff0000
 # window titlebar background
 window.active.title.bg.color: #e1dedb
 window.inactive.title.bg.color: #f6f5f4
+window.*.title.bg: Solid
+
+# Vertical and SplitVertical gradients are supported for window.*.title.bg
+# with the following additional color fields. See labwc-theme(5) for examples.
+#
+#     window.*.title.bg.colorTo:
+#     window.*.title.bg.color.splitTo:
+#     window.*.title.bg.colorTo.splitTo:
 
 # window titlebar text
 window.active.label.text.color: #000000

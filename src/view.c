@@ -2400,6 +2400,7 @@ view_update_title(struct view *view)
 	assert(view);
 	ssd_update_title(view->ssd);
 	wl_signal_emit_mutable(&view->events.new_title, NULL);
+	wl_signal_emit_mutable(&view->events.set_icon, NULL);
 }
 
 void

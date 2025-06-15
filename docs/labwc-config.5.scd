@@ -1178,7 +1178,7 @@ sandboxAppId="" type="" matchOnce="">*
 
 *Properties*
 
-Property values can be *yes*, *no* or *default*.
+Most property values can be *yes*, *no* or *default*.
 
 If a window matches criteria for multiple rules which set the same property,
 later config entries have higher priority. *default* can be useful in this
@@ -1209,6 +1209,16 @@ situation.
 	re-positioning in response to changes in reserved output space, which
 	can be caused by *<margin>* settings or exclusive layer-shell clients
 	such as panels.
+
+*<windowRules><windowRule iconPriority="">* [client|server]
+	By default, labwc tries to find application icons based on their
+	app-id, either via .desktop file or by finding an icon with the same
+	name. If that fails labwc will then try to use client supplied icons,
+	accomplished with the xdg-toplevel-icon protocol for wayland native
+	applications or the \_NET_WM_ICON property for X11 applications.
+
+	This property allows prioritizing client supplied icons for specific
+	applications. Default is server.
 
 ## MENU
 

@@ -200,6 +200,7 @@ handle_touch_up(struct wl_listener *listener, void *data)
 			} else {
 				cursor_emulate_button(seat, BTN_LEFT,
 					WL_POINTER_BUTTON_STATE_RELEASED, event->time_msec);
+				ssd_update_button_hover(NULL, seat->server->ssd_hover_state);
 			}
 			wl_list_remove(&touch_point->link);
 			zfree(touch_point);

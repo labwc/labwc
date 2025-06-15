@@ -15,6 +15,7 @@
 #include "img/img.h"
 #include "node.h"
 #include "view.h"
+#include "window-rules.h"
 
 #if HAVE_LIBSFDO
 
@@ -42,6 +43,70 @@ choose_best_icon_buffer(struct scaled_icon_buffer *self, int icon_size, double s
 	}
 	return best_buffer;
 }
+
+typedef struct lab_data_buffer *(*load_icon_func_t)(
+	struct scaled_icon_buffer *self, const char *icon_name,
+	int icon_size, double scale);
+
+static struct lab_data_buffer *
+load_local_icon(struct scaled_icon_buffer *self,
+		const char *icon_name, int icon_size, double scale)
+{
+	if (!icon_name) {
+		return NULL;
+	}
+	struct lab_img *img = desktop_entry_load_icon(
+		self->server, icon_name, icon_size, scale);
+	if (!img) {
+		return NULL;
+	}
+
+	wlr_log(WLR_DEBUG, "loaded icon by name: %s", icon_name);
+	struct lab_data_buffer *buffer = lab_img_render(
+		img, self->width, self->height, scale);
+	lab_img_destroy(img);
+	return buffer;
+}
+
+static struct lab_data_buffer *
+load_client_icon(struct scaled_icon_buffer *self,
+		const char *icon_name, int icon_size, double scale)
+{
+	wlr_log(WLR_INFO, "Trying to load icon from client");
+	struct lab_data_buffer *buffer = load_local_icon(
+		self, self->view_icon_name, icon_size, scale);
+	if (buffer) {
+		return buffer;
+	}
+
+	buffer = choose_best_icon_buffer(self, icon_size, scale);
+	if (!buffer) {
+		return NULL;
+	}
+
+	wlr_log(WLR_DEBUG, "loaded icon from client buffer");
+	return buffer_resize(buffer,
+		self->width, self->height, scale);
+}
+
+static struct lab_data_buffer *
+load_app_id_icon(struct scaled_icon_buffer *self,
+		const char *icon_name, int icon_size, double scale)
+{
+	wlr_log(WLR_INFO, "Trying to load icon via app id");
+	struct lab_img *img = desktop_entry_load_icon_from_app_id(
+		self->server, self->view_app_id, icon_size, scale);
+	if (!img) {
+		return NULL;
+	}
+
+	wlr_log(WLR_DEBUG, "loaded icon by app_id");
+	struct lab_data_buffer *buffer = lab_img_render(
+		img, self->width, self->height, scale);
+	lab_img_destroy(img);
+	return buffer;
+}
+
 #endif /* HAVE_LIBSFDO */
 
 static struct lab_data_buffer *
@@ -50,51 +115,37 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 #if HAVE_LIBSFDO
 	struct scaled_icon_buffer *self = scaled_buffer->data;
 	int icon_size = MIN(self->width, self->height);
-	struct lab_img *img = NULL;
 
-	if (self->icon_name) {
-		img = desktop_entry_load_icon(self->server,
-			self->icon_name, icon_size, scale);
-	} else if (self->view) {
-		if (self->view_icon_name) {
-			wlr_log(WLR_DEBUG, "loading icon by name: %s",
-				self->view_icon_name);
-			img = desktop_entry_load_icon(self->server,
-				self->view_icon_name, icon_size, scale);
-		}
-		if (!img) {
-			struct lab_data_buffer *buffer =
-				choose_best_icon_buffer(self, icon_size, scale);
-			if (buffer) {
-				wlr_log(WLR_DEBUG, "loading icon by buffer");
-				return buffer_resize(buffer,
-					self->width, self->height, scale);
-			}
-		}
-		if (!img) {
-			wlr_log(WLR_DEBUG, "loading icon by app_id");
-			img = desktop_entry_load_icon_from_app_id(self->server,
-				self->view_app_id, icon_size, scale);
-		}
-		if (!img) {
-			wlr_log(WLR_DEBUG, "loading fallback icon");
-			img = desktop_entry_load_icon(self->server,
-				rc.fallback_app_icon_name, icon_size, scale);
+	struct {
+		load_icon_func_t fn;
+		const char *icon_name;
+	} choices[] = {
+		{ load_local_icon, self->icon_name },
+		{ NULL, NULL },
+		{ NULL, NULL },
+		{ load_local_icon, rc.fallback_app_icon_name },
+	};
+	if (self->view) {
+		if (window_rules_get_property(self->view, "iconPreferServer") == LAB_PROP_TRUE) {
+			choices[1].fn = load_app_id_icon;
+			choices[2].fn = load_client_icon;
+		} else {
+			choices[1].fn = load_client_icon;
+			choices[2].fn = load_app_id_icon;
 		}
 	}
-
-	if (!img) {
-		return NULL;
+	for (size_t i = 0; i < ARRAY_SIZE(choices); i++) {
+		if (!choices[i].fn) {
+			continue;
+		}
+		struct lab_data_buffer *buffer = choices[i].fn(
+			self, choices[i].icon_name, icon_size, scale);
+		if (buffer) {
+			return buffer;
+		}
 	}
-
-	struct lab_data_buffer *buffer =
-		lab_img_render(img, self->width, self->height, scale);
-	lab_img_destroy(img);
-
-	return buffer;
-#else
-	return NULL;
 #endif /* HAVE_LIBSFDO */
+	return NULL;
 }
 
 static void

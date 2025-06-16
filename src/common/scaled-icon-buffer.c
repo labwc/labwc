@@ -44,65 +44,76 @@ choose_best_icon_buffer(struct scaled_icon_buffer *self, int icon_size, double s
 	return best_buffer;
 }
 
-typedef struct lab_data_buffer *(*load_icon_func_t)(
-	struct scaled_icon_buffer *self, const char *icon_name,
-	int icon_size, double scale);
+struct icon_load_ctx {
+	struct scaled_icon_buffer *self;
+	const char *icon_name;
+	int icon_size;
+	double scale;
+};
 
+typedef struct lab_data_buffer *(*load_icon_func_t)(struct icon_load_ctx *ctx);
+
+/*
+ * Load an icon by name e.g. 'firefox'. libsfdo will search for the
+ * icon (e.g. firefox.svg) using the icon theme specified in rc.xml.
+ */
 static struct lab_data_buffer *
-load_local_icon(struct scaled_icon_buffer *self,
-		const char *icon_name, int icon_size, double scale)
+load_icon_by_name(struct icon_load_ctx *ctx)
 {
-	if (!icon_name) {
+	if (!ctx->icon_name) {
 		return NULL;
 	}
 	struct lab_img *img = desktop_entry_load_icon(
-		self->server, icon_name, icon_size, scale);
+		ctx->self->server, ctx->icon_name, ctx->icon_size, ctx->scale);
 	if (!img) {
 		return NULL;
 	}
 
-	wlr_log(WLR_DEBUG, "loaded icon by name: %s", icon_name);
+	wlr_log(WLR_DEBUG, "loaded icon by name: %s", ctx->icon_name);
 	struct lab_data_buffer *buffer = lab_img_render(
-		img, self->width, self->height, scale);
+		img, ctx->self->width, ctx->self->height, ctx->scale);
 	lab_img_destroy(img);
 	return buffer;
 }
 
 static struct lab_data_buffer *
-load_client_icon(struct scaled_icon_buffer *self,
-		const char *icon_name, int icon_size, double scale)
+load_client_icon(struct icon_load_ctx *ctx)
 {
 	wlr_log(WLR_INFO, "Trying to load icon from client");
-	struct lab_data_buffer *buffer = load_local_icon(
-		self, self->view_icon_name, icon_size, scale);
+	ctx->icon_name = ctx->self->view_icon_name;
+	struct lab_data_buffer *buffer = load_icon_by_name(ctx);
 	if (buffer) {
 		return buffer;
 	}
 
-	buffer = choose_best_icon_buffer(self, icon_size, scale);
+	buffer = choose_best_icon_buffer(ctx->self, ctx->icon_size, ctx->scale);
 	if (!buffer) {
 		return NULL;
 	}
 
 	wlr_log(WLR_DEBUG, "loaded icon from client buffer");
 	return buffer_resize(buffer,
-		self->width, self->height, scale);
+		ctx->self->width, ctx->self->height, ctx->scale);
 }
 
+/*
+ * Load an icon by a view's app_id. For example, if the app_id is 'firefox', then
+ * libsfdo will parse firefox.desktop to get the Icon name and then find that icon
+ * based on the icon theme specified in rc.xml.
+ */
 static struct lab_data_buffer *
-load_app_id_icon(struct scaled_icon_buffer *self,
-		const char *icon_name, int icon_size, double scale)
+load_icon_by_app_id(struct icon_load_ctx *ctx)
 {
 	wlr_log(WLR_INFO, "Trying to load icon via app id");
 	struct lab_img *img = desktop_entry_load_icon_from_app_id(
-		self->server, self->view_app_id, icon_size, scale);
+		ctx->self->server, ctx->self->view_app_id, ctx->icon_size, ctx->scale);
 	if (!img) {
 		return NULL;
 	}
 
 	wlr_log(WLR_DEBUG, "loaded icon by app_id");
 	struct lab_data_buffer *buffer = lab_img_render(
-		img, self->width, self->height, scale);
+		img, ctx->self->width, ctx->self->height, ctx->scale);
 	lab_img_destroy(img);
 	return buffer;
 }
@@ -119,27 +130,31 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 	struct {
 		load_icon_func_t fn;
 		const char *icon_name;
-	} choices[] = {
-		{ load_local_icon, self->icon_name },
+	} load_methods[] = {
+		/* First try to load a specified icon as used by menu.c */
+		{ load_icon_by_name, self->icon_name },
+		/* Following two are set below */
 		{ NULL, NULL },
 		{ NULL, NULL },
-		{ load_local_icon, rc.fallback_app_icon_name },
+		{ load_icon_by_name, rc.fallback_app_icon_name },
 	};
 	if (self->view) {
 		if (window_rules_get_property(self->view, "iconPreferServer") == LAB_PROP_TRUE) {
-			choices[1].fn = load_app_id_icon;
-			choices[2].fn = load_client_icon;
+			load_methods[1].fn = load_icon_by_app_id;
+			load_methods[2].fn = load_client_icon;
 		} else {
-			choices[1].fn = load_client_icon;
-			choices[2].fn = load_app_id_icon;
+			load_methods[1].fn = load_client_icon;
+			load_methods[2].fn = load_icon_by_app_id;
 		}
 	}
-	for (size_t i = 0; i < ARRAY_SIZE(choices); i++) {
-		if (!choices[i].fn) {
+	struct lab_data_buffer *buffer = NULL;
+	struct icon_load_ctx ctx = { self, NULL, icon_size, scale };
+	for (size_t i = 0; i < ARRAY_SIZE(load_methods); i++) {
+		if (!load_methods[i].fn) {
 			continue;
 		}
-		struct lab_data_buffer *buffer = choices[i].fn(
-			self, choices[i].icon_name, icon_size, scale);
+		ctx.icon_name = load_methods[i].icon_name;
+		buffer = load_methods[i].fn(&ctx);
 		if (buffer) {
 			return buffer;
 		}

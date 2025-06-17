@@ -44,56 +44,36 @@ choose_best_icon_buffer(struct scaled_icon_buffer *self, int icon_size, double s
 	return best_buffer;
 }
 
-struct icon_load_ctx {
-	struct scaled_icon_buffer *self;
-	const char *icon_name;
-	int icon_size;
-	double scale;
-};
-
-typedef struct lab_data_buffer *(*load_icon_func_t)(struct icon_load_ctx *ctx);
-
-/*
- * Load an icon by name e.g. 'firefox'. libsfdo will search for the
- * icon (e.g. firefox.svg) using the icon theme specified in rc.xml.
- */
 static struct lab_data_buffer *
-load_icon_by_name(struct icon_load_ctx *ctx)
+img_to_buffer(struct lab_img *img, int width, int height, int scale)
 {
-	if (!ctx->icon_name) {
-		return NULL;
-	}
-	struct lab_img *img = desktop_entry_load_icon(
-		ctx->self->server, ctx->icon_name, ctx->icon_size, ctx->scale);
-	if (!img) {
-		return NULL;
-	}
-
-	wlr_log(WLR_DEBUG, "loaded icon by name: %s", ctx->icon_name);
-	struct lab_data_buffer *buffer = lab_img_render(
-		img, ctx->self->width, ctx->self->height, ctx->scale);
+	struct lab_data_buffer *buffer = lab_img_render(img, width, height, scale);
 	lab_img_destroy(img);
 	return buffer;
 }
 
 /*
- * Load an icon from a application supplied array of differently sized icon buffers.
- * For wayland native applications this happens via the xdg-toplevel-icon protocol
- * and for X11 based applications this happens via the _NET_WM_ICON property.
+ * Load an icon from an application-supplied icon name or buffers.
+ * Wayland apps can provide icon names and buffers via xdg-toplevel-icon protocol.
+ * X11 apps can provide icon buffers via _NET_WM_ICON property.
  */
 static struct lab_data_buffer *
-load_icon_from_client_buffer(struct icon_load_ctx *ctx)
+load_client_icon(struct scaled_icon_buffer *self, int icon_size, double scale)
 {
-	wlr_log(WLR_INFO, "Trying to load icon from client");
-	struct lab_data_buffer *buffer = choose_best_icon_buffer(
-		ctx->self, ctx->icon_size, ctx->scale);
-	if (!buffer) {
-		return NULL;
+	struct lab_img *img = desktop_entry_load_icon(self->server,
+		self->view_icon_name, icon_size, scale);
+	if (img) {
+		wlr_log(WLR_DEBUG, "loaded icon from client icon name");
+		return img_to_buffer(img, self->width, self->height, scale);
 	}
 
-	wlr_log(WLR_DEBUG, "loaded icon from client buffer");
-	return buffer_resize(buffer,
-		ctx->self->width, ctx->self->height, ctx->scale);
+	struct lab_data_buffer *buffer = choose_best_icon_buffer(self, icon_size, scale);
+	if (buffer) {
+		wlr_log(WLR_DEBUG, "loaded icon from client buffer");
+		return buffer_resize(buffer, self->width, self->height, scale);
+	}
+
+	return NULL;
 }
 
 /*
@@ -102,20 +82,16 @@ load_icon_from_client_buffer(struct icon_load_ctx *ctx)
  * based on the icon theme specified in rc.xml.
  */
 static struct lab_data_buffer *
-load_icon_by_app_id(struct icon_load_ctx *ctx)
+load_server_icon(struct scaled_icon_buffer *self, int icon_size, double scale)
 {
-	wlr_log(WLR_INFO, "Trying to load icon via app id");
-	struct lab_img *img = desktop_entry_load_icon_from_app_id(
-		ctx->self->server, ctx->self->view_app_id, ctx->icon_size, ctx->scale);
-	if (!img) {
-		return NULL;
+	struct lab_img *img = desktop_entry_load_icon_from_app_id(self->server,
+		self->view_app_id, icon_size, scale);
+	if (img) {
+		wlr_log(WLR_DEBUG, "loaded icon by app_id");
+		return img_to_buffer(img, self->width, self->height, scale);
 	}
 
-	wlr_log(WLR_DEBUG, "loaded icon by app_id");
-	struct lab_data_buffer *buffer = lab_img_render(
-		img, ctx->self->width, ctx->self->height, ctx->scale);
-	lab_img_destroy(img);
-	return buffer;
+	return NULL;
 }
 
 #endif /* HAVE_LIBSFDO */
@@ -126,62 +102,46 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 #if HAVE_LIBSFDO
 	struct scaled_icon_buffer *self = scaled_buffer->data;
 	int icon_size = MIN(self->width, self->height);
-
-	struct load_method {
-		load_icon_func_t fn;
-		const char *icon_name;
-	} load_methods[] = {
-		{ load_icon_by_name, self->icon_name },
-		/* Following three are set below based on priority */
-		{ NULL, NULL },
-		{ NULL, NULL },
-		{ NULL, NULL },
-		{ load_icon_by_name, rc.fallback_app_icon_name },
-	};
-	if (self->view) {
-		if (window_rules_get_property(self->view, "iconPreferServer") == LAB_PROP_TRUE) {
-			/*
-			 * Total load priority:
-			 * - icon from icon theme if set via scaled_icon_buffer_set_icon_name()
-			 *   (currently only used for menu icons)
-			 * - icon from icon theme based on .desktop file found via app-id
-			 * - icon from icon theme if icon name was supplied by the client
-			 * - icon from client supplied buffers
-			 * - fallback icon from icon theme
-			 */
-			load_methods[1].fn = load_icon_by_app_id;
-			load_methods[2] = (struct load_method) {
-				.fn = load_icon_by_name,
-				.icon_name = self->view_icon_name };
-			load_methods[3].fn = load_icon_from_client_buffer;
-		} else {
-			/*
-			 * Total load priority:
-			 * - icon from icon theme if set via scaled_icon_buffer_set_icon_name()
-			 *   (currently only used for menu icons)
-			 * - icon from icon theme if icon name was supplied by the client
-			 * - icon from client supplied buffers
-			 * - icon from icon theme based on .desktop file found via app-id
-			 * - fallback icon from icon theme
-			 */
-			load_methods[1] = (struct load_method) {
-				.fn = load_icon_by_name,
-				.icon_name = self->view_icon_name };
-			load_methods[2].fn = load_icon_from_client_buffer;
-			load_methods[3].fn = load_icon_by_app_id;
-		}
-	}
+	struct lab_img *img = NULL;
 	struct lab_data_buffer *buffer = NULL;
-	struct icon_load_ctx ctx = { self, NULL, icon_size, scale };
-	for (size_t i = 0; i < ARRAY_SIZE(load_methods); i++) {
-		if (!load_methods[i].fn) {
-			continue;
+
+	if (self->icon_name) {
+		/* generic icon (e.g. menu icons) */
+		img = desktop_entry_load_icon(self->server, self->icon_name,
+			icon_size, scale);
+		if (img) {
+			wlr_log(WLR_DEBUG, "loaded icon by icon name");
+			return img_to_buffer(img, self->width, self->height, scale);
 		}
-		ctx.icon_name = load_methods[i].icon_name;
-		buffer = load_methods[i].fn(&ctx);
+		return NULL;
+	}
+
+	/* window icon */
+	if (window_rules_get_property(self->view, "iconPreferServer") == LAB_PROP_TRUE) {
+		buffer = load_server_icon(self, icon_size, scale);
 		if (buffer) {
 			return buffer;
 		}
+		buffer = load_client_icon(self, icon_size, scale);
+		if (buffer) {
+			return buffer;
+		}
+	} else {
+		buffer = load_client_icon(self, icon_size, scale);
+		if (buffer) {
+			return buffer;
+		}
+		buffer = load_server_icon(self, icon_size, scale);
+		if (buffer) {
+			return buffer;
+		}
+	}
+	/* If both client and server icons are unavailable, use the fallback icon */
+	img = desktop_entry_load_icon(self->server, rc.fallback_app_icon_name,
+		icon_size, scale);
+	if (img) {
+		wlr_log(WLR_DEBUG, "loaded fallback icon");
+		return img_to_buffer(img, self->width, self->height, scale);
 	}
 #endif /* HAVE_LIBSFDO */
 	return NULL;

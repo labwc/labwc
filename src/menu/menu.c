@@ -488,7 +488,7 @@ fill_item(char *nodename, char *content)
 #if HAVE_LIBSFDO
 		if (rc.menu_show_icons && !string_null_or_empty(content)) {
 			xstrdup_replace(current_item->icon_name, content);
-			current_menu->has_icons = true;
+			current_item->parent->has_icons = true;
 		}
 #endif
 	} else if (!strcmp(nodename, "name.action")) {
@@ -1030,6 +1030,28 @@ init_rootmenu(struct server *server)
 	if (!menu) {
 		current_menu = NULL;
 		menu = menu_create(server, "root-menu", "");
+
+		/*
+		 * Add a small selection of default terminals so
+		 * new users do have *some* way to spawn a terminal.
+		 */
+		current_item = item_create(menu, "foot", false);
+		fill_item("icon", "foot");
+		fill_item("name.action", "Execute");
+		fill_item("command.action", "foot");
+
+		current_item = item_create(menu, "alacritty", false);
+		fill_item("icon", "alacritty");
+		fill_item("name.action", "Execute");
+		fill_item("command.action", "alacritty");
+
+		current_item = item_create(menu, "xterm", false);
+		fill_item("icon", "xterm");
+		fill_item("name.action", "Execute");
+		fill_item("command.action", "xterm");
+
+		separator_create(menu, "");
+
 		current_item = item_create(menu, _("Reconfigure"), false);
 		fill_item("name.action", "Reconfigure");
 		current_item = item_create(menu, _("Exit"), false);

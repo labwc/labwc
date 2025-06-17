@@ -688,6 +688,7 @@ extending outward from the snapped edge.
 ```
   A-Tab - next window
   A-S-Tab - previous window
+  W-Return - alacritty
   A-F4 - close window
   W-a - toggle maximize
   W-<arrow> - resize window to fill half the output

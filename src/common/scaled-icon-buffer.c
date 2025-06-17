@@ -76,17 +76,17 @@ load_icon_by_name(struct icon_load_ctx *ctx)
 	return buffer;
 }
 
+/*
+ * Load an icon from a application supplied array of differently sized icon buffers.
+ * For wayland native applications this happens via the xdg-toplevel-icon protocol
+ * and for X11 based applications this happens via the _NET_WM_ICON property.
+ */
 static struct lab_data_buffer *
-load_client_icon(struct icon_load_ctx *ctx)
+load_icon_from_client_buffer(struct icon_load_ctx *ctx)
 {
 	wlr_log(WLR_INFO, "Trying to load icon from client");
-	ctx->icon_name = ctx->self->view_icon_name;
-	struct lab_data_buffer *buffer = load_icon_by_name(ctx);
-	if (buffer) {
-		return buffer;
-	}
-
-	buffer = choose_best_icon_buffer(ctx->self, ctx->icon_size, ctx->scale);
+	struct lab_data_buffer *buffer = choose_best_icon_buffer(
+		ctx->self, ctx->icon_size, ctx->scale);
 	if (!buffer) {
 		return NULL;
 	}
@@ -127,24 +127,48 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 	struct scaled_icon_buffer *self = scaled_buffer->data;
 	int icon_size = MIN(self->width, self->height);
 
-	struct {
+	struct load_method {
 		load_icon_func_t fn;
 		const char *icon_name;
 	} load_methods[] = {
-		/* First try to load a specified icon as used by menu.c */
 		{ load_icon_by_name, self->icon_name },
-		/* Following two are set below */
+		/* Following three are set below based on priority */
+		{ NULL, NULL },
 		{ NULL, NULL },
 		{ NULL, NULL },
 		{ load_icon_by_name, rc.fallback_app_icon_name },
 	};
 	if (self->view) {
 		if (window_rules_get_property(self->view, "iconPreferServer") == LAB_PROP_TRUE) {
+			/*
+			 * Total load priority:
+			 * - icon from icon theme if set via scaled_icon_buffer_set_icon_name()
+			 *   (currently only used for menu icons)
+			 * - icon from icon theme based on .desktop file found via app-id
+			 * - icon from icon theme if icon name was supplied by the client
+			 * - icon from client supplied buffers
+			 * - fallback icon from icon theme
+			 */
 			load_methods[1].fn = load_icon_by_app_id;
-			load_methods[2].fn = load_client_icon;
+			load_methods[2] = (struct load_method) {
+				.fn = load_icon_by_name,
+				.icon_name = self->view_icon_name };
+			load_methods[3].fn = load_icon_from_client_buffer;
 		} else {
-			load_methods[1].fn = load_client_icon;
-			load_methods[2].fn = load_icon_by_app_id;
+			/*
+			 * Total load priority:
+			 * - icon from icon theme if set via scaled_icon_buffer_set_icon_name()
+			 *   (currently only used for menu icons)
+			 * - icon from icon theme if icon name was supplied by the client
+			 * - icon from client supplied buffers
+			 * - icon from icon theme based on .desktop file found via app-id
+			 * - fallback icon from icon theme
+			 */
+			load_methods[1] = (struct load_method) {
+				.fn = load_icon_by_name,
+				.icon_name = self->view_icon_name };
+			load_methods[2].fn = load_icon_from_client_buffer;
+			load_methods[3].fn = load_icon_by_app_id;
 		}
 	}
 	struct lab_data_buffer *buffer = NULL;

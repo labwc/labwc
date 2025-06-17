@@ -292,7 +292,7 @@ load_buttons(struct theme *theme)
 		.name = "menu",
 		.type = LAB_SSD_BUTTON_WINDOW_MENU,
 		.state_set = 0,
-		.fallback_button = (const char[]){ 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00 },
+		.fallback_button = (const char[]){ 0x00, 0x21, 0x33, 0x1E, 0x0C, 0x00 },
 	}, {
 		.name = "iconify",
 		.type = LAB_SSD_BUTTON_ICONIFY,

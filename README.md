@@ -16,10 +16,10 @@ href="NEWS.md">Release&nbsp;Notes</a>]</h3>
 - [2. Build and Installation](#2-build-and-installation)
 - [3. Configuration](#3-configuration)
 - [4. Theming](#4-theming)
-- [5. Translations](#5-translations)
-- [6. Usage](#6-usage)
-  - [6.1 Gaming](#61-gaming)
-- [7. Integration](#7-integration)
+- [5. Usage](#5-usage)
+  - [5.1 Gaming](#51-gaming)
+- [6. Integration](#6-integration)
+- [7. Translations](#7-translations)
 
 ## 1. Project Description
 
@@ -28,13 +28,13 @@ href="NEWS.md">Release&nbsp;Notes</a>]</h3>
 Labwc stands for Lab Wayland Compositor, where lab can mean any of the
 following:
 
-- Lightweight And Box-inspired
+- lightweight and *box-inspired
 - sense of experimentation and treading new ground
 - inspired by BunsenLabs and ArchLabs
 - your favorite pet
 
-Labwc is a [wlroots]-based window-stacking compositor for [wayland], inspired
-by [openbox].
+Labwc is a [wlroots]-based window-stacking compositor for [Wayland], inspired
+by [Openbox].
 
 It is light-weight and independent with a focus on simply stacking windows well
 and rendering some window decorations. It takes a no-bling/frills approach and
@@ -80,13 +80,13 @@ contemporary and enable cutting-edge performance.
 
 ### 1.3 Why The Openbox Theme Specification?
 
-In order to avoid reinventing configuration and theme syntaxes, the [openbox]
-3.6 specification is used. This does not mean that labwc is an openbox clone
+In order to avoid reinventing configuration and theme syntaxes, the [Openbox]
+3.6 specification is used. This does not mean that Labwc is an Openbox clone
 but rather that configuration files will look and feel familiar.
 
 Also, parsing GTK3+ and Qt themes for window decorations is very complicated,
-so using much simpler specs such as those used by openbox and xfwm makes sense
-for a compositor such as labwc, both in terms of implementation and for user
+so using much simpler specs such as those used by Openbox and xfwm makes sense
+for a compositor such as Labwc, both in terms of implementation and for user
 modification.
 
 Openbox spec is somewhat of a stable standard considering how long it has
@@ -208,15 +208,7 @@ For themes, search the internet for "openbox themes" and place them in
 - https://github.com/the-zero885/Lubuntu-Arc-Round-Openbox-Theme
 - https://github.com/BunsenLabs/bunsen-themes
 
-## 5. Translations
-
-The default window bar menu can be translated on the [weblate platform](https://translate.lxqt-project.org/projects/labwc/labwc/).
-
-<a href="https://translate.lxqt-project.org/engage/labwc/?utm_source=widget">
-<img src="https://translate.lxqt-project.org/widgets/labwc/-/labwc/multi-blue.svg" alt="Translation status" />
-</a>
-
-## 6. Usage
+## 5. Usage
 
     ./build/labwc [-s <command>]
 
@@ -246,15 +238,15 @@ If you have not created an rc.xml config file, default bindings will be:
 
 A root-menu can be opened by clicking on the desktop.
 
-### 6.1 Gaming
+### 5.1 Gaming
 
 Cursor confinement is supported from version `0.6.2`. If using older versions,
 use a nested [gamescope] instance for gaming.  It can be added to steam via
 game launch option: `gamescope -f -- %command%`.
 
-## 7. Integration
+## 6. Integration
 
-Suggested apps to use with labwc:
+Suggested apps to use with Labwc:
 
 - Screen shooter: [grim]
 - Screen recorder: [wf-recorder]
@@ -267,8 +259,16 @@ Suggested apps to use with labwc:
 
 See [integration] for further details.
 
-[wayland]: https://wayland.freedesktop.org/
-[openbox]: https://openbox.org/help/Contents
+## 7. Translations
+
+The default window bar menu can be translated on the [weblate platform](https://translate.lxqt-project.org/projects/labwc/labwc/).
+
+<a href="https://translate.lxqt-project.org/engage/labwc/?utm_source=widget">
+<img src="https://translate.lxqt-project.org/widgets/labwc/-/labwc/multi-blue.svg" alt="Translation status" />
+</a>
+
+[Wayland]: https://wayland.freedesktop.org/
+[Openbox]: https://openbox.org/help/Contents
 [wlroots]: https://gitlab.freedesktop.org/wlroots/wlroots
 [sway]: https://github.com/swaywm
 [wayland-protocols]: https://gitlab.freedesktop.org/wayland/wayland-protocols
@@ -305,4 +305,3 @@ See [integration] for further details.
 [wlr-randr]: https://sr.ht/~emersion/wlr-randr/
 [swaylock]: https://github.com/swaywm/swaylock
 [gammastep]: https://gitlab.com/chinstrap/gammastep
-

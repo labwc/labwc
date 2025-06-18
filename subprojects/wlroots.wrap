@@ -1,7 +1,7 @@
 [wrap-git]
-url = https://gitlab.freedesktop.org/wlroots/wlroots.git
-revision = 0.19
+url = https://gitlab.freedesktop.org/tokyo4j/wlroots.git
+revision = mr/net-wm-icon
 
 [provide]
-dependency_names = wlroots-0.19
-wlroots-0.19=wlroots
+dependency_names = wlroots-0.20
+wlroots-0.20=wlroots

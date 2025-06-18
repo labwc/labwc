@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <wlr/xwayland.h>
+#include "buffer.h"
+#include "common/array.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
@@ -351,6 +353,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&xwayland_view->set_override_redirect.link);
 	wl_list_remove(&xwayland_view->set_strut_partial.link);
 	wl_list_remove(&xwayland_view->set_window_type.link);
+	wl_list_remove(&xwayland_view->set_icon.link);
 	wl_list_remove(&xwayland_view->focus_in.link);
 	wl_list_remove(&xwayland_view->map_request.link);
 
@@ -578,6 +581,51 @@ handle_set_strut_partial(struct wl_listener *listener, void *data)
 	if (view->mapped) {
 		output_update_all_usable_areas(view->server, false);
 	}
+}
+
+static void
+handle_set_icon(struct wl_listener *listener, void *data)
+{
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, set_icon);
+
+	xcb_get_property_reply_t *reply =
+		wlr_xwayland_surface_fetch_icon(xwayland_view->xwayland_surface);
+
+	xcb_ewmh_get_wm_icon_reply_t icon;
+	if (!xcb_ewmh_get_wm_icon_from_reply(&icon, reply)) {
+		view_set_icon(&xwayland_view->base, NULL, NULL);
+		goto out;
+	}
+
+	xcb_ewmh_wm_icon_iterator_t iter = xcb_ewmh_get_wm_icon_iterator(&icon);
+	struct wl_array buffers;
+	wl_array_init(&buffers);
+	for (; iter.rem; xcb_ewmh_get_wm_icon_next(&iter)) {
+		size_t stride = iter.height * 4;
+		uint32_t *buf = calloc(1, iter.width * stride);
+
+		/* Pre-multiply alpha */
+		for (uint32_t y = 0; y < iter.height; y++) {
+			for (uint32_t x = 0; x < iter.width; x++) {
+				uint32_t i = x + y * iter.width;
+				uint8_t *src_pixel = (uint8_t *)&iter.data[i];
+				uint8_t *dst_pixel = (uint8_t *)&buf[i];
+				dst_pixel[0] = src_pixel[0] * src_pixel[3] / 255;
+				dst_pixel[1] = src_pixel[1] * src_pixel[3] / 255;
+				dst_pixel[2] = src_pixel[2] * src_pixel[3] / 255;
+				dst_pixel[3] = src_pixel[3];
+			}
+		}
+
+		struct lab_data_buffer *buffer = buffer_create_from_data(
+			buf, iter.width, iter.height, stride);
+		array_add(&buffers, buffer);
+	}
+
+	view_set_icon(&xwayland_view->base, NULL, &buffers);
+out:
+	free(reply);
 }
 
 static void
@@ -1037,6 +1085,7 @@ xwayland_view_create(struct server *server,
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_override_redirect);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_strut_partial);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_window_type);
+	CONNECT_SIGNAL(xsurface, xwayland_view, set_icon);
 	CONNECT_SIGNAL(xsurface, xwayland_view, focus_in);
 	CONNECT_SIGNAL(xsurface, xwayland_view, map_request);
 

@@ -326,6 +326,11 @@ handle_destroy(struct wl_listener *listener, void *data)
 	struct xdg_toplevel_view *xdg_toplevel_view =
 		xdg_toplevel_view_from_view(view);
 
+	struct wlr_xdg_popup *popup, *tmp;
+	wl_list_for_each_safe(popup, tmp, &xdg_toplevel_view->xdg_surface->popups, link) {
+		wlr_xdg_popup_destroy(popup);
+	}
+
 	xdg_toplevel_view->xdg_surface->data = NULL;
 	xdg_toplevel_view->xdg_surface = NULL;
 

@@ -302,6 +302,22 @@ handle_node_destroy(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, node_destroy);
+
+	/*
+	 * Important:
+	 *
+	 * We can no longer access layer->scene_layer_surface anymore
+	 * because it has already been free'd by wlroots.
+	 * Set it to NULL to run into a proper crash rather than accessing
+	 * random free'd memory.
+	 */
+	layer->scene_layer_surface = NULL;
+
+	struct wlr_xdg_popup *popup, *tmp;
+	wl_list_for_each_safe(popup, tmp, &layer->layer_surface->popups, link) {
+		wlr_xdg_popup_destroy(popup);
+	}
+
 	/*
 	 * TODO: Determine if this layer is being used by an exclusive client.
 	 * If it is, try and find another layer owned by this client to pass
@@ -358,6 +374,12 @@ popup_handle_destroy(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_popup *popup =
 		wl_container_of(listener, popup, destroy);
+
+	struct wlr_xdg_popup *_popup, *tmp;
+	wl_list_for_each_safe(_popup, tmp, &popup->wlr_popup->base->popups, link) {
+		wlr_xdg_popup_destroy(_popup);
+	}
+
 	wl_list_remove(&popup->destroy.link);
 	wl_list_remove(&popup->new_popup.link);
 	wl_list_remove(&popup->reposition.link);
@@ -546,6 +568,7 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 	}
 
 	struct lab_layer_surface *surface = znew(*surface);
+	surface->layer_surface = layer_surface;
 
 	struct output *output = layer_surface->output->data;
 

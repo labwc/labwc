@@ -73,6 +73,12 @@ static void
 handle_xdg_popup_destroy(struct wl_listener *listener, void *data)
 {
 	struct xdg_popup *popup = wl_container_of(listener, popup, destroy);
+
+	struct wlr_xdg_popup *_popup, *tmp;
+	wl_list_for_each_safe(_popup, tmp, &popup->wlr_popup->base->popups, link) {
+		wlr_xdg_popup_destroy(_popup);
+	}
+
 	wl_list_remove(&popup->destroy.link);
 	wl_list_remove(&popup->new_popup.link);
 	wl_list_remove(&popup->reposition.link);

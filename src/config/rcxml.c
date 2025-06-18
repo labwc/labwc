@@ -330,9 +330,9 @@ fill_window_rule(char *nodename, char *content, struct parser_state *state)
 		set_property(content, &state->current_window_rule->server_decoration);
 	} else if (!strcasecmp(nodename, "iconPriority")) {
 		if (!strcasecmp(content, "client")) {
-			state->current_window_rule->icon_prefer_server = LAB_PROP_FALSE;
+			state->current_window_rule->icon_prefer_client = LAB_PROP_TRUE;
 		} else if (!strcasecmp(content, "server")) {
-			state->current_window_rule->icon_prefer_server = LAB_PROP_TRUE;
+			state->current_window_rule->icon_prefer_client = LAB_PROP_FALSE;
 		} else {
 			wlr_log(WLR_ERROR,
 				"Invalid value for window rule property 'iconPriority'");

@@ -108,9 +108,9 @@ window_rules_get_property(struct view *view, const char *property)
 					&& !strcasecmp(property, "fixedPosition")) {
 				return rule->fixed_position;
 			}
-			if (rule->icon_prefer_server
-					&& !strcasecmp(property, "iconPreferServer")) {
-				return rule->icon_prefer_server;
+			if (rule->icon_prefer_client
+					&& !strcasecmp(property, "iconPreferClient")) {
+				return rule->icon_prefer_client;
 			}
 		}
 	}

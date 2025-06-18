@@ -60,6 +60,7 @@ img_to_buffer(struct lab_img *img, int width, int height, int scale)
 static struct lab_data_buffer *
 load_client_icon(struct scaled_icon_buffer *self, int icon_size, double scale)
 {
+	wlr_log(WLR_INFO, "Trying to load client icon");
 	struct lab_img *img = desktop_entry_load_icon(self->server,
 		self->view_icon_name, icon_size, scale);
 	if (img) {
@@ -84,6 +85,7 @@ load_client_icon(struct scaled_icon_buffer *self, int icon_size, double scale)
 static struct lab_data_buffer *
 load_server_icon(struct scaled_icon_buffer *self, int icon_size, double scale)
 {
+	wlr_log(WLR_INFO, "Trying to load server icon");
 	struct lab_img *img = desktop_entry_load_icon_from_app_id(self->server,
 		self->view_app_id, icon_size, scale);
 	if (img) {
@@ -117,21 +119,21 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 	}
 
 	/* window icon */
-	if (window_rules_get_property(self->view, "iconPreferServer") == LAB_PROP_TRUE) {
-		buffer = load_server_icon(self, icon_size, scale);
+	if (window_rules_get_property(self->view, "iconPreferClient") == LAB_PROP_TRUE) {
+		buffer = load_client_icon(self, icon_size, scale);
 		if (buffer) {
 			return buffer;
 		}
-		buffer = load_client_icon(self, icon_size, scale);
+		buffer = load_server_icon(self, icon_size, scale);
 		if (buffer) {
 			return buffer;
 		}
 	} else {
-		buffer = load_client_icon(self, icon_size, scale);
+		buffer = load_server_icon(self, icon_size, scale);
 		if (buffer) {
 			return buffer;
 		}
-		buffer = load_server_icon(self, icon_size, scale);
+		buffer = load_client_icon(self, icon_size, scale);
 		if (buffer) {
 			return buffer;
 		}

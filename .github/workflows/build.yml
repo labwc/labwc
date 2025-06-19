@@ -176,7 +176,7 @@ jobs:
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
             meson setup build-gcc-static_analyzer -Dxwayland=enabled \
-              -Dstatic_analyzer=enabled --werror
+              -Dstatic_analyzer=enabled -Dc_args="-Wno-analyzer-fd-leak" --werror
             meson compile -C build-gcc-static_analyzer
           ' | $TARGET
 

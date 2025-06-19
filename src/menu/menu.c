@@ -1021,6 +1021,79 @@ update_client_list_combined_menu(struct server *server)
 	menu_create_scene(menu);
 }
 
+static bool
+is_ixoth(char *filename)
+{
+	struct stat sb;
+	return stat(filename, &sb) == 0 && (sb.st_mode & S_IXOTH);
+}
+
+static bool
+isprog(const char *filename, gchar **paths)
+{
+	/* handle filename with absolute path */
+	if (filename[0] == '/') {
+		return is_ixoth((char *)filename);
+	}
+
+	/* handle filename with relative path by iterating over $PATH */
+	for (gchar **p = paths; *p; p++) {
+		char path[4096];
+		snprintf(path, sizeof(path), "%s/%s", *p, filename);
+		if (is_ixoth(path)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static void
+try_to_add_terminal(struct menu *menu)
+{
+	const char * const terminals[] = {
+		"alacritty",
+		"dtterm",
+		"foot",
+		"gnome-terminal",
+		"kgx",
+		"kitty",
+		"konsole",
+		"lxterminal",
+		"mate-terminal",
+		"nxterm",
+		"rxvt",
+		"sakura",
+		"st",
+		"terminator",
+		"terminology",
+		"tilix",
+		"wezterm",
+		"xfce4-terminal",
+		"xterm",
+		"color-xterm",
+	};
+
+	char *path = getenv("PATH");
+	if (!path) {
+		return;
+	}
+	gchar **paths = g_strsplit(path, ":", -1);
+
+	for (size_t i = 0; i < ARRAY_SIZE(terminals); ++i) {
+		const char *terminal = terminals[i];
+		if (isprog(terminal, paths)) {
+			wlr_log(WLR_DEBUG, "add terminal %s to menu", terminal);
+			current_item = item_create(menu, _("Terminal"),
+				/* array */ false);
+			fill_item("name.action", "Execute");
+			fill_item("command.action", (char *)terminal);
+			break;
+		}
+	}
+	g_strfreev(paths);
+
+}
+
 static void
 init_rootmenu(struct server *server)
 {
@@ -1030,6 +1103,9 @@ init_rootmenu(struct server *server)
 	if (!menu) {
 		current_menu = NULL;
 		menu = menu_create(server, "root-menu", "");
+
+		try_to_add_terminal(menu);
+
 		current_item = item_create(menu, _("Reconfigure"), false);
 		fill_item("name.action", "Reconfigure");
 		current_item = item_create(menu, _("Exit"), false);

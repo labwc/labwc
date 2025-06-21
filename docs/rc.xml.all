@@ -260,26 +260,11 @@
     <keybind key="W-Return">
       <action name="Execute" command="alacritty" />
     </keybind>
-    <keybind key="A-F3">
-      <action name="Execute" command="bemenu-run" />
-    </keybind>
     <keybind key="A-F4">
       <action name="Close" />
     </keybind>
     <keybind key="W-a">
       <action name="ToggleMaximize" />
-    </keybind>
-    <keybind key="A-Left">
-      <action name="MoveToEdge" direction="left" />
-    </keybind>
-    <keybind key="A-Right">
-      <action name="MoveToEdge" direction="right" />
-    </keybind>
-    <keybind key="A-Up">
-      <action name="MoveToEdge" direction="up" />
-    </keybind>
-    <keybind key="A-Down">
-      <action name="MoveToEdge" direction="down" />
     </keybind>
     <keybind key="W-Left">
       <action name="SnapToEdge" direction="left" />
@@ -370,18 +355,18 @@
     <doubleClickTime>500</doubleClickTime>
 
     <context name="Frame">
-      <mousebind button="A-Left" action="Press">
+      <mousebind button="W-Left" action="Press">
         <action name="Focus" />
         <action name="Raise" />
       </mousebind>
-      <mousebind button="A-Left" action="Drag">
+      <mousebind button="W-Left" action="Drag">
         <action name="Move" />
       </mousebind>
-      <mousebind button="A-Right" action="Press">
+      <mousebind button="W-Right" action="Press">
         <action name="Focus" />
         <action name="Raise" />
       </mousebind>
-      <mousebind button="A-Right" action="Drag">
+      <mousebind button="W-Right" action="Drag">
         <action name="Resize" />
       </mousebind>
     </context>

@@ -494,18 +494,6 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 	case ACTION_TYPE_IF:
 		if (!strcmp(argument, "text.prompt")) {
 			action_arg_add_str(action, "prompt_text", content);
-		} else if (!strcmp(argument, "title.prompt")) {
-			action_arg_add_str(action, "prompt_title", content);
-		} else if (!strcmp(argument, "option1.prompt")) {
-			action_arg_add_str(action, "prompt_option1", content);
-		} else if (!strcmp(argument, "option2.prompt")) {
-			action_arg_add_str(action, "prompt_option2", content);
-		} else if (!strcmp(argument, "option3.prompt")) {
-			action_arg_add_str(action, "prompt_option3", content);
-		} else if (!strcmp(argument, "option4.prompt")) {
-			action_arg_add_str(action, "prompt_option4", content);
-		} else if (!strcmp(argument, "option5.prompt")) {
-			action_arg_add_str(action, "prompt_option5", content);
 		}
 		goto cleanup;
 	}
@@ -827,11 +815,9 @@ handle_view_destroy(struct wl_listener *listener, void *data)
 static void
 action_prompt_create(struct view *view, struct server *server, struct action *action)
 {
-	char *command = strdup_printf(
-		"labnag -m \"%s\" -Z \"%s\" ':' -s \"%s\"",
+	char *command = strdup_printf("labnag -m \"%s\" -Z \"%s\" : -Z \"%s\" :",
 		action_get_str(action, "prompt_text", "Choose wisely"),
-		action_get_str(action, "prompt_option2", "No"),
-		action_get_str(action, "prompt_option1", "Yes"));
+		_("Yes"), _("No"));
 
 	int pipe_fd;
 	pid_t prompt_pid = spawn_piped(command, &pipe_fd);

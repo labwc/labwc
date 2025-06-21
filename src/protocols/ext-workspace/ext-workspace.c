@@ -7,7 +7,7 @@
 #include "common/list.h"
 #include "ext-workspace-v1-protocol.h"
 #include "protocols/ext-workspace.h"
-#include "protocols/ext-workspace-internal.h"
+#include "protocols/output-tracker.h"
 #include "protocols/transaction-addon.h"
 
 /*
@@ -32,12 +32,25 @@
  */
 #define WS_STATE_INVALID 0xffffffff
 
+enum pending_ext_workspaces_change {
+	/* group events */
+	WS_PENDING_WS_CREATE     = 1 << 0,
+
+	/* ws events*/
+	WS_PENDING_WS_ACTIVATE   = 1 << 1,
+	WS_PENDING_WS_DEACTIVATE = 1 << 2,
+	WS_PENDING_WS_REMOVE     = 1 << 3,
+	WS_PENDING_WS_ASSIGN     = 1 << 4,
+};
+
 struct ws_create_workspace_event {
 	char *name;
 	struct {
 		struct wl_listener transaction_op_destroy;
 	} on;
 };
+
+static void ext_manager_schedule_done_event(struct lab_ext_workspace_manager *manager);
 
 /* Workspace */
 static void
@@ -278,7 +291,7 @@ group_send_state(struct lab_ext_workspace_group *group, struct wl_resource *reso
 	ext_workspace_group_handle_v1_send_capabilities(
 		resource, group->capabilities);
 
-	ext_group_output_send_initial_state(group, resource);
+	output_tracker_send_initial_state_to_resource(group, resource);
 }
 
 /* Manager itself */
@@ -453,8 +466,7 @@ manager_idle_send_done(void *data)
 	manager->idle_source = NULL;
 }
 
-/* Internal API */
-void
+static void
 ext_manager_schedule_done_event(struct lab_ext_workspace_manager *manager)
 {
 	if (manager->idle_source) {
@@ -466,6 +478,31 @@ ext_manager_schedule_done_event(struct lab_ext_workspace_manager *manager)
 	manager->idle_source = wl_event_loop_add_idle(
 		manager->event_loop, manager_idle_send_done, manager);
 }
+
+/* Output tracker */
+static void
+handle_output_tracker_send_done(void *object, struct wl_client *client)
+{
+	struct lab_ext_workspace_group *group = object;
+	if (!client) {
+		ext_manager_schedule_done_event(group->manager);
+		return;
+	}
+
+	struct wl_resource *manager_resource;
+	struct wl_list *manager_resources = &group->manager->resources;
+	wl_resource_for_each(manager_resource, manager_resources) {
+		if (wl_resource_get_client(manager_resource) == client) {
+			ext_workspace_manager_v1_send_done(manager_resource);
+		}
+	}
+}
+
+static const struct output_tracker_impl output_tracker_impl = {
+	.send_output_enter = ext_workspace_group_handle_v1_send_output_enter,
+	.send_output_leave = ext_workspace_group_handle_v1_send_output_leave,
+	.send_done = handle_output_tracker_send_done,
+};
 
 static void
 send_group_workspace_event(struct lab_ext_workspace_group *group,
@@ -547,10 +584,27 @@ lab_ext_workspace_group_create(struct lab_ext_workspace_manager *manager)
 }
 
 void
+lab_ext_workspace_group_output_enter(struct lab_ext_workspace_group *group,
+		struct wlr_output *wlr_output)
+{
+	output_tracker_enter(group, &group->resources, wlr_output, &output_tracker_impl);
+}
+
+void
+lab_ext_workspace_group_output_leave(struct lab_ext_workspace_group *group,
+		struct wlr_output *wlr_output)
+{
+	output_tracker_leave(group, wlr_output);
+}
+
+void
 lab_ext_workspace_group_destroy(struct lab_ext_workspace_group *group)
 {
 	assert(group);
 	wl_signal_emit_mutable(&group->events.destroy, NULL);
+
+	/* Ensure output leave events are sent and tracker resources are destroyed */
+	output_tracker_destroy(group);
 
 	struct lab_ext_workspace *workspace;
 	wl_list_for_each(workspace, &group->manager->workspaces, link) {

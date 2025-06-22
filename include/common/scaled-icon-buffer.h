@@ -20,6 +20,8 @@ struct scaled_icon_buffer {
 	bool view_icon_prefer_client;
 	struct wl_array view_icon_buffers;
 	struct {
+		struct wl_listener new_app_id;
+		struct wl_listener new_title;
 		struct wl_listener set_icon;
 		struct wl_listener destroy;
 	} on_view;

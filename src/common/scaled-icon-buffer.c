@@ -173,6 +173,8 @@ _destroy(struct scaled_scene_buffer *scaled_buffer)
 	struct scaled_icon_buffer *self = scaled_buffer->data;
 	if (self->view) {
 		wl_list_remove(&self->on_view.set_icon.link);
+		wl_list_remove(&self->on_view.new_title.link);
+		wl_list_remove(&self->on_view.new_app_id.link);
 		wl_list_remove(&self->on_view.destroy.link);
 	}
 	free(self->view_app_id);
@@ -240,17 +242,54 @@ handle_view_set_icon(struct wl_listener *listener, void *data)
 	struct scaled_icon_buffer *self =
 		wl_container_of(listener, self, on_view.set_icon);
 
+	bool icon_name_equal = str_equal(self->view_icon_name, self->view->icon.name);
+	if (icon_name_equal && icon_buffers_equal(&self->view_icon_buffers,
+			&self->view->icon.buffers)) {
+		return;
+	}
+
+	if (!icon_name_equal) {
+		zfree(self->view_icon_name);
+		if (self->view->icon.name) {
+			xstrdup_replace(self->view_icon_name, self->view->icon.name);
+		}
+	}
+
+	set_icon_buffers(self, &self->view->icon.buffers);
+	scaled_scene_buffer_request_update(self->scaled_buffer,
+		self->width, self->height);
+}
+
+static void
+handle_view_new_title(struct wl_listener *listener, void *data)
+{
+	struct scaled_icon_buffer *self =
+		wl_container_of(listener, self, on_view.new_title);
+
+	bool prefer_client = window_rules_get_property(
+		self->view, "iconPreferClient") == LAB_PROP_TRUE;
+	if (prefer_client == self->view_icon_prefer_client) {
+		return;
+	}
+	self->view_icon_prefer_client = prefer_client;
+	scaled_scene_buffer_request_update(self->scaled_buffer,
+		self->width, self->height);
+}
+
+static void
+handle_view_new_app_id(struct wl_listener *listener, void *data)
+{
+	struct scaled_icon_buffer *self =
+		wl_container_of(listener, self, on_view.new_app_id);
+
+	const char *app_id = view_get_string_prop(self->view, "app_id");
+	if (str_equal(app_id, self->view_app_id)) {
+		return;
+	}
+
+	xstrdup_replace(self->view_app_id, app_id);
 	self->view_icon_prefer_client = window_rules_get_property(
 		self->view, "iconPreferClient") == LAB_PROP_TRUE;
-
-	/* view_get_string_prop() never returns NULL */
-	xstrdup_replace(self->view_app_id, view_get_string_prop(self->view, "app_id"));
-	zfree(self->view_icon_name);
-	if (self->view->icon.name) {
-		self->view_icon_name = xstrdup(self->view->icon.name);
-	}
-	set_icon_buffers(self, &self->view->icon.buffers);
-
 	scaled_scene_buffer_request_update(self->scaled_buffer,
 		self->width, self->height);
 }
@@ -262,6 +301,8 @@ handle_view_destroy(struct wl_listener *listener, void *data)
 		wl_container_of(listener, self, on_view.destroy);
 	wl_list_remove(&self->on_view.destroy.link);
 	wl_list_remove(&self->on_view.set_icon.link);
+	wl_list_remove(&self->on_view.new_title.link);
+	wl_list_remove(&self->on_view.new_app_id.link);
 	self->view = NULL;
 }
 
@@ -275,15 +316,27 @@ scaled_icon_buffer_set_view(struct scaled_icon_buffer *self, struct view *view)
 
 	if (self->view) {
 		wl_list_remove(&self->on_view.set_icon.link);
+		wl_list_remove(&self->on_view.new_title.link);
+		wl_list_remove(&self->on_view.new_app_id.link);
 		wl_list_remove(&self->on_view.destroy.link);
 	}
 	self->view = view;
+
 	self->on_view.set_icon.notify = handle_view_set_icon;
 	wl_signal_add(&view->events.set_icon, &self->on_view.set_icon);
+
+	self->on_view.new_title.notify = handle_view_new_title;
+	wl_signal_add(&view->events.new_title, &self->on_view.new_title);
+
+	self->on_view.new_app_id.notify = handle_view_new_app_id;
+	wl_signal_add(&view->events.new_app_id, &self->on_view.new_app_id);
+
 	self->on_view.destroy.notify = handle_view_destroy;
 	wl_signal_add(&view->events.destroy, &self->on_view.destroy);
 
 	handle_view_set_icon(&self->on_view.set_icon, NULL);
+	handle_view_new_app_id(&self->on_view.new_app_id, NULL);
+	handle_view_new_title(&self->on_view.new_title, NULL);
 }
 
 void

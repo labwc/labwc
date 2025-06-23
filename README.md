@@ -222,12 +222,10 @@ If you have not created an rc.xml config file, default bindings will be:
 | `alt`-`tab`              | activate next window
 | `alt`-`shift`-`tab`      | activate previous window
 | `super`-`return`         | alacritty
-| `alt`-`F3`               | bemenu
 | `alt`-`F4`               | close window
 | `super`-`a`              | toggle maximize
-| `alt`-`mouse-left`       | move window
-| `alt`-`mouse-right`      | resize window
-| `alt`-`arrow`            | move window to edge
+| `super`-`mouse-left`     | move window
+| `super`-`mouse-right`    | resize window
 | `super`-`arrow`          | resize window to fill half the output
 | `alt`-`space`            | show the window menu
 | `XF86_AudioLowerVolume`  | amixer sset Master 5%-

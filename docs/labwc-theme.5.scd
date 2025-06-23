@@ -37,7 +37,17 @@ labwc-config(5).
 # DATA TYPES
 
 *color*
-	Colors can be specified by either of the following:
+	Colors can be specified by name or hexadecimal Red-Green-Blue (RGB)
+	value:
+
+	*color name* refers to "X11 color name", for example: 'white', 'grey40',
+	'pink' and 'peach puff'. More information can be found here:
+	- http://en.wikipedia.org/wiki/Web_colors#X11_color_names
+	- http://en.wikipedia.org/wiki/X11_color_names
+	- https://github.com/labwc/labwc/blob/master/src/common/rgb.txt
+
+	*RGB value*
+
 	- #rrggbb (hexadecimal RGB values)
 	- #rrggbb aaa (same but with decimal alpha value percentage)
 	- #rrggbbaa (same but with inline alpha value in hex encoding)

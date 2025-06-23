@@ -22,9 +22,6 @@ struct input_method_relay {
 	struct wlr_input_method_v2 *input_method;
 	struct wlr_surface *focused_surface;
 
-	struct lab_set forwarded_pressed_keys;
-	struct wlr_keyboard_modifiers forwarded_modifiers;
-
 	/*
 	 * Text-input which is enabled by the client and communicating with
 	 * input-method.

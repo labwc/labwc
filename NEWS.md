@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2025-06-10 | [unreleased]  | 0.19.0          | 28054         |
+| 2025-06-24 | [unreleased]  | 0.19.0          | 28504         |
 | 2025-05-02 | [0.8.4]       | 0.18.2          | 27679         |
 | 2025-02-21 | [0.8.3]       | 0.18.2          | 27671         |
 | 2024-12-13 | [0.8.2]       | 0.18.2          | 26298         |
@@ -48,20 +48,39 @@ before releasing:
 
 ### Added
 
+- Support theme colors defined by X11-color-names and '#rgb' syntax @jlindgren90
+  [#2686]
+- Support basic vertical titlebar gradients and the additional theme options
+  listed below. @jlindgren90 [#2686]
+
+```
+window.*.title.bg: Solid | Gradient ( Vertical | SplitVertical )
+window.*.title.bg.colorTo:
+window.*.title.bg.color.splitTo:
+window.*.title.bg.colorTo.splitTo:
+```
+
+- Support the XWayland `_NET_WM_ICON` property @Consolatis @tokyo4j [#2840]
+- Add config option `<core><primarySelection>`. This enables autoscroll
+  (middle-click to scroll up/down) in Chromium and electron based clients
+  without inadvertantly pasting the primary clipboard. @johanmalm [#2832]
+- Bump `xdg_shell` version from 3 to 6 @tokyo4j [#2814]
 - Bump `wl_compositor` version from 5 to 6 @tokyo4j [#2812]
 - Support tablet tool mouse buttons @jp7677 [#2778]
 - Add libinput config options:
   - `<threeFingerDrag>` @m4rch3n1ng [#2795]
   - `<dragLock>sticky</dragLock>` @tokyo4j [#2803]
   - `<scrollMethod>none|twofinger|edge</scrollMethod>` @Consolatis [#2767]
-- Support xdg-toplevel-icon protocol @tokyo4j [#2755]
-- Add `{left,right}-occupied` options to `GoToDesktop` @DreamMaoMao
-  [#2790]
+- Add `{left,right}-occupied` options to `GoToDesktop` @DreamMaoMao [#2790]
 - Add config option `<theme><dropShadowsOnTiled>` @diredocks [#2789]
 - Add missing tracking of configure serials for xdg-shell surface to fix
   issue with mpv @jlindgren90 [#2774] [#2788]
-- Support `drm-syncobj` protocol @zeusgoose [#2737]
-- Support `ext-image-copy-capture` protocol @any1 [#2740]
+- Add support for the following Wayland protocols:
+  - `ext-data-control` @Consolatis [#2829]
+  - `alpha-modifier` @Consolatis [#2829]
+  - `xdg-toplevel-icon protocol` @tokyo4j [#2755]
+  - `drm-syncobj` protocol @zeusgoose [#2737]
+  - `ext-image-copy-capture` protocol @any1 [#2740]
 - Support both axis for XWayland client side maximize requests.
   @Consolatis [#2728]
 - Add scroll emulation for cursor motion and associated actions @jp7677
@@ -72,6 +91,16 @@ before releasing:
 
 ### Fixed
 
+- Destroy xdg-shell popups when their parent is destroyed to fix potential
+  compositor crash. @Consolatis [#2846]
+- Clear SSD hover effects after touch-up @jp7677 [#2837]
+- Close compositor menus on first touch up/down event to prevent menus from
+  staying open during touch interactions in native touch mode. @jp7677 [#2827]
+- Omit pointer cursor shape for tablet tools to prevent a resize cursor for
+  out-of-surface scrolling with a tablet tool in recent GTK4 (which uses the
+  cursor shape protocol). @jp7677 [#2808]
+- For XWayland, give focus to a modal dialog rather than its parent.
+  @jlindgren90 [#2722]
 - Arrange layers on layer-shell surface `destroy` rather than `unmap` to
   fix issues with `wshowkeys` and `kitten` @johanmalm [#1153] [#1154]
 - Window switcher fixes: @tokyo4j [#2770]
@@ -83,7 +112,8 @@ before releasing:
 - Only configure initialized layer-shell surfaces to fix bug with
   `kitten quick-access-terminal` @alex-huff [#2736] [#2745] 
 - Improve focus semantics for XWayland windows using the Globally Active
-  input model to fix issues with Zoom and WeChat @jlindgren90 [#1142] [#2811]
+  input model to fix issues with Zoom, WeChat and CLion @jlindgren90 [#1142]
+  [#2811] [#2819]
 - Provide better support for XWayland client keyboard focus grabs by using
   the new `grab_focus` signal. @jlindgren90 [#1142]
 - Guard against negative sizes in window-switching and menu graphical
@@ -96,6 +126,16 @@ before releasing:
 
 ### Changed
 
+- Use the `Super` modifier instead of `Alt` for the default mousebinds `A-Left`
+  and `A-Right` (for move and resize) to avoid interfering with some clients
+  like CAD programs and games @johanmalm [#2831]
+- Deprecate the default keybinds listed below. @johanmalm [#2831]
+  - `A-F3` for bemenu-run because it is too close to A-F4 and it is better to be
+    agnostic on choice of launcher.
+  - `A-<arrow>` for `MoveToEdge` because `Alt-` keybinds should be for clients
+    to use and this one results in frequent user complaints because it prevents
+    some common usage patterns like alt-left/right in web browers.
+- Change default titlebar menu button from a dot to an arrow @johanmalm [#2844]
 - "Sticky" mode for drag-locking is enabled by default as recommended by
   libinput [#2803]. The timeout based behavior can be restored via the snippet
   below. To disable the feature all together use `no` as the value.
@@ -2438,12 +2478,14 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2657]: https://github.com/labwc/labwc/pull/2657
 [#2669]: https://github.com/labwc/labwc/pull/2669
 [#2678]: https://github.com/labwc/labwc/pull/2678
+[#2686]: https://github.com/labwc/labwc/pull/2686
 [#2688]: https://github.com/labwc/labwc/pull/2688
 [#2692]: https://github.com/labwc/labwc/pull/2692
 [#2693]: https://github.com/labwc/labwc/pull/2693
 [#2700]: https://github.com/labwc/labwc/pull/2700
 [#2710]: https://github.com/labwc/labwc/pull/2710
 [#2713]: https://github.com/labwc/labwc/pull/2713
+[#2722]: https://github.com/labwc/labwc/pull/2722
 [#2723]: https://github.com/labwc/labwc/pull/2723
 [#2724]: https://github.com/labwc/labwc/pull/2724
 [#2727]: https://github.com/labwc/labwc/pull/2727
@@ -2465,5 +2507,16 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2790]: https://github.com/labwc/labwc/pull/2790
 [#2795]: https://github.com/labwc/labwc/pull/2795
 [#2803]: https://github.com/labwc/labwc/pull/2803
+[#2808]: https://github.com/labwc/labwc/pull/2808
 [#2811]: https://github.com/labwc/labwc/pull/2811
 [#2812]: https://github.com/labwc/labwc/pull/2812
+[#2814]: https://github.com/labwc/labwc/pull/2814
+[#2819]: https://github.com/labwc/labwc/pull/2819
+[#2827]: https://github.com/labwc/labwc/pull/2827
+[#2829]: https://github.com/labwc/labwc/pull/2829
+[#2831]: https://github.com/labwc/labwc/pull/2831
+[#2832]: https://github.com/labwc/labwc/pull/2832
+[#2837]: https://github.com/labwc/labwc/pull/2837
+[#2840]: https://github.com/labwc/labwc/pull/2840
+[#2844]: https://github.com/labwc/labwc/pull/2844
+[#2846]: https://github.com/labwc/labwc/pull/2846

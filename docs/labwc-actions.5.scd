@@ -423,6 +423,7 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 	```
 	<action name="If">
 	  <query/>
+	  <prompt message=""/>
 	  <then><action/></then>
 	  <else><action/></else>
 	</action>
@@ -493,6 +494,26 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 			or on a monitor with the supplied <monitor_name>.
 
 		This argument is optional.
+
+	*prompt*
+		Display a yes/no prompt dialog (labnag by default). If 'yes' is
+		selected, the *then* branch will be taken; and similarly with
+		'no' and *else*. This argument is optional. Note that the syntax
+		is different to that of Openbox where a prompt element is not
+		tied to If-actions but would just be a child of the downstream
+		action. The reason for this difference is increased flexibility
+		and functionality gained by optionally using an *else* branch.
+
+		```
+		<keybind key="W-q">
+		  <action name="If">
+		    <prompt message="Quit?"/>
+		    <then>
+		      <action name="Exit"/>
+		    </then>
+		  </action>
+		</keybind>
+		```
 
 	*then*
 		A list of actions to be executed if the window matches any

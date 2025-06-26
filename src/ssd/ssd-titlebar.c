@@ -3,6 +3,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <string.h>
+#include <wlr/render/pixman.h>
 #include "buffer.h"
 #include "config.h"
 #include "common/mem.h"
@@ -57,8 +58,23 @@ ssd_titlebar_create(struct ssd *ssd)
 		wl_list_init(&subtree->parts);
 
 		/* Background */
-		add_scene_buffer(&subtree->parts, LAB_SSD_PART_TITLEBAR, parent,
-			titlebar_fill, corner_width, 0);
+		struct wlr_scene_buffer *bg_scene_buffer =
+			wlr_scene_buffer_create(parent, titlebar_fill);
+		/*
+		 * Work around the wlroots/pixman bug that widened 1px buffer
+		 * becomes translucent when bilinear filtering is used.
+		 * TODO: remove once https://gitlab.freedesktop.org/wlroots/wlroots/-/issues/3990
+		 * is solved
+		 */
+		if (wlr_renderer_is_pixman(view->server->renderer)) {
+			wlr_scene_buffer_set_filter_mode(
+				bg_scene_buffer, WLR_SCALE_FILTER_NEAREST);
+		}
+		struct ssd_part *bg_part =
+			add_scene_part(&subtree->parts, LAB_SSD_PART_TITLEBAR);
+		bg_part->node = &bg_scene_buffer->node;
+		wlr_scene_node_set_position(bg_part->node, corner_width, 0);
+
 		add_scene_buffer(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_LEFT, parent,
 			corner_top_left, -rc.theme->border_width, -rc.theme->border_width);
 		add_scene_buffer(&subtree->parts, LAB_SSD_PART_TITLEBAR_CORNER_RIGHT, parent,

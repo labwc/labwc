@@ -568,7 +568,7 @@ server_init(struct server *server)
 	/*
 	 * The order in which the scene-trees below are created determines the
 	 * z-order for nodes which cover the whole work-area.  For per-output
-	 * scene-trees, see new_output_notify() in src/output.c
+	 * scene-trees, see handle_new_output() in src/output.c
 	 *
 	 * | Type              | Scene Tree       | Per Output | Example
 	 * | ----------------- | ---------------- | ---------- | -------
@@ -711,7 +711,7 @@ server_init(struct server *server)
 		&server->output_power_manager_set_mode);
 
 	server->tearing_control = wlr_tearing_control_manager_v1_create(server->wl_display, 1);
-	server->tearing_new_object.notify = new_tearing_hint;
+	server->tearing_new_object.notify = handle_tearing_new_object;
 	wl_signal_add(&server->tearing_control->events.new_object, &server->tearing_new_object);
 
 	server->tablet_manager = wlr_tablet_v2_create(server->wl_display);

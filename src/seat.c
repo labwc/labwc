@@ -8,6 +8,7 @@
 #include <wlr/types/wlr_pointer.h>
 #include <wlr/types/wlr_touch.h>
 #include <wlr/util/log.h>
+#include "common/macros.h"
 #include "common/mem.h"
 #include "input/ime.h"
 #include "input/tablet.h"
@@ -29,7 +30,7 @@ input_device_destroy(struct wl_listener *listener, void *data)
 	if (input->wlr_input_device->type == WLR_INPUT_DEVICE_KEYBOARD) {
 		struct keyboard *keyboard = (struct keyboard *)input;
 		wl_list_remove(&keyboard->key.link);
-		wl_list_remove(&keyboard->modifier.link);
+		wl_list_remove(&keyboard->modifiers.link);
 		keyboard_cancel_keybind_repeat(keyboard);
 	}
 	free(input);
@@ -456,7 +457,7 @@ seat_add_device(struct seat *seat, struct input *input)
 }
 
 static void
-new_input_notify(struct wl_listener *listener, void *data)
+handle_new_input(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, new_input);
 	struct wlr_input_device *device = data;
@@ -504,9 +505,9 @@ new_virtual_pointer(struct wl_listener *listener, void *data)
 }
 
 static void
-new_virtual_keyboard(struct wl_listener *listener, void *data)
+handle_new_virtual_keyboard(struct wl_listener *listener, void *data)
 {
-	struct seat *seat = wl_container_of(listener, seat, virtual_keyboard_new);
+	struct seat *seat = wl_container_of(listener, seat, new_virtual_keyboard);
 	struct wlr_virtual_keyboard_v1 *virtual_keyboard = data;
 	struct wlr_input_device *device = &virtual_keyboard->keyboard.base;
 
@@ -516,7 +517,7 @@ new_virtual_keyboard(struct wl_listener *listener, void *data)
 }
 
 static void
-focus_change_notify(struct wl_listener *listener, void *data)
+handle_focus_change(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, focus_change);
 	struct wlr_seat_keyboard_focus_change_event *event = data;
@@ -567,12 +568,9 @@ seat_init(struct server *server)
 	wl_list_init(&seat->touch_points);
 	wl_list_init(&seat->constraint_commit.link);
 	wl_list_init(&seat->inputs);
-	seat->new_input.notify = new_input_notify;
-	wl_signal_add(&server->backend->events.new_input, &seat->new_input);
 
-	seat->focus_change.notify = focus_change_notify;
-	wl_signal_add(&seat->seat->keyboard_state.events.focus_change,
-		&seat->focus_change);
+	CONNECT_SIGNAL(server->backend, seat, new_input);
+	CONNECT_SIGNAL(&seat->seat->keyboard_state, seat, focus_change);
 
 	seat->virtual_pointer = wlr_virtual_pointer_manager_v1_create(
 		server->wl_display);
@@ -582,9 +580,7 @@ seat_init(struct server *server)
 
 	seat->virtual_keyboard = wlr_virtual_keyboard_manager_v1_create(
 		server->wl_display);
-	wl_signal_add(&seat->virtual_keyboard->events.new_virtual_keyboard,
-		&seat->virtual_keyboard_new);
-	seat->virtual_keyboard_new.notify = new_virtual_keyboard;
+	CONNECT_SIGNAL(seat->virtual_keyboard, seat, new_virtual_keyboard);
 
 	seat->input_method_relay = input_method_relay_create(seat);
 
@@ -611,7 +607,7 @@ seat_finish(struct server *server)
 	wl_list_remove(&seat->new_input.link);
 	wl_list_remove(&seat->focus_change.link);
 	wl_list_remove(&seat->virtual_pointer_new.link);
-	wl_list_remove(&seat->virtual_keyboard_new.link);
+	wl_list_remove(&seat->new_virtual_keyboard.link);
 
 	struct input *input, *next;
 	wl_list_for_each_safe(input, next, &seat->inputs, link) {

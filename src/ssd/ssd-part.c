@@ -13,7 +13,7 @@
 
 /* Internal helpers */
 static void
-ssd_button_destroy_notify(struct wl_listener *listener, void *data)
+handle_button_node_destroy(struct wl_listener *listener, void *data)
 {
 	struct ssd_button *button = wl_container_of(listener, button, destroy);
 	wl_list_remove(&button->destroy.link);
@@ -32,7 +32,7 @@ ssd_button_descriptor_create(struct wlr_scene_node *node)
 	struct ssd_button *button = znew(*button);
 
 	/* Let it destroy automatically when the scene node destroys */
-	button->destroy.notify = ssd_button_destroy_notify;
+	button->destroy.notify = handle_button_node_destroy;
 	wl_signal_add(&node->events.destroy, &button->destroy);
 
 	/* And finally attach the ssd_button to a node descriptor */

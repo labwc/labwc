@@ -105,7 +105,7 @@ output_apply_gamma(struct output *output)
 }
 
 static void
-output_frame_notify(struct wl_listener *listener, void *data)
+handle_output_frame(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This function is called every time an output is ready to display a
@@ -128,7 +128,7 @@ output_frame_notify(struct wl_listener *listener, void *data)
 		 * TODO: This is a short term fix for issue #1667,
 		 *       a proper fix would require restructuring
 		 *       the life cycle of scene outputs, e.g.
-		 *       creating them on new_output_notify() only.
+		 *       creating them on handle_new_output() only.
 		 */
 		wlr_log(WLR_INFO, "Failed to render new frame: no scene-output");
 		return;
@@ -158,7 +158,7 @@ output_frame_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-output_destroy_notify(struct wl_listener *listener, void *data)
+handle_output_destroy(struct wl_listener *listener, void *data)
 {
 	struct output *output = wl_container_of(listener, output, destroy);
 	struct seat *seat = &output->server->seat;
@@ -209,7 +209,7 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 }
 
 static void
-output_request_state_notify(struct wl_listener *listener, void *data)
+handle_output_request_state(struct wl_listener *listener, void *data)
 {
 	/* This ensures nested backends can be resized */
 	struct output *output = wl_container_of(listener, output, request_state);
@@ -410,7 +410,7 @@ configure_new_output(struct server *server, struct output *output)
 }
 
 static void
-new_output_notify(struct wl_listener *listener, void *data)
+handle_new_output(struct wl_listener *listener, void *data)
 {
 	/*
 	 * This event is raised by the backend when a new output (aka display
@@ -477,12 +477,12 @@ new_output_notify(struct wl_listener *listener, void *data)
 
 	wl_list_insert(&server->outputs, &output->link);
 
-	output->destroy.notify = output_destroy_notify;
+	output->destroy.notify = handle_output_destroy;
 	wl_signal_add(&wlr_output->events.destroy, &output->destroy);
-	output->frame.notify = output_frame_notify;
+	output->frame.notify = handle_output_frame;
 	wl_signal_add(&wlr_output->events.frame, &output->frame);
 
-	output->request_state.notify = output_request_state_notify;
+	output->request_state.notify = handle_output_request_state;
 	wl_signal_add(&wlr_output->events.request_state, &output->request_state);
 
 	wl_list_init(&output->regions);
@@ -545,7 +545,7 @@ output_init(struct server *server)
 	server->gamma_control_manager_v1 =
 		wlr_gamma_control_manager_v1_create(server->wl_display);
 
-	server->new_output.notify = new_output_notify;
+	server->new_output.notify = handle_new_output;
 	wl_signal_add(&server->backend->events.new_output, &server->new_output);
 
 	/*

@@ -175,6 +175,7 @@ output_destroy_notify(struct wl_listener *listener, void *data)
 
 	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		wlr_scene_node_destroy(&output->layer_tree[i]->node);
+		output->layer_tree[i] = NULL;
 	}
 	wlr_scene_node_destroy(&output->layer_popup_tree->node);
 	wlr_scene_node_destroy(&output->osd_tree->node);

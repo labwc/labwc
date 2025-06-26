@@ -215,7 +215,9 @@ desktop_update_top_layer_visibility(struct server *server)
 		if (!output_is_usable(output)) {
 			continue;
 		}
-		wlr_scene_node_set_enabled(&output->layer_tree[top]->node, true);
+		if (output->layer_tree[top]) {
+			wlr_scene_node_set_enabled(&output->layer_tree[top]->node, true);
+		}
 	}
 
 	/*
@@ -231,8 +233,10 @@ desktop_update_top_layer_visibility(struct server *server)
 			continue;
 		}
 		if (view->fullscreen && !(view->outputs & outputs_covered)) {
-			wlr_scene_node_set_enabled(
-				&view->output->layer_tree[top]->node, false);
+			if (output->layer_tree[top]) {
+				wlr_scene_node_set_enabled(
+					&view->output->layer_tree[top]->node, false);
+			}
 		}
 		outputs_covered |= view->outputs;
 	}

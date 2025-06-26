@@ -124,6 +124,9 @@ get_special(struct server *server, struct wlr_scene_node *node)
 				return "output->layer_popup_tree";
 			}
 			for (int i = 0; i < 4; i++) {
+				if (!output->layer_tree[i]) {
+					continue;
+				}
 				if (node == &output->layer_tree[i]->node) {
 					return get_layer_name(i);
 				}

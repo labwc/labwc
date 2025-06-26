@@ -43,6 +43,8 @@ static void
 arrange_one_layer(const struct wlr_box *full_area, struct wlr_box *usable_area,
 		struct wlr_scene_tree *tree, bool exclusive)
 {
+	assert(tree);
+
 	struct wlr_scene_node *node;
 	wl_list_for_each(node, &tree->children, link) {
 		/*
@@ -90,6 +92,10 @@ layers_arrange(struct output *output)
 
 	for (int i = ARRAY_SIZE(output->layer_tree) - 1; i >= 0; i--) {
 		struct wlr_scene_tree *layer = output->layer_tree[i];
+		if (!layer) {
+			/* Might happen on output destroy */
+			continue;
+		}
 
 		/*
 		 * Process exclusive-zone clients before non-exclusive-zone
@@ -110,6 +116,10 @@ layers_arrange(struct output *output)
 
 	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		struct wlr_scene_tree *layer = output->layer_tree[i];
+		if (!layer) {
+			/* Might happen on output destroy */
+			continue;
+		}
 		arrange_one_layer(&full_area, &usable_area, layer, /* exclusive */ false);
 
 		/* Set node position to account for output layout change */
@@ -156,6 +166,10 @@ try_to_focus_next_layer_or_toplevel(struct server *server)
 	enum zwlr_layer_shell_v1_layer top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
 	for (size_t i = overlay; i >= top; i--) {
 		struct wlr_scene_tree *tree = output->layer_tree[i];
+		if (!tree) {
+			/* Might happen on output destroy */
+			continue;
+		}
 		struct wlr_scene_node *node;
 		/*
 		 * In wlr_scene.c they were added at end of list so we
@@ -270,8 +284,11 @@ handle_surface_commit(struct wl_listener *listener, void *data)
 
 	/* Process layer change */
 	if (committed & WLR_LAYER_SURFACE_V1_STATE_LAYER) {
-		wlr_scene_node_reparent(&layer->scene_layer_surface->tree->node,
-			output->layer_tree[layer_surface->current.layer]);
+		if (output->layer_tree[layer_surface->current.layer]) {
+			/* Might happen on output destroy */
+			wlr_scene_node_reparent(&layer->scene_layer_surface->tree->node,
+				output->layer_tree[layer_surface->current.layer]);
+		}
 	}
 	/* Process keyboard-interactivity change */
 	if (committed & WLR_LAYER_SURFACE_V1_STATE_KEYBOARD_INTERACTIVITY) {
@@ -597,6 +614,11 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 
 	struct wlr_scene_tree *selected_layer =
 		output->layer_tree[layer_surface->current.layer];
+	if (!selected_layer) {
+		wlr_layer_surface_v1_destroy(layer_surface);
+		wlr_log(WLR_ERROR, "Targeted output by layer surface destroyed");
+		return;
+	}
 
 	surface->scene_layer_surface = wlr_scene_layer_surface_v1_create(
 		selected_layer, layer_surface);

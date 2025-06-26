@@ -15,7 +15,7 @@ descriptor_destroy(struct node_descriptor *node_descriptor)
 }
 
 static void
-destroy_notify(struct wl_listener *listener, void *data)
+handle_node_destroy(struct wl_listener *listener, void *data)
 {
 	struct node_descriptor *node_descriptor =
 		wl_container_of(listener, node_descriptor, destroy);
@@ -29,7 +29,7 @@ node_descriptor_create(struct wlr_scene_node *scene_node,
 	struct node_descriptor *node_descriptor = znew(*node_descriptor);
 	node_descriptor->type = type;
 	node_descriptor->data = data;
-	node_descriptor->destroy.notify = destroy_notify;
+	node_descriptor->destroy.notify = handle_node_destroy;
 	wl_signal_add(&scene_node->events.destroy, &node_descriptor->destroy);
 	scene_node->data = node_descriptor;
 }

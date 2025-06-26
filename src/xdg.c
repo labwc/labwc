@@ -922,7 +922,7 @@ handle_xdg_activation_request(struct wl_listener *listener, void *data)
  *     to help the popups find their parent nodes
  */
 static void
-xdg_toplevel_new(struct wl_listener *listener, void *data)
+handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 {
 	struct server *server =
 		wl_container_of(listener, server, new_xdg_toplevel);
@@ -1063,7 +1063,7 @@ xdg_shell_init(struct server *server)
 		exit(EXIT_FAILURE);
 	}
 
-	server->new_xdg_toplevel.notify = xdg_toplevel_new;
+	server->new_xdg_toplevel.notify = handle_new_xdg_toplevel;
 	wl_signal_add(&server->xdg_shell->events.new_toplevel, &server->new_xdg_toplevel);
 
 	server->xdg_activation = wlr_xdg_activation_v1_create(server->wl_display);

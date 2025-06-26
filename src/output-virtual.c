@@ -45,7 +45,7 @@ output_virtual_add(struct server *server, const char *output_name,
 	 * and one time by the headless backend when it starts up and sends the
 	 * signal for all its configured outputs. Rather than keeping a global
 	 * server->headless.started state around that we could check here we just
-	 * ignore duplicated new output calls in new_output_notify().
+	 * ignore duplicated new output calls in handle_new_output().
 	 */
 	wl_list_remove(&server->new_output.link);
 
@@ -62,7 +62,7 @@ output_virtual_add(struct server *server, const char *output_name,
 		wlr_output_set_name(wlr_output, output_name);
 	}
 	if (store_wlr_output) {
-		/* Ensures that we can use the new wlr_output pointer within new_output_notify() */
+		/* Ensures that we can use the new wlr_output pointer within handle_new_output() */
 		*store_wlr_output = wlr_output;
 	}
 

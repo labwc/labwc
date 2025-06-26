@@ -87,7 +87,7 @@ struct keyboard {
 	struct input base;
 	struct wlr_keyboard *wlr_keyboard;
 	bool is_virtual;
-	struct wl_listener modifier;
+	struct wl_listener modifiers;
 	struct wl_listener key;
 	/* key repeat for compositor keybinds */
 	uint32_t keybind_repeat_keycode;
@@ -221,7 +221,7 @@ struct seat {
 	struct wl_listener virtual_pointer_new;
 
 	struct wlr_virtual_keyboard_manager_v1 *virtual_keyboard;
-	struct wl_listener virtual_keyboard_new;
+	struct wl_listener new_virtual_keyboard;
 };
 
 struct lab_data_buffer;
@@ -590,7 +590,7 @@ void output_enable_adaptive_sync(struct output *output, bool enabled);
  */
 float output_max_scale(struct server *server);
 
-void new_tearing_hint(struct wl_listener *listener, void *data);
+void handle_tearing_new_object(struct wl_listener *listener, void *data);
 
 void server_init(struct server *server);
 void server_start(struct server *server);

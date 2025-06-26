@@ -6,6 +6,7 @@
 #include <wlr/backend/session.h>
 #include <wlr/interfaces/wlr_keyboard.h>
 #include "action.h"
+#include "common/macros.h"
 #include "common/three-state.h"
 #include "idle.h"
 #include "input/ime.h"
@@ -140,9 +141,9 @@ broadcast_modifiers_to_unfocused_clients(struct wlr_seat *seat,
 }
 
 static void
-keyboard_modifiers_notify(struct wl_listener *listener, void *data)
+handle_modifiers(struct wl_listener *listener, void *data)
 {
-	struct keyboard *keyboard = wl_container_of(listener, keyboard, modifier);
+	struct keyboard *keyboard = wl_container_of(listener, keyboard, modifiers);
 	struct seat *seat = keyboard->base.seat;
 	struct server *server = seat->server;
 	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
@@ -358,7 +359,7 @@ get_keyinfo(struct wlr_keyboard *wlr_keyboard, uint32_t evdev_keycode)
 		&keyinfo.raw.syms);
 
 	/*
-	 * keyboard_key_notify() is called before keyboard_key_modifier(),
+	 * handle_key() is called before handle_modifiers(),
 	 * so 'modifiers' refers to modifiers that were pressed before the
 	 * key event in hand. Consequently, we use is_modifier_key() to
 	 * find out if the key event being processed is a modifier.
@@ -632,7 +633,7 @@ keyboard_cancel_all_keybind_repeats(struct seat *seat)
 }
 
 static void
-keyboard_key_notify(struct wl_listener *listener, void *data)
+handle_key(struct wl_listener *listener, void *data)
 {
 	/* This event is raised when a key is pressed or released. */
 	struct keyboard *keyboard = wl_container_of(listener, keyboard, key);
@@ -822,12 +823,8 @@ keyboard_group_init(struct seat *seat)
 void
 keyboard_setup_handlers(struct keyboard *keyboard)
 {
-	struct wlr_keyboard *wlr_kb = keyboard->wlr_keyboard;
-
-	keyboard->key.notify = keyboard_key_notify;
-	wl_signal_add(&wlr_kb->events.key, &keyboard->key);
-	keyboard->modifier.notify = keyboard_modifiers_notify;
-	wl_signal_add(&wlr_kb->events.modifiers, &keyboard->modifier);
+	CONNECT_SIGNAL(keyboard->wlr_keyboard, keyboard, key);
+	CONNECT_SIGNAL(keyboard->wlr_keyboard, keyboard, modifiers);
 }
 
 void

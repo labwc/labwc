@@ -710,7 +710,7 @@ handle_constraint_commit(struct wl_listener *listener, void *data)
 }
 
 static void
-destroy_constraint(struct wl_listener *listener, void *data)
+handle_constraint_destroy(struct wl_listener *listener, void *data)
 {
 	struct constraint *constraint = wl_container_of(listener, constraint,
 		destroy);
@@ -741,7 +741,7 @@ create_constraint(struct wl_listener *listener, void *data)
 
 	constraint->constraint = wlr_constraint;
 	constraint->seat = &server->seat;
-	constraint->destroy.notify = destroy_constraint;
+	constraint->destroy.notify = handle_constraint_destroy;
 	wl_signal_add(&wlr_constraint->events.destroy, &constraint->destroy);
 
 	struct view *view = server->active_view;

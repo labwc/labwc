@@ -5,13 +5,13 @@
 #include "view.h"
 
 struct tearing_controller {
-		struct wlr_tearing_control_v1 *tearing_control;
-		struct wl_listener set_hint;
-		struct wl_listener destroy;
+	struct wlr_tearing_control_v1 *tearing_control;
+	struct wl_listener set_hint;
+	struct wl_listener destroy;
 };
 
 static void
-set_tearing_hint(struct wl_listener *listener, void *data)
+handle_controller_set_hint(struct wl_listener *listener, void *data)
 {
 	struct tearing_controller *controller = wl_container_of(listener, controller, set_hint);
 	struct view *view = view_from_wlr_surface(controller->tearing_control->surface);
@@ -28,7 +28,7 @@ set_tearing_hint(struct wl_listener *listener, void *data)
 }
 
 static void
-tearing_controller_destroy(struct wl_listener *listener, void *data)
+handle_controller_destroy(struct wl_listener *listener, void *data)
 {
 	struct tearing_controller *controller = wl_container_of(listener, controller, destroy);
 	wl_list_remove(&controller->set_hint.link);
@@ -37,7 +37,7 @@ tearing_controller_destroy(struct wl_listener *listener, void *data)
 }
 
 void
-new_tearing_hint(struct wl_listener *listener, void *data)
+handle_tearing_new_object(struct wl_listener *listener, void *data)
 {
 	struct server *server = wl_container_of(listener, server, tearing_new_object);
 	struct wlr_tearing_control_v1 *tearing_control = data;
@@ -51,9 +51,9 @@ new_tearing_hint(struct wl_listener *listener, void *data)
 	struct tearing_controller *controller = znew(*controller);
 	controller->tearing_control = tearing_control;
 
-	controller->set_hint.notify = set_tearing_hint;
+	controller->set_hint.notify = handle_controller_set_hint;
 	wl_signal_add(&tearing_control->events.set_hint, &controller->set_hint);
 
-	controller->destroy.notify = tearing_controller_destroy;
+	controller->destroy.notify = handle_controller_destroy;
 	wl_signal_add(&tearing_control->events.destroy, &controller->destroy);
 }

@@ -45,13 +45,6 @@ arrange_one_layer(const struct wlr_box *full_area, struct wlr_box *usable_area,
 {
 	struct wlr_scene_node *node;
 	wl_list_for_each(node, &tree->children, link) {
-		/*
-		 * Could be null during destruction when called from
-		 * handle_node_destroy()
-		 */
-		if (!node->data) {
-			continue;
-		}
 		struct lab_layer_surface *surface = node_layer_surface_from_node(node);
 		struct wlr_scene_layer_surface_v1 *scene = surface->scene_layer_surface;
 		if (!scene->layer_surface->initialized) {
@@ -126,7 +119,6 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, output_destroy);
 	layer->scene_layer_surface->layer_surface->output = NULL;
-	layer->output = NULL;
 	wlr_layer_surface_v1_destroy(layer->scene_layer_surface->layer_surface);
 }
 
@@ -336,16 +328,6 @@ handle_node_destroy(struct wl_listener *listener, void *data)
 	 * focus to.
 	 */
 
-	/*
-	 * Nullify node descriptor early to avoid functions such as
-	 * arrange_one_layer() trying to dereference it.
-	 */
-	layer->tree->node.data = NULL;
-
-	if (layer->output) {
-		output_update_usable_area(layer->output);
-	}
-
 	wl_list_remove(&layer->map.link);
 	wl_list_remove(&layer->unmap.link);
 	wl_list_remove(&layer->surface_commit.link);
@@ -361,6 +343,9 @@ handle_unmap(struct wl_listener *listener, void *data)
 	struct lab_layer_surface *layer = wl_container_of(listener, layer, unmap);
 	struct wlr_layer_surface_v1 *layer_surface =
 		layer->scene_layer_surface->layer_surface;
+	if (layer_surface->output) {
+		output_update_usable_area(layer_surface->output->data);
+	}
 	struct seat *seat = &layer->server->seat;
 	if (seat->focused_layer == layer_surface) {
 		try_to_focus_next_layer_or_toplevel(layer->server);
@@ -590,7 +575,6 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 	surface->layer_surface = layer_surface;
 
 	struct output *output = layer_surface->output->data;
-	surface->output = output;
 
 	wlr_fractional_scale_v1_notify_scale(layer_surface->surface,
 		output->wlr_output->scale);
@@ -605,7 +589,6 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 		wlr_log(WLR_ERROR, "could not create layer surface");
 		return;
 	}
-	surface->tree = surface->scene_layer_surface->tree;
 
 	/* In support of IME popup */
 	layer_surface->surface->data = surface->scene_layer_surface->tree;

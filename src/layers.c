@@ -50,6 +50,9 @@ arrange_one_layer(const struct wlr_box *full_area, struct wlr_box *usable_area,
 		if (!scene->layer_surface->initialized) {
 			continue;
 		}
+		if (surface->being_unmapped) {
+			continue;
+		}
 		if (!!scene->layer_surface->current.exclusive_zone != exclusive) {
 			continue;
 		}
@@ -343,6 +346,18 @@ handle_unmap(struct wl_listener *listener, void *data)
 	struct lab_layer_surface *layer = wl_container_of(listener, layer, unmap);
 	struct wlr_layer_surface_v1 *layer_surface =
 		layer->scene_layer_surface->layer_surface;
+
+	/*
+	 * If we send a configure event in unmap handler, the layer-shell
+	 * client sends ack_configure back and wlroots posts a
+	 * "wrong configure serial" error, which terminates the client (see
+	 * https://github.com/labwc/labwc/pull/1154#issuecomment-2906885183).
+	 *
+	 * To prevent this, we set being_unmapped here and check it in
+	 * arrange_one_layer() called by output_update_usable_area().
+	 */
+	layer->being_unmapped = true;
+
 	if (layer_surface->output) {
 		output_update_usable_area(layer_surface->output->data);
 	}
@@ -350,6 +365,8 @@ handle_unmap(struct wl_listener *listener, void *data)
 	if (seat->focused_layer == layer_surface) {
 		try_to_focus_next_layer_or_toplevel(layer->server);
 	}
+
+	layer->being_unmapped = false;
 }
 
 static void

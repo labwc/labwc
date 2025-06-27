@@ -14,6 +14,8 @@ struct lab_layer_surface {
 	struct server *server;
 
 	bool mapped;
+	/* true only inside handle_unmap() */
+	bool being_unmapped;
 
 	struct wl_listener map;
 	struct wl_listener unmap;

@@ -444,7 +444,7 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	server->workspaces.current = target;
 
 	struct view *grabbed_view = server->grabbed_view;
-	if (grabbed_view) {
+	if (grabbed_view && !view_is_always_on_top(grabbed_view)) {
 		view_move_to_workspace(grabbed_view, target);
 	}
 

@@ -443,6 +443,11 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	/* Make sure new views will spawn on the new workspace */
 	server->workspaces.current = target;
 
+	struct view *grabbed_view = server->grabbed_view;
+	if(grabbed_view) {
+		view_move_to_workspace(grabbed_view, target);
+	}
+
 	/*
 	 * Make sure we are focusing what the user sees. Only refocus if
 	 * the focus is not already on an omnipresent or always-on-top view.

@@ -304,17 +304,7 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 		? server->xwayland->server->client
 		: NULL;
 
-	if (client == xwayland_client) {
-		/*
-		 * Filter out wp_drm_lease_device_v1 for now as it is resulting in
-		 * issues with Xwayland applications lagging over time.
-		 *
-		 * https://github.com/labwc/labwc/issues/553
-		 */
-		if (!strcmp(iface->name, wp_drm_lease_device_v1_interface.name)) {
-			return false;
-		}
-	} else if (!strcmp(iface->name, xwayland_shell_v1_interface.name)) {
+	if (client != xwayland_client && !strcmp(iface->name, xwayland_shell_v1_interface.name)) {
 		/* Filter out the xwayland shell for usual clients */
 		return false;
 	}

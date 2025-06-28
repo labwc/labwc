@@ -95,10 +95,25 @@ sfdo_icon = dependency(
   required: have_libsfdo,
 )
 
+xwayland = dependency(
+  'xwayland',
+  version: '>=21.1.9',
+  required: get_option('xwayland'),
+)
+
 if get_option('xwayland').enabled() and not wlroots_has_xwayland
 	error('no wlroots Xwayland support')
 endif
-have_xwayland = xcb.found() and wlroots_has_xwayland
+if get_option('xwayland').disabled()
+	have_xwayland = false
+elif not xwayland.found()
+	warning('disabling xwayland, requires version >= 21.1.9')
+	have_xwayland = false
+elif xcb.found() and wlroots_has_xwayland
+	have_xwayland = true
+else
+	have_xwayland = false
+endif
 conf_data = configuration_data()
 conf_data.set10('HAVE_XWAYLAND', have_xwayland)
 

@@ -53,6 +53,20 @@ usage(void)
 }
 
 static void
+print_version(void)
+{
+	#define FEATURE_ENABLED(feature) (HAVE_##feature ? "+" : "-")
+	printf("labwc %s (%sxwayland %snls %srsvg %slibsfdo)\n",
+		LABWC_VERSION,
+		FEATURE_ENABLED(XWAYLAND),
+		FEATURE_ENABLED(NLS),
+		FEATURE_ENABLED(RSVG),
+		FEATURE_ENABLED(LIBSFDO)
+	);
+	#undef FEATURE_ENABLED
+}
+
+static void
 die_on_detecting_suid(void)
 {
 	if (geteuid() != 0 && getegid() != 0) {
@@ -175,7 +189,7 @@ main(int argc, char *argv[])
 			primary_client = optarg;
 			break;
 		case 'v':
-			printf("labwc " LABWC_VERSION "\n");
+			print_version();
 			exit(0);
 		case 'V':
 			verbosity = WLR_INFO;

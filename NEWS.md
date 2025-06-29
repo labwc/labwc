@@ -53,6 +53,11 @@ There is a regression warning worth noting for the switch to wlroots 0.19:
 
 ### Added
 
+- Enhance `-v|--version` option be adding feature flags like `+xwayland -rsvg`.
+  @Consolatis [#2873]
+- Send drm leases to XWayland clients. This requires XWayland >= 21.1.9.
+  @Consolatis [#553] [#2873]
+- Add `<windowRule iconPriority="client|server">`. @Consolatis @tokyo4j [#2839]
 - Support theme colors defined by X11-color-names and '#rgb' syntax @jlindgren90
   [#2686]
 - Support basic vertical titlebar gradients and the additional theme options
@@ -65,7 +70,8 @@ window.*.title.bg.color.splitTo:
 window.*.title.bg.colorTo.splitTo:
 ```
 
-- Support the XWayland `_NET_WM_ICON` property @Consolatis @tokyo4j [#2840]
+- Support the XWayland `_NET_WM_ICON` property. Use the new `iconPriority`
+  window rule to enable this. @Consolatis @tokyo4j [#2840]
 - Add config option `<core><primarySelection>`. This enables autoscroll
   (middle-click to scroll up/down) in Chromium and electron based clients
   without inadvertantly pasting the primary clipboard. @johanmalm [#2832]
@@ -83,7 +89,8 @@ window.*.title.bg.colorTo.splitTo:
 - Add support for the following Wayland protocols:
   - `ext-data-control` @Consolatis [#2829]
   - `alpha-modifier` @Consolatis [#2829]
-  - `xdg-toplevel-icon protocol` @tokyo4j [#2755]
+  - `xdg-toplevel-icon protocol`. Use the new `iconPriority` window rule to
+     enable this. @tokyo4j [#2755]
   - `drm-syncobj` protocol @zeusgoose [#2737]
   - `ext-image-copy-capture` protocol @any1 [#2740]
 - Support both axis for XWayland client side maximize requests.
@@ -96,6 +103,7 @@ window.*.title.bg.colorTo.splitTo:
 
 ### Fixed
 
+- Allow dragged windows to be moved to other workspaces. @Sumandora [#2868]
 - Destroy xdg-shell popups when their parent is destroyed to fix potential
   compositor crash. @Consolatis [#2846]
 - Clear SSD hover effects after touch-up @jp7677 [#2837]
@@ -106,8 +114,8 @@ window.*.title.bg.colorTo.splitTo:
   cursor shape protocol). @jp7677 [#2808]
 - For XWayland, give focus to a modal dialog rather than its parent.
   @jlindgren90 [#2722]
-- Arrange layers on layer-shell surface `destroy` rather than `unmap` to fix
-  issues with `wshowkeys` and `kitten` @johanmalm [#1153] [#1154]
+- Do not send configure events in unmap handler to fix issues with `wshowkeys`
+  and `kitten` @tokyo4j @johanmalm [#1153] [#1154] [#2867]
 - Window switcher fixes: @tokyo4j [#2770]
   - Always show title with `<field content="title">`. Before this patch, titles
     were not shown if identical to identifiers.

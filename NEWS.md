@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2025-06-24 | [unreleased]  | 0.19.0          | 28504         |
+| 2025-07-11 | [0.9.0]       | 0.19.0          | 28586         |
 | 2025-05-02 | [0.8.4]       | 0.18.2          | 27679         |
 | 2025-02-21 | [0.8.3]       | 0.18.2          | 27671         |
 | 2024-12-13 | [0.8.2]       | 0.18.2          | 26298         |
@@ -36,18 +36,33 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## [unreleased]
+## [0.9.0]
 
 The main focus has been to port labwc to wlroots 0.19 [#2388] and fix associated
-issues. Special thanks to @Consolatis @jlindgren90 for this. There are a couple
-of regression warnings when using wlroots 0.19. We would like to fix these
-before releasing:
+issues. Special thanks to @Consolatis @jlindgren90 for this.
 
-- Press-drag-release menu actions broken [#2787]
-- Blurry Gtk surfaces after output on/off with scale != 1.0 [#2769]
+There is a regression warning worth noting for the switch to wlroots 0.19:
+
+- Menu item can no longer be activated in any Gtk applications with a single
+  press-drag-release mouse action. For context: This is due to ambiguity in the
+  specifications and contrary implementations. For example, Gtk applications are
+  broken under KWin in this regard, while vice versa Qt clients are broken under
+  other compositors like Weston, Mutter and labwc. It has been decided not to
+  block the release due to this regression as it is an eco-system wide issue
+  that has existed for a long time. [#2787]
+- VR headset support is disabled when compiled with wlroots `0.19.0` to work
+  around a bug on the wlroots side which is expected to be fixed in wlroots
+  `0.19.1` [#2887]
 
 ### Added
 
+- Add client `lab-sensible-terminal` and add a `Terminal` entry to the default
+  root-menu @johanmalm [#2877]
+- Enhance `-v|--version` option by adding feature flags like `+xwayland -rsvg`.
+  @Consolatis [#2873]
+- Send drm leases to XWayland clients. This requires XWayland >= 21.1.9.
+  @Consolatis [#553] [#2873]
+- Add `<windowRule iconPriority="client|server">`. @Consolatis @tokyo4j [#2839]
 - Support theme colors defined by X11-color-names and '#rgb' syntax @jlindgren90
   [#2686]
 - Support basic vertical titlebar gradients and the additional theme options
@@ -60,7 +75,8 @@ window.*.title.bg.color.splitTo:
 window.*.title.bg.colorTo.splitTo:
 ```
 
-- Support the XWayland `_NET_WM_ICON` property @Consolatis @tokyo4j [#2840]
+- Support the XWayland `_NET_WM_ICON` property. Use the new `iconPriority`
+  window rule to enable this. @Consolatis @tokyo4j [#2840]
 - Add config option `<core><primarySelection>`. This enables autoscroll
   (middle-click to scroll up/down) in Chromium and electron based clients
   without inadvertantly pasting the primary clipboard. @johanmalm [#2832]
@@ -73,12 +89,13 @@ window.*.title.bg.colorTo.splitTo:
   - `<scrollMethod>none|twofinger|edge</scrollMethod>` @Consolatis [#2767]
 - Add `{left,right}-occupied` options to `GoToDesktop` @DreamMaoMao [#2790]
 - Add config option `<theme><dropShadowsOnTiled>` @diredocks [#2789]
-- Add missing tracking of configure serials for xdg-shell surface to fix
-  issue with mpv @jlindgren90 [#2774] [#2788]
+- Add missing tracking of configure serials for xdg-shell surface to fix issue
+  with mpv @jlindgren90 [#2774] [#2788]
 - Add support for the following Wayland protocols:
   - `ext-data-control` @Consolatis [#2829]
   - `alpha-modifier` @Consolatis [#2829]
-  - `xdg-toplevel-icon protocol` @tokyo4j [#2755]
+  - `xdg-toplevel-icon protocol`. Use the new `iconPriority` window rule to
+     enable this. @tokyo4j [#2755]
   - `drm-syncobj` protocol @zeusgoose [#2737]
   - `ext-image-copy-capture` protocol @any1 [#2740]
 - Support both axis for XWayland client side maximize requests.
@@ -91,6 +108,9 @@ window.*.title.bg.colorTo.splitTo:
 
 ### Fixed
 
+- Fix flicking with negative screen/window resistance @ahesford [#2886]
+- Fix layer-shell UAF bug on TTY change @johanmalm @Consolatis [#2874]
+- Allow dragged windows to be moved to other workspaces. @Sumandora [#2868]
 - Destroy xdg-shell popups when their parent is destroyed to fix potential
   compositor crash. @Consolatis [#2846]
 - Clear SSD hover effects after touch-up @jp7677 [#2837]
@@ -101,31 +121,33 @@ window.*.title.bg.colorTo.splitTo:
   cursor shape protocol). @jp7677 [#2808]
 - For XWayland, give focus to a modal dialog rather than its parent.
   @jlindgren90 [#2722]
-- Arrange layers on layer-shell surface `destroy` rather than `unmap` to
-  fix issues with `wshowkeys` and `kitten` @johanmalm [#1153] [#1154]
+- Do not send configure events in unmap handler to fix issues with `wshowkeys`
+  and `kitten` @tokyo4j @johanmalm [#1153] [#1154] [#2867]
 - Window switcher fixes: @tokyo4j [#2770]
-  - Always show title with `<field content="title">`. Before this patch,
-    titles were not shown if identical to identifiers.
-  - Always show output name with `<field content="output">`. Before this
-    patch, output names were not shown if there was only one output.
+  - Always show title with `<field content="title">`. Before this patch, titles
+    were not shown if identical to identifiers.
+  - Always show output name with `<field content="output">`. Before this patch,
+    output names were not shown if there was only one output.
 - Send fractional scale to layer-shell surfaces before map. @Consolatis [#2768]
 - Only configure initialized layer-shell surfaces to fix bug with
   `kitten quick-access-terminal` @alex-huff [#2736] [#2745] 
-- Improve focus semantics for XWayland windows using the Globally Active
-  input model to fix issues with Zoom, WeChat and CLion @jlindgren90 [#1142]
+- Improve focus semantics for XWayland windows using the Globally Active input
+  model to fix issues with Zoom, WeChat and CLion @jlindgren90 [#1142]
   [#2811] [#2819]
-- Provide better support for XWayland client keyboard focus grabs by using
-  the new `grab_focus` signal. @jlindgren90 [#1142]
-- Guard against negative sizes in window-switching and menu graphical
-  artefacts. @tokyo4j [#2727]
-- Do not broadcast keyboard modifiers from virtual keyboards to fix issue
-  with per-window layout settings. @orfeasxyz [#2723] [#2724]
+- Provide better support for XWayland client keyboard focus grabs by using the
+  new `grab_focus` signal. @jlindgren90 [#1142]
+- Guard against negative sizes in window-switching and menu graphical artefacts.
+  @tokyo4j [#2727]
+- Do not broadcast keyboard modifiers from virtual keyboards to fix issue with
+  per-window layout settings. @orfeasxyz [#2723] [#2724]
 - Gracefully exit when no fonts are installed @tokyo4j [#2713]
-- config: validate total osd field width to ensure it does not exceed
-  100%.  @tokyo4j [#2710]
+- config: validate total osd field width to ensure it does not exceed 100%.
+  @tokyo4j [#2710]
 
 ### Changed
 
+- Replace alacritty in default keybind with `lab-sensible-terminal` @tokyo4j
+  [#2891]
 - Use the `Super` modifier instead of `Alt` for the default mousebinds `A-Left`
   and `A-Right` (for move and resize) to avoid interfering with some clients
   like CAD programs and games @johanmalm [#2831]
@@ -136,20 +158,17 @@ window.*.title.bg.colorTo.splitTo:
     to use and this one results in frequent user complaints because it prevents
     some common usage patterns like alt-left/right in web browers.
 - Change default titlebar menu button from a dot to an arrow @johanmalm [#2844]
-- "Sticky" mode for drag-locking is enabled by default as recommended by
-  libinput [#2803]. The timeout based behavior can be restored via the snippet
-  below. To disable the feature all together use `no` as the value.
+- When `dragLock` is set to `yes`, the drag no longer expires after a short
+  delay (known as `Sticky` mode) as recommended by libinput [#2803]. The timeout
+  based behavior can be restored via the snippet below.
 
 ```xml
 <libinput>
   <device>
-    <dragLock>yes</dragLock>
+    <dragLock>timeout</dragLock>
   </device>
 </libinput>
 ```
-
-- TODO: Default source for icon name has changed with the support of
-  `xdg-toplevel-icon` protocol
 
 ## [0.8.4]
 
@@ -2104,7 +2123,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.8.4...HEAD
+[unreleased]: https://github.com/labwc/labwc/compare/0.9.0...HEAD
+[0.9.0]: https://github.com/labwc/labwc/compare/0.8.4...0.9.0
 [0.8.4]: https://github.com/labwc/labwc/compare/0.8.3...0.8.4
 [0.8.3]: https://github.com/labwc/labwc/compare/0.8.2...0.8.3
 [0.8.2]: https://github.com/labwc/labwc/compare/0.8.1...0.8.2
@@ -2497,7 +2517,6 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2755]: https://github.com/labwc/labwc/pull/2755
 [#2767]: https://github.com/labwc/labwc/pull/2767
 [#2768]: https://github.com/labwc/labwc/pull/2768
-[#2769]: https://github.com/labwc/labwc/pull/2769
 [#2770]: https://github.com/labwc/labwc/pull/2770
 [#2774]: https://github.com/labwc/labwc/pull/2774
 [#2778]: https://github.com/labwc/labwc/pull/2778
@@ -2517,6 +2536,15 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2831]: https://github.com/labwc/labwc/pull/2831
 [#2832]: https://github.com/labwc/labwc/pull/2832
 [#2837]: https://github.com/labwc/labwc/pull/2837
+[#2839]: https://github.com/labwc/labwc/pull/2839
 [#2840]: https://github.com/labwc/labwc/pull/2840
 [#2844]: https://github.com/labwc/labwc/pull/2844
 [#2846]: https://github.com/labwc/labwc/pull/2846
+[#2867]: https://github.com/labwc/labwc/pull/2867
+[#2868]: https://github.com/labwc/labwc/pull/2868
+[#2873]: https://github.com/labwc/labwc/pull/2873
+[#2874]: https://github.com/labwc/labwc/pull/2874
+[#2877]: https://github.com/labwc/labwc/pull/2877
+[#2886]: https://github.com/labwc/labwc/pull/2886
+[#2887]: https://github.com/labwc/labwc/pull/2887
+[#2891]: https://github.com/labwc/labwc/pull/2891

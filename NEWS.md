@@ -39,12 +39,17 @@ The format is based on [Keep a Changelog]
 ## [0.9.0]
 
 The main focus has been to port labwc to wlroots 0.19 [#2388] and fix associated
-issues. Special thanks to @Consolatis @jlindgren90 for this. There are a couple
-of regression warnings when using wlroots 0.19. We would like to fix these
-before releasing:
+issues. Special thanks to @Consolatis @jlindgren90 for this.
 
-- Press-drag-release menu actions broken [#2787]
-- Blurry Gtk surfaces after output on/off with scale != 1.0 [#2769]
+There is a regression warning worth noting for the switch to wlroots 0.19:
+
+- Menu item can no longer be activated in any Gtk applications with a single
+  press-drag-release mouse action. For context: This is due to ambiguity in the
+  specifications and contrary implementations. For example, Gtk applications are
+  broken under KWin in this regard, while vice versa Qt clients are broken under
+  other compositors like Weston, Mutter and labwc. It has been decided not to
+  block the release due to this regression as it is an eco-system wide issue
+  that has existed for a long time. [#2787]
 
 ### Added
 

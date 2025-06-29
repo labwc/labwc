@@ -310,6 +310,17 @@ handle_node_destroy(struct wl_listener *listener, void *data)
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, node_destroy);
 
+	struct seat *seat = &layer->server->seat;
+
+	/*
+	 * If the surface of this node has the current keyboard focus, then we
+	 * have to deal with `seat->focused_layer` to avoid UAF bugs, for
+	 * example on TTY change. See issue #2863
+	 */
+	if (layer->layer_surface == seat->focused_layer) {
+		seat_set_focus_layer(seat, NULL);
+	}
+
 	/*
 	 * Important:
 	 *

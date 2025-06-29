@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2025-06-24 | [unreleased]  | 0.19.0          | 28504         |
+| 2025-07-11 | [0.9.0]       | 0.19.0          | 28586         |
 | 2025-05-02 | [0.8.4]       | 0.18.2          | 27679         |
 | 2025-02-21 | [0.8.3]       | 0.18.2          | 27671         |
 | 2024-12-13 | [0.8.2]       | 0.18.2          | 26298         |
@@ -36,7 +36,7 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## [unreleased]
+## [0.9.0]
 
 The main focus has been to port labwc to wlroots 0.19 [#2388] and fix associated
 issues. Special thanks to @Consolatis @jlindgren90 for this. There are a couple
@@ -73,8 +73,8 @@ window.*.title.bg.colorTo.splitTo:
   - `<scrollMethod>none|twofinger|edge</scrollMethod>` @Consolatis [#2767]
 - Add `{left,right}-occupied` options to `GoToDesktop` @DreamMaoMao [#2790]
 - Add config option `<theme><dropShadowsOnTiled>` @diredocks [#2789]
-- Add missing tracking of configure serials for xdg-shell surface to fix
-  issue with mpv @jlindgren90 [#2774] [#2788]
+- Add missing tracking of configure serials for xdg-shell surface to fix issue
+  with mpv @jlindgren90 [#2774] [#2788]
 - Add support for the following Wayland protocols:
   - `ext-data-control` @Consolatis [#2829]
   - `alpha-modifier` @Consolatis [#2829]
@@ -101,28 +101,28 @@ window.*.title.bg.colorTo.splitTo:
   cursor shape protocol). @jp7677 [#2808]
 - For XWayland, give focus to a modal dialog rather than its parent.
   @jlindgren90 [#2722]
-- Arrange layers on layer-shell surface `destroy` rather than `unmap` to
-  fix issues with `wshowkeys` and `kitten` @johanmalm [#1153] [#1154]
+- Arrange layers on layer-shell surface `destroy` rather than `unmap` to fix
+  issues with `wshowkeys` and `kitten` @johanmalm [#1153] [#1154]
 - Window switcher fixes: @tokyo4j [#2770]
-  - Always show title with `<field content="title">`. Before this patch,
-    titles were not shown if identical to identifiers.
-  - Always show output name with `<field content="output">`. Before this
-    patch, output names were not shown if there was only one output.
+  - Always show title with `<field content="title">`. Before this patch, titles
+    were not shown if identical to identifiers.
+  - Always show output name with `<field content="output">`. Before this patch,
+    output names were not shown if there was only one output.
 - Send fractional scale to layer-shell surfaces before map. @Consolatis [#2768]
 - Only configure initialized layer-shell surfaces to fix bug with
   `kitten quick-access-terminal` @alex-huff [#2736] [#2745] 
-- Improve focus semantics for XWayland windows using the Globally Active
-  input model to fix issues with Zoom, WeChat and CLion @jlindgren90 [#1142]
+- Improve focus semantics for XWayland windows using the Globally Active input
+  model to fix issues with Zoom, WeChat and CLion @jlindgren90 [#1142]
   [#2811] [#2819]
-- Provide better support for XWayland client keyboard focus grabs by using
-  the new `grab_focus` signal. @jlindgren90 [#1142]
-- Guard against negative sizes in window-switching and menu graphical
-  artefacts. @tokyo4j [#2727]
-- Do not broadcast keyboard modifiers from virtual keyboards to fix issue
-  with per-window layout settings. @orfeasxyz [#2723] [#2724]
+- Provide better support for XWayland client keyboard focus grabs by using the
+  new `grab_focus` signal. @jlindgren90 [#1142]
+- Guard against negative sizes in window-switching and menu graphical artefacts.
+  @tokyo4j [#2727]
+- Do not broadcast keyboard modifiers from virtual keyboards to fix issue with
+  per-window layout settings. @orfeasxyz [#2723] [#2724]
 - Gracefully exit when no fonts are installed @tokyo4j [#2713]
-- config: validate total osd field width to ensure it does not exceed
-  100%.  @tokyo4j [#2710]
+- config: validate total osd field width to ensure it does not exceed 100%.
+  @tokyo4j [#2710]
 
 ### Changed
 

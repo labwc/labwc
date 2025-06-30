@@ -161,9 +161,6 @@ window.*.title.bg.colorTo.splitTo:
 </libinput>
 ```
 
-- TODO: Default source for icon name has changed with the support of
-  `xdg-toplevel-icon` protocol
-
 ## [0.8.4]
 
 This release predominantly consists of bug-fixes, code simplification and

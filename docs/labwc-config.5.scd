@@ -965,7 +965,7 @@ extending outward from the snapped edge.
     <tap>yes</tap>
     <tapButtonMap></tapButtonMap>
     <tapAndDrag></tapAndDrag>
-    <dragLock>sticky</dragLock>
+    <dragLock></dragLock>
     <threeFingerDrag></threeFingerDrag>
     <middleEmulation></middleEmulation>
     <disableWhileTyping></disableWhileTyping>
@@ -1035,11 +1035,13 @@ extending outward from the snapped edge.
 	Enable or disable tap-and-drag for this category. Tap-and-drag processes
 	a tap immediately followed by a finger down as the start of a drag.
 
-*<libinput><device><dragLock>* [yes|no|sticky]
+*<libinput><device><dragLock>* [yes|no|timeout]
 	Enable or disable drag lock for this category. Drag lock ignores a temporary
-	release of a finger during tap-and-dragging. Both *yes* and *sticky* enable
-	drag lock, but if *yes* is set, the drag lock expires after a timeout.
-	Default is *sticky*.
+	release of a finger during tap-and-dragging.
+
+	*timeout* also enables drag lock, but with a timeout: if your fingers are
+	released for a certain amount of time, the drag gesture is cancelled.
+	In libinput < 1.27, the behavior of *yes* is equivalent to *timeout*.
 
 *<libinput><device><threeFingerDrag>* [yes|no|3|4]
 	Enable or disable the three-finger drag feature. When enabled, three

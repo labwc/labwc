@@ -53,7 +53,7 @@ There is a regression warning worth noting for the switch to wlroots 0.19:
 
 ### Added
 
-- Enhance `-v|--version` option be adding feature flags like `+xwayland -rsvg`.
+- Enhance `-v|--version` option by adding feature flags like `+xwayland -rsvg`.
   @Consolatis [#2873]
 - Send drm leases to XWayland clients. This requires XWayland >= 21.1.9.
   @Consolatis [#553] [#2873]

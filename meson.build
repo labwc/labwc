@@ -198,6 +198,10 @@ install_data('data/labwc.desktop', install_dir: get_option('datadir') / 'wayland
 
 install_data('data/labwc-portals.conf', install_dir: get_option('datadir') / 'xdg-desktop-portal')
 
+# TODO: move this to clients/meson.build after the labnag PR
+clients = files('clients/lab-sensible-terminal')
+install_data(clients, install_dir: get_option('bindir'))
+
 icons = ['labwc-symbolic.svg', 'labwc.svg']
 foreach icon : icons
   icon_path = join_paths('data', icon)

@@ -1,0 +1,57 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+
+# X11 terminals are at the back of the list in case the script is run
+# without XWayland support
+terminals="\
+	x-terminal-emulator \
+	alacritty \
+	foot \
+	kitty \
+	xfce4-terminal \
+	lxterminal \
+	qterminal \
+	mate-terminal \
+	gnome-terminal \
+	konsole \
+	sakura \
+	terminator \
+	terminology \
+	tilix \
+	color-xterm \
+	termit \
+	aterm \
+	roxterm \
+	termite \
+	lilyterm \
+	terminix \
+	guake \
+	tilda \
+	hyper \
+	wezterm \
+	rio \
+	kgx \
+	xterm \
+	uxterm \
+	dtterm \
+	st \
+	nxterm \
+	Eterm \
+	rxvt \
+	urxvt"
+
+if [ -n "${TERMINAL}" ]; then
+	# ${TERMINAL} is not quoted here, so things like
+	# TERMINAL="foot -T my-terminal" work as expected.
+	exec ${TERMINAL} "$@"
+fi
+
+for terminal in $terminals
+do
+	if command -v "${terminal}" >/dev/null 2>&1
+	then
+		exec "$terminal" "$@"
+	fi
+done
+
+exit 1

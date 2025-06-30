@@ -618,7 +618,7 @@
       <tap>yes</tap>
       <tapButtonMap></tapButtonMap>
       <tapAndDrag></tapAndDrag>
-      <dragLock>sticky</dragLock>
+      <dragLock></dragLock>
       <threeFingerDrag></threeFingerDrag>
       <middleEmulation></middleEmulation>
       <disableWhileTyping></disableWhileTyping>

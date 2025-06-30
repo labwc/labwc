@@ -149,14 +149,14 @@ window.*.title.bg.colorTo.splitTo:
     to use and this one results in frequent user complaints because it prevents
     some common usage patterns like alt-left/right in web browers.
 - Change default titlebar menu button from a dot to an arrow @johanmalm [#2844]
-- "Sticky" mode for drag-locking is enabled by default as recommended by
-  libinput [#2803]. The timeout based behavior can be restored via the snippet
-  below. To disable the feature all together use `no` as the value.
+- When `dragLock` is set to `yes`, `Sticky` mode is used by default as
+  recommended by libinput [#2803]. The timeout based behavior can be restored
+  via the snippet below.
 
 ```xml
 <libinput>
   <device>
-    <dragLock>yes</dragLock>
+    <dragLock>timeout</dragLock>
   </device>
 </libinput>
 ```

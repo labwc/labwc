@@ -70,6 +70,16 @@
   <item label="Poweroff">
     <action name="Execute" command="systemctl -i poweroff" />
   </item>
+  <!--
+  # A prompt can be used as follows:
+  <item label="Exit">
+    <action name="If"/>
+      <prompt text="Do you really want to exit the compositor?"/>
+      <then>
+        <action name="Exit"/>
+      </then>
+  </item>
+  -->
 </menu>
 
 <menu id="some-custom-menu">

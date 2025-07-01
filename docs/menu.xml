@@ -55,12 +55,10 @@
   <!--
   <menu id="client-list-combined-menu" label="Running..." />
   -->
-  <item label="Web browser">
-    <action name="Execute" command="firefox" />
-  </item>
   <item label="Terminal">
-    <action name="Execute" command="alacritty" />
+    <action name="Execute" command="lab-sensible-terminal" />
   </item>
+  <separator />
   <item label="Reconfigure">
     <action name="Reconfigure" />
   </item>

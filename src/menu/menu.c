@@ -1030,6 +1030,13 @@ init_rootmenu(struct server *server)
 	if (!menu) {
 		current_menu = NULL;
 		menu = menu_create(server, "root-menu", "");
+
+		current_item = item_create(menu, _("Terminal"), false);
+		fill_item("name.action", "Execute");
+		fill_item("command.action", "lab-sensible-terminal");
+
+		current_item = separator_create(menu, NULL);
+
 		current_item = item_create(menu, _("Reconfigure"), false);
 		fill_item("name.action", "Reconfigure");
 		current_item = item_create(menu, _("Exit"), false);

@@ -344,7 +344,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			bool allow_center = action->type == ACTION_TYPE_TOGGLE_SNAP_TO_EDGE
 				|| action->type == ACTION_TYPE_SNAP_TO_EDGE;
 			if ((edge == VIEW_EDGE_CENTER && !allow_center)
-					|| edge == VIEW_EDGE_INVALID) {
+					|| edge == VIEW_EDGE_INVALID || edge == VIEW_EDGE_ALL) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			} else {
@@ -452,7 +452,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		}
 		if (!strcmp(argument, "direction")) {
 			enum view_edge edge = view_edge_parse(content);
-			if (edge == VIEW_EDGE_CENTER) {
+			if (edge == VIEW_EDGE_CENTER || edge == VIEW_EDGE_ALL) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			} else {

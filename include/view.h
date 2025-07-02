@@ -62,11 +62,14 @@ enum view_axis {
 enum view_edge {
 	VIEW_EDGE_INVALID = 0,
 
-	VIEW_EDGE_LEFT,
-	VIEW_EDGE_RIGHT,
-	VIEW_EDGE_UP,
-	VIEW_EDGE_DOWN,
-	VIEW_EDGE_CENTER,
+	VIEW_EDGE_LEFT = (1 << 0),
+	VIEW_EDGE_RIGHT = (1 << 1),
+	VIEW_EDGE_UP = (1 << 2),
+	VIEW_EDGE_DOWN = (1 << 3),
+	VIEW_EDGE_CENTER = (1 << 4),
+
+	VIEW_EDGE_ALL = (VIEW_EDGE_LEFT | VIEW_EDGE_RIGHT |
+		VIEW_EDGE_UP | VIEW_EDGE_DOWN | VIEW_EDGE_CENTER),
 };
 
 enum view_wants_focus {

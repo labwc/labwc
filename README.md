@@ -254,6 +254,7 @@ Suggested apps to use with Labwc:
 - Output managers: [wlopm], [kanshi], [wlr-randr]
 - Screen locker: [swaylock]
 - Gamma adjustment: [gammastep]
+- Idle screen inhibitor: [sway-audio-idle-inhibit]
 
 See [integration] for further details.
 
@@ -303,3 +304,4 @@ The default window bar menu can be translated on the [weblate platform](https://
 [wlr-randr]: https://sr.ht/~emersion/wlr-randr/
 [swaylock]: https://github.com/swaywm/swaylock
 [gammastep]: https://gitlab.com/chinstrap/gammastep
+[sway-audio-idle-inhibit]: https://github.com/ErikReider/SwayAudioIdleInhibit

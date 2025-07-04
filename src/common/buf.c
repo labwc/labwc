@@ -13,15 +13,15 @@
 void
 buf_expand_tilde(struct buf *s)
 {
-	struct buf new = BUF_INIT;
+	struct buf tmp = BUF_INIT;
 	for (int i = 0 ; i < s->len ; i++) {
 		if (s->data[i] == '~') {
-			buf_add(&new, getenv("HOME"));
+			buf_add(&tmp, getenv("HOME"));
 		} else {
-			buf_add_char(&new, s->data[i]);
+			buf_add_char(&tmp, s->data[i]);
 		}
 	}
-	buf_move(s, &new);
+	buf_move(s, &tmp);
 }
 
 static void
@@ -45,7 +45,7 @@ isvalid(char p)
 void
 buf_expand_shell_variables(struct buf *s)
 {
-	struct buf new = BUF_INIT;
+	struct buf tmp = BUF_INIT;
 	struct buf environment_variable = BUF_INIT;
 
 	for (int i = 0 ; i < s->len ; i++) {
@@ -62,14 +62,14 @@ buf_expand_shell_variables(struct buf *s)
 			strip_curly_braces(environment_variable.data);
 			p = getenv(environment_variable.data);
 			if (p) {
-				buf_add(&new, p);
+				buf_add(&tmp, p);
 			}
 		} else {
-			buf_add_char(&new, s->data[i]);
+			buf_add_char(&tmp, s->data[i]);
 		}
 	}
 	buf_reset(&environment_variable);
-	buf_move(s, &new);
+	buf_move(s, &tmp);
 }
 
 static void

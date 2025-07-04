@@ -467,16 +467,8 @@ menu_create_scene(struct menu *menu)
  * </item>
  */
 static void
-fill_item(char *nodename, char *content)
+fill_item(const char *nodename, const char *content)
 {
-	/*
-	 * Nodenames for most menu-items end with '.item.menu' but top-level
-	 * pipemenu items do not have the associated <menu> element so merely
-	 * end with a '.item'
-	 */
-	string_truncate_at_pattern(nodename, ".item.menu");
-	string_truncate_at_pattern(nodename, ".item");
-
 	/* <item label=""> defines the start of a new item */
 	if (!strcmp(nodename, "label")) {
 		current_item = item_create(current_menu, content, false);
@@ -572,6 +564,13 @@ entry(xmlNode *node, char *nodename, char *content)
 		printf("%s: %s\n", nodename, content ? content : (char *)cdata);
 	}
 	if (in_item) {
+		/*
+		 * Nodenames for most menu-items end with '.item.menu'
+		 * but top-level pipemenu items do not have the associated
+		 * <menu> element so merely end with '.item'
+		 */
+		string_truncate_at_pattern(nodename, ".item.menu");
+		string_truncate_at_pattern(nodename, ".item");
 		fill_item(nodename, content ? content : (char *)cdata);
 	}
 	xmlFree(cdata);

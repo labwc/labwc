@@ -387,7 +387,7 @@ get_keyinfo(struct wlr_keyboard *wlr_keyboard, uint32_t evdev_keycode)
 	return keyinfo;
 }
 
-static bool
+static enum lab_key_handled
 handle_key_release(struct server *server, uint32_t evdev_keycode)
 {
 	/*
@@ -395,7 +395,7 @@ handle_key_release(struct server *server, uint32_t evdev_keycode)
 	 * forwarded to clients to avoid stuck keys.
 	 */
 	if (!key_state_corresponding_press_event_was_bound(evdev_keycode)) {
-		return false;
+		return LAB_KEY_HANDLED_FALSE;
 	}
 
 	/*
@@ -416,7 +416,7 @@ handle_key_release(struct server *server, uint32_t evdev_keycode)
 	 * not forward the corresponding release event to clients.
 	 */
 	key_state_bound_key_remove(evdev_keycode);
-	return true;
+	return LAB_KEY_HANDLED_TRUE;
 }
 
 static bool
@@ -518,10 +518,10 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 			key_state_bound_key_remove(event->keycode);
 			if (locked && !cur_keybind->allow_when_locked) {
 				cur_keybind = NULL;
-				return true;
+				return LAB_KEY_HANDLED_TRUE;
 			}
 			actions_run(NULL, server, &cur_keybind->actions, NULL);
-			return true;
+			return LAB_KEY_HANDLED_TRUE;
 		} else {
 			return handle_key_release(server, event->keycode);
 		}
@@ -542,11 +542,11 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		if (server->input_mode == LAB_INPUT_STATE_MENU) {
 			key_state_store_pressed_key_as_bound(event->keycode);
 			handle_menu_keys(server, &keyinfo.translated);
-			return true;
+			return LAB_KEY_HANDLED_TRUE;
 		} else if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
 			if (handle_cycle_view_key(server, &keyinfo)) {
 				key_state_store_pressed_key_as_bound(event->keycode);
-				return true;
+				return LAB_KEY_HANDLED_TRUE;
 			}
 		}
 	}
@@ -565,10 +565,10 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 		if (!cur_keybind->on_release) {
 			actions_run(NULL, server, &cur_keybind->actions, NULL);
 		}
-		return true;
+		return LAB_KEY_HANDLED_TRUE;
 	}
 
-	return false;
+	return LAB_KEY_HANDLED_FALSE;
 }
 
 static int

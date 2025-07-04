@@ -467,13 +467,14 @@ menu_create_scene(struct menu *menu)
  * </item>
  */
 static void
-fill_item(char *nodename, char *content)
+fill_item(const char *nodename_, const char *content)
 {
 	/*
 	 * Nodenames for most menu-items end with '.item.menu' but top-level
 	 * pipemenu items do not have the associated <menu> element so merely
 	 * end with a '.item'
 	 */
+	char *nodename = xstrdup(nodename_);
 	string_truncate_at_pattern(nodename, ".item.menu");
 	string_truncate_at_pattern(nodename, ".item");
 
@@ -503,6 +504,8 @@ fill_item(char *nodename, char *content)
 	} else {
 		action_arg_from_xml_node(current_item_action, nodename, content);
 	}
+
+	free(nodename);
 }
 
 static void

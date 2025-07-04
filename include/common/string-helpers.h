@@ -59,8 +59,7 @@ char *strdup_printf(const char *fmt, ...);
  * The separator is arbitrary. When the separator is NULL, a single space will
  * be used.
  */
-char *str_join(const char *const parts[],
-	const char *restrict fmt, const char *restrict sep);
+char *str_join(const char *const parts[], const char *fmt, const char *sep);
 
 /**
  * str_endswith - indicate whether a string ends with a given suffix

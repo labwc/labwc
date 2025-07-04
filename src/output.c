@@ -609,7 +609,7 @@ output_config_apply(struct server *server,
 		struct wlr_output *o = head->state.output;
 		struct output *output = output_from_wlr_output(server, o);
 		struct wlr_output_state *os = &output->pending;
-		bool output_enabled = head->state.enabled && !output->leased;
+		bool output_enabled = head->state.enabled;
 
 		wlr_output_state_set_enabled(os, output_enabled);
 		if (output_enabled) {
@@ -1006,7 +1006,7 @@ bool
 output_is_usable(struct output *output)
 {
 	/* output_is_usable(NULL) is safe and returns false */
-	return output && output->wlr_output->enabled && !output->leased;
+	return output && output->wlr_output->enabled;
 }
 
 /* returns true if usable area changed */

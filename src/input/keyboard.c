@@ -265,23 +265,21 @@ static struct keybind *
 match_keybinding(struct server *server, struct keyinfo *keyinfo,
 		bool is_virtual)
 {
-	if (is_virtual) {
-		goto process_syms;
+	if (!is_virtual) {
+		/* First try keycodes */
+		struct keybind *keybind = match_keybinding_for_sym(server,
+			keyinfo->modifiers, XKB_KEY_NoSymbol, keyinfo->xkb_keycode);
+		if (keybind) {
+			wlr_log(WLR_DEBUG, "keycode matched");
+			return keybind;
+		}
 	}
 
-	/* First try keycodes */
-	struct keybind *keybind = match_keybinding_for_sym(server,
-		keyinfo->modifiers, XKB_KEY_NoSymbol, keyinfo->xkb_keycode);
-	if (keybind) {
-		wlr_log(WLR_DEBUG, "keycode matched");
-		return keybind;
-	}
-
-process_syms:
 	/* Then fall back to keysyms */
 	for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
-		keybind = match_keybinding_for_sym(server, keyinfo->modifiers,
-			keyinfo->translated.syms[i], keyinfo->xkb_keycode);
+		struct keybind *keybind =
+			match_keybinding_for_sym(server, keyinfo->modifiers,
+				keyinfo->translated.syms[i], keyinfo->xkb_keycode);
 		if (keybind) {
 			wlr_log(WLR_DEBUG, "translated keysym matched");
 			return keybind;
@@ -290,8 +288,9 @@ process_syms:
 
 	/* And finally test for keysyms without modifier */
 	for (int i = 0; i < keyinfo->raw.nr_syms; i++) {
-		keybind = match_keybinding_for_sym(server, keyinfo->modifiers,
-			keyinfo->raw.syms[i], keyinfo->xkb_keycode);
+		struct keybind *keybind =
+			match_keybinding_for_sym(server, keyinfo->modifiers,
+				keyinfo->raw.syms[i], keyinfo->xkb_keycode);
 		if (keybind) {
 			wlr_log(WLR_DEBUG, "raw keysym matched");
 			return keybind;

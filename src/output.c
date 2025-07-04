@@ -445,11 +445,20 @@ handle_new_output(struct wl_listener *listener, void *data)
 	 * to use planes and present directly.
 	 * This is also useful for debugging the DRM parts of
 	 * another compositor.
+	 *
+	 * All drm leasing is disabled due to a UAF bug in wlroots.
+	 * We assume that the fix will be backported to 0.19.1 and thus
+	 * check for a version >= 0.19.1. See following link for the fix status:
+	 * https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5104
+	 *
+	 * TODO: remove once labwc starts tracking 0.20.x and the fix has been merged.
 	 */
+#if LAB_WLR_VERSION_AT_LEAST(0, 19, 1)
 	if (server->drm_lease_manager && wlr_output_is_drm(wlr_output)) {
 		wlr_drm_lease_v1_manager_offer_output(
 			server->drm_lease_manager, wlr_output);
 	}
+#endif
 
 	/*
 	 * Don't configure any non-desktop displays, such as VR headsets;

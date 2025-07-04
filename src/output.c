@@ -1100,28 +1100,6 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 			return;
 		}
 		wlr_output_state_set_enabled(&output->pending, true);
-		if (!event->output->current_mode) {
-			/*
-			 * This output uses a custom mode, due to a wlroots DRM
-			 * issue we have to ensure the output commit includes a
-			 * modeset. This is made more difficult by wlroots
-			 * removing a requested change for a custom resolution
-			 * from the output state when it matches the wlr_output
-			 * one. To in turn work around this issue we temporarily
-			 * change the custom wlr_output resolution.
-			 *
-			 * See: https://gitlab.freedesktop.org/wlroots/wlroots/-/issues/3946
-			 *
-			 * TODO: To be removed once the underlying wlroots issue
-			 *       has been fixed and released. Likely only after
-			 *       labwc starts tracking wlroots 0.19 to keep older
-			 *       0.18.x releases working as expected.
-			 */
-			int width = event->output->width;
-			event->output->width++;
-			wlr_output_state_set_custom_mode(&output->pending, width,
-				event->output->height, event->output->refresh);
-		}
 		output_state_commit(output);
 		/*
 		 * Re-set the cursor image so that the cursor

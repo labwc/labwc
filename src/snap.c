@@ -195,7 +195,8 @@ snap_grow_to_next_edge(struct view *view,
 	edges_initialize(&next_edges);
 
 	/* Use a constrained, effective geometry for snapping if appropriate */
-	struct wlr_box origin = snap_constraints_effective(view, direction);
+	struct wlr_box origin =
+		snap_constraints_effective(view, resize_edges, /* use_pending */ true);
 
 	/* Limit motion to any intervening edge of other views on this output */
 	edges_find_neighbors(&next_edges, view, origin, *geo,
@@ -208,7 +209,7 @@ snap_grow_to_next_edge(struct view *view,
 	 * Record effective geometry after snapping in case the client opts to
 	 * ignore or modify the configured geometry
 	 */
-	snap_constraints_set(view, direction, *geo);
+	snap_constraints_set(view, resize_edges, *geo);
 }
 
 void
@@ -261,7 +262,8 @@ snap_shrink_to_next_edge(struct view *view,
 	edges_initialize(&next_edges);
 
 	/* Use a constrained, effective geometry for snapping if appropriate */
-	struct wlr_box origin = snap_constraints_effective(view, direction);
+	struct wlr_box origin =
+		snap_constraints_effective(view, resize_edges, /* use_pending */ true);
 
 	/* Snap to output edges if the moving edge started off-screen */
 	edges_find_outputs(&next_edges, view,
@@ -278,5 +280,5 @@ snap_shrink_to_next_edge(struct view *view,
 	 * Record effective geometry after snapping in case the client opts to
 	 * ignore or modify the configured geometry
 	 */
-	snap_constraints_set(view, direction, *geo);
+	snap_constraints_set(view, resize_edges, *geo);
 }

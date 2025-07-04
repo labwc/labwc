@@ -289,49 +289,49 @@ load_buttons(struct theme *theme)
 {
 	struct button buttons[] = { {
 		.name = "menu",
+		.fallback_button = (const char[]){ 0x00, 0x21, 0x33, 0x1E, 0x0C, 0x00 },
 		.type = LAB_SSD_BUTTON_WINDOW_MENU,
 		.state_set = 0,
-		.fallback_button = (const char[]){ 0x00, 0x21, 0x33, 0x1E, 0x0C, 0x00 },
 	}, {
 		.name = "iconify",
+		.fallback_button = (const char[]){ 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
 		.type = LAB_SSD_BUTTON_ICONIFY,
 		.state_set = 0,
-		.fallback_button = (const char[]){ 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
 	}, {
 		.name = "max",
+		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
 		.type = LAB_SSD_BUTTON_MAXIMIZE,
 		.state_set = 0,
-		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
 	}, {
 		.name = "max_toggled",
+		.fallback_button = (const char[]){ 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
 		.type = LAB_SSD_BUTTON_MAXIMIZE,
 		.state_set = LAB_BS_TOGGLED,
-		.fallback_button = (const char[]){ 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
 	}, {
 		.name = "shade",
+		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x00, 0x0c, 0x1e, 0x3f },
 		.type = LAB_SSD_BUTTON_SHADE,
 		.state_set = 0,
-		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x00, 0x0c, 0x1e, 0x3f },
 	}, {
 		.name = "shade_toggled",
+		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x00, 0x3f, 0x1e, 0x0c },
 		.type = LAB_SSD_BUTTON_SHADE,
 		.state_set = LAB_BS_TOGGLED,
-		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x00, 0x3f, 0x1e, 0x0c },
 	}, {
 		.name = "desk",
+		.fallback_button = (const char[]){ 0x33, 0x33, 0x00, 0x00, 0x33, 0x33 },
 		.type = LAB_SSD_BUTTON_OMNIPRESENT,
 		.state_set = 0,
-		.fallback_button = (const char[]){ 0x33, 0x33, 0x00, 0x00, 0x33, 0x33 },
 	}, {
 		.name = "desk_toggled",
+		.fallback_button = (const char[]){ 0x00, 0x1e, 0x1a, 0x16, 0x1e, 0x00 },
 		.type = LAB_SSD_BUTTON_OMNIPRESENT,
 		.state_set = LAB_BS_TOGGLED,
-		.fallback_button = (const char[]){ 0x00, 0x1e, 0x1a, 0x16, 0x1e, 0x00 },
 	}, {
 		.name = "close",
+		.fallback_button = (const char[]){ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
 		.type = LAB_SSD_BUTTON_CLOSE,
 		.state_set = 0,
-		.fallback_button = (const char[]){ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
 	}, {
 		.name = "menu_hover",
 		.type = LAB_SSD_BUTTON_WINDOW_MENU,

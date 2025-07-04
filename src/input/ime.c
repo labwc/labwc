@@ -224,13 +224,13 @@ update_popup_position(struct input_method_popup *popup)
 		.anchor_rect = cursor_rect,
 		.anchor = XDG_POSITIONER_ANCHOR_BOTTOM_LEFT,
 		.gravity = XDG_POSITIONER_GRAVITY_BOTTOM_RIGHT,
+		.constraint_adjustment =
+			XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_FLIP_Y
+			| XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_SLIDE_X,
 		.size = {
 			.width = popup->popup_surface->surface->current.width,
 			.height = popup->popup_surface->surface->current.height,
 		},
-		.constraint_adjustment =
-			XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_FLIP_Y
-			| XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_SLIDE_X,
 	};
 
 	struct wlr_box popup_box;

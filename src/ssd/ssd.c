@@ -46,9 +46,9 @@ ssd_thickness(struct view *view)
 
 	struct border thickness = {
 		.top = theme->titlebar_height + theme->border_width,
+		.right = theme->border_width,
 		.bottom = theme->border_width,
 		.left = theme->border_width,
-		.right = theme->border_width,
 	};
 
 	if (view->ssd_titlebar_hidden) {

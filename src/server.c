@@ -183,22 +183,6 @@ handle_drm_lease_request(struct wl_listener *listener, void *data)
 		wlr_drm_lease_request_v1_reject(req);
 		return;
 	}
-
-	for (size_t i = 0; i < req->n_connectors; ++i) {
-		struct output *output = req->connectors[i]->output->data;
-		if (!output) {
-			continue;
-		}
-
-		wlr_output_state_set_enabled(&output->pending, false);
-		output_state_commit(output);
-
-		wlr_output_layout_remove(output->server->output_layout,
-			output->wlr_output);
-		output->scene_output = NULL;
-
-		output->leased = true;
-	}
 }
 
 static bool

@@ -1556,7 +1556,7 @@ rcxml_init(void)
 
 	rc.gap = 0;
 	rc.adaptive_sync = LAB_ADAPTIVE_SYNC_DISABLED;
-	rc.allow_tearing = false;
+	rc.allow_tearing = LAB_TEARING_DISABLED;
 	rc.auto_enable_outputs = true;
 	rc.reuse_output_mode = false;
 	rc.xwayland_persistence = false;

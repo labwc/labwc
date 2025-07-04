@@ -62,11 +62,15 @@ enum view_axis {
 enum view_edge {
 	VIEW_EDGE_INVALID = 0,
 
-	VIEW_EDGE_LEFT,
-	VIEW_EDGE_RIGHT,
-	VIEW_EDGE_UP,
-	VIEW_EDGE_DOWN,
-	VIEW_EDGE_CENTER,
+	VIEW_EDGE_LEFT = 1 << 0,
+	VIEW_EDGE_RIGHT = 1 << 1,
+	VIEW_EDGE_UP = 1 << 2,
+	VIEW_EDGE_DOWN = 1 << 3,
+	VIEW_EDGE_CENTER = 1 << 4,
+	VIEW_EDGE_UPLEFT = VIEW_EDGE_UP | VIEW_EDGE_LEFT,
+	VIEW_EDGE_UPRIGHT = VIEW_EDGE_UP | VIEW_EDGE_RIGHT,
+	VIEW_EDGE_DOWNLEFT = VIEW_EDGE_DOWN | VIEW_EDGE_LEFT,
+	VIEW_EDGE_DOWNRIGHT = VIEW_EDGE_DOWN | VIEW_EDGE_RIGHT,
 };
 
 enum view_wants_focus {
@@ -513,6 +517,9 @@ bool view_is_focusable(struct view *view);
  */
 void view_offer_focus(struct view *view);
 
+struct wlr_box view_get_edge_snap_box(struct view *view, struct output *output,
+	enum view_edge edge);
+
 void mappable_connect(struct mappable *mappable, struct wlr_surface *surface,
 	wl_notify_func_t notify_map, wl_notify_func_t notify_unmap);
 void mappable_disconnect(struct mappable *mappable);
@@ -654,7 +661,7 @@ void view_init(struct view *view);
 void view_destroy(struct view *view);
 
 enum view_axis view_axis_parse(const char *direction);
-enum view_edge view_edge_parse(const char *direction);
+enum view_edge view_edge_parse(const char *direction, bool tiling);
 enum view_placement_policy view_placement_parse(const char *policy);
 
 /* xdg.c */

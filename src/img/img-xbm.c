@@ -141,12 +141,13 @@ tokenize_xbm(char *buffer)
 			add_token(&ctx, TOKEN_IDENT);
 			get_identifier_token(&ctx);
 			continue;
-		case '0' ... '9':
+		case '0' ... '9': {
 			add_token(&ctx, TOKEN_INT);
 			get_number_token(&ctx);
 			struct token *token = ctx.tokens + ctx.nr_tokens - 1;
 			token->value = (int)strtol(token->name, NULL, 0);
 			continue;
+		}
 		case '{':
 			add_token(&ctx, TOKEN_SPECIAL);
 			get_special_char_token(&ctx);

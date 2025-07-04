@@ -21,8 +21,6 @@ struct field_converter {
 	field_conversion_type *fn;
 };
 
-static const struct field_converter field_converter[];
-
 /* Internal helpers */
 
 static const char *
@@ -200,6 +198,27 @@ field_set_title_short(struct buf *buf, struct view *view, const char *format)
 	buf_add(buf, get_title_if_different(view));
 }
 
+static void field_set_custom(struct buf *buf, struct view *view,
+	const char *format);
+
+static const struct field_converter field_converter[LAB_FIELD_COUNT] = {
+	[LAB_FIELD_TYPE]               = { 'B', field_set_type },
+	[LAB_FIELD_TYPE_SHORT]         = { 'b', field_set_type_short },
+	[LAB_FIELD_WIN_STATE_ALL]      = { 'S', field_set_win_state_all },
+	[LAB_FIELD_WIN_STATE]          = { 's', field_set_win_state },
+	[LAB_FIELD_IDENTIFIER]         = { 'I', field_set_identifier },
+	[LAB_FIELD_TRIMMED_IDENTIFIER] = { 'i', field_set_identifier_trimmed },
+	[LAB_FIELD_DESKTOP_ENTRY_NAME] = { 'n', field_set_desktop_entry_name},
+	[LAB_FIELD_WORKSPACE]          = { 'W', field_set_workspace },
+	[LAB_FIELD_WORKSPACE_SHORT]    = { 'w', field_set_workspace_short },
+	[LAB_FIELD_OUTPUT]             = { 'O', field_set_output },
+	[LAB_FIELD_OUTPUT_SHORT]       = { 'o', field_set_output_short },
+	[LAB_FIELD_TITLE]              = { 'T', field_set_title },
+	[LAB_FIELD_TITLE_SHORT]        = { 't', field_set_title_short },
+	/* fmt_char can never be matched so prevents LAB_FIELD_CUSTOM recursion */
+	[LAB_FIELD_CUSTOM]             = { '\0', field_set_custom },
+};
+
 static void
 field_set_custom(struct buf *buf, struct view *view, const char *format)
 {
@@ -277,24 +296,6 @@ reset_format:
 	}
 	buf_reset(&field_result);
 }
-
-static const struct field_converter field_converter[LAB_FIELD_COUNT] = {
-	[LAB_FIELD_TYPE]               = { 'B', field_set_type },
-	[LAB_FIELD_TYPE_SHORT]         = { 'b', field_set_type_short },
-	[LAB_FIELD_WIN_STATE_ALL]      = { 'S', field_set_win_state_all },
-	[LAB_FIELD_WIN_STATE]          = { 's', field_set_win_state },
-	[LAB_FIELD_IDENTIFIER]         = { 'I', field_set_identifier },
-	[LAB_FIELD_TRIMMED_IDENTIFIER] = { 'i', field_set_identifier_trimmed },
-	[LAB_FIELD_DESKTOP_ENTRY_NAME] = { 'n', field_set_desktop_entry_name},
-	[LAB_FIELD_WORKSPACE]          = { 'W', field_set_workspace },
-	[LAB_FIELD_WORKSPACE_SHORT]    = { 'w', field_set_workspace_short },
-	[LAB_FIELD_OUTPUT]             = { 'O', field_set_output },
-	[LAB_FIELD_OUTPUT_SHORT]       = { 'o', field_set_output_short },
-	[LAB_FIELD_TITLE]              = { 'T', field_set_title },
-	[LAB_FIELD_TITLE_SHORT]        = { 't', field_set_title_short },
-	/* fmt_char can never be matched so prevents LAB_FIELD_CUSTOM recursion */
-	[LAB_FIELD_CUSTOM]             = { '\0', field_set_custom },
-};
 
 struct window_switcher_field *
 osd_field_create(void)

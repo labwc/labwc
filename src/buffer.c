@@ -33,14 +33,8 @@
 #include "common/box.h"
 #include "common/mem.h"
 
-static const struct wlr_buffer_impl data_buffer_impl;
-
-static struct lab_data_buffer *
-data_buffer_from_buffer(struct wlr_buffer *buffer)
-{
-	assert(buffer->impl == &data_buffer_impl);
-	return (struct lab_data_buffer *)buffer;
-}
+static struct lab_data_buffer *data_buffer_from_buffer(
+	struct wlr_buffer *buffer);
 
 static void
 data_buffer_destroy(struct wlr_buffer *wlr_buffer)
@@ -79,6 +73,13 @@ static const struct wlr_buffer_impl data_buffer_impl = {
 	.begin_data_ptr_access = data_buffer_begin_data_ptr_access,
 	.end_data_ptr_access = data_buffer_end_data_ptr_access,
 };
+
+static struct lab_data_buffer *
+data_buffer_from_buffer(struct wlr_buffer *buffer)
+{
+	assert(buffer->impl == &data_buffer_impl);
+	return (struct lab_data_buffer *)buffer;
+}
 
 struct lab_data_buffer *
 buffer_adopt_cairo_surface(cairo_surface_t *surface)

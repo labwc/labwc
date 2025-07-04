@@ -323,11 +323,12 @@ manager_handle_commit(struct wl_client *client, struct wl_resource *resource)
 	struct lab_transaction_op *trans_op, *trans_op_tmp;
 	lab_transaction_for_each_safe(trans_op, trans_op_tmp, addon->ctx) {
 		switch (trans_op->change) {
-		case CW_PENDING_WS_CREATE:
+		case CW_PENDING_WS_CREATE: {
 			group = trans_op->src;
 			struct ws_create_workspace_event *ev = trans_op->data;
 			wl_signal_emit_mutable(&group->events.create_workspace, ev->name);
 			break;
+		}
 		case CW_PENDING_WS_ACTIVATE:
 			workspace = trans_op->src;
 			wl_signal_emit_mutable(&workspace->events.activate, NULL);

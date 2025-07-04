@@ -170,6 +170,19 @@ struct view_impl {
 	pid_t (*get_pid)(struct view *view);
 };
 
+struct resize_indicator {
+	int width, height;
+	struct wlr_scene_tree *tree;
+	struct wlr_scene_rect *border;
+	struct wlr_scene_rect *background;
+	struct scaled_font_buffer *text;
+};
+
+struct resize_outlines {
+	struct wlr_box view_geo;
+	struct lab_scene_rect *rect;
+};
+
 struct view {
 	struct server *server;
 	enum view_type type;
@@ -261,17 +274,8 @@ struct view {
 	struct wl_event_source *pending_configure_timeout;
 
 	struct ssd *ssd;
-	struct resize_indicator {
-		int width, height;
-		struct wlr_scene_tree *tree;
-		struct wlr_scene_rect *border;
-		struct wlr_scene_rect *background;
-		struct scaled_font_buffer *text;
-	} resize_indicator;
-	struct resize_outlines {
-		struct wlr_box view_geo;
-		struct lab_scene_rect *rect;
-	} resize_outlines;
+	struct resize_indicator resize_indicator;
+	struct resize_outlines resize_outlines;
 
 	struct mappable mappable;
 

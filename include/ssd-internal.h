@@ -48,6 +48,12 @@ struct ssd_state_title_width {
 	bool truncated;
 };
 
+struct ssd_state_title {
+	char *text;
+	struct ssd_state_title_width active;
+	struct ssd_state_title_width inactive;
+};
+
 struct ssd {
 	struct view *view;
 	struct wlr_scene_tree *tree;
@@ -78,11 +84,7 @@ struct ssd {
 		bool was_squared;
 
 		struct wlr_box geometry;
-		struct ssd_state_title {
-			char *text;
-			struct ssd_state_title_width active;
-			struct ssd_state_title_width inactive;
-		} title;
+		struct ssd_state_title title;
 	} state;
 
 	/* An invisible area around the view which allows resizing */

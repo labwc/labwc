@@ -433,7 +433,6 @@ struct output {
 	struct wl_listener frame;
 	struct wl_listener request_state;
 
-	bool leased;
 	bool gamma_lut_changed;
 };
 

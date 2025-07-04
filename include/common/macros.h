@@ -3,6 +3,7 @@
 #define LABWC_MACROS_H
 
 #include <limits.h>
+#include <wlr/version.h>
 
 /**
  * ARRAY_SIZE() - Get the number of elements in array.
@@ -60,5 +61,8 @@
 #ifndef BOUNDED_INT
 #define BOUNDED_INT(a) ((a) < INT_MAX && (a) > INT_MIN)
 #endif
+
+#define LAB_WLR_VERSION_AT_LEAST(major, minor, micro) \
+	(WLR_VERSION_NUM >= (((major) << 16) | ((minor) << 8) | (micro)))
 
 #endif /* LABWC_MACROS_H */

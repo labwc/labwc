@@ -445,11 +445,20 @@ handle_new_output(struct wl_listener *listener, void *data)
 	 * to use planes and present directly.
 	 * This is also useful for debugging the DRM parts of
 	 * another compositor.
+	 *
+	 * All drm leasing is disabled due to a UAF bug in wlroots.
+	 * We assume that the fix will be backported to 0.19.1 and thus
+	 * check for a version >= 0.19.1. See following link for the fix status:
+	 * https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5104
+	 *
+	 * TODO: remove once labwc starts tracking 0.20.x and the fix has been merged.
 	 */
+#if LAB_WLR_VERSION_AT_LEAST(0, 19, 1)
 	if (server->drm_lease_manager && wlr_output_is_drm(wlr_output)) {
 		wlr_drm_lease_v1_manager_offer_output(
 			server->drm_lease_manager, wlr_output);
 	}
+#endif
 
 	/*
 	 * Don't configure any non-desktop displays, such as VR headsets;
@@ -609,7 +618,7 @@ output_config_apply(struct server *server,
 		struct wlr_output *o = head->state.output;
 		struct output *output = output_from_wlr_output(server, o);
 		struct wlr_output_state *os = &output->pending;
-		bool output_enabled = head->state.enabled && !output->leased;
+		bool output_enabled = head->state.enabled;
 
 		wlr_output_state_set_enabled(os, output_enabled);
 		if (output_enabled) {
@@ -1006,7 +1015,7 @@ bool
 output_is_usable(struct output *output)
 {
 	/* output_is_usable(NULL) is safe and returns false */
-	return output && output->wlr_output->enabled && !output->leased;
+	return output && output->wlr_output->enabled;
 }
 
 /* returns true if usable area changed */

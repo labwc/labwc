@@ -7,6 +7,7 @@
 #include "edges.h"
 #include "labwc.h"
 #include "resistance.h"
+#include "snap-constraints.h"
 #include "view.h"
 
 static void
@@ -165,19 +166,30 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_geom)
 	struct border next_edges;
 	edges_initialize(&next_edges);
 
+	/* Use a constrained, effective geometry for snapping if appropriate */
+	enum wlr_edges resize_edges = view->server->resize_edges;
+	struct wlr_box origin =
+		snap_constraints_effective(view, resize_edges, /* use_pending */ false);
+
 	if (rc.screen_edge_strength != 0) {
 		/* Find any relevant output edges encountered by this move */
 		edges_find_outputs(&next_edges, view,
-			view->current, *new_geom, NULL, check_edge_output);
+			origin, *new_geom, NULL, check_edge_output);
 	}
 
 	if (rc.window_edge_strength != 0) {
 		/* Find any relevant window edges encountered by this move */
-		edges_find_neighbors(&next_edges, view, view->current, *new_geom,
+		edges_find_neighbors(&next_edges, view, origin, *new_geom,
 			NULL, check_edge_window, /* ignore_hidden */ true);
 	}
 
 	/* If any "best" edges were encountered during this move, snap motion */
 	edges_adjust_resize_geom(view, next_edges,
 		view->server->resize_edges, new_geom, /* use_pending */ false);
+
+	/*
+	 * Record effective geometry after snapping in case the client opts to
+	 * ignore or modify the configured geometry
+	 */
+	snap_constraints_set(view, resize_edges, *new_geom);
 }

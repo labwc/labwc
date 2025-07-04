@@ -37,8 +37,9 @@
 static struct {
 	struct view *view;
 	bool pending;
-	int offset;
-	enum view_edge direction;
+	int vertical_offset;
+	int horizontal_offset;
+	enum wlr_edges resize_edges;
 	struct wlr_box geom;
 } last_snap_hit;
 
@@ -47,13 +48,14 @@ snap_constraints_reset(void)
 {
 	last_snap_hit.view = NULL;
 	last_snap_hit.pending = false;
-	last_snap_hit.offset = INT_MIN;
-	last_snap_hit.direction = VIEW_EDGE_INVALID;
+	last_snap_hit.horizontal_offset = INT_MIN;
+	last_snap_hit.vertical_offset = INT_MIN;
+	last_snap_hit.resize_edges = WLR_EDGE_NONE;
 	memset(&last_snap_hit.geom, 0, sizeof(last_snap_hit.geom));
 }
 
 static bool
-snap_constraints_are_valid(struct view *view, enum view_edge direction)
+snap_constraints_are_valid(struct view *view, enum wlr_edges resize_edges)
 {
 	assert(view);
 
@@ -62,53 +64,61 @@ snap_constraints_are_valid(struct view *view, enum view_edge direction)
 		return false;
 	}
 
-	/* Cache is not valid if direction has changed */
-	if (direction != last_snap_hit.direction) {
+	/* Cache is not valid if expected edges do not match */
+	if (resize_edges != last_snap_hit.resize_edges) {
 		return false;
 	}
 
-	/* Cache is not valid if offset is unbounded */
-	if (!BOUNDED_INT(last_snap_hit.offset)) {
+	/* Cache is not valid if edge offsets are invalid */
+	if (resize_edges & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)) {
+		if (!BOUNDED_INT(last_snap_hit.horizontal_offset)) {
+			return false;
+		}
+
+		if ((resize_edges & WLR_EDGE_LEFT) && (resize_edges & WLR_EDGE_RIGHT)) {
+			return false;
+		}
+	} else if (resize_edges & (WLR_EDGE_TOP | WLR_EDGE_BOTTOM)) {
+		if (!BOUNDED_INT(last_snap_hit.vertical_offset)) {
+			return false;
+		}
+
+		if ((resize_edges & WLR_EDGE_TOP) && (resize_edges & WLR_EDGE_BOTTOM)) {
+			return false;
+		}
+	} else {
 		return false;
 	}
 
-	/* Cache is valid iff pending view geometry matches expectation */
+	/* Cache is valid iff view geometry matches expectation */
 	return wlr_box_equal(&view->pending, &last_snap_hit.geom);
 }
 
 void
 snap_constraints_set(struct view *view,
-		enum view_edge direction, struct wlr_box geom)
+		enum wlr_edges resize_edges, struct wlr_box geom)
 {
 	assert(view);
 
-	int offset = INT_MIN;
-	switch (direction) {
-	case VIEW_EDGE_LEFT:
-		offset = geom.x;
-		break;
-	case VIEW_EDGE_RIGHT:
-		offset = geom.x + geom.width;
-		break;
-	case VIEW_EDGE_UP:
-		offset = geom.y;
-		break;
-	case VIEW_EDGE_DOWN:
-		offset = geom.y + geom.height;
-		break;
-	default:
-		break;
+	/* Set horizontal offset when resizing horizontal edges */
+	last_snap_hit.horizontal_offset = INT_MIN;
+	if (resize_edges & WLR_EDGE_LEFT) {
+		last_snap_hit.horizontal_offset = geom.x;
+	} else if (resize_edges & WLR_EDGE_RIGHT) {
+		last_snap_hit.horizontal_offset = geom.x + geom.width;
 	}
 
-	if (!BOUNDED_INT(offset)) {
-		snap_constraints_reset();
-		return;
+	/* Set vertical offset when resizing vertical edges */
+	last_snap_hit.vertical_offset = INT_MIN;
+	if (resize_edges & WLR_EDGE_TOP) {
+		last_snap_hit.vertical_offset = geom.y;
+	} else if (resize_edges & WLR_EDGE_BOTTOM) {
+		last_snap_hit.vertical_offset = geom.y + geom.height;
 	}
 
 	/* Capture the current geometry and effective snapped edge */
 	last_snap_hit.view = view;
-	last_snap_hit.offset = offset;
-	last_snap_hit.direction = direction;
+	last_snap_hit.resize_edges = resize_edges;
 	last_snap_hit.geom = geom;
 
 	/*
@@ -152,37 +162,40 @@ snap_constraints_update(struct view *view)
 }
 
 struct wlr_box
-snap_constraints_effective(struct view *view, enum view_edge direction)
+snap_constraints_effective(struct view *view,
+		enum wlr_edges resize_edges, bool use_pending)
 {
 	assert(view);
 
+	struct wlr_box real_geom = use_pending ? view->pending : view->current;
+
 	/* Use actual geometry when constraints do not apply */
-	if (!snap_constraints_are_valid(view, direction)) {
-		return view->pending;
+	if (!snap_constraints_are_valid(view, resize_edges)) {
+		return real_geom;
 	}
 
 	/* Override changing edge with constrained value */
-	struct wlr_box geom = view->pending;
-	switch (last_snap_hit.direction) {
-	case VIEW_EDGE_LEFT:
-		geom.x = last_snap_hit.offset;
-		break;
-	case VIEW_EDGE_RIGHT:
-		geom.width = last_snap_hit.offset - geom.x;
-		break;
-	case VIEW_EDGE_UP:
-		geom.y = last_snap_hit.offset;
-		break;
-	case VIEW_EDGE_DOWN:
-		geom.height = last_snap_hit.offset - geom.y;
-		break;
-	default:
-		return view->pending;
+	struct wlr_box geom = real_geom;
+
+	if (resize_edges & WLR_EDGE_LEFT) {
+		geom.x = last_snap_hit.horizontal_offset;
+	} else if (resize_edges & WLR_EDGE_RIGHT) {
+		geom.width = last_snap_hit.horizontal_offset - geom.x;
+	}
+
+	if (resize_edges & WLR_EDGE_TOP) {
+		geom.y = last_snap_hit.vertical_offset;
+	} else if (resize_edges & WLR_EDGE_BOTTOM) {
+		geom.height = last_snap_hit.vertical_offset - geom.y;
 	}
 
 	/* Fall back to actual geometry when constrained geometry is nonsense */
+	if (!BOUNDED_INT(geom.x) || !BOUNDED_INT(geom.y)) {
+		return real_geom;
+	}
+
 	if (geom.width <= 0 || geom.height <= 0) {
-		return view->pending;
+		return real_geom;
 	}
 
 	return geom;

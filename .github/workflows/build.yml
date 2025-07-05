@@ -82,7 +82,7 @@ jobs:
         run: |
           pacman-key --init
           pacman -Syu --noconfirm
-          pacman -S --noconfirm git meson clang wlroots0.19 libdrm libinput \
+          pacman -S --noconfirm git meson clang wlroots0.20 libdrm libinput \
             wayland-protocols cairo pango libxml2 xorg-xwayland librsvg \
             libdisplay-info gdb ttf-dejavu foot libsfdo cmocka
 
@@ -107,7 +107,7 @@ jobs:
             pkg set -yn pkg:mesa-dri # hack to skip llvm dependency
             pkg install -y git pcre2 meson gcc pkgconf cairo pango evdev-proto \
               hwdata wayland-protocols libdisplay-info libepoll-shim \
-              wlroots019
+              wlroots020
           run: echo "setup done"
 
       - name: Install Void Linux dependencies

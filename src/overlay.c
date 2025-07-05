@@ -114,31 +114,13 @@ show_region_overlay(struct seat *seat, struct region *region)
 	show_overlay(seat, &seat->overlay.region_rect, &region->geo);
 }
 
-/* TODO: share logic with view_get_edge_snap_box() */
 static struct wlr_box get_edge_snap_box(enum view_edge edge, struct output *output)
 {
-	struct wlr_box box = output_usable_area_in_layout_coords(output);
-	switch (edge) {
-	case VIEW_EDGE_RIGHT:
-		box.x += box.width / 2;
-		/* fallthrough */
-	case VIEW_EDGE_LEFT:
-		box.width /= 2;
-		break;
-	case VIEW_EDGE_DOWN:
-		box.y += box.height / 2;
-		/* fallthrough */
-	case VIEW_EDGE_UP:
-		box.height /= 2;
-		break;
-	case VIEW_EDGE_CENTER:
-		/* <topMaximize> */
-		break;
-	default:
-		/* not reached */
-		assert(false);
+	if (edge == VIEW_EDGE_UP && rc.snap_top_maximize) {
+		return output_usable_area_in_layout_coords(output);
+	} else {
+		return view_get_edge_snap_box(NULL, output, edge);
 	}
-	return box;
 }
 
 static int

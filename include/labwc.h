@@ -429,7 +429,6 @@ void interactive_anchor_to_cursor(struct server *server, struct wlr_box *geo);
 void interactive_begin(struct view *view, enum input_mode mode, uint32_t edges);
 void interactive_finish(struct view *view);
 void interactive_cancel(struct view *view);
-/* Possibly returns VIEW_EDGE_CENTER if <topMaximize> is yes */
 enum view_edge edge_from_cursor(struct seat *seat, struct output **dest_output);
 
 void handle_tearing_new_object(struct wl_listener *listener, void *data);

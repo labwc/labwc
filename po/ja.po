@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
-"PO-Revision-Date: 2025-03-26 10:25+0000\n"
-"Last-Translator: Hiroaki Yamamoto <hrak1529@gmail.com>\n"
+"PO-Revision-Date: 2025-07-05 13:48+0000\n"
+"Last-Translator: UTUMI Hirosi <utuhiro78@yahoo.co.jp>\n"
 "Language-Team: Japanese <https://translate.lxqt-project.org/projects/labwc/"
 "labwc/ja/>\n"
 "Language: ja\n"
@@ -19,58 +19,62 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:1017
+#: src/menu/menu.c:1016
 msgid "Go there..."
 msgstr "移動する..."
 
-#: src/menu/menu.c:1037
+#: src/menu/menu.c:1034
+msgid "Terminal"
+msgstr "ターミナル"
+
+#: src/menu/menu.c:1040
 msgid "Reconfigure"
 msgstr "再設定"
 
-#: src/menu/menu.c:1039
+#: src/menu/menu.c:1042
 msgid "Exit"
 msgstr "終了"
 
-#: src/menu/menu.c:1055
+#: src/menu/menu.c:1056
 msgid "Minimize"
 msgstr "最小化"
 
-#: src/menu/menu.c:1057
+#: src/menu/menu.c:1058
 msgid "Maximize"
 msgstr "最大化"
 
-#: src/menu/menu.c:1059
+#: src/menu/menu.c:1060
 msgid "Fullscreen"
 msgstr "フルスクリーン"
 
-#: src/menu/menu.c:1061
+#: src/menu/menu.c:1062
 msgid "Roll Up/Down"
 msgstr "折りたたむ/広げる"
 
-#: src/menu/menu.c:1063
+#: src/menu/menu.c:1064
 msgid "Decorations"
 msgstr "デコレーション"
 
-#: src/menu/menu.c:1065
+#: src/menu/menu.c:1066
 msgid "Always on Top"
 msgstr "常に最前面に表示"
 
-#: src/menu/menu.c:1070
+#: src/menu/menu.c:1071
 msgid "Move Left"
 msgstr "左に移動"
 
-#: src/menu/menu.c:1077
+#: src/menu/menu.c:1078
 msgid "Move Right"
 msgstr "右に移動"
 
-#: src/menu/menu.c:1082
+#: src/menu/menu.c:1083
 msgid "Always on Visible Workspace"
 msgstr "現在のワークスペースに常に表示"
 
-#: src/menu/menu.c:1085 src/config/rcxml.c:1629
+#: src/menu/menu.c:1086
 msgid "Workspace"
 msgstr "ワークスペース"
 
-#: src/menu/menu.c:1088
+#: src/menu/menu.c:1089
 msgid "Close"
 msgstr "閉じる"

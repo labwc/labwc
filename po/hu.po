@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
-"PO-Revision-Date: 2025-05-25 21:26+0000\n"
+"PO-Revision-Date: 2025-07-04 17:16+0000\n"
 "Last-Translator: therealmate <hellogaming91@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.lxqt-project.org/projects/labwc/"
 "labwc/hu/>\n"
@@ -19,58 +19,62 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:1017
+#: src/menu/menu.c:1016
 msgid "Go there..."
 msgstr "Ugrás ide..."
 
-#: src/menu/menu.c:1037
+#: src/menu/menu.c:1034
+msgid "Terminal"
+msgstr "Terminál"
+
+#: src/menu/menu.c:1040
 msgid "Reconfigure"
 msgstr "Újrakonfigurálás"
 
-#: src/menu/menu.c:1039
+#: src/menu/menu.c:1042
 msgid "Exit"
 msgstr "Kilépés"
 
-#: src/menu/menu.c:1055
+#: src/menu/menu.c:1056
 msgid "Minimize"
 msgstr "Minimalizálás"
 
-#: src/menu/menu.c:1057
+#: src/menu/menu.c:1058
 msgid "Maximize"
 msgstr "Maximalizálás"
 
-#: src/menu/menu.c:1059
+#: src/menu/menu.c:1060
 msgid "Fullscreen"
 msgstr "Teljes képernyő"
 
-#: src/menu/menu.c:1061
+#: src/menu/menu.c:1062
 msgid "Roll Up/Down"
 msgstr "Felgördítés/Legördítés"
 
-#: src/menu/menu.c:1063
+#: src/menu/menu.c:1064
 msgid "Decorations"
 msgstr "Dekorációk"
 
-#: src/menu/menu.c:1065
+#: src/menu/menu.c:1066
 msgid "Always on Top"
 msgstr "Mindig felül"
 
-#: src/menu/menu.c:1070
+#: src/menu/menu.c:1071
 msgid "Move Left"
 msgstr "Mozgatás balra"
 
-#: src/menu/menu.c:1077
+#: src/menu/menu.c:1078
 msgid "Move Right"
 msgstr "Mozgatás jobbra"
 
-#: src/menu/menu.c:1082
+#: src/menu/menu.c:1083
 msgid "Always on Visible Workspace"
 msgstr "Mindig a látható munkaterületen"
 
-#: src/menu/menu.c:1085 src/config/rcxml.c:1629
+#: src/menu/menu.c:1086
 msgid "Workspace"
 msgstr "Munkaterület"
 
-#: src/menu/menu.c:1088
+#: src/menu/menu.c:1089
 msgid "Close"
 msgstr "Bezárás"

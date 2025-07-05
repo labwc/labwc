@@ -10,8 +10,7 @@ msgstr ""
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
 "PO-Revision-Date: 2025-04-30 08:01+0000\n"
 "Last-Translator: knm100 <ckdeneon@163.com>\n"
-"Language-Team: Chinese (Simplified) <https://translate.lxqt-project.org/"
-"projects/labwc/labwc/zh_CN/>\n"
+"Language-Team: Chinese (Simplified) <https://translate.lxqt-project.org/projects/labwc/labwc/zh_CN/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,58 +18,62 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:1017
+#: src/menu/menu.c:1016
 msgid "Go there..."
 msgstr "前往..."
 
-#: src/menu/menu.c:1037
+#: src/menu/menu.c:1034
+msgid "Terminal"
+msgstr ""
+
+#: src/menu/menu.c:1040
 msgid "Reconfigure"
 msgstr "配置重载"
 
-#: src/menu/menu.c:1039
+#: src/menu/menu.c:1042
 msgid "Exit"
 msgstr "退出"
 
-#: src/menu/menu.c:1055
+#: src/menu/menu.c:1056
 msgid "Minimize"
 msgstr "最小化"
 
-#: src/menu/menu.c:1057
+#: src/menu/menu.c:1058
 msgid "Maximize"
 msgstr "最大化"
 
-#: src/menu/menu.c:1059
+#: src/menu/menu.c:1060
 msgid "Fullscreen"
 msgstr "全屏"
 
-#: src/menu/menu.c:1061
+#: src/menu/menu.c:1062
 msgid "Roll Up/Down"
 msgstr "滚动 上/下"
 
-#: src/menu/menu.c:1063
+#: src/menu/menu.c:1064
 msgid "Decorations"
 msgstr "装饰"
 
-#: src/menu/menu.c:1065
+#: src/menu/menu.c:1066
 msgid "Always on Top"
 msgstr "最上层显示"
 
-#: src/menu/menu.c:1070
+#: src/menu/menu.c:1071
 msgid "Move Left"
 msgstr "左移"
 
-#: src/menu/menu.c:1077
+#: src/menu/menu.c:1078
 msgid "Move Right"
 msgstr "右移"
 
-#: src/menu/menu.c:1082
+#: src/menu/menu.c:1083
 msgid "Always on Visible Workspace"
 msgstr "始终在可见工作区"
 
-#: src/menu/menu.c:1085 src/config/rcxml.c:1629
+#: src/menu/menu.c:1086
 msgid "Workspace"
 msgstr "工作区"
 
-#: src/menu/menu.c:1088
+#: src/menu/menu.c:1089
 msgid "Close"
 msgstr "关闭"

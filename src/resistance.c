@@ -185,7 +185,7 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_geom)
 
 	/* If any "best" edges were encountered during this move, snap motion */
 	edges_adjust_resize_geom(view, next_edges,
-		view->server->resize_edges, new_geom, /* use_pending */ false);
+		resize_edges, new_geom, /* use_pending */ false);
 
 	/*
 	 * Record effective geometry after snapping in case the client opts to

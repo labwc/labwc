@@ -152,8 +152,12 @@ snap_constraints_update(struct view *view)
 		return;
 	}
 
-	/* Only update constraints when view geometry matches expectation */
-	if (!wlr_box_equal(&view->pending, &last_snap_hit.geom)) {
+	/* Only update constraints when pending view dimensions match expectation */
+	if (view->pending.width != last_snap_hit.geom.width) {
+		return;
+	}
+
+	if (view->pending.height != last_snap_hit.geom.height) {
 		return;
 	}
 

@@ -263,6 +263,7 @@ update_popups_position(struct input_method_relay *relay)
 static void
 handle_input_method_commit(struct wl_listener *listener, void *data)
 {
+	// FIXME: data argument is now NULL for enable, commit, disable and destroy
 	struct input_method_relay *relay =
 		wl_container_of(listener, relay, input_method_commit);
 	struct wlr_input_method_v2 *input_method = data;

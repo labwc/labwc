@@ -440,7 +440,7 @@ view_edge_invert(enum view_edge edge)
 	}
 }
 
-static struct wlr_box
+struct wlr_box
 view_get_edge_snap_box(struct view *view, struct output *output,
 		enum view_edge edge)
 {
@@ -469,13 +469,20 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 		break;
 	}
 
-	struct border margin = ssd_get_margin(view->ssd);
 	struct wlr_box dst = {
-		.x = x_offset + usable.x + margin.left,
-		.y = y_offset + usable.y + margin.top,
-		.width = base_width - margin.left - margin.right,
-		.height = base_height - margin.top - margin.bottom,
+		.x = x_offset + usable.x,
+		.y = y_offset + usable.y,
+		.width = base_width,
+		.height = base_height,
 	};
+
+	if (view) {
+		struct border margin = ssd_get_margin(view->ssd);
+		dst.x += margin.left;
+		dst.y += margin.top;
+		dst.width -= margin.left + margin.right;
+		dst.height -= margin.top + margin.bottom;
+	}
 
 	return dst;
 }

@@ -195,11 +195,7 @@ edge_from_cursor(struct seat *seat, struct output **dest_output)
 	} else if (cursor_x >= area->x + area->width - snap_range) {
 		return VIEW_EDGE_RIGHT;
 	} else if (cursor_y <= area->y + snap_range) {
-		if (rc.snap_top_maximize) {
-			return VIEW_EDGE_CENTER;
-		} else {
-			return VIEW_EDGE_UP;
-		}
+		return VIEW_EDGE_UP;
 	} else if (cursor_y >= area->y + area->height - snap_range) {
 		return VIEW_EDGE_DOWN;
 	} else {
@@ -223,7 +219,7 @@ snap_to_edge(struct view *view)
 	 * Don't store natural geometry here (it was
 	 * stored already in interactive_begin())
 	 */
-	if (edge == VIEW_EDGE_CENTER) {
+	if (edge == VIEW_EDGE_UP && rc.snap_top_maximize) {
 		/* <topMaximize> */
 		view_maximize(view, VIEW_AXIS_BOTH,
 			/*store_natural_geometry*/ false);

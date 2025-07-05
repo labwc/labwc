@@ -501,6 +501,10 @@ bool view_contains_window_type(struct view *view, enum window_type window_type);
  */
 enum view_edge view_edge_invert(enum view_edge edge);
 
+/* If view is NULL, the size of SSD is not considered */
+struct wlr_box view_get_edge_snap_box(struct view *view, struct output *output,
+	enum view_edge edge);
+
 /**
  * view_is_focusable() - Check whether or not a view can be focused
  * @view: view to be checked

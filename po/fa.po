@@ -8,66 +8,73 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2025-07-04 04:24+0000\n"
+"Last-Translator: Sa'eed M Farahani <silitonix@gmail.com>\n"
+"Language-Team: Persian <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/fa/>\n"
 "Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 4.2.1\n"
 
-#: src/menu/menu.c:1017
+#: src/menu/menu.c:1016
 msgid "Go there..."
-msgstr ""
+msgstr "برو اونجا ..."
 
-#: src/menu/menu.c:1037
+#: src/menu/menu.c:1034
+msgid "Terminal"
+msgstr "پایانه"
+
+#: src/menu/menu.c:1040
 msgid "Reconfigure"
-msgstr ""
+msgstr "تنظیم دوباره"
 
-#: src/menu/menu.c:1039
+#: src/menu/menu.c:1042
 msgid "Exit"
-msgstr ""
+msgstr "خروج"
 
-#: src/menu/menu.c:1055
+#: src/menu/menu.c:1056
 msgid "Minimize"
-msgstr ""
+msgstr "کوچکنمایی"
 
-#: src/menu/menu.c:1057
+#: src/menu/menu.c:1058
 msgid "Maximize"
-msgstr ""
+msgstr "بزرگنمایی"
 
-#: src/menu/menu.c:1059
+#: src/menu/menu.c:1060
 msgid "Fullscreen"
-msgstr ""
+msgstr "تمام‌صفحه"
 
-#: src/menu/menu.c:1061
+#: src/menu/menu.c:1062
 msgid "Roll Up/Down"
-msgstr ""
+msgstr "غلتاندن به بالا/پایین"
 
-#: src/menu/menu.c:1063
+#: src/menu/menu.c:1064
 msgid "Decorations"
-msgstr ""
+msgstr "آرایش"
 
-#: src/menu/menu.c:1065
+#: src/menu/menu.c:1066
 msgid "Always on Top"
-msgstr ""
+msgstr "همیشه رو"
 
-#: src/menu/menu.c:1070
+#: src/menu/menu.c:1071
 msgid "Move Left"
-msgstr ""
+msgstr "حرکت به چپ"
 
-#: src/menu/menu.c:1077
+#: src/menu/menu.c:1078
 msgid "Move Right"
-msgstr ""
+msgstr "حرکت به راست"
 
-#: src/menu/menu.c:1082
+#: src/menu/menu.c:1083
 msgid "Always on Visible Workspace"
-msgstr ""
+msgstr "همیشه در فضای کاری قابل نمایش"
 
-#: src/menu/menu.c:1085 src/config/rcxml.c:1629
+#: src/menu/menu.c:1086
 msgid "Workspace"
-msgstr ""
+msgstr "فضای کار"
 
-#: src/menu/menu.c:1088
+#: src/menu/menu.c:1089
 msgid "Close"
-msgstr ""
+msgstr "بستن"

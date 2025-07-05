@@ -188,6 +188,13 @@ struct server {
 	struct wlr_xdg_toplevel_icon_manager_v1 *xdg_toplevel_icon_manager;
 	struct wl_listener xdg_toplevel_icon_set_icon;
 
+	struct {
+		struct wlr_ext_foreign_toplevel_image_capture_source_manager_v1 *manager;
+		struct {
+			struct wl_listener new_request;
+		} on;
+	} toplevel_capture;
+
 	struct wl_list views;
 	uint64_t next_view_creation_id;
 	struct wl_list unmanaged_surfaces;

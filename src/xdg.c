@@ -29,6 +29,8 @@
 #define LAB_XDG_SHELL_VERSION 6
 #define CONFIGURE_TIMEOUT_MS 100
 
+static struct view *xdg_toplevel_view_get_root(struct view *view);
+
 static struct xdg_toplevel_view *
 xdg_toplevel_view_from_view(struct view *view)
 {
@@ -433,6 +435,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	/* Remove xdg-shell view specific listeners */
 	wl_list_remove(&xdg_toplevel_view->set_app_id.link);
 	wl_list_remove(&xdg_toplevel_view->request_show_window_menu.link);
+	wl_list_remove(&xdg_toplevel_view->set_parent.link);
 	wl_list_remove(&xdg_toplevel_view->new_popup.link);
 	wl_list_remove(&view->commit.link);
 
@@ -541,6 +544,23 @@ handle_request_show_window_menu(struct wl_listener *listener, void *data)
 
 	struct wlr_cursor *cursor = server->seat.cursor;
 	menu_open_root(menu, cursor->x, cursor->y);
+}
+
+static void
+handle_set_parent(struct wl_listener *listener, void *data)
+{
+	struct xdg_toplevel_view *xdg_toplevel_view = wl_container_of(
+		listener, xdg_toplevel_view, set_parent);
+	struct view *view = &xdg_toplevel_view->base;
+	struct view *view_root = xdg_toplevel_view_get_root(view);
+	if (view_root == view) {
+		return;
+	}
+	struct wlr_scene_node *node, *tmp;
+	wl_list_for_each_safe(node, tmp, &view->capture.scene->tree.children, link) {
+		wlr_log(WLR_INFO, "moving capture scene node to view_root");
+		wlr_scene_node_reparent(node, &view_root->capture.scene->tree);
+	}
 }
 
 static void
@@ -1067,6 +1087,9 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 	mappable_connect(&view->mappable, xdg_surface->surface,
 		handle_map, handle_unmap);
 
+	struct view *root_view = xdg_toplevel_view_get_root(view);
+	wlr_scene_xdg_surface_create(&root_view->capture.scene->tree, xdg_surface);
+
 	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
 	CONNECT_SIGNAL(toplevel, view, destroy);
 	CONNECT_SIGNAL(toplevel, view, request_move);
@@ -1080,6 +1103,7 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 	/* Events specific to XDG toplevel views */
 	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, set_app_id);
 	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, request_show_window_menu);
+	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, set_parent);
 	CONNECT_SIGNAL(xdg_surface, xdg_toplevel_view, new_popup);
 
 	wl_list_insert(&server->views, &view->link);

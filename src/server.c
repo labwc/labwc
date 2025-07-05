@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
 #include "config.h"
+#include <assert.h>
 #include <signal.h>
 #include <string.h>
 #include <sys/wait.h>
@@ -424,6 +425,25 @@ handle_renderer_lost(struct wl_listener *listener, void *data)
 	wlr_renderer_destroy(old_renderer);
 }
 
+static void
+handle_toplevel_capture_request(struct wl_listener *listener, void *data)
+{
+	struct server *server = wl_container_of(listener, server, toplevel_capture.on.new_request);
+	struct wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request *request = data;
+	struct view *view = request->toplevel_handle->data;
+	assert(view);
+	wlr_log(WLR_INFO, "Got request to capture toplevel %s", view->app_id);
+
+	if (!view->capture.source) {
+		view->capture.source = wlr_ext_image_capture_source_v1_create_with_scene_node(
+			&view->capture.scene->tree.node, server->wl_event_loop,
+			server->allocator, server->renderer);
+	}
+	assert(view->capture.source);
+	wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request_accept(
+		request, view->capture.source);
+}
+
 void
 server_init(struct server *server)
 {
@@ -661,6 +681,19 @@ server_init(struct server *server)
 	wlr_screencopy_manager_v1_create(server->wl_display);
 	wlr_ext_image_copy_capture_manager_v1_create(server->wl_display, 1);
 	wlr_ext_output_image_capture_source_manager_v1_create(server->wl_display, 1);
+
+	server->toplevel_capture.manager =
+		wlr_ext_foreign_toplevel_image_capture_source_manager_v1_create(
+			server->wl_display, 1);
+	if (server->toplevel_capture.manager) {
+		server->toplevel_capture.on.new_request.notify = handle_toplevel_capture_request;
+		wl_signal_add(&server->toplevel_capture.manager->events.new_request,
+			&server->toplevel_capture.on.new_request);
+	} else {
+		/* Allow safe removal on shutdown */
+		wl_list_init(&server->toplevel_capture.on.new_request.link);
+	}
+
 	wlr_data_control_manager_v1_create(server->wl_display);
 	wlr_ext_data_control_manager_v1_create(server->wl_display,
 		LAB_EXT_DATA_CONTROL_VERSION);
@@ -792,6 +825,8 @@ server_finish(struct server *server)
 		wl_list_remove(&server->drm_lease_request.link);
 		server->drm_lease_request.notify = NULL;
 	}
+
+	wl_list_remove(&server->toplevel_capture.on.new_request.link);
 
 	wlr_backend_destroy(server->backend);
 	wlr_allocator_destroy(server->allocator);

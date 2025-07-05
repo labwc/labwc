@@ -20,7 +20,7 @@ static struct key_combos {
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
-			.value = "alacritty",
+			.value = "lab-sensible-terminal",
 		},
 	}, {
 		.binding = "A-F4",

@@ -258,7 +258,7 @@
       <action name="PreviousWindow" />
     </keybind>
     <keybind key="W-Return">
-      <action name="Execute" command="alacritty" />
+      <action name="Execute" command="lab-sensible-terminal" />
     </keybind>
     <keybind key="A-F4">
       <action name="Close" />

@@ -221,7 +221,7 @@ If you have not created an rc.xml config file, default bindings will be:
 | ------------------------ | ------
 | `alt`-`tab`              | activate next window
 | `alt`-`shift`-`tab`      | activate previous window
-| `super`-`return`         | alacritty
+| `super`-`return`         | lab-sensible-terminal
 | `alt`-`F4`               | close window
 | `super`-`a`              | toggle maximize
 | `super`-`mouse-left`     | move window

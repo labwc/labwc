@@ -869,6 +869,7 @@ xwayland_view_map(struct view *view)
 			return;
 		}
 		view->content_tree = tree;
+		wlr_scene_subsurface_tree_create(&view->capture.scene->tree, view->surface);
 	}
 
 	/*

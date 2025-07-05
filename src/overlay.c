@@ -111,7 +111,8 @@ show_region_overlay(struct seat *seat, struct region *region)
 	inactivate_overlay(&seat->overlay);
 	seat->overlay.active.region = region;
 
-	show_overlay(seat, &seat->overlay.region_rect, &region->geo);
+	struct wlr_box geo = view_get_region_snap_box(NULL, region);
+	show_overlay(seat, &seat->overlay.region_rect, &geo);
 }
 
 static struct wlr_box get_edge_snap_box(enum view_edge edge, struct output *output)

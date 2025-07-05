@@ -504,6 +504,7 @@ enum view_edge view_edge_invert(enum view_edge edge);
 /* If view is NULL, the size of SSD is not considered */
 struct wlr_box view_get_edge_snap_box(struct view *view, struct output *output,
 	enum view_edge edge);
+struct wlr_box view_get_region_snap_box(struct view *view, struct region *region);
 
 /**
  * view_is_focusable() - Check whether or not a view can be focused

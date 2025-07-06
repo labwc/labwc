@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
-"PO-Revision-Date: 2024-11-03 21:01+0000\n"
+"PO-Revision-Date: 2025-07-06 14:14+0000\n"
 "Last-Translator: Roberalz <lumintnian@outlook.com>\n"
 "Language-Team: Galician <https://translate.lxqt-project.org/projects/labwc/labwc/gl/>\n"
 "Language: gl\n"
@@ -24,7 +24,7 @@ msgstr "Vaia alí..."
 
 #: src/menu/menu.c:1034
 msgid "Terminal"
-msgstr ""
+msgstr "Terminal"
 
 #: src/menu/menu.c:1040
 msgid "Reconfigure"

@@ -401,9 +401,9 @@ this is for compatibility with Openbox.
 	  fields are:
 		- 'B' - shell type, values [xwayland|xdg-shell]
 		- 'b' - shell type (short form), values [X|W]
-		- 'S' - state of window, values [M|m|F] (3 spaces allocated)
-		        (maximized, minimized, fullscreen)
-		- 's' - state of window (short form), values [M|m|F] (1 space)
+		- 'S' - state of window, values [m|s|M|F] (4 spaces allocated)
+		        (minimized, shaded, maximized, fullscreen)
+		- 's' - state of window (short form), values [m|s|M|F] (1 space)
 		- 'I' - wm-class/app-id
 		- 'i' - wm-class/app-id trimmed, remove "org." if available
 		- 'n' - desktop entry/file application name, falls back to

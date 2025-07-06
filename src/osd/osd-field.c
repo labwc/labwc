@@ -111,10 +111,12 @@ static void
 field_set_win_state(struct buf *buf, struct view *view, const char *format)
 {
 	/* custom type conversion-specifier: s */
-	if (view->maximized) {
-		buf_add(buf, "M");
-	} else if (view->minimized) {
+	if (view->minimized) {
 		buf_add(buf, "m");
+	} else if (view->shaded) {
+		buf_add(buf, "s");
+	} else if (view->maximized) {
+		buf_add(buf, "M");
 	} else if (view->fullscreen) {
 		buf_add(buf, "F");
 	} else {
@@ -127,6 +129,7 @@ field_set_win_state_all(struct buf *buf, struct view *view, const char *format)
 {
 	/* custom type conversion-specifier: S */
 	buf_add(buf, view->minimized ? "m" : " ");
+	buf_add(buf, view->shaded ? "s" : " ");
 	buf_add(buf, view->maximized ? "M" : " ");
 	buf_add(buf, view->fullscreen ? "F" : " ");
 	/* TODO: add always-on-top and omnipresent ? */

@@ -604,7 +604,7 @@ xdg_toplevel_view_notify_tiled(struct view *view)
 		return;
 	}
 
-	enum wlr_edges edge = WLR_EDGE_NONE;
+	uint32_t edge = WLR_EDGE_NONE;
 
 	bool want_edge = rc.snap_tiling_events_mode & LAB_TILING_EVENTS_EDGE;
 	bool want_region = rc.snap_tiling_events_mode & LAB_TILING_EVENTS_REGION;
@@ -627,8 +627,21 @@ xdg_toplevel_view_notify_tiled(struct view *view)
 		case VIEW_EDGE_DOWN:
 			edge = WLR_EDGE_BOTTOM | WLR_EDGE_LEFT | WLR_EDGE_RIGHT;
 			break;
+		case VIEW_EDGE_UPLEFT:
+			edge = WLR_EDGE_TOP | WLR_EDGE_LEFT;
+			break;
+		case VIEW_EDGE_UPRIGHT:
+			edge = WLR_EDGE_TOP | WLR_EDGE_RIGHT;
+			break;
+		case VIEW_EDGE_DOWNLEFT:
+			edge = WLR_EDGE_BOTTOM | WLR_EDGE_LEFT;
+			break;
+		case VIEW_EDGE_DOWNRIGHT:
+			edge = WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT;
+			break;
 		default:
 			edge = WLR_EDGE_NONE;
+			break;
 		}
 	}
 

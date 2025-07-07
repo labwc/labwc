@@ -1162,6 +1162,8 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		rc.gap = atoi(content);
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
 		set_adaptive_sync_mode(content, &rc.adaptive_sync);
+	} else if (!strcasecmp(nodename, "disableMaximizedServerDecor.core")) {
+		set_bool(content, &rc.disable_maximized_ssd_decor);
 	} else if (!strcasecmp(nodename, "allowTearing.core")) {
 		set_tearing_mode(content, &rc.allow_tearing);
 	} else if (!strcasecmp(nodename, "autoEnableOutputs.core")) {

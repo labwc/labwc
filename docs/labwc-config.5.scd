@@ -186,10 +186,10 @@ this is for compatibility with Openbox.
 	that it is not always possible to turn off client side decorations.
 	Default is server.
 
-*<core><disableMaximizedServerDecor>*
+*<core><disableMaximizedServerDecor>* [yes|no]
 	Hide server side decoration when a window is maximized.
 	Useful for trying to replicate a KDE window controls setup where window controls
-	merge with the top panel
+	merge with the top panel. Default is no.
 
 *<core><gap>*
 	The distance in pixels between windows and output edges when using

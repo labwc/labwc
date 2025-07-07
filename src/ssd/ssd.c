@@ -30,11 +30,8 @@ ssd_thickness(struct view *view)
 	 * in border-only deco mode as view->ssd would only be set
 	 * after ssd_create() returns.
 	 */
-	if (
-		!view->ssd_enabled ||
-		view->fullscreen ||
-		(view->maximized && rc.disable_maximized_ssd_decor)
-	) {
+	if (!view->ssd_enabled || view->fullscreen ||
+		(view->maximized && rc.disable_maximized_ssd_decor)) {
 		return (struct border){ 0 };
 	}
 
@@ -91,13 +88,8 @@ static enum ssd_part_type
 get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
 {
 	struct view *view = ssd ? ssd->view : NULL;
-	if (
-		!view ||
-		!cursor ||
-		!view->ssd_enabled ||
-		view->fullscreen ||
-		(view->maximized && rc.disable_maximized_ssd_decor)
-	) {
+	if (!view || !cursor || !view->ssd_enabled || view->fullscreen ||
+			(view->maximized && rc.disable_maximized_ssd_decor)) {
 		return LAB_SSD_NONE;
 	}
 

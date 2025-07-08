@@ -283,8 +283,8 @@ subtract_view_from_space(struct view *view, pixman_region32_t *available)
 	struct wlr_box view_size = ssd_max_extents(view);
 	pixman_box32_t view_rect = {
 		.x1 = view_size.x,
-		.x2 = view_size.x + view_size.width,
 		.y1 = view_size.y,
+		.x2 = view_size.x + view_size.width,
 		.y2 = view_size.y + view_size.height
 	};
 
@@ -431,10 +431,10 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 
 		struct border win_edges = {
 			.top = v->current.y - border.top,
-			.left = v->current.x - border.left,
+			.right = v->current.x + v->current.width + border.right,
 			.bottom = v->current.y + border.bottom
 				+ view_effective_height(v, /* use_pending */ false),
-			.right = v->current.x + v->current.width + border.right,
+			.left = v->current.x - border.left,
 		};
 
 		validate_edges(nearest_edges, view_edges,

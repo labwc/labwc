@@ -555,6 +555,7 @@ ssd_update_button_hover(struct wlr_scene_node *node,
 		}
 	}
 
+	/* Disable old hover */
 	if (hover_state->button) {
 		update_button_state(hover_state->button, LAB_BS_HOVERD, false);
 		hover_state->view = NULL;

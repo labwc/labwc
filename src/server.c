@@ -103,6 +103,15 @@ handle_sighup(int signal, void *data)
 }
 
 static int
+handle_sigusr1(int signal, void *data)
+{
+	struct server *server = data;
+
+	cursor_set_visible(&server->seat, false);
+	return 0;
+}
+
+static int
 handle_sigterm(int signal, void *data)
 {
 	struct wl_display *display = data;
@@ -418,6 +427,8 @@ server_init(struct server *server)
 	/* Catch signals */
 	server->sighup_source = wl_event_loop_add_signal(
 		server->wl_event_loop, SIGHUP, handle_sighup, server);
+	server->sigusr1_source = wl_event_loop_add_signal(
+		server->wl_event_loop, SIGUSR1, handle_sigusr1, server);
 	server->sigint_source = wl_event_loop_add_signal(
 		server->wl_event_loop, SIGINT, handle_sigterm, server->wl_display);
 	server->sigterm_source = wl_event_loop_add_signal(
@@ -746,6 +757,7 @@ server_finish(struct server *server)
 	desktop_entry_finish(server);
 #endif
 	wl_event_source_remove(server->sighup_source);
+	wl_event_source_remove(server->sigusr1_source);
 	wl_event_source_remove(server->sigint_source);
 	wl_event_source_remove(server->sigterm_source);
 	wl_event_source_remove(server->sigchld_source);

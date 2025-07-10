@@ -166,7 +166,7 @@ view_matches_query(struct view *view, struct view_query *query)
 		return false;
 	}
 
-	if (query->tiled != VIEW_EDGE_INVALID && query->tiled != view->tiled) {
+	if (query->tiled != VIEW_EDGE_INVALID && !(query->tiled & view->tiled)) {
 		return false;
 	}
 
@@ -2116,6 +2116,8 @@ view_edge_parse(const char *direction)
 		return VIEW_EDGE_DOWN;
 	} else if (!strcasecmp(direction, "center")) {
 		return VIEW_EDGE_CENTER;
+	} else if (!strcasecmp(direction, "any")) {
+		return VIEW_EDGE_ALL;
 	} else {
 		return VIEW_EDGE_INVALID;
 	}

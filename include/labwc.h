@@ -247,6 +247,7 @@ struct server {
 	struct wlr_compositor *compositor;
 
 	struct wl_event_source *sighup_source;
+	struct wl_event_source *sigusr1_source;
 	struct wl_event_source *sigint_source;
 	struct wl_event_source *sigterm_source;
 	struct wl_event_source *sigchld_source;

@@ -263,6 +263,7 @@ update_popups_position(struct input_method_relay *relay)
 static void
 handle_input_method_commit(struct wl_listener *listener, void *data)
 {
+	// FIXME: data argument is now NULL for enable, commit, disable and destroy
 	struct input_method_relay *relay =
 		wl_container_of(listener, relay, input_method_commit);
 	struct wlr_input_method_v2 *input_method = data;
@@ -572,7 +573,7 @@ input_method_relay_create(struct seat *seat)
 	relay->popup_tree = wlr_scene_tree_create(&seat->server->scene->tree);
 
 	relay->new_text_input.notify = handle_new_text_input;
-	wl_signal_add(&seat->server->text_input_manager->events.text_input,
+	wl_signal_add(&seat->server->text_input_manager->events.new_text_input,
 		&relay->new_text_input);
 
 	relay->new_input_method.notify = handle_new_input_method;

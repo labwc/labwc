@@ -92,8 +92,7 @@ to analyse keyboard events
 Some distributions carry labwc in their repositories or user repositories.
 
 - @ptrcnull (Alpine)
-- @narrat (Arch)
-- @artist-artix (Artix)
+- @ptr1337 (Arch)
 - @b1rger (Debian)
 - @jbeich (FreeBSD)
 - @epsilon-0 (Gentoo)

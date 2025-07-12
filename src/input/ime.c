@@ -265,8 +265,7 @@ handle_input_method_commit(struct wl_listener *listener, void *data)
 {
 	struct input_method_relay *relay =
 		wl_container_of(listener, relay, input_method_commit);
-	struct wlr_input_method_v2 *input_method = data;
-	assert(relay->input_method == input_method);
+	struct wlr_input_method_v2 *input_method = relay->input_method;
 
 	struct text_input *text_input = relay->active_text_input;
 	if (!text_input) {
@@ -300,7 +299,9 @@ handle_keyboard_grab_destroy(struct wl_listener *listener, void *data)
 {
 	struct input_method_relay *relay =
 		wl_container_of(listener, relay, keyboard_grab_destroy);
-	struct wlr_input_method_keyboard_grab_v2 *keyboard_grab = data;
+	struct wlr_input_method_keyboard_grab_v2 *keyboard_grab =
+		relay->input_method->keyboard_grab;
+
 	wl_list_remove(&relay->keyboard_grab_destroy.link);
 
 	if (keyboard_grab->keyboard) {
@@ -338,7 +339,6 @@ handle_input_method_destroy(struct wl_listener *listener, void *data)
 {
 	struct input_method_relay *relay =
 		wl_container_of(listener, relay, input_method_destroy);
-	assert(relay->input_method == data);
 	wl_list_remove(&relay->input_method_commit.link);
 	wl_list_remove(&relay->input_method_grab_keyboard.link);
 	wl_list_remove(&relay->input_method_new_popup_surface.link);

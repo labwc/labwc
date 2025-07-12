@@ -8,8 +8,8 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <wlr/backend/drm.h>
 #include <wlr/backend/multi.h>
+#include <wlr/config.h>
 #include <wlr/util/log.h>
 #include "common/buf.h"
 #include "common/dir.h"
@@ -20,6 +20,10 @@
 #include "common/string-helpers.h"
 #include "config/session.h"
 #include "labwc.h"
+
+#if WLR_HAS_DRM_BACKEND
+	#include <wlr/backend/drm.h>
+#endif
 
 static const char *const env_vars[] = {
 	"DISPLAY",
@@ -177,6 +181,7 @@ env_dir_cleanup:
 	return success;
 }
 
+#if WLR_HAS_DRM_BACKEND
 static void
 backend_check_drm(struct wlr_backend *backend, void *is_drm)
 {
@@ -184,6 +189,7 @@ backend_check_drm(struct wlr_backend *backend, void *is_drm)
 		*(bool *)is_drm = true;
 	}
 }
+#endif
 
 static bool
 should_update_activation(struct server *server)
@@ -207,7 +213,9 @@ should_update_activation(struct server *server)
 
 	/* With no valid preference, update when a DRM backend is in use */
 	bool have_drm = false;
+#if WLR_HAS_DRM_BACKEND
 	wlr_multi_for_each_backend(server->backend, backend_check_drm, &have_drm);
+#endif
 	return have_drm;
 }
 

@@ -9,10 +9,10 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <strings.h>
-#include <wlr/backend/drm.h>
+#include <wlr/backend/session.h>
 #include <wlr/backend/wayland.h>
+#include <wlr/config.h>
 #include <wlr/types/wlr_buffer.h>
-#include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include <wlr/types/wlr_scene.h>
@@ -32,6 +32,11 @@
 #include "regions.h"
 #include "view.h"
 #include "xwayland.h"
+
+#if WLR_HAS_DRM_BACKEND
+	#include <wlr/backend/drm.h>
+	#include <wlr/types/wlr_drm_lease_v1.h>
+#endif
 
 bool
 output_get_tearing_allowance(struct output *output)
@@ -453,7 +458,7 @@ handle_new_output(struct wl_listener *listener, void *data)
 	 *
 	 * TODO: remove once labwc starts tracking 0.20.x and the fix has been merged.
 	 */
-#if LAB_WLR_VERSION_AT_LEAST(0, 19, 1)
+#if WLR_HAS_DRM_BACKEND && LAB_WLR_VERSION_AT_LEAST(0, 19, 1)
 	if (server->drm_lease_manager && wlr_output_is_drm(wlr_output)) {
 		wlr_drm_lease_v1_manager_offer_output(
 			server->drm_lease_manager, wlr_output);

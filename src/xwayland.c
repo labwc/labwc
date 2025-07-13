@@ -624,8 +624,8 @@ update_icon(struct xwayland_view *xwayland_view)
 	struct wl_array buffers;
 	wl_array_init(&buffers);
 	for (; iter.rem; xcb_ewmh_get_wm_icon_next(&iter)) {
-		size_t stride = iter.height * 4;
-		uint32_t *buf = xzalloc(iter.width * stride);
+		size_t stride = iter.width * 4;
+		uint32_t *buf = xzalloc(iter.height * stride);
 
 		/* Pre-multiply alpha */
 		for (uint32_t y = 0; y < iter.height; y++) {

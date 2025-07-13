@@ -65,6 +65,5 @@ img_svg_render(RsvgHandle *svg, int w, int h, double scale)
 error:
 	wlr_buffer_drop(&buffer->base);
 	cairo_destroy(cr);
-	g_object_unref(svg);
 	return NULL;
 }

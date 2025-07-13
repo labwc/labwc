@@ -2,11 +2,13 @@
 #include "input/tablet.h"
 #include <stdlib.h>
 #include <linux/input-event-codes.h>
+#include "wlr/backend/libinput.h"
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/util/log.h>
 #include <wlr/types/wlr_scene.h>
+#include <wlr/util/log.h>
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
@@ -334,6 +336,27 @@ handle_tablet_tool_proximity(struct wl_listener *listener, void *data)
 		 * use proximity for creating a `wlr_tablet_v2_tablet_tool`.
 		 */
 		tool = tablet_tool_create(tablet->seat, ev->tool);
+	}
+
+	struct libinput_tablet_tool *libinput_tool =
+		wlr_libinput_get_tablet_tool_handle(tool->tool_v2->wlr_tool);
+
+	/*
+	 * Configure tool pressure range using libinput. Note that a runtime change
+	 * needs two proximity-in events. First one is for applying the pressure range
+	 * here and second one until it is effectively applied, probably because of
+	 * how lininput applies pressure range changes internally.
+	 */
+	if (libinput_tablet_tool_config_pressure_range_is_available(libinput_tool) > 0
+			&& rc.tablet_tool.min_pressure >= 0.0
+			&& rc.tablet_tool.max_pressure <= 1.0) {
+		double min = libinput_tablet_tool_config_pressure_range_get_minimum(libinput_tool);
+		double max = libinput_tablet_tool_config_pressure_range_get_maximum(libinput_tool);
+		if (min != rc.tablet_tool.min_pressure || max != rc.tablet_tool.max_pressure) {
+			wlr_log(WLR_INFO, "tablet tool pressure range configured");
+			libinput_tablet_tool_config_pressure_range_set(libinput_tool,
+				rc.tablet_tool.min_pressure, rc.tablet_tool.max_pressure);
+		}
 	}
 
 	/*

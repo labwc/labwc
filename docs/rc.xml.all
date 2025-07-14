@@ -573,8 +573,11 @@
     *relativeMotionSensitivity* controls the speed of the cursor. Using
     a value lower than 1.0 decreases the speed, using a value greater than
     1.0 increases the speed of the cursor.
+    The pressure range of a tablet tool can be controlled by adjusting
+    *minPressure* and *maxPressure*.
   -->
-  <tabletTool motion="absolute" relativeMotionSensitivity="1.0" />
+  <tabletTool motion="absolute"relativeMotionSensitivity="1.0"
+              minPressure="0" maxPressure="1.0" />
 
   <!--
     The *category* attribute is optional and can be set to touch, touchpad,

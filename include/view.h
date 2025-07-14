@@ -28,7 +28,6 @@
  * In labwc, a view is a container for surfaces which can be moved around by
  * the user. In practice this means XDG toplevel and XWayland windows.
  */
-
 enum view_type {
 	LAB_XDG_SHELL_VIEW,
 #if HAVE_XWAYLAND
@@ -59,6 +58,12 @@ enum view_axis {
 	VIEW_AXIS_INVALID = (1 << 2),
 };
 
+/**
+ * Edges to which a view can be snapped to. "All" is used as
+ * a catchall for every valid edge in order to simplify certain
+ * types of conditionals, but it is only valid for a selection
+ * of options in rc.xml.
+ */
 enum view_edge {
 	VIEW_EDGE_INVALID = 0,
 

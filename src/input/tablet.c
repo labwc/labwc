@@ -580,6 +580,8 @@ to_stylus_button(uint32_t button)
 	}
 }
 
+static bool tool_tip_down_discarded = false;
+
 static void
 handle_tablet_tool_tip(struct wl_listener *listener, void *data)
 {
@@ -588,6 +590,22 @@ handle_tablet_tool_tip(struct wl_listener *listener, void *data)
 	struct drawing_tablet_tool *tool = ev->tool->data;
 	if (!tablet || !tool) {
 		wlr_log(WLR_DEBUG, "tool tip event before tablet create");
+		return;
+	}
+
+	/*
+	 * Discard tip-down notification and the following tip-up when
+	 * the pressure during tip down was below the minimum pressure
+	 * range.
+	 */
+	if (ev->state == WLR_TABLET_TOOL_TIP_DOWN
+			&& tool->pressure < rc.tablet_tool.min_pressure) {
+		tool_tip_down_discarded = true;
+		return;
+	}
+	if (ev->state == WLR_TABLET_TOOL_TIP_UP
+			&& tool_tip_down_discarded) {
+		tool_tip_down_discarded = false;
 		return;
 	}
 

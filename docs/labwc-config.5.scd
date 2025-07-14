@@ -958,10 +958,9 @@ extending outward from the snapped edge.
 *<tabletTool maxPressure="">*
 	The pressure range of a tablet tool can be controlled by adjusting
 	*minPressure* and *maxPressure*. Setting the minimum pressure to
-	a value greater than zero requires more pressure for the user for
-	applying a certain pressure value, setting the maximum pressure to
-	a value less than 1.0 requires less pressure for the user before
-	the maximum is reached.
+	a value greater than zero requires more pressure for the tip
+	threshold, setting the maximum pressure to a value less than 1.0
+	requires less pressure for the user before the maximum is reached.
 	The default is 0 for the minimum pressure and 1.0 for the maximum
 	pressure.
 

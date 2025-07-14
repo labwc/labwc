@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <linux/input-event-codes.h>
-#include "wlr/backend/libinput.h"
 #include <wlr/types/wlr_tablet_pad.h>
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/types/wlr_scene.h>
@@ -192,6 +191,31 @@ adjust_for_motion_sensitivity(double motion_sensitivity, double *dx, double *dy)
 	*dy = *dy * motion_sensitivity;
 }
 
+static void
+adjust_for_pressure_range(double min_pressure, double max_pressure, double *pressure)
+{
+	/*
+	 * This is a home-made version of
+	 * https://wayland.freedesktop.org/libinput/doc/latest/tablet-support.html#tablet-pressure-range
+	 * Unfortunately we cannot use `libinput_tablet_tool_config_pressure_range_set`
+	 * and friends because at the time of writing wlroots doesn't expose
+	 * libinput's tablet tool handle.
+	 */
+
+	if ((min_pressure <= 0.0 && max_pressure >= 1.0)
+			|| max_pressure <= min_pressure) {
+		return;
+	}
+
+	if (*pressure <= min_pressure) {
+		*pressure = 0.0;
+	} else if (*pressure >= max_pressure) {
+		*pressure = 1.0;
+	} else {
+		*pressure = (*pressure - min_pressure) / (max_pressure - min_pressure);
+	}
+}
+
 static struct wlr_surface*
 tablet_get_coords(struct drawing_tablet *tablet, struct drawing_tablet_tool *tool,
 		double *x, double *y, double *dx, double *dy)
@@ -335,27 +359,6 @@ handle_tablet_tool_proximity(struct wl_listener *listener, void *data)
 		tool = tablet_tool_create(tablet->seat, ev->tool);
 	}
 
-	struct libinput_tablet_tool *libinput_tool =
-		wlr_libinput_get_tablet_tool_handle(tool->tool_v2->wlr_tool);
-
-	/*
-	 * Configure tool pressure range using libinput. Note that a runtime change
-	 * needs two proximity-in events. First one is for applying the pressure range
-	 * here and second one until it is effectively applied, probably because of
-	 * how lininput applies pressure range changes internally.
-	 */
-	if (libinput_tablet_tool_config_pressure_range_is_available(libinput_tool) > 0
-			&& rc.tablet_tool.min_pressure >= 0.0
-			&& rc.tablet_tool.max_pressure <= 1.0) {
-		double min = libinput_tablet_tool_config_pressure_range_get_minimum(libinput_tool);
-		double max = libinput_tablet_tool_config_pressure_range_get_maximum(libinput_tool);
-		if (min != rc.tablet_tool.min_pressure || max != rc.tablet_tool.max_pressure) {
-			wlr_log(WLR_INFO, "tablet tool pressure range configured");
-			libinput_tablet_tool_config_pressure_range_set(libinput_tool,
-				rc.tablet_tool.min_pressure, rc.tablet_tool.max_pressure);
-		}
-	}
-
 	/*
 	 * Enforce mouse emulation when the current tool is a tablet mouse.
 	 * Client support for tablet mouses in tablet mode is often incomplete
@@ -480,8 +483,11 @@ handle_tablet_tool_axis(struct wl_listener *listener, void *data)
 				tool->distance);
 		}
 		if (ev->tool->pressure) {
-			wlr_tablet_v2_tablet_tool_notify_pressure(tool->tool_v2,
-				tool->pressure);
+			double pressure = tool->pressure;
+			adjust_for_pressure_range(rc.tablet_tool.min_pressure,
+				rc.tablet_tool.max_pressure, &pressure);
+
+			wlr_tablet_v2_tablet_tool_notify_pressure(tool->tool_v2, pressure);
 		}
 		if (ev->tool->tilt) {
 			/*

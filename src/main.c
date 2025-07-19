@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include <fcntl.h>
 #include <pango/pangocairo.h>
 #include <signal.h>
 #include <string.h>
@@ -22,6 +23,7 @@ static const struct option long_options[] = {
 	{"debug", no_argument, NULL, 'd'},
 	{"exit", no_argument, NULL, 'e'},
 	{"help", no_argument, NULL, 'h'},
+	{"logfile", required_argument, NULL, 'l'},
 	{"merge-config", no_argument, NULL, 'm'},
 	{"reconfigure", no_argument, NULL, 'r'},
 	{"startup", required_argument, NULL, 's'},
@@ -38,6 +40,7 @@ static const char labwc_usage[] =
 "  -d, --debug              Enable full logging, including debug information\n"
 "  -e, --exit               Exit the compositor\n"
 "  -h, --help               Show help message and quit\n"
+"  -l, --logfile <path>     Log to file instead of stderr\n"
 "  -m, --merge-config       Merge user config files/theme in all XDG Base Dirs\n"
 "  -r, --reconfigure        Reload the compositor configuration\n"
 "  -s, --startup <command>  Run command on startup\n"
@@ -152,6 +155,7 @@ idle_callback(void *data)
 int
 main(int argc, char *argv[])
 {
+	char *logfile = NULL;
 	char *startup_cmd = NULL;
 	char *primary_client = NULL;
 	enum wlr_log_importance verbosity = WLR_ERROR;
@@ -159,7 +163,7 @@ main(int argc, char *argv[])
 	int c;
 	while (1) {
 		int index = 0;
-		c = getopt_long(argc, argv, "c:C:dehmrs:S:vV", long_options, &index);
+		c = getopt_long(argc, argv, "c:C:dehl:mrs:S:vV", long_options, &index);
 		if (c == -1) {
 			break;
 		}
@@ -176,6 +180,9 @@ main(int argc, char *argv[])
 		case 'e':
 			send_signal_to_labwc_pid(SIGTERM);
 			exit(0);
+		case 'l':
+			logfile = optarg;
+			break;
 		case 'm':
 			rc.merge_config = true;
 			break;
@@ -201,6 +208,31 @@ main(int argc, char *argv[])
 	}
 	if (optind < argc) {
 		usage();
+	}
+
+	if (logfile) {
+		/*
+		 * O_NONBLOCK is important to prevent blocking
+		 * on write() with mandantory file locking enabled.
+		 */
+		int fd = open(logfile, O_WRONLY | O_CREAT | O_TRUNC | O_NONBLOCK, 0666);
+		if (fd < 0) {
+			perror("Failed to open logfile");
+			exit(1);
+		}
+		/*
+		 * If stderr was closed before a exec labwc we could end up with 'fd' being 2.
+		 * This is not an issue with dup2() because it turns into a no-op but we don't
+		 * want to close it in that case.
+		 */
+		if (fd != STDERR_FILENO) {
+			if (dup2(fd, STDERR_FILENO) < 0) {
+				perror("Failed to replace stderr with log file descriptor");
+				close(fd);
+				exit(1);
+			}
+			close(fd);
+		}
 	}
 
 	wlr_log_init(verbosity, NULL);
@@ -276,5 +308,6 @@ main(int argc, char *argv[])
 
 	server_finish(&server);
 
+	close(STDERR_FILENO);
 	return 0;
 }

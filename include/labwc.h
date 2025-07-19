@@ -330,10 +330,8 @@ struct server {
 		struct wl_list all;  /* struct workspace.link */
 		struct workspace *current;
 		struct workspace *last;
-		struct lab_cosmic_workspace_manager *cosmic_manager;
-		struct lab_cosmic_workspace_group *cosmic_group;
-		struct lab_ext_workspace_manager *ext_manager;
-		struct lab_ext_workspace_group *ext_group;
+		struct wlr_ext_workspace_manager_v1 *ext_manager;
+		struct wlr_ext_workspace_group_handle_v1 *ext_group;
 		struct {
 			struct wl_listener layout_output_added;
 		} on;

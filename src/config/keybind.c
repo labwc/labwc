@@ -123,7 +123,7 @@ keybind_create(const char *keybind)
 	xkb_keysym_t keysyms[MAX_KEYSYMS];
 	gchar **symnames = g_strsplit(keybind, "-", -1);
 	for (size_t i = 0; symnames[i]; i++) {
-		char *symname = symnames[i];
+		const char *symname = symnames[i];
 		/*
 		 * Since "-" is used as a separator, a keybind string like "W--"
 		 * becomes "W", "", "". This means that it is impossible to bind

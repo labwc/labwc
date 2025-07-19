@@ -93,8 +93,7 @@ strdup_printf(const char *fmt, ...)
 }
 
 char *
-str_join(const char *const parts[],
-		const char *restrict fmt, const char *restrict sep)
+str_join(const char *const parts[], const char *fmt, const char *sep)
 {
 	assert(parts);
 

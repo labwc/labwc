@@ -216,7 +216,7 @@ session_lock_output_create(struct session_lock_manager *manager, struct output *
 	 * all outputs with an opaque color such that their normal content is
 	 * fully hidden
 	 */
-	float *black = (float[4]) { 0.f, 0.f, 0.f, 1.f };
+	float black[4] = { 0.f, 0.f, 0.f, 1.f };
 	struct wlr_scene_rect *background = wlr_scene_rect_create(tree, 0, 0, black);
 	if (!background) {
 		wlr_log(WLR_ERROR, "session-lock: wlr_scene_rect_create()");

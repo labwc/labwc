@@ -111,9 +111,10 @@ struct seat {
 	bool cursor_visible;
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *xcursor_manager;
-	struct {
-		double x, y;
-	} smooth_scroll_offset;
+	struct accumulated_scroll {
+		double delta;
+		double delta_discrete;
+	} accumulated_scrolls[2]; /* indexed by wl_pointer_axis */
 	bool cursor_scroll_wheel_emulation;
 
 	/*

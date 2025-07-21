@@ -1245,38 +1245,44 @@ struct scroll_info {
 };
 
 static struct scroll_info
-compare_delta(double delta, double delta_discrete, double *accum)
+compare_delta(double delta, double delta_discrete, struct accumulated_scroll *accum)
 {
-	/*
-	 * Smooth scroll deltas are in surface space, so treating each unit as a
-	 * scroll event would result in too-fast scrolling.
-	 *
-	 * This fudge factor (inherited from various historic projects, incl. Weston)
-	 * produces events at a more reasonable rate.
-	 *
-	 * For historic context, see:
-	 * https://lists.freedesktop.org/archives/wayland-devel/2019-April/040377.html
-	 */
-	const double SCROLL_THRESHOLD = 10.0;
 	struct scroll_info info = {0};
 
-	if (delta_discrete < 0 || delta < 0) {
-		info.direction = -1;
-	} else if (delta_discrete > 0 || delta > 0) {
-		info.direction = 1;
-	}
-
-	if (delta == 0.0) {
-		/* Delta 0 marks the end of a scroll */
-		*accum = 0.0;
+	if (delta_discrete) {
+		/* mice */
+		info.direction = delta_discrete > 0 ? 1 : -1;
+		accum->delta_discrete += delta_discrete;
+		/*
+		 * Non-hi-res mice produce delta_discrete of ±120 for every
+		 * "click", so it always triggers actions. But for hi-res mice
+		 * that produce smaller delta_discrete, we accumulate it and
+		 * run actions after it exceeds 120(= 1 click).
+		 */
+		if (fabs(accum->delta_discrete) >= 120.0) {
+			accum->delta_discrete = fmod(accum->delta_discrete, 120.0);
+			info.run_action = true;
+		}
 	} else {
-		/* Accumulate smooth scrolling until we hit threshold */
-		*accum += delta;
-	}
-
-	if (delta_discrete != 0 || fabs(*accum) > SCROLL_THRESHOLD) {
-		*accum = fmod(*accum, SCROLL_THRESHOLD);
-		info.run_action = true;
+		/* 2-finger scrolling on touchpads */
+		if (delta == 0) {
+			/* delta=0 marks the end of a scroll */
+			accum->delta = 0;
+			return info;
+		}
+		info.direction = delta > 0 ? 1 : -1;
+		accum->delta += delta;
+		/*
+		 * The threshold of 10 is inherited from various historic
+		 * projects including weston.
+		 *
+		 * For historic context, see:
+		 * https://lists.freedesktop.org/archives/wayland-devel/2019-April/040377.html
+		 */
+		if (fabs(accum->delta) >= 10.0) {
+			accum->delta = fmod(accum->delta, 10.0);
+			info.run_action = true;
+		}
 	}
 
 	return info;
@@ -1290,21 +1296,16 @@ process_cursor_axis(struct server *server, enum wl_pointer_axis orientation,
 	uint32_t modifiers = keyboard_get_all_modifiers(&server->seat);
 
 	enum direction direction = LAB_DIRECTION_INVALID;
-	struct scroll_info info = {0};
+	struct scroll_info info = compare_delta(delta, delta_discrete,
+		&server->seat.accumulated_scrolls[orientation]);
 
 	if (orientation == WL_POINTER_AXIS_HORIZONTAL_SCROLL) {
-		info = compare_delta(delta, delta_discrete,
-			&server->seat.smooth_scroll_offset.x);
-
 		if (info.direction < 0) {
 			direction = LAB_DIRECTION_LEFT;
 		} else if (info.direction > 0) {
 			direction = LAB_DIRECTION_RIGHT;
 		}
 	} else if (orientation == WL_POINTER_AXIS_VERTICAL_SCROLL) {
-		info = compare_delta(delta, delta_discrete,
-			&server->seat.smooth_scroll_offset.y);
-
 		if (info.direction < 0) {
 			direction = LAB_DIRECTION_UP;
 		} else if (info.direction > 0) {
@@ -1324,8 +1325,8 @@ process_cursor_axis(struct server *server, enum wl_pointer_axis orientation,
 					&& mousebind->mouse_event == MOUSE_ACTION_SCROLL) {
 				handled = true;
 				/*
-				 * Action may not be executed if the accumulated scroll
-				 * delta on touchpads doesn't exceed the threshold
+				 * Action may not be executed if the accumulated scroll delta
+				 * on touchpads or hi-res mice doesn't exceed the threshold
 				 */
 				if (info.run_action) {
 					actions_run(ctx.view, server, &mousebind->actions, &ctx);

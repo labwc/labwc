@@ -128,9 +128,6 @@ struct seat {
 
 	struct wlr_pointer_constraint_v1 *current_constraint;
 
-	/* In support for ToggleKeybinds */
-	uint32_t nr_inhibited_keybind_views;
-
 	/* Used to hide the workspace OSD after switching workspaces */
 	struct wl_event_source *workspace_osd_timer;
 	bool workspace_osd_shown_by_modifier;

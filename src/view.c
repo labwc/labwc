@@ -2437,11 +2437,6 @@ view_toggle_keybinds(struct view *view)
 {
 	assert(view);
 	view->inhibits_keybinds = !view->inhibits_keybinds;
-	if (view->inhibits_keybinds) {
-		view->server->seat.nr_inhibited_keybind_views++;
-	} else {
-		view->server->seat.nr_inhibited_keybind_views--;
-	}
 
 	if (view->ssd_enabled) {
 		ssd_enable_keybind_inhibit_indicator(view->ssd,
@@ -2621,7 +2616,6 @@ view_destroy(struct view *view)
 
 	if (view->inhibits_keybinds) {
 		view->inhibits_keybinds = false;
-		server->seat.nr_inhibited_keybind_views--;
 	}
 
 	osd_on_view_destroy(view);

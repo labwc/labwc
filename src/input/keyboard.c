@@ -211,8 +211,7 @@ match_keybinding_for_sym(struct server *server, uint32_t modifiers,
 		if (modifiers ^ keybind->modifiers) {
 			continue;
 		}
-		if (server->seat.nr_inhibited_keybind_views
-				&& server->active_view
+		if (server->active_view
 				&& server->active_view->inhibits_keybinds
 				&& !actions_contain_toggle_keybinds(&keybind->actions)) {
 			continue;

@@ -229,7 +229,7 @@ struct view {
 	bool visible_on_all_workspaces;
 	enum view_edge tiled;
 	uint32_t edges_visible;  /* enum wlr_edges bitset */
-	bool inhibits_keybinds;
+	bool inhibits_keybinds; /* also inhibits mousebinds */
 	xkb_layout_index_t keyboard_layout;
 
 	/* Pointer to an output owned struct region, may be NULL */
@@ -526,6 +526,7 @@ void mappable_connect(struct mappable *mappable, struct wlr_surface *surface,
 void mappable_disconnect(struct mappable *mappable);
 
 void view_toggle_keybinds(struct view *view);
+bool view_inhibits_actions(struct view *view, struct wl_list *actions);
 
 void view_set_activated(struct view *view, bool activated);
 void view_set_output(struct view *view, struct output *output);

@@ -610,6 +610,10 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 
 	struct mousebind *mousebind;
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
+		if (ctx.type == LAB_SSD_CLIENT
+				&& view_inhibits_actions(ctx.view, &mousebind->actions)) {
+			continue;
+		}
 		if (mousebind->mouse_event == MOUSE_ACTION_DRAG
 				&& mousebind->pressed_in_context) {
 			/*
@@ -949,6 +953,10 @@ process_release_mousebinding(struct server *server,
 	uint32_t modifiers = keyboard_get_all_modifiers(&server->seat);
 
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
+		if (ctx->type == LAB_SSD_CLIENT
+				&& view_inhibits_actions(ctx->view, &mousebind->actions)) {
+			continue;
+		}
 		if (ssd_part_contains(mousebind->context, ctx->type)
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {
@@ -1016,6 +1024,10 @@ process_press_mousebinding(struct server *server, struct cursor_context *ctx,
 	uint32_t modifiers = keyboard_get_all_modifiers(&server->seat);
 
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
+		if (ctx->type == LAB_SSD_CLIENT
+				&& view_inhibits_actions(ctx->view, &mousebind->actions)) {
+			continue;
+		}
 		if (ssd_part_contains(mousebind->context, ctx->type)
 				&& mousebind->button == button
 				&& modifiers == mousebind->modifiers) {

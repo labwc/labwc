@@ -4,6 +4,7 @@
 #include <strings.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_security_context_v1.h>
+#include "action.h"
 #include "buffer.h"
 #include "common/box.h"
 #include "common/list.h"
@@ -2444,6 +2445,12 @@ view_toggle_keybinds(struct view *view)
 	}
 }
 
+bool
+view_inhibits_actions(struct view *view, struct wl_list *actions)
+{
+	return view && view->inhibits_keybinds && !actions_contain_toggle_keybinds(actions);
+}
+
 void
 mappable_connect(struct mappable *mappable, struct wlr_surface *surface,
 		wl_notify_func_t notify_map, wl_notify_func_t notify_unmap)
@@ -2612,10 +2619,6 @@ view_destroy(struct view *view)
 
 	if (view->tiled_region_evacuate) {
 		zfree(view->tiled_region_evacuate);
-	}
-
-	if (view->inhibits_keybinds) {
-		view->inhibits_keybinds = false;
 	}
 
 	osd_on_view_destroy(view);

@@ -211,9 +211,7 @@ match_keybinding_for_sym(struct server *server, uint32_t modifiers,
 		if (modifiers ^ keybind->modifiers) {
 			continue;
 		}
-		if (server->active_view
-				&& server->active_view->inhibits_keybinds
-				&& !actions_contain_toggle_keybinds(&keybind->actions)) {
+		if (view_inhibits_actions(server->active_view, &keybind->actions)) {
 			continue;
 		}
 		if (sym == XKB_KEY_NoSymbol) {

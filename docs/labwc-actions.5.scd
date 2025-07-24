@@ -227,10 +227,10 @@ Actions are used in menus and keyboard/mouse bindings.
 	window.
 
 *<action name="ToggleKeybinds" />*
-	Stop handling keybinds other than ToggleKeybinds itself.
-	This can be used to allow A-Tab and similar keybinds to be delivered
-	to Virtual Machines, VNC clients or nested compositors.
-	A second call will restore all original keybinds.
+	Stop handling keybinds/mousebinds other than ToggleKeybinds itself.
+	This can be used to allow A-Tab and similar keybinds/mousebinds to be
+	delivered to Virtual Machines, VNC clients or nested compositors.
+	A second call will restore all original keybinds/mousebinds.
 
 	This action will only affect the window that had keyboard focus when
 	the binding was executed. Thus when switching to another window, all

@@ -166,7 +166,9 @@ view_matches_query(struct view *view, struct view_query *query)
 		return false;
 	}
 
-	if (query->tiled != VIEW_EDGE_INVALID && !(query->tiled & view->tiled)) {
+	if (query->tiled != VIEW_EDGE_INVALID
+			&& !(query->tiled == VIEW_EDGE_ALL && view->tiled)
+			&& query->tiled != view->tiled) {
 		return false;
 	}
 
@@ -437,42 +439,42 @@ view_edge_invert(enum view_edge edge)
 	}
 }
 
-static struct wlr_box
+struct wlr_box
 view_get_edge_snap_box(struct view *view, struct output *output,
 		enum view_edge edge)
 {
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-	int x_offset = edge == VIEW_EDGE_RIGHT
-		? (usable.width + rc.gap) / 2 : rc.gap;
-	int y_offset = edge == VIEW_EDGE_DOWN
-		? (usable.height + rc.gap) / 2 : rc.gap;
 
-	int base_width, base_height;
-	switch (edge) {
-	case VIEW_EDGE_LEFT:
-	case VIEW_EDGE_RIGHT:
-		base_width = (usable.width - 3 * rc.gap) / 2;
-		base_height = usable.height - 2 * rc.gap;
-		break;
-	case VIEW_EDGE_UP:
-	case VIEW_EDGE_DOWN:
-		base_width = usable.width - 2 * rc.gap;
-		base_height = (usable.height - 3 * rc.gap) / 2;
-		break;
-	default:
-	case VIEW_EDGE_CENTER:
-		base_width = usable.width - 2 * rc.gap;
-		base_height = usable.height - 2 * rc.gap;
-		break;
+	int x1 = rc.gap;
+	int y1 = rc.gap;
+	int x2 = usable.width - rc.gap;
+	int y2 = usable.height - rc.gap;
+	if (edge & VIEW_EDGE_RIGHT) {
+		x1 = (usable.width + rc.gap) / 2;
+	}
+	if (edge & VIEW_EDGE_LEFT) {
+		x2 = (usable.width - rc.gap) / 2;
+	}
+	if (edge & VIEW_EDGE_DOWN) {
+		y1 = (usable.height + rc.gap) / 2;
+	}
+	if (edge & VIEW_EDGE_UP) {
+		y2 = (usable.height - rc.gap) / 2;
 	}
 
-	struct border margin = ssd_get_margin(view->ssd);
 	struct wlr_box dst = {
-		.x = x_offset + usable.x + margin.left,
-		.y = y_offset + usable.y + margin.top,
-		.width = base_width - margin.left - margin.right,
-		.height = base_height - margin.top - margin.bottom,
+		.x = x1 + usable.x,
+		.y = y1 + usable.y,
+		.width = x2 - x1,
+		.height = y2 - y1,
 	};
+	if (view) {
+		struct border margin = ssd_get_margin(view->ssd);
+		dst.x += margin.left;
+		dst.y += margin.top;
+		dst.width -= margin.left + margin.right;
+		dst.height -= margin.top + margin.bottom;
+	}
 
 	return dst;
 }
@@ -2101,7 +2103,7 @@ view_axis_parse(const char *direction)
 }
 
 enum view_edge
-view_edge_parse(const char *direction)
+view_edge_parse(const char *direction, bool tiling, bool any)
 {
 	if (!direction) {
 		return VIEW_EDGE_INVALID;
@@ -2114,13 +2116,29 @@ view_edge_parse(const char *direction)
 		return VIEW_EDGE_RIGHT;
 	} else if (!strcasecmp(direction, "down")) {
 		return VIEW_EDGE_DOWN;
-	} else if (!strcasecmp(direction, "center")) {
-		return VIEW_EDGE_CENTER;
-	} else if (!strcasecmp(direction, "any")) {
-		return VIEW_EDGE_ALL;
-	} else {
-		return VIEW_EDGE_INVALID;
 	}
+
+	if (any) {
+		if (!strcasecmp(direction, "any")) {
+			return VIEW_EDGE_ALL;
+		}
+	}
+
+	if (tiling) {
+		if (!strcasecmp(direction, "center")) {
+			return VIEW_EDGE_CENTER;
+		} else if (!strcasecmp(direction, "up-left")) {
+			return VIEW_EDGE_UPLEFT;
+		} else if (!strcasecmp(direction, "up-right")) {
+			return VIEW_EDGE_UPRIGHT;
+		} else if (!strcasecmp(direction, "down-left")) {
+			return VIEW_EDGE_DOWNLEFT;
+		} else if (!strcasecmp(direction, "down-right")) {
+			return VIEW_EDGE_DOWNRIGHT;
+		}
+	}
+
+	return VIEW_EDGE_INVALID;
 }
 
 enum view_placement_policy
@@ -2145,7 +2163,7 @@ view_placement_parse(const char *policy)
 
 void
 view_snap_to_edge(struct view *view, enum view_edge edge,
-			bool across_outputs, bool store_natural_geometry)
+		bool across_outputs, bool store_natural_geometry)
 {
 	assert(view);
 

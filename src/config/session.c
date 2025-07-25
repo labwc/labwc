@@ -8,8 +8,8 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <wlr/backend/drm.h>
 #include <wlr/backend/multi.h>
+#include <wlr/config.h>
 #include <wlr/util/log.h>
 #include "common/buf.h"
 #include "common/dir.h"
@@ -20,6 +20,12 @@
 #include "common/string-helpers.h"
 #include "config/session.h"
 #include "labwc.h"
+
+#if WLR_HAS_DRM_BACKEND
+	#include <wlr/backend/drm.h>
+#else
+	#define wlr_backend_is_drm(backend) (false)
+#endif
 
 static const char *const env_vars[] = {
 	"DISPLAY",

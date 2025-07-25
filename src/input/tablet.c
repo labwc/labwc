@@ -4,8 +4,8 @@
 #include <linux/input-event-codes.h>
 #include <wlr/types/wlr_tablet_pad.h>
 #include <wlr/types/wlr_tablet_tool.h>
-#include <wlr/util/log.h>
 #include <wlr/types/wlr_scene.h>
+#include <wlr/util/log.h>
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
@@ -189,6 +189,31 @@ adjust_for_motion_sensitivity(double motion_sensitivity, double *dx, double *dy)
 {
 	*dx = *dx * motion_sensitivity;
 	*dy = *dy * motion_sensitivity;
+}
+
+static void
+adjust_for_pressure_range(double min_pressure, double max_pressure, double *pressure)
+{
+	/*
+	 * This is a home-made version of
+	 * https://wayland.freedesktop.org/libinput/doc/latest/tablet-support.html#tablet-pressure-range
+	 * Unfortunately we cannot use `libinput_tablet_tool_config_pressure_range_set`
+	 * and friends because at the time of writing wlroots doesn't expose
+	 * libinput's tablet tool handle.
+	 */
+
+	if ((min_pressure <= 0.0 && max_pressure >= 1.0)
+			|| max_pressure <= min_pressure) {
+		return;
+	}
+
+	if (*pressure <= min_pressure) {
+		*pressure = 0.0;
+	} else if (*pressure >= max_pressure) {
+		*pressure = 1.0;
+	} else {
+		*pressure = (*pressure - min_pressure) / (max_pressure - min_pressure);
+	}
 }
 
 static struct wlr_surface*
@@ -458,8 +483,11 @@ handle_tablet_tool_axis(struct wl_listener *listener, void *data)
 				tool->distance);
 		}
 		if (ev->tool->pressure) {
-			wlr_tablet_v2_tablet_tool_notify_pressure(tool->tool_v2,
-				tool->pressure);
+			double pressure = tool->pressure;
+			adjust_for_pressure_range(rc.tablet_tool.min_pressure,
+				rc.tablet_tool.max_pressure, &pressure);
+
+			wlr_tablet_v2_tablet_tool_notify_pressure(tool->tool_v2, pressure);
 		}
 		if (ev->tool->tilt) {
 			/*
@@ -552,6 +580,8 @@ to_stylus_button(uint32_t button)
 	}
 }
 
+static bool tool_tip_down_discarded = false;
+
 static void
 handle_tablet_tool_tip(struct wl_listener *listener, void *data)
 {
@@ -560,6 +590,22 @@ handle_tablet_tool_tip(struct wl_listener *listener, void *data)
 	struct drawing_tablet_tool *tool = ev->tool->data;
 	if (!tablet || !tool) {
 		wlr_log(WLR_DEBUG, "tool tip event before tablet create");
+		return;
+	}
+
+	/*
+	 * Discard tip-down notification and the following tip-up when
+	 * the pressure during tip down was below the minimum pressure
+	 * range.
+	 */
+	if (ev->state == WLR_TABLET_TOOL_TIP_DOWN
+			&& tool->pressure < rc.tablet_tool.min_pressure) {
+		tool_tip_down_discarded = true;
+		return;
+	}
+	if (ev->state == WLR_TABLET_TOOL_TIP_UP
+			&& tool_tip_down_discarded) {
+		tool_tip_down_discarded = false;
 		return;
 	}
 

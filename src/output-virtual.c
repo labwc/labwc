@@ -6,6 +6,7 @@
 #include <wlr/types/wlr_output.h>
 #include "common/string-helpers.h"
 #include "labwc.h"
+#include "output.h"
 
 static struct wlr_output *fallback_output = NULL;
 

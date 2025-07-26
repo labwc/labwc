@@ -47,6 +47,7 @@
 #include "layers.h"
 #include "magnifier.h"
 #include "menu/menu.h"
+#include "output.h"
 #include "output-state.h"
 #include "output-virtual.h"
 #include "regions.h"

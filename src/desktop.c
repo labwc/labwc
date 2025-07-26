@@ -8,6 +8,7 @@
 #include "layers.h"
 #include "node.h"
 #include "osd.h"
+#include "output.h"
 #include "ssd.h"
 #include "view.h"
 #include "window-rules.h"

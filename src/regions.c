@@ -13,6 +13,7 @@
 #include "common/mem.h"
 #include "input/keyboard.h"
 #include "labwc.h"
+#include "output.h"
 #include "view.h"
 
 bool

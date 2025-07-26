@@ -2,10 +2,10 @@
 
 #include <assert.h>
 #include <pixman.h>
-#include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
+#include "output.h"
 #include "ssd-internal.h"
 #include "theme.h"
 #include "view.h"

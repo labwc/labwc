@@ -21,6 +21,7 @@
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "node.h"
+#include "output.h"
 
 #define LAB_LAYERSHELL_VERSION 4
 

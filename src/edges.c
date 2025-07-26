@@ -10,6 +10,7 @@
 #include "common/macros.h"
 #include "config/rcxml.h"
 #include "labwc.h"
+#include "output.h"
 #include "view.h"
 #include "node.h"
 

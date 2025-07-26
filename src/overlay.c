@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "common/lab-scene-rect.h"
 #include "labwc.h"
+#include "output.h"
 #include "view.h"
 #include "theme.h"
 

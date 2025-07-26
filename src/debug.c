@@ -8,6 +8,7 @@
 #include "input/ime.h"
 #include "labwc.h"
 #include "node.h"
+#include "output.h"
 #include "ssd.h"
 #include "view.h"
 #include "workspaces.h"

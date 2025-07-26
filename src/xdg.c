@@ -12,6 +12,7 @@
 #include "labwc.h"
 #include "menu/menu.h"
 #include "node.h"
+#include "output.h"
 #include "snap-constraints.h"
 #include "view.h"
 #include "view-impl-common.h"

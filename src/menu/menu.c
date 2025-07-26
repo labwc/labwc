@@ -26,6 +26,7 @@
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 #include "labwc.h"
+#include "output.h"
 #include "workspaces.h"
 #include "view.h"
 #include "node.h"

@@ -980,8 +980,7 @@ xwayland_view_append_children(struct view *self, struct wl_array *children)
 	struct wlr_xwayland_surface *surface = xwayland_surface_from_view(self);
 	struct view *view;
 
-	wl_list_for_each_reverse(view, &self->server->views, link)
-	{
+	wl_list_for_each_reverse(view, &self->server->views, link) {
 		if (view == self) {
 			continue;
 		}

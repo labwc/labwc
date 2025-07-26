@@ -3,7 +3,8 @@
 #include "output-state.h"
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_management_v1.h>
-#include "labwc.h"
+#include <wlr/util/log.h>
+#include "output.h"
 
 void
 output_state_init(struct output *output)

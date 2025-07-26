@@ -7,6 +7,7 @@
  */
 
 #define _POSIX_C_SOURCE 200809L
+#include "output.h"
 #include <assert.h>
 #include <strings.h>
 #include <wlr/backend/drm.h>

@@ -25,6 +25,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
+#include "output.h"
 #include "regions.h"
 #include "resistance.h"
 #include "resize-outlines.h"

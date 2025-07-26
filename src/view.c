@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "view.h"
 #include <assert.h>
-#include <stdio.h>
 #include <strings.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_security_context_v1.h>
@@ -9,16 +8,15 @@
 #include "buffer.h"
 #include "common/box.h"
 #include "common/list.h"
-#include "common/macros.h"
 #include "common/match.h"
 #include "common/mem.h"
-#include "common/parse-bool.h"
 #include "common/scene-helpers.h"
 #include "foreign-toplevel.h"
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "osd.h"
+#include "output.h"
 #include "output-state.h"
 #include "placement.h"
 #include "regions.h"

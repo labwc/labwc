@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "snap.h"
 #include <assert.h>
-#include <limits.h>
 #include <wlr/util/box.h>
 #include "common/border.h"
-#include "common/macros.h"
 #include "edges.h"
 #include "labwc.h"
+#include "output.h"
 #include "snap-constraints.h"
 #include "view.h"
 

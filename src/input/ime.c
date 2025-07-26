@@ -5,6 +5,7 @@
 #include <assert.h>
 #include "common/mem.h"
 #include "node.h"
+#include "output.h"
 #include "view.h"
 
 #define SAME_CLIENT(wlr_obj1, wlr_obj2) \

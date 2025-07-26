@@ -3,6 +3,7 @@
 #include "edges.h"
 #include "input/keyboard.h"
 #include "labwc.h"
+#include "output.h"
 #include "regions.h"
 #include "resize-indicator.h"
 #include "snap.h"

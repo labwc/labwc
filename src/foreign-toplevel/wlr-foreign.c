@@ -3,6 +3,7 @@
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include "common/macros.h"
 #include "labwc.h"
+#include "output.h"
 #include "view.h"
 #include "foreign-toplevel-internal.h"
 

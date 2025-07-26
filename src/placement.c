@@ -3,10 +3,9 @@
 #include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include "common/macros.h"
 #include "common/mem.h"
 #include "labwc.h"
+#include "output.h"
 #include "ssd.h"
 #include "view.h"
 

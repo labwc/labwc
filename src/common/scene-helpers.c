@@ -9,6 +9,7 @@
 #include <wlr/util/transform.h>
 #include "labwc.h"
 #include "magnifier.h"
+#include "output.h"
 #include "output-state.h"
 
 struct wlr_surface *

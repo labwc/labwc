@@ -18,6 +18,7 @@
 #include "magnifier.h"
 #include "menu/menu.h"
 #include "osd.h"
+#include "output.h"
 #include "output-virtual.h"
 #include "regions.h"
 #include "ssd.h"

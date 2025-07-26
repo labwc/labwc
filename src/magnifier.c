@@ -7,6 +7,7 @@
 #include <wlr/util/transform.h>
 #include "common/box.h"
 #include "labwc.h"
+#include "output.h"
 #include "theme.h"
 
 static bool magnify_on;

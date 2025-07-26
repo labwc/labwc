@@ -13,6 +13,7 @@
 #include "foreign-toplevel.h"
 #include "labwc.h"
 #include "node.h"
+#include "output.h"
 #include "ssd.h"
 #include "view.h"
 #include "view-impl-common.h"

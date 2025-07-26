@@ -11,6 +11,7 @@
 #include "common/mem.h"
 #include "labwc.h"
 #include "node.h"
+#include "output.h"
 #include "view.h"
 
 struct xdg_popup {

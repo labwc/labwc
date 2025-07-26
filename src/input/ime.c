@@ -7,6 +7,7 @@
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include "common/mem.h"
+#include "input/keyboard.h"
 #include "node.h"
 #include "output.h"
 #include "view.h"

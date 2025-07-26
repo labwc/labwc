@@ -27,33 +27,6 @@ enum input_mode {
 	LAB_INPUT_STATE_WINDOW_SWITCHER,
 };
 
-struct input {
-	struct wlr_input_device *wlr_input_device;
-	struct seat *seat;
-	/* Set for pointer/touch devices */
-	double scroll_factor;
-	struct wl_listener destroy;
-	struct wl_list link; /* seat.inputs */
-};
-
-/*
- * Virtual keyboards should not belong to seat->keyboard_group. As a result we
- * need to be able to ascertain which wlr_keyboard key/modifier events come from
- * and we achieve that by using `struct keyboard` which inherits `struct input`
- * and adds keyboard specific listeners and a wlr_keyboard pointer.
- */
-struct keyboard {
-	struct input base;
-	struct wlr_keyboard *wlr_keyboard;
-	bool is_virtual;
-	struct wl_listener modifiers;
-	struct wl_listener key;
-	/* key repeat for compositor keybinds */
-	uint32_t keybind_repeat_keycode;
-	int32_t keybind_repeat_rate;
-	struct wl_event_source *keybind_repeat;
-};
-
 struct seat {
 	struct wlr_seat *seat;
 	struct server *server;
@@ -179,15 +152,6 @@ struct seat {
 
 	struct wlr_virtual_keyboard_manager_v1 *virtual_keyboard;
 	struct wl_listener new_virtual_keyboard;
-};
-
-struct lab_data_buffer;
-struct workspace;
-
-enum lab_cycle_dir {
-	LAB_CYCLE_DIR_NONE,
-	LAB_CYCLE_DIR_FORWARD,
-	LAB_CYCLE_DIR_BACKWARD,
 };
 
 struct server {
@@ -360,12 +324,6 @@ struct server {
 	struct sfdo *sfdo;
 
 	pid_t primary_client_pid;
-};
-
-struct constraint {
-	struct seat *seat;
-	struct wlr_pointer_constraint_v1 *constraint;
-	struct wl_listener destroy;
 };
 
 void xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup);

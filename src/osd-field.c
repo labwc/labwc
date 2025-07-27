@@ -297,13 +297,6 @@ reset_format:
 	buf_reset(&field_result);
 }
 
-struct window_switcher_field *
-osd_field_create(void)
-{
-	struct window_switcher_field *field = znew(*field);
-	return field;
-}
-
 void
 osd_field_arg_from_xml_node(struct window_switcher_field *field,
 		const char *nodename, const char *content)

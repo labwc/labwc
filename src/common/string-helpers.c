@@ -204,3 +204,14 @@ str_equal(const char *a, const char *b)
 {
 	return a == b || (a && b && !strcmp(a, b));
 }
+
+bool
+str_space_only(const char *s)
+{
+	for (; *s; s++) {
+		if (!isspace(*s)) {
+			return false;
+		}
+	}
+	return true;
+}

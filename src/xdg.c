@@ -488,6 +488,8 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 {
 	uint32_t serial = 0;
 
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+
 	/*
 	 * We do not need to send a configure request unless the size
 	 * changed (wayland has no notion of a global position). If the
@@ -496,8 +498,20 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 	 */
 	if (geo.width != view->pending.width
 			|| geo.height != view->pending.height) {
-		serial = wlr_xdg_toplevel_set_size(xdg_toplevel_from_view(view),
-			geo.width, geo.height);
+		if (toplevel->base->initialized) {
+			serial = wlr_xdg_toplevel_set_size(toplevel, geo.width, geo.height);
+		} else {
+			/*
+			 * This may happen, for example, when a panel resizes because a
+			 * foreign-toplevel has been destroyed. This would then trigger
+			 * a call to desktop_arrange_all_views() which in turn explicitly
+			 * also tries to configure unmapped surfaces. This is fine when
+			 * trying to resize surfaces before they are mapped but it will
+			 * also try to resize surfaces which have been unmapped but their
+			 * associated struct view has not been destroyed yet.
+			 */
+			wlr_log(WLR_DEBUG, "Preventing configure of uninitialized surface");
+		}
 	}
 
 	view->pending = geo;
@@ -519,6 +533,10 @@ xdg_toplevel_view_close(struct view *view)
 static void
 xdg_toplevel_view_maximize(struct view *view, enum view_axis maximized)
 {
+	if (!xdg_toplevel_from_view(view)->base->initialized) {
+		wlr_log(WLR_DEBUG, "Prevented maximize notification for a non-intialized view");
+		return;
+	}
 	uint32_t serial = wlr_xdg_toplevel_set_maximized(
 		xdg_toplevel_from_view(view), maximized == VIEW_AXIS_BOTH);
 	if (serial > 0) {
@@ -578,6 +596,10 @@ xdg_toplevel_view_append_children(struct view *self, struct wl_array *children)
 static void
 xdg_toplevel_view_set_activated(struct view *view, bool activated)
 {
+	if (!xdg_toplevel_from_view(view)->base->initialized) {
+		wlr_log(WLR_DEBUG, "Prevented activating a non-intialized view");
+		return;
+	}
 	uint32_t serial = wlr_xdg_toplevel_set_activated(
 		xdg_toplevel_from_view(view), activated);
 	if (serial > 0) {
@@ -588,6 +610,10 @@ xdg_toplevel_view_set_activated(struct view *view, bool activated)
 static void
 xdg_toplevel_view_set_fullscreen(struct view *view, bool fullscreen)
 {
+	if (!xdg_toplevel_from_view(view)->base->initialized) {
+		wlr_log(WLR_DEBUG, "Prevented fullscreening a non-intialized view");
+		return;
+	}
 	uint32_t serial = wlr_xdg_toplevel_set_fullscreen(
 		xdg_toplevel_from_view(view), fullscreen);
 	if (serial > 0) {
@@ -600,6 +626,11 @@ xdg_toplevel_view_notify_tiled(struct view *view)
 {
 	/* Take no action if xdg-shell tiling is disabled */
 	if (rc.snap_tiling_events_mode == LAB_TILING_EVENTS_NEVER) {
+		return;
+	}
+
+	if (!xdg_toplevel_from_view(view)->base->initialized) {
+		wlr_log(WLR_DEBUG, "Prevented tiling notification for a non-intialized view");
 		return;
 	}
 

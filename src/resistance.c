@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "resistance.h"
 #include <assert.h>
 #include <limits.h>
 #include "common/border.h"
@@ -6,7 +7,6 @@
 #include "config/rcxml.h"
 #include "edges.h"
 #include "labwc.h"
-#include "resistance.h"
 #include "snap-constraints.h"
 #include "view.h"
 

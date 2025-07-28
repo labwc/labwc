@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "common/direction.h"
 #include <assert.h>
 #include <wlr/types/wlr_output_layout.h>
-#include "common/direction.h"
 #include "view.h"
 
 enum wlr_direction

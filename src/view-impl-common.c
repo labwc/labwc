@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /* view-impl-common.c: common code for shell view->impl functions */
+#include "view-impl-common.h"
 #include <stdio.h>
 #include <strings.h>
 #include "foreign-toplevel.h"
 #include "labwc.h"
 #include "view.h"
-#include "view-impl-common.h"
 #include "window-rules.h"
 
 void

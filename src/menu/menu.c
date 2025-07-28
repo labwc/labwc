@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "menu/menu.h"
 #include <assert.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
@@ -25,7 +26,6 @@
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 #include "labwc.h"
-#include "menu/menu.h"
 #include "workspaces.h"
 #include "view.h"
 #include "node.h"

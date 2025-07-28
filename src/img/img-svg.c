@@ -3,6 +3,7 @@
  * Copyright (C) Johan Malm 2023
  */
 #define _POSIX_C_SOURCE 200809L
+#include "img/img-svg.h"
 #include <cairo.h>
 #include <librsvg/rsvg.h>
 #include <stdbool.h>
@@ -11,7 +12,6 @@
 #include <wlr/util/log.h>
 #include "buffer.h"
 #include "common/string-helpers.h"
-#include "img/img-svg.h"
 #include "labwc.h"
 
 RsvgHandle *

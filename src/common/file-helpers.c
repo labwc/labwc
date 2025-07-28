@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
-#include <sys/stat.h>
 #include "common/file-helpers.h"
+#include <sys/stat.h>
 
 bool
 file_exists(const char *filename)

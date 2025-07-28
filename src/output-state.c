@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include "output-state.h"
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_management_v1.h>
 #include "labwc.h"
-#include "output-state.h"
 
 void
 output_state_init(struct output *output)

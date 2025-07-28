@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "common/mem.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include "common/mem.h"
 
 static void
 die_if_null(void *ptr)

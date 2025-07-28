@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "common/parse-double.h"
 #include <locale.h>
 #include <stdlib.h>
 #include <string.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
-#include "common/parse-double.h"
 
 struct dec_separator {
 	int index;

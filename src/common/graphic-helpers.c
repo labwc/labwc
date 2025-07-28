@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include "common/graphic-helpers.h"
 #include <cairo.h>
 #include <glib.h> /* g_ascii_strcasecmp */
 #include <wlr/types/wlr_scene.h>
-#include "common/graphic-helpers.h"
 #include "common/macros.h"
 #include "xcolor-table.h"
 

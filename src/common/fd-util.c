@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
 
+#include "common/fd-util.h"
 #include <sys/resource.h>
 #include <wlr/util/log.h>
-
-#include "common/fd-util.h"
 
 static struct rlimit original_nofile_rlimit = {0};
 

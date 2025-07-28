@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "input/gestures.h"
 #include <wlr/types/wlr_pointer_gestures_v1.h>
 #include "common/macros.h"
-#include "input/gestures.h"
 #include "labwc.h"
 #include "idle.h"
 

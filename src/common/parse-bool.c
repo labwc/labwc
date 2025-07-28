@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "common/parse-bool.h"
 #include <strings.h>
 #include <wlr/util/log.h>
-#include "common/parse-bool.h"
 
 enum three_state
 parse_three_state(const char *str)

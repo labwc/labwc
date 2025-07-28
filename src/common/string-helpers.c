@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "common/string-helpers.h"
 #include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -7,7 +8,6 @@
 #include <string.h>
 #include <strings.h>
 #include "common/mem.h"
-#include "common/string-helpers.h"
 
 enum str_flags {
 	STR_FLAG_NONE = 0,

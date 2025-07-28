@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "config/rcxml.h"
 #include <assert.h>
 #include <fcntl.h>
 #include <glib.h>
@@ -29,7 +30,6 @@
 #include "config/libinput.h"
 #include "config/mousebind.h"
 #include "config/tablet.h"
-#include "config/rcxml.h"
 #include "labwc.h"
 #include "osd.h"
 #include "regions.h"

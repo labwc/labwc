@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "config/tablet-tool.h"
 #include <strings.h>
 #include <wlr/util/log.h>
-#include "config/tablet-tool.h"
 
 enum motion
 tablet_parse_motion(const char *name)

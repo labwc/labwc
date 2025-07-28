@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "config/mousebind.h"
 #include <assert.h>
 #include <linux/input-event-codes.h>
 #include <strings.h>
@@ -7,7 +8,6 @@
 #include <wlr/util/log.h>
 #include "common/list.h"
 #include "common/mem.h"
-#include "config/mousebind.h"
 #include "config/rcxml.h"
 
 uint32_t

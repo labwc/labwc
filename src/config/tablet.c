@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "config/tablet.h"
 #include <linux/input-event-codes.h>
 #include <stdint.h>
 #include <strings.h>
 #include <wlr/util/log.h>
 #include "common/parse-double.h"
-#include "config/tablet.h"
 #include "config/rcxml.h"
 #include "input/tablet-pad.h"
 

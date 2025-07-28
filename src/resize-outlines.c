@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include "resize-outlines.h"
 #include <wlr/types/wlr_scene.h>
 #include "common/lab-scene-rect.h"
 #include "ssd.h"
-#include "resize-outlines.h"
 #include "labwc.h"
 
 bool

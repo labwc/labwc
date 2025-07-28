@@ -24,12 +24,12 @@
  * SOFTWARE.
  */
 
+#include "buffer.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <drm_fourcc.h>
 #include <wlr/interfaces/wlr_buffer.h>
 #include <wlr/util/log.h>
-#include "buffer.h"
 #include "common/box.h"
 #include "common/mem.h"
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
-#include "input/cursor.h"
 #include "input/input.h"
+#include "input/cursor.h"
 #include "input/keyboard.h"
 
 void

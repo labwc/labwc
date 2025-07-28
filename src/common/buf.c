@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "common/buf.h"
 #include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include "common/buf.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"

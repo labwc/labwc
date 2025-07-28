@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include "common/scene-helpers.h"
 #include <assert.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
 #include <wlr/util/region.h>
 #include <wlr/util/transform.h>
-#include "common/scene-helpers.h"
 #include "labwc.h"
 #include "magnifier.h"
 #include "output-state.h"

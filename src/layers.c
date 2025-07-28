@@ -6,6 +6,7 @@
  * Copyright (C) 2019 Drew DeVault and Sway developers
  */
 
+#include "layers.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -18,7 +19,6 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
-#include "layers.h"
 #include "labwc.h"
 #include "node.h"
 

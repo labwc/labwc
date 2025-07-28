@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include "output-virtual.h"
 #include <stdlib.h>
 #include <wlr/backend/headless.h>
 #include <wlr/types/wlr_output.h>
 #include "common/string-helpers.h"
 #include "labwc.h"
-#include "output-virtual.h"
 
 static struct wlr_output *fallback_output = NULL;
 

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "node.h"
 #include <assert.h>
 #include <stdlib.h>
 #include "common/mem.h"
-#include "node.h"
 
 static void
 descriptor_destroy(struct node_descriptor *node_descriptor)

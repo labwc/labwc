@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
-#include <wlr/util/log.h>
 #include "common/set.h"
+#include <wlr/util/log.h>
 
 bool
 lab_set_contains(struct lab_set *set, uint32_t value)

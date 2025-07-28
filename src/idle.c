@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include "idle.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <wlr/types/wlr_idle_notify_v1.h>
 #include <wlr/types/wlr_idle_inhibit_v1.h>
 #include "common/mem.h"
-#include "idle.h"
 
 struct lab_idle_inhibitor {
 	struct wlr_idle_inhibitor_v1 *wlr_inhibitor;

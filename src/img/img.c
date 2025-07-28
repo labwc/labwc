@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include "img/img.h"
 #include <assert.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
@@ -9,7 +10,6 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
-#include "img/img.h"
 #include "img/img-png.h"
 #if HAVE_RSVG
 #include "img/img-svg.h"

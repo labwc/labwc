@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "config/keybind.h"
 #include <assert.h>
 #include <glib.h>
 #include <stdio.h>
@@ -8,7 +9,6 @@
 #include <wlr/util/log.h>
 #include "common/list.h"
 #include "common/mem.h"
-#include "config/keybind.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "debug.h"
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include "common/lab-scene-rect.h"
 #include "common/scene-helpers.h"
 #include "common/string-helpers.h"
-#include "debug.h"
 #include "input/ime.h"
 #include "labwc.h"
 #include "node.h"

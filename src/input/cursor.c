@@ -302,6 +302,7 @@ process_cursor_resize(struct server *server, uint32_t time)
 	static uint32_t last_resize_time = 0;
 	static struct view *last_resize_view = NULL;
 
+	assert(server->grabbed_view);
 	if (server->grabbed_view == last_resize_view) {
 		int32_t refresh = 0;
 		if (output_is_usable(last_resize_view->output)) {

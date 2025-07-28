@@ -1054,9 +1054,6 @@ static void
 handle_xdg_toplevel_icon_set_icon(struct wl_listener *listener, void *data)
 {
 	struct wlr_xdg_toplevel_icon_manager_v1_set_icon_event *event = data;
-
-	struct server *server =
-		wl_container_of(listener, server, xdg_toplevel_icon_set_icon);
 	struct wlr_xdg_surface *xdg_surface = event->toplevel->base;
 	struct view *view = xdg_surface->data;
 	assert(view);

@@ -823,8 +823,9 @@ get_target_output(struct output *output, struct server *server,
 }
 
 static void
-warp_cursor(struct view *view, struct output *output, const char *to, const char *x, const char *y)
+warp_cursor(struct server *server, struct view *view, const char *to, const char *x, const char *y)
 {
+	struct output *output = output_nearest_to_cursor(server);
 	struct wlr_box target_area = {0};
 	int goto_x;
 	int goto_y;
@@ -855,8 +856,8 @@ warp_cursor(struct view *view, struct output *output, const char *to, const char
 			target_area.y + target_area.height + offset_y;
 	}
 
-	wlr_cursor_warp(output->server->seat.cursor, NULL, goto_x, goto_y);
-	cursor_update_focus(output->server);
+	wlr_cursor_warp(server->seat.cursor, NULL, goto_x, goto_y);
+	cursor_update_focus(server);
 }
 
 void
@@ -1352,9 +1353,7 @@ actions_run(struct view *activator, struct server *server,
 			const char *to = action_get_str(action, "to", "output");
 			const char *x = action_get_str(action, "x", "center");
 			const char *y = action_get_str(action, "y", "center");
-			struct output *output = output_nearest_to_cursor(server);
-
-			warp_cursor(view, output, to, x, y);
+			warp_cursor(server, view, to, x, y);
 			break;
 		}
 		case ACTION_TYPE_HIDE_CURSOR:

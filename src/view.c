@@ -2,8 +2,11 @@
 #include "view.h"
 #include <assert.h>
 #include <strings.h>
+#include <wlr/types/wlr_keyboard_group.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_security_context_v1.h>
+#include <wlr/types/wlr_xdg_shell.h>
 #include "action.h"
 #include "buffer.h"
 #include "common/box.h"
@@ -21,6 +24,7 @@
 #include "placement.h"
 #include "regions.h"
 #include "resize-indicator.h"
+#include "session-lock.h"
 #include "snap-constraints.h"
 #include "snap.h"
 #include "ssd.h"

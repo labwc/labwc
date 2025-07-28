@@ -15,6 +15,7 @@
 #include <wayland-server.h>
 #include <wlr/types/wlr_fractional_scale_v1.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
+#include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
 #include "common/macros.h"
 #include "common/mem.h"

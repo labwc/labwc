@@ -6,9 +6,11 @@
 #include <wlr/backend/multi.h>
 #include <wlr/backend/session.h>
 #include <wlr/interfaces/wlr_keyboard.h>
+#include <wlr/types/wlr_keyboard_group.h>
 #include "action.h"
 #include "common/macros.h"
 #include "common/three-state.h"
+#include "config/keybind.h"
 #include "idle.h"
 #include "input/ime.h"
 #include "input/key-state.h"
@@ -16,6 +18,7 @@
 #include "menu/menu.h"
 #include "osd.h"
 #include "regions.h"
+#include "session-lock.h"
 #include "view.h"
 #include "workspaces.h"
 

@@ -3,6 +3,9 @@
 
 #include "input/ime.h"
 #include <assert.h>
+#include <wlr/types/wlr_layer_shell_v1.h>
+#include <wlr/types/wlr_virtual_keyboard_v1.h>
+#include <wlr/types/wlr_xdg_shell.h>
 #include "common/mem.h"
 #include "node.h"
 #include "output.h"

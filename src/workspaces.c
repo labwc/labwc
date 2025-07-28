@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <wlr/types/wlr_scene.h>
 #include "buffer.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "input/touch.h"
 #include <wayland-util.h>
+#include <wlr/types/wlr_scene.h>
+#include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_touch.h>
 #include <linux/input-event-codes.h>
 #include "common/macros.h"

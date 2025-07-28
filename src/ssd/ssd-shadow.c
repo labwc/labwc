@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <assert.h>
-#include "common/scene-helpers.h"
+#include <wlr/types/wlr_scene.h>
 #include "labwc.h"
 #include "buffer.h"
 #include "ssd-internal.h"

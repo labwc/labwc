@@ -5,8 +5,14 @@
 #include <wlr/backend/libinput.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
+#include <wlr/types/wlr_keyboard_group.h>
+#include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_pointer.h>
+#include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_touch.h>
+#include <wlr/types/wlr_virtual_keyboard_v1.h>
+#include <wlr/types/wlr_virtual_pointer_v1.h>
+#include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
 #include "common/macros.h"
 #include "common/mem.h"
@@ -18,6 +24,7 @@
 #include "input/key-state.h"
 #include "labwc.h"
 #include "output.h"
+#include "session-lock.h"
 #include "view.h"
 
 static void

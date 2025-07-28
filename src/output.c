@@ -14,7 +14,11 @@
 #include <wlr/backend/wayland.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
+#include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_output_management_v1.h>
+#include <wlr/types/wlr_output_power_management_v1.h>
+#include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/region.h>
@@ -31,6 +35,7 @@
 #include "protocols/cosmic-workspaces.h"
 #include "protocols/ext-workspace.h"
 #include "regions.h"
+#include "session-lock.h"
 #include "view.h"
 #include "xwayland.h"
 

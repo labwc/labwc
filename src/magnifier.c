@@ -2,8 +2,10 @@
 
 #include "magnifier.h"
 #include <assert.h>
+#include <wlr/render/allocator.h>
 #include <wlr/render/swapchain.h>
 #include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/util/transform.h>
 #include "common/box.h"
 #include "labwc.h"

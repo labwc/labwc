@@ -36,13 +36,28 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## [0.9.0]
+## Notes on wlroots-0.19
 
-The main focus has been to port labwc to wlroots 0.19 [#2388] and fix associated
-issues. Special thanks to @Consolatis @jlindgren90 for this.
+There are some regression warnings worth noting for the switch to wlroots 0.19:
 
-There is a regression warning worth noting for the switch to wlroots 0.19:
-
+- The DRM backend now destroys/recreates outputs on VT switch and in some cases
+  on suspend/resume too. The reason for this change was that (i) the KMS state
+  is undefined when a VT is switched away; and (ii) the previous outputs had
+  issues with restoration, particularly when the output configuration had
+  changed whilst switched away. This change causes two issues for users:
+  - Some layer-shell clients do not re-appear on output re-connection, or may
+    appear on a different output. Whilst this has always been the case, it will
+    now also happen in said situations. We recommend layer-shell clients to
+    handle the new-output and surface-destroy signals to achieve desired
+    behaviours.
+  - Some Gtk clients issue critical warnings as they assume that at least one
+    output is always available. This will be fixed in `Gtk-3.24.50`. It is
+    believed to be a harmless warning, but it can be avoided by running labwc
+    with the environment variable `LABWC_FALLBACK_OUTPUT=NOOP-fallback` to
+    temporarily create a fallback-output when the last physical display
+    disconnects. [#2914] [#2939] [wlroots-4878] [gtk-8792]
+- Due to a single-pixel protocol issue, `waylock` and `chayang` do not work.
+  This will be fixed in `wlroots-0.19.1`. [#2943] [wlroots-5098]
 - Menu item can no longer be activated in any Gtk applications with a single
   press-drag-release mouse action. For context: This is due to ambiguity in the
   specifications and contrary implementations. For example, Gtk applications are
@@ -53,6 +68,17 @@ There is a regression warning worth noting for the switch to wlroots 0.19:
 - VR headset support is disabled when compiled with wlroots `0.19.0` to work
   around a bug on the wlroots side which is expected to be fixed in wlroots
   `0.19.1` [#2887]
+
+[wlroots-4878]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4878
+[wlroots-5098]:https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5098
+[gtk-8792]: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/8792
+
+## [unreleased]
+
+## [0.9.0]
+
+The main focus has been to port labwc to wlroots 0.19 [#2388] and fix associated
+issues. Special thanks to @Consolatis @jlindgren90 for this.
 
 ### Added
 
@@ -2548,3 +2574,6 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2886]: https://github.com/labwc/labwc/pull/2886
 [#2887]: https://github.com/labwc/labwc/pull/2887
 [#2891]: https://github.com/labwc/labwc/pull/2891
+[#2914]: https://github.com/labwc/labwc/pull/2914
+[#2939]: https://github.com/labwc/labwc/pull/2939
+[#2943]: https://github.com/labwc/labwc/pull/2943

@@ -2,6 +2,8 @@
 #ifndef LABWC_GRAPHIC_HELPERS_H
 #define LABWC_GRAPHIC_HELPERS_H
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <cairo.h>
 
 struct wlr_fbox;

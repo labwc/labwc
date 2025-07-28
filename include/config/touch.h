@@ -2,7 +2,7 @@
 #ifndef LABWC_TOUCH_CONFIG_H
 #define LABWC_TOUCH_CONFIG_H
 
-#include <stdint.h>
+#include <stdbool.h>
 #include <wayland-util.h>
 
 struct touch_config_entry {

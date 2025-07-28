@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "common/nodename.h"
 #include <ctype.h>
 #include <string.h>
-#include "common/nodename.h"
 
 char *
 nodename(xmlNode *node, char *buf, int len)

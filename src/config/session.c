@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "config/session.h"
 #include <assert.h>
 #include <dirent.h>
 #include <stdbool.h>
@@ -18,7 +19,6 @@
 #include "common/parse-bool.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
-#include "config/session.h"
 #include "labwc.h"
 
 static const char *const env_vars[] = {

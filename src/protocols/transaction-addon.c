@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "protocols/transaction-addon.h"
 #include <assert.h>
 #include <wayland-server-core.h>
 #include "common/list.h"
 #include "common/mem.h"
-#include "protocols/transaction-addon.h"
 
 void
 lab_transaction_op_destroy(struct lab_transaction_op *trans_op)

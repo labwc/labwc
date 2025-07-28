@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "common/surface-helpers.h"
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/util/log.h>
-#include "common/surface-helpers.h"
 
 struct wlr_layer_surface_v1 *
 subsurface_parent_layer(struct wlr_surface *wlr_surface)

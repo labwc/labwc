@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "edges.h"
 #include <assert.h>
 #include <limits.h>
 #include <pixman.h>
@@ -8,7 +9,6 @@
 #include "common/box.h"
 #include "common/macros.h"
 #include "config/rcxml.h"
-#include "edges.h"
 #include "labwc.h"
 #include "view.h"
 #include "node.h"

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "action.h"
 #include <assert.h>
 #include <signal.h>
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
 #include <wlr/util/log.h>
-#include "action.h"
 #include "common/macros.h"
 #include "common/list.h"
 #include "common/mem.h"

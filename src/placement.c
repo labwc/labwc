@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "placement.h"
 #include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -6,7 +7,6 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "labwc.h"
-#include "placement.h"
 #include "ssd.h"
 #include "view.h"
 

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "common/scaled-font-buffer.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +11,6 @@
 #include "common/graphic-helpers.h"
 #include "common/mem.h"
 #include "common/scaled-scene-buffer.h"
-#include "common/scaled-font-buffer.h"
 #include "common/string-helpers.h"
 
 static struct lab_data_buffer *

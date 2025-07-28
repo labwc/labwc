@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include "magnifier.h"
 #include <assert.h>
 #include <wlr/render/swapchain.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/util/transform.h>
 #include "common/box.h"
 #include "labwc.h"
-#include "magnifier.h"
 #include "theme.h"
 
 static bool magnify_on;

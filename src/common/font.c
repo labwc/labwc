@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "common/font.h"
 #include <cairo.h>
 #include <drm_fourcc.h>
 #include <pango/pangocairo.h>
 #include <wlr/render/wlr_renderer.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
-#include "common/font.h"
 #include "common/graphic-helpers.h"
 #include "common/string-helpers.h"
 #include "labwc.h"

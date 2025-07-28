@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "osd.h"
 #include <assert.h>
 #include <cairo.h>
 #include <wlr/util/log.h>
@@ -15,7 +16,6 @@
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "node.h"
-#include "osd.h"
 #include "theme.h"
 #include "view.h"
 #include "window-rules.h"

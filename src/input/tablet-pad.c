@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "input/tablet-pad.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <wlr/backend/libinput.h>
@@ -9,7 +10,6 @@
 #include "common/mem.h"
 #include "config/rcxml.h"
 #include "input/cursor.h"
-#include "input/tablet-pad.h"
 #include "input/tablet.h"
 #include "labwc.h"
 

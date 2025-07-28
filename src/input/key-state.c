@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "input/key-state.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -6,7 +7,6 @@
 #include <string.h>
 #include <wlr/util/log.h>
 #include "common/set.h"
-#include "input/key-state.h"
 
 static struct lab_set pressed, bound, pressed_sent;
 

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "desktop-entry.h"
 #include <sfdo-desktop.h>
 #include <sfdo-icon.h>
 #include <sfdo-basedir.h>
@@ -9,7 +10,6 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
-#include "desktop-entry.h"
 #include "img/img.h"
 
 #include "labwc.h"

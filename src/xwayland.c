@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "xwayland.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <wlr/xwayland.h>
@@ -17,7 +18,6 @@
 #include "view-impl-common.h"
 #include "window-rules.h"
 #include "workspaces.h"
-#include "xwayland.h"
 
 enum atoms {
 	ATOM_NET_WM_ICON = 0,

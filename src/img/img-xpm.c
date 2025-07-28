@@ -11,6 +11,7 @@
  * Adapted for labwc by John Lindgren, 2024
  */
 
+#include "img/img-xpm.h"
 #include <glib.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +22,6 @@
 #include "common/buf.h"
 #include "common/graphic-helpers.h"
 #include "common/mem.h"
-#include "img/img-xpm.h"
 
 enum buf_op { op_header, op_cmap, op_body };
 

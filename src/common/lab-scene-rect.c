@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "common/lab-scene-rect.h"
 #include <assert.h>
 #include <wlr/types/wlr_scene.h>
-#include "common/lab-scene-rect.h"
 #include "common/mem.h"
 
 struct border_scene {

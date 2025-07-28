@@ -6,6 +6,7 @@
  */
 
 #define _POSIX_C_SOURCE 200809L
+#include "theme.h"
 #include "config.h"
 #include <assert.h>
 #include <cairo.h>
@@ -30,7 +31,6 @@
 #include "config/rcxml.h"
 #include "img/img.h"
 #include "labwc.h"
-#include "theme.h"
 #include "buffer.h"
 #include "ssd.h"
 

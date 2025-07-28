@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "input/tablet.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <linux/input-event-codes.h>
@@ -12,7 +13,6 @@
 #include "config/rcxml.h"
 #include "config/mousebind.h"
 #include "input/cursor.h"
-#include "input/tablet.h"
 #include "input/tablet-pad.h"
 #include "labwc.h"
 #include "idle.h"

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "config/libinput.h"
 #include <string.h>
 #include <strings.h>
 #include "common/mem.h"
 #include "common/list.h"
 #include "common/string-helpers.h"
-#include "config/libinput.h"
 #include "config/rcxml.h"
 
 static void

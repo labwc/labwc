@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "input/keyboard.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <wlr/backend/multi.h>
@@ -10,7 +11,6 @@
 #include "common/three-state.h"
 #include "idle.h"
 #include "input/ime.h"
-#include "input/keyboard.h"
 #include "input/key-state.h"
 #include "labwc.h"
 #include "menu/menu.h"

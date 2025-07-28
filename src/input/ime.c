@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /* Based on Sway (https://github.com/swaywm/sway) */
 
+#include "input/ime.h"
 #include <assert.h>
 #include "common/mem.h"
-#include "input/ime.h"
 #include "node.h"
 #include "view.h"
 

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #define _POSIX_C_SOURCE 200809L
+#include "regions.h"
 #include <assert.h>
 #include <float.h>
 #include <math.h>
@@ -12,7 +13,6 @@
 #include "common/mem.h"
 #include "input/keyboard.h"
 #include "labwc.h"
-#include "regions.h"
 #include "view.h"
 
 bool

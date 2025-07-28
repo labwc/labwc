@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "common/spawn.h"
 #include <assert.h>
 #include <fcntl.h>
 #include <glib.h>
@@ -9,7 +10,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <wlr/util/log.h>
-#include "common/spawn.h"
 #include "common/fd-util.h"
 
 static void

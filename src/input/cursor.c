@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "input/cursor.h"
 #include <assert.h>
 #include <linux/input-event-codes.h>
 #include <sys/time.h>

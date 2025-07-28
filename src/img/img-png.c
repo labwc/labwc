@@ -3,6 +3,7 @@
  * Copyright (C) Johan Malm 2023
  */
 #define _POSIX_C_SOURCE 200809L
+#include "img/img-png.h"
 #include <assert.h>
 #include <cairo.h>
 #include <png.h>
@@ -12,7 +13,6 @@
 #include <wlr/util/log.h>
 #include "buffer.h"
 #include "common/string-helpers.h"
-#include "img/img-png.h"
 
 /*
  * cairo_image_surface_create_from_png() does not gracefully handle non-png

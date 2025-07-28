@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "common/scaled-scene-buffer.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <wayland-server-core.h>
@@ -11,7 +12,6 @@
 #include "common/list.h"
 #include "common/macros.h"
 #include "common/mem.h"
-#include "common/scaled-scene-buffer.h"
 #include "node.h"
 
 /*

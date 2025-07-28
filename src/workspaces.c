@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include "workspaces.h"
 #include <assert.h>
 #include <cairo.h>
 #include <pango/pangocairo.h>
@@ -18,7 +19,6 @@
 #include "protocols/cosmic-workspaces.h"
 #include "protocols/ext-workspace.h"
 #include "view.h"
-#include "workspaces.h"
 #include "xwayland.h"
 
 #define COSMIC_WORKSPACES_VERSION 1

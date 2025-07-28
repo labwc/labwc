@@ -4,6 +4,7 @@
 
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_tablet_v2.h>
+#include "config/tablet-tool.h"
 
 struct seat;
 struct wlr_device;

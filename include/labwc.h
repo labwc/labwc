@@ -2,53 +2,10 @@
 #ifndef LABWC_H
 #define LABWC_H
 #include "config.h"
-#include <getopt.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
-#include <wayland-server-core.h>
-#include <wlr/backend.h>
-#include <wlr/render/allocator.h>
-#include <wlr/render/wlr_renderer.h>
-#include <wlr/types/wlr_compositor.h>
-#include <wlr/types/wlr_buffer.h>
-#include <wlr/types/wlr_cursor.h>
-#include <wlr/types/wlr_data_device.h>
-#include <wlr/types/wlr_gamma_control_v1.h>
-#include <wlr/types/wlr_input_device.h>
-#include <wlr/types/wlr_keyboard.h>
-#include <wlr/types/wlr_keyboard_group.h>
-#include <wlr/types/wlr_layer_shell_v1.h>
-#include <wlr/types/wlr_output.h>
-#include <wlr/types/wlr_output_management_v1.h>
-#include <wlr/types/wlr_output_power_management_v1.h>
-#include <wlr/types/wlr_output_layout.h>
-#include <wlr/types/wlr_scene.h>
-#include <wlr/types/wlr_relative_pointer_v1.h>
-#include <wlr/types/wlr_pointer.h>
-#include <wlr/types/wlr_pointer_constraints_v1.h>
-#include <wlr/types/wlr_seat.h>
-#include <wlr/types/wlr_subcompositor.h>
-#include <wlr/types/wlr_xcursor_manager.h>
-#include <wlr/types/wlr_xdg_activation_v1.h>
-#include <wlr/types/wlr_xdg_shell.h>
-#include <wlr/types/wlr_drm_lease_v1.h>
-#include <wlr/types/wlr_virtual_pointer_v1.h>
-#include <wlr/types/wlr_virtual_keyboard_v1.h>
-#include <wlr/types/wlr_tearing_control_v1.h>
-#include <wlr/types/wlr_text_input_v3.h>
-#include <wlr/types/wlr_input_method_v2.h>
-#include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/util/log.h>
 #include "common/set.h"
-#include "config/keybind.h"
-#include "config/rcxml.h"
 #include "input/cursor.h"
 #include "overlay.h"
-#include "regions.h"
-#include "session-lock.h"
 #if HAVE_NLS
 #include <libintl.h>
 #include <locale.h>
@@ -59,6 +16,8 @@
 
 #define XCURSOR_DEFAULT "left_ptr"
 #define XCURSOR_SIZE 24
+
+struct wlr_xdg_popup;
 
 enum input_mode {
 	LAB_INPUT_STATE_PASSTHROUGH = 0,

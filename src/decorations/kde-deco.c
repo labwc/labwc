@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
 #include <wlr/types/wlr_server_decoration.h>
+#include <wlr/types/wlr_xdg_shell.h>
 #include "common/list.h"
 #include "common/mem.h"
 #include "decorations.h"

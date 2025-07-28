@@ -6,6 +6,7 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
 #include "common/macros.h"
 #include "common/list.h"

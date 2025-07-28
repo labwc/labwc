@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include <wlr/types/wlr_tearing_control_v1.h>
 #include "common/mem.h"
 #include "labwc.h"
 #include "view.h"

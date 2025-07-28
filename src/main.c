@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#include <getopt.h>
 #include <pango/pangocairo.h>
 #include <signal.h>
-#include <string.h>
 #include <unistd.h>
-#include "common/dir.h"
 #include "common/fd-util.h"
 #include "common/font.h"
-#include "common/mem.h"
 #include "common/spawn.h"
 #include "config/session.h"
 #include "labwc.h"

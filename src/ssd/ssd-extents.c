@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <pixman.h>
+#include <wlr/types/wlr_scene.h>
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"

@@ -3,6 +3,9 @@
 #include "xwayland.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_seat.h>
+#include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/xwayland.h>
 #include "buffer.h"
 #include "common/array.h"

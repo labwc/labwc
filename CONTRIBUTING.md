@@ -10,9 +10,10 @@
   - [4.2 Devault Deviations](#devault-deviations)
   - [4.3 Labwc Specifics](#labwc-specifics)
     - [4.3.1 API](#api)
-    - [4.3.2 The Use of glib](#the-use-of-glib)
-    - [4.3.3 The use of GNU extensions](#the-use-of-gnu-extensions)
+    - [4.3.2 The Use of GLib](#the-use-of-glib)
+    - [4.3.3 The Use of GNU Extensions](#the-use-of-gnu-extensions)
     - [4.3.4 Naming Conventions](#naming-conventions)
+    - [4.3.5 Switch Statements with Variable Declarations](#switch-statements-with-variable-declarations)
 - [5. Commit Messages](#commit-messages)
 - [6. Unit Tests](#unit-tests)
 - [7. Submitting Patches](#submitting-patches)
@@ -242,14 +243,14 @@ We have a very small, modest API and encourage you to use it.
 [common/array.h]: https://github.com/labwc/labwc/blob/master/include/common/array.h
 [common/macros.h]: https://github.com/labwc/labwc/blob/master/include/common/macros.h
 
-### The Use of glib
+### The Use of GLib
 
-We try to keep the use of glib pretty minimal for the following reasons:
+We try to keep the use of GLib pretty minimal for the following reasons:
 
-- The use of glib has been known to make AddressSanitiser diagnose false
+- The use of GLib has been known to make AddressSanitiser diagnose false
   positives and negatives.
-- Log messages coming from glib functions look inconsistent.
-- The use of glib functions, naming-conventions and iterators in a code base
+- Log messages coming from GLib functions look inconsistent.
+- The use of GLib functions, naming-conventions and iterators in a code base
   that is predominantly ANSI C creates a clash which makes readability and
   maintainability harder.
 - Mixing gmalloc()/malloc() and respective free()s can create problems with
@@ -272,7 +273,7 @@ devs:
 - `g_pattern_match_simple()`
 
 When using these types of functions it is often desirable to support with some
-glib code, which is okay provided it is kept local and self-contained. See
+GLib code, which is okay provided it is kept local and self-contained. See
 example from `src/theme.c`:
 
 ```
@@ -287,7 +288,7 @@ match(const gchar *pattern, const gchar *string)
 }
 ```
 
-### The use of GNU extensions
+### The Use of GNU Extensions
 
 We avoid [GNU C extensions] because we want to fit into the eco-system
 (wayland and wlroots) we live in.
@@ -323,7 +324,7 @@ We use the prefix `handle_` for signal-handler-functions in order to be
 consistent with sway and rootston. For example
 `view->request_resize.notify = handle_request_resize`
 
-### Switch statements with variable declarations
+### Switch Statements with Variable Declarations
 
 Unlike many modern languages, C doesn't create a new scope after `case FOO:`.
 Therefore, we wrap codes following `case FOO:` that include variable
@@ -481,11 +482,11 @@ follow the steps to be taken:
 [GNU C extensions]: https://gcc.gnu.org/onlinedocs/gcc/C-Extensions.html
 [`wl_container_of()`]: https://github.com/wayland-project/wayland/blob/985ab55d59db45ea62795c76dff5949343e86b2f/src/wayland-util.h#L409
 
-[^1]: The reference documentation for glib notes that:
+[^1]: The reference documentation for GLib notes that:
       "It's important to match g_malloc() with g_free(), plain malloc() with
       free(), and (if you're using C++) new with delete and new[] with
       delete[]. Otherwise bad things can happen, since these allocators may use
       different memory pools (and new/delete call constructors and
       destructors)."
-      See: https://developer.gimp.org/api/2.0/glib/glib-Memory-Allocation.html
+      See: https://docs.gtk.org/glib/memory.html
 

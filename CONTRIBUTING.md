@@ -14,6 +14,7 @@
     - [4.3.3 The Use of GNU Extensions](#the-use-of-gnu-extensions)
     - [4.3.4 Naming Conventions](#naming-conventions)
     - [4.3.5 Switch Statements with Variable Declarations](#switch-statements-with-variable-declarations)
+    - [4.3.6 Order of #includes](#order-of-includes)
 - [5. Commit Messages](#commit-messages)
 - [6. Unit Tests](#unit-tests)
 - [7. Submitting Patches](#submitting-patches)
@@ -349,6 +350,26 @@ case BAZ:
 
 But please also consider refactoring the code into a separate function if it
 becomes lengthy.
+
+### Order of #includes
+
+In new files, please order `#include` lines as follows:
+
+- In each `.c` file, first include the matching `.h` file, if there is
+  one. For example, `#include "common/font.h"` should come first in
+  `src/common/font.c`. This practice helps to ensure that each header
+  compiles cleanly on its own, without implicit dependencies on other
+  headers being included first.
+
+- Then list any "system" headers (those not part of labwc) in alphebetical
+  order, using angle brackets. This includes 3rd-party library headers
+  such as `<cairo.h>`, as well as wlroots headers.
+
+- Then list any other labwc headers in alphetical order, using quotation
+  marks and relative to the `include/` folder. Subfolders below `include/`,
+  such as `common/`, should be specified even when including one header
+  from another in the same folder (for example, `#include "common/buf.h"`
+  from `include/common/grab-file.h`).
 
 # Commit Messages
 

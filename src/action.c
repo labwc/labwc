@@ -495,7 +495,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		break;
 	case ACTION_TYPE_IF:
 		if (!strcmp(argument, "text.prompt")) {
-			action_arg_add_str(action, "prompt_text", content);
+			action_arg_add_str(action, "text.prompt", content);
 		}
 		goto cleanup;
 	}
@@ -818,7 +818,7 @@ static void
 action_prompt_create(struct view *view, struct server *server, struct action *action)
 {
 	char *command = strdup_printf("labnag -m \"%s\" -Z \"%s\" : -Z \"%s\" :",
-		action_get_str(action, "prompt_text", "Choose wisely"),
+		action_get_str(action, "text.prompt", "Choose wisely"),
 		_("Yes"), _("No"));
 
 	int pipe_fd;
@@ -901,7 +901,7 @@ run_if_action(struct view *view, struct server *server, struct action *action)
 
 	if (!strcmp(branch, "then")) {
 		/* At least one of the queries was matched or there was no query */
-		if (action_get_str(action, "prompt_text", NULL)) {
+		if (action_get_str(action, "text.prompt", NULL)) {
 			/*
 			 * We delay the selection and execution of the
 			 * branch until we get a response from the user.

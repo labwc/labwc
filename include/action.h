@@ -3,6 +3,7 @@
 #define LABWC_ACTION_H
 
 #include <stdbool.h>
+#include <sys/types.h>
 #include <wayland-util.h>
 
 struct view;

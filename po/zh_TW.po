@@ -1,7 +1,7 @@
 # Labwc pot file
-# Copyright (C) 2023
+# Copyright (C) 2024
 # This file is distributed under the same license as the labwc package.
-# Aleksey Samoilov <samoilov.lex@gmail.com>, 2023.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 msgid ""
 msgstr ""
@@ -9,73 +9,72 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
 "PO-Revision-Date: 2025-07-30 08:01+0000\n"
-"Last-Translator: Valera <ValeraDX@yandex.ru>\n"
-"Language-Team: Russian <https://translate.lxqt-project.org/projects/labwc/"
-"labwc/ru/>\n"
-"Language: ru\n"
+"Last-Translator: BigELK176 ≡ <BigELK176@gmail.com>\n"
+"Language-Team: Chinese (Traditional) <https://translate.lxqt-project.org/"
+"projects/labwc/labwc/zh_TW/>\n"
+"Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 4.2.1\n"
 
 #: src/menu/menu.c:1016
 msgid "Go there..."
-msgstr "Перейти..."
+msgstr "前往…"
 
 #: src/menu/menu.c:1034
 msgid "Terminal"
-msgstr "Терминал"
+msgstr "終端"
 
 #: src/menu/menu.c:1040
 msgid "Reconfigure"
-msgstr "Перенастроить"
+msgstr "重新設定"
 
 #: src/menu/menu.c:1042
 msgid "Exit"
-msgstr "Выход"
+msgstr "退出"
 
 #: src/menu/menu.c:1056
 msgid "Minimize"
-msgstr "Свернуть"
+msgstr "最小化"
 
 #: src/menu/menu.c:1058
 msgid "Maximize"
-msgstr "Развернуть"
+msgstr "最大化"
 
 #: src/menu/menu.c:1060
 msgid "Fullscreen"
-msgstr "На весь экран"
+msgstr "全螢幕"
 
 #: src/menu/menu.c:1062
 msgid "Roll Up/Down"
-msgstr "Свернуть/развернуть в заголовок"
+msgstr "捲上/捲下"
 
 #: src/menu/menu.c:1064
 msgid "Decorations"
-msgstr "Декорации"
+msgstr "裝飾"
 
 #: src/menu/menu.c:1066
 msgid "Always on Top"
-msgstr "Всегда на переднем плане"
+msgstr "總是在最上層"
 
 #: src/menu/menu.c:1071
 msgid "Move Left"
-msgstr "Переместить влево"
+msgstr "移左"
 
 #: src/menu/menu.c:1078
 msgid "Move Right"
-msgstr "Переместить вправо"
+msgstr "移右"
 
 #: src/menu/menu.c:1083
 msgid "Always on Visible Workspace"
-msgstr "На всех рабочих пространствах"
+msgstr "總是在可見工作區"
 
 #: src/menu/menu.c:1086
 msgid "Workspace"
-msgstr "Рабочее пространство"
+msgstr "工作區"
 
 #: src/menu/menu.c:1089
 msgid "Close"
-msgstr "Закрыть"
+msgstr "關閉"

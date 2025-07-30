@@ -1196,6 +1196,12 @@ nag_run(struct nag *nag)
 		while (wl_display_prepare_read(nag->display) != 0) {
 			wl_display_dispatch_pending(nag->display);
 		}
+
+		errno = 0;
+		if (wl_display_flush(nag->display) == -1 && errno != EAGAIN) {
+                        break;
+                }
+
 		poll(fds, 2, -1);
 		if (fds[0].revents & POLLIN) {
 			if (timer_fd >= 0 && nag->details.close_timeout_cancel) {

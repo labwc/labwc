@@ -860,12 +860,6 @@ action_check_prompt_result(pid_t pid, int exit_code)
 
 		wlr_log(WLR_INFO, "Found pending prompt for exit code %d", exit_code);
 		struct wl_list *actions = NULL;
-		/*
-		 * TODO: figure out how to have more than 2 choices,
-		 *       maybe by using branch names like cond_0, cond_1
-		 *       and so on and falling back to 'then' and 'else'
-		 *       if not found?
-		 */
 		if (exit_code == 0) {
 			wlr_log(WLR_INFO, "Selected the 'then' branch");
 			actions = action_get_actionlist(prompt->action, "then");

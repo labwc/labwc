@@ -80,7 +80,7 @@ jobs:
         run: |
           pacman-key --init
           pacman -Syu --noconfirm
-          pacman -S --noconfirm git meson clang wlroots libdrm libinput \
+          pacman -S --noconfirm git meson clang wlroots0.18 libdrm libinput \
             wayland-protocols cairo pango libxml2 xorg-xwayland librsvg \
             libdisplay-info gdb ttf-dejavu foot libsfdo
 

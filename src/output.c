@@ -60,8 +60,8 @@ get_config_render_bit_depth(void)
 	return LAB_RENDER_BIT_DEPTH_8;
 }
 
-static void
-output_state_setup_hdr(struct output *output)
+void
+output_state_setup_hdr(struct output *output, bool silent)
 {
 	uint32_t render_format = output->wlr_output->render_format;
 	enum render_bit_depth render_bit_depth = get_config_render_bit_depth();
@@ -75,7 +75,7 @@ output_state_setup_hdr(struct output *output)
 		wlr_output_state_set_render_format(&output->pending, DRM_FORMAT_XBGR8888);
 	}
 	bool hdr = rc.hdr == LAB_HDR_ENABLED;
-	output_enable_hdr(output, &output->pending, hdr);
+	output_enable_hdr(output, &output->pending, hdr, silent);
 }
 
 bool
@@ -389,7 +389,7 @@ configure_new_output(struct server *server, struct output *output)
 		output_enable_adaptive_sync(output, true);
 	}
 
-	output_state_setup_hdr(output);
+	output_state_setup_hdr(output, false);
 
 	output_state_commit(output);
 
@@ -682,7 +682,7 @@ output_config_apply(struct server *server,
 			wlr_output_state_set_transform(os, head->state.transform);
 			output_enable_adaptive_sync(output,
 				head->state.adaptive_sync_enabled);
-			output_state_setup_hdr(output);
+			output_state_setup_hdr(output, false);
 		}
 		if (!output_state_commit(output)) {
 			/*
@@ -1196,25 +1196,32 @@ output_supports_hdr(const struct output *output, const char **unsupported_reason
 }
 
 void
-output_enable_hdr(struct output *output, struct wlr_output_state *os, bool enabled)
+output_enable_hdr(struct output *output, struct wlr_output_state *os, bool enabled, bool silent)
 {
 	const char *unsupported_reason = NULL;
 	if (enabled && !output_supports_hdr(output, &unsupported_reason)) {
-		wlr_log(WLR_INFO, "Cannot enable HDR on output %s: %s",
-			output->wlr_output->name, unsupported_reason);
+		if (!silent) {
+			wlr_log(WLR_INFO, "Cannot enable HDR on output %s: %s",
+				output->wlr_output->name, unsupported_reason);
+		}
 		enabled = false;
 	}
 
 	if (!enabled) {
 		if (output->wlr_output->supported_primaries != 0 ||
 			output->wlr_output->supported_transfer_functions != 0) {
-			wlr_log(WLR_DEBUG, "Disabling HDR on output %s", output->wlr_output->name);
+			if (!silent) {
+				wlr_log(WLR_DEBUG, "Disabling HDR on output %s",
+					output->wlr_output->name);
+			}
 			wlr_output_state_set_image_description(os, NULL);
 		}
 		return;
 	}
 
-	wlr_log(WLR_DEBUG, "Enabling HDR on output %s", output->wlr_output->name);
+	if (!silent) {
+		wlr_log(WLR_DEBUG, "Enabling HDR on output %s", output->wlr_output->name);
+	}
 	const struct wlr_output_image_description image_desc = {
 		.primaries = WLR_COLOR_NAMED_PRIMARIES_BT2020,
 		.transfer_function = WLR_COLOR_TRANSFER_FUNCTION_ST2084_PQ,

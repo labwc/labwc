@@ -24,6 +24,10 @@ output_state_init(struct output *output)
 			backup_config, output->wlr_output);
 
 	wlr_output_head_v1_state_apply(&backup_head->state, &output->pending);
+
+	// This must be applied outside of config
+	output_state_setup_hdr(output, true);
+
 	wlr_output_configuration_v1_destroy(backup_config);
 }
 
@@ -35,6 +39,7 @@ output_state_commit(struct output *output)
 	if (committed) {
 		wlr_output_state_finish(&output->pending);
 		wlr_output_state_init(&output->pending);
+		output_state_setup_hdr(output, true);
 	} else {
 		wlr_log(WLR_ERROR, "Failed to commit frame");
 	}

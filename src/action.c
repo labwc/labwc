@@ -776,29 +776,24 @@ view_for_action(struct view *activator, struct server *server,
 }
 
 static bool
-run_if_action(struct view *view, struct server *server, struct action *action)
+match_queries(struct view *view, struct action *action)
 {
-	struct view_query *query;
-	struct wl_list *queries, *actions;
-	const char *branch = "then";
+	struct wl_list *queries = action_get_querylist(action, "query");
+	if (!queries) {
+		return true;
+	}
+	if (!view) {
+		return false;
+	}
 
-	queries = action_get_querylist(action, "query");
-	if (queries) {
-		branch = "else";
-		/* All queries are OR'ed */
-		wl_list_for_each(query, queries, link) {
-			if (view_matches_query(view, query)) {
-				branch = "then";
-				break;
-			}
+	/* All queries are OR'ed */
+	struct view_query *query;
+	wl_list_for_each(query, queries, link) {
+		if (view_matches_query(view, query)) {
+			return true;
 		}
 	}
-
-	actions = action_get_actionlist(action, branch);
-	if (actions) {
-		actions_run(view, server, actions, NULL);
-	}
-	return !strcmp(branch, "then");
+	return false;
 }
 
 static struct output *
@@ -1209,26 +1204,43 @@ run_action(struct view *view, struct server *server, struct action *action,
 		}
 		break;
 	}
-	case ACTION_TYPE_IF:
-		if (view) {
-			run_if_action(view, server, action);
+	case ACTION_TYPE_IF: {
+		struct wl_list *actions;
+		if (match_queries(view, action)) {
+			actions = action_get_actionlist(action, "then");
+		} else {
+			actions = action_get_actionlist(action, "else");
+		}
+		if (actions) {
+			actions_run(view, server, actions, ctx);
 		}
 		break;
+	}
 	case ACTION_TYPE_FOR_EACH: {
-		struct wl_array views;
-		struct view **item;
+		struct wl_list *actions = NULL;
 		bool matches = false;
+
+		struct wl_array views;
 		wl_array_init(&views);
 		view_array_append(server, &views, LAB_VIEW_CRITERIA_NONE);
+
+		struct view **item;
 		wl_array_for_each(item, &views) {
-			matches |= run_if_action(*item, server, action);
+			if (match_queries(*item, action)) {
+				matches = true;
+				actions = action_get_actionlist(action, "then");
+			} else {
+				actions = action_get_actionlist(action, "else");
+			}
+			if (actions) {
+				actions_run(*item, server, actions, ctx);
+			}
 		}
 		wl_array_release(&views);
 		if (!matches) {
-			struct wl_list *child_actions;
-			child_actions = action_get_actionlist(action, "none");
-			if (child_actions) {
-				actions_run(view, server, child_actions, NULL);
+			actions = action_get_actionlist(action, "none");
+			if (actions) {
+				actions_run(view, server, actions, NULL);
 			}
 		}
 		break;

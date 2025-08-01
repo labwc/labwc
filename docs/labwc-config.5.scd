@@ -175,6 +175,7 @@ this is for compatibility with Openbox.
   <adaptiveSync>no</adaptiveSync>
   <allowTearing>no</allowTearing>
   <autoEnableOutputs>yes</autoEnableOutputs>
+  <hdr>no</hdr>
   <reuseOutputMode>no</reuseOutputMode>
   <xwaylandPersistence>no</xwaylandPersistence>
   <primarySelection>yes</primarySelection>
@@ -239,6 +240,11 @@ this is for compatibility with Openbox.
 	swayidle -w timeout 600 \\
 	    'pkill kanshi ; wlopm --off \*' resume 'kanshi & wlopm --on \*'
 	```
+
+*<core><hdr>* [yes|no]
+	Automatically enable HDR support on outputs when configuring them,
+	where supported by the particular output device and display. Default
+	is no.
 
 *<core><reuseOutputMode>* [yes|no]
 	Try to re-use the existing output mode (resolution / refresh rate).

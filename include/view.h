@@ -215,6 +215,9 @@ struct view {
 	struct wlr_scene_tree *scene_tree;
 	struct wlr_scene_tree *content_tree;
 
+	struct wlr_scene_buffer *animation;
+	uint64_t animation_start_time;
+
 	bool mapped;
 	bool been_mapped;
 	bool ssd_enabled;
@@ -292,6 +295,7 @@ struct view {
 	struct wl_listener request_maximize;
 	struct wl_listener request_fullscreen;
 	struct wl_listener set_title;
+	struct wl_listener output_commit;
 
 	struct foreign_toplevel *foreign_toplevel;
 

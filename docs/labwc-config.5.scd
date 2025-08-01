@@ -175,6 +175,7 @@ this is for compatibility with Openbox.
   <adaptiveSync>no</adaptiveSync>
   <allowTearing>no</allowTearing>
   <autoEnableOutputs>yes</autoEnableOutputs>
+  <hdr>no</hdr>
   <reuseOutputMode>no</reuseOutputMode>
   <xwaylandPersistence>no</xwaylandPersistence>
   <primarySelection>yes</primarySelection>
@@ -239,6 +240,17 @@ this is for compatibility with Openbox.
 	swayidle -w timeout 600 \\
 	    'pkill kanshi ; wlopm --off \*' resume 'kanshi & wlopm --on \*'
 	```
+
+*<core><hdr>* [yes|no]
+	Automatically enable HDR support on outputs when configuring them,
+	where supported by the particular output device and display. Default
+	is no.
+
+	Note: Enabling this option will also currently make all non-HDR
+	outputs render to 10 bits per channel as well, but still sRGB.
+	Any configuration with `wlr-randr` or `kanshi` does not seem to
+	support passing this flag to my knowledge, so the only way to
+	override it is to enable this option.
 
 *<core><reuseOutputMode>* [yes|no]
 	Try to re-use the existing output mode (resolution / refresh rate).

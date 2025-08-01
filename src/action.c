@@ -862,6 +862,488 @@ warp_cursor(struct server *server, struct view *view, const char *to, const char
 	cursor_update_focus(server);
 }
 
+static void
+run_action(struct view *view, struct server *server, struct action *action,
+	struct cursor_context *ctx)
+{
+	switch (action->type) {
+	case ACTION_TYPE_CLOSE:
+		if (view) {
+			view_close(view);
+		}
+		break;
+	case ACTION_TYPE_KILL:
+		if (view) {
+			/* Send SIGTERM to the process associated with the surface */
+			assert(view->impl->get_pid);
+			pid_t pid = view->impl->get_pid(view);
+			if (pid == getpid()) {
+				wlr_log(WLR_ERROR, "Preventing sending SIGTERM to labwc");
+			} else if (pid > 0) {
+				kill(pid, SIGTERM);
+			}
+		}
+		break;
+	case ACTION_TYPE_DEBUG:
+		debug_dump_scene(server);
+		break;
+	case ACTION_TYPE_EXECUTE: {
+		struct buf cmd = BUF_INIT;
+		buf_add(&cmd, action_get_str(action, "command", NULL));
+		buf_expand_tilde(&cmd);
+		spawn_async_no_shell(cmd.data);
+		buf_reset(&cmd);
+		break;
+	}
+	case ACTION_TYPE_EXIT:
+		wl_display_terminate(server->wl_display);
+		break;
+	case ACTION_TYPE_MOVE_TO_EDGE:
+		if (view) {
+			/* Config parsing makes sure that direction is a valid direction */
+			enum view_edge edge = action_get_int(action, "direction", 0);
+			bool snap_to_windows = action_get_bool(action, "snapWindows", true);
+			view_move_to_edge(view, edge, snap_to_windows);
+		}
+		break;
+	case ACTION_TYPE_TOGGLE_SNAP_TO_EDGE:
+	case ACTION_TYPE_SNAP_TO_EDGE:
+		if (view) {
+			/* Config parsing makes sure that direction is a valid direction */
+			enum view_edge edge = action_get_int(action, "direction", 0);
+			if (action->type == ACTION_TYPE_TOGGLE_SNAP_TO_EDGE
+					&& view->maximized == VIEW_AXIS_NONE
+					&& !view->fullscreen
+					&& view_is_tiled(view)
+					&& view->tiled == edge) {
+				view_set_untiled(view);
+				view_apply_natural_geometry(view);
+				break;
+			}
+			view_snap_to_edge(view, edge,
+				/*across_outputs*/ true,
+				/*store_natural_geometry*/ true);
+		}
+		break;
+	case ACTION_TYPE_GROW_TO_EDGE:
+		if (view) {
+			/* Config parsing makes sure that direction is a valid direction */
+			enum view_edge edge = action_get_int(action, "direction", 0);
+			view_grow_to_edge(view, edge);
+		}
+		break;
+	case ACTION_TYPE_SHRINK_TO_EDGE:
+		if (view) {
+			/* Config parsing makes sure that direction is a valid direction */
+			enum view_edge edge = action_get_int(action, "direction", 0);
+			view_shrink_to_edge(view, edge);
+		}
+		break;
+	case ACTION_TYPE_NEXT_WINDOW:
+		if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
+			osd_cycle(server, LAB_CYCLE_DIR_FORWARD);
+		} else {
+			osd_begin(server, LAB_CYCLE_DIR_FORWARD);
+		}
+		break;
+	case ACTION_TYPE_PREVIOUS_WINDOW:
+		if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
+			osd_cycle(server, LAB_CYCLE_DIR_BACKWARD);
+		} else {
+			osd_begin(server, LAB_CYCLE_DIR_BACKWARD);
+		}
+		break;
+	case ACTION_TYPE_RECONFIGURE:
+		kill(getpid(), SIGHUP);
+		break;
+	case ACTION_TYPE_SHOW_MENU:
+		show_menu(server, view, ctx,
+			action_get_str(action, "menu", NULL),
+			action_get_bool(action, "atCursor", true),
+			action_get_str(action, "x.position", NULL),
+			action_get_str(action, "y.position", NULL));
+		break;
+	case ACTION_TYPE_TOGGLE_MAXIMIZE:
+		if (view) {
+			enum view_axis axis = action_get_int(action,
+				"direction", VIEW_AXIS_BOTH);
+			view_toggle_maximize(view, axis);
+		}
+		break;
+	case ACTION_TYPE_MAXIMIZE:
+		if (view) {
+			enum view_axis axis = action_get_int(action,
+				"direction", VIEW_AXIS_BOTH);
+			view_maximize(view, axis,
+				/*store_natural_geometry*/ true);
+		}
+		break;
+	case ACTION_TYPE_UNMAXIMIZE:
+		if (view) {
+			enum view_axis axis = action_get_int(action,
+				"direction", VIEW_AXIS_BOTH);
+			view_maximize(view, view->maximized & ~axis,
+				/*store_natural_geometry*/ true);
+		}
+		break;
+	case ACTION_TYPE_TOGGLE_FULLSCREEN:
+		if (view) {
+			view_toggle_fullscreen(view);
+		}
+		break;
+	case ACTION_TYPE_SET_DECORATIONS:
+		if (view) {
+			enum ssd_mode mode = action_get_int(action,
+				"decorations", LAB_SSD_MODE_FULL);
+			bool force_ssd = action_get_bool(action,
+				"forceSSD", false);
+			view_set_decorations(view, mode, force_ssd);
+		}
+		break;
+	case ACTION_TYPE_TOGGLE_DECORATIONS:
+		if (view) {
+			view_toggle_decorations(view);
+		}
+		break;
+	case ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP:
+		if (view) {
+			view_toggle_always_on_top(view);
+		}
+		break;
+	case ACTION_TYPE_TOGGLE_ALWAYS_ON_BOTTOM:
+		if (view) {
+			view_toggle_always_on_bottom(view);
+		}
+		break;
+	case ACTION_TYPE_TOGGLE_OMNIPRESENT:
+		if (view) {
+			view_toggle_visible_on_all_workspaces(view);
+		}
+		break;
+	case ACTION_TYPE_FOCUS:
+		if (view) {
+			desktop_focus_view(view, /*raise*/ false);
+		}
+		break;
+	case ACTION_TYPE_UNFOCUS:
+		seat_focus_surface(&server->seat, NULL);
+		break;
+	case ACTION_TYPE_ICONIFY:
+		if (view) {
+			view_minimize(view, true);
+		}
+		break;
+	case ACTION_TYPE_MOVE:
+		if (view) {
+			interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
+		}
+		break;
+	case ACTION_TYPE_RAISE:
+		if (view) {
+			view_move_to_front(view);
+		}
+		break;
+	case ACTION_TYPE_LOWER:
+		if (view) {
+			view_move_to_back(view);
+		}
+		break;
+	case ACTION_TYPE_RESIZE:
+		if (view) {
+			uint32_t resize_edges = cursor_get_resize_edges(
+				server->seat.cursor, ctx);
+			interactive_begin(view, LAB_INPUT_STATE_RESIZE,
+				resize_edges);
+		}
+		break;
+	case ACTION_TYPE_RESIZE_RELATIVE:
+		if (view) {
+			int left = action_get_int(action, "left", 0);
+			int right = action_get_int(action, "right", 0);
+			int top = action_get_int(action, "top", 0);
+			int bottom = action_get_int(action, "bottom", 0);
+			view_resize_relative(view, left, right, top, bottom);
+		}
+		break;
+	case ACTION_TYPE_MOVETO:
+		if (view) {
+			int x = action_get_int(action, "x", 0);
+			int y = action_get_int(action, "y", 0);
+			struct border margin = ssd_thickness(view);
+			view_move(view, x + margin.left, y + margin.top);
+		}
+		break;
+	case ACTION_TYPE_RESIZETO:
+		if (view) {
+			int width = action_get_int(action, "width", 0);
+			int height = action_get_int(action, "height", 0);
+
+			/*
+			 * To support only setting one of width/height
+			 * in <action name="ResizeTo" width="" height=""/>
+			 * we fall back to current dimension when unset.
+			 */
+			struct wlr_box box = {
+				.x = view->pending.x,
+				.y = view->pending.y,
+				.width = width ? : view->pending.width,
+				.height = height ? : view->pending.height,
+			};
+			view_set_shade(view, false);
+			view_move_resize(view, box);
+		}
+		break;
+	case ACTION_TYPE_MOVE_RELATIVE:
+		if (view) {
+			int x = action_get_int(action, "x", 0);
+			int y = action_get_int(action, "y", 0);
+			view_move_relative(view, x, y);
+		}
+		break;
+	case ACTION_TYPE_MOVETO_CURSOR:
+		wlr_log(WLR_ERROR,
+			"Action MoveToCursor is deprecated. To ensure your config works in future labwc "
+			"releases, please use <action name=\"AutoPlace\" policy=\"cursor\">");
+		if (view) {
+			view_move_to_cursor(view);
+		}
+		break;
+	case ACTION_TYPE_SEND_TO_DESKTOP:
+		if (!view) {
+			break;
+		}
+		/* Falls through to GoToDesktop */
+	case ACTION_TYPE_GO_TO_DESKTOP: {
+		bool follow = true;
+		bool wrap = action_get_bool(action, "wrap", true);
+		const char *to = action_get_str(action, "to", NULL);
+		/*
+		 * `to` is always != NULL here because otherwise we would have
+		 * removed the action during the initial parsing step as it is
+		 * a required argument for both SendToDesktop and GoToDesktop.
+		 */
+		struct workspace *target_workspace = workspaces_find(
+			server->workspaces.current, to, wrap);
+		if (!target_workspace) {
+			break;
+		}
+		if (action->type == ACTION_TYPE_SEND_TO_DESKTOP) {
+			view_move_to_workspace(view, target_workspace);
+			follow = action_get_bool(action, "follow", true);
+
+			/* Ensure that the focus is not on another desktop */
+			if (!follow && server->active_view == view) {
+				desktop_focus_topmost_view(server);
+			}
+		}
+		if (follow) {
+			workspaces_switch_to(target_workspace,
+				/*update_focus*/ true);
+		}
+		break;
+	}
+	case ACTION_TYPE_MOVE_TO_OUTPUT: {
+		if (!view) {
+			break;
+		}
+		struct output *target_output =
+			get_target_output(view->output, server, action);
+		if (target_output) {
+			view_move_to_output(view, target_output);
+		}
+		break;
+	}
+	case ACTION_TYPE_FIT_TO_OUTPUT:
+		if (!view) {
+			break;
+		}
+		view_constrain_size_to_that_of_usable_area(view);
+		break;
+	case ACTION_TYPE_TOGGLE_SNAP_TO_REGION:
+	case ACTION_TYPE_SNAP_TO_REGION: {
+		if (!view) {
+			break;
+		}
+		struct output *output = view->output;
+		if (!output) {
+			break;
+		}
+		const char *region_name = action_get_str(action, "region", NULL);
+		struct region *region = regions_from_name(region_name, output);
+		if (region) {
+			if (action->type == ACTION_TYPE_TOGGLE_SNAP_TO_REGION
+					&& view->maximized == VIEW_AXIS_NONE
+					&& !view->fullscreen
+					&& view_is_tiled(view)
+					&& view->tiled_region == region) {
+				view_set_untiled(view);
+				view_apply_natural_geometry(view);
+				break;
+			}
+			view_snap_to_region(view, region,
+				/*store_natural_geometry*/ true);
+		} else {
+			wlr_log(WLR_ERROR, "Invalid SnapToRegion id: '%s'", region_name);
+		}
+		break;
+	}
+	case ACTION_TYPE_UNSNAP:
+		if (view && !view->fullscreen && !view_is_floating(view)) {
+			view_maximize(view, VIEW_AXIS_NONE,
+				/* store_natural_geometry */ false);
+			view_set_untiled(view);
+			view_apply_natural_geometry(view);
+		}
+		break;
+	case ACTION_TYPE_TOGGLE_KEYBINDS:
+		if (view) {
+			view_toggle_keybinds(view);
+		}
+		break;
+	case ACTION_TYPE_FOCUS_OUTPUT: {
+		struct output *output = output_nearest_to_cursor(server);
+		struct output *target_output =
+			get_target_output(output, server, action);
+		if (target_output) {
+			desktop_focus_output(target_output);
+		}
+		break;
+	}
+	case ACTION_TYPE_IF:
+		if (view) {
+			run_if_action(view, server, action);
+		}
+		break;
+	case ACTION_TYPE_FOR_EACH: {
+		struct wl_array views;
+		struct view **item;
+		bool matches = false;
+		wl_array_init(&views);
+		view_array_append(server, &views, LAB_VIEW_CRITERIA_NONE);
+		wl_array_for_each(item, &views) {
+			matches |= run_if_action(*item, server, action);
+		}
+		wl_array_release(&views);
+		if (!matches) {
+			struct wl_list *child_actions;
+			child_actions = action_get_actionlist(action, "none");
+			if (child_actions) {
+				actions_run(view, server, child_actions, NULL);
+			}
+		}
+		break;
+	}
+	case ACTION_TYPE_VIRTUAL_OUTPUT_ADD: {
+		/* TODO: rename this argument to "outputName" */
+		const char *output_name =
+			action_get_str(action, "output_name", NULL);
+		output_virtual_add(server, output_name,
+				/*store_wlr_output*/ NULL);
+		break;
+	}
+	case ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE: {
+		/* TODO: rename this argument to "outputName" */
+		const char *output_name =
+			action_get_str(action, "output_name", NULL);
+		output_virtual_remove(server, output_name);
+		break;
+	}
+	case ACTION_TYPE_AUTO_PLACE:
+		if (view) {
+			enum view_placement_policy policy =
+				action_get_int(action, "policy", LAB_PLACE_AUTOMATIC);
+			view_place_by_policy(view,
+				/* allow_cursor */ true, policy);
+		}
+		break;
+	case ACTION_TYPE_TOGGLE_TEARING:
+		if (view) {
+			switch (view->force_tearing) {
+			case LAB_STATE_UNSPECIFIED:
+				view->force_tearing =
+					output_get_tearing_allowance(view->output)
+						? LAB_STATE_DISABLED : LAB_STATE_ENABLED;
+				break;
+			case LAB_STATE_DISABLED:
+				view->force_tearing = LAB_STATE_ENABLED;
+				break;
+			case LAB_STATE_ENABLED:
+				view->force_tearing = LAB_STATE_DISABLED;
+				break;
+			}
+			wlr_log(WLR_ERROR, "force tearing %sabled",
+				view->force_tearing == LAB_STATE_ENABLED
+					? "en" : "dis");
+		}
+		break;
+	case ACTION_TYPE_TOGGLE_SHADE:
+		if (view) {
+			view_set_shade(view, !view->shaded);
+		}
+		break;
+	case ACTION_TYPE_SHADE:
+		if (view) {
+			view_set_shade(view, true);
+		}
+		break;
+	case ACTION_TYPE_UNSHADE:
+		if (view) {
+			view_set_shade(view, false);
+		}
+		break;
+	case ACTION_TYPE_ENABLE_SCROLL_WHEEL_EMULATION:
+		server->seat.cursor_scroll_wheel_emulation = true;
+		break;
+	case ACTION_TYPE_DISABLE_SCROLL_WHEEL_EMULATION:
+		server->seat.cursor_scroll_wheel_emulation = false;
+		break;
+	case ACTION_TYPE_TOGGLE_SCROLL_WHEEL_EMULATION:
+		server->seat.cursor_scroll_wheel_emulation =
+			!server->seat.cursor_scroll_wheel_emulation;
+		break;
+	case ACTION_TYPE_ENABLE_TABLET_MOUSE_EMULATION:
+		rc.tablet.force_mouse_emulation = true;
+		break;
+	case ACTION_TYPE_DISABLE_TABLET_MOUSE_EMULATION:
+		rc.tablet.force_mouse_emulation = false;
+		break;
+	case ACTION_TYPE_TOGGLE_TABLET_MOUSE_EMULATION:
+		rc.tablet.force_mouse_emulation = !rc.tablet.force_mouse_emulation;
+		break;
+	case ACTION_TYPE_TOGGLE_MAGNIFY:
+		magnifier_toggle(server);
+		break;
+	case ACTION_TYPE_ZOOM_IN:
+		magnifier_set_scale(server, MAGNIFY_INCREASE);
+		break;
+	case ACTION_TYPE_ZOOM_OUT:
+		magnifier_set_scale(server, MAGNIFY_DECREASE);
+		break;
+	case ACTION_TYPE_WARP_CURSOR: {
+		const char *to = action_get_str(action, "to", "output");
+		const char *x = action_get_str(action, "x", "center");
+		const char *y = action_get_str(action, "y", "center");
+		warp_cursor(server, view, to, x, y);
+		break;
+	}
+	case ACTION_TYPE_HIDE_CURSOR:
+		cursor_set_visible(&server->seat, false);
+		break;
+	case ACTION_TYPE_INVALID:
+		wlr_log(WLR_ERROR, "Not executing unknown action");
+		break;
+	default:
+		/*
+		 * If we get here it must be a BUG caused most likely by
+		 * action_names and action_type being out of sync or by
+		 * adding a new action without installing a handler here.
+		 */
+		wlr_log(WLR_ERROR,
+			"Not executing invalid action (%u)"
+			" This is a BUG. Please report.", action->type);
+	}
+}
+
 void
 actions_run(struct view *activator, struct server *server,
 	struct wl_list *actions, struct cursor_context *cursor_ctx)
@@ -898,481 +1380,6 @@ actions_run(struct view *activator, struct server *server,
 		 */
 		struct view *view = view_for_action(activator, server, action, &ctx);
 
-		switch (action->type) {
-		case ACTION_TYPE_CLOSE:
-			if (view) {
-				view_close(view);
-			}
-			break;
-		case ACTION_TYPE_KILL:
-			if (view) {
-				/* Send SIGTERM to the process associated with the surface */
-				assert(view->impl->get_pid);
-				pid_t pid = view->impl->get_pid(view);
-				if (pid == getpid()) {
-					wlr_log(WLR_ERROR, "Preventing sending SIGTERM to labwc");
-				} else if (pid > 0) {
-					kill(pid, SIGTERM);
-				}
-			}
-			break;
-		case ACTION_TYPE_DEBUG:
-			debug_dump_scene(server);
-			break;
-		case ACTION_TYPE_EXECUTE: {
-			struct buf cmd = BUF_INIT;
-			buf_add(&cmd, action_get_str(action, "command", NULL));
-			buf_expand_tilde(&cmd);
-			spawn_async_no_shell(cmd.data);
-			buf_reset(&cmd);
-			break;
-		}
-		case ACTION_TYPE_EXIT:
-			wl_display_terminate(server->wl_display);
-			break;
-		case ACTION_TYPE_MOVE_TO_EDGE:
-			if (view) {
-				/* Config parsing makes sure that direction is a valid direction */
-				enum view_edge edge = action_get_int(action, "direction", 0);
-				bool snap_to_windows = action_get_bool(action, "snapWindows", true);
-				view_move_to_edge(view, edge, snap_to_windows);
-			}
-			break;
-		case ACTION_TYPE_TOGGLE_SNAP_TO_EDGE:
-		case ACTION_TYPE_SNAP_TO_EDGE:
-			if (view) {
-				/* Config parsing makes sure that direction is a valid direction */
-				enum view_edge edge = action_get_int(action, "direction", 0);
-				if (action->type == ACTION_TYPE_TOGGLE_SNAP_TO_EDGE
-						&& view->maximized == VIEW_AXIS_NONE
-						&& !view->fullscreen
-						&& view_is_tiled(view)
-						&& view->tiled == edge) {
-					view_set_untiled(view);
-					view_apply_natural_geometry(view);
-					break;
-				}
-				view_snap_to_edge(view, edge,
-					/*across_outputs*/ true,
-					/*store_natural_geometry*/ true);
-			}
-			break;
-		case ACTION_TYPE_GROW_TO_EDGE:
-			if (view) {
-				/* Config parsing makes sure that direction is a valid direction */
-				enum view_edge edge = action_get_int(action, "direction", 0);
-				view_grow_to_edge(view, edge);
-			}
-			break;
-		case ACTION_TYPE_SHRINK_TO_EDGE:
-			if (view) {
-				/* Config parsing makes sure that direction is a valid direction */
-				enum view_edge edge = action_get_int(action, "direction", 0);
-				view_shrink_to_edge(view, edge);
-			}
-			break;
-		case ACTION_TYPE_NEXT_WINDOW:
-			if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-				osd_cycle(server, LAB_CYCLE_DIR_FORWARD);
-			} else {
-				osd_begin(server, LAB_CYCLE_DIR_FORWARD);
-			}
-			break;
-		case ACTION_TYPE_PREVIOUS_WINDOW:
-			if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-				osd_cycle(server, LAB_CYCLE_DIR_BACKWARD);
-			} else {
-				osd_begin(server, LAB_CYCLE_DIR_BACKWARD);
-			}
-			break;
-		case ACTION_TYPE_RECONFIGURE:
-			kill(getpid(), SIGHUP);
-			break;
-		case ACTION_TYPE_SHOW_MENU:
-			show_menu(server, view, &ctx,
-				action_get_str(action, "menu", NULL),
-				action_get_bool(action, "atCursor", true),
-				action_get_str(action, "x.position", NULL),
-				action_get_str(action, "y.position", NULL));
-			break;
-		case ACTION_TYPE_TOGGLE_MAXIMIZE:
-			if (view) {
-				enum view_axis axis = action_get_int(action,
-					"direction", VIEW_AXIS_BOTH);
-				view_toggle_maximize(view, axis);
-			}
-			break;
-		case ACTION_TYPE_MAXIMIZE:
-			if (view) {
-				enum view_axis axis = action_get_int(action,
-					"direction", VIEW_AXIS_BOTH);
-				view_maximize(view, axis,
-					/*store_natural_geometry*/ true);
-			}
-			break;
-		case ACTION_TYPE_UNMAXIMIZE:
-			if (view) {
-				enum view_axis axis = action_get_int(action,
-					"direction", VIEW_AXIS_BOTH);
-				view_maximize(view, view->maximized & ~axis,
-					/*store_natural_geometry*/ true);
-			}
-			break;
-		case ACTION_TYPE_TOGGLE_FULLSCREEN:
-			if (view) {
-				view_toggle_fullscreen(view);
-			}
-			break;
-		case ACTION_TYPE_SET_DECORATIONS:
-			if (view) {
-				enum ssd_mode mode = action_get_int(action,
-					"decorations", LAB_SSD_MODE_FULL);
-				bool force_ssd = action_get_bool(action,
-					"forceSSD", false);
-				view_set_decorations(view, mode, force_ssd);
-			}
-			break;
-		case ACTION_TYPE_TOGGLE_DECORATIONS:
-			if (view) {
-				view_toggle_decorations(view);
-			}
-			break;
-		case ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP:
-			if (view) {
-				view_toggle_always_on_top(view);
-			}
-			break;
-		case ACTION_TYPE_TOGGLE_ALWAYS_ON_BOTTOM:
-			if (view) {
-				view_toggle_always_on_bottom(view);
-			}
-			break;
-		case ACTION_TYPE_TOGGLE_OMNIPRESENT:
-			if (view) {
-				view_toggle_visible_on_all_workspaces(view);
-			}
-			break;
-		case ACTION_TYPE_FOCUS:
-			if (view) {
-				desktop_focus_view(view, /*raise*/ false);
-			}
-			break;
-		case ACTION_TYPE_UNFOCUS:
-			seat_focus_surface(&server->seat, NULL);
-			break;
-		case ACTION_TYPE_ICONIFY:
-			if (view) {
-				view_minimize(view, true);
-			}
-			break;
-		case ACTION_TYPE_MOVE:
-			if (view) {
-				interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
-			}
-			break;
-		case ACTION_TYPE_RAISE:
-			if (view) {
-				view_move_to_front(view);
-			}
-			break;
-		case ACTION_TYPE_LOWER:
-			if (view) {
-				view_move_to_back(view);
-			}
-			break;
-		case ACTION_TYPE_RESIZE:
-			if (view) {
-				uint32_t resize_edges = cursor_get_resize_edges(
-					server->seat.cursor, &ctx);
-				interactive_begin(view, LAB_INPUT_STATE_RESIZE,
-					resize_edges);
-			}
-			break;
-		case ACTION_TYPE_RESIZE_RELATIVE:
-			if (view) {
-				int left = action_get_int(action, "left", 0);
-				int right = action_get_int(action, "right", 0);
-				int top = action_get_int(action, "top", 0);
-				int bottom = action_get_int(action, "bottom", 0);
-				view_resize_relative(view, left, right, top, bottom);
-			}
-			break;
-		case ACTION_TYPE_MOVETO:
-			if (view) {
-				int x = action_get_int(action, "x", 0);
-				int y = action_get_int(action, "y", 0);
-				struct border margin = ssd_thickness(view);
-				view_move(view, x + margin.left, y + margin.top);
-			}
-			break;
-		case ACTION_TYPE_RESIZETO:
-			if (view) {
-				int width = action_get_int(action, "width", 0);
-				int height = action_get_int(action, "height", 0);
-
-				/*
-				 * To support only setting one of width/height
-				 * in <action name="ResizeTo" width="" height=""/>
-				 * we fall back to current dimension when unset.
-				 */
-				struct wlr_box box = {
-					.x = view->pending.x,
-					.y = view->pending.y,
-					.width = width ? : view->pending.width,
-					.height = height ? : view->pending.height,
-				};
-				view_set_shade(view, false);
-				view_move_resize(view, box);
-			}
-			break;
-		case ACTION_TYPE_MOVE_RELATIVE:
-			if (view) {
-				int x = action_get_int(action, "x", 0);
-				int y = action_get_int(action, "y", 0);
-				view_move_relative(view, x, y);
-			}
-			break;
-		case ACTION_TYPE_MOVETO_CURSOR:
-			wlr_log(WLR_ERROR,
-				"Action MoveToCursor is deprecated. To ensure your config works in future labwc "
-				"releases, please use <action name=\"AutoPlace\" policy=\"cursor\">");
-			if (view) {
-				view_move_to_cursor(view);
-			}
-			break;
-		case ACTION_TYPE_SEND_TO_DESKTOP:
-			if (!view) {
-				break;
-			}
-			/* Falls through to GoToDesktop */
-		case ACTION_TYPE_GO_TO_DESKTOP: {
-			bool follow = true;
-			bool wrap = action_get_bool(action, "wrap", true);
-			const char *to = action_get_str(action, "to", NULL);
-			/*
-			 * `to` is always != NULL here because otherwise we would have
-			 * removed the action during the initial parsing step as it is
-			 * a required argument for both SendToDesktop and GoToDesktop.
-			 */
-			struct workspace *target_workspace = workspaces_find(
-				server->workspaces.current, to, wrap);
-			if (!target_workspace) {
-				break;
-			}
-			if (action->type == ACTION_TYPE_SEND_TO_DESKTOP) {
-				view_move_to_workspace(view, target_workspace);
-				follow = action_get_bool(action, "follow", true);
-
-				/* Ensure that the focus is not on another desktop */
-				if (!follow && server->active_view == view) {
-					desktop_focus_topmost_view(server);
-				}
-			}
-			if (follow) {
-				workspaces_switch_to(target_workspace,
-					/*update_focus*/ true);
-			}
-			break;
-		}
-		case ACTION_TYPE_MOVE_TO_OUTPUT: {
-			if (!view) {
-				break;
-			}
-			struct output *target_output =
-				get_target_output(view->output, server, action);
-			if (target_output) {
-				view_move_to_output(view, target_output);
-			}
-			break;
-		}
-		case ACTION_TYPE_FIT_TO_OUTPUT:
-			if (!view) {
-				break;
-			}
-			view_constrain_size_to_that_of_usable_area(view);
-			break;
-		case ACTION_TYPE_TOGGLE_SNAP_TO_REGION:
-		case ACTION_TYPE_SNAP_TO_REGION: {
-			if (!view) {
-				break;
-			}
-			struct output *output = view->output;
-			if (!output) {
-				break;
-			}
-			const char *region_name = action_get_str(action, "region", NULL);
-			struct region *region = regions_from_name(region_name, output);
-			if (region) {
-				if (action->type == ACTION_TYPE_TOGGLE_SNAP_TO_REGION
-						&& view->maximized == VIEW_AXIS_NONE
-						&& !view->fullscreen
-						&& view_is_tiled(view)
-						&& view->tiled_region == region) {
-					view_set_untiled(view);
-					view_apply_natural_geometry(view);
-					break;
-				}
-				view_snap_to_region(view, region,
-					/*store_natural_geometry*/ true);
-			} else {
-				wlr_log(WLR_ERROR, "Invalid SnapToRegion id: '%s'", region_name);
-			}
-			break;
-		}
-		case ACTION_TYPE_UNSNAP:
-			if (view && !view->fullscreen && !view_is_floating(view)) {
-				view_maximize(view, VIEW_AXIS_NONE,
-					/* store_natural_geometry */ false);
-				view_set_untiled(view);
-				view_apply_natural_geometry(view);
-			}
-			break;
-		case ACTION_TYPE_TOGGLE_KEYBINDS:
-			if (view) {
-				view_toggle_keybinds(view);
-			}
-			break;
-		case ACTION_TYPE_FOCUS_OUTPUT: {
-			struct output *output = output_nearest_to_cursor(server);
-			struct output *target_output =
-				get_target_output(output, server, action);
-			if (target_output) {
-				desktop_focus_output(target_output);
-			}
-			break;
-		}
-		case ACTION_TYPE_IF:
-			if (view) {
-				run_if_action(view, server, action);
-			}
-			break;
-		case ACTION_TYPE_FOR_EACH: {
-			struct wl_array views;
-			struct view **item;
-			bool matches = false;
-			wl_array_init(&views);
-			view_array_append(server, &views, LAB_VIEW_CRITERIA_NONE);
-			wl_array_for_each(item, &views) {
-				matches |= run_if_action(*item, server, action);
-			}
-			wl_array_release(&views);
-			if (!matches) {
-				struct wl_list *child_actions;
-				child_actions = action_get_actionlist(action, "none");
-				if (child_actions) {
-					actions_run(view, server, child_actions, NULL);
-				}
-			}
-			break;
-		}
-		case ACTION_TYPE_VIRTUAL_OUTPUT_ADD: {
-			/* TODO: rename this argument to "outputName" */
-			const char *output_name =
-				action_get_str(action, "output_name", NULL);
-			output_virtual_add(server, output_name,
-					/*store_wlr_output*/ NULL);
-			break;
-		}
-		case ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE: {
-			/* TODO: rename this argument to "outputName" */
-			const char *output_name =
-				action_get_str(action, "output_name", NULL);
-			output_virtual_remove(server, output_name);
-			break;
-		}
-		case ACTION_TYPE_AUTO_PLACE:
-			if (view) {
-				enum view_placement_policy policy =
-					action_get_int(action, "policy", LAB_PLACE_AUTOMATIC);
-				view_place_by_policy(view,
-					/* allow_cursor */ true, policy);
-			}
-			break;
-		case ACTION_TYPE_TOGGLE_TEARING:
-			if (view) {
-				switch (view->force_tearing) {
-				case LAB_STATE_UNSPECIFIED:
-					view->force_tearing =
-						output_get_tearing_allowance(view->output)
-							? LAB_STATE_DISABLED : LAB_STATE_ENABLED;
-					break;
-				case LAB_STATE_DISABLED:
-					view->force_tearing = LAB_STATE_ENABLED;
-					break;
-				case LAB_STATE_ENABLED:
-					view->force_tearing = LAB_STATE_DISABLED;
-					break;
-				}
-				wlr_log(WLR_ERROR, "force tearing %sabled",
-					view->force_tearing == LAB_STATE_ENABLED
-						? "en" : "dis");
-			}
-			break;
-		case ACTION_TYPE_TOGGLE_SHADE:
-			if (view) {
-				view_set_shade(view, !view->shaded);
-			}
-			break;
-		case ACTION_TYPE_SHADE:
-			if (view) {
-				view_set_shade(view, true);
-			}
-			break;
-		case ACTION_TYPE_UNSHADE:
-			if (view) {
-				view_set_shade(view, false);
-			}
-			break;
-		case ACTION_TYPE_ENABLE_SCROLL_WHEEL_EMULATION:
-			server->seat.cursor_scroll_wheel_emulation = true;
-			break;
-		case ACTION_TYPE_DISABLE_SCROLL_WHEEL_EMULATION:
-			server->seat.cursor_scroll_wheel_emulation = false;
-			break;
-		case ACTION_TYPE_TOGGLE_SCROLL_WHEEL_EMULATION:
-			server->seat.cursor_scroll_wheel_emulation =
-				!server->seat.cursor_scroll_wheel_emulation;
-			break;
-		case ACTION_TYPE_ENABLE_TABLET_MOUSE_EMULATION:
-			rc.tablet.force_mouse_emulation = true;
-			break;
-		case ACTION_TYPE_DISABLE_TABLET_MOUSE_EMULATION:
-			rc.tablet.force_mouse_emulation = false;
-			break;
-		case ACTION_TYPE_TOGGLE_TABLET_MOUSE_EMULATION:
-			rc.tablet.force_mouse_emulation = !rc.tablet.force_mouse_emulation;
-			break;
-		case ACTION_TYPE_TOGGLE_MAGNIFY:
-			magnifier_toggle(server);
-			break;
-		case ACTION_TYPE_ZOOM_IN:
-			magnifier_set_scale(server, MAGNIFY_INCREASE);
-			break;
-		case ACTION_TYPE_ZOOM_OUT:
-			magnifier_set_scale(server, MAGNIFY_DECREASE);
-			break;
-		case ACTION_TYPE_WARP_CURSOR: {
-			const char *to = action_get_str(action, "to", "output");
-			const char *x = action_get_str(action, "x", "center");
-			const char *y = action_get_str(action, "y", "center");
-			warp_cursor(server, view, to, x, y);
-			break;
-		}
-		case ACTION_TYPE_HIDE_CURSOR:
-			cursor_set_visible(&server->seat, false);
-			break;
-		case ACTION_TYPE_INVALID:
-			wlr_log(WLR_ERROR, "Not executing unknown action");
-			break;
-		default:
-			/*
-			 * If we get here it must be a BUG caused most likely by
-			 * action_names and action_type being out of sync or by
-			 * adding a new action without installing a handler here.
-			 */
-			wlr_log(WLR_ERROR,
-				"Not executing invalid action (%u)"
-				" This is a BUG. Please report.", action->type);
-		}
+		run_action(view, server, action, &ctx);
 	}
 }

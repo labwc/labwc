@@ -152,6 +152,8 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 		interactive_anchor_to_cursor(server, &natural_geo);
 		/* Shaded clients will not process resize events until unshaded */
 		view_set_shade(view, false);
+		if (view->maximized == VIEW_AXIS_BOTH)
+			view->remaximize = true;
 		view_set_untiled(view);
 		view_restore_to(view, natural_geo);
 	}
@@ -263,6 +265,11 @@ interactive_finish(struct view *view)
 		if (!snap_to_region(view)) {
 			snap_to_edge(view);
 		}
+	}
+
+	if (view->remaximize) {
+		view_maximize(view, VIEW_AXIS_BOTH, true);
+		view->remaximize = false;
 	}
 
 	interactive_cancel(view);

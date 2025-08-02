@@ -445,7 +445,8 @@ fill_action_query(struct action *action, xmlNode *node, struct view_query *query
 		} else if (!strcasecmp(key, "omnipresent")) {
 			query->omnipresent = parse_three_state(content);
 		} else if (!strcasecmp(key, "tiled")) {
-			query->tiled = view_edge_parse(content);
+			query->tiled = view_edge_parse(content,
+				/*tiled*/ true, /*any*/ true);
 		} else if (!strcasecmp(key, "tiled_region")) {
 			xstrdup_replace(query->tiled_region, content);
 		} else if (!strcasecmp(key, "desktop")) {

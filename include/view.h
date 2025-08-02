@@ -72,9 +72,7 @@ enum view_edge {
 	VIEW_EDGE_UP = (1 << 2),
 	VIEW_EDGE_DOWN = (1 << 3),
 	VIEW_EDGE_CENTER = (1 << 4),
-
-	VIEW_EDGE_ALL = (VIEW_EDGE_LEFT | VIEW_EDGE_RIGHT |
-		VIEW_EDGE_UP | VIEW_EDGE_DOWN | VIEW_EDGE_CENTER),
+	VIEW_EDGE_ANY = (1 << 5),
 };
 
 enum view_wants_focus {

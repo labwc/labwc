@@ -445,7 +445,8 @@ fill_action_query(struct action *action, xmlNode *node, struct view_query *query
 		} else if (!strcasecmp(key, "omnipresent")) {
 			query->omnipresent = parse_three_state(content);
 		} else if (!strcasecmp(key, "tiled")) {
-			query->tiled = view_edge_parse(content);
+			query->tiled = view_edge_parse(content,
+				/*tiled*/ true, /*any*/ true);
 		} else if (!strcasecmp(key, "tiled_region")) {
 			xstrdup_replace(query->tiled_region, content);
 		} else if (!strcasecmp(key, "desktop")) {
@@ -1174,6 +1175,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.unmaximize_threshold = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
 		rc.snap_edge_range = atoi(content);
+	} else if (!strcasecmp(nodename, "cornerRange.snapping")) {
+		rc.snap_edge_corner_range = atoi(content);
 	} else if (!strcasecmp(nodename, "enabled.overlay.snapping")) {
 		set_bool(content, &rc.snap_overlay_enabled);
 	} else if (!strcasecmp(nodename, "inner.delay.overlay.snapping")) {
@@ -1410,6 +1413,7 @@ rcxml_init(void)
 	rc.unmaximize_threshold = 150;
 
 	rc.snap_edge_range = 10;
+	rc.snap_edge_corner_range = 50;
 	rc.snap_overlay_enabled = true;
 	rc.snap_overlay_delay_inner = 500;
 	rc.snap_overlay_delay_outer = 500;

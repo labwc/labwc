@@ -155,6 +155,7 @@
   <snapping>
     <!-- Set range to 0 to disable window snapping completely -->
     <range>10</range>
+    <cornerRange>50</cornerRange>
     <overlay enabled="yes">
       <delay inner="500" outer="500" />
     </overlay>

@@ -4,22 +4,24 @@
 #include <wlr/types/wlr_output_layout.h>
 #include "view.h"
 
-enum wlr_direction
-direction_from_view_edge(enum view_edge edge)
+bool
+direction_from_view_edge(enum view_edge edge, enum wlr_direction *direction)
 {
 	switch (edge) {
 	case VIEW_EDGE_LEFT:
-		return WLR_DIRECTION_LEFT;
+		*direction = WLR_DIRECTION_LEFT;
+		return true;
 	case VIEW_EDGE_RIGHT:
-		return WLR_DIRECTION_RIGHT;
+		*direction = WLR_DIRECTION_RIGHT;
+		return true;
 	case VIEW_EDGE_UP:
-		return WLR_DIRECTION_UP;
+		*direction = WLR_DIRECTION_UP;
+		return true;
 	case VIEW_EDGE_DOWN:
-		return WLR_DIRECTION_DOWN;
-	case VIEW_EDGE_CENTER:
-	case VIEW_EDGE_INVALID:
+		*direction = WLR_DIRECTION_DOWN;
+		return true;
 	default:
-		return WLR_DIRECTION_UP;
+		return false;
 	}
 }
 

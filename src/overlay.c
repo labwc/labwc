@@ -2,6 +2,7 @@
 #include "overlay.h"
 #include <assert.h>
 #include <wlr/types/wlr_scene.h>
+#include "common/direction.h"
 #include "common/lab-scene-rect.h"
 #include "labwc.h"
 #include "output.h"
@@ -115,7 +116,8 @@ show_region_overlay(struct seat *seat, struct region *region)
 	show_overlay(seat, &seat->overlay.region_rect, &geo);
 }
 
-static struct wlr_box get_edge_snap_box(enum view_edge edge, struct output *output)
+static struct wlr_box
+get_edge_snap_box(enum view_edge edge, struct output *output)
 {
 	if (edge == VIEW_EDGE_UP && rc.snap_top_maximize) {
 		return output_usable_area_in_layout_coords(output);
@@ -136,42 +138,27 @@ handle_edge_overlay_timeout(void *data)
 	return 0;
 }
 
-static enum wlr_direction
-get_wlr_direction(enum view_edge edge)
-{
-	switch (edge) {
-	case VIEW_EDGE_LEFT:
-		return WLR_DIRECTION_LEFT;
-	case VIEW_EDGE_RIGHT:
-		return WLR_DIRECTION_RIGHT;
-	case VIEW_EDGE_UP:
-	case VIEW_EDGE_CENTER:
-		return WLR_DIRECTION_UP;
-	case VIEW_EDGE_DOWN:
-		return WLR_DIRECTION_DOWN;
-	default:
-		/* not reached */
-		assert(false);
-		return 0;
-	}
-}
-
 static bool
 edge_has_adjacent_output_from_cursor(struct seat *seat, struct output *output,
 		enum view_edge edge)
 {
+	enum wlr_direction dir;
+	if (!direction_from_view_edge(edge, &dir)) {
+		return false;
+	}
 	return wlr_output_layout_adjacent_output(
-		seat->server->output_layout, get_wlr_direction(edge),
+		seat->server->output_layout, dir,
 		output->wlr_output, seat->cursor->x, seat->cursor->y);
 }
 
 static void
-show_edge_overlay(struct seat *seat, enum view_edge edge,
+show_edge_overlay(struct seat *seat, enum view_edge edge1, enum view_edge edge2,
 		struct output *output)
 {
 	if (!rc.snap_overlay_enabled) {
 		return;
 	}
+	uint32_t edge = edge1 | edge2;
 	if (seat->overlay.active.edge == edge
 			&& seat->overlay.active.output == output) {
 		return;
@@ -181,7 +168,7 @@ show_edge_overlay(struct seat *seat, enum view_edge edge,
 	seat->overlay.active.output = output;
 
 	int delay;
-	if (edge_has_adjacent_output_from_cursor(seat, output, edge)) {
+	if (edge_has_adjacent_output_from_cursor(seat, output, edge1)) {
 		delay = rc.snap_overlay_delay_inner;
 	} else {
 		delay = rc.snap_overlay_delay_outer;
@@ -197,8 +184,7 @@ show_edge_overlay(struct seat *seat, enum view_edge edge,
 		wl_event_source_timer_update(seat->overlay.timer, delay);
 	} else {
 		/* Show overlay now */
-		struct wlr_box box = get_edge_snap_box(seat->overlay.active.edge,
-			seat->overlay.active.output);
+		struct wlr_box box = get_edge_snap_box(edge, output);
 		show_overlay(seat, &seat->overlay.edge_rect, &box);
 	}
 }
@@ -219,9 +205,9 @@ overlay_update(struct seat *seat)
 
 	/* Edge-snapping overlay */
 	struct output *output;
-	enum view_edge edge = edge_from_cursor(seat, &output);
-	if (edge != VIEW_EDGE_INVALID) {
-		show_edge_overlay(seat, edge, output);
+	enum view_edge edge1, edge2;
+	if (edge_from_cursor(seat, &output, &edge1, &edge2)) {
+		show_edge_overlay(seat, edge1, edge2, output);
 		return;
 	}
 

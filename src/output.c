@@ -979,6 +979,11 @@ output_get_adjacent(struct output *output, enum view_edge edge, bool wrap)
 		return NULL;
 	}
 
+	enum wlr_direction direction;
+	if (!direction_from_view_edge(edge, &direction)) {
+		return NULL;
+	}
+
 	struct wlr_box box = output_usable_area_in_layout_coords(output);
 	int lx = box.x + box.width / 2;
 	int ly = box.y + box.height / 2;
@@ -987,7 +992,6 @@ output_get_adjacent(struct output *output, enum view_edge edge, bool wrap)
 	struct wlr_output *new_output = NULL;
 	struct wlr_output *current_output = output->wlr_output;
 	struct wlr_output_layout *layout = output->server->output_layout;
-	enum wlr_direction direction = direction_from_view_edge(edge);
 	new_output = wlr_output_layout_adjacent_output(layout, direction,
 		current_output, lx, ly);
 

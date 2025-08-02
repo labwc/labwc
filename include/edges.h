@@ -101,9 +101,6 @@ typedef void (*edge_validator_t)(int *best, struct edge current,
 
 void edges_initialize(struct border *edges);
 
-void edges_adjust_geom(struct view *view, struct border edges,
-	uint32_t resize_edges, struct wlr_box *geom);
-
 void edges_find_neighbors(struct border *nearest_edges, struct view *view,
 	struct wlr_box origin, struct wlr_box target,
 	struct output *output, edge_validator_t validator, bool ignore_hidden);

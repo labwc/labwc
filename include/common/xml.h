@@ -35,16 +35,13 @@ bool lab_xml_get_string(xmlNode *node, const char *key, char *s, size_t len);
 bool lab_xml_get_int(xmlNode *node, const char *key, int *i);
 bool lab_xml_get_bool(xmlNode *node, const char *key, bool *b);
 
+/* also skips other unusual nodes like comments */
 static inline xmlNode *
-lab_xml_get_next_child(xmlNode *child)
+lab_xml_skip_text(xmlNode *child)
 {
-	if (!child) {
-		return NULL;
-	}
-	do {
+	while (child && child->type != XML_ELEMENT_NODE) {
 		child = child->next;
-	} while (child && child->type != XML_ELEMENT_NODE);
-
+	}
 	return child;
 }
 
@@ -58,11 +55,13 @@ lab_xml_get_key_and_content(xmlNode *node, char **name, char **content)
 }
 
 #define LAB_XML_FOR_EACH(parent, child, key, content) \
-	for ((child) = (parent)->children, \
+	for ((child) = lab_xml_skip_text((parent)->children), \
 		lab_xml_get_key_and_content((child), &(key), &(content)); \
+		\
 		(child); \
+		\
 		xmlFree((xmlChar *)(content)), \
-		(child) = lab_xml_get_next_child(child), \
+		(child) = lab_xml_skip_text((child)->next), \
 		lab_xml_get_key_and_content((child), &(key), &(content)))
 
 #endif /* LABWC_XML_H */

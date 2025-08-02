@@ -115,7 +115,8 @@ show_region_overlay(struct seat *seat, struct region *region)
 	show_overlay(seat, &seat->overlay.region_rect, &geo);
 }
 
-static struct wlr_box get_edge_snap_box(enum view_edge edge, struct output *output)
+static struct wlr_box
+get_edge_snap_box(enum view_edge edge, struct output *output)
 {
 	if (edge == VIEW_EDGE_UP && rc.snap_top_maximize) {
 		return output_usable_area_in_layout_coords(output);
@@ -197,8 +198,7 @@ show_edge_overlay(struct seat *seat, enum view_edge edge,
 		wl_event_source_timer_update(seat->overlay.timer, delay);
 	} else {
 		/* Show overlay now */
-		struct wlr_box box = get_edge_snap_box(seat->overlay.active.edge,
-			seat->overlay.active.output);
+		struct wlr_box box = get_edge_snap_box(edge, output);
 		show_overlay(seat, &seat->overlay.edge_rect, &box);
 	}
 }

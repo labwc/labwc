@@ -2119,7 +2119,7 @@ view_axis_parse(const char *direction)
 }
 
 enum view_edge
-view_edge_parse(const char *direction)
+view_edge_parse(const char *direction, bool tiled, bool any)
 {
 	if (!direction) {
 		return VIEW_EDGE_INVALID;
@@ -2132,13 +2132,21 @@ view_edge_parse(const char *direction)
 		return VIEW_EDGE_RIGHT;
 	} else if (!strcasecmp(direction, "down")) {
 		return VIEW_EDGE_DOWN;
-	} else if (!strcasecmp(direction, "center")) {
-		return VIEW_EDGE_CENTER;
-	} else if (!strcasecmp(direction, "any")) {
-		return VIEW_EDGE_ALL;
-	} else {
-		return VIEW_EDGE_INVALID;
 	}
+
+	if (any) {
+		if (!strcasecmp(direction, "any")) {
+			return VIEW_EDGE_ALL;
+		}
+	}
+
+	if (tiled) {
+		if (!strcasecmp(direction, "center")) {
+			return VIEW_EDGE_CENTER;
+		}
+	}
+
+	return VIEW_EDGE_INVALID;
 }
 
 enum view_placement_policy

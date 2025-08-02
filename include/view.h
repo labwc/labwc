@@ -668,7 +668,7 @@ void view_init(struct view *view);
 void view_destroy(struct view *view);
 
 enum view_axis view_axis_parse(const char *direction);
-enum view_edge view_edge_parse(const char *direction);
+enum view_edge view_edge_parse(const char *direction, bool tiled, bool any);
 enum view_placement_policy view_placement_parse(const char *policy);
 
 /* xdg.c */

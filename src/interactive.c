@@ -164,22 +164,26 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 	}
 }
 
-enum view_edge
-edge_from_cursor(struct seat *seat, struct output **dest_output)
+bool
+edge_from_cursor(struct seat *seat, struct output **dest_output,
+		enum view_edge *edge1, enum view_edge *edge2)
 {
+	*dest_output = NULL;
+	*edge1 = VIEW_EDGE_INVALID;
+	*edge2 = VIEW_EDGE_INVALID;
+
 	if (!view_is_floating(seat->server->grabbed_view)) {
-		return VIEW_EDGE_INVALID;
+		return false;
 	}
 
-	int snap_range = rc.snap_edge_range;
-	if (!snap_range) {
-		return VIEW_EDGE_INVALID;
+	if (rc.snap_edge_range == 0) {
+		return false;
 	}
 
 	struct output *output = output_nearest_to_cursor(seat->server);
 	if (!output_is_usable(output)) {
 		wlr_log(WLR_ERROR, "output at cursor is unusable");
-		return VIEW_EDGE_INVALID;
+		return false;
 	}
 	*dest_output = output;
 
@@ -190,18 +194,39 @@ edge_from_cursor(struct seat *seat, struct output **dest_output)
 		output->wlr_output, &cursor_x, &cursor_y);
 
 	struct wlr_box *area = &output->usable_area;
-	if (cursor_x <= area->x + snap_range) {
-		return VIEW_EDGE_LEFT;
-	} else if (cursor_x >= area->x + area->width - snap_range) {
-		return VIEW_EDGE_RIGHT;
-	} else if (cursor_y <= area->y + snap_range) {
-		return VIEW_EDGE_UP;
-	} else if (cursor_y >= area->y + area->height - snap_range) {
-		return VIEW_EDGE_DOWN;
+
+	int top = cursor_y - area->y;
+	int bottom = area->y + area->height - cursor_y;
+	int left = cursor_x - area->x;
+	int right = area->x + area->width - cursor_x;
+
+	if (top < rc.snap_edge_range) {
+		*edge1 = VIEW_EDGE_UP;
+	} else if (bottom < rc.snap_edge_range) {
+		*edge1 = VIEW_EDGE_DOWN;
+	} else if (left < rc.snap_edge_range) {
+		*edge1 = VIEW_EDGE_LEFT;
+	} else if (right < rc.snap_edge_range) {
+		*edge1 = VIEW_EDGE_RIGHT;
 	} else {
-		/* Not close to any edge */
-		return VIEW_EDGE_INVALID;
+		return false;
 	}
+
+	if (*edge1 == VIEW_EDGE_UP || *edge1 == VIEW_EDGE_DOWN) {
+		if (left < rc.snap_edge_corner_range) {
+			*edge2 = VIEW_EDGE_LEFT;
+		} else if (right < rc.snap_edge_corner_range) {
+			*edge2 = VIEW_EDGE_RIGHT;
+		}
+	} else if (*edge1  == VIEW_EDGE_LEFT || *edge1 == VIEW_EDGE_RIGHT) {
+		if (top < rc.snap_edge_corner_range) {
+			*edge2 = VIEW_EDGE_UP;
+		} else if (bottom < rc.snap_edge_corner_range) {
+			*edge2 = VIEW_EDGE_DOWN;
+		}
+	}
+
+	return true;
 }
 
 /* Returns true if view was snapped to any edge */
@@ -209,10 +234,11 @@ static bool
 snap_to_edge(struct view *view)
 {
 	struct output *output;
-	enum view_edge edge = edge_from_cursor(&view->server->seat, &output);
-	if (edge == VIEW_EDGE_INVALID) {
+	enum view_edge edge1, edge2;
+	if (!edge_from_cursor(&view->server->seat, &output, &edge1, &edge2)) {
 		return false;
 	}
+	enum view_edge edge = edge1 | edge2;
 
 	view_set_output(view, output);
 	/*

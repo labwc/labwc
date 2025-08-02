@@ -429,7 +429,16 @@ void interactive_anchor_to_cursor(struct server *server, struct wlr_box *geo);
 void interactive_begin(struct view *view, enum input_mode mode, uint32_t edges);
 void interactive_finish(struct view *view);
 void interactive_cancel(struct view *view);
-enum view_edge edge_from_cursor(struct seat *seat, struct output **dest_output);
+
+/**
+ * Returns the edge to snap a window to.
+ * For example, if the output-relative cursor position (x,y) fulfills
+ * x <= (<snapping><cornerRange>) and y <= (<snapping><range>),
+ * then edge1=VIEW_EDGE_UP and edge2=VIEW_EDGE_LEFT.
+ * The value of (edge1|edge2) can be passed to view_snap_to_edge().
+ */
+bool edge_from_cursor(struct seat *seat, struct output **dest_output,
+	enum view_edge *edge1, enum view_edge *edge2);
 
 void handle_tearing_new_object(struct wl_listener *listener, void *data);
 

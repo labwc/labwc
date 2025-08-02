@@ -412,11 +412,13 @@ activated with SnapToEdge actions or, optionally, by dragging windows to the
 edges of an output. Edge snapping causes a window to occupy half of its output,
 extending outward from the snapped edge.
 
-*<snapping><range>*
-	If an interactive move ends with the cursor a maximum distance *range*,
-	(in pixels) from the edge of an output, the move will trigger a
-	SnapToEdge action for that edge. A *range* of 0 disables snapping via
-	interactive moves. Default is 10.
+*<snapping><range>*++
+*<snapping><cornerRange>*
+	If an interactive move ends with the cursor within *<range>* pixels of an
+	output edge, the window is snapped to the edge. If it's also within
+	*<cornerRange>* pixels of an output corner, the window is snapped to the
+	corner instead. A *<range>* of 0 disables snapping.
+	Default is 10 for *<range>* and 50 for *<cornerRange>*.
 
 *<snapping><overlay><enabled>* [yes|no]
 	Show an overlay when snapping to a window to an edge. Default is yes.

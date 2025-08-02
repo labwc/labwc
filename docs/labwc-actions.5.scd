@@ -95,7 +95,8 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="ToggleSnapToEdge" direction="value" />*++
 *<action name="SnapToEdge" direction="value" />*
 	Resize window to fill half the output in the given direction. Supports
-	directions "left", "up", "right", "down" and "center".
+	directions "left", "up", "right", "down", "up-left", "up-right", "down-left",
+	"down-right" and "center".
 
 	ToggleSnapToEdge additionally toggles the active window between
 	tiled to the given direction and its untiled position.
@@ -474,7 +475,7 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 			The "left" , "right", "left-occupied" and
 			"right-occupied" directions will not wrap.
 
-		*tiled* [up|right|down|left|center|any]
+		*tiled* [up|right|down|left|top-left|top-right|down-left|down-right|center|any]
 			Whether the client is tiled (snapped) along the the
 			indicated screen edge.
 

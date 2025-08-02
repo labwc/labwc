@@ -169,8 +169,14 @@ view_matches_query(struct view *view, struct view_query *query)
 		return false;
 	}
 
-	if (query->tiled != VIEW_EDGE_INVALID && !(query->tiled & view->tiled)) {
-		return false;
+	if (query->tiled == VIEW_EDGE_ALL) {
+		if (!view->tiled) {
+			return false;
+		}
+	} else if (query->tiled != VIEW_EDGE_INVALID) {
+		if (query->tiled != view->tiled) {
+			return false;
+		}
 	}
 
 	const char *tiled_region =

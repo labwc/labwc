@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2025-08-02 | [0.9.1]       | 0.19.0          | 28605         |
 | 2025-07-11 | [0.9.0]       | 0.19.0          | 28586         |
 | 2025-05-02 | [0.8.4]       | 0.18.2          | 27679         |
 | 2025-02-21 | [0.8.3]       | 0.18.2          | 27671         |
@@ -36,13 +37,28 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-## [0.9.0]
+## Notes on wlroots-0.19
 
-The main focus has been to port labwc to wlroots 0.19 [#2388] and fix associated
-issues. Special thanks to @Consolatis @jlindgren90 for this.
+There are some regression warnings worth noting for the switch to wlroots 0.19:
 
-There is a regression warning worth noting for the switch to wlroots 0.19:
-
+- The DRM backend now destroys/recreates outputs on VT switch and in some cases
+  on suspend/resume too. The reason for this change was that (i) the KMS state
+  is undefined when a VT is switched away; and (ii) the previous outputs had
+  issues with restoration, particularly when the output configuration had
+  changed whilst switched away. This change causes two issues for users:
+  - Some layer-shell clients do not re-appear on output re-connection, or may
+    appear on a different output. Whilst this has always been the case, it will
+    now also happen in said situations. We recommend layer-shell clients to
+    handle the new-output and surface-destroy signals to achieve desired
+    behaviours.
+  - Some Gtk clients issue critical warnings as they assume that at least one
+    output is always available. This will be fixed in `Gtk-3.24.50`. It is
+    believed to be a harmless warning, but it can be avoided by running labwc
+    with the environment variable `LABWC_FALLBACK_OUTPUT=NOOP-fallback` to
+    temporarily create a fallback-output when the last physical display
+    disconnects. [#2914] [#2939] [wlroots-4878] [gtk-8792]
+- Due to a single-pixel protocol issue, `waylock` and `chayang` do not work.
+  This will be fixed in `wlroots-0.19.1`. [#2943] [wlroots-5098]
 - Menu item can no longer be activated in any Gtk applications with a single
   press-drag-release mouse action. For context: This is due to ambiguity in the
   specifications and contrary implementations. For example, Gtk applications are
@@ -53,6 +69,39 @@ There is a regression warning worth noting for the switch to wlroots 0.19:
 - VR headset support is disabled when compiled with wlroots `0.19.0` to work
   around a bug on the wlroots side which is expected to be fixed in wlroots
   `0.19.1` [#2887]
+
+[wlroots-4878]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4878
+[wlroots-5098]:https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5098
+[gtk-8792]: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/8792
+
+## [unreleased]
+
+## [0.9.1]
+
+This is an earlier-than-usual release containinig bug fixes only. It has been
+done on a separate branch to avoid the inclusion of refactoring and new
+features.
+
+```
+               0.9.1  <--- bug-fixes only
+                /
+               /
+0.8.4--------0.9.0--------  <-- master
+```
+
+### Fixed
+
+- Prevent interaction with un-initialized xdg-shell windows after unmap to fix a
+  bug exposed by `wlroots-0.19.0` resulting in a compositor crash in certain
+  (unusual) circumstances [#2948] [#2937] [#2944] @Consolatis
+- Fix double-free in `img_svg_render()` failure path [#2910] @jlindgren90
+- Fix swapped width/height in XWayland client `_NET_WM_ICON` stride calculation
+  [#2909] @jlindgren90
+
+## [0.9.0]
+
+The main focus has been to port labwc to wlroots 0.19 [#2388] and fix associated
+issues. Special thanks to @Consolatis @jlindgren90 for this.
 
 ### Added
 
@@ -2124,6 +2173,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
 [unreleased]: https://github.com/labwc/labwc/compare/0.9.0...HEAD
+[0.9.1]: https://github.com/labwc/labwc/compare/0.9.0...0.9.1
 [0.9.0]: https://github.com/labwc/labwc/compare/0.8.4...0.9.0
 [0.8.4]: https://github.com/labwc/labwc/compare/0.8.3...0.8.4
 [0.8.3]: https://github.com/labwc/labwc/compare/0.8.2...0.8.3
@@ -2548,3 +2598,11 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2886]: https://github.com/labwc/labwc/pull/2886
 [#2887]: https://github.com/labwc/labwc/pull/2887
 [#2891]: https://github.com/labwc/labwc/pull/2891
+[#2909]: https://github.com/labwc/labwc/pull/2909
+[#2910]: https://github.com/labwc/labwc/pull/2910
+[#2914]: https://github.com/labwc/labwc/pull/2914
+[#2937]: https://github.com/labwc/labwc/pull/2937
+[#2939]: https://github.com/labwc/labwc/pull/2939
+[#2943]: https://github.com/labwc/labwc/pull/2943
+[#2944]: https://github.com/labwc/labwc/pull/2944
+[#2948]: https://github.com/labwc/labwc/pull/2948

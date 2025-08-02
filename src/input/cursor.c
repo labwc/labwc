@@ -1346,6 +1346,10 @@ process_cursor_axis(struct server *server, enum wl_pointer_axis orientation,
 	if (direction != LAB_DIRECTION_INVALID) {
 		struct mousebind *mousebind;
 		wl_list_for_each(mousebind, &rc.mousebinds, link) {
+			if (ctx.type == LAB_SSD_CLIENT
+					&& view_inhibits_actions(ctx.view, &mousebind->actions)) {
+				continue;
+			}
 			if (ssd_part_contains(mousebind->context, ctx.type)
 					&& mousebind->direction == direction
 					&& modifiers == mousebind->modifiers

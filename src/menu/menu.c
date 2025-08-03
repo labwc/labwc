@@ -269,6 +269,8 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 static struct menuitem *
 separator_create(struct menu *menu, const char *label)
 {
+	assert(menu);
+
 	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = false;
@@ -754,6 +756,11 @@ xml_tree_walk(struct menu_parse_context *ctx, xmlNode *node)
 			continue;
 		}
 		if (!strcasecmp((char *)n->name, "separator")) {
+			if (!ctx->menu) {
+				wlr_log(WLR_ERROR,
+					"ignoring <separator> without parent <menu>");
+				continue;
+			}
 			handle_separator_element(ctx, n);
 			continue;
 		}

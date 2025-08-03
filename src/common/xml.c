@@ -138,7 +138,8 @@ lab_xml_node_is_leaf(xmlNode *node)
 		return false;
 	}
 	for (xmlNode *child = node->children; child; child = child->next) {
-		if (child->type != XML_TEXT_NODE) {
+		if (child->type != XML_TEXT_NODE
+				&& child->type != XML_CDATA_SECTION_NODE) {
 			return false;
 		}
 	}

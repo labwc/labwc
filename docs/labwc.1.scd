@@ -134,8 +134,7 @@ example: *LABWC_DEBUG_FOO=1 labwc*.
 	Increase logging of paths for config files (for example rc.xml,
 	autostart, environment and menu.xml) as well as titlebar buttons.
 
-*LABWC_DEBUG_CONFIG_NODENAMES*++
-*LABWC_DEBUG_MENU_NODENAMES*
+*LABWC_DEBUG_CONFIG_NODENAMES*
 	Enable logging of all nodenames (for example *policy.placement: Cascade*
 	for *<placement><policy>Cascade</policy></placement>*) for config and
 	menu files respectively.

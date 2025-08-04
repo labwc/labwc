@@ -253,8 +253,6 @@ set_property(const char *str, enum property *variable)
 	*variable = ret ? LAB_PROP_TRUE : LAB_PROP_FALSE;
 }
 
-static void append_actions(xmlNode *node, struct wl_list *list);
-
 static void
 fill_window_rule(xmlNode *node)
 {
@@ -315,7 +313,7 @@ fill_window_rule(xmlNode *node)
 		}
 	}
 
-	append_actions(node, &window_rule->actions);
+	append_parsed_actions(node, &window_rule->actions);
 }
 
 static void
@@ -482,7 +480,7 @@ parse_action_args(xmlNode *node, struct action *action)
 				action_arg_add_actionlist(action, "then");
 				actions = action_get_actionlist(action, "then");
 			}
-			append_actions(child, actions);
+			append_parsed_actions(child, actions);
 		} else if (!strcasecmp(key, "else")) {
 			struct wl_list *actions =
 				action_get_actionlist(action, "else");
@@ -490,7 +488,7 @@ parse_action_args(xmlNode *node, struct action *action)
 				action_arg_add_actionlist(action, "else");
 				actions = action_get_actionlist(action, "else");
 			}
-			append_actions(child, actions);
+			append_parsed_actions(child, actions);
 		} else if (!strcasecmp(key, "none")) {
 			struct wl_list *actions =
 				action_get_actionlist(action, "none");
@@ -498,7 +496,7 @@ parse_action_args(xmlNode *node, struct action *action)
 				action_arg_add_actionlist(action, "none");
 				actions = action_get_actionlist(action, "none");
 			}
-			append_actions(child, actions);
+			append_parsed_actions(child, actions);
 		} else if (!strcasecmp(key, "name")) {
 			/* Ignore <action name=""> */
 		} else if (lab_xml_node_is_leaf(child)) {
@@ -530,8 +528,8 @@ parse_action(xmlNode *node)
 	return action;
 }
 
-static void
-append_actions(xmlNode *node, struct wl_list *list)
+void
+append_parsed_actions(xmlNode *node, struct wl_list *list)
 {
 	xmlNode *child;
 	char *key, *content;
@@ -576,7 +574,7 @@ fill_keybind(xmlNode *node)
 	lab_xml_get_bool(node, "layoutDependent", &keybind->use_syms_only);
 	lab_xml_get_bool(node, "allowWhenLocked", &keybind->allow_when_locked);
 
-	append_actions(node, &keybind->actions);
+	append_parsed_actions(node, &keybind->actions);
 }
 
 static void
@@ -608,7 +606,7 @@ fill_mousebind(xmlNode *node, const char *context)
 		mousebind->mouse_event = mousebind_event_from_str(buf);
 	}
 
-	append_actions(node, &mousebind->actions);
+	append_parsed_actions(node, &mousebind->actions);
 }
 
 static void

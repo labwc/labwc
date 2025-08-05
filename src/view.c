@@ -2684,6 +2684,16 @@ view_destroy(struct view *view)
 		view->scene_tree = NULL;
 	}
 
+	assert(wl_list_empty(&view->events.new_app_id.listener_list));
+	assert(wl_list_empty(&view->events.new_title.listener_list));
+	assert(wl_list_empty(&view->events.new_outputs.listener_list));
+	assert(wl_list_empty(&view->events.maximized.listener_list));
+	assert(wl_list_empty(&view->events.minimized.listener_list));
+	assert(wl_list_empty(&view->events.fullscreened.listener_list));
+	assert(wl_list_empty(&view->events.activated.listener_list));
+	assert(wl_list_empty(&view->events.set_icon.listener_list));
+	assert(wl_list_empty(&view->events.destroy.listener_list));
+
 	/* Remove view from server->views */
 	wl_list_remove(&view->link);
 	free(view);

@@ -547,7 +547,13 @@ handle_new_output(struct wl_listener *listener, void *data)
 	wlr_scene_node_raise_to_top(&output->osd_tree->node);
 	wlr_scene_node_raise_to_top(&output->session_lock_tree->node);
 
-	if (rc.auto_enable_outputs) {
+	/*
+	 * autoEnableOutputs=no only makes sense for outputs that can be
+	 * hotplugged - currently only drm outputs. With wl/x11/headless
+	 * it would result in no outputs being enabled at all. This check
+	 * might need tweaking if wlroots adds other output backends.
+	 */
+	if (rc.auto_enable_outputs || !wlr_output_is_drm(wlr_output)) {
 		configure_new_output(server, output);
 	}
 

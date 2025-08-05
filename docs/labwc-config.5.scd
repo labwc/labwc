@@ -216,7 +216,7 @@ this is for compatibility with Openbox.
 
 *<core><autoEnableOutputs>* [yes|no]
 	Automatically enable outputs at startup and when new outputs are
-	connected. Default is yes.
+	connected. This option applies only to drm outputs. Default is yes.
 
 	Caution: Disabling this option will make the labwc session unusable
 	unless an external tool such as `wlr-randr` or `kanshi` is used to

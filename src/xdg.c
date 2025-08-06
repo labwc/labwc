@@ -322,6 +322,13 @@ handle_configure_timeout(void *data)
 			wlr_log(WLR_INFO, "using fallback position");
 			view->pending.x = VIEW_FALLBACK_X;
 			view->pending.y = VIEW_FALLBACK_Y;
+			/* At least try to keep it on the same output */
+			if (output_is_usable(view->output)) {
+				struct wlr_box box =
+					output_usable_area_in_layout_coords(view->output);
+				view->pending.x += box.x;
+				view->pending.y += box.y;
+			}
 		}
 		view->current.x = view->pending.x;
 		view->current.y = view->pending.y;

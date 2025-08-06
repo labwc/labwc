@@ -1094,6 +1094,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.gap = atoi(content);
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
 		set_adaptive_sync_mode(content, &rc.adaptive_sync);
+	} else if (!strcasecmp(nodename, "disableMaximizedServerDecor.core")) {
+		set_bool(content, &rc.disable_maximized_ssd_decor);
 	} else if (!strcasecmp(nodename, "allowTearing.core")) {
 		set_tearing_mode(content, &rc.allow_tearing);
 	} else if (!strcasecmp(nodename, "autoEnableOutputs.core")) {
@@ -1366,6 +1368,7 @@ rcxml_init(void)
 	rc.placement_cascade_offset_y = 0;
 
 	rc.xdg_shell_server_side_deco = true;
+	rc.disable_maximized_ssd_decor = false;
 	rc.show_title = true;
 	rc.title_layout_loaded = false;
 	rc.ssd_keep_border = true;

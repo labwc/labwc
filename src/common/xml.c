@@ -190,6 +190,7 @@ lab_xml_get_bool(xmlNode *node, const char *key, bool *b)
 	if (get_node(node, key, &child, /* leaf_only */ true)) {
 		char *s = (char *)xmlNodeGetContent(child);
 		int ret = parse_bool(s, -1);
+		xmlFree(s);
 		if (ret >= 0) {
 			*b = ret;
 			return true;

@@ -288,6 +288,14 @@ handle_configure_timeout(void *data)
 	view->pending_configure_serial = 0;
 	view->pending_configure_timeout = NULL;
 
+	/*
+	 * No need to do anything else if the view is just being slow to
+	 * map - the map handler will take care of the positioning.
+	 */
+	if (!view->mapped) {
+		return 0; /* ignored per wl_event_loop docs */
+	}
+
 	bool empty_pending = wlr_box_empty(&view->pending);
 	if (empty_pending || view->pending.x != view->current.x
 			|| view->pending.y != view->current.y) {

@@ -15,6 +15,14 @@ handle_handle_destroy(struct wl_listener *listener, void *data)
 
 	/* Client side requests */
 	wl_list_remove(&ext_toplevel->on.handle_destroy.link);
+
+	/* Compositor side state changes */
+	wl_list_remove(&ext_toplevel->on_view.new_app_id.link);
+	wl_list_remove(&ext_toplevel->on_view.new_title.link);
+
+	/* Internal signals */
+	wl_list_remove(&ext_toplevel->on_foreign_toplevel.toplevel_destroy.link);
+
 	ext_toplevel->handle = NULL;
 }
 
@@ -60,14 +68,8 @@ handle_toplevel_destroy(struct wl_listener *listener, void *data)
 		return;
 	}
 
+	/* invokes handle_handle_destroy() which does more cleanup */
 	wlr_ext_foreign_toplevel_handle_v1_destroy(ext_toplevel->handle);
-
-	/* Compositor side state changes */
-	wl_list_remove(&ext_toplevel->on_view.new_app_id.link);
-	wl_list_remove(&ext_toplevel->on_view.new_title.link);
-
-	/* Internal signals */
-	wl_list_remove(&ext_toplevel->on_foreign_toplevel.toplevel_destroy.link);
 }
 
 /* Internal API */

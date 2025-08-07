@@ -72,6 +72,20 @@ handle_handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&wlr_toplevel->on.request_activate.link);
 	wl_list_remove(&wlr_toplevel->on.request_close.link);
 	wl_list_remove(&wlr_toplevel->on.handle_destroy.link);
+
+	/* Compositor side state changes */
+	wl_list_remove(&wlr_toplevel->on_view.new_app_id.link);
+	wl_list_remove(&wlr_toplevel->on_view.new_title.link);
+	wl_list_remove(&wlr_toplevel->on_view.new_outputs.link);
+	wl_list_remove(&wlr_toplevel->on_view.maximized.link);
+	wl_list_remove(&wlr_toplevel->on_view.minimized.link);
+	wl_list_remove(&wlr_toplevel->on_view.fullscreened.link);
+	wl_list_remove(&wlr_toplevel->on_view.activated.link);
+
+	/* Internal signals */
+	wl_list_remove(&wlr_toplevel->on_foreign_toplevel.toplevel_parent.link);
+	wl_list_remove(&wlr_toplevel->on_foreign_toplevel.toplevel_destroy.link);
+
 	wlr_toplevel->handle = NULL;
 }
 
@@ -203,20 +217,8 @@ handle_toplevel_destroy(struct wl_listener *listener, void *data)
 		listener, wlr_toplevel, on_foreign_toplevel.toplevel_destroy);
 
 	assert(wlr_toplevel->handle);
+	/* invokes handle_handle_destroy() which does more cleanup */
 	wlr_foreign_toplevel_handle_v1_destroy(wlr_toplevel->handle);
-
-	/* Compositor side state changes */
-	wl_list_remove(&wlr_toplevel->on_view.new_app_id.link);
-	wl_list_remove(&wlr_toplevel->on_view.new_title.link);
-	wl_list_remove(&wlr_toplevel->on_view.new_outputs.link);
-	wl_list_remove(&wlr_toplevel->on_view.maximized.link);
-	wl_list_remove(&wlr_toplevel->on_view.minimized.link);
-	wl_list_remove(&wlr_toplevel->on_view.fullscreened.link);
-	wl_list_remove(&wlr_toplevel->on_view.activated.link);
-
-	/* Internal signals */
-	wl_list_remove(&wlr_toplevel->on_foreign_toplevel.toplevel_parent.link);
-	wl_list_remove(&wlr_toplevel->on_foreign_toplevel.toplevel_destroy.link);
 }
 
 /* Internal API */

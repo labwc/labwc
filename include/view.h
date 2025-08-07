@@ -224,6 +224,7 @@ struct view {
 	enum ssd_preference ssd_preference;
 	bool shaded;
 	bool minimized;
+	bool remaximize;
 	enum view_axis maximized;
 	bool fullscreen;
 	bool tearing_hint;

@@ -103,7 +103,8 @@ jobs:
             sed -i '' 's/quarterly/latest/' /etc/pkg/FreeBSD.conf
             pkg set -yn pkg:mesa-dri # hack to skip llvm dependency
             pkg install -y git meson gcc pkgconf cairo pango evdev-proto \
-              hwdata wayland-protocols wlroots019 libdisplay-info
+              hwdata wayland-protocols libdisplay-info libepoll-shim \
+              wlroots019
           run: echo "setup done"
 
       - name: Install Void Linux dependencies

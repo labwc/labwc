@@ -17,6 +17,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <strings.h>
+#ifdef __FreeBSD__
+#include <sys/event.h> /* For signalfd() */
+#endif
 #include <sys/signalfd.h>
 #include <sys/stat.h>
 #include <sys/timerfd.h>

@@ -303,6 +303,10 @@ all are supported.
 	Text color of on-screen-display. Inherits
 	*window.active.label.text.color* if not set.
 
+*osd.window-switcher.style-classic*
+	Theme for window switcher when using <windowSwitcher style="classic" />.
+	See below for details.
+
 *osd.window-switcher.style-classic.width*
 	Width of window switcher in pixels. Width can also be a percentage of the
 	monitor width by adding '%' as suffix (e.g. 70%). Default is 600.
@@ -327,6 +331,40 @@ all are supported.
 	Size of the icon in window switcher, in pixels.
 	If not set, the font size derived from <theme><font place="OnScreenDisplay">
 	is used.
+
+*osd.window-switcher.style-thumbnail*
+	Theme for window switcher when using <windowSwitcher style="thumbnail" />.
+	See below for details.
+
+*osd.window-switcher.style-thumbnail.width.max*
+	Maximum width of window switcher in pixels. Width can also be a percentage of
+	the monitor width by adding '%' as suffix (e.g. 70%). Default is 80%.
+
+*osd.window-switcher.style-thumbnail.padding*
+	Padding of window switcher in pixels. This is the space between the
+	window-switcher border and its items. Default is 4.
+
+*osd.window-switcher.style-thumbnail.item.width*
+	Width of window switcher items in pixels. Default is 300.
+
+*osd.window-switcher.style-thumbnail.item.height*
+	Height of window switcher items in pixels. Default is 250.
+
+*osd.window-switcher.style-thumbnail.item.padding*
+	Padding of window switcher items in pixels. This is the space between the
+	border around selected items and window thumbnail. Default is 2.
+
+*osd.window-switcher.style-thumbnail.item.active.border.width*
+	Border width of selected window switcher items in pixels. Default is 2.
+
+*osd.window-switcher.style-thumbnail.item.active.border.color*
+	Color of border around selected window switcher items. Default is #589bda.
+
+*osd.window-switcher.style-thumbnail.item.active.bg.color*
+	Color of selected window switcher items. Default is #c7e2fc.
+
+*osd.window-switcher.style-thumbnail.item.icon.size*
+	Size of window icons in window switcher items in pixels. Default is 60.
 
 *osd.window-switcher.preview.border.width*
 	Border width of the outlines shown as the preview of the window selected

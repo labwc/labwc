@@ -278,7 +278,7 @@ this is for compatibility with Openbox.
 ## WINDOW SWITCHER
 
 ```
-<windowSwitcher show="yes" preview="yes" outlines="yes" allWorkspaces="no">
+<windowSwitcher show="yes" style="classic" preview="yes" outlines="yes" allWorkspaces="no">
   <fields>
     <field content="icon" width="5%" />
     <field content="desktop_entry_name" width="30%" />
@@ -287,9 +287,13 @@ this is for compatibility with Openbox.
 </windowSwitcher>
 ```
 
-*<windowSwitcher show="" preview="" outlines="" allWorkspaces="">*
+*<windowSwitcher show="" style="" preview="" outlines="" allWorkspaces="">*
 	*show* [yes|no] Draw the OnScreenDisplay when switching between
 	windows. Default is yes.
+
+	*style* [classic|thumbnail] Configures the style of the OnScreenDisplay.
+	"classic" displays window information like icons and titles in a vertical list.
+	"thumbnail" shows window thumbnail, icon and title in grids.
 
 	*preview* [yes|no] Preview the contents of the selected window when
 	switching between windows. Default is yes.
@@ -302,7 +306,7 @@ this is for compatibility with Openbox.
 	are shown).
 
 *<windowSwitcher><fields><field content="" width="%">*
-	Define window switcher fields.
+	Define window switcher fields when using *<windowSwitcher style="classic" />*.
 
 	*content* defines what the field shows and can be any of:
 

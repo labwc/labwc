@@ -75,7 +75,7 @@
     </font>
   </theme>
 
-  <windowSwitcher show="yes" preview="yes" outlines="yes" allWorkspaces="no">
+  <windowSwitcher show="yes" style="classic" preview="yes" outlines="yes" allWorkspaces="no">
     <fields>
       <field content="icon" width="5%" />
       <field content="desktop_entry_name" width="30%" />

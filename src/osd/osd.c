@@ -265,7 +265,16 @@ update_osd(struct server *server)
 	struct wl_array views;
 	wl_array_init(&views);
 	view_array_append(server, &views, rc.window_switcher.criteria);
-	struct osd_impl *osd_impl = &osd_classic_impl;
+
+	struct osd_impl *osd_impl = NULL;
+	switch (rc.window_switcher.style) {
+	case WINDOW_SWITCHER_CLASSIC:
+		osd_impl = &osd_classic_impl;
+		break;
+	case WINDOW_SWITCHER_THUMBNAIL:
+		osd_impl = &osd_thumbnail_impl;
+		break;
+	}
 
 	if (!wl_array_len(&views) || !server->osd_state.cycle_view) {
 		osd_finish(server);

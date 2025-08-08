@@ -616,6 +616,17 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->osd_window_switcher_classic.item_active_border_width = 2;
 	theme->osd_window_switcher_classic.item_icon_size = -1;
 
+	theme->osd_window_switcher_thumbnail.max_width = 80;
+	theme->osd_window_switcher_thumbnail.max_width_is_percent = true;
+	theme->osd_window_switcher_thumbnail.padding = 4;
+	theme->osd_window_switcher_thumbnail.item_width = 300;
+	theme->osd_window_switcher_thumbnail.item_height = 250;
+	theme->osd_window_switcher_thumbnail.item_padding = 10;
+	theme->osd_window_switcher_thumbnail.item_active_border_width = 2;
+	parse_color("#589bda", theme->osd_window_switcher_thumbnail.item_active_border_color);
+	parse_color("#c7e2fc", theme->osd_window_switcher_thumbnail.item_active_bg_color);
+	theme->osd_window_switcher_thumbnail.item_icon_size = 60;
+
 	/* inherit settings in post_processing() if not set elsewhere */
 	theme->osd_window_switcher_preview_border_width = INT_MIN;
 	zero_array(theme->osd_window_switcher_preview_border_color);
@@ -681,6 +692,8 @@ entry(struct theme *theme, const char *key, const char *value)
 
 	struct window_switcher_classic_theme *switcher_classic_theme =
 		&theme->osd_window_switcher_classic;
+	struct window_switcher_thumbnail_theme *switcher_thumb_theme =
+		&theme->osd_window_switcher_thumbnail;
 
 	/*
 	 * Note that in order for the pattern match to apply to more than just
@@ -992,6 +1005,47 @@ entry(struct theme *theme, const char *key, const char *value)
 			get_int_if_positive(value,
 				"osd.window-switcher.style-classic.item.icon.size");
 	}
+	/* thumbnail window switcher */
+	if (match_glob(key, "osd.window-switcher.style-thumbnail.width.max")) {
+		if (strrchr(value, '%')) {
+			switcher_thumb_theme->max_width_is_percent = true;
+		} else {
+			switcher_thumb_theme->max_width_is_percent = false;
+		}
+		switcher_thumb_theme->max_width = get_int_if_positive(
+			value, "osd.window-switcher.style-thumbnail.width.max");
+	}
+	if (match_glob(key, "osd.window-switcher.style-thumbnail.padding")) {
+		switcher_thumb_theme->padding = get_int_if_positive(
+			value, "osd.window-switcher.style-thumbnail.padding");
+	}
+	if (match_glob(key, "osd.window-switcher.style-thumbnail.item.width")) {
+		switcher_thumb_theme->item_width = get_int_if_positive(
+			value, "osd.window-switcher.style-thumbnail.item.width");
+	}
+	if (match_glob(key, "osd.window-switcher.style-thumbnail.item.height")) {
+		switcher_thumb_theme->item_height = get_int_if_positive(
+			value, "osd.window-switcher.style-thumbnail.item.height");
+	}
+	if (match_glob(key, "osd.window-switcher.style-thumbnail.item.padding")) {
+		switcher_thumb_theme->item_padding = get_int_if_positive(
+			value, "osd.window-switcher.style-thumbnail.item.padding");
+	}
+	if (match_glob(key, "osd.window-switcher.style-thumbnail.item.active.border.width")) {
+		switcher_thumb_theme->item_active_border_width = get_int_if_positive(
+			value, "osd.window-switcher.style-thumbnail.item.active.border.width");
+	}
+	if (match_glob(key, "osd.window-switcher.style-thumbnail.item.active.border.color")) {
+		parse_color(value, switcher_thumb_theme->item_active_border_color);
+	}
+	if (match_glob(key, "osd.window-switcher.style-thumbnail.item.active.bg.color")) {
+		parse_color(value, switcher_thumb_theme->item_active_bg_color);
+	}
+	if (match_glob(key, "osd.window-switcher.style-thumbnail.item.icon.size")) {
+		switcher_thumb_theme->item_icon_size = get_int_if_positive(
+			value, "osd.window-switcher.style-thumbnail.item.icon.size");
+	}
+
 	if (match_glob(key, "osd.window-switcher.preview.border.width")) {
 		theme->osd_window_switcher_preview_border_width =
 			get_int_if_positive(
@@ -1594,6 +1648,8 @@ post_processing(struct theme *theme)
 {
 	struct window_switcher_classic_theme *switcher_classic_theme =
 		&theme->osd_window_switcher_classic;
+	struct window_switcher_thumbnail_theme *switcher_thumb_theme =
+		&theme->osd_window_switcher_thumbnail;
 
 	theme->titlebar_height = get_titlebar_height(theme);
 
@@ -1607,6 +1663,7 @@ post_processing(struct theme *theme)
 		+ 2 * theme->menu_items_padding_y;
 
 	int osd_font_height = font_height(&rc.font_osd);
+	switcher_thumb_theme->title_height = osd_font_height;
 	if (switcher_classic_theme->item_icon_size <= 0) {
 		switcher_classic_theme->item_icon_size = osd_font_height;
 	}

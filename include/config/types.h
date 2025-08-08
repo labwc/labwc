@@ -107,4 +107,9 @@ enum lab_window_type {
 	LAB_WINDOW_TYPE_LEN
 };
 
+enum window_switcher_style {
+	WINDOW_SWITCHER_CLASSIC,
+	WINDOW_SWITCHER_THUMBNAIL,
+};
+
 #endif /* LABWC_CONFIG_TYPES_H */

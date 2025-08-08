@@ -329,6 +329,33 @@ all are supported.
 	If not set, the font size derived from <theme><font place="OnScreenDisplay">
 	is used.
 
+*osd.window-switcher.thumbnail.width.max*
+	Can be number or percent
+
+*osd.window-switcher.thumbnail.padding*
+	TODO
+
+*osd.window-switcher.thumbnail.item.width*
+	TODO
+
+*osd.window-switcher.thumbnail.item.height*
+	TODO
+
+*osd.window-switcher.thumbnail.item.padding*
+	TODO
+
+*osd.window-switcher.thumbnail.item.active.border.width*
+	TODO
+
+*osd.window-switcher.thumbnail.item.active.border.color*
+	TODO
+
+*osd.window-switcher.thumbnail.item.active.bg.color*
+	TODO
+
+*osd.window-switcher.thumbnail.item.icon.size*
+	TODO
+
 *osd.window-switcher.preview.border.width*
 	Border width of the outlines shown as the preview of the window selected
 	by window switcher. Inherits *osd.border.width* if not set.

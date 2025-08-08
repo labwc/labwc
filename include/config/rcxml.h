@@ -15,6 +15,7 @@
 #include "config/tablet.h"
 #include "config/tablet-tool.h"
 #include "config/libinput.h"
+#include "osd.h"
 #include "resize-indicator.h"
 #include "ssd.h"
 #include "theme.h"
@@ -175,6 +176,7 @@ struct rcxml {
 		bool outlines;
 		uint32_t criteria;
 		struct wl_list fields;  /* struct window_switcher_field.link */
+		enum window_switcher_style style;
 	} window_switcher;
 
 	struct wl_list window_rules; /* struct window_rule.link */

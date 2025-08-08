@@ -180,6 +180,21 @@ struct theme {
 		int item_height;
 	} osd_window_switcher_classic;
 
+	struct window_switcher_thumbnail_theme {
+		int max_width;
+		int padding;
+		int item_width;
+		int item_height;
+		int item_padding;
+		int item_active_border_width;
+		float item_active_border_color[4];
+		float item_active_bg_color[4];
+		int item_icon_size;
+		bool max_width_is_percent;
+
+		int title_height;
+	} osd_window_switcher_thumbnail;
+
 	int osd_window_switcher_preview_border_width;
 	float osd_window_switcher_preview_border_color[3][4];
 

@@ -1210,6 +1210,12 @@ entry(xmlNode *node, char *nodename, char *content)
 	/* <windowSwitcher show="" preview="" outlines="" /> */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.show);
+	} else if (!strcasecmp(nodename, "style.windowSwitcher")) {
+		if (!strcasecmp(content, "classic")) {
+			rc.window_switcher.style = WINDOW_SWITCHER_CLASSIC;
+		} else if (!strcasecmp(content, "thumbnail")) {
+			rc.window_switcher.style = WINDOW_SWITCHER_THUMBNAIL;
+		}
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.preview);
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher")) {
@@ -1431,6 +1437,7 @@ rcxml_init(void)
 	rc.snap_tiling_events_mode = LAB_TILING_EVENTS_ALWAYS;
 
 	rc.window_switcher.show = true;
+	rc.window_switcher.style = WINDOW_SWITCHER_CLASSIC;
 	rc.window_switcher.preview = true;
 	rc.window_switcher.outlines = true;
 	rc.window_switcher.criteria = LAB_VIEW_CRITERIA_CURRENT_WORKSPACE

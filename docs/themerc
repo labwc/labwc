@@ -99,6 +99,17 @@ osd.window-switcher.style-classic.item.padding.y: 1
 osd.window-switcher.style-classic.item.active.border.width: 2
 # The icon size the same as the font size by default
 # osd.window-switcher.style-classic.item.icon.size: 50
+
+osd.window-switcher.style-thumbnail.width.max: 80%
+osd.window-switcher.style-thumbnail.padding: 4
+osd.window-switcher.style-thumbnail.item.width: 300
+osd.window-switcher.style-thumbnail.item.height: 250
+osd.window-switcher.style-thumbnail.item.padding: 10
+osd.window-switcher.style-thumbnail.item.active.border.width: 2
+osd.window-switcher.style-thumbnail.item.active.border.color: #589bda
+osd.window-switcher.style-thumbnail.item.active.bg.color: #c7e2fc
+osd.window-switcher.style-thumbnail.item.icon.size: 60
+
 osd.window-switcher.preview.border.width: 1
 osd.window-switcher.preview.border.color: #dddda6,#000000,#dddda6
 

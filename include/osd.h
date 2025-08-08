@@ -83,5 +83,6 @@ struct osd_impl {
 };
 
 extern struct osd_impl osd_classic_impl;
+extern struct osd_impl osd_thumbnail_impl;
 
 #endif // LABWC_OSD_H

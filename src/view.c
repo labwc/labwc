@@ -14,7 +14,7 @@
 #include "common/match.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
-#include "foreign-toplevel.h"
+#include "foreign-toplevel/foreign.h"
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "menu/menu.h"

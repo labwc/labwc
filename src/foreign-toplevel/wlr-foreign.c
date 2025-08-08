@@ -1,62 +1,63 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "foreign-toplevel/wlr-foreign.h"
 #include <assert.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include "common/macros.h"
 #include "labwc.h"
 #include "output.h"
 #include "view.h"
-#include "foreign-toplevel-internal.h"
 
 /* wlr signals */
 static void
 handle_request_minimize(struct wl_listener *listener, void *data)
 {
-	struct foreign_toplevel *toplevel = wl_container_of(
-		listener, toplevel, wlr_toplevel.on.request_minimize);
+	struct wlr_foreign_toplevel *wlr_toplevel =
+		wl_container_of(listener, wlr_toplevel, on.request_minimize);
 	struct wlr_foreign_toplevel_handle_v1_minimized_event *event = data;
 
-	foreign_request_minimize(toplevel, event->minimized);
+	view_minimize(wlr_toplevel->view, event->minimized);
 }
 
 static void
 handle_request_maximize(struct wl_listener *listener, void *data)
 {
-	struct foreign_toplevel *toplevel = wl_container_of(
-		listener, toplevel, wlr_toplevel.on.request_maximize);
+	struct wlr_foreign_toplevel *wlr_toplevel =
+		wl_container_of(listener, wlr_toplevel, on.request_maximize);
 	struct wlr_foreign_toplevel_handle_v1_maximized_event *event = data;
 
-	foreign_request_maximize(toplevel,
-		event->maximized ? VIEW_AXIS_BOTH : VIEW_AXIS_NONE);
+	view_maximize(wlr_toplevel->view,
+		event->maximized ? VIEW_AXIS_BOTH : VIEW_AXIS_NONE,
+		/*store_natural_geometry*/ true);
 }
 
 static void
 handle_request_fullscreen(struct wl_listener *listener, void *data)
 {
-	struct foreign_toplevel *toplevel = wl_container_of(
-		listener, toplevel, wlr_toplevel.on.request_fullscreen);
+	struct wlr_foreign_toplevel *wlr_toplevel =
+		wl_container_of(listener, wlr_toplevel, on.request_fullscreen);
 	struct wlr_foreign_toplevel_handle_v1_fullscreen_event *event = data;
 
 	/* TODO: This ignores event->output */
-	foreign_request_fullscreen(toplevel, event->fullscreen);
+	view_set_fullscreen(wlr_toplevel->view, event->fullscreen);
 }
 
 static void
 handle_request_activate(struct wl_listener *listener, void *data)
 {
-	struct foreign_toplevel *toplevel = wl_container_of(
-		listener, toplevel, wlr_toplevel.on.request_activate);
+	struct wlr_foreign_toplevel *wlr_toplevel =
+		wl_container_of(listener, wlr_toplevel, on.request_activate);
 
 	/* In a multi-seat world we would select seat based on event->seat here. */
-	foreign_request_activate(toplevel);
+	desktop_focus_view(wlr_toplevel->view, /*raise*/ true);
 }
 
 static void
 handle_request_close(struct wl_listener *listener, void *data)
 {
-	struct foreign_toplevel *toplevel = wl_container_of(
-		listener, toplevel, wlr_toplevel.on.request_close);
+	struct wlr_foreign_toplevel *wlr_toplevel =
+		wl_container_of(listener, wlr_toplevel, on.request_close);
 
-	foreign_request_close(toplevel);
+	view_close(wlr_toplevel->view);
 }
 
 static void
@@ -82,10 +83,6 @@ handle_handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&wlr_toplevel->on_view.fullscreened.link);
 	wl_list_remove(&wlr_toplevel->on_view.activated.link);
 
-	/* Internal signals */
-	wl_list_remove(&wlr_toplevel->on_foreign_toplevel.toplevel_parent.link);
-	wl_list_remove(&wlr_toplevel->on_foreign_toplevel.toplevel_destroy.link);
-
 	wlr_toplevel->handle = NULL;
 }
 
@@ -93,41 +90,41 @@ handle_handle_destroy(struct wl_listener *listener, void *data)
 static void
 handle_new_app_id(struct wl_listener *listener, void *data)
 {
-	struct foreign_toplevel *toplevel =
-		wl_container_of(listener, toplevel, wlr_toplevel.on_view.new_app_id);
-	assert(toplevel->wlr_toplevel.handle);
+	struct wlr_foreign_toplevel *wlr_toplevel =
+		wl_container_of(listener, wlr_toplevel, on_view.new_app_id);
+	assert(wlr_toplevel->handle);
 
-	const char *app_id = view_get_string_prop(toplevel->view, "app_id");
-	const char *wlr_app_id = toplevel->wlr_toplevel.handle->app_id;
+	const char *app_id = view_get_string_prop(wlr_toplevel->view, "app_id");
+	const char *wlr_app_id = wlr_toplevel->handle->app_id;
 	if (app_id && wlr_app_id && !strcmp(app_id, wlr_app_id)) {
 		/* Don't send app_id if they are the same */
 		return;
 	}
-	wlr_foreign_toplevel_handle_v1_set_app_id(toplevel->wlr_toplevel.handle, app_id);
+	wlr_foreign_toplevel_handle_v1_set_app_id(wlr_toplevel->handle, app_id);
 }
 
 static void
 handle_new_title(struct wl_listener *listener, void *data)
 {
-	struct foreign_toplevel *toplevel =
-		wl_container_of(listener, toplevel, wlr_toplevel.on_view.new_title);
-	assert(toplevel->wlr_toplevel.handle);
+	struct wlr_foreign_toplevel *wlr_toplevel =
+		wl_container_of(listener, wlr_toplevel, on_view.new_title);
+	assert(wlr_toplevel->handle);
 
-	const char *title = view_get_string_prop(toplevel->view, "title");
-	const char *wlr_title = toplevel->wlr_toplevel.handle->title;
+	const char *title = view_get_string_prop(wlr_toplevel->view, "title");
+	const char *wlr_title = wlr_toplevel->handle->title;
 	if (title && wlr_title && !strcmp(title, wlr_title)) {
 		/* Don't send title if they are the same */
 		return;
 	}
-	wlr_foreign_toplevel_handle_v1_set_title(toplevel->wlr_toplevel.handle, title);
+	wlr_foreign_toplevel_handle_v1_set_title(wlr_toplevel->handle, title);
 }
 
 static void
 handle_new_outputs(struct wl_listener *listener, void *data)
 {
-	struct foreign_toplevel *toplevel =
-		wl_container_of(listener, toplevel, wlr_toplevel.on_view.new_outputs);
-	assert(toplevel->wlr_toplevel.handle);
+	struct wlr_foreign_toplevel *wlr_toplevel =
+		wl_container_of(listener, wlr_toplevel, on_view.new_outputs);
+	assert(wlr_toplevel->handle);
 
 	/*
 	 * Loop over all outputs and notify foreign_toplevel clients about changes.
@@ -137,13 +134,13 @@ handle_new_outputs(struct wl_listener *listener, void *data)
 	 * wlr_foreign_toplevel handle the rest.
 	 */
 	struct output *output;
-	wl_list_for_each(output, &toplevel->view->server->outputs, link) {
-		if (view_on_output(toplevel->view, output)) {
+	wl_list_for_each(output, &wlr_toplevel->view->server->outputs, link) {
+		if (view_on_output(wlr_toplevel->view, output)) {
 			wlr_foreign_toplevel_handle_v1_output_enter(
-				toplevel->wlr_toplevel.handle, output->wlr_output);
+				wlr_toplevel->handle, output->wlr_output);
 		} else {
 			wlr_foreign_toplevel_handle_v1_output_leave(
-				toplevel->wlr_toplevel.handle, output->wlr_output);
+				wlr_toplevel->handle, output->wlr_output);
 		}
 	}
 }
@@ -151,84 +148,55 @@ handle_new_outputs(struct wl_listener *listener, void *data)
 static void
 handle_maximized(struct wl_listener *listener, void *data)
 {
-	struct foreign_toplevel *toplevel =
-		wl_container_of(listener, toplevel, wlr_toplevel.on_view.maximized);
-	assert(toplevel->wlr_toplevel.handle);
+	struct wlr_foreign_toplevel *wlr_toplevel =
+		wl_container_of(listener, wlr_toplevel, on_view.maximized);
+	assert(wlr_toplevel->handle);
 
-	wlr_foreign_toplevel_handle_v1_set_maximized(
-		toplevel->wlr_toplevel.handle,
-		toplevel->view->maximized == VIEW_AXIS_BOTH);
+	wlr_foreign_toplevel_handle_v1_set_maximized(wlr_toplevel->handle,
+		wlr_toplevel->view->maximized == VIEW_AXIS_BOTH);
 }
 
 static void
 handle_minimized(struct wl_listener *listener, void *data)
 {
-	struct foreign_toplevel *toplevel =
-		wl_container_of(listener, toplevel, wlr_toplevel.on_view.minimized);
-	assert(toplevel->wlr_toplevel.handle);
+	struct wlr_foreign_toplevel *wlr_toplevel =
+		wl_container_of(listener, wlr_toplevel, on_view.minimized);
+	assert(wlr_toplevel->handle);
 
-	wlr_foreign_toplevel_handle_v1_set_minimized(
-		toplevel->wlr_toplevel.handle, toplevel->view->minimized);
+	wlr_foreign_toplevel_handle_v1_set_minimized(wlr_toplevel->handle,
+		wlr_toplevel->view->minimized);
 }
 
 static void
 handle_fullscreened(struct wl_listener *listener, void *data)
 {
-	struct foreign_toplevel *toplevel =
-		wl_container_of(listener, toplevel, wlr_toplevel.on_view.fullscreened);
-	assert(toplevel->wlr_toplevel.handle);
+	struct wlr_foreign_toplevel *wlr_toplevel =
+		wl_container_of(listener, wlr_toplevel, on_view.fullscreened);
+	assert(wlr_toplevel->handle);
 
-	wlr_foreign_toplevel_handle_v1_set_fullscreen(
-		toplevel->wlr_toplevel.handle, toplevel->view->fullscreen);
+	wlr_foreign_toplevel_handle_v1_set_fullscreen(wlr_toplevel->handle,
+		wlr_toplevel->view->fullscreen);
 }
 
 static void
 handle_activated(struct wl_listener *listener, void *data)
 {
-	struct foreign_toplevel *toplevel =
-		wl_container_of(listener, toplevel, wlr_toplevel.on_view.activated);
-	assert(toplevel->wlr_toplevel.handle);
+	struct wlr_foreign_toplevel *wlr_toplevel =
+		wl_container_of(listener, wlr_toplevel, on_view.activated);
+	assert(wlr_toplevel->handle);
 
 	bool *activated = data;
-	wlr_foreign_toplevel_handle_v1_set_activated(
-		toplevel->wlr_toplevel.handle, *activated);
-}
-
-/* Internal signals */
-static void
-handle_toplevel_parent(struct wl_listener *listener, void *data)
-{
-	struct wlr_foreign_toplevel *wlr_toplevel = wl_container_of(
-		listener, wlr_toplevel, on_foreign_toplevel.toplevel_parent);
-	struct foreign_toplevel *parent = data;
-
-	assert(wlr_toplevel->handle);
-
-	/* The wlroots wlr-foreign-toplevel impl ensures parent is reset to NULL on destroy */
-	wlr_foreign_toplevel_handle_v1_set_parent(wlr_toplevel->handle, parent
-		? parent->wlr_toplevel.handle
-		: NULL);
-}
-
-static void
-handle_toplevel_destroy(struct wl_listener *listener, void *data)
-{
-	struct wlr_foreign_toplevel *wlr_toplevel = wl_container_of(
-		listener, wlr_toplevel, on_foreign_toplevel.toplevel_destroy);
-
-	assert(wlr_toplevel->handle);
-	/* invokes handle_handle_destroy() which does more cleanup */
-	wlr_foreign_toplevel_handle_v1_destroy(wlr_toplevel->handle);
+	wlr_foreign_toplevel_handle_v1_set_activated(wlr_toplevel->handle,
+		*activated);
 }
 
 /* Internal API */
 void
-wlr_foreign_toplevel_init(struct foreign_toplevel *toplevel)
+wlr_foreign_toplevel_init(struct wlr_foreign_toplevel *wlr_toplevel,
+		struct view *view)
 {
-	struct wlr_foreign_toplevel *wlr_toplevel = &toplevel->wlr_toplevel;
-	struct view *view = toplevel->view;
-
 	assert(view->server->foreign_toplevel_manager);
+	wlr_toplevel->view = view;
 
 	wlr_toplevel->handle = wlr_foreign_toplevel_handle_v1_create(
 		view->server->foreign_toplevel_manager);
@@ -262,8 +230,29 @@ wlr_foreign_toplevel_init(struct foreign_toplevel *toplevel)
 	CONNECT_SIGNAL(view, &wlr_toplevel->on_view, minimized);
 	CONNECT_SIGNAL(view, &wlr_toplevel->on_view, fullscreened);
 	CONNECT_SIGNAL(view, &wlr_toplevel->on_view, activated);
+}
 
-	/* Internal signals */
-	CONNECT_SIGNAL(toplevel, &wlr_toplevel->on_foreign_toplevel, toplevel_parent);
-	CONNECT_SIGNAL(toplevel, &wlr_toplevel->on_foreign_toplevel, toplevel_destroy);
+void
+wlr_foreign_toplevel_set_parent(struct wlr_foreign_toplevel *wlr_toplevel,
+		struct wlr_foreign_toplevel *parent)
+{
+	if (!wlr_toplevel->handle) {
+		return;
+	}
+
+	/* The wlroots wlr-foreign-toplevel impl ensures parent is reset to NULL on destroy */
+	wlr_foreign_toplevel_handle_v1_set_parent(wlr_toplevel->handle,
+		parent ? parent->handle : NULL);
+}
+
+void
+wlr_foreign_toplevel_finish(struct wlr_foreign_toplevel *wlr_toplevel)
+{
+	if (!wlr_toplevel->handle) {
+		return;
+	}
+
+	/* invokes handle_handle_destroy() which does more cleanup */
+	wlr_foreign_toplevel_handle_v1_destroy(wlr_toplevel->handle);
+	assert(!wlr_toplevel->handle);
 }

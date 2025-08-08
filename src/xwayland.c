@@ -13,7 +13,7 @@
 #include "common/mem.h"
 #include "config/rcxml.h"
 #include "config/session.h"
-#include "foreign-toplevel.h"
+#include "foreign-toplevel/foreign.h"
 #include "labwc.h"
 #include "node.h"
 #include "output.h"

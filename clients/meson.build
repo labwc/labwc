@@ -30,6 +30,13 @@ foreach xml : protocols
   )
 endforeach
 
+if host_machine.system() in ['freebsd', 'openbsd']
+  # For signalfd()
+  epoll_dep = dependency('epoll-shim')
+else
+  epoll_dep = []
+endif
+
 executable(
   'labnag',
   nag_sources,
@@ -41,6 +48,7 @@ executable(
     wayland_cursor,
     wlroots,
     server_protos,
+    epoll_dep,
   ],
 	install: true
 )

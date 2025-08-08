@@ -164,13 +164,22 @@ struct theme {
 	float osd_border_color[4];
 	float osd_label_text_color[4];
 
-	int osd_window_switcher_width;
-	int osd_window_switcher_padding;
-	int osd_window_switcher_item_padding_x;
-	int osd_window_switcher_item_padding_y;
-	int osd_window_switcher_item_active_border_width;
-	int osd_window_switcher_item_icon_size;
-	bool osd_window_switcher_width_is_percent;
+	struct window_switcher_classic_theme {
+		int width;
+		int padding;
+		int item_padding_x;
+		int item_padding_y;
+		int item_active_border_width;
+		int item_icon_size;
+		bool width_is_percent;
+
+		/*
+		 * Not set in rc.xml/themerc, but derived from the tallest
+		 * titlebar object plus 2 * window_titlebar_padding_height
+		 */
+		int item_height;
+	} osd_window_switcher_classic;
+
 	int osd_window_switcher_preview_border_width;
 	float osd_window_switcher_preview_border_color[3][4];
 
@@ -180,12 +189,6 @@ struct theme {
 
 	struct theme_snapping_overlay
 		snapping_overlay_region, snapping_overlay_edge;
-
-	/*
-	 * Not set in rc.xml/themerc, but derived from the tallest titlebar
-	 * object plus 2 * window_titlebar_padding_height
-	 */
-	int osd_window_switcher_item_height;
 
 	/* magnifier */
 	float mag_border_color[4];

@@ -272,7 +272,7 @@ update_osd(struct server *server)
 		goto out;
 	}
 
-	if (rc.window_switcher.show && rc.theme->osd_window_switcher_width > 0) {
+	if (rc.window_switcher.show) {
 		/* Display the actual OSD */
 		struct output *output;
 		wl_list_for_each(output, &server->outputs, link) {

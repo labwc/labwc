@@ -303,28 +303,27 @@ all are supported.
 	Text color of on-screen-display. Inherits
 	*window.active.label.text.color* if not set.
 
-*osd.window-switcher.width*
-	Width of window switcher in pixels. Default is 600.
-	Width can also be percent of the width of the monitor.
-	% is mandatory as last character in this case, max 100%
+*osd.window-switcher.style-classic.width*
+	Width of window switcher in pixels. Width can also be a percentage of the
+	monitor width by adding '%' as suffix (e.g. 70%). Default is 600.
 
-*osd.window-switcher.padding*
+*osd.window-switcher.style-classic.padding*
 	Padding of window switcher in pixels. This is the space between the
 	window-switcher border and its items. Default is 4.
 
-*osd.window-switcher.item.padding.x*
+*osd.window-switcher.style-classic.item.padding.x*
 	Horizontal padding of window switcher entries in pixels.
 	Default is 10.
 
-*osd.window-switcher.item.padding.y*
+*osd.window-switcher.style-classic.item.padding.y*
 	Vertical padding of window switcher entries in pixels.
 	Default is 1.
 
-*osd.window-switcher.item.active.border.width*
+*osd.window-switcher.style-classic.item.active.border.width*
 	Border width of the selection box in the window switcher in pixels.
 	Default is 2.
 
-*osd.window-switcher.item.icon.size*
+*osd.window-switcher.style-classic.item.icon.size*
 	Size of the icon in window switcher, in pixels.
 	If not set, the font size derived from <theme><font place="OnScreenDisplay">
 	is used.

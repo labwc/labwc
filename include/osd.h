@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <wayland-server-core.h>
 
+struct output;
+
 enum lab_cycle_dir {
 	LAB_CYCLE_DIR_NONE,
 	LAB_CYCLE_DIR_FORWARD,
@@ -66,5 +68,13 @@ void osd_field_arg_from_xml_node(struct window_switcher_field *field,
 	const char *nodename, const char *content);
 bool osd_field_is_valid(struct window_switcher_field *field);
 void osd_field_free(struct window_switcher_field *field);
+
+/* Internal API */
+struct osd_impl {
+	void (*create)(struct output *output, struct wl_array *views);
+	void (*update)(struct output *output);
+};
+
+extern struct osd_impl osd_classic_impl;
 
 #endif // LABWC_OSD_H

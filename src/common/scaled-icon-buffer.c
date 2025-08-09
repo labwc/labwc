@@ -45,7 +45,7 @@ choose_best_icon_buffer(struct scaled_icon_buffer *self, int icon_size, double s
 }
 
 static struct lab_data_buffer *
-img_to_buffer(struct lab_img *img, int width, int height, int scale)
+img_to_buffer(struct lab_img *img, int width, int height, double scale)
 {
 	struct lab_data_buffer *buffer = lab_img_render(img, width, height, scale);
 	lab_img_destroy(img);

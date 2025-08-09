@@ -817,9 +817,9 @@ handle_view_destroy(struct wl_listener *listener, void *data)
 static void
 action_prompt_create(struct view *view, struct server *server, struct action *action)
 {
-	char *command = strdup_printf("labnag -m \"%s\" -Z \"%s\" : -Z \"%s\" :",
+	char *command = strdup_printf("labnag -m \"%s\" -Z \"%s\" -Z \"%s\"",
 		action_get_str(action, "message.prompt", "Choose wisely"),
-		_("Yes"), _("No"));
+		_("No"), _("Yes"));
 
 	int pipe_fd;
 	pid_t prompt_pid = spawn_piped(command, &pipe_fd);

@@ -69,10 +69,9 @@ static struct wlr_buffer *
 render_thumb(struct output *output, struct view *view)
 {
 	struct server *server = output->server;
-	struct wlr_box box;
-	wlr_surface_get_extents(view->surface, &box);
 	struct wlr_buffer *buffer = wlr_allocator_create_buffer(server->allocator,
-		box.width, box.height, &output->wlr_output->swapchain->format);
+		view->current.width, view->current.height,
+		&output->wlr_output->swapchain->format);
 	struct wlr_render_pass *pass = wlr_renderer_begin_buffer_pass(
 		server->renderer, buffer, NULL);
 	render_node(server, pass, &view->content_tree->node, 0, 0);

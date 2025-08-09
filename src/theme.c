@@ -609,13 +609,24 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->menu_title_text_justify = parse_justification("Center");
 	parse_hexstr("#ffffff", theme->menu_title_text_color);
 
-	theme->osd_window_switcher_width = 600;
-	theme->osd_window_switcher_width_is_percent = false;
-	theme->osd_window_switcher_padding = 4;
-	theme->osd_window_switcher_item_padding_x = 10;
-	theme->osd_window_switcher_item_padding_y = 1;
-	theme->osd_window_switcher_item_active_border_width = 2;
-	theme->osd_window_switcher_item_icon_size = -1;
+	theme->osd_window_switcher_classic.width = 600;
+	theme->osd_window_switcher_classic.width_is_percent = false;
+	theme->osd_window_switcher_classic.padding = 4;
+	theme->osd_window_switcher_classic.item_padding_x = 10;
+	theme->osd_window_switcher_classic.item_padding_y = 1;
+	theme->osd_window_switcher_classic.item_active_border_width = 2;
+	theme->osd_window_switcher_classic.item_icon_size = -1;
+
+	theme->osd_window_switcher_thumbnail.max_width = 80;
+	theme->osd_window_switcher_thumbnail.max_width_is_percent = true;
+	theme->osd_window_switcher_thumbnail.padding = 4;
+	theme->osd_window_switcher_thumbnail.item_width = 300;
+	theme->osd_window_switcher_thumbnail.item_height = 250;
+	theme->osd_window_switcher_thumbnail.item_padding = 10;
+	theme->osd_window_switcher_thumbnail.item_active_border_width = 2;
+	parse_color("#589bda", theme->osd_window_switcher_thumbnail.item_active_border_color);
+	parse_color("#c7e2fc", theme->osd_window_switcher_thumbnail.item_active_bg_color);
+	theme->osd_window_switcher_thumbnail.item_icon_size = 60;
 
 	/* inherit settings in post_processing() if not set elsewhere */
 	theme->osd_window_switcher_preview_border_width = INT_MIN;
@@ -679,6 +690,11 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (!key || !value) {
 		return;
 	}
+
+	struct window_switcher_classic_theme *switcher_classic_theme =
+		&theme->osd_window_switcher_classic;
+	struct window_switcher_thumbnail_theme *switcher_thumb_theme =
+		&theme->osd_window_switcher_thumbnail;
 
 	/*
 	 * Note that in order for the pattern match to apply to more than just
@@ -950,39 +966,87 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "osd.border.color")) {
 		parse_color(value, theme->osd_border_color);
 	}
-	if (match_glob(key, "osd.window-switcher.width")) {
+	/* classic window switcher */
+	if (match_glob(key, "osd.window-switcher.classic.width")
+			|| match_glob(key, "osd.window-switcher.width")) {
 		if (strrchr(value, '%')) {
-			theme->osd_window_switcher_width_is_percent = true;
+			switcher_classic_theme->width_is_percent = true;
 		} else {
-			theme->osd_window_switcher_width_is_percent = false;
+			switcher_classic_theme->width_is_percent = false;
 		}
-		theme->osd_window_switcher_width = get_int_if_positive(
-			value, "osd.window-switcher.width");
+		switcher_classic_theme->width = get_int_if_positive(
+			value, "osd.window-switcher.classic.width");
 	}
-	if (match_glob(key, "osd.window-switcher.padding")) {
-		theme->osd_window_switcher_padding = get_int_if_positive(
-			value, "osd.window-switcher.padding");
+	if (match_glob(key, "osd.window-switcher.classic.padding")
+			|| match_glob(key, "osd.window-switcher.padding")) {
+		switcher_classic_theme->padding = get_int_if_positive(
+			value, "osd.window-switcher.classic.padding");
 	}
-	if (match_glob(key, "osd.window-switcher.item.padding.x")) {
-		theme->osd_window_switcher_item_padding_x =
+	if (match_glob(key, "osd.window-switcher.classic.item.padding.x")
+			|| match_glob(key, "osd.window-switcher.item.padding.x")) {
+		switcher_classic_theme->item_padding_x =
 			get_int_if_positive(
-				value, "osd.window-switcher.item.padding.x");
+				value, "osd.window-switcher.classic.item.padding.x");
 	}
-	if (match_glob(key, "osd.window-switcher.item.padding.y")) {
-		theme->osd_window_switcher_item_padding_y =
+	if (match_glob(key, "osd.window-switcher.classic.item.padding.y")
+			|| match_glob(key, "osd.window-switcher.item.padding.y")) {
+		switcher_classic_theme->item_padding_y =
 			get_int_if_positive(
-				value, "osd.window-switcher.item.padding.y");
+				value, "osd.window-switcher.classic.item.padding.y");
 	}
-	if (match_glob(key, "osd.window-switcher.item.active.border.width")) {
-		theme->osd_window_switcher_item_active_border_width =
+	if (match_glob(key, "osd.window-switcher.classic.item.active.border.width")
+			|| match_glob(key, "osd.window-switcher.item.active.border.width")) {
+		switcher_classic_theme->item_active_border_width =
 			get_int_if_positive(
-				value, "osd.window-switcher.item.active.border.width");
+				value, "osd.window-switcher.classic.item.active.border.width");
 	}
-	if (match_glob(key, "osd.window-switcher.item.icon.size")) {
-		theme->osd_window_switcher_item_icon_size =
+	if (match_glob(key, "osd.window-switcher.classic.item.icon.size")
+			|| match_glob(key, "osd.window-switcher.item.icon.size")) {
+		switcher_classic_theme->item_icon_size =
 			get_int_if_positive(
-				value, "osd.window-switcher.item.icon.size");
+				value, "osd.window-switcher.classic.item.icon.size");
 	}
+	/* thumbnail window switcher */
+	if (match_glob(key, "osd.window-switcher.thumbnail.width.max")) {
+		if (strrchr(value, '%')) {
+			switcher_thumb_theme->max_width_is_percent = true;
+		} else {
+			switcher_thumb_theme->max_width_is_percent = false;
+		}
+		switcher_thumb_theme->max_width = get_int_if_positive(
+			value, "osd.window-switcher.thumbnail.width.max");
+	}
+	if (match_glob(key, "osd.window-switcher.thumbnail.padding")) {
+		switcher_thumb_theme->padding = get_int_if_positive(
+			value, "osd.window-switcher.thumbnail.padding");
+	}
+	if (match_glob(key, "osd.window-switcher.thumbnail.item.width")) {
+		switcher_thumb_theme->item_width = get_int_if_positive(
+			value, "osd.window-switcher.thumbnail.item.width");
+	}
+	if (match_glob(key, "osd.window-switcher.thumbnail.item.height")) {
+		switcher_thumb_theme->item_height = get_int_if_positive(
+			value, "osd.window-switcher.thumbnail.item.height");
+	}
+	if (match_glob(key, "osd.window-switcher.thumbnail.item.padding")) {
+		switcher_thumb_theme->item_padding = get_int_if_positive(
+			value, "osd.window-switcher.thumbnail.item.padding");
+	}
+	if (match_glob(key, "osd.window-switcher.thumbnail.item.active.border.width")) {
+		switcher_thumb_theme->item_active_border_width = get_int_if_positive(
+			value, "osd.window-switcher.thumbnail.item.active.border.width");
+	}
+	if (match_glob(key, "osd.window-switcher.thumbnail.item.active.border.color")) {
+		parse_color(value, switcher_thumb_theme->item_active_border_color);
+	}
+	if (match_glob(key, "osd.window-switcher.thumbnail.item.active.bg.color")) {
+		parse_color(value, switcher_thumb_theme->item_active_bg_color);
+	}
+	if (match_glob(key, "osd.window-switcher.thumbnail.item.icon.size")) {
+		switcher_thumb_theme->item_icon_size = get_int_if_positive(
+			value, "osd.window-switcher.thumbnail.item.icon.size");
+	}
+
 	if (match_glob(key, "osd.window-switcher.preview.border.width")) {
 		theme->osd_window_switcher_preview_border_width =
 			get_int_if_positive(
@@ -1593,6 +1657,11 @@ get_titlebar_height(struct theme *theme)
 static void
 post_processing(struct theme *theme)
 {
+	struct window_switcher_classic_theme *switcher_classic_theme =
+		&theme->osd_window_switcher_classic;
+	struct window_switcher_thumbnail_theme *switcher_thumb_theme =
+		&theme->osd_window_switcher_thumbnail;
+
 	theme->titlebar_height = get_titlebar_height(theme);
 
 	fill_background_colors(&theme->window[THEME_INACTIVE].title_bg);
@@ -1605,14 +1674,15 @@ post_processing(struct theme *theme)
 		+ 2 * theme->menu_items_padding_y;
 
 	int osd_font_height = font_height(&rc.font_osd);
-	if (theme->osd_window_switcher_item_icon_size <= 0) {
-		theme->osd_window_switcher_item_icon_size = osd_font_height;
+	switcher_thumb_theme->title_height = osd_font_height;
+	if (switcher_classic_theme->item_icon_size <= 0) {
+		switcher_classic_theme->item_icon_size = osd_font_height;
 	}
 	int osd_field_height =
-		MAX(osd_font_height, theme->osd_window_switcher_item_icon_size);
-	theme->osd_window_switcher_item_height = osd_field_height
-		+ 2 * theme->osd_window_switcher_item_padding_y
-		+ 2 * theme->osd_window_switcher_item_active_border_width;
+		MAX(osd_font_height, switcher_classic_theme->item_icon_size);
+	switcher_classic_theme->item_height = osd_field_height
+		+ 2 * switcher_classic_theme->item_padding_y
+		+ 2 * switcher_classic_theme->item_active_border_width;
 
 	if (rc.corner_radius >= theme->titlebar_height) {
 		rc.corner_radius = theme->titlebar_height - 1;
@@ -1678,9 +1748,9 @@ post_processing(struct theme *theme)
 	if (theme->osd_workspace_switcher_boxes_height == 0) {
 		theme->osd_workspace_switcher_boxes_width = 0;
 	}
-	if (theme->osd_window_switcher_width_is_percent) {
-		theme->osd_window_switcher_width =
-			MIN(theme->osd_window_switcher_width, 100);
+	if (switcher_classic_theme->width_is_percent) {
+		switcher_classic_theme->width =
+			MIN(switcher_classic_theme->width, 100);
 	}
 	if (theme->osd_window_switcher_preview_border_width == INT_MIN) {
 		theme->osd_window_switcher_preview_border_width =

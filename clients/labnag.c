@@ -29,13 +29,12 @@
 #include <wayland-client.h>
 #include <wayland-cursor.h>
 #include <wlr/util/log.h>
+#include "action-prompt-codes.h"
 #include "pool-buffer.h"
 #include "cursor-shape-v1-client-protocol.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
 #define LABNAG_MAX_HEIGHT 500
-#define LAB_EXIT_FAILURE 255
-#define LAB_EXIT_SUCCESS 0
 
 struct conf {
 	PangoFontDescription *font_description;
@@ -1239,6 +1238,7 @@ nag_run(struct nag *nag)
 			wl_display_cancel_read(nag->display);
 		}
 		if (nag->pollfds[FD_TIMER].revents & POLLIN) {
+			exit_status = LAB_EXIT_TIMEOUT;
 			break;
 		}
 		if (nag->pollfds[FD_SIGNAL].revents & POLLIN) {

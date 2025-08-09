@@ -37,6 +37,9 @@ render_node(struct server *server, struct wlr_render_pass *pass,
 	case WLR_SCENE_NODE_BUFFER: {
 		struct wlr_scene_buffer *scene_buffer =
 			wlr_scene_buffer_from_node(node);
+		if (!scene_buffer->buffer) {
+			break;
+		}
 		struct wlr_texture *texture = wlr_texture_from_buffer(
 			server->renderer, scene_buffer->buffer);
 		if (!texture) {

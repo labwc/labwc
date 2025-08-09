@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
+#include "action-prompt-codes.h"
 #include "common/macros.h"
 #include "common/list.h"
 #include "common/mem.h"
@@ -860,9 +861,11 @@ action_check_prompt_result(pid_t pid, int exit_code)
 
 		wlr_log(WLR_INFO, "Found pending prompt for exit code %d", exit_code);
 		struct wl_list *actions = NULL;
-		if (exit_code == 0) {
+		if (exit_code == LAB_EXIT_SUCCESS) {
 			wlr_log(WLR_INFO, "Selected the 'then' branch");
 			actions = action_get_actionlist(prompt->action, "then");
+		} else if (exit_code == LAB_EXIT_TIMEOUT) {
+			/* no-op */
 		} else {
 			wlr_log(WLR_INFO, "Selected the 'else' branch");
 			actions = action_get_actionlist(prompt->action, "else");

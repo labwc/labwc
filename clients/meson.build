@@ -50,6 +50,7 @@ executable(
     server_protos,
     epoll_dep,
   ],
+  include_directories: [labwc_inc],
 	install: true
 )
 

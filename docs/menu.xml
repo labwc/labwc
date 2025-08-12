@@ -68,11 +68,12 @@
   <!--
   # A prompt can be used as follows:
   <item label="Exit">
-    <action name="If"/>
+    <action name="If">
       <prompt message="Do you really want to exit the compositor?"/>
       <then>
         <action name="Exit"/>
       </then>
+    </action>
   </item>
   -->
 </menu>

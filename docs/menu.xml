@@ -25,18 +25,7 @@
     Any menu with the id "workspaces" will be hidden
     if there is only a single workspace available.
   -->
-  <menu id="workspaces" label="Workspace">
-    <item label="Move Left">
-      <action name="SendToDesktop" to="left" />
-    </item>
-    <item label="Move Right">
-      <action name="SendToDesktop" to="right" />
-    </item>
-    <separator />
-    <item label="Always on Visible Workspace">
-      <action name="ToggleOmnipresent" />
-    </item>
-  </menu>
+  <menu id="client-send-to-menu"/>
   <!--
     openbox default workspace selector
     to use replace above workspace menu with the example below

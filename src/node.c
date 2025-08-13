@@ -71,13 +71,13 @@ node_menuitem_from_node(struct wlr_scene_node *wlr_scene_node)
 	return (struct menuitem *)node_descriptor->data;
 }
 
-struct ssd_button *
-node_ssd_button_from_node(struct wlr_scene_node *wlr_scene_node)
+struct ssd_part *
+node_ssd_part_from_node(struct wlr_scene_node *wlr_scene_node)
 {
 	assert(wlr_scene_node->data);
 	struct node_descriptor *node_descriptor = wlr_scene_node->data;
-	assert(node_descriptor->type == LAB_NODE_DESC_SSD_BUTTON);
-	return (struct ssd_button *)node_descriptor->data;
+	assert(node_descriptor->type == LAB_NODE_DESC_SSD_PART);
+	return (struct ssd_part *)node_descriptor->data;
 }
 
 struct scaled_scene_buffer *

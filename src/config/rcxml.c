@@ -155,6 +155,7 @@ fill_section(const char *content, struct wl_list *list, uint32_t *found_buttons)
 
 		assert(type != LAB_SSD_NONE);
 
+		/* We no longer need this check, but let's keep it just in case */
 		if (*found_buttons & (1 << type)) {
 			wlr_log(WLR_ERROR, "ignoring duplicated button type '%s'",
 				identifier);

@@ -21,7 +21,7 @@ enum node_descriptor_type {
 	LAB_NODE_DESC_MENUITEM,
 	LAB_NODE_DESC_TREE,
 	LAB_NODE_DESC_SCALED_SCENE_BUFFER,
-	LAB_NODE_DESC_SSD_BUTTON,
+	LAB_NODE_DESC_SSD_PART,
 };
 
 struct node_descriptor {
@@ -44,7 +44,7 @@ struct node_descriptor {
  *   - LAB_NODE_DESC_LAYER_SURFACE  struct lab_layer_surface
  *   - LAB_NODE_DESC_LAYER_POPUP    struct lab_layer_popup
  *   - LAB_NODE_DESC_MENUITEM       struct menuitem
- *   - LAB_NODE_DESC_SSD_BUTTON     struct ssd_button
+ *   - LAB_NODE_DESC_SSD_PART       struct ssd_part
  */
 void node_descriptor_create(struct wlr_scene_node *scene_node,
 	enum node_descriptor_type type, void *data);
@@ -77,10 +77,10 @@ struct menuitem *node_menuitem_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 /**
- * node_ssd_button_from_node - return ssd_button struct from node
+ * node_ssd_part_from_node - return ssd_part struct from node
  * @wlr_scene_node: wlr_scene_node from which to return data
  */
-struct ssd_button *node_ssd_button_from_node(
+struct ssd_part *node_ssd_part_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 /**

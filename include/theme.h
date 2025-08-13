@@ -192,6 +192,7 @@ struct theme {
 	int mag_border_width;
 };
 
+/* TODO: replace with enum ssd_active_state */
 #define THEME_INACTIVE 0
 #define THEME_ACTIVE 1
 

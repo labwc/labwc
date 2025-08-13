@@ -498,7 +498,8 @@ static void
 handle_set_title(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, set_title);
-	view_update_title(view);
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+	view_set_title(view, xwayland_view->xwayland_surface->title);
 }
 
 static void
@@ -507,35 +508,7 @@ handle_set_class(struct wl_listener *listener, void *data)
 	struct xwayland_view *xwayland_view =
 		wl_container_of(listener, xwayland_view, set_class);
 	struct view *view = &xwayland_view->base;
-	view_update_app_id(view);
-}
 
-static void
-xwayland_view_close(struct view *view)
-{
-	wlr_xwayland_surface_close(xwayland_surface_from_view(view));
-}
-
-static const char *
-xwayland_view_get_string_prop(struct view *view, const char *prop)
-{
-	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
-	struct wlr_xwayland_surface *xwayland_surface = xwayland_view->xwayland_surface;
-	if (!xwayland_surface) {
-		/*
-		 * This may happen due to a matchOnce rule when
-		 * a view is destroyed while A-Tab is open. See
-		 * https://github.com/labwc/labwc/issues/1082#issuecomment-1716137180
-		 */
-		return "";
-	}
-
-	if (!strcmp(prop, "title")) {
-		return xwayland_surface->title ? xwayland_surface->title : "";
-	}
-	if (!strcmp(prop, "class")) {
-		return xwayland_surface->class ? xwayland_surface->class : "";
-	}
 	/*
 	 * Use the WM_CLASS 'instance' (1st string) for the app_id. Per
 	 * ICCCM, this is usually "the trailing part of the name used to
@@ -545,10 +518,13 @@ xwayland_view_get_string_prop(struct view *view, const char *prop)
 	 * 'instance' except for being capitalized. We want lowercase
 	 * here since we use the app_id for icon lookups.
 	 */
-	if (!strcmp(prop, "app_id")) {
-		return xwayland_surface->instance ? xwayland_surface->instance : "";
-	}
-	return "";
+	view_set_app_id(view, xwayland_view->xwayland_surface->instance);
+}
+
+static void
+xwayland_view_close(struct view *view)
+{
+	wlr_xwayland_surface_close(xwayland_surface_from_view(view));
 }
 
 static void
@@ -1050,7 +1026,6 @@ xwayland_view_get_pid(struct view *view)
 static const struct view_impl xwayland_view_impl = {
 	.configure = xwayland_view_configure,
 	.close = xwayland_view_close,
-	.get_string_prop = xwayland_view_get_string_prop,
 	.map = xwayland_view_map,
 	.set_activated = xwayland_view_set_activated,
 	.set_fullscreen = xwayland_view_set_fullscreen,

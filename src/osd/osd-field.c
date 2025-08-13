@@ -26,13 +26,9 @@ struct field_converter {
 /* Internal helpers */
 
 static const char *
-get_app_id_or_class(struct view *view, bool trim)
+get_identifier(struct view *view, bool trim)
 {
-	/*
-	 * XWayland clients return WM_CLASS for 'app_id' so we don't need a
-	 * special case for that here.
-	 */
-	const char *identifier = view_get_string_prop(view, "app_id");
+	const char *identifier = view->app_id;
 
 	/* remove the first two nodes of 'org.' strings */
 	if (trim && !strncmp(identifier, "org.", 4)) {
@@ -49,14 +45,13 @@ static const char *
 get_desktop_name(struct view *view)
 {
 #if HAVE_LIBSFDO
-	const char *app_id = view_get_string_prop(view, "app_id");
-	const char *name = desktop_entry_name_lookup(view->server, app_id);
+	const char *name = desktop_entry_name_lookup(view->server, view->app_id);
 	if (name) {
 		return name;
 	}
 #endif
 
-	return get_app_id_or_class(view, /* trim */ true);
+	return get_identifier(view, /* trim */ true);
 }
 
 static const char *
@@ -74,20 +69,11 @@ get_type(struct view *view, bool short_form)
 }
 
 static const char *
-get_title(struct view *view)
-{
-	return view_get_string_prop(view, "title");
-}
-
-static const char *
 get_title_if_different(struct view *view)
 {
-	const char *identifier = get_app_id_or_class(view, /*trim*/ false);
-	const char *title = get_title(view);
-	if (!identifier) {
-		return title;
-	}
-	return (!title || !strcmp(identifier, title)) ? NULL : title;
+	const char *identifier = get_identifier(view, /*trim*/ false);
+	const char *title = view->title;
+	return !strcmp(identifier, title) ? NULL : title;
 }
 
 /* Field handlers */
@@ -169,14 +155,14 @@ static void
 field_set_identifier(struct buf *buf, struct view *view, const char *format)
 {
 	/* custom type conversion-specifier: I */
-	buf_add(buf, get_app_id_or_class(view, /*trim*/ false));
+	buf_add(buf, get_identifier(view, /*trim*/ false));
 }
 
 static void
 field_set_identifier_trimmed(struct buf *buf, struct view *view, const char *format)
 {
 	/* custom type conversion-specifier: i */
-	buf_add(buf, get_app_id_or_class(view, /*trim*/ true));
+	buf_add(buf, get_identifier(view, /*trim*/ true));
 }
 
 static void
@@ -190,7 +176,7 @@ static void
 field_set_title(struct buf *buf, struct view *view, const char *format)
 {
 	/* custom type conversion-specifier: T */
-	buf_add(buf, get_title(view));
+	buf_add(buf, view->title);
 }
 
 static void

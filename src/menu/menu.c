@@ -840,6 +840,10 @@ update_client_send_to_menu(struct server *server)
 
 	struct workspace *workspace;
 
+	/*
+	 * <action name="SendToDesktop"><follow> is true by default so
+	 * GoToDesktop will be called as part of the action.
+	 */
 	wl_list_for_each(workspace, &server->workspaces.all, link) {
 		struct buf buf = BUF_INIT;
 		if (workspace == server->workspaces.current) {
@@ -855,6 +859,11 @@ update_client_send_to_menu(struct server *server)
 
 		buf_clear(&buf);
 	}
+
+	separator_create(menu, "");
+	struct menuitem *item = item_create(menu,
+		_("Always on Visible Workspace"), NULL, false);
+	item_add_action(item, "ToggleOmnipresent");
 
 	menu_create_scene(menu);
 }
@@ -944,7 +953,6 @@ init_windowmenu(struct server *server)
 {
 	struct menu *menu = menu_get_by_id(server, "client-menu");
 	struct menuitem *item;
-	struct action *action;
 
 	/* Default menu if no menu.xml found */
 	if (!menu) {
@@ -963,25 +971,8 @@ init_windowmenu(struct server *server)
 		item_add_action(item, "ToggleAlwaysOnTop");
 
 		/* Workspace sub-menu */
-		struct menu *workspace_menu =
-			menu_create(server, NULL, "workspaces", "");
-		item = item_create(workspace_menu, _("Move Left"), NULL, false);
-		/*
-		 * <action name="SendToDesktop"><follow> is true by default so
-		 * GoToDesktop will be called as part of the action.
-		 */
-		action = item_add_action(item, "SendToDesktop");
-		action_arg_add_str(action, "to", "left");
-		item = item_create(workspace_menu, _("Move Right"), NULL, false);
-		action = item_add_action(item, "SendToDesktop");
-		action_arg_add_str(action, "to", "right");
-		separator_create(workspace_menu, "");
-		item = item_create(workspace_menu,
-			_("Always on Visible Workspace"), NULL, false);
-		item_add_action(item, "ToggleOmnipresent");
-
 		item = item_create(menu, _("Workspace"), NULL, true);
-		item->submenu = workspace_menu;
+		item->submenu = menu_get_by_id(server, "client-send-to-menu");
 
 		item = item_create(menu, _("Close"), NULL, false);
 		item_add_action(item, "Close");
@@ -999,7 +990,7 @@ menu_init(struct server *server)
 
 	/* Just create placeholder. Contents will be created when launched */
 	menu_create(server, NULL, "client-list-combined-menu", _("Windows"));
-	menu_create(server, NULL, "client-send-to-menu", _("Send to desktop"));
+	menu_create(server, NULL, "client-send-to-menu", _("Workspace"));
 
 	parse_xml("menu.xml", server);
 	init_rootmenu(server);

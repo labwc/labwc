@@ -851,7 +851,7 @@ update_client_send_to_menu(struct server *server)
 			NULL, /*show arrow*/ false);
 
 		struct action *action = item_add_action(item, "SendToDesktop");
-		action_arg_add_str(action, "to", "name");
+		action_arg_add_str(action, "to", workspace->name);
 
 		buf_clear(&buf);
 	}

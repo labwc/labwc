@@ -2,15 +2,12 @@
 
 #include <assert.h>
 #include <wlr/types/wlr_scene.h>
+#include "common/macros.h"
 #include "common/scene-helpers.h"
 #include "labwc.h"
 #include "ssd-internal.h"
 #include "theme.h"
 #include "view.h"
-
-#define FOR_EACH_STATE(ssd, tmp) FOR_EACH(tmp, \
-	&(ssd)->border.active, \
-	&(ssd)->border.inactive)
 
 void
 ssd_border_create(struct ssd *ssd)
@@ -25,35 +22,37 @@ ssd_border_create(struct ssd *ssd)
 	int full_width = width + 2 * theme->border_width;
 	int corner_width = ssd_get_corner_width();
 
-	float *color;
-	struct wlr_scene_tree *parent;
-	struct ssd_sub_tree *subtree;
-	int active;
-
 	ssd->border.tree = wlr_scene_tree_create(ssd->tree);
 	wlr_scene_node_set_position(&ssd->border.tree->node, -theme->border_width, 0);
 
-	FOR_EACH_STATE(ssd, subtree) {
+	enum ssd_active_state active;
+	FOR_EACH_ACTIVE_STATE(active) {
+		struct ssd_border_subtree *subtree = &ssd->border.subtrees[active];
 		subtree->tree = wlr_scene_tree_create(ssd->border.tree);
-		parent = subtree->tree;
-		active = (subtree == &ssd->border.active) ?
-			THEME_ACTIVE : THEME_INACTIVE;
+		struct wlr_scene_tree *parent = subtree->tree;
 		wlr_scene_node_set_enabled(&parent->node, active);
-		color = theme->window[active].border_color;
+		float *color = theme->window[active].border_color;
 
-		wl_list_init(&subtree->parts);
-		add_scene_rect(&subtree->parts, LAB_SSD_PART_LEFT, parent,
-			theme->border_width, height, 0, 0, color);
-		add_scene_rect(&subtree->parts, LAB_SSD_PART_RIGHT, parent,
-			theme->border_width, height,
-			theme->border_width + width, 0, color);
-		add_scene_rect(&subtree->parts, LAB_SSD_PART_BOTTOM, parent,
-			full_width, theme->border_width, 0, height, color);
-		add_scene_rect(&subtree->parts, LAB_SSD_PART_TOP, parent,
-			MAX(width - 2 * corner_width, 0), theme->border_width,
+		subtree->left = wlr_scene_rect_create(parent,
+			theme->border_width, height, color);
+		wlr_scene_node_set_position(&subtree->left->node, 0, 0);
+
+		subtree->right = wlr_scene_rect_create(parent,
+			theme->border_width, height, color);
+		wlr_scene_node_set_position(&subtree->right->node,
+			theme->border_width + width, 0);
+
+		subtree->bottom = wlr_scene_rect_create(parent,
+			full_width, theme->border_width, color);
+		wlr_scene_node_set_position(&subtree->bottom->node,
+			0, height);
+
+		subtree->top = wlr_scene_rect_create(parent,
+			MAX(width - 2 * corner_width, 0), theme->border_width, color);
+		wlr_scene_node_set_position(&subtree->top->node,
 			theme->border_width + corner_width,
-			-(ssd->titlebar.height + theme->border_width), color);
-	} FOR_EACH_END
+			-(ssd->titlebar.height + theme->border_width));
+	}
 
 	if (view->maximized == VIEW_AXIS_BOTH) {
 		wlr_scene_node_set_enabled(&ssd->border.tree->node, false);
@@ -129,50 +128,30 @@ ssd_border_update(struct ssd *ssd)
 		? 0
 		: theme->border_width + corner_width;
 
-	struct ssd_part *part;
-	struct wlr_scene_rect *rect;
-	struct ssd_sub_tree *subtree;
-	FOR_EACH_STATE(ssd, subtree) {
-		wl_list_for_each(part, &subtree->parts, link) {
-			rect = wlr_scene_rect_from_node(part->node);
-			switch (part->type) {
-			case LAB_SSD_PART_LEFT:
-				wlr_scene_rect_set_size(rect,
-					theme->border_width,
-					side_height);
-				wlr_scene_node_set_position(part->node,
-					0,
-					side_y);
-				continue;
-			case LAB_SSD_PART_RIGHT:
-				wlr_scene_rect_set_size(rect,
-					theme->border_width,
-					side_height);
-				wlr_scene_node_set_position(part->node,
-					theme->border_width + width,
-					side_y);
-				continue;
-			case LAB_SSD_PART_BOTTOM:
-				wlr_scene_rect_set_size(rect,
-					full_width,
-					theme->border_width);
-				wlr_scene_node_set_position(part->node,
-					0,
-					height);
-				continue;
-			case LAB_SSD_PART_TOP:
-				wlr_scene_rect_set_size(rect,
-					top_width,
-					theme->border_width);
-				wlr_scene_node_set_position(part->node,
-					top_x,
-					-(ssd->titlebar.height + theme->border_width));
-				continue;
-			default:
-				continue;
-			}
-		}
-	} FOR_EACH_END
+	enum ssd_active_state active;
+	FOR_EACH_ACTIVE_STATE(active) {
+		struct ssd_border_subtree *subtree = &ssd->border.subtrees[active];
+
+		wlr_scene_rect_set_size(subtree->left,
+			theme->border_width, side_height);
+		wlr_scene_node_set_position(&subtree->left->node,
+			0, side_y);
+
+		wlr_scene_rect_set_size(subtree->right,
+			theme->border_width, side_height);
+		wlr_scene_node_set_position(&subtree->right->node,
+			theme->border_width + width, side_y);
+
+		wlr_scene_rect_set_size(subtree->bottom,
+			full_width, theme->border_width);
+		wlr_scene_node_set_position(&subtree->bottom->node,
+			0, height);
+
+		wlr_scene_rect_set_size(subtree->top,
+			top_width, theme->border_width);
+		wlr_scene_node_set_position(&subtree->top->node,
+			top_x, -(ssd->titlebar.height + theme->border_width));
+	}
 }
 
 void
@@ -181,15 +160,6 @@ ssd_border_destroy(struct ssd *ssd)
 	assert(ssd);
 	assert(ssd->border.tree);
 
-	struct ssd_sub_tree *subtree;
-	FOR_EACH_STATE(ssd, subtree) {
-		ssd_destroy_parts(&subtree->parts);
-		wlr_scene_node_destroy(&subtree->tree->node);
-		subtree->tree = NULL;
-	} FOR_EACH_END
-
 	wlr_scene_node_destroy(&ssd->border.tree->node);
-	ssd->border.tree = NULL;
+	ssd->border = (struct ssd_border_scene){0};
 }
-
-#undef FOR_EACH_STATE

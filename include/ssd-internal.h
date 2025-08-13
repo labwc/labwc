@@ -3,52 +3,53 @@
 #define LABWC_SSD_INTERNAL_H
 
 #include <wlr/util/box.h>
-#include "common/macros.h"
 #include "ssd.h"
 #include "theme.h"
 #include "view.h"
-
-#define FOR_EACH(tmp, ...) \
-{ \
-	__typeof__(tmp) _x[] = { __VA_ARGS__, NULL }; \
-	size_t _i = 0; \
-	for ((tmp) = _x[_i]; _i < ARRAY_SIZE(_x) - 1; (tmp) = _x[++_i])
-
-#define FOR_EACH_END }
-
-struct ssd_button {
-	struct view *view;
-	enum ssd_part_type type;
-	/*
-	 * Bitmap of lab_button_state that represents a combination of
-	 * hover/toggled/rounded states.
-	 */
-	uint8_t state_set;
-	/*
-	 * Image buffers for each combination of hover/toggled/rounded states.
-	 * img_buffers[state_set] is displayed. Some of these can be NULL
-	 * (e.g. img_buffers[LAB_BS_ROUNDED] is set only for corner buttons).
-	 *
-	 * When "type" is LAB_SSD_BUTTON_WINDOW_ICON, these are all NULL and
-	 * window_icon is used instead.
-	 */
-	struct scaled_img_buffer *img_buffers[LAB_BS_ALL + 1];
-
-	struct scaled_icon_buffer *window_icon;
-
-	struct wl_listener destroy;
-};
-
-struct ssd_sub_tree {
-	struct wlr_scene_tree *tree;
-	struct wl_list parts; /* ssd_part.link */
-};
 
 struct ssd_state_title_width {
 	int width;
 	bool truncated;
 };
 
+/*
+ * The scene-graph of SSD looks like below. The parentheses indicate the type of
+ * ssd_part attached to the node.
+ *
+ * ssd->tree (LAB_SSD_NONE)
+ * +--titlebar (LAB_SSD_PART_TITLEBAR)
+ * |  +--inactive
+ * |  |  +--background bar
+ * |  |  +--left corner
+ * |  |  +--right corner
+ * |  |  +--title (LAB_SSD_PART_TITLE)
+ * |  |  +--iconify button (LAB_SSD_BUTTON_ICONIFY)
+ * |  |  |  +--normal close icon image
+ * |  |  |  +--hovered close icon image
+ * |  |  |  +--...
+ * |  |  +--window icon (LAB_SSD_BUTTON_WINDOW_ICON)
+ * |  |  |  +--window icon image
+ * |  |  +--...
+ * |  +--active
+ * |     +--...
+ * +--border
+ * |  +--inactive
+ * |  |  +--top
+ * |  |  +--...
+ * |  +--active
+ * |     +--top
+ * |     +--...
+ * +--shadow
+ * |  +--inactive
+ * |  |  +--top
+ * |  |  +--...
+ * |  +--active
+ * |     +--top
+ * |     +--...
+ * +--extents
+ *    +--top
+ *    +--...
+ */
 struct ssd {
 	struct view *view;
 	struct wlr_scene_tree *tree;
@@ -81,33 +82,49 @@ struct ssd {
 		struct wlr_box geometry;
 		struct ssd_state_title {
 			char *text;
-			struct ssd_state_title_width active;
-			struct ssd_state_title_width inactive;
+			/* indexed by enum ssd_active_state */
+			struct ssd_state_title_width dstates[2];
 		} title;
 	} state;
 
 	/* An invisible area around the view which allows resizing */
-	struct ssd_sub_tree extents;
+	struct ssd_extents_scene {
+		struct wlr_scene_tree *tree;
+		struct wlr_scene_rect *top, *bottom, *left, *right;
+	} extents;
 
 	/* The top of the view, containing buttons, title, .. */
-	struct {
+	struct ssd_titlebar_scene {
 		int height;
 		struct wlr_scene_tree *tree;
-		struct ssd_sub_tree active;
-		struct ssd_sub_tree inactive;
+		struct ssd_titlebar_subtree {
+			struct wlr_scene_tree *tree;
+			struct wlr_scene_buffer *corner_left;
+			struct wlr_scene_buffer *corner_right;
+			struct wlr_scene_buffer *bar;
+			struct scaled_font_buffer *title;
+			/* List of ssd_parts that represent buttons */
+			struct wl_list buttons_left;
+			struct wl_list buttons_right;
+		} subtrees[2]; /* indexed by enum ssd_active_state */
 	} titlebar;
 
 	/* Borders allow resizing as well */
-	struct {
+	struct ssd_border_scene {
 		struct wlr_scene_tree *tree;
-		struct ssd_sub_tree active;
-		struct ssd_sub_tree inactive;
+		struct ssd_border_subtree {
+			struct wlr_scene_tree *tree;
+			struct wlr_scene_rect *top, *bottom, *left, *right;
+		} subtrees[2]; /* indexed by enum ssd_active_state */
 	} border;
 
-	struct {
+	struct ssd_shadow_scene {
 		struct wlr_scene_tree *tree;
-		struct ssd_sub_tree active;
-		struct ssd_sub_tree inactive;
+		struct ssd_shadow_subtree {
+			struct wlr_scene_tree *tree;
+			struct wlr_scene_buffer *top, *bottom, *left, *right,
+				*top_left, *top_right, *bottom_left, *bottom_right;
+		} subtrees[2]; /* indexed by enum ssd_active_state */
 	} shadow;
 
 	/*
@@ -118,46 +135,61 @@ struct ssd {
 	struct border margin;
 };
 
+/*
+ * ssd_part wraps a scene-node with ssd-specific information and can be
+ * accessed with node_ssd_part_from_node(wlr_scene_node *).
+ * This allows get_cursor_context() in desktop.c to see which SSD part is under
+ * the cursor.
+ */
 struct ssd_part {
 	enum ssd_part_type type;
-
-	/* Buffer pointer. May be NULL */
-	struct scaled_font_buffer *buffer;
+	struct view *view;
 
 	/* This part represented in scene graph */
 	struct wlr_scene_node *node;
-
-	struct wl_list link;
+	struct wl_listener node_destroy;
 };
 
+struct ssd_part_button {
+	struct ssd_part base;
+	/*
+	 * Bitmap of lab_button_state that represents a combination of
+	 * hover/toggled/rounded states.
+	 */
+	uint8_t state_set;
+	/*
+	 * Image buffers for each combination of hover/toggled/rounded states.
+	 * img_buffers[state_set] is displayed. Some of these can be NULL
+	 * (e.g. img_buffers[LAB_BS_ROUNDED] is set only for corner buttons).
+	 *
+	 * When the type of ssd_part pointing to ssd_button is
+	 * LAB_SSD_BUTTON_WINDOW_ICON, these are all NULL and window_icon is
+	 * used instead.
+	 */
+	struct scaled_img_buffer *img_buffers[LAB_BS_ALL + 1];
+
+	struct scaled_icon_buffer *window_icon;
+
+	struct wl_list link; /* ssd_titlebar_subtree.buttons_{left,right} */
+};
+
+/* FIXME: This structure is redundant as ssd_part contains view */
 struct ssd_hover_state {
 	struct view *view;
-	struct ssd_button *button;
+	struct ssd_part_button *button;
 };
 
 struct wlr_buffer;
 struct wlr_scene_tree;
 
 /* SSD internal helpers to create various SSD elements */
-/* TODO: Replace some common args with a struct */
-struct ssd_part *add_scene_part(
-	struct wl_list *part_list, enum ssd_part_type type);
-struct ssd_part *add_scene_rect(
-	struct wl_list *list, enum ssd_part_type type,
-	struct wlr_scene_tree *parent, int width, int height, int x, int y,
-	float color[4]);
-struct ssd_part *add_scene_buffer(
-	struct wl_list *list, enum ssd_part_type type,
-	struct wlr_scene_tree *parent, struct wlr_buffer *buffer, int x, int y);
-struct ssd_part *add_scene_button(struct wl_list *part_list,
+struct ssd_part *attach_ssd_part(enum ssd_part_type type, struct view *view,
+	struct wlr_scene_node *node);
+struct ssd_part_button *attach_ssd_part_button(struct wl_list *button_parts,
 	enum ssd_part_type type, struct wlr_scene_tree *parent,
-	struct lab_img *buffers[LAB_BS_ALL + 1], int x, int y,
+	struct lab_img *imgs[LAB_BS_ALL + 1], int x, int y,
 	struct view *view);
-
-/* SSD internal helpers */
-struct ssd_part *ssd_get_part(
-	struct wl_list *part_list, enum ssd_part_type type);
-void ssd_destroy_parts(struct wl_list *list);
+struct ssd_part_button *button_try_from_ssd_part(struct ssd_part *part);
 
 /* SSD internal */
 void ssd_titlebar_create(struct ssd *ssd);

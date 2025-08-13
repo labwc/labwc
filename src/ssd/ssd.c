@@ -85,8 +85,8 @@ ssd_max_extents(struct view *view)
  * (generally rc.resize_corner_range, but clipped to view size) of the view
  * bounds, so check the cursor against the view here.
  */
-static enum ssd_part_type
-get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
+enum ssd_part_type
+ssd_get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
 {
 	struct view *view = ssd ? ssd->view : NULL;
 	if (!view || !cursor || !view->ssd_mode || view->fullscreen) {
@@ -136,75 +136,6 @@ get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
 	return LAB_SSD_NONE;
 }
 
-enum ssd_part_type
-ssd_get_part_type(const struct ssd *ssd, struct wlr_scene_node *node,
-		struct wlr_cursor *cursor)
-{
-	if (!node) {
-		return LAB_SSD_NONE;
-	} else if (node->type == WLR_SCENE_NODE_BUFFER
-			&& lab_wlr_surface_from_node(node)) {
-		return LAB_SSD_CLIENT;
-	} else if (!ssd) {
-		return LAB_SSD_NONE;
-	}
-
-	const struct wl_list *part_list = NULL;
-	struct wlr_scene_tree *grandparent =
-		node->parent ? node->parent->node.parent : NULL;
-	struct wlr_scene_tree *greatgrandparent =
-		grandparent ? grandparent->node.parent : NULL;
-
-	/* active titlebar */
-	if (node->parent == ssd->titlebar.active.tree) {
-		part_list = &ssd->titlebar.active.parts;
-	} else if (grandparent == ssd->titlebar.active.tree) {
-		part_list = &ssd->titlebar.active.parts;
-	} else if (greatgrandparent == ssd->titlebar.active.tree) {
-		part_list = &ssd->titlebar.active.parts;
-
-	/* extents */
-	} else if (node->parent == ssd->extents.tree) {
-		part_list = &ssd->extents.parts;
-
-	/* active border */
-	} else if (node->parent == ssd->border.active.tree) {
-		part_list = &ssd->border.active.parts;
-
-	/* inactive titlebar */
-	} else if (node->parent == ssd->titlebar.inactive.tree) {
-		part_list = &ssd->titlebar.inactive.parts;
-	} else if (grandparent == ssd->titlebar.inactive.tree) {
-		part_list = &ssd->titlebar.inactive.parts;
-	} else if (greatgrandparent == ssd->titlebar.inactive.tree) {
-		part_list = &ssd->titlebar.inactive.parts;
-
-	/* inactive border */
-	} else if (node->parent == ssd->border.inactive.tree) {
-		part_list = &ssd->border.inactive.parts;
-	}
-
-	enum ssd_part_type part_type = LAB_SSD_NONE;
-
-	if (part_list) {
-		struct ssd_part *part;
-		wl_list_for_each(part, part_list, link) {
-			if (node == part->node) {
-				part_type = part->type;
-				break;
-			}
-		}
-	}
-
-	if (part_type == LAB_SSD_NONE) {
-		return part_type;
-	}
-
-	/* Perform cursor-based context checks */
-	enum ssd_part_type resizing_type = get_resizing_type(ssd, cursor);
-	return resizing_type != LAB_SSD_NONE ? resizing_type : part_type;
-}
-
 enum lab_edge
 ssd_resize_edges(enum ssd_part_type type)
 {
@@ -238,6 +169,7 @@ ssd_create(struct view *view, bool active)
 
 	ssd->view = view;
 	ssd->tree = wlr_scene_tree_create(view->scene_tree);
+	attach_ssd_part(LAB_SSD_NONE, view, &ssd->tree->node);
 	wlr_scene_node_lower_to_bottom(&ssd->tree->node);
 	ssd->titlebar.height = view->server->theme->titlebar_height;
 	ssd_shadow_create(ssd);
@@ -438,17 +370,19 @@ ssd_set_active(struct ssd *ssd, bool active)
 	if (!ssd) {
 		return;
 	}
-	wlr_scene_node_set_enabled(&ssd->border.active.tree->node, active);
-	wlr_scene_node_set_enabled(&ssd->titlebar.active.tree->node, active);
-	if (ssd->shadow.active.tree) {
+	enum ssd_active_state active_state;
+	FOR_EACH_ACTIVE_STATE(active_state) {
 		wlr_scene_node_set_enabled(
-			&ssd->shadow.active.tree->node, active);
-	}
-	wlr_scene_node_set_enabled(&ssd->border.inactive.tree->node, !active);
-	wlr_scene_node_set_enabled(&ssd->titlebar.inactive.tree->node, !active);
-	if (ssd->shadow.inactive.tree) {
+			&ssd->border.subtrees[active_state].tree->node,
+			active == active_state);
 		wlr_scene_node_set_enabled(
-			&ssd->shadow.inactive.tree->node, !active);
+			&ssd->titlebar.subtrees[active_state].tree->node,
+			active == active_state);
+		if (ssd->shadow.subtrees[active_state].tree) {
+			wlr_scene_node_set_enabled(
+				&ssd->shadow.subtrees[active_state].tree->node,
+				active == active_state);
+		}
 	}
 }
 
@@ -474,10 +408,7 @@ ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable)
 	float *color = enable
 		? rc.theme->window_toggled_keybinds_color
 		: rc.theme->window[THEME_ACTIVE].border_color;
-
-	struct ssd_part *part = ssd_get_part(&ssd->border.active.parts, LAB_SSD_PART_TOP);
-	struct wlr_scene_rect *rect = wlr_scene_rect_from_node(part->node);
-	wlr_scene_rect_set_color(rect, color);
+	wlr_scene_rect_set_color(ssd->border.subtrees[SSD_ACTIVE].top, color);
 }
 
 struct ssd_hover_state *
@@ -487,15 +418,15 @@ ssd_hover_state_new(void)
 }
 
 enum ssd_part_type
-ssd_button_get_type(const struct ssd_button *button)
+ssd_part_get_type(const struct ssd_part *part)
 {
-	return button ? button->type : LAB_SSD_NONE;
+	return part ? part->type : LAB_SSD_NONE;
 }
 
 struct view *
-ssd_button_get_view(const struct ssd_button *button)
+ssd_part_get_view(const struct ssd_part *part)
 {
-	return button ? button->view : NULL;
+	return part ? part->view : NULL;
 }
 
 bool
@@ -516,16 +447,16 @@ ssd_debug_get_node_name(const struct ssd *ssd, struct wlr_scene_node *node)
 	if (node == &ssd->tree->node) {
 		return "view->ssd";
 	}
-	if (node == &ssd->titlebar.active.tree->node) {
+	if (node == &ssd->titlebar.subtrees[SSD_ACTIVE].tree->node) {
 		return "titlebar.active";
 	}
-	if (node == &ssd->titlebar.inactive.tree->node) {
+	if (node == &ssd->titlebar.subtrees[SSD_INACTIVE].tree->node) {
 		return "titlebar.inactive";
 	}
-	if (node == &ssd->border.active.tree->node) {
+	if (node == &ssd->border.subtrees[SSD_ACTIVE].tree->node) {
 		return "border.active";
 	}
-	if (node == &ssd->border.inactive.tree->node) {
+	if (node == &ssd->border.subtrees[SSD_INACTIVE].tree->node) {
 		return "border.inactive";
 	}
 	if (node == &ssd->extents.tree->node) {

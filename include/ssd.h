@@ -6,6 +6,13 @@
 #include "common/edge.h"
 #include "config/types.h"
 
+enum ssd_active_state {
+	SSD_INACTIVE = 0,
+	SSD_ACTIVE = 1,
+};
+
+#define FOR_EACH_ACTIVE_STATE(active) for (active = SSD_INACTIVE; active <= SSD_ACTIVE; active++)
+
 struct wlr_cursor;
 
 /*
@@ -36,11 +43,8 @@ enum ssd_part_type {
 	LAB_SSD_BUTTON,
 
 	LAB_SSD_PART_TITLEBAR,
-	LAB_SSD_PART_TITLEBAR_CORNER_RIGHT,
-	LAB_SSD_PART_TITLEBAR_CORNER_LEFT,
 	LAB_SSD_PART_TITLE,
 
-	/* shared by shadows, borders and extents */
 	LAB_SSD_PART_CORNER_TOP_LEFT,
 	LAB_SSD_PART_CORNER_TOP_RIGHT,
 	LAB_SSD_PART_CORNER_BOTTOM_RIGHT,
@@ -64,8 +68,8 @@ enum ssd_part_type {
 
 /* Forward declare arguments */
 struct ssd;
-struct ssd_button;
 struct ssd_hover_state;
+struct ssd_part;
 struct view;
 struct wlr_scene;
 struct wlr_scene_node;
@@ -96,12 +100,17 @@ struct ssd_hover_state *ssd_hover_state_new(void);
 void ssd_update_button_hover(struct wlr_scene_node *node,
 	struct ssd_hover_state *hover_state);
 
-enum ssd_part_type ssd_button_get_type(const struct ssd_button *button);
-struct view *ssd_button_get_view(const struct ssd_button *button);
+enum ssd_part_type ssd_part_get_type(const struct ssd_part *part);
+struct view *ssd_part_get_view(const struct ssd_part *part);
 
 /* Public SSD helpers */
-enum ssd_part_type ssd_get_part_type(const struct ssd *ssd,
-	struct wlr_scene_node *node, struct wlr_cursor *cursor);
+
+/*
+ * Returns a part type that represents a mouse context like "Top", "Left" and
+ * "TRCorner" when the cursor is on the window border or resizing handle.
+ */
+enum ssd_part_type ssd_get_resizing_type(const struct ssd *ssd,
+	struct wlr_cursor *cursor);
 enum lab_edge ssd_resize_edges(enum ssd_part_type type);
 bool ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate);
 enum lab_ssd_mode ssd_mode_parse(const char *mode);

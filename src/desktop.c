@@ -302,22 +302,30 @@ get_cursor_context(struct server *server)
 			case LAB_NODE_DESC_VIEW:
 			case LAB_NODE_DESC_XDG_POPUP:
 				ret.view = desc->data;
-				ret.type = ssd_get_part_type(
-					ret.view->ssd, ret.node, cursor);
-				if (ret.type == LAB_SSD_CLIENT) {
+				if (ret.node->type == WLR_SCENE_NODE_BUFFER
+						&& lab_wlr_surface_from_node(ret.node)) {
+					ret.type = LAB_SSD_CLIENT;
 					ret.surface = lab_wlr_surface_from_node(ret.node);
+				} else {
+					/* should never be reached */
+					wlr_log(WLR_ERROR, "cursor not on client or ssd");
 				}
 				return ret;
-			case LAB_NODE_DESC_SSD_BUTTON: {
-				/*
-				 * Always return the top scene node for SSD
-				 * buttons
-				 */
-				struct ssd_button *button =
-					node_ssd_button_from_node(node);
+			case LAB_NODE_DESC_SSD_PART: {
+				struct ssd_part *part = node_ssd_part_from_node(node);
 				ret.node = node;
-				ret.type = ssd_button_get_type(button);
-				ret.view = ssd_button_get_view(button);
+				ret.view = ssd_part_get_view(part);
+
+				/* Detect mouse contexts like Top, Left and TRCorner */
+				ret.type = ssd_get_resizing_type(ret.view->ssd, cursor);
+				if (ret.type == LAB_SSD_NONE) {
+					/*
+					 * Otherwise, detect mouse contexts like
+					 * Title, Titlebar and Iconify
+					 */
+					ret.type = ssd_part_get_type(part);
+				}
+
 				return ret;
 			}
 			case LAB_NODE_DESC_LAYER_SURFACE:

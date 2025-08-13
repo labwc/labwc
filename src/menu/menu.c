@@ -814,13 +814,6 @@ menu_hide_submenu(struct server *server, const char *id)
 	}
 }
 
-static void
-init_client_send_to_menu(struct server *server)
-{
-	/* Just create placeholder. Contents will be created when launched */
-	menu_create(server, NULL, "client-send-to-menu", "");
-}
-
 static struct action *
 item_add_action(struct menuitem *item, const char *action_name)
 {
@@ -864,13 +857,6 @@ update_client_send_to_menu(struct server *server)
 	}
 
 	menu_create_scene(menu);
-}
-
-static void
-init_client_list_combined_menu(struct server *server)
-{
-	/* Just create placeholder. Contents will be created when launched */
-	menu_create(server, NULL, "client-list-combined-menu", "");
 }
 
 /*
@@ -1010,11 +996,14 @@ void
 menu_init(struct server *server)
 {
 	wl_list_init(&server->menus);
+
+	/* Just create placeholder. Contents will be created when launched */
+	menu_create(server, NULL, "client-list-combined-menu", _("Windows"));
+	menu_create(server, NULL, "client-send-to-menu", _("Send to desktop"));
+
 	parse_xml("menu.xml", server);
 	init_rootmenu(server);
 	init_windowmenu(server);
-	init_client_list_combined_menu(server);
-	init_client_send_to_menu(server);
 	validate(server);
 }
 

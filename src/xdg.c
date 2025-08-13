@@ -216,7 +216,7 @@ handle_commit(struct wl_listener *listener, void *data)
 				&& extent.height == view->pending.height) {
 			wlr_log(WLR_DEBUG, "window geometry for client (%s) "
 				"appears to be incorrect - ignoring",
-				view_get_string_prop(view, "app_id"));
+				view->app_id);
 			size = extent; /* Use surface extent instead */
 		}
 	}
@@ -283,9 +283,8 @@ handle_configure_timeout(void *data)
 	assert(view->pending_configure_serial > 0);
 	assert(view->pending_configure_timeout);
 
-	const char *app_id = view_get_string_prop(view, "app_id");
 	wlr_log(WLR_INFO, "client (%s) did not respond to configure request "
-		"in %d ms", app_id, CONFIGURE_TIMEOUT_MS);
+		"in %d ms", view->app_id, CONFIGURE_TIMEOUT_MS);
 
 	wl_event_source_remove(view->pending_configure_timeout);
 	view->pending_configure_serial = 0;
@@ -492,7 +491,9 @@ static void
 handle_set_title(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, set_title);
-	view_update_title(view);
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+
+	view_set_title(view, toplevel->title);
 }
 
 static void
@@ -501,7 +502,9 @@ handle_set_app_id(struct wl_listener *listener, void *data)
 	struct xdg_toplevel_view *xdg_toplevel_view =
 		wl_container_of(listener, xdg_toplevel_view, set_app_id);
 	struct view *view = &xdg_toplevel_view->base;
-	view_update_app_id(view);
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+
+	view_set_app_id(view, toplevel->app_id);
 }
 
 static void
@@ -740,31 +743,6 @@ set_initial_position(struct view *view)
 	view_place_by_policy(view, /* allow_cursor */ true, rc.placement_policy);
 }
 
-static const char *
-xdg_toplevel_view_get_string_prop(struct view *view, const char *prop)
-{
-	struct xdg_toplevel_view *xdg_view = xdg_toplevel_view_from_view(view);
-	struct wlr_xdg_toplevel *xdg_toplevel = xdg_view->xdg_surface
-		? xdg_view->xdg_surface->toplevel
-		: NULL;
-	if (!xdg_toplevel) {
-		/*
-		 * This may happen due to a matchOnce rule when
-		 * a view is destroyed while A-Tab is open. See
-		 * https://github.com/labwc/labwc/issues/1082#issuecomment-1716137180
-		 */
-		return "";
-	}
-
-	if (!strcmp(prop, "title")) {
-		return xdg_toplevel->title ? xdg_toplevel->title : "";
-	}
-	if (!strcmp(prop, "app_id")) {
-		return xdg_toplevel->app_id ? xdg_toplevel->app_id : "";
-	}
-	return "";
-}
-
 static void
 init_foreign_toplevel(struct view *view)
 {
@@ -884,7 +862,6 @@ xdg_view_get_pid(struct view *view)
 static const struct view_impl xdg_toplevel_view_impl = {
 	.configure = xdg_toplevel_view_configure,
 	.close = xdg_toplevel_view_close,
-	.get_string_prop = xdg_toplevel_view_get_string_prop,
 	.map = xdg_toplevel_view_map,
 	.set_activated = xdg_toplevel_view_set_activated,
 	.set_fullscreen = xdg_toplevel_view_set_fullscreen,

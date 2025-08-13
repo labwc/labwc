@@ -10,8 +10,6 @@ void
 view_impl_map(struct view *view)
 {
 	desktop_focus_view(view, /*raise*/ true);
-	view_update_title(view);
-	view_update_app_id(view);
 	if (!view->been_mapped) {
 		window_rules_apply(view, LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP);
 	}
@@ -36,8 +34,7 @@ view_impl_map(struct view *view)
 	desktop_update_top_layer_visibility(view->server);
 
 	wlr_log(WLR_DEBUG, "[map] identifier=%s, title=%s",
-		view_get_string_prop(view, "app_id"),
-		view_get_string_prop(view, "title"));
+		view->app_id, view->title);
 }
 
 void

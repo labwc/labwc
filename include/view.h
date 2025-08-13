@@ -106,7 +106,6 @@ struct view_size_hints {
 struct view_impl {
 	void (*configure)(struct view *view, struct wlr_box geo);
 	void (*close)(struct view *view);
-	const char *(*get_string_prop)(struct view *view, const char *prop);
 	void (*map)(struct view *view);
 	void (*set_activated)(struct view *view, bool activated);
 	void (*set_fullscreen)(struct view *view, bool fullscreen);
@@ -172,6 +171,10 @@ struct view {
 	struct wlr_surface *surface;
 	struct wlr_scene_tree *scene_tree;
 	struct wlr_scene_tree *content_tree;
+
+	/* These are never NULL and an empty string is set instead. */
+	char *title;
+	char *app_id; /* WM_CLASS for xwayland windows */
 
 	bool mapped;
 	bool been_mapped;
@@ -571,9 +574,8 @@ bool view_on_output(struct view *view, struct output *output);
  */
 bool view_has_strut_partial(struct view *view);
 
-const char *view_get_string_prop(struct view *view, const char *prop);
-void view_update_title(struct view *view);
-void view_update_app_id(struct view *view);
+void view_set_title(struct view *view, const char *title);
+void view_set_app_id(struct view *view, const char *app_id);
 void view_reload_ssd(struct view *view);
 
 void view_set_shade(struct view *view, bool shaded);

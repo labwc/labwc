@@ -281,7 +281,7 @@ handle_view_new_app_id(struct wl_listener *listener, void *data)
 	struct scaled_icon_buffer *self =
 		wl_container_of(listener, self, on_view.new_app_id);
 
-	const char *app_id = view_get_string_prop(self->view, "app_id");
+	const char *app_id = self->view->app_id;
 	if (str_equal(app_id, self->view_app_id)) {
 		return;
 	}

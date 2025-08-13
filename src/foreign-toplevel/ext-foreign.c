@@ -32,8 +32,8 @@ handle_new_app_id(struct wl_listener *listener, void *data)
 	assert(ext_toplevel->handle);
 
 	struct wlr_ext_foreign_toplevel_handle_v1_state state = {
-		.title = view_get_string_prop(ext_toplevel->view, "title"),
-		.app_id = view_get_string_prop(ext_toplevel->view, "app_id")
+		.title = ext_toplevel->view->title,
+		.app_id = ext_toplevel->view->app_id,
 	};
 	wlr_ext_foreign_toplevel_handle_v1_update_state(ext_toplevel->handle,
 		&state);
@@ -47,8 +47,8 @@ handle_new_title(struct wl_listener *listener, void *data)
 	assert(ext_toplevel->handle);
 
 	struct wlr_ext_foreign_toplevel_handle_v1_state state = {
-		.title = view_get_string_prop(ext_toplevel->view, "title"),
-		.app_id = view_get_string_prop(ext_toplevel->view, "app_id")
+		.title = ext_toplevel->view->title,
+		.app_id = ext_toplevel->view->app_id,
 	};
 	wlr_ext_foreign_toplevel_handle_v1_update_state(ext_toplevel->handle,
 		&state);
@@ -63,15 +63,15 @@ ext_foreign_toplevel_init(struct ext_foreign_toplevel *ext_toplevel,
 	ext_toplevel->view = view;
 
 	struct wlr_ext_foreign_toplevel_handle_v1_state state = {
-		.title = view_get_string_prop(view, "title"),
-		.app_id = view_get_string_prop(view, "app_id")
+		.title = view->title,
+		.app_id = view->app_id,
 	};
 	ext_toplevel->handle = wlr_ext_foreign_toplevel_handle_v1_create(
 		view->server->foreign_toplevel_list, &state);
 
 	if (!ext_toplevel->handle) {
 		wlr_log(WLR_ERROR, "cannot create ext toplevel handle for (%s)",
-			view_get_string_prop(view, "title"));
+			view->title);
 		return;
 	}
 

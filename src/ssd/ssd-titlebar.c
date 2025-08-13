@@ -440,14 +440,13 @@ ssd_update_title(struct ssd *ssd)
 	}
 
 	struct view *view = ssd->view;
-	const char *title = view_get_string_prop(view, "title");
-	if (string_null_or_empty(title)) {
+	if (string_null_or_empty(view->title)) {
 		return;
 	}
 
 	struct theme *theme = view->server->theme;
 	struct ssd_state_title *state = &ssd->state.title;
-	bool title_unchanged = state->text && !strcmp(title, state->text);
+	bool title_unchanged = state->text && !strcmp(view->title, state->text);
 
 	int offset_left, offset_right;
 	get_title_offsets(ssd, &offset_left, &offset_right);
@@ -473,7 +472,7 @@ ssd_update_title(struct ssd *ssd)
 		}
 
 		const float bg_color[4] = {0, 0, 0, 0}; /* ignored */
-		scaled_font_buffer_update(subtree->title, title,
+		scaled_font_buffer_update(subtree->title, view->title,
 			title_bg_width, font,
 			text_color, bg_color);
 
@@ -483,10 +482,7 @@ ssd_update_title(struct ssd *ssd)
 	}
 
 	if (!title_unchanged) {
-		if (state->text) {
-			free(state->text);
-		}
-		state->text = xstrdup(title);
+		xstrdup_replace(state->text, view->title);
 	}
 	ssd_update_title_positions(ssd, offset_left, offset_right);
 }

@@ -81,6 +81,15 @@ ssd_titlebar_create(struct ssd *ssd)
 			corner_top_right, width - corner_width,
 			-rc.theme->border_width);
 
+		/* Title */
+		struct ssd_part *title_part =
+			add_scene_part(&subtree->parts, LAB_SSD_PART_TITLE);
+		title_part->buffer = scaled_font_buffer_create_for_titlebar(
+			subtree->tree, theme->titlebar_height,
+			theme->window[active].titlebar_pattern);
+		assert(title_part->buffer);
+		title_part->node = &title_part->buffer->scene_buffer->node;
+
 		/* Buttons */
 		struct title_button *b;
 		int x = theme->window_titlebar_padding_width;
@@ -389,11 +398,6 @@ ssd_update_title_positions(struct ssd *ssd, int offset_left, int offset_right)
 	struct ssd_sub_tree *subtree;
 	FOR_EACH_STATE(ssd, subtree) {
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLE);
-		if (!part || !part->node) {
-			/* view->surface never been mapped */
-			/* Or we somehow failed to allocate a scaled titlebar buffer */
-			continue;
-		}
 
 		buffer_width = part->buffer ? part->buffer->width : 0;
 		buffer_height = part->buffer ? part->buffer->height : 0;
@@ -504,24 +508,8 @@ ssd_update_title(struct ssd *ssd)
 		}
 
 		part = ssd_get_part(&subtree->parts, LAB_SSD_PART_TITLE);
-		if (!part) {
-			/* Initialize part and wlr_scene_buffer without attaching a buffer */
-			part = add_scene_part(&subtree->parts, LAB_SSD_PART_TITLE);
-			part->buffer = scaled_font_buffer_create_for_titlebar(
-				subtree->tree, theme->titlebar_height,
-				theme->window[active].titlebar_pattern);
-			if (part->buffer) {
-				part->node = &part->buffer->scene_buffer->node;
-			} else {
-				wlr_log(WLR_ERROR, "Failed to create title node");
-			}
-		}
-
-		if (part->buffer) {
-			scaled_font_buffer_update(part->buffer, title,
-				title_bg_width, font,
-				text_color, bg_color);
-		}
+		scaled_font_buffer_update(part->buffer, title, title_bg_width,
+			font, text_color, bg_color);
 
 		/* And finally update the cache */
 		dstate->width = part->buffer ? part->buffer->width : 0;

@@ -844,8 +844,8 @@ update_client_send_to_menu(struct server *server)
 	 * <action name="SendToDesktop"><follow> is true by default so
 	 * GoToDesktop will be called as part of the action.
 	 */
+	struct buf buf = BUF_INIT;
 	wl_list_for_each(workspace, &server->workspaces.all, link) {
-		struct buf buf = BUF_INIT;
 		if (workspace == server->workspaces.current) {
 			buf_add_fmt(&buf, ">%s<", workspace->name);
 		} else {
@@ -859,6 +859,7 @@ update_client_send_to_menu(struct server *server)
 
 		buf_clear(&buf);
 	}
+	buf_reset(&buf);
 
 	separator_create(menu, "");
 	struct menuitem *item = item_create(menu,

@@ -48,6 +48,54 @@ ssd_extents_create(struct ssd *ssd)
 	ssd_extents_update(ssd);
 }
 
+static void
+resize_extent_within_usable(struct wlr_scene_rect *rect,
+		pixman_region32_t *usable, int x, int y, int w, int h)
+{
+	pixman_region32_t intersection;
+	pixman_region32_init(&intersection);
+	/* Constrain part to output->usable_area */
+	pixman_region32_intersect_rect(&intersection, usable, x, y, w, h);
+	int nrects;
+	const pixman_box32_t *inter_rects =
+		pixman_region32_rectangles(&intersection, &nrects);
+
+	if (nrects == 0) {
+		/* Not visible */
+		wlr_scene_node_set_enabled(&rect->node, false);
+		goto out;
+	}
+
+	/*
+	 * For each edge, the invisible grab area is resized
+	 * to not cover layer-shell clients such as panels.
+	 * However, only one resize operation is used per edge,
+	 * so if a window is in the unlikely position that it
+	 * is near a panel but also overspills onto another screen,
+	 * the invisible grab-area on the other screen would be
+	 * smaller than would normally be the case.
+	 *
+	 * Thus only use the first intersecting rect, this is
+	 * a compromise as it doesn't require us to create
+	 * multiple scene rects for a given extent edge
+	 * and still works in 95% of the cases.
+	 */
+	struct wlr_box result_box = (struct wlr_box) {
+		.x = inter_rects[0].x1,
+		.y = inter_rects[0].y1,
+		.width = inter_rects[0].x2 - inter_rects[0].x1,
+		.height = inter_rects[0].y2 - inter_rects[0].y1
+	};
+
+	wlr_scene_node_set_enabled(&rect->node, true);
+
+	wlr_scene_node_set_position(&rect->node, result_box.x, result_box.y);
+	wlr_scene_rect_set_size(rect, result_box.width, result_box.height);
+
+out:
+	pixman_region32_fini(&intersection);
+}
+
 void
 ssd_extents_update(struct ssd *ssd)
 {
@@ -73,8 +121,6 @@ ssd_extents_update(struct ssd *ssd)
 	int border_width = MAX(rc.resize_minimum_area, theme->border_width);
 	int extended_area = MAX(0, rc.resize_minimum_area - theme->border_width);
 
-	struct wlr_box part_box;
-	struct wlr_box result_box;
 	struct ssd_part *part;
 	struct wlr_scene_rect *rect;
 	struct wlr_box target;
@@ -87,11 +133,8 @@ ssd_extents_update(struct ssd *ssd)
 	 * Convert all output usable areas that the
 	 * view is currently on into a pixman region
 	 */
-	int nrects;
 	pixman_region32_t usable;
-	pixman_region32_t intersection;
 	pixman_region32_init(&usable);
-	pixman_region32_init(&intersection);
 	struct output *output;
 	wl_list_for_each(output, &view->server->outputs, link) {
 		if (!view_on_output(view, output)) {
@@ -103,9 +146,10 @@ ssd_extents_update(struct ssd *ssd)
 			usable_area.y, usable_area.width, usable_area.height);
 	}
 
-	/* Remember base layout coordinates */
+	/* Move usable area to the coordinate system of extents */
 	int base_x, base_y;
 	wlr_scene_node_coords(&ssd->extents.tree->node, &base_x, &base_y);
+	pixman_region32_translate(&usable, -base_x, -base_y);
 
 	wl_list_for_each(part, &ssd->extents.parts, link) {
 		rect = wlr_scene_rect_from_node(part->node);
@@ -141,65 +185,9 @@ ssd_extents_update(struct ssd *ssd)
 			target = (struct wlr_box){0};
 		}
 
-		/* Get layout geometry of what the part *should* be */
-		part_box.x = base_x + target.x;
-		part_box.y = base_y + target.y;
-		part_box.width = target.width;
-		part_box.height = target.height;
-
-		/* Constrain part to output->usable_area */
-		pixman_region32_clear(&intersection);
-		pixman_region32_intersect_rect(&intersection, &usable,
-			part_box.x, part_box.y, part_box.width, part_box.height);
-		const pixman_box32_t *inter_rects =
-			pixman_region32_rectangles(&intersection, &nrects);
-
-		if (nrects == 0) {
-			/* Not visible */
-			wlr_scene_node_set_enabled(part->node, false);
-			continue;
-		}
-
-		/*
-		 * For each edge, the invisible grab area is resized
-		 * to not cover layer-shell clients such as panels.
-		 * However, only one resize operation is used per edge,
-		 * so if a window is in the unlikely position that it
-		 * is near a panel but also overspills onto another screen,
-		 * the invisible grab-area on the other screen would be
-		 * smaller than would normally be the case.
-		 *
-		 * Thus only use the first intersecting rect, this is
-		 * a compromise as it doesn't require us to create
-		 * multiple scene rects for a given extent edge
-		 * and still works in 95% of the cases.
-		 */
-		result_box = (struct wlr_box) {
-			.x = inter_rects[0].x1,
-			.y = inter_rects[0].y1,
-			.width = inter_rects[0].x2 - inter_rects[0].x1,
-			.height = inter_rects[0].y2 - inter_rects[0].y1
-		};
-
-		if (!part->node->enabled) {
-			wlr_scene_node_set_enabled(part->node, true);
-		}
-
-		if (part_box.width != result_box.width
-				|| part_box.height != result_box.height) {
-			/* Partly visible */
-			wlr_scene_rect_set_size(rect, result_box.width,
-				result_box.height);
-			wlr_scene_node_set_position(part->node,
-				target.x + (result_box.x - part_box.x),
-				target.y + (result_box.y - part_box.y));
-		} else {
-			/* Fully visible */
-			wlr_scene_node_set_position(part->node, target.x, target.y);
-			wlr_scene_rect_set_size(rect, target.width, target.height);
-		}
+		resize_extent_within_usable(rect, &usable,
+			target.x, target.y, target.width, target.height);
 	}
-	pixman_region32_fini(&intersection);
 	pixman_region32_fini(&usable);
 }
 

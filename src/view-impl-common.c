@@ -10,7 +10,6 @@
 void
 view_impl_map(struct view *view)
 {
-	desktop_focus_view(view, /*raise*/ true);
 	view_update_title(view);
 	view_update_app_id(view);
 	if (!view->been_mapped) {

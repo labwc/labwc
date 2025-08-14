@@ -613,7 +613,7 @@ fill_menu(struct server *server, struct menu *parent, xmlNode *n)
 		}
 
 		struct menuitem *item = item_create(parent, menu->label,
-			parent->icon_name, true);
+			icon_name ? icon_name : menu->icon_name, true);
 		item->submenu = menu;
 	}
 error:

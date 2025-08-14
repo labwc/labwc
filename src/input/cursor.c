@@ -725,7 +725,7 @@ handle_constraint_commit(struct wl_listener *listener, void *data)
 	struct wlr_pointer_constraint_v1 *constraint = seat->current_constraint;
 	/* Prevents unused variable warning when compiled without asserts */
 	(void)constraint;
-	assert(constraint->surface = data);
+	assert(constraint->surface == data);
 }
 
 static void

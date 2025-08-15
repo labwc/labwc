@@ -613,7 +613,7 @@ fill_menu(struct server *server, struct menu *parent, xmlNode *n)
 		}
 
 		struct menuitem *item = item_create(parent, menu->label,
-			icon_name ? icon_name : menu->icon_name, true);
+			parent->icon_name, true);
 		item->submenu = menu;
 	}
 error:
@@ -814,6 +814,13 @@ menu_hide_submenu(struct server *server, const char *id)
 	}
 }
 
+static void
+init_client_send_to_menu(struct server *server)
+{
+	/* Just create placeholder. Contents will be created when launched */
+	menu_create(server, NULL, "client-send-to-menu", "");
+}
+
 static struct action *
 item_add_action(struct menuitem *item, const char *action_name)
 {
@@ -851,12 +858,19 @@ update_client_send_to_menu(struct server *server)
 			NULL, /*show arrow*/ false);
 
 		struct action *action = item_add_action(item, "SendToDesktop");
-		action_arg_add_str(action, "to", workspace->name);
+		action_arg_add_str(action, "to", "name");
 
 		buf_clear(&buf);
 	}
 
 	menu_create_scene(menu);
+}
+
+static void
+init_client_list_combined_menu(struct server *server)
+{
+	/* Just create placeholder. Contents will be created when launched */
+	menu_create(server, NULL, "client-list-combined-menu", "");
 }
 
 /*
@@ -888,15 +902,28 @@ update_client_list_combined_menu(struct server *server)
 
 		wl_list_for_each(view, &server->views, link) {
 			if (view->workspace == workspace) {
-				const char *title = view_get_string_prop(view, "title");
+				const char *title = view_get_string_prop(view, "title");							
+				const char *appid = view_get_string_prop(view, "app_id");
 				if (!view->foreign_toplevel || string_null_or_empty(title)) {
 					continue;
 				}
 
 				if (view == server->active_view) {
-					buf_add(&buffer, "*");
-				}
-				buf_add(&buffer, title);
+				buf_add_fmt(&buffer, "*%s - %s*", title, appid);
+             			}
+                		else if (view->maximized) {
+               		 	buf_add_fmt(&buffer, "[%s - %s]", title, appid);
+                		} 
+                		else if (view->fullscreen) {
+                		buf_add_fmt(&buffer, "[[%s - %s]]", title, appid);
+              			} 
+                		else if (view->minimized) {
+                    		buf_add_fmt(&buffer, "(%s - %s)", title, appid);
+                		} 
+                		else 	{
+                    		buf_add_fmt(&buffer, "%s - %s", title, appid);
+                		}
+
 
 				item = item_create(menu, buffer.data, NULL,
 					/*show arrow*/ false);
@@ -996,14 +1023,11 @@ void
 menu_init(struct server *server)
 {
 	wl_list_init(&server->menus);
-
-	/* Just create placeholder. Contents will be created when launched */
-	menu_create(server, NULL, "client-list-combined-menu", _("Windows"));
-	menu_create(server, NULL, "client-send-to-menu", _("Send to desktop"));
-
 	parse_xml("menu.xml", server);
 	init_rootmenu(server);
 	init_windowmenu(server);
+	init_client_list_combined_menu(server);
+	init_client_send_to_menu(server);
 	validate(server);
 }
 
@@ -1026,10 +1050,6 @@ nullify_item_pointing_to_this_menu(struct menu *menu)
 		/* This is important for pipe-menus */
 		if (iter->parent == menu) {
 			iter->parent = NULL;
-		}
-
-		if (iter->selection.menu == menu) {
-			iter->selection.menu = NULL;
 		}
 	}
 }

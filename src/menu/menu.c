@@ -1027,6 +1027,10 @@ nullify_item_pointing_to_this_menu(struct menu *menu)
 		if (iter->parent == menu) {
 			iter->parent = NULL;
 		}
+
+		if (iter->selection.menu == menu) {
+			iter->selection.menu = NULL;
+		}
 	}
 }
 

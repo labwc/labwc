@@ -160,6 +160,7 @@ enum view_placement_policy {
  * to make them available even in builds with xwayland support disabled.
  */
 enum window_type {
+	NET_WM_WINDOW_TYPE_INVALID = -1,
 	NET_WM_WINDOW_TYPE_DESKTOP = 0,
 	NET_WM_WINDOW_TYPE_DOCK,
 	NET_WM_WINDOW_TYPE_TOOLBAR,

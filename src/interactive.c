@@ -54,7 +54,7 @@ interactive_anchor_to_cursor(struct server *server, struct wlr_box *geo)
 }
 
 void
-interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
+interactive_begin(struct view *view, enum input_mode mode, enum wlr_edges edges)
 {
 	/*
 	 * This function sets up an interactive move or resize operation, where

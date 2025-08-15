@@ -209,7 +209,7 @@ struct server {
 	double grab_x, grab_y;
 	/* View geometry when interactive move/resize is requested */
 	struct wlr_box grab_box;
-	uint32_t resize_edges;
+	enum wlr_edges resize_edges;
 
 	/*
 	 * 'active_view' is generally the view with keyboard-focus, updated with
@@ -426,7 +426,8 @@ void seat_focus_override_end(struct seat *seat);
  */
 void interactive_anchor_to_cursor(struct server *server, struct wlr_box *geo);
 
-void interactive_begin(struct view *view, enum input_mode mode, uint32_t edges);
+void interactive_begin(struct view *view, enum input_mode mode,
+	enum wlr_edges edges);
 void interactive_finish(struct view *view);
 void interactive_cancel(struct view *view);
 

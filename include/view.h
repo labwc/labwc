@@ -215,6 +215,11 @@ struct view {
 	struct wlr_scene_tree *scene_tree;
 	struct wlr_scene_tree *content_tree;
 
+	struct {
+		struct wlr_scene *scene;
+		struct wlr_ext_image_capture_source_v1 *source;
+	} capture;
+
 	bool mapped;
 	bool been_mapped;
 	bool ssd_enabled;
@@ -344,6 +349,7 @@ struct xdg_toplevel_view {
 	/* Events unique to xdg-toplevel views */
 	struct wl_listener set_app_id;
 	struct wl_listener request_show_window_menu;
+	struct wl_listener set_parent;
 	struct wl_listener new_popup;
 };
 

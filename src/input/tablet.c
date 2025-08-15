@@ -7,16 +7,18 @@
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/util/log.h>
 #include <wlr/types/wlr_scene.h>
+#include "action.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
-#include "config/rcxml.h"
 #include "config/mousebind.h"
+#include "config/rcxml.h"
+#include "config/tablet.h"
+#include "idle.h"
 #include "input/cursor.h"
 #include "input/tablet-pad.h"
 #include "labwc.h"
-#include "idle.h"
-#include "action.h"
+#include "view.h"
 
 bool
 tablet_tool_has_focused_surface(struct seat *seat)

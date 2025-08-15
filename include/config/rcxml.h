@@ -3,20 +3,14 @@
 #define LABWC_RCXML_H
 
 #include <stdbool.h>
-#include <stdio.h>
 #include <wayland-server-core.h>
+#include <wlr/util/box.h>
 #include <libxml/tree.h>
 
 #include "common/border.h"
 #include "common/buf.h"
+#include "common/enum.h"
 #include "common/font.h"
-#include "config/touch.h"
-#include "config/tablet.h"
-#include "config/tablet-tool.h"
-#include "config/libinput.h"
-#include "resize-indicator.h"
-#include "ssd.h"
-#include "theme.h"
 
 #define BUTTON_MAP_MAX 16
 

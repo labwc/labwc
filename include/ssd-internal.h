@@ -3,9 +3,8 @@
 #define LABWC_SSD_INTERNAL_H
 
 #include <wlr/util/box.h>
+#include "common/border.h"
 #include "common/macros.h"
-#include "ssd.h"
-#include "view.h"
 
 #define FOR_EACH(tmp, ...) \
 { \
@@ -14,6 +13,8 @@
 	for ((tmp) = _x[_i]; _i < ARRAY_SIZE(_x) - 1; (tmp) = _x[++_i])
 
 #define FOR_EACH_END }
+
+struct lab_img;
 
 struct ssd_button {
 	struct view *view;

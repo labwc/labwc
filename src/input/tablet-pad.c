@@ -10,6 +10,7 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
+#include "config/tablet.h"
 #include "input/cursor.h"
 #include "input/tablet.h"
 #include "labwc.h"

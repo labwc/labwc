@@ -15,7 +15,7 @@
 #include "common/list.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
-#include "labwc.h"
+#include "config/rcxml.h"
 
 struct dir {
 	const char *prefix;

@@ -5,7 +5,6 @@
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/util/edges.h>
 #include "common/enum.h"
-#include "ssd.h"
 
 struct view;
 struct seat;

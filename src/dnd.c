@@ -4,6 +4,7 @@
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
+#include "config/rcxml.h"
 #include "input/cursor.h"
 #include "labwc.h"  /* for struct seat */
 #include "view.h"

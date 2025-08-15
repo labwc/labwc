@@ -10,6 +10,7 @@
 #include "action.h"
 #include "common/macros.h"
 #include "config/keybind.h"
+#include "config/rcxml.h"
 #include "idle.h"
 #include "input/ime.h"
 #include "input/key-state.h"

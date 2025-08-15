@@ -16,6 +16,7 @@
 #include "labwc.h"
 #include "node.h"
 #include "output.h"
+#include "ssd.h"
 #include "theme.h"
 #include "view.h"
 #include "window-rules.h"

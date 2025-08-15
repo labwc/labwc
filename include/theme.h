@@ -11,7 +11,6 @@
 #include <cairo.h>
 #include <wlr/render/wlr_renderer.h>
 #include "common/enum.h"
-#include "ssd.h"
 
 struct lab_img;
 

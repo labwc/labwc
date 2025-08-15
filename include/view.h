@@ -2,14 +2,13 @@
 #ifndef LABWC_VIEW_H
 #define LABWC_VIEW_H
 
-#include "config/rcxml.h"
-#include "config.h"
-#include "ssd.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <wayland-util.h>
 #include <wlr/util/box.h>
 #include <xkbcommon/xkbcommon.h>
+#include "common/enum.h"
+#include "config.h"
 
 #define LAB_MIN_VIEW_HEIGHT 60
 

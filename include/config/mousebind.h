@@ -3,6 +3,7 @@
 #define LABWC_MOUSEBIND_H
 
 #include <wayland-util.h>
+#include "common/enum.h"
 #include "ssd.h"
 #include "config/keybind.h"
 

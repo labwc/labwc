@@ -10,7 +10,6 @@
 #include <wayland-util.h>
 #include <wlr/util/box.h>
 #include <xkbcommon/xkbcommon.h>
-#include "common/three-state.h"
 
 #define LAB_MIN_VIEW_HEIGHT 60
 
@@ -58,27 +57,6 @@ enum view_axis {
 	VIEW_AXIS_INVALID = (1 << 2),
 };
 
-/**
- * Edges to which a view can be snapped to. "All" is used as
- * a catchall for every valid edge in order to simplify certain
- * types of conditionals, but it is only valid for a selection
- * of options in rc.xml.
- */
-enum view_edge {
-	VIEW_EDGE_INVALID = 0,
-
-	VIEW_EDGE_LEFT = (1 << 0),
-	VIEW_EDGE_RIGHT = (1 << 1),
-	VIEW_EDGE_UP = (1 << 2),
-	VIEW_EDGE_DOWN = (1 << 3),
-	VIEW_EDGE_CENTER = (1 << 4),
-	VIEW_EDGE_ANY = (1 << 5),
-	VIEW_EDGE_UPLEFT = (VIEW_EDGE_UP | VIEW_EDGE_LEFT),
-	VIEW_EDGE_UPRIGHT = (VIEW_EDGE_UP | VIEW_EDGE_RIGHT),
-	VIEW_EDGE_DOWNLEFT = (VIEW_EDGE_DOWN | VIEW_EDGE_LEFT),
-	VIEW_EDGE_DOWNRIGHT = (VIEW_EDGE_DOWN | VIEW_EDGE_RIGHT),
-};
-
 enum view_wants_focus {
 	/* View does not want focus */
 	VIEW_WANTS_FOCUS_NEVER = 0,
@@ -97,33 +75,6 @@ enum view_wants_focus {
 	 */
 	VIEW_WANTS_FOCUS_LIKELY,
 	VIEW_WANTS_FOCUS_UNLIKELY,
-};
-
-/*
- * Window types are based on the NET_WM constants from X11. See:
- *   https://specifications.freedesktop.org/wm-spec/1.4/ar01s05.html#id-1.6.7
- *
- * The enum constants are intended to match wlr_xwayland_net_wm_window_type.
- * Redefining the same constants here may seem redundant, but is necessary
- * to make them available even in builds with xwayland support disabled.
- */
-enum window_type {
-	NET_WM_WINDOW_TYPE_DESKTOP = 0,
-	NET_WM_WINDOW_TYPE_DOCK,
-	NET_WM_WINDOW_TYPE_TOOLBAR,
-	NET_WM_WINDOW_TYPE_MENU,
-	NET_WM_WINDOW_TYPE_UTILITY,
-	NET_WM_WINDOW_TYPE_SPLASH,
-	NET_WM_WINDOW_TYPE_DIALOG,
-	NET_WM_WINDOW_TYPE_DROPDOWN_MENU,
-	NET_WM_WINDOW_TYPE_POPUP_MENU,
-	NET_WM_WINDOW_TYPE_TOOLTIP,
-	NET_WM_WINDOW_TYPE_NOTIFICATION,
-	NET_WM_WINDOW_TYPE_COMBO,
-	NET_WM_WINDOW_TYPE_DND,
-	NET_WM_WINDOW_TYPE_NORMAL,
-
-	WINDOW_TYPE_LEN
 };
 
 struct view;
@@ -347,28 +298,6 @@ struct xdg_toplevel_view {
 	struct wl_listener set_app_id;
 	struct wl_listener request_show_window_menu;
 	struct wl_listener new_popup;
-};
-
-/* All criteria is applied in AND logic */
-enum lab_view_criteria {
-	/* No filter -> all focusable views */
-	LAB_VIEW_CRITERIA_NONE = 0,
-
-	/*
-	 * Includes always-on-top views, e.g.
-	 * what is visible on the current workspace
-	 */
-	LAB_VIEW_CRITERIA_CURRENT_WORKSPACE       = 1 << 0,
-
-	/* Positive criteria */
-	LAB_VIEW_CRITERIA_FULLSCREEN              = 1 << 1,
-	LAB_VIEW_CRITERIA_ALWAYS_ON_TOP           = 1 << 2,
-	LAB_VIEW_CRITERIA_ROOT_TOPLEVEL           = 1 << 3,
-
-	/* Negative criteria */
-	LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP        = 1 << 6,
-	LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER = 1 << 7,
-	LAB_VIEW_CRITERIA_NO_OMNIPRESENT          = 1 << 8,
 };
 
 /**

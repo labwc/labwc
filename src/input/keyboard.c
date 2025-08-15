@@ -9,7 +9,6 @@
 #include <wlr/types/wlr_keyboard_group.h>
 #include "action.h"
 #include "common/macros.h"
-#include "common/three-state.h"
 #include "config/keybind.h"
 #include "idle.h"
 #include "input/ime.h"

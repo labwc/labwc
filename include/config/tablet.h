@@ -4,13 +4,6 @@
 
 #include <stdint.h>
 
-enum rotation {
-	LAB_ROTATE_NONE = 0,
-	LAB_ROTATE_90,
-	LAB_ROTATE_180,
-	LAB_ROTATE_270,
-};
-
 #define BUTTON_MAP_MAX 16
 struct button_map_entry {
 	uint32_t from;

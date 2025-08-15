@@ -43,7 +43,6 @@ struct window_switcher_field {
 struct buf;
 struct view;
 struct server;
-enum lab_cycle_dir;
 
 /* Begin window switcher */
 void osd_begin(struct server *server, enum lab_cycle_dir direction);

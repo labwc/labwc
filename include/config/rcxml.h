@@ -10,7 +10,6 @@
 #include "common/border.h"
 #include "common/buf.h"
 #include "common/font.h"
-#include "common/three-state.h"
 #include "config/touch.h"
 #include "config/tablet.h"
 #include "config/tablet-tool.h"
@@ -18,14 +17,6 @@
 #include "resize-indicator.h"
 #include "ssd.h"
 #include "theme.h"
-
-enum view_placement_policy {
-	LAB_PLACE_INVALID = 0,
-	LAB_PLACE_CENTER,
-	LAB_PLACE_CURSOR,
-	LAB_PLACE_AUTOMATIC,
-	LAB_PLACE_CASCADE,
-};
 
 enum adaptive_sync_mode {
 	LAB_ADAPTIVE_SYNC_DISABLED,

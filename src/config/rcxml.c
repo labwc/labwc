@@ -24,7 +24,6 @@
 #include "common/parse-bool.h"
 #include "common/parse-double.h"
 #include "common/string-helpers.h"
-#include "common/three-state.h"
 #include "common/xml.h"
 #include "config/default-bindings.h"
 #include "config/keybind.h"

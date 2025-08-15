@@ -4,12 +4,6 @@
 
 #include <stdint.h>
 
-#define BUTTON_MAP_MAX 16
-struct button_map_entry {
-	uint32_t from;
-	uint32_t to;
-};
-
 double tablet_get_dbl_if_positive(const char *content, const char *name);
 enum rotation tablet_parse_rotation(int value);
 uint32_t tablet_button_from_str(const char *button);

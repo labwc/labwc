@@ -18,10 +18,18 @@
 #include "ssd.h"
 #include "theme.h"
 
+#define BUTTON_MAP_MAX 16
+
 enum adaptive_sync_mode {
 	LAB_ADAPTIVE_SYNC_DISABLED,
 	LAB_ADAPTIVE_SYNC_ENABLED,
 	LAB_ADAPTIVE_SYNC_FULLSCREEN,
+};
+
+enum resize_indicator_mode {
+	LAB_RESIZE_INDICATOR_NEVER = 0,
+	LAB_RESIZE_INDICATOR_ALWAYS,
+	LAB_RESIZE_INDICATOR_NON_PIXEL
 };
 
 enum tearing_mode {
@@ -37,6 +45,11 @@ enum tiling_events_mode {
 	LAB_TILING_EVENTS_EDGE = 1 << 1,
 	LAB_TILING_EVENTS_ALWAYS =
 		(LAB_TILING_EVENTS_REGION | LAB_TILING_EVENTS_EDGE),
+};
+
+struct button_map_entry {
+	uint32_t from;
+	uint32_t to;
 };
 
 struct title_button {

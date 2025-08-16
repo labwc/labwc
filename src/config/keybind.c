@@ -49,6 +49,42 @@ keybind_the_same(struct keybind *a, struct keybind *b)
 	return true;
 }
 
+bool
+keybind_contains_keycode(struct keybind *keybind, xkb_keycode_t keycode)
+{
+	assert(keybind);
+	for (size_t i = 0; i < keybind->keycodes_len; i++) {
+		if (keybind->keycodes[i] == keycode) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool
+keybind_contains_keysym(struct keybind *keybind, xkb_keysym_t keysym)
+{
+	assert(keybind);
+	for (size_t i = 0; i < keybind->keysyms_len; i++) {
+		if (keybind->keysyms[i] == keysym) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool
+keybind_contains_any_keysym(struct keybind *keybind,
+		const xkb_keysym_t *syms, int nr_syms)
+{
+	for (int i = 0; i < nr_syms; i++) {
+		if (keybind_contains_keysym(keybind, syms[i])) {
+			return true;
+		}
+	}
+	return false;
+}
+
 static void
 update_keycodes_iter(struct xkb_keymap *keymap, xkb_keycode_t key, void *data)
 {
@@ -68,32 +104,19 @@ update_keycodes_iter(struct xkb_keymap *keymap, xkb_keycode_t key, void *data)
 		if (keybind->use_syms_only) {
 			continue;
 		}
-		for (int i = 0; i < nr_syms; i++) {
-			xkb_keysym_t sym = syms[i];
-			for (size_t j = 0; j < keybind->keysyms_len; j++) {
-				if (sym != keybind->keysyms[j]) {
-					continue;
-				}
-				/* Found keycode for sym */
-				if (keybind->keycodes_len == MAX_KEYCODES) {
-					wlr_log(WLR_ERROR,
-						"Already stored %lu keycodes for keybind",
-						keybind->keycodes_len);
-					break;
-				}
-				bool keycode_exists = false;
-				for (size_t k = 0; k < keybind->keycodes_len; k++) {
-					if (keybind->keycodes[k] == key) {
-						keycode_exists = true;
-						break;
-					}
-				}
-				if (keycode_exists) {
-					continue;
-				}
-				keybind->keycodes[keybind->keycodes_len++] = key;
-				keybind->keycodes_layout = layout;
+		if (keybind_contains_any_keysym(keybind, syms, nr_syms)) {
+			if (keybind_contains_keycode(keybind, key)) {
+				/* Prevent storing the same keycode twice */
+				continue;
 			}
+			if (keybind->keycodes_len == MAX_KEYCODES) {
+				wlr_log(WLR_ERROR,
+					"Already stored %lu keycodes for keybind",
+					keybind->keycodes_len);
+				continue;
+			}
+			keybind->keycodes[keybind->keycodes_len++] = key;
+			keybind->keycodes_layout = layout;
 		}
 	}
 }

@@ -27,6 +27,7 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "config/rcxml.h"
 #include "labwc.h"
 #include "layers.h"
 #include "node.h"

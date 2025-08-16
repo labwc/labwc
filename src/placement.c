@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include "common/mem.h"
+#include "config/rcxml.h"
 #include "labwc.h"
 #include "output.h"
 #include "ssd.h"

@@ -22,6 +22,7 @@
 #include "common/scene-helpers.h"
 #include "common/surface-helpers.h"
 #include "config/mousebind.h"
+#include "config/rcxml.h"
 #include "dnd.h"
 #include "idle.h"
 #include "input/gestures.h"
@@ -887,7 +888,7 @@ handle_motion(struct wl_listener *listener, void *data)
 	cursor_set_visible(seat, /* visible */ true);
 
 	if (seat->cursor_scroll_wheel_emulation) {
-		uint32_t orientation;
+		enum wl_pointer_axis orientation;
 		double delta;
 		if (fabs(event->delta_x) > fabs(event->delta_y)) {
 			orientation = WL_POINTER_AXIS_HORIZONTAL_SCROLL;
@@ -1019,7 +1020,7 @@ is_double_click(long double_click_speed, uint32_t button,
 		 */
 		last_button = 0;
 		last_view = NULL;
-		last_type = 0;
+		last_type = LAB_SSD_NONE;
 		return true;
 	}
 	return false;

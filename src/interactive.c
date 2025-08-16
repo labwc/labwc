@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
+#include "config/rcxml.h"
 #include "edges.h"
 #include "input/keyboard.h"
 #include "labwc.h"
@@ -54,7 +55,7 @@ interactive_anchor_to_cursor(struct server *server, struct wlr_box *geo)
 }
 
 void
-interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
+interactive_begin(struct view *view, enum input_mode mode, enum wlr_edges edges)
 {
 	/*
 	 * This function sets up an interactive move or resize operation, where

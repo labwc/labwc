@@ -2,11 +2,10 @@
 #ifndef LABWC_SNAP_CONSTRAINTS_H
 #define LABWC_SNAP_CONSTRAINTS_H
 
+#include <stdbool.h>
 #include <wlr/util/edges.h>
 
-#include "common/border.h"
-#include "view.h"
-
+struct view;
 struct wlr_box;
 
 void snap_constraints_set(struct view *view,

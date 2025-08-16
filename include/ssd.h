@@ -14,60 +14,6 @@ struct wlr_cursor;
  */
 #define SSD_SHADOW_INSET 0.3
 
-/*
- * Sequence these according to the order they should be processed for
- * press and hover events. Bear in mind that some of their respective
- * interactive areas overlap, so for example buttons need to come before title.
- */
-enum ssd_part_type {
-	LAB_SSD_NONE = 0,
-
-	LAB_SSD_BUTTON_CLOSE = 1,
-	LAB_SSD_BUTTON_MAXIMIZE,
-	LAB_SSD_BUTTON_ICONIFY,
-	LAB_SSD_BUTTON_WINDOW_ICON,
-	LAB_SSD_BUTTON_WINDOW_MENU,
-	LAB_SSD_BUTTON_SHADE,
-	LAB_SSD_BUTTON_OMNIPRESENT,
-	/* only for internal use */
-	LAB_SSD_BUTTON_FIRST = LAB_SSD_BUTTON_CLOSE,
-	LAB_SSD_BUTTON_LAST = LAB_SSD_BUTTON_OMNIPRESENT,
-	LAB_SSD_BUTTON,
-
-	LAB_SSD_PART_TITLEBAR,
-	LAB_SSD_PART_TITLEBAR_CORNER_RIGHT,
-	LAB_SSD_PART_TITLEBAR_CORNER_LEFT,
-	LAB_SSD_PART_TITLE,
-
-	/* shared by shadows, borders and extents */
-	LAB_SSD_PART_CORNER_TOP_LEFT,
-	LAB_SSD_PART_CORNER_TOP_RIGHT,
-	LAB_SSD_PART_CORNER_BOTTOM_RIGHT,
-	LAB_SSD_PART_CORNER_BOTTOM_LEFT,
-	LAB_SSD_PART_TOP,
-	LAB_SSD_PART_RIGHT,
-	LAB_SSD_PART_BOTTOM,
-	LAB_SSD_PART_LEFT,
-
-	LAB_SSD_CLIENT,
-	LAB_SSD_FRAME,
-	LAB_SSD_ROOT,
-	LAB_SSD_MENU,
-	LAB_SSD_OSD,
-	LAB_SSD_LAYER_SURFACE,
-	LAB_SSD_LAYER_SUBSURFACE,
-	LAB_SSD_UNMANAGED,
-	LAB_SSD_ALL,
-	LAB_SSD_END_MARKER
-};
-
-enum ssd_mode {
-	LAB_SSD_MODE_INVALID,
-	LAB_SSD_MODE_NONE,
-	LAB_SSD_MODE_BORDER,
-	LAB_SSD_MODE_FULL,
-};
-
 /* Forward declare arguments */
 struct ssd;
 struct ssd_button;

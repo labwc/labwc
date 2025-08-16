@@ -3,9 +3,8 @@
 #define LABWC_OVERLAY_H
 
 #include <wlr/util/box.h>
-#include "common/graphic-helpers.h"
+#include "common/enum.h"
 #include "regions.h"
-#include "view.h"
 
 /* TODO: replace this with single lab_scene_rect */
 struct overlay_rect {

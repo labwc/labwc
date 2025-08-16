@@ -2,9 +2,9 @@
 #ifndef LABWC_MOUSEBIND_H
 #define LABWC_MOUSEBIND_H
 
+#include <stdbool.h>
 #include <wayland-util.h>
-#include "ssd.h"
-#include "config/keybind.h"
+#include "common/enum.h"
 
 enum mouse_event {
 	MOUSE_ACTION_NONE = 0,

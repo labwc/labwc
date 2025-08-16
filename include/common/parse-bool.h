@@ -2,7 +2,7 @@
 #ifndef LABWC_PARSE_BOOL_H
 #define LABWC_PARSE_BOOL_H
 #include <stdbool.h>
-#include "common/three-state.h"
+#include "common/enum.h"
 
 /**
  * parse_three_state() - Parse boolean value of string as a three-state enum.

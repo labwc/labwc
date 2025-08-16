@@ -24,16 +24,18 @@
 #include "common/parse-bool.h"
 #include "common/parse-double.h"
 #include "common/string-helpers.h"
-#include "common/three-state.h"
 #include "common/xml.h"
 #include "config/default-bindings.h"
 #include "config/keybind.h"
 #include "config/libinput.h"
 #include "config/mousebind.h"
 #include "config/tablet.h"
+#include "config/tablet-tool.h"
+#include "config/touch.h"
 #include "labwc.h"
 #include "osd.h"
 #include "regions.h"
+#include "ssd.h"
 #include "view.h"
 #include "window-rules.h"
 #include "workspaces.h"
@@ -55,11 +57,11 @@ enum font_place {
 static void load_default_key_bindings(void);
 static void load_default_mouse_bindings(void);
 
-static int
+static enum window_type
 parse_window_type(const char *type)
 {
 	if (!type) {
-		return -1;
+		return NET_WM_WINDOW_TYPE_INVALID;
 	}
 	if (!strcasecmp(type, "desktop")) {
 		return NET_WM_WINDOW_TYPE_DESKTOP;
@@ -90,7 +92,7 @@ parse_window_type(const char *type)
 	} else if (!strcasecmp(type, "normal")) {
 		return NET_WM_WINDOW_TYPE_NORMAL;
 	} else {
-		return -1;
+		return NET_WM_WINDOW_TYPE_INVALID;
 	}
 }
 
@@ -257,7 +259,7 @@ static void
 fill_window_rule(xmlNode *node)
 {
 	struct window_rule *window_rule = znew(*window_rule);
-	window_rule->window_type = -1; // Window types are >= 0
+	window_rule->window_type = NET_WM_WINDOW_TYPE_INVALID;
 	wl_list_append(&rc.window_rules, &window_rule->link);
 	wl_list_init(&window_rule->actions);
 
@@ -1395,7 +1397,7 @@ rcxml_init(void)
 
 	rc.tablet.force_mouse_emulation = false;
 	rc.tablet.output_name = NULL;
-	rc.tablet.rotation = 0;
+	rc.tablet.rotation = LAB_ROTATE_NONE;
 	rc.tablet.box = (struct wlr_fbox){0};
 	tablet_load_default_button_mappings();
 	rc.tablet_tool.motion = LAB_TABLET_MOTION_ABSOLUTE;

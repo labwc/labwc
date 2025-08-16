@@ -3,7 +3,7 @@
 #define LABWC_DIRECTION_H
 
 #include <wlr/types/wlr_output_layout.h>
-#include "view.h"
+#include "common/enum.h"
 
 bool direction_from_view_edge(enum view_edge edge, enum wlr_direction *direction);
 enum wlr_direction direction_get_opposite(enum wlr_direction direction);

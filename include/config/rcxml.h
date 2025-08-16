@@ -3,34 +3,27 @@
 #define LABWC_RCXML_H
 
 #include <stdbool.h>
-#include <stdio.h>
 #include <wayland-server-core.h>
+#include <wlr/util/box.h>
 #include <libxml/tree.h>
 
 #include "common/border.h"
 #include "common/buf.h"
+#include "common/enum.h"
 #include "common/font.h"
-#include "common/three-state.h"
-#include "config/touch.h"
-#include "config/tablet.h"
-#include "config/tablet-tool.h"
-#include "config/libinput.h"
-#include "resize-indicator.h"
-#include "ssd.h"
-#include "theme.h"
 
-enum view_placement_policy {
-	LAB_PLACE_INVALID = 0,
-	LAB_PLACE_CENTER,
-	LAB_PLACE_CURSOR,
-	LAB_PLACE_AUTOMATIC,
-	LAB_PLACE_CASCADE,
-};
+#define BUTTON_MAP_MAX 16
 
 enum adaptive_sync_mode {
 	LAB_ADAPTIVE_SYNC_DISABLED,
 	LAB_ADAPTIVE_SYNC_ENABLED,
 	LAB_ADAPTIVE_SYNC_FULLSCREEN,
+};
+
+enum resize_indicator_mode {
+	LAB_RESIZE_INDICATOR_NEVER = 0,
+	LAB_RESIZE_INDICATOR_ALWAYS,
+	LAB_RESIZE_INDICATOR_NON_PIXEL
 };
 
 enum tearing_mode {
@@ -46,6 +39,11 @@ enum tiling_events_mode {
 	LAB_TILING_EVENTS_EDGE = 1 << 1,
 	LAB_TILING_EVENTS_ALWAYS =
 		(LAB_TILING_EVENTS_REGION | LAB_TILING_EVENTS_EDGE),
+};
+
+struct button_map_entry {
+	uint32_t from;
+	uint32_t to;
 };
 
 struct title_button {
@@ -173,7 +171,7 @@ struct rcxml {
 		bool show;
 		bool preview;
 		bool outlines;
-		uint32_t criteria;
+		enum lab_view_criteria criteria;
 		struct wl_list fields;  /* struct window_switcher_field.link */
 	} window_switcher;
 

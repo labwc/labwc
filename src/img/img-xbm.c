@@ -251,7 +251,7 @@ parse_xbm_builtin(const char *button, int size, uint32_t color)
 		t[i].value = button[i];
 		t[i].type = TOKEN_INT;
 	}
-	t[size].type = 0;
+	t[size].type = TOKEN_NONE;
 	process_bytes(&pixmap, t, color);
 	return pixmap;
 }

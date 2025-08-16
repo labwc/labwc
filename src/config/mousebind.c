@@ -8,6 +8,7 @@
 #include <wlr/util/log.h>
 #include "common/list.h"
 #include "common/mem.h"
+#include "config/keybind.h"
 #include "config/rcxml.h"
 
 uint32_t

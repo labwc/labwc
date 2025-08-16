@@ -4,7 +4,8 @@
 
 #include <stdbool.h>
 #include <wlr/util/box.h>
-#include "view.h"
+
+struct view;
 
 bool placement_find_best(struct view *view, struct wlr_box *geometry);
 

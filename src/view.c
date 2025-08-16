@@ -14,6 +14,7 @@
 #include "common/match.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "config/rcxml.h"
 #include "foreign-toplevel/foreign.h"
 #include "input/keyboard.h"
 #include "labwc.h"
@@ -28,6 +29,7 @@
 #include "snap-constraints.h"
 #include "snap.h"
 #include "ssd.h"
+#include "theme.h"
 #include "window-rules.h"
 #include "wlr/util/log.h"
 #include "workspaces.h"
@@ -76,7 +78,7 @@ struct view_query *
 view_query_create(void)
 {
 	struct view_query *query = znew(*query);
-	query->window_type = -1;
+	query->window_type = NET_WM_WINDOW_TYPE_INVALID;
 	query->maximized = VIEW_AXIS_INVALID;
 	return query;
 }

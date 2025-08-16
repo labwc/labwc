@@ -2,11 +2,13 @@
 #include "snap.h"
 #include <assert.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 #include "common/border.h"
+#include "config/rcxml.h"
 #include "edges.h"
-#include "labwc.h"
 #include "output.h"
 #include "snap-constraints.h"
+#include "ssd.h"
 #include "view.h"
 
 static void
@@ -148,7 +150,7 @@ snap_grow_to_next_edge(struct view *view,
 
 	struct border ssd = ssd_thickness(view);
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-	uint32_t resize_edges;
+	enum wlr_edges resize_edges;
 
 	/* First try to grow the view to the relevant edge of its output. */
 	switch (direction) {
@@ -219,7 +221,7 @@ snap_shrink_to_next_edge(struct view *view,
 	assert(!view->shaded);
 
 	*geo = view->pending;
-	uint32_t resize_edges;
+	enum wlr_edges resize_edges;
 	int min_width = view_get_min_width();
 
 	/*

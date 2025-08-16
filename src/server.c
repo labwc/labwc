@@ -65,6 +65,7 @@
 #include "regions.h"
 #include "resize-indicator.h"
 #include "session-lock.h"
+#include "ssd.h"
 #include "theme.h"
 #include "view.h"
 #include "workspaces.h"

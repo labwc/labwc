@@ -25,6 +25,7 @@
 #include "common/scene-helpers.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
+#include "config/rcxml.h"
 #include "common/xml.h"
 #include "labwc.h"
 #include "output.h"

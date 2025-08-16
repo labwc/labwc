@@ -10,7 +10,7 @@
 
 #include <cairo.h>
 #include <wlr/render/wlr_renderer.h>
-#include "ssd.h"
+#include "common/enum.h"
 
 struct lab_img;
 
@@ -36,16 +36,6 @@ struct theme_snapping_overlay {
 	float bg_color[4];
 	int border_width;
 	float border_color[3][4];
-};
-
-enum lab_button_state {
-	LAB_BS_DEFAULT = 0,
-
-	LAB_BS_HOVERD = 1 << 0,
-	LAB_BS_TOGGLED = 1 << 1,
-	LAB_BS_ROUNDED = 1 << 2,
-
-	LAB_BS_ALL = LAB_BS_HOVERD | LAB_BS_TOGGLED | LAB_BS_ROUNDED,
 };
 
 struct theme_background {

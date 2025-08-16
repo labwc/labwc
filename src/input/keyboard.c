@@ -219,17 +219,14 @@ match_keybinding_for_sym(struct server *server, uint32_t modifiers,
 		}
 		if (sym == XKB_KEY_NoSymbol) {
 			/* Use keycodes */
-			for (size_t i = 0; i < keybind->keycodes_len; i++) {
-				if (keybind->keycodes[i] == xkb_keycode) {
-					return keybind;
-				}
+			if (keybind_contains_keycode(keybind, xkb_keycode)) {
+				return keybind;
 			}
 		} else {
 			/* Use syms */
-			for (size_t i = 0; i < keybind->keysyms_len; i++) {
-				if (xkb_keysym_to_lower(sym) == keybind->keysyms[i]) {
-					return keybind;
-				}
+			if (keybind_contains_keysym(keybind,
+					xkb_keysym_to_lower(sym))) {
+				return keybind;
 			}
 		}
 	}

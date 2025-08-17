@@ -7,6 +7,7 @@
 #include "common/mem.h"
 #include "common/scaled-icon-buffer.h"
 #include "common/scaled-img-buffer.h"
+#include "config/rcxml.h"
 #include "labwc.h"
 #include "node.h"
 #include "ssd-internal.h"

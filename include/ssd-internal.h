@@ -5,6 +5,7 @@
 #include <wlr/util/box.h>
 #include "common/macros.h"
 #include "ssd.h"
+#include "theme.h"
 #include "view.h"
 
 #define FOR_EACH(tmp, ...) \

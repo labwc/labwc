@@ -27,7 +27,7 @@ struct overlay {
 		struct region *region;
 
 		/* Snap-to-edge overlay */
-		enum view_edge edge;
+		enum lab_edge edge;
 		struct output *output;
 	} active;
 

@@ -5,13 +5,13 @@
 #include <string.h>
 #include <wlr/render/pixman.h>
 #include "buffer.h"
-#include "config.h"
 #include "common/mem.h"
 #include "common/scaled-font-buffer.h"
 #include "common/scaled-icon-buffer.h"
 #include "common/scaled-img-buffer.h"
 #include "common/scene-helpers.h"
 #include "common/string-helpers.h"
+#include "config/rcxml.h"
 #include "desktop-entry.h"
 #include "img/img.h"
 #include "labwc.h"

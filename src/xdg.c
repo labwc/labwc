@@ -9,6 +9,7 @@
 #include "common/array.h"
 #include "common/macros.h"
 #include "common/mem.h"
+#include "config/rcxml.h"
 #include "decorations.h"
 #include "foreign-toplevel/foreign.h"
 #include "labwc.h"
@@ -66,7 +67,7 @@ xdg_toplevel_view_get_size_hints(struct view *view)
 
 static bool
 xdg_toplevel_view_contains_window_type(struct view *view,
-		enum window_type window_type)
+		enum lab_window_type window_type)
 {
 	assert(view);
 
@@ -78,9 +79,9 @@ xdg_toplevel_view_contains_window_type(struct view *view,
 		|| toplevel->parent;
 
 	switch (window_type) {
-	case NET_WM_WINDOW_TYPE_NORMAL:
+	case LAB_WINDOW_TYPE_NORMAL:
 		return !is_dialog;
-	case NET_WM_WINDOW_TYPE_DIALOG:
+	case LAB_WINDOW_TYPE_DIALOG:
 		return is_dialog;
 	default:
 		return false;
@@ -663,31 +664,31 @@ xdg_toplevel_view_notify_tiled(struct view *view)
 	 */
 	if (want_edge) {
 		switch (view->tiled) {
-		case VIEW_EDGE_LEFT:
+		case LAB_EDGE_LEFT:
 			edge = WLR_EDGE_LEFT | WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
 			break;
-		case VIEW_EDGE_RIGHT:
+		case LAB_EDGE_RIGHT:
 			edge = WLR_EDGE_RIGHT | WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
 			break;
-		case VIEW_EDGE_UP:
+		case LAB_EDGE_UP:
 			edge = WLR_EDGE_TOP | WLR_EDGE_LEFT | WLR_EDGE_RIGHT;
 			break;
-		case VIEW_EDGE_DOWN:
+		case LAB_EDGE_DOWN:
 			edge = WLR_EDGE_BOTTOM | WLR_EDGE_LEFT | WLR_EDGE_RIGHT;
 			break;
-		case VIEW_EDGE_UPLEFT:
+		case LAB_EDGE_UPLEFT:
 			edge = WLR_EDGE_TOP | WLR_EDGE_LEFT;
 			break;
-		case VIEW_EDGE_UPRIGHT:
+		case LAB_EDGE_UPRIGHT:
 			edge = WLR_EDGE_TOP | WLR_EDGE_RIGHT;
 			break;
-		case VIEW_EDGE_DOWNLEFT:
+		case LAB_EDGE_DOWNLEFT:
 			edge = WLR_EDGE_BOTTOM | WLR_EDGE_LEFT;
 			break;
-		case VIEW_EDGE_DOWNRIGHT:
+		case LAB_EDGE_DOWNRIGHT:
 			edge = WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT;
 			break;
-		/* TODO: VIEW_EDGE_CENTER? */
+		/* TODO: LAB_EDGE_CENTER? */
 		default:
 			edge = WLR_EDGE_NONE;
 		}

@@ -3,34 +3,28 @@
 #define LABWC_RCXML_H
 
 #include <stdbool.h>
-#include <stdio.h>
 #include <wayland-server-core.h>
+#include <wlr/util/box.h>
 #include <libxml/tree.h>
 
 #include "common/border.h"
 #include "common/buf.h"
 #include "common/font.h"
-#include "common/three-state.h"
-#include "config/touch.h"
-#include "config/tablet.h"
-#include "config/tablet-tool.h"
-#include "config/libinput.h"
-#include "resize-indicator.h"
+#include "config/types.h"
 #include "ssd.h"
-#include "theme.h"
 
-enum view_placement_policy {
-	LAB_PLACE_INVALID = 0,
-	LAB_PLACE_CENTER,
-	LAB_PLACE_CURSOR,
-	LAB_PLACE_AUTOMATIC,
-	LAB_PLACE_CASCADE,
-};
+#define BUTTON_MAP_MAX 16
 
 enum adaptive_sync_mode {
 	LAB_ADAPTIVE_SYNC_DISABLED,
 	LAB_ADAPTIVE_SYNC_ENABLED,
 	LAB_ADAPTIVE_SYNC_FULLSCREEN,
+};
+
+enum resize_indicator_mode {
+	LAB_RESIZE_INDICATOR_NEVER = 0,
+	LAB_RESIZE_INDICATOR_ALWAYS,
+	LAB_RESIZE_INDICATOR_NON_PIXEL
 };
 
 enum tearing_mode {
@@ -46,6 +40,11 @@ enum tiling_events_mode {
 	LAB_TILING_EVENTS_EDGE = 1 << 1,
 	LAB_TILING_EVENTS_ALWAYS =
 		(LAB_TILING_EVENTS_REGION | LAB_TILING_EVENTS_EDGE),
+};
+
+struct button_map_entry {
+	uint32_t from;
+	uint32_t to;
 };
 
 struct title_button {
@@ -72,7 +71,7 @@ struct rcxml {
 	enum tearing_mode allow_tearing;
 	bool auto_enable_outputs;
 	bool reuse_output_mode;
-	enum view_placement_policy placement_policy;
+	enum lab_placement_policy placement_policy;
 	bool xwayland_persistence;
 	bool primary_selection;
 	int placement_cascade_offset_x;
@@ -110,7 +109,7 @@ struct rcxml {
 	/* keyboard */
 	int repeat_rate;
 	int repeat_delay;
-	enum three_state kb_numlock_enable;
+	enum lab_tristate kb_numlock_enable;
 	bool kb_layout_per_window;
 	struct wl_list keybinds;   /* struct keybind.link */
 
@@ -126,12 +125,12 @@ struct rcxml {
 		bool force_mouse_emulation;
 		char *output_name;
 		struct wlr_fbox box;
-		enum rotation rotation;
+		enum lab_rotation rotation;
 		uint16_t button_map_count;
 		struct button_map_entry button_map[BUTTON_MAP_MAX];
 	} tablet;
 	struct tablet_tool_config {
-		enum motion motion;
+		enum lab_motion motion;
 		double relative_motion_sensitivity;
 	} tablet_tool;
 

@@ -10,6 +10,7 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
+#include "config/rcxml.h"
 #include "img/img.h"
 
 #include "labwc.h"

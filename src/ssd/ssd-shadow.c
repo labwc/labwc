@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <assert.h>
+#include <cairo.h>
 #include <wlr/types/wlr_scene.h>
-#include "labwc.h"
 #include "buffer.h"
+#include "config/rcxml.h"
+#include "labwc.h"
 #include "ssd-internal.h"
 #include "theme.h"
 #include "view.h"
-#include <cairo.h>
 
 #define FOR_EACH_STATE(ssd, tmp) FOR_EACH(tmp, \
 	&(ssd)->shadow.active, \

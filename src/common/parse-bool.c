@@ -3,8 +3,8 @@
 #include <strings.h>
 #include <wlr/util/log.h>
 
-enum three_state
-parse_three_state(const char *str)
+enum lab_tristate
+parse_tristate(const char *str)
 {
 	if (!str) {
 		goto error_not_a_boolean;
@@ -33,7 +33,7 @@ error_not_a_boolean:
 int
 parse_bool(const char *str, int default_value)
 {
-	enum three_state val = parse_three_state(str);
+	enum lab_tristate val = parse_tristate(str);
 	if (val == LAB_STATE_UNSPECIFIED) {
 		return default_value;
 	}

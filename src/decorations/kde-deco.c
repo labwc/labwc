@@ -4,6 +4,7 @@
 #include <wlr/types/wlr_xdg_shell.h>
 #include "common/list.h"
 #include "common/mem.h"
+#include "config/rcxml.h"
 #include "decorations.h"
 #include "labwc.h"
 #include "view.h"

@@ -11,6 +11,7 @@
 #include <wlr/util/log.h>
 #include "common/list.h"
 #include "common/mem.h"
+#include "config/rcxml.h"
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "output.h"

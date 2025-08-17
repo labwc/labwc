@@ -12,6 +12,7 @@
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "config/mousebind.h"
+#include "config/tablet.h"
 #include "input/cursor.h"
 #include "input/tablet-pad.h"
 #include "labwc.h"
@@ -92,8 +93,8 @@ tablet_tool_create(struct seat *seat,
 	return tool;
 }
 
-static enum motion
-tool_motion_mode(enum motion motion, struct wlr_tablet_tool *tool)
+static enum lab_motion
+tool_motion_mode(enum lab_motion motion, struct wlr_tablet_tool *tool)
 {
 	/*
 	 * Absolute positioning doesn't make sense
@@ -102,7 +103,7 @@ tool_motion_mode(enum motion motion, struct wlr_tablet_tool *tool)
 	switch (tool->type) {
 	case WLR_TABLET_TOOL_TYPE_MOUSE:
 	case WLR_TABLET_TOOL_TYPE_LENS:
-		return LAB_TABLET_MOTION_RELATIVE;
+		return LAB_MOTION_RELATIVE;
 	default:
 		return motion;
 	}
@@ -137,7 +138,7 @@ adjust_for_tablet_area(double tablet_width, double tablet_height,
 }
 
 static void
-adjust_for_rotation(enum rotation rotation, double *x, double *y)
+adjust_for_rotation(enum lab_rotation rotation, double *x, double *y)
 {
 	double tmp;
 	switch (rotation) {
@@ -161,7 +162,7 @@ adjust_for_rotation(enum rotation rotation, double *x, double *y)
 }
 
 static void
-adjust_for_rotation_relative(enum rotation rotation, double *dx, double *dy)
+adjust_for_rotation_relative(enum lab_rotation rotation, double *dx, double *dy)
 {
 	double tmp;
 	switch (rotation) {
@@ -220,11 +221,11 @@ tablet_get_coords(struct drawing_tablet *tablet, struct drawing_tablet_tool *too
 	/* initialize here to avoid a maybe-uninitialized compiler warning */
 	double lx = -1, ly = -1;
 	switch (tool->motion_mode) {
-	case LAB_TABLET_MOTION_ABSOLUTE:
+	case LAB_MOTION_ABSOLUTE:
 		wlr_cursor_absolute_to_layout_coords(tablet->seat->cursor,
 			tablet->wlr_input_device, *x, *y, &lx, &ly);
 		break;
-	case LAB_TABLET_MOTION_RELATIVE:
+	case LAB_MOTION_RELATIVE:
 		/*
 		 * Deltas dx,dy will be directly passed into wlr_cursor_move,
 		 * so we can add those directly here to determine our future
@@ -262,11 +263,11 @@ notify_motion(struct drawing_tablet *tablet, struct drawing_tablet_tool *tool,
 	}
 
 	switch (tool->motion_mode) {
-	case LAB_TABLET_MOTION_ABSOLUTE:
+	case LAB_MOTION_ABSOLUTE:
 		wlr_cursor_warp_absolute(tablet->seat->cursor,
 			tablet->wlr_input_device, x, y);
 		break;
-	case LAB_TABLET_MOTION_RELATIVE:
+	case LAB_MOTION_RELATIVE:
 		wlr_cursor_move(tablet->seat->cursor,
 			tablet->wlr_input_device, dx, dy);
 		break;
@@ -500,12 +501,12 @@ handle_tablet_tool_axis(struct wl_listener *listener, void *data)
 			}
 
 			switch (tool->motion_mode) {
-			case LAB_TABLET_MOTION_ABSOLUTE:
+			case LAB_MOTION_ABSOLUTE:
 				cursor_emulate_move_absolute(tablet->seat,
 					&ev->tablet->base,
 					x, y, ev->time_msec);
 				break;
-			case LAB_TABLET_MOTION_RELATIVE:
+			case LAB_MOTION_RELATIVE:
 				cursor_emulate_move(tablet->seat,
 					&ev->tablet->base,
 					dx, dy, ev->time_msec);

@@ -7,6 +7,7 @@
 #include "common/fd-util.h"
 #include "common/font.h"
 #include "common/spawn.h"
+#include "config/rcxml.h"
 #include "config/session.h"
 #include "labwc.h"
 #include "theme.h"

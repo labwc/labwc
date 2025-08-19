@@ -723,6 +723,9 @@ fill_libinput_category(xmlNode *node)
 	xmlNode *child;
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (string_null_or_empty(content)) {
+			continue;
+		}
 		if (!strcmp(key, "category")) {
 			/*
 			 * First we try to get a type based on a number of

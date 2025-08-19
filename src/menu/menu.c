@@ -899,6 +899,7 @@ update_client_list_combined_menu(struct server *server)
 		wl_list_for_each(view, &server->views, link) {
 			if (view->workspace == workspace) {
 				const char *title = view_get_string_prop(view, "title");
+				const char *appid = view_get_string_prop(view, "app_id");
 				if (!view->foreign_toplevel || string_null_or_empty(title)) {
 					continue;
 				}
@@ -906,7 +907,10 @@ update_client_list_combined_menu(struct server *server)
 				if (view == server->active_view) {
 					buf_add(&buffer, "*");
 				}
-				buf_add(&buffer, title);
+				else if (view->minimized) {
+                    		buf_add_fmt(&buffer, "(%s - %s)", title, appid);
+                		} 
+				buf_add_fmt(&buffer, "%s - %s", title, appid);
 
 				item = item_create(menu, buffer.data, NULL,
 					/*show arrow*/ false);

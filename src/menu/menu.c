@@ -907,11 +907,12 @@ update_client_list_combined_menu(struct server *server)
 				if (view == server->active_view) {
 					buf_add(&buffer, "*");
 				}
-				else if (view->minimized) {
+				if (view->minimized) {
 				buf_add_fmt(&buffer, "(%s - %s)", title, appid);
-                		}
+				}
+				else
 				buf_add_fmt(&buffer, "%s - %s", title, appid);
-				
+
 				item = item_create(menu, buffer.data, NULL,
 					/*show arrow*/ false);
 				item->client_list_view = view;

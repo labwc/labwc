@@ -33,6 +33,10 @@ enum lab_edge {
 	LAB_EDGE_DOWNRIGHT = (LAB_EDGE_DOWN | LAB_EDGE_RIGHT),
 };
 
+/**
+ * Indicates whether tablet tool motion events should be reported using
+ * absolute or relative coordinates
+ */
 enum lab_motion {
 	LAB_MOTION_ABSOLUTE = 0,
 	LAB_MOTION_RELATIVE,

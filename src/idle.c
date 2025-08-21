@@ -19,7 +19,6 @@ struct lab_idle_manager {
 		struct wl_listener on_new_inhibitor;
 		struct wl_listener on_destroy;
 	} inhibitor;
-	struct wlr_seat *wlr_seat;
 };
 
 static struct lab_idle_manager *manager;
@@ -67,11 +66,10 @@ handle_inhibitor_manager_destroy(struct wl_listener *listener, void *data)
 }
 
 void
-idle_manager_create(struct wl_display *display, struct wlr_seat *wlr_seat)
+idle_manager_create(struct wl_display *display)
 {
 	assert(!manager);
 	manager = znew(*manager);
-	manager->wlr_seat = wlr_seat;
 
 	manager->ext = wlr_idle_notifier_v1_create(display);
 

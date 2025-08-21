@@ -21,7 +21,7 @@ struct drawing_tablet_tool {
 	 */
 	bool force_mouse_emulation;
 
-	enum motion motion_mode;
+	enum lab_motion motion_mode;
 	double x, y, dx, dy;
 	double distance;
 	double pressure;

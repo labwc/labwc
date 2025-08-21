@@ -3,6 +3,8 @@
 <!--
   This file contains all supported config elements & attributes with
   default values.
+
+  Values for [yes|no] can be replaced by [true|false], [on|off] or [1|0].
 -->
 
 <labwc_config>
@@ -609,7 +611,13 @@
       - sendEventsMode [yes|no|disabledOnExternalMouse]
       - calibrationMatrix [six float values split by space]
       - scrollFactor [float]
+   
+    The following <libinput>...</libinput> block may not be complete for
+    your requirements. Default values are device specific. Only set an option
+    if you require to override the default. Valid values must be inserted.
+
   -->
+
   <libinput>
     <device category="default">
       <naturalScroll></naturalScroll>

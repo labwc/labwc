@@ -15,7 +15,9 @@
 #include "common/parse-bool.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
+#include "config/rcxml.h"
 #include "debug.h"
+#include "input/keyboard.h"
 #include "labwc.h"
 #include "magnifier.h"
 #include "menu/menu.h"
@@ -24,9 +26,9 @@
 #include "output-virtual.h"
 #include "regions.h"
 #include "ssd.h"
+#include "theme.h"
 #include "view.h"
 #include "workspaces.h"
-#include "input/keyboard.h"
 
 enum action_arg_type {
 	LAB_ACTION_ARG_STR = 0,
@@ -345,8 +347,8 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		if (!strcmp(argument, "direction")) {
 			bool tiled = (action->type == ACTION_TYPE_TOGGLE_SNAP_TO_EDGE
 					|| action->type == ACTION_TYPE_SNAP_TO_EDGE);
-			enum view_edge edge = view_edge_parse(content, tiled, /*any*/ false);
-			if (edge == VIEW_EDGE_INVALID) {
+			enum lab_edge edge = view_edge_parse(content, tiled, /*any*/ false);
+			if (edge == LAB_EDGE_INVALID) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			} else {
@@ -389,7 +391,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		break;
 	case ACTION_TYPE_SET_DECORATIONS:
 		if (!strcmp(argument, "decorations")) {
-			enum ssd_mode mode = ssd_mode_parse(content);
+			enum lab_ssd_mode mode = ssd_mode_parse(content);
 			if (mode != LAB_SSD_MODE_INVALID) {
 				action_arg_add_int(action, argument, mode);
 			} else {
@@ -453,9 +455,9 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		if (!strcmp(argument, "direction")) {
-			enum view_edge edge = view_edge_parse(content,
+			enum lab_edge edge = view_edge_parse(content,
 				/*tiled*/ false, /*any*/ false);
-			if (edge == VIEW_EDGE_INVALID) {
+			if (edge == LAB_EDGE_INVALID) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			} else {
@@ -477,7 +479,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		break;
 	case ACTION_TYPE_AUTO_PLACE:
 		if (!strcmp(argument, "policy")) {
-			enum view_placement_policy policy =
+			enum lab_placement_policy policy =
 				view_placement_parse(content);
 			if (policy == LAB_PLACE_INVALID) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
@@ -913,8 +915,8 @@ get_target_output(struct output *output, struct server *server,
 	if (output_name) {
 		target = output_from_name(server, output_name);
 	} else {
-		enum view_edge edge =
-			action_get_int(action, "direction", VIEW_EDGE_INVALID);
+		enum lab_edge edge =
+			action_get_int(action, "direction", LAB_EDGE_INVALID);
 		bool wrap = action_get_bool(action, "wrap", false);
 		target = output_get_adjacent(output, edge, wrap);
 	}
@@ -1003,7 +1005,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 	case ACTION_TYPE_MOVE_TO_EDGE:
 		if (view) {
 			/* Config parsing makes sure that direction is a valid direction */
-			enum view_edge edge = action_get_int(action, "direction", 0);
+			enum lab_edge edge = action_get_int(action, "direction", 0);
 			bool snap_to_windows = action_get_bool(action, "snapWindows", true);
 			view_move_to_edge(view, edge, snap_to_windows);
 		}
@@ -1012,7 +1014,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 	case ACTION_TYPE_SNAP_TO_EDGE:
 		if (view) {
 			/* Config parsing makes sure that direction is a valid direction */
-			enum view_edge edge = action_get_int(action, "direction", 0);
+			enum lab_edge edge = action_get_int(action, "direction", 0);
 			if (action->type == ACTION_TYPE_TOGGLE_SNAP_TO_EDGE
 					&& view->maximized == VIEW_AXIS_NONE
 					&& !view->fullscreen
@@ -1030,14 +1032,14 @@ run_action(struct view *view, struct server *server, struct action *action,
 	case ACTION_TYPE_GROW_TO_EDGE:
 		if (view) {
 			/* Config parsing makes sure that direction is a valid direction */
-			enum view_edge edge = action_get_int(action, "direction", 0);
+			enum lab_edge edge = action_get_int(action, "direction", 0);
 			view_grow_to_edge(view, edge);
 		}
 		break;
 	case ACTION_TYPE_SHRINK_TO_EDGE:
 		if (view) {
 			/* Config parsing makes sure that direction is a valid direction */
-			enum view_edge edge = action_get_int(action, "direction", 0);
+			enum lab_edge edge = action_get_int(action, "direction", 0);
 			view_shrink_to_edge(view, edge);
 		}
 		break;
@@ -1095,7 +1097,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 		break;
 	case ACTION_TYPE_SET_DECORATIONS:
 		if (view) {
-			enum ssd_mode mode = action_get_int(action,
+			enum lab_ssd_mode mode = action_get_int(action,
 				"decorations", LAB_SSD_MODE_FULL);
 			bool force_ssd = action_get_bool(action,
 				"forceSSD", false);
@@ -1378,7 +1380,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 	}
 	case ACTION_TYPE_AUTO_PLACE:
 		if (view) {
-			enum view_placement_policy policy =
+			enum lab_placement_policy policy =
 				action_get_int(action, "policy", LAB_PLACE_AUTOMATIC);
 			view_place_by_policy(view,
 				/* allow_cursor */ true, policy);

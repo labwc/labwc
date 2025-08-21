@@ -1524,37 +1524,37 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 			return LAB_EXIT_FAILURE;
 		case TO_COLOR_BACKGROUND: /* Background color */
 			if (!parse_color(optarg, &conf->background)) {
-				fprintf(stderr, "Invalid background color: %s", optarg);
+				fprintf(stderr, "Invalid background color: %s\n", optarg);
 			}
 			break;
 		case TO_COLOR_BORDER: /* Border color */
 			if (!parse_color(optarg, &conf->border)) {
-				fprintf(stderr, "Invalid border color: %s", optarg);
+				fprintf(stderr, "Invalid border color: %s\n", optarg);
 			}
 			break;
 		case TO_COLOR_BORDER_BOTTOM: /* Bottom border color */
 			if (!parse_color(optarg, &conf->border_bottom)) {
-				fprintf(stderr, "Invalid border bottom color: %s", optarg);
+				fprintf(stderr, "Invalid border bottom color: %s\n", optarg);
 			}
 			break;
 		case TO_COLOR_BUTTON: /* Button background color */
 			if (!parse_color(optarg, &conf->button_background)) {
-				fprintf(stderr, "Invalid button background color: %s", optarg);
+				fprintf(stderr, "Invalid button background color: %s\n", optarg);
 			}
 			break;
 		case TO_COLOR_DETAILS: /* Details background color */
 			if (!parse_color(optarg, &conf->details_background)) {
-				fprintf(stderr, "Invalid details background color: %s", optarg);
+				fprintf(stderr, "Invalid details background color: %s\n", optarg);
 			}
 			break;
 		case TO_COLOR_TEXT: /* Text color */
 			if (!parse_color(optarg, &conf->text)) {
-				fprintf(stderr, "Invalid text color: %s", optarg);
+				fprintf(stderr, "Invalid text color: %s\n", optarg);
 			}
 			break;
 		case TO_COLOR_BUTTON_TEXT: /* Button text color */
 			if (!parse_color(optarg, &conf->button_text)) {
-				fprintf(stderr, "Invalid button text color: %s", optarg);
+				fprintf(stderr, "Invalid button text color: %s\n", optarg);
 			}
 			break;
 		case TO_THICK_BAR_BORDER: /* Bottom border thickness */

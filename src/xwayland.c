@@ -41,40 +41,40 @@ static void xwayland_view_unmap(struct view *view, bool client_request);
 
 static bool
 xwayland_view_contains_window_type(struct view *view,
-		enum window_type window_type)
+		enum lab_window_type window_type)
 {
 	/* Compile-time check that the enum types match */
-	static_assert(NET_WM_WINDOW_TYPE_DESKTOP ==
+	static_assert(LAB_WINDOW_TYPE_DESKTOP ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DESKTOP
-		&& NET_WM_WINDOW_TYPE_DOCK ==
+		&& LAB_WINDOW_TYPE_DOCK ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DOCK
-		&& NET_WM_WINDOW_TYPE_TOOLBAR ==
+		&& LAB_WINDOW_TYPE_TOOLBAR ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_TOOLBAR
-		&& NET_WM_WINDOW_TYPE_MENU ==
+		&& LAB_WINDOW_TYPE_MENU ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_MENU
-		&& NET_WM_WINDOW_TYPE_UTILITY ==
+		&& LAB_WINDOW_TYPE_UTILITY ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_UTILITY
-		&& NET_WM_WINDOW_TYPE_SPLASH ==
+		&& LAB_WINDOW_TYPE_SPLASH ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_SPLASH
-		&& NET_WM_WINDOW_TYPE_DIALOG ==
+		&& LAB_WINDOW_TYPE_DIALOG ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DIALOG
-		&& NET_WM_WINDOW_TYPE_DROPDOWN_MENU ==
+		&& LAB_WINDOW_TYPE_DROPDOWN_MENU ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DROPDOWN_MENU
-		&& NET_WM_WINDOW_TYPE_POPUP_MENU ==
+		&& LAB_WINDOW_TYPE_POPUP_MENU ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_POPUP_MENU
-		&& NET_WM_WINDOW_TYPE_TOOLTIP ==
+		&& LAB_WINDOW_TYPE_TOOLTIP ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_TOOLTIP
-		&& NET_WM_WINDOW_TYPE_NOTIFICATION ==
+		&& LAB_WINDOW_TYPE_NOTIFICATION ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_NOTIFICATION
-		&& NET_WM_WINDOW_TYPE_COMBO ==
+		&& LAB_WINDOW_TYPE_COMBO ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_COMBO
-		&& NET_WM_WINDOW_TYPE_DND ==
+		&& LAB_WINDOW_TYPE_DND ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DND
-		&& NET_WM_WINDOW_TYPE_NORMAL ==
+		&& LAB_WINDOW_TYPE_NORMAL ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_NORMAL
-		&& WINDOW_TYPE_LEN ==
+		&& LAB_WINDOW_TYPE_LEN ==
 			(int)WLR_XWAYLAND_NET_WM_WINDOW_TYPE_NORMAL + 1,
-		"enum window_type does not match wlr_xwayland_net_wm_window_type");
+		"lab_window_type does not match wlr_xwayland_net_wm_window_type");
 
 	assert(view);
 	struct wlr_xwayland_surface *surface = xwayland_surface_from_view(view);

@@ -16,6 +16,9 @@
 #include <wlr/util/log.h>
 #include "common/macros.h"
 #include "common/mem.h"
+#include "config/libinput.h"
+#include "config/rcxml.h"
+#include "config/touch.h"
 #include "input/ime.h"
 #include "input/tablet.h"
 #include "input/tablet-pad.h"
@@ -146,6 +149,10 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	 */
 	assert(dc);
 
+	libinput_device_config_tap_set_enabled(libinput_dev,
+		libinput_device_config_tap_get_default_enabled(libinput_dev));
+	libinput_device_config_tap_set_button_map(libinput_dev,
+		libinput_device_config_tap_get_default_button_map(libinput_dev));
 	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0) {
 		wlr_log(WLR_INFO, "tap unavailable");
 	} else {
@@ -155,6 +162,8 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 			dc->tap_button_map);
 	}
 
+	libinput_device_config_tap_set_drag_enabled(libinput_dev,
+		libinput_device_config_tap_get_default_drag_enabled(libinput_dev));
 	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0
 			|| dc->tap_and_drag < 0) {
 		wlr_log(WLR_INFO, "tap-and-drag not configured");
@@ -164,6 +173,8 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 			libinput_dev, dc->tap_and_drag);
 	}
 
+	libinput_device_config_tap_set_drag_lock_enabled(libinput_dev,
+		libinput_device_config_tap_get_default_drag_lock_enabled(libinput_dev));
 	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0
 			|| dc->drag_lock < 0) {
 		wlr_log(WLR_INFO, "drag lock not configured");
@@ -174,6 +185,8 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	}
 
 #if HAVE_LIBINPUT_CONFIG_3FG_DRAG_ENABLED_3FG
+	libinput_device_config_3fg_drag_set_enabled(libinput_dev,
+		libinput_device_config_3fg_drag_get_default_enabled(libinput_dev));
 	if (libinput_device_config_tap_get_finger_count(libinput_dev) <= 0
 			|| dc->three_finger_drag < 0) {
 		wlr_log(WLR_INFO, "three-finger drag not configured");
@@ -184,6 +197,8 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	}
 #endif
 
+	libinput_device_config_scroll_set_natural_scroll_enabled(libinput_dev,
+		libinput_device_config_scroll_get_default_natural_scroll_enabled(libinput_dev));
 	if (libinput_device_config_scroll_has_natural_scroll(libinput_dev) <= 0
 			|| dc->natural_scroll < 0) {
 		wlr_log(WLR_INFO, "natural scroll not configured");
@@ -193,6 +208,8 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 			libinput_dev, dc->natural_scroll);
 	}
 
+	libinput_device_config_left_handed_set(libinput_dev,
+		libinput_device_config_left_handed_get_default(libinput_dev));
 	if (libinput_device_config_left_handed_is_available(libinput_dev) <= 0
 			|| dc->left_handed < 0) {
 		wlr_log(WLR_INFO, "left-handed mode not configured");
@@ -202,6 +219,10 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 			dc->left_handed);
 	}
 
+	libinput_device_config_accel_set_speed(libinput_dev,
+		libinput_device_config_accel_get_default_speed(libinput_dev));
+	libinput_device_config_accel_set_profile(libinput_dev,
+		libinput_device_config_accel_get_default_profile(libinput_dev));
 	if (libinput_device_config_accel_is_available(libinput_dev) == 0) {
 		wlr_log(WLR_INFO, "pointer acceleration unavailable");
 	} else {
@@ -216,6 +237,8 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		}
 	}
 
+	libinput_device_config_middle_emulation_set_enabled(libinput_dev,
+		libinput_device_config_middle_emulation_get_default_enabled(libinput_dev));
 	if (libinput_device_config_middle_emulation_is_available(libinput_dev)
 			== 0 || dc->middle_emu < 0)  {
 		wlr_log(WLR_INFO, "middle emulation not configured");
@@ -225,6 +248,8 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 			libinput_dev, dc->middle_emu);
 	}
 
+	libinput_device_config_dwt_set_enabled(libinput_dev,
+		libinput_device_config_dwt_get_default_enabled(libinput_dev));
 	if (libinput_device_config_dwt_is_available(libinput_dev) == 0
 			|| dc->dwt < 0) {
 		wlr_log(WLR_INFO, "dwt not configured");
@@ -233,6 +258,8 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		libinput_device_config_dwt_set_enabled(libinput_dev, dc->dwt);
 	}
 
+	libinput_device_config_click_set_method(libinput_dev,
+		libinput_device_config_click_get_default_method(libinput_dev));
 	if ((dc->click_method != LIBINPUT_CONFIG_CLICK_METHOD_NONE
 			&& (libinput_device_config_click_get_methods(libinput_dev)
 				& dc->click_method) == 0)
@@ -253,6 +280,8 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		libinput_device_config_click_set_method(libinput_dev, dc->click_method);
 	}
 
+	libinput_device_config_scroll_set_method(libinput_dev,
+		libinput_device_config_scroll_get_default_method(libinput_dev));
 	if (dc->scroll_method < 0) {
 		wlr_log(WLR_INFO, "scroll method not configured");
 	} else if (dc->scroll_method != LIBINPUT_CONFIG_SCROLL_NO_SCROLL
@@ -264,6 +293,8 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		libinput_device_config_scroll_set_method(libinput_dev, dc->scroll_method);
 	}
 
+	libinput_device_config_send_events_set_mode(libinput_dev,
+		libinput_device_config_send_events_get_default_mode(libinput_dev));
 	if ((dc->send_events_mode != LIBINPUT_CONFIG_SEND_EVENTS_ENABLED
 			&& (libinput_device_config_send_events_get_modes(libinput_dev)
 				& dc->send_events_mode) == 0)
@@ -274,6 +305,9 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		libinput_device_config_send_events_set_mode(libinput_dev, dc->send_events_mode);
 	}
 
+	float default_matrix[6];
+	libinput_device_config_calibration_get_default_matrix(libinput_dev, default_matrix);
+	libinput_device_config_calibration_set_matrix(libinput_dev, default_matrix);
 	/* Non-zero if the device can be calibrated, zero otherwise. */
 	if (libinput_device_config_calibration_has_matrix(libinput_dev) == 0
 			|| !dc->have_calibration_matrix) {

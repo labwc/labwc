@@ -4,7 +4,7 @@
 
 #include <wlr/types/wlr_output.h>
 
-enum view_edge;
+enum lab_edge;
 
 #define LAB_NR_LAYERS (4)
 
@@ -60,7 +60,7 @@ struct output *output_nearest_to_cursor(struct server *server);
  * reference instead.
  */
 struct output *output_get_adjacent(struct output *output,
-	enum view_edge edge, bool wrap);
+	enum lab_edge edge, bool wrap);
 
 bool output_is_usable(struct output *output);
 void output_update_usable_area(struct output *output);

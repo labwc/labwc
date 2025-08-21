@@ -21,7 +21,7 @@ tablet_get_dbl_if_positive(const char *content, const char *name)
 	return value;
 }
 
-enum rotation
+enum lab_rotation
 tablet_parse_rotation(int value)
 {
 	switch (value) {

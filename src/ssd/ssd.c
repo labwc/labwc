@@ -11,6 +11,7 @@
 #include <wlr/types/wlr_scene.h>
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "config/rcxml.h"
 #include "labwc.h"
 #include "ssd-internal.h"
 #include "theme.h"
@@ -408,7 +409,7 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 	return false;
 }
 
-enum ssd_mode
+enum lab_ssd_mode
 ssd_mode_parse(const char *mode)
 {
 	if (!mode) {

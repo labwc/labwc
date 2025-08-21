@@ -4,14 +4,14 @@
 #include <strings.h>
 #include <wlr/util/log.h>
 
-enum motion
+enum lab_motion
 tablet_parse_motion(const char *name)
 {
 	if (!strcasecmp(name, "Absolute")) {
-		return LAB_TABLET_MOTION_ABSOLUTE;
+		return LAB_MOTION_ABSOLUTE;
 	} else if (!strcasecmp(name, "Relative")) {
-		return LAB_TABLET_MOTION_RELATIVE;
+		return LAB_MOTION_RELATIVE;
 	}
 	wlr_log(WLR_ERROR, "Invalid value for tablet motion: %s", name);
-	return LAB_TABLET_MOTION_ABSOLUTE;
+	return LAB_MOTION_ABSOLUTE;
 }

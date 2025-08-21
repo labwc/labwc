@@ -3,8 +3,10 @@
 #include "resize-outlines.h"
 #include <wlr/types/wlr_scene.h>
 #include "common/lab-scene-rect.h"
-#include "ssd.h"
 #include "labwc.h"
+#include "resize-indicator.h"
+#include "ssd.h"
+#include "theme.h"
 
 bool
 resize_outlines_enabled(struct view *view)

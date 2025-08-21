@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
+#include "config/rcxml.h"
 #include "edges.h"
 #include "input/keyboard.h"
 #include "labwc.h"
@@ -166,11 +167,11 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 
 bool
 edge_from_cursor(struct seat *seat, struct output **dest_output,
-		enum view_edge *edge1, enum view_edge *edge2)
+		enum lab_edge *edge1, enum lab_edge *edge2)
 {
 	*dest_output = NULL;
-	*edge1 = VIEW_EDGE_INVALID;
-	*edge2 = VIEW_EDGE_INVALID;
+	*edge1 = LAB_EDGE_INVALID;
+	*edge2 = LAB_EDGE_INVALID;
 
 	if (!view_is_floating(seat->server->grabbed_view)) {
 		return false;
@@ -201,28 +202,28 @@ edge_from_cursor(struct seat *seat, struct output **dest_output,
 	int right = area->x + area->width - cursor_x;
 
 	if (top < rc.snap_edge_range) {
-		*edge1 = VIEW_EDGE_UP;
+		*edge1 = LAB_EDGE_UP;
 	} else if (bottom < rc.snap_edge_range) {
-		*edge1 = VIEW_EDGE_DOWN;
+		*edge1 = LAB_EDGE_DOWN;
 	} else if (left < rc.snap_edge_range) {
-		*edge1 = VIEW_EDGE_LEFT;
+		*edge1 = LAB_EDGE_LEFT;
 	} else if (right < rc.snap_edge_range) {
-		*edge1 = VIEW_EDGE_RIGHT;
+		*edge1 = LAB_EDGE_RIGHT;
 	} else {
 		return false;
 	}
 
-	if (*edge1 == VIEW_EDGE_UP || *edge1 == VIEW_EDGE_DOWN) {
+	if (*edge1 == LAB_EDGE_UP || *edge1 == LAB_EDGE_DOWN) {
 		if (left < rc.snap_edge_corner_range) {
-			*edge2 = VIEW_EDGE_LEFT;
+			*edge2 = LAB_EDGE_LEFT;
 		} else if (right < rc.snap_edge_corner_range) {
-			*edge2 = VIEW_EDGE_RIGHT;
+			*edge2 = LAB_EDGE_RIGHT;
 		}
-	} else if (*edge1  == VIEW_EDGE_LEFT || *edge1 == VIEW_EDGE_RIGHT) {
+	} else if (*edge1  == LAB_EDGE_LEFT || *edge1 == LAB_EDGE_RIGHT) {
 		if (top < rc.snap_edge_corner_range) {
-			*edge2 = VIEW_EDGE_UP;
+			*edge2 = LAB_EDGE_UP;
 		} else if (bottom < rc.snap_edge_corner_range) {
-			*edge2 = VIEW_EDGE_DOWN;
+			*edge2 = LAB_EDGE_DOWN;
 		}
 	}
 
@@ -234,18 +235,18 @@ static bool
 snap_to_edge(struct view *view)
 {
 	struct output *output;
-	enum view_edge edge1, edge2;
+	enum lab_edge edge1, edge2;
 	if (!edge_from_cursor(&view->server->seat, &output, &edge1, &edge2)) {
 		return false;
 	}
-	enum view_edge edge = edge1 | edge2;
+	enum lab_edge edge = edge1 | edge2;
 
 	view_set_output(view, output);
 	/*
 	 * Don't store natural geometry here (it was
 	 * stored already in interactive_begin())
 	 */
-	if (edge == VIEW_EDGE_UP && rc.snap_top_maximize) {
+	if (edge == LAB_EDGE_UP && rc.snap_top_maximize) {
 		/* <topMaximize> */
 		view_maximize(view, VIEW_AXIS_BOTH,
 			/*store_natural_geometry*/ false);

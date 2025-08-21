@@ -10,6 +10,7 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
+#include "config/rcxml.h"
 #include "img/img.h"
 
 #include "labwc.h"
@@ -268,7 +269,7 @@ get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
 		int alen = strlen(app_id);
 		int dlen = strlen(desktop_id_base);
 
-		if (!strncasecmp(app_id, desktop_id, alen > dlen ? dlen : alen)) {
+		if (!strncasecmp(app_id, desktop_id_base, alen > dlen ? dlen : alen)) {
 			return entry;
 		}
 	}

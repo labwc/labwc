@@ -22,6 +22,7 @@
 #include "common/scene-helpers.h"
 #include "common/surface-helpers.h"
 #include "config/mousebind.h"
+#include "config/rcxml.h"
 #include "dnd.h"
 #include "idle.h"
 #include "input/gestures.h"

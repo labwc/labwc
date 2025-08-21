@@ -15,6 +15,7 @@
 #include "common/list.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
+#include "config/rcxml.h"
 #include "labwc.h"
 
 struct dir {

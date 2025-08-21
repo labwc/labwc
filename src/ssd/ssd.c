@@ -312,6 +312,12 @@ ssd_update_geometry(struct ssd *ssd)
 		|| ssd->state.was_squared != squared
 		|| ssd->state.was_omnipresent != view->visible_on_all_workspaces;
 
+	/*
+	 * (Un)maximization updates titlebar visibility with
+	 * maximizedDecoration=none
+	 */
+	ssd_set_titlebar(ssd, view_titlebar_visible(view));
+
 	if (update_extents) {
 		ssd_extents_update(ssd);
 	}

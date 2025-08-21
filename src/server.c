@@ -661,7 +661,7 @@ server_init(struct server *server)
 	wlr_fractional_scale_manager_v1_create(server->wl_display,
 		LAB_WLR_FRACTIONAL_SCALE_V1_VERSION);
 
-	idle_manager_create(server->wl_display, server->seat.seat);
+	idle_manager_create(server->wl_display);
 
 	server->relative_pointer_manager = wlr_relative_pointer_manager_v1_create(
 		server->wl_display);

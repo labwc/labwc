@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 #include "common/mem.h"
+#include "config/rcxml.h"
 #include "decorations.h"
 #include "labwc.h"
 #include "view.h"

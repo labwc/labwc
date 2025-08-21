@@ -434,11 +434,11 @@ void interactive_cancel(struct view *view);
  * Returns the edge to snap a window to.
  * For example, if the output-relative cursor position (x,y) fulfills
  * x <= (<snapping><cornerRange>) and y <= (<snapping><range>),
- * then edge1=VIEW_EDGE_UP and edge2=VIEW_EDGE_LEFT.
+ * then edge1=LAB_EDGE_UP and edge2=LAB_EDGE_LEFT.
  * The value of (edge1|edge2) can be passed to view_snap_to_edge().
  */
 bool edge_from_cursor(struct seat *seat, struct output **dest_output,
-	enum view_edge *edge1, enum view_edge *edge2);
+	enum lab_edge *edge1, enum lab_edge *edge2);
 
 void handle_tearing_new_object(struct wl_listener *listener, void *data);
 

@@ -8,6 +8,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/transform.h>
 #include "common/box.h"
+#include "config/rcxml.h"
 #include "labwc.h"
 #include "output.h"
 #include "theme.h"

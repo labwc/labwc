@@ -14,6 +14,7 @@
 #include "common/match.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "config/rcxml.h"
 #include "foreign-toplevel/foreign.h"
 #include "input/keyboard.h"
 #include "labwc.h"
@@ -28,6 +29,7 @@
 #include "snap-constraints.h"
 #include "snap.h"
 #include "ssd.h"
+#include "theme.h"
 #include "window-rules.h"
 #include "wlr/util/log.h"
 #include "workspaces.h"
@@ -96,7 +98,7 @@ view_query_free(struct view_query *query)
 }
 
 static bool
-query_tristate_match(enum three_state desired, bool actual)
+query_tristate_match(enum lab_tristate desired, bool actual)
 {
 	switch (desired) {
 	case LAB_STATE_ENABLED:
@@ -169,11 +171,11 @@ view_matches_query(struct view *view, struct view_query *query)
 		return false;
 	}
 
-	if (query->tiled == VIEW_EDGE_ANY) {
+	if (query->tiled == LAB_EDGE_ANY) {
 		if (!view->tiled) {
 			return false;
 		}
-	} else if (query->tiled != VIEW_EDGE_INVALID) {
+	} else if (query->tiled != LAB_EDGE_INVALID) {
 		if (query->tiled != view->tiled) {
 			return false;
 		}
@@ -204,7 +206,7 @@ view_matches_query(struct view *view, struct view_query *query)
 		}
 	}
 
-	enum ssd_mode decor = view_get_ssd_mode(view);
+	enum lab_ssd_mode decor = view_get_ssd_mode(view);
 	if (query->decoration != LAB_SSD_MODE_INVALID && query->decoration != decor) {
 		return false;
 	}
@@ -216,11 +218,11 @@ view_matches_query(struct view *view, struct view_query *query)
 			return false;
 		}
 		if (!strcasecmp(query->monitor, "left") &&
-			output_get_adjacent(current, VIEW_EDGE_LEFT, false) != view->output) {
+			output_get_adjacent(current, LAB_EDGE_LEFT, false) != view->output) {
 			return false;
 		}
 		if (!strcasecmp(query->monitor, "right") &&
-			output_get_adjacent(current, VIEW_EDGE_RIGHT, false) != view->output) {
+			output_get_adjacent(current, LAB_EDGE_RIGHT, false) != view->output) {
 			return false;
 		}
 		if (output_from_name(view->server, query->monitor) != view->output) {
@@ -385,7 +387,7 @@ view_wants_focus(struct view *view)
 }
 
 bool
-view_contains_window_type(struct view *view, enum window_type window_type)
+view_contains_window_type(struct view *view, enum lab_window_type window_type)
 {
 	assert(view);
 	if (view->impl->contains_window_type) {
@@ -427,28 +429,28 @@ view_offer_focus(struct view *view)
  * They may be called repeatably during output layout changes.
  */
 
-enum view_edge
-view_edge_invert(enum view_edge edge)
+enum lab_edge
+view_edge_invert(enum lab_edge edge)
 {
 	switch (edge) {
-	case VIEW_EDGE_LEFT:
-		return VIEW_EDGE_RIGHT;
-	case VIEW_EDGE_RIGHT:
-		return VIEW_EDGE_LEFT;
-	case VIEW_EDGE_UP:
-		return VIEW_EDGE_DOWN;
-	case VIEW_EDGE_DOWN:
-		return VIEW_EDGE_UP;
-	case VIEW_EDGE_CENTER:
-	case VIEW_EDGE_INVALID:
+	case LAB_EDGE_LEFT:
+		return LAB_EDGE_RIGHT;
+	case LAB_EDGE_RIGHT:
+		return LAB_EDGE_LEFT;
+	case LAB_EDGE_UP:
+		return LAB_EDGE_DOWN;
+	case LAB_EDGE_DOWN:
+		return LAB_EDGE_UP;
+	case LAB_EDGE_CENTER:
+	case LAB_EDGE_INVALID:
 	default:
-		return VIEW_EDGE_INVALID;
+		return LAB_EDGE_INVALID;
 	}
 }
 
 struct wlr_box
 view_get_edge_snap_box(struct view *view, struct output *output,
-		enum view_edge edge)
+		enum lab_edge edge)
 {
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	int x1 = rc.gap;
@@ -456,16 +458,16 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 	int x2 = usable.width - rc.gap;
 	int y2 = usable.height - rc.gap;
 
-	if (edge & VIEW_EDGE_RIGHT) {
+	if (edge & LAB_EDGE_RIGHT) {
 		x1 = (usable.width + rc.gap) / 2;
 	}
-	if (edge & VIEW_EDGE_LEFT) {
+	if (edge & LAB_EDGE_LEFT) {
 		x2 = (usable.width - rc.gap) / 2;
 	}
-	if (edge & VIEW_EDGE_DOWN) {
+	if (edge & LAB_EDGE_DOWN) {
 		y1 = (usable.height + rc.gap) / 2;
 	}
-	if (edge & VIEW_EDGE_UP) {
+	if (edge & LAB_EDGE_UP) {
 		y2 = (usable.height - rc.gap) / 2;
 	}
 
@@ -1115,7 +1117,7 @@ view_cascade(struct view *view)
 
 void
 view_place_by_policy(struct view *view, bool allow_cursor,
-		enum view_placement_policy policy)
+		enum lab_placement_policy policy)
 {
 	if (allow_cursor && policy == LAB_PLACE_CURSOR) {
 		view_move_to_cursor(view);
@@ -1458,7 +1460,7 @@ void
 view_set_untiled(struct view *view)
 {
 	assert(view);
-	view->tiled = VIEW_EDGE_INVALID;
+	view->tiled = LAB_EDGE_INVALID;
 	view->tiled_region = NULL;
 	zfree(view->tiled_region_evacuate);
 	view_notify_tiled(view);
@@ -1569,7 +1571,7 @@ view_wants_decorations(struct view *view)
 }
 
 void
-view_set_decorations(struct view *view, enum ssd_mode mode, bool force_ssd)
+view_set_decorations(struct view *view, enum lab_ssd_mode mode, bool force_ssd)
 {
 	assert(view);
 
@@ -1584,7 +1586,7 @@ view_toggle_decorations(struct view *view)
 {
 	assert(view);
 
-	enum ssd_mode mode = view_get_ssd_mode(view);
+	enum lab_ssd_mode mode = view_get_ssd_mode(view);
 	if (rc.ssd_keep_border && mode == LAB_SSD_MODE_FULL) {
 		view_set_ssd_mode(view, LAB_SSD_MODE_BORDER);
 	} else if (mode != LAB_SSD_MODE_NONE) {
@@ -1674,7 +1676,7 @@ undecorate(struct view *view)
 	view->ssd = NULL;
 }
 
-enum ssd_mode
+enum lab_ssd_mode
 view_get_ssd_mode(struct view *view)
 {
 	assert(view);
@@ -1689,7 +1691,7 @@ view_get_ssd_mode(struct view *view)
 }
 
 void
-view_set_ssd_mode(struct view *view, enum ssd_mode mode)
+view_set_ssd_mode(struct view *view, enum lab_ssd_mode mode)
 {
 	assert(view);
 
@@ -1974,7 +1976,7 @@ shift_view_to_usable_1d(int size,
 }
 
 void
-view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_windows)
+view_move_to_edge(struct view *view, enum lab_edge direction, bool snap_to_windows)
 {
 	assert(view);
 	if (!output_is_usable(view->output)) {
@@ -2020,16 +2022,16 @@ view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_wind
 	/* Compute the new position in the direction of motion */
 	direction = view_edge_invert(direction);
 	switch (direction) {
-	case VIEW_EDGE_LEFT:
+	case LAB_EDGE_LEFT:
 		destination_x = left;
 		break;
-	case VIEW_EDGE_RIGHT:
+	case LAB_EDGE_RIGHT:
 		destination_x = right - view->pending.width;
 		break;
-	case VIEW_EDGE_UP:
+	case LAB_EDGE_UP:
 		destination_y = top;
 		break;
-	case VIEW_EDGE_DOWN:
+	case LAB_EDGE_DOWN:
 		destination_y = bottom
 			- view_effective_height(view, /* use_pending */ true);
 		break;
@@ -2057,7 +2059,7 @@ view_move_to_edge(struct view *view, enum view_edge direction, bool snap_to_wind
 }
 
 void
-view_grow_to_edge(struct view *view, enum view_edge direction)
+view_grow_to_edge(struct view *view, enum lab_edge direction)
 {
 	assert(view);
 	/* TODO: allow grow to edge if maximized along the other axis */
@@ -2078,7 +2080,7 @@ view_grow_to_edge(struct view *view, enum view_edge direction)
 }
 
 void
-view_shrink_to_edge(struct view *view, enum view_edge direction)
+view_shrink_to_edge(struct view *view, enum lab_edge direction)
 {
 	assert(view);
 
@@ -2118,46 +2120,46 @@ view_axis_parse(const char *direction)
 	}
 }
 
-enum view_edge
+enum lab_edge
 view_edge_parse(const char *direction, bool tiled, bool any)
 {
 	if (!direction) {
-		return VIEW_EDGE_INVALID;
+		return LAB_EDGE_INVALID;
 	}
 	if (!strcasecmp(direction, "left")) {
-		return VIEW_EDGE_LEFT;
+		return LAB_EDGE_LEFT;
 	} else if (!strcasecmp(direction, "up")) {
-		return VIEW_EDGE_UP;
+		return LAB_EDGE_UP;
 	} else if (!strcasecmp(direction, "right")) {
-		return VIEW_EDGE_RIGHT;
+		return LAB_EDGE_RIGHT;
 	} else if (!strcasecmp(direction, "down")) {
-		return VIEW_EDGE_DOWN;
+		return LAB_EDGE_DOWN;
 	}
 
 	if (any) {
 		if (!strcasecmp(direction, "any")) {
-			return VIEW_EDGE_ANY;
+			return LAB_EDGE_ANY;
 		}
 	}
 
 	if (tiled) {
 		if (!strcasecmp(direction, "center")) {
-			return VIEW_EDGE_CENTER;
+			return LAB_EDGE_CENTER;
 		} else if (!strcasecmp(direction, "up-left")) {
-			return VIEW_EDGE_UPLEFT;
+			return LAB_EDGE_UPLEFT;
 		} else if (!strcasecmp(direction, "up-right")) {
-			return VIEW_EDGE_UPRIGHT;
+			return LAB_EDGE_UPRIGHT;
 		} else if (!strcasecmp(direction, "down-left")) {
-			return VIEW_EDGE_DOWNLEFT;
+			return LAB_EDGE_DOWNLEFT;
 		} else if (!strcasecmp(direction, "down-right")) {
-			return VIEW_EDGE_DOWNRIGHT;
+			return LAB_EDGE_DOWNRIGHT;
 		}
 	}
 
-	return VIEW_EDGE_INVALID;
+	return LAB_EDGE_INVALID;
 }
 
-enum view_placement_policy
+enum lab_placement_policy
 view_placement_parse(const char *policy)
 {
 	if (!policy) {
@@ -2178,7 +2180,7 @@ view_placement_parse(const char *policy)
 }
 
 void
-view_snap_to_edge(struct view *view, enum view_edge edge,
+view_snap_to_edge(struct view *view, enum lab_edge edge,
 			bool across_outputs, bool store_natural_geometry)
 {
 	assert(view);

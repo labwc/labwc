@@ -19,6 +19,7 @@
 #include "common/parse-bool.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
+#include "config/rcxml.h"
 #include "labwc.h"
 
 static const char *const env_vars[] = {

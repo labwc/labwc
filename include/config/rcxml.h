@@ -66,6 +66,7 @@ struct rcxml {
 
 	/* core */
 	bool xdg_shell_server_side_deco;
+	bool hide_maximized_window_titlebar;
 	int gap;
 	enum adaptive_sync_mode adaptive_sync;
 	enum tearing_mode allow_tearing;

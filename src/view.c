@@ -1660,6 +1660,10 @@ undecorate(struct view *view)
 bool
 view_titlebar_visible(struct view *view)
 {
+	if (view->maximized == VIEW_AXIS_BOTH
+			&& rc.hide_maximized_window_titlebar) {
+		return false;
+	}
 	return view->ssd_mode == LAB_SSD_MODE_FULL;
 }
 

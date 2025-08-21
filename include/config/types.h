@@ -12,28 +12,6 @@
  */
 
 /**
- * Edges to which a view can be snapped. "Any" is used as
- * a catch-all for every valid edge in order to simplify certain
- * types of conditionals, but it is only valid for a selection
- * of options in rc.xml.
- */
-enum lab_edge {
-	LAB_EDGE_INVALID = 0,
-
-	LAB_EDGE_LEFT = (1 << 0),
-	LAB_EDGE_RIGHT = (1 << 1),
-	LAB_EDGE_UP = (1 << 2),
-	LAB_EDGE_DOWN = (1 << 3),
-	LAB_EDGE_CENTER = (1 << 4),
-	LAB_EDGE_ANY = (1 << 5),
-
-	LAB_EDGE_UPLEFT = (LAB_EDGE_UP | LAB_EDGE_LEFT),
-	LAB_EDGE_UPRIGHT = (LAB_EDGE_UP | LAB_EDGE_RIGHT),
-	LAB_EDGE_DOWNLEFT = (LAB_EDGE_DOWN | LAB_EDGE_LEFT),
-	LAB_EDGE_DOWNRIGHT = (LAB_EDGE_DOWN | LAB_EDGE_RIGHT),
-};
-
-/**
  * Indicates whether tablet tool motion events should be reported using
  * absolute or relative coordinates
  */

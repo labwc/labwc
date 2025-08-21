@@ -347,7 +347,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		if (!strcmp(argument, "direction")) {
 			bool tiled = (action->type == ACTION_TYPE_TOGGLE_SNAP_TO_EDGE
 					|| action->type == ACTION_TYPE_SNAP_TO_EDGE);
-			enum lab_edge edge = view_edge_parse(content, tiled, /*any*/ false);
+			enum lab_edge edge = lab_edge_parse(content, tiled, /*any*/ false);
 			if (edge == LAB_EDGE_INVALID) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
@@ -455,7 +455,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		if (!strcmp(argument, "direction")) {
-			enum lab_edge edge = view_edge_parse(content,
+			enum lab_edge edge = lab_edge_parse(content,
 				/*tiled*/ false, /*any*/ false);
 			if (edge == LAB_EDGE_INVALID) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",

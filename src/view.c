@@ -429,25 +429,6 @@ view_offer_focus(struct view *view)
  * They may be called repeatably during output layout changes.
  */
 
-enum lab_edge
-view_edge_invert(enum lab_edge edge)
-{
-	switch (edge) {
-	case LAB_EDGE_LEFT:
-		return LAB_EDGE_RIGHT;
-	case LAB_EDGE_RIGHT:
-		return LAB_EDGE_LEFT;
-	case LAB_EDGE_UP:
-		return LAB_EDGE_DOWN;
-	case LAB_EDGE_DOWN:
-		return LAB_EDGE_UP;
-	case LAB_EDGE_CENTER:
-	case LAB_EDGE_INVALID:
-	default:
-		return LAB_EDGE_INVALID;
-	}
-}
-
 struct wlr_box
 view_get_edge_snap_box(struct view *view, struct output *output,
 		enum lab_edge edge)
@@ -2020,7 +2001,7 @@ view_move_to_edge(struct view *view, enum lab_edge direction, bool snap_to_windo
 	int destination_y = view->pending.y;
 
 	/* Compute the new position in the direction of motion */
-	direction = view_edge_invert(direction);
+	direction = lab_edge_invert(direction);
 	switch (direction) {
 	case LAB_EDGE_LEFT:
 		destination_x = left;
@@ -2120,45 +2101,6 @@ view_axis_parse(const char *direction)
 	}
 }
 
-enum lab_edge
-view_edge_parse(const char *direction, bool tiled, bool any)
-{
-	if (!direction) {
-		return LAB_EDGE_INVALID;
-	}
-	if (!strcasecmp(direction, "left")) {
-		return LAB_EDGE_LEFT;
-	} else if (!strcasecmp(direction, "up")) {
-		return LAB_EDGE_UP;
-	} else if (!strcasecmp(direction, "right")) {
-		return LAB_EDGE_RIGHT;
-	} else if (!strcasecmp(direction, "down")) {
-		return LAB_EDGE_DOWN;
-	}
-
-	if (any) {
-		if (!strcasecmp(direction, "any")) {
-			return LAB_EDGE_ANY;
-		}
-	}
-
-	if (tiled) {
-		if (!strcasecmp(direction, "center")) {
-			return LAB_EDGE_CENTER;
-		} else if (!strcasecmp(direction, "up-left")) {
-			return LAB_EDGE_UPLEFT;
-		} else if (!strcasecmp(direction, "up-right")) {
-			return LAB_EDGE_UPRIGHT;
-		} else if (!strcasecmp(direction, "down-left")) {
-			return LAB_EDGE_DOWNLEFT;
-		} else if (!strcasecmp(direction, "down-right")) {
-			return LAB_EDGE_DOWNRIGHT;
-		}
-	}
-
-	return LAB_EDGE_INVALID;
-}
-
 enum lab_placement_policy
 view_placement_parse(const char *policy)
 {
@@ -2215,7 +2157,7 @@ view_snap_to_edge(struct view *view, enum lab_edge edge,
 		}
 
 		/* When switching outputs, jump to the opposite edge */
-		edge = view_edge_invert(edge);
+		edge = lab_edge_invert(edge);
 	}
 
 	if (view->maximized != VIEW_AXIS_NONE) {

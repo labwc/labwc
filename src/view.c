@@ -80,6 +80,7 @@ view_query_create(void)
 	struct view_query *query = znew(*query);
 	query->window_type = -1;
 	query->maximized = VIEW_AXIS_INVALID;
+	query->decoration = LAB_SSD_MODE_INVALID;
 	return query;
 }
 
@@ -206,8 +207,8 @@ view_matches_query(struct view *view, struct view_query *query)
 		}
 	}
 
-	enum lab_ssd_mode decor = view_get_ssd_mode(view);
-	if (query->decoration != LAB_SSD_MODE_INVALID && query->decoration != decor) {
+	if (query->decoration != LAB_SSD_MODE_INVALID
+			&& query->decoration != view->ssd_mode) {
 		return false;
 	}
 
@@ -1335,7 +1336,7 @@ view_apply_maximized_geometry(struct view *view)
 			&natural.x, &natural.y);
 	}
 
-	if (view->ssd_enabled) {
+	if (view->ssd_mode) {
 		struct border border = ssd_thickness(view);
 		box.x += border.left;
 		box.y += border.top;
@@ -1576,7 +1577,7 @@ view_set_decorations(struct view *view, enum lab_ssd_mode mode, bool force_ssd)
 	assert(view);
 
 	if (force_ssd || view_wants_decorations(view)
-			|| mode < view_get_ssd_mode(view)) {
+			|| mode < view->ssd_mode) {
 		view_set_ssd_mode(view, mode);
 	}
 }
@@ -1586,10 +1587,9 @@ view_toggle_decorations(struct view *view)
 {
 	assert(view);
 
-	enum lab_ssd_mode mode = view_get_ssd_mode(view);
-	if (rc.ssd_keep_border && mode == LAB_SSD_MODE_FULL) {
+	if (rc.ssd_keep_border && view->ssd_mode == LAB_SSD_MODE_FULL) {
 		view_set_ssd_mode(view, LAB_SSD_MODE_BORDER);
-	} else if (mode != LAB_SSD_MODE_NONE) {
+	} else if (view->ssd_mode != LAB_SSD_MODE_NONE) {
 		view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
 	} else {
 		view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
@@ -1676,18 +1676,10 @@ undecorate(struct view *view)
 	view->ssd = NULL;
 }
 
-enum lab_ssd_mode
-view_get_ssd_mode(struct view *view)
+bool
+view_titlebar_visible(struct view *view)
 {
-	assert(view);
-
-	if (!view->ssd_enabled) {
-		return LAB_SSD_MODE_NONE;
-	} else if (view->ssd_titlebar_hidden) {
-		return LAB_SSD_MODE_BORDER;
-	} else {
-		return LAB_SSD_MODE_FULL;
-	}
+	return view->ssd_mode == LAB_SSD_MODE_FULL;
 }
 
 void
@@ -1696,7 +1688,7 @@ view_set_ssd_mode(struct view *view, enum lab_ssd_mode mode)
 	assert(view);
 
 	if (view->shaded || view->fullscreen
-			|| mode == view_get_ssd_mode(view)) {
+			|| mode == view->ssd_mode) {
 		return;
 	}
 
@@ -1704,12 +1696,11 @@ view_set_ssd_mode(struct view *view, enum lab_ssd_mode mode)
 	 * Set these first since they are referenced
 	 * within the call tree of ssd_create() and ssd_thickness()
 	 */
-	view->ssd_enabled = mode != LAB_SSD_MODE_NONE;
-	view->ssd_titlebar_hidden = mode != LAB_SSD_MODE_FULL;
+	view->ssd_mode = mode;
 
-	if (view->ssd_enabled) {
+	if (mode) {
 		decorate(view);
-		ssd_set_titlebar(view->ssd, !view->ssd_titlebar_hidden);
+		ssd_set_titlebar(view->ssd, view_titlebar_visible(view));
 	} else {
 		undecorate(view);
 	}
@@ -1737,7 +1728,7 @@ set_fullscreen(struct view *view, bool fullscreen)
 	}
 
 	/* Hide decorations when going fullscreen */
-	if (fullscreen && view->ssd_enabled) {
+	if (fullscreen && view->ssd_mode) {
 		undecorate(view);
 	}
 
@@ -1749,7 +1740,7 @@ set_fullscreen(struct view *view, bool fullscreen)
 	wl_signal_emit_mutable(&view->events.fullscreened, NULL);
 
 	/* Re-show decorations when no longer fullscreen */
-	if (!fullscreen && view->ssd_enabled) {
+	if (!fullscreen && view->ssd_mode) {
 		decorate(view);
 	}
 
@@ -2451,7 +2442,7 @@ void
 view_reload_ssd(struct view *view)
 {
 	assert(view);
-	if (view->ssd_enabled && !view->fullscreen) {
+	if (view->ssd_mode && !view->fullscreen) {
 		undecorate(view);
 		decorate(view);
 	}
@@ -2474,7 +2465,7 @@ view_toggle_keybinds(struct view *view)
 	assert(view);
 	view->inhibits_keybinds = !view->inhibits_keybinds;
 
-	if (view->ssd_enabled) {
+	if (view->ssd_mode) {
 		ssd_enable_keybind_inhibit_indicator(view->ssd,
 			view->inhibits_keybinds);
 	}
@@ -2556,7 +2547,7 @@ view_set_shade(struct view *view, bool shaded)
 	}
 
 	/* Views without a title-bar or SSD cannot be shaded */
-	if (shaded && (!view->ssd || view->ssd_titlebar_hidden)) {
+	if (shaded && (!view->ssd || !view_titlebar_visible(view))) {
 		return;
 	}
 

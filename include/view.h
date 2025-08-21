@@ -169,8 +169,7 @@ struct view {
 
 	bool mapped;
 	bool been_mapped;
-	bool ssd_enabled;
-	bool ssd_titlebar_hidden;
+	enum lab_ssd_mode ssd_mode;
 	enum ssd_preference ssd_preference;
 	bool shaded;
 	bool minimized;
@@ -542,7 +541,7 @@ bool view_is_tiled(struct view *view);
 bool view_is_tiled_and_notify_tiled(struct view *view);
 bool view_is_floating(struct view *view);
 void view_move_to_workspace(struct view *view, struct workspace *workspace);
-enum lab_ssd_mode view_get_ssd_mode(struct view *view);
+bool view_titlebar_visible(struct view *view);
 void view_set_ssd_mode(struct view *view, enum lab_ssd_mode mode);
 void view_set_decorations(struct view *view, enum lab_ssd_mode mode, bool force_ssd);
 void view_toggle_fullscreen(struct view *view);

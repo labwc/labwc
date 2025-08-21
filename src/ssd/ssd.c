@@ -32,7 +32,7 @@ ssd_thickness(struct view *view)
 	 * in border-only deco mode as view->ssd would only be set
 	 * after ssd_create() returns.
 	 */
-	if (!view->ssd_enabled || view->fullscreen) {
+	if (!view->ssd_mode || view->fullscreen) {
 		return (struct border){ 0 };
 	}
 
@@ -40,7 +40,7 @@ ssd_thickness(struct view *view)
 
 	if (view->maximized == VIEW_AXIS_BOTH) {
 		struct border thickness = { 0 };
-		if (!view->ssd_titlebar_hidden) {
+		if (view_titlebar_visible(view)) {
 			thickness.top += theme->titlebar_height;
 		}
 		return thickness;
@@ -53,7 +53,7 @@ ssd_thickness(struct view *view)
 		.left = theme->border_width,
 	};
 
-	if (view->ssd_titlebar_hidden) {
+	if (!view_titlebar_visible(view)) {
 		thickness.top -= theme->titlebar_height;
 	}
 	return thickness;
@@ -89,14 +89,14 @@ static enum ssd_part_type
 get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
 {
 	struct view *view = ssd ? ssd->view : NULL;
-	if (!view || !cursor || !view->ssd_enabled || view->fullscreen) {
+	if (!view || !cursor || !view->ssd_mode || view->fullscreen) {
 		return LAB_SSD_NONE;
 	}
 
 	struct wlr_box view_box = view->current;
 	view_box.height = view_effective_height(view, /* use_pending */ false);
 
-	if (!view->ssd_titlebar_hidden) {
+	if (view_titlebar_visible(view)) {
 		/* If the titlebar is visible, consider it part of the view */
 		int titlebar_height = view->server->theme->titlebar_height;
 		view_box.y -= titlebar_height;
@@ -250,7 +250,7 @@ ssd_create(struct view *view, bool active)
 	 */
 	ssd_titlebar_create(ssd);
 	ssd_border_create(ssd);
-	if (view->ssd_titlebar_hidden) {
+	if (!view_titlebar_visible(view)) {
 		/* Ensure we keep the old state on Reconfigure or when exiting fullscreen */
 		ssd_set_titlebar(ssd, false);
 	}

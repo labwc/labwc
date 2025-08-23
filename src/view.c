@@ -970,8 +970,11 @@ void
 view_store_natural_geometry(struct view *view)
 {
 	assert(view);
-	if (!view_is_floating(view)) {
-		/* Do not overwrite the stored geometry with special cases */
+	/*
+	 * Do not overwrite the stored geometry if fullscreen or tiled.
+	 * Maximized views are handled on a per-axis basis (see below).
+	 */
+	if (view->fullscreen || view_is_tiled(view)) {
 		return;
 	}
 
@@ -982,7 +985,14 @@ view_store_natural_geometry(struct view *view)
 	 * xdg-toplevel configure event, which means the application should
 	 * choose its own size.
 	 */
-	view->natural_geometry = view->pending;
+	if (!(view->maximized & VIEW_AXIS_HORIZONTAL)) {
+		view->natural_geometry.x = view->pending.x;
+		view->natural_geometry.width = view->pending.width;
+	}
+	if (!(view->maximized & VIEW_AXIS_VERTICAL)) {
+		view->natural_geometry.y = view->pending.y;
+		view->natural_geometry.height = view->pending.height;
+	}
 }
 
 int
@@ -1471,9 +1481,18 @@ view_maximize(struct view *view, enum view_axis axis,
 		 */
 		interactive_cancel(view);
 		if (store_natural_geometry && view_is_floating(view)) {
-			view_store_natural_geometry(view);
 			view_invalidate_last_layout_geometry(view);
 		}
+	}
+
+	/*
+	 * Update natural geometry for any axis that wasn't already
+	 * maximized. This is needed even when unmaximizing, because in
+	 * single-axis cases the client may have resized the other axis
+	 * while one axis was maximized.
+	 */
+	if (store_natural_geometry) {
+		view_store_natural_geometry(view);
 	}
 
 	/*

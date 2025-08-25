@@ -78,6 +78,7 @@ struct view_query *
 view_query_create(void)
 {
 	struct view_query *query = znew(*query);
+	/* Must be synced with view_matches_criteria() in window-rules.c */
 	query->window_type = -1;
 	query->maximized = VIEW_AXIS_INVALID;
 	query->decoration = LAB_SSD_MODE_INVALID;

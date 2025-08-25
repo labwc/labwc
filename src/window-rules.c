@@ -36,7 +36,9 @@ view_matches_criteria(struct window_rule *rule, struct view *view)
 		.window_type = rule->window_type,
 		.sandbox_engine = rule->sandbox_engine,
 		.sandbox_app_id = rule->sandbox_app_id,
+		/* Must be synced with view_query_create() */
 		.maximized = VIEW_AXIS_INVALID,
+		.decoration = LAB_SSD_MODE_INVALID,
 	};
 
 	if (rule->match_once && other_instances_exist(view, &query)) {

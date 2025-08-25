@@ -76,6 +76,65 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 
 ## [unreleased]
 
+### Added
+
+- Add `<core maximizedDecoration="titlebar|none"/>` to allow hiding titlebar
+  when window is maximized. @CosmicFusion @tokyo4j [#3015]
+- Use client-send-to-menu as 'Workspace' submenu in built-in client-menu
+  @johanmalm [#2995]
+- Allow overwriting submenu icon to increase flexibility and enhance Openbox
+  compatibility. @tokyo4j [#2998]
+- Allow client-{list-combined,send-to}-menu as submenu of static menu @tokyo4j
+  [#2994]
+- Add `labnag` (a dialog client with message and buttons) and associated
+  `<prompt>` option in 'If' actions.  @johanmalm @Consolatis @tokyo4j [#2699]
+- Allow snapping to corner edges during interactive move with associated config
+  options `<snapping><cornerRange>`. @tokyo4j [#2885]
+- Support new values "up-left", "up-right", "down-left" and "down-right" with
+  `<action name="(Toggle)SnapToEdge" direction="[value]">` and
+  `<query tiled="[value]">`. @tokyo4j [#2885]
+- XML parsing improvements as listed below. @tokyo4j [#2667] [#2967] [#2971]
+  - Support nested `If` and `ForEach` actions
+  - Parse CDATA as text all nodes
+  - Remove ordering constraint of attributes in `<keybind>`, `<mousebind>` and
+    `<windowRule>`
+  - `If` actions now works for menus
+  - For menus, the `name` argument no longer has to be the first argument of
+    `<action>`; and the `label` argument no longer has to be the first argument
+    of `<item>`
+- Toggle mousebinds with the `ToggleKeybinds` action @tokyo4j [#2942]
+- Add support for direction value 'any' with tiled queries. This allows users
+  to query for any snap directions without using multiple query statements
+  @lynxy [#2883]
+
+### Fixed
+
+- Fix false positives when matching desktop entries @datMaffin [#3004]
+- Prevent accidental downcasting of scale in scaled-icon-buffer to avoid blurry
+  icons on non-integer scales and a cairo assert when using a output scale < 1.
+  @Consolatis #2984
+- Fix xdg-shell windows moving between outputs due to configure timeout
+  @jlindgren90 [#2976]
+- Fix segfault with toplevel `<separator>` in `menu.xml` @tokyo4j [#2970]
+- Prevent hi-res mice triggering scroll actions too often @tokyo4j [#2933]
+
+### Changed
+
+- Respect client-initiated window resize of non-maximized axis, for example
+  remember the width of vertically-maximized window resizing itself
+  horizontally. @jlindgren90 [#3020]
+- Remember position of window along non-maximized axis during interactive move.
+  @jlindgren90 [#3020]
+- Restore default libinput device values on reconfigure with empty value, rather
+  than leaving the old configuration. This makes rc.xml more declarative.
+  @tokyo4j [#3011]
+- Change `If` action when used without a focused window to execute the `<else>`
+  branch (previously it was just ignored). The reason for this is to make things
+  more consistent with `<prompt>`. It is not anticipated that this will affect
+  anyone's workflow but is mentioned here for completeness.
+- Make `autoEnableOutputs=no` apply only to drm outputs @jlindgren90 [#2972]
+- Take into account `<core><gap>` for edge and region overlays @tokyo4j [#2965]
+
 ## [0.9.1]
 
 This is an earlier-than-usual release containinig bug fixes only. It has been

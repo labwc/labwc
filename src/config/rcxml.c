@@ -444,7 +444,7 @@ fill_action_query(struct action *action, xmlNode *node, struct view_query *query
 		} else if (!strcasecmp(key, "omnipresent")) {
 			query->omnipresent = parse_tristate(content);
 		} else if (!strcasecmp(key, "tiled")) {
-			query->tiled = view_edge_parse(content,
+			query->tiled = lab_edge_parse(content,
 				/*tiled*/ true, /*any*/ true);
 		} else if (!strcasecmp(key, "tiled_region")) {
 			xstrdup_replace(query->tiled_region, content);
@@ -1094,6 +1094,12 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			rc.xdg_shell_server_side_deco = true;
 		}
+	} else if (!strcasecmp(nodename, "maximizedDecoration.core")) {
+		if (!strcasecmp(content, "titlebar")) {
+			rc.hide_maximized_window_titlebar = false;
+		} else if (!strcasecmp(content, "none")) {
+			rc.hide_maximized_window_titlebar = true;
+		}
 	} else if (!strcmp(nodename, "gap.core")) {
 		rc.gap = atoi(content);
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
@@ -1370,6 +1376,7 @@ rcxml_init(void)
 	rc.placement_cascade_offset_y = 0;
 
 	rc.xdg_shell_server_side_deco = true;
+	rc.hide_maximized_window_titlebar = false;
 	rc.show_title = true;
 	rc.title_layout_loaded = false;
 	rc.ssd_keep_border = true;

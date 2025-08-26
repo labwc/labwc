@@ -90,9 +90,9 @@ interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
 			return;
 		}
 
+		/* Store natural geometry at start of move */
+		view_store_natural_geometry(view);
 		if (view_is_floating(view)) {
-			/* Store natural geometry at start of move */
-			view_store_natural_geometry(view);
 			view_invalidate_last_layout_geometry(view);
 		}
 

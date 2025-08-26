@@ -78,8 +78,10 @@ struct view_query *
 view_query_create(void)
 {
 	struct view_query *query = znew(*query);
+	/* Must be synced with view_matches_criteria() in window-rules.c */
 	query->window_type = -1;
 	query->maximized = VIEW_AXIS_INVALID;
+	query->decoration = LAB_SSD_MODE_INVALID;
 	return query;
 }
 
@@ -206,8 +208,8 @@ view_matches_query(struct view *view, struct view_query *query)
 		}
 	}
 
-	enum lab_ssd_mode decor = view_get_ssd_mode(view);
-	if (query->decoration != LAB_SSD_MODE_INVALID && query->decoration != decor) {
+	if (query->decoration != LAB_SSD_MODE_INVALID
+			&& query->decoration != view->ssd_mode) {
 		return false;
 	}
 
@@ -428,25 +430,6 @@ view_offer_focus(struct view *view)
  *
  * They may be called repeatably during output layout changes.
  */
-
-enum lab_edge
-view_edge_invert(enum lab_edge edge)
-{
-	switch (edge) {
-	case LAB_EDGE_LEFT:
-		return LAB_EDGE_RIGHT;
-	case LAB_EDGE_RIGHT:
-		return LAB_EDGE_LEFT;
-	case LAB_EDGE_UP:
-		return LAB_EDGE_DOWN;
-	case LAB_EDGE_DOWN:
-		return LAB_EDGE_UP;
-	case LAB_EDGE_CENTER:
-	case LAB_EDGE_INVALID:
-	default:
-		return LAB_EDGE_INVALID;
-	}
-}
 
 struct wlr_box
 view_get_edge_snap_box(struct view *view, struct output *output,
@@ -989,8 +972,11 @@ void
 view_store_natural_geometry(struct view *view)
 {
 	assert(view);
-	if (!view_is_floating(view)) {
-		/* Do not overwrite the stored geometry with special cases */
+	/*
+	 * Do not overwrite the stored geometry if fullscreen or tiled.
+	 * Maximized views are handled on a per-axis basis (see below).
+	 */
+	if (view->fullscreen || view_is_tiled(view)) {
 		return;
 	}
 
@@ -1001,7 +987,14 @@ view_store_natural_geometry(struct view *view)
 	 * xdg-toplevel configure event, which means the application should
 	 * choose its own size.
 	 */
-	view->natural_geometry = view->pending;
+	if (!(view->maximized & VIEW_AXIS_HORIZONTAL)) {
+		view->natural_geometry.x = view->pending.x;
+		view->natural_geometry.width = view->pending.width;
+	}
+	if (!(view->maximized & VIEW_AXIS_VERTICAL)) {
+		view->natural_geometry.y = view->pending.y;
+		view->natural_geometry.height = view->pending.height;
+	}
 }
 
 int
@@ -1335,7 +1328,7 @@ view_apply_maximized_geometry(struct view *view)
 			&natural.x, &natural.y);
 	}
 
-	if (view->ssd_enabled) {
+	if (view->ssd_mode) {
 		struct border border = ssd_thickness(view);
 		box.x += border.left;
 		box.y += border.top;
@@ -1490,9 +1483,18 @@ view_maximize(struct view *view, enum view_axis axis,
 		 */
 		interactive_cancel(view);
 		if (store_natural_geometry && view_is_floating(view)) {
-			view_store_natural_geometry(view);
 			view_invalidate_last_layout_geometry(view);
 		}
+	}
+
+	/*
+	 * Update natural geometry for any axis that wasn't already
+	 * maximized. This is needed even when unmaximizing, because in
+	 * single-axis cases the client may have resized the other axis
+	 * while one axis was maximized.
+	 */
+	if (store_natural_geometry) {
+		view_store_natural_geometry(view);
 	}
 
 	/*
@@ -1576,7 +1578,7 @@ view_set_decorations(struct view *view, enum lab_ssd_mode mode, bool force_ssd)
 	assert(view);
 
 	if (force_ssd || view_wants_decorations(view)
-			|| mode < view_get_ssd_mode(view)) {
+			|| mode < view->ssd_mode) {
 		view_set_ssd_mode(view, mode);
 	}
 }
@@ -1586,10 +1588,9 @@ view_toggle_decorations(struct view *view)
 {
 	assert(view);
 
-	enum lab_ssd_mode mode = view_get_ssd_mode(view);
-	if (rc.ssd_keep_border && mode == LAB_SSD_MODE_FULL) {
+	if (rc.ssd_keep_border && view->ssd_mode == LAB_SSD_MODE_FULL) {
 		view_set_ssd_mode(view, LAB_SSD_MODE_BORDER);
-	} else if (mode != LAB_SSD_MODE_NONE) {
+	} else if (view->ssd_mode != LAB_SSD_MODE_NONE) {
 		view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
 	} else {
 		view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
@@ -1676,18 +1677,14 @@ undecorate(struct view *view)
 	view->ssd = NULL;
 }
 
-enum lab_ssd_mode
-view_get_ssd_mode(struct view *view)
+bool
+view_titlebar_visible(struct view *view)
 {
-	assert(view);
-
-	if (!view->ssd_enabled) {
-		return LAB_SSD_MODE_NONE;
-	} else if (view->ssd_titlebar_hidden) {
-		return LAB_SSD_MODE_BORDER;
-	} else {
-		return LAB_SSD_MODE_FULL;
+	if (view->maximized == VIEW_AXIS_BOTH
+			&& rc.hide_maximized_window_titlebar) {
+		return false;
 	}
+	return view->ssd_mode == LAB_SSD_MODE_FULL;
 }
 
 void
@@ -1696,7 +1693,7 @@ view_set_ssd_mode(struct view *view, enum lab_ssd_mode mode)
 	assert(view);
 
 	if (view->shaded || view->fullscreen
-			|| mode == view_get_ssd_mode(view)) {
+			|| mode == view->ssd_mode) {
 		return;
 	}
 
@@ -1704,12 +1701,11 @@ view_set_ssd_mode(struct view *view, enum lab_ssd_mode mode)
 	 * Set these first since they are referenced
 	 * within the call tree of ssd_create() and ssd_thickness()
 	 */
-	view->ssd_enabled = mode != LAB_SSD_MODE_NONE;
-	view->ssd_titlebar_hidden = mode != LAB_SSD_MODE_FULL;
+	view->ssd_mode = mode;
 
-	if (view->ssd_enabled) {
+	if (mode) {
 		decorate(view);
-		ssd_set_titlebar(view->ssd, !view->ssd_titlebar_hidden);
+		ssd_set_titlebar(view->ssd, view_titlebar_visible(view));
 	} else {
 		undecorate(view);
 	}
@@ -1737,7 +1733,7 @@ set_fullscreen(struct view *view, bool fullscreen)
 	}
 
 	/* Hide decorations when going fullscreen */
-	if (fullscreen && view->ssd_enabled) {
+	if (fullscreen && view->ssd_mode) {
 		undecorate(view);
 	}
 
@@ -1749,7 +1745,7 @@ set_fullscreen(struct view *view, bool fullscreen)
 	wl_signal_emit_mutable(&view->events.fullscreened, NULL);
 
 	/* Re-show decorations when no longer fullscreen */
-	if (!fullscreen && view->ssd_enabled) {
+	if (!fullscreen && view->ssd_mode) {
 		decorate(view);
 	}
 
@@ -2020,7 +2016,7 @@ view_move_to_edge(struct view *view, enum lab_edge direction, bool snap_to_windo
 	int destination_y = view->pending.y;
 
 	/* Compute the new position in the direction of motion */
-	direction = view_edge_invert(direction);
+	direction = lab_edge_invert(direction);
 	switch (direction) {
 	case LAB_EDGE_LEFT:
 		destination_x = left;
@@ -2120,45 +2116,6 @@ view_axis_parse(const char *direction)
 	}
 }
 
-enum lab_edge
-view_edge_parse(const char *direction, bool tiled, bool any)
-{
-	if (!direction) {
-		return LAB_EDGE_INVALID;
-	}
-	if (!strcasecmp(direction, "left")) {
-		return LAB_EDGE_LEFT;
-	} else if (!strcasecmp(direction, "up")) {
-		return LAB_EDGE_UP;
-	} else if (!strcasecmp(direction, "right")) {
-		return LAB_EDGE_RIGHT;
-	} else if (!strcasecmp(direction, "down")) {
-		return LAB_EDGE_DOWN;
-	}
-
-	if (any) {
-		if (!strcasecmp(direction, "any")) {
-			return LAB_EDGE_ANY;
-		}
-	}
-
-	if (tiled) {
-		if (!strcasecmp(direction, "center")) {
-			return LAB_EDGE_CENTER;
-		} else if (!strcasecmp(direction, "up-left")) {
-			return LAB_EDGE_UPLEFT;
-		} else if (!strcasecmp(direction, "up-right")) {
-			return LAB_EDGE_UPRIGHT;
-		} else if (!strcasecmp(direction, "down-left")) {
-			return LAB_EDGE_DOWNLEFT;
-		} else if (!strcasecmp(direction, "down-right")) {
-			return LAB_EDGE_DOWNRIGHT;
-		}
-	}
-
-	return LAB_EDGE_INVALID;
-}
-
 enum lab_placement_policy
 view_placement_parse(const char *policy)
 {
@@ -2215,7 +2172,7 @@ view_snap_to_edge(struct view *view, enum lab_edge edge,
 		}
 
 		/* When switching outputs, jump to the opposite edge */
-		edge = view_edge_invert(edge);
+		edge = lab_edge_invert(edge);
 	}
 
 	if (view->maximized != VIEW_AXIS_NONE) {
@@ -2451,7 +2408,7 @@ void
 view_reload_ssd(struct view *view)
 {
 	assert(view);
-	if (view->ssd_enabled && !view->fullscreen) {
+	if (view->ssd_mode && !view->fullscreen) {
 		undecorate(view);
 		decorate(view);
 	}
@@ -2474,7 +2431,7 @@ view_toggle_keybinds(struct view *view)
 	assert(view);
 	view->inhibits_keybinds = !view->inhibits_keybinds;
 
-	if (view->ssd_enabled) {
+	if (view->ssd_mode) {
 		ssd_enable_keybind_inhibit_indicator(view->ssd,
 			view->inhibits_keybinds);
 	}
@@ -2556,7 +2513,7 @@ view_set_shade(struct view *view, bool shaded)
 	}
 
 	/* Views without a title-bar or SSD cannot be shaded */
-	if (shaded && (!view->ssd || view->ssd_titlebar_hidden)) {
+	if (shaded && (!view->ssd || !view_titlebar_visible(view))) {
 		return;
 	}
 

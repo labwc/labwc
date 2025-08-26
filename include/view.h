@@ -7,6 +7,7 @@
 #include <wayland-util.h>
 #include <wlr/util/box.h>
 #include <xkbcommon/xkbcommon.h>
+#include "common/edge.h"
 #include "config.h"
 #include "config/types.h"
 
@@ -169,8 +170,7 @@ struct view {
 
 	bool mapped;
 	bool been_mapped;
-	bool ssd_enabled;
-	bool ssd_titlebar_hidden;
+	enum lab_ssd_mode ssd_mode;
 	enum ssd_preference ssd_preference;
 	bool shaded;
 	bool minimized;
@@ -422,15 +422,6 @@ void view_array_append(struct server *server, struct wl_array *views,
 enum view_wants_focus view_wants_focus(struct view *view);
 bool view_contains_window_type(struct view *view, enum lab_window_type window_type);
 
-/**
- * view_edge_invert() - select the opposite of a provided edge
- *
- * LAB_EDGE_CENTER and LAB_EDGE_INVALID both map to LAB_EDGE_INVALID.
- *
- * @edge: edge to be inverted
- */
-enum lab_edge view_edge_invert(enum lab_edge edge);
-
 /* If view is NULL, the size of SSD is not considered */
 struct wlr_box view_get_edge_snap_box(struct view *view, struct output *output,
 	enum lab_edge edge);
@@ -542,7 +533,7 @@ bool view_is_tiled(struct view *view);
 bool view_is_tiled_and_notify_tiled(struct view *view);
 bool view_is_floating(struct view *view);
 void view_move_to_workspace(struct view *view, struct workspace *workspace);
-enum lab_ssd_mode view_get_ssd_mode(struct view *view);
+bool view_titlebar_visible(struct view *view);
 void view_set_ssd_mode(struct view *view, enum lab_ssd_mode mode);
 void view_set_decorations(struct view *view, enum lab_ssd_mode mode, bool force_ssd);
 void view_toggle_fullscreen(struct view *view);
@@ -601,7 +592,6 @@ void view_init(struct view *view);
 void view_destroy(struct view *view);
 
 enum view_axis view_axis_parse(const char *direction);
-enum lab_edge view_edge_parse(const char *direction, bool tiled, bool any);
 enum lab_placement_policy view_placement_parse(const char *policy);
 
 /* xdg.c */

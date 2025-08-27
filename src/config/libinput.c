@@ -51,6 +51,25 @@ get_device_type(const char *s)
 	return LAB_LIBINPUT_DEVICE_NONE;
 }
 
+const char *
+libinput_device_type_name(enum lab_libinput_device_type type)
+{
+	switch (type) {
+	case LAB_LIBINPUT_DEVICE_NONE:
+		break;
+	case LAB_LIBINPUT_DEVICE_DEFAULT:
+		return "default";
+	case LAB_LIBINPUT_DEVICE_TOUCH:
+		return "touch";
+	case LAB_LIBINPUT_DEVICE_TOUCHPAD:
+		return "touchpad";
+	case LAB_LIBINPUT_DEVICE_NON_TOUCH:
+		return "non-touch";
+	}
+	/* none/invalid */
+	return "(none)";
+}
+
 struct libinput_category *
 libinput_category_create(void)
 {

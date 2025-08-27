@@ -175,7 +175,7 @@ view_matches_query(struct view *view, struct view_query *query)
 		if (!view->tiled) {
 			return false;
 		}
-	} else if (query->tiled != LAB_EDGE_INVALID) {
+	} else if (query->tiled != LAB_EDGE_NONE) {
 		if (query->tiled != view->tiled) {
 			return false;
 		}
@@ -445,10 +445,10 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 	if (edge & LAB_EDGE_LEFT) {
 		x2 = (usable.width - rc.gap) / 2;
 	}
-	if (edge & LAB_EDGE_DOWN) {
+	if (edge & LAB_EDGE_BOTTOM) {
 		y1 = (usable.height + rc.gap) / 2;
 	}
-	if (edge & LAB_EDGE_UP) {
+	if (edge & LAB_EDGE_TOP) {
 		y2 = (usable.height - rc.gap) / 2;
 	}
 
@@ -1441,7 +1441,7 @@ void
 view_set_untiled(struct view *view)
 {
 	assert(view);
-	view->tiled = LAB_EDGE_INVALID;
+	view->tiled = LAB_EDGE_NONE;
 	view->tiled_region = NULL;
 	zfree(view->tiled_region_evacuate);
 	view_notify_tiled(view);
@@ -2009,10 +2009,10 @@ view_move_to_edge(struct view *view, enum lab_edge direction, bool snap_to_windo
 	case LAB_EDGE_RIGHT:
 		destination_x = right - view->pending.width;
 		break;
-	case LAB_EDGE_UP:
+	case LAB_EDGE_TOP:
 		destination_y = top;
 		break;
-	case LAB_EDGE_DOWN:
+	case LAB_EDGE_BOTTOM:
 		destination_y = bottom
 			- view_effective_height(view, /* use_pending */ true);
 		break;

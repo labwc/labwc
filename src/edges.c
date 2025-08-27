@@ -40,32 +40,32 @@ edges_initialize(struct border *edges)
 }
 
 static inline struct edge
-build_edge(struct border region, enum wlr_edges direction, int pad)
+build_edge(struct border region, enum lab_edge direction, int pad)
 {
 	struct edge edge = { 0 };
 
 	switch (direction) {
-	case WLR_EDGE_LEFT:
+	case LAB_EDGE_LEFT:
 		edge.offset = clipped_sub(region.left, pad);
 		edge.min = region.top;
 		edge.max = region.bottom;
 		break;
-	case WLR_EDGE_RIGHT:
+	case LAB_EDGE_RIGHT:
 		edge.offset = clipped_add(region.right, pad);
 		edge.min = region.top;
 		edge.max = region.bottom;
 		break;
-	case WLR_EDGE_TOP:
+	case LAB_EDGE_TOP:
 		edge.offset = clipped_sub(region.top, pad);
 		edge.min = region.left;
 		edge.max = region.right;
 		break;
-	case WLR_EDGE_BOTTOM:
+	case LAB_EDGE_BOTTOM:
 		edge.offset = clipped_add(region.bottom, pad);
 		edge.min = region.left;
 		edge.max = region.right;
 		break;
-	case WLR_EDGE_NONE:
+	default:
 		/* Should never be reached */
 		wlr_log(WLR_ERROR, "invalid direction");
 		abort();
@@ -75,14 +75,14 @@ build_edge(struct border region, enum wlr_edges direction, int pad)
 }
 
 static inline bool
-is_lesser(enum wlr_edges direction)
+is_lesser(enum lab_edge direction)
 {
-	return direction == WLR_EDGE_LEFT || direction == WLR_EDGE_TOP;
+	return direction == LAB_EDGE_LEFT || direction == LAB_EDGE_TOP;
 }
 
 static inline struct edge
-build_visible_edge(struct border region, enum wlr_edges direction,
-		int pad, uint32_t edges_visible)
+build_visible_edge(struct border region, enum lab_edge direction,
+		int pad, enum lab_edge edges_visible)
 {
 	struct edge edge = build_edge(region, direction, pad);
 
@@ -97,7 +97,7 @@ static void
 validate_single_region_edge(int *valid_edge,
 		struct border view, struct border target,
 		struct border region, edge_validator_t validator,
-		enum wlr_edges direction, uint32_t edges_visible)
+		enum lab_edge direction, enum lab_edge edges_visible)
 {
 	/*
 	 * When a view snaps to another while moving to its target, it can do
@@ -115,26 +115,8 @@ validate_single_region_edge(int *valid_edge,
 	 * the region borders for aligned edges only.
 	 */
 
-	enum wlr_edges opposing = WLR_EDGE_NONE;
-
-	switch (direction) {
-	case WLR_EDGE_TOP:
-		opposing = WLR_EDGE_BOTTOM;
-		break;
-	case WLR_EDGE_BOTTOM:
-		opposing = WLR_EDGE_TOP;
-		break;
-	case WLR_EDGE_LEFT:
-		opposing = WLR_EDGE_RIGHT;
-		break;
-	case WLR_EDGE_RIGHT:
-		opposing = WLR_EDGE_LEFT;
-		break;
-	case WLR_EDGE_NONE:
-		/* Should never be reached */
-		assert(false);
-		return;
-	}
+	enum lab_edge opposing = lab_edge_invert(direction);
+	assert(opposing != LAB_EDGE_NONE);
 
 	validator(valid_edge,
 		build_edge(view, direction, 0),
@@ -147,31 +129,31 @@ validate_single_region_edge(int *valid_edge,
 static void
 validate_edges(struct border *valid_edges,
 		struct border view, struct border target,
-		struct border region, uint32_t edges_visible,
+		struct border region, enum lab_edge edges_visible,
 		edge_validator_t validator)
 {
 	/* Check for edges encountered during movement of left edge */
 	validate_single_region_edge(&valid_edges->left,
-		view, target, region, validator, WLR_EDGE_LEFT, edges_visible);
+		view, target, region, validator, LAB_EDGE_LEFT, edges_visible);
 
 	/* Check for edges encountered during movement of right edge */
 	validate_single_region_edge(&valid_edges->right,
-		view, target, region, validator, WLR_EDGE_RIGHT, edges_visible);
+		view, target, region, validator, LAB_EDGE_RIGHT, edges_visible);
 
 	/* Check for edges encountered during movement of top edge */
 	validate_single_region_edge(&valid_edges->top,
-		view, target, region, validator, WLR_EDGE_TOP, edges_visible);
+		view, target, region, validator, LAB_EDGE_TOP, edges_visible);
 
 	/* Check for edges encountered during movement of bottom edge */
 	validate_single_region_edge(&valid_edges->bottom,
-		view, target, region, validator, WLR_EDGE_BOTTOM, edges_visible);
+		view, target, region, validator, LAB_EDGE_BOTTOM, edges_visible);
 }
 
 static void
 validate_single_output_edge(int *valid_edge,
 		struct border view, struct border target,
 		struct border region, edge_validator_t validator,
-		enum wlr_edges direction)
+		enum lab_edge direction)
 {
 	static struct border unbounded = {
 		.top = INT_MIN,
@@ -226,24 +208,24 @@ validate_output_edges(struct border *valid_edges,
 	/* Left edge encounters a half-infinite region to the left of the output */
 
 	validate_single_output_edge(&valid_edges->left,
-			view, target, output, validator, WLR_EDGE_LEFT);
+		view, target, output, validator, LAB_EDGE_LEFT);
 
 	/* Right edge encounters a half-infinite region to the right of the output */
 
 	validate_single_output_edge(&valid_edges->right,
-			view, target, output, validator, WLR_EDGE_RIGHT);
+		view, target, output, validator, LAB_EDGE_RIGHT);
 
 	/* Top edge encounters a half-infinite region above the output */
 
 	validate_single_output_edge(&valid_edges->top,
-			view, target, output, validator, WLR_EDGE_TOP);
+		view, target, output, validator, LAB_EDGE_TOP);
 
 	/* Bottom edge encounters a half-infinite region below the output */
 	validate_single_output_edge(&valid_edges->bottom,
-			view, target, output, validator, WLR_EDGE_BOTTOM);
+		view, target, output, validator, LAB_EDGE_BOTTOM);
 }
 
-static uint32_t
+static enum lab_edge
 compute_edges_visible(const struct wlr_box *view_size,
 		const pixman_box32_t *view_rect,
 		const pixman_region32_t *available)
@@ -258,19 +240,19 @@ compute_edges_visible(const struct wlr_box *view_size,
 	const pixman_box32_t *rects =
 		pixman_region32_rectangles(&intersection, &nrects);
 
-	uint32_t edges_visible = 0;
+	enum lab_edge edges_visible = LAB_EDGE_NONE;
 	for (int i = 0; i < nrects; i++) {
 		if (rects[i].x1 == view_rect->x1) {
-			edges_visible |= WLR_EDGE_LEFT;
+			edges_visible |= LAB_EDGE_LEFT;
 		}
 		if (rects[i].y1 == view_rect->y1) {
-			edges_visible |= WLR_EDGE_TOP;
+			edges_visible |= LAB_EDGE_TOP;
 		}
 		if (rects[i].x2 == view_rect->x2) {
-			edges_visible |= WLR_EDGE_RIGHT;
+			edges_visible |= LAB_EDGE_RIGHT;
 		}
 		if (rects[i].y2 == view_rect->y2) {
-			edges_visible |= WLR_EDGE_BOTTOM;
+			edges_visible |= LAB_EDGE_BOTTOM;
 		}
 	}
 	pixman_region32_fini(&intersection);
@@ -294,11 +276,10 @@ subtract_view_from_space(struct view *view, pixman_region32_t *available)
 
 	switch (overlap) {
 	case PIXMAN_REGION_IN:
-		view->edges_visible = WLR_EDGE_TOP | WLR_EDGE_RIGHT
-			| WLR_EDGE_BOTTOM | WLR_EDGE_LEFT;
+		view->edges_visible = LAB_EDGES_ALL;
 		break;
 	case PIXMAN_REGION_OUT:
-		view->edges_visible = 0;
+		view->edges_visible = LAB_EDGE_NONE;
 		return;
 	case PIXMAN_REGION_PART:
 		view->edges_visible = compute_edges_visible(
@@ -411,11 +392,10 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 			continue;
 		}
 
-		uint32_t edges_visible = ignore_hidden ? v->edges_visible :
-			WLR_EDGE_TOP | WLR_EDGE_LEFT
-				| WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT;
+		enum lab_edge edges_visible =
+			ignore_hidden ? v->edges_visible : LAB_EDGES_ALL;
 
-		if (edges_visible == 0) {
+		if (edges_visible == LAB_EDGE_NONE) {
 			continue;
 		}
 
@@ -543,7 +523,8 @@ edges_adjust_move_coords(struct view *view, struct border edges,
 
 void
 edges_adjust_resize_geom(struct view *view, struct border edges,
-		uint32_t resize_edges, struct wlr_box *geom, bool use_pending)
+		enum lab_edge resize_edges, struct wlr_box *geom,
+		bool use_pending)
 {
 	assert(view);
 
@@ -556,24 +537,24 @@ edges_adjust_resize_geom(struct view *view, struct border edges,
 	 * any valid nearest edge in the corresponding direction.
 	 */
 
-	if (resize_edges & WLR_EDGE_LEFT) {
+	if (resize_edges & LAB_EDGE_LEFT) {
 		if (BOUNDED_INT(edges.left)) {
 			geom->x = edges.left + border.left + rc.gap;
 			geom->width = view_geom->width + view_geom->x - geom->x;
 		}
-	} else if (resize_edges & WLR_EDGE_RIGHT) {
+	} else if (resize_edges & LAB_EDGE_RIGHT) {
 		if (BOUNDED_INT(edges.right)) {
 			geom->width = edges.right
 				- view_geom->x - border.right - rc.gap;
 		}
 	}
 
-	if (resize_edges & WLR_EDGE_TOP) {
+	if (resize_edges & LAB_EDGE_TOP) {
 		if (BOUNDED_INT(edges.top)) {
 			geom->y = edges.top + border.top + rc.gap;
 			geom->height = view_geom->height + view_geom->y - geom->y;
 		}
-	} else if (resize_edges & WLR_EDGE_BOTTOM) {
+	} else if (resize_edges & LAB_EDGE_BOTTOM) {
 		if (BOUNDED_INT(edges.bottom)) {
 			geom->height = edges.bottom
 				- view_geom->y - border.bottom - rc.gap;

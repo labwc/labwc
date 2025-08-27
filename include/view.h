@@ -181,7 +181,7 @@ struct view {
 	enum lab_tristate force_tearing;
 	bool visible_on_all_workspaces;
 	enum lab_edge tiled;
-	uint32_t edges_visible;  /* enum wlr_edges bitset */
+	enum lab_edge edges_visible;
 	bool inhibits_keybinds; /* also inhibits mousebinds */
 	xkb_layout_index_t keyboard_layout;
 

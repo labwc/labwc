@@ -23,7 +23,6 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/region.h>
 #include <wlr/util/log.h>
-#include "common/direction.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
@@ -986,8 +985,8 @@ output_get_adjacent(struct output *output, enum lab_edge edge, bool wrap)
 		return NULL;
 	}
 
-	enum wlr_direction direction;
-	if (!direction_from_edge(edge, &direction)) {
+	/* Allow only up/down/left/right */
+	if (!lab_edge_is_cardinal(edge)) {
 		return NULL;
 	}
 
@@ -999,16 +998,18 @@ output_get_adjacent(struct output *output, enum lab_edge edge, bool wrap)
 	struct wlr_output *new_output = NULL;
 	struct wlr_output *current_output = output->wlr_output;
 	struct wlr_output_layout *layout = output->server->output_layout;
-	new_output = wlr_output_layout_adjacent_output(layout, direction,
-		current_output, lx, ly);
+	/* Cast from enum lab_edge to enum wlr_direction is safe */
+	new_output = wlr_output_layout_adjacent_output(layout,
+		(enum wlr_direction)edge, current_output, lx, ly);
 
 	/*
 	 * Optionally wrap around from top-to-bottom or left-to-right, and vice
 	 * versa.
 	 */
 	if (wrap && !new_output) {
+		enum lab_edge opposite = lab_edge_invert(edge);
 		new_output = wlr_output_layout_farthest_output(layout,
-			direction_get_opposite(direction), current_output, lx, ly);
+			(enum wlr_direction)opposite, current_output, lx, ly);
 	}
 
 	/*

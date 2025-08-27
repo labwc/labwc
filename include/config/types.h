@@ -48,7 +48,16 @@ enum lab_tristate {
 	LAB_STATE_DISABLED
 };
 
-/* All criteria is applied in AND logic */
+/*
+ * This enum type is a set of bit flags where each set bit makes the
+ * criteria more restrictive. For example:
+ *
+ * (LAB_VIEW_CRITERIA_FULLSCREEN | LAB_VIEW_CRITERIA_CURRENT_WORKSPACE)
+ * matches only fullscreen views on the current workspace, while
+ *
+ * (LAB_VIEW_CRITERIA_ALWAYS_ON_TOP | LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP)
+ * would be contradictory and match nothing at all.
+ */
 enum lab_view_criteria {
 	/* No filter -> all focusable views */
 	LAB_VIEW_CRITERIA_NONE = 0,
@@ -79,6 +88,7 @@ enum lab_view_criteria {
  * to make them available even in builds with xwayland support disabled.
  */
 enum lab_window_type {
+	LAB_WINDOW_TYPE_INVALID = -1,
 	LAB_WINDOW_TYPE_DESKTOP = 0,
 	LAB_WINDOW_TYPE_DOCK,
 	LAB_WINDOW_TYPE_TOOLBAR,

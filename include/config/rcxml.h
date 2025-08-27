@@ -173,7 +173,7 @@ struct rcxml {
 		bool show;
 		bool preview;
 		bool outlines;
-		uint32_t criteria;
+		enum lab_view_criteria criteria;
 		struct wl_list fields;  /* struct window_switcher_field.link */
 	} window_switcher;
 

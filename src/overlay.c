@@ -2,7 +2,6 @@
 #include "overlay.h"
 #include <assert.h>
 #include <wlr/types/wlr_scene.h>
-#include "common/direction.h"
 #include "common/lab-scene-rect.h"
 #include "config/rcxml.h"
 #include "labwc.h"
@@ -97,7 +96,7 @@ inactivate_overlay(struct overlay *overlay)
 			&overlay->edge_rect.tree->node, false);
 	}
 	overlay->active.region = NULL;
-	overlay->active.edge = LAB_EDGE_INVALID;
+	overlay->active.edge = LAB_EDGE_NONE;
 	overlay->active.output = NULL;
 	if (overlay->timer) {
 		wl_event_source_timer_update(overlay->timer, 0);
@@ -120,7 +119,7 @@ show_region_overlay(struct seat *seat, struct region *region)
 static struct wlr_box
 get_edge_snap_box(enum lab_edge edge, struct output *output)
 {
-	if (edge == LAB_EDGE_UP && rc.snap_top_maximize) {
+	if (edge == LAB_EDGE_TOP && rc.snap_top_maximize) {
 		return output_usable_area_in_layout_coords(output);
 	} else {
 		return view_get_edge_snap_box(NULL, output, edge);
@@ -131,7 +130,7 @@ static int
 handle_edge_overlay_timeout(void *data)
 {
 	struct seat *seat = data;
-	assert(seat->overlay.active.edge != LAB_EDGE_INVALID
+	assert(seat->overlay.active.edge != LAB_EDGE_NONE
 		&& seat->overlay.active.output);
 	struct wlr_box box = get_edge_snap_box(seat->overlay.active.edge,
 		seat->overlay.active.output);
@@ -143,12 +142,13 @@ static bool
 edge_has_adjacent_output_from_cursor(struct seat *seat, struct output *output,
 		enum lab_edge edge)
 {
-	enum wlr_direction dir;
-	if (!direction_from_edge(edge, &dir)) {
+	/* Allow only up/down/left/right */
+	if (!lab_edge_is_cardinal(edge)) {
 		return false;
 	}
+	/* Cast from enum lab_edge to enum wlr_direction is safe */
 	return wlr_output_layout_adjacent_output(
-		seat->server->output_layout, dir,
+		seat->server->output_layout, (enum wlr_direction)edge,
 		output->wlr_output, seat->cursor->x, seat->cursor->y);
 }
 
@@ -159,7 +159,7 @@ show_edge_overlay(struct seat *seat, enum lab_edge edge1, enum lab_edge edge2,
 	if (!rc.snap_overlay_enabled) {
 		return;
 	}
-	uint32_t edge = edge1 | edge2;
+	enum lab_edge edge = edge1 | edge2;
 	if (seat->overlay.active.edge == edge
 			&& seat->overlay.active.output == output) {
 		return;

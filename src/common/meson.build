@@ -1,5 +1,4 @@
 labwc_sources += files(
-  'direction.c',
   'box.c',
   'buf.c',
   'dir.c',

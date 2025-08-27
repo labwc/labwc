@@ -399,7 +399,7 @@ handle_request_move(struct wl_listener *listener, void *data)
 	 */
 	struct view *view = wl_container_of(listener, view, request_move);
 	if (view == view->server->seat.pressed.view) {
-		interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
+		interactive_begin(view, LAB_INPUT_STATE_MOVE, LAB_EDGE_NONE);
 	}
 }
 
@@ -653,7 +653,7 @@ xdg_toplevel_view_notify_tiled(struct view *view)
 		return;
 	}
 
-	enum wlr_edges edge = WLR_EDGE_NONE;
+	enum lab_edge edge = LAB_EDGE_NONE;
 
 	bool want_edge = rc.snap_tiling_events_mode & LAB_TILING_EVENTS_EDGE;
 	bool want_region = rc.snap_tiling_events_mode & LAB_TILING_EVENTS_REGION;
@@ -665,39 +665,32 @@ xdg_toplevel_view_notify_tiled(struct view *view)
 	if (want_edge) {
 		switch (view->tiled) {
 		case LAB_EDGE_LEFT:
-			edge = WLR_EDGE_LEFT | WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
+			edge = LAB_EDGES_EXCEPT_RIGHT;
 			break;
 		case LAB_EDGE_RIGHT:
-			edge = WLR_EDGE_RIGHT | WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
+			edge = LAB_EDGES_EXCEPT_LEFT;
 			break;
-		case LAB_EDGE_UP:
-			edge = WLR_EDGE_TOP | WLR_EDGE_LEFT | WLR_EDGE_RIGHT;
+		case LAB_EDGE_TOP:
+			edge = LAB_EDGES_EXCEPT_BOTTOM;
 			break;
-		case LAB_EDGE_DOWN:
-			edge = WLR_EDGE_BOTTOM | WLR_EDGE_LEFT | WLR_EDGE_RIGHT;
+		case LAB_EDGE_BOTTOM:
+			edge = LAB_EDGES_EXCEPT_TOP;
 			break;
-		case LAB_EDGE_UPLEFT:
-			edge = WLR_EDGE_TOP | WLR_EDGE_LEFT;
-			break;
-		case LAB_EDGE_UPRIGHT:
-			edge = WLR_EDGE_TOP | WLR_EDGE_RIGHT;
-			break;
-		case LAB_EDGE_DOWNLEFT:
-			edge = WLR_EDGE_BOTTOM | WLR_EDGE_LEFT;
-			break;
-		case LAB_EDGE_DOWNRIGHT:
-			edge = WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT;
+		case LAB_EDGES_TOP_LEFT:
+		case LAB_EDGES_TOP_RIGHT:
+		case LAB_EDGES_BOTTOM_LEFT:
+		case LAB_EDGES_BOTTOM_RIGHT:
+			edge = view->tiled;
 			break;
 		/* TODO: LAB_EDGE_CENTER? */
 		default:
-			edge = WLR_EDGE_NONE;
+			edge = LAB_EDGE_NONE;
 		}
 	}
 
 	if (want_region && view->tiled_region) {
 		/* Region-snapped views are considered tiled on all edges */
-		edge = WLR_EDGE_LEFT | WLR_EDGE_RIGHT |
-			WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
+		edge = LAB_EDGES_ALL;
 	}
 
 	uint32_t serial =

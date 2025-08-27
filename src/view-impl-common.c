@@ -59,7 +59,7 @@ view_impl_unmap(struct view *view)
 }
 
 static bool
-resizing_edge(struct view *view, uint32_t edge)
+resizing_edge(struct view *view, enum lab_edge edge)
 {
 	struct server *server = view->server;
 	return server->input_mode == LAB_INPUT_STATE_RESIZE
@@ -86,7 +86,7 @@ view_impl_apply_geometry(struct view *view, int w, int h)
 	 * reliable on its own. The combination of the two methods
 	 * should catch 99% of resize cases that we care about.
 	 */
-	bool resizing_left_edge = resizing_edge(view, WLR_EDGE_LEFT);
+	bool resizing_left_edge = resizing_edge(view, LAB_EDGE_LEFT);
 	if (resizing_left_edge || (current->x != pending->x
 			&& current->x + current->width ==
 			pending->x + pending->width)) {
@@ -96,7 +96,7 @@ view_impl_apply_geometry(struct view *view, int w, int h)
 	}
 
 	/* Anchor bottom edge if resizing via top edge */
-	bool resizing_top_edge = resizing_edge(view, WLR_EDGE_TOP);
+	bool resizing_top_edge = resizing_edge(view, LAB_EDGE_TOP);
 	if (resizing_top_edge || (current->y != pending->y
 			&& current->y + current->height ==
 			pending->y + pending->height)) {

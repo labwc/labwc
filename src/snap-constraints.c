@@ -39,7 +39,7 @@ static struct {
 	bool pending;
 	int vertical_offset;
 	int horizontal_offset;
-	enum wlr_edges resize_edges;
+	enum lab_edge resize_edges;
 	struct wlr_box geom;
 } last_snap_hit;
 
@@ -50,12 +50,12 @@ snap_constraints_reset(void)
 	last_snap_hit.pending = false;
 	last_snap_hit.horizontal_offset = INT_MIN;
 	last_snap_hit.vertical_offset = INT_MIN;
-	last_snap_hit.resize_edges = WLR_EDGE_NONE;
+	last_snap_hit.resize_edges = LAB_EDGE_NONE;
 	memset(&last_snap_hit.geom, 0, sizeof(last_snap_hit.geom));
 }
 
 static bool
-snap_constraints_are_valid(struct view *view, enum wlr_edges resize_edges)
+snap_constraints_are_valid(struct view *view, enum lab_edge resize_edges)
 {
 	assert(view);
 
@@ -70,20 +70,20 @@ snap_constraints_are_valid(struct view *view, enum wlr_edges resize_edges)
 	}
 
 	/* Cache is not valid if edge offsets are invalid */
-	if (resize_edges & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)) {
+	if (resize_edges & LAB_EDGES_LEFT_RIGHT) {
 		if (!BOUNDED_INT(last_snap_hit.horizontal_offset)) {
 			return false;
 		}
 
-		if ((resize_edges & WLR_EDGE_LEFT) && (resize_edges & WLR_EDGE_RIGHT)) {
+		if ((resize_edges & LAB_EDGE_LEFT) && (resize_edges & LAB_EDGE_RIGHT)) {
 			return false;
 		}
-	} else if (resize_edges & (WLR_EDGE_TOP | WLR_EDGE_BOTTOM)) {
+	} else if (resize_edges & LAB_EDGES_TOP_BOTTOM) {
 		if (!BOUNDED_INT(last_snap_hit.vertical_offset)) {
 			return false;
 		}
 
-		if ((resize_edges & WLR_EDGE_TOP) && (resize_edges & WLR_EDGE_BOTTOM)) {
+		if ((resize_edges & LAB_EDGE_TOP) && (resize_edges & LAB_EDGE_BOTTOM)) {
 			return false;
 		}
 	} else {
@@ -95,24 +95,24 @@ snap_constraints_are_valid(struct view *view, enum wlr_edges resize_edges)
 }
 
 void
-snap_constraints_set(struct view *view,
-		enum wlr_edges resize_edges, struct wlr_box geom)
+snap_constraints_set(struct view *view, enum lab_edge resize_edges,
+		struct wlr_box geom)
 {
 	assert(view);
 
 	/* Set horizontal offset when resizing horizontal edges */
 	last_snap_hit.horizontal_offset = INT_MIN;
-	if (resize_edges & WLR_EDGE_LEFT) {
+	if (resize_edges & LAB_EDGE_LEFT) {
 		last_snap_hit.horizontal_offset = geom.x;
-	} else if (resize_edges & WLR_EDGE_RIGHT) {
+	} else if (resize_edges & LAB_EDGE_RIGHT) {
 		last_snap_hit.horizontal_offset = geom.x + geom.width;
 	}
 
 	/* Set vertical offset when resizing vertical edges */
 	last_snap_hit.vertical_offset = INT_MIN;
-	if (resize_edges & WLR_EDGE_TOP) {
+	if (resize_edges & LAB_EDGE_TOP) {
 		last_snap_hit.vertical_offset = geom.y;
-	} else if (resize_edges & WLR_EDGE_BOTTOM) {
+	} else if (resize_edges & LAB_EDGE_BOTTOM) {
 		last_snap_hit.vertical_offset = geom.y + geom.height;
 	}
 
@@ -166,8 +166,8 @@ snap_constraints_update(struct view *view)
 }
 
 struct wlr_box
-snap_constraints_effective(struct view *view,
-		enum wlr_edges resize_edges, bool use_pending)
+snap_constraints_effective(struct view *view, enum lab_edge resize_edges,
+		bool use_pending)
 {
 	assert(view);
 
@@ -181,15 +181,15 @@ snap_constraints_effective(struct view *view,
 	/* Override changing edge with constrained value */
 	struct wlr_box geom = real_geom;
 
-	if (resize_edges & WLR_EDGE_LEFT) {
+	if (resize_edges & LAB_EDGE_LEFT) {
 		geom.x = last_snap_hit.horizontal_offset;
-	} else if (resize_edges & WLR_EDGE_RIGHT) {
+	} else if (resize_edges & LAB_EDGE_RIGHT) {
 		geom.width = last_snap_hit.horizontal_offset - geom.x;
 	}
 
-	if (resize_edges & WLR_EDGE_TOP) {
+	if (resize_edges & LAB_EDGE_TOP) {
 		geom.y = last_snap_hit.vertical_offset;
-	} else if (resize_edges & WLR_EDGE_BOTTOM) {
+	} else if (resize_edges & LAB_EDGE_BOTTOM) {
 		geom.height = last_snap_hit.vertical_offset - geom.y;
 	}
 

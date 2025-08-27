@@ -88,40 +88,34 @@ static_assert(
 	"X11 cursor names are out of sync");
 
 enum lab_cursors
-cursor_get_from_edge(uint32_t resize_edges)
+cursor_get_from_edge(enum lab_edge resize_edges)
 {
 	switch (resize_edges) {
-	case WLR_EDGE_NONE:
-		return LAB_CURSOR_DEFAULT;
-	case WLR_EDGE_TOP | WLR_EDGE_LEFT:
+	case LAB_EDGES_TOP_LEFT:
 		return LAB_CURSOR_RESIZE_NW;
-	case WLR_EDGE_TOP:
+	case LAB_EDGE_TOP:
 		return LAB_CURSOR_RESIZE_N;
-	case WLR_EDGE_TOP | WLR_EDGE_RIGHT:
+	case LAB_EDGES_TOP_RIGHT:
 		return LAB_CURSOR_RESIZE_NE;
-	case WLR_EDGE_RIGHT:
+	case LAB_EDGE_RIGHT:
 		return LAB_CURSOR_RESIZE_E;
-	case WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT:
+	case LAB_EDGES_BOTTOM_RIGHT:
 		return LAB_CURSOR_RESIZE_SE;
-	case WLR_EDGE_BOTTOM:
+	case LAB_EDGE_BOTTOM:
 		return LAB_CURSOR_RESIZE_S;
-	case WLR_EDGE_BOTTOM | WLR_EDGE_LEFT:
+	case LAB_EDGES_BOTTOM_LEFT:
 		return LAB_CURSOR_RESIZE_SW;
-	case WLR_EDGE_LEFT:
+	case LAB_EDGE_LEFT:
 		return LAB_CURSOR_RESIZE_W;
 	default:
-		wlr_log(WLR_ERROR,
-			"Failed to resolve wlroots edge %u to cursor name", resize_edges);
-		assert(false);
+		return LAB_CURSOR_DEFAULT;
 	}
-
-	return LAB_CURSOR_DEFAULT;
 }
 
 static enum lab_cursors
 cursor_get_from_ssd(enum ssd_part_type view_area)
 {
-	uint32_t resize_edges = ssd_resize_edges(view_area);
+	enum lab_edge resize_edges = ssd_resize_edges(view_area);
 	return cursor_get_from_edge(resize_edges);
 }
 
@@ -342,32 +336,32 @@ process_cursor_resize(struct server *server, uint32_t time)
 	struct view *view = server->grabbed_view;
 	struct wlr_box new_view_geo = view->current;
 
-	if (server->resize_edges & WLR_EDGE_TOP) {
+	if (server->resize_edges & LAB_EDGE_TOP) {
 		/* Shift y to anchor bottom edge when resizing top */
 		new_view_geo.y = server->grab_box.y + dy;
 		new_view_geo.height = server->grab_box.height - dy;
-	} else if (server->resize_edges & WLR_EDGE_BOTTOM) {
+	} else if (server->resize_edges & LAB_EDGE_BOTTOM) {
 		new_view_geo.height = server->grab_box.height + dy;
 	}
 
-	if (server->resize_edges & WLR_EDGE_LEFT) {
+	if (server->resize_edges & LAB_EDGE_LEFT) {
 		/* Shift x to anchor right edge when resizing left */
 		new_view_geo.x = server->grab_box.x + dx;
 		new_view_geo.width = server->grab_box.width - dx;
-	} else if (server->resize_edges & WLR_EDGE_RIGHT) {
+	} else if (server->resize_edges & LAB_EDGE_RIGHT) {
 		new_view_geo.width = server->grab_box.width + dx;
 	}
 
 	resistance_resize_apply(view, &new_view_geo);
 	view_adjust_size(view, &new_view_geo.width, &new_view_geo.height);
 
-	if (server->resize_edges & WLR_EDGE_TOP) {
+	if (server->resize_edges & LAB_EDGE_TOP) {
 		/* After size adjustments, make sure to anchor bottom edge */
 		new_view_geo.y = server->grab_box.y +
 			server->grab_box.height - new_view_geo.height;
 	}
 
-	if (server->resize_edges & WLR_EDGE_LEFT) {
+	if (server->resize_edges & LAB_EDGE_LEFT) {
 		/* After size adjustments, make sure to anchor bottom right */
 		new_view_geo.x = server->grab_box.x +
 			server->grab_box.width - new_view_geo.width;
@@ -582,18 +576,18 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 	return false;
 }
 
-uint32_t
+enum lab_edge
 cursor_get_resize_edges(struct wlr_cursor *cursor, struct cursor_context *ctx)
 {
-	uint32_t resize_edges = ssd_resize_edges(ctx->type);
+	enum lab_edge resize_edges = ssd_resize_edges(ctx->type);
 	if (ctx->view && !resize_edges) {
 		struct wlr_box box = ctx->view->current;
 		resize_edges |=
 			(int)cursor->x < box.x + box.width / 2 ?
-				WLR_EDGE_LEFT : WLR_EDGE_RIGHT;
+				LAB_EDGE_LEFT : LAB_EDGE_RIGHT;
 		resize_edges |=
 			(int)cursor->y < box.y + box.height / 2 ?
-				WLR_EDGE_TOP : WLR_EDGE_BOTTOM;
+				LAB_EDGE_TOP : LAB_EDGE_BOTTOM;
 	}
 	return resize_edges;
 }

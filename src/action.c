@@ -348,7 +348,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			bool tiled = (action->type == ACTION_TYPE_TOGGLE_SNAP_TO_EDGE
 					|| action->type == ACTION_TYPE_SNAP_TO_EDGE);
 			enum lab_edge edge = lab_edge_parse(content, tiled, /*any*/ false);
-			if (edge == LAB_EDGE_INVALID) {
+			if (edge == LAB_EDGE_NONE) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			} else {
@@ -462,7 +462,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		if (!strcmp(argument, "direction")) {
 			enum lab_edge edge = lab_edge_parse(content,
 				/*tiled*/ false, /*any*/ false);
-			if (edge == LAB_EDGE_INVALID) {
+			if (edge == LAB_EDGE_NONE) {
 				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			} else {
@@ -921,7 +921,7 @@ get_target_output(struct output *output, struct server *server,
 		target = output_from_name(server, output_name);
 	} else {
 		enum lab_edge edge =
-			action_get_int(action, "direction", LAB_EDGE_INVALID);
+			action_get_int(action, "direction", LAB_EDGE_NONE);
 		bool wrap = action_get_bool(action, "wrap", false);
 		target = output_get_adjacent(output, edge, wrap);
 	}
@@ -1144,7 +1144,8 @@ run_action(struct view *view, struct server *server, struct action *action,
 		break;
 	case ACTION_TYPE_MOVE:
 		if (view) {
-			interactive_begin(view, LAB_INPUT_STATE_MOVE, 0);
+			interactive_begin(view, LAB_INPUT_STATE_MOVE,
+				LAB_EDGE_NONE);
 		}
 		break;
 	case ACTION_TYPE_RAISE:
@@ -1159,7 +1160,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 		break;
 	case ACTION_TYPE_RESIZE:
 		if (view) {
-			uint32_t resize_edges = cursor_get_resize_edges(
+			enum lab_edge resize_edges = cursor_get_resize_edges(
 				server->seat.cursor, ctx);
 			interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 				resize_edges);

@@ -55,7 +55,7 @@ interactive_anchor_to_cursor(struct server *server, struct wlr_box *geo)
 }
 
 void
-interactive_begin(struct view *view, enum input_mode mode, uint32_t edges)
+interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 {
 	/*
 	 * This function sets up an interactive move or resize operation, where
@@ -170,8 +170,8 @@ edge_from_cursor(struct seat *seat, struct output **dest_output,
 		enum lab_edge *edge1, enum lab_edge *edge2)
 {
 	*dest_output = NULL;
-	*edge1 = LAB_EDGE_INVALID;
-	*edge2 = LAB_EDGE_INVALID;
+	*edge1 = LAB_EDGE_NONE;
+	*edge2 = LAB_EDGE_NONE;
 
 	if (!view_is_floating(seat->server->grabbed_view)) {
 		return false;
@@ -202,9 +202,9 @@ edge_from_cursor(struct seat *seat, struct output **dest_output,
 	int right = area->x + area->width - cursor_x;
 
 	if (top < rc.snap_edge_range) {
-		*edge1 = LAB_EDGE_UP;
+		*edge1 = LAB_EDGE_TOP;
 	} else if (bottom < rc.snap_edge_range) {
-		*edge1 = LAB_EDGE_DOWN;
+		*edge1 = LAB_EDGE_BOTTOM;
 	} else if (left < rc.snap_edge_range) {
 		*edge1 = LAB_EDGE_LEFT;
 	} else if (right < rc.snap_edge_range) {
@@ -213,7 +213,7 @@ edge_from_cursor(struct seat *seat, struct output **dest_output,
 		return false;
 	}
 
-	if (*edge1 == LAB_EDGE_UP || *edge1 == LAB_EDGE_DOWN) {
+	if (*edge1 == LAB_EDGE_TOP || *edge1 == LAB_EDGE_BOTTOM) {
 		if (left < rc.snap_edge_corner_range) {
 			*edge2 = LAB_EDGE_LEFT;
 		} else if (right < rc.snap_edge_corner_range) {
@@ -221,9 +221,9 @@ edge_from_cursor(struct seat *seat, struct output **dest_output,
 		}
 	} else if (*edge1  == LAB_EDGE_LEFT || *edge1 == LAB_EDGE_RIGHT) {
 		if (top < rc.snap_edge_corner_range) {
-			*edge2 = LAB_EDGE_UP;
+			*edge2 = LAB_EDGE_TOP;
 		} else if (bottom < rc.snap_edge_corner_range) {
-			*edge2 = LAB_EDGE_DOWN;
+			*edge2 = LAB_EDGE_BOTTOM;
 		}
 	}
 
@@ -246,7 +246,7 @@ snap_to_edge(struct view *view)
 	 * Don't store natural geometry here (it was
 	 * stored already in interactive_begin())
 	 */
-	if (edge == LAB_EDGE_UP && rc.snap_top_maximize) {
+	if (edge == LAB_EDGE_TOP && rc.snap_top_maximize) {
 		/* <topMaximize> */
 		view_maximize(view, VIEW_AXIS_BOTH,
 			/*store_natural_geometry*/ false);

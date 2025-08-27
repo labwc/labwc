@@ -3,7 +3,7 @@
 #define LABWC_CURSOR_H
 
 #include <wlr/types/wlr_cursor.h>
-#include <wlr/util/edges.h>
+#include "common/edge.h"
 #include "ssd.h"
 
 struct view;
@@ -11,7 +11,6 @@ struct seat;
 struct server;
 struct wlr_surface;
 struct wlr_scene_node;
-enum wl_pointer_button_state;
 
 /* Cursors used internally by labwc */
 enum lab_cursors {
@@ -85,20 +84,19 @@ void cursor_set_visible(struct seat *seat, bool visible);
  * This is mostly important when either resizing a window using a
  * keyboard modifier or when using the Resize action from a keybind.
  */
-uint32_t cursor_get_resize_edges(struct wlr_cursor *cursor,
+enum lab_edge cursor_get_resize_edges(struct wlr_cursor *cursor,
 	struct cursor_context *ctx);
 
 /**
- * cursor_get_from_edge - translate wlroots edge enum to lab_cursor enum
- * @resize_edges - WLR_EDGE_ combination like WLR_EDGE_TOP | WLR_EDGE_RIGHT
+ * cursor_get_from_edge - translate lab_edge enum to lab_cursor enum
+ * @resize_edges - edge(s) being resized
  *
- * Returns LAB_CURSOR_DEFAULT on WLR_EDGE_NONE
  * Returns the appropriate lab_cursors enum if @resize_edges
  * is one of the 4 corners or one of the 4 edges.
  *
- * Asserts on invalid edge combinations like WLR_EDGE_LEFT | WLR_EDGE_RIGHT
+ * Returns LAB_CURSOR_DEFAULT on any other value.
  */
-enum lab_cursors cursor_get_from_edge(uint32_t resize_edges);
+enum lab_cursors cursor_get_from_edge(enum lab_edge resize_edges);
 
 /**
  * cursor_update_focus - update cursor focus, may update the cursor icon

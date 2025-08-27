@@ -43,10 +43,9 @@ struct button {
 	uint8_t state_set;
 };
 
-enum corner {
-	LAB_CORNER_UNKNOWN = 0,
-	LAB_CORNER_TOP_LEFT,
-	LAB_CORNER_TOP_RIGHT,
+enum rounded_corner {
+	ROUNDED_CORNER_TOP_LEFT,
+	ROUNDED_CORNER_TOP_RIGHT
 };
 
 struct rounded_corner_ctx {
@@ -55,7 +54,7 @@ struct rounded_corner_ctx {
 	double line_width;
 	cairo_pattern_t *fill_pattern;
 	float *border_color;
-	enum corner corner;
+	enum rounded_corner corner;
 };
 
 #define zero_array(arr) memset(arr, 0, sizeof(arr))
@@ -1110,10 +1109,6 @@ theme_read(struct theme *theme, struct wl_list *paths)
 static struct lab_data_buffer *
 rounded_rect(struct rounded_corner_ctx *ctx)
 {
-	if (ctx->corner == LAB_CORNER_UNKNOWN) {
-		return NULL;
-	}
-
 	double w = ctx->box->width;
 	double h = ctx->box->height;
 	double r = ctx->radius;
@@ -1147,20 +1142,18 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 	cairo_set_line_width(cairo, 0.0);
 	cairo_new_sub_path(cairo);
 	switch (ctx->corner) {
-	case LAB_CORNER_TOP_LEFT:
+	case ROUNDED_CORNER_TOP_LEFT:
 		cairo_arc(cairo, r, r, r, 180 * deg, 270 * deg);
 		cairo_line_to(cairo, w, 0);
 		cairo_line_to(cairo, w, h);
 		cairo_line_to(cairo, 0, h);
 		break;
-	case LAB_CORNER_TOP_RIGHT:
+	case ROUNDED_CORNER_TOP_RIGHT:
 		cairo_arc(cairo, w - r, r, r, -90 * deg, 0 * deg);
 		cairo_line_to(cairo, w, h);
 		cairo_line_to(cairo, 0, h);
 		cairo_line_to(cairo, 0, 0);
 		break;
-	default:
-		wlr_log(WLR_ERROR, "unknown corner type");
 	}
 	cairo_close_path(cairo);
 	cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
@@ -1203,20 +1196,18 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 	cairo_set_line_width(cairo, ctx->line_width);
 	double half_line_width = ctx->line_width / 2.0;
 	switch (ctx->corner) {
-	case LAB_CORNER_TOP_LEFT:
+	case ROUNDED_CORNER_TOP_LEFT:
 		cairo_move_to(cairo, half_line_width, h);
 		cairo_line_to(cairo, half_line_width, r);
 		cairo_move_to(cairo, r, half_line_width);
 		cairo_line_to(cairo, w, half_line_width);
 		break;
-	case LAB_CORNER_TOP_RIGHT:
+	case ROUNDED_CORNER_TOP_RIGHT:
 		cairo_move_to(cairo, 0, half_line_width);
 		cairo_line_to(cairo, w - r, half_line_width);
 		cairo_move_to(cairo, w - half_line_width, r);
 		cairo_line_to(cairo, w - half_line_width, h);
 		break;
-	default:
-		wlr_log(WLR_ERROR, "unknown corner type");
 	}
 	cairo_stroke(cairo);
 
@@ -1264,15 +1255,13 @@ rounded_rect(struct rounded_corner_ctx *ctx)
 	cairo_set_line_width(cairo, line_width);
 	half_line_width = line_width / 2.0;
 	switch (ctx->corner) {
-	case LAB_CORNER_TOP_LEFT:
+	case ROUNDED_CORNER_TOP_LEFT:
 		cairo_move_to(cairo, half_line_width, r);
 		cairo_arc(cairo, r, r, r - half_line_width, 180 * deg, 270 * deg);
 		break;
-	case LAB_CORNER_TOP_RIGHT:
+	case ROUNDED_CORNER_TOP_RIGHT:
 		cairo_move_to(cairo, w - r, half_line_width);
 		cairo_arc(cairo, w - r, r, r - half_line_width, -90 * deg, 0 * deg);
-		break;
-	default:
 		break;
 	}
 	cairo_stroke(cairo);
@@ -1374,10 +1363,10 @@ create_corners(struct theme *theme)
 			.line_width = theme->border_width,
 			.fill_pattern = theme->window[active].titlebar_pattern,
 			.border_color = theme->window[active].border_color,
-			.corner = LAB_CORNER_TOP_LEFT,
+			.corner = ROUNDED_CORNER_TOP_LEFT,
 		};
 		theme->window[active].corner_top_left_normal = rounded_rect(&ctx);
-		ctx.corner = LAB_CORNER_TOP_RIGHT;
+		ctx.corner = ROUNDED_CORNER_TOP_RIGHT;
 		theme->window[active].corner_top_right_normal = rounded_rect(&ctx);
 	}
 }

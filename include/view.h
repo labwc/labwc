@@ -274,7 +274,7 @@ struct view_query {
 	struct wl_list link;
 	char *identifier;
 	char *title;
-	int window_type;
+	enum lab_window_type window_type;
 	char *sandbox_engine;
 	char *sandbox_app_id;
 	enum lab_tristate shaded;

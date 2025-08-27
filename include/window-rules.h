@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include <wayland-util.h>
+#include "config/types.h"
 
 enum window_rule_event {
 	LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP = 0,
@@ -24,7 +25,7 @@ enum property {
 struct window_rule {
 	char *identifier;
 	char *title;
-	int window_type;
+	enum lab_window_type window_type;
 	char *sandbox_engine;
 	char *sandbox_app_id;
 	bool match_once;

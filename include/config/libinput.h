@@ -38,6 +38,7 @@ struct libinput_category {
 };
 
 enum lab_libinput_device_type get_device_type(const char *s);
+const char *libinput_device_type_name(enum lab_libinput_device_type type);
 struct libinput_category *libinput_category_create(void);
 struct libinput_category *libinput_category_get_default(void);
 

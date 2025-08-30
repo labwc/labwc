@@ -303,7 +303,7 @@ interactive_cancel(struct view *view)
 		return;
 	}
 
-	overlay_hide(&view->server->seat);
+	overlay_finish(&view->server->seat);
 
 	resize_indicator_hide(view);
 

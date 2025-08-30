@@ -602,7 +602,7 @@ workspaces_reconfigure(struct server *server)
 	}
 
 	/* # of configured workspaces decreased */
-	overlay_hide(&server->seat);
+	overlay_finish(&server->seat);
 	struct workspace *first_workspace =
 		wl_container_of(server->workspaces.all.next, first_workspace, link);
 

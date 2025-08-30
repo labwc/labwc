@@ -1,5 +1,5 @@
-# Labwc pot file
-# Copyright (C) 2024
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR 2025 labwc team
 # This file is distributed under the same license as the labwc package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
-"POT-Creation-Date: 2024-09-19 21:09+1000\n"
+"POT-Creation-Date: 2025-08-30 14:21+1000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,62 +17,72 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/menu/menu.c:1016
-msgid "Go there..."
-msgstr ""
-
-#: src/menu/menu.c:1034
-msgid "Terminal"
-msgstr ""
-
-#: src/menu/menu.c:1040
-msgid "Reconfigure"
-msgstr ""
-
-#: src/menu/menu.c:1042
-msgid "Exit"
-msgstr ""
-
-#: src/menu/menu.c:1056
-msgid "Minimize"
-msgstr ""
-
-#: src/menu/menu.c:1058
-msgid "Maximize"
-msgstr ""
-
-#: src/menu/menu.c:1060
-msgid "Fullscreen"
-msgstr ""
-
-#: src/menu/menu.c:1062
-msgid "Roll Up/Down"
-msgstr ""
-
-#: src/menu/menu.c:1064
-msgid "Decorations"
-msgstr ""
-
-#: src/menu/menu.c:1066
-msgid "Always on Top"
-msgstr ""
-
-#: src/menu/menu.c:1071
-msgid "Move Left"
-msgstr ""
-
-#: src/menu/menu.c:1078
-msgid "Move Right"
-msgstr ""
-
-#: src/menu/menu.c:1083
+#: src/menu/menu.c:867
 msgid "Always on Visible Workspace"
 msgstr ""
 
-#: src/menu/menu.c:1086
+#: src/menu/menu.c:924
+msgid "Go there..."
+msgstr ""
+
+#: src/menu/menu.c:943
+msgid "Terminal"
+msgstr ""
+
+#: src/menu/menu.c:949
+msgid "Reconfigure"
+msgstr ""
+
+#: src/menu/menu.c:951
+msgid "Exit"
+msgstr ""
+
+#: src/menu/menu.c:966
+msgid "Minimize"
+msgstr ""
+
+#: src/menu/menu.c:968
+msgid "Maximize"
+msgstr ""
+
+#: src/menu/menu.c:970
+msgid "Fullscreen"
+msgstr ""
+
+#: src/menu/menu.c:972
+msgid "Roll Up/Down"
+msgstr ""
+
+#: src/menu/menu.c:974
+msgid "Decorations"
+msgstr ""
+
+#: src/menu/menu.c:976
+msgid "Always on Top"
+msgstr ""
+
+#. Workspace sub-menu
+#: src/menu/menu.c:980 src/menu/menu.c:999 src/config/rcxml.c:1708
 msgid "Workspace"
 msgstr ""
 
-#: src/menu/menu.c:1089
+#: src/menu/menu.c:983
 msgid "Close"
+msgstr ""
+
+#. Just create placeholder. Contents will be created when launched
+#: src/menu/menu.c:998
+msgid "Windows"
+msgstr ""
+
+#: clients/lab-exit:9
+msgid "Are you sure you want to quit Labwc?"
+msgstr ""
+
+#: clients/lab-exit:10
+msgid "Yes"
+msgstr ""
+
+#: clients/lab-exit:11
+msgid "No"
 msgstr ""

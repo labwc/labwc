@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# logout with labnag
+
+export TEXTDOMAIN=labwc
+export OUTPUT_CHARSET=UTF-8
+alias _='gettext'
+
+QUESTION=$(_ 'Are you sure you want to quit Labwc?')
+YES=$(_ 'Yes')
+NO=$(_ 'No')
+
+labnag \
+ -f "mono 10"\
+ -m "$QUESTION"\
+ -Z " $YES " "labwc -e"\
+ -Z " $NO "\
+ --background 00ffff\
+ --button-background 00ffff\
+ --border 00ccccaa\
+ --text 000000\
+ --button-text 000000\
+ --button-gap 8\
+ --button-margin-right 0\
+ --button-padding 5\
+ --button-border-size 2\
+ -t 60

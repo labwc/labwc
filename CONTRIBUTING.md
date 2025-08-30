@@ -450,27 +450,38 @@ translation strings under each English string.
 ## Coders
 
 Code contributors may need to update relevant files if their additions
-affect UI elements (at the moment only `src/menu/menu.c` and
-`src/config/rcxml.c`). In this case the `po/labwc.pot` file needs to be
+affect UI elements (at the moment only `src/menu/menu.c`, `src/config/rcxml.c`
+and `clients/lab-exit`). In this case the `po/labwc.pot` file needs to be
 updated so that translators can update their translations. Remember,
 many translators are _not_ coders!
 
 The process is fairly trivial however does involve some manual steps.
 
-1. After adding and testing your code additions to satisfaction, backup
-`po/labwc.pot`. You need the custom header from that file for the newly
-generated .pot file in the next step.
+After adding and testing your code additions to satisfaction, there are
+two commands needed to generate a sane `po/labwc.pot` file. Two commands are
+necessary because we now are using `C` and `Shell` in GUI facing files.
 
-2. From the root of the repository run this:
+1. From the root of the repository run this:
 
 ```
-xgettext --keyword=_ --language=C --add-comments -o po/labwc.pot src/menu/menu.c src/config/rcxml.c
+xgettext --keyword=_ --language=C --add-comments -o po/labwc.pot src/menu/menu.c\
+  src/config/rcxml.c --package-name=labwc --msgid-bugs-address=https://github.com/labwc/labwc/issues\
+  --copyright-holder="2025 labwc team"
 ```
 
 This generates a new pot file at `po/labwc.pot`
 
-3. Copy the header from the original `labwc.pot` to the new one, keeping
-the newly generated dates, check for sanity and commit.
+2. Then next run this:
+```
+xgettext -j --keyword=_ --language=Shell --add-comments -o po/labwc.pot  clients/lab-exit\
+  --package-name=labwc --msgid-bugs-address=https://github.com/labwc/labwc/issues\
+  --copyright-holder="2025 labwc team"
+```
+
+This appends the shell script translatable strings to the `C` code strings
+generated with the first command via the `-j` option to `xgettext`
+
+View the `xgettext` manual for explanation of the other options. 
 
 # Upversion
 

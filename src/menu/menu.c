@@ -949,7 +949,8 @@ init_rootmenu(struct server *server)
 		item = item_create(menu, _("Reconfigure"), NULL, false);
 		item_add_action(item, "Reconfigure");
 		item = item_create(menu, _("Exit"), NULL, false);
-		item_add_action(item, "Exit");
+		struct action *leave = item_add_action(item, "Execute");
+		action_arg_add_str(leave, "command", "lab-exit");
 	}
 }
 

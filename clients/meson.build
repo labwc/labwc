@@ -54,3 +54,7 @@ executable(
 	install: true
 )
 
+clients = ['lab-sensible-terminal', 'lab-exit']
+foreach client : clients
+  install_data(client, install_dir: get_option('bindir'))
+endforeach

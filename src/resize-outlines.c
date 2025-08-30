@@ -7,6 +7,7 @@
 #include "resize-indicator.h"
 #include "ssd.h"
 #include "theme.h"
+#include "view.h"
 
 bool
 resize_outlines_enabled(struct view *view)

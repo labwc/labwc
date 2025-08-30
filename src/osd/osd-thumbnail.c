@@ -5,7 +5,6 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/render/allocator.h>
 #include "config/rcxml.h"
-#include "config/types.h"
 #include "common/array.h"
 #include "common/box.h"
 #include "common/lab-scene-rect.h"
@@ -15,6 +14,7 @@
 #include "osd.h"
 #include "output.h"
 #include "theme.h"
+#include "view.h"
 
 struct osd_thumbnail_scene_item {
 	struct view *view;

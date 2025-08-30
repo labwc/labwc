@@ -6,8 +6,9 @@
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "output.h"
-#include "view.h"
+#include "regions.h"
 #include "theme.h"
+#include "view.h"
 
 static void
 create_overlay_rect(struct seat *seat, struct overlay_rect *rect,

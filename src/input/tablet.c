@@ -18,6 +18,7 @@
 #include "labwc.h"
 #include "idle.h"
 #include "action.h"
+#include "view.h"
 
 bool
 tablet_tool_has_focused_surface(struct seat *seat)

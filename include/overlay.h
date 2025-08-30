@@ -2,10 +2,9 @@
 #ifndef LABWC_OVERLAY_H
 #define LABWC_OVERLAY_H
 
-#include <wlr/util/box.h>
-#include "common/graphic-helpers.h"
-#include "regions.h"
-#include "view.h"
+#include "common/edge.h"
+
+struct seat;
 
 /* TODO: replace this with single lab_scene_rect */
 struct overlay_rect {

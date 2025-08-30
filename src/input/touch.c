@@ -15,6 +15,7 @@
 #include "idle.h"
 #include "labwc.h"
 #include "ssd.h"
+#include "view.h"
 
 /* Holds layout -> surface offsets to report motion events in relative coords */
 struct touch_point {

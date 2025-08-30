@@ -119,7 +119,7 @@ This is a simple example of a _labnag_ logout GUI.
 labnag \\
  -f "Hack Regular 10"\\
  -m "Choose your logout option"\\
- -Z "  Lock   " "gtklock -d"\
+ -Z "  Lock   " "gtklock -d"\\
  -Z " Logout  " "labwc -e"\\
  -Z "Shutdown " "systemctl poweroff"\\
  -Z " Reboot  " "systemctl reboot"\\

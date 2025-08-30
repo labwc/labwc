@@ -107,3 +107,34 @@ _labnag_ [options...]
 *--button-padding* <padding>
 	Set the padding for the button text.
 
+# EXAMPLE
+
+This is a simple example of a _labnag_ logout GUI.
+
+```
+#!/bin/sh
+
+# logout with labnag
+
+labnag \\
+ -f "Hack Regular 10"\\
+ -m "Choose your logout option"\\
+ -Z "  Lock   " "gtklock -d"\
+ -Z " Logout  " "labwc -e"\\
+ -Z "Shutdown " "systemctl poweroff"\\
+ -Z " Reboot  " "systemctl reboot"\\
+ -Z "Hibernate" "systemctl hibernate"\\
+ -Z " Suspend " "systemctl suspend"\\
+ -Z " Cancel  "\\
+ --background 00ffff\\
+ --button-background 00ffff\\
+ --border 00ccccaa\\
+ --text 000000\\
+ --button-text 000000\\
+ --button-gap 8\\
+ --button-margin-right 0\\
+ --button-padding 5\\
+ --button-border-size 2\\
+ -t 60
+```
+

@@ -22,7 +22,7 @@
 static struct lab_data_buffer *
 choose_best_icon_buffer(struct scaled_icon_buffer *self, int icon_size, double scale)
 {
-	int best_dist = INT_MIN;
+	int best_dist = -INT_MAX;
 	struct lab_data_buffer *best_buffer = NULL;
 
 	struct lab_data_buffer **buffer;

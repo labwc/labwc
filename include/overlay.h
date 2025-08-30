@@ -6,19 +6,8 @@
 
 struct seat;
 
-/* TODO: replace this with single lab_scene_rect */
-struct overlay_rect {
-	struct wlr_scene_tree *tree;
-
-	bool bg_enabled;
-	struct wlr_scene_rect *bg_rect;
-
-	bool border_enabled;
-	struct lab_scene_rect *border_rect;
-};
-
 struct overlay {
-	struct overlay_rect region_rect, edge_rect;
+	struct lab_scene_rect *rect;
 
 	/* Represents currently shown or delayed overlay */
 	struct {
@@ -34,15 +23,13 @@ struct overlay {
 	struct wl_event_source *timer;
 };
 
-void overlay_reconfigure(struct seat *seat);
-
-/* Calls overlay_hide() internally if there's no overlay to show */
+/*
+ * Shows or updates an overlay when the grabbed window can be snapped to
+ * a region or an output edge. Calls overlay_finish() otherwise.
+ */
 void overlay_update(struct seat *seat);
 
-/* This function must be called when server->grabbed_view is destroyed */
-void overlay_hide(struct seat *seat);
-
-/* This function is called to clean up the timer on exit */
+/* Destroys the overlay if it exists */
 void overlay_finish(struct seat *seat);
 
 #endif

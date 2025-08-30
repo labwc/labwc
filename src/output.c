@@ -171,7 +171,7 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	regions_evacuate_output(output);
 	regions_destroy(seat, &output->regions);
 	if (seat->overlay.active.output == output) {
-		overlay_hide(seat);
+		overlay_finish(seat);
 	}
 	wl_list_remove(&output->link);
 	wl_list_remove(&output->frame.link);

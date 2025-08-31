@@ -357,10 +357,12 @@ void xdg_shell_finish(struct server *server);
 void desktop_focus_view(struct view *view, bool raise);
 
 /**
- * desktop_focus_view_or_surface() - like desktop_focus_view() but can
- * also focus other (e.g. xwayland-unmanaged) surfaces
+ * desktop_focus_for_cursor_update() - like desktop_focus_view() but can
+ * also focus other (e.g. xwayland-unmanaged) surfaces.
+ *
+ * Used only for cursor-driven focus updates.
  */
-void desktop_focus_view_or_surface(struct seat *seat, struct view *view,
+void desktop_focus_for_cursor_update(struct seat *seat, struct view *view,
 	struct wlr_surface *surface, bool raise);
 
 void desktop_arrange_all_views(struct server *server);

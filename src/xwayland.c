@@ -903,14 +903,14 @@ xwayland_view_map(struct view *view)
 
 	/*
 	 * If the view was focused (on the xwayland server side) before
-	 * being mapped, update the seat focus now. Note that this only
-	 * really matters in the case of Globally Active input windows.
-	 * In all other cases, it's redundant since view_impl_map()
-	 * results in the view being focused anyway.
+	 * being mapped, just update the seat focus. Otherwise, try to
+	 * focus the view now.
 	 */
 	if (xwayland_view->focused_before_map) {
 		xwayland_view->focused_before_map = false;
 		seat_focus_surface(&view->server->seat, view->surface);
+	} else {
+		desktop_focus_view(view, /*raise*/ true);
 	}
 
 	view_impl_map(view);

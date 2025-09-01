@@ -221,7 +221,6 @@ snap_shrink_to_next_edge(struct view *view,
 
 	*geo = view->pending;
 	enum lab_edge resize_edges;
-	int min_width = view_get_min_width();
 
 	/*
 	 * First shrink the view along the relevant edge. The maximum shrink
@@ -230,12 +229,12 @@ snap_shrink_to_next_edge(struct view *view,
 	 */
 	switch (direction) {
 	case LAB_EDGE_RIGHT:
-		geo->width = MAX(geo->width / 2, min_width);
+		geo->width = MAX(geo->width / 2, LAB_MIN_VIEW_WIDTH);
 		geo->x = view->pending.x + view->pending.width - geo->width;
 		resize_edges = LAB_EDGE_LEFT;
 		break;
 	case LAB_EDGE_LEFT:
-		geo->width = MAX(geo->width / 2, min_width);
+		geo->width = MAX(geo->width / 2, LAB_MIN_VIEW_WIDTH);
 		resize_edges = LAB_EDGE_RIGHT;
 		break;
 	case LAB_EDGE_BOTTOM:

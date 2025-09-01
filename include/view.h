@@ -11,6 +11,11 @@
 #include "config.h"
 #include "config/types.h"
 
+/*
+ * Default minimal window size. Clients can explicitly set smaller values via
+ * e.g. xdg_toplevel::set_min_size.
+ */
+#define LAB_MIN_VIEW_WIDTH 100
 #define LAB_MIN_VIEW_HEIGHT 60
 
 /*
@@ -573,7 +578,6 @@ const char *view_get_string_prop(struct view *view, const char *prop);
 void view_update_title(struct view *view);
 void view_update_app_id(struct view *view);
 void view_reload_ssd(struct view *view);
-int view_get_min_width(void);
 
 void view_set_shade(struct view *view, bool shaded);
 

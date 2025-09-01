@@ -748,15 +748,13 @@ handle_map_request(struct wl_listener *listener, void *data)
 static void
 check_natural_geometry(struct view *view)
 {
-	int min_width = view_get_min_width();
-
 	/*
 	 * Some applications (example: Thonny) don't set a reasonable
 	 * un-maximized size when started maximized. Try to detect this
 	 * and set a fallback size.
 	 */
 	if (!view_is_floating(view)
-			&& (view->natural_geometry.width < min_width
+			&& (view->natural_geometry.width < LAB_MIN_VIEW_WIDTH
 			|| view->natural_geometry.height < LAB_MIN_VIEW_HEIGHT)) {
 		view_set_fallback_natural_geometry(view);
 	}

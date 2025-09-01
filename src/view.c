@@ -744,7 +744,6 @@ view_adjust_size(struct view *view, int *w, int *h)
 {
 	assert(view);
 	struct view_size_hints hints = view_get_size_hints(view);
-	int min_width = view_get_min_width();
 
 	/*
 	 * "If a base size is not provided, the minimum size is to be
@@ -764,7 +763,7 @@ view_adjust_size(struct view *view, int *w, int *h)
 
 	/* If a minimum width/height was not set, then use default */
 	if (hints.min_width < 1) {
-		hints.min_width = min_width;
+		hints.min_width = LAB_MIN_VIEW_WIDTH;
 	}
 	if (hints.min_height < 1) {
 		hints.min_height = LAB_MIN_VIEW_HEIGHT;
@@ -2410,17 +2409,6 @@ view_reload_ssd(struct view *view)
 		undecorate(view);
 		decorate(view);
 	}
-}
-
-int
-view_get_min_width(void)
-{
-	int button_count_left = wl_list_length(&rc.title_buttons_left);
-	int button_count_right =  wl_list_length(&rc.title_buttons_right);
-	return (rc.theme->window_button_width * (button_count_left + button_count_right)) +
-		(rc.theme->window_button_spacing * MAX((button_count_right - 1), 0)) +
-		(rc.theme->window_button_spacing * MAX((button_count_left - 1), 0)) +
-		(2 * rc.theme->window_titlebar_padding_width);
 }
 
 void

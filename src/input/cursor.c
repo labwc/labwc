@@ -291,8 +291,9 @@ process_cursor_move(struct server *server, uint32_t time)
 		interactive_anchor_to_cursor(server, &new_geo);
 		/* Shaded clients will not process resize events until unshaded */
 		view_set_shade(view, false);
+		view_set_maximized(view, VIEW_AXIS_NONE);
 		view_set_untiled(view);
-		view_restore_to(view, new_geo);
+		view_move_resize(view, new_geo);
 		x = new_geo.x;
 		y = new_geo.y;
 	}

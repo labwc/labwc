@@ -660,7 +660,7 @@ view_move_relative(struct view *view, int x, int y)
 	view_maximize(view, VIEW_AXIS_NONE, /*store_natural_geometry*/ false);
 	if (view_is_tiled(view)) {
 		view_set_untiled(view);
-		view_restore_to(view, view->natural_geometry);
+		view_move_resize(view, view->natural_geometry);
 	}
 	view_move(view, view->pending.x + x, view->pending.y + y);
 }
@@ -678,7 +678,7 @@ view_move_to_cursor(struct view *view)
 	view_maximize(view, VIEW_AXIS_NONE, /*store_natural_geometry*/ false);
 	if (view_is_tiled(view)) {
 		view_set_untiled(view);
-		view_restore_to(view, view->natural_geometry);
+		view_move_resize(view, view->natural_geometry);
 	}
 
 	struct border margin = ssd_thickness(view);
@@ -1367,10 +1367,18 @@ view_apply_special_geometry(struct view *view)
 	}
 }
 
-/* For internal use only. Does not update geometry. */
-static void
-set_maximized(struct view *view, enum view_axis maximized)
+/*
+ * Sets maximized state without updating geometry. Used in interactive
+ * move/resize. In most other cases, use view_maximize() instead.
+ */
+void
+view_set_maximized(struct view *view, enum view_axis maximized)
 {
+	assert(view);
+	if (view->maximized == maximized) {
+		return;
+	}
+
 	if (view->impl->maximize) {
 		view->impl->maximize(view, maximized);
 	}
@@ -1384,23 +1392,6 @@ set_maximized(struct view *view, enum view_axis maximized)
 	 * up using an outdated ssd->margin to calculate offsets.
 	 */
 	ssd_update_margin(view->ssd);
-}
-
-/*
- * Un-maximize view and move it to specific geometry. Does not reset
- * tiled state (use view_set_untiled() if you want that).
- */
-void
-view_restore_to(struct view *view, struct wlr_box geometry)
-{
-	assert(view);
-	if (view->fullscreen) {
-		return;
-	}
-	if (view->maximized != VIEW_AXIS_NONE) {
-		set_maximized(view, VIEW_AXIS_NONE);
-	}
-	view_move_resize(view, geometry);
 }
 
 bool
@@ -1505,7 +1496,7 @@ view_maximize(struct view *view, enum view_axis axis,
 		view->natural_geometry = view_get_fallback_natural_geometry(view);
 	}
 
-	set_maximized(view, axis);
+	view_set_maximized(view, axis);
 	if (view_is_floating(view)) {
 		view_apply_natural_geometry(view);
 	} else {

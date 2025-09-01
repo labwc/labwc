@@ -518,7 +518,7 @@ void view_place_by_policy(struct view *view, bool allow_cursor,
 	enum lab_placement_policy policy);
 void view_constrain_size_to_that_of_usable_area(struct view *view);
 
-void view_restore_to(struct view *view, struct wlr_box geometry);
+void view_set_maximized(struct view *view, enum view_axis maximized);
 void view_set_untiled(struct view *view);
 void view_maximize(struct view *view, enum view_axis axis,
 	bool store_natural_geometry);

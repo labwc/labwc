@@ -119,10 +119,17 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 
 		/*
 		 * If tiled or maximized in only one direction, reset
-		 * maximized/tiled state but keep the same geometry as
-		 * the starting point for the resize.
+		 * tiled state and un-maximize the relevant axes, but
+		 * keep the same geometry as the starting point.
 		 */
-		view_set_maximized(view, VIEW_AXIS_NONE);
+		enum view_axis maximized = view->maximized;
+		if (edges & LAB_EDGES_LEFT_RIGHT) {
+			maximized &= ~VIEW_AXIS_HORIZONTAL;
+		}
+		if (edges & LAB_EDGES_TOP_BOTTOM) {
+			maximized &= ~VIEW_AXIS_VERTICAL;
+		}
+		view_set_maximized(view, maximized);
 		view_set_untiled(view);
 		cursor_shape = cursor_get_from_edge(edges);
 		break;

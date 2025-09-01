@@ -145,6 +145,16 @@ static struct mouse_combos {
 } mouse_combos[] = { {
 		.context = "Border",
 		.button = "Left",
+		.event = "Press",
+		.action = "Focus",
+	}, {
+		.context = "Border",
+		.button = "Left",
+		.event = "Press",
+		.action = "Raise",
+	}, {
+		.context = "Border",
+		.button = "Left",
 		.event = "Drag",
 		.action = "Resize",
 	}, {

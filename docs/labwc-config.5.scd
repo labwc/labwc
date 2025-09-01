@@ -747,6 +747,7 @@ extending outward from the snapped edge.
 	- AllDesktops: A button that, by default, toggles omnipresence of a
 	  window.
 	- Close: A button that, by default, closses a window.
+	- Border: The window's border including Top...BRCorner below.
 	- Top: The top edge of the window's border.
 	- Bottom: The bottom edge of the window's border.
 	- Left: The left edge of the window's border.

@@ -328,6 +328,10 @@ ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
 		return candidate >= LAB_SSD_BUTTON_CLOSE
 			&& candidate <= LAB_SSD_CLIENT;
 	}
+	if (whole == LAB_SSD_PART_BORDER) {
+		return candidate >= LAB_SSD_PART_CORNER_TOP_LEFT
+			&& candidate <= LAB_SSD_PART_LEFT;
+	}
 	if (whole == LAB_SSD_PART_TOP) {
 		return candidate == LAB_SSD_PART_CORNER_TOP_LEFT
 			|| candidate == LAB_SSD_PART_CORNER_TOP_RIGHT;

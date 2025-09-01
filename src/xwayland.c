@@ -758,7 +758,7 @@ check_natural_geometry(struct view *view)
 	if (!view_is_floating(view)
 			&& (view->natural_geometry.width < min_width
 			|| view->natural_geometry.height < LAB_MIN_VIEW_HEIGHT)) {
-		view_set_fallback_natural_geometry(view);
+		view->natural_geometry = view_get_fallback_natural_geometry(view);
 	}
 }
 

@@ -122,8 +122,8 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 		 * maximized/tiled state but keep the same geometry as
 		 * the starting point for the resize.
 		 */
+		view_set_maximized(view, VIEW_AXIS_NONE);
 		view_set_untiled(view);
-		view_restore_to(view, view->pending);
 		cursor_shape = cursor_get_from_edge(edges);
 		break;
 	default:
@@ -153,8 +153,9 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 		interactive_anchor_to_cursor(server, &natural_geo);
 		/* Shaded clients will not process resize events until unshaded */
 		view_set_shade(view, false);
+		view_set_maximized(view, VIEW_AXIS_NONE);
 		view_set_untiled(view);
-		view_restore_to(view, natural_geo);
+		view_move_resize(view, natural_geo);
 	}
 
 	if (rc.resize_indicator) {

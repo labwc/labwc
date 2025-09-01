@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 			*p = '\0';
 		}
 		/* Do not process the references at the bottom of NEWS.md */
-		if (!strncmp(line, "[0.1.0]", 7)) {
+		if (!strncmp(line, "[0.1.0-commits]", 15)) {
 			break;
 		}
 		process_line(line);

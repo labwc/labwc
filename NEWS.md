@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2025-08-25 | [unreleased]  | 0.19.0          |               |
 | 2025-08-02 | [0.9.1]       | 0.19.0          | 28605         |
 | 2025-07-11 | [0.9.0]       | 0.19.0          | 28586         |
 | 2025-05-02 | [0.8.4]       | 0.18.2          | 27679         |
@@ -36,6 +37,35 @@ The format is based on [Keep a Changelog]
 | 2021-06-28 | [0.3.0]       | 0.14.0          | 5051          |
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
+
+[unreleased]: NEWS.md#unreleased
+[0.9.1]: NEWS.md#091---2025-08-02
+[0.9.0]: NEWS.md#090---2025-07-11
+[0.8.4]: NEWS.md#084---2025-05-02
+[0.8.3]: NEWS.md#083---2025-02-21
+[0.8.2]: NEWS.md#082---2024-12-13
+[0.8.1]: NEWS.md#081---2024-10-25
+[0.8.0]: NEWS.md#080---2024-08-16
+[0.7.4]: NEWS.md#074---2024-06-19
+[0.7.3]: NEWS.md#073---2024-06-12
+[0.7.2]: NEWS.md#072---2024-05-10
+[0.7.1]: NEWS.md#071---2024-03-01
+[0.7.0]: NEWS.md#070---2023-12-22
+[0.6.6]: NEWS.md#065---2023-11-25
+[0.6.5]: NEWS.md#064---2023-09-23
+[0.6.4]: NEWS.md#063---2023-07-14
+[0.6.3]: NEWS.md#062---2023-05-08
+[0.6.2]: NEWS.md#061---2023-03-20
+[0.6.1]: NEWS.md#060---2023-01-29
+[0.6.0]: NEWS.md#060---2022-11-17
+[0.5.3]: NEWS.md#053---2022-07-15
+[0.5.2]: NEWS.md#052---2022-05-17
+[0.5.1]: NEWS.md#051---2022-04-08
+[0.5.0]: NEWS.md#050---2022-02-18
+[0.4.0]: NEWS.md#040---2021-12-31
+[0.3.0]: NEWS.md#030---2021-06-28
+[0.2.0]: NEWS.md#020---2021-04-15
+[0.1.0]: NEWS.md#010---2021-03-05
 
 ## Notes on wlroots-0.19
 
@@ -74,7 +104,9 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 [wlroots-5098]:https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5098
 [gtk-8792]: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/8792
 
-## [unreleased]
+## unreleased
+
+[unreleased-commits]
 
 ### Added
 
@@ -135,7 +167,9 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 - Make `autoEnableOutputs=no` apply only to drm outputs @jlindgren90 [#2972]
 - Take into account `<core><gap>` for edge and region overlays @tokyo4j [#2965]
 
-## [0.9.1]
+## 0.9.1 - 2025-08-02
+
+[0.9.1-commits]
 
 This is an earlier-than-usual release containinig bug fixes only. It has been
 done on a separate branch to avoid the inclusion of refactoring and new
@@ -157,7 +191,9 @@ features.
 - Fix swapped width/height in XWayland client `_NET_WM_ICON` stride calculation
   [#2909] @jlindgren90
 
-## [0.9.0]
+## 0.9.0 - 2025-07-11
+
+[0.9.0-commits]
 
 The main focus has been to port labwc to wlroots 0.19 [#2388] and fix associated
 issues. Special thanks to @Consolatis @jlindgren90 for this.
@@ -278,7 +314,9 @@ window.*.title.bg.colorTo.splitTo:
 </libinput>
 ```
 
-## [0.8.4]
+## 0.8.4 - 2025-05-02
+
+[0.8.4-commits]
 
 This release predominantly consists of bug-fixes, code simplification and
 usability improvements. Amongst the new features the most noteworthy is the
@@ -342,7 +380,9 @@ release.
 - Increase default `<snapping><range>` to 10 to make it easier to snap windows
   on the edge between two monitors. @johanmalm [#2602] [#2608]
 
-## [0.8.3]
+## 0.8.3 - 2025-02-21
+
+[0.8.3-commits]
 
 The eye-catching new features of this release are undoubtedly:
 1. Support for the `ext-workspace` protocol with big thanks to @Consolatis
@@ -460,7 +500,9 @@ Notes to package maintainers:
   and followMouseRequiresMovement="no" in rc.xml, keyboard-focus semantics
   have subtly changed when using the window-switcher. [#2455]
 
-## [0.8.2]
+## 0.8.2 - 2024-12-13
+
+[0.8.2-commits]
 
 This is a shorter release cycle compared with the usual 10-week one because it
 contains a significant number of stability and cleanliness fixes which warrant
@@ -599,7 +641,9 @@ menu.border.color: #aaaaaa
   Openbox's behavior and (ii) behave as already described in our own
   documentation. [#2380]
 
-## [0.8.1]
+## 0.8.1 - 2024-10-25
+
+[0.8.1-commits]
 
 The most noteworthy additions in this release are:
 
@@ -747,7 +791,9 @@ window.inactive.button.shade.unpressed.image.color
   per-device configuration of scroll factor (e.g. setting different scroll
   factors for mice and touchpads). [#2057]
 
-## [0.8.0]
+## 0.8.0 - 2024-08-16
+
+[0.8.0-commits]
 
 The main focus in this release has been to port labwc to wlroots 0.18 and to
 grind out associated regressions. Nonetheless, it contains a few non-related
@@ -828,7 +874,9 @@ have been attributed with a 'Written-by' against each relevant log entry.
 
 - Make windows stay fullscreen when associated output is disconnected. [#2040]
 
-## [0.7.4]
+## 0.7.4 - 2024-06-19
+
+[0.7.4-commits]
 
 ### Fixed
 
@@ -836,7 +884,9 @@ have been attributed with a 'Written-by' against each relevant log entry.
 - Fix magnifier by disabling direct scanout when active. [#1989]
 - Fix crash triggered by pipemenu without parent `<menu>` element. [#1988]
 
-## [0.7.3]
+## 0.7.3 - 2024-06-12
+
+[0.7.3-commits]
 
 Following a couple of big releases, this one feels like more steady with lots of
 focus on bug fixes and stability. In terms of new features the most noteworthy
@@ -925,7 +975,9 @@ joint effort by @spl237 and @Consolatis.
 - Action `MoveToCursor` is deprecated in favour of:
   `<action name="AutoPlace" policy="cursor"/>`.
 
-## [0.7.2]
+## 0.7.2 - 2024-05-10
+
+[0.7.2-commits]
 
 This release shaped up to be the second in a row that is larger than usual in
 terms of both fixes and new features. Significant additions include
@@ -1193,7 +1245,9 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
   the DRM backend or by explicit request using environment variable
   `LABWC_UPDATE_ACTIVATION_ENV`.
 
-## [0.7.1]
+## 0.7.1 - 2024-03-01
+
+[0.7.1-commits]
 
 ### Added
 
@@ -1364,7 +1418,9 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
   full `app_id`. Consult the labwc-config(5) manual page for more details.
   [#1309]
 
-## [0.7.0] - 2023-12-22
+## 0.7.0 - 2023-12-22
+
+[0.7.0-commits]
 
 The main effort in this release has gone into porting labwc to wlroots 0.17
 and tidying up regressions. Nonetheless, it contains a significant number of
@@ -1424,7 +1480,9 @@ Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
 - Use the GTK3 notebook header color as the default active title color
   (small change from `#dddad6` to `#e1dedb`). Written-by: @dimkr
 
-## [0.6.6] - 2023-11-25
+## 0.6.6 - 2023-11-25
+
+[0.6.6-commits]
 
 We do not normally call out contributions by core devs in the changelog,
 but a special thanks goes to @jlindgren90 in this release for lots of work
@@ -1538,7 +1596,9 @@ relating to surface focus and keyboard issues, amongst others.
   will not appear anymore.
 - Always switch to the workspace containing the view being focused.
 
-## [0.6.5] - 2023-09-23
+## 0.6.5 - 2023-09-23
+
+[0.6.5-commits]
 
 ### Added
 
@@ -1614,7 +1674,9 @@ relating to surface focus and keyboard issues, amongst others.
 - Do not expand environment variables in `Exec` action `<command>`
   argument (but still resolve tilde).
 
-## [0.6.4] - 2023-07-14
+## 0.6.4 - 2023-07-14
+
+[0.6.4-commits]
 
 ### Added
 
@@ -1655,7 +1717,9 @@ relating to surface focus and keyboard issues, amongst others.
 - Make `ToggleKeybinds` applicable only to the window that has keyboard focus
   when the action is executed.
 
-## [0.6.3] - 2023-05-08
+## 0.6.3 - 2023-05-08
+
+[0.6.3-commits]
 
 ### Added
 
@@ -1727,7 +1791,9 @@ relating to surface focus and keyboard issues, amongst others.
 - Default to follow="true" for SendToDesktop action as per Openbox 3.6
   specification.
 
-## [0.6.2] - 2023-03-20
+## 0.6.2 - 2023-03-20
+
+[0.6.2-commits]
 
 This release contains refactoring and simplification relating to
 view-output association and xdg/xwayland configure/map events.
@@ -1789,7 +1855,9 @@ Unless otherwise stated all contributions are by the core-devs
 </core>
 ```
 
-## [0.6.1] - 2023-01-29
+## 0.6.1 - 2023-01-29
+
+[0.6.1-commits]
 
 As usual, this release contains lots of refactoring and bug fixes with
 particular thanks going to @Consolatis, @jlindgren90, @bi4k8, @Flrian and
@@ -1852,7 +1920,9 @@ particular thanks going to @Consolatis, @jlindgren90, @bi4k8, @Flrian and
   VS Code and Discord lagging over time. [#553] Written-by: @Joshua-Ashton
 - Do not switch output on SnapToEdge if view is maximized. Written-by: @Flrian
 
-## [0.6.0] - 2022-11-17
+## 0.6.0 - 2022-11-17
+
+[0.6.0-commits]
 
 This release contains significant refactoring to use the wlroots
 scene-graph API. This touches many areas of the code, particularly
@@ -2019,7 +2089,9 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
   exited the compositor by mistake trying to get out of alt-tab cycling
   or similar.
 
-## [0.5.3] - 2022-07-15
+## 0.5.3 - 2022-07-15
+
+[0.5.3-commits]
 
 ### Added
 
@@ -2041,7 +2113,9 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
 - Do not segfault on missing drag icon. Written-by: @Consolatis
 - Fix windows erratically sticking to edges during move/resize [#331] [#309]
 
-## [0.5.2] - 2022-05-17
+## 0.5.2 - 2022-05-17
+
+[0.5.2-commits]
 
 This is a minor bugfix release mostly to ease packaging.
 
@@ -2049,7 +2123,9 @@ This is a minor bugfix release mostly to ease packaging.
 
 - Properly use system provided wlroots. Written-by: @eli-schwartz
 
-## [0.5.1] - 2022-04-08
+## 0.5.1 - 2022-04-08
+
+[0.5.1-commits]
 
 ### Added
 
@@ -2076,7 +2152,9 @@ This is a minor bugfix release mostly to ease packaging.
 - Fix qt application crash on touchpad scroll [#225]
   Written-by: @Consolatis
 
-## [0.5.0] - 2022-02-18
+## 0.5.0 - 2022-02-18
+
+[0.5.0-commits]
 
 As usual, this release contains a bunch of fixes and improvements, of
 which the most notable feature-type changes are listed below. A big
@@ -2113,7 +2191,9 @@ This release contains the following two breaking changes:
   updating any local `rc.xml` settings in accordance with
   `docs/rc.xml.all`
 
-## [0.4.0] - 2021-12-31
+## 0.4.0 - 2021-12-31
+
+[0.4.0-commits]
 
 Compile with wlroots 0.15.0
 
@@ -2188,7 +2268,9 @@ feature-type changes are listed below.
 - The config option `<lab><xdg_shell_server_side_deco>` has changed to
   `<core><decoration>` (breaking change)
 
-## [0.3.0] - 2021-06-28
+## 0.3.0 - 2021-06-28
+
+[0.3.0-commits]
 
 Compile with wlroots 0.14.0
 
@@ -2199,7 +2281,9 @@ Compile with wlroots 0.14.0
 - Do not use Clearlooks-3.4 theme by default, just use built-in theme
 - Fix bug which triggered Qt application segfault
 
-## [0.2.0] - 2021-04-15
+## 0.2.0 - 2021-04-15
+
+[0.2.0-commits]
 
 Compile with wlroots 0.13.0
 
@@ -2212,7 +2296,9 @@ Compile with wlroots 0.13.0
 - Add labwc-environment(5)
 - Call `wlr_output_enable_adaptive_sync()` if `LABWC_ADAPTIVE_SYNC` set
 
-## [0.1.0] - 2021-03-05
+## 0.1.0 - 2021-03-05
+
+[0.1.0-commits]
 
 Compile with wlroots 0.12.0 and wayland-server >=1.16
 
@@ -2231,34 +2317,34 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased]: https://github.com/labwc/labwc/compare/0.9.0...HEAD
-[0.9.1]: https://github.com/labwc/labwc/compare/0.9.0...0.9.1
-[0.9.0]: https://github.com/labwc/labwc/compare/0.8.4...0.9.0
-[0.8.4]: https://github.com/labwc/labwc/compare/0.8.3...0.8.4
-[0.8.3]: https://github.com/labwc/labwc/compare/0.8.2...0.8.3
-[0.8.2]: https://github.com/labwc/labwc/compare/0.8.1...0.8.2
-[0.8.1]: https://github.com/labwc/labwc/compare/0.8.0...0.8.1
-[0.8.0]: https://github.com/labwc/labwc/compare/0.7.3...0.8.0
-[0.7.4]: https://github.com/labwc/labwc/compare/0.7.3...0.7.4
-[0.7.3]: https://github.com/labwc/labwc/compare/0.7.2...0.7.3
-[0.7.2]: https://github.com/labwc/labwc/compare/0.7.1...0.7.2
-[0.7.1]: https://github.com/labwc/labwc/compare/0.7.0...0.7.1
-[0.7.0]: https://github.com/labwc/labwc/compare/0.6.6...0.7.0
-[0.6.6]: https://github.com/labwc/labwc/compare/0.6.5...0.6.6
-[0.6.5]: https://github.com/labwc/labwc/compare/0.6.4...0.6.5
-[0.6.4]: https://github.com/labwc/labwc/compare/0.6.3...0.6.4
-[0.6.3]: https://github.com/labwc/labwc/compare/0.6.2...0.6.3
-[0.6.2]: https://github.com/labwc/labwc/compare/0.6.1...0.6.2
-[0.6.1]: https://github.com/labwc/labwc/compare/0.6.0...0.6.1
-[0.6.0]: https://github.com/labwc/labwc/compare/0.5.0...0.6.0
-[0.5.3]: https://github.com/labwc/labwc/compare/0.5.2...0.5.3
-[0.5.2]: https://github.com/labwc/labwc/compare/0.5.1...0.5.2
-[0.5.1]: https://github.com/labwc/labwc/compare/0.5.0...0.5.1
-[0.5.0]: https://github.com/labwc/labwc/compare/0.4.0...0.5.0
-[0.4.0]: https://github.com/labwc/labwc/compare/0.3.0...0.4.0
-[0.3.0]: https://github.com/labwc/labwc/compare/0.2.0...0.3.0
-[0.2.0]: https://github.com/labwc/labwc/compare/0.1.0...0.2.0
-[0.1.0]: https://github.com/labwc/labwc/compare/081339e...0.1.0
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.0...HEAD
+[0.9.1-commits]: https://github.com/labwc/labwc/compare/0.9.0...0.9.1
+[0.9.0-commits]: https://github.com/labwc/labwc/compare/0.8.4...0.9.0
+[0.8.4-commits]: https://github.com/labwc/labwc/compare/0.8.3...0.8.4
+[0.8.3-commits]: https://github.com/labwc/labwc/compare/0.8.2...0.8.3
+[0.8.2-commits]: https://github.com/labwc/labwc/compare/0.8.1...0.8.2
+[0.8.1-commits]: https://github.com/labwc/labwc/compare/0.8.0...0.8.1
+[0.8.0-commits]: https://github.com/labwc/labwc/compare/0.7.3...0.8.0
+[0.7.4-commits]: https://github.com/labwc/labwc/compare/0.7.3...0.7.4
+[0.7.3-commits]: https://github.com/labwc/labwc/compare/0.7.2...0.7.3
+[0.7.2-commits]: https://github.com/labwc/labwc/compare/0.7.1...0.7.2
+[0.7.1-commits]: https://github.com/labwc/labwc/compare/0.7.0...0.7.1
+[0.7.0-commits]: https://github.com/labwc/labwc/compare/0.6.6...0.7.0
+[0.6.6-commits]: https://github.com/labwc/labwc/compare/0.6.5...0.6.6
+[0.6.5-commits]: https://github.com/labwc/labwc/compare/0.6.4...0.6.5
+[0.6.4-commits]: https://github.com/labwc/labwc/compare/0.6.3...0.6.4
+[0.6.3-commits]: https://github.com/labwc/labwc/compare/0.6.2...0.6.3
+[0.6.2-commits]: https://github.com/labwc/labwc/compare/0.6.1...0.6.2
+[0.6.1-commits]: https://github.com/labwc/labwc/compare/0.6.0...0.6.1
+[0.6.0-commits]: https://github.com/labwc/labwc/compare/0.5.0...0.6.0
+[0.5.3-commits]: https://github.com/labwc/labwc/compare/0.5.2...0.5.3
+[0.5.2-commits]: https://github.com/labwc/labwc/compare/0.5.1...0.5.2
+[0.5.1-commits]: https://github.com/labwc/labwc/compare/0.5.0...0.5.1
+[0.5.0-commits]: https://github.com/labwc/labwc/compare/0.4.0...0.5.0
+[0.4.0-commits]: https://github.com/labwc/labwc/compare/0.3.0...0.4.0
+[0.3.0-commits]: https://github.com/labwc/labwc/compare/0.2.0...0.3.0
+[0.2.0-commits]: https://github.com/labwc/labwc/compare/0.1.0...0.2.0
+[0.1.0-commits]: https://github.com/labwc/labwc/compare/081339e...0.1.0
 
 [#162]: https://github.com/labwc/labwc/pull/162
 [#163]: https://github.com/labwc/labwc/pull/163
@@ -2605,12 +2691,14 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2652]: https://github.com/labwc/labwc/pull/2652
 [#2653]: https://github.com/labwc/labwc/pull/2653
 [#2657]: https://github.com/labwc/labwc/pull/2657
+[#2667]: https://github.com/labwc/labwc/pull/2667
 [#2669]: https://github.com/labwc/labwc/pull/2669
 [#2678]: https://github.com/labwc/labwc/pull/2678
 [#2686]: https://github.com/labwc/labwc/pull/2686
 [#2688]: https://github.com/labwc/labwc/pull/2688
 [#2692]: https://github.com/labwc/labwc/pull/2692
 [#2693]: https://github.com/labwc/labwc/pull/2693
+[#2699]: https://github.com/labwc/labwc/pull/2699
 [#2700]: https://github.com/labwc/labwc/pull/2700
 [#2710]: https://github.com/labwc/labwc/pull/2710
 [#2713]: https://github.com/labwc/labwc/pull/2713
@@ -2654,14 +2742,31 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2873]: https://github.com/labwc/labwc/pull/2873
 [#2874]: https://github.com/labwc/labwc/pull/2874
 [#2877]: https://github.com/labwc/labwc/pull/2877
+[#2883]: https://github.com/labwc/labwc/pull/2883
+[#2885]: https://github.com/labwc/labwc/pull/2885
 [#2886]: https://github.com/labwc/labwc/pull/2886
 [#2887]: https://github.com/labwc/labwc/pull/2887
 [#2891]: https://github.com/labwc/labwc/pull/2891
 [#2909]: https://github.com/labwc/labwc/pull/2909
 [#2910]: https://github.com/labwc/labwc/pull/2910
 [#2914]: https://github.com/labwc/labwc/pull/2914
+[#2933]: https://github.com/labwc/labwc/pull/2933
 [#2937]: https://github.com/labwc/labwc/pull/2937
 [#2939]: https://github.com/labwc/labwc/pull/2939
+[#2942]: https://github.com/labwc/labwc/pull/2942
 [#2943]: https://github.com/labwc/labwc/pull/2943
 [#2944]: https://github.com/labwc/labwc/pull/2944
 [#2948]: https://github.com/labwc/labwc/pull/2948
+[#2965]: https://github.com/labwc/labwc/pull/2965
+[#2967]: https://github.com/labwc/labwc/pull/2967
+[#2970]: https://github.com/labwc/labwc/pull/2970
+[#2971]: https://github.com/labwc/labwc/pull/2971
+[#2972]: https://github.com/labwc/labwc/pull/2972
+[#2976]: https://github.com/labwc/labwc/pull/2976
+[#2994]: https://github.com/labwc/labwc/pull/2994
+[#2995]: https://github.com/labwc/labwc/pull/2995
+[#2998]: https://github.com/labwc/labwc/pull/2998
+[#3004]: https://github.com/labwc/labwc/pull/3004
+[#3011]: https://github.com/labwc/labwc/pull/3011
+[#3015]: https://github.com/labwc/labwc/pull/3015
+[#3020]: https://github.com/labwc/labwc/pull/3020

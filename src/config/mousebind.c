@@ -132,6 +132,8 @@ context_from_str(const char *str)
 		return LAB_SSD_PART_CORNER_BOTTOM_RIGHT;
 	} else if (!strcasecmp(str, "BLCorner")) {
 		return LAB_SSD_PART_CORNER_BOTTOM_LEFT;
+	} else if (!strcasecmp(str, "Border")) {
+		return LAB_SSD_PART_BORDER;
 	} else if (!strcasecmp(str, "Top")) {
 		return LAB_SSD_PART_TOP;
 	} else if (!strcasecmp(str, "Right")) {

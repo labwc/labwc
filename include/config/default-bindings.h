@@ -143,42 +143,7 @@ static struct mouse_combos {
 		const char *name, *value;
 	} attributes[2];
 } mouse_combos[] = { {
-		.context = "Left",
-		.button = "Left",
-		.event = "Drag",
-		.action = "Resize",
-	}, {
-		.context = "Top",
-		.button = "Left",
-		.event = "Drag",
-		.action = "Resize",
-	}, {
-		.context = "Bottom",
-		.button = "Left",
-		.event = "Drag",
-		.action = "Resize",
-	}, {
-		.context = "Right",
-		.button = "Left",
-		.event = "Drag",
-		.action = "Resize",
-	}, {
-		.context = "TLCorner",
-		.button = "Left",
-		.event = "Drag",
-		.action = "Resize",
-	}, {
-		.context = "TRCorner",
-		.button = "Left",
-		.event = "Drag",
-		.action = "Resize",
-	}, {
-		.context = "BRCorner",
-		.button = "Left",
-		.event = "Drag",
-		.action = "Resize",
-	}, {
-		.context = "BLCorner",
+		.context = "Border",
 		.button = "Left",
 		.event = "Drag",
 		.action = "Resize",

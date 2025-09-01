@@ -1810,8 +1810,12 @@ update_last_layout_geometry(struct view *view)
 
 	if (view_is_floating(view)) {
 		view->last_layout_geometry = view->pending;
-	} else {
+	} else if (!wlr_box_empty(&view->natural_geometry)) {
 		view->last_layout_geometry = view->natural_geometry;
+	} else {
+		/* e.g. initially-maximized window */
+		view->last_layout_geometry =
+			view_get_fallback_natural_geometry(view);
 	}
 }
 

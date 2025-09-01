@@ -762,10 +762,7 @@ view_adjust_size(struct view *view, int *w, int *h)
 	*w = round_to_increment(*w, hints.base_width, hints.width_inc);
 	*h = round_to_increment(*h, hints.base_height, hints.height_inc);
 
-	/*
-	 * If a minimum width/height was not set, then use default.
-	 * This is currently always the case for xdg-shell views.
-	 */
+	/* If a minimum width/height was not set, then use default */
 	if (hints.min_width < 1) {
 		hints.min_width = min_width;
 	}

@@ -10,7 +10,7 @@ struct wlr_scene_buffer;
 struct lab_img;
 
 struct scaled_img_buffer {
-	struct scaled_scene_buffer *scaled_buffer;
+	struct scaled_buffer *scaled_buffer;
 	struct wlr_scene_buffer *scene_buffer;
 	struct lab_img *img;
 	int width;
@@ -56,7 +56,7 @@ struct scaled_img_buffer {
 
 /*
  * Create an auto scaling image buffer, providing a wlr_scene_buffer node for
- * display. It gets destroyed automatically when the backing scaled_scene_buffer
+ * display. It gets destroyed automatically when the backing scaled_buffer
  * is being destroyed which in turn happens automatically when the backing
  * wlr_scene_buffer (or one of its parents) is being destroyed.
  *

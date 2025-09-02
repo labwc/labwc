@@ -4,11 +4,11 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "common/macros.h"
-#include "common/scaled-font-buffer.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "resize-indicator.h"
 #include "resize-outlines.h"
+#include "scaled-buffer/scaled-font-buffer.h"
 #include "theme.h"
 #include "view.h"
 

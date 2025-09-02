@@ -350,7 +350,7 @@ get_cursor_context(struct server *server)
 				return ret;
 			case LAB_NODE_DESC_NODE:
 			case LAB_NODE_DESC_TREE:
-			case LAB_NODE_DESC_SCALED_SCENE_BUFFER:
+			case LAB_NODE_DESC_SCALED_BUFFER:
 				break;
 			}
 		}

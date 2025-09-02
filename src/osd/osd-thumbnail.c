@@ -8,11 +8,11 @@
 #include "common/array.h"
 #include "common/box.h"
 #include "common/lab-scene-rect.h"
-#include "common/scaled-font-buffer.h"
-#include "common/scaled-icon-buffer.h"
 #include "labwc.h"
 #include "osd.h"
 #include "output.h"
+#include "scaled-buffer/scaled-font-buffer.h"
+#include "scaled-buffer/scaled-icon-buffer.h"
 #include "theme.h"
 #include "view.h"
 

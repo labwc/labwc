@@ -8,7 +8,7 @@ struct lab_layer_surface;
 struct lab_layer_popup;
 struct menuitem;
 struct ssd_part;
-struct scaled_scene_buffer;
+struct scaled_buffer;
 
 enum node_descriptor_type {
 	LAB_NODE_DESC_NODE = 0,
@@ -20,7 +20,7 @@ enum node_descriptor_type {
 	LAB_NODE_DESC_IME_POPUP,
 	LAB_NODE_DESC_MENUITEM,
 	LAB_NODE_DESC_TREE,
-	LAB_NODE_DESC_SCALED_SCENE_BUFFER,
+	LAB_NODE_DESC_SCALED_BUFFER,
 	LAB_NODE_DESC_SSD_PART,
 };
 
@@ -84,10 +84,10 @@ struct ssd_part *node_ssd_part_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 /**
- * node_scaled_scene_buffer_from_node - return scaled_scene_buffer from node
+ * node_scaled_buffer_from_node - return scaled_buffer from node
  * @wlr_scene_node: wlr_scene_node from which to return data
  */
-struct scaled_scene_buffer *node_scaled_scene_buffer_from_node(
+struct scaled_buffer *node_scaled_buffer_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 #endif /* LABWC_NODE_DESCRIPTOR_H */

@@ -48,7 +48,6 @@
 #include "drm-lease-v1-protocol.h"
 #include "action.h"
 #include "common/macros.h"
-#include "common/scaled-scene-buffer.h"
 #include "config/rcxml.h"
 #include "config/session.h"
 #include "decorations.h"
@@ -64,6 +63,7 @@
 #include "output-virtual.h"
 #include "regions.h"
 #include "resize-indicator.h"
+#include "scaled-buffer/scaled-buffer.h"
 #include "session-lock.h"
 #include "theme.h"
 #include "view.h"
@@ -80,7 +80,7 @@
 static void
 reload_config_and_theme(struct server *server)
 {
-	scaled_scene_buffer_invalidate_sharing();
+	scaled_buffer_invalidate_sharing();
 	rcxml_finish();
 	rcxml_read(rc.config_file);
 	theme_finish(server->theme);

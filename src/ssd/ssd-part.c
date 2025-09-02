@@ -4,9 +4,9 @@
 #include "config/rcxml.h"
 #include "common/list.h"
 #include "common/mem.h"
-#include "common/scaled-icon-buffer.h"
-#include "common/scaled-img-buffer.h"
 #include "node.h"
+#include "scaled-buffer/scaled-icon-buffer.h"
+#include "scaled-buffer/scaled-img-buffer.h"
 #include "ssd-internal.h"
 
 /* Internal helpers */

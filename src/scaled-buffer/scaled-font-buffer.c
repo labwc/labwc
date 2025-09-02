@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
-#include "common/scaled-font-buffer.h"
+#include "scaled-buffer/scaled-font-buffer.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,11 +10,11 @@
 #include "common/font.h"
 #include "common/graphic-helpers.h"
 #include "common/mem.h"
-#include "common/scaled-scene-buffer.h"
 #include "common/string-helpers.h"
+#include "scaled-buffer/scaled-buffer.h"
 
 static struct lab_data_buffer *
-_create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
+_create_buffer(struct scaled_buffer *scaled_buffer, double scale)
 {
 	struct lab_data_buffer *buffer = NULL;
 	struct scaled_font_buffer *self = scaled_buffer->data;
@@ -39,7 +39,7 @@ _create_buffer(struct scaled_scene_buffer *scaled_buffer, double scale)
 }
 
 static void
-_destroy(struct scaled_scene_buffer *scaled_buffer)
+_destroy(struct scaled_buffer *scaled_buffer)
 {
 	struct scaled_font_buffer *self = scaled_buffer->data;
 	scaled_buffer->data = NULL;
@@ -51,8 +51,8 @@ _destroy(struct scaled_scene_buffer *scaled_buffer)
 }
 
 static bool
-_equal(struct scaled_scene_buffer *scaled_buffer_a,
-	struct scaled_scene_buffer *scaled_buffer_b)
+_equal(struct scaled_buffer *scaled_buffer_a,
+	struct scaled_buffer *scaled_buffer_b)
 {
 	struct scaled_font_buffer *a = scaled_buffer_a->data;
 	struct scaled_font_buffer *b = scaled_buffer_b->data;
@@ -69,7 +69,7 @@ _equal(struct scaled_scene_buffer *scaled_buffer_a,
 		&& a->bg_pattern == b->bg_pattern;
 }
 
-static const struct scaled_scene_buffer_impl impl = {
+static const struct scaled_buffer_impl impl = {
 	.create_buffer = _create_buffer,
 	.destroy = _destroy,
 	.equal = _equal,
@@ -81,7 +81,7 @@ scaled_font_buffer_create(struct wlr_scene_tree *parent)
 {
 	assert(parent);
 	struct scaled_font_buffer *self = znew(*self);
-	struct scaled_scene_buffer *scaled_buffer = scaled_scene_buffer_create(
+	struct scaled_buffer *scaled_buffer = scaled_buffer_create(
 		parent, &impl, /* drop_buffer */ true);
 	if (!scaled_buffer) {
 		free(self);
@@ -138,7 +138,7 @@ scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 		&self->width, &computed_height);
 	self->height = (self->fixed_height > 0) ?
 		self->fixed_height : computed_height;
-	scaled_scene_buffer_request_update(self->scaled_buffer,
+	scaled_buffer_request_update(self->scaled_buffer,
 		self->width, self->height);
 }
 
@@ -152,6 +152,6 @@ scaled_font_buffer_set_max_width(struct scaled_font_buffer *self, int max_width)
 		&self->width, &computed_height);
 	self->height = (self->fixed_height > 0) ?
 		self->fixed_height : computed_height;
-	scaled_scene_buffer_request_update(self->scaled_buffer,
+	scaled_buffer_request_update(self->scaled_buffer,
 		self->width, self->height);
 }

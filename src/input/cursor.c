@@ -515,7 +515,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 	struct seat *seat = &server->seat;
 	struct wlr_seat *wlr_seat = seat->seat;
 
-	ssd_update_button_hover(ctx->node, server->ssd_hover_state);
+	ssd_update_hovered_button(server, ctx->node);
 
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		/*

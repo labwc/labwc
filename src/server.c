@@ -549,8 +549,6 @@ server_init(struct server *server)
 	wl_list_init(&server->views);
 	wl_list_init(&server->unmanaged_surfaces);
 
-	server->ssd_hover_state = ssd_hover_state_new();
-
 	server->scene = wlr_scene_create();
 	if (!server->scene) {
 		wlr_log(WLR_ERROR, "unable to create scene");
@@ -795,5 +793,4 @@ server_finish(struct server *server)
 	wlr_scene_node_destroy(&server->scene->tree.node);
 
 	wl_display_destroy(server->wl_display);
-	free(server->ssd_hover_state);
 }

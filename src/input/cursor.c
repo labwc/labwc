@@ -609,7 +609,7 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 	struct cursor_context ctx = get_cursor_context(server);
 	struct seat *seat = &server->seat;
 
-	if (ctx.type == LAB_NODE_MENU) {
+	if (ctx.type == LAB_NODE_MENUITEM) {
 		menu_process_cursor_motion(ctx.node);
 		cursor_set(&server->seat, LAB_CURSOR_DEFAULT);
 		return false;
@@ -1173,7 +1173,7 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		/* TODO: take into account overflow of time_msec */
 		if (time_msec - press_msec > rc.menu_ignore_button_release_period) {
-			if (ctx.type == LAB_NODE_MENU) {
+			if (ctx.type == LAB_NODE_MENUITEM) {
 				menu_call_selected_actions(server);
 			} else {
 				menu_close_root(server);

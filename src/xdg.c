@@ -1023,7 +1023,7 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 	}
 	view->content_tree = tree;
 	node_descriptor_create(&view->scene_tree->node,
-		LAB_NODE_DESC_VIEW, view);
+		LAB_NODE_VIEW, view, /*data*/ NULL);
 
 	/*
 	 * The xdg_toplevel_decoration and kde_server_decoration protocols

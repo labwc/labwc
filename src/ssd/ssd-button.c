@@ -7,55 +7,13 @@
 #include "node.h"
 #include "scaled-buffer/scaled-icon-buffer.h"
 #include "scaled-buffer/scaled-img-buffer.h"
+#include "ssd.h"
 #include "ssd-internal.h"
-
-/* Internal helpers */
-static void
-handle_node_destroy(struct wl_listener *listener, void *data)
-{
-	struct ssd_part *part = wl_container_of(listener, part, node_destroy);
-	wl_list_remove(&part->node_destroy.link);
-
-	struct ssd_part_button *button = button_try_from_ssd_part(part);
-	if (button) {
-		wl_list_remove(&button->link);
-	}
-
-	free(part);
-}
 
 /* Internal API */
 
-/*
- * Create a new node_descriptor containing a link to a new ssd_part struct.
- * Both will be destroyed automatically once the scene_node they are attached
- * to is destroyed.
- */
-static void
-init_ssd_part(struct ssd_part *part, enum lab_node_type type,
-		struct view *view, struct wlr_scene_node *node)
-{
-	part->type = type;
-	part->node = node;
-	part->view = view;
-
-	node_descriptor_create(node, LAB_NODE_DESC_SSD_PART, part);
-	part->node_destroy.notify = handle_node_destroy;
-	wl_signal_add(&node->events.destroy, &part->node_destroy);
-}
-
-struct ssd_part *
-attach_ssd_part(enum lab_node_type type, struct view *view,
-		struct wlr_scene_node *node)
-{
-	assert(!node_type_contains(LAB_NODE_BUTTON, type));
-	struct ssd_part *part = znew(*part);
-	init_ssd_part(part, type, view, node);
-	return part;
-}
-
-struct ssd_part_button *
-attach_ssd_part_button(struct wl_list *button_parts, enum lab_node_type type,
+struct ssd_button *
+attach_ssd_button(struct wl_list *button_parts, enum lab_node_type type,
 		struct wlr_scene_tree *parent,
 		struct lab_img *imgs[LAB_BS_ALL + 1],
 		int x, int y, struct view *view)
@@ -64,8 +22,10 @@ attach_ssd_part_button(struct wl_list *button_parts, enum lab_node_type type,
 	wlr_scene_node_set_position(&root->node, x, y);
 
 	assert(node_type_contains(LAB_NODE_BUTTON, type));
-	struct ssd_part_button *button = znew(*button);
-	init_ssd_part(&button->base, type, view, &root->node);
+	struct ssd_button *button = znew(*button);
+	button->node = &root->node;
+	button->type = type;
+	node_descriptor_create(&root->node, type, view, button);
 	wl_list_append(button_parts, &button->link);
 
 	/* Hitbox */
@@ -117,11 +77,9 @@ attach_ssd_part_button(struct wl_list *button_parts, enum lab_node_type type,
 	return button;
 }
 
-struct ssd_part_button *
-button_try_from_ssd_part(struct ssd_part *part)
+/* called from node descriptor destroy */
+void ssd_button_free(struct ssd_button *button)
 {
-	if (node_type_contains(LAB_NODE_BUTTON, part->type)) {
-		return (struct ssd_part_button *)part;
-	}
-	return NULL;
+	wl_list_remove(&button->link);
+	free(button);
 }

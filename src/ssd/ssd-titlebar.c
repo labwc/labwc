@@ -492,8 +492,7 @@ ssd_update_title(struct ssd *ssd)
 }
 
 void
-ssd_update_button_hover(struct wlr_scene_node *node,
-		struct ssd_hover_state *hover_state)
+ssd_update_hovered_button(struct server *server, struct wlr_scene_node *node)
 {
 	struct ssd_part_button *button = NULL;
 
@@ -502,7 +501,7 @@ ssd_update_button_hover(struct wlr_scene_node *node,
 		if (desc->type == LAB_NODE_DESC_SSD_PART) {
 			button = button_try_from_ssd_part(
 					node_ssd_part_from_node(node));
-			if (button == hover_state->button) {
+			if (button == server->hovered_button) {
 				/* Cursor is still on the same button */
 				return;
 			}
@@ -510,15 +509,12 @@ ssd_update_button_hover(struct wlr_scene_node *node,
 	}
 
 	/* Disable old hover */
-	if (hover_state->button) {
-		update_button_state(hover_state->button, LAB_BS_HOVERED, false);
-		hover_state->view = NULL;
-		hover_state->button = NULL;
+	if (server->hovered_button) {
+		update_button_state(server->hovered_button, LAB_BS_HOVERED, false);
 	}
+	server->hovered_button = button;
 	if (button) {
 		update_button_state(button, LAB_BS_HOVERED, true);
-		hover_state->view = button->base.view;
-		hover_state->button = button;
 	}
 }
 

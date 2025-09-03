@@ -264,11 +264,9 @@ ssd_destroy(struct ssd *ssd)
 
 	/* Maybe reset hover view */
 	struct view *view = ssd->view;
-	struct ssd_hover_state *hover_state;
-	hover_state = view->server->ssd_hover_state;
-	if (hover_state->view == view) {
-		hover_state->view = NULL;
-		hover_state->button = NULL;
+	struct server *server = view->server;
+	if (server->hovered_button && server->hovered_button->base.view == view) {
+		server->hovered_button = NULL;
 	}
 
 	/* Destroy subcomponents */
@@ -343,12 +341,6 @@ ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable)
 		? rc.theme->window_toggled_keybinds_color
 		: rc.theme->window[THEME_ACTIVE].border_color;
 	wlr_scene_rect_set_color(ssd->border.subtrees[SSD_ACTIVE].top, color);
-}
-
-struct ssd_hover_state *
-ssd_hover_state_new(void)
-{
-	return znew(struct ssd_hover_state);
 }
 
 enum lab_node_type

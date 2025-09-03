@@ -173,12 +173,6 @@ struct ssd_part_button {
 	struct wl_list link; /* ssd_titlebar_subtree.buttons_{left,right} */
 };
 
-/* FIXME: This structure is redundant as ssd_part contains view */
-struct ssd_hover_state {
-	struct view *view;
-	struct ssd_part_button *button;
-};
-
 struct wlr_buffer;
 struct wlr_scene_tree;
 

@@ -23,8 +23,8 @@ struct wlr_cursor;
 #define SSD_SHADOW_INSET 0.3
 
 /* Forward declare arguments */
+struct server;
 struct ssd;
-struct ssd_hover_state;
 struct ssd_part;
 struct view;
 struct wlr_scene;
@@ -52,9 +52,8 @@ void ssd_set_titlebar(struct ssd *ssd, bool enabled);
 void ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable);
 void ssd_enable_shade(struct ssd *ssd, bool enable);
 
-struct ssd_hover_state *ssd_hover_state_new(void);
-void ssd_update_button_hover(struct wlr_scene_node *node,
-	struct ssd_hover_state *hover_state);
+void ssd_update_hovered_button(struct server *server,
+	struct wlr_scene_node *node);
 
 enum lab_node_type ssd_part_get_type(const struct ssd_part *part);
 struct view *ssd_part_get_view(const struct ssd_part *part);

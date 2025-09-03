@@ -39,7 +39,7 @@ struct button {
 	const char *name;
 	const char *alt_name;
 	const char *fallback_button;  /* built-in 6x6 button */
-	enum ssd_part_type type;
+	enum lab_node_type type;
 	uint8_t state_set;
 };
 
@@ -290,94 +290,94 @@ load_buttons(struct theme *theme)
 	struct button buttons[] = { {
 		.name = "menu",
 		.fallback_button = (const char[]){ 0x00, 0x21, 0x33, 0x1E, 0x0C, 0x00 },
-		.type = LAB_SSD_BUTTON_WINDOW_MENU,
+		.type = LAB_NODE_BUTTON_WINDOW_MENU,
 		.state_set = 0,
 	}, {
 		.name = "iconify",
 		.fallback_button = (const char[]){ 0x00, 0x00, 0x00, 0x00, 0x3f, 0x3f },
-		.type = LAB_SSD_BUTTON_ICONIFY,
+		.type = LAB_NODE_BUTTON_ICONIFY,
 		.state_set = 0,
 	}, {
 		.name = "max",
 		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x21, 0x21, 0x21, 0x3f },
-		.type = LAB_SSD_BUTTON_MAXIMIZE,
+		.type = LAB_NODE_BUTTON_MAXIMIZE,
 		.state_set = 0,
 	}, {
 		.name = "max_toggled",
 		.fallback_button = (const char[]){ 0x3e, 0x22, 0x2f, 0x29, 0x39, 0x0f },
-		.type = LAB_SSD_BUTTON_MAXIMIZE,
+		.type = LAB_NODE_BUTTON_MAXIMIZE,
 		.state_set = LAB_BS_TOGGLED,
 	}, {
 		.name = "shade",
 		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x00, 0x0c, 0x1e, 0x3f },
-		.type = LAB_SSD_BUTTON_SHADE,
+		.type = LAB_NODE_BUTTON_SHADE,
 		.state_set = 0,
 	}, {
 		.name = "shade_toggled",
 		.fallback_button = (const char[]){ 0x3f, 0x3f, 0x00, 0x3f, 0x1e, 0x0c },
-		.type = LAB_SSD_BUTTON_SHADE,
+		.type = LAB_NODE_BUTTON_SHADE,
 		.state_set = LAB_BS_TOGGLED,
 	}, {
 		.name = "desk",
 		.fallback_button = (const char[]){ 0x33, 0x33, 0x00, 0x00, 0x33, 0x33 },
-		.type = LAB_SSD_BUTTON_OMNIPRESENT,
+		.type = LAB_NODE_BUTTON_OMNIPRESENT,
 		.state_set = 0,
 	}, {
 		.name = "desk_toggled",
 		.fallback_button = (const char[]){ 0x00, 0x1e, 0x1a, 0x16, 0x1e, 0x00 },
-		.type = LAB_SSD_BUTTON_OMNIPRESENT,
+		.type = LAB_NODE_BUTTON_OMNIPRESENT,
 		.state_set = LAB_BS_TOGGLED,
 	}, {
 		.name = "close",
 		.fallback_button = (const char[]){ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
-		.type = LAB_SSD_BUTTON_CLOSE,
+		.type = LAB_NODE_BUTTON_CLOSE,
 		.state_set = 0,
 	}, {
 		.name = "menu_hover",
-		.type = LAB_SSD_BUTTON_WINDOW_MENU,
+		.type = LAB_NODE_BUTTON_WINDOW_MENU,
 		.state_set = LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "iconify_hover",
-		.type = LAB_SSD_BUTTON_ICONIFY,
+		.type = LAB_NODE_BUTTON_ICONIFY,
 		.state_set = LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "max_hover",
-		.type = LAB_SSD_BUTTON_MAXIMIZE,
+		.type = LAB_NODE_BUTTON_MAXIMIZE,
 		.state_set = LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "max_toggled_hover",
 		.alt_name = "max_hover_toggled",
-		.type = LAB_SSD_BUTTON_MAXIMIZE,
+		.type = LAB_NODE_BUTTON_MAXIMIZE,
 		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "shade_hover",
-		.type = LAB_SSD_BUTTON_SHADE,
+		.type = LAB_NODE_BUTTON_SHADE,
 		.state_set = LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "shade_toggled_hover",
 		.alt_name = "shade_hover_toggled",
-		.type = LAB_SSD_BUTTON_SHADE,
+		.type = LAB_NODE_BUTTON_SHADE,
 		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "desk_hover",
 		/* no fallback (non-hover variant is used instead) */
-		.type = LAB_SSD_BUTTON_OMNIPRESENT,
+		.type = LAB_NODE_BUTTON_OMNIPRESENT,
 		.state_set = LAB_BS_HOVERED,
 	}, {
 		.name = "desk_toggled_hover",
 		.alt_name = "desk_hover_toggled",
-		.type = LAB_SSD_BUTTON_OMNIPRESENT,
+		.type = LAB_NODE_BUTTON_OMNIPRESENT,
 		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "close_hover",
-		.type = LAB_SSD_BUTTON_CLOSE,
+		.type = LAB_NODE_BUTTON_CLOSE,
 		.state_set = LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, };
@@ -572,8 +572,8 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->window_button_spacing = 0;
 	theme->window_button_hover_bg_corner_radius = 0;
 
-	for (enum ssd_part_type type = LAB_SSD_BUTTON_FIRST;
-			type <= LAB_SSD_BUTTON_LAST; type++) {
+	for (enum lab_node_type type = LAB_NODE_BUTTON_FIRST;
+			type <= LAB_NODE_BUTTON_LAST; type++) {
 		parse_hexstr("#000000",
 			theme->window[THEME_INACTIVE].button_colors[type]);
 		parse_hexstr("#000000",
@@ -802,15 +802,15 @@ entry(struct theme *theme, const char *key, const char *value)
 
 	/* universal button */
 	if (match_glob(key, "window.active.button.unpressed.image.color")) {
-		for (enum ssd_part_type type = LAB_SSD_BUTTON_FIRST;
-				type <= LAB_SSD_BUTTON_LAST; type++) {
+		for (enum lab_node_type type = LAB_NODE_BUTTON_FIRST;
+				type <= LAB_NODE_BUTTON_LAST; type++) {
 			parse_color(value,
 				theme->window[THEME_ACTIVE].button_colors[type]);
 		}
 	}
 	if (match_glob(key, "window.inactive.button.unpressed.image.color")) {
-		for (enum ssd_part_type type = LAB_SSD_BUTTON_FIRST;
-				type <= LAB_SSD_BUTTON_LAST; type++) {
+		for (enum lab_node_type type = LAB_NODE_BUTTON_FIRST;
+				type <= LAB_NODE_BUTTON_LAST; type++) {
 			parse_color(value,
 				theme->window[THEME_INACTIVE].button_colors[type]);
 		}
@@ -819,55 +819,55 @@ entry(struct theme *theme, const char *key, const char *value)
 	/* individual buttons */
 	if (match_glob(key, "window.active.button.menu.unpressed.image.color")) {
 		parse_color(value, theme->window[THEME_ACTIVE]
-			.button_colors[LAB_SSD_BUTTON_WINDOW_MENU]);
+			.button_colors[LAB_NODE_BUTTON_WINDOW_MENU]);
 		parse_color(value, theme->window[THEME_ACTIVE]
-			.button_colors[LAB_SSD_BUTTON_WINDOW_ICON]);
+			.button_colors[LAB_NODE_BUTTON_WINDOW_ICON]);
 	}
 	if (match_glob(key, "window.active.button.iconify.unpressed.image.color")) {
 		parse_color(value, theme->window[THEME_ACTIVE]
-			.button_colors[LAB_SSD_BUTTON_ICONIFY]);
+			.button_colors[LAB_NODE_BUTTON_ICONIFY]);
 	}
 	if (match_glob(key, "window.active.button.max.unpressed.image.color")) {
 		parse_color(value, theme->window[THEME_ACTIVE]
-			.button_colors[LAB_SSD_BUTTON_MAXIMIZE]);
+			.button_colors[LAB_NODE_BUTTON_MAXIMIZE]);
 	}
 	if (match_glob(key, "window.active.button.shade.unpressed.image.color")) {
 		parse_color(value, theme->window[THEME_ACTIVE]
-			.button_colors[LAB_SSD_BUTTON_SHADE]);
+			.button_colors[LAB_NODE_BUTTON_SHADE]);
 	}
 	if (match_glob(key, "window.active.button.desk.unpressed.image.color")) {
 		parse_color(value, theme->window[THEME_ACTIVE]
-			.button_colors[LAB_SSD_BUTTON_OMNIPRESENT]);
+			.button_colors[LAB_NODE_BUTTON_OMNIPRESENT]);
 	}
 	if (match_glob(key, "window.active.button.close.unpressed.image.color")) {
 		parse_color(value, theme->window[THEME_ACTIVE]
-			.button_colors[LAB_SSD_BUTTON_CLOSE]);
+			.button_colors[LAB_NODE_BUTTON_CLOSE]);
 	}
 	if (match_glob(key, "window.inactive.button.menu.unpressed.image.color")) {
 		parse_color(value, theme->window[THEME_INACTIVE]
-			.button_colors[LAB_SSD_BUTTON_WINDOW_MENU]);
+			.button_colors[LAB_NODE_BUTTON_WINDOW_MENU]);
 		parse_color(value, theme->window[THEME_INACTIVE]
-			.button_colors[LAB_SSD_BUTTON_WINDOW_ICON]);
+			.button_colors[LAB_NODE_BUTTON_WINDOW_ICON]);
 	}
 	if (match_glob(key, "window.inactive.button.iconify.unpressed.image.color")) {
 		parse_color(value, theme->window[THEME_INACTIVE]
-			.button_colors[LAB_SSD_BUTTON_ICONIFY]);
+			.button_colors[LAB_NODE_BUTTON_ICONIFY]);
 	}
 	if (match_glob(key, "window.inactive.button.max.unpressed.image.color")) {
 		parse_color(value, theme->window[THEME_INACTIVE]
-			.button_colors[LAB_SSD_BUTTON_MAXIMIZE]);
+			.button_colors[LAB_NODE_BUTTON_MAXIMIZE]);
 	}
 	if (match_glob(key, "window.inactive.button.shade.unpressed.image.color")) {
 		parse_color(value, theme->window[THEME_INACTIVE]
-			.button_colors[LAB_SSD_BUTTON_SHADE]);
+			.button_colors[LAB_NODE_BUTTON_SHADE]);
 	}
 	if (match_glob(key, "window.inactive.button.desk.unpressed.image.color")) {
 		parse_color(value, theme->window[THEME_INACTIVE]
-			.button_colors[LAB_SSD_BUTTON_OMNIPRESENT]);
+			.button_colors[LAB_NODE_BUTTON_OMNIPRESENT]);
 	}
 	if (match_glob(key, "window.inactive.button.close.unpressed.image.color")) {
 		parse_color(value, theme->window[THEME_INACTIVE]
-			.button_colors[LAB_SSD_BUTTON_CLOSE]);
+			.button_colors[LAB_NODE_BUTTON_CLOSE]);
 	}
 
 	/* window drop-shadows */
@@ -1811,8 +1811,8 @@ static void destroy_img(struct lab_img **img)
 void
 theme_finish(struct theme *theme)
 {
-	for (enum ssd_part_type type = LAB_SSD_BUTTON_FIRST;
-			type <= LAB_SSD_BUTTON_LAST; type++) {
+	for (enum lab_node_type type = LAB_NODE_BUTTON_FIRST;
+			type <= LAB_NODE_BUTTON_LAST; type++) {
 		for (uint8_t state_set = LAB_BS_DEFAULT;
 				state_set <= LAB_BS_ALL; state_set++) {
 			destroy_img(&theme->window[THEME_INACTIVE]

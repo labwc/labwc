@@ -10,9 +10,10 @@
 #include "common/macros.h"
 #include "config/rcxml.h"
 #include "labwc.h"
-#include "output.h"
-#include "view.h"
 #include "node.h"
+#include "output.h"
+#include "ssd.h"
+#include "view.h"
 
 static void
 edges_for_target_geometry(struct border *edges, struct view *view,

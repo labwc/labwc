@@ -707,8 +707,8 @@ show_menu(struct server *server, struct view *view, struct cursor_context *ctx,
 		x = extent.x;
 		y = view->current.y;
 		/* Push the client menu underneath the button */
-		if (is_client_menu && ssd_part_contains(
-				LAB_SSD_BUTTON, ctx->type)) {
+		if (is_client_menu && node_type_contains(
+				LAB_NODE_BUTTON, ctx->type)) {
 			assert(ctx->node);
 			int lx, ly;
 			wlr_scene_node_coords(ctx->node, &lx, &ly);

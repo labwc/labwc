@@ -16,12 +16,13 @@
 #include "scaled-buffer/scaled-font-buffer.h"
 #include "scaled-buffer/scaled-icon-buffer.h"
 #include "scaled-buffer/scaled-img-buffer.h"
+#include "ssd.h"
 #include "ssd-internal.h"
 #include "theme.h"
 #include "view.h"
 
 static void set_squared_corners(struct ssd *ssd, bool enable);
-static void set_alt_button_icon(struct ssd *ssd, enum ssd_part_type type, bool enable);
+static void set_alt_button_icon(struct ssd *ssd, enum lab_node_type type, bool enable);
 static void update_visible_buttons(struct ssd *ssd);
 
 void
@@ -33,7 +34,7 @@ ssd_titlebar_create(struct ssd *ssd)
 	int corner_width = ssd_get_corner_width();
 
 	ssd->titlebar.tree = wlr_scene_tree_create(ssd->tree);
-	attach_ssd_part(LAB_SSD_PART_TITLEBAR, view, &ssd->titlebar.tree->node);
+	attach_ssd_part(LAB_NODE_TITLEBAR, view, &ssd->titlebar.tree->node);
 
 	enum ssd_active_state active;
 	FOR_EACH_ACTIVE_STATE(active) {
@@ -77,7 +78,7 @@ ssd_titlebar_create(struct ssd *ssd)
 			subtree->tree, theme->titlebar_height,
 			theme->window[active].titlebar_pattern);
 		assert(subtree->title);
-		attach_ssd_part(LAB_SSD_PART_TITLE,
+		attach_ssd_part(LAB_NODE_TITLE,
 			view, &subtree->title->scene_buffer->node);
 
 		/* Buttons */
@@ -115,7 +116,7 @@ ssd_titlebar_create(struct ssd *ssd)
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
 	bool squared = ssd_should_be_squared(ssd);
 	if (maximized) {
-		set_alt_button_icon(ssd, LAB_SSD_BUTTON_MAXIMIZE, true);
+		set_alt_button_icon(ssd, LAB_NODE_BUTTON_MAXIMIZE, true);
 		ssd->state.was_maximized = true;
 	}
 	if (squared) {
@@ -124,11 +125,11 @@ ssd_titlebar_create(struct ssd *ssd)
 	set_squared_corners(ssd, maximized || squared);
 
 	if (view->shaded) {
-		set_alt_button_icon(ssd, LAB_SSD_BUTTON_SHADE, true);
+		set_alt_button_icon(ssd, LAB_NODE_BUTTON_SHADE, true);
 	}
 
 	if (view->visible_on_all_workspaces) {
-		set_alt_button_icon(ssd, LAB_SSD_BUTTON_OMNIPRESENT, true);
+		set_alt_button_icon(ssd, LAB_NODE_BUTTON_OMNIPRESENT, true);
 	}
 }
 
@@ -189,7 +190,7 @@ set_squared_corners(struct ssd *ssd, bool enable)
 }
 
 static void
-set_alt_button_icon(struct ssd *ssd, enum ssd_part_type type, bool enable)
+set_alt_button_icon(struct ssd *ssd, enum lab_node_type type, bool enable)
 {
 	enum ssd_active_state active;
 	FOR_EACH_ACTIVE_STATE(active) {
@@ -281,19 +282,19 @@ ssd_titlebar_update(struct ssd *ssd)
 			|| ssd->state.was_squared != squared) {
 		set_squared_corners(ssd, maximized || squared);
 		if (ssd->state.was_maximized != maximized) {
-			set_alt_button_icon(ssd, LAB_SSD_BUTTON_MAXIMIZE, maximized);
+			set_alt_button_icon(ssd, LAB_NODE_BUTTON_MAXIMIZE, maximized);
 		}
 		ssd->state.was_maximized = maximized;
 		ssd->state.was_squared = squared;
 	}
 
 	if (ssd->state.was_shaded != view->shaded) {
-		set_alt_button_icon(ssd, LAB_SSD_BUTTON_SHADE, view->shaded);
+		set_alt_button_icon(ssd, LAB_NODE_BUTTON_SHADE, view->shaded);
 		ssd->state.was_shaded = view->shaded;
 	}
 
 	if (ssd->state.was_omnipresent != view->visible_on_all_workspaces) {
-		set_alt_button_icon(ssd, LAB_SSD_BUTTON_OMNIPRESENT,
+		set_alt_button_icon(ssd, LAB_NODE_BUTTON_OMNIPRESENT,
 			view->visible_on_all_workspaces);
 		ssd->state.was_omnipresent = view->visible_on_all_workspaces;
 	}

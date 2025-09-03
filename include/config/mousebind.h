@@ -2,9 +2,9 @@
 #ifndef LABWC_MOUSEBIND_H
 #define LABWC_MOUSEBIND_H
 
+#include <stdbool.h>
 #include <wayland-util.h>
-#include "ssd.h"
-#include "config/keybind.h"
+#include "common/node-type.h"
 
 enum mouse_event {
 	MOUSE_ACTION_NONE = 0,
@@ -25,7 +25,7 @@ enum direction {
 };
 
 struct mousebind {
-	enum ssd_part_type context;
+	enum lab_node_type context;
 
 	/* ex: BTN_LEFT, BTN_RIGHT from linux/input_event_codes.h */
 	uint32_t button;

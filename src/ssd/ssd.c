@@ -6,6 +6,7 @@
  * Copyright (C) Johan Malm 2020-2021
  */
 
+#include "ssd.h"
 #include <assert.h>
 #include <strings.h>
 #include <wlr/types/wlr_scene.h>
@@ -85,12 +86,12 @@ ssd_max_extents(struct view *view)
  * (generally rc.resize_corner_range, but clipped to view size) of the view
  * bounds, so check the cursor against the view here.
  */
-enum ssd_part_type
+enum lab_node_type
 ssd_get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
 {
 	struct view *view = ssd ? ssd->view : NULL;
 	if (!view || !cursor || !view->ssd_mode || view->fullscreen) {
-		return LAB_SSD_NONE;
+		return LAB_NODE_NONE;
 	}
 
 	struct wlr_box view_box = view->current;
@@ -105,7 +106,7 @@ ssd_get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
 
 	if (wlr_box_contains_point(&view_box, cursor->x, cursor->y)) {
 		/* A cursor in bounds of the view is never in an SSD context */
-		return LAB_SSD_NONE;
+		return LAB_NODE_NONE;
 	}
 
 	int corner_height = MAX(0, MIN(rc.resize_corner_range, view_box.height / 2));
@@ -116,49 +117,24 @@ ssd_get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
 	bool bottom = cursor->y > view_box.y + view_box.height - corner_height;
 
 	if (top && left) {
-		return LAB_SSD_PART_CORNER_TOP_LEFT;
+		return LAB_NODE_CORNER_TOP_LEFT;
 	} else if (top && right) {
-		return LAB_SSD_PART_CORNER_TOP_RIGHT;
+		return LAB_NODE_CORNER_TOP_RIGHT;
 	} else if (bottom && left) {
-		return LAB_SSD_PART_CORNER_BOTTOM_LEFT;
+		return LAB_NODE_CORNER_BOTTOM_LEFT;
 	} else if (bottom && right) {
-		return LAB_SSD_PART_CORNER_BOTTOM_RIGHT;
+		return LAB_NODE_CORNER_BOTTOM_RIGHT;
 	} else if (top) {
-		return LAB_SSD_PART_TOP;
+		return LAB_NODE_BORDER_TOP;
 	} else if (bottom) {
-		return LAB_SSD_PART_BOTTOM;
+		return LAB_NODE_BORDER_BOTTOM;
 	} else if (left) {
-		return LAB_SSD_PART_LEFT;
+		return LAB_NODE_BORDER_LEFT;
 	} else if (right) {
-		return LAB_SSD_PART_RIGHT;
+		return LAB_NODE_BORDER_RIGHT;
 	}
 
-	return LAB_SSD_NONE;
-}
-
-enum lab_edge
-ssd_resize_edges(enum ssd_part_type type)
-{
-	switch (type) {
-	case LAB_SSD_PART_TOP:
-		return LAB_EDGE_TOP;
-	case LAB_SSD_PART_RIGHT:
-		return LAB_EDGE_RIGHT;
-	case LAB_SSD_PART_BOTTOM:
-		return LAB_EDGE_BOTTOM;
-	case LAB_SSD_PART_LEFT:
-		return LAB_EDGE_LEFT;
-	case LAB_SSD_PART_CORNER_TOP_LEFT:
-		return LAB_EDGES_TOP_LEFT;
-	case LAB_SSD_PART_CORNER_TOP_RIGHT:
-		return LAB_EDGES_TOP_RIGHT;
-	case LAB_SSD_PART_CORNER_BOTTOM_RIGHT:
-		return LAB_EDGES_BOTTOM_RIGHT;
-	case LAB_SSD_PART_CORNER_BOTTOM_LEFT:
-		return LAB_EDGES_BOTTOM_LEFT;
-	default:
-		return LAB_EDGE_NONE;
-	}
+	return LAB_NODE_NONE;
 }
 
 struct ssd *
@@ -169,7 +145,7 @@ ssd_create(struct view *view, bool active)
 
 	ssd->view = view;
 	ssd->tree = wlr_scene_tree_create(view->scene_tree);
-	attach_ssd_part(LAB_SSD_NONE, view, &ssd->tree->node);
+	attach_ssd_part(LAB_NODE_NONE, view, &ssd->tree->node);
 	wlr_scene_node_lower_to_bottom(&ssd->tree->node);
 	ssd->titlebar.height = view->server->theme->titlebar_height;
 	ssd_shadow_create(ssd);
@@ -305,52 +281,6 @@ ssd_destroy(struct ssd *ssd)
 	free(ssd);
 }
 
-bool
-ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate)
-{
-	if (whole == candidate || whole == LAB_SSD_ALL) {
-		return true;
-	}
-	if (whole == LAB_SSD_BUTTON) {
-		return candidate >= LAB_SSD_BUTTON_CLOSE
-			&& candidate <= LAB_SSD_BUTTON_OMNIPRESENT;
-	}
-	if (whole == LAB_SSD_PART_TITLEBAR) {
-		return candidate >= LAB_SSD_BUTTON_CLOSE
-			&& candidate <= LAB_SSD_PART_TITLE;
-	}
-	if (whole == LAB_SSD_PART_TITLE) {
-		/* "Title" includes blank areas of "Titlebar" as well */
-		return candidate >= LAB_SSD_PART_TITLEBAR
-			&& candidate <= LAB_SSD_PART_TITLE;
-	}
-	if (whole == LAB_SSD_FRAME) {
-		return candidate >= LAB_SSD_BUTTON_CLOSE
-			&& candidate <= LAB_SSD_CLIENT;
-	}
-	if (whole == LAB_SSD_PART_BORDER) {
-		return candidate >= LAB_SSD_PART_CORNER_TOP_LEFT
-			&& candidate <= LAB_SSD_PART_LEFT;
-	}
-	if (whole == LAB_SSD_PART_TOP) {
-		return candidate == LAB_SSD_PART_CORNER_TOP_LEFT
-			|| candidate == LAB_SSD_PART_CORNER_TOP_RIGHT;
-	}
-	if (whole == LAB_SSD_PART_RIGHT) {
-		return candidate == LAB_SSD_PART_CORNER_TOP_RIGHT
-			|| candidate == LAB_SSD_PART_CORNER_BOTTOM_RIGHT;
-	}
-	if (whole == LAB_SSD_PART_BOTTOM) {
-		return candidate == LAB_SSD_PART_CORNER_BOTTOM_RIGHT
-			|| candidate == LAB_SSD_PART_CORNER_BOTTOM_LEFT;
-	}
-	if (whole == LAB_SSD_PART_LEFT) {
-		return candidate == LAB_SSD_PART_CORNER_TOP_LEFT
-			|| candidate == LAB_SSD_PART_CORNER_BOTTOM_LEFT;
-	}
-	return false;
-}
-
 enum lab_ssd_mode
 ssd_mode_parse(const char *mode)
 {
@@ -421,10 +351,10 @@ ssd_hover_state_new(void)
 	return znew(struct ssd_hover_state);
 }
 
-enum ssd_part_type
+enum lab_node_type
 ssd_part_get_type(const struct ssd_part *part)
 {
-	return part ? part->type : LAB_SSD_NONE;
+	return part ? part->type : LAB_NODE_NONE;
 }
 
 struct view *

@@ -3,7 +3,7 @@
 #define LABWC_SSD_H
 
 #include "common/border.h"
-#include "common/edge.h"
+#include "common/node-type.h"
 #include "config/types.h"
 
 enum ssd_active_state {
@@ -21,51 +21,6 @@ struct wlr_cursor;
  * specifies inset as a multiple of visible shadow size.
  */
 #define SSD_SHADOW_INSET 0.3
-
-/*
- * Sequence these according to the order they should be processed for
- * press and hover events. Bear in mind that some of their respective
- * interactive areas overlap, so for example buttons need to come before title.
- */
-enum ssd_part_type {
-	LAB_SSD_NONE = 0,
-
-	LAB_SSD_BUTTON_CLOSE = 1,
-	LAB_SSD_BUTTON_MAXIMIZE,
-	LAB_SSD_BUTTON_ICONIFY,
-	LAB_SSD_BUTTON_WINDOW_ICON,
-	LAB_SSD_BUTTON_WINDOW_MENU,
-	LAB_SSD_BUTTON_SHADE,
-	LAB_SSD_BUTTON_OMNIPRESENT,
-	/* only for internal use */
-	LAB_SSD_BUTTON_FIRST = LAB_SSD_BUTTON_CLOSE,
-	LAB_SSD_BUTTON_LAST = LAB_SSD_BUTTON_OMNIPRESENT,
-	LAB_SSD_BUTTON,
-
-	LAB_SSD_PART_TITLEBAR,
-	LAB_SSD_PART_TITLE,
-
-	LAB_SSD_PART_CORNER_TOP_LEFT,
-	LAB_SSD_PART_CORNER_TOP_RIGHT,
-	LAB_SSD_PART_CORNER_BOTTOM_RIGHT,
-	LAB_SSD_PART_CORNER_BOTTOM_LEFT,
-	LAB_SSD_PART_TOP,
-	LAB_SSD_PART_RIGHT,
-	LAB_SSD_PART_BOTTOM,
-	LAB_SSD_PART_LEFT,
-	LAB_SSD_PART_BORDER,
-
-	LAB_SSD_CLIENT,
-	LAB_SSD_FRAME,
-	LAB_SSD_ROOT,
-	LAB_SSD_MENU,
-	LAB_SSD_OSD,
-	LAB_SSD_LAYER_SURFACE,
-	LAB_SSD_LAYER_SUBSURFACE,
-	LAB_SSD_UNMANAGED,
-	LAB_SSD_ALL,
-	LAB_SSD_END_MARKER
-};
 
 /* Forward declare arguments */
 struct ssd;
@@ -101,7 +56,7 @@ struct ssd_hover_state *ssd_hover_state_new(void);
 void ssd_update_button_hover(struct wlr_scene_node *node,
 	struct ssd_hover_state *hover_state);
 
-enum ssd_part_type ssd_part_get_type(const struct ssd_part *part);
+enum lab_node_type ssd_part_get_type(const struct ssd_part *part);
 struct view *ssd_part_get_view(const struct ssd_part *part);
 
 /* Public SSD helpers */
@@ -110,10 +65,8 @@ struct view *ssd_part_get_view(const struct ssd_part *part);
  * Returns a part type that represents a mouse context like "Top", "Left" and
  * "TRCorner" when the cursor is on the window border or resizing handle.
  */
-enum ssd_part_type ssd_get_resizing_type(const struct ssd *ssd,
+enum lab_node_type ssd_get_resizing_type(const struct ssd *ssd,
 	struct wlr_cursor *cursor);
-enum lab_edge ssd_resize_edges(enum ssd_part_type type);
-bool ssd_part_contains(enum ssd_part_type whole, enum ssd_part_type candidate);
 enum lab_ssd_mode ssd_mode_parse(const char *mode);
 
 /* TODO: clean up / update */

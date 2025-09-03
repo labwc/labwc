@@ -32,7 +32,7 @@ handle_node_destroy(struct wl_listener *listener, void *data)
  * to is destroyed.
  */
 static void
-init_ssd_part(struct ssd_part *part, enum ssd_part_type type,
+init_ssd_part(struct ssd_part *part, enum lab_node_type type,
 		struct view *view, struct wlr_scene_node *node)
 {
 	part->type = type;
@@ -45,17 +45,17 @@ init_ssd_part(struct ssd_part *part, enum ssd_part_type type,
 }
 
 struct ssd_part *
-attach_ssd_part(enum ssd_part_type type, struct view *view,
+attach_ssd_part(enum lab_node_type type, struct view *view,
 		struct wlr_scene_node *node)
 {
-	assert(!ssd_part_contains(LAB_SSD_BUTTON, type));
+	assert(!node_type_contains(LAB_NODE_BUTTON, type));
 	struct ssd_part *part = znew(*part);
 	init_ssd_part(part, type, view, node);
 	return part;
 }
 
 struct ssd_part_button *
-attach_ssd_part_button(struct wl_list *button_parts, enum ssd_part_type type,
+attach_ssd_part_button(struct wl_list *button_parts, enum lab_node_type type,
 		struct wlr_scene_tree *parent,
 		struct lab_img *imgs[LAB_BS_ALL + 1],
 		int x, int y, struct view *view)
@@ -63,7 +63,7 @@ attach_ssd_part_button(struct wl_list *button_parts, enum ssd_part_type type,
 	struct wlr_scene_tree *root = wlr_scene_tree_create(parent);
 	wlr_scene_node_set_position(&root->node, x, y);
 
-	assert(ssd_part_contains(LAB_SSD_BUTTON, type));
+	assert(node_type_contains(LAB_NODE_BUTTON, type));
 	struct ssd_part_button *button = znew(*button);
 	init_ssd_part(&button->base, type, view, &root->node);
 	wl_list_append(button_parts, &button->link);
@@ -86,7 +86,7 @@ attach_ssd_part_button(struct wl_list *button_parts, enum ssd_part_type type,
 	 */
 	int icon_padding = button_width / 10;
 
-	if (type == LAB_SSD_BUTTON_WINDOW_ICON) {
+	if (type == LAB_NODE_BUTTON_WINDOW_ICON) {
 		struct scaled_icon_buffer *icon_buffer =
 			scaled_icon_buffer_create(root, view->server,
 				button_width - 2 * icon_padding, button_height);
@@ -120,7 +120,7 @@ attach_ssd_part_button(struct wl_list *button_parts, enum ssd_part_type type,
 struct ssd_part_button *
 button_try_from_ssd_part(struct ssd_part *part)
 {
-	if (ssd_part_contains(LAB_SSD_BUTTON, part->type)) {
+	if (node_type_contains(LAB_NODE_BUTTON, part->type)) {
 		return (struct ssd_part_button *)part;
 	}
 	return NULL;

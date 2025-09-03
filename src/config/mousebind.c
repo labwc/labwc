@@ -8,6 +8,7 @@
 #include <wlr/util/log.h>
 #include "common/list.h"
 #include "common/mem.h"
+#include "config/keybind.h"
 #include "config/rcxml.h"
 
 uint32_t
@@ -103,60 +104,6 @@ mousebind_event_from_str(const char *str)
 	return MOUSE_ACTION_NONE;
 }
 
-static enum ssd_part_type
-context_from_str(const char *str)
-{
-	if (!strcasecmp(str, "Close")) {
-		return LAB_SSD_BUTTON_CLOSE;
-	} else if (!strcasecmp(str, "Maximize")) {
-		return LAB_SSD_BUTTON_MAXIMIZE;
-	} else if (!strcasecmp(str, "Iconify")) {
-		return LAB_SSD_BUTTON_ICONIFY;
-	} else if (!strcasecmp(str, "WindowMenu")) {
-		return LAB_SSD_BUTTON_WINDOW_MENU;
-	} else if (!strcasecmp(str, "Icon")) {
-		return LAB_SSD_BUTTON_WINDOW_ICON;
-	} else if (!strcasecmp(str, "Shade")) {
-		return LAB_SSD_BUTTON_SHADE;
-	} else if (!strcasecmp(str, "AllDesktops")) {
-		return LAB_SSD_BUTTON_OMNIPRESENT;
-	} else if (!strcasecmp(str, "Titlebar")) {
-		return LAB_SSD_PART_TITLEBAR;
-	} else if (!strcasecmp(str, "Title")) {
-		return LAB_SSD_PART_TITLE;
-	} else if (!strcasecmp(str, "TLCorner")) {
-		return LAB_SSD_PART_CORNER_TOP_LEFT;
-	} else if (!strcasecmp(str, "TRCorner")) {
-		return LAB_SSD_PART_CORNER_TOP_RIGHT;
-	} else if (!strcasecmp(str, "BRCorner")) {
-		return LAB_SSD_PART_CORNER_BOTTOM_RIGHT;
-	} else if (!strcasecmp(str, "BLCorner")) {
-		return LAB_SSD_PART_CORNER_BOTTOM_LEFT;
-	} else if (!strcasecmp(str, "Border")) {
-		return LAB_SSD_PART_BORDER;
-	} else if (!strcasecmp(str, "Top")) {
-		return LAB_SSD_PART_TOP;
-	} else if (!strcasecmp(str, "Right")) {
-		return LAB_SSD_PART_RIGHT;
-	} else if (!strcasecmp(str, "Bottom")) {
-		return LAB_SSD_PART_BOTTOM;
-	} else if (!strcasecmp(str, "Left")) {
-		return LAB_SSD_PART_LEFT;
-	} else if (!strcasecmp(str, "Frame")) {
-		return LAB_SSD_FRAME;
-	} else if (!strcasecmp(str, "Client")) {
-		return LAB_SSD_CLIENT;
-	} else if (!strcasecmp(str, "Desktop")) {
-		return LAB_SSD_ROOT;
-	} else if (!strcasecmp(str, "Root")) {
-		return LAB_SSD_ROOT;
-	} else if (!strcasecmp(str, "All")) {
-		return LAB_SSD_ALL;
-	}
-	wlr_log(WLR_ERROR, "unknown mouse context (%s)", str);
-	return LAB_SSD_NONE;
-}
-
 bool
 mousebind_the_same(struct mousebind *a, struct mousebind *b)
 {
@@ -176,8 +123,8 @@ mousebind_create(const char *context)
 		return NULL;
 	}
 	struct mousebind *m = znew(*m);
-	m->context = context_from_str(context);
-	if (m->context != LAB_SSD_NONE) {
+	m->context = node_type_parse(context);
+	if (m->context != LAB_NODE_NONE) {
 		wl_list_append(&rc.mousebinds, &m->link);
 	}
 	wl_list_init(&m->actions);

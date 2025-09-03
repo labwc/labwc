@@ -65,6 +65,7 @@
 #include "resize-indicator.h"
 #include "scaled-buffer/scaled-buffer.h"
 #include "session-lock.h"
+#include "ssd.h"
 #include "theme.h"
 #include "view.h"
 #include "workspaces.h"

@@ -263,7 +263,7 @@ get_surface_from_layer_node(struct wlr_scene_node *node)
 struct cursor_context
 get_cursor_context(struct server *server)
 {
-	struct cursor_context ret = {.type = LAB_SSD_NONE};
+	struct cursor_context ret = {.type = LAB_NODE_NONE};
 	struct wlr_cursor *cursor = server->seat.cursor;
 
 	/* Prevent drag icons to be on top of the hitbox detection */
@@ -281,7 +281,7 @@ get_cursor_context(struct server *server)
 
 	ret.node = node;
 	if (!node) {
-		ret.type = LAB_SSD_ROOT;
+		ret.type = LAB_NODE_ROOT;
 		return ret;
 	}
 
@@ -289,7 +289,7 @@ get_cursor_context(struct server *server)
 	if (node->type == WLR_SCENE_NODE_BUFFER) {
 		struct wlr_surface *surface = lab_wlr_surface_from_node(node);
 		if (node->parent == server->unmanaged_tree) {
-			ret.type = LAB_SSD_UNMANAGED;
+			ret.type = LAB_NODE_UNMANAGED;
 			ret.surface = surface;
 			return ret;
 		}
@@ -304,7 +304,7 @@ get_cursor_context(struct server *server)
 				ret.view = desc->data;
 				if (ret.node->type == WLR_SCENE_NODE_BUFFER
 						&& lab_wlr_surface_from_node(ret.node)) {
-					ret.type = LAB_SSD_CLIENT;
+					ret.type = LAB_NODE_CLIENT;
 					ret.surface = lab_wlr_surface_from_node(ret.node);
 				} else {
 					/* should never be reached */
@@ -318,7 +318,7 @@ get_cursor_context(struct server *server)
 
 				/* Detect mouse contexts like Top, Left and TRCorner */
 				ret.type = ssd_get_resizing_type(ret.view->ssd, cursor);
-				if (ret.type == LAB_SSD_NONE) {
+				if (ret.type == LAB_NODE_NONE) {
 					/*
 					 * Otherwise, detect mouse contexts like
 					 * Title, Titlebar and Iconify
@@ -330,23 +330,23 @@ get_cursor_context(struct server *server)
 			}
 			case LAB_NODE_DESC_LAYER_SURFACE:
 				ret.node = node;
-				ret.type = LAB_SSD_LAYER_SURFACE;
+				ret.type = LAB_NODE_LAYER_SURFACE;
 				ret.surface = get_surface_from_layer_node(node);
 				return ret;
 			case LAB_NODE_DESC_LAYER_POPUP:
 				ret.node = node;
-				ret.type = LAB_SSD_CLIENT;
+				ret.type = LAB_NODE_CLIENT;
 				ret.surface = get_surface_from_layer_node(node);
 				return ret;
 			case LAB_NODE_DESC_SESSION_LOCK_SURFACE: /* fallthrough */
 			case LAB_NODE_DESC_IME_POPUP:
-				ret.type = LAB_SSD_CLIENT;
+				ret.type = LAB_NODE_CLIENT;
 				ret.surface = lab_wlr_surface_from_node(ret.node);
 				return ret;
 			case LAB_NODE_DESC_MENUITEM:
 				/* Always return the top scene node for menu items */
 				ret.node = node;
-				ret.type = LAB_SSD_MENU;
+				ret.type = LAB_NODE_MENU;
 				return ret;
 			case LAB_NODE_DESC_NODE:
 			case LAB_NODE_DESC_TREE:
@@ -373,7 +373,7 @@ get_cursor_context(struct server *server)
 			if (surface && wlr_subsurface_try_from_wlr_surface(surface)
 					&& subsurface_parent_layer(surface)) {
 				ret.surface = surface;
-				ret.type = LAB_SSD_LAYER_SUBSURFACE;
+				ret.type = LAB_NODE_LAYER_SUBSURFACE;
 				return ret;
 			}
 		}

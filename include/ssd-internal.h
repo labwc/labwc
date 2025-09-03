@@ -3,7 +3,7 @@
 #define LABWC_SSD_INTERNAL_H
 
 #include <wlr/util/box.h>
-#include "ssd.h"
+#include "common/border.h"
 #include "theme.h"
 #include "view.h"
 
@@ -142,7 +142,7 @@ struct ssd {
  * the cursor.
  */
 struct ssd_part {
-	enum ssd_part_type type;
+	enum lab_node_type type;
 	struct view *view;
 
 	/* This part represented in scene graph */
@@ -183,10 +183,10 @@ struct wlr_buffer;
 struct wlr_scene_tree;
 
 /* SSD internal helpers to create various SSD elements */
-struct ssd_part *attach_ssd_part(enum ssd_part_type type, struct view *view,
+struct ssd_part *attach_ssd_part(enum lab_node_type type, struct view *view,
 	struct wlr_scene_node *node);
 struct ssd_part_button *attach_ssd_part_button(struct wl_list *button_parts,
-	enum ssd_part_type type, struct wlr_scene_tree *parent,
+	enum lab_node_type type, struct wlr_scene_tree *parent,
 	struct lab_img *imgs[LAB_BS_ALL + 1], int x, int y,
 	struct view *view);
 struct ssd_part_button *button_try_from_ssd_part(struct ssd_part *part);

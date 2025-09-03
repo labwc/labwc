@@ -10,7 +10,7 @@
 
 #include <cairo.h>
 #include <wlr/render/wlr_renderer.h>
-#include "ssd.h"
+#include "common/node-type.h"
 
 struct lab_img;
 
@@ -90,7 +90,7 @@ struct theme {
 		struct theme_background title_bg;
 
 		/* TODO: add toggled/hover/pressed/disabled colors for buttons */
-		float button_colors[LAB_SSD_BUTTON_LAST + 1][4];
+		float button_colors[LAB_NODE_BUTTON_LAST + 1][4];
 
 		float border_color[4];
 		float toggled_keybinds_color[4];
@@ -109,7 +109,7 @@ struct theme {
 		 * Elements in buttons[0] are all NULL since LAB_SSD_BUTTON_FIRST is 1.
 		 */
 		struct lab_img *button_imgs
-			[LAB_SSD_BUTTON_LAST + 1][LAB_BS_ALL + 1];
+			[LAB_NODE_BUTTON_LAST + 1][LAB_BS_ALL + 1];
 
 		/*
 		 * The titlebar background is specified as a cairo_pattern

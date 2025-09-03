@@ -12,6 +12,7 @@ labwc_sources += files(
   'match.c',
   'mem.c',
   'nodename.c',
+  'node-type.c',
   'parse-bool.c',
   'parse-double.c',
   'scene-helpers.c',

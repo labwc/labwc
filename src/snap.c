@@ -2,12 +2,13 @@
 #include "snap.h"
 #include <assert.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 #include "common/border.h"
 #include "config/rcxml.h"
 #include "edges.h"
-#include "labwc.h"
 #include "output.h"
 #include "snap-constraints.h"
+#include "ssd.h"
 #include "view.h"
 
 static void

@@ -35,6 +35,7 @@
 #include "labwc.h"
 #include "osd.h"
 #include "regions.h"
+#include "ssd.h"
 #include "view.h"
 #include "window-rules.h"
 #include "workspaces.h"
@@ -126,34 +127,34 @@ fill_section(const char *content, struct wl_list *list, uint32_t *found_buttons)
 		if (string_null_or_empty(identifier)) {
 			continue;
 		}
-		enum ssd_part_type type = LAB_SSD_NONE;
+		enum lab_node_type type = LAB_NODE_NONE;
 		if (!strcmp(identifier, "icon")) {
 #if HAVE_LIBSFDO
-			type = LAB_SSD_BUTTON_WINDOW_ICON;
+			type = LAB_NODE_BUTTON_WINDOW_ICON;
 #else
 			wlr_log(WLR_ERROR, "libsfdo is not linked. "
 				"Replacing 'icon' in titlebar layout with 'menu'.");
-			type = LAB_SSD_BUTTON_WINDOW_MENU;
+			type = LAB_NODE_BUTTON_WINDOW_MENU;
 #endif
 		} else if (!strcmp(identifier, "menu")) {
-			type = LAB_SSD_BUTTON_WINDOW_MENU;
+			type = LAB_NODE_BUTTON_WINDOW_MENU;
 		} else if (!strcmp(identifier, "iconify")) {
-			type = LAB_SSD_BUTTON_ICONIFY;
+			type = LAB_NODE_BUTTON_ICONIFY;
 		} else if (!strcmp(identifier, "max")) {
-			type = LAB_SSD_BUTTON_MAXIMIZE;
+			type = LAB_NODE_BUTTON_MAXIMIZE;
 		} else if (!strcmp(identifier, "close")) {
-			type = LAB_SSD_BUTTON_CLOSE;
+			type = LAB_NODE_BUTTON_CLOSE;
 		} else if (!strcmp(identifier, "shade")) {
-			type = LAB_SSD_BUTTON_SHADE;
+			type = LAB_NODE_BUTTON_SHADE;
 		} else if (!strcmp(identifier, "desk")) {
-			type = LAB_SSD_BUTTON_OMNIPRESENT;
+			type = LAB_NODE_BUTTON_OMNIPRESENT;
 		} else {
 			wlr_log(WLR_ERROR, "invalid titleLayout identifier '%s'",
 				identifier);
 			continue;
 		}
 
-		assert(type != LAB_SSD_NONE);
+		assert(type != LAB_NODE_NONE);
 
 		/* We no longer need this check, but let's keep it just in case */
 		if (*found_buttons & (1 << type)) {

@@ -666,7 +666,7 @@ handle_tablet_tool_button(struct wl_listener *listener, void *data)
 			wl_list_for_each(mousebind, &rc.mousebinds, link) {
 				if (mousebind->mouse_event == MOUSE_ACTION_PRESS
 						&& mousebind->button == button
-						&& mousebind->context == LAB_SSD_CLIENT) {
+						&& mousebind->context == LAB_NODE_CLIENT) {
 					actions_run(view, tool->seat->server,
 						&mousebind->actions, NULL);
 				}

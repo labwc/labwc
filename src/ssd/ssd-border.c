@@ -5,6 +5,7 @@
 #include "common/macros.h"
 #include "common/scene-helpers.h"
 #include "labwc.h"
+#include "ssd.h"
 #include "ssd-internal.h"
 #include "theme.h"
 #include "view.h"

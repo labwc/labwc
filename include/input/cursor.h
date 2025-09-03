@@ -4,7 +4,7 @@
 
 #include <wlr/types/wlr_cursor.h>
 #include "common/edge.h"
-#include "ssd.h"
+#include "common/node-type.h"
 
 struct view;
 struct seat;
@@ -32,7 +32,7 @@ struct cursor_context {
 	struct view *view;
 	struct wlr_scene_node *node;
 	struct wlr_surface *surface;
-	enum ssd_part_type type;
+	enum lab_node_type type;
 	double sx, sy;
 };
 

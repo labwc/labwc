@@ -225,7 +225,7 @@ struct server {
 	 */
 	struct view *active_view;
 
-	struct ssd_part_button *hovered_button;
+	struct ssd_button *hovered_button;
 
 	/* Tree for all non-layer xdg/xwayland-shell surfaces */
 	struct wlr_scene_tree *view_tree;

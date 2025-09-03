@@ -2,30 +2,11 @@
 #ifndef LABWC_NODE_DESCRIPTOR_H
 #define LABWC_NODE_DESCRIPTOR_H
 #include <wlr/types/wlr_scene.h>
-
-struct view;
-struct lab_layer_surface;
-struct lab_layer_popup;
-struct menuitem;
-struct ssd_part;
-struct scaled_buffer;
-
-enum node_descriptor_type {
-	LAB_NODE_DESC_NODE = 0,
-	LAB_NODE_DESC_VIEW,
-	LAB_NODE_DESC_XDG_POPUP,
-	LAB_NODE_DESC_LAYER_SURFACE,
-	LAB_NODE_DESC_LAYER_POPUP,
-	LAB_NODE_DESC_SESSION_LOCK_SURFACE,
-	LAB_NODE_DESC_IME_POPUP,
-	LAB_NODE_DESC_MENUITEM,
-	LAB_NODE_DESC_TREE,
-	LAB_NODE_DESC_SCALED_BUFFER,
-	LAB_NODE_DESC_SSD_PART,
-};
+#include "common/node-type.h"
 
 struct node_descriptor {
-	enum node_descriptor_type type;
+	enum lab_node_type type;
+	struct view *view;
 	void *data;
 	struct wl_listener destroy;
 };
@@ -38,16 +19,15 @@ struct node_descriptor {
  *
  * @scene_node: wlr_scene_node to attached node_descriptor to
  * @type: node descriptor type
+ * @view: associated view
  * @data: struct to point to as follows:
- *   - LAB_NODE_DESC_VIEW           struct view
- *   - LAB_NODE_DESC_XDG_POPUP      struct view
- *   - LAB_NODE_DESC_LAYER_SURFACE  struct lab_layer_surface
- *   - LAB_NODE_DESC_LAYER_POPUP    struct lab_layer_popup
- *   - LAB_NODE_DESC_MENUITEM       struct menuitem
- *   - LAB_NODE_DESC_SSD_PART       struct ssd_part
+ *   - LAB_NODE_LAYER_SURFACE  struct lab_layer_surface
+ *   - LAB_NODE_LAYER_POPUP    struct lab_layer_popup
+ *   - LAB_NODE_MENUITEM       struct menuitem
+ *   - LAB_NODE_BUTTON_*       struct ssd_button
  */
 void node_descriptor_create(struct wlr_scene_node *scene_node,
-	enum node_descriptor_type type, void *data);
+	enum lab_node_type type, struct view *view, void *data);
 
 /**
  * node_view_from_node - return view struct from node
@@ -77,17 +57,17 @@ struct menuitem *node_menuitem_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 /**
- * node_ssd_part_from_node - return ssd_part struct from node
- * @wlr_scene_node: wlr_scene_node from which to return data
- */
-struct ssd_part *node_ssd_part_from_node(
-	struct wlr_scene_node *wlr_scene_node);
-
-/**
  * node_scaled_buffer_from_node - return scaled_buffer from node
  * @wlr_scene_node: wlr_scene_node from which to return data
  */
 struct scaled_buffer *node_scaled_buffer_from_node(
+	struct wlr_scene_node *wlr_scene_node);
+
+/**
+ * node_try_ssd_button_from_node - return ssd_button or NULL from node
+ * @wlr_scene_node: wlr_scene_node from which to return data
+ */
+struct ssd_button *node_try_ssd_button_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 #endif /* LABWC_NODE_DESCRIPTOR_H */

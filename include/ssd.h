@@ -25,7 +25,7 @@ struct wlr_cursor;
 /* Forward declare arguments */
 struct server;
 struct ssd;
-struct ssd_part;
+struct ssd_button;
 struct view;
 struct wlr_scene;
 struct wlr_scene_node;
@@ -55,8 +55,7 @@ void ssd_enable_shade(struct ssd *ssd, bool enable);
 void ssd_update_hovered_button(struct server *server,
 	struct wlr_scene_node *node);
 
-enum lab_node_type ssd_part_get_type(const struct ssd_part *part);
-struct view *ssd_part_get_view(const struct ssd_part *part);
+void ssd_button_free(struct ssd_button *button);
 
 /* Public SSD helpers */
 

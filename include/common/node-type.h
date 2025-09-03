@@ -46,12 +46,23 @@ enum lab_node_type {
 	LAB_NODE_CLIENT,
 	LAB_NODE_FRAME,
 	LAB_NODE_ROOT,
-	LAB_NODE_MENU,
+	LAB_NODE_MENUITEM,
 	LAB_NODE_OSD,
 	LAB_NODE_LAYER_SURFACE,
 	LAB_NODE_LAYER_SUBSURFACE,
 	LAB_NODE_UNMANAGED,
 	LAB_NODE_ALL,
+
+	/* translated to LAB_NODE_CLIENT by get_cursor_context() */
+	LAB_NODE_VIEW,
+	LAB_NODE_XDG_POPUP,
+	LAB_NODE_LAYER_POPUP,
+	LAB_NODE_SESSION_LOCK_SURFACE,
+	LAB_NODE_IME_POPUP,
+
+	/* never returned by get_cursor_context() */
+	LAB_NODE_TREE,
+	LAB_NODE_SCALED_BUFFER,
 };
 
 enum lab_node_type node_type_parse(const char *context);

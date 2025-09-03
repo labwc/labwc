@@ -247,11 +247,11 @@ get_surface_from_layer_node(struct wlr_scene_node *node)
 {
 	assert(node->data);
 	struct node_descriptor *desc = (struct node_descriptor *)node->data;
-	if (desc->type == LAB_NODE_DESC_LAYER_SURFACE) {
+	if (desc->type == LAB_NODE_LAYER_SURFACE) {
 		struct lab_layer_surface *surface;
 		surface = node_layer_surface_from_node(node);
 		return surface->scene_layer_surface->layer_surface->surface;
-	} else if (desc->type == LAB_NODE_DESC_LAYER_POPUP) {
+	} else if (desc->type == LAB_NODE_LAYER_POPUP) {
 		struct lab_layer_popup *popup;
 		popup = node_layer_popup_from_node(node);
 		return popup->wlr_popup->base->surface;
@@ -299,9 +299,9 @@ get_cursor_context(struct server *server)
 		struct node_descriptor *desc = node->data;
 		if (desc) {
 			switch (desc->type) {
-			case LAB_NODE_DESC_VIEW:
-			case LAB_NODE_DESC_XDG_POPUP:
-				ret.view = desc->data;
+			case LAB_NODE_VIEW:
+			case LAB_NODE_XDG_POPUP:
+				ret.view = desc->view;
 				if (ret.node->type == WLR_SCENE_NODE_BUFFER
 						&& lab_wlr_surface_from_node(ret.node)) {
 					ret.type = LAB_NODE_CLIENT;
@@ -311,10 +311,43 @@ get_cursor_context(struct server *server)
 					wlr_log(WLR_ERROR, "cursor not on client or ssd");
 				}
 				return ret;
-			case LAB_NODE_DESC_SSD_PART: {
-				struct ssd_part *part = node_ssd_part_from_node(node);
+			case LAB_NODE_LAYER_SURFACE:
 				ret.node = node;
-				ret.view = ssd_part_get_view(part);
+				ret.type = LAB_NODE_LAYER_SURFACE;
+				ret.surface = get_surface_from_layer_node(node);
+				return ret;
+			case LAB_NODE_LAYER_POPUP:
+				ret.node = node;
+				ret.type = LAB_NODE_CLIENT;
+				ret.surface = get_surface_from_layer_node(node);
+				return ret;
+			case LAB_NODE_SESSION_LOCK_SURFACE: /* fallthrough */
+			case LAB_NODE_IME_POPUP:
+				ret.type = LAB_NODE_CLIENT;
+				ret.surface = lab_wlr_surface_from_node(ret.node);
+				return ret;
+			case LAB_NODE_MENUITEM:
+				/* Always return the top scene node for menu items */
+				ret.node = node;
+				ret.type = LAB_NODE_MENUITEM;
+				return ret;
+			case LAB_NODE_TREE:
+			case LAB_NODE_SCALED_BUFFER:
+				/* Continue to parent node */
+				break;
+			default:
+				/*
+				 * All other node descriptors (buttons, title,
+				 * etc.) should have an associated view.
+				 */
+				if (!desc->view) {
+					wlr_log(WLR_ERROR, "cursor not on any view "
+						"(node type %d)", desc->type);
+					return ret;
+				}
+
+				ret.node = node;
+				ret.view = desc->view;
 
 				/* Detect mouse contexts like Top, Left and TRCorner */
 				ret.type = ssd_get_resizing_type(ret.view->ssd, cursor);
@@ -323,35 +356,10 @@ get_cursor_context(struct server *server)
 					 * Otherwise, detect mouse contexts like
 					 * Title, Titlebar and Iconify
 					 */
-					ret.type = ssd_part_get_type(part);
+					ret.type = desc->type;
 				}
 
 				return ret;
-			}
-			case LAB_NODE_DESC_LAYER_SURFACE:
-				ret.node = node;
-				ret.type = LAB_NODE_LAYER_SURFACE;
-				ret.surface = get_surface_from_layer_node(node);
-				return ret;
-			case LAB_NODE_DESC_LAYER_POPUP:
-				ret.node = node;
-				ret.type = LAB_NODE_CLIENT;
-				ret.surface = get_surface_from_layer_node(node);
-				return ret;
-			case LAB_NODE_DESC_SESSION_LOCK_SURFACE: /* fallthrough */
-			case LAB_NODE_DESC_IME_POPUP:
-				ret.type = LAB_NODE_CLIENT;
-				ret.surface = lab_wlr_surface_from_node(ret.node);
-				return ret;
-			case LAB_NODE_DESC_MENUITEM:
-				/* Always return the top scene node for menu items */
-				ret.node = node;
-				ret.type = LAB_NODE_MENU;
-				return ret;
-			case LAB_NODE_DESC_NODE:
-			case LAB_NODE_DESC_TREE:
-			case LAB_NODE_DESC_SCALED_BUFFER:
-				break;
 			}
 		}
 

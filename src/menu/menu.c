@@ -246,8 +246,8 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 
 	/* Menu item root node */
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
-	node_descriptor_create(&menuitem->tree->node,
-		LAB_NODE_DESC_MENUITEM, menuitem);
+	node_descriptor_create(&menuitem->tree->node, LAB_NODE_MENUITEM,
+		/*view*/ NULL, menuitem);
 
 	/* Create scenes for unselected/selected states */
 	menuitem->normal_tree = item_create_scene_for_state(menuitem,
@@ -295,8 +295,8 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 
 	/* Menu item root node */
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
-	node_descriptor_create(&menuitem->tree->node,
-		LAB_NODE_DESC_MENUITEM, menuitem);
+	node_descriptor_create(&menuitem->tree->node, LAB_NODE_MENUITEM,
+		/*view*/ NULL, menuitem);
 
 	/* Tree to hold background and line buffer */
 	menuitem->normal_tree = wlr_scene_tree_create(menuitem->tree);
@@ -343,8 +343,8 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 
 	/* Menu item root node */
 	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
-	node_descriptor_create(&menuitem->tree->node,
-		LAB_NODE_DESC_MENUITEM, menuitem);
+	node_descriptor_create(&menuitem->tree->node, LAB_NODE_MENUITEM,
+		/*view*/ NULL, menuitem);
 
 	/* Tree to hold background and text buffer */
 	menuitem->normal_tree = wlr_scene_tree_create(menuitem->tree);

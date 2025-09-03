@@ -14,6 +14,7 @@
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
+#include "node.h"
 #include "ssd-internal.h"
 #include "theme.h"
 #include "view.h"
@@ -145,7 +146,8 @@ ssd_create(struct view *view, bool active)
 
 	ssd->view = view;
 	ssd->tree = wlr_scene_tree_create(view->scene_tree);
-	attach_ssd_part(LAB_NODE_NONE, view, &ssd->tree->node);
+	node_descriptor_create(&ssd->tree->node,
+		LAB_NODE_NONE, view, /*data*/ NULL);
 	wlr_scene_node_lower_to_bottom(&ssd->tree->node);
 	ssd->titlebar.height = view->server->theme->titlebar_height;
 	ssd_shadow_create(ssd);
@@ -265,7 +267,8 @@ ssd_destroy(struct ssd *ssd)
 	/* Maybe reset hover view */
 	struct view *view = ssd->view;
 	struct server *server = view->server;
-	if (server->hovered_button && server->hovered_button->base.view == view) {
+	if (server->hovered_button && node_view_from_node(
+			server->hovered_button->node) == view) {
 		server->hovered_button = NULL;
 	}
 
@@ -341,18 +344,6 @@ ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable)
 		? rc.theme->window_toggled_keybinds_color
 		: rc.theme->window[THEME_ACTIVE].border_color;
 	wlr_scene_rect_set_color(ssd->border.subtrees[SSD_ACTIVE].top, color);
-}
-
-enum lab_node_type
-ssd_part_get_type(const struct ssd_part *part)
-{
-	return part ? part->type : LAB_NODE_NONE;
-}
-
-struct view *
-ssd_part_get_view(const struct ssd_part *part)
-{
-	return part ? part->view : NULL;
 }
 
 bool

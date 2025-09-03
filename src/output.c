@@ -511,17 +511,17 @@ handle_new_output(struct wl_listener *listener, void *data)
 		output->layer_tree[i] =
 			wlr_scene_tree_create(&server->scene->tree);
 		node_descriptor_create(&output->layer_tree[i]->node,
-			LAB_NODE_DESC_TREE, NULL);
+			LAB_NODE_TREE, /*view*/ NULL, /*data*/ NULL);
 	}
 	output->layer_popup_tree = wlr_scene_tree_create(&server->scene->tree);
 	node_descriptor_create(&output->layer_popup_tree->node,
-		LAB_NODE_DESC_TREE, NULL);
+		LAB_NODE_TREE, /*view*/ NULL, /*data*/ NULL);
 	output->osd_tree = wlr_scene_tree_create(&server->scene->tree);
 	node_descriptor_create(&output->osd_tree->node,
-		LAB_NODE_DESC_TREE, NULL);
+		LAB_NODE_TREE, /*view*/ NULL, /*data*/ NULL);
 	output->session_lock_tree = wlr_scene_tree_create(&server->scene->tree);
 	node_descriptor_create(&output->session_lock_tree->node,
-		LAB_NODE_DESC_TREE, NULL);
+		LAB_NODE_TREE, /*view*/ NULL, /*data*/ NULL);
 
 	/*
 	 * Set the z-positions to achieve the following order (from top to

@@ -314,7 +314,7 @@ subtract_node_tree(struct wlr_scene_tree *tree, pixman_region32_t *available,
 		}
 
 		node_desc = node->data;
-		if (node_desc && node_desc->type == LAB_NODE_DESC_VIEW) {
+		if (node_desc && node_desc->type == LAB_NODE_VIEW) {
 			view = node_view_from_node(node);
 			if (view != ignored_view) {
 				subtract_view_from_space(view, available);

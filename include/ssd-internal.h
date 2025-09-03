@@ -135,23 +135,10 @@ struct ssd {
 	struct border margin;
 };
 
-/*
- * ssd_part wraps a scene-node with ssd-specific information and can be
- * accessed with node_ssd_part_from_node(wlr_scene_node *).
- * This allows get_cursor_context() in desktop.c to see which SSD part is under
- * the cursor.
- */
-struct ssd_part {
-	enum lab_node_type type;
-	struct view *view;
-
-	/* This part represented in scene graph */
+struct ssd_button {
 	struct wlr_scene_node *node;
-	struct wl_listener node_destroy;
-};
+	enum lab_node_type type;
 
-struct ssd_part_button {
-	struct ssd_part base;
 	/*
 	 * Bitmap of lab_button_state that represents a combination of
 	 * hover/toggled/rounded states.
@@ -177,13 +164,10 @@ struct wlr_buffer;
 struct wlr_scene_tree;
 
 /* SSD internal helpers to create various SSD elements */
-struct ssd_part *attach_ssd_part(enum lab_node_type type, struct view *view,
-	struct wlr_scene_node *node);
-struct ssd_part_button *attach_ssd_part_button(struct wl_list *button_parts,
+struct ssd_button *attach_ssd_button(struct wl_list *button_parts,
 	enum lab_node_type type, struct wlr_scene_tree *parent,
 	struct lab_img *imgs[LAB_BS_ALL + 1], int x, int y,
 	struct view *view);
-struct ssd_part_button *button_try_from_ssd_part(struct ssd_part *part);
 
 /* SSD internal */
 void ssd_titlebar_create(struct ssd *ssd);

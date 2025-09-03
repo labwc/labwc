@@ -2,9 +2,9 @@
 #ifndef LABWC_SNAP_H
 #define LABWC_SNAP_H
 
-#include "common/border.h"
-#include "view.h"
+#include "common/edge.h"
 
+struct view;
 struct wlr_box;
 
 void snap_move_to_edge(struct view *view,

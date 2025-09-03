@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <wlr/util/log.h>
+#include "common/buf.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
 #include "view.h"

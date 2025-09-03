@@ -2,7 +2,6 @@
 #ifndef LABWC_SSD_H
 #define LABWC_SSD_H
 
-#include "common/border.h"
 #include "common/node-type.h"
 #include "config/types.h"
 

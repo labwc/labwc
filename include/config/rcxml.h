@@ -8,7 +8,6 @@
 #include <libxml/tree.h>
 
 #include "common/border.h"
-#include "common/buf.h"
 #include "common/font.h"
 #include "common/node-type.h"
 #include "config/types.h"
@@ -41,6 +40,8 @@ enum tiling_events_mode {
 	LAB_TILING_EVENTS_ALWAYS =
 		(LAB_TILING_EVENTS_REGION | LAB_TILING_EVENTS_EDGE),
 };
+
+struct buf;
 
 struct button_map_entry {
 	uint32_t from;

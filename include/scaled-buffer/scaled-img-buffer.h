@@ -2,8 +2,6 @@
 #ifndef LABWC_SCALED_IMG_BUFFER_H
 #define LABWC_SCALED_IMG_BUFFER_H
 
-#include <stdbool.h>
-
 struct wlr_scene_tree;
 struct wlr_scene_node;
 struct wlr_scene_buffer;

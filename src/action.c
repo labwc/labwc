@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
 #include "action-prompt-codes.h"
+#include "common/buf.h"
 #include "common/macros.h"
 #include "common/list.h"
 #include "common/mem.h"

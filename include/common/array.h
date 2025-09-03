@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef LABWC_ARRAY_H
 #define LABWC_ARRAY_H
-#include <stdio.h>
-#include <stdlib.h>
+
 #include <wayland-server-core.h>
+#include "common/mem.h"
 
 /*
  * Wayland's wl_array API is a bit sparse consisting only of
@@ -66,10 +66,7 @@ wl_array_len(struct wl_array *array)
 #define array_add(_arr, _val) do {                           \
 		__typeof__(_val) *_entry = wl_array_add(     \
 			(_arr), sizeof(__typeof__(_val)));   \
-		if (!_entry) {                               \
-			perror("Failed to allocate memory"); \
-			exit(EXIT_FAILURE);                  \
-		}                                            \
+		die_if_null(_entry);                         \
 		*_entry = (_val);                            \
 	} while (0)
 

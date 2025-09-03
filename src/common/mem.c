@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-static void
+void
 die_if_null(void *ptr)
 {
 	if (!ptr) {

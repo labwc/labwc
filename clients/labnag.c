@@ -1398,7 +1398,7 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 	};
 
 	const char *usage =
-		"Usage: nag [options...]\n"
+		"Usage: labnag [options...]\n"
 		"\n"
 		"  -B, --button <text> [<action>]  Create a button with text\n"
 		"  -Z, --button-dismiss <text> [<action>]\n"

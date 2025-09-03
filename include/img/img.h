@@ -4,7 +4,6 @@
 
 #include <cairo.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <wayland-util.h>
 
 enum lab_img_type {

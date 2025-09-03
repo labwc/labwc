@@ -16,6 +16,7 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "action.h"
+#include "common/buf.h"
 #include "common/dir.h"
 #include "common/list.h"
 #include "common/macros.h"

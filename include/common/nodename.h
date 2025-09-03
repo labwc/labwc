@@ -4,7 +4,6 @@
 
 #include <libxml/parser.h>
 #include <libxml/tree.h>
-#include <stdio.h>
 
 /**
  * nodename - give xml node an ascii name

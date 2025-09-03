@@ -7,12 +7,10 @@
 #include <string.h>
 #include <strings.h>
 #include <wlr/util/log.h>
-#include "common/macros.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "img/img.h"
-
 #include "labwc.h"
 
 static const char *debug_libsfdo;

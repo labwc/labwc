@@ -16,17 +16,14 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <strings.h>
 #ifdef __FreeBSD__
 #include <sys/event.h> /* For signalfd() */
 #endif
 #include <sys/signalfd.h>
-#include <sys/stat.h>
 #include <sys/timerfd.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-#include <wayland-client.h>
 #include <wayland-cursor.h>
 #include <wlr/util/log.h>
 #include "action-prompt-codes.h"
@@ -61,8 +58,6 @@ struct conf {
 	ssize_t button_margin_right;
 	ssize_t button_padding;
 };
-
-struct nag;
 
 struct pointer {
 	struct wl_pointer *pointer;

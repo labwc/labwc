@@ -2,17 +2,13 @@
 #define _POSIX_C_SOURCE 200809L
 #include "config/rcxml.h"
 #include <assert.h>
-#include <fcntl.h>
 #include <glib.h>
 #include <libxml/parser.h>
-#include <libxml/tree.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <unistd.h>
-#include <wayland-server-core.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "action.h"

@@ -19,7 +19,6 @@
 #include <wlr/types/wlr_ext_image_copy_capture_v1.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_fractional_scale_v1.h>
-#include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_linux_drm_syncobj_v1.h>
 #include <wlr/types/wlr_output_power_management_v1.h>
@@ -45,7 +44,6 @@
 #include "xwayland-shell-v1-protocol.h"
 #endif
 
-#include "drm-lease-v1-protocol.h"
 #include "action.h"
 #include "common/macros.h"
 #include "config/rcxml.h"
@@ -59,7 +57,6 @@
 #include "magnifier.h"
 #include "menu/menu.h"
 #include "output.h"
-#include "output-state.h"
 #include "output-virtual.h"
 #include "regions.h"
 #include "resize-indicator.h"

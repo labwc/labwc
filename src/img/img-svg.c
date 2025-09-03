@@ -6,13 +6,10 @@
 #include "img/img-svg.h"
 #include <cairo.h>
 #include <librsvg/rsvg.h>
-#include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
 #include "common/string-helpers.h"
-#include "labwc.h"
 
 RsvgHandle *
 img_svg_load(const char *filename)

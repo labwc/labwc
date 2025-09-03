@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "resistance.h"
 #include <assert.h>
-#include <limits.h>
 #include "common/border.h"
-#include "common/macros.h"
 #include "config/rcxml.h"
 #include "edges.h"
 #include "labwc.h"

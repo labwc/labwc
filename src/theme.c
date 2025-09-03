@@ -7,7 +7,6 @@
 
 #define _POSIX_C_SOURCE 200809L
 #include "theme.h"
-#include "config.h"
 #include <assert.h>
 #include <cairo.h>
 #include <drm_fourcc.h>

@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <wlr/render/swapchain.h>
 #include <wlr/types/wlr_scene.h>
-#include <wlr/types/wlr_compositor.h>
 #include <wlr/render/allocator.h>
 #include "config/rcxml.h"
 #include "common/array.h"

@@ -2,7 +2,6 @@
 #include "common/parse-double.h"
 #include <locale.h>
 #include <stdlib.h>
-#include <string.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
 

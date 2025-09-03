@@ -2,7 +2,6 @@
 
 #include "img/img.h"
 #include <assert.h>
-#include <wlr/util/log.h>
 #include "buffer.h"
 #include "config.h"
 #include "common/box.h"

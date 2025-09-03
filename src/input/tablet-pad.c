@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "input/tablet-pad.h"
-#include <assert.h>
 #include <stdlib.h>
 #include <wlr/backend/libinput.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_tablet_pad.h>
-#include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/util/log.h>
 #include "common/macros.h"
 #include "common/mem.h"

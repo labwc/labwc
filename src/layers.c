@@ -10,9 +10,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <string.h>
 #include <strings.h>
-#include <wayland-server.h>
 #include <wlr/types/wlr_fractional_scale_v1.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>

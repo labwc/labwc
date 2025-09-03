@@ -7,7 +7,6 @@
 #include "output.h"
 #include "regions.h"
 #include "resize-indicator.h"
-#include "snap.h"
 #include "view.h"
 #include "window-rules.h"
 

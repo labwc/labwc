@@ -5,12 +5,8 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
-#include <wlr/util/region.h>
-#include <wlr/util/transform.h>
-#include "labwc.h"
 #include "magnifier.h"
 #include "output.h"
-#include "output-state.h"
 
 struct wlr_surface *
 lab_wlr_surface_from_node(struct wlr_scene_node *node)

@@ -1,24 +1,20 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
-#include <cairo.h>
-#include <wlr/util/log.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 #include "common/array.h"
 #include "common/buf.h"
 #include "common/font.h"
 #include "common/lab-scene-rect.h"
-#include "common/scene-helpers.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
-#include "node.h"
 #include "osd.h"
 #include "output.h"
 #include "scaled-buffer/scaled-font-buffer.h"
 #include "scaled-buffer/scaled-icon-buffer.h"
 #include "theme.h"
-#include "view.h"
-#include "window-rules.h"
 #include "workspaces.h"
 
 struct osd_classic_scene_item {

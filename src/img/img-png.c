@@ -4,12 +4,10 @@
  */
 #define _POSIX_C_SOURCE 200809L
 #include "img/img-png.h"
-#include <assert.h>
 #include <cairo.h>
 #include <png.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
 #include "common/string-helpers.h"

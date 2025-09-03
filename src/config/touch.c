@@ -3,7 +3,6 @@
 #include "config/touch.h"
 #include <strings.h>
 #include <wlr/util/log.h>
-#include "common/list.h"
 #include "config/rcxml.h"
 
 static struct touch_config_entry *

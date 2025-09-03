@@ -4,9 +4,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <wayland-server-core.h>
 #include <wlr/util/log.h>
-#include "buffer.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"
 #include "common/mem.h"

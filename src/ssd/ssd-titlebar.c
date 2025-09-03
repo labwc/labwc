@@ -6,11 +6,8 @@
 #include <wlr/render/pixman.h>
 #include "buffer.h"
 #include "common/mem.h"
-#include "common/scene-helpers.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
-#include "desktop-entry.h"
-#include "img/img.h"
 #include "labwc.h"
 #include "node.h"
 #include "scaled-buffer/scaled-font-buffer.h"

@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <wlr/util/log.h>
 #include "common/set.h"
 
 static struct lab_set pressed, bound, pressed_sent;

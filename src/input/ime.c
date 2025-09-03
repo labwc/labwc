@@ -11,7 +11,6 @@
 #include "labwc.h"
 #include "node.h"
 #include "output.h"
-#include "view.h"
 
 #define SAME_CLIENT(wlr_obj1, wlr_obj2) \
 	(wl_resource_get_client((wlr_obj1)->resource) \

@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <linux/input-event-codes.h>
 #include <strings.h>
-#include <unistd.h>
 #include <wlr/util/log.h>
 #include "common/list.h"
 #include "common/mem.h"

@@ -3,7 +3,6 @@
 #include "config/keybind.h"
 #include <assert.h>
 #include <glib.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <wlr/types/wlr_keyboard_group.h>

@@ -3,7 +3,7 @@
 #include "common/graphic-helpers.h"
 #include <cairo.h>
 #include <glib.h> /* g_ascii_strcasecmp */
-#include <wlr/types/wlr_scene.h>
+#include <wlr/util/box.h>
 #include "common/macros.h"
 #include "xcolor-table.h"
 

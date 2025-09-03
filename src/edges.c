@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <limits.h>
 #include <pixman.h>
-#include <wlr/util/edges.h>
 #include <wlr/util/box.h>
 #include "common/border.h"
 #include "common/box.h"

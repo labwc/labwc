@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
-#include <wlr/types/wlr_output.h>
 #include <wlr/util/log.h>
-#include "common/array.h"
 #include "common/mem.h"
 #include "common/list.h"
 #include "ext-workspace-v1-protocol.h"

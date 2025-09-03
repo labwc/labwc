@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "common/box.h"
-#include <assert.h>
 #include "common/macros.h"
 
 bool

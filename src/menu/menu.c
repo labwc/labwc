@@ -3,7 +3,6 @@
 #include "menu/menu.h"
 #include <assert.h>
 #include <libxml/parser.h>
-#include <libxml/tree.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +19,6 @@
 #include "common/lab-scene-rect.h"
 #include "common/list.h"
 #include "common/mem.h"
-#include "common/scene-helpers.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 #include "common/xml.h"

@@ -3,12 +3,8 @@
 #include "window-rules.h"
 #include <assert.h>
 #include <stdbool.h>
-#include <cairo.h>
-#include <glib.h>
 #include <strings.h>
-#include <wlr/util/log.h>
 #include "action.h"
-#include "common/match.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "view.h"

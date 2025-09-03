@@ -5,18 +5,14 @@
  * Copyright (C) 2016-2017 Drew DeVault
  */
 #define _POSIX_C_SOURCE 200809L
-#include <assert.h>
 #include <cairo.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <pango/pangocairo.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/mman.h>
 #include <time.h>
 #include <unistd.h>
-#include <wayland-client.h>
 #include "pool-buffer.h"
 
 static int anonymous_shm_open(void)

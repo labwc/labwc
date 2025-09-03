@@ -13,7 +13,6 @@
 #include "common/list.h"
 #include "common/match.h"
 #include "common/mem.h"
-#include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "foreign-toplevel/foreign.h"
 #include "input/keyboard.h"
@@ -33,7 +32,6 @@
 #include "window-rules.h"
 #include "wlr/util/log.h"
 #include "workspaces.h"
-#include "xwayland.h"
 
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>

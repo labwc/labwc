@@ -5,7 +5,6 @@
 #include <string.h>
 #include <wlr/util/log.h>
 #include "buffer.h"
-#include "common/macros.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
 #include "config.h"

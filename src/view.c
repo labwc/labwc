@@ -1302,14 +1302,6 @@ view_apply_maximized_geometry(struct view *view)
 	assert(output_is_usable(output));
 
 	struct wlr_box box = output_usable_area_in_layout_coords(output);
-	if (box.height == output->wlr_output->height
-			&& output->wlr_output->scale != 1) {
-		box.height /= output->wlr_output->scale;
-	}
-	if (box.width == output->wlr_output->width
-			&& output->wlr_output->scale != 1) {
-		box.width /= output->wlr_output->scale;
-	}
 
 	/*
 	 * If one axis (horizontal or vertical) is unmaximized, it

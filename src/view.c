@@ -2126,7 +2126,7 @@ view_placement_parse(const char *policy)
 
 void
 view_snap_to_edge(struct view *view, enum lab_edge edge,
-			bool across_outputs, bool store_natural_geometry)
+		bool across_outputs, bool combine, bool store_natural_geometry)
 {
 	assert(view);
 
@@ -2142,15 +2142,45 @@ view_snap_to_edge(struct view *view, enum lab_edge edge,
 
 	view_set_shade(view, false);
 
-	if (across_outputs && view->tiled == edge && view->maximized == VIEW_AXIS_NONE) {
-		/* We are already tiled for this edge; try to switch outputs */
-		output = output_get_adjacent(view->output, edge, /* wrap */ false);
-		if (!output) {
-			return;
-		}
+	if (lab_edge_is_cardinal(edge) && view->maximized == VIEW_AXIS_NONE) {
+		enum lab_edge invert_edge = lab_edge_invert(edge);
+		/* Represents axis of snapping direction */
+		enum lab_edge parallel_mask = edge | invert_edge;
+		/*
+		 * The vector view->tiled is split to components
+		 * parallel/orthogonal to snapping direction. For example,
+		 * view->tiled=TOP_LEFT is split to parallel_tiled=TOP and
+		 * orthogonal_tiled=LEFT when edge=TOP or edge=BOTTOM.
+		 */
+		enum lab_edge parallel_tiled = view->tiled & parallel_mask;
+		enum lab_edge orthogonal_tiled = view->tiled & ~parallel_mask;
 
-		/* When switching outputs, jump to the opposite edge */
-		edge = lab_edge_invert(edge);
+		if (across_outputs && view->tiled == edge) {
+			/*
+			 * E.g. when window is tiled to up and being snapped
+			 * to up again, move it to the output above and tile
+			 * it to down.
+			 */
+			output = output_get_adjacent(view->output, edge,
+				/* wrap */ false);
+			if (!output) {
+				return;
+			}
+			edge = invert_edge;
+		} else if (combine && parallel_tiled == invert_edge
+				&& orthogonal_tiled != LAB_EDGE_NONE) {
+			/*
+			 * E.g. when window is tiled to downleft/downright and
+			 * being snapped to up, tile it to left/right.
+			 */
+			edge = view->tiled & ~parallel_mask;
+		} else if (combine && parallel_tiled == LAB_EDGE_NONE) {
+			/*
+			 * E.g. when window is tiled to left/right and being
+			 * snapped to up, tile it to upleft/upright.
+			 */
+			edge = view->tiled | edge;
+		}
 	}
 
 	if (view->maximized != VIEW_AXIS_NONE) {

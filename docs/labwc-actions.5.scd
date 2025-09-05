@@ -92,11 +92,18 @@ Actions are used in menus and keyboard/mouse bindings.
 	Move window relative to its current position. Positive value of x moves
 	it right, negative left. Positive value of y moves it down, negative up.
 
-*<action name="ToggleSnapToEdge" direction="value" />*++
-*<action name="SnapToEdge" direction="value" />*
-	Resize window to fill half the output in the given direction. Supports
-	directions "left", "up", "right", "down", "up-left", "up-right", "down-left",
-	"down-right" and "center".
+*<action name="ToggleSnapToEdge" direction="value" combine="value" />*++
+*<action name="SnapToEdge" direction="value" combine="value" />*
+	Resize window to fill half or quarter the output in the given direction.
+
+	*direction* [up|down|left|right|up-left|up-right|down-left|down-right|center]
+		Direction in which to snap the window.
+
+	*combine* [yes|no]
+		Allows to snap a window to an output corner by combining two
+		directions. For example, snapping a window to *right* and then
+		to *up* places it in the *up-right* quarter of the output.
+		Default is no.
 
 	ToggleSnapToEdge additionally toggles the active window between
 	tiled to the given direction and its untiled position.

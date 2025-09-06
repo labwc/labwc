@@ -27,6 +27,7 @@
 #include "menu/menu.h"
 #include "output.h"
 #include "output-virtual.h"
+#include "permissions.h"
 #include "regions.h"
 #include "ssd.h"
 #include "theme.h"
@@ -302,6 +303,9 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		if (!strcmp(argument, "command") || !strcmp(argument, "execute")) {
 			action_arg_add_str(action, "command", content);
 			goto cleanup;
+		} else if (!strcmp(argument, "allow")) {
+			action->allowed_interfaces |= parse_privileged_interface(content);
+			goto cleanup;
 		}
 		break;
 	case ACTION_TYPE_MOVE_TO_EDGE:
@@ -570,6 +574,7 @@ action_create(const char *action_name)
 
 	struct action *action = znew(*action);
 	action->type = action_type;
+	action->allowed_interfaces = 0;
 	wl_list_init(&action->args);
 	return action;
 }
@@ -1077,7 +1082,12 @@ run_action(struct view *view, struct action *action,
 		struct buf cmd = BUF_INIT;
 		buf_add(&cmd, action_get_str(action, "command", NULL));
 		buf_expand_tilde(&cmd);
-		spawn_async_no_shell(cmd.data);
+		int socket_fd = -1;
+		if (action->allowed_interfaces) {
+			socket_fd = permissions_context_create(
+				server.wl_display, action->allowed_interfaces);
+		}
+		spawn_async_no_shell(cmd.data, socket_fd);
 		buf_reset(&cmd);
 		break;
 	}

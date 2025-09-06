@@ -510,12 +510,12 @@ ssd_update_button_hover(struct wlr_scene_node *node,
 
 	/* Disable old hover */
 	if (hover_state->button) {
-		update_button_state(hover_state->button, LAB_BS_HOVERD, false);
+		update_button_state(hover_state->button, LAB_BS_HOVERED, false);
 		hover_state->view = NULL;
 		hover_state->button = NULL;
 	}
 	if (button) {
-		update_button_state(button, LAB_BS_HOVERD, true);
+		update_button_state(button, LAB_BS_HOVERED, true);
 		hover_state->view = button->base.view;
 		hover_state->button = button;
 	}

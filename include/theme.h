@@ -41,11 +41,11 @@ struct theme_snapping_overlay {
 enum lab_button_state {
 	LAB_BS_DEFAULT = 0,
 
-	LAB_BS_HOVERD = 1 << 0,
+	LAB_BS_HOVERED = 1 << 0,
 	LAB_BS_TOGGLED = 1 << 1,
 	LAB_BS_ROUNDED = 1 << 2,
 
-	LAB_BS_ALL = LAB_BS_HOVERD | LAB_BS_TOGGLED | LAB_BS_ROUNDED,
+	LAB_BS_ALL = LAB_BS_HOVERED | LAB_BS_TOGGLED | LAB_BS_ROUNDED,
 };
 
 struct theme_background {
@@ -104,7 +104,7 @@ struct theme {
 		 * The texture of a window buttons for each hover/toggled/rounded
 		 * state. This can be accessed like:
 		 *
-		 * buttons[LAB_SSD_BUTTON_ICONIFY][LAB_BS_HOVERD | LAB_BS_TOGGLED]
+		 * buttons[LAB_SSD_BUTTON_ICONIFY][LAB_BS_HOVERED | LAB_BS_TOGGLED]
 		 *
 		 * Elements in buttons[0] are all NULL since LAB_SSD_BUTTON_FIRST is 1.
 		 */

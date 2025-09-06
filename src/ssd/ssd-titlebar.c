@@ -33,7 +33,7 @@ ssd_titlebar_create(struct ssd *ssd)
 	int corner_width = ssd_get_corner_width();
 
 	ssd->titlebar.tree = wlr_scene_tree_create(ssd->tree);
-	attach_ssd_part(LAB_SSD_PART_TITLEBAR, view, &ssd->tree->node);
+	attach_ssd_part(LAB_SSD_PART_TITLEBAR, view, &ssd->titlebar.tree->node);
 
 	enum ssd_active_state active;
 	FOR_EACH_ACTIVE_STATE(active) {

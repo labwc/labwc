@@ -187,6 +187,8 @@ struct rcxml {
 
 	struct wl_list window_rules; /* struct window_rule.link */
 
+	struct wl_list autostart; /* struct action.link */
+
 	/* Menu */
 	unsigned int menu_ignore_button_release_period;
 	bool menu_show_icons;

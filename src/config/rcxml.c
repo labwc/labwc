@@ -1042,6 +1042,8 @@ entry(xmlNode *node, char *nodename, char *content)
 	/* handle nested nodes */
 	if (!strcasecmp(nodename, "margin")) {
 		fill_usable_area_override(node);
+	} else if (!strcasecmp(nodename, "autostart")) {
+		append_parsed_actions(node, &rc.autostart);
 	} else if (!strcasecmp(nodename, "keybind.keyboard")) {
 		fill_keybind(node);
 	} else if (!strcasecmp(nodename, "context.mouse")) {
@@ -1358,6 +1360,7 @@ rcxml_init(void)
 
 	if (!has_run) {
 		wl_list_init(&rc.usable_area_overrides);
+		wl_list_init(&rc.autostart);
 		wl_list_init(&rc.keybinds);
 		wl_list_init(&rc.mousebinds);
 		wl_list_init(&rc.libinput_categories);

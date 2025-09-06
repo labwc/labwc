@@ -44,6 +44,7 @@
 struct parser_state {
 	bool in_regions;
 	bool in_usable_area_override;
+	bool in_autostart;
 	bool in_keybind;
 	bool in_mousebind;
 	bool in_touch;
@@ -60,6 +61,7 @@ struct parser_state {
 	struct touch_config_entry *current_touch;
 	struct libinput_category *current_libinput_category;
 	const char *current_mouse_context;
+	struct action *current_autostart_action;
 	struct action *current_keybind_action;
 	struct action *current_mousebind_action;
 	struct region *current_region;
@@ -224,6 +226,33 @@ fill_title_layout(char *content)
 	rc.title_layout_loaded = true;
 err:
 	g_strfreev(parts);
+}
+
+static void
+fill_autostart(char *nodename, char *content, struct parser_state *state)
+{
+	if (!strcmp(nodename, "autostart")) {
+		return;
+	}
+
+	string_truncate_at_pattern(nodename, ".autostart");
+
+	if (!strcasecmp(nodename, "action")) {
+		return;
+	}
+
+	if (!strcmp(nodename, "name.action")) {
+		wlr_log(WLR_INFO, "create autostart");
+		state->current_autostart_action = action_create(content);
+		if (state->current_autostart_action) {
+			wl_list_append(&rc.autostart, &state->current_autostart_action->link);
+		}
+	} else if (!state->current_autostart_action) {
+		wlr_log(WLR_ERROR, "expect <action name=\"\"> element first. "
+			"nodename: '%s' content: '%s'", nodename, content);
+	} else {
+		action_arg_from_xml_node(state->current_autostart_action, nodename, content);
+	}
 }
 
 static void
@@ -954,6 +983,9 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 	if (state->in_usable_area_override) {
 		fill_usable_area_override(nodename, content, state);
 	}
+	if (state->in_autostart) {
+		fill_autostart(nodename, content, state);
+	}
 	if (state->in_keybind) {
 		if (state->in_action_query) {
 			fill_action_query(nodename, content,
@@ -1340,6 +1372,12 @@ xml_tree_walk(xmlNode *node, struct parser_state *state)
 			state->in_libinput_category = false;
 			continue;
 		}
+		if (!strcasecmp((char *)n->name, "autostart")) {
+			state->in_autostart = true;
+			traverse(n, state);
+			state->in_autostart = false;
+			continue;
+		}
 		if (!strcasecmp((char *)n->name, "regions")) {
 			state->in_regions = true;
 			traverse(n, state);
@@ -1419,6 +1457,7 @@ rcxml_init(void)
 		wl_list_init(&rc.title_buttons_left);
 		wl_list_init(&rc.title_buttons_right);
 		wl_list_init(&rc.usable_area_overrides);
+		wl_list_init(&rc.autostart);
 		wl_list_init(&rc.keybinds);
 		wl_list_init(&rc.mousebinds);
 		wl_list_init(&rc.libinput_categories);

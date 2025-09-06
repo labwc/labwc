@@ -232,12 +232,12 @@ update_activation_env(struct server *server, bool initialize)
 	char *cmd =
 		strdup_printf("dbus-update-activation-environment %s",
 			initialize ? env_keys : env_unset_keys);
-	spawn_async_no_shell(cmd);
+	spawn_async_no_shell(cmd, -1);
 	free(cmd);
 
 	cmd = strdup_printf("systemctl --user %s %s",
 		initialize ? "import-environment" : "unset-environment", env_keys);
-	spawn_async_no_shell(cmd);
+	spawn_async_no_shell(cmd, -1);
 	free(cmd);
 
 	free(env_keys);
@@ -303,7 +303,7 @@ session_run_script(const char *script)
 		}
 		wlr_log(WLR_INFO, "run session script %s", path->string);
 		char *cmd = strdup_printf("sh %s", path->string);
-		spawn_async_no_shell(cmd);
+		spawn_async_no_shell(cmd, -1);
 		free(cmd);
 
 		if (!should_merge_config) {

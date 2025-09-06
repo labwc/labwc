@@ -217,9 +217,9 @@ load_button(struct theme *theme, struct button *b, int active)
 	 * If hover-icons do not exist, add fallbacks by copying the non-hover
 	 * variant and then adding an overlay.
 	 */
-	if (!*img && (b->state_set & LAB_BS_HOVERD)) {
+	if (!*img && (b->state_set & LAB_BS_HOVERED)) {
 		struct lab_img *non_hover_img =
-			button_imgs[b->type][b->state_set & ~LAB_BS_HOVERD];
+			button_imgs[b->type][b->state_set & ~LAB_BS_HOVERED];
 		*img = lab_img_copy(non_hover_img);
 		lab_img_add_modifier(*img,
 			draw_hover_overlay_on_button);
@@ -335,50 +335,50 @@ load_buttons(struct theme *theme)
 	}, {
 		.name = "menu_hover",
 		.type = LAB_SSD_BUTTON_WINDOW_MENU,
-		.state_set = LAB_BS_HOVERD,
+		.state_set = LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "iconify_hover",
 		.type = LAB_SSD_BUTTON_ICONIFY,
-		.state_set = LAB_BS_HOVERD,
+		.state_set = LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "max_hover",
 		.type = LAB_SSD_BUTTON_MAXIMIZE,
-		.state_set = LAB_BS_HOVERD,
+		.state_set = LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "max_toggled_hover",
 		.alt_name = "max_hover_toggled",
 		.type = LAB_SSD_BUTTON_MAXIMIZE,
-		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERD,
+		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "shade_hover",
 		.type = LAB_SSD_BUTTON_SHADE,
-		.state_set = LAB_BS_HOVERD,
+		.state_set = LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "shade_toggled_hover",
 		.alt_name = "shade_hover_toggled",
 		.type = LAB_SSD_BUTTON_SHADE,
-		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERD,
+		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "desk_hover",
 		/* no fallback (non-hover variant is used instead) */
 		.type = LAB_SSD_BUTTON_OMNIPRESENT,
-		.state_set = LAB_BS_HOVERD,
+		.state_set = LAB_BS_HOVERED,
 	}, {
 		.name = "desk_toggled_hover",
 		.alt_name = "desk_hover_toggled",
 		.type = LAB_SSD_BUTTON_OMNIPRESENT,
-		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERD,
+		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
 		.name = "close_hover",
 		.type = LAB_SSD_BUTTON_CLOSE,
-		.state_set = LAB_BS_HOVERD,
+		.state_set = LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, };
 

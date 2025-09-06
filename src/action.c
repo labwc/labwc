@@ -19,6 +19,7 @@
 #include "menu/menu.h"
 #include "osd.h"
 #include "output-virtual.h"
+#include "permissions.h"
 #include "regions.h"
 #include "ssd.h"
 #include "view.h"
@@ -319,6 +320,9 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		if (!strcmp(argument, "command") || !strcmp(argument, "execute")) {
 			action_arg_add_str(action, "command", content);
 			goto cleanup;
+		} else if (!strcmp(argument, "permissions")) {
+			action->permissions |= permissions_from_interface_name(content);
+			goto cleanup;
 		}
 		break;
 	case ACTION_TYPE_MOVE_TO_EDGE:
@@ -519,6 +523,7 @@ action_create(const char *action_name)
 
 	struct action *action = znew(*action);
 	action->type = action_type;
+	action->permissions = 0;
 	wl_list_init(&action->args);
 	return action;
 }
@@ -912,7 +917,8 @@ actions_run(struct view *activator, struct server *server,
 				struct buf cmd = BUF_INIT;
 				buf_add(&cmd, action_get_str(action, "command", NULL));
 				buf_expand_tilde(&cmd);
-				spawn_async_no_shell(cmd.data);
+				int socket_fd = permissions_context_create(server->wl_display, action->permissions);
+				spawn_async_no_shell(cmd.data, socket_fd);
 				buf_reset(&cmd);
 			}
 			break;

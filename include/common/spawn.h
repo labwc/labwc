@@ -21,7 +21,7 @@ pid_t spawn_primary_client(const char *command);
  * spawn_async_no_shell - execute asynchronously
  * @command: command to be executed
  */
-void spawn_async_no_shell(char const *command);
+void spawn_async_no_shell(char const *command, int socket_fd);
 
 /**
  * spawn_piped - execute asynchronously

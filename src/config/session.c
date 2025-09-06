@@ -11,6 +11,7 @@
 #include <wlr/backend/drm.h>
 #include <wlr/backend/multi.h>
 #include <wlr/util/log.h>
+#include "action.h"
 #include "common/buf.h"
 #include "common/dir.h"
 #include "common/file-helpers.h"
@@ -286,6 +287,13 @@ session_environment_init(void)
 	paths_destroy(&paths);
 }
 
+static void
+session_run_rc_autostart(struct server *server)
+{
+	wlr_log(WLR_INFO, "run autostart actions");
+	actions_run(NULL, server, &rc.autostart, NULL);
+}
+
 void
 session_run_script(const char *script)
 {
@@ -318,6 +326,7 @@ session_autostart_init(struct server *server)
 {
 	/* Update dbus and systemd user environment, each may fail gracefully */
 	update_activation_env(server, /* initialize */ true);
+	session_run_rc_autostart(server);
 	session_run_script("autostart");
 }
 

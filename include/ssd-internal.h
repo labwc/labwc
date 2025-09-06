@@ -13,21 +13,22 @@ struct ssd_state_title_width {
 };
 
 /*
- * The scene-graph of SSD looks like below. The parentheses indicate the type of
- * ssd_part attached to the node.
+ * The scene-graph of SSD looks like below. The parentheses indicate the
+ * type of each node (enum lab_node_type, stored in the node_descriptor
+ * attached to the wlr_scene_node).
  *
- * ssd->tree (LAB_SSD_NONE)
- * +--titlebar (LAB_SSD_PART_TITLEBAR)
+ * ssd->tree (LAB_NODE_NONE)
+ * +--titlebar (LAB_NODE_TITLEBAR)
  * |  +--inactive
  * |  |  +--background bar
  * |  |  +--left corner
  * |  |  +--right corner
- * |  |  +--title (LAB_SSD_PART_TITLE)
- * |  |  +--iconify button (LAB_SSD_BUTTON_ICONIFY)
+ * |  |  +--title (LAB_NODE_TITLE)
+ * |  |  +--iconify button (LAB_NODE_BUTTON_ICONIFY)
  * |  |  |  +--normal close icon image
  * |  |  |  +--hovered close icon image
  * |  |  |  +--...
- * |  |  +--window icon (LAB_SSD_BUTTON_WINDOW_ICON)
+ * |  |  +--window icon (LAB_NODE_BUTTON_WINDOW_ICON)
  * |  |  |  +--window icon image
  * |  |  +--...
  * |  +--active
@@ -103,9 +104,8 @@ struct ssd {
 			struct wlr_scene_buffer *corner_right;
 			struct wlr_scene_buffer *bar;
 			struct scaled_font_buffer *title;
-			/* List of ssd_parts that represent buttons */
-			struct wl_list buttons_left;
-			struct wl_list buttons_right;
+			struct wl_list buttons_left; /* ssd_button.link */
+			struct wl_list buttons_right; /* ssd_button.link */
 		} subtrees[2]; /* indexed by enum ssd_active_state */
 	} titlebar;
 
@@ -149,9 +149,8 @@ struct ssd_button {
 	 * img_buffers[state_set] is displayed. Some of these can be NULL
 	 * (e.g. img_buffers[LAB_BS_ROUNDED] is set only for corner buttons).
 	 *
-	 * When the type of ssd_part pointing to ssd_button is
-	 * LAB_SSD_BUTTON_WINDOW_ICON, these are all NULL and window_icon is
-	 * used instead.
+	 * When the button type is LAB_NODE_BUTTON_WINDOW_ICON,
+	 * these are all NULL and window_icon is used instead.
 	 */
 	struct scaled_img_buffer *img_buffers[LAB_BS_ALL + 1];
 

@@ -41,25 +41,25 @@ struct cursor_context {
  *
  * Behavior if node points to a surface:
  *  - If surface is a layer-surface, type will be
- *    set to LAB_SSD_LAYER_SURFACE and view will be NULL.
+ *    set to LAB_NODE_LAYER_SURFACE and view will be NULL.
  *
  *  - If surface is a 'lost' unmanaged xsurface (one
  *    with a never-mapped parent view), type will
- *    be set to LAB_SSD_UNMANAGED and view will be NULL.
+ *    be set to LAB_NODE_UNMANAGED and view will be NULL.
  *
  *    'Lost' unmanaged xsurfaces are usually caused by
  *    X11 applications opening popups without setting
  *    the main window as parent. Example: VLC submenus.
  *
  *  - Any other surface will cause type to be set to
- *    LAB_SSD_CLIENT and return the attached view.
+ *    LAB_NODE_CLIENT and return the attached view.
  *
  * Behavior if node points to internal elements:
  *  - type will be set to the appropriate enum value
  *    and view will be NULL if the node is not part of the SSD.
  *
  * If no node is found for the given layout coordinates,
- * type will be set to LAB_SSD_ROOT and view will be NULL.
+ * type will be set to LAB_NODE_ROOT and view will be NULL.
  *
  */
 struct cursor_context get_cursor_context(struct server *server);

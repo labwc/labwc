@@ -104,9 +104,9 @@ struct theme {
 		 * The texture of a window buttons for each hover/toggled/rounded
 		 * state. This can be accessed like:
 		 *
-		 * buttons[LAB_SSD_BUTTON_ICONIFY][LAB_BS_HOVERED | LAB_BS_TOGGLED]
+		 * buttons[LAB_NODE_BUTTON_ICONIFY][LAB_BS_HOVERED | LAB_BS_TOGGLED]
 		 *
-		 * Elements in buttons[0] are all NULL since LAB_SSD_BUTTON_FIRST is 1.
+		 * Elements in buttons[0] are all NULL since LAB_NODE_BUTTON_FIRST is 1.
 		 */
 		struct lab_img *button_imgs
 			[LAB_NODE_BUTTON_LAST + 1][LAB_BS_ALL + 1];

@@ -66,6 +66,7 @@
 #include "menu/menu.h"
 #include "output.h"
 #include "output-virtual.h"
+#include "permissions.h"
 #include "regions.h"
 #include "resize-indicator.h"
 #include "scaled-buffer/scaled-buffer.h"
@@ -294,8 +295,7 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 	}
 #endif
 
-	uint32_t iface_id = parse_privileged_interface(iface->name);
-	if (iface_id && !(iface_id & rc.allowed_interfaces)) {
+	if (!permissions_check(client, iface)) {
 		return false;
 	}
 
@@ -318,7 +318,7 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 		 *       This ensures that our lists are in sync with what
 		 *       protocols labwc supports.
 		 */
-		if (!allow && !iface_id) {
+		if (!allow && !parse_privileged_interface(iface->name)) {
 			wlr_log(WLR_ERROR, "Blocking unknown protocol %s", iface->name);
 		} else if (!allow) {
 			wlr_log(WLR_DEBUG, "Blocking %s for security context %s->%s->%s",

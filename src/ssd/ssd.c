@@ -146,8 +146,14 @@ ssd_create(struct view *view, bool active)
 
 	ssd->view = view;
 	ssd->tree = wlr_scene_tree_create(view->scene_tree);
+
+	/*
+	 * Attach node_descriptor to the root node so that get_cursor_context()
+	 * detect cursor hovering on borders and extents.
+	 */
 	node_descriptor_create(&ssd->tree->node,
-		LAB_NODE_NONE, view, /*data*/ NULL);
+		LAB_NODE_SSD_ROOT, view, /*data*/ NULL);
+
 	wlr_scene_node_lower_to_bottom(&ssd->tree->node);
 	ssd->titlebar.height = view->server->theme->titlebar_height;
 	ssd_shadow_create(ssd);

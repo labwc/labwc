@@ -59,6 +59,12 @@ enum lab_node_type {
 	LAB_NODE_LAYER_POPUP,
 	LAB_NODE_SESSION_LOCK_SURFACE,
 	LAB_NODE_IME_POPUP,
+
+	/*
+	 * translated to LAB_CORNER_* or LAB_BORDER* by
+	 * ssd_get_resizing_type()
+	 */
+	LAB_NODE_SSD_ROOT,
 };
 
 enum lab_node_type node_type_parse(const char *context);

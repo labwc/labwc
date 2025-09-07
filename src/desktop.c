@@ -331,31 +331,46 @@ get_cursor_context(struct server *server)
 				ret.node = node;
 				ret.type = LAB_NODE_MENUITEM;
 				return ret;
-			default:
-				/*
-				 * All other node descriptors (buttons, title,
-				 * etc.) should have an associated view.
-				 */
-				if (!desc->view) {
-					wlr_log(WLR_ERROR, "cursor not on any view "
-						"(node type %d)", desc->type);
-					return ret;
-				}
-
+			case LAB_NODE_BUTTON_FIRST...LAB_NODE_BUTTON_LAST:
+			case LAB_NODE_SSD_ROOT:
+			case LAB_NODE_TITLE:
+			case LAB_NODE_TITLEBAR:
 				ret.node = node;
 				ret.view = desc->view;
+				/*
+				 * A node_descriptor attached to a ssd part
+				 * must have an associated view.
+				 */
+				assert(ret.view);
 
-				/* Detect mouse contexts like Top, Left and TRCorner */
+				/*
+				 * When cursor is on the ssd border or extents,
+				 * desc->type is usually LAB_NODE_SSD_ROOT.
+				 * But desc->type can also be LAB_NODE_TITLEBAR
+				 * when cursor is on the curved border at the
+				 * titlebar.
+				 *
+				 * ssd_get_resizing_type() overwrites both of
+				 * them with LAB_NODE_{BORDER,CORNER}_* node
+				 * types, which are mapped to mouse contexts
+				 * like Left and TLCorner.
+				 */
 				ret.type = ssd_get_resizing_type(ret.view->ssd, cursor);
 				if (ret.type == LAB_NODE_NONE) {
 					/*
-					 * Otherwise, detect mouse contexts like
-					 * Title, Titlebar and Iconify
+					 * If cursor is not on border/extents,
+					 * just use desc->type which should be
+					 * mapped to mouse contexts like Title,
+					 * Titlebar and Iconify.
 					 */
 					ret.type = desc->type;
 				}
 
 				return ret;
+			default:
+				/* Other node types are not attached a scene node */
+				wlr_log(WLR_ERROR, "unexpected node type: %d", desc->type);
+				break;
 			}
 		}
 

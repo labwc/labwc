@@ -2,6 +2,7 @@
 #include "node.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <wlr/types/wlr_scene.h>
 #include "common/mem.h"
 #include "ssd.h"
 

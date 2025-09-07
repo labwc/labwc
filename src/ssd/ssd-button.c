@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <assert.h>
+#include <wlr/types/wlr_scene.h>
 #include "config/rcxml.h"
 #include "common/list.h"
 #include "common/mem.h"

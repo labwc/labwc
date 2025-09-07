@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef LABWC_LAYERS_H
 #define LABWC_LAYERS_H
-#include <wayland-server.h>
-#include <wlr/types/wlr_layer_shell_v1.h>
+
+#include <wayland-server-core.h>
+#include <wlr/util/box.h>
 
 struct server;
 struct output;

@@ -7,6 +7,7 @@
  *	- keeping non-layer-shell xdg-popups outside the layers.c code
  */
 
+#include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include "common/macros.h"
 #include "common/mem.h"

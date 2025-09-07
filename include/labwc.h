@@ -2,6 +2,7 @@
 #ifndef LABWC_H
 #define LABWC_H
 #include "config.h"
+#include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "common/set.h"
 #include "input/cursor.h"

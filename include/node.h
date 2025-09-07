@@ -1,8 +1,11 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef LABWC_NODE_DESCRIPTOR_H
 #define LABWC_NODE_DESCRIPTOR_H
-#include <wlr/types/wlr_scene.h>
+
+#include <wayland-server-core.h>
 #include "common/node-type.h"
+
+struct wlr_scene_node;
 
 struct node_descriptor {
 	enum lab_node_type type;

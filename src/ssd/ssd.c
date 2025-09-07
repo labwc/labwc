@@ -9,6 +9,7 @@
 #include "ssd.h"
 #include <assert.h>
 #include <strings.h>
+#include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_scene.h>
 #include "common/mem.h"
 #include "config/rcxml.h"

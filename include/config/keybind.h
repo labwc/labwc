@@ -2,7 +2,8 @@
 #ifndef LABWC_KEYBIND_H
 #define LABWC_KEYBIND_H
 
-#include <wlr/types/wlr_keyboard.h>
+#include <stdbool.h>
+#include <wayland-util.h>
 #include <xkbcommon/xkbcommon.h>
 
 #define MAX_KEYSYMS 32

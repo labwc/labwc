@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <wlr/backend/headless.h>
 #include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_output_layout.h>
 #include "common/string-helpers.h"
 #include "labwc.h"
 #include "output.h"

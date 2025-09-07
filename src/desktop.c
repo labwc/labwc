@@ -303,13 +303,12 @@ get_cursor_context(struct server *server)
 			case LAB_NODE_VIEW:
 			case LAB_NODE_XDG_POPUP:
 				ret.view = desc->view;
-				if (ret.node->type == WLR_SCENE_NODE_BUFFER
-						&& lab_wlr_surface_from_node(ret.node)) {
+				ret.surface = lab_wlr_surface_from_node(ret.node);
+				if (ret.surface) {
 					ret.type = LAB_NODE_CLIENT;
-					ret.surface = lab_wlr_surface_from_node(ret.node);
 				} else {
-					/* should never be reached */
-					wlr_log(WLR_ERROR, "cursor not on client or ssd");
+					/* e.g. when cursor is on resize-indicator */
+					ret.type = LAB_NODE_NONE;
 				}
 				return ret;
 			case LAB_NODE_LAYER_SURFACE:

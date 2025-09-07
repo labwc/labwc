@@ -331,9 +331,6 @@ get_cursor_context(struct server *server)
 				ret.node = node;
 				ret.type = LAB_NODE_MENUITEM;
 				return ret;
-			case LAB_NODE_TREE:
-				/* Continue to parent node */
-				break;
 			default:
 				/*
 				 * All other node descriptors (buttons, title,

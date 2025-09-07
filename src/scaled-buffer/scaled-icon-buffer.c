@@ -349,12 +349,3 @@ scaled_icon_buffer_set_icon_name(struct scaled_icon_buffer *self,
 	xstrdup_replace(self->icon_name, icon_name);
 	scaled_buffer_request_update(self->scaled_buffer, self->width, self->height);
 }
-
-struct scaled_icon_buffer *
-scaled_icon_buffer_from_node(struct wlr_scene_node *node)
-{
-	struct scaled_buffer *scaled_buffer =
-		node_scaled_buffer_from_node(node);
-	assert(scaled_buffer->impl == &impl);
-	return scaled_buffer->data;
-}

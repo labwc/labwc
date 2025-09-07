@@ -64,7 +64,4 @@ struct scaled_img_buffer {
 struct scaled_img_buffer *scaled_img_buffer_create(struct wlr_scene_tree *parent,
 	struct lab_img *img, int width, int height);
 
-/* Obtain scaled_img_buffer from wlr_scene_node */
-struct scaled_img_buffer *scaled_img_buffer_from_node(struct wlr_scene_node *node);
-
 #endif /* LABWC_SCALED_IMG_BUFFER_H */

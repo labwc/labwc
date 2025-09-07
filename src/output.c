@@ -13,6 +13,7 @@
 #include <wlr/backend/drm.h>
 #include <wlr/backend/wayland.h>
 #include <wlr/types/wlr_cursor.h>
+#include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_management_v1.h>

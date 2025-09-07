@@ -130,12 +130,12 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 
 	/* background for selected item */
 	struct lab_scene_rect_options opts = {
+		.border_colors = (float *[1]) { switcher_theme->item_active_border_color },
+		.nr_borders = 1,
+		.border_width = switcher_theme->item_active_border_width,
+		.bg_color = switcher_theme->item_active_bg_color,
 		.width = switcher_theme->item_width,
 		.height = switcher_theme->item_height,
-		.bg_color = switcher_theme->item_active_bg_color,
-		.nr_borders = 1,
-		.border_colors = (float *[1]) { switcher_theme->item_active_border_color },
-		.border_width = switcher_theme->item_active_border_width,
 	};
 	item->active_bg = lab_scene_rect_create(item->tree, &opts);
 
@@ -241,12 +241,12 @@ osd_thumbnail_create(struct output *output, struct wl_array *views)
 
 	/* background */
 	struct lab_scene_rect_options bg_opts = {
-		.width = nr_cols * switcher_theme->item_width + 2 * padding,
-		.height = nr_rows * switcher_theme->item_height + 2 * padding,
-		.bg_color = theme->osd_bg_color,
+		.border_colors = (float *[1]) { theme->osd_border_color },
 		.nr_borders = 1,
 		.border_width = theme->osd_border_width,
-		.border_colors = (float *[1]) { theme->osd_border_color },
+		.bg_color = theme->osd_bg_color,
+		.width = nr_cols * switcher_theme->item_width + 2 * padding,
+		.height = nr_rows * switcher_theme->item_height + 2 * padding,
 	};
 	struct lab_scene_rect *bg =
 		lab_scene_rect_create(output->osd_scene.tree, &bg_opts);

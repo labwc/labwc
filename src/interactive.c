@@ -101,7 +101,7 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 
 		cursor_shape = LAB_CURSOR_GRAB;
 		break;
-	case LAB_INPUT_STATE_RESIZE:
+	case LAB_INPUT_STATE_RESIZE: {
 		if (view->shaded || view->fullscreen ||
 				view->maximized == VIEW_AXIS_BOTH) {
 			/*
@@ -133,6 +133,7 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 		view_set_untiled(view);
 		cursor_shape = cursor_get_from_edge(edges);
 		break;
+	}
 	default:
 		/* Should not be reached */
 		return;

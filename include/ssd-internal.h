@@ -17,7 +17,7 @@ struct ssd_state_title_width {
  * type of each node (enum lab_node_type, stored in the node_descriptor
  * attached to the wlr_scene_node).
  *
- * ssd->tree (LAB_NODE_NONE)
+ * ssd->tree (LAB_NODE_SSD_ROOT)
  * +--titlebar (LAB_NODE_TITLEBAR)
  * |  +--inactive
  * |  |  +--background bar

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
+#include <wlr/types/wlr_cursor.h>
 #include "config/rcxml.h"
 #include "edges.h"
 #include "input/keyboard.h"

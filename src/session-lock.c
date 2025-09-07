@@ -2,6 +2,9 @@
 #define _POSIX_C_SOURCE 200809L
 #include "session-lock.h"
 #include <assert.h>
+#include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_scene.h>
+#include <wlr/types/wlr_session_lock_v1.h>
 #include "common/mem.h"
 #include "labwc.h"
 #include "node.h"

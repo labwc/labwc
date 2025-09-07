@@ -6,6 +6,7 @@
 #include <wlr/backend/session.h>
 #include <wlr/interfaces/wlr_keyboard.h>
 #include <wlr/types/wlr_keyboard_group.h>
+#include <wlr/types/wlr_seat.h>
 #include "action.h"
 #include "common/macros.h"
 #include "config/keybind.h"

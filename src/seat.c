@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <strings.h>
 #include <wlr/backend/libinput.h>
+#include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
 #include <wlr/types/wlr_keyboard_group.h>

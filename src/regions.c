@@ -6,6 +6,7 @@
 #include <float.h>
 #include <math.h>
 #include <string.h>
+#include <wlr/types/wlr_cursor.h>
 #include <wlr/util/box.h>
 #include "common/list.h"
 #include "common/mem.h"

@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 #include "common/array.h"
 #include "common/lab-scene-rect.h"
 #include "common/scene-helpers.h"

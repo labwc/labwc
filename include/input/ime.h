@@ -3,10 +3,10 @@
 #ifndef LABWC_IME_H
 #define LABWC_IME_H
 
-#include <wlr/types/wlr_text_input_v3.h>
-#include <wlr/types/wlr_input_method_v2.h>
+#include <wayland-server-core.h>
 
 struct keyboard;
+struct wlr_keyboard_key_event;
 
 /*
  * The relay structure manages the relationship between text-inputs and

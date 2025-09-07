@@ -59,9 +59,6 @@ enum lab_node_type {
 	LAB_NODE_LAYER_POPUP,
 	LAB_NODE_SESSION_LOCK_SURFACE,
 	LAB_NODE_IME_POPUP,
-
-	/* never returned by get_cursor_context() */
-	LAB_NODE_TREE,
 };
 
 enum lab_node_type node_type_parse(const char *context);

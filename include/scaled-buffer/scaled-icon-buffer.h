@@ -48,7 +48,4 @@ void scaled_icon_buffer_set_view(struct scaled_icon_buffer *self,
 void scaled_icon_buffer_set_icon_name(struct scaled_icon_buffer *self,
 	const char *icon_name);
 
-/* Obtain scaled_icon_buffer from wlr_scene_node */
-struct scaled_icon_buffer *scaled_icon_buffer_from_node(struct wlr_scene_node *node);
-
 #endif /* LABWC_SCALED_ICON_BUFFER_H */

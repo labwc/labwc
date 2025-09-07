@@ -332,7 +332,6 @@ get_cursor_context(struct server *server)
 				ret.type = LAB_NODE_MENUITEM;
 				return ret;
 			case LAB_NODE_TREE:
-			case LAB_NODE_SCALED_BUFFER:
 				/* Continue to parent node */
 				break;
 			default:

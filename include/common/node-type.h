@@ -62,7 +62,6 @@ enum lab_node_type {
 
 	/* never returned by get_cursor_context() */
 	LAB_NODE_TREE,
-	LAB_NODE_SCALED_BUFFER,
 };
 
 enum lab_node_type node_type_parse(const char *context);

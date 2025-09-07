@@ -60,13 +60,6 @@ struct menuitem *node_menuitem_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 /**
- * node_scaled_buffer_from_node - return scaled_buffer from node
- * @wlr_scene_node: wlr_scene_node from which to return data
- */
-struct scaled_buffer *node_scaled_buffer_from_node(
-	struct wlr_scene_node *wlr_scene_node);
-
-/**
  * node_try_ssd_button_from_node - return ssd_button or NULL from node
  * @wlr_scene_node: wlr_scene_node from which to return data
  */

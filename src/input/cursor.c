@@ -19,7 +19,6 @@
 #include "action.h"
 #include "common/macros.h"
 #include "common/mem.h"
-#include "common/surface-helpers.h"
 #include "config/mousebind.h"
 #include "config/rcxml.h"
 #include "dnd.h"
@@ -1075,6 +1074,25 @@ process_press_mousebinding(struct server *server, struct cursor_context *ctx,
 	return consumed_by_frame_context;
 }
 
+static struct wlr_layer_surface_v1 *
+get_root_layer(struct wlr_surface *wlr_surface)
+{
+	assert(wlr_surface);
+	struct wlr_subsurface *subsurface =
+		wlr_subsurface_try_from_wlr_surface(wlr_surface);
+	if (subsurface) {
+		if (subsurface->parent) {
+			return get_root_layer(subsurface->parent);
+		} else {
+			/* never reached? */
+			wlr_log(WLR_ERROR, "subsurface without parent");
+			return NULL;
+		}
+	} else {
+		return wlr_layer_surface_v1_try_from_wlr_surface(wlr_surface);
+	}
+}
+
 static uint32_t press_msec;
 
 bool
@@ -1107,16 +1125,8 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 	 * the Focus action (used for normal views) does not work.
 	 */
 	if (ctx.type == LAB_NODE_LAYER_SURFACE) {
-		wlr_log(WLR_DEBUG, "press on layer-surface");
-		struct wlr_layer_surface_v1 *layer =
-			wlr_layer_surface_v1_try_from_wlr_surface(ctx.surface);
-		if (layer && layer->current.keyboard_interactive) {
-			layer_try_set_focus(seat, layer);
-		}
-	} else if (ctx.type == LAB_NODE_LAYER_SUBSURFACE) {
-		wlr_log(WLR_DEBUG, "press on layer-subsurface");
-		struct wlr_layer_surface_v1 *layer =
-			subsurface_parent_layer(ctx.surface);
+		wlr_log(WLR_DEBUG, "press on layer-(sub)surface");
+		struct wlr_layer_surface_v1 *layer = get_root_layer(ctx.surface);
 		if (layer && layer->current.keyboard_interactive) {
 			layer_try_set_focus(seat, layer);
 		}
@@ -1127,7 +1137,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 #endif
 	}
 
-	if (ctx.type != LAB_NODE_CLIENT && ctx.type != LAB_NODE_LAYER_SUBSURFACE
+	if (ctx.type != LAB_NODE_CLIENT && ctx.type != LAB_NODE_LAYER_SURFACE
 			&& wlr_seat_pointer_has_grab(seat->seat)) {
 		/*
 		 * If we have an active popup grab (an open popup) we want to

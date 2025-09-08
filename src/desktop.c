@@ -262,18 +262,18 @@ get_cursor_context(struct server *server)
 		dnd_icons_show(&server->seat, true);
 	}
 
-	ret.node = node;
 	if (!node) {
 		ret.type = LAB_NODE_ROOT;
 		return ret;
 	}
+	ret.node = node;
+	ret.surface = lab_wlr_surface_from_node(node);
 
 #if HAVE_XWAYLAND
+	/* TODO: attach LAB_NODE_UNMANAGED node-descriptor to unmanaged surfaces */
 	if (node->type == WLR_SCENE_NODE_BUFFER) {
-		struct wlr_surface *surface = lab_wlr_surface_from_node(node);
 		if (node->parent == server->unmanaged_tree) {
 			ret.type = LAB_NODE_UNMANAGED;
-			ret.surface = surface;
 			return ret;
 		}
 	}
@@ -285,7 +285,6 @@ get_cursor_context(struct server *server)
 			case LAB_NODE_VIEW:
 			case LAB_NODE_XDG_POPUP:
 				ret.view = desc->view;
-				ret.surface = lab_wlr_surface_from_node(ret.node);
 				if (ret.surface) {
 					ret.type = LAB_NODE_CLIENT;
 				} else {
@@ -295,13 +294,11 @@ get_cursor_context(struct server *server)
 				return ret;
 			case LAB_NODE_LAYER_SURFACE:
 				ret.type = LAB_NODE_LAYER_SURFACE;
-				ret.surface = lab_wlr_surface_from_node(ret.node);
 				return ret;
 			case LAB_NODE_LAYER_POPUP:
 			case LAB_NODE_SESSION_LOCK_SURFACE:
 			case LAB_NODE_IME_POPUP:
 				ret.type = LAB_NODE_CLIENT;
-				ret.surface = lab_wlr_surface_from_node(ret.node);
 				return ret;
 			case LAB_NODE_MENUITEM:
 				/* Always return the top scene node for menu items */
@@ -312,6 +309,7 @@ get_cursor_context(struct server *server)
 			case LAB_NODE_SSD_ROOT:
 			case LAB_NODE_TITLE:
 			case LAB_NODE_TITLEBAR:
+				/* Always return the top scene node for ssd parts */
 				ret.node = node;
 				ret.view = desc->view;
 				/*

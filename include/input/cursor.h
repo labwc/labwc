@@ -39,30 +39,20 @@ struct cursor_context {
 };
 
 /**
- * get_cursor_context - find view and scene_node at cursor
+ * get_cursor_context - find view, surface and scene_node at cursor
  *
- * Behavior if node points to a surface:
- *  - If surface is a layer-surface, type will be
- *    set to LAB_NODE_LAYER_SURFACE and view will be NULL.
+ * If the cursor is on a client-drawn surface:
+ * - ctx.{surface,node} points to the surface, which may be a subsurface.
+ * - ctx.view is set if the node is associated to a xdg/x11 window.
+ * - ctx.type is LAYER_SURFACE or UNMANAGED if the node is a layer-shell
+ *   surface or an X11 unmanaged surface. Otherwise, CLIENT is set.
  *
- *  - If surface is a 'lost' unmanaged xsurface (one
- *    with a never-mapped parent view), type will
- *    be set to LAB_NODE_UNMANAGED and view will be NULL.
+ * If the cursor is on a server-side component (SSD part and menu item):
+ * - ctx.node points to the root node of that component
+ * - ctx.view is set if the component is a SSD part
+ * - ctx.type specifies the component (e.g. MENU_ITEM, BORDER_TOP, BUTTON_ICONIFY)
  *
- *    'Lost' unmanaged xsurfaces are usually caused by
- *    X11 applications opening popups without setting
- *    the main window as parent. Example: VLC submenus.
- *
- *  - Any other surface will cause type to be set to
- *    LAB_NODE_CLIENT and return the attached view.
- *
- * Behavior if node points to internal elements:
- *  - type will be set to the appropriate enum value
- *    and view will be NULL if the node is not part of the SSD.
- *
- * If no node is found for the given layout coordinates,
- * type will be set to LAB_NODE_ROOT and view will be NULL.
- *
+ * If no node is found at cursor, ctx.type is set to ROOT.
  */
 struct cursor_context get_cursor_context(struct server *server);
 

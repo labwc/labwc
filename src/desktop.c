@@ -242,23 +242,6 @@ desktop_update_top_layer_visibility(struct server *server)
 	}
 }
 
-static struct wlr_surface *
-get_surface_from_layer_node(struct wlr_scene_node *node)
-{
-	assert(node->data);
-	struct node_descriptor *desc = (struct node_descriptor *)node->data;
-	if (desc->type == LAB_NODE_LAYER_SURFACE) {
-		struct lab_layer_surface *surface;
-		surface = node_layer_surface_from_node(node);
-		return surface->scene_layer_surface->layer_surface->surface;
-	} else if (desc->type == LAB_NODE_LAYER_POPUP) {
-		struct lab_layer_popup *popup;
-		popup = node_layer_popup_from_node(node);
-		return popup->wlr_popup->base->surface;
-	}
-	return NULL;
-}
-
 /* TODO: make this less big and scary */
 struct cursor_context
 get_cursor_context(struct server *server)
@@ -315,11 +298,7 @@ get_cursor_context(struct server *server)
 				ret.surface = lab_wlr_surface_from_node(ret.node);
 				return ret;
 			case LAB_NODE_LAYER_POPUP:
-				ret.node = node;
-				ret.type = LAB_NODE_CLIENT;
-				ret.surface = get_surface_from_layer_node(node);
-				return ret;
-			case LAB_NODE_SESSION_LOCK_SURFACE: /* fallthrough */
+			case LAB_NODE_SESSION_LOCK_SURFACE:
 			case LAB_NODE_IME_POPUP:
 				ret.type = LAB_NODE_CLIENT;
 				ret.surface = lab_wlr_surface_from_node(ret.node);

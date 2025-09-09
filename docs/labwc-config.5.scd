@@ -228,6 +228,23 @@ this is for compatibility with Openbox.
 	unless an external tool such as `wlr-randr` or `kanshi` is used to
 	manage outputs.
 
+	The reason for the existance of this option is that after losing signal
+	from the PC (e.g. by `wlopm -off`), some monitors do an input detection
+	that makes it appear (from the PC side) to disconnect and reconnect a
+	few seconds later, causing the monitor to turn back on again (as labwc
+	auto-enables newly connected outputs by default).
+
+	An example usage pattern to avoid the above behavior looks as follows:
+	- Set *<core><autoEnableOutputs>* to *no*
+	- Run kanshi (e.g. from autostart) and rely on it to enable new outputs
+	- Have swayidle kill and restart kanshi when entering powersave as
+	  follows:
+
+	```
+	swayidle -w timeout 600 \\
+	    'pkill kanshi ; wlopm --off \*' resume 'kanshi & wlopm --on \*'
+	```
+
 *<core><reuseOutputMode>* [yes|no]
 	Try to re-use the existing output mode (resolution / refresh rate).
 	This may prevent unnecessary screenblank delays when starting labwc

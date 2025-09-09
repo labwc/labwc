@@ -14,6 +14,9 @@
 
 #define BUTTON_MAP_MAX 16
 
+/* max of one button of each type (no repeats) */
+#define TITLE_BUTTONS_MAX ((LAB_NODE_BUTTON_LAST + 1) - LAB_NODE_BUTTON_FIRST)
+
 enum adaptive_sync_mode {
 	LAB_ADAPTIVE_SYNC_DISABLED,
 	LAB_ADAPTIVE_SYNC_ENABLED,
@@ -46,11 +49,6 @@ struct buf;
 struct button_map_entry {
 	uint32_t from;
 	uint32_t to;
-};
-
-struct title_button {
-	enum lab_node_type type;
-	struct wl_list link;
 };
 
 struct usable_area_override {
@@ -88,8 +86,12 @@ struct rcxml {
 	char *theme_name;
 	char *icon_theme_name;
 	char *fallback_app_icon_name;
-	struct wl_list title_buttons_left;
-	struct wl_list title_buttons_right;
+
+	enum lab_node_type title_buttons_left[TITLE_BUTTONS_MAX];
+	int nr_title_buttons_left;
+	enum lab_node_type title_buttons_right[TITLE_BUTTONS_MAX];
+	int nr_title_buttons_right;
+
 	int corner_radius;
 	bool show_title;
 	bool title_layout_loaded;

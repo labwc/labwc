@@ -231,25 +231,16 @@ load_button(struct theme *theme, struct button *b, int active)
 	struct lab_img **rounded_img =
 		&button_imgs[b->type][b->state_set | LAB_BS_ROUNDED];
 
-	struct title_button *leftmost_button;
-	wl_list_for_each(leftmost_button,
-			&rc.title_buttons_left, link) {
-		if (leftmost_button->type == b->type) {
-			*rounded_img = lab_img_copy(*img);
-			lab_img_add_modifier(*rounded_img,
-				round_left_corner_button);
-		}
-		break;
+	if (rc.nr_title_buttons_left > 0
+			&& b->type == rc.title_buttons_left[0]) {
+		*rounded_img = lab_img_copy(*img);
+		lab_img_add_modifier(*rounded_img, round_left_corner_button);
 	}
-	struct title_button *rightmost_button;
-	wl_list_for_each_reverse(rightmost_button,
-			&rc.title_buttons_right, link) {
-		if (rightmost_button->type == b->type) {
-			*rounded_img = lab_img_copy(*img);
-			lab_img_add_modifier(*rounded_img,
-				round_right_corner_button);
-		}
-		break;
+	if (rc.nr_title_buttons_right > 0
+			&& b->type == rc.title_buttons_right
+				[rc.nr_title_buttons_right - 1]) {
+		*rounded_img = lab_img_copy(*img);
+		lab_img_add_modifier(*rounded_img, round_right_corner_button);
 	}
 }
 

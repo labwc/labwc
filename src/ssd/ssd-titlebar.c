@@ -81,7 +81,6 @@ ssd_titlebar_create(struct ssd *ssd)
 			LAB_NODE_TITLE, view, /*data*/ NULL);
 
 		/* Buttons */
-		struct title_button *b;
 		int x = theme->window_titlebar_padding_width;
 
 		/* Center vertically within titlebar */
@@ -90,20 +89,22 @@ ssd_titlebar_create(struct ssd *ssd)
 		wl_list_init(&subtree->buttons_left);
 		wl_list_init(&subtree->buttons_right);
 
-		wl_list_for_each(b, &rc.title_buttons_left, link) {
+		for (int b = 0; b < rc.nr_title_buttons_left; b++) {
+			enum lab_node_type type = rc.title_buttons_left[b];
 			struct lab_img **imgs =
-				theme->window[active].button_imgs[b->type];
-			attach_ssd_button(&subtree->buttons_left, b->type, parent,
+				theme->window[active].button_imgs[type];
+			attach_ssd_button(&subtree->buttons_left, type, parent,
 				imgs, x, y, view);
 			x += theme->window_button_width + theme->window_button_spacing;
 		}
 
 		x = width - theme->window_titlebar_padding_width + theme->window_button_spacing;
-		wl_list_for_each_reverse(b, &rc.title_buttons_right, link) {
+		for (int b = rc.nr_title_buttons_right - 1; b >= 0; b--) {
 			x -= theme->window_button_width + theme->window_button_spacing;
+			enum lab_node_type type = rc.title_buttons_right[b];
 			struct lab_img **imgs =
-				theme->window[active].button_imgs[b->type];
-			attach_ssd_button(&subtree->buttons_right, b->type, parent,
+				theme->window[active].button_imgs[type];
+			attach_ssd_button(&subtree->buttons_right, type, parent,
 				imgs, x, y, view);
 		}
 	}
@@ -223,8 +224,8 @@ update_visible_buttons(struct ssd *ssd)
 	int width = MAX(view->current.width - 2 * theme->window_titlebar_padding_width, 0);
 	int button_width = theme->window_button_width;
 	int button_spacing = theme->window_button_spacing;
-	int button_count_left = wl_list_length(&rc.title_buttons_left);
-	int button_count_right = wl_list_length(&rc.title_buttons_right);
+	int button_count_left = rc.nr_title_buttons_left;
+	int button_count_right = rc.nr_title_buttons_right;
 
 	/* Make sure infinite loop never occurs */
 	assert(button_width > 0);

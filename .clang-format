@@ -12,14 +12,21 @@ UseTab: Always
 IndentWidth: 8
 ContinuationIndentWidth: 8
 AlignAfterOpenBracket: DontAlign
+AlignOperands: false
 AlwaysBreakAfterDefinitionReturnType: true
 BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Linux
 IndentCaseLabels: false
+PenaltyBreakOpenParenthesis: 100
+PenaltyReturnTypeOnItsOwnLine: 500
 SpaceBeforeParens: ControlStatementsExceptControlMacros
 ForEachMacros: ['for_each_view',
+                'for_each_view_reverse',
                 'wl_array_for_each',
                 'wl_list_for_each',
                 'wl_list_for_each_reverse',
                 'wl_list_for_each_reverse_safe',
                 'wl_list_for_each_safe']
+IncludeCategories:
+  - Regex: '<.*>'
+  - Regex: '.*'

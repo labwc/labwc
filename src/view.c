@@ -2536,6 +2536,8 @@ view_init(struct view *view)
 	wl_signal_init(&view->events.activated);
 	wl_signal_init(&view->events.set_icon);
 	wl_signal_init(&view->events.destroy);
+
+	view->capture.scene = wlr_scene_create();
 }
 
 void
@@ -2558,6 +2560,8 @@ view_destroy(struct view *view)
 	wl_list_remove(&view->request_fullscreen.link);
 	wl_list_remove(&view->set_title.link);
 	wl_list_remove(&view->destroy.link);
+
+	wlr_scene_node_destroy(&view->capture.scene->tree.node);
 
 	if (view->foreign_toplevel) {
 		foreign_toplevel_destroy(view->foreign_toplevel);

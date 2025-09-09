@@ -178,7 +178,7 @@ clear_title_layout(void)
 }
 
 static void
-fill_title_layout(char *content)
+fill_title_layout(const char *content)
 {
 	clear_title_layout();
 

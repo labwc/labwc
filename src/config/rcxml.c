@@ -116,7 +116,8 @@ parse_window_type(const char *type)
  * desk         D           All-desktops toggle (aka omnipresent)
  */
 static void
-fill_section(const char *content, struct wl_list *list, uint32_t *found_buttons)
+fill_section(const char *content, enum lab_node_type *buttons, int *count,
+		uint32_t *found_buttons /* bitmask */)
 {
 	gchar **identifiers = g_strsplit(content, ",", -1);
 	for (size_t i = 0; identifiers[i]; ++i) {
@@ -162,9 +163,8 @@ fill_section(const char *content, struct wl_list *list, uint32_t *found_buttons)
 
 		*found_buttons |= (1 << type);
 
-		struct title_button *item = znew(*item);
-		item->type = type;
-		wl_list_append(list, &item->link);
+		assert(*count < TITLE_BUTTONS_MAX);
+		buttons[(*count)++] = type;
 	}
 	g_strfreev(identifiers);
 }
@@ -172,15 +172,8 @@ fill_section(const char *content, struct wl_list *list, uint32_t *found_buttons)
 static void
 clear_title_layout(void)
 {
-	struct title_button *button, *button_tmp;
-	wl_list_for_each_safe(button, button_tmp, &rc.title_buttons_left, link) {
-		wl_list_remove(&button->link);
-		zfree(button);
-	}
-	wl_list_for_each_safe(button, button_tmp, &rc.title_buttons_right, link) {
-		wl_list_remove(&button->link);
-		zfree(button);
-	}
+	rc.nr_title_buttons_left = 0;
+	rc.nr_title_buttons_right = 0;
 	rc.title_layout_loaded = false;
 }
 
@@ -188,11 +181,6 @@ static void
 fill_title_layout(char *content)
 {
 	clear_title_layout();
-
-	struct wl_list *sections[] = {
-		&rc.title_buttons_left,
-		&rc.title_buttons_right,
-	};
 
 	gchar **parts = g_strsplit(content, ":", -1);
 
@@ -202,9 +190,10 @@ fill_title_layout(char *content)
 	}
 
 	uint32_t found_buttons = 0;
-	for (size_t i = 0; parts[i]; ++i) {
-		fill_section(parts[i], sections[i], &found_buttons);
-	}
+	fill_section(parts[0], rc.title_buttons_left,
+		&rc.nr_title_buttons_left, &found_buttons);
+	fill_section(parts[1], rc.title_buttons_right,
+		&rc.nr_title_buttons_right, &found_buttons);
 
 	rc.title_layout_loaded = true;
 err:
@@ -1362,8 +1351,6 @@ rcxml_init(void)
 	static bool has_run;
 
 	if (!has_run) {
-		wl_list_init(&rc.title_buttons_left);
-		wl_list_init(&rc.title_buttons_right);
 		wl_list_init(&rc.usable_area_overrides);
 		wl_list_init(&rc.keybinds);
 		wl_list_init(&rc.mousebinds);

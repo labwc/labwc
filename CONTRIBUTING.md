@@ -23,14 +23,14 @@
 
 # How to Contribute
 
-1. Report bugs as github issues. We use a template prompting you to provide
+1. Report bugs as GitHub issues. We use a template prompting you to provide
    some sensible information such as what happened, what you expected to happen
-   and steps to reproduce. If applicable try with default configuration.  If
-   you are able to, try to do some debugging (guidelines below).
+   and steps to reproduce. If applicable try with default configuration. If
+   you are able to, try debugging (guidelines below).
 
-2. Submit patches as github pull-requests. If you wish to introduces significant
+2. Submit patches as GitHub pull requests. If you wish to introduce significant
    changes or new features, consult the [scope document], discuss on IRC or via
-   a github issue first.
+   a GitHub issue first.
 
 # Debugging
 
@@ -251,14 +251,14 @@ We try to keep the use of GLib pretty minimal for the following reasons:
 - The use of GLib has been known to make AddressSanitiser diagnose false
   positives and negatives.
 - Log messages coming from GLib functions look inconsistent.
-- The use of GLib functions, naming-conventions and iterators in a code base
+- The use of GLib functions, naming-conventions and iterators in a codebase
   that is predominantly ANSI C creates a clash which makes readability and
   maintainability harder.
 - Mixing gmalloc()/malloc() and respective free()s can create problems with
   memory pools [^1]
 
-Having said that, with our use of cairo and pango we depend on glib-2.0 anyway
-so linking with it and making use of some of its helper functions comes for free
+Having said that, with our use of cairo and pango we depend on glib-2.0 anyway,
+so linking with it and making use of some of its helper functions comes for free,
 and can keep the code simpler.
 
 For example, if we were going to carry out extensive string manipulation,
@@ -291,7 +291,7 @@ match(const gchar *pattern, const gchar *string)
 
 ### The Use of GNU Extensions
 
-We avoid [GNU C extensions] because we want to fit into the eco-system
+We avoid [GNU C extensions] because we want to fit into the ecosystem
 (wayland and wlroots) we live in.
 
 We do use `__typeof__` which strictly speaking is a GNU C extension (`typeof`)
@@ -300,18 +300,18 @@ but through the use of `__` is supported by gcc and clang without defining
 in the [`wl_container_of()`] macro which is needed in `wl_list*` and it
 does provide pretty big benefits in terms of type safety.
 
-We compile with `-std=c11` because that's what 'wlroots' uses and we do not
+We compile with `-std=c11` because that's what 'wlroots' uses, and we do not
 want to increase the entry-level for OSs without good reason (and currently
 we can't think of one).
 
 ### Naming Conventions
 
-There are three types of coordinate systems: surface, output and layout - for
+There are three types of coordinate systems: surface, output, and layout — for
 which the variables (sx, sy), (ox, oy) and (lx, ly) are used respectively in
 line with wlroots.
 
 With the introduction of the scene-graph API, some wlroots functions also use
-node coordinates (nx, ny) but we prefer (sx, sy) where possible.
+node coordinates (nx, ny), but we prefer (sx, sy) where possible.
 
 We do not worry about namespace issues too much and we try to not make the code
 a pain to use just to uniquify names. If we were writing a library we would
@@ -361,11 +361,11 @@ In new files, please order `#include` lines as follows:
   compiles cleanly on its own, without implicit dependencies on other
   headers being included first.
 
-- Then list any "system" headers (those not part of labwc) in alphebetical
+- Then list any "system" headers (those not part of labwc) in alphabetical
   order, using angle brackets. This includes 3rd-party library headers
   such as `<cairo.h>`, as well as wlroots headers.
 
-- Then list any other labwc headers in alphetical order, using quotation
+- Then list any other labwc headers in alphabetical order, using quotation
   marks and relative to the `include/` folder. Subfolders below `include/`,
   such as `common/`, should be specified even when including one header
   from another in the same folder (for example, `#include "common/buf.h"`
@@ -388,11 +388,11 @@ This first line should:
 - In most cases be prefixed with "area: " where area refers to a filename
   or identifier for the general area of the code being modified.
 - Not capitalize the first word following the "area: " prefix, unless
-  it's a name, acronym or similar.
+  it's a name, acronym, or similar.
 - Skip the full stop
 
 And please wrap the commit message at max 74 characters, otherwise `git log`
-and similar look so weird. URLs and other references are exempt.
+and similar look very weird. URLs and other references are exempt.
 
 # Unit Tests
 
@@ -404,9 +404,9 @@ In the bigger scheme of validating that the compositor meets users' needs, unit
 tests do not contribute a great deal. However, they have a role to play in
 providing some verification that stand-alone functions behave as expected.
 
-On this project, writing unit-tests is not compulsory nor do we measure
+On this project, writing unit-tests is not compulsory, nor do we measure
 coverage. The inclusion of the t/ directory does not signify a move towards
-test-driven development. We intend to use unit tests sparingly and only when
+test-driven development. We intend to use unit tests sparingly, and only when
 devs find them useful.
 
 ## Usage
@@ -432,17 +432,17 @@ and use the web interface. Adding new languages should work, otherwise the
 administrators can be contacted. Suggestions for improving existing translations
 can be added without account.
 
-### Github Pull Request
+### GitHub Pull Request
 
 Translators can add their `MY_LOCALE.po` files to the `po` directory
-based on `po/labwc.pot` and issue a pull request. To do this they can
+based on `po/labwc.pot`, and issue a pull request. To do this they can
 generate their `MY_LOCALE.po` file in a few steps:
 
 1. Edit the `po/LINGUAS` file to add their locale code in English
    alphabetical order to the field of locale codes.
 2. Copy the `po/labwc.pot` to `po/MY_LOCALE.po`
 3. Edit the newly generated `MY_LOCALE.po` file with some of their
-contact and locale details in the header of the file then add the
+contact and locale details in the header of the file. Then, add the
 translation strings under each English string.
 
 [See this tutorial for further guidance](https://www.labri.fr/perso/fleury/posts/programming/a-quick-gettext-tutorial.html)
@@ -483,13 +483,13 @@ follow the steps to be taken:
 2. Update `NEWS.md` with the release details and run
    `git commit -m 'NEWS.md: update notes for X.Y.Z'`
    Note: If new dependencies are needed, make this clear.
-3. In `meson.build` update the version and (if required) the wlroots
+3. In `meson.build`, update the version, and (if required) the wlroots
    dependency version. Then run `git commit -m 'build: bump version to X.Y.Z'`
 4. Run `git tag -a X.Y.Z`. The first line of the commit message should be
    "labwc X.Y.Z" and the body should be the `NEWS.md` additions removing
    hash characters (#) from the headings as these will otherwise be
    ignored by git.
-5. On github, create a 'Release' as some distros use this as a trigger. Set it
+5. On GitHub, create a 'Release' as some distros use this as a trigger. Set it
    as 'latest release'.
 
 [scope document]: https://github.com/labwc/labwc-scope#readme
@@ -510,4 +510,3 @@ follow the steps to be taken:
       different memory pools (and new/delete call constructors and
       destructors)."
       See: https://docs.gtk.org/glib/memory.html
-

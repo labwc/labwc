@@ -6,7 +6,7 @@
 #include "common/list.h"
 #include "cosmic-workspace-unstable-v1-protocol.h"
 #include "protocols/cosmic-workspaces.h"
-#include "protocols/cosmic-workspaces-internal.h"
+#include "protocols/output-tracker.h"
 #include "protocols/transaction-addon.h"
 
 /*
@@ -49,12 +49,24 @@ enum workspace_state {
 	CW_WS_STATE_INVALID = 1 << 31,
 };
 
+enum pending_change {
+	/* group events */
+	CW_PENDING_WS_CREATE     = 1 << 0,
+
+	/* ws events*/
+	CW_PENDING_WS_ACTIVATE   = 1 << 1,
+	CW_PENDING_WS_DEACTIVATE = 1 << 2,
+	CW_PENDING_WS_REMOVE     = 1 << 3,
+};
+
 struct ws_create_workspace_event {
 	char *name;
 	struct {
 		struct wl_listener transaction_op_destroy;
 	} on;
 };
+
+static void cosmic_manager_schedule_done_event(struct lab_cosmic_workspace_manager *manager);
 
 static void
 add_caps(struct wl_array *caps_arr, uint32_t caps)
@@ -305,7 +317,7 @@ group_send_state(struct lab_cosmic_workspace_group *group, struct wl_resource *r
 	zcosmic_workspace_group_handle_v1_send_capabilities(
 		resource, &group->capabilities);
 
-	cosmic_group_output_send_initial_state(group, resource);
+	output_tracker_send_initial_state_to_resource(group, resource);
 }
 
 /* Manager itself */
@@ -461,8 +473,7 @@ manager_idle_send_done(void *data)
 	manager->idle_source = NULL;
 }
 
-/* Internal API */
-void
+static void
 cosmic_manager_schedule_done_event(struct lab_cosmic_workspace_manager *manager)
 {
 	if (manager->idle_source) {
@@ -474,6 +485,31 @@ cosmic_manager_schedule_done_event(struct lab_cosmic_workspace_manager *manager)
 	manager->idle_source = wl_event_loop_add_idle(
 		manager->event_loop, manager_idle_send_done, manager);
 }
+
+/* Output tracker */
+static void
+handle_output_tracker_send_done(void *object, struct wl_client *client)
+{
+	struct lab_cosmic_workspace_group *group = object;
+	if (!client) {
+		cosmic_manager_schedule_done_event(group->manager);
+		return;
+	}
+
+	struct wl_resource *manager_resource;
+	struct wl_list *manager_resources = &group->manager->resources;
+	wl_resource_for_each(manager_resource, manager_resources) {
+		if (wl_resource_get_client(manager_resource) == client) {
+			zcosmic_workspace_manager_v1_send_done(manager_resource);
+		}
+	}
+}
+
+static const struct output_tracker_impl output_tracker_impl = {
+	.send_output_enter = zcosmic_workspace_group_handle_v1_send_output_enter,
+	.send_output_leave = zcosmic_workspace_group_handle_v1_send_output_leave,
+	.send_done = handle_output_tracker_send_done,
+};
 
 /* Public API */
 struct lab_cosmic_workspace_manager *
@@ -536,12 +572,29 @@ lab_cosmic_workspace_group_create(struct lab_cosmic_workspace_manager *manager)
 }
 
 void
+lab_cosmic_workspace_group_output_enter(struct lab_cosmic_workspace_group *group,
+		struct wlr_output *wlr_output)
+{
+	output_tracker_enter(group, &group->resources, wlr_output, &output_tracker_impl);
+}
+
+void
+lab_cosmic_workspace_group_output_leave(struct lab_cosmic_workspace_group *group,
+		struct wlr_output *wlr_output)
+{
+	output_tracker_leave(group, wlr_output);
+}
+
+void
 lab_cosmic_workspace_group_destroy(struct lab_cosmic_workspace_group *group)
 {
 	if (!group) {
 		return;
 	}
 	wl_signal_emit_mutable(&group->events.destroy, NULL);
+
+	/* Ensure output leave events are sent and tracker resources are destroyed */
+	output_tracker_destroy(group);
 
 	struct lab_cosmic_workspace *ws, *ws_tmp;
 	wl_list_for_each_safe(ws, ws_tmp, &group->workspaces, link) {

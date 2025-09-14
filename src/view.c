@@ -2145,17 +2145,7 @@ view_snap_to_edge(struct view *view, enum lab_edge edge,
 	if (across_outputs && view->tiled == edge && view->maximized == VIEW_AXIS_NONE) {
 		/* We are already tiled for this edge; try to switch outputs */
 		output = output_get_adjacent(view->output, edge, /* wrap */ false);
-
 		if (!output) {
-			/*
-			 * No more output to move to
-			 *
-			 * We re-apply the tiled geometry without changing any
-			 * state because the window might have been moved away
-			 * (and thus got untiled) and then snapped back to the
-			 * original edge.
-			 */
-			view_apply_tiled_geometry(view);
 			return;
 		}
 

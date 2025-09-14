@@ -215,20 +215,25 @@ view_matches_query(struct view *view, struct view_query *query)
 
 	if (query->monitor) {
 		struct output *current = output_nearest_to_cursor(view->server);
-
-		if (!strcasecmp(query->monitor, "current") && current != view->output) {
-			return false;
-		}
-		if (!strcasecmp(query->monitor, "left") &&
-			output_get_adjacent(current, LAB_EDGE_LEFT, false) != view->output) {
-			return false;
-		}
-		if (!strcasecmp(query->monitor, "right") &&
-			output_get_adjacent(current, LAB_EDGE_RIGHT, false) != view->output) {
-			return false;
-		}
-		if (output_from_name(view->server, query->monitor) != view->output) {
-			return false;
+		if (!strcasecmp(query->monitor, "current")) {
+			if (current != view->output) {
+				return false;
+			}
+		} else if (!strcasecmp(query->monitor, "left")) {
+			if (output_get_adjacent(current, LAB_EDGE_LEFT, false)
+					!= view->output) {
+				return false;
+			}
+		} else if (!strcasecmp(query->monitor, "right")) {
+			if (output_get_adjacent(current, LAB_EDGE_RIGHT, false)
+					!= view->output) {
+				return false;
+			}
+		} else {
+			if (output_from_name(view->server, query->monitor)
+					!= view->output) {
+				return false;
+			}
 		}
 	}
 

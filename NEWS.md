@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2025-08-25 | [unreleased]  | 0.19.0          |               |
+| 2025-09-15 | [unreleased]  | 0.19.0          | 28686         |
 | 2025-08-02 | [0.9.1]       | 0.19.0          | 28605         |
 | 2025-07-11 | [0.9.0]       | 0.19.0          | 28586         |
 | 2025-05-02 | [0.8.4]       | 0.18.2          | 27679         |
@@ -110,6 +110,12 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 
 ### Added
 
+- Support `Border` context for mousebinds as an alias for `Top`...`BRCorner` to
+  make configuration easier. @tokyo4j [#3047]
+- Add window-switcher mode with thumbnails. This can be enabled with:
+  `<windowSwitcher style="thumbnail">`. @tokyo4j [#2981]
+- Add `toggle` option to `GoToDesktop` action. This has the effect of going back
+  to the last desktop if already on the target. @RainerKuemmerle [#3024]
 - Add `<core maximizedDecoration="titlebar|none"/>` to allow hiding titlebar
   when window is maximized. @CosmicFusion @tokyo4j [#3015]
 - Use client-send-to-menu as 'Workspace' submenu in built-in client-menu
@@ -141,6 +147,10 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 
 ### Fixed
 
+- Restore initially-maximized window position after unplug/plug @tokyo4j [#3042]
+- Fix large client-side icon not being loaded when the rendered icon size is
+  larger than icon sizes from the client. @tokyo4j [#3033]
+- Improve debug logging for configuring input devices @jlindgren90 [#3028]
 - Fix false positives when matching desktop entries @datMaffin [#3004]
 - Prevent accidental downcasting of scale in scaled-icon-buffer to avoid blurry
   icons on non-integer scales and a cairo assert when using a output scale < 1.
@@ -152,6 +162,16 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 
 ### Changed
 
+- `Focus` and `Raise` on window border press because it is probably what most
+  people expect and it makes the behavior consistent with that of Openbox.
+  @johanmalm [#3039] [#3049]
+- On interactive resize, only un-maximize the axis/axes that are being resized.
+  @jlindgren90 [#3043]
+- Change theme setting `osd.window-switcher.*` to
+  `osd.window-switcher.style-classic.*`. Backward compatibility is preserved.
+  @tokyo4j [#2981]
+- In client-list menu, add brackets around the titles of any minimised windows
+  @davidphilipbarr [#3002]
 - Respect client-initiated window resize of non-maximized axis, for example
   remember the width of vertically-maximized window resizing itself
   horizontally. @jlindgren90 [#3020]
@@ -2763,10 +2783,20 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2971]: https://github.com/labwc/labwc/pull/2971
 [#2972]: https://github.com/labwc/labwc/pull/2972
 [#2976]: https://github.com/labwc/labwc/pull/2976
+[#2981]: https://github.com/labwc/labwc/pull/2981
 [#2994]: https://github.com/labwc/labwc/pull/2994
 [#2995]: https://github.com/labwc/labwc/pull/2995
 [#2998]: https://github.com/labwc/labwc/pull/2998
+[#3002]: https://github.com/labwc/labwc/pull/3002
 [#3004]: https://github.com/labwc/labwc/pull/3004
 [#3011]: https://github.com/labwc/labwc/pull/3011
 [#3015]: https://github.com/labwc/labwc/pull/3015
 [#3020]: https://github.com/labwc/labwc/pull/3020
+[#3024]: https://github.com/labwc/labwc/pull/3024
+[#3028]: https://github.com/labwc/labwc/pull/3028
+[#3033]: https://github.com/labwc/labwc/pull/3033
+[#3039]: https://github.com/labwc/labwc/pull/3039
+[#3042]: https://github.com/labwc/labwc/pull/3042
+[#3043]: https://github.com/labwc/labwc/pull/3043
+[#3047]: https://github.com/labwc/labwc/pull/3047
+[#3049]: https://github.com/labwc/labwc/pull/3049

@@ -479,7 +479,7 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 			The "left" , "right", "left-occupied" and
 			"right-occupied" directions will not wrap.
 
-		*tiled* [up|right|down|left|top-left|top-right|down-left|down-right|center|any]
+		*tiled* [up|right|down|left|up-left|up-right|down-left|down-right|center|any]
 			Whether the client is tiled (snapped) along the the
 			indicated screen edge.
 

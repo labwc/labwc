@@ -727,7 +727,7 @@ extending outward from the snapped edge.
   W-Return - lab-sensible-terminal
   A-F4 - close window
   W-a - toggle maximize
-  W-<arrow> - resize window to fill half the output
+  W-<arrow> - resize window to fill half or quarter of the output
   A-Space - show window menu
 ```
 

@@ -249,7 +249,7 @@ Suggested apps to use with Labwc:
 - Screen shooter: [grim]
 - Screen recorder: [wf-recorder]
 - Background image: [swaybg]
-- Panel: [waybar], [yambar], [lavalauncher], [sfwbar], [xfce4-panel]
+- Panel: [waybar], [lavalauncher], [sfwbar], [xfce4-panel]
 - Launchers: [bemenu], [fuzzel], [wofi]
 - Output managers: [wlopm], [kanshi], [wlr-randr]
 - Screen locker: [swaylock]
@@ -292,7 +292,6 @@ The default window bar menu can be translated on the [weblate platform](https://
 [wf-recorder]: https://github.com/ammen99/wf-recorder
 [swaybg]: https://github.com/swaywm/swaybg
 [waybar]: https://github.com/Alexays/Waybar
-[yambar]: https://codeberg.org/dnkl/yambar
 [lavalauncher]: https://sr.ht/~leon_plickat/LavaLauncher
 [sfwbar]: https://github.com/LBCrion/sfwbar
 [xfce4-panel]: https://gitlab.xfce.org/xfce/xfce4-panel

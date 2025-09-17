@@ -271,16 +271,16 @@
       <action name="ToggleMaximize" />
     </keybind>
     <keybind key="W-Left">
-      <action name="SnapToEdge" direction="left" />
+      <action name="SnapToEdge" direction="left" combine="yes" />
     </keybind>
     <keybind key="W-Right">
-      <action name="SnapToEdge" direction="right" />
+      <action name="SnapToEdge" direction="right" combine="yes" />
     </keybind>
     <keybind key="W-Up">
-      <action name="SnapToEdge" direction="up" />
+      <action name="SnapToEdge" direction="up" combine="yes" />
     </keybind>
     <keybind key="W-Down">
-      <action name="SnapToEdge" direction="down" />
+      <action name="SnapToEdge" direction="down" combine="yes" />
     </keybind>
     <keybind key="A-Space">
       <action name="ShowMenu" menu="client-menu" atCursor="no" />

@@ -35,12 +35,20 @@ static struct key_combos {
 			.name = "direction",
 			.value = "left",
 		},
+		.attributes[1] = {
+			.name = "combine",
+			.value = "yes",
+		},
 	}, {
 		.binding = "W-Right",
 		.action = "SnapToEdge",
 		.attributes[0] = {
 			.name = "direction",
 			.value = "right",
+		},
+		.attributes[1] = {
+			.name = "combine",
+			.value = "yes",
 		},
 	}, {
 		.binding = "W-Up",
@@ -49,12 +57,20 @@ static struct key_combos {
 			.name = "direction",
 			.value = "up",
 		},
+		.attributes[1] = {
+			.name = "combine",
+			.value = "yes",
+		},
 	}, {
 		.binding = "W-Down",
 		.action = "SnapToEdge",
 		.attributes[0] = {
 			.name = "direction",
 			.value = "down",
+		},
+		.attributes[1] = {
+			.name = "combine",
+			.value = "yes",
 		},
 	}, {
 		.binding = "A-Space",

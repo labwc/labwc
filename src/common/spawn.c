@@ -24,7 +24,7 @@ reset_signals_and_limits(void)
 	signal(SIGPIPE, SIG_DFL);
 }
 
-static bool
+bool
 set_cloexec(int fd)
 {
 	int flags = fcntl(fd, F_GETFD);

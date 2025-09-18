@@ -5,6 +5,12 @@
 #include <sys/types.h>
 
 /**
+ * set_cloexec - set file descriptor to close on exit
+ * @fd: file descriptor
+ */
+bool set_cloexec(int fd);
+
+/**
  * spawn_primary_client - execute asynchronously
  * @command: command to be executed
  */

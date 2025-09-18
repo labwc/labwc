@@ -71,6 +71,7 @@ struct rcxml {
 	enum tearing_mode allow_tearing;
 	bool auto_enable_outputs;
 	bool reuse_output_mode;
+	uint32_t default_permissions;
 	enum view_placement_policy placement_policy;
 	bool xwayland_persistence;
 	int placement_cascade_offset_x;

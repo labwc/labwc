@@ -33,6 +33,7 @@
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "osd.h"
+#include "permissions.h"
 #include "regions.h"
 #include "view.h"
 #include "window-rules.h"
@@ -1084,6 +1085,8 @@ entry(xmlNode *node, char *nodename, char *content, struct parser_state *state)
 		set_bool(content, &rc.auto_enable_outputs);
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);
+	} else if (!strcmp(nodename, "permission.core")) {
+		rc.default_permissions |= permissions_from_interface_name(content);
 	} else if (!strcmp(nodename, "policy.placement")) {
 		enum view_placement_policy policy = view_placement_parse(content);
 		if (policy != LAB_PLACE_INVALID) {
@@ -1485,6 +1488,7 @@ rcxml_init(void)
 	rc.allow_tearing = false;
 	rc.auto_enable_outputs = true;
 	rc.reuse_output_mode = false;
+	rc.default_permissions = 0;
 
 #if LAB_WLR_VERSION_OLDER_THAN(0, 18, 2)
 	/*

@@ -31,6 +31,7 @@
 #include "config/touch.h"
 #include "labwc.h"
 #include "osd.h"
+#include "permissions.h"
 #include "regions.h"
 #include "ssd.h"
 #include "translate.h"
@@ -1095,6 +1096,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_bool(content, &rc.auto_enable_outputs);
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);
+	} else if (!strcasecmp(nodename, "permission.core")) {
+		rc.default_permissions |= permissions_from_interface_name(content);
 	} else if (!strcasecmp(nodename, "xwaylandPersistence.core")) {
 		set_bool(content, &rc.xwayland_persistence);
 	} else if (!strcasecmp(nodename, "primarySelection.core")) {
@@ -1390,6 +1393,7 @@ rcxml_init(void)
 	rc.allow_tearing = LAB_TEARING_DISABLED;
 	rc.auto_enable_outputs = true;
 	rc.reuse_output_mode = false;
+	rc.default_permissions = 0;
 	rc.xwayland_persistence = false;
 	rc.primary_selection = true;
 

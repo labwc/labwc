@@ -133,7 +133,7 @@ permissions_context_create(struct wl_display *display, uint32_t permissions)
 bool
 permissions_check(const struct wl_client *client, const struct wl_interface *iface)
 {
-	uint32_t permissions = permissions_get(client);
+	uint32_t permissions = permissions_get(client) | rc.default_permissions;
 	uint32_t required = permissions_from_interface_name(iface->name);
 	return (permissions & required) == required;
 }

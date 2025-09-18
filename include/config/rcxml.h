@@ -71,6 +71,7 @@ struct rcxml {
 	enum tearing_mode allow_tearing;
 	bool auto_enable_outputs;
 	bool reuse_output_mode;
+	uint32_t default_permissions;
 	bool xwayland_persistence;
 	bool primary_selection;
 	char *prompt_command;

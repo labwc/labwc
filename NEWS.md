@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2025-09-15 | [unreleased]  | 0.19.0          | 28686         |
+| 2025-10-10 | [0.9.2]       | 0.19.1          | 28818         |
 | 2025-08-02 | [0.9.1]       | 0.19.0          | 28605         |
 | 2025-07-11 | [0.9.0]       | 0.19.0          | 28586         |
 | 2025-05-02 | [0.8.4]       | 0.18.2          | 27679         |
@@ -39,6 +39,7 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.9.2]: NEWS.md#092---2025-10-10
 [0.9.1]: NEWS.md#091---2025-08-02
 [0.9.0]: NEWS.md#090---2025-07-11
 [0.8.4]: NEWS.md#084---2025-05-02
@@ -100,23 +101,35 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
   around a bug on the wlroots side which is expected to be fixed in wlroots
   `0.19.1` [#2887]
 
+With wlroots compiled with libwayland (>= 1.24.0), there is an invisible margin
+preventing pointer focus on some layer-shell surfaces including those created by
+Gtk. In simple words, this is because libwayland now rounds floats a bit
+differently [#3099].  There is a pending fix [wlroots-5159].
+
 [wlroots-4878]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4878
 [wlroots-5098]:https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5098
+[wlroots-5159]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5159
 [gtk-8792]: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/8792
 
 ## unreleased
 
 [unreleased-commits]
 
+## 0.9.2 - 2025-10-10
+
+[0.9.2-commits]
+
 ### Added
 
+- Allow `SnapToEdge` and `ToggleSnapToEdge` to combine two cardinal directions
+  with the config option `combine="yes|no"`. [#3081] @tokyo4j
 - Support `Border` context for mousebinds as an alias for `Top`...`BRCorner` to
   make configuration easier. @tokyo4j [#3047]
 - Add window-switcher mode with thumbnails. This can be enabled with:
   `<windowSwitcher style="thumbnail">`. @tokyo4j [#2981]
 - Add `toggle` option to `GoToDesktop` action. This has the effect of going back
   to the last desktop if already on the target. @RainerKuemmerle [#3024]
-- Add `<core maximizedDecoration="titlebar|none"/>` to allow hiding titlebar
+- Add `<theme maximizedDecoration="titlebar|none"/>` to allow hiding titlebar
   when window is maximized. @CosmicFusion @tokyo4j [#3015]
 - Use client-send-to-menu as 'Workspace' submenu in built-in client-menu
   @johanmalm [#2995]
@@ -126,6 +139,7 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
   [#2994]
 - Add `labnag` (a dialog client with message and buttons) and associated
   `<prompt>` option in 'If' actions.  @johanmalm @Consolatis @tokyo4j [#2699]
+- Support config option `<core><promptCommand>` @johanmalm [#3097]
 - Allow snapping to corner edges during interactive move with associated config
   options `<snapping><cornerRange>`. @tokyo4j [#2885]
 - Support new values "up-left", "up-right", "down-left" and "down-right" with
@@ -147,6 +161,7 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 
 ### Fixed
 
+- On detecting broken icon theme, fall back on 'hicolor' @Consolatis [#3126]
 - Restore initially-maximized window position after unplug/plug @tokyo4j [#3042]
 - Fix large client-side icon not being loaded when the rendered icon size is
   larger than icon sizes from the client. @tokyo4j [#3033]
@@ -161,6 +176,27 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 - Prevent hi-res mice triggering scroll actions too often @tokyo4j [#2933]
 
 ### Changed
+
+- Change default keybind `W-<arrow>` to combine cardinal directions to support
+  resizing of windows to fill a quarter of an output. This only affects users
+  who do not use an `rc.xml` (thereby using default keybinds) or use the
+  `<keyboard><default/>` option. Previous behavior can be restored by setting
+  `combine="no"` as shown below. [#3081] @tokyo4j
+
+```
+<keybind key="W-Left">
+  <action name="SnapToEdge" direction="left" combine="no" />
+</keybind>
+<keybind key="W-Right">
+  <action name="SnapToEdge" direction="right" combine="no" />
+</keybind>
+<keybind key="W-Up">
+  <action name="SnapToEdge" direction="up" combine="no" />
+</keybind>
+<keybind key="W-Down">
+  <action name="SnapToEdge" direction="down" combine="no" />
+</keybind>
+```
 
 - `Focus` and `Raise` on window border press because it is probably what most
   people expect and it makes the behavior consistent with that of Openbox.
@@ -2337,7 +2373,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.0...HEAD
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.2...HEAD
+[0.9.2-commits]: https://github.com/labwc/labwc/compare/0.9.1...0.9.2
 [0.9.1-commits]: https://github.com/labwc/labwc/compare/0.9.0...0.9.1
 [0.9.0-commits]: https://github.com/labwc/labwc/compare/0.8.4...0.9.0
 [0.8.4-commits]: https://github.com/labwc/labwc/compare/0.8.3...0.8.4
@@ -2800,3 +2837,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3043]: https://github.com/labwc/labwc/pull/3043
 [#3047]: https://github.com/labwc/labwc/pull/3047
 [#3049]: https://github.com/labwc/labwc/pull/3049
+[#3081]: https://github.com/labwc/labwc/pull/3081
+[#3097]: https://github.com/labwc/labwc/pull/3097
+[#3099]: https://github.com/labwc/labwc/pull/3099
+[#3126]: https://github.com/labwc/labwc/pull/3126

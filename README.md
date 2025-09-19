@@ -101,20 +101,7 @@ spend our effort.
 
 A lot of emphasis is put on code simplicity when considering features.
 
-The main development effort is focused on producing a solid foundation for a
-stacking compositor rather than adding configuration and theming options.
-
 See [scope] for full details on implemented features.
-
-High-level summary of items that Labwc supports:
-
-- [x] Config files (rc.xml, autostart, shutdown, environment, menu.xml)
-- [x] Theme files and xbm/png/svg icons
-- [x] Basic desktop and client menus
-- [x] HiDPI
-- [x] wlroots protocols such as `output-management`, `layer-shell` and
-  `foreign-toplevel`
-- [x] Optionally xwayland
 
 ### 1.5 Videos
 

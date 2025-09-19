@@ -110,6 +110,8 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 
 ### Added
 
+- Allow `SnapToEdge` to combine two cardinal directions with the config option
+  `combine="yes|no"`. [#3081] @tokyo4j
 - Support `Border` context for mousebinds as an alias for `Top`...`BRCorner` to
   make configuration easier. @tokyo4j [#3047]
 - Add window-switcher mode with thumbnails. This can be enabled with:
@@ -161,6 +163,27 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 - Prevent hi-res mice triggering scroll actions too often @tokyo4j [#2933]
 
 ### Changed
+
+- Change default keybind `W-<arrow>` to combine cardinal directions to support
+  resizing of windows to fill a quarter of an output. This only affects users
+  who do not use an `rc.xml` (thereby using default keybinds) or use the
+  `<keyboard><default/>` option. Previous behavior can be restored by setting
+  `combine="no"` as shown below. [#3081] @tokyo4j
+
+```
+<keybind key="W-Left">
+  <action name="SnapToEdge" direction="left" combine="no" />
+</keybind>
+<keybind key="W-Right">
+  <action name="SnapToEdge" direction="right" combine="no" />
+</keybind>
+<keybind key="W-Up">
+  <action name="SnapToEdge" direction="up" combine="no" />
+</keybind>
+<keybind key="W-Down">
+  <action name="SnapToEdge" direction="down" combine="no" />
+</keybind>
+```
 
 - `Focus` and `Raise` on window border press because it is probably what most
   people expect and it makes the behavior consistent with that of Openbox.
@@ -2800,3 +2823,4 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3043]: https://github.com/labwc/labwc/pull/3043
 [#3047]: https://github.com/labwc/labwc/pull/3047
 [#3049]: https://github.com/labwc/labwc/pull/3049
+[#3081]: https://github.com/labwc/labwc/pull/3081

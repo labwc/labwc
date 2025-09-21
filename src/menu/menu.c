@@ -135,6 +135,7 @@ item_create(struct menu *menu, const char *text, const char *icon_name, bool sho
 	assert(menu);
 	assert(text);
 
+	struct theme *theme = menu->server->theme;
 	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = true;
@@ -151,7 +152,8 @@ item_create(struct menu *menu, const char *text, const char *icon_name, bool sho
 
 	menuitem->native_width = font_width(&rc.font_menuitem, text);
 	if (menuitem->arrow) {
-		menuitem->native_width += font_width(&rc.font_menuitem, menuitem->arrow);
+		menuitem->native_width += font_width(&rc.font_menuitem, menuitem->arrow)
+					+ theme->menu_items_padding_x;
 	}
 
 	wl_list_append(&menu->menuitems, &menuitem->link);
@@ -177,7 +179,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 
 	int bg_width = menu->size.width - 2 * theme->menu_border_width;
 	int arrow_width = item->arrow ?
-		font_width(&rc.font_menuitem, item->arrow) : 0;
+		font_width(&rc.font_menuitem, item->arrow) + theme->menu_items_padding_x : 0;
 	int label_max_width = bg_width - 2 * theme->menu_items_padding_x
 		- arrow_width - icon_width;
 
@@ -227,7 +229,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	scaled_font_buffer_update(arrow_buffer, item->arrow, -1,
 		&rc.font_menuitem, text_color, bg_color);
 	/* Vertically center and right-align arrow */
-	x += label_max_width;
+	x += label_max_width + theme->menu_items_padding_x;
 	y = (theme->menu_item_height - label_buffer->height) / 2;
 	wlr_scene_node_set_position(&arrow_buffer->scene_buffer->node, x, y);
 

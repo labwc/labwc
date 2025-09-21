@@ -22,7 +22,7 @@ static PangoRectangle
 font_extents(struct font *font, const char *string)
 {
 	PangoRectangle rect = { 0 };
-	if (!string) {
+	if (string_null_or_empty(string)) {
 		return rect;
 	}
 	cairo_surface_t *surface;
@@ -42,10 +42,6 @@ font_extents(struct font *font, const char *string)
 	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_MIDDLE);
 	pango_layout_get_extents(layout, NULL, &rect);
 	pango_extents_to_pixels(&rect, NULL);
-
-	/* we put a 2 px edge on each side - because Openbox does it :) */
-	/* TODO: remove the 4 pixel addition and always do the padding by the caller */
-	rect.width += 4;
 
 	cairo_destroy(c);
 	cairo_surface_destroy(surface);

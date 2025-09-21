@@ -193,9 +193,6 @@ resize_indicator_update(struct view *view)
 	/* Let the indicator change width as required by the content */
 	int width = font_width(&rc.font_osd, text);
 
-	/* font_extents() adds 4 pixels to the calculated width */
-	width -= 4;
-
 	resize_indicator_set_size(indicator, width);
 
 	/* Center the indicator in the window */

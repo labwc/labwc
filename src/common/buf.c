@@ -129,6 +129,30 @@ buf_add_fmt(struct buf *s, const char *fmt, ...)
 }
 
 void
+buf_add_hex_color(struct buf *s, float color[4])
+{
+	/*
+	 * In theme.c parse_hexstr() colors are pre-multiplied (by alpha) as
+	 * expected by wlr_scene(). We therefore need to reverse that here.
+	 *
+	 * For details, see https://github.com/labwc/labwc/pull/1685
+	 */
+	float alpha = color[3];
+
+	/* Avoid division by zero */
+	if (alpha == 0.0f) {
+		buf_add(s, "#00000000");
+		return;
+	}
+
+	buf_add_fmt(s, "#%02x%02x%02x%02x",
+		(int)(color[0] / alpha * 255),
+		(int)(color[1] / alpha * 255),
+		(int)(color[2] / alpha * 255),
+		(int)(alpha * 255));
+}
+
+void
 buf_add(struct buf *s, const char *data)
 {
 	if (string_null_or_empty(data)) {

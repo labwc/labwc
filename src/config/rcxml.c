@@ -1102,6 +1102,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_bool(content, &rc.xwayland_persistence);
 	} else if (!strcasecmp(nodename, "primarySelection.core")) {
 		set_bool(content, &rc.primary_selection);
+
+	} else if (!strcasecmp(nodename, "promptCommand.core")) {
+		xstrdup_replace(rc.prompt_command, content);
+
 	} else if (!strcmp(nodename, "policy.placement")) {
 		enum lab_placement_policy policy = view_placement_parse(content);
 		if (policy != LAB_PLACE_INVALID) {
@@ -1624,6 +1628,22 @@ post_processing(void)
 		load_default_mouse_bindings();
 	}
 
+	if (!rc.prompt_command) {
+		rc.prompt_command =
+			xstrdup("labnag "
+				"--message '%m' "
+				"--button-dismiss '%n' "
+				"--button-dismiss '%y' "
+				"--background '%b' "
+				"--text '%t' "
+				"--border '%t' "
+				"--border-bottom '%t' "
+				"--button-background '%b' "
+				"--button-text '%t' "
+				"--border-bottom-size 1 "
+				"--button-border-size 3 "
+				"--timeout 0");
+	}
 	if (!rc.fallback_app_icon_name) {
 		rc.fallback_app_icon_name = xstrdup("labwc");
 	}
@@ -1886,6 +1906,7 @@ rcxml_finish(void)
 	zfree(rc.font_menuheader.name);
 	zfree(rc.font_menuitem.name);
 	zfree(rc.font_osd.name);
+	zfree(rc.prompt_command);
 	zfree(rc.theme_name);
 	zfree(rc.icon_theme_name);
 	zfree(rc.fallback_app_icon_name);

@@ -110,8 +110,8 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 
 ### Added
 
-- Allow `SnapToEdge` to combine two cardinal directions with the config option
-  `combine="yes|no"`. [#3081] @tokyo4j
+- Allow `SnapToEdge` and `ToggleSnapToEdge` to combine two cardinal directions
+  with the config option `combine="yes|no"`. [#3081] @tokyo4j
 - Support `Border` context for mousebinds as an alias for `Top`...`BRCorner` to
   make configuration easier. @tokyo4j [#3047]
 - Add window-switcher mode with thumbnails. This can be enabled with:

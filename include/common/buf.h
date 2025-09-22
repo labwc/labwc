@@ -51,6 +51,17 @@ void buf_expand_shell_variables(struct buf *s);
 void buf_add_fmt(struct buf *s, const char *fmt, ...);
 
 /**
+ * buf_add_hex_color - add rgb color as hex string to C string buffer
+ * @s: buffer
+ * @color: rgb color to be added
+ *
+ * For example:
+ *   - With the input 'red' (defined as red[4] = { 1.0f, 0.0f, 0.0f, 1.0f}) the
+ *     string "#ff0000ff" will be written to the buffer.
+ */
+void buf_add_hex_color(struct buf *s, float color[4]);
+
+/**
  * buf_add - add data to C string buffer
  * @s: buffer
  * @data: data to be added

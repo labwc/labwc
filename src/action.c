@@ -10,6 +10,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
 #include "action-prompt-codes.h"
+#include "action-prompt-command.h"
 #include "common/buf.h"
 #include "common/macros.h"
 #include "common/list.h"
@@ -281,7 +282,7 @@ action_get_arg(struct action *action, const char *key, enum action_arg_type type
 	return NULL;
 }
 
-static const char *
+const char *
 action_get_str(struct action *action, const char *key, const char *default_value)
 {
 	struct action_arg_str *arg = action_get_arg(action, key, LAB_ACTION_ARG_STR);
@@ -833,12 +834,13 @@ handle_view_destroy(struct wl_listener *listener, void *data)
 static void
 action_prompt_create(struct view *view, struct server *server, struct action *action)
 {
-	char *command = strdup_printf("labnag -m \"%s\" -Z \"%s\" -Z \"%s\"",
-		action_get_str(action, "message.prompt", "Choose wisely"),
-		_("No"), _("Yes"));
+	struct buf command = BUF_INIT;
+	action_prompt_command(&command, rc.prompt_command, action, rc.theme);
+
+	wlr_log(WLR_INFO, "prompt command: '%s'", command.data);
 
 	int pipe_fd;
-	pid_t prompt_pid = spawn_piped(command, &pipe_fd);
+	pid_t prompt_pid = spawn_piped(command.data, &pipe_fd);
 	if (prompt_pid < 0) {
 		wlr_log(WLR_ERROR, "Failed to create action prompt");
 		goto cleanup;
@@ -862,7 +864,7 @@ action_prompt_create(struct view *view, struct server *server, struct action *ac
 	wl_list_insert(&prompts, &prompt->link);
 
 cleanup:
-	free(command);
+	buf_reset(&command);
 }
 
 bool

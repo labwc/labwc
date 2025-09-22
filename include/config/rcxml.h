@@ -74,6 +74,8 @@ struct rcxml {
 	enum lab_placement_policy placement_policy;
 	bool xwayland_persistence;
 	bool primary_selection;
+	char *prompt_command;
+
 	int placement_cascade_offset_x;
 	int placement_cascade_offset_y;
 

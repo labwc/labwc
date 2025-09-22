@@ -23,6 +23,8 @@ struct action {
 
 struct action *action_create(const char *action_name);
 
+const char *action_get_str(struct action *action, const char *key,
+	const char *default_value);
 bool action_is_valid(struct action *action);
 bool action_is_show_menu(struct action *action);
 

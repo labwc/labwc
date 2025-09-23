@@ -179,6 +179,7 @@ this is for compatibility with Openbox.
   <reuseOutputMode>no</reuseOutputMode>
   <xwaylandPersistence>no</xwaylandPersistence>
   <primarySelection>yes</primarySelection>
+  <promptCommand>[see details below]</promptCommand>
 </core>
 ```
 
@@ -264,6 +265,53 @@ this is for compatibility with Openbox.
 	configured at launch. This enables autoscroll (middle-click to scroll
 	up/down) in Chromium and electron based clients without inadvertantly
 	pasting the primary clipboard. Default is yes.
+
+*<core><promptCommand>*
+	Set command to be invoked for an action prompt (*<action><prompt>*)
+
+	The following conversion specifiers are supported:
+	- *%m*: the *<prompt>* message option
+	- *%n*: "No" (in local language if translation is available)
+	- *%y*: "Yes" (in local language if translation is available)
+	- *%b*: osd.bg.color
+	- *%t*: osd.label.text.color
+
+	The default prompt command is:
+
+	```
+	labnag \\
+		--message '%m' \\
+		--button-dismiss '%n' \\
+		--button-dismiss '%y' \\
+		--background '%b' \\
+		--text '%t' \\
+		--border '%t' \\
+		--border-bottom '%t' \\
+		--button-background '%b' \\
+		--button-text '%t' \\
+		--border-bottom-size 1 \\
+		--button-border-size 3 \\
+		--timeout 0
+	```
+
+	Example 1: The prompt can be configured to use a different dialog client
+
+	```
+	<core>
+	  <promptCommand>zenity --question --text="%m"</promptCommand>
+	</core>
+	```
+
+	Example 2: A more complex zenity command could be used:
+
+	```
+	zenity \\
+		--question \\
+		--title="" \\
+		--text="%m" \\
+		--ok-label="%y" \\
+		--cancel-label="%n"
+	```
 
 ## PLACEMENT
 

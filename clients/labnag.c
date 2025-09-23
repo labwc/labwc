@@ -1370,7 +1370,7 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 		{"detailed-button", required_argument, NULL, 'L'},
 		{"message", required_argument, NULL, 'm'},
 		{"output", required_argument, NULL, 'o'},
-		{"timeout", no_argument, NULL, 't'},
+		{"timeout", required_argument, NULL, 't'},
 		{"version", no_argument, NULL, 'v'},
 
 		{"background", required_argument, NULL, TO_COLOR_BACKGROUND},

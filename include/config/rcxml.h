@@ -71,11 +71,12 @@ struct rcxml {
 	enum tearing_mode allow_tearing;
 	bool auto_enable_outputs;
 	bool reuse_output_mode;
-	enum lab_placement_policy placement_policy;
 	bool xwayland_persistence;
 	bool primary_selection;
 	char *prompt_command;
 
+	/* placement */
+	enum lab_placement_policy placement_policy;
 	int placement_cascade_offset_x;
 	int placement_cascade_offset_y;
 

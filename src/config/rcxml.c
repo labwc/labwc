@@ -33,6 +33,7 @@
 #include "osd.h"
 #include "regions.h"
 #include "ssd.h"
+#include "translate.h"
 #include "view.h"
 #include "window-rules.h"
 #include "workspaces.h"

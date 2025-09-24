@@ -5,8 +5,8 @@
 #include <wlr/util/log.h>
 #include "action.h"
 #include "common/buf.h"
-#include "labwc.h" /* for gettext */
 #include "theme.h"
+#include "translate.h"
 
 enum {
 	LAB_PROMPT_NONE = 0,

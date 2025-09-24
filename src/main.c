@@ -11,6 +11,7 @@
 #include "config/session.h"
 #include "labwc.h"
 #include "theme.h"
+#include "translate.h"
 #include "menu/menu.h"
 
 struct rcxml rc = { 0 };

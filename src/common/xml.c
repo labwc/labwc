@@ -165,12 +165,6 @@ get_node(xmlNode *node, const char *key, xmlNode **dst_node, bool leaf_only)
 }
 
 bool
-lab_xml_get_node(xmlNode *node, const char *key, xmlNode **dst_node)
-{
-	return get_node(node, key, dst_node, /* leaf_only */ false);
-}
-
-bool
 lab_xml_get_string(xmlNode *node, const char *key, char *s, size_t len)
 {
 	xmlNode *child;

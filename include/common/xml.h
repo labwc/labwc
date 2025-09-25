@@ -30,7 +30,6 @@ void lab_xml_expand_dotted_attributes(xmlNode *root);
 /* Returns true if the node only contains a string or is empty */
 bool lab_xml_node_is_leaf(xmlNode *node);
 
-bool lab_xml_get_node(xmlNode *node, const char *key, xmlNode **dst_node);
 bool lab_xml_get_string(xmlNode *node, const char *key, char *s, size_t len);
 bool lab_xml_get_int(xmlNode *node, const char *key, int *i);
 bool lab_xml_get_bool(xmlNode *node, const char *key, bool *b);

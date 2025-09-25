@@ -73,12 +73,4 @@ void scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text
 	int max_width, struct font *font, const float *color,
 	const float *bg_color);
 
-/**
- * Update the max width of an existing auto scaling font buffer
- * and force a new render.
- *
- * No steps are taken to detect if its actually required to render a new buffer.
- */
-void scaled_font_buffer_set_max_width(struct scaled_font_buffer *self, int max_width);
-
 #endif /* LABWC_SCALED_FONT_BUFFER_H */

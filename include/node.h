@@ -46,13 +46,6 @@ struct lab_layer_surface *node_layer_surface_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 /**
- * node_layer_popup_from_node - return lab_layer_popup struct from node
- * @wlr_scene_node: wlr_scene_node from which to return data
- */
-struct lab_layer_popup *node_layer_popup_from_node(
-	struct wlr_scene_node *wlr_scene_node);
-
-/**
  * node_menuitem_from_node - return menuitem struct from node
  * @wlr_scene_node: wlr_scene_node from which to return data
  */

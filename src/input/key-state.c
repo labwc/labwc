@@ -84,9 +84,3 @@ key_state_nr_bound_keys(void)
 {
 	return bound.size;
 }
-
-int
-key_state_nr_pressed_keys(void)
-{
-	return pressed.size;
-}

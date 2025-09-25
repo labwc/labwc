@@ -101,18 +101,6 @@ void menu_open_root(struct menu *menu, int x, int y);
 void menu_process_cursor_motion(struct wlr_scene_node *node);
 
 /**
- * menu_call_actions - call actions associated with a menu node
- *
- * If menuitem connected to @node does not just open a submenu:
- * - associated actions will be called
- * - server->menu_current will be closed
- * - server->menu_current will be set to NULL
- *
- * Returns true if actions have actually been executed
- */
-bool menu_call_actions(struct wlr_scene_node *node);
-
-/**
  *  menu_close_root- close root menu
  *
  * This function will close server->menu_current and set it to NULL.

@@ -1544,15 +1544,6 @@ menu_process_cursor_motion(struct wlr_scene_node *node)
 	menu_process_item_selection(item);
 }
 
-bool
-menu_call_actions(struct wlr_scene_node *node)
-{
-	assert(node && node->data);
-	struct menuitem *item = node_menuitem_from_node(node);
-
-	return menu_execute_item(item);
-}
-
 void
 menu_close_root(struct server *server)
 {

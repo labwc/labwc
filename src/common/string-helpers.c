@@ -20,15 +20,6 @@ string_null_or_empty(const char *s)
 	return !s || !*s;
 }
 
-void
-trim_last_field(char *buf, char delim)
-{
-	char *p = strrchr(buf, delim);
-	if (p) {
-		*p = '\0';
-	}
-}
-
 static void
 rtrim(char *s)
 {

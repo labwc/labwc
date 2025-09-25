@@ -139,17 +139,3 @@ scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 	scaled_buffer_request_update(self->scaled_buffer,
 		self->width, self->height);
 }
-
-void
-scaled_font_buffer_set_max_width(struct scaled_font_buffer *self, int max_width)
-{
-	self->max_width = max_width;
-
-	int computed_height;
-	font_get_buffer_size(self->max_width, self->text, &self->font,
-		&self->width, &computed_height);
-	self->height = (self->fixed_height > 0) ?
-		self->fixed_height : computed_height;
-	scaled_buffer_request_update(self->scaled_buffer,
-		self->width, self->height);
-}

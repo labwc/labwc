@@ -809,6 +809,15 @@ _minimize(struct view *view, bool minimized)
 }
 
 static void
+view_append_children(struct view *view, struct wl_array *children)
+{
+	assert(view);
+	if (view->impl->append_children) {
+		view->impl->append_children(view, children);
+	}
+}
+
+static void
 minimize_sub_views(struct view *view, bool minimized)
 {
 	struct view **child;
@@ -2335,15 +2344,6 @@ view_move_to_back(struct view *view)
 
 	cursor_update_focus(view->server);
 	desktop_update_top_layer_visibility(view->server);
-}
-
-void
-view_append_children(struct view *view, struct wl_array *children)
-{
-	assert(view);
-	if (view->impl->append_children) {
-		view->impl->append_children(view, children);
-	}
 }
 
 struct view *

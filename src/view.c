@@ -240,6 +240,16 @@ view_matches_query(struct view *view, struct view_query *query)
 	return true;
 }
 
+static struct view *
+view_get_root(struct view *view)
+{
+	assert(view);
+	if (view->impl->get_root) {
+		return view->impl->get_root(view);
+	}
+	return view;
+}
+
 static bool
 matches_criteria(struct view *view, enum lab_view_criteria criteria)
 {
@@ -2325,16 +2335,6 @@ view_move_to_back(struct view *view)
 
 	cursor_update_focus(view->server);
 	desktop_update_top_layer_visibility(view->server);
-}
-
-struct view *
-view_get_root(struct view *view)
-{
-	assert(view);
-	if (view->impl->get_root) {
-		return view->impl->get_root(view);
-	}
-	return view;
 }
 
 void

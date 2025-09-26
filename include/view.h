@@ -554,7 +554,6 @@ void view_move_to_output(struct view *view, struct output *output);
 
 void view_move_to_front(struct view *view);
 void view_move_to_back(struct view *view);
-struct view *view_get_root(struct view *view);
 void view_append_children(struct view *view, struct wl_array *children);
 
 /**

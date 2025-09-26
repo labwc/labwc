@@ -78,6 +78,9 @@
 static void
 reload_config_and_theme(struct server *server)
 {
+	/* Avoid UAF when dialog client is used during reconfigure */
+	action_prompts_destroy();
+
 	scaled_buffer_invalidate_sharing();
 	rcxml_finish();
 	rcxml_read(rc.config_file);

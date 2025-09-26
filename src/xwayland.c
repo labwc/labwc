@@ -40,6 +40,21 @@ static xcb_atom_t atoms[ATOM_COUNT] = {0};
 
 static void xwayland_view_unmap(struct view *view, bool client_request);
 
+static struct xwayland_view *
+xwayland_view_from_view(struct view *view)
+{
+	assert(view->type == LAB_XWAYLAND_VIEW);
+	return (struct xwayland_view *)view;
+}
+
+static struct wlr_xwayland_surface *
+xwayland_surface_from_view(struct view *view)
+{
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+	assert(xwayland_view->xwayland_surface);
+	return xwayland_view->xwayland_surface;
+}
+
 static bool
 xwayland_view_contains_window_type(struct view *view,
 		enum lab_window_type window_type)
@@ -184,21 +199,6 @@ top_parent_of(struct view *view)
 		s = s->parent;
 	}
 	return s;
-}
-
-static struct xwayland_view *
-xwayland_view_from_view(struct view *view)
-{
-	assert(view->type == LAB_XWAYLAND_VIEW);
-	return (struct xwayland_view *)view;
-}
-
-struct wlr_xwayland_surface *
-xwayland_surface_from_view(struct view *view)
-{
-	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
-	assert(xwayland_view->xwayland_surface);
-	return xwayland_view->xwayland_surface;
 }
 
 static void

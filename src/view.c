@@ -120,6 +120,16 @@ query_str_match(const char *condition, const char *value)
 	return value && match_glob(condition, value);
 }
 
+static bool
+view_contains_window_type(struct view *view, enum lab_window_type window_type)
+{
+	assert(view);
+	if (view->impl->contains_window_type) {
+		return view->impl->contains_window_type(view, window_type);
+	}
+	return false;
+}
+
 bool
 view_matches_query(struct view *view, struct view_query *query)
 {
@@ -238,6 +248,16 @@ view_matches_query(struct view *view, struct view_query *query)
 	}
 
 	return true;
+}
+
+static struct view *
+view_get_root(struct view *view)
+{
+	assert(view);
+	if (view->impl->get_root) {
+		return view->impl->get_root(view);
+	}
+	return view;
 }
 
 static bool
@@ -391,16 +411,6 @@ view_wants_focus(struct view *view)
 		return view->impl->wants_focus(view);
 	}
 	return VIEW_WANTS_FOCUS_ALWAYS;
-}
-
-bool
-view_contains_window_type(struct view *view, enum lab_window_type window_type)
-{
-	assert(view);
-	if (view->impl->contains_window_type) {
-		return view->impl->contains_window_type(view, window_type);
-	}
-	return false;
 }
 
 bool
@@ -795,6 +805,15 @@ _minimize(struct view *view, bool minimized)
 		view->impl->unmap(view, /* client_request */ false);
 	} else {
 		view->impl->map(view);
+	}
+}
+
+static void
+view_append_children(struct view *view, struct wl_array *children)
+{
+	assert(view);
+	if (view->impl->append_children) {
+		view->impl->append_children(view, children);
 	}
 }
 
@@ -2325,25 +2344,6 @@ view_move_to_back(struct view *view)
 
 	cursor_update_focus(view->server);
 	desktop_update_top_layer_visibility(view->server);
-}
-
-struct view *
-view_get_root(struct view *view)
-{
-	assert(view);
-	if (view->impl->get_root) {
-		return view->impl->get_root(view);
-	}
-	return view;
-}
-
-void
-view_append_children(struct view *view, struct wl_array *children)
-{
-	assert(view);
-	if (view->impl->append_children) {
-		view->impl->append_children(view, children);
-	}
 }
 
 struct view *

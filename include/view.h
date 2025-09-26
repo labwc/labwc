@@ -425,7 +425,6 @@ void view_array_append(struct server *server, struct wl_array *views,
 	enum lab_view_criteria criteria);
 
 enum view_wants_focus view_wants_focus(struct view *view);
-bool view_contains_window_type(struct view *view, enum lab_window_type window_type);
 
 /* If view is NULL, the size of SSD is not considered */
 struct wlr_box view_get_edge_snap_box(struct view *view, struct output *output,
@@ -554,8 +553,6 @@ void view_move_to_output(struct view *view, struct output *output);
 
 void view_move_to_front(struct view *view);
 void view_move_to_back(struct view *view);
-struct view *view_get_root(struct view *view);
-void view_append_children(struct view *view, struct wl_array *children);
 
 /**
  * view_get_modal_dialog() - returns any modal dialog found among this

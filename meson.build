@@ -134,6 +134,16 @@ if get_option('static_analyzer').enabled()
   add_project_arguments(['-fanalyzer'], language: 'c')
 endif
 
+if get_option('sections').enabled()
+  add_project_arguments(['-ffunction-sections'], language: 'c')
+  link_args = [
+    '-Wl,--gc-sections',
+    '-Wl,--print-gc-sections',
+  ]
+else
+  link_args = []
+endif
+
 msgfmt = find_program('msgfmt', required: get_option('nls'))
 if msgfmt.found()
   source_root = meson.current_source_dir()
@@ -193,6 +203,7 @@ executable(
   include_directories: [labwc_inc],
   dependencies: labwc_deps,
   install: true,
+  link_args: link_args,
 )
 
 install_data('data/labwc.desktop', install_dir: get_option('datadir') / 'wayland-sessions')

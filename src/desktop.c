@@ -132,7 +132,7 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 	}
 }
 
-struct view *
+static struct view *
 desktop_topmost_focusable_view(struct server *server)
 {
 	struct view *view;

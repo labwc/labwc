@@ -1323,8 +1323,7 @@ traverse(xmlNode *node)
 	}
 }
 
-/* Exposed in header file to allow unit tests to parse buffers */
-void
+static void
 rcxml_parse_xml(struct buf *b)
 {
 	int options = 0;

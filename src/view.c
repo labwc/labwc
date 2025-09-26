@@ -120,6 +120,16 @@ query_str_match(const char *condition, const char *value)
 	return value && match_glob(condition, value);
 }
 
+static bool
+view_contains_window_type(struct view *view, enum lab_window_type window_type)
+{
+	assert(view);
+	if (view->impl->contains_window_type) {
+		return view->impl->contains_window_type(view, window_type);
+	}
+	return false;
+}
+
 bool
 view_matches_query(struct view *view, struct view_query *query)
 {
@@ -401,16 +411,6 @@ view_wants_focus(struct view *view)
 		return view->impl->wants_focus(view);
 	}
 	return VIEW_WANTS_FOCUS_ALWAYS;
-}
-
-bool
-view_contains_window_type(struct view *view, enum lab_window_type window_type)
-{
-	assert(view);
-	if (view->impl->contains_window_type) {
-		return view->impl->contains_window_type(view, window_type);
-	}
-	return false;
 }
 
 bool

@@ -553,7 +553,6 @@ void view_move_to_output(struct view *view, struct output *output);
 
 void view_move_to_front(struct view *view);
 void view_move_to_back(struct view *view);
-void view_append_children(struct view *view, struct wl_array *children);
 
 /**
  * view_get_modal_dialog() - returns any modal dialog found among this

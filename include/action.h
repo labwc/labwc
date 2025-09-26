@@ -50,6 +50,7 @@ bool actions_contain_toggle_keybinds(struct wl_list *action_list);
 void actions_run(struct view *activator, struct server *server,
 	struct wl_list *actions, struct cursor_context *ctx);
 
+void action_prompts_destroy(void);
 bool action_check_prompt_result(pid_t pid, int exit_code);
 
 void action_free(struct action *action);

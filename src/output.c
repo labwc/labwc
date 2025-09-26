@@ -551,6 +551,8 @@ handle_new_output(struct wl_listener *listener, void *data)
 	do_output_layout_change(server);
 }
 
+static void output_manager_init(struct server *server);
+
 void
 output_init(struct server *server)
 {
@@ -890,7 +892,7 @@ handle_gamma_control_set_gamma(struct wl_listener *listener, void *data)
 	wlr_output_schedule_frame(output->wlr_output);
 }
 
-void
+static void
 output_manager_init(struct server *server)
 {
 	server->output_manager = wlr_output_manager_v1_create(server->wl_display);

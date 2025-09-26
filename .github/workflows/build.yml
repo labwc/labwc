@@ -168,6 +168,7 @@ jobs:
             meson setup build-gcc-release -Dxwayland=enabled \
               -Dbuildtype=release -Db_ndebug=true --werror
             meson configure build-gcc-release -Dwlroots:b_ndebug=false || true
+            meson configure build-gcc-release -Dlibsfdo:b_ndebug=false || true
             meson compile -C build-gcc-release
           ' | $TARGET
 
@@ -190,6 +191,7 @@ jobs:
             meson setup build-clang-release -Dxwayland=enabled \
               -Dbuildtype=release -Db_ndebug=true --werror
             meson configure build-clang-release -Dwlroots:b_ndebug=false || true
+            meson configure build-clang-release -Dlibsfdo:b_ndebug=false || true
             meson compile -C build-clang-release
           ' | $TARGET
 

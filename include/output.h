@@ -40,7 +40,6 @@ struct output {
 
 void output_init(struct server *server);
 void output_finish(struct server *server);
-void output_manager_init(struct server *server);
 struct output *output_from_wlr_output(struct server *server,
 	struct wlr_output *wlr_output);
 struct output *output_from_name(struct server *server, const char *name);

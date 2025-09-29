@@ -111,7 +111,7 @@ test_lab_xml_expand_dotted_attributes(void **state)
 
 		xmlBuffer *buf = xmlBufferCreate();
 		xmlNodeDump(buf, root->doc, root, 0, 0);
-		assert_string_equal(test_cases[i].after, (char *)buf->content);
+		assert_string_equal(test_cases[i].after, (char *)xmlBufferContent(buf));
 		xmlBufferFree(buf);
 
 		xmlFreeDoc(doc);

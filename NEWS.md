@@ -100,8 +100,14 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
   around a bug on the wlroots side which is expected to be fixed in wlroots
   `0.19.1` [#2887]
 
+With libwayland (>= 1.24.0) there is an invisible margin preventing pointer
+focus on some layer-shell surfaces including those created by Gtk. In simple
+words, this is because libwayland now rounds floats a bit differently [#3099].
+There is a pending fix [wlroots-5159].
+
 [wlroots-4878]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4878
 [wlroots-5098]:https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5098
+[wlroots-5159]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5159
 [gtk-8792]: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/8792
 
 ## unreleased
@@ -2824,3 +2830,4 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3047]: https://github.com/labwc/labwc/pull/3047
 [#3049]: https://github.com/labwc/labwc/pull/3049
 [#3081]: https://github.com/labwc/labwc/pull/3081
+[#3099]: https://github.com/labwc/labwc/pull/3099

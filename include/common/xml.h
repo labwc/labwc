@@ -25,7 +25,7 @@
  *     </action>
  *   </keybind>
  */
-void lab_xml_expand_dotted_attributes(xmlNode *root);
+void lab_xml_expand_dotted_attributes(xmlNode *parent);
 
 /* Returns true if the node only contains a string or is empty */
 bool lab_xml_node_is_leaf(xmlNode *node);

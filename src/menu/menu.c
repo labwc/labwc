@@ -487,8 +487,8 @@ fill_item(struct menu *menu, xmlNode *node)
 	append_parsed_actions(node, &item->actions);
 
 out:
-	free(label);
-	free(icon_name);
+	xmlFree(label);
+	xmlFree(icon_name);
 }
 
 static void
@@ -619,10 +619,10 @@ fill_menu(struct server *server, struct menu *parent, xmlNode *n)
 		item->submenu = menu;
 	}
 error:
-	free(label);
-	free(icon_name);
-	free(execute);
-	free(id);
+	xmlFree(label);
+	xmlFree(icon_name);
+	xmlFree(execute);
+	xmlFree(id);
 }
 
 /* This can be one of <separator> and <separator label=""> */
@@ -631,7 +631,7 @@ fill_separator(struct menu *menu, xmlNode *n)
 {
 	char *label = (char *)xmlGetProp(n, (const xmlChar *)"label");
 	separator_create(menu, label);
-	free(label);
+	xmlFree(label);
 }
 
 /* parent==NULL when processing toplevel menus in menu.xml */

@@ -197,8 +197,18 @@ osd_cycle(struct server *server, enum lab_cycle_dir direction)
 void
 osd_finish(struct server *server)
 {
+	/* Unshade/unminimize the selected view if it's shaded */
+	if (server->osd_state.cycle_view && server->osd_state.cycle_view->shaded) {
+		view_set_shade(server->osd_state.cycle_view, false);
+	}
+
 	restore_preview_node(server);
 	seat_focus_override_end(&server->seat);
+
+	/* Focus the selected view */
+	if (server->osd_state.cycle_view) {
+		desktop_focus_view(server->osd_state.cycle_view, true);
+	}
 
 	server->osd_state.preview_node = NULL;
 	server->osd_state.preview_anchor = NULL;

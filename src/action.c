@@ -1525,6 +1525,9 @@ actions_run(struct view *activator, struct server *server,
 
 	struct action *action;
 	wl_list_for_each(action, actions, link) {
+		wlr_log(WLR_DEBUG, "Handling action %u: %s", action->type,
+			action_names[action->type]);
+
 		if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER
 				&& action->type != ACTION_TYPE_NEXT_WINDOW
 				&& action->type != ACTION_TYPE_PREVIOUS_WINDOW) {
@@ -1532,9 +1535,6 @@ actions_run(struct view *activator, struct server *server,
 				"actions are accepted while window switching.");
 			continue;
 		}
-
-		wlr_log(WLR_DEBUG, "Handling action %u: %s", action->type,
-			action_names[action->type]);
 
 		/*
 		 * Refetch view because it may have been changed due to the

@@ -45,7 +45,7 @@ struct conf {
 	uint32_t details_background;
 	uint32_t background;
 	uint32_t text;
-	uint32_t border;
+	uint32_t button_border;
 	uint32_t border_bottom;
 
 	/* Sizing */
@@ -429,7 +429,7 @@ render_button(cairo_t *cairo, struct nag *nag, struct button *button, int *x)
 	button->width = text_width + padding * 2;
 	button->height = text_height + padding * 2;
 
-	cairo_set_source_u32(cairo, nag->conf->border);
+	cairo_set_source_u32(cairo, nag->conf->button_border);
 	cairo_rectangle(cairo, button->x - border, button->y - border,
 			button->width + border * 2, button->height + border * 2);
 	cairo_fill(cairo);
@@ -1255,7 +1255,7 @@ conf_init(struct conf *conf)
 	conf->background = 0x323232FF;
 	conf->text = 0xFFFFFFFF;
 	conf->button_text = 0xFFFFFFFF;
-	conf->border = 0x222222FF;
+	conf->button_border = 0x222222FF;
 	conf->border_bottom = 0x444444FF;
 	conf->bar_border_thickness = 2;
 	conf->message_padding = 8;
@@ -1270,7 +1270,7 @@ conf_init(struct conf *conf)
 	conf->background = 0x900000FF;
 	conf->text = 0xFFFFFFFF;
 	conf->button_text = 0xFFFFFFFF;
-	conf->border = 0xD92424FF;
+	conf->button_border = 0xD92424FF;
 	conf->border_bottom = 0x470909FF;
 }
 
@@ -1342,9 +1342,9 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 {
 	enum type_options {
 		TO_COLOR_BACKGROUND = 256,
-		TO_COLOR_BORDER,
+		TO_COLOR_BUTTON_BORDER,
 		TO_COLOR_BORDER_BOTTOM,
-		TO_COLOR_BUTTON,
+		TO_COLOR_BUTTON_BG,
 		TO_COLOR_DETAILS,
 		TO_COLOR_TEXT,
 		TO_COLOR_BUTTON_TEXT,
@@ -1373,16 +1373,16 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 		{"timeout", required_argument, NULL, 't'},
 		{"version", no_argument, NULL, 'v'},
 
-		{"background", required_argument, NULL, TO_COLOR_BACKGROUND},
-		{"border", required_argument, NULL, TO_COLOR_BORDER},
-		{"border-bottom", required_argument, NULL, TO_COLOR_BORDER_BOTTOM},
-		{"button-background", required_argument, NULL, TO_COLOR_BUTTON},
-		{"text", required_argument, NULL, TO_COLOR_TEXT},
-		{"button-text", required_argument, NULL, TO_COLOR_BUTTON_TEXT},
+		{"background-color", required_argument, NULL, TO_COLOR_BACKGROUND},
+		{"button-border-color", required_argument, NULL, TO_COLOR_BUTTON_BORDER},
+		{"border-bottom-color", required_argument, NULL, TO_COLOR_BORDER_BOTTOM},
+		{"button-background-color", required_argument, NULL, TO_COLOR_BUTTON_BG},
+		{"text-color", required_argument, NULL, TO_COLOR_TEXT},
+		{"button-text-color", required_argument, NULL, TO_COLOR_BUTTON_TEXT},
 		{"border-bottom-size", required_argument, NULL, TO_THICK_BAR_BORDER},
 		{"message-padding", required_argument, NULL, TO_PADDING_MESSAGE},
 		{"details-border-size", required_argument, NULL, TO_THICK_DET_BORDER},
-		{"details-background", required_argument, NULL, TO_COLOR_DETAILS},
+		{"details-background-color", required_argument, NULL, TO_COLOR_DETAILS},
 		{"button-border-size", required_argument, NULL, TO_THICK_BTN_BORDER},
 		{"button-gap", required_argument, NULL, TO_GAP_BTN},
 		{"button-dismiss-gap", required_argument, NULL, TO_GAP_BTN_DISMISS},
@@ -1413,21 +1413,23 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 		"  -v, --version                   Show the version number and quit.\n"
 		"\n"
 		"The following appearance options can also be given:\n"
-		"  --background RRGGBB[AA]         Background color.\n"
-		"  --border RRGGBB[AA]             Border color.\n"
-		"  --border-bottom RRGGBB[AA]      Bottom border color.\n"
-		"  --button-background RRGGBB[AA]  Button background color.\n"
-		"  --text RRGGBB[AA]               Text color.\n"
-		"  --button-text RRGGBB[AA]        Button text color.\n"
-		"  --border-bottom-size size       Thickness of the bar border.\n"
-		"  --message-padding padding       Padding for the message.\n"
-		"  --details-border-size size      Thickness for the details border.\n"
-		"  --details-background RRGGBB[AA] Details background color.\n"
-		"  --button-border-size size       Thickness for the button border.\n"
-		"  --button-gap gap                Size of the gap between buttons\n"
-		"  --button-dismiss-gap gap        Size of the gap for dismiss button.\n"
-		"  --button-margin-right margin    Margin from dismiss button to edge.\n"
-		"  --button-padding padding        Padding for the button text.\n";
+		"  --background-color RRGGBB[AA]    Background color.\n"
+		"  --button-border-color RRGGBB[AA] Button border color.\n"
+		"  --border-bottom-color RRGGBB[AA] Bottom border color.\n"
+		"  --button-background-color RRGGBB[AA]\n"
+		"                                   Button background color.\n"
+		"  --text-color RRGGBB[AA]          Text color.\n"
+		"  --button-text-color RRGGBB[AA]   Button text color.\n"
+		"  --border-bottom-size size        Thickness of the bar border.\n"
+		"  --message-padding padding        Padding for the message.\n"
+		"  --details-border-size size       Thickness for the details border.\n"
+		"  --details-background-color RRGGBB[AA]\n"
+		"                                   Details background color.\n"
+		"  --button-border-size size        Thickness for the button border.\n"
+		"  --button-gap gap                 Size of the gap between buttons\n"
+		"  --button-dismiss-gap gap         Size of the gap for dismiss button.\n"
+		"  --button-margin-right margin     Margin from dismiss button to edge.\n"
+		"  --button-padding padding         Padding for the button text.\n";
 
 	optind = 1;
 	while (1) {
@@ -1522,8 +1524,8 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 				fprintf(stderr, "Invalid background color: %s\n", optarg);
 			}
 			break;
-		case TO_COLOR_BORDER: /* Border color */
-			if (!parse_color(optarg, &conf->border)) {
+		case TO_COLOR_BUTTON_BORDER: /* Border color */
+			if (!parse_color(optarg, &conf->button_border)) {
 				fprintf(stderr, "Invalid border color: %s\n", optarg);
 			}
 			break;
@@ -1532,7 +1534,7 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 				fprintf(stderr, "Invalid border bottom color: %s\n", optarg);
 			}
 			break;
-		case TO_COLOR_BUTTON: /* Button background color */
+		case TO_COLOR_BUTTON_BG: /* Button background color */
 			if (!parse_color(optarg, &conf->button_background)) {
 				fprintf(stderr, "Invalid button background color: %s\n", optarg);
 			}

@@ -49,6 +49,7 @@ executable(
     wlroots,
     server_protos,
     epoll_dep,
+    xkbcommon,
   ],
   include_directories: [labwc_inc],
   install: true,

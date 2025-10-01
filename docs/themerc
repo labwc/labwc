@@ -97,6 +97,8 @@ osd.window-switcher.style-classic.padding: 4
 osd.window-switcher.style-classic.item.padding.x: 10
 osd.window-switcher.style-classic.item.padding.y: 1
 osd.window-switcher.style-classic.item.active.border.width: 2
+osd.window-switcher.style-classic.item.active.border.color: #706f6d
+osd.window-switcher.style-classic.item.active.bg.color: #bfbcba
 # The icon size the same as the font size by default
 # osd.window-switcher.style-classic.item.icon.size: 50
 

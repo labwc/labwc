@@ -170,6 +170,8 @@ struct theme {
 		int item_padding_x;
 		int item_padding_y;
 		int item_active_border_width;
+		float item_active_border_color[4];
+		float item_active_bg_color[4];
 		int item_icon_size;
 		bool width_is_percent;
 

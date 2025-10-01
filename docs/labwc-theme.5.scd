@@ -358,10 +358,12 @@ all are supported.
 	Border width of selected window switcher items in pixels. Default is 2.
 
 *osd.window-switcher.style-thumbnail.item.active.border.color*
-	Color of border around selected window switcher items. Default is #589bda.
+	Color of border around selected window switcher items.
+	Default is *osd.label.text.color* with 50% opacity.
 
 *osd.window-switcher.style-thumbnail.item.active.bg.color*
-	Color of selected window switcher items. Default is #c7e2fc.
+	Color of selected window switcher items.
+	Default is *osd.label.text.color* with 15% opacity.
 
 *osd.window-switcher.style-thumbnail.item.icon.size*
 	Size of window icons in window switcher items in pixels. Default is 60.

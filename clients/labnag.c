@@ -19,6 +19,7 @@
 #ifdef __FreeBSD__
 #include <sys/event.h> /* For signalfd() */
 #endif
+#include <sys/mman.h>
 #include <sys/signalfd.h>
 #include <sys/timerfd.h>
 #include <sys/wait.h>
@@ -26,6 +27,7 @@
 #include <unistd.h>
 #include <wayland-cursor.h>
 #include <wlr/util/log.h>
+#include <xkbcommon/xkbcommon.h>
 #include "action-prompt-codes.h"
 #include "pool-buffer.h"
 #include "cursor-shape-v1-client-protocol.h"
@@ -38,6 +40,7 @@ struct conf {
 	char *output;
 	uint32_t anchors;
 	int32_t layer; /* enum zwlr_layer_shell_v1_layer or -1 if unset */
+	enum zwlr_layer_surface_v1_keyboard_interactivity keyboard_focus;
 
 	/* Colors */
 	uint32_t button_text;
@@ -69,11 +72,17 @@ struct pointer {
 	int y;
 };
 
+struct keyboard {
+	struct wl_keyboard *keyboard;
+	struct xkb_keymap *keymap;
+};
+
 struct seat {
 	struct wl_seat *wl_seat;
 	uint32_t wl_name;
 	struct nag *nag;
 	struct pointer pointer;
+	struct keyboard keyboard;
 	struct wl_list link; /* nag.seats */
 };
 
@@ -130,6 +139,7 @@ struct nag {
 	struct conf *conf;
 	char *message;
 	struct wl_list buttons;
+	int selected_button;
 	struct pollfd pollfds[NR_FDS];
 
 	struct {
@@ -409,7 +419,8 @@ render_detailed(cairo_t *cairo, struct nag *nag, uint32_t y)
 }
 
 static uint32_t
-render_button(cairo_t *cairo, struct nag *nag, struct button *button, int *x)
+render_button(cairo_t *cairo, struct nag *nag, struct button *button,
+		bool selected, int *x)
 {
 	int text_width, text_height;
 	get_text_size(cairo, nag->conf->font_description, &text_width,
@@ -429,12 +440,20 @@ render_button(cairo_t *cairo, struct nag *nag, struct button *button, int *x)
 	button->width = text_width + padding * 2;
 	button->height = text_height + padding * 2;
 
-	cairo_set_source_u32(cairo, nag->conf->border);
+	if (selected) {
+		cairo_set_source_u32(cairo, 0x589BDAFF);
+	} else {
+		cairo_set_source_u32(cairo, nag->conf->border);
+	}
 	cairo_rectangle(cairo, button->x - border, button->y - border,
 			button->width + border * 2, button->height + border * 2);
 	cairo_fill(cairo);
 
-	cairo_set_source_u32(cairo, nag->conf->button_background);
+	if (selected) {
+		cairo_set_source_u32(cairo, 0xc7E2FCFF);
+	} else {
+		cairo_set_source_u32(cairo, nag->conf->button_background);
+	}
 	cairo_rectangle(cairo, button->x, button->y,
 			button->width, button->height);
 	cairo_fill(cairo);
@@ -464,11 +483,13 @@ render_to_cairo(cairo_t *cairo, struct nag *nag)
 	int x = nag->width - nag->conf->button_margin_right;
 	x -= nag->conf->button_gap_close;
 
+	int idx = 0;
 	struct button *button;
 	wl_list_for_each(button, &nag->buttons, link) {
-		h = render_button(cairo, nag, button, &x);
+		h = render_button(cairo, nag, button, idx == nag->selected_button, &x);
 		max_height = h > max_height ? h : max_height;
 		x -= nag->conf->button_gap;
+		idx++;
 	}
 
 	if (nag->details.visible) {
@@ -554,6 +575,12 @@ seat_destroy(struct seat *seat)
 	}
 	if (seat->pointer.pointer) {
 		wl_pointer_destroy(seat->pointer.pointer);
+	}
+	if (seat->keyboard.keyboard) {
+		wl_keyboard_destroy(seat->keyboard.keyboard);
+	}
+	if (seat->keyboard.keymap) {
+		xkb_keymap_unref(seat->keyboard.keymap);
 	}
 	wl_seat_destroy(seat->wl_seat);
 	wl_list_remove(&seat->link);
@@ -940,11 +967,132 @@ static const struct wl_pointer_listener pointer_listener = {
 };
 
 static void
+wl_keyboard_keymap(void *data, struct wl_keyboard *wl_keyboard,
+		uint32_t format, int32_t fd, uint32_t size)
+{
+	struct seat *seat = data;
+
+	if (format != WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1) {
+		wlr_log(WLR_ERROR, "unreconizable keymap format: %d", format);
+		return;
+	}
+
+	char *map_buf = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+	assert(map_buf);
+
+	if (seat->keyboard.keymap) {
+		xkb_keymap_unref(seat->keyboard.keymap);
+	}
+	struct xkb_context *xkb = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+	seat->keyboard.keymap = xkb_keymap_new_from_string(xkb, map_buf,
+		XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
+	xkb_context_unref(xkb);
+
+	munmap(map_buf, size);
+	close(fd);
+}
+
+static void
+wl_keyboard_enter(void *data, struct wl_keyboard *wl_keyboard, uint32_t serial,
+		struct wl_surface *surface, struct wl_array *keys)
+{
+}
+
+static void
+wl_keyboard_leave(void *data, struct wl_keyboard *wl_keyboard, uint32_t serial,
+		struct wl_surface *surface)
+{
+}
+
+static void
+wl_keyboard_key(void *data, struct wl_keyboard *wl_keyboard, uint32_t serial,
+		uint32_t time, uint32_t key, uint32_t state)
+{
+	struct seat *seat = data;
+	struct nag *nag = seat->nag;
+
+	if (!seat->keyboard.keymap) {
+		wlr_log(WLR_ERROR, "keymap unavailable");
+		return;
+	}
+
+	if (state != WL_KEYBOARD_KEY_STATE_PRESSED) {
+		return;
+	}
+
+	key += 8;
+	const xkb_keysym_t *syms;
+	if (!xkb_keymap_key_get_syms_by_level(seat->keyboard.keymap, key, 0, 0, &syms)) {
+		wlr_log(WLR_ERROR, "failed to translate key: %d", key);
+		return;
+	}
+	int nr_buttons = wl_list_length(&seat->nag->buttons);
+
+	switch (syms[0]) {
+	case XKB_KEY_Left:
+		nag->selected_button++;
+		nag->selected_button %= nr_buttons;
+		render_frame(nag);
+		break;
+	case XKB_KEY_Right:
+		nag->selected_button += nr_buttons - 1;
+		nag->selected_button %= nr_buttons;
+		render_frame(nag);
+		break;
+	case XKB_KEY_Escape:
+		exit_status = LAB_EXIT_CANCELLED;
+		nag->run_display = false;
+		break;
+	case XKB_KEY_Return: {
+		int idx = 0;
+		struct button *button;
+		wl_list_for_each(button, &nag->buttons, link) {
+			if (idx == nag->selected_button) {
+				button_execute(seat->nag, button);
+				exit_status = idx;
+				break;
+			}
+			idx++;
+		}
+		break;
+	}
+	default:
+		return;
+	}
+
+	close_pollfd(&seat->nag->pollfds[FD_TIMER]);
+}
+
+static void
+wl_keyboard_modifiers(void *data, struct wl_keyboard *wl_keyboard,
+		uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched,
+		uint32_t mods_locked, uint32_t group)
+{
+}
+
+static void
+wl_keyboard_repeat_info(void *data, struct wl_keyboard *wl_keyboard,
+		int32_t rate, int32_t delay)
+{
+}
+
+static const struct wl_keyboard_listener keyboard_listener = {
+	.keymap = wl_keyboard_keymap,
+	.enter = wl_keyboard_enter,
+	.leave = wl_keyboard_leave,
+	.key = wl_keyboard_key,
+	.modifiers = wl_keyboard_modifiers,
+	.repeat_info = wl_keyboard_repeat_info,
+};
+
+static void
 seat_handle_capabilities(void *data, struct wl_seat *wl_seat,
 		enum wl_seat_capability caps)
 {
 	struct seat *seat = data;
 	bool cap_pointer = caps & WL_SEAT_CAPABILITY_POINTER;
+	bool cap_keyboard = caps & WL_SEAT_CAPABILITY_KEYBOARD;
+
 	if (cap_pointer && !seat->pointer.pointer) {
 		seat->pointer.pointer = wl_seat_get_pointer(wl_seat);
 		wl_pointer_add_listener(seat->pointer.pointer,
@@ -952,6 +1100,15 @@ seat_handle_capabilities(void *data, struct wl_seat *wl_seat,
 	} else if (!cap_pointer && seat->pointer.pointer) {
 		wl_pointer_destroy(seat->pointer.pointer);
 		seat->pointer.pointer = NULL;
+	}
+
+	if (cap_keyboard && !seat->keyboard.keyboard) {
+		seat->keyboard.keyboard = wl_seat_get_keyboard(wl_seat);
+		wl_keyboard_add_listener(seat->keyboard.keyboard,
+				&keyboard_listener, seat);
+	} else if (!cap_keyboard && seat->keyboard.keyboard) {
+		wl_keyboard_destroy(seat->keyboard.keyboard);
+		seat->keyboard.keyboard = NULL;
 	}
 }
 
@@ -1075,7 +1232,7 @@ handle_global(void *data, struct wl_registry *registry, uint32_t name,
 		}
 	} else if (strcmp(interface, zwlr_layer_shell_v1_interface.name) == 0) {
 		nag->layer_shell = wl_registry_bind(
-				registry, name, &zwlr_layer_shell_v1_interface, 1);
+				registry, name, &zwlr_layer_shell_v1_interface, 4);
 	} else if (strcmp(interface, wp_cursor_shape_manager_v1_interface.name) == 0) {
 		nag->cursor_shape_manager = wl_registry_bind(
 				registry, name, &wp_cursor_shape_manager_v1_interface, 1);
@@ -1170,6 +1327,8 @@ nag_setup(struct nag *nag)
 			&layer_surface_listener, nag);
 	zwlr_layer_surface_v1_set_anchor(nag->layer_surface,
 			nag->conf->anchors);
+	zwlr_layer_surface_v1_set_keyboard_interactivity(nag->layer_surface,
+			nag->conf->keyboard_focus);
 
 	wl_registry_destroy(registry);
 
@@ -1233,7 +1392,7 @@ nag_run(struct nag *nag)
 			wl_display_cancel_read(nag->display);
 		}
 		if (nag->pollfds[FD_TIMER].revents & POLLIN) {
-			exit_status = LAB_EXIT_TIMEOUT;
+			exit_status = LAB_EXIT_CANCELLED;
 			break;
 		}
 		if (nag->pollfds[FD_SIGNAL].revents & POLLIN) {
@@ -1250,6 +1409,7 @@ conf_init(struct conf *conf)
 		| ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT
 		| ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
 	conf->layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
+	conf->keyboard_focus = ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_ON_DEMAND;
 	conf->button_background = 0x333333FF;
 	conf->details_background = 0x333333FF;
 	conf->background = 0x323232FF;
@@ -1364,6 +1524,7 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 		{"debug", no_argument, NULL, 'd'},
 		{"edge", required_argument, NULL, 'e'},
 		{"layer", required_argument, NULL, 'y'},
+		{"keyboard-focus", required_argument, NULL, 'k'},
 		{"font", required_argument, NULL, 'f'},
 		{"help", no_argument, NULL, 'h'},
 		{"detailed-message", no_argument, NULL, 'l'},
@@ -1402,6 +1563,8 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 		"  -e, --edge top|bottom           Set the edge to use.\n"
 		"  -y, --layer overlay|top|bottom|background\n"
 		"                                  Set the layer to use.\n"
+		"  -k, --keyboard-focus none|exclusive|on-demand|\n"
+		"                                  Set the policy for keyboard focus.\n"
 		"  -f, --font <font>               Set the font to use.\n"
 		"  -h, --help                      Show help message and quit.\n"
 		"  -l, --detailed-message          Read a detailed message from stdin.\n"
@@ -1431,7 +1594,7 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 
 	optind = 1;
 	while (1) {
-		int c = getopt_long(argc, argv, "B:Z:c:de:y:f:hlL:m:o:s:t:vx", opts, NULL);
+		int c = getopt_long(argc, argv, "B:Z:c:de:y:kf:hlL:m:o:s:t:vx", opts, NULL);
 		if (c == -1) {
 			break;
 		}
@@ -1481,6 +1644,23 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 			} else {
 				fprintf(stderr, "Invalid layer: %s\n"
 						"Usage: --layer overlay|top|bottom|background\n",
+						optarg);
+				return LAB_EXIT_FAILURE;
+			}
+			break;
+		case 'k':
+			if (strcmp(optarg, "none") == 0) {
+				conf->keyboard_focus =
+					ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE;
+			} else if (strcmp(optarg, "exclusive") == 0) {
+				conf->keyboard_focus =
+					ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE;
+			} else if (strcmp(optarg, "on-demand") == 0) {
+				conf->keyboard_focus =
+					ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_ON_DEMAND;
+			} else {
+				fprintf(stderr, "Invalid keyboard focus: %s\n"
+						"Usage: --keyboard-focus none|exclusive|on-demand\n",
 						optarg);
 				return LAB_EXIT_FAILURE;
 			}
@@ -1610,6 +1790,14 @@ main(int argc, char **argv)
 			goto cleanup;
 		}
 	}
+
+	int nr_buttons = wl_list_length(&nag.buttons);
+	if (conf.keyboard_focus && nr_buttons > 0) {
+		nag.selected_button = nr_buttons - 1;
+	} else {
+		nag.selected_button = -1;
+	}
+
 	wlr_log_init(debug ? WLR_DEBUG : WLR_ERROR, NULL);
 
 	if (!nag.message) {

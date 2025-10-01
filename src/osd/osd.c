@@ -205,11 +205,6 @@ osd_finish(struct server *server)
 	restore_preview_node(server);
 	seat_focus_override_end(&server->seat);
 
-	/* Focus the selected view */
-	if (server->osd_state.cycle_view) {
-		desktop_focus_view(server->osd_state.cycle_view, true);
-	}
-
 	server->osd_state.preview_node = NULL;
 	server->osd_state.preview_anchor = NULL;
 	server->osd_state.cycle_view = NULL;

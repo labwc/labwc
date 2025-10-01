@@ -19,8 +19,58 @@
 
 struct osd_classic_scene_item {
 	struct view *view;
-	struct wlr_scene_node *highlight_outline;
+	struct wlr_scene_tree *normal_tree, *active_tree;
 };
+
+static void
+create_fields_scene(struct server *server, struct view *view,
+		struct wlr_scene_tree *parent, const float *text_color,
+		const float *bg_color, int field_widths_sum, int x, int y)
+{
+	struct theme *theme = server->theme;
+	struct window_switcher_classic_theme *switcher_theme =
+		&theme->osd_window_switcher_classic;
+
+	struct window_switcher_field *field;
+	wl_list_for_each(field, &rc.window_switcher.fields, link) {
+		int field_width = field_widths_sum * field->width / 100.0;
+		struct wlr_scene_node *node = NULL;
+		int height = -1;
+
+		if (field->content == LAB_FIELD_ICON) {
+			int icon_size = MIN(field_width,
+				switcher_theme->item_icon_size);
+			struct scaled_icon_buffer *icon_buffer =
+				scaled_icon_buffer_create(parent,
+					server, icon_size, icon_size);
+			scaled_icon_buffer_set_view(icon_buffer, view);
+			node = &icon_buffer->scene_buffer->node;
+			height = icon_size;
+		} else {
+			struct buf buf = BUF_INIT;
+			osd_field_get_content(field, &buf, view);
+
+			if (!string_null_or_empty(buf.data)) {
+				struct scaled_font_buffer *font_buffer =
+					scaled_font_buffer_create(parent);
+				scaled_font_buffer_update(font_buffer,
+					buf.data, field_width,
+					&rc.font_osd, text_color, bg_color);
+				node = &font_buffer->scene_buffer->node;
+				height = font_height(&rc.font_osd);
+			}
+
+			buf_reset(&buf);
+		}
+
+		if (node) {
+			int item_height = switcher_theme->item_height;
+			wlr_scene_node_set_position(node,
+				x, y + (item_height - height) / 2);
+		}
+		x += field_width + switcher_theme->item_padding_x;
+	}
+}
 
 static void
 osd_classic_create(struct output *output, struct wl_array *views)
@@ -126,62 +176,33 @@ osd_classic_create(struct output *output, struct wl_array *views)
 			+ switcher_theme->item_padding_x;
 		struct wlr_scene_tree *item_root =
 			wlr_scene_tree_create(output->osd_scene.tree);
+		item->normal_tree = wlr_scene_tree_create(item_root);
+		item->active_tree = wlr_scene_tree_create(item_root);
+		wlr_scene_node_set_enabled(&item->active_tree->node, false);
 
-		struct window_switcher_field *field;
-		wl_list_for_each(field, &rc.window_switcher.fields, link) {
-			int field_width = field_widths_sum * field->width / 100.0;
-			struct wlr_scene_node *node = NULL;
-			int height = -1;
-
-			if (field->content == LAB_FIELD_ICON) {
-				int icon_size = MIN(field_width,
-					switcher_theme->item_icon_size);
-				struct scaled_icon_buffer *icon_buffer =
-					scaled_icon_buffer_create(item_root,
-						server, icon_size, icon_size);
-				scaled_icon_buffer_set_view(icon_buffer, *view);
-				node = &icon_buffer->scene_buffer->node;
-				height = icon_size;
-			} else {
-				buf_clear(&buf);
-				osd_field_get_content(field, &buf, *view);
-
-				if (!string_null_or_empty(buf.data)) {
-					struct scaled_font_buffer *font_buffer =
-						scaled_font_buffer_create(item_root);
-					scaled_font_buffer_update(font_buffer,
-						buf.data, field_width,
-						&rc.font_osd, text_color, bg_color);
-					node = &font_buffer->scene_buffer->node;
-					height = font_height(&rc.font_osd);
-				}
-			}
-
-			if (node) {
-				int item_height = switcher_theme->item_height;
-				wlr_scene_node_set_position(node,
-					x, y + (item_height - height) / 2);
-			}
-			x += field_width + switcher_theme->item_padding_x;
-		}
+		float *active_bg_color = switcher_theme->item_active_bg_color;
+		float *active_border_color = switcher_theme->item_active_border_color;
 
 		/* Highlight around selected window's item */
 		int highlight_x = theme->osd_border_width
 				+ switcher_theme->padding;
 		struct lab_scene_rect_options highlight_opts = {
-			.border_colors = (float *[1]) {text_color},
+			.border_colors = (float *[1]) {active_border_color},
+			.bg_color = active_bg_color,
 			.nr_borders = 1,
 			.border_width = switcher_theme->item_active_border_width,
 			.width = w - 2 * theme->osd_border_width
 				- 2 * switcher_theme->padding,
 			.height = switcher_theme->item_height,
 		};
-
 		struct lab_scene_rect *highlight_rect = lab_scene_rect_create(
-			output->osd_scene.tree, &highlight_opts);
-		item->highlight_outline = &highlight_rect->tree->node;
-		wlr_scene_node_set_position(item->highlight_outline, highlight_x, y);
-		wlr_scene_node_set_enabled(item->highlight_outline, false);
+			item->active_tree, &highlight_opts);
+		wlr_scene_node_set_position(&highlight_rect->tree->node, highlight_x, y);
+
+		create_fields_scene(server, *view, item->normal_tree,
+			text_color, bg_color, field_widths_sum, x, y);
+		create_fields_scene(server, *view, item->active_tree,
+			text_color, active_bg_color, field_widths_sum, x, y);
 
 		y += switcher_theme->item_height;
 	}
@@ -200,8 +221,9 @@ osd_classic_update(struct output *output)
 {
 	struct osd_classic_scene_item *item;
 	wl_array_for_each(item, &output->osd_scene.items) {
-		wlr_scene_node_set_enabled(item->highlight_outline,
-			item->view == output->server->osd_state.cycle_view);
+		bool active = item->view == output->server->osd_state.cycle_view;
+		wlr_scene_node_set_enabled(&item->normal_tree->node, !active);
+		wlr_scene_node_set_enabled(&item->active_tree->node, active);
 	}
 }
 

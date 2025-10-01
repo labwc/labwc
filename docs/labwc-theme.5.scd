@@ -327,6 +327,14 @@ all are supported.
 	Border width of the selection box in the window switcher in pixels.
 	Default is 2.
 
+*osd.window-switcher.style-classic.item.active.border.color*
+	Border color around the selected window switcher item.
+	Default is *osd.label.text.color* with 50% opacity.
+
+*osd.window-switcher.style-classic.item.active.bg.color*
+	Background color of the selected window switcher item.
+	Default is *osd.label.text.color* with 15% opacity.
+
 *osd.window-switcher.style-classic.item.icon.size*
 	Size of the icon in window switcher, in pixels.
 	If not set, the font size derived from <theme><font place="OnScreenDisplay">

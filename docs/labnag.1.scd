@@ -31,6 +31,9 @@ _labnag_ [options...]
 *-y, --layer* overlay|top|bottom|background
 	Set the layer to use.
 
+*-k, --keyboard-focus none|exclusive|on-demand*
+	Set the policy for keyboard focus.
+
 *-f, --font* <font>
 	Set the font to use.
 

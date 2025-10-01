@@ -106,8 +106,8 @@ osd.window-switcher.style-thumbnail.item.width: 300
 osd.window-switcher.style-thumbnail.item.height: 250
 osd.window-switcher.style-thumbnail.item.padding: 10
 osd.window-switcher.style-thumbnail.item.active.border.width: 2
-osd.window-switcher.style-thumbnail.item.active.border.color: #589bda
-osd.window-switcher.style-thumbnail.item.active.bg.color: #c7e2fc
+osd.window-switcher.style-thumbnail.item.active.border.color: #706f6d
+osd.window-switcher.style-thumbnail.item.active.bg.color: #bfbcba
 osd.window-switcher.style-thumbnail.item.icon.size: 60
 
 osd.window-switcher.preview.border.width: 1

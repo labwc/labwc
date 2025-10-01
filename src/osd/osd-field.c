@@ -36,7 +36,7 @@ get_app_id_or_class(struct view *view, bool trim)
 
 	/* remove the first two nodes of 'org.' strings */
 	if (trim && !strncmp(identifier, "org.", 4)) {
-		char *p = (char *)identifier + 4;
+		const char *p = identifier + 4;
 		p = strchr(p, '.');
 		if (p) {
 			return ++p;

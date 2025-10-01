@@ -440,7 +440,7 @@ ssd_update_title(struct ssd *ssd)
 	}
 
 	struct view *view = ssd->view;
-	char *title = (char *)view_get_string_prop(view, "title");
+	const char *title = view_get_string_prop(view, "title");
 	if (string_null_or_empty(title)) {
 		return;
 	}

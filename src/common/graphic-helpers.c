@@ -27,34 +27,34 @@ draw_cairo_border(cairo_t *cairo, struct wlr_fbox fbox, double line_width)
 
 /* Sets the cairo color. Splits the single color channels */
 void
-set_cairo_color(cairo_t *cairo, const float *c)
+set_cairo_color(cairo_t *cairo, const float *color)
 {
 	/*
 	 * We are dealing with pre-multiplied colors
 	 * but cairo expects unmultiplied colors here
 	 */
-	float alpha = c[3];
+	float alpha = color[3];
 
 	if (alpha == 0.0f) {
 		cairo_set_source_rgba(cairo, 0, 0, 0, 0);
 		return;
 	}
 
-	cairo_set_source_rgba(cairo, c[0] / alpha, c[1] / alpha,
-		c[2] / alpha, alpha);
+	cairo_set_source_rgba(cairo, color[0] / alpha, color[1] / alpha,
+		color[2] / alpha, alpha);
 }
 
 cairo_pattern_t *
-color_to_pattern(const float *c)
+color_to_pattern(const float *color)
 {
-	float alpha = c[3];
+	float alpha = color[3];
 
 	if (alpha == 0.0f) {
 		return cairo_pattern_create_rgba(0, 0, 0, 0);
 	}
 
-	return cairo_pattern_create_rgba(
-		c[0] / alpha, c[1] / alpha, c[2] / alpha, alpha);
+	return cairo_pattern_create_rgba(color[0] / alpha, color[1] / alpha,
+		color[2] / alpha, alpha);
 }
 
 /*

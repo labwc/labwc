@@ -93,8 +93,14 @@ end_cycling(struct server *server)
 	}
 
 	struct view *cycle_view = server->osd_state.cycle_view;
+	/* Store the shaded state before osd_finish() clears the cycle_view */
+	bool was_shaded = cycle_view && cycle_view->shaded;
 	/* FIXME: osd_finish() transiently sets focus to the old surface */
 	osd_finish(server);
+	/* Unshade if we're actually selecting a window (not canceling) */
+	if (cycle_view && was_shaded) {
+		view_set_shade(cycle_view, false);
+	}
 	/* Note that server->osd_state.cycle_view is cleared at this point */
 	desktop_focus_view(cycle_view, /*raise*/ true);
 }

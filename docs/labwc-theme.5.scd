@@ -359,9 +359,11 @@ all are supported.
 
 *osd.window-switcher.style-thumbnail.item.active.border.color*
 	Color of border around selected window switcher items. Default is #589bda.
+	Note: the default value is planned to be updated in labwc 0.9.3.
 
 *osd.window-switcher.style-thumbnail.item.active.bg.color*
 	Color of selected window switcher items. Default is #c7e2fc.
+	Note: the default value is planned to be updated in labwc 0.9.3.
 
 *osd.window-switcher.style-thumbnail.item.icon.size*
 	Size of window icons in window switcher items in pixels. Default is 60.

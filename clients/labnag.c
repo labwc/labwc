@@ -1250,13 +1250,6 @@ conf_init(struct conf *conf)
 		| ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT
 		| ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
 	conf->layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
-	conf->button_background = 0x333333FF;
-	conf->details_background = 0x333333FF;
-	conf->background = 0x323232FF;
-	conf->text = 0xFFFFFFFF;
-	conf->button_text = 0xFFFFFFFF;
-	conf->button_border = 0x222222FF;
-	conf->border_bottom = 0x444444FF;
 	conf->bar_border_thickness = 2;
 	conf->message_padding = 8;
 	conf->details_border_thickness = 3;

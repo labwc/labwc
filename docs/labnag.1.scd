@@ -62,22 +62,22 @@ _labnag_ [options...]
 
 # APPEARANCE OPTIONS
 
-*--background* <RRGGBB[AA]>
+*--background-color* <RRGGBB[AA]>
 	Set the color of the background.
 
-*--border* <RRGGBB[AA]>
-	Set the color of the border.
+*--button-border-color* <RRGGBB[AA]>
+	Set the color of the button border.
 
-*--border-bottom* <RRGGBB[AA]>
+*--border-bottom-color* <RRGGBB[AA]>
 	Set the color of the bottom border.
 
-*--button-background* <RRGGBB[AA]>
+*--button-background-color* <RRGGBB[AA]>
 	Set the color for the background for buttons.
 
-*--text* <RRGGBB[AA]>
+*--text-color* <RRGGBB[AA]>
 	Set the text color.
 
-*--button-text* <RRGGBB[AA]>
+*--button-text-color* <RRGGBB[AA]>
 	Set the button text color.
 
 *--border-bottom-size* <size>
@@ -86,7 +86,7 @@ _labnag_ [options...]
 *--message-padding* <padding>
 	Set the padding for the message.
 
-*--details-background* <RRGGBB[AA]>
+*--details-background-color* <RRGGBB[AA]>
 	Set the color for the background for details.
 
 *--details-border-size* <size>
@@ -126,11 +126,11 @@ labnag \\
  -Z "Hibernate" "systemctl hibernate"\\
  -Z " Suspend " "systemctl suspend"\\
  -Z " Cancel  "\\
- --background 00ffff\\
- --button-background 00ffff\\
- --border 00ccccaa\\
- --text 000000\\
- --button-text 000000\\
+ --background-color 00ffff\\
+ --button-background-color 00ffff\\
+ --button-border-color 00ccccaa\\
+ --text-color 000000\\
+ --button-text-color 000000\\
  --button-gap 8\\
  --button-margin-right 0\\
  --button-padding 5\\

@@ -20,6 +20,6 @@ struct wlr_scene_node *lab_wlr_scene_get_prev_node(struct wlr_scene_node *node);
 
 /* A variant of wlr_scene_output_commit() that respects wlr_output->pending */
 bool lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
-	struct wlr_output_state *output_state);
+	struct wlr_output_state *state);
 
 #endif /* LABWC_SCENE_HELPERS_H */

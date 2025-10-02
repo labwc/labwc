@@ -1233,7 +1233,7 @@ nag_run(struct nag *nag)
 			wl_display_cancel_read(nag->display);
 		}
 		if (nag->pollfds[FD_TIMER].revents & POLLIN) {
-			exit_status = LAB_EXIT_TIMEOUT;
+			exit_status = LAB_EXIT_CANCELLED;
 			break;
 		}
 		if (nag->pollfds[FD_SIGNAL].revents & POLLIN) {

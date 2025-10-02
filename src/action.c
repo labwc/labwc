@@ -934,7 +934,7 @@ action_check_prompt_result(pid_t pid, int exit_code)
 		if (exit_code == LAB_EXIT_SUCCESS) {
 			wlr_log(WLR_INFO, "Selected the 'then' branch");
 			actions = action_get_actionlist(prompt->action, "then");
-		} else if (exit_code == LAB_EXIT_TIMEOUT) {
+		} else if (exit_code == LAB_EXIT_CANCELLED) {
 			/* no-op */
 		} else {
 			wlr_log(WLR_INFO, "Selected the 'else' branch");

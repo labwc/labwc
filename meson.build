@@ -127,7 +127,9 @@ conf_data.set10('HAVE_RSVG', have_rsvg)
 conf_data.set10('HAVE_LIBSFDO', have_libsfdo)
 
 foreach sym : ['LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY', 'LIBINPUT_CONFIG_3FG_DRAG_ENABLED_3FG']
-	conf_data.set10('HAVE_' + sym, cc.has_header_symbol('libinput.h', sym, dependencies: input))
+  has_sym = input.type_name() != 'internal' \
+              and cc.has_header_symbol('libinput.h', sym, dependencies: input)
+	conf_data.set10('HAVE_' + sym, has_sym)
 endforeach
 
 if get_option('static_analyzer').enabled()

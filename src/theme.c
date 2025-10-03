@@ -604,6 +604,8 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->osd_window_switcher_classic.item_padding_x = 10;
 	theme->osd_window_switcher_classic.item_padding_y = 1;
 	theme->osd_window_switcher_classic.item_active_border_width = 2;
+	theme->osd_window_switcher_classic.item_active_border_color[0] = FLT_MIN;
+	theme->osd_window_switcher_classic.item_active_bg_color[0] = FLT_MIN;
 	theme->osd_window_switcher_classic.item_icon_size = -1;
 
 	theme->osd_window_switcher_thumbnail.max_width = 80;
@@ -613,8 +615,8 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->osd_window_switcher_thumbnail.item_height = 250;
 	theme->osd_window_switcher_thumbnail.item_padding = 10;
 	theme->osd_window_switcher_thumbnail.item_active_border_width = 2;
-	parse_color("#589bda", theme->osd_window_switcher_thumbnail.item_active_border_color);
-	parse_color("#c7e2fc", theme->osd_window_switcher_thumbnail.item_active_bg_color);
+	theme->osd_window_switcher_thumbnail.item_active_border_color[0] = FLT_MIN;
+	theme->osd_window_switcher_thumbnail.item_active_bg_color[0] = FLT_MIN;
 	theme->osd_window_switcher_thumbnail.item_icon_size = 60;
 
 	/* inherit settings in post_processing() if not set elsewhere */
@@ -988,6 +990,12 @@ entry(struct theme *theme, const char *key, const char *value)
 		switcher_classic_theme->item_active_border_width =
 			get_int_if_positive(value,
 				"osd.window-switcher.style-classic.item.active.border.width");
+	}
+	if (match_glob(key, "osd.window-switcher.style-classic.item.active.border.color")) {
+		parse_color(value, switcher_classic_theme->item_active_border_color);
+	}
+	if (match_glob(key, "osd.window-switcher.style-classic.item.active.bg.color")) {
+		parse_color(value, switcher_classic_theme->item_active_bg_color);
 	}
 	if (match_glob(key, "osd.window-switcher.style-classic.item.icon.size")
 			|| match_glob(key, "osd.window-switcher.item.icon.size")) {
@@ -1633,6 +1641,31 @@ get_titlebar_height(struct theme *theme)
 	return h;
 }
 
+/* Get the blended color when painting fg color (with new alpha) on bg color */
+static void
+blend_color_with_bg(float *dst, float *fg, float fg_a, float *bg)
+{
+	/* Guard against zero division */
+	if (fg[3] <= 0.0f) {
+		memset(dst, 0, sizeof(float) * 4);
+		return;
+	}
+
+	/* Redo premultiplication to update fg alpha */
+	float new_fg[4] = {
+		fg[0] / fg[3] * fg_a,
+		fg[1] / fg[3] * fg_a,
+		fg[2] / fg[3] * fg_a,
+		fg_a,
+	};
+
+	/* Blend colors */
+	dst[0] = new_fg[0] + bg[0] * (1.0f - new_fg[3]);
+	dst[1] = new_fg[1] + bg[1] * (1.0f - new_fg[3]);
+	dst[2] = new_fg[2] + bg[2] * (1.0f - new_fg[3]);
+	dst[3] = new_fg[3] + bg[3] * (1.0f - new_fg[3]);
+}
+
 static void
 post_processing(struct theme *theme)
 {
@@ -1720,6 +1753,22 @@ post_processing(struct theme *theme)
 		 */
 		memcpy(theme->osd_border_color, theme->osd_label_text_color,
 			sizeof(theme->osd_border_color));
+	}
+	if (switcher_classic_theme->item_active_border_color[0] == FLT_MIN) {
+		blend_color_with_bg(switcher_classic_theme->item_active_border_color,
+			theme->osd_label_text_color, 0.50, theme->osd_bg_color);
+	}
+	if (switcher_classic_theme->item_active_bg_color[0] == FLT_MIN) {
+		blend_color_with_bg(switcher_classic_theme->item_active_bg_color,
+			theme->osd_label_text_color, 0.15, theme->osd_bg_color);
+	}
+	if (switcher_thumb_theme->item_active_border_color[0] == FLT_MIN) {
+		blend_color_with_bg(switcher_thumb_theme->item_active_border_color,
+			theme->osd_label_text_color, 0.50, theme->osd_bg_color);
+	}
+	if (switcher_thumb_theme->item_active_bg_color[0] == FLT_MIN) {
+		blend_color_with_bg(switcher_thumb_theme->item_active_bg_color,
+			theme->osd_label_text_color, 0.15, theme->osd_bg_color);
 	}
 	if (theme->osd_workspace_switcher_boxes_width == 0) {
 		theme->osd_workspace_switcher_boxes_height = 0;

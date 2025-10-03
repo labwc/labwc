@@ -160,9 +160,14 @@ restore_preview_node(struct server *server)
 		if (!osd_state->preview_was_enabled) {
 			wlr_scene_node_set_enabled(osd_state->preview_node, false);
 		}
+		if (osd_state->preview_was_shaded) {
+			view_set_shade(osd_state->preview_view, true);
+		}
 		osd_state->preview_node = NULL;
 		osd_state->preview_parent = NULL;
 		osd_state->preview_anchor = NULL;
+		osd_state->preview_view = NULL;
+		osd_state->preview_was_shaded = false;
 	}
 }
 
@@ -229,6 +234,7 @@ preview_cycled_view(struct view *view)
 	/* Store some pointers so we can reset the preview later on */
 	osd_state->preview_node = &view->scene_tree->node;
 	osd_state->preview_parent = view->scene_tree->node.parent;
+	osd_state->preview_view = view;
 
 	/* Remember the sibling right before the selected node */
 	osd_state->preview_anchor = lab_wlr_scene_get_prev_node(
@@ -243,6 +249,10 @@ preview_cycled_view(struct view *view)
 	osd_state->preview_was_enabled = osd_state->preview_node->enabled;
 	if (!osd_state->preview_was_enabled) {
 		wlr_scene_node_set_enabled(osd_state->preview_node, true);
+	}
+	if (rc.window_switcher.unshade && osd_state->preview_view->shaded) {
+		view_set_shade(osd_state->preview_view, false);
+		osd_state->preview_was_shaded = true;
 	}
 
 	/*

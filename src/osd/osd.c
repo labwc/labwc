@@ -9,6 +9,7 @@
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
+#include "node.h"
 #include "output.h"
 #include "scaled-buffer/scaled-font-buffer.h"
 #include "scaled-buffer/scaled-icon-buffer.h"
@@ -160,9 +161,14 @@ restore_preview_node(struct server *server)
 		if (!osd_state->preview_was_enabled) {
 			wlr_scene_node_set_enabled(osd_state->preview_node, false);
 		}
+		if (osd_state->preview_was_shaded) {
+			struct view *view = node_view_from_node(osd_state->preview_node);
+			view_set_shade(view, true);
+		}
 		osd_state->preview_node = NULL;
 		osd_state->preview_parent = NULL;
 		osd_state->preview_anchor = NULL;
+		osd_state->preview_was_shaded = false;
 	}
 }
 
@@ -203,6 +209,7 @@ osd_finish(struct server *server)
 	server->osd_state.preview_node = NULL;
 	server->osd_state.preview_anchor = NULL;
 	server->osd_state.cycle_view = NULL;
+	server->osd_state.preview_was_shaded = false;
 
 	destroy_osd_scenes(server);
 
@@ -243,6 +250,10 @@ preview_cycled_view(struct view *view)
 	osd_state->preview_was_enabled = osd_state->preview_node->enabled;
 	if (!osd_state->preview_was_enabled) {
 		wlr_scene_node_set_enabled(osd_state->preview_node, true);
+	}
+	if (rc.window_switcher.unshade && view->shaded) {
+		view_set_shade(view, false);
+		osd_state->preview_was_shaded = true;
 	}
 
 	/*
@@ -294,6 +305,10 @@ update_osd(struct server *server)
 		}
 	}
 
+	if (rc.window_switcher.preview) {
+		preview_cycled_view(server->osd_state.cycle_view);
+	}
+
 	/* Outline current window */
 	if (rc.window_switcher.outlines) {
 		if (view_is_focusable(server->osd_state.cycle_view)) {
@@ -301,9 +316,6 @@ update_osd(struct server *server)
 		}
 	}
 
-	if (rc.window_switcher.preview) {
-		preview_cycled_view(server->osd_state.cycle_view);
-	}
 out:
 	wl_array_release(&views);
 }

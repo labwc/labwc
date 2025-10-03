@@ -346,7 +346,7 @@ this is for compatibility with Openbox.
 </windowSwitcher>
 ```
 
-*<windowSwitcher show="" style="" preview="" outlines="" allWorkspaces="">*
+*<windowSwitcher show="" style="" preview="" outlines="" allWorkspaces="" unshade="">*
 	*show* [yes|no] Draw the OnScreenDisplay when switching between
 	windows. Default is yes.
 
@@ -363,6 +363,9 @@ this is for compatibility with Openbox.
 	*allWorkspaces* [yes|no] Show windows regardless of what workspace
 	they are on. Default no (that is only windows on the current workspace
 	are shown).
+
+	*unshade* [yes|no] Temporarily unshade windows when switching between
+	them and permanently unshade on the final selection. Default is yes.
 
 *<windowSwitcher><fields><field content="" width="%">*
 	Define window switcher fields when using *<windowSwitcher style="classic" />*.

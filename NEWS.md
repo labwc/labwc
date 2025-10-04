@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2025-09-15 | [unreleased]  | 0.19.1          | 28686         |
+| 2025-10-10 | [0.9.2]       | 0.19.1          | 28777         |
 | 2025-08-02 | [0.9.1]       | 0.19.0          | 28605         |
 | 2025-07-11 | [0.9.0]       | 0.19.0          | 28586         |
 | 2025-05-02 | [0.8.4]       | 0.18.2          | 27679         |
@@ -39,6 +39,7 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.9.2]: NEWS.md#092---2025-10-10
 [0.9.1]: NEWS.md#091---2025-08-02
 [0.9.0]: NEWS.md#090---2025-07-11
 [0.8.4]: NEWS.md#084---2025-05-02
@@ -113,6 +114,10 @@ There is a pending fix [wlroots-5159].
 ## unreleased
 
 [unreleased-commits]
+
+## 0.9.2 - 2025-10-10
+
+[0.9.2-commits]
 
 ### Added
 
@@ -2367,7 +2372,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.0...HEAD
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.2...HEAD
+[0.9.2-commits]: https://github.com/labwc/labwc/compare/0.9.0...0.9.2
 [0.9.1-commits]: https://github.com/labwc/labwc/compare/0.9.0...0.9.1
 [0.9.0-commits]: https://github.com/labwc/labwc/compare/0.8.4...0.9.0
 [0.8.4-commits]: https://github.com/labwc/labwc/compare/0.8.3...0.8.4

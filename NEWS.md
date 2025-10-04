@@ -2373,7 +2373,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
 [unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.2...HEAD
-[0.9.2-commits]: https://github.com/labwc/labwc/compare/0.9.0...0.9.2
+[0.9.2-commits]: https://github.com/labwc/labwc/compare/0.9.1...0.9.2
 [0.9.1-commits]: https://github.com/labwc/labwc/compare/0.9.0...0.9.1
 [0.9.0-commits]: https://github.com/labwc/labwc/compare/0.8.4...0.9.0
 [0.8.4-commits]: https://github.com/labwc/labwc/compare/0.8.3...0.8.4

@@ -134,6 +134,7 @@ There is a pending fix [wlroots-5159].
   [#2994]
 - Add `labnag` (a dialog client with message and buttons) and associated
   `<prompt>` option in 'If' actions.  @johanmalm @Consolatis @tokyo4j [#2699]
+- Support config option `<core><promptCommand>` @johanmalm [#3097]
 - Allow snapping to corner edges during interactive move with associated config
   options `<snapping><cornerRange>`. @tokyo4j [#2885]
 - Support new values "up-left", "up-right", "down-left" and "down-right" with
@@ -2830,4 +2831,5 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3047]: https://github.com/labwc/labwc/pull/3047
 [#3049]: https://github.com/labwc/labwc/pull/3049
 [#3081]: https://github.com/labwc/labwc/pull/3081
+[#3097]: https://github.com/labwc/labwc/pull/3097
 [#3099]: https://github.com/labwc/labwc/pull/3099

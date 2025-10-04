@@ -1217,6 +1217,8 @@ entry(xmlNode *node, char *nodename, char *content)
 			rc.window_switcher.criteria &=
 				~LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
 		}
+	} else if (!strcasecmp(nodename, "unshade.windowSwitcher")) {
+		set_bool(content, &rc.window_switcher.unshade);
 
 	/* Remove this long term - just a friendly warning for now */
 	} else if (strstr(nodename, "windowswitcher.core")) {
@@ -1429,6 +1431,7 @@ rcxml_init(void)
 	rc.window_switcher.style = WINDOW_SWITCHER_CLASSIC;
 	rc.window_switcher.preview = true;
 	rc.window_switcher.outlines = true;
+	rc.window_switcher.unshade = true;
 	rc.window_switcher.criteria = LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
 		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
 		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;

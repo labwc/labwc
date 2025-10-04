@@ -96,6 +96,9 @@ end_cycling(struct server *server)
 	/* FIXME: osd_finish() transiently sets focus to the old surface */
 	osd_finish(server);
 	/* Note that server->osd_state.cycle_view is cleared at this point */
+	if (rc.window_switcher.unshade) {
+		view_set_shade(cycle_view, false);
+	}
 	desktop_focus_view(cycle_view, /*raise*/ true);
 }
 

@@ -109,6 +109,18 @@ desktop_entry_init(struct server *server)
 		sfdo->icon_ctx,
 		rc.icon_theme_name, load_options);
 	if (!sfdo->icon_theme) {
+		/*
+		 * sfdo_icon_theme_load() falls back to hicolor theme with
+		 * _ALLOW_MISSING flag when the theme is missing, but just
+		 * fails when the theme is invalid.
+		 * So manually call sfdo_icon_theme_load() again here.
+		 */
+		wlr_log(WLR_ERROR, "Failed to load icon theme %s, falling back to 'hicolor'",
+			rc.icon_theme_name);
+		sfdo->icon_theme = sfdo_icon_theme_load(
+			sfdo->icon_ctx, "hicolor", load_options);
+	}
+	if (!sfdo->icon_theme) {
 		goto err_icon_theme;
 	}
 

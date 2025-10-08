@@ -96,15 +96,15 @@ desktop_entry_init(struct server *server)
 	 * We set some relaxed load options to accommodate delinquent themes in
 	 * the wild, namely:
 	 *
-	 * - SFDO_ICON_THEME_LOAD_OPTION_ALLOW_MISSING to "impose less
-	 *   restrictions on the format of icon theme files"
+	 * - SFDO_ICON_THEME_LOAD_OPTION_RELAXED to "impose less restrictions
+	 *   on the format of icon theme files"
 	 *
-	 * - SFDO_ICON_THEME_LOAD_OPTION_RELAXED to "continue loading even if it
-	 *   fails to find a theme or one of its dependencies."
+	 * - SFDO_ICON_THEME_LOAD_OPTION_ALLOW_MISSING to "continue loading
+	 *   even if it fails to find a theme or one of its dependencies."
 	 */
 	int load_options = SFDO_ICON_THEME_LOAD_OPTIONS_DEFAULT
-		| SFDO_ICON_THEME_LOAD_OPTION_ALLOW_MISSING
-		| SFDO_ICON_THEME_LOAD_OPTION_RELAXED;
+		| SFDO_ICON_THEME_LOAD_OPTION_RELAXED
+		| SFDO_ICON_THEME_LOAD_OPTION_ALLOW_MISSING;
 
 	sfdo->icon_theme = sfdo_icon_theme_load(
 		sfdo->icon_ctx,

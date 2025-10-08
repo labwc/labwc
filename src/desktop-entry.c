@@ -37,9 +37,10 @@ log_handler(enum sfdo_log_level level, const char *fmt, va_list args, void *tag)
 
 	/*
 	 * To avoid logging issues with .desktop files as errors, all libsfdo
-	 * error-logging is demoted to info level.
+	 * error-logging is demoted to info level unless running with
+	 * LABWC_DEBUG_LIBSFDO.
 	 */
-	if (level == SFDO_LOG_LEVEL_ERROR) {
+	if (!debug_libsfdo && level == SFDO_LOG_LEVEL_ERROR) {
 		level = SFDO_LOG_LEVEL_INFO;
 	}
 
@@ -117,6 +118,12 @@ desktop_entry_init(struct server *server)
 		 */
 		wlr_log(WLR_ERROR, "Failed to load icon theme %s, falling back to 'hicolor'",
 			rc.icon_theme_name);
+
+		if (!debug_libsfdo) {
+			wlr_log(WLR_ERROR, "Further information is available by setting "
+				"the LABWC_DEBUG_LIBSFDO=1 env var before starting labwc");
+		}
+
 		sfdo->icon_theme = sfdo_icon_theme_load(
 			sfdo->icon_ctx, "hicolor", load_options);
 	}
@@ -141,6 +148,10 @@ err_desktop_ctx:
 err_basedir_ctx:
 	free(sfdo);
 	wlr_log(WLR_ERROR, "Failed to initialize icon loader");
+	if (!debug_libsfdo) {
+		wlr_log(WLR_ERROR, "Further information is available by setting "
+			"the LABWC_DEBUG_LIBSFDO=1 env var before starting labwc");
+	}
 }
 
 void

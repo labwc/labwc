@@ -51,7 +51,7 @@ executable(
     epoll_dep,
   ],
   include_directories: [labwc_inc],
-	install: true
+  install: true,
 )
 
 clients = files('lab-sensible-terminal')

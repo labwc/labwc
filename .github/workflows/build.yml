@@ -17,6 +17,7 @@ on:
       - 'src/**'
       - 'include/**'
       - 'protocols/**'
+      - 'clients/**'
       - 'scripts/**'
       - '.github/workflows/**'
 

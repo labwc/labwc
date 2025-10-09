@@ -5,6 +5,7 @@
 #include <wlr/types/wlr_fractional_scale_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_activation_v1.h>
+#include <wlr/types/wlr_xdg_dialog_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/types/wlr_xdg_toplevel_icon_v1.h>
 #include "buffer.h"
@@ -614,6 +615,18 @@ xdg_toplevel_view_append_children(struct view *self, struct wl_array *children)
 	}
 }
 
+static bool
+xdg_toplevel_view_is_modal_dialog(struct view *view)
+{
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+	struct wlr_xdg_dialog_v1 *dialog =
+		wlr_xdg_dialog_v1_try_from_wlr_xdg_toplevel(toplevel);
+	if (!dialog) {
+		return false;
+	}
+	return dialog->modal;
+}
+
 static void
 xdg_toplevel_view_set_activated(struct view *view, bool activated)
 {
@@ -894,6 +907,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.minimize = xdg_toplevel_view_minimize,
 	.get_root = xdg_toplevel_view_get_root,
 	.append_children = xdg_toplevel_view_append_children,
+	.is_modal_dialog = xdg_toplevel_view_is_modal_dialog,
 	.get_size_hints = xdg_toplevel_view_get_size_hints,
 	.contains_window_type = xdg_toplevel_view_contains_window_type,
 	.get_pid = xdg_view_get_pid,
@@ -1139,6 +1153,8 @@ xdg_shell_init(struct server *server)
 	server->xdg_toplevel_icon_set_icon.notify = handle_xdg_toplevel_icon_set_icon;
 	wl_signal_add(&server->xdg_toplevel_icon_manager->events.set_icon,
 		&server->xdg_toplevel_icon_set_icon);
+
+	wlr_xdg_wm_dialog_v1_create(server->wl_display, 1);
 }
 
 void

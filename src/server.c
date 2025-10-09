@@ -276,6 +276,7 @@ allow_for_sandbox(const struct wlr_security_context_v1_state *security_state,
 		"zxdg_importer_v1",
 		"zxdg_importer_v2",
 		"xdg_toplevel_icon_manager_v1",
+		"xdg_dialog_v1",
 		/* plus */
 		"wp_alpha_modifier_v1",
 		"wp_linux_drm_syncobj_manager_v1",

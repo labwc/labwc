@@ -79,7 +79,8 @@ merge_two_trees(xmlNode *dst, xmlNode *src)
 			&& !strcasecmp((char *)dst->name, (char *)src->name)) {
 		xmlNode *next_dst = dst->last;
 		xmlNode *next_src = src->children;
-		xmlAddChild(dst, src->children);
+		xmlUnlinkNode(next_src);
+		xmlAddChild(dst, next_src);
 		xmlUnlinkNode(src);
 		xmlFreeNode(src);
 		src = next_src;

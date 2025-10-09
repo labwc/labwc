@@ -48,7 +48,7 @@ create_attribute_tree(const xmlAttr *attr)
 }
 
 /*
- * Consider <keybind name.action="ShowMenu" x.position.action="1" y.position="2" />.
+ * Consider <keybind name.action="ShowMenu" x.position.action="1" y.position.action="2" />.
  * These three attributes are represented by following trees.
  *    action(dst)---name
  *    action(src)---position---x

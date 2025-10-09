@@ -1083,12 +1083,6 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			rc.xdg_shell_server_side_deco = true;
 		}
-	} else if (!strcasecmp(nodename, "maximizedDecoration.core")) {
-		if (!strcasecmp(content, "titlebar")) {
-			rc.hide_maximized_window_titlebar = false;
-		} else if (!strcasecmp(content, "none")) {
-			rc.hide_maximized_window_titlebar = true;
-		}
 	} else if (!strcmp(nodename, "gap.core")) {
 		rc.gap = atoi(content);
 	} else if (!strcasecmp(nodename, "adaptiveSync.core")) {
@@ -1130,6 +1124,12 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.corner_radius = atoi(content);
 	} else if (!strcasecmp(nodename, "keepBorder.theme")) {
 		set_bool(content, &rc.ssd_keep_border);
+	} else if (!strcasecmp(nodename, "maximizedDecoration.theme")) {
+		if (!strcasecmp(content, "titlebar")) {
+			rc.hide_maximized_window_titlebar = false;
+		} else if (!strcasecmp(content, "none")) {
+			rc.hide_maximized_window_titlebar = true;
+		}
 	} else if (!strcasecmp(nodename, "dropShadows.theme")) {
 		set_bool(content, &rc.shadows_enabled);
 	} else if (!strcasecmp(nodename, "dropShadowsOnTiled.theme")) {

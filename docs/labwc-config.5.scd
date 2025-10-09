@@ -171,7 +171,6 @@ this is for compatibility with Openbox.
 ```
 <core>
   <decoration>server</decoration>
-  <maximizedDecoration>titlebar</maximizedDecoration>
   <gap>0</gap>
   <adaptiveSync>no</adaptiveSync>
   <allowTearing>no</allowTearing>
@@ -187,11 +186,6 @@ this is for compatibility with Openbox.
 	Specify server or client side decorations for xdg-shell windows. Note
 	that it is not always possible to turn off client side decorations.
 	Default is server.
-
-*<core><maximizedDecoration>* [titlebar|none]
-	Specify how server side decorations are shown for maximized windows.
-	*titlebar* shows titlebar above a maximized window. *none* shows no server
-	side decorations around a maximized window. Default is titlebar.
 
 *<core><gap>*
 	The distance in pixels between windows and output edges when using
@@ -602,6 +596,11 @@ extending outward from the snapped edge.
 *<theme><keepBorder>* [yes|no]
 	Even when disabling server side decorations via ToggleDecorations,
 	keep a small border (and resize area) around the window. Default is yes.
+
+*<theme><maximizedDecoration>* [titlebar|none]
+	Specify how server side decorations are shown for maximized windows.
+	*titlebar* shows titlebar above a maximized window. *none* shows no server
+	side decorations around a maximized window. Default is titlebar.
 
 *<theme><dropShadows>* [yes|no]
 	Should drop-shadows be rendered behind windows. Default is no.

@@ -583,11 +583,11 @@ input_method_relay_create(struct seat *seat)
 	relay->popup_tree = wlr_scene_tree_create(&seat->server->scene->tree);
 
 	relay->new_text_input.notify = handle_new_text_input;
-	wl_signal_add(&seat->server->text_input_manager->events.text_input,
+	wl_signal_add(&seat->server->text_input_manager->events.new_text_input,
 		&relay->new_text_input);
 
 	relay->new_input_method.notify = handle_new_input_method;
-	wl_signal_add(&seat->server->input_method_manager->events.input_method,
+	wl_signal_add(&seat->server->input_method_manager->events.new_input_method,
 		&relay->new_input_method);
 
 	relay->focused_surface_destroy.notify = handle_focused_surface_destroy;

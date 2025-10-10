@@ -2161,7 +2161,8 @@ view_snap_to_edge(struct view *view, enum lab_edge edge,
 
 	view_set_shade(view, false);
 
-	if (lab_edge_is_cardinal(edge) && view->maximized == VIEW_AXIS_NONE) {
+	if (lab_edge_is_cardinal(edge) && view->maximized == VIEW_AXIS_NONE
+			&& view->tiled != LAB_EDGE_CENTER) {
 		enum lab_edge invert_edge = lab_edge_invert(edge);
 		/* Represents axis of snapping direction */
 		enum lab_edge parallel_mask = edge | invert_edge;

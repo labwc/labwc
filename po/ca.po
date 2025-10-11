@@ -8,9 +8,10 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
-"PO-Revision-Date: 2025-03-29 11:25+0000\n"
-"Last-Translator: Davidmp <opensusecatala@gmail.com>\n"
-"Language-Team: Catalan <https://translate.lxqt-project.org/projects/labwc/labwc/ca/>\n"
+"PO-Revision-Date: 2025-10-11 20:01+0000\n"
+"Last-Translator: alvaroelpob <alvaropobladoresteban9@gmail.com>\n"
+"Language-Team: Catalan <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/ca/>\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,7 +25,7 @@ msgstr "Ves-hi..."
 
 #: src/menu/menu.c:1034
 msgid "Terminal"
-msgstr ""
+msgstr "Terminal"
 
 #: src/menu/menu.c:1040
 msgid "Reconfigure"

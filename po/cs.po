@@ -8,29 +8,32 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
-"PO-Revision-Date: 2024-03-02 02:00+0100\n"
-"Last-Translator: zenobit <zenobit@disroot.org>\n"
-"Language-Team: Czech <zenobit@disroot.org>\n"
+"PO-Revision-Date: 2025-10-11 20:01+0000\n"
+"Last-Translator: p-bo <pavel.borecki@gmail.com>\n"
+"Language-Team: Czech <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Weblate 4.2.1\n"
 
 #: src/menu/menu.c:1016
 msgid "Go there..."
-msgstr ""
+msgstr "Přejít tam..."
 
 #: src/menu/menu.c:1034
 msgid "Terminal"
-msgstr ""
+msgstr "Terminál"
 
 #: src/menu/menu.c:1040
 msgid "Reconfigure"
-msgstr "Překonfigurovat"
+msgstr "Přenastavit"
 
 #: src/menu/menu.c:1042
 msgid "Exit"
-msgstr "Odejít"
+msgstr "Ukončit"
 
 #: src/menu/menu.c:1056
 msgid "Minimize"
@@ -46,7 +49,7 @@ msgstr "Na celou obrazovku"
 
 #: src/menu/menu.c:1062
 msgid "Roll Up/Down"
-msgstr "Rolovat nahoru/dolů"
+msgstr "Posouvat nahoru/dolů"
 
 #: src/menu/menu.c:1064
 msgid "Decorations"
@@ -66,11 +69,11 @@ msgstr "Posunout doprava"
 
 #: src/menu/menu.c:1083
 msgid "Always on Visible Workspace"
-msgstr "Vždy na viditelné Pracovní Ploše"
+msgstr "Vždy na viditelné Pracovní ploše"
 
 #: src/menu/menu.c:1086
 msgid "Workspace"
-msgstr "Pracovní Plocha"
+msgstr "Pracovní plocha"
 
 #: src/menu/menu.c:1089
 msgid "Close"

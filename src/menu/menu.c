@@ -482,7 +482,7 @@ fill_item(struct menu *menu, xmlNode *node)
 		goto out;
 	}
 
-	struct menuitem *item = item_create(menu, (char *)label, icon_name, false);
+	struct menuitem *item = item_create(menu, label, icon_name, false);
 	lab_xml_expand_dotted_attributes(node);
 	append_parsed_actions(node, &item->actions);
 

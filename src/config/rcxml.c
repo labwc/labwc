@@ -1645,6 +1645,7 @@ post_processing(void)
 				"--button-text-color '%t' "
 				"--border-bottom-size 1 "
 				"--button-border-size 3 "
+				"--keyboard-focus on-demand "
 				"--timeout 0");
 	}
 	if (!rc.fallback_app_icon_name) {

@@ -285,6 +285,7 @@ this is for compatibility with Openbox.
 		--button-text-color '%t' \\
 		--border-bottom-size 1 \\
 		--button-border-size 3 \\
+		--keyboard-focus on-demand \\
 		--timeout 0
 	```
 

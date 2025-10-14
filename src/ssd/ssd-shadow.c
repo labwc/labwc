@@ -259,8 +259,8 @@ ssd_shadow_update(struct ssd *ssd)
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
 	bool tiled_shadows = false;
 	if (rc.shadows_on_tiled) {
-		if (rc.gap >= theme->window[THEME_ACTIVE].shadow_size
-				&& rc.gap >= theme->window[THEME_INACTIVE].shadow_size) {
+		if (rc.gap >= theme->window[SSD_ACTIVE].shadow_size
+				&& rc.gap >= theme->window[SSD_INACTIVE].shadow_size) {
 			tiled_shadows = true;
 		} else {
 			wlr_log(WLR_INFO, "gap size < shadow_size, ignore rc.shadows_ontiled");

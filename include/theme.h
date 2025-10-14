@@ -83,7 +83,7 @@ struct theme {
 
 	/*
 	 * Themes/textures for each active/inactive window. Indexed by
-	 * THEME_INACTIVE and THEME_ACTIVE.
+	 * ssd_active_state.
 	 */
 	struct {
 		/* title background pattern (solid or gradient) */
@@ -211,10 +211,6 @@ struct theme {
 	float mag_border_color[4];
 	int mag_border_width;
 };
-
-/* TODO: replace with enum ssd_active_state */
-#define THEME_INACTIVE 0
-#define THEME_ACTIVE 1
 
 struct server;
 

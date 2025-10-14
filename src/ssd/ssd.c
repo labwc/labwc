@@ -348,7 +348,7 @@ ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable)
 
 	float *color = enable
 		? rc.theme->window_toggled_keybinds_color
-		: rc.theme->window[THEME_ACTIVE].border_color;
+		: rc.theme->window[SSD_ACTIVE].border_color;
 	wlr_scene_rect_set_color(ssd->border.subtrees[SSD_ACTIVE].top, color);
 }
 

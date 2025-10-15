@@ -679,30 +679,6 @@ parse_buf(struct server *server, struct menu *parent, struct buf *buf)
 	return true;
 }
 
-/*
- * @stream can come from either of the following:
- *   - fopen() in the case of reading a file such as menu.xml
- *   - popen() when processing pipemenus
- */
-static void
-parse_stream(struct server *server, FILE *stream)
-{
-	char *line = NULL;
-	size_t len = 0;
-	struct buf b = BUF_INIT;
-
-	while (getline(&line, &len, stream) != -1) {
-		char *p = strrchr(line, '\n');
-		if (p) {
-			*p = '\0';
-		}
-		buf_add(&b, line);
-	}
-	free(line);
-	parse_buf(server, NULL, &b);
-	buf_reset(&b);
-}
-
 static void
 parse_xml(const char *filename, struct server *server)
 {
@@ -715,13 +691,13 @@ parse_xml(const char *filename, struct server *server)
 
 	for (struct wl_list *elm = iter(&paths); elm != &paths; elm = iter(elm)) {
 		struct path *path = wl_container_of(elm, path, link);
-		FILE *stream = fopen(path->string, "r");
-		if (!stream) {
+		struct buf buf = buf_from_file(path->string);
+		if (!buf.len) {
 			continue;
 		}
 		wlr_log(WLR_INFO, "read menu file %s", path->string);
-		parse_stream(server, stream);
-		fclose(stream);
+		parse_buf(server, /*parent*/ NULL, &buf);
+		buf_reset(&buf);
 		if (!should_merge_config) {
 			break;
 		}

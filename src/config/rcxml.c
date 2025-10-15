@@ -1872,25 +1872,13 @@ rcxml_read(const char *filename)
 	 */
 	for (struct wl_list *elm = iter(&paths); elm != &paths; elm = iter(elm)) {
 		struct path *path = wl_container_of(elm, path, link);
-		FILE *stream = fopen(path->string, "r");
-		if (!stream) {
+		struct buf b = buf_from_file(path->string);
+		if (!b.len) {
 			continue;
 		}
 
 		wlr_log(WLR_INFO, "read config file %s", path->string);
 
-		struct buf b = BUF_INIT;
-		char *line = NULL;
-		size_t len = 0;
-		while (getline(&line, &len, stream) != -1) {
-			char *p = strrchr(line, '\n');
-			if (p) {
-				*p = '\0';
-			}
-			buf_add(&b, line);
-		}
-		zfree(line);
-		fclose(stream);
 		rcxml_parse_xml(&b);
 		buf_reset(&b);
 		if (!should_merge_config) {

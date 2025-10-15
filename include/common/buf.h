@@ -109,4 +109,11 @@ void buf_reset(struct buf *s);
  */
 void buf_move(struct buf *dst, struct buf *src);
 
+/**
+ * buf_from_file - read file into memory buffer
+ * @filename: file to read
+ * Free returned buffer with buf_reset().
+ */
+struct buf buf_from_file(const char *filename);
+
 #endif /* LABWC_BUF_H */

@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "common/grab-file.h"
+#include "common/buf.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
 #include "buffer.h"
@@ -273,7 +273,7 @@ img_xbm_load(const char *filename, float *rgba)
 	uint32_t color = argb32(rgba);
 
 	/* Read file into memory as it's easier to tokenize that way */
-	struct buf token_buf = grab_file(filename);
+	struct buf token_buf = buf_from_file(filename);
 	if (token_buf.len) {
 		struct token *tokens = tokenize_xbm(token_buf.data);
 		pixmap = parse_xbm_tokens(tokens, color);

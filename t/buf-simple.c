@@ -12,8 +12,6 @@
 static void
 test_expand_title(void **state)
 {
-	(void)state;
-
 	struct buf s = BUF_INIT;
 
 	char TEMPLATE[] = "foo ~/bar";
@@ -58,8 +56,6 @@ test_expand_title(void **state)
 static void
 test_buf_add_fmt(void **state)
 {
-	(void)state;
-
 	struct buf s = BUF_INIT;
 
 	buf_add(&s, "foo");
@@ -72,8 +68,6 @@ test_buf_add_fmt(void **state)
 static void
 test_buf_add_char(void **state)
 {
-	(void)state;
-
 	const char long_string[] = "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 	size_t len = strlen(long_string);
 

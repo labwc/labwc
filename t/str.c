@@ -11,8 +11,6 @@
 static void
 test_str_starts_with(void **state)
 {
-	(void)state;
-
 	assert_true(str_starts_with("  foo", 'f', " \t\r\n"));
 	assert_true(str_starts_with("f", 'f', " \t\r\n"));
 	assert_false(str_starts_with("  foo", '<', " "));

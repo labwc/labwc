@@ -100,8 +100,6 @@ struct test_case {
 static void
 test_lab_xml_expand_dotted_attributes(void **state)
 {
-	(void)state;
-
 	for (size_t i = 0; i < ARRAY_SIZE(test_cases); i++) {
 		xmlDoc *doc = xmlReadDoc((xmlChar *)test_cases[i].before,
 					NULL, NULL, 0);

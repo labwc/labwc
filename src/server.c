@@ -17,6 +17,7 @@
 #include <wlr/types/wlr_ext_foreign_toplevel_list_v1.h>
 #include <wlr/types/wlr_ext_image_capture_source_v1.h>
 #include <wlr/types/wlr_ext_image_copy_capture_v1.h>
+#include <wlr/types/wlr_fixes.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_fractional_scale_v1.h>
 #include <wlr/types/wlr_input_method_v2.h>
@@ -255,6 +256,7 @@ allow_for_sandbox(const struct wlr_security_context_v1_state *security_state,
 		"wl_data_device_manager", /* would be great if we could drop this one */
 		"wl_seat",
 		"xdg_wm_base",
+		"wl_fixes",
 		/* enhanced */
 		"wl_output",
 		"wl_drm",
@@ -434,6 +436,8 @@ server_init(struct server *server)
 	wl_display_set_global_filter(server->wl_display, server_global_filter, server);
 
 	server->wl_event_loop = wl_display_get_event_loop(server->wl_display);
+
+	wlr_fixes_create(server->wl_display, 1);
 
 	/* Catch signals */
 	server->sighup_source = wl_event_loop_add_signal(

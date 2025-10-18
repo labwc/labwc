@@ -309,7 +309,8 @@ handle_keyboard_grab_destroy(struct wl_listener *listener, void *data)
 {
 	struct input_method_relay *relay =
 		wl_container_of(listener, relay, keyboard_grab_destroy);
-	struct wlr_input_method_keyboard_grab_v2 *keyboard_grab = data;
+	struct wlr_input_method_keyboard_grab_v2 *keyboard_grab =
+		relay->input_method->keyboard_grab;
 	assert(keyboard_grab);
 
 	wl_list_remove(&relay->keyboard_grab_destroy.link);

@@ -222,7 +222,6 @@ protocol_is_privileged(const struct wl_interface *iface)
 		"zwlr_data_control_manager_v1",
 		"wp_security_context_manager_v1",
 		"ext_idle_notifier_v1",
-		"zcosmic_workspace_manager_v1",
 		"zwlr_foreign_toplevel_manager_v1",
 		"ext_foreign_toplevel_list_v1",
 		"ext_session_lock_manager_v1",

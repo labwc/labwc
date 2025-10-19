@@ -115,6 +115,51 @@ differently [#3099].  There is a pending fix [wlroots-5159].
 
 [unreleased-commits]
 
+### Added
+
+- With the window-switcher custom field state specifiers 's' and 'S', show 's'
+  for shaded window @domo141 [#2895]
+- Support `xdg-dialog` protocol to enable better handling of modal dialogs @xi
+  [#3134]
+- labnag: add --keyboard-focus option @tokyo4j [#3120]
+- Allow window switcher to temporarily unshade windows using config option
+  `<windowSwitcher unshade="yes|no"/>` @Amodio @Consolatis [#3124]
+- For the 'classic' style window-switcher, add the following theme options:
+    - `osd.window-switcher.style-classic.item.active.border.color`
+    - `osd.window-switcher.style-classic.item.active.bg.color`
+  @tokyo4j [#3118]
+
+### Fixed
+
+- Don't remove newlines when parsing config, menu and XBM because doing so can
+  cause parser error in some unusual situations like the one shown below.
+  @tokyo4j [#3148]
+
+```
+<!--
+ -
+ - Some comments
+ -
+-->
+```
+
+### Changed
+
+- If XML documents (like rc.xml and menu.xml) have an XML declaration (typically
+  `<?xml version="1.0"?>`), this XML declaration must be the first thing in the
+  document. In previous versions, line breaks (`\n`) were allowed before due to
+  the way the files were parsed, but this is approach caused other issues like
+  [#3145] and is contrary to XML syntax. [#3148] [#3153]
+- With the window-switcher custom field state specifiers 's' and 'S', change the
+  display order from M|m|F to m|s|M|F; and increase the size from three
+  characters wide to four. @domo141 [#2895]
+- Call labnag with on-demand keyboard interactivity by default @tokyo4j [#3120]
+- Temporarily unshade windows when switching windows. Restore old behaviour with
+  `<windowSwitcher unshade="no"/>` @Amodio @Consolatis [#3124]
+- In the classic style window-switcher, the default color of the selected window
+  item has been changed to inherit the border color but with 15% opacity
+  @tokyo4j [#3118]
+
 ## 0.9.2 - 2025-10-10
 
 [0.9.2-commits]
@@ -2804,6 +2849,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2886]: https://github.com/labwc/labwc/pull/2886
 [#2887]: https://github.com/labwc/labwc/pull/2887
 [#2891]: https://github.com/labwc/labwc/pull/2891
+[#2895]: https://github.com/labwc/labwc/pull/2895
 [#2909]: https://github.com/labwc/labwc/pull/2909
 [#2910]: https://github.com/labwc/labwc/pull/2910
 [#2914]: https://github.com/labwc/labwc/pull/2914
@@ -2840,4 +2886,11 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3081]: https://github.com/labwc/labwc/pull/3081
 [#3097]: https://github.com/labwc/labwc/pull/3097
 [#3099]: https://github.com/labwc/labwc/pull/3099
+[#3118]: https://github.com/labwc/labwc/pull/3118
+[#3120]: https://github.com/labwc/labwc/pull/3120
+[#3124]: https://github.com/labwc/labwc/pull/3124
 [#3126]: https://github.com/labwc/labwc/pull/3126
+[#3134]: https://github.com/labwc/labwc/pull/3134
+[#3145]: https://github.com/labwc/labwc/pull/3145
+[#3148]: https://github.com/labwc/labwc/pull/3148
+[#3153]: https://github.com/labwc/labwc/pull/3153

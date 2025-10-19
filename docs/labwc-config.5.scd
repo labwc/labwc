@@ -286,6 +286,7 @@ this is for compatibility with Openbox.
 		--border-bottom-size 1 \\
 		--button-border-size 3 \\
 		--keyboard-focus on-demand \\
+		--layer overlay \\
 		--timeout 0
 	```
 

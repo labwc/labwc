@@ -5661,6 +5661,7 @@ sub process {
 			    $var !~ /^(?:GString|GError|GHashTable)/ &&
 			    $var !~ /^(?:__FreeBSD__)/ &&
 			    $var !~ /^(?:RsvgRectangle|RsvgHandle)/ &&
+			    $var !~ /^(?:CMUnitTest)/ &&
 			    $var !~ /^(?:XKB_KEY_XF86Switch_VT_1)/ &&
 
 #Ignore SI style variants like nS, mV and dB

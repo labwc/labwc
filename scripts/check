@@ -19,7 +19,7 @@ run_checks () {
 		return $?
 	fi
 
-	find src/ include/ clients/ \( -name "*.c" -o -name "*.h" \) -type f -print0 |
+	find src/ include/ clients/ t/ \( -name "*.c" -o -name "*.h" \) -type f -print0 |
 	nice xargs -0 --max-args 1 --max-procs $(nproc) \
 		scripts/checkpatch.pl --terse --no-tree --strict --file
 	return $?

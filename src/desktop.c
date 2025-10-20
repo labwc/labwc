@@ -242,6 +242,39 @@ desktop_update_top_layer_visibility(struct server *server)
 	}
 }
 
+/*
+ * Work around rounding issues in some clients (notably Qt apps) where
+ * cursor coordinates in the rightmost or bottom pixel are incorrectly
+ * rounded up, putting them outside the surface bounds. The effect is
+ * especially noticeable in right/bottom desktop panels, since driving
+ * the cursor to the edge of the screen no longer works.
+ *
+ * Under X11, such rounding issues went unnoticed since cursor positions
+ * were always integers (i.e. whole pixel boundaries) anyway. Until more
+ * clients/toolkits are fractional-pixel clean, limit surface cursor
+ * coordinates to (w - 1, h - 1) as a workaround.
+ */
+static void
+avoid_edge_rounding_issues(struct cursor_context *ctx)
+{
+	if (!ctx->surface) {
+		return;
+	}
+
+	int w = ctx->surface->current.width;
+	int h = ctx->surface->current.height;
+	/*
+	 * The cursor isn't expected to be outside the surface bounds
+	 * here, but check (sx < w, sy < h) just in case.
+	 */
+	if (ctx->sx > w - 1 && ctx->sx < w) {
+		ctx->sx = w - 1;
+	}
+	if (ctx->sy > h - 1 && ctx->sy < h) {
+		ctx->sy = h - 1;
+	}
+}
+
 /* TODO: make this less big and scary */
 struct cursor_context
 get_cursor_context(struct server *server)
@@ -268,6 +301,8 @@ get_cursor_context(struct server *server)
 	}
 	ret.node = node;
 	ret.surface = lab_wlr_surface_from_node(node);
+
+	avoid_edge_rounding_issues(&ret);
 
 #if HAVE_XWAYLAND
 	/* TODO: attach LAB_NODE_UNMANAGED node-descriptor to unmanaged surfaces */

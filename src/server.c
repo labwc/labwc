@@ -58,6 +58,7 @@
 #include "menu/menu.h"
 #include "output.h"
 #include "output-virtual.h"
+#include "permissions.h"
 #include "regions.h"
 #include "resize-indicator.h"
 #include "scaled-buffer/scaled-buffer.h"
@@ -313,6 +314,10 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 		return false;
 	}
 #endif
+
+	if (!permissions_check(client, iface)) {
+		return false;
+	}
 
 	/* Do not allow security_context_manager_v1 to clients with a security context attached */
 	const struct wlr_security_context_v1_state *security_context =

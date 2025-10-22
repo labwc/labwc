@@ -237,6 +237,12 @@ add_workspace(struct server *server, const char *name)
 	lab_ext_workspace_set_name(workspace->ext_workspace, name);
 	lab_ext_workspace_set_active(workspace->ext_workspace, active);
 
+	/* Notify ext-workspace listeners for active workspace only */
+	if (active) {
+		lab_ext_workspace_group_workspace_enter(
+			server->workspaces.ext_group, workspace->ext_workspace);
+	}
+
 	workspace->on_ext.activate.notify = handle_ext_workspace_activate;
 	wl_signal_add(&workspace->ext_workspace->events.activate,
 		&workspace->on_ext.activate);
@@ -427,6 +433,10 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	lab_ext_workspace_set_active(
 		server->workspaces.current->ext_workspace, false);
 
+	/* Notify ext-workspace listeners */
+	lab_ext_workspace_group_workspace_leave(
+		server->workspaces.ext_group, server->workspaces.current->ext_workspace);
+
 	/* Move Omnipresent views to new workspace */
 	struct view *view;
 	enum lab_view_criteria criteria =
@@ -482,6 +492,11 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	desktop_update_top_layer_visibility(server);
 
 	lab_cosmic_workspace_set_active(target->cosmic_workspace, true);
+
+	/* Notify ext-workspace listeners */
+	lab_ext_workspace_group_workspace_enter(
+		server->workspaces.ext_group, target->ext_workspace);
+
 	lab_ext_workspace_set_active(target->ext_workspace, true);
 }
 

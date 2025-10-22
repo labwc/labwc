@@ -760,3 +760,56 @@ lab_ext_workspace_destroy(struct lab_ext_workspace *workspace)
 	zfree(workspace->name);
 	free(workspace);
 }
+
+void
+lab_ext_workspace_group_workspace_enter(struct lab_ext_workspace_group *group,
+	struct lab_ext_workspace *workspace)
+{
+	if (!group || !workspace) {
+		return;
+	}
+
+	/* Verbose logging for debugging: print workspace name on enter */
+	wlr_log(WLR_DEBUG, "ext-workspace: enter name='%s'", workspace->name);
+
+	/* For each manager/group resource pair belonging to the same client,
+	 * emit workspace_enter with the matching workspace resource.
+	 */
+	struct wl_resource *group_resource;
+	wl_resource_for_each(group_resource, &group->resources) {
+		struct wl_client *client = wl_resource_get_client(group_resource);
+		struct wl_resource *ws_resource;
+		wl_resource_for_each(ws_resource, &workspace->resources) {
+			if (wl_resource_get_client(ws_resource) == client) {
+				ext_workspace_group_handle_v1_send_workspace_enter(
+					group_resource, ws_resource);
+			}
+		}
+	}
+	ext_manager_schedule_done_event(group->manager);
+}
+
+void
+lab_ext_workspace_group_workspace_leave(struct lab_ext_workspace_group *group,
+	struct lab_ext_workspace *workspace)
+{
+	if (!group || !workspace) {
+		return;
+	}
+
+	/* Verbose logging for debugging: print workspace name on leave */
+	wlr_log(WLR_DEBUG, "ext-workspace: leave name='%s'", workspace->name);
+
+	struct wl_resource *group_resource;
+	wl_resource_for_each(group_resource, &group->resources) {
+		struct wl_client *client = wl_resource_get_client(group_resource);
+		struct wl_resource *ws_resource;
+		wl_resource_for_each(ws_resource, &workspace->resources) {
+			if (wl_resource_get_client(ws_resource) == client) {
+				ext_workspace_group_handle_v1_send_workspace_leave(
+					group_resource, ws_resource);
+			}
+		}
+	}
+	ext_manager_schedule_done_event(group->manager);
+}

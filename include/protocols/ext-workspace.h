@@ -106,4 +106,13 @@ void lab_ext_workspace_set_coordinates(struct lab_ext_workspace *workspace,
 
 void lab_ext_workspace_destroy(struct lab_ext_workspace *workspace);
 
+/* Notify clients that a workspace has entered/left the currently bound output group.
+ * This emits workspace_enter/leave for all clients that have both the group and the
+ * workspace bound, mirroring the initial-state emission.
+ */
+void lab_ext_workspace_group_workspace_enter(struct lab_ext_workspace_group *group,
+	struct lab_ext_workspace *workspace);
+void lab_ext_workspace_group_workspace_leave(struct lab_ext_workspace_group *group,
+	struct lab_ext_workspace *workspace);
+
 #endif /* LABWC_PROTOCOLS_EXT_WORKSPACES_H */

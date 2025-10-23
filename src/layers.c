@@ -546,6 +546,15 @@ handle_new_popup(struct wl_listener *listener, void *data)
 	struct wlr_scene_layer_surface_v1 *surface = toplevel->scene_layer_surface;
 	struct output *output = surface->layer_surface->output->data;
 
+	/*
+	 * When a popup is opened by a client without keyboard focus we need to
+	 * force focus it so that it can be operated by the keyboard. An example
+	 * of a use-case is the xfce4-panel start menu which can be opened by a
+	 * keyboard shortcut (linked to xfce4-popup-applicationmenu).
+	 */
+	seat_force_focus_surface(&server->seat,
+		toplevel->layer_surface->surface);
+
 	int lx, ly;
 	wlr_scene_node_coords(&surface->tree->node, &lx, &ly);
 

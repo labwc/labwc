@@ -23,6 +23,7 @@
 #include "labwc.h"
 #include "node.h"
 #include "output.h"
+#include "session-lock.h"
 
 #define LAB_LAYERSHELL_VERSION 4
 
@@ -428,6 +429,51 @@ handle_popup_destroy(struct wl_listener *listener, void *data)
 	free(popup);
 }
 
+/*
+ * When a popup is opened by a client without keyboard focus we need to force
+ * focus it so that it can be operated by the keyboard. An example of a use-case
+ * is the xfce4-panel start menu which can be opened by a keyboard shortcut
+ * linked to `xfce4-popup-applicationsmenu`, and the same for lxqt-panel with
+ * `lxqt-qdbus openmenu`.
+ *
+ * We check wlr_popup->seat here to make sure that the popup requested a grab,
+ * so that we do not give keyboard-focus to tooltips and the like. The
+ * wlr_popup->seat check works because it is set by wlroots only when a
+ * popup-grab has been handled.  See xdg_popup_handle_grab() in
+ * types/xdg_shell/wlr_xdg_popup.c
+ *
+ * From a technical perspective it would seem nicer to explicitly set the focus
+ * on catching a xdg_popup.grab event but this is not possible for two reasons:
+ *
+ *     1. The xdg_popup.grab event is not emitted from wlroots in such a way
+ *        that it can be differentiated from dnd grabs (see #3375).
+ *     2. There is a sequencing issue with some clients (notably layer-shell-qt
+ *        ones) that means this cannot be managed from the labwc side.
+ *        Specifically, the grab event takes place before the get_popup one
+ *        which means that the lab_layer_popup object has not yet been created
+ *        when the grab is requested.
+ *
+ * WAYLAND_DEBUG=1 lxqt-panel 2>&1 | grep 'grab\|get_popup'
+ *  ...xdg_surface#50.get_popup(new id xdg_popup#52, nil, xdg_positioner#51)
+ *  ...xdg_popup#52.grab(wl_seat#11, 205)
+ *  ...zwlr_layer_surface_v1#38.get_popup(xdg_popup#52)
+ *
+ * WAYLAND_DEBUG=1 xfce4-panel 2>&1 | grep 'grab\|get_popup'
+ *  ...xdg_surface#50.get_popup(new id xdg_popup#51, nil, xdg_positioner#49)
+ *  ...zwlr_layer_surface_v1#41.get_popup(xdg_popup#51)
+ *  ...xdg_popup#51.grab(wl_seat#23, 540)
+ *
+ * So for the time being we make {xfce4,lxqt}-panel work by just checking
+ * wlr_popup->seat and then setting the focus in handle_popup_commit()
+ *
+ * Ref:
+ * - https://github.com/labwc/labwc/pull/3165
+ * - https://github.com/labwc/labwc/pull/3375
+ * - https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5265
+ * - https://github.com/labwc/labwc/issues/2467#issuecomment-2585927886
+ * - https://gitlab.freedesktop.org/wlroots/wlroots/-/issues/3689
+ * - https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4950
+ */
 static void
 handle_popup_commit(struct wl_listener *listener, void *data)
 {
@@ -441,6 +487,14 @@ handle_popup_commit(struct wl_listener *listener, void *data)
 		/* Prevent getting called over and over again */
 		wl_list_remove(&popup->commit.link);
 		popup->commit.notify = NULL;
+
+		if (!seat->server->session_lock_manager->locked
+				&& popup->wlr_popup->seat) {
+			struct wlr_layer_surface_v1 *layer_surface =
+				popup->lab_layer_surface->layer_surface;
+			seat_force_focus_surface(&popup->server->seat,
+				layer_surface->surface);
+		}
 	}
 }
 
@@ -509,6 +563,8 @@ handle_popup_new_popup(struct wl_listener *listener, void *data)
 
 	new_popup->output_toplevel_sx_box =
 		lab_layer_popup->output_toplevel_sx_box;
+
+	new_popup->lab_layer_surface = lab_layer_popup->lab_layer_surface;
 }
 
 /*
@@ -574,6 +630,7 @@ handle_new_popup(struct wl_listener *listener, void *data)
 	}
 
 	popup->output_toplevel_sx_box = output_toplevel_sx_box;
+	popup->lab_layer_surface = toplevel;
 
 	if (surface->layer_surface->current.layer
 			<= ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM) {

@@ -1346,7 +1346,7 @@ process_cursor_axis(struct server *server, enum wl_pointer_axis orientation,
 		wlr_log(WLR_DEBUG, "Failed to handle cursor axis event");
 	}
 
-	bool handled = false;
+	bool consumed = false;
 	if (direction != LAB_DIRECTION_INVALID) {
 		struct mousebind *mousebind;
 		wl_list_for_each(mousebind, &rc.mousebinds, link) {
@@ -1358,7 +1358,8 @@ process_cursor_axis(struct server *server, enum wl_pointer_axis orientation,
 					&& mousebind->direction == direction
 					&& modifiers == mousebind->modifiers
 					&& mousebind->mouse_event == MOUSE_ACTION_SCROLL) {
-				handled = true;
+				consumed |= mousebind->context == LAB_NODE_FRAME;
+				consumed |= mousebind->context == LAB_NODE_ALL;
 				/*
 				 * Action may not be executed if the accumulated scroll delta
 				 * on touchpads or hi-res mice doesn't exceed the threshold
@@ -1371,7 +1372,7 @@ process_cursor_axis(struct server *server, enum wl_pointer_axis orientation,
 	}
 
 	/* Bindings swallow mouse events if activated */
-	if (ctx.surface && !handled) {
+	if (ctx.surface && !consumed) {
 		/* Make sure we are sending the events to the surface under the cursor */
 		double sx, sy;
 		cursor_update_common(server, &ctx, /*cursor_has_moved*/ false, &sx, &sy);

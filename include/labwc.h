@@ -142,7 +142,7 @@ struct seat {
 	struct wl_listener pressed_surface_destroy;
 
 	struct wlr_virtual_pointer_manager_v1 *virtual_pointer;
-	struct wl_listener virtual_pointer_new;
+	struct wl_listener new_virtual_pointer;
 
 	struct wlr_virtual_keyboard_manager_v1 *virtual_keyboard;
 	struct wl_listener new_virtual_keyboard;

@@ -557,9 +557,9 @@ handle_new_input(struct wl_listener *listener, void *data)
 }
 
 static void
-new_virtual_pointer(struct wl_listener *listener, void *data)
+handle_new_virtual_pointer(struct wl_listener *listener, void *data)
 {
-	struct seat *seat = wl_container_of(listener, seat, virtual_pointer_new);
+	struct seat *seat = wl_container_of(listener, seat, new_virtual_pointer);
 	struct wlr_virtual_pointer_v1_new_pointer_event *event = data;
 	struct wlr_virtual_pointer_v1 *pointer = event->new_pointer;
 	struct wlr_input_device *device = &pointer->pointer.base;
@@ -643,9 +643,7 @@ seat_init(struct server *server)
 
 	seat->virtual_pointer = wlr_virtual_pointer_manager_v1_create(
 		server->wl_display);
-	wl_signal_add(&seat->virtual_pointer->events.new_virtual_pointer,
-		&seat->virtual_pointer_new);
-	seat->virtual_pointer_new.notify = new_virtual_pointer;
+	CONNECT_SIGNAL(seat->virtual_pointer, seat, new_virtual_pointer);
 
 	seat->virtual_keyboard = wlr_virtual_keyboard_manager_v1_create(
 		server->wl_display);
@@ -675,7 +673,7 @@ seat_finish(struct server *server)
 	struct seat *seat = &server->seat;
 	wl_list_remove(&seat->new_input.link);
 	wl_list_remove(&seat->focus_change.link);
-	wl_list_remove(&seat->virtual_pointer_new.link);
+	wl_list_remove(&seat->new_virtual_pointer.link);
 	wl_list_remove(&seat->new_virtual_keyboard.link);
 
 	struct input *input, *next;

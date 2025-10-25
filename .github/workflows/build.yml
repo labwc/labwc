@@ -95,6 +95,7 @@ jobs:
           apt-get install -y git gcc clang gdb xwayland
           apt-get build-dep -y labwc
           apt-get build-dep -y libwlroots-0.19-dev
+          apt-get build-dep -y libxkbcommon-dev
 
       - name: Install FreeBSD dependencies
         if: matrix.name == 'FreeBSD'
@@ -121,7 +122,7 @@ jobs:
           xbps-install -y git meson gcc clang pkg-config scdoc \
             cairo-devel glib-devel libpng-devel librsvg-devel libxml2-devel \
             pango-devel wlroots0.19-devel gdb bash xorg-server-xwayland \
-            dejavu-fonts-ttf libsfdo-devel foot
+            dejavu-fonts-ttf libsfdo-devel foot hwids
 
       # These builds are executed on all runners
       - name: Build with gcc

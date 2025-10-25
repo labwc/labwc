@@ -309,7 +309,8 @@ handle_keyboard_grab_destroy(struct wl_listener *listener, void *data)
 {
 	struct input_method_relay *relay =
 		wl_container_of(listener, relay, keyboard_grab_destroy);
-	struct wlr_input_method_keyboard_grab_v2 *keyboard_grab = data;
+	struct wlr_input_method_keyboard_grab_v2 *keyboard_grab =
+		relay->input_method->keyboard_grab;
 	assert(keyboard_grab);
 
 	wl_list_remove(&relay->keyboard_grab_destroy.link);
@@ -583,11 +584,11 @@ input_method_relay_create(struct seat *seat)
 	relay->popup_tree = wlr_scene_tree_create(&seat->server->scene->tree);
 
 	relay->new_text_input.notify = handle_new_text_input;
-	wl_signal_add(&seat->server->text_input_manager->events.text_input,
+	wl_signal_add(&seat->server->text_input_manager->events.new_text_input,
 		&relay->new_text_input);
 
 	relay->new_input_method.notify = handle_new_input_method;
-	wl_signal_add(&seat->server->input_method_manager->events.input_method,
+	wl_signal_add(&seat->server->input_method_manager->events.new_input_method,
 		&relay->new_input_method);
 
 	relay->focused_surface_destroy.notify = handle_focused_surface_destroy;

@@ -16,7 +16,7 @@
 #include "theme.h"
 #include "view.h"
 
-struct osd_thumbnail_scene_item {
+struct osd_thumbnail_item {
 	struct view *view;
 	struct wlr_scene_tree *tree;
 	struct scaled_font_buffer *normal_title;
@@ -103,7 +103,7 @@ create_title(struct wlr_scene_tree *parent,
 	return buffer;
 }
 
-static struct osd_thumbnail_scene_item *
+static struct osd_thumbnail_item *
 create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 		struct output *output)
 {
@@ -124,7 +124,7 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 		return NULL;
 	}
 
-	struct osd_thumbnail_scene_item *item =
+	struct osd_thumbnail_item *item =
 		wl_array_add(&output->osd_scene.items, sizeof(*item));
 	item->tree = wlr_scene_tree_create(parent);
 	item->view = view;
@@ -229,7 +229,7 @@ osd_thumbnail_create(struct output *output, struct wl_array *views)
 	struct view **view;
 	int index = 0;
 	wl_array_for_each(view, views) {
-		struct osd_thumbnail_scene_item *item = create_item_scene(
+		struct osd_thumbnail_item *item = create_item_scene(
 			output->osd_scene.tree, *view, output);
 		if (!item) {
 			break;
@@ -265,7 +265,7 @@ osd_thumbnail_create(struct output *output, struct wl_array *views)
 static void
 osd_thumbnail_update(struct output *output)
 {
-	struct osd_thumbnail_scene_item *item;
+	struct osd_thumbnail_item *item;
 	wl_array_for_each(item, &output->osd_scene.items) {
 		bool active = (item->view == output->server->osd_state.cycle_view);
 		wlr_scene_node_set_enabled(&item->active_bg->tree->node, active);

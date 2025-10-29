@@ -18,7 +18,7 @@
 #include "theme.h"
 #include "workspaces.h"
 
-struct osd_classic_scene_item {
+struct osd_classic_item {
 	struct view *view;
 	struct wlr_scene_tree *normal_tree, *active_tree;
 };
@@ -155,7 +155,7 @@ osd_classic_create(struct output *output, struct wl_array *views)
 	/* Draw text for each node */
 	struct view **view;
 	wl_array_for_each(view, views) {
-		struct osd_classic_scene_item *item =
+		struct osd_classic_item *item =
 			wl_array_add(&output->osd_scene.items, sizeof(*item));
 		item->view = *view;
 		/*
@@ -218,7 +218,7 @@ error:;
 static void
 osd_classic_update(struct output *output)
 {
-	struct osd_classic_scene_item *item;
+	struct osd_classic_item *item;
 	wl_array_for_each(item, &output->osd_scene.items) {
 		bool active = item->view == output->server->osd_state.cycle_view;
 		wlr_scene_node_set_enabled(&item->normal_tree->node, !active);

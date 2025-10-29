@@ -161,6 +161,8 @@ osd_classic_create(struct output *output, struct wl_array *views)
 		wl_list_append(&output->osd_scene.items, &item->base.link);
 		item->base.view = *view;
 		item->base.tree = wlr_scene_tree_create(output->osd_scene.tree);
+		node_descriptor_create(&item->base.tree->node,
+			LAB_NODE_OSD_ITEM, NULL, item);
 		/*
 		 *    OSD border
 		 * +---------------------------------+
@@ -199,6 +201,11 @@ osd_classic_create(struct output *output, struct wl_array *views)
 		struct lab_scene_rect *highlight_rect = lab_scene_rect_create(
 			item->active_tree, &highlight_opts);
 		wlr_scene_node_set_position(&highlight_rect->tree->node, padding, y);
+
+		/* hitbox for mouse clicks */
+		struct wlr_scene_rect *hitbox = wlr_scene_rect_create(item->base.tree,
+			w - 2 * padding, switcher_theme->item_height, (float[4]) {0});
+		wlr_scene_node_set_position(&hitbox->node, padding, y);
 
 		create_fields_scene(server, *view, item->normal_tree,
 			text_color, bg_color, field_widths_sum, x, y);

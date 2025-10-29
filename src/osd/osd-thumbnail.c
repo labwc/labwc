@@ -128,6 +128,7 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 	struct osd_thumbnail_item *item = znew(*item);
 	wl_list_append(&output->osd_scene.items, &item->base.link);
 	struct wlr_scene_tree *tree = wlr_scene_tree_create(parent);
+	node_descriptor_create(&tree->node, LAB_NODE_OSD_ITEM, NULL, item);
 	item->base.tree = tree;
 	item->base.view = view;
 
@@ -141,6 +142,10 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 		.height = switcher_theme->item_height,
 	};
 	item->active_bg = lab_scene_rect_create(tree, &opts);
+
+	/* hitbox for mouse clicks */
+	wlr_scene_rect_create(tree, switcher_theme->item_width,
+		switcher_theme->item_height, (float[4]) {0});
 
 	/* thumbnail */
 	struct wlr_buffer *thumb_buffer = render_thumb(output, view);

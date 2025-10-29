@@ -83,25 +83,6 @@ keyboard_get_all_modifiers(struct seat *seat)
 	return modifiers;
 }
 
-static void
-end_cycling(struct server *server)
-{
-	should_cancel_cycling_on_next_key_release = false;
-
-	if (server->input_mode != LAB_INPUT_STATE_WINDOW_SWITCHER) {
-		return;
-	}
-
-	struct view *cycle_view = server->osd_state.cycle_view;
-	/* FIXME: osd_finish() transiently sets focus to the old surface */
-	osd_finish(server);
-	/* Note that server->osd_state.cycle_view is cleared at this point */
-	if (rc.window_switcher.unshade) {
-		view_set_shade(cycle_view, false);
-	}
-	desktop_focus_view(cycle_view, /*raise*/ true);
-}
-
 static struct wlr_seat_client *
 seat_client_from_keyboard_resource(struct wl_resource *resource)
 {
@@ -163,18 +144,18 @@ handle_modifiers(struct wl_listener *listener, void *data)
 	bool window_switcher_active = server->input_mode
 					== LAB_INPUT_STATE_WINDOW_SWITCHER;
 
-	if (window_switcher_active || seat->workspace_osd_shown_by_modifier) {
-		if (!keyboard_get_all_modifiers(seat)) {
-			if (window_switcher_active) {
-				if (key_state_nr_bound_keys()) {
-					should_cancel_cycling_on_next_key_release = true;
-				} else {
-					end_cycling(server);
-				}
+	if ((window_switcher_active || seat->workspace_osd_shown_by_modifier)
+			&& !keyboard_get_all_modifiers(seat)) {
+		if (window_switcher_active) {
+			if (key_state_nr_bound_keys()) {
+				should_cancel_cycling_on_next_key_release = true;
+			} else {
+				should_cancel_cycling_on_next_key_release = false;
+				osd_finish(server, /*switch_focus*/ true);
 			}
-			if (seat->workspace_osd_shown_by_modifier) {
-				workspaces_osd_hide(seat);
-			}
+		}
+		if (seat->workspace_osd_shown_by_modifier) {
+			workspaces_osd_hide(seat);
 		}
 	}
 
@@ -406,7 +387,8 @@ handle_key_release(struct server *server, uint32_t evdev_keycode)
 	 * event it gets stuck on repeat.
 	 */
 	if (should_cancel_cycling_on_next_key_release) {
-		end_cycling(server);
+		should_cancel_cycling_on_next_key_release = false;
+		osd_finish(server, /*switch_focus*/ true);
 	}
 
 	/*
@@ -479,7 +461,7 @@ handle_cycle_view_key(struct server *server, struct keyinfo *keyinfo)
 	for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
 		if (keyinfo->translated.syms[i] == XKB_KEY_Escape) {
 			/* Esc deactivates window switcher */
-			osd_finish(server);
+			osd_finish(server, /*switch_focus*/ false);
 			return true;
 		}
 		if (keyinfo->translated.syms[i] == XKB_KEY_Up

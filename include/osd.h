@@ -53,7 +53,7 @@ void osd_begin(struct server *server, enum lab_cycle_dir direction);
 void osd_cycle(struct server *server, enum lab_cycle_dir direction);
 
 /* Closes the OSD */
-void osd_finish(struct server *server);
+void osd_finish(struct server *server, bool switch_focus);
 
 /* Notify OSD about a destroying view */
 void osd_on_view_destroy(struct view *view);

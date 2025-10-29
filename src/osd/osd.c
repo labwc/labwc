@@ -24,12 +24,15 @@ destroy_osd_scenes(struct server *server)
 {
 	struct output *output;
 	wl_list_for_each(output, &server->outputs, link) {
+		struct osd_item *item, *tmp;
+		wl_list_for_each_safe(item, tmp, &output->osd_scene.items, link) {
+			wl_list_remove(&item->link);
+			free(item);
+		}
 		if (output->osd_scene.tree) {
 			wlr_scene_node_destroy(&output->osd_scene.tree->node);
 			output->osd_scene.tree = NULL;
 		}
-		wl_array_release(&output->osd_scene.items);
-		wl_array_init(&output->osd_scene.items);
 	}
 }
 

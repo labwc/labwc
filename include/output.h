@@ -20,7 +20,7 @@ struct output {
 	struct wlr_scene_buffer *workspace_osd;
 
 	struct osd_scene {
-		struct wl_array items; /* struct osd_scene_item */
+		struct wl_list items; /* struct osd_item */
 		struct wlr_scene_tree *tree;
 	} osd_scene;
 

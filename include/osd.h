@@ -69,6 +69,12 @@ bool osd_field_is_valid(struct window_switcher_field *field);
 void osd_field_free(struct window_switcher_field *field);
 
 /* Internal API */
+struct osd_item {
+	struct view *view;
+	struct wlr_scene_tree *tree;
+	struct wl_list link;
+};
+
 struct osd_impl {
 	/*
 	 * Create a scene-tree of OSD for an output.

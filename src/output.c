@@ -500,7 +500,7 @@ handle_new_output(struct wl_listener *listener, void *data)
 	wl_signal_add(&wlr_output->events.request_state, &output->request_state);
 
 	wl_list_init(&output->regions);
-	wl_array_init(&output->osd_scene.items);
+	wl_list_init(&output->osd_scene.items);
 
 	/*
 	 * Create layer-trees (background, bottom, top and overlay) and

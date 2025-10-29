@@ -119,7 +119,7 @@ osd_on_view_destroy(struct view *view)
 		 */
 		if (osd_state->cycle_view == view || !osd_state->cycle_view) {
 			/* osd_finish() additionally resets cycle_view to NULL */
-			osd_finish(view->server);
+			osd_finish(view->server, /*switch_focus*/ false);
 		}
 	}
 
@@ -201,11 +201,17 @@ osd_cycle(struct server *server, enum lab_cycle_dir direction)
 }
 
 void
-osd_finish(struct server *server)
+osd_finish(struct server *server, bool switch_focus)
 {
+	if (server->input_mode != LAB_INPUT_STATE_WINDOW_SWITCHER) {
+		return;
+	}
+
 	restore_preview_node(server);
+	/* FIXME: this sets focus to the old surface even with switch_focus=true */
 	seat_focus_override_end(&server->seat);
 
+	struct view *cycle_view = server->osd_state.cycle_view;
 	server->osd_state.preview_node = NULL;
 	server->osd_state.preview_anchor = NULL;
 	server->osd_state.cycle_view = NULL;
@@ -221,6 +227,13 @@ osd_finish(struct server *server)
 
 	/* Hiding OSD may need a cursor change */
 	cursor_update_focus(server);
+
+	if (switch_focus && cycle_view) {
+		if (rc.window_switcher.unshade) {
+			view_set_shade(cycle_view, false);
+		}
+		desktop_focus_view(cycle_view, /*raise*/ true);
+	}
 }
 
 static void
@@ -286,7 +299,7 @@ update_osd(struct server *server)
 	}
 
 	if (!wl_array_len(&views) || !server->osd_state.cycle_view) {
-		osd_finish(server);
+		osd_finish(server, /*switch_focus*/ false);
 		goto out;
 	}
 

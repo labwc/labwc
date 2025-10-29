@@ -45,6 +45,7 @@ struct window_switcher_field {
 struct buf;
 struct view;
 struct server;
+struct wlr_scene_node;
 
 /* Begin window switcher */
 void osd_begin(struct server *server, enum lab_cycle_dir direction);
@@ -57,6 +58,9 @@ void osd_finish(struct server *server, bool switch_focus);
 
 /* Notify OSD about a destroying view */
 void osd_on_view_destroy(struct view *view);
+
+/* Focus the clicked window and close OSD */
+void osd_on_cursor_release(struct server *server, struct wlr_scene_node *node);
 
 /* Used by osd.c internally to render window switcher fields */
 void osd_field_get_content(struct window_switcher_field *field,

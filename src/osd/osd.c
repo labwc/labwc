@@ -144,6 +144,16 @@ osd_on_view_destroy(struct view *view)
 	}
 }
 
+void
+osd_on_cursor_release(struct server *server, struct wlr_scene_node *node)
+{
+	assert(server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER);
+
+	struct osd_item *item = node_osd_item_from_node(node);
+	server->osd_state.cycle_view = item->view;
+	osd_finish(server, /*switch_focus*/ true);
+}
+
 static void
 restore_preview_node(struct server *server)
 {

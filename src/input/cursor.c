@@ -30,6 +30,7 @@
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
+#include "osd.h"
 #include "output.h"
 #include "resistance.h"
 #include "resize-outlines.h"
@@ -1187,6 +1188,12 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 				menu_close_root(server);
 				cursor_update_focus(server);
 			}
+		}
+		return notify;
+	}
+	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
+		if (ctx.type == LAB_NODE_OSD_ITEM) {
+			osd_on_cursor_release(server, ctx.node);
 		}
 		return notify;
 	}

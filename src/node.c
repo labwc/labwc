@@ -59,6 +59,15 @@ node_menuitem_from_node(struct wlr_scene_node *wlr_scene_node)
 	return (struct menuitem *)node_descriptor->data;
 }
 
+struct osd_item *
+node_osd_item_from_node(struct wlr_scene_node *wlr_scene_node)
+{
+	assert(wlr_scene_node->data);
+	struct node_descriptor *node_descriptor = wlr_scene_node->data;
+	assert(node_descriptor->type == LAB_NODE_OSD_ITEM);
+	return (struct osd_item *)node_descriptor->data;
+}
+
 struct ssd_button *
 node_try_ssd_button_from_node(struct wlr_scene_node *wlr_scene_node)
 {

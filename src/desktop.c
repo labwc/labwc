@@ -340,6 +340,11 @@ get_cursor_context(struct server *server)
 				ret.node = node;
 				ret.type = LAB_NODE_MENUITEM;
 				return ret;
+			case LAB_NODE_OSD_ITEM:
+				/* Always return the top scene node for osd items */
+				ret.node = node;
+				ret.type = LAB_NODE_OSD_ITEM;
+				return ret;
 			case LAB_NODE_BUTTON_FIRST...LAB_NODE_BUTTON_LAST:
 			case LAB_NODE_SSD_ROOT:
 			case LAB_NODE_TITLE:

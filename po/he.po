@@ -1,5 +1,5 @@
 # Labwc pot file
-# Copyright (C) 2023
+# Copyright (C) 2024
 # This file is distributed under the same license as the labwc package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
@@ -8,73 +8,74 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
-"PO-Revision-Date: 2025-10-23 23:27+0000\n"
-"Last-Translator: sudoasd <asdwasd@meiliboxi.fi>\n"
-"Language-Team: Finnish <https://translate.lxqt-project.org/projects/labwc/"
-"labwc/fi/>\n"
-"Language: fi\n"
+"PO-Revision-Date: 2025-10-30 06:38+0000\n"
+"Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
+"Language-Team: Hebrew <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/he/>\n"
+"Language: he\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
+"n % 10 == 0) ? 2 : 3));\n"
 "X-Generator: Weblate 4.2.1\n"
 
 #: src/menu/menu.c:1016
 msgid "Go there..."
-msgstr "Mene..."
+msgstr "מעבר לשם…"
 
 #: src/menu/menu.c:1034
 msgid "Terminal"
-msgstr "Pääte"
+msgstr "מסוף"
 
 #: src/menu/menu.c:1040
 msgid "Reconfigure"
-msgstr "Uudelleenmääritä"
+msgstr "הגדרה מחדש"
 
 #: src/menu/menu.c:1042
 msgid "Exit"
-msgstr "Poistu"
+msgstr "יציאה"
 
 #: src/menu/menu.c:1056
 msgid "Minimize"
-msgstr "Pienennä"
+msgstr "מזעור"
 
 #: src/menu/menu.c:1058
 msgid "Maximize"
-msgstr "Suurenna"
+msgstr "הגדלה"
 
 #: src/menu/menu.c:1060
 msgid "Fullscreen"
-msgstr "Koko näyttö"
+msgstr "מסך מלא"
 
 #: src/menu/menu.c:1062
 msgid "Roll Up/Down"
-msgstr "Rullaa ylös/alas"
+msgstr "גלגול למעלה/למטה"
 
 #: src/menu/menu.c:1064
 msgid "Decorations"
-msgstr "Kehykset"
+msgstr "עיטורים"
 
 #: src/menu/menu.c:1066
 msgid "Always on Top"
-msgstr "Aina päällimmäisenä"
+msgstr "תמיד עליון"
 
 #: src/menu/menu.c:1071
 msgid "Move Left"
-msgstr "Siirrä vasemmalle"
+msgstr "הזזה שמאלה"
 
 #: src/menu/menu.c:1078
 msgid "Move Right"
-msgstr "Siirrä oikealle"
+msgstr "הזזה ימינה"
 
 #: src/menu/menu.c:1083
 msgid "Always on Visible Workspace"
-msgstr "Aina näkyvässä työtilassa"
+msgstr "תמיד בסביבת העבודה הגלויה"
 
 #: src/menu/menu.c:1086
 msgid "Workspace"
-msgstr "Työtila"
+msgstr "סביבת עבודה"
 
 #: src/menu/menu.c:1089
 msgid "Close"
-msgstr "Sulje"
+msgstr "סגירה"

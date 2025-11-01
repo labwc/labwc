@@ -84,10 +84,13 @@ osd_classic_create(struct output *output, struct wl_array *views)
 	bool show_workspace = wl_list_length(&rc.workspace_config.workspaces) > 1;
 	const char *workspace_name = server->workspaces.current->name;
 
+	int output_width, output_height;
+	wlr_output_effective_resolution(output->wlr_output,
+		&output_width, &output_height);
+
 	int w = switcher_theme->width;
 	if (switcher_theme->width_is_percent) {
-		w = output->wlr_output->width / output->wlr_output->scale
-			* switcher_theme->width / 100;
+		w = output_width * switcher_theme->width / 100;
 	}
 	int h = wl_array_len(views) * switcher_theme->item_height
 		+ 2 * rc.theme->osd_border_width + 2 * switcher_theme->padding;

@@ -178,21 +178,21 @@ static void
 get_items_geometry(struct output *output, struct theme *theme,
 		int nr_thumbs, int *nr_rows, int *nr_cols)
 {
-	struct window_switcher_thumbnail_theme *thumb_theme =
+	struct window_switcher_thumbnail_theme *switcher_theme =
 		&theme->osd_window_switcher_thumbnail;
 	int output_width = output->wlr_output->width / output->wlr_output->scale;
 
-	int max_bg_width = thumb_theme->max_width;
-	if (thumb_theme->max_width_is_percent) {
-		max_bg_width = output_width * thumb_theme->max_width / 100;
+	int max_bg_width = switcher_theme->max_width;
+	if (switcher_theme->max_width_is_percent) {
+		max_bg_width = output_width * switcher_theme->max_width / 100;
 	}
 
 	*nr_rows = 1;
 	*nr_cols = nr_thumbs;
 	while (1) {
 		assert(*nr_rows <= nr_thumbs);
-		int bg_width = *nr_cols * thumb_theme->item_width
-			+ theme->osd_border_width + thumb_theme->padding;
+		int bg_width = *nr_cols * switcher_theme->item_width
+			+ theme->osd_border_width + switcher_theme->padding;
 		if (bg_width < max_bg_width) {
 			break;
 		}

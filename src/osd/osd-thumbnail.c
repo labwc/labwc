@@ -181,6 +181,7 @@ get_items_geometry(struct output *output, struct theme *theme,
 	struct window_switcher_thumbnail_theme *switcher_theme =
 		&theme->osd_window_switcher_thumbnail;
 	int output_width = output->wlr_output->width / output->wlr_output->scale;
+	int padding = theme->osd_border_width + switcher_theme->padding;
 
 	int max_bg_width = switcher_theme->max_width;
 	if (switcher_theme->max_width_is_percent) {
@@ -191,8 +192,7 @@ get_items_geometry(struct output *output, struct theme *theme,
 	*nr_cols = nr_thumbs;
 	while (1) {
 		assert(*nr_rows <= nr_thumbs);
-		int bg_width = *nr_cols * switcher_theme->item_width
-			+ theme->osd_border_width + switcher_theme->padding;
+		int bg_width = *nr_cols * switcher_theme->item_width + 2 * padding;
 		if (bg_width < max_bg_width) {
 			break;
 		}

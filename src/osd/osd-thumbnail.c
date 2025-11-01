@@ -180,7 +180,9 @@ get_items_geometry(struct output *output, struct theme *theme,
 {
 	struct window_switcher_thumbnail_theme *switcher_theme =
 		&theme->osd_window_switcher_thumbnail;
-	int output_width = output->wlr_output->width / output->wlr_output->scale;
+	int output_width, output_height;
+	wlr_output_effective_resolution(output->wlr_output,
+		&output_width, &output_height);
 	int padding = theme->osd_border_width + switcher_theme->padding;
 
 	int max_bg_width = switcher_theme->max_width;

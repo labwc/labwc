@@ -339,7 +339,7 @@ this is for compatibility with Openbox.
 ## WINDOW SWITCHER
 
 ```
-<windowSwitcher show="yes" style="classic" preview="yes" outlines="yes" allWorkspaces="no" allOutputs="no">
+<windowSwitcher show="yes" style="classic" preview="yes" outlines="yes" allWorkspaces="no" allOutputs="yes">
   <fields>
     <field content="icon" width="5%" />
     <field content="desktop_entry_name" width="30%" />
@@ -367,8 +367,7 @@ this is for compatibility with Openbox.
 	are shown).
 
 	*allOutputs* [yes|no] Show windows regardless of what output
-	they are on. Default no (that is only windows on the cursor output
-	are shown).
+	they are on. Default yes.
 
 	*unshade* [yes|no] Temporarily unshade windows when switching between
 	them and permanently unshade on the final selection. Default is yes.

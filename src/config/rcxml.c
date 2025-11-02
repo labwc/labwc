@@ -1218,9 +1218,9 @@ entry(xmlNode *node, char *nodename, char *content)
 				~LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
 		}
 	} else if (!strcasecmp(nodename, "allOutputs.windowSwitcher")) {
-		if (parse_bool(content, -1) == true) {
-			rc.window_switcher.criteria &=
-				~LAB_VIEW_CRITERIA_CURSOR_OUTPUT;
+		if (parse_bool(content, -1) == false) {
+			rc.window_switcher.criteria |=
+				LAB_VIEW_CRITERIA_CURSOR_OUTPUT;
 		}
 	} else if (!strcasecmp(nodename, "unshade.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.unshade);
@@ -1438,7 +1438,6 @@ rcxml_init(void)
 	rc.window_switcher.outlines = true;
 	rc.window_switcher.unshade = true;
 	rc.window_switcher.criteria = LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
-		| LAB_VIEW_CRITERIA_CURSOR_OUTPUT
 		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
 		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;
 

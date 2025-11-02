@@ -6,6 +6,7 @@
 #include "labwc.h"
 #include "output.h"
 #include "view.h"
+#include "window-rules.h"
 
 /* wlr signals */
 static void
@@ -116,23 +117,7 @@ handle_new_outputs(struct wl_listener *listener, void *data)
 		wl_container_of(listener, wlr_toplevel, on_view.new_outputs);
 	assert(wlr_toplevel->handle);
 
-	/*
-	 * Loop over all outputs and notify foreign_toplevel clients about changes.
-	 * wlr_foreign_toplevel_handle_v1_output_xxx() keeps track of the active
-	 * outputs internally and merges the events. It also listens to output
-	 * destroy events so its fine to just relay the current state and let
-	 * wlr_foreign_toplevel handle the rest.
-	 */
-	struct output *output;
-	wl_list_for_each(output, &wlr_toplevel->view->server->outputs, link) {
-		if (view_on_output(wlr_toplevel->view, output)) {
-			wlr_foreign_toplevel_handle_v1_output_enter(
-				wlr_toplevel->handle, output->wlr_output);
-		} else {
-			wlr_foreign_toplevel_handle_v1_output_leave(
-				wlr_toplevel->handle, output->wlr_output);
-		}
-	}
+	wlr_foreign_toplevel_refresh_outputs(wlr_toplevel);
 }
 
 static void
@@ -245,4 +230,49 @@ wlr_foreign_toplevel_finish(struct wlr_foreign_toplevel *wlr_toplevel)
 	/* invokes handle_handle_destroy() which does more cleanup */
 	wlr_foreign_toplevel_handle_v1_destroy(wlr_toplevel->handle);
 	assert(!wlr_toplevel->handle);
+}
+
+void
+wlr_foreign_toplevel_refresh_outputs(struct wlr_foreign_toplevel *wlr_toplevel)
+{
+	if (!wlr_toplevel || !wlr_toplevel->handle) {
+		return;
+	}
+
+	/*
+	 * Loop over all outputs and notify foreign_toplevel clients about changes.
+	 * wlr_foreign_toplevel_handle_v1_output_xxx() keeps track of the active
+	 * outputs internally and merges the events. It also listens to output
+	 * destroy events so its fine to just relay the current state and let
+	 * wlr_foreign_toplevel handle the rest.
+	 */
+	struct output *output;
+	wl_list_for_each(output, &wlr_toplevel->view->server->outputs, link) {
+		bool visible = false;
+		switch (window_rules_get_taskbar_scope(wlr_toplevel->view, "taskbarScope")) {
+		case LAB_TASKBAR_SCOPE_HERE:
+			visible = view_on_output(wlr_toplevel->view, output)
+				&& (wlr_toplevel->view->workspace ==
+					wlr_toplevel->view->server->workspaces.current);
+			break;
+		case LAB_TASKBAR_SCOPE_MONITOR:
+		case LAB_TASKBAR_SCOPE_UNSPECIFIED:
+			visible = view_on_output(wlr_toplevel->view, output);
+			break;
+		case LAB_TASKBAR_SCOPE_WORKSPACE:
+			visible = (wlr_toplevel->view->workspace ==
+				wlr_toplevel->view->server->workspaces.current);
+			break;
+		case LAB_TASKBAR_SCOPE_EVERYWHERE:
+			visible = true;
+			break;
+		}
+		if (visible) {
+			wlr_foreign_toplevel_handle_v1_output_enter(wlr_toplevel->handle,
+				output->wlr_output);
+		} else {
+			wlr_foreign_toplevel_handle_v1_output_leave(wlr_toplevel->handle,
+				output->wlr_output);
+		}
+	}
 }

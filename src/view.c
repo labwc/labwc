@@ -1662,6 +1662,11 @@ view_move_to_workspace(struct view *view, struct workspace *workspace)
 		wlr_scene_node_reparent(&view->scene_tree->node,
 			workspace->tree);
 	}
+
+	/* Refresh toplevel outputs after moving view */
+	if (view->foreign_toplevel) {
+		foreign_toplevel_refresh_outputs(view->foreign_toplevel);
+	}
 }
 
 static void

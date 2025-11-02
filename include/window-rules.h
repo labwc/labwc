@@ -18,6 +18,22 @@ enum property {
 };
 
 /*
+ * Taskbar scope for per-window task listing.
+ *   - 'UNSPECIFIED'	backward compatible fallback to: monitor
+ *   - 'HERE'		THIS monitor & THIS workspace
+ *   - 'MONITOR'	THIS monitor & ALL workspaces (default)
+ *   - 'WORKSPACE'	ALL monitors & THIS workspace
+ *   - 'EVERYWHERE'	ALL monitors & ALL workspaces
+ */
+enum taskbar_scope {
+	LAB_TASKBAR_SCOPE_UNSPECIFIED = 0,
+	LAB_TASKBAR_SCOPE_HERE,
+	LAB_TASKBAR_SCOPE_MONITOR,
+	LAB_TASKBAR_SCOPE_WORKSPACE,
+	LAB_TASKBAR_SCOPE_EVERYWHERE,
+};
+
+/*
  * 'identifier' represents:
  *   - 'app_id' for native Wayland windows
  *   - 'WM_CLASS' for XWayland clients
@@ -41,6 +57,8 @@ struct window_rule {
 	enum property fixed_position;
 	enum property icon_prefer_client;
 
+	enum taskbar_scope scope_taskbar;
+
 	struct wl_list link; /* struct rcxml.window_rules */
 };
 
@@ -48,5 +66,6 @@ struct view;
 
 void window_rules_apply(struct view *view, enum window_rule_event event);
 enum property window_rules_get_property(struct view *view, const char *property);
+enum taskbar_scope window_rules_get_taskbar_scope(struct view *view, const char *scope);
 
 #endif /* LABWC_WINDOW_RULES_H */

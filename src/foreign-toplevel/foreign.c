@@ -43,3 +43,10 @@ foreign_toplevel_destroy(struct foreign_toplevel *toplevel)
 	ext_foreign_toplevel_finish(&toplevel->ext_toplevel);
 	free(toplevel);
 }
+
+void
+foreign_toplevel_refresh_outputs(struct foreign_toplevel *toplevel)
+{
+	assert(toplevel);
+	wlr_foreign_toplevel_refresh_outputs(&toplevel->wlr_toplevel);
+}

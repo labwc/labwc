@@ -16,6 +16,7 @@
 #include "common/list.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
+#include "foreign-toplevel/foreign.h"
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "output.h"
@@ -441,6 +442,14 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 
 	/* Make sure new views will spawn on the new workspace */
 	server->workspaces.current = target;
+
+	/* Refresh toplevel outputs after switching workspace */
+	struct view *v_iter;
+	wl_list_for_each(v_iter, &server->views, link) {
+		if (v_iter->foreign_toplevel) {
+			foreign_toplevel_refresh_outputs(v_iter->foreign_toplevel);
+		}
+	}
 
 	struct view *grabbed_view = server->grabbed_view;
 	if (grabbed_view && !view_is_always_on_top(grabbed_view)) {

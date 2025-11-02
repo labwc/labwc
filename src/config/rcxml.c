@@ -244,6 +244,32 @@ set_property(const char *str, enum property *variable)
 }
 
 static void
+set_taskbar_scope(const char *str, enum taskbar_scope *variable)
+{
+	if (!str) {
+		*variable = LAB_TASKBAR_SCOPE_UNSPECIFIED;
+		return;
+	}
+	if (!strcasecmp(str, "here")) {
+		*variable = LAB_TASKBAR_SCOPE_HERE;
+		return;
+	}
+	if (!strcasecmp(str, "monitor")) {
+		*variable = LAB_TASKBAR_SCOPE_MONITOR;
+		return;
+	}
+	if (!strcasecmp(str, "workspace")) {
+		*variable = LAB_TASKBAR_SCOPE_WORKSPACE;
+		return;
+	}
+	if (!strcasecmp(str, "everywhere")) {
+		*variable = LAB_TASKBAR_SCOPE_EVERYWHERE;
+		return;
+	}
+	*variable = LAB_TASKBAR_SCOPE_UNSPECIFIED;
+}
+
+static void
 fill_window_rule(xmlNode *node)
 {
 	struct window_rule *window_rule = znew(*window_rule);
@@ -300,6 +326,8 @@ fill_window_rule(xmlNode *node)
 			set_property(content, &window_rule->ignore_configure_request);
 		} else if (!strcasecmp(key, "fixedPosition")) {
 			set_property(content, &window_rule->fixed_position);
+		} else if (!strcasecmp(key, "taskbarScope")) {
+			set_taskbar_scope(content, &window_rule->scope_taskbar);
 		}
 	}
 

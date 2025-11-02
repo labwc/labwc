@@ -114,3 +114,22 @@ window_rules_get_property(struct view *view, const char *property)
 	}
 	return LAB_PROP_UNSPECIFIED;
 }
+
+enum taskbar_scope
+window_rules_get_taskbar_scope(struct view *view, const char *scope)
+{
+	assert(scope);
+
+	struct window_rule *rule;
+	wl_list_for_each_reverse(rule, &rc.window_rules, link) {
+		if (view_matches_criteria(rule, view)) {
+			if (rule->scope_taskbar
+					&& !strcasecmp(scope, "taskbarScope")) {
+				return rule->scope_taskbar;
+			}
+		}
+	}
+
+	/* backward compatible fallback to: monitor */
+	return LAB_TASKBAR_SCOPE_UNSPECIFIED;
+}

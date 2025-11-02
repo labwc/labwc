@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
-#include <wlr/render/swapchain.h>
-#include <wlr/types/wlr_scene.h>
 #include <wlr/render/allocator.h>
+#include <wlr/render/swapchain.h>
+#include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_scene.h>
 #include "config/rcxml.h"
 #include "common/array.h"
 #include "common/box.h"
@@ -211,7 +212,8 @@ osd_thumbnail_create(struct output *output, struct wl_array *views)
 {
 	assert(!output->osd_scene.tree);
 
-	struct theme *theme = output->server->theme;
+	struct server *server = output->server;
+	struct theme *theme = server->theme;
 	struct window_switcher_thumbnail_theme *switcher_theme =
 		&theme->osd_window_switcher_thumbnail;
 	int padding = theme->osd_border_width + switcher_theme->padding;
@@ -252,9 +254,11 @@ osd_thumbnail_create(struct output *output, struct wl_array *views)
 	wlr_scene_node_lower_to_bottom(&bg->tree->node);
 
 	/* center */
-	struct wlr_box usable = output_usable_area_in_layout_coords(output);
-	int lx = usable.x + (usable.width - bg_opts.width) / 2;
-	int ly = usable.y + (usable.height - bg_opts.height) / 2;
+	struct wlr_box output_box;
+	wlr_output_layout_get_box(server->output_layout, output->wlr_output,
+		&output_box);
+	int lx = output_box.x + (output_box.width - bg_opts.width) / 2;
+	int ly = output_box.y + (output_box.height - bg_opts.height) / 2;
 	wlr_scene_node_set_position(&output->osd_scene.tree->node, lx, ly);
 }
 

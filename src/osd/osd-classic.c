@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <assert.h>
+#include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
@@ -84,13 +85,13 @@ osd_classic_create(struct output *output, struct wl_array *views)
 	bool show_workspace = wl_list_length(&rc.workspace_config.workspaces) > 1;
 	const char *workspace_name = server->workspaces.current->name;
 
-	int output_width, output_height;
-	wlr_output_effective_resolution(output->wlr_output,
-		&output_width, &output_height);
+	struct wlr_box output_box;
+	wlr_output_layout_get_box(server->output_layout, output->wlr_output,
+		&output_box);
 
 	int w = switcher_theme->width;
 	if (switcher_theme->width_is_percent) {
-		w = output_width * switcher_theme->width / 100;
+		w = output_box.width * switcher_theme->width / 100;
 	}
 	int h = wl_array_len(views) * switcher_theme->item_height
 		+ 2 * rc.theme->osd_border_width + 2 * switcher_theme->padding;
@@ -214,10 +215,9 @@ osd_classic_create(struct output *output, struct wl_array *views)
 
 error:;
 	/* Center OSD */
-	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 	wlr_scene_node_set_position(&output->osd_scene.tree->node,
-		usable.x + usable.width / 2 - w / 2,
-		usable.y + usable.height / 2 - h / 2);
+		output_box.x + (output_box.width - w) / 2,
+		output_box.y + (output_box.height - h) / 2);
 }
 
 static void

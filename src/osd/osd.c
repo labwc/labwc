@@ -292,11 +292,20 @@ update_osd(struct server *server)
 
 	if (rc.window_switcher.show) {
 		/* Display the actual OSD */
-		struct output *output;
-		wl_list_for_each(output, &server->outputs, link) {
-			if (!output_is_usable(output)) {
-				continue;
-			}
+		// struct output *output;
+		// wl_list_for_each(output, &server->outputs, link) {
+		// 	if (!output_is_usable(output)) {
+		// 		continue;
+		// 	}
+		// 	if (!output->osd_scene.tree) {
+		// 		osd_impl->create(output, &views);
+		// 		assert(output->osd_scene.tree);
+		// 	}
+		// 	osd_impl->update(output);
+		// }
+
+		struct output *output = output_nearest_to_cursor(server);
+		if (output_is_usable(output)) {
 			if (!output->osd_scene.tree) {
 				osd_impl->create(output, &views);
 				assert(output->osd_scene.tree);

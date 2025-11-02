@@ -277,6 +277,13 @@ matches_criteria(struct view *view, enum lab_view_criteria criteria)
 			return false;
 		}
 	}
+	if (criteria & LAB_VIEW_CRITERIA_CURSOR_OUTPUT) {
+		struct server *server = view->server;
+		struct output *output = output_nearest_to_cursor(server);
+		if (view->output != output) {
+			return false;
+		}
+	}
 	if (criteria & LAB_VIEW_CRITERIA_FULLSCREEN) {
 		if (!view->fullscreen) {
 			return false;

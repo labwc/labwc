@@ -1304,6 +1304,16 @@ situation.
 	This property allows prioritizing client supplied icons for specific
 	applications. Default is server.
 
+*<windowRules><windowRule taskbarScope="">* [here|monitor|workspace|everywhere]
+	Controls where this window's taskbar entry is shown (taskbar listing
+	only).
+
+	Values:
+	- *here* — this monitor **and** its current workspace
+	- *monitor* — this monitor across its workspaces (default)
+	- *workspace* — all monitors currently on this workspace
+	- *everywhere* — all monitors & all workspaces
+
 ## MENU
 
 ```

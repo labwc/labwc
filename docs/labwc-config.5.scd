@@ -861,7 +861,7 @@ extending outward from the snapped edge.
 	Supported mouse *actions* include:
 	- Press: Pressing the specified button down in the context.
 	- Release: Releasing the specified button in the context.
-	- Click: Pressing and then releasing inside of the the context.
+	- Click: Pressing and then releasing inside of the context.
 	- DoubleClick: Two presses within the doubleClickTime.
 	- Drag: Pressing the button within the context, then moving the cursor.
 	- Scroll: Scrolling in specified *direction* in the context.
@@ -1141,7 +1141,7 @@ extending outward from the snapped edge.
 	the middle mouse button (scroll wheel).
 
 *<libinput><device><disableWhileTyping>* [yes|no]
-	Enable or disable disable while typing for this category. DWT ignores
+	Enable or disable while typing for this category. DWT ignores
 	any motion events while a keyboard is typing, and for a short while
 	after as well.
 

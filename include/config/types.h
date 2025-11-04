@@ -67,16 +67,17 @@ enum lab_view_criteria {
 	 * what is visible on the current workspace
 	 */
 	LAB_VIEW_CRITERIA_CURRENT_WORKSPACE       = 1 << 0,
+	LAB_VIEW_CRITERIA_CURSOR_OUTPUT           = 1 << 1,
 
 	/* Positive criteria */
-	LAB_VIEW_CRITERIA_FULLSCREEN              = 1 << 1,
-	LAB_VIEW_CRITERIA_ALWAYS_ON_TOP           = 1 << 2,
-	LAB_VIEW_CRITERIA_ROOT_TOPLEVEL           = 1 << 3,
+	LAB_VIEW_CRITERIA_FULLSCREEN              = 1 << 2,
+	LAB_VIEW_CRITERIA_ALWAYS_ON_TOP           = 1 << 3,
+	LAB_VIEW_CRITERIA_ROOT_TOPLEVEL           = 1 << 4,
 
 	/* Negative criteria */
-	LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP        = 1 << 6,
-	LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER = 1 << 7,
-	LAB_VIEW_CRITERIA_NO_OMNIPRESENT          = 1 << 8,
+	LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP        = 1 << 7,
+	LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER = 1 << 8,
+	LAB_VIEW_CRITERIA_NO_OMNIPRESENT          = 1 << 9,
 };
 
 /*

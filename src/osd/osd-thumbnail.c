@@ -7,6 +7,7 @@
 #include "config/rcxml.h"
 #include "common/array.h"
 #include "common/box.h"
+#include "common/buf.h"
 #include "common/lab-scene-rect.h"
 #include "common/list.h"
 #include "labwc.h"
@@ -20,8 +21,8 @@
 
 struct osd_thumbnail_item {
 	struct osd_item base;
-	struct scaled_font_buffer *normal_title;
-	struct scaled_font_buffer *active_title;
+	struct scaled_font_buffer *normal_label;
+	struct scaled_font_buffer *active_label;
 	struct lab_scene_rect *active_bg;
 };
 
@@ -89,16 +90,19 @@ render_thumb(struct output *output, struct view *view)
 }
 
 static struct scaled_font_buffer *
-create_title(struct wlr_scene_tree *parent,
+create_label(struct wlr_scene_tree *parent, struct view *view,
 		struct window_switcher_thumbnail_theme *switcher_theme,
-		const char *title, const float *title_color,
-		const float *bg_color, int y)
+		const float *text_color, const float *bg_color, int y)
 {
+	struct buf buf = BUF_INIT;
+	osd_field_set_custom(&buf, view,
+		rc.window_switcher.thumbnail_label_format);
 	struct scaled_font_buffer *buffer =
 		scaled_font_buffer_create(parent);
-	scaled_font_buffer_update(buffer, title,
+	scaled_font_buffer_update(buffer, buf.data,
 		switcher_theme->item_width - 2 * switcher_theme->item_padding,
-		&rc.font_osd, title_color, bg_color);
+		&rc.font_osd, text_color, bg_color);
+	buf_reset(&buf);
 	wlr_scene_node_set_position(&buffer->scene_buffer->node,
 		(switcher_theme->item_width - buffer->width) / 2, y);
 	return buffer;
@@ -163,11 +167,11 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 	}
 
 	/* title */
-	item->normal_title = create_title(tree, switcher_theme,
-		view->title, theme->osd_label_text_color,
+	item->normal_label = create_label(tree, view,
+		switcher_theme, theme->osd_label_text_color,
 		theme->osd_bg_color, title_y);
-	item->active_title = create_title(tree, switcher_theme,
-		view->title, theme->osd_label_text_color,
+	item->active_label = create_label(tree, view,
+		switcher_theme, theme->osd_label_text_color,
 		switcher_theme->item_active_bg_color, title_y);
 
 	/* icon */
@@ -277,9 +281,9 @@ osd_thumbnail_update(struct output *output)
 		bool active = (item->base.view == output->server->osd_state.cycle_view);
 		wlr_scene_node_set_enabled(&item->active_bg->tree->node, active);
 		wlr_scene_node_set_enabled(
-			&item->active_title->scene_buffer->node, active);
+			&item->active_label->scene_buffer->node, active);
 		wlr_scene_node_set_enabled(
-			&item->normal_title->scene_buffer->node, !active);
+			&item->normal_label->scene_buffer->node, !active);
 	}
 }
 

@@ -183,6 +183,7 @@ struct rcxml {
 		enum lab_view_criteria criteria;
 		struct wl_list fields;  /* struct window_switcher_field.link */
 		enum window_switcher_style style;
+		char *thumbnail_label_format;
 	} window_switcher;
 
 	struct wl_list window_rules; /* struct window_rule.link */

@@ -65,6 +65,9 @@ void osd_on_cursor_release(struct server *server, struct wlr_scene_node *node);
 /* Used by osd.c internally to render window switcher fields */
 void osd_field_get_content(struct window_switcher_field *field,
 	struct buf *buf, struct view *view);
+/* Sets view info to buf according to format */
+void osd_field_set_custom(struct buf *buf, struct view *view,
+	const char *format);
 
 /* Used by rcxml.c when parsing the config */
 void osd_field_arg_from_xml_node(struct window_switcher_field *field,

@@ -189,9 +189,6 @@ field_set_title_short(struct buf *buf, struct view *view, const char *format)
 	buf_add(buf, get_title_if_different(view));
 }
 
-static void field_set_custom(struct buf *buf, struct view *view,
-	const char *format);
-
 static const struct field_converter field_converter[LAB_FIELD_COUNT] = {
 	[LAB_FIELD_TYPE]               = { 'B', field_set_type },
 	[LAB_FIELD_TYPE_SHORT]         = { 'b', field_set_type_short },
@@ -207,11 +204,11 @@ static const struct field_converter field_converter[LAB_FIELD_COUNT] = {
 	[LAB_FIELD_TITLE]              = { 'T', field_set_title },
 	[LAB_FIELD_TITLE_SHORT]        = { 't', field_set_title_short },
 	/* fmt_char can never be matched so prevents LAB_FIELD_CUSTOM recursion */
-	[LAB_FIELD_CUSTOM]             = { '\0', field_set_custom },
+	[LAB_FIELD_CUSTOM]             = { '\0', osd_field_set_custom },
 };
 
-static void
-field_set_custom(struct buf *buf, struct view *view, const char *format)
+void
+osd_field_set_custom(struct buf *buf, struct view *view, const char *format)
 {
 	if (!format) {
 		wlr_log(WLR_ERROR, "Missing format for custom window switcher field");

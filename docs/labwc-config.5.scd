@@ -339,7 +339,7 @@ this is for compatibility with Openbox.
 ## WINDOW SWITCHER
 
 ```
-<windowSwitcher show="yes" style="classic" preview="yes" outlines="yes" allWorkspaces="no">
+<windowSwitcher show="yes" style="classic" preview="yes" outlines="yes" allWorkspaces="no" thumbnailLabelFormat="%T">
   <fields>
     <field content="icon" width="5%" />
     <field content="desktop_entry_name" width="30%" />
@@ -348,7 +348,7 @@ this is for compatibility with Openbox.
 </windowSwitcher>
 ```
 
-*<windowSwitcher show="" style="" preview="" outlines="" allWorkspaces="" unshade="">*
+*<windowSwitcher show="" style="" preview="" outlines="" allWorkspaces="" unshade="" thumbnailLabelFormat="">*
 	*show* [yes|no] Draw the OnScreenDisplay when switching between
 	windows. Default is yes.
 
@@ -368,6 +368,10 @@ this is for compatibility with Openbox.
 
 	*unshade* [yes|no] Temporarily unshade windows when switching between
 	them and permanently unshade on the final selection. Default is yes.
+
+	*thumbnailLabelFormat* Format to be used for the thumbnail label according to *custom*
+	field below, only applied when using *<windowSwitcher style="thumbnail" />*.
+	Default is "%T".
 
 *<windowSwitcher><fields><field content="" width="%">*
 	Define window switcher fields when using *<windowSwitcher style="classic" />*.

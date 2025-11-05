@@ -1208,6 +1208,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else if (!strcasecmp(content, "thumbnail")) {
 			rc.window_switcher.style = WINDOW_SWITCHER_THUMBNAIL;
 		}
+	} else if (!strcasecmp(nodename, "thumbnailLabelFormat.windowSwitcher")) {
+		xstrdup_replace(rc.window_switcher.thumbnail_label_format, content);
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.preview);
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher")) {
@@ -1429,6 +1431,7 @@ rcxml_init(void)
 
 	rc.window_switcher.show = true;
 	rc.window_switcher.style = WINDOW_SWITCHER_CLASSIC;
+	rc.window_switcher.thumbnail_label_format = xstrdup("%T");
 	rc.window_switcher.preview = true;
 	rc.window_switcher.outlines = true;
 	rc.window_switcher.unshade = true;
@@ -1905,6 +1908,7 @@ rcxml_finish(void)
 	zfree(rc.fallback_app_icon_name);
 	zfree(rc.workspace_config.prefix);
 	zfree(rc.tablet.output_name);
+	zfree(rc.window_switcher.thumbnail_label_format);
 
 	clear_title_layout();
 

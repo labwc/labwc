@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /* view-impl-common.c: common code for shell view->impl functions */
 #include "view-impl-common.h"
+#include "config/rcxml.h"
 #include "foreign-toplevel/foreign.h"
 #include "labwc.h"
+#include "output.h"
+#include "output-state.h"
 #include "view.h"
 #include "window-rules.h"
 
@@ -51,6 +54,21 @@ view_impl_unmap(struct view *view)
 	 */
 	if (view == server->active_view || !server->active_view) {
 		desktop_focus_topmost_view(server);
+	}
+
+	desktop_update_top_layer_visibility(view->server);
+
+	/*
+	 * We may need to disable adaptive sync if view was fullscreen.
+	 *
+	 * FIXME: this logic doesn't account for multiple fullscreen
+	 * views. It should probably be combined with the existing
+	 * logic in desktop_update_top_layer_visibility().
+	 */
+	if (view->fullscreen && rc.adaptive_sync == LAB_ADAPTIVE_SYNC_FULLSCREEN
+			&& output_is_usable(view->output)) {
+		output_enable_adaptive_sync(view->output, false);
+		output_state_commit(view->output);
 	}
 }
 

@@ -2626,20 +2626,6 @@ view_destroy(struct view *view)
 	undecorate(view);
 
 	view_set_icon(view, NULL, NULL);
-
-	/*
-	 * The layer-shell top-layer is disabled when an application is running
-	 * in fullscreen mode, so if that's the case, we may have to re-enable
-	 * it here.
-	 */
-	if (view->fullscreen && view->output) {
-		view->fullscreen = false;
-		desktop_update_top_layer_visibility(server);
-		if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_FULLSCREEN) {
-			set_adaptive_sync_fullscreen(view);
-		}
-	}
-
 	menu_on_view_destroy(view);
 
 	/*

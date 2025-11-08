@@ -832,8 +832,15 @@ xwayland_view_map(struct view *view)
 	 */
 	handle_map_request(&xwayland_view->map_request, NULL);
 
-	view->mapped = true;
-	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
+	/*
+	 * For initially minimized views, we do not set view->mapped
+	 * nor enable the scene node. All other map logic (positioning,
+	 * creating foreign toplevel, etc.) happens as normal.
+	 */
+	if (!view->minimized) {
+		view->mapped = true;
+		wlr_scene_node_set_enabled(&view->scene_tree->node, true);
+	}
 
 	if (view->surface != xwayland_surface->surface) {
 		set_surface(view, xwayland_surface->surface);

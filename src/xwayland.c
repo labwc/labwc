@@ -38,6 +38,7 @@ static_assert(ARRAY_SIZE(atom_names) == ATOM_COUNT, "atom names out of sync");
 
 static xcb_atom_t atoms[ATOM_COUNT] = {0};
 
+static void set_surface(struct view *view, struct wlr_surface *surface);
 static void xwayland_view_unmap(struct view *view, bool client_request);
 
 static struct xwayland_view *
@@ -332,8 +333,7 @@ handle_surface_destroy(struct wl_listener *listener, void *data)
 	struct view *view = wl_container_of(listener, view, surface_destroy);
 	assert(data && data == view->surface);
 
-	view->surface = NULL;
-	wl_list_remove(&view->surface_destroy.link);
+	set_surface(view, NULL);
 }
 
 static void
@@ -343,15 +343,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
 	assert(xwayland_view->xwayland_surface->data == view);
 
-	if (view->surface) {
-		/*
-		 * We got the destroy signal from
-		 * wlr_xwayland_surface before the
-		 * destroy signal from wlr_surface.
-		 */
-		wl_list_remove(&view->surface_destroy.link);
-	}
-	view->surface = NULL;
+	set_surface(view, NULL);
 
 	/*
 	 * Break view <-> xsurface association.  Note that the xsurface
@@ -793,6 +785,24 @@ init_foreign_toplevel(struct view *view)
 }
 
 static void
+set_surface(struct view *view, struct wlr_surface *surface)
+{
+	if (view->surface) {
+		/* Disconnect wlr_surface event listeners */
+		wl_list_remove(&view->commit.link);
+		wl_list_remove(&view->surface_destroy.link);
+	}
+	view->surface = surface;
+	if (surface) {
+		/* Connect wlr_surface event listeners */
+		view->commit.notify = handle_commit;
+		wl_signal_add(&surface->events.commit, &view->commit);
+		view->surface_destroy.notify = handle_surface_destroy;
+		wl_signal_add(&surface->events.destroy, &view->surface_destroy);
+	}
+}
+
+static void
 xwayland_view_map(struct view *view)
 {
 	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
@@ -826,14 +836,7 @@ xwayland_view_map(struct view *view)
 	wlr_scene_node_set_enabled(&view->scene_tree->node, true);
 
 	if (view->surface != xwayland_surface->surface) {
-		if (view->surface) {
-			wl_list_remove(&view->surface_destroy.link);
-		}
-		view->surface = xwayland_surface->surface;
-
-		/* Required to set the surface to NULL when destroyed by the client */
-		view->surface_destroy.notify = handle_surface_destroy;
-		wl_signal_add(&view->surface->events.destroy, &view->surface_destroy);
+		set_surface(view, xwayland_surface->surface);
 
 		/* Will be free'd automatically once the surface is being destroyed */
 		struct wlr_scene_tree *tree = wlr_scene_subsurface_tree_create(
@@ -872,10 +875,6 @@ xwayland_view_map(struct view *view)
 		view_moved(view);
 	}
 
-	/* Add commit here, as xwayland map/unmap can change the wlr_surface */
-	wl_signal_add(&xwayland_surface->surface->events.commit, &view->commit);
-	view->commit.notify = handle_commit;
-
 	/*
 	 * If the view was focused (on the xwayland server side) before
 	 * being mapped, update the seat focus now. Note that this only
@@ -904,7 +903,6 @@ xwayland_view_unmap(struct view *view, bool client_request)
 		goto out;
 	}
 	view->mapped = false;
-	wl_list_remove(&view->commit.link);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 	view_impl_unmap(view);
 

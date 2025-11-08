@@ -2479,11 +2479,6 @@ handle_unmap(struct wl_listener *listener, void *data)
 	view->impl->unmap(view, /* client_request */ true);
 }
 
-/*
- * TODO: after the release of wlroots 0.17, consider incorporating this
- * function into a more general view_set_surface() function, which could
- * connect other surface event handlers (like commit) as well.
- */
 void
 view_connect_map(struct view *view, struct wlr_surface *surface)
 {

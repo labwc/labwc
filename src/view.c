@@ -2473,18 +2473,7 @@ static void
 handle_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, mappable.map);
-	if (view->minimized) {
-		/*
-		 * The view->impl functions do not directly support
-		 * mapping a view while minimized. Instead, mark it as
-		 * not minimized, map it, and then minimize it again.
-		 */
-		view->minimized = false;
-		view->impl->map(view);
-		view_minimize(view, true);
-	} else {
-		view->impl->map(view);
-	}
+	view->impl->map(view);
 }
 
 static void

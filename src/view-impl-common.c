@@ -9,7 +9,10 @@
 void
 view_impl_map(struct view *view)
 {
-	desktop_focus_view(view, /*raise*/ true);
+	/* Leave minimized, if minimized before map */
+	if (!view->minimized) {
+		desktop_focus_view(view, /*raise*/ true);
+	}
 	if (!view->been_mapped) {
 		window_rules_apply(view, LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP);
 	}

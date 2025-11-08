@@ -18,7 +18,6 @@ struct foreign_toplevel *
 foreign_toplevel_create(struct view *view)
 {
 	assert(view);
-	assert(view->mapped);
 
 	struct foreign_toplevel *toplevel = znew(*toplevel);
 	wlr_foreign_toplevel_init(&toplevel->wlr_toplevel, view);

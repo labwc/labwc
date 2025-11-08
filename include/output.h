@@ -69,4 +69,13 @@ void handle_output_power_manager_set_mode(struct wl_listener *listener,
 	void *data);
 void output_enable_adaptive_sync(struct output *output, bool enabled);
 
+/**
+ * Notifies whether a fullscreen view is displayed on the given output.
+ * Depending on user config, this may enable/disable adaptive sync.
+ *
+ * Does nothing if output is NULL or disabled.
+ */
+void output_set_has_fullscreen_view(struct output *output,
+	bool has_fullscreen_view);
+
 #endif // LABWC_OUTPUT_H

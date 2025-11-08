@@ -21,7 +21,6 @@
 #include "menu/menu.h"
 #include "osd.h"
 #include "output.h"
-#include "output-state.h"
 #include "placement.h"
 #include "regions.h"
 #include "resize-indicator.h"
@@ -513,20 +512,6 @@ view_discover_output(struct view *view, struct wlr_box *geometry)
 	return false;
 }
 
-static void
-set_adaptive_sync_fullscreen(struct view *view)
-{
-	if (!output_is_usable(view->output)) {
-		return;
-	}
-	if (rc.adaptive_sync != LAB_ADAPTIVE_SYNC_FULLSCREEN) {
-		return;
-	}
-	/* Enable adaptive sync if view is fullscreen */
-	output_enable_adaptive_sync(view->output, view->fullscreen);
-	output_state_commit(view->output);
-}
-
 void
 view_set_activated(struct view *view, bool activated)
 {
@@ -548,7 +533,7 @@ view_set_activated(struct view *view, bool activated)
 			keyboard_update_layout(&view->server->seat, view->keyboard_layout);
 		}
 	}
-	set_adaptive_sync_fullscreen(view);
+	output_set_has_fullscreen_view(view->output, view->fullscreen);
 }
 
 void
@@ -1786,7 +1771,7 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 	} else {
 		view_apply_special_geometry(view);
 	}
-	set_adaptive_sync_fullscreen(view);
+	output_set_has_fullscreen_view(view->output, view->fullscreen);
 }
 
 static bool

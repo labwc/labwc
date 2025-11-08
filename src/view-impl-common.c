@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /* view-impl-common.c: common code for shell view->impl functions */
 #include "view-impl-common.h"
-#include "config/rcxml.h"
 #include "foreign-toplevel/foreign.h"
 #include "labwc.h"
 #include "output.h"
-#include "output-state.h"
 #include "view.h"
 #include "window-rules.h"
 
@@ -65,10 +63,8 @@ view_impl_unmap(struct view *view)
 	 * views. It should probably be combined with the existing
 	 * logic in desktop_update_top_layer_visibility().
 	 */
-	if (view->fullscreen && rc.adaptive_sync == LAB_ADAPTIVE_SYNC_FULLSCREEN
-			&& output_is_usable(view->output)) {
-		output_enable_adaptive_sync(view->output, false);
-		output_state_commit(view->output);
+	if (view->fullscreen) {
+		output_set_has_fullscreen_view(view->output, false);
 	}
 }
 

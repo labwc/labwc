@@ -1144,3 +1144,15 @@ output_enable_adaptive_sync(struct output *output, bool enabled)
 			enabled ? "en" : "dis", output->wlr_output->name);
 	}
 }
+
+void
+output_set_has_fullscreen_view(struct output *output, bool has_fullscreen_view)
+{
+	if (rc.adaptive_sync != LAB_ADAPTIVE_SYNC_FULLSCREEN
+			|| !output_is_usable(output)) {
+		return;
+	}
+	/* Enable adaptive sync if view is fullscreen */
+	output_enable_adaptive_sync(output, has_fullscreen_view);
+	output_state_commit(output);
+}

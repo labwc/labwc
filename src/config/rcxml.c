@@ -1068,6 +1068,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		load_default_mouse_bindings();
 	} else if (!strcasecmp(nodename, "prefix.desktops")) {
 		xstrdup_replace(rc.workspace_config.prefix, content);
+	} else if (!strcasecmp(nodename, "thumbnailLabelFormat.windowSwitcher")) {
+		xstrdup_replace(rc.window_switcher.thumbnail_label_format, content);
 
 	} else if (!lab_xml_node_is_leaf(node)) {
 		/* parse children of nested nodes other than above */
@@ -1208,8 +1210,6 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else if (!strcasecmp(content, "thumbnail")) {
 			rc.window_switcher.style = WINDOW_SWITCHER_THUMBNAIL;
 		}
-	} else if (!strcasecmp(nodename, "thumbnailLabelFormat.windowSwitcher")) {
-		xstrdup_replace(rc.window_switcher.thumbnail_label_format, content);
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.preview);
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher")) {

@@ -112,4 +112,10 @@ enum window_switcher_style {
 	WINDOW_SWITCHER_THUMBNAIL,
 };
 
+enum osd_output_criteria {
+	OSD_OUTPUT_ALL,
+	OSD_OUTPUT_POINTER,
+	OSD_OUTPUT_KEYBOARD,
+};
+
 #endif /* LABWC_CONFIG_TYPES_H */

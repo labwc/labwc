@@ -339,7 +339,8 @@ this is for compatibility with Openbox.
 ## WINDOW SWITCHER
 
 ```
-<windowSwitcher show="yes" style="classic" preview="yes" outlines="yes" allWorkspaces="no" thumbnailLabelFormat="%T">
+<windowSwitcher preview="yes" outlines="yes" allWorkspaces="no">
+  <osd show="yes" style="classic" output="all" thumbnailLabelFormat="%T" />
   <fields>
     <field content="icon" width="5%" />
     <field content="desktop_entry_name" width="30%" />
@@ -348,14 +349,7 @@ this is for compatibility with Openbox.
 </windowSwitcher>
 ```
 
-*<windowSwitcher show="" style="" preview="" outlines="" allWorkspaces="" unshade="" thumbnailLabelFormat="">*
-	*show* [yes|no] Draw the OnScreenDisplay when switching between
-	windows. Default is yes.
-
-	*style* [classic|thumbnail] Configures the style of the OnScreenDisplay.
-	"classic" displays window information like icons and titles in a vertical list.
-	"thumbnail" shows window thumbnail, icon and title in grids.
-
+*<windowSwitcher preview="" outlines="" allWorkspaces="" unshade="">*
 	*preview* [yes|no] Preview the contents of the selected window when
 	switching between windows. Default is yes.
 
@@ -369,12 +363,26 @@ this is for compatibility with Openbox.
 	*unshade* [yes|no] Temporarily unshade windows when switching between
 	them and permanently unshade on the final selection. Default is yes.
 
+*<osd show="" style="" output="" thumbnailLabelFormat="" />*
+	*show* [yes|no] Draw the OnScreenDisplay when switching between
+	windows. Default is yes.
+
+	*style* [classic|thumbnail] Configures the style of the OSD.
+	"classic" displays window information like icons and titles in a vertical list.
+	"thumbnail" shows window thumbnail, icon and title in grids.
+
+	*output* [all|pointer|keyboard] Configures which monitor(s) show the OSD.
+	"all" displays the OSD on all monitors.
+	"pointer" displays the OSD on the monitor containing the mouse pointer.
+	"keyboard" displays the OSD on the monitor with keyboard focus.
+	Default is "all".
+
 	*thumbnailLabelFormat* Format to be used for the thumbnail label according to *custom*
-	field below, only applied when using *<windowSwitcher style="thumbnail" />*.
+	field below, only applied when using *<osd style="thumbnail" />*.
 	Default is "%T".
 
 *<windowSwitcher><fields><field content="" width="%">*
-	Define window switcher fields when using *<windowSwitcher style="classic" />*.
+	Define window switcher fields when using *<osd style="classic" />*.
 
 	*content* defines what the field shows and can be any of:
 

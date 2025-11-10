@@ -1068,7 +1068,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		load_default_mouse_bindings();
 	} else if (!strcasecmp(nodename, "prefix.desktops")) {
 		xstrdup_replace(rc.workspace_config.prefix, content);
-	} else if (!strcasecmp(nodename, "thumbnailLabelFormat.windowSwitcher")) {
+	} else if (!strcasecmp(nodename, "thumbnailLabelFormat.osd.windowSwitcher")) {
 		xstrdup_replace(rc.window_switcher.thumbnail_label_format, content);
 
 	} else if (!lab_xml_node_is_leaf(node)) {
@@ -1201,15 +1201,50 @@ entry(xmlNode *node, char *nodename, char *content)
 			wlr_log(WLR_ERROR, "ignoring invalid value for notifyClient");
 		}
 
-	/* <windowSwitcher show="" preview="" outlines="" /> */
+	/*
+	 * <windowSwitcher preview="" outlines="">
+	 *   <osd show="" style="" output="" thumbnailLabelFormat="" />
+	 * </windowSwitcher>
+	 *
+	 * thumnailLabelFormat is handled above to allow for an empty value
+	 */
+	} else if (!strcasecmp(nodename, "show.osd.windowSwitcher")) {
+		set_bool(content, &rc.window_switcher.show);
+	} else if (!strcasecmp(nodename, "style.osd.windowSwitcher")) {
+		if (!strcasecmp(content, "classic")) {
+			rc.window_switcher.style = WINDOW_SWITCHER_CLASSIC;
+		} else if (!strcasecmp(content, "thumbnail")) {
+			rc.window_switcher.style = WINDOW_SWITCHER_THUMBNAIL;
+		} else {
+			wlr_log(WLR_ERROR, "Invalid windowSwitcher style %s: "
+				"should be one of classic|thumbnail", content);
+		}
+	} else if (!strcasecmp(nodename, "output.osd.windowSwitcher")) {
+		if (!strcasecmp(content, "all")) {
+			rc.window_switcher.output_criteria = OSD_OUTPUT_ALL;
+		} else if (!strcasecmp(content, "pointer")) {
+			rc.window_switcher.output_criteria = OSD_OUTPUT_POINTER;
+		} else if (!strcasecmp(content, "keyboard")) {
+			rc.window_switcher.output_criteria = OSD_OUTPUT_KEYBOARD;
+		} else {
+			wlr_log(WLR_ERROR, "Invalid windowSwitcher output %s: "
+				"should be one of all|pointer|keyboard", content);
+		}
+
+	/* The following two are for backward compatibility only. */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.show);
+		wlr_log(WLR_ERROR, "<windowSwitcher show=\"\" /> is deprecated."
+			" Use <osd show=\"\" />");
 	} else if (!strcasecmp(nodename, "style.windowSwitcher")) {
 		if (!strcasecmp(content, "classic")) {
 			rc.window_switcher.style = WINDOW_SWITCHER_CLASSIC;
 		} else if (!strcasecmp(content, "thumbnail")) {
 			rc.window_switcher.style = WINDOW_SWITCHER_THUMBNAIL;
 		}
+		wlr_log(WLR_ERROR, "<windowSwitcher style=\"\" /> is deprecated."
+			" Use <osd style=\"\" />");
+
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.preview);
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher")) {
@@ -1431,6 +1466,7 @@ rcxml_init(void)
 
 	rc.window_switcher.show = true;
 	rc.window_switcher.style = WINDOW_SWITCHER_CLASSIC;
+	rc.window_switcher.output_criteria = OSD_OUTPUT_ALL;
 	rc.window_switcher.thumbnail_label_format = xstrdup("%T");
 	rc.window_switcher.preview = true;
 	rc.window_switcher.outlines = true;

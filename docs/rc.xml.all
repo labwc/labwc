@@ -77,8 +77,8 @@
     </font>
   </theme>
 
-  <windowSwitcher show="yes" style="classic" preview="yes"
-      outlines="yes" allWorkspaces="no" unshade="yes">
+  <windowSwitcher preview="yes" outlines="yes" allWorkspaces="no" unshade="yes">
+    <osd show="yes" style="classic" output="all" thumbnailLabelFormat="%T" />
     <fields>
       <field content="icon" width="5%" />
       <field content="desktop_entry_name" width="30%" />
@@ -98,7 +98,8 @@
     Some contents are fixed-length and others are variable-length.
     See "man 5 labwc-config" for details.
 
-    <windowSwitcher show="yes" preview="no" outlines="no" allWorkspaces="yes">
+    <windowSwitcher preview="no" outlines="no" allWorkspaces="yes">
+      <osd show="yes" />
       <fields>
         <field content="workspace" width="5%" />
         <field content="state" width="3%" />
@@ -118,7 +119,8 @@
     then workspace name, then identifier/app-id, then the window title.
     It uses 100% of OSD window width.
 
-    <windowSwitcher show="yes" preview="no" outlines="no" allWorkspaces="yes">
+    <windowSwitcher preview="no" outlines="no" allWorkspaces="yes">
+      <osd show="yes" />
       <fields>
         <field content="custom" format="foobar %b %3s %-10o %-20W %-10i %t" width="100%" />
       </fields>

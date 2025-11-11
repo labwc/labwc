@@ -334,27 +334,27 @@ update_osd(struct server *server)
 		/* Display the actual OSD */
 		switch (rc.window_switcher.output_criteria) {
 		case OSD_OUTPUT_ALL: {
-				struct output *output;
-				wl_list_for_each(output, &server->outputs, link) {
-					update_osd_on_output(server, output, osd_impl, &views);
-				}
-				break;
+			struct output *output;
+			wl_list_for_each(output, &server->outputs, link) {
+				update_osd_on_output(server, output, osd_impl, &views);
 			}
+			break;
+		}
 		case OSD_OUTPUT_POINTER:
 			update_osd_on_output(server,
 				output_nearest_to_cursor(server), osd_impl, &views);
 			break;
 		case OSD_OUTPUT_KEYBOARD: {
-				struct output *output;
-				if (server->active_view) {
-					output = server->active_view->output;
-				} else {
-					/* Fallback to pointer, if there is no active_view */
-					output = output_nearest_to_cursor(server);
-				}
-				update_osd_on_output(server, output, osd_impl, &views);
-				break;
+			struct output *output;
+			if (server->active_view) {
+				output = server->active_view->output;
+			} else {
+				/* Fallback to pointer, if there is no active_view */
+				output = output_nearest_to_cursor(server);
 			}
+			update_osd_on_output(server, output, osd_impl, &views);
+			break;
+		}
 		}
 	}
 

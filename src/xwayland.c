@@ -809,18 +809,9 @@ xwayland_view_map(struct view *view)
 	struct wlr_xwayland_surface *xwayland_surface =
 		xwayland_view->xwayland_surface;
 	assert(xwayland_surface);
+	assert(xwayland_surface->surface);
 
 	if (view->mapped) {
-		return;
-	}
-	if (!xwayland_surface->surface) {
-		/*
-		 * We may get here if a user minimizes an xwayland dialog at the
-		 * same time as the client requests unmap, which xwayland
-		 * clients sometimes do without actually requesting destroy
-		 * even if they don't intend to use that view/surface anymore
-		 */
-		wlr_log(WLR_DEBUG, "Cannot map view without wlr_surface");
 		return;
 	}
 

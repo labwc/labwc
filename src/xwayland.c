@@ -192,6 +192,13 @@ xwayland_view_offer_focus(struct view *view)
 	wlr_xwayland_surface_offer_focus(xwayland_surface_from_view(view));
 }
 
+static struct view *
+xwayland_view_get_parent(struct view *view)
+{
+	struct wlr_xwayland_surface *xsurface = xwayland_surface_from_view(view);
+	return xsurface->parent ? (struct view *)xsurface->parent->data : NULL;
+}
+
 static struct wlr_xwayland_surface *
 top_parent_of(struct view *view)
 {
@@ -768,23 +775,6 @@ set_initial_position(struct view *view,
 }
 
 static void
-init_foreign_toplevel(struct view *view)
-{
-	assert(!view->foreign_toplevel);
-	view->foreign_toplevel = foreign_toplevel_create(view);
-
-	struct wlr_xwayland_surface *surface = xwayland_surface_from_view(view);
-	if (!surface->parent) {
-		return;
-	}
-	struct view *parent = (struct view *)surface->parent->data;
-	if (!parent || !parent->foreign_toplevel) {
-		return;
-	}
-	foreign_toplevel_set_parent(view->foreign_toplevel, parent->foreign_toplevel);
-}
-
-static void
 set_surface(struct view *view, struct wlr_surface *surface)
 {
 	if (view->surface) {
@@ -862,7 +852,7 @@ xwayland_view_map(struct view *view)
 	 * shown in taskbars/docks/etc.
 	 */
 	if (!view->foreign_toplevel && view_is_focusable(view)) {
-		init_foreign_toplevel(view);
+		view_impl_init_foreign_toplevel(view);
 		/*
 		 * Initial outputs will be synced via
 		 * view->events.new_outputs on view_moved()
@@ -1037,6 +1027,7 @@ static const struct view_impl xwayland_view_impl = {
 	.unmap = xwayland_view_unmap,
 	.maximize = xwayland_view_maximize,
 	.minimize = xwayland_view_minimize,
+	.get_parent = xwayland_view_get_parent,
 	.get_root = xwayland_view_get_root,
 	.append_children = xwayland_view_append_children,
 	.is_modal_dialog = xwayland_view_is_modal_dialog,

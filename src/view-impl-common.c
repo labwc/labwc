@@ -8,6 +8,24 @@
 #include "window-rules.h"
 
 void
+view_impl_init_foreign_toplevel(struct view *view)
+{
+	if (view->foreign_toplevel) {
+		return;
+	}
+
+	view->foreign_toplevel = foreign_toplevel_create(view);
+
+	if (view->impl->get_parent) {
+		struct view *parent = view->impl->get_parent(view);
+		if (parent && parent->foreign_toplevel) {
+			foreign_toplevel_set_parent(view->foreign_toplevel,
+				parent->foreign_toplevel);
+		}
+	}
+}
+
+void
 view_impl_map(struct view *view)
 {
 	/* Leave minimized, if minimized before map */

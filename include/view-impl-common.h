@@ -10,6 +10,8 @@
 
 struct view;
 
+void view_impl_init_foreign_toplevel(struct view *view);
+
 void view_impl_map(struct view *view);
 void view_impl_unmap(struct view *view);
 

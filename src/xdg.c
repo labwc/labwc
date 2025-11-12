@@ -575,6 +575,14 @@ xdg_toplevel_view_minimize(struct view *view, bool minimized)
 	/* noop */
 }
 
+static struct view *
+xdg_toplevel_view_get_parent(struct view *view)
+{
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+	return toplevel->parent ?
+		(struct view *)toplevel->parent->base->data : NULL;
+}
+
 static struct wlr_xdg_toplevel *
 top_parent_of(struct view *view)
 {
@@ -756,24 +764,6 @@ set_initial_position(struct view *view)
 }
 
 static void
-init_foreign_toplevel(struct view *view)
-{
-	assert(!view->foreign_toplevel);
-	view->foreign_toplevel = foreign_toplevel_create(view);
-
-	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
-	if (!toplevel->parent) {
-		return;
-	}
-	struct wlr_xdg_surface *surface = toplevel->parent->base;
-	struct view *parent = surface->data;
-	if (!parent->foreign_toplevel) {
-		return;
-	}
-	foreign_toplevel_set_parent(view->foreign_toplevel, parent->foreign_toplevel);
-}
-
-static void
 xdg_toplevel_view_map(struct view *view)
 {
 	if (view->mapped) {
@@ -799,7 +789,7 @@ xdg_toplevel_view_map(struct view *view)
 	}
 
 	if (!view->foreign_toplevel) {
-		init_foreign_toplevel(view);
+		view_impl_init_foreign_toplevel(view);
 		/*
 		 * Initial outputs will be synced via
 		 * view->events.new_outputs on view_moved()
@@ -889,6 +879,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.unmap = xdg_toplevel_view_unmap,
 	.maximize = xdg_toplevel_view_maximize,
 	.minimize = xdg_toplevel_view_minimize,
+	.get_parent = xdg_toplevel_view_get_parent,
 	.get_root = xdg_toplevel_view_get_root,
 	.append_children = xdg_toplevel_view_append_children,
 	.is_modal_dialog = xdg_toplevel_view_is_modal_dialog,

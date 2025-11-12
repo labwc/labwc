@@ -725,35 +725,14 @@ xdg_toplevel_view_notify_tiled(struct view *view)
 	}
 }
 
-static struct view *
-lookup_view_by_xdg_toplevel(struct server *server,
-		struct wlr_xdg_toplevel *xdg_toplevel)
-{
-	struct view *view;
-	wl_list_for_each(view, &server->views, link) {
-		if (view->type != LAB_XDG_SHELL_VIEW) {
-			continue;
-		}
-		if (xdg_toplevel_from_view(view) == xdg_toplevel) {
-			return view;
-		}
-	}
-	return NULL;
-}
-
 static void
 set_initial_position(struct view *view)
 {
-	struct wlr_xdg_toplevel *parent_xdg_toplevel =
-		xdg_toplevel_from_view(view)->parent;
-
 	view_constrain_size_to_that_of_usable_area(view);
 
-	if (parent_xdg_toplevel) {
+	struct view *parent = xdg_toplevel_view_get_parent(view);
+	if (parent) {
 		/* Child views are center-aligned relative to their parents */
-		struct view *parent = lookup_view_by_xdg_toplevel(
-			view->server, parent_xdg_toplevel);
-		assert(parent);
 		view_set_output(view, parent->output);
 		view_center(view, &parent->pending);
 		return;

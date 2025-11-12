@@ -590,8 +590,7 @@ static struct view *
 xdg_toplevel_view_get_root(struct view *view)
 {
 	struct wlr_xdg_toplevel *root = top_parent_of(view);
-	struct wlr_xdg_surface *surface = (struct wlr_xdg_surface *)root->base;
-	return (struct view *)surface->data;
+	return (struct view *)root->base->data;
 }
 
 static void

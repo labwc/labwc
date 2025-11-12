@@ -128,6 +128,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		return;
 	}
 	struct input *input = wlr_input_device->data;
+	assert(input);  /* Check the caller remembered to set this! */
 
 	/* Set scroll factor to 1.0 for Wayland/X11 backends or virtual pointers */
 	if (!wlr_input_device_is_libinput(wlr_input_device)) {
@@ -405,6 +406,9 @@ new_keyboard(struct seat *seat, struct wlr_input_device *device, bool is_virtual
 	keyboard->base.wlr_input_device = device;
 	keyboard->wlr_keyboard = kb;
 	keyboard->is_virtual = is_virtual;
+	device->data = keyboard;
+
+	configure_libinput(device);
 
 	if (!seat->keyboard_group->keyboard.keymap) {
 		wlr_log(WLR_ERROR, "cannot set keymap");
@@ -735,6 +739,7 @@ seat_reconfigure(struct server *server)
 	wl_list_for_each(input, &seat->inputs, link) {
 		switch (input->wlr_input_device->type) {
 		case WLR_INPUT_DEVICE_KEYBOARD:
+			configure_libinput(input->wlr_input_device);
 			configure_keyboard(seat, input);
 			break;
 		case WLR_INPUT_DEVICE_POINTER:

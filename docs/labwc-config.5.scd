@@ -491,6 +491,12 @@ this is for compatibility with Openbox.
 *<focus><raiseOnFocus>* [yes|no]
 	Raise window to top when focused. Default is no.
 
+*<focus><focusOnTitlebarEnter>* [yes|no]
+	When *followMouse* is enabled, also focus the toplevel when the
+	pointer enters the server-side decorated titlebar (including the
+	titlebar background, the window title text, and any titlebar buttons).
+	Default is no.
+
 ## WINDOW SNAPPING
 
 Windows may be "snapped" to an edge or user-defined region of an output when

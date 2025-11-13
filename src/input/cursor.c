@@ -563,6 +563,15 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		 * a drag operation.
 		 */
 		wlr_seat_pointer_notify_clear_focus(wlr_seat);
+		/* Optional: focus toplevel when entering SSD titlebar/title/buttons */
+		if (rc.focus_follow_mouse && rc.focus_titlebar_on_mouse_enter && ctx->view) {
+			/* Titlebar region, window title, or any titlebar button */
+			if (ctx->type == LAB_NODE_TITLEBAR || ctx->type == LAB_NODE_TITLE
+					|| node_type_contains(LAB_NODE_BUTTON, ctx->type)) {
+				desktop_focus_view_or_surface(&server->seat,
+					ctx->view, NULL, rc.raise_on_focus);
+			}
+		}
 		if (!seat->drag.active) {
 			enum lab_cursors cursor = cursor_get_from_ssd(ctx->type);
 			if (ctx->view && ctx->view->shaded && cursor > LAB_CURSOR_GRAB) {

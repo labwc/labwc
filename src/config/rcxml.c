@@ -1142,6 +1142,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_bool(content, &rc.focus_follow_mouse_requires_movement);
 	} else if (!strcasecmp(nodename, "raiseOnFocus.focus")) {
 		set_bool(content, &rc.raise_on_focus);
+	} else if (!strcasecmp(nodename, "focusOnTitlebarEnter.focus")) {
+		set_bool(content, &rc.focus_titlebar_on_mouse_enter);
 	} else if (!strcasecmp(nodename, "doubleClickTime.mouse")) {
 		long doubleclick_time_parsed = strtol(content, NULL, 10);
 		if (doubleclick_time_parsed > 0) {
@@ -1405,6 +1407,9 @@ rcxml_init(void)
 		wl_list_init(&rc.touch_configs);
 	}
 	has_run = true;
+
+	/* default: don't focus on titlebar enter */
+	rc.focus_titlebar_on_mouse_enter = false;
 
 	rc.placement_policy = LAB_PLACE_CASCADE;
 	rc.placement_cascade_offset_x = 0;

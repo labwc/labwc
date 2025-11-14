@@ -31,24 +31,6 @@ enum lab_cursors {
 };
 
 /**
- * get_cursor_context - find view, surface and scene_node at cursor
- *
- * If the cursor is on a client-drawn surface:
- * - ctx.{surface,node} points to the surface, which may be a subsurface.
- * - ctx.view is set if the node is associated to a xdg/x11 window.
- * - ctx.type is LAYER_SURFACE or UNMANAGED if the node is a layer-shell
- *   surface or an X11 unmanaged surface. Otherwise, CLIENT is set.
- *
- * If the cursor is on a server-side component (SSD part and menu item):
- * - ctx.node points to the root node of that component
- * - ctx.view is set if the component is a SSD part
- * - ctx.type specifies the component (e.g. MENU_ITEM, BORDER_TOP, BUTTON_ICONIFY)
- *
- * If no node is found at cursor, ctx.type is set to ROOT.
- */
-struct cursor_context get_cursor_context(struct server *server);
-
-/**
  * cursor_set - set cursor icon
  * @seat - current seat
  * @cursor - name of cursor, for example LAB_CURSOR_DEFAULT or LAB_CURSOR_GRAB

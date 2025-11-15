@@ -199,9 +199,6 @@ struct rcxml {
 	float mag_scale;
 	float mag_increment;
 	bool mag_filter;
-
-	/* Focus behavior */
-	bool focus_titlebar_on_mouse_enter;
 };
 
 extern struct rcxml rc;

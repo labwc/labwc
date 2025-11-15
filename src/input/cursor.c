@@ -563,8 +563,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		 * a drag operation.
 		 */
 		wlr_seat_pointer_notify_clear_focus(wlr_seat);
-		/* Optional: focus toplevel when entering SSD titlebar/title/buttons */
-		if (rc.focus_follow_mouse && rc.focus_titlebar_on_mouse_enter && ctx->view) {
+		if (rc.focus_follow_mouse && ctx->view) {
 			/* Titlebar region, window title, or any titlebar button */
 			if (ctx->type == LAB_NODE_TITLEBAR || ctx->type == LAB_NODE_TITLE
 					|| node_type_contains(LAB_NODE_BUTTON, ctx->type)) {

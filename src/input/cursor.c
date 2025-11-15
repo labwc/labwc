@@ -530,11 +530,11 @@ update_pressed_surface(struct seat *seat, const struct cursor_context *ctx)
 
 /*
  * Common logic shared by cursor_update_focus(), process_cursor_motion()
- * and cursor_axis()
+ * and process_cursor_axis()
  */
-static bool
-cursor_update_common(struct server *server, struct cursor_context *ctx,
-		bool cursor_has_moved, double *sx, double *sy)
+static void
+cursor_update_common(struct server *server, const struct cursor_context *ctx,
+		struct cursor_context *notified_ctx)
 {
 	struct seat *seat = &server->seat;
 	struct wlr_seat *wlr_seat = seat->seat;
@@ -547,14 +547,14 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		 * interactive move/resize, window switcher and
 		 * menu interaction.
 		 */
-		return false;
+		return;
 	}
 
 	/* TODO: verify drag_icon logic */
 	if (seat->pressed.ctx.surface && ctx->surface != seat->pressed.ctx.surface
 			&& !update_pressed_surface(seat, ctx)
 			&& !seat->drag.active) {
-		if (cursor_has_moved) {
+		if (notified_ctx) {
 			/*
 			 * Button has been pressed while over another
 			 * surface and is still held down.  Just send
@@ -564,11 +564,15 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 			 */
 			int lx, ly;
 			wlr_scene_node_coords(seat->pressed.ctx.node, &lx, &ly);
-			*sx = server->seat.cursor->x - lx;
-			*sy = server->seat.cursor->y - ly;
-			return true;
+			*notified_ctx = seat->pressed.ctx;
+			notified_ctx->sx = server->seat.cursor->x - lx;
+			notified_ctx->sy = server->seat.cursor->y - ly;
 		}
-		return false;
+		return;
+	}
+
+	if (notified_ctx) {
+		*notified_ctx = *ctx;
 	}
 
 	if (ctx->surface) {
@@ -580,11 +584,6 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		wlr_seat_pointer_notify_enter(wlr_seat, ctx->surface,
 			ctx->sx, ctx->sy);
 		seat->server_cursor = LAB_CURSOR_CLIENT;
-		if (cursor_has_moved) {
-			*sx = ctx->sx;
-			*sy = ctx->sy;
-			return true;
-		}
 	} else {
 		/*
 		 * Cursor is over a server (labwc) surface.  Clear focus
@@ -602,7 +601,6 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 			cursor_set(seat, cursor);
 		}
 	}
-	return false;
 }
 
 enum lab_edge
@@ -669,8 +667,13 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 	struct wlr_surface *old_focused_surface =
 		seat->seat->pointer_state.focused_surface;
 
-	bool notify = cursor_update_common(server, &ctx,
-		/* cursor_has_moved */ true, sx, sy);
+	/*
+	 * Cursor context that is actually interacting with cursor and should
+	 * be notified to the client. E.g. it is cleared when menu is open,
+	 * and the pressed view is set while out-of-surface dragging.
+	 */
+	struct cursor_context notified_ctx = {0};
+	cursor_update_common(server, &ctx, &notified_ctx);
 
 	struct wlr_surface *new_focused_surface =
 		seat->seat->pointer_state.focused_surface;
@@ -686,7 +689,9 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 			new_focused_surface, rc.raise_on_focus);
 	}
 
-	return notify;
+	*sx = notified_ctx.sx;
+	*sy = notified_ctx.sy;
+	return notified_ctx.surface;
 }
 
 static void
@@ -705,8 +710,7 @@ _cursor_update_focus(struct server *server)
 			ctx.surface, rc.raise_on_focus);
 	}
 
-	double sx, sy;
-	cursor_update_common(server, &ctx, /*cursor_has_moved*/ false, &sx, &sy);
+	cursor_update_common(server, &ctx, NULL);
 }
 
 void
@@ -1411,8 +1415,7 @@ process_cursor_axis(struct server *server, enum wl_pointer_axis orientation,
 	/* Bindings swallow mouse events if activated */
 	if (ctx.surface && !consumed) {
 		/* Make sure we are sending the events to the surface under the cursor */
-		double sx, sy;
-		cursor_update_common(server, &ctx, /*cursor_has_moved*/ false, &sx, &sy);
+		cursor_update_common(server, &ctx, NULL);
 
 		return true;
 	}

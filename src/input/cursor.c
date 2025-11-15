@@ -662,9 +662,6 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 		}
 	}
 
-	struct wlr_surface *old_focused_surface =
-		seat->seat->pointer_state.focused_surface;
-
 	/*
 	 * Cursor context that is actually interacting with cursor and should
 	 * be notified to the client. E.g. it is cleared when menu is open,
@@ -673,19 +670,26 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 	struct cursor_context notified_ctx = {0};
 	cursor_update_common(server, &ctx, &notified_ctx);
 
-	struct wlr_surface *new_focused_surface =
-		seat->seat->pointer_state.focused_surface;
-
-	if (rc.focus_follow_mouse && new_focused_surface
-			&& old_focused_surface != new_focused_surface) {
+	if (rc.focus_follow_mouse) {
 		/*
-		 * If followMouse=yes, update the keyboard focus when the
-		 * cursor enters a surface
+		 * If followMouse=yes, entering a surface or view updates
+		 * keyboard focus. Note that moving the cursor between a
+		 * surface and a SSD within the same view doesn't update
+		 * keyboard focus, and that entering a surface/view doesn't
+		 * update keyboard focus if implicit grab is active.
 		 */
-		desktop_focus_view_or_surface(seat,
-			view_from_wlr_surface(new_focused_surface),
-			new_focused_surface, rc.raise_on_focus);
+		bool entering = false;
+		if (notified_ctx.view) {
+			entering = notified_ctx.view != seat->hovered.ctx.view;
+		} else if (notified_ctx.surface) {
+			entering = notified_ctx.surface != seat->hovered.ctx.surface;
+		}
+		if (entering) {
+			desktop_focus_view_or_surface(seat, notified_ctx.view,
+				notified_ctx.surface, rc.raise_on_focus);
+		}
 	}
+	cursor_context_save(&seat->hovered, &notified_ctx);
 
 	*sx = notified_ctx.sx;
 	*sy = notified_ctx.sy;

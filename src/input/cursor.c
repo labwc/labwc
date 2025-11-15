@@ -464,44 +464,6 @@ update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
 	return false;
 }
 
-static bool
-process_cursor_motion_out_of_surface(struct server *server,
-		double *sx, double *sy)
-{
-	struct view *view = server->seat.pressed.view;
-	struct wlr_scene_node *node = server->seat.pressed.node;
-	struct wlr_surface *surface = server->seat.pressed.surface;
-	assert(surface);
-	int lx, ly;
-
-	if (node && wlr_subsurface_try_from_wlr_surface(surface)) {
-		wlr_scene_node_coords(node, &lx, &ly);
-	} else if (view) {
-		lx = view->current.x;
-		ly = view->current.y;
-		/* Take into account invisible xdg-shell CSD borders */
-		if (view->type == LAB_XDG_SHELL_VIEW) {
-			struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
-			lx -= xdg_surface->geometry.x;
-			ly -= xdg_surface->geometry.y;
-		}
-	} else if (node && wlr_layer_surface_v1_try_from_wlr_surface(surface)) {
-		wlr_scene_node_coords(node, &lx, &ly);
-#if HAVE_XWAYLAND
-	} else if (node && node->parent == server->unmanaged_tree) {
-		wlr_scene_node_coords(node, &lx, &ly);
-#endif
-	} else {
-		wlr_log(WLR_ERROR, "Can't detect surface for out-of-surface movement");
-		return false;
-	}
-
-	*sx = server->seat.cursor->x - lx;
-	*sy = server->seat.cursor->y - ly;
-
-	return true;
-}
-
 /*
  * Common logic shared by cursor_update_focus(), process_cursor_motion()
  * and cursor_axis()
@@ -536,7 +498,11 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 			 * we can keep scrolling or selecting text even
 			 * if the cursor moves outside of the surface.
 			 */
-			return process_cursor_motion_out_of_surface(server, sx, sy);
+			int lx, ly;
+			wlr_scene_node_coords(seat->pressed.node, &lx, &ly);
+			*sx = server->seat.cursor->x - lx;
+			*sy = server->seat.cursor->y - ly;
+			return true;
 		}
 		return false;
 	}

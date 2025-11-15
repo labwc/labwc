@@ -82,6 +82,9 @@ struct seat {
 	 */
 	struct cursor_context_saved pressed;
 
+	/* Cursor context of the last cursor motion */
+	struct cursor_context_saved hovered;
+
 	struct lab_set bound_buttons;
 
 	struct {

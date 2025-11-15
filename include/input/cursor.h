@@ -4,8 +4,8 @@
 
 #include <wayland-server-protocol.h>
 #include "common/edge.h"
-#include "common/node-type.h"
 
+struct cursor_context;
 struct view;
 struct seat;
 struct server;
@@ -28,14 +28,6 @@ enum lab_cursors {
 	LAB_CURSOR_RESIZE_SW,
 	LAB_CURSOR_RESIZE_W,
 	LAB_CURSOR_COUNT
-};
-
-struct cursor_context {
-	struct view *view;
-	struct wlr_scene_node *node;
-	struct wlr_surface *surface;
-	enum lab_node_type type;
-	double sx, sy;
 };
 
 /**

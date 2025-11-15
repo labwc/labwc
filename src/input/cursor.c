@@ -438,7 +438,7 @@ cursor_update_image(struct seat *seat)
 }
 
 static bool
-update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
+update_pressed_surface(struct seat *seat, const struct cursor_context *ctx)
 {
 	/*
 	 * In most cases, we don't want to leave one surface and enter
@@ -454,10 +454,10 @@ update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
 	if (!wlr_seat_pointer_has_grab(seat->seat)) {
 		return false;
 	}
-	if (seat->pressed.surface && ctx->surface != seat->pressed.surface) {
+	if (seat->pressed.ctx.surface && ctx->surface != seat->pressed.ctx.surface) {
 		struct wlr_surface *toplevel = get_toplevel(ctx->surface);
-		if (toplevel && toplevel == get_toplevel(seat->pressed.surface)) {
-			seat_set_pressed(seat, ctx);
+		if (toplevel && toplevel == get_toplevel(seat->pressed.ctx.surface)) {
+			cursor_context_save(&seat->pressed, ctx);
 			return true;
 		}
 	}
@@ -487,7 +487,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 	}
 
 	/* TODO: verify drag_icon logic */
-	if (seat->pressed.surface && ctx->surface != seat->pressed.surface
+	if (seat->pressed.ctx.surface && ctx->surface != seat->pressed.ctx.surface
 			&& !update_pressed_surface(seat, ctx)
 			&& !seat->drag.active) {
 		if (cursor_has_moved) {
@@ -499,7 +499,7 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 			 * if the cursor moves outside of the surface.
 			 */
 			int lx, ly;
-			wlr_scene_node_coords(seat->pressed.node, &lx, &ly);
+			wlr_scene_node_coords(seat->pressed.ctx.node, &lx, &ly);
 			*sx = server->seat.cursor->x - lx;
 			*sy = server->seat.cursor->y - ly;
 			return true;
@@ -597,8 +597,8 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 			 * moving/resizing the wrong view
 			 */
 			mousebind->pressed_in_context = false;
-			actions_run(seat->pressed.view, server,
-				&mousebind->actions, &seat->pressed);
+			actions_run(seat->pressed.ctx.view, server,
+				&mousebind->actions, &seat->pressed.ctx);
 		}
 	}
 
@@ -1073,7 +1073,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 
 	if (ctx.view || ctx.surface) {
 		/* Store cursor context for later action processing */
-		seat_set_pressed(seat, &ctx);
+		cursor_context_save(&seat->pressed, &ctx);
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
@@ -1138,12 +1138,12 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 {
 	struct server *server = seat->server;
 	struct cursor_context ctx = get_cursor_context(server);
-	struct wlr_surface *pressed_surface = seat->pressed.surface;
+	struct wlr_surface *pressed_surface = seat->pressed.ctx.surface;
 
 	/* Always notify button release event when it's not bound */
 	const bool notify = !lab_set_contains(&seat->bound_buttons, button);
 
-	seat_reset_pressed(seat);
+	cursor_context_save(&seat->pressed, NULL);
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		/* TODO: take into account overflow of time_msec */

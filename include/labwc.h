@@ -6,6 +6,7 @@
 #include <wlr/util/log.h>
 #include "common/set.h"
 #include "input/cursor.h"
+#include "input/cursor-context.h"
 #include "overlay.h"
 
 #define XCURSOR_DEFAULT "left_ptr"
@@ -79,7 +80,10 @@ struct seat {
 	 *
 	 * Both (view && !surface) and (surface && !view) are possible.
 	 */
-	struct cursor_context pressed;
+	struct cursor_context_saved pressed;
+
+	/* Cursor context of the last cursor motion */
+	struct cursor_context_saved hovered;
 
 	struct lab_set bound_buttons;
 
@@ -139,7 +143,6 @@ struct seat {
 	struct wl_list tablet_pads;
 
 	struct wl_listener constraint_commit;
-	struct wl_listener pressed_surface_destroy;
 
 	struct wlr_virtual_pointer_manager_v1 *virtual_pointer;
 	struct wl_listener new_virtual_pointer;
@@ -391,8 +394,6 @@ void seat_pointer_end_grab(struct seat *seat, struct wlr_surface *surface);
 void seat_focus_lock_surface(struct seat *seat, struct wlr_surface *surface);
 
 void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer);
-void seat_set_pressed(struct seat *seat, struct cursor_context *ctx);
-void seat_reset_pressed(struct seat *seat);
 void seat_output_layout_changed(struct seat *seat);
 
 /*

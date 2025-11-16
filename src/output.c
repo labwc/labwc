@@ -26,6 +26,7 @@
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
+#include "desktop-state.h"
 #include "labwc.h"
 #include "layers.h"
 #include "node.h"
@@ -791,6 +792,14 @@ handle_output_manager_apply(struct wl_listener *listener, void *data)
 
 	bool config_is_good = verify_output_config_v1(config);
 
+	/*
+	 * Save old desktop state, specifically windows and scales for each
+	 * output, so that window positions and sizes can be adjusted later.
+	 */
+	struct wl_list desktop_outputs;
+	wl_list_init(&desktop_outputs);
+	desktop_state_create(server, &desktop_outputs);
+
 	if (config_is_good && output_config_apply(server, config)) {
 		wlr_output_configuration_v1_send_succeeded(config);
 	} else {
@@ -802,6 +811,10 @@ handle_output_manager_apply(struct wl_listener *listener, void *data)
 		wlr_xcursor_manager_load(server->seat.xcursor_manager,
 			output->wlr_output->scale);
 	}
+
+	/* Adjust windows if output scale(s) changed */
+	desktop_state_adjust_on_output_scale_change(server, &desktop_outputs);
+	desktop_state_destroy(&desktop_outputs);
 
 	/* Re-set cursor image in case scale changed */
 	cursor_update_focus(server);

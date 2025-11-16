@@ -62,19 +62,22 @@ as a comment. Trailing comments are not supported.
 Please note that as labwc reloads the environment file(s) on reconfigure,
 recursive/circular assignments (for example FOO=$FOO:bar) should not be made.
 
-The *autostart* file is executed as a shell script after labwc has read its
+The *autostart* file, if it exists, is executed after labwc has read its
 configuration and set variables defined in the environment file. Additionally,
 the environment variables WAYLAND_DISPLAY and (when labwc is built with Xwayland
-support) DISPLAY will be defined. This is the place for executing clients for
-handling background images, panels and other tasks that should run automatically
-when labwc launches.
+support) DISPLAY will be defined. This is a convenient place for executing
+clients for handling background images, panels and other tasks that should run
+automatically when labwc launches. While it is generally expected that the
+autostart file be a shell script, labwc does not impose any constraints other
+than that the file exist and be executable.
 
-The *shutdown* file is executed as a shell script when labwc is preparing to
+The *shutdown* file, if it exists, is executed when labwc is preparing to
 terminate itself. All environment variables, including WAYLAND_DISPLAY and
-DISPLAY, will be available to the script. However, because the script runs
-asynchronously with other termination tasks, the shutdown file should not assume
-that the display will be usable. This file is useful to perform any custom
-operations necessary to finalize a labwc session.
+DISPLAY, will be available to the executable. However, because *shutdown* runs
+asynchronously with other termination tasks, the process should not assume that
+the display will be usable. This file is useful to perform any custom operations
+necessary to finalize a labwc session. As with the autostart file, the shutdown
+file is generally expected to be a shell script, but this is not a requirement.
 
 The *menu.xml* file defines the context/root-menus and is described in
 labwc-menu(5).
@@ -86,7 +89,7 @@ in labwc-theme(5).
 *rc.xml* is the main configuration file and all its options are described in
 detail below.
 
-The *xinitrc* file is executed as a shell script whenever labwc launches the
+The *xinitrc* file, if it exists, is executed whenever labwc launches the
 Xwayland X11 server. This may happen multiple times throughout the session if
 Xwayland is not configured to persist when no X11 clients are connected.
 

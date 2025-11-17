@@ -920,10 +920,6 @@ static void
 process_release_mousebinding(struct server *server,
 		struct cursor_context *ctx, uint32_t button)
 {
-	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-		return;
-	}
-
 	struct mousebind *mousebind;
 	uint32_t modifiers = keyboard_get_all_modifiers(&server->seat);
 
@@ -989,10 +985,6 @@ static bool
 process_press_mousebinding(struct server *server, struct cursor_context *ctx,
 		uint32_t button)
 {
-	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-		return false;
-	}
-
 	struct mousebind *mousebind;
 	bool double_click = is_double_click(rc.doubleclick_time, button, ctx);
 	bool consumed_by_frame_context = false;
@@ -1082,8 +1074,11 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		 * so subsequent release always closes menu or selects menu item.
 		 */
 		press_msec = 0;
-		lab_set_add(&seat->bound_buttons, button);
-		return false;
+		goto consumed;
+	}
+
+	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		goto consumed;
 	}
 
 	/*
@@ -1115,8 +1110,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		 * Note: This does not work for XWayland clients
 		 */
 		wlr_seat_pointer_end_grab(seat->seat);
-		lab_set_add(&seat->bound_buttons, button);
-		return false;
+		goto consumed;
 	}
 
 	/* Bindings to the Frame context swallow mouse events if activated */
@@ -1128,6 +1122,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		return true;
 	}
 
+consumed:
 	lab_set_add(&seat->bound_buttons, button);
 	return false;
 }

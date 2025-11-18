@@ -199,9 +199,12 @@ wlr_foreign_toplevel_init(struct wlr_foreign_toplevel *wlr_toplevel,
 	/* These states may be set before the initial map */
 	handle_new_app_id(&wlr_toplevel->on_view.new_app_id, NULL);
 	handle_new_title(&wlr_toplevel->on_view.new_title, NULL);
-	handle_maximized(&wlr_toplevel->on_view.maximized, NULL);
-	handle_fullscreened(&wlr_toplevel->on_view.fullscreened, NULL);
 	handle_new_outputs(&wlr_toplevel->on_view.new_outputs, NULL);
+	handle_maximized(&wlr_toplevel->on_view.maximized, NULL);
+	handle_minimized(&wlr_toplevel->on_view.minimized, NULL);
+	handle_fullscreened(&wlr_toplevel->on_view.fullscreened, NULL);
+	handle_activated(&wlr_toplevel->on_view.activated,
+		&(bool){view == view->server->active_view});
 
 	/* Client side requests */
 	CONNECT_SIGNAL(wlr_toplevel->handle, &wlr_toplevel->on, request_maximize);

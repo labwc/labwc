@@ -38,6 +38,14 @@ struct cursor_context {
 	double sx, sy;
 };
 
+/* Used to persistently store cursor context (e.g. in seat->pressed) */
+struct cursor_context_saved {
+	struct cursor_context ctx;
+	struct wl_listener view_destroy;
+	struct wl_listener node_destroy;
+	struct wl_listener surface_destroy;
+};
+
 /**
  * get_cursor_context - find view, surface and scene_node at cursor
  *
@@ -64,6 +72,13 @@ struct cursor_context get_cursor_context(struct server *server);
 void cursor_set(struct seat *seat, enum lab_cursors cursor);
 
 void cursor_set_visible(struct seat *seat, bool visible);
+
+/*
+ * Safely store a cursor context to saved_ctx. saved_ctx is cleared when either
+ * of its node, surface and view is destroyed.
+ */
+void cursor_context_save(struct cursor_context_saved *saved_ctx,
+	const struct cursor_context *ctx);
 
 /**
  * cursor_get_resize_edges - calculate resize edge based on cursor position

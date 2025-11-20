@@ -2612,10 +2612,6 @@ view_destroy(struct view *view)
 		server->session_lock_manager->last_active_view = NULL;
 	}
 
-	if (server->seat.pressed.view == view) {
-		seat_reset_pressed(&server->seat);
-	}
-
 	if (view->tiled_region_evacuate) {
 		zfree(view->tiled_region_evacuate);
 	}

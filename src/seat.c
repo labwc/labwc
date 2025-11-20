@@ -848,46 +848,6 @@ seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer)
 	seat->focused_layer = layer;
 }
 
-static void
-pressed_surface_destroy(struct wl_listener *listener, void *data)
-{
-	struct seat *seat = wl_container_of(listener, seat,
-		pressed_surface_destroy);
-
-	/*
-	 * Using data directly prevents 'unused variable'
-	 * warning when compiling without asserts
-	 */
-	assert(data == seat->pressed.surface);
-
-	seat_reset_pressed(seat);
-}
-
-void
-seat_set_pressed(struct seat *seat, struct cursor_context *ctx)
-{
-	assert(ctx);
-	assert(ctx->view || ctx->surface);
-	seat_reset_pressed(seat);
-
-	seat->pressed = *ctx;
-
-	if (ctx->surface) {
-		seat->pressed_surface_destroy.notify = pressed_surface_destroy;
-		wl_signal_add(&ctx->surface->events.destroy,
-			&seat->pressed_surface_destroy);
-	}
-}
-
-void
-seat_reset_pressed(struct seat *seat)
-{
-	if (seat->pressed.surface) {
-		wl_list_remove(&seat->pressed_surface_destroy.link);
-	}
-	seat->pressed = (struct cursor_context){0};
-}
-
 void
 seat_output_layout_changed(struct seat *seat)
 {

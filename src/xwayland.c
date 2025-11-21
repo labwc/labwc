@@ -39,7 +39,7 @@ static_assert(ARRAY_SIZE(atom_names) == ATOM_COUNT, "atom names out of sync");
 static xcb_atom_t atoms[ATOM_COUNT] = {0};
 
 static void set_surface(struct view *view, struct wlr_surface *surface);
-static void xwayland_view_unmap(struct view *view, bool client_request);
+static void xwayland_view_unmap(struct view *view);
 
 static struct xwayland_view *
 xwayland_view_from_view(struct view *view)
@@ -557,7 +557,7 @@ handle_set_override_redirect(struct wl_listener *listener, void *data)
 	struct server *server = view->server;
 	bool mapped = xsurface->surface && xsurface->surface->mapped;
 	if (mapped) {
-		xwayland_view_unmap(view, /* client_request */ true);
+		xwayland_view_unmap(view);
 	}
 	handle_destroy(&view->destroy, xsurface);
 	/* view is invalid after this point */
@@ -813,15 +813,7 @@ xwayland_view_map(struct view *view)
 	 */
 	handle_map_request(&xwayland_view->map_request, NULL);
 
-	/*
-	 * For initially minimized views, we do not set view->mapped
-	 * nor enable the scene node. All other map logic (positioning,
-	 * creating foreign toplevel, etc.) happens as normal.
-	 */
-	if (!view->minimized) {
-		view->mapped = true;
-		wlr_scene_node_set_enabled(&view->scene_tree->node, true);
-	}
+	view->mapped = true;
 
 	if (view->surface != xwayland_surface->surface) {
 		set_surface(view, xwayland_surface->surface);
@@ -877,38 +869,16 @@ xwayland_view_map(struct view *view)
 
 	view_impl_map(view);
 	view->been_mapped = true;
-
-	/* Update usable area to account for XWayland "struts" (panels) */
-	if (xwayland_surface->strut_partial) {
-		output_update_all_usable_areas(view->server, false);
-	}
 }
 
 static void
-xwayland_view_unmap(struct view *view, bool client_request)
+xwayland_view_unmap(struct view *view)
 {
 	if (!view->mapped) {
-		goto out;
+		return;
 	}
 	view->mapped = false;
-	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 	view_impl_unmap(view);
-
-	/* Update usable area to account for XWayland "struts" (panels) */
-	if (xwayland_surface_from_view(view)->strut_partial) {
-		output_update_all_usable_areas(view->server, false);
-	}
-
-	/*
-	 * If the view was explicitly unmapped by the client (rather
-	 * than just minimized), destroy the foreign toplevel handle so
-	 * the unmapped view doesn't show up in panels and the like.
-	 */
-out:
-	if (client_request && view->foreign_toplevel) {
-		foreign_toplevel_destroy(view->foreign_toplevel);
-		view->foreign_toplevel = NULL;
-	}
 }
 
 static void
@@ -959,7 +929,7 @@ xwayland_view_append_children(struct view *self, struct wl_array *children)
 		if (!view->surface) {
 			continue;
 		}
-		if (!view->mapped && !view->minimized) {
+		if (!view->mapped) {
 			continue;
 		}
 		if (top_parent_of(view) != surface) {

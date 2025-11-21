@@ -614,7 +614,7 @@ xdg_toplevel_view_append_children(struct view *self, struct wl_array *children)
 		if (view->type != LAB_XDG_SHELL_VIEW) {
 			continue;
 		}
-		if (!view->mapped && !view->minimized) {
+		if (!view->mapped) {
 			continue;
 		}
 		if (top_parent_of(view) != toplevel) {
@@ -757,15 +757,7 @@ xdg_toplevel_view_map(struct view *view)
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 
-	/*
-	 * For initially minimized views, we do not set view->mapped
-	 * nor enable the scene node. All other map logic (positioning,
-	 * creating foreign toplevel, etc.) happens as normal.
-	 */
-	if (!view->minimized) {
-		view->mapped = true;
-		wlr_scene_node_set_enabled(&view->scene_tree->node, true);
-	}
+	view->mapped = true;
 
 	if (!view->foreign_toplevel) {
 		view_impl_init_foreign_toplevel(view);
@@ -815,22 +807,11 @@ xdg_toplevel_view_map(struct view *view)
 }
 
 static void
-xdg_toplevel_view_unmap(struct view *view, bool client_request)
+xdg_toplevel_view_unmap(struct view *view)
 {
 	if (view->mapped) {
 		view->mapped = false;
-		wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 		view_impl_unmap(view);
-	}
-
-	/*
-	 * If the view was explicitly unmapped by the client (rather
-	 * than just minimized), destroy the foreign toplevel handle so
-	 * the unmapped view doesn't show up in panels and the like.
-	 */
-	if (client_request && view->foreign_toplevel) {
-		foreign_toplevel_destroy(view->foreign_toplevel);
-		view->foreign_toplevel = NULL;
 	}
 }
 

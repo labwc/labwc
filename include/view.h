@@ -456,6 +456,13 @@ void mappable_connect(struct mappable *mappable, struct wlr_surface *surface,
 	wl_notify_func_t notify_map, wl_notify_func_t notify_unmap);
 void mappable_disconnect(struct mappable *mappable);
 
+/*
+ * Map/unmap event handlers are exposed so that the events can be
+ * synthesized when xwayland surfaces transition to/from unmanaged.
+ */
+void view_handle_map(struct wl_listener *listener, void *data);
+void view_handle_unmap(struct wl_listener *listener, void *data);
+
 void view_toggle_keybinds(struct view *view);
 bool view_inhibits_actions(struct view *view, struct wl_list *actions);
 

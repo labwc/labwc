@@ -145,7 +145,7 @@ idle_callback(void *data)
 
 	session_autostart_init(ctx->server);
 	if (ctx->startup_cmd) {
-		spawn_async_no_shell(ctx->startup_cmd);
+		spawn_async_no_shell(ctx->startup_cmd, -1);
 	}
 }
 

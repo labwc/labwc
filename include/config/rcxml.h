@@ -36,6 +36,17 @@ enum tearing_mode {
 	LAB_TEARING_FULLSCREEN_FORCED,
 };
 
+enum hdr_mode {
+	LAB_HDR_DISABLED = 0,
+	LAB_HDR_ENABLED,
+};
+
+enum render_bit_depth {
+	LAB_RENDER_BIT_DEPTH_DEFAULT = 0,
+	LAB_RENDER_BIT_DEPTH_8,
+	LAB_RENDER_BIT_DEPTH_10,
+};
+
 enum tiling_events_mode {
 	LAB_TILING_EVENTS_NEVER = 0,
 	LAB_TILING_EVENTS_REGION = 1 << 0,
@@ -74,6 +85,7 @@ struct rcxml {
 	int gap;
 	enum adaptive_sync_mode adaptive_sync;
 	enum tearing_mode allow_tearing;
+	enum hdr_mode hdr;
 	bool auto_enable_outputs;
 	bool reuse_output_mode;
 	bool xwayland_persistence;

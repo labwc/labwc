@@ -423,7 +423,7 @@ view_is_focusable(struct view *view)
 	switch (view_wants_focus(view)) {
 	case VIEW_WANTS_FOCUS_ALWAYS:
 	case VIEW_WANTS_FOCUS_LIKELY:
-		return (view->mapped || view->minimized);
+		return view->mapped;
 	default:
 		return false;
 	}
@@ -786,11 +786,7 @@ _minimize(struct view *view, bool minimized)
 	view->minimized = minimized;
 	wl_signal_emit_mutable(&view->events.minimized, NULL);
 
-	if (minimized) {
-		view->impl->unmap(view, /* client_request */ false);
-	} else {
-		view->impl->map(view);
-	}
+	view_update_visibility(view);
 }
 
 static void
@@ -841,11 +837,6 @@ view_minimize(struct view *view, bool minimized)
 	struct view *root = view_get_root(view);
 	_minimize(root, minimized);
 	minimize_sub_views(root, minimized);
-
-	/* Enable top-layer when full-screen views are minimized */
-	if (view->fullscreen && view->output) {
-		desktop_update_top_layer_visibility(view->server);
-	}
 }
 
 bool
@@ -2465,7 +2456,7 @@ static void
 handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, mappable.unmap);
-	view->impl->unmap(view, /* client_request */ true);
+	view->impl->unmap(view);
 }
 
 void
@@ -2473,6 +2464,58 @@ view_connect_map(struct view *view, struct wlr_surface *surface)
 {
 	assert(view);
 	mappable_connect(&view->mappable, surface, handle_map, handle_unmap);
+}
+
+/* Used in both (un)map and (un)minimize */
+void
+view_update_visibility(struct view *view)
+{
+	bool visible = view->mapped && !view->minimized;
+	if (visible == view->scene_tree->node.enabled) {
+		return;
+	}
+
+	wlr_scene_node_set_enabled(&view->scene_tree->node, visible);
+	struct server *server = view->server;
+
+	if (visible) {
+		desktop_focus_view(view, /*raise*/ true);
+	} else {
+		/*
+		 * When exiting an xwayland application with multiple
+		 * views mapped, a race condition can occur: after the
+		 * topmost view is unmapped, the next view under it is
+		 * offered focus, but is also unmapped before accepting
+		 * focus (so server->active_view remains NULL). To avoid
+		 * being left with no active view at all, check for that
+		 * case also.
+		 */
+		if (view == server->active_view || !server->active_view) {
+			desktop_focus_topmost_view(server);
+		}
+	}
+
+	/*
+	 * Show top layer when a fullscreen view is hidden.
+	 * Hide it if a fullscreen view is shown (or uncovered).
+	 */
+	desktop_update_top_layer_visibility(server);
+
+	/*
+	 * We may need to disable adaptive sync if view was fullscreen.
+	 *
+	 * FIXME: this logic doesn't account for multiple fullscreen
+	 * views. It should probably be combined with the existing
+	 * logic in desktop_update_top_layer_visibility().
+	 */
+	if (view->fullscreen && !visible) {
+		output_set_has_fullscreen_view(view->output, false);
+	}
+
+	/* Update usable area to account for XWayland "struts" (panels) */
+	if (view_has_strut_partial(view)) {
+		output_update_all_usable_areas(server, false);
+	}
 }
 
 void

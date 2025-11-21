@@ -145,7 +145,7 @@ desktop_topmost_focusable_view(struct server *server)
 			continue;
 		}
 		view = node_view_from_node(node);
-		if (view->mapped && view_is_focusable(view)) {
+		if (view_is_focusable(view) && !view->minimized) {
 			return view;
 		}
 	}

@@ -106,11 +106,9 @@ struct view_size_hints {
 struct view_impl {
 	void (*configure)(struct view *view, struct wlr_box geo);
 	void (*close)(struct view *view);
-	void (*map)(struct view *view);
 	void (*set_activated)(struct view *view, bool activated);
 	void (*set_fullscreen)(struct view *view, bool fullscreen);
 	void (*notify_tiled)(struct view *view);
-	void (*unmap)(struct view *view);
 	void (*maximize)(struct view *view, enum view_axis maximized);
 	void (*minimize)(struct view *view, bool minimize);
 	struct view *(*get_parent)(struct view *self);
@@ -584,7 +582,6 @@ void view_adjust_size(struct view *view, int *w, int *h);
 
 void view_evacuate_region(struct view *view);
 void view_on_output_destroy(struct view *view);
-void view_connect_map(struct view *view, struct wlr_surface *surface);
 void view_update_visibility(struct view *view);
 
 void view_init(struct view *view);

@@ -2445,27 +2445,6 @@ mappable_disconnect(struct mappable *mappable)
 	mappable->connected = false;
 }
 
-static void
-handle_map(struct wl_listener *listener, void *data)
-{
-	struct view *view = wl_container_of(listener, view, mappable.map);
-	view->impl->map(view);
-}
-
-static void
-handle_unmap(struct wl_listener *listener, void *data)
-{
-	struct view *view = wl_container_of(listener, view, mappable.unmap);
-	view->impl->unmap(view);
-}
-
-void
-view_connect_map(struct view *view, struct wlr_surface *surface)
-{
-	assert(view);
-	mappable_connect(&view->mappable, surface, handle_map, handle_unmap);
-}
-
 /* Used in both (un)map and (un)minimize */
 void
 view_update_visibility(struct view *view)

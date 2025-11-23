@@ -760,14 +760,6 @@ handle_map(struct wl_listener *listener, void *data)
 
 	view->mapped = true;
 
-	if (!view->foreign_toplevel) {
-		view_impl_init_foreign_toplevel(view);
-		/*
-		 * Initial outputs will be synced via
-		 * view->events.new_outputs on view_moved()
-		 */
-	}
-
 	if (!view->been_mapped) {
 		if (view_wants_decorations(view)) {
 			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);

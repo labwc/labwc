@@ -7,24 +7,6 @@
 #include "window-rules.h"
 
 void
-view_impl_init_foreign_toplevel(struct view *view)
-{
-	if (view->foreign_toplevel) {
-		return;
-	}
-
-	view->foreign_toplevel = foreign_toplevel_create(view);
-
-	if (view->impl->get_parent) {
-		struct view *parent = view->impl->get_parent(view);
-		if (parent && parent->foreign_toplevel) {
-			foreign_toplevel_set_parent(view->foreign_toplevel,
-				parent->foreign_toplevel);
-		}
-	}
-}
-
-void
 view_impl_map(struct view *view)
 {
 	view_update_visibility(view);
@@ -34,15 +16,19 @@ view_impl_map(struct view *view)
 	}
 
 	/*
-	 * It's tempting to just never create the foreign-toplevel handle in the
-	 * map handlers, but the app_id/title might not have been set at that
-	 * point, so it's safer to process the property here
+	 * Create foreign-toplevel handle, respecting skipTaskbar rules.
+	 * Also exclude unfocusable views (popups, floating toolbars,
+	 * etc.) as these should not be shown in taskbars/docks/etc.
 	 */
-	enum property ret = window_rules_get_property(view, "skipTaskbar");
-	if (ret == LAB_PROP_TRUE) {
-		if (view->foreign_toplevel) {
-			foreign_toplevel_destroy(view->foreign_toplevel);
-			view->foreign_toplevel = NULL;
+	if (!view->foreign_toplevel && view_is_focusable(view)
+			&& window_rules_get_property(view, "skipTaskbar")
+				!= LAB_PROP_TRUE) {
+		view->foreign_toplevel = foreign_toplevel_create(view);
+
+		struct view *parent = view->impl->get_parent(view);
+		if (parent && parent->foreign_toplevel) {
+			foreign_toplevel_set_parent(view->foreign_toplevel,
+				parent->foreign_toplevel);
 		}
 	}
 

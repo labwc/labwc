@@ -1,69 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /* view-impl-common.c: common code for shell view->impl functions */
 #include "view-impl-common.h"
-#include "foreign-toplevel/foreign.h"
 #include "labwc.h"
 #include "view.h"
-#include "window-rules.h"
-
-void
-view_impl_init_foreign_toplevel(struct view *view)
-{
-	if (view->foreign_toplevel) {
-		return;
-	}
-
-	view->foreign_toplevel = foreign_toplevel_create(view);
-
-	if (view->impl->get_parent) {
-		struct view *parent = view->impl->get_parent(view);
-		if (parent && parent->foreign_toplevel) {
-			foreign_toplevel_set_parent(view->foreign_toplevel,
-				parent->foreign_toplevel);
-		}
-	}
-}
-
-void
-view_impl_map(struct view *view)
-{
-	view_update_visibility(view);
-
-	if (!view->been_mapped) {
-		window_rules_apply(view, LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP);
-	}
-
-	/*
-	 * It's tempting to just never create the foreign-toplevel handle in the
-	 * map handlers, but the app_id/title might not have been set at that
-	 * point, so it's safer to process the property here
-	 */
-	enum property ret = window_rules_get_property(view, "skipTaskbar");
-	if (ret == LAB_PROP_TRUE) {
-		if (view->foreign_toplevel) {
-			foreign_toplevel_destroy(view->foreign_toplevel);
-			view->foreign_toplevel = NULL;
-		}
-	}
-
-	wlr_log(WLR_DEBUG, "[map] identifier=%s, title=%s",
-		view->app_id, view->title);
-}
-
-void
-view_impl_unmap(struct view *view)
-{
-	view_update_visibility(view);
-
-	/*
-	 * Destroy the foreign toplevel handle so the unmapped view
-	 * doesn't show up in panels and the like.
-	 */
-	if (view->foreign_toplevel) {
-		foreign_toplevel_destroy(view->foreign_toplevel);
-		view->foreign_toplevel = NULL;
-	}
-}
 
 static bool
 resizing_edge(struct view *view, enum lab_edge edge)

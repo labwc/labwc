@@ -39,7 +39,6 @@ static_assert(ARRAY_SIZE(atom_names) == ATOM_COUNT, "atom names out of sync");
 static xcb_atom_t atoms[ATOM_COUNT] = {0};
 
 static void set_surface(struct view *view, struct wlr_surface *surface);
-static void xwayland_view_unmap(struct view *view);
 
 static struct xwayland_view *
 xwayland_view_from_view(struct view *view)
@@ -557,7 +556,7 @@ handle_set_override_redirect(struct wl_listener *listener, void *data)
 	struct server *server = view->server;
 	bool mapped = xsurface->surface && xsurface->surface->mapped;
 	if (mapped) {
-		xwayland_view_unmap(view);
+		view_handle_unmap(&view->mappable.unmap, NULL);
 	}
 	handle_destroy(&view->destroy, xsurface);
 	/* view is invalid after this point */
@@ -801,10 +800,6 @@ xwayland_view_map(struct view *view)
 	assert(xwayland_surface);
 	assert(xwayland_surface->surface);
 
-	if (view->mapped) {
-		return;
-	}
-
 	/*
 	 * The map_request event may not be received when an unmanaged
 	 * (override-redirect) surface becomes managed. To make sure we
@@ -812,8 +807,6 @@ xwayland_view_map(struct view *view)
 	 * explicitly (calling it twice is harmless).
 	 */
 	handle_map_request(&xwayland_view->map_request, NULL);
-
-	view->mapped = true;
 
 	if (view->surface != xwayland_surface->surface) {
 		set_surface(view, xwayland_surface->surface);
@@ -827,19 +820,6 @@ xwayland_view_map(struct view *view)
 			return;
 		}
 		view->content_tree = tree;
-	}
-
-	/*
-	 * Exclude unfocusable views from wlr-foreign-toplevel. These
-	 * views (notifications, floating toolbars, etc.) should not be
-	 * shown in taskbars/docks/etc.
-	 */
-	if (!view->foreign_toplevel && view_is_focusable(view)) {
-		view_impl_init_foreign_toplevel(view);
-		/*
-		 * Initial outputs will be synced via
-		 * view->events.new_outputs on view_moved()
-		 */
 	}
 
 	if (!view->been_mapped) {
@@ -866,19 +846,12 @@ xwayland_view_map(struct view *view)
 		xwayland_view->focused_before_map = false;
 		seat_focus_surface(&view->server->seat, view->surface);
 	}
-
-	view_impl_map(view);
-	view->been_mapped = true;
 }
 
 static void
 xwayland_view_unmap(struct view *view)
 {
-	if (!view->mapped) {
-		return;
-	}
-	view->mapped = false;
-	view_impl_unmap(view);
+	/* no-op, but see PR #3215 */
 }
 
 static void
@@ -1054,7 +1027,7 @@ xwayland_view_create(struct server *server,
 		handle_associate(&xwayland_view->associate, NULL);
 	}
 	if (mapped) {
-		xwayland_view_map(view);
+		view_handle_map(&view->mappable.map, NULL);
 	}
 }
 

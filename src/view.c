@@ -2445,25 +2445,74 @@ mappable_disconnect(struct mappable *mappable)
 	mappable->connected = false;
 }
 
-static void
-handle_map(struct wl_listener *listener, void *data)
+void
+view_handle_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, mappable.map);
+	if (view->mapped) {
+		return;
+	}
+
+	wlr_log(WLR_DEBUG, "[map] identifier=%s, title=%s",
+		view->app_id, view->title);
+
 	view->impl->map(view);
+	view->mapped = true;
+
+	view_update_visibility(view);
+
+	if (!view->been_mapped) {
+		window_rules_apply(view, LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP);
+		view->been_mapped = true;
+	}
+
+	/*
+	 * Create foreign-toplevel handle, respecting skipTaskbar rules.
+	 * Also exclude unfocusable views (popups, floating toolbars,
+	 * etc.) as these should not be shown in taskbars/docks/etc.
+	 */
+	if (!view->foreign_toplevel && view_is_focusable(view)
+			&& window_rules_get_property(view, "skipTaskbar")
+				!= LAB_PROP_TRUE) {
+		view->foreign_toplevel = foreign_toplevel_create(view);
+
+		struct view *parent = view->impl->get_parent(view);
+		if (parent && parent->foreign_toplevel) {
+			foreign_toplevel_set_parent(view->foreign_toplevel,
+				parent->foreign_toplevel);
+		}
+	}
 }
 
-static void
-handle_unmap(struct wl_listener *listener, void *data)
+void
+view_handle_unmap(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, mappable.unmap);
+	if (!view->mapped) {
+		return;
+	}
+
 	view->impl->unmap(view);
+	view->mapped = false;
+
+	view_update_visibility(view);
+
+	/*
+	 * Destroy the foreign toplevel handle so the unmapped view
+	 * doesn't show up in panels and the like.
+	 */
+	if (view->foreign_toplevel) {
+		foreign_toplevel_destroy(view->foreign_toplevel);
+		view->foreign_toplevel = NULL;
+	}
 }
 
 void
 view_connect_map(struct view *view, struct wlr_surface *surface)
 {
 	assert(view);
-	mappable_connect(&view->mappable, surface, handle_map, handle_unmap);
+	mappable_connect(&view->mappable, surface,
+		view_handle_map, view_handle_unmap);
 }
 
 /* Used in both (un)map and (un)minimize */

@@ -745,26 +745,12 @@ set_initial_position(struct view *view)
 static void
 xdg_toplevel_view_map(struct view *view)
 {
-	if (view->mapped) {
-		return;
-	}
-
 	/*
 	 * An output should have been chosen when the surface was first
 	 * created, but take one more opportunity to assign an output if not.
 	 */
 	if (!view->output) {
 		view_set_output(view, output_nearest_to_cursor(view->server));
-	}
-
-	view->mapped = true;
-
-	if (!view->foreign_toplevel) {
-		view_impl_init_foreign_toplevel(view);
-		/*
-		 * Initial outputs will be synced via
-		 * view->events.new_outputs on view_moved()
-		 */
 	}
 
 	if (!view->been_mapped) {
@@ -801,18 +787,12 @@ xdg_toplevel_view_map(struct view *view)
 
 		view_moved(view);
 	}
-
-	view_impl_map(view);
-	view->been_mapped = true;
 }
 
 static void
 xdg_toplevel_view_unmap(struct view *view)
 {
-	if (view->mapped) {
-		view->mapped = false;
-		view_impl_unmap(view);
-	}
+	/* no-op */
 }
 
 static pid_t

@@ -118,11 +118,10 @@ void
 desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 		struct wlr_surface *surface, bool raise)
 {
-	assert(view || surface);
 	if (view) {
 		desktop_focus_view(view, raise);
 #if HAVE_XWAYLAND
-	} else {
+	} else if (surface) {
 		struct wlr_xwayland_surface *xsurface =
 			wlr_xwayland_surface_try_from_wlr_surface(surface);
 		if (xsurface && wlr_xwayland_surface_override_redirect_wants_focus(xsurface)) {

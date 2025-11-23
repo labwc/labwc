@@ -6,6 +6,7 @@
 #include <wlr/util/log.h>
 #include "common/set.h"
 #include "input/cursor.h"
+#include "input/gestures.h"
 #include "overlay.h"
 
 #define XCURSOR_DEFAULT "left_ptr"
@@ -27,6 +28,8 @@ struct seat {
 	struct wlr_keyboard_group *keyboard_group;
 
 	struct wl_list touch_points; /* struct touch_point.link */
+
+	struct gesture_tracker gesture_state;
 
 	/*
 	 * Enum of most recent server-side cursor image.  Set by

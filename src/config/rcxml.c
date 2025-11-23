@@ -26,6 +26,7 @@
 #include "config/keybind.h"
 #include "config/libinput.h"
 #include "config/mousebind.h"
+#include "config/gesturebind.h"
 #include "config/tablet.h"
 #include "config/tablet-tool.h"
 #include "config/touch.h"
@@ -637,6 +638,60 @@ fill_touch(xmlNode *node)
 		}
 	}
 }
+static void
+fill_gesturebind(xmlNode *node, char *device_name) {
+	wlr_log(WLR_INFO, "create gesturebind for %s", device_name);
+
+	struct lab_gesturebind *gesturebind = znew(*gesturebind);
+	wl_list_append(&rc.gesture_bindings, &gesturebind->link);
+
+	wl_list_init(&gesturebind->actions);
+	gesturebind->device_name = NULL;
+
+	xstrdup_replace(gesturebind->device_name, device_name);
+
+	char gesture_name[12];
+	if (!lab_xml_get_string(node, "gesture", gesture_name, sizeof(gesture_name))) {
+		return;
+	}
+
+	enum lab_gesture_event event = gesture_parse_event(gesture_name);
+	gesturebind->event = event;
+	enum gesture_type gesture_type = gesture_parse_type(gesture_name);
+	gesturebind->bind_gesture_type = gesture_type;
+
+	char finger_count_str[3];
+	if (lab_xml_get_string(node, "finger_count", finger_count_str, sizeof(finger_count_str))) {
+		gesturebind->finger_count = atoi(finger_count_str);
+	} else {
+		gesturebind->finger_count = 3; // default
+	}
+
+	append_parsed_actions(node, &gesturebind->actions);
+}
+
+static void
+fill_touchpad_gesture(xmlNode *node)
+{
+	/*
+	<touchpad_gesture deviceName="">
+		<gesturebind gesture="" finger_count="">
+			<action name="GoToDesktop" to="left" wrap="yes" />
+	*/
+	char device_name[256] = "default";
+
+	if (!lab_xml_get_string(node, "deviceName", device_name, sizeof(device_name))) {
+		//return;
+	}
+
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (!strcasecmp(key, "gesturebind")) {
+			fill_gesturebind(child, device_name);
+		}
+	}
+}
 
 static void
 fill_tablet_button_map(xmlNode *node)
@@ -1048,6 +1103,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		fill_mouse_context(node);
 	} else if (!strcasecmp(nodename, "touch")) {
 		fill_touch(node);
+	} else if (!strcasecmp(nodename, "touchpad_gesture")) {
+		fill_touchpad_gesture(node);
 	} else if (!strcasecmp(nodename, "device.libinput")) {
 		fill_libinput_category(node);
 	} else if (!strcasecmp(nodename, "regions")) {
@@ -1396,6 +1453,7 @@ rcxml_init(void)
 	if (!has_run) {
 		wl_list_init(&rc.usable_area_overrides);
 		wl_list_init(&rc.keybinds);
+		wl_list_init(&rc.gesture_bindings);
 		wl_list_init(&rc.mousebinds);
 		wl_list_init(&rc.libinput_categories);
 		wl_list_init(&rc.workspace_config.workspaces);
@@ -1960,6 +2018,13 @@ rcxml_finish(void)
 		wl_list_remove(&k->link);
 		action_list_free(&k->actions);
 		keybind_destroy(k);
+	}
+
+	struct lab_gesturebind *g, *g_tmp;
+	wl_list_for_each_safe(g, g_tmp, &rc.gesture_bindings, link) {
+		wl_list_remove(&g->link);
+		action_list_free(&g->actions);
+		gesturebind_destroy(g);
 	}
 
 	struct mousebind *m, *m_tmp;

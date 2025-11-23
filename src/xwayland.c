@@ -39,7 +39,8 @@ static_assert(ARRAY_SIZE(atom_names) == ATOM_COUNT, "atom names out of sync");
 static xcb_atom_t atoms[ATOM_COUNT] = {0};
 
 static void set_surface(struct view *view, struct wlr_surface *surface);
-static void xwayland_view_unmap(struct view *view);
+static void handle_map(struct wl_listener *listener, void *data);
+static void handle_unmap(struct wl_listener *listener, void *data);
 
 static struct xwayland_view *
 xwayland_view_from_view(struct view *view)
@@ -319,8 +320,9 @@ handle_associate(struct wl_listener *listener, void *data)
 	assert(xwayland_view->xwayland_surface &&
 		xwayland_view->xwayland_surface->surface);
 
-	view_connect_map(&xwayland_view->base,
-		xwayland_view->xwayland_surface->surface);
+	mappable_connect(&xwayland_view->base.mappable,
+		xwayland_view->xwayland_surface->surface,
+		handle_map, handle_unmap);
 }
 
 static void
@@ -557,7 +559,7 @@ handle_set_override_redirect(struct wl_listener *listener, void *data)
 	struct server *server = view->server;
 	bool mapped = xsurface->surface && xsurface->surface->mapped;
 	if (mapped) {
-		xwayland_view_unmap(view);
+		handle_unmap(&view->mappable.unmap, NULL);
 	}
 	handle_destroy(&view->destroy, xsurface);
 	/* view is invalid after this point */
@@ -793,8 +795,9 @@ set_surface(struct view *view, struct wlr_surface *surface)
 }
 
 static void
-xwayland_view_map(struct view *view)
+handle_map(struct wl_listener *listener, void *data)
 {
+	struct view *view = wl_container_of(listener, view, mappable.map);
 	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
 	struct wlr_xwayland_surface *xwayland_surface =
 		xwayland_view->xwayland_surface;
@@ -872,8 +875,9 @@ xwayland_view_map(struct view *view)
 }
 
 static void
-xwayland_view_unmap(struct view *view)
+handle_unmap(struct wl_listener *listener, void *data)
 {
+	struct view *view = wl_container_of(listener, view, mappable.unmap);
 	if (!view->mapped) {
 		return;
 	}
@@ -982,10 +986,8 @@ xwayland_view_get_pid(struct view *view)
 static const struct view_impl xwayland_view_impl = {
 	.configure = xwayland_view_configure,
 	.close = xwayland_view_close,
-	.map = xwayland_view_map,
 	.set_activated = xwayland_view_set_activated,
 	.set_fullscreen = xwayland_view_set_fullscreen,
-	.unmap = xwayland_view_unmap,
 	.maximize = xwayland_view_maximize,
 	.minimize = xwayland_view_minimize,
 	.get_parent = xwayland_view_get_parent,
@@ -1054,7 +1056,7 @@ xwayland_view_create(struct server *server,
 		handle_associate(&xwayland_view->associate, NULL);
 	}
 	if (mapped) {
-		xwayland_view_map(view);
+		handle_map(&xwayland_view->base.mappable.map, NULL);
 	}
 }
 

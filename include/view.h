@@ -111,6 +111,7 @@ struct view_impl {
 	void (*set_fullscreen)(struct view *view, bool fullscreen);
 	void (*notify_tiled)(struct view *view);
 	void (*unmap)(struct view *view);
+	void (*commit)(struct view *view);
 	void (*maximize)(struct view *view, enum view_axis maximized);
 	void (*minimize)(struct view *view, bool minimize);
 	struct view *(*get_parent)(struct view *self);
@@ -239,7 +240,6 @@ struct view {
 	struct mappable mappable;
 
 	struct wl_listener destroy;
-	struct wl_listener surface_destroy;
 	struct wl_listener commit;
 	struct wl_listener request_move;
 	struct wl_listener request_resize;
@@ -584,7 +584,7 @@ void view_adjust_size(struct view *view, int *w, int *h);
 
 void view_evacuate_region(struct view *view);
 void view_on_output_destroy(struct view *view);
-void view_connect_map(struct view *view, struct wlr_surface *surface);
+void view_set_surface(struct view *view, struct wlr_surface *surface);
 void view_update_visibility(struct view *view);
 
 void view_init(struct view *view);

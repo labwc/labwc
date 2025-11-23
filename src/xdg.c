@@ -133,12 +133,10 @@ do_late_positioning(struct view *view)
 static void set_pending_configure_serial(struct view *view, uint32_t serial);
 
 static void
-handle_commit(struct wl_listener *listener, void *data)
+xdg_toplevel_view_commit(struct view *view)
 {
-	struct view *view = wl_container_of(listener, view, commit);
 	struct wlr_xdg_surface *xdg_surface = xdg_surface_from_view(view);
 	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
-	assert(view->surface);
 
 	if (xdg_surface->initial_commit) {
 		uint32_t serial =
@@ -378,7 +376,6 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&xdg_toplevel_view->set_app_id.link);
 	wl_list_remove(&xdg_toplevel_view->request_show_window_menu.link);
 	wl_list_remove(&xdg_toplevel_view->new_popup.link);
-	wl_list_remove(&view->commit.link);
 
 	if (view->pending_configure_timeout) {
 		wl_event_source_remove(view->pending_configure_timeout);
@@ -837,6 +834,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 	.set_fullscreen = xdg_toplevel_view_set_fullscreen,
 	.notify_tiled = xdg_toplevel_view_notify_tiled,
 	.unmap = xdg_toplevel_view_unmap,
+	.commit = xdg_toplevel_view_commit,
 	.maximize = xdg_toplevel_view_maximize,
 	.minimize = xdg_toplevel_view_minimize,
 	.get_parent = xdg_toplevel_view_get_parent,
@@ -1002,11 +1000,10 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 	 */
 	kde_server_decoration_set_view(view, xdg_surface->surface);
 
-	/* In support of xdg popups and IME popup */
-	view->surface = xdg_surface->surface;
-	view->surface->data = tree;
+	view_set_surface(view, xdg_surface->surface);
 
-	view_connect_map(view, xdg_surface->surface);
+	/* In support of xdg popups and IME popup */
+	view->surface->data = tree;
 
 	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
 	CONNECT_SIGNAL(toplevel, view, destroy);
@@ -1016,7 +1013,6 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 	CONNECT_SIGNAL(toplevel, view, request_maximize);
 	CONNECT_SIGNAL(toplevel, view, request_fullscreen);
 	CONNECT_SIGNAL(toplevel, view, set_title);
-	CONNECT_SIGNAL(view->surface, view, commit);
 
 	/* Events specific to XDG toplevel views */
 	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, set_app_id);

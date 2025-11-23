@@ -38,7 +38,6 @@ static_assert(ARRAY_SIZE(atom_names) == ATOM_COUNT, "atom names out of sync");
 
 static xcb_atom_t atoms[ATOM_COUNT] = {0};
 
-static void set_surface(struct view *view, struct wlr_surface *surface);
 static void xwayland_view_unmap(struct view *view);
 
 static struct xwayland_view *
@@ -256,11 +255,8 @@ want_deco(struct wlr_xwayland_surface *xwayland_surface)
 }
 
 static void
-handle_commit(struct wl_listener *listener, void *data)
+xwayland_view_commit(struct view *view)
 {
-	struct view *view = wl_container_of(listener, view, commit);
-	assert(data && data == view->surface);
-
 	/* Must receive commit signal before accessing surface->current* */
 	struct wlr_surface_state *state = &view->surface->current;
 	struct wlr_box *current = &view->current;
@@ -319,7 +315,7 @@ handle_associate(struct wl_listener *listener, void *data)
 	assert(xwayland_view->xwayland_surface &&
 		xwayland_view->xwayland_surface->surface);
 
-	view_connect_map(&xwayland_view->base,
+	view_set_surface(&xwayland_view->base,
 		xwayland_view->xwayland_surface->surface);
 }
 
@@ -329,18 +325,7 @@ handle_dissociate(struct wl_listener *listener, void *data)
 	struct xwayland_view *xwayland_view =
 		wl_container_of(listener, xwayland_view, dissociate);
 
-	/* https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4524 */
-	assert(xwayland_view->base.mappable.connected);
-	mappable_disconnect(&xwayland_view->base.mappable);
-}
-
-static void
-handle_surface_destroy(struct wl_listener *listener, void *data)
-{
-	struct view *view = wl_container_of(listener, view, surface_destroy);
-	assert(data && data == view->surface);
-
-	set_surface(view, NULL);
+	view_set_surface(&xwayland_view->base, NULL);
 }
 
 static void
@@ -349,8 +334,6 @@ handle_destroy(struct wl_listener *listener, void *data)
 	struct view *view = wl_container_of(listener, view, destroy);
 	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
 	assert(xwayland_view->xwayland_surface->data == view);
-
-	set_surface(view, NULL);
 
 	/*
 	 * Break view <-> xsurface association.  Note that the xsurface
@@ -558,6 +541,9 @@ handle_set_override_redirect(struct wl_listener *listener, void *data)
 	bool mapped = xsurface->surface && xsurface->surface->mapped;
 	if (mapped) {
 		xwayland_view_unmap(view);
+	}
+	if (view->surface) {
+		handle_dissociate(&xwayland_view->dissociate, NULL);
 	}
 	handle_destroy(&view->destroy, xsurface);
 	/* view is invalid after this point */
@@ -775,24 +761,6 @@ set_initial_position(struct view *view,
 }
 
 static void
-set_surface(struct view *view, struct wlr_surface *surface)
-{
-	if (view->surface) {
-		/* Disconnect wlr_surface event listeners */
-		wl_list_remove(&view->commit.link);
-		wl_list_remove(&view->surface_destroy.link);
-	}
-	view->surface = surface;
-	if (surface) {
-		/* Connect wlr_surface event listeners */
-		view->commit.notify = handle_commit;
-		wl_signal_add(&surface->events.commit, &view->commit);
-		view->surface_destroy.notify = handle_surface_destroy;
-		wl_signal_add(&surface->events.destroy, &view->surface_destroy);
-	}
-}
-
-static void
 xwayland_view_map(struct view *view)
 {
 	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
@@ -800,6 +768,7 @@ xwayland_view_map(struct view *view)
 		xwayland_view->xwayland_surface;
 	assert(xwayland_surface);
 	assert(xwayland_surface->surface);
+	assert(xwayland_surface->surface == view->surface);
 
 	if (view->mapped) {
 		return;
@@ -815,18 +784,14 @@ xwayland_view_map(struct view *view)
 
 	view->mapped = true;
 
-	if (view->surface != xwayland_surface->surface) {
-		set_surface(view, xwayland_surface->surface);
-
-		/* Will be free'd automatically once the surface is being destroyed */
-		struct wlr_scene_tree *tree = wlr_scene_subsurface_tree_create(
+	if (!view->content_tree) {
+		view->content_tree = wlr_scene_subsurface_tree_create(
 			view->scene_tree, view->surface);
-		if (!tree) {
+		if (!view->content_tree) {
 			/* TODO: might need further clean up */
 			wl_resource_post_no_memory(view->surface->resource);
 			return;
 		}
-		view->content_tree = tree;
 	}
 
 	/*
@@ -879,6 +844,16 @@ xwayland_view_unmap(struct view *view)
 	}
 	view->mapped = false;
 	view_impl_unmap(view);
+
+	/*
+	 * Destroy the content_tree at unmap. It would get destroyed
+	 * with the wlr_surface later, but that might be a while,
+	 * especially if the surface gets converted to unmanaged.
+	 */
+	if (view->content_tree) {
+		wlr_scene_node_destroy(&view->content_tree->node);
+		view->content_tree = NULL;
+	}
 }
 
 static void
@@ -986,6 +961,7 @@ static const struct view_impl xwayland_view_impl = {
 	.set_activated = xwayland_view_set_activated,
 	.set_fullscreen = xwayland_view_set_fullscreen,
 	.unmap = xwayland_view_unmap,
+	.commit = xwayland_view_commit,
 	.maximize = xwayland_view_maximize,
 	.minimize = xwayland_view_minimize,
 	.get_parent = xwayland_view_get_parent,

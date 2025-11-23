@@ -12,6 +12,7 @@
 #include "buffer.h"
 #include "common/box.h"
 #include "common/list.h"
+#include "common/macros.h"
 #include "common/match.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
@@ -2459,11 +2460,32 @@ handle_unmap(struct wl_listener *listener, void *data)
 	view->impl->unmap(view);
 }
 
+static void
+handle_commit(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, commit);
+	assert(data && data == view->surface);
+	view->impl->commit(view);
+}
+
 void
-view_connect_map(struct view *view, struct wlr_surface *surface)
+view_set_surface(struct view *view, struct wlr_surface *surface)
 {
 	assert(view);
-	mappable_connect(&view->mappable, surface, handle_map, handle_unmap);
+	assert(!view->mapped);
+
+	if (view->surface) {
+		mappable_disconnect(&view->mappable);
+		wl_list_remove(&view->commit.link);
+	}
+
+	view->surface = surface;
+
+	if (surface) {
+		mappable_connect(&view->mappable, surface,
+			handle_map, handle_unmap);
+		CONNECT_SIGNAL(surface, view, commit);
+	}
 }
 
 /* Used in both (un)map and (un)minimize */
@@ -2593,9 +2615,7 @@ view_destroy(struct view *view)
 	wl_signal_emit_mutable(&view->events.destroy, NULL);
 	snap_constraints_invalidate(view);
 
-	if (view->mappable.connected) {
-		mappable_disconnect(&view->mappable);
-	}
+	view_set_surface(view, NULL);
 
 	wl_list_remove(&view->request_move.link);
 	wl_list_remove(&view->request_resize.link);

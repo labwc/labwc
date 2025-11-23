@@ -832,19 +832,6 @@ handle_map(struct wl_listener *listener, void *data)
 		view->content_tree = tree;
 	}
 
-	/*
-	 * Exclude unfocusable views from wlr-foreign-toplevel. These
-	 * views (notifications, floating toolbars, etc.) should not be
-	 * shown in taskbars/docks/etc.
-	 */
-	if (!view->foreign_toplevel && view_is_focusable(view)) {
-		view_impl_init_foreign_toplevel(view);
-		/*
-		 * Initial outputs will be synced via
-		 * view->events.new_outputs on view_moved()
-		 */
-	}
-
 	if (!view->been_mapped) {
 		check_natural_geometry(view);
 		set_initial_position(view, xwayland_surface);

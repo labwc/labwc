@@ -2518,7 +2518,11 @@ view_set_shade(struct view *view, bool shaded)
 
 	view->shaded = shaded;
 	ssd_enable_shade(view->ssd, view->shaded);
-	wlr_scene_node_set_enabled(&view->content_tree->node, !view->shaded);
+	/* An unmapped view may not have a content tree */
+	if (view->content_tree) {
+		wlr_scene_node_set_enabled(&view->content_tree->node,
+			!view->shaded);
+	}
 }
 
 void

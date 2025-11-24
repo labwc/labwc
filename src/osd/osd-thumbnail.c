@@ -74,6 +74,13 @@ render_node(struct server *server, struct wlr_render_pass *pass,
 static struct wlr_buffer *
 render_thumb(struct output *output, struct view *view)
 {
+	if (!view->content_tree) {
+		/*
+		 * Defensive. Could possibly occur if view was unmapped
+		 * with OSD already displayed.
+		 */
+		return NULL;
+	}
 	struct server *server = output->server;
 	struct wlr_buffer *buffer = wlr_allocator_create_buffer(server->allocator,
 		view->current.width, view->current.height,

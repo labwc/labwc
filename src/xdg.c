@@ -133,6 +133,24 @@ do_late_positioning(struct view *view)
 static void set_pending_configure_serial(struct view *view, uint32_t serial);
 
 static void
+center_fullscreen_view(struct view *view, struct wlr_box *size)
+{
+	int x = 0, y = 0;
+	if (view_compute_centered_position(view, NULL, size->width, size->height, &x, &y)) {
+		view_move(view, x, y);
+	}
+}
+
+static bool
+surface_is_smaller_than_output(struct view *view, struct wlr_box *size)
+{
+	struct wlr_output *output = view->output->wlr_output;
+	wlr_log(WLR_ERROR, "output->width=%d, output->height=%d", output->width, output->height);
+	wlr_log(WLR_ERROR, "size->width=%d, size->height=%d", size->width, size->height);
+	return size->width < output->width || size->height < output->height;
+}
+
+static void
 handle_commit(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, commit);
@@ -273,6 +291,16 @@ handle_commit(struct wl_listener *listener, void *data)
 			 */
 			toplevel->scheduled.width = view->current.width;
 			toplevel->scheduled.height = view->current.height;
+		}
+	}
+
+	/*
+	 * Centre fullscreen windows if smaller than output, for example Wine
+	 * game SWAT4. See issue #2779
+	 */
+	if (view->fullscreen) {
+		if (surface_is_smaller_than_output(view, &size)) {
+			center_fullscreen_view(view, &size);
 		}
 	}
 }

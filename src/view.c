@@ -2518,7 +2518,11 @@ view_set_shade(struct view *view, bool shaded)
 
 	view->shaded = shaded;
 	ssd_enable_shade(view->ssd, view->shaded);
-	/* An unmapped view may not have a content tree */
+	/*
+	 * An unmapped view may not have a content tree. When the view
+	 * is mapped again, the new content tree will be hidden by the
+	 * map handler, if the view is still shaded at that point.
+	 */
 	if (view->content_tree) {
 		wlr_scene_node_set_enabled(&view->content_tree->node,
 			!view->shaded);

@@ -320,9 +320,8 @@ handle_associate(struct wl_listener *listener, void *data)
 	assert(xwayland_view->xwayland_surface &&
 		xwayland_view->xwayland_surface->surface);
 
-	mappable_connect(&xwayland_view->base.mappable,
-		xwayland_view->xwayland_surface->surface,
-		handle_map, handle_unmap);
+	set_surface(&xwayland_view->base,
+		xwayland_view->xwayland_surface->surface);
 }
 
 static void
@@ -331,18 +330,7 @@ handle_dissociate(struct wl_listener *listener, void *data)
 	struct xwayland_view *xwayland_view =
 		wl_container_of(listener, xwayland_view, dissociate);
 
-	/* https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4524 */
-	assert(xwayland_view->base.mappable.connected);
-	mappable_disconnect(&xwayland_view->base.mappable);
-}
-
-static void
-handle_surface_destroy(struct wl_listener *listener, void *data)
-{
-	struct view *view = wl_container_of(listener, view, surface_destroy);
-	assert(data && data == view->surface);
-
-	set_surface(view, NULL);
+	set_surface(&xwayland_view->base, NULL);
 }
 
 static void
@@ -781,16 +769,15 @@ set_surface(struct view *view, struct wlr_surface *surface)
 {
 	if (view->surface) {
 		/* Disconnect wlr_surface event listeners */
+		mappable_disconnect(&view->mappable);
 		wl_list_remove(&view->commit.link);
-		wl_list_remove(&view->surface_destroy.link);
 	}
 	view->surface = surface;
 	if (surface) {
 		/* Connect wlr_surface event listeners */
-		view->commit.notify = handle_commit;
-		wl_signal_add(&surface->events.commit, &view->commit);
-		view->surface_destroy.notify = handle_surface_destroy;
-		wl_signal_add(&surface->events.destroy, &view->surface_destroy);
+		mappable_connect(&view->mappable, surface,
+			handle_map, handle_unmap);
+		CONNECT_SIGNAL(surface, view, commit);
 	}
 }
 
@@ -803,6 +790,7 @@ handle_map(struct wl_listener *listener, void *data)
 		xwayland_view->xwayland_surface;
 	assert(xwayland_surface);
 	assert(xwayland_surface->surface);
+	assert(xwayland_surface->surface == view->surface);
 
 	if (view->mapped) {
 		return;
@@ -818,18 +806,14 @@ handle_map(struct wl_listener *listener, void *data)
 
 	view->mapped = true;
 
-	if (view->surface != xwayland_surface->surface) {
-		set_surface(view, xwayland_surface->surface);
-
-		/* Will be free'd automatically once the surface is being destroyed */
-		struct wlr_scene_tree *tree = wlr_scene_subsurface_tree_create(
+	if (!view->content_tree) {
+		view->content_tree = wlr_scene_subsurface_tree_create(
 			view->scene_tree, view->surface);
-		if (!tree) {
+		if (!view->content_tree) {
 			/* TODO: might need further clean up */
 			wl_resource_post_no_memory(view->surface->resource);
 			return;
 		}
-		view->content_tree = tree;
 	}
 
 	if (!view->been_mapped) {
@@ -870,6 +854,17 @@ handle_unmap(struct wl_listener *listener, void *data)
 	}
 	view->mapped = false;
 	view_impl_unmap(view);
+
+	/*
+	 * Destroy the content_tree at unmap. Alternatively, we could
+	 * let wlr_scene manage its lifetime automatically, but this
+	 * approach is symmetrical with handle_map() and avoids any
+	 * concern of a dangling pointer in view->content_tree.
+	 */
+	if (view->content_tree) {
+		wlr_scene_node_destroy(&view->content_tree->node);
+		view->content_tree = NULL;
+	}
 }
 
 static void

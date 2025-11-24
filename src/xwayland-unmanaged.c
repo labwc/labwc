@@ -68,7 +68,6 @@ handle_map(struct wl_listener *listener, void *data)
 		seat_focus_surface(&unmanaged->server->seat, xsurface->surface);
 	}
 
-	/* node will be destroyed automatically once surface is destroyed */
 	unmanaged->node = &wlr_scene_surface_create(
 			unmanaged->server->unmanaged_tree,
 			xsurface->surface)->buffer->node;
@@ -128,13 +127,15 @@ handle_unmap(struct wl_listener *listener, void *data)
 
 	wl_list_remove(&unmanaged->link);
 	wl_list_remove(&unmanaged->set_geometry.link);
-	wlr_scene_node_set_enabled(unmanaged->node, false);
 
 	/*
-	 * Mark the node as gone so a racing configure event
-	 * won't try to reposition the node while unmapped.
+	 * Destroy the scene node. It would get destroyed later when
+	 * the wlr_surface is destroyed, but if the unmanaged surface
+	 * gets converted to a managed surface, that may be a while.
 	 */
+	wlr_scene_node_destroy(unmanaged->node);
 	unmanaged->node = NULL;
+
 	cursor_update_focus(unmanaged->server);
 
 	if (seat->seat->keyboard_state.focused_surface == xsurface->surface) {

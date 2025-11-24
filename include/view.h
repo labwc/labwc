@@ -237,7 +237,6 @@ struct view {
 	struct mappable mappable;
 
 	struct wl_listener destroy;
-	struct wl_listener surface_destroy;
 	struct wl_listener commit;
 	struct wl_listener request_move;
 	struct wl_listener request_resize;

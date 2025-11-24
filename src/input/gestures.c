@@ -38,7 +38,8 @@ static void trigger_gesture_action(struct seat *seat, enum lab_gesture_event eve
 }
 
 // TODO: make configurable?
-#define SWIPE_THRESHOLD 0.0
+#define SWIPE_THRESHOLD 100.0
+#define SWIPE_CONTINUROUS_THRESHOLD 200.0
 #define PINCH_THRESHOLD_FACTOR 0.1 // 10%
 
 static void gesture_tracker_begin(struct gesture_tracker *tracker, enum gesture_type type, uint8_t fingers)
@@ -51,6 +52,7 @@ static void gesture_tracker_begin(struct gesture_tracker *tracker, enum gesture_
     if (type == GESTURE_TYPE_PINCH) {
         tracker->scale = 1.0;
     }
+    tracker->continurous_mode = false;
     wlr_log(WLR_DEBUG, "Gesture begin: Type %d, Fingers %d", type, fingers);
 }
 
@@ -88,6 +90,7 @@ static void gesture_tracker_end(struct gesture_tracker *tracker)
     tracker->dx = tracker->dy = 0.0;
     tracker->scale = 1.0;
     tracker->rotation = 0.0;
+    tracker->continurous_mode = false;
 }
 
 static bool gesture_binding_check(enum gesture_type gesture_type, int finger_count, char *input)
@@ -248,6 +251,14 @@ handle_swipe_update(struct wl_listener *listener, void *data)
 
 	if (gesture_tracker_check(&seat->gesture_state, GESTURE_TYPE_SWIPE)) {
 		gesture_tracker_update(&seat->gesture_state, event->dx, event->dy, NAN, NAN);
+		// swipe continurous mode
+		struct gesture_tracker *tracker = &seat->gesture_state;
+		if (fabs(tracker->dx) >= SWIPE_CONTINUROUS_THRESHOLD || fabs(tracker->dy) >= SWIPE_CONTINUROUS_THRESHOLD) {
+			char *device_name = event->pointer ? event->pointer->base.name : NULL;
+			gesture_tracker_end_and_match(seat, &seat->gesture_state, device_name);
+			gesture_tracker_begin(&seat->gesture_state, GESTURE_TYPE_SWIPE, event->fingers);
+			tracker->continurous_mode = true;
+		}
 	} else {
 		wlr_pointer_gestures_v1_send_swipe_update(seat->pointer_gestures,
 				seat->seat, event->time_msec, event->dx, event->dy);
@@ -275,8 +286,11 @@ handle_swipe_end(struct wl_listener *listener, void *data)
 	}
 
 	// End gesture tracking and execute matched binding
-	char *device_name = event->pointer ? event->pointer->base.name : NULL;
-	gesture_tracker_end_and_match(seat, &seat->gesture_state, device_name);
+	struct gesture_tracker *tracker = &seat->gesture_state;
+	if (!tracker->continurous_mode) {
+		char *device_name = event->pointer ? event->pointer->base.name : NULL;
+		gesture_tracker_end_and_match(seat, &seat->gesture_state, device_name);
+	}
 }
 
 static void

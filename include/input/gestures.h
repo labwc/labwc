@@ -2,6 +2,7 @@
 #ifndef LABWC_GESTURES_H
 #define LABWC_GESTURES_H
 
+#include <stdbool.h>
 #include <wayland-util.h>
 
 struct seat;
@@ -20,6 +21,7 @@ struct gesture_tracker {
     double dx, dy;
     double scale;
     double rotation;
+    bool continurous_mode;
 };
 
 void gestures_init(struct seat *seat);

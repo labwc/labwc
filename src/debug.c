@@ -77,7 +77,7 @@ get_view_part(struct view *view, struct wlr_scene_node *node)
 		snprintf(view_name, sizeof(view_name), "view (%s)", view->app_id);
 		return view_name;
 	}
-	if (node == &view->content_tree->node) {
+	if (view->content_tree && node == &view->content_tree->node) {
 		return "view->content_tree";
 	}
 	if (view->resize_indicator.tree

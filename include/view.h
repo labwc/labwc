@@ -163,7 +163,7 @@ struct view {
 	struct workspace *workspace;
 	struct wlr_surface *surface;
 	struct wlr_scene_tree *scene_tree;
-	struct wlr_scene_tree *content_tree;
+	struct wlr_scene_tree *content_tree; /* may be NULL for unmapped view */
 
 	/* These are never NULL and an empty string is set instead. */
 	char *title;

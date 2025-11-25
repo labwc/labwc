@@ -18,22 +18,9 @@ enum lab_gesture_event gesture_parse_event(const char *name)
 	return LAB_GESTURE_EVENT_NONE;
 }
 
-enum gesture_type gesture_parse_type(const char *name)
-{
-	if (!name) { return GESTURE_TYPE_NONE; }
-	if (!strcasecmp(name, "swipe-up")) { return GESTURE_TYPE_SWIPE; }
-	if (!strcasecmp(name, "swipe-down")) { return GESTURE_TYPE_SWIPE; }
-	if (!strcasecmp(name, "swipe-left")) { return GESTURE_TYPE_SWIPE; }
-	if (!strcasecmp(name, "swipe-right")) { return GESTURE_TYPE_SWIPE; }
-	if (!strcasecmp(name, "pinch-in")) { return GESTURE_TYPE_PINCH; }
-	if (!strcasecmp(name, "pinch-out")) { return GESTURE_TYPE_PINCH; }
-	return GESTURE_TYPE_NONE;
-}
-
 void gesturebind_destroy(struct lab_gesturebind *gesturebind)
 {
 	assert(wl_list_empty(&gesturebind->actions));
-
 	zfree(gesturebind->device_name);
 	zfree(gesturebind);
 }

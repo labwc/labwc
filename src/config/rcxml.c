@@ -657,8 +657,6 @@ fill_gesturebind(xmlNode *node, char *device_name) {
 
 	enum lab_gesture_event event = gesture_parse_event(gesture_name);
 	gesturebind->event = event;
-	enum gesture_type gesture_type = gesture_parse_type(gesture_name);
-	gesturebind->bind_gesture_type = gesture_type;
 
 	char finger_count_str[3];
 	if (lab_xml_get_string(node, "finger_count", finger_count_str, sizeof(finger_count_str))) {
@@ -681,7 +679,7 @@ fill_touchpad_gesture(xmlNode *node)
 	char device_name[256] = "default";
 
 	if (!lab_xml_get_string(node, "deviceName", device_name, sizeof(device_name))) {
-		//return;
+		// use "default" name if not set
 	}
 
 	xmlNode *child;

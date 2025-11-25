@@ -1,41 +1,16 @@
 // SPDX-License-Identifier: GPL-2.0-only
-#include "input/gestures.h"
+#include <math.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_pointer_gestures_v1.h>
 #include "common/macros.h"
 #include "labwc.h"
 #include "idle.h"
+
 #include "config/gesturebind.h"
 #include "config/rcxml.h"
-#include <strings.h>
 #include "action.h"
-#include <math.h>
-
-static void trigger_gesture_action(struct seat *seat, enum lab_gesture_event event, int finger_count, char *device_name)
-{
-	if (wl_list_empty(&rc.gesture_bindings)) {
-		return;
-	}
-
-	struct wl_list *default_device_actions = NULL;
-
-	struct lab_gesturebind *gb;
-	wl_list_for_each(gb, &rc.gesture_bindings, link) {
-		if (gb->event == event && gb->finger_count == finger_count) {
-			if (!strcasecmp(gb->device_name, device_name)) {
-				actions_run(NULL, seat->server, &gb->actions, NULL);
-				return;
-			} else if (!strcasecmp(gb->device_name, "default")) {
-				default_device_actions = &gb->actions;
-			}
-		}
-	}
-
-	// if doesn't match device_name, use default name(if default set)
-	if (default_device_actions != NULL) {
-		actions_run(NULL, seat->server, default_device_actions, NULL);
-	}
-}
+#include "input/gestures.h"
+#include "input/input.h"
 
 // TODO: make configurable?
 #define SWIPE_THRESHOLD 100.0
@@ -93,67 +68,91 @@ static void gesture_tracker_end(struct gesture_tracker *tracker)
     tracker->continurous_mode = false;
 }
 
-static bool gesture_binding_check(enum gesture_type gesture_type, int finger_count, char *input)
+static bool gesture_binding_check(enum gesture_type gesture_type, int finger_count, struct lab_gesturebind *(*device_gesture_binds)[MAX_FINGERS])
 {
     if (wl_list_empty(&rc.gesture_bindings)) {
 	    return false;
     }
 
-    struct lab_gesturebind *gb;
-    wl_list_for_each(gb, &rc.gesture_bindings, link) {
-	    if (gb->bind_gesture_type == gesture_type && gb->finger_count == finger_count) {
-		    // Check that input matches
-		    // TODO: default override is not important ?
-		    if (strcmp(gb->device_name, "default") == 0 ||
-				    strcmp(gb->device_name, input) == 0) {
-			    return true;
-		    }
-	    }
-	    wlr_log(WLR_DEBUG, "Gesture binding check failed input: %s, gb.device_name: %s", input, gb->device_name);
+    if (gesture_type == GESTURE_TYPE_SWIPE) {
+	    if (device_gesture_binds[LAB_GESTURE_EVENT_SWIPE_UP][finger_count] != NULL)
+		    return true;
+	    if (device_gesture_binds[LAB_GESTURE_EVENT_SWIPE_DOWN][finger_count] != NULL)
+		    return true;
+	    if (device_gesture_binds[LAB_GESTURE_EVENT_SWIPE_LEFT][finger_count] != NULL)
+		    return true;
+	    if (device_gesture_binds[LAB_GESTURE_EVENT_SWIPE_RIGHT][finger_count] != NULL)
+		    return true;
     }
+
+    if (gesture_type == GESTURE_TYPE_PINCH) {
+	    if (device_gesture_binds[LAB_GESTURE_EVENT_PINCH_IN][finger_count] != NULL)
+		    return true;
+	    if (device_gesture_binds[LAB_GESTURE_EVENT_PINCH_OUT][finger_count] != NULL)
+		    return true;
+    }
+
+    /*
+    if (device_gesture_type == GESTURE_TYPE_HOLD) {
+	    if (device_gesture_binds[LAB_GESTURE_EVENT_HOLD][finger_count] != NULL)
+		    return true;
+    }
+    */
+
     return false;
 }
 
-static void gesture_binding_match_and_run_action(struct seat *seat, struct gesture_tracker *tracker, char *device_name)
+static void gesture_binding_match_and_run_action(struct seat *seat, struct gesture_tracker *tracker, struct lab_gesturebind *(*device_gesture_binds)[MAX_FINGERS])
 {
-    if (tracker->type == GESTURE_TYPE_SWIPE) {
+	if (wl_list_empty(&rc.gesture_bindings)) {
+		return;
+	}
 
-        // detect swip threshold
-        if (fabs(tracker->dx) >= SWIPE_THRESHOLD || fabs(tracker->dy) >= SWIPE_THRESHOLD) {
+	if (tracker->type == GESTURE_TYPE_SWIPE) {
+		// detect swip threshold
+		if (fabs(tracker->dx) >= SWIPE_THRESHOLD || fabs(tracker->dy) >= SWIPE_THRESHOLD) {
 
-            enum lab_gesture_event event;
+			enum lab_gesture_event event;
 
-            // determine axis
-            if (fabs(tracker->dx) > fabs(tracker->dy)) {
-                event = tracker->dx > 0 ? LAB_GESTURE_EVENT_SWIPE_RIGHT : LAB_GESTURE_EVENT_SWIPE_LEFT;
-            } else {
-                event = tracker->dy > 0 ? LAB_GESTURE_EVENT_SWIPE_DOWN : LAB_GESTURE_EVENT_SWIPE_UP;
-            }
+			// determine axis
+			if (fabs(tracker->dx) > fabs(tracker->dy)) {
+				event = tracker->dx > 0 ? LAB_GESTURE_EVENT_SWIPE_RIGHT : LAB_GESTURE_EVENT_SWIPE_LEFT;
+			} else {
+				event = tracker->dy > 0 ? LAB_GESTURE_EVENT_SWIPE_DOWN : LAB_GESTURE_EVENT_SWIPE_UP;
+			}
 
-            // execute action
-            trigger_gesture_action(seat, event, tracker->fingers, device_name);
-        }
+			struct lab_gesturebind *gesturebind = device_gesture_binds[event][tracker->fingers];
+			if (!gesturebind) {
+				return;
+			}
+			// execute action
+			actions_run(NULL, seat->server, &gesturebind->actions, NULL);
+		}
 
-    } else if (tracker->type == GESTURE_TYPE_PINCH) {
+	} else if (tracker->type == GESTURE_TYPE_PINCH) {
+		// (1.0 +/- PINCH_THRESHOLD_FACTOR)
+		if (tracker->scale >= (1.0 + PINCH_THRESHOLD_FACTOR) || tracker->scale <= (1.0 - PINCH_THRESHOLD_FACTOR)) {
 
-        // (1.0 +/- PINCH_THRESHOLD_FACTOR)
-        if (tracker->scale >= (1.0 + PINCH_THRESHOLD_FACTOR) || tracker->scale <= (1.0 - PINCH_THRESHOLD_FACTOR)) {
+			enum lab_gesture_event event = tracker->scale > 1.0
+				? LAB_GESTURE_EVENT_PINCH_OUT
+				: LAB_GESTURE_EVENT_PINCH_IN;
 
-            enum lab_gesture_event event = tracker->scale > 1.0
-                ? LAB_GESTURE_EVENT_PINCH_OUT
-                : LAB_GESTURE_EVENT_PINCH_IN;
-
-            trigger_gesture_action(seat, event, tracker->fingers, device_name);
-        }
-    }
+			struct lab_gesturebind *gesturebind = device_gesture_binds[event][tracker->fingers];
+			if (!gesturebind) {
+				return;
+			}
+			// execute action
+			actions_run(NULL, seat->server, &gesturebind->actions, NULL);
+		}
+	}
 }
 
 /**
  * end tracker and bind check
  */
-static void gesture_tracker_end_and_match(struct seat *seat, struct gesture_tracker *tracker, char *device_name)
+static void gesture_tracker_end_and_match(struct seat *seat, struct gesture_tracker *tracker, struct lab_gesturebind *(*device_gesture_binds)[MAX_FINGERS])
 {
-    gesture_binding_match_and_run_action(seat, tracker, device_name);
+    gesture_binding_match_and_run_action(seat, tracker, device_gesture_binds);
 
     // tracker reset
     gesture_tracker_end(tracker);
@@ -168,8 +167,10 @@ handle_pinch_begin(struct wl_listener *listener, void *data)
 	idle_manager_notify_activity(seat->seat);
 	cursor_set_visible(seat, /* visible */ true);
 
-	char *device_name = event->pointer ? event->pointer->base.name : NULL;
-	if (gesture_binding_check(GESTURE_TYPE_PINCH, event->fingers, device_name)) {
+	struct wlr_input_device *dev = &event->pointer->base;
+	struct input *input = dev->data;
+	struct lab_gesturebind *(*device_gesture_binds)[MAX_FINGERS] = input->gesture_binds;
+	if (gesture_binding_check(GESTURE_TYPE_PINCH, event->fingers, device_gesture_binds)) {
 		gesture_tracker_begin(&seat->gesture_state, GESTURE_TYPE_PINCH, event->fingers);
 	} else {
 		// ... otherwise forward to client
@@ -218,8 +219,10 @@ handle_pinch_end(struct wl_listener *listener, void *data)
 	}
 
 	// End gesture tracking and execute matched binding
-	char *device_name = event->pointer ? event->pointer->base.name : NULL;
-	gesture_tracker_end_and_match(seat, &seat->gesture_state, device_name);
+	struct wlr_input_device *dev = &event->pointer->base;
+	struct input *input = dev->data;
+	struct lab_gesturebind *(*device_gesture_binds)[MAX_FINGERS] = input->gesture_binds;
+	gesture_tracker_end_and_match(seat, &seat->gesture_state, device_gesture_binds);
 }
 
 static void
@@ -231,8 +234,11 @@ handle_swipe_begin(struct wl_listener *listener, void *data)
 	idle_manager_notify_activity(seat->seat);
 	cursor_set_visible(seat, /* visible */ true);
 
-	char *device_name = event->pointer ? event->pointer->base.name : NULL;
-	if (gesture_binding_check(GESTURE_TYPE_SWIPE, event->fingers, device_name)) {
+
+	struct wlr_input_device *dev = &event->pointer->base;
+	struct input *input = dev->data;
+	struct lab_gesturebind *(*device_gesture_binds)[MAX_FINGERS] = input->gesture_binds;
+	if (gesture_binding_check(GESTURE_TYPE_SWIPE, event->fingers, device_gesture_binds)) {
 		gesture_tracker_begin(&seat->gesture_state, GESTURE_TYPE_SWIPE, event->fingers);
 	} else {
 		wlr_pointer_gestures_v1_send_swipe_begin(seat->pointer_gestures,
@@ -254,8 +260,10 @@ handle_swipe_update(struct wl_listener *listener, void *data)
 		// swipe continurous mode
 		struct gesture_tracker *tracker = &seat->gesture_state;
 		if (fabs(tracker->dx) >= SWIPE_CONTINUROUS_THRESHOLD || fabs(tracker->dy) >= SWIPE_CONTINUROUS_THRESHOLD) {
-			char *device_name = event->pointer ? event->pointer->base.name : NULL;
-			gesture_tracker_end_and_match(seat, &seat->gesture_state, device_name);
+			struct wlr_input_device *dev = &event->pointer->base;
+			struct input *input = dev->data;
+			struct lab_gesturebind *(*device_gesture_binds)[MAX_FINGERS] = input->gesture_binds;
+			gesture_tracker_end_and_match(seat, &seat->gesture_state, device_gesture_binds);
 			gesture_tracker_begin(&seat->gesture_state, GESTURE_TYPE_SWIPE, event->fingers);
 			tracker->continurous_mode = true;
 		}
@@ -288,8 +296,10 @@ handle_swipe_end(struct wl_listener *listener, void *data)
 	// End gesture tracking and execute matched binding
 	struct gesture_tracker *tracker = &seat->gesture_state;
 	if (!tracker->continurous_mode) {
-		char *device_name = event->pointer ? event->pointer->base.name : NULL;
-		gesture_tracker_end_and_match(seat, &seat->gesture_state, device_name);
+		struct wlr_input_device *dev = &event->pointer->base;
+		struct input *input = dev->data;
+		struct lab_gesturebind *(*device_gesture_binds)[MAX_FINGERS] = input->gesture_binds;
+		gesture_tracker_end_and_match(seat, &seat->gesture_state, device_gesture_binds);
 	}
 }
 

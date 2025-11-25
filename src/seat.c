@@ -381,6 +381,26 @@ map_pointer_to_output(struct seat *seat, struct wlr_input_device *dev)
 	map_input_to_output(seat, dev, pointer->output_name);
 }
 
+static void
+map_touchpad_gesture_action_lut(struct wlr_input_device *dev)
+{
+	struct input *input = dev->data;
+
+	struct lab_gesturebind *gb;
+	wl_list_for_each(gb, &rc.gesture_bindings, link) {
+		if (strcmp(gb->device_name, "default") == 0) {
+			// first, write default behavior if exist
+			// "default"
+			input->gesture_binds[gb->event][gb->finger_count] = gb;
+		}
+
+		if (strcmp(gb->device_name, dev->name) == 0) {
+			// second, overwrite behavior if match dev->name
+			input->gesture_binds[gb->event][gb->finger_count] = gb;
+		}
+	}
+}
+
 static struct input *
 new_pointer(struct seat *seat, struct wlr_input_device *dev)
 {
@@ -393,6 +413,9 @@ new_pointer(struct seat *seat, struct wlr_input_device *dev)
 	/* In support of running with WLR_WL_OUTPUTS set to >=2 */
 	if (dev->type == WLR_INPUT_DEVICE_POINTER) {
 		map_pointer_to_output(seat, dev);
+
+		/* handle gesturebinds to struct input */
+		map_touchpad_gesture_action_lut(dev);
 	}
 	return input;
 }
@@ -745,6 +768,10 @@ seat_reconfigure(struct server *server)
 		case WLR_INPUT_DEVICE_POINTER:
 			configure_libinput(input->wlr_input_device);
 			map_pointer_to_output(seat, input->wlr_input_device);
+
+			// clear gesturebind and re-set
+			memset(input->gesture_binds, 0, sizeof(input->gesture_binds));
+			map_touchpad_gesture_action_lut(input->wlr_input_device);
 			break;
 		case WLR_INPUT_DEVICE_TOUCH:
 			configure_libinput(input->wlr_input_device);

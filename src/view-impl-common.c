@@ -3,6 +3,7 @@
 #include "view-impl-common.h"
 #include "foreign-toplevel/foreign.h"
 #include "labwc.h"
+#include "output.h"
 #include "view.h"
 #include "window-rules.h"
 
@@ -74,6 +75,22 @@ resizing_edge(struct view *view, enum lab_edge edge)
 		&& (server->resize_edges & edge);
 }
 
+static void
+center_fullscreen_view(struct view *view, int w, int h)
+{
+	int x = 0, y = 0;
+	if (view_compute_centered_position(view, NULL, w, h, &x, &y)) {
+		view_move(view, x, y);
+	}
+}
+
+static bool
+surface_is_smaller_than_output(struct view *view, int w, int h)
+{
+	struct wlr_output *output = view->output->wlr_output;
+	return w < output->width || h < output->height;
+}
+
 void
 view_impl_apply_geometry(struct view *view, int w, int h)
 {
@@ -117,5 +134,15 @@ view_impl_apply_geometry(struct view *view, int w, int h)
 
 	if (!wlr_box_equal(current, &old)) {
 		view_moved(view);
+	}
+
+	/*
+	 * Centre fullscreen windows if smaller than output, for example Wine
+	 * game SWAT4. See issue #2779
+	 */
+	if (view->fullscreen && !view->current.x && !view->current.y) {
+		if (surface_is_smaller_than_output(view, w, h)) {
+			center_fullscreen_view(view, w, h);
+		}
 	}
 }

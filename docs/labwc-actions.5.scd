@@ -379,7 +379,7 @@ Actions are used in menus and keyboard/mouse bindings.
 	*x* [center|value] Specifies the horizontal warp position within the
 	target area. "center": Moves the cursor to the horizontal center of the
 	target area. Positive or negative integers warp the cursor to a position
-	offset by the specified	number of pixels from the left or right edge of
+	offset by the specified number of pixels from the left or right edge of
 	the target area, respectively. Default is "center"
 
 	*y* [center|value] Equivalent for the vertical warp position within the

@@ -298,7 +298,7 @@ handle_commit(struct wl_listener *listener, void *data)
 	 * Centre fullscreen windows if smaller than output, for example Wine
 	 * game SWAT4. See issue #2779
 	 */
-	if (view->fullscreen) {
+	if (view->fullscreen && !view->current.x && !view->current.y) {
 		if (surface_is_smaller_than_output(view, &size)) {
 			center_fullscreen_view(view, &size);
 		}

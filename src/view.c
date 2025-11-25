@@ -570,7 +570,7 @@ view_update_outputs(struct view *view)
 	wl_list_for_each(output, &view->server->outputs, link) {
 		if (output_is_usable(output) && wlr_output_layout_intersects(
 				layout, output->wlr_output, &view->current)) {
-			new_outputs |= (1ull << output->scene_output->WLR_PRIVATE.index);
+			new_outputs |= output->id_bit;
 		}
 	}
 
@@ -586,8 +586,7 @@ view_on_output(struct view *view, struct output *output)
 {
 	assert(view);
 	assert(output);
-	return output->scene_output
-			&& (view->outputs & (1ull << output->scene_output->WLR_PRIVATE.index));
+	return (view->outputs & output->id_bit) != 0;
 }
 
 void

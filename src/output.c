@@ -414,6 +414,41 @@ configure_new_output(struct server *server, struct output *output)
 	server->pending_output_layout_change--;
 }
 
+static uint64_t
+get_unused_output_id_bit(struct server *server)
+{
+	uint64_t used_id_bits = 0;
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		used_id_bits |= output->id_bit;
+	}
+
+	if (used_id_bits == UINT64_MAX) {
+		return 0;
+	}
+
+	uint64_t id_bit = server->next_output_id_bit;
+	/*
+	 * __builtin_popcountll() should be supported by GCC & clang.
+	 * If it causes portability issues, just remove the assert.
+	 */
+	assert(__builtin_popcountll(id_bit) == 1);
+
+	while ((id_bit & used_id_bits) != 0) {
+		id_bit = (id_bit << 1) | (id_bit >> 63); /* rotate left */
+	}
+
+	/*
+	 * The current implementation of view_update_outputs() isn't
+	 * robust against ID bit re-use. Save the next bit here so we
+	 * can cycle through all 64 available bits, making re-use less
+	 * frequent (on a best-effort basis).
+	 */
+	server->next_output_id_bit = (id_bit << 1) | (id_bit >> 63);
+
+	return id_bit;
+}
+
 static void
 handle_new_output(struct wl_listener *listener, void *data)
 {
@@ -435,6 +470,12 @@ handle_new_output(struct wl_listener *listener, void *data)
 			 */
 			return;
 		}
+	}
+
+	uint64_t id_bit = get_unused_output_id_bit(server);
+	if (!id_bit) {
+		wlr_log(WLR_ERROR, "Cannot add more than 64 outputs");
+		return;
 	}
 
 	if (wlr_output_is_wl(wlr_output)) {
@@ -487,6 +528,7 @@ handle_new_output(struct wl_listener *listener, void *data)
 	output->wlr_output = wlr_output;
 	wlr_output->data = output;
 	output->server = server;
+	output->id_bit = id_bit;
 	output_state_init(output);
 
 	wl_list_insert(&server->outputs, &output->link);
@@ -583,6 +625,7 @@ output_init(struct server *server)
 		server->output_layout);
 
 	wl_list_init(&server->outputs);
+	server->next_output_id_bit = (1 << 0);
 
 	output_manager_init(server);
 }

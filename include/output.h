@@ -33,6 +33,18 @@ struct output {
 	struct wl_listener frame;
 	struct wl_listener request_state;
 
+	/*
+	 * Unique power-of-two ID used in bitsets such as view->outputs.
+	 * (This assumes there are never more than 64 outputs connected
+	 * at once; wlr_scene_output has a similar limitation.)
+	 *
+	 * There's currently no attempt to maintain the same ID if the
+	 * same physical output is disconnected and reconnected.
+	 * However, IDs do get reused eventually if enough outputs are
+	 * disconnected and connected again.
+	 */
+	uint64_t id_bit;
+
 	bool gamma_lut_changed;
 };
 

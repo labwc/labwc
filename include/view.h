@@ -158,7 +158,7 @@ struct view {
 	 * This is used to notify the foreign toplevel
 	 * implementation and to update the SSD invisible
 	 * resize area.
-	 * It is a bitset of output->scene_output->index.
+	 * It is a bitset of output->id_bit.
 	 */
 	uint64_t outputs;
 

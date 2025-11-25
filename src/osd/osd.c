@@ -71,23 +71,68 @@ static struct view *
 get_next_cycle_view(struct server *server, struct view *start_view,
 		enum lab_cycle_dir dir)
 {
+	bool forwards = dir == LAB_CYCLE_DIR_FORWARD;
+	if (rc.window_switcher.order == WINDOW_SWITCHER_ORDER_LINEAR) {
+		/* Build a stable list of candidates in open (creation) order */
+		struct wl_array views;
+		wl_array_init(&views);
+		view_array_append(server, &views, rc.window_switcher.criteria);
+		size_t n = wl_array_len(&views);
+		if (n == 0) {
+			wl_array_release(&views);
+			return NULL;
+		}
+		struct view **arr = (struct view **)views.data;
+
+		/* insertion sort by creation_iid (ascending: oldest->newest) */
+		for (size_t i = 1; i < n; i++) {
+			struct view *key = arr[i];
+			size_t j = i;
+			while (j > 0 && arr[j-1]->creation_iid > key->creation_iid) {
+				arr[j] = arr[j-1];
+				j--;
+			}
+			arr[j] = key;
+		}
+
+		/* Determine baseline index */
+		ssize_t idx = -1;
+		if (start_view) {
+			for (size_t i = 0; i < n; i++) {
+				if (arr[i] == start_view) {
+					idx = (ssize_t)i;
+					break;
+				}
+			}
+		}
+		if (idx == -1) {
+			for (size_t i = 0; i < n; i++) {
+				if (arr[i] == server->active_view) {
+					idx = (ssize_t)i;
+					break;
+				}
+			}
+			if (idx == -1) {
+				idx = 0; /* fallback */
+			}
+		}
+
+		ssize_t next = forwards
+			? (idx + 1) % (ssize_t)n
+			: (idx - 1 + (ssize_t)n) % (ssize_t)n;
+		struct view *ret = arr[next];
+		wl_array_release(&views);
+		return ret;
+	}
+
+	/* MRU: use stacking order iterators */
 	struct view *(*iter)(struct wl_list *head, struct view *view,
 		enum lab_view_criteria criteria);
-	bool forwards = dir == LAB_CYCLE_DIR_FORWARD;
 	iter = forwards ? view_next_no_head_stop : view_prev_no_head_stop;
 
 	enum lab_view_criteria criteria = rc.window_switcher.criteria;
 
-	/*
-	 * Views are listed in stacking order, topmost first.  Usually the
-	 * topmost view is already focused, so when iterating in the forward
-	 * direction we pre-select the view second from the top:
-	 *
-	 *   View #1 (on top, currently focused)
-	 *   View #2 (pre-selected)
-	 *   View #3
-	 *   ...
-	 */
+	/* Pre-select second from top in forward direction */
 	if (!start_view && forwards) {
 		start_view = iter(&server->views, NULL, criteria);
 	}

@@ -179,6 +179,7 @@ struct view {
 
 	bool mapped;
 	bool been_mapped;
+	uint64_t creation_iid;
 	enum lab_ssd_mode ssd_mode;
 	enum ssd_preference ssd_preference;
 	bool shaded;

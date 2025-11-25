@@ -363,17 +363,18 @@ this is for compatibility with Openbox.
 	*unshade* [yes|no] Temporarily unshade windows when switching between
 	them and permanently unshade on the final selection. Default is yes.
 
-	*order* [focus|age] The order in which windows are cycled. *focus* cycles by
-	recent focus history, starting with the previously focused window. *age* cycles
-	by creation/open order, a stable taskbar-style ordering that doesn’t change on
-	focus. Default is *focus*.
+	*order* [focus|age] The order in which windows are cycled. *focus*
+	cycles by recent focus history, starting with the previously focused
+	window. *age* cycles by creation/open order, a stable taskbar-style
+	ordering that doesn’t change on focus. Default is *focus*.
 
 *<windowSwitcher><osd show="" style="" output="" thumbnailLabelFormat="" />*
 	*show* [yes|no] Draw the OnScreenDisplay when switching between
 	windows. Default is yes.
 
 	*style* [classic|thumbnail] Configures the style of the OSD.
-	"classic" displays window information like icons and titles in a vertical list.
+	"classic" displays window information like icons and titles in a
+	vertical list.
 	"thumbnail" shows window thumbnail, icon and title in grids.
 
 	*output* [all|focused|cursor] Configures which monitor(s) show the OSD.
@@ -382,9 +383,9 @@ this is for compatibility with Openbox.
 	"cursor" displays the OSD on the monitor containing the mouse pointer.
 	Default is "all".
 
-	*thumbnailLabelFormat* Format to be used for the thumbnail label according to *custom*
-	field below, only applied when using *<osd style="thumbnail" />*.
-	Default is "%T".
+	*thumbnailLabelFormat* Format to be used for the thumbnail label
+	according to *custom* field below, only applied when using
+	*<osd style="thumbnail" />*. Default is "%T".
 
 *<windowSwitcher><fields><field content="" width="%">*
 	Define window switcher fields when using *<osd style="classic" />*.
@@ -506,13 +507,13 @@ extending outward from the snapped edge.
 *<snapping><range><inner>*++
 *<snapping><range><outer>*++
 *<snapping><cornerRange>*
-	If an interactive move ends with the cursor within *inner* or *outer* pixels
-	of an output edge, the window is snapped to the edge. *inner* edges are edges
-	with an adjacent output and *outer* edges are edges without an adjacent output.
-	If it's also within *<cornerRange>* pixels of an output corner, the window is
-	snapped to the corner instead.
-	If *inner* and *outer* is 0, snapping is disabled.
-	Default is 10 for *<range><inner>* and *<range><outer>*, and 50 for *<cornerRange>*.
+	If an interactive move ends with the cursor within *inner* or *outer*
+	pixels of an output edge, the window is snapped to the edge. *inner*
+	edges are edges with an adjacent output and *outer* edges are edges
+	without an adjacent output. If it's also within *<cornerRange>* pixels
+	of an output corner, the window is snapped to the corner instead.
+	If *inner* and *outer* is 0, snapping is disabled. Default is 10 for
+	*<range><inner>* and *<range><outer>*, and 50 for *<cornerRange>*.
 
 *<snapping><overlay><enabled>* [yes|no]
 	Show an overlay when snapping to a window to an edge. Default is yes.
@@ -533,8 +534,8 @@ extending outward from the snapped edge.
 *<snapping><notifyClient>* [always|region|edge|never]
 	Snapping windows can trigger corresponding tiling events for native
 	Wayland clients. Clients may use these events to alter their rendering
-	based on knowledge that some edges of the window are confined to edges of
-	a snapping region or output. For example, rounded corners may become
+	based on knowledge that some edges of the window are confined to edges
+	of a snapping region or output. For example, rounded corners may become
 	square when tiled, or media players may letter-box or pillar-box video
 	rather than imposing rigid aspect ratios on windows that will violate
 	the constraints of window snapping.
@@ -624,15 +625,16 @@ extending outward from the snapped edge.
 
 *<theme><maximizedDecoration>* [titlebar|none]
 	Specify how server side decorations are shown for maximized windows.
-	*titlebar* shows titlebar above a maximized window. *none* shows no server
-	side decorations around a maximized window. Default is titlebar.
+	*titlebar* shows titlebar above a maximized window. *none* shows no
+	server side decorations around a maximized window. Default is titlebar.
 
 *<theme><dropShadows>* [yes|no]
 	Should drop-shadows be rendered behind windows. Default is no.
 
 *<theme><dropShadowsOnTiled>* [yes|no]
 	Should drop-shadows be rendered behind tiled windows. This won't take
-	effect if <core><gap> is smaller than window.active.shadow.size in theme.
+	effect if <core><gap> is smaller than window.active.shadow.size in
+	theme.
 
 	Default is no.
 
@@ -1048,7 +1050,7 @@ Note: To rotate touch events with output rotation, use the libinput
 
 *<tablet><map button="" to="" />*
 	Pen and pad buttons behave like regular mouse buttons.With mouse
-	emulation set to "no", which is the default, and if not	specified
+	emulation set to "no", which is the default, and if not specified
 	otherwise, the first pen button is mapped to the right mouse button,
 	the second pen button to the middle mouse button and a third pen
 	button is mapped to the side mouse button.
@@ -1067,10 +1069,10 @@ Note: To rotate touch events with output rotation, use the libinput
 
 	When using mouse emulation, all pen buttons emulate regular mouse
 	buttons. The tip, stylus and pad buttons can be mapped to all
-	available mouse	buttons. If not specified otherwise, the tip is
+	available mouse buttons. If not specified otherwise, the tip is
 	mapped to left mouse click, the first pen button (Stylus) is mapped
 	to right mouse button click and the second pen button (Stylus2)
-	emulates a middle mouse	button click. Buttons of a tablet tool mouse
+	emulates a middle mouse button click. Buttons of a tablet tool mouse
 	are by default mapped to their (regular) mouse counterparts.
 
 	Supported map *buttons* for mouse emulation are:
@@ -1180,11 +1182,12 @@ Note: To rotate touch events with output rotation, use the libinput
 	a tap immediately followed by a finger down as the start of a drag.
 
 *<libinput><device><dragLock>* [yes|no|timeout]
-	Enable or disable drag lock for this category. Drag lock ignores a temporary
-	release of a finger during tap-and-dragging.
+	Enable or disable drag lock for this category. Drag lock ignores a
+	temporary release of a finger during tap-and-dragging.
 
-	*timeout* also enables drag lock, but with a timeout: if your fingers are
-	released for a certain amount of time, the drag gesture is cancelled.
+	*timeout* also enables drag lock, but with a timeout: if your fingers
+	are released for a certain amount of time, the drag gesture is
+	cancelled.
 	In libinput < 1.27, the behavior of *yes* is equivalent to *timeout*.
 
 *<libinput><device><threeFingerDrag>* [yes|no|3|4]

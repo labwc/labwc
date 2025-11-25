@@ -308,8 +308,8 @@ all are supported.
 	See below for details.
 
 *osd.window-switcher.style-classic.width*
-	Width of window switcher in pixels. Width can also be a percentage of the
-	monitor width by adding '%' as suffix (e.g. 70%). Default is 600.
+	Width of window switcher in pixels. Width can also be a percentage of
+	the monitor width by adding '%' as suffix (e.g. 70%). Default is 600.
 
 *osd.window-switcher.style-classic.padding*
 	Padding of window switcher in pixels. This is the space between the
@@ -337,16 +337,17 @@ all are supported.
 
 *osd.window-switcher.style-classic.item.icon.size*
 	Size of the icon in window switcher, in pixels.
-	If not set, the font size derived from <theme><font place="OnScreenDisplay">
-	is used.
+	If not set, the font size derived from
+	<theme><font place="OnScreenDisplay"> is used.
 
 *osd.window-switcher.style-thumbnail*
-	Theme for window switcher when using <windowSwitcher style="thumbnail" />.
-	See below for details.
+	Theme for window switcher when using
+	<windowSwitcher style="thumbnail" />. See below for details.
 
 *osd.window-switcher.style-thumbnail.width.max*
-	Maximum width of window switcher in pixels. Width can also be a percentage of
-	the monitor width by adding '%' as suffix (e.g. 70%). Default is 80%.
+	Maximum width of window switcher in pixels. Width can also be a
+	percentage of the monitor width by adding '%' as suffix (e.g. 70%).
+	Default is 80%.
 
 *osd.window-switcher.style-thumbnail.padding*
 	Padding of window switcher in pixels. This is the space between the
@@ -359,8 +360,8 @@ all are supported.
 	Height of window switcher items in pixels. Default is 250.
 
 *osd.window-switcher.style-thumbnail.item.padding*
-	Padding of window switcher items in pixels. This is the space between the
-	border around selected items and window thumbnail. Default is 2.
+	Padding of window switcher items in pixels. This is the space between
+	the border around selected items and window thumbnail. Default is 2.
 
 *osd.window-switcher.style-thumbnail.item.active.border.width*
 	Border width of selected window switcher items in pixels. Default is 2.

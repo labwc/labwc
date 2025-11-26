@@ -638,8 +638,10 @@ fill_touch(xmlNode *node)
 		}
 	}
 }
+
 static void
-fill_gesturebind(xmlNode *node, char *device_name) {
+fill_gesturebind(xmlNode *node, char *device_name)
+{
 	wlr_log(WLR_INFO, "create gesturebind for %s", device_name);
 
 	struct lab_gesturebind *gesturebind = znew(*gesturebind);
@@ -672,10 +674,10 @@ static void
 fill_touchpad_gesture(xmlNode *node)
 {
 	/*
-	<touchpad_gesture deviceName="">
-		<gesturebind gesture="" finger_count="">
-			<action name="GoToDesktop" to="left" wrap="yes" />
-	*/
+	 * <touchpad_gesture deviceName="">
+	 * <gesturebind gesture="" finger_count="">
+	 * <action name="GoToDesktop" to="left" wrap="yes" />
+	 */
 	char device_name[256] = "default";
 
 	if (!lab_xml_get_string(node, "deviceName", device_name, sizeof(device_name))) {

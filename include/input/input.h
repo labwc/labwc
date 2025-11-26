@@ -3,7 +3,7 @@
 #define LABWC_INPUT_H
 
 #include <wayland-server-core.h>
-#include"config/gesturebind.h"
+#include "config/gesturebind.h"
 
 struct input {
 	struct wlr_input_device *wlr_input_device;

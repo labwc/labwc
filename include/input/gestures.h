@@ -8,20 +8,20 @@
 struct seat;
 
 enum gesture_type {
-    GESTURE_TYPE_NONE = 0,
-    GESTURE_TYPE_HOLD,
-    GESTURE_TYPE_PINCH,
-    GESTURE_TYPE_SWIPE,
+	GESTURE_TYPE_NONE = 0,
+	GESTURE_TYPE_HOLD,
+	GESTURE_TYPE_PINCH,
+	GESTURE_TYPE_SWIPE,
 };
 
 // Small helper struct to track gestures over time
 struct gesture_tracker {
-    enum gesture_type type;
-    uint8_t fingers;
-    double dx, dy;
-    double scale;
-    double rotation;
-    bool continurous_mode;
+	enum gesture_type type;
+	uint8_t fingers;
+	double dx, dy;
+	double scale;
+	double rotation;
+	bool continurous_mode;
 };
 
 void gestures_init(struct seat *seat);

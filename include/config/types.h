@@ -112,6 +112,11 @@ enum window_switcher_style {
 	WINDOW_SWITCHER_THUMBNAIL,
 };
 
+enum window_switcher_order {
+	WINDOW_SWITCHER_ORDER_RECENT,
+	WINDOW_SWITCHER_ORDER_LINEAR,
+};
+
 enum osd_output_criteria {
 	OSD_OUTPUT_ALL,
 	OSD_OUTPUT_POINTER,

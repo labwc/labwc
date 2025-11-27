@@ -1230,6 +1230,12 @@ entry(xmlNode *node, char *nodename, char *content)
 			wlr_log(WLR_ERROR, "Invalid windowSwitcher output %s: "
 				"should be one of all|pointer|keyboard", content);
 		}
+	} else if (!strcasecmp(nodename, "order.windowSwitcher")) {
+		if (!strcasecmp(content, "recent")) {
+			rc.window_switcher.order = WINDOW_SWITCHER_ORDER_RECENT;
+		} else if (!strcasecmp(content, "linear")) {
+			rc.window_switcher.order = WINDOW_SWITCHER_ORDER_LINEAR;
+		}
 
 	/* The following two are for backward compatibility only. */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
@@ -1474,6 +1480,7 @@ rcxml_init(void)
 	rc.window_switcher.criteria = LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
 		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
 		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;
+	rc.window_switcher.order = WINDOW_SWITCHER_ORDER_RECENT;
 
 	rc.resize_indicator = LAB_RESIZE_INDICATOR_NEVER;
 	rc.resize_draw_contents = true;

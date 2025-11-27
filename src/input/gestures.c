@@ -77,43 +77,9 @@ gesture_tracker_end(struct gesture_tracker *tracker)
 
 static bool
 gesture_binding_check(enum gesture_type gesture_type, int finger_count,
-		struct lab_gesturebind *(*device_gbs)[MAX_FINGERS])
+		struct input *input)
 {
-	if (wl_list_empty(&rc.gesture_bindings)) {
-		return false;
-	}
-
-	bool binding_match_type = false;
-	switch (gesture_type) {
-	case GESTURE_TYPE_SWIPE:
-		if (device_gbs[LAB_GESTURE_EVENT_SWIPE_UP][finger_count]) {
-			binding_match_type = true;
-		}
-		if (device_gbs[LAB_GESTURE_EVENT_SWIPE_DOWN][finger_count]) {
-			binding_match_type = true;
-		}
-		if (device_gbs[LAB_GESTURE_EVENT_SWIPE_LEFT][finger_count]) {
-			binding_match_type = true;
-		}
-		if (device_gbs[LAB_GESTURE_EVENT_SWIPE_RIGHT][finger_count]) {
-			binding_match_type = true;
-		}
-		break;
-	case GESTURE_TYPE_PINCH:
-		if (device_gbs[LAB_GESTURE_EVENT_PINCH_IN][finger_count]) {
-			binding_match_type = true;
-		}
-		if (device_gbs[LAB_GESTURE_EVENT_PINCH_OUT][finger_count]) {
-			binding_match_type = true;
-		}
-		break;
-	case GESTURE_TYPE_HOLD: // TODO
-	case GESTURE_TYPE_NONE:
-	default:
-		break;
-	}
-
-	return binding_match_type;
+	return (input->g_type_mask[finger_count] & gesture_type);
 }
 
 static void
@@ -191,8 +157,7 @@ handle_pinch_begin(struct wl_listener *listener, void *data)
 
 	struct wlr_input_device *dev = &event->pointer->base;
 	struct input *input = dev->data;
-	struct lab_gesturebind *(*device_gbs)[MAX_FINGERS] = input->gesture_binds;
-	if (gesture_binding_check(GESTURE_TYPE_PINCH, event->fingers, device_gbs)) {
+	if (gesture_binding_check(GESTURE_TYPE_PINCH, event->fingers, input)) {
 		gesture_tracker_begin(&seat->gesture_state, GESTURE_TYPE_PINCH, event->fingers);
 	} else {
 		// ... otherwise forward to client
@@ -259,8 +224,7 @@ handle_swipe_begin(struct wl_listener *listener, void *data)
 
 	struct wlr_input_device *dev = &event->pointer->base;
 	struct input *input = dev->data;
-	struct lab_gesturebind *(*device_gbs)[MAX_FINGERS] = input->gesture_binds;
-	if (gesture_binding_check(GESTURE_TYPE_SWIPE, event->fingers, device_gbs)) {
+	if (gesture_binding_check(GESTURE_TYPE_SWIPE, event->fingers, input)) {
 		gesture_tracker_begin(&seat->gesture_state, GESTURE_TYPE_SWIPE, event->fingers);
 	} else {
 		wlr_pointer_gestures_v1_send_swipe_begin(seat->pointer_gestures,
@@ -288,9 +252,11 @@ handle_swipe_update(struct wl_listener *listener, void *data)
 			struct input *input = dev->data;
 			struct lab_gesturebind *(*device_gbs)[MAX_FINGERS] = input->gesture_binds;
 			gesture_tracker_end_and_match(seat, &seat->gesture_state, device_gbs);
-			gesture_tracker_begin(&seat->gesture_state, GESTURE_TYPE_SWIPE,
-					event->fingers);
-			tracker->continurous_mode = true;
+			if (gesture_binding_check(GESTURE_TYPE_SWIPE, event->fingers, input)) {
+				gesture_tracker_begin(&seat->gesture_state, GESTURE_TYPE_SWIPE,
+						event->fingers);
+				tracker->continurous_mode = true;
+			}
 		}
 	} else {
 		wlr_pointer_gestures_v1_send_swipe_update(seat->pointer_gestures,

@@ -25,12 +25,18 @@ struct lab_gesturebind {
 	/* use at rc.xml*/
 	enum lab_gesture_event event;
 	int finger_count;
+	enum gesture_type g_type;
 
 	struct wl_list actions;  /* struct action.link */
 	struct wl_list link; /* struct rc.gesture_bindings */
 };
 
-enum lab_gesture_event gesture_parse_event(const char *name);
+struct parsed_gesture {
+	enum lab_gesture_event event;
+	enum gesture_type type;
+};
+
+struct parsed_gesture gesture_parse_event(const char *name);
 
 void gesturebind_destroy(struct lab_gesturebind *gesturebind);
 #endif /* LABWC_GESTUREBIND_H */

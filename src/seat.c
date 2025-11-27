@@ -392,11 +392,13 @@ map_touchpad_gesture_action_lut(struct wlr_input_device *dev)
 			// first, write default behavior if exist
 			// "default"
 			input->gesture_binds[gb->event][gb->finger_count] = gb;
+			input->g_type_mask[gb->finger_count] |= gb->g_type;
 		}
 
 		if (strcmp(gb->device_name, dev->name) == 0) {
 			// second, overwrite behavior if match dev->name
 			input->gesture_binds[gb->event][gb->finger_count] = gb;
+			input->g_type_mask[gb->finger_count] |= gb->g_type;
 		}
 	}
 }
@@ -769,8 +771,9 @@ seat_reconfigure(struct server *server)
 			configure_libinput(input->wlr_input_device);
 			map_pointer_to_output(seat, input->wlr_input_device);
 
-			// clear gesturebind and re-set
+			// clear gesturebind & type_mask and re-set
 			memset(input->gesture_binds, 0, sizeof(input->gesture_binds));
+			memset(input->g_type_mask, 0, sizeof(input->g_type_mask));
 			map_touchpad_gesture_action_lut(input->wlr_input_device);
 			break;
 		case WLR_INPUT_DEVICE_TOUCH:

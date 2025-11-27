@@ -6,26 +6,34 @@
 #include "config/gesturebind.h"
 #include "common/mem.h"
 
-enum lab_gesture_event
+struct parsed_gesture
 gesture_parse_event(const char *name)
 {
-	enum lab_gesture_event event_type = LAB_GESTURE_EVENT_NONE;
+	enum lab_gesture_event event = LAB_GESTURE_EVENT_NONE;
+	enum gesture_type type = GESTURE_TYPE_NONE;
 
 	if (!strcasecmp(name, "swipe-up")) {
-		event_type = LAB_GESTURE_EVENT_SWIPE_UP;
+		event = LAB_GESTURE_EVENT_SWIPE_UP;
+		type = GESTURE_TYPE_SWIPE;
 	} else if (!strcasecmp(name, "swipe-down")) {
-		event_type = LAB_GESTURE_EVENT_SWIPE_DOWN;
+		event = LAB_GESTURE_EVENT_SWIPE_DOWN;
+		type = GESTURE_TYPE_SWIPE;
 	} else if (!strcasecmp(name, "swipe-left")) {
-		event_type = LAB_GESTURE_EVENT_SWIPE_LEFT;
+		event = LAB_GESTURE_EVENT_SWIPE_LEFT;
+		type = GESTURE_TYPE_SWIPE;
 	} else if (!strcasecmp(name, "swipe-right")) {
-		event_type = LAB_GESTURE_EVENT_SWIPE_RIGHT;
+		event = LAB_GESTURE_EVENT_SWIPE_RIGHT;
+		type = GESTURE_TYPE_SWIPE;
 	} else if (!strcasecmp(name, "pinch-in")) {
-		event_type = LAB_GESTURE_EVENT_PINCH_IN;
+		event = LAB_GESTURE_EVENT_PINCH_IN;
+		type = GESTURE_TYPE_PINCH;
 	} else if (!strcasecmp(name, "pinch-out")) {
-		event_type = LAB_GESTURE_EVENT_PINCH_OUT;
+		event = LAB_GESTURE_EVENT_PINCH_OUT;
+		type = GESTURE_TYPE_PINCH;
 	}
 
-	return event_type;
+	struct parsed_gesture gesture = { event, type };
+	return gesture;
 }
 
 void

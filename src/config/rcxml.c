@@ -657,8 +657,9 @@ fill_gesturebind(xmlNode *node, char *device_name)
 		return;
 	}
 
-	enum lab_gesture_event event = gesture_parse_event(gesture_name);
-	gesturebind->event = event;
+	struct parsed_gesture parsed  = gesture_parse_event(gesture_name);
+	gesturebind->event = parsed.event;
+	gesturebind->g_type = parsed.type;
 
 	char finger_count_str[3];
 	if (lab_xml_get_string(node, "finger_count", finger_count_str, sizeof(finger_count_str))) {

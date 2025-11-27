@@ -11,6 +11,8 @@ struct input {
 
 	/* used by touchpad gesture */
 	struct lab_gesturebind *gesture_binds[LAB_GESTURE_EVENT_COUNT][MAX_FINGERS];
+	enum gesture_type g_type_mask[MAX_FINGERS]; // activated gesture type
+						    // by finger-count
 
 	/* Set for pointer/touch devices */
 	double scroll_factor;

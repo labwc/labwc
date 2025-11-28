@@ -18,7 +18,7 @@ enum input_mode {
 	LAB_INPUT_STATE_MOVE,
 	LAB_INPUT_STATE_RESIZE,
 	LAB_INPUT_STATE_MENU,
-	LAB_INPUT_STATE_WINDOW_SWITCHER,
+	LAB_INPUT_STATE_CYCLE, /* a.k.a. window switching */
 };
 
 struct seat {
@@ -302,15 +302,15 @@ struct server {
 	struct wlr_security_context_manager_v1 *security_context_manager_v1;
 
 	/* Set when in cycle (alt-tab) mode */
-	struct osd_state {
-		struct view *cycle_view;
+	struct cycle_state {
+		struct view *selected_view;
 		bool preview_was_shaded;
 		bool preview_was_enabled;
 		struct wlr_scene_node *preview_node;
 		struct wlr_scene_tree *preview_parent;
 		struct wlr_scene_node *preview_anchor;
 		struct lab_scene_rect *preview_outline;
-	} osd_state;
+	} cycle;
 
 	struct theme *theme;
 

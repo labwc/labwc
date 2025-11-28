@@ -1112,17 +1112,17 @@ run_action(struct view *view, struct server *server, struct action *action,
 		}
 		break;
 	case ACTION_TYPE_NEXT_WINDOW:
-		if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-			osd_cycle(server, LAB_CYCLE_DIR_FORWARD);
+		if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
+			cycle_step(server, LAB_CYCLE_DIR_FORWARD);
 		} else {
-			osd_begin(server, LAB_CYCLE_DIR_FORWARD);
+			cycle_begin(server, LAB_CYCLE_DIR_FORWARD);
 		}
 		break;
 	case ACTION_TYPE_PREVIOUS_WINDOW:
-		if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-			osd_cycle(server, LAB_CYCLE_DIR_BACKWARD);
+		if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
+			cycle_step(server, LAB_CYCLE_DIR_BACKWARD);
 		} else {
-			osd_begin(server, LAB_CYCLE_DIR_BACKWARD);
+			cycle_begin(server, LAB_CYCLE_DIR_BACKWARD);
 		}
 		break;
 	case ACTION_TYPE_RECONFIGURE:
@@ -1569,7 +1569,7 @@ actions_run(struct view *activator, struct server *server,
 
 	struct action *action;
 	wl_list_for_each(action, actions, link) {
-		if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER
+		if (server->input_mode == LAB_INPUT_STATE_CYCLE
 				&& action->type != ACTION_TYPE_NEXT_WINDOW
 				&& action->type != ACTION_TYPE_PREVIOUS_WINDOW) {
 			wlr_log(WLR_INFO, "Only NextWindow or PreviousWindow "

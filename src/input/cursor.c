@@ -920,7 +920,7 @@ static void
 process_release_mousebinding(struct server *server,
 		struct cursor_context *ctx, uint32_t button)
 {
-	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
+	if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
 		return;
 	}
 
@@ -989,7 +989,7 @@ static bool
 process_press_mousebinding(struct server *server, struct cursor_context *ctx,
 		uint32_t button)
 {
-	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
+	if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
 		return false;
 	}
 
@@ -1157,9 +1157,9 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 		}
 		return notify;
 	}
-	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-		if (ctx.type == LAB_NODE_OSD_ITEM) {
-			osd_on_cursor_release(server, ctx.node);
+	if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
+		if (ctx.type == LAB_NODE_CYCLE_OSD_ITEM) {
+			cycle_on_cursor_release(server, ctx.node);
 		}
 		return notify;
 	}

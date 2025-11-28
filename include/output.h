@@ -15,14 +15,14 @@ struct output {
 	struct wlr_scene_output *scene_output;
 	struct wlr_scene_tree *layer_tree[LAB_NR_LAYERS];
 	struct wlr_scene_tree *layer_popup_tree;
-	struct wlr_scene_tree *osd_tree;
+	struct wlr_scene_tree *cycle_osd_tree;
 	struct wlr_scene_tree *session_lock_tree;
 	struct wlr_scene_buffer *workspace_osd;
 
-	struct osd_scene {
-		struct wl_list items; /* struct osd_item */
+	struct cycle_osd_scene {
+		struct wl_list items; /* struct cycle_osd_item */
 		struct wlr_scene_tree *tree;
-	} osd_scene;
+	} cycle_osd;
 
 	/* In output-relative scene coordinates */
 	struct wlr_box usable_area;

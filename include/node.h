@@ -53,10 +53,10 @@ struct menuitem *node_menuitem_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 /**
- * node_osd_item_from_node - return osd item struct from node
+ * node_cycle_osd_item_from_node - return cycle OSD item struct from node
  * @wlr_scene_node: wlr_scene_node from which to return data
  */
-struct osd_item *node_osd_item_from_node(
+struct cycle_osd_item *node_cycle_osd_item_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 /**

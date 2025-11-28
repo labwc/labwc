@@ -823,7 +823,7 @@ view_minimize(struct view *view, bool minimized)
 {
 	assert(view);
 
-	if (view->server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
+	if (view->server->input_mode == LAB_INPUT_STATE_CYCLE) {
 		wlr_log(WLR_ERROR, "not minimizing window while window switching");
 		return;
 	}
@@ -2620,7 +2620,7 @@ view_destroy(struct view *view)
 		zfree(view->tiled_region_evacuate);
 	}
 
-	osd_on_view_destroy(view);
+	cycle_on_view_destroy(view);
 	undecorate(view);
 
 	view_set_icon(view, NULL, NULL);

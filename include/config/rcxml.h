@@ -71,6 +71,7 @@ struct rcxml {
 	enum tearing_mode allow_tearing;
 	bool auto_enable_outputs;
 	bool reuse_output_mode;
+	uint32_t default_permissions;
 	bool xwayland_persistence;
 	bool primary_selection;
 	char *prompt_command;
@@ -188,6 +189,8 @@ struct rcxml {
 	} window_switcher;
 
 	struct wl_list window_rules; /* struct window_rule.link */
+
+	struct wl_list autostart; /* struct action.link */
 
 	/* Menu */
 	unsigned int menu_ignore_button_release_period;

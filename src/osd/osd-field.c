@@ -4,6 +4,7 @@
 #include <wlr/util/log.h>
 #include "common/buf.h"
 #include "common/mem.h"
+#include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "view.h"
 #include "workspaces.h"
@@ -289,6 +290,12 @@ void
 osd_field_arg_from_xml_node(struct window_switcher_field *field,
 		const char *nodename, const char *content)
 {
+	if (string_null_or_empty(content)) {
+		wlr_log(WLR_ERROR, "Empty string is not allowed for "
+			"<windowSwitcher><fields><field><%s>", nodename);
+		return;
+	}
+
 	if (!strcmp(nodename, "content")) {
 		if (!strcmp(content, "type")) {
 			field->content = LAB_FIELD_TYPE;

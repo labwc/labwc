@@ -211,6 +211,12 @@ fill_usable_area_override(xmlNode *node)
 	xmlNode *child;
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (string_null_or_empty(content)) {
+			wlr_log(WLR_ERROR, "Empty string is currenty not "
+				"allowed for <margin><%s>", key);
+			continue;
+		}
+
 		if (!strcmp(key, "output")) {
 			xstrdup_replace(usable_area_override->output, content);
 		} else if (!strcmp(key, "left")) {
@@ -254,6 +260,12 @@ fill_window_rule(xmlNode *node)
 	xmlNode *child;
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (string_null_or_empty(content)) {
+			wlr_log(WLR_ERROR, "Empty string is currently not "
+				"allowed for <windowRule><%s>", key);
+			continue;
+		}
+
 		/* Criteria */
 		if (!strcmp(key, "identifier")) {
 			xstrdup_replace(window_rule->identifier, content);
@@ -366,6 +378,11 @@ fill_region(xmlNode *node)
 	xmlNode *child;
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (string_null_or_empty(content)) {
+			wlr_log(WLR_ERROR, "Empty string is currently not "
+				"allowed for <regions><region><%s>", key);
+			return;
+		}
 		if (!strcasecmp(key, "name")) {
 			xstrdup_replace(region->name, content);
 		} else if (strstr("xywidtheight", key)
@@ -412,6 +429,12 @@ fill_action_query(struct action *action, xmlNode *node, struct view_query *query
 	xmlNode *child;
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (string_null_or_empty(content)) {
+			wlr_log(WLR_ERROR, "Empty string is currently not "
+				"allowed for <query><%s>", key);
+			continue;
+		}
+
 		if (!strcasecmp(key, "identifier")) {
 			xstrdup_replace(query->identifier, content);
 		} else if (!strcasecmp(key, "title")) {
@@ -625,6 +648,11 @@ fill_touch(xmlNode *node)
 	xmlNode *child;
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (string_null_or_empty(content)) {
+			wlr_log(WLR_ERROR, "Empty string is currently not "
+				"allowed for <touch><%s>", key);
+			continue;
+		}
 		if (!strcasecmp(key, "deviceName")) {
 			xstrdup_replace(touch_config->device_name, content);
 		} else if (!strcasecmp(key, "mapToOutput")) {
@@ -963,6 +991,11 @@ fill_font(xmlNode *node)
 	xmlNode *child;
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (string_null_or_empty(content)) {
+			wlr_log(WLR_ERROR, "Empty string is currently not "
+				"allowed for <font><%s>", key);
+			continue;
+		}
 		switch (font_place) {
 		case FONT_PLACE_NONE:
 			/*
@@ -1076,7 +1109,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		return true;
 
 	} else if (str_space_only(content)) {
-		/* ignore empty leaf nodes other than above */
+		wlr_log(WLR_ERROR, "Empty string is currently not "
+			"allowed for %s", nodename);
 
 	/* handle non-empty leaf nodes */
 	} else if (!strcmp(nodename, "decoration.core")) {

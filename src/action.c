@@ -325,6 +325,12 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 	char *argument = xstrdup(nodename);
 	string_truncate_at_pattern(argument, ".action");
 
+	if (string_null_or_empty(content)) {
+		wlr_log(WLR_ERROR, "Empty string is not allowed for "
+			"action %s: %s", action_names[action->type], argument);
+		goto cleanup;
+	}
+
 	switch (action->type) {
 	case ACTION_TYPE_EXECUTE:
 		/*

@@ -414,6 +414,20 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		break;
+	case ACTION_TYPE_RESIZE:
+		if (!strcmp(argument, "direction")) {
+			enum lab_edge edge = lab_edge_parse(content,
+				/*tiled*/ true, /*any*/ false);
+			if (edge == LAB_EDGE_NONE || edge == LAB_EDGE_CENTER) {
+				wlr_log(WLR_ERROR,
+					"Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			} else {
+				action_arg_add_int(action, argument, edge);
+			}
+			goto cleanup;
+		}
+		break;
 	case ACTION_TYPE_RESIZE_RELATIVE:
 		if (!strcmp(argument, "left") || !strcmp(argument, "right") ||
 				!strcmp(argument, "top") || !strcmp(argument, "bottom")) {
@@ -1223,8 +1237,17 @@ run_action(struct view *view, struct server *server, struct action *action,
 		break;
 	case ACTION_TYPE_RESIZE:
 		if (view) {
-			enum lab_edge resize_edges = cursor_get_resize_edges(
-				server->seat.cursor, ctx);
+			/*
+			 * If a direction was specified in the config, honour it.
+			 * Otherwise, fall back to determining the resize edges from
+			 * the current cursor position (existing behaviour).
+			 */
+			enum lab_edge resize_edges =
+				action_get_int(action, "direction", LAB_EDGE_NONE);
+			if (resize_edges == LAB_EDGE_NONE) {
+				resize_edges = cursor_get_resize_edges(
+					server->seat.cursor, ctx);
+			}
 			interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 				resize_edges);
 		}

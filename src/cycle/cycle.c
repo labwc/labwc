@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-#include "osd.h"
+#include "cycle.h"
 #include <assert.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>

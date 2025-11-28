@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef LABWC_OSD_H
-#define LABWC_OSD_H
+#ifndef LABWC_CYCLE_H
+#define LABWC_CYCLE_H
 
 #include <stdbool.h>
 #include <wayland-server-core.h>
@@ -98,4 +98,4 @@ struct osd_impl {
 extern struct osd_impl osd_classic_impl;
 extern struct osd_impl osd_thumbnail_impl;
 
-#endif // LABWC_OSD_H
+#endif // LABWC_CYCLE_H

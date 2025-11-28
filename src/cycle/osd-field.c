@@ -5,11 +5,11 @@
 #include "common/buf.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
+#include "cycle.h"
 #include "view.h"
 #include "workspaces.h"
 #include "labwc.h"
 #include "desktop-entry.h"
-#include "osd.h"
 #include "output.h"
 
 /* includes '%', terminating 's' and NULL byte, 8 is enough for %-9999s */

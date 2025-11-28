@@ -49,12 +49,12 @@ endif
 
 subdir('common')
 subdir('config')
+subdir('cycle')
 subdir('decorations')
 subdir('foreign-toplevel')
 subdir('img')
 subdir('input')
 subdir('menu')
-subdir('osd')
 subdir('protocols')
 subdir('scaled-buffer')
 subdir('ssd')

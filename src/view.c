@@ -2568,6 +2568,8 @@ view_init(struct view *view)
 
 	view->title = xstrdup("");
 	view->app_id = xstrdup("");
+
+	view->capture.scene = wlr_scene_create();
 }
 
 void
@@ -2593,6 +2595,8 @@ view_destroy(struct view *view)
 
 	zfree(view->title);
 	zfree(view->app_id);
+
+	wlr_scene_node_destroy(&view->capture.scene->tree.node);
 
 	if (view->foreign_toplevel) {
 		foreign_toplevel_destroy(view->foreign_toplevel);

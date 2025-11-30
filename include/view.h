@@ -164,6 +164,8 @@ struct view {
 	struct wlr_surface *surface;
 	struct wlr_scene_tree *scene_tree;
 	struct wlr_scene_tree *content_tree; /* may be NULL for unmapped view */
+	/* Black background fill behind fullscreen view (created on demand) */
+	struct wlr_scene_rect *fullscreen_bg;
 
 	/* These are never NULL and an empty string is set instead. */
 	char *title;
@@ -459,6 +461,12 @@ bool view_inhibits_actions(struct view *view, struct wl_list *actions);
 void view_set_activated(struct view *view, bool activated);
 void view_set_output(struct view *view, struct output *output);
 void view_close(struct view *view);
+
+/*
+ * Enables/disables black background fill behind a fullscreen view.
+ * Background fill is currently only used for xdg-shell views.
+ */
+void view_set_fullscreen_bg_enabled(struct view *view, bool enabled);
 
 /**
  * view_move_resize - resize and move view

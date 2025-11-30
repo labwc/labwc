@@ -561,6 +561,41 @@ view_close(struct view *view)
 }
 
 static void
+update_fullscreen_bg(struct view *view)
+{
+	if (!view->fullscreen_bg || !view->fullscreen_bg->node.enabled
+			|| !output_is_usable(view->output)) {
+		return;
+	}
+
+	struct wlr_box output_box = {0};
+	wlr_output_layout_get_box(view->server->output_layout,
+		view->output->wlr_output, &output_box);
+	wlr_scene_node_set_position(&view->fullscreen_bg->node,
+		output_box.x - view->current.x, output_box.y - view->current.y);
+	wlr_scene_rect_set_size(view->fullscreen_bg,
+		output_box.width, output_box.height);
+}
+
+void
+view_set_fullscreen_bg_enabled(struct view *view, bool enabled)
+{
+	if (enabled) {
+		if (!view->fullscreen_bg) {
+			const float black[4] = {0, 0, 0, 1};
+			view->fullscreen_bg = wlr_scene_rect_create(
+				view->scene_tree, 0, 0, black);
+			wlr_scene_node_lower_to_bottom(
+				&view->fullscreen_bg->node);
+		}
+		wlr_scene_node_set_enabled(&view->fullscreen_bg->node, true);
+		update_fullscreen_bg(view);
+	} else if (view->fullscreen_bg) {
+		wlr_scene_node_set_enabled(&view->fullscreen_bg->node, false);
+	}
+}
+
+static void
 view_update_outputs(struct view *view)
 {
 	struct output *output;
@@ -616,6 +651,7 @@ view_moved(struct view *view)
 	}
 	view_update_outputs(view);
 	ssd_update_geometry(view->ssd);
+	update_fullscreen_bg(view);
 	cursor_update_focus(view->server);
 	if (rc.resize_indicator && view->server->grabbed_view == view) {
 		resize_indicator_update(view);
@@ -858,23 +894,7 @@ view_compute_centered_position(struct view *view, const struct wlr_box *ref,
 	int height = h + margin.top + margin.bottom;
 
 	/* If reference box is NULL then center to usable area */
-	if (!ref) {
-		ref = &usable;
-	}
-	*x = ref->x + (ref->width - width) / 2;
-	*y = ref->y + (ref->height - height) / 2;
-
-	/* Fit the view within the usable area */
-	if (*x < usable.x) {
-		*x = usable.x;
-	} else if (*x + width > usable.x + usable.width) {
-		*x = usable.x + usable.width - width;
-	}
-	if (*y < usable.y) {
-		*y = usable.y;
-	} else if (*y + height > usable.y + usable.height) {
-		*y = usable.y + usable.height - height;
-	}
+	box_center(width, height, ref ? ref : &usable, &usable, x, y);
 
 	*x += margin.left;
 	*y += margin.top;
@@ -1281,13 +1301,8 @@ view_apply_fullscreen_geometry(struct view *view)
 	assert(output_is_usable(view->output));
 
 	struct wlr_box box = { 0 };
-	wlr_output_effective_resolution(view->output->wlr_output,
-		&box.width, &box.height);
-	double ox = 0, oy = 0;
-	wlr_output_layout_output_coords(view->server->output_layout,
-		view->output->wlr_output, &ox, &oy);
-	box.x -= ox;
-	box.y -= oy;
+	wlr_output_layout_get_box(view->server->output_layout,
+		view->output->wlr_output, &box);
 	view_move_resize(view, box);
 }
 
@@ -1760,6 +1775,9 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 		view_apply_natural_geometry(view);
 	} else {
 		view_apply_special_geometry(view);
+	}
+	if (!fullscreen) {
+		view_set_fullscreen_bg_enabled(view, false);
 	}
 	output_set_has_fullscreen_view(view->output, view->fullscreen);
 }

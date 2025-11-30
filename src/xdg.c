@@ -10,6 +10,7 @@
 #include <wlr/types/wlr_xdg_toplevel_icon_v1.h>
 #include "buffer.h"
 #include "common/array.h"
+#include "common/box.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
@@ -129,6 +130,32 @@ do_late_positioning(struct view *view)
 	}
 }
 
+/*
+ * Centers any fullscreen view smaller than the full output size.
+ * Updates view->pending only; the caller is expected to "apply" the
+ * move by updating view->current and calling view_moved().
+ *
+ * Returns true if the view was centered, false if the view is not
+ * fullscreen or is large enough to cover the output (in that case,
+ * view->pending may still be modified to "un-center" the view if it
+ * was previously centered).
+ */
+static bool
+center_fullscreen_if_needed(struct view *view, int width, int height)
+{
+	if (!view->fullscreen || !output_is_usable(view->output)) {
+		return false;
+	}
+
+	struct wlr_box output_box = {0};
+	wlr_output_layout_get_box(view->server->output_layout,
+		view->output->wlr_output, &output_box);
+	box_center(width, height, &output_box, &output_box,
+		&view->pending.x, &view->pending.y);
+
+	return (width < output_box.width || height < output_box.height);
+}
+
 /* TODO: reorder so this forward declaration isn't needed */
 static void set_pending_configure_serial(struct view *view, uint32_t serial);
 
@@ -237,7 +264,18 @@ handle_commit(struct wl_listener *listener, void *data)
 	}
 
 	if (update_required) {
+		/*
+		 * Center any fullscreen view smaller than the output.
+		 * size. This call updates view->pending directly.
+		 */
+		bool centered_fullscreen = center_fullscreen_if_needed(view,
+			size.width, size.height);
+
+		/* Updates view->current and calls view_moved() if needed */
 		view_impl_apply_geometry(view, size.width, size.height);
+
+		/* Enable background fill if needed (uses view->current) */
+		view_set_fullscreen_bg_enabled(view, centered_fullscreen);
 
 		/*
 		 * Some views (e.g., terminals that scale as multiples of rows
@@ -299,6 +337,15 @@ handle_configure_timeout(void *data)
 		return 0; /* ignored per wl_event_loop docs */
 	}
 
+	/*
+	 * If the view didn't respond when entering fullscreen, it may
+	 * be too small and need to be centered. This call may update
+	 * view->pending, in which case the "pending move + resize"
+	 * block below will be entered and apply the move.
+	 */
+	bool centered_fullscreen = center_fullscreen_if_needed(view,
+		view->current.width, view->current.height);
+
 	bool empty_pending = wlr_box_empty(&view->pending);
 	if (empty_pending || view->pending.x != view->current.x
 			|| view->pending.y != view->current.y) {
@@ -337,6 +384,9 @@ handle_configure_timeout(void *data)
 		view->current.y = view->pending.y;
 		view_moved(view);
 	}
+
+	/* Enable background fill, if needed (uses view->current) */
+	view_set_fullscreen_bg_enabled(view, centered_fullscreen);
 
 	/* Re-sync pending view with current state */
 	snap_constraints_update(view);

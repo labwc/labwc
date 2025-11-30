@@ -35,6 +35,25 @@ box_union(struct wlr_box *box_dest, struct wlr_box *box_a, struct wlr_box *box_b
 	box_dest->height = y2 - y1;
 }
 
+void
+box_center(int width, int height, const struct wlr_box *ref,
+		const struct wlr_box *bound, int *x, int *y)
+{
+	*x = ref->x + (ref->width - width) / 2;
+	*y = ref->y + (ref->height - height) / 2;
+
+	if (*x < bound->x) {
+		*x = bound->x;
+	} else if (*x + width > bound->x + bound->width) {
+		*x = bound->x + bound->width - width;
+	}
+	if (*y < bound->y) {
+		*y = bound->y;
+	} else if (*y + height > bound->y + bound->height) {
+		*y = bound->y + bound->height - height;
+	}
+}
+
 struct wlr_box
 box_fit_within(int width, int height, struct wlr_box *bound)
 {

@@ -1223,13 +1223,8 @@ view_apply_fullscreen_geometry(struct view *view)
 	assert(output_is_usable(view->output));
 
 	struct wlr_box box = { 0 };
-	wlr_output_effective_resolution(view->output->wlr_output,
-		&box.width, &box.height);
-	double ox = 0, oy = 0;
-	wlr_output_layout_output_coords(view->server->output_layout,
-		view->output->wlr_output, &ox, &oy);
-	box.x -= ox;
-	box.y -= oy;
+	wlr_output_layout_get_box(view->server->output_layout,
+		view->output->wlr_output, &box);
 	view_move_resize(view, box);
 }
 

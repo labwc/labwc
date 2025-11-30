@@ -124,6 +124,9 @@ struct rcxml {
 	long doubleclick_time;     /* in ms */
 	struct wl_list mousebinds; /* struct mousebind.link */
 
+	/* touchpad */
+	struct wl_list gesture_bindings;
+
 	/* touch tablet */
 	struct wl_list touch_configs;
 

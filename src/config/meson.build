@@ -7,4 +7,5 @@ labwc_sources += files(
   'tablet.c',
   'tablet-tool.c',
   'libinput.c',
+  'gesturebind.c',
 )

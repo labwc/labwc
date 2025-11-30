@@ -257,18 +257,29 @@ preview_selected_view(struct view *view)
 	wlr_scene_node_raise_to_top(cycle->preview_node);
 }
 
+static struct cycle_osd_impl *
+get_osd_impl(void)
+{
+	switch (rc.window_switcher.style) {
+	case CYCLE_OSD_STYLE_CLASSIC:
+		return &cycle_osd_classic_impl;
+	case CYCLE_OSD_STYLE_THUMBNAIL:
+		return &cycle_osd_thumbnail_impl;
+	}
+	return NULL;
+}
+
 static void
-update_osd_on_output(struct server *server, struct output *output,
-	struct cycle_osd_impl *osd_impl, struct wl_array *views)
+update_osd_on_output(struct output *output, struct wl_array *views)
 {
 	if (!output_is_usable(output)) {
 		return;
 	}
 	if (!output->cycle_osd.tree) {
-		osd_impl->create(output, views);
+		get_osd_impl()->create(output, views);
 		assert(output->cycle_osd.tree);
 	}
-	osd_impl->update(output);
+	get_osd_impl()->update(output);
 }
 
 static void
@@ -277,16 +288,6 @@ update_cycle(struct server *server)
 	struct wl_array views;
 	wl_array_init(&views);
 	view_array_append(server, &views, rc.window_switcher.criteria);
-
-	struct cycle_osd_impl *osd_impl = NULL;
-	switch (rc.window_switcher.style) {
-	case CYCLE_OSD_STYLE_CLASSIC:
-		osd_impl = &cycle_osd_classic_impl;
-		break;
-	case CYCLE_OSD_STYLE_THUMBNAIL:
-		osd_impl = &cycle_osd_thumbnail_impl;
-		break;
-	}
 
 	if (!wl_array_len(&views) || !server->cycle.selected_view) {
 		cycle_finish(server, /*switch_focus*/ false);
@@ -299,13 +300,12 @@ update_cycle(struct server *server)
 		case CYCLE_OSD_OUTPUT_ALL: {
 			struct output *output;
 			wl_list_for_each(output, &server->outputs, link) {
-				update_osd_on_output(server, output, osd_impl, &views);
+				update_osd_on_output(output, &views);
 			}
 			break;
 		}
 		case CYCLE_OSD_OUTPUT_POINTER:
-			update_osd_on_output(server,
-				output_nearest_to_cursor(server), osd_impl, &views);
+			update_osd_on_output(output_nearest_to_cursor(server), &views);
 			break;
 		case CYCLE_OSD_OUTPUT_KEYBOARD: {
 			struct output *output;
@@ -315,7 +315,7 @@ update_cycle(struct server *server)
 				/* Fallback to pointer, if there is no active_view */
 				output = output_nearest_to_cursor(server);
 			}
-			update_osd_on_output(server, output, osd_impl, &views);
+			update_osd_on_output(output, &views);
 			break;
 		}
 		}

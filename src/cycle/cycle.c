@@ -17,6 +17,7 @@
 #include "theme.h"
 #include "view.h"
 
+static bool init_cycle(struct server *server);
 static void update_cycle(struct server *server);
 static void destroy_cycle(struct server *server);
 
@@ -80,10 +81,8 @@ get_next_selected_view(struct server *server, struct view *start_view,
 }
 
 void
-cycle_on_view_destroy(struct view *view)
+cycle_reinitialize(struct server *server)
 {
-	assert(view);
-	struct server *server = view->server;
 	struct cycle_state *cycle = &server->cycle;
 
 	if (server->input_mode != LAB_INPUT_STATE_CYCLE) {
@@ -91,31 +90,15 @@ cycle_on_view_destroy(struct view *view)
 		return;
 	}
 
-	if (cycle->selected_view == view) {
-		/*
-		 * If we are the current OSD selected view, cycle
-		 * to the next because we are dying.
-		 */
-
-		/* Also resets preview node */
-		cycle->selected_view = get_next_selected_view(server,
-			cycle->selected_view, LAB_CYCLE_DIR_BACKWARD);
-
-		/*
-		 * If we cycled back to ourselves, then we have no more windows.
-		 * Just close the OSD for good.
-		 */
-		if (cycle->selected_view == view
-				|| !cycle->selected_view) {
-			/* cycle_finish() additionally resets selected_view to NULL */
-			cycle_finish(server, /*switch_focus*/ false);
-		}
-	}
-
-	if (cycle->selected_view) {
-		/* Recreate the OSD to reflect the view has now gone. */
-		destroy_cycle(server);
+	destroy_cycle(server);
+	if (init_cycle(server)) {
+		/* TODO: try to select the same view */
+		cycle->selected_view = get_next_selected_view(server, NULL,
+			LAB_CYCLE_DIR_FORWARD);
 		update_cycle(server);
+	} else {
+		/* Failed to re-init window switcher, exit */
+		cycle_finish(server, /*switch_focus*/ false);
 	}
 }
 
@@ -149,6 +132,7 @@ restore_preview_node(struct server *server)
 		}
 		server->cycle.preview_node = NULL;
 		server->cycle.preview_dummy = NULL;
+		server->cycle.preview_was_enabled = false;
 		server->cycle.preview_was_shaded = false;
 	}
 }
@@ -157,6 +141,10 @@ void
 cycle_begin(struct server *server, enum lab_cycle_dir direction)
 {
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		return;
+	}
+
+	if (!init_cycle(server)) {
 		return;
 	}
 
@@ -188,23 +176,11 @@ cycle_finish(struct server *server, bool switch_focus)
 		return;
 	}
 
-	restore_preview_node(server);
-	/* FIXME: this sets focus to the old surface even with switch_focus=true */
-	seat_focus_override_end(&server->seat);
-
 	struct view *selected_view = server->cycle.selected_view;
-	server->cycle.preview_node = NULL;
-	server->cycle.preview_dummy = NULL;
-	server->cycle.selected_view = NULL;
-	server->cycle.preview_was_shaded = false;
-
 	destroy_cycle(server);
 
-	if (server->cycle.preview_outline) {
-		/* Destroy the whole multi_rect so we can easily react to new themes */
-		wlr_scene_node_destroy(&server->cycle.preview_outline->tree->node);
-		server->cycle.preview_outline = NULL;
-	}
+	/* FIXME: this sets focus to the old surface even with switch_focus=true */
+	seat_focus_override_end(&server->seat);
 
 	/* Hiding OSD may need a cursor change */
 	cursor_update_focus(server);
@@ -270,42 +246,40 @@ get_osd_impl(void)
 }
 
 static void
-update_osd_on_output(struct output *output, struct wl_array *views)
+create_osd_on_output(struct output *output, struct wl_array *views)
 {
 	if (!output_is_usable(output)) {
 		return;
 	}
-	if (!output->cycle_osd.tree) {
-		get_osd_impl()->create(output, views);
-		assert(output->cycle_osd.tree);
-	}
-	get_osd_impl()->update(output);
+	get_osd_impl()->create(output, views);
+	assert(output->cycle_osd.tree);
 }
 
-static void
-update_cycle(struct server *server)
+/* Return false on failure */
+static bool
+init_cycle(struct server *server)
 {
 	struct wl_array views;
 	wl_array_init(&views);
 	view_array_append(server, &views, rc.window_switcher.criteria);
-
-	if (!wl_array_len(&views) || !server->cycle.selected_view) {
-		cycle_finish(server, /*switch_focus*/ false);
-		goto out;
+	if (wl_array_len(&views) <= 0) {
+		wlr_log(WLR_DEBUG, "no views to switch between");
+		wl_array_release(&views);
+		return false;
 	}
 
 	if (rc.window_switcher.show) {
-		/* Display the actual OSD */
+		/* Create OSD */
 		switch (rc.window_switcher.output_criteria) {
 		case CYCLE_OSD_OUTPUT_ALL: {
 			struct output *output;
 			wl_list_for_each(output, &server->outputs, link) {
-				update_osd_on_output(output, &views);
+				create_osd_on_output(output, &views);
 			}
 			break;
 		}
 		case CYCLE_OSD_OUTPUT_POINTER:
-			update_osd_on_output(output_nearest_to_cursor(server), &views);
+			create_osd_on_output(output_nearest_to_cursor(server), &views);
 			break;
 		case CYCLE_OSD_OUTPUT_KEYBOARD: {
 			struct output *output;
@@ -315,14 +289,32 @@ update_cycle(struct server *server)
 				/* Fallback to pointer, if there is no active_view */
 				output = output_nearest_to_cursor(server);
 			}
-			update_osd_on_output(output, &views);
+			create_osd_on_output(output, &views);
 			break;
 		}
 		}
 	}
 
+	wl_array_release(&views);
+	return true;
+}
+
+static void
+update_cycle(struct server *server)
+{
+	struct cycle_state *cycle = &server->cycle;
+
+	if (rc.window_switcher.show) {
+		struct output *output;
+		wl_list_for_each(output, &server->outputs, link) {
+			if (output->cycle_osd.tree) {
+				get_osd_impl()->update(output);
+			}
+		}
+	}
+
 	if (rc.window_switcher.preview) {
-		preview_selected_view(server->cycle.selected_view);
+		preview_selected_view(cycle->selected_view);
 	}
 
 	/* Outline current window */
@@ -331,11 +323,9 @@ update_cycle(struct server *server)
 			update_preview_outlines(server->cycle.selected_view);
 		}
 	}
-
-out:
-	wl_array_release(&views);
 }
 
+/* Resets all the states in server->cycle */
 static void
 destroy_cycle(struct server *server)
 {
@@ -351,4 +341,13 @@ destroy_cycle(struct server *server)
 			output->cycle_osd.tree = NULL;
 		}
 	}
+
+	restore_preview_node(server);
+
+	if (server->cycle.preview_outline) {
+		wlr_scene_node_destroy(&server->cycle.preview_outline->tree->node);
+		server->cycle.preview_outline = NULL;
+	}
+
+	server->cycle.selected_view = NULL;
 }

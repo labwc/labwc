@@ -549,6 +549,7 @@ server_init(struct server *server)
 
 	wl_list_init(&server->views);
 	wl_list_init(&server->unmanaged_surfaces);
+	wl_list_init(&server->cycle.views);
 
 	server->scene = wlr_scene_create();
 	if (!server->scene) {

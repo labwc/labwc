@@ -5,11 +5,11 @@
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 #include "config/rcxml.h"
-#include "common/array.h"
 #include "common/box.h"
 #include "common/buf.h"
 #include "common/lab-scene-rect.h"
 #include "common/list.h"
+#include "common/mem.h"
 #include "cycle.h"
 #include "labwc.h"
 #include "node.h"
@@ -226,7 +226,7 @@ get_items_geometry(struct output *output, struct theme *theme,
 }
 
 static void
-cycle_osd_thumbnail_create(struct output *output, struct wl_array *views)
+cycle_osd_thumbnail_create(struct output *output)
 {
 	assert(!output->cycle_osd.tree && wl_list_empty(&output->cycle_osd.items));
 
@@ -238,17 +238,17 @@ cycle_osd_thumbnail_create(struct output *output, struct wl_array *views)
 
 	output->cycle_osd.tree = wlr_scene_tree_create(output->cycle_osd_tree);
 
-	int nr_views = wl_array_len(views);
+	int nr_views = wl_list_length(&server->cycle.views);
 	assert(nr_views > 0);
 	int nr_rows, nr_cols;
 	get_items_geometry(output, theme, nr_views, &nr_rows, &nr_cols);
 
 	/* items */
-	struct view **view;
+	struct view *view;
 	int index = 0;
-	wl_array_for_each(view, views) {
+	wl_list_for_each(view, &server->cycle.views, cycle_link) {
 		struct cycle_osd_thumbnail_item *item = create_item_scene(
-			output->cycle_osd.tree, *view, output);
+			output->cycle_osd.tree, view, output);
 		if (!item) {
 			break;
 		}

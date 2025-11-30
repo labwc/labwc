@@ -4,8 +4,8 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
-#include "common/array.h"
 #include "common/lab-scene-rect.h"
+#include "common/list.h"
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
@@ -48,36 +48,36 @@ update_preview_outlines(struct view *view)
 	wlr_scene_node_set_position(&rect->tree->node, geo.x, geo.y);
 }
 
-/*
- * Returns the view to select next in the window switcher.
- * If !start_view, the second focusable view is returned.
- */
+/* Returns the view to select next in the window switcher. */
 static struct view *
-get_next_selected_view(struct server *server, struct view *start_view,
-		enum lab_cycle_dir dir)
+get_next_selected_view(struct server *server, enum lab_cycle_dir dir)
 {
-	struct view *(*iter)(struct wl_list *head, struct view *view,
-		enum lab_view_criteria criteria);
-	bool forwards = dir == LAB_CYCLE_DIR_FORWARD;
-	iter = forwards ? view_next_no_head_stop : view_prev_no_head_stop;
+	struct cycle_state *cycle = &server->cycle;
+	assert(cycle->selected_view);
+	assert(!wl_list_empty(&server->cycle.views));
 
-	enum lab_view_criteria criteria = rc.window_switcher.criteria;
-
-	/*
-	 * Views are listed in stacking order, topmost first.  Usually the
-	 * topmost view is already focused, so when iterating in the forward
-	 * direction we pre-select the view second from the top:
-	 *
-	 *   View #1 (on top, currently focused)
-	 *   View #2 (pre-selected)
-	 *   View #3
-	 *   ...
-	 */
-	if (!start_view && forwards) {
-		start_view = iter(&server->views, NULL, criteria);
+	struct wl_list *link;
+	if (dir == LAB_CYCLE_DIR_FORWARD) {
+		link = cycle->selected_view->cycle_link.next;
+		if (link == &server->cycle.views) {
+			link = link->next;
+		}
+	} else {
+		link = cycle->selected_view->cycle_link.prev;
+		if (link == &server->cycle.views) {
+			link = link->prev;
+		}
 	}
+	struct view *view = wl_container_of(link, view, cycle_link);
+	return view;
+}
 
-	return iter(&server->views, start_view, criteria);
+static struct view *
+get_first_view(struct wl_list *views)
+{
+	assert(!wl_list_empty(views));
+	struct view *view = wl_container_of(views->next, view, cycle_link);
+	return view;
 }
 
 void
@@ -90,11 +90,25 @@ cycle_reinitialize(struct server *server)
 		return;
 	}
 
+	struct view *selected_view = cycle->selected_view;
+	struct view *selected_view_prev =
+		get_next_selected_view(server, LAB_CYCLE_DIR_BACKWARD);
+
 	destroy_cycle(server);
 	if (init_cycle(server)) {
-		/* TODO: try to select the same view */
-		cycle->selected_view = get_next_selected_view(server, NULL,
-			LAB_CYCLE_DIR_FORWARD);
+		/*
+		 * Preserve the selected view (or its previous view) if it's
+		 * still in the cycle list
+		 */
+		if (selected_view->cycle_link.next) {
+			cycle->selected_view = selected_view;
+		} else if (selected_view_prev->cycle_link.next) {
+			cycle->selected_view = selected_view_prev;
+		} else {
+			/* should be unreachable */
+			wlr_log(WLR_ERROR, "could not find view to select");
+			cycle->selected_view = get_first_view(&server->cycle.views);
+		}
 		update_cycle(server);
 	} else {
 		/* Failed to re-init window switcher, exit */
@@ -148,8 +162,16 @@ cycle_begin(struct server *server, enum lab_cycle_dir direction)
 		return;
 	}
 
-	server->cycle.selected_view = get_next_selected_view(server,
-		server->cycle.selected_view, direction);
+	struct view *active_view = server->active_view;
+	if (active_view && active_view->cycle_link.next) {
+		/* Select the active view it's in the cycle list */
+		server->cycle.selected_view = active_view;
+	} else {
+		/* Otherwise, select the first view in the cycle list */
+		server->cycle.selected_view = get_first_view(&server->cycle.views);
+	}
+	/* Pre-select the next view in the given direction */
+	server->cycle.selected_view = get_next_selected_view(server, direction);
 
 	seat_focus_override_begin(&server->seat,
 		LAB_INPUT_STATE_CYCLE, LAB_CURSOR_DEFAULT);
@@ -164,8 +186,7 @@ cycle_step(struct server *server, enum lab_cycle_dir direction)
 {
 	assert(server->input_mode == LAB_INPUT_STATE_CYCLE);
 
-	server->cycle.selected_view = get_next_selected_view(server,
-		server->cycle.selected_view, direction);
+	server->cycle.selected_view = get_next_selected_view(server, direction);
 	update_cycle(server);
 }
 
@@ -246,12 +267,12 @@ get_osd_impl(void)
 }
 
 static void
-create_osd_on_output(struct output *output, struct wl_array *views)
+create_osd_on_output(struct output *output)
 {
 	if (!output_is_usable(output)) {
 		return;
 	}
-	get_osd_impl()->create(output, views);
+	get_osd_impl()->create(output);
 	assert(output->cycle_osd.tree);
 }
 
@@ -259,12 +280,12 @@ create_osd_on_output(struct output *output, struct wl_array *views)
 static bool
 init_cycle(struct server *server)
 {
-	struct wl_array views;
-	wl_array_init(&views);
-	view_array_append(server, &views, rc.window_switcher.criteria);
-	if (wl_array_len(&views) <= 0) {
+	struct view *view;
+	for_each_view(view, &server->views, rc.window_switcher.criteria) {
+		wl_list_append(&server->cycle.views, &view->cycle_link);
+	}
+	if (wl_list_empty(&server->cycle.views)) {
 		wlr_log(WLR_DEBUG, "no views to switch between");
-		wl_array_release(&views);
 		return false;
 	}
 
@@ -274,12 +295,12 @@ init_cycle(struct server *server)
 		case CYCLE_OSD_OUTPUT_ALL: {
 			struct output *output;
 			wl_list_for_each(output, &server->outputs, link) {
-				create_osd_on_output(output, &views);
+				create_osd_on_output(output);
 			}
 			break;
 		}
 		case CYCLE_OSD_OUTPUT_POINTER:
-			create_osd_on_output(output_nearest_to_cursor(server), &views);
+			create_osd_on_output(output_nearest_to_cursor(server));
 			break;
 		case CYCLE_OSD_OUTPUT_KEYBOARD: {
 			struct output *output;
@@ -289,13 +310,12 @@ init_cycle(struct server *server)
 				/* Fallback to pointer, if there is no active_view */
 				output = output_nearest_to_cursor(server);
 			}
-			create_osd_on_output(output, &views);
+			create_osd_on_output(output);
 			break;
 		}
 		}
 	}
 
-	wl_array_release(&views);
 	return true;
 }
 
@@ -347,6 +367,12 @@ destroy_cycle(struct server *server)
 	if (server->cycle.preview_outline) {
 		wlr_scene_node_destroy(&server->cycle.preview_outline->tree->node);
 		server->cycle.preview_outline = NULL;
+	}
+
+	struct view *view, *tmp;
+	wl_list_for_each_safe(view, tmp, &server->cycle.views, cycle_link) {
+		wl_list_remove(&view->cycle_link);
+		view->cycle_link = (struct wl_list){0};
 	}
 
 	server->cycle.selected_view = NULL;

@@ -87,7 +87,7 @@ struct cycle_osd_impl {
 	 * Create a scene-tree of OSD for an output.
 	 * This sets output->cycle_osd.{items,tree}.
 	 */
-	void (*create)(struct output *output, struct wl_array *views);
+	void (*create)(struct output *output);
 	/*
 	 * Update output->cycle_osd.tree to highlight
 	 * server->cycle_state.selected_view.

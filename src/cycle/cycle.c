@@ -18,23 +18,7 @@
 #include "view.h"
 
 static void update_cycle(struct server *server);
-
-static void
-destroy_osd_scenes(struct server *server)
-{
-	struct output *output;
-	wl_list_for_each(output, &server->outputs, link) {
-		struct cycle_osd_item *item, *tmp;
-		wl_list_for_each_safe(item, tmp, &output->cycle_osd.items, link) {
-			wl_list_remove(&item->link);
-			free(item);
-		}
-		if (output->cycle_osd.tree) {
-			wlr_scene_node_destroy(&output->cycle_osd.tree->node);
-			output->cycle_osd.tree = NULL;
-		}
-	}
-}
+static void destroy_cycle(struct server *server);
 
 static void
 update_preview_outlines(struct view *view)
@@ -130,7 +114,7 @@ cycle_on_view_destroy(struct view *view)
 
 	if (cycle->selected_view) {
 		/* Recreate the OSD to reflect the view has now gone. */
-		destroy_osd_scenes(server);
+		destroy_cycle(server);
 		update_cycle(server);
 	}
 }
@@ -214,7 +198,7 @@ cycle_finish(struct server *server, bool switch_focus)
 	server->cycle.selected_view = NULL;
 	server->cycle.preview_was_shaded = false;
 
-	destroy_osd_scenes(server);
+	destroy_cycle(server);
 
 	if (server->cycle.preview_outline) {
 		/* Destroy the whole multi_rect so we can easily react to new themes */
@@ -350,4 +334,21 @@ update_cycle(struct server *server)
 
 out:
 	wl_array_release(&views);
+}
+
+static void
+destroy_cycle(struct server *server)
+{
+	struct output *output;
+	wl_list_for_each(output, &server->outputs, link) {
+		struct cycle_osd_item *item, *tmp;
+		wl_list_for_each_safe(item, tmp, &output->cycle_osd.items, link) {
+			wl_list_remove(&item->link);
+			free(item);
+		}
+		if (output->cycle_osd.tree) {
+			wlr_scene_node_destroy(&output->cycle_osd.tree->node);
+			output->cycle_osd.tree = NULL;
+		}
+	}
 }

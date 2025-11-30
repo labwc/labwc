@@ -2616,7 +2616,9 @@ view_destroy(struct view *view)
 		zfree(view->tiled_region_evacuate);
 	}
 
-	cycle_on_view_destroy(view);
+	/* TODO: call this on map/unmap instead */
+	cycle_reinitialize(server);
+
 	undecorate(view);
 
 	view_set_icon(view, NULL, NULL);

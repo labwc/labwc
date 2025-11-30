@@ -276,9 +276,7 @@ preview_selected_view(struct view *view)
 
 	/* Store node enabled / minimized state and force-enable if disabled */
 	cycle->preview_was_enabled = cycle->preview_node->enabled;
-	if (!cycle->preview_was_enabled) {
 		wlr_scene_node_set_enabled(cycle->preview_node, true);
-	}
 	if (rc.window_switcher.unshade && view->shaded) {
 		view_set_shade(view, false);
 		cycle->preview_was_shaded = true;

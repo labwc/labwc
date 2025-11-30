@@ -186,7 +186,7 @@ edge_from_cursor(struct seat *seat, struct output **dest_output,
 		return false;
 	}
 
-	if (rc.snap_edge_range == 0) {
+	if (rc.snap_edge_horizontal_range == 0 && rc.snap_edge_vertical_range == 0) {
 		return false;
 	}
 
@@ -210,13 +210,13 @@ edge_from_cursor(struct seat *seat, struct output **dest_output,
 	int left = cursor_x - area->x;
 	int right = area->x + area->width - cursor_x;
 
-	if (top < rc.snap_edge_range) {
+	if (top < rc.snap_edge_vertical_range) {
 		*edge1 = LAB_EDGE_TOP;
-	} else if (bottom < rc.snap_edge_range) {
+	} else if (bottom < rc.snap_edge_vertical_range) {
 		*edge1 = LAB_EDGE_BOTTOM;
-	} else if (left < rc.snap_edge_range) {
+	} else if (left < rc.snap_edge_horizontal_range) {
 		*edge1 = LAB_EDGE_LEFT;
-	} else if (right < rc.snap_edge_range) {
+	} else if (right < rc.snap_edge_horizontal_range) {
 		*edge1 = LAB_EDGE_RIGHT;
 	} else {
 		return false;

@@ -134,6 +134,9 @@ struct view {
 	const struct view_impl *impl;
 	struct wl_list link;
 
+	/* This is cleared when the view is not in the cycle list */
+	struct wl_list cycle_link;
+
 	/*
 	 * The primary output that the view is displayed on. Specifically:
 	 *
@@ -382,15 +385,6 @@ struct view *view_next(struct wl_list *head, struct view *view,
  * Returns NULL if there are no views matching the criteria.
  */
 struct view *view_prev(struct wl_list *head, struct view *view,
-	enum lab_view_criteria criteria);
-
-/*
- * Same as `view_next()` except that they iterate one whole cycle rather than
- * stopping at the list-head
- */
-struct view *view_next_no_head_stop(struct wl_list *head, struct view *from,
-	enum lab_view_criteria criteria);
-struct view *view_prev_no_head_stop(struct wl_list *head, struct view *from,
 	enum lab_view_criteria criteria);
 
 /**

@@ -56,8 +56,8 @@ void cycle_step(struct server *server, enum lab_cycle_dir direction);
 /* Closes the OSD */
 void cycle_finish(struct server *server, bool switch_focus);
 
-/* Notify OSD about a destroying view */
-void cycle_on_view_destroy(struct view *view);
+/* Re-initialize the window switcher */
+void cycle_reinitialize(struct server *server);
 
 /* Focus the clicked window and close OSD */
 void cycle_on_cursor_release(struct server *server, struct wlr_scene_node *node);
@@ -87,7 +87,7 @@ struct cycle_osd_impl {
 	 * Create a scene-tree of OSD for an output.
 	 * This sets output->cycle_osd.{items,tree}.
 	 */
-	void (*create)(struct output *output, struct wl_array *views);
+	void (*create)(struct output *output);
 	/*
 	 * Update output->cycle_osd.tree to highlight
 	 * server->cycle_state.selected_view.

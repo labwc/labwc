@@ -307,8 +307,7 @@ struct server {
 		bool preview_was_shaded;
 		bool preview_was_enabled;
 		struct wlr_scene_node *preview_node;
-		struct wlr_scene_tree *preview_parent;
-		struct wlr_scene_node *preview_anchor;
+		struct wlr_scene_node *preview_dummy;
 		struct lab_scene_rect *preview_outline;
 	} cycle;
 

@@ -133,17 +133,6 @@ cycle_on_view_destroy(struct view *view)
 		destroy_osd_scenes(server);
 		update_cycle(server);
 	}
-
-	if (view->scene_tree) {
-		struct wlr_scene_node *node = &view->scene_tree->node;
-		if (cycle->preview_anchor == node) {
-			/*
-			 * If we are the anchor for the current OSD selected view,
-			 * replace the anchor with the node before us.
-			 */
-			cycle->preview_anchor = lab_wlr_scene_get_prev_node(node);
-		}
-	}
 }
 
 void
@@ -161,15 +150,10 @@ restore_preview_node(struct server *server)
 {
 	if (server->cycle.preview_node) {
 		wlr_scene_node_reparent(server->cycle.preview_node,
-			server->cycle.preview_parent);
-
-		if (server->cycle.preview_anchor) {
-			wlr_scene_node_place_above(server->cycle.preview_node,
-				server->cycle.preview_anchor);
-		} else {
-			/* Selected view was the first node */
-			wlr_scene_node_lower_to_bottom(server->cycle.preview_node);
-		}
+			server->cycle.preview_dummy->parent);
+		wlr_scene_node_place_above(server->cycle.preview_node,
+			server->cycle.preview_dummy);
+		wlr_scene_node_destroy(server->cycle.preview_dummy);
 
 		/* Node was disabled / minimized before, disable again */
 		if (!server->cycle.preview_was_enabled) {
@@ -180,8 +164,7 @@ restore_preview_node(struct server *server)
 			view_set_shade(view, true);
 		}
 		server->cycle.preview_node = NULL;
-		server->cycle.preview_parent = NULL;
-		server->cycle.preview_anchor = NULL;
+		server->cycle.preview_dummy = NULL;
 		server->cycle.preview_was_shaded = false;
 	}
 }
@@ -227,7 +210,7 @@ cycle_finish(struct server *server, bool switch_focus)
 
 	struct view *selected_view = server->cycle.selected_view;
 	server->cycle.preview_node = NULL;
-	server->cycle.preview_anchor = NULL;
+	server->cycle.preview_dummy = NULL;
 	server->cycle.selected_view = NULL;
 	server->cycle.preview_was_shaded = false;
 
@@ -261,22 +244,18 @@ preview_selected_view(struct view *view)
 	/* Move previous selected node back to its original place */
 	restore_preview_node(server);
 
-	/* Store some pointers so we can reset the preview later on */
 	cycle->preview_node = &view->scene_tree->node;
-	cycle->preview_parent = view->scene_tree->node.parent;
 
-	/* Remember the sibling right before the selected node */
-	cycle->preview_anchor = lab_wlr_scene_get_prev_node(
-		cycle->preview_node);
-	while (cycle->preview_anchor && !cycle->preview_anchor->data) {
-		/* Ignore non-view nodes */
-		cycle->preview_anchor = lab_wlr_scene_get_prev_node(
-			cycle->preview_anchor);
-	}
+	/* Create a dummy node at the original place of the previewed window */
+	struct wlr_scene_rect *dummy_rect = wlr_scene_rect_create(
+		cycle->preview_node->parent, 0, 0, (float [4]) {0});
+	wlr_scene_node_place_below(&dummy_rect->node, cycle->preview_node);
+	wlr_scene_node_set_enabled(&dummy_rect->node, false);
+	cycle->preview_dummy = &dummy_rect->node;
 
 	/* Store node enabled / minimized state and force-enable if disabled */
 	cycle->preview_was_enabled = cycle->preview_node->enabled;
-		wlr_scene_node_set_enabled(cycle->preview_node, true);
+	wlr_scene_node_set_enabled(cycle->preview_node, true);
 	if (rc.window_switcher.unshade && view->shaded) {
 		view_set_shade(view, false);
 		cycle->preview_was_shaded = true;

@@ -293,6 +293,9 @@ struct xdg_toplevel_view {
 	struct view base;
 	struct wlr_xdg_surface *xdg_surface;
 
+	/* Optional black background fill behind fullscreen view */
+	struct wlr_scene_rect *fullscreen_bg;
+
 	/* Events unique to xdg-toplevel views */
 	struct wl_listener set_app_id;
 	struct wl_listener request_show_window_menu;

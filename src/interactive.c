@@ -174,6 +174,32 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 	}
 }
 
+static enum lab_edge
+find_adjacent_edges(struct seat *seat, struct output *output)
+{
+	enum lab_edge adjacent = LAB_EDGE_NONE;
+	if (!output_is_usable(output)) {
+		return adjacent;
+	}
+	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_UP,
+		output->wlr_output, output->usable_area.x, output->usable_area.y)) {
+		adjacent |= LAB_EDGE_TOP;
+	}
+	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_DOWN,
+		output->wlr_output, output->usable_area.x, output->usable_area.y)) {
+		adjacent |= LAB_EDGE_BOTTOM;
+	}
+	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_LEFT,
+		output->wlr_output, output->usable_area.x, output->usable_area.y)) {
+		adjacent |= LAB_EDGE_LEFT;
+	}
+	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_RIGHT,
+		output->wlr_output, output->usable_area.x, output->usable_area.y)) {
+		adjacent |= LAB_EDGE_RIGHT;
+	}
+	return adjacent;
+}
+
 bool
 edge_from_cursor(struct seat *seat, struct output **dest_output,
 		enum lab_edge *edge1, enum lab_edge *edge2)
@@ -197,36 +223,9 @@ edge_from_cursor(struct seat *seat, struct output **dest_output,
 	}
 	*dest_output = output;
 
+	/* Translate into output local coordinates */
 	double cursor_x = seat->cursor->x;
 	double cursor_y = seat->cursor->y;
-
-	int top_range, bottom_range, left_range, right_range;
-	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_UP,
-		output->wlr_output, cursor_x, cursor_y)) {
-		top_range = rc.snap_edge_range_inner;
-	} else {
-		top_range = rc.snap_edge_range_outer;
-	}
-	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_DOWN,
-		output->wlr_output, cursor_x, cursor_y)) {
-		bottom_range = rc.snap_edge_range_inner;
-	} else {
-		bottom_range = rc.snap_edge_range_outer;
-	}
-	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_LEFT,
-		output->wlr_output, cursor_x, cursor_y)){
-		left_range = rc.snap_edge_range_inner;
-	} else {
-		left_range = rc.snap_edge_range_outer;
-	}
-	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_RIGHT,
-		output->wlr_output, cursor_x, cursor_y)){
-		right_range = rc.snap_edge_range_inner;
-	} else {
-		right_range = rc.snap_edge_range_outer;
-	}
-
-	/* Translate into output local coordinates */
 	wlr_output_layout_output_coords(seat->server->output_layout,
 		output->wlr_output, &cursor_x, &cursor_y);
 
@@ -236,6 +235,16 @@ edge_from_cursor(struct seat *seat, struct output **dest_output,
 	int bottom = area->y + area->height - cursor_y;
 	int left = cursor_x - area->x;
 	int right = area->x + area->width - cursor_x;
+
+	enum lab_edge adjacent_edges = find_adjacent_edges(seat, output);
+	int top_range = adjacent_edges & LAB_EDGE_TOP ?
+			rc.snap_edge_range_inner : rc.snap_edge_range_outer;
+	int bottom_range = adjacent_edges & LAB_EDGE_BOTTOM ?
+			rc.snap_edge_range_inner : rc.snap_edge_range_outer;
+	int left_range = adjacent_edges & LAB_EDGE_LEFT ?
+			rc.snap_edge_range_inner : rc.snap_edge_range_outer;
+	int right_range = adjacent_edges & LAB_EDGE_RIGHT ?
+			rc.snap_edge_range_inner : rc.snap_edge_range_outer;
 
 	if (top < top_range) {
 		*edge1 = LAB_EDGE_TOP;

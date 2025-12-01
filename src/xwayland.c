@@ -274,6 +274,7 @@ handle_commit(struct wl_listener *listener, void *data)
 	 */
 	if (current->width != state->width || current->height != state->height) {
 		view_impl_apply_geometry(view, state->width, state->height);
+		view_moved(view);
 	}
 }
 

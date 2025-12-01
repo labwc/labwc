@@ -138,16 +138,9 @@ static struct view *
 desktop_topmost_focusable_view(struct server *server)
 {
 	struct view *view;
-	struct wl_list *node_list;
-	struct wlr_scene_node *node;
-	node_list = &server->workspaces.current->tree->children;
-	wl_list_for_each_reverse(node, node_list, link) {
-		if (!node->data) {
-			/* We found some non-view, most likely the region overlay */
-			continue;
-		}
-		view = node_view_from_node(node);
-		if (view_is_focusable(view) && !view->minimized) {
+	for_each_view_reverse(view, &server->views,
+			LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+		if (!view->minimized) {
 			return view;
 		}
 	}
@@ -172,41 +165,31 @@ desktop_focus_topmost_view(struct server *server)
 void
 desktop_focus_output(struct output *output)
 {
-	if (!output_is_usable(output) || output->server->input_mode
+	struct server *server = output->server;
+
+	if (!output_is_usable(output) || server->input_mode
 			!= LAB_INPUT_STATE_PASSTHROUGH) {
 		return;
 	}
 	struct view *view;
-	struct wlr_scene_node *node;
-	struct wlr_output_layout *layout = output->server->output_layout;
-	struct wl_list *list_head =
-		&output->server->workspaces.current->tree->children;
-	wl_list_for_each_reverse(node, list_head, link) {
-		if (!node->data) {
-			continue;
-		}
-		view = node_view_from_node(node);
-		if (!view_is_focusable(view)) {
-			continue;
-		}
-		if (wlr_output_layout_intersects(layout,
-				output->wlr_output, &view->current)) {
+	for_each_view(view, &server->views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+		if (view->outputs & output->id_bit) {
 			desktop_focus_view(view, /*raise*/ false);
-			wlr_cursor_warp(view->server->seat.cursor, NULL,
+			wlr_cursor_warp(server->seat.cursor, NULL,
 				view->current.x + view->current.width / 2,
 				view->current.y + view->current.height / 2);
-			cursor_update_focus(view->server);
+			cursor_update_focus(server);
 			return;
 		}
 	}
 	/* No view found on desired output */
 	struct wlr_box layout_box;
-	wlr_output_layout_get_box(output->server->output_layout,
+	wlr_output_layout_get_box(server->output_layout,
 		output->wlr_output, &layout_box);
-	wlr_cursor_warp(output->server->seat.cursor, NULL,
+	wlr_cursor_warp(server->seat.cursor, NULL,
 		layout_box.x + output->usable_area.x + output->usable_area.width / 2,
 		layout_box.y + output->usable_area.y + output->usable_area.height / 2);
-	cursor_update_focus(output->server);
+	cursor_update_focus(server);
 }
 
 void

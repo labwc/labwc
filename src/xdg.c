@@ -1019,7 +1019,7 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 	}
 
 	view->workspace = server->workspaces.current;
-	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
+	view->scene_tree = wlr_scene_tree_create(server->view_tree);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 
 	struct wlr_scene_tree *tree = wlr_scene_xdg_surface_create(

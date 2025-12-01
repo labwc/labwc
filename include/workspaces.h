@@ -8,14 +8,12 @@
 
 struct seat;
 struct server;
-struct wlr_scene_tree;
 
 struct workspace {
 	struct wl_list link; /* struct server.workspaces */
 	struct server *server;
 
 	char *name;
-	struct wlr_scene_tree *tree;
 
 	struct lab_cosmic_workspace *cosmic_workspace;
 	struct {

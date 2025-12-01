@@ -1010,7 +1010,7 @@ xwayland_view_create(struct server *server,
 	xsurface->data = view;
 
 	view->workspace = server->workspaces.current;
-	view->scene_tree = wlr_scene_tree_create(view->workspace->tree);
+	view->scene_tree = wlr_scene_tree_create(server->view_tree);
 	node_descriptor_create(&view->scene_tree->node,
 		LAB_NODE_VIEW, view, /*data*/ NULL);
 

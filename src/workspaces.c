@@ -234,9 +234,7 @@ add_workspace(struct server *server, const char *name)
 	struct workspace *workspace = znew(*workspace);
 	workspace->server = server;
 	workspace->name = xstrdup(name);
-	workspace->tree = wlr_scene_tree_create(server->view_tree);
 	wl_list_append(&server->workspaces.all, &workspace->link);
-	wlr_scene_node_set_enabled(&workspace->tree->node, false);
 
 	/* cosmic */
 	workspace->cosmic_workspace = lab_cosmic_workspace_create(server->workspaces.cosmic_group);
@@ -435,7 +433,6 @@ workspaces_init(struct server *server)
 	}
 
 	server->workspaces.current = initial;
-	wlr_scene_node_set_enabled(&initial->tree->node, true);
 	lab_cosmic_workspace_set_active(initial->cosmic_workspace, true);
 	lab_ext_workspace_set_active(initial->ext_workspace, true);
 }
@@ -454,27 +451,10 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 		return;
 	}
 
-	/* Disable the old workspace */
-	wlr_scene_node_set_enabled(
-		&server->workspaces.current->tree->node, false);
-
 	lab_cosmic_workspace_set_active(
 		server->workspaces.current->cosmic_workspace, false);
 	lab_ext_workspace_set_active(
 		server->workspaces.current->ext_workspace, false);
-
-	/* Move Omnipresent views to new workspace */
-	struct view *view;
-	enum lab_view_criteria criteria =
-		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
-	for_each_view_reverse(view, &server->views, criteria) {
-		if (view->visible_on_all_workspaces) {
-			view_move_to_workspace(view, target);
-		}
-	}
-
-	/* Enable the new workspace */
-	wlr_scene_node_set_enabled(&target->tree->node, true);
 
 	/* Save the last visited workspace */
 	server->workspaces.last = server->workspaces.current;
@@ -483,24 +463,26 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	server->workspaces.current = target;
 
 	struct view *grabbed_view = server->grabbed_view;
-	if (grabbed_view && !view_is_always_on_top(grabbed_view)) {
+	if (grabbed_view) {
 		view_move_to_workspace(grabbed_view, target);
+	}
+
+	struct view *view;
+	wl_list_for_each(view, &server->views, link) {
+		/* Omnipresent views are always in the current workspace */
+		if (view->visible_on_all_workspaces) {
+			view->workspace = target;
+		}
+		view_update_visibility(view);
 	}
 
 	/*
 	 * Make sure we are focusing what the user sees. Only refocus if
-	 * the focus is not already on an omnipresent or always-on-top view.
-	 *
-	 * TODO: Decouple always-on-top views from the omnipresent state.
-	 *       One option for that would be to create a new scene tree
-	 *       as child of every workspace tree and then reparent a-o-t
-	 *       windows to that one. Combined with adjusting the condition
-	 *       below that should take care of the issue.
+	 * the focus is not already on an omnipresent.
 	 */
 	if (update_focus) {
 		struct view *active_view = server->active_view;
-		if (!active_view || (!active_view->visible_on_all_workspaces
-				&& !view_is_always_on_top(active_view))) {
+		if (!active_view || !active_view->visible_on_all_workspaces) {
 			desktop_focus_topmost_view(server);
 		}
 	}
@@ -513,9 +495,6 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	 * cursor image from the previous desktop
 	 */
 	cursor_update_focus(server);
-
-	/* Ensure that only currently visible fullscreen windows hide the top layer */
-	desktop_update_top_layer_visibility(server);
 
 	lab_cosmic_workspace_set_active(target->cosmic_workspace, true);
 	lab_ext_workspace_set_active(target->ext_workspace, true);
@@ -569,7 +548,6 @@ workspaces_find(struct workspace *anchor, const char *name, bool wrap)
 static void
 destroy_workspace(struct workspace *workspace)
 {
-	wlr_scene_node_destroy(&workspace->tree->node);
 	zfree(workspace->name);
 	wl_list_remove(&workspace->link);
 	wl_list_remove(&workspace->on_cosmic.activate.link);

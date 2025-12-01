@@ -238,6 +238,7 @@ handle_commit(struct wl_listener *listener, void *data)
 
 	if (update_required) {
 		view_impl_apply_geometry(view, size.width, size.height);
+		view_moved(view);
 
 		/*
 		 * Some views (e.g., terminals that scale as multiples of rows

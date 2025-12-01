@@ -1699,6 +1699,12 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 		view_apply_special_geometry(view);
 	}
 	output_set_has_fullscreen_view(view->output, view->fullscreen);
+	/*
+	 * Entering/leaving fullscreen might result in a different
+	 * scene node ending up under the cursor even if view_moved()
+	 * isn't called. Update cursor focus explicitly for that case.
+	 */
+	cursor_update_focus(view->server);
 }
 
 static bool

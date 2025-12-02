@@ -1051,7 +1051,6 @@ handle_new_surface(struct wl_listener *listener, void *data)
 	struct server *server =
 		wl_container_of(listener, server, xwayland_new_surface);
 	struct wlr_xwayland_surface *xsurface = data;
-	wlr_xwayland_surface_ping(xsurface);
 
 	/*
 	 * We do not create 'views' for xwayland override_redirect surfaces,

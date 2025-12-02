@@ -1222,13 +1222,13 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "output.osd.windowSwitcher")) {
 		if (!strcasecmp(content, "all")) {
 			rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_ALL;
-		} else if (!strcasecmp(content, "pointer")) {
-			rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_POINTER;
-		} else if (!strcasecmp(content, "keyboard")) {
-			rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_KEYBOARD;
+		} else if (!strcasecmp(content, "cursor")) {
+			rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_CURSOR;
+		} else if (!strcasecmp(content, "focused")) {
+			rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_FOCUSED;
 		} else {
 			wlr_log(WLR_ERROR, "Invalid windowSwitcher output %s: "
-				"should be one of all|pointer|keyboard", content);
+				"should be one of all|focused|cursor", content);
 		}
 
 	/* The following two are for backward compatibility only. */

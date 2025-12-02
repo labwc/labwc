@@ -371,10 +371,10 @@ this is for compatibility with Openbox.
 	"classic" displays window information like icons and titles in a vertical list.
 	"thumbnail" shows window thumbnail, icon and title in grids.
 
-	*output* [all|pointer|keyboard] Configures which monitor(s) show the OSD.
+	*output* [all|focused|cursor] Configures which monitor(s) show the OSD.
 	"all" displays the OSD on all monitors.
-	"pointer" displays the OSD on the monitor containing the mouse pointer.
-	"keyboard" displays the OSD on the monitor with keyboard focus.
+	"focused" displays the OSD on the monitor with keyboard focus.
+	"cursor" displays the OSD on the monitor containing the mouse pointer.
 	Default is "all".
 
 	*thumbnailLabelFormat* Format to be used for the thumbnail label according to *custom*

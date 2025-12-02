@@ -586,43 +586,43 @@ server_init(struct server *server)
 	 */
 
 	if (server->renderer->features.input_color_transform) {
-	    const enum wp_color_manager_v1_render_intent render_intents[] = {
-	        WP_COLOR_MANAGER_V1_RENDER_INTENT_PERCEPTUAL,
-	    };
-	    const enum wp_color_manager_v1_transfer_function transfer_functions[] = {
-	        WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_SRGB,
-	        WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_ST2084_PQ,
-	        WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_EXT_LINEAR,
-	        WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_GAMMA22,
-	        WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_BT1886,
-	    };
-	    const enum wp_color_manager_v1_primaries primaries[] = {
-	        WP_COLOR_MANAGER_V1_PRIMARIES_SRGB,
-	        WP_COLOR_MANAGER_V1_PRIMARIES_BT2020,
-	    };
+		const enum wp_color_manager_v1_render_intent render_intents[] = {
+			WP_COLOR_MANAGER_V1_RENDER_INTENT_PERCEPTUAL,
+		};
+		const enum wp_color_manager_v1_transfer_function transfer_functions[] = {
+			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_SRGB,
+			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_ST2084_PQ,
+			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_EXT_LINEAR,
+			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_GAMMA22,
+			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_BT1886,
+		};
+		const enum wp_color_manager_v1_primaries primaries[] = {
+			WP_COLOR_MANAGER_V1_PRIMARIES_SRGB,
+			WP_COLOR_MANAGER_V1_PRIMARIES_BT2020,
+		};
 
-	    struct wlr_color_manager_v1 *cm = wlr_color_manager_v1_create(
-	        server->wl_display, 1, &(struct wlr_color_manager_v1_options){
-	            .features = {
-	                .parametric = true,
-	                .set_mastering_display_primaries = true,
-	            },
-	            .render_intents = render_intents,
-	            .render_intents_len = sizeof(render_intents) / sizeof(render_intents[0]),
-	            .transfer_functions = transfer_functions,
-	            .transfer_functions_len = sizeof(transfer_functions) / sizeof(transfer_functions[0]),
-	            .primaries = primaries,
-	            .primaries_len = sizeof(primaries) / sizeof(primaries[0]),
-	        });
-	    if (cm) {
-	        wlr_scene_set_color_manager_v1(server->scene, cm);
-	    } else {
-	        wlr_log(WLR_ERROR, "unable to create color manager");
-	    }
+		struct wlr_color_manager_v1 *cm = wlr_color_manager_v1_create(
+			server->wl_display, 1, &(struct wlr_color_manager_v1_options){
+				.features = {
+					.parametric = true,
+					.set_mastering_display_primaries = true,
+				},
+				.render_intents = render_intents,
+				.render_intents_len = ARRAY_SIZE(render_intents),
+				.transfer_functions = transfer_functions,
+				.transfer_functions_len = ARRAY_SIZE(transfer_functions),
+				.primaries = primaries,
+				.primaries_len = ARRAY_SIZE(primaries),
+			});
+		if (cm) {
+			wlr_scene_set_color_manager_v1(server->scene, cm);
+		} else {
+			wlr_log(WLR_ERROR, "unable to create color manager");
+		}
 	}
 
 	wlr_color_representation_manager_v1_create_with_renderer(
-    server->wl_display, 1, server->renderer);
+	server->wl_display, 1, server->renderer);
 
 	server->view_tree_always_on_bottom = wlr_scene_tree_create(&server->scene->tree);
 	server->view_tree = wlr_scene_tree_create(&server->scene->tree);

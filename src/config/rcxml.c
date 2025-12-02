@@ -1235,7 +1235,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.show);
 		wlr_log(WLR_ERROR, "<windowSwitcher show=\"\" /> is deprecated."
-			" Use <osd show=\"\" />");
+			" Use <windowSwitcher><osd show=\"\" />");
 	} else if (!strcasecmp(nodename, "style.windowSwitcher")) {
 		if (!strcasecmp(content, "classic")) {
 			rc.window_switcher.style = CYCLE_OSD_STYLE_CLASSIC;
@@ -1243,7 +1243,7 @@ entry(xmlNode *node, char *nodename, char *content)
 			rc.window_switcher.style = CYCLE_OSD_STYLE_THUMBNAIL;
 		}
 		wlr_log(WLR_ERROR, "<windowSwitcher style=\"\" /> is deprecated."
-			" Use <osd style=\"\" />");
+			" Use <windowSwitcher><osd style=\"\" />");
 
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.preview);

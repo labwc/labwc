@@ -999,8 +999,6 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 
 	assert(xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL);
 
-	wlr_xdg_surface_ping(xdg_surface);
-
 	struct xdg_toplevel_view *xdg_toplevel_view = znew(*xdg_toplevel_view);
 	struct view *view = &xdg_toplevel_view->base;
 

@@ -363,7 +363,7 @@ this is for compatibility with Openbox.
 	*unshade* [yes|no] Temporarily unshade windows when switching between
 	them and permanently unshade on the final selection. Default is yes.
 
-*<osd show="" style="" output="" thumbnailLabelFormat="" />*
+*<windowSwitcher><osd show="" style="" output="" thumbnailLabelFormat="" />*
 	*show* [yes|no] Draw the OnScreenDisplay when switching between
 	windows. Default is yes.
 

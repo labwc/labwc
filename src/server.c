@@ -8,6 +8,8 @@
 #include <wlr/backend/multi.h>
 #include <wlr/render/allocator.h>
 #include <wlr/types/wlr_alpha_modifier_v1.h>
+#include <wlr/types/wlr_color_management_v1.h>
+#include <wlr/types/wlr_color_representation_v1.h>
 #include <wlr/types/wlr_data_control_v1.h>
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_drm.h>
@@ -553,6 +555,7 @@ server_init(struct server *server)
 
 	wl_list_init(&server->views);
 	wl_list_init(&server->unmanaged_surfaces);
+	wl_list_init(&server->cycle.views);
 
 	server->scene = wlr_scene_create();
 	if (!server->scene) {
@@ -566,22 +569,61 @@ server_init(struct server *server)
 	 * z-order for nodes which cover the whole work-area.  For per-output
 	 * scene-trees, see handle_new_output() in src/output.c
 	 *
-	 * | Type              | Scene Tree       | Per Output | Example
-	 * | ----------------- | ---------------- | ---------- | -------
-	 * | ext-session       | lock-screen      | Yes        | swaylock
-	 * | osd               | osd_tree         | Yes        |
-	 * | compositor-menu   | menu_tree        | No         | root-menu
-	 * | layer-shell       | layer-popups     | Yes        |
-	 * | layer-shell       | overlay-layer    | Yes        |
-	 * | layer-shell       | top-layer        | Yes        | waybar
-	 * | xwayland-OR       | unmanaged        | No         | dmenu
-	 * | xdg-popups        | xdg-popups       | No         |
-	 * | toplevels windows | always-on-top    | No         |
-	 * | toplevels windows | normal           | No         | firefox
-	 * | toplevels windows | always-on-bottom | No         | pcmanfm-qt --desktop
-	 * | layer-shell       | bottom-layer     | Yes        | waybar
-	 * | layer-shell       | background-layer | Yes        | swaybg
+	 * | Type                | Scene Tree       | Per Output | Example
+	 * | ------------------- | ---------------- | ---------- | -------
+	 * | ext-session         | lock-screen      | Yes        | swaylock
+	 * | window switcher OSD | cycle_osd_tree   | Yes        |
+	 * | compositor-menu     | menu_tree        | No         | root-menu
+	 * | layer-shell         | layer-popups     | Yes        |
+	 * | layer-shell         | overlay-layer    | Yes        |
+	 * | layer-shell         | top-layer        | Yes        | waybar
+	 * | xwayland-OR         | unmanaged        | No         | dmenu
+	 * | xdg-popups          | xdg-popups       | No         |
+	 * | toplevels windows   | always-on-top    | No         |
+	 * | toplevels windows   | normal           | No         | firefox
+	 * | toplevels windows   | always-on-bottom | No         | pcmanfm-qt --desktop
+	 * | layer-shell         | bottom-layer     | Yes        | waybar
+	 * | layer-shell         | background-layer | Yes        | swaybg
 	 */
+
+	if (server->renderer->features.input_color_transform) {
+		const enum wp_color_manager_v1_render_intent render_intents[] = {
+			WP_COLOR_MANAGER_V1_RENDER_INTENT_PERCEPTUAL,
+		};
+		const enum wp_color_manager_v1_transfer_function transfer_functions[] = {
+			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_SRGB,
+			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_ST2084_PQ,
+			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_EXT_LINEAR,
+			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_GAMMA22,
+			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_BT1886,
+		};
+		const enum wp_color_manager_v1_primaries primaries[] = {
+			WP_COLOR_MANAGER_V1_PRIMARIES_SRGB,
+			WP_COLOR_MANAGER_V1_PRIMARIES_BT2020,
+		};
+
+		struct wlr_color_manager_v1 *cm = wlr_color_manager_v1_create(
+			server->wl_display, 1, &(struct wlr_color_manager_v1_options){
+				.features = {
+					.parametric = true,
+					.set_mastering_display_primaries = true,
+				},
+				.render_intents = render_intents,
+				.render_intents_len = ARRAY_SIZE(render_intents),
+				.transfer_functions = transfer_functions,
+				.transfer_functions_len = ARRAY_SIZE(transfer_functions),
+				.primaries = primaries,
+				.primaries_len = ARRAY_SIZE(primaries),
+			});
+		if (cm) {
+			wlr_scene_set_color_manager_v1(server->scene, cm);
+		} else {
+			wlr_log(WLR_ERROR, "unable to create color manager");
+		}
+
+		wlr_color_representation_manager_v1_create_with_renderer(
+			server->wl_display, 1, server->renderer);
+	}
 
 	server->view_tree_always_on_bottom = wlr_scene_tree_create(&server->scene->tree);
 	server->view_tree = wlr_scene_tree_create(&server->scene->tree);

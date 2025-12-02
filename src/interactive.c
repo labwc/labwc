@@ -42,7 +42,7 @@ interactive_anchor_to_cursor(struct server *server, struct wlr_box *geo)
 	if (wlr_box_empty(geo)) {
 		return;
 	}
-	/* Resize grab_box while anchoring it to grab_box.{x,y} */
+	/* Resize grab_box while anchoring it to grab_{x,y} */
 	server->grab_box.x = max_move_scale(server->grab_x, server->grab_box.x,
 		server->grab_box.width, geo->width);
 	server->grab_box.y = max_move_scale(server->grab_y, server->grab_box.y,

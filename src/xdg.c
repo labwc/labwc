@@ -10,6 +10,7 @@
 #include <wlr/types/wlr_xdg_toplevel_icon_v1.h>
 #include "buffer.h"
 #include "common/array.h"
+#include "common/box.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
@@ -129,6 +130,58 @@ do_late_positioning(struct view *view)
 	}
 }
 
+static void
+disable_fullscreen_bg(struct view *view)
+{
+	struct xdg_toplevel_view *xdg_view = xdg_toplevel_view_from_view(view);
+	if (xdg_view->fullscreen_bg) {
+		wlr_scene_node_set_enabled(&xdg_view->fullscreen_bg->node, false);
+	}
+}
+
+/*
+ * Centers any fullscreen view smaller than the full output size.
+ * This should be called immediately before view_moved().
+ */
+static void
+center_fullscreen_if_needed(struct view *view)
+{
+	if (!view->fullscreen || !output_is_usable(view->output)) {
+		disable_fullscreen_bg(view);
+		return;
+	}
+
+	struct wlr_box output_box = {0};
+	wlr_output_layout_get_box(view->server->output_layout,
+		view->output->wlr_output, &output_box);
+	box_center(view->current.width, view->current.height, &output_box,
+		&output_box, &view->current.x, &view->current.y);
+
+	/* Reset pending x/y to computed position also */
+	view->pending.x = view->current.x;
+	view->pending.y = view->current.y;
+
+	if (view->current.width >= output_box.width
+			&& view->current.width >= output_box.height) {
+		disable_fullscreen_bg(view);
+		return;
+	}
+
+	struct xdg_toplevel_view *xdg_view = xdg_toplevel_view_from_view(view);
+	if (!xdg_view->fullscreen_bg) {
+		const float black[4] = {0, 0, 0, 1};
+		xdg_view->fullscreen_bg =
+			wlr_scene_rect_create(view->scene_tree, 0, 0, black);
+		wlr_scene_node_lower_to_bottom(&xdg_view->fullscreen_bg->node);
+	}
+
+	wlr_scene_node_set_position(&xdg_view->fullscreen_bg->node,
+		output_box.x - view->current.x, output_box.y - view->current.y);
+	wlr_scene_rect_set_size(xdg_view->fullscreen_bg,
+		output_box.width, output_box.height);
+	wlr_scene_node_set_enabled(&xdg_view->fullscreen_bg->node, true);
+}
+
 /* TODO: reorder so this forward declaration isn't needed */
 static void set_pending_configure_serial(struct view *view, uint32_t serial);
 
@@ -238,6 +291,8 @@ handle_commit(struct wl_listener *listener, void *data)
 
 	if (update_required) {
 		view_impl_apply_geometry(view, size.width, size.height);
+		center_fullscreen_if_needed(view);
+		view_moved(view);
 
 		/*
 		 * Some views (e.g., terminals that scale as multiples of rows
@@ -335,8 +390,10 @@ handle_configure_timeout(void *data)
 		}
 		view->current.x = view->pending.x;
 		view->current.y = view->pending.y;
-		view_moved(view);
 	}
+
+	center_fullscreen_if_needed(view);
+	view_moved(view);
 
 	/* Re-sync pending view with current state */
 	snap_constraints_update(view);
@@ -400,7 +457,7 @@ handle_request_move(struct wl_listener *listener, void *data)
 	 * want.
 	 */
 	struct view *view = wl_container_of(listener, view, request_move);
-	if (view == view->server->seat.pressed.view) {
+	if (view == view->server->seat.pressed.ctx.view) {
 		interactive_begin(view, LAB_INPUT_STATE_MOVE, LAB_EDGE_NONE);
 	}
 }
@@ -418,7 +475,7 @@ handle_request_resize(struct wl_listener *listener, void *data)
 	 */
 	struct wlr_xdg_toplevel_resize_event *event = data;
 	struct view *view = wl_container_of(listener, view, request_resize);
-	if (view == view->server->seat.pressed.view) {
+	if (view == view->server->seat.pressed.ctx.view) {
 		interactive_begin(view, LAB_INPUT_STATE_RESIZE, event->edges);
 	}
 }
@@ -545,6 +602,12 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 	} else if (view->pending_configure_serial == 0) {
 		view->current.x = geo.x;
 		view->current.y = geo.y;
+		/*
+		 * It's a bit difficult to think of a corner case where
+		 * center_fullscreen_if_needed() would actually be needed
+		 * here, but including it anyway for completeness.
+		 */
+		center_fullscreen_if_needed(view);
 		view_moved(view);
 	}
 }
@@ -662,6 +725,10 @@ xdg_toplevel_view_set_fullscreen(struct view *view, bool fullscreen)
 		xdg_toplevel_from_view(view), fullscreen);
 	if (serial > 0) {
 		set_pending_configure_serial(view, serial);
+	}
+	/* Disable background fill immediately on leaving fullscreen */
+	if (!fullscreen) {
+		disable_fullscreen_bg(view);
 	}
 }
 
@@ -784,6 +851,9 @@ handle_map(struct wl_listener *listener, void *data)
 		if (view_is_floating(view)) {
 			set_initial_position(view);
 		}
+
+		/* Disable background fill at map (paranoid?) */
+		disable_fullscreen_bg(view);
 
 		/*
 		 * Set initial "current" position directly before
@@ -928,8 +998,6 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 	struct wlr_xdg_surface *xdg_surface = xdg_toplevel->base;
 
 	assert(xdg_surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL);
-
-	wlr_xdg_surface_ping(xdg_surface);
 
 	struct xdg_toplevel_view *xdg_toplevel_view = znew(*xdg_toplevel_view);
 	struct view *view = &xdg_toplevel_view->base;

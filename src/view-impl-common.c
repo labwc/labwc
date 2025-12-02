@@ -65,7 +65,6 @@ view_impl_apply_geometry(struct view *view, int w, int h)
 {
 	struct wlr_box *current = &view->current;
 	struct wlr_box *pending = &view->pending;
-	struct wlr_box old = *current;
 
 	/*
 	 * Anchor right edge if resizing via left edge.
@@ -100,8 +99,4 @@ view_impl_apply_geometry(struct view *view, int w, int h)
 
 	current->width = w;
 	current->height = h;
-
-	if (!wlr_box_equal(current, &old)) {
-		view_moved(view);
-	}
 }

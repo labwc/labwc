@@ -1438,3 +1438,13 @@ xwayland_update_workarea(struct server *server)
 	};
 	wlr_xwayland_set_workareas(server->xwayland, &workarea, 1);
 }
+
+void
+xwayland_flush(struct server *server)
+{
+	if (!server->xwayland || !server->xwayland->xwm) {
+		return;
+	}
+
+	xcb_flush(wlr_xwayland_get_xwm_connection(server->xwayland));
+}

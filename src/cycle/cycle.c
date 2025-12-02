@@ -299,10 +299,10 @@ init_cycle(struct server *server)
 			}
 			break;
 		}
-		case CYCLE_OSD_OUTPUT_POINTER:
+		case CYCLE_OSD_OUTPUT_CURSOR:
 			create_osd_on_output(output_nearest_to_cursor(server));
 			break;
-		case CYCLE_OSD_OUTPUT_KEYBOARD: {
+		case CYCLE_OSD_OUTPUT_FOCUSED: {
 			struct output *output;
 			if (server->active_view) {
 				output = server->active_view->output;

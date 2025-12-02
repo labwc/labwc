@@ -114,8 +114,8 @@ enum cycle_osd_style {
 
 enum cycle_osd_output_criteria {
 	CYCLE_OSD_OUTPUT_ALL,
-	CYCLE_OSD_OUTPUT_POINTER,
-	CYCLE_OSD_OUTPUT_KEYBOARD,
+	CYCLE_OSD_OUTPUT_CURSOR,
+	CYCLE_OSD_OUTPUT_FOCUSED,
 };
 
 #endif /* LABWC_CONFIG_TYPES_H */

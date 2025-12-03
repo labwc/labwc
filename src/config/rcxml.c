@@ -714,6 +714,8 @@ fill_libinput_category(xmlNode *node)
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
 		if (string_null_or_empty(content)) {
+			wlr_log(WLR_ERROR, "Empty string is not allowed for "
+				"<libinput><device><%s>. Ignoring.", key);
 			continue;
 		}
 		if (!strcmp(key, "category")) {
@@ -1076,7 +1078,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		return true;
 
 	} else if (str_space_only(content)) {
-		/* ignore empty leaf nodes other than above */
+		wlr_log(WLR_ERROR, "Empty string is not allowed for %s. "
+			"Ignoring.", nodename);
 
 	/* handle non-empty leaf nodes */
 	} else if (!strcmp(nodename, "decoration.core")) {

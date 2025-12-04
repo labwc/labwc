@@ -188,6 +188,7 @@ struct server {
 	struct wl_listener xdg_toplevel_icon_set_icon;
 
 	struct wl_list views;
+	uint64_t next_view_creation_iid;
 	struct wl_list unmanaged_surfaces;
 
 	struct seat seat;

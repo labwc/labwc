@@ -185,6 +185,7 @@ struct rcxml {
 		enum cycle_osd_style style;
 		enum cycle_osd_output_criteria output_criteria;
 		char *thumbnail_label_format;
+		enum window_switcher_order order;
 	} window_switcher;
 
 	struct wl_list window_rules; /* struct window_rule.link */

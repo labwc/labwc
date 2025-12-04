@@ -107,6 +107,11 @@ enum lab_window_type {
 	LAB_WINDOW_TYPE_LEN
 };
 
+enum window_switcher_order {
+	WINDOW_SWITCHER_ORDER_FOCUS,
+	WINDOW_SWITCHER_ORDER_AGE,
+};
+
 enum cycle_osd_style {
 	CYCLE_OSD_STYLE_CLASSIC,
 	CYCLE_OSD_STYLE_THUMBNAIL,

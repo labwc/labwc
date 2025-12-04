@@ -182,19 +182,19 @@ find_adjacent_edges(struct seat *seat, struct output *output)
 		return adjacent;
 	}
 	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_UP,
-		output->wlr_output, output->usable_area.x, output->usable_area.y)) {
+			output->wlr_output, output->usable_area.x, output->usable_area.y)) {
 		adjacent |= LAB_EDGE_TOP;
 	}
 	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_DOWN,
-		output->wlr_output, output->usable_area.x, output->usable_area.y)) {
+			output->wlr_output, output->usable_area.x, output->usable_area.y)) {
 		adjacent |= LAB_EDGE_BOTTOM;
 	}
 	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_LEFT,
-		output->wlr_output, output->usable_area.x, output->usable_area.y)) {
+			output->wlr_output, output->usable_area.x, output->usable_area.y)) {
 		adjacent |= LAB_EDGE_LEFT;
 	}
 	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_RIGHT,
-		output->wlr_output, output->usable_area.x, output->usable_area.y)) {
+			output->wlr_output, output->usable_area.x, output->usable_area.y)) {
 		adjacent |= LAB_EDGE_RIGHT;
 	}
 	return adjacent;

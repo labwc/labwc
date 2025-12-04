@@ -840,10 +840,12 @@ apply_constraint(struct seat *seat, struct wlr_pointer *pointer, double *x, doub
 	if (!seat->server->active_view) {
 		return;
 	}
-	if (!seat->current_constraint || pointer->base.type != WLR_INPUT_DEVICE_POINTER) {
+	if (!seat->current_constraint
+			|| pointer->base.type != WLR_INPUT_DEVICE_POINTER
+			|| seat->current_constraint->type
+				!= WLR_POINTER_CONSTRAINT_V1_CONFINED) {
 		return;
 	}
-	assert(seat->current_constraint->type == WLR_POINTER_CONSTRAINT_V1_CONFINED);
 
 	double sx = seat->cursor->x;
 	double sy = seat->cursor->y;
@@ -866,7 +868,9 @@ cursor_locked(struct seat *seat, struct wlr_pointer *pointer)
 {
 	return seat->current_constraint
 		&& pointer->base.type == WLR_INPUT_DEVICE_POINTER
-		&& seat->current_constraint->type == WLR_POINTER_CONSTRAINT_V1_LOCKED;
+		&& seat->current_constraint->type == WLR_POINTER_CONSTRAINT_V1_LOCKED
+		&& seat->current_constraint->surface
+			== seat->seat->pointer_state.focused_surface;
 }
 
 static void

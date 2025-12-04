@@ -29,8 +29,8 @@
 #include "config/tablet.h"
 #include "config/tablet-tool.h"
 #include "config/touch.h"
+#include "cycle.h"
 #include "labwc.h"
-#include "osd.h"
 #include "regions.h"
 #include "ssd.h"
 #include "translate.h"
@@ -323,23 +323,23 @@ fill_window_rules(xmlNode *node)
 static void
 clear_window_switcher_fields(void)
 {
-	struct window_switcher_field *field, *field_tmp;
+	struct cycle_osd_field *field, *field_tmp;
 	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.fields, link) {
 		wl_list_remove(&field->link);
-		osd_field_free(field);
+		cycle_osd_field_free(field);
 	}
 }
 
 static void
 fill_window_switcher_field(xmlNode *node)
 {
-	struct window_switcher_field *field = znew(*field);
+	struct cycle_osd_field *field = znew(*field);
 	wl_list_append(&rc.window_switcher.fields, &field->link);
 
 	xmlNode *child;
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
-		osd_field_arg_from_xml_node(field, key, content);
+		cycle_osd_field_arg_from_xml_node(field, key, content);
 	}
 }
 
@@ -714,6 +714,8 @@ fill_libinput_category(xmlNode *node)
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
 		if (string_null_or_empty(content)) {
+			wlr_log(WLR_ERROR, "Empty string is not allowed for "
+				"<libinput><device><%s>. Ignoring.", key);
 			continue;
 		}
 		if (!strcmp(key, "category")) {
@@ -1076,7 +1078,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		return true;
 
 	} else if (str_space_only(content)) {
-		/* ignore empty leaf nodes other than above */
+		wlr_log(WLR_ERROR, "Empty string is not allowed for %s. "
+			"Ignoring.", nodename);
 
 	/* handle non-empty leaf nodes */
 	} else if (!strcmp(nodename, "decoration.core")) {
@@ -1217,38 +1220,38 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_bool(content, &rc.window_switcher.show);
 	} else if (!strcasecmp(nodename, "style.osd.windowSwitcher")) {
 		if (!strcasecmp(content, "classic")) {
-			rc.window_switcher.style = WINDOW_SWITCHER_CLASSIC;
+			rc.window_switcher.style = CYCLE_OSD_STYLE_CLASSIC;
 		} else if (!strcasecmp(content, "thumbnail")) {
-			rc.window_switcher.style = WINDOW_SWITCHER_THUMBNAIL;
+			rc.window_switcher.style = CYCLE_OSD_STYLE_THUMBNAIL;
 		} else {
 			wlr_log(WLR_ERROR, "Invalid windowSwitcher style %s: "
 				"should be one of classic|thumbnail", content);
 		}
 	} else if (!strcasecmp(nodename, "output.osd.windowSwitcher")) {
 		if (!strcasecmp(content, "all")) {
-			rc.window_switcher.output_criteria = OSD_OUTPUT_ALL;
-		} else if (!strcasecmp(content, "pointer")) {
-			rc.window_switcher.output_criteria = OSD_OUTPUT_POINTER;
-		} else if (!strcasecmp(content, "keyboard")) {
-			rc.window_switcher.output_criteria = OSD_OUTPUT_KEYBOARD;
+			rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_ALL;
+		} else if (!strcasecmp(content, "cursor")) {
+			rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_CURSOR;
+		} else if (!strcasecmp(content, "focused")) {
+			rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_FOCUSED;
 		} else {
 			wlr_log(WLR_ERROR, "Invalid windowSwitcher output %s: "
-				"should be one of all|pointer|keyboard", content);
+				"should be one of all|focused|cursor", content);
 		}
 
 	/* The following two are for backward compatibility only. */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.show);
 		wlr_log(WLR_ERROR, "<windowSwitcher show=\"\" /> is deprecated."
-			" Use <osd show=\"\" />");
+			" Use <windowSwitcher><osd show=\"\" />");
 	} else if (!strcasecmp(nodename, "style.windowSwitcher")) {
 		if (!strcasecmp(content, "classic")) {
-			rc.window_switcher.style = WINDOW_SWITCHER_CLASSIC;
+			rc.window_switcher.style = CYCLE_OSD_STYLE_CLASSIC;
 		} else if (!strcasecmp(content, "thumbnail")) {
-			rc.window_switcher.style = WINDOW_SWITCHER_THUMBNAIL;
+			rc.window_switcher.style = CYCLE_OSD_STYLE_THUMBNAIL;
 		}
 		wlr_log(WLR_ERROR, "<windowSwitcher style=\"\" /> is deprecated."
-			" Use <osd style=\"\" />");
+			" Use <windowSwitcher><osd style=\"\" />");
 
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.preview);
@@ -1471,8 +1474,8 @@ rcxml_init(void)
 	rc.snap_tiling_events_mode = LAB_TILING_EVENTS_ALWAYS;
 
 	rc.window_switcher.show = true;
-	rc.window_switcher.style = WINDOW_SWITCHER_CLASSIC;
-	rc.window_switcher.output_criteria = OSD_OUTPUT_ALL;
+	rc.window_switcher.style = CYCLE_OSD_STYLE_CLASSIC;
+	rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_ALL;
 	rc.window_switcher.thumbnail_label_format = xstrdup("%T");
 	rc.window_switcher.preview = true;
 	rc.window_switcher.outlines = true;
@@ -1641,7 +1644,7 @@ static void
 load_default_window_switcher_fields(void)
 {
 	static const struct {
-		enum window_switcher_field_content content;
+		enum cycle_osd_field_content content;
 		int width;
 	} fields[] = {
 #if HAVE_LIBSFDO
@@ -1654,7 +1657,7 @@ load_default_window_switcher_fields(void)
 #endif
 	};
 
-	struct window_switcher_field *field;
+	struct cycle_osd_field *field;
 	for (size_t i = 0; i < ARRAY_SIZE(fields); i++) {
 		field = znew(*field);
 		field->content = fields[i].content;
@@ -1873,13 +1876,13 @@ validate(void)
 
 	/* OSD fields */
 	int field_width_sum = 0;
-	struct window_switcher_field *field, *field_tmp;
+	struct cycle_osd_field *field, *field_tmp;
 	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.fields, link) {
 		field_width_sum += field->width;
-		if (!osd_field_is_valid(field) || field_width_sum > 100) {
+		if (!cycle_osd_field_is_valid(field) || field_width_sum > 100) {
 			wlr_log(WLR_ERROR, "Deleting invalid window switcher field %p", field);
 			wl_list_remove(&field->link);
-			osd_field_free(field);
+			cycle_osd_field_free(field);
 		}
 	}
 }

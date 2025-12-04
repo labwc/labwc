@@ -549,6 +549,7 @@ server_init(struct server *server)
 
 	wl_list_init(&server->views);
 	wl_list_init(&server->unmanaged_surfaces);
+	wl_list_init(&server->cycle.views);
 
 	server->scene = wlr_scene_create();
 	if (!server->scene) {
@@ -562,21 +563,21 @@ server_init(struct server *server)
 	 * z-order for nodes which cover the whole work-area.  For per-output
 	 * scene-trees, see handle_new_output() in src/output.c
 	 *
-	 * | Type              | Scene Tree       | Per Output | Example
-	 * | ----------------- | ---------------- | ---------- | -------
-	 * | ext-session       | lock-screen      | Yes        | swaylock
-	 * | osd               | osd_tree         | Yes        |
-	 * | compositor-menu   | menu_tree        | No         | root-menu
-	 * | layer-shell       | layer-popups     | Yes        |
-	 * | layer-shell       | overlay-layer    | Yes        |
-	 * | layer-shell       | top-layer        | Yes        | waybar
-	 * | xwayland-OR       | unmanaged        | No         | dmenu
-	 * | xdg-popups        | xdg-popups       | No         |
-	 * | toplevels windows | always-on-top    | No         |
-	 * | toplevels windows | normal           | No         | firefox
-	 * | toplevels windows | always-on-bottom | No         | pcmanfm-qt --desktop
-	 * | layer-shell       | bottom-layer     | Yes        | waybar
-	 * | layer-shell       | background-layer | Yes        | swaybg
+	 * | Type                | Scene Tree       | Per Output | Example
+	 * | ------------------- | ---------------- | ---------- | -------
+	 * | ext-session         | lock-screen      | Yes        | swaylock
+	 * | window switcher OSD | cycle_osd_tree   | Yes        |
+	 * | compositor-menu     | menu_tree        | No         | root-menu
+	 * | layer-shell         | layer-popups     | Yes        |
+	 * | layer-shell         | overlay-layer    | Yes        |
+	 * | layer-shell         | top-layer        | Yes        | waybar
+	 * | xwayland-OR         | unmanaged        | No         | dmenu
+	 * | xdg-popups          | xdg-popups       | No         |
+	 * | toplevels windows   | always-on-top    | No         |
+	 * | toplevels windows   | normal           | No         | firefox
+	 * | toplevels windows   | always-on-bottom | No         | pcmanfm-qt --desktop
+	 * | layer-shell         | bottom-layer     | Yes        | waybar
+	 * | layer-shell         | background-layer | Yes        | swaybg
 	 */
 
 	server->view_tree_always_on_bottom = wlr_scene_tree_create(&server->scene->tree);

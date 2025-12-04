@@ -33,8 +33,8 @@
 
   <!-- <font><theme> can be defined without an attribute to set all places -->
   <theme>
-    <name></name>
-    <icon></icon>
+    <!-- <name>Numix</name> -->
+    <!-- <icon>breeze</icon> -->
     <fallbackAppIcon>labwc</fallbackAppIcon>
     <titlebar>
       <layout>icon:iconify,max,close</layout>
@@ -218,9 +218,9 @@
     space automatically, so <margin> is only intended for other, specialist
     cases.
 
-    If output is left empty, the margin will be applied to all outputs.
+    If 'output' is not provided, the margin will be applied to all outputs.
 
-    <margin top="" bottom="" left="" right="" output="" />
+    <margin top="10" bottom="10" left="10" right="10" output="HDMI-A-1" />
   -->
 
   <!-- Percent based regions based on output usable area, % char is required -->
@@ -525,7 +525,11 @@
     If mouseEmulation is enabled, all touch up/down/motion events are
     translated to mouse button and motion events.
   -->
-  <touch deviceName="" mapToOutput="" mouseEmulation="no"/>
+  <touch>
+    <!-- <deviceName>ELAN2514:00 04F3:2AF1<deviceName> -->
+    <!-- <mapToOutput>HDMI-A-1</mapToOutput> -->
+    <mouseEmulation>no</mouseEmulation>
+  </touch>
 
   <!--
     The tablet cursor movement can be restricted to a single output.
@@ -552,7 +556,8 @@
     When using mouse emulation, the pen tip [tip] and the stylus buttons
     can be set to any available mouse button [Left|Right|Middle|..|Task].
   -->
-  <tablet mapToOutput="" rotate="0" mouseEmulation="no">
+  <tablet rotate="0" mouseEmulation="no">
+    <!-- <mapToOutput>HDMI-A-1</mapToOutput> -->
     <!-- Active area dimensions are in mm -->
     <area top="0.0" left="0.0" width="0.0" height="0.0" />
     <map button="Tip" to="Left" />
@@ -595,21 +600,21 @@
 
   <libinput>
     <device category="default">
-      <naturalScroll></naturalScroll>
-      <leftHanded></leftHanded>
-      <pointerSpeed></pointerSpeed>
-      <accelProfile></accelProfile>
+      <!-- <naturalScroll>no</naturalScroll> -->
+      <!-- <leftHanded>no</leftHanded> -->
+      <!-- <pointerSpeed>0.0</pointerSpeed> -->
+      <!-- <accelProfile>adaptive</accelProfile> -->
       <tap>yes</tap>
-      <tapButtonMap></tapButtonMap>
-      <tapAndDrag></tapAndDrag>
-      <dragLock></dragLock>
-      <threeFingerDrag></threeFingerDrag>
-      <middleEmulation></middleEmulation>
-      <disableWhileTyping></disableWhileTyping>
-      <clickMethod></clickMethod>
-      <scrollMethod></scrollMethod>
-      <sendEventsMode></sendEventsMode>
-      <calibrationMatrix></calibrationMatrix>
+      <!-- <tapButtonMap>lrm</tapButtonMap> -->
+      <!-- <tapAndDrag>yes</tapAndDrag> -->
+      <!-- <dragLock>yes</dragLock> -->
+      <!-- <threeFingerDrag>yes</threeFingerDrag> -->
+      <!-- <middleEmulation>no</middleEmulation> -->
+      <!-- <disableWhileTyping>yes</disableWhileTyping> -->
+      <!-- <clickMethod>buttonAreas</clickMethod> -->
+      <!-- <scrollMethod>twofinger</scrollMethod> -->
+      <!-- <sendEventsMode>yes</sendEventsMode> -->
+      <!-- <calibrationMatrix>1 0 0 0 1 0</calibrationMatrix> -->
       <scrollFactor>1.0</scrollFactor>
     </device>
   </libinput>
@@ -678,7 +683,7 @@
     <height>400</height>
     <initScale>2.0</initScale>
     <increment>0.2</increment>
-    <useFilter>true</useFilter>
+    <useFilter>yes</useFilter>
   </magnifier>
 
 </labwc_config>

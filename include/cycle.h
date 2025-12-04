@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-#ifndef LABWC_OSD_H
-#define LABWC_OSD_H
+#ifndef LABWC_CYCLE_H
+#define LABWC_CYCLE_H
 
 #include <stdbool.h>
 #include <wayland-server-core.h>
@@ -14,7 +14,7 @@ enum lab_cycle_dir {
 };
 
 /* TODO: add field with keyboard layout? */
-enum window_switcher_field_content {
+enum cycle_osd_field_content {
 	LAB_FIELD_NONE = 0,
 	LAB_FIELD_TYPE,
 	LAB_FIELD_TYPE_SHORT,
@@ -35,8 +35,8 @@ enum window_switcher_field_content {
 	LAB_FIELD_COUNT
 };
 
-struct window_switcher_field {
-	enum window_switcher_field_content content;
+struct cycle_osd_field {
+	enum cycle_osd_field_content content;
 	int width;
 	char *format;
 	struct wl_list link; /* struct rcxml.window_switcher.fields */
@@ -48,54 +48,54 @@ struct server;
 struct wlr_scene_node;
 
 /* Begin window switcher */
-void osd_begin(struct server *server, enum lab_cycle_dir direction);
+void cycle_begin(struct server *server, enum lab_cycle_dir direction);
 
 /* Cycle the selected view in the window switcher */
-void osd_cycle(struct server *server, enum lab_cycle_dir direction);
+void cycle_step(struct server *server, enum lab_cycle_dir direction);
 
 /* Closes the OSD */
-void osd_finish(struct server *server, bool switch_focus);
+void cycle_finish(struct server *server, bool switch_focus);
 
-/* Notify OSD about a destroying view */
-void osd_on_view_destroy(struct view *view);
+/* Re-initialize the window switcher */
+void cycle_reinitialize(struct server *server);
 
 /* Focus the clicked window and close OSD */
-void osd_on_cursor_release(struct server *server, struct wlr_scene_node *node);
+void cycle_on_cursor_release(struct server *server, struct wlr_scene_node *node);
 
 /* Used by osd.c internally to render window switcher fields */
-void osd_field_get_content(struct window_switcher_field *field,
+void cycle_osd_field_get_content(struct cycle_osd_field *field,
 	struct buf *buf, struct view *view);
 /* Sets view info to buf according to format */
-void osd_field_set_custom(struct buf *buf, struct view *view,
+void cycle_osd_field_set_custom(struct buf *buf, struct view *view,
 	const char *format);
 
 /* Used by rcxml.c when parsing the config */
-void osd_field_arg_from_xml_node(struct window_switcher_field *field,
+void cycle_osd_field_arg_from_xml_node(struct cycle_osd_field *field,
 	const char *nodename, const char *content);
-bool osd_field_is_valid(struct window_switcher_field *field);
-void osd_field_free(struct window_switcher_field *field);
+bool cycle_osd_field_is_valid(struct cycle_osd_field *field);
+void cycle_osd_field_free(struct cycle_osd_field *field);
 
 /* Internal API */
-struct osd_item {
+struct cycle_osd_item {
 	struct view *view;
 	struct wlr_scene_tree *tree;
 	struct wl_list link;
 };
 
-struct osd_impl {
+struct cycle_osd_impl {
 	/*
 	 * Create a scene-tree of OSD for an output.
-	 * This sets output->osd_scene.{items,tree}.
+	 * This sets output->cycle_osd.{items,tree}.
 	 */
-	void (*create)(struct output *output, struct wl_array *views);
+	void (*create)(struct output *output);
 	/*
-	 * Update output->osd_scene.tree to highlight
-	 * server->osd_state.cycle_view.
+	 * Update output->cycle_osd.tree to highlight
+	 * server->cycle_state.selected_view.
 	 */
 	void (*update)(struct output *output);
 };
 
-extern struct osd_impl osd_classic_impl;
-extern struct osd_impl osd_thumbnail_impl;
+extern struct cycle_osd_impl cycle_osd_classic_impl;
+extern struct cycle_osd_impl cycle_osd_thumbnail_impl;
 
-#endif // LABWC_OSD_H
+#endif // LABWC_CYCLE_H

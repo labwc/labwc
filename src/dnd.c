@@ -34,7 +34,7 @@ handle_drag_start(struct wl_listener *listener, void *data)
 	struct wlr_drag *drag = data;
 
 	seat->drag.active = true;
-	seat_reset_pressed(seat);
+	cursor_context_save(&seat->pressed, NULL);
 	if (drag->icon) {
 		/* Cleans up automatically on drag->icon->events.destroy */
 		wlr_scene_drag_icon_create(seat->drag.icons, drag->icon);

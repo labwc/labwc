@@ -18,12 +18,12 @@
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
+#include "cycle.h"
 #include "debug.h"
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "magnifier.h"
 #include "menu/menu.h"
-#include "osd.h"
 #include "output.h"
 #include "output-virtual.h"
 #include "regions.h"
@@ -411,6 +411,20 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		}
 		if (!strcasecmp(argument, "forceSSD")) {
 			action_arg_add_bool(action, argument, parse_bool(content, false));
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_RESIZE:
+		if (!strcmp(argument, "direction")) {
+			enum lab_edge edge = lab_edge_parse(content,
+				/*tiled*/ true, /*any*/ false);
+			if (edge == LAB_EDGE_NONE || edge == LAB_EDGE_CENTER) {
+				wlr_log(WLR_ERROR,
+					"Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			} else {
+				action_arg_add_int(action, argument, edge);
+			}
 			goto cleanup;
 		}
 		break;
@@ -1112,17 +1126,17 @@ run_action(struct view *view, struct server *server, struct action *action,
 		}
 		break;
 	case ACTION_TYPE_NEXT_WINDOW:
-		if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-			osd_cycle(server, LAB_CYCLE_DIR_FORWARD);
+		if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
+			cycle_step(server, LAB_CYCLE_DIR_FORWARD);
 		} else {
-			osd_begin(server, LAB_CYCLE_DIR_FORWARD);
+			cycle_begin(server, LAB_CYCLE_DIR_FORWARD);
 		}
 		break;
 	case ACTION_TYPE_PREVIOUS_WINDOW:
-		if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-			osd_cycle(server, LAB_CYCLE_DIR_BACKWARD);
+		if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
+			cycle_step(server, LAB_CYCLE_DIR_BACKWARD);
 		} else {
-			osd_begin(server, LAB_CYCLE_DIR_BACKWARD);
+			cycle_begin(server, LAB_CYCLE_DIR_BACKWARD);
 		}
 		break;
 	case ACTION_TYPE_RECONFIGURE:
@@ -1223,8 +1237,17 @@ run_action(struct view *view, struct server *server, struct action *action,
 		break;
 	case ACTION_TYPE_RESIZE:
 		if (view) {
-			enum lab_edge resize_edges = cursor_get_resize_edges(
-				server->seat.cursor, ctx);
+			/*
+			 * If a direction was specified in the config, honour it.
+			 * Otherwise, fall back to determining the resize edges from
+			 * the current cursor position (existing behaviour).
+			 */
+			enum lab_edge resize_edges =
+				action_get_int(action, "direction", LAB_EDGE_NONE);
+			if (resize_edges == LAB_EDGE_NONE) {
+				resize_edges = cursor_get_resize_edges(
+					server->seat.cursor, ctx);
+			}
 			interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 				resize_edges);
 		}
@@ -1569,7 +1592,7 @@ actions_run(struct view *activator, struct server *server,
 
 	struct action *action;
 	wl_list_for_each(action, actions, link) {
-		if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER
+		if (server->input_mode == LAB_INPUT_STATE_CYCLE
 				&& action->type != ACTION_TYPE_NEXT_WINDOW
 				&& action->type != ACTION_TYPE_PREVIOUS_WINDOW) {
 			wlr_log(WLR_INFO, "Only NextWindow or PreviousWindow "

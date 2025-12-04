@@ -21,6 +21,7 @@
 #include "common/mem.h"
 #include "config/mousebind.h"
 #include "config/rcxml.h"
+#include "cycle.h"
 #include "dnd.h"
 #include "idle.h"
 #include "input/gestures.h"
@@ -30,7 +31,6 @@
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
-#include "osd.h"
 #include "output.h"
 #include "resistance.h"
 #include "resize-outlines.h"
@@ -437,8 +437,72 @@ cursor_update_image(struct seat *seat)
 		cursor_names[cursor]);
 }
 
+static void
+clear_cursor_context(struct cursor_context_saved *saved_ctx)
+{
+	if (saved_ctx->node_destroy.notify) {
+		wl_list_remove(&saved_ctx->node_destroy.link);
+	}
+	if (saved_ctx->surface_destroy.notify) {
+		wl_list_remove(&saved_ctx->surface_destroy.link);
+	}
+	if (saved_ctx->view_destroy.notify) {
+		wl_list_remove(&saved_ctx->view_destroy.link);
+	}
+	*saved_ctx = (struct cursor_context_saved) {0};
+}
+
+static void
+handle_ctx_node_destroy(struct wl_listener *listener, void *data)
+{
+	struct cursor_context_saved *saved_ctx =
+		wl_container_of(listener, saved_ctx, node_destroy);
+	clear_cursor_context(saved_ctx);
+}
+
+static void
+handle_ctx_surface_destroy(struct wl_listener *listener, void *data)
+{
+	struct cursor_context_saved *saved_ctx =
+		wl_container_of(listener, saved_ctx, surface_destroy);
+	clear_cursor_context(saved_ctx);
+}
+
+static void
+handle_ctx_view_destroy(struct wl_listener *listener, void *data)
+{
+	struct cursor_context_saved *saved_ctx =
+		wl_container_of(listener, saved_ctx, view_destroy);
+	clear_cursor_context(saved_ctx);
+}
+
+void
+cursor_context_save(struct cursor_context_saved *saved_ctx,
+		const struct cursor_context *ctx)
+{
+	assert(saved_ctx);
+
+	clear_cursor_context(saved_ctx);
+	if (!ctx) {
+		return;
+	}
+	saved_ctx->ctx = *ctx;
+	if (ctx->node) {
+		saved_ctx->node_destroy.notify = handle_ctx_node_destroy;
+		wl_signal_add(&ctx->node->events.destroy, &saved_ctx->node_destroy);
+	}
+	if (ctx->surface) {
+		saved_ctx->surface_destroy.notify = handle_ctx_surface_destroy;
+		wl_signal_add(&ctx->surface->events.destroy, &saved_ctx->surface_destroy);
+	}
+	if (ctx->view) {
+		saved_ctx->view_destroy.notify = handle_ctx_view_destroy;
+		wl_signal_add(&ctx->view->events.destroy, &saved_ctx->view_destroy);
+	}
+}
+
 static bool
-update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
+update_pressed_surface(struct seat *seat, const struct cursor_context *ctx)
 {
 	/*
 	 * In most cases, we don't want to leave one surface and enter
@@ -454,10 +518,10 @@ update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
 	if (!wlr_seat_pointer_has_grab(seat->seat)) {
 		return false;
 	}
-	if (seat->pressed.surface && ctx->surface != seat->pressed.surface) {
+	if (seat->pressed.ctx.surface && ctx->surface != seat->pressed.ctx.surface) {
 		struct wlr_surface *toplevel = get_toplevel(ctx->surface);
-		if (toplevel && toplevel == get_toplevel(seat->pressed.surface)) {
-			seat_set_pressed(seat, ctx);
+		if (toplevel && toplevel == get_toplevel(seat->pressed.ctx.surface)) {
+			cursor_context_save(&seat->pressed, ctx);
 			return true;
 		}
 	}
@@ -466,11 +530,11 @@ update_pressed_surface(struct seat *seat, struct cursor_context *ctx)
 
 /*
  * Common logic shared by cursor_update_focus(), process_cursor_motion()
- * and cursor_axis()
+ * and process_cursor_axis()
  */
-static bool
-cursor_update_common(struct server *server, struct cursor_context *ctx,
-		bool cursor_has_moved, double *sx, double *sy)
+static void
+cursor_update_common(struct server *server, const struct cursor_context *ctx,
+		struct cursor_context *notified_ctx)
 {
 	struct seat *seat = &server->seat;
 	struct wlr_seat *wlr_seat = seat->seat;
@@ -483,14 +547,14 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		 * interactive move/resize, window switcher and
 		 * menu interaction.
 		 */
-		return false;
+		return;
 	}
 
 	/* TODO: verify drag_icon logic */
-	if (seat->pressed.surface && ctx->surface != seat->pressed.surface
+	if (seat->pressed.ctx.surface && ctx->surface != seat->pressed.ctx.surface
 			&& !update_pressed_surface(seat, ctx)
 			&& !seat->drag.active) {
-		if (cursor_has_moved) {
+		if (notified_ctx) {
 			/*
 			 * Button has been pressed while over another
 			 * surface and is still held down.  Just send
@@ -499,12 +563,16 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 			 * if the cursor moves outside of the surface.
 			 */
 			int lx, ly;
-			wlr_scene_node_coords(seat->pressed.node, &lx, &ly);
-			*sx = server->seat.cursor->x - lx;
-			*sy = server->seat.cursor->y - ly;
-			return true;
+			wlr_scene_node_coords(seat->pressed.ctx.node, &lx, &ly);
+			*notified_ctx = seat->pressed.ctx;
+			notified_ctx->sx = server->seat.cursor->x - lx;
+			notified_ctx->sy = server->seat.cursor->y - ly;
 		}
-		return false;
+		return;
+	}
+
+	if (notified_ctx) {
+		*notified_ctx = *ctx;
 	}
 
 	if (ctx->surface) {
@@ -516,11 +584,6 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 		wlr_seat_pointer_notify_enter(wlr_seat, ctx->surface,
 			ctx->sx, ctx->sy);
 		seat->server_cursor = LAB_CURSOR_CLIENT;
-		if (cursor_has_moved) {
-			*sx = ctx->sx;
-			*sy = ctx->sy;
-			return true;
-		}
 	} else {
 		/*
 		 * Cursor is over a server (labwc) surface.  Clear focus
@@ -538,7 +601,6 @@ cursor_update_common(struct server *server, struct cursor_context *ctx,
 			cursor_set(seat, cursor);
 		}
 	}
-	return false;
 }
 
 enum lab_edge
@@ -597,32 +659,45 @@ cursor_process_motion(struct server *server, uint32_t time, double *sx, double *
 			 * moving/resizing the wrong view
 			 */
 			mousebind->pressed_in_context = false;
-			actions_run(seat->pressed.view, server,
-				&mousebind->actions, &seat->pressed);
+			actions_run(seat->pressed.ctx.view, server,
+				&mousebind->actions, &seat->pressed.ctx);
 		}
 	}
 
-	struct wlr_surface *old_focused_surface =
-		seat->seat->pointer_state.focused_surface;
+	/*
+	 * Cursor context that is actually interacting with cursor and should
+	 * be notified to the client. E.g. it is cleared when menu is open,
+	 * and the pressed view is set while out-of-surface dragging.
+	 */
+	struct cursor_context notified_ctx = {0};
+	cursor_update_common(server, &ctx, &notified_ctx);
 
-	bool notify = cursor_update_common(server, &ctx,
-		/* cursor_has_moved */ true, sx, sy);
-
-	struct wlr_surface *new_focused_surface =
-		seat->seat->pointer_state.focused_surface;
-
-	if (rc.focus_follow_mouse && new_focused_surface
-			&& old_focused_surface != new_focused_surface) {
+	if (rc.focus_follow_mouse) {
 		/*
-		 * If followMouse=yes, update the keyboard focus when the
-		 * cursor enters a surface
+		 * If followMouse=yes, entering a surface or view updates
+		 * keyboard focus. Note that moving the cursor between a
+		 * surface and a SSD within the same view doesn't update
+		 * keyboard focus, and that entering a surface/view doesn't
+		 * update keyboard focus if implicit grab is active.
 		 */
-		desktop_focus_view_or_surface(seat,
-			view_from_wlr_surface(new_focused_surface),
-			new_focused_surface, rc.raise_on_focus);
+		bool entering = false;
+		if (notified_ctx.view) {
+			entering = notified_ctx.view
+					!= seat->last_cursor_ctx.ctx.view;
+		} else if (notified_ctx.surface) {
+			entering = notified_ctx.surface
+					!= seat->last_cursor_ctx.ctx.surface;
+		}
+		if (entering) {
+			desktop_focus_view_or_surface(seat, notified_ctx.view,
+				notified_ctx.surface, rc.raise_on_focus);
+		}
 	}
+	cursor_context_save(&seat->last_cursor_ctx, &notified_ctx);
 
-	return notify;
+	*sx = notified_ctx.sx;
+	*sy = notified_ctx.sy;
+	return notified_ctx.surface;
 }
 
 static void
@@ -641,8 +716,7 @@ _cursor_update_focus(struct server *server)
 			ctx.surface, rc.raise_on_focus);
 	}
 
-	double sx, sy;
-	cursor_update_common(server, &ctx, /*cursor_has_moved*/ false, &sx, &sy);
+	cursor_update_common(server, &ctx, NULL);
 }
 
 void
@@ -920,7 +994,7 @@ static void
 process_release_mousebinding(struct server *server,
 		struct cursor_context *ctx, uint32_t button)
 {
-	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
+	if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
 		return;
 	}
 
@@ -989,7 +1063,7 @@ static bool
 process_press_mousebinding(struct server *server, struct cursor_context *ctx,
 		uint32_t button)
 {
-	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
+	if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
 		return false;
 	}
 
@@ -1073,7 +1147,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 
 	if (ctx.view || ctx.surface) {
 		/* Store cursor context for later action processing */
-		seat_set_pressed(seat, &ctx);
+		cursor_context_save(&seat->pressed, &ctx);
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
@@ -1138,12 +1212,12 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 {
 	struct server *server = seat->server;
 	struct cursor_context ctx = get_cursor_context(server);
-	struct wlr_surface *pressed_surface = seat->pressed.surface;
+	struct wlr_surface *pressed_surface = seat->pressed.ctx.surface;
 
 	/* Always notify button release event when it's not bound */
 	const bool notify = !lab_set_contains(&seat->bound_buttons, button);
 
-	seat_reset_pressed(seat);
+	cursor_context_save(&seat->pressed, NULL);
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		/* TODO: take into account overflow of time_msec */
@@ -1157,9 +1231,9 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 		}
 		return notify;
 	}
-	if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-		if (ctx.type == LAB_NODE_OSD_ITEM) {
-			osd_on_cursor_release(server, ctx.node);
+	if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
+		if (ctx.type == LAB_NODE_CYCLE_OSD_ITEM) {
+			cycle_on_cursor_release(server, ctx.node);
 		}
 		return notify;
 	}
@@ -1347,8 +1421,7 @@ process_cursor_axis(struct server *server, enum wl_pointer_axis orientation,
 	/* Bindings swallow mouse events if activated */
 	if (ctx.surface && !consumed) {
 		/* Make sure we are sending the events to the surface under the cursor */
-		double sx, sy;
-		cursor_update_common(server, &ctx, /*cursor_has_moved*/ false, &sx, &sy);
+		cursor_update_common(server, &ctx, NULL);
 
 		return true;
 	}

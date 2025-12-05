@@ -1182,6 +1182,8 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "range.snapping")) {
 		rc.snap_edge_range_inner = atoi(content);
 		rc.snap_edge_range_outer = atoi(content);
+		wlr_log(WLR_ERROR, "<snapping><range> is deprecated. "
+			"Use <snapping><range inner=\"\" outer=\"\"> instead.");
 	} else if (!strcasecmp(nodename, "inner.range.snapping")) {
 		rc.snap_edge_range_inner = atoi(content);
 	} else if (!strcasecmp(nodename, "outer.range.snapping")) {

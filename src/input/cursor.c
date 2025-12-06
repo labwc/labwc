@@ -981,11 +981,6 @@ handle_motion_absolute(struct wl_listener *listener, void *data)
 	double dx = lx - seat->cursor->x;
 	double dy = ly - seat->cursor->y;
 
-	wlr_relative_pointer_manager_v1_send_relative_motion(
-		seat->server->relative_pointer_manager,
-		seat->seat, (uint64_t)event->time_msec * 1000,
-		dx, dy, dx, dy);
-
 	preprocess_cursor_motion(seat, event->pointer,
 		event->time_msec, dx, dy);
 }

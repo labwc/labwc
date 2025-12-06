@@ -349,7 +349,7 @@ this is for compatibility with Openbox.
 </windowSwitcher>
 ```
 
-*<windowSwitcher preview="" outlines="" allWorkspaces="" unshade="">*
+*<windowSwitcher preview="" outlines="" allWorkspaces="" unshade="" order="">*
 	*preview* [yes|no] Preview the contents of the selected window when
 	switching between windows. Default is yes.
 
@@ -362,6 +362,32 @@ this is for compatibility with Openbox.
 
 	*unshade* [yes|no] Temporarily unshade windows when switching between
 	them and permanently unshade on the final selection. Default is yes.
+
+	*order* [focus|age] Cycle windows behavior.
+	"focus" cycles by focus history. The list is sorted by the last time
+	each window had focus - most recently focused first.
+
+	- Using the window switcher (started with Alt+Tab by default) moves to
+	  the next most recently used window - the classic behavior where you
+	  typically toggle between the last two windows, then move further
+	  back in time.
+
+	- If you focus a window, it jumps to the front of this list
+	  immediately.
+
+	"age" cycles by creation/open order - the same stable order you
+	typically see in the taskbar.
+
+	- New windows are appended at the end of the list.
+
+	- Using the window switcher (started with Alt+Tab by default) moves to
+	  the next window in that fixed open order; backward goes the other
+	  way.
+
+	- The order doesn't change when you focus a window, so repeated cycles
+	  are predictable.
+
+	Default is "focus".
 
 *<windowSwitcher><osd show="" style="" output="" thumbnailLabelFormat="" />*
 	*show* [yes|no] Draw the OnScreenDisplay when switching between

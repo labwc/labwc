@@ -276,13 +276,31 @@ create_osd_on_output(struct output *output)
 	assert(output->cycle_osd.tree);
 }
 
+static void
+insert_view_ordered_by_age(struct wl_list *views, struct view *new_view)
+{
+	struct wl_list *link = views;
+	struct view *view;
+	wl_list_for_each(view, views, cycle_link) {
+		if (view->creation_iid >= new_view->creation_iid) {
+			break;
+		}
+		link = &view->cycle_link;
+	}
+	wl_list_insert(link, &new_view->cycle_link);
+}
+
 /* Return false on failure */
 static bool
 init_cycle(struct server *server)
 {
 	struct view *view;
 	for_each_view(view, &server->views, rc.window_switcher.criteria) {
-		wl_list_append(&server->cycle.views, &view->cycle_link);
+		if (rc.window_switcher.order == WINDOW_SWITCHER_ORDER_AGE) {
+			insert_view_ordered_by_age(&server->cycle.views, view);
+		} else {
+			wl_list_append(&server->cycle.views, &view->cycle_link);
+		}
 	}
 	if (wl_list_empty(&server->cycle.views)) {
 		wlr_log(WLR_DEBUG, "no views to switch between");

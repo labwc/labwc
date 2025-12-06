@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2025-11-15 | [unreleased]  | 0.19.2          | 28825         |
+| 2025-12-06 | [unreleased]  | 0.19.2          | 28927         |
 | 2025-10-10 | [0.9.2]       | 0.19.1          | 28818         |
 | 2025-08-02 | [0.9.1]       | 0.19.0          | 28605         |
 | 2025-07-11 | [0.9.0]       | 0.19.0          | 28586         |
@@ -116,8 +116,35 @@ differently [#3099].  There is a pending fix [wlroots-5159].
 
 [unreleased-commits]
 
+This release contains a good amount of bug-fixes, code simplification and
+small usability improvements.
+
+With the stability that comes with having tracked `wlroots 0.19` for a decent
+length of time, this feels like best version of labwc so far.
+
+In terms of new features, it is worth drawing attention to the click support in
+the window-switcher on-screen-display by @tokyo4j [#3186] which has frequently
+been requested by users.
+
+As a general note to users, we discourage the use of empty strings in the
+`rc.xml` configuration file, for example `<margin output=""/>`. There are only a
+few areas left where empty string are ignored (like under `<libinput>`) but the
+intent for future releases is to consistently read empty strings as empty
+strings. As a preparation, this releases has added some warnings for empty
+strings that are currently ignored, so that users can take action. Also, the
+example `docs/rc.xml.all` has been updated to remove poor examples in this
+regard.
+
+A big thank you to all involved in this release.
+
 ### Added
 
+- Replace `<snapping><range>` with `<snapping><range inner="" outer="">` to
+  provide more granular control when configuring the size of snapping areas
+  (including `<topMaximize>`) on output edges with and without adjacent outputs.
+  @elviosak [#3241]
+- Add directional options to `Resize` action to mirror Fluxbox's
+  `StartResizing [corner]` behavior. @mbroemme [#3239]
 - Allow the use of the `sendEventsMode` configuration option on keyboards in
   order to disable keyboard input. @cillian64 [#3208]
 
@@ -131,8 +158,8 @@ differently [#3099].  There is a pending fix [wlroots-5159].
 - Support the following new `<windowSwitcher>` configuration options:
   -  `<osd thumbnailLabelFormat="%T">` to specify the label text in each item in
      the thumbnail style window-switcher. @elviosak [#3187]
-  - `<osd output="all|pointer|keyboard">` to specify which monitor(s) to show
-    the OSD(s) on. @dntxi [#3201]
+  - `<osd output="all|focused|cursor">` to specify which monitor(s) to show
+    the OSD(s) on. @dntxi [#3201] [#3248]
 - Support window-switcher OSD item click to focus window @tokyo4j [#3186]
 - With the window-switcher custom field state specifiers 's' and 'S', show 's'
   for shaded window @domo141 [#2895]
@@ -148,6 +175,18 @@ differently [#3099].  There is a pending fix [wlroots-5159].
 
 ### Fixed
 
+- Flush XCB connection to mitigate race between Raise and input. @jlindgren90
+  [#3249]
+- Fix disappearing XWayland popups with some (less commonly used) clients like
+  Imagemagick's `display` command, `xshogi`, `xedit` and `xfig` caused by
+  too many surface-pings. @jlindgren90 [#3152] [#3246]
+- Center small fullscreen xdg-shell windows and add black background fill. This
+  increases spec compliance and improves the user experience with games like
+  SWAT4, Quake III and Splinter Cell 3. @jlindgren90 [#3233]
+- When followMouse=yes, update focus on cursor entering SSD rather than just the
+  client surface. Fixes a regression in 885919f. @tokyo4j [#3211]
+- Set all foreign-toplevel initial states correctly. This is not believed to fix
+  any particular user-issue, but just feels safer. @jlindgren90 [#3217]
 - Update layer-shell client top layer visiblity on unmap instead of destroy
   because it is possible for fullscreen xwayland windows to be unmapped without
   being destroyed, and in this case the top layer visibility needs to be updated
@@ -181,6 +220,15 @@ differently [#3099].  There is a pending fix [wlroots-5159].
 
 ### Changed
 
+- `<snapping><range>` is deprecated. Use `<snapping><range inner="" outer="">`
+  instead. @elviosak [#3241]
+- When cycling through windows (typically with Alt-Tab) there are two minor
+  user-visible changes. For most users these will not be noticeable, but are
+  mentioned here for completeness.
+  - The initially selected window will now be the one that had keyboard focus
+    when cycling commenced rather than the topmost one. @tokyo4j [#3236]
+  - Windows that are spawned whilst cycling can no longer be cycled through
+    @tokyo4j [#3236]
 - Refactor window switcher configuration to put attributes `show` and `style`
   under `<windowSwitcher><osd>` rather than directly under `<windowSwitcher>`.
   The old configuration syntax will remain supported for at least one release.

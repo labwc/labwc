@@ -1180,7 +1180,14 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "unMaximizeThreshold.resistance")) {
 		rc.unmaximize_threshold = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
-		rc.snap_edge_range = atoi(content);
+		rc.snap_edge_range_inner = atoi(content);
+		rc.snap_edge_range_outer = atoi(content);
+		wlr_log(WLR_ERROR, "<snapping><range> is deprecated. "
+			"Use <snapping><range inner=\"\" outer=\"\"> instead.");
+	} else if (!strcasecmp(nodename, "inner.range.snapping")) {
+		rc.snap_edge_range_inner = atoi(content);
+	} else if (!strcasecmp(nodename, "outer.range.snapping")) {
+		rc.snap_edge_range_outer = atoi(content);
 	} else if (!strcasecmp(nodename, "cornerRange.snapping")) {
 		rc.snap_edge_corner_range = atoi(content);
 	} else if (!strcasecmp(nodename, "enabled.overlay.snapping")) {
@@ -1459,7 +1466,8 @@ rcxml_init(void)
 	rc.unsnap_threshold = 20;
 	rc.unmaximize_threshold = 150;
 
-	rc.snap_edge_range = 10;
+	rc.snap_edge_range_inner = 10;
+	rc.snap_edge_range_outer = 10;
 	rc.snap_edge_corner_range = 50;
 	rc.snap_overlay_enabled = true;
 	rc.snap_overlay_delay_inner = 500;

@@ -703,6 +703,45 @@ extending outward from the snapped edge.
 	invisible zones just beyond the window that serve as click targets for
 	mouse actions. Default is 8.
 
+# INPUT CONFIGURATION
+
+This section describes configuration of input devices including:
+
+- Keyboards
+- Mice
+- Touchpads (sometimes referred to as laptop trackpads)
+- Touchscreens
+- Tablets
+- Tablet tools (like stylus pens)
+
+It aims to clarify related terminology and separation of concerns.
+
+Keyboards are configured in the *<keyboard>* section below and are simple in
+this regard.
+
+Touchpads and mice are harder. They are both considered to be *pointer* devices
+by the compositor, and can be configured in the *<mouse>* and *<libinput>*
+sections. Any setting that is supported by libinput is configured in the
+*<libinput>* section, and anything else is in *<mouse>*. Touchpad devices can
+generate gesture events, like swipe and pinch. There are some related settings
+(e.g. *threeFingerDrag* and *twoFingerScroll*) in the *<libinput>* section.
+
+In the Wayland Compositor domain, events associated with touchscreens are
+sometimes simply referred to as *touch* events.  Touchscreens can be configured
+in both the *<touch>* and *<libinput>* sections. Note that touchscreen gestures
+are not interpreted by libinput, nor labwc. Any touch point is passed to the
+client (application) for any interpretation of gestures.
+
+Tablets are considered special by libinput although in the eyes of the Wayland
+protocol they are merely a *touch* capability. Tablets and associated tablet
+tools are configured in the *<tablet>*, *<tablettool>* and *<libinput>*
+sections. Note that the term *tablet* in libinput (and labwc) refers to graphics
+tablets only (e.g. Wacom Intuos), not to tablet devices like the Apple iPad.
+
+References:
+- https://wayland.freedesktop.org/libinput/doc/latest/tablet-support.html
+- https://wayland.freedesktop.org/libinput/doc/latest/gestures.html
+
 ## KEYBOARD
 
 *<keyboard><numlock>* [on|off]
@@ -810,6 +849,9 @@ extending outward from the snapped edge.
 	Default is 600.
 
 ## MOUSE
+
+This section relates to mice and touchpads - which are both considered pointer
+input-devices by the Wayland protocol.
 
 *<mouse><doubleClickTime>*
 	Set double click time in milliseconds. Default is 500.
@@ -920,6 +962,11 @@ extending outward from the snapped edge.
 	loaded even if the <default /> element is not provided.
 
 ## TOUCH
+
+This section relates to touchscreens and *not* touchpads.
+
+Note: To rotate touch events with output rotation, use the libinput
+*calibrationMatrix* setting.
 
 ```
 <touch deviceName="" mapToOutput="" mouseEmulation="no"/>
@@ -1083,14 +1130,9 @@ extending outward from the snapped edge.
 	attribute is provided, a 'default' device profile will created that will
 	act as the fallback for all libinput devices. Category can be set to any
 	of the following types:
-	- *touch* - Devices which have a defined width/height, but do not
-	  support multitouch (i.e. they cannot track multiple locations where
-	  the screen has been touched). Drawing tablets typically fall into this
-	  type.
-	- *touchpad* - Same as 'touch' but support multitouch. This typically
-	  includes laptop track pads with two-finger scroll and swipe gestures.
-	- *non-touch* - Anything not described above, for example traditional
-	  mouse pointers.
+	- *touch* - Includes touchscreens and drawing-tablets.
+	- *touchpad* - Includes touchpads (also known as laptop trackpads)
+	- *non-touch* - Includes traditional mice
 	- *default* - Defines a device-category applicable to all devices not
 	  matched by anything else. This can be useful for a fallback, or if you
 	  want the same settings to be applied to all devices.

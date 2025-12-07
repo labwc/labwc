@@ -193,9 +193,9 @@ cycle_osd_classic_create(struct output *output)
 		/* Highlight around selected window's item */
 		struct lab_scene_rect_options highlight_opts = {
 			.border_colors = (float *[1]) {active_border_color},
-			.bg_color = active_bg_color,
 			.nr_borders = 1,
 			.border_width = switcher_theme->item_active_border_width,
+			.bg_color = active_bg_color,
 			.width = w - 2 * padding,
 			.height = switcher_theme->item_height,
 		};

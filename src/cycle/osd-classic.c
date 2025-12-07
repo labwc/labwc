@@ -144,7 +144,6 @@ cycle_osd_classic_create(struct output *output)
 		y += switcher_theme->item_height;
 	}
 
-	struct buf buf = BUF_INIT;
 	int nr_fields = wl_list_length(&rc.window_switcher.fields);
 
 	/* This is the width of the area available for text fields */
@@ -216,7 +215,6 @@ cycle_osd_classic_create(struct output *output)
 
 		y += switcher_theme->item_height;
 	}
-	buf_reset(&buf);
 
 error:;
 	/* Center OSD */

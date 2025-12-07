@@ -103,7 +103,7 @@ create_label(struct wlr_scene_tree *parent, struct view *view,
 {
 	struct buf buf = BUF_INIT;
 	cycle_osd_field_set_custom(&buf, view,
-		rc.window_switcher.thumbnail_label_format);
+		rc.window_switcher.osd.thumbnail_label_format);
 	struct scaled_font_buffer *buffer =
 		scaled_font_buffer_create(parent);
 	scaled_font_buffer_update(buffer, buf.data,

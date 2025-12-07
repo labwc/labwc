@@ -36,7 +36,7 @@ create_fields_scene(struct server *server, struct view *view,
 		&theme->osd_window_switcher_classic;
 
 	struct cycle_osd_field *field;
-	wl_list_for_each(field, &rc.window_switcher.fields, link) {
+	wl_list_for_each(field, &rc.window_switcher.osd.fields, link) {
 		int field_width = field_widths_sum * field->width / 100.0;
 		struct wlr_scene_node *node = NULL;
 		int height = -1;
@@ -144,7 +144,7 @@ cycle_osd_classic_create(struct output *output)
 		y += switcher_theme->item_height;
 	}
 
-	int nr_fields = wl_list_length(&rc.window_switcher.fields);
+	int nr_fields = wl_list_length(&rc.window_switcher.osd.fields);
 
 	/* This is the width of the area available for text fields */
 	int field_widths_sum = w - 2 * padding

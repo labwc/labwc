@@ -39,7 +39,7 @@ struct cycle_osd_field {
 	enum cycle_osd_field_content content;
 	int width;
 	char *format;
-	struct wl_list link; /* struct rcxml.window_switcher.fields */
+	struct wl_list link; /* struct rcxml.window_switcher.osd.fields */
 };
 
 struct buf;

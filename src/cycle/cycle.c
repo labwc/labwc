@@ -257,7 +257,7 @@ preview_selected_view(struct view *view)
 static struct cycle_osd_impl *
 get_osd_impl(void)
 {
-	switch (rc.window_switcher.style) {
+	switch (rc.window_switcher.osd.style) {
 	case CYCLE_OSD_STYLE_CLASSIC:
 		return &cycle_osd_classic_impl;
 	case CYCLE_OSD_STYLE_THUMBNAIL:
@@ -307,9 +307,9 @@ init_cycle(struct server *server)
 		return false;
 	}
 
-	if (rc.window_switcher.show) {
+	if (rc.window_switcher.osd.show) {
 		/* Create OSD */
-		switch (rc.window_switcher.output_criteria) {
+		switch (rc.window_switcher.osd.output_criteria) {
 		case CYCLE_OSD_OUTPUT_ALL: {
 			struct output *output;
 			wl_list_for_each(output, &server->outputs, link) {
@@ -342,7 +342,7 @@ update_cycle(struct server *server)
 {
 	struct cycle_state *cycle = &server->cycle;
 
-	if (rc.window_switcher.show) {
+	if (rc.window_switcher.osd.show) {
 		struct output *output;
 		wl_list_for_each(output, &server->outputs, link) {
 			if (output->cycle_osd.tree) {

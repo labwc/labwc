@@ -1659,9 +1659,8 @@ load_default_window_switcher_fields(void)
 #endif
 	};
 
-	struct cycle_osd_field *field;
 	for (size_t i = 0; i < ARRAY_SIZE(fields); i++) {
-		field = znew(*field);
+		struct cycle_osd_field *field = znew(*field);
 		field->content = fields[i].content;
 		field->width = fields[i].width;
 		wl_list_append(&rc.window_switcher.fields, &field->link);

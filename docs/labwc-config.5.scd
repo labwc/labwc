@@ -569,6 +569,12 @@ extending outward from the snapped edge.
 	is 1. The number attribute is optional. If the number attribute is
 	specified, names.name is not required.
 
+*<desktops><firstDesktop>*
+	Define the default starting workspace at login. The default workspace
+	name must match one of the names defined in <dekstops><names>. If no
+	firstDesktop is defined or no matching firstDesktop can be found then
+	the default will be selected as the first workspace in <desktops><names>.
+
 *<desktops><popupTime>*
 	Define the timeout after which to hide the workspace OSD.
 	A setting of 0 disables the OSD. Default is 1000 ms.

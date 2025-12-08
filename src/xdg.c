@@ -1085,7 +1085,7 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 	CONNECT_SIGNAL(xdg_surface, xdg_toplevel_view, new_popup);
 
 	wl_list_insert(&server->views, &view->link);
-	view->creation_iid = server->next_view_creation_iid++;
+	view->creation_id = server->next_view_creation_id++;
 }
 
 static void

@@ -282,7 +282,7 @@ insert_view_ordered_by_age(struct wl_list *views, struct view *new_view)
 	struct wl_list *link = views;
 	struct view *view;
 	wl_list_for_each(view, views, cycle_link) {
-		if (view->creation_iid >= new_view->creation_iid) {
+		if (view->creation_id >= new_view->creation_id) {
 			break;
 		}
 		link = &view->cycle_link;

@@ -1238,6 +1238,9 @@ entry(xmlNode *node, char *nodename, char *content)
 			rc.window_switcher.order = WINDOW_SWITCHER_ORDER_FOCUS;
 		} else if (!strcasecmp(content, "age")) {
 			rc.window_switcher.order = WINDOW_SWITCHER_ORDER_AGE;
+		} else {
+			wlr_log(WLR_ERROR, "Invalid windowSwitcher order %s: "
+				"should be one of focus|age", content);
 		}
 
 	/* The following two are for backward compatibility only. */

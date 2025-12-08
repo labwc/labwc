@@ -40,7 +40,8 @@ update_preview_outlines(struct view *view)
 			.border_width = theme->osd_window_switcher_preview_border_width,
 		};
 		rect = lab_scene_rect_create(&server->scene->tree, &opts);
-		wlr_scene_node_place_above(&rect->tree->node, &server->menu_tree->node);
+		wlr_scene_node_place_above(&rect->tree->node,
+			&server->cycle_preview_tree->node);
 		server->cycle.preview_outline = rect;
 	}
 
@@ -245,13 +246,8 @@ preview_selected_view(struct view *view)
 		cycle->preview_was_shaded = true;
 	}
 
-	/*
-	 * FIXME: This abuses an implementation detail of the always-on-top tree.
-	 *        Create a permanent server->osd_preview_tree instead that can
-	 *        also be used as parent for the preview outlines.
-	 */
 	wlr_scene_node_reparent(cycle->preview_node,
-		view->server->view_tree_always_on_top);
+		view->server->cycle_preview_tree);
 
 	/* Finally raise selected node to the top */
 	wlr_scene_node_raise_to_top(cycle->preview_node);

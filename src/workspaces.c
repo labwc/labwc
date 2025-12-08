@@ -187,7 +187,7 @@ static void
 handle_cosmic_workspace_activate(struct wl_listener *listener, void *data)
 {
 	struct workspace *workspace = wl_container_of(listener, workspace, on_cosmic.activate);
-	workspaces_switch_to(workspace, /* update_focus */ true);
+	workspaces_switch_to(workspace, /* update_focus */ true, false);
 	wlr_log(WLR_INFO, "cosmic activating workspace %s", workspace->name);
 }
 
@@ -196,7 +196,7 @@ static void
 handle_ext_workspace_activate(struct wl_listener *listener, void *data)
 {
 	struct workspace *workspace = wl_container_of(listener, workspace, on_ext.activate);
-	workspaces_switch_to(workspace, /* update_focus */ true);
+	workspaces_switch_to(workspace, /* update_focus */ true, false);
 	wlr_log(WLR_INFO, "ext activating workspace %s", workspace->name);
 }
 
@@ -398,6 +398,22 @@ workspaces_init(struct server *server)
 	wl_list_for_each(conf, &rc.workspace_config.workspaces, link) {
 		add_workspace(server, conf->name);
 	}
+
+	/* If 'firstDesktop' is set in rc.xml, switch to it, otherwise stop */
+	if (!rc.workspace_config.primary_workspace) {
+		return;
+	}
+
+	char *primary_name = rc.workspace_config.primary_workspace;
+	struct workspace *primary = workspaces_find(
+		server->workspaces.current, primary_name, false);
+
+	if (primary) {
+		workspaces_switch_to(primary, false, true);
+	} else {
+		wlr_log(WLR_ERROR, "No primary workspace matching %s",
+			primary_name);
+	}
 }
 
 /*
@@ -406,7 +422,7 @@ workspaces_init(struct server *server)
  * avoid unnecessary extra focus changes and possible recursion.
  */
 void
-workspaces_switch_to(struct workspace *target, bool update_focus)
+workspaces_switch_to(struct workspace *target, bool update_focus, bool first_set)
 {
 	assert(target);
 	struct server *server = target->server;
@@ -465,17 +481,25 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 		}
 	}
 
-	/* And finally show the OSD */
-	_osd_show(server);
-
 	/*
-	 * Make sure we are not carrying around a
-	 * cursor image from the previous desktop
+	 * These steps all rely on things that
+	 * have not been initialized when the
+	 * workspaces are. So we skip these or
+	 * else we get segmentation faults.
 	 */
-	cursor_update_focus(server);
+	if (!first_set) {
+		/* And finally show the OSD */
+		_osd_show(server);
 
-	/* Ensure that only currently visible fullscreen windows hide the top layer */
-	desktop_update_top_layer_visibility(server);
+		/*
+		 * Make sure we are not carrying around a
+		 * cursor image from the previous desktop
+		 */
+		cursor_update_focus(server);
+
+		/* Ensure that only currently visible fullscreen windows hide the top layer */
+		desktop_update_top_layer_visibility(server);
+	}
 
 	lab_cosmic_workspace_set_active(target->cosmic_workspace, true);
 	lab_ext_workspace_set_active(target->ext_workspace, true);
@@ -619,7 +643,7 @@ workspaces_reconfigure(struct server *server)
 
 		if (server->workspaces.current == actual_workspace) {
 			workspaces_switch_to(first_workspace,
-				/* update_focus */ true);
+				/* update_focus */ true, false);
 		}
 		if (server->workspaces.last == actual_workspace) {
 			server->workspaces.last = first_workspace;

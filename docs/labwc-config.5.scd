@@ -349,7 +349,7 @@ this is for compatibility with Openbox.
 </windowSwitcher>
 ```
 
-*<windowSwitcher preview="" outlines="" allWorkspaces="" unshade="">*
+*<windowSwitcher preview="" outlines="" allWorkspaces="" unshade="" order="">*
 	*preview* [yes|no] Preview the contents of the selected window when
 	switching between windows. Default is yes.
 
@@ -362,6 +362,11 @@ this is for compatibility with Openbox.
 
 	*unshade* [yes|no] Temporarily unshade windows when switching between
 	them and permanently unshade on the final selection. Default is yes.
+
+	*order* [focus|age] The order in which windows are cycled. *focus* cycles by
+	recent focus history, starting with the previously focused window. *age* cycles
+	by creation/open order, a stable taskbar-style ordering that doesn’t change on
+	focus. Default is *focus*.
 
 *<windowSwitcher><osd show="" style="" output="" thumbnailLabelFormat="" />*
 	*show* [yes|no] Draw the OnScreenDisplay when switching between

@@ -51,8 +51,12 @@ Actions are used in menus and keyboard/mouse bindings.
 	another window or screen edge. If set to "no", only move to
 	the next screen edge. Default is yes.
 
-*<action name="Resize" />*
+*<action name="Resize" direction="value" />*
 	Begin interactive resize of window under cursor.
+
+	*direction* [up|down|left|right|up-left|up-right|down-left|down-right]
+	Edge or corner from which to start resizing. If this is not provided,
+	the direction is inferred from the cursor position.
 
 *<action name="ResizeRelative" left="" right="" top="" bottom="" />*
 	Resize window relative to its current size. Values of left, right,

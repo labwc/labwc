@@ -24,6 +24,7 @@ struct node_descriptor {
  * @type: node descriptor type
  * @view: associated view
  * @data: struct to point to as follows:
+ *   - LAB_NODE_CYCLE_OSD_ITEM struct cycle_osd_item
  *   - LAB_NODE_LAYER_SURFACE  struct lab_layer_surface
  *   - LAB_NODE_LAYER_POPUP    struct lab_layer_popup
  *   - LAB_NODE_MENUITEM       struct menuitem

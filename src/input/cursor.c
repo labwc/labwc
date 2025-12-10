@@ -840,10 +840,12 @@ apply_constraint(struct seat *seat, struct wlr_pointer *pointer, double *x, doub
 	if (!seat->server->active_view) {
 		return;
 	}
-	if (!seat->current_constraint || pointer->base.type != WLR_INPUT_DEVICE_POINTER) {
+	if (!seat->current_constraint
+			|| pointer->base.type != WLR_INPUT_DEVICE_POINTER
+			|| seat->current_constraint->type
+				!= WLR_POINTER_CONSTRAINT_V1_CONFINED) {
 		return;
 	}
-	assert(seat->current_constraint->type == WLR_POINTER_CONSTRAINT_V1_CONFINED);
 
 	double sx = seat->cursor->x;
 	double sy = seat->cursor->y;
@@ -866,7 +868,9 @@ cursor_locked(struct seat *seat, struct wlr_pointer *pointer)
 {
 	return seat->current_constraint
 		&& pointer->base.type == WLR_INPUT_DEVICE_POINTER
-		&& seat->current_constraint->type == WLR_POINTER_CONSTRAINT_V1_LOCKED;
+		&& seat->current_constraint->type == WLR_POINTER_CONSTRAINT_V1_LOCKED
+		&& seat->current_constraint->surface
+			== seat->seat->pointer_state.focused_surface;
 }
 
 static void
@@ -980,11 +984,6 @@ handle_motion_absolute(struct wl_listener *listener, void *data)
 
 	double dx = lx - seat->cursor->x;
 	double dy = ly - seat->cursor->y;
-
-	wlr_relative_pointer_manager_v1_send_relative_motion(
-		seat->server->relative_pointer_manager,
-		seat->seat, (uint64_t)event->time_msec * 1000,
-		dx, dy, dx, dy);
 
 	preprocess_cursor_motion(seat, event->pointer,
 		event->time_msec, dx, dy);

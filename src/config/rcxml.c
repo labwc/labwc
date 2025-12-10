@@ -714,6 +714,8 @@ fill_libinput_category(xmlNode *node)
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
 		if (string_null_or_empty(content)) {
+			wlr_log(WLR_ERROR, "Empty string is not allowed for "
+				"<libinput><device><%s>. Ignoring.", key);
 			continue;
 		}
 		if (!strcmp(key, "category")) {
@@ -1076,7 +1078,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		return true;
 
 	} else if (str_space_only(content)) {
-		/* ignore empty leaf nodes other than above */
+		wlr_log(WLR_ERROR, "Empty string is not allowed for %s. "
+			"Ignoring.", nodename);
 
 	/* handle non-empty leaf nodes */
 	} else if (!strcmp(nodename, "decoration.core")) {
@@ -1177,7 +1180,14 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "unMaximizeThreshold.resistance")) {
 		rc.unmaximize_threshold = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
-		rc.snap_edge_range = atoi(content);
+		rc.snap_edge_range_inner = atoi(content);
+		rc.snap_edge_range_outer = atoi(content);
+		wlr_log(WLR_ERROR, "<snapping><range> is deprecated. "
+			"Use <snapping><range inner=\"\" outer=\"\"> instead.");
+	} else if (!strcasecmp(nodename, "inner.range.snapping")) {
+		rc.snap_edge_range_inner = atoi(content);
+	} else if (!strcasecmp(nodename, "outer.range.snapping")) {
+		rc.snap_edge_range_outer = atoi(content);
 	} else if (!strcasecmp(nodename, "cornerRange.snapping")) {
 		rc.snap_edge_corner_range = atoi(content);
 	} else if (!strcasecmp(nodename, "enabled.overlay.snapping")) {
@@ -1229,6 +1239,15 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else {
 			wlr_log(WLR_ERROR, "Invalid windowSwitcher output %s: "
 				"should be one of all|focused|cursor", content);
+		}
+	} else if (!strcasecmp(nodename, "order.windowSwitcher")) {
+		if (!strcasecmp(content, "focus")) {
+			rc.window_switcher.order = WINDOW_SWITCHER_ORDER_FOCUS;
+		} else if (!strcasecmp(content, "age")) {
+			rc.window_switcher.order = WINDOW_SWITCHER_ORDER_AGE;
+		} else {
+			wlr_log(WLR_ERROR, "Invalid windowSwitcher order %s: "
+				"should be one of focus|age", content);
 		}
 
 	/* The following two are for backward compatibility only. */
@@ -1456,7 +1475,8 @@ rcxml_init(void)
 	rc.unsnap_threshold = 20;
 	rc.unmaximize_threshold = 150;
 
-	rc.snap_edge_range = 10;
+	rc.snap_edge_range_inner = 10;
+	rc.snap_edge_range_outer = 10;
 	rc.snap_edge_corner_range = 50;
 	rc.snap_overlay_enabled = true;
 	rc.snap_overlay_delay_inner = 500;
@@ -1474,6 +1494,7 @@ rcxml_init(void)
 	rc.window_switcher.criteria = LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
 		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
 		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;
+	rc.window_switcher.order = WINDOW_SWITCHER_ORDER_FOCUS;
 
 	rc.resize_indicator = LAB_RESIZE_INDICATOR_NEVER;
 	rc.resize_draw_contents = true;
@@ -1648,9 +1669,8 @@ load_default_window_switcher_fields(void)
 #endif
 	};
 
-	struct cycle_osd_field *field;
 	for (size_t i = 0; i < ARRAY_SIZE(fields); i++) {
-		field = znew(*field);
+		struct cycle_osd_field *field = znew(*field);
 		field->content = fields[i].content;
 		field->width = fields[i].width;
 		wl_list_append(&rc.window_switcher.fields, &field->link);

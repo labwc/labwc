@@ -151,7 +151,8 @@ struct rcxml {
 	int unmaximize_threshold;
 
 	/* window snapping */
-	int snap_edge_range;
+	int snap_edge_range_inner;
+	int snap_edge_range_outer;
 	int snap_edge_corner_range;
 	bool snap_overlay_enabled;
 	int snap_overlay_delay_inner;
@@ -182,9 +183,10 @@ struct rcxml {
 		bool unshade;
 		enum lab_view_criteria criteria;
 		struct wl_list fields;  /* struct window_switcher_field.link */
-		enum window_switcher_style style;
-		enum osd_output_criteria output_criteria;
+		enum cycle_osd_style style;
+		enum cycle_osd_output_criteria output_criteria;
 		char *thumbnail_label_format;
+		enum window_switcher_order order;
 	} window_switcher;
 
 	struct wl_list window_rules; /* struct window_rule.link */

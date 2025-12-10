@@ -21,7 +21,7 @@
 
 #define IGNORE_SSD true
 #define IGNORE_MENU true
-#define IGNORE_OSD_PREVIEW_OUTLINE true
+#define IGNORE_CYCLE_PREVIEW_OUTLINE true
 #define IGNORE_SNAPPING_OVERLAY true
 
 static struct view *last_view;
@@ -118,7 +118,7 @@ get_special(struct server *server, struct wlr_scene_node *node)
 	if (node->parent == &server->scene->tree) {
 		struct output *output;
 		wl_list_for_each(output, &server->outputs, link) {
-			if (node == &output->osd_tree->node) {
+			if (node == &output->cycle_osd_tree->node) {
 				return "output->osd_tree";
 			}
 			if (node == &output->layer_popup_tree->node) {
@@ -150,10 +150,10 @@ get_special(struct server *server, struct wlr_scene_node *node)
 		/* Created on-demand */
 		return "seat->im_relay->popup_tree";
 	}
-	if (server->osd_state.preview_outline
-			&& node == &server->osd_state.preview_outline->tree->node) {
+	if (server->cycle.preview_outline
+			&& node == &server->cycle.preview_outline->tree->node) {
 		/* Created on-demand */
-		return "osd_state->preview_outline";
+		return "cycle_state->preview_outline";
 	}
 #if HAVE_XWAYLAND
 	if (node == &server->unmanaged_tree->node) {
@@ -216,13 +216,11 @@ dump_tree(struct server *server, struct wlr_scene_node *node,
 	}
 	printf("%.*s %*c %4d  %4d  [%p]\n", max_width - 1, type, padding, ' ', x, y, node);
 
-	struct lab_scene_rect *osd_preview_outline =
-		server->osd_state.preview_outline;
 	if ((IGNORE_MENU && node == &server->menu_tree->node)
 			|| (IGNORE_SSD && last_view
 				&& ssd_debug_is_root_node(last_view->ssd, node))
-			|| (IGNORE_OSD_PREVIEW_OUTLINE && osd_preview_outline
-				&& node == &osd_preview_outline->tree->node)
+			|| (IGNORE_CYCLE_PREVIEW_OUTLINE && server->cycle.preview_outline
+				&& node == &server->cycle.preview_outline->tree->node)
 			|| (IGNORE_SNAPPING_OVERLAY && server->seat.overlay.rect
 				&& node == &server->seat.overlay.rect->tree->node)) {
 		printf("%*c%s\n", pos + 4 + INDENT_SIZE, ' ', "<skipping children>");

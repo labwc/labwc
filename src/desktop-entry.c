@@ -251,6 +251,9 @@ err:
  * (e.g. "thunderbird" matches "org.mozilla.Thunderbird.desktop"
  * and "XTerm" matches "xterm.desktop"). This is not per any spec
  * but is needed to find icons for existing applications.
+ *
+ * The second loop tries to match more partial strings, for
+ * example "gimp-2.0" would match "org.something.gimp.desktop".
  */
 static struct sfdo_desktop_entry *
 get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
@@ -258,6 +261,7 @@ get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
 	size_t n_entries;
 	struct sfdo_desktop_entry **entries = sfdo_desktop_db_get_entries(db, &n_entries);
 
+	/* Would match "org.foobar.xterm" when given app-id "XTerm" */
 	for (size_t i = 0; i < n_entries; i++) {
 		struct sfdo_desktop_entry *entry = entries[i];
 		const char *desktop_id = sfdo_desktop_entry_get_id(entry, NULL);
@@ -266,6 +270,8 @@ get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
 		const char *desktop_id_base = dot ? (dot + 1) : desktop_id;
 
 		if (!strcasecmp(app_id, desktop_id_base)) {
+			wlr_log(WLR_DEBUG, "'%s' to '%s.desktop' via case-insensitive match",
+				app_id, desktop_id);
 			return entry;
 		}
 
@@ -278,20 +284,31 @@ get_db_entry_by_id_fuzzy(struct sfdo_desktop_db *db, const char *app_id)
 		const char *wm_class =
 			sfdo_desktop_entry_get_startup_wm_class(entry, NULL);
 		if (wm_class && !strcasecmp(app_id, wm_class)) {
+			wlr_log(WLR_DEBUG, "'%s' to '%s.desktop' via StartupWMClass",
+				app_id, desktop_id);
 			return entry;
 		}
 	}
 
-	/* Try matching partial strings - catches GIMP, among others */
+	/* Would match "org.foobar.xterm-unicode" when given app-id "XTerm" */
+	const int app_id_len = strlen(app_id);
 	for (size_t i = 0; i < n_entries; i++) {
 		struct sfdo_desktop_entry *entry = entries[i];
 		const char *desktop_id = sfdo_desktop_entry_get_id(entry, NULL);
 		const char *dot = strrchr(desktop_id, '.');
 		const char *desktop_id_base = dot ? (dot + 1) : desktop_id;
-		int alen = strlen(app_id);
-		int dlen = strlen(desktop_id_base);
-
-		if (!strncasecmp(app_id, desktop_id_base, alen > dlen ? dlen : alen)) {
+		const int dlen = strlen(desktop_id_base);
+		const int cmp_len = MIN(app_id_len, dlen);
+		if (cmp_len < 3) {
+			/*
+			 * Without this check, app-id "foot" would match
+			 * "something.f" and any app-id would match "R.E.P.O."
+			 */
+			continue;
+		}
+		if (!strncasecmp(app_id, desktop_id_base, cmp_len)) {
+			wlr_log(WLR_DEBUG, "'%s' to '%s.desktop' via partial match",
+				app_id, desktop_id);
 			return entry;
 		}
 	}
@@ -304,10 +321,14 @@ get_desktop_entry(struct sfdo *sfdo, const char *app_id)
 {
 	struct sfdo_desktop_entry *entry = sfdo_desktop_db_get_entry_by_id(
 		sfdo->desktop_db, app_id, SFDO_NT);
-	if (!entry) {
-		entry = get_db_entry_by_id_fuzzy(sfdo->desktop_db, app_id);
+	if (entry) {
+		wlr_log(WLR_DEBUG, "matched '%s.desktop' via exact match", app_id);
+		return entry;
 	}
-
+	entry = get_db_entry_by_id_fuzzy(sfdo->desktop_db, app_id);
+	if (!entry) {
+		wlr_log(WLR_DEBUG, "failed to find .desktop file for '%s'", app_id);
+	}
 	return entry;
 }
 

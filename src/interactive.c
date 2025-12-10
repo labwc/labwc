@@ -42,7 +42,7 @@ interactive_anchor_to_cursor(struct server *server, struct wlr_box *geo)
 	if (wlr_box_empty(geo)) {
 		return;
 	}
-	/* Resize grab_box while anchoring it to grab_box.{x,y} */
+	/* Resize grab_box while anchoring it to grab_{x,y} */
 	server->grab_box.x = max_move_scale(server->grab_x, server->grab_box.x,
 		server->grab_box.width, geo->width);
 	server->grab_box.y = max_move_scale(server->grab_y, server->grab_box.y,
@@ -186,7 +186,7 @@ edge_from_cursor(struct seat *seat, struct output **dest_output,
 		return false;
 	}
 
-	if (rc.snap_edge_range == 0) {
+	if (rc.snap_edge_range_inner == 0 && rc.snap_edge_range_outer == 0) {
 		return false;
 	}
 
@@ -197,9 +197,31 @@ edge_from_cursor(struct seat *seat, struct output **dest_output,
 	}
 	*dest_output = output;
 
-	/* Translate into output local coordinates */
 	double cursor_x = seat->cursor->x;
 	double cursor_y = seat->cursor->y;
+
+	int top_range = rc.snap_edge_range_outer;
+	int bottom_range = rc.snap_edge_range_outer;
+	int left_range = rc.snap_edge_range_outer;
+	int right_range = rc.snap_edge_range_outer;
+	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_UP,
+			output->wlr_output, cursor_x, cursor_y)) {
+		top_range = rc.snap_edge_range_inner;
+	}
+	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_DOWN,
+			output->wlr_output, cursor_x, cursor_y)) {
+		bottom_range = rc.snap_edge_range_inner;
+	}
+	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_LEFT,
+			output->wlr_output, cursor_x, cursor_y)) {
+		left_range = rc.snap_edge_range_inner;
+	}
+	if (wlr_output_layout_adjacent_output(seat->server->output_layout, WLR_DIRECTION_RIGHT,
+			output->wlr_output, cursor_x, cursor_y)) {
+		right_range = rc.snap_edge_range_inner;
+	}
+
+	/* Translate into output local coordinates */
 	wlr_output_layout_output_coords(seat->server->output_layout,
 		output->wlr_output, &cursor_x, &cursor_y);
 
@@ -210,13 +232,13 @@ edge_from_cursor(struct seat *seat, struct output **dest_output,
 	int left = cursor_x - area->x;
 	int right = area->x + area->width - cursor_x;
 
-	if (top < rc.snap_edge_range) {
+	if (top < top_range) {
 		*edge1 = LAB_EDGE_TOP;
-	} else if (bottom < rc.snap_edge_range) {
+	} else if (bottom < bottom_range) {
 		*edge1 = LAB_EDGE_BOTTOM;
-	} else if (left < rc.snap_edge_range) {
+	} else if (left < left_range) {
 		*edge1 = LAB_EDGE_LEFT;
-	} else if (right < rc.snap_edge_range) {
+	} else if (right < right_range) {
 		*edge1 = LAB_EDGE_RIGHT;
 	} else {
 		return false;

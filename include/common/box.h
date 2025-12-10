@@ -11,6 +11,17 @@ void box_union(struct wlr_box *box_dest, struct wlr_box *box_a,
 	struct wlr_box *box_b);
 
 /*
+ * Centers a content box (width & height) within a reference box,
+ * limiting it (if possible) to not extend outside a bounding box.
+ *
+ * The reference box and bounding box are often the same but could be
+ * different (e.g. when centering a view within its parent but limiting
+ * to usable output area).
+ */
+void box_center(int width, int height, const struct wlr_box *ref,
+	const struct wlr_box *bound, int *x, int *y);
+
+/*
  * Fits and centers a content box (width & height) within a bounding box.
  * The content box is downscaled if necessary (preserving aspect ratio) but
  * not upscaled.

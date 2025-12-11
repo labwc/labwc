@@ -266,14 +266,36 @@ get_osd_impl(void)
 	return NULL;
 }
 
-static void
-create_osd_on_output(struct output *output)
+static uint64_t
+get_outputs_by_filter(struct server *server,
+		enum cycle_output_filter output_filter)
 {
-	if (!output_is_usable(output)) {
-		return;
+	struct output *output = NULL;
+
+	switch (output_filter) {
+	case CYCLE_OUTPUT_ALL:
+		break;
+	case CYCLE_OUTPUT_CURSOR:
+		output = output_nearest_to_cursor(server);
+		break;
+	case CYCLE_OUTPUT_FOCUSED: {
+		struct view *view = server->active_view;
+		if (view && output_is_usable(view->output)) {
+			output = view->output;
+		} else {
+			/* Fallback to pointer */
+			output = output_nearest_to_cursor(server);
+		}
+		break;
 	}
-	get_osd_impl()->create(output);
-	assert(output->cycle_osd.tree);
+	}
+
+	if (output) {
+		return output->id_bit;
+	} else {
+		/* bitmask for all outputs */
+		return UINT64_MAX;
+	}
 }
 
 static void
@@ -309,28 +331,18 @@ init_cycle(struct server *server)
 
 	if (rc.window_switcher.osd.show) {
 		/* Create OSD */
-		switch (rc.window_switcher.osd.output_filter) {
-		case CYCLE_OUTPUT_ALL: {
-			struct output *output;
-			wl_list_for_each(output, &server->outputs, link) {
-				create_osd_on_output(output);
+		uint64_t osd_outputs = get_outputs_by_filter(server,
+				rc.window_switcher.osd.output_filter);
+		struct output *output;
+		wl_list_for_each(output, &server->outputs, link) {
+			if (!(osd_outputs & output->id_bit)) {
+				continue;
 			}
-			break;
-		}
-		case CYCLE_OUTPUT_CURSOR:
-			create_osd_on_output(output_nearest_to_cursor(server));
-			break;
-		case CYCLE_OUTPUT_FOCUSED: {
-			struct output *output;
-			if (server->active_view) {
-				output = server->active_view->output;
-			} else {
-				/* Fallback to pointer, if there is no active_view */
-				output = output_nearest_to_cursor(server);
+			if (!output_is_usable(output)) {
+				continue;
 			}
-			create_osd_on_output(output);
-			break;
-		}
+			get_osd_impl()->create(output);
+			assert(output->cycle_osd.tree);
 		}
 	}
 

@@ -1226,7 +1226,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else if (!strcasecmp(content, "thumbnail")) {
 			rc.window_switcher.style = CYCLE_OSD_STYLE_THUMBNAIL;
 		} else {
-			wlr_log(WLR_ERROR, "Invalid windowSwitcher style %s: "
+			wlr_log(WLR_ERROR, "Invalid windowSwitcher style '%s': "
 				"should be one of classic|thumbnail", content);
 		}
 	} else if (!strcasecmp(nodename, "output.osd.windowSwitcher")) {
@@ -1237,7 +1237,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else if (!strcasecmp(content, "focused")) {
 			rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_FOCUSED;
 		} else {
-			wlr_log(WLR_ERROR, "Invalid windowSwitcher output %s: "
+			wlr_log(WLR_ERROR, "Invalid windowSwitcher output '%s': "
 				"should be one of all|focused|cursor", content);
 		}
 	} else if (!strcasecmp(nodename, "order.windowSwitcher")) {
@@ -1246,7 +1246,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else if (!strcasecmp(content, "age")) {
 			rc.window_switcher.order = WINDOW_SWITCHER_ORDER_AGE;
 		} else {
-			wlr_log(WLR_ERROR, "Invalid windowSwitcher order %s: "
+			wlr_log(WLR_ERROR, "Invalid windowSwitcher order '%s': "
 				"should be one of focus|age", content);
 		}
 

@@ -182,7 +182,7 @@ struct rcxml {
 		bool outlines;
 		bool unshade;
 		enum window_switcher_order order;
-		enum lab_view_criteria criteria;
+		enum cycle_workspace_filter workspace_filter; /* deprecated */
 		struct {
 			bool show;
 			enum cycle_osd_style style;

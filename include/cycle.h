@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include <wayland-server-core.h>
+#include "config/types.h"
 
 struct output;
 
@@ -42,13 +43,18 @@ struct cycle_osd_field {
 	struct wl_list link; /* struct rcxml.window_switcher.osd.fields */
 };
 
+struct cycle_filter {
+	enum cycle_workspace_filter workspace;
+};
+
 struct buf;
 struct view;
 struct server;
 struct wlr_scene_node;
 
 /* Begin window switcher */
-void cycle_begin(struct server *server, enum lab_cycle_dir direction);
+void cycle_begin(struct server *server, enum lab_cycle_dir direction,
+	struct cycle_filter filter);
 
 /* Cycle the selected view in the window switcher */
 void cycle_step(struct server *server, enum lab_cycle_dir direction);

@@ -339,7 +339,7 @@ this is for compatibility with Openbox.
 ## WINDOW SWITCHER
 
 ```
-<windowSwitcher preview="yes" outlines="yes" allWorkspaces="no">
+<windowSwitcher preview="yes" outlines="yes">
   <osd show="yes" style="classic" output="all" thumbnailLabelFormat="%T" />
   <fields>
     <field content="icon" width="5%" />
@@ -349,16 +349,12 @@ this is for compatibility with Openbox.
 </windowSwitcher>
 ```
 
-*<windowSwitcher preview="" outlines="" allWorkspaces="" unshade="" order="">*
+*<windowSwitcher preview="" outlines="" unshade="" order="">*
 	*preview* [yes|no] Preview the contents of the selected window when
 	switching between windows. Default is yes.
 
 	*outlines* [yes|no] Draw an outline around the selected window when
 	switching between windows. Default is yes.
-
-	*allWorkspaces* [yes|no] Show windows regardless of what workspace
-	they are on. Default no (that is only windows on the current workspace
-	are shown).
 
 	*unshade* [yes|no] Temporarily unshade windows when switching between
 	them and permanently unshade on the final selection. Default is yes.

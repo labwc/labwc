@@ -5,6 +5,7 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "common/set.h"
+#include "cycle.h"
 #include "input/cursor.h"
 #include "overlay.h"
 
@@ -310,6 +311,7 @@ struct server {
 		struct wlr_scene_node *preview_node;
 		struct wlr_scene_node *preview_dummy;
 		struct lab_scene_rect *preview_outline;
+		struct cycle_filter filter;
 	} cycle;
 
 	struct theme *theme;

@@ -125,13 +125,17 @@ Actions are used in menus and keyboard/mouse bindings.
 	Resize and move the active window back to its untiled or unmaximized
 	position if it had been maximized or tiled to a direction or region.
 
-*<action name="NextWindow" />*++
-*<action name="PreviousWindow" />*
+*<action name="NextWindow" workspace="current" />*++
+*<action name="PreviousWindow" workspace="current" />*
 	Cycle focus to next/previous window, respectively.
 
-	Default keybind for NextWindow is Alt-Tab.
+	Default keybinds for NextWindow and PreviousWindow are Alt-Tab and
+	Shift-Alt-Tab. While cycling through windows, the arrow keys move the
+	selected window forwards/backwards and the escape key halts the cycling.
 
-	The arrow keys are used to move forwards/backwards while cycling.
+	*workspace* [all|current]
+	This determines whether to cycle through windows on all workspaces or the
+	current workspace. Default is "current".
 
 *<action name="Reconfigure" />*
 	Re-load configuration and theme files.

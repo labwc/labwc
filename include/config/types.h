@@ -117,6 +117,11 @@ enum cycle_osd_style {
 	CYCLE_OSD_STYLE_THUMBNAIL,
 };
 
+enum cycle_workspace_filter {
+	CYCLE_WORKSPACE_ALL,
+	CYCLE_WORKSPACE_CURRENT,
+};
+
 enum cycle_output_filter {
 	CYCLE_OUTPUT_ALL,
 	CYCLE_OUTPUT_CURSOR,

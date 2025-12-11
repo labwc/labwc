@@ -1269,10 +1269,17 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.outlines);
 	} else if (!strcasecmp(nodename, "allWorkspaces.windowSwitcher")) {
-		if (parse_bool(content, -1) == true) {
-			rc.window_switcher.criteria &=
-				~LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
+		int ret = parse_bool(content, -1);
+		if (ret == 0) {
+			rc.window_switcher.workspace_filter = CYCLE_WORKSPACE_CURRENT;
+		} else if (ret == 1) {
+			rc.window_switcher.workspace_filter = CYCLE_WORKSPACE_ALL;
+		} else {
+			wlr_log(WLR_ERROR, "Invalid value for <allWorkspaces>:"
+				" '%s'", content);
 		}
+		wlr_log(WLR_ERROR, "<windowSwitcher allWorkspaces=\"\" /> is deprecated."
+			" Use <action name=\"NextWindow\" workspace=\"\"> instead.");
 	} else if (!strcasecmp(nodename, "unshade.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.unshade);
 
@@ -1490,9 +1497,7 @@ rcxml_init(void)
 	rc.window_switcher.preview = true;
 	rc.window_switcher.outlines = true;
 	rc.window_switcher.unshade = true;
-	rc.window_switcher.criteria = LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
-		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
-		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;
+	rc.window_switcher.workspace_filter = CYCLE_WORKSPACE_CURRENT;
 	rc.window_switcher.order = WINDOW_SWITCHER_ORDER_FOCUS;
 
 	rc.resize_indicator = LAB_RESIZE_INDICATOR_NEVER;

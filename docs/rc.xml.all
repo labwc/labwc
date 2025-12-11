@@ -77,7 +77,7 @@
     </font>
   </theme>
 
-  <windowSwitcher preview="yes" outlines="yes" allWorkspaces="no" unshade="yes">
+  <windowSwitcher preview="yes" outlines="yes" unshade="yes">
     <osd show="yes" style="classic" output="all" thumbnailLabelFormat="%T" />
     <fields>
       <field content="icon" width="5%" />

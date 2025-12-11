@@ -325,8 +325,23 @@ init_cycle(struct server *server, struct cycle_filter filter)
 		criteria |= LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
 	}
 
+	uint64_t cycle_outputs =
+		get_outputs_by_filter(server, filter.output);
+
+	const char *cycle_app_id = NULL;
+	if (filter.app_id == CYCLE_APP_ID_CURRENT && server->active_view) {
+		cycle_app_id = server->active_view->app_id;
+	}
+
 	struct view *view;
 	for_each_view(view, &server->views, criteria) {
+		if (!(cycle_outputs & view->output->id_bit)) {
+			continue;
+		}
+		if (cycle_app_id && strcmp(view->app_id, cycle_app_id) != 0) {
+			continue;
+		}
+
 		if (rc.window_switcher.order == WINDOW_SWITCHER_ORDER_AGE) {
 			insert_view_ordered_by_age(&server->cycle.views, view);
 		} else {

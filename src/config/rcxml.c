@@ -1231,11 +1231,11 @@ entry(xmlNode *node, char *nodename, char *content)
 		}
 	} else if (!strcasecmp(nodename, "output.osd.windowSwitcher")) {
 		if (!strcasecmp(content, "all")) {
-			rc.window_switcher.osd.output_criteria = CYCLE_OSD_OUTPUT_ALL;
+			rc.window_switcher.osd.output_filter = CYCLE_OUTPUT_ALL;
 		} else if (!strcasecmp(content, "cursor")) {
-			rc.window_switcher.osd.output_criteria = CYCLE_OSD_OUTPUT_CURSOR;
+			rc.window_switcher.osd.output_filter = CYCLE_OUTPUT_CURSOR;
 		} else if (!strcasecmp(content, "focused")) {
-			rc.window_switcher.osd.output_criteria = CYCLE_OSD_OUTPUT_FOCUSED;
+			rc.window_switcher.osd.output_filter = CYCLE_OUTPUT_FOCUSED;
 		} else {
 			wlr_log(WLR_ERROR, "Invalid windowSwitcher output '%s': "
 				"should be one of all|focused|cursor", content);
@@ -1486,7 +1486,7 @@ rcxml_init(void)
 
 	rc.window_switcher.osd.show = true;
 	rc.window_switcher.osd.style = CYCLE_OSD_STYLE_CLASSIC;
-	rc.window_switcher.osd.output_criteria = CYCLE_OSD_OUTPUT_ALL;
+	rc.window_switcher.osd.output_filter = CYCLE_OUTPUT_ALL;
 	rc.window_switcher.osd.thumbnail_label_format = xstrdup("%T");
 	rc.window_switcher.preview = true;
 	rc.window_switcher.outlines = true;

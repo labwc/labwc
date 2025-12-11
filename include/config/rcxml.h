@@ -185,7 +185,7 @@ struct rcxml {
 		struct {
 			bool show;
 			enum cycle_osd_style style;
-			enum cycle_osd_output_criteria output_criteria;
+			enum cycle_output_filter output_filter;
 			char *thumbnail_label_format;
 			struct wl_list fields;  /* struct cycle_osd_field.link */
 		} osd;

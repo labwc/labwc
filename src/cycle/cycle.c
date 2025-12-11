@@ -309,18 +309,18 @@ init_cycle(struct server *server)
 
 	if (rc.window_switcher.osd.show) {
 		/* Create OSD */
-		switch (rc.window_switcher.osd.output_criteria) {
-		case CYCLE_OSD_OUTPUT_ALL: {
+		switch (rc.window_switcher.osd.output_filter) {
+		case CYCLE_OUTPUT_ALL: {
 			struct output *output;
 			wl_list_for_each(output, &server->outputs, link) {
 				create_osd_on_output(output);
 			}
 			break;
 		}
-		case CYCLE_OSD_OUTPUT_CURSOR:
+		case CYCLE_OUTPUT_CURSOR:
 			create_osd_on_output(output_nearest_to_cursor(server));
 			break;
-		case CYCLE_OSD_OUTPUT_FOCUSED: {
+		case CYCLE_OUTPUT_FOCUSED: {
 			struct output *output;
 			if (server->active_view) {
 				output = server->active_view->output;

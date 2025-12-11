@@ -117,10 +117,10 @@ enum cycle_osd_style {
 	CYCLE_OSD_STYLE_THUMBNAIL,
 };
 
-enum cycle_osd_output_criteria {
-	CYCLE_OSD_OUTPUT_ALL,
-	CYCLE_OSD_OUTPUT_CURSOR,
-	CYCLE_OSD_OUTPUT_FOCUSED,
+enum cycle_output_filter {
+	CYCLE_OUTPUT_ALL,
+	CYCLE_OUTPUT_CURSOR,
+	CYCLE_OUTPUT_FOCUSED,
 };
 
 #endif /* LABWC_CONFIG_TYPES_H */

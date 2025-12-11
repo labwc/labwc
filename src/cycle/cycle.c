@@ -17,7 +17,7 @@
 #include "theme.h"
 #include "view.h"
 
-static bool init_cycle(struct server *server);
+static bool init_cycle(struct server *server, struct cycle_filter filter);
 static void update_cycle(struct server *server);
 static void destroy_cycle(struct server *server);
 
@@ -93,9 +93,10 @@ cycle_reinitialize(struct server *server)
 	struct view *selected_view = cycle->selected_view;
 	struct view *selected_view_prev =
 		get_next_selected_view(server, LAB_CYCLE_DIR_BACKWARD);
+	struct cycle_filter filter = cycle->filter;
 
 	destroy_cycle(server);
-	if (init_cycle(server)) {
+	if (init_cycle(server, filter)) {
 		/*
 		 * Preserve the selected view (or its previous view) if it's
 		 * still in the cycle list
@@ -152,13 +153,14 @@ restore_preview_node(struct server *server)
 }
 
 void
-cycle_begin(struct server *server, enum lab_cycle_dir direction)
+cycle_begin(struct server *server, enum lab_cycle_dir direction,
+		struct cycle_filter filter)
 {
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		return;
 	}
 
-	if (!init_cycle(server)) {
+	if (!init_cycle(server, filter)) {
 		return;
 	}
 
@@ -314,10 +316,17 @@ insert_view_ordered_by_age(struct wl_list *views, struct view *new_view)
 
 /* Return false on failure */
 static bool
-init_cycle(struct server *server)
+init_cycle(struct server *server, struct cycle_filter filter)
 {
+	enum lab_view_criteria criteria =
+		LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER
+		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL;
+	if (filter.workspace == CYCLE_WORKSPACE_CURRENT) {
+		criteria |= LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
+	}
+
 	struct view *view;
-	for_each_view(view, &server->views, rc.window_switcher.criteria) {
+	for_each_view(view, &server->views, criteria) {
 		if (rc.window_switcher.order == WINDOW_SWITCHER_ORDER_AGE) {
 			insert_view_ordered_by_age(&server->cycle.views, view);
 		} else {
@@ -328,6 +337,7 @@ init_cycle(struct server *server)
 		wlr_log(WLR_DEBUG, "no views to switch between");
 		return false;
 	}
+	server->cycle.filter = filter;
 
 	if (rc.window_switcher.osd.show) {
 		/* Create OSD */
@@ -406,4 +416,5 @@ destroy_cycle(struct server *server)
 	}
 
 	server->cycle.selected_view = NULL;
+	server->cycle.filter = (struct cycle_filter){0};
 }

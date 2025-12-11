@@ -366,6 +366,20 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		break;
+	case ACTION_TYPE_NEXT_WINDOW:
+	case ACTION_TYPE_PREVIOUS_WINDOW:
+		if (!strcasecmp(argument, "workspace")) {
+			if (!strcasecmp(content, "all")) {
+				action_arg_add_int(action, argument, CYCLE_WORKSPACE_ALL);
+			} else if (!strcasecmp(content, "current")) {
+				action_arg_add_int(action, argument, CYCLE_WORKSPACE_CURRENT);
+			} else {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			}
+			goto cleanup;
+		}
+		break;
 	case ACTION_TYPE_SHOW_MENU:
 		if (!strcmp(argument, "menu")) {
 			action_arg_add_str(action, argument, content);
@@ -1126,19 +1140,20 @@ run_action(struct view *view, struct server *server, struct action *action,
 		}
 		break;
 	case ACTION_TYPE_NEXT_WINDOW:
+	case ACTION_TYPE_PREVIOUS_WINDOW: {
+		enum lab_cycle_dir dir = (action->type == ACTION_TYPE_NEXT_WINDOW) ?
+			LAB_CYCLE_DIR_FORWARD : LAB_CYCLE_DIR_BACKWARD;
+		struct cycle_filter filter = {
+			.workspace = action_get_int(action, "workspace",
+				rc.window_switcher.workspace_filter),
+		};
 		if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
-			cycle_step(server, LAB_CYCLE_DIR_FORWARD);
+			cycle_step(server, dir);
 		} else {
-			cycle_begin(server, LAB_CYCLE_DIR_FORWARD);
+			cycle_begin(server, dir, filter);
 		}
 		break;
-	case ACTION_TYPE_PREVIOUS_WINDOW:
-		if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
-			cycle_step(server, LAB_CYCLE_DIR_BACKWARD);
-		} else {
-			cycle_begin(server, LAB_CYCLE_DIR_BACKWARD);
-		}
-		break;
+	}
 	case ACTION_TYPE_RECONFIGURE:
 		kill(getpid(), SIGHUP);
 		break;

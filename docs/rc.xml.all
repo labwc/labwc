@@ -98,7 +98,7 @@
     Some contents are fixed-length and others are variable-length.
     See "man 5 labwc-config" for details.
 
-    <windowSwitcher preview="no" outlines="no" allWorkspaces="yes">
+    <windowSwitcher preview="no" outlines="no">
       <osd show="yes" />
       <fields>
         <field content="workspace" width="5%" />

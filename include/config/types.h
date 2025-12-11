@@ -128,4 +128,9 @@ enum cycle_output_filter {
 	CYCLE_OUTPUT_FOCUSED,
 };
 
+enum cycle_app_id_filter {
+	CYCLE_APP_ID_ALL,
+	CYCLE_APP_ID_CURRENT,
+};
+
 #endif /* LABWC_CONFIG_TYPES_H */

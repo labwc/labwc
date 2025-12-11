@@ -379,6 +379,30 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			}
 			goto cleanup;
 		}
+		if (!strcasecmp(argument, "output")) {
+			if (!strcasecmp(content, "all")) {
+				action_arg_add_int(action, argument, CYCLE_OUTPUT_ALL);
+			} else if (!strcasecmp(content, "cursor")) {
+				action_arg_add_int(action, argument, CYCLE_OUTPUT_CURSOR);
+			} else if (!strcasecmp(content, "focused")) {
+				action_arg_add_int(action, argument, CYCLE_OUTPUT_FOCUSED);
+			} else {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			}
+			goto cleanup;
+		}
+		if (!strcasecmp(argument, "identifier")) {
+			if (!strcasecmp(content, "all")) {
+				action_arg_add_int(action, argument, CYCLE_APP_ID_ALL);
+			} else if (!strcasecmp(content, "current")) {
+				action_arg_add_int(action, argument, CYCLE_APP_ID_CURRENT);
+			} else {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			}
+			goto cleanup;
+		}
 		break;
 	case ACTION_TYPE_SHOW_MENU:
 		if (!strcmp(argument, "menu")) {
@@ -1146,6 +1170,10 @@ run_action(struct view *view, struct server *server, struct action *action,
 		struct cycle_filter filter = {
 			.workspace = action_get_int(action, "workspace",
 				rc.window_switcher.workspace_filter),
+			.output = action_get_int(action, "output",
+				CYCLE_OUTPUT_ALL),
+			.app_id = action_get_int(action, "identifier",
+				CYCLE_APP_ID_ALL),
 		};
 		if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
 			cycle_step(server, dir);

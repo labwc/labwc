@@ -268,14 +268,25 @@ get_osd_impl(void)
 	return NULL;
 }
 
-static void
-create_osd_on_output(struct output *output)
+static struct output *
+get_output_by_filter(struct server *server,
+		enum cycle_output_filter output_filter)
 {
-	if (!output_is_usable(output)) {
-		return;
+	switch (output_filter) {
+	case CYCLE_OUTPUT_ALL:
+		return NULL;
+	case CYCLE_OUTPUT_CURSOR:
+		return output_nearest_to_cursor(server);
+	case CYCLE_OUTPUT_FOCUSED: {
+		if (server->active_view) {
+			return server->active_view->output;
+		} else {
+			/* Fallback to pointer, if there is no active_view */
+			return output_nearest_to_cursor(server);
+		}
 	}
-	get_osd_impl()->create(output);
-	assert(output->cycle_osd.tree);
+	}
+	return NULL;
 }
 
 static void
@@ -319,28 +330,18 @@ init_cycle(struct server *server, struct cycle_filter filter)
 
 	if (rc.window_switcher.osd.show) {
 		/* Create OSD */
-		switch (rc.window_switcher.osd.output_filter) {
-		case CYCLE_OUTPUT_ALL: {
-			struct output *output;
-			wl_list_for_each(output, &server->outputs, link) {
-				create_osd_on_output(output);
+		struct output *osd_output = get_output_by_filter(server,
+				rc.window_switcher.osd.output_filter);
+		struct output *output;
+		wl_list_for_each(output, &server->outputs, link) {
+			if (osd_output && output != osd_output) {
+				continue;
 			}
-			break;
-		}
-		case CYCLE_OUTPUT_CURSOR:
-			create_osd_on_output(output_nearest_to_cursor(server));
-			break;
-		case CYCLE_OUTPUT_FOCUSED: {
-			struct output *output;
-			if (server->active_view) {
-				output = server->active_view->output;
-			} else {
-				/* Fallback to pointer, if there is no active_view */
-				output = output_nearest_to_cursor(server);
+			if (!output_is_usable(output)) {
+				continue;
 			}
-			create_osd_on_output(output);
-			break;
-		}
+			get_osd_impl()->create(output);
+			assert(output->cycle_osd.tree);
 		}
 	}
 

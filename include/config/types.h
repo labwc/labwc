@@ -63,7 +63,7 @@ enum lab_view_criteria {
 	LAB_VIEW_CRITERIA_NONE = 0,
 
 	/*
-	 * Includes always-on-top views, e.g.
+	 * Includes omnipresent views, e.g.
 	 * what is visible on the current workspace
 	 */
 	LAB_VIEW_CRITERIA_CURRENT_WORKSPACE       = 1 << 0,

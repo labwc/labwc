@@ -267,13 +267,7 @@ matches_criteria(struct view *view, enum lab_view_criteria criteria)
 		return false;
 	}
 	if (criteria & LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
-		/*
-		 * Always-on-top views are always on the current desktop and are
-		 * special in that they live in a different tree.
-		 */
-		struct server *server = view->server;
-		if (view->scene_tree->node.parent != server->workspaces.current->tree
-				&& !view_is_always_on_top(view)) {
+		if (view->workspace != view->server->workspaces.current) {
 			return false;
 		}
 	}
@@ -303,11 +297,7 @@ matches_criteria(struct view *view, enum lab_view_criteria criteria)
 		}
 	}
 	if (criteria & LAB_VIEW_CRITERIA_NO_OMNIPRESENT) {
-		/*
-		 * TODO: Once always-on-top views use a per-workspace
-		 *       sub-tree we can remove the check from this condition.
-		 */
-		if (view->visible_on_all_workspaces || view_is_always_on_top(view)) {
+		if (view->visible_on_all_workspaces) {
 			return false;
 		}
 	}
@@ -744,7 +734,7 @@ _minimize(struct view *view, bool minimized)
 	view->minimized = minimized;
 	wl_signal_emit_mutable(&view->events.minimized, NULL);
 
-	view_update_visibility(view);
+	view_update_visibility(view, /*refocus*/ true);
 }
 
 static void
@@ -1526,9 +1516,8 @@ view_toggle_always_on_top(struct view *view)
 {
 	assert(view);
 	if (view_is_always_on_top(view)) {
-		view->workspace = view->server->workspaces.current;
 		wlr_scene_node_reparent(&view->scene_tree->node,
-			view->workspace->tree);
+			view->server->view_tree);
 	} else {
 		wlr_scene_node_reparent(&view->scene_tree->node,
 			view->server->view_tree_always_on_top);
@@ -1548,9 +1537,8 @@ view_toggle_always_on_bottom(struct view *view)
 {
 	assert(view);
 	if (view_is_always_on_bottom(view)) {
-		view->workspace = view->server->workspaces.current;
 		wlr_scene_node_reparent(&view->scene_tree->node,
-			view->workspace->tree);
+			view->server->view_tree);
 	} else {
 		wlr_scene_node_reparent(&view->scene_tree->node,
 			view->server->view_tree_always_on_bottom);
@@ -1572,8 +1560,7 @@ view_move_to_workspace(struct view *view, struct workspace *workspace)
 	assert(workspace);
 	if (view->workspace != workspace) {
 		view->workspace = workspace;
-		wlr_scene_node_reparent(&view->scene_tree->node,
-			workspace->tree);
+		view_update_visibility(view, /*refocus*/ false);
 	}
 }
 
@@ -2401,30 +2388,33 @@ mappable_disconnect(struct mappable *mappable)
 
 /* Used in both (un)map and (un)minimize */
 void
-view_update_visibility(struct view *view)
+view_update_visibility(struct view *view, bool refocus)
 {
-	bool visible = view->mapped && !view->minimized;
+	struct server *server = view->server;
+	bool visible = view->mapped && !view->minimized
+			&& view->workspace == server->workspaces.current;
 	if (visible == view->scene_tree->node.enabled) {
 		return;
 	}
 
 	wlr_scene_node_set_enabled(&view->scene_tree->node, visible);
-	struct server *server = view->server;
 
-	if (visible) {
-		desktop_focus_view(view, /*raise*/ true);
-	} else {
-		/*
-		 * When exiting an xwayland application with multiple
-		 * views mapped, a race condition can occur: after the
-		 * topmost view is unmapped, the next view under it is
-		 * offered focus, but is also unmapped before accepting
-		 * focus (so server->active_view remains NULL). To avoid
-		 * being left with no active view at all, check for that
-		 * case also.
-		 */
-		if (view == server->active_view || !server->active_view) {
-			desktop_focus_topmost_view(server);
+	if (refocus) {
+		if (visible) {
+			desktop_focus_view(view, /*raise*/ true);
+		} else {
+			/*
+			 * When exiting an xwayland application with multiple
+			 * views mapped, a race condition can occur: after the
+			 * topmost view is unmapped, the next view under it is
+			 * offered focus, but is also unmapped before accepting
+			 * focus (so server->active_view remains NULL). To avoid
+			 * being left with no active view at all, check for that
+			 * case also.
+			 */
+			if (view == server->active_view || !server->active_view) {
+				desktop_focus_topmost_view(server);
+			}
 		}
 	}
 

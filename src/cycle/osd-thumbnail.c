@@ -194,9 +194,10 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 }
 
 static void
-get_items_geometry(struct output *output, struct theme *theme,
-		int nr_thumbs, int *nr_rows, int *nr_cols)
+get_items_geometry(struct output *output, int nr_thumbs,
+		int *nr_cols, int *nr_rows, int *nr_visible_rows)
 {
+	struct theme *theme = output->server->theme;
 	struct window_switcher_thumbnail_theme *switcher_theme =
 		&theme->osd_window_switcher_thumbnail;
 	int output_width, output_height;
@@ -223,6 +224,9 @@ get_items_geometry(struct output *output, struct theme *theme,
 		(*nr_rows)++;
 		*nr_cols = ceilf((float)nr_thumbs / *nr_rows);
 	}
+
+	*nr_visible_rows = MIN(*nr_rows,
+		(output_height - 2 * padding) / switcher_theme->item_height);
 }
 
 static void
@@ -236,18 +240,19 @@ cycle_osd_thumbnail_init(struct cycle_osd_output *osd_output)
 	int padding = theme->osd_border_width + switcher_theme->padding;
 
 	osd_output->tree = wlr_scene_tree_create(output->cycle_osd_tree);
+	osd_output->items_tree = wlr_scene_tree_create(osd_output->tree);
 
 	int nr_views = wl_list_length(&server->cycle.views);
 	assert(nr_views > 0);
-	int nr_rows, nr_cols;
-	get_items_geometry(output, theme, nr_views, &nr_rows, &nr_cols);
+	int nr_cols, nr_rows, nr_visible_rows;
+	get_items_geometry(output, nr_views, &nr_cols, &nr_rows, &nr_visible_rows);
 
 	/* items */
 	struct view *view;
 	int index = 0;
 	wl_list_for_each(view, &server->cycle.views, cycle_link) {
 		struct cycle_osd_thumbnail_item *item = create_item_scene(
-			osd_output->tree, view, osd_output);
+			osd_output->items_tree, view, osd_output);
 		if (!item) {
 			break;
 		}
@@ -257,14 +262,28 @@ cycle_osd_thumbnail_init(struct cycle_osd_output *osd_output)
 		index++;
 	}
 
+	int items_width = switcher_theme->item_width * nr_cols;
+	int items_height = switcher_theme->item_height * nr_visible_rows;
+
+	struct wlr_box scrollbar_area = {
+		.x = padding + items_width - SCROLLBAR_W,
+		.y = padding,
+		.width = SCROLLBAR_W,
+		.height = items_height,
+	};
+	cycle_osd_scroll_init(osd_output, scrollbar_area,
+		switcher_theme->item_height, nr_cols, nr_rows, nr_visible_rows,
+		switcher_theme->item_active_border_color,
+		switcher_theme->item_active_bg_color);
+
 	/* background */
 	struct lab_scene_rect_options bg_opts = {
 		.border_colors = (float *[1]) { theme->osd_border_color },
 		.nr_borders = 1,
 		.border_width = theme->osd_border_width,
 		.bg_color = theme->osd_bg_color,
-		.width = nr_cols * switcher_theme->item_width + 2 * padding,
-		.height = nr_rows * switcher_theme->item_height + 2 * padding,
+		.width = items_width + 2 * padding,
+		.height = items_height + 2 * padding,
 	};
 	struct lab_scene_rect *bg =
 		lab_scene_rect_create(osd_output->tree, &bg_opts);
@@ -283,6 +302,8 @@ static void
 cycle_osd_thumbnail_update(struct cycle_osd_output *osd_output)
 {
 	struct server *server = osd_output->output->server;
+	cycle_osd_scroll_update(osd_output);
+
 	struct cycle_osd_thumbnail_item *item;
 	wl_list_for_each(item, &osd_output->items, base.link) {
 		bool active = (item->base.view == server->cycle.selected_view);

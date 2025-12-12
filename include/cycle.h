@@ -7,6 +7,7 @@
 #include "config/types.h"
 
 struct output;
+struct wlr_box;
 
 enum lab_cycle_dir {
 	LAB_CYCLE_DIR_NONE,
@@ -102,6 +103,27 @@ struct cycle_osd_impl {
 	 */
 	void (*update)(struct output *output);
 };
+
+#define SCROLLBAR_W 10
+
+/**
+ * Initialize the context and scene for scrolling OSD items.
+ *
+ * @output: Output of the OSD
+ * @bar_area: Area where the scrollbar is drawn
+ * @delta_y: The vertical delta by which items are scrolled (usually item height)
+ * @nr_cols: Number of columns in the OSD
+ * @nr_rows: Number of rows in the OSD
+ * @nr_visible_rows: Number of visible rows in the OSD
+ * @border_color: Border color of the scrollbar
+ * @bg_color: Background color of the scrollbar
+ */
+void cycle_osd_scroll_init(struct output *output, struct wlr_box bar_area,
+	int delta_y, int nr_cols, int nr_rows, int nr_visible_rows,
+	float *border_color, float *bg_color);
+
+/* Scroll the OSD to show server->cycle.selected_view if needed */
+void cycle_osd_scroll_update(struct output *output);
 
 extern struct cycle_osd_impl cycle_osd_classic_impl;
 extern struct cycle_osd_impl cycle_osd_thumbnail_impl;

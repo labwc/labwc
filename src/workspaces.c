@@ -25,6 +25,7 @@
 #include "view.h"
 
 #define COSMIC_WORKSPACES_VERSION 1
+
 #define EXT_WORKSPACES_VERSION 1
 
 /* Internal helpers */
@@ -187,7 +188,7 @@ static void
 handle_cosmic_workspace_activate(struct wl_listener *listener, void *data)
 {
 	struct workspace *workspace = wl_container_of(listener, workspace, on_cosmic.activate);
-	workspaces_switch_to(workspace, /* update_focus */ true, false);
+	workspaces_switch_to(workspace, /* update_focus */ true);
 	wlr_log(WLR_INFO, "cosmic activating workspace %s", workspace->name);
 }
 
@@ -196,7 +197,7 @@ static void
 handle_ext_workspace_activate(struct wl_listener *listener, void *data)
 {
 	struct workspace *workspace = wl_container_of(listener, workspace, on_ext.activate);
-	workspaces_switch_to(workspace, /* update_focus */ true, false);
+	workspaces_switch_to(workspace, /* update_focus */ true);
 	wlr_log(WLR_INFO, "ext activating workspace %s", workspace->name);
 }
 
@@ -209,18 +210,10 @@ add_workspace(struct server *server, const char *name)
 	workspace->name = xstrdup(name);
 	workspace->tree = wlr_scene_tree_create(server->view_tree);
 	wl_list_append(&server->workspaces.all, &workspace->link);
-	if (!server->workspaces.current) {
-		server->workspaces.current = workspace;
-	} else {
-		wlr_scene_node_set_enabled(&workspace->tree->node, false);
-	}
-
-	bool active = server->workspaces.current == workspace;
 
 	/* cosmic */
 	workspace->cosmic_workspace = lab_cosmic_workspace_create(server->workspaces.cosmic_group);
 	lab_cosmic_workspace_set_name(workspace->cosmic_workspace, name);
-	lab_cosmic_workspace_set_active(workspace->cosmic_workspace, active);
 
 	workspace->on_cosmic.activate.notify = handle_cosmic_workspace_activate;
 	wl_signal_add(&workspace->cosmic_workspace->events.activate,
@@ -231,7 +224,6 @@ add_workspace(struct server *server, const char *name)
 		server->workspaces.ext_manager, /*id*/ NULL);
 	lab_ext_workspace_assign_to_group(workspace->ext_workspace, server->workspaces.ext_group);
 	lab_ext_workspace_set_name(workspace->ext_workspace, name);
-	lab_ext_workspace_set_active(workspace->ext_workspace, active);
 
 	workspace->on_ext.activate.notify = handle_ext_workspace_activate;
 	wl_signal_add(&workspace->ext_workspace->events.activate,
@@ -399,21 +391,30 @@ workspaces_init(struct server *server)
 		add_workspace(server, conf->name);
 	}
 
-	/* If 'firstDesktop' is set in rc.xml, switch to it, otherwise stop */
-	if (!rc.workspace_config.primary_workspace) {
-		return;
-	}
-
+	/*
+	 * After adding workspaces, check if there is a primary selected and set
+	 * that as the primary workspace.
+	 */
 	char *primary_name = rc.workspace_config.primary_workspace;
-	struct workspace *primary = workspaces_find(
-		server->workspaces.current, primary_name, false);
+	struct workspace* initial = NULL;
+	struct workspace* first = wl_container_of(
+		server->workspaces.all.next, first, link);
 
-	if (primary) {
-		workspaces_switch_to(primary, false, true);
-	} else {
-		wlr_log(WLR_ERROR, "No primary workspace matching %s",
-			primary_name);
+	if (primary_name) {
+		initial = workspaces_find(first, primary_name, false);
+		if (!initial) {
+			wlr_log(WLR_ERROR, "No workspace matching %s found",
+				primary_name);
+		}
 	}
+	if (!initial) {
+		initial = first;
+	}
+
+	server->workspaces.current = initial;
+	wlr_scene_node_set_enabled(&initial->tree->node, false);
+	lab_cosmic_workspace_set_active(initial->cosmic_workspace, true);
+	lab_ext_workspace_set_active(initial->ext_workspace, true);
 }
 
 /*
@@ -422,7 +423,7 @@ workspaces_init(struct server *server)
  * avoid unnecessary extra focus changes and possible recursion.
  */
 void
-workspaces_switch_to(struct workspace *target, bool update_focus, bool first_set)
+workspaces_switch_to(struct workspace *target, bool update_focus)
 {
 	assert(target);
 	struct server *server = target->server;
@@ -481,25 +482,17 @@ workspaces_switch_to(struct workspace *target, bool update_focus, bool first_set
 		}
 	}
 
+	/* And finally show the OSD */
+	_osd_show(server);
+
 	/*
-	 * These steps all rely on things that
-	 * have not been initialized when the
-	 * workspaces are. So we skip these or
-	 * else we get segmentation faults.
+	 * Make sure we are not carrying around a
+	 * cursor image from the previous desktop
 	 */
-	if (!first_set) {
-		/* And finally show the OSD */
-		_osd_show(server);
+	cursor_update_focus(server);
 
-		/*
-		 * Make sure we are not carrying around a
-		 * cursor image from the previous desktop
-		 */
-		cursor_update_focus(server);
-
-		/* Ensure that only currently visible fullscreen windows hide the top layer */
-		desktop_update_top_layer_visibility(server);
-	}
+	/* Ensure that only currently visible fullscreen windows hide the top layer */
+	desktop_update_top_layer_visibility(server);
 
 	lab_cosmic_workspace_set_active(target->cosmic_workspace, true);
 	lab_ext_workspace_set_active(target->ext_workspace, true);
@@ -643,7 +636,7 @@ workspaces_reconfigure(struct server *server)
 
 		if (server->workspaces.current == actual_workspace) {
 			workspaces_switch_to(first_workspace,
-				/* update_focus */ true, false);
+				/* update_focus */ true);
 		}
 		if (server->workspaces.last == actual_workspace) {
 			server->workspaces.last = first_workspace;

@@ -1341,7 +1341,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 		}
 		if (follow) {
 			workspaces_switch_to(target_workspace,
-				/*update_focus*/ true, false);
+				/*update_focus*/ true);
 		}
 		break;
 	}

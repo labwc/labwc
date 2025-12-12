@@ -396,8 +396,8 @@ workspaces_init(struct server *server)
 	 * that as the primary workspace.
 	 */
 	char *primary_name = rc.workspace_config.primary_workspace;
-	struct workspace* initial = NULL;
-	struct workspace* first = wl_container_of(
+	struct workspace *initial = NULL;
+	struct workspace *first = wl_container_of(
 		server->workspaces.all.next, first, link);
 
 	if (primary_name) {

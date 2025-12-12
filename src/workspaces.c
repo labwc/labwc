@@ -25,7 +25,6 @@
 #include "view.h"
 
 #define COSMIC_WORKSPACES_VERSION 1
-
 #define EXT_WORKSPACES_VERSION 1
 
 /* Internal helpers */
@@ -396,7 +395,7 @@ workspaces_init(struct server *server)
 	 * After adding workspaces, check if there is a primary selected and set
 	 * that as the primary workspace.
 	 */
-	char *primary_name = rc.workspace_config.primary_workspace;
+	char *primary_name = rc.workspace_config.initial_workspace_name;
 	struct workspace *initial = NULL;
 	struct workspace *first = wl_container_of(
 		server->workspaces.all.next, first, link);

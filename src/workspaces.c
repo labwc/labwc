@@ -413,7 +413,7 @@ workspaces_init(struct server *server)
 	}
 
 	server->workspaces.current = initial;
-	wlr_scene_node_set_enabled(&initial->tree->node, false);
+	wlr_scene_node_set_enabled(&initial->tree->node, true);
 	lab_cosmic_workspace_set_active(initial->cosmic_workspace, true);
 	lab_ext_workspace_set_active(initial->ext_workspace, true);
 }

@@ -210,6 +210,7 @@ add_workspace(struct server *server, const char *name)
 	workspace->name = xstrdup(name);
 	workspace->tree = wlr_scene_tree_create(server->view_tree);
 	wl_list_append(&server->workspaces.all, &workspace->link);
+	wlr_scene_node_set_enabled(&workspace->tree->node, false);
 
 	/* cosmic */
 	workspace->cosmic_workspace = lab_cosmic_workspace_create(server->workspaces.cosmic_group);

@@ -97,11 +97,16 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 	if (switcher_theme->width_is_percent) {
 		w = output_box.width * switcher_theme->width / 100;
 	}
-	int h = nr_views * switcher_theme->item_height + 2 * padding;
+	int workspace_name_h = 0;
 	if (show_workspace) {
 		/* workspace indicator */
-		h += switcher_theme->item_height;
+		workspace_name_h = switcher_theme->item_height;
 	}
+	int nr_visible_views = (output_box.height - workspace_name_h - 2 * padding)
+				/ switcher_theme->item_height;
+	nr_visible_views = MIN(nr_visible_views, nr_views);
+	int h = workspace_name_h + nr_visible_views * switcher_theme->item_height
+		+ 2 * padding;
 
 	osd_output->tree = wlr_scene_tree_create(output->cycle_osd_tree);
 
@@ -154,13 +159,17 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 		goto error;
 	}
 
+	float *active_bg_color = switcher_theme->item_active_bg_color;
+	float *active_border_color = switcher_theme->item_active_border_color;
+	osd_output->items_tree = wlr_scene_tree_create(osd_output->tree);
+
 	/* Draw text for each node */
 	struct view *view;
 	wl_list_for_each(view, &server->cycle.views, cycle_link) {
 		struct cycle_osd_classic_item *item = znew(*item);
 		wl_list_append(&osd_output->items, &item->base.link);
 		item->base.view = view;
-		item->base.tree = wlr_scene_tree_create(osd_output->tree);
+		item->base.tree = wlr_scene_tree_create(osd_output->items_tree);
 		node_descriptor_create(&item->base.tree->node,
 			LAB_NODE_CYCLE_OSD_ITEM, NULL, item);
 		/*
@@ -185,9 +194,6 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 		item->normal_tree = wlr_scene_tree_create(item->base.tree);
 		item->active_tree = wlr_scene_tree_create(item->base.tree);
 		wlr_scene_node_set_enabled(&item->active_tree->node, false);
-
-		float *active_bg_color = switcher_theme->item_active_bg_color;
-		float *active_border_color = switcher_theme->item_active_border_color;
 
 		/* Highlight around selected window's item */
 		struct lab_scene_rect_options highlight_opts = {
@@ -215,6 +221,17 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 		y += switcher_theme->item_height;
 	}
 
+	struct wlr_box scrollbar_area = {
+		.x = w - padding - SCROLLBAR_W,
+		.y = padding,
+		.width = SCROLLBAR_W,
+		.height = h - 2 * padding,
+	};
+	cycle_osd_scroll_init(osd_output, scrollbar_area,
+		switcher_theme->item_height,
+		/*nr_cols*/ 1, /*nr_rows*/ nr_views, nr_visible_views,
+		active_border_color, active_bg_color);
+
 error:;
 	/* Center OSD */
 	wlr_scene_node_set_position(&osd_output->tree->node,
@@ -226,6 +243,8 @@ static void
 cycle_osd_classic_update(struct cycle_osd_output *osd_output)
 {
 	struct server *server = osd_output->output->server;
+	cycle_osd_scroll_update(osd_output);
+
 	struct cycle_osd_classic_item *item;
 	wl_list_for_each(item, &osd_output->items, base.link) {
 		bool active = item->base.view == server->cycle.selected_view;

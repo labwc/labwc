@@ -209,18 +209,11 @@ add_workspace(struct server *server, const char *name)
 	workspace->name = xstrdup(name);
 	workspace->tree = wlr_scene_tree_create(server->view_tree);
 	wl_list_append(&server->workspaces.all, &workspace->link);
-	if (!server->workspaces.current) {
-		server->workspaces.current = workspace;
-	} else {
-		wlr_scene_node_set_enabled(&workspace->tree->node, false);
-	}
-
-	bool active = server->workspaces.current == workspace;
+	wlr_scene_node_set_enabled(&workspace->tree->node, false);
 
 	/* cosmic */
 	workspace->cosmic_workspace = lab_cosmic_workspace_create(server->workspaces.cosmic_group);
 	lab_cosmic_workspace_set_name(workspace->cosmic_workspace, name);
-	lab_cosmic_workspace_set_active(workspace->cosmic_workspace, active);
 
 	workspace->on_cosmic.activate.notify = handle_cosmic_workspace_activate;
 	wl_signal_add(&workspace->cosmic_workspace->events.activate,
@@ -231,7 +224,6 @@ add_workspace(struct server *server, const char *name)
 		server->workspaces.ext_manager, /*id*/ NULL);
 	lab_ext_workspace_assign_to_group(workspace->ext_workspace, server->workspaces.ext_group);
 	lab_ext_workspace_set_name(workspace->ext_workspace, name);
-	lab_ext_workspace_set_active(workspace->ext_workspace, active);
 
 	workspace->on_ext.activate.notify = handle_ext_workspace_activate;
 	wl_signal_add(&workspace->ext_workspace->events.activate,
@@ -398,6 +390,31 @@ workspaces_init(struct server *server)
 	wl_list_for_each(conf, &rc.workspace_config.workspaces, link) {
 		add_workspace(server, conf->name);
 	}
+
+	/*
+	 * After adding workspaces, check if there is a primary selected and set
+	 * that as the primary workspace.
+	 */
+	char *primary_name = rc.workspace_config.initial_workspace_name;
+	struct workspace *initial = NULL;
+	struct workspace *first = wl_container_of(
+		server->workspaces.all.next, first, link);
+
+	if (primary_name) {
+		initial = workspaces_find(first, primary_name, false);
+		if (!initial) {
+			wlr_log(WLR_ERROR, "No workspace matching %s found",
+				primary_name);
+		}
+	}
+	if (!initial) {
+		initial = first;
+	}
+
+	server->workspaces.current = initial;
+	wlr_scene_node_set_enabled(&initial->tree->node, true);
+	lab_cosmic_workspace_set_active(initial->cosmic_workspace, true);
+	lab_ext_workspace_set_active(initial->ext_workspace, true);
 }
 
 /*

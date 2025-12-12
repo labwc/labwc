@@ -175,6 +175,7 @@
     Workspaces can be configured like this:
     <desktops>
       <popupTime>1000</popupTime>
+      <initial>Workspace 1</initial>
       <names>
         <name>Workspace 1</name>
         <name>Workspace 2</name>

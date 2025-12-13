@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2025-12-06 | [unreleased]  | 0.19.2          | 28927         |
+| 2025-12-19 | [0.9.3]       | 0.19.2          |               |
 | 2025-10-10 | [0.9.2]       | 0.19.1          | 28818         |
 | 2025-08-02 | [0.9.1]       | 0.19.0          | 28605         |
 | 2025-07-11 | [0.9.0]       | 0.19.0          | 28586         |
@@ -40,6 +40,7 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.9.3]: NEWS.md#093---2025-12-19
 [0.9.2]: NEWS.md#092---2025-10-10
 [0.9.1]: NEWS.md#091---2025-08-02
 [0.9.0]: NEWS.md#090---2025-07-11
@@ -116,6 +117,10 @@ differently [#3099].  There is a pending fix [wlroots-5159].
 
 [unreleased-commits]
 
+## 0.9.3 - 2025-12-19
+
+[0.9.3-commits]
+
 This release contains a good amount of bug-fixes, code simplification and
 small usability improvements.
 
@@ -139,6 +144,8 @@ A big thank you to all involved in this release.
 
 ### Added
 
+- Add `<windowSwitcher order="focus|age"/>` to optionally order windows by age
+  rather than most recent focus. @mbroemme [#3229]
 - Replace `<snapping><range>` with `<snapping><range inner="" outer="">` to
   provide more granular control when configuring the size of snapping areas
   (including `<topMaximize>`) on output edges with and without adjacent outputs.
@@ -176,6 +183,16 @@ A big thank you to all involved in this release.
 
 ### Fixed
 
+- Handle desktop files with dots in their names better @Consolatis [#3267]
+- Do not synthesize cursor relative motion events from absolute events to fix a
+  couple of problems: Firstly to avoid unexpectedly large relative motion deltas
+  with multiple input devices or in nested/VM scenarios, and secondly to fix
+  erratic mouse behavior in applications that use relative events whilst locking
+  with pointer constraints. @jlindgren90 [#3251]
+- Allow cursor movement until entering constraint surface, to fix an issue where
+  the cursor would get stuck (immovable) outside the window of a Wine/Wayland
+  game, if it was already outside when the game started (which is common with
+  4:3 games on a 16:9 screen). @jlindgren90 [#3252]
 - Flush XCB connection to mitigate race between Raise and input. @jlindgren90
   [#3249]
 - Fix disappearing XWayland popups with some (less commonly used) clients like
@@ -2511,7 +2528,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.2...HEAD
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.3...HEAD
+[0.9.3-commits]: https://github.com/labwc/labwc/compare/0.9.2...0.9.3
 [0.9.2-commits]: https://github.com/labwc/labwc/compare/0.9.1...0.9.2
 [0.9.1-commits]: https://github.com/labwc/labwc/compare/0.9.0...0.9.1
 [0.9.0-commits]: https://github.com/labwc/labwc/compare/0.8.4...0.9.0
@@ -3004,6 +3022,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3208]: https://github.com/labwc/labwc/pull/3208
 [#3211]: https://github.com/labwc/labwc/pull/3211
 [#3217]: https://github.com/labwc/labwc/pull/3217
+[#3229]: https://github.com/labwc/labwc/pull/3229
 [#3233]: https://github.com/labwc/labwc/pull/3233
 [#3236]: https://github.com/labwc/labwc/pull/3236
 [#3239]: https://github.com/labwc/labwc/pull/3239
@@ -3011,3 +3030,6 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3246]: https://github.com/labwc/labwc/pull/3246
 [#3248]: https://github.com/labwc/labwc/pull/3248
 [#3249]: https://github.com/labwc/labwc/pull/3249
+[#3251]: https://github.com/labwc/labwc/pull/3251
+[#3252]: https://github.com/labwc/labwc/pull/3252
+[#3267]: https://github.com/labwc/labwc/pull/3267

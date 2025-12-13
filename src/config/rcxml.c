@@ -591,6 +591,9 @@ fill_mousebind(xmlNode *node, const char *context)
 		mousebind->direction = mousebind_direction_from_str(
 			buf, &mousebind->modifiers);
 	}
+	if (lab_xml_get_string(node, "fingers", buf, sizeof(buf))) {
+		mousebind->fingers = atoi(buf);
+	}
 	if (lab_xml_get_string(node, "action", buf, sizeof(buf))) {
 		/* <mousebind button="" action="EVENT"> */
 		mousebind->mouse_event = mousebind_event_from_str(buf);

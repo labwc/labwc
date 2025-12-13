@@ -14,6 +14,7 @@ enum mouse_event {
 	MOUSE_ACTION_RELEASE,
 	MOUSE_ACTION_DRAG,
 	MOUSE_ACTION_SCROLL,
+	MOUSE_ACTION_SWIPE,
 };
 
 enum direction {
@@ -29,6 +30,9 @@ struct mousebind {
 
 	/* ex: BTN_LEFT, BTN_RIGHT from linux/input_event_codes.h */
 	uint32_t button;
+
+	/* used for MOUSE_ACTION_SWIPE */
+	uint32_t fingers;
 
 	/* scroll direction; considered instead of button for scroll events */
 	enum direction direction;

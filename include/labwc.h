@@ -237,6 +237,7 @@ struct server {
 	/* Tree for unmanaged xsurfaces without initialized view (usually popups) */
 	struct wlr_scene_tree *unmanaged_tree;
 #endif
+	struct wlr_scene_tree *cycle_preview_tree;
 	/* Tree for built in menu */
 	struct wlr_scene_tree *menu_tree;
 

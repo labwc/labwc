@@ -26,7 +26,7 @@ should (a) allow the first-identified configuration file to supersede any
 others, or (b) define rules for merging the information from more than one file.
 
 By default, labwc uses option (a), reading only the first file identified.  With
-the --merge-config option, the search order is reserved, but every configuration
+the --merge-config option, the search order is reversed, but every configuration
 file encountered is processed in turn. Thus, user-specific files will augment
 system-wide configurations, with conflicts favoring the user-specific
 alternative.

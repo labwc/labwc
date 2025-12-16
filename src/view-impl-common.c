@@ -9,7 +9,7 @@
 void
 view_impl_map(struct view *view)
 {
-	view_update_visibility(view);
+	view_update_visibility(view, /*refocus*/ true);
 
 	if (!view->been_mapped) {
 		window_rules_apply(view, LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP);
@@ -39,7 +39,7 @@ view_impl_map(struct view *view)
 void
 view_impl_unmap(struct view *view)
 {
-	view_update_visibility(view);
+	view_update_visibility(view, /*refocus*/ true);
 
 	/*
 	 * Destroy the foreign toplevel handle so the unmapped view

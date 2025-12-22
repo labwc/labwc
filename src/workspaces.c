@@ -429,11 +429,6 @@ workspaces_init(struct server *server)
 
 	if (initial_name) {
 		initial = workspace_find_by_name(server, initial_name);
-		if (!initial) {
-			wlr_log(WLR_ERROR,
-				"Initial workspace '%s' not found. Falling back to default",
-				initial_name);
-		}
 	}
 	if (!initial) {
 		initial = first;

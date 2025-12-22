@@ -1308,6 +1308,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
 	} else if (!strcasecmp(nodename, "popupTime.desktops")) {
 		rc.workspace_config.popuptime = atoi(content);
+	} else if (!strcasecmp(nodename, "initial.desktops")) {
+		xstrdup_replace(rc.workspace_config.initial_workspace_name, content);
 	} else if (!strcasecmp(nodename, "number.desktops")) {
 		rc.workspace_config.min_nr_workspaces = MAX(1, atoi(content));
 	} else if (!strcasecmp(nodename, "popupShow.resize")) {
@@ -1963,6 +1965,7 @@ rcxml_finish(void)
 	zfree(rc.icon_theme_name);
 	zfree(rc.fallback_app_icon_name);
 	zfree(rc.workspace_config.prefix);
+	zfree(rc.workspace_config.initial_workspace_name);
 	zfree(rc.tablet.output_name);
 	zfree(rc.window_switcher.osd.thumbnail_label_format);
 

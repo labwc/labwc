@@ -182,6 +182,33 @@ _osd_update(struct server *server)
 	}
 }
 
+static struct workspace *
+workspace_find_by_name(struct server *server, const char *name)
+{
+	struct workspace *workspace;
+
+	/* by index */
+	size_t parsed_index = parse_workspace_index(name);
+	if (parsed_index) {
+		size_t index = 0;
+		wl_list_for_each(workspace, &server->workspaces.all, link) {
+			if (parsed_index == ++index) {
+				return workspace;
+			}
+		}
+	}
+
+	/* by name */
+	wl_list_for_each(workspace, &server->workspaces.all, link) {
+		if (!strcmp(workspace->name, name)) {
+			return workspace;
+		}
+	}
+
+	wlr_log(WLR_ERROR, "Workspace '%s' not found", name);
+	return NULL;
+}
+
 /* cosmic workspace handlers */
 static void
 handle_cosmic_workspace_activate(struct wl_listener *listener, void *data)
@@ -209,18 +236,11 @@ add_workspace(struct server *server, const char *name)
 	workspace->name = xstrdup(name);
 	workspace->tree = wlr_scene_tree_create(server->view_tree);
 	wl_list_append(&server->workspaces.all, &workspace->link);
-	if (!server->workspaces.current) {
-		server->workspaces.current = workspace;
-	} else {
-		wlr_scene_node_set_enabled(&workspace->tree->node, false);
-	}
-
-	bool active = server->workspaces.current == workspace;
+	wlr_scene_node_set_enabled(&workspace->tree->node, false);
 
 	/* cosmic */
 	workspace->cosmic_workspace = lab_cosmic_workspace_create(server->workspaces.cosmic_group);
 	lab_cosmic_workspace_set_name(workspace->cosmic_workspace, name);
-	lab_cosmic_workspace_set_active(workspace->cosmic_workspace, active);
 
 	workspace->on_cosmic.activate.notify = handle_cosmic_workspace_activate;
 	wl_signal_add(&workspace->cosmic_workspace->events.activate,
@@ -231,7 +251,6 @@ add_workspace(struct server *server, const char *name)
 		server->workspaces.ext_manager, /*id*/ NULL);
 	lab_ext_workspace_assign_to_group(workspace->ext_workspace, server->workspaces.ext_group);
 	lab_ext_workspace_set_name(workspace->ext_workspace, name);
-	lab_ext_workspace_set_active(workspace->ext_workspace, active);
 
 	workspace->on_ext.activate.notify = handle_ext_workspace_activate;
 	wl_signal_add(&workspace->ext_workspace->events.activate,
@@ -398,6 +417,27 @@ workspaces_init(struct server *server)
 	wl_list_for_each(conf, &rc.workspace_config.workspaces, link) {
 		add_workspace(server, conf->name);
 	}
+
+	/*
+	 * After adding workspaces, check if there is an initial workspace
+	 * selected and set that as the initial workspace.
+	 */
+	char *initial_name = rc.workspace_config.initial_workspace_name;
+	struct workspace *initial = NULL;
+	struct workspace *first = wl_container_of(
+		server->workspaces.all.next, first, link);
+
+	if (initial_name) {
+		initial = workspace_find_by_name(server, initial_name);
+	}
+	if (!initial) {
+		initial = first;
+	}
+
+	server->workspaces.current = initial;
+	wlr_scene_node_set_enabled(&initial->tree->node, true);
+	lab_cosmic_workspace_set_active(initial->cosmic_workspace, true);
+	lab_ext_workspace_set_active(initial->ext_workspace, true);
 }
 
 /*
@@ -507,21 +547,13 @@ workspaces_find(struct workspace *anchor, const char *name, bool wrap)
 	if (!name) {
 		return NULL;
 	}
-	size_t index = 0;
-	struct workspace *target;
-	size_t wants_index = parse_workspace_index(name);
-	struct wl_list *workspaces = &anchor->server->workspaces.all;
+	struct server *server = anchor->server;
+	struct wl_list *workspaces = &server->workspaces.all;
 
-	if (wants_index) {
-		wl_list_for_each(target, workspaces, link) {
-			if (wants_index == ++index) {
-				return target;
-			}
-		}
-	} else if (!strcasecmp(name, "current")) {
+	if (!strcasecmp(name, "current")) {
 		return anchor;
 	} else if (!strcasecmp(name, "last")) {
-		return anchor->server->workspaces.last;
+		return server->workspaces.last;
 	} else if (!strcasecmp(name, "left")) {
 		return get_prev(anchor, workspaces, wrap);
 	} else if (!strcasecmp(name, "right")) {
@@ -530,15 +562,8 @@ workspaces_find(struct workspace *anchor, const char *name, bool wrap)
 		return get_prev_occupied(anchor, workspaces, wrap);
 	} else if (!strcasecmp(name, "right-occupied")) {
 		return get_next_occupied(anchor, workspaces, wrap);
-	} else {
-		wl_list_for_each(target, workspaces, link) {
-			if (!strcasecmp(target->name, name)) {
-				return target;
-			}
-		}
 	}
-	wlr_log(WLR_ERROR, "Workspace '%s' not found", name);
-	return NULL;
+	return workspace_find_by_name(server, name);
 }
 
 static void

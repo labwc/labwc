@@ -575,6 +575,11 @@ extending outward from the snapped edge.
 	is 1. The number attribute is optional. If the number attribute is
 	specified, names.name is not required.
 
+*<desktops><initial>*
+	Define the initial starting workspace. This must match one of the names
+	defined in <names> or must be an index equal to or lower than <number>.
+	If not set, the first workspace is used.
+
 *<desktops><popupTime>*
 	Define the timeout after which to hide the workspace OSD.
 	A setting of 0 disables the OSD. Default is 1000 ms.

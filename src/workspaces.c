@@ -422,17 +422,17 @@ workspaces_init(struct server *server)
 	 * After adding workspaces, check if there is an initial workspace
 	 * selected and set that as the initial workspace.
 	 */
-	char *primary_name = rc.workspace_config.initial_workspace_name;
+	char *initial_name = rc.workspace_config.initial_workspace_name;
 	struct workspace *initial = NULL;
 	struct workspace *first = wl_container_of(
 		server->workspaces.all.next, first, link);
 
-	if (primary_name) {
-		initial = workspace_find_by_name(server, primary_name);
+	if (initial_name) {
+		initial = workspace_find_by_name(server, initial_name);
 		if (!initial) {
 			wlr_log(WLR_ERROR,
 				"Initial workspace '%s' not found. Falling back to default",
-				primary_name);
+				initial_name);
 		}
 	}
 	if (!initial) {

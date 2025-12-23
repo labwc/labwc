@@ -2,6 +2,7 @@
 #ifndef LABWC_H
 #define LABWC_H
 #include "config.h"
+#include "config/types.h"
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "common/set.h"
@@ -367,6 +368,30 @@ void desktop_focus_output(struct output *output);
  * based on the existence of a fullscreen window on the current workspace.
  */
 void desktop_update_top_layer_visibility(struct server *server);
+
+/**
+ * desktop_cycle_view_in_region() - return a view to "cycle" to,
+ * filtered to views that are mostly inside a region.
+ *
+ * @active_view: Reference point for finding the next view.
+ * @region: If non-NULL, only return views mostly inside this region.
+ * @criteria: Base filtering (e.g. current workspace).
+ * @view_threshold: Fraction of the view area that must lie inside @region.
+ *                  If <= 0, this check is disabled.
+ * @region_threshold: Fraction of the region area that must lie inside the
+ *                    view. If <= 0, this check is disabled.
+ *
+ * If both thresholds are disabled, a view only matches if it is explicitly
+ * assigned to the region (e.g. tiled to it).
+ *
+ * Note: If @active_view is not in-region, the topmost matching view is
+ * returned first. If @active_view is in-region, iteration reverses to
+ * avoid bouncing between the two most recent views when focusing raises.
+ */
+struct view *desktop_cycle_view_in_region(struct server *server,
+		struct view *active_view, struct region *region,
+		enum lab_view_criteria criteria, double view_threshold,
+		double region_threshold);
 
 /**
  * desktop_focus_topmost_view() - focus the topmost view on the current

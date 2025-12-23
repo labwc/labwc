@@ -125,6 +125,23 @@ Actions are used in menus and keyboard/mouse bindings.
 	Resize and move the active window back to its untiled or unmaximized
 	position if it had been maximized or tiled to a direction or region.
 
+*<action name="CycleInRegion" region="value" windowOverlapPercent="value" regionOverlapPercent="value" />*
+	Cycle focus to the next window in the given region.
+
+	If _windowOverlapPercent_ is set and > 0, it is the minimum percentage of
+	the window area that must lie inside the region.
+
+	If _regionOverlapPercent_ is set and > 0, it is the minimum percentage of
+	the region area that must lie inside the window.
+
+	If both are omitted or set to 0, a window matches only if it is explicitly
+	assigned to the region (e.g. tiled to it), regardless of window size.
+
+	If _region_ is omitted, cycle focus to the next window on the entire
+	screen (still honoring the standard window-switcher criteria such as
+	current-workspace filtering).
+	See labwc-config(5) for further information on how to define regions.
+
 *<action name="NextWindow" />*++
 *<action name="PreviousWindow" />*
 	Cycle focus to next/previous window, respectively.

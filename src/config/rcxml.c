@@ -684,15 +684,15 @@ get_send_events_mode(const char *s)
 		goto err;
 	}
 
+	if (!strcasecmp(s, "disabledOnExternalMouse")) {
+		return LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
+	}
+
 	int ret = parse_bool(s, -1);
 	if (ret >= 0) {
 		return ret
 			? LIBINPUT_CONFIG_SEND_EVENTS_ENABLED
 			: LIBINPUT_CONFIG_SEND_EVENTS_DISABLED;
-	}
-
-	if (!strcasecmp(s, "disabledOnExternalMouse")) {
-		return LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
 	}
 
 err:

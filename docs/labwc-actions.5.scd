@@ -125,13 +125,25 @@ Actions are used in menus and keyboard/mouse bindings.
 	Resize and move the active window back to its untiled or unmaximized
 	position if it had been maximized or tiled to a direction or region.
 
-*<action name="NextWindow" />*++
-*<action name="PreviousWindow" />*
+*<action name="NextWindow" workspace="current" output="all" identifier="all" />*++
+*<action name="PreviousWindow" workspace="current" output="all" identifier="all" />*
 	Cycle focus to next/previous window, respectively.
 
-	Default keybind for NextWindow is Alt-Tab.
+	Default keybinds for NextWindow and PreviousWindow are Alt-Tab and
+	Shift-Alt-Tab. While cycling through windows, the arrow keys move the
+	selected window forwards/backwards and the escape key halts the cycling.
 
-	The arrow keys are used to move forwards/backwards while cycling.
+	*workspace* [all|current]
+	This determines whether to cycle through windows on all workspaces or the
+	current workspace. Default is "current".
+
+	*output* [all|focused|cursor]
+	This determines whether to cycle through windows on all outputs, the focused
+	output, or the output under the cursor. Default is "all".
+
+	*identifier* [all|current]
+	This determines whether to cycle through all windows or only windows of the
+	same application as the currently focused window. Default is "all".
 
 *<action name="Reconfigure" />*
 	Re-load configuration and theme files.
@@ -379,7 +391,7 @@ Actions are used in menus and keyboard/mouse bindings.
 	*x* [center|value] Specifies the horizontal warp position within the
 	target area. "center": Moves the cursor to the horizontal center of the
 	target area. Positive or negative integers warp the cursor to a position
-	offset by the specified	number of pixels from the left or right edge of
+	offset by the specified number of pixels from the left or right edge of
 	the target area, respectively. Default is "center"
 
 	*y* [center|value] Equivalent for the vertical warp position within the

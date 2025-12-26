@@ -140,4 +140,3 @@ labnag \\
  --button-border-size 2\\
  -t 60
 ```
-

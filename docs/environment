@@ -22,6 +22,13 @@
 # XKB_DEFAULT_OPTIONS=grp:alt_shift_toggle
 # XKB_DEFAULT_OPTIONS=grp:shift_caps_toggle
 
+## GTK4 started to require input methods like fcitx5 or ibus to handle
+## simple compose sequences. If you do not use input methods, uncomment
+## the following line to force GTK4 internal composing. For further
+## information see https://labwc.github.io/integration.html#gtk
+##
+# GTK_IM_MODULE=simple
+
 ##
 ## Set cursor theme and size. Find system icons themes with:
 ## `find /usr/share/icons/ -type d -name "cursors"`

@@ -413,15 +413,15 @@ destroy_cycle(struct server *server)
 		}
 		if (output->cycle_osd.tree) {
 			wlr_scene_node_destroy(&output->cycle_osd.tree->node);
-			output->cycle_osd.tree = NULL;
 		}
+		output->cycle_osd = (struct cycle_osd_scene){0};
+		wl_list_init(&output->cycle_osd.items);
 	}
 
 	restore_preview_node(server);
 
 	if (server->cycle.preview_outline) {
 		wlr_scene_node_destroy(&server->cycle.preview_outline->tree->node);
-		server->cycle.preview_outline = NULL;
 	}
 
 	struct view *view, *tmp;
@@ -430,6 +430,6 @@ destroy_cycle(struct server *server)
 		view->cycle_link = (struct wl_list){0};
 	}
 
-	server->cycle.selected_view = NULL;
-	server->cycle.filter = (struct cycle_filter){0};
+	server->cycle = (struct cycle_state){0};
+	wl_list_init(&server->cycle.views);
 }

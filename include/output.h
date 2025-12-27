@@ -22,6 +22,17 @@ struct output {
 	struct cycle_osd_scene {
 		struct wl_list items; /* struct cycle_osd_item */
 		struct wlr_scene_tree *tree;
+		struct wlr_scene_tree *items_tree;
+
+		struct cycle_osd_scroll_context {
+			/* index of the top visible row */
+			int top_row_idx;
+			int nr_rows, nr_cols, nr_visible_rows;
+			int delta_y;
+			struct wlr_box bar_area;
+			struct wlr_scene_tree *bar_tree;
+			struct lab_scene_rect *bar;
+		} scroll;
 	} cycle_osd;
 
 	/* In output-relative scene coordinates */

@@ -15,11 +15,11 @@
 #include "common/match.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
+#include "cycle.h"
 #include "foreign-toplevel/foreign.h"
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "menu/menu.h"
-#include "osd.h"
 #include "output.h"
 #include "placement.h"
 #include "regions.h"
@@ -35,6 +35,7 @@
 
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
+#include "xwayland.h"
 #endif
 
 struct view *
@@ -343,48 +344,6 @@ view_prev(struct wl_list *head, struct view *view, enum lab_view_criteria criter
 		}
 	}
 	return NULL;
-}
-
-struct view *
-view_next_no_head_stop(struct wl_list *head, struct view *from,
-		enum lab_view_criteria criteria)
-{
-	assert(head);
-
-	struct wl_list *elm = from ? &from->link : head;
-
-	struct wl_list *end = elm;
-	for (elm = elm->next; elm != end; elm = elm->next) {
-		if (elm == head) {
-			continue;
-		}
-		struct view *view = wl_container_of(elm, view, link);
-		if (matches_criteria(view, criteria)) {
-			return view;
-		}
-	}
-	return from;
-}
-
-struct view *
-view_prev_no_head_stop(struct wl_list *head, struct view *from,
-		enum lab_view_criteria criteria)
-{
-	assert(head);
-
-	struct wl_list *elm = from ? &from->link : head;
-
-	struct wl_list *end = elm;
-	for (elm = elm->prev; elm != end; elm = elm->prev) {
-		if (elm == head) {
-			continue;
-		}
-		struct view *view = wl_container_of(elm, view, link);
-		if (matches_criteria(view, criteria)) {
-			return view;
-		}
-	}
-	return from;
 }
 
 void
@@ -823,7 +782,7 @@ view_minimize(struct view *view, bool minimized)
 {
 	assert(view);
 
-	if (view->server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
+	if (view->server->input_mode == LAB_INPUT_STATE_CYCLE) {
 		wlr_log(WLR_ERROR, "not minimizing window while window switching");
 		return;
 	}
@@ -858,23 +817,7 @@ view_compute_centered_position(struct view *view, const struct wlr_box *ref,
 	int height = h + margin.top + margin.bottom;
 
 	/* If reference box is NULL then center to usable area */
-	if (!ref) {
-		ref = &usable;
-	}
-	*x = ref->x + (ref->width - width) / 2;
-	*y = ref->y + (ref->height - height) / 2;
-
-	/* Fit the view within the usable area */
-	if (*x < usable.x) {
-		*x = usable.x;
-	} else if (*x + width > usable.x + usable.width) {
-		*x = usable.x + usable.width - width;
-	}
-	if (*y < usable.y) {
-		*y = usable.y;
-	} else if (*y + height > usable.y + usable.height) {
-		*y = usable.y + usable.height - height;
-	}
+	box_center(width, height, ref ? ref : &usable, &usable, x, y);
 
 	*x += margin.left;
 	*y += margin.top;
@@ -1281,13 +1224,8 @@ view_apply_fullscreen_geometry(struct view *view)
 	assert(output_is_usable(view->output));
 
 	struct wlr_box box = { 0 };
-	wlr_output_effective_resolution(view->output->wlr_output,
-		&box.width, &box.height);
-	double ox = 0, oy = 0;
-	wlr_output_layout_output_coords(view->server->output_layout,
-		view->output->wlr_output, &ox, &oy);
-	box.x -= ox;
-	box.y -= oy;
+	wlr_output_layout_get_box(view->server->output_layout,
+		view->output->wlr_output, &box);
 	view_move_resize(view, box);
 }
 
@@ -1762,6 +1700,12 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 		view_apply_special_geometry(view);
 	}
 	output_set_has_fullscreen_view(view->output, view->fullscreen);
+	/*
+	 * Entering/leaving fullscreen might result in a different
+	 * scene node ending up under the cursor even if view_moved()
+	 * isn't called. Update cursor focus explicitly for that case.
+	 */
+	cursor_update_focus(view->server);
 }
 
 static bool
@@ -2304,6 +2248,17 @@ view_move_to_front(struct view *view)
 		move_to_front(view);
 	}
 
+#if HAVE_XWAYLAND
+	/*
+	 * view_move_to_front() is typically called on each mouse press
+	 * via Raise action. This means we are restacking windows just
+	 * about at the same time we send the mouse press input to the
+	 * X server, and creates a race where the mouse press could go
+	 * to an incorrect X window depending on timing. To mitigate the
+	 * race, perform an explicit flush after restacking.
+	 */
+	xwayland_flush(view->server);
+#endif
 	cursor_update_focus(view->server);
 	desktop_update_top_layer_visibility(view->server);
 }
@@ -2612,15 +2567,13 @@ view_destroy(struct view *view)
 		server->session_lock_manager->last_active_view = NULL;
 	}
 
-	if (server->seat.pressed.view == view) {
-		seat_reset_pressed(&server->seat);
-	}
-
 	if (view->tiled_region_evacuate) {
 		zfree(view->tiled_region_evacuate);
 	}
 
-	osd_on_view_destroy(view);
+	/* TODO: call this on map/unmap instead */
+	cycle_reinitialize(server);
+
 	undecorate(view);
 
 	view_set_icon(view, NULL, NULL);

@@ -5,11 +5,11 @@
 #include "common/buf.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
+#include "cycle.h"
 #include "view.h"
 #include "workspaces.h"
 #include "labwc.h"
 #include "desktop-entry.h"
-#include "osd.h"
 #include "output.h"
 
 /* includes '%', terminating 's' and NULL byte, 8 is enough for %-9999s */
@@ -204,11 +204,11 @@ static const struct field_converter field_converter[LAB_FIELD_COUNT] = {
 	[LAB_FIELD_TITLE]              = { 'T', field_set_title },
 	[LAB_FIELD_TITLE_SHORT]        = { 't', field_set_title_short },
 	/* fmt_char can never be matched so prevents LAB_FIELD_CUSTOM recursion */
-	[LAB_FIELD_CUSTOM]             = { '\0', osd_field_set_custom },
+	[LAB_FIELD_CUSTOM]             = { '\0', cycle_osd_field_set_custom },
 };
 
 void
-osd_field_set_custom(struct buf *buf, struct view *view, const char *format)
+cycle_osd_field_set_custom(struct buf *buf, struct view *view, const char *format)
 {
 	if (!format) {
 		wlr_log(WLR_ERROR, "Missing format for custom window switcher field");
@@ -286,7 +286,7 @@ reset_format:
 }
 
 void
-osd_field_arg_from_xml_node(struct window_switcher_field *field,
+cycle_osd_field_arg_from_xml_node(struct cycle_osd_field *field,
 		const char *nodename, const char *content)
 {
 	if (!strcmp(nodename, "content")) {
@@ -332,7 +332,7 @@ osd_field_arg_from_xml_node(struct window_switcher_field *field,
 }
 
 bool
-osd_field_is_valid(struct window_switcher_field *field)
+cycle_osd_field_is_valid(struct cycle_osd_field *field)
 {
 	if (field->content == LAB_FIELD_NONE) {
 		wlr_log(WLR_ERROR, "Invalid OSD field: no content set");
@@ -350,7 +350,7 @@ osd_field_is_valid(struct window_switcher_field *field)
 }
 
 void
-osd_field_get_content(struct window_switcher_field *field,
+cycle_osd_field_get_content(struct cycle_osd_field *field,
 		struct buf *buf, struct view *view)
 {
 	if (field->content == LAB_FIELD_NONE) {
@@ -363,7 +363,7 @@ osd_field_get_content(struct window_switcher_field *field,
 }
 
 void
-osd_field_free(struct window_switcher_field *field)
+cycle_osd_field_free(struct cycle_osd_field *field)
 {
 	zfree(field->format);
 	zfree(field);

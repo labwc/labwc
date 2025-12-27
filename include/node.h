@@ -24,6 +24,7 @@ struct node_descriptor {
  * @type: node descriptor type
  * @view: associated view
  * @data: struct to point to as follows:
+ *   - LAB_NODE_CYCLE_OSD_ITEM struct cycle_osd_item
  *   - LAB_NODE_LAYER_SURFACE  struct lab_layer_surface
  *   - LAB_NODE_LAYER_POPUP    struct lab_layer_popup
  *   - LAB_NODE_MENUITEM       struct menuitem
@@ -53,10 +54,10 @@ struct menuitem *node_menuitem_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 /**
- * node_osd_item_from_node - return osd item struct from node
+ * node_cycle_osd_item_from_node - return cycle OSD item struct from node
  * @wlr_scene_node: wlr_scene_node from which to return data
  */
-struct osd_item *node_osd_item_from_node(
+struct cycle_osd_item *node_cycle_osd_item_from_node(
 	struct wlr_scene_node *wlr_scene_node);
 
 /**

@@ -151,7 +151,8 @@ struct rcxml {
 	int unmaximize_threshold;
 
 	/* window snapping */
-	int snap_edge_range;
+	int snap_edge_range_inner;
+	int snap_edge_range_outer;
 	int snap_edge_corner_range;
 	bool snap_overlay_enabled;
 	int snap_overlay_delay_inner;
@@ -167,6 +168,7 @@ struct rcxml {
 	struct {
 		int popuptime;
 		int min_nr_workspaces;
+		char *initial_workspace_name;
 		char *prefix;
 		struct wl_list workspaces;  /* struct workspace.link */
 	} workspace_config;
@@ -176,15 +178,18 @@ struct rcxml {
 
 	/* Window Switcher */
 	struct {
-		bool show;
 		bool preview;
 		bool outlines;
 		bool unshade;
-		enum lab_view_criteria criteria;
-		struct wl_list fields;  /* struct window_switcher_field.link */
-		enum window_switcher_style style;
-		enum osd_output_criteria output_criteria;
-		char *thumbnail_label_format;
+		enum window_switcher_order order;
+		enum cycle_workspace_filter workspace_filter; /* deprecated */
+		struct {
+			bool show;
+			enum cycle_osd_style style;
+			enum cycle_output_filter output_filter;
+			char *thumbnail_label_format;
+			struct wl_list fields;  /* struct cycle_osd_field.link */
+		} osd;
 	} window_switcher;
 
 	struct wl_list window_rules; /* struct window_rule.link */

@@ -29,8 +29,8 @@
 #include "config/tablet.h"
 #include "config/tablet-tool.h"
 #include "config/touch.h"
+#include "cycle.h"
 #include "labwc.h"
-#include "osd.h"
 #include "regions.h"
 #include "ssd.h"
 #include "translate.h"
@@ -323,23 +323,23 @@ fill_window_rules(xmlNode *node)
 static void
 clear_window_switcher_fields(void)
 {
-	struct window_switcher_field *field, *field_tmp;
-	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.fields, link) {
+	struct cycle_osd_field *field, *field_tmp;
+	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.osd.fields, link) {
 		wl_list_remove(&field->link);
-		osd_field_free(field);
+		cycle_osd_field_free(field);
 	}
 }
 
 static void
 fill_window_switcher_field(xmlNode *node)
 {
-	struct window_switcher_field *field = znew(*field);
-	wl_list_append(&rc.window_switcher.fields, &field->link);
+	struct cycle_osd_field *field = znew(*field);
+	wl_list_append(&rc.window_switcher.osd.fields, &field->link);
 
 	xmlNode *child;
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
-		osd_field_arg_from_xml_node(field, key, content);
+		cycle_osd_field_arg_from_xml_node(field, key, content);
 	}
 }
 
@@ -684,15 +684,15 @@ get_send_events_mode(const char *s)
 		goto err;
 	}
 
+	if (!strcasecmp(s, "disabledOnExternalMouse")) {
+		return LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
+	}
+
 	int ret = parse_bool(s, -1);
 	if (ret >= 0) {
 		return ret
 			? LIBINPUT_CONFIG_SEND_EVENTS_ENABLED
 			: LIBINPUT_CONFIG_SEND_EVENTS_DISABLED;
-	}
-
-	if (!strcasecmp(s, "disabledOnExternalMouse")) {
-		return LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
 	}
 
 err:
@@ -714,6 +714,8 @@ fill_libinput_category(xmlNode *node)
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
 		if (string_null_or_empty(content)) {
+			wlr_log(WLR_ERROR, "Empty string is not allowed for "
+				"<libinput><device><%s>. Ignoring.", key);
 			continue;
 		}
 		if (!strcmp(key, "category")) {
@@ -1069,14 +1071,15 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "prefix.desktops")) {
 		xstrdup_replace(rc.workspace_config.prefix, content);
 	} else if (!strcasecmp(nodename, "thumbnailLabelFormat.osd.windowSwitcher")) {
-		xstrdup_replace(rc.window_switcher.thumbnail_label_format, content);
+		xstrdup_replace(rc.window_switcher.osd.thumbnail_label_format, content);
 
 	} else if (!lab_xml_node_is_leaf(node)) {
 		/* parse children of nested nodes other than above */
 		return true;
 
 	} else if (str_space_only(content)) {
-		/* ignore empty leaf nodes other than above */
+		wlr_log(WLR_ERROR, "Empty string is not allowed for %s. "
+			"Ignoring.", nodename);
 
 	/* handle non-empty leaf nodes */
 	} else if (!strcmp(nodename, "decoration.core")) {
@@ -1177,7 +1180,14 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "unMaximizeThreshold.resistance")) {
 		rc.unmaximize_threshold = atoi(content);
 	} else if (!strcasecmp(nodename, "range.snapping")) {
-		rc.snap_edge_range = atoi(content);
+		rc.snap_edge_range_inner = atoi(content);
+		rc.snap_edge_range_outer = atoi(content);
+		wlr_log(WLR_ERROR, "<snapping><range> is deprecated. "
+			"Use <snapping><range inner=\"\" outer=\"\"> instead.");
+	} else if (!strcasecmp(nodename, "inner.range.snapping")) {
+		rc.snap_edge_range_inner = atoi(content);
+	} else if (!strcasecmp(nodename, "outer.range.snapping")) {
+		rc.snap_edge_range_outer = atoi(content);
 	} else if (!strcasecmp(nodename, "cornerRange.snapping")) {
 		rc.snap_edge_corner_range = atoi(content);
 	} else if (!strcasecmp(nodename, "enabled.overlay.snapping")) {
@@ -1209,51 +1219,66 @@ entry(xmlNode *node, char *nodename, char *content)
 	 * thumnailLabelFormat is handled above to allow for an empty value
 	 */
 	} else if (!strcasecmp(nodename, "show.osd.windowSwitcher")) {
-		set_bool(content, &rc.window_switcher.show);
+		set_bool(content, &rc.window_switcher.osd.show);
 	} else if (!strcasecmp(nodename, "style.osd.windowSwitcher")) {
 		if (!strcasecmp(content, "classic")) {
-			rc.window_switcher.style = WINDOW_SWITCHER_CLASSIC;
+			rc.window_switcher.osd.style = CYCLE_OSD_STYLE_CLASSIC;
 		} else if (!strcasecmp(content, "thumbnail")) {
-			rc.window_switcher.style = WINDOW_SWITCHER_THUMBNAIL;
+			rc.window_switcher.osd.style = CYCLE_OSD_STYLE_THUMBNAIL;
 		} else {
-			wlr_log(WLR_ERROR, "Invalid windowSwitcher style %s: "
+			wlr_log(WLR_ERROR, "Invalid windowSwitcher style '%s': "
 				"should be one of classic|thumbnail", content);
 		}
 	} else if (!strcasecmp(nodename, "output.osd.windowSwitcher")) {
 		if (!strcasecmp(content, "all")) {
-			rc.window_switcher.output_criteria = OSD_OUTPUT_ALL;
-		} else if (!strcasecmp(content, "pointer")) {
-			rc.window_switcher.output_criteria = OSD_OUTPUT_POINTER;
-		} else if (!strcasecmp(content, "keyboard")) {
-			rc.window_switcher.output_criteria = OSD_OUTPUT_KEYBOARD;
+			rc.window_switcher.osd.output_filter = CYCLE_OUTPUT_ALL;
+		} else if (!strcasecmp(content, "cursor")) {
+			rc.window_switcher.osd.output_filter = CYCLE_OUTPUT_CURSOR;
+		} else if (!strcasecmp(content, "focused")) {
+			rc.window_switcher.osd.output_filter = CYCLE_OUTPUT_FOCUSED;
 		} else {
-			wlr_log(WLR_ERROR, "Invalid windowSwitcher output %s: "
-				"should be one of all|pointer|keyboard", content);
+			wlr_log(WLR_ERROR, "Invalid windowSwitcher output '%s': "
+				"should be one of all|focused|cursor", content);
+		}
+	} else if (!strcasecmp(nodename, "order.windowSwitcher")) {
+		if (!strcasecmp(content, "focus")) {
+			rc.window_switcher.order = WINDOW_SWITCHER_ORDER_FOCUS;
+		} else if (!strcasecmp(content, "age")) {
+			rc.window_switcher.order = WINDOW_SWITCHER_ORDER_AGE;
+		} else {
+			wlr_log(WLR_ERROR, "Invalid windowSwitcher order '%s': "
+				"should be one of focus|age", content);
 		}
 
 	/* The following two are for backward compatibility only. */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
-		set_bool(content, &rc.window_switcher.show);
+		set_bool(content, &rc.window_switcher.osd.show);
 		wlr_log(WLR_ERROR, "<windowSwitcher show=\"\" /> is deprecated."
-			" Use <osd show=\"\" />");
+			" Use <windowSwitcher><osd show=\"\" />");
 	} else if (!strcasecmp(nodename, "style.windowSwitcher")) {
 		if (!strcasecmp(content, "classic")) {
-			rc.window_switcher.style = WINDOW_SWITCHER_CLASSIC;
+			rc.window_switcher.osd.style = CYCLE_OSD_STYLE_CLASSIC;
 		} else if (!strcasecmp(content, "thumbnail")) {
-			rc.window_switcher.style = WINDOW_SWITCHER_THUMBNAIL;
+			rc.window_switcher.osd.style = CYCLE_OSD_STYLE_THUMBNAIL;
 		}
 		wlr_log(WLR_ERROR, "<windowSwitcher style=\"\" /> is deprecated."
-			" Use <osd style=\"\" />");
+			" Use <windowSwitcher><osd style=\"\" />");
 
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.preview);
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.outlines);
 	} else if (!strcasecmp(nodename, "allWorkspaces.windowSwitcher")) {
-		if (parse_bool(content, -1) == true) {
-			rc.window_switcher.criteria &=
-				~LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
+		int ret = parse_bool(content, -1);
+		if (ret < 0) {
+			wlr_log(WLR_ERROR, "Invalid value for <windowSwitcher"
+				" allWorkspaces=\"\">: '%s'", content);
+		} else {
+			rc.window_switcher.workspace_filter = ret ?
+				CYCLE_WORKSPACE_ALL : CYCLE_WORKSPACE_CURRENT;
 		}
+		wlr_log(WLR_ERROR, "<windowSwitcher allWorkspaces=\"\" /> is deprecated."
+			" Use <action name=\"NextWindow\" workspace=\"\"> instead.");
 	} else if (!strcasecmp(nodename, "unshade.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.unshade);
 
@@ -1263,7 +1288,7 @@ entry(xmlNode *node, char *nodename, char *content)
 
 	/* The following three are for backward compatibility only */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher.core")) {
-		set_bool(content, &rc.window_switcher.show);
+		set_bool(content, &rc.window_switcher.osd.show);
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher.core")) {
 		set_bool(content, &rc.window_switcher.preview);
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher.core")) {
@@ -1271,7 +1296,7 @@ entry(xmlNode *node, char *nodename, char *content)
 
 	/* The following three are for backward compatibility only */
 	} else if (!strcasecmp(nodename, "cycleViewOSD.core")) {
-		set_bool(content, &rc.window_switcher.show);
+		set_bool(content, &rc.window_switcher.osd.show);
 		wlr_log(WLR_ERROR, "<cycleViewOSD> is deprecated."
 			" Use <windowSwitcher show=\"\" />");
 	} else if (!strcasecmp(nodename, "cycleViewPreview.core")) {
@@ -1289,6 +1314,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
 	} else if (!strcasecmp(nodename, "popupTime.desktops")) {
 		rc.workspace_config.popuptime = atoi(content);
+	} else if (!strcasecmp(nodename, "initial.desktops")) {
+		xstrdup_replace(rc.workspace_config.initial_workspace_name, content);
 	} else if (!strcasecmp(nodename, "number.desktops")) {
 		rc.workspace_config.min_nr_workspaces = MAX(1, atoi(content));
 	} else if (!strcasecmp(nodename, "popupShow.resize")) {
@@ -1400,7 +1427,7 @@ rcxml_init(void)
 		wl_list_init(&rc.libinput_categories);
 		wl_list_init(&rc.workspace_config.workspaces);
 		wl_list_init(&rc.regions);
-		wl_list_init(&rc.window_switcher.fields);
+		wl_list_init(&rc.window_switcher.osd.fields);
 		wl_list_init(&rc.window_rules);
 		wl_list_init(&rc.touch_configs);
 	}
@@ -1456,7 +1483,8 @@ rcxml_init(void)
 	rc.unsnap_threshold = 20;
 	rc.unmaximize_threshold = 150;
 
-	rc.snap_edge_range = 10;
+	rc.snap_edge_range_inner = 10;
+	rc.snap_edge_range_outer = 10;
 	rc.snap_edge_corner_range = 50;
 	rc.snap_overlay_enabled = true;
 	rc.snap_overlay_delay_inner = 500;
@@ -1464,16 +1492,15 @@ rcxml_init(void)
 	rc.snap_top_maximize = true;
 	rc.snap_tiling_events_mode = LAB_TILING_EVENTS_ALWAYS;
 
-	rc.window_switcher.show = true;
-	rc.window_switcher.style = WINDOW_SWITCHER_CLASSIC;
-	rc.window_switcher.output_criteria = OSD_OUTPUT_ALL;
-	rc.window_switcher.thumbnail_label_format = xstrdup("%T");
+	rc.window_switcher.osd.show = true;
+	rc.window_switcher.osd.style = CYCLE_OSD_STYLE_CLASSIC;
+	rc.window_switcher.osd.output_filter = CYCLE_OUTPUT_ALL;
+	rc.window_switcher.osd.thumbnail_label_format = xstrdup("%T");
 	rc.window_switcher.preview = true;
 	rc.window_switcher.outlines = true;
 	rc.window_switcher.unshade = true;
-	rc.window_switcher.criteria = LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
-		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
-		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;
+	rc.window_switcher.workspace_filter = CYCLE_WORKSPACE_CURRENT;
+	rc.window_switcher.order = WINDOW_SWITCHER_ORDER_FOCUS;
 
 	rc.resize_indicator = LAB_RESIZE_INDICATOR_NEVER;
 	rc.resize_draw_contents = true;
@@ -1635,7 +1662,7 @@ static void
 load_default_window_switcher_fields(void)
 {
 	static const struct {
-		enum window_switcher_field_content content;
+		enum cycle_osd_field_content content;
 		int width;
 	} fields[] = {
 #if HAVE_LIBSFDO
@@ -1648,12 +1675,11 @@ load_default_window_switcher_fields(void)
 #endif
 	};
 
-	struct window_switcher_field *field;
 	for (size_t i = 0; i < ARRAY_SIZE(fields); i++) {
-		field = znew(*field);
+		struct cycle_osd_field *field = znew(*field);
 		field->content = fields[i].content;
 		field->width = fields[i].width;
-		wl_list_append(&rc.window_switcher.fields, &field->link);
+		wl_list_append(&rc.window_switcher.osd.fields, &field->link);
 	}
 }
 
@@ -1774,7 +1800,7 @@ post_processing(void)
 	if (rc.workspace_config.popuptime == INT_MIN) {
 		rc.workspace_config.popuptime = 1000;
 	}
-	if (!wl_list_length(&rc.window_switcher.fields)) {
+	if (!wl_list_length(&rc.window_switcher.osd.fields)) {
 		wlr_log(WLR_INFO, "load default window switcher fields");
 		load_default_window_switcher_fields();
 	}
@@ -1867,13 +1893,13 @@ validate(void)
 
 	/* OSD fields */
 	int field_width_sum = 0;
-	struct window_switcher_field *field, *field_tmp;
-	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.fields, link) {
+	struct cycle_osd_field *field, *field_tmp;
+	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.osd.fields, link) {
 		field_width_sum += field->width;
-		if (!osd_field_is_valid(field) || field_width_sum > 100) {
+		if (!cycle_osd_field_is_valid(field) || field_width_sum > 100) {
 			wlr_log(WLR_ERROR, "Deleting invalid window switcher field %p", field);
 			wl_list_remove(&field->link);
-			osd_field_free(field);
+			cycle_osd_field_free(field);
 		}
 	}
 }
@@ -1943,8 +1969,9 @@ rcxml_finish(void)
 	zfree(rc.icon_theme_name);
 	zfree(rc.fallback_app_icon_name);
 	zfree(rc.workspace_config.prefix);
+	zfree(rc.workspace_config.initial_workspace_name);
 	zfree(rc.tablet.output_name);
-	zfree(rc.window_switcher.thumbnail_label_format);
+	zfree(rc.window_switcher.osd.thumbnail_label_format);
 
 	clear_title_layout();
 

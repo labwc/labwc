@@ -1,5 +1,5 @@
 labwc_sources += files(
-  'osd.c',
+  'cycle.c',
   'osd-classic.c',
   'osd-field.c',
   'osd-thumbnail.c',

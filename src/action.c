@@ -18,12 +18,12 @@
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
+#include "cycle.h"
 #include "debug.h"
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "magnifier.h"
 #include "menu/menu.h"
-#include "osd.h"
 #include "output.h"
 #include "output-virtual.h"
 #include "regions.h"
@@ -366,6 +366,44 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		break;
+	case ACTION_TYPE_NEXT_WINDOW:
+	case ACTION_TYPE_PREVIOUS_WINDOW:
+		if (!strcasecmp(argument, "workspace")) {
+			if (!strcasecmp(content, "all")) {
+				action_arg_add_int(action, argument, CYCLE_WORKSPACE_ALL);
+			} else if (!strcasecmp(content, "current")) {
+				action_arg_add_int(action, argument, CYCLE_WORKSPACE_CURRENT);
+			} else {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			}
+			goto cleanup;
+		}
+		if (!strcasecmp(argument, "output")) {
+			if (!strcasecmp(content, "all")) {
+				action_arg_add_int(action, argument, CYCLE_OUTPUT_ALL);
+			} else if (!strcasecmp(content, "cursor")) {
+				action_arg_add_int(action, argument, CYCLE_OUTPUT_CURSOR);
+			} else if (!strcasecmp(content, "focused")) {
+				action_arg_add_int(action, argument, CYCLE_OUTPUT_FOCUSED);
+			} else {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			}
+			goto cleanup;
+		}
+		if (!strcasecmp(argument, "identifier")) {
+			if (!strcasecmp(content, "all")) {
+				action_arg_add_int(action, argument, CYCLE_APP_ID_ALL);
+			} else if (!strcasecmp(content, "current")) {
+				action_arg_add_int(action, argument, CYCLE_APP_ID_CURRENT);
+			} else {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			}
+			goto cleanup;
+		}
+		break;
 	case ACTION_TYPE_SHOW_MENU:
 		if (!strcmp(argument, "menu")) {
 			action_arg_add_str(action, argument, content);
@@ -411,6 +449,20 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		}
 		if (!strcasecmp(argument, "forceSSD")) {
 			action_arg_add_bool(action, argument, parse_bool(content, false));
+			goto cleanup;
+		}
+		break;
+	case ACTION_TYPE_RESIZE:
+		if (!strcmp(argument, "direction")) {
+			enum lab_edge edge = lab_edge_parse(content,
+				/*tiled*/ true, /*any*/ false);
+			if (edge == LAB_EDGE_NONE || edge == LAB_EDGE_CENTER) {
+				wlr_log(WLR_ERROR,
+					"Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			} else {
+				action_arg_add_int(action, argument, edge);
+			}
 			goto cleanup;
 		}
 		break;
@@ -1112,19 +1164,24 @@ run_action(struct view *view, struct server *server, struct action *action,
 		}
 		break;
 	case ACTION_TYPE_NEXT_WINDOW:
-		if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-			osd_cycle(server, LAB_CYCLE_DIR_FORWARD);
+	case ACTION_TYPE_PREVIOUS_WINDOW: {
+		enum lab_cycle_dir dir = (action->type == ACTION_TYPE_NEXT_WINDOW) ?
+			LAB_CYCLE_DIR_FORWARD : LAB_CYCLE_DIR_BACKWARD;
+		struct cycle_filter filter = {
+			.workspace = action_get_int(action, "workspace",
+				rc.window_switcher.workspace_filter),
+			.output = action_get_int(action, "output",
+				CYCLE_OUTPUT_ALL),
+			.app_id = action_get_int(action, "identifier",
+				CYCLE_APP_ID_ALL),
+		};
+		if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
+			cycle_step(server, dir);
 		} else {
-			osd_begin(server, LAB_CYCLE_DIR_FORWARD);
+			cycle_begin(server, dir, filter);
 		}
 		break;
-	case ACTION_TYPE_PREVIOUS_WINDOW:
-		if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER) {
-			osd_cycle(server, LAB_CYCLE_DIR_BACKWARD);
-		} else {
-			osd_begin(server, LAB_CYCLE_DIR_BACKWARD);
-		}
-		break;
+	}
 	case ACTION_TYPE_RECONFIGURE:
 		kill(getpid(), SIGHUP);
 		break;
@@ -1223,8 +1280,17 @@ run_action(struct view *view, struct server *server, struct action *action,
 		break;
 	case ACTION_TYPE_RESIZE:
 		if (view) {
-			enum lab_edge resize_edges = cursor_get_resize_edges(
-				server->seat.cursor, ctx);
+			/*
+			 * If a direction was specified in the config, honour it.
+			 * Otherwise, fall back to determining the resize edges from
+			 * the current cursor position (existing behaviour).
+			 */
+			enum lab_edge resize_edges =
+				action_get_int(action, "direction", LAB_EDGE_NONE);
+			if (resize_edges == LAB_EDGE_NONE) {
+				resize_edges = cursor_get_resize_edges(
+					server->seat.cursor, ctx);
+			}
 			interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 				resize_edges);
 		}
@@ -1569,7 +1635,7 @@ actions_run(struct view *activator, struct server *server,
 
 	struct action *action;
 	wl_list_for_each(action, actions, link) {
-		if (server->input_mode == LAB_INPUT_STATE_WINDOW_SWITCHER
+		if (server->input_mode == LAB_INPUT_STATE_CYCLE
 				&& action->type != ACTION_TYPE_NEXT_WINDOW
 				&& action->type != ACTION_TYPE_PREVIOUS_WINDOW) {
 			wlr_log(WLR_INFO, "Only NextWindow or PreviousWindow "

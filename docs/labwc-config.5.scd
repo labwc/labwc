@@ -26,7 +26,7 @@ should (a) allow the first-identified configuration file to supersede any
 others, or (b) define rules for merging the information from more than one file.
 
 By default, labwc uses option (a), reading only the first file identified.  With
-the --merge-config option, the search order is reserved, but every configuration
+the --merge-config option, the search order is reversed, but every configuration
 file encountered is processed in turn. Thus, user-specific files will augment
 system-wide configurations, with conflicts favoring the user-specific
 alternative.
@@ -339,7 +339,7 @@ this is for compatibility with Openbox.
 ## WINDOW SWITCHER
 
 ```
-<windowSwitcher preview="yes" outlines="yes" allWorkspaces="no">
+<windowSwitcher preview="yes" outlines="yes">
   <osd show="yes" style="classic" output="all" thumbnailLabelFormat="%T" />
   <fields>
     <field content="icon" width="5%" />
@@ -349,37 +349,39 @@ this is for compatibility with Openbox.
 </windowSwitcher>
 ```
 
-*<windowSwitcher preview="" outlines="" allWorkspaces="" unshade="">*
+*<windowSwitcher preview="" outlines="" unshade="" order="">*
 	*preview* [yes|no] Preview the contents of the selected window when
 	switching between windows. Default is yes.
 
 	*outlines* [yes|no] Draw an outline around the selected window when
 	switching between windows. Default is yes.
 
-	*allWorkspaces* [yes|no] Show windows regardless of what workspace
-	they are on. Default no (that is only windows on the current workspace
-	are shown).
-
 	*unshade* [yes|no] Temporarily unshade windows when switching between
 	them and permanently unshade on the final selection. Default is yes.
 
-*<osd show="" style="" output="" thumbnailLabelFormat="" />*
+	*order* [focus|age] The order in which windows are cycled. *focus*
+	cycles by recent focus history, starting with the previously focused
+	window. *age* cycles by creation/open order, a stable taskbar-style
+	ordering that doesn’t change on focus. Default is *focus*.
+
+*<windowSwitcher><osd show="" style="" output="" thumbnailLabelFormat="" />*
 	*show* [yes|no] Draw the OnScreenDisplay when switching between
 	windows. Default is yes.
 
 	*style* [classic|thumbnail] Configures the style of the OSD.
-	"classic" displays window information like icons and titles in a vertical list.
+	"classic" displays window information like icons and titles in a
+	vertical list.
 	"thumbnail" shows window thumbnail, icon and title in grids.
 
-	*output* [all|pointer|keyboard] Configures which monitor(s) show the OSD.
+	*output* [all|focused|cursor] Configures which monitor(s) show the OSD.
 	"all" displays the OSD on all monitors.
-	"pointer" displays the OSD on the monitor containing the mouse pointer.
-	"keyboard" displays the OSD on the monitor with keyboard focus.
+	"focused" displays the OSD on the monitor with keyboard focus.
+	"cursor" displays the OSD on the monitor containing the mouse pointer.
 	Default is "all".
 
-	*thumbnailLabelFormat* Format to be used for the thumbnail label according to *custom*
-	field below, only applied when using *<osd style="thumbnail" />*.
-	Default is "%T".
+	*thumbnailLabelFormat* Format to be used for the thumbnail label
+	according to *custom* field below, only applied when using
+	*<osd style="thumbnail" />*. Default is "%T".
 
 *<windowSwitcher><fields><field content="" width="%">*
 	Define window switcher fields when using *<osd style="classic" />*.
@@ -498,13 +500,16 @@ activated with SnapToEdge actions or, optionally, by dragging windows to the
 edges of an output. Edge snapping causes a window to occupy half of its output,
 extending outward from the snapped edge.
 
-*<snapping><range>*++
+*<snapping><range><inner>*++
+*<snapping><range><outer>*++
 *<snapping><cornerRange>*
-	If an interactive move ends with the cursor within *<range>* pixels of an
-	output edge, the window is snapped to the edge. If it's also within
-	*<cornerRange>* pixels of an output corner, the window is snapped to the
-	corner instead. A *<range>* of 0 disables snapping.
-	Default is 10 for *<range>* and 50 for *<cornerRange>*.
+	If an interactive move ends with the cursor within *inner* or *outer*
+	pixels of an output edge, the window is snapped to the edge. *inner*
+	edges are edges with an adjacent output and *outer* edges are edges
+	without an adjacent output. If it's also within *<cornerRange>* pixels
+	of an output corner, the window is snapped to the corner instead.
+	If *inner* and *outer* is 0, snapping is disabled. Default is 10 for
+	*<range><inner>* and *<range><outer>*, and 50 for *<cornerRange>*.
 
 *<snapping><overlay><enabled>* [yes|no]
 	Show an overlay when snapping to a window to an edge. Default is yes.
@@ -525,8 +530,8 @@ extending outward from the snapped edge.
 *<snapping><notifyClient>* [always|region|edge|never]
 	Snapping windows can trigger corresponding tiling events for native
 	Wayland clients. Clients may use these events to alter their rendering
-	based on knowledge that some edges of the window are confined to edges of
-	a snapping region or output. For example, rounded corners may become
+	based on knowledge that some edges of the window are confined to edges
+	of a snapping region or output. For example, rounded corners may become
 	square when tiled, or media players may letter-box or pillar-box video
 	rather than imposing rigid aspect ratios on windows that will violate
 	the constraints of window snapping.
@@ -565,6 +570,11 @@ extending outward from the snapped edge.
 	The number attribute defines the minimum number of workspaces. Default
 	is 1. The number attribute is optional. If the number attribute is
 	specified, names.name is not required.
+
+*<desktops><initial>*
+	Define the initial starting workspace. This must match one of the names
+	defined in <names> or must be an index equal to or lower than <number>.
+	If not set, the first workspace is used.
 
 *<desktops><popupTime>*
 	Define the timeout after which to hide the workspace OSD.
@@ -616,15 +626,16 @@ extending outward from the snapped edge.
 
 *<theme><maximizedDecoration>* [titlebar|none]
 	Specify how server side decorations are shown for maximized windows.
-	*titlebar* shows titlebar above a maximized window. *none* shows no server
-	side decorations around a maximized window. Default is titlebar.
+	*titlebar* shows titlebar above a maximized window. *none* shows no
+	server side decorations around a maximized window. Default is titlebar.
 
 *<theme><dropShadows>* [yes|no]
 	Should drop-shadows be rendered behind windows. Default is no.
 
 *<theme><dropShadowsOnTiled>* [yes|no]
 	Should drop-shadows be rendered behind tiled windows. This won't take
-	effect if <core><gap> is smaller than window.active.shadow.size in theme.
+	effect if <core><gap> is smaller than window.active.shadow.size in
+	theme.
 
 	Default is no.
 
@@ -699,6 +710,45 @@ extending outward from the snapped edge.
 	narrower than the minimum effective thickness will be augmented with
 	invisible zones just beyond the window that serve as click targets for
 	mouse actions. Default is 8.
+
+# INPUT CONFIGURATION
+
+This section describes configuration of input devices including:
+
+- Keyboards
+- Mice
+- Touchpads (sometimes referred to as laptop trackpads)
+- Touchscreens
+- Tablets
+- Tablet tools (like stylus pens)
+
+It aims to clarify related terminology and separation of concerns.
+
+Keyboards are configured in the *<keyboard>* section below and are simple in
+this regard.
+
+Touchpads and mice are harder. They are both considered to be *pointer* devices
+by the compositor, and can be configured in the *<mouse>* and *<libinput>*
+sections. Any setting that is supported by libinput is configured in the
+*<libinput>* section, and anything else is in *<mouse>*. Touchpad devices can
+generate gesture events, like swipe and pinch. There are some related settings
+(e.g. *threeFingerDrag* and *twoFingerScroll*) in the *<libinput>* section.
+
+In the Wayland Compositor domain, events associated with touchscreens are
+sometimes simply referred to as *touch* events.  Touchscreens can be configured
+in both the *<touch>* and *<libinput>* sections. Note that touchscreen gestures
+are not interpreted by libinput, nor labwc. Any touch point is passed to the
+client (application) for any interpretation of gestures.
+
+Tablets are considered special by libinput although in the eyes of the Wayland
+protocol they are merely a *touch* capability. Tablets and associated tablet
+tools are configured in the *<tablet>*, *<tablettool>* and *<libinput>*
+sections. Note that the term *tablet* in libinput (and labwc) refers to graphics
+tablets only (e.g. Wacom Intuos), not to tablet devices like the Apple iPad.
+
+References:
+- https://wayland.freedesktop.org/libinput/doc/latest/tablet-support.html
+- https://wayland.freedesktop.org/libinput/doc/latest/gestures.html
 
 ## KEYBOARD
 
@@ -807,6 +857,9 @@ extending outward from the snapped edge.
 	Default is 600.
 
 ## MOUSE
+
+This section relates to mice and touchpads - which are both considered pointer
+input-devices by the Wayland protocol.
 
 *<mouse><doubleClickTime>*
 	Set double click time in milliseconds. Default is 500.
@@ -918,6 +971,11 @@ extending outward from the snapped edge.
 
 ## TOUCH
 
+This section relates to touchscreens and *not* touchpads.
+
+Note: To rotate touch events with output rotation, use the libinput
+*calibrationMatrix* setting.
+
 ```
 <touch deviceName="" mapToOutput="" mouseEmulation="no"/>
 ```
@@ -993,7 +1051,7 @@ extending outward from the snapped edge.
 
 *<tablet><map button="" to="" />*
 	Pen and pad buttons behave like regular mouse buttons.With mouse
-	emulation set to "no", which is the default, and if not	specified
+	emulation set to "no", which is the default, and if not specified
 	otherwise, the first pen button is mapped to the right mouse button,
 	the second pen button to the middle mouse button and a third pen
 	button is mapped to the side mouse button.
@@ -1012,10 +1070,10 @@ extending outward from the snapped edge.
 
 	When using mouse emulation, all pen buttons emulate regular mouse
 	buttons. The tip, stylus and pad buttons can be mapped to all
-	available mouse	buttons. If not specified otherwise, the tip is
+	available mouse buttons. If not specified otherwise, the tip is
 	mapped to left mouse click, the first pen button (Stylus) is mapped
 	to right mouse button click and the second pen button (Stylus2)
-	emulates a middle mouse	button click. Buttons of a tablet tool mouse
+	emulates a middle mouse button click. Buttons of a tablet tool mouse
 	are by default mapped to their (regular) mouse counterparts.
 
 	Supported map *buttons* for mouse emulation are:
@@ -1080,14 +1138,9 @@ extending outward from the snapped edge.
 	attribute is provided, a 'default' device profile will created that will
 	act as the fallback for all libinput devices. Category can be set to any
 	of the following types:
-	- *touch* - Devices which have a defined width/height, but do not
-	  support multitouch (i.e. they cannot track multiple locations where
-	  the screen has been touched). Drawing tablets typically fall into this
-	  type.
-	- *touchpad* - Same as 'touch' but support multitouch. This typically
-	  includes laptop track pads with two-finger scroll and swipe gestures.
-	- *non-touch* - Anything not described above, for example traditional
-	  mouse pointers.
+	- *touch* - Includes touchscreens and drawing-tablets.
+	- *touchpad* - Includes touchpads (also known as laptop trackpads)
+	- *non-touch* - Includes traditional mice
 	- *default* - Defines a device-category applicable to all devices not
 	  matched by anything else. This can be useful for a fallback, or if you
 	  want the same settings to be applied to all devices.
@@ -1130,11 +1183,12 @@ extending outward from the snapped edge.
 	a tap immediately followed by a finger down as the start of a drag.
 
 *<libinput><device><dragLock>* [yes|no|timeout]
-	Enable or disable drag lock for this category. Drag lock ignores a temporary
-	release of a finger during tap-and-dragging.
+	Enable or disable drag lock for this category. Drag lock ignores a
+	temporary release of a finger during tap-and-dragging.
 
-	*timeout* also enables drag lock, but with a timeout: if your fingers are
-	released for a certain amount of time, the drag gesture is cancelled.
+	*timeout* also enables drag lock, but with a timeout: if your fingers
+	are released for a certain amount of time, the drag gesture is
+	cancelled.
 	In libinput < 1.27, the behavior of *yes* is equivalent to *timeout*.
 
 *<libinput><device><threeFingerDrag>* [yes|no|3|4]

@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include <wayland-server-core.h>
+#include <wlr/util/box.h>
 #include "config/types.h"
 
 struct output;
@@ -49,6 +50,27 @@ struct cycle_filter {
 	enum cycle_app_id_filter app_id;
 };
 
+struct cycle_state {
+	struct view *selected_view;
+	struct wl_list views;
+	struct wl_list osd_outputs; /* struct cycle_osd_output.link */
+	bool preview_was_shaded;
+	bool preview_was_enabled;
+	struct wlr_scene_node *preview_node;
+	struct wlr_scene_node *preview_dummy;
+	struct lab_scene_rect *preview_outline;
+	struct cycle_filter filter;
+};
+
+struct cycle_osd_output {
+	struct wl_list link; /* struct cycle_state.osd_outputs */
+	struct output *output;
+	struct wl_listener tree_destroy;
+
+	struct wl_list items; /* struct cycle_osd_item.link */
+	struct wlr_scene_tree *tree;
+};
+
 struct buf;
 struct view;
 struct server;
@@ -92,15 +114,14 @@ struct cycle_osd_item {
 
 struct cycle_osd_impl {
 	/*
-	 * Create a scene-tree of OSD for an output.
-	 * This sets output->cycle_osd.{items,tree}.
+	 * Create a scene-tree of OSD for an output and fill
+	 * osd_output->items.
 	 */
-	void (*create)(struct output *output);
+	void (*init)(struct cycle_osd_output *osd_output);
 	/*
-	 * Update output->cycle_osd.tree to highlight
-	 * server->cycle_state.selected_view.
+	 * Update the OSD to highlight server->cycle.selected_view.
 	 */
-	void (*update)(struct output *output);
+	void (*update)(struct cycle_osd_output *osd_output);
 };
 
 extern struct cycle_osd_impl cycle_osd_classic_impl;

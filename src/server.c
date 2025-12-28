@@ -550,6 +550,7 @@ server_init(struct server *server)
 	wl_list_init(&server->views);
 	wl_list_init(&server->unmanaged_surfaces);
 	wl_list_init(&server->cycle.views);
+	wl_list_init(&server->cycle.osd_outputs);
 
 	server->scene = wlr_scene_create();
 	if (!server->scene) {

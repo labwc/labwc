@@ -433,7 +433,6 @@ destroy_cycle(struct server *server)
 
 	if (server->cycle.preview_outline) {
 		wlr_scene_node_destroy(&server->cycle.preview_outline->tree->node);
-		server->cycle.preview_outline = NULL;
 	}
 
 	struct view *view, *tmp2;
@@ -442,6 +441,7 @@ destroy_cycle(struct server *server)
 		view->cycle_link = (struct wl_list){0};
 	}
 
-	server->cycle.selected_view = NULL;
-	server->cycle.filter = (struct cycle_filter){0};
+	server->cycle = (struct cycle_state){0};
+	wl_list_init(&server->cycle.views);
+	wl_list_init(&server->cycle.osd_outputs);
 }

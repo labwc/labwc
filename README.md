@@ -180,6 +180,10 @@ Run `labwc --reconfigure` to reload configuration and theme.
 
 For a step-by-step initial configuration guide, see [getting-started].
 
+A ready to use labwc configuration with modern look and wallpaper based theming can be found here:
+
+- https://github.com/Harsh-bin/modern-labwc
+
 ## 4. Theming
 
 Themes are located at `~/.local/share/themes/\<theme-name\>/labwc/` or
@@ -242,6 +246,7 @@ Suggested apps to use with Labwc:
 - Screen locker: [swaylock]
 - Gamma adjustment: [gammastep]
 - Idle screen inhibitor: [sway-audio-idle-inhibit]
+- Root menu generator: [labwc-menu-generator]
 
 See [integration] for further details.
 
@@ -291,3 +296,4 @@ The default window bar menu can be translated on the [weblate platform](https://
 [swaylock]: https://github.com/swaywm/swaylock
 [gammastep]: https://gitlab.com/chinstrap/gammastep
 [sway-audio-idle-inhibit]: https://github.com/ErikReider/SwayAudioIdleInhibit
+[labwc-menu-generator]: https://github.com/Harsh-bin/labwc-menu-generator

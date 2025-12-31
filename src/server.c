@@ -97,6 +97,7 @@ reload_config_and_theme(struct server *server)
 		view_reload_ssd(view);
 	}
 
+	cycle_finish(server, /*switch_focus*/ false);
 	menu_reconfigure(server);
 	seat_reconfigure(server);
 	regions_reconfigure(server);

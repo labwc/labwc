@@ -470,7 +470,7 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 	if (surf->maximized_horz) {
 		maximize |= VIEW_AXIS_HORIZONTAL;
 	}
-	view_maximize(view, maximize, /*store_natural_geometry*/ true);
+	view_maximize(view, maximize);
 }
 
 static void
@@ -704,7 +704,7 @@ handle_map_request(struct wl_listener *listener, void *data)
 	if (xsurface->maximized_vert) {
 		axis |= VIEW_AXIS_VERTICAL;
 	}
-	view_maximize(view, axis, /*store_natural_geometry*/ true);
+	view_maximize(view, axis);
 	/*
 	 * We could also call set_initial_position() here, but it's not
 	 * really necessary until the view is actually mapped (and at

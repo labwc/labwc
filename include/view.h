@@ -512,8 +512,7 @@ void view_constrain_size_to_that_of_usable_area(struct view *view);
 
 void view_set_maximized(struct view *view, enum view_axis maximized);
 void view_set_untiled(struct view *view);
-void view_maximize(struct view *view, enum view_axis axis,
-	bool store_natural_geometry);
+void view_maximize(struct view *view, enum view_axis axis);
 void view_set_fullscreen(struct view *view, bool fullscreen);
 void view_toggle_maximize(struct view *view, enum view_axis axis);
 bool view_wants_decorations(struct view *view);
@@ -540,8 +539,8 @@ void view_move_to_edge(struct view *view, enum lab_edge direction, bool snap_to_
 void view_grow_to_edge(struct view *view, enum lab_edge direction);
 void view_shrink_to_edge(struct view *view, enum lab_edge direction);
 void view_snap_to_edge(struct view *view, enum lab_edge direction,
-	bool across_outputs, bool combine, bool store_natural_geometry);
-void view_snap_to_region(struct view *view, struct region *region, bool store_natural_geometry);
+	bool across_outputs, bool combine);
+void view_snap_to_region(struct view *view, struct region *region);
 void view_move_to_output(struct view *view, struct output *output);
 
 void view_move_to_front(struct view *view);

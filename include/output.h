@@ -19,11 +19,6 @@ struct output {
 	struct wlr_scene_tree *session_lock_tree;
 	struct wlr_scene_buffer *workspace_osd;
 
-	struct cycle_osd_scene {
-		struct wl_list items; /* struct cycle_osd_item */
-		struct wlr_scene_tree *tree;
-	} cycle_osd;
-
 	/* In output-relative scene coordinates */
 	struct wlr_box usable_area;
 

@@ -894,16 +894,16 @@ adjust_floating_geometry(struct view *view, struct wlr_box *geometry,
 		&geometry->x, &geometry->y);
 }
 
-struct wlr_box
-view_get_fallback_natural_geometry(struct view *view)
+void
+view_set_fallback_natural_geometry(struct view *view)
 {
-	struct wlr_box box = {
-		.width = VIEW_FALLBACK_WIDTH,
-		.height = VIEW_FALLBACK_HEIGHT,
-	};
+	view->natural_geometry.width = VIEW_FALLBACK_WIDTH;
+	view->natural_geometry.height = VIEW_FALLBACK_HEIGHT;
 	view_compute_centered_position(view, NULL,
-		box.width, box.height, &box.x, &box.y);
-	return box;
+		view->natural_geometry.width,
+		view->natural_geometry.height,
+		&view->natural_geometry.x,
+		&view->natural_geometry.y);
 }
 
 void
@@ -1428,7 +1428,7 @@ view_maximize(struct view *view, enum view_axis axis)
 	 */
 	if ((axis == VIEW_AXIS_HORIZONTAL || axis == VIEW_AXIS_VERTICAL)
 			&& wlr_box_empty(&view->natural_geometry)) {
-		view->natural_geometry = view_get_fallback_natural_geometry(view);
+		view_set_fallback_natural_geometry(view);
 	}
 
 	view_set_maximized(view, axis);

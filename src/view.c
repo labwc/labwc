@@ -588,6 +588,13 @@ view_move_resize(struct view *view, struct wlr_box geo)
 	if (view->impl->configure) {
 		view->impl->configure(view, geo);
 	}
+	/*
+	 * Assume by default that the move/resize was user-initiated
+	 * (rather than due to output layout change) and clear the flag.
+	 * For the few cases where it is due to layout change, the flag
+	 * is set to true afterward by view_adjust_for_layout_change().
+	 */
+	view->adjusted_for_layout_change = false;
 }
 
 void
@@ -1405,9 +1412,6 @@ view_maximize(struct view *view, enum view_axis axis)
 		 * a maximized view.
 		 */
 		interactive_cancel(view);
-		if (store_natural_geometry && view_is_floating(view)) {
-			view_invalidate_last_layout_geometry(view);
-		}
 	}
 
 	/*
@@ -1695,7 +1699,6 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 		 */
 		interactive_cancel(view);
 		view_store_natural_geometry(view);
-		view_invalidate_last_layout_geometry(view);
 	}
 
 	set_fullscreen(view, fullscreen);
@@ -1713,134 +1716,53 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 	cursor_update_focus(view->server);
 }
 
-static bool
-last_layout_geometry_is_valid(struct view *view)
-{
-	return view->last_layout_geometry.width > 0
-		&& view->last_layout_geometry.height > 0;
-}
-
-static void
-update_last_layout_geometry(struct view *view)
-{
-	/*
-	 * Only update an invalid last-layout geometry to prevent a series of
-	 * successive layout changes from continually replacing the "preferred"
-	 * location with whatever location the view currently holds. The
-	 * "preferred" location should be whatever state was set by user
-	 * interaction, not automatic responses to layout changes.
-	 */
-	if (last_layout_geometry_is_valid(view)) {
-		return;
-	}
-
-	if (view_is_floating(view)) {
-		view->last_layout_geometry = view->pending;
-	} else {
-		view->last_layout_geometry = view->natural_geometry;
-	}
-}
-
-static bool
-apply_last_layout_geometry(struct view *view, bool force_update)
-{
-	/* Only apply a valid last-layout geometry */
-	if (!last_layout_geometry_is_valid(view)) {
-		return false;
-	}
-
-	/*
-	 * Unless forced, the last-layout geometry is only applied
-	 * when the relevant view geometry is distinct.
-	 */
-	if (!force_update) {
-		struct wlr_box *relevant = view_is_floating(view) ?
-			&view->pending : &view->natural_geometry;
-
-		if (wlr_box_equal(relevant, &view->last_layout_geometry)) {
-			return false;
-		}
-	}
-
-	view->natural_geometry = view->last_layout_geometry;
-	adjust_floating_geometry(view, &view->natural_geometry,
-		/* midpoint_visibility */ true);
-	return true;
-}
-
-void
-view_invalidate_last_layout_geometry(struct view *view)
-{
-	assert(view);
-	view->last_layout_geometry.width = 0;
-	view->last_layout_geometry.height = 0;
-}
-
 void
 view_adjust_for_layout_change(struct view *view)
 {
 	assert(view);
 
 	bool is_floating = view_is_floating(view);
-	bool use_natural = false;
-
-	if (!output_is_usable(view->output)) {
-		/* A view losing an output should have a last-layout geometry */
-		update_last_layout_geometry(view);
-	}
-
-	/* Capture a pointer to the last-layout geometry (only if valid) */
-	struct wlr_box *last_geometry = NULL;
-	if (last_layout_geometry_is_valid(view)) {
-		last_geometry = &view->last_layout_geometry;
-	}
+	bool adjusted = view->adjusted_for_layout_change;
 
 	/*
 	 * Check if an output change is required:
 	 * - Floating views are always mapped to the nearest output
 	 * - Any view without a usable output needs to be repositioned
-	 * - Any view with a valid last-layout geometry might be better
-	 *   positioned on another output
+	 * - Any fullscreen/tiled/maximized view which was previously
+	 *   handled through this path (i.e. previously lost its output)
+	 *   is also checked again. For these, the logic is not quite
+	 *   right since the output is chosen based on the natural
+	 *   (floating) geometry, but it's better than nothing.
 	 */
-	if (is_floating || last_geometry || !output_is_usable(view->output)) {
-		/* Move the view to an appropriate output, if needed */
-		bool output_changed = view_discover_output(view, last_geometry);
-
+	if (is_floating || adjusted || !output_is_usable(view->output)) {
 		/*
-		 * Try to apply the last-layout to the natural geometry
-		 * (adjusting to ensure that it fits on the screen). This is
-		 * forced if the output has changed, but will be done
-		 * opportunistically even on the same output if the last-layout
-		 * geometry is different from the view's governing geometry.
+		 * Save natural geometry if this is the first layout
+		 * change since a user-initiated move/resize. Do not
+		 * save it again for a subsequent layout change, since
+		 * the point is to be able to restore to the original
+		 * location after multiple layout changes (e.g. output
+		 * disconnected and then reconnected).
 		 */
-		if (apply_last_layout_geometry(view, output_changed)) {
-			use_natural = true;
+		if (!adjusted) {
+			view_store_natural_geometry(view);
+			adjusted = true;
 		}
 
-		/*
-		 * Whether or not the view has moved, the layout has changed.
-		 * Ensure that the view now has a valid last-layout geometry.
-		 */
-		update_last_layout_geometry(view);
+		view_discover_output(view, &view->natural_geometry);
 	}
 
-	if (!is_floating) {
-		view_apply_special_geometry(view);
-	} else if (use_natural) {
+	if (is_floating) {
 		/*
 		 * Move the window to its natural location, because
 		 * we are trying to restore a prior layout.
 		 */
 		view_apply_natural_geometry(view);
 	} else {
-		/* Otherwise, just ensure the view is on screen. */
-		struct wlr_box geometry = view->pending;
-		if (adjust_floating_geometry(view, &geometry,
-					/* midpoint_visibility */ true)) {
-			view_move_resize(view, geometry);
-		}
+		view_apply_special_geometry(view);
 	}
 
+	/* Set/reset flag after view_move_resize(), which clears it */
+	view->adjusted_for_layout_change = adjusted;
 	view_update_outputs(view);
 }
 
@@ -2130,7 +2052,6 @@ view_snap_to_edge(struct view *view, enum lab_edge edge,
 	} else if (store_natural_geometry) {
 		/* store current geometry as new natural_geometry */
 		view_store_natural_geometry(view);
-		view_invalidate_last_layout_geometry(view);
 	}
 	view_set_untiled(view);
 	view_set_output(view, output);
@@ -2164,7 +2085,6 @@ view_snap_to_region(struct view *view, struct region *region)
 	} else if (store_natural_geometry) {
 		/* store current geometry as new natural_geometry */
 		view_store_natural_geometry(view);
-		view_invalidate_last_layout_geometry(view);
 	}
 	view_set_untiled(view);
 	view->tiled_region = region;
@@ -2177,7 +2097,6 @@ view_move_to_output(struct view *view, struct output *output)
 {
 	assert(view);
 
-	view_invalidate_last_layout_geometry(view);
 	view_set_output(view, output);
 	if (view_is_floating(view)) {
 		struct wlr_box output_area = output_usable_area_in_layout_coords(output);

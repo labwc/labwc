@@ -2,6 +2,15 @@
 #include "common/box.h"
 #include "common/macros.h"
 
+struct point
+box_midpoint(const struct wlr_box *box)
+{
+	return (struct point) {
+		.x = box->x + box->width / 2,
+		.y = box->y + box->height / 2,
+	};
+}
+
 bool
 box_intersects(struct wlr_box *box_a, struct wlr_box *box_b)
 {

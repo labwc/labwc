@@ -4,6 +4,12 @@
 
 #include <wlr/util/box.h>
 
+struct point {
+	int x, y;
+};
+
+struct point box_midpoint(const struct wlr_box *box);
+
 bool box_intersects(struct wlr_box *box_a, struct wlr_box *box_b);
 
 /* Returns the bounding box of 2 boxes */

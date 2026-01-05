@@ -7,6 +7,7 @@
 #include <wayland-util.h>
 #include <wlr/util/box.h>
 #include <xkbcommon/xkbcommon.h>
+#include "common/box.h"
 #include "common/edge.h"
 #include "config.h"
 #include "config/types.h"
@@ -219,6 +220,14 @@ struct view {
 	 * layout change. False if it was due to user-initiated action.
 	 */
 	bool adjusted_for_layout_change;
+	/*
+	 * Midpoint of the view's actual geometry prior to adjusting
+	 * for a layout change. For floating views, this will match the
+	 * natural_geometry, but for maximized/tiled/fullscreen views it
+	 * could be on a different output, in which case it is needed to
+	 * restore those views to the correct output.
+	 */
+	struct point saved_midpoint;
 
 	/* used by xdg-shell views */
 	uint32_t pending_configure_serial;

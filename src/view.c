@@ -446,18 +446,12 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 }
 
 static bool
-view_discover_output(struct view *view, struct wlr_box *geometry)
+view_discover_output(struct view *view, struct point midpoint)
 {
 	assert(view);
 
-	if (!geometry) {
-		geometry = &view->current;
-	}
-
 	struct output *output =
-		output_nearest_to(view->server,
-			geometry->x + geometry->width / 2,
-			geometry->y + geometry->height / 2);
+		output_nearest_to(view->server, midpoint.x, midpoint.y);
 
 	if (output && output != view->output) {
 		view->output = output;
@@ -571,7 +565,7 @@ view_moved(struct view *view)
 	 * output when they enter that state.
 	 */
 	if (view_is_floating(view)) {
-		view_discover_output(view, NULL);
+		view_discover_output(view, box_midpoint(&view->current));
 	}
 	view_update_outputs(view);
 	ssd_update_geometry(view->ssd);
@@ -1730,9 +1724,7 @@ view_adjust_for_layout_change(struct view *view)
 	 * - Any view without a usable output needs to be repositioned
 	 * - Any fullscreen/tiled/maximized view which was previously
 	 *   handled through this path (i.e. previously lost its output)
-	 *   is also checked again. For these, the logic is not quite
-	 *   right since the output is chosen based on the natural
-	 *   (floating) geometry, but it's better than nothing.
+	 *   should be moved back if the output is reconnected.
 	 */
 	if (is_floating || adjusted || !output_is_usable(view->output)) {
 		/*
@@ -1742,13 +1734,24 @@ view_adjust_for_layout_change(struct view *view)
 		 * the point is to be able to restore to the original
 		 * location after multiple layout changes (e.g. output
 		 * disconnected and then reconnected).
+		 *
+		 * Also save midpoint of actual geometry, which is needed
+		 * to restore non-floating views to the correct output.
 		 */
 		if (!adjusted) {
 			view_store_natural_geometry(view);
+			view->saved_midpoint = box_midpoint(&view->pending);
 			adjusted = true;
 		}
 
-		view_discover_output(view, &view->natural_geometry);
+		/*
+		 * Now try to find the "nearest" output (in terms of
+		 * layout coordinates) to the original position of the
+		 * view. Other strategies might be possible here -- for
+		 * example, trying to match the same physical output the
+		 * view was on previously -- but this is simplest.
+		 */
+		view_discover_output(view, view->saved_midpoint);
 	}
 
 	if (is_floating) {

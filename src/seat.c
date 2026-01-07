@@ -759,6 +759,17 @@ seat_reconfigure(struct server *server)
 	}
 }
 
+void
+seat_force_focus_surface(struct seat *seat, struct wlr_surface *surface)
+{
+	uint32_t *pressed_sent_keycodes = key_state_pressed_sent_keycodes();
+	int nr_pressed_sent_keycodes = key_state_nr_pressed_sent_keycodes();
+	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
+
+	wlr_seat_keyboard_enter(seat->seat, surface,
+		pressed_sent_keycodes, nr_pressed_sent_keycodes, &kb->modifiers);
+}
+
 static void
 seat_focus(struct seat *seat, struct wlr_surface *surface,
 		bool replace_exclusive_layer, bool is_lock_surface)

@@ -28,7 +28,6 @@ server_protocols = [
 	wl_protocol_dir / 'staging/color-management/color-management-v1.xml',
 	'cosmic-workspace-unstable-v1.xml',
 	'wlr-layer-shell-unstable-v1.xml',
-	'wlr-input-inhibitor-unstable-v1.xml',
 	'wlr-output-power-management-unstable-v1.xml',
 ]
 

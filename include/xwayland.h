@@ -75,8 +75,6 @@ void xwayland_adjust_usable_area(struct view *view,
 
 void xwayland_update_workarea(struct server *server);
 
-void xwayland_reset_cursor(struct server *server);
-
 void xwayland_flush(struct server *server);
 
 #endif /* HAVE_XWAYLAND */

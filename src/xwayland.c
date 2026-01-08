@@ -1200,10 +1200,9 @@ xwayland_server_init(struct server *server, struct wlr_compositor *compositor)
 		server->seat.xcursor_manager, XCURSOR_DEFAULT, 1);
 	if (xcursor) {
 		struct wlr_xcursor_image *image = xcursor->images[0];
-		wlr_xwayland_set_cursor(server->xwayland, image->buffer,
-			image->width * 4, image->width,
-			image->height, image->hotspot_x,
-			image->hotspot_y);
+		struct wlr_buffer *cursor_buffer = wlr_xcursor_image_get_buffer(image);
+		wlr_xwayland_set_cursor(server->xwayland, cursor_buffer,
+			image->hotspot_x, image->hotspot_y);
 	}
 }
 
@@ -1238,22 +1237,10 @@ xwayland_reset_cursor(struct server *server)
 	if (xcursor && !server->xwayland->xwm) {
 		/* Prevents setting the cursor on an active xwayland server */
 		struct wlr_xcursor_image *image = xcursor->images[0];
-		wlr_xwayland_set_cursor(server->xwayland, image->buffer,
-			image->width * 4, image->width,
-			image->height, image->hotspot_x,
-			image->hotspot_y);
+		struct wlr_buffer *cursor_buffer = wlr_xcursor_image_get_buffer(image);
+		wlr_xwayland_set_cursor(server->xwayland, cursor_buffer,
+			image->hotspot_x, image->hotspot_y);
 		return;
-	}
-
-	if (server->xwayland->cursor) {
-		/*
-		 * The previous configured theme has set the
-		 * default cursor or the xwayland server is
-		 * currently running but still has a cached
-		 * xcursor set that will be used on the next
-		 * xwayland destroy -> lazy startup cycle.
-		 */
-		zfree(server->xwayland->cursor);
 	}
 }
 

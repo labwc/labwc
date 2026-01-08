@@ -815,6 +815,7 @@ handle_map(struct wl_listener *listener, void *data)
 			wl_resource_post_no_memory(view->surface->resource);
 			return;
 		}
+		wlr_scene_subsurface_tree_create(&view->capture.scene->tree, view->surface);
 	}
 
 	wlr_scene_node_set_enabled(&view->content_tree->node, !view->shaded);

@@ -273,17 +273,12 @@ snap_to_edge(struct view *view)
 	enum lab_edge edge = edge1 | edge2;
 
 	view_set_output(view, output);
-	/*
-	 * Don't store natural geometry here (it was
-	 * stored already in interactive_begin())
-	 */
 	if (edge == LAB_EDGE_TOP && rc.snap_top_maximize) {
 		/* <topMaximize> */
-		view_maximize(view, VIEW_AXIS_BOTH,
-			/*store_natural_geometry*/ false);
+		view_maximize(view, VIEW_AXIS_BOTH);
 	} else {
 		view_snap_to_edge(view, edge, /*across_outputs*/ false,
-			/*combine*/ false, /*store_natural_geometry*/ false);
+			/*combine*/ false);
 	}
 
 	return true;
@@ -298,8 +293,7 @@ snap_to_region(struct view *view)
 
 	struct region *region = regions_from_cursor(view->server);
 	if (region) {
-		view_snap_to_region(view, region,
-			/*store_natural_geometry*/ false);
+		view_snap_to_region(view, region);
 		return true;
 	}
 	return false;

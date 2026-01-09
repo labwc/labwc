@@ -1146,7 +1146,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 			}
 			bool combine = action_get_bool(action, "combine", false);
 			view_snap_to_edge(view, edge, /*across_outputs*/ true,
-				combine, /*store_natural_geometry*/ true);
+				combine);
 		}
 		break;
 	case ACTION_TYPE_GROW_TO_EDGE:
@@ -1203,16 +1203,14 @@ run_action(struct view *view, struct server *server, struct action *action,
 		if (view) {
 			enum view_axis axis = action_get_int(action,
 				"direction", VIEW_AXIS_BOTH);
-			view_maximize(view, axis,
-				/*store_natural_geometry*/ true);
+			view_maximize(view, axis);
 		}
 		break;
 	case ACTION_TYPE_UNMAXIMIZE:
 		if (view) {
 			enum view_axis axis = action_get_int(action,
 				"direction", VIEW_AXIS_BOTH);
-			view_maximize(view, view->maximized & ~axis,
-				/*store_natural_geometry*/ true);
+			view_maximize(view, view->maximized & ~axis);
 		}
 		break;
 	case ACTION_TYPE_TOGGLE_FULLSCREEN:
@@ -1426,8 +1424,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 				view_apply_natural_geometry(view);
 				break;
 			}
-			view_snap_to_region(view, region,
-				/*store_natural_geometry*/ true);
+			view_snap_to_region(view, region);
 		} else {
 			wlr_log(WLR_ERROR, "Invalid SnapToRegion id: '%s'", region_name);
 		}
@@ -1435,8 +1432,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 	}
 	case ACTION_TYPE_UNSNAP:
 		if (view && !view->fullscreen && !view_is_floating(view)) {
-			view_maximize(view, VIEW_AXIS_NONE,
-				/* store_natural_geometry */ false);
+			view_maximize(view, VIEW_AXIS_NONE);
 			view_set_untiled(view);
 			view_apply_natural_geometry(view);
 		}

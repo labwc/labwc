@@ -100,6 +100,7 @@ reload_config_and_theme(struct server *server)
 		view_reload_ssd(view);
 	}
 
+	cycle_finish(server, /*switch_focus*/ false);
 	menu_reconfigure(server);
 	seat_reconfigure(server);
 	regions_reconfigure(server);
@@ -556,6 +557,7 @@ server_init(struct server *server)
 	wl_list_init(&server->views);
 	wl_list_init(&server->unmanaged_surfaces);
 	wl_list_init(&server->cycle.views);
+	wl_list_init(&server->cycle.osd_outputs);
 
 	server->scene = wlr_scene_create();
 	if (!server->scene) {
@@ -569,21 +571,22 @@ server_init(struct server *server)
 	 * z-order for nodes which cover the whole work-area.  For per-output
 	 * scene-trees, see handle_new_output() in src/output.c
 	 *
-	 * | Type                | Scene Tree       | Per Output | Example
-	 * | ------------------- | ---------------- | ---------- | -------
-	 * | ext-session         | lock-screen      | Yes        | swaylock
-	 * | window switcher OSD | cycle_osd_tree   | Yes        |
-	 * | compositor-menu     | menu_tree        | No         | root-menu
-	 * | layer-shell         | layer-popups     | Yes        |
-	 * | layer-shell         | overlay-layer    | Yes        |
-	 * | layer-shell         | top-layer        | Yes        | waybar
-	 * | xwayland-OR         | unmanaged        | No         | dmenu
-	 * | xdg-popups          | xdg-popups       | No         |
-	 * | toplevels windows   | always-on-top    | No         |
-	 * | toplevels windows   | normal           | No         | firefox
-	 * | toplevels windows   | always-on-bottom | No         | pcmanfm-qt --desktop
-	 * | layer-shell         | bottom-layer     | Yes        | waybar
-	 * | layer-shell         | background-layer | Yes        | swaybg
+	 * | Scene Tree                         | Description
+	 * | ---------------------------------- | -------------------------------------
+	 * | output->session_lock_tree          | session lock surfaces (e.g. swaylock)
+	 * | output->cycle_osd_tree             | window switcher's on-screen display
+	 * | server->cycle_preview_tree         | window switcher's previewed window
+	 * | server->menu_tree                  | labwc's server-side menus
+	 * | output->layer_popup_tree           | xdg popups on layer surfaces
+	 * | output->layer_tree[3]              | overlay layer surfaces (e.g. rofi)
+	 * | output->layer_tree[2]              | top layer surfaces (e.g. waybar)
+	 * | server->unmanaged_tree             | unmanaged X11 surfaces (e.g. dmenu)
+	 * | server->xdg_popup_tree             | xdg popups on xdg windows
+	 * | server->view_tree_always_on_top    | always-on-top xdg/X11 windows
+	 * | server->view_tree                  | normal xdg/X11 windows (e.g. firefox)
+	 * | server->view_tree_always_on_bottom | always-on-bottom xdg/X11 windows
+	 * | output->layer_tree[1]              | bottom layer surfaces
+	 * | output->layer_tree[0]              | background layer surfaces (e.g. swaybg)
 	 */
 
 	if (server->renderer->features.input_color_transform) {
@@ -633,6 +636,7 @@ server_init(struct server *server)
 	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->tree);
 #endif
 	server->menu_tree = wlr_scene_tree_create(&server->scene->tree);
+	server->cycle_preview_tree = wlr_scene_tree_create(&server->scene->tree);
 
 	workspaces_init(server);
 

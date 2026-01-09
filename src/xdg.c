@@ -225,8 +225,7 @@ handle_commit(struct wl_listener *listener, void *data)
 			set_fullscreen_from_request(view, &toplevel->requested);
 		}
 		if (toplevel->requested.maximized) {
-			view_maximize(view, VIEW_AXIS_BOTH,
-				/*store_natural_geometry*/ true);
+			view_maximize(view, VIEW_AXIS_BOTH);
 		}
 		return;
 	}
@@ -505,8 +504,7 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 	bool maximized = toplevel->requested.maximized;
-	view_maximize(view, maximized ? VIEW_AXIS_BOTH : VIEW_AXIS_NONE,
-		/*store_natural_geometry*/ true);
+	view_maximize(view, maximized ? VIEW_AXIS_BOTH : VIEW_AXIS_NONE);
 }
 
 static void

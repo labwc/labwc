@@ -366,6 +366,44 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		break;
+	case ACTION_TYPE_NEXT_WINDOW:
+	case ACTION_TYPE_PREVIOUS_WINDOW:
+		if (!strcasecmp(argument, "workspace")) {
+			if (!strcasecmp(content, "all")) {
+				action_arg_add_int(action, argument, CYCLE_WORKSPACE_ALL);
+			} else if (!strcasecmp(content, "current")) {
+				action_arg_add_int(action, argument, CYCLE_WORKSPACE_CURRENT);
+			} else {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			}
+			goto cleanup;
+		}
+		if (!strcasecmp(argument, "output")) {
+			if (!strcasecmp(content, "all")) {
+				action_arg_add_int(action, argument, CYCLE_OUTPUT_ALL);
+			} else if (!strcasecmp(content, "cursor")) {
+				action_arg_add_int(action, argument, CYCLE_OUTPUT_CURSOR);
+			} else if (!strcasecmp(content, "focused")) {
+				action_arg_add_int(action, argument, CYCLE_OUTPUT_FOCUSED);
+			} else {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			}
+			goto cleanup;
+		}
+		if (!strcasecmp(argument, "identifier")) {
+			if (!strcasecmp(content, "all")) {
+				action_arg_add_int(action, argument, CYCLE_APP_ID_ALL);
+			} else if (!strcasecmp(content, "current")) {
+				action_arg_add_int(action, argument, CYCLE_APP_ID_CURRENT);
+			} else {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			}
+			goto cleanup;
+		}
+		break;
 	case ACTION_TYPE_SHOW_MENU:
 		if (!strcmp(argument, "menu")) {
 			action_arg_add_str(action, argument, content);
@@ -1108,7 +1146,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 			}
 			bool combine = action_get_bool(action, "combine", false);
 			view_snap_to_edge(view, edge, /*across_outputs*/ true,
-				combine, /*store_natural_geometry*/ true);
+				combine);
 		}
 		break;
 	case ACTION_TYPE_GROW_TO_EDGE:
@@ -1126,19 +1164,24 @@ run_action(struct view *view, struct server *server, struct action *action,
 		}
 		break;
 	case ACTION_TYPE_NEXT_WINDOW:
+	case ACTION_TYPE_PREVIOUS_WINDOW: {
+		enum lab_cycle_dir dir = (action->type == ACTION_TYPE_NEXT_WINDOW) ?
+			LAB_CYCLE_DIR_FORWARD : LAB_CYCLE_DIR_BACKWARD;
+		struct cycle_filter filter = {
+			.workspace = action_get_int(action, "workspace",
+				rc.window_switcher.workspace_filter),
+			.output = action_get_int(action, "output",
+				CYCLE_OUTPUT_ALL),
+			.app_id = action_get_int(action, "identifier",
+				CYCLE_APP_ID_ALL),
+		};
 		if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
-			cycle_step(server, LAB_CYCLE_DIR_FORWARD);
+			cycle_step(server, dir);
 		} else {
-			cycle_begin(server, LAB_CYCLE_DIR_FORWARD);
+			cycle_begin(server, dir, filter);
 		}
 		break;
-	case ACTION_TYPE_PREVIOUS_WINDOW:
-		if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
-			cycle_step(server, LAB_CYCLE_DIR_BACKWARD);
-		} else {
-			cycle_begin(server, LAB_CYCLE_DIR_BACKWARD);
-		}
-		break;
+	}
 	case ACTION_TYPE_RECONFIGURE:
 		kill(getpid(), SIGHUP);
 		break;
@@ -1160,16 +1203,14 @@ run_action(struct view *view, struct server *server, struct action *action,
 		if (view) {
 			enum view_axis axis = action_get_int(action,
 				"direction", VIEW_AXIS_BOTH);
-			view_maximize(view, axis,
-				/*store_natural_geometry*/ true);
+			view_maximize(view, axis);
 		}
 		break;
 	case ACTION_TYPE_UNMAXIMIZE:
 		if (view) {
 			enum view_axis axis = action_get_int(action,
 				"direction", VIEW_AXIS_BOTH);
-			view_maximize(view, view->maximized & ~axis,
-				/*store_natural_geometry*/ true);
+			view_maximize(view, view->maximized & ~axis);
 		}
 		break;
 	case ACTION_TYPE_TOGGLE_FULLSCREEN:
@@ -1383,8 +1424,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 				view_apply_natural_geometry(view);
 				break;
 			}
-			view_snap_to_region(view, region,
-				/*store_natural_geometry*/ true);
+			view_snap_to_region(view, region);
 		} else {
 			wlr_log(WLR_ERROR, "Invalid SnapToRegion id: '%s'", region_name);
 		}
@@ -1392,8 +1432,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 	}
 	case ACTION_TYPE_UNSNAP:
 		if (view && !view->fullscreen && !view_is_floating(view)) {
-			view_maximize(view, VIEW_AXIS_NONE,
-				/* store_natural_geometry */ false);
+			view_maximize(view, VIEW_AXIS_NONE);
 			view_set_untiled(view);
 			view_apply_natural_geometry(view);
 		}

@@ -5,6 +5,7 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "common/set.h"
+#include "cycle.h"
 #include "input/cursor.h"
 #include "overlay.h"
 
@@ -237,6 +238,7 @@ struct server {
 	/* Tree for unmanaged xsurfaces without initialized view (usually popups) */
 	struct wlr_scene_tree *unmanaged_tree;
 #endif
+	struct wlr_scene_tree *cycle_preview_tree;
 	/* Tree for built in menu */
 	struct wlr_scene_tree *menu_tree;
 
@@ -302,15 +304,7 @@ struct server {
 	struct wlr_security_context_manager_v1 *security_context_manager_v1;
 
 	/* Set when in cycle (alt-tab) mode */
-	struct cycle_state {
-		struct view *selected_view;
-		struct wl_list views;
-		bool preview_was_shaded;
-		bool preview_was_enabled;
-		struct wlr_scene_node *preview_node;
-		struct wlr_scene_node *preview_dummy;
-		struct lab_scene_rect *preview_outline;
-	} cycle;
+	struct cycle_state cycle;
 
 	struct theme *theme;
 

@@ -281,14 +281,18 @@ jobs:
             LABWC_RUNS=2 scripts/ci/smoke-test.sh build-gcc-gdb
           ' | $TARGET
 
-      - name: Build with gcc - catch no font installed case
-        if: matrix.name == 'Void-musl'
-        run: |
-          echo '
-            cd "$GITHUB_WORKSPACE"
-            xbps-remove -y dejavu-fonts-ttf
-            export CC=gcc
-            meson setup build-gcc-nofont -Dxwayland=enabled --werror
-            meson compile -C build-gcc-nofont
-            LABWC_EXPECT_RETURNCODE=1 scripts/ci/smoke-test.sh build-gcc-nofont
-          ' | $TARGET
+      # Void made the foot package depend on the font.
+      # As this test uses both and the feature itself
+      # seems to work well lets just skip it for now
+      #
+      #- name: Build with gcc - catch no font installed case
+      #  if: matrix.name == 'Void-musl'
+      #  run: |
+      #    echo '
+      #      cd "$GITHUB_WORKSPACE"
+      #      xbps-remove -y dejavu-fonts-ttf
+      #      export CC=gcc
+      #      meson setup build-gcc-nofont -Dxwayland=enabled --werror
+      #      meson compile -C build-gcc-nofont
+      #      LABWC_EXPECT_RETURNCODE=1 scripts/ci/smoke-test.sh build-gcc-nofont
+      #    ' | $TARGET

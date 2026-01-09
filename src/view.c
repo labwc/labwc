@@ -581,12 +581,26 @@ view_moved(struct view *view)
 	}
 }
 
+static void clear_last_placement(struct view *view);
+static bool doing_layout_change = false;
+
 void
 view_move_resize(struct view *view, struct wlr_box geo)
 {
 	assert(view);
 	if (view->impl->configure) {
 		view->impl->configure(view, geo);
+	}
+
+	/*
+	 * User-initiated move/resize (not output layout change where
+	 * doing_layout_change == true) invalidates the last placement
+	 * so that the view is no longer restored to the previous output
+	 * and position before the layout change even when the output is
+	 * re-enabled.
+	 */
+	if (!doing_layout_change) {
+		clear_last_placement(view);
 	}
 }
 
@@ -825,6 +839,7 @@ view_compute_centered_position(struct view *view, const struct wlr_box *ref,
 	return true;
 }
 
+/* Make sure the passed-in view geometry is visible in view->output */
 static bool
 adjust_floating_geometry(struct view *view, struct wlr_box *geometry,
 		bool midpoint_visibility)
@@ -1405,9 +1420,6 @@ view_maximize(struct view *view, enum view_axis axis)
 		 * a maximized view.
 		 */
 		interactive_cancel(view);
-		if (store_natural_geometry && view_is_floating(view)) {
-			view_invalidate_last_layout_geometry(view);
-		}
 	}
 
 	/*
@@ -1695,7 +1707,6 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 		 */
 		interactive_cancel(view);
 		view_store_natural_geometry(view);
-		view_invalidate_last_layout_geometry(view);
 	}
 
 	set_fullscreen(view, fullscreen);
@@ -1713,71 +1724,46 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 	cursor_update_focus(view->server);
 }
 
-static bool
-last_layout_geometry_is_valid(struct view *view)
-{
-	return view->last_layout_geometry.width > 0
-		&& view->last_layout_geometry.height > 0;
-}
-
 static void
-update_last_layout_geometry(struct view *view)
+save_last_placement(struct view *view)
 {
+	assert(view);
+	struct output *output = view->output;
 	/*
-	 * Only update an invalid last-layout geometry to prevent a series of
-	 * successive layout changes from continually replacing the "preferred"
-	 * location with whatever location the view currently holds. The
-	 * "preferred" location should be whatever state was set by user
-	 * interaction, not automatic responses to layout changes.
+	 * Do not overwrite an existing placement so that the original view
+	 * position can be restored even after multiple layout changes which
+	 * cause automatic (not user-initiated) view relocations.
 	 */
-	if (last_layout_geometry_is_valid(view)) {
+	if (view->last_placement.output_name) {
 		return;
 	}
-
-	if (view_is_floating(view)) {
-		view->last_layout_geometry = view->pending;
-	} else if (!wlr_box_empty(&view->natural_geometry)) {
-		view->last_layout_geometry = view->natural_geometry;
-	} else {
-		/* e.g. initially-maximized window */
-		view->last_layout_geometry =
-			view_get_fallback_natural_geometry(view);
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR, "cannot save last placement in unusable output");
+		return;
 	}
-}
-
-static bool
-apply_last_layout_geometry(struct view *view, bool force_update)
-{
-	/* Only apply a valid last-layout geometry */
-	if (!last_layout_geometry_is_valid(view)) {
-		return false;
-	}
-
-	/*
-	 * Unless forced, the last-layout geometry is only applied
-	 * when the relevant view geometry is distinct.
-	 */
-	if (!force_update) {
-		struct wlr_box *relevant = view_is_floating(view) ?
-			&view->pending : &view->natural_geometry;
-
-		if (wlr_box_equal(relevant, &view->last_layout_geometry)) {
-			return false;
-		}
-	}
-
-	view->natural_geometry = view->last_layout_geometry;
-	adjust_floating_geometry(view, &view->natural_geometry,
-		/* midpoint_visibility */ true);
-	return true;
+	view->last_placement.output_name = xstrdup(output->wlr_output->name);
+	view->last_placement.layout_geo = view->pending;
+	view->last_placement.relative_geo = view->pending;
+	view->last_placement.relative_geo.x -= output->scene_output->x;
+	view->last_placement.relative_geo.y -= output->scene_output->y;
 }
 
 void
-view_invalidate_last_layout_geometry(struct view *view)
+views_save_last_placement(struct server *server)
+{
+	struct view *view;
+	wl_list_for_each(view, &server->views, link) {
+		save_last_placement(view);
+	}
+}
+
+static void
+clear_last_placement(struct view *view)
 {
 	assert(view);
-	view->last_layout_geometry.width = 0;
-	view->last_layout_geometry.height = 0;
+	zfree(view->last_placement.output_name);
+	view->last_placement.relative_geo = (struct wlr_box){0};
+	view->last_placement.layout_geo = (struct wlr_box){0};
 }
 
 void
@@ -1785,65 +1771,46 @@ view_adjust_for_layout_change(struct view *view)
 {
 	assert(view);
 
-	bool is_floating = view_is_floating(view);
-	bool use_natural = false;
-
-	if (!output_is_usable(view->output)) {
-		/* A view losing an output should have a last-layout geometry */
-		update_last_layout_geometry(view);
-	}
-
-	/* Capture a pointer to the last-layout geometry (only if valid) */
-	struct wlr_box *last_geometry = NULL;
-	if (last_layout_geometry_is_valid(view)) {
-		last_geometry = &view->last_layout_geometry;
-	}
-
-	/*
-	 * Check if an output change is required:
-	 * - Floating views are always mapped to the nearest output
-	 * - Any view without a usable output needs to be repositioned
-	 * - Any view with a valid last-layout geometry might be better
-	 *   positioned on another output
-	 */
-	if (is_floating || last_geometry || !output_is_usable(view->output)) {
-		/* Move the view to an appropriate output, if needed */
-		bool output_changed = view_discover_output(view, last_geometry);
-
+	struct wlr_box new_geo;
+	if (!view->last_placement.output_name) {
 		/*
-		 * Try to apply the last-layout to the natural geometry
-		 * (adjusting to ensure that it fits on the screen). This is
-		 * forced if the output has changed, but will be done
-		 * opportunistically even on the same output if the last-layout
-		 * geometry is different from the view's governing geometry.
+		 * views_save_last_placement() should be called before layout
+		 * changes. Not using assert() just in case.
 		 */
-		if (apply_last_layout_geometry(view, output_changed)) {
-			use_natural = true;
-		}
-
-		/*
-		 * Whether or not the view has moved, the layout has changed.
-		 * Ensure that the view now has a valid last-layout geometry.
-		 */
-		update_last_layout_geometry(view);
+		wlr_log(WLR_ERROR, "view has no last placement info");
+		return;
 	}
-
-	if (!is_floating) {
-		view_apply_special_geometry(view);
-	} else if (use_natural) {
+	struct output *output = output_from_name(view->server,
+		view->last_placement.output_name);
+	if (output_is_usable(output)) {
 		/*
-		 * Move the window to its natural location, because
-		 * we are trying to restore a prior layout.
+		 * When the previous output (which might have been reconnected
+		 * or relocated) is available, keep the relative position on it.
 		 */
-		view_apply_natural_geometry(view);
+		new_geo = view->last_placement.relative_geo;
+		new_geo.x += output->scene_output->x;
+		new_geo.y += output->scene_output->y;
+		view->output = output;
 	} else {
-		/* Otherwise, just ensure the view is on screen. */
-		struct wlr_box geometry = view->pending;
-		if (adjust_floating_geometry(view, &geometry,
-					/* midpoint_visibility */ true)) {
-			view_move_resize(view, geometry);
-		}
+		/*
+		 * Otherwise, evacuate the view to another output. Use the last
+		 * layout geometry so that the view position is kept when the
+		 * user reconnects the previous output in a different connector
+		 * or the reconnected output somehow gets a different name.
+		 */
+		view_discover_output(view, &view->last_placement.layout_geo);
+		new_geo = view->last_placement.layout_geo;
 	}
+
+	doing_layout_change = true;
+	if (view_is_floating(view)) {
+		adjust_floating_geometry(view, &new_geo,
+			/* midpoint_visibility */ true);
+		view_move_resize(view, new_geo);
+	} else {
+		view_apply_special_geometry(view);
+	}
+	doing_layout_change = false;
 
 	view_update_outputs(view);
 }
@@ -2134,7 +2101,6 @@ view_snap_to_edge(struct view *view, enum lab_edge edge,
 	} else if (store_natural_geometry) {
 		/* store current geometry as new natural_geometry */
 		view_store_natural_geometry(view);
-		view_invalidate_last_layout_geometry(view);
 	}
 	view_set_untiled(view);
 	view_set_output(view, output);
@@ -2168,7 +2134,6 @@ view_snap_to_region(struct view *view, struct region *region)
 	} else if (store_natural_geometry) {
 		/* store current geometry as new natural_geometry */
 		view_store_natural_geometry(view);
-		view_invalidate_last_layout_geometry(view);
 	}
 	view_set_untiled(view);
 	view->tiled_region = region;
@@ -2181,7 +2146,6 @@ view_move_to_output(struct view *view, struct output *output)
 {
 	assert(view);
 
-	view_invalidate_last_layout_geometry(view);
 	view_set_output(view, output);
 	if (view_is_floating(view)) {
 		struct wlr_box output_area = output_usable_area_in_layout_coords(output);
@@ -2580,6 +2544,7 @@ view_destroy(struct view *view)
 
 	undecorate(view);
 
+	clear_last_placement(view);
 	view_set_icon(view, NULL, NULL);
 	menu_on_view_destroy(view);
 

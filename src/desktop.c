@@ -55,7 +55,9 @@ set_or_offer_focus(struct view *view)
 		break;
 	case VIEW_WANTS_FOCUS_LIKELY:
 	case VIEW_WANTS_FOCUS_UNLIKELY:
-		view_offer_focus(view);
+		if (view->surface != seat->seat->keyboard_state.focused_surface) {
+			view_offer_focus(view);
+		}
 		break;
 	case VIEW_WANTS_FOCUS_NEVER:
 		break;

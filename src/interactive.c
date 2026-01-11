@@ -92,9 +92,6 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 
 		/* Store natural geometry at start of move */
 		view_store_natural_geometry(view);
-		if (view_is_floating(view)) {
-			view_invalidate_last_layout_geometry(view);
-		}
 
 		/* Prevent region snapping when just moving via A-Left mousebind */
 		seat->region_prevent_snap = keyboard_get_all_modifiers(seat);
@@ -110,12 +107,6 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 			 */
 			return;
 		}
-
-		/*
-		 * Resizing overrides any attempt to restore window
-		 * geometries altered by layout changes.
-		 */
-		view_invalidate_last_layout_geometry(view);
 
 		/*
 		 * If tiled or maximized in only one direction, reset

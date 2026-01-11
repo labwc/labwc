@@ -166,7 +166,8 @@ static void
 handle_output_destroy(struct wl_listener *listener, void *data)
 {
 	struct output *output = wl_container_of(listener, output, destroy);
-	struct seat *seat = &output->server->seat;
+	struct server *server = output->server;
+	struct seat *seat = &server->seat;
 	regions_evacuate_output(output);
 	regions_destroy(seat, &output->regions);
 	if (seat->overlay.active.output == output) {
@@ -189,8 +190,10 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 		output->workspace_osd = NULL;
 	}
 
+	/* save the last placement before clearing view->output */
+	views_save_last_placement(server);
+
 	struct view *view;
-	struct server *server = output->server;
 	wl_list_for_each(view, &server->views, link) {
 		if (view->output == output) {
 			view_on_output_destroy(view);
@@ -659,6 +662,7 @@ output_config_apply(struct server *server,
 {
 	bool success = true;
 	server->pending_output_layout_change++;
+	views_save_last_placement(server);
 
 	struct wlr_output_configuration_head_v1 *head;
 	wl_list_for_each(head, &config->heads, link) {

@@ -1725,6 +1725,37 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 	cursor_update_focus(view->server);
 }
 
+static void
+save_last_placement(struct view *view)
+{
+	assert(view);
+	struct output *output = view->output;
+	/*
+	 * Save the view's geometry if this is the first layout change
+	 * since a user-initiated move/resize. Do not save it again for
+	 * subsequent layout changes, since the point is to be able to
+	 * restore to the original location after multiple changes
+	 * (e.g. output disconnected and then reconnected).
+	 */
+	if (!wlr_box_empty(&view->last_placement.layout_geo)) {
+		return;
+	}
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR, "cannot save last placement in unusable output");
+		return;
+	}
+	view->last_placement.layout_geo = view->pending;
+}
+
+void
+views_save_last_placement(struct server *server)
+{
+	struct view *view;
+	wl_list_for_each(view, &server->views, link) {
+		save_last_placement(view);
+	}
+}
+
 void
 view_adjust_for_layout_change(struct view *view)
 {
@@ -1733,25 +1764,13 @@ view_adjust_for_layout_change(struct view *view)
 	bool is_floating = view_is_floating(view);
 	view->adjusting_for_layout_change = true;
 
-	if (!output_is_usable(view->output)) {
-		view->lost_output_due_to_layout_change = true;
-	}
-
-	/*
-	 * Save the view's geometry if this is the first layout change
-	 * since a user-initiated move/resize. Do not save it again for
-	 * subsequent layout changes, since the point is to be able to
-	 * restore to the original location after multiple changes
-	 * (e.g. output disconnected and then reconnected).
-	 *
-	 * Note that it's important to do this even if an output change
-	 * is not (yet) required, to properly handle cases of multiple
-	 * outputs being disconnected/reconnected in any order. In that
-	 * case, there can be multiple layout change events, and a view
-	 * can be moved first and only later lose its own output.
-	 */
 	if (wlr_box_empty(&view->last_placement.layout_geo)) {
-		view->last_placement.layout_geo = view->pending;
+		/*
+		 * views_save_last_placement() should be called before layout
+		 * changes. Not using assert() just in case.
+		 */
+		wlr_log(WLR_ERROR, "view has no last placement info");
+		goto out;
 	}
 	/*
 	 * Check if an output change is required:
@@ -1780,6 +1799,7 @@ view_adjust_for_layout_change(struct view *view)
 	}
 
 	view_update_outputs(view);
+out:
 	view->adjusting_for_layout_change = false;
 }
 

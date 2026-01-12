@@ -214,17 +214,21 @@ struct view {
 	 */
 	struct wlr_box natural_geometry;
 	/*
-	 * Whenever an output layout change triggers a view relocation, the
-	 * last pending position will be saved so the view may be restored
-	 * to its original location on a subsequent layout change.
+	 * last_placement represents the last view position set by the user
+	 * before layout changes. output_name and relative_geo are used to
+	 * keep or restore the view position relative to the output and
+	 * layout_geo is used to keep the global position when the output is
+	 * lost.
 	 */
 	struct {
+		char *output_name;
+		/* view geometry in output-relative coordinates */
+		struct wlr_box relative_geo;
+		/* view geometry in layout coordinates */
 		struct wlr_box layout_geo;
 	} last_placement;
 	/* Set temporarily when moving view due to layout change */
 	bool adjusting_for_layout_change;
-	/* True if original output was disconnected or disabled */
-	bool lost_output_due_to_layout_change;
 
 	/* used by xdg-shell views */
 	uint32_t pending_configure_serial;

@@ -581,6 +581,8 @@ view_moved(struct view *view)
 	}
 }
 
+static void clear_last_placement(struct view *view);
+
 void
 view_move_resize(struct view *view, struct wlr_box geo)
 {
@@ -600,8 +602,7 @@ view_move_resize(struct view *view, struct wlr_box geo)
 	 * Not sure if it might have other side-effects though.
 	 */
 	if (!view->adjusting_for_layout_change) {
-		view->last_placement.layout_geo = (struct wlr_box){0};
-		view->lost_output_due_to_layout_change = false;
+		clear_last_placement(view);
 	}
 }
 
@@ -1744,7 +1745,11 @@ save_last_placement(struct view *view)
 		wlr_log(WLR_ERROR, "cannot save last placement in unusable output");
 		return;
 	}
+	xstrdup_replace(view->last_placement.output_name, output->wlr_output->name);
 	view->last_placement.layout_geo = view->pending;
+	view->last_placement.relative_geo = view->pending;
+	view->last_placement.relative_geo.x -= output->scene_output->x;
+	view->last_placement.relative_geo.y -= output->scene_output->y;
 }
 
 void
@@ -1756,50 +1761,63 @@ views_save_last_placement(struct server *server)
 	}
 }
 
+static void
+clear_last_placement(struct view *view)
+{
+	assert(view);
+	zfree(view->last_placement.output_name);
+	view->last_placement.relative_geo = (struct wlr_box){0};
+	view->last_placement.layout_geo = (struct wlr_box){0};
+}
+
 void
 view_adjust_for_layout_change(struct view *view)
 {
 	assert(view);
-
-	bool is_floating = view_is_floating(view);
-	view->adjusting_for_layout_change = true;
-
 	if (wlr_box_empty(&view->last_placement.layout_geo)) {
 		/*
 		 * views_save_last_placement() should be called before layout
 		 * changes. Not using assert() just in case.
 		 */
 		wlr_log(WLR_ERROR, "view has no last placement info");
-		goto out;
-	}
-	/*
-	 * Check if an output change is required:
-	 * - Floating views are always mapped to the nearest output
-	 * - Any fullscreen/tiled/maximized view which lost its output
-	 *   due to a layout change should be moved back if the output
-	 *   is reconnected.
-	 *
-	 * If so, try to find the "nearest" output (in terms of layout
-	 * coordinates) to the saved geometry. Other strategies might be
-	 * possible here -- for example, trying to match the same physical
-	 * output the view was on previously -- but this is simplest.
-	 */
-	if (is_floating || view->lost_output_due_to_layout_change) {
-		view_discover_output(view, &view->last_placement.layout_geo);
+		return;
 	}
 
-	if (!is_floating) {
+	view->adjusting_for_layout_change = true;
+
+	struct wlr_box new_geo;
+	struct output *output = output_from_name(view->server,
+		view->last_placement.output_name);
+	if (output_is_usable(output)) {
+		/*
+		 * When the previous output (which might have been reconnected
+		 * or relocated) is available, keep the relative position on it.
+		 */
+		new_geo = view->last_placement.relative_geo;
+		new_geo.x += output->scene_output->x;
+		new_geo.y += output->scene_output->y;
+		view->output = output;
+	} else {
+		/*
+		 * Otherwise, evacuate the view to another output. Use the last
+		 * layout geometry so that the view position is kept when the
+		 * user reconnects the previous output in a different connector
+		 * or the reconnected output somehow gets a different name.
+		 */
+		view_discover_output(view, &view->last_placement.layout_geo);
+		new_geo = view->last_placement.layout_geo;
+	}
+
+	if (!view_is_floating(view)) {
 		view_apply_special_geometry(view);
 	} else {
-		/* Restore saved geometry, ensuring view is on-screen */
-		struct wlr_box geometry = view->last_placement.layout_geo;
-		adjust_floating_geometry(view, &geometry,
+		/* Ensure view is on-screen */
+		adjust_floating_geometry(view, &new_geo,
 			/* midpoint_visibility */ true);
-		view_move_resize(view, geometry);
+		view_move_resize(view, new_geo);
 	}
 
 	view_update_outputs(view);
-out:
 	view->adjusting_for_layout_change = false;
 }
 
@@ -2532,6 +2550,7 @@ view_destroy(struct view *view)
 
 	undecorate(view);
 
+	clear_last_placement(view);
 	view_set_icon(view, NULL, NULL);
 	menu_on_view_destroy(view);
 

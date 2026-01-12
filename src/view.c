@@ -840,6 +840,7 @@ view_compute_centered_position(struct view *view, const struct wlr_box *ref,
 	return true;
 }
 
+/* Make sure the passed-in view geometry is visible in view->output */
 static bool
 adjust_floating_geometry(struct view *view, struct wlr_box *geometry,
 		bool midpoint_visibility)

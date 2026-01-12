@@ -600,7 +600,7 @@ view_move_resize(struct view *view, struct wlr_box geo)
 	 * Not sure if it might have other side-effects though.
 	 */
 	if (!view->adjusting_for_layout_change) {
-		view->last_layout_geometry = (struct wlr_box){0};
+		view->last_placement.layout_geo = (struct wlr_box){0};
 		view->lost_output_due_to_layout_change = false;
 	}
 }
@@ -1749,8 +1749,8 @@ view_adjust_for_layout_change(struct view *view)
 	 * case, there can be multiple layout change events, and a view
 	 * can be moved first and only later lose its own output.
 	 */
-	if (wlr_box_empty(&view->last_layout_geometry)) {
-		view->last_layout_geometry = view->pending;
+	if (wlr_box_empty(&view->last_placement.layout_geo)) {
+		view->last_placement.layout_geo = view->pending;
 	}
 	/*
 	 * Check if an output change is required:
@@ -1765,14 +1765,14 @@ view_adjust_for_layout_change(struct view *view)
 	 * output the view was on previously -- but this is simplest.
 	 */
 	if (is_floating || view->lost_output_due_to_layout_change) {
-		view_discover_output(view, &view->last_layout_geometry);
+		view_discover_output(view, &view->last_placement.layout_geo);
 	}
 
 	if (!is_floating) {
 		view_apply_special_geometry(view);
 	} else {
 		/* Restore saved geometry, ensuring view is on-screen */
-		struct wlr_box geometry = view->last_layout_geometry;
+		struct wlr_box geometry = view->last_placement.layout_geo;
 		adjust_floating_geometry(view, &geometry,
 			/* midpoint_visibility */ true);
 		view_move_resize(view, geometry);

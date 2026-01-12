@@ -218,7 +218,9 @@ struct view {
 	 * last pending position will be saved so the view may be restored
 	 * to its original location on a subsequent layout change.
 	 */
-	struct wlr_box last_layout_geometry;
+	struct {
+		struct wlr_box layout_geo;
+	} last_placement;
 	/* Set temporarily when moving view due to layout change */
 	bool adjusting_for_layout_change;
 	/* True if original output was disconnected or disabled */

@@ -746,7 +746,7 @@ view_adjust_size(struct view *view, int *w, int *h)
 }
 
 static void
-_minimize(struct view *view, bool minimized)
+_minimize(struct view *view, bool minimized, bool *need_refocus)
 {
 	assert(view);
 	if (view->minimized == minimized) {
@@ -759,8 +759,15 @@ _minimize(struct view *view, bool minimized)
 
 	view->minimized = minimized;
 	wl_signal_emit_mutable(&view->events.minimized, NULL);
-
 	view_update_visibility(view);
+
+	/*
+	 * Need to focus a different view when:
+	 *   - minimizing the active view
+	 *   - unminimizing any mapped view
+	 */
+	*need_refocus |= (minimized ?
+		(view == view->server->active_view) : view->mapped);
 }
 
 static void
@@ -773,7 +780,7 @@ view_append_children(struct view *view, struct wl_array *children)
 }
 
 static void
-minimize_sub_views(struct view *view, bool minimized)
+minimize_sub_views(struct view *view, bool minimized, bool *need_refocus)
 {
 	struct view **child;
 	struct wl_array children;
@@ -781,8 +788,8 @@ minimize_sub_views(struct view *view, bool minimized)
 	wl_array_init(&children);
 	view_append_children(view, &children);
 	wl_array_for_each(child, &children) {
-		_minimize(*child, minimized);
-		minimize_sub_views(*child, minimized);
+		_minimize(*child, minimized, need_refocus);
+		minimize_sub_views(*child, minimized, need_refocus);
 	}
 	wl_array_release(&children);
 }
@@ -797,8 +804,10 @@ void
 view_minimize(struct view *view, bool minimized)
 {
 	assert(view);
+	struct server *server = view->server;
+	bool need_refocus = false;
 
-	if (view->server->input_mode == LAB_INPUT_STATE_CYCLE) {
+	if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
 		wlr_log(WLR_ERROR, "not minimizing window while window switching");
 		return;
 	}
@@ -809,8 +818,20 @@ view_minimize(struct view *view, bool minimized)
 	 * 'open file' dialog), so it saves trying to unmap them twice
 	 */
 	struct view *root = view_get_root(view);
-	_minimize(root, minimized);
-	minimize_sub_views(root, minimized);
+	_minimize(root, minimized, &need_refocus);
+	minimize_sub_views(root, minimized, &need_refocus);
+
+	/*
+	 * Update focus only at the end to avoid repeated focus changes.
+	 * desktop_focus_view() will raise all sibling views together.
+	 */
+	if (need_refocus) {
+		if (minimized) {
+			desktop_focus_topmost_view(server);
+		} else {
+			desktop_focus_view(view, /* raise */ true);
+		}
+	}
 }
 
 bool
@@ -2383,30 +2404,12 @@ view_update_visibility(struct view *view)
 	}
 
 	wlr_scene_node_set_enabled(&view->scene_tree->node, visible);
-	struct server *server = view->server;
-
-	if (visible) {
-		desktop_focus_view(view, /*raise*/ true);
-	} else {
-		/*
-		 * When exiting an xwayland application with multiple
-		 * views mapped, a race condition can occur: after the
-		 * topmost view is unmapped, the next view under it is
-		 * offered focus, but is also unmapped before accepting
-		 * focus (so server->active_view remains NULL). To avoid
-		 * being left with no active view at all, check for that
-		 * case also.
-		 */
-		if (view == server->active_view || !server->active_view) {
-			desktop_focus_topmost_view(server);
-		}
-	}
 
 	/*
 	 * Show top layer when a fullscreen view is hidden.
 	 * Hide it if a fullscreen view is shown (or uncovered).
 	 */
-	desktop_update_top_layer_visibility(server);
+	desktop_update_top_layer_visibility(view->server);
 
 	/*
 	 * We may need to disable adaptive sync if view was fullscreen.
@@ -2421,7 +2424,7 @@ view_update_visibility(struct view *view)
 
 	/* Update usable area to account for XWayland "struts" (panels) */
 	if (view_has_strut_partial(view)) {
-		output_update_all_usable_areas(server, false);
+		output_update_all_usable_areas(view->server, false);
 	}
 }
 

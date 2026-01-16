@@ -11,6 +11,11 @@ view_impl_map(struct view *view)
 {
 	view_update_visibility(view);
 
+	/* Leave minimized, if minimized before map */
+	if (!view->minimized) {
+		desktop_focus_view(view, /* raise */ true);
+	}
+
 	if (!view->been_mapped) {
 		window_rules_apply(view, LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP);
 	}
@@ -40,6 +45,19 @@ void
 view_impl_unmap(struct view *view)
 {
 	view_update_visibility(view);
+
+	/*
+	 * When exiting an xwayland application with multiple views
+	 * mapped, a race condition can occur: after the topmost view
+	 * is unmapped, the next view under it is offered focus, but is
+	 * also unmapped before accepting focus (so server->active_view
+	 * remains NULL). To avoid being left with no active view at
+	 * all, check for that case also.
+	 */
+	struct server *server = view->server;
+	if (view == server->active_view || !server->active_view) {
+		desktop_focus_topmost_view(server);
+	}
 
 	/*
 	 * Destroy the foreign toplevel handle so the unmapped view

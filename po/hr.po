@@ -1,0 +1,81 @@
+# Labwc pot file
+# Copyright (C) 2024
+# This file is distributed under the same license as the labwc package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: labwc\n"
+"Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
+"POT-Creation-Date: 2024-09-19 21:09+1000\n"
+"PO-Revision-Date: 2026-01-18 21:01+0000\n"
+"Last-Translator: milotype <mail@milotype.de>\n"
+"Language-Team: Croatian <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/hr/>\n"
+"Language: hr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 4.2.1\n"
+
+#: src/menu/menu.c:1016
+msgid "Go there..."
+msgstr "Idi tamo …"
+
+#: src/menu/menu.c:1034
+msgid "Terminal"
+msgstr "Terminal"
+
+#: src/menu/menu.c:1040
+msgid "Reconfigure"
+msgstr "Konfiguriraj ponovo"
+
+#: src/menu/menu.c:1042
+msgid "Exit"
+msgstr "Zatvori"
+
+#: src/menu/menu.c:1056
+msgid "Minimize"
+msgstr "Smanji prozor"
+
+#: src/menu/menu.c:1058
+msgid "Maximize"
+msgstr "Maks. raširi prozor"
+
+#: src/menu/menu.c:1060
+msgid "Fullscreen"
+msgstr "Cjeloekranski prikaz"
+
+#: src/menu/menu.c:1062
+msgid "Roll Up/Down"
+msgstr "Pomiči se prema gore/dolje"
+
+#: src/menu/menu.c:1064
+msgid "Decorations"
+msgstr "Grafički elementi"
+
+#: src/menu/menu.c:1066
+msgid "Always on Top"
+msgstr "Uvijek gore"
+
+#: src/menu/menu.c:1071
+msgid "Move Left"
+msgstr "Pomakni ulijevo"
+
+#: src/menu/menu.c:1078
+msgid "Move Right"
+msgstr "Pomakni udesno"
+
+#: src/menu/menu.c:1083
+msgid "Always on Visible Workspace"
+msgstr "Uvijek na vidljivom radnom prostoru"
+
+#: src/menu/menu.c:1086
+msgid "Workspace"
+msgstr "Radni prostor"
+
+#: src/menu/menu.c:1089
+msgid "Close"
+msgstr "Zatvori"

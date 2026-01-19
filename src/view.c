@@ -2232,6 +2232,18 @@ void
 view_move_to_front(struct view *view)
 {
 	assert(view);
+	struct server *server = view->server;
+	assert(!wl_list_empty(&server->views));
+
+	/*
+	 * Check whether the view is already in front, or is the root
+	 * parent of the view in front (in which case we don't want to
+	 * raise it in front of its sub-view).
+	 */
+	struct view *front = wl_container_of(server->views.next, front, link);
+	if (view == front || view == view_get_root(front)) {
+		return;
+	}
 
 	struct view *root = view_get_root(view);
 	assert(root);

@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2026-01-24 | [unreleased]  | 0.19.2          |               |
 | 2025-12-19 | [0.9.3]       | 0.19.2          | 28968         |
 | 2025-10-10 | [0.9.2]       | 0.19.1          | 28818         |
 | 2025-08-02 | [0.9.1]       | 0.19.0          | 28605         |
@@ -107,6 +108,34 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 ## unreleased
 
 [unreleased-commits]
+
+### Added
+
+- Implement scrollable window-switcher OSD [#3291] @tokyo4j
+- Support the `NextWindow` options listed below [#3271] @tokyo4j
+  - `<action name="NextWindow" workspace="current|all"/>`
+  - `<action name="NextWindow" output="all|focused|cursor"/>`
+  - `<action name="NextWindow" identifier="all|current"/>`
+- Add config option `*<desktops><initial>` for setting the active workspace on
+  startup. [#3265] @5trixs0f
+
+### Fixed
+
+- Improve logic for restoring view positions after output disconnect and
+  reconnect [#3309] [#3310] @jlindgren90 @tokyo4j
+- Avoid restacking when a window is already in front; and avoid repeated focus
+  changes when unminimizing a window with child windows. These changes are not
+  believed to be visible to the user, but are mentioned here for completeness.
+  [#3323] [#3325] @jlindgren90
+- Do not try to focus an XWayland window that is already in focus. This fixes an
+  issue with old versions of Minecraft (<=1.5.2). [#3316] @ventureoo
+- Halt window-switcher on reconfigure to avoid invalid memory access in some
+  circumstances. [#3297] @tokyo4j
+
+### Changed
+
+- `<windowSwitcher allWorkspaces="yes|no">` is deprecated. Instead, use:
+  `<action name="NextWindow" workspace="current|all">`. [#3271] @tokyo4j
 
 ## 0.9.3 - 2025-12-19
 
@@ -3023,4 +3052,13 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3249]: https://github.com/labwc/labwc/pull/3249
 [#3251]: https://github.com/labwc/labwc/pull/3251
 [#3252]: https://github.com/labwc/labwc/pull/3252
+[#3265]: https://github.com/labwc/labwc/pull/3265
 [#3267]: https://github.com/labwc/labwc/pull/3267
+[#3271]: https://github.com/labwc/labwc/pull/3271
+[#3291]: https://github.com/labwc/labwc/pull/3291
+[#3297]: https://github.com/labwc/labwc/pull/3297
+[#3309]: https://github.com/labwc/labwc/pull/3309
+[#3310]: https://github.com/labwc/labwc/pull/3310
+[#3316]: https://github.com/labwc/labwc/pull/3316
+[#3323]: https://github.com/labwc/labwc/pull/3323
+[#3325]: https://github.com/labwc/labwc/pull/3325

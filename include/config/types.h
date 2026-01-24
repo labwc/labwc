@@ -133,4 +133,9 @@ enum cycle_app_id_filter {
 	CYCLE_APP_ID_CURRENT,
 };
 
+enum cycle_window_filter {
+	CYCLE_WINDOW_ROOT,
+	CYCLE_WINDOW_ALL,
+};
+
 #endif /* LABWC_CONFIG_TYPES_H */

@@ -403,6 +403,17 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			}
 			goto cleanup;
 		}
+		if (!strcasecmp(argument, "window")) {
+			if (!strcasecmp(content, "root")) {
+				action_arg_add_int(action, argument, CYCLE_WINDOW_ROOT);
+			} else if (!strcasecmp(content, "all")) {
+				action_arg_add_int(action, argument, CYCLE_WINDOW_ALL);
+			} else {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			}
+			goto cleanup;
+		}
 		break;
 	case ACTION_TYPE_SHOW_MENU:
 		if (!strcmp(argument, "menu")) {
@@ -1174,6 +1185,8 @@ run_action(struct view *view, struct server *server, struct action *action,
 				CYCLE_OUTPUT_ALL),
 			.app_id = action_get_int(action, "identifier",
 				CYCLE_APP_ID_ALL),
+			.window = action_get_int(action, "window",
+				CYCLE_WINDOW_ROOT),
 		};
 		if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
 			cycle_step(server, dir);

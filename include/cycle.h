@@ -49,6 +49,7 @@ struct cycle_filter {
 	enum cycle_workspace_filter workspace;
 	enum cycle_output_filter output;
 	enum cycle_app_id_filter app_id;
+	enum cycle_window_filter window;
 };
 
 struct cycle_state {

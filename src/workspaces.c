@@ -218,9 +218,7 @@ handle_ext_workspace_commit(struct wl_listener *listener, void *data)
 	struct wlr_ext_workspace_v1_request *req;
 	wl_list_for_each(req, event->requests, link) {
 		if (req->type == WLR_EXT_WORKSPACE_V1_REQUEST_ACTIVATE) {
-			struct wlr_ext_workspace_v1_request_activate *activate_req =
-				(struct wlr_ext_workspace_v1_request_activate *)req;
-			struct workspace *workspace = activate_req->workspace->data;
+			struct workspace *workspace = req->activate.workspace->data;
 
 			workspaces_switch_to(workspace, /* update_focus */ true);
 			wlr_log(WLR_INFO, "ext activating workspace %s", workspace->name);

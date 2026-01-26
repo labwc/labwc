@@ -1090,7 +1090,8 @@ Note: To rotate touch events with output rotation, use the libinput
 ## TABLET TOOL
 
 ```
-<tabletTool motion="absolute" relativeMotionSensitivity="1" />
+<tabletTool motion="absolute" relativeMotionSensitivity="1"
+			minPressure="0" maxPressure="1" />
 ```
 
 *<tabletTool motion="">* [absolute|relative]
@@ -1104,6 +1105,16 @@ Note: To rotate touch events with output rotation, use the libinput
 	the speed of the cursor. Using a value lower than 1.0 decreases the
 	speed, using a value greater than 1.0 increases the speed of the
 	cursor. The default is "1.0".
+
+*<tabletTool minPressure="">*
+*<tabletTool maxPressure="">*
+	The pressure range of a tablet tool can be controlled by adjusting
+	*minPressure* and *maxPressure*. Setting the minimum pressure to
+	a value greater than zero requires more pressure for the tip
+	threshold, setting the maximum pressure to a value less than 1.0
+	requires less pressure for the user before the maximum is reached.
+	The default is 0 for the minimum pressure and 1.0 for the maximum
+	pressure.
 
 ## LIBINPUT
 

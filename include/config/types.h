@@ -71,9 +71,9 @@ enum lab_view_criteria {
 	/* Positive criteria */
 	LAB_VIEW_CRITERIA_FULLSCREEN              = 1 << 1,
 	LAB_VIEW_CRITERIA_ALWAYS_ON_TOP           = 1 << 2,
-	LAB_VIEW_CRITERIA_ROOT_TOPLEVEL           = 1 << 3,
 
 	/* Negative criteria */
+	LAB_VIEW_CRITERIA_NO_DIALOG               = 1 << 5,
 	LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP        = 1 << 6,
 	LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER = 1 << 7,
 	LAB_VIEW_CRITERIA_NO_OMNIPRESENT          = 1 << 8,

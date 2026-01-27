@@ -2284,15 +2284,20 @@ view_move_to_back(struct view *view)
 	desktop_update_top_layer_visibility(view->server);
 }
 
+bool
+view_is_modal_dialog(struct view *view)
+{
+	assert(view);
+	assert(view->impl->is_modal_dialog);
+	return view->impl->is_modal_dialog(view);
+}
+
 struct view *
 view_get_modal_dialog(struct view *view)
 {
 	assert(view);
-	if (!view->impl->is_modal_dialog) {
-		return NULL;
-	}
 	/* check view itself first */
-	if (view->impl->is_modal_dialog(view)) {
+	if (view_is_modal_dialog(view)) {
 		return view;
 	}
 
@@ -2305,7 +2310,7 @@ view_get_modal_dialog(struct view *view)
 	wl_array_init(&children);
 	view_append_children(root, &children);
 	wl_array_for_each(child, &children) {
-		if (view->impl->is_modal_dialog(*child)) {
+		if (view_is_modal_dialog(*child)) {
 			dialog = *child;
 			break;
 		}

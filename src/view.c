@@ -461,10 +461,6 @@ view_discover_output(struct view *view, struct wlr_box *geometry)
 
 	if (output && output != view->output) {
 		view->output = output;
-		/* Show fullscreen views above top-layer */
-		if (view->fullscreen) {
-			desktop_update_top_layer_visibility(view->server);
-		}
 		return true;
 	}
 

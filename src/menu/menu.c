@@ -1443,6 +1443,9 @@ menu_execute_item(struct menuitem *item)
 	 */
 	if (!strcmp(item->parent->id, "client-list-combined-menu")
 			&& item->client_list_view) {
+		if (item->client_list_view->shaded) {
+			view_set_shade(item->client_list_view, false);
+		}
 		actions_run(item->client_list_view, server, &item->actions, NULL);
 	} else {
 		actions_run(item->parent->triggered_by_view, server,

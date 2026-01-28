@@ -14,6 +14,7 @@
 #include "common/list.h"
 #include "common/match.h"
 #include "common/mem.h"
+#include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "cycle.h"
 #include "foreign-toplevel/foreign.h"
@@ -577,7 +578,7 @@ view_moved(struct view *view)
 	}
 }
 
-static void clear_last_placement(struct view *view);
+static void save_last_placement(struct view *view);
 
 void
 view_move_resize(struct view *view, struct wlr_box geo)
@@ -589,7 +590,7 @@ view_move_resize(struct view *view, struct wlr_box geo)
 
 	/*
 	 * If the move/resize was user-initiated (rather than due to
-	 * output layout change), then invalidate the saved geometry.
+	 * output layout change), then update the last placement info.
 	 *
 	 * TODO: consider also updating view->output here for floating
 	 * views (based on view->pending) rather than waiting until
@@ -598,7 +599,7 @@ view_move_resize(struct view *view, struct wlr_box geo)
 	 * Not sure if it might have other side-effects though.
 	 */
 	if (!view->adjusting_for_layout_change) {
-		clear_last_placement(view);
+		save_last_placement(view);
 	}
 }
 
@@ -1748,34 +1749,18 @@ save_last_placement(struct view *view)
 {
 	assert(view);
 	struct output *output = view->output;
-	/*
-	 * Save the view's geometry if this is the first layout change
-	 * since a user-initiated move/resize. Do not save it again for
-	 * subsequent layout changes, since the point is to be able to
-	 * restore to the original location after multiple changes
-	 * (e.g. output disconnected and then reconnected).
-	 */
-	if (!wlr_box_empty(&view->last_placement.layout_geo)) {
-		return;
-	}
 	if (!output_is_usable(output)) {
 		wlr_log(WLR_ERROR, "cannot save last placement in unusable output");
 		return;
 	}
-	xstrdup_replace(view->last_placement.output_name, output->wlr_output->name);
+	if (!str_equal(view->last_placement.output_name, output->wlr_output->name)) {
+		xstrdup_replace(view->last_placement.output_name,
+			output->wlr_output->name);
+	}
 	view->last_placement.layout_geo = view->pending;
 	view->last_placement.relative_geo = view->pending;
 	view->last_placement.relative_geo.x -= output->scene_output->x;
 	view->last_placement.relative_geo.y -= output->scene_output->y;
-}
-
-void
-views_save_last_placement(struct server *server)
-{
-	struct view *view;
-	wl_list_for_each(view, &server->views, link) {
-		save_last_placement(view);
-	}
 }
 
 static void
@@ -1792,10 +1777,7 @@ view_adjust_for_layout_change(struct view *view)
 {
 	assert(view);
 	if (wlr_box_empty(&view->last_placement.layout_geo)) {
-		/*
-		 * views_save_last_placement() should be called before layout
-		 * changes. Not using assert() just in case.
-		 */
+		/* Not using assert() just in case */
 		wlr_log(WLR_ERROR, "view has no last placement info");
 		return;
 	}

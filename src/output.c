@@ -190,9 +190,6 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 		output->workspace_osd = NULL;
 	}
 
-	/* save the last placement before clearing view->output */
-	views_save_last_placement(server);
-
 	struct view *view;
 	wl_list_for_each(view, &server->views, link) {
 		if (view->output == output) {
@@ -662,7 +659,6 @@ output_config_apply(struct server *server,
 {
 	bool success = true;
 	server->pending_output_layout_change++;
-	views_save_last_placement(server);
 
 	struct wlr_output_configuration_head_v1 *head;
 	wl_list_for_each(head, &config->heads, link) {

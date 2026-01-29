@@ -204,8 +204,7 @@ cycle_finish(struct server *server, bool switch_focus)
 	struct view *selected_view = server->cycle.selected_view;
 	destroy_cycle(server);
 
-	/* FIXME: this sets focus to the old surface even with switch_focus=true */
-	seat_focus_override_end(&server->seat);
+	seat_focus_override_end(&server->seat, /*restore_focus*/ false);
 
 	/* Hiding OSD may need a cursor change */
 	cursor_update_focus(server);

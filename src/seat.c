@@ -902,12 +902,12 @@ seat_focus_override_begin(struct seat *seat, enum input_mode input_mode,
 }
 
 void
-seat_focus_override_end(struct seat *seat)
+seat_focus_override_end(struct seat *seat, bool restore_focus)
 {
 	seat->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 
 	if (seat->focus_override.surface) {
-		if (!seat->seat->keyboard_state.focused_surface) {
+		if (restore_focus) {
 			seat_focus(seat, seat->focus_override.surface,
 				/*replace_exclusive_layer*/ false,
 				/*is_lock_surface*/ false);
@@ -916,5 +916,7 @@ seat_focus_override_end(struct seat *seat)
 		seat->focus_override.surface = NULL;
 	}
 
-	cursor_update_focus(seat->server);
+	if (restore_focus) {
+		cursor_update_focus(seat->server);
+	}
 }

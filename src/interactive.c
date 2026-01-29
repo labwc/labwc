@@ -325,5 +325,5 @@ interactive_cancel(struct view *view)
 	view->server->grabbed_view = NULL;
 
 	/* Restore keyboard/pointer focus */
-	seat_focus_override_end(&view->server->seat);
+	seat_focus_override_end(&view->server->seat, /*restore_focus*/ true);
 }

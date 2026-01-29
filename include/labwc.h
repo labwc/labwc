@@ -397,10 +397,10 @@ void seat_output_layout_changed(struct seat *seat);
 void seat_focus_override_begin(struct seat *seat, enum input_mode input_mode,
 	enum lab_cursors cursor_shape);
 /*
- * Restore the pointer/keyboard focus which was cleared in
- * seat_focus_override_begin().
+ * If restore_focus=true, restore the pointer/keyboard focus which was cleared
+ * in seat_focus_override_begin().
  */
-void seat_focus_override_end(struct seat *seat);
+void seat_focus_override_end(struct seat *seat, bool restore_focus);
 
 /**
  * interactive_anchor_to_cursor() - repositions the geometry to remain

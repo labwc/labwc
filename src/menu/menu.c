@@ -1430,7 +1430,7 @@ menu_execute_item(struct menuitem *item)
 	struct server *server = item->parent->server;
 	menu_close(server->menu_current);
 	server->menu_current = NULL;
-	seat_focus_override_end(&server->seat);
+	seat_focus_override_end(&server->seat, /*restore_focus*/ true);
 
 	/*
 	 * We call the actions after closing the menu so that virtual keyboard
@@ -1530,7 +1530,7 @@ menu_close_root(struct server *server)
 	menu_close(server->menu_current);
 	server->menu_current = NULL;
 	reset_pipemenus(server);
-	seat_focus_override_end(&server->seat);
+	seat_focus_override_end(&server->seat, /*restore_focus*/ true);
 }
 
 void

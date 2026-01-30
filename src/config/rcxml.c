@@ -1309,9 +1309,9 @@ entry(xmlNode *node, char *nodename, char *content)
 			" Use <windowSwitcher outlines=\"\" />");
 
 	} else if (!strcasecmp(nodename, "name.names.desktops")) {
-		struct workspace *workspace = znew(*workspace);
-		workspace->name = xstrdup(content);
-		wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
+		struct workspace_config *conf = znew(*conf);
+		conf->name = xstrdup(content);
+		wl_list_append(&rc.workspace_config.workspaces, &conf->link);
 	} else if (!strcasecmp(nodename, "popupTime.desktops")) {
 		rc.workspace_config.popuptime = atoi(content);
 	} else if (!strcasecmp(nodename, "initial.desktops")) {
@@ -1784,15 +1784,14 @@ post_processing(void)
 		}
 
 		struct buf b = BUF_INIT;
-		struct workspace *workspace;
 		for (int i = nr_workspaces; i < rc.workspace_config.min_nr_workspaces; i++) {
-			workspace = znew(*workspace);
+			struct workspace_config *conf = znew(*conf);
 			if (!string_null_or_empty(rc.workspace_config.prefix)) {
 				buf_add_fmt(&b, "%s ", rc.workspace_config.prefix);
 			}
 			buf_add_fmt(&b, "%d", i + 1);
-			workspace->name = xstrdup(b.data);
-			wl_list_append(&rc.workspace_config.workspaces, &workspace->link);
+			conf->name = xstrdup(b.data);
+			wl_list_append(&rc.workspace_config.workspaces, &conf->link);
 			buf_clear(&b);
 		}
 		buf_reset(&b);
@@ -2011,7 +2010,7 @@ rcxml_finish(void)
 		zfree(l);
 	}
 
-	struct workspace *w, *w_tmp;
+	struct workspace_config *w, *w_tmp;
 	wl_list_for_each_safe(w, w_tmp, &rc.workspace_config.workspaces, link) {
 		wl_list_remove(&w->link);
 		zfree(w->name);

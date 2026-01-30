@@ -413,7 +413,7 @@ workspaces_init(struct server *server)
 
 	wl_list_init(&server->workspaces.all);
 
-	struct workspace *conf;
+	struct workspace_config *conf;
 	wl_list_for_each(conf, &rc.workspace_config.workspaces, link) {
 		add_workspace(server, conf->name);
 	}
@@ -590,36 +590,34 @@ workspaces_reconfigure(struct server *server)
 	 *   - Destroy workspaces if fewer workspace are desired
 	 */
 
-	struct wl_list *actual_workspace_link = server->workspaces.all.next;
+	struct wl_list *workspace_link = server->workspaces.all.next;
 
-	struct workspace *configured_workspace;
-	wl_list_for_each(configured_workspace,
-			&rc.workspace_config.workspaces, link) {
-		struct workspace *actual_workspace = wl_container_of(
-			actual_workspace_link, actual_workspace, link);
+	struct workspace_config *conf;
+	wl_list_for_each(conf, &rc.workspace_config.workspaces, link) {
+		struct workspace *workspace = wl_container_of(
+			workspace_link, workspace, link);
 
-		if (actual_workspace_link == &server->workspaces.all) {
+		if (workspace_link == &server->workspaces.all) {
 			/* # of configured workspaces increased */
 			wlr_log(WLR_DEBUG, "Adding workspace \"%s\"",
-				configured_workspace->name);
-			add_workspace(server, configured_workspace->name);
+				conf->name);
+			add_workspace(server, conf->name);
 			continue;
 		}
-		if (strcmp(actual_workspace->name, configured_workspace->name)) {
+		if (strcmp(workspace->name, conf->name)) {
 			/* Workspace is renamed */
 			wlr_log(WLR_DEBUG, "Renaming workspace \"%s\" to \"%s\"",
-				actual_workspace->name, configured_workspace->name);
-			free(actual_workspace->name);
-			actual_workspace->name = xstrdup(configured_workspace->name);
+				workspace->name, conf->name);
+			xstrdup_replace(workspace->name, conf->name);
 			lab_cosmic_workspace_set_name(
-				actual_workspace->cosmic_workspace, actual_workspace->name);
+				workspace->cosmic_workspace, workspace->name);
 			lab_ext_workspace_set_name(
-				actual_workspace->ext_workspace, actual_workspace->name);
+				workspace->ext_workspace, workspace->name);
 		}
-		actual_workspace_link = actual_workspace_link->next;
+		workspace_link = workspace_link->next;
 	}
 
-	if (actual_workspace_link == &server->workspaces.all) {
+	if (workspace_link == &server->workspaces.all) {
 		return;
 	}
 
@@ -628,30 +626,30 @@ workspaces_reconfigure(struct server *server)
 	struct workspace *first_workspace =
 		wl_container_of(server->workspaces.all.next, first_workspace, link);
 
-	while (actual_workspace_link != &server->workspaces.all) {
-		struct workspace *actual_workspace = wl_container_of(
-			actual_workspace_link, actual_workspace, link);
+	while (workspace_link != &server->workspaces.all) {
+		struct workspace *workspace = wl_container_of(
+			workspace_link, workspace, link);
 
 		wlr_log(WLR_DEBUG, "Destroying workspace \"%s\"",
-			actual_workspace->name);
+			workspace->name);
 
 		struct view *view;
 		wl_list_for_each(view, &server->views, link) {
-			if (view->workspace == actual_workspace) {
+			if (view->workspace == workspace) {
 				view_move_to_workspace(view, first_workspace);
 			}
 		}
 
-		if (server->workspaces.current == actual_workspace) {
+		if (server->workspaces.current == workspace) {
 			workspaces_switch_to(first_workspace,
 				/* update_focus */ true);
 		}
-		if (server->workspaces.last == actual_workspace) {
+		if (server->workspaces.last == workspace) {
 			server->workspaces.last = first_workspace;
 		}
 
-		actual_workspace_link = actual_workspace_link->next;
-		destroy_workspace(actual_workspace);
+		workspace_link = workspace_link->next;
+		destroy_workspace(workspace);
 	}
 }
 

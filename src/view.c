@@ -2439,6 +2439,11 @@ view_update_visibility(struct view *view)
 	if (view_has_strut_partial(view)) {
 		output_update_all_usable_areas(view->server, false);
 	}
+
+	/* View might have been unmapped/minimized during move/resize */
+	if (!visible) {
+		interactive_cancel(view);
+	}
 }
 
 void
@@ -2544,8 +2549,11 @@ view_destroy(struct view *view)
 		view->foreign_toplevel = NULL;
 	}
 
+	/*
+	 * This check is (in theory) redundant since interactive_cancel()
+	 * is called at unmap. Leaving it here just to be sure.
+	 */
 	if (server->grabbed_view == view) {
-		/* Application got killed while moving around */
 		interactive_cancel(view);
 	}
 

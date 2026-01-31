@@ -345,7 +345,7 @@ void view_query_free(struct view_query *view);
 bool view_matches_query(struct view *view, struct view_query *query);
 
 /**
- * for_each_view() - iterate over all views which match criteria
+ * for_each_view() - iterate over all views which match criteria (front to back)
  * @view: Iterator.
  * @head: Head of list to iterate over.
  * @criteria: Criteria to match against.
@@ -361,7 +361,7 @@ bool view_matches_query(struct view *view, struct view_query *query);
 	     view = view_next(head, view, criteria))
 
 /**
- * for_each_view_reverse() - iterate over all views which match criteria
+ * for_each_view_reverse() - iterate over all views which match criteria (back to front)
  * @view: Iterator.
  * @head: Head of list to iterate over.
  * @criteria: Criteria to match against.

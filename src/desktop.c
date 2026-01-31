@@ -138,7 +138,7 @@ static struct view *
 desktop_topmost_focusable_view(struct server *server)
 {
 	struct view *view;
-	for_each_view_reverse(view, &server->views,
+	for_each_view(view, &server->views,
 			LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 		if (!view->minimized) {
 			return view;

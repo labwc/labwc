@@ -16,6 +16,7 @@ struct workspace {
 
 	char *name;
 	struct wlr_scene_tree *tree;
+	struct wlr_scene_tree *view_trees[3];
 
 	struct lab_cosmic_workspace *cosmic_workspace;
 	struct {

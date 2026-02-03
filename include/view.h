@@ -82,6 +82,12 @@ enum view_wants_focus {
 	VIEW_WANTS_FOCUS_UNLIKELY,
 };
 
+enum view_layer {
+	VIEW_LAYER_NORMAL = 0,
+	VIEW_LAYER_ALWAYS_ON_TOP,
+	VIEW_LAYER_ALWAYS_ON_BOTTOM,
+};
+
 struct view;
 struct wlr_surface;
 struct foreign_toplevel;
@@ -183,6 +189,7 @@ struct view {
 	bool fullscreen;
 	bool tearing_hint;
 	enum lab_tristate force_tearing;
+	enum view_layer layer;
 	bool visible_on_all_workspaces;
 	enum lab_edge tiled;
 	enum lab_edge edges_visible;
@@ -527,9 +534,6 @@ void view_toggle_maximize(struct view *view, enum view_axis axis);
 bool view_wants_decorations(struct view *view);
 void view_toggle_decorations(struct view *view);
 
-bool view_is_always_on_top(struct view *view);
-bool view_is_always_on_bottom(struct view *view);
-bool view_is_omnipresent(struct view *view);
 void view_toggle_always_on_top(struct view *view);
 void view_toggle_always_on_bottom(struct view *view);
 void view_toggle_visible_on_all_workspaces(struct view *view);

@@ -576,16 +576,16 @@ server_init(struct server *server)
 	 * | output->layer_tree[2]              | top layer surfaces (e.g. waybar)
 	 * | server->unmanaged_tree             | unmanaged X11 surfaces (e.g. dmenu)
 	 * | server->xdg_popup_tree             | xdg popups on xdg windows
-	 * | server->view_tree_always_on_top    | always-on-top xdg/X11 windows
-	 * | server->view_tree                  | normal xdg/X11 windows (e.g. firefox)
-	 * | server->view_tree_always_on_bottom | always-on-bottom xdg/X11 windows
+	 * | server->workspace_tree             |
+	 * | + workspace->tree                  |
+	 * |   + workspace->view_trees[1]       | always-on-top xdg/X11 windows
+	 * |   + workspace->view_trees[0]       | normal xdg/X11 windows (e.g. firefox)
+	 * |   + workspace->view_trees[2]       | always-on-bottom xdg/X11 windows
 	 * | output->layer_tree[1]              | bottom layer surfaces
 	 * | output->layer_tree[0]              | background layer surfaces (e.g. swaybg)
 	 */
 
-	server->view_tree_always_on_bottom = wlr_scene_tree_create(&server->scene->tree);
-	server->view_tree = wlr_scene_tree_create(&server->scene->tree);
-	server->view_tree_always_on_top = wlr_scene_tree_create(&server->scene->tree);
+	server->workspace_tree = wlr_scene_tree_create(&server->scene->tree);
 	server->xdg_popup_tree = wlr_scene_tree_create(&server->scene->tree);
 #if HAVE_XWAYLAND
 	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->tree);

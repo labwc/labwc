@@ -268,13 +268,7 @@ matches_criteria(struct view *view, enum lab_view_criteria criteria)
 		return false;
 	}
 	if (criteria & LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
-		/*
-		 * Always-on-top views are always on the current desktop and are
-		 * special in that they live in a different tree.
-		 */
-		struct server *server = view->server;
-		if (view->scene_tree->node.parent != server->workspaces.current->tree
-				&& !view_is_always_on_top(view)) {
+		if (view->workspace != view->server->workspaces.current) {
 			return false;
 		}
 	}
@@ -284,7 +278,7 @@ matches_criteria(struct view *view, enum lab_view_criteria criteria)
 		}
 	}
 	if (criteria & LAB_VIEW_CRITERIA_ALWAYS_ON_TOP) {
-		if (!view_is_always_on_top(view)) {
+		if (view->layer != VIEW_LAYER_ALWAYS_ON_TOP) {
 			return false;
 		}
 	}
@@ -294,7 +288,7 @@ matches_criteria(struct view *view, enum lab_view_criteria criteria)
 		}
 	}
 	if (criteria & LAB_VIEW_CRITERIA_NO_ALWAYS_ON_TOP) {
-		if (view_is_always_on_top(view)) {
+		if (view->layer == VIEW_LAYER_ALWAYS_ON_TOP) {
 			return false;
 		}
 	}
@@ -304,11 +298,7 @@ matches_criteria(struct view *view, enum lab_view_criteria criteria)
 		}
 	}
 	if (criteria & LAB_VIEW_CRITERIA_NO_OMNIPRESENT) {
-		/*
-		 * TODO: Once always-on-top views use a per-workspace
-		 *       sub-tree we can remove the check from this condition.
-		 */
-		if (view->visible_on_all_workspaces || view_is_always_on_top(view)) {
+		if (view->visible_on_all_workspaces) {
 			return false;
 		}
 	}
@@ -1547,48 +1537,30 @@ view_toggle_decorations(struct view *view)
 	}
 }
 
-bool
-view_is_always_on_top(struct view *view)
-{
-	assert(view);
-	return view->scene_tree->node.parent ==
-		view->server->view_tree_always_on_top;
-}
-
 void
 view_toggle_always_on_top(struct view *view)
 {
 	assert(view);
-	if (view_is_always_on_top(view)) {
-		view->workspace = view->server->workspaces.current;
-		wlr_scene_node_reparent(&view->scene_tree->node,
-			view->workspace->tree);
+	if (view->layer == VIEW_LAYER_ALWAYS_ON_TOP) {
+		view->layer = VIEW_LAYER_NORMAL;
 	} else {
-		wlr_scene_node_reparent(&view->scene_tree->node,
-			view->server->view_tree_always_on_top);
+		view->layer = VIEW_LAYER_ALWAYS_ON_TOP;
 	}
-}
-
-bool
-view_is_always_on_bottom(struct view *view)
-{
-	assert(view);
-	return view->scene_tree->node.parent ==
-		view->server->view_tree_always_on_bottom;
+	wlr_scene_node_reparent(&view->scene_tree->node,
+		view->workspace->view_trees[view->layer]);
 }
 
 void
 view_toggle_always_on_bottom(struct view *view)
 {
 	assert(view);
-	if (view_is_always_on_bottom(view)) {
-		view->workspace = view->server->workspaces.current;
-		wlr_scene_node_reparent(&view->scene_tree->node,
-			view->workspace->tree);
+	if (view->layer == VIEW_LAYER_ALWAYS_ON_BOTTOM) {
+		view->layer = VIEW_LAYER_NORMAL;
 	} else {
-		wlr_scene_node_reparent(&view->scene_tree->node,
-			view->server->view_tree_always_on_bottom);
+		view->layer = VIEW_LAYER_ALWAYS_ON_BOTTOM;
 	}
+	wlr_scene_node_reparent(&view->scene_tree->node,
+		view->workspace->view_trees[view->layer]);
 }
 
 void
@@ -1607,7 +1579,7 @@ view_move_to_workspace(struct view *view, struct workspace *workspace)
 	if (view->workspace != workspace) {
 		view->workspace = workspace;
 		wlr_scene_node_reparent(&view->scene_tree->node,
-			workspace->tree);
+			workspace->view_trees[view->layer]);
 	}
 }
 

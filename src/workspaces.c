@@ -234,7 +234,13 @@ add_workspace(struct server *server, const char *name)
 	struct workspace *workspace = znew(*workspace);
 	workspace->server = server;
 	workspace->name = xstrdup(name);
-	workspace->tree = wlr_scene_tree_create(server->view_tree);
+	workspace->tree = wlr_scene_tree_create(server->workspace_tree);
+	workspace->view_trees[VIEW_LAYER_ALWAYS_ON_BOTTOM] =
+		wlr_scene_tree_create(workspace->tree);
+	workspace->view_trees[VIEW_LAYER_NORMAL] =
+		wlr_scene_tree_create(workspace->tree);
+	workspace->view_trees[VIEW_LAYER_ALWAYS_ON_TOP] =
+		wlr_scene_tree_create(workspace->tree);
 	wl_list_append(&server->workspaces.all, &workspace->link);
 	wlr_scene_node_set_enabled(&workspace->tree->node, false);
 
@@ -483,24 +489,17 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	server->workspaces.current = target;
 
 	struct view *grabbed_view = server->grabbed_view;
-	if (grabbed_view && !view_is_always_on_top(grabbed_view)) {
+	if (grabbed_view) {
 		view_move_to_workspace(grabbed_view, target);
 	}
 
 	/*
 	 * Make sure we are focusing what the user sees. Only refocus if
-	 * the focus is not already on an omnipresent or always-on-top view.
-	 *
-	 * TODO: Decouple always-on-top views from the omnipresent state.
-	 *       One option for that would be to create a new scene tree
-	 *       as child of every workspace tree and then reparent a-o-t
-	 *       windows to that one. Combined with adjusting the condition
-	 *       below that should take care of the issue.
+	 * the focus is not already on an omnipresent view.
 	 */
 	if (update_focus) {
 		struct view *active_view = server->active_view;
-		if (!active_view || (!active_view->visible_on_all_workspaces
-				&& !view_is_always_on_top(active_view))) {
+		if (!(active_view && active_view->visible_on_all_workspaces)) {
 			desktop_focus_topmost_view(server);
 		}
 	}

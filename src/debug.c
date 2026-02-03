@@ -88,32 +88,55 @@ get_view_part(struct view *view, struct wlr_scene_node *node)
 	return ssd_debug_get_node_name(view->ssd, node);
 }
 
+static struct workspace *
+get_workspace_from_node(struct server *server, struct wlr_scene_node *node)
+{
+	struct workspace *workspace;
+	wl_list_for_each(workspace, &server->workspaces.all, link) {
+		if (&workspace->tree->node == node) {
+			return workspace;
+		}
+	}
+	return NULL;
+}
+
 static const char *
 get_special(struct server *server, struct wlr_scene_node *node)
 {
+	struct wlr_scene_tree *grand_parent =
+		node->parent ? node->parent->node.parent : NULL;
+	struct wlr_scene_tree *grand_grand_parent =
+		grand_parent ? grand_parent->node.parent : NULL;
 	if (node == &server->scene->tree.node) {
 		return "server->scene";
 	}
 	if (node == &server->menu_tree->node) {
 		return "server->menu_tree";
 	}
-	if (node == &server->view_tree->node) {
-		return "server->view_tree";
+	if (node == &server->workspace_tree->node) {
+		return "server->workspace_tree";
 	}
-	if (node == &server->view_tree_always_on_bottom->node) {
-		return "server->always_on_bottom";
-	}
-	if (node == &server->view_tree_always_on_top->node) {
-		return "server->always_on_top";
-	}
-	if (node->parent == server->view_tree) {
-		struct workspace *workspace;
-		wl_list_for_each(workspace, &server->workspaces.all, link) {
-			if (&workspace->tree->node == node) {
-				return workspace->name;
-			}
+	if (node->parent == server->workspace_tree) {
+		struct workspace *workspace = get_workspace_from_node(server, node);
+		if (workspace) {
+			return workspace->name;
 		}
 		return "unknown workspace";
+	}
+	if (grand_parent == server->workspace_tree) {
+		struct workspace *workspace =
+			get_workspace_from_node(server, &node->parent->node);
+		if (workspace) {
+			struct wlr_scene_tree **trees = workspace->view_trees;
+			if (node == &trees[VIEW_LAYER_NORMAL]->node) {
+				return "normal";
+			} else if (node == &trees[VIEW_LAYER_ALWAYS_ON_TOP]->node) {
+				return "always_on_top";
+			} else if (node == &trees[VIEW_LAYER_ALWAYS_ON_BOTTOM]->node) {
+				return "always_on_bottom";
+			}
+		}
+		return "unknown tree";
 	}
 	if (node->parent == &server->scene->tree) {
 		struct output *output;
@@ -160,12 +183,7 @@ get_special(struct server *server, struct wlr_scene_node *node)
 		return "server->unmanaged_tree";
 	}
 #endif
-	struct wlr_scene_tree *grand_parent =
-		node->parent ? node->parent->node.parent : NULL;
-	if (grand_parent == server->view_tree && node->data) {
-		last_view = node_view_from_node(node);
-	}
-	if (node->parent == server->view_tree_always_on_top && node->data) {
+	if (grand_grand_parent == server->workspace_tree && node->data) {
 		last_view = node_view_from_node(node);
 	}
 	const char *view_part = get_view_part(last_view, node);

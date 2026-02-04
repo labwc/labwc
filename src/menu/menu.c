@@ -731,7 +731,7 @@ menu_reposition(struct menu *menu, struct wlr_box anchor_rect)
 	/* Get output usable area to place the menu within */
 	struct output *output = output_nearest_to(menu->server,
 		anchor_rect.x, anchor_rect.y);
-	if (!output) {
+	if (!output_is_usable(output)) {
 		wlr_log(WLR_ERROR, "no output found around (%d,%d)",
 			anchor_rect.x, anchor_rect.y);
 		return;

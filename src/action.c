@@ -1409,7 +1409,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 			break;
 		}
 		struct output *output = view->output;
-		if (!output) {
+		if (!output_is_usable(output)) {
 			break;
 		}
 		const char *region_name = action_get_str(action, "region", NULL);

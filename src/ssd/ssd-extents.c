@@ -95,7 +95,7 @@ ssd_extents_update(struct ssd *ssd)
 		wlr_scene_node_set_enabled(&ssd->extents.tree->node, true);
 	}
 
-	if (!view->output) {
+	if (!output_is_usable(view->output)) {
 		return;
 	}
 

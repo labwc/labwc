@@ -2,38 +2,33 @@
   This is a very simple config file with many options missing. For a complete
   set of options with comments, see docs/rc.xml.all
 -->
-
 <labwc_config>
-
   <theme>
     <name>Clearlooks-3.4</name>
     <cornerRadius>8</cornerRadius>
-    <font name="sans" size="10" />
+    <font name="sans" size="10"/>
   </theme>
-
   <keyboard>
-    <default />
+    <default/>
     <!-- Use a different terminal emulator -->
     <keybind key="W-Return">
-      <action name="Execute" command="foot" />
+      <action name="Execute" command="foot"/>
     </keybind>
     <!--
       Remove a previously defined keybind
       A shorter alternative is <keybind key="W-F4" />
     -->
     <keybind key="W-F4">
-      <action name="None" />
+      <action name="None"/>
     </keybind>
   </keyboard>
-
   <mouse>
-    <default />
+    <default/>
     <!-- Show a custom menu on desktop right click -->
     <context name="Root">
       <mousebind button="Right" action="Press">
-        <action name="ShowMenu" menu="some-custom-menu" />
+        <action name="ShowMenu" menu="some-custom-menu"/>
       </mousebind>
     </context>
   </mouse>
-
 </labwc_config>

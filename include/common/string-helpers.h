@@ -90,8 +90,8 @@ bool str_starts_with(const char *s, char needle, const char *ignore_chars);
 
 /**
  * str_equal - indicate whether two strings are identical
- * @a: first string to compare
- * @b: second string to compare
+ * @a: first string to compare (can be NULL)
+ * @b: second string to compare (can be NULL)
  *
  * If both strings are NULL, returns true.
  */

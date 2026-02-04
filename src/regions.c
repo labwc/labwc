@@ -53,7 +53,7 @@ regions_from_cursor(struct server *server)
 	struct wlr_output *wlr_output = wlr_output_layout_output_at(
 		server->output_layout, lx, ly);
 	struct output *output = output_from_wlr_output(server, wlr_output);
-	if (!output) {
+	if (!output_is_usable(output)) {
 		return NULL;
 	}
 

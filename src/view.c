@@ -1104,7 +1104,7 @@ view_place_by_policy(struct view *view, bool allow_cursor,
 void
 view_constrain_size_to_that_of_usable_area(struct view *view)
 {
-	if (!view || !view->output || view->fullscreen) {
+	if (!view || !output_is_usable(view->output) || view->fullscreen) {
 		return;
 	}
 
@@ -1918,7 +1918,7 @@ view_move_to_edge(struct view *view, enum lab_edge direction, bool snap_to_windo
 	/* Otherwise, move to edge of next adjacent display, if possible */
 	struct output *output =
 		output_get_adjacent(view->output, direction, /* wrap */ false);
-	if (!output) {
+	if (!output_is_usable(output)) {
 		return;
 	}
 
@@ -2098,7 +2098,7 @@ view_snap_to_edge(struct view *view, enum lab_edge edge,
 			 */
 			output = output_get_adjacent(view->output, edge,
 				/* wrap */ false);
-			if (!output) {
+			if (!output_is_usable(output)) {
 				return;
 			}
 			edge = invert_edge;

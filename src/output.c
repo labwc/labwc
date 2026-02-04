@@ -128,17 +128,6 @@ handle_output_frame(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (!output->scene_output) {
-		/*
-		 * TODO: This is a short term fix for issue #1667,
-		 *       a proper fix would require restructuring
-		 *       the life cycle of scene outputs, e.g.
-		 *       creating them on handle_new_output() only.
-		 */
-		wlr_log(WLR_INFO, "Failed to render new frame: no scene-output");
-		return;
-	}
-
 	if (output->gamma_lut_changed) {
 		/*
 		 * We are not mixing the gamma state with
@@ -1066,8 +1055,14 @@ output_get_adjacent(struct output *output, enum lab_edge edge, bool wrap)
 bool
 output_is_usable(struct output *output)
 {
-	/* output_is_usable(NULL) is safe and returns false */
-	return output && output->wlr_output->enabled;
+	/*
+	 * output_is_usable(NULL) is safe and returns false.
+	 *
+	 * Checking output->scene_output != NULL is necessary in case the
+	 * wlr_output was initially enabled but hasn't been configured yet
+	 * (occurs with autoEnableOutputs=no).
+	 */
+	return output && output->wlr_output->enabled && output->scene_output;
 }
 
 /* returns true if usable area changed */
@@ -1127,7 +1122,7 @@ output_update_all_usable_areas(struct server *server, bool layout_changed)
 struct wlr_box
 output_usable_area_in_layout_coords(struct output *output)
 {
-	if (!output) {
+	if (!output_is_usable(output)) {
 		return (struct wlr_box){0};
 	}
 	struct wlr_box box = output->usable_area;

@@ -228,7 +228,7 @@ ensure_initial_geometry_and_output(struct view *view)
 			view->pending = view->current;
 		}
 	}
-	if (!view->output) {
+	if (!output_is_usable(view->output)) {
 		/*
 		 * Just use the cursor output since we don't know yet
 		 * whether the surface position is meaningful.

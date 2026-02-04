@@ -145,7 +145,7 @@ try_to_focus_next_layer_or_toplevel(struct server *server)
 {
 	struct seat *seat = &server->seat;
 	struct output *output = output_nearest_to_cursor(server);
-	if (!output) {
+	if (!output_is_usable(output)) {
 		goto no_output;
 	}
 
@@ -589,16 +589,14 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 	struct wlr_layer_surface_v1 *layer_surface = data;
 
 	if (!layer_surface->output) {
-		struct wlr_output *output = wlr_output_layout_output_at(
-			server->output_layout, server->seat.cursor->x,
-			server->seat.cursor->y);
-		if (!output) {
+		struct output *output = output_nearest_to_cursor(server);
+		if (!output_is_usable(output)) {
 			wlr_log(WLR_INFO,
 				"No output available to assign layer surface");
 			wlr_layer_surface_v1_destroy(layer_surface);
 			return;
 		}
-		layer_surface->output = output;
+		layer_surface->output = output->wlr_output;
 	}
 
 	struct lab_layer_surface *surface = znew(*surface);

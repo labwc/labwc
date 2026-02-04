@@ -2260,7 +2260,9 @@ view_move_to_front(struct view *view)
 	 * to an incorrect X window depending on timing. To mitigate the
 	 * race, perform an explicit flush after restacking.
 	 */
-	xwayland_flush(view->server);
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		xwayland_flush(view->server);
+	}
 #endif
 	cursor_update_focus(view->server);
 	desktop_update_top_layer_visibility(view->server);

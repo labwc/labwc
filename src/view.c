@@ -2525,6 +2525,12 @@ view_init(struct view *view)
 	wl_signal_init(&view->events.set_icon);
 	wl_signal_init(&view->events.destroy);
 
+	view->image_capture_scene = wlr_scene_create();
+	if (view->image_capture_scene == NULL) {
+	    wlr_log(WLR_ERROR, "not image_capture_scene");
+	}
+	view->image_capture_scene->restack_xwayland_surfaces = false;
+
 	view->title = xstrdup("");
 	view->app_id = xstrdup("");
 }
@@ -2591,6 +2597,11 @@ view_destroy(struct view *view)
 	if (view->scene_tree) {
 		wlr_scene_node_destroy(&view->scene_tree->node);
 		view->scene_tree = NULL;
+	}
+
+	if (view->image_capture_scene) {
+		wlr_scene_node_destroy(&view->image_capture_scene->tree.node);
+		view->image_capture_scene = NULL;
 	}
 
 	assert(wl_list_empty(&view->events.new_app_id.listener_list));

@@ -168,6 +168,9 @@ struct view {
 	struct wlr_scene_tree *scene_tree;
 	struct wlr_scene_tree *content_tree; /* may be NULL for unmapped view */
 
+	struct wlr_scene *image_capture_scene;
+	struct wlr_ext_image_capture_source_v1 *image_capture_source;
+
 	/* These are never NULL and an empty string is set instead. */
 	char *title;
 	char *app_id; /* WM_CLASS for xwayland windows */
@@ -299,6 +302,8 @@ struct xdg_toplevel_view {
 
 	/* Optional black background fill behind fullscreen view */
 	struct wlr_scene_rect *fullscreen_bg;
+
+	struct wlr_scene_tree *image_capture_tree;
 
 	/* Events unique to xdg-toplevel views */
 	struct wl_listener set_app_id;

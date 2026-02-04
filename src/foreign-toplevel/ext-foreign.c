@@ -75,6 +75,8 @@ ext_foreign_toplevel_init(struct ext_foreign_toplevel *ext_toplevel,
 		return;
 	}
 
+	ext_toplevel->handle->data = view;
+
 	/* Client side requests */
 	ext_toplevel->on.handle_destroy.notify = handle_handle_destroy;
 	wl_signal_add(&ext_toplevel->handle->events.destroy, &ext_toplevel->on.handle_destroy);

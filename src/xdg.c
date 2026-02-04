@@ -1030,6 +1030,11 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 		free(xdg_toplevel_view);
 		return;
 	}
+
+	xdg_toplevel_view->image_capture_tree =
+		wlr_scene_xdg_surface_create(&view->image_capture_scene->tree,
+									 xdg_surface);
+
 	view->content_tree = tree;
 	node_descriptor_create(&view->scene_tree->node,
 		LAB_NODE_VIEW, view, /*data*/ NULL);

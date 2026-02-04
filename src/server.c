@@ -424,6 +424,25 @@ handle_renderer_lost(struct wl_listener *listener, void *data)
 	wlr_renderer_destroy(old_renderer);
 }
 
+static void
+handle_new_foreign_toplevel_capture_request(struct wl_listener *listener, void *data) {
+	struct wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request *request = data;
+	struct view *view = request->toplevel_handle->data;
+	struct server *server = wl_container_of(listener, server,
+											new_foreign_toplevel_capture_request);
+
+	if (view->image_capture_source == NULL) {
+		view->image_capture_source = wlr_ext_image_capture_source_v1_create_with_scene_node(
+				&view->image_capture_scene->tree.node,server->wl_event_loop,server->allocator,server->renderer);
+		if (view->image_capture_source == NULL) {
+			wlr_log(WLR_ERROR, "Failed to create image capture source");
+			return;
+		}
+	}
+
+	wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request_accept(request, view->image_capture_source);
+}
+
 void
 server_init(struct server *server)
 {
@@ -671,6 +690,12 @@ server_init(struct server *server)
 	wlr_fractional_scale_manager_v1_create(server->wl_display,
 		LAB_WLR_FRACTIONAL_SCALE_V1_VERSION);
 
+	server->ext_foreign_toplevel_image_capture_source_manager_v1 =
+		wlr_ext_foreign_toplevel_image_capture_source_manager_v1_create(server->wl_display, 1);
+	server->new_foreign_toplevel_capture_request.notify = handle_new_foreign_toplevel_capture_request;
+	wl_signal_add(&server->ext_foreign_toplevel_image_capture_source_manager_v1->events.new_request,
+				  &server->new_foreign_toplevel_capture_request);
+
 	idle_manager_create(server->wl_display);
 
 	server->relative_pointer_manager = wlr_relative_pointer_manager_v1_create(
@@ -788,6 +813,7 @@ server_finish(struct server *server)
 	wl_list_remove(&server->new_constraint.link);
 	wl_list_remove(&server->output_power_manager_set_mode.link);
 	wl_list_remove(&server->tearing_new_object.link);
+	wl_list_remove(&server->new_foreign_toplevel_capture_request.link);
 	if (server->drm_lease_request.notify) {
 		wl_list_remove(&server->drm_lease_request.link);
 		server->drm_lease_request.notify = NULL;

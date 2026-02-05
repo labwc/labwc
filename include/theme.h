@@ -78,7 +78,8 @@ struct theme {
 	int window_button_height;
 	int window_button_spacing;
 
-	/* the corner radius of the hover effect */
+	/* button hover effect */
+	float window_button_hover_bg_color[4];
 	int window_button_hover_bg_corner_radius;
 
 	/*

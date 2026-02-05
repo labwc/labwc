@@ -44,7 +44,8 @@ window.button.width: 26
 window.button.height: 26
 window.button.spacing: 0
 
-# window button hover effect
+# window button hover overlay
+window.button.hover.bg.color: #80808020
 window.button.hover.bg.corner-radius: 0
 
 # window buttons

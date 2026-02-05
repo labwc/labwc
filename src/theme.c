@@ -76,9 +76,7 @@ zdrop(struct lab_data_buffer **buffer)
 static void
 draw_hover_overlay_on_button(cairo_t *cairo, int w, int h)
 {
-	/* Overlay (pre-multiplied alpha) */
-	float overlay_color[4] = { 0.15f, 0.15f, 0.15f, 0.3f};
-	set_cairo_color(cairo, overlay_color);
+	set_cairo_color(cairo, rc.theme->window_button_hover_bg_color);
 	int r = rc.theme->window_button_hover_bg_corner_radius;
 
 	cairo_new_sub_path(cairo);
@@ -560,6 +558,8 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->window_button_width = 26;
 	theme->window_button_height = 26;
 	theme->window_button_spacing = 0;
+
+	parse_hexstr("#80808020", theme->window_button_hover_bg_color);
 	theme->window_button_hover_bg_corner_radius = 0;
 
 	for (enum lab_node_type type = LAB_NODE_BUTTON_FIRST;
@@ -786,6 +786,11 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "window.button.spacing")) {
 		theme->window_button_spacing = get_int_if_positive(
 			value, "window.button.spacing");
+	}
+
+	/* botton hover overlay */
+	if (match_glob(key, "window.button.hover.bg.color")) {
+		parse_color(value, theme->window_button_hover_bg_color);
 	}
 	if (match_glob(key, "window.button.hover.bg.corner-radius")) {
 		theme->window_button_hover_bg_corner_radius = get_int_if_positive(

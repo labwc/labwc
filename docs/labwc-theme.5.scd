@@ -173,6 +173,18 @@ window.*.title.bg.colorTo.splitTo: #557485
 	Space between titlebar buttons, in pixels.
 	Default is 0.
 
+Note: The *window.button.hover* namespace (below) relates to button hover
+overlay effects which work with all buttons including svg, png and xbm.
+
+Openbox only supports hover effects rendered behind buttons which makes sense
+for the xbm format, but not for others. For reference, these are defined by
+*window.active|inactive.button.STATE.bg* where *STATE* can be any of *pressed*,
+*hover* and *disabled*. These are not (yet) supported by labwc and are mentioned
+here for comparison only.
+
+*window.button.hover.bg.color*
+	Color of the hover effect of a titlebar button. Default is #80808020.
+
 *window.button.hover.bg.corner-radius*
 	Radius of the hover effect of a titlebar button, in pixels.
 	Default is 0.

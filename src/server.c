@@ -593,20 +593,18 @@ server_init(struct server *server)
 		const enum wp_color_manager_v1_render_intent render_intents[] = {
 			WP_COLOR_MANAGER_V1_RENDER_INTENT_PERCEPTUAL,
 		};
-		const enum wp_color_manager_v1_transfer_function transfer_functions[] = {
-			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_SRGB,
-			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_ST2084_PQ,
-			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_EXT_LINEAR,
-			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_GAMMA22,
-			WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_BT1886,
-		};
-		const enum wp_color_manager_v1_primaries primaries[] = {
-			WP_COLOR_MANAGER_V1_PRIMARIES_SRGB,
-			WP_COLOR_MANAGER_V1_PRIMARIES_BT2020,
-		};
+		size_t transfer_functions_len = 0;
+		enum wp_color_manager_v1_transfer_function *transfer_functions =
+			wlr_color_manager_v1_transfer_function_list_from_renderer(
+				server->renderer, &transfer_functions_len);
+
+		size_t primaries_len = 0;
+		enum wp_color_manager_v1_primaries *primaries =
+			wlr_color_manager_v1_primaries_list_from_renderer(
+				server->renderer, &primaries_len);
 
 		struct wlr_color_manager_v1 *cm = wlr_color_manager_v1_create(
-			server->wl_display, 1, &(struct wlr_color_manager_v1_options){
+			server->wl_display, 2, &(struct wlr_color_manager_v1_options){
 				.features = {
 					.parametric = true,
 					.set_mastering_display_primaries = true,
@@ -614,10 +612,14 @@ server_init(struct server *server)
 				.render_intents = render_intents,
 				.render_intents_len = ARRAY_SIZE(render_intents),
 				.transfer_functions = transfer_functions,
-				.transfer_functions_len = ARRAY_SIZE(transfer_functions),
+				.transfer_functions_len = transfer_functions_len,
 				.primaries = primaries,
-				.primaries_len = ARRAY_SIZE(primaries),
+				.primaries_len = primaries_len,
 			});
+
+		free(transfer_functions);
+		free(primaries);
+
 		if (cm) {
 			wlr_scene_set_color_manager_v1(server->scene, cm);
 		} else {

@@ -57,6 +57,11 @@ struct usable_area_override {
 	struct wl_list link; /* struct rcxml.usable_area_overrides */
 };
 
+struct workspace_config {
+	struct wl_list link; /* struct rcxml.workspace_config.workspaces */
+	char *name;
+};
+
 struct rcxml {
 	/* from command line */
 	char *config_dir;
@@ -170,7 +175,7 @@ struct rcxml {
 		int min_nr_workspaces;
 		char *initial_workspace_name;
 		char *prefix;
-		struct wl_list workspaces;  /* struct workspace.link */
+		struct wl_list workspaces;  /* struct workspace_config.link */
 	} workspace_config;
 
 	/* Regions */

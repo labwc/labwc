@@ -512,7 +512,7 @@ extending outward from the snapped edge.
 	*<range><inner>* and *<range><outer>*, and 50 for *<cornerRange>*.
 
 *<snapping><overlay><enabled>* [yes|no]
-	Show an overlay when snapping to a window to an edge. Default is yes.
+	Show an overlay when snapping a window to an output edge. Default is yes.
 
 *<snapping><overlay><delay><inner>*++
 *<snapping><overlay><delay><outer>*

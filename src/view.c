@@ -14,6 +14,7 @@
 #include "common/list.h"
 #include "common/match.h"
 #include "common/mem.h"
+#include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "cycle.h"
 #include "foreign-toplevel/foreign.h"
@@ -287,8 +288,8 @@ matches_criteria(struct view *view, enum lab_view_criteria criteria)
 			return false;
 		}
 	}
-	if (criteria & LAB_VIEW_CRITERIA_ROOT_TOPLEVEL) {
-		if (view != view_get_root(view)) {
+	if (criteria & LAB_VIEW_CRITERIA_NO_DIALOG) {
+		if (view_is_modal_dialog(view)) {
 			return false;
 		}
 	}
@@ -461,10 +462,6 @@ view_discover_output(struct view *view, struct wlr_box *geometry)
 
 	if (output && output != view->output) {
 		view->output = output;
-		/* Show fullscreen views above top-layer */
-		if (view->fullscreen) {
-			desktop_update_top_layer_visibility(view->server);
-		}
 		return true;
 	}
 
@@ -581,12 +578,28 @@ view_moved(struct view *view)
 	}
 }
 
+static void save_last_placement(struct view *view);
+
 void
 view_move_resize(struct view *view, struct wlr_box geo)
 {
 	assert(view);
 	if (view->impl->configure) {
 		view->impl->configure(view, geo);
+	}
+
+	/*
+	 * If the move/resize was user-initiated (rather than due to
+	 * output layout change), then update the last placement info.
+	 *
+	 * TODO: consider also updating view->output here for floating
+	 * views (based on view->pending) rather than waiting until
+	 * view_moved(). This might eliminate some race conditions with
+	 * view_adjust_for_layout_change(), which uses view->pending.
+	 * Not sure if it might have other side-effects though.
+	 */
+	if (!view->adjusting_for_layout_change) {
+		save_last_placement(view);
 	}
 }
 
@@ -730,7 +743,7 @@ view_adjust_size(struct view *view, int *w, int *h)
 }
 
 static void
-_minimize(struct view *view, bool minimized)
+_minimize(struct view *view, bool minimized, bool *need_refocus)
 {
 	assert(view);
 	if (view->minimized == minimized) {
@@ -743,8 +756,15 @@ _minimize(struct view *view, bool minimized)
 
 	view->minimized = minimized;
 	wl_signal_emit_mutable(&view->events.minimized, NULL);
-
 	view_update_visibility(view);
+
+	/*
+	 * Need to focus a different view when:
+	 *   - minimizing the active view
+	 *   - unminimizing any mapped view
+	 */
+	*need_refocus |= (minimized ?
+		(view == view->server->active_view) : view->mapped);
 }
 
 static void
@@ -757,7 +777,7 @@ view_append_children(struct view *view, struct wl_array *children)
 }
 
 static void
-minimize_sub_views(struct view *view, bool minimized)
+minimize_sub_views(struct view *view, bool minimized, bool *need_refocus)
 {
 	struct view **child;
 	struct wl_array children;
@@ -765,8 +785,8 @@ minimize_sub_views(struct view *view, bool minimized)
 	wl_array_init(&children);
 	view_append_children(view, &children);
 	wl_array_for_each(child, &children) {
-		_minimize(*child, minimized);
-		minimize_sub_views(*child, minimized);
+		_minimize(*child, minimized, need_refocus);
+		minimize_sub_views(*child, minimized, need_refocus);
 	}
 	wl_array_release(&children);
 }
@@ -781,8 +801,10 @@ void
 view_minimize(struct view *view, bool minimized)
 {
 	assert(view);
+	struct server *server = view->server;
+	bool need_refocus = false;
 
-	if (view->server->input_mode == LAB_INPUT_STATE_CYCLE) {
+	if (server->input_mode == LAB_INPUT_STATE_CYCLE) {
 		wlr_log(WLR_ERROR, "not minimizing window while window switching");
 		return;
 	}
@@ -793,8 +815,20 @@ view_minimize(struct view *view, bool minimized)
 	 * 'open file' dialog), so it saves trying to unmap them twice
 	 */
 	struct view *root = view_get_root(view);
-	_minimize(root, minimized);
-	minimize_sub_views(root, minimized);
+	_minimize(root, minimized, &need_refocus);
+	minimize_sub_views(root, minimized, &need_refocus);
+
+	/*
+	 * Update focus only at the end to avoid repeated focus changes.
+	 * desktop_focus_view() will raise all sibling views together.
+	 */
+	if (need_refocus) {
+		if (minimized) {
+			desktop_focus_topmost_view(server);
+		} else {
+			desktop_focus_view(view, /* raise */ true);
+		}
+	}
 }
 
 bool
@@ -825,6 +859,7 @@ view_compute_centered_position(struct view *view, const struct wlr_box *ref,
 	return true;
 }
 
+/* Make sure the passed-in view geometry is visible in view->output */
 static bool
 adjust_floating_geometry(struct view *view, struct wlr_box *geometry,
 		bool midpoint_visibility)
@@ -1070,7 +1105,7 @@ view_place_by_policy(struct view *view, bool allow_cursor,
 void
 view_constrain_size_to_that_of_usable_area(struct view *view)
 {
-	if (!view || !view->output || view->fullscreen) {
+	if (!view || !output_is_usable(view->output) || view->fullscreen) {
 		return;
 	}
 
@@ -1405,9 +1440,6 @@ view_maximize(struct view *view, enum view_axis axis)
 		 * a maximized view.
 		 */
 		interactive_cancel(view);
-		if (store_natural_geometry && view_is_floating(view)) {
-			view_invalidate_last_layout_geometry(view);
-		}
 	}
 
 	/*
@@ -1695,7 +1727,6 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 		 */
 		interactive_cancel(view);
 		view_store_natural_geometry(view);
-		view_invalidate_last_layout_geometry(view);
 	}
 
 	set_fullscreen(view, fullscreen);
@@ -1713,139 +1744,80 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 	cursor_update_focus(view->server);
 }
 
-static bool
-last_layout_geometry_is_valid(struct view *view)
+static void
+save_last_placement(struct view *view)
 {
-	return view->last_layout_geometry.width > 0
-		&& view->last_layout_geometry.height > 0;
+	assert(view);
+	struct output *output = view->output;
+	if (!output_is_usable(output)) {
+		wlr_log(WLR_ERROR, "cannot save last placement in unusable output");
+		return;
+	}
+	if (!str_equal(view->last_placement.output_name, output->wlr_output->name)) {
+		xstrdup_replace(view->last_placement.output_name,
+			output->wlr_output->name);
+	}
+	view->last_placement.layout_geo = view->pending;
+	view->last_placement.relative_geo = view->pending;
+	view->last_placement.relative_geo.x -= output->scene_output->x;
+	view->last_placement.relative_geo.y -= output->scene_output->y;
 }
 
 static void
-update_last_layout_geometry(struct view *view)
-{
-	/*
-	 * Only update an invalid last-layout geometry to prevent a series of
-	 * successive layout changes from continually replacing the "preferred"
-	 * location with whatever location the view currently holds. The
-	 * "preferred" location should be whatever state was set by user
-	 * interaction, not automatic responses to layout changes.
-	 */
-	if (last_layout_geometry_is_valid(view)) {
-		return;
-	}
-
-	if (view_is_floating(view)) {
-		view->last_layout_geometry = view->pending;
-	} else if (!wlr_box_empty(&view->natural_geometry)) {
-		view->last_layout_geometry = view->natural_geometry;
-	} else {
-		/* e.g. initially-maximized window */
-		view->last_layout_geometry =
-			view_get_fallback_natural_geometry(view);
-	}
-}
-
-static bool
-apply_last_layout_geometry(struct view *view, bool force_update)
-{
-	/* Only apply a valid last-layout geometry */
-	if (!last_layout_geometry_is_valid(view)) {
-		return false;
-	}
-
-	/*
-	 * Unless forced, the last-layout geometry is only applied
-	 * when the relevant view geometry is distinct.
-	 */
-	if (!force_update) {
-		struct wlr_box *relevant = view_is_floating(view) ?
-			&view->pending : &view->natural_geometry;
-
-		if (wlr_box_equal(relevant, &view->last_layout_geometry)) {
-			return false;
-		}
-	}
-
-	view->natural_geometry = view->last_layout_geometry;
-	adjust_floating_geometry(view, &view->natural_geometry,
-		/* midpoint_visibility */ true);
-	return true;
-}
-
-void
-view_invalidate_last_layout_geometry(struct view *view)
+clear_last_placement(struct view *view)
 {
 	assert(view);
-	view->last_layout_geometry.width = 0;
-	view->last_layout_geometry.height = 0;
+	zfree(view->last_placement.output_name);
+	view->last_placement.relative_geo = (struct wlr_box){0};
+	view->last_placement.layout_geo = (struct wlr_box){0};
 }
 
 void
 view_adjust_for_layout_change(struct view *view)
 {
 	assert(view);
-
-	bool is_floating = view_is_floating(view);
-	bool use_natural = false;
-
-	if (!output_is_usable(view->output)) {
-		/* A view losing an output should have a last-layout geometry */
-		update_last_layout_geometry(view);
+	if (wlr_box_empty(&view->last_placement.layout_geo)) {
+		/* Not using assert() just in case */
+		wlr_log(WLR_ERROR, "view has no last placement info");
+		return;
 	}
 
-	/* Capture a pointer to the last-layout geometry (only if valid) */
-	struct wlr_box *last_geometry = NULL;
-	if (last_layout_geometry_is_valid(view)) {
-		last_geometry = &view->last_layout_geometry;
-	}
+	view->adjusting_for_layout_change = true;
 
-	/*
-	 * Check if an output change is required:
-	 * - Floating views are always mapped to the nearest output
-	 * - Any view without a usable output needs to be repositioned
-	 * - Any view with a valid last-layout geometry might be better
-	 *   positioned on another output
-	 */
-	if (is_floating || last_geometry || !output_is_usable(view->output)) {
-		/* Move the view to an appropriate output, if needed */
-		bool output_changed = view_discover_output(view, last_geometry);
-
+	struct wlr_box new_geo;
+	struct output *output = output_from_name(view->server,
+		view->last_placement.output_name);
+	if (output_is_usable(output)) {
 		/*
-		 * Try to apply the last-layout to the natural geometry
-		 * (adjusting to ensure that it fits on the screen). This is
-		 * forced if the output has changed, but will be done
-		 * opportunistically even on the same output if the last-layout
-		 * geometry is different from the view's governing geometry.
+		 * When the previous output (which might have been reconnected
+		 * or relocated) is available, keep the relative position on it.
 		 */
-		if (apply_last_layout_geometry(view, output_changed)) {
-			use_natural = true;
-		}
-
-		/*
-		 * Whether or not the view has moved, the layout has changed.
-		 * Ensure that the view now has a valid last-layout geometry.
-		 */
-		update_last_layout_geometry(view);
-	}
-
-	if (!is_floating) {
-		view_apply_special_geometry(view);
-	} else if (use_natural) {
-		/*
-		 * Move the window to its natural location, because
-		 * we are trying to restore a prior layout.
-		 */
-		view_apply_natural_geometry(view);
+		new_geo = view->last_placement.relative_geo;
+		new_geo.x += output->scene_output->x;
+		new_geo.y += output->scene_output->y;
+		view->output = output;
 	} else {
-		/* Otherwise, just ensure the view is on screen. */
-		struct wlr_box geometry = view->pending;
-		if (adjust_floating_geometry(view, &geometry,
-					/* midpoint_visibility */ true)) {
-			view_move_resize(view, geometry);
-		}
+		/*
+		 * Otherwise, evacuate the view to another output. Use the last
+		 * layout geometry so that the view position is kept when the
+		 * user reconnects the previous output in a different connector
+		 * or the reconnected output somehow gets a different name.
+		 */
+		view_discover_output(view, &view->last_placement.layout_geo);
+		new_geo = view->last_placement.layout_geo;
+	}
+
+	if (!view_is_floating(view)) {
+		view_apply_special_geometry(view);
+	} else {
+		/* Ensure view is on-screen */
+		adjust_floating_geometry(view, &new_geo,
+			/* midpoint_visibility */ true);
+		view_move_resize(view, new_geo);
 	}
 
 	view_update_outputs(view);
+	view->adjusting_for_layout_change = false;
 }
 
 void
@@ -1928,7 +1900,7 @@ view_move_to_edge(struct view *view, enum lab_edge direction, bool snap_to_windo
 	/* Otherwise, move to edge of next adjacent display, if possible */
 	struct output *output =
 		output_get_adjacent(view->output, direction, /* wrap */ false);
-	if (!output) {
+	if (!output_is_usable(output)) {
 		return;
 	}
 
@@ -2108,7 +2080,7 @@ view_snap_to_edge(struct view *view, enum lab_edge edge,
 			 */
 			output = output_get_adjacent(view->output, edge,
 				/* wrap */ false);
-			if (!output) {
+			if (!output_is_usable(output)) {
 				return;
 			}
 			edge = invert_edge;
@@ -2134,7 +2106,6 @@ view_snap_to_edge(struct view *view, enum lab_edge edge,
 	} else if (store_natural_geometry) {
 		/* store current geometry as new natural_geometry */
 		view_store_natural_geometry(view);
-		view_invalidate_last_layout_geometry(view);
 	}
 	view_set_untiled(view);
 	view_set_output(view, output);
@@ -2168,7 +2139,6 @@ view_snap_to_region(struct view *view, struct region *region)
 	} else if (store_natural_geometry) {
 		/* store current geometry as new natural_geometry */
 		view_store_natural_geometry(view);
-		view_invalidate_last_layout_geometry(view);
 	}
 	view_set_untiled(view);
 	view->tiled_region = region;
@@ -2181,7 +2151,6 @@ view_move_to_output(struct view *view, struct output *output)
 {
 	assert(view);
 
-	view_invalidate_last_layout_geometry(view);
 	view_set_output(view, output);
 	if (view_is_floating(view)) {
 		struct wlr_box output_area = output_usable_area_in_layout_coords(output);
@@ -2241,6 +2210,18 @@ void
 view_move_to_front(struct view *view)
 {
 	assert(view);
+	struct server *server = view->server;
+	assert(!wl_list_empty(&server->views));
+
+	/*
+	 * Check whether the view is already in front, or is the root
+	 * parent of the view in front (in which case we don't want to
+	 * raise it in front of its sub-view).
+	 */
+	struct view *front = wl_container_of(server->views.next, front, link);
+	if (view == front || view == view_get_root(front)) {
+		return;
+	}
 
 	struct view *root = view_get_root(view);
 	assert(root);
@@ -2261,7 +2242,9 @@ view_move_to_front(struct view *view)
 	 * to an incorrect X window depending on timing. To mitigate the
 	 * race, perform an explicit flush after restacking.
 	 */
-	xwayland_flush(view->server);
+	if (view->type == LAB_XWAYLAND_VIEW) {
+		xwayland_flush(view->server);
+	}
 #endif
 	cursor_update_focus(view->server);
 	desktop_update_top_layer_visibility(view->server);
@@ -2281,15 +2264,20 @@ view_move_to_back(struct view *view)
 	desktop_update_top_layer_visibility(view->server);
 }
 
+bool
+view_is_modal_dialog(struct view *view)
+{
+	assert(view);
+	assert(view->impl->is_modal_dialog);
+	return view->impl->is_modal_dialog(view);
+}
+
 struct view *
 view_get_modal_dialog(struct view *view)
 {
 	assert(view);
-	if (!view->impl->is_modal_dialog) {
-		return NULL;
-	}
 	/* check view itself first */
-	if (view->impl->is_modal_dialog(view)) {
+	if (view_is_modal_dialog(view)) {
 		return view;
 	}
 
@@ -2302,7 +2290,7 @@ view_get_modal_dialog(struct view *view)
 	wl_array_init(&children);
 	view_append_children(root, &children);
 	wl_array_for_each(child, &children) {
-		if (view->impl->is_modal_dialog(*child)) {
+		if (view_is_modal_dialog(*child)) {
 			dialog = *child;
 			break;
 		}
@@ -2413,30 +2401,12 @@ view_update_visibility(struct view *view)
 	}
 
 	wlr_scene_node_set_enabled(&view->scene_tree->node, visible);
-	struct server *server = view->server;
-
-	if (visible) {
-		desktop_focus_view(view, /*raise*/ true);
-	} else {
-		/*
-		 * When exiting an xwayland application with multiple
-		 * views mapped, a race condition can occur: after the
-		 * topmost view is unmapped, the next view under it is
-		 * offered focus, but is also unmapped before accepting
-		 * focus (so server->active_view remains NULL). To avoid
-		 * being left with no active view at all, check for that
-		 * case also.
-		 */
-		if (view == server->active_view || !server->active_view) {
-			desktop_focus_topmost_view(server);
-		}
-	}
 
 	/*
 	 * Show top layer when a fullscreen view is hidden.
 	 * Hide it if a fullscreen view is shown (or uncovered).
 	 */
-	desktop_update_top_layer_visibility(server);
+	desktop_update_top_layer_visibility(view->server);
 
 	/*
 	 * We may need to disable adaptive sync if view was fullscreen.
@@ -2451,7 +2421,12 @@ view_update_visibility(struct view *view)
 
 	/* Update usable area to account for XWayland "struts" (panels) */
 	if (view_has_strut_partial(view)) {
-		output_update_all_usable_areas(server, false);
+		output_update_all_usable_areas(view->server, false);
+	}
+
+	/* View might have been unmapped/minimized during move/resize */
+	if (!visible) {
+		interactive_cancel(view);
 	}
 }
 
@@ -2558,8 +2533,11 @@ view_destroy(struct view *view)
 		view->foreign_toplevel = NULL;
 	}
 
+	/*
+	 * This check is (in theory) redundant since interactive_cancel()
+	 * is called at unmap. Leaving it here just to be sure.
+	 */
 	if (server->grabbed_view == view) {
-		/* Application got killed while moving around */
 		interactive_cancel(view);
 	}
 
@@ -2580,6 +2558,7 @@ view_destroy(struct view *view)
 
 	undecorate(view);
 
+	clear_last_placement(view);
 	view_set_icon(view, NULL, NULL);
 	menu_on_view_destroy(view);
 

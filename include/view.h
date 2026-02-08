@@ -214,12 +214,20 @@ struct view {
 	 */
 	struct wlr_box natural_geometry;
 	/*
-	 * Whenever an output layout change triggers a view relocation, the
-	 * last pending position (or natural geometry) will be saved so the
-	 * view may be restored to its original location on a subsequent layout
-	 * change.
+	 * last_placement represents the last view position set by the user.
+	 * output_name and relative_geo are used to keep or restore the view
+	 * position relative to the output and layout_geo is used to keep the
+	 * global position when the output is lost.
 	 */
-	struct wlr_box last_layout_geometry;
+	struct {
+		char *output_name;
+		/* view geometry in output-relative coordinates */
+		struct wlr_box relative_geo;
+		/* view geometry in layout coordinates */
+		struct wlr_box layout_geo;
+	} last_placement;
+	/* Set temporarily when moving view due to layout change */
+	bool adjusting_for_layout_change;
 
 	/* used by xdg-shell views */
 	uint32_t pending_configure_serial;
@@ -336,7 +344,7 @@ void view_query_free(struct view_query *view);
 bool view_matches_query(struct view *view, struct view_query *query);
 
 /**
- * for_each_view() - iterate over all views which match criteria
+ * for_each_view() - iterate over all views which match criteria (front to back)
  * @view: Iterator.
  * @head: Head of list to iterate over.
  * @criteria: Criteria to match against.
@@ -352,7 +360,7 @@ bool view_matches_query(struct view *view, struct view_query *query);
 	     view = view_next(head, view, criteria))
 
 /**
- * for_each_view_reverse() - iterate over all views which match criteria
+ * for_each_view_reverse() - iterate over all views which match criteria (back to front)
  * @view: Iterator.
  * @head: Head of list to iterate over.
  * @criteria: Criteria to match against.
@@ -533,7 +541,6 @@ bool view_titlebar_visible(struct view *view);
 void view_set_ssd_mode(struct view *view, enum lab_ssd_mode mode);
 void view_set_decorations(struct view *view, enum lab_ssd_mode mode, bool force_ssd);
 void view_toggle_fullscreen(struct view *view);
-void view_invalidate_last_layout_geometry(struct view *view);
 void view_adjust_for_layout_change(struct view *view);
 void view_move_to_edge(struct view *view, enum lab_edge direction, bool snap_to_windows);
 void view_grow_to_edge(struct view *view, enum lab_edge direction);
@@ -545,6 +552,8 @@ void view_move_to_output(struct view *view, struct output *output);
 
 void view_move_to_front(struct view *view);
 void view_move_to_back(struct view *view);
+
+bool view_is_modal_dialog(struct view *view);
 
 /**
  * view_get_modal_dialog() - returns any modal dialog found among this

@@ -228,7 +228,7 @@ ensure_initial_geometry_and_output(struct view *view)
 			view->pending = view->current;
 		}
 	}
-	if (!view->output) {
+	if (!output_is_usable(view->output)) {
 		/*
 		 * Just use the cursor output since we don't know yet
 		 * whether the surface position is meaningful.
@@ -946,6 +946,14 @@ xwayland_view_set_activated(struct view *view, bool activated)
 	}
 
 	wlr_xwayland_surface_activate(xwayland_surface, activated);
+	/*
+	 * Make sure that the X11-protocol messages (SetInputFocus etc.)
+	 * are sent immediately. This mitigates a race where the XWayland
+	 * server may generate an unwanted FocusOut event for the newly
+	 * activated window, if it receives mouse/pointer events over the
+	 * parallel wayland connection first.
+	 */
+	xwayland_flush(view->server);
 }
 
 static void

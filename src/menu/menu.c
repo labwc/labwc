@@ -731,7 +731,7 @@ menu_reposition(struct menu *menu, struct wlr_box anchor_rect)
 	/* Get output usable area to place the menu within */
 	struct output *output = output_nearest_to(menu->server,
 		anchor_rect.x, anchor_rect.y);
-	if (!output) {
+	if (!output_is_usable(output)) {
 		wlr_log(WLR_ERROR, "no output found around (%d,%d)",
 			anchor_rect.x, anchor_rect.y);
 		return;
@@ -1430,7 +1430,7 @@ menu_execute_item(struct menuitem *item)
 	struct server *server = item->parent->server;
 	menu_close(server->menu_current);
 	server->menu_current = NULL;
-	seat_focus_override_end(&server->seat);
+	seat_focus_override_end(&server->seat, /*restore_focus*/ true);
 
 	/*
 	 * We call the actions after closing the menu so that virtual keyboard
@@ -1443,6 +1443,9 @@ menu_execute_item(struct menuitem *item)
 	 */
 	if (!strcmp(item->parent->id, "client-list-combined-menu")
 			&& item->client_list_view) {
+		if (item->client_list_view->shaded) {
+			view_set_shade(item->client_list_view, false);
+		}
 		actions_run(item->client_list_view, server, &item->actions, NULL);
 	} else {
 		actions_run(item->parent->triggered_by_view, server,
@@ -1530,7 +1533,7 @@ menu_close_root(struct server *server)
 	menu_close(server->menu_current);
 	server->menu_current = NULL;
 	reset_pipemenus(server);
-	seat_focus_override_end(&server->seat);
+	seat_focus_override_end(&server->seat, /*restore_focus*/ true);
 }
 
 void

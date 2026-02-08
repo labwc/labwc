@@ -1,0 +1,80 @@
+# Labwc pot file
+# Copyright (C) 2024
+# This file is distributed under the same license as the labwc package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: labwc\n"
+"Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
+"POT-Creation-Date: 2024-09-19 21:09+1000\n"
+"PO-Revision-Date: 2026-01-18 21:01+0000\n"
+"Last-Translator: Baurzhan Muftakhidinov <baurthefirst@gmail.com>\n"
+"Language-Team: Kazakh <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/kk/>\n"
+"Language: kk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.2.1\n"
+
+#: src/menu/menu.c:1016
+msgid "Go there..."
+msgstr "Онда бару..."
+
+#: src/menu/menu.c:1034
+msgid "Terminal"
+msgstr "Терминал"
+
+#: src/menu/menu.c:1040
+msgid "Reconfigure"
+msgstr "Қайта баптау"
+
+#: src/menu/menu.c:1042
+msgid "Exit"
+msgstr "Шығу"
+
+#: src/menu/menu.c:1056
+msgid "Minimize"
+msgstr "Қайыру"
+
+#: src/menu/menu.c:1058
+msgid "Maximize"
+msgstr "Жазық қылу"
+
+#: src/menu/menu.c:1060
+msgid "Fullscreen"
+msgstr "Толық экран"
+
+#: src/menu/menu.c:1062
+msgid "Roll Up/Down"
+msgstr "Жоғары/Төмен жинау"
+
+#: src/menu/menu.c:1064
+msgid "Decorations"
+msgstr "Безендірулер"
+
+#: src/menu/menu.c:1066
+msgid "Always on Top"
+msgstr "Әрқашан жоғарыда"
+
+#: src/menu/menu.c:1071
+msgid "Move Left"
+msgstr "Солға жылжыту"
+
+#: src/menu/menu.c:1078
+msgid "Move Right"
+msgstr "Оңға жылжыту"
+
+#: src/menu/menu.c:1083
+msgid "Always on Visible Workspace"
+msgstr "Әрқашан көрінетін жұмыс орнында"
+
+#: src/menu/menu.c:1086
+msgid "Workspace"
+msgstr "Жұмыс орны"
+
+#: src/menu/menu.c:1089
+msgid "Close"
+msgstr "Жабу"

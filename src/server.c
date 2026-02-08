@@ -8,6 +8,8 @@
 #include <wlr/backend/multi.h>
 #include <wlr/render/allocator.h>
 #include <wlr/types/wlr_alpha_modifier_v1.h>
+#include <wlr/types/wlr_color_management_v1.h>
+#include <wlr/types/wlr_color_representation_v1.h>
 #include <wlr/types/wlr_data_control_v1.h>
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_drm.h>
@@ -586,6 +588,47 @@ server_init(struct server *server)
 	 * | output->layer_tree[1]              | bottom layer surfaces
 	 * | output->layer_tree[0]              | background layer surfaces (e.g. swaybg)
 	 */
+
+	if (server->renderer->features.input_color_transform) {
+		const enum wp_color_manager_v1_render_intent render_intents[] = {
+			WP_COLOR_MANAGER_V1_RENDER_INTENT_PERCEPTUAL,
+		};
+		size_t transfer_functions_len = 0;
+		enum wp_color_manager_v1_transfer_function *transfer_functions =
+			wlr_color_manager_v1_transfer_function_list_from_renderer(
+				server->renderer, &transfer_functions_len);
+
+		size_t primaries_len = 0;
+		enum wp_color_manager_v1_primaries *primaries =
+			wlr_color_manager_v1_primaries_list_from_renderer(
+				server->renderer, &primaries_len);
+
+		struct wlr_color_manager_v1 *cm = wlr_color_manager_v1_create(
+			server->wl_display, 2, &(struct wlr_color_manager_v1_options){
+				.features = {
+					.parametric = true,
+					.set_mastering_display_primaries = true,
+				},
+				.render_intents = render_intents,
+				.render_intents_len = ARRAY_SIZE(render_intents),
+				.transfer_functions = transfer_functions,
+				.transfer_functions_len = transfer_functions_len,
+				.primaries = primaries,
+				.primaries_len = primaries_len,
+			});
+
+		free(transfer_functions);
+		free(primaries);
+
+		if (cm) {
+			wlr_scene_set_color_manager_v1(server->scene, cm);
+		} else {
+			wlr_log(WLR_ERROR, "unable to create color manager");
+		}
+	}
+
+	wlr_color_representation_manager_v1_create_with_renderer(
+	server->wl_display, 1, server->renderer);
 
 	server->view_tree_always_on_bottom = wlr_scene_tree_create(&server->scene->tree);
 	server->view_tree = wlr_scene_tree_create(&server->scene->tree);

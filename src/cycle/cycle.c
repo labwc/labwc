@@ -204,8 +204,7 @@ cycle_finish(struct server *server, bool switch_focus)
 	struct view *selected_view = server->cycle.selected_view;
 	destroy_cycle(server);
 
-	/* FIXME: this sets focus to the old surface even with switch_focus=true */
-	seat_focus_override_end(&server->seat);
+	seat_focus_override_end(&server->seat, /*restore_focus*/ false);
 
 	/* Hiding OSD may need a cursor change */
 	cursor_update_focus(server);
@@ -332,7 +331,7 @@ init_cycle(struct server *server, struct cycle_filter filter)
 {
 	enum lab_view_criteria criteria =
 		LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER
-		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL;
+		| LAB_VIEW_CRITERIA_NO_DIALOG;
 	if (filter.workspace == CYCLE_WORKSPACE_CURRENT) {
 		criteria |= LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
 	}

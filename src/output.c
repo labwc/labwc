@@ -128,17 +128,6 @@ handle_output_frame(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (!output->scene_output) {
-		/*
-		 * TODO: This is a short term fix for issue #1667,
-		 *       a proper fix would require restructuring
-		 *       the life cycle of scene outputs, e.g.
-		 *       creating them on handle_new_output() only.
-		 */
-		wlr_log(WLR_INFO, "Failed to render new frame: no scene-output");
-		return;
-	}
-
 	if (output->gamma_lut_changed) {
 		/*
 		 * We are not mixing the gamma state with
@@ -166,7 +155,8 @@ static void
 handle_output_destroy(struct wl_listener *listener, void *data)
 {
 	struct output *output = wl_container_of(listener, output, destroy);
-	struct seat *seat = &output->server->seat;
+	struct server *server = output->server;
+	struct seat *seat = &server->seat;
 	regions_evacuate_output(output);
 	regions_destroy(seat, &output->regions);
 	if (seat->overlay.active.output == output) {
@@ -190,7 +180,6 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	}
 
 	struct view *view;
-	struct server *server = output->server;
 	wl_list_for_each(view, &server->views, link) {
 		if (view->output == output) {
 			view_on_output_destroy(view);
@@ -876,14 +865,9 @@ wlr_output_configuration_v1 *create_output_config(struct server *server)
 			wlr_output_configuration_v1_destroy(config);
 			return NULL;
 		}
-		struct wlr_box box;
-		wlr_output_layout_get_box(server->output_layout,
-			output->wlr_output, &box);
-		if (!wlr_box_empty(&box)) {
-			head->state.x = box.x;
-			head->state.y = box.y;
-		} else {
-			wlr_log(WLR_ERROR, "failed to get output layout box");
+		if (output_is_usable(output)) {
+			head->state.x = output->scene_output->x;
+			head->state.y = output->scene_output->y;
 		}
 	}
 	return config;
@@ -1067,8 +1051,14 @@ output_get_adjacent(struct output *output, enum lab_edge edge, bool wrap)
 bool
 output_is_usable(struct output *output)
 {
-	/* output_is_usable(NULL) is safe and returns false */
-	return output && output->wlr_output->enabled;
+	/*
+	 * output_is_usable(NULL) is safe and returns false.
+	 *
+	 * Checking output->scene_output != NULL is necessary in case the
+	 * wlr_output was initially enabled but hasn't been configured yet
+	 * (occurs with autoEnableOutputs=no).
+	 */
+	return output && output->wlr_output->enabled && output->scene_output;
 }
 
 /* returns true if usable area changed */
@@ -1128,7 +1118,7 @@ output_update_all_usable_areas(struct server *server, bool layout_changed)
 struct wlr_box
 output_usable_area_in_layout_coords(struct output *output)
 {
-	if (!output) {
+	if (!output_is_usable(output)) {
 		return (struct wlr_box){0};
 	}
 	struct wlr_box box = output->usable_area;

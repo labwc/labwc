@@ -500,7 +500,7 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (!view->mapped && !view->output) {
+	if (!view->mapped && !output_is_usable(view->output)) {
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 	bool maximized = toplevel->requested.maximized;
@@ -521,7 +521,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (!view->mapped && !view->output) {
+	if (!view->mapped && !output_is_usable(view->output)) {
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 	set_fullscreen_from_request(view,
@@ -819,7 +819,7 @@ handle_map(struct wl_listener *listener, void *data)
 	 * An output should have been chosen when the surface was first
 	 * created, but take one more opportunity to assign an output if not.
 	 */
-	if (!view->output) {
+	if (!output_is_usable(view->output)) {
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 

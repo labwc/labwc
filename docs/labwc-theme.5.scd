@@ -176,6 +176,9 @@ window.*.title.bg.colorTo.splitTo: #557485
 Note: The *window.button.hover* namespace (below) relates to button hover
 overlay effects which work with all buttons including svg, png and xbm.
 
+The *window.button.hover* effects are only shown if there is no corresponding
+hover icon, like *close_hover-active.svg*.
+
 Openbox only supports hover effects rendered behind buttons which makes sense
 for the xbm format, but not for others. For reference, these are defined by
 *window.active|inactive.button.STATE.bg* where *STATE* can be any of *pressed*,

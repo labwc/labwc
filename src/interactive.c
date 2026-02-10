@@ -54,9 +54,34 @@ interactive_anchor_to_cursor(struct server *server, struct wlr_box *geo)
 	geo->y = server->grab_box.y + (server->seat.cursor->y - server->grab_y);
 }
 
+/*
+ * Called before interactive_begin() to set the initial grab parameters
+ * (cursor position and view geometry). Once the cursor actually moves,
+ * then interactive_begin() is called.
+ */
+void
+interactive_set_grab_context(struct cursor_context *ctx)
+{
+	if (!ctx->view) {
+		return;
+	}
+	struct server *server = ctx->view->server;
+	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+		return;
+	}
+
+	server->grabbed_view = ctx->view;
+	server->grab_x = server->seat.cursor->x;
+	server->grab_y = server->seat.cursor->y;
+	server->grab_box = ctx->view->current;
+	server->resize_edges =
+		cursor_get_resize_edges(server->seat.cursor, ctx);
+}
+
 void
 interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 {
+	assert(view);
 	/*
 	 * This function sets up an interactive move or resize operation, where
 	 * the compositor stops propagating pointer events to clients and
@@ -65,7 +90,8 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 	struct server *server = view->server;
 	struct seat *seat = &server->seat;
 
-	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH
+			|| view != server->grabbed_view) {
 		return;
 	}
 
@@ -109,33 +135,34 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 		}
 
 		/*
+		 * Override resize edges if specified explicitly.
+		 * Otherwise, they were set already from cursor context.
+		 */
+		if (edges != LAB_EDGE_NONE) {
+			server->resize_edges = edges;
+		}
+
+		/*
 		 * If tiled or maximized in only one direction, reset
 		 * tiled state and un-maximize the relevant axes, but
 		 * keep the same geometry as the starting point.
 		 */
 		enum view_axis maximized = view->maximized;
-		if (edges & LAB_EDGES_LEFT_RIGHT) {
+		if (server->resize_edges & LAB_EDGES_LEFT_RIGHT) {
 			maximized &= ~VIEW_AXIS_HORIZONTAL;
 		}
-		if (edges & LAB_EDGES_TOP_BOTTOM) {
+		if (server->resize_edges & LAB_EDGES_TOP_BOTTOM) {
 			maximized &= ~VIEW_AXIS_VERTICAL;
 		}
 		view_set_maximized(view, maximized);
 		view_set_untiled(view);
-		cursor_shape = cursor_get_from_edge(edges);
+		cursor_shape = cursor_get_from_edge(server->resize_edges);
 		break;
 	}
 	default:
 		/* Should not be reached */
 		return;
 	}
-
-	server->grabbed_view = view;
-	/* Remember view and cursor positions at start of move/resize */
-	server->grab_x = seat->cursor->x;
-	server->grab_y = seat->cursor->y;
-	server->grab_box = view->current;
-	server->resize_edges = edges;
 
 	seat_focus_override_begin(seat, mode, cursor_shape);
 
@@ -293,6 +320,8 @@ snap_to_region(struct view *view)
 void
 interactive_finish(struct view *view)
 {
+	assert(view);
+
 	if (view->server->grabbed_view != view) {
 		return;
 	}
@@ -314,15 +343,26 @@ interactive_finish(struct view *view)
 void
 interactive_cancel(struct view *view)
 {
+	assert(view);
+
 	if (view->server->grabbed_view != view) {
+		return;
+	}
+
+	view->server->grabbed_view = NULL;
+
+	/*
+	 * It's possible that grabbed_view was set but interactive_begin()
+	 * wasn't called yet. In that case, we are done.
+	 */
+	if (view->server->input_mode != LAB_INPUT_STATE_MOVE
+			&& view->server->input_mode != LAB_INPUT_STATE_RESIZE) {
 		return;
 	}
 
 	overlay_finish(&view->server->seat);
 
 	resize_indicator_hide(view);
-
-	view->server->grabbed_view = NULL;
 
 	/* Restore keyboard/pointer focus */
 	seat_focus_override_end(&view->server->seat, /*restore_focus*/ true);

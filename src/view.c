@@ -1433,14 +1433,11 @@ view_maximize(struct view *view, enum view_axis axis)
 	bool store_natural_geometry = !in_interactive_move(view);
 	view_set_shade(view, false);
 
-	if (axis != VIEW_AXIS_NONE) {
-		/*
-		 * Maximize via keybind or client request cancels
-		 * interactive move/resize since we can't move/resize
-		 * a maximized view.
-		 */
-		interactive_cancel(view);
-	}
+	/*
+	 * Maximize/unmaximize via keybind or client request cancels
+	 * interactive move/resize.
+	 */
+	interactive_cancel(view);
 
 	/*
 	 * Update natural geometry for any axis that wasn't already

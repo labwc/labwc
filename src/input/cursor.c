@@ -1147,6 +1147,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 	if (ctx.view || ctx.surface) {
 		/* Store cursor context for later action processing */
 		cursor_context_save(&seat->pressed, &ctx);
+		interactive_set_grab_context(&ctx);
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
@@ -1277,6 +1278,9 @@ cursor_finish_button_release(struct seat *seat, uint32_t button)
 		/* Exit interactive move/resize mode */
 		interactive_finish(server->grabbed_view);
 		return true;
+	} else if (server->grabbed_view) {
+		/* Button was released without starting move/resize */
+		interactive_cancel(server->grabbed_view);
 	}
 
 	return false;

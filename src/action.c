@@ -1262,6 +1262,14 @@ run_action(struct view *view, struct server *server, struct action *action,
 		break;
 	case ACTION_TYPE_MOVE:
 		if (view) {
+			/*
+			 * If triggered by mousebind, grab context was already
+			 * set by button press handling. For keybind-triggered
+			 * Move, set it now from current cursor position.
+			 */
+			if (view != server->seat.pressed.ctx.view) {
+				interactive_set_grab_context(ctx);
+			}
 			interactive_begin(view, LAB_INPUT_STATE_MOVE,
 				LAB_EDGE_NONE);
 		}
@@ -1285,9 +1293,13 @@ run_action(struct view *view, struct server *server, struct action *action,
 			 */
 			enum lab_edge resize_edges =
 				action_get_int(action, "direction", LAB_EDGE_NONE);
-			if (resize_edges == LAB_EDGE_NONE) {
-				resize_edges = cursor_get_resize_edges(
-					server->seat.cursor, ctx);
+			/*
+			 * If triggered by mousebind, grab context was already
+			 * set by button press handling. For keybind-triggered
+			 * Resize, set it now from current cursor position.
+			 */
+			if (view != server->seat.pressed.ctx.view) {
+				interactive_set_grab_context(ctx);
 			}
 			interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 				resize_edges);

@@ -382,12 +382,19 @@ handle_unmap(struct wl_listener *listener, void *data)
 	layer->being_unmapped = false;
 }
 
+static bool
+is_overlay(struct wlr_layer_surface_v1 *layer_surface)
+{
+	return layer_surface->current.layer == ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY;
+}
+
 static void
 handle_map(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_surface *layer = wl_container_of(listener, layer, map);
-	struct wlr_output *wlr_output =
-		layer->scene_layer_surface->layer_surface->output;
+	struct wlr_layer_surface_v1 *layer_surface =
+		layer->scene_layer_surface->layer_surface;
+	struct wlr_output *wlr_output = layer_surface->output;
 	if (wlr_output) {
 		output_update_usable_area(wlr_output->data);
 	}
@@ -398,6 +405,23 @@ handle_map(struct wl_listener *listener, void *data)
 	 * automatically based on the position of the surface and outputs in
 	 * the scene. See wlr_scene_surface_create() documentation.
 	 */
+
+	/*
+	 * Layer-shell clients with exclusive interactivity always get focus,
+	 * whereas on-demand ones only get it when in the overlay layer. We
+	 * could make this configurable, but for the time being this default
+	 * behaviour strikes a balance between:
+	 *
+	 *   1. Giving overlay, on-demand clients (like labnag with the default
+	 *      <prompt> settings) keyboard focus.
+	 *   2. Preventing desktop components like panels and desktops from
+	 *      stealing keyboard focus on re-start. On compositor start, this
+	 *      is not really a problem, but if any such client restarts later,
+	 *      focus-stealing is unlikely to be desirable.
+	 */
+	if (!is_overlay(layer_surface) && is_on_demand(layer_surface)) {
+		return;
+	}
 
 	struct seat *seat = &layer->server->seat;
 	layer_try_set_focus(seat, layer->scene_layer_surface->layer_surface);

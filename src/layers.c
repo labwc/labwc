@@ -417,6 +417,7 @@ handle_popup_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&popup->destroy.link);
 	wl_list_remove(&popup->new_popup.link);
 	wl_list_remove(&popup->reposition.link);
+	wl_list_remove(&popup->grab.link);
 
 	/* Usually already removed unless there was no commit at all */
 	if (popup->commit.notify) {
@@ -442,6 +443,19 @@ handle_popup_commit(struct wl_listener *listener, void *data)
 		wl_list_remove(&popup->commit.link);
 		popup->commit.notify = NULL;
 	}
+}
+
+static void
+handle_popup_grab(struct wl_listener *listener, void *data)
+{
+	struct lab_layer_popup *popup = wl_container_of(listener, popup, grab);
+	wlr_log(WLR_ERROR, "grab layer-shell popup");
+	struct seat *seat = &popup->server->seat;
+	//seat_force_focus_surface(seat, popup->wlr_popup->base->surface);
+
+	struct wlr_surface *wlr_surface =
+		popup->lab_layer_surface->layer_surface->surface;
+	seat_force_focus_surface(seat, wlr_surface);
 }
 
 static void
@@ -484,6 +498,9 @@ create_popup(struct server *server, struct wlr_xdg_popup *wlr_popup,
 	popup->commit.notify = handle_popup_commit;
 	wl_signal_add(&wlr_popup->base->surface->events.commit, &popup->commit);
 
+	popup->grab.notify = handle_popup_grab;
+	wl_signal_add(&wlr_popup->events.grab, &popup->grab);
+
 	popup->reposition.notify = handle_popup_reposition;
 	wl_signal_add(&wlr_popup->events.reposition, &popup->reposition);
 
@@ -509,6 +526,7 @@ handle_popup_new_popup(struct wl_listener *listener, void *data)
 
 	new_popup->output_toplevel_sx_box =
 		lab_layer_popup->output_toplevel_sx_box;
+	new_popup->lab_layer_surface = lab_layer_popup->lab_layer_surface;
 }
 
 /*
@@ -574,6 +592,7 @@ handle_new_popup(struct wl_listener *listener, void *data)
 	}
 
 	popup->output_toplevel_sx_box = output_toplevel_sx_box;
+	popup->lab_layer_surface = toplevel;
 
 	if (surface->layer_surface->current.layer
 			<= ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM) {

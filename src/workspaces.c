@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <wlr/types/wlr_ext_workspace_v1.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 #include "buffer.h"
@@ -19,12 +20,9 @@
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "output.h"
-#include "protocols/cosmic-workspaces.h"
-#include "protocols/ext-workspace.h"
 #include "theme.h"
 #include "view.h"
 
-#define COSMIC_WORKSPACES_VERSION 1
 #define EXT_WORKSPACES_VERSION 1
 
 /* Internal helpers */
@@ -209,22 +207,21 @@ workspace_find_by_name(struct server *server, const char *name)
 	return NULL;
 }
 
-/* cosmic workspace handlers */
 static void
-handle_cosmic_workspace_activate(struct wl_listener *listener, void *data)
+handle_ext_workspace_commit(struct wl_listener *listener, void *data)
 {
-	struct workspace *workspace = wl_container_of(listener, workspace, on_cosmic.activate);
-	workspaces_switch_to(workspace, /* update_focus */ true);
-	wlr_log(WLR_INFO, "cosmic activating workspace %s", workspace->name);
-}
+	struct server *server = wl_container_of(listener, server,
+		workspaces.on_ext_manager.commit);
+	struct wlr_ext_workspace_v1_commit_event *event = data;
 
-/* ext workspace handlers */
-static void
-handle_ext_workspace_activate(struct wl_listener *listener, void *data)
-{
-	struct workspace *workspace = wl_container_of(listener, workspace, on_ext.activate);
-	workspaces_switch_to(workspace, /* update_focus */ true);
-	wlr_log(WLR_INFO, "ext activating workspace %s", workspace->name);
+	struct wlr_ext_workspace_v1_request *req;
+	wl_list_for_each(req, event->requests, link) {
+		if (req->type == WLR_EXT_WORKSPACE_V1_REQUEST_ACTIVATE) {
+			struct workspace *workspace = req->activate.workspace->data;
+			workspaces_switch_to(workspace, /* update_focus */ true);
+			wlr_log(WLR_INFO, "activating workspace %s", workspace->name);
+		}
+	}
 }
 
 /* Internal API */
@@ -238,23 +235,13 @@ add_workspace(struct server *server, const char *name)
 	wl_list_append(&server->workspaces.all, &workspace->link);
 	wlr_scene_node_set_enabled(&workspace->tree->node, false);
 
-	/* cosmic */
-	workspace->cosmic_workspace = lab_cosmic_workspace_create(server->workspaces.cosmic_group);
-	lab_cosmic_workspace_set_name(workspace->cosmic_workspace, name);
-
-	workspace->on_cosmic.activate.notify = handle_cosmic_workspace_activate;
-	wl_signal_add(&workspace->cosmic_workspace->events.activate,
-		&workspace->on_cosmic.activate);
-
-	/* ext */
-	workspace->ext_workspace = lab_ext_workspace_create(
-		server->workspaces.ext_manager, /*id*/ NULL);
-	lab_ext_workspace_assign_to_group(workspace->ext_workspace, server->workspaces.ext_group);
-	lab_ext_workspace_set_name(workspace->ext_workspace, name);
-
-	workspace->on_ext.activate.notify = handle_ext_workspace_activate;
-	wl_signal_add(&workspace->ext_workspace->events.activate,
-		&workspace->on_ext.activate);
+	workspace->ext_workspace = wlr_ext_workspace_handle_v1_create(
+		server->workspaces.ext_manager, /*id*/ NULL,
+		EXT_WORKSPACE_HANDLE_V1_WORKSPACE_CAPABILITIES_ACTIVATE);
+	workspace->ext_workspace->data = workspace;
+	wlr_ext_workspace_handle_v1_set_group(
+		workspace->ext_workspace, server->workspaces.ext_group);
+	wlr_ext_workspace_handle_v1_set_name(workspace->ext_workspace, name);
 }
 
 static struct workspace *
@@ -397,19 +384,16 @@ _osd_show(struct server *server)
 void
 workspaces_init(struct server *server)
 {
-	server->workspaces.cosmic_manager = lab_cosmic_workspace_manager_create(
-		server->wl_display, /* capabilities */ CW_CAP_WS_ACTIVATE,
-		COSMIC_WORKSPACES_VERSION);
+	server->workspaces.ext_manager = wlr_ext_workspace_manager_v1_create(
+		server->wl_display, EXT_WORKSPACES_VERSION);
 
-	server->workspaces.ext_manager = lab_ext_workspace_manager_create(
-		server->wl_display, /* capabilities */ WS_CAP_WS_ACTIVATE,
-		EXT_WORKSPACES_VERSION);
+	server->workspaces.ext_group = wlr_ext_workspace_group_handle_v1_create(
+		server->workspaces.ext_manager, /*caps*/ 0);
 
-	server->workspaces.cosmic_group = lab_cosmic_workspace_group_create(
-		server->workspaces.cosmic_manager);
-
-	server->workspaces.ext_group = lab_ext_workspace_group_create(
-		server->workspaces.ext_manager);
+	server->workspaces.on_ext_manager.commit.notify =
+		handle_ext_workspace_commit;
+	wl_signal_add(&server->workspaces.ext_manager->events.commit,
+		&server->workspaces.on_ext_manager.commit);
 
 	wl_list_init(&server->workspaces.all);
 
@@ -436,8 +420,7 @@ workspaces_init(struct server *server)
 
 	server->workspaces.current = initial;
 	wlr_scene_node_set_enabled(&initial->tree->node, true);
-	lab_cosmic_workspace_set_active(initial->cosmic_workspace, true);
-	lab_ext_workspace_set_active(initial->ext_workspace, true);
+	wlr_ext_workspace_handle_v1_set_active(initial->ext_workspace, true);
 }
 
 /*
@@ -458,9 +441,7 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	wlr_scene_node_set_enabled(
 		&server->workspaces.current->tree->node, false);
 
-	lab_cosmic_workspace_set_active(
-		server->workspaces.current->cosmic_workspace, false);
-	lab_ext_workspace_set_active(
+	wlr_ext_workspace_handle_v1_set_active(
 		server->workspaces.current->ext_workspace, false);
 
 	/* Move Omnipresent views to new workspace */
@@ -517,8 +498,7 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	/* Ensure that only currently visible fullscreen windows hide the top layer */
 	desktop_update_top_layer_visibility(server);
 
-	lab_cosmic_workspace_set_active(target->cosmic_workspace, true);
-	lab_ext_workspace_set_active(target->ext_workspace, true);
+	wlr_ext_workspace_handle_v1_set_active(target->ext_workspace, true);
 }
 
 void
@@ -572,11 +552,8 @@ destroy_workspace(struct workspace *workspace)
 	wlr_scene_node_destroy(&workspace->tree->node);
 	zfree(workspace->name);
 	wl_list_remove(&workspace->link);
-	wl_list_remove(&workspace->on_cosmic.activate.link);
-	wl_list_remove(&workspace->on_ext.activate.link);
 
-	lab_cosmic_workspace_destroy(workspace->cosmic_workspace);
-	lab_ext_workspace_destroy(workspace->ext_workspace);
+	wlr_ext_workspace_handle_v1_destroy(workspace->ext_workspace);
 	free(workspace);
 }
 
@@ -611,9 +588,7 @@ workspaces_reconfigure(struct server *server)
 				actual_workspace->name, configured_workspace->name);
 			free(actual_workspace->name);
 			actual_workspace->name = xstrdup(configured_workspace->name);
-			lab_cosmic_workspace_set_name(
-				actual_workspace->cosmic_workspace, actual_workspace->name);
-			lab_ext_workspace_set_name(
+			wlr_ext_workspace_handle_v1_set_name(
 				actual_workspace->ext_workspace, actual_workspace->name);
 		}
 		actual_workspace_link = actual_workspace_link->next;
@@ -663,4 +638,5 @@ workspaces_destroy(struct server *server)
 		destroy_workspace(workspace);
 	}
 	assert(wl_list_empty(&server->workspaces.all));
+	wl_list_remove(&server->workspaces.on_ext_manager.commit.link);
 }

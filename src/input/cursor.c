@@ -1614,9 +1614,6 @@ void
 cursor_reload(struct seat *seat)
 {
 	cursor_load(seat);
-#if HAVE_XWAYLAND
-	xwayland_reset_cursor(seat->server);
-#endif
 	cursor_update_image(seat);
 }
 

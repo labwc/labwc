@@ -1,83 +1,82 @@
 <openbox_menu>
-<!-- Note: for localization support of menu items "client-menu" has to be removed here -->
-<menu id="client-menu">
-  <item label="Minimize">
-    <action name="Iconify" />
-  </item>
-  <item label="Maximize">
-    <action name="ToggleMaximize" />
-  </item>
-  <item label="Fullscreen">
-    <action name="ToggleFullscreen" />
-  </item>
-  <item label="Roll Up/Down">
-    <action name="ToggleShade" />
-  </item>
-  <item label="Decorations">
-    <action name="ToggleDecorations" />
-  </item>
-  <item label="Always on Top">
-    <action name="ToggleAlwaysOnTop" />
-  </item>
-  <!--
-    Any menu with the id "workspaces" will be hidden
-    if there is only a single workspace available.
-  -->
-  <menu id="client-send-to-menu"/>
-  <!--
-    openbox default workspace selector
-    to use replace above workspace menu with the example below
-    the label is required, but you can change the text.
+  <!-- Note: for localization support of menu items "client-menu" has to be removed here -->
+  <menu id="client-menu">
+    <item label="Minimize">
+      <action name="Iconify"/>
+    </item>
+    <item label="Maximize">
+      <action name="ToggleMaximize"/>
+    </item>
+    <item label="Fullscreen">
+      <action name="ToggleFullscreen"/>
+    </item>
+    <item label="Roll Up/Down">
+      <action name="ToggleShade"/>
+    </item>
+    <item label="Decorations">
+      <action name="ToggleDecorations"/>
+    </item>
+    <item label="Always on Top">
+      <action name="ToggleAlwaysOnTop"/>
+    </item>
+    <!--
+      Any menu with the id "workspaces" will be hidden
+      if there is only a single workspace available.
+    -->
+    <menu id="client-send-to-menu"/>
+    <!--
+      openbox default workspace selector
+      to use replace above workspace menu with the example below
+      the label is required, but you can change the text.
 
-    <menu id="client-send-to-menu" label="Send to..." />
-  -->
-  <item label="Close">
-    <action name="Close" />
-  </item>
-</menu>
-
-<menu id="root-menu">
-  <!-- Make client-list-combined-menu a submenu of root-menu
-       You must supply a label or it will not appear in root-menu -->
-  <!--
-  <menu id="client-list-combined-menu" label="Running..." />
-  -->
-  <item label="Terminal">
-    <action name="Execute" command="lab-sensible-terminal" />
-  </item>
-  <separator />
-  <item label="Reconfigure">
-    <action name="Reconfigure" />
-  </item>
-  <item label="Exit">
-    <action name="Exit" />
-  </item>
-  <!--
-  # A prompt can be used as follows:
-  <item label="Exit">
-    <action name="If">
-      <prompt message="Do you really want to exit the compositor?"/>
-      <then>
-        <action name="Exit"/>
-      </then>
-    </action>
-  </item>
-  -->
-</menu>
-
-<menu id="some-custom-menu">
-  <!--
-    Creates menu title.
-    To create an empty header with no text,
-    set label=" ", not label=""
-  -->
-  <separator label="custom menu" />
-  <item label="Reconfigure">
-    <action name="Reconfigure" />
-  </item>
-  <item label="Exit">
-    <action name="Exit" />
-  </item>
-</menu>
-
+      <menu id="client-send-to-menu" label="Send to..." />
+    -->
+    <item label="Close">
+      <action name="Close"/>
+    </item>
+  </menu>
+  <menu id="root-menu">
+    <!--
+      Make client-list-combined-menu a submenu of root-menu
+      You must supply a label or it will not appear in root-menu
+    -->
+    <!--
+      <menu id="client-list-combined-menu" label="Running..." />
+    -->
+    <item label="Terminal">
+      <action name="Execute" command="lab-sensible-terminal"/>
+    </item>
+    <separator/>
+    <item label="Reconfigure">
+      <action name="Reconfigure"/>
+    </item>
+    <item label="Exit">
+      <action name="Exit"/>
+    </item>
+    <!--
+      # A prompt can be used as follows:
+      <item label="Exit">
+        <action name="If">
+          <prompt message="Do you really want to exit the compositor?"/>
+            <then>
+              <action name="Exit"/>
+            </then>
+        </action>
+      </item>
+    -->
+  </menu>
+  <menu id="some-custom-menu">
+    <!--
+      Creates menu title.
+      To create an empty header with no text,
+      set label=" ", not label=""
+    -->
+    <separator label="custom menu"/>
+    <item label="Reconfigure">
+      <action name="Reconfigure"/>
+    </item>
+    <item label="Exit">
+      <action name="Exit"/>
+    </item>
+  </menu>
 </openbox_menu>

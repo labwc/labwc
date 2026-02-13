@@ -469,11 +469,13 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	lab_ext_workspace_set_active(
 		server->workspaces.current->ext_workspace, false);
 
-	/* Move Omnipresent views to new workspace */
+	/*
+	 * Move Omnipresent views to new workspace.
+	 * Not using for_each_view() since it skips views that
+	 * view_is_focusable() returns false (e.g. Conky).
+	 */
 	struct view *view;
-	enum lab_view_criteria criteria =
-		LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
-	for_each_view_reverse(view, &server->views, criteria) {
+	wl_list_for_each_reverse(view, &server->views, link) {
 		if (view->visible_on_all_workspaces) {
 			view_move_to_workspace(view, target);
 		}

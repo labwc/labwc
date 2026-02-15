@@ -452,6 +452,24 @@ handle_popup_destroy(struct wl_listener *listener, void *data)
 	free(popup);
 }
 
+/*
+ * When a popup is opened by a client without keyboard focus we need to force
+ * focus it so that it can be operated by the keyboard. An example of a use-case
+ * is the xfce4-panel start menu which can be opened by a keyboard shortcut
+ * linked to `xfce4-popup-applicationsmenu`, and the same for lxqt-panel with
+ * `lxqt-qdbus openmenu`.
+ *
+ * Ref:
+ * - https://github.com/labwc/labwc/issues/2467#issuecomment-2585927886
+ * - https://gitlab.freedesktop.org/wlroots/wlroots/-/issues/3689
+ * - https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4950
+ */
+static void
+focus(struct seat *seat, struct wlr_surface *wlr_surface)
+{
+	seat_force_focus_surface(seat, wlr_surface);
+}
+
 static void
 handle_popup_commit(struct wl_listener *listener, void *data)
 {
@@ -465,6 +483,24 @@ handle_popup_commit(struct wl_listener *listener, void *data)
 		/* Prevent getting called over and over again */
 		wl_list_remove(&popup->commit.link);
 		popup->commit.notify = NULL;
+
+		/*
+		 * wlr_popup->seat appears to be set whenever a popup grab has
+		 * been requested.
+		 *
+		 * The xdg_popup.grab event is not emitted from wlroots, but
+		 * even if it were, it does not come through for Qt layer-shell
+		 * clients. It is not yet clear to us why. If we can get that to
+		 * work, it seems a nicer solution, but for the time being this
+		 * seems to work.
+		 *
+		 * See: https://github.com/labwc/labwc/pull/3165
+		 */
+		if (popup->wlr_popup->seat) {
+			struct wlr_layer_surface_v1 *layer_surface =
+				popup->lab_layer_surface->layer_surface;
+			focus(&popup->server->seat, layer_surface->surface);
+		}
 	}
 }
 
@@ -533,6 +569,8 @@ handle_popup_new_popup(struct wl_listener *listener, void *data)
 
 	new_popup->output_toplevel_sx_box =
 		lab_layer_popup->output_toplevel_sx_box;
+
+	new_popup->lab_layer_surface = lab_layer_popup->lab_layer_surface;
 }
 
 /*
@@ -598,6 +636,7 @@ handle_new_popup(struct wl_listener *listener, void *data)
 	}
 
 	popup->output_toplevel_sx_box = output_toplevel_sx_box;
+	popup->lab_layer_surface = toplevel;
 
 	if (surface->layer_surface->current.layer
 			<= ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM) {

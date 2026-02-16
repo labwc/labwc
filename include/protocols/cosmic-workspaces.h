@@ -78,8 +78,8 @@ void lab_cosmic_workspace_group_output_enter(
 	struct lab_cosmic_workspace_group *group, struct wlr_output *output);
 
 void lab_cosmic_workspace_group_output_leave(
-
 	struct lab_cosmic_workspace_group *group, struct wlr_output *output);
+
 void lab_cosmic_workspace_group_destroy(struct lab_cosmic_workspace_group *group);
 
 struct lab_cosmic_workspace *lab_cosmic_workspace_create(struct lab_cosmic_workspace_group *group);

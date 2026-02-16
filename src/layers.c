@@ -424,7 +424,13 @@ handle_popup_destroy(struct wl_listener *listener, void *data)
 		wl_list_remove(&popup->commit.link);
 	}
 
-	cursor_update_focus(popup->server);
+	/* Give focus back to whoever had it before the popup */
+	if (popup->parent_was_focused && popup->wlr_popup->parent) {
+		struct seat *seat = &popup->server->seat;
+		seat_force_focus_surface(seat, popup->wlr_popup->parent);
+	} else {
+		desktop_focus_topmost_view(popup->server);
+	}
 
 	free(popup);
 }
@@ -488,12 +494,18 @@ handle_popup_commit(struct wl_listener *listener, void *data)
 		wl_list_remove(&popup->commit.link);
 		popup->commit.notify = NULL;
 
-		if (!seat->server->session_lock_manager->locked
-				&& popup->wlr_popup->seat) {
+		/* Force focus when popup was triggered by IPC */
+		struct server *server = popup->server;
+		struct seat *seat = &server->seat;
+		bool locked = server->session_lock_manager->locked;
+		if (seat->seat->keyboard_state.focused_surface
+				== popup->wlr_popup->parent) {
+			popup->parent_was_focused = true;
+		}
+		if (!locked && popup->wlr_popup->seat) {
 			struct wlr_layer_surface_v1 *layer_surface =
 				popup->lab_layer_surface->layer_surface;
-			seat_force_focus_surface(&popup->server->seat,
-				layer_surface->surface);
+			seat_force_focus_surface(seat, layer_surface->surface);
 		}
 	}
 }

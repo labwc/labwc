@@ -31,6 +31,7 @@ struct lab_layer_popup {
 	struct wlr_scene_tree *scene_tree;
 	struct server *server;
 	struct lab_layer_surface *lab_layer_surface;
+	bool parent_was_focused;
 
 	/* To simplify moving popup nodes from the bottom to the top layer */
 	struct wlr_box output_toplevel_sx_box;

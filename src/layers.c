@@ -383,9 +383,9 @@ handle_unmap(struct wl_listener *listener, void *data)
 }
 
 static bool
-is_overlay(struct wlr_layer_surface_v1 *layer_surface)
+is_above_toplevels(struct wlr_layer_surface_v1 *layer_surface)
 {
-	return layer_surface->current.layer == ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY;
+	return layer_surface->current.layer >= ZWLR_LAYER_SHELL_V1_LAYER_TOP;
 }
 
 static void
@@ -408,18 +408,18 @@ handle_map(struct wl_listener *listener, void *data)
 
 	/*
 	 * Layer-shell clients with exclusive interactivity always get focus,
-	 * whereas on-demand ones only get it when in the overlay layer. We
-	 * could make this configurable, but for the time being this default
-	 * behaviour strikes a balance between:
+	 * whereas on-demand ones only get it when above toplevels (i.e. in the
+	 * top or overlay layers). We could make this configurable, but for the
+	 * time being this default behaviour strikes a balance between:
 	 *
-	 *   1. Giving overlay, on-demand clients (like labnag with the default
-	 *      <prompt> settings) keyboard focus.
-	 *   2. Preventing desktop components like panels and desktops from
-	 *      stealing keyboard focus on re-start. On compositor start, this
-	 *      is not really a problem, but if any such client restarts later,
+	 *   1. Giving top/overlay, on-demand clients (like labnag and
+	 *      lxqt-runner) keyboard focus.
+	 *   2. Preventing desktop components like desktops from stealing
+	 *      keyboard focus on re-start. On compositor start, this is not
+	 *      really a problem, but if any such client restarts later,
 	 *      focus-stealing is unlikely to be desirable.
 	 */
-	if (!is_overlay(layer_surface) && is_on_demand(layer_surface)) {
+	if (!is_above_toplevels(layer_surface) && is_on_demand(layer_surface)) {
 		return;
 	}
 

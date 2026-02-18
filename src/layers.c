@@ -23,7 +23,6 @@
 #include "labwc.h"
 #include "node.h"
 #include "output.h"
-#include "session-lock.h"
 
 #define LAB_LAYERSHELL_VERSION 4
 
@@ -497,12 +496,11 @@ handle_popup_commit(struct wl_listener *listener, void *data)
 		/* Force focus when popup was triggered by IPC */
 		struct server *server = popup->server;
 		struct seat *seat = &server->seat;
-		bool locked = server->session_lock_manager->locked;
 		if (seat->seat->keyboard_state.focused_surface
 				== popup->wlr_popup->parent) {
 			popup->parent_was_focused = true;
 		}
-		if (!locked && popup->wlr_popup->seat) {
+		if (popup->wlr_popup->seat) {
 			struct wlr_layer_surface_v1 *layer_surface =
 				popup->lab_layer_surface->layer_surface;
 			seat_force_focus_surface(seat, layer_surface->surface);

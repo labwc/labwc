@@ -762,6 +762,9 @@ seat_reconfigure(struct server *server)
 void
 seat_force_focus_surface(struct seat *seat, struct wlr_surface *surface)
 {
+	if (seat->server->session_lock_manager->locked) {
+		return;
+	}
 	uint32_t *pressed_sent_keycodes = key_state_pressed_sent_keycodes();
 	int nr_pressed_sent_keycodes = key_state_nr_pressed_sent_keycodes();
 	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;

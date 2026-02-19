@@ -30,6 +30,7 @@ struct lab_layer_popup {
 	struct wlr_xdg_popup *wlr_popup;
 	struct wlr_scene_tree *scene_tree;
 	struct server *server;
+	struct lab_layer_surface *lab_layer_surface;
 
 	/* To simplify moving popup nodes from the bottom to the top layer */
 	struct wlr_box output_toplevel_sx_box;
@@ -38,6 +39,7 @@ struct lab_layer_popup {
 	struct wl_listener destroy;
 	struct wl_listener new_popup;
 	struct wl_listener reposition;
+	struct wl_listener grab;
 };
 
 void layers_init(struct server *server);

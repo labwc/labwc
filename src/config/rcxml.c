@@ -1353,6 +1353,12 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "relativeMotionSensitivity.tabletTool")) {
 		rc.tablet_tool.relative_motion_sensitivity =
 			tablet_get_dbl_if_positive(content, "relativeMotionSensitivity");
+	} else if (!strcasecmp(nodename, "minPressure.tabletTool")) {
+		rc.tablet_tool.min_pressure =
+			tablet_get_dbl_if_positive(content, "minPressure");
+	} else if (!strcasecmp(nodename, "maxPressure.tabletTool")) {
+		rc.tablet_tool.max_pressure =
+			tablet_get_dbl_if_positive(content, "maxPressure");
 	} else if (!strcasecmp(nodename, "ignoreButtonReleasePeriod.menu")) {
 		rc.menu_ignore_button_release_period = atoi(content);
 	} else if (!strcasecmp(nodename, "showIcons.menu")) {
@@ -1473,6 +1479,8 @@ rcxml_init(void)
 	tablet_load_default_button_mappings();
 	rc.tablet_tool.motion = LAB_MOTION_ABSOLUTE;
 	rc.tablet_tool.relative_motion_sensitivity = 1.0;
+	rc.tablet_tool.min_pressure = 0.0;
+	rc.tablet_tool.max_pressure = 1.0;
 
 	rc.repeat_rate = 25;
 	rc.repeat_delay = 600;

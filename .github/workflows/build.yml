@@ -251,7 +251,7 @@ jobs:
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
             meson setup build-gcc-leak -Dxwayland=enabled -Db_sanitize=address,undefined \
-              --werror --force-fallback-for=wlroots
+              --werror --force-fallback-for=wlroots -Dwlroots:c_std=c11
             meson compile -C build-gcc-leak
             LABWC_LEAK_TEST=1 scripts/ci/smoke-test.sh build-gcc-leak
           ' | $TARGET
@@ -263,7 +263,7 @@ jobs:
             cd "$GITHUB_WORKSPACE"
             export CC=clang
             meson setup build-clang-leak -Dxwayland=enabled -Db_sanitize=address,undefined \
-              --werror --force-fallback-for=wlroots
+              --werror --force-fallback-for=wlroots -Dwlroots:c_std=c11
             meson compile -C build-clang-leak
             LABWC_LEAK_TEST=1 scripts/ci/smoke-test.sh build-clang-leak
           ' | $TARGET

@@ -625,7 +625,7 @@ view_move_relative(struct view *view, int x, int y)
 	view_move(view, view->pending.x + x, view->pending.y + y);
 }
 
-void
+static void
 view_move_to_cursor(struct view *view)
 {
 	assert(view);

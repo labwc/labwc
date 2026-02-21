@@ -1354,7 +1354,8 @@ run_action(struct view *view, struct server *server, struct action *action,
 			"Action MoveToCursor is deprecated. To ensure your config works in future labwc "
 			"releases, please use <action name=\"AutoPlace\" policy=\"cursor\">");
 		if (view) {
-			view_move_to_cursor(view);
+			view_place_by_policy(view, /* allow_cursor */ true,
+				LAB_PLACE_CURSOR);
 		}
 		break;
 	case ACTION_TYPE_SEND_TO_DESKTOP:

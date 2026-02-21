@@ -625,24 +625,12 @@ view_move_relative(struct view *view, int x, int y)
 	view_move(view, view->pending.x + x, view->pending.y + y);
 }
 
-static void
-view_move_to_cursor(struct view *view)
+static bool
+view_compute_near_cursor_position(struct view *view, struct wlr_box *geom)
 {
 	assert(view);
 
 	struct output *pending_output = output_nearest_to_cursor(view->server);
-	if (!output_is_usable(pending_output)) {
-		return;
-	}
-
-	struct border margin = ssd_thickness(view);
-	struct wlr_box geo = view->pending;
-	geo.width += margin.left + margin.right;
-	geo.height += margin.top + margin.bottom;
-
-	int x = view->server->seat.cursor->x - (geo.width / 2);
-	int y = view->server->seat.cursor->y - (geo.height / 2);
-
 	struct wlr_box usable = output_usable_area_in_layout_coords(pending_output);
 
 	/* Limit usable region to account for gap */
@@ -651,17 +639,26 @@ view_move_to_cursor(struct view *view)
 	usable.width -= 2 * rc.gap;
 	usable.height -= 2 * rc.gap;
 
-	if (x + geo.width > usable.x + usable.width) {
-		x = usable.x + usable.width - geo.width;
+	if (wlr_box_empty(geom) || wlr_box_empty(&usable)) {
+		return false;
 	}
-	x = MAX(x, usable.x) + margin.left;
 
-	if (y + geo.height > usable.y + usable.height) {
-		y = usable.y + usable.height - geo.height;
-	}
-	y = MAX(y, usable.y) + margin.top;
+	struct border margin = ssd_thickness(view);
+	struct seat *seat = &view->server->seat;
 
-	view_move(view, x, y);
+	int total_width = geom->width + margin.left + margin.right;
+	int total_height = geom->height + margin.top + margin.bottom;
+
+	geom->x = (int)seat->cursor->x - (total_width / 2);
+	geom->y = (int)seat->cursor->y - (total_height / 2);
+
+	/* Order of MIN/MAX is significant here */
+	geom->x = MIN(geom->x, usable.x + usable.width - total_width);
+	geom->x = MAX(geom->x, usable.x) + margin.left;
+	geom->y = MIN(geom->y, usable.y + usable.height - total_height);
+	geom->y = MAX(geom->y, usable.y) + margin.top;
+
+	return true;
 }
 
 struct view_size_hints
@@ -1077,8 +1074,11 @@ view_place_by_policy(struct view *view, bool allow_cursor,
 	}
 
 	if (allow_cursor && policy == LAB_PLACE_CURSOR) {
-		view_move_to_cursor(view);
-		return;
+		struct wlr_box geometry = view->pending;
+		if (view_compute_near_cursor_position(view, &geometry)) {
+			view_move(view, geometry.x, geometry.y);
+			return;
+		}
 	} else if (policy == LAB_PLACE_AUTOMATIC) {
 		struct wlr_box geometry = view->pending;
 		if (placement_find_best(view, &geometry)) {

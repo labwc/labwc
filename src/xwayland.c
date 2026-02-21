@@ -745,15 +745,12 @@ set_initial_position(struct view *view,
 				/* allow_cursor */ true, rc.placement_policy);
 		} else {
 			/*
-			 * View is maximized/fullscreen. Center the
+			 * View is maximized/fullscreen. Place the
 			 * stored natural geometry without actually
 			 * moving the view.
 			 */
-			view_compute_centered_position(view, NULL,
-				view->natural_geometry.width,
-				view->natural_geometry.height,
-				&view->natural_geometry.x,
-				&view->natural_geometry.y);
+			view_compute_position_by_policy(view, &view->natural_geometry,
+				/* allow_cursor */ true, rc.placement_policy);
 		}
 	}
 

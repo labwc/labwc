@@ -123,10 +123,8 @@ do_late_positioning(struct view *view)
 		/* Reposition the view while anchoring it to cursor */
 		interactive_anchor_to_cursor(server, &view->pending);
 	} else {
-		/* TODO: smart placement? */
-		view_compute_centered_position(view, NULL,
-			view->pending.width, view->pending.height,
-			&view->pending.x, &view->pending.y);
+		view_compute_position_by_policy(view, &view->pending,
+			/* allow_cursor */ true, rc.placement_policy);
 	}
 }
 

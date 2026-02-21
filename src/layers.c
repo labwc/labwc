@@ -403,11 +403,18 @@ handle_map(struct wl_listener *listener, void *data)
 	layer_try_set_focus(seat, layer->scene_layer_surface->layer_surface);
 }
 
+static bool
+surface_is_focused(struct seat *seat, struct wlr_surface *surface)
+{
+	return seat->seat->keyboard_state.focused_surface == surface;
+}
+
 static void
 handle_popup_destroy(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_popup *popup =
 		wl_container_of(listener, popup, destroy);
+	struct seat *seat = &popup->server->seat;
 
 	struct wlr_xdg_popup *_popup, *tmp;
 	wl_list_for_each_safe(_popup, tmp, &popup->wlr_popup->base->popups, link) {
@@ -423,12 +430,13 @@ handle_popup_destroy(struct wl_listener *listener, void *data)
 		wl_list_remove(&popup->commit.link);
 	}
 
-	/* Give focus back to whoever had it before the popup */
-	if (popup->parent_was_focused && popup->wlr_popup->parent) {
-		struct seat *seat = &popup->server->seat;
-		seat_force_focus_surface(seat, popup->wlr_popup->parent);
-	} else {
-		desktop_focus_topmost_view(popup->server);
+	if (surface_is_focused(seat, popup->wlr_popup->base->surface)) {
+		/* Give focus back to whoever had it before the popup */
+		if (popup->parent_was_focused && popup->wlr_popup->parent) {
+			seat_force_focus_surface(seat, popup->wlr_popup->parent);
+		} else {
+			desktop_focus_topmost_view(popup->server);
+		}
 	}
 
 	free(popup);
@@ -496,14 +504,12 @@ handle_popup_commit(struct wl_listener *listener, void *data)
 		/* Force focus when popup was triggered by IPC */
 		struct server *server = popup->server;
 		struct seat *seat = &server->seat;
-		if (seat->seat->keyboard_state.focused_surface
-				== popup->wlr_popup->parent) {
-			popup->parent_was_focused = true;
-		}
-		if (popup->wlr_popup->seat) {
-			struct wlr_layer_surface_v1 *layer_surface =
-				popup->lab_layer_surface->layer_surface;
-			seat_force_focus_surface(seat, layer_surface->surface);
+		bool requesting_grab = !!popup->wlr_popup->seat;
+		if (requesting_grab) {
+			if (surface_is_focused(seat, popup->wlr_popup->parent)) {
+				popup->parent_was_focused = true;
+			}
+			seat_force_focus_surface(seat, popup->wlr_popup->base->surface);
 		}
 	}
 }
@@ -573,8 +579,6 @@ handle_popup_new_popup(struct wl_listener *listener, void *data)
 
 	new_popup->output_toplevel_sx_box =
 		lab_layer_popup->output_toplevel_sx_box;
-
-	new_popup->lab_layer_surface = lab_layer_popup->lab_layer_surface;
 }
 
 /*
@@ -640,7 +644,6 @@ handle_new_popup(struct wl_listener *listener, void *data)
 	}
 
 	popup->output_toplevel_sx_box = output_toplevel_sx_box;
-	popup->lab_layer_surface = toplevel;
 
 	if (surface->layer_surface->current.layer
 			<= ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM) {

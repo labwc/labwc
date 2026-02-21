@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2026-01-24 | [unreleased]  | 0.19.2          |               |
+| 2026-02-27 | [0.9.4]       | 0.19.2          | 29160         |
 | 2025-12-19 | [0.9.3]       | 0.19.2          | 28968         |
 | 2025-10-10 | [0.9.2]       | 0.19.1          | 28818         |
 | 2025-08-02 | [0.9.1]       | 0.19.0          | 28605         |
@@ -41,6 +41,7 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.9.4]: NEWS.md#094---2026-02-27
 [0.9.3]: NEWS.md#093---2025-12-19
 [0.9.2]: NEWS.md#092---2025-10-10
 [0.9.1]: NEWS.md#091---2025-08-02
@@ -109,8 +110,13 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 
 [unreleased-commits]
 
+## 0.9.4 - 2026-02-27
+
+[0.9.4-commits]
+
 ### Added
 
+- Add theme option window.button.hover.bg.color [#3365] @johanmalm
 - Implement scrollable window-switcher OSD [#3291] @tokyo4j
 - Support the `NextWindow` options listed below [#3271] @tokyo4j
   - `<action name="NextWindow" workspace="current|all"/>`
@@ -121,6 +127,16 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 
 ### Fixed
 
+- Flush X11 connection after focus/activate to mitigate a race where the
+  XWayland server may generate an unwanted FocusOut event for the newly
+  activated window, if it receives pointer events over the parallel wayland
+  connection first.  In particular, this fixes an issue with certain fullscreen
+  applications (such as Minecraft) that self-minimize when receiving FocusOut.
+  [#3344] [#3362] @jlindgren90
+- Cancel interactive move/resize when a window is minimized/unmapped. This is
+  probably not a common occurrence but it seems cleaner to handle it properly.
+  [#3350] @jlindgren90
+- Fix spurious focus change when window-switcher finishes [#3346] @tokyo4j
 - Improve logic for restoring view positions after output disconnect and
   reconnect [#3309] [#3310] @jlindgren90 @tokyo4j
 - Avoid restacking when a window is already in front; and avoid repeated focus
@@ -134,6 +150,8 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 
 ### Changed
 
+- Unshade window if selected from client-list-combined-menu [#3345] @Amodio
+- Show non-dialog child windows in window-switcher [#3339] @tokyo4j
 - `<windowSwitcher allWorkspaces="yes|no">` is deprecated. Instead, use:
   `<action name="NextWindow" workspace="current|all">`. [#3271] @tokyo4j
 
@@ -2548,7 +2566,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.3...HEAD
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.4...HEAD
+[0.9.4-commits]: https://github.com/labwc/labwc/compare/0.9.3...0.9.4
 [0.9.3-commits]: https://github.com/labwc/labwc/compare/0.9.2...0.9.3
 [0.9.2-commits]: https://github.com/labwc/labwc/compare/0.9.1...0.9.2
 [0.9.1-commits]: https://github.com/labwc/labwc/compare/0.9.0...0.9.1
@@ -3062,3 +3081,10 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3316]: https://github.com/labwc/labwc/pull/3316
 [#3323]: https://github.com/labwc/labwc/pull/3323
 [#3325]: https://github.com/labwc/labwc/pull/3325
+[#3339]: https://github.com/labwc/labwc/pull/3339
+[#3344]: https://github.com/labwc/labwc/pull/3344
+[#3345]: https://github.com/labwc/labwc/pull/3345
+[#3346]: https://github.com/labwc/labwc/pull/3346
+[#3350]: https://github.com/labwc/labwc/pull/3350
+[#3362]: https://github.com/labwc/labwc/pull/3362
+[#3365]: https://github.com/labwc/labwc/pull/3365

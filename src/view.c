@@ -898,16 +898,8 @@ adjust_floating_geometry(struct view *view, struct wlr_box *geometry,
 	}
 
 	/* Reposition offscreen automatically if configured to do so */
-	if (rc.placement_policy == LAB_PLACE_AUTOMATIC) {
-		if (placement_find_best(view, geometry)) {
-			return true;
-		}
-	}
-
-	/* If automatic placement failed or was not enabled, just center */
-	return view_compute_centered_position(view, NULL,
-		geometry->width, geometry->height,
-		&geometry->x, &geometry->y);
+	return view_compute_position_by_policy(view, geometry,
+		/* allow_cursor */ true, rc.placement_policy);
 }
 
 struct wlr_box
@@ -917,8 +909,8 @@ view_get_fallback_natural_geometry(struct view *view)
 		.width = VIEW_FALLBACK_WIDTH,
 		.height = VIEW_FALLBACK_HEIGHT,
 	};
-	view_compute_centered_position(view, NULL,
-		box.width, box.height, &box.x, &box.y);
+	view_compute_position_by_policy(view, &box,
+		/* allow_cursor */ true, rc.placement_policy);
 	return box;
 }
 

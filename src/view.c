@@ -1067,6 +1067,22 @@ view_compute_cascaded_position(struct view *view, struct wlr_box *geom)
 	return true;
 }
 
+bool
+view_compute_position_by_policy(struct view *view, struct wlr_box *geom,
+		bool allow_cursor, enum lab_placement_policy policy)
+{
+	if (allow_cursor && policy == LAB_PLACE_CURSOR) {
+		return view_compute_near_cursor_position(view, geom);
+	} else if (policy == LAB_PLACE_AUTOMATIC) {
+		return placement_find_best(view, geom);
+	} else if (policy == LAB_PLACE_CASCADE) {
+		return view_compute_cascaded_position(view, geom);
+	} else {
+		return view_compute_centered_position(view, NULL,
+			geom->width, geom->height, &geom->x, &geom->y);
+	}
+}
+
 void
 view_place_by_policy(struct view *view, bool allow_cursor,
 		enum lab_placement_policy policy)
@@ -1078,27 +1094,10 @@ view_place_by_policy(struct view *view, bool allow_cursor,
 		view_move_resize(view, view->natural_geometry);
 	}
 
-	if (allow_cursor && policy == LAB_PLACE_CURSOR) {
-		struct wlr_box geometry = view->pending;
-		if (view_compute_near_cursor_position(view, &geometry)) {
-			view_move(view, geometry.x, geometry.y);
-			return;
-		}
-	} else if (policy == LAB_PLACE_AUTOMATIC) {
-		struct wlr_box geometry = view->pending;
-		if (placement_find_best(view, &geometry)) {
-			view_move(view, geometry.x, geometry.y);
-			return;
-		}
-	} else if (policy == LAB_PLACE_CASCADE) {
-		struct wlr_box geometry = view->pending;
-		if (view_compute_cascaded_position(view, &geometry)) {
-			view_move(view, geometry.x, geometry.y);
-			return;
-		}
+	struct wlr_box geom = view->pending;
+	if (view_compute_position_by_policy(view, &geom, allow_cursor, policy)) {
+		view_move(view, geom.x, geom.y);
 	}
-
-	view_center(view, NULL);
 }
 
 void

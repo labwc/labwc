@@ -514,6 +514,10 @@ int view_effective_height(struct view *view, bool use_pending);
  */
 void view_center(struct view *view, const struct wlr_box *ref);
 
+/* Like view_place_by_policy() but doesn't actually move the view */
+bool view_compute_position_by_policy(struct view *view, struct wlr_box *geom,
+	bool allow_cursor, enum lab_placement_policy policy);
+
 /**
  * view_place_by_policy - apply placement strategy to view
  * @view: view to be placed

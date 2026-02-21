@@ -634,12 +634,6 @@ view_move_to_cursor(struct view *view)
 	if (!output_is_usable(pending_output)) {
 		return;
 	}
-	view_set_fullscreen(view, false);
-	view_maximize(view, VIEW_AXIS_NONE);
-	if (view_is_tiled(view)) {
-		view_set_untiled(view);
-		view_move_resize(view, view->natural_geometry);
-	}
 
 	struct border margin = ssd_thickness(view);
 	struct wlr_box geo = view->pending;
@@ -1075,6 +1069,13 @@ void
 view_place_by_policy(struct view *view, bool allow_cursor,
 		enum lab_placement_policy policy)
 {
+	view_set_fullscreen(view, false);
+	view_maximize(view, VIEW_AXIS_NONE);
+	if (view_is_tiled(view)) {
+		view_set_untiled(view);
+		view_move_resize(view, view->natural_geometry);
+	}
+
 	if (allow_cursor && policy == LAB_PLACE_CURSOR) {
 		view_move_to_cursor(view);
 		return;

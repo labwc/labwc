@@ -978,13 +978,16 @@ view_center(struct view *view, const struct wlr_box *ref)
  * Algorithm based on KWin's implementation:
  * https://github.com/KDE/kwin/blob/df9f8f8346b5b7645578e37365dabb1a7b02ca5a/src/placement.cpp#L589
  */
-static void
-view_cascade(struct view *view)
+static bool
+view_compute_cascaded_position(struct view *view, struct wlr_box *geom)
 {
 	/* "cascade" policy places a new view at center by default */
-	struct wlr_box center = view->pending;
-	view_compute_centered_position(view, NULL,
-		center.width, center.height, &center.x, &center.y);
+	struct wlr_box center = *geom;
+	if (!view_compute_centered_position(view, NULL, center.width,
+			center.height, &center.x, &center.y)) {
+		return false;
+	}
+
 	struct border margin = ssd_get_margin(view->ssd);
 	center.x -= margin.left;
 	center.y -= margin.top;
@@ -1059,7 +1062,9 @@ view_cascade(struct view *view)
 		}
 	}
 
-	view_move(view, candidate.x + margin.left, candidate.y + margin.top);
+	geom->x = candidate.x + margin.left;
+	geom->y = candidate.y + margin.top;
+	return true;
 }
 
 void
@@ -1086,8 +1091,11 @@ view_place_by_policy(struct view *view, bool allow_cursor,
 			return;
 		}
 	} else if (policy == LAB_PLACE_CASCADE) {
-		view_cascade(view);
-		return;
+		struct wlr_box geometry = view->pending;
+		if (view_compute_cascaded_position(view, &geometry)) {
+			view_move(view, geometry.x, geometry.y);
+			return;
+		}
 	}
 
 	view_center(view, NULL);

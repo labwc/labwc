@@ -98,6 +98,8 @@ mousebind_event_from_str(const char *str)
 		return MOUSE_ACTION_DRAG;
 	} else if (!strcasecmp(str, "scroll")) {
 		return MOUSE_ACTION_SCROLL;
+	} else if (!strcasecmp(str, "swipe")) {
+		return MOUSE_ACTION_SWIPE;
 	}
 	wlr_log(WLR_ERROR, "unknown mouse action (%s)", str);
 	return MOUSE_ACTION_NONE;
@@ -111,7 +113,8 @@ mousebind_the_same(struct mousebind *a, struct mousebind *b)
 		&& a->button == b->button
 		&& a->direction == b->direction
 		&& a->mouse_event == b->mouse_event
-		&& a->modifiers == b->modifiers;
+		&& a->modifiers == b->modifiers
+		&& a->fingers == b->fingers;
 }
 
 struct mousebind *

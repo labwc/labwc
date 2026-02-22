@@ -378,6 +378,7 @@ handle_unmap(struct wl_listener *listener, void *data)
 	if (seat->focused_layer == layer_surface) {
 		try_to_focus_next_layer_or_toplevel(layer->server);
 	}
+	cursor_update_focus(layer->server);
 
 	layer->being_unmapped = false;
 }
@@ -454,6 +455,7 @@ handle_popup_destroy(struct wl_listener *listener, void *data)
 		wl_list_remove(&popup->commit.link);
 	}
 
+	/* TODO: do this on unmap instead? */
 	if (surface_is_focused(seat, popup->wlr_popup->base->surface)) {
 		/* Give focus back to whoever had it before the popup */
 		if (popup->parent_was_focused && popup->wlr_popup->parent) {
@@ -462,6 +464,7 @@ handle_popup_destroy(struct wl_listener *listener, void *data)
 			desktop_focus_topmost_view(popup->server);
 		}
 	}
+	cursor_update_focus(popup->server);
 
 	free(popup);
 }

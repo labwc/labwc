@@ -114,19 +114,39 @@ set_fullscreen_from_request(struct view *view,
 	view_set_fullscreen(view, requested->fullscreen);
 }
 
-static void
-do_late_positioning(struct view *view)
+static struct view *
+xdg_toplevel_view_get_parent(struct view *view)
 {
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+	return toplevel->parent ? toplevel->parent->base->data : NULL;
+}
+
+/* Called from commit handler and updates view->pending.x/y directly */
+static void
+set_initial_position(struct view *view)
+{
+	if (!view_is_floating(view)) {
+		return;
+	}
+
+	view_constrain_size_to_that_of_usable_area(view);
+
 	struct server *server = view->server;
 	if (server->input_mode == LAB_INPUT_STATE_MOVE
 			&& view == server->grabbed_view) {
 		/* Reposition the view while anchoring it to cursor */
 		interactive_anchor_to_cursor(server, &view->pending);
 	} else {
-		/* TODO: smart placement? */
-		view_compute_centered_position(view, NULL,
-			view->pending.width, view->pending.height,
-			&view->pending.x, &view->pending.y);
+		struct view *parent = xdg_toplevel_view_get_parent(view);
+		if (parent) {
+			/* Center relative to parent view */
+			view_compute_centered_position(view, &parent->pending,
+				view->pending.width, view->pending.height,
+				&view->pending.x, &view->pending.y);
+		} else {
+			view_compute_position_by_policy(view, &view->pending,
+				/* allow_cursor */ true, rc.placement_policy);
+		}
 	}
 }
 
@@ -234,15 +254,15 @@ handle_commit(struct wl_listener *listener, void *data)
 	bool update_required = false;
 
 	/*
-	 * If we didn't know the natural size when leaving fullscreen or
-	 * unmaximizing, then the pending size will be 0x0. In this case,
-	 * the pending x/y is also unset and we still need to position
-	 * the window.
+	 * The pending size will be empty in two cases:
+	 *   (1) when the view is first mapped
+	 *   (2) when leaving fullscreen or un-maximizing,
+	 *       if natural geometry wasn't known
 	 */
 	if (wlr_box_empty(&view->pending) && !wlr_box_empty(&size)) {
 		view->pending.width = size.width;
 		view->pending.height = size.height;
-		do_late_positioning(view);
+		set_initial_position(view);
 		update_required = true;
 	}
 
@@ -636,14 +656,6 @@ xdg_toplevel_view_minimize(struct view *view, bool minimized)
 	/* noop */
 }
 
-static struct view *
-xdg_toplevel_view_get_parent(struct view *view)
-{
-	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
-	return toplevel->parent ?
-		(struct view *)toplevel->parent->base->data : NULL;
-}
-
 static struct wlr_xdg_toplevel *
 top_parent_of(struct view *view)
 {
@@ -791,23 +803,6 @@ xdg_toplevel_view_notify_tiled(struct view *view)
 }
 
 static void
-set_initial_position(struct view *view)
-{
-	view_constrain_size_to_that_of_usable_area(view);
-
-	struct view *parent = xdg_toplevel_view_get_parent(view);
-	if (parent) {
-		/* Child views are center-aligned relative to their parents */
-		view_set_output(view, parent->output);
-		view_center(view, &parent->pending);
-		return;
-	}
-
-	/* All other views are placed according to a configured strategy */
-	view_place_by_policy(view, /* allow_cursor */ true, rc.placement_policy);
-}
-
-static void
 handle_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, mappable.map);
@@ -818,8 +813,12 @@ handle_map(struct wl_listener *listener, void *data)
 	/*
 	 * An output should have been chosen when the surface was first
 	 * created, but take one more opportunity to assign an output if not.
+	 * For dialogs, try to use output from the parent view.
 	 */
-	if (!output_is_usable(view->output)) {
+	struct view *parent = xdg_toplevel_view_get_parent(view);
+	if (view_is_floating(view) && parent && output_is_usable(parent->output)) {
+		view_set_output(view, parent->output);
+	} else if (!output_is_usable(view->output)) {
 		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 
@@ -831,36 +830,6 @@ handle_map(struct wl_listener *listener, void *data)
 		} else {
 			view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
 		}
-
-		/*
-		 * Set initial "pending" dimensions. "Current"
-		 * dimensions remain zero until handle_commit().
-		 */
-		if (wlr_box_empty(&view->pending)) {
-			struct wlr_xdg_surface *xdg_surface =
-				xdg_surface_from_view(view);
-			view->pending.width = xdg_surface->geometry.width;
-			view->pending.height = xdg_surface->geometry.height;
-		}
-
-		/*
-		 * Set initial "pending" position for floating views.
-		 */
-		if (view_is_floating(view)) {
-			set_initial_position(view);
-		}
-
-		/* Disable background fill at map (paranoid?) */
-		disable_fullscreen_bg(view);
-
-		/*
-		 * Set initial "current" position directly before
-		 * calling view_moved() to reduce flicker
-		 */
-		view->current.x = view->pending.x;
-		view->current.y = view->pending.y;
-
-		view_moved(view);
 	}
 
 	view_impl_map(view);

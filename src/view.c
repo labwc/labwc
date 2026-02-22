@@ -625,30 +625,12 @@ view_move_relative(struct view *view, int x, int y)
 	view_move(view, view->pending.x + x, view->pending.y + y);
 }
 
-void
-view_move_to_cursor(struct view *view)
+static bool
+view_compute_near_cursor_position(struct view *view, struct wlr_box *geom)
 {
 	assert(view);
 
 	struct output *pending_output = output_nearest_to_cursor(view->server);
-	if (!output_is_usable(pending_output)) {
-		return;
-	}
-	view_set_fullscreen(view, false);
-	view_maximize(view, VIEW_AXIS_NONE);
-	if (view_is_tiled(view)) {
-		view_set_untiled(view);
-		view_move_resize(view, view->natural_geometry);
-	}
-
-	struct border margin = ssd_thickness(view);
-	struct wlr_box geo = view->pending;
-	geo.width += margin.left + margin.right;
-	geo.height += margin.top + margin.bottom;
-
-	int x = view->server->seat.cursor->x - (geo.width / 2);
-	int y = view->server->seat.cursor->y - (geo.height / 2);
-
 	struct wlr_box usable = output_usable_area_in_layout_coords(pending_output);
 
 	/* Limit usable region to account for gap */
@@ -657,17 +639,26 @@ view_move_to_cursor(struct view *view)
 	usable.width -= 2 * rc.gap;
 	usable.height -= 2 * rc.gap;
 
-	if (x + geo.width > usable.x + usable.width) {
-		x = usable.x + usable.width - geo.width;
+	if (wlr_box_empty(geom) || wlr_box_empty(&usable)) {
+		return false;
 	}
-	x = MAX(x, usable.x) + margin.left;
 
-	if (y + geo.height > usable.y + usable.height) {
-		y = usable.y + usable.height - geo.height;
-	}
-	y = MAX(y, usable.y) + margin.top;
+	struct border margin = ssd_thickness(view);
+	struct seat *seat = &view->server->seat;
 
-	view_move(view, x, y);
+	int total_width = geom->width + margin.left + margin.right;
+	int total_height = geom->height + margin.top + margin.bottom;
+
+	int x = (int)seat->cursor->x - (total_width / 2);
+	int y = (int)seat->cursor->y - (total_height / 2);
+
+	/* Order of MIN/MAX is significant here */
+	x = MIN(x, usable.x + usable.width - total_width);
+	geom->x = MAX(x, usable.x) + margin.left;
+	y = MIN(y, usable.y + usable.height - total_height);
+	geom->y = MAX(y, usable.y) + margin.top;
+
+	return true;
 }
 
 struct view_size_hints
@@ -907,16 +898,8 @@ adjust_floating_geometry(struct view *view, struct wlr_box *geometry,
 	}
 
 	/* Reposition offscreen automatically if configured to do so */
-	if (rc.placement_policy == LAB_PLACE_AUTOMATIC) {
-		if (placement_find_best(view, geometry)) {
-			return true;
-		}
-	}
-
-	/* If automatic placement failed or was not enabled, just center */
-	return view_compute_centered_position(view, NULL,
-		geometry->width, geometry->height,
-		&geometry->x, &geometry->y);
+	return view_compute_position_by_policy(view, geometry,
+		/* allow_cursor */ true, rc.placement_policy);
 }
 
 struct wlr_box
@@ -926,8 +909,8 @@ view_get_fallback_natural_geometry(struct view *view)
 		.width = VIEW_FALLBACK_WIDTH,
 		.height = VIEW_FALLBACK_HEIGHT,
 	};
-	view_compute_centered_position(view, NULL,
-		box.width, box.height, &box.x, &box.y);
+	view_compute_position_by_policy(view, &box,
+		/* allow_cursor */ true, rc.placement_policy);
 	return box;
 }
 
@@ -987,13 +970,16 @@ view_center(struct view *view, const struct wlr_box *ref)
  * Algorithm based on KWin's implementation:
  * https://github.com/KDE/kwin/blob/df9f8f8346b5b7645578e37365dabb1a7b02ca5a/src/placement.cpp#L589
  */
-static void
-view_cascade(struct view *view)
+static bool
+view_compute_cascaded_position(struct view *view, struct wlr_box *geom)
 {
 	/* "cascade" policy places a new view at center by default */
-	struct wlr_box center = view->pending;
-	view_compute_centered_position(view, NULL,
-		center.width, center.height, &center.x, &center.y);
+	struct wlr_box center = *geom;
+	if (!view_compute_centered_position(view, NULL, center.width,
+			center.height, &center.x, &center.y)) {
+		return false;
+	}
+
 	struct border margin = ssd_get_margin(view->ssd);
 	center.x -= margin.left;
 	center.y -= margin.top;
@@ -1068,28 +1054,42 @@ view_cascade(struct view *view)
 		}
 	}
 
-	view_move(view, candidate.x + margin.left, candidate.y + margin.top);
+	geom->x = candidate.x + margin.left;
+	geom->y = candidate.y + margin.top;
+	return true;
+}
+
+bool
+view_compute_position_by_policy(struct view *view, struct wlr_box *geom,
+		bool allow_cursor, enum lab_placement_policy policy)
+{
+	if (allow_cursor && policy == LAB_PLACE_CURSOR) {
+		return view_compute_near_cursor_position(view, geom);
+	} else if (policy == LAB_PLACE_AUTOMATIC) {
+		return placement_find_best(view, geom);
+	} else if (policy == LAB_PLACE_CASCADE) {
+		return view_compute_cascaded_position(view, geom);
+	} else {
+		return view_compute_centered_position(view, NULL,
+			geom->width, geom->height, &geom->x, &geom->y);
+	}
 }
 
 void
 view_place_by_policy(struct view *view, bool allow_cursor,
 		enum lab_placement_policy policy)
 {
-	if (allow_cursor && policy == LAB_PLACE_CURSOR) {
-		view_move_to_cursor(view);
-		return;
-	} else if (policy == LAB_PLACE_AUTOMATIC) {
-		struct wlr_box geometry = view->pending;
-		if (placement_find_best(view, &geometry)) {
-			view_move(view, geometry.x, geometry.y);
-			return;
-		}
-	} else if (policy == LAB_PLACE_CASCADE) {
-		view_cascade(view);
-		return;
+	view_set_fullscreen(view, false);
+	view_maximize(view, VIEW_AXIS_NONE);
+	if (view_is_tiled(view)) {
+		view_set_untiled(view);
+		view_move_resize(view, view->natural_geometry);
 	}
 
-	view_center(view, NULL);
+	struct wlr_box geom = view->pending;
+	if (view_compute_position_by_policy(view, &geom, allow_cursor, policy)) {
+		view_move(view, geom.x, geom.y);
+	}
 }
 
 void

@@ -486,7 +486,6 @@ void view_resize_relative(struct view *view,
 	int left, int right, int top, int bottom);
 void view_move_relative(struct view *view, int x, int y);
 void view_move(struct view *view, int x, int y);
-void view_move_to_cursor(struct view *view);
 void view_moved(struct view *view);
 void view_minimize(struct view *view, bool minimized);
 bool view_compute_centered_position(struct view *view,
@@ -514,6 +513,14 @@ int view_effective_height(struct view *view, bool use_pending);
  * within; if NULL, view is centered within usable area of its output
  */
 void view_center(struct view *view, const struct wlr_box *ref);
+
+/*
+ * Like view_place_by_policy() but doesn't actually move the view.
+ * Returns false if position could not be computed (for example, if no
+ * outputs are connected). In that case, @geom is not modified.
+ */
+bool view_compute_position_by_policy(struct view *view, struct wlr_box *geom,
+	bool allow_cursor, enum lab_placement_policy policy);
 
 /**
  * view_place_by_policy - apply placement strategy to view

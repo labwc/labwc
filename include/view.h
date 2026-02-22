@@ -514,7 +514,11 @@ int view_effective_height(struct view *view, bool use_pending);
  */
 void view_center(struct view *view, const struct wlr_box *ref);
 
-/* Like view_place_by_policy() but doesn't actually move the view */
+/*
+ * Like view_place_by_policy() but doesn't actually move the view.
+ * Returns false if position could not be computed (for example, if no
+ * outputs are connected). In that case, @geom is not modified.
+ */
 bool view_compute_position_by_policy(struct view *view, struct wlr_box *geom,
 	bool allow_cursor, enum lab_placement_policy policy);
 

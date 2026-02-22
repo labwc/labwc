@@ -813,10 +813,10 @@ handle_map(struct wl_listener *listener, void *data)
 	/*
 	 * An output should have been chosen when the surface was first
 	 * created, but take one more opportunity to assign an output if not.
-	 * Use output from the parent view if possible.
+	 * For dialogs, try to use output from the parent view.
 	 */
 	struct view *parent = xdg_toplevel_view_get_parent(view);
-	if (parent && output_is_usable(parent->output)) {
+	if (view_is_floating(view) && parent && output_is_usable(parent->output)) {
 		view_set_output(view, parent->output);
 	} else if (!output_is_usable(view->output)) {
 		view_set_output(view, output_nearest_to_cursor(view->server));

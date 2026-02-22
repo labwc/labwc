@@ -29,6 +29,7 @@ ssd_titlebar_create(struct ssd *ssd)
 	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
 	int width = view->current.width;
+	bool maximized = view->maximized == VIEW_AXIS_BOTH;
 	int corner_width = ssd_get_corner_width();
 
 	ssd->titlebar.tree = wlr_scene_tree_create(ssd->tree);
@@ -62,7 +63,10 @@ ssd_titlebar_create(struct ssd *ssd)
 			wlr_scene_buffer_set_filter_mode(
 				subtree->bar, WLR_SCALE_FILTER_NEAREST);
 		}
-		wlr_scene_node_set_position(&subtree->bar->node, corner_width, 0);
+		int overlap = maximized ? 0 : BORDER_PX_SIDE - 2;
+		wlr_scene_node_set_position(&subtree->bar->node, -overlap, 0);
+		wlr_scene_buffer_set_dest_size(subtree->bar,
+			width + 2 * overlap, theme->titlebar_height);
 
 		subtree->corner_left = wlr_scene_buffer_create(parent, corner_top_left);
 		wlr_scene_node_set_position(&subtree->corner_left->node,
@@ -113,7 +117,6 @@ ssd_titlebar_create(struct ssd *ssd)
 
 	ssd_update_title(ssd);
 
-	bool maximized = view->maximized == VIEW_AXIS_BOTH;
 	bool squared = ssd_should_be_squared(ssd);
 	if (maximized) {
 		set_alt_button_icon(ssd, LAB_NODE_BUTTON_MAXIMIZE, true);
@@ -157,20 +160,25 @@ update_button_state(struct ssd_button *button, enum lab_button_state state,
 static void
 set_squared_corners(struct ssd *ssd, bool enable)
 {
+#if 0
 	struct view *view = ssd->view;
 	int width = view->current.width;
 	int corner_width = ssd_get_corner_width();
 	struct theme *theme = view->server->theme;
 
 	int x = enable ? 0 : corner_width;
+#endif
 
 	enum ssd_active_state active;
 	FOR_EACH_ACTIVE_STATE(active) {
 		struct ssd_titlebar_subtree *subtree = &ssd->titlebar.subtrees[active];
 
+#if 0
+		/* XXX: conflicts with overlap of textured borders */
 		wlr_scene_node_set_position(&subtree->bar->node, x, 0);
 		wlr_scene_buffer_set_dest_size(subtree->bar,
 			MAX(width - 2 * x, 0), theme->titlebar_height);
+#endif
 
 		wlr_scene_node_set_enabled(&subtree->corner_left->node, !enable);
 
@@ -284,7 +292,6 @@ ssd_titlebar_update(struct ssd *ssd)
 		if (ssd->state.was_maximized != maximized) {
 			set_alt_button_icon(ssd, LAB_NODE_BUTTON_MAXIMIZE, maximized);
 		}
-		ssd->state.was_maximized = maximized;
 		ssd->state.was_squared = squared;
 	}
 
@@ -299,22 +306,25 @@ ssd_titlebar_update(struct ssd *ssd)
 		ssd->state.was_omnipresent = view->visible_on_all_workspaces;
 	}
 
-	if (width == ssd->state.geometry.width) {
+	if (ssd->state.was_maximized == maximized
+			&& ssd->state.geometry.width == width) {
 		return;
 	}
+	ssd->state.was_maximized = maximized;
 
 	update_visible_buttons(ssd);
 
 	/* Center buttons vertically within titlebar */
 	int y = (theme->titlebar_height - theme->window_button_height) / 2;
 	int x;
-	int bg_offset = maximized || squared ? 0 : corner_width;
 
 	enum ssd_active_state active;
 	FOR_EACH_ACTIVE_STATE(active) {
 		struct ssd_titlebar_subtree *subtree = &ssd->titlebar.subtrees[active];
+		int overlap = maximized ? 0 : BORDER_PX_SIDE - 2;
+		wlr_scene_node_set_position(&subtree->bar->node, -overlap, 0);
 		wlr_scene_buffer_set_dest_size(subtree->bar,
-			MAX(width - bg_offset * 2, 0), theme->titlebar_height);
+			width + 2 * overlap, theme->titlebar_height);
 
 		x = theme->window_titlebar_padding_width;
 		struct ssd_button *button;
@@ -513,10 +523,15 @@ ssd_update_hovered_button(struct server *server, struct wlr_scene_node *node)
 bool
 ssd_should_be_squared(struct ssd *ssd)
 {
+#if 1
+	/* XXX: force squared corners with textured borders */
+	return true;
+#else
 	struct view *view = ssd->view;
 	int corner_width = ssd_get_corner_width();
 
 	return (view_is_tiled_and_notify_tiled(view)
 			|| view->current.width < corner_width * 2)
 		&& view->maximized != VIEW_AXIS_BOTH;
+#endif
 }

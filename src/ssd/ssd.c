@@ -49,10 +49,10 @@ ssd_thickness(struct view *view)
 	}
 
 	struct border thickness = {
-		.top = theme->titlebar_height + theme->border_width,
-		.right = theme->border_width,
-		.bottom = theme->border_width,
-		.left = theme->border_width,
+		.top = theme->titlebar_height + BORDER_PX_TOP,
+		.right = BORDER_PX_SIDE,
+		.bottom = BORDER_PX_SIDE,
+		.left = BORDER_PX_SIDE,
 	};
 
 	if (!view_titlebar_visible(view)) {
@@ -346,10 +346,13 @@ ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable)
 		return;
 	}
 
+#if 0
+	/* XXX: doesn't work with textured borders */
 	float *color = enable
 		? rc.theme->window_toggled_keybinds_color
 		: rc.theme->window[SSD_ACTIVE].border_color;
 	wlr_scene_rect_set_color(ssd->border.subtrees[SSD_ACTIVE].top, color);
+#endif
 }
 
 bool

@@ -23,7 +23,7 @@
 #endif
 
 void
-desktop_arrange_all_views(struct server *server)
+desktop_arrange_all_views(void)
 {
 	/*
 	 * Adjust window positions/sizes. Skip views with no size since
@@ -36,7 +36,7 @@ desktop_arrange_all_views(struct server *server)
 	 * views.
 	 */
 	struct view *view;
-	wl_list_for_each(view, &server->views, link) {
+	wl_list_for_each(view, &g_server.views, link) {
 		if (!wlr_box_empty(&view->pending)) {
 			view_adjust_for_layout_change(view);
 		}
@@ -46,7 +46,7 @@ desktop_arrange_all_views(struct server *server)
 static void
 set_or_offer_focus(struct view *view)
 {
-	struct seat *seat = &view->server->seat;
+	struct seat *seat = &g_server.seat;
 	switch (view_wants_focus(view)) {
 	case VIEW_WANTS_FOCUS_ALWAYS:
 		if (view->surface != seat->seat->keyboard_state.focused_surface) {
@@ -76,7 +76,7 @@ desktop_focus_view(struct view *view, bool raise)
 		return;
 	}
 
-	if (view->server->input_mode == LAB_INPUT_STATE_CYCLE) {
+	if (g_server.input_mode == LAB_INPUT_STATE_CYCLE) {
 		wlr_log(WLR_DEBUG, "not focusing window while window switching");
 		return;
 	}
@@ -135,10 +135,10 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 }
 
 static struct view *
-desktop_topmost_focusable_view(struct server *server)
+desktop_topmost_focusable_view(void)
 {
 	struct view *view;
-	for_each_view(view, &server->views,
+	for_each_view(view, &g_server.views,
 			LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 		if (!view->minimized) {
 			return view;
@@ -148,9 +148,9 @@ desktop_topmost_focusable_view(struct server *server)
 }
 
 void
-desktop_focus_topmost_view(struct server *server)
+desktop_focus_topmost_view(void)
 {
-	struct view *view = desktop_topmost_focusable_view(server);
+	struct view *view = desktop_topmost_focusable_view();
 	if (view) {
 		desktop_focus_view(view, /*raise*/ true);
 	} else {
@@ -158,49 +158,47 @@ desktop_focus_topmost_view(struct server *server)
 		 * Defocus previous focused surface/view if no longer
 		 * focusable (e.g. unmapped or on a different workspace).
 		 */
-		seat_focus_surface(&server->seat, NULL);
+		seat_focus_surface(&g_server.seat, NULL);
 	}
 }
 
 void
 desktop_focus_output(struct output *output)
 {
-	struct server *server = output->server;
-
-	if (!output_is_usable(output) || server->input_mode
+	if (!output_is_usable(output) || g_server.input_mode
 			!= LAB_INPUT_STATE_PASSTHROUGH) {
 		return;
 	}
 	struct view *view;
-	for_each_view(view, &server->views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+	for_each_view(view, &g_server.views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 		if (view->outputs & output->id_bit) {
 			desktop_focus_view(view, /*raise*/ false);
-			wlr_cursor_warp(server->seat.cursor, NULL,
+			wlr_cursor_warp(g_server.seat.cursor, NULL,
 				view->current.x + view->current.width / 2,
 				view->current.y + view->current.height / 2);
-			cursor_update_focus(server);
+			cursor_update_focus();
 			return;
 		}
 	}
 	/* No view found on desired output */
 	struct wlr_box layout_box;
-	wlr_output_layout_get_box(server->output_layout,
+	wlr_output_layout_get_box(g_server.output_layout,
 		output->wlr_output, &layout_box);
-	wlr_cursor_warp(server->seat.cursor, NULL,
+	wlr_cursor_warp(g_server.seat.cursor, NULL,
 		layout_box.x + output->usable_area.x + output->usable_area.width / 2,
 		layout_box.y + output->usable_area.y + output->usable_area.height / 2);
-	cursor_update_focus(server);
+	cursor_update_focus();
 }
 
 void
-desktop_update_top_layer_visibility(struct server *server)
+desktop_update_top_layer_visibility(void)
 {
 	struct view *view;
 	struct output *output;
 	uint32_t top = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
 
 	/* Enable all top layers */
-	wl_list_for_each(output, &server->outputs, link) {
+	wl_list_for_each(output, &g_server.outputs, link) {
 		if (!output_is_usable(output)) {
 			continue;
 		}
@@ -212,7 +210,7 @@ desktop_update_top_layer_visibility(struct server *server)
 	 * any views above it
 	 */
 	uint64_t outputs_covered = 0;
-	for_each_view(view, &server->views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+	for_each_view(view, &g_server.views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 		if (view->minimized) {
 			continue;
 		}
@@ -262,22 +260,22 @@ avoid_edge_rounding_issues(struct cursor_context *ctx)
 
 /* TODO: make this less big and scary */
 struct cursor_context
-get_cursor_context(struct server *server)
+get_cursor_context(void)
 {
 	struct cursor_context ret = {.type = LAB_NODE_NONE};
-	struct wlr_cursor *cursor = server->seat.cursor;
+	struct wlr_cursor *cursor = g_server.seat.cursor;
 
 	/* Prevent drag icons to be on top of the hitbox detection */
-	if (server->seat.drag.active) {
-		dnd_icons_show(&server->seat, false);
+	if (g_server.seat.drag.active) {
+		dnd_icons_show(&g_server.seat, false);
 	}
 
 	struct wlr_scene_node *node =
-		wlr_scene_node_at(&server->scene->tree.node,
+		wlr_scene_node_at(&g_server.scene->tree.node,
 			cursor->x, cursor->y, &ret.sx, &ret.sy);
 
-	if (server->seat.drag.active) {
-		dnd_icons_show(&server->seat, true);
+	if (g_server.seat.drag.active) {
+		dnd_icons_show(&g_server.seat, true);
 	}
 
 	if (!node) {
@@ -292,7 +290,7 @@ get_cursor_context(struct server *server)
 #if HAVE_XWAYLAND
 	/* TODO: attach LAB_NODE_UNMANAGED node-descriptor to unmanaged surfaces */
 	if (node->type == WLR_SCENE_NODE_BUFFER) {
-		if (node->parent == server->unmanaged_tree) {
+		if (node->parent == g_server.unmanaged_tree) {
 			ret.type = LAB_NODE_UNMANAGED;
 			return ret;
 		}

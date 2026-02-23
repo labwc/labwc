@@ -119,10 +119,10 @@ kde_server_decoration_update_default(void)
 }
 
 void
-kde_server_decoration_init(struct server *server)
+kde_server_decoration_init(void)
 {
 	assert(!kde_deco_mgr);
-	kde_deco_mgr = wlr_server_decoration_manager_create(server->wl_display);
+	kde_deco_mgr = wlr_server_decoration_manager_create(g_server.wl_display);
 	if (!kde_deco_mgr) {
 		wlr_log(WLR_ERROR, "unable to create the kde server deco manager");
 		exit(EXIT_FAILURE);
@@ -131,12 +131,12 @@ kde_server_decoration_init(struct server *server)
 	wl_list_init(&decorations);
 	kde_server_decoration_update_default();
 
-	wl_signal_add(&kde_deco_mgr->events.new_decoration, &server->kde_server_decoration);
-	server->kde_server_decoration.notify = handle_new_server_decoration;
+	wl_signal_add(&kde_deco_mgr->events.new_decoration, &g_server.kde_server_decoration);
+	g_server.kde_server_decoration.notify = handle_new_server_decoration;
 }
 
 void
-kde_server_decoration_finish(struct server *server)
+kde_server_decoration_finish(void)
 {
-	wl_list_remove(&server->kde_server_decoration.link);
+	wl_list_remove(&g_server.kde_server_decoration.link);
 }

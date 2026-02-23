@@ -135,7 +135,6 @@ struct view_impl {
 };
 
 struct view {
-	struct server *server;
 	enum view_type type;
 	const struct view_impl *impl;
 	struct wl_list link;
@@ -357,7 +356,7 @@ bool view_matches_query(struct view *view, struct view_query *query);
  * @criteria: Criteria to match against.
  * Example:
  *	struct view *view;
- *	for_each_view(view, &server->views, LAB_VIEW_CRITERIA_NONE) {
+ *	for_each_view(view, &g_server.views, LAB_VIEW_CRITERIA_NONE) {
  *		printf("%s\n", view_get_string_prop(view, "app_id"));
  *	}
  */
@@ -373,7 +372,7 @@ bool view_matches_query(struct view *view, struct view_query *query);
  * @criteria: Criteria to match against.
  * Example:
  *	struct view *view;
- *	for_each_view_reverse(view, &server->views, LAB_VIEW_CRITERIA_NONE) {
+ *	for_each_view_reverse(view, &g_server.views, LAB_VIEW_CRITERIA_NONE) {
  *		printf("%s\n", view_get_string_prop(view, "app_id"));
  *	}
  */
@@ -423,13 +422,13 @@ struct view *view_prev(struct wl_list *head, struct view *view,
  *	struct view **view;
  *	struct wl_array views;
  *	wl_array_init(&views);
- *	view_array_append(server, &views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE);
+ *	view_array_append(&views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE);
  *	wl_array_for_each(view, &views) {
  *		// Do something with *view
  *	}
  *	wl_array_release(&views);
  */
-void view_array_append(struct server *server, struct wl_array *views,
+void view_array_append(struct wl_array *views,
 	enum lab_view_criteria criteria);
 
 enum view_wants_focus view_wants_focus(struct view *view);

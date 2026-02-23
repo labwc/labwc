@@ -21,12 +21,12 @@ void session_environment_init(void);
  * session_autostart_init - run autostart file as shell script
  * Note: Same as `sh ~/.config/labwc/autostart` (or equivalent XDG config dir)
  */
-void session_autostart_init(struct server *server);
+void session_autostart_init(void);
 
 /**
  * session_shutdown - run session shutdown file as shell script
  * Note: Same as `sh ~/.config/labwc/shutdown` (or equivalent XDG config dir)
  */
-void session_shutdown(struct server *server);
+void session_shutdown(void);
 
 #endif /* LABWC_SESSION_H */

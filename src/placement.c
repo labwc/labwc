@@ -46,8 +46,6 @@ count_views(struct view *view)
 {
 	assert(view);
 
-	struct server *server = view->server;
-
 	struct output *output = view->output;
 	if (!output_is_usable(output)) {
 		return 0;
@@ -56,7 +54,7 @@ count_views(struct view *view)
 	int nviews = 0;
 
 	struct view *v;
-	for_each_view(v, &server->views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+	for_each_view(v, &g_server.views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 		/* Ignore the target view or anything on a different output */
 		if (v == view || v->output != output) {
 			continue;
@@ -105,8 +103,6 @@ build_grid(struct overlap_bitmap *bmp, struct view *view)
 	assert(bmp);
 	assert(view);
 
-	struct server *server = view->server;
-
 	/* Always start with a fresh bitmap */
 	destroy_bitmap(bmp);
 
@@ -145,7 +141,7 @@ build_grid(struct overlap_bitmap *bmp, struct view *view)
 	int nr_cols = 2;
 
 	struct view *v;
-	for_each_view(v, &server->views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+	for_each_view(v, &g_server.views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 		if (v == view || v->output != output) {
 			continue;
 		}
@@ -236,8 +232,6 @@ build_overlap(struct overlap_bitmap *bmp, struct view *view)
 	assert(bmp);
 	assert(view);
 
-	struct server *server = view->server;
-
 	if (bmp->nr_rows < 1 || bmp->nr_cols < 1) {
 		return;
 	}
@@ -248,7 +242,7 @@ build_overlap(struct overlap_bitmap *bmp, struct view *view)
 	}
 
 	struct view *v;
-	for_each_view(v, &server->views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+	for_each_view(v, &g_server.views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 		if (v == view || v->output != output) {
 			continue;
 		}

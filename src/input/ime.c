@@ -178,7 +178,6 @@ static void
 update_popup_position(struct input_method_popup *popup)
 {
 	struct input_method_relay *relay = popup->relay;
-	struct server *server = relay->seat->server;
 	struct text_input *text_input = relay->active_text_input;
 
 	if (!text_input || !relay->focused_surface
@@ -219,7 +218,7 @@ update_popup_position(struct input_method_popup *popup)
 	}
 
 	struct output *output =
-		output_nearest_to(server, cursor_rect.x, cursor_rect.y);
+		output_nearest_to(cursor_rect.x, cursor_rect.y);
 	if (!output_is_usable(output)) {
 		wlr_log(WLR_ERROR,
 			"Cannot position IME popup (unusable output)");
@@ -227,7 +226,7 @@ update_popup_position(struct input_method_popup *popup)
 	}
 	struct wlr_box output_box;
 	wlr_output_layout_get_box(
-		server->output_layout, output->wlr_output, &output_box);
+		g_server.output_layout, output->wlr_output, &output_box);
 
 	/* Use xdg-positioner utilities to position popup */
 	struct wlr_xdg_positioner_rules rules = {
@@ -580,14 +579,14 @@ input_method_relay_create(struct seat *seat)
 	relay->seat = seat;
 	wl_list_init(&relay->text_inputs);
 	wl_list_init(&relay->popups);
-	relay->popup_tree = wlr_scene_tree_create(&seat->server->scene->tree);
+	relay->popup_tree = wlr_scene_tree_create(&g_server.scene->tree);
 
 	relay->new_text_input.notify = handle_new_text_input;
-	wl_signal_add(&seat->server->text_input_manager->events.text_input,
+	wl_signal_add(&g_server.text_input_manager->events.text_input,
 		&relay->new_text_input);
 
 	relay->new_input_method.notify = handle_new_input_method;
-	wl_signal_add(&seat->server->input_method_manager->events.input_method,
+	wl_signal_add(&g_server.input_method_manager->events.input_method,
 		&relay->new_input_method);
 
 	relay->focused_surface_destroy.notify = handle_focused_surface_destroy;

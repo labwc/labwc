@@ -9,7 +9,6 @@
 
 struct output {
 	struct wl_list link; /* server.outputs */
-	struct server *server;
 	struct wlr_output *wlr_output;
 	struct wlr_output_state pending;
 	struct wlr_scene_output *scene_output;
@@ -45,13 +44,12 @@ struct output {
 
 #undef LAB_NR_LAYERS
 
-void output_init(struct server *server);
-void output_finish(struct server *server);
-struct output *output_from_wlr_output(struct server *server,
-	struct wlr_output *wlr_output);
-struct output *output_from_name(struct server *server, const char *name);
-struct output *output_nearest_to(struct server *server, int lx, int ly);
-struct output *output_nearest_to_cursor(struct server *server);
+void output_init(void);
+void output_finish(void);
+struct output *output_from_wlr_output(struct wlr_output *wlr_output);
+struct output *output_from_name(const char *name);
+struct output *output_nearest_to(int lx, int ly);
+struct output *output_nearest_to_cursor(void);
 
 /**
  * output_get_adjacent() - get next output, in a given direction,
@@ -69,7 +67,7 @@ struct output *output_get_adjacent(struct output *output,
 
 bool output_is_usable(struct output *output);
 void output_update_usable_area(struct output *output);
-void output_update_all_usable_areas(struct server *server, bool layout_changed);
+void output_update_all_usable_areas(bool layout_changed);
 bool output_get_tearing_allowance(struct output *output);
 struct wlr_box output_usable_area_in_layout_coords(struct output *output);
 void handle_output_power_manager_set_mode(struct wl_listener *listener,

@@ -11,7 +11,6 @@ struct wlr_output;
 struct wlr_output_layout;
 
 struct xwayland_unmanaged {
-	struct server *server;
 	struct wlr_xwayland_surface *xwayland_surface;
 	struct wlr_scene_node *node;
 	struct wl_list link;
@@ -61,25 +60,22 @@ struct xwayland_view {
 /*	struct wl_listener set_hints; */
 };
 
-void xwayland_unmanaged_create(struct server *server,
-	struct wlr_xwayland_surface *xsurface, bool mapped);
+void xwayland_unmanaged_create(struct wlr_xwayland_surface *xsurface, bool mapped);
 
-void xwayland_view_create(struct server *server,
-	struct wlr_xwayland_surface *xsurface, bool mapped);
+void xwayland_view_create(struct wlr_xwayland_surface *xsurface, bool mapped);
 
-void xwayland_server_init(struct server *server,
-	struct wlr_compositor *compositor);
-void xwayland_server_finish(struct server *server);
+void xwayland_server_init(struct wlr_compositor *compositor);
+void xwayland_server_finish(void);
 
 void xwayland_adjust_usable_area(struct view *view,
 	struct wlr_output_layout *layout, struct wlr_output *output,
 	struct wlr_box *usable);
 
-void xwayland_update_workarea(struct server *server);
+void xwayland_update_workarea(void);
 
-void xwayland_reset_cursor(struct server *server);
+void xwayland_reset_cursor(void);
 
-void xwayland_flush(struct server *server);
+void xwayland_flush(void);
 
 #endif /* HAVE_XWAYLAND */
 #endif /* LABWC_XWAYLAND_H */

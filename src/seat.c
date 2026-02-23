@@ -350,11 +350,11 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 }
 
 static struct wlr_output *
-output_by_name(struct server *server, const char *name)
+output_by_name(const char *name)
 {
 	assert(name);
 	struct output *output;
-	wl_list_for_each(output, &server->outputs, link) {
+	wl_list_for_each(output, &g_server.outputs, link) {
 		if (!strcasecmp(output->wlr_output->name, name)) {
 			return output->wlr_output;
 		}
@@ -367,7 +367,7 @@ map_input_to_output(struct seat *seat, struct wlr_input_device *dev, char *outpu
 {
 	struct wlr_output *output = NULL;
 	if (output_name) {
-		output = output_by_name(seat->server, output_name);
+		output = output_by_name(output_name);
 	}
 	wlr_cursor_map_input_to_output(seat->cursor, dev, output);
 	wlr_cursor_map_input_to_region(seat->cursor, dev, NULL);
@@ -594,7 +594,6 @@ handle_focus_change(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, focus_change);
 	struct wlr_seat_keyboard_focus_change_event *event = data;
-	struct server *server = seat->server;
 	struct wlr_surface *surface = event->new_surface;
 	struct view *view = surface ? view_from_wlr_surface(surface) : NULL;
 
@@ -610,29 +609,28 @@ handle_focus_change(struct wl_listener *listener, void *data)
 	 * We clear the keyboard focus at the beginning of Move/Resize, window
 	 * switcher and opening menus, but don't want to deactivate the view.
 	 */
-	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+	if (g_server.input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		return;
 	}
 
-	if (view != server->active_view) {
-		if (server->active_view) {
-			view_set_activated(server->active_view, false);
+	if (view != g_server.active_view) {
+		if (g_server.active_view) {
+			view_set_activated(g_server.active_view, false);
 		}
 		if (view) {
 			view_set_activated(view, true);
 			tablet_pad_enter_surface(seat, surface);
 		}
-		server->active_view = view;
+		g_server.active_view = view;
 	}
 }
 
 void
-seat_init(struct server *server)
+seat_init(void)
 {
-	struct seat *seat = &server->seat;
-	seat->server = server;
+	struct seat *seat = &g_server.seat;
 
-	seat->seat = wlr_seat_create(server->wl_display, "seat0");
+	seat->seat = wlr_seat_create(g_server.wl_display, "seat0");
 	if (!seat->seat) {
 		wlr_log(WLR_ERROR, "cannot allocate seat");
 		exit(EXIT_FAILURE);
@@ -642,15 +640,15 @@ seat_init(struct server *server)
 	wl_list_init(&seat->constraint_commit.link);
 	wl_list_init(&seat->inputs);
 
-	CONNECT_SIGNAL(server->backend, seat, new_input);
+	CONNECT_SIGNAL(g_server.backend, seat, new_input);
 	CONNECT_SIGNAL(&seat->seat->keyboard_state, seat, focus_change);
 
 	seat->virtual_pointer = wlr_virtual_pointer_manager_v1_create(
-		server->wl_display);
+		g_server.wl_display);
 	CONNECT_SIGNAL(seat->virtual_pointer, seat, new_virtual_pointer);
 
 	seat->virtual_keyboard = wlr_virtual_keyboard_manager_v1_create(
-		server->wl_display);
+		g_server.wl_display);
 	CONNECT_SIGNAL(seat->virtual_keyboard, seat, new_virtual_keyboard);
 
 	seat->input_method_relay = input_method_relay_create(seat);
@@ -662,7 +660,7 @@ seat_init(struct server *server)
 		wlr_log(WLR_ERROR, "unable to create cursor");
 		exit(EXIT_FAILURE);
 	}
-	wlr_cursor_attach_output_layout(seat->cursor, server->output_layout);
+	wlr_cursor_attach_output_layout(seat->cursor, g_server.output_layout);
 
 	wl_list_init(&seat->tablets);
 	wl_list_init(&seat->tablet_tools);
@@ -672,9 +670,9 @@ seat_init(struct server *server)
 }
 
 void
-seat_finish(struct server *server)
+seat_finish(void)
 {
-	struct seat *seat = &server->seat;
+	struct seat *seat = &g_server.seat;
 	wl_list_remove(&seat->new_input.link);
 	wl_list_remove(&seat->focus_change.link);
 	wl_list_remove(&seat->new_virtual_pointer.link);
@@ -729,9 +727,9 @@ seat_pointer_end_grab(struct seat *seat, struct wlr_surface *surface)
 
 /* This is called on SIGHUP (generally in response to labwc --reconfigure */
 void
-seat_reconfigure(struct server *server)
+seat_reconfigure(void)
 {
-	struct seat *seat = &server->seat;
+	struct seat *seat = &g_server.seat;
 	struct input *input;
 	cursor_reload(seat);
 	overlay_finish(seat);
@@ -762,7 +760,7 @@ seat_reconfigure(struct server *server)
 void
 seat_force_focus_surface(struct seat *seat, struct wlr_surface *surface)
 {
-	if (seat->server->session_lock_manager->locked) {
+	if (g_server.session_lock_manager->locked) {
 		return;
 	}
 	uint32_t *pressed_sent_keycodes = key_state_pressed_sent_keycodes();
@@ -789,8 +787,7 @@ seat_focus(struct seat *seat, struct wlr_surface *surface,
 	 * It should also come before the !surface condition, or the
 	 * lock screen may lose focus and become impossible to unlock.
 	 */
-	struct server *server = seat->server;
-	if (server->session_lock_manager->locked && !is_lock_surface) {
+	if (g_server.session_lock_manager->locked && !is_lock_surface) {
 		return;
 	}
 
@@ -826,16 +823,16 @@ seat_focus(struct seat *seat, struct wlr_surface *surface,
 	input_method_relay_set_focus(seat->input_method_relay, surface);
 
 	struct wlr_pointer_constraint_v1 *constraint =
-		wlr_pointer_constraints_v1_constraint_for_surface(server->constraints,
+		wlr_pointer_constraints_v1_constraint_for_surface(g_server.constraints,
 			surface, seat->seat);
-	constrain_cursor(server, constraint);
+	constrain_cursor(constraint);
 }
 
 void
 seat_focus_surface(struct seat *seat, struct wlr_surface *surface)
 {
 	/* Don't update focus while window switcher, Move/Resize and menu interaction */
-	if (seat->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+	if (g_server.input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		return;
 	}
 	seat_focus(seat, surface, /*replace_exclusive_layer*/ false,
@@ -854,7 +851,7 @@ seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer)
 {
 	if (!layer) {
 		seat->focused_layer = NULL;
-		desktop_focus_topmost_view(seat->server);
+		desktop_focus_topmost_view();
 		return;
 	}
 	seat_focus(seat, layer->surface, /*replace_exclusive_layer*/ true,
@@ -897,9 +894,9 @@ seat_focus_override_begin(struct seat *seat, enum input_mode input_mode,
 	enum lab_cursors cursor_shape)
 {
 	assert(!seat->focus_override.surface);
-	assert(seat->server->input_mode == LAB_INPUT_STATE_PASSTHROUGH);
+	assert(g_server.input_mode == LAB_INPUT_STATE_PASSTHROUGH);
 
-	seat->server->input_mode = input_mode;
+	g_server.input_mode = input_mode;
 
 	seat->focus_override.surface = seat->seat->keyboard_state.focused_surface;
 	if (seat->focus_override.surface) {
@@ -918,7 +915,7 @@ seat_focus_override_begin(struct seat *seat, enum input_mode input_mode,
 void
 seat_focus_override_end(struct seat *seat, bool restore_focus)
 {
-	seat->server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
+	g_server.input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 
 	if (seat->focus_override.surface) {
 		if (restore_focus) {
@@ -931,6 +928,6 @@ seat_focus_override_end(struct seat *seat, bool restore_focus)
 	}
 
 	if (restore_focus) {
-		cursor_update_focus(seat->server);
+		cursor_update_focus();
 	}
 }

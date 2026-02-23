@@ -76,7 +76,7 @@
 #define LAB_WLR_PRESENTATION_TIME_VERSION 2
 
 static void
-reload_config_and_theme(struct server *server)
+reload_config_and_theme(void)
 {
 	/* Avoid UAF when dialog client is used during reconfigure */
 	action_prompts_destroy();
@@ -84,37 +84,35 @@ reload_config_and_theme(struct server *server)
 	scaled_buffer_invalidate_sharing();
 	rcxml_finish();
 	rcxml_read(rc.config_file);
-	theme_finish(server->theme);
-	theme_init(server->theme, server, rc.theme_name);
+	theme_finish(g_server.theme);
+	theme_init(g_server.theme, rc.theme_name);
 
 #if HAVE_LIBSFDO
-	desktop_entry_finish(server);
-	desktop_entry_init(server);
+	desktop_entry_finish();
+	desktop_entry_init();
 #endif
 
 	struct view *view;
-	wl_list_for_each(view, &server->views, link) {
+	wl_list_for_each(view, &g_server.views, link) {
 		view_reload_ssd(view);
 	}
 
-	cycle_finish(server, /*switch_focus*/ false);
-	menu_reconfigure(server);
-	seat_reconfigure(server);
-	regions_reconfigure(server);
-	resize_indicator_reconfigure(server);
+	cycle_finish(/*switch_focus*/ false);
+	menu_reconfigure();
+	seat_reconfigure();
+	regions_reconfigure();
+	resize_indicator_reconfigure();
 	kde_server_decoration_update_default();
-	workspaces_reconfigure(server);
+	workspaces_reconfigure();
 }
 
 static int
 handle_sighup(int signal, void *data)
 {
-	struct server *server = &g_server;
-
-	keyboard_cancel_all_keybind_repeats(&server->seat);
+	keyboard_cancel_all_keybind_repeats(&g_server.seat);
 	session_environment_init();
-	reload_config_and_theme(server);
-	output_virtual_update_fallback(server);
+	reload_config_and_theme();
+	output_virtual_update_fallback();
 	return 0;
 }
 
@@ -132,7 +130,6 @@ handle_sigchld(int signal, void *data)
 {
 	siginfo_t info;
 	info.si_pid = 0;
-	struct server *server = &g_server;
 
 	/* First call waitid() with NOWAIT which doesn't consume the zombie */
 	if (waitid(P_ALL, /*id*/ 0, &info, WEXITED | WNOHANG | WNOWAIT) == -1) {
@@ -146,8 +143,8 @@ handle_sigchld(int signal, void *data)
 
 #if HAVE_XWAYLAND
 	/* Ensure that we do not break xwayland lazy initialization */
-	if (server->xwayland && server->xwayland->server
-			&& info.si_pid == server->xwayland->server->pid) {
+	if (g_server.xwayland && g_server.xwayland->server
+			&& info.si_pid == g_server.xwayland->server->pid) {
 		return 0;
 	}
 #endif
@@ -185,9 +182,9 @@ handle_sigchld(int signal, void *data)
 			" please report", (long)info.si_pid, info.si_code);
 	}
 
-	if (info.si_pid == server->primary_client_pid) {
+	if (info.si_pid == g_server.primary_client_pid) {
 		wlr_log(WLR_INFO, "primary client %ld exited", (long)info.si_pid);
-		wl_display_terminate(server->wl_display);
+		wl_display_terminate(g_server.wl_display);
 	}
 
 	return 0;
@@ -300,13 +297,12 @@ static bool
 server_global_filter(const struct wl_client *client, const struct wl_global *global, void *data)
 {
 	const struct wl_interface *iface = wl_global_get_interface(global);
-	struct server *server = &g_server;
 	/* Silence unused var compiler warnings */
 	(void)iface;
 
 #if HAVE_XWAYLAND
-	struct wl_client *xwayland_client = (server->xwayland && server->xwayland->server)
-		? server->xwayland->server->client
+	struct wl_client *xwayland_client = (g_server.xwayland && g_server.xwayland->server)
+		? g_server.xwayland->server->client
 		: NULL;
 
 	if (client != xwayland_client && !strcmp(iface->name, xwayland_shell_v1_interface.name)) {
@@ -318,8 +314,8 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 	/* Do not allow security_context_manager_v1 to clients with a security context attached */
 	const struct wlr_security_context_v1_state *security_context =
 		wlr_security_context_manager_v1_lookup_client(
-			server->security_context_manager_v1, (struct wl_client *)client);
-	if (security_context && global == server->security_context_manager_v1->global) {
+			g_server.security_context_manager_v1, (struct wl_client *)client);
+	if (security_context && global == g_server.security_context_manager_v1->global) {
 		return false;
 	} else if (security_context) {
 		/*
@@ -380,41 +376,39 @@ get_headless_backend(struct wlr_backend *backend, void *data)
 static void
 handle_renderer_lost(struct wl_listener *listener, void *data)
 {
-	struct server *server = wl_container_of(listener, server, renderer_lost);
-
 	wlr_log(WLR_INFO, "Re-creating renderer after GPU reset");
 
-	struct wlr_renderer *renderer = wlr_renderer_autocreate(server->backend);
+	struct wlr_renderer *renderer = wlr_renderer_autocreate(g_server.backend);
 	if (!renderer) {
 		wlr_log(WLR_ERROR, "Unable to create renderer");
 		return;
 	}
 
 	struct wlr_allocator *allocator =
-		wlr_allocator_autocreate(server->backend, renderer);
+		wlr_allocator_autocreate(g_server.backend, renderer);
 	if (!allocator) {
 		wlr_log(WLR_ERROR, "Unable to create allocator");
 		wlr_renderer_destroy(renderer);
 		return;
 	}
 
-	struct wlr_renderer *old_renderer = server->renderer;
-	struct wlr_allocator *old_allocator = server->allocator;
-	server->renderer = renderer;
-	server->allocator = allocator;
+	struct wlr_renderer *old_renderer = g_server.renderer;
+	struct wlr_allocator *old_allocator = g_server.allocator;
+	g_server.renderer = renderer;
+	g_server.allocator = allocator;
 
-	wl_list_remove(&server->renderer_lost.link);
-	wl_signal_add(&server->renderer->events.lost, &server->renderer_lost);
+	wl_list_remove(&g_server.renderer_lost.link);
+	wl_signal_add(&g_server.renderer->events.lost, &g_server.renderer_lost);
 
-	wlr_compositor_set_renderer(server->compositor, renderer);
+	wlr_compositor_set_renderer(g_server.compositor, renderer);
 
 	struct output *output;
-	wl_list_for_each(output, &server->outputs, link) {
+	wl_list_for_each(output, &g_server.outputs, link) {
 		wlr_output_init_render(output->wlr_output,
-			server->allocator, server->renderer);
+			g_server.allocator, g_server.renderer);
 	}
 
-	reload_config_and_theme(server);
+	reload_config_and_theme();
 
 	magnifier_reset();
 
@@ -423,29 +417,29 @@ handle_renderer_lost(struct wl_listener *listener, void *data)
 }
 
 void
-server_init(struct server *server)
+server_init(void)
 {
-	server->primary_client_pid = -1;
-	server->wl_display = wl_display_create();
-	if (!server->wl_display) {
+	g_server.primary_client_pid = -1;
+	g_server.wl_display = wl_display_create();
+	if (!g_server.wl_display) {
 		wlr_log(WLR_ERROR, "cannot allocate a wayland display");
 		exit(EXIT_FAILURE);
 	}
 	/* Increase max client buffer size to make slow clients less likely to terminate  */
-	wl_display_set_default_max_buffer_size(server->wl_display, 1024 * 1024);
+	wl_display_set_default_max_buffer_size(g_server.wl_display, 1024 * 1024);
 
-	wl_display_set_global_filter(server->wl_display, server_global_filter, NULL);
-	server->wl_event_loop = wl_display_get_event_loop(server->wl_display);
+	wl_display_set_global_filter(g_server.wl_display, server_global_filter, NULL);
+	g_server.wl_event_loop = wl_display_get_event_loop(g_server.wl_display);
 
 	/* Catch signals */
-	server->sighup_source = wl_event_loop_add_signal(
-		server->wl_event_loop, SIGHUP, handle_sighup, NULL);
-	server->sigint_source = wl_event_loop_add_signal(
-		server->wl_event_loop, SIGINT, handle_sigterm, server->wl_display);
-	server->sigterm_source = wl_event_loop_add_signal(
-		server->wl_event_loop, SIGTERM, handle_sigterm, server->wl_display);
-	server->sigchld_source = wl_event_loop_add_signal(
-		server->wl_event_loop, SIGCHLD, handle_sigchld, NULL);
+	g_server.sighup_source = wl_event_loop_add_signal(
+		g_server.wl_event_loop, SIGHUP, handle_sighup, NULL);
+	g_server.sigint_source = wl_event_loop_add_signal(
+		g_server.wl_event_loop, SIGINT, handle_sigterm, g_server.wl_display);
+	g_server.sigterm_source = wl_event_loop_add_signal(
+		g_server.wl_event_loop, SIGTERM, handle_sigterm, g_server.wl_display);
+	g_server.sigchld_source = wl_event_loop_add_signal(
+		g_server.wl_event_loop, SIGCHLD, handle_sigchld, NULL);
 
 	/*
 	 * Prevent wayland clients that request the X11 clipboard but closing
@@ -463,31 +457,31 @@ server_init(struct server *server)
 	 * backend based on the current environment, such as opening an x11
 	 * window if an x11 server is running.
 	 */
-	server->backend = wlr_backend_autocreate(
-		server->wl_event_loop, &server->session);
-	if (!server->backend) {
+	g_server.backend = wlr_backend_autocreate(
+		g_server.wl_event_loop, &g_server.session);
+	if (!g_server.backend) {
 		wlr_log(WLR_ERROR, "unable to create backend");
 		fprintf(stderr, helpful_seat_error_message);
 		exit(EXIT_FAILURE);
 	}
 
 	/* Create headless backend to enable adding virtual outputs later on */
-	wlr_multi_for_each_backend(server->backend,
-		get_headless_backend, &server->headless.backend);
+	wlr_multi_for_each_backend(g_server.backend,
+		get_headless_backend, &g_server.headless.backend);
 
-	if (!server->headless.backend) {
+	if (!g_server.headless.backend) {
 		wlr_log(WLR_DEBUG, "manually creating headless backend");
-		server->headless.backend = wlr_headless_backend_create(
-			server->wl_event_loop);
+		g_server.headless.backend = wlr_headless_backend_create(
+			g_server.wl_event_loop);
 	} else {
 		wlr_log(WLR_DEBUG, "headless backend already exists");
 	}
 
-	if (!server->headless.backend) {
+	if (!g_server.headless.backend) {
 		wlr_log(WLR_ERROR, "unable to create headless backend");
 		exit(EXIT_FAILURE);
 	}
-	wlr_multi_backend_add(server->backend, server->headless.backend);
+	wlr_multi_backend_add(g_server.backend, g_server.headless.backend);
 
 	/*
 	 * If we don't populate headless backend with a virtual output (that we
@@ -495,7 +489,7 @@ server_init(struct server *server)
 	 * later do not work properly when overlaid on real output. Content is
 	 * drawn on the virtual output, but not drawn on the real output.
 	 */
-	wlr_output_destroy(wlr_headless_add_output(server->headless.backend, 0, 0));
+	wlr_output_destroy(wlr_headless_add_output(g_server.headless.backend, 0, 0));
 
 	/*
 	 * Autocreates a renderer, either Pixman, GLES2 or Vulkan for us. The
@@ -503,38 +497,38 @@ server_init(struct server *server)
 	 * The renderer is responsible for defining the various pixel formats it
 	 * supports for shared memory, this configures that for clients.
 	 */
-	server->renderer = wlr_renderer_autocreate(server->backend);
-	if (!server->renderer) {
+	g_server.renderer = wlr_renderer_autocreate(g_server.backend);
+	if (!g_server.renderer) {
 		wlr_log(WLR_ERROR, "unable to create renderer");
 		exit(EXIT_FAILURE);
 	}
 
-	server->renderer_lost.notify = handle_renderer_lost;
-	wl_signal_add(&server->renderer->events.lost, &server->renderer_lost);
+	g_server.renderer_lost.notify = handle_renderer_lost;
+	wl_signal_add(&g_server.renderer->events.lost, &g_server.renderer_lost);
 
-	if (!wlr_renderer_init_wl_shm(server->renderer, server->wl_display)) {
+	if (!wlr_renderer_init_wl_shm(g_server.renderer, g_server.wl_display)) {
 		wlr_log(WLR_ERROR, "Failed to initialize shared memory pool");
 		exit(EXIT_FAILURE);
 	}
 
 	if (wlr_renderer_get_texture_formats(
-			server->renderer, WLR_BUFFER_CAP_DMABUF)) {
-		if (wlr_renderer_get_drm_fd(server->renderer) >= 0) {
-			wlr_drm_create(server->wl_display, server->renderer);
+			g_server.renderer, WLR_BUFFER_CAP_DMABUF)) {
+		if (wlr_renderer_get_drm_fd(g_server.renderer) >= 0) {
+			wlr_drm_create(g_server.wl_display, g_server.renderer);
 		}
-		server->linux_dmabuf = wlr_linux_dmabuf_v1_create_with_renderer(
-			server->wl_display,
+		g_server.linux_dmabuf = wlr_linux_dmabuf_v1_create_with_renderer(
+			g_server.wl_display,
 			LAB_WLR_LINUX_DMABUF_VERSION,
-			server->renderer);
+			g_server.renderer);
 	} else {
 		wlr_log(WLR_DEBUG, "unable to initialize dmabuf");
 	}
 
-	if (wlr_renderer_get_drm_fd(server->renderer) >= 0 &&
-			server->renderer->features.timeline &&
-			server->backend->features.timeline) {
-		wlr_linux_drm_syncobj_manager_v1_create(server->wl_display, 1,
-			wlr_renderer_get_drm_fd(server->renderer));
+	if (wlr_renderer_get_drm_fd(g_server.renderer) >= 0 &&
+			g_server.renderer->features.timeline &&
+			g_server.backend->features.timeline) {
+		wlr_linux_drm_syncobj_manager_v1_create(g_server.wl_display, 1,
+			wlr_renderer_get_drm_fd(g_server.renderer));
 	}
 
 	/*
@@ -542,24 +536,24 @@ server_init(struct server *server)
 	 * the renderer and the backend. It handles the buffer creation,
 	 * allowing wlroots to render onto the screen
 	 */
-	server->allocator = wlr_allocator_autocreate(
-		server->backend, server->renderer);
-	if (!server->allocator) {
+	g_server.allocator = wlr_allocator_autocreate(
+		g_server.backend, g_server.renderer);
+	if (!g_server.allocator) {
 		wlr_log(WLR_ERROR, "unable to create allocator");
 		exit(EXIT_FAILURE);
 	}
 
-	wl_list_init(&server->views);
-	wl_list_init(&server->unmanaged_surfaces);
-	wl_list_init(&server->cycle.views);
-	wl_list_init(&server->cycle.osd_outputs);
+	wl_list_init(&g_server.views);
+	wl_list_init(&g_server.unmanaged_surfaces);
+	wl_list_init(&g_server.cycle.views);
+	wl_list_init(&g_server.cycle.osd_outputs);
 
-	server->scene = wlr_scene_create();
-	if (!server->scene) {
+	g_server.scene = wlr_scene_create();
+	if (!g_server.scene) {
 		wlr_log(WLR_ERROR, "unable to create scene");
 		exit(EXIT_FAILURE);
 	}
-	server->direct_scanout_enabled = server->scene->WLR_PRIVATE.direct_scanout;
+	g_server.direct_scanout_enabled = g_server.scene->WLR_PRIVATE.direct_scanout;
 
 	/*
 	 * The order in which the scene-trees below are created determines the
@@ -570,14 +564,14 @@ server_init(struct server *server)
 	 * | ---------------------------------- | -------------------------------------
 	 * | output->session_lock_tree          | session lock surfaces (e.g. swaylock)
 	 * | output->cycle_osd_tree             | window switcher's on-screen display
-	 * | server->cycle_preview_tree         | window switcher's previewed window
-	 * | server->menu_tree                  | labwc's server-side menus
+	 * | g_server.cycle_preview_tree         | window switcher's previewed window
+	 * | g_server.menu_tree                  | labwc's server-side menus
 	 * | output->layer_popup_tree           | xdg popups on layer surfaces
 	 * | output->layer_tree[3]              | overlay layer surfaces (e.g. rofi)
 	 * | output->layer_tree[2]              | top layer surfaces (e.g. waybar)
-	 * | server->unmanaged_tree             | unmanaged X11 surfaces (e.g. dmenu)
-	 * | server->xdg_popup_tree             | xdg popups on xdg windows
-	 * | server->workspace_tree             |
+	 * | g_server.unmanaged_tree             | unmanaged X11 surfaces (e.g. dmenu)
+	 * | g_server.xdg_popup_tree             | xdg popups on xdg windows
+	 * | g_server.workspace_tree             |
 	 * | + workspace->tree                  |
 	 * |   + workspace->view_trees[1]       | always-on-top xdg/X11 windows
 	 * |   + workspace->view_trees[0]       | normal xdg/X11 windows (e.g. firefox)
@@ -586,17 +580,17 @@ server_init(struct server *server)
 	 * | output->layer_tree[0]              | background layer surfaces (e.g. swaybg)
 	 */
 
-	server->workspace_tree = wlr_scene_tree_create(&server->scene->tree);
-	server->xdg_popup_tree = wlr_scene_tree_create(&server->scene->tree);
+	g_server.workspace_tree = wlr_scene_tree_create(&g_server.scene->tree);
+	g_server.xdg_popup_tree = wlr_scene_tree_create(&g_server.scene->tree);
 #if HAVE_XWAYLAND
-	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->tree);
+	g_server.unmanaged_tree = wlr_scene_tree_create(&g_server.scene->tree);
 #endif
-	server->menu_tree = wlr_scene_tree_create(&server->scene->tree);
-	server->cycle_preview_tree = wlr_scene_tree_create(&server->scene->tree);
+	g_server.menu_tree = wlr_scene_tree_create(&g_server.scene->tree);
+	g_server.cycle_preview_tree = wlr_scene_tree_create(&g_server.scene->tree);
 
-	workspaces_init(server);
+	workspaces_init();
 
-	output_init(server);
+	output_init();
 
 	/*
 	 * Create some hands-off wlroots interfaces. The compositor is
@@ -605,16 +599,16 @@ server_init(struct server *server)
 	 * room for you to dig your fingers in and play with their behavior if
 	 * you want.
 	 */
-	server->compositor = wlr_compositor_create(server->wl_display,
-		LAB_WLR_COMPOSITOR_VERSION, server->renderer);
-	if (!server->compositor) {
+	g_server.compositor = wlr_compositor_create(g_server.wl_display,
+		LAB_WLR_COMPOSITOR_VERSION, g_server.renderer);
+	if (!g_server.compositor) {
 		wlr_log(WLR_ERROR, "unable to create the wlroots compositor");
 		exit(EXIT_FAILURE);
 	}
-	wlr_subcompositor_create(server->wl_display);
+	wlr_subcompositor_create(g_server.wl_display);
 
 	struct wlr_data_device_manager *device_manager = NULL;
-	device_manager = wlr_data_device_manager_create(server->wl_display);
+	device_manager = wlr_data_device_manager_create(g_server.wl_display);
 	if (!device_manager) {
 		wlr_log(WLR_ERROR, "unable to create data device manager");
 		exit(EXIT_FAILURE);
@@ -631,111 +625,111 @@ server_init(struct server *server)
 	 * https://wayfire.org/2020/08/04/Wayfire-0-5.html
 	 */
 	if (rc.primary_selection) {
-		wlr_primary_selection_v1_device_manager_create(server->wl_display);
+		wlr_primary_selection_v1_device_manager_create(g_server.wl_display);
 	}
 
-	server->input_method_manager = wlr_input_method_manager_v2_create(
-		server->wl_display);
-	server->text_input_manager = wlr_text_input_manager_v3_create(
-		server->wl_display);
-	seat_init(server);
-	xdg_shell_init(server);
-	kde_server_decoration_init(server);
-	xdg_server_decoration_init(server);
+	g_server.input_method_manager = wlr_input_method_manager_v2_create(
+		g_server.wl_display);
+	g_server.text_input_manager = wlr_text_input_manager_v3_create(
+		g_server.wl_display);
+	seat_init();
+	xdg_shell_init();
+	kde_server_decoration_init();
+	xdg_server_decoration_init();
 
 	struct wlr_presentation *presentation = wlr_presentation_create(
-		server->wl_display, server->backend,
+		g_server.wl_display, g_server.backend,
 		LAB_WLR_PRESENTATION_TIME_VERSION);
 	if (!presentation) {
 		wlr_log(WLR_ERROR, "unable to create presentation interface");
 		exit(EXIT_FAILURE);
 	}
-	if (server->linux_dmabuf) {
-		wlr_scene_set_linux_dmabuf_v1(server->scene, server->linux_dmabuf);
+	if (g_server.linux_dmabuf) {
+		wlr_scene_set_linux_dmabuf_v1(g_server.scene, g_server.linux_dmabuf);
 	}
 
-	wlr_export_dmabuf_manager_v1_create(server->wl_display);
-	wlr_screencopy_manager_v1_create(server->wl_display);
-	wlr_ext_image_copy_capture_manager_v1_create(server->wl_display, 1);
-	wlr_ext_output_image_capture_source_manager_v1_create(server->wl_display, 1);
-	wlr_data_control_manager_v1_create(server->wl_display);
-	wlr_ext_data_control_manager_v1_create(server->wl_display,
+	wlr_export_dmabuf_manager_v1_create(g_server.wl_display);
+	wlr_screencopy_manager_v1_create(g_server.wl_display);
+	wlr_ext_image_copy_capture_manager_v1_create(g_server.wl_display, 1);
+	wlr_ext_output_image_capture_source_manager_v1_create(g_server.wl_display, 1);
+	wlr_data_control_manager_v1_create(g_server.wl_display);
+	wlr_ext_data_control_manager_v1_create(g_server.wl_display,
 		LAB_EXT_DATA_CONTROL_VERSION);
-	server->security_context_manager_v1 =
-		wlr_security_context_manager_v1_create(server->wl_display);
-	wlr_viewporter_create(server->wl_display);
-	wlr_single_pixel_buffer_manager_v1_create(server->wl_display);
-	wlr_fractional_scale_manager_v1_create(server->wl_display,
+	g_server.security_context_manager_v1 =
+		wlr_security_context_manager_v1_create(g_server.wl_display);
+	wlr_viewporter_create(g_server.wl_display);
+	wlr_single_pixel_buffer_manager_v1_create(g_server.wl_display);
+	wlr_fractional_scale_manager_v1_create(g_server.wl_display,
 		LAB_WLR_FRACTIONAL_SCALE_V1_VERSION);
 
-	idle_manager_create(server->wl_display);
+	idle_manager_create(g_server.wl_display);
 
-	server->relative_pointer_manager = wlr_relative_pointer_manager_v1_create(
-		server->wl_display);
-	server->constraints = wlr_pointer_constraints_v1_create(
-		server->wl_display);
+	g_server.relative_pointer_manager = wlr_relative_pointer_manager_v1_create(
+		g_server.wl_display);
+	g_server.constraints = wlr_pointer_constraints_v1_create(
+		g_server.wl_display);
 
-	server->new_constraint.notify = create_constraint;
-	wl_signal_add(&server->constraints->events.new_constraint,
-		&server->new_constraint);
+	g_server.new_constraint.notify = create_constraint;
+	wl_signal_add(&g_server.constraints->events.new_constraint,
+		&g_server.new_constraint);
 
-	server->foreign_toplevel_manager =
-		wlr_foreign_toplevel_manager_v1_create(server->wl_display);
+	g_server.foreign_toplevel_manager =
+		wlr_foreign_toplevel_manager_v1_create(g_server.wl_display);
 
-	server->foreign_toplevel_list =
+	g_server.foreign_toplevel_list =
 		wlr_ext_foreign_toplevel_list_v1_create(
-			server->wl_display, LAB_EXT_FOREIGN_TOPLEVEL_LIST_VERSION);
+			g_server.wl_display, LAB_EXT_FOREIGN_TOPLEVEL_LIST_VERSION);
 
-	wlr_alpha_modifier_v1_create(server->wl_display);
+	wlr_alpha_modifier_v1_create(g_server.wl_display);
 
-	session_lock_init(server);
+	session_lock_init();
 
-	server->drm_lease_manager = wlr_drm_lease_v1_manager_create(
-		server->wl_display, server->backend);
-	if (server->drm_lease_manager) {
-		server->drm_lease_request.notify = handle_drm_lease_request;
-		wl_signal_add(&server->drm_lease_manager->events.request,
-				&server->drm_lease_request);
+	g_server.drm_lease_manager = wlr_drm_lease_v1_manager_create(
+		g_server.wl_display, g_server.backend);
+	if (g_server.drm_lease_manager) {
+		g_server.drm_lease_request.notify = handle_drm_lease_request;
+		wl_signal_add(&g_server.drm_lease_manager->events.request,
+				&g_server.drm_lease_request);
 	} else {
 		wlr_log(WLR_DEBUG, "Failed to create wlr_drm_lease_device_v1");
 		wlr_log(WLR_INFO, "VR will not be available");
 	}
 
-	server->output_power_manager_v1 =
-		wlr_output_power_manager_v1_create(server->wl_display);
-	server->output_power_manager_set_mode.notify =
+	g_server.output_power_manager_v1 =
+		wlr_output_power_manager_v1_create(g_server.wl_display);
+	g_server.output_power_manager_set_mode.notify =
 		handle_output_power_manager_set_mode;
-	wl_signal_add(&server->output_power_manager_v1->events.set_mode,
-		&server->output_power_manager_set_mode);
+	wl_signal_add(&g_server.output_power_manager_v1->events.set_mode,
+		&g_server.output_power_manager_set_mode);
 
-	server->tearing_control = wlr_tearing_control_manager_v1_create(server->wl_display, 1);
-	server->tearing_new_object.notify = handle_tearing_new_object;
-	wl_signal_add(&server->tearing_control->events.new_object, &server->tearing_new_object);
+	g_server.tearing_control = wlr_tearing_control_manager_v1_create(g_server.wl_display, 1);
+	g_server.tearing_new_object.notify = handle_tearing_new_object;
+	wl_signal_add(&g_server.tearing_control->events.new_object, &g_server.tearing_new_object);
 
-	server->tablet_manager = wlr_tablet_v2_create(server->wl_display);
+	g_server.tablet_manager = wlr_tablet_v2_create(g_server.wl_display);
 
-	layers_init(server);
+	layers_init();
 
 	/* These get cleaned up automatically on display destroy */
 	struct wlr_xdg_foreign_registry *registry =
-		wlr_xdg_foreign_registry_create(server->wl_display);
-	wlr_xdg_foreign_v1_create(server->wl_display, registry);
-	wlr_xdg_foreign_v2_create(server->wl_display, registry);
+		wlr_xdg_foreign_registry_create(g_server.wl_display);
+	wlr_xdg_foreign_v1_create(g_server.wl_display, registry);
+	wlr_xdg_foreign_v2_create(g_server.wl_display, registry);
 
 #if HAVE_LIBSFDO
-	desktop_entry_init(server);
+	desktop_entry_init();
 #endif
 
 #if HAVE_XWAYLAND
-	xwayland_server_init(server, server->compositor);
+	xwayland_server_init(g_server.compositor);
 #endif
 }
 
 void
-server_start(struct server *server)
+server_start(void)
 {
 	/* Add a Unix socket to the Wayland display. */
-	const char *socket = wl_display_add_socket_auto(server->wl_display);
+	const char *socket = wl_display_add_socket_auto(g_server.wl_display);
 	if (!socket) {
 		wlr_log_errno(WLR_ERROR, "unable to open wayland socket");
 		exit(EXIT_FAILURE);
@@ -745,13 +739,13 @@ server_start(struct server *server)
 	 * Start the backend. This will enumerate outputs and inputs, become
 	 * the DRM master, etc
 	 */
-	if (!wlr_backend_start(server->backend)) {
+	if (!wlr_backend_start(g_server.backend)) {
 		wlr_log(WLR_ERROR, "unable to start the wlroots backend");
 		exit(EXIT_FAILURE);
 	}
 
 	/* Potentially set up the initial fallback output */
-	output_virtual_update_fallback(server);
+	output_virtual_update_fallback();
 
 	if (setenv("WAYLAND_DISPLAY", socket, true) < 0) {
 		wlr_log_errno(WLR_ERROR, "unable to set WAYLAND_DISPLAY");
@@ -761,43 +755,43 @@ server_start(struct server *server)
 }
 
 void
-server_finish(struct server *server)
+server_finish(void)
 {
 #if HAVE_XWAYLAND
-	xwayland_server_finish(server);
+	xwayland_server_finish();
 #endif
 #if HAVE_LIBSFDO
-	desktop_entry_finish(server);
+	desktop_entry_finish();
 #endif
-	wl_event_source_remove(server->sighup_source);
-	wl_event_source_remove(server->sigint_source);
-	wl_event_source_remove(server->sigterm_source);
-	wl_event_source_remove(server->sigchld_source);
+	wl_event_source_remove(g_server.sighup_source);
+	wl_event_source_remove(g_server.sigint_source);
+	wl_event_source_remove(g_server.sigterm_source);
+	wl_event_source_remove(g_server.sigchld_source);
 
-	wl_display_destroy_clients(server->wl_display);
+	wl_display_destroy_clients(g_server.wl_display);
 
-	seat_finish(server);
-	output_finish(server);
-	xdg_shell_finish(server);
-	layers_finish(server);
-	kde_server_decoration_finish(server);
-	xdg_server_decoration_finish(server);
-	wl_list_remove(&server->new_constraint.link);
-	wl_list_remove(&server->output_power_manager_set_mode.link);
-	wl_list_remove(&server->tearing_new_object.link);
-	if (server->drm_lease_request.notify) {
-		wl_list_remove(&server->drm_lease_request.link);
-		server->drm_lease_request.notify = NULL;
+	seat_finish();
+	output_finish();
+	xdg_shell_finish();
+	layers_finish();
+	kde_server_decoration_finish();
+	xdg_server_decoration_finish();
+	wl_list_remove(&g_server.new_constraint.link);
+	wl_list_remove(&g_server.output_power_manager_set_mode.link);
+	wl_list_remove(&g_server.tearing_new_object.link);
+	if (g_server.drm_lease_request.notify) {
+		wl_list_remove(&g_server.drm_lease_request.link);
+		g_server.drm_lease_request.notify = NULL;
 	}
 
-	wlr_backend_destroy(server->backend);
-	wlr_allocator_destroy(server->allocator);
+	wlr_backend_destroy(g_server.backend);
+	wlr_allocator_destroy(g_server.allocator);
 
-	wl_list_remove(&server->renderer_lost.link);
-	wlr_renderer_destroy(server->renderer);
+	wl_list_remove(&g_server.renderer_lost.link);
+	wlr_renderer_destroy(g_server.renderer);
 
-	workspaces_destroy(server);
-	wlr_scene_node_destroy(&server->scene->tree.node);
+	workspaces_destroy();
+	wlr_scene_node_destroy(&g_server.scene->tree.node);
 
-	wl_display_destroy(server->wl_display);
+	wl_display_destroy(g_server.wl_display);
 }

@@ -4,6 +4,6 @@
 
 struct server;
 
-void debug_dump_scene(struct server *server);
+void debug_dump_scene(void);
 
 #endif /* LABWC_DEBUG_H */

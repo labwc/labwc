@@ -12,7 +12,7 @@
 static bool
 other_instances_exist(struct view *self, struct view_query *query)
 {
-	struct wl_list *views = &self->server->views;
+	struct wl_list *views = &g_server.views;
 	struct view *view;
 
 	wl_list_for_each(view, views, link) {
@@ -53,7 +53,7 @@ window_rules_apply(struct view *view, enum window_rule_event event)
 			continue;
 		}
 		if (view_matches_criteria(rule, view)) {
-			actions_run(view, view->server, &rule->actions, NULL);
+			actions_run(view, &rule->actions, NULL);
 		}
 	}
 }

@@ -12,7 +12,6 @@ struct wlr_scene_buffer;
 struct scaled_icon_buffer {
 	struct scaled_buffer *scaled_buffer;
 	struct wlr_scene_buffer *scene_buffer;
-	struct server *server;
 	/* for window icon */
 	struct view *view;
 	char *view_app_id;
@@ -39,8 +38,7 @@ struct scaled_icon_buffer {
  * wlr_scene_buffer (or one of its parents) is being destroyed.
  */
 struct scaled_icon_buffer *scaled_icon_buffer_create(
-	struct wlr_scene_tree *parent, struct server *server,
-	int width, int height);
+	struct wlr_scene_tree *parent, int width, int height);
 
 void scaled_icon_buffer_set_view(struct scaled_icon_buffer *self,
 	struct view *view);

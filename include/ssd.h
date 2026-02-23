@@ -51,8 +51,7 @@ void ssd_set_titlebar(struct ssd *ssd, bool enabled);
 void ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable);
 void ssd_enable_shade(struct ssd *ssd, bool enable);
 
-void ssd_update_hovered_button(struct server *server,
-	struct wlr_scene_node *node);
+void ssd_update_hovered_button(struct wlr_scene_node *node);
 
 void ssd_button_free(struct ssd_button *button);
 

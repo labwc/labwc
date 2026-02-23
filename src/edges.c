@@ -328,7 +328,7 @@ subtract_node_tree(struct wlr_scene_tree *tree, pixman_region32_t *available,
 }
 
 void
-edges_calculate_visibility(struct server *server, struct view *ignored_view)
+edges_calculate_visibility(struct view *ignored_view)
 {
 	/*
 	 * The region stores the available output layout space
@@ -353,17 +353,17 @@ edges_calculate_visibility(struct server *server, struct view *ignored_view)
 	 */
 	struct output *output;
 	struct wlr_box layout_box;
-	wl_list_for_each(output, &server->outputs, link) {
+	wl_list_for_each(output, &g_server.outputs, link) {
 		if (!output_is_usable(output)) {
 			continue;
 		}
-		wlr_output_layout_get_box(server->output_layout,
+		wlr_output_layout_get_box(g_server.output_layout,
 			output->wlr_output, &layout_box);
 		pixman_region32_union_rect(&region, &region,
 			layout_box.x, layout_box.y, layout_box.width, layout_box.height);
 	}
 
-	subtract_node_tree(&server->scene->tree, &region, ignored_view);
+	subtract_node_tree(&g_server.scene->tree, &region, ignored_view);
 
 	pixman_region32_fini(&region);
 }
@@ -389,7 +389,7 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 	edges_for_target_geometry(&target_edges, view, target);
 
 	struct view *v;
-	for_each_view(v, &view->server->views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+	for_each_view(v, &g_server.views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
 		if (v == view || v->minimized || !output_is_usable(v->output)) {
 			continue;
 		}
@@ -447,7 +447,7 @@ edges_find_outputs(struct border *nearest_edges, struct view *view,
 	edges_for_target_geometry(&target_edges, view, target);
 
 	struct output *o;
-	wl_list_for_each(o, &view->server->outputs, link) {
+	wl_list_for_each(o, &g_server.outputs, link) {
 		if (!output_is_usable(o)) {
 			continue;
 		}

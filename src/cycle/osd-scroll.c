@@ -41,12 +41,10 @@ cycle_osd_scroll_init(struct cycle_osd_output *osd_output, struct wlr_box bar_ar
 static int
 get_cycle_idx(struct cycle_osd_output *osd_output)
 {
-	struct server *server = osd_output->output->server;
-
 	int idx = 0;
 	struct cycle_osd_item *item;
 	wl_list_for_each(item, &osd_output->items, link) {
-		if (item->view == server->cycle.selected_view) {
+		if (item->view == g_server.cycle.selected_view) {
 			return idx;
 		}
 		idx++;

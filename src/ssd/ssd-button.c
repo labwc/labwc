@@ -49,8 +49,7 @@ attach_ssd_button(struct wl_list *button_parts, enum lab_node_type type,
 
 	if (type == LAB_NODE_BUTTON_WINDOW_ICON) {
 		struct scaled_icon_buffer *icon_buffer =
-			scaled_icon_buffer_create(root, view->server,
-				button_width - 2 * icon_padding, button_height);
+			scaled_icon_buffer_create(root, button_width - 2 * icon_padding, button_height);
 		assert(icon_buffer);
 		struct wlr_scene_node *icon_node = &icon_buffer->scene_buffer->node;
 		scaled_icon_buffer_set_view(icon_buffer, view);

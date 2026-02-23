@@ -183,9 +183,9 @@ tablet_pad_create(struct seat *seat, struct wlr_input_device *wlr_device)
 	pad->seat = seat;
 	pad->wlr_input_device = wlr_device;
 	pad->pad = wlr_tablet_pad_from_input_device(wlr_device);
-	if (seat->server->tablet_manager) {
+	if (g_server.tablet_manager) {
 		pad->pad_v2 = wlr_tablet_pad_create(
-			seat->server->tablet_manager, seat->seat, wlr_device);
+			g_server.tablet_manager, seat->seat, wlr_device);
 	}
 	pad->pad->data = pad;
 	wlr_log(WLR_INFO, "tablet pad capabilities: %zu button(s) %zu strip(s) %zu ring(s)",

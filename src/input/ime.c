@@ -12,6 +12,7 @@
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "node.h"
@@ -398,6 +399,8 @@ handle_input_method_new_popup_surface(struct wl_listener *listener, void *data)
 
 	popup->tree = wlr_scene_subsurface_tree_create(
 		relay->popup_tree, popup->popup_surface->surface);
+	die_if_null(popup->tree);
+
 	node_descriptor_create(&popup->tree->node, LAB_NODE_IME_POPUP,
 		/*view*/ NULL, /*data*/ NULL);
 
@@ -580,7 +583,7 @@ input_method_relay_create(struct seat *seat)
 	relay->seat = seat;
 	wl_list_init(&relay->text_inputs);
 	wl_list_init(&relay->popups);
-	relay->popup_tree = wlr_scene_tree_create(&seat->server->scene->tree);
+	relay->popup_tree = lab_wlr_scene_tree_create(&seat->server->scene->tree);
 
 	relay->new_text_input.notify = handle_new_text_input;
 	wl_signal_add(&seat->server->text_input_manager->events.text_input,

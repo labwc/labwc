@@ -6,6 +6,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_session_lock_v1.h>
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "labwc.h"
 #include "node.h"
 #include "output.h"
@@ -135,8 +136,11 @@ handle_new_surface(struct wl_listener *listener, void *data)
 	}
 
 	lock_output->surface = lock_surface;
+
 	struct wlr_scene_tree *surface_tree =
 		wlr_scene_subsurface_tree_create(lock_output->tree, lock_surface->surface);
+	die_if_null(surface_tree);
+
 	node_descriptor_create(&surface_tree->node,
 		LAB_NODE_SESSION_LOCK_SURFACE, /*view*/ NULL, /*data*/ NULL);
 
@@ -209,12 +213,7 @@ session_lock_output_create(struct session_lock_manager *manager, struct output *
 
 	struct session_lock_output *lock_output = znew(*lock_output);
 
-	struct wlr_scene_tree *tree = wlr_scene_tree_create(output->session_lock_tree);
-	if (!tree) {
-		wlr_log(WLR_ERROR, "session-lock: wlr_scene_tree_create()");
-		free(lock_output);
-		goto exit_session;
-	}
+	struct wlr_scene_tree *tree = lab_wlr_scene_tree_create(output->session_lock_tree);
 
 	/*
 	 * The ext-session-lock protocol says that the compositor should blank
@@ -222,13 +221,7 @@ session_lock_output_create(struct session_lock_manager *manager, struct output *
 	 * fully hidden
 	 */
 	float black[4] = { 0.f, 0.f, 0.f, 1.f };
-	struct wlr_scene_rect *background = wlr_scene_rect_create(tree, 0, 0, black);
-	if (!background) {
-		wlr_log(WLR_ERROR, "session-lock: wlr_scene_rect_create()");
-		wlr_scene_node_destroy(&tree->node);
-		free(lock_output);
-		goto exit_session;
-	}
+	struct wlr_scene_rect *background = lab_wlr_scene_rect_create(tree, 0, 0, black);
 
 	/*
 	 * Delay blanking output by 100ms to prevent flicker. If the session is
@@ -258,12 +251,6 @@ session_lock_output_create(struct session_lock_manager *manager, struct output *
 	lock_output_reconfigure(lock_output);
 
 	wl_list_insert(&manager->lock_outputs, &lock_output->link);
-	return;
-
-exit_session:
-	/* TODO: Consider a better - but secure - way to deal with this */
-	wlr_log(WLR_ERROR, "out of memory");
-	exit(EXIT_FAILURE);
 }
 
 static void

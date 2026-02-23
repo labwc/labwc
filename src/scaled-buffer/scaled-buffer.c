@@ -12,6 +12,7 @@
 #include "common/list.h"
 #include "common/macros.h"
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "node.h"
 
 /*
@@ -191,12 +192,7 @@ scaled_buffer_create(struct wlr_scene_tree *parent,
 	assert(impl->create_buffer);
 
 	struct scaled_buffer *self = znew(*self);
-	self->scene_buffer = wlr_scene_buffer_create(parent, NULL);
-	if (!self->scene_buffer) {
-		wlr_log(WLR_ERROR, "Failed to create scene buffer");
-		free(self);
-		return NULL;
-	}
+	self->scene_buffer = lab_wlr_scene_buffer_create(parent, NULL);
 
 	self->impl = impl;
 	/*

@@ -7,7 +7,7 @@
 #include <wlr/types/wlr_scene.h>
 #include "buffer.h"
 #include "common/mem.h"
-#include "common/string-helpers.h"
+#include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "node.h"
@@ -31,14 +31,14 @@ ssd_titlebar_create(struct ssd *ssd)
 	int width = view->current.width;
 	int corner_width = ssd_get_corner_width();
 
-	ssd->titlebar.tree = wlr_scene_tree_create(ssd->tree);
+	ssd->titlebar.tree = lab_wlr_scene_tree_create(ssd->tree);
 	node_descriptor_create(&ssd->titlebar.tree->node,
 		LAB_NODE_TITLEBAR, view, /*data*/ NULL);
 
 	enum ssd_active_state active;
 	FOR_EACH_ACTIVE_STATE(active) {
 		struct ssd_titlebar_subtree *subtree = &ssd->titlebar.subtrees[active];
-		subtree->tree = wlr_scene_tree_create(ssd->titlebar.tree);
+		subtree->tree = lab_wlr_scene_tree_create(ssd->titlebar.tree);
 		struct wlr_scene_tree *parent = subtree->tree;
 		wlr_scene_node_set_enabled(&parent->node, active);
 		wlr_scene_node_set_position(&parent->node, 0, -theme->titlebar_height);
@@ -51,7 +51,7 @@ ssd_titlebar_create(struct ssd *ssd)
 			&theme->window[active].corner_top_right_normal->base;
 
 		/* Background */
-		subtree->bar = wlr_scene_buffer_create(parent, titlebar_fill);
+		subtree->bar = lab_wlr_scene_buffer_create(parent, titlebar_fill);
 		/*
 		 * Work around the wlroots/pixman bug that widened 1px buffer
 		 * becomes translucent when bilinear filtering is used.
@@ -64,11 +64,11 @@ ssd_titlebar_create(struct ssd *ssd)
 		}
 		wlr_scene_node_set_position(&subtree->bar->node, corner_width, 0);
 
-		subtree->corner_left = wlr_scene_buffer_create(parent, corner_top_left);
+		subtree->corner_left = lab_wlr_scene_buffer_create(parent, corner_top_left);
 		wlr_scene_node_set_position(&subtree->corner_left->node,
 			-rc.theme->border_width, -rc.theme->border_width);
 
-		subtree->corner_right = wlr_scene_buffer_create(parent, corner_top_right);
+		subtree->corner_right = lab_wlr_scene_buffer_create(parent, corner_top_right);
 		wlr_scene_node_set_position(&subtree->corner_right->node,
 			width - corner_width, -rc.theme->border_width);
 

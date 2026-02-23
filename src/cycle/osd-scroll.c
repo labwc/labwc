@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <wlr/types/wlr_scene.h>
 #include "common/lab-scene-rect.h"
+#include "common/scene-helpers.h"
 #include "labwc.h"
 #include "cycle.h"
 #include "output.h"
@@ -23,7 +24,7 @@ cycle_osd_scroll_init(struct cycle_osd_output *osd_output, struct wlr_box bar_ar
 	scroll->top_row_idx = 0;
 	scroll->bar_area = bar_area;
 	scroll->delta_y = delta_y;
-	scroll->bar_tree = wlr_scene_tree_create(osd_output->tree);
+	scroll->bar_tree = lab_wlr_scene_tree_create(osd_output->tree);
 	wlr_scene_node_set_position(&scroll->bar_tree->node,
 		bar_area.x, bar_area.y);
 

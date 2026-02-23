@@ -5,6 +5,7 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
+#include "common/mem.h"
 #include "magnifier.h"
 #include "output.h"
 
@@ -22,6 +23,34 @@ lab_wlr_surface_from_node(struct wlr_scene_node *node)
 		}
 	}
 	return NULL;
+}
+
+struct wlr_scene_tree *
+lab_wlr_scene_tree_create(struct wlr_scene_tree *parent)
+{
+	struct wlr_scene_tree *tree = wlr_scene_tree_create(parent);
+	die_if_null(tree);
+	return tree;
+}
+
+struct wlr_scene_rect *
+lab_wlr_scene_rect_create(struct wlr_scene_tree *parent,
+		int width, int height, const float color[static 4])
+{
+	struct wlr_scene_rect *rect =
+		wlr_scene_rect_create(parent, width, height, color);
+	die_if_null(rect);
+	return rect;
+}
+
+struct wlr_scene_buffer *
+lab_wlr_scene_buffer_create(struct wlr_scene_tree *parent,
+		struct wlr_buffer *buffer)
+{
+	struct wlr_scene_buffer *scene_buffer =
+		wlr_scene_buffer_create(parent, buffer);
+	die_if_null(scene_buffer);
+	return scene_buffer;
 }
 
 struct wlr_scene_node *

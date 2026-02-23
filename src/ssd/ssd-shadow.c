@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <wlr/types/wlr_scene.h>
 #include "buffer.h"
+#include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "ssd.h"
@@ -183,7 +184,7 @@ make_shadow(struct view *view,
 	enum wl_output_transform tx)
 {
 	struct wlr_scene_buffer *scene_buf =
-		wlr_scene_buffer_create(parent, buf);
+		lab_wlr_scene_buffer_create(parent, buf);
 	wlr_scene_buffer_set_transform(scene_buf, tx);
 	scene_buf->point_accepts_input = never_accepts_input;
 	/*
@@ -200,7 +201,7 @@ ssd_shadow_create(struct ssd *ssd)
 	assert(ssd);
 	assert(!ssd->shadow.tree);
 
-	ssd->shadow.tree = wlr_scene_tree_create(ssd->tree);
+	ssd->shadow.tree = lab_wlr_scene_tree_create(ssd->tree);
 
 	struct theme *theme = ssd->view->server->theme;
 	struct view *view = ssd->view;
@@ -218,7 +219,7 @@ ssd_shadow_create(struct ssd *ssd)
 			continue;
 		}
 
-		subtree->tree = wlr_scene_tree_create(ssd->shadow.tree);
+		subtree->tree = lab_wlr_scene_tree_create(ssd->shadow.tree);
 		struct wlr_scene_tree *parent = subtree->tree;
 		struct wlr_buffer *corner_top_buffer =
 			&theme->window[active].shadow_corner_top->base;

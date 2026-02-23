@@ -561,10 +561,7 @@ create_popup(struct server *server, struct wlr_xdg_popup *wlr_popup,
 	popup->wlr_popup = wlr_popup;
 	popup->scene_tree =
 		wlr_scene_xdg_surface_create(parent, wlr_popup->base);
-	if (!popup->scene_tree) {
-		free(popup);
-		return NULL;
-	}
+	die_if_null(popup->scene_tree);
 
 	/* In support of IME popup */
 	wlr_popup->base->surface->data = popup->scene_tree;
@@ -597,12 +594,6 @@ handle_popup_new_popup(struct wl_listener *listener, void *data)
 	struct lab_layer_popup *new_popup = create_popup(
 		lab_layer_popup->server, wlr_popup,
 		lab_layer_popup->scene_tree);
-
-	if (!new_popup) {
-		wl_resource_post_no_memory(wlr_popup->resource);
-		wlr_xdg_popup_destroy(wlr_popup);
-		return;
-	}
 
 	new_popup->output_toplevel_sx_box =
 		lab_layer_popup->output_toplevel_sx_box;
@@ -664,12 +655,6 @@ handle_new_popup(struct wl_listener *listener, void *data)
 	};
 	struct lab_layer_popup *popup =
 		create_popup(server, wlr_popup, surface->tree);
-	if (!popup) {
-		wl_resource_post_no_memory(wlr_popup->resource);
-		wlr_xdg_popup_destroy(wlr_popup);
-		return;
-	}
-
 	popup->output_toplevel_sx_box = output_toplevel_sx_box;
 
 	if (surface->layer_surface->current.layer
@@ -716,11 +701,7 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 
 	surface->scene_layer_surface = wlr_scene_layer_surface_v1_create(
 		selected_layer, layer_surface);
-	if (!surface->scene_layer_surface) {
-		wlr_layer_surface_v1_destroy(layer_surface);
-		wlr_log(WLR_ERROR, "could not create layer surface");
-		return;
-	}
+	die_if_null(surface->scene_layer_surface);
 
 	/* In support of IME popup */
 	layer_surface->surface->data = surface->scene_layer_surface->tree;

@@ -46,6 +46,8 @@
 
 #include "action.h"
 #include "common/macros.h"
+#include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "config/session.h"
 #include "decorations.h"
@@ -555,10 +557,8 @@ server_init(struct server *server)
 	wl_list_init(&server->cycle.osd_outputs);
 
 	server->scene = wlr_scene_create();
-	if (!server->scene) {
-		wlr_log(WLR_ERROR, "unable to create scene");
-		exit(EXIT_FAILURE);
-	}
+	die_if_null(server->scene);
+
 	server->direct_scanout_enabled = server->scene->WLR_PRIVATE.direct_scanout;
 
 	/*
@@ -586,13 +586,13 @@ server_init(struct server *server)
 	 * | output->layer_tree[0]              | background layer surfaces (e.g. swaybg)
 	 */
 
-	server->workspace_tree = wlr_scene_tree_create(&server->scene->tree);
-	server->xdg_popup_tree = wlr_scene_tree_create(&server->scene->tree);
+	server->workspace_tree = lab_wlr_scene_tree_create(&server->scene->tree);
+	server->xdg_popup_tree = lab_wlr_scene_tree_create(&server->scene->tree);
 #if HAVE_XWAYLAND
-	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->tree);
+	server->unmanaged_tree = lab_wlr_scene_tree_create(&server->scene->tree);
 #endif
-	server->menu_tree = wlr_scene_tree_create(&server->scene->tree);
-	server->cycle_preview_tree = wlr_scene_tree_create(&server->scene->tree);
+	server->menu_tree = lab_wlr_scene_tree_create(&server->scene->tree);
+	server->cycle_preview_tree = lab_wlr_scene_tree_create(&server->scene->tree);
 
 	workspaces_init(server);
 

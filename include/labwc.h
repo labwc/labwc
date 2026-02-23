@@ -24,7 +24,6 @@ enum input_mode {
 
 struct seat {
 	struct wlr_seat *seat;
-	struct server *server;
 	struct wlr_keyboard_group *keyboard_group;
 
 	struct wl_list touch_points; /* struct touch_point.link */
@@ -317,8 +316,8 @@ struct server {
 extern struct server g_server;
 
 void xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup);
-void xdg_shell_init(struct server *server);
-void xdg_shell_finish(struct server *server);
+void xdg_shell_init(void);
+void xdg_shell_finish(void);
 
 /*
  * desktop.c routines deal with a collection of views
@@ -353,14 +352,14 @@ void desktop_focus_view(struct view *view, bool raise);
 void desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 	struct wlr_surface *surface, bool raise);
 
-void desktop_arrange_all_views(struct server *server);
+void desktop_arrange_all_views(void);
 void desktop_focus_output(struct output *output);
 
 /**
  * Toggles the (output local) visibility of the layershell top layer
  * based on the existence of a fullscreen window on the current workspace.
  */
-void desktop_update_top_layer_visibility(struct server *server);
+void desktop_update_top_layer_visibility(void);
 
 /**
  * desktop_focus_topmost_view() - focus the topmost view on the current
@@ -370,11 +369,11 @@ void desktop_update_top_layer_visibility(struct server *server);
  * This function is typically called when the focused view is hidden
  * (closes, is minimized, etc.) to focus the "next" view underneath.
  */
-void desktop_focus_topmost_view(struct server *server);
+void desktop_focus_topmost_view(void);
 
-void seat_init(struct server *server);
-void seat_finish(struct server *server);
-void seat_reconfigure(struct server *server);
+void seat_init(void);
+void seat_finish(void);
+void seat_reconfigure(void);
 void seat_force_focus_surface(struct seat *seat, struct wlr_surface *surface);
 void seat_focus_surface(struct seat *seat, struct wlr_surface *surface);
 
@@ -406,16 +405,15 @@ void seat_focus_override_end(struct seat *seat, bool restore_focus);
 /**
  * interactive_anchor_to_cursor() - repositions the geometry to remain
  * underneath the cursor when its size changes during interactive move.
- * This function also resizes server->grab_box and repositions it to remain
- * underneath server->grab_{x,y}.
+ * This function also resizes g_server.grab_box and repositions it to remain
+ * underneath g_server.grab_{x,y}.
  *
  * geo->{width,height} are provided by the caller.
  * geo->{x,y} are computed by this function.
  */
-void interactive_anchor_to_cursor(struct server *server, struct wlr_box *geo);
+void interactive_anchor_to_cursor(struct wlr_box *geo);
 
-void interactive_set_grab_context(struct server *server,
-	const struct cursor_context *ctx);
+void interactive_set_grab_context(const struct cursor_context *ctx);
 void interactive_begin(struct view *view, enum input_mode mode,
 	enum lab_edge edges);
 void interactive_finish(struct view *view);
@@ -433,12 +431,12 @@ bool edge_from_cursor(struct seat *seat, struct output **dest_output,
 
 void handle_tearing_new_object(struct wl_listener *listener, void *data);
 
-void server_init(struct server *server);
-void server_start(struct server *server);
-void server_finish(struct server *server);
+void server_init(void);
+void server_start(void);
+void server_finish(void);
 
 void create_constraint(struct wl_listener *listener, void *data);
-void constrain_cursor(struct server *server, struct wlr_pointer_constraint_v1
+void constrain_cursor(struct wlr_pointer_constraint_v1
 	*constraint);
 
 #endif /* LABWC_H */

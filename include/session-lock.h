@@ -8,7 +8,6 @@ struct output;
 struct server;
 
 struct session_lock_manager {
-	struct server *server;
 	struct wlr_session_lock_manager_v1 *wlr_manager;
 	/* View re-focused on unlock */
 	struct view *last_active_view;
@@ -31,8 +30,8 @@ struct session_lock_manager {
 	struct wl_listener lock_destroy;
 };
 
-void session_lock_init(struct server *server);
+void session_lock_init(void);
 void session_lock_output_create(struct session_lock_manager *manager, struct output *output);
-void session_lock_update_for_layout_change(struct server *server);
+void session_lock_update_for_layout_change(void);
 
 #endif /* LABWC_SESSION_LOCK_H */

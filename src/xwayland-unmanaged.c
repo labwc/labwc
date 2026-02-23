@@ -19,7 +19,7 @@ handle_grab_focus(struct wl_listener *listener, void *data)
 	unmanaged->ever_grabbed_focus = true;
 	if (unmanaged->node) {
 		assert(unmanaged->xwayland_surface->surface);
-		seat_focus_surface(&unmanaged->server->seat,
+		seat_focus_surface(&g_server.seat,
 			unmanaged->xwayland_surface->surface);
 	}
 }
@@ -34,7 +34,7 @@ handle_request_configure(struct wl_listener *listener, void *data)
 	wlr_xwayland_surface_configure(xsurface, ev->x, ev->y, ev->width, ev->height);
 	if (unmanaged->node) {
 		wlr_scene_node_set_position(unmanaged->node, ev->x, ev->y);
-		cursor_update_focus(unmanaged->server);
+		cursor_update_focus();
 	}
 }
 
@@ -46,7 +46,7 @@ handle_set_geometry(struct wl_listener *listener, void *data)
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
 	if (unmanaged->node) {
 		wlr_scene_node_set_position(unmanaged->node, xsurface->x, xsurface->y);
-		cursor_update_focus(unmanaged->server);
+		cursor_update_focus();
 	}
 }
 
@@ -59,35 +59,35 @@ handle_map(struct wl_listener *listener, void *data)
 	assert(!unmanaged->node);
 
 	/* Stack new surface on top */
-	wl_list_append(&unmanaged->server->unmanaged_surfaces, &unmanaged->link);
+	wl_list_append(&g_server.unmanaged_surfaces, &unmanaged->link);
 
 	CONNECT_SIGNAL(xsurface, unmanaged, set_geometry);
 
 	if (wlr_xwayland_surface_override_redirect_wants_focus(xsurface)
 			|| unmanaged->ever_grabbed_focus) {
-		seat_focus_surface(&unmanaged->server->seat, xsurface->surface);
+		seat_focus_surface(&g_server.seat, xsurface->surface);
 	}
 
 	struct wlr_scene_surface *scene_surface = wlr_scene_surface_create(
-		unmanaged->server->unmanaged_tree, xsurface->surface);
+		g_server.unmanaged_tree, xsurface->surface);
 	die_if_null(scene_surface);
 	unmanaged->node = &scene_surface->buffer->node;
 
 	wlr_scene_node_set_position(unmanaged->node, xsurface->x, xsurface->y);
-	cursor_update_focus(unmanaged->server);
+	cursor_update_focus();
 }
 
 static void
-focus_next_surface(struct server *server, struct wlr_xwayland_surface *xsurface)
+focus_next_surface(struct wlr_xwayland_surface *xsurface)
 {
 	/* Try to focus on last created unmanaged xwayland surface */
 	struct xwayland_unmanaged *u;
-	struct wl_list *list = &server->unmanaged_surfaces;
+	struct wl_list *list = &g_server.unmanaged_surfaces;
 	wl_list_for_each_reverse(u, list, link) {
 		struct wlr_xwayland_surface *prev = u->xwayland_surface;
 		if (wlr_xwayland_surface_override_redirect_wants_focus(prev)
 				|| u->ever_grabbed_focus) {
-			seat_focus_surface(&server->seat, prev->surface);
+			seat_focus_surface(&g_server.seat, prev->surface);
 			return;
 		}
 	}
@@ -113,8 +113,8 @@ focus_next_surface(struct server *server, struct wlr_xwayland_surface *xsurface)
 	 * If modifying this logic, please test for regressions with
 	 * menus/tooltips in JetBrains CLion or similar.
 	 */
-	if (server->active_view) {
-		seat_focus_surface(&server->seat, server->active_view->surface);
+	if (g_server.active_view) {
+		seat_focus_surface(&g_server.seat, g_server.active_view->surface);
 	}
 }
 
@@ -124,7 +124,7 @@ handle_unmap(struct wl_listener *listener, void *data)
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, mappable.unmap);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
-	struct seat *seat = &unmanaged->server->seat;
+	struct seat *seat = &g_server.seat;
 	assert(unmanaged->node);
 
 	wl_list_remove(&unmanaged->link);
@@ -138,10 +138,10 @@ handle_unmap(struct wl_listener *listener, void *data)
 	wlr_scene_node_destroy(unmanaged->node);
 	unmanaged->node = NULL;
 
-	cursor_update_focus(unmanaged->server);
+	cursor_update_focus();
 
 	if (seat->seat->keyboard_state.focused_surface == xsurface->surface) {
-		focus_next_surface(unmanaged->server, xsurface);
+		focus_next_surface(xsurface);
 	}
 }
 
@@ -194,7 +194,6 @@ handle_set_override_redirect(struct wl_listener *listener, void *data)
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, set_override_redirect);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
-	struct server *server = unmanaged->server;
 
 	bool mapped = xsurface->surface && xsurface->surface->mapped;
 	if (mapped) {
@@ -202,7 +201,7 @@ handle_set_override_redirect(struct wl_listener *listener, void *data)
 	}
 	handle_destroy(&unmanaged->destroy, NULL);
 
-	xwayland_view_create(server, xsurface, mapped);
+	xwayland_view_create(xsurface, mapped);
 }
 
 static void
@@ -215,8 +214,7 @@ handle_request_activate(struct wl_listener *listener, void *data)
 	if (!xsurface->surface || !xsurface->surface->mapped) {
 		return;
 	}
-	struct server *server = unmanaged->server;
-	struct seat *seat = &server->seat;
+	struct seat *seat = &g_server.seat;
 
 	/*
 	 * Validate that the unmanaged surface trying to grab focus is actually
@@ -225,7 +223,7 @@ handle_request_activate(struct wl_listener *listener, void *data)
 	 * FIXME: this logic is a bit incomplete/inconsistent. Refer to
 	 * https://github.com/labwc/labwc/discussions/2821 for more info.
 	 */
-	struct view *view = server->active_view;
+	struct view *view = g_server.active_view;
 	if (view && view->type == LAB_XWAYLAND_VIEW) {
 		struct wlr_xwayland_surface *surf =
 			wlr_xwayland_surface_try_from_wlr_surface(view->surface);
@@ -238,11 +236,9 @@ handle_request_activate(struct wl_listener *listener, void *data)
 }
 
 void
-xwayland_unmanaged_create(struct server *server,
-		struct wlr_xwayland_surface *xsurface, bool mapped)
+xwayland_unmanaged_create(struct wlr_xwayland_surface *xsurface, bool mapped)
 {
 	struct xwayland_unmanaged *unmanaged = znew(*unmanaged);
-	unmanaged->server = server;
 	unmanaged->xwayland_surface = xsurface;
 	/*
 	 * xsurface->data is presumed to be a (struct view *) if set,

@@ -130,7 +130,6 @@ send_signal_to_labwc_pid(int signal)
 }
 
 struct idle_ctx {
-	struct server *server;
 	const char *primary_client;
 	const char *startup_cmd;
 };
@@ -143,16 +142,16 @@ idle_callback(void *data)
 
 	/* Start session-manager if one is specified by -S|--session */
 	if (ctx->primary_client) {
-		ctx->server->primary_client_pid = spawn_primary_client(ctx->primary_client);
-		if (ctx->server->primary_client_pid < 0) {
+		g_server.primary_client_pid = spawn_primary_client(ctx->primary_client);
+		if (g_server.primary_client_pid < 0) {
 			wlr_log(WLR_ERROR, "fatal error starting primary client: %s",
 				ctx->primary_client);
-			wl_display_terminate(ctx->server->wl_display);
+			wl_display_terminate(g_server.wl_display);
 			return;
 		}
 	}
 
-	session_autostart_init(ctx->server);
+	session_autostart_init();
 	if (ctx->startup_cmd) {
 		spawn_async_no_shell(ctx->startup_cmd);
 	}
@@ -255,35 +254,33 @@ main(int argc, char *argv[])
 
 	increase_nofile_limit();
 
-	struct server *server = &g_server;
-	server_init(server);
-	server_start(server);
+	server_init();
+	server_start();
 
 	struct theme theme = { 0 };
-	theme_init(&theme, server, rc.theme_name);
+	theme_init(&theme, rc.theme_name);
 	rc.theme = &theme;
-	server->theme = &theme;
+	g_server.theme = &theme;
 
-	menu_init(server);
+	menu_init();
 
 	/* Delay startup of applications until the event loop is ready */
 	struct idle_ctx idle_ctx = {
-		.server = server,
 		.primary_client = primary_client,
 		.startup_cmd = startup_cmd
 	};
-	wl_event_loop_add_idle(server->wl_event_loop, idle_callback, &idle_ctx);
+	wl_event_loop_add_idle(g_server.wl_event_loop, idle_callback, &idle_ctx);
 
-	wl_display_run(server->wl_display);
+	wl_display_run(g_server.wl_display);
 
-	session_shutdown(server);
+	session_shutdown();
 
-	menu_finish(server);
+	menu_finish();
 	theme_finish(&theme);
 	rcxml_finish();
 	font_finish();
 
-	server_finish(server);
+	server_finish();
 
 	return 0;
 }

@@ -30,7 +30,6 @@ static void
 popup_unconstrain(struct xdg_popup *popup)
 {
 	struct view *view = popup->parent_view;
-	struct server *server = view->server;
 
 	/* Get position of parent toplevel/popup */
 	int parent_lx, parent_ly;
@@ -46,8 +45,7 @@ popup_unconstrain(struct xdg_popup *popup)
 	 * output.
 	 */
 	struct wlr_box *popup_box = &popup->wlr_popup->scheduled.geometry;
-	struct output *output = output_nearest_to(server,
-		parent_lx + MAX(popup_box->x, 0),
+	struct output *output = output_nearest_to(parent_lx + MAX(popup_box->x, 0),
 		parent_ly + MAX(popup_box->y, 0));
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
@@ -91,7 +89,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 		wl_list_remove(&popup->commit.link);
 	}
 
-	cursor_update_focus(popup->parent_view->server);
+	cursor_update_focus();
 
 	free(popup);
 }
@@ -151,15 +149,15 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 	 * this, we always set the user data field of wlr_surfaces to the
 	 * corresponding scene node.
 	 *
-	 * xdg-popups live in server->xdg_popup_tree so that they can be
+	 * xdg-popups live in g_server.xdg_popup_tree so that they can be
 	 * rendered above always-on-top windows
 	 */
 	struct wlr_scene_tree *parent_tree = NULL;
 	if (parent->role == WLR_XDG_SURFACE_ROLE_POPUP) {
 		parent_tree = parent->surface->data;
 	} else {
-		parent_tree = view->server->xdg_popup_tree;
-		wlr_scene_node_set_position(&view->server->xdg_popup_tree->node,
+		parent_tree = g_server.xdg_popup_tree;
+		wlr_scene_node_set_position(&g_server.xdg_popup_tree->node,
 			view->current.x, view->current.y);
 	}
 	wlr_popup->base->surface->data =

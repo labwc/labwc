@@ -16,8 +16,7 @@ static void
 show_overlay(struct seat *seat, struct theme_snapping_overlay *overlay_theme,
 		struct wlr_box *box)
 {
-	struct server *server = seat->server;
-	struct view *view = server->grabbed_view;
+	struct view *view = g_server.grabbed_view;
 	assert(view);
 	assert(!seat->overlay.rect);
 
@@ -94,7 +93,7 @@ edge_has_adjacent_output_from_cursor(struct seat *seat, struct output *output,
 	}
 	/* Cast from enum lab_edge to enum wlr_direction is safe */
 	return wlr_output_layout_adjacent_output(
-		seat->server->output_layout, (enum wlr_direction)edge,
+		g_server.output_layout, (enum wlr_direction)edge,
 		output->wlr_output, seat->cursor->x, seat->cursor->y);
 }
 
@@ -124,7 +123,7 @@ show_edge_overlay(struct seat *seat, enum lab_edge edge1, enum lab_edge edge2,
 	if (delay > 0) {
 		if (!seat->overlay.timer) {
 			seat->overlay.timer = wl_event_loop_add_timer(
-				seat->server->wl_event_loop,
+				g_server.wl_event_loop,
 				handle_edge_overlay_timeout, seat);
 		}
 		/* Show overlay <snapping><preview><delay>ms later */
@@ -138,11 +137,9 @@ show_edge_overlay(struct seat *seat, enum lab_edge edge1, enum lab_edge edge2,
 void
 overlay_update(struct seat *seat)
 {
-	struct server *server = seat->server;
-
 	/* Region-snapping overlay */
-	if (regions_should_snap(server)) {
-		struct region *region = regions_from_cursor(server);
+	if (regions_should_snap()) {
+		struct region *region = regions_from_cursor();
 		if (region) {
 			show_region_overlay(seat, region);
 			return;

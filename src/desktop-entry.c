@@ -55,7 +55,7 @@ log_handler(enum sfdo_log_level level, const char *fmt, va_list args, void *tag)
 }
 
 void
-desktop_entry_init(struct server *server)
+desktop_entry_init(void)
 {
 	struct sfdo *sfdo = znew(*sfdo);
 
@@ -134,7 +134,7 @@ desktop_entry_init(struct server *server)
 	/* basedir_ctx is not referenced by other objects */
 	sfdo_basedir_ctx_destroy(basedir_ctx);
 
-	server->sfdo = sfdo;
+	g_server.sfdo = sfdo;
 	return;
 
 err_icon_theme:
@@ -155,9 +155,9 @@ err_basedir_ctx:
 }
 
 void
-desktop_entry_finish(struct server *server)
+desktop_entry_finish(void)
 {
-	struct sfdo *sfdo = server->sfdo;
+	struct sfdo *sfdo = g_server.sfdo;
 	if (!sfdo) {
 		return;
 	}
@@ -167,7 +167,7 @@ desktop_entry_finish(struct server *server)
 	sfdo_icon_ctx_destroy(sfdo->icon_ctx);
 	sfdo_desktop_ctx_destroy(sfdo->desktop_ctx);
 	free(sfdo);
-	server->sfdo = NULL;
+	g_server.sfdo = NULL;
 }
 
 struct icon_ctx {
@@ -348,14 +348,14 @@ convert_img_type(enum sfdo_icon_file_format fmt)
 }
 
 struct lab_img *
-desktop_entry_load_icon(struct server *server, const char *icon_name, int size, float scale)
+desktop_entry_load_icon(const char *icon_name, int size, float scale)
 {
 	/* static analyzer isn't able to detect the NULL check in string_null_or_empty() */
 	if (string_null_or_empty(icon_name) || !icon_name) {
 		return NULL;
 	}
 
-	struct sfdo *sfdo = server->sfdo;
+	struct sfdo *sfdo = g_server.sfdo;
 	if (!sfdo) {
 		return NULL;
 	}
@@ -387,14 +387,13 @@ desktop_entry_load_icon(struct server *server, const char *icon_name, int size, 
 }
 
 struct lab_img *
-desktop_entry_load_icon_from_app_id(struct server *server,
-		const char *app_id, int size, float scale)
+desktop_entry_load_icon_from_app_id(const char *app_id, int size, float scale)
 {
 	if (string_null_or_empty(app_id)) {
 		return NULL;
 	}
 
-	struct sfdo *sfdo = server->sfdo;
+	struct sfdo *sfdo = g_server.sfdo;
 	if (!sfdo) {
 		return NULL;
 	}
@@ -405,22 +404,22 @@ desktop_entry_load_icon_from_app_id(struct server *server,
 		icon_name = sfdo_desktop_entry_get_icon(entry, NULL);
 	}
 
-	struct lab_img *img = desktop_entry_load_icon(server, icon_name, size, scale);
+	struct lab_img *img = desktop_entry_load_icon(icon_name, size, scale);
 	if (!img) {
 		/* Icon not defined in .desktop file or could not be loaded */
-		img = desktop_entry_load_icon(server, app_id, size, scale);
+		img = desktop_entry_load_icon(app_id, size, scale);
 	}
 	return img;
 }
 
 const char *
-desktop_entry_name_lookup(struct server *server, const char *app_id)
+desktop_entry_name_lookup(const char *app_id)
 {
 	if (string_null_or_empty(app_id)) {
 		return NULL;
 	}
 
-	struct sfdo *sfdo = server->sfdo;
+	struct sfdo *sfdo = g_server.sfdo;
 	if (!sfdo) {
 		return NULL;
 	}

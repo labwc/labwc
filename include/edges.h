@@ -117,6 +117,6 @@ void edges_adjust_resize_geom(struct view *view, struct border edges,
 
 bool edges_traverse_edge(struct edge current, struct edge target, struct edge edge);
 
-void edges_calculate_visibility(struct server *server, struct view *ignored_view);
+void edges_calculate_visibility(struct view *ignored_view);
 
 #endif /* LABWC_EDGES_H */

@@ -52,7 +52,7 @@ touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
 	 * This matches normal pointer/mouse behavior where the first click on
 	 * a surface closes a root/client menu.
 	 */
-	if (seat->server->input_mode == LAB_INPUT_STATE_MENU) {
+	if (g_server.input_mode == LAB_INPUT_STATE_MENU) {
 		return NULL;
 	}
 
@@ -63,7 +63,7 @@ touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
 
 	double sx, sy;
 	struct wlr_scene_node *node =
-		wlr_scene_node_at(&seat->server->scene->tree.node, lx, ly, &sx, &sy);
+		wlr_scene_node_at(&g_server.scene->tree.node, lx, ly, &sx, &sy);
 
 	*x_offset = lx - sx;
 	*y_offset = ly - sy;
@@ -169,7 +169,7 @@ handle_touch_down(struct wl_listener *listener, void *data)
 			if (mousebind->mouse_event == MOUSE_ACTION_PRESS
 					&& mousebind->button == BTN_LEFT
 					&& mousebind->context == LAB_NODE_CLIENT) {
-				actions_run(view, seat->server, &mousebind->actions, NULL);
+				actions_run(view, &mousebind->actions, NULL);
 			}
 		}
 
@@ -207,7 +207,7 @@ handle_touch_up(struct wl_listener *listener, void *data)
 			} else {
 				cursor_emulate_button(seat, BTN_LEFT,
 					WL_POINTER_BUTTON_STATE_RELEASED, event->time_msec);
-				ssd_update_hovered_button(seat->server, NULL);
+				ssd_update_hovered_button(NULL);
 			}
 			wl_list_remove(&touch_point->link);
 			zfree(touch_point);

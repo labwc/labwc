@@ -68,7 +68,7 @@ handle_drag_destroy(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	struct cursor_context ctx = get_cursor_context(seat->server);
+	struct cursor_context ctx = get_cursor_context();
 	if (!ctx.surface) {
 		return;
 	}
@@ -84,7 +84,7 @@ handle_drag_destroy(struct wl_listener *listener, void *data)
 void
 dnd_init(struct seat *seat)
 {
-	seat->drag.icons = lab_wlr_scene_tree_create(&seat->server->scene->tree);
+	seat->drag.icons = lab_wlr_scene_tree_create(&g_server.scene->tree);
 	wlr_scene_node_set_enabled(&seat->drag.icons->node, false);
 
 	seat->drag.events.request.notify = handle_drag_request;

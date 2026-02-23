@@ -59,8 +59,7 @@ img_to_buffer(struct lab_img *img, int width, int height, double scale)
 static struct lab_data_buffer *
 load_client_icon(struct scaled_icon_buffer *self, int icon_size, double scale)
 {
-	struct lab_img *img = desktop_entry_load_icon(self->server,
-		self->view_icon_name, icon_size, scale);
+	struct lab_img *img = desktop_entry_load_icon(self->view_icon_name, icon_size, scale);
 	if (img) {
 		wlr_log(WLR_DEBUG, "loaded icon from client icon name");
 		return img_to_buffer(img, self->width, self->height, scale);
@@ -83,8 +82,7 @@ load_client_icon(struct scaled_icon_buffer *self, int icon_size, double scale)
 static struct lab_data_buffer *
 load_server_icon(struct scaled_icon_buffer *self, int icon_size, double scale)
 {
-	struct lab_img *img = desktop_entry_load_icon_from_app_id(self->server,
-		self->view_app_id, icon_size, scale);
+	struct lab_img *img = desktop_entry_load_icon_from_app_id(self->view_app_id, icon_size, scale);
 	if (img) {
 		wlr_log(WLR_DEBUG, "loaded icon by app_id");
 		return img_to_buffer(img, self->width, self->height, scale);
@@ -106,7 +104,7 @@ _create_buffer(struct scaled_buffer *scaled_buffer, double scale)
 
 	if (self->icon_name) {
 		/* generic icon (e.g. menu icons) */
-		img = desktop_entry_load_icon(self->server, self->icon_name,
+		img = desktop_entry_load_icon(self->icon_name,
 			icon_size, scale);
 		if (img) {
 			wlr_log(WLR_DEBUG, "loaded icon by icon name");
@@ -136,7 +134,7 @@ _create_buffer(struct scaled_buffer *scaled_buffer, double scale)
 		}
 	}
 	/* If both client and server icons are unavailable, use the fallback icon */
-	img = desktop_entry_load_icon(self->server, rc.fallback_app_icon_name,
+	img = desktop_entry_load_icon(rc.fallback_app_icon_name,
 		icon_size, scale);
 	if (img) {
 		wlr_log(WLR_DEBUG, "loaded fallback icon");
@@ -215,8 +213,7 @@ static struct scaled_buffer_impl impl = {
 };
 
 struct scaled_icon_buffer *
-scaled_icon_buffer_create(struct wlr_scene_tree *parent, struct server *server,
-	int width, int height)
+scaled_icon_buffer_create(struct wlr_scene_tree *parent, int width, int height)
 {
 	assert(parent);
 	assert(width >= 0 && height >= 0);
@@ -226,7 +223,6 @@ scaled_icon_buffer_create(struct wlr_scene_tree *parent, struct server *server,
 	struct scaled_icon_buffer *self = znew(*self);
 	self->scaled_buffer = scaled_buffer;
 	self->scene_buffer = scaled_buffer->scene_buffer;
-	self->server = server;
 	self->width = width;
 	self->height = height;
 

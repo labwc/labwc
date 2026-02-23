@@ -44,7 +44,7 @@ handle_set_cursor(struct wl_listener *listener, void *data)
 	struct wlr_seat_client *focused_client =
 		seat->seat->pointer_state.focused_client;
 
-	if (seat->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+	if (g_server.input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		return;
 	}
 
@@ -76,7 +76,7 @@ tablet_tool_create(struct seat *seat,
 	struct drawing_tablet_tool *tool = znew(*tool);
 	tool->seat = seat;
 	tool->tool_v2 =
-		wlr_tablet_tool_create(seat->server->tablet_manager,
+		wlr_tablet_tool_create(g_server.tablet_manager,
 			seat->seat, wlr_tablet_tool);
 	wlr_tablet_tool->data = tool;
 	wlr_log(WLR_INFO, "tablet tool capabilities:%s%s%s%s%s%s",
@@ -239,7 +239,7 @@ tablet_get_coords(struct drawing_tablet *tablet, struct drawing_tablet_tool *too
 
 	double sx, sy;
 	struct wlr_scene_node *node =
-		wlr_scene_node_at(&tablet->seat->server->scene->tree.node, lx, ly, &sx, &sy);
+		wlr_scene_node_at(&g_server.scene->tree.node, lx, ly, &sx, &sy);
 
 	/* find the surface and return it if it accepts tablet events */
 	struct wlr_surface *surface = lab_wlr_surface_from_node(node);
@@ -275,7 +275,7 @@ notify_motion(struct drawing_tablet *tablet, struct drawing_tablet_tool *tool,
 	}
 
 	double sx, sy;
-	bool notify = cursor_process_motion(tablet->seat->server, time, &sx, &sy);
+	bool notify = cursor_process_motion(time, &sx, &sy);
 	if (notify) {
 		wlr_tablet_v2_tablet_tool_notify_motion(tool->tool_v2, sx, sy);
 		if (enter_surface) {
@@ -449,7 +449,7 @@ handle_tablet_tool_axis(struct wl_listener *listener, void *data)
 	 * Note that surface is also NULL when mouse emulation is forced.
 	 */
 	if (!is_down_mouse_emulation && ((surface
-			&& tablet->seat->server->input_mode == LAB_INPUT_STATE_PASSTHROUGH)
+			&& g_server.input_mode == LAB_INPUT_STATE_PASSTHROUGH)
 			|| wlr_tablet_tool_v2_has_implicit_grab(tool->tool_v2))) {
 		/* motion seems to be supported by all tools */
 		notify_motion(tablet, tool, surface, x, y, dx, dy, ev->time_msec);
@@ -667,8 +667,7 @@ handle_tablet_tool_button(struct wl_listener *listener, void *data)
 				if (mousebind->mouse_event == MOUSE_ACTION_PRESS
 						&& mousebind->button == button
 						&& mousebind->context == LAB_NODE_CLIENT) {
-					actions_run(view, tool->seat->server,
-						&mousebind->actions, NULL);
+					actions_run(view, &mousebind->actions, NULL);
 				}
 			}
 		}
@@ -720,9 +719,9 @@ tablet_create(struct seat *seat, struct wlr_input_device *wlr_device)
 	tablet->wlr_input_device = wlr_device;
 	tablet->tablet = wlr_tablet_from_input_device(wlr_device);
 	tablet->tablet->data = tablet;
-	if (seat->server->tablet_manager) {
+	if (g_server.tablet_manager) {
 		tablet->tablet_v2 = wlr_tablet_create(
-			seat->server->tablet_manager, seat->seat, wlr_device);
+			g_server.tablet_manager, seat->seat, wlr_device);
 	}
 	wlr_log(WLR_INFO, "tablet dimensions: %.2fmm x %.2fmm",
 		tablet->tablet->width_mm, tablet->tablet->height_mm);

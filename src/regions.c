@@ -46,7 +46,6 @@ regions_from_name(const char *region_name, struct output *output)
 struct region *
 regions_from_cursor(struct server *server)
 {
-	assert(server);
 	double lx = server->seat.cursor->x;
 	double ly = server->seat.cursor->y;
 

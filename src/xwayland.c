@@ -606,8 +606,7 @@ update_icon(struct xwayland_view *xwayland_view)
 
 	xcb_window_t window_id = xwayland_view->xwayland_surface->window_id;
 
-	xcb_connection_t *xcb_conn = wlr_xwayland_get_xwm_connection(
-		xwayland_view->base.server->xwayland);
+	xcb_connection_t *xcb_conn = wlr_xwayland_get_xwm_connection(g_server.xwayland);
 	xcb_get_property_cookie_t cookie = xcb_get_property(xcb_conn, 0,
 		window_id, atoms[ATOM_NET_WM_ICON], XCB_ATOM_CARDINAL, 0, 0x10000);
 	xcb_get_property_reply_t *reply = xcb_get_property_reply(xcb_conn, cookie, NULL);

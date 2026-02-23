@@ -211,6 +211,7 @@ struct rcxml {
 	bool mag_filter;
 };
 
+/* defined in main.c */
 extern struct rcxml rc;
 
 void rcxml_read(const char *filename);

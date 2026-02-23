@@ -68,9 +68,11 @@ handle_map(struct wl_listener *listener, void *data)
 		seat_focus_surface(&unmanaged->server->seat, xsurface->surface);
 	}
 
-	unmanaged->node = &wlr_scene_surface_create(
-			unmanaged->server->unmanaged_tree,
-			xsurface->surface)->buffer->node;
+	struct wlr_scene_surface *scene_surface = wlr_scene_surface_create(
+		unmanaged->server->unmanaged_tree, xsurface->surface);
+	die_if_null(scene_surface);
+	unmanaged->node = &scene_surface->buffer->node;
+
 	wlr_scene_node_set_position(unmanaged->node, xsurface->x, xsurface->y);
 	cursor_update_focus(unmanaged->server);
 }

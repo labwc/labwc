@@ -4,6 +4,7 @@
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
+#include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "input/cursor.h"
 #include "labwc.h"  /* for struct seat */
@@ -83,7 +84,7 @@ handle_drag_destroy(struct wl_listener *listener, void *data)
 void
 dnd_init(struct seat *seat)
 {
-	seat->drag.icons = wlr_scene_tree_create(&seat->server->scene->tree);
+	seat->drag.icons = lab_wlr_scene_tree_create(&seat->server->scene->tree);
 	wlr_scene_node_set_enabled(&seat->drag.icons->node, false);
 
 	seat->drag.events.request.notify = handle_drag_request;

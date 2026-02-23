@@ -5,6 +5,7 @@
 #include "config/rcxml.h"
 #include "common/list.h"
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "node.h"
 #include "scaled-buffer/scaled-icon-buffer.h"
 #include "scaled-buffer/scaled-img-buffer.h"
@@ -19,7 +20,7 @@ attach_ssd_button(struct wl_list *button_parts, enum lab_node_type type,
 		struct lab_img *imgs[LAB_BS_ALL + 1],
 		int x, int y, struct view *view)
 {
-	struct wlr_scene_tree *root = wlr_scene_tree_create(parent);
+	struct wlr_scene_tree *root = lab_wlr_scene_tree_create(parent);
 	wlr_scene_node_set_position(&root->node, x, y);
 
 	assert(node_type_contains(LAB_NODE_BUTTON, type));
@@ -31,7 +32,7 @@ attach_ssd_button(struct wl_list *button_parts, enum lab_node_type type,
 
 	/* Hitbox */
 	float invisible[4] = { 0, 0, 0, 0 };
-	wlr_scene_rect_create(root, rc.theme->window_button_width,
+	lab_wlr_scene_rect_create(root, rc.theme->window_button_width,
 		rc.theme->window_button_height, invisible);
 
 	/* Icons */

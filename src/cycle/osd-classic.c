@@ -9,6 +9,7 @@
 #include "common/lab-scene-rect.h"
 #include "common/list.h"
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "cycle.h"
@@ -108,7 +109,7 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 	int h = workspace_name_h + nr_visible_views * switcher_theme->item_height
 		+ 2 * padding;
 
-	osd_output->tree = wlr_scene_tree_create(output->cycle_osd_tree);
+	osd_output->tree = lab_wlr_scene_tree_create(output->cycle_osd_tree);
 
 	float *text_color = theme->osd_label_text_color;
 	float *bg_color = theme->osd_bg_color;
@@ -161,7 +162,7 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 
 	float *active_bg_color = switcher_theme->item_active_bg_color;
 	float *active_border_color = switcher_theme->item_active_border_color;
-	osd_output->items_tree = wlr_scene_tree_create(osd_output->tree);
+	osd_output->items_tree = lab_wlr_scene_tree_create(osd_output->tree);
 
 	/* Draw text for each node */
 	struct view *view;
@@ -169,7 +170,7 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 		struct cycle_osd_classic_item *item = znew(*item);
 		wl_list_append(&osd_output->items, &item->base.link);
 		item->base.view = view;
-		item->base.tree = wlr_scene_tree_create(osd_output->items_tree);
+		item->base.tree = lab_wlr_scene_tree_create(osd_output->items_tree);
 		node_descriptor_create(&item->base.tree->node,
 			LAB_NODE_CYCLE_OSD_ITEM, NULL, item);
 		/*
@@ -191,8 +192,8 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 		int x = padding
 			+ switcher_theme->item_active_border_width
 			+ switcher_theme->item_padding_x;
-		item->normal_tree = wlr_scene_tree_create(item->base.tree);
-		item->active_tree = wlr_scene_tree_create(item->base.tree);
+		item->normal_tree = lab_wlr_scene_tree_create(item->base.tree);
+		item->active_tree = lab_wlr_scene_tree_create(item->base.tree);
 		wlr_scene_node_set_enabled(&item->active_tree->node, false);
 
 		/* Highlight around selected window's item */
@@ -209,7 +210,7 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 		wlr_scene_node_set_position(&highlight_rect->tree->node, padding, y);
 
 		/* hitbox for mouse clicks */
-		struct wlr_scene_rect *hitbox = wlr_scene_rect_create(item->base.tree,
+		struct wlr_scene_rect *hitbox = lab_wlr_scene_rect_create(item->base.tree,
 			w - 2 * padding, switcher_theme->item_height, (float[4]) {0});
 		wlr_scene_node_set_position(&hitbox->node, padding, y);
 

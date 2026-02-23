@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <libxml/parser.h>
 #include <signal.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
@@ -19,6 +18,7 @@
 #include "common/lab-scene-rect.h"
 #include "common/list.h"
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 #include "common/xml.h"
@@ -170,7 +170,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	struct theme *theme = menu->server->theme;
 
 	/* Tree to hold background and label buffers */
-	struct wlr_scene_tree *tree = wlr_scene_tree_create(item->tree);
+	struct wlr_scene_tree *tree = lab_wlr_scene_tree_create(item->tree);
 
 	int icon_width = 0;
 	int icon_size = ICON_SIZE;
@@ -190,7 +190,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	}
 
 	/* Create background */
-	wlr_scene_rect_create(tree, bg_width, theme->menu_item_height, bg_color);
+	lab_wlr_scene_rect_create(tree, bg_width, theme->menu_item_height, bg_color);
 
 	/* Create icon */
 	bool show_app_icon = !strcmp(item->parent->id, "client-list-combined-menu")
@@ -246,7 +246,7 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 	struct theme *theme = menu->server->theme;
 
 	/* Menu item root node */
-	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
+	menuitem->tree = lab_wlr_scene_tree_create(menu->scene_tree);
 	node_descriptor_create(&menuitem->tree->node, LAB_NODE_MENUITEM,
 		/*view*/ NULL, menuitem);
 
@@ -295,12 +295,12 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 	struct theme *theme = menu->server->theme;
 
 	/* Menu item root node */
-	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
+	menuitem->tree = lab_wlr_scene_tree_create(menu->scene_tree);
 	node_descriptor_create(&menuitem->tree->node, LAB_NODE_MENUITEM,
 		/*view*/ NULL, menuitem);
 
 	/* Tree to hold background and line buffer */
-	menuitem->normal_tree = wlr_scene_tree_create(menuitem->tree);
+	menuitem->normal_tree = lab_wlr_scene_tree_create(menuitem->tree);
 
 	int bg_height = theme->menu_separator_line_thickness
 		+ 2 * theme->menu_separator_padding_height;
@@ -313,11 +313,11 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 	}
 
 	/* Item background nodes */
-	wlr_scene_rect_create(menuitem->normal_tree, bg_width, bg_height,
+	lab_wlr_scene_rect_create(menuitem->normal_tree, bg_width, bg_height,
 		theme->menu_items_bg_color);
 
 	/* Draw separator line */
-	struct wlr_scene_rect *line_rect = wlr_scene_rect_create(
+	struct wlr_scene_rect *line_rect = lab_wlr_scene_rect_create(
 		menuitem->normal_tree, line_width,
 		theme->menu_separator_line_thickness,
 		theme->menu_separator_color);
@@ -343,12 +343,12 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	float *text_color = theme->menu_title_text_color;
 
 	/* Menu item root node */
-	menuitem->tree = wlr_scene_tree_create(menu->scene_tree);
+	menuitem->tree = lab_wlr_scene_tree_create(menu->scene_tree);
 	node_descriptor_create(&menuitem->tree->node, LAB_NODE_MENUITEM,
 		/*view*/ NULL, menuitem);
 
 	/* Tree to hold background and text buffer */
-	menuitem->normal_tree = wlr_scene_tree_create(menuitem->tree);
+	menuitem->normal_tree = lab_wlr_scene_tree_create(menuitem->tree);
 
 	int bg_width = menu->size.width - 2 * theme->menu_border_width;
 	int text_width = bg_width - 2 * theme->menu_items_padding_x;
@@ -359,7 +359,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	}
 
 	/* Background */
-	wlr_scene_rect_create(menuitem->normal_tree,
+	lab_wlr_scene_rect_create(menuitem->normal_tree,
 		bg_width, theme->menu_header_height, bg_color);
 
 	/* Draw separator title */
@@ -416,7 +416,7 @@ menu_create_scene(struct menu *menu)
 
 	assert(!menu->scene_tree);
 
-	menu->scene_tree = wlr_scene_tree_create(menu->server->menu_tree);
+	menu->scene_tree = lab_wlr_scene_tree_create(menu->server->menu_tree);
 	wlr_scene_node_set_enabled(&menu->scene_tree->node, false);
 
 	/* Menu width is the maximum item width, capped by menu.width.{min,max} */

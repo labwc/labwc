@@ -13,6 +13,7 @@
 #include "common/box.h"
 #include "common/macros.h"
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "decorations.h"
 #include "foreign-toplevel/foreign.h"
@@ -193,7 +194,7 @@ center_fullscreen_if_needed(struct view *view)
 	if (!xdg_view->fullscreen_bg) {
 		const float black[4] = {0, 0, 0, 1};
 		xdg_view->fullscreen_bg =
-			wlr_scene_rect_create(view->scene_tree, 0, 0, black);
+			lab_wlr_scene_rect_create(view->scene_tree, 0, 0, black);
 		wlr_scene_node_lower_to_bottom(&xdg_view->fullscreen_bg->node);
 	}
 
@@ -984,18 +985,14 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 	}
 
 	view->workspace = server->workspaces.current;
-	view->scene_tree = wlr_scene_tree_create(
+	view->scene_tree = lab_wlr_scene_tree_create(
 		view->workspace->view_trees[VIEW_LAYER_NORMAL]);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 
 	struct wlr_scene_tree *tree = wlr_scene_xdg_surface_create(
 		view->scene_tree, xdg_surface);
-	if (!tree) {
-		/* TODO: might need further clean up */
-		wl_resource_post_no_memory(xdg_surface->resource);
-		free(xdg_toplevel_view);
-		return;
-	}
+	die_if_null(tree);
+
 	view->content_tree = tree;
 	node_descriptor_create(&view->scene_tree->node,
 		LAB_NODE_VIEW, view, /*data*/ NULL);

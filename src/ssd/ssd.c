@@ -12,6 +12,7 @@
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_scene.h>
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "node.h"
@@ -145,7 +146,7 @@ ssd_create(struct view *view, bool active)
 	struct ssd *ssd = znew(*ssd);
 
 	ssd->view = view;
-	ssd->tree = wlr_scene_tree_create(view->scene_tree);
+	ssd->tree = lab_wlr_scene_tree_create(view->scene_tree);
 
 	/*
 	 * Attach node_descriptor to the root node so that get_cursor_context()

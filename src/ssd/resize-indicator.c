@@ -3,6 +3,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
+#include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "resize-indicator.h"
@@ -44,10 +45,10 @@ resize_indicator_init(struct view *view)
 	struct resize_indicator *indicator = &view->resize_indicator;
 	assert(!indicator->tree);
 
-	indicator->tree = wlr_scene_tree_create(view->scene_tree);
-	indicator->border = wlr_scene_rect_create(
+	indicator->tree = lab_wlr_scene_tree_create(view->scene_tree);
+	indicator->border = lab_wlr_scene_rect_create(
 		indicator->tree, 0, 0, rc.theme->osd_border_color);
-	indicator->background = wlr_scene_rect_create(
+	indicator->background = lab_wlr_scene_rect_create(
 		indicator->tree, 0, 0, rc.theme->osd_bg_color);
 	indicator->text = scaled_font_buffer_create(indicator->tree);
 

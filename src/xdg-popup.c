@@ -164,6 +164,8 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 	}
 	wlr_popup->base->surface->data =
 		wlr_scene_xdg_surface_create(parent_tree, wlr_popup->base);
+	die_if_null(wlr_popup->base->surface->data);
+
 	node_descriptor_create(wlr_popup->base->surface->data,
 		LAB_NODE_XDG_POPUP, view, /*data*/ NULL);
 }

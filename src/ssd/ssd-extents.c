@@ -2,6 +2,7 @@
 
 #include <pixman.h>
 #include <wlr/types/wlr_scene.h>
+#include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "output.h"
@@ -17,7 +18,7 @@ ssd_extents_create(struct ssd *ssd)
 
 	int border_width = MAX(0, MAX(rc.resize_minimum_area, theme->border_width));
 
-	ssd->extents.tree = wlr_scene_tree_create(ssd->tree);
+	ssd->extents.tree = lab_wlr_scene_tree_create(ssd->tree);
 	struct wlr_scene_tree *parent = ssd->extents.tree;
 	if (view->fullscreen || view->maximized == VIEW_AXIS_BOTH) {
 		wlr_scene_node_set_enabled(&parent->node, false);
@@ -26,10 +27,10 @@ ssd_extents_create(struct ssd *ssd)
 		-border_width, -(ssd->titlebar.height + border_width));
 
 	float invisible[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	ssd->extents.top = wlr_scene_rect_create(parent, 0, 0, invisible);
-	ssd->extents.left = wlr_scene_rect_create(parent, 0, 0, invisible);
-	ssd->extents.right = wlr_scene_rect_create(parent, 0, 0, invisible);
-	ssd->extents.bottom = wlr_scene_rect_create(parent, 0, 0, invisible);
+	ssd->extents.top = lab_wlr_scene_rect_create(parent, 0, 0, invisible);
+	ssd->extents.left = lab_wlr_scene_rect_create(parent, 0, 0, invisible);
+	ssd->extents.right = lab_wlr_scene_rect_create(parent, 0, 0, invisible);
+	ssd->extents.bottom = lab_wlr_scene_rect_create(parent, 0, 0, invisible);
 
 	/* Initial manual update to keep X11 applications happy */
 	ssd_extents_update(ssd);

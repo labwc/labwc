@@ -557,11 +557,11 @@ handle_new_output(struct wl_listener *listener, void *data)
 	 */
 	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		output->layer_tree[i] =
-			wlr_scene_tree_create(&server->scene->tree);
+			lab_wlr_scene_tree_create(&server->scene->tree);
 	}
-	output->layer_popup_tree = wlr_scene_tree_create(&server->scene->tree);
-	output->cycle_osd_tree = wlr_scene_tree_create(&server->scene->tree);
-	output->session_lock_tree = wlr_scene_tree_create(&server->scene->tree);
+	output->layer_popup_tree = lab_wlr_scene_tree_create(&server->scene->tree);
+	output->cycle_osd_tree = lab_wlr_scene_tree_create(&server->scene->tree);
+	output->session_lock_tree = lab_wlr_scene_tree_create(&server->scene->tree);
 
 	/*
 	 * Set the z-positions to achieve the following order (from top to

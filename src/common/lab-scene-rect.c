@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <wlr/types/wlr_scene.h>
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 
 struct border_scene {
 	struct wlr_scene_tree *tree;
@@ -26,20 +27,20 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 	rect->border_width = opts->border_width;
 	rect->nr_borders = opts->nr_borders;
 	rect->borders = znew_n(rect->borders[0], opts->nr_borders);
-	rect->tree = wlr_scene_tree_create(parent);
+	rect->tree = lab_wlr_scene_tree_create(parent);
 
 	if (opts->bg_color) {
-		rect->fill = wlr_scene_rect_create(rect->tree, 0, 0, opts->bg_color);
+		rect->fill = lab_wlr_scene_rect_create(rect->tree, 0, 0, opts->bg_color);
 	}
 
 	for (int i = 0; i < rect->nr_borders; i++) {
 		struct border_scene *border = &rect->borders[i];
 		float *color = opts->border_colors[i];
-		border->tree = wlr_scene_tree_create(rect->tree);
-		border->top = wlr_scene_rect_create(border->tree, 0, 0, color);
-		border->right = wlr_scene_rect_create(border->tree, 0, 0, color);
-		border->bottom = wlr_scene_rect_create(border->tree, 0, 0, color);
-		border->left = wlr_scene_rect_create(border->tree, 0, 0, color);
+		border->tree = lab_wlr_scene_tree_create(rect->tree);
+		border->top = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
+		border->right = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
+		border->bottom = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
+		border->left = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
 	}
 
 	rect->node_destroy.notify = handle_node_destroy;

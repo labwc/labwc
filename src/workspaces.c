@@ -15,6 +15,7 @@
 #include "common/graphic-helpers.h"
 #include "common/list.h"
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "input/keyboard.h"
 #include "labwc.h"
@@ -163,7 +164,7 @@ _osd_update(struct server *server)
 		cairo_destroy(cairo);
 
 		if (!output->workspace_osd) {
-			output->workspace_osd = wlr_scene_buffer_create(
+			output->workspace_osd = lab_wlr_scene_buffer_create(
 				&server->scene->tree, NULL);
 		}
 		/* Position the whole thing */
@@ -234,13 +235,13 @@ add_workspace(struct server *server, const char *name)
 	struct workspace *workspace = znew(*workspace);
 	workspace->server = server;
 	workspace->name = xstrdup(name);
-	workspace->tree = wlr_scene_tree_create(server->workspace_tree);
+	workspace->tree = lab_wlr_scene_tree_create(server->workspace_tree);
 	workspace->view_trees[VIEW_LAYER_ALWAYS_ON_BOTTOM] =
-		wlr_scene_tree_create(workspace->tree);
+		lab_wlr_scene_tree_create(workspace->tree);
 	workspace->view_trees[VIEW_LAYER_NORMAL] =
-		wlr_scene_tree_create(workspace->tree);
+		lab_wlr_scene_tree_create(workspace->tree);
 	workspace->view_trees[VIEW_LAYER_ALWAYS_ON_TOP] =
-		wlr_scene_tree_create(workspace->tree);
+		lab_wlr_scene_tree_create(workspace->tree);
 	wl_list_append(&server->workspaces.all, &workspace->link);
 	wlr_scene_node_set_enabled(&workspace->tree->node, false);
 

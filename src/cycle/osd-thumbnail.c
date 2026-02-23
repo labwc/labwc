@@ -10,6 +10,7 @@
 #include "common/lab-scene-rect.h"
 #include "common/list.h"
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "cycle.h"
 #include "labwc.h"
 #include "node.h"
@@ -138,7 +139,7 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 
 	struct cycle_osd_thumbnail_item *item = znew(*item);
 	wl_list_append(&osd_output->items, &item->base.link);
-	struct wlr_scene_tree *tree = wlr_scene_tree_create(parent);
+	struct wlr_scene_tree *tree = lab_wlr_scene_tree_create(parent);
 	node_descriptor_create(&tree->node, LAB_NODE_CYCLE_OSD_ITEM, NULL, item);
 	item->base.tree = tree;
 	item->base.view = view;
@@ -155,14 +156,14 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 	item->active_bg = lab_scene_rect_create(tree, &opts);
 
 	/* hitbox for mouse clicks */
-	wlr_scene_rect_create(tree, switcher_theme->item_width,
+	lab_wlr_scene_rect_create(tree, switcher_theme->item_width,
 		switcher_theme->item_height, (float[4]) {0});
 
 	/* thumbnail */
 	struct wlr_buffer *thumb_buffer = render_thumb(osd_output->output, view);
 	if (thumb_buffer) {
 		struct wlr_scene_buffer *thumb_scene_buffer =
-			wlr_scene_buffer_create(tree, thumb_buffer);
+			lab_wlr_scene_buffer_create(tree, thumb_buffer);
 		wlr_buffer_drop(thumb_buffer);
 		struct wlr_box thumb_box = box_fit_within(
 			thumb_buffer->width, thumb_buffer->height,
@@ -239,8 +240,8 @@ cycle_osd_thumbnail_init(struct cycle_osd_output *osd_output)
 		&theme->osd_window_switcher_thumbnail;
 	int padding = theme->osd_border_width + switcher_theme->padding;
 
-	osd_output->tree = wlr_scene_tree_create(output->cycle_osd_tree);
-	osd_output->items_tree = wlr_scene_tree_create(osd_output->tree);
+	osd_output->tree = lab_wlr_scene_tree_create(output->cycle_osd_tree);
+	osd_output->items_tree = lab_wlr_scene_tree_create(osd_output->tree);
 
 	int nr_views = wl_list_length(&server->cycle.views);
 	assert(nr_views > 0);

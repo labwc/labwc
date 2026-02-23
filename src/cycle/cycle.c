@@ -231,7 +231,7 @@ preview_selected_view(struct view *view)
 	cycle->preview_node = &view->scene_tree->node;
 
 	/* Create a dummy node at the original place of the previewed window */
-	struct wlr_scene_rect *dummy_rect = wlr_scene_rect_create(
+	struct wlr_scene_rect *dummy_rect = lab_wlr_scene_rect_create(
 		cycle->preview_node->parent, 0, 0, (float [4]) {0});
 	wlr_scene_node_place_below(&dummy_rect->node, cycle->preview_node);
 	wlr_scene_node_set_enabled(&dummy_rect->node, false);

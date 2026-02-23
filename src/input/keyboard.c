@@ -483,11 +483,10 @@ static enum lab_key_handled
 handle_compositor_keybindings(struct keyboard *keyboard,
 		struct wlr_keyboard_key_event *event)
 {
-	struct seat *seat = keyboard->base.seat;
-	struct server *server = seat->server;
+	struct server *server = &g_server;
 	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
 	struct keyinfo keyinfo = get_keyinfo(wlr_keyboard, event->keycode);
-	bool locked = seat->server->session_lock_manager->locked;
+	bool locked = server->session_lock_manager->locked;
 
 	key_state_set_pressed(event->keycode,
 		event->state == WL_KEYBOARD_KEY_STATE_PRESSED);

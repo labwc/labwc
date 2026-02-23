@@ -109,7 +109,7 @@ reload_config_and_theme(struct server *server)
 static int
 handle_sighup(int signal, void *data)
 {
-	struct server *server = data;
+	struct server *server = &g_server;
 
 	keyboard_cancel_all_keybind_repeats(&server->seat);
 	session_environment_init();
@@ -132,7 +132,7 @@ handle_sigchld(int signal, void *data)
 {
 	siginfo_t info;
 	info.si_pid = 0;
-	struct server *server = data;
+	struct server *server = &g_server;
 
 	/* First call waitid() with NOWAIT which doesn't consume the zombie */
 	if (waitid(P_ALL, /*id*/ 0, &info, WEXITED | WNOHANG | WNOWAIT) == -1) {
@@ -300,9 +300,9 @@ static bool
 server_global_filter(const struct wl_client *client, const struct wl_global *global, void *data)
 {
 	const struct wl_interface *iface = wl_global_get_interface(global);
-	struct server *server = (struct server *)data;
+	struct server *server = &g_server;
 	/* Silence unused var compiler warnings */
-	(void)iface; (void)server;
+	(void)iface;
 
 #if HAVE_XWAYLAND
 	struct wl_client *xwayland_client = (server->xwayland && server->xwayland->server)
@@ -434,18 +434,18 @@ server_init(struct server *server)
 	/* Increase max client buffer size to make slow clients less likely to terminate  */
 	wl_display_set_default_max_buffer_size(server->wl_display, 1024 * 1024);
 
-	wl_display_set_global_filter(server->wl_display, server_global_filter, server);
+	wl_display_set_global_filter(server->wl_display, server_global_filter, NULL);
 	server->wl_event_loop = wl_display_get_event_loop(server->wl_display);
 
 	/* Catch signals */
 	server->sighup_source = wl_event_loop_add_signal(
-		server->wl_event_loop, SIGHUP, handle_sighup, server);
+		server->wl_event_loop, SIGHUP, handle_sighup, NULL);
 	server->sigint_source = wl_event_loop_add_signal(
 		server->wl_event_loop, SIGINT, handle_sigterm, server->wl_display);
 	server->sigterm_source = wl_event_loop_add_signal(
 		server->wl_event_loop, SIGTERM, handle_sigterm, server->wl_display);
 	server->sigchld_source = wl_event_loop_add_signal(
-		server->wl_event_loop, SIGCHLD, handle_sigchld, server);
+		server->wl_event_loop, SIGCHLD, handle_sigchld, NULL);
 
 	/*
 	 * Prevent wayland clients that request the X11 clipboard but closing

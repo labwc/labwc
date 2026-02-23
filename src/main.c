@@ -14,7 +14,16 @@
 #include "translate.h"
 #include "menu/menu.h"
 
+/*
+ * Globals
+ *
+ * Rationale: these are unlikely to ever have more than one instance
+ * per process, and need to last for the lifetime of the process.
+ * Accessing them indirectly through pointers embedded in every other
+ * struct just adds noise to the code.
+ */
 struct rcxml rc = { 0 };
+struct server g_server = { 0 };
 
 static const struct option long_options[] = {
 	{"config", required_argument, NULL, 'c'},
@@ -246,35 +255,35 @@ main(int argc, char *argv[])
 
 	increase_nofile_limit();
 
-	struct server server = { 0 };
-	server_init(&server);
-	server_start(&server);
+	struct server *server = &g_server;
+	server_init(server);
+	server_start(server);
 
 	struct theme theme = { 0 };
-	theme_init(&theme, &server, rc.theme_name);
+	theme_init(&theme, server, rc.theme_name);
 	rc.theme = &theme;
-	server.theme = &theme;
+	server->theme = &theme;
 
-	menu_init(&server);
+	menu_init(server);
 
 	/* Delay startup of applications until the event loop is ready */
 	struct idle_ctx idle_ctx = {
-		.server = &server,
+		.server = server,
 		.primary_client = primary_client,
 		.startup_cmd = startup_cmd
 	};
-	wl_event_loop_add_idle(server.wl_event_loop, idle_callback, &idle_ctx);
+	wl_event_loop_add_idle(server->wl_event_loop, idle_callback, &idle_ctx);
 
-	wl_display_run(server.wl_display);
+	wl_display_run(server->wl_display);
 
-	session_shutdown(&server);
+	session_shutdown(server);
 
-	menu_finish(&server);
+	menu_finish(server);
 	theme_finish(&theme);
 	rcxml_finish();
 	font_finish();
 
-	server_finish(&server);
+	server_finish(server);
 
 	return 0;
 }

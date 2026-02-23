@@ -55,6 +55,13 @@ xdg_toplevel_from_view(struct view *view)
 	return xdg_surface->toplevel;
 }
 
+static struct view *
+xdg_toplevel_view_get_parent(struct view *view)
+{
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+	return toplevel->parent ? toplevel->parent->base->data : NULL;
+}
+
 static struct view_size_hints
 xdg_toplevel_view_get_size_hints(struct view *view)
 {
@@ -204,7 +211,15 @@ handle_commit(struct wl_listener *listener, void *data)
 			| WLR_XDG_TOPLEVEL_WM_CAPABILITIES_MINIMIZE;
 		wlr_xdg_toplevel_set_wm_capabilities(toplevel, wm_caps);
 
-		if (view->output) {
+		/* Put view on the same output as its parent if possible */
+		struct view *parent = xdg_toplevel_view_get_parent(view);
+		if (parent && output_is_usable(parent->output)) {
+			view_set_output(view, parent->output);
+		} else {
+			view_set_output(view, output_nearest_to_cursor(view->server));
+		}
+
+		if (output_is_usable(view->output)) {
 			wlr_xdg_toplevel_set_bounds(toplevel,
 				view->output->usable_area.width,
 				view->output->usable_area.height);
@@ -498,9 +513,6 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (!view->mapped && !output_is_usable(view->output)) {
-		view_set_output(view, output_nearest_to_cursor(view->server));
-	}
 	bool maximized = toplevel->requested.maximized;
 	view_maximize(view, maximized ? VIEW_AXIS_BOTH : VIEW_AXIS_NONE);
 }
@@ -519,9 +531,6 @@ handle_request_fullscreen(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (!view->mapped && !output_is_usable(view->output)) {
-		view_set_output(view, output_nearest_to_cursor(view->server));
-	}
 	set_fullscreen_from_request(view,
 		&xdg_toplevel_from_view(view)->requested);
 }
@@ -632,14 +641,6 @@ static void
 xdg_toplevel_view_minimize(struct view *view, bool minimized)
 {
 	/* noop */
-}
-
-static struct view *
-xdg_toplevel_view_get_parent(struct view *view)
-{
-	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
-	return toplevel->parent ?
-		(struct view *)toplevel->parent->base->data : NULL;
 }
 
 static struct wlr_xdg_toplevel *
@@ -796,7 +797,6 @@ set_initial_position(struct view *view)
 	struct view *parent = xdg_toplevel_view_get_parent(view);
 	if (parent) {
 		/* Child views are center-aligned relative to their parents */
-		view_set_output(view, parent->output);
 		view_center(view, &parent->pending);
 		return;
 	}
@@ -811,14 +811,6 @@ handle_map(struct wl_listener *listener, void *data)
 	struct view *view = wl_container_of(listener, view, mappable.map);
 	if (view->mapped) {
 		return;
-	}
-
-	/*
-	 * An output should have been chosen when the surface was first
-	 * created, but take one more opportunity to assign an output if not.
-	 */
-	if (!output_is_usable(view->output)) {
-		view_set_output(view, output_nearest_to_cursor(view->server));
 	}
 
 	view->mapped = true;
@@ -1009,9 +1001,12 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 	 * Pick an output for the surface as soon as its created, so that the
 	 * client can be notified about any fractional scale before it is given
 	 * the chance to configure itself (and possibly pick its dimensions).
+	 *
+	 * FIXME: this may be the wrong output since the parent view isn't
+	 * known yet. The correct output will be set at initial commit.
 	 */
 	view_set_output(view, output_nearest_to_cursor(server));
-	if (view->output) {
+	if (output_is_usable(view->output)) {
 		wlr_fractional_scale_v1_notify_scale(xdg_surface->surface,
 			view->output->wlr_output->scale);
 	}

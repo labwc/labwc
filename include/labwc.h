@@ -313,6 +313,9 @@ struct server {
 	pid_t primary_client_pid;
 };
 
+/* defined in main.c */
+extern struct server g_server;
+
 void xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup);
 void xdg_shell_init(struct server *server);
 void xdg_shell_finish(struct server *server);

@@ -187,8 +187,6 @@ backend_check_drm(struct wlr_backend *backend, void *is_drm)
 static bool
 should_update_activation(struct server *server)
 {
-	assert(server);
-
 	static const char *act_env = "LABWC_UPDATE_ACTIVATION_ENV";
 	char *env = getenv(act_env);
 	if (env) {

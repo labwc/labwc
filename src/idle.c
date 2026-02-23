@@ -84,7 +84,7 @@ idle_manager_create(struct wl_display *display)
 }
 
 void
-idle_manager_notify_activity(struct wlr_seat *seat)
+idle_manager_notify_activity(struct wlr_seat *wlr_seat)
 {
 	/*
 	 * The display destroy event might have been triggered
@@ -96,5 +96,5 @@ idle_manager_notify_activity(struct wlr_seat *seat)
 		return;
 	}
 
-	wlr_idle_notifier_v1_notify_activity(manager->ext, seat);
+	wlr_idle_notifier_v1_notify_activity(manager->ext, wlr_seat);
 }

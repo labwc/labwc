@@ -23,7 +23,7 @@ enum input_mode {
 };
 
 struct seat {
-	struct wlr_seat *seat;
+	struct wlr_seat *wlr_seat;
 	struct wlr_keyboard_group *keyboard_group;
 
 	struct wl_list touch_points; /* struct touch_point.link */

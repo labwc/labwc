@@ -434,7 +434,7 @@ new_keyboard(struct seat *seat, struct wlr_input_device *device, bool is_virtual
 
 	keyboard_setup_handlers(keyboard);
 
-	wlr_seat_set_keyboard(seat->seat, kb);
+	wlr_seat_set_keyboard(seat->wlr_seat, kb);
 
 	return (struct input *)keyboard;
 }
@@ -515,7 +515,7 @@ seat_update_capabilities(struct seat *seat)
 			break;
 		}
 	}
-	wlr_seat_set_capabilities(seat->seat, caps);
+	wlr_seat_set_capabilities(seat->wlr_seat, caps);
 }
 
 static void
@@ -630,8 +630,8 @@ seat_init(void)
 {
 	struct seat *seat = &server.seat;
 
-	seat->seat = wlr_seat_create(server.wl_display, "seat0");
-	if (!seat->seat) {
+	seat->wlr_seat = wlr_seat_create(server.wl_display, "seat0");
+	if (!seat->wlr_seat) {
 		wlr_log(WLR_ERROR, "cannot allocate seat");
 		exit(EXIT_FAILURE);
 	}
@@ -641,7 +641,7 @@ seat_init(void)
 	wl_list_init(&seat->inputs);
 
 	CONNECT_SIGNAL(server.backend, seat, new_input);
-	CONNECT_SIGNAL(&seat->seat->keyboard_state, seat, focus_change);
+	CONNECT_SIGNAL(&seat->wlr_seat->keyboard_state, seat, focus_change);
 
 	seat->virtual_pointer = wlr_virtual_pointer_manager_v1_create(
 		server.wl_display);
@@ -706,7 +706,7 @@ configure_keyboard(struct seat *seat, struct input *input)
 void
 seat_pointer_end_grab(struct seat *seat, struct wlr_surface *surface)
 {
-	if (!surface || !wlr_seat_pointer_has_grab(seat->seat)) {
+	if (!surface || !wlr_seat_pointer_has_grab(seat->wlr_seat)) {
 		return;
 	}
 
@@ -721,7 +721,7 @@ seat_pointer_end_grab(struct seat *seat, struct wlr_surface *surface)
 		 * on button notifications in another client (observed in GTK4),
 		 * so end the grab manually.
 		 */
-		wlr_seat_pointer_end_grab(seat->seat);
+		wlr_seat_pointer_end_grab(seat->wlr_seat);
 	}
 }
 
@@ -767,7 +767,7 @@ seat_force_focus_surface(struct seat *seat, struct wlr_surface *surface)
 	int nr_pressed_sent_keycodes = key_state_nr_pressed_sent_keycodes();
 	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
 
-	wlr_seat_keyboard_enter(seat->seat, surface,
+	wlr_seat_keyboard_enter(seat->wlr_seat, surface,
 		pressed_sent_keycodes, nr_pressed_sent_keycodes, &kb->modifiers);
 }
 
@@ -792,18 +792,18 @@ seat_focus(struct seat *seat, struct wlr_surface *surface,
 	}
 
 	if (!surface) {
-		wlr_seat_keyboard_notify_clear_focus(seat->seat);
+		wlr_seat_keyboard_notify_clear_focus(seat->wlr_seat);
 		input_method_relay_set_focus(seat->input_method_relay, NULL);
 		return;
 	}
 
-	if (!wlr_seat_get_keyboard(seat->seat)) {
+	if (!wlr_seat_get_keyboard(seat->wlr_seat)) {
 		/*
 		 * wlr_seat_keyboard_notify_enter() sends wl_keyboard.modifiers,
 		 * but it may crash some apps (e.g. Chromium) if
 		 * wl_keyboard.keymap is not sent beforehand.
 		 */
-		wlr_seat_set_keyboard(seat->seat, &seat->keyboard_group->keyboard);
+		wlr_seat_set_keyboard(seat->wlr_seat, &seat->keyboard_group->keyboard);
 	}
 
 	/*
@@ -817,14 +817,14 @@ seat_focus(struct seat *seat, struct wlr_surface *surface,
 	int nr_pressed_sent_keycodes = key_state_nr_pressed_sent_keycodes();
 
 	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
-	wlr_seat_keyboard_notify_enter(seat->seat, surface,
+	wlr_seat_keyboard_notify_enter(seat->wlr_seat, surface,
 		pressed_sent_keycodes, nr_pressed_sent_keycodes, &kb->modifiers);
 
 	input_method_relay_set_focus(seat->input_method_relay, surface);
 
 	struct wlr_pointer_constraint_v1 *constraint =
 		wlr_pointer_constraints_v1_constraint_for_surface(server.constraints,
-			surface, seat->seat);
+			surface, seat->wlr_seat);
 	constrain_cursor(constraint);
 }
 
@@ -898,7 +898,7 @@ seat_focus_override_begin(struct seat *seat, enum input_mode input_mode,
 
 	server.input_mode = input_mode;
 
-	seat->focus_override.surface = seat->seat->keyboard_state.focused_surface;
+	seat->focus_override.surface = seat->wlr_seat->keyboard_state.focused_surface;
 	if (seat->focus_override.surface) {
 		seat->focus_override.surface_destroy.notify =
 			handle_focus_override_surface_destroy;
@@ -908,7 +908,7 @@ seat_focus_override_begin(struct seat *seat, enum input_mode input_mode,
 
 	seat_focus(seat, NULL, /*replace_exclusive_layer*/ false,
 		/*is_lock_surface*/ false);
-	wlr_seat_pointer_clear_focus(seat->seat);
+	wlr_seat_pointer_clear_focus(seat->wlr_seat);
 	cursor_set(seat, cursor_shape);
 }
 

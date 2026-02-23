@@ -115,22 +115,22 @@ xdg_toplevel_decoration(struct wl_listener *listener, void *data)
 }
 
 void
-xdg_server_decoration_init(struct server *server)
+xdg_server_decoration_init(void)
 {
 	struct wlr_xdg_decoration_manager_v1 *xdg_deco_mgr = NULL;
-	xdg_deco_mgr = wlr_xdg_decoration_manager_v1_create(server->wl_display);
+	xdg_deco_mgr = wlr_xdg_decoration_manager_v1_create(g_server.wl_display);
 	if (!xdg_deco_mgr) {
 		wlr_log(WLR_ERROR, "unable to create the XDG deco manager");
 		exit(EXIT_FAILURE);
 	}
 
 	wl_signal_add(&xdg_deco_mgr->events.new_toplevel_decoration,
-		&server->xdg_toplevel_decoration);
-	server->xdg_toplevel_decoration.notify = xdg_toplevel_decoration;
+		&g_server.xdg_toplevel_decoration);
+	g_server.xdg_toplevel_decoration.notify = xdg_toplevel_decoration;
 }
 
 void
-xdg_server_decoration_finish(struct server *server)
+xdg_server_decoration_finish(void)
 {
-	wl_list_remove(&server->xdg_toplevel_decoration.link);
+	wl_list_remove(&g_server.xdg_toplevel_decoration.link);
 }

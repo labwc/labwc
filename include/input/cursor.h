@@ -62,7 +62,7 @@ struct cursor_context_saved {
  *
  * If no node is found at cursor, ctx.type is set to ROOT.
  */
-struct cursor_context get_cursor_context(struct server *server);
+struct cursor_context get_cursor_context(void);
 
 /**
  * cursor_set - set cursor icon
@@ -82,7 +82,7 @@ void cursor_context_save(struct cursor_context_saved *saved_ctx,
 
 /**
  * cursor_get_resize_edges - calculate resize edge based on cursor position
- * @cursor - the current cursor (usually server->seat.cursor)
+ * @cursor - the current cursor (usually g_server.seat.cursor)
  * @cursor_context - result of get_cursor_context()
  *
  * Calculates the resize edge combination that is most appropriate based
@@ -113,7 +113,7 @@ enum lab_cursors cursor_get_from_edge(enum lab_edge resize_edges);
  * or to force an update of the cursor icon by sending an exit and enter
  * event to an already focused surface.
  */
-void cursor_update_focus(struct server *server);
+void cursor_update_focus(void);
 
 /**
  * cursor_update_image - re-set the labwc cursor image
@@ -130,7 +130,7 @@ void cursor_update_image(struct seat *seat);
  * should be notified. Parameters sx, sy holds the surface coordinates
  * in that case.
  */
-bool cursor_process_motion(struct server *server, uint32_t time, double *sx, double *sy);
+bool cursor_process_motion(uint32_t time, double *sx, double *sy);
 
 /**
  * Processes cursor button press. The return value indicates if a client

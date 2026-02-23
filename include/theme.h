@@ -222,7 +222,7 @@ struct server;
  * @theme_name: theme-name in <theme-dir>/<theme-name>/labwc/themerc
  * Note <theme-dir> is obtained in theme-dir.c
  */
-void theme_init(struct theme *theme, struct server *server, const char *theme_name);
+void theme_init(struct theme *theme, const char *theme_name);
 
 /**
  * theme_finish - free button textures

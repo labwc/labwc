@@ -185,7 +185,7 @@ backend_check_drm(struct wlr_backend *backend, void *is_drm)
 }
 
 static bool
-should_update_activation(struct server *server)
+should_update_activation(void)
 {
 	static const char *act_env = "LABWC_UPDATE_ACTIVATION_ENV";
 	char *env = getenv(act_env);
@@ -204,14 +204,14 @@ should_update_activation(struct server *server)
 
 	/* With no valid preference, update when a DRM backend is in use */
 	bool have_drm = false;
-	wlr_multi_for_each_backend(server->backend, backend_check_drm, &have_drm);
+	wlr_multi_for_each_backend(g_server.backend, backend_check_drm, &have_drm);
 	return have_drm;
 }
 
 static void
-update_activation_env(struct server *server, bool initialize)
+update_activation_env(bool initialize)
 {
-	if (!should_update_activation(server)) {
+	if (!should_update_activation()) {
 		return;
 	}
 
@@ -312,18 +312,18 @@ session_run_script(const char *script)
 }
 
 void
-session_autostart_init(struct server *server)
+session_autostart_init(void)
 {
 	/* Update dbus and systemd user environment, each may fail gracefully */
-	update_activation_env(server, /* initialize */ true);
+	update_activation_env(/* initialize */ true);
 	session_run_script("autostart");
 }
 
 void
-session_shutdown(struct server *server)
+session_shutdown(void)
 {
 	session_run_script("shutdown");
 
 	/* Clear the dbus and systemd user environment, each may fail gracefully */
-	update_activation_env(server, /* initialize */ false);
+	update_activation_env(/* initialize */ false);
 }

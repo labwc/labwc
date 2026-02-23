@@ -17,16 +17,16 @@
 #include "view.h"
 
 bool
-regions_should_snap(struct server *server)
+regions_should_snap(void)
 {
-	if (server->input_mode != LAB_INPUT_STATE_MOVE
+	if (g_server.input_mode != LAB_INPUT_STATE_MOVE
 			|| wl_list_empty(&rc.regions)
-			|| server->seat.region_prevent_snap
-			|| !view_is_floating(server->grabbed_view)) {
+			|| g_server.seat.region_prevent_snap
+			|| !view_is_floating(g_server.grabbed_view)) {
 		return false;
 	}
 
-	return keyboard_get_all_modifiers(&server->seat);
+	return keyboard_get_all_modifiers(&g_server.seat);
 }
 
 struct region *
@@ -44,14 +44,14 @@ regions_from_name(const char *region_name, struct output *output)
 }
 
 struct region *
-regions_from_cursor(struct server *server)
+regions_from_cursor(void)
 {
-	double lx = server->seat.cursor->x;
-	double ly = server->seat.cursor->y;
+	double lx = g_server.seat.cursor->x;
+	double ly = g_server.seat.cursor->y;
 
 	struct wlr_output *wlr_output = wlr_output_layout_output_at(
-		server->output_layout, lx, ly);
-	struct output *output = output_from_wlr_output(server, wlr_output);
+		g_server.output_layout, lx, ly);
+	struct output *output = output_from_wlr_output(wlr_output);
 	if (!output_is_usable(output)) {
 		return NULL;
 	}
@@ -81,7 +81,7 @@ regions_reconfigure_output(struct output *output)
 	/* Evacuate views and destroy current regions */
 	if (!wl_list_empty(&output->regions)) {
 		regions_evacuate_output(output);
-		regions_destroy(&output->server->seat, &output->regions);
+		regions_destroy(&g_server.seat, &output->regions);
 	}
 
 	/* Initialize regions from config */
@@ -100,17 +100,17 @@ regions_reconfigure_output(struct output *output)
 }
 
 void
-regions_reconfigure(struct server *server)
+regions_reconfigure(void)
 {
 	struct output *output;
 
 	/* Evacuate views and initialize regions from config */
-	wl_list_for_each(output, &server->outputs, link) {
+	wl_list_for_each(output, &g_server.outputs, link) {
 		regions_reconfigure_output(output);
 	}
 
 	/* Tries to match the evacuated views to the new regions */
-	desktop_arrange_all_views(server);
+	desktop_arrange_all_views();
 }
 
 void
@@ -149,7 +149,7 @@ regions_evacuate_output(struct output *output)
 {
 	assert(output);
 	struct view *view;
-	wl_list_for_each(view, &output->server->views, link) {
+	wl_list_for_each(view, &g_server.views, link) {
 		if (view->tiled_region && view->tiled_region->output == output) {
 			view_evacuate_region(view);
 		}

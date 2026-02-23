@@ -26,7 +26,7 @@ struct region {
 };
 
 /* Returns true if we should show the region overlay or snap to region */
-bool regions_should_snap(struct server *server);
+bool regions_should_snap(void);
 
 /**
  * regions_reconfigure*() - re-initializes all regions from struct rc.
@@ -36,7 +36,7 @@ bool regions_should_snap(struct server *server);
  * - new output local regions are created from struct rc
  * - the region geometry is re-calculated
  */
-void regions_reconfigure(struct server *server);
+void regions_reconfigure(void);
 void regions_reconfigure_output(struct output *output);
 
 /* re-calculate the geometry based on usable area */
@@ -62,7 +62,7 @@ void regions_evacuate_output(struct output *output);
 void regions_destroy(struct seat *seat, struct wl_list *regions);
 
 /* Get output local region from cursor or name, may be NULL */
-struct region *regions_from_cursor(struct server *server);
+struct region *regions_from_cursor(void);
 struct region *regions_from_name(const char *region_name, struct output *output);
 
 #endif /* LABWC_REGIONS_H */

@@ -529,7 +529,7 @@ parse_justification(const char *str)
  * theme_builtin() applies a theme that is similar to vanilla GTK
  */
 static void
-theme_builtin(struct theme *theme, struct server *server)
+theme_builtin(struct theme *theme)
 {
 	theme->border_width = 1;
 	theme->window_titlebar_padding_height = 0;
@@ -634,7 +634,7 @@ theme_builtin(struct theme *theme, struct server *server)
 	theme->osd_border_color[0] = FLT_MIN;
 	theme->osd_label_text_color[0] = FLT_MIN;
 
-	if (wlr_renderer_is_pixman(server->renderer)) {
+	if (wlr_renderer_is_pixman(g_server.renderer)) {
 		/* Draw only outlined overlay by default to save CPU resource */
 		theme->snapping_overlay_region.bg_enabled = false;
 		theme->snapping_overlay_edge.bg_enabled = false;
@@ -1815,13 +1815,13 @@ post_processing(struct theme *theme)
 }
 
 void
-theme_init(struct theme *theme, struct server *server, const char *theme_name)
+theme_init(struct theme *theme, const char *theme_name)
 {
 	/*
 	 * Set some default values. This is particularly important on
 	 * reconfigure as not all themes set all options
 	 */
-	theme_builtin(theme, server);
+	theme_builtin(theme);
 
 	struct wl_list paths;
 

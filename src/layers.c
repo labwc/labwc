@@ -78,9 +78,8 @@ layers_arrange(struct output *output)
 
 	apply_override(output, &usable_area);
 
-	struct server *server = output->server;
 	struct wlr_scene_output *scene_output =
-		wlr_scene_get_scene_output(server->scene, output->wlr_output);
+		wlr_scene_get_scene_output(g_server.scene, output->wlr_output);
 	if (!scene_output) {
 		wlr_log(WLR_DEBUG, "no wlr_scene_output");
 		return;
@@ -141,10 +140,10 @@ has_exclusive_interactivity(struct wlr_scene_layer_surface_v1 *scene)
  * toplevel if one exists.
  */
 static void
-try_to_focus_next_layer_or_toplevel(struct server *server)
+try_to_focus_next_layer_or_toplevel(void)
 {
-	struct seat *seat = &server->seat;
-	struct output *output = output_nearest_to_cursor(server);
+	struct seat *seat = &g_server.seat;
+	struct output *output = output_nearest_to_cursor();
 	if (!output_is_usable(output)) {
 		goto no_output;
 	}
@@ -235,7 +234,7 @@ layer_try_set_focus(struct seat *seat, struct wlr_layer_surface_v1 *layer_surfac
 	case ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE:
 		wlr_log(WLR_DEBUG, "interactive-none '%p'", layer_surface);
 		if (seat->focused_layer == layer_surface) {
-			try_to_focus_next_layer_or_toplevel(seat->server);
+			try_to_focus_next_layer_or_toplevel();
 		}
 		break;
 	}
@@ -278,19 +277,18 @@ handle_surface_commit(struct wl_listener *listener, void *data)
 		 * cursor-button-press).
 		 */
 		if (is_on_demand(layer_surface)) {
-			struct seat *seat = &layer->server->seat;
+			struct seat *seat = &g_server.seat;
 			if (seat->focused_layer == layer_surface) {
 				/*
 				 * Must be change from EXCLUSIVE to ON_DEMAND,
 				 * so we should give us focus.
 				 */
-				struct server *server = layer->server;
-				try_to_focus_next_layer_or_toplevel(server);
+				try_to_focus_next_layer_or_toplevel();
 			}
 			goto out;
 		}
 		/* Handle EXCLUSIVE and NONE requests */
-		struct seat *seat = &layer->server->seat;
+		struct seat *seat = &g_server.seat;
 		layer_try_set_focus(seat, layer_surface);
 	}
 out:
@@ -302,7 +300,7 @@ out:
 		 * Update cursor focus here to ensure we
 		 * enter a new/moved/resized layer surface.
 		 */
-		cursor_update_focus(layer->server);
+		cursor_update_focus();
 	}
 }
 
@@ -312,7 +310,7 @@ handle_node_destroy(struct wl_listener *listener, void *data)
 	struct lab_layer_surface *layer =
 		wl_container_of(listener, layer, node_destroy);
 
-	struct seat *seat = &layer->server->seat;
+	struct seat *seat = &g_server.seat;
 
 	/*
 	 * If the surface of this node has the current keyboard focus, then we
@@ -374,11 +372,11 @@ handle_unmap(struct wl_listener *listener, void *data)
 	if (layer_surface->output) {
 		output_update_usable_area(layer_surface->output->data);
 	}
-	struct seat *seat = &layer->server->seat;
+	struct seat *seat = &g_server.seat;
 	if (seat->focused_layer == layer_surface) {
-		try_to_focus_next_layer_or_toplevel(layer->server);
+		try_to_focus_next_layer_or_toplevel();
 	}
-	cursor_update_focus(layer->server);
+	cursor_update_focus();
 
 	layer->being_unmapped = false;
 }
@@ -424,7 +422,7 @@ handle_map(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	struct seat *seat = &layer->server->seat;
+	struct seat *seat = &g_server.seat;
 	layer_try_set_focus(seat, layer->scene_layer_surface->layer_surface);
 }
 
@@ -439,7 +437,7 @@ handle_popup_destroy(struct wl_listener *listener, void *data)
 {
 	struct lab_layer_popup *popup =
 		wl_container_of(listener, popup, destroy);
-	struct seat *seat = &popup->server->seat;
+	struct seat *seat = &g_server.seat;
 
 	struct wlr_xdg_popup *_popup, *tmp;
 	wl_list_for_each_safe(_popup, tmp, &popup->wlr_popup->base->popups, link) {
@@ -461,10 +459,10 @@ handle_popup_destroy(struct wl_listener *listener, void *data)
 		if (popup->parent_was_focused && popup->wlr_popup->parent) {
 			seat_force_focus_surface(seat, popup->wlr_popup->parent);
 		} else {
-			desktop_focus_topmost_view(popup->server);
+			desktop_focus_topmost_view();
 		}
 	}
-	cursor_update_focus(popup->server);
+	cursor_update_focus();
 
 	free(popup);
 }
@@ -529,8 +527,7 @@ handle_popup_commit(struct wl_listener *listener, void *data)
 		popup->commit.notify = NULL;
 
 		/* Force focus when popup was triggered by IPC */
-		struct server *server = popup->server;
-		struct seat *seat = &server->seat;
+		struct seat *seat = &g_server.seat;
 		bool requesting_grab = !!popup->wlr_popup->seat;
 		if (requesting_grab) {
 			if (surface_is_focused(seat, popup->wlr_popup->parent)) {
@@ -553,11 +550,10 @@ handle_popup_reposition(struct wl_listener *listener, void *data)
 static void handle_popup_new_popup(struct wl_listener *listener, void *data);
 
 static struct lab_layer_popup *
-create_popup(struct server *server, struct wlr_xdg_popup *wlr_popup,
+create_popup(struct wlr_xdg_popup *wlr_popup,
 		struct wlr_scene_tree *parent)
 {
 	struct lab_layer_popup *popup = znew(*popup);
-	popup->server = server;
 	popup->wlr_popup = wlr_popup;
 	popup->scene_tree =
 		wlr_scene_xdg_surface_create(parent, wlr_popup->base);
@@ -591,8 +587,7 @@ handle_popup_new_popup(struct wl_listener *listener, void *data)
 	struct lab_layer_popup *lab_layer_popup =
 		wl_container_of(listener, lab_layer_popup, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
-	struct lab_layer_popup *new_popup = create_popup(
-		lab_layer_popup->server, wlr_popup,
+	struct lab_layer_popup *new_popup = create_popup(wlr_popup,
 		lab_layer_popup->scene_tree);
 
 	new_popup->output_toplevel_sx_box =
@@ -607,12 +602,11 @@ static void
 move_popup_to_top_layer(struct lab_layer_surface *toplevel,
 		struct lab_layer_popup *popup)
 {
-	struct server *server = toplevel->server;
 	struct wlr_output *wlr_output =
 		toplevel->scene_layer_surface->layer_surface->output;
 	struct output *output = (struct output *)wlr_output->data;
 	struct wlr_box box = { 0 };
-	wlr_output_layout_get_box(server->output_layout, wlr_output, &box);
+	wlr_output_layout_get_box(g_server.output_layout, wlr_output, &box);
 	int lx = toplevel->scene_layer_surface->tree->node.x + box.x;
 	int ly = toplevel->scene_layer_surface->tree->node.y + box.y;
 
@@ -630,7 +624,6 @@ handle_new_popup(struct wl_listener *listener, void *data)
 		wl_container_of(listener, toplevel, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
 
-	struct server *server = toplevel->server;
 	struct wlr_scene_layer_surface_v1 *surface = toplevel->scene_layer_surface;
 	struct output *output = surface->layer_surface->output->data;
 
@@ -638,7 +631,7 @@ handle_new_popup(struct wl_listener *listener, void *data)
 	wlr_scene_node_coords(&surface->tree->node, &lx, &ly);
 
 	struct wlr_box output_box = { 0 };
-	wlr_output_layout_get_box(server->output_layout,
+	wlr_output_layout_get_box(g_server.output_layout,
 		output->wlr_output, &output_box);
 
 	/*
@@ -654,7 +647,7 @@ handle_new_popup(struct wl_listener *listener, void *data)
 		.height = output_box.height,
 	};
 	struct lab_layer_popup *popup =
-		create_popup(server, wlr_popup, surface->tree);
+		create_popup(wlr_popup, surface->tree);
 	popup->output_toplevel_sx_box = output_toplevel_sx_box;
 
 	if (surface->layer_surface->current.layer
@@ -666,12 +659,10 @@ handle_new_popup(struct wl_listener *listener, void *data)
 static void
 handle_new_layer_surface(struct wl_listener *listener, void *data)
 {
-	struct server *server = wl_container_of(
-		listener, server, new_layer_surface);
 	struct wlr_layer_surface_v1 *layer_surface = data;
 
 	if (!layer_surface->output) {
-		struct output *output = output_nearest_to_cursor(server);
+		struct output *output = output_nearest_to_cursor();
 		if (!output || !output->scene_output) {
 			/*
 			 * We are not using output_is_usable() here because
@@ -709,7 +700,6 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 	node_descriptor_create(&surface->scene_layer_surface->tree->node,
 		LAB_NODE_LAYER_SURFACE, /*view*/ NULL, surface);
 
-	surface->server = server;
 	surface->scene_layer_surface->layer_surface = layer_surface;
 
 	surface->surface_commit.notify = handle_surface_commit;
@@ -735,17 +725,17 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 }
 
 void
-layers_init(struct server *server)
+layers_init(void)
 {
-	server->layer_shell = wlr_layer_shell_v1_create(server->wl_display,
+	g_server.layer_shell = wlr_layer_shell_v1_create(g_server.wl_display,
 		LAB_LAYERSHELL_VERSION);
-	server->new_layer_surface.notify = handle_new_layer_surface;
-	wl_signal_add(&server->layer_shell->events.new_surface,
-		&server->new_layer_surface);
+	g_server.new_layer_surface.notify = handle_new_layer_surface;
+	wl_signal_add(&g_server.layer_shell->events.new_surface,
+		&g_server.new_layer_surface);
 }
 
 void
-layers_finish(struct server *server)
+layers_finish(void)
 {
-	wl_list_remove(&server->new_layer_surface.link);
+	wl_list_remove(&g_server.new_layer_surface.link);
 }

@@ -165,7 +165,7 @@ resistance_resize_apply(struct view *view, struct wlr_box *new_geom)
 	edges_initialize(&next_edges);
 
 	/* Use a constrained, effective geometry for snapping if appropriate */
-	enum lab_edge resize_edges = view->server->resize_edges;
+	enum lab_edge resize_edges = g_server.resize_edges;
 	struct wlr_box origin =
 		snap_constraints_effective(view, resize_edges, /* use_pending */ false);
 

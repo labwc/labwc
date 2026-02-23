@@ -89,10 +89,10 @@ get_view_part(struct view *view, struct wlr_scene_node *node)
 }
 
 static struct workspace *
-get_workspace_from_node(struct server *server, struct wlr_scene_node *node)
+get_workspace_from_node(struct wlr_scene_node *node)
 {
 	struct workspace *workspace;
-	wl_list_for_each(workspace, &server->workspaces.all, link) {
+	wl_list_for_each(workspace, &g_server.workspaces.all, link) {
 		if (&workspace->tree->node == node) {
 			return workspace;
 		}
@@ -101,31 +101,31 @@ get_workspace_from_node(struct server *server, struct wlr_scene_node *node)
 }
 
 static const char *
-get_special(struct server *server, struct wlr_scene_node *node)
+get_special(struct wlr_scene_node *node)
 {
 	struct wlr_scene_tree *grand_parent =
 		node->parent ? node->parent->node.parent : NULL;
 	struct wlr_scene_tree *grand_grand_parent =
 		grand_parent ? grand_parent->node.parent : NULL;
-	if (node == &server->scene->tree.node) {
-		return "server->scene";
+	if (node == &g_server.scene->tree.node) {
+		return "g_server.scene";
 	}
-	if (node == &server->menu_tree->node) {
-		return "server->menu_tree";
+	if (node == &g_server.menu_tree->node) {
+		return "g_server.menu_tree";
 	}
-	if (node == &server->workspace_tree->node) {
-		return "server->workspace_tree";
+	if (node == &g_server.workspace_tree->node) {
+		return "g_server.workspace_tree";
 	}
-	if (node->parent == server->workspace_tree) {
-		struct workspace *workspace = get_workspace_from_node(server, node);
+	if (node->parent == g_server.workspace_tree) {
+		struct workspace *workspace = get_workspace_from_node(node);
 		if (workspace) {
 			return workspace->name;
 		}
 		return "unknown workspace";
 	}
-	if (grand_parent == server->workspace_tree) {
+	if (grand_parent == g_server.workspace_tree) {
 		struct workspace *workspace =
-			get_workspace_from_node(server, &node->parent->node);
+			get_workspace_from_node(&node->parent->node);
 		if (workspace) {
 			struct wlr_scene_tree **trees = workspace->view_trees;
 			if (node == &trees[VIEW_LAYER_NORMAL]->node) {
@@ -138,9 +138,9 @@ get_special(struct server *server, struct wlr_scene_node *node)
 		}
 		return "unknown tree";
 	}
-	if (node->parent == &server->scene->tree) {
+	if (node->parent == &g_server.scene->tree) {
 		struct output *output;
-		wl_list_for_each(output, &server->outputs, link) {
+		wl_list_for_each(output, &g_server.outputs, link) {
 			if (node == &output->cycle_osd_tree->node) {
 				return "output->osd_tree";
 			}
@@ -157,33 +157,33 @@ get_special(struct server *server, struct wlr_scene_node *node)
 			}
 		}
 	}
-	if (node == &server->xdg_popup_tree->node) {
-		return "server->xdg_popup_tree";
+	if (node == &g_server.xdg_popup_tree->node) {
+		return "g_server.xdg_popup_tree";
 	}
-	if (node == &server->seat.drag.icons->node) {
+	if (node == &g_server.seat.drag.icons->node) {
 		return "seat->drag.icons";
 	}
-	if (server->seat.overlay.rect
-			&& node == &server->seat.overlay.rect->tree->node) {
+	if (g_server.seat.overlay.rect
+			&& node == &g_server.seat.overlay.rect->tree->node) {
 		/* Created on-demand */
 		return "seat->overlay.rect";
 	}
-	if (server->seat.input_method_relay->popup_tree
-			&& node == &server->seat.input_method_relay->popup_tree->node) {
+	if (g_server.seat.input_method_relay->popup_tree
+			&& node == &g_server.seat.input_method_relay->popup_tree->node) {
 		/* Created on-demand */
 		return "seat->im_relay->popup_tree";
 	}
-	if (server->cycle.preview_outline
-			&& node == &server->cycle.preview_outline->tree->node) {
+	if (g_server.cycle.preview_outline
+			&& node == &g_server.cycle.preview_outline->tree->node) {
 		/* Created on-demand */
 		return "cycle_state->preview_outline";
 	}
 #if HAVE_XWAYLAND
-	if (node == &server->unmanaged_tree->node) {
-		return "server->unmanaged_tree";
+	if (node == &g_server.unmanaged_tree->node) {
+		return "g_server.unmanaged_tree";
 	}
 #endif
-	if (grand_grand_parent == server->workspace_tree && node->data) {
+	if (grand_grand_parent == g_server.workspace_tree && node->data) {
 		last_view = node_view_from_node(node);
 	}
 	const char *view_part = get_view_part(last_view, node);
@@ -209,10 +209,10 @@ get_center_padding(const char *text, uint8_t max_width)
 }
 
 static void
-dump_tree(struct server *server, struct wlr_scene_node *node,
+dump_tree(struct wlr_scene_node *node,
 	int pos, int x, int y)
 {
-	const char *type = get_special(server, node);
+	const char *type = get_special(node);
 
 	if (pos) {
 		printf("%*c+-- ", pos, ' ');
@@ -234,13 +234,13 @@ dump_tree(struct server *server, struct wlr_scene_node *node,
 	}
 	printf("%.*s %*c %4d  %4d  [%p]\n", max_width - 1, type, padding, ' ', x, y, node);
 
-	if ((IGNORE_MENU && node == &server->menu_tree->node)
+	if ((IGNORE_MENU && node == &g_server.menu_tree->node)
 			|| (IGNORE_SSD && last_view
 				&& ssd_debug_is_root_node(last_view->ssd, node))
-			|| (IGNORE_CYCLE_PREVIEW_OUTLINE && server->cycle.preview_outline
-				&& node == &server->cycle.preview_outline->tree->node)
-			|| (IGNORE_SNAPPING_OVERLAY && server->seat.overlay.rect
-				&& node == &server->seat.overlay.rect->tree->node)) {
+			|| (IGNORE_CYCLE_PREVIEW_OUTLINE && g_server.cycle.preview_outline
+				&& node == &g_server.cycle.preview_outline->tree->node)
+			|| (IGNORE_SNAPPING_OVERLAY && g_server.seat.overlay.rect
+				&& node == &g_server.seat.overlay.rect->tree->node)) {
 		printf("%*c%s\n", pos + 4 + INDENT_SIZE, ' ', "<skipping children>");
 		return;
 	}
@@ -249,17 +249,17 @@ dump_tree(struct server *server, struct wlr_scene_node *node,
 		struct wlr_scene_node *child;
 		struct wlr_scene_tree *tree = wlr_scene_tree_from_node(node);
 		wl_list_for_each(child, &tree->children, link) {
-			dump_tree(server, child, pos + INDENT_SIZE,
+			dump_tree(child, pos + INDENT_SIZE,
 				x + child->x, y + child->y);
 		}
 	}
 }
 
 void
-debug_dump_scene(struct server *server)
+debug_dump_scene(void)
 {
 	printf("\n");
-	dump_tree(server, &server->scene->tree.node, 0, 0, 0);
+	dump_tree(&g_server.scene->tree.node, 0, 0, 0);
 	printf("\n");
 
 	/*

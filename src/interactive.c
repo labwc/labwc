@@ -60,12 +60,11 @@ interactive_anchor_to_cursor(struct server *server, struct wlr_box *geo)
  * then interactive_begin() is called.
  */
 void
-interactive_set_grab_context(struct cursor_context *ctx)
+interactive_set_grab_context(struct server *server, const struct cursor_context *ctx)
 {
 	if (!ctx->view) {
 		return;
 	}
-	struct server *server = ctx->view->server;
 	if (server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		return;
 	}

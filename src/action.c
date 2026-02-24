@@ -1268,7 +1268,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 			 * Move, set it now from current cursor position.
 			 */
 			if (view != server->seat.pressed.ctx.view) {
-				interactive_set_grab_context(ctx);
+				interactive_set_grab_context(server, ctx);
 			}
 			interactive_begin(view, LAB_INPUT_STATE_MOVE,
 				LAB_EDGE_NONE);
@@ -1299,7 +1299,7 @@ run_action(struct view *view, struct server *server, struct action *action,
 			 * Resize, set it now from current cursor position.
 			 */
 			if (view != server->seat.pressed.ctx.view) {
-				interactive_set_grab_context(ctx);
+				interactive_set_grab_context(server, ctx);
 			}
 			interactive_begin(view, LAB_INPUT_STATE_RESIZE,
 				resize_edges);

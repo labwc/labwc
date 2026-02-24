@@ -92,7 +92,7 @@ void cursor_context_save(struct cursor_context_saved *saved_ctx,
  * keyboard modifier or when using the Resize action from a keybind.
  */
 enum lab_edge cursor_get_resize_edges(struct wlr_cursor *cursor,
-	struct cursor_context *ctx);
+	const struct cursor_context *ctx);
 
 /**
  * cursor_get_from_edge - translate lab_edge enum to lab_cursor enum

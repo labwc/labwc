@@ -604,7 +604,7 @@ cursor_update_common(struct server *server, const struct cursor_context *ctx,
 }
 
 enum lab_edge
-cursor_get_resize_edges(struct wlr_cursor *cursor, struct cursor_context *ctx)
+cursor_get_resize_edges(struct wlr_cursor *cursor, const struct cursor_context *ctx)
 {
 	enum lab_edge resize_edges = node_type_to_edges(ctx->type);
 	if (ctx->view && !resize_edges) {
@@ -1147,7 +1147,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 	if (ctx.view || ctx.surface) {
 		/* Store cursor context for later action processing */
 		cursor_context_save(&seat->pressed, &ctx);
-		interactive_set_grab_context(&ctx);
+		interactive_set_grab_context(server, &ctx);
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {

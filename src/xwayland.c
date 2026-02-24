@@ -772,6 +772,14 @@ set_initial_position(struct view *view,
 			 * View is maximized/fullscreen. Place the
 			 * stored natural geometry without actually
 			 * moving the view.
+			 *
+			 * FIXME: this positioning will be slightly off
+			 * since it uses border widths computed for the
+			 * current (non-floating) state of the view.
+			 * Possible fixes would be (1) adjust the natural
+			 * geometry earlier, while still floating, or
+			 * (2) add a variant of ssd_thickness() that
+			 * disregards the current view state.
 			 */
 			view_compute_position_by_policy(view, &view->natural_geometry,
 				/* allow_cursor */ true, rc.placement_policy);

@@ -514,10 +514,17 @@ int view_effective_height(struct view *view, bool use_pending);
  */
 void view_center(struct view *view, const struct wlr_box *ref);
 
-/*
- * Like view_place_by_policy() but doesn't actually move the view.
- * Returns false if position could not be computed (for example, if no
- * outputs are connected). In that case, @geom is not modified.
+/**
+ * view_compute_position_by_policy() - compute view placement
+ * @view: view to be placed
+ * @geom: floating view geometry to update (in/out)
+ * @allow_cursor: set to false to ignore center-on-cursor policy
+ * @policy: placement policy to apply
+ *
+ * Computes floating view placement according to configured strategy.
+ * Unlike view_place_by_policy(), this function doesn't actually move
+ * the view. It returns false if position could not be computed (e.g.
+ * if no outputs are connected). In that case, @geom is not modified.
  */
 bool view_compute_position_by_policy(struct view *view, struct wlr_box *geom,
 	bool allow_cursor, enum lab_placement_policy policy);
@@ -527,6 +534,10 @@ bool view_compute_position_by_policy(struct view *view, struct wlr_box *geom,
  * @view: view to be placed
  * @allow_cursor: set to false to ignore center-on-cursor policy
  * @policy: placement policy to apply
+ *
+ * Places a floating view according to configured placement strategy.
+ * Clears any maximized/fullscreen/tiled state and restores natural
+ * geometry of the view before positioning.
  */
 void view_place_by_policy(struct view *view, bool allow_cursor,
 	enum lab_placement_policy policy);

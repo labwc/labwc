@@ -264,8 +264,9 @@ handle_commit(struct wl_listener *listener, void *data)
 	/*
 	 * The pending size will be empty in two cases:
 	 *   (1) when the view is first mapped
-	 *   (2) when leaving fullscreen or un-maximizing,
-	 *       if natural geometry wasn't known
+	 *   (2) when leaving fullscreen or un-maximizing, if the view
+	 *       was initially fullscreen/maximized and the natural
+	 *       geometry isn't known yet
 	 */
 	if (wlr_box_empty(&view->pending) && !wlr_box_empty(&size)) {
 		view->pending.width = size.width;

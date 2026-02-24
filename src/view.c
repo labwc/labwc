@@ -652,7 +652,11 @@ view_compute_near_cursor_position(struct view *view, struct wlr_box *geom)
 	int x = (int)seat->cursor->x - (total_width / 2);
 	int y = (int)seat->cursor->y - (total_height / 2);
 
-	/* Order of MIN/MAX is significant here */
+	/*
+	 * Order of MIN/MAX is significant here (so that the top-left
+	 * corner of the view remains visible even if the view is larger
+	 * than the usable output area)
+	 */
 	x = MIN(x, usable.x + usable.width - total_width);
 	geom->x = MAX(x, usable.x) + margin.left;
 	y = MIN(y, usable.y + usable.height - total_height);

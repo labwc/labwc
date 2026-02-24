@@ -97,9 +97,9 @@ enum action_type {
 	ACTION_TYPE_FOCUS,
 	ACTION_TYPE_UNFOCUS,
 	ACTION_TYPE_ICONIFY,
-	ACTION_TYPE_MOVE,
 	ACTION_TYPE_RAISE,
 	ACTION_TYPE_LOWER,
+	ACTION_TYPE_MOVE,
 	ACTION_TYPE_RESIZE,
 	ACTION_TYPE_RESIZE_RELATIVE,
 	ACTION_TYPE_MOVETO,
@@ -1260,6 +1260,16 @@ run_action(struct view *view, struct server *server, struct action *action,
 			view_minimize(view, true);
 		}
 		break;
+	case ACTION_TYPE_RAISE:
+		if (view) {
+			view_move_to_front(view);
+		}
+		break;
+	case ACTION_TYPE_LOWER:
+		if (view) {
+			view_move_to_back(view);
+		}
+		break;
 	case ACTION_TYPE_MOVE:
 		if (view) {
 			/*
@@ -1272,16 +1282,6 @@ run_action(struct view *view, struct server *server, struct action *action,
 			}
 			interactive_begin(view, LAB_INPUT_STATE_MOVE,
 				LAB_EDGE_NONE);
-		}
-		break;
-	case ACTION_TYPE_RAISE:
-		if (view) {
-			view_move_to_front(view);
-		}
-		break;
-	case ACTION_TYPE_LOWER:
-		if (view) {
-			view_move_to_back(view);
 		}
 		break;
 	case ACTION_TYPE_RESIZE:

@@ -431,9 +431,10 @@ server_init(struct server *server)
 		wlr_log(WLR_ERROR, "cannot allocate a wayland display");
 		exit(EXIT_FAILURE);
 	}
+	/* Increase max client buffer size to make slow clients less likely to terminate  */
+	wl_display_set_default_max_buffer_size(server->wl_display, 1024 * 1024);
 
 	wl_display_set_global_filter(server->wl_display, server_global_filter, server);
-
 	server->wl_event_loop = wl_display_get_event_loop(server->wl_display);
 
 	/* Catch signals */

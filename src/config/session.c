@@ -21,7 +21,6 @@
 #include "labwc.h"
 
 static const char *const env_vars[] = {
-	"DISPLAY",
 	"WAYLAND_DISPLAY",
 	"XDG_CURRENT_DESKTOP",
 	"XCURSOR_SIZE",
@@ -209,6 +208,21 @@ should_update_activation(void)
 }
 
 static void
+execute_update(const char *env_keys, const char *env_unset_keys, bool initialize)
+{
+	char *cmd =
+		strdup_printf("dbus-update-activation-environment %s",
+			initialize ? env_keys : env_unset_keys);
+	spawn_async_no_shell(cmd);
+	free(cmd);
+
+	cmd = strdup_printf("systemctl --user %s %s",
+		initialize ? "import-environment" : "unset-environment", env_keys);
+	spawn_async_no_shell(cmd);
+	free(cmd);
+}
+
+static void
 update_activation_env(bool initialize)
 {
 	if (!should_update_activation()) {
@@ -227,19 +241,18 @@ update_activation_env(bool initialize)
 	char *env_keys = str_join(env_vars, "%s", " ");
 	char *env_unset_keys = initialize ? NULL : str_join(env_vars, "%s=", " ");
 
-	char *cmd =
-		strdup_printf("dbus-update-activation-environment %s",
-			initialize ? env_keys : env_unset_keys);
-	spawn_async_no_shell(cmd);
-	free(cmd);
-
-	cmd = strdup_printf("systemctl --user %s %s",
-		initialize ? "import-environment" : "unset-environment", env_keys);
-	spawn_async_no_shell(cmd);
-	free(cmd);
+	execute_update(env_keys, env_unset_keys, initialize);
 
 	free(env_keys);
 	free(env_unset_keys);
+
+#if HAVE_XWAYLAND
+	if (server.xwayland) {
+		// DISPLAY is only set if xwayland was initialized successfully,
+		// so we only update the env in that case
+		execute_update("DISPLAY", "DISPLAY=", initialize);
+	}
+#endif
 }
 
 void

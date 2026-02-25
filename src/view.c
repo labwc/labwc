@@ -54,6 +54,8 @@ view_from_wlr_surface(struct wlr_surface *surface)
 		return xdg_surface->data;
 	}
 #if HAVE_XWAYLAND
+	// Doing this is harmless even in the case that xwayland could not be
+	// successfully started.
 	struct wlr_xwayland_surface *xsurface =
 		wlr_xwayland_surface_try_from_wlr_surface(surface);
 	if (xsurface) {

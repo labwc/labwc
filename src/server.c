@@ -589,6 +589,8 @@ server_init(struct server *server)
 	server->workspace_tree = wlr_scene_tree_create(&server->scene->tree);
 	server->xdg_popup_tree = wlr_scene_tree_create(&server->scene->tree);
 #if HAVE_XWAYLAND
+	// Creating/setting this is harmless when xwayland support is built-in
+	// but xwayland could not be successfully started.
 	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->tree);
 #endif
 	server->menu_tree = wlr_scene_tree_create(&server->scene->tree);

@@ -1538,16 +1538,23 @@ view_toggle_decorations(struct view *view)
 }
 
 void
+view_set_layer(struct view *view, enum view_layer layer)
+{
+	assert(view);
+	view->layer = layer;
+	wlr_scene_node_reparent(&view->scene_tree->node,
+		view->workspace->view_trees[layer]);
+}
+
+void
 view_toggle_always_on_top(struct view *view)
 {
 	assert(view);
 	if (view->layer == VIEW_LAYER_ALWAYS_ON_TOP) {
-		view->layer = VIEW_LAYER_NORMAL;
+		view_set_layer(view, VIEW_LAYER_NORMAL);
 	} else {
-		view->layer = VIEW_LAYER_ALWAYS_ON_TOP;
+		view_set_layer(view, VIEW_LAYER_ALWAYS_ON_TOP);
 	}
-	wlr_scene_node_reparent(&view->scene_tree->node,
-		view->workspace->view_trees[view->layer]);
 }
 
 void
@@ -1555,12 +1562,10 @@ view_toggle_always_on_bottom(struct view *view)
 {
 	assert(view);
 	if (view->layer == VIEW_LAYER_ALWAYS_ON_BOTTOM) {
-		view->layer = VIEW_LAYER_NORMAL;
+		view_set_layer(view, VIEW_LAYER_NORMAL);
 	} else {
-		view->layer = VIEW_LAYER_ALWAYS_ON_BOTTOM;
+		view_set_layer(view, VIEW_LAYER_ALWAYS_ON_BOTTOM);
 	}
-	wlr_scene_node_reparent(&view->scene_tree->node,
-		view->workspace->view_trees[view->layer]);
 }
 
 void

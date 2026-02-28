@@ -355,6 +355,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	/* Remove XWayland view specific listeners */
 	wl_list_remove(&xwayland_view->associate.link);
 	wl_list_remove(&xwayland_view->dissociate.link);
+	wl_list_remove(&xwayland_view->request_above.link);
 	wl_list_remove(&xwayland_view->request_activate.link);
 	wl_list_remove(&xwayland_view->request_configure.link);
 	wl_list_remove(&xwayland_view->set_class.link);
@@ -420,6 +421,17 @@ handle_request_configure(struct wl_listener *listener, void *data)
 		 */
 		xwayland_view_configure(view, view->pending);
 	}
+}
+
+static void
+handle_request_above(struct wl_listener *listener, void *data)
+{
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, request_above);
+	struct view *view = &xwayland_view->base;
+
+	view_set_layer(view, xwayland_view->xwayland_surface->above
+		? VIEW_LAYER_ALWAYS_ON_TOP : VIEW_LAYER_NORMAL);
 }
 
 static void
@@ -705,6 +717,8 @@ handle_map_request(struct wl_listener *listener, void *data)
 		axis |= VIEW_AXIS_VERTICAL;
 	}
 	view_maximize(view, axis);
+	view_set_layer(view, xsurface->above
+		? VIEW_LAYER_ALWAYS_ON_TOP : VIEW_LAYER_NORMAL);
 	/*
 	 * We could also call set_initial_position() here, but it's not
 	 * really necessary until the view is actually mapped (and at
@@ -1034,6 +1048,7 @@ xwayland_view_create(struct server *server,
 	/* Events specific to XWayland views */
 	CONNECT_SIGNAL(xsurface, xwayland_view, associate);
 	CONNECT_SIGNAL(xsurface, xwayland_view, dissociate);
+	CONNECT_SIGNAL(xsurface, xwayland_view, request_above);
 	CONNECT_SIGNAL(xsurface, xwayland_view, request_activate);
 	CONNECT_SIGNAL(xsurface, xwayland_view, request_configure);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_class);

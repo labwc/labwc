@@ -44,6 +44,7 @@ struct xwayland_view {
 	/* Events unique to XWayland views */
 	struct wl_listener associate;
 	struct wl_listener dissociate;
+	struct wl_listener request_above;
 	struct wl_listener request_activate;
 	struct wl_listener request_configure;
 	struct wl_listener set_class;

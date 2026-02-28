@@ -299,6 +299,7 @@ struct server {
 
 	struct wlr_tablet_manager_v2 *tablet_manager;
 	struct wlr_security_context_manager_v1 *security_context_manager_v1;
+	struct xi_socket_manager_v1 *xi_socket_manager_v1;
 
 	/* Set when in cycle (alt-tab) mode */
 	struct cycle_state cycle;

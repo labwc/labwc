@@ -68,6 +68,7 @@
 #include "view.h"
 #include "workspaces.h"
 #include "xwayland.h"
+#include "protocols/xi_socket_manager_v1.h"
 
 #define LAB_EXT_DATA_CONTROL_VERSION 1
 #define LAB_EXT_FOREIGN_TOPLEVEL_LIST_VERSION 1
@@ -287,6 +288,7 @@ allow_for_sandbox(const struct wlr_security_context_v1_state *security_state,
 		"zwp_idle_inhibit_manager_v1",
 		"zwp_pointer_constraints_v1",
 		"zxdg_output_manager_v1",
+		"xi_socket_manager_v1",
 	};
 
 	for (size_t i = 0; i < ARRAY_SIZE(allowed_protocols); i++) {
@@ -668,6 +670,8 @@ server_init(struct server *server)
 		LAB_EXT_DATA_CONTROL_VERSION);
 	server->security_context_manager_v1 =
 		wlr_security_context_manager_v1_create(server->wl_display);
+	server->xi_socket_manager_v1 =
+		xi_socket_manager_v1_create(server->wl_display);
 	wlr_viewporter_create(server->wl_display);
 	wlr_single_pixel_buffer_manager_v1_create(server->wl_display);
 	wlr_fractional_scale_manager_v1_create(server->wl_display,

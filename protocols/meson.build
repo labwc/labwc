@@ -28,6 +28,7 @@ server_protocols = [
 	'cosmic-workspace-unstable-v1.xml',
 	'wlr-layer-shell-unstable-v1.xml',
 	'wlr-output-power-management-unstable-v1.xml',
+	'xi-socket-manager-unstable-v1.xml',
 ]
 
 server_protos_src = []

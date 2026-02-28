@@ -7,6 +7,7 @@
 
 uint32_t permissions_from_interface_name(const char *s);
 int permissions_context_create(struct wl_display *display, uint32_t permissions);
+bool permissions_context_clone(struct wl_client *client, int fd);
 bool permissions_check(const struct wl_client *client, const struct wl_interface *iface);
 
 #endif

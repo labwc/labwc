@@ -54,6 +54,24 @@ permissions_get(const struct wl_client *client)
 	return context->permissions;
 }
 
+static bool
+context_create(struct wl_display *display, uint32_t permissions, int fd)
+{
+	struct wl_client *client = wl_client_create(display, fd);
+	if (!client) {
+		wlr_log(WLR_ERROR, "failed to create client");
+		return false;
+	}
+
+	struct permissions_context *context = znew(*context);
+	context->permissions = permissions;
+	context->fd = fd;
+	context->destroy.notify = permissions_context_handle_destroy;
+	wl_client_add_destroy_listener(client, &context->destroy);
+
+	return true;
+}
+
 uint32_t
 permissions_from_interface_name(const char *name)
 {
@@ -113,21 +131,24 @@ permissions_context_create(struct wl_display *display, uint32_t permissions)
 		return -1;
 	}
 
-	struct wl_client *client = wl_client_create(display, sv[0]);
-	if (!client) {
-		wlr_log(WLR_ERROR, "failed to create client");
+	if (!context_create(display, permissions, sv[0])) {
 		close(sv[0]);
 		close(sv[1]);
 		return -1;
 	}
 
-	struct permissions_context *context = znew(*context);
-	context->permissions = permissions;
-	context->fd = sv[0];
-	context->destroy.notify = permissions_context_handle_destroy;
-	wl_client_add_destroy_listener(client, &context->destroy);
-
 	return sv[1];
+}
+
+bool
+permissions_context_clone(struct wl_client *client, int fd)
+{
+	struct wl_display *display = wl_client_get_display(client);
+	uint32_t permissions = permissions_get(client);
+	if (permissions == 0) {
+		return false;
+	}
+	return context_create(display, permissions, fd);
 }
 
 bool

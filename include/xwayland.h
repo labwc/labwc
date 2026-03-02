@@ -46,6 +46,7 @@ struct xwayland_view {
 	struct wl_listener dissociate;
 	struct wl_listener request_above;
 	struct wl_listener request_activate;
+	struct wl_listener request_close;
 	struct wl_listener request_configure;
 	struct wl_listener set_class;
 	struct wl_listener set_decorations;

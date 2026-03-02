@@ -687,7 +687,14 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 
 	if (!layer_surface->output) {
 		struct output *output = output_nearest_to_cursor(server);
-		if (!output_is_usable(output)) {
+		if (!output || !output->scene_output) {
+			/*
+			 * We are not using output_is_usable() here because
+			 * it also checks if the output is enabled which is
+			 * not the case when wlopm is used. Thus we allow
+			 * layer surfaces to spawn on disabled outputs as
+			 * long as it is part of the scene layout.
+			 */
 			wlr_log(WLR_INFO,
 				"No output available to assign layer surface");
 			wlr_layer_surface_v1_destroy(layer_surface);

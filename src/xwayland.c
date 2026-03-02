@@ -357,6 +357,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&xwayland_view->dissociate.link);
 	wl_list_remove(&xwayland_view->request_above.link);
 	wl_list_remove(&xwayland_view->request_activate.link);
+	wl_list_remove(&xwayland_view->request_close.link);
 	wl_list_remove(&xwayland_view->request_configure.link);
 	wl_list_remove(&xwayland_view->set_class.link);
 	wl_list_remove(&xwayland_view->set_decorations.link);
@@ -447,6 +448,15 @@ handle_request_activate(struct wl_listener *listener, void *data)
 	}
 
 	desktop_focus_view(view, /*raise*/ true);
+}
+
+static void
+handle_request_close(struct wl_listener *listener, void *data)
+{
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, request_close);
+
+	view_close(&xwayland_view->base);
 }
 
 static void
@@ -1050,6 +1060,7 @@ xwayland_view_create(struct server *server,
 	CONNECT_SIGNAL(xsurface, xwayland_view, dissociate);
 	CONNECT_SIGNAL(xsurface, xwayland_view, request_above);
 	CONNECT_SIGNAL(xsurface, xwayland_view, request_activate);
+	CONNECT_SIGNAL(xsurface, xwayland_view, request_close);
 	CONNECT_SIGNAL(xsurface, xwayland_view, request_configure);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_class);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_decorations);

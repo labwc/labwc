@@ -223,7 +223,7 @@ this is for compatibility with Openbox.
 	unless an external tool such as `wlr-randr` or `kanshi` is used to
 	manage outputs.
 
-	The reason for the existance of this option is that after losing signal
+	The reason for the existence of this option is that after losing signal
 	from the PC (e.g. by `wlopm -off`), some monitors do an input detection
 	that makes it appear (from the PC side) to disconnect and reconnect a
 	few seconds later, causing the monitor to turn back on again (as labwc
@@ -257,7 +257,7 @@ this is for compatibility with Openbox.
 *<core><primarySelection>* [yes|no]
 	Enable or disable the primary selection clipboard. May only be
 	configured at launch. This enables autoscroll (middle-click to scroll
-	up/down) in Chromium and electron based clients without inadvertantly
+	up/down) in Chromium and electron based clients without inadvertently
 	pasting the primary clipboard. Default is yes.
 
 *<core><promptCommand>*

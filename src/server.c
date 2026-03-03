@@ -633,9 +633,7 @@ server_init(struct server *server)
 	wlr_color_representation_manager_v1_create_with_renderer(
 	server->wl_display, 1, server->renderer);
 
-	server->view_tree_always_on_bottom = wlr_scene_tree_create(&server->scene->tree);
-	server->view_tree = wlr_scene_tree_create(&server->scene->tree);
-	server->view_tree_always_on_top = wlr_scene_tree_create(&server->scene->tree);
+	server->workspace_tree = wlr_scene_tree_create(&server->scene->tree);
 	server->xdg_popup_tree = wlr_scene_tree_create(&server->scene->tree);
 #if HAVE_XWAYLAND
 	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->tree);

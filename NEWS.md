@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2026-03-04 | [0.9.5]       | 0.19.2          | 29251         |
 | 2026-02-27 | [0.9.4]       | 0.19.2          | 29225         |
 | 2025-12-19 | [0.9.3]       | 0.19.2          | 28968         |
 | 2025-10-10 | [0.9.2]       | 0.19.1          | 28818         |
@@ -41,6 +42,7 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.9.5]: NEWS.md#095---2026-03-04
 [0.9.4]: NEWS.md#094---2026-02-27
 [0.9.3]: NEWS.md#093---2025-12-19
 [0.9.2]: NEWS.md#092---2025-10-10
@@ -109,6 +111,22 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 ## unreleased
 
 [unreleased-commits]
+
+## 0.9.5 - 2026-03-04
+
+[0.9.5-commits]
+
+This is a small bug-fix release.
+
+### Added
+
+- Support XWayland client requests for `always-on-top` and `close` [#3406]
+  [#3412] @jlindgren90
+
+### Fixed
+
+- Allow layer-shell surfaces on disabled outputs to fix a memory leak in some
+  clients (e.g. mako) when using `wlopm --off`. [#3410] [#3411] @Consolatis
 
 ## 0.9.4 - 2026-02-27
 
@@ -2589,7 +2607,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.4...HEAD
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.5...HEAD
+[0.9.5-commits]: https://github.com/labwc/labwc/compare/0.9.4...0.9.5
 [0.9.4-commits]: https://github.com/labwc/labwc/compare/0.9.3...0.9.4
 [0.9.3-commits]: https://github.com/labwc/labwc/compare/0.9.2...0.9.3
 [0.9.2-commits]: https://github.com/labwc/labwc/compare/0.9.1...0.9.2
@@ -3117,3 +3136,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3372]: https://github.com/labwc/labwc/pull/3372
 [#3373]: https://github.com/labwc/labwc/pull/3373
 [#3400]: https://github.com/labwc/labwc/pull/3400
+[#3406]: https://github.com/labwc/labwc/pull/3406
+[#3410]: https://github.com/labwc/labwc/pull/3410
+[#3411]: https://github.com/labwc/labwc/pull/3411
+[#3412]: https://github.com/labwc/labwc/pull/3412

@@ -68,6 +68,7 @@ struct action_arg_list {
 	struct wl_list value;
 };
 
+/* Warning: Any change in this enum needs to be reflected in the action_names[] array below */
 enum action_type {
 	ACTION_TYPE_INVALID = 0,
 	ACTION_TYPE_NONE,
@@ -137,6 +138,7 @@ enum action_type {
 	ACTION_TYPE_HIDE_CURSOR,
 };
 
+/* Warning: Any change in this array needs to be reflected in the action_type enum above */
 const char *action_names[] = {
 	"INVALID",
 	"None",
@@ -166,9 +168,9 @@ const char *action_names[] = {
 	"Focus",
 	"Unfocus",
 	"Iconify",
-	"Move",
 	"Raise",
 	"Lower",
+	"Move",
 	"Resize",
 	"ResizeRelative",
 	"MoveTo",

@@ -141,7 +141,7 @@ example: *LABWC_DEBUG_FOO=1 labwc*.
 
 *LABWC_DEBUG_KEY_STATE*
 	Enable logging of press and release events for bound keys (generally
-	key-combinations like *Ctrl-Alt-t*)
+	key-combinations like *Ctrl-Alt-t*).
 
 # SEE ALSO
 

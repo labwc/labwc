@@ -1429,9 +1429,25 @@ situation.
 
 ## ENVIRONMENT VARIABLES
 
-*XCURSOR_THEME* and *XCURSOR_SIZE* are supported to set cursor theme
-and size respectively. The default size is 24. System cursor themes can
-typically be found with a command such as:
+*XCURSOR_PATH*
+	Specify a colon-separated list of paths to look for mouse cursors in.
+	Default
+	~/.local/share/icons:
+	~/.icons:
+	/usr/share/icons:
+	/usr/share/pixmaps:
+	~/.cursors:
+	/usr/share/cursors/xorg-x11:
+	/usr/X11R6/lib/X11/icons:
+
+*XCURSOR_SIZE*
+	Specify an alternative mouse cursor size in pixels. Requires
+	XCURSOR_THEME to be set also. Default 24.
+
+*XCURSOR_THEME*
+	Specify a mouse cursor theme within XCURSOR_PATH.
+
+System cursor themes can typically be found with a command such as:
 
 ```
 find /usr/share/icons/ -type d -name "cursors"

@@ -245,7 +245,8 @@ match_keybinding(struct keyinfo *keyinfo,
 {
 	if (!is_virtual) {
 		/* First try keycodes */
-		struct keybind *keybind = match_keybinding_for_sym(keyinfo->modifiers, XKB_KEY_NoSymbol, keyinfo->xkb_keycode);
+		struct keybind *keybind = match_keybinding_for_sym(
+			keyinfo->modifiers, XKB_KEY_NoSymbol, keyinfo->xkb_keycode);
 		if (keybind) {
 			wlr_log(WLR_DEBUG, "keycode matched");
 			return keybind;

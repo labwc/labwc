@@ -659,7 +659,8 @@ cursor_process_motion(uint32_t time, double *sx, double *sy)
 			 * moving/resizing the wrong view
 			 */
 			mousebind->pressed_in_context = false;
-			actions_run(seat->pressed.ctx.view, &mousebind->actions, &seat->pressed.ctx);
+			actions_run(seat->pressed.ctx.view,
+				&mousebind->actions, &seat->pressed.ctx);
 		}
 	}
 

@@ -82,7 +82,8 @@ load_client_icon(struct scaled_icon_buffer *self, int icon_size, double scale)
 static struct lab_data_buffer *
 load_server_icon(struct scaled_icon_buffer *self, int icon_size, double scale)
 {
-	struct lab_img *img = desktop_entry_load_icon_from_app_id(self->view_app_id, icon_size, scale);
+	struct lab_img *img = desktop_entry_load_icon_from_app_id(
+		self->view_app_id, icon_size, scale);
 	if (img) {
 		wlr_log(WLR_DEBUG, "loaded icon by app_id");
 		return img_to_buffer(img, self->width, self->height, scale);

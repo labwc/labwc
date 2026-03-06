@@ -785,7 +785,8 @@ show_menu(struct view *view, struct cursor_context *ctx,
 	 * x/y can be number, "center" or a %percent of screen dimensions
 	 */
 	if (pos_x && pos_y) {
-		struct output *output = output_nearest_to(g_server.seat.cursor->x, g_server.seat.cursor->y);
+		struct output *output = output_nearest_to(
+			g_server.seat.cursor->x, g_server.seat.cursor->y);
 		struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
 		if (!strcasecmp(pos_x, "center")) {

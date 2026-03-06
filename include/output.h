@@ -39,8 +39,6 @@ struct output {
 	 * disconnected and connected again.
 	 */
 	uint64_t id_bit;
-
-	bool gamma_lut_changed;
 };
 
 #undef LAB_NR_LAYERS

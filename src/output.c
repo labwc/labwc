@@ -9,6 +9,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "output.h"
 #include <assert.h>
+#include <drm_fourcc.h>
 #include <strings.h>
 #include <wlr/backend/drm.h>
 #include <wlr/backend/wayland.h>
@@ -37,6 +38,45 @@
 #include "session-lock.h"
 #include "view.h"
 #include "xwayland.h"
+
+static enum render_bit_depth
+bit_depth_from_format(uint32_t render_format)
+{
+	if (render_format == DRM_FORMAT_XRGB2101010 || render_format == DRM_FORMAT_XBGR2101010) {
+		return LAB_RENDER_BIT_DEPTH_10;
+	} else if (render_format == DRM_FORMAT_XRGB8888 || render_format == DRM_FORMAT_ARGB8888 ||
+		render_format == DRM_FORMAT_XBGR8888 || render_format == DRM_FORMAT_ABGR8888) {
+		return LAB_RENDER_BIT_DEPTH_8;
+	}
+	return LAB_RENDER_BIT_DEPTH_DEFAULT;
+}
+
+static enum render_bit_depth
+get_config_render_bit_depth(void)
+{
+	if (rc.hdr == LAB_HDR_ENABLED) {
+		return LAB_RENDER_BIT_DEPTH_10;
+	}
+	return LAB_RENDER_BIT_DEPTH_8;
+}
+
+void
+output_state_setup_hdr(struct output *output, bool silent)
+{
+	uint32_t render_format = output->wlr_output->render_format;
+	enum render_bit_depth render_bit_depth = get_config_render_bit_depth();
+	if (render_bit_depth == LAB_RENDER_BIT_DEPTH_10 &&
+		bit_depth_from_format(render_format) == render_bit_depth) {
+		// 10-bit was set successfully before, try to save some tests by reusing the format
+		wlr_output_state_set_render_format(&output->pending, render_format);
+	} else if (render_bit_depth == LAB_RENDER_BIT_DEPTH_10) {
+		wlr_output_state_set_render_format(&output->pending, DRM_FORMAT_XBGR2101010);
+	} else {
+		wlr_output_state_set_render_format(&output->pending, DRM_FORMAT_XBGR8888);
+	}
+	bool hdr = rc.hdr == LAB_HDR_ENABLED;
+	output_enable_hdr(output, &output->pending, hdr, silent);
+}
 
 bool
 output_get_tearing_allowance(struct output *output)
@@ -80,36 +120,6 @@ output_get_tearing_allowance(struct output *output)
 }
 
 static void
-output_apply_gamma(struct output *output)
-{
-	assert(output);
-	assert(output->gamma_lut_changed);
-
-	struct server *server = output->server;
-	struct wlr_scene_output *scene_output = output->scene_output;
-
-	struct wlr_output_state pending;
-	wlr_output_state_init(&pending);
-
-	output->gamma_lut_changed = false;
-	struct wlr_gamma_control_v1 *gamma_control =
-		wlr_gamma_control_manager_v1_get_control(
-			server->gamma_control_manager_v1,
-			output->wlr_output);
-
-	if (!wlr_gamma_control_v1_apply(gamma_control, &pending)) {
-		wlr_output_state_finish(&pending);
-		return;
-	}
-
-	if (!lab_wlr_scene_output_commit(scene_output, &pending)) {
-		wlr_gamma_control_v1_send_failed_and_destroy(gamma_control);
-	}
-
-	wlr_output_state_finish(&pending);
-}
-
-static void
 handle_output_frame(struct wl_listener *listener, void *data)
 {
 	/*
@@ -128,16 +138,7 @@ handle_output_frame(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (output->gamma_lut_changed) {
-		/*
-		 * We are not mixing the gamma state with
-		 * other pending output changes to make it
-		 * easier to handle a failed output commit
-		 * due to gamma without impacting other
-		 * unrelated output changes.
-		 */
-		output_apply_gamma(output);
-	} else {
+	{
 		struct wlr_scene_output *scene_output = output->scene_output;
 		struct wlr_output_state *pending = &output->pending;
 
@@ -388,6 +389,8 @@ configure_new_output(struct server *server, struct output *output)
 		output_enable_adaptive_sync(output, true);
 	}
 
+	output_state_setup_hdr(output, false);
+
 	output_state_commit(output);
 
 	wlr_output_effective_resolution(wlr_output,
@@ -588,6 +591,8 @@ output_init(struct server *server)
 {
 	server->gamma_control_manager_v1 =
 		wlr_gamma_control_manager_v1_create(server->wl_display);
+	wlr_scene_set_gamma_control_manager_v1(server->scene,
+		server->gamma_control_manager_v1);
 
 	server->new_output.notify = handle_new_output;
 	wl_signal_add(&server->backend->events.new_output, &server->new_output);
@@ -677,6 +682,7 @@ output_config_apply(struct server *server,
 			wlr_output_state_set_transform(os, head->state.transform);
 			output_enable_adaptive_sync(output,
 				head->state.adaptive_sync_enabled);
+			output_state_setup_hdr(output, false);
 		}
 		if (!output_state_commit(output)) {
 			/*
@@ -906,19 +912,6 @@ handle_output_layout_change(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_gamma_control_set_gamma(struct wl_listener *listener, void *data)
-{
-	const struct wlr_gamma_control_manager_v1_set_gamma_event *event = data;
-
-	struct output *output = event->output->data;
-	if (!output_is_usable(output)) {
-		return;
-	}
-	output->gamma_lut_changed = true;
-	wlr_output_schedule_frame(output->wlr_output);
-}
-
-static void
 output_manager_init(struct server *server)
 {
 	server->output_manager = wlr_output_manager_v1_create(server->wl_display);
@@ -934,10 +927,6 @@ output_manager_init(struct server *server)
 	server->output_manager_test.notify = handle_output_manager_test;
 	wl_signal_add(&server->output_manager->events.test,
 		&server->output_manager_test);
-
-	server->gamma_control_set_gamma.notify = handle_gamma_control_set_gamma;
-	wl_signal_add(&server->gamma_control_manager_v1->events.set_gamma,
-		&server->gamma_control_set_gamma);
 }
 
 static void
@@ -946,7 +935,6 @@ output_manager_finish(struct server *server)
 	wl_list_remove(&server->output_layout_change.link);
 	wl_list_remove(&server->output_manager_apply.link);
 	wl_list_remove(&server->output_manager_test.link);
-	wl_list_remove(&server->gamma_control_set_gamma.link);
 }
 
 struct output *
@@ -1187,4 +1175,56 @@ output_set_has_fullscreen_view(struct output *output, bool has_fullscreen_view)
 	/* Enable adaptive sync if view is fullscreen */
 	output_enable_adaptive_sync(output, has_fullscreen_view);
 	output_state_commit(output);
+}
+
+static bool
+output_supports_hdr(const struct output *output, const char **unsupported_reason_ptr)
+{
+	const char *unsupported_reason = NULL;
+	if (!(output->wlr_output->supported_primaries & WLR_COLOR_NAMED_PRIMARIES_BT2020)) {
+		unsupported_reason = "BT2020 primaries not supported by output";
+	} else if (!(output->wlr_output->supported_transfer_functions &
+		WLR_COLOR_TRANSFER_FUNCTION_ST2084_PQ)) {
+		unsupported_reason = "PQ transfer function not supported by output";
+	} else if (!output->server->renderer->features.output_color_transform) {
+		unsupported_reason = "renderer doesn't support output color transforms";
+	}
+	if (unsupported_reason_ptr) {
+		*unsupported_reason_ptr = unsupported_reason;
+	}
+	return !unsupported_reason;
+}
+
+void
+output_enable_hdr(struct output *output, struct wlr_output_state *os, bool enabled, bool silent)
+{
+	const char *unsupported_reason = NULL;
+	if (enabled && !output_supports_hdr(output, &unsupported_reason)) {
+		if (!silent) {
+			wlr_log(WLR_INFO, "Cannot enable HDR on output %s: %s",
+				output->wlr_output->name, unsupported_reason);
+		}
+		enabled = false;
+	}
+
+	if (!enabled) {
+		if (output->wlr_output->supported_primaries != 0 ||
+			output->wlr_output->supported_transfer_functions != 0) {
+			if (!silent) {
+				wlr_log(WLR_DEBUG, "Disabling HDR on output %s",
+					output->wlr_output->name);
+			}
+			wlr_output_state_set_image_description(os, NULL);
+		}
+		return;
+	}
+
+	if (!silent) {
+		wlr_log(WLR_DEBUG, "Enabling HDR on output %s", output->wlr_output->name);
+	}
+	const struct wlr_output_image_description image_desc = {
+		.primaries = WLR_COLOR_NAMED_PRIMARIES_BT2020,
+		.transfer_function = WLR_COLOR_TRANSFER_FUNCTION_ST2084_PQ,
+	};
+	wlr_output_state_set_image_description(os, &image_desc);
 }

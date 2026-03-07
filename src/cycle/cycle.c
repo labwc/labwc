@@ -346,8 +346,10 @@ init_cycle(struct server *server, struct cycle_filter filter)
 
 	struct view *view;
 	for_each_view(view, &server->views, criteria) {
-		if (!(cycle_outputs & view->output->id_bit)) {
-			continue;
+		if (filter.output != CYCLE_OUTPUT_ALL) {
+			if (!view->output || !(cycle_outputs & view->output->id_bit)) {
+				continue;
+			}
 		}
 		if (cycle_app_id && strcmp(view->app_id, cycle_app_id) != 0) {
 			continue;

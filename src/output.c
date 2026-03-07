@@ -374,8 +374,10 @@ output_test_auto(struct wlr_output *wlr_output, struct wlr_output_state *state,
 	}
 
 	/* Reset mode if none worked (we may still try to commit) */
-	wlr_output_state_set_mode(state, NULL);
-	return false;
+	wlr_log(WLR_DEBUG, "no working fixed mode found for output %s", wlr_output->name);
+	state->committed &= ~WLR_OUTPUT_STATE_MODE;
+
+	return wlr_output_test_state(wlr_output, state);
 }
 
 static void
@@ -390,10 +392,8 @@ configure_new_output(struct server *server, struct output *output)
 			/* is_client_request */ false)) {
 		wlr_log(WLR_INFO, "mode test failed for output %s",
 			wlr_output->name);
-		/*
-		 * Continue anyway. For some reason, the test fails when
-		 * running nested, yet the following commit succeeds.
-		 */
+		wlr_output_state_set_enabled(&output->pending, false);
+		return;
 	}
 
 	if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_ENABLED) {

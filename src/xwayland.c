@@ -786,6 +786,9 @@ set_initial_position(struct view *view,
 		}
 	}
 
+	/* view->last_placement is still unset if has_position=true */
+	view_save_last_placement(view);
+
 	/*
 	 * Always make sure the view is onscreen and adjusted for any
 	 * layout changes that could have occurred between map_request

@@ -568,8 +568,6 @@ view_moved(struct view *view)
 	}
 }
 
-static void save_last_placement(struct view *view);
-
 void
 view_move_resize(struct view *view, struct wlr_box geo)
 {
@@ -589,7 +587,7 @@ view_move_resize(struct view *view, struct wlr_box geo)
 	 * Not sure if it might have other side-effects though.
 	 */
 	if (!view->adjusting_for_layout_change) {
-		save_last_placement(view);
+		view_save_last_placement(view);
 	}
 }
 
@@ -1722,8 +1720,8 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 	cursor_update_focus(view->server);
 }
 
-static void
-save_last_placement(struct view *view)
+void
+view_save_last_placement(struct view *view)
 {
 	assert(view);
 	struct output *output = view->output;

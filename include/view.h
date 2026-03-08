@@ -564,7 +564,15 @@ bool view_titlebar_visible(struct view *view);
 void view_set_ssd_mode(struct view *view, enum lab_ssd_mode mode);
 void view_set_decorations(struct view *view, enum lab_ssd_mode mode, bool force_ssd);
 void view_toggle_fullscreen(struct view *view);
+
+/*
+ * Saves the window position in view->last_placement. This should be called
+ * when a view is first mapped or manually moved by the user.
+ */
+void view_save_last_placement(struct view *view);
+/* Restores and adjusts the view's position from the view->last_placement */
 void view_adjust_for_layout_change(struct view *view);
+
 void view_move_to_edge(struct view *view, enum lab_edge direction, bool snap_to_windows);
 void view_grow_to_edge(struct view *view, enum lab_edge direction);
 void view_shrink_to_edge(struct view *view, enum lab_edge direction);

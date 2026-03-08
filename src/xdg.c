@@ -128,6 +128,8 @@ do_late_positioning(struct view *view)
 			view->pending.width, view->pending.height,
 			&view->pending.x, &view->pending.y);
 	}
+
+	view_save_last_placement(view);
 }
 
 static void

@@ -148,6 +148,8 @@ set_initial_position(struct view *view)
 				/* allow_cursor */ true, rc.placement_policy);
 		}
 	}
+
+	view_save_last_placement(view);
 }
 
 static void

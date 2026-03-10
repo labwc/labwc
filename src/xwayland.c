@@ -800,11 +800,7 @@ handle_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, mappable.map);
 	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
-	struct wlr_xwayland_surface *xwayland_surface =
-		xwayland_view->xwayland_surface;
-	assert(xwayland_surface);
-	assert(xwayland_surface->surface);
-	assert(xwayland_surface->surface == view->surface);
+	assert(view->surface);
 
 	if (view->mapped) {
 		return;

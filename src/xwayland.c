@@ -211,33 +211,6 @@ top_parent_of(struct view *view)
 	return s;
 }
 
-static void
-ensure_initial_geometry_and_output(struct view *view)
-{
-	if (wlr_box_empty(&view->current)) {
-		struct wlr_xwayland_surface *xwayland_surface =
-			xwayland_surface_from_view(view);
-		view->current.x = xwayland_surface->x;
-		view->current.y = xwayland_surface->y;
-		view->current.width = xwayland_surface->width;
-		view->current.height = xwayland_surface->height;
-		/*
-		 * If there is no pending move/resize yet, then set
-		 * current values (used in map()).
-		 */
-		if (wlr_box_empty(&view->pending)) {
-			view->pending = view->current;
-		}
-	}
-	if (!output_is_usable(view->output)) {
-		/*
-		 * Just use the cursor output since we don't know yet
-		 * whether the surface position is meaningful.
-		 */
-		view_set_output(view, output_nearest_to_cursor());
-	}
-}
-
 static bool
 want_deco(struct wlr_xwayland_surface *xwayland_surface)
 {
@@ -255,6 +228,74 @@ want_deco(struct wlr_xwayland_surface *xwayland_surface)
 
 	return xwayland_surface->decorations ==
 		WLR_XWAYLAND_SURFACE_DECORATIONS_ALL;
+}
+
+/*
+ * FIXME: this almost duplicates view_discover_output(), which however
+ * (1) is private to view.c and (2) uses current (not pending) geometry
+ */
+static void
+set_output_from_pending_geometry(struct view *view)
+{
+	view_set_output(view, output_nearest_to(
+		view->pending.x + view->pending.width / 2,
+		view->pending.y + view->pending.height / 2));
+}
+
+static void
+ensure_initial_geometry_and_output(struct view *view)
+{
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
+	if (xwayland_view->initial_geometry_set) {
+		/* Just make sure we still have an output */
+		if (!output_is_usable(view->output)) {
+			set_output_from_pending_geometry(view);
+		}
+		return;
+	}
+	xwayland_view->initial_geometry_set = true;
+
+	/*
+	 * Note that wlr_xwayland_surface::x/y/width/height is subject
+	 * to race conditions when wlr_xwayland_surface_configure() is
+	 * called multiple times (e.g. due to client configure-requests),
+	 * as newer values can get stomped on by an older ConfigureNotify.
+	 * To avoid the issue, prefer view->pending when not empty.
+	 */
+	struct wlr_xwayland_surface *xsurface = xwayland_surface_from_view(view);
+	if (wlr_box_empty(&view->pending)) {
+		view->pending.x = xsurface->x;
+		view->pending.y = xsurface->y;
+		view->pending.width = xsurface->width;
+		view->pending.height = xsurface->height;
+	}
+
+	/*
+	 * Also set initial output and decoration mode at this point,
+	 * since they affect the geometry calcs. (The decoration mode
+	 * could still change again before map, so this is best-effort.)
+	 */
+	bool has_position = xsurface->size_hints && (xsurface->size_hints->flags
+		& (XCB_ICCCM_SIZE_HINT_US_POSITION | XCB_ICCCM_SIZE_HINT_P_POSITION));
+
+	if (has_position) {
+		set_output_from_pending_geometry(view);
+	} else {
+		view_set_output(view, output_nearest_to_cursor());
+	}
+
+	if (want_deco(xsurface)) {
+		view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
+	} else {
+		view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
+	}
+
+	view_constrain_size_to_that_of_usable_area(view);
+
+	if (!has_position) {
+		view_place_by_policy(view, /* allow_cursor */ true,
+			rc.placement_policy);
+	}
 }
 
 static void
@@ -482,15 +523,6 @@ handle_request_maximize(struct wl_listener *listener, void *data)
 	struct wlr_xwayland_surface *surf = xwayland_surface_from_view(view);
 	if (!view->mapped) {
 		ensure_initial_geometry_and_output(view);
-		/*
-		 * Set decorations early to avoid changing geometry
-		 * after maximize (reduces visual glitches).
-		 */
-		if (want_deco(surf)) {
-			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
-		} else {
-			view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
-		}
 	}
 
 	enum view_axis maximize = VIEW_AXIS_NONE;
@@ -738,11 +770,6 @@ handle_map_request(struct wl_listener *listener, void *data)
 		view_set_layer(view, xsurface->above
 			? VIEW_LAYER_ALWAYS_ON_TOP : VIEW_LAYER_NORMAL);
 	}
-	/*
-	 * We could also call set_initial_position() here, but it's not
-	 * really necessary until the view is actually mapped (and at
-	 * that point the output layout is known for sure).
-	 */
 }
 
 static void
@@ -758,52 +785,6 @@ check_natural_geometry(struct view *view)
 			|| view->natural_geometry.height < LAB_MIN_VIEW_HEIGHT)) {
 		view->natural_geometry = view_get_fallback_natural_geometry(view);
 	}
-}
-
-static void
-set_initial_position(struct view *view,
-		struct wlr_xwayland_surface *xwayland_surface)
-{
-	/* Don't center views with position explicitly specified */
-	bool has_position = xwayland_surface->size_hints &&
-		(xwayland_surface->size_hints->flags & (
-			XCB_ICCCM_SIZE_HINT_US_POSITION |
-			XCB_ICCCM_SIZE_HINT_P_POSITION));
-
-	if (!has_position) {
-		view_constrain_size_to_that_of_usable_area(view);
-
-		if (view_is_floating(view)) {
-			view_place_by_policy(view,
-				/* allow_cursor */ true, rc.placement_policy);
-		} else {
-			/*
-			 * View is maximized/fullscreen. Place the
-			 * stored natural geometry without actually
-			 * moving the view.
-			 *
-			 * FIXME: this positioning will be slightly off
-			 * since it uses border widths computed for the
-			 * current (non-floating) state of the view.
-			 * Possible fixes would be (1) adjust the natural
-			 * geometry earlier, while still floating, or
-			 * (2) add a variant of ssd_thickness() that
-			 * disregards the current view state.
-			 */
-			view_compute_position_by_policy(view, &view->natural_geometry,
-				/* allow_cursor */ true, rc.placement_policy);
-		}
-	}
-
-	/* view->last_placement is still unset if has_position=true */
-	view_save_last_placement(view);
-
-	/*
-	 * Always make sure the view is onscreen and adjusted for any
-	 * layout changes that could have occurred between map_request
-	 * and the actual map event.
-	 */
-	view_adjust_for_layout_change(view);
 }
 
 static void
@@ -828,11 +809,7 @@ handle_map(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, mappable.map);
 	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
-	struct wlr_xwayland_surface *xwayland_surface =
-		xwayland_view->xwayland_surface;
-	assert(xwayland_surface);
-	assert(xwayland_surface->surface);
-	assert(xwayland_surface->surface == view->surface);
+	assert(view->surface);
 
 	if (view->mapped) {
 		return;
@@ -858,7 +835,17 @@ handle_map(struct wl_listener *listener, void *data)
 
 	if (!view->been_mapped) {
 		check_natural_geometry(view);
-		set_initial_position(view, xwayland_surface);
+		/*
+		 * view->last_placement might not have been set yet if
+		 * view->pending is unchanged from the surface geometry.
+		 */
+		view_save_last_placement(view);
+		/*
+		 * Make sure the view is onscreen and adjusted for any
+		 * layout changes that could have occurred between
+		 * ensure_initial_geometry_and_output() and map.
+		 */
+		view_adjust_for_layout_change(view);
 		/*
 		 * When mapping the view for the first time, visual
 		 * artifacts are reduced if we display it immediately at

@@ -39,6 +39,7 @@ struct xwayland_view {
 	struct view base;
 	struct wlr_xwayland_surface *xwayland_surface;
 	bool focused_before_map;
+	bool initial_geometry_set;
 
 	/* Events unique to XWayland views */
 	struct wl_listener associate;

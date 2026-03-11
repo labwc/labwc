@@ -12,7 +12,7 @@
 #include <strings.h>
 #include <wlr/backend/drm.h>
 #include <wlr/backend/wayland.h>
-#include <wlr/backend/x11.h>
+#include <wlr/config.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
@@ -38,6 +38,10 @@
 #include "session-lock.h"
 #include "view.h"
 #include "xwayland.h"
+
+#if WLR_HAS_X11_BACKEND
+#include <wlr/backend/x11.h>
+#endif
 
 bool
 output_get_tearing_allowance(struct output *output)
@@ -201,9 +205,12 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	 * windows and cannot be reconnected. Exit the compositor
 	 * when the last one is destroyed.
 	 */
-	if (wl_list_empty(&server->outputs)
-			&& (wlr_output_is_x11(output->wlr_output)
-			|| wlr_output_is_wl(output->wlr_output))) {
+	if (wl_list_empty(&server->outputs) && (
+			wlr_output_is_wl(output->wlr_output)
+#if WLR_HAS_X11_BACKEND
+			|| wlr_output_is_x11(output->wlr_output)
+#endif
+	)) {
 		wl_display_terminate(server->wl_display);
 	}
 

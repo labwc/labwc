@@ -440,9 +440,8 @@ ssd_update_title(struct ssd *ssd)
 	}
 
 	struct view *view = ssd->view;
-	if (string_null_or_empty(view->title)) {
-		return;
-	}
+	/* view->title is never NULL (instead it can be an empty string) */
+	assert(view->title);
 
 	struct theme *theme = view->server->theme;
 	struct ssd_state_title *state = &ssd->state.title;

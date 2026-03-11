@@ -12,6 +12,7 @@
 #include <strings.h>
 #include <wlr/backend/drm.h>
 #include <wlr/backend/wayland.h>
+#include <wlr/backend/x11.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
@@ -194,6 +195,17 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	 * set_gamma.
 	 */
 	output->wlr_output->data = NULL;
+
+	/*
+	 * On nested backends (X11/Wayland), outputs correspond to
+	 * windows and cannot be reconnected. Exit the compositor
+	 * when the last one is destroyed.
+	 */
+	if (wl_list_empty(&server->outputs)
+			&& (wlr_output_is_x11(output->wlr_output)
+			|| wlr_output_is_wl(output->wlr_output))) {
+		wl_display_terminate(server->wl_display);
+	}
 
 	/*
 	 * output->scene_output (if still around at this point) is

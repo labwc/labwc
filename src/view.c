@@ -2501,9 +2501,6 @@ view_destroy(struct view *view)
 	wl_list_remove(&view->set_title.link);
 	wl_list_remove(&view->destroy.link);
 
-	zfree(view->title);
-	zfree(view->app_id);
-
 	if (view->foreign_toplevel) {
 		foreign_toplevel_destroy(view->foreign_toplevel);
 		view->foreign_toplevel = NULL;
@@ -2557,6 +2554,9 @@ view_destroy(struct view *view)
 	assert(wl_list_empty(&view->events.activated.listener_list));
 	assert(wl_list_empty(&view->events.set_icon.listener_list));
 	assert(wl_list_empty(&view->events.destroy.listener_list));
+
+	zfree(view->title);
+	zfree(view->app_id);
 
 	/* Remove view from server->views */
 	wl_list_remove(&view->link);

@@ -431,7 +431,7 @@ handle_map(struct wl_listener *listener, void *data)
 static bool
 surface_is_focused(struct seat *seat, struct wlr_surface *surface)
 {
-	return seat->seat->keyboard_state.focused_surface == surface;
+	return seat->wlr_seat->keyboard_state.focused_surface == surface;
 }
 
 static void

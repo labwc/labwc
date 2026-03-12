@@ -90,7 +90,7 @@ seat_client_from_keyboard_resource(struct wl_resource *resource)
 }
 
 static void
-broadcast_modifiers_to_unfocused_clients(struct wlr_seat *seat,
+broadcast_modifiers_to_unfocused_clients(struct wlr_seat *wlr_seat,
 		const struct keyboard *keyboard,
 		const struct wlr_keyboard_modifiers *modifiers)
 {
@@ -100,8 +100,8 @@ broadcast_modifiers_to_unfocused_clients(struct wlr_seat *seat,
 	}
 
 	struct wlr_seat_client *client;
-	wl_list_for_each(client, &seat->clients, link) {
-		if (client == seat->keyboard_state.focused_client) {
+	wl_list_for_each(client, &wlr_seat->clients, link) {
+		if (client == wlr_seat->keyboard_state.focused_client) {
 			/*
 			 * We've already notified the focused client by calling
 			 * wlr_seat_keyboard_notify_modifiers()
@@ -160,7 +160,7 @@ handle_modifiers(struct wl_listener *listener, void *data)
 
 	if (!input_method_keyboard_grab_forward_modifiers(keyboard)) {
 		/* Send modifiers to focused client */
-		wlr_seat_keyboard_notify_modifiers(seat->seat,
+		wlr_seat_keyboard_notify_modifiers(seat->wlr_seat,
 			&wlr_keyboard->modifiers);
 
 		/*
@@ -182,7 +182,7 @@ handle_modifiers(struct wl_listener *listener, void *data)
 		 * consequences. If so, modifiers ought to still be passed to
 		 * clients with pointer-focus (see issue #2271)
 		 */
-		broadcast_modifiers_to_unfocused_clients(seat->seat,
+		broadcast_modifiers_to_unfocused_clients(seat->wlr_seat,
 			keyboard, &wlr_keyboard->modifiers);
 	}
 }
@@ -618,8 +618,8 @@ handle_key(struct wl_listener *listener, void *data)
 	struct keyboard *keyboard = wl_container_of(listener, keyboard, key);
 	struct seat *seat = keyboard->base.seat;
 	struct wlr_keyboard_key_event *event = data;
-	struct wlr_seat *wlr_seat = seat->seat;
-	idle_manager_notify_activity(seat->seat);
+	struct wlr_seat *wlr_seat = seat->wlr_seat;
+	idle_manager_notify_activity(seat->wlr_seat);
 
 	/* any new press/release cancels current keybind repeat */
 	keyboard_cancel_keybind_repeat(keyboard);

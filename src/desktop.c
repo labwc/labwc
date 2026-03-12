@@ -49,13 +49,13 @@ set_or_offer_focus(struct view *view)
 	struct seat *seat = &view->server->seat;
 	switch (view_wants_focus(view)) {
 	case VIEW_WANTS_FOCUS_ALWAYS:
-		if (view->surface != seat->seat->keyboard_state.focused_surface) {
+		if (view->surface != seat->wlr_seat->keyboard_state.focused_surface) {
 			seat_focus_surface(seat, view->surface);
 		}
 		break;
 	case VIEW_WANTS_FOCUS_LIKELY:
 	case VIEW_WANTS_FOCUS_UNLIKELY:
-		if (view->surface != seat->seat->keyboard_state.focused_surface) {
+		if (view->surface != seat->wlr_seat->keyboard_state.focused_surface) {
 			view_offer_focus(view);
 		}
 		break;

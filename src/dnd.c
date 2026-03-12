@@ -17,8 +17,8 @@ handle_drag_request(struct wl_listener *listener, void *data)
 	struct wlr_seat_request_start_drag_event *event = data;
 
 	if (wlr_seat_validate_pointer_grab_serial(
-			seat->seat, event->origin, event->serial)) {
-		wlr_seat_start_pointer_drag(seat->seat, event->drag,
+			seat->wlr_seat, event->origin, event->serial)) {
+		wlr_seat_start_pointer_drag(seat->wlr_seat, event->drag,
 			event->serial);
 	} else {
 		wlr_data_source_destroy(event->drag->source);
@@ -90,9 +90,9 @@ dnd_init(struct seat *seat)
 	seat->drag.events.start.notify = handle_drag_start;
 	seat->drag.events.destroy.notify = handle_drag_destroy;
 
-	wl_signal_add(&seat->seat->events.request_start_drag,
+	wl_signal_add(&seat->wlr_seat->events.request_start_drag,
 		&seat->drag.events.request);
-	wl_signal_add(&seat->seat->events.start_drag, &seat->drag.events.start);
+	wl_signal_add(&seat->wlr_seat->events.start_drag, &seat->drag.events.start);
 	/*
 	 * destroy.notify is listened to in handle_drag_start() and reset in
 	 * handle_drag_destroy()

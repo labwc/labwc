@@ -672,7 +672,7 @@ handle_focus_in(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (view->surface != seat->seat->keyboard_state.focused_surface) {
+	if (view->surface != seat->wlr_seat->keyboard_state.focused_surface) {
 		seat_focus_surface(seat, view->surface);
 	}
 }
@@ -1202,7 +1202,7 @@ handle_xwm_ready(struct wl_listener *listener, void *data)
 {
 	struct server *server =
 		wl_container_of(listener, server, xwayland_xwm_ready);
-	wlr_xwayland_set_seat(server->xwayland, server->seat.seat);
+	wlr_xwayland_set_seat(server->xwayland, server->seat.wlr_seat);
 	xwayland_update_workarea(server);
 }
 

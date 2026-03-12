@@ -42,7 +42,7 @@ handle_set_cursor(struct wl_listener *listener, void *data)
 
 	struct seat *seat = tool->seat;
 	struct wlr_seat_client *focused_client =
-		seat->seat->pointer_state.focused_client;
+		seat->wlr_seat->pointer_state.focused_client;
 
 	if (seat->server->input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		return;
@@ -77,7 +77,7 @@ tablet_tool_create(struct seat *seat,
 	tool->seat = seat;
 	tool->tool_v2 =
 		wlr_tablet_tool_create(seat->server->tablet_manager,
-			seat->seat, wlr_tablet_tool);
+			seat->wlr_seat, wlr_tablet_tool);
 	wlr_tablet_tool->data = tool;
 	wlr_log(WLR_INFO, "tablet tool capabilities:%s%s%s%s%s%s",
 		wlr_tablet_tool->tilt ? " tilt" : "",
@@ -309,7 +309,7 @@ notify_motion(struct drawing_tablet *tablet, struct drawing_tablet_tool *tool,
 			 * sure what will break since I have the feeling that a
 			 * lot of internals rely on correct pointer focus.
 			 */
-			wlr_seat_pointer_notify_motion(tool->seat->seat, time, -1, -1);
+			wlr_seat_pointer_notify_motion(tool->seat->wlr_seat, time, -1, -1);
 		}
 	}
 }
@@ -325,7 +325,7 @@ handle_tablet_tool_proximity(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	idle_manager_notify_activity(tablet->seat->seat);
+	idle_manager_notify_activity(tablet->seat->wlr_seat);
 	cursor_set_visible(tablet->seat, /* visible */ true);
 
 	if (!tool) {
@@ -393,7 +393,7 @@ handle_tablet_tool_axis(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	idle_manager_notify_activity(tablet->seat->seat);
+	idle_manager_notify_activity(tablet->seat->wlr_seat);
 	cursor_set_visible(tablet->seat, /* visible */ true);
 
 	/*
@@ -565,7 +565,7 @@ handle_tablet_tool_tip(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	idle_manager_notify_activity(tablet->seat->seat);
+	idle_manager_notify_activity(tablet->seat->wlr_seat);
 	cursor_set_visible(tablet->seat, /* visible */ true);
 
 	double x, y, dx, dy;
@@ -644,7 +644,7 @@ handle_tablet_tool_button(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	idle_manager_notify_activity(tablet->seat->seat);
+	idle_manager_notify_activity(tablet->seat->wlr_seat);
 	cursor_set_visible(tablet->seat, /* visible */ true);
 
 	double x, y, dx, dy;
@@ -722,7 +722,7 @@ tablet_create(struct seat *seat, struct wlr_input_device *wlr_device)
 	tablet->tablet->data = tablet;
 	if (seat->server->tablet_manager) {
 		tablet->tablet_v2 = wlr_tablet_create(
-			seat->server->tablet_manager, seat->seat, wlr_device);
+			seat->server->tablet_manager, seat->wlr_seat, wlr_device);
 	}
 	wlr_log(WLR_INFO, "tablet dimensions: %.2fmm x %.2fmm",
 		tablet->tablet->width_mm, tablet->tablet->height_mm);

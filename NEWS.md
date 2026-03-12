@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2026-03-15 | [0.9.6]       | 0.19.2          | 29271         |
 | 2026-03-04 | [0.9.5]       | 0.19.2          | 29251         |
 | 2026-02-27 | [0.9.4]       | 0.19.2          | 29225         |
 | 2025-12-19 | [0.9.3]       | 0.19.2          | 28968         |
@@ -41,7 +42,7 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
-[unreleased]: NEWS.md#unreleased
+[0.9.6]: NEWS.md#096---2026-03-15
 [0.9.5]: NEWS.md#095---2026-03-04
 [0.9.4]: NEWS.md#094---2026-02-27
 [0.9.3]: NEWS.md#093---2025-12-19
@@ -108,9 +109,42 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 [wlroots-5098]:https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5098
 [gtk-8792]: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/8792
 
-## unreleased
+## 0.9.6 - 2026-03-15
 
-[unreleased-commits]
+[0.9.6-commits]
+
+This is an earlier-than-usual release containing bug fixes only. It has been
+done on a separate branch (0.9.5-maintenance) to avoid the inclusion of
+refactoring and new features.
+
+```
+               0.9.6  <--- bug-fixes only
+                /
+               /
+0.9.4--------0.9.5--------  <-- master
+```
+
+### Fixed
+
+- Disable outputs where all modes fail [#3428] [#3429] @Consolatis @kode54
+- Fix regression in `0.9.4` that causes `NextWindow` action to segfault when
+  no outputs are connected. This fixes a window-switcher crash with some
+  Nvidia GPUs/drivers after suspend [#3425] [#3430] @Consolatis
+- Fix typo to allow `xdg-dialog-v1` global [#3426] @xi
+
+### Changed
+
+- Disallow X11 window always-on-top requests by default to fix an issue whereby
+  Alt+Tab cannot be used to switch to other windows when using some XWayland
+  Wine games [#3441]. Add window-rule property `allowAlwaysOnTop` to optionally
+  allow this always-on-top requests. Add the snippet below to the `rc.xml` file
+  to restore the previous behaviour. [#3445] @Consolatis
+
+```
+<windowRules>
+  <windowRule identifier="*" allowAlwaysOnTop="yes" />
+</windowRules>
+```
 
 ## 0.9.5 - 2026-03-04
 
@@ -2607,7 +2641,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.5...HEAD
+[0.9.6-commits]: https://github.com/labwc/labwc/compare/0.9.5...0.9.6
 [0.9.5-commits]: https://github.com/labwc/labwc/compare/0.9.4...0.9.5
 [0.9.4-commits]: https://github.com/labwc/labwc/compare/0.9.3...0.9.4
 [0.9.3-commits]: https://github.com/labwc/labwc/compare/0.9.2...0.9.3
@@ -3135,8 +3169,18 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3365]: https://github.com/labwc/labwc/pull/3365
 [#3372]: https://github.com/labwc/labwc/pull/3372
 [#3373]: https://github.com/labwc/labwc/pull/3373
+[#3387]: https://github.com/labwc/labwc/pull/3387
 [#3400]: https://github.com/labwc/labwc/pull/3400
 [#3406]: https://github.com/labwc/labwc/pull/3406
 [#3410]: https://github.com/labwc/labwc/pull/3410
 [#3411]: https://github.com/labwc/labwc/pull/3411
 [#3412]: https://github.com/labwc/labwc/pull/3412
+[#3425]: https://github.com/labwc/labwc/pull/3425
+[#3426]: https://github.com/labwc/labwc/pull/3426
+[#3428]: https://github.com/labwc/labwc/pull/3428
+[#3429]: https://github.com/labwc/labwc/pull/3429
+[#3430]: https://github.com/labwc/labwc/pull/3430
+[#3440]: https://github.com/labwc/labwc/pull/3440
+[#3441]: https://github.com/labwc/labwc/pull/3441
+[#3443]: https://github.com/labwc/labwc/pull/3443
+[#3445]: https://github.com/labwc/labwc/pull/3445

@@ -91,20 +91,20 @@ struct server;
 struct wlr_scene_node;
 
 /* Begin window switcher */
-void cycle_begin(struct server *server, enum lab_cycle_dir direction,
+void cycle_begin(enum lab_cycle_dir direction,
 	struct cycle_filter filter);
 
 /* Cycle the selected view in the window switcher */
-void cycle_step(struct server *server, enum lab_cycle_dir direction);
+void cycle_step(enum lab_cycle_dir direction);
 
 /* Closes the OSD */
-void cycle_finish(struct server *server, bool switch_focus);
+void cycle_finish(bool switch_focus);
 
 /* Re-initialize the window switcher */
-void cycle_reinitialize(struct server *server);
+void cycle_reinitialize(void);
 
 /* Focus the clicked window and close OSD */
-void cycle_on_cursor_release(struct server *server, struct wlr_scene_node *node);
+void cycle_on_cursor_release(struct wlr_scene_node *node);
 
 /* Used by osd.c internally to render window switcher fields */
 void cycle_osd_field_get_content(struct cycle_osd_field *field,
@@ -133,7 +133,7 @@ struct cycle_osd_impl {
 	 */
 	void (*init)(struct cycle_osd_output *osd_output);
 	/*
-	 * Update the OSD to highlight server->cycle.selected_view.
+	 * Update the OSD to highlight g_server.cycle.selected_view.
 	 */
 	void (*update)(struct cycle_osd_output *osd_output);
 };
@@ -157,7 +157,7 @@ void cycle_osd_scroll_init(struct cycle_osd_output *osd_output,
 	int nr_cols, int nr_rows, int nr_visible_rows,
 	float *border_color, float *bg_color);
 
-/* Scroll the OSD to show server->cycle.selected_view if needed */
+/* Scroll the OSD to show g_server.cycle.selected_view if needed */
 void cycle_osd_scroll_update(struct cycle_osd_output *osd_output);
 
 extern struct cycle_osd_impl cycle_osd_classic_impl;

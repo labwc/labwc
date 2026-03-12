@@ -45,5 +45,5 @@ bool keybind_the_same(struct keybind *a, struct keybind *b);
 bool keybind_contains_keycode(struct keybind *keybind, xkb_keycode_t keycode);
 bool keybind_contains_keysym(struct keybind *keybind, xkb_keysym_t keysym);
 
-void keybind_update_keycodes(struct server *server);
+void keybind_update_keycodes(void);
 #endif /* LABWC_KEYBIND_H */

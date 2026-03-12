@@ -16,7 +16,7 @@ ssd_border_create(struct ssd *ssd)
 	assert(!ssd->border.tree);
 
 	struct view *view = ssd->view;
-	struct theme *theme = view->server->theme;
+	struct theme *theme = g_server.theme;
 	int width = view->current.width;
 	int height = view_effective_height(view, /* use_pending */ false);
 	int full_width = width + 2 * theme->border_width;
@@ -89,7 +89,7 @@ ssd_border_update(struct ssd *ssd)
 		ssd->margin = ssd_thickness(ssd->view);
 	}
 
-	struct theme *theme = view->server->theme;
+	struct theme *theme = g_server.theme;
 
 	int width = view->current.width;
 	int height = view_effective_height(view, /* use_pending */ false);

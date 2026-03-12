@@ -114,7 +114,7 @@ handle_hold_end(struct wl_listener *listener, void *data)
 void
 gestures_init(struct seat *seat)
 {
-	seat->pointer_gestures = wlr_pointer_gestures_v1_create(seat->server->wl_display);
+	seat->pointer_gestures = wlr_pointer_gestures_v1_create(g_server.wl_display);
 
 	CONNECT_SIGNAL(seat->cursor, seat, pinch_begin);
 	CONNECT_SIGNAL(seat->cursor, seat, pinch_update);

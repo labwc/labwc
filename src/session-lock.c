@@ -30,7 +30,7 @@ static void
 focus_surface(struct session_lock_manager *manager, struct wlr_surface *focused)
 {
 	manager->focused = focused;
-	seat_focus_lock_surface(&manager->server->seat, focused);
+	seat_focus_lock_surface(&g_server.seat, focused);
 }
 
 static void
@@ -58,7 +58,7 @@ static void
 update_focus(void *data)
 {
 	struct session_lock_output *output = data;
-	cursor_update_focus(output->manager->server);
+	cursor_update_focus();
 	if (!output->manager->focused) {
 		focus_surface(output->manager, output->surface->surface);
 	}
@@ -77,7 +77,7 @@ handle_surface_map(struct wl_listener *listener, void *data)
 	 * buffer has not been actually attached to the surface.
 	 */
 	wl_event_loop_add_idle(
-		output->manager->server->wl_event_loop, update_focus, output);
+		g_server.wl_event_loop, update_focus, output);
 }
 
 static void
@@ -97,7 +97,7 @@ static void
 lock_output_reconfigure(struct session_lock_output *output)
 {
 	struct wlr_box box;
-	wlr_output_layout_get_box(output->manager->server->output_layout,
+	wlr_output_layout_get_box(g_server.output_layout,
 		output->output->wlr_output, &box);
 	wlr_scene_rect_set_size(output->background, box.width, box.height);
 	if (output->surface) {
@@ -187,7 +187,7 @@ static void
 align_session_lock_tree(struct output *output)
 {
 	struct wlr_box box;
-	wlr_output_layout_get_box(output->server->output_layout,
+	wlr_output_layout_get_box(g_server.output_layout,
 		output->wlr_output, &box);
 	wlr_scene_node_set_position(&output->session_lock_tree->node, box.x, box.y);
 }
@@ -235,7 +235,7 @@ session_lock_output_create(struct session_lock_manager *manager, struct output *
 	 * already locked, blank immediately.
 	 */
 	lock_output->blank_timer =
-		wl_event_loop_add_timer(manager->server->wl_event_loop,
+		wl_event_loop_add_timer(g_server.wl_event_loop,
 			handle_output_blank_timeout, lock_output);
 	if (!manager->locked) {
 		wlr_scene_node_set_enabled(&background->node, false);
@@ -292,11 +292,11 @@ handle_lock_unlock(struct wl_listener *listener, void *data)
 	if (manager->last_active_view) {
 		desktop_focus_view(manager->last_active_view, /* raise */ false);
 	} else {
-		desktop_focus_topmost_view(manager->server);
+		desktop_focus_topmost_view();
 	}
 	manager->last_active_view = NULL;
 
-	cursor_update_focus(manager->server);
+	cursor_update_focus();
 }
 
 /* Called when session-lock is destroyed without unlock */
@@ -336,11 +336,11 @@ handle_new_session_lock(struct wl_listener *listener, void *data)
 	assert(wl_list_empty(&manager->lock_outputs));
 
 	/* Remember the focused view to restore it on unlock */
-	manager->last_active_view = manager->server->active_view;
-	seat_focus_surface(&manager->server->seat, NULL);
+	manager->last_active_view = g_server.active_view;
+	seat_focus_surface(&g_server.seat, NULL);
 
 	struct output *output;
-	wl_list_for_each(output, &manager->server->outputs, link) {
+	wl_list_for_each(output, &g_server.outputs, link) {
 		session_lock_output_create(manager, output);
 	}
 
@@ -366,17 +366,16 @@ handle_manager_destroy(struct wl_listener *listener, void *data)
 	session_lock_destroy(manager);
 	wl_list_remove(&manager->new_lock.link);
 	wl_list_remove(&manager->destroy.link);
-	manager->server->session_lock_manager = NULL;
+	g_server.session_lock_manager = NULL;
 	free(manager);
 }
 
 void
-session_lock_init(struct server *server)
+session_lock_init(void)
 {
 	struct session_lock_manager *manager = znew(*manager);
-	server->session_lock_manager = manager;
-	manager->server = server;
-	manager->wlr_manager = wlr_session_lock_manager_v1_create(server->wl_display);
+	g_server.session_lock_manager = manager;
+	manager->wlr_manager = wlr_session_lock_manager_v1_create(g_server.wl_display);
 	wl_list_init(&manager->lock_outputs);
 
 	manager->new_lock.notify = handle_new_session_lock;
@@ -387,18 +386,18 @@ session_lock_init(struct server *server)
 }
 
 void
-session_lock_update_for_layout_change(struct server *server)
+session_lock_update_for_layout_change(void)
 {
-	if (!server->session_lock_manager->locked) {
+	if (!g_server.session_lock_manager->locked) {
 		return;
 	}
 
 	struct output *output;
-	wl_list_for_each(output, &server->outputs, link) {
+	wl_list_for_each(output, &g_server.outputs, link) {
 		align_session_lock_tree(output);
 	}
 
-	struct session_lock_manager *manager = server->session_lock_manager;
+	struct session_lock_manager *manager = g_server.session_lock_manager;
 	struct session_lock_output *lock_output;
 	wl_list_for_each(lock_output, &manager->lock_outputs, link) {
 		lock_output_reconfigure(lock_output);

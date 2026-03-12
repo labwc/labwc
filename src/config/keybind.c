@@ -121,9 +121,9 @@ update_keycodes_iter(struct xkb_keymap *keymap, xkb_keycode_t key, void *data)
 }
 
 void
-keybind_update_keycodes(struct server *server)
+keybind_update_keycodes(void)
 {
-	struct xkb_state *state = server->seat.keyboard_group->keyboard.xkb_state;
+	struct xkb_state *state = g_server.seat.keyboard_group->keyboard.xkb_state;
 	struct xkb_keymap *keymap = xkb_state_get_keymap(state);
 
 	struct keybind *keybind;

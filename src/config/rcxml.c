@@ -300,6 +300,8 @@ fill_window_rule(xmlNode *node)
 			set_property(content, &window_rule->ignore_configure_request);
 		} else if (!strcasecmp(key, "fixedPosition")) {
 			set_property(content, &window_rule->fixed_position);
+		} else if (!strcasecmp(key, "allowAlwaysOnTop")) {
+			set_property(content, &window_rule->allow_always_on_top);
 		}
 	}
 

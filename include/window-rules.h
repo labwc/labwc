@@ -40,6 +40,7 @@ struct window_rule {
 	enum property ignore_configure_request;
 	enum property fixed_position;
 	enum property icon_prefer_client;
+	enum property allow_always_on_top;
 
 	struct wl_list link; /* struct rcxml.window_rules */
 };

@@ -1354,6 +1354,13 @@ situation.
 	*ignoreConfigureRequest* prevents a X11 window to position and size
 	itself.
 
+*<windowRules><windowRule allowAlwaysOnTop="">* [yes|no|default]
+	*allowAlwaysOnTop* allows a X11 window to control its always-on-top
+	state ('above' in X11 terms).
+
+	Note: X11 window always-on-top requests are disallowed by default.
+	This window rule offers a means of allowing it.
+
 *<windowRules><windowRule fixedPosition="">* [yes|no|default]
 	*fixedPosition* disallows interactive move/resize and prevents
 	re-positioning in response to changes in reserved output space, which

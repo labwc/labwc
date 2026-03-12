@@ -431,6 +431,11 @@ handle_request_above(struct wl_listener *listener, void *data)
 		wl_container_of(listener, xwayland_view, request_above);
 	struct view *view = &xwayland_view->base;
 
+	if (window_rules_get_property(view, "allowAlwaysOnTop") != LAB_PROP_TRUE) {
+		wlr_log(WLR_INFO, "X11 client side always on top request rejected");
+		return;
+	}
+
 	view_set_layer(view, xwayland_view->xwayland_surface->above
 		? VIEW_LAYER_ALWAYS_ON_TOP : VIEW_LAYER_NORMAL);
 }
@@ -727,8 +732,11 @@ handle_map_request(struct wl_listener *listener, void *data)
 		axis |= VIEW_AXIS_VERTICAL;
 	}
 	view_maximize(view, axis);
-	view_set_layer(view, xsurface->above
-		? VIEW_LAYER_ALWAYS_ON_TOP : VIEW_LAYER_NORMAL);
+
+	if (window_rules_get_property(view, "allowAlwaysOnTop") == LAB_PROP_TRUE) {
+		view_set_layer(view, xsurface->above
+			? VIEW_LAYER_ALWAYS_ON_TOP : VIEW_LAYER_NORMAL);
+	}
 	/*
 	 * We could also call set_initial_position() here, but it's not
 	 * really necessary until the view is actually mapped (and at

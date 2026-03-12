@@ -110,6 +110,10 @@ window_rules_get_property(struct view *view, const char *property)
 					&& !strcasecmp(property, "iconPreferClient")) {
 				return rule->icon_prefer_client;
 			}
+			if (rule->allow_always_on_top
+					&& !strcasecmp(property, "allowAlwaysOnTop")) {
+				return rule->allow_always_on_top;
+			}
 		}
 	}
 	return LAB_PROP_UNSPECIFIED;

@@ -1541,6 +1541,9 @@ void
 view_set_layer(struct view *view, enum view_layer layer)
 {
 	assert(view);
+	if (view->layer == layer) {
+		return;
+	}
 	view->layer = layer;
 	wlr_scene_node_reparent(&view->scene_tree->node,
 		view->workspace->view_trees[layer]);

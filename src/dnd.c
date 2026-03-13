@@ -15,11 +15,17 @@ handle_drag_request(struct wl_listener *listener, void *data)
 {
 	struct seat *seat = wl_container_of(listener, seat, drag.events.request);
 	struct wlr_seat_request_start_drag_event *event = data;
+	struct wlr_touch_point *point = NULL;
 
 	if (wlr_seat_validate_pointer_grab_serial(
 			seat->seat, event->origin, event->serial)) {
 		wlr_seat_start_pointer_drag(seat->seat, event->drag,
 			event->serial);
+	} else if (wlr_seat_validate_touch_grab_serial(
+			seat->seat, event->origin, event->serial, &point)) {
+		wlr_seat_start_touch_drag(seat->seat, event->drag,
+			event->serial, point);
+		/* TODO: tablet grab */
 	} else {
 		wlr_data_source_destroy(event->drag->source);
 		wlr_log(WLR_ERROR, "wrong source for drag request");

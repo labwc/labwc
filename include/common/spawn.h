@@ -2,7 +2,14 @@
 #ifndef LABWC_SPAWN_H
 #define LABWC_SPAWN_H
 
+#include <stdbool.h>
 #include <sys/types.h>
+
+/**
+ * set_cloexec - set file descriptor to close on exit
+ * @fd: file descriptor
+ */
+bool set_cloexec(int fd);
 
 /**
  * spawn_primary_client - execute asynchronously
@@ -14,7 +21,7 @@ pid_t spawn_primary_client(const char *command);
  * spawn_async_no_shell - execute asynchronously
  * @command: command to be executed
  */
-void spawn_async_no_shell(char const *command);
+void spawn_async_no_shell(char const *command, int socket_fd);
 
 /**
  * spawn_piped - execute asynchronously

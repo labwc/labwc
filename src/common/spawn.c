@@ -24,7 +24,7 @@ reset_signals_and_limits(void)
 	signal(SIGPIPE, SIG_DFL);
 }
 
-static bool
+bool
 set_cloexec(int fd)
 {
 	int flags = fcntl(fd, F_GETFD);
@@ -43,10 +43,11 @@ set_cloexec(int fd)
 }
 
 void
-spawn_async_no_shell(char const *command)
+spawn_async_no_shell(char const *command, int socket_fd)
 {
 	GError *err = NULL;
 	gchar **argv = NULL;
+	char socket_str[32];
 
 	assert(command);
 
@@ -73,6 +74,12 @@ spawn_async_no_shell(char const *command)
 		reset_signals_and_limits();
 
 		setsid();
+		if (socket_fd != -1) {
+			snprintf(socket_str, sizeof(socket_str), "%d", socket_fd);
+			if (setenv("WAYLAND_SOCKET", socket_str, 1) != 0) {
+				wlr_log(WLR_ERROR, "unable to setenv() WAYLAND_SOCKET");
+			}
+		}
 		grandchild = fork();
 		if (grandchild == 0) {
 			execvp(argv[0], argv);
@@ -83,6 +90,9 @@ spawn_async_no_shell(char const *command)
 		_exit(0);
 	default:
 		break;
+	}
+	if (socket_fd != -1) {
+		close(socket_fd);
 	}
 	waitpid(child, NULL, 0);
 out:

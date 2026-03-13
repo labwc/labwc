@@ -18,6 +18,7 @@ struct action {
 			      */
 
 	uint32_t type;        /* enum action_type */
+	uint32_t permissions; /* enum lab_permission */
 	struct wl_list args;  /* struct action_arg.link */
 };
 

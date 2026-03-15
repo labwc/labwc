@@ -1171,7 +1171,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		if (layer && layer->current.keyboard_interactive) {
 			layer_try_set_focus(seat, layer);
 		}
-#ifdef HAVE_XWAYLAND
+#if HAVE_XWAYLAND
 	} else if (ctx.type == LAB_NODE_UNMANAGED) {
 		desktop_focus_view_or_surface(seat, NULL, ctx.surface,
 			/*raise*/ false);

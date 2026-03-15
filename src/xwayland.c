@@ -1221,8 +1221,9 @@ xwayland_server_init(struct server *server, struct wlr_compositor *compositor)
 		wlr_xwayland_create(server->wl_display,
 			compositor, /* lazy */ !rc.xwayland_persistence);
 	if (!server->xwayland) {
-		wlr_log(WLR_ERROR, "cannot create xwayland server");
-		exit(EXIT_FAILURE);
+		wlr_log(WLR_ERROR, "failed to create xwayland server, continuing without");
+		unsetenv("DISPLAY");
+		return;
 	}
 	server->xwayland_new_surface.notify = handle_new_surface;
 	wl_signal_add(&server->xwayland->events.new_surface,
@@ -1312,6 +1313,11 @@ void
 xwayland_server_finish(struct server *server)
 {
 	struct wlr_xwayland *xwayland = server->xwayland;
+
+	if (!xwayland) {
+		return;
+	}
+
 	wl_list_remove(&server->xwayland_new_surface.link);
 	wl_list_remove(&server->xwayland_server_ready.link);
 	wl_list_remove(&server->xwayland_xwm_ready.link);

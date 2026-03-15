@@ -68,146 +68,92 @@ struct action_arg_list {
 	struct wl_list value;
 };
 
-/* Warning: Any change in this enum needs to be reflected in the action_names[] array below */
+/* https://en.wikipedia.org/wiki/X_macro */
+#define ACTION_TABLE \
+	X(ACTION_TYPE_INVALID = 0,                    "INVALID") \
+	X(ACTION_TYPE_NONE,                           "None") \
+	X(ACTION_TYPE_CLOSE,                          "Close") \
+	X(ACTION_TYPE_KILL,                           "Kill") \
+	X(ACTION_TYPE_DEBUG,                          "Debug") \
+	X(ACTION_TYPE_EXECUTE,                        "Execute") \
+	X(ACTION_TYPE_EXIT,                           "Exit") \
+	X(ACTION_TYPE_MOVE_TO_EDGE,                   "MoveToEdge") \
+	X(ACTION_TYPE_TOGGLE_SNAP_TO_EDGE,            "ToggleSnapToEdge") \
+	X(ACTION_TYPE_SNAP_TO_EDGE,                   "SnapToEdge") \
+	X(ACTION_TYPE_GROW_TO_EDGE,                   "GrowToEdge") \
+	X(ACTION_TYPE_SHRINK_TO_EDGE,                 "ShrinkToEdge") \
+	X(ACTION_TYPE_NEXT_WINDOW,                    "NextWindow") \
+	X(ACTION_TYPE_PREVIOUS_WINDOW,                "PreviousWindow") \
+	X(ACTION_TYPE_RECONFIGURE,                    "Reconfigure") \
+	X(ACTION_TYPE_SHOW_MENU,                      "ShowMenu") \
+	X(ACTION_TYPE_TOGGLE_MAXIMIZE,                "ToggleMaximize") \
+	X(ACTION_TYPE_MAXIMIZE,                       "Maximize") \
+	X(ACTION_TYPE_UNMAXIMIZE,                     "UnMaximize") \
+	X(ACTION_TYPE_TOGGLE_FULLSCREEN,              "ToggleFullscreen") \
+	X(ACTION_TYPE_SET_DECORATIONS,                "SetDecorations") \
+	X(ACTION_TYPE_TOGGLE_DECORATIONS,             "ToggleDecorations") \
+	X(ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP,           "ToggleAlwaysOnTop") \
+	X(ACTION_TYPE_TOGGLE_ALWAYS_ON_BOTTOM,        "ToggleAlwaysOnBottom") \
+	X(ACTION_TYPE_TOGGLE_OMNIPRESENT,             "ToggleOmnipresent") \
+	X(ACTION_TYPE_FOCUS,                          "Focus") \
+	X(ACTION_TYPE_UNFOCUS,                        "Unfocus") \
+	X(ACTION_TYPE_ICONIFY,                        "Iconify") \
+	X(ACTION_TYPE_RAISE,                          "Raise") \
+	X(ACTION_TYPE_LOWER,                          "Lower") \
+	X(ACTION_TYPE_MOVE,                           "Move") \
+	X(ACTION_TYPE_RESIZE,                         "Resize") \
+	X(ACTION_TYPE_RESIZE_RELATIVE,                "ResizeRelative") \
+	X(ACTION_TYPE_MOVETO,                         "MoveTo") \
+	X(ACTION_TYPE_RESIZETO,                       "ResizeTo") \
+	X(ACTION_TYPE_MOVETO_CURSOR,                  "MoveToCursor") \
+	X(ACTION_TYPE_MOVE_RELATIVE,                  "MoveRelative") \
+	X(ACTION_TYPE_SEND_TO_DESKTOP,                "SendToDesktop") \
+	X(ACTION_TYPE_GO_TO_DESKTOP,                  "GoToDesktop") \
+	X(ACTION_TYPE_TOGGLE_SNAP_TO_REGION,          "ToggleSnapToRegion") \
+	X(ACTION_TYPE_SNAP_TO_REGION,                 "SnapToRegion") \
+	X(ACTION_TYPE_UNSNAP,                         "UnSnap") \
+	X(ACTION_TYPE_TOGGLE_KEYBINDS,                "ToggleKeybinds") \
+	X(ACTION_TYPE_FOCUS_OUTPUT,                   "FocusOutput") \
+	X(ACTION_TYPE_MOVE_TO_OUTPUT,                 "MoveToOutput") \
+	X(ACTION_TYPE_FIT_TO_OUTPUT,                  "FitToOutput") \
+	X(ACTION_TYPE_IF,                             "If") \
+	X(ACTION_TYPE_FOR_EACH,                       "ForEach") \
+	X(ACTION_TYPE_VIRTUAL_OUTPUT_ADD,             "VirtualOutputAdd") \
+	X(ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE,          "VirtualOutputRemove") \
+	X(ACTION_TYPE_AUTO_PLACE,                     "AutoPlace") \
+	X(ACTION_TYPE_TOGGLE_TEARING,                 "ToggleTearing") \
+	X(ACTION_TYPE_SHADE,                          "Shade") \
+	X(ACTION_TYPE_UNSHADE,                        "Unshade") \
+	X(ACTION_TYPE_TOGGLE_SHADE,                   "ToggleShade") \
+	X(ACTION_TYPE_ENABLE_SCROLL_WHEEL_EMULATION,  "EnableScrollWheelEmulation") \
+	X(ACTION_TYPE_DISABLE_SCROLL_WHEEL_EMULATION, "DisableScrollWheelEmulation") \
+	X(ACTION_TYPE_TOGGLE_SCROLL_WHEEL_EMULATION,  "ToggleScrollWheelEmulation") \
+	X(ACTION_TYPE_ENABLE_TABLET_MOUSE_EMULATION,  "EnableTabletMouseEmulation") \
+	X(ACTION_TYPE_DISABLE_TABLET_MOUSE_EMULATION, "DisableTabletMouseEmulation") \
+	X(ACTION_TYPE_TOGGLE_TABLET_MOUSE_EMULATION,  "ToggleTabletMouseEmulation") \
+	X(ACTION_TYPE_TOGGLE_MAGNIFY,                 "ToggleMagnify") \
+	X(ACTION_TYPE_ZOOM_IN,                        "ZoomIn") \
+	X(ACTION_TYPE_ZOOM_OUT,                       "ZoomOut") \
+	X(ACTION_TYPE_WARP_CURSOR,                    "WarpCursor") \
+	X(ACTION_TYPE_HIDE_CURSOR,                    "HideCursor")
+
+//#define X(type, _) ACTION_TYPE_ ## type,
+#define X(type, _) type,
+
 enum action_type {
-	ACTION_TYPE_INVALID = 0,
-	ACTION_TYPE_NONE,
-	ACTION_TYPE_CLOSE,
-	ACTION_TYPE_KILL,
-	ACTION_TYPE_DEBUG,
-	ACTION_TYPE_EXECUTE,
-	ACTION_TYPE_EXIT,
-	ACTION_TYPE_MOVE_TO_EDGE,
-	ACTION_TYPE_TOGGLE_SNAP_TO_EDGE,
-	ACTION_TYPE_SNAP_TO_EDGE,
-	ACTION_TYPE_GROW_TO_EDGE,
-	ACTION_TYPE_SHRINK_TO_EDGE,
-	ACTION_TYPE_NEXT_WINDOW,
-	ACTION_TYPE_PREVIOUS_WINDOW,
-	ACTION_TYPE_RECONFIGURE,
-	ACTION_TYPE_SHOW_MENU,
-	ACTION_TYPE_TOGGLE_MAXIMIZE,
-	ACTION_TYPE_MAXIMIZE,
-	ACTION_TYPE_UNMAXIMIZE,
-	ACTION_TYPE_TOGGLE_FULLSCREEN,
-	ACTION_TYPE_SET_DECORATIONS,
-	ACTION_TYPE_TOGGLE_DECORATIONS,
-	ACTION_TYPE_TOGGLE_ALWAYS_ON_TOP,
-	ACTION_TYPE_TOGGLE_ALWAYS_ON_BOTTOM,
-	ACTION_TYPE_TOGGLE_OMNIPRESENT,
-	ACTION_TYPE_FOCUS,
-	ACTION_TYPE_UNFOCUS,
-	ACTION_TYPE_ICONIFY,
-	ACTION_TYPE_RAISE,
-	ACTION_TYPE_LOWER,
-	ACTION_TYPE_MOVE,
-	ACTION_TYPE_RESIZE,
-	ACTION_TYPE_RESIZE_RELATIVE,
-	ACTION_TYPE_MOVETO,
-	ACTION_TYPE_RESIZETO,
-	ACTION_TYPE_MOVETO_CURSOR,
-	ACTION_TYPE_MOVE_RELATIVE,
-	ACTION_TYPE_SEND_TO_DESKTOP,
-	ACTION_TYPE_GO_TO_DESKTOP,
-	ACTION_TYPE_TOGGLE_SNAP_TO_REGION,
-	ACTION_TYPE_SNAP_TO_REGION,
-	ACTION_TYPE_UNSNAP,
-	ACTION_TYPE_TOGGLE_KEYBINDS,
-	ACTION_TYPE_FOCUS_OUTPUT,
-	ACTION_TYPE_MOVE_TO_OUTPUT,
-	ACTION_TYPE_FIT_TO_OUTPUT,
-	ACTION_TYPE_IF,
-	ACTION_TYPE_FOR_EACH,
-	ACTION_TYPE_VIRTUAL_OUTPUT_ADD,
-	ACTION_TYPE_VIRTUAL_OUTPUT_REMOVE,
-	ACTION_TYPE_AUTO_PLACE,
-	ACTION_TYPE_TOGGLE_TEARING,
-	ACTION_TYPE_SHADE,
-	ACTION_TYPE_UNSHADE,
-	ACTION_TYPE_TOGGLE_SHADE,
-	ACTION_TYPE_ENABLE_SCROLL_WHEEL_EMULATION,
-	ACTION_TYPE_DISABLE_SCROLL_WHEEL_EMULATION,
-	ACTION_TYPE_TOGGLE_SCROLL_WHEEL_EMULATION,
-	ACTION_TYPE_ENABLE_TABLET_MOUSE_EMULATION,
-	ACTION_TYPE_DISABLE_TABLET_MOUSE_EMULATION,
-	ACTION_TYPE_TOGGLE_TABLET_MOUSE_EMULATION,
-	ACTION_TYPE_TOGGLE_MAGNIFY,
-	ACTION_TYPE_ZOOM_IN,
-	ACTION_TYPE_ZOOM_OUT,
-	ACTION_TYPE_WARP_CURSOR,
-	ACTION_TYPE_HIDE_CURSOR,
+	ACTION_TABLE
 };
 
-/* Warning: Any change in this array needs to be reflected in the action_type enum above */
+#undef X
+#define X(_, name) name,
+
 const char *action_names[] = {
-	"INVALID",
-	"None",
-	"Close",
-	"Kill",
-	"Debug",
-	"Execute",
-	"Exit",
-	"MoveToEdge",
-	"ToggleSnapToEdge",
-	"SnapToEdge",
-	"GrowToEdge",
-	"ShrinkToEdge",
-	"NextWindow",
-	"PreviousWindow",
-	"Reconfigure",
-	"ShowMenu",
-	"ToggleMaximize",
-	"Maximize",
-	"UnMaximize",
-	"ToggleFullscreen",
-	"SetDecorations",
-	"ToggleDecorations",
-	"ToggleAlwaysOnTop",
-	"ToggleAlwaysOnBottom",
-	"ToggleOmnipresent",
-	"Focus",
-	"Unfocus",
-	"Iconify",
-	"Raise",
-	"Lower",
-	"Move",
-	"Resize",
-	"ResizeRelative",
-	"MoveTo",
-	"ResizeTo",
-	"MoveToCursor",
-	"MoveRelative",
-	"SendToDesktop",
-	"GoToDesktop",
-	"ToggleSnapToRegion",
-	"SnapToRegion",
-	"UnSnap",
-	"ToggleKeybinds",
-	"FocusOutput",
-	"MoveToOutput",
-	"FitToOutput",
-	"If",
-	"ForEach",
-	"VirtualOutputAdd",
-	"VirtualOutputRemove",
-	"AutoPlace",
-	"ToggleTearing",
-	"Shade",
-	"Unshade",
-	"ToggleShade",
-	"EnableScrollWheelEmulation",
-	"DisableScrollWheelEmulation",
-	"ToggleScrollWheelEmulation",
-	"EnableTabletMouseEmulation",
-	"DisableTabletMouseEmulation",
-	"ToggleTabletMouseEmulation",
-	"ToggleMagnify",
-	"ZoomIn",
-	"ZoomOut",
-	"WarpCursor",
-	"HideCursor",
+	ACTION_TABLE
 	NULL
 };
+
+#undef X
+#undef ACTION_TABLE
 
 void
 action_arg_add_str(struct action *action, const char *key, const char *value)

@@ -1549,6 +1549,8 @@ view_set_layer(struct view *view, enum view_layer layer)
 	view->layer = layer;
 	wlr_scene_node_reparent(&view->scene_tree->node,
 		view->workspace->view_trees[layer]);
+
+	wl_signal_emit_mutable(&view->events.always_on_top, NULL);
 }
 
 void
@@ -2476,6 +2478,7 @@ view_init(struct view *view)
 	wl_signal_init(&view->events.minimized);
 	wl_signal_init(&view->events.fullscreened);
 	wl_signal_init(&view->events.activated);
+	wl_signal_init(&view->events.always_on_top);
 	wl_signal_init(&view->events.set_icon);
 	wl_signal_init(&view->events.destroy);
 
@@ -2555,6 +2558,7 @@ view_destroy(struct view *view)
 	assert(wl_list_empty(&view->events.minimized.listener_list));
 	assert(wl_list_empty(&view->events.fullscreened.listener_list));
 	assert(wl_list_empty(&view->events.activated.listener_list));
+	assert(wl_list_empty(&view->events.always_on_top.listener_list));
 	assert(wl_list_empty(&view->events.set_icon.listener_list));
 	assert(wl_list_empty(&view->events.destroy.listener_list));
 

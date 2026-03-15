@@ -59,6 +59,12 @@ struct xwayland_view {
 	/* Not (yet) implemented */
 /*	struct wl_listener set_role; */
 /*	struct wl_listener set_hints; */
+
+	/* Events coming in from the view itself */
+	struct {
+		struct wl_listener always_on_top;
+	} on_view;
+
 };
 
 void xwayland_unmanaged_create(struct server *server,

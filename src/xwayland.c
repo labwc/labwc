@@ -367,6 +367,8 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&xwayland_view->focus_in.link);
 	wl_list_remove(&xwayland_view->map_request.link);
 
+	wl_list_remove(&xwayland_view->on_view.always_on_top.link);
+
 	view_destroy(view);
 }
 
@@ -1035,6 +1037,15 @@ static const struct view_impl xwayland_view_impl = {
 	.get_pid = xwayland_view_get_pid,
 };
 
+static void
+handle_always_on_top(struct wl_listener *listener, void *data)
+{
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, on_view.always_on_top);
+	wlr_xwayland_surface_set_above(xwayland_view->xwayland_surface,
+		xwayland_view->base.layer == VIEW_LAYER_ALWAYS_ON_TOP);
+}
+
 void
 xwayland_view_create(struct server *server,
 		struct wlr_xwayland_surface *xsurface, bool mapped)
@@ -1085,6 +1096,9 @@ xwayland_view_create(struct server *server,
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_window_type);
 	CONNECT_SIGNAL(xsurface, xwayland_view, focus_in);
 	CONNECT_SIGNAL(xsurface, xwayland_view, map_request);
+
+	/* Events from the view itself */
+	CONNECT_SIGNAL(view, &xwayland_view->on_view, always_on_top);
 
 	wl_list_insert(&view->server->views, &view->link);
 	view->creation_id = view->server->next_view_creation_id++;

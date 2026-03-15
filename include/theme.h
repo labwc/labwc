@@ -14,6 +14,11 @@
 
 struct lab_img;
 
+/* XXX: using fixed border widths for now */
+/* (top is narrower to blend with titlebar) */
+#define BORDER_PX_TOP 2
+#define BORDER_PX_SIDE 4
+
 /*
  * Openbox defines 7 types of Gradient background in addition to Solid.
  * Currently, labwc supports only Vertical and SplitVertical.

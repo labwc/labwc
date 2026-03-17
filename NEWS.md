@@ -146,8 +146,7 @@ refactoring and new features.
 
 - Disable outputs where all modes fail [#3428] [#3429] @Consolatis @kode54
 - Fix regression in `0.9.4` that causes `NextWindow` action to segfault when
-  no outputs are connected. This fixes a window-switcher crash with some
-  Nvidia GPUs/drivers after suspend [#3425] [#3430] @Consolatis
+  no outputs are connected. [#3425] [#3430] @Consolatis
 - Fix typo to allow `xdg-dialog-v1` global [#3426] @xi
 
 ### Changed

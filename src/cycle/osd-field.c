@@ -148,7 +148,7 @@ static void
 field_set_output_short(struct buf *buf, struct view *view, const char *format)
 {
 	/* custom type conversion-specifier: o */
-	if (wl_list_length(&g_server.outputs) > 1 &&
+	if (wl_list_length(&server.outputs) > 1 &&
 			output_is_usable(view->output)) {
 		buf_add(buf, view->output->wlr_output->name);
 	}

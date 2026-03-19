@@ -19,14 +19,14 @@
 bool
 regions_should_snap(void)
 {
-	if (g_server.input_mode != LAB_INPUT_STATE_MOVE
+	if (server.input_mode != LAB_INPUT_STATE_MOVE
 			|| wl_list_empty(&rc.regions)
-			|| g_server.seat.region_prevent_snap
-			|| !view_is_floating(g_server.grabbed_view)) {
+			|| server.seat.region_prevent_snap
+			|| !view_is_floating(server.grabbed_view)) {
 		return false;
 	}
 
-	return keyboard_get_all_modifiers(&g_server.seat);
+	return keyboard_get_all_modifiers(&server.seat);
 }
 
 struct region *
@@ -46,11 +46,11 @@ regions_from_name(const char *region_name, struct output *output)
 struct region *
 regions_from_cursor(void)
 {
-	double lx = g_server.seat.cursor->x;
-	double ly = g_server.seat.cursor->y;
+	double lx = server.seat.cursor->x;
+	double ly = server.seat.cursor->y;
 
 	struct wlr_output *wlr_output = wlr_output_layout_output_at(
-		g_server.output_layout, lx, ly);
+		server.output_layout, lx, ly);
 	struct output *output = output_from_wlr_output(wlr_output);
 	if (!output_is_usable(output)) {
 		return NULL;
@@ -81,7 +81,7 @@ regions_reconfigure_output(struct output *output)
 	/* Evacuate views and destroy current regions */
 	if (!wl_list_empty(&output->regions)) {
 		regions_evacuate_output(output);
-		regions_destroy(&g_server.seat, &output->regions);
+		regions_destroy(&server.seat, &output->regions);
 	}
 
 	/* Initialize regions from config */
@@ -105,7 +105,7 @@ regions_reconfigure(void)
 	struct output *output;
 
 	/* Evacuate views and initialize regions from config */
-	wl_list_for_each(output, &g_server.outputs, link) {
+	wl_list_for_each(output, &server.outputs, link) {
 		regions_reconfigure_output(output);
 	}
 
@@ -149,7 +149,7 @@ regions_evacuate_output(struct output *output)
 {
 	assert(output);
 	struct view *view;
-	wl_list_for_each(view, &g_server.views, link) {
+	wl_list_for_each(view, &server.views, link) {
 		if (view->tiled_region && view->tiled_region->output == output) {
 			view_evacuate_region(view);
 		}

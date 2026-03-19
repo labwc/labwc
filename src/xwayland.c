@@ -290,7 +290,7 @@ handle_request_move(struct wl_listener *listener, void *data)
 	 * this client, to prevent the client from requesting this whenever they
 	 * want.
 	 *
-	 * Note: interactive_begin() checks that view == g_server.grabbed_view.
+	 * Note: interactive_begin() checks that view == server.grabbed_view.
 	 */
 	struct view *view = wl_container_of(listener, view, request_move);
 	interactive_begin(view, LAB_INPUT_STATE_MOVE, LAB_EDGE_NONE);
@@ -307,7 +307,7 @@ handle_request_resize(struct wl_listener *listener, void *data)
 	 * this client, to prevent the client from requesting this whenever they
 	 * want.
 	 *
-	 * Note: interactive_begin() checks that view == g_server.grabbed_view.
+	 * Note: interactive_begin() checks that view == server.grabbed_view.
 	 */
 	struct wlr_xwayland_resize_event *event = data;
 	struct view *view = wl_container_of(listener, view, request_resize);
@@ -388,7 +388,7 @@ xwayland_view_configure(struct view *view, struct wlr_box geo)
 	 * workaround, move offscreen surfaces immediately.
 	 */
 	bool is_offscreen = !wlr_box_empty(&view->current) &&
-		!wlr_output_layout_intersects(g_server.output_layout, NULL,
+		!wlr_output_layout_intersects(server.output_layout, NULL,
 			&view->current);
 
 	/* If not resizing, process the move immediately */
@@ -605,7 +605,7 @@ update_icon(struct xwayland_view *xwayland_view)
 
 	xcb_window_t window_id = xwayland_view->xwayland_surface->window_id;
 
-	xcb_connection_t *xcb_conn = wlr_xwayland_get_xwm_connection(g_server.xwayland);
+	xcb_connection_t *xcb_conn = wlr_xwayland_get_xwm_connection(server.xwayland);
 	xcb_get_property_cookie_t cookie = xcb_get_property(xcb_conn, 0,
 		window_id, atoms[ATOM_NET_WM_ICON], XCB_ATOM_CARDINAL, 0, 0x10000);
 	xcb_get_property_reply_t *reply = xcb_get_property_reply(xcb_conn, cookie, NULL);
@@ -658,7 +658,7 @@ handle_focus_in(struct wl_listener *listener, void *data)
 	struct xwayland_view *xwayland_view =
 		wl_container_of(listener, xwayland_view, focus_in);
 	struct view *view = &xwayland_view->base;
-	struct seat *seat = &g_server.seat;
+	struct seat *seat = &server.seat;
 
 	if (!view->surface) {
 		/*
@@ -878,7 +878,7 @@ handle_map(struct wl_listener *listener, void *data)
 	 */
 	if (xwayland_view->focused_before_map) {
 		xwayland_view->focused_before_map = false;
-		seat_focus_surface(&g_server.seat, view->surface);
+		seat_focus_surface(&server.seat, view->surface);
 	}
 
 	view_impl_map(view);
@@ -941,7 +941,7 @@ xwayland_view_append_children(struct view *self, struct wl_array *children)
 	struct wlr_xwayland_surface *surface = xwayland_surface_from_view(self);
 	struct view *view;
 
-	wl_list_for_each_reverse(view, &g_server.views, link) {
+	wl_list_for_each_reverse(view, &server.views, link) {
 		if (view == self) {
 			continue;
 		}
@@ -1061,7 +1061,7 @@ xwayland_view_create(struct wlr_xwayland_surface *xsurface, bool mapped)
 	xwayland_view->xwayland_surface = xsurface;
 	xsurface->data = view;
 
-	view->workspace = g_server.workspaces.current;
+	view->workspace = server.workspaces.current;
 	view->scene_tree = lab_wlr_scene_tree_create(
 		view->workspace->view_trees[VIEW_LAYER_NORMAL]);
 	node_descriptor_create(&view->scene_tree->node,
@@ -1093,8 +1093,8 @@ xwayland_view_create(struct wlr_xwayland_surface *xsurface, bool mapped)
 	/* Events from the view itself */
 	CONNECT_SIGNAL(view, &xwayland_view->on_view, always_on_top);
 
-	wl_list_insert(&g_server.views, &view->link);
-	view->creation_id = g_server.next_view_creation_id++;
+	wl_list_insert(&server.views, &view->link);
+	view->creation_id = server.next_view_creation_id++;
 
 	if (xsurface->surface) {
 		handle_associate(&xwayland_view->associate, NULL);
@@ -1134,7 +1134,7 @@ static struct xwayland_view *
 xwayland_view_from_window_id(xcb_window_t id)
 {
 	struct view *view;
-	wl_list_for_each(view, &g_server.views, link) {
+	wl_list_for_each(view, &server.views, link) {
 		if (view->type != LAB_XWAYLAND_VIEW) {
 			continue;
 		}
@@ -1177,7 +1177,7 @@ static void
 sync_atoms(void)
 {
 	xcb_connection_t *xcb_conn =
-		wlr_xwayland_get_xwm_connection(g_server.xwayland);
+		wlr_xwayland_get_xwm_connection(server.xwayland);
 	assert(xcb_conn);
 
 	wlr_log(WLR_DEBUG, "Syncing X11 atoms");
@@ -1220,47 +1220,47 @@ handle_server_ready(struct wl_listener *listener, void *data)
 static void
 handle_xwm_ready(struct wl_listener *listener, void *data)
 {
-	wlr_xwayland_set_seat(g_server.xwayland, g_server.seat.seat);
+	wlr_xwayland_set_seat(server.xwayland, server.seat.seat);
 	xwayland_update_workarea();
 }
 
 void
 xwayland_server_init(struct wlr_compositor *compositor)
 {
-	g_server.xwayland =
-		wlr_xwayland_create(g_server.wl_display,
+	server.xwayland =
+		wlr_xwayland_create(server.wl_display,
 			compositor, /* lazy */ !rc.xwayland_persistence);
-	if (!g_server.xwayland) {
+	if (!server.xwayland) {
 		wlr_log(WLR_ERROR, "cannot create xwayland server");
 		exit(EXIT_FAILURE);
 	}
-	g_server.xwayland_new_surface.notify = handle_new_surface;
-	wl_signal_add(&g_server.xwayland->events.new_surface,
-		&g_server.xwayland_new_surface);
+	server.xwayland_new_surface.notify = handle_new_surface;
+	wl_signal_add(&server.xwayland->events.new_surface,
+		&server.xwayland_new_surface);
 
-	g_server.xwayland_server_ready.notify = handle_server_ready;
-	wl_signal_add(&g_server.xwayland->server->events.ready,
-		&g_server.xwayland_server_ready);
+	server.xwayland_server_ready.notify = handle_server_ready;
+	wl_signal_add(&server.xwayland->server->events.ready,
+		&server.xwayland_server_ready);
 
-	g_server.xwayland_xwm_ready.notify = handle_xwm_ready;
-	wl_signal_add(&g_server.xwayland->events.ready,
-		&g_server.xwayland_xwm_ready);
+	server.xwayland_xwm_ready.notify = handle_xwm_ready;
+	wl_signal_add(&server.xwayland->events.ready,
+		&server.xwayland_xwm_ready);
 
-	g_server.xwayland->user_event_handler = handle_x11_event;
+	server.xwayland->user_event_handler = handle_x11_event;
 
-	if (setenv("DISPLAY", g_server.xwayland->display_name, true) < 0) {
+	if (setenv("DISPLAY", server.xwayland->display_name, true) < 0) {
 		wlr_log_errno(WLR_ERROR, "unable to set DISPLAY for xwayland");
 	} else {
 		wlr_log(WLR_DEBUG, "xwayland is running on display %s",
-			g_server.xwayland->display_name);
+			server.xwayland->display_name);
 	}
 
 	struct wlr_xcursor *xcursor;
 	xcursor = wlr_xcursor_manager_get_xcursor(
-		g_server.seat.xcursor_manager, XCURSOR_DEFAULT, 1);
+		server.seat.xcursor_manager, XCURSOR_DEFAULT, 1);
 	if (xcursor) {
 		struct wlr_xcursor_image *image = xcursor->images[0];
-		wlr_xwayland_set_cursor(g_server.xwayland, image->buffer,
+		wlr_xwayland_set_cursor(server.xwayland, image->buffer,
 			image->width * 4, image->width,
 			image->height, image->hotspot_x,
 			image->hotspot_y);
@@ -1288,24 +1288,24 @@ xwayland_reset_cursor(void)
 	 * - Start some X11 client
 	 */
 
-	if (!g_server.xwayland) {
+	if (!server.xwayland) {
 		return;
 	}
 
 	struct wlr_xcursor *xcursor = wlr_xcursor_manager_get_xcursor(
-		g_server.seat.xcursor_manager, XCURSOR_DEFAULT, 1);
+		server.seat.xcursor_manager, XCURSOR_DEFAULT, 1);
 
-	if (xcursor && !g_server.xwayland->xwm) {
+	if (xcursor && !server.xwayland->xwm) {
 		/* Prevents setting the cursor on an active xwayland server */
 		struct wlr_xcursor_image *image = xcursor->images[0];
-		wlr_xwayland_set_cursor(g_server.xwayland, image->buffer,
+		wlr_xwayland_set_cursor(server.xwayland, image->buffer,
 			image->width * 4, image->width,
 			image->height, image->hotspot_x,
 			image->hotspot_y);
 		return;
 	}
 
-	if (g_server.xwayland->cursor) {
+	if (server.xwayland->cursor) {
 		/*
 		 * The previous configured theme has set the
 		 * default cursor or the xwayland server is
@@ -1313,23 +1313,23 @@ xwayland_reset_cursor(void)
 		 * xcursor set that will be used on the next
 		 * xwayland destroy -> lazy startup cycle.
 		 */
-		zfree(g_server.xwayland->cursor);
+		zfree(server.xwayland->cursor);
 	}
 }
 
 void
 xwayland_server_finish(void)
 {
-	struct wlr_xwayland *xwayland = g_server.xwayland;
-	wl_list_remove(&g_server.xwayland_new_surface.link);
-	wl_list_remove(&g_server.xwayland_server_ready.link);
-	wl_list_remove(&g_server.xwayland_xwm_ready.link);
+	struct wlr_xwayland *xwayland = server.xwayland;
+	wl_list_remove(&server.xwayland_new_surface.link);
+	wl_list_remove(&server.xwayland_server_ready.link);
+	wl_list_remove(&server.xwayland_xwm_ready.link);
 
 	/*
-	 * Reset g_server.xwayland to NULL first to prevent callbacks (like
+	 * Reset server.xwayland to NULL first to prevent callbacks (like
 	 * server_global_filter) from accessing it as it is destroyed
 	 */
-	g_server.xwayland = NULL;
+	server.xwayland = NULL;
 	wlr_xwayland_destroy(xwayland);
 }
 
@@ -1428,12 +1428,12 @@ xwayland_update_workarea(void)
 	 * Do nothing if called during destroy or before xwayland is ready.
 	 * This function will be called again from the ready signal handler.
 	 */
-	if (!g_server.xwayland || !g_server.xwayland->xwm) {
+	if (!server.xwayland || !server.xwayland->xwm) {
 		return;
 	}
 
 	struct wlr_box lb;
-	wlr_output_layout_get_box(g_server.output_layout, NULL, &lb);
+	wlr_output_layout_get_box(server.output_layout, NULL, &lb);
 
 	/* Compute outer edges of layout (excluding negative regions) */
 	int layout_left = MAX(0, lb.x);
@@ -1448,13 +1448,13 @@ xwayland_update_workarea(void)
 	int workarea_bottom = layout_bottom;
 
 	struct output *output;
-	wl_list_for_each(output, &g_server.outputs, link) {
+	wl_list_for_each(output, &server.outputs, link) {
 		if (!output_is_usable(output)) {
 			continue;
 		}
 
 		struct wlr_box ob;
-		wlr_output_layout_get_box(g_server.output_layout,
+		wlr_output_layout_get_box(server.output_layout,
 			output->wlr_output, &ob);
 
 		/* Compute edges of output */
@@ -1497,15 +1497,15 @@ xwayland_update_workarea(void)
 		.width = workarea_right - workarea_left,
 		.height = workarea_bottom - workarea_top,
 	};
-	wlr_xwayland_set_workareas(g_server.xwayland, &workarea, 1);
+	wlr_xwayland_set_workareas(server.xwayland, &workarea, 1);
 }
 
 void
 xwayland_flush(void)
 {
-	if (!g_server.xwayland || !g_server.xwayland->xwm) {
+	if (!server.xwayland || !server.xwayland->xwm) {
 		return;
 	}
 
-	xcb_flush(wlr_xwayland_get_xwm_connection(g_server.xwayland));
+	xcb_flush(wlr_xwayland_get_xwm_connection(server.xwayland));
 }

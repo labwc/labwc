@@ -57,7 +57,7 @@ static bool
 is_unique_id(const char *id)
 {
 	struct menu *menu;
-	wl_list_for_each(menu, &g_server.menus, link) {
+	wl_list_for_each(menu, &server.menus, link) {
 		if (!strcmp(menu->id, id)) {
 			return false;
 		}
@@ -74,7 +74,7 @@ menu_create(struct menu *parent, const char *id,
 	}
 
 	struct menu *menu = znew(*menu);
-	wl_list_append(&g_server.menus, &menu->link);
+	wl_list_append(&server.menus, &menu->link);
 
 	wl_list_init(&menu->menuitems);
 	menu->id = xstrdup(id);
@@ -91,7 +91,7 @@ menu_get_by_id(const char *id)
 		return NULL;
 	}
 	struct menu *menu;
-	wl_list_for_each(menu, &g_server.menus, link) {
+	wl_list_for_each(menu, &server.menus, link) {
 		if (!strcmp(menu->id, id)) {
 			return menu;
 		}
@@ -124,7 +124,7 @@ static void
 validate(void)
 {
 	struct menu *menu;
-	wl_list_for_each(menu, &g_server.menus, link) {
+	wl_list_for_each(menu, &server.menus, link) {
 		validate_menu(menu);
 	}
 }
@@ -135,7 +135,7 @@ item_create(struct menu *menu, const char *text, const char *icon_name, bool sho
 	assert(menu);
 	assert(text);
 
-	struct theme *theme = g_server.theme;
+	struct theme *theme = server.theme;
 	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = true;
@@ -166,7 +166,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	float *bg_color)
 {
 	struct menu *menu = item->parent;
-	struct theme *theme = g_server.theme;
+	struct theme *theme = server.theme;
 
 	/* Tree to hold background and label buffers */
 	struct wlr_scene_tree *tree = lab_wlr_scene_tree_create(item->tree);
@@ -242,7 +242,7 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 	assert(menuitem);
 	assert(menuitem->type == LAB_MENU_ITEM);
 	struct menu *menu = menuitem->parent;
-	struct theme *theme = g_server.theme;
+	struct theme *theme = server.theme;
 
 	/* Menu item root node */
 	menuitem->tree = lab_wlr_scene_tree_create(menu->scene_tree);
@@ -291,7 +291,7 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 	assert(menuitem);
 	assert(menuitem->type == LAB_MENU_SEPARATOR_LINE);
 	struct menu *menu = menuitem->parent;
-	struct theme *theme = g_server.theme;
+	struct theme *theme = server.theme;
 
 	/* Menu item root node */
 	menuitem->tree = lab_wlr_scene_tree_create(menu->scene_tree);
@@ -337,7 +337,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	assert(menuitem);
 	assert(menuitem->type == LAB_MENU_TITLE);
 	struct menu *menu = menuitem->parent;
-	struct theme *theme = g_server.theme;
+	struct theme *theme = server.theme;
 	float *bg_color = theme->menu_title_bg_color;
 	float *text_color = theme->menu_title_text_color;
 
@@ -411,11 +411,11 @@ static void
 menu_create_scene(struct menu *menu)
 {
 	struct menuitem *item;
-	struct theme *theme = g_server.theme;
+	struct theme *theme = server.theme;
 
 	assert(!menu->scene_tree);
 
-	menu->scene_tree = lab_wlr_scene_tree_create(g_server.menu_tree);
+	menu->scene_tree = lab_wlr_scene_tree_create(server.menu_tree);
 	wlr_scene_node_set_enabled(&menu->scene_tree->node, false);
 
 	/* Menu width is the maximum item width, capped by menu.width.{min,max} */
@@ -780,7 +780,7 @@ menu_hide_submenu(const char *id)
 	if (!hide_menu) {
 		return;
 	}
-	wl_list_for_each(menu, &g_server.menus, link) {
+	wl_list_for_each(menu, &server.menus, link) {
 		struct menuitem *item, *next;
 		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
 			if (item->submenu == hide_menu) {
@@ -821,8 +821,8 @@ update_client_send_to_menu(void)
 	 * GoToDesktop will be called as part of the action.
 	 */
 	struct buf buf = BUF_INIT;
-	wl_list_for_each(workspace, &g_server.workspaces.all, link) {
-		if (workspace == g_server.workspaces.current) {
+	wl_list_for_each(workspace, &server.workspaces.all, link) {
+		if (workspace == server.workspaces.current) {
 			buf_add_fmt(&buf, ">%s<", workspace->name);
 		} else {
 			buf_add(&buf, workspace->name);
@@ -866,20 +866,20 @@ update_client_list_combined_menu(void)
 	struct view *view;
 	struct buf buffer = BUF_INIT;
 
-	wl_list_for_each(workspace, &g_server.workspaces.all, link) {
-		buf_add_fmt(&buffer, workspace == g_server.workspaces.current ? ">%s<" : "%s",
+	wl_list_for_each(workspace, &server.workspaces.all, link) {
+		buf_add_fmt(&buffer, workspace == server.workspaces.current ? ">%s<" : "%s",
 				workspace->name);
 		separator_create(menu, buffer.data);
 		buf_clear(&buffer);
 
-		wl_list_for_each(view, &g_server.views, link) {
+		wl_list_for_each(view, &server.views, link) {
 			if (view->workspace == workspace) {
 				if (!view->foreign_toplevel
 						|| string_null_or_empty(view->title)) {
 					continue;
 				}
 
-				if (view == g_server.active_view) {
+				if (view == server.active_view) {
 					buf_add(&buffer, "*");
 				}
 				if (view->minimized) {
@@ -966,7 +966,7 @@ init_windowmenu(void)
 void
 menu_init(void)
 {
-	wl_list_init(&g_server.menus);
+	wl_list_init(&server.menus);
 
 	/* Just create placeholder. Contents will be created when launched */
 	menu_create(NULL, "client-list-combined-menu", _("Windows"));
@@ -982,7 +982,7 @@ static void
 nullify_item_pointing_to_this_menu(struct menu *menu)
 {
 	struct menu *iter;
-	wl_list_for_each(iter, &g_server.menus, link) {
+	wl_list_for_each(iter, &server.menus, link) {
 		struct menuitem *item;
 		wl_list_for_each(item, &iter->menuitems, link) {
 			if (item->submenu == menu) {
@@ -1013,7 +1013,7 @@ menu_free(struct menu *menu)
 	/* Keep items clean on pipemenu destruction */
 	nullify_item_pointing_to_this_menu(menu);
 
-	if (g_server.menu_current == menu) {
+	if (server.menu_current == menu) {
 		menu_close_root();
 	}
 
@@ -1046,7 +1046,7 @@ void
 menu_finish(void)
 {
 	struct menu *menu, *tmp_menu;
-	wl_list_for_each_safe(menu, tmp_menu, &g_server.menus, link) {
+	wl_list_for_each_safe(menu, tmp_menu, &server.menus, link) {
 		menu_free(menu);
 	}
 }
@@ -1055,8 +1055,8 @@ void
 menu_on_view_destroy(struct view *view)
 {
 	/* If the view being destroy has an open window menu, then close it */
-	if (g_server.menu_current
-			&& g_server.menu_current->triggered_by_view == view) {
+	if (server.menu_current
+			&& server.menu_current->triggered_by_view == view) {
 		menu_close_root();
 	}
 
@@ -1108,10 +1108,10 @@ static void
 reset_pipemenus(void)
 {
 	wlr_log(WLR_DEBUG, "number of menus before close=%d",
-		wl_list_length(&g_server.menus));
+		wl_list_length(&server.menus));
 
 	struct menu *iter, *tmp;
-	wl_list_for_each_safe(iter, tmp, &g_server.menus, link) {
+	wl_list_for_each_safe(iter, tmp, &server.menus, link) {
 		if (iter->is_pipemenu_child) {
 			/* Destroy submenus of pipemenus */
 			menu_free(iter);
@@ -1125,7 +1125,7 @@ reset_pipemenus(void)
 	}
 
 	wlr_log(WLR_DEBUG, "number of menus after  close=%d",
-		wl_list_length(&g_server.menus));
+		wl_list_length(&server.menus));
 }
 
 static void
@@ -1179,11 +1179,11 @@ menu_open_root(struct menu *menu, int x, int y)
 {
 	assert(menu);
 
-	if (g_server.input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
+	if (server.input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		return;
 	}
 
-	assert(!g_server.menu_current);
+	assert(!server.menu_current);
 
 	struct wlr_box anchor_rect = {.x = x, .y = y};
 	if (menu->execute) {
@@ -1192,9 +1192,9 @@ menu_open_root(struct menu *menu, int x, int y)
 		open_menu(menu, anchor_rect);
 	}
 
-	g_server.menu_current = menu;
+	server.menu_current = menu;
 	selected_item = NULL;
-	seat_focus_override_begin(&g_server.seat,
+	seat_focus_override_begin(&server.seat,
 		LAB_INPUT_STATE_MENU, LAB_CURSOR_DEFAULT);
 }
 
@@ -1307,10 +1307,10 @@ open_pipemenu_async(struct menu *pipemenu, struct wlr_box anchor_rect)
 	ctx->pipemenu = pipemenu;
 	pipemenu->pipe_ctx = ctx;
 
-	ctx->event_read = wl_event_loop_add_fd(g_server.wl_event_loop,
+	ctx->event_read = wl_event_loop_add_fd(server.wl_event_loop,
 		pipe_fd, WL_EVENT_READABLE, handle_pipemenu_readable, ctx);
 
-	ctx->event_timeout = wl_event_loop_add_timer(g_server.wl_event_loop,
+	ctx->event_timeout = wl_event_loop_add_timer(server.wl_event_loop,
 		handle_pipemenu_timeout, ctx);
 	wl_event_source_timer_update(ctx->event_timeout, PIPEMENU_TIMEOUT_IN_MS);
 
@@ -1351,7 +1351,7 @@ menu_process_item_selection(struct menuitem *item)
 		item->submenu->parent = item->parent;
 		/* And open the new submenu tree */
 		struct wlr_box anchor_rect =
-			get_item_anchor_rect(g_server.theme, item);
+			get_item_anchor_rect(server.theme, item);
 		if (item->submenu->execute && !item->submenu->scene_tree) {
 			open_pipemenu_async(item->submenu, anchor_rect);
 		} else {
@@ -1366,7 +1366,7 @@ menu_process_item_selection(struct menuitem *item)
 static struct menu *
 get_selection_leaf(void)
 {
-	struct menu *menu = g_server.menu_current;
+	struct menu *menu = server.menu_current;
 	if (!menu) {
 		return NULL;
 	}
@@ -1420,9 +1420,9 @@ menu_execute_item(struct menuitem *item)
 		return false;
 	}
 
-	menu_close(g_server.menu_current);
-	g_server.menu_current = NULL;
-	seat_focus_override_end(&g_server.seat, /*restore_focus*/ true);
+	menu_close(server.menu_current);
+	server.menu_current = NULL;
+	seat_focus_override_end(&server.seat, /*restore_focus*/ true);
 
 	/*
 	 * We call the actions after closing the menu so that virtual keyboard
@@ -1518,19 +1518,19 @@ menu_process_cursor_motion(struct wlr_scene_node *node)
 void
 menu_close_root(void)
 {
-	assert(g_server.input_mode == LAB_INPUT_STATE_MENU);
-	assert(g_server.menu_current);
+	assert(server.input_mode == LAB_INPUT_STATE_MENU);
+	assert(server.menu_current);
 
-	menu_close(g_server.menu_current);
-	g_server.menu_current = NULL;
+	menu_close(server.menu_current);
+	server.menu_current = NULL;
 	reset_pipemenus();
-	seat_focus_override_end(&g_server.seat, /*restore_focus*/ true);
+	seat_focus_override_end(&server.seat, /*restore_focus*/ true);
 }
 
 void
 menu_reconfigure(void)
 {
 	menu_finish();
-	g_server.menu_current = NULL;
+	server.menu_current = NULL;
 	menu_init();
 }

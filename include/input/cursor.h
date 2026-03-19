@@ -82,7 +82,7 @@ void cursor_context_save(struct cursor_context_saved *saved_ctx,
 
 /**
  * cursor_get_resize_edges - calculate resize edge based on cursor position
- * @cursor - the current cursor (usually g_server.seat.cursor)
+ * @cursor - the current cursor (usually server.seat.cursor)
  * @cursor_context - result of get_cursor_context()
  *
  * Calculates the resize edge combination that is most appropriate based

@@ -51,7 +51,7 @@ output_get_tearing_allowance(struct output *output)
 		return false;
 	}
 
-	struct view *view = g_server.active_view;
+	struct view *view = server.active_view;
 
 	/* tearing is only allowed for the output with the active view */
 	if (!view || view->output != output) {
@@ -96,7 +96,7 @@ output_apply_gamma(struct output *output)
 	output->gamma_lut_changed = false;
 	struct wlr_gamma_control_v1 *gamma_control =
 		wlr_gamma_control_manager_v1_get_control(
-			g_server.gamma_control_manager_v1,
+			server.gamma_control_manager_v1,
 			output->wlr_output);
 
 	if (!wlr_gamma_control_v1_apply(gamma_control, &pending)) {
@@ -126,7 +126,7 @@ handle_output_frame(struct wl_listener *listener, void *data)
 	/*
 	 * skip painting the session when it exists but is not active.
 	 */
-	if (g_server.session && !g_server.session->active) {
+	if (server.session && !server.session->active) {
 		return;
 	}
 
@@ -157,7 +157,7 @@ static void
 handle_output_destroy(struct wl_listener *listener, void *data)
 {
 	struct output *output = wl_container_of(listener, output, destroy);
-	struct seat *seat = &g_server.seat;
+	struct seat *seat = &server.seat;
 	regions_evacuate_output(output);
 	regions_destroy(seat, &output->regions);
 	if (seat->overlay.active.output == output) {
@@ -181,7 +181,7 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	}
 
 	struct view *view;
-	wl_list_for_each(view, &g_server.views, link) {
+	wl_list_for_each(view, &server.views, link) {
 		if (view->output == output) {
 			view_on_output_destroy(view);
 		}
@@ -201,13 +201,13 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	 * windows and cannot be reconnected. Exit the compositor
 	 * when the last one is destroyed.
 	 */
-	if (wl_list_empty(&g_server.outputs) && (
+	if (wl_list_empty(&server.outputs) && (
 			wlr_output_is_wl(output->wlr_output)
 #if WLR_HAS_X11_BACKEND
 			|| wlr_output_is_x11(output->wlr_output)
 #endif
 	)) {
-		wl_display_terminate(g_server.wl_display);
+		wl_display_terminate(server.wl_display);
 	}
 
 	/*
@@ -263,7 +263,7 @@ add_output_to_layout(struct output *output)
 {
 	struct wlr_output *wlr_output = output->wlr_output;
 	struct wlr_output_layout_output *layout_output =
-		wlr_output_layout_add_auto(g_server.output_layout, wlr_output);
+		wlr_output_layout_add_auto(server.output_layout, wlr_output);
 	if (!layout_output) {
 		wlr_log(WLR_ERROR, "unable to add output to layout");
 		return;
@@ -271,7 +271,7 @@ add_output_to_layout(struct output *output)
 
 	if (!output->scene_output) {
 		output->scene_output =
-			wlr_scene_output_create(g_server.scene, wlr_output);
+			wlr_scene_output_create(server.scene, wlr_output);
 		if (!output->scene_output) {
 			wlr_log(WLR_ERROR, "unable to create scene output");
 			return;
@@ -281,21 +281,21 @@ add_output_to_layout(struct output *output)
 		 * safe to call twice, so we call it only when initially
 		 * creating the scene_output.
 		 */
-		wlr_scene_output_layout_add_output(g_server.scene_layout,
+		wlr_scene_output_layout_add_output(server.scene_layout,
 			layout_output, output->scene_output);
 	}
 
 	lab_cosmic_workspace_group_output_enter(
-		g_server.workspaces.cosmic_group, output->wlr_output);
+		server.workspaces.cosmic_group, output->wlr_output);
 	lab_ext_workspace_group_output_enter(
-		g_server.workspaces.ext_group, output->wlr_output);
+		server.workspaces.ext_group, output->wlr_output);
 
 	/* (Re-)create regions from config */
 	regions_reconfigure_output(output);
 
 	/* Create lock surface if needed */
-	if (g_server.session_lock_manager->locked) {
-		session_lock_output_create(g_server.session_lock_manager, output);
+	if (server.session_lock_manager->locked) {
+		session_lock_output_create(server.session_lock_manager, output);
 	}
 }
 
@@ -413,9 +413,9 @@ configure_new_output(struct output *output)
 	 * calling do_output_layout_change(); this ensures that the
 	 * wlr_output_cursor is created for the new output.
 	 */
-	g_server.pending_output_layout_change++;
+	server.pending_output_layout_change++;
 	add_output_to_layout(output);
-	g_server.pending_output_layout_change--;
+	server.pending_output_layout_change--;
 }
 
 static uint64_t
@@ -423,7 +423,7 @@ get_unused_output_id_bit(void)
 {
 	uint64_t used_id_bits = 0;
 	struct output *output;
-	wl_list_for_each(output, &g_server.outputs, link) {
+	wl_list_for_each(output, &server.outputs, link) {
 		used_id_bits |= output->id_bit;
 	}
 
@@ -431,7 +431,7 @@ get_unused_output_id_bit(void)
 		return 0;
 	}
 
-	uint64_t id_bit = g_server.next_output_id_bit;
+	uint64_t id_bit = server.next_output_id_bit;
 	/*
 	 * __builtin_popcountll() should be supported by GCC & clang.
 	 * If it causes portability issues, just remove the assert.
@@ -448,7 +448,7 @@ get_unused_output_id_bit(void)
 	 * can cycle through all 64 available bits, making re-use less
 	 * frequent (on a best-effort basis).
 	 */
-	g_server.next_output_id_bit = (id_bit << 1) | (id_bit >> 63);
+	server.next_output_id_bit = (id_bit << 1) | (id_bit >> 63);
 
 	return id_bit;
 }
@@ -463,7 +463,7 @@ handle_new_output(struct wl_listener *listener, void *data)
 	struct wlr_output *wlr_output = data;
 
 	struct output *output;
-	wl_list_for_each(output, &g_server.outputs, link) {
+	wl_list_for_each(output, &server.outputs, link) {
 		if (output->wlr_output == wlr_output) {
 			/*
 			 * This is a duplicated notification.
@@ -503,9 +503,9 @@ handle_new_output(struct wl_listener *listener, void *data)
 	 * TODO: remove once labwc starts tracking 0.20.x and the fix has been merged.
 	 */
 #if LAB_WLR_VERSION_AT_LEAST(0, 19, 1)
-	if (g_server.drm_lease_manager && wlr_output_is_drm(wlr_output)) {
+	if (server.drm_lease_manager && wlr_output_is_drm(wlr_output)) {
 		wlr_drm_lease_v1_manager_offer_output(
-			g_server.drm_lease_manager, wlr_output);
+			server.drm_lease_manager, wlr_output);
 	}
 #endif
 
@@ -521,8 +521,8 @@ handle_new_output(struct wl_listener *listener, void *data)
 	 * Configures the output created by the backend to use our allocator
 	 * and our renderer. Must be done once, before committing the output
 	 */
-	if (!wlr_output_init_render(wlr_output, g_server.allocator,
-			g_server.renderer)) {
+	if (!wlr_output_init_render(wlr_output, server.allocator,
+			server.renderer)) {
 		wlr_log(WLR_ERROR, "unable to init output renderer");
 		return;
 	}
@@ -533,7 +533,7 @@ handle_new_output(struct wl_listener *listener, void *data)
 	output->id_bit = id_bit;
 	output_state_init(output);
 
-	wl_list_insert(&g_server.outputs, &output->link);
+	wl_list_insert(&server.outputs, &output->link);
 
 	output->destroy.notify = handle_output_destroy;
 	wl_signal_add(&wlr_output->events.destroy, &output->destroy);
@@ -551,11 +551,11 @@ handle_new_output(struct wl_listener *listener, void *data)
 	 */
 	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		output->layer_tree[i] =
-			lab_wlr_scene_tree_create(&g_server.scene->tree);
+			lab_wlr_scene_tree_create(&server.scene->tree);
 	}
-	output->layer_popup_tree = lab_wlr_scene_tree_create(&g_server.scene->tree);
-	output->cycle_osd_tree = lab_wlr_scene_tree_create(&g_server.scene->tree);
-	output->session_lock_tree = lab_wlr_scene_tree_create(&g_server.scene->tree);
+	output->layer_popup_tree = lab_wlr_scene_tree_create(&server.scene->tree);
+	output->cycle_osd_tree = lab_wlr_scene_tree_create(&server.scene->tree);
+	output->session_lock_tree = lab_wlr_scene_tree_create(&server.scene->tree);
 
 	/*
 	 * Set the z-positions to achieve the following order (from top to
@@ -573,7 +573,7 @@ handle_new_output(struct wl_listener *listener, void *data)
 	wlr_scene_node_lower_to_bottom(&output->layer_tree[1]->node);
 	wlr_scene_node_lower_to_bottom(&output->layer_tree[0]->node);
 
-	struct wlr_scene_node *menu_node = &g_server.menu_tree->node;
+	struct wlr_scene_node *menu_node = &server.menu_tree->node;
 	wlr_scene_node_place_below(&output->layer_tree[2]->node, menu_node);
 	wlr_scene_node_place_below(&output->layer_tree[3]->node, menu_node);
 	wlr_scene_node_place_below(&output->layer_popup_tree->node, menu_node);
@@ -599,34 +599,34 @@ static void output_manager_init(void);
 void
 output_init(void)
 {
-	g_server.gamma_control_manager_v1 =
-		wlr_gamma_control_manager_v1_create(g_server.wl_display);
+	server.gamma_control_manager_v1 =
+		wlr_gamma_control_manager_v1_create(server.wl_display);
 
-	g_server.new_output.notify = handle_new_output;
-	wl_signal_add(&g_server.backend->events.new_output, &g_server.new_output);
+	server.new_output.notify = handle_new_output;
+	wl_signal_add(&server.backend->events.new_output, &server.new_output);
 
 	/*
 	 * Create an output layout, which is a wlroots utility for working with
 	 * an arrangement of screens in a physical layout.
 	 */
-	g_server.output_layout = wlr_output_layout_create(g_server.wl_display);
-	if (!g_server.output_layout) {
+	server.output_layout = wlr_output_layout_create(server.wl_display);
+	if (!server.output_layout) {
 		wlr_log(WLR_ERROR, "unable to create output layout");
 		exit(EXIT_FAILURE);
 	}
-	g_server.scene_layout = wlr_scene_attach_output_layout(g_server.scene,
-		g_server.output_layout);
-	if (!g_server.scene_layout) {
+	server.scene_layout = wlr_scene_attach_output_layout(server.scene,
+		server.output_layout);
+	if (!server.scene_layout) {
 		wlr_log(WLR_ERROR, "unable to create scene layout");
 		exit(EXIT_FAILURE);
 	}
 
 	/* Enable screen recording with wf-recorder */
-	wlr_xdg_output_manager_v1_create(g_server.wl_display,
-		g_server.output_layout);
+	wlr_xdg_output_manager_v1_create(server.wl_display,
+		server.output_layout);
 
-	wl_list_init(&g_server.outputs);
-	g_server.next_output_id_bit = (1 << 0);
+	wl_list_init(&server.outputs);
+	server.next_output_id_bit = (1 << 0);
 
 	output_manager_init();
 }
@@ -636,7 +636,7 @@ static void output_manager_finish(void);
 void
 output_finish(void)
 {
-	wl_list_remove(&g_server.new_output.link);
+	wl_list_remove(&server.new_output.link);
 	output_manager_finish();
 }
 
@@ -651,15 +651,15 @@ output_update_for_layout_change(void)
 	 * align with the seat cursor. Re-set the cursor image so that
 	 * the cursor isn't invisible on new outputs.
 	 */
-	wlr_cursor_move(g_server.seat.cursor, NULL, 0, 0);
-	cursor_update_image(&g_server.seat);
+	wlr_cursor_move(server.seat.cursor, NULL, 0, 0);
+	cursor_update_image(&server.seat);
 }
 
 static bool
 output_config_apply(struct wlr_output_configuration_v1 *config)
 {
 	bool success = true;
-	g_server.pending_output_layout_change++;
+	server.pending_output_layout_change++;
 
 	struct wlr_output_configuration_head_v1 *head;
 	wl_list_for_each(head, &config->heads, link) {
@@ -708,7 +708,7 @@ output_config_apply(struct wlr_output_configuration_v1 *config)
 		 * been enabled but not yet been added to the layout.
 		 */
 		bool was_in_layout =
-			!!wlr_output_layout_get(g_server.output_layout, o);
+			!!wlr_output_layout_get(server.output_layout, o);
 
 		if (output_enabled) {
 			if (!was_in_layout) {
@@ -716,23 +716,23 @@ output_config_apply(struct wlr_output_configuration_v1 *config)
 			}
 
 			struct wlr_box pos = {0};
-			wlr_output_layout_get_box(g_server.output_layout, o, &pos);
+			wlr_output_layout_get_box(server.output_layout, o, &pos);
 			if (pos.x != head->state.x || pos.y != head->state.y) {
 				/*
 				 * This overrides the automatic layout
 				 *
 				 * wlr_output_layout_add() in fact means _move()
 				 */
-				wlr_output_layout_add(g_server.output_layout, o,
+				wlr_output_layout_add(server.output_layout, o,
 					head->state.x, head->state.y);
 			}
 		} else if (was_in_layout) {
 			regions_evacuate_output(output);
 
 			lab_cosmic_workspace_group_output_leave(
-				g_server.workspaces.cosmic_group, output->wlr_output);
+				server.workspaces.cosmic_group, output->wlr_output);
 			lab_ext_workspace_group_output_leave(
-				g_server.workspaces.ext_group, output->wlr_output);
+				server.workspaces.ext_group, output->wlr_output);
 
 			/*
 			 * At time of writing, wlr_output_layout_remove()
@@ -743,12 +743,12 @@ output_config_apply(struct wlr_output_configuration_v1 *config)
 			 * calling wlr_output_layout_remove().
 			 */
 			wlr_scene_output_destroy(output->scene_output);
-			wlr_output_layout_remove(g_server.output_layout, o);
+			wlr_output_layout_remove(server.output_layout, o);
 			output->scene_output = NULL;
 		}
 	}
 
-	g_server.pending_output_layout_change--;
+	server.pending_output_layout_change--;
 	do_output_layout_change();
 	return success;
 }
@@ -839,14 +839,14 @@ handle_output_manager_apply(struct wl_listener *listener, void *data)
 	}
 	wlr_output_configuration_v1_destroy(config);
 	struct output *output;
-	wl_list_for_each(output, &g_server.outputs, link) {
-		wlr_xcursor_manager_load(g_server.seat.xcursor_manager,
+	wl_list_for_each(output, &server.outputs, link) {
+		wlr_xcursor_manager_load(server.seat.xcursor_manager,
 			output->wlr_output->scale);
 	}
 
 	/* Re-set cursor image in case scale changed */
 	cursor_update_focus();
-	cursor_update_image(&g_server.seat);
+	cursor_update_image(&server.seat);
 }
 
 /*
@@ -865,7 +865,7 @@ wlr_output_configuration_v1 *create_output_config(void)
 	}
 
 	struct output *output;
-	wl_list_for_each(output, &g_server.outputs, link) {
+	wl_list_for_each(output, &server.outputs, link) {
 		struct wlr_output_configuration_head_v1 *head =
 			wlr_output_configuration_head_v1_create(config,
 				output->wlr_output);
@@ -886,18 +886,18 @@ wlr_output_configuration_v1 *create_output_config(void)
 static void
 do_output_layout_change(void)
 {
-	if (!g_server.pending_output_layout_change) {
+	if (!server.pending_output_layout_change) {
 		struct wlr_output_configuration_v1 *config =
 			create_output_config();
 		if (config) {
 			wlr_output_manager_v1_set_configuration(
-				g_server.output_manager, config);
+				server.output_manager, config);
 		} else {
 			wlr_log(WLR_ERROR,
 				"wlr_output_manager_v1_set_configuration()");
 		}
 		output_update_for_layout_change();
-		seat_output_layout_changed(&g_server.seat);
+		seat_output_layout_changed(&server.seat);
 	}
 }
 
@@ -905,9 +905,9 @@ static void
 handle_output_layout_change(struct wl_listener *listener, void *data)
 {
 	/* Prevents unnecessary layout recalculations */
-	g_server.pending_output_layout_change++;
+	server.pending_output_layout_change++;
 	output_virtual_update_fallback();
-	g_server.pending_output_layout_change--;
+	server.pending_output_layout_change--;
 
 	do_output_layout_change();
 }
@@ -928,39 +928,39 @@ handle_gamma_control_set_gamma(struct wl_listener *listener, void *data)
 static void
 output_manager_init(void)
 {
-	g_server.output_manager = wlr_output_manager_v1_create(g_server.wl_display);
+	server.output_manager = wlr_output_manager_v1_create(server.wl_display);
 
-	g_server.output_layout_change.notify = handle_output_layout_change;
-	wl_signal_add(&g_server.output_layout->events.change,
-		&g_server.output_layout_change);
+	server.output_layout_change.notify = handle_output_layout_change;
+	wl_signal_add(&server.output_layout->events.change,
+		&server.output_layout_change);
 
-	g_server.output_manager_apply.notify = handle_output_manager_apply;
-	wl_signal_add(&g_server.output_manager->events.apply,
-		&g_server.output_manager_apply);
+	server.output_manager_apply.notify = handle_output_manager_apply;
+	wl_signal_add(&server.output_manager->events.apply,
+		&server.output_manager_apply);
 
-	g_server.output_manager_test.notify = handle_output_manager_test;
-	wl_signal_add(&g_server.output_manager->events.test,
-		&g_server.output_manager_test);
+	server.output_manager_test.notify = handle_output_manager_test;
+	wl_signal_add(&server.output_manager->events.test,
+		&server.output_manager_test);
 
-	g_server.gamma_control_set_gamma.notify = handle_gamma_control_set_gamma;
-	wl_signal_add(&g_server.gamma_control_manager_v1->events.set_gamma,
-		&g_server.gamma_control_set_gamma);
+	server.gamma_control_set_gamma.notify = handle_gamma_control_set_gamma;
+	wl_signal_add(&server.gamma_control_manager_v1->events.set_gamma,
+		&server.gamma_control_set_gamma);
 }
 
 static void
 output_manager_finish(void)
 {
-	wl_list_remove(&g_server.output_layout_change.link);
-	wl_list_remove(&g_server.output_manager_apply.link);
-	wl_list_remove(&g_server.output_manager_test.link);
-	wl_list_remove(&g_server.gamma_control_set_gamma.link);
+	wl_list_remove(&server.output_layout_change.link);
+	wl_list_remove(&server.output_manager_apply.link);
+	wl_list_remove(&server.output_manager_test.link);
+	wl_list_remove(&server.gamma_control_set_gamma.link);
 }
 
 struct output *
 output_from_wlr_output(struct wlr_output *wlr_output)
 {
 	struct output *output;
-	wl_list_for_each(output, &g_server.outputs, link) {
+	wl_list_for_each(output, &server.outputs, link) {
 		if (output->wlr_output == wlr_output) {
 			return output;
 		}
@@ -972,7 +972,7 @@ struct output *
 output_from_name(const char *name)
 {
 	struct output *output;
-	wl_list_for_each(output, &g_server.outputs, link) {
+	wl_list_for_each(output, &server.outputs, link) {
 		if (!output_is_usable(output) || !output->wlr_output->name) {
 			continue;
 		}
@@ -987,18 +987,18 @@ struct output *
 output_nearest_to(int lx, int ly)
 {
 	double closest_x, closest_y;
-	wlr_output_layout_closest_point(g_server.output_layout, NULL, lx, ly,
+	wlr_output_layout_closest_point(server.output_layout, NULL, lx, ly,
 		&closest_x, &closest_y);
 
-	return output_from_wlr_output(wlr_output_layout_output_at(g_server.output_layout,
+	return output_from_wlr_output(wlr_output_layout_output_at(server.output_layout,
 			closest_x, closest_y));
 }
 
 struct output *
 output_nearest_to_cursor(void)
 {
-	return output_nearest_to(g_server.seat.cursor->x,
-		g_server.seat.cursor->y);
+	return output_nearest_to(server.seat.cursor->x,
+		server.seat.cursor->y);
 }
 
 struct output *
@@ -1022,7 +1022,7 @@ output_get_adjacent(struct output *output, enum lab_edge edge, bool wrap)
 	/* Determine any adjacent output in the appropriate direction */
 	struct wlr_output *new_output = NULL;
 	struct wlr_output *current_output = output->wlr_output;
-	struct wlr_output_layout *layout = g_server.output_layout;
+	struct wlr_output_layout *layout = server.output_layout;
 	/* Cast from enum lab_edge to enum wlr_direction is safe */
 	new_output = wlr_output_layout_adjacent_output(layout,
 		(enum wlr_direction)edge, current_output, lx, ly);
@@ -1076,10 +1076,10 @@ update_usable_area(struct output *output)
 
 #if HAVE_XWAYLAND
 	struct view *view;
-	wl_list_for_each(view, &g_server.views, link) {
+	wl_list_for_each(view, &server.views, link) {
 		if (view->mapped && view->type == LAB_XWAYLAND_VIEW) {
 			xwayland_adjust_usable_area(view,
-				g_server.output_layout,
+				server.output_layout,
 				output->wlr_output, &output->usable_area);
 		}
 	}
@@ -1105,7 +1105,7 @@ output_update_all_usable_areas(bool layout_changed)
 	bool usable_area_changed = false;
 	struct output *output;
 
-	wl_list_for_each(output, &g_server.outputs, link) {
+	wl_list_for_each(output, &server.outputs, link) {
 		if (update_usable_area(output)) {
 			usable_area_changed = true;
 			regions_update_geometry(output);
@@ -1129,7 +1129,7 @@ output_usable_area_in_layout_coords(struct output *output)
 	}
 	struct wlr_box box = output->usable_area;
 	double ox = 0, oy = 0;
-	wlr_output_layout_output_coords(g_server.output_layout,
+	wlr_output_layout_output_coords(server.output_layout,
 		output->wlr_output, &ox, &oy);
 	box.x -= ox;
 	box.y -= oy;
@@ -1161,7 +1161,7 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 		 * Re-set the cursor image so that the cursor
 		 * isn't invisible on the newly enabled output.
 		 */
-		cursor_update_image(&g_server.seat);
+		cursor_update_image(&server.seat);
 		break;
 	}
 }

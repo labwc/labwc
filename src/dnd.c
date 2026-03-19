@@ -84,7 +84,7 @@ handle_drag_destroy(struct wl_listener *listener, void *data)
 void
 dnd_init(struct seat *seat)
 {
-	seat->drag.icons = lab_wlr_scene_tree_create(&g_server.scene->tree);
+	seat->drag.icons = lab_wlr_scene_tree_create(&server.scene->tree);
 	wlr_scene_node_set_enabled(&seat->drag.icons->node, false);
 
 	seat->drag.events.request.notify = handle_drag_request;

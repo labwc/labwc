@@ -123,7 +123,7 @@ handle_new_outputs(struct wl_listener *listener, void *data)
 	 * wlr_foreign_toplevel handle the rest.
 	 */
 	struct output *output;
-	wl_list_for_each(output, &g_server.outputs, link) {
+	wl_list_for_each(output, &server.outputs, link) {
 		if (view_on_output(wlr_toplevel->view, output)) {
 			wlr_foreign_toplevel_handle_v1_output_enter(
 				wlr_toplevel->handle, output->wlr_output);
@@ -184,11 +184,11 @@ void
 wlr_foreign_toplevel_init(struct wlr_foreign_toplevel *wlr_toplevel,
 		struct view *view)
 {
-	assert(g_server.foreign_toplevel_manager);
+	assert(server.foreign_toplevel_manager);
 	wlr_toplevel->view = view;
 
 	wlr_toplevel->handle = wlr_foreign_toplevel_handle_v1_create(
-		g_server.foreign_toplevel_manager);
+		server.foreign_toplevel_manager);
 	if (!wlr_toplevel->handle) {
 		wlr_log(WLR_ERROR, "cannot create wlr foreign toplevel handle for (%s)",
 			view->title);
@@ -203,7 +203,7 @@ wlr_foreign_toplevel_init(struct wlr_foreign_toplevel *wlr_toplevel,
 	handle_minimized(&wlr_toplevel->on_view.minimized, NULL);
 	handle_fullscreened(&wlr_toplevel->on_view.fullscreened, NULL);
 	handle_activated(&wlr_toplevel->on_view.activated,
-		&(bool){view == g_server.active_view});
+		&(bool){view == server.active_view});
 
 	/* Client side requests */
 	CONNECT_SIGNAL(wlr_toplevel->handle, &wlr_toplevel->on, request_maximize);

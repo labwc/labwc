@@ -19,7 +19,7 @@ handle_grab_focus(struct wl_listener *listener, void *data)
 	unmanaged->ever_grabbed_focus = true;
 	if (unmanaged->node) {
 		assert(unmanaged->xwayland_surface->surface);
-		seat_focus_surface(&g_server.seat,
+		seat_focus_surface(&server.seat,
 			unmanaged->xwayland_surface->surface);
 	}
 }
@@ -59,17 +59,17 @@ handle_map(struct wl_listener *listener, void *data)
 	assert(!unmanaged->node);
 
 	/* Stack new surface on top */
-	wl_list_append(&g_server.unmanaged_surfaces, &unmanaged->link);
+	wl_list_append(&server.unmanaged_surfaces, &unmanaged->link);
 
 	CONNECT_SIGNAL(xsurface, unmanaged, set_geometry);
 
 	if (wlr_xwayland_surface_override_redirect_wants_focus(xsurface)
 			|| unmanaged->ever_grabbed_focus) {
-		seat_focus_surface(&g_server.seat, xsurface->surface);
+		seat_focus_surface(&server.seat, xsurface->surface);
 	}
 
 	struct wlr_scene_surface *scene_surface = wlr_scene_surface_create(
-		g_server.unmanaged_tree, xsurface->surface);
+		server.unmanaged_tree, xsurface->surface);
 	die_if_null(scene_surface);
 	unmanaged->node = &scene_surface->buffer->node;
 
@@ -82,12 +82,12 @@ focus_next_surface(struct wlr_xwayland_surface *xsurface)
 {
 	/* Try to focus on last created unmanaged xwayland surface */
 	struct xwayland_unmanaged *u;
-	struct wl_list *list = &g_server.unmanaged_surfaces;
+	struct wl_list *list = &server.unmanaged_surfaces;
 	wl_list_for_each_reverse(u, list, link) {
 		struct wlr_xwayland_surface *prev = u->xwayland_surface;
 		if (wlr_xwayland_surface_override_redirect_wants_focus(prev)
 				|| u->ever_grabbed_focus) {
-			seat_focus_surface(&g_server.seat, prev->surface);
+			seat_focus_surface(&server.seat, prev->surface);
 			return;
 		}
 	}
@@ -113,8 +113,8 @@ focus_next_surface(struct wlr_xwayland_surface *xsurface)
 	 * If modifying this logic, please test for regressions with
 	 * menus/tooltips in JetBrains CLion or similar.
 	 */
-	if (g_server.active_view) {
-		seat_focus_surface(&g_server.seat, g_server.active_view->surface);
+	if (server.active_view) {
+		seat_focus_surface(&server.seat, server.active_view->surface);
 	}
 }
 
@@ -124,7 +124,7 @@ handle_unmap(struct wl_listener *listener, void *data)
 	struct xwayland_unmanaged *unmanaged =
 		wl_container_of(listener, unmanaged, mappable.unmap);
 	struct wlr_xwayland_surface *xsurface = unmanaged->xwayland_surface;
-	struct seat *seat = &g_server.seat;
+	struct seat *seat = &server.seat;
 	assert(unmanaged->node);
 
 	wl_list_remove(&unmanaged->link);
@@ -214,7 +214,7 @@ handle_request_activate(struct wl_listener *listener, void *data)
 	if (!xsurface->surface || !xsurface->surface->mapped) {
 		return;
 	}
-	struct seat *seat = &g_server.seat;
+	struct seat *seat = &server.seat;
 
 	/*
 	 * Validate that the unmanaged surface trying to grab focus is actually
@@ -223,7 +223,7 @@ handle_request_activate(struct wl_listener *listener, void *data)
 	 * FIXME: this logic is a bit incomplete/inconsistent. Refer to
 	 * https://github.com/labwc/labwc/discussions/2821 for more info.
 	 */
-	struct view *view = g_server.active_view;
+	struct view *view = server.active_view;
 	if (view && view->type == LAB_XWAYLAND_VIEW) {
 		struct wlr_xwayland_surface *surf =
 			wlr_xwayland_surface_try_from_wlr_surface(view->surface);

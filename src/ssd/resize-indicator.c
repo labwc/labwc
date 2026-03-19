@@ -62,7 +62,7 @@ wants_indicator(struct view *view)
 	assert(view);
 
 	if (rc.resize_indicator == LAB_RESIZE_INDICATOR_NON_PIXEL) {
-		if (g_server.input_mode != LAB_INPUT_STATE_RESIZE) {
+		if (server.input_mode != LAB_INPUT_STATE_RESIZE) {
 			return false;
 		}
 		struct view_size_hints hints = view_get_size_hints(view);
@@ -77,12 +77,12 @@ void
 resize_indicator_reconfigure(void)
 {
 	struct view *view;
-	wl_list_for_each(view, &g_server.views, link) {
+	wl_list_for_each(view, &server.views, link) {
 		struct resize_indicator *indicator = &view->resize_indicator;
 		if (indicator->tree) {
 			resize_indicator_reconfigure_view(indicator);
 		}
-		if (view != g_server.grabbed_view) {
+		if (view != server.grabbed_view) {
 			continue;
 		}
 
@@ -143,7 +143,7 @@ void
 resize_indicator_update(struct view *view)
 {
 	assert(view);
-	assert(view == g_server.grabbed_view);
+	assert(view == server.grabbed_view);
 
 	if (!wants_indicator(view)) {
 		return;
@@ -173,21 +173,21 @@ resize_indicator_update(struct view *view)
 		view_box.height = view_effective_height(view, /* use_pending */ false);
 	}
 
-	if (g_server.input_mode == LAB_INPUT_STATE_RESIZE) {
+	if (server.input_mode == LAB_INPUT_STATE_RESIZE) {
 		struct view_size_hints hints = view_get_size_hints(view);
 		snprintf(text, sizeof(text), "%d x %d",
 			MAX(0, view_box.width - hints.base_width)
 				/ MAX(1, hints.width_inc),
 			MAX(0, view_box.height - hints.base_height)
 				/ MAX(1, hints.height_inc));
-	} else if (g_server.input_mode == LAB_INPUT_STATE_MOVE) {
+	} else if (server.input_mode == LAB_INPUT_STATE_MOVE) {
 		struct border margin = ssd_get_margin(view->ssd);
 		snprintf(text, sizeof(text), "%d , %d",
 			view_box.x - margin.left,
 			view_box.y - margin.top);
 	} else {
 		wlr_log(WLR_ERROR, "Invalid input mode for indicator update %u",
-			g_server.input_mode);
+			server.input_mode);
 		return;
 	}
 

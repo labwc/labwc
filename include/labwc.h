@@ -313,7 +313,7 @@ struct server {
 };
 
 /* defined in main.c */
-extern struct server g_server;
+extern struct server server;
 
 void xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup);
 void xdg_shell_init(void);
@@ -405,8 +405,8 @@ void seat_focus_override_end(struct seat *seat, bool restore_focus);
 /**
  * interactive_anchor_to_cursor() - repositions the geometry to remain
  * underneath the cursor when its size changes during interactive move.
- * This function also resizes g_server.grab_box and repositions it to remain
- * underneath g_server.grab_{x,y}.
+ * This function also resizes server.grab_box and repositions it to remain
+ * underneath server.grab_{x,y}.
  *
  * geo->{width,height} are provided by the caller.
  * geo->{x,y} are computed by this function.

@@ -23,7 +23,7 @@
  * struct just adds noise to the code.
  */
 struct rcxml rc = { 0 };
-struct server g_server = { 0 };
+struct server server = { 0 };
 
 static const struct option long_options[] = {
 	{"config", required_argument, NULL, 'c'},
@@ -142,11 +142,11 @@ idle_callback(void *data)
 
 	/* Start session-manager if one is specified by -S|--session */
 	if (ctx->primary_client) {
-		g_server.primary_client_pid = spawn_primary_client(ctx->primary_client);
-		if (g_server.primary_client_pid < 0) {
+		server.primary_client_pid = spawn_primary_client(ctx->primary_client);
+		if (server.primary_client_pid < 0) {
 			wlr_log(WLR_ERROR, "fatal error starting primary client: %s",
 				ctx->primary_client);
-			wl_display_terminate(g_server.wl_display);
+			wl_display_terminate(server.wl_display);
 			return;
 		}
 	}
@@ -260,7 +260,7 @@ main(int argc, char *argv[])
 	struct theme theme = { 0 };
 	theme_init(&theme, rc.theme_name);
 	rc.theme = &theme;
-	g_server.theme = &theme;
+	server.theme = &theme;
 
 	menu_init();
 
@@ -269,9 +269,9 @@ main(int argc, char *argv[])
 		.primary_client = primary_client,
 		.startup_cmd = startup_cmd
 	};
-	wl_event_loop_add_idle(g_server.wl_event_loop, idle_callback, &idle_ctx);
+	wl_event_loop_add_idle(server.wl_event_loop, idle_callback, &idle_ctx);
 
-	wl_display_run(g_server.wl_display);
+	wl_display_run(server.wl_display);
 
 	session_shutdown();
 

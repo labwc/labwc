@@ -45,7 +45,7 @@ get_cycle_idx(struct cycle_osd_output *osd_output)
 	int idx = 0;
 	struct cycle_osd_item *item;
 	wl_list_for_each(item, &osd_output->items, link) {
-		if (item->view == g_server.cycle.selected_view) {
+		if (item->view == server.cycle.selected_view) {
 			return idx;
 		}
 		idx++;

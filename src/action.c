@@ -745,8 +745,8 @@ show_menu(struct view *view, struct cursor_context *ctx,
 		const char *menu_name, bool at_cursor,
 		const char *pos_x, const char *pos_y)
 {
-	if (g_server.input_mode != LAB_INPUT_STATE_PASSTHROUGH
-			&& g_server.input_mode != LAB_INPUT_STATE_MENU) {
+	if (server.input_mode != LAB_INPUT_STATE_PASSTHROUGH
+			&& server.input_mode != LAB_INPUT_STATE_MENU) {
 		/* Prevent opening a menu while resizing / moving a view */
 		return;
 	}
@@ -756,8 +756,8 @@ show_menu(struct view *view, struct cursor_context *ctx,
 		return;
 	}
 
-	int x = g_server.seat.cursor->x;
-	int y = g_server.seat.cursor->y;
+	int x = server.seat.cursor->x;
+	int y = server.seat.cursor->y;
 
 	/* The client menu needs an active client */
 	bool is_client_menu = !strcasecmp(menu_name, "client-menu");
@@ -776,7 +776,7 @@ show_menu(struct view *view, struct cursor_context *ctx,
 			int lx, ly;
 			wlr_scene_node_coords(ctx->node, &lx, &ly);
 			/* MAX() prevents negative x when the window is maximized */
-			x = MAX(x, lx - g_server.theme->menu_border_width);
+			x = MAX(x, lx - server.theme->menu_border_width);
 		}
 	}
 
@@ -786,7 +786,7 @@ show_menu(struct view *view, struct cursor_context *ctx,
 	 */
 	if (pos_x && pos_y) {
 		struct output *output = output_nearest_to(
-			g_server.seat.cursor->x, g_server.seat.cursor->y);
+			server.seat.cursor->x, server.seat.cursor->y);
 		struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
 		if (!strcasecmp(pos_x, "center")) {
@@ -846,7 +846,7 @@ view_for_action(struct view *activator, struct action *action, struct cursor_con
 		return ctx->view;
 	}
 	default:
-		return g_server.active_view;
+		return server.active_view;
 	}
 }
 
@@ -1079,7 +1079,7 @@ warp_cursor(struct view *view, const char *to, const char *x, const char *y)
 			target_area.y + target_area.height + offset_y;
 	}
 
-	wlr_cursor_warp(g_server.seat.cursor, NULL, goto_x, goto_y);
+	wlr_cursor_warp(server.seat.cursor, NULL, goto_x, goto_y);
 	cursor_update_focus();
 }
 
@@ -1117,7 +1117,7 @@ run_action(struct view *view, struct action *action,
 		break;
 	}
 	case ACTION_TYPE_EXIT:
-		wl_display_terminate(g_server.wl_display);
+		wl_display_terminate(server.wl_display);
 		break;
 	case ACTION_TYPE_MOVE_TO_EDGE:
 		if (view) {
@@ -1172,7 +1172,7 @@ run_action(struct view *view, struct action *action,
 			.app_id = action_get_int(action, "identifier",
 				CYCLE_APP_ID_ALL),
 		};
-		if (g_server.input_mode == LAB_INPUT_STATE_CYCLE) {
+		if (server.input_mode == LAB_INPUT_STATE_CYCLE) {
 			cycle_step(dir);
 		} else {
 			cycle_begin(dir, filter);
@@ -1250,7 +1250,7 @@ run_action(struct view *view, struct action *action,
 		}
 		break;
 	case ACTION_TYPE_UNFOCUS:
-		seat_focus_surface(&g_server.seat, NULL);
+		seat_focus_surface(&server.seat, NULL);
 		break;
 	case ACTION_TYPE_ICONIFY:
 		if (view) {
@@ -1274,7 +1274,7 @@ run_action(struct view *view, struct action *action,
 			 * set by button press handling. For keybind-triggered
 			 * Move, set it now from current cursor position.
 			 */
-			if (view != g_server.seat.pressed.ctx.view) {
+			if (view != server.seat.pressed.ctx.view) {
 				interactive_set_grab_context(ctx);
 			}
 			interactive_begin(view, LAB_INPUT_STATE_MOVE,
@@ -1295,7 +1295,7 @@ run_action(struct view *view, struct action *action,
 			 * set by button press handling. For keybind-triggered
 			 * Resize, set it now from current cursor position.
 			 */
-			if (view != g_server.seat.pressed.ctx.view) {
+			if (view != server.seat.pressed.ctx.view) {
 				interactive_set_grab_context(ctx);
 			}
 			interactive_begin(view, LAB_INPUT_STATE_RESIZE,
@@ -1370,12 +1370,12 @@ run_action(struct view *view, struct action *action,
 		 * a required argument for both SendToDesktop and GoToDesktop.
 		 */
 		struct workspace *target_workspace = workspaces_find(
-			g_server.workspaces.current, to, wrap);
+			server.workspaces.current, to, wrap);
 		if (action->type == ACTION_TYPE_GO_TO_DESKTOP) {
 			bool toggle = action_get_bool(action, "toggle", false);
-			if (target_workspace == g_server.workspaces.current
+			if (target_workspace == server.workspaces.current
 				&& toggle) {
-				target_workspace = g_server.workspaces.last;
+				target_workspace = server.workspaces.last;
 			}
 		}
 		if (!target_workspace) {
@@ -1386,7 +1386,7 @@ run_action(struct view *view, struct action *action,
 			follow = action_get_bool(action, "follow", true);
 
 			/* Ensure that the focus is not on another desktop */
-			if (!follow && g_server.active_view == view) {
+			if (!follow && server.active_view == view) {
 				desktop_focus_topmost_view();
 			}
 		}
@@ -1570,14 +1570,14 @@ run_action(struct view *view, struct action *action,
 		}
 		break;
 	case ACTION_TYPE_ENABLE_SCROLL_WHEEL_EMULATION:
-		g_server.seat.cursor_scroll_wheel_emulation = true;
+		server.seat.cursor_scroll_wheel_emulation = true;
 		break;
 	case ACTION_TYPE_DISABLE_SCROLL_WHEEL_EMULATION:
-		g_server.seat.cursor_scroll_wheel_emulation = false;
+		server.seat.cursor_scroll_wheel_emulation = false;
 		break;
 	case ACTION_TYPE_TOGGLE_SCROLL_WHEEL_EMULATION:
-		g_server.seat.cursor_scroll_wheel_emulation =
-			!g_server.seat.cursor_scroll_wheel_emulation;
+		server.seat.cursor_scroll_wheel_emulation =
+			!server.seat.cursor_scroll_wheel_emulation;
 		break;
 	case ACTION_TYPE_ENABLE_TABLET_MOUSE_EMULATION:
 		rc.tablet.force_mouse_emulation = true;
@@ -1605,7 +1605,7 @@ run_action(struct view *view, struct action *action,
 		break;
 	}
 	case ACTION_TYPE_HIDE_CURSOR:
-		cursor_set_visible(&g_server.seat, false);
+		cursor_set_visible(&server.seat, false);
 		break;
 	case ACTION_TYPE_INVALID:
 		wlr_log(WLR_ERROR, "Not executing unknown action");
@@ -1640,7 +1640,7 @@ actions_run(struct view *activator, struct wl_list *actions, struct cursor_conte
 
 	struct action *action;
 	wl_list_for_each(action, actions, link) {
-		if (g_server.input_mode == LAB_INPUT_STATE_CYCLE
+		if (server.input_mode == LAB_INPUT_STATE_CYCLE
 				&& action->type != ACTION_TYPE_NEXT_WINDOW
 				&& action->type != ACTION_TYPE_PREVIOUS_WINDOW) {
 			wlr_log(WLR_INFO, "Only NextWindow or PreviousWindow "

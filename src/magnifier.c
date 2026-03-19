@@ -41,7 +41,7 @@ box_logical_to_physical(struct wlr_box *box, struct wlr_output *output)
 void
 magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
 {
-	struct theme *theme = g_server.theme;
+	struct theme *theme = server.theme;
 	bool fullscreen = (rc.mag_width == -1 || rc.mag_height == -1);
 
 	struct wlr_box output_box = {
@@ -50,9 +50,9 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 	};
 
 	/* Cursor position in per-output logical coordinate */
-	double cursor_logical_x = g_server.seat.cursor->x;
-	double cursor_logical_y = g_server.seat.cursor->y;
-	wlr_output_layout_output_coords(g_server.output_layout,
+	double cursor_logical_x = server.seat.cursor->x;
+	double cursor_logical_y = server.seat.cursor->y;
+	wlr_output_layout_output_coords(server.output_layout,
 		output->wlr_output, &cursor_logical_x, &cursor_logical_y);
 	/* Cursor position in per-output physical coordinate */
 	struct wlr_box cursor_pos = {
@@ -95,7 +95,7 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 	}
 	if (!tmp_buffer) {
 		tmp_buffer = wlr_allocator_create_buffer(
-			g_server.allocator, mag_box.width, mag_box.height,
+			server.allocator, mag_box.width, mag_box.height,
 			&output->wlr_output->swapchain->format);
 	}
 	if (!tmp_buffer) {
@@ -104,7 +104,7 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 	}
 
 	if (!tmp_texture) {
-		tmp_texture = wlr_texture_from_buffer(g_server.renderer, tmp_buffer);
+		tmp_texture = wlr_texture_from_buffer(server.renderer, tmp_buffer);
 	}
 	if (!tmp_texture) {
 		wlr_log(WLR_ERROR, "Failed to allocate temporary magnifier texture");
@@ -115,7 +115,7 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 
 	/* Extract source region into temporary buffer */
 	struct wlr_render_pass *tmp_render_pass = wlr_renderer_begin_buffer_pass(
-		g_server.renderer, tmp_buffer, NULL);
+		server.renderer, tmp_buffer, NULL);
 	if (!tmp_render_pass) {
 		wlr_log(WLR_ERROR, "Failed to begin magnifier render pass");
 		return;
@@ -123,7 +123,7 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 
 	wlr_buffer_lock(output_buffer);
 	struct wlr_texture *output_texture = wlr_texture_from_buffer(
-		g_server.renderer, output_buffer);
+		server.renderer, output_buffer);
 	if (!output_texture) {
 		goto cleanup;
 	}
@@ -150,7 +150,7 @@ magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct w
 
 	/* Render to the output buffer itself */
 	tmp_render_pass = wlr_renderer_begin_buffer_pass(
-		g_server.renderer, output_buffer, NULL);
+		server.renderer, output_buffer, NULL);
 	if (!tmp_render_pass) {
 		wlr_log(WLR_ERROR, "Failed to begin second magnifier render pass");
 		goto cleanup;
@@ -223,7 +223,7 @@ output_wants_magnification(struct output *output)
 {
 	static double x = -1;
 	static double y = -1;
-	struct wlr_cursor *cursor = g_server.seat.cursor;
+	struct wlr_cursor *cursor = server.seat.cursor;
 	if (!magnify_on) {
 		x = -1;
 		y = -1;
@@ -241,8 +241,8 @@ static void
 enable_magnifier(bool enable)
 {
 	magnify_on = enable;
-	g_server.scene->WLR_PRIVATE.direct_scanout = enable ? false
-		: g_server.direct_scanout_enabled;
+	server.scene->WLR_PRIVATE.direct_scanout = enable ? false
+		: server.direct_scanout_enabled;
 }
 
 /* Toggles magnification on and off */

@@ -12,7 +12,7 @@
 static bool
 other_instances_exist(struct view *self, struct view_query *query)
 {
-	struct wl_list *views = &g_server.views;
+	struct wl_list *views = &server.views;
 	struct view *view;
 
 	wl_list_for_each(view, views, link) {

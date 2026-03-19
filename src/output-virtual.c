@@ -18,7 +18,7 @@ output_virtual_add(const char *output_name,
 	if (output_name) {
 		/* Prevent creating outputs with the same name */
 		struct output *output;
-		wl_list_for_each(output, &g_server.outputs, link) {
+		wl_list_for_each(output, &server.outputs, link) {
 			if (wlr_output_is_headless(output->wlr_output) &&
 					!strcmp(output->wlr_output->name, output_name)) {
 				wlr_log(WLR_DEBUG,
@@ -46,13 +46,13 @@ output_virtual_add(const char *output_name,
 	 * we may end up calling the new output handler twice, one time manually
 	 * and one time by the headless backend when it starts up and sends the
 	 * signal for all its configured outputs. Rather than keeping a global
-	 * g_server.headless.started state around that we could check here we just
+	 * server.headless.started state around that we could check here we just
 	 * ignore duplicated new output calls in handle_new_output().
 	 */
-	wl_list_remove(&g_server.new_output.link);
+	wl_list_remove(&server.new_output.link);
 
 	struct wlr_output *wlr_output = wlr_headless_add_output(
-		g_server.headless.backend, 1920, 1080);
+		server.headless.backend, 1920, 1080);
 
 	if (!wlr_output) {
 		wlr_log(WLR_ERROR, "Failed to create virtual output %s",
@@ -69,20 +69,20 @@ output_virtual_add(const char *output_name,
 	}
 
 	/* Notify about the new output manually */
-	if (g_server.new_output.notify) {
-		g_server.new_output.notify(&g_server.new_output, wlr_output);
+	if (server.new_output.notify) {
+		server.new_output.notify(&server.new_output, wlr_output);
 	}
 
 restore_handler:
 	/* And finally restore output notifications */
-	wl_signal_add(&g_server.backend->events.new_output, &g_server.new_output);
+	wl_signal_add(&server.backend->events.new_output, &server.new_output);
 }
 
 void
 output_virtual_remove(const char *output_name)
 {
 	struct output *output;
-	wl_list_for_each(output, &g_server.outputs, link) {
+	wl_list_for_each(output, &server.outputs, link) {
 		if (!wlr_output_is_headless(output->wlr_output)
 				|| output->wlr_output == fallback_output) {
 			continue;
@@ -111,7 +111,7 @@ output_virtual_remove(const char *output_name)
 void
 output_virtual_update_fallback(void)
 {
-	struct wl_list *layout_outputs = &g_server.output_layout->outputs;
+	struct wl_list *layout_outputs = &server.output_layout->outputs;
 	const char *fallback_output_name = getenv("LABWC_FALLBACK_OUTPUT");
 
 	if (!fallback_output && wl_list_empty(layout_outputs)

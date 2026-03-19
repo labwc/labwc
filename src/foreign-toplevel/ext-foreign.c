@@ -59,7 +59,7 @@ void
 ext_foreign_toplevel_init(struct ext_foreign_toplevel *ext_toplevel,
 		struct view *view)
 {
-	assert(g_server.foreign_toplevel_list);
+	assert(server.foreign_toplevel_list);
 	ext_toplevel->view = view;
 
 	struct wlr_ext_foreign_toplevel_handle_v1_state state = {
@@ -67,7 +67,7 @@ ext_foreign_toplevel_init(struct ext_foreign_toplevel *ext_toplevel,
 		.app_id = view->app_id,
 	};
 	ext_toplevel->handle = wlr_ext_foreign_toplevel_handle_v1_create(
-		g_server.foreign_toplevel_list, &state);
+		server.foreign_toplevel_list, &state);
 
 	if (!ext_toplevel->handle) {
 		wlr_log(WLR_ERROR, "cannot create ext toplevel handle for (%s)",

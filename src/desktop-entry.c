@@ -134,7 +134,7 @@ desktop_entry_init(void)
 	/* basedir_ctx is not referenced by other objects */
 	sfdo_basedir_ctx_destroy(basedir_ctx);
 
-	g_server.sfdo = sfdo;
+	server.sfdo = sfdo;
 	return;
 
 err_icon_theme:
@@ -157,7 +157,7 @@ err_basedir_ctx:
 void
 desktop_entry_finish(void)
 {
-	struct sfdo *sfdo = g_server.sfdo;
+	struct sfdo *sfdo = server.sfdo;
 	if (!sfdo) {
 		return;
 	}
@@ -167,7 +167,7 @@ desktop_entry_finish(void)
 	sfdo_icon_ctx_destroy(sfdo->icon_ctx);
 	sfdo_desktop_ctx_destroy(sfdo->desktop_ctx);
 	free(sfdo);
-	g_server.sfdo = NULL;
+	server.sfdo = NULL;
 }
 
 struct icon_ctx {
@@ -355,7 +355,7 @@ desktop_entry_load_icon(const char *icon_name, int size, float scale)
 		return NULL;
 	}
 
-	struct sfdo *sfdo = g_server.sfdo;
+	struct sfdo *sfdo = server.sfdo;
 	if (!sfdo) {
 		return NULL;
 	}
@@ -393,7 +393,7 @@ desktop_entry_load_icon_from_app_id(const char *app_id, int size, float scale)
 		return NULL;
 	}
 
-	struct sfdo *sfdo = g_server.sfdo;
+	struct sfdo *sfdo = server.sfdo;
 	if (!sfdo) {
 		return NULL;
 	}
@@ -419,7 +419,7 @@ desktop_entry_name_lookup(const char *app_id)
 		return NULL;
 	}
 
-	struct sfdo *sfdo = g_server.sfdo;
+	struct sfdo *sfdo = server.sfdo;
 	if (!sfdo) {
 		return NULL;
 	}

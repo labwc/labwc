@@ -50,11 +50,11 @@ view_impl_unmap(struct view *view)
 	 * When exiting an xwayland application with multiple views
 	 * mapped, a race condition can occur: after the topmost view
 	 * is unmapped, the next view under it is offered focus, but is
-	 * also unmapped before accepting focus (so g_server.active_view
+	 * also unmapped before accepting focus (so server.active_view
 	 * remains NULL). To avoid being left with no active view at
 	 * all, check for that case also.
 	 */
-	if (view == g_server.active_view || !g_server.active_view) {
+	if (view == server.active_view || !server.active_view) {
 		desktop_focus_topmost_view();
 	}
 
@@ -71,9 +71,9 @@ view_impl_unmap(struct view *view)
 static bool
 resizing_edge(struct view *view, enum lab_edge edge)
 {
-	return g_server.input_mode == LAB_INPUT_STATE_RESIZE
-		&& g_server.grabbed_view == view
-		&& (g_server.resize_edges & edge);
+	return server.input_mode == LAB_INPUT_STATE_RESIZE
+		&& server.grabbed_view == view
+		&& (server.resize_edges & edge);
 }
 
 void

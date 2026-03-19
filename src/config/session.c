@@ -204,7 +204,7 @@ should_update_activation(void)
 
 	/* With no valid preference, update when a DRM backend is in use */
 	bool have_drm = false;
-	wlr_multi_for_each_backend(g_server.backend, backend_check_drm, &have_drm);
+	wlr_multi_for_each_backend(server.backend, backend_check_drm, &have_drm);
 	return have_drm;
 }
 

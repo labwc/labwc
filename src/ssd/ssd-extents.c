@@ -14,7 +14,7 @@ void
 ssd_extents_create(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
-	struct theme *theme = g_server.theme;
+	struct theme *theme = server.theme;
 
 	int border_width = MAX(0, MAX(rc.resize_minimum_area, theme->border_width));
 
@@ -100,7 +100,7 @@ ssd_extents_update(struct ssd *ssd)
 		return;
 	}
 
-	struct theme *theme = g_server.theme;
+	struct theme *theme = server.theme;
 
 	int width = view->current.width;
 	int height = view_effective_height(view, /* use_pending */ false);
@@ -120,7 +120,7 @@ ssd_extents_update(struct ssd *ssd)
 	pixman_region32_t usable;
 	pixman_region32_init(&usable);
 	struct output *output;
-	wl_list_for_each(output, &g_server.outputs, link) {
+	wl_list_for_each(output, &server.outputs, link) {
 		if (!view_on_output(view, output)) {
 			continue;
 		}

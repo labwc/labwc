@@ -133,7 +133,7 @@ struct cycle_osd_impl {
 	 */
 	void (*init)(struct cycle_osd_output *osd_output);
 	/*
-	 * Update the OSD to highlight g_server.cycle.selected_view.
+	 * Update the OSD to highlight server.cycle.selected_view.
 	 */
 	void (*update)(struct cycle_osd_output *osd_output);
 };
@@ -157,7 +157,7 @@ void cycle_osd_scroll_init(struct cycle_osd_output *osd_output,
 	int nr_cols, int nr_rows, int nr_visible_rows,
 	float *border_color, float *bg_color);
 
-/* Scroll the OSD to show g_server.cycle.selected_view if needed */
+/* Scroll the OSD to show server.cycle.selected_view if needed */
 void cycle_osd_scroll_update(struct cycle_osd_output *osd_output);
 
 extern struct cycle_osd_impl cycle_osd_classic_impl;

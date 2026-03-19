@@ -634,7 +634,7 @@ theme_builtin(struct theme *theme)
 	theme->osd_border_color[0] = FLT_MIN;
 	theme->osd_label_text_color[0] = FLT_MIN;
 
-	if (wlr_renderer_is_pixman(g_server.renderer)) {
+	if (wlr_renderer_is_pixman(server.renderer)) {
 		/* Draw only outlined overlay by default to save CPU resource */
 		theme->snapping_overlay_region.bg_enabled = false;
 		theme->snapping_overlay_edge.bg_enabled = false;

@@ -47,7 +47,7 @@ render_node(struct wlr_render_pass *pass,
 			break;
 		}
 		struct wlr_texture *texture = wlr_texture_from_buffer(
-			g_server.renderer, scene_buffer->buffer);
+			server.renderer, scene_buffer->buffer);
 		if (!texture) {
 			break;
 		}
@@ -82,11 +82,11 @@ render_thumb(struct output *output, struct view *view)
 		 */
 		return NULL;
 	}
-	struct wlr_buffer *buffer = wlr_allocator_create_buffer(g_server.allocator,
+	struct wlr_buffer *buffer = wlr_allocator_create_buffer(server.allocator,
 		view->current.width, view->current.height,
 		&output->wlr_output->swapchain->format);
 	struct wlr_render_pass *pass = wlr_renderer_begin_buffer_pass(
-		g_server.renderer, buffer, NULL);
+		server.renderer, buffer, NULL);
 	render_node(pass, &view->content_tree->node, 0, 0);
 	if (!wlr_render_pass_submit(pass)) {
 		wlr_log(WLR_ERROR, "failed to submit render pass");
@@ -119,7 +119,7 @@ static struct cycle_osd_thumbnail_item *
 create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 		struct cycle_osd_output *osd_output)
 {
-	struct theme *theme = g_server.theme;
+	struct theme *theme = server.theme;
 	struct window_switcher_thumbnail_theme *switcher_theme =
 		&theme->osd_window_switcher_thumbnail;
 	int padding = theme->border_width + switcher_theme->item_padding;
@@ -196,7 +196,7 @@ static void
 get_items_geometry(struct output *output, int nr_thumbs,
 		int *nr_cols, int *nr_rows, int *nr_visible_rows)
 {
-	struct theme *theme = g_server.theme;
+	struct theme *theme = server.theme;
 	struct window_switcher_thumbnail_theme *switcher_theme =
 		&theme->osd_window_switcher_thumbnail;
 	int output_width, output_height;
@@ -232,7 +232,7 @@ static void
 cycle_osd_thumbnail_init(struct cycle_osd_output *osd_output)
 {
 	struct output *output = osd_output->output;
-	struct theme *theme = g_server.theme;
+	struct theme *theme = server.theme;
 	struct window_switcher_thumbnail_theme *switcher_theme =
 		&theme->osd_window_switcher_thumbnail;
 	int padding = theme->osd_border_width + switcher_theme->padding;
@@ -240,7 +240,7 @@ cycle_osd_thumbnail_init(struct cycle_osd_output *osd_output)
 	osd_output->tree = lab_wlr_scene_tree_create(output->cycle_osd_tree);
 	osd_output->items_tree = lab_wlr_scene_tree_create(osd_output->tree);
 
-	int nr_views = wl_list_length(&g_server.cycle.views);
+	int nr_views = wl_list_length(&server.cycle.views);
 	assert(nr_views > 0);
 	int nr_cols, nr_rows, nr_visible_rows;
 	get_items_geometry(output, nr_views, &nr_cols, &nr_rows, &nr_visible_rows);
@@ -248,7 +248,7 @@ cycle_osd_thumbnail_init(struct cycle_osd_output *osd_output)
 	/* items */
 	struct view *view;
 	int index = 0;
-	wl_list_for_each(view, &g_server.cycle.views, cycle_link) {
+	wl_list_for_each(view, &server.cycle.views, cycle_link) {
 		struct cycle_osd_thumbnail_item *item = create_item_scene(
 			osd_output->items_tree, view, osd_output);
 		if (!item) {
@@ -289,7 +289,7 @@ cycle_osd_thumbnail_init(struct cycle_osd_output *osd_output)
 
 	/* center */
 	struct wlr_box output_box;
-	wlr_output_layout_get_box(g_server.output_layout, output->wlr_output,
+	wlr_output_layout_get_box(server.output_layout, output->wlr_output,
 		&output_box);
 	int lx = output_box.x + (output_box.width - bg_opts.width) / 2;
 	int ly = output_box.y + (output_box.height - bg_opts.height) / 2;
@@ -303,7 +303,7 @@ cycle_osd_thumbnail_update(struct cycle_osd_output *osd_output)
 
 	struct cycle_osd_thumbnail_item *item;
 	wl_list_for_each(item, &osd_output->items, base.link) {
-		bool active = (item->base.view == g_server.cycle.selected_view);
+		bool active = (item->base.view == server.cycle.selected_view);
 		wlr_scene_node_set_enabled(&item->active_bg->tree->node, active);
 		wlr_scene_node_set_enabled(
 			&item->active_label->scene_buffer->node, active);

@@ -131,8 +131,8 @@ set_initial_position(struct view *view)
 
 	view_constrain_size_to_that_of_usable_area(view);
 
-	if (g_server.input_mode == LAB_INPUT_STATE_MOVE
-			&& view == g_server.grabbed_view) {
+	if (server.input_mode == LAB_INPUT_STATE_MOVE
+			&& view == server.grabbed_view) {
 		/* Reposition the view while anchoring it to cursor */
 		interactive_anchor_to_cursor(&view->pending);
 	} else {
@@ -173,7 +173,7 @@ center_fullscreen_if_needed(struct view *view)
 	}
 
 	struct wlr_box output_box = {0};
-	wlr_output_layout_get_box(g_server.output_layout,
+	wlr_output_layout_get_box(server.output_layout,
 		view->output->wlr_output, &output_box);
 	box_center(view->current.width, view->current.height, &output_box,
 		&output_box, &view->current.x, &view->current.y);
@@ -437,7 +437,7 @@ set_pending_configure_serial(struct view *view, uint32_t serial)
 	view->pending_configure_serial = serial;
 	if (!view->pending_configure_timeout) {
 		view->pending_configure_timeout =
-			wl_event_loop_add_timer(g_server.wl_event_loop,
+			wl_event_loop_add_timer(server.wl_event_loop,
 				handle_configure_timeout, view);
 	}
 	wl_event_source_timer_update(view->pending_configure_timeout,
@@ -485,7 +485,7 @@ handle_request_move(struct wl_listener *listener, void *data)
 	 * this client, to prevent the client from requesting this whenever they
 	 * want.
 	 *
-	 * Note: interactive_begin() checks that view == g_server.grabbed_view.
+	 * Note: interactive_begin() checks that view == server.grabbed_view.
 	 */
 	struct view *view = wl_container_of(listener, view, request_move);
 	interactive_begin(view, LAB_INPUT_STATE_MOVE, LAB_EDGE_NONE);
@@ -502,7 +502,7 @@ handle_request_resize(struct wl_listener *listener, void *data)
 	 * this client, to prevent the client from requesting this whenever they
 	 * want.
 	 *
-	 * Note: interactive_begin() checks that view == g_server.grabbed_view.
+	 * Note: interactive_begin() checks that view == server.grabbed_view.
 	 */
 	struct wlr_xdg_toplevel_resize_event *event = data;
 	struct view *view = wl_container_of(listener, view, request_resize);
@@ -562,7 +562,7 @@ handle_request_show_window_menu(struct wl_listener *listener, void *data)
 	assert(menu);
 	menu->triggered_by_view = &xdg_toplevel_view->base;
 
-	struct wlr_cursor *cursor = g_server.seat.cursor;
+	struct wlr_cursor *cursor = server.seat.cursor;
 	menu_open_root(menu, cursor->x, cursor->y);
 }
 
@@ -683,7 +683,7 @@ xdg_toplevel_view_append_children(struct view *self, struct wl_array *children)
 	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(self);
 	struct view *view;
 
-	wl_list_for_each_reverse(view, &g_server.views, link) {
+	wl_list_for_each_reverse(view, &server.views, link) {
 		if (view == self) {
 			continue;
 		}
@@ -978,7 +978,7 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 			view->output->wlr_output->scale);
 	}
 
-	view->workspace = g_server.workspaces.current;
+	view->workspace = server.workspaces.current;
 	view->scene_tree = lab_wlr_scene_tree_create(
 		view->workspace->view_trees[VIEW_LAYER_NORMAL]);
 	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
@@ -1039,8 +1039,8 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, request_show_window_menu);
 	CONNECT_SIGNAL(xdg_surface, xdg_toplevel_view, new_popup);
 
-	wl_list_insert(&g_server.views, &view->link);
-	view->creation_id = g_server.next_view_creation_id++;
+	wl_list_insert(&server.views, &view->link);
+	view->creation_id = server.next_view_creation_id++;
 }
 
 static void
@@ -1076,44 +1076,44 @@ handle_xdg_toplevel_icon_set_icon(struct wl_listener *listener, void *data)
 void
 xdg_shell_init(void)
 {
-	g_server.xdg_shell = wlr_xdg_shell_create(g_server.wl_display,
+	server.xdg_shell = wlr_xdg_shell_create(server.wl_display,
 		LAB_XDG_SHELL_VERSION);
-	if (!g_server.xdg_shell) {
+	if (!server.xdg_shell) {
 		wlr_log(WLR_ERROR, "unable to create the XDG shell interface");
 		exit(EXIT_FAILURE);
 	}
 
-	g_server.new_xdg_toplevel.notify = handle_new_xdg_toplevel;
-	wl_signal_add(&g_server.xdg_shell->events.new_toplevel, &g_server.new_xdg_toplevel);
+	server.new_xdg_toplevel.notify = handle_new_xdg_toplevel;
+	wl_signal_add(&server.xdg_shell->events.new_toplevel, &server.new_xdg_toplevel);
 
-	g_server.xdg_activation = wlr_xdg_activation_v1_create(g_server.wl_display);
-	if (!g_server.xdg_activation) {
+	server.xdg_activation = wlr_xdg_activation_v1_create(server.wl_display);
+	if (!server.xdg_activation) {
 		wlr_log(WLR_ERROR, "unable to create xdg_activation interface");
 		exit(EXIT_FAILURE);
 	}
 
-	g_server.xdg_activation_request.notify = handle_xdg_activation_request;
-	wl_signal_add(&g_server.xdg_activation->events.request_activate,
-		&g_server.xdg_activation_request);
+	server.xdg_activation_request.notify = handle_xdg_activation_request;
+	wl_signal_add(&server.xdg_activation->events.request_activate,
+		&server.xdg_activation_request);
 
-	g_server.xdg_activation_new_token.notify = handle_xdg_activation_new_token;
-	wl_signal_add(&g_server.xdg_activation->events.new_token,
-		&g_server.xdg_activation_new_token);
+	server.xdg_activation_new_token.notify = handle_xdg_activation_new_token;
+	wl_signal_add(&server.xdg_activation->events.new_token,
+		&server.xdg_activation_new_token);
 
-	g_server.xdg_toplevel_icon_manager = wlr_xdg_toplevel_icon_manager_v1_create(
-		g_server.wl_display, 1);
-	g_server.xdg_toplevel_icon_set_icon.notify = handle_xdg_toplevel_icon_set_icon;
-	wl_signal_add(&g_server.xdg_toplevel_icon_manager->events.set_icon,
-		&g_server.xdg_toplevel_icon_set_icon);
+	server.xdg_toplevel_icon_manager = wlr_xdg_toplevel_icon_manager_v1_create(
+		server.wl_display, 1);
+	server.xdg_toplevel_icon_set_icon.notify = handle_xdg_toplevel_icon_set_icon;
+	wl_signal_add(&server.xdg_toplevel_icon_manager->events.set_icon,
+		&server.xdg_toplevel_icon_set_icon);
 
-	wlr_xdg_wm_dialog_v1_create(g_server.wl_display, 1);
+	wlr_xdg_wm_dialog_v1_create(server.wl_display, 1);
 }
 
 void
 xdg_shell_finish(void)
 {
-	wl_list_remove(&g_server.new_xdg_toplevel.link);
-	wl_list_remove(&g_server.xdg_activation_request.link);
-	wl_list_remove(&g_server.xdg_activation_new_token.link);
-	wl_list_remove(&g_server.xdg_toplevel_icon_set_icon.link);
+	wl_list_remove(&server.new_xdg_toplevel.link);
+	wl_list_remove(&server.xdg_activation_request.link);
+	wl_list_remove(&server.xdg_activation_new_token.link);
+	wl_list_remove(&server.xdg_toplevel_icon_set_icon.link);
 }

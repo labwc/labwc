@@ -260,7 +260,6 @@ main(int argc, char *argv[])
 	struct theme theme = { 0 };
 	theme_init(&theme, rc.theme_name);
 	rc.theme = &theme;
-	server.theme = &theme;
 
 	menu_init();
 

@@ -213,12 +213,9 @@ struct theme {
 	int mag_border_width;
 };
 
-struct server;
-
 /**
  * theme_init - read openbox theme and generate button textures
  * @theme: theme data
- * @server: server
  * @theme_name: theme-name in <theme-dir>/<theme-name>/labwc/themerc
  * Note <theme-dir> is obtained in theme-dir.c
  */

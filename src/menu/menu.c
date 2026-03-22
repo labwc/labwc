@@ -135,7 +135,7 @@ item_create(struct menu *menu, const char *text, const char *icon_name, bool sho
 	assert(menu);
 	assert(text);
 
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	struct menuitem *menuitem = znew(*menuitem);
 	menuitem->parent = menu;
 	menuitem->selectable = true;
@@ -166,7 +166,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	float *bg_color)
 {
 	struct menu *menu = item->parent;
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 
 	/* Tree to hold background and label buffers */
 	struct wlr_scene_tree *tree = lab_wlr_scene_tree_create(item->tree);
@@ -242,7 +242,7 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 	assert(menuitem);
 	assert(menuitem->type == LAB_MENU_ITEM);
 	struct menu *menu = menuitem->parent;
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 
 	/* Menu item root node */
 	menuitem->tree = lab_wlr_scene_tree_create(menu->scene_tree);
@@ -291,7 +291,7 @@ separator_create_scene(struct menuitem *menuitem, int *item_y)
 	assert(menuitem);
 	assert(menuitem->type == LAB_MENU_SEPARATOR_LINE);
 	struct menu *menu = menuitem->parent;
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 
 	/* Menu item root node */
 	menuitem->tree = lab_wlr_scene_tree_create(menu->scene_tree);
@@ -337,7 +337,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	assert(menuitem);
 	assert(menuitem->type == LAB_MENU_TITLE);
 	struct menu *menu = menuitem->parent;
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	float *bg_color = theme->menu_title_bg_color;
 	float *text_color = theme->menu_title_text_color;
 
@@ -411,7 +411,7 @@ static void
 menu_create_scene(struct menu *menu)
 {
 	struct menuitem *item;
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 
 	assert(!menu->scene_tree);
 
@@ -1351,7 +1351,7 @@ menu_process_item_selection(struct menuitem *item)
 		item->submenu->parent = item->parent;
 		/* And open the new submenu tree */
 		struct wlr_box anchor_rect =
-			get_item_anchor_rect(server.theme, item);
+			get_item_anchor_rect(rc.theme, item);
 		if (item->submenu->execute && !item->submenu->scene_tree) {
 			open_pipemenu_async(item->submenu, anchor_rect);
 		} else {

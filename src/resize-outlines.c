@@ -4,7 +4,7 @@
 #include <wlr/types/wlr_scene.h>
 #include "common/border.h"
 #include "common/lab-scene-rect.h"
-#include "labwc.h"
+#include "config/rcxml.h"
 #include "resize-indicator.h"
 #include "ssd.h"
 #include "theme.h"
@@ -25,9 +25,9 @@ resize_outlines_update(struct view *view, struct wlr_box new_geo)
 	if (!outlines->rect) {
 		struct lab_scene_rect_options opts = {
 			.border_colors = (float *[3]) {
-				server.theme->osd_bg_color,
-				server.theme->osd_label_text_color,
-				server.theme->osd_bg_color,
+				rc.theme->osd_bg_color,
+				rc.theme->osd_label_text_color,
+				rc.theme->osd_bg_color,
 			},
 			.nr_borders = 3,
 			.border_width = 1,

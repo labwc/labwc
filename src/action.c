@@ -776,7 +776,7 @@ show_menu(struct view *view, struct cursor_context *ctx,
 			int lx, ly;
 			wlr_scene_node_coords(ctx->node, &lx, &ly);
 			/* MAX() prevents negative x when the window is maximized */
-			x = MAX(x, lx - server.theme->menu_border_width);
+			x = MAX(x, lx - rc.theme->menu_border_width);
 		}
 	}
 

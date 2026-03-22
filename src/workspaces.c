@@ -64,7 +64,7 @@ parse_workspace_index(const char *name)
 static void
 _osd_update(void)
 {
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 
 	/* Settings */
 	uint16_t margin = 10;
@@ -117,7 +117,7 @@ _osd_update(void)
 			x = (width - marker_width) / 2;
 			wl_list_for_each(workspace, &server.workspaces.all, link) {
 				bool active =  workspace == server.workspaces.current;
-				set_cairo_color(cairo, server.theme->osd_label_text_color);
+				set_cairo_color(cairo, rc.theme->osd_label_text_color);
 				struct wlr_fbox fbox = {
 					.x = x,
 					.y = margin,
@@ -136,7 +136,7 @@ _osd_update(void)
 		}
 
 		/* Text */
-		set_cairo_color(cairo, server.theme->osd_label_text_color);
+		set_cairo_color(cairo, rc.theme->osd_label_text_color);
 		PangoLayout *layout = pango_cairo_create_layout(cairo);
 		pango_context_set_round_glyph_positions(pango_layout_get_context(layout), false);
 		pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);

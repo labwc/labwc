@@ -39,7 +39,7 @@ ssd_thickness(struct view *view)
 		return (struct border){ 0 };
 	}
 
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 
 	if (view->maximized == VIEW_AXIS_BOTH) {
 		struct border thickness = { 0 };
@@ -101,7 +101,7 @@ ssd_get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
 
 	if (view_titlebar_visible(view)) {
 		/* If the titlebar is visible, consider it part of the view */
-		int titlebar_height = server.theme->titlebar_height;
+		int titlebar_height = rc.theme->titlebar_height;
 		view_box.y -= titlebar_height;
 		view_box.height += titlebar_height;
 	}
@@ -156,7 +156,7 @@ ssd_create(struct view *view, bool active)
 		LAB_NODE_SSD_ROOT, view, /*data*/ NULL);
 
 	wlr_scene_node_lower_to_bottom(&ssd->tree->node);
-	ssd->titlebar.height = server.theme->titlebar_height;
+	ssd->titlebar.height = rc.theme->titlebar_height;
 	ssd_shadow_create(ssd);
 	ssd_extents_create(ssd);
 	/*
@@ -257,7 +257,7 @@ ssd_set_titlebar(struct ssd *ssd, bool enabled)
 		return;
 	}
 	wlr_scene_node_set_enabled(&ssd->titlebar.tree->node, enabled);
-	ssd->titlebar.height = enabled ? server.theme->titlebar_height : 0;
+	ssd->titlebar.height = enabled ? rc.theme->titlebar_height : 0;
 	ssd_border_update(ssd);
 	ssd_extents_update(ssd);
 	ssd_shadow_update(ssd);

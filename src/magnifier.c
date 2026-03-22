@@ -41,7 +41,7 @@ box_logical_to_physical(struct wlr_box *box, struct wlr_output *output)
 void
 magnifier_draw(struct output *output, struct wlr_buffer *output_buffer, struct wlr_box *damage)
 {
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	bool fullscreen = (rc.mag_width == -1 || rc.mag_height == -1);
 
 	struct wlr_box output_box = {

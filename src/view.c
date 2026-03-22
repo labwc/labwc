@@ -994,7 +994,7 @@ view_compute_cascaded_position(struct view *view, struct wlr_box *geom)
 	/* TODO: move this logic to rcxml.c */
 	int offset_x = rc.placement_cascade_offset_x;
 	int offset_y = rc.placement_cascade_offset_y;
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	int default_offset = theme->titlebar_height + theme->border_width + 5;
 	if (offset_x <= 0) {
 		offset_x = default_offset;

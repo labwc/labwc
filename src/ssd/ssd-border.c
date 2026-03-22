@@ -4,7 +4,7 @@
 #include <wlr/types/wlr_scene.h>
 #include "common/macros.h"
 #include "common/scene-helpers.h"
-#include "labwc.h"
+#include "config/rcxml.h"
 #include "ssd.h"
 #include "ssd-internal.h"
 #include "theme.h"
@@ -17,7 +17,7 @@ ssd_border_create(struct ssd *ssd)
 	assert(!ssd->border.tree);
 
 	struct view *view = ssd->view;
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	int width = view->current.width;
 	int height = view_effective_height(view, /* use_pending */ false);
 	int full_width = width + 2 * theme->border_width;
@@ -90,7 +90,7 @@ ssd_border_update(struct ssd *ssd)
 		ssd->margin = ssd_thickness(ssd->view);
 	}
 
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 
 	int width = view->current.width;
 	int height = view_effective_height(view, /* use_pending */ false);

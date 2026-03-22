@@ -119,7 +119,7 @@ static struct cycle_osd_thumbnail_item *
 create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 		struct cycle_osd_output *osd_output)
 {
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	struct window_switcher_thumbnail_theme *switcher_theme =
 		&theme->osd_window_switcher_thumbnail;
 	int padding = theme->border_width + switcher_theme->item_padding;
@@ -196,7 +196,7 @@ static void
 get_items_geometry(struct output *output, int nr_thumbs,
 		int *nr_cols, int *nr_rows, int *nr_visible_rows)
 {
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	struct window_switcher_thumbnail_theme *switcher_theme =
 		&theme->osd_window_switcher_thumbnail;
 	int output_width, output_height;
@@ -232,7 +232,7 @@ static void
 cycle_osd_thumbnail_init(struct cycle_osd_output *osd_output)
 {
 	struct output *output = osd_output->output;
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	struct window_switcher_thumbnail_theme *switcher_theme =
 		&theme->osd_window_switcher_thumbnail;
 	int padding = theme->osd_border_width + switcher_theme->padding;

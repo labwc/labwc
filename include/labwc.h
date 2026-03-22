@@ -302,8 +302,6 @@ struct server {
 	/* Set when in cycle (alt-tab) mode */
 	struct cycle_state cycle;
 
-	struct theme *theme;
-
 	struct menu *menu_current;
 	struct wl_list menus;
 

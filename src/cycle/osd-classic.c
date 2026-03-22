@@ -32,7 +32,7 @@ create_fields_scene(struct view *view,
 		struct wlr_scene_tree *parent, const float *text_color,
 		const float *bg_color, int field_widths_sum, int x, int y)
 {
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	struct window_switcher_classic_theme *switcher_theme =
 		&theme->osd_window_switcher_classic;
 
@@ -80,7 +80,7 @@ static void
 cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 {
 	struct output *output = osd_output->output;
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	struct window_switcher_classic_theme *switcher_theme =
 		&theme->osd_window_switcher_classic;
 	int padding = theme->osd_border_width + switcher_theme->padding;

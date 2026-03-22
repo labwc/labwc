@@ -14,7 +14,7 @@ void
 ssd_extents_create(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 
 	int border_width = MAX(0, MAX(rc.resize_minimum_area, theme->border_width));
 
@@ -100,7 +100,7 @@ ssd_extents_update(struct ssd *ssd)
 		return;
 	}
 
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 
 	int width = view->current.width;
 	int height = view_effective_height(view, /* use_pending */ false);

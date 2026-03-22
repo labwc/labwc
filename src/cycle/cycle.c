@@ -26,7 +26,7 @@ static void
 update_preview_outlines(struct view *view)
 {
 	/* Create / Update preview outline tree */
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	struct lab_scene_rect *rect = server.cycle.preview_outline;
 	if (!rect) {
 		struct lab_scene_rect_options opts = {

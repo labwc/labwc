@@ -27,7 +27,7 @@ void
 ssd_titlebar_create(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	int width = view->current.width;
 	int corner_width = ssd_get_corner_width();
 
@@ -160,7 +160,7 @@ set_squared_corners(struct ssd *ssd, bool enable)
 	struct view *view = ssd->view;
 	int width = view->current.width;
 	int corner_width = ssd_get_corner_width();
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 
 	int x = enable ? 0 : corner_width;
 
@@ -220,7 +220,7 @@ static void
 update_visible_buttons(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	int width = MAX(view->current.width - 2 * theme->window_titlebar_padding_width, 0);
 	int button_width = theme->window_button_width;
 	int button_spacing = theme->window_button_spacing;
@@ -273,7 +273,7 @@ ssd_titlebar_update(struct ssd *ssd)
 	struct view *view = ssd->view;
 	int width = view->current.width;
 	int corner_width = ssd_get_corner_width();
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 
 	bool maximized = view->maximized == VIEW_AXIS_BOTH;
 	bool squared = ssd_should_be_squared(ssd);
@@ -365,7 +365,7 @@ static void
 ssd_update_title_positions(struct ssd *ssd, int offset_left, int offset_right)
 {
 	struct view *view = ssd->view;
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	int width = view->current.width;
 	int title_bg_width = width - offset_left - offset_right;
 
@@ -413,9 +413,9 @@ static void
 get_title_offsets(struct ssd *ssd, int *offset_left, int *offset_right)
 {
 	struct ssd_titlebar_subtree *subtree = &ssd->titlebar.subtrees[SSD_ACTIVE];
-	int button_width = server.theme->window_button_width;
-	int button_spacing = server.theme->window_button_spacing;
-	int padding_width = server.theme->window_titlebar_padding_width;
+	int button_width = rc.theme->window_button_width;
+	int button_spacing = rc.theme->window_button_spacing;
+	int padding_width = rc.theme->window_titlebar_padding_width;
 	*offset_left = padding_width;
 	*offset_right = padding_width;
 
@@ -443,7 +443,7 @@ ssd_update_title(struct ssd *ssd)
 	/* view->title is never NULL (instead it can be an empty string) */
 	assert(view->title);
 
-	struct theme *theme = server.theme;
+	struct theme *theme = rc.theme;
 	struct ssd_state_title *state = &ssd->state.title;
 	bool title_unchanged = state->text && !strcmp(view->title, state->text);
 

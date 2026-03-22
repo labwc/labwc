@@ -635,7 +635,7 @@ server_init(void)
 	seat_init();
 	xdg_shell_init();
 	kde_server_decoration_init();
-	xdserver_decoration_init();
+	xdg_server_decoration_init();
 
 	struct wlr_presentation *presentation = wlr_presentation_create(
 		server.wl_display, server.backend,
@@ -775,7 +775,7 @@ server_finish(void)
 	xdg_shell_finish();
 	layers_finish();
 	kde_server_decoration_finish();
-	xdserver_decoration_finish();
+	xdg_server_decoration_finish();
 	wl_list_remove(&server.new_constraint.link);
 	wl_list_remove(&server.output_power_manager_set_mode.link);
 	wl_list_remove(&server.tearing_new_object.link);

@@ -115,7 +115,7 @@ xdg_toplevel_decoration(struct wl_listener *listener, void *data)
 }
 
 void
-xdserver_decoration_init(void)
+xdg_server_decoration_init(void)
 {
 	struct wlr_xdg_decoration_manager_v1 *xdg_deco_mgr = NULL;
 	xdg_deco_mgr = wlr_xdg_decoration_manager_v1_create(server.wl_display);
@@ -130,7 +130,7 @@ xdserver_decoration_init(void)
 }
 
 void
-xdserver_decoration_finish(void)
+xdg_server_decoration_finish(void)
 {
 	wl_list_remove(&server.xdg_toplevel_decoration.link);
 }

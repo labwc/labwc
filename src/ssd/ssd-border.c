@@ -11,7 +11,7 @@
 #include "ssd-internal.h"
 #include "theme.h"
 #include "view.h"
-#include "stdio.h"
+
 void
 ssd_border_create(struct ssd *ssd)
 {
@@ -29,7 +29,6 @@ ssd_border_create(struct ssd *ssd)
 	ssd->border.tree = lab_wlr_scene_tree_create(ssd->tree);
 	wlr_scene_node_set_position(&ssd->border.tree->node, -theme->border_width, 0);
 
-printf("At 32\n");
 	enum ssd_active_state active;
 	FOR_EACH_ACTIVE_STATE(active) {
 		struct ssd_border_subtree *subtree = &ssd->border.subtrees[active];
@@ -136,23 +135,15 @@ printf("At 32\n");
 
 		subtree->left = lab_wlr_scene_rect_create(parent,
 			theme->border_width, height, color);
-		wlr_scene_node_set_position(&subtree->left->node, 0, 0);
-
+	
 		subtree->right = lab_wlr_scene_rect_create(parent,
 			theme->border_width, height, color);
-		wlr_scene_node_set_position(&subtree->right->node,
-			theme->border_width + width, 0);
-
+	
 		subtree->bottom = lab_wlr_scene_rect_create(parent,
 			full_width, theme->border_width, color);
-		wlr_scene_node_set_position(&subtree->bottom->node,
-			0, height);
-
+	
 		subtree->top = lab_wlr_scene_rect_create(parent,
 			MAX(width - 2 * corner_width, 0), theme->border_width, color);
-		wlr_scene_node_set_position(&subtree->top->node,
-			theme->border_width + corner_width,
-			-(ssd->titlebar.height + theme->border_width));
 			
 			
 		struct lab_data_buffer *ttexture_buffer =

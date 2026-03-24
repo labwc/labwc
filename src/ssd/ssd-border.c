@@ -104,9 +104,21 @@ printf("At 32\n");
 			}
 		}
 		tl_data[bw*bw -1] = col0;
+		tl_data[bw*bw -2] = col0;
+		tl_data[(bw-1)*bw -1] = col0;
+		tl_data[(bw-1)*bw -2] = col0;
 		tr_data[(bw-1)*bw + (0)] = col0;		
+		tr_data[(bw-1)*bw + (1)] = col0;
+		tr_data[(bw-2)*bw + (0)] = col0;		
+		tr_data[(bw-2)*bw + (1)] = col0;				
 		bl_data[(0)*bw + (bw-1)] = col1;
+		bl_data[(0)*bw + (bw-2)] = col1;
+		bl_data[(1)*bw + (bw-1)] = col1;
+		bl_data[(1)*bw + (bw-2)] = col1;
 		br_data[(0)*bw + (0)] = col1;
+		br_data[(0)*bw + (1)] = col1;
+		br_data[(1)*bw + (0)] = col1;
+		br_data[(1)*bw + (1)] = col1;
 
 
 		/* bottom and right are identical */

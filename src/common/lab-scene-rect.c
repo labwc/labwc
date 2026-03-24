@@ -36,11 +36,34 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 	for (int i = 0; i < rect->nr_borders; i++) {
 		struct border_scene *border = &rect->borders[i];
 		float *color = opts->border_colors[i];
+		
+		/* From Pull request 3382 */
+		float r = color[0];
+		float g = color[1];
+		float b = color[2];
+		float a = color[3];
+
+		/* highlight */
+		float r1 = r * 5 / 4;
+		if (r1 > a) r1=a;
+		float g1 = g * 5 / 4;
+		if (g1 > a) g1=a;
+		float b1 = b * 5 / 4;
+		if (b1 > a) b1=a;
+
+		/* darker outline */
+		float r0 = r / 2;
+		float g0 = g / 2;
+		float b0 = b / 2;
+
+		const float highlight[4] = {r1, g1, b1, a};
+		const float lowlight[4] = {r0, g0, b0, a};
 		border->tree = lab_wlr_scene_tree_create(rect->tree);
-		border->top = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
-		border->right = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
-		border->bottom = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
-		border->left = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
+		border->top = lab_wlr_scene_rect_create(border->tree, 0, 0, highlight);
+		border->right = lab_wlr_scene_rect_create(border->tree, 0, 0,lowlight);
+		border->bottom = lab_wlr_scene_rect_create(border->tree, 0, 0,lowlight);
+		border->left = lab_wlr_scene_rect_create(border->tree, 0, 0,highlight);
+		
 	}
 
 	rect->node_destroy.notify = handle_node_destroy;

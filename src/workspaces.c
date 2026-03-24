@@ -101,15 +101,36 @@ _osd_update(void)
 		/* Background */
 		set_cairo_color(cairo, theme->osd_bg_color);
 		cairo_rectangle(cairo, 0, 0, width, height);
-		cairo_fill(cairo);
+		cairo_fill(cairo);		
+
+		
+
 
 		/* Border */
-		set_cairo_color(cairo, theme->osd_border_color);
-		struct wlr_fbox border_fbox = {
-			.width = width,
-			.height = height,
+		const float highlight[4] = {
+			theme->osd_bg_color[0] * 1.25,
+			theme->osd_bg_color[1] * 1.25,
+			theme->osd_bg_color[2] * 1.25,
+			theme->osd_bg_color[3]
 		};
-		draw_cairo_border(cairo, border_fbox, theme->osd_border_width);
+		const float lowlight[4] = {
+			theme->osd_bg_color[0] / 2,
+			theme->osd_bg_color[1] / 2,
+			theme->osd_bg_color[2] / 2,
+			theme->osd_bg_color[3]
+		};
+		set_cairo_color(cairo, highlight);
+		cairo_rectangle(cairo, 0, 0, width, 2);
+		cairo_fill(cairo);
+		cairo_rectangle(cairo, 0, 0, 2, height);
+		cairo_fill(cairo);
+
+		set_cairo_color(cairo, lowlight);
+		cairo_rectangle(cairo, width-2, 0, width, height);
+		cairo_fill(cairo);
+		cairo_rectangle(cairo, 0, height-2, width, height);
+		cairo_fill(cairo);
+
 
 		/* Boxes */
 		uint16_t x;

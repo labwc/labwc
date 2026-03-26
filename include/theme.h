@@ -61,6 +61,7 @@ struct theme_background {
 struct theme {
 	int border_width;
 	bool beveled_border;
+	int border_bevel_width;
 
 	/*
 	 * the space between title bar border and

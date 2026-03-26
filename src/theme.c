@@ -533,6 +533,7 @@ theme_builtin(struct theme *theme)
 {
 	theme->border_width = 1;
 	theme->beveled_border = FALSE;
+	theme->border_bevel_width=0;
 	theme->window_titlebar_padding_height = 0;
 	theme->window_titlebar_padding_width = 0;
 
@@ -698,6 +699,10 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "border.beveled")) {
 		set_bool(value, &theme->beveled_border);
+	}
+	if (match_glob(key, "border.bevel_width")) {
+		theme->border_bevel_width = get_int_if_positive(
+			value, "border.bevel_width");
 	}
 	if (match_glob(key, "window.titlebar.padding.width")) {
 		theme->window_titlebar_padding_width = get_int_if_positive(

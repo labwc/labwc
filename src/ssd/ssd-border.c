@@ -57,7 +57,7 @@ ssd_border_create(struct ssd *ssd)
 		if (theme->beveled_border) {
 		
 					
-			int bevelSize = 2; // TODO: configurable
+			int bevelSize = theme->border_bevel_width; // TODO: configurable
 			
 			/* From Pull request 3382 */
 			uint8_t r = color[0] * 255;

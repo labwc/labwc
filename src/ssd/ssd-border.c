@@ -12,6 +12,8 @@
 #include "theme.h"
 #include "view.h"
 
+#define PIXEL(x,y) (bw * y + x)
+
 void
 ssd_border_create(struct ssd *ssd)
 {
@@ -53,6 +55,10 @@ ssd_border_create(struct ssd *ssd)
 
 
 		if (theme->beveled_border) {
+		
+					
+			int bevelSize = 2; // TODO: configurable
+			
 			/* From Pull request 3382 */
 			uint8_t r = color[0] * 255;
 			uint8_t g = color[1] * 255;
@@ -79,74 +85,126 @@ ssd_border_create(struct ssd *ssd)
 
 			uint32_t *left_data = znew_n(uint32_t, bw);
 			uint32_t *top_data = znew_n(uint32_t, bw);
-			left_data[0] = top_data[0] = col1;
-			left_data[1] = top_data[1] = col1;
-			for (int i = 2; i < bw; i++) {
-				left_data[i] = col;
-				top_data[i] = col;
-			}
-			left_data[bw-1] = top_data[bw-1] = col0;
-			left_data[bw-2] = top_data[bw-2] = col0;
+			uint32_t *right_data = znew_n(uint32_t, theme->border_width);
+			uint32_t *bottom_data = znew_n(uint32_t, theme->border_width);
 
+			for (int i = 0; i < bw; i++) {
+				if (i<bevelSize) {
+					left_data[i] = col1;
+					top_data[i] = col1;
+					right_data[i] = col1;
+					bottom_data[i] = col1;
+
+				} else if (i > (bw-bevelSize-1)) {
+					left_data[i] = col0;
+					top_data[i] = col0;
+					right_data[i] = col0;
+					bottom_data[i] = col0;
+
+				} else {
+					left_data[i] = col;
+					top_data[i] = col;
+					right_data[i] = col;
+					bottom_data[i] = col;					
+				}
+			}
 
 
 			uint32_t *tl_data = znew_n(uint32_t, bw*bw);
 			uint32_t *tr_data = znew_n(uint32_t, bw*bw);
 			uint32_t *bl_data = znew_n(uint32_t, bw*bw);
 			uint32_t *br_data = znew_n(uint32_t, bw*bw);
+			// Fill with solid
 			for (int i=0; i<bw;i++) {
 				for (int j=0; j<bw;j++) {
-					tl_data[i*bw + j] = col;
-					tr_data[i*bw + j] = col;
-					bl_data[i*bw + j] = col;
-					br_data[i*bw + j] = col;
-					if (i<2) {
-						tl_data[i*bw + j] = col1;
-						tr_data[i*bw + j] = col1;
-					}
-					if (i>bw -3) {
-						bl_data[i*bw + j] = col0;
-						br_data[i*bw + j] = col0;
-					} 
-					if (j<2) {
-						tl_data[i*bw + j] = col1;
-						bl_data[i*bw + j] = col1;
-					}
-					if (j>bw -3) {
-						tr_data[i*bw + j] = col0;
-						br_data[i*bw + j] = col0;
-					}
+					tl_data[PIXEL(i, j)] = col;
+					tr_data[PIXEL(i, j)] = col;
+					bl_data[PIXEL(i, j)] = col;
+					br_data[PIXEL(i, j)] = col;
 				}
+			}
+
+		
+			// Main Corners
+			for (int i=0; i < bevelSize; i++) {
+			
+				// Solid bar parts
+				for (int j=0; j<bw; j++) {
+					// Top left corner:  Entire "bevel size" top rows are highlighted
+					tl_data[PIXEL(j, i)] = col1;
+					// First "bevel size" top columns are highlighted
+					tl_data[PIXEL(i, j)] = col1;
+									
+					// Bottom Right corner:  Entire "bevel size" last rows are lowlight
+					br_data[PIXEL(j, (bw-1-i))] = col0;
+					// Last "bevel size" columns are lowlight
+					br_data[PIXEL((bw-1-i), j)] = col0;
+				
+				
+					// Bottom left corner:  Entire "bevel size" last rows are lowlight
+					bl_data[PIXEL(j, (bw-1-i))] = col0;
+					// First "bevel size" columns are highlight, except for the bottom right corner
+					bl_data[PIXEL(i, j)] = col1;
+					
+					// Top Right corner:  Entire "bevel size" first rows are highlight
+					tr_data[PIXEL(j, i)] = col1;
+					// Last "bevel size" columns are lowlight, except for the top left
+					tr_data[PIXEL((bw-1-i), j)] = col0;					
+
+				}
+			}
+			// Beveled Corner Parts
+			for (int i=0; i < bevelSize; i++) {
+
+				for (int j=0; j<bevelSize; j++) {
+   		                // Outer Corners
+					// Bottom left corner: 
+					// First "bevel size" columns are highlight, except for the bottom right corner
+					bl_data[PIXEL(i, (bw - 1 - j))] = (j >= i) ? col1 : col0;
+					
+					// Top Right corner:
+					// Last "bevel size" columns are lowlight, except for the top left
+					tr_data[PIXEL((bw-1-i), j)] = (j > i) ? col0 : col1;
+					
+					
+				// Inner Corners
+					// Top left corner:  Bottom right is all dark
+					tl_data[PIXEL((bw-1-i), (bw - 1 - j))] = col0;
+					
+                                        // Bottom Right corner:  Top left is all light
+					br_data[PIXEL(i, j)] = col1;
+					
+					// Top Right corner:
+					// Interior bottom left is dark on top, light on bottom
+					tr_data[PIXEL(i, (bw-1-j))] = (i > j) ? col1 : col0;						
+					
+					// Bottom Left corner:
+					// Interior top right is dark on top, light on bottom
+					bl_data[PIXEL((bw-1-i), j)] = (i > j) ? col0 : col1;						
+
+											
+
+				}
+			
+			
 			}
 			tl_data[bw*bw -1] = col0;
 			tl_data[bw*bw -2] = col0;
 			tl_data[(bw-1)*bw -1] = col0;
 			tl_data[(bw-1)*bw -2] = col0;
 			tr_data[(bw-1)*bw + (0)] = col0;		
-			tr_data[(bw-1)*bw + (1)] = col0;
+			tr_data[(bw-1)*bw + (1)] = col1;
 			tr_data[(bw-2)*bw + (0)] = col0;		
 			tr_data[(bw-2)*bw + (1)] = col0;				
-			bl_data[(0)*bw + (bw-1)] = col1;
-			bl_data[(0)*bw + (bw-2)] = col1;
+			bl_data[(0)*bw + (bw-1)] = col0;
+			bl_data[(0)*bw + (bw-2)] = col0;
 			bl_data[(1)*bw + (bw-1)] = col1;
-			bl_data[(1)*bw + (bw-2)] = col1;
+			bl_data[(1)*bw + (bw-2)] = col0;
 			br_data[(0)*bw + (0)] = col1;
 			br_data[(0)*bw + (1)] = col1;
 			br_data[(1)*bw + (0)] = col1;
 			br_data[(1)*bw + (1)] = col1;
 
-
-			/* bottom and right are identical */
-			uint32_t *right_data = znew_n(uint32_t, theme->border_width);
-			uint32_t *bottom_data = znew_n(uint32_t, theme->border_width);
-			right_data[0]=bottom_data[0]=col1;
-			right_data[1]=bottom_data[1]=col1;
-			for (int i = 2; i < theme->border_width - 1; i++) {
-				right_data[i] = col;
-				bottom_data[i] = col;
-			}
-			right_data[theme->border_width - 1] = bottom_data[theme->border_width - 1] = col0;
-			right_data[theme->border_width - 2] = bottom_data[theme->border_width - 2] = col0;
 
 
 			struct lab_data_buffer *ttexture_buffer =

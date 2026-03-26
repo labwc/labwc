@@ -103,33 +103,49 @@ _osd_update(void)
 		cairo_rectangle(cairo, 0, 0, width, height);
 		cairo_fill(cairo);		
 
-		
-
-
 		/* Border */
-		const float highlight[4] = {
-			theme->osd_bg_color[0] * 1.25,
-			theme->osd_bg_color[1] * 1.25,
-			theme->osd_bg_color[2] * 1.25,
-			theme->osd_bg_color[3]
-		};
-		const float lowlight[4] = {
-			theme->osd_bg_color[0] / 2,
-			theme->osd_bg_color[1] / 2,
-			theme->osd_bg_color[2] / 2,
-			theme->osd_bg_color[3]
-		};
-		set_cairo_color(cairo, highlight);
-		cairo_rectangle(cairo, 0, 0, width, 2);
-		cairo_fill(cairo);
-		cairo_rectangle(cairo, 0, 0, 2, height);
-		cairo_fill(cairo);
-
-		set_cairo_color(cairo, lowlight);
-		cairo_rectangle(cairo, width-2, 0, width, height);
-		cairo_fill(cairo);
-		cairo_rectangle(cairo, 0, height-2, width, height);
-		cairo_fill(cairo);
+		if (theme->beveled_border) {
+			const float highlight[4] = {
+				MIN(theme->osd_border_color[0] * 5/4, theme->osd_border_color[3]),
+				MIN(theme->osd_border_color[1] * 5/4, theme->osd_border_color[3]),
+				MIN(theme->osd_border_color[2] * 5/4, theme->osd_border_color[3]),
+				theme->osd_border_color[3]
+			};
+			const float lowlight[4] = {
+				theme->osd_border_color[0] / 2,
+				theme->osd_border_color[1] / 2,
+				theme->osd_border_color[2] / 2,
+				theme->osd_border_color[3]
+			};
+			set_cairo_color(cairo, highlight);
+			cairo_new_path(cairo);
+			cairo_move_to(cairo, 0, 0);
+			cairo_line_to(cairo, width, 0);
+			cairo_line_to(cairo, width - theme->osd_border_width, theme->osd_border_width);
+			cairo_line_to(cairo, theme->osd_border_width, theme->osd_border_width);
+			cairo_line_to(cairo, theme->osd_border_width, height-theme->osd_border_width);
+			cairo_line_to(cairo, 0, height);
+			cairo_close_path(cairo);
+			cairo_fill(cairo);
+			
+			set_cairo_color(cairo, lowlight);
+			cairo_new_path(cairo);
+			cairo_move_to(cairo, width, 0);
+			cairo_line_to(cairo, width - theme->osd_border_width, theme->osd_border_width);
+			cairo_line_to(cairo, width - theme->osd_border_width, height-theme->osd_border_width);
+			cairo_line_to(cairo, theme->osd_border_width, height-theme->osd_border_width);
+			cairo_line_to(cairo, 0, height);
+			cairo_line_to(cairo, width, height);
+			cairo_close_path(cairo);
+			cairo_fill(cairo);
+		} else {
+			set_cairo_color(cairo, theme->osd_border_color);
+			struct wlr_fbox border_fbox = {
+				.width = width,
+				.height = height,
+				};
+			draw_cairo_border(cairo, border_fbox, theme->osd_border_width);
+		}
 
 
 		/* Boxes */

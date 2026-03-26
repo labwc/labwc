@@ -4,10 +4,15 @@
 #include <wlr/types/wlr_scene.h>
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "common/macros.h"
+#include "buffer.h"
+#include "config/rcxml.h"
+#include "theme.h"
 
 struct border_scene {
 	struct wlr_scene_tree *tree;
 	struct wlr_scene_rect *top, *bottom, *left, *right;
+	struct wlr_scene_buffer *tlcorner, *trcorner, *blcorner, *brcorner;
 };
 
 static void
@@ -28,6 +33,8 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 	rect->nr_borders = opts->nr_borders;
 	rect->borders = znew_n(rect->borders[0], opts->nr_borders);
 	rect->tree = lab_wlr_scene_tree_create(parent);
+	
+	struct theme *theme = rc.theme;
 
 	if (opts->bg_color) {
 		rect->fill = lab_wlr_scene_rect_create(rect->tree, 0, 0, opts->bg_color);
@@ -36,33 +43,105 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 	for (int i = 0; i < rect->nr_borders; i++) {
 		struct border_scene *border = &rect->borders[i];
 		float *color = opts->border_colors[i];
-		
-		/* From Pull request 3382 */
-		float r = color[0];
-		float g = color[1];
-		float b = color[2];
-		float a = color[3];
-
-		/* highlight */
-		float r1 = r * 5 / 4;
-		if (r1 > a) r1=a;
-		float g1 = g * 5 / 4;
-		if (g1 > a) g1=a;
-		float b1 = b * 5 / 4;
-		if (b1 > a) b1=a;
-
-		/* darker outline */
-		float r0 = r / 2;
-		float g0 = g / 2;
-		float b0 = b / 2;
-
-		const float highlight[4] = {r1, g1, b1, a};
-		const float lowlight[4] = {r0, g0, b0, a};
 		border->tree = lab_wlr_scene_tree_create(rect->tree);
-		border->top = lab_wlr_scene_rect_create(border->tree, 0, 0, highlight);
-		border->right = lab_wlr_scene_rect_create(border->tree, 0, 0,lowlight);
-		border->bottom = lab_wlr_scene_rect_create(border->tree, 0, 0,lowlight);
-		border->left = lab_wlr_scene_rect_create(border->tree, 0, 0,highlight);
+		
+		if (theme->beveled_border) {
+			/* From Pull request 3382 */
+			
+			int bw = rect->border_width;
+			
+			// Floats for the rect versions.
+			float r = color[0];
+			float g = color[1];
+			float b = color[2];
+			float a = color[3];
+			
+
+			float r1 = r * 5 / 4;
+			if (r1 > a) r1=a;
+			float g1 = g * 5 / 4;
+			if (g1 > a) g1=a;
+			float b1 = b * 5 / 4;
+			if (b1 > a) b1=a;
+
+			/* darker outline */
+			float r0 = r / 2;
+			float g0 = g / 2;
+			float b0 = b / 2;
+
+
+
+			// Buffers are AARRGGBB 32-bit packed int
+			uint32_t ll32 = ((uint32_t)(255*a) << 24) | ((uint32_t)(255*r0) << 16)
+				| ((uint32_t)(255*g0) << 8) | (uint32_t)(255*b0);
+			uint32_t hl32 = ((uint32_t)(255*a) << 24) | ((uint32_t)(255*r1) << 16)
+				| ((uint32_t)(255*g1) << 8) | (uint32_t)(255*b1);
+
+
+			const float highlight[4] = {r1, g1, b1, a};
+			const float lowlight[4] = {r0, g0, b0, a};
+			
+			
+			
+			
+			
+			border->top = lab_wlr_scene_rect_create(border->tree, 0, 0, highlight);
+			border->right = lab_wlr_scene_rect_create(border->tree, 0, 0, lowlight);
+			border->bottom = lab_wlr_scene_rect_create(border->tree, 0, 0, lowlight);
+			border->left = lab_wlr_scene_rect_create(border->tree, 0, 0, highlight);
+			
+			
+			
+			uint32_t *tl_data = znew_n(uint32_t, bw*bw);
+			uint32_t *tr_data = znew_n(uint32_t, bw*bw);
+			uint32_t *bl_data = znew_n(uint32_t, bw*bw);
+			uint32_t *br_data = znew_n(uint32_t, bw*bw);
+			
+
+			// Fill with solid
+			for (int j=0; j<bw;j++) {
+				for (int k=0; k<bw;k++) {
+					tl_data[PIXEL(j, k)] = hl32;
+					tr_data[PIXEL(bw - 1 - j, k)] = (j > k) ? hl32 : ll32;
+					bl_data[PIXEL(bw - 1 -j, k)] = (j > k) ? hl32 : ll32;
+					br_data[PIXEL(j, k)] = ll32;
+				}
+			}
+			
+			
+			struct lab_data_buffer *tltexture_buffer =
+				buffer_create_from_data(tl_data, bw, bw, 4*bw);
+			border->tlcorner = wlr_scene_buffer_create(parent, &tltexture_buffer->base);
+			wlr_buffer_drop(&tltexture_buffer->base);
+			
+
+			struct lab_data_buffer *trtexture_buffer =
+				buffer_create_from_data(tr_data, bw, bw, 4*bw);
+			border->trcorner = wlr_scene_buffer_create(parent, &trtexture_buffer->base);
+			wlr_buffer_drop(&trtexture_buffer->base);	
+
+
+			struct lab_data_buffer *bltexture_buffer =
+				buffer_create_from_data(bl_data, bw, bw, 4*bw);
+			border->blcorner = wlr_scene_buffer_create(parent, &bltexture_buffer->base);
+			wlr_buffer_drop(&bltexture_buffer->base);
+
+			struct lab_data_buffer *brtexture_buffer =
+				buffer_create_from_data(br_data, bw, bw, 4*bw);
+			border->brcorner = wlr_scene_buffer_create(parent, &brtexture_buffer->base);
+			wlr_buffer_drop(&brtexture_buffer->base);	
+			
+			
+			
+			
+			
+		} else {
+			border->top = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
+			border->right = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
+			border->bottom = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
+			border->left = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
+		}
+		
 		
 	}
 
@@ -104,6 +183,33 @@ resize_border(struct border_scene *border, int border_width, int width, int heig
 	wlr_scene_rect_set_size(border->bottom, width, border_width);
 	wlr_scene_rect_set_size(border->left, border_width, height - border_width * 2);
 	wlr_scene_rect_set_size(border->right, border_width, height - border_width * 2);
+	
+	struct theme *theme = rc.theme;
+	if (theme->beveled_border) {
+		wlr_scene_buffer_set_dest_size(border->tlcorner,
+				border_width, border_width);		
+			wlr_scene_node_set_position(&border->tlcorner->node,
+				0,0);	
+
+			wlr_scene_buffer_set_dest_size(border->trcorner,
+				border_width, border_width);		
+			wlr_scene_node_set_position(&border->trcorner->node,
+				width-border_width, 0);	
+
+
+			wlr_scene_buffer_set_dest_size(border->brcorner,
+				border_width, border_width);		
+			wlr_scene_node_set_position(&border->brcorner->node,
+				width-border_width , height-border_width);	
+
+
+			wlr_scene_buffer_set_dest_size(border->blcorner,
+				border_width, border_width);		
+			wlr_scene_node_set_position(&border->blcorner->node,
+				0, height-border_width);	
+	
+	
+	}
 }
 
 void

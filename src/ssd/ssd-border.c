@@ -12,7 +12,7 @@
 #include "theme.h"
 #include "view.h"
 
-#define PIXEL(x,y) (bw * y + x)
+
 
 void
 ssd_border_create(struct ssd *ssd)
@@ -188,23 +188,6 @@ ssd_border_create(struct ssd *ssd)
 			
 			
 			}
-			tl_data[bw*bw -1] = col0;
-			tl_data[bw*bw -2] = col0;
-			tl_data[(bw-1)*bw -1] = col0;
-			tl_data[(bw-1)*bw -2] = col0;
-			tr_data[(bw-1)*bw + (0)] = col0;		
-			tr_data[(bw-1)*bw + (1)] = col1;
-			tr_data[(bw-2)*bw + (0)] = col0;		
-			tr_data[(bw-2)*bw + (1)] = col0;				
-			bl_data[(0)*bw + (bw-1)] = col0;
-			bl_data[(0)*bw + (bw-2)] = col0;
-			bl_data[(1)*bw + (bw-1)] = col1;
-			bl_data[(1)*bw + (bw-2)] = col0;
-			br_data[(0)*bw + (0)] = col1;
-			br_data[(0)*bw + (1)] = col1;
-			br_data[(1)*bw + (0)] = col1;
-			br_data[(1)*bw + (1)] = col1;
-
 
 
 			struct lab_data_buffer *ttexture_buffer =

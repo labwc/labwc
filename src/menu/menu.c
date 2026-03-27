@@ -457,6 +457,7 @@ menu_create_scene(struct menu *menu)
 		.border_width = theme->menu_border_width,
 		.width = menu->size.width,
 		.height = menu->size.height,
+		.beveled = 1,
 	};
 	struct lab_scene_rect *bg_rect =
 		lab_scene_rect_create(menu->scene_tree, &opts);

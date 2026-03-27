@@ -33,8 +33,6 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 	rect->nr_borders = opts->nr_borders;
 	rect->borders = znew_n(rect->borders[0], opts->nr_borders);
 	rect->tree = lab_wlr_scene_tree_create(parent);
-	
-	struct theme *theme = rc.theme;
 
 	if (opts->bg_color) {
 		rect->fill = lab_wlr_scene_rect_create(rect->tree, 0, 0, opts->bg_color);
@@ -44,8 +42,10 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 		struct border_scene *border = &rect->borders[i];
 		float *color = opts->border_colors[i];
 		border->tree = lab_wlr_scene_tree_create(rect->tree);
-		
-		if (theme->beveled_border) {
+		// Beveled mode 0 = normal outline
+		// Beveled mode 1 = full bevel with sharp internal corners
+		// Beveled mode 2 = "light" bevel without sharp corners.
+		if (opts->beveled > 0) {
 			/* From Pull request 3382 */
 			
 			int bw = rect->border_width;
@@ -108,30 +108,34 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 				}
 			}
 			
-			
-			struct lab_data_buffer *tltexture_buffer =
-				buffer_create_from_data(tl_data, bw, bw, 4*bw);
-			border->tlcorner = wlr_scene_buffer_create(parent, &tltexture_buffer->base);
-			wlr_buffer_drop(&tltexture_buffer->base);
-			
-
-			struct lab_data_buffer *trtexture_buffer =
-				buffer_create_from_data(tr_data, bw, bw, 4*bw);
-			border->trcorner = wlr_scene_buffer_create(parent, &trtexture_buffer->base);
-			wlr_buffer_drop(&trtexture_buffer->base);	
+			if (opts->beveled == 1) {
+				struct lab_data_buffer *tltexture_buffer =
+					buffer_create_from_data(tl_data, bw, bw, 4*bw);
+				border->tlcorner = wlr_scene_buffer_create(parent, &tltexture_buffer->base);
+				wlr_buffer_drop(&tltexture_buffer->base);
 
 
-			struct lab_data_buffer *bltexture_buffer =
-				buffer_create_from_data(bl_data, bw, bw, 4*bw);
-			border->blcorner = wlr_scene_buffer_create(parent, &bltexture_buffer->base);
-			wlr_buffer_drop(&bltexture_buffer->base);
+				struct lab_data_buffer *trtexture_buffer =
+					buffer_create_from_data(tr_data, bw, bw, 4*bw);
+				border->trcorner = wlr_scene_buffer_create(parent, &trtexture_buffer->base);
+				wlr_buffer_drop(&trtexture_buffer->base);	
 
-			struct lab_data_buffer *brtexture_buffer =
-				buffer_create_from_data(br_data, bw, bw, 4*bw);
-			border->brcorner = wlr_scene_buffer_create(parent, &brtexture_buffer->base);
-			wlr_buffer_drop(&brtexture_buffer->base);	
-			
-			
+
+				struct lab_data_buffer *bltexture_buffer =
+					buffer_create_from_data(bl_data, bw, bw, 4*bw);
+				border->blcorner = wlr_scene_buffer_create(parent, &bltexture_buffer->base);
+				wlr_buffer_drop(&bltexture_buffer->base);
+
+				struct lab_data_buffer *brtexture_buffer =
+					buffer_create_from_data(br_data, bw, bw, 4*bw);
+				border->brcorner = wlr_scene_buffer_create(parent, &brtexture_buffer->base);
+				wlr_buffer_drop(&brtexture_buffer->base);	
+			} else {
+				border->tlcorner=NULL;
+				border->trcorner=NULL;
+				border->blcorner=NULL;
+				border->brcorner=NULL;
+			}
 			
 			
 			
@@ -140,6 +144,10 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 			border->right = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
 			border->bottom = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
 			border->left = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
+			border->tlcorner=NULL;
+			border->trcorner=NULL;
+			border->blcorner=NULL;
+			border->brcorner=NULL;
 		}
 		
 		
@@ -184,8 +192,7 @@ resize_border(struct border_scene *border, int border_width, int width, int heig
 	wlr_scene_rect_set_size(border->left, border_width, height - border_width * 2);
 	wlr_scene_rect_set_size(border->right, border_width, height - border_width * 2);
 	
-	struct theme *theme = rc.theme;
-	if (theme->beveled_border) {
+	if (border->tlcorner != NULL) {
 		wlr_scene_buffer_set_dest_size(border->tlcorner,
 				border_width, border_width);		
 			wlr_scene_node_set_position(&border->tlcorner->node,

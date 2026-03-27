@@ -15,6 +15,7 @@ struct lab_scene_rect_options {
 	float *bg_color; /* can be NULL */
 	int width;
 	int height;
+	int beveled;
 };
 
 struct lab_scene_rect {

@@ -45,6 +45,9 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 		// Beveled mode 0 = normal outline
 		// Beveled mode 1 = full bevel with sharp internal corners
 		// Beveled mode 2 = "light" bevel without sharp corners.
+		// This mode doesn't use the extra buffers.  It seems like when we render the window switcher
+		// it wants to render the highlight buffers "immediately" and pollute the screen, but the sides
+		// work normally
 		if (opts->beveled > 0) {
 			/* From Pull request 3382 */
 			

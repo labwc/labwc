@@ -38,23 +38,19 @@ ssd_border_create(struct ssd *ssd)
 		struct wlr_scene_tree *parent = subtree->tree;
 		wlr_scene_node_set_enabled(&parent->node, active);
 		float *color = theme->window[active].border_color;
-
-
-		subtree->left = lab_wlr_scene_rect_create(parent,
-			theme->border_width, height, color);
-	
-		subtree->right = lab_wlr_scene_rect_create(parent,
-			theme->border_width, height, color);
-	
-		subtree->bottom = lab_wlr_scene_rect_create(parent,
-			full_width, theme->border_width, color);
-	
-		subtree->top = lab_wlr_scene_rect_create(parent,
-			MAX(width - 2 * corner_width, 0), theme->border_width, color);
-
-
-
 		if (theme->beveled_border) {
+
+			// These will otherwise get left under the window when we reload
+					
+			subtree->left = lab_wlr_scene_rect_create(parent, 1, 1, color);
+
+	
+			subtree->right = lab_wlr_scene_rect_create(parent, 1, 1, color);
+	
+			subtree->bottom = lab_wlr_scene_rect_create(parent, 1, 1, color);
+	
+			subtree->top = lab_wlr_scene_rect_create(parent, 1, 1, color);
+
 		
 					
 			int bevelSize = theme->border_bevel_width; // TODO: configurable
@@ -239,11 +235,19 @@ ssd_border_create(struct ssd *ssd)
 					4*theme->border_width);
 			subtree->brcorner = wlr_scene_buffer_create(parent, &brtexture_buffer->base);
 			wlr_buffer_drop(&brtexture_buffer->base);	
-		}
-
-
+		} else {			
+		
+			subtree->left = lab_wlr_scene_rect_create(parent,
+				theme->border_width, height, color);
 	
-		if (!theme->beveled_border) {			
+			subtree->right = lab_wlr_scene_rect_create(parent,
+				theme->border_width, height, color);
+	
+			subtree->bottom = lab_wlr_scene_rect_create(parent,
+				full_width, theme->border_width, color);
+	
+			subtree->top = lab_wlr_scene_rect_create(parent,
+				MAX(width - 2 * corner_width, 0), theme->border_width, color);
 			wlr_scene_node_set_position(&subtree->left->node, 0, 0);
 			wlr_scene_node_set_position(&subtree->right->node,
 				theme->border_width + width, 0);

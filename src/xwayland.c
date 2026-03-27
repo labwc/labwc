@@ -407,7 +407,6 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&xwayland_view->set_strut_partial.link);
 	wl_list_remove(&xwayland_view->set_window_type.link);
 	wl_list_remove(&xwayland_view->focus_in.link);
-	wl_list_remove(&xwayland_view->map_request.link);
 
 	wl_list_remove(&xwayland_view->on_view.always_on_top.link);
 
@@ -790,17 +789,20 @@ check_natural_geometry(struct view *view)
 static void
 set_surface(struct view *view, struct wlr_surface *surface)
 {
+	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
 	if (view->surface) {
 		/* Disconnect wlr_surface event listeners */
 		mappable_disconnect(&view->mappable);
-		wl_list_remove(&view->commit.link);
+		wl_list_remove(&xwayland_view->map_request.link);
 	}
 	view->surface = surface;
 	if (surface) {
 		/* Connect wlr_surface event listeners */
+		struct wlr_xwayland_surface *xsurface =
+			xwayland_surface_from_view(view);
 		mappable_connect(&view->mappable, surface,
 			handle_map, handle_unmap);
-		CONNECT_SIGNAL(surface, view, commit);
+		CONNECT_SIGNAL(xsurface, xwayland_view, map_request);
 	}
 }
 
@@ -814,6 +816,8 @@ handle_map(struct wl_listener *listener, void *data)
 	if (view->mapped) {
 		return;
 	}
+
+	CONNECT_SIGNAL(view->surface, view, commit);
 
 	/*
 	 * The map_request event may not be received when an unmanaged
@@ -892,6 +896,8 @@ handle_unmap(struct wl_listener *listener, void *data)
 		wlr_scene_node_destroy(&view->content_tree->node);
 		view->content_tree = NULL;
 	}
+
+	wl_list_remove(&view->commit.link);
 }
 
 static void
@@ -1075,7 +1081,6 @@ xwayland_view_create(struct wlr_xwayland_surface *xsurface, bool mapped)
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_strut_partial);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_window_type);
 	CONNECT_SIGNAL(xsurface, xwayland_view, focus_in);
-	CONNECT_SIGNAL(xsurface, xwayland_view, map_request);
 
 	/* Events from the view itself */
 	CONNECT_SIGNAL(view, &xwayland_view->on_view, always_on_top);

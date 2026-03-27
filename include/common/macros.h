@@ -65,7 +65,6 @@
 #define LAB_WLR_VERSION_AT_LEAST(major, minor, micro) \
 	(WLR_VERSION_NUM >= (((major) << 16) | ((minor) << 8) | (micro)))
 
-
 /**
  * PIXEL () - calculate pixel offset in an array of "bw" columns wide.
  *
@@ -73,7 +72,7 @@
  * @param y y-coordinate
  * Assumes "bw" was defined externally
  */
- 
-#define PIXEL(x,y) (bw * y + x)
+
+#define PIXEL(x, y) (bw * y + x)
 
 #endif /* LABWC_MACROS_H */

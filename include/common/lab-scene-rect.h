@@ -3,9 +3,6 @@
 #define LABWC_LAB_SCENE_RECT_H
 #include <wayland-server-core.h>
 
-
-// Ensure we can access theme data to decide if we need bevels
-extern struct rcxml rc;
 struct wlr_scene_tree;
 
 struct lab_scene_rect_options {

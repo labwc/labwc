@@ -6,8 +6,6 @@
 #include "common/scene-helpers.h"
 #include "common/macros.h"
 #include "buffer.h"
-#include "config/rcxml.h"
-#include "theme.h"
 
 struct border_scene {
 	struct wlr_scene_tree *tree;

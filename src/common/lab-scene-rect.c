@@ -184,26 +184,26 @@ resize_border(struct border_scene *border, int border_width, int width, int heig
 	
 	
 		wlr_scene_buffer_set_dest_size(border->tlcorner,
-				border_width, border_width);		
-			wlr_scene_node_set_position(&border->tlcorner->node,
-				0,0);	
+			border_width, border_width);		
+		wlr_scene_node_set_position(&border->tlcorner->node,
+			0,0);	
 
-			wlr_scene_buffer_set_dest_size(border->trcorner,
-				border_width, border_width);		
-			wlr_scene_node_set_position(&border->trcorner->node,
-				width-border_width, 0);	
-
-
-			wlr_scene_buffer_set_dest_size(border->brcorner,
-				border_width, border_width);		
-			wlr_scene_node_set_position(&border->brcorner->node,
-				width-border_width , height-border_width);	
+		wlr_scene_buffer_set_dest_size(border->trcorner,
+			border_width, border_width);		
+		wlr_scene_node_set_position(&border->trcorner->node,
+			width-border_width, 0);	
 
 
-			wlr_scene_buffer_set_dest_size(border->blcorner,
-				border_width, border_width);		
-			wlr_scene_node_set_position(&border->blcorner->node,
-				0, height-border_width);	
+		wlr_scene_buffer_set_dest_size(border->brcorner,
+			border_width, border_width);		
+		wlr_scene_node_set_position(&border->brcorner->node,
+			width-border_width , height-border_width);	
+
+
+		wlr_scene_buffer_set_dest_size(border->blcorner,
+			border_width, border_width);		
+		wlr_scene_node_set_position(&border->blcorner->node,
+			0, height-border_width);	
 	
 	
 	}

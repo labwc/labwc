@@ -18,12 +18,14 @@
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "input/keyboard.h"
+#include "common/borderset.h"
 #include "labwc.h"
 #include "output.h"
 #include "protocols/cosmic-workspaces.h"
 #include "protocols/ext-workspace.h"
 #include "theme.h"
 #include "view.h"
+
 
 #define COSMIC_WORKSPACES_VERSION 1
 #define EXT_WORKSPACES_VERSION 1
@@ -98,46 +100,82 @@ _osd_update(void)
 
 		cairo = cairo_create(buffer->surface);
 
+		int bw = theme->osd_border_width;
 		/* Background */
 		set_cairo_color(cairo, theme->osd_bg_color);
-		cairo_rectangle(cairo, 0, 0, width, height);
+		cairo_rectangle(cairo, bw, bw, width-bw*2, height-bw*2);
 		cairo_fill(cairo);		
 
 		/* Border */
-		if (theme->beveled_border) {
-			const float highlight[4] = {
-				MIN(theme->osd_border_color[0] * 5/4, theme->osd_border_color[3]),
-				MIN(theme->osd_border_color[1] * 5/4, theme->osd_border_color[3]),
-				MIN(theme->osd_border_color[2] * 5/4, theme->osd_border_color[3]),
-				theme->osd_border_color[3]
-			};
-			const float lowlight[4] = {
-				theme->osd_border_color[0] / 2,
-				theme->osd_border_color[1] / 2,
-				theme->osd_border_color[2] / 2,
-				theme->osd_border_color[3]
-			};
-			set_cairo_color(cairo, highlight);
-			cairo_new_path(cairo);
-			cairo_move_to(cairo, 0, 0);
-			cairo_line_to(cairo, width, 0);
-			cairo_line_to(cairo, width - theme->osd_border_width, theme->osd_border_width);
-			cairo_line_to(cairo, theme->osd_border_width, theme->osd_border_width);
-			cairo_line_to(cairo, theme->osd_border_width, height-theme->osd_border_width);
-			cairo_line_to(cairo, 0, height);
-			cairo_close_path(cairo);
-			cairo_fill(cairo);
+		if (theme->beveled_border) {				
+			float r = theme->osd_border_color[0];
+			float g = theme->osd_border_color[1];
+			float b = theme->osd_border_color[2];
+			float a = theme->osd_border_color[3];
+
+			uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
+			struct borderset * renderedborders = getBorders(colour32, bw, 1, 0);
+		
 			
-			set_cairo_color(cairo, lowlight);
-			cairo_new_path(cairo);
-			cairo_move_to(cairo, width, 0);
-			cairo_line_to(cairo, width - theme->osd_border_width, theme->osd_border_width);
-			cairo_line_to(cairo, width - theme->osd_border_width, height-theme->osd_border_width);
-			cairo_line_to(cairo, theme->osd_border_width, height-theme->osd_border_width);
-			cairo_line_to(cairo, 0, height);
-			cairo_line_to(cairo, width, height);
-			cairo_close_path(cairo);
+			cairo_surface_t* top = cairo_image_surface_create_for_data((unsigned char *)renderedborders->top, CAIRO_FORMAT_ARGB32, 1, 1, 4);
+			cairo_set_source_surface(cairo, top, 0, 0);
+			cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+			cairo_rectangle(cairo, bw, 0, width-bw*2, bw);
 			cairo_fill(cairo);
+			cairo_surface_finish(top);
+			
+			cairo_surface_t* bottom = cairo_image_surface_create_for_data((unsigned char *)renderedborders->bottom, CAIRO_FORMAT_ARGB32, 1, 1, 4);
+			cairo_set_source_surface(cairo, bottom, 0, 0);
+			cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+			cairo_rectangle(cairo, bw, height-bw, width-bw*2, bw);
+			cairo_fill(cairo);
+			cairo_surface_finish(bottom);
+			
+			
+			cairo_surface_t* left = cairo_image_surface_create_for_data((unsigned char *)renderedborders->left, CAIRO_FORMAT_ARGB32, 1, 1, 4);
+			cairo_set_source_surface(cairo, left, 0, 0);
+			cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+			cairo_rectangle(cairo, 0, bw, bw, height-bw*2);
+			cairo_fill(cairo);
+			cairo_surface_finish(left);
+			
+			cairo_surface_t* right = cairo_image_surface_create_for_data((unsigned char *)renderedborders->right, CAIRO_FORMAT_ARGB32, 1, 1, 4);
+			cairo_set_source_surface(cairo, right, 0, 0);
+			cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+			cairo_rectangle(cairo, width-bw, bw, bw, height-bw*2);
+			cairo_fill(cairo);
+			cairo_surface_finish(right);
+			
+			
+			cairo_surface_t* tl = cairo_image_surface_create_for_data((unsigned char *)renderedborders->tl, CAIRO_FORMAT_ARGB32, bw, bw, 4*bw);
+			cairo_set_source_surface(cairo, tl, 0, 0);
+			cairo_rectangle(cairo, 0, 0, bw, bw);
+			cairo_fill(cairo);
+			cairo_surface_finish(tl);
+			
+	
+
+			
+			cairo_surface_t* tr = cairo_image_surface_create_for_data((unsigned char *)renderedborders->tr, CAIRO_FORMAT_ARGB32, bw, bw, 4*bw);
+			cairo_set_source_surface(cairo, tr, width-bw, 0);
+			cairo_rectangle(cairo, width - bw, 0, bw, bw);
+			cairo_fill(cairo);
+			cairo_surface_finish(tr);
+			
+			cairo_surface_t* bl = cairo_image_surface_create_for_data((unsigned char *)renderedborders->bl, CAIRO_FORMAT_ARGB32, bw, bw, 4*bw);
+			cairo_set_source_surface(cairo, bl, 0, height - bw);
+			cairo_rectangle(cairo, 0, height - bw, bw, bw);
+			cairo_fill(cairo);
+			cairo_surface_finish(bl);
+			
+			cairo_surface_t* br = cairo_image_surface_create_for_data((unsigned char *)renderedborders->br, CAIRO_FORMAT_ARGB32, bw, bw, 4*bw);
+			cairo_set_source_surface(cairo, br, width - bw, height -bw);
+			cairo_rectangle(cairo, width - bw, height - bw, bw, bw);
+			cairo_fill(cairo);
+			cairo_surface_finish(br);
+			
+			
+			set_cairo_color(cairo, theme->osd_border_color);
 		} else {
 			set_cairo_color(cairo, theme->osd_border_color);
 			struct wlr_fbox border_fbox = {

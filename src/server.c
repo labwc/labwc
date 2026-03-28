@@ -86,6 +86,10 @@ reload_config_and_theme(void)
 
 	scaled_buffer_invalidate_sharing();
 	rcxml_finish();
+	clearBorderCache(borderCache);
+	borderCache = NULL;
+
+	
 	rcxml_read(rc.config_file);
 	theme_finish(rc.theme);
 	theme_init(rc.theme, rc.theme_name);
@@ -101,8 +105,6 @@ reload_config_and_theme(void)
 	}
 
 	cycle_finish(/*switch_focus*/ false);
-	clearBorderCache(borderCache);
-	borderCache = NULL;
 	menu_reconfigure();
 	seat_reconfigure();
 	regions_reconfigure();

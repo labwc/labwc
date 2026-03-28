@@ -21,9 +21,9 @@ struct borderset {
 
 extern struct borderset * borderCache;
 
-struct borderset * getBorders(uint32_t id, int size, int type);
+struct borderset * getBorders(uint32_t id, int size, int type, int bevelSize);
 
-struct borderset * createBuffer(uint32_t id, int size, int type);
+struct borderset * createBuffer(uint32_t id, int size, int type, int bevelSize);
 
 void clearBorderCache(struct borderset *borderset);
 

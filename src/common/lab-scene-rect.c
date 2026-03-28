@@ -52,7 +52,7 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 			float a = color[3];
 			int bw = rect->border_width;
 			uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
-			struct borderset * renderedborders = getBorders(colour32, bw, 1);
+			struct borderset * renderedborders = getBorders(colour32, bw, 1, 0);
 
 
 

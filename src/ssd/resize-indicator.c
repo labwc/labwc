@@ -61,44 +61,8 @@ resize_indicator_init(struct view *view)
 		int bw = rc.theme->osd_border_width;
 
 		uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
-		struct borderset * renderedborders = getBorders(colour32, bw, 1, 0);		
-		struct lab_data_buffer *ttexture_buffer =
-			buffer_create_from_data(renderedborders->top, 1, 1, 4);
-		indicator->top = wlr_scene_buffer_create(indicator->tree, &ttexture_buffer->base);
-
-		struct lab_data_buffer *ltexture_buffer =
-			buffer_create_from_data(renderedborders->left, 1, 1, 4);
-		indicator->left = wlr_scene_buffer_create(indicator->tree, &ltexture_buffer->base);
-
-		struct lab_data_buffer *rtexture_buffer =
-			buffer_create_from_data(renderedborders->right, 1, 1, 4);
-		indicator->right = wlr_scene_buffer_create(indicator->tree, &rtexture_buffer->base);
-
-		struct lab_data_buffer *btexture_buffer =
-			buffer_create_from_data(renderedborders->bottom, 1, 1, 4);
-		indicator->bottom = wlr_scene_buffer_create(indicator->tree, &btexture_buffer->base);
-
-
-		struct lab_data_buffer *tltexture_buffer =
-			buffer_create_from_data(renderedborders->tl, bw, bw, 4*bw);
-		indicator->tl = wlr_scene_buffer_create(indicator->tree, &tltexture_buffer->base);
-
-
-		struct lab_data_buffer *trtexture_buffer =
-			buffer_create_from_data(renderedborders->tr, bw, bw, 4*bw);
-		indicator->tr = wlr_scene_buffer_create(indicator->tree, &trtexture_buffer->base);
-
-
-		struct lab_data_buffer *bltexture_buffer =
-			buffer_create_from_data(renderedborders->bl, bw, bw, 4*bw);
-		indicator->bl = wlr_scene_buffer_create(indicator->tree, &bltexture_buffer->base);
-
-		struct lab_data_buffer *brtexture_buffer =
-			buffer_create_from_data(renderedborders->br, bw, bw, 4*bw);
-		indicator->br = wlr_scene_buffer_create(indicator->tree, &brtexture_buffer->base);
-		
-		
-		
+		struct borderset * renderedborders = getBorders(colour32, bw, BORDER_SINGLE, 0);
+		indicator->texturedBorders = generateBufferset(indicator->tree, renderedborders, bw);		
 	}
 		
 		
@@ -171,58 +135,8 @@ resize_indicator_set_size(struct resize_indicator *indicator, int width)
 		indicator->width - 2 * rc.theme->osd_border_width,
 		indicator->height - 2 * rc.theme->osd_border_width);
 		
-	if (rc.theme->beveled_border) {
-	
-		int height = indicator->height;
-		int border_width = rc.theme->osd_border_width;
-	
-		wlr_scene_buffer_set_dest_size(indicator->top,
-				indicator->width, border_width);		
-		wlr_scene_node_set_position(&indicator->top->node,
-				0,0);	
-				
-		wlr_scene_buffer_set_dest_size(indicator->bottom,
-				indicator->width, border_width);		
-		wlr_scene_node_set_position(&indicator->bottom->node,
-				 0, height - border_width);
-				
-
-		wlr_scene_buffer_set_dest_size(indicator->left,
-				border_width, height - border_width * 2);
-		wlr_scene_node_set_position(&indicator->left->node,
-				0, border_width);	
-				
-		wlr_scene_buffer_set_dest_size(indicator->right,
-				border_width, height - border_width * 2);
-		wlr_scene_node_set_position(&indicator->right->node,
-				indicator->width - border_width, border_width);	
-				
-				
-				
-	
-	
-		wlr_scene_buffer_set_dest_size(indicator->tl,
-			border_width, border_width);		
-		wlr_scene_node_set_position(&indicator->tl->node,
-			0,0);	
-
-		wlr_scene_buffer_set_dest_size(indicator->tr,
-			border_width, border_width);		
-		wlr_scene_node_set_position(&indicator->tr->node,
-			indicator->width-border_width, 0);	
-
-
-		wlr_scene_buffer_set_dest_size(indicator->br,
-			border_width, border_width);		
-		wlr_scene_node_set_position(&indicator->br->node,
-			indicator->width-border_width , height-border_width);	
-
-
-		wlr_scene_buffer_set_dest_size(indicator->bl,
-			border_width, border_width);		
-		wlr_scene_node_set_position(&indicator->bl->node,
-			0, height-border_width);	
-	
+	if (rc.theme->beveled_border) {	
+		renderBufferset(indicator->texturedBorders, indicator->width, indicator->height, 0);	
 	}
 }
 

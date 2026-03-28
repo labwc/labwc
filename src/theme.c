@@ -532,7 +532,7 @@ static void
 theme_builtin(struct theme *theme)
 {
 	theme->border_width = 1;
-	theme->beveled_border = FALSE;
+	theme->beveled_border = false;
 	theme->border_bevel_width=0;
 	theme->window_titlebar_padding_height = 0;
 	theme->window_titlebar_padding_width = 0;

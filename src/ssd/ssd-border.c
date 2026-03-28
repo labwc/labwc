@@ -63,56 +63,9 @@ ssd_border_create(struct ssd *ssd)
 			float a = color[3];
 
 			uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
-			struct borderset * renderedborders = getBorders(colour32, bw, 2, bevelSize);
-
-			struct lab_data_buffer *ttexture_buffer =
-				buffer_create_from_data(renderedborders->top, 1,theme->border_width,
-					4);
-			subtree->ttexture = wlr_scene_buffer_create(parent, &ttexture_buffer->base);
-
-
-			struct lab_data_buffer *btexture_buffer =
-				buffer_create_from_data(renderedborders->bottom, 1,theme->border_width,
-					4);
-			subtree->btexture = wlr_scene_buffer_create(parent, &btexture_buffer->base);
-
-
-			struct lab_data_buffer *ltexture_buffer =
-				buffer_create_from_data(renderedborders->left, theme->border_width, 1,
-					4*theme->border_width);
-			subtree->ltexture = wlr_scene_buffer_create(parent, &ltexture_buffer->base);
-
-				
-			struct lab_data_buffer *rtexture_buffer =
-				buffer_create_from_data(renderedborders->right, theme->border_width, 1, 
-					4*theme->border_width);
-			subtree->rtexture = wlr_scene_buffer_create(parent, &rtexture_buffer->base);
-
-
-
-			struct lab_data_buffer *tltexture_buffer =
-				buffer_create_from_data(renderedborders->tl, theme->border_width, theme->border_width, 
-					4*theme->border_width);
-			subtree->tlcorner = wlr_scene_buffer_create(parent, &tltexture_buffer->base);
-
-			struct lab_data_buffer *trtexture_buffer =
-				buffer_create_from_data(renderedborders->tr, theme->border_width, theme->border_width, 
-					4*theme->border_width);
-			subtree->trcorner = wlr_scene_buffer_create(parent, &trtexture_buffer->base);
-
-
-
-			struct lab_data_buffer *bltexture_buffer =
-				buffer_create_from_data(renderedborders->bl, theme->border_width, theme->border_width, 
-					4*theme->border_width);
-			subtree->blcorner = wlr_scene_buffer_create(parent, &bltexture_buffer->base);
-
-			struct lab_data_buffer *brtexture_buffer =
-				buffer_create_from_data(renderedborders->br, theme->border_width, theme->border_width, 
-					4*theme->border_width);
-			subtree->brcorner = wlr_scene_buffer_create(parent, &brtexture_buffer->base);
-		} else {			
-		
+			struct borderset * renderedborders = getBorders(colour32, bw, BORDER_DOUBLE, bevelSize);
+			subtree->texturedBorders = generateBufferset(subtree->tree, renderedborders, bw);				
+		} else {				
 			subtree->left = lab_wlr_scene_rect_create(parent,
 				theme->border_width, height, color);
 	
@@ -220,47 +173,7 @@ ssd_border_update(struct ssd *ssd)
 		
 		
 		if (theme->beveled_border) {	
-			wlr_scene_buffer_set_dest_size(subtree->ttexture,
-				full_width, theme->border_width);		
-			wlr_scene_node_set_position(&subtree->ttexture->node,
-				0, -(ssd->titlebar.height + theme->border_width));
-
-			wlr_scene_buffer_set_dest_size(subtree->rtexture,
-				theme->border_width, side_height+(ssd->titlebar.height + theme->border_width));
-			wlr_scene_node_set_position(&subtree->rtexture->node,
-				theme->border_width + width, -(ssd->titlebar.height + theme->border_width));
-
-			wlr_scene_buffer_set_dest_size(subtree->btexture,
-				full_width, theme->border_width);		
-			wlr_scene_node_set_position(&subtree->btexture->node,
-				0, height);
-
-			wlr_scene_buffer_set_dest_size(subtree->ltexture,
-				theme->border_width, side_height+(ssd->titlebar.height + theme->border_width));
-			wlr_scene_node_set_position(&subtree->ltexture->node,
-				0, -(ssd->titlebar.height + theme->border_width));
-
-			wlr_scene_buffer_set_dest_size(subtree->tlcorner,
-				theme->border_width, theme->border_width);		
-			wlr_scene_node_set_position(&subtree->tlcorner->node,
-				0, -(ssd->titlebar.height + theme->border_width));	
-
-			wlr_scene_buffer_set_dest_size(subtree->trcorner,
-				theme->border_width, theme->border_width);		
-			wlr_scene_node_set_position(&subtree->trcorner->node,
-				theme->border_width + width, -(ssd->titlebar.height + theme->border_width));	
-
-
-			wlr_scene_buffer_set_dest_size(subtree->brcorner,
-				theme->border_width, theme->border_width);		
-			wlr_scene_node_set_position(&subtree->brcorner->node,
-				theme->border_width + width, height);	
-
-
-			wlr_scene_buffer_set_dest_size(subtree->blcorner,
-				theme->border_width, theme->border_width);		
-			wlr_scene_node_set_position(&subtree->blcorner->node,
-				0, height);	
+			renderBufferset(subtree->texturedBorders, full_width, side_height+(ssd->titlebar.height + 2*theme->border_width), -ssd->titlebar.height-theme->border_width);		
 		} else {
 			wlr_scene_rect_set_size(subtree->left,
 				theme->border_width, side_height);

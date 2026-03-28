@@ -114,7 +114,7 @@ _osd_update(void)
 			float a = theme->osd_border_color[3];
 
 			uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
-			struct borderset * renderedborders = getBorders(colour32, bw, 1, 0);
+			struct borderset * renderedborders = getBorders(colour32, bw, BORDER_SINGLE, 0);
 		
 			
 			cairo_surface_t* top = cairo_image_surface_create_for_data((unsigned char *)renderedborders->top, CAIRO_FORMAT_ARGB32, 1, 1, 4);

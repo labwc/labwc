@@ -35,7 +35,7 @@ cycle_osd_scroll_init(struct cycle_osd_output *osd_output, struct wlr_box bar_ar
 		.bg_color = bg_color,
 		.width = bar_area.width,
 		.height = bar_area.height * nr_visible_rows / nr_rows,
-		.beveled = 1,
+		.beveled = true,
 	};
 	scroll->bar = lab_scene_rect_create(scroll->bar_tree, &scrollbar_opts);
 }

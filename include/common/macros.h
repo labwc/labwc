@@ -74,8 +74,6 @@
  * Assumes "bw" was defined externally
  */
 
-#define PIXEL(x, y) (bw * y + x)
-
-#define PIXELSIZED(x, y, size) (size * y + x)
+#define PIXEL(x, y, size) (size * y + x)
 
 #endif /* LABWC_MACROS_H */

@@ -120,7 +120,7 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 		.bg_color = bg_color,
 		.width = w,
 		.height = h,
-		.beveled = 1,
+		.beveled = true,
 	};
 	lab_scene_rect_create(osd_output->tree, &bg_opts);
 

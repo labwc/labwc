@@ -42,10 +42,6 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 		border->tree = lab_wlr_scene_tree_create(rect->tree);
 		// Beveled mode 0 = normal outline
 		// Beveled mode 1 = full bevel with sharp internal corners
-		// Beveled mode 2 = "light" bevel without sharp corners.
-		// This mode doesn't use the extra buffers.  It seems like when we render the window switcher
-		// it wants to render the highlight buffers "immediately" and pollute the screen, but the sides
-		// work normally
 		if (opts->beveled > 0) {
 			/* From Pull request 3382 */
 			
@@ -109,37 +105,28 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 				}
 			}
 			
-			if (opts->beveled == 1) {
-				struct lab_data_buffer *tltexture_buffer =
-					buffer_create_from_data(tl_data, bw, bw, 4*bw);
-				border->tlcorner = wlr_scene_buffer_create(parent, &tltexture_buffer->base);
-				wlr_buffer_drop(&tltexture_buffer->base);
+
+			struct lab_data_buffer *tltexture_buffer =
+				buffer_create_from_data(tl_data, bw, bw, 4*bw);
+			border->tlcorner = wlr_scene_buffer_create(border->tree, &tltexture_buffer->base);
+			wlr_buffer_drop(&tltexture_buffer->base);
 
 
-				struct lab_data_buffer *trtexture_buffer =
-					buffer_create_from_data(tr_data, bw, bw, 4*bw);
-				border->trcorner = wlr_scene_buffer_create(parent, &trtexture_buffer->base);
-				wlr_buffer_drop(&trtexture_buffer->base);	
+			struct lab_data_buffer *trtexture_buffer =
+				buffer_create_from_data(tr_data, bw, bw, 4*bw);
+			border->trcorner = wlr_scene_buffer_create(border->tree, &trtexture_buffer->base);
+			wlr_buffer_drop(&trtexture_buffer->base);	
 
 
-				struct lab_data_buffer *bltexture_buffer =
-					buffer_create_from_data(bl_data, bw, bw, 4*bw);
-				border->blcorner = wlr_scene_buffer_create(parent, &bltexture_buffer->base);
-				wlr_buffer_drop(&bltexture_buffer->base);
+			struct lab_data_buffer *bltexture_buffer =
+				buffer_create_from_data(bl_data, bw, bw, 4*bw);
+			border->blcorner = wlr_scene_buffer_create(border->tree, &bltexture_buffer->base);
+			wlr_buffer_drop(&bltexture_buffer->base);
 
-				struct lab_data_buffer *brtexture_buffer =
-					buffer_create_from_data(br_data, bw, bw, 4*bw);
-				border->brcorner = wlr_scene_buffer_create(parent, &brtexture_buffer->base);
-				wlr_buffer_drop(&brtexture_buffer->base);	
-			} else {
-				border->tlcorner=NULL;
-				border->trcorner=NULL;
-				border->blcorner=NULL;
-				border->brcorner=NULL;
-			}
-			
-			
-			
+			struct lab_data_buffer *brtexture_buffer =
+				buffer_create_from_data(br_data, bw, bw, 4*bw);
+			border->brcorner = wlr_scene_buffer_create(border->tree, &brtexture_buffer->base);
+			wlr_buffer_drop(&brtexture_buffer->base);	
 		} else {
 			border->top = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
 			border->right = lab_wlr_scene_rect_create(border->tree, 0, 0, color);

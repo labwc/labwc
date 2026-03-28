@@ -150,7 +150,7 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 		.bg_color = switcher_theme->item_active_bg_color,
 		.width = switcher_theme->item_width,
 		.height = switcher_theme->item_height,
-		.beveled = 2,
+		.beveled = 1,
 	};
 	item->active_bg = lab_scene_rect_create(tree, &opts);
 

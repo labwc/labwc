@@ -203,7 +203,7 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 			.bg_color = active_bg_color,
 			.width = w - 2 * padding,
 			.height = switcher_theme->item_height,
-			.beveled = 2,
+			.beveled = 1,
 		};
 		struct lab_scene_rect *highlight_rect = lab_scene_rect_create(
 			item->active_tree, &highlight_opts);

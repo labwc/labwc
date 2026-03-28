@@ -69,6 +69,7 @@
 #include "view.h"
 #include "workspaces.h"
 #include "xwayland.h"
+#include "common/borderset.h"
 
 #define LAB_EXT_DATA_CONTROL_VERSION 1
 #define LAB_EXT_FOREIGN_TOPLEVEL_LIST_VERSION 1
@@ -100,6 +101,8 @@ reload_config_and_theme(void)
 	}
 
 	cycle_finish(/*switch_focus*/ false);
+	clearBorderCache(borderCache);
+	borderCache = NULL;
 	menu_reconfigure();
 	seat_reconfigure();
 	regions_reconfigure();

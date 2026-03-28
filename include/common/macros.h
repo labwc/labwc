@@ -66,13 +66,16 @@
 	(WLR_VERSION_NUM >= (((major) << 16) | ((minor) << 8) | (micro)))
 
 /**
- * PIXEL () - calculate pixel offset in an array of "bw" columns wide.
+ * PIXEL () - calculate pixel offset in an array
  *
  * @param x x-coordinate
  * @param y y-coordinate
+ * @param size width of the buffer in pixes
  * Assumes "bw" was defined externally
  */
 
 #define PIXEL(x, y) (bw * y + x)
+
+#define PIXELSIZED(x, y, size) (size * y + x)
 
 #endif /* LABWC_MACROS_H */

@@ -195,6 +195,30 @@ struct borderset * createBuffer(uint32_t id, int size, int type, int bevelSize) 
 		
 		
 		break;
+		
+		case 3:  // Sunken Single bevel borders have 1x1 sides
+			newBorderset->top = znew(uint32_t);
+			newBorderset->left = znew(uint32_t);
+			newBorderset->right = znew(uint32_t);		
+			newBorderset->bottom = znew(uint32_t);
+			*newBorderset->top = ll32;
+			*newBorderset->left = ll32;
+			*newBorderset->right = hl32;
+			*newBorderset->bottom = hl32;
+			
+			// Fill with solid
+			for (int j=0; j<size;j++) {
+				for (int k=0; k<size;k++) {
+					newBorderset->tl[PIXELSIZED(j, k, size)] = ll32;
+					newBorderset->tr[PIXELSIZED(size - 1 - j, k, size)] = (j > k) ? ll32 : hl32;
+					newBorderset->bl[PIXELSIZED(size - 1 -j, k, size)] = (j > k) ? ll32 : hl32;
+					newBorderset->br[PIXELSIZED(j, k, size)] = hl32;
+				}
+			}
+		
+		
+		
+		break;
 
 	}
 	return newBorderset;

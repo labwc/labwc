@@ -32,6 +32,8 @@
 #include "translate.h"
 #include "view.h"
 #include "workspaces.h"
+#include "common/borderset.h"
+#include "buffer.h"
 
 #define PIPEMENU_MAX_BUF_SIZE 1048576  /* 1 MiB */
 #define PIPEMENU_TIMEOUT_IN_MS 4000    /* 4 seconds */
@@ -163,10 +165,11 @@ item_create(struct menu *menu, const char *text, const char *icon_name, bool sho
 
 static struct wlr_scene_tree *
 item_create_scene_for_state(struct menuitem *item, float *text_color,
-	float *bg_color)
+	float *bg_color, int state)
 {
 	struct menu *menu = item->parent;
 	struct theme *theme = rc.theme;
+	struct wlr_scene_buffer *top, *left, *right, *bottom, *tl, *tr, *bl, *br;
 
 	/* Tree to hold background and label buffers */
 	struct wlr_scene_tree *tree = lab_wlr_scene_tree_create(item->tree);
@@ -190,6 +193,57 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 
 	/* Create background */
 	lab_wlr_scene_rect_create(tree, bg_width, theme->menu_item_height, bg_color);
+
+	int bw = theme->menu_border_width;	
+	if (rc.theme->beveled_border && state) {			
+		float r = bg_color[0];
+		float g = bg_color[1];
+		float b = bg_color[2];
+		float a = bg_color[3];
+
+
+		uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
+		struct borderset * renderedborders = getBorders(colour32, bw, 3, 0);		
+		struct lab_data_buffer *ttexture_buffer =
+			buffer_create_from_data(renderedborders->top, 1, 1, 4);
+		top = wlr_scene_buffer_create(tree, &ttexture_buffer->base);
+
+		struct lab_data_buffer *ltexture_buffer =
+			buffer_create_from_data(renderedborders->left, 1, 1, 4);
+		left = wlr_scene_buffer_create(tree, &ltexture_buffer->base);
+
+		struct lab_data_buffer *rtexture_buffer =
+			buffer_create_from_data(renderedborders->right, 1, 1, 4);
+		right = wlr_scene_buffer_create(tree, &rtexture_buffer->base);
+
+		struct lab_data_buffer *btexture_buffer =
+			buffer_create_from_data(renderedborders->bottom, 1, 1, 4);
+		bottom = wlr_scene_buffer_create(tree, &btexture_buffer->base);
+
+
+		struct lab_data_buffer *tltexture_buffer =
+			buffer_create_from_data(renderedborders->tl, bw, bw, 4*bw);
+		tl = wlr_scene_buffer_create(tree, &tltexture_buffer->base);
+
+
+		struct lab_data_buffer *trtexture_buffer =
+			buffer_create_from_data(renderedborders->tr, bw, bw, 4*bw);
+		tr = wlr_scene_buffer_create(tree, &trtexture_buffer->base);
+
+
+		struct lab_data_buffer *bltexture_buffer =
+			buffer_create_from_data(renderedborders->bl, bw, bw, 4*bw);
+		bl = wlr_scene_buffer_create(tree, &bltexture_buffer->base);
+
+		struct lab_data_buffer *brtexture_buffer =
+			buffer_create_from_data(renderedborders->br, bw, bw, 4*bw);
+		br = wlr_scene_buffer_create(tree, &brtexture_buffer->base);
+		
+	}	
+		
+	
+	
+	
 
 	/* Create icon */
 	bool show_app_icon = !strcmp(item->parent->id, "client-list-combined-menu")
@@ -218,6 +272,60 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	int x = theme->menu_items_padding_x + icon_width;
 	int y = (theme->menu_item_height - label_buffer->height) / 2;
 	wlr_scene_node_set_position(&label_buffer->scene_buffer->node, x, y);
+	
+	
+	if (rc.theme->beveled_border && state) {	
+	
+		int height = theme->menu_item_height;
+	
+		wlr_scene_buffer_set_dest_size(top,
+				bg_width, bw);		
+		wlr_scene_node_set_position(&top->node,
+				0,0);	
+				
+		wlr_scene_buffer_set_dest_size(bottom,
+				bg_width, bw);		
+		wlr_scene_node_set_position(&bottom->node,
+				 0, height - bw);
+				
+
+		wlr_scene_buffer_set_dest_size(left,
+				bw, height - bw * 2);
+		wlr_scene_node_set_position(&left->node,
+				0, bw);	
+				
+		wlr_scene_buffer_set_dest_size(right,
+				bw, height - bw * 2);
+		wlr_scene_node_set_position(&right->node,
+				bg_width - bw, bw);	
+				
+				
+				
+	
+	
+		wlr_scene_buffer_set_dest_size(tl,
+			bw, bw);		
+		wlr_scene_node_set_position(&tl->node,
+			0,0);	
+
+		wlr_scene_buffer_set_dest_size(tr,
+			bw, bw);		
+		wlr_scene_node_set_position(&tr->node,
+			bg_width-bw, 0);	
+
+
+		wlr_scene_buffer_set_dest_size(br,
+			bw, bw);		
+		wlr_scene_node_set_position(&br->node,
+			bg_width-bw , height-bw);	
+
+
+		wlr_scene_buffer_set_dest_size(bl,
+			bw, bw);		
+		wlr_scene_node_set_position(&bl->node,
+			0, height-bw);	
+	}
+	
 
 	if (!item->arrow) {
 		return tree;
@@ -252,10 +360,10 @@ item_create_scene(struct menuitem *menuitem, int *item_y)
 	/* Create scenes for unselected/selected states */
 	menuitem->normal_tree = item_create_scene_for_state(menuitem,
 		theme->menu_items_text_color,
-		theme->menu_items_bg_color);
+		theme->menu_items_bg_color, 0);
 	menuitem->selected_tree = item_create_scene_for_state(menuitem,
 		theme->menu_items_active_text_color,
-		theme->menu_items_active_bg_color);
+		theme->menu_items_active_bg_color, 1);
 	/* Hide selected state */
 	wlr_scene_node_set_enabled(&menuitem->selected_tree->node, false);
 
